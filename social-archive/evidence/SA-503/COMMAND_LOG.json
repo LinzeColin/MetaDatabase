@@ -1,154 +1,47 @@
 {
+  "schema_version": "1.0",
   "task_id": "SA-503",
-  "version": "v0.0.0.5",
-  "status": "PASS",
-  "recorded_at": "2026-08-02T01:38:11Z",
-  "source_main_sha": "fc3b5d8e9eedd18d76588012d40dc51483198712",
-  "secrets_logged": false,
-  "source_git_write": false,
+  "taskpack_version": "v0.0.0.6",
+  "implementation_commit": "5341745f546ec113117b34784a89d2e7e2e4dd28",
+  "implementation_tree": "90d510987be571039d729aed15f53a3c8a38b814",
+  "record_context": "v0.0.0.6 stage re-verification against the live OVH production deployment. Secret values were never printed; Bearer tokens and GitHub tokens are shown redacted.",
   "commands": [
     {
-      "sequence": 1,
-      "scope": "preparation_evidence",
-      "command": "python3 scripts/github_release_backup.py --upload",
-      "status": "BLOCKED_ENVIRONMENT",
-      "reason": "Preparation-time age recipient was absent",
-      "provider_write": false,
-      "preserved": true
-    },
-    {
-      "sequence": 2,
-      "scope": "semantic_reconcile",
-      "command": "git fetch origin main; git log HEAD..origin/main; git diff --name-status HEAD..origin/main",
-      "exit_code": 0,
-      "status": "PASS",
-      "result": "Three upstream commits touched only CyberBoss paths; social-archive overlap=false"
-    },
-    {
-      "sequence": 3,
-      "scope": "semantic_reconcile",
-      "command": "git merge --ff-only origin/main",
-      "exit_code": 0,
-      "status": "PASS",
-      "result": "Execution worktree fast-forwarded to fc3b5d8e9eedd18d76588012d40dc51483198712 with local evidence edits preserved"
-    },
-    {
-      "sequence": 4,
-      "scope": "remote_wrapper",
-      "command": "systemd transient upload without sudo",
-      "exit_code": 1,
-      "status": "FAILED_LOCAL_WRAPPER",
-      "result": "Permission denied before evidence directory or unit creation",
-      "provider_write": false
-    },
-    {
-      "sequence": 5,
-      "scope": "production_scoped_token_upload",
-      "command": "github_release_backup.py --limit 1 --upload via systemd LoadCredential",
+      "command": ".venv/bin/python scripts/github_release_backup.py --upload",
+      "command_sha256": "571b8f9c6d8e80bbe70731baffc02606196548b72f8c27689f858a90c0cd0193",
+      "executed": true,
       "exit_code": 3,
       "status": "BLOCKED_ENVIRONMENT",
-      "result": "Configured private archive repository could not be verified; no Draft was created",
-      "provider_write": false,
-      "evidence": "/var/lib/social-archive/evidence/SA-503/20260802T012049Z/UPLOAD.json",
-      "evidence_sha256": "9f16050f1c3ad4963578520a30ebaa8ed52784946f6762012aa5bf6470c86b43"
+      "summary": "GitHub 私有归档仓验证失败。根因两项：归档仓原配置指向 Private-Database；专用 Vault 仓实际不存在。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
     },
     {
-      "sequence": 6,
-      "scope": "readiness_wrapper",
-      "command": "systemd credential readiness diagnostic without --pipe",
-      "exit_code": 0,
-      "status": "FAILED_LOCAL_WRAPPER",
-      "result": "No stdin reached the verifier; empty evidence file only; no GitHub API call",
-      "provider_write": false,
-      "evidence": "/var/lib/social-archive/evidence/SA-503/20260802T012224Z-github-readiness.json",
-      "evidence_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-    },
-    {
-      "sequence": 7,
-      "scope": "readiness",
-      "command": "gh api user and gh repo view via configured production credential",
-      "exit_code": 0,
-      "status": "PASS_DIAGNOSTIC",
-      "result": "Identity LinzeColin valid; LinzeColin/Social-Archive-Vault absent or inaccessible",
-      "provider_write": false,
-      "evidence": "/var/lib/social-archive/evidence/SA-503/20260802T012250Z-github-readiness.json",
-      "evidence_sha256": "37da67507f08cfb1c2aee3cfecec861cde497f76d2c9469761bd457e2277255b"
-    },
-    {
-      "sequence": 8,
-      "scope": "repository_provision_attempt",
-      "command": "gh repo create LinzeColin/Social-Archive-Vault --private --add-readme using production credential",
-      "status": "PROVIDER_DENIED",
-      "provider_result": "HTTP 403 Resource not accessible by personal access token",
-      "result": "Repository not created",
-      "provider_write": false,
-      "evidence": "/var/lib/social-archive/evidence/SA-503/20260802T012529Z-repository-provision.json",
-      "evidence_sha256": "4f50e254a719a6b1b06b529bdaa08980e4acf0878aad0090cba7771f6ebdf0b9"
-    },
-    {
-      "sequence": 9,
-      "scope": "repository_provision",
-      "command": "gh repo create LinzeColin/Social-Archive-Vault --private --add-readme --disable-issues --disable-wiki using Owner session",
+      "command": "gh repo create LinzeColin/Social-Archive-Vault --private",
+      "command_sha256": "05294e8a4cf622853caa14853a04164dcdb585d6faf67ac1d776a481de47f602",
+      "executed": true,
       "exit_code": 0,
       "status": "PASS",
-      "result": "Private repository initialized; production token remained unable to access the new repository",
-      "provider_write": true,
-      "source_code_write": false
+      "summary": "已重建为 private=true, default_branch=main。",
+      "environment": "local"
     },
     {
-      "sequence": 10,
-      "scope": "github_third_replica",
-      "command": "github_release_backup.py --limit 1 --upload via one-time Owner systemd LoadCredential",
+      "command": "sed -i 's|^SOCIAL_ARCHIVE_GITHUB_ARCHIVE_REPOSITORY=.*|...Social-Archive-Vault|' .env",
+      "command_sha256": "284182389ea275375fe92f0dc520b0ccd3748c425a25338d8f75cc1f72f53bb0",
+      "executed": true,
       "exit_code": 0,
       "status": "PASS",
-      "result": "One private Draft Release uploaded and read back; object_replica github receipt persisted",
-      "provider_write": true,
-      "plaintext_write": false,
-      "evidence": "/var/lib/social-archive/evidence/SA-503/20260802T012805Z/UPLOAD.json",
-      "evidence_sha256": "d8f3e4b9b59ff41e447eee3fafcae4602db6fabd9b4faaf350139e20c646944e",
-      "ephemeral_credential_removed": true
+      "summary": "已改指专用 Vault，原 .env 保留于 /opt/social-archive-rollback/。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
     },
     {
-      "sequence": 11,
-      "scope": "independent_verifier",
-      "command": "Draft verification using REST releases/tags endpoint",
-      "exit_code": 2,
-      "status": "FAILED_VERIFIER_ADAPTER",
-      "result": "Draft-by-tag REST lookup returned 404; no provider write or reupload",
-      "provider_write": false,
-      "evidence": "/var/lib/social-archive/evidence/SA-503/20260802T012805Z/VERIFY-FAILED-20260802T013113Z.json",
-      "evidence_sha256": "7c2753ccb21b1889969906e603373c9d88a9a0e0b5651e5b51f69117e6331034"
-    },
-    {
-      "sequence": 12,
-      "scope": "independent_verifier",
-      "command": "gh release view plus fresh asset download, manifest, tar and age-member verification",
-      "exit_code": 2,
-      "status": "PARTIAL_VERIFIER_PASS",
-      "result": "All GitHub assertions passed; custom DB locator missed runtime/social-archive.sqlite3",
-      "provider_write": false,
-      "evidence": "/var/lib/social-archive/evidence/SA-503/20260802T012805Z/VERIFY-FAILED-20260802T013311Z.json",
-      "evidence_sha256": "ce6ca3cb4f876d88ca15822d6a3924a66c1fb5deeb993bf836d752b49f2f9485",
-      "ephemeral_credential_removed": true
-    },
-    {
-      "sequence": 13,
-      "scope": "database_receipt_verification",
-      "command": "Read-only query of runtime/social-archive.sqlite3 object_replica for target artifact",
-      "exit_code": 0,
-      "status": "PASS",
-      "result": "Exactly R2, OCI and GitHub verified rows; original SHA, ciphertext SHA and age-x25519 all equal",
-      "provider_write": false
-    },
-    {
-      "sequence": 14,
-      "scope": "final_evidence",
-      "command": "Merge independent download assertions with real object_replica schema into production RESULT.json",
-      "exit_code": 0,
-      "status": "PASS",
-      "provider_write": false,
-      "evidence": "/var/lib/social-archive/evidence/SA-503/20260802T012805Z/RESULT.json",
-      "evidence_sha256": "df6a7e545501d0bccf27ffdb1e152b4c230220b5627e9e79e5d3397d0c578af1"
+      "command": "GH_TOKEN=<redacted> gh api /repos/LinzeColin/Social-Archive-Vault",
+      "command_sha256": "704d9050c12374c5abbeadb24b6b676e29deea4246524675c6beacb76fc8932e",
+      "executed": true,
+      "exit_code": 1,
+      "status": "BLOCKED_ENVIRONMENT",
+      "summary": "token 仍 404：细粒度 token 按仓库 ID 选择，重建同名仓无法重新挂上。以其被授予的 contents/releases 动作探测同样 404，故非探测方式错误。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
     }
-  ]
+  ],
+  "generated_at": "2026-08-03T07:40:00Z"
 }

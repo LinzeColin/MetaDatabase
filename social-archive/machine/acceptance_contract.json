@@ -1,7 +1,7 @@
 {
   "schema_version": "3.0",
   "project": "Social Archive",
-  "taskpack_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.6",
   "frozen_at": "2026-08-02",
   "scope_change_rule": "只有最新事实导致架构、权限、数据、成本、范围或 Acceptance 超过 30% 实质变化时退回 Preparation；普通兼容调整留在 Stage 0。",
   "items": [

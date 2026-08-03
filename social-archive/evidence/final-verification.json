@@ -5,7 +5,7 @@
   "results": [
     {
       "argv": [
-        "/Users/linzezhang/.codex/worktrees/acc9/MetaDatabase/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/MetaDatabase/infallible-kepler-bf304a/social-archive/.venv/bin/python",
         "-B",
         "-m",
         "compileall",
@@ -19,7 +19,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/.codex/worktrees/acc9/MetaDatabase/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/MetaDatabase/infallible-kepler-bf304a/social-archive/.venv/bin/python",
         "scripts/check_brand.py"
       ],
       "exit_code": 0,
@@ -28,7 +28,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/.codex/worktrees/acc9/MetaDatabase/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/MetaDatabase/infallible-kepler-bf304a/social-archive/.venv/bin/python",
         "scripts/secret_scan.py",
         "."
       ],
@@ -38,7 +38,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/.codex/worktrees/acc9/MetaDatabase/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/MetaDatabase/infallible-kepler-bf304a/social-archive/.venv/bin/python",
         "scripts/validate_compose.py",
         "compose.yaml"
       ],
@@ -48,7 +48,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/.codex/worktrees/acc9/MetaDatabase/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/MetaDatabase/infallible-kepler-bf304a/social-archive/.venv/bin/python",
         "scripts/validate_compose.py",
         "compose.readers.yaml"
       ],
@@ -58,7 +58,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/.codex/worktrees/acc9/MetaDatabase/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/MetaDatabase/infallible-kepler-bf304a/social-archive/.venv/bin/python",
         "scripts/validate_compose.py",
         "compose.workers.yaml"
       ],
@@ -68,7 +68,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/.codex/worktrees/acc9/MetaDatabase/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/MetaDatabase/infallible-kepler-bf304a/social-archive/.venv/bin/python",
         "scripts/validate_systemd.py"
       ],
       "exit_code": 0,

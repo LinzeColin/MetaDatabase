@@ -1,19 +1,29 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-404",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "taskpack_version": "v0.0.0.6",
+  "implementation_commit": "5341745f546ec113117b34784a89d2e7e2e4dd28",
+  "implementation_tree": "90d510987be571039d729aed15f53a3c8a38b814",
+  "record_context": "v0.0.0.6 stage re-verification against the live OVH production deployment. Secret values were never printed; Bearer tokens and GitHub tokens are shown redacted.",
   "commands": [
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage4_replication_exports.py",
-      "command_sha256": "945a236e07c96a2d7581595ad6d355b4eb7d5caf07e6115ea5ad10b1f7b13c70",
+      "command": "curl -X POST .../v1/library/<cid>/export -d '{\"destination_ids\":[\"notion\",\"markdown\"]}'",
+      "command_sha256": "a21837c474543413ff18f80ca863cd75e164e1fcec192b94a643138234e6382b",
       "executed": true,
-      "status": "PASS",
       "exit_code": 0,
-      "summary": "1 stage replication/export test passed."
+      "status": "PASS",
+      "summary": "不可用目的地明确进入 skipped_destination_ids，健康目的地仍完成，Canonical Store 前后完全一致，不回滚。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
+    },
+    {
+      "command": ".venv/bin/python -m pytest -q tests/stage/test_stage4_replication_exports.py",
+      "command_sha256": "1d333f40432f51c36f1bf06f962529098efd140207f449a0470c73c265d231e0",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Stage 4 冻结门命令通过；阶段门整体受 SA-402 阻塞。",
+      "environment": "local"
     }
   ],
-  "record_sha256": "29afe9e84d98f4724d1ab34b2e4297e2535b2ec426ef23aeaf3d890a16359274"
+  "generated_at": "2026-08-03T07:40:00Z"
 }

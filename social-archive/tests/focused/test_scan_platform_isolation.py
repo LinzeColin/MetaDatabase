@@ -305,3 +305,106 @@ console.log(JSON.stringify({{
             },
         ],
     }
+
+
+def test_relation_tab_active_matches_real_world_class_spellings(tmp_path):
+    # The class test used to require a standalone "active" token, so the
+    # ordinary BEM and utility spellings every Chinese SPA ships never matched.
+    # The selected tab could then never be confirmed and the scan imported
+    # nothing -- the "sync always reports 0" symptom. Negated spellings must
+    # still fail, or likes would be mislabelled as favorites.
+    import json
+    import subprocess
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    cases = {
+        "active": True, "is-active": True, "tab--selected": True, "active_tab": True,
+        "channel is-active": True, "nav-item current": True, "is_selected": True,
+        "inactive": False, "deactivated": False, "unselected": False,
+        "non-current": False, "in-active": False, "un_selected": False,
+        "tab": False, "reactive": False,
+    }
+    script = """
+const core = require(process.argv[1]);
+const cases = JSON.parse(process.argv[2]);
+const out = {};
+for (const cls of Object.keys(cases)) {
+  const root = { querySelectorAll: () => [ { className: cls, textContent: "收藏", getAttribute: () => "", tagName: "DIV", click(){} } ] };
+  out[cls] = core.ensureRelationScope("xiaohongshu", "favorite", root, { allowClick: false }).reason === "TAB_ALREADY_SELECTED";
+}
+console.log(JSON.stringify(out));
+"""
+    result = subprocess.run(
+        ["node", "-e", script, str(root / "apps/browser-extension/content/account-mirror-core.js"), json.dumps(cases)],
+        capture_output=True, text=True, check=True,
+    )
+    assert json.loads(result.stdout) == cases
+
+
+def test_unconfirmed_relation_scope_reports_the_real_tab_markup():
+    # A stale selector must be repairable against what the page actually ships,
+    # not guessed at.
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    core = (root / "apps/browser-extension/content/account-mirror-core.js").read_text(encoding="utf-8")
+    mirror = (root / "apps/browser-extension/content/account-mirror.js").read_text(encoding="utf-8")
+    assert "relationTabDiagnostic" in core
+    assert "observed_tabs" in core
+    assert "observed_tabs: relationScope.observed_tabs" in mirror
+
+
+def test_profile_scoped_relations_use_the_stored_profile_url():
+    # The spec placeholder https://www.xiaohongshu.com/user/profile carries no
+    # user id and is nobody's profile, so navigating there found no relation
+    # tabs and every run imported nothing. The connect flow already stores the
+    # real profile URL; resolveRelationUrl must prefer it.
+    from pathlib import Path
+
+    background = (Path(__file__).resolve().parents[2] / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    resolver = background.split("function resolveRelationUrl", 1)[1].split("\n}", 1)[0]
+    assert "sameOriginUrl(profileUrl, url)" in resolver
+    assert "url = profileUrl" in resolver
+    # The narrower per-platform overrides must still win over the generic swap.
+    assert resolver.index("url = profileUrl") < resolver.index('platform === "x"')
+
+
+def test_scan_failures_record_a_readable_error_not_object_object():
+    # String() on a thrown array or plain object produced "[object Object]"
+    # repeated, which is what earlier real failures recorded, leaving them
+    # undiagnosable.
+    from pathlib import Path
+
+    background = (Path(__file__).resolve().parents[2] / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    assert "function describeScanError" in background
+    assert "cursor: { error: describeScanError(error) }" in background
+    assert "String(error?.message || error).slice(0, 300)" not in background
+
+
+def test_sync_all_uses_the_account_profile_url_not_the_callers():
+    # enqueueAllAccounts -- the "sync everything" button, the primary path --
+    # never threaded a profileUrl through, so resolveRelationUrl fell back to
+    # the userless placeholder and the scan found no relation tabs at all. The
+    # account record already carries the real profile URL, so read it there
+    # instead of trusting the caller.
+    from pathlib import Path
+
+    background = (Path(__file__).resolve().parents[2] / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    assert "function accountProfileUrl(account)" in background
+    assert "profileUrl: options.profileUrl || accountProfileUrl(account)" in background
+    resolver = background.split("function accountProfileUrl", 1)[1].split("\n}", 1)[0]
+    for source in ("metadata?.profile_url", "profile_url", "external_account_id"):
+        assert source in resolver
+
+
+def test_a_closed_mirror_tab_does_not_kill_the_remaining_relations():
+    # One closed tab took out every later relation with "No tab with id", so a
+    # single Bilibili tab disappearing wiped favourites, watch-later and
+    # history in one go.
+    from pathlib import Path
+
+    background = (Path(__file__).resolve().parents[2] / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    loop = background.split("for (let index = 0; index < spec.relations.length; index += 1) {", 1)[1][:600]
+    assert "chrome.tabs.get(tab.id).catch(() => null)" in loop
+    assert "if (!live) tab = await chrome.tabs.create(" in loop

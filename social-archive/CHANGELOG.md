@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.0.0.6 — 生产切换与真实回执（DEGRADED，未发布）
+
+- 生产此前从未运行 v0.0.0.6。此前证据把 Cloudflare Tunnel 源判为开发机上的容器，该结论已撤回：公网端点与开发机回环在同一时刻报告不同版本，开发机上根本没有 cloudflared，而只部署 OVH 主机就让公网端点翻版。真实源是 OVH `vps-83b882b4` 的 `/opt/social-archive`。当前候选已切换上线：`social-archive/core:0.0.0.6`、公网 API 报告 `0.0.0.6`、PWA 提供 `assets/app.js?v=006-r1`，三个容器健康。
+- 修复配对码轮换永远到不了运行中 Core 的缺陷。Compose 把每个 Secret 以**单文件** bind mount 发布，容器跟的是 inode，而轮换用的是临时文件加 `os.replace`，于是 Core 永远读到轮换前的记录。这正是生产长期停在 `one_time_code_available=false, attempts_remaining=0`、任何扩展都无法配对的原因，此前被记为无法解释的环境阻塞。现改为在 `flock` 下原地写入，读取侧取共享锁；线上实测轮换后无需重启即可生效。
+- 修复 C/POSIX locale 下会中止脚本的引用缺陷。`start_readers.sh` 与 `prepare_systemd_host.sh` 在全角标点前直接插值裸变量，systemd 与 `docker exec` 的默认 locale 会把首个续接字节并进标识符，`set -u` 随即中止。四处已加花括号并有全仓回归。
+- 修复 `doctor.sh --self-test` 在生产机上以不指明文件的 `UnicodeDecodeError` 崩溃：部署树里残留九个 macOS AppleDouble 伴随文件，其中两个紧邻 `api.py` 与 `db.py`。已清除，自检现在会指名报错。
+- 修复第三密文副本的身份错误。归档仓原配置指向 `Private-Database`，会把对象字节面并进结构化事实面；已改指专用 Vault。该 Vault 实际并不存在（此前有运行记录声称已创建），已重建为 private。
+- 修复冷备两存储的串行耦合：R2 失败会把 OCI 标为 `blocked_prerequisite` 而根本不尝试，使异地副本在最需要的时候从两份直接掉到零份。冻结任务包本就是独立遍历两个存储，此处恢复该行为。
+- `ExportRequest` 与 `PairingRequest` 此前接受未知字段，写错字段名会返回 202 却什么都没导出。两者现在拒绝多余字段。
+- 完成 SA-002 遗漏的身份迁移：五个 `machine/*.json` 契约仍标 `v0.0.0.5`。
+- 真实回执：17 个 artifact 全部复制到 R2 与 OCI（各 17/17）；GitHub 私有 Markdown、本地 Markdown、Obsidian Vault 与 JSONL 具有相同 `projection_sha256`，GitHub 副本经开发机独立取回后本地重算校验；Private-Database 免 clone 事实投递且复跑为 `NO_CHANGE`；冷备两份已校验远端副本，R2 与 OCI 均可恢复到同一明文哈希。Obsidian 本不需要 Token —— 该目的地优先直写文件系统 Vault。
+- 完整应用回归 310 passed；结构验证 PASS；干净解压的封存任务包自检 PASS（0 失败、395 条清单哈希、97 个候选测试）。
+- **本版本未发布**：32 项中 9 项为 `BLOCKED_ENVIRONMENT`，归结为四个只能由 Owner 在对应服务界面解除的根因——扩展未安装、缺 Vault 细粒度 token、缺 Notion Integration token、宿主机磁盘容量。未推送、未打 tag、未发布 Release、未启用任何 timer。完整清单见 `evidence/v0.0.0.6/VALIDATION_REPORT.md` 与 `RELEASE_CHECKLIST_STATUS.md`。
+
 ## v0.0.0.4 — Final Task Pack closure
 
 - 完成冻结 Social Archive v0.0.0.4 Task Pack 的 32/32 项验收：保留聚焦证明有效的

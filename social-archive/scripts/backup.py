@@ -245,17 +245,20 @@ def main() -> int:
         return 4
 
     key = f"backups/private-database/{stamp}/{encrypted.original_sha256}.tar.gz.age"
+    # Both stores receive the same locally produced ciphertext, so the offsite
+    # copy does not depend on the primary having succeeded.  Chaining them meant
+    # an R2 outage marked OCI blocked_prerequisite and never attempted it, taking
+    # the offsite copy from two copies straight to zero -- exactly when it is
+    # most needed.  Attempt each independently; the overall verdict below still
+    # requires both to verify.
     receipts: dict[str, Any] = {}
-    try:
-        receipts["r2"] = _upload_and_verify(r2_config, encrypted.path, key, encrypted, backup_root / "readback" / "r2.age")
-    except Exception as exc:  # noqa: BLE001 - provider boundary
-        receipts["r2"] = {"status": "failed", "error_code": exc.__class__.__name__}
-        receipts["oci"] = {"status": "blocked_prerequisite", "error_code": "R2_BACKUP_NOT_VERIFIED"}
-    else:
+    for store_id, store_config in (("r2", r2_config), ("oci", oci_config)):
         try:
-            receipts["oci"] = _upload_and_verify(oci_config, encrypted.path, key, encrypted, backup_root / "readback" / "oci.age")
+            receipts[store_id] = _upload_and_verify(
+                store_config, encrypted.path, key, encrypted, backup_root / "readback" / f"{store_id}.age"
+            )
         except Exception as exc:  # noqa: BLE001 - provider boundary
-            receipts["oci"] = {"status": "failed", "error_code": exc.__class__.__name__}
+            receipts[store_id] = {"status": "failed", "error_code": exc.__class__.__name__}
 
     manifest = {
         "schema_version": "3.0",

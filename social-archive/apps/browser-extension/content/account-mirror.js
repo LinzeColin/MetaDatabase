@@ -78,7 +78,10 @@
           cursor: {
             page_url: SAMirrorCore.canonicalUrl(location.href),
             relation_scope_reason: relationScope.reason,
-            relation_scope_clicked: relationScope.clicked
+            relation_scope_clicked: relationScope.clicked,
+            // Carries the real tab markup so a stale selector can be repaired
+            // against what the page actually ships rather than guessed at.
+            observed_tabs: relationScope.observed_tabs || []
           },
           failureCode: "RELATION_SCOPE_UNCONFIRMED"
         };

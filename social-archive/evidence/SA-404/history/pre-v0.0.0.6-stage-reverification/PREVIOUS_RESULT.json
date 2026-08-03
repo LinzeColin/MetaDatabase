@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-404",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S4",
+  "title": "通过多目的地阶段门",
+  "status": "PASS",
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "adapt",
+  "acceptance_ids": [
+    "AC-SA-404"
+  ],
+  "tests": [
+    "TEST-SA-404"
+  ],
+  "oracle": "同一内容同时导出到已启用目的地，单目的地故障不回滚 Canonical Store，可重试和对账。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "1 stage replication/export test passed.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+  },
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "ce06409400b5b1cc72645cf2212c38b9868cc00fe2b5090f66173ebb2d3f9c65"
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "task_ids": ["SA-401", "SA-402", "SA-403", "SA-404"],
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T06:36:00Z",
+  "status": "PARTIAL",
+  "scope": "real_destination_probe_write_and_independent_readback_on_production",
+  "executed_on": "OVH vps-83b882b4, /opt/social-archive",
+  "probe_results": {
+    "github": {"state": "connected", "configured": true, "authorized": true, "display_name": "GitHub 私有 Markdown", "latency_ms": 502},
+    "markdown": {"state": "connected", "configured": true, "authorized": true, "root": "/var/lib/social-archive/exports/markdown", "latency_ms": 2},
+    "obsidian": {"state": "connected", "configured": true, "authorized": true, "mode": "vault", "latency_ms": 3},
+    "notion": {"state": "needs_user_action", "configured": false, "authorized": false, "next_action_zh": "创建免费 Integration，共享目标数据源，再填写 Secret 与 data_source_id。"}
+  },
+  "real_export": {
+    "content_id": "cnt_701e57f09db0891e4389a5977ea61dd3",
+    "content_title": "Social Archive Canary",
+    "requested_destination_ids": ["github", "markdown", "obsidian"],
+    "skipped_destination_ids": [],
+    "receipts": [
+      {"destination_id": "markdown", "status": "done", "error_code": null, "remote_path": "/var/lib/social-archive/exports/markdown/generic-web/social-archive-canary-7ea61dd3.md"},
+      {"destination_id": "github", "status": "done", "error_code": null, "remote_path": "Private-MetaDatabase/SocialArchive/markdown/generic-web/social-archive-canary-7ea61dd3.md"},
+      {"destination_id": "obsidian", "status": "done", "error_code": null, "remote_path": "/var/lib/social-archive/obsidian-vault/Social Archive/generic-web/social-archive-canary-7ea61dd3.md"}
+    ]
+  },
+  "independent_readback_verification": {
+    "recorded_projection_sha256": "5033b3415bfbdd01d865aaf953358ddb40c087e443c84e8f164d6d6d562e53d0",
+    "github_copy_sha256": "5033b3415bfbdd01d865aaf953358ddb40c087e443c84e8f164d6d6d562e53d0",
+    "obsidian_vault_copy_sha256": "5033b3415bfbdd01d865aaf953358ddb40c087e443c84e8f164d6d6d562e53d0",
+    "all_match": true,
+    "github_readback_method": "GitHub contents API fetched independently from the developer machine, base64-decoded and hashed locally; not a re-read of the writer's own buffer."
+  },
+  "what_this_proves": [
+    "The same content projection was independently exported to three enabled destinations and is byte-identical in all of them, which is the multi-destination oracle for SA-404.",
+    "SA-401's GitHub private Markdown destination performs a real authorized write into a private repository and the result is externally readable.",
+    "SA-403's Obsidian and standard Markdown destinations both write and read back."
+  ],
+  "single_destination_failure_isolation": {
+    "method": "Requested an export to an unavailable destination (notion, unconfigured) together with a working one (markdown), then compared the canonical row before and after.",
+    "response": {"destination_ids": ["markdown"], "skipped_destination_ids": ["notion"]},
+    "canonical_row_before_equals_after": true,
+    "receipts_after": [{"destination_id": "markdown", "status": "done", "error_code": null}],
+    "verdict": "PASS — the unavailable destination is reported explicitly in skipped_destination_ids rather than silently dropped, the healthy destination still completes, and the Canonical Store is untouched. No rollback."
+  },
+  "what_this_does_not_prove": [
+    "SA-402. Notion is unconfigured: it needs a free Integration token plus a shared data_source_id, both of which can only be created in Notion's own UI by the account holder. Recorded as needs_user_action, not PASS.",
+    "SA-404 closure. The reconciliation and retry-after-transient-provider-error path was not exercised; the isolation case above uses an unavailable destination, not a destination that fails mid-write.",
+    "The JSONL half of SA-403.",
+    "Any account-level mirror. The exported row is the canary content, because no real account sync has run yet."
+  ],
+  "non_actions": [
+    "No secret value was printed to terminal, transcript, evidence or Git.",
+    "No repository setting, branch protection, or destination binding was changed.",
+    "No user content beyond the canary row was exported in this run."
+  ]
+}

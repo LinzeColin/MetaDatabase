@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-404",
-  "taskpack_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.6",
   "stage": "S4",
   "title": "通过多目的地阶段门",
-  "status": "PASS",
+  "status": "BLOCKED_ENVIRONMENT",
   "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
+  "live_environment_status": "BLOCKED_ENVIRONMENT",
   "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "adapt",
+  "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
   "acceptance_ids": [
     "AC-SA-404"
   ],
@@ -17,14 +17,17 @@
   ],
   "oracle": "同一内容同时导出到已启用目的地，单目的地故障不回滚 Canonical Store，可重试和对账。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "1 stage replication/export test passed.",
+  "result_summary": "同一内容已独立导出到三个已启用目的地且字节一致；单目的地不可用时明确列入 skipped 且 Canonical Store 前后完全未变，不回滚。但阶段门要求 Notion 在内的全部目的地，且未演练 provider 中途失败后的重试与对账。",
+  "evidence": [
+    "evidence/SA-404/V006_MULTI_DESTINATION_RECEIPTS_20260803.json"
+  ],
+  "blocking_reason": "依赖 SA-402；且重试/对账路径未演练。",
   "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+    "implementation_commit": "812d7a02d303df22c8845b437c36a52f471e3195",
+    "full_application_regression": "310 passed",
+    "taskpack_verify": "PASS, 395 manifest entries, 0 failures"
   },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "ce06409400b5b1cc72645cf2212c38b9868cc00fe2b5090f66173ebb2d3f9c65"
+  "predecessor_evidence": "evidence/SA-404/history/pre-v0.0.0.6-stage-reverification/PREVIOUS_RESULT.json",
+  "supersedes": "该任务此前的 RESULT.json 记录为 v0.0.0.5 的 PASS。在 v0.0.0.6 下沿用那个 PASS 会把未真正运行的环境门伪装成已通过，故按实测结果重写。",
+  "generated_at": "2026-08-03T07:35:00Z"
 }

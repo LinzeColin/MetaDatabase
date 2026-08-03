@@ -213,3 +213,42 @@ def test_paused_run_rejects_late_batch_until_resumed(settings, store, service):
     assert len(store.list_sync_seen_relation_ids(
         sync_run_id=run_id, relation_type="favorite", collection_key="tech"
     )) == 2
+
+
+def test_batch_accepts_the_item_shape_the_browser_mirror_actually_sends():
+    # CaptureRequest forbids unknown fields. The browser account mirror labels
+    # every scanned item with its collection_name, which the model did not
+    # declare, so the server answered 422 and the entire batch was discarded --
+    # items were discovered and sent, then thrown away at the door, which is
+    # exactly the "sync always reports 0" symptom.
+    from social_archive.models import SyncBatchRequest
+
+    batch = SyncBatchRequest.model_validate({
+        "relation_type": "favorite",
+        "scope_type": "collection",
+        "collection_key": "默认收藏夹",
+        "collection_name": "默认收藏夹",
+        "completeness": "partial",
+        "items": [{
+            "platform": "xiaohongshu",
+            "url": "https://www.xiaohongshu.com/explore/abc123",
+            "relation_type": "favorite",
+            "relation_observed_at": "2026-08-03T10:00:00Z",
+            "collection_key": "默认收藏夹",
+            "collection_name": "默认收藏夹",
+            "title": "标题",
+            "media_urls": [],
+            "raw_metadata": {"capture_source": "browser_account_mirror"},
+            "requested_levels": ["L0", "L1", "L3"],
+            "destination_ids": ["social_archive"],
+        }],
+    })
+    assert len(batch.items) == 1
+    assert batch.items[0].collection_name == "默认收藏夹"
+    # A genuinely unknown field must still be rejected.
+    import pytest
+    with pytest.raises(Exception):
+        SyncBatchRequest.model_validate({
+            "relation_type": "favorite",
+            "items": [{"platform": "xiaohongshu", "url": "https://www.xiaohongshu.com/explore/x", "not_a_real_field": 1}],
+        })

@@ -55,11 +55,15 @@
       if (status?.pairing_required === true && !status.one_time_code_available) {
         serviceReady = false;
         $("serviceState").className = "state error";
-        $("serviceState").textContent = "等待服务准备";
+        $("serviceState").textContent = "等待配对码";
         $("serviceBadge").className = "badge error";
-        $("serviceBadge").textContent = "配对服务待准备";
-        $("pairingArea").classList.add("hidden");
-        setServiceMessage("私人档案馆已就绪，但服务端当前没有可用的一次性配对记录。插件已停止配对尝试；不会请求或改变任一平台的登录状态。", "needs");
+        $("serviceBadge").textContent = "等待配对码";
+        // Keep the input visible.  Hiding it here dead-ended the user: a code
+        // lives at most ten minutes, so by the time one is in hand this branch
+        // has usually gone true again, and with the field hidden there was no
+        // way forward and no way to retry.
+        $("pairingArea").classList.remove("hidden");
+        setServiceMessage("私人档案馆已就绪，正在等待一次性配对码。拿到码后直接粘贴到下面并点“一键连接”即可；配对码十分钟内有效。插件不会请求或改变任一平台的登录状态。", "needs");
         return false;
       }
       await SA.api("/v1/extension/bootstrap", {timeoutMs:6000});

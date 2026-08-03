@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-401",
-  "taskpack_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.6",
   "stage": "S4",
   "title": "完成 GitHub Private-Database Markdown 目的地",
   "status": "PASS",
   "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
+  "live_environment_status": "PASS",
   "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "equivalent",
+  "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
   "acceptance_ids": [
     "AC-SA-401"
   ],
@@ -17,14 +17,17 @@
   ],
   "oracle": "Markdown 与结构化事实使用确定性路径和幂等提交；无新增事实不空提交。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "15 no-clone Private-Database and destination tests passed.",
+  "result_summary": "GitHub 私有 Markdown 目的地已完成真实 Probe/Write/Read：写入 LinzeColin/Private-Database，并由开发机独立经 contents API 取回后本地重算 SHA-256，与收据 projection_sha256 完全一致。",
+  "evidence": [
+    "evidence/SA-404/V006_MULTI_DESTINATION_RECEIPTS_20260803.json"
+  ],
+  "blocking_reason": null,
   "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+    "implementation_commit": "812d7a02d303df22c8845b437c36a52f471e3195",
+    "full_application_regression": "310 passed",
+    "taskpack_verify": "PASS, 395 manifest entries, 0 failures"
   },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "4f6ab286511e58f9842260ca13f7e17e7f89e756d3affea18a2b5f0d7ef12184"
+  "predecessor_evidence": "evidence/SA-401/history/pre-v0.0.0.6-stage-reverification/PREVIOUS_RESULT.json",
+  "supersedes": "该任务此前的 RESULT.json 记录为 v0.0.0.5 的 PASS。在 v0.0.0.6 下沿用那个 PASS 会把未真正运行的环境门伪装成已通过，故按实测结果重写。",
+  "generated_at": "2026-08-03T07:35:00Z"
 }

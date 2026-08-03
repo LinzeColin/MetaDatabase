@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-000",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T07:20:00Z",
+  "status": "PASS",
+  "scope": "reverification_of_sealed_taskpack_integrity_at_the_current_working_head",
+  "result": {
+    "overall": "PASS",
+    "taskpack_verdict": "PASS",
+    "failures": [],
+    "manifest_entries_verified": 395,
+    "candidate_tests": "97 passed, 1 pre-existing non-failing Starlette deprecation warning",
+    "product_runtime_verdict": "NOT_RUN"
+  },
+  "false_failure_investigated_and_explained": {
+    "what_happened": "A first run of START_HERE.py verify reported overall FAIL with seven failures: structured_syntax, package_hygiene, task_dag, sidecar_compose, application_tests, subject_identity and manifest.",
+    "none_were_pack_defects": true,
+    "causes": [
+      "Running 07_IMPLEMENTATION/apply/semantic_classify.py from inside the extracted pack wrote 07_IMPLEMENTATION/apply/__pycache__ into the pack itself. That alone produced package_hygiene junk, subject_identity file_count 395 versus actual 396, and a manifest set mismatch naming the .pyc.",
+      "The interpreter chosen for that run had neither PyYAML nor pytest, which produced structured_syntax, task_dag and application_tests failures.",
+      "sidecar_compose reporting 'cli-tools service missing' was downstream of the same PyYAML absence: the checker could not parse the compose files it was asserting against. It passes once the parser is available, so it was not a real Compose defect."
+    ],
+    "resolution": [
+      "Re-extracted the sealed ZIP into a clean directory and verified with the project's own .venv interpreter (PyYAML 6.0.3, pytest 9.1.1): overall PASS, zero failures.",
+      "Removed the __pycache__ contamination from the working extraction and re-verified it as well: overall PASS, zero failures."
+    ],
+    "lesson": "The pack verifier asserts over its own directory, so running any pack tooling from inside the extraction invalidates its integrity check. Run pack tooling from outside, or re-extract before verifying, and always verify with an interpreter that has PyYAML and pytest."
+  },
+  "corroborating_local_check": {
+    "command": "scripts/final_verify.py",
+    "status": "PASS",
+    "suite_mode": "structural",
+    "application_suite_rerun": false,
+    "checks": ["compileall src scripts", "check_brand", "secret_scan", "validate_compose x3", "validate_systemd"]
+  },
+  "what_this_does_not_prove": [
+    "Any product runtime behaviour. This is Task Pack integrity only, and product_runtime_verdict remains NOT_RUN in the pack's own report.",
+    "Closure of any environment-bound task."
+  ]
+}

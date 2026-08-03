@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-403",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T06:34:05Z",
+  "status": "PASS",
+  "scope": "real_obsidian_destination_probe_write_and_receipt_on_production",
+  "executed_on": "OVH vps-83b882b4, /opt/social-archive",
+  "root_cause_of_prior_block": {
+    "prior_belief": "Obsidian was blocked because obsidian_rest_token was an empty 0-byte secret and no vault was configured.",
+    "actual": "The destination prefers a filesystem vault and falls back to the Local REST API only when no vault root is set. The REST token was never required. The earlier check also read SOCIAL_ARCHIVE_OBSIDIAN_VAULT, which is not the variable the product reads; the real name is SOCIAL_ARCHIVE_OBSIDIAN_VAULT_ROOT.",
+    "fix": "Set SOCIAL_ARCHIVE_OBSIDIAN_VAULT_ROOT=/var/lib/social-archive/obsidian-vault, inside the existing bind-mounted data plane so the vault persists on the host and the Owner can open or sync it directly. Directory created 10001:10001 mode 2770. Prior .env preserved at /opt/social-archive-rollback/env-before-obsidian-vault.bak."
+  },
+  "probe": {
+    "destination_id": "obsidian",
+    "state": "connected",
+    "configured": true,
+    "authorized": true,
+    "enabled": true,
+    "automatic": true,
+    "latency_ms": 3,
+    "capabilities": {
+      "mode": "vault",
+      "write": true,
+      "readback": true,
+      "root": "/var/lib/social-archive/obsidian-vault/Social Archive"
+    }
+  },
+  "real_write": {
+    "content_id": "cnt_701e57f09db0891e4389a5977ea61dd3",
+    "content_title": "Social Archive Canary",
+    "job_id": "job_480a091f18b1b1804c03ae27e214c18d",
+    "file_written": "/var/lib/social-archive/obsidian-vault/Social Archive/generic-web/social-archive-canary-7ea61dd3.md",
+    "receipt": {
+      "id": "dstreceipt_7b580e1da58982e25413afd409df0545",
+      "destination_id": "obsidian",
+      "status": "done",
+      "projection_sha256": "5033b3415bfbdd01d865aaf953358ddb40c087e443c84e8f164d6d6d562e53d0",
+      "error_code": null,
+      "message_zh": "导入完成。",
+      "evidence_json": {
+        "idempotent_binding": true,
+        "provider_status": "done"
+      }
+    }
+  },
+  "incidental_finding": {
+    "what": "POST /v1/library/{id}/export takes destination_ids. A request sent with a `destinations` key is accepted with HTTP 202 and silently exports nothing, returning empty destination_ids, skipped_destination_ids and job_ids.",
+    "impact": "A caller using the wrong field name cannot tell success from a silent no-op, because the skipped list stays empty too.",
+    "status": "recorded, not yet fixed"
+  },
+  "what_this_does_not_prove": [
+    "SA-402. Notion remains unconfigured and is not addressed here.",
+    "Any account-level mirror. The exported items are existing captures, since no real account sync has run."
+  ],
+  "non_actions": [
+    "No Obsidian REST token, Notion token, or any other secret was created, read, or written.",
+    "No user content other than the canary row was exported in this run.",
+    "No timer, tag, release, or push occurred."
+  ],
+  "standard_markdown_and_jsonl_export": {
+    "command": "scripts/export_all.py",
+    "status": "done",
+    "item_count": 3,
+    "changed_files": 9,
+    "noop_files": 0,
+    "output_root": "/var/lib/social-archive/exports",
+    "artifacts_produced": [
+      "library.jsonl",
+      "markdown/",
+      "obsidian-vault/",
+      "notion-import.csv",
+      "feed.json",
+      "bookmarks.html",
+      "archivebox-urls.txt",
+      "EXPORT_MANIFEST.json"
+    ],
+    "jsonl_record_keys": [
+      "artifact_count",
+      "author_name",
+      "canonical_url",
+      "collection_key",
+      "content_id",
+      "first_observed_at",
+      "last_observed_at",
+      "metadata",
+      "platform",
+      "published_at",
+      "relation_status",
+      "relation_type",
+      "schema_version",
+      "text",
+      "title",
+      "verified_replica_count"
+    ],
+    "verdict": "PASS — the standard Markdown and JSONL halves of SA-403 both produce real, well-formed output on production."
+  },
+  "incidental_finding_notion_csv": {
+    "what": "export_all.py also emits notion-import.csv.",
+    "why_it_matters": "It gives a zero-credential path to get the library into Notion by manual CSV import. It is not the SA-402 API destination and does not substitute for it, but it means the Owner is not entirely without a Notion route while the Integration token is missing."
+  }
+}

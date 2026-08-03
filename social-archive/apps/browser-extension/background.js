@@ -163,6 +163,19 @@ async function injectFabIfAuthorized(tabId, url) {
 const PENDING_CONNECTIONS_KEY = "saPendingAccountConnections";
 const SYNC_QUEUE_KEY = "saAccountSyncQueue";
 const SYNC_QUEUE_LOCK_KEY = "saAccountSyncQueueLock";
+// A live sync refreshes its lock on every batch, so anything older than this
+// belongs to a worker MV3 has already terminated.
+const SYNC_QUEUE_LOCK_STALE_MS = 3 * 60 * 1000;
+
+async function refreshSyncQueueLock() {
+  const stored = await chrome.storage.local.get({ [SYNC_QUEUE_LOCK_KEY]: null });
+  const lock = stored[SYNC_QUEUE_LOCK_KEY];
+  if (lock) await chrome.storage.local.set({ [SYNC_QUEUE_LOCK_KEY]: { ...lock, heartbeatAt: Date.now() } });
+}
+
+// A lock can only be held by the running worker. If this file is evaluating,
+// any lock in storage was left by a worker that is already gone.
+chrome.storage.local.remove(SYNC_QUEUE_LOCK_KEY).catch(() => {});
 const SYNC_QUEUE_LAST_RESULT_KEY = "saAccountSyncQueueLastResult";
 const SYNC_CONTROL_KEY = "saSyncRunControls";
 const SYNC_QUEUE_ALARM = "sa-account-sync-queue";
@@ -311,10 +324,18 @@ async function enqueueAllAccounts(triggerType = "manual") {
 async function processSyncQueue() {
   const stored = await chrome.storage.local.get({ [SYNC_QUEUE_LOCK_KEY]: null });
   const lock = stored[SYNC_QUEUE_LOCK_KEY];
-  if (lock && Date.now() - Number(lock.startedAt || 0) < 2 * 60 * 60 * 1000) {
+  // The lock is released in a finally, but MV3 terminates the service worker at
+  // will, and a worker killed mid-sync never runs it. The lock then survived in
+  // storage for two hours while every later click returned "busy" and did
+  // nothing, with enqueue still reporting ok, so the UI showed no error and the
+  // sync counters sat at zero. A lock is only meaningful while the worker that
+  // took it is alive, so heartbeatAt has to be recent, not merely startedAt.
+  const heldFor = Date.now() - Number(lock?.heartbeatAt || lock?.startedAt || 0);
+  if (lock && heldFor < SYNC_QUEUE_LOCK_STALE_MS) {
     await scheduleSyncQueue();
     return { ok: true, state: "busy" };
   }
+  if (lock) await chrome.storage.local.remove(SYNC_QUEUE_LOCK_KEY);
   const queue = await getSyncQueue();
   const item = queue.shift();
   if (!item) return { ok: true, state: "empty" };
@@ -324,7 +345,7 @@ async function processSyncQueue() {
     if (queue.length) await scheduleSyncQueue();
     return { ok: true, state: queuedControl.action === "pause" ? "paused" : "cancelled", syncRunId: item.syncRunId };
   }
-  await chrome.storage.local.set({ [SYNC_QUEUE_LOCK_KEY]: { accountId: item.accountId, startedAt: Date.now() } });
+  await chrome.storage.local.set({ [SYNC_QUEUE_LOCK_KEY]: { accountId: item.accountId, startedAt: Date.now(), heartbeatAt: Date.now() } });
   let result;
   try {
     result = await syncAccountById(item.accountId, item);
@@ -388,6 +409,9 @@ async function findExistingPlatformTab(platform, preferredTabId = null) {
 }
 
 async function sendSyncBatch(syncRunId, body) {
+  // Every batch proves the worker is still alive, which is what keeps a long
+  // scan from having its own lock treated as abandoned.
+  await refreshSyncQueueLock();
   return SA.api(`/v1/sync-runs/${encodeURIComponent(syncRunId)}/batches`, {
     method: "POST",
     body: JSON.stringify(body),
@@ -530,9 +554,37 @@ async function connectPlatform(platform) {
   return connectBrowserPlatform(platform);
 }
 
+function describeScanError(error) {
+  if (error instanceof Error) return `${error.name}: ${error.message}`.slice(0, 300);
+  if (typeof error === "string") return error.slice(0, 300);
+  if (error && typeof error.message === "string" && error.message) return error.message.slice(0, 300);
+  try {
+    return JSON.stringify(error, (_key, value) => (value instanceof Error ? `${value.name}: ${value.message}` : value)).slice(0, 300);
+  } catch (_) {
+    return String(error).slice(0, 300);
+  }
+}
+
+function sameOriginUrl(candidate, reference) {
+  try {
+    const a = new URL(candidate);
+    const b = new URL(reference);
+    return a.hostname === b.hostname || a.hostname.endsWith(`.${b.hostname}`) || b.hostname.endsWith(`.${a.hostname}`);
+  } catch (_) {
+    return false;
+  }
+}
+
 function resolveRelationUrl(platform, relation, profileUrl = "") {
   const spec = platformSpec(platform);
   let url = spec?.relationUrls?.[relation] || spec?.home;
+  // Favorites and likes live as tabs on the owner's own profile for
+  // Xiaohongshu, Douyin and Kuaishou, but the spec placeholder carries no user
+  // id -- https://www.xiaohongshu.com/user/profile is not anybody's profile.
+  // Navigating there lands on a page with no relation tabs at all, so the scan
+  // reported RELATION_TAB_NOT_FOUND and imported nothing on every run. The
+  // connect flow already stored the real profile URL; prefer it.
+  if (profileUrl && spec?.relationUrls?.[relation] && sameOriginUrl(profileUrl, url)) url = profileUrl;
   if (platform === "x" && relation === "like" && /https:\/\/x\.com\/[^/]+/i.test(profileUrl)) url = `${profileUrl.replace(/\/$/, "")}/likes`;
   if (platform === "bilibili" && /space\.bilibili\.com\/\d+/i.test(profileUrl)) {
     const base = profileUrl.match(/https:\/\/space\.bilibili\.com\/\d+/i)?.[0];
@@ -689,6 +741,11 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
   const results = [];
   for (let index = 0; index < spec.relations.length; index += 1) {
     const relation = spec.relations[index];
+    // The mirror tab can disappear mid-run -- the Owner closes it, or the site
+    // replaces it. Every later relation then died on "No tab with id", so one
+    // closed tab wiped out the whole platform. Re-open before each relation.
+    const live = await chrome.tabs.get(tab.id).catch(() => null);
+    if (!live) tab = await chrome.tabs.create({ url: spec.home, active: false });
     try {
       const relationResult = await scanOneBrowserRelation({ tabId: tab.id, platform: account.platform, relation, syncRunId, profileUrl });
       results.push(relationResult);
@@ -705,7 +762,10 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
         items: [],
         completeness: "failed",
         failure_code: "BROWSER_SCAN_FAILED",
-        cursor: { error: String(error?.message || error).slice(0, 300) },
+        // String() on a thrown array or plain object yields "[object Object]"
+        // repeated, which is exactly what earlier failures recorded and why
+        // they could not be diagnosed at all.
+        cursor: { error: describeScanError(error) },
         has_more: false
       }));
     }
@@ -783,9 +843,21 @@ async function syncAccountById(accountId, options = {}) {
     account,
     syncRunId: options.syncRunId || null,
     tabId: options.tabId || null,
-    profileUrl: options.profileUrl || "",
+    // Take the profile URL from the account itself rather than trusting the
+    // caller to thread it through. enqueueAllAccounts -- the "sync everything"
+    // button, which is the primary path -- never passed one, so the scan fell
+    // back to the userless placeholder and found no relation tabs at all.
+    profileUrl: options.profileUrl || accountProfileUrl(account),
     triggerType: options.triggerType || "manual"
   });
+}
+
+function accountProfileUrl(account) {
+  const candidates = [account?.metadata?.profile_url, account?.profile_url, account?.external_account_id];
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && /^https?:\/\//i.test(candidate)) return candidate;
+  }
+  return "";
 }
 
 async function syncAllAccounts(triggerType = "manual") {

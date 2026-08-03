@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import fcntl
 import os
 import json
 import secrets
@@ -18,16 +19,34 @@ def human_pairing_code() -> str:
 
 def atomic_secret(path: Path, value: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    existing = path.stat() if path.exists() else None
+    payload = (value + "\n").encode("utf-8")
+    if path.exists():
+        # Compose bind-mounts every secret as an individual file, so a running
+        # container follows the *inode* rather than the path.  Rotating by
+        # rename therefore published a new host file that Core could never see:
+        # it kept serving the pre-rotation record until the container was
+        # recreated, which is why a refreshed pairing code stayed unavailable.
+        # Rewrite in place under an exclusive lock instead; this also preserves
+        # the mode and the 10001:10001 shared-Secret ownership that production
+        # host preparation assigns.
+        descriptor = os.open(path, os.O_WRONLY)
+        try:
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX)
+            except OSError:
+                pass
+            os.lseek(descriptor, 0, os.SEEK_SET)
+            written = 0
+            while written < len(payload):
+                written += os.write(descriptor, payload[written:])
+            os.ftruncate(descriptor, len(payload))
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+        return
     temp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
-    temp.write_text(value + "\n", encoding="utf-8")
-    os.chmod(temp, (existing.st_mode & 0o777) if existing else 0o600)
-    # Production host preparation may intentionally assign the non-root Docker
-    # and systemd shared Secret bridge (10001:10001, 0640).  A root-triggered
-    # pairing refresh must preserve that ownership instead of recreating a
-    # root-only file that Core cannot read through a Compose file secret.
-    if existing is not None and os.geteuid() == 0:
-        os.chown(temp, existing.st_uid, existing.st_gid)
+    temp.write_bytes(payload)
+    os.chmod(temp, 0o600)
     os.replace(temp, path)
 
 

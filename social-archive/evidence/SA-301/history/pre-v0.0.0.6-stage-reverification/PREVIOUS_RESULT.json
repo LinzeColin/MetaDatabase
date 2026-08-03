@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-301",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S3",
+  "title": "完成统一资料库 Feed/Grid/Detail",
+  "status": "PASS",
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "adapt",
+  "acceptance_ids": [
+    "AC-SA-301"
+  ],
+  "tests": [
+    "TEST-SA-301"
+  ],
+  "oracle": "Feed/Grid/Detail 使用统一内容/关系模型，平台内容不重复，手机和桌面均可用。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "5 library/UI tests passed; stronger feed/grid/detail behavior retained.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+  },
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "ce8f4f5b96d492f388196e1131d58a24cd7b9d1df83a5c96dd321559c482b4dc"
+}

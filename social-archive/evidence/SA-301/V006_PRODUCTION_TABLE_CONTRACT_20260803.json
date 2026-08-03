@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "task_ids": ["SA-301", "SA-302"],
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T07:02:00Z",
+  "status": "PASS",
+  "scope": "owner_approved_table_contract_verified_against_the_live_production_library",
+  "executed_on": "OVH vps-83b882b4, authenticated loopback against the running v0.0.0.6 Core",
+  "owner_approved_prototype": {
+    "artifact": "Social_Archive_UIUX_Table_Prototype_v0.0.0.6.html",
+    "expected_sha256": "237127a2d8fdefd511b68e75b45ba7d920dd8fa08eb0423d02a45eb236d01839",
+    "measured_sha256": "237127a2d8fdefd511b68e75b45ba7d920dd8fa08eb0423d02a45eb236d01839",
+    "match": true,
+    "navigation_entries": ["资料库", "账号同步", "自动导出", "设置"],
+    "shipped_pwa_matches_prototype_navigation": true,
+    "note": "README_FIRST prose describes five entries named 首页/资料库/连接中心/任务中心/设置. The approved prototype is the binding UI contract and CANONICAL_STATE ranks above that prose in CONFLICT_RESOLUTION, so the shipped four-entry navigation is correct and was not changed."
+  },
+  "production_default_projection": {
+    "sort_by": "time",
+    "sort_dir": "desc",
+    "verdict": "PASS — default ordering is relation time, newest first",
+    "total": 3,
+    "facets": ["platforms", "topics"]
+  },
+  "mandatory_columns_present_in_every_row": {
+    "platform": true,
+    "relation_time": true,
+    "topic": true,
+    "keywords": true,
+    "content": "title and summary both projected",
+    "url": "canonical_url",
+    "verdict": "PASS"
+  },
+  "additional_default_columns_observed": [
+    "account_name", "archive_status", "artifact_count", "author_name",
+    "classification_confidence", "classification_source", "collections",
+    "export_destinations", "export_done_count", "external_content_id",
+    "language", "last_observed_at", "last_synced_at", "media_count",
+    "primary_collection", "primary_relation", "published_at", "relation_id",
+    "relations", "row_rank"
+  ],
+  "any_allowed_column_sorting": {
+    "platform_asc": {"observed_order": ["bilibili", "generic-web", "generic-web"], "verdict": "PASS"},
+    "relation_time_asc": {"observed_order": ["2026-07-31T11:53:10.477090Z", "2026-08-01T13:01:56.609711Z", "2026-08-02T05:02:40.092526Z"], "verdict": "PASS"},
+    "relation_time_desc": {"observed_order": ["2026-08-02T05:02:40.092526Z", "2026-08-01T13:01:56.609711Z", "2026-07-31T11:53:10.477090Z"], "verdict": "PASS — exact reverse of ascending"}
+  },
+  "server_side_search_and_filter": {
+    "chinese_full_text_query": {"q": "火箭", "total": 1, "matched_title": "中美可回收火箭以及航天产业对比报告【思维实验室】", "verdict": "PASS"},
+    "platform_filter": {"platform": "bilibili", "total": 1, "verdict": "PASS"}
+  },
+  "no_demo_data_in_production": {
+    "rows_scanned": 3,
+    "demo_or_sample_looking_rows": 0,
+    "verdict": "PASS"
+  },
+  "what_this_does_not_prove": [
+    "SA-303 account sync centre control state, SA-304 optional reader projections, or the SA-305 stage gate.",
+    "The rendered browser experience. This verifies the server projection the approved table consumes, not a screenshot of the page behind Cloudflare Access.",
+    "Any account-level mirror; the three rows are existing captures, since no real account sync has run."
+  ],
+  "non_actions": [
+    "No production data was created, modified or deleted; every request was a read.",
+    "No secret value was printed to terminal, transcript, evidence or Git."
+  ]
+}

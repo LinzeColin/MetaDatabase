@@ -96,6 +96,31 @@ def test_pairing_generator_preserves_existing_secret_mode(tmp_path):
     assert secret.stat().st_mode & 0o777 == 0o640
 
 
+def test_pairing_rotation_keeps_the_inode_a_bind_mount_follows(tmp_path):
+    # Compose publishes every secret as an individual file bind mount, so the
+    # running Core follows the inode.  Rotating by rename left production
+    # serving the pre-rotation record forever, which presented as a refreshed
+    # code that never became available.
+    import importlib.util
+
+    script = Path(__file__).parents[2] / "scripts/generate_pairing_code.py"
+    spec = importlib.util.spec_from_file_location("pairing_generator_inode", script)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    secret = tmp_path / "pairing-code"
+    secret.write_text("previous-and-much-longer-than-the-replacement\n", encoding="utf-8")
+    secret.chmod(0o640)
+    before = secret.stat().st_ino
+
+    module.atomic_secret(secret, "replacement")
+
+    assert secret.stat().st_ino == before, "rotation must not swap the inode a bind mount follows"
+    assert secret.read_text(encoding="utf-8") == "replacement\n", "stale bytes must be truncated"
+    assert secret.stat().st_mode & 0o777 == 0o640
+    assert not list(tmp_path.glob(".*tmp")), "in-place rotation must not leave a temporary secret behind"
+
+
 def test_pairing_generator_rejects_more_than_ten_minutes(tmp_path):
     import subprocess
     script = Path(__file__).parents[2] / "scripts/generate_pairing_code.py"
@@ -185,3 +210,56 @@ def test_pairing_edge_is_api_host_only_size_bounded_and_rate_limited(tmp_path, m
     assert client.post("/v1/pairing/exchange", headers=api_headers, json={"code": "WRONGX"}).status_code == 401
     assert client.post("/v1/pairing/exchange", headers=api_headers, json={"code": "WRONGX"}).status_code == 401
     assert client.post("/v1/pairing/exchange", headers=api_headers, json={"code": "WRONGX"}).status_code == 429
+
+
+def _issue_client(tmp_path, monkeypatch, *, token="device-token"):
+    data = tmp_path / "issue-data"
+    pwa = tmp_path / "issue-pwa"
+    pwa.mkdir()
+    (pwa / "index.html").write_text("ok", encoding="utf-8")
+    token_file = tmp_path / "issue-token"
+    token_file.write_text(token + "\n", encoding="utf-8")
+    token_file.chmod(0o600)
+    monkeypatch.setenv("SOCIAL_ARCHIVE_DATA_ROOT", str(data))
+    monkeypatch.setenv("SOCIAL_ARCHIVE_RUNTIME_DB", str(data / "db.sqlite"))
+    monkeypatch.setenv("SOCIAL_ARCHIVE_PWA_ROOT", str(pwa))
+    monkeypatch.setenv("SOCIAL_ARCHIVE_PAIRING_REQUIRED", "true")
+    monkeypatch.setenv("SOCIAL_ARCHIVE_API_TOKEN_FILE", str(token_file))
+    monkeypatch.setenv("SOCIAL_ARCHIVE_TRUST_CLOUDFLARE_ACCESS", "true")
+    monkeypatch.setenv("SOCIAL_ARCHIVE_PUBLIC_BASE_URL", "https://social-archive-api.linzezhang.com")
+    monkeypatch.setenv("SOCIAL_ARCHIVE_PUBLIC_LIBRARY_URL", "https://social-archive.linzezhang.com")
+    import social_archive.api as api
+    importlib.reload(api)
+    return TestClient(api.app)
+
+
+def test_library_page_can_issue_device_config_without_a_one_time_code(tmp_path, monkeypatch):
+    # Typing a one-time code was the zero-barrier failure: it lives ten minutes,
+    # so the Owner raced a clock to copy a string by hand.
+    client = _issue_client(tmp_path, monkeypatch)
+    response = client.post(
+        "/v1/pairing/issue",
+        headers={"host": "social-archive.linzezhang.com", "cf-access-jwt-assertion": "a" * 80},
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["token"] == "device-token"
+    assert payload["endpoint"] == "https://social-archive-api.linzezhang.com"
+
+
+def test_issue_refuses_a_bearer_token_and_the_api_hostname(tmp_path, monkeypatch):
+    # The route must be reachable only from the Access-authenticated library
+    # page, never by anything holding just a Bearer token.
+    client = _issue_client(tmp_path, monkeypatch)
+    assert client.post("/v1/pairing/issue").status_code == 403
+    assert client.post(
+        "/v1/pairing/issue", headers={"Authorization": "Bearer device-token"}
+    ).status_code == 403
+    assert client.post(
+        "/v1/pairing/issue",
+        headers={"host": "social-archive-api.linzezhang.com", "cf-access-jwt-assertion": "a" * 80},
+    ).status_code == 403
+    assert client.post(
+        "/v1/pairing/issue",
+        headers={"host": "social-archive.linzezhang.com", "cf-access-jwt-assertion": "short"},
+    ).status_code == 403

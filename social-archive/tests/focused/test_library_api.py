@@ -47,7 +47,10 @@ def test_library_uses_one_content_card_for_multiple_relations_and_preserves_deta
     assert len(items) == 1
     content_id = items[0]['id']
     filtered = client.get('/v1/library?platform=generic-web&relation=bookmark').json()['items']
-    assert [(item['id'], item['relation_type']) for item in filtered] == [(content_id, 'bookmark')]
+    # One card carries every relation it was saved under, so the row exposes a
+    # de-duplicated `relations` list rather than a single `relation_type`.
+    assert [item['id'] for item in filtered] == [content_id]
+    assert 'bookmark' in filtered[0]['relations']
     detail = client.get(f'/v1/library/{content_id}').json()
     assert {relation['relation_type'] for relation in detail['relations']} == {'manual_save', 'bookmark'}
 
@@ -88,7 +91,10 @@ def test_library_filters_literal_full_text_collection_and_observed_date(tmp_path
     assert [item['id'] for item in client.get('/v1/library?q=中文正文').json()['items']] == [content_id]
     assert [item['id'] for item in client.get('/v1/library?q=中文检索needle').json()['items']] == [content_id]
     filtered = client.get('/v1/library?platform=generic-web&relation=bookmark&collection=research').json()['items']
-    assert [(item['id'], item['relation_type'], item['collection_key']) for item in filtered] == [(content_id, 'bookmark', 'research')]
+    # Same one-card-many-relations projection: `relations` and `collections`
+    # replace the singular relation_type/collection_key on a library row.
+    assert [item['id'] for item in filtered] == [content_id]
+    assert 'bookmark' in filtered[0]['relations'] and 'research' in filtered[0]['collections']
     assert [item['id'] for item in client.get('/v1/library?q=research').json()['items']] == [content_id]
 
     observed_day = filtered[0]['last_observed_at'][:10]
@@ -98,3 +104,24 @@ def test_library_filters_literal_full_text_collection_and_observed_date(tmp_path
     assert [item['id'] for item in same_day_scope] == [content_id]
     assert client.get('/v1/library?observed_from=9999-01-01').json()['items'] == []
     assert client.get('/v1/library?observed_from=not-a-date').status_code == 422
+
+
+def test_export_rejects_an_unknown_field_instead_of_silently_exporting_nothing(tmp_path, monkeypatch):
+    # A request naming "destinations" rather than "destination_ids" used to
+    # return 202 having exported nothing, with skipped_destination_ids empty
+    # too, so the caller could not tell success from a no-op.
+    client = _library_client(tmp_path, monkeypatch)
+    created = client.post('/v1/captures', json={
+        'platform': 'generic-web',
+        'url': 'https://example.test/articles/export-contract',
+        'relation_type': 'manual_save',
+        'requested_levels': ['L0'],
+    })
+    assert created.status_code == 202
+    content_id = created.json()['content_id']
+
+    wrong_field = client.post(f'/v1/library/{content_id}/export', json={'destinations': ['markdown']})
+    assert wrong_field.status_code == 422, wrong_field.text
+
+    correct_field = client.post(f'/v1/library/{content_id}/export', json={'destination_ids': []})
+    assert correct_field.status_code == 202

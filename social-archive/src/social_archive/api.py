@@ -16,7 +16,7 @@ import uvicorn
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from . import __version__
 from .account_sync import AccountSyncCoordinator, PLATFORM_RELATIONS
@@ -57,6 +57,14 @@ PAIRING_STATE_FILENAME = "pairing-code-state.json"
 
 
 class PairingRequest(BaseModel):
+    # Every model in models.py forbids unknown fields, as does
+    # LocalObsidianReceiptRequest below; this model and ExportRequest did not,
+    # so a misspelled key was accepted and silently ignored.  For ExportRequest
+    # that meant a request naming "destinations" instead of "destination_ids"
+    # returned 202 having exported nothing, with skipped_destination_ids empty
+    # too, so a caller could not tell success from a no-op.
+    model_config = ConfigDict(extra="forbid")
+
     code: str = Field(min_length=6, max_length=200)
     device_name: str = Field(default="Chrome Extension", min_length=1, max_length=120)
 
@@ -109,6 +117,8 @@ async def pairing_body_limit(request: Request, call_next):
 
 
 class ExportRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     destination_ids: list[str] = Field(default_factory=list, max_length=8)
 
 
@@ -348,6 +358,40 @@ def pairing_status() -> dict[str, Any]:
         "attempts_remaining": _pairing_attempts_remaining(record) if live and record else 0,
         "endpoint": settings.public_base_url,
         "library_url": settings.public_library_url,
+    }
+
+
+def require_library_access(request: Request) -> None:
+    """Admit only the Cloudflare Access authenticated library page.
+
+    Deliberately stricter than require_token: a Bearer token is never accepted
+    here, and the API hostname is excluded, so this route is reachable only
+    from the Owner's authenticated browser session on the library host.
+    """
+    if not _trusted_library_access(request):
+        raise HTTPException(403, "该接口只接受已通过 Cloudflare Access 的资料库页面")
+
+
+@app.post("/v1/pairing/issue", dependencies=[Depends(require_library_access)])
+def pairing_issue() -> dict[str, str]:
+    """Hand the already-authenticated library page the extension's device config.
+
+    Typing a one-time code was the zero-barrier failure: a code lives at most
+    ten minutes, so the Owner raced a clock to copy a string by hand, and the
+    options page hid the field whenever no code happened to be live. The page
+    reaching this route has already cleared Cloudflare Access and, per
+    require_token, is trusted for every authenticated route. Handing its own
+    extension the device token is therefore exactly what the pairing exchange
+    would have granted, with no code and no expiry to race.
+    """
+    token = _expected_token()
+    if settings.pairing_required and not token:
+        raise HTTPException(503, "服务端尚未生成设备令牌")
+    return {
+        "token": token or "",
+        "endpoint": settings.public_base_url,
+        "library_url": settings.public_library_url,
+        "message_zh": "已通过资料库身份直接连接，无需配对码",
     }
 
 
