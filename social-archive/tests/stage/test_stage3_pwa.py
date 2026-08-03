@@ -86,14 +86,18 @@ def test_stage3_first_setup_save_find_failure_and_retry(tmp_path, monkeypatch):
     client, api, _ = _stage3_client(tmp_path, monkeypatch)
 
     api_headers = {"host": API_HOST}
-    status = client.get("/v1/pairing/status", headers=api_headers)
-    assert status.status_code == 200
-    assert status.json()["one_time_code_available"] is True
-    paired = client.post("/v1/pairing/exchange", headers=api_headers, json={"code": "ABCD-EFGH-JKLM", "device_name": "Stage 3 fixture"})
-    assert paired.status_code == 200
-    assert paired.json()["library_url"] == f"https://{LIBRARY_HOST}"
-    assert paired.json()["endpoint"] == f"https://{API_HOST}"
-    assert client.get("/v1/pairing/status", headers=api_headers).json()["one_time_code_available"] is False
+    # v0.0.0.7 / T03：原先这里走一次性配对码（/v1/pairing/status + /exchange）。
+    # 那条链路已删——它十分钟过期、要用户手抄，本身就是 INV-ZERO-BARRIER 禁止的门槛。
+    # 换成扩展长期令牌：已登录页面替扩展取，用户不接触令牌文本。
+    user_id = api.store.upsert_oauth_identity(
+        provider="github", subject="stage3", display_name="Owner"
+    )
+    extension_token = api.store.issue_extension_token(user_id=user_id)
+    assert api.store.resolve_extension_token(extension_token) == user_id
+    # 撤销后立刻失效——扩展上行会因此拿到 401，这是 T03 的 Oracle。
+    api.store.revoke_extension_tokens(user_id)
+    assert api.store.resolve_extension_token(extension_token) is None
+    extension_token = api.store.issue_extension_token(user_id=user_id)
 
     markdown_probe = client.post("/v1/destinations/markdown/probe", headers=LIBRARY_HEADERS)
     assert markdown_probe.status_code == 200

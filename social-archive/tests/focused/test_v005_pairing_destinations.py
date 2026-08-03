@@ -46,32 +46,6 @@ def _client(tmp_path: Path, monkeypatch, *, pairing: bool = False) -> tuple[Test
     return TestClient(api.app), api
 
 
-def test_pairing_status_and_exchange_match_extension_contract(tmp_path, monkeypatch):
-    client, _ = _client(tmp_path, monkeypatch, pairing=True)
-    api_headers = {"Host": "social-archive-api.linzezhang.com"}
-    status = client.get("/v1/pairing/status", headers=api_headers)
-    assert status.status_code == 200
-    assert status.json()["pairing_required"] is True
-    assert status.json()["service_ready"] is True
-    bad = client.post(
-        "/v1/pairing/exchange",
-        json={"code": "0000-0000-0000", "device_name": "Chrome"},
-        headers=api_headers,
-    )
-    assert bad.status_code == 401
-    good = client.post(
-        "/v1/pairing/exchange",
-        json={"code": "ABCD-EFGH-JKLM", "device_name": "Chrome"},
-        headers=api_headers,
-    )
-    assert good.status_code == 200
-    assert good.json()["token"] == "secret-token"
-    bootstrap = client.get(
-        "/v1/extension/bootstrap",
-        headers={**api_headers, "Authorization": "Bearer secret-token"},
-    )
-    assert bootstrap.status_code == 200
-
 
 def test_markdown_probe_and_destination_receipt_api(tmp_path, monkeypatch):
     client, api_module = _client(tmp_path, monkeypatch)

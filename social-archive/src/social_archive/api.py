@@ -53,63 +53,6 @@ app = FastAPI(title="Social Archive", version=__version__, docs_url="/api/docs",
 # Cookie 语义与失败文案，混进 pairing/token 那套只会互相污染。
 app.include_router(auth.build_router(settings, store))
 
-PAIRING_PATHS = frozenset({"/v1/pairing/exchange", "/v1/pair"})
-PAIRING_BODY_LIMIT_BYTES = 16 * 1024
-PAIRING_RATE_LIMIT_PER_MINUTE = 10
-PAIRING_STATE_FILENAME = "pairing-code-state.json"
-
-
-class PairingRequest(BaseModel):
-    code: str = Field(min_length=6, max_length=200)
-    device_name: str = Field(default="Chrome Extension", min_length=1, max_length=120)
-
-
-class PairingRateLimiter:
-    """A bounded Core backstop; Cloudflare still supplies the edge rate limit."""
-
-    def __init__(self, *, max_requests: int = PAIRING_RATE_LIMIT_PER_MINUTE, window_seconds: float = 60.0):
-        self.max_requests = max_requests
-        self.window_seconds = window_seconds
-        self._requests: dict[str, list[float]] = {}
-        self._lock = threading.Lock()
-
-    def allow(self, client_key: str, *, now: float | None = None) -> bool:
-        current = time.monotonic() if now is None else now
-        with self._lock:
-            recent = [stamp for stamp in self._requests.get(client_key, []) if current - stamp < self.window_seconds]
-            if len(recent) >= self.max_requests:
-                self._requests[client_key] = recent
-                return False
-            recent.append(current)
-            self._requests[client_key] = recent
-            if len(self._requests) > 1024:
-                self._requests = {
-                    key: values
-                    for key, values in self._requests.items()
-                    if any(current - stamp < self.window_seconds for stamp in values)
-                }
-            return True
-
-
-pairing_rate_limiter = PairingRateLimiter()
-pairing_state_lock = threading.Lock()
-
-
-@app.middleware("http")
-async def pairing_body_limit(request: Request, call_next):
-    """Reject chunked or oversized pairing bodies before FastAPI parses JSON."""
-    if request.method == "POST" and request.url.path in PAIRING_PATHS:
-        raw_length = request.headers.get("content-length")
-        try:
-            content_length = int(raw_length) if raw_length is not None else -1
-        except ValueError:
-            content_length = -1
-        if content_length < 0:
-            return JSONResponse(status_code=411, content={"detail": "配对请求必须提供 Content-Length"})
-        if content_length > PAIRING_BODY_LIMIT_BYTES:
-            return JSONResponse(status_code=413, content={"detail": "配对请求体不能超过 16 KiB"})
-    return await call_next(request)
-
 
 class ExportRequest(BaseModel):
     destination_ids: list[str] = Field(default_factory=list, max_length=8)
@@ -159,79 +102,6 @@ def _expected_token() -> str | None:
     return read_secret(settings.api_token_file)
 
 
-def _read_pairing_record() -> dict[str, Any] | None:
-    raw = read_secret(settings.pairing_code_file)
-    if not raw:
-        return None
-    source_fingerprint = sha256_bytes(raw.encode("utf-8"))
-    try:
-        value = json.loads(raw)
-    except json.JSONDecodeError:
-        # Previous builds used a plain-code file. Keep one migration window without creating
-        # a non-expiring secret: file mtime + 10 minutes is the maximum validity.
-        path = Path(settings.pairing_code_file) if settings.pairing_code_file else None
-        mtime = path.stat().st_mtime if path and path.exists() else 0.0
-        record: dict[str, Any] = {
-            "code": raw,
-            "expires_at_epoch": mtime + 600.0,
-            "attempts_remaining": 5,
-            "legacy_migrated": True,
-        }
-    else:
-        if not isinstance(value, dict) or not isinstance(value.get("code"), str):
-            raise HTTPException(503, "配对码文件格式无效，请重新生成")
-        record = dict(value)
-    record["_source_fingerprint"] = source_fingerprint
-    state = _read_pairing_state()
-    if state.get("source_fingerprint") == source_fingerprint:
-        record["attempts_remaining"] = max(0, int(state.get("attempts_remaining", 0)))
-        record["_consumed"] = state.get("consumed") is True
-    return record
-
-
-def _pairing_state_path() -> Path:
-    return settings.data_root / "runtime" / PAIRING_STATE_FILENAME
-
-
-def _read_pairing_state() -> dict[str, Any]:
-    path = _pairing_state_path()
-    if not path.exists():
-        return {}
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise HTTPException(503, "配对状态损坏，请重新生成一次性配对码") from exc
-    if not isinstance(value, dict):
-        raise HTTPException(503, "配对状态格式无效，请重新生成一次性配对码")
-    return value
-
-
-def _write_pairing_state(record: dict[str, Any], *, attempts_remaining: int, consumed: bool) -> None:
-    source_fingerprint = record.get("_source_fingerprint")
-    if not isinstance(source_fingerprint, str) or not source_fingerprint:
-        raise HTTPException(503, "配对码状态不可用，请重新生成")
-    payload = {
-        "source_fingerprint": source_fingerprint,
-        "attempts_remaining": max(0, int(attempts_remaining)),
-        "consumed": bool(consumed),
-    }
-    atomic_write(_pairing_state_path(), json_bytes(payload), mode=0o600)
-
-
-def _pairing_record_is_live(record: dict[str, Any]) -> bool:
-    if record.get("_consumed") is True:
-        return False
-    expiry = record.get("expires_at_epoch")
-    return expiry is None or float(expiry) > time.time()
-
-
-def _pairing_attempts_remaining(record: dict[str, Any]) -> int:
-    try:
-        return max(0, int(record.get("attempts_remaining", 5)))
-    except (TypeError, ValueError):
-        return 0
-
-
 def _request_hostname(request: Request) -> str:
     raw = request.headers.get("host", "").strip().lower()
     if not raw or "," in raw:
@@ -264,20 +134,6 @@ def require_api_hostname(request: Request) -> None:
             raise HTTPException(404, "该入口只在扩展 API 域名提供")
 
 
-def _pairing_client_key(request: Request) -> str:
-    cloudflare_ip = request.headers.get("cf-connecting-ip", "").strip()
-    try:
-        return f"cf:{ipaddress.ip_address(cloudflare_ip).compressed}"
-    except ValueError:
-        return f"origin:{request.client.host if request.client else 'unknown'}"
-
-
-def require_pairing_edge(request: Request) -> None:
-    require_api_hostname(request)
-    if not pairing_rate_limiter.allow(_pairing_client_key(request)):
-        raise HTTPException(429, "配对请求过于频繁，请稍后重试")
-
-
 def require_token(request: Request, authorization: str | None = Header(default=None)) -> None:
     if not settings.pairing_required:
         return
@@ -306,68 +162,6 @@ def health() -> dict[str, Any]:
         "paid_api_allowed": settings.paid_api_allowed,
         "archive_defaults": {"L0": True, "L1": True, "L2": settings.l2_enabled, "L3": settings.l3_enabled},
     }
-
-
-
-def _normalize_pairing_code(value: str) -> str:
-    return "".join(char for char in value.upper() if char.isalnum())
-
-
-def _exchange_pairing_code(request: PairingRequest) -> dict[str, str]:
-    # The source code enters through a read-only Docker secret.  Consumption and
-    # failed-attempt state therefore live in Core's writable runtime volume,
-    # keyed to a digest of the current source record.  A newly generated Secret
-    # naturally resets state without making the Secret itself mutable.
-    with pairing_state_lock:
-        record = _read_pairing_record()
-        token = _expected_token()
-        if not record or not token:
-            raise HTTPException(409, "当前没有可用的一次性配对码，请在私人控制台重新生成")
-        if not _pairing_record_is_live(record):
-            raise HTTPException(409, "配对码已过期或已使用，请重新生成")
-        attempts = _pairing_attempts_remaining(record)
-        if attempts <= 0:
-            raise HTTPException(429, "配对尝试次数已用完，请重新生成")
-        expected_code = _normalize_pairing_code(str(record["code"]))
-        supplied_code = _normalize_pairing_code(request.code)
-        if not supplied_code or not secrets.compare_digest(supplied_code, expected_code):
-            _write_pairing_state(record, attempts_remaining=attempts - 1, consumed=False)
-            raise HTTPException(401, "配对码不正确")
-        _write_pairing_state(record, attempts_remaining=0, consumed=True)
-        return {
-            "token": token,
-            "endpoint": settings.public_base_url,
-            "library_url": settings.public_library_url,
-            "device_name": request.device_name,
-            "message_zh": "配对成功；该一次性配对码已失效",
-        }
-
-
-@app.get("/v1/pairing/status", dependencies=[Depends(require_api_hostname)])
-def pairing_status() -> dict[str, Any]:
-    record = _read_pairing_record()
-    live = bool(record and _pairing_record_is_live(record) and _pairing_attempts_remaining(record) > 0)
-    return {
-        "project": "Social Archive",
-        "pairing_required": settings.pairing_required,
-        "service_ready": bool(_expected_token()) if settings.pairing_required else True,
-        "one_time_code_available": live,
-        "expires_at_epoch": record.get("expires_at_epoch") if live and record else None,
-        "attempts_remaining": _pairing_attempts_remaining(record) if live and record else 0,
-        "endpoint": settings.public_base_url,
-        "library_url": settings.public_library_url,
-    }
-
-
-@app.post("/v1/pairing/exchange", dependencies=[Depends(require_pairing_edge)])
-def pairing_exchange(request: PairingRequest) -> dict[str, str]:
-    return _exchange_pairing_code(request)
-
-
-@app.post("/v1/pair", dependencies=[Depends(require_pairing_edge)])
-def pair(request: PairingRequest) -> dict[str, str]:
-    """Compatibility alias retained for previous extension upgrades."""
-    return _exchange_pairing_code(request)
 
 
 @app.get("/v1/status", dependencies=[Depends(require_token)])
@@ -560,7 +354,6 @@ def extension_bootstrap() -> dict[str, Any]:
     }
 
 
-
 def _artifact_mapping(captures: list[CaptureRequest], artifacts: list[dict[str, Any]]) -> dict[int, list[dict[str, Any]]]:
     mapping: dict[int, list[dict[str, Any]]] = {}
     if not artifacts or not captures:
@@ -677,7 +470,6 @@ def capture_batch(request: CaptureBatchRequest) -> dict[str, Any]:
     }
 
 
-
 @app.post("/v1/import/markdown", dependencies=[Depends(require_token)])
 def import_markdown(request: MarkdownImportRequest) -> dict[str, Any]:
     try:
@@ -733,7 +525,6 @@ def retry_job(job_id: str) -> dict[str, Any]:
     if not store.retry_job(job_id):
         raise HTTPException(status_code=409, detail="任务状态已变化，请刷新后重试")
     return {"job_id": job_id, "status": "queued", "message_zh": "已重新加入队列"}
-
 
 
 @app.get("/v1/destinations", dependencies=[Depends(require_token)])

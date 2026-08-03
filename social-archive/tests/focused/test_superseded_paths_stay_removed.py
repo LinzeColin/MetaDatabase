@@ -64,3 +64,56 @@ def test_guard_actually_reads_something() -> None:
         if not any(part in {".venv", "node_modules", ".git", "evidence"} for part in p.parts)
     ]
     assert len(scanned) >= 3, f"守卫只扫到 {len(scanned)} 份 YAML，它大概没在查"
+
+
+# ── 一次性配对码（v0.0.0.7 / T03）──────────────────────────────────
+#
+# CONFLICT_ORDER 废止它的理由：真实使用中连续失败三次，
+# 十分钟有效期与手抄验证码本身就是技术门槛，与 INV-ZERO-BARRIER 直接冲突。
+# 替代品是扩展长期可撤销令牌（POST /v1/auth/extension-token）。
+
+
+def test_pairing_endpoints_are_gone() -> None:
+    """判据打在**端点响应**上，不是打在源码 grep 上——
+    源码里留个同名函数但没挂路由，grep 会报红而实际是好的；
+    反过来换个名字挂回同样的路由，grep 会报绿而实际复活了。"""
+    import importlib
+    import os
+    import tempfile
+
+    from fastapi.testclient import TestClient
+
+    with tempfile.TemporaryDirectory() as tmp:
+        os.environ["SOCIAL_ARCHIVE_DATA_ROOT"] = os.path.join(tmp, "data")
+        import social_archive.api as api_module
+
+        importlib.reload(api_module)
+        client = TestClient(api_module.app)
+        for path in ("/v1/pairing/status", "/v1/pair"):
+            assert client.get(path).status_code == 404, f"{path} 又活了"
+        assert client.post("/v1/pairing/exchange", json={"code": "X"}).status_code == 404
+
+
+def test_pairing_helpers_are_gone_from_api_module() -> None:
+    """上一条查端点，这条查实现——两者都要，单查一边都能被绕过。"""
+    import social_archive.api as api_module
+
+    for name in (
+        "PairingRequest", "PairingRateLimiter", "require_pairing_edge",
+        "_read_pairing_record", "_exchange_pairing_code", "_normalize_pairing_code",
+        "PAIRING_PATHS", "PAIRING_STATE_FILENAME",
+    ):
+        assert not hasattr(api_module, name), f"api.{name} 还在——配对码链路没删干净"
+
+
+def test_auth_switch_survived_the_deletion() -> None:
+    """`settings.pairing_required` 名字里带 pairing，但它是**总鉴权开关**：
+    require_token 第一行据此早退，什么都不校验。删配对码时把它一起删掉
+    会静默关掉全站鉴权。这条守着它别被顺手删了。"""
+    from social_archive.config import Settings
+
+    assert hasattr(Settings, "__dataclass_fields__")
+    assert "pairing_required" in Settings.__dataclass_fields__, (
+        "pairing_required 被删了——它不是配对码开关，是总鉴权开关，"
+        "删掉等于 require_token 永远早退，全站不再鉴权"
+    )
