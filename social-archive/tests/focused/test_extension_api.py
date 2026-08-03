@@ -183,3 +183,16 @@ def test_local_obsidian_bridge_receipts_are_safe_and_separate_from_server_obsidi
     assert {key: after[key] for key in ("id", "canonical_url", "title", "metadata_json")} == {
         key: detail[key] for key in ("id", "canonical_url", "title", "metadata_json")
     }
+
+
+def test_options_never_hides_the_pairing_input_when_no_code_is_available():
+    # A pairing code lives at most ten minutes. The options page used to hide
+    # the code field whenever the server reported none available, which
+    # dead-ended the Owner: by the time a code was in hand the field was gone
+    # and there was no retry affordance anywhere on the page.
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[2] / "apps/browser-extension/options.js").read_text(encoding="utf-8")
+    branch = source.split("one_time_code_available", 1)[1].split("return false;", 1)[0]
+    assert 'classList.remove("hidden")' in branch, "the pairing input must stay reachable without a live code"
+    assert 'classList.add("hidden")' not in branch

@@ -683,12 +683,25 @@
       return false;
     }
     if (!extension.paired) {
-      if (extension.pairingRequired && !extension.oneTimeCodeAvailable) {
-        showToast("插件已检测到，但私人档案馆当前没有可用的一次性配对记录。已停止配对尝试，平台账号登录状态不会受影响。", "needs");
-        return false;
+      // This page has already cleared Cloudflare Access, so the service will
+      // hand it the extension's device config directly.  Asking the Owner to
+      // copy a one-time code by hand was the zero-barrier failure: the code
+      // lives ten minutes, so it routinely expired mid-transfer.
+      try {
+        const issued = await api("/v1/pairing/issue", {method: "POST"});
+        if (issued && issued.token) {
+          await postToExtension("SA_CONFIGURE", {endpoint: issued.endpoint, token: issued.token});
+          await refreshExtensionStatus();
+          if (state.extension.paired) {
+            showToast("插件已自动连接，无需配对码。", "ok");
+            return true;
+          }
+        }
+      } catch (error) {
+        // Fall through to the manual route below rather than dead-ending.
       }
       await postToExtension("SA_OPEN_OPTIONS").catch(() => {});
-      showToast("插件已检测到，请在打开的设置页完成一次性配对。", "needs");
+      showToast("插件已检测到，但自动连接未成功，请在打开的设置页粘贴一次性配对码。", "needs");
       return false;
     }
     return true;

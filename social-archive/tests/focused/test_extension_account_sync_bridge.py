@@ -55,11 +55,18 @@ def test_pairing_supply_unavailable_is_exposed_without_platform_relogin_prompt()
     assert "pairingRequired = pairing?.pairing_required === true" in background
     assert "oneTimeCodeAvailable = pairing?.one_time_code_available === true" in background
     assert "pairingRequired," in background and "oneTimeCodeAvailable," in background
-    assert "extension.pairingRequired && !extension.oneTimeCodeAvailable" in pwa
-    assert "已停止配对尝试，平台账号登录状态不会受影响" in pwa
+    # The invariant is that a missing pairing supply never steers the Owner into
+    # re-logging in to a platform.  The PWA no longer dead-ends on that state at
+    # all: having cleared Cloudflare Access it issues the device config itself,
+    # so the branch that used to print "已停止配对尝试" is gone by design.
+    assert 'api("/v1/pairing/issue"' in pwa
+    assert "SA_CONFIGURE" in pwa
     assert "status?.pairing_required === true && !status.one_time_code_available" in options
-    assert "等待服务准备" in options
+    assert "等待配对码" in options
     assert "不会请求或改变任一平台的登录状态" in options
+    for relogin_prompt in ("重新登录", "请先登录", "重新登陆"):
+        assert relogin_prompt not in pwa
+        assert relogin_prompt not in options
 
 
 def test_service_worker_uses_persistent_queue_and_scan_heartbeat():

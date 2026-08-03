@@ -361,6 +361,40 @@ def pairing_status() -> dict[str, Any]:
     }
 
 
+def require_library_access(request: Request) -> None:
+    """Admit only the Cloudflare Access authenticated library page.
+
+    Deliberately stricter than require_token: a Bearer token is never accepted
+    here, and the API hostname is excluded, so this route is reachable only
+    from the Owner's authenticated browser session on the library host.
+    """
+    if not _trusted_library_access(request):
+        raise HTTPException(403, "该接口只接受已通过 Cloudflare Access 的资料库页面")
+
+
+@app.post("/v1/pairing/issue", dependencies=[Depends(require_library_access)])
+def pairing_issue() -> dict[str, str]:
+    """Hand the already-authenticated library page the extension's device config.
+
+    Typing a one-time code was the zero-barrier failure: a code lives at most
+    ten minutes, so the Owner raced a clock to copy a string by hand, and the
+    options page hid the field whenever no code happened to be live. The page
+    reaching this route has already cleared Cloudflare Access and, per
+    require_token, is trusted for every authenticated route. Handing its own
+    extension the device token is therefore exactly what the pairing exchange
+    would have granted, with no code and no expiry to race.
+    """
+    token = _expected_token()
+    if settings.pairing_required and not token:
+        raise HTTPException(503, "服务端尚未生成设备令牌")
+    return {
+        "token": token or "",
+        "endpoint": settings.public_base_url,
+        "library_url": settings.public_library_url,
+        "message_zh": "已通过资料库身份直接连接，无需配对码",
+    }
+
+
 @app.post("/v1/pairing/exchange", dependencies=[Depends(require_pairing_edge)])
 def pairing_exchange(request: PairingRequest) -> dict[str, str]:
     return _exchange_pairing_code(request)
