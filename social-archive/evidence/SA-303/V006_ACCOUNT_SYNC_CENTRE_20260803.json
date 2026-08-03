@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-303",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T07:04:00Z",
+  "status": "PARTIAL",
+  "scope": "production_account_sync_centre_platform_matrix_and_honest_empty_control_state",
+  "executed_on": "OVH vps-83b882b4, authenticated loopback against the running v0.0.0.6 Core",
+  "supported_platform_matrix": {
+    "count": 8,
+    "platforms": [
+      {"platform": "xiaohongshu", "relations": ["favorite", "like"]},
+      {"platform": "douyin", "relations": ["favorite", "like"]},
+      {"platform": "kuaishou", "relations": ["favorite", "like"]},
+      {"platform": "bilibili", "relations": ["favorite", "watch_later", "history", "like"]},
+      {"platform": "x", "relations": ["bookmark", "like"]},
+      {"platform": "reddit", "relations": ["saved", "upvoted"]},
+      {"platform": "instagram", "relations": ["saved"]},
+      {"platform": "generic-web", "relations": ["bookmark", "manual_save"]}
+    ],
+    "verdict": "PASS — the eight source classes are present, and the relation set covers collections, likes, bookmarks, watch-later and enumerable history exactly as the north star requires."
+  },
+  "connected_accounts": {
+    "items": [],
+    "count": 0,
+    "verdict": "HONEST_EMPTY",
+    "explanation": "No account has ever been connected, because SA-205's real Owner Canary is blocked on installing the extension into the Owner's logged-in Chrome profile. The centre correctly reports an empty list rather than fabricating a connected state."
+  },
+  "what_this_does_not_prove": [
+    "The real control state. Pause, resume, cancel and retry against a live sync run cannot be exercised without at least one connected account, so SA-303 is PARTIAL rather than PASS.",
+    "First full mirror or incremental sync for any platform.",
+    "SA-305, the Stage 3 gate."
+  ],
+  "blocking_dependency": "SA-205. The extension must be installed and paired in the Owner's browser before any account can be connected.",
+  "non_actions": [
+    "No account was connected, no sync was started, and no platform request was made.",
+    "No production data was created, modified or deleted; every request was a read."
+  ]
+}
