@@ -101,8 +101,8 @@ def main() -> int:
         from backend.app.workers.live_cycle import missed_evaluation
         marker = Path(os.environ.get("ALPHA_RUNTIME_DIR", "runtime")) / "last_s1_eval.txt"
         last_tag = marker.read_text().strip() if marker.exists() else ""
-        is_live = (os.environ.get("ALPHA_MODE", "").upper() == "MICRO_LIVE"
-                   and os.environ.get("LIVE_TRADING_ENABLED", "0") == "1")
+        from backend.app.truth import is_micro_live
+        is_live = is_micro_live()
         missed, why = missed_evaluation(now.astimezone(ZoneInfo("America/New_York")),
                                         last_eval_tag=last_tag, is_live=is_live)
         add("评估日已按时评估(业务级)", not missed,

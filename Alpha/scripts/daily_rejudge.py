@@ -132,6 +132,9 @@ def real_power_usd(acc_id: str) -> float | None:
         return None
 
 
+from backend.app.truth import is_micro_live  # noqa: E402
+
+
 def activation_gate(*, auth_ok: bool, auth_reasons: list, live_flag_on: bool,
                     real_acc: str, power: float | None, min_power: float) -> list[str]:
     """全绿之外的三项切换前提;返回阻塞清单(空=可请求切换)。纯函数可测。"""
@@ -303,7 +306,7 @@ def main() -> int:
         power = real_power_usd(real_acc) if real_acc else None
         blockers = activation_gate(
             auth_ok=auth_ok, auth_reasons=list(auth_reasons),
-            live_flag_on=os.environ.get("LIVE_TRADING_ENABLED", "0") == "1",
+            live_flag_on=is_micro_live(),   # 单一真源:模式+总开关都满足才算已在实盘
             real_acc=real_acc, power=power, min_power=min_power)
         if not blockers:
             req_path = Path("runtime/ACTIVATE_REQUEST.json")

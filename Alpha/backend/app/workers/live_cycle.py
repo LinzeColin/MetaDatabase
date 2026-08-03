@@ -345,8 +345,10 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
     gross_usd = sum(q * prices.get(s, 0.0) for s, q in positions.items())
     gross_aud = Decimal(str(gross_usd)) * d.fx_usd_aud
 
-    # 单笔上限 = 风控单笔红线(3000 AUD × 90%,owner 2026-07-24 放宽)换算成 USD,再留 3% 滑动余量
-    cap_usd = 3000.0 * 0.90 * 0.97 / float(d.fx_usd_aud)
+    # 单笔上限:比例与本金一律从权威配置读(backend/app/truth),**不在此写死**——
+    # 2026-07-28 教训:硬编码 0.90/3000 与 policy.yaml 各写一遍,改比例时漏一处就出事。
+    from backend.app.truth import single_order_cap_usd
+    cap_usd = single_order_cap_usd()
     # 可动用本金 = min(授权上限, 账户真实购买力 + 已持有市值)。owner 2026-07-24 裁定按百分比
     # 理解敞口:授权额度只是天花板,真正能动的钱以账户实况为准——否则资金不足时会超买被券商拒。
     effective_capital_usd = d.capital_usd
