@@ -100,8 +100,8 @@ validate_source_contract() {
   [[ -f "$ROOT/.env" ]] || fail '缺少 .env；先完成 install.sh 和配置向导。'
   [[ -x "$ROOT/.venv/bin/python" ]] || fail '缺少 .venv/bin/python；先完成 install.sh。'
   [[ -f "$ROOT/runtime/secrets/social_archive_api_token" ]] || fail '缺少 runtime/secrets/social_archive_api_token。'
-  [[ "$(env_value SOCIAL_ARCHIVE_DATA_HOST_PATH)" == "$HOST_DATA_ROOT" ]] || fail "生产 SOCIAL_ARCHIVE_DATA_HOST_PATH 必须精确为 $HOST_DATA_ROOT，禁止 Core 与 systemd 使用不同数据面。"
-  [[ "$(env_value SOCIAL_ARCHIVE_DATA_ROOT)" == "$HOST_DATA_ROOT" ]] || fail "生产 SOCIAL_ARCHIVE_DATA_ROOT 必须精确为 $HOST_DATA_ROOT。"
+  [[ "$(env_value SOCIAL_ARCHIVE_DATA_HOST_PATH)" == "$HOST_DATA_ROOT" ]] || fail "生产 SOCIAL_ARCHIVE_DATA_HOST_PATH 必须精确为 ${HOST_DATA_ROOT}，禁止 Core 与 systemd 使用不同数据面。"
+  [[ "$(env_value SOCIAL_ARCHIVE_DATA_ROOT)" == "$HOST_DATA_ROOT" ]] || fail "生产 SOCIAL_ARCHIVE_DATA_ROOT 必须精确为 ${HOST_DATA_ROOT}。"
   [[ "$(env_value SOCIAL_ARCHIVE_IMPORT_HOST_PATH)" == "$HOST_DATA_ROOT/import" ]] || fail "生产 SOCIAL_ARCHIVE_IMPORT_HOST_PATH 必须精确为 $HOST_DATA_ROOT/import，禁止 Core 与宿主机分裂导入面。"
   [[ "$(env_value SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH)" == "$HOST_DATA_ROOT/vendor-output" ]] || fail "生产 SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH 必须精确为 $HOST_DATA_ROOT/vendor-output，禁止 Core 与 CLI Sidecar 分裂输出面。"
   [[ "$(env_value SOCIAL_ARCHIVE_HOST_DATA_GID)" =~ ^[0-9]+$ ]] || fail 'SOCIAL_ARCHIVE_HOST_DATA_GID 必须是宿主机 socialarchive 组的数字 gid。'
@@ -133,7 +133,7 @@ render_host_env() {
     normalized="$(printf '%s' "$key" | tr '[:lower:]' '[:upper:]')"
     case "$normalized" in
       *TOKEN|*SECRET|*PASSWORD|*COOKIE|*SESSION)
-        fail ".env 不得包含凭据值：$key；请使用 runtime/secrets 文件。"
+        fail ".env 不得包含凭据值：${key}；请使用 runtime/secrets 文件。"
         ;;
     esac
     printf '%s\n' "$line" >> "$output"

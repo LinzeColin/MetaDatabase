@@ -47,7 +47,10 @@ def test_library_uses_one_content_card_for_multiple_relations_and_preserves_deta
     assert len(items) == 1
     content_id = items[0]['id']
     filtered = client.get('/v1/library?platform=generic-web&relation=bookmark').json()['items']
-    assert [(item['id'], item['relation_type']) for item in filtered] == [(content_id, 'bookmark')]
+    # One card carries every relation it was saved under, so the row exposes a
+    # de-duplicated `relations` list rather than a single `relation_type`.
+    assert [item['id'] for item in filtered] == [content_id]
+    assert 'bookmark' in filtered[0]['relations']
     detail = client.get(f'/v1/library/{content_id}').json()
     assert {relation['relation_type'] for relation in detail['relations']} == {'manual_save', 'bookmark'}
 
@@ -88,7 +91,10 @@ def test_library_filters_literal_full_text_collection_and_observed_date(tmp_path
     assert [item['id'] for item in client.get('/v1/library?q=中文正文').json()['items']] == [content_id]
     assert [item['id'] for item in client.get('/v1/library?q=中文检索needle').json()['items']] == [content_id]
     filtered = client.get('/v1/library?platform=generic-web&relation=bookmark&collection=research').json()['items']
-    assert [(item['id'], item['relation_type'], item['collection_key']) for item in filtered] == [(content_id, 'bookmark', 'research')]
+    # Same one-card-many-relations projection: `relations` and `collections`
+    # replace the singular relation_type/collection_key on a library row.
+    assert [item['id'] for item in filtered] == [content_id]
+    assert 'bookmark' in filtered[0]['relations'] and 'research' in filtered[0]['collections']
     assert [item['id'] for item in client.get('/v1/library?q=research').json()['items']] == [content_id]
 
     observed_day = filtered[0]['last_observed_at'][:10]

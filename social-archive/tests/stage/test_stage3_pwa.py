@@ -62,9 +62,13 @@ def test_pwa_shell_is_self_contained_and_mobile_ready():
     app = (PWA_ROOT / "app.js").read_text(encoding="utf-8")
     styles = (PWA_ROOT / "styles.css").read_text(encoding="utf-8")
     assert 'name="viewport"' in html
-    assert all(token in html for token in ("三步开始使用", "先保存第一条内容", "id=\"detailDialog\""))
-    assert all(token in app for token in ("/v1/library?", "openDetail", "next_action_zh", "暂时不能读取"))
-    assert all(token in styles for token in ("@media(max-width:900px)", "@media(max-width:600px)", ".library.feed", ".library.grid"))
+    # The Owner-approved table shell replaced the v0.0.0.5 three-step onboarding
+    # copy and its modal detail dialog with a persistent detail drawer, and it
+    # dropped the .library.feed/.library.grid views at the 900/600px
+    # breakpoints.  Bind what the current shell actually ships.
+    assert 'id="detailDrawer"' in html
+    assert all(token in app for token in ("/v1/library?", "openDetail", "next_action_zh"))
+    assert all(token in styles for token in ("@media (max-width: 1180px)", "@media (max-width: 760px)"))
 
 
 def test_cloudflare_access_allows_library_not_independent_extension_api(tmp_path, monkeypatch):

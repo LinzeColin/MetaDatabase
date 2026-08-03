@@ -11,7 +11,7 @@ case "$profile" in
 esac
 for secret in "${required_secrets[@]:-}"; do
   [[ -n "$secret" ]] || continue
-  [[ -s "runtime/secrets/$secret" ]] || { echo "缺少 runtime/secrets/$secret；请先运行 bash scripts/install.sh" >&2; exit 2; }
+  [[ -s "runtime/secrets/$secret" ]] || { echo "缺少 runtime/secrets/${secret}；请先运行 bash scripts/install.sh" >&2; exit 2; }
 done
 docker network inspect social-archive-readers >/dev/null 2>&1 || docker network create social-archive-readers >/dev/null
 docker compose -f compose.readers.yaml --profile "$profile" up -d
