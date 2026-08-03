@@ -16,6 +16,13 @@
     "owner_browser": {
       "page_path": "/connections",
       "rendered_product_version": "v0.0.0.5",
+      "xiaohongshu_authorization_probe": {
+        "action": "click the visible 在插件中授权 entry",
+        "result": "routed_to_/extension-install",
+        "rendered_install_version": "v0.0.0.5",
+        "platform_tab_opened": false,
+        "account_or_sync_started": false
+      },
       "domestic_worker_state": {
         "xiaohongshu": "preferred_worker_unavailable",
         "douyin": "preferred_worker_unavailable",
@@ -27,7 +34,7 @@
       "loopback_bridge_evidence": "evidence/SA-205/LOOPBACK_PAIRING_SMOKE.json"
     }
   },
-  "conclusion": "The production browser target has not reached the current v0.0.0.6 PWA/extension identity, so it cannot furnish a valid v0.0.0.6 SA-205 Owner Canary receipt.",
+  "conclusion": "The production browser target has not reached the current v0.0.0.6 PWA/extension identity. Its visible XHS authorization entry routed to the v0.0.0.5 installer rather than a platform path, so it cannot furnish a valid v0.0.0.6 SA-205 Owner Canary receipt.",
   "mutations": {
     "cloudflare_or_tunnel_changed": false,
     "browser_profile_or_extension_changed": false,
