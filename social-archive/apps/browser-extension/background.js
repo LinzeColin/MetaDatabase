@@ -530,9 +530,37 @@ async function connectPlatform(platform) {
   return connectBrowserPlatform(platform);
 }
 
+function describeScanError(error) {
+  if (error instanceof Error) return `${error.name}: ${error.message}`.slice(0, 300);
+  if (typeof error === "string") return error.slice(0, 300);
+  if (error && typeof error.message === "string" && error.message) return error.message.slice(0, 300);
+  try {
+    return JSON.stringify(error, (_key, value) => (value instanceof Error ? `${value.name}: ${value.message}` : value)).slice(0, 300);
+  } catch (_) {
+    return String(error).slice(0, 300);
+  }
+}
+
+function sameOriginUrl(candidate, reference) {
+  try {
+    const a = new URL(candidate);
+    const b = new URL(reference);
+    return a.hostname === b.hostname || a.hostname.endsWith(`.${b.hostname}`) || b.hostname.endsWith(`.${a.hostname}`);
+  } catch (_) {
+    return false;
+  }
+}
+
 function resolveRelationUrl(platform, relation, profileUrl = "") {
   const spec = platformSpec(platform);
   let url = spec?.relationUrls?.[relation] || spec?.home;
+  // Favorites and likes live as tabs on the owner's own profile for
+  // Xiaohongshu, Douyin and Kuaishou, but the spec placeholder carries no user
+  // id -- https://www.xiaohongshu.com/user/profile is not anybody's profile.
+  // Navigating there lands on a page with no relation tabs at all, so the scan
+  // reported RELATION_TAB_NOT_FOUND and imported nothing on every run. The
+  // connect flow already stored the real profile URL; prefer it.
+  if (profileUrl && spec?.relationUrls?.[relation] && sameOriginUrl(profileUrl, url)) url = profileUrl;
   if (platform === "x" && relation === "like" && /https:\/\/x\.com\/[^/]+/i.test(profileUrl)) url = `${profileUrl.replace(/\/$/, "")}/likes`;
   if (platform === "bilibili" && /space\.bilibili\.com\/\d+/i.test(profileUrl)) {
     const base = profileUrl.match(/https:\/\/space\.bilibili\.com\/\d+/i)?.[0];
@@ -705,7 +733,10 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
         items: [],
         completeness: "failed",
         failure_code: "BROWSER_SCAN_FAILED",
-        cursor: { error: String(error?.message || error).slice(0, 300) },
+        // String() on a thrown array or plain object yields "[object Object]"
+        // repeated, which is exactly what earlier failures recorded and why
+        // they could not be diagnosed at all.
+        cursor: { error: describeScanError(error) },
         has_more: false
       }));
     }

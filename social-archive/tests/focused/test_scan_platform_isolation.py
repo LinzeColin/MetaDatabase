@@ -353,3 +353,30 @@ def test_unconfirmed_relation_scope_reports_the_real_tab_markup():
     assert "relationTabDiagnostic" in core
     assert "observed_tabs" in core
     assert "observed_tabs: relationScope.observed_tabs" in mirror
+
+
+def test_profile_scoped_relations_use_the_stored_profile_url():
+    # The spec placeholder https://www.xiaohongshu.com/user/profile carries no
+    # user id and is nobody's profile, so navigating there found no relation
+    # tabs and every run imported nothing. The connect flow already stores the
+    # real profile URL; resolveRelationUrl must prefer it.
+    from pathlib import Path
+
+    background = (Path(__file__).resolve().parents[2] / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    resolver = background.split("function resolveRelationUrl", 1)[1].split("\n}", 1)[0]
+    assert "sameOriginUrl(profileUrl, url)" in resolver
+    assert "url = profileUrl" in resolver
+    # The narrower per-platform overrides must still win over the generic swap.
+    assert resolver.index("url = profileUrl") < resolver.index('platform === "x"')
+
+
+def test_scan_failures_record_a_readable_error_not_object_object():
+    # String() on a thrown array or plain object produced "[object Object]"
+    # repeated, which is what earlier real failures recorded, leaving them
+    # undiagnosable.
+    from pathlib import Path
+
+    background = (Path(__file__).resolve().parents[2] / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    assert "function describeScanError" in background
+    assert "cursor: { error: describeScanError(error) }" in background
+    assert "String(error?.message || error).slice(0, 300)" not in background
