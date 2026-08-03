@@ -42,7 +42,8 @@
     "decision_is_the_owners": "Either free host capacity or expand the disk, or accept SA-304 as permanently optional on this node. Pruning other projects' images or volumes is not a call the build agent should make."
   },
   "what_this_does_not_prove": [
-    "Any live Karakeep, Linkwarden, ArchiveBox or ArchiveWeb.page projection.",
+    "Any live Karakeep or Linkwarden projection.",
+    "An ArchiveWeb.page WACZ import against production, which needs an Owner-captured WACZ and an explicit L2 opt-in.",
     "SA-305, the Stage 3 gate."
   ],
   "non_actions": [
