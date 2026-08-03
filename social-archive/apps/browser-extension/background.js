@@ -1,5 +1,5 @@
 /* global SA */
-importScripts("shared.js", "content/account-mirror-core.js");
+importScripts("shared.js", "content/platform-catalog.js", "content/extension-utils.js");
 
 const MENU_SAVE = "social-archive-save-page";
 const MENU_SELECTION = "social-archive-save-selection";
@@ -350,7 +350,7 @@ async function listSyncRuns() {
 }
 
 function platformSpec(platform) {
-  return globalThis.SAMirrorCore?.PLATFORM_SPECS?.[platform] || null;
+  return globalThis.SAPlatformCatalog?.platformCatalogEntry?.(platform) || null;
 }
 
 async function waitForTabComplete(tabId, timeoutMs = 45000) {
@@ -382,7 +382,7 @@ async function findExistingPlatformTab(platform, preferredTabId = null) {
   const patterns = SA.patternsForPlatform(platform);
   if (!patterns.length) return null;
   const tabs = await chrome.tabs.query({ url: patterns }).catch(() => []);
-  const select = globalThis.SAMirrorCore?.preferExistingPlatformTab;
+  const select = globalThis.SAExtensionUtils?.preferExistingPlatformTab;
   if (typeof select === "function") return select(tabs, preferredTabId);
   return tabs.find(tab => String(tab?.id) === String(preferredTabId)) || tabs.find(tab => tab?.active) || tabs[0] || null;
 }
@@ -412,11 +412,11 @@ async function syncChromeBookmarks({ accountId = null, syncRunId = null, trigger
   }
   const tree = await chrome.bookmarks.getTree();
   const config = await SA.getConfig();
-  const records = SAMirrorCore.flattenBookmarksTree(tree).map(item => ({
+  const records = SAExtensionUtils.flattenBookmarksTree(tree).map(item => ({
     ...item,
     destination_ids: serverDestinations(config)
   }));
-  const chunks = SAMirrorCore.chunk(records, 200);
+  const chunks = SAExtensionUtils.chunk(records, 200);
   for (let index = 0; index < chunks.length; index += 1) {
     const control = await stopStateFor(syncRunId);
     if (control) return { ok: true, accountId: account.id, syncRunId, status: control === "pause" ? "paused" : "cancelled", controlled: true };
@@ -558,7 +558,7 @@ async function sendBrowserScopeBatches({ syncRunId, platform, relation, scopeRes
     collection_name: collectionName || item.collection_name || collectionKey || "",
     destination_ids: serverDestinations(config)
   }));
-  const chunks = SAMirrorCore.chunk(items, 200);
+  const chunks = SAExtensionUtils.chunk(items, 200);
   for (let index = 0; index < chunks.length; index += 1) {
     await sendSyncBatch(syncRunId, {
       relation_type: relation,
@@ -627,9 +627,9 @@ async function scanOneBrowserRelation({ tabId, platform, relation, syncRunId, pr
   if (baseResult?.controlled) return baseResult;
   scopeResults.push(baseResult);
 
-  const seenUrls = new Set([SAMirrorCore.canonicalUrl(url)]);
+  const seenUrls = new Set([SAExtensionUtils.canonicalUrl(url)]);
   for (const collection of discoveredCollections.slice(0, 100)) {
-    const collectionUrl = SAMirrorCore.canonicalUrl(collection.url);
+    const collectionUrl = SAExtensionUtils.canonicalUrl(collection.url);
     if (!collectionUrl || seenUrls.has(collectionUrl)) continue;
     seenUrls.add(collectionUrl);
     const control = await stopStateFor(syncRunId);
