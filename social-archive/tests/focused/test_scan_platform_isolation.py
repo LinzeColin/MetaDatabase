@@ -1,4 +1,12 @@
+import json
+import subprocess
+from pathlib import Path
+
 from social_archive.models import CaptureRequest
+
+
+ROOT = Path(__file__).resolve().parents[2]
+MIRROR_CORE = ROOT / "apps/browser-extension/content/account-mirror-core.js"
 
 
 def test_complete_scan_only_changes_the_scanned_platform(service, store):
@@ -39,3 +47,70 @@ def test_kuaishou_complete_scan_never_changes_another_platform(service, store):
     assert kuaishou_relation["missing_complete_scan_count"] == 2
     assert x_relation["status"] == "active"
     assert x_relation["missing_complete_scan_count"] == 0
+
+
+def test_douyin_browser_mirror_keeps_video_and_note_collection_candidates():
+    script = f"""
+const core = require({json.dumps(str(MIRROR_CORE))});
+function card(label) {{
+  return {{
+    innerText: label,
+    textContent: label,
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    closest: () => null,
+  }};
+}}
+function anchor(href, label) {{
+  const parent = card(label);
+  return {{
+    href,
+    textContent: label,
+    title: label,
+    getAttribute: () => '',
+    closest: () => parent,
+  }};
+}}
+const root = {{
+  querySelectorAll: () => [
+    anchor('https://www.douyin.com/video/1001?share=1', '视频收藏'),
+    anchor('https://www.douyin.com/note/1002?share=1', '图文收藏'),
+  ],
+}};
+const items = core.extractCandidates('douyin', root, {{
+  relationType: 'favorite',
+  collectionKey: 'douyin:collection:tech',
+  collectionName: '技术收藏夹',
+  pageUrl: 'https://www.douyin.com/user/self?showTab=collection',
+}});
+console.log(JSON.stringify(items.map(item => ({{
+  external_content_id: item.external_content_id,
+  url: item.url,
+  relation_type: item.relation_type,
+  collection_key: item.collection_key,
+  collection_name: item.collection_name,
+}}))));
+"""
+    completed = subprocess.run(
+        ["node", "-e", script],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    assert json.loads(completed.stdout) == [
+        {
+            "external_content_id": "1001",
+            "url": "https://www.douyin.com/video/1001?share=1",
+            "relation_type": "favorite",
+            "collection_key": "douyin:collection:tech",
+            "collection_name": "技术收藏夹",
+        },
+        {
+            "external_content_id": "1002",
+            "url": "https://www.douyin.com/note/1002?share=1",
+            "relation_type": "favorite",
+            "collection_key": "douyin:collection:tech",
+            "collection_name": "技术收藏夹",
+        },
+    ]

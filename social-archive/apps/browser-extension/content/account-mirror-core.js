@@ -19,7 +19,7 @@
       label: "抖音", relations: ["favorite", "like"],
       home: "https://www.douyin.com/",
       relationUrls: { favorite: "https://www.douyin.com/user/self?showTab=collection", like: "https://www.douyin.com/user/self?showTab=like" },
-      contentPatterns: [/\/video\/\d+/],
+      contentPatterns: [/\/(?:video|note)\/\d+/],
       collectionText: /收藏夹|合集|专辑/i
     },
     kuaishou: {
@@ -98,7 +98,7 @@
       const path = new URL(url).pathname;
       const patterns = {
         xiaohongshu: /\/(?:explore|discovery\/item)\/([a-zA-Z0-9_-]+)/,
-        douyin: /\/video\/(\d+)/,
+        douyin: /\/(?:video|note)\/(\d+)/,
         kuaishou: /\/short-video\/([a-zA-Z0-9_-]+)/,
         bilibili: /\/video\/(BV[a-zA-Z0-9]+|av\d+)/i,
         x: /\/[^/]+\/status\/(\d+)/,
