@@ -1,8 +1,13 @@
+import hashlib
 import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-TASKPACK_ROOT = ROOT.parents[2]
+
+# SHA-256 of 04_CONNECTORS/PLATFORM_CAPABILITY_MATRIX.json in the sealed
+# Social Archive v0.0.0.6 Task Pack.  Keeping the sealed payload identity in
+# the test avoids a non-portable dependency on a local Task Pack extraction.
+FROZEN_PLATFORM_CAPABILITY_SHA256 = "5a0636d8e45b2e411589645fe102daf48f1eddee9f32997f6ce976408271a02f"
 
 EXPECTED_PLATFORM_IDS = [
     "generic-web",
@@ -21,9 +26,10 @@ def _load_json(path: Path):
 
 
 def test_platform_capability_contract_is_account_level_and_exact():
-    machine = _load_json(ROOT / "machine/platform_capabilities.json")
-    canonical = _load_json(TASKPACK_ROOT / "04_CONNECTORS/PLATFORM_CAPABILITY_MATRIX.json")
-    assert machine == canonical
+    path = ROOT / "machine/platform_capabilities.json"
+    payload = path.read_bytes()
+    machine = json.loads(payload.decode("utf-8"))
+    assert hashlib.sha256(payload).hexdigest() == FROZEN_PLATFORM_CAPABILITY_SHA256
     assert machine["active_platform_ids"] == EXPECTED_PLATFORM_IDS
     assert [item["id"] for item in machine["platforms"]] == EXPECTED_PLATFORM_IDS
     assert machine["golden_path"] == (
@@ -78,8 +84,7 @@ def test_account_mirror_requires_terminal_proof_and_collection_scope_finalizatio
 
 def test_owner_approved_table_contract_is_frozen_in_product_surface():
     html = (ROOT / "apps/pwa/index.html").read_text(encoding="utf-8")
-    contract = (TASKPACK_ROOT / "08_UIUX/TABLE_LIBRARY_CONTRACT.md").read_text(encoding="utf-8")
     for label in ["平台", "时间", "主题分类", "关键词", "内容", "链接"]:
-        assert label in html or label in contract
+        assert label in html
     for phrase in ["按平台分组", "立即同步全部", "账号同步中心", "默认按收藏、点赞或书签时间从新到旧"]:
         assert phrase in html
