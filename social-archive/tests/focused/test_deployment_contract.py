@@ -45,7 +45,7 @@ def test_install_dry_run_is_zero_write_even_when_prerequisites_are_available(tmp
     scripts = project / "scripts"
     scripts.mkdir(parents=True)
     (scripts / "install.sh").write_text((ROOT / "scripts" / "install.sh").read_text(encoding="utf-8"), encoding="utf-8")
-    for relative in ("pyproject.toml", "compose.yaml", ".env.example", "scripts/setup_wizard.py", "scripts/generate_pairing_code.py", "scripts/status_server.py"):
+    for relative in ("pyproject.toml", "compose.yaml", ".env.example", "scripts/setup_wizard.py", "scripts/generate_pairing_code.py", "scripts/status_server.py", "scripts/build_extension_package.py"):
         target = project / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text("fixture\n", encoding="utf-8")
@@ -424,9 +424,17 @@ def test_install_provisions_shared_nonroot_bind_mounts_for_core_and_cli_sidecar(
     assert "chmod 2770 runtime/data runtime/import runtime/vendor-output runtime/vendor-output/{cli,xhs,kuaishou,douk}" in install
     assert "groupadd --system --gid 10001 socialarchive" in core_dockerfile
     assert "useradd --system --uid 10001 --gid socialarchive" in core_dockerfile
-    assert "groupadd --system --gid 10001 socialarchive" in cli_dockerfile
-    assert "useradd --system --uid 10002 --gid socialarchive" in cli_dockerfile
-    assert "chown -R cliworker:socialarchive /work /worker" in cli_dockerfile
+    # The Core owns the shared host tree.  The CLI Sidecar reaches it through the
+    # explicitly configured host maintenance group granted at run time, which is
+    # stronger than baking a coincidental numeric gid into the image: production
+    # sets SOCIAL_ARCHIVE_HOST_DATA_GID to the real `id -g socialarchive`.
+    assert "useradd --system --uid 10002" in cli_dockerfile
+    compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+    cli_service = compose.split("\n  cli-tools:", 1)[1]
+    assert "group_add:" in cli_service
+    assert '"${SOCIAL_ARCHIVE_HOST_DATA_GID:-10001}"' in cli_service
+    assert "${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}:/work/output" in cli_service
+    assert "SOCIAL_ARCHIVE_HOST_DATA_GID=" in (ROOT / ".env.example").read_text(encoding="utf-8")
 
 
 def test_deployment_probe_read_only_never_calls_dns_or_https(monkeypatch, capsys):

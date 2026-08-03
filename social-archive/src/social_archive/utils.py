@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import ipaddress
 import json
@@ -178,4 +179,18 @@ def read_secret(path_value: str | None) -> str | None:
             f"或为 systemd LoadCredential；"
             f"Docker secret 不得可被组/其他用户写入：{path}"
         )
-    return path.read_text(encoding="utf-8").strip()
+    return read_secret_text(path)
+
+
+def read_secret_text(path: Path) -> str:
+    # The one-time pairing record is the only secret rotated while Core is
+    # running, and Compose bind-mounts it as a single file.  The generator
+    # therefore rewrites it in place rather than by rename; take a shared lock
+    # so a rotation in flight can never be observed as a torn record.
+    with path.open("r", encoding="utf-8") as handle:
+        try:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_SH)
+        except OSError:
+            # Filesystems without flock still deliver the whole small record.
+            pass
+        return handle.read().strip()

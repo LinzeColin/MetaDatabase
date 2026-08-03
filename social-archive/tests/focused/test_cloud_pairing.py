@@ -96,6 +96,31 @@ def test_pairing_generator_preserves_existing_secret_mode(tmp_path):
     assert secret.stat().st_mode & 0o777 == 0o640
 
 
+def test_pairing_rotation_keeps_the_inode_a_bind_mount_follows(tmp_path):
+    # Compose publishes every secret as an individual file bind mount, so the
+    # running Core follows the inode.  Rotating by rename left production
+    # serving the pre-rotation record forever, which presented as a refreshed
+    # code that never became available.
+    import importlib.util
+
+    script = Path(__file__).parents[2] / "scripts/generate_pairing_code.py"
+    spec = importlib.util.spec_from_file_location("pairing_generator_inode", script)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    secret = tmp_path / "pairing-code"
+    secret.write_text("previous-and-much-longer-than-the-replacement\n", encoding="utf-8")
+    secret.chmod(0o640)
+    before = secret.stat().st_ino
+
+    module.atomic_secret(secret, "replacement")
+
+    assert secret.stat().st_ino == before, "rotation must not swap the inode a bind mount follows"
+    assert secret.read_text(encoding="utf-8") == "replacement\n", "stale bytes must be truncated"
+    assert secret.stat().st_mode & 0o777 == 0o640
+    assert not list(tmp_path.glob(".*tmp")), "in-place rotation must not leave a temporary secret behind"
+
+
 def test_pairing_generator_rejects_more_than_ten_minutes(tmp_path):
     import subprocess
     script = Path(__file__).parents[2] / "scripts/generate_pairing_code.py"
