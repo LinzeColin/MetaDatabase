@@ -221,12 +221,12 @@ async function removeQueuedSync({ syncRunId = null, accountId = null } = {}) {
   return queue.length - kept.length;
 }
 
-async function broadcastMirrorControl(syncRunId, action) {
-  const tabs = await chrome.tabs.query({}).catch(() => []);
-  await Promise.all(tabs.filter(tab => tab.id).map(tab =>
-    chrome.tabs.sendMessage(tab.id, { type: "SA_MIRROR_CONTROL", syncRunId, action }).catch(() => null)
-  ));
-}
+// v0.0.0.7 / T03：原先这里向所有标签页广播 SA_MIRROR_CONTROL，
+// 让 DOM 抓取的 content script 中途停下。抓取器已删，广播没有接收方——
+// 留着它会让"暂停已下发"看着成立而实际什么都没发生。
+// 暂停/取消并没有因此失效：stopStateFor 从本地 storage 与服务端 sync-run
+// 两处读控制态，编排层每一轮都查，这才是真正生效的那条路。
+// T08 引入 MAIN-world 拦截时会带来它自己的控制通道，届时再建。
 
 async function stopStateFor(syncRunId) {
   const local = await getSyncControl(syncRunId);
@@ -252,10 +252,8 @@ async function controlSyncRun({ syncRunId, accountId = null, action }) {
   if (action === "pause" || action === "cancel") {
     await setSyncControl(syncRunId, action);
     await removeQueuedSync({ syncRunId, accountId: effectiveAccountId });
-    await broadcastMirrorControl(syncRunId, action);
   } else {
     await setSyncControl(syncRunId, null);
-    await broadcastMirrorControl(syncRunId, "clear");
     await enqueueAccountSync({
       accountId: effectiveAccountId,
       syncRunId,
@@ -369,13 +367,6 @@ async function waitForTabComplete(tabId, timeoutMs = 45000) {
     }
     chrome.tabs.onUpdated.addListener(listener);
   });
-}
-
-async function ensureAccountMirrorScripts(tabId) {
-  await chrome.scripting.executeScript({
-    target: { tabId },
-    files: ["content/account-mirror-core.js", "content/account-mirror.js"]
-  }).catch(() => {});
 }
 
 async function findExistingPlatformTab(platform, preferredTabId = null) {
@@ -512,7 +503,6 @@ async function connectBrowserPlatform(platform) {
   });
   if (existingTab?.id) {
     await chrome.tabs.update(existingTab.id, { active: true });
-    await ensureAccountMirrorScripts(existingTab.id);
   }
   return {
     ok: true,
@@ -545,7 +535,6 @@ function resolveRelationUrl(platform, relation, profileUrl = "") {
 async function navigateMirrorTab(tabId, url) {
   await chrome.tabs.update(tabId, { url, active: true });
   await waitForTabComplete(tabId);
-  await ensureAccountMirrorScripts(tabId);
 }
 
 async function sendBrowserScopeBatches({ syncRunId, platform, relation, scopeResult, collectionKey = "", collectionName = "" }) {
@@ -591,18 +580,32 @@ async function sendBrowserScopeBatches({ syncRunId, platform, relation, scopeRes
   return { imported: items.length, chunks: chunks.length, complete: scopeResult.completeness === "complete" };
 }
 
+/** 取数缝隙 —— **T08 只需要换掉这一个函数体**。
+ *
+ * v0.0.0.6 这里向 content script 发 `SA_MIRROR_SCAN_RELATION`，由 DOM 抓取器
+ * 滚页面、抠选择器、凑出列表。那条路已被 CONFLICT_ORDER 实测证伪并随 T03 删除。
+ * 替代品（在 Owner 浏览器里拦平台自己的 API 响应）属于 T08。
+ *
+ * **它现在抛错，而不是返回空列表——这是刻意的。** 返回 `{ ok: true, items: [] }`
+ * 会一路走完 sendBrowserScopeBatches，在服务端留下一条 completeness=complete、
+ * item_count=0 的扫描回执，也就是 INV-NO-SILENT-ZERO 明令禁止的那种"静默的零"：
+ * 界面显示同步成功、库里一条没有、没有任何地方说得出为什么。
+ * v0.0.0.6 生产上"永远是 0"就是这么来的（见 evidence/T00/CURRENT_TRUTH.json）。
+ *
+ * 抛出的错由 runBrowserAccountSync 的 catch 接住，写成
+ * completeness=failed + failure_code=ACQUISITION_PATH_NOT_INSTALLED，
+ * 用户看到的是"这条没成，原因是什么"，而不是"这条空"。
+ */
+async function acquireRelationItems() {
+  const error = new Error("本版本尚未接入平台列表读取通道，请等待版本更新后重试。");
+  error.failureCode = "ACQUISITION_PATH_NOT_INSTALLED";
+  throw error;
+}
+
 async function scanBrowserScope({ tabId, platform, relation, syncRunId, url, collectionKey = "", collectionName = "", alreadyLoaded = false }) {
   if (!alreadyLoaded) await navigateMirrorTab(tabId, url);
-  const result = await chrome.tabs.sendMessage(tabId, {
-    type: "SA_MIRROR_SCAN_RELATION",
-    syncRunId,
-    relationType: relation,
-    collectionKey,
-    collectionName,
-    maxItems: 100000,
-    maxScrolls: 1200,
-    stableRoundsRequired: 5
-  });
+  // 取数与传输是两件事，缝在这一行上：上面换实现，下面这两句不动。
+  const result = await acquireRelationItems({ tabId, platform, relation, syncRunId, collectionKey, collectionName });
   if (result?.controlled) return { controlled: true, status: result.controlAction === "pause" ? "paused" : "cancelled", relation };
   if (!result?.ok) throw new Error(result?.error || "平台列表读取失败");
   const sent = await sendBrowserScopeBatches({ syncRunId, platform, relation, scopeResult: result, collectionKey, collectionName });
@@ -618,9 +621,12 @@ async function scanOneBrowserRelation({ tabId, platform, relation, syncRunId, pr
     });
   }
   await navigateMirrorTab(tabId, url);
-  const discoveredCollections = await chrome.tabs.sendMessage(tabId, { type: "SA_MIRROR_DISCOVER_COLLECTIONS" })
-    .then(result => result?.ok ? (result.items || []) : [])
-    .catch(() => []);
+  // v0.0.0.7 / T03：收藏夹枚举原先由 DOM 抓取器扫页面里的链接文字猜出来
+  // （靠一张"看着像收藏夹"的中文文案正则表）。
+  // 抓取器已删。T08 从平台自己的 API 响应里拿收藏夹清单——那是权威来源，
+  // 不是从界面文案反推。在那之前这里为空，且下面的取数缝隙会明确报错，
+  // 不会出现"收藏夹 0 个但同步成功"。
+  const discoveredCollections = [];
 
   const scopeResults = [];
   const baseResult = await scanBrowserScope({ tabId, platform, relation, syncRunId, url, alreadyLoaded: true });
@@ -704,7 +710,10 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
         scope_type: "relation",
         items: [],
         completeness: "failed",
-        failure_code: "BROWSER_SCAN_FAILED",
+        // 带了具体原因就报具体原因。一律报 BROWSER_SCAN_FAILED 会把
+        // "本版本没接取数通道"和"这次扫描炸了"混成同一条，
+        // 用户和 T14 的文案矩阵都分不出该怎么办。
+        failure_code: error?.failureCode || "BROWSER_SCAN_FAILED",
         cursor: { error: String(error?.message || error).slice(0, 300) },
         has_more: false
       }));
@@ -763,10 +772,18 @@ async function verifyPendingPlatform(platform) {
     return { ok: false, state: "authorizing", error: "未找到可复用的平台页面；插件不会打开新的登录页。" };
   }
   await chrome.tabs.update(preferred.id, { active: true });
-  await ensureAccountMirrorScripts(preferred.id);
-  const state = await chrome.tabs.sendMessage(preferred.id, { type: "SA_MIRROR_DISCOVER_ACCOUNT" }).catch(() => null);
-  if (!state?.loggedIn) return { ok: false, state: "authorizing", error: "当前页面的登录态尚未确认；插件不会重新打开登录页。" };
-  return completePendingBrowserConnection({ type: "SA_PLATFORM_PAGE_READY", platform, ...state }, preferred);
+  // v0.0.0.7 / T03：登录态确认原先靠扫页面上有没有"登录"按钮、有没有头像元素。
+  // 那是 DOM 抓取，已删。
+  //
+  // 这里**不能退回"猜它已登录"**：猜错的后果是拿一个未登录的会话去发起首次全量同步，
+  // 平台返回空列表，系统记一条"同步完成、0 条"——又是 INV-NO-SILENT-ZERO 那个洞。
+  // T08 的拦截路会用"是否收到过带身份的 API 响应"来确认，那是可证的信号。
+  return {
+    ok: false,
+    state: "authorizing",
+    failureCode: "LOGIN_PROOF_UNAVAILABLE",
+    error: "本版本无法确认这个页面的登录态，账号暂不能连接；请等待版本更新后重试。"
+  };
 }
 
 async function syncAccountById(accountId, options = {}) {
@@ -880,11 +897,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     await chrome.action.setBadgeBackgroundColor({ color: "#b42318" });
     await chrome.action.setBadgeText({ text: "!" });
   }
-});
-
-chrome.runtime.onConnect.addListener(port => {
-  if (port.name !== "sa-account-mirror-scan") return;
-  port.onMessage.addListener(() => {});
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

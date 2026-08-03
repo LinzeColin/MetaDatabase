@@ -18,7 +18,8 @@ def test_extension_has_account_mirror_first_surfaces():
         "popup.html", "popup.js", "popup.css", "sidepanel.html", "sidepanel.js",
         "options.html", "options.js", "options.css", "shared.js", "background.js",
         "content/fab.js", "content/extract.js", "content/extract-core.js",
-        "content/account-mirror.js", "content/account-mirror-core.js",
+        # v0.0.0.7 / T03(a)：两个抓取器文件已删，换成拆分后留下的两半。
+        "content/platform-catalog.js", "content/extension-utils.js",
         "bridge.js", "runtime-config.json",
     }
     assert required <= {str(path.relative_to(root)) for path in root.rglob("*") if path.is_file()}
@@ -65,14 +66,11 @@ def test_bridge_matches_only_the_documented_web_and_loopback_origins():
     assert '"http://localhost:8765"' in bridge
 
 
-def test_autoscroll_is_isolated_to_explicit_account_mirror_sync():
-    root = _extension_root()
-    mirror = (root / "content/account-mirror.js").read_text(encoding="utf-8")
-    assert "scrollTo(" in mirror
-    assert "SA_MIRROR_SCAN_RELATION" in mirror
-    for relative in ("content/extract.js", "content/fab.js", "popup.js", "sidepanel.js", "options.js"):
-        text = (root / relative).read_text(encoding="utf-8")
-        assert "scrollTo(" not in text and "scrollBy(" not in text
+# v0.0.0.7 / T03(a)：`test_autoscroll_is_isolated_to_explicit_account_mirror_sync`
+# 原先断言"只有账号镜像会自动滚页面，其他脚本都不许"。抓取器删掉之后，
+# 判据收紧成"**谁都不许滚**"，反转后在
+# test_superseded_paths_stay_removed.py::test_extension_never_autoscrolls_any_page。
+# 那是更强的判据，不是更弱的。
 
 
 def test_extension_default_destinations_archive_levels_and_chunk_safe_protocol():
@@ -84,4 +82,5 @@ def test_extension_default_destinations_archive_levels_and_chunk_safe_protocol()
     assert 'scope_type: "collection"' in background
     assert 'scope_type: "relation"' in background
     assert "SYNC_QUEUE_KEY" in background and "processSyncQueue" in background
-    assert "sa-account-mirror-scan" in background
+    # 原有一条断言心跳端口 "sa-account-mirror-scan" 存在。那个端口是抓取器
+    # 用来汇报滚动进度的，随抓取器删除；持久队列本身与取数方式无关，保留。

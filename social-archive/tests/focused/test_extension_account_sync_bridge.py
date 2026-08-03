@@ -62,17 +62,19 @@ def test_pairing_supply_unavailable_is_exposed_without_platform_relogin_prompt()
     assert "不会请求或改变任一平台的登录状态" in options
 
 
-def test_service_worker_uses_persistent_queue_and_scan_heartbeat():
+def test_service_worker_uses_persistent_queue():
+    """v0.0.0.7 / T03(a)：原名带 `and_scan_heartbeat`。
+
+    心跳端口（sa-account-mirror-scan）是 DOM 抓取器用来汇报滚动进度的，
+    随抓取器删除。**持久队列本身与取数方式无关**——它解决的是 MV3 service worker
+    随时会被杀掉、同步任务必须能续上，T08 换成 API 拦截之后一样需要它。
+    """
     background = (EXT / "background.js").read_text(encoding="utf-8")
-    content = (EXT / "content/account-mirror.js").read_text(encoding="utf-8")
     for token in (
         "SYNC_QUEUE_KEY", "SYNC_QUEUE_LOCK_KEY", "enqueueAccountSync",
         "processSyncQueue", "SYNC_QUEUE_ALARM", "already_running",
     ):
         assert token in background
-    assert 'chrome.runtime.connect({ name: "sa-account-mirror-scan" })' in content
-    assert 'port.postMessage({ type: "SA_SCAN_HEARTBEAT"' in content
-    assert 'port.name !== "sa-account-mirror-scan"' in background
 
 
 def test_connection_reuses_an_existing_platform_tab_before_opening_a_new_page():
@@ -81,7 +83,9 @@ def test_connection_reuses_an_existing_platform_tab_before_opening_a_new_page():
     assert "const existingTab = await findExistingPlatformTab(platform);" in background
     assert "const tab = existingTab || await chrome.tabs.create({ url: spec.home, active: true });" in background
     assert "await setPendingConnection(platform" in background
-    assert "await ensureAccountMirrorScripts(existingTab.id);" in background
+    # 原有一条断言此处会注入抓取器脚本。抓取器已删，注入随之取消；
+    # **复用已有标签页**这条边界本身与取数方式无关，是 INV-ZERO-BARRIER 的一部分
+    # （不要再逼用户登录一次），保留。
     assert "findExistingPlatformTab(platform, pending.tabId)" in background
     assert "插件不会打开新的登录页。" in background
 

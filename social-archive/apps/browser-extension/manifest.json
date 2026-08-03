@@ -78,24 +78,6 @@
         "bridge.js"
       ],
       "run_at": "document_start"
-    },
-    {
-      "matches": [
-        "https://*.xiaohongshu.com/*",
-        "https://*.douyin.com/*",
-        "https://*.kuaishou.com/*",
-        "https://*.bilibili.com/*",
-        "https://x.com/*",
-        "https://*.x.com/*",
-        "https://twitter.com/*",
-        "https://*.reddit.com/*",
-        "https://*.instagram.com/*"
-      ],
-      "js": [
-        "content/account-mirror-core.js",
-        "content/account-mirror.js"
-      ],
-      "run_at": "document_idle"
     }
   ],
   "optional_permissions": [

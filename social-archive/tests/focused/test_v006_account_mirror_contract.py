@@ -57,29 +57,35 @@ def test_extension_scope_excludes_standalone_tiktok_and_keeps_account_mirror_pri
     assert "tiktok.com" not in serialized
     assert "cookies" not in {str(item).lower() for item in manifest.get("permissions", [])}
     assert "bookmarks" in manifest.get("optional_permissions", [])
+    # v0.0.0.7 / T03(a)：原先这里还断言 manifest 注入了两个抓取器脚本。
+    # 抓取器已删，那两条反转成守卫（test_superseded_paths_stay_removed.py 的
+    # test_manifest_no_longer_injects_scrapers_into_platform_pages）。
+    # 上面这几条边界（不碰 tiktok、不要 cookies 权限、书签走可选权限）与取数方式无关，
+    # 是 L0 硬边界的一部分，原样保留。
     scripts = [
         script
         for entry in manifest.get("content_scripts", [])
         for script in entry.get("js", [])
     ]
-    assert "content/account-mirror-core.js" in scripts
-    assert "content/account-mirror.js" in scripts
+    assert "bridge.js" in scripts, "PWA 桥接脚本不该被顺手删掉"
 
 
 def test_account_mirror_requires_terminal_proof_and_collection_scope_finalization():
-    core = (ROOT / "apps/browser-extension/content/account-mirror-core.js").read_text(encoding="utf-8")
-    scanner = (ROOT / "apps/browser-extension/content/account-mirror.js").read_text(encoding="utf-8")
+    """v0.0.0.7 / T03(a) 之后，这条只剩**服务端批次协议**那一半。
+
+    原测试的另一半打在抓取器的"终态证明"上（TRUSTED_TOTAL_MATCH / TERMINAL_NOT_PROVEN
+    / STABLE_END_WITHOUT_PROOF）——那是"滚到底了算不算扫完"的判据，
+    随抓取器一起废止。T08 用 API 分页游标判终态，不再靠猜页面滚没滚到底。
+
+    留下的这几条是**批次上传协议**：分 collection / relation 两级 scope、
+    整体完成度取所有 scope 的合取。它与取数方式无关，T08 会继续用同一套。
+    """
     background = (ROOT / "apps/browser-extension/background.js").read_text(encoding="utf-8")
-    assert "explicit_terminal_or_total_match_only" in core
-    assert "TRUSTED_TOTAL_MATCH" in core
-    assert "TERMINAL_NOT_PROVEN" in core
-    assert "discoverCollectionScopes" in core
-    assert "STABLE_END_WITHOUT_PROOF" in scanner
-    assert 'completeness: complete ? "complete" : "partial"' in scanner
-    assert "SA_MIRROR_DISCOVER_COLLECTIONS" in scanner
     assert "scope_type: \"collection\"" in background
     assert "scope_type: \"relation\"" in background
     assert "every" in background or "allScopesComplete" in background
+    # 完成度必须是"每个 scope 都完成"才算完成，不许有一个 scope 成功就报完成。
+    assert "scopeResults.every(item => item.completeness === \"complete\")" in background
 
 
 def test_owner_approved_table_contract_is_frozen_in_product_surface():
