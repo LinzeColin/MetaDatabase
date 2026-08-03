@@ -1,27 +1,71 @@
 {
-  "schema_version": "1.0",
-  "task_id": "SA-204",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/vendor_sync.py --source bilibili_cli --resolve-and-lock",
-      "command_sha256": "70a8d6ecb641e4c1c7d78909c9ca05ee0696f1f1361591a19103cb18d5b3b218",
+      "command": "source /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_bilibili_connector.py tests/focused/test_command_connectors.py tests/focused/test_scan_platform_isolation.py",
+      "command_sha256": "7b0e7313fe1a9981ca68b69cd57675e69ad93dedc5835681d69ea6e19a786b3a",
       "executed": true,
-      "status": "PASS",
       "exit_code": 0,
-      "summary": "Vendor lock resolved; 13 focused tests passed."
+      "status": "PASS",
+      "summary": "18 passed. The task-pack target was run after activating the existing project Python 3.12.13 venv."
     },
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_command_connectors.py tests/focused/test_scan_scope_isolation.py",
-      "command_sha256": "fad4c2553823ab7194f8b366c029864984aeaf2abee4885a3a676f1f32d0a556",
+      "command": "source /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_account_mirror_sync.py tests/focused/test_health_gated_connector.py tests/focused/test_openapi_probe_connector.py tests/stage/test_stage2_domestic.py",
+      "command_sha256": "0c00d0ce8816829db834c435a131a0d9bf2f77e0973ae6d0d53780b62d43471e",
       "executed": true,
-      "status": "PASS",
       "exit_code": 0,
-      "summary": "Vendor lock resolved; 13 focused tests passed."
+      "status": "PASS",
+      "summary": "21 passed. Related connector, account-mirror, Extension, and Stage 2 domestic-worker regressions."
+    },
+    {
+      "command": "node --check apps/browser-extension/content/account-mirror-core.js && git diff --check",
+      "command_sha256": "46a10151d3fee8e99ac604ea9a5b21d43bf5ed26855e2601a54fbc6ecea1ccca",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "The changed browser content script passed syntax validation; whitespace check passed."
+    },
+    {
+      "command": "source /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/check_brand.py && python3 scripts/secret_scan.py . && uv lock --check --offline",
+      "command_sha256": "8671666a3154e8818a618516daab961289058ad9e9af4085e0906f54d6077723",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Brand check, repository secret scan, and offline lock validation passed."
+    },
+    {
+      "command": "docker compose -f compose.yaml config --no-env-resolution --no-interpolate --no-path-resolution -q",
+      "command_sha256": "015ecf81bd139bbfce4221a5af64a334a75d972d4a69aa5de6e5a835b698b98d",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Config-only Compose structure validation passed; it did not read .env, build an image, or start a service."
+    },
+    {
+      "command": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/python scripts/platform_canary.py bilibili --read-only --limit 1",
+      "command_sha256": "c3820363b819aac45f4f79edb7d1cab1176ee9a0abf958318a50a486afa1f068",
+      "executed": true,
+      "exit_code": 0,
+      "status": "BLOCKED_ENVIRONMENT",
+      "summary": "OWNER_CANARY_NOT_AUTHORIZED; credential_read=false; network_attempted=false; runtime_write=false."
+    },
+    {
+      "command": "git ls-remote origin refs/heads/main && git merge-base --is-ancestor 7925695c0078bb3b98d71636f5a1315270d9de87 HEAD",
+      "command_sha256": "0908c5c7af33a63a9cf08a4875c493b2019718551a883e674cd076e1a3e72428",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Remote main remained 7925695c0078bb3b98d71636f5a1315270d9de87 and is an ancestor of the validated implementation commit."
     }
   ],
-  "record_sha256": "ec01a7a495cd9247054b8a17cbb22613a00c8ad5974f6f75b4d23ad76c9fe61c"
+  "generated_at": "2026-08-03T00:47:22Z",
+  "implementation_commit": "8184cbfc911eae1cf7f6960b674914f15c50ddea",
+  "implementation_tree": "553b015ae7135358c3a7c164842243bb4bec0461",
+  "record_context": {
+    "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
+    "validated_head_after_latest_main_reconciliation": "8184cbfc911eae1cf7f6960b674914f15c50ddea"
+  },
+  "record_sha256": "aaec140fc6e838d0a478c705ee6d927423949bb44ddd52e3fce1ad546659805a",
+  "schema_version": "1.0",
+  "task_id": "SA-204",
+  "taskpack_version": "v0.0.0.6"
 }

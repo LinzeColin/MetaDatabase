@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-204",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "commands": [
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/vendor_sync.py --source bilibili_cli --resolve-and-lock",
+      "command_sha256": "70a8d6ecb641e4c1c7d78909c9ca05ee0696f1f1361591a19103cb18d5b3b218",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Vendor lock resolved; 13 focused tests passed."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_command_connectors.py tests/focused/test_scan_scope_isolation.py",
+      "command_sha256": "fad4c2553823ab7194f8b366c029864984aeaf2abee4885a3a676f1f32d0a556",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Vendor lock resolved; 13 focused tests passed."
+    }
+  ],
+  "record_sha256": "ec01a7a495cd9247054b8a17cbb22613a00c8ad5974f6f75b4d23ad76c9fe61c"
+}

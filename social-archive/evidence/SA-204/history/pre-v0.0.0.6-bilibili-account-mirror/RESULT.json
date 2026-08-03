@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-204",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S2",
+  "title": "接入 B站收藏/稍后看/历史 Sidecar",
+  "status": "PASS",
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "equivalent",
+  "acceptance_ids": [
+    "AC-SA-204"
+  ],
+  "tests": [
+    "TEST-SA-204"
+  ],
+  "oracle": "只读子命令 allowlist 生效；HTTP 412/限流为结构化降级；当前页和 yt-dlp 媒体兜底可用。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "Vendor lock resolved; 13 focused tests passed.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+  },
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "f1cd170f99a9340aa6c76670cf5eb7f75a11733568005d41e499db4e9fd3f27e"
+}
