@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T01:40:49Z",
+  "status": "PASS",
+  "scope": "disposable_loopback_pwa_and_extension",
+  "purpose": "Verify the v0.0.0.6 PWA-to-extension bridge and safe local configuration path without a user profile, real account, credential, or production service.",
+  "inputs": {
+    "browser": "Google Chrome for Testing 149.0.7827.55",
+    "extension_manifest_sha256": "ee2b4fecc1a1681c3bde0617e51960655bb9427bf9efbda60c3af2a2237d416b",
+    "bridge_sha256": "69b9c24aeea79adc514515816aa5ee4c9a90f6d367dd8946dbec6df9f6ea6926",
+    "pwa_app_sha256": "bd20598a53e474f5d3673955571099b2f6214fc1e2ba393c0c4eb9bf105cdc7d",
+    "pwa_service_worker_sha256": "327819cb9cd8f767c1390bd0770428ae3e2b4bee7010141b5d4c9917e3c1bfc6"
+  },
+  "observed": {
+    "loopback_endpoint": "http://127.0.0.1:8765",
+    "configure": {
+      "ok": true,
+      "paired": true
+    },
+    "ping": {
+      "detected": true,
+      "paired": true,
+      "configured": true,
+      "version": "0.0.0.6"
+    },
+    "pwa": {
+      "received_sa_pong": true,
+      "service_badge": "私人档案馆已连接 · v0.0.0.6",
+      "app_asset": "/assets/app.js?v=006-r1"
+    }
+  },
+  "isolation": {
+    "temporary_chrome_profile_removed": true,
+    "temporary_loopback_server_removed": true,
+    "credential_or_cookie_read": false,
+    "real_account_or_provider_request": false,
+    "runtime_data_write": false,
+    "deployment_or_production_change": false
+  },
+  "does_not_establish": [
+    "The Cloudflare-protected production website or official ZIP now serves v0.0.0.6.",
+    "A user Chrome profile has refreshed or paired the extension.",
+    "Any real source account connection, first full sync, incremental sync, pause/resume, partial protection, or platform isolation receipt.",
+    "SA-205 Task Pack PASS or permission to advance to SA-301."
+  ]
+}

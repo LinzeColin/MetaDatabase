@@ -40,6 +40,7 @@ def test_extension_auth_and_privacy_boundaries_are_explicit():
     hosts = set(manifest["host_permissions"])
     assert "https://social-archive-api.linzezhang.com/*" in hosts
     assert "https://social-archive.linzezhang.com/*" in hosts
+    assert {"http://127.0.0.1:8765/*", "http://localhost:8765/*"} <= hosts
     assert all("*://*/*" not in host for host in hosts)
     assert "bookmarks" in manifest.get("optional_permissions", [])
     assert "alarms" in manifest.get("permissions", [])
@@ -48,6 +49,20 @@ def test_extension_auth_and_privacy_boundaries_are_explicit():
     assert not any(token in scripts for token in forbidden)
     assert "chrome.permissions.request" in scripts
     assert "Cookie、Token" in (root / "options.html").read_text(encoding="utf-8")
+
+
+def test_bridge_matches_only_the_documented_web_and_loopback_origins():
+    root = _extension_root()
+    manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+    matches = set(manifest["content_scripts"][0]["matches"])
+    assert matches == {
+        "https://social-archive.linzezhang.com/*",
+        "http://127.0.0.1:8765/*",
+        "http://localhost:8765/*",
+    }
+    bridge = (root / "bridge.js").read_text(encoding="utf-8")
+    assert '"http://127.0.0.1:8765"' in bridge
+    assert '"http://localhost:8765"' in bridge
 
 
 def test_autoscroll_is_isolated_to_explicit_account_mirror_sync():

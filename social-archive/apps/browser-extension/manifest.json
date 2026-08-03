@@ -15,7 +15,9 @@
   ],
   "host_permissions": [
     "https://social-archive-api.linzezhang.com/*",
-    "https://social-archive.linzezhang.com/*"
+    "https://social-archive.linzezhang.com/*",
+    "http://127.0.0.1:8765/*",
+    "http://localhost:8765/*"
   ],
   "optional_host_permissions": [
     "http://127.0.0.1:27123/*",
@@ -68,7 +70,9 @@
   "content_scripts": [
     {
       "matches": [
-        "https://social-archive.linzezhang.com/*"
+        "https://social-archive.linzezhang.com/*",
+        "http://127.0.0.1:8765/*",
+        "http://localhost:8765/*"
       ],
       "js": [
         "bridge.js"
