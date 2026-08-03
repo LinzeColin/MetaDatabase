@@ -151,7 +151,36 @@ Oracle 含「撤销令牌后扩展上行得 401 且界面显示中文提示」�
 ### 剩余 2/3
 
 **(a) DOM 抓取器** `apps/browser-extension/content/account-mirror-core.js`（340 行，
-末尾挂 `globalThis.SAMirrorCore`）。引用面**已实测**共 6 处：
+末尾挂 `globalThis.SAMirrorCore`）。
+
+> ### ⚠️ 这个文件**不能整体删除**——里面有一半是 T04 的地基
+>
+> 名字叫「账号镜像核心」，但 17 个导出干净地分成两半，实测确认：
+>
+> | 抓取器（T03 要删） | 通用工具（**必须留**） |
+> |---|---|
+> | `PLATFORM_SPECS`（DOM 选择器表，74 行） | `flattenBookmarksTree` ← **T04 脊柱的 Chrome 书签靠它** |
+> | `extractCandidates`（主扫描器） | `chunk`（background.js:419,561） |
+> | `ensureRelationScope`（产出 `RELATION_TAB_NOT_FOUND` 的就是它） | `canonicalUrl`（background.js:630,632） |
+> | `relationTabIsActive`（选中态判定，缺陷 #4） | `preferExistingPlatformTab`（background.js:385） |
+> | `detectLoggedIn` / `discoverCollectionScopes` / `collectionFromElement` | `externalId` / `relationFromUrl` / `cleanText` / `safeIso` |
+> | `isAtBottom` / `explicitEnd` / `totalHint` / `completionProof` | |
+> | 三个 DOM 文本正则 `END_TEXT` / `LOGIN_TEXT` / `TOTAL_TEXT` | |
+>
+> **整文件删会把 Chrome 书签一起删掉，而那正是 T04 走通脊柱的第一个来源。**
+> 正确做法是剥出抓取器那半、保留工具半，并把文件改名（`mirror` 这个词
+> 在剥完之后已经名不副实，留着会诱导下一个人再删一次）。
+>
+> 本会话实际试过一次：剥完 340 → 122 行、`node --check` 通过，但
+> `background.js` 还有 **10 个调用点**（352/374/490/515/534/548/677/735/766）
+> 指着被掏空的符号，且 4 个测试文件共约 16 个测试断言抓取器存在
+> （`test_scan_platform_isolation` 5 个、`test_extension_account_mirror_core` 7 个、
+> `test_v006_account_mirror_contract` 4 个、`test_extension_e2n_contract` 5 个）。
+> 因余量不足以一次做完而**已回退**——半掏空的编排层比没开始更难接手。
+>
+> `content/account-mirror.js`（188 行）是抓取器的 content-script 一侧，同批删。
+
+引用面**已实测**共 6 处：
 
 | 文件 | 处理 |
 |---|---|
