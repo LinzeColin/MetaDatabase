@@ -72,7 +72,7 @@
   const state = {
     rows: [], total: 0, facets: { platforms: [], topics: [] }, platformCounts: {},
     accounts: [], syncRuns: [], destinations: [], serviceReady: false,
-    extension: { detected: false, paired: false, compatible: false, version: "", refreshedAt: null },
+    extension: { detected: false, paired: false, compatible: false, version: "", pairingRequired: false, oneTimeCodeAvailable: false, refreshedAt: null },
     platform: "all", group: true, sortKey: "savedAt", sortDir: "desc", search: "",
     filters: { relation: "all", topic: "all", date: "all", archive: "all" },
     visibleColumns: new Set(columns.filter(column => !column.defaultHidden).map(column => column.key)),
@@ -655,6 +655,8 @@
       paired: payload.paired === true,
       compatible: version === PRODUCT_VERSION,
       version,
+      pairingRequired: payload.pairingRequired === true,
+      oneTimeCodeAvailable: payload.oneTimeCodeAvailable === true,
       refreshedAt: Date.now()
     };
   }
@@ -663,7 +665,7 @@
     try {
       state.extension = extensionStatus(await postToExtension("SA_PING", {}, 1500));
     } catch (_) {
-      state.extension = { detected: false, paired: false, compatible: false, version: "", refreshedAt: Date.now() };
+      state.extension = { detected: false, paired: false, compatible: false, version: "", pairingRequired: false, oneTimeCodeAvailable: false, refreshedAt: Date.now() };
     }
     return state.extension;
   }
@@ -681,6 +683,10 @@
       return false;
     }
     if (!extension.paired) {
+      if (extension.pairingRequired && !extension.oneTimeCodeAvailable) {
+        showToast("插件已检测到，但私人档案馆当前没有可用的一次性配对记录。已停止配对尝试，平台账号登录状态不会受影响。", "needs");
+        return false;
+      }
       await postToExtension("SA_OPEN_OPTIONS").catch(() => {});
       showToast("插件已检测到，请在打开的设置页完成一次性配对。", "needs");
       return false;

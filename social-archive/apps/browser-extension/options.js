@@ -18,6 +18,13 @@
   let pendingConnections = {};
   let serviceReady = false;
 
+  function setServiceMessage(message = "", type = "needs") {
+    const node = $("serviceMessage");
+    node.textContent = message;
+    node.className = `message ${type}`.trim();
+    node.classList.toggle("hidden", !message);
+  }
+
   function toast(message, type="success") {
     const node = $("toast");
     node.textContent = message;
@@ -42,7 +49,18 @@
         $("serviceBadge").className = "badge connected";
         $("serviceBadge").textContent = "私人档案馆已连接";
         $("pairingArea").classList.add("hidden");
+        setServiceMessage();
         return true;
+      }
+      if (status?.pairing_required === true && !status.one_time_code_available) {
+        serviceReady = false;
+        $("serviceState").className = "state error";
+        $("serviceState").textContent = "等待服务准备";
+        $("serviceBadge").className = "badge error";
+        $("serviceBadge").textContent = "配对服务待准备";
+        $("pairingArea").classList.add("hidden");
+        setServiceMessage("私人档案馆已就绪，但服务端当前没有可用的一次性配对记录。插件已停止配对尝试；不会请求或改变任一平台的登录状态。", "needs");
+        return false;
       }
       await SA.api("/v1/extension/bootstrap", {timeoutMs:6000});
       serviceReady = true;
@@ -51,6 +69,7 @@
       $("serviceBadge").className = "badge connected";
       $("serviceBadge").textContent = "私人档案馆已连接";
       $("pairingArea").classList.add("hidden");
+      setServiceMessage();
       return true;
     } catch (_) {
       serviceReady = false;
@@ -59,6 +78,7 @@
       $("serviceBadge").className = "badge error";
       $("serviceBadge").textContent = "需要连接";
       $("pairingArea").classList.remove("hidden");
+      setServiceMessage();
       return false;
     }
   }

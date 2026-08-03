@@ -903,8 +903,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const config = await SA.getConfig();
       let serviceReady = false;
       let paired = false;
+      let pairingRequired = false;
+      let oneTimeCodeAvailable = false;
       try {
         const pairing = await fetch(`${config.endpoint}/v1/pairing/status`, { cache: "no-store" }).then(response => response.ok ? response.json() : null);
+        pairingRequired = pairing?.pairing_required === true;
+        oneTimeCodeAvailable = pairing?.one_time_code_available === true;
         if (pairing && pairing.pairing_required === false) {
           serviceReady = Boolean(pairing.service_ready);
           paired = serviceReady;
@@ -922,6 +926,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         configured: Boolean(config.endpoint),
         endpoint: config.endpoint,
         libraryUrl: config.libraryUrl,
+        serviceReady,
+        pairingRequired,
+        oneTimeCodeAvailable,
         version: chrome.runtime.getManifest().version
       };
     }

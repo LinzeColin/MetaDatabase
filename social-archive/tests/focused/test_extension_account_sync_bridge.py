@@ -29,6 +29,20 @@ def test_pwa_pings_the_bridge_and_rejects_unpaired_or_wrong_version_extensions()
     assert 'post("SA_PONG"' in bridge
 
 
+def test_pairing_supply_unavailable_is_exposed_without_platform_relogin_prompt():
+    pwa = PWA.read_text(encoding="utf-8")
+    background = (EXT / "background.js").read_text(encoding="utf-8")
+    options = (EXT / "options.js").read_text(encoding="utf-8")
+    assert "pairingRequired = pairing?.pairing_required === true" in background
+    assert "oneTimeCodeAvailable = pairing?.one_time_code_available === true" in background
+    assert "pairingRequired," in background and "oneTimeCodeAvailable," in background
+    assert "extension.pairingRequired && !extension.oneTimeCodeAvailable" in pwa
+    assert "已停止配对尝试，平台账号登录状态不会受影响" in pwa
+    assert "status?.pairing_required === true && !status.one_time_code_available" in options
+    assert "等待服务准备" in options
+    assert "不会请求或改变任一平台的登录状态" in options
+
+
 def test_service_worker_uses_persistent_queue_and_scan_heartbeat():
     background = (EXT / "background.js").read_text(encoding="utf-8")
     content = (EXT / "content/account-mirror.js").read_text(encoding="utf-8")
