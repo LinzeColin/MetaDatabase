@@ -71,8 +71,12 @@ def validate_authorization(
         reasons.append("capital.currency 必须为 AUD")
     if cap.get("max_managed_gross_exposure") != 3000:
         reasons.append("capital.max_managed_gross_exposure 必须为 3000")
-    if cap.get("fat_finger_max_single_order_ratio") != 0.9:
-        reasons.append("capital.fat_finger_max_single_order_ratio 必须为 0.9")
+    # 与权威配置比对(不写死数字):改 policy.yaml 后此处自动跟随,不会再出现
+    # "改了配置忘了改校验"导致授权永远失配的死锁。
+    from backend.app.truth import fat_finger_ratio as _authoritative_ratio
+    _want_ratio = _authoritative_ratio(policy_path)
+    if cap.get("fat_finger_max_single_order_ratio") != _want_ratio:
+        reasons.append(f"capital.fat_finger_max_single_order_ratio 必须为 {_want_ratio}")
     if cap.get("max_orders_per_hour") != 5:
         reasons.append("capital.max_orders_per_hour 必须为 5")
     if cap.get("max_open_positions", None) is not None:

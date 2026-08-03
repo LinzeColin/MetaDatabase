@@ -437,8 +437,8 @@ def build_strategy_view(*, promotion_path: str | Path = "configs/strategy_promot
     now = now or datetime.now(timezone.utc)
     # 已在实盘时,"晋级四道门"是已走完的准入条件,不是待过的关卡——标题与说明随之切换,
     # 避免"已实盘却像还在等晋级"的第二处自相矛盾(2026-07-25 深度自查)。
-    is_live = (os.environ.get("ALPHA_MODE", "").upper() == "MICRO_LIVE"
-               and os.environ.get("LIVE_TRADING_ENABLED", "0") == "1")
+    from backend.app.truth import is_micro_live
+    is_live = is_micro_live()
     gates = []
     try:
         import yaml
@@ -688,8 +688,8 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     today_pnl_aud = equity_aud - prev_equity
     # 实盘判定要在考核卡之前算:一旦进入微实盘,纸面阶段的晋级门禁就不再是"当前状态",
     # 否则会出现"页头写微实盘、门禁写保持 Paper"的自相矛盾(2026-07-25 外部复审抓到)。
-    _env_live = (os.environ.get("ALPHA_MODE", "").upper() == "MICRO_LIVE"
-                 and os.environ.get("LIVE_TRADING_ENABLED", "0") == "1")
+    from backend.app.truth import is_micro_live
+    _env_live = is_micro_live()
     exam = None
     if report and not _env_live:
         promo = report.get("promotion", {})

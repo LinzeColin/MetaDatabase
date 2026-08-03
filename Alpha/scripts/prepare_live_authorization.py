@@ -26,6 +26,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from backend.app.execution.gates import sha256_of_file, validate_authorization
 
 
+from backend.app.truth import fat_finger_ratio
+
 def build(sign: str, days: int, signed_at: str) -> dict:
     return {
         "authorization_id": f"auth_{signed_at[:10].replace('-', '')}_micro_live",
@@ -34,7 +36,7 @@ def build(sign: str, days: int, signed_at: str) -> dict:
         "capital": {
             "currency": "AUD",
             "max_managed_gross_exposure": 3000,
-            "fat_finger_max_single_order_ratio": 0.9,   # owner 2026-07-24 书面放宽
+            "fat_finger_max_single_order_ratio": fat_finger_ratio(),  # 从 policy.yaml 读,不手写
             "max_orders_per_hour": 5,
             "max_open_positions": None,
         },
