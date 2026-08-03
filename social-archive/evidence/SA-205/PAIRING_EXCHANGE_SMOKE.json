@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T02:13:46Z",
+  "status": "PASS",
+  "scope": "actual_unpacked_extension_with_disposable_pairing_api_and_pwa",
+  "source_head": "a55a8b836ba9e93fe4eb245d6378126d0d2e592c",
+  "observed": {
+    "extension_manifest_version": "0.0.0.6",
+    "pairing_flow": [
+      "Options page exposed the one-time pairing UI after an unauthenticated status check.",
+      "A synthetic one-time code exchanged through the actual extension Options code.",
+      "The actual extension stored the returned synthetic endpoint, library URL, device token, and onboarding state.",
+      "The actual PWA page sent SA_PING and received SA_PONG with detected=true, paired=true, and version=0.0.0.6."
+    ],
+    "transport": "fixed manifest-approved http://127.0.0.1:8765 loopback only"
+  },
+  "isolation": {
+    "temporary_chrome_profile_removed": true,
+    "temporary_loopback_server_stopped": true,
+    "synthetic_pairing_code_and_device_token_only": true,
+    "production_api_or_account_action": false,
+    "credential_or_secret_access": false
+  },
+  "conclusion": "The current v0.0.0.6 source can complete its real extension-to-API pairing transport and report paired bridge status. This removes a current-source pairing defect as the explanation for the production symptom, but is not a real owner-account or four-platform SA-205 Canary.",
+  "does_not_establish": [
+    "A user Chrome extension installation, reload, pairing code, or account session state.",
+    "Any production deployment, Cloudflare or Tunnel change, real provider request, source read, first full mirror, incremental mirror, pause/resume, partial protection, or isolation receipt.",
+    "SA-205 PASS, downstream task permission, release, push, or deployment authorization."
+  ]
+}
