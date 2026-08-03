@@ -8,7 +8,6 @@
   "observed_by": "Delivery Agent (Claude Code)",
   "observed_at": "2026-08-03T11:44:06Z/2026-08-03T11:51:39Z",
   "honesty_note": "本文件只记录本次真实执行观察到的事实。未执行的标 NOT_RUN，未确认的标 UNVERIFIED，绝不改写成 PASS。",
-
   "main_observation_point": {
     "repository": "LinzeColin/MetaDatabase",
     "target_area": "social-archive/",
@@ -20,34 +19,54 @@
     "social_archive_VERSION": "0.0.0.6",
     "worktree": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007",
     "branch": "claude/social-archive-v0007",
-    "sparse_checkout": [".github", "social-archive"],
+    "sparse_checkout": [
+      ".github",
+      "social-archive"
+    ],
     "stop_condition_check": {
       "condition": "若最新 main 已经把获取层重写成别的架构，停止并回 Owner（C2）",
       "triggered": false,
       "why": "main 上获取层仍是 v0.0.0.6 的自研 DOM 抓取器 + CLI sidecar，没有被重写成别的架构。account-mirror-core.js 仍在（340 行），compose.workers.yaml 仍有 3 个基于 main.py api 的 worker 定义。"
     }
   },
-
   "deployment_identity": {
     "resolved_from": "AUTO_DISCOVER",
     "host": "OVH VPS vps-83b882b4 (ssh alias linze-ovh)",
     "service_dir": "/opt/social-archive",
     "runtime_db": "/var/lib/social-archive/runtime/social-archive.sqlite3",
     "core_api_loopback": "http://127.0.0.1:18765",
-    "core_api_health": {"status": "ok", "version": "0.0.0.6", "http": 200},
+    "core_api_health": {
+      "status": "ok",
+      "version": "0.0.0.6",
+      "http": 200
+    },
     "containers": [
-      {"name": "social-archive-core-api-1", "image": "social-archive/core:0.0.0.6", "status": "Up (healthy)"},
-      {"name": "social-archive-core-worker-1", "image": "social-archive/core:0.0.0.6", "status": "Up"},
-      {"name": "social-archive-cli-tools-1", "image": "social-archive/cli-tools:0.0.0.6", "status": "Up (healthy)"}
+      {
+        "name": "social-archive-core-api-1",
+        "image": "social-archive/core:0.0.0.6",
+        "status": "Up (healthy)"
+      },
+      {
+        "name": "social-archive-core-worker-1",
+        "image": "social-archive/core:0.0.0.6",
+        "status": "Up"
+      },
+      {
+        "name": "social-archive-cli-tools-1",
+        "image": "social-archive/cli-tools:0.0.0.6",
+        "status": "Up (healthy)"
+      }
     ],
     "domestic_workers_present": false,
     "domestic_workers_note": "只有 core-worker-1。xhs/ks/douk 三个 worker 从未跑起来过，与 WHY_IT_WAS_ALWAYS_ZERO.md 的记载一致。",
     "port_gotcha": "compose 暴露 8765/tcp -> 127.0.0.1:18765。宿主机 8765 端口被另一个 websocket 服务占用，直连 8765 会得到 400 'Connection header did not include upgrade'，不是 Social Archive 的故障。"
   },
-
   "reproduction_of_the_zero": {
     "method": "在生产环境用真实 API token 亲手触发一次 first_full 同步，记录数据库前后计数",
-    "account": {"id": "acct_dd40c2f3086e3aed3d24f7fe210bb743", "platform": "bilibili"},
+    "account": {
+      "id": "acct_dd40c2f3086e3aed3d24f7fe210bb743",
+      "platform": "bilibili"
+    },
     "trigger": {
       "request": "POST /v1/accounts/{id}/sync {\"mode\":\"first_full\"}",
       "at": "2026-08-03T11:48:38Z",
@@ -56,16 +75,37 @@
         "sync_run_id": "sync_d02fca22c214b9594d8a476eec3d0656",
         "job_id": "job_c2a39b3f922a4bd5dbde4b5de2125d73",
         "status": "queued",
-        "relations": ["favorite", "watch_later", "history", "like"],
+        "relations": [
+          "favorite",
+          "watch_later",
+          "history",
+          "like"
+        ],
         "next_action_zh": "首次同步已开始；已完成内容会立即出现在资料库。"
       }
     },
-    "db_counts_before": {"at": "2026-08-03T11:48:37Z", "content": 7, "user_relation": 7, "sync_run": 10, "scan_receipt": 23},
-    "db_counts_after":  {"at": "2026-08-03T11:49:07Z", "content": 7, "user_relation": 7, "sync_run": 11, "scan_receipt": 23},
-    "delta": {"content": 0, "user_relation": 0, "sync_run": 1, "scan_receipt": 0},
+    "db_counts_before": {
+      "at": "2026-08-03T11:48:37Z",
+      "content": 7,
+      "user_relation": 7,
+      "sync_run": 10,
+      "scan_receipt": 23
+    },
+    "db_counts_after": {
+      "at": "2026-08-03T11:49:07Z",
+      "content": 7,
+      "user_relation": 7,
+      "sync_run": 11,
+      "scan_receipt": 23
+    },
+    "delta": {
+      "content": 0,
+      "user_relation": 0,
+      "sync_run": 1,
+      "scan_receipt": 0
+    },
     "verdict": "CONFIRMED：接口返回 202 且文案称『首次同步已开始』，实际入库条目 Δ=0。这就是 Owner 看到的那个 0。"
   },
-
   "first_broken_link": {
     "summary": "cli-tools sidecar 读不到自己的鉴权令牌，对每个业务请求回 401；而该错误停在 job 层，从未传播到界面读取的 sync_run 层。",
     "layer_1_root_cause": {
@@ -79,14 +119,28 @@
     },
     "layer_2_why_it_is_silent": {
       "what": "job 记录了真实错误，sync_run 却没有",
-      "job_final_state": {"id": "job_c2a39b3f922a4bd5dbde4b5de2125d73", "status": "failed", "attempt_count": 4, "last_error_code": "ConnectorError", "last_error_message": "CLI Sidecar 调用失败：HTTP 401", "at": "2026-08-03T11:51:39Z"},
-      "sync_run_state_at_same_moment": {"id": "sync_d02fca22c214b9594d8a476eec3d0656", "status": "scanning", "discovered_count": 0, "imported_count": 0, "last_error_code": null, "last_error_message": null, "at": "2026-08-03T11:51:38Z"},
+      "job_final_state": {
+        "id": "job_c2a39b3f922a4bd5dbde4b5de2125d73",
+        "status": "failed",
+        "attempt_count": 4,
+        "last_error_code": "ConnectorError",
+        "last_error_message": "CLI Sidecar 调用失败：HTTP 401",
+        "at": "2026-08-03T11:51:39Z"
+      },
+      "sync_run_state_at_same_moment": {
+        "id": "sync_d02fca22c214b9594d8a476eec3d0656",
+        "status": "scanning",
+        "discovered_count": 0,
+        "imported_count": 0,
+        "last_error_code": null,
+        "last_error_message": null,
+        "at": "2026-08-03T11:51:38Z"
+      },
       "invariant_violated": "INV-NO-SILENT-ZERO",
       "consequence": "界面永远显示『同步中』，既不给条数也不给原因。用户无从知道发生了什么。"
     },
     "sidecar_log_receipt": "social-archive-cli-tools-1: \"POST /v1/bilibili/list HTTP/1.1\" 401 -（多次），同期 \"GET /health HTTP/1.1\" 200"
   },
-
   "conflict_with_taskpack": {
     "id": "C-T00-01",
     "status": "conflict",
@@ -96,74 +150,198 @@
     "impact_on_plan": "v0.0.0.7 把 B 站改走浏览器拦截路（T08–T10），该 sidecar 路径预计被整体取代，此缺陷届时自然失效。但若新设计任何环节保留 sidecar 或复用同一 secret 编排，同一组号错误会再次致命，必须在 T10 前显式核对 GID。",
     "not_yet_verified": "小红书与抖音路径的第一处断点是否同为此因 —— 本次未逐一触发验证，标 UNVERIFIED。"
   },
-
   "historical_receipts_reviewed": {
     "sync_run_total_before_my_trigger": 10,
     "sync_run_all_imported_zero": true,
-    "sync_run_error_codes": {"RELATION_SCOPE_UNCONFIRMED": 3, "BROWSER_SCAN_FAILED": 4, "SYNC_RUN_ABANDONED": 2, "empty_stuck_scanning": 1},
+    "sync_run_error_codes": {
+      "RELATION_SCOPE_UNCONFIRMED": 3,
+      "BROWSER_SCAN_FAILED": 4,
+      "SYNC_RUN_ABANDONED": 2,
+      "empty_stuck_scanning": 1
+    },
     "scan_receipt_total": 23,
     "scan_receipt_item_count_sum": 1,
     "scan_receipt_item_count_gt_zero": 1,
-    "the_only_nonzero_receipt": {"connector_id": "generic-web", "relation_type": "manual_save", "item_count": 1},
+    "the_only_nonzero_receipt": {
+      "connector_id": "generic-web",
+      "relation_type": "manual_save",
+      "item_count": 1
+    },
     "account_mirror_receipts_all_zero": true,
     "account_mirror_receipt_count": 21,
     "conclusion": "21 条账号镜像扫描回执 item_count 全部为 0。库中 7 条 content 全部来自 manual_save(2) 与 saved(5)，没有一条来自账号镜像同步。『真实入库条目恒为 0』属实。",
     "stuck_scanning_records": [
-      {"id": "sync_c173a93441fc33f6c05fdd12cd1aa76a", "platform": "douyin", "stuck_since": "2026-08-03T10:22:33Z", "note": "缺陷 #5：归属于已被杀 worker 的记录永远停在 scanning"}
+      {
+        "id": "sync_c173a93441fc33f6c05fdd12cd1aa76a",
+        "platform": "douyin",
+        "stuck_since": "2026-08-03T10:22:33Z",
+        "note": "缺陷 #5：归属于已被杀 worker 的记录永远停在 scanning"
+      }
     ]
   },
-
   "connected_accounts": [
-    {"id": "acct_7a86116f9dd9d9194a30814a36e15fc7", "platform": "xiaohongshu"},
-    {"id": "acct_cbfbc6aac7070aff808ca8ede786648b", "platform": "douyin"},
-    {"id": "acct_dd40c2f3086e3aed3d24f7fe210bb743", "platform": "bilibili"}
+    {
+      "id": "acct_7a86116f9dd9d9194a30814a36e15fc7",
+      "platform": "xiaohongshu"
+    },
+    {
+      "id": "acct_cbfbc6aac7070aff808ca8ede786648b",
+      "platform": "douyin"
+    },
+    {
+      "id": "acct_dd40c2f3086e3aed3d24f7fe210bb743",
+      "platform": "bilibili"
+    }
   ],
   "connected_accounts_note": "只有国内三源已连接。X / Instagram / YouTube / Reddit / Chrome 书签均未连接，因此西方源路径本次无法在生产上触发验证。",
-
   "actual_schema_vs_taskpack": {
     "note": "03_PREBUILT/sql/0007_multi_user.sql 假设的表名与真实 Schema 不符。任务包自己已声明『表名以目标仓实际 Schema 为准』，故属预期内的 adapt，不是 conflict。",
-    "taskpack_assumed": ["contents", "relations", "collections", "objects"],
-    "actual": ["content", "user_relation", "platform_collection", "artifact"],
+    "taskpack_assumed": [
+      "contents",
+      "relations",
+      "collections",
+      "objects"
+    ],
+    "actual": [
+      "content",
+      "user_relation",
+      "platform_collection",
+      "artifact"
+    ],
     "column_differences": {
       "sync_run": "实际列为 status/imported_count/discovered_count/last_error_code/last_error_message；任务包 SQL 假设为 state/imported/failure_code"
     }
   },
-
   "task_classification": {
     "legend": "satisfied=上游已达成 | apply=按本包实施 | adapt=需按真实 Schema/现状调整 | equivalent=上游用更好方式实现 | conflict=与本包不符需裁定 | blocked=环境阻塞 | obsolete=已失效",
     "tasks": [
-      {"id": "T00", "class": "apply", "note": "本任务，本文件即其产出"},
-      {"id": "T01", "class": "adapt", "evidence": "runtime_schema.sql 中 user_id 出现 0 次；真实表名为 content/user_relation/platform_collection/artifact，需按实际 Schema 改写迁移"},
-      {"id": "T02", "class": "apply", "evidence": "pyproject.toml 无 authlib；src 中 oauth 相关文件均为连接器侧 OAuth（connectors/oauth.py），无用户登录与 session 表"},
-      {"id": "T03", "class": "apply", "evidence": "account-mirror-core.js 存在 340 行；配对码散布 6 个文件；compose.workers.yaml 有 3 个 xhs/ks/douk worker 定义"},
-      {"id": "T04", "class": "apply", "evidence": "Chrome 书签来源当前未连接（source_account 仅国内三源）"},
-      {"id": "T05", "class": "apply", "evidence": "无 platform_credentials 表；现有 age 加密内核可复用"},
-      {"id": "T06", "class": "apply", "evidence": "扩展当前无 cookie-export 能力"},
-      {"id": "T07", "class": "adapt", "evidence": "gallery-dl 在 9 个文件中被引用，已有部分基础设施，需核对是否可复用而非从零建"},
-      {"id": "T08", "class": "apply", "evidence": "apps 下 0 个文件涉及 MAIN world 注入或 net-observer"},
-      {"id": "T09", "class": "apply", "evidence": "evidence/fixtures 目录不存在"},
-      {"id": "T10", "class": "apply", "evidence": "现 bilibili 走 CLI sidecar 路径且已确证 401 断裂；v0.0.0.7 改走拦截路"},
-      {"id": "T11", "class": "adapt", "evidence": "yt-dlp 在 9 个文件中被引用，需核对既有实现"},
-      {"id": "T12", "class": "apply", "evidence": "Reddit 未连接；需 OAuth refresh token"},
-      {"id": "T13", "class": "apply", "evidence": "依赖 T10 证明拦截路"},
-      {"id": "T14", "class": "apply", "evidence": "已实测：sync_run 可以在 imported=0 且 last_error_code 为空的状态下存在，正是本任务要消灭的"},
-      {"id": "T15", "class": "apply", "evidence": "已见孤儿 scanning 记录，幂等与续跑需建立"},
-      {"id": "T16", "class": "adapt", "evidence": "导出与三副本在 v0.0.0.6 已有真实回执（见 HANDOFF SA-507 Phase A–D），本任务是回归保护"},
-      {"id": "T17", "class": "apply", "evidence": "黄金事务从未成功过"},
-      {"id": "T18", "class": "apply", "evidence": "发布与回滚演练未做"}
+      {
+        "id": "T00",
+        "class": "apply",
+        "note": "本任务，本文件即其产出"
+      },
+      {
+        "id": "T01",
+        "class": "adapt",
+        "evidence": "runtime_schema.sql 中 user_id 出现 0 次；真实表名为 content/user_relation/platform_collection/artifact，需按实际 Schema 改写迁移"
+      },
+      {
+        "id": "T02",
+        "class": "apply",
+        "evidence": "pyproject.toml 无 authlib；src 中 oauth 相关文件均为连接器侧 OAuth（connectors/oauth.py），无用户登录与 session 表"
+      },
+      {
+        "id": "T03",
+        "class": "apply",
+        "evidence": "account-mirror-core.js 存在 340 行；配对码散布 6 个文件；compose.workers.yaml 有 3 个 xhs/ks/douk worker 定义"
+      },
+      {
+        "id": "T04",
+        "class": "apply",
+        "evidence": "Chrome 书签来源当前未连接（source_account 仅国内三源）"
+      },
+      {
+        "id": "T05",
+        "class": "apply",
+        "evidence": "无 platform_credentials 表；现有 age 加密内核可复用"
+      },
+      {
+        "id": "T06",
+        "class": "apply",
+        "evidence": "扩展当前无 cookie-export 能力"
+      },
+      {
+        "id": "T07",
+        "class": "adapt",
+        "evidence": "gallery-dl 在 9 个文件中被引用，已有部分基础设施，需核对是否可复用而非从零建"
+      },
+      {
+        "id": "T08",
+        "class": "apply",
+        "evidence": "apps 下 0 个文件涉及 MAIN world 注入或 net-observer"
+      },
+      {
+        "id": "T09",
+        "class": "apply",
+        "evidence": "evidence/fixtures 目录不存在"
+      },
+      {
+        "id": "T10",
+        "class": "apply",
+        "evidence": "现 bilibili 走 CLI sidecar 路径且已确证 401 断裂；v0.0.0.7 改走拦截路"
+      },
+      {
+        "id": "T11",
+        "class": "adapt",
+        "evidence": "yt-dlp 在 9 个文件中被引用，需核对既有实现"
+      },
+      {
+        "id": "T12",
+        "class": "apply",
+        "evidence": "Reddit 未连接；需 OAuth refresh token"
+      },
+      {
+        "id": "T13",
+        "class": "apply",
+        "evidence": "依赖 T10 证明拦截路"
+      },
+      {
+        "id": "T14",
+        "class": "apply",
+        "evidence": "已实测：sync_run 可以在 imported=0 且 last_error_code 为空的状态下存在，正是本任务要消灭的"
+      },
+      {
+        "id": "T15",
+        "class": "apply",
+        "evidence": "已见孤儿 scanning 记录，幂等与续跑需建立"
+      },
+      {
+        "id": "T16",
+        "class": "adapt",
+        "evidence": "导出与三副本在 v0.0.0.6 已有真实回执（见 HANDOFF SA-507 Phase A–D），本任务是回归保护"
+      },
+      {
+        "id": "T17",
+        "class": "apply",
+        "evidence": "黄金事务从未成功过"
+      },
+      {
+        "id": "T18",
+        "class": "apply",
+        "evidence": "发布与回滚演练未做"
+      }
     ],
-    "summary": {"apply": 13, "adapt": 5, "satisfied": 0, "equivalent": 0, "conflict": 0, "blocked": 0, "obsolete": 0},
-    "conflict_rate": "0/19 = 0%，远低于 ROADMAP 规定的 30% 重评估阈值，无需回 Owner（C2）"
+    "summary": {
+      "satisfied": 0,
+      "apply": 15,
+      "adapt": 4,
+      "equivalent": 0,
+      "conflict": 0,
+      "blocked": 0,
+      "obsolete": 0
+    },
+    "conflict_rate": "conflict 0/19 = 0%，远低于 ROADMAP 规定的 30% 重评估阈值，无需回 Owner（C2）",
+    "summary_total": 19
   },
-
   "unmerged_branches_reviewed": {
     "note": "两个未合并分支带有与本版本直接相关的工作。基线仍是 origin/main（CONFLICT_ORDER：本包不冻结任何 SHA，Stage 0 取最新 main 做语义协调）。不擅自合并。",
     "branches": [
-      {"name": "claude/social-archive-v0-0-0-6-eaad48", "ahead_of_main": 42, "head": "ad1f248c", "assessment": "提交信息显示其在修 WHY_IT_WAS_ALWAYS_ZERO.md 列的六个缺陷。抓取器相关部分按 CONFLICT_ORDER 判 obsolete（T03 整层删除）；但 MV3 锁心跳、被杀 worker 的孤儿记录回收两类修复与抓取器无关，对 T15 有参考价值。", "action": "保留待 T15 时回看，不合并"},
-      {"name": "codex/social-archive-v0006-s0", "ahead_of_main": 35, "head": "ef6468b0", "assessment": "含 bilibili header session 识别等修复。同上，待相关任务时回看。", "action": "保留待回看，不合并"}
+      {
+        "name": "claude/social-archive-v0-0-0-6-eaad48",
+        "ahead_of_main": 42,
+        "head": "ad1f248c",
+        "assessment": "提交信息显示其在修 WHY_IT_WAS_ALWAYS_ZERO.md 列的六个缺陷。抓取器相关部分按 CONFLICT_ORDER 判 obsolete（T03 整层删除）；但 MV3 锁心跳、被杀 worker 的孤儿记录回收两类修复与抓取器无关，对 T15 有参考价值。",
+        "action": "保留待 T15 时回看，不合并"
+      },
+      {
+        "name": "codex/social-archive-v0006-s0",
+        "ahead_of_main": 35,
+        "head": "ef6468b0",
+        "assessment": "含 bilibili header session 识别等修复。同上，待相关任务时回看。",
+        "action": "保留待回看，不合并"
+      }
     ]
   },
-
   "side_effects_of_this_task": {
     "declared": "T00 的 rollback 字段为『纯只读，无需回滚』，但 acceptance 要求真实触发一次同步以取得前后计数，故存在一次受控写入。",
     "what_was_written": "生产库新增 1 条 sync_run (sync_d02fca22c214b9594d8a476eec3d0656) 与 1 条 job (job_c2a39b3f922a4bd5dbde4b5de2125d73)",
@@ -171,7 +349,6 @@
     "user_data_impact": "无。content 与 user_relation 计数前后均为 7，未新增、未修改、未删除任何用户数据。",
     "secrets_impact": "无。读取 api token 仅用于本机 loopback 认证，值未进入日志、证据或任何输出；令牌比对只输出 SHA-256 前 12 位与长度。"
   },
-
   "acceptance_self_check": {
     "requirement": "产出一份 Current Truth 观察记录，包含：main 观察点、任务分类、真实复现的第一处断点",
     "main_observation_point": "PASS — origin/main 49bbe45c，fetch 后无变动",
@@ -185,6 +362,8 @@
       "real_error_text": "ConnectorError :: CLI Sidecar 调用失败：HTTP 401（job 层）；sidecar 访问日志 POST /v1/bilibili/list 401；容器内 Permission denied on /run/secrets/cli_worker_token"
     }
   },
-
-  "next_task": {"id": "T01", "reason": "T00 是 T01 的唯一前置，已终结。T01 需先按真实 Schema 改写 0007_multi_user.sql。"}
+  "next_task": {
+    "id": "T01",
+    "reason": "T00 是 T01 的唯一前置，已终结。T01 需先按真实 Schema 改写 0007_multi_user.sql。"
+  }
 }
