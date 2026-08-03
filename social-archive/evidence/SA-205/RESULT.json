@@ -42,7 +42,8 @@
     "contract_validation_commit": "635a124fa6cc54c53e8572013e9510fb3591f6fb",
     "validated_head_after_latest_main_reconciliation": "8ec3fe0333b913f0663f1552b01db9e7637d0f3c",
     "validated_tree_after_latest_main_reconciliation": "a48b7dfce722577017a86f6df69b1cd9e2ad6606",
-    "current_extension_package_sha256": "6cbfd349213bbd811a9da27635604ebc70b2520141e780387c91e20d26439445"
+    "current_extension_package_sha256": "6cbfd349213bbd811a9da27635604ebc70b2520141e780387c91e20d26439445",
+    "browser_extension_load_capability_probe_head": "40e869b116efb6e67fc2ad3c2daf3d4586e51d79"
   },
   "semantic_reconciliation": {
     "decision": "ADAPT_CURRENT_UPSTREAM",
@@ -83,6 +84,7 @@
     "four_platform_fixture": "PASS: xiaohongshu, douyin, kuaishou, and bilibili each cover fixture connection, first_full, incremental, and platform-scoped relation closure.",
     "owner_canary_read_only": "Historical all-cn pre-authorization safety probe returned four BLOCKED_ENVIRONMENT / OWNER_CANARY_NOT_AUTHORIZED receipts; credential_read=false, network_attempted=false, runtime_write=false for each.",
     "browser_precondition": "Four domestic target pages are now open in the controlled Chrome surface with a page-level likely-authenticated signal, but no Social Archive extension is visible in that profile and safe bridge PING receives no response. No session, Cookie, or page content was inspected.",
+    "browser_extension_load_capability": "The controlled browser surface exposes neither normal extension-manager loading controls nor the official DevTools Extensions.loadUnpacked command. Both paths were probed without changing browser state.",
     "extension_package_build": "PASS: current v0.0.0.6 package rebuilt from source; 20 members; SHA-256 6cbfd349213bbd811a9da27635604ebc70b2520141e780387c91e20d26439445.",
     "compose_static_config": "PASS: domestic workers and Bilibili cli-tools Compose configurations parsed with no env resolution, interpolation, path resolution, image build, or service start.",
     "extension_syntax": "PASS: background.js and account-mirror-core.js passed node --check.",
@@ -101,10 +103,11 @@
     "The sealed SA-205 Oracle expressly forbids PASS when real accounts are not run. The task remains BLOCKED_ENVIRONMENT even though all local blocking fixtures passed.",
     "No real Owner account connection, Social Archive pairing, browser-extension installation/reload, provider request, Cookie/session read, vendor resolution, Docker runtime, deployment, cloud action, or production action has occurred.",
     "The controlled Chrome surface has four domestic target pages but no installed Social Archive extension. The page-level authentication signal is not a provider receipt, and no cookies, storage, passwords, or page content were inspected.",
+    "The controlled browser surface cannot activate the unpacked v0.0.0.6 extension through normal UI controls or its official raw DevTools extension command; no bypass was attempted.",
     "The production target remains a mixed historical v0.0.0.5 PWA/Core image and is not a valid v0.0.0.6 Owner Canary target.",
     "The local all-cn read-only Canary proves its safety boundary only. It is not a real platform connection, discovery, pagination, pause/resume, or world-state receipt.",
     "The domestic Vendors remain unresolved/disabled in this run; no vendor_sync, Docker build, or service start was used."
   ],
-  "generated_at": "2026-08-03T03:33:23Z",
-  "record_sha256": "23049fc51564e08e269b1cb3d2c14e103e42ab84f50020a6bc2b32bafd223000"
+  "generated_at": "2026-08-03T03:40:39Z",
+  "record_sha256": "334623f7c1e74d9aa3f65abdd69e29e90b625be3e015fb32d96dc6066b02e4d5"
 }

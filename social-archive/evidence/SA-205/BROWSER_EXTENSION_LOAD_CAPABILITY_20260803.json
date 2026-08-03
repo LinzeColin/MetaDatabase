@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T03:40:39Z",
+  "source_head": "40e869b116efb6e67fc2ad3c2daf3d4586e51d79",
+  "scope": "controlled Chrome extension installation capability probe",
+  "official_paths_checked": {
+    "extensions_manager_controls": "NOT_EXPOSED_TO_CONTROLLED_SURFACE",
+    "devtools_extensions_load_unpacked": "NOT_SUPPORTED_THROUGH_RAW_CDP"
+  },
+  "requested_extension": {
+    "source_directory": "apps/browser-extension",
+    "name": "Social Archive",
+    "version": "0.0.0.6"
+  },
+  "safety": {
+    "extension_install_enable_reload_or_configuration_change": false,
+    "browser_profile_or_storage_inspection": false,
+    "credential_or_secret_access": false,
+    "pairing_code_or_token_access": false,
+    "provider_request": false,
+    "account_connection_or_sync": false,
+    "production_or_cloud_mutation": false,
+    "temporary_loopback_server_stopped": true
+  },
+  "conclusion": "The current controlled browser surface cannot load an unpacked extension through either the normal extension-manager controls or its official raw DevTools extension command. No bypass was attempted. The v0.0.0.6 package remains locally valid but is not installed, so a real Owner Canary cannot start in this browser context."
+}
