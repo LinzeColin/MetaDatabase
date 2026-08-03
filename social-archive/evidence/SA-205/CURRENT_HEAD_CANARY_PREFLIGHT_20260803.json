@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T02:30:02Z",
+  "source_head": "c05f0d42de33b978c7234d9b77cebb13bc233e3a",
+  "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
+  "scope": "current-head frozen regression and read-only Owner Canary preflight",
+  "frozen_regression": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' <existing-project-python-3.12> -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_scan_platform_isolation.py",
+    "exit_code": 0,
+    "result": "17 passed in 1.70s"
+  },
+  "browser_preflight": {
+    "in_app_browser_open_tabs": 0,
+    "authenticated_social_archive_tab_observed": false,
+    "authenticated_domestic_platform_tabs_observed": 0,
+    "direct_navigation_to_social_archive_connections": "ERR_BLOCKED_BY_CLIENT",
+    "newly_created_preflight_tab_removed": true
+  },
+  "safety": {
+    "cookie_or_storage_inspection": false,
+    "credential_or_secret_access": false,
+    "provider_request": false,
+    "account_connection_or_sync": false,
+    "extension_install_reload_pairing_or_permission_change": false,
+    "production_or_cloud_mutation": false
+  },
+  "conclusion": "The current v0.0.0.6 source retains the frozen SA-205 fixture behavior, but no authenticated four-platform Canary page and no valid production target were available through the controlled browser surface. This does not establish SA-205 PASS or permit downstream execution."
+}
