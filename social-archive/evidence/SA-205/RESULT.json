@@ -1,30 +1,116 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-205",
-  "taskpack_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.6",
   "stage": "S2",
-  "title": "通过全部来源阶段门",
-  "status": "PASS",
+  "title": "通过全部来源账号镜像阶段门",
+  "status": "BLOCKED_ENVIRONMENT",
   "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
+  "live_environment_status": "BLOCKED_ENVIRONMENT",
   "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "adapt",
+  "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
   "acceptance_ids": [
     "AC-SA-205"
   ],
   "tests": [
     "TEST-SA-205"
   ],
-  "oracle": "四个国内平台逐项可验收，单个 Worker 断开不影响其他平台和通用当前页。",
+  "oracle": "四个国内平台逐项验证连接、首次全量、增量、暂停/恢复、partial 防误删和单平台隔离；未运行真实账号不得写 PASS。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "7 stage/focused isolation tests passed.",
+  "result_summary": "SA-205 的本地 v0.0.0.6 阶段门通过：四个平台的 fixture 连接、首次全量、增量、暂停/恢复、partial 防误删与隔离回归均通过；暂停后抵达 Core 的迟到批次现在 fail-closed。当前 Chrome 没有 Social Archive 或四个平台的已登录低风险标签页，因此真实 Owner Canary 未运行，任务整体按冻结 Oracle 保持 BLOCKED_ENVIRONMENT，而非 PASS。",
   "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+    "taskpack_zip_sha256": "921a9bda63c8e009b90f574d10ff5ffce1aa2e2dc68fbf1ae43627900b22a494",
+    "frozen_task_dag_sha256": "916ef99d69ad0352662e4d4e1eaeb2a33b65c2851f1d2b492c87efcb5f68a1fb",
+    "frozen_task_graph_sa205_sha256": "4c82eb2f407e744d9650f6695e0ca0148566b378ab70cdf17b017e6de6821110",
+    "frozen_acceptance_contract_sha256": "a623223ff41b51ad703b5f8c79d92b12f5bcefdcacbd38ab4a735f0cc1f8d2aa",
+    "frozen_stage2_domestic_test_sha256": "fde5b42e4697feb87553f413ee309cbd04ef121b437eba54d1f366cf8fa92720",
+    "local_stage2_domestic_test_sha256": "fde5b42e4697feb87553f413ee309cbd04ef121b437eba54d1f366cf8fa92720",
+    "frozen_account_mirror_batch_protocol_test_sha256": "92f1fdef8574f5eb231283d492cbf4f788609c4049de76e46b48d7de83d8fc56",
+    "local_account_mirror_batch_protocol_test_sha256": "fc2ea6ea3e3fc33aaf3ddc5b73ecb87c63852aa68fff589b414d9c518d38284b",
+    "frozen_scan_platform_isolation_test_sha256": "9f98d43e94e58af1a10a45a1ad4175a7c137457f7ccc4ec3e966e92b71e84d32",
+    "local_scan_platform_isolation_test_sha256": "c61a5e63dfad975ff4f7a475df747135e11eabb7096151eafbc4894fade70cae",
+    "frozen_account_sync_sha256": "53567ee4d244a53c909a1dfe51797b023a0dbfae00e48c520a5495664289e3cc",
+    "local_account_sync_sha256": "c0d65ee02dd927f66dfe07dc5808d7bb34bd8009bb5fefd009e5feda6c4ab61f",
+    "frozen_platform_canary_sha256": "90a3bfa2fcf12e7e261539035f36ee3663ee5d250ff4d9a355e0c7c1ff09868e",
+    "local_platform_canary_sha256": "9d91ba9cf1f209c881fde86b8844e2a0415ede792161462780f25a1f204e3164",
+    "local_platform_canary_test_sha256": "9031b3cdee93753422fc94275b6c1a88d0961b8ff072462455bdbbb3ebd80cb6",
+    "frozen_compose_workers_sha256": "8b36fa7d2ca4c350bd63a8cecc81e0a13e759d651c23cfbacc1fd806fdced337",
+    "local_compose_workers_sha256": "8b36fa7d2ca4c350bd63a8cecc81e0a13e759d651c23cfbacc1fd806fdced337",
+    "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
+    "implementation_commit": "44dbbcf418ae656ccfd7fc9545a3bc2bd7a49f64",
+    "implementation_tree": "e5f4239045f36e34b2cc3266c99f5fd485dc8705",
+    "validated_head_after_latest_main_reconciliation": "44dbbcf418ae656ccfd7fc9545a3bc2bd7a49f64"
   },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "3f934fa6a9a4bd098c3e0a3951c0c74ce557e069024ba50113b71f8191cebf24"
+  "semantic_reconciliation": {
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "file_dispositions": {
+      "compose.workers.yaml": "equivalent",
+      "scripts/platform_canary.py": "preserve_stronger_upstream",
+      "src/social_archive/account_sync.py": "adapt",
+      "tests/stage/test_stage2_domestic.py": "equivalent",
+      "tests/focused/test_account_mirror_batch_protocol.py": "adapt",
+      "tests/focused/test_scan_platform_isolation.py": "adapt",
+      "tests/focused/test_platform_canary.py": "adapt"
+    },
+    "scope": "冻结 Stage 2 Worker fixture 与当前 Compose 完全一致。当前上游已有扩展持久队列、控制状态和跨平台关系闭合边界；本任务只使 Core 成为暂停状态下的最终拒绝点，并把四个平台的 fixture connection/first-full/incremental 与跨平台隔离纳入回归。现有 --read-only Canary 在加载 Settings、读取凭证、访问网络或写 runtime 前 fail-closed，故保留其更强边界。"
+  },
+  "canary_statuses": {
+    "xiaohongshu": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "error_code": "OWNER_CANARY_NOT_AUTHORIZED",
+      "credential_read": false,
+      "network_attempted": false,
+      "runtime_write": false
+    },
+    "douyin": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "error_code": "OWNER_CANARY_NOT_AUTHORIZED",
+      "credential_read": false,
+      "network_attempted": false,
+      "runtime_write": false
+    },
+    "kuaishou": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "error_code": "OWNER_CANARY_NOT_AUTHORIZED",
+      "credential_read": false,
+      "network_attempted": false,
+      "runtime_write": false
+    },
+    "bilibili": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "error_code": "OWNER_CANARY_NOT_AUTHORIZED",
+      "credential_read": false,
+      "network_attempted": false,
+      "runtime_write": false
+    }
+  },
+  "validation": {
+    "exact_taskpack_pytest": "17 passed: frozen Stage 2 fixture plus the frozen SA-205 batch and platform-isolation targets.",
+    "related_stage2_regression": "75 passed: Stage 2, account mirror, Extension bridge/core, XHS/OpenAPI/health/CLI connectors, Bilibili, scan scope, workers, generic fallback, status projection, and Canary fixtures.",
+    "paused_batch_boundary": "PASS: paused runs reject late batches before any account lookup, counter, checkpoint, receipt, or relation mutation; resume returns the run to queued and accepts the next batch.",
+    "four_platform_fixture": "PASS: xiaohongshu, douyin, kuaishou, and bilibili each cover fixture connection, first_full, incremental, and platform-scoped relation closure.",
+    "owner_canary_read_only": "all-cn returned four BLOCKED_ENVIRONMENT / OWNER_CANARY_NOT_AUTHORIZED receipts; credential_read=false, network_attempted=false, runtime_write=false for each.",
+    "browser_precondition": "Chrome read-only tab inventory contained only a ChatGPT tab; no Social Archive or authenticated domestic-platform low-risk page was available to begin the real Owner Canary.",
+    "compose_static_config": "PASS: domestic workers and Bilibili cli-tools Compose configurations parsed with no env resolution, interpolation, path resolution, image build, or service start.",
+    "extension_syntax": "PASS: background.js and account-mirror-core.js passed node --check.",
+    "brand_check": "PASS; hits=[]",
+    "secret_scan": "PASS; hits=[]",
+    "uv_lock_check_offline": "PASS",
+    "latest_main_reconciliation": "PASS: origin/main remained 7925695c0078bb3b98d71636f5a1315270d9de87 and is an ancestor of the validated implementation commit."
+  },
+  "predecessor_evidence": {
+    "pointer": "evidence/SA-205/history/pre-v0.0.0.6-stage2-gate/PREVIOUS_EVIDENCE.json",
+    "prior_active_taskpack_version": "v0.0.0.5",
+    "prior_result_sha256": "3f3b344ed54819779e9575e687f9b00dc8bffa7ad658f93ce24ecac9a3731612",
+    "prior_command_log_sha256": "4d1b4eca5e3b8423d4ab0924bfca06e8e166c55d7a13d156a03aacdd83c40b43"
+  },
+  "known_limitations": [
+    "The sealed SA-205 Oracle expressly forbids PASS when real accounts are not run. The task remains BLOCKED_ENVIRONMENT even though all local blocking fixtures passed.",
+    "No real owner account, Social Archive pairing, browser-extension reload, provider request, Cookie/session read, vendor resolution, Docker runtime, deployment, cloud action, or production action was attempted.",
+    "The only Chrome observation was read-only and found no candidate Social Archive or authenticated domestic-platform tab; it did not inspect cookies, storage, passwords, or page content.",
+    "The local all-cn read-only Canary proves its safety boundary only. It is not a real platform connection, discovery, pagination, pause/resume, or world-state receipt.",
+    "The domestic Vendors remain unresolved/disabled in this run; no vendor_sync, Docker build, or service start was used."
+  ],
+  "generated_at": "2026-08-03T01:06:08Z",
+  "record_sha256": "63e63be508062909a60c9f8af0971d1ae2a2561d0e8c8482c856c9dd13cc8332"
 }

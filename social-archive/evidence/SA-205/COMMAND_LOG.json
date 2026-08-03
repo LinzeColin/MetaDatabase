@@ -1,19 +1,71 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-205",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T01:06:08Z",
+  "implementation_commit": "44dbbcf418ae656ccfd7fc9545a3bc2bd7a49f64",
+  "implementation_tree": "e5f4239045f36e34b2cc3266c99f5fd485dc8705",
+  "record_context": {
+    "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
+    "validated_head_after_latest_main_reconciliation": "44dbbcf418ae656ccfd7fc9545a3bc2bd7a49f64"
+  },
   "commands": [
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_scan_platform_isolation.py tests/focused/test_scan_scope_isolation.py",
-      "command_sha256": "dc76fd1c70012cfc4fde7f2bd4716f1dddafefb839b44c85f5740069c56ae272",
+      "command": "source /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_scan_platform_isolation.py",
+      "command_sha256": "89dc1509a94ed68d0b2e506a9e5063db9ccc95ef46f416c22b92d44d5347c604",
       "executed": true,
-      "status": "PASS",
       "exit_code": 0,
-      "summary": "7 stage/focused isolation tests passed."
+      "status": "PASS",
+      "summary": "17 passed. This is the frozen v0.0.0.6 SA-205 pytest target after the minimal pause-boundary adaptation."
+    },
+    {
+      "command": "source /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_account_mirror_sync.py tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_xhs_connector.py tests/focused/test_openapi_probe_connector.py tests/focused/test_health_gated_connector.py tests/focused/test_bilibili_connector.py tests/focused/test_command_connectors.py tests/focused/test_scan_platform_isolation.py tests/focused/test_scan_scope_isolation.py tests/focused/test_worker_profiles.py tests/focused/test_platform_canary.py tests/focused/test_generic_web_connector.py tests/focused/test_status_projection.py",
+      "command_sha256": "63afa644c228f1fbab79536d96024ed11b279a70fa12f17689a65ad16192b47e",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "75 passed. Related Stage 2, account-mirror, Extension, connector, scope, worker, fallback, status, and Canary regressions."
+    },
+    {
+      "command": "source /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/platform_canary.py all-cn --read-only --limit 1",
+      "command_sha256": "642728fd52822fd91b557b7cea12deb47ece07cac05a6948ec86e0656d8a792f",
+      "executed": true,
+      "exit_code": 0,
+      "status": "BLOCKED_ENVIRONMENT",
+      "summary": "xiaohongshu, douyin, kuaishou, and bilibili each returned OWNER_CANARY_NOT_AUTHORIZED with credential_read=false, network_attempted=false, runtime_write=false."
+    },
+    {
+      "command": "node --check apps/browser-extension/background.js && node --check apps/browser-extension/content/account-mirror-core.js && python3 scripts/check_brand.py && python3 scripts/secret_scan.py . && uv lock --check --offline",
+      "command_sha256": "d1738957dfac32765b833ff9327bf0d40666bd1004bcec10d378517c992b5676",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Extension syntax, brand boundary, secret scan, and offline lock validation passed."
+    },
+    {
+      "command": "docker compose -f compose.workers.yaml --profile xhs --profile kuaishou --profile douk-experimental config --no-env-resolution --no-interpolate --no-path-resolution -q",
+      "command_sha256": "de003ed39fca2a6281f1b767fce09449bc8c19a297f82755badc6ec110ea5ee4",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Domestic Worker config-only validation passed without env resolution, image build, or service start."
+    },
+    {
+      "command": "docker compose -f compose.yaml config --no-env-resolution --no-interpolate --no-path-resolution -q",
+      "command_sha256": "015ecf81bd139bbfce4221a5af64a334a75d972d4a69aa5de6e5a835b698b98d",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Bilibili cli-tools config-only validation passed without env resolution, image build, or service start."
+    },
+    {
+      "command": "git ls-remote origin refs/heads/main && git merge-base --is-ancestor 7925695c0078bb3b98d71636f5a1315270d9de87 HEAD",
+      "command_sha256": "0908c5c7af33a63a9cf08a4875c493b2019718551a883e674cd076e1a3e72428",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Remote main remained 7925695c0078bb3b98d71636f5a1315270d9de87 and is an ancestor of the validated implementation commit."
     }
   ],
-  "record_sha256": "b81f3d9d1de69562442be3de215ac84c227750fd5b7170ea5dc000d22c9099b6"
+  "record_sha256": "ea21ab4e018b664997e28993a3877dcc3b7058770910a726c2fa5364dbe6bbc8"
 }

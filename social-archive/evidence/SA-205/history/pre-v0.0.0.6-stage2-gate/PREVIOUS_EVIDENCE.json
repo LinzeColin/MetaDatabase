@@ -1,0 +1,20 @@
+{
+  "archive_reason": "The active SA-205 evidence predates the sealed v0.0.0.6 run and reported a local v0.0.0.5 PASS. It is retained verbatim and is not reclassified as v0.0.0.6 or real-account acceptance evidence.",
+  "archived_at": "2026-08-03T01:06:08Z",
+  "files": [
+    {
+      "path": "RESULT.json",
+      "raw_sha256": "3f3b344ed54819779e9575e687f9b00dc8bffa7ad658f93ce24ecac9a3731612",
+      "record_sha256": "3f934fa6a9a4bd098c3e0a3951c0c74ce557e069024ba50113b71f8191cebf24",
+      "taskpack_version": "v0.0.0.5"
+    },
+    {
+      "path": "COMMAND_LOG.json",
+      "raw_sha256": "4d1b4eca5e3b8423d4ab0924bfca06e8e166c55d7a13d156a03aacdd83c40b43",
+      "record_sha256": "b81f3d9d1de69562442be3de215ac84c227750fd5b7170ea5dc000d22c9099b6",
+      "taskpack_version": "v0.0.0.5"
+    }
+  ],
+  "predecessor_commit": "44dbbcf418ae656ccfd7fc9545a3bc2bd7a49f64",
+  "record_sha256": "b613dc04c32ebd72aad8e6ce0d8af8893e73e55f847f3ae11afb90109b0c551f"
+}

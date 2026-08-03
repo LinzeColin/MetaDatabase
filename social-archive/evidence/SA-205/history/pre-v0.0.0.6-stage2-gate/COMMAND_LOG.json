@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "commands": [
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_scan_platform_isolation.py tests/focused/test_scan_scope_isolation.py",
+      "command_sha256": "dc76fd1c70012cfc4fde7f2bd4716f1dddafefb839b44c85f5740069c56ae272",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "7 stage/focused isolation tests passed."
+    }
+  ],
+  "record_sha256": "b81f3d9d1de69562442be3de215ac84c227750fd5b7170ea5dc000d22c9099b6"
+}
