@@ -1,0 +1,115 @@
+{
+  "task": "T12",
+  "claim": "gallery-dl 的退出码契约，取自安装源与实跑，不是文档转述",
+  "why_this_exists": "我写的 gallerydl_runner.run() 把 returncode 记进结果对象之后再没看过它。gallery-dl 失败时 stdout 是空的，空 stdout 被 `json.loads(stdout or \"[]\")` 变成空数组，于是一次硬失败与「跑完了、没有新增」在数据上完全同形，界面显示「已经是最新的，没有新增内容。」——正是这一版要消灭的那种静默的零，而它出在我自己写的、文档里专门讲「别把失败误判成别的东西」的那个模块里。",
+
+  "source_of_truth": {
+    "where": "生产 cli-tools 容器内的已安装包，不是官网文档",
+    "version": "gallery-dl 1.32.8",
+    "path": "/usr/local/lib/python3.12/site-packages/gallery_dl",
+    "why_not_docs": "CONFLICT_ORDER 里实测事实高于官方文档。上一次照文档写的三元组常量所在模块（gallery_dl.message）在 1.32.8 里已经不存在，实际位置是 gallery_dl.extractor.message——文档没跟上，源码是准的。"
+  },
+
+  "triple_contract_reverified": {
+    "read_from": "gallery_dl/extractor/message.py",
+    "values": {"Directory": 2, "Url": 3, "Queue": 6},
+    "verdict": "与 evidence/fixtures/gallerydl/ 里固化的 fixture 一致，解析器不用改",
+    "note": "1.32.8 里没有 Version 常量了；我们的解析器本来也没用它。"
+  },
+
+  "exit_code_is_a_bitmask": {
+    "proof": [
+      "gallery_dl/job.py:172  self.status |= exc.code",
+      "gallery_dl/job.py:178  self.status |= exc.code",
+      "gallery_dl/job.py:186  self.status |= 128",
+      "gallery_dl/__init__.py:466  retval |= 64"
+    ],
+    "consequence": "退出码是若干个位或在一起，不是单值。一次跑里既有鉴权失败又有抽取错误就是 16|4=20。**判据写成 `rc == 16` 会漏掉 20**，于是又变成一次静默的零。所以 classify_exit_code 用的是按位与。",
+    "bits": {
+      "1": "GalleryDLException / JSON 解析失败 / 未预期异常",
+      "4": "AbortExtraction, ExtractionError, HttpError, NotFoundError",
+      "8": "ChallengeError —— 验证码 / 设备风控",
+      "16": "AuthRequired, AuthenticationError, AuthorizationError",
+      "32": "NoExtractorError, InputError, FilterError, Format/Filename/DirectoryFormatError",
+      "64": "顶层「Unsupported URL」（__init__.py:464-466 捕获 NoExtractorError 后单独或上 64）",
+      "128": "OSError（磁盘或网络 I/O；JSONDecodeError 走 1）"
+    }
+  },
+
+  "measured_runs": [
+    {
+      "argv": "gallery-dl -j --no-download not-a-url",
+      "exit": 64,
+      "stdout_bytes": 0,
+      "stderr_head": "[gallery-dl][error] Unsupported URL 'not-a-url'",
+      "significance": "**stdout 是 0 字节**。这不是罕见分支，是失败时的常态。"
+    },
+    {
+      "argv": "gallery-dl -j --no-download https://example.invalid/gallery/1",
+      "exit": 64,
+      "stdout_bytes": 0,
+      "stderr_head": "[gallery-dl][error] Unsupported URL 'https://example.invalid/gallery/1'",
+      "note": "无效 TLD，DNS 立刻失败，不产生任何外部流量到真实站点。"
+    }
+  ],
+  "no_third_party_fetch": "两次实跑都刻意选了不出网或立刻 DNS 失败的目标；常量与配置键全部读自本地已安装源码。没有为了取证去抓任何真实平台。",
+
+  "fix": {
+    "file": "src/social_archive/gallerydl_runner.py",
+    "what": "退出码非 0 且 JSON 里没有错误条目时，用 stderr + 退出码位掩码合成一条错误并定级；classify_exit_code() 是新增的判定函数。",
+    "guard_proved_by_reintroduction": {
+      "how": "把修复段整段摘掉后重跑",
+      "result": "2 failed, 25 passed",
+      "failing": [
+        "test_nonzero_exit_with_empty_stdout_is_not_reported_as_success",
+        "test_silent_zero_would_have_shown_up_as_good_news"
+      ],
+      "the_assertion_that_says_it_all": "assert '已经是最新的，没有新增内容。' != '已经是最新的，没有新增内容。' —— 一次硬失败，界面显示的是好消息",
+      "after_restore": "27 passed"
+    }
+  },
+
+  "frozen_dictionary_gap": {
+    "finding": "真实二进制会产生两种情况，而 ZERO_BARRIER_UX.md 的冻结词典（7 条）里没有对应句子。词典是产品合同，改它要先改那份文档——那是 Owner 的裁定，不是我的。所以我没有往词典里加句子。",
+    "cases": [
+      {
+        "internal_code": "CHALLENGE_REQUIRED",
+        "exit_bit": 8,
+        "meaning": "撞上验证码 / 设备风控。L0 边界：我们不绕。",
+        "current_handling": "别名到 NOT_LOGGED_IN",
+        "honest_assessment": "下一步动作是对的（回浏览器操作后重试），但措辞说的是「没找到登录状态」，而用户可能是登着的。措辞不准，动作不错。",
+        "proposed_sentence_if_owner_unfreezes": "<平台> 要求你先过一次验证。请在浏览器里打开 <平台> 完成验证，然后点 [ 重试 ]"
+      },
+      {
+        "internal_code": "URL_NOT_SUPPORTED",
+        "exit_bit": "32 或 64",
+        "meaning": "我们把一个 gallery-dl 不认识的 URL 传了进去。**这是我们的 bug，不是用户的。**",
+        "current_handling": "**故意不给别名**，落到 unexplained_zero",
+        "why_not_server_unreachable": "SERVER_UNREACHABLE 的句子是「暂时连不上服务器…[ 重试 ]」。让用户重试一个我们自己传错的 URL，重试一万次也一样——正是 gallerydl_runner 模块文档里明令禁止的那种误判。",
+        "honest_assessment": "unexplained_zero 的结论是对的（是产品的问题、来找我们），但它那句「我们没能记录下原因」在这里不准确——原因记了，就在 last_error_code 里。两个选项各有一句假话，我选了后果较轻的那个：它把用户导向「联系我们」而不是无穷重试。",
+        "proposed_sentence_if_owner_unfreezes": "这个来源我们暂时接不了，已经记下来了。不用重试，我们会处理。",
+        "visible_in_code": "failure_copy.DELIBERATELY_UNALIASED —— 写成常量并被判据引用，免得日后有人「顺手补个别名」把它退化成一句重试。"
+      }
+    ]
+  },
+
+  "reddit_token_storage_gap_now_answerable": {
+    "previously": "T12 里我把「Reddit 的 OAuth refresh token 存在哪」推迟了，理由是「存法取决于 gallery-dl 期望的形态」。",
+    "now_measured": {
+      "read_from": "gallery_dl/extractor/reddit.py（实际源码）",
+      "keys": {
+        "refresh-token": "reddit.py:453 `token = config(\"refresh-token\")`",
+        "client-id": "reddit.py:428 `client_id = config(\"client-id\")`"
+      },
+      "namespace": "extractor.reddit.*（连字符，不是下划线）",
+      "default_client_id": "gallery-dl 自带公共 client-id（reddit.py:415）。也就是说公开内容不给凭据也能取，只是会撞 429；私有的「我保存的」必须要 refresh-token。"
+    },
+    "still_open": "怎么把它接到 CredentialStore（T05 明确拒收 reddit，因为它走 OAuth 不是 Cookie）仍未实现。但推迟的那个理由已经不成立了——形态是确定的：两个配置键，写进一份 gallery-dl 配置 JSON。这条现在是待做，不再是待查。"
+  },
+
+  "what_this_does_not_prove": [
+    "没有跑通一次真实的 Reddit 取数——那需要 Owner 的 Reddit 授权。",
+    "没有验证 --cookies 传给 gallery-dl 之后的真实行为。",
+    "measured_runs 只覆盖了退出码 64 这一条真实路径；16 / 8 / 128 是从源码常量推出来的，没有实跑触发过。判据覆盖了全部七个位，但「源码这么写」与「真跑会这样」之间那点差距，我没有抹掉。"
+  ]
+}

@@ -84,7 +84,26 @@ _ALIASES: dict[str, str] = {
     # 标签页/会话
     "MIRROR_TAB_CLOSED": "TAB_CLOSED",
     "PLATFORM_SESSION_EXPIRED": "CREDENTIAL_EXPIRED",
+    # gallery-dl 退出码 8（ChallengeError）：撞上验证码/设备风控。
+    # 我们**不绕**（L0 边界），只能把人引回浏览器自己过一次。
+    # 冻结词典里没有「验证码」这一条，落到最接近的 NOT_LOGGED_IN——
+    # 它的下一步动作（回浏览器操作后重试）是对的，只是措辞说的是"登录"。
+    # 这是词典的缺口，不是映射的将就，见 evidence/T12/EXIT_CODE_CONTRACT.json。
+    "CHALLENGE_REQUIRED": "NOT_LOGGED_IN",
 }
+
+# **故意不放进 _ALIASES 的码**，写在这里是为了让"没漏，是有意的"这件事看得见：
+#
+#   URL_NOT_SUPPORTED —— gallery-dl 退出码 32/64。意思是我们把一个它不认识的
+#   URL 传了进去，这是**我们的 bug，不是用户的**。
+#   映射到 SERVER_UNREACHABLE（"暂时连不上服务器…[重试]"）会让用户一直重试，
+#   而重试一万次也一样——正是 gallerydl_runner 模块文档里明令禁止的那种误判。
+#   不给别名，它就会落到下面的 unexplained_zero：
+#   "这是产品的问题，请重试一次；如果还是这样，请联系我们。"
+#   ——结论对（是我们的问题、去找我们），代价是那句"我们没能记录下原因"
+#   在这里不准确（原因是记了的，就在 last_error_code 里）。
+#   要真正说准，得往冻结词典里加一条，那是改产品合同，先改 ZERO_BARRIER_UX.md。
+DELIBERATELY_UNALIASED: frozenset[str] = frozenset({"URL_NOT_SUPPORTED"})
 
 # 「没有新增」不是失败。它必须与失败**显示成两种东西**。
 NOTHING_NEW = FailureCopy(

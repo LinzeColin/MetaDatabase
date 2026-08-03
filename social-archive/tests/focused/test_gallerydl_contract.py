@@ -236,3 +236,119 @@ def test_non_json_stdout_is_a_failure_not_an_empty_success() -> None:
     assert not result.ok
     assert result.failure_code is not None
     assert result.items == []
+
+
+# ── 退出码：非 0 却被读成「跑完了、0 条」 ────────────────────────────
+#
+# 这一组判据的由来：gallery-dl **失败时 stdout 是空的**，错误只写 stderr。
+# 实测（生产 cli-tools 容器，gallery-dl 1.32.8）：
+#     gallery-dl -j --no-download not-a-url  → exit 64、stdout 0 字节
+# 而 run() 里 `json.loads(completed.stdout or "[]")` 把空 stdout 变成 `[]`，
+# 于是一次硬失败和「已经是最新的」在数据上完全同形。
+#
+# 退出码本身是**位掩码**（job.py `status |= exc.code`、__init__.py `retval |= 64`），
+# 所以判据必须打在按位与上——写 `rc == 16` 会漏掉 16|4=20。
+
+
+class _FakeCompleted:
+    """假的 subprocess 结果。stdout 空、stderr 有话、退出码非 0——真实失败的形状。"""
+
+    def __init__(self, returncode: int, stdout: str = "", stderr: str = "") -> None:
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+
+
+def _run_with(returncode: int, *, url: str, stdout: str = "", stderr: str = ""):
+    from social_archive.gallerydl_runner import run
+
+    return run(url, runner=lambda argv: _FakeCompleted(returncode, stdout, stderr))
+
+
+def test_nonzero_exit_with_empty_stdout_is_not_reported_as_success() -> None:
+    """这条判据就是 INV-NO-SILENT-ZERO 本身。
+
+    退出码 64 + 空 stdout 是实测出来的真实形状，不是构造的边界值。
+    """
+    result = _run_with(64, url="https://www.reddit.com/user/me/saved",
+                       stderr="[gallery-dl][error] Unsupported URL 'x'")
+    assert not result.ok, "退出码 64 被读成了成功——这正是 v0.0.0.6 的静默的零"
+    assert result.failure_code is not None, "非 0 退出却没有失败码"
+    assert result.returncode == 64
+
+
+def test_silent_zero_would_have_shown_up_as_good_news() -> None:
+    """把失败码摘掉，界面会说什么——用来证明上一条判据拦住的是什么。"""
+    from social_archive.failure_copy import describe_sync_outcome
+
+    # 修复前的行为：failure_code=None、status=completed
+    before = describe_sync_outcome(imported=0, failure_code=None, status="completed")
+    assert before["message_zh"] == "已经是最新的，没有新增内容。"
+
+    # 修复后：真实退出码进来，说的就不是好消息了
+    result = _run_with(64, url="https://www.reddit.com/user/me/saved", stderr="Unsupported URL")
+    after = describe_sync_outcome(
+        imported=0, failure_code=result.failure_code, status="completed", platform_label="Reddit"
+    )
+    assert after["message_zh"] != "已经是最新的，没有新增内容。", (
+        "一次硬失败仍然显示成「已经是最新的」"
+    )
+    assert after["outcome"] != "nothing_new"
+
+
+def test_exit_code_is_a_bitmask_not_a_value() -> None:
+    """16|4=20：一次跑里既有鉴权失败又有抽取错误。按值比较会漏掉它。"""
+    from social_archive.gallerydl_runner import classify_exit_code
+
+    assert classify_exit_code(16, url="https://reddit.com/u/me/saved") == "REDDIT_NOT_AUTHORIZED"
+    assert classify_exit_code(20, url="https://reddit.com/u/me/saved") == "REDDIT_NOT_AUTHORIZED", (
+        "20 = 16|4 没被认成鉴权失败——判据写成了按值比较"
+    )
+    assert classify_exit_code(0, url="x") is None
+
+
+def test_auth_exit_distinguishes_reddit_from_other_platforms() -> None:
+    """同一个退出码，对 Reddit 是「去授权」，对别的平台是「重新连接」。"""
+    from social_archive.gallerydl_runner import classify_exit_code
+
+    assert classify_exit_code(16, url="https://www.reddit.com/user/me/saved") == "REDDIT_NOT_AUTHORIZED"
+    assert classify_exit_code(16, url="https://www.instagram.com/saved/") == "CREDENTIAL_EXPIRED"
+
+
+def test_unsupported_url_never_tells_the_user_to_retry() -> None:
+    """32/64 是我们传错了 URL。让用户重试是骗他——重试一万次也一样。"""
+    from social_archive.failure_copy import DELIBERATELY_UNALIASED, describe_sync_outcome
+    from social_archive.gallerydl_runner import classify_exit_code
+
+    code = classify_exit_code(64, url="https://example.com/x")
+    assert code == "URL_NOT_SUPPORTED"
+    assert code in DELIBERATELY_UNALIASED, "被顺手加了别名，就会退化成一句「重试」"
+
+    outcome = describe_sync_outcome(imported=0, failure_code=code, status="completed")
+    assert outcome["message_zh"] != "暂时连不上服务器。你的数据没有丢，[ 重试 ]"
+    assert "产品的问题" in outcome["message_zh"]
+    assert outcome["outcome"] != "nothing_new"
+
+
+def test_challenge_exit_does_not_promise_we_will_bypass_it() -> None:
+    """退出码 8 = 撞上验证码。L0 边界：我们不绕，只能把人引回浏览器。"""
+    from social_archive.failure_copy import describe_sync_outcome
+    from social_archive.gallerydl_runner import classify_exit_code
+
+    assert classify_exit_code(8, url="https://www.pixiv.net/x") == "CHALLENGE_REQUIRED"
+    outcome = describe_sync_outcome(
+        imported=0, failure_code="CHALLENGE_REQUIRED", platform_label="Pixiv", status="completed"
+    )
+    # 必须落到冻结词典里的句子，不能凭空造一句新的
+    assert outcome["message_zh"].startswith("没有在浏览器里找到")
+    assert outcome["outcome"] == "failed"
+
+
+def test_every_exit_bit_produces_some_explanation() -> None:
+    """穷举安装源里所有的位：**没有一个能走到「没有原因」**。"""
+    from social_archive.gallerydl_runner import classify_exit_code
+
+    for bit in (1, 4, 8, 16, 32, 64, 128):
+        assert classify_exit_code(bit, url="https://example.com/x") is not None, (
+            f"退出码 {bit} 没有对应的失败码——它会变成一次静默的零"
+        )

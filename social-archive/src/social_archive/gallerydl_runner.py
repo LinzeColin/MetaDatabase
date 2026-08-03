@@ -80,6 +80,54 @@ def _looks_like_markup(message: str) -> bool:
     return hits >= 2
 
 
+# gallery-dl 的**进程退出码是位掩码，不是单值**。实测自装机源码 1.32.8：
+#   job.py:172/178  self.status |= exc.code        —— 每个异常把自己的位或进去
+#   __init__.py:466 retval    |= 64                —— 顶层「URL 不受支持」
+# 一次跑里出两种错就会 OR 在一起（鉴权 16 + 抽取 4 = 20）。
+# 所以判定**必须按位与**：写成 `rc == 16` 会把 20 漏掉，又变成一次静默的零。
+EXIT_GENERIC = 1  # GalleryDLException / JSON 解析失败 / 未预期异常
+EXIT_EXTRACTION = 4  # AbortExtraction, ExtractionError, HttpError, NotFoundError
+EXIT_CHALLENGE = 8  # ChallengeError —— 验证码/风控挑战
+EXIT_AUTH = 16  # AuthRequired, AuthenticationError, AuthorizationError
+EXIT_INPUT_FORMAT = 32  # NoExtractorError, InputError, Filter/FormatError
+EXIT_NO_EXTRACTOR = 64  # 顶层：这个 URL 没有对应的 extractor
+EXIT_OS = 128  # OSError（磁盘或网络 I/O）
+
+
+def classify_exit_code(returncode: int, *, url: str = "", stderr: str = "") -> str | None:
+    """只凭退出码（必要时加 stderr）判失败类型。
+
+    存在的理由：**gallery-dl 失败时 stdout 是空的**，错误只写到 stderr。
+    实测 `gallery-dl -j --no-download not-a-url` → exit 64、stdout 0 字节。
+    只看 stdout 的话，一次硬失败和「跑完了、没有新增」长得一模一样。
+
+    位的检查顺序 = 严重性顺序：鉴权比抽取错误更需要先说，因为它决定了
+    用户下一步该做什么（去授权，而不是重试）。
+    """
+    rc = int(returncode or 0)
+    if rc == 0:
+        return None
+    if rc & EXIT_AUTH:
+        # Reddit 缺 OAuth 与「某平台会话过期」对用户是两件事：前者去授权，后者重连。
+        return "REDDIT_NOT_AUTHORIZED" if "reddit" in url.lower() else "CREDENTIAL_EXPIRED"
+    if rc & EXIT_CHALLENGE:
+        # 验证码/设备风控。我们**不绕**（L0 边界），只能把人引回浏览器自己过。
+        return "CHALLENGE_REQUIRED"
+    if rc & (EXIT_NO_EXTRACTOR | EXIT_INPUT_FORMAT):
+        # 我们把一个它不认识的 URL 传了进去——这是我们的 bug，不是用户的。
+        # 让用户「重试」是骗他，重试一万次也一样。
+        return "URL_NOT_SUPPORTED"
+    if rc & EXIT_OS:
+        return "SERVER_UNREACHABLE"
+    if rc & EXIT_EXTRACTION:
+        if _looks_like_markup(stderr) and "reddit" in (url + stderr).lower():
+            return "REDDIT_NOT_AUTHORIZED"
+        if any(token in stderr for token in ("429", "Too Many Requests", "rate limit")):
+            return "RATE_LIMITED"
+        return "SERVER_UNREACHABLE"
+    return "SERVER_UNREACHABLE"
+
+
 def classify_failure(errors: list[dict[str, str]], *, url: str = "") -> str | None:
     """把 gallery-dl 的错误归到一个失败码上。
 
@@ -195,4 +243,23 @@ def run(
 
     result = parse_dump_json(payload, url=url)
     result.returncode = completed.returncode
+
+    # ——— INV-NO-SILENT-ZERO 的落点，别删 ———
+    # 退出码非 0，但 JSON 里一条错误都没有。这不是罕见分支，而是 gallery-dl
+    # 失败时的**常态**：它把错误写 stderr，stdout 留空。
+    # 实测（生产 cli-tools 容器，gallery-dl 1.32.8）：
+    #     gallery-dl -j --no-download not-a-url  → exit 64, stdout 0 字节
+    # 而上面 `json.loads(completed.stdout or "[]")` 会把空 stdout 变成 `[]`，
+    # 于是 items=0、errors=0、classify_failure 回 None、failure_code=None，
+    # 最后 describe_sync_outcome 说「已经是最新的，没有新增内容。」
+    # ——一次硬失败被显示成好消息，正是 v0.0.0.6 那种静默的零。
+    if completed.returncode and result.failure_code is None:
+        stderr = (getattr(completed, "stderr", "") or "")[:ERROR_MESSAGE_LIMIT]
+        result.errors.append({
+            "error": f"ExitCode{int(completed.returncode)}",
+            "message": stderr or f"gallery-dl 以退出码 {int(completed.returncode)} 结束，且没有输出任何内容",
+        })
+        result.failure_code = classify_exit_code(
+            completed.returncode, url=url, stderr=stderr
+        )
     return result

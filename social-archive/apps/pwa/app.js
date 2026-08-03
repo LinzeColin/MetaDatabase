@@ -68,6 +68,12 @@
     RELATION_URL_UNAVAILABLE: "SERVER_UNREACHABLE",
     MIRROR_TAB_CLOSED: "TAB_CLOSED",
     PLATFORM_SESSION_EXPIRED: "CREDENTIAL_EXPIRED",
+    // gallery-dl 退出码 8：撞上验证码/风控。我们不绕，把人引回浏览器自己过。
+    // 冻结词典里没有「验证码」这一条，落到最接近的 NOT_LOGGED_IN。
+    CHALLENGE_REQUIRED: "NOT_LOGGED_IN",
+    // URL_NOT_SUPPORTED（退出码 32/64）**故意不在这里**：它是我们传错了 URL，
+    // 给它任何别名都会变成一句「重试」，而重试一万次也一样。
+    // 让它落到 UNEXPLAINED_ZERO 的「这是产品的问题…联系我们」，结论是对的。
     INTERCEPT_PREFIX_UNKNOWN: "SERVER_UNREACHABLE",
     PLATFORM_PERMISSION_DENIED: "NOT_LOGGED_IN",
     OBSERVER_INSTALL_FAILED: "SERVER_UNREACHABLE"
