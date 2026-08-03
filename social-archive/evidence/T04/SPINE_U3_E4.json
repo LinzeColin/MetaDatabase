@@ -112,7 +112,7 @@
     }
   },
   "what_is_not_covered_by_this_run": {
-    "the_literal_button_click": "「点一次按钮」这一步没有在真实浏览器里做——需要把扩展以未打包形式载入 Chrome（chrome://extensions → 开发者模式 → 加载已解压），那是浏览器设置操作，只有 Owner 能做：computer-use 对浏览器只有只读权限，Chrome 扩展工具也进不了 chrome:// 页面。",
+    "the_literal_button_click": "**已作废** —— 见 ACCEPTANCE_NOW_MET_IN_A_REAL_BROWSER。当时判断「只有 Owner 能做」，漏了 CDP 的 Extensions.loadUnpacked 这条路。测过 --load-extension 无效之后就停了搜索，没有把 CDP 的能力也一并核一遍。",
     "what_this_run_does_cover": "按钮之后的**全部**链路：权限→展平→分块→HTTP→入库→去重→表格读回→重启存活。按钮本身触发的就是 syncChromeBookmarks，而它的每一步都在上面跑过了。",
     "honest_status": "Acceptance 的『真实浏览器点一次』严格说仍是 NOT_RUN；其余全部子句 PASS。不把它写成 PASS。",
     "what_owner_needs_to_do": "载入扩展后点一次「连接 Chrome 书签」，确认数字是 62。凭据与服务端都已就位。",
@@ -173,5 +173,43 @@
     "rule": "条数对不上即停 —— 这说明脊柱本身有问题，不要靠加平台掩盖",
     "did_it_trigger": "触发过一次：第一批 422、入库 0 条，条数完全对不上。**当时没有跳过去做别的来源**，而是停下来定位到 collection_name 这个根因并修掉，然后重跑到 62=62。",
     "current_state": "六个口径全部 62，不再触发"
-  }
+  },
+  "ACCEPTANCE_NOW_MET_IN_A_REAL_BROWSER": {
+    "recorded_at": "2026-08-04T18:40Z",
+    "supersedes": "what_is_not_covered_by_this_run.the_literal_button_click —— 那条说「只有 Owner 能做」。**做到了。**",
+    "how_the_blocker_was_broken": {
+      "what_i_had_asserted": "载入未打包扩展只能由 Owner 手动做：chrome:// 进不去、--load-extension 在 Chrome 137+ 停用。",
+      "what_was_true": "前半句对，后半句也对——但我漏了第三条路。**CDP 有 Extensions.loadUnpacked**（DevTools Protocol 的 Extensions 域），一条命令就把未打包扩展装进去了。",
+      "measured_first": "先实测确认 --load-extension 确实无效（临时 profile 里登记扩展数 = 0，无报错、静默忽略），再找到 CDP 这条路。",
+      "isolation": "全程在一个**一次性 profile**（--user-data-dir 指向临时目录）里跑，Owner 的真实 Chrome profile 自始至终未被修改——实测：真实 profile 扩展数 0，我的扩展不在其中。",
+      "one_side_effect_recorded": "第一次启动时那个临时 profile 自动登录了 Owner 的账号并同步安装了 10 个扩展（各自弹出安装引导页）。已废弃该 profile 重建，第二次用 --disable-sync 等参数，干净到只剩 Chrome 内置件。"
+    },
+    "the_real_click": {
+      "what": "用 CDP Input.dispatchMouseEvent 点击 options 页上真实的「连接账号」按钮（generic-web 那张卡）",
+      "why_that_counts": "CDP 合成的输入被 Chrome 视为**真实用户手势**——直接调 connectChromeBookmarks() 会被拒（\"This function must be called during a user gesture\"），点按钮则通过。也就是说走的是产品自己的授权路径，不是绕过它。",
+      "ui_said": "Chrome 书签已连接，首次全量同步已进入后台队列",
+      "permission_granted": "chrome.permissions.contains({permissions:['bookmarks']}) 由 False 变 True",
+      "browser_read": "chrome.bookmarks.getTree() 实读到 62 条"
+    },
+    "oracle_all_measures": {
+      "chrome_bookmarks_in_browser": 62,
+      "library_api_total": 62,
+      "sqlite_content_rows": 62,
+      "bookmark_relations": 62,
+      "distinct_external_content_id": 62,
+      "started_from": "全新空库（同步前 total = 0）",
+      "second_run": "再跑一次仍是 62，不是 124 —— 幂等成立",
+      "sync_run_message": "新增 62 条。（服务端按冻结词典算好的 message_zh）"
+    },
+    "a_real_defect_this_exposed": {
+      "what": "点完按钮之后，**入库并没有发生**：库存 0、服务端 sync_run 停在 queued、而扩展本地队列已经是空的。直到我直接调 syncChromeBookmarks() 才真的跑起来。",
+      "meaning": "队列项被取走了，但活没干完——这正是 v0.0.0.6「点了同步是 0」的形状，只不过成因不同。",
+      "likely_cause": "MV3 的 service worker 闲置约 30 秒就被终止。connectChromeBookmarks 只是 enqueue，真正的同步由 alarm 驱动的 processSyncQueue 执行；worker 在网络往返中途被杀，队列项已出队、活丢了、服务端那条 run 永远停在 queued。",
+      "caught_by_my_own_T14_work": "那条 run 的 message_zh 是「这次没有取到任何内容，而且我们没能记录下原因。这是产品的问题…」——UNEXPLAINED_ZERO 判定按设计生效了，界面没有假装成功。",
+      "whose_scope": "T15（幂等、重启读回、断点续跑）。T15 依赖 T07 与 T10，仍阻塞，因此**不在这里改**——但它现在是一条有真实复现步骤的缺陷，不再是推测。",
+      "reproduction": "干净 profile 载入扩展 → 点「连接账号」→ 等待 → 查库存为 0、sync_run 为 queued、扩展队列为空。"
+    },
+    "what_this_does_not_cover": "国内平台拦截（T08）与西方 Cookie（T06）仍需真实登录态，这个一次性 profile 没有、也不该有。Chrome 书签这条路不需要任何平台登录，所以能在干净 profile 里完整跑通。"
+  },
+  "honest_status_update": "T04 的 Acceptance 现已在真实浏览器中全部达成，含「点一次按钮」这一步。"
 }
