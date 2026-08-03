@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T03:27:04Z",
+  "source_head": "f5db06d2740b5ede789cd01227c49adc3f8ea524",
+  "scope": "preserve the upstream sender-tab capture invariant after the v0.0.0.6 overlay",
+  "reconciliation": {
+    "issue": "The v0.0.0.6 overlay replaced the existing sender-tab capture path with active-tab-only capture, allowing a user tab switch to target the wrong page.",
+    "message_sender_tab_preferred": true,
+    "context_menu_tab_preferred": true,
+    "active_tab_fallback_retained": true,
+    "account_mirror_or_pairing_contract_changed": false
+  },
+  "validation": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' <existing-project-python-3.12> -m pytest -q tests/focused/test_v005_extension_package.py tests/focused/test_extension_api.py tests/focused/test_extension_e2n_contract.py tests/stage/test_stage2_domestic.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_scan_platform_isolation.py && node --check apps/browser-extension/background.js",
+    "exit_code": 0,
+    "result": "33 passed in 1.67s; one pre-existing Starlette TestClient deprecation warning"
+  },
+  "official_package": {
+    "path": "dist/social-archive-extension.zip",
+    "name": "Social Archive",
+    "version": "0.0.0.6",
+    "members": 20,
+    "sha256": "6cbfd349213bbd811a9da27635604ebc70b2520141e780387c91e20d26439445"
+  },
+  "safety": {
+    "browser_profile_or_storage_inspection": false,
+    "extension_install_enable_reload_or_configuration_change": false,
+    "credential_or_secret_access": false,
+    "provider_request": false,
+    "account_connection_or_sync": false,
+    "production_or_cloud_mutation": false
+  },
+  "conclusion": "Current v0.0.0.6 source again anchors a capture to the tab that initiated it while retaining a safe active-tab fallback. The package was rebuilt from that source. This is a source correctness repair, not a real Owner Canary or an extension installation receipt."
+}
