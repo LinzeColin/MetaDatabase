@@ -3,8 +3,8 @@
   "task_id": "SA-304",
   "taskpack_version": "v0.0.0.6",
   "generated_at": "2026-08-03T07:14:00Z",
-  "status": "BLOCKED_ENVIRONMENT",
-  "error_code": "HOST_DISK_CAPACITY",
+  "status": "PARTIAL",
+  "error_code": "HOST_DISK_CAPACITY_FOR_TWO_OF_FOUR_READERS",
   "scope": "optional_karakeep_linkwarden_archivebox_archiveweb_projection",
   "executed_on": "OVH vps-83b882b4",
   "what_passes": {
@@ -29,7 +29,11 @@
       "main_social_archive_stack": "all three containers healthy throughout",
       "other_hosted_services": "27 containers still up; no unrelated service was affected",
       "disk_after_cleanup": "2.0 GB free (95%)",
-      "production_endpoints_after": {"api_health": "200 v0.0.0.6", "library": "302 Access boundary", "status": "200"}
+      "production_endpoints_after": {
+        "api_health": "200 v0.0.0.6",
+        "library": "302 Access boundary",
+        "status": "200"
+      }
     }
   },
   "requirement_to_unblock": {
@@ -45,5 +49,31 @@
     "No unrelated project's image, volume, container or data was pruned or modified.",
     "No secret value was printed to terminal, transcript, evidence or Git.",
     "No user content was sent to any reader service."
-  ]
+  ],
+  "per_reader_breakdown": {
+    "note": "An earlier version of this record put all four readers behind host disk. That was imprecise: only the two container-backed readers are disk-blocked.",
+    "archivebox": {
+      "status": "PASS",
+      "mechanism": "URL projection file, no container required for the projection itself",
+      "evidence": "/var/lib/social-archive/exports/archivebox-urls.txt holds 3 URLs, matching the library row count",
+      "disk_blocked": false
+    },
+    "archiveweb_page": {
+      "status": "COVERED_NOT_DISK_BLOCKED",
+      "mechanism": "WACZ file import through scripts/import_wacz.py; no container involved",
+      "coverage": "3 focused tests pass: blocked before reading input when L2 is off, rejects an unknown content id before copying the file, and imports as an explicit L2 file projection",
+      "disk_blocked": false,
+      "why_not_run_on_production": "L2 is off by default (SOCIAL_ARCHIVE_L2_ENABLED defaults to False, and CANONICAL_STATE sets l2_default false), and a real WACZ can only come from the Owner capturing one with ArchiveWeb.page. The import path does not parse WACZ structure, it stores the file by content address, so running it with a synthetic file would prove nothing the focused tests do not already prove while injecting a bogus L2 artifact into production."
+    },
+    "karakeep": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "mechanism": "Docker: app plus Meilisearch plus headless Chrome",
+      "disk_blocked": true
+    },
+    "linkwarden": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "mechanism": "Docker: app plus Postgres",
+      "disk_blocked": true
+    }
+  }
 }
