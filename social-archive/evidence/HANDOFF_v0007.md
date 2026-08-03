@@ -133,14 +133,44 @@ https://social-archive.linzezhang.com/v1/auth/google/callback
    差点据此去改本来没问题的代码。判据已改成打在端点响应上。
    → 判据要打在可观察行为上，不是内部结构。
 
-## 下一步
+## T03 进度与剩余（引用面已实测，不必重新摸）
 
-T03 可以直接开工（`depends_on` 只有 T00）。它要删三样，现状已确认：
+Acceptance：「全仓 grep 不到 DOM 抓取与配对码实现；扩展可用且全程无需用户输入任何字符」。
+Oracle 含「撤销令牌后扩展上行得 401 且界面显示中文提示」。
 
-- `apps/browser-extension/content/account-mirror-core.js`（340 行 DOM 抓取器）
-- 配对码链路（散在 6 个文件）
-- `compose.workers.yaml` 里 `xhs-worker` / `ks-worker` / `douk-worker` 三个
-  基于 `main.py api` 的定义（实测证伪：那个 HTTP API 没有收藏枚举，接了还是 0）
+### 已完成 1/3 — 三个被证伪的 HTTP worker
 
-T03 的 Acceptance 是「全仓 grep 不到 DOM 抓取与配对码实现；扩展可用且全程无需
-用户输入任何字符」，Oracle 含「撤销令牌后扩展上行得 401 且界面显示中文提示」。
+已删 `compose.workers.yaml`（整个文件只有那三个 worker）+ `scripts/start_workers.sh`
++ `scripts/stop_workers.sh`。原先 6 个「断言 worker 存在」的测试**反转**成了
+`tests/focused/test_superseded_paths_stay_removed.py`（守卫打在内容形态
+`main.py` + `- api` 上，不只看文件名；两向都实测过）。
+
+混在其他文件里的 3 个过时测试是**逐函数剥离**的，没整文件删——
+`test_openapi_probe_connector.py` 与 `test_xhs_connector.py` 里仍有有效覆盖。
+
+### 剩余 2/3
+
+**(a) DOM 抓取器** `apps/browser-extension/content/account-mirror-core.js`（340 行，
+末尾挂 `globalThis.SAMirrorCore`）。引用面**已实测**共 6 处：
+
+| 文件 | 处理 |
+|---|---|
+| `apps/browser-extension/background.js` | **最难的一块**——它驱动整条扫描编排。删抓取器等于要重写编排层，而替代品（MAIN-world 拦截）属于 T08。建议 T03 只拆到"不再调用 DOM 扫描"，拦截实现留给 T08 |
+| `apps/browser-extension/manifest.json` | 从 `content_scripts` 摘掉 |
+| `tests/focused/test_extension_account_mirror_core.py` | 整体过时，反转为守卫 |
+| `tests/focused/test_v006_account_mirror_contract.py` | 整体过时，反转为守卫 |
+| `tests/focused/test_scan_platform_isolation.py` | 需逐函数看，可能有仍有效的覆盖 |
+| `tests/focused/test_extension_e2n_contract.py` | 同上 |
+
+**(b) 配对码链路**，散在 6 个文件。服务端侧入口在 `src/social_archive/api.py`：
+`/v1/pairing/status`、`/v1/pairing/exchange`、`/v1/pair`、`require_pairing_edge`、
+`PAIRING_PATHS` / `PAIRING_BODY_LIMIT_BYTES` / `PAIRING_RATE_LIMIT_PER_MINUTE` /
+`PAIRING_STATE_FILENAME`、`_read_pairing_record`、`settings.pairing_code_file`。
+
+**(c) 扩展改长期可撤销令牌**。T01 已经建好 `extension_token` 表
+（`token_hash` 唯一、带 `revoked_at`），T02 已经有会话——签发路径可以直接接：
+已登录页面向服务端取令牌，经既有 bridge 交给扩展，用户不接触令牌文本。
+
+> 顺序建议：先做 (b) 和 (c)——它们互补（撤掉配对码的同时补上令牌，扩展始终可用），
+> 且不依赖 T08。(a) 里 `background.js` 那部分最好与 T08 一起做，否则会出现一个
+> "抓取器删了、拦截还没有"的空窗期，扩展在那段时间是装得起来但什么都做不了的。
