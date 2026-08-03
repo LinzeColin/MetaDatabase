@@ -49,7 +49,17 @@
       "requirement": "撤销令牌后扩展上行得 401 且界面显示中文提示",
       "checked_by": "tests/stage/test_stage3_pwa.py::test_stage3_first_setup_save_find_failure_and_retry 与 tests/focused/test_auth_session.py",
       "result": "PASS（撤销后 resolve_extension_token 返回 None；require_token 拒绝）",
-      "honesty_note": "这是在 TestClient 里验的，不是在真实浏览器里。真实浏览器端到端属于 T18 部署后的验收。"
+      "honesty_note": "这是在 TestClient 里验的，不是在真实浏览器里。真实浏览器端到端属于 T18 部署后的验收。",
+      "chinese_message_half_was_unverified": {
+        "found_during": "回头逐条核对已标 done 的任务（T14 的伪完成、T01 的审计面都是这么查出来的）",
+        "what_was_missing": "Oracle 原文是「撤销令牌后扩展上行得 401 **且界面显示中文提示**」。401 先前验过；「中文提示」这一半一直没有判据——而它才是用户看得见的部分。",
+        "now_verified": {
+          "server_side": "撤销后带原令牌请求 /v1/extension/bootstrap 得 401，detail 为中文，且不含 Traceback / Unauthorized / 401 / None",
+          "extension_side": "options.js 在连不上时显示「还没有连上私人档案馆…无需输入任何内容」；shared.js 用 data.detail 透出服务端的中文，而不是拿 HTTP 状态码盖掉",
+          "guard_against_the_false_positive": "判据里显式打开 SOCIAL_ARCHIVE_PAIRING_REQUIRED——不打开的话 require_token 第一行早退、什么都不校验，这条会在「零校验」的情况下报绿。本会话已经栽过一次同样的坑（见 HANDOFF 的 pairing_required 陷阱）。",
+          "positive_control": "先断言有效令牌能过（200），再撤销、再断言 401——否则「一直 401」也会让判据报绿"
+        }
+      }
     }
   },
   "finding_previous_deletion_was_only_half": {

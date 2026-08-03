@@ -290,3 +290,67 @@ def test_auth_switch_survived_the_deletion() -> None:
         "pairing_required 被删了——它不是配对码开关，是总鉴权开关，"
         "删掉等于 require_token 永远早退，全站不再鉴权"
     )
+
+
+def test_revoked_extension_token_gets_401_with_a_chinese_message() -> None:
+    """T03 Oracle 的最后一句：「撤销令牌后扩展上行得 401 **且界面显示中文提示**」。
+
+    401 本身先前就验过；「中文提示」这一半一直没有判据——而它才是用户看得见的部分。
+    英文错误码或 HTTP 状态数字直接甩给用户，等同于什么都没说。
+    """
+    import importlib
+    import os
+    import tempfile
+
+    from fastapi.testclient import TestClient
+
+    with tempfile.TemporaryDirectory() as tmp:
+        token_file = os.path.join(tmp, "api-token")
+        with open(token_file, "w", encoding="utf-8") as handle:
+            handle.write("shared-token-for-this-test")
+        os.chmod(token_file, 0o600)
+        os.environ["SOCIAL_ARCHIVE_DATA_ROOT"] = os.path.join(tmp, "data")
+        os.environ["SOCIAL_ARCHIVE_API_TOKEN_FILE"] = token_file
+        # 必须打开总鉴权开关，否则 require_token 第一行就早退，
+        # 这条判据会在"什么都没校验"的情况下报绿——本会话已经栽过一次。
+        os.environ["SOCIAL_ARCHIVE_PAIRING_REQUIRED"] = "1"
+        import social_archive.api as api_module
+
+        importlib.reload(api_module)
+        client = TestClient(api_module.app)
+
+        user_id = api_module.store.upsert_oauth_identity(
+            provider="github", subject="t03-revoke", display_name="Owner"
+        )
+        token = api_module.store.issue_extension_token(user_id=user_id)
+        assert client.get(
+            "/v1/extension/bootstrap", headers={"authorization": f"Bearer {token}"}
+        ).status_code == 200, "有效令牌本该通过——判据的前提不成立"
+
+        api_module.store.revoke_extension_tokens(user_id)
+        response = client.get(
+            "/v1/extension/bootstrap", headers={"authorization": f"Bearer {token}"}
+        )
+        assert response.status_code == 401
+        detail = str(response.json().get("detail", ""))
+        assert detail, "401 没有任何说明"
+        assert any("一" <= ch <= "鿿" for ch in detail), (
+            f"401 的提示不是中文：{detail!r}——用户看不懂就等于没提示"
+        )
+        for leak in ("Traceback", "Unauthorized", "401", "None"):
+            assert leak not in detail, f"401 提示里漏出了 {leak}"
+
+        os.environ.pop("SOCIAL_ARCHIVE_PAIRING_REQUIRED", None)
+        os.environ.pop("SOCIAL_ARCHIVE_API_TOKEN_FILE", None)
+
+
+def test_extension_surfaces_a_chinese_message_when_it_cannot_reach_the_archive() -> None:
+    """服务端给了中文还不够——扩展得把它显示出来，而不是吞掉或换成 HTTP 数字。"""
+    options = (ROOT / "apps/browser-extension/options.js").read_text(encoding="utf-8")
+    assert "还没有连上私人档案馆" in options, "扩展在连不上时没有中文提示"
+    assert "无需输入任何内容" in options, "提示里没有告诉用户下一步（且下一步必须是零输入）"
+    shared = (ROOT / "apps/browser-extension/shared.js").read_text(encoding="utf-8")
+    # 服务端的中文 detail 必须被透出来，而不是被 `HTTP ${status}` 盖掉
+    assert "data.detail ||" in shared, (
+        "扩展把服务端的中文说明丢掉了，只剩 HTTP 状态码"
+    )
