@@ -79,8 +79,8 @@ async function captureRecord(record, tabUrl, config, overrides = {}) {
   return response;
 }
 
-async function captureActive(message = {}) {
-  const tab = await SA.activeTab();
+async function captureActive(message = {}, sourceTab = null) {
+  const tab = sourceTab?.id && sourceTab?.url ? sourceTab : await SA.activeTab();
   const config = await SA.getConfig();
   const extracted = await extractFromTab(tab, message.mode === "list" ? "list" : "page");
   const items = message.mode === "list" ? extracted.items : [extracted.page];
@@ -844,7 +844,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       const config = await SA.getConfig();
       await captureRecord({ url: tab.url, title: tab.title, text: info.selectionText, media_urls: [], raw_metadata: { source: "selection" } }, tab.url, config, { source: "context_selection" });
     } else if (info.menuItemId === MENU_SAVE) {
-      await captureActive({ mode: "page", source: "context_menu" });
+      await captureActive({ mode: "page", source: "context_menu" }, tab);
     }
     await chrome.action.setBadgeBackgroundColor({ color: "#1f7a4c" });
     await chrome.action.setBadgeText({ text: "✓" });
@@ -860,7 +860,7 @@ chrome.runtime.onConnect.addListener(port => {
   port.onMessage.addListener(() => {});
 });
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   (async () => {
     if (message?.type === "SA_ACCOUNT_CONNECT") return connectPlatform(String(message.platform || ""));
     if (message?.type === "SA_VERIFY_PLATFORM_SESSION") return verifyPendingPlatform(String(message.platform || ""));
@@ -877,8 +877,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       const control = await getSyncControl(String(message.syncRunId || ""));
       return { ok: true, action: control?.action || null };
     }
-    if (message?.type === "SA_PLATFORM_PAGE_READY") return completePendingBrowserConnection(message, _sender?.tab);
-    if (message?.type === "SA_CAPTURE_ACTIVE") return captureActive(message);
+    if (message?.type === "SA_PLATFORM_PAGE_READY") return completePendingBrowserConnection(message, sender?.tab);
+    if (message?.type === "SA_CAPTURE_ACTIVE") return captureActive(message, sender?.tab);
     if (message?.type === "SA_OPEN_TASK_CENTER") {
       const tab = await SA.activeTab().catch(() => null);
       if (tab?.windowId) await chrome.sidePanel.open({ windowId: tab.windowId });
