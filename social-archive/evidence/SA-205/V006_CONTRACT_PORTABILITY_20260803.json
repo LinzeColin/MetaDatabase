@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T03:29:52Z",
+  "source_head": "635a124fa6cc54c53e8572013e9510fb3591f6fb",
+  "scope": "portable verification of the sealed v0.0.0.6 account-mirror contract",
+  "reconciliation": {
+    "issue": "The focused v0.0.0.6 contract test resolved its Task Pack files from a hard-coded GithubProject parent path, which is absent in an isolated worktree.",
+    "sealed_platform_capability_matrix_sha256": "5a0636d8e45b2e411589645fe102daf48f1eddee9f32997f6ce976408271a02f",
+    "verification_mode": "The checked-in machine/platform_capabilities.json must byte-match the sealed matrix SHA-256, while mandatory table labels must appear in the PWA surface itself.",
+    "product_behavior_changed": false
+  },
+  "validation": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' <existing-project-python-3.12> -m pytest -q tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_account_mirror_sync.py tests/focused/test_cloud_pairing.py tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_extension_api.py tests/focused/test_extension_e2n_contract.py tests/focused/test_scan_platform_isolation.py tests/focused/test_v005_extension_package.py tests/focused/test_v005_pairing_destinations.py tests/focused/test_v006_account_mirror_contract.py tests/stage/test_stage2_domestic.py",
+    "exit_code": 0,
+    "result": "58 passed in 2.69s; one pre-existing Starlette TestClient deprecation warning"
+  },
+  "safety": {
+    "credential_or_secret_access": false,
+    "browser_profile_or_storage_inspection": false,
+    "extension_install_enable_reload_or_configuration_change": false,
+    "provider_request": false,
+    "account_connection_or_sync": false,
+    "production_or_cloud_mutation": false
+  },
+  "conclusion": "The frozen v0.0.0.6 source contract can now be verified from an isolated worktree without depending on a local Task Pack extraction. This strengthens SA-205 regression evidence but does not constitute a real account Canary."
+}
