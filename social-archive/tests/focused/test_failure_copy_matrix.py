@@ -234,3 +234,48 @@ def test_every_audited_row_can_be_turned_into_a_chinese_sentence(tmp_path: Path)
         assert outcome["outcome"] == "unexplained_zero"
         assert str(outcome["message_zh"]).strip()
         assert "<" not in str(outcome["message_zh"])
+
+
+# ── PWA 侧的同一份词典不许和 Python 侧漂开 ──────────────────────────
+
+
+def test_pwa_dictionary_matches_the_python_one() -> None:
+    """同一份冻结词典现在有两处实现：failure_copy.py 与 apps/pwa/app.js。
+
+    两处实现就有两处会漂。这条逐句比对，任一处被改动都会红。
+    （PWA 那份是必须的：界面在浏览器里渲染，读不到 Python 模块。）
+    """
+    app_js = (ROOT / "apps/pwa/app.js").read_text(encoding="utf-8")
+    assert "const failureCopy = {" in app_js, "PWA 里没有失败文案词典——界面会说不出为什么"
+    for code, sentence in FROZEN.items():
+        assert code in app_js, f"PWA 词典缺少 {code}"
+        assert sentence in app_js, f"PWA 里 {code} 的文案与冻结词典不一致：应为 {sentence!r}"
+
+
+def test_pwa_falls_back_to_the_unexplained_zero_sentence() -> None:
+    """没见过的失败码在界面上也不能沉默。"""
+    app_js = (ROOT / "apps/pwa/app.js").read_text(encoding="utf-8")
+    assert "我们没能记录下原因" in app_js
+    assert "这是产品的问题" in app_js
+
+
+def test_pwa_reads_the_failure_code_at_all() -> None:
+    """v0.0.0.6 的 app.js **一次都没读过** last_error_code——
+    所以同步失败时界面只会显示「需要处理」，说不出为什么。这条守着别退回去。"""
+    app_js = (ROOT / "apps/pwa/app.js").read_text(encoding="utf-8")
+    assert "last_error_code" in app_js, "PWA 又不读失败码了——界面将说不出失败原因"
+    assert "failureSentence" in app_js
+
+
+def test_pwa_asset_version_is_not_stale() -> None:
+    """缓存版本号必须随界面改动一起升，否则**回访用户拿到的还是旧 app.js**。
+
+    实测踩到过：本地验 T14 时页面一直显示旧文案，就是 index.html 里
+    `app.js?v=006-r1` 与 sw.js 的缓存名都还停在 v006。
+    发布后老用户会完全看不到 v0.0.0.7 的界面改动。
+    """
+    for relative in ("apps/pwa/index.html", "apps/pwa/sw.js", "apps/pwa/app.js"):
+        text = (ROOT / relative).read_text(encoding="utf-8")
+        assert "v=006" not in text, f"{relative} 的资源版本号还停在 v006"
+    sw = (ROOT / "apps/pwa/sw.js").read_text(encoding="utf-8")
+    assert "social-archive-ui-v007" in sw, "service worker 缓存名还没升到 v007"

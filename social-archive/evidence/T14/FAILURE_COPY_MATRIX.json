@@ -90,7 +90,46 @@
   },
   "rollback": "任务包写的是「无」。本任务只新增模块与判据，未改动既有行为路径；如需回退 git revert 即可。",
   "not_yet_wired_into_the_ui": {
-    "honest_status": "本任务交付的是**词典与判定逻辑**以及库层审计。把 describe_sync_outcome 的输出接到 PWA 与扩展的具体控件上，需要有真实的失败同步可看——那要等 T07 / T10 有真实来源之后。",
-    "why_not_faked_now": "现在能造的只有构造出来的失败行；接上去之后没有真实场景可验，等于把「接好了」写成没有证据的断言。判定逻辑本身已经可测且已测。"
+    "superseded": "已作废，见 acceptance_now_met_in_the_real_ui。留着这个键是为了让「我曾经用一个站不住的理由把它推后」这件事留在记录里。"
+  },
+  "acceptance_now_met_in_the_real_ui": {
+    "correction": "本文件先前写的 not_yet_wired_into_the_ui 是**不成立的托词**。当时的说法是「要等有真实失败同步可看」——其实注入一条带 failure_code 的 sync_run 就能验，本地实例与真实浏览器我都有。据此把 T14 标成 done 属于伪完成，现已补做。",
+    "what_was_actually_missing": "apps/pwa/app.js **一次都没读过 last_error_code**（grep 零命中）。同步失败时界面只显示状态标签「需要处理」，说不出为什么、也不给下一步。",
+    "fix": "把冻结词典搬进 app.js（failureCopy + failureAliases + failureSentence），页头与账号表格各接一处",
+    "verified_in_a_real_browser": {
+      "how": "本地实例装着 T04 那 62 条真实书签；逐个把 sync_run 的 last_error_code 改成四种，真实浏览器打开 PWA 读 DOM",
+      "results": [
+        {
+          "code": "CREDENTIAL_EXPIRED",
+          "rendered": "· Chrome书签/网页 的登录状态过期了。[ 重新连接 ]"
+        },
+        {
+          "code": "NOT_LOGGED_IN",
+          "rendered": "· 没有在浏览器里找到 Chrome书签/网页 的登录状态。请先在浏览器里登录 Chrome书签/网页，然后点 [ 重试 ]"
+        },
+        {
+          "code": "TAB_CLOSED",
+          "rendered": "· Chrome书签/网页 同步中断了，因为标签页被关掉。[ 继续 ]"
+        },
+        {
+          "code": "SERVER_UNREACHABLE",
+          "rendered": "· 暂时连不上服务器。你的数据没有丢，[ 重试 ]"
+        }
+      ],
+      "all_four_match_frozen_dictionary": true,
+      "no_english_code_visible_on_page": true,
+      "no_placeholder_leaked": true,
+      "result": "PASS —— 四种注入失败在**真实界面**上各给出对应中文句子"
+    },
+    "drift_guard": "词典现在有两处实现（failure_copy.py 与 app.js）。test_pwa_dictionary_matches_the_python_one 逐句比对，任一处被改动都会红。",
+    "regression_guard": "test_pwa_reads_the_failure_code_at_all —— v0.0.0.6 一次都没读过它，这条守着别退回去。"
+  },
+  "release_blocking_finding": {
+    "what": "PWA 的资源版本号与 service worker 缓存名都还停在 v006",
+    "how_found": "验 T14 时页面一直显示旧文案。以为是自己代码没生效，查下去才发现：index.html 加载的是 app.js?v=006-r1，浏览器按 URL 缓存，于是永远拿旧的；sw.js 的 CACHE 名也还是 social-archive-ui-v006-r1。",
+    "why_it_is_release_blocking": "v0.0.0.7 改了界面（T14 的失败文案、T03/T06 的连接流程）。版本号不升的话，**回访用户发布后拿到的仍是旧 app.js**，等于这些改动对老用户没发布。新用户看得到、老用户看不到，是最难排查的那种。",
+    "fix": "index.html / app.js / sw.js 三处的 v=006 全部升到 v=007，SW 缓存名升到 social-archive-ui-v007-r1",
+    "guard": "test_pwa_asset_version_is_not_stale 与 test_service_worker_replaces_the_stale_ui_cache_with_current_assets_immediately（后者是把原来钉 v006 的判据随版本移动，原则未变，并加了「旧版本号不许在任何一处残留」）",
+    "note": "这不是本地环境问题——它会原样发生在生产上。"
   }
 }

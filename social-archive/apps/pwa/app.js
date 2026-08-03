@@ -42,6 +42,50 @@
     completed: "同步完成", partial: "部分完成", paused: "已暂停", failed: "需要处理",
     blocked_environment: "需要重新连接", disconnected: "未连接", degraded: "降级可用", cancelled: "已取消"
   };
+  // 失败文案词典（v0.0.0.7 / T14）。**逐字**照抄 docs/ZERO_BARRIER_UX.md 的
+  // 「错误文案词典（冻结）」，与 src/social_archive/failure_copy.py 是同一份内容的两处实现。
+  // 两处会不会漂？有判据盯着：tests/focused/test_failure_copy_matrix.py 里
+  // test_pwa_dictionary_matches_the_python_one 逐句比对。
+  //
+  // 为什么界面必须有这张表：INV-NO-SILENT-ZERO。同步失败时界面只显示
+  // 「需要处理」是不够的——用户不知道该去登录、去授权、还是去重试。
+  const failureCopy = {
+    CREDENTIAL_EXPIRED: { text: "<平台> 的登录状态过期了。[ 重新连接 ]", action: "重新连接" },
+    NOT_LOGGED_IN: { text: "没有在浏览器里找到 <平台> 的登录状态。请先在浏览器里登录 <平台>，然后点 [ 重试 ]", action: "重试" },
+    REDDIT_NOT_AUTHORIZED: { text: "Reddit 需要单独授权一次。[ 去授权 ]", action: "去授权" },
+    TAB_CLOSED: { text: "<平台> 同步中断了，因为标签页被关掉。[ 继续 ]", action: "继续" },
+    RATE_LIMITED: { text: "<平台> 请求太频繁，已自动放慢。已经收到的 <N> 条都保住了，稍后会自动继续。", action: null },
+    SERVER_UNREACHABLE: { text: "暂时连不上服务器。你的数据没有丢，[ 重试 ]", action: "重试" },
+    DISK_QUOTA: { text: "存储空间快满了，已经暂停下载媒体文件，文字和链接还在正常保存。", action: null }
+  };
+  // 内部失败码比词典细，但界面上只许出现词典里的七句。
+  const failureAliases = {
+    ACQUISITION_PATH_NOT_INSTALLED: "SERVER_UNREACHABLE",
+    LOGIN_PROOF_UNAVAILABLE: "NOT_LOGGED_IN",
+    PERMISSION_DENIED: "NOT_LOGGED_IN",
+    UPLOAD_FAILED: "SERVER_UNREACHABLE",
+    BROWSER_SCAN_FAILED: "SERVER_UNREACHABLE",
+    RELATION_URL_UNAVAILABLE: "SERVER_UNREACHABLE",
+    MIRROR_TAB_CLOSED: "TAB_CLOSED",
+    PLATFORM_SESSION_EXPIRED: "CREDENTIAL_EXPIRED",
+    INTERCEPT_PREFIX_UNKNOWN: "SERVER_UNREACHABLE"
+  };
+
+  /** 把一个失败码变成给人看的中文句子。认不出来也不能沉默。 */
+  function failureSentence(code, platformLabel, count) {
+    const key = String(code || "").trim().toUpperCase();
+    if (!key) return null;
+    const entry = failureCopy[key] || failureCopy[failureAliases[key]];
+    if (!entry) {
+      // 没见过的失败码**不能**当成没事——那正是 v0.0.0.6 的静默的零。
+      return { text: "这次没有取到任何内容，而且我们没能记录下原因。这是产品的问题，请重试一次；如果还是这样，请联系我们。", action: "重试" };
+    }
+    return {
+      text: entry.text.replace(/<平台>/g, platformLabel || "该平台").replace(/<N>/g, String(count || 0)),
+      action: entry.action
+    };
+  }
+
   const destinationNames = {
     social_archive: "Social Archive", markdown: "Markdown", notion: "Notion", obsidian: "Obsidian",
     github: "GitHub Private", karakeep: "Karakeep", linkwarden: "Linkwarden", archivebox: "ArchiveBox"
@@ -251,7 +295,13 @@
       const discovered = active.reduce((sum, run) => sum + Number(run.discovered_count || 0), 0);
       $("syncSummaryText").textContent = ` · ${active.length} 个同步任务正在运行 · 已导入 ${imported}/${discovered || "…"} 条`;
     } else if (failures.length) {
-      $("syncSummaryText").textContent = ` · ${failures.length} 个账号需要重新连接，其他账号不受影响`;
+      // 不只说"有几个失败了"，把**为什么**说出来（T14 / INV-NO-SILENT-ZERO）。
+      const worst = failures.find(run => run.last_error_code) || failures[0];
+      const label = platformMeta[serverToUiPlatform[worst?.platform]]?.label || "";
+      const sentence = failureSentence(worst?.last_error_code, label, worst?.imported_count);
+      $("syncSummaryText").textContent = sentence
+        ? ` · ${sentence.text}${failures.length > 1 ? `（另有 ${failures.length - 1} 个账号也需要处理，其他不受影响）` : ""}`
+        : ` · ${failures.length} 个账号需要重新连接，其他账号不受影响`;
     } else {
       const lastSync = state.accounts.map(item => item.last_sync_at).filter(Boolean).sort().at(-1);
       $("syncSummaryText").textContent = lastSync ? ` · 最近同步 ${formatDate(lastSync, true)}` : " · 首次同步尚未开始";
@@ -557,7 +607,7 @@
         } else {
           action = `<button class="btn small" data-sync-account="${escapeHtml(account.id)}">立即同步</button>`;
         }
-        rows.push(`<tr><td><div class="platform-cell">${platformLogo(key)}<div><div>${escapeHtml(account.display_name || account.external_account_id || platformMeta[key].label)}</div><span class="muted">${escapeHtml(platformMeta[key].label)}</span></div></div></td><td><div class="connection-status ${stateClass}"><span class="dot"></span>${escapeHtml(connectionLabels[status] || status || "未知")}</div></td><td><strong style="color:var(--text)">${Number(account.content_count || 0).toLocaleString("zh-CN")}</strong> 条</td><td><div class="sync-progress"><div style="font-size:11px;color:var(--text-3)">${run ? `${imported}/${discovered || "…"} · ${connectionLabels[run.status] || run.status}` : "首次同步尚未开始"}</div><div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div></div></td><td>${escapeHtml(formatDate(account.last_sync_at, true))}</td><td><div class="sync-action-stack">${action}</div></td></tr>`);
+        rows.push(`<tr><td><div class="platform-cell">${platformLogo(key)}<div><div>${escapeHtml(account.display_name || account.external_account_id || platformMeta[key].label)}</div><span class="muted">${escapeHtml(platformMeta[key].label)}</span></div></div></td><td><div class="connection-status ${stateClass}"><span class="dot"></span>${escapeHtml(connectionLabels[status] || status || "未知")}</div></td><td><strong style="color:var(--text)">${Number(account.content_count || 0).toLocaleString("zh-CN")}</strong> 条</td><td><div class="sync-progress"><div style="font-size:11px;color:var(--text-3)">${run ? `${imported}/${discovered || "…"} · ${connectionLabels[run.status] || run.status}` : "首次同步尚未开始"}</div>${run && run.last_error_code ? `<div class="muted" style="font-size:11px;margin-top:2px" data-failure-reason>${escapeHtml(failureSentence(run.last_error_code, platformMeta[key].label, run.imported_count)?.text || "")}</div>` : ""}<div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div></div></td><td>${escapeHtml(formatDate(account.last_sync_at, true))}</td><td><div class="sync-action-stack">${action}</div></td></tr>`);
       }
     }
     $("syncTableBody").innerHTML = rows.join("");
@@ -997,7 +1047,7 @@
       $("syncSummaryText").textContent = " · 请刷新页面或检查登录状态";
     }
     await loadLibrary();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=006-r1").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=007-r1").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {
