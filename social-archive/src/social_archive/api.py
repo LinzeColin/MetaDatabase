@@ -18,7 +18,7 @@ from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import __version__
+from . import __version__, auth
 from .account_sync import AccountSyncCoordinator, PLATFORM_RELATIONS
 from .config import Settings
 from .db import RuntimeStore
@@ -49,6 +49,9 @@ registry = ConnectorRegistry(settings)
 destinations = DestinationRegistry(settings, store)
 account_sync = AccountSyncCoordinator(settings, store, service, registry)
 app = FastAPI(title="Social Archive", version=__version__, docs_url="/api/docs", redoc_url=None)
+# 登录路由（v0.0.0.7 / T02）。挂在这里而不是散进本文件：auth 有自己的
+# Cookie 语义与失败文案，混进 pairing/token 那套只会互相污染。
+app.include_router(auth.build_router(settings, store))
 
 PAIRING_PATHS = frozenset({"/v1/pairing/exchange", "/v1/pair"})
 PAIRING_BODY_LIMIT_BYTES = 16 * 1024

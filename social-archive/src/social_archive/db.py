@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import json
 import re
+import secrets
 import sqlite3
 from contextlib import contextmanager
+from datetime import UTC, datetime, timedelta
 from importlib.resources import files
 from pathlib import Path
 from typing import Any, Iterator
@@ -214,6 +216,99 @@ class RuntimeStore:
         if not user_id:
             raise ValueError("user_id 不能为空——空 user_id 会退化成全库读取")
         return TenantScope(self, user_id)
+
+    # ── 登录会话与身份（v0.0.0.7 / T02）──────────────────────────────
+
+    def upsert_oauth_identity(
+        self, *, provider: str, subject: str, display_name: str | None
+    ) -> str:
+        """按 (provider, subject) 找人；第一次见到就建用户。返回 user_id。
+
+        用 provider 侧的稳定 subject 而不是邮箱做主键：邮箱可以改，改了就会变成
+        另一个人，历史数据全部失联。
+        """
+        if provider not in {"google", "github"}:
+            raise ValueError(f"未知的登录方式 {provider}")
+        if not subject:
+            raise ValueError("provider 未返回 subject，拒绝建立身份")
+        now = utcnow()
+        identity_id = stable_id("oid", provider, subject)
+        with self.connection() as con:
+            row = con.execute(
+                "SELECT user_id FROM oauth_identity WHERE provider=? AND subject=?",
+                (provider, subject),
+            ).fetchone()
+            if row:
+                return str(row["user_id"])
+            # 本版本站点仍在 Cloudflare Access 后面，只有 Owner 进得来，
+            # 所以第一个登录的人就是 Owner；T01 迁移建的那行也用同一个 id。
+            existing_owner = con.execute("SELECT id FROM users WHERE is_owner=1").fetchone()
+            if existing_owner:
+                user_id = str(existing_owner["id"])
+            else:
+                user_id = self.OWNER_USER_ID
+                con.execute(
+                    "INSERT OR IGNORE INTO users(id,display_name,created_at,is_owner) VALUES(?,?,?,1)",
+                    (user_id, display_name or "Owner", now),
+                )
+            if display_name:
+                con.execute(
+                    "UPDATE users SET display_name=COALESCE(display_name,?) WHERE id=?",
+                    (display_name, user_id),
+                )
+            con.execute(
+                "INSERT INTO oauth_identity(id,user_id,provider,subject,created_at) VALUES(?,?,?,?,?)",
+                (identity_id, user_id, provider, subject, now),
+            )
+            return user_id
+
+    def create_session(self, *, user_id: str, ttl_seconds: int = 60 * 60 * 24 * 30) -> str:
+        """签发会话。返回的 id 就是 Cookie 里放的值——不用 JWT，撤销更简单。"""
+        session_id = secrets.token_urlsafe(32)
+        now = datetime.now(UTC)
+        with self.connection() as con:
+            con.execute(
+                "INSERT INTO session(id,user_id,created_at,expires_at) VALUES(?,?,?,?)",
+                (
+                    session_id,
+                    user_id,
+                    now.isoformat(),
+                    (now + timedelta(seconds=ttl_seconds)).isoformat(),
+                ),
+            )
+        return session_id
+
+    def resolve_session(self, session_id: str) -> str | None:
+        """会话 → user_id。过期或已撤销一律返回 None。
+
+        过期判断放在 SQL 里而不是取出来再比：少一次"忘了比"的机会。
+        """
+        if not session_id:
+            return None
+        with self.connection() as con:
+            row = con.execute(
+                """SELECT user_id FROM session
+                   WHERE id=? AND revoked_at IS NULL AND expires_at > ?""",
+                (session_id, datetime.now(UTC).isoformat()),
+            ).fetchone()
+        return str(row["user_id"]) if row else None
+
+    def revoke_session(self, session_id: str) -> bool:
+        with self.connection() as con:
+            cur = con.execute(
+                "UPDATE session SET revoked_at=? WHERE id=? AND revoked_at IS NULL",
+                (utcnow(), session_id),
+            )
+        return cur.rowcount > 0
+
+    def revoke_all_sessions(self, user_id: str) -> int:
+        """撤销某人全部会话。设备丢了、或怀疑泄漏时用。"""
+        with self.connection() as con:
+            cur = con.execute(
+                "UPDATE session SET revoked_at=? WHERE user_id=? AND revoked_at IS NULL",
+                (utcnow(), user_id),
+            )
+        return cur.rowcount
 
     def capture(self, request: CaptureRequest) -> tuple[str, str, str]:
         now = utcnow()

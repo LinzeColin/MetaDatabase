@@ -78,6 +78,12 @@ class Settings:
     account_sync_default_interval_minutes: int = 360
     account_sync_page_size: int = 100
     account_sync_max_items_per_run: int = 100000
+    # 登录（v0.0.0.7 / T02）。client_id 不是密钥，走环境变量；
+    # client_secret 只从 systemd credential 文件读，不进仓、不进 .env。
+    google_client_id: str | None = None
+    google_client_secret_file: str | None = None
+    github_client_id: str | None = None
+    github_client_secret_file: str | None = None
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -137,6 +143,10 @@ class Settings:
             karakeep_token_file=os.getenv("SOCIAL_ARCHIVE_KARAKEEP_TOKEN_FILE") or None,
             linkwarden_url=(os.getenv("SOCIAL_ARCHIVE_LINKWARDEN_URL") or "").rstrip("/") or None,
             linkwarden_token_file=os.getenv("SOCIAL_ARCHIVE_LINKWARDEN_TOKEN_FILE") or None,
+            google_client_id=os.getenv("SOCIAL_ARCHIVE_GOOGLE_CLIENT_ID") or None,
+            google_client_secret_file=os.getenv("SOCIAL_ARCHIVE_GOOGLE_CLIENT_SECRET_FILE") or None,
+            github_client_id=os.getenv("SOCIAL_ARCHIVE_GITHUB_CLIENT_ID") or None,
+            github_client_secret_file=os.getenv("SOCIAL_ARCHIVE_GITHUB_CLIENT_SECRET_FILE") or None,
             account_sync_default_interval_minutes=int(os.getenv("SOCIAL_ARCHIVE_ACCOUNT_SYNC_INTERVAL_MINUTES", "360")),
             account_sync_page_size=int(os.getenv("SOCIAL_ARCHIVE_ACCOUNT_SYNC_PAGE_SIZE", "100")),
             account_sync_max_items_per_run=int(os.getenv("SOCIAL_ARCHIVE_ACCOUNT_SYNC_MAX_ITEMS", "100000")),
