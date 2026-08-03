@@ -27,8 +27,21 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def _compose_file_secrets() -> set[str]:
-    text = (ROOT / "compose.yaml").read_text(encoding="utf-8")
-    return set(re.findall(r"file:\s*\./runtime/secrets/([a-z_][a-z0-9_.]*)", text))
+    """扫**所有** compose 文件，不只是 compose.yaml。
+
+    只扫一个文件正是本仓反复犯的那个覆盖面错误——
+    将来 compose.readers.yaml 加了 file-based secret，只扫主文件就发现不了。
+    （现在 readers 那份走 env_file，没有 file secret；这里是防将来。）
+    """
+    names: set[str] = set()
+    files = sorted(ROOT.glob("compose*.yaml"))
+    assert files, "一个 compose 文件都没扫到——判据在空转"
+    for path in files:
+        names |= set(re.findall(
+            r"file:\s*\./runtime/secrets/([a-z_][a-z0-9_.]*)",
+            path.read_text(encoding="utf-8"),
+        ))
+    return names
 
 
 def _install_created_secrets() -> set[str]:
@@ -79,3 +92,26 @@ def test_placeholder_secrets_do_not_pretend_to_be_configured() -> None:
         assert "未配置" in str(exc) or "不能" in str(exc)
     else:  # pragma: no cover
         raise AssertionError("收件人为空时居然没报未配置——空占位会被当成配好了")
+
+
+def test_every_setting_without_a_default_is_documented_in_env_example() -> None:
+    """没有默认值的设置 = 不配就有功能不能用。它必须在 .env.example 里露面。
+
+    有默认值的（页大小、同步间隔之类）不强制写——那是调优旋钮，
+    写进模板只会变成噪音。区别就在 os.getenv 有没有第二个参数。
+
+    实测踩到过：本轮加 credential_age 那对时，只把 *_FILE 写进了模板，
+    漏了 *_RECIPIENT。两个都要，缺一半就 503，而错误信息只说「未配置」，
+    不会告诉你缺的是哪一半。
+    """
+    config = (ROOT / "src/social_archive/config.py").read_text(encoding="utf-8")
+    # os.getenv("X") 无默认 vs os.getenv("X", ...) 有默认
+    no_default = set(re.findall(r'os\.getenv\("(SOCIAL_ARCHIVE_[A-Z_0-9]+)"\s*\)', config))
+    assert len(no_default) >= 5, f"只解析出 {len(no_default)} 个无默认设置，判据大概没在查"
+    example = (ROOT / ".env.example").read_text(encoding="utf-8")
+    documented = set(re.findall(r"^#?\s*(SOCIAL_ARCHIVE_[A-Z_0-9]+)=", example, re.M))
+    missing = sorted(no_default - documented)
+    assert not missing, (
+        f"这些设置没有默认值（不配就有功能用不了），但 .env.example 里没有：{missing}。"
+        "部署的人无从知道要配它们，而失败表现只是一句「未配置」。"
+    )
