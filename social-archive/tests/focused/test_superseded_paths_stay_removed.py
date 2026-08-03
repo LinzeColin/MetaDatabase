@@ -214,6 +214,71 @@ def test_login_state_is_not_guessed_after_the_detector_was_removed() -> None:
     assert "SA_MIRROR_DISCOVER_ACCOUNT" not in background
 
 
+def test_pairing_code_generator_is_gone_but_token_provisioning_survived() -> None:
+    """脚本干了两件事，只删第一件。
+
+    `generate_pairing_code.py` 既生成一次性码（废止），也顺带幂等创建长期 API 令牌
+    （**还要**）。整个删掉的话，install.sh / start.sh 就再没有任何地方创建令牌，
+    Core 起来直接没有凭据——差点就这么删了。
+    """
+    assert not (ROOT / "scripts/generate_pairing_code.py").exists()
+    assert (ROOT / "scripts/ensure_api_token.py").exists(), (
+        "长期 API 令牌的创建者不见了——配对码脚本被整体删掉时把它一起带走了"
+    )
+    for script in ("scripts/install.sh", "scripts/start.sh"):
+        text = (ROOT / script).read_text(encoding="utf-8")
+        assert "generate_pairing_code" not in text, f"{script} 仍在调已删的配对码生成器"
+        assert "ensure_api_token" in text, f"{script} 不再创建长期 API 令牌"
+
+
+def test_no_pairing_code_client_path_anywhere() -> None:
+    """服务端删干净了不等于删干净了。
+
+    上一轮只删了 api.py 里的路由与助手，**客户端整条链路原封不动**：
+    options.html 里那个输入框、options.js 的提交、background.js 的状态轮询、
+    shared.js 与 runtime-config.json 里的 pairing_path 全都还在。
+    结果是扩展去调一个已经 404 的端点，拿不到响应就把"请输入配对码"的框显示出来——
+    比删之前更糟。这条守着别再退回那个状态。
+    """
+    banned = ("pairing_path", "pairingPath", "pairing/exchange", "pairing/status",
+              "pairingCode", "pairing_required === true", "one_time_code_available",
+              "一次性配对码")
+    surfaces = [
+        "apps/browser-extension/background.js", "apps/browser-extension/shared.js",
+        "apps/browser-extension/options.js", "apps/browser-extension/options.html",
+        "apps/browser-extension/bridge.js", "apps/browser-extension/runtime-config.json",
+        "apps/pwa/app.js",
+    ]
+    offenders = []
+    for relative in surfaces:
+        path = ROOT / relative
+        assert path.exists(), f"{relative} 不见了——守卫扫不到东西和没问题长得一样"
+        code = "\n".join(
+            line for line in path.read_text(encoding="utf-8").splitlines()
+            if not line.lstrip().startswith(("*", "//", "/*", "#"))
+        )
+        offenders += [f"{relative}:{token}" for token in banned if token in code]
+    assert not offenders, f"配对码客户端链路回流了：{offenders}"
+
+
+def test_extension_setup_page_asks_for_no_typed_input() -> None:
+    """T03 Acceptance 原文：「扩展可用且全程无需用户输入任何字符」。
+
+    判据打在**设置页有没有输入控件**上。除了"服务地址"那个高级排障项
+    （藏在 <details> 里，正常路径不碰），不该再有任何要用户敲字的地方。
+    """
+    html = (ROOT / "apps/browser-extension/options.html").read_text(encoding="utf-8")
+    import re
+
+    inputs = re.findall(r'<input[^>]*id="([^"]+)"[^>]*>', html)
+    assert inputs, "一个 input 都没扫到——正则大概没匹配上，这条守卫在空转"
+    assert set(inputs) <= {"endpoint"}, (
+        f"设置页出现了要用户输入的控件：{sorted(set(inputs) - {'endpoint'})}。"
+        "T03 要求全程零输入；服务地址是排障用的高级项，例外仅此一个。"
+    )
+    assert "one-time-code" not in html, "一次性码输入框又回来了"
+
+
 def test_auth_switch_survived_the_deletion() -> None:
     """`settings.pairing_required` 名字里带 pairing，但它是**总鉴权开关**：
     require_token 第一行据此早退，什么都不校验。删配对码时把它一起删掉

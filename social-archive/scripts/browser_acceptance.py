@@ -160,8 +160,6 @@ def main() -> int:
                     destination["state"] = "connected"
                     destination["next_action_zh"] = "真实写入探针通过"
             return response_json(route, {"status": "connected", "message_zh": "连接有效"})
-        if path == "/v1/pairing/status":
-            return response_json(route, {"service_ready": True, "pairing_required": False})
         if path == "/assets/sw.js":
             return route.fulfill(status=200, content_type="application/javascript", body="self.addEventListener('fetch',()=>{});")
         return response_json(route, {"detail": f"未处理路径 {path}"}, 404)

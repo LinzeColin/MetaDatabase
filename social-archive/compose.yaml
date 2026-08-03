@@ -17,7 +17,6 @@ services:
     # a short-lived credential copy instead of mounting them into Core.
     secrets: &core_secrets
       - social_archive_api_token
-      - social_archive_pairing_code
       - cli_worker_token
       - notion_token
       - source: github_markdown_token
@@ -102,7 +101,6 @@ secrets:
   github_token: {file: ./runtime/secrets/github_token}
   github_markdown_token: {file: ./runtime/secrets/github_markdown_token}
   social_archive_api_token: {file: ./runtime/secrets/social_archive_api_token}
-  social_archive_pairing_code: {file: ./runtime/secrets/social_archive_pairing_code}
   cli_worker_token: {file: ./runtime/secrets/cli_worker_token}
   instagram_session: {file: ./runtime/secrets/instagram_session}
   notion_token: {file: ./runtime/secrets/notion_token}

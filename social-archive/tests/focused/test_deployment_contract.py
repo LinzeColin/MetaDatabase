@@ -45,7 +45,7 @@ def test_install_dry_run_is_zero_write_even_when_prerequisites_are_available(tmp
     scripts = project / "scripts"
     scripts.mkdir(parents=True)
     (scripts / "install.sh").write_text((ROOT / "scripts" / "install.sh").read_text(encoding="utf-8"), encoding="utf-8")
-    for relative in ("pyproject.toml", "compose.yaml", ".env.example", "scripts/setup_wizard.py", "scripts/generate_pairing_code.py", "scripts/status_server.py"):
+    for relative in ("pyproject.toml", "compose.yaml", ".env.example", "scripts/setup_wizard.py", "scripts/ensure_api_token.py", "scripts/status_server.py"):
         target = project / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text("fixture\n", encoding="utf-8")
@@ -117,7 +117,6 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
         "github_token",
         "private_database_token",
         "social_archive_api_token",
-        "social_archive_pairing_code",
         "cli_worker_token",
         "notion_token",
         "obsidian_rest_token",
@@ -241,7 +240,6 @@ def test_systemd_host_prepare_refuses_to_erase_existing_nonsecret_host_configura
         "github_token",
         "private_database_token",
         "social_archive_api_token",
-        "social_archive_pairing_code",
         "cli_worker_token",
         "notion_token",
         "obsidian_rest_token",
@@ -354,9 +352,9 @@ def test_only_the_documented_systemd_credential_directory_can_use_root_owned_gro
     )
 
 
-def test_start_uses_the_installed_project_python_for_pairing_code_generation():
+def test_start_uses_the_installed_project_python_for_api_token_provisioning():
     start = (ROOT / "scripts" / "start.sh").read_text(encoding="utf-8")
-    assert ".venv/bin/python scripts/generate_pairing_code.py" in start
+    assert ".venv/bin/python scripts/ensure_api_token.py" in start
     assert "docker compose up -d --force-recreate core-api core-worker" in start
 
 

@@ -256,7 +256,7 @@ def build_router(settings: Settings, store: RuntimeStore) -> APIRouter:
     def issue_extension_token(request: Request) -> dict[str, Any]:
         """已登录页面替扩展取长期令牌（T03）。
 
-        取代一次性配对码：用户不接触令牌文本，全程零复制粘贴。
+        取代旧的一次性码流程：用户不接触令牌文本，全程零复制粘贴。
         明文只在这里返回一次——库里只有哈希，丢了就重新点一次连接。
         """
         user_id = store.resolve_session(request.cookies.get(SESSION_COOKIE) or "")

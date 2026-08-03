@@ -14,9 +14,11 @@ def test_pairing_requires_long_term_api_token_for_request_serving_core_only(tmp_
     data = tmp_path / "data"
     monkeypatch.setenv("SOCIAL_ARCHIVE_DATA_ROOT", str(data))
     monkeypatch.setenv("SOCIAL_ARCHIVE_RUNTIME_DB", str(data / "db.sqlite"))
+    # 注意：PAIRING_REQUIRED 名字里带 pairing，但它是**总鉴权开关**，
+    # 不是配对码开关。配对码链路已随 v0.0.0.7 / T03 删除，这个开关必须留着——
+    # 删掉它 require_token 会第一行早退，全站不再鉴权。
     monkeypatch.setenv("SOCIAL_ARCHIVE_PAIRING_REQUIRED", "true")
     monkeypatch.delenv("SOCIAL_ARCHIVE_API_TOKEN_FILE", raising=False)
-    monkeypatch.setenv("SOCIAL_ARCHIVE_PAIRING_CODE_FILE", str(tmp_path / "pairing-code"))
     settings = Settings.from_env()
     settings.ensure_directories()
     try:
@@ -27,28 +29,22 @@ def test_pairing_requires_long_term_api_token_for_request_serving_core_only(tmp_
         raise AssertionError("pairing protection must require a long-term API token")
 
 
-def test_generated_pairing_code_is_human_readable(tmp_path):
-    import subprocess
-    code_file = tmp_path / "code"
-    token_file = tmp_path / "token"
-    script = Path(__file__).parents[2] / "scripts/generate_pairing_code.py"
-    result = subprocess.run(["python3", str(script), "--code-file", str(code_file), "--token-file", str(token_file), "--ttl-seconds", "600"], check=True, text=True, capture_output=True)
-    code = result.stdout.strip()
-    assert len(code) == 14 and code[4] == code[9] == "-"
-    assert "0" not in code and "O" not in code and "I" not in code and "1" not in code
-    payload = __import__("json").loads(code_file.read_text(encoding="utf-8"))
-    assert payload["code"] == code
+def test_secret_writer_preserves_existing_mode(tmp_path):
+    """v0.0.0.7 / T03：判据从 generate_pairing_code.py 搬到 ensure_api_token.py。
 
-
-def test_pairing_generator_preserves_existing_secret_mode(tmp_path):
+    删配对码脚本时差点把这段一起删掉——那个脚本干了两件事，
+    第二件（幂等创建长期 API 令牌）**还要**，且里面这条约束是生产上踩出来的：
+    生产机的 secret 属于非 root 的 10001:10001（0640），以 root 刷新时不显式保留
+    权限位就会重建成 root-only，Core 再也读不到自己的令牌。
+    """
     import importlib.util
 
-    script = Path(__file__).parents[2] / "scripts/generate_pairing_code.py"
-    spec = importlib.util.spec_from_file_location("pairing_generator", script)
+    script = Path(__file__).parents[2] / "scripts/ensure_api_token.py"
+    spec = importlib.util.spec_from_file_location("ensure_api_token", script)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
-    secret = tmp_path / "pairing-code"
+    secret = tmp_path / "api-token"
     secret.write_text("previous\n", encoding="utf-8")
     secret.chmod(0o640)
 
@@ -58,12 +54,24 @@ def test_pairing_generator_preserves_existing_secret_mode(tmp_path):
     assert secret.stat().st_mode & 0o777 == 0o640
 
 
-def test_pairing_generator_rejects_more_than_ten_minutes(tmp_path):
+def test_api_token_provisioning_is_idempotent(tmp_path):
+    """重新生成会把所有已连接的设备踢下线，所以已有非空令牌必须原样不动。"""
     import subprocess
-    script = Path(__file__).parents[2] / "scripts/generate_pairing_code.py"
-    result = subprocess.run(["python3", str(script), "--code-file", str(tmp_path / "code"), "--token-file", str(tmp_path / "token"), "--ttl-seconds", "601"], text=True, capture_output=True)
-    assert result.returncode != 0
-    assert "60–600" in (result.stdout + result.stderr)
+
+    script = Path(__file__).parents[2] / "scripts/ensure_api_token.py"
+    token_file = tmp_path / "api-token"
+    subprocess.run(["python3", str(script), "--token-file", str(token_file)], check=True)
+    first = token_file.read_text(encoding="utf-8")
+    assert first.strip()
+    subprocess.run(["python3", str(script), "--token-file", str(token_file)], check=True)
+    assert token_file.read_text(encoding="utf-8") == first
+
+
+# v0.0.0.7 / T03：`test_generated_pairing_code_is_human_readable` 与
+# `test_pairing_generator_rejects_more_than_ten_minutes` 已删——它们测的是
+# 一次性配对码的字母表和 10 分钟上限，而整条链路已被实测证伪并移除
+# （连续失败三次；手抄字符本身违反 INV-ZERO-BARRIER）。
+# 反向守卫见 tests/focused/test_superseded_paths_stay_removed.py。
 
 
 def test_library_cloudflare_access_identity_is_host_scoped(tmp_path, monkeypatch):

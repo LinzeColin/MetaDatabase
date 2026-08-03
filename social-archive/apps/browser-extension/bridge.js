@@ -45,10 +45,18 @@
       return;
     }
 
-    if (message.type === "SA_PAIR") {
-      chrome.runtime.sendMessage({ type: "SA_WEB_BRIDGE_PAIR", code: message.code, endpoint: message.endpoint })
-        .then(result => post("SA_PAIR_RESULT", { requestId: message.requestId, ...(result || {}) }))
-        .catch(error => post("SA_PAIR_RESULT", { requestId: message.requestId, ok: false, message: error?.message || "配对失败" }));
+    // v0.0.0.7 / T03：原先这里转发用户手抄的一次性码（SA_PAIR）。
+    // 现在转发的是**已登录页面替扩展取到的长期令牌**——页面用自己的会话
+    // 调 /v1/auth/extension-token 换来，用户一个字符都不输入。
+    if (message.type === "SA_ADOPT_TOKEN") {
+      chrome.runtime.sendMessage({
+        type: "SA_WEB_BRIDGE_ADOPT_TOKEN",
+        token: message.token,
+        endpoint: message.endpoint,
+        libraryUrl: message.libraryUrl
+      })
+        .then(result => post("SA_ADOPT_TOKEN_RESULT", { requestId: message.requestId, ...(result || {}) }))
+        .catch(error => post("SA_ADOPT_TOKEN_RESULT", { requestId: message.requestId, ok: false, message: error?.message || "连接失败" }));
       return;
     }
 

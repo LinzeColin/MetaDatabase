@@ -55,7 +55,9 @@ class Settings:
     public_base_url: str = "http://127.0.0.1:8765"
     public_library_url: str = "http://127.0.0.1:8765"
     api_token_file: str | None = None
-    pairing_code_file: str | None = None
+    # 注意：pairing_required 名字里带 pairing，但它是**总鉴权开关**——
+    # require_token 第一行据此早退。旧的一次性码链路已随 v0.0.0.7/T03 删除，
+    # 这个字段与那条链路无关，删掉等于全站不再鉴权。
     pairing_required: bool = False
     notion_token_file: str | None = None
     notion_database_id: str | None = None
@@ -123,7 +125,6 @@ class Settings:
             public_base_url=(os.getenv("SOCIAL_ARCHIVE_PUBLIC_BASE_URL", "").strip() or "http://127.0.0.1:8765").rstrip("/"),
             public_library_url=(os.getenv("SOCIAL_ARCHIVE_PUBLIC_LIBRARY_URL", "").strip() or os.getenv("SOCIAL_ARCHIVE_PUBLIC_BASE_URL", "").strip() or "http://127.0.0.1:8765").rstrip("/"),
             api_token_file=os.getenv("SOCIAL_ARCHIVE_API_TOKEN_FILE") or None,
-            pairing_code_file=os.getenv("SOCIAL_ARCHIVE_PAIRING_CODE_FILE") or None,
             pairing_required=_bool("SOCIAL_ARCHIVE_PAIRING_REQUIRED", False),
             notion_token_file=os.getenv("SOCIAL_ARCHIVE_NOTION_TOKEN_FILE") or None,
             notion_database_id=os.getenv("SOCIAL_ARCHIVE_NOTION_DATABASE_ID") or None,
@@ -172,7 +173,7 @@ class Settings:
         # units deliberately receive only their own least-privilege
         # credentials, so they must not be forced to carry the API token.
         if require_api_token and self.pairing_required and not self.api_token_file:
-            raise RuntimeError("启用配对保护时必须提供长期 API Token 文件；一次性配对码不能替代设备令牌")
+            raise RuntimeError("启用鉴权保护时必须提供长期 API Token 文件")
         if self.notion_api_version != "2026-03-11":
             raise RuntimeError("本版本只接受已验收的 Notion-Version 2026-03-11")
         if self.obsidian_rest_ca_file and not Path(self.obsidian_rest_ca_file).is_file():

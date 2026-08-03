@@ -43,12 +43,17 @@ def test_stage5_cloudflare_policy_has_distinct_ui_api_and_owner_evidence_boundar
         "social-archive-api.linzezhang.com",
         "Cloudflare Access",
         "Bearer Token",
-        "10 次",
-        "5 次",
-        "16 KiB",
+        # v0.0.0.7 / T03：原先这里是 "10 次"/"5 次"/"16 KiB"——一次性配对码的
+        # 限流目标、错误尝试上限和请求体上限。那条链路已删，三个数字随之失去对象。
+        # **边缘限流规则本身没有放宽**，判据因此改为直接核对那条真实规则，
+        # 比核对一个产品目标数字更接近实际配置。
+        "1 次 / 10 秒",
+        "撤销后扩展上行立刻 401",
         "真实 Rule ID",
     ):
         assert value in policy
+    # 反向：策略文件里不许再声明可用的配对端点。
+    assert "`POST /v1/pairing/exchange`" not in policy.split("已随 v0.0.0.7")[0]
     assert tunnel.count("http://127.0.0.1:18765") == 2
     assert "status.linzezhang.com" in tunnel
     assert "path: ^/social-archive(\\.json|-health)$" in tunnel

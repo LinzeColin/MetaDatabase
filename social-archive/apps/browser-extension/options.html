@@ -28,10 +28,9 @@
     </section>
 
     <section id="service" class="panel service-panel">
-      <div class="section-heading"><div><span class="step-number">1</span><h2>连接私人档案馆</h2><p>通常会自动连接；只有首次安装或换浏览器时需要输入一次性配对码。</p></div><span id="serviceState" class="state checking">检查中</span></div>
-      <div id="pairingArea" class="pairing hidden">
-        <label><span>一次性配对码</span><input id="pairingCode" maxlength="20" autocomplete="one-time-code" placeholder="例如 ABCD-EFGH"></label>
-        <button id="connectService" class="button primary">一键连接</button>
+      <div class="section-heading"><div><span class="step-number">1</span><h2>连接私人档案馆</h2><p>通常会自动连接；如果没连上，打开档案馆页面登录一次即可，无需输入任何内容。</p></div><span id="serviceState" class="state checking">检查中</span></div>
+      <div class="pairing">
+        <button id="connectService" class="button primary">打开档案馆页面登录</button>
       </div>
       <details class="advanced"><summary>服务连接遇到问题</summary><label><span>服务地址</span><input id="endpoint" type="url"></label><p>普通情况下无需修改。</p></details>
       <div id="serviceMessage" class="message hidden" role="status"></div>

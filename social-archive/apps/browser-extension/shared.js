@@ -7,7 +7,6 @@
   const DEFAULT_CONFIG = Object.freeze({
     endpoint: FALLBACK_ENDPOINT,
     libraryUrl: FALLBACK_LIBRARY,
-    pairingPath: "/v1/pairing/exchange",
     token: "",
     destinationIds: ["social_archive", "markdown"],
     relationType: "saved",
@@ -73,7 +72,6 @@
     return {
       endpoint: normalizeEndpoint(raw.endpoint, FALLBACK_ENDPOINT),
       libraryUrl: normalizeEndpoint(raw.library_url, FALLBACK_LIBRARY),
-      pairingPath: String(raw.pairing_path || "/v1/pairing/exchange"),
       managed: raw.managed !== false
     };
   }
@@ -83,8 +81,7 @@
     const defaults = {
       ...DEFAULT_CONFIG,
       endpoint: managed.endpoint,
-      libraryUrl: managed.libraryUrl,
-      pairingPath: managed.pairingPath
+      libraryUrl: managed.libraryUrl
     };
     const stored = await chrome.storage.local.get(defaults);
     return {
@@ -92,7 +89,6 @@
       ...stored,
       endpoint: normalizeEndpoint(stored.endpoint, managed.endpoint),
       libraryUrl: normalizeEndpoint(stored.libraryUrl, managed.libraryUrl),
-      pairingPath: String(stored.pairingPath || managed.pairingPath),
       destinationIds: Array.isArray(stored.destinationIds) && stored.destinationIds.length
         ? [...new Set(stored.destinationIds.map(String))]
         : [...DEFAULT_CONFIG.destinationIds]

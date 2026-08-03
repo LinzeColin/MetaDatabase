@@ -258,7 +258,7 @@ def test_callback_rejects_missing_or_mismatched_state(client) -> None:
     assert c.get("/v1/auth/github/callback?state=real-state").status_code == 400
 
 
-# ── 扩展令牌（T03：取代一次性配对码）────────────────────────────────
+# ── 扩展令牌（T03：取代旧的一次性码流程）──────────────────────────────
 
 
 def test_extension_token_roundtrip_and_revocation(store: RuntimeStore) -> None:

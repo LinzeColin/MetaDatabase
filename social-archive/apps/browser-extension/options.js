@@ -40,35 +40,16 @@
   async function checkService() {
     config = await SA.getConfig();
     $("endpoint").value = config.endpoint;
+    // v0.0.0.7 / T03：判据只剩一条——**拿现有凭据真的调一次受保护接口**。
+    // 旧实现先问服务端「还要不要配对」，再据此决定要不要弹出手抄码的输入框。
+    // 那条链路已删；而且它把"服务说不用配对"当成"我连得上"，中间隔着凭据有没有效。
     try {
-      const status = await fetch(`${config.endpoint}/v1/pairing/status`, {cache:"no-store"}).then(r=>r.ok?r.json():null);
-      if (status?.pairing_required === false && status.service_ready) {
-        serviceReady = true;
-        $("serviceState").className = "state connected";
-        $("serviceState").textContent = "已连接";
-        $("serviceBadge").className = "badge connected";
-        $("serviceBadge").textContent = "私人档案馆已连接";
-        $("pairingArea").classList.add("hidden");
-        setServiceMessage();
-        return true;
-      }
-      if (status?.pairing_required === true && !status.one_time_code_available) {
-        serviceReady = false;
-        $("serviceState").className = "state error";
-        $("serviceState").textContent = "等待服务准备";
-        $("serviceBadge").className = "badge error";
-        $("serviceBadge").textContent = "配对服务待准备";
-        $("pairingArea").classList.add("hidden");
-        setServiceMessage("私人档案馆已就绪，但服务端当前没有可用的一次性配对记录。插件已停止配对尝试；不会请求或改变任一平台的登录状态。", "needs");
-        return false;
-      }
       await SA.api("/v1/extension/bootstrap", {timeoutMs:6000});
       serviceReady = true;
       $("serviceState").className = "state connected";
       $("serviceState").textContent = "已连接";
       $("serviceBadge").className = "badge connected";
       $("serviceBadge").textContent = "私人档案馆已连接";
-      $("pairingArea").classList.add("hidden");
       setServiceMessage();
       return true;
     } catch (_) {
@@ -77,8 +58,8 @@
       $("serviceState").textContent = "待连接";
       $("serviceBadge").className = "badge error";
       $("serviceBadge").textContent = "需要连接";
-      $("pairingArea").classList.remove("hidden");
-      setServiceMessage();
+      // 没连上时不再要用户输入任何东西——指路去已登录的档案馆页面点一下即可。
+      setServiceMessage("还没有连上私人档案馆。请打开档案馆页面并登录，插件会自动接上，无需输入任何内容。", "needs");
       return false;
     }
   }
@@ -169,20 +150,23 @@
     catch(error){toast(error.message,"needs");}
     finally{$("syncAll").disabled=false;}
   }
-  async function pair(){
-    const endpoint=String($("endpoint").value||config.endpoint).replace(/\/$/,"");const code=$("pairingCode").value.trim();
-    if(!code)return toast("请输入一次性配对码","needs");
+  /** 打开档案馆页面去连接（v0.0.0.7 / T03）。
+   *
+   * 这里**不再有任何输入框**。凭据由已登录的档案馆页面替扩展取好并直接递过来，
+   * 用户在这个页面一个字符都不用输入——这是 T03 的 Acceptance 原文要求。
+   */
+  async function openLibraryToConnect(){
     $("connectService").disabled=true;
     try{
-      const response=await fetch(`${endpoint}${config.pairingPath||"/v1/pairing/exchange"}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,device_name:"Social Archive Chrome"})});
-      const payload=await response.json().catch(()=>({}));if(!response.ok)throw new Error(payload.detail||`配对失败（${response.status}）`);
-      await SA.setConfig({endpoint:payload.endpoint||endpoint,libraryUrl:payload.library_url||config.libraryUrl,token:payload.token||"",onboardingComplete:true});
-      toast("私人档案馆已连接");await loadData();
+      const libraryUrl=String(config.libraryUrl||"").replace(/\/$/,"");
+      if(!/^https?:\/\//i.test(libraryUrl))throw new Error("档案馆地址无效，请检查服务连接设置。");
+      await chrome.tabs.create({url:libraryUrl,active:true});
+      toast("已打开档案馆页面，登录后插件会自动接上。");
     }catch(error){toast(error.message,"error");}
     finally{$("connectService").disabled=false;}
   }
 
-  $("connectService").addEventListener("click",pair);
+  $("connectService").addEventListener("click",openLibraryToConnect);
   $("syncAll").addEventListener("click",syncAll);
   $("jumpAccounts").addEventListener("click",()=>{location.hash="accounts";$("accounts").scrollIntoView({behavior:"smooth"});});
   $("refreshAccounts").addEventListener("click",loadData);

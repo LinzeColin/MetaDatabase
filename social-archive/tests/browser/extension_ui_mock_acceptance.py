@@ -131,8 +131,7 @@ def mock_script(base_url: str) -> str:
   globalThis.fetch = async (input, options = {{}}) => {{
     const url = String(typeof input === 'string' ? input : input.url);
     const response = payload => new Response(JSON.stringify(payload), {{ status:200, headers:{{'Content-Type':'application/json'}} }});
-    if (url.endsWith('/runtime-config.json')) return response({{ endpoint:'https://social-archive-api.linzezhang.com', library_url:'https://social-archive.linzezhang.com', pairing_path:'/v1/pairing/exchange', managed:true }});
-    if (url.includes('/v1/pairing/status')) return response({{ pairing_required:false, service_ready:true }});
+    if (url.endsWith('/runtime-config.json')) return response({{ endpoint:'https://social-archive-api.linzezhang.com', library_url:'https://social-archive.linzezhang.com', managed:true }});
     if (url.includes('/v1/accounts')) return response({{ items:accounts }});
     if (url.includes('/v1/sync-runs')) return response({{ items:runs }});
     if (url.includes('/v1/extension/bootstrap')) return response({{ destinations }});

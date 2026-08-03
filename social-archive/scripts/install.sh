@@ -28,7 +28,7 @@ done
 [[ -n "$PYTHON" ]] || fail '需要 Python 3.12 或更高版本（可使用 python3.12）。'
 command -v docker >/dev/null || fail '缺少 Docker。OVH Ubuntu 请按 Docker 官方仓库安装 Docker Engine 与 Compose plugin。'
 docker compose version >/dev/null 2>&1 || fail '缺少 docker compose plugin。'
-for required in pyproject.toml compose.yaml .env.example scripts/setup_wizard.py scripts/generate_pairing_code.py scripts/status_server.py scripts/build_extension_package.py; do
+for required in pyproject.toml compose.yaml .env.example scripts/setup_wizard.py scripts/ensure_api_token.py scripts/status_server.py scripts/build_extension_package.py; do
   [[ -f "$required" ]] || fail "安装源文件缺失：$required"
 done
 if $DRY_RUN; then
@@ -45,7 +45,7 @@ if [[ "$(id -u)" == "0" ]]; then
   chmod 2770 runtime/data runtime/import runtime/vendor-output runtime/vendor-output/{cli,xhs,kuaishou,douk}
 fi
 chmod 700 runtime/secrets
-for name in r2_access_key_id r2_secret_access_key oci_access_key_id oci_secret_access_key github_token private_database_token social_archive_api_token social_archive_pairing_code cli_worker_token instagram_session notion_token obsidian_rest_token karakeep_api_token linkwarden_api_token; do
+for name in r2_access_key_id r2_secret_access_key oci_access_key_id oci_secret_access_key github_token private_database_token social_archive_api_token cli_worker_token instagram_session notion_token obsidian_rest_token karakeep_api_token linkwarden_api_token; do
   [[ -e "runtime/secrets/$name" ]] || : > "runtime/secrets/$name"
   chmod 600 "runtime/secrets/$name"
 done
@@ -76,7 +76,6 @@ ensure(root/'linkwarden.env',[
     'NEXTAUTH_URL=http://localhost:3001',f'NEXTAUTH_SECRET={secrets.token_hex(32)}',
 ])
 PYSECRETS
-PAIRING_CODE="$("$PYTHON" scripts/generate_pairing_code.py --code-file runtime/secrets/social_archive_pairing_code --token-file runtime/secrets/social_archive_api_token --ttl-seconds 600)"
 [[ -f .env ]] || cp .env.example .env
 "$PYTHON" scripts/setup_wizard.py --non-interactive
 if [[ -t 0 && "${SOCIAL_ARCHIVE_SKIP_WIZARD:-0}" != "1" ]]; then
@@ -96,4 +95,4 @@ fi
 "$PYTHON" scripts/build_extension_package.py
 docker network inspect social-archive-readers >/dev/null 2>&1 || docker network create social-archive-readers >/dev/null
 docker compose build core-api core-worker cli-tools
-printf '\n安装完成。当前一次性配对码：%s\n下一步只需运行：bash scripts/start.sh\n' "$PAIRING_CODE"
+printf '\n安装完成。下一步只需运行：bash scripts/start.sh\n'

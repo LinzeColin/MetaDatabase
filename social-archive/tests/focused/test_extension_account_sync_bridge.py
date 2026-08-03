@@ -23,7 +23,8 @@ def test_pwa_pings_the_bridge_and_rejects_unpaired_or_wrong_version_extensions()
     assert 'const PRODUCT_VERSION = "0.0.0.6"' in pwa
     assert 'postToExtension("SA_PING", {}, 1500)' in pwa
     assert 'data.type !== "SA_BRIDGE_READY"' in pwa
-    assert 'await postToExtension("SA_OPEN_OPTIONS")' in pwa
+    # v0.0.0.7 / T03：不再把用户丢去设置页手抄配对码；未连接时就地取凭据接上。
+    assert 'await postToExtension("SA_ADOPT_TOKEN"' in pwa
     assert 'location.href = "/extension-install"' in pwa
     assert 'message.type === "SA_PING"' in bridge
     assert 'post("SA_PONG"' in bridge
@@ -48,18 +49,27 @@ def test_install_or_update_reconnects_existing_pwa_bridge_without_reloading_or_t
     assert "existing.announce();" in bridge
 
 
-def test_pairing_supply_unavailable_is_exposed_without_platform_relogin_prompt():
+def test_connect_failure_is_exposed_without_platform_relogin_prompt():
+    """v0.0.0.7 / T03：原名 `test_pairing_supply_unavailable_...`。
+
+    原判据守的是"配对码供应不上时要说清楚，且不要顺手把用户赶去重登平台账号"。
+    配对码链路已删，但**那条边界仍然成立**：连不上私人档案馆是一回事，
+    平台账号的登录态是另一回事，前者绝不能表现成"你需要重新登录小红书"。
+    判据因此重写到新链路上，而不是删掉。
+    """
     pwa = PWA.read_text(encoding="utf-8")
     background = (EXT / "background.js").read_text(encoding="utf-8")
     options = (EXT / "options.js").read_text(encoding="utf-8")
-    assert "pairingRequired = pairing?.pairing_required === true" in background
-    assert "oneTimeCodeAvailable = pairing?.one_time_code_available === true" in background
-    assert "pairingRequired," in background and "oneTimeCodeAvailable," in background
-    assert "extension.pairingRequired && !extension.oneTimeCodeAvailable" in pwa
-    assert "已停止配对尝试，平台账号登录状态不会受影响" in pwa
-    assert "status?.pairing_required === true && !status.one_time_code_available" in options
-    assert "等待服务准备" in options
-    assert "不会请求或改变任一平台的登录状态" in options
+    # 连不上时给的是"去档案馆页面登录"，不是"重新登录平台账号"
+    assert "请先登录你的档案馆，再连接插件。" in pwa
+    assert "还没有连上私人档案馆" in options
+    assert "无需输入任何内容" in options
+    # 凭据存下来还不算数——必须真的调一次受保护接口验过
+    assert "凭据未能通过验证" in background
+    # 旧链路的痕迹不许留在这三个文件里
+    for text, name in ((pwa, "app.js"), (background, "background.js"), (options, "options.js")):
+        assert "pairing_required" not in text, f"{name} 仍在读配对状态"
+        assert "one_time_code_available" not in text, f"{name} 仍在读一次性码可用性"
 
 
 def test_service_worker_uses_persistent_queue():

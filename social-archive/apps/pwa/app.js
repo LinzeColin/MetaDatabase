@@ -655,8 +655,6 @@
       paired: payload.paired === true,
       compatible: version === PRODUCT_VERSION,
       version,
-      pairingRequired: payload.pairingRequired === true,
-      oneTimeCodeAvailable: payload.oneTimeCodeAvailable === true,
       refreshedAt: Date.now()
     };
   }
@@ -665,9 +663,48 @@
     try {
       state.extension = extensionStatus(await postToExtension("SA_PING", {}, 1500));
     } catch (_) {
-      state.extension = { detected: false, paired: false, compatible: false, version: "", pairingRequired: false, oneTimeCodeAvailable: false, refreshedAt: Date.now() };
+      state.extension = { detected: false, paired: false, compatible: false, version: "", refreshedAt: Date.now() };
     }
     return state.extension;
+  }
+
+  /** 替扩展取一个长期可撤销令牌，并交给它（v0.0.0.7 / T03）。
+   *
+   * 这个页面是**已登录**的，会话 cookie 就在同源请求里；用它换令牌，
+   * 再通过 bridge 直接递给扩展。用户点一下按钮，不接触令牌文本，
+   * 一个字符都不用输入——这是 INV-ZERO-BARRIER 要的形态。
+   *
+   * 取代的旧流程：服务端生成一次性码 → 用户去别处找到它 → 手抄进设置页 →
+   * 十分钟过期就重来。实际使用中连续失败三次。
+   */
+  async function connectExtension() {
+    let token = "";
+    try {
+      // 同源、带会话 cookie。api() 里 credentials 就是 same-origin。
+      token = String((await api("/v1/auth/extension-token", { method: "POST" })).token || "");
+    } catch (error) {
+      showToast(
+        error?.status === 401
+          ? "请先登录你的档案馆，再连接插件。"
+          : "暂时取不到插件访问凭据，请稍后再试。",
+        "needs"
+      );
+      return false;
+    }
+    if (!token) {
+      showToast("暂时取不到插件访问凭据，请稍后再试。", "needs");
+      return false;
+    }
+    try {
+      // 不下发 endpoint：扩展用它自己的托管配置（runtime-config.json）连 API 域，
+      // 页面这边只负责把凭据递过去。页面替扩展决定服务地址会绕过托管配置。
+      await postToExtension("SA_ADOPT_TOKEN", { token, libraryUrl: location.origin }, 12000);
+    } catch (error) {
+      showToast(error?.message || "插件连接失败，请重试。", "needs");
+      return false;
+    }
+    await refreshExtensionStatus();
+    return state.extension.paired === true;
   }
 
   async function ensureExtensionReady() {
@@ -683,13 +720,10 @@
       return false;
     }
     if (!extension.paired) {
-      if (extension.pairingRequired && !extension.oneTimeCodeAvailable) {
-        showToast("插件已检测到，但私人档案馆当前没有可用的一次性配对记录。已停止配对尝试，平台账号登录状态不会受影响。", "needs");
-        return false;
-      }
-      await postToExtension("SA_OPEN_OPTIONS").catch(() => {});
-      showToast("插件已检测到，请在打开的设置页完成一次性配对。", "needs");
-      return false;
+      // 不再把用户丢去设置页手抄一串码——就地替它取凭据接上。
+      const connected = await connectExtension();
+      if (!connected) return false;
+      showToast("插件已连接。", "ok");
     }
     return true;
   }

@@ -930,24 +930,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     if (message?.type === "SA_WEB_BRIDGE_STATUS") {
       const config = await SA.getConfig();
-      let serviceReady = false;
+      // 就绪与否只有一个判据：拿现有令牌真的调一次受保护接口。
+      // 旧实现先问服务端「还要不要配对」，那条路已随 T03 删除；
+      // 而且它把"服务说不用配对"当成"我连得上"——两回事，中间隔着令牌有没有效。
       let paired = false;
-      let pairingRequired = false;
-      let oneTimeCodeAvailable = false;
       try {
-        const pairing = await fetch(`${config.endpoint}/v1/pairing/status`, { cache: "no-store" }).then(response => response.ok ? response.json() : null);
-        pairingRequired = pairing?.pairing_required === true;
-        oneTimeCodeAvailable = pairing?.one_time_code_available === true;
-        if (pairing && pairing.pairing_required === false) {
-          serviceReady = Boolean(pairing.service_ready);
-          paired = serviceReady;
-        } else if (config.token) {
+        if (config.token) {
           await SA.api("/v1/extension/bootstrap", { timeoutMs: 5000 });
-          serviceReady = true;
           paired = true;
         }
       } catch (_) {
-        serviceReady = false;
+        paired = false;
       }
       return {
         detected: true,
@@ -955,9 +948,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         configured: Boolean(config.endpoint),
         endpoint: config.endpoint,
         libraryUrl: config.libraryUrl,
-        serviceReady,
-        pairingRequired,
-        oneTimeCodeAvailable,
+        serviceReady: paired,
         version: chrome.runtime.getManifest().version
       };
     }
@@ -966,32 +957,44 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const endpoint = String(message.endpoint || current.endpoint || "").replace(/\/$/, "");
       const libraryUrl = String(message.libraryUrl || current.libraryUrl || endpoint).replace(/\/$/, "");
       if (!/^https?:\/\//i.test(endpoint) || !/^https?:\/\//i.test(libraryUrl)) throw new Error("服务地址无效");
-      const response = await fetch(`${endpoint}/v1/pairing/status`, { cache: "no-store" });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok || payload.pairing_required !== false || !payload.service_ready) {
-        throw new Error(payload.detail || "当前服务仍要求安全配对");
-      }
-      const next = await SA.setConfig({ endpoint, libraryUrl, token: "", onboardingComplete: true });
-      return { ok: true, paired: true, endpoint: next.endpoint, libraryUrl: next.libraryUrl };
+      const next = await SA.setConfig({ endpoint, libraryUrl, onboardingComplete: true });
+      return { ok: true, paired: Boolean(next.token), endpoint: next.endpoint, libraryUrl: next.libraryUrl };
     }
-    if (message?.type === "SA_WEB_BRIDGE_PAIR") {
+    // 取代旧的一次性码流程（v0.0.0.7 / T03）。
+    //
+    // 旧流程：服务端生成一串码 → 用户从终端/邮件里找到它 → 手抄进扩展设置页 →
+    // 十分钟内没抄完就重来。实际使用中连续失败三次，且"手抄一串字符"本身
+    // 就是 INV-ZERO-BARRIER 明令禁止的门槛。
+    //
+    // 新流程：**已登录的档案馆页面**用自己的会话 cookie 调
+    // POST /v1/auth/extension-token 换一个长期可撤销令牌，通过 bridge 直接交给扩展。
+    // 用户点一下"连接插件"，不接触令牌文本，一个字符都不用输入。
+    //
+    // 令牌明文只在页面到扩展这一跳里出现，服务端只存哈希；
+    // 撤销后扩展上行立刻 401（T03 的 Oracle）。
+    if (message?.type === "SA_WEB_BRIDGE_ADOPT_TOKEN") {
       const current = await SA.getConfig();
-      const endpoint = String(message.endpoint || current.endpoint || "").replace(/\/$/, "");
+      // 服务地址取扩展自己的托管配置，不接受页面下发——页面能改端点就等于
+      // 任何拿到桥的页面都能把上行改到别处去。
+      const endpoint = String(current.endpoint || "").replace(/\/$/, "");
+      const token = String(message.token || "").trim();
       if (!/^https?:\/\//i.test(endpoint)) throw new Error("服务地址无效");
-      const response = await fetch(`${endpoint}${current.pairingPath || "/v1/pairing/exchange"}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: String(message.code || ""), device_name: "Social Archive Chrome" })
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.detail || `配对失败（${response.status}）`);
+      if (!token) throw new Error("没有收到访问凭据，请在档案馆页面重新点击连接插件。");
       const next = await SA.setConfig({
-        endpoint: payload.endpoint || endpoint,
-        libraryUrl: payload.library_url || current.libraryUrl,
-        token: payload.token || "",
+        endpoint,
+        libraryUrl: String(message.libraryUrl || current.libraryUrl || "").replace(/\/$/, "") || current.libraryUrl,
+        token,
         onboardingComplete: true
       });
-      return { ok: true, paired: Boolean(next.token), endpoint: next.endpoint, libraryUrl: next.libraryUrl };
+      // 存下就算数是不够的——立刻用它调一次受保护接口，确认它真的能用。
+      // 否则"已连接"会在第一次同步时才被证伪。
+      try {
+        await SA.api("/v1/extension/bootstrap", { timeoutMs: 8000 });
+      } catch (error) {
+        await SA.setConfig({ token: "" });
+        throw new Error("凭据未能通过验证，请在档案馆页面重新点击连接插件。");
+      }
+      return { ok: true, paired: true, endpoint: next.endpoint, libraryUrl: next.libraryUrl };
     }
     if (message?.type === "SA_OPEN_OPTIONS") {
       await chrome.runtime.openOptionsPage();
