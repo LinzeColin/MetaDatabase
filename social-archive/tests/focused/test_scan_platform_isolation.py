@@ -380,3 +380,31 @@ def test_scan_failures_record_a_readable_error_not_object_object():
     assert "function describeScanError" in background
     assert "cursor: { error: describeScanError(error) }" in background
     assert "String(error?.message || error).slice(0, 300)" not in background
+
+
+def test_sync_all_uses_the_account_profile_url_not_the_callers():
+    # enqueueAllAccounts -- the "sync everything" button, the primary path --
+    # never threaded a profileUrl through, so resolveRelationUrl fell back to
+    # the userless placeholder and the scan found no relation tabs at all. The
+    # account record already carries the real profile URL, so read it there
+    # instead of trusting the caller.
+    from pathlib import Path
+
+    background = (Path(__file__).resolve().parents[2] / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    assert "function accountProfileUrl(account)" in background
+    assert "profileUrl: options.profileUrl || accountProfileUrl(account)" in background
+    resolver = background.split("function accountProfileUrl", 1)[1].split("\n}", 1)[0]
+    for source in ("metadata?.profile_url", "profile_url", "external_account_id"):
+        assert source in resolver
+
+
+def test_a_closed_mirror_tab_does_not_kill_the_remaining_relations():
+    # One closed tab took out every later relation with "No tab with id", so a
+    # single Bilibili tab disappearing wiped favourites, watch-later and
+    # history in one go.
+    from pathlib import Path
+
+    background = (Path(__file__).resolve().parents[2] / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    loop = background.split("for (let index = 0; index < spec.relations.length; index += 1) {", 1)[1][:600]
+    assert "chrome.tabs.get(tab.id).catch(() => null)" in loop
+    assert "if (!live) tab = await chrome.tabs.create(" in loop

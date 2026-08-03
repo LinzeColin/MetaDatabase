@@ -741,6 +741,11 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
   const results = [];
   for (let index = 0; index < spec.relations.length; index += 1) {
     const relation = spec.relations[index];
+    // The mirror tab can disappear mid-run -- the Owner closes it, or the site
+    // replaces it. Every later relation then died on "No tab with id", so one
+    // closed tab wiped out the whole platform. Re-open before each relation.
+    const live = await chrome.tabs.get(tab.id).catch(() => null);
+    if (!live) tab = await chrome.tabs.create({ url: spec.home, active: false });
     try {
       const relationResult = await scanOneBrowserRelation({ tabId: tab.id, platform: account.platform, relation, syncRunId, profileUrl });
       results.push(relationResult);
@@ -838,9 +843,21 @@ async function syncAccountById(accountId, options = {}) {
     account,
     syncRunId: options.syncRunId || null,
     tabId: options.tabId || null,
-    profileUrl: options.profileUrl || "",
+    // Take the profile URL from the account itself rather than trusting the
+    // caller to thread it through. enqueueAllAccounts -- the "sync everything"
+    // button, which is the primary path -- never passed one, so the scan fell
+    // back to the userless placeholder and found no relation tabs at all.
+    profileUrl: options.profileUrl || accountProfileUrl(account),
     triggerType: options.triggerType || "manual"
   });
+}
+
+function accountProfileUrl(account) {
+  const candidates = [account?.metadata?.profile_url, account?.profile_url, account?.external_account_id];
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && /^https?:\/\//i.test(candidate)) return candidate;
+  }
+  return "";
 }
 
 async function syncAllAccounts(triggerType = "manual") {
