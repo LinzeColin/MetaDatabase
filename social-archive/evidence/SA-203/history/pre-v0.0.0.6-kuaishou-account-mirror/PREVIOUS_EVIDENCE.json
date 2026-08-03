@@ -1,0 +1,20 @@
+{
+  "archive_reason": "The active SA-203 evidence predates the sealed v0.0.0.6 run and is retained verbatim, not reclassified as v0.0.0.6 evidence.",
+  "archived_at": "2026-08-03T00:37:11Z",
+  "files": [
+    {
+      "path": "RESULT.json",
+      "raw_sha256": "66df8cd6d754e4aacb686535eccc5811f7e9216ab53e1c6bf60ab37303b45fa6",
+      "record_sha256": "c331f2f1daf6bc327c2467fb0590e4240d6488ddedcc7d16e0c6dd6f5bcad8ab",
+      "taskpack_version": "v0.0.0.5"
+    },
+    {
+      "path": "COMMAND_LOG.json",
+      "raw_sha256": "5834611b8be619815df368652cc8e16259069caa04b24748eee77f25dd54245b",
+      "record_sha256": "5b3a34496e4c1af7897c795c35191871ba8e04a2267d103e41bcd4c81551b9f9",
+      "taskpack_version": "v0.0.0.5"
+    }
+  ],
+  "predecessor_commit": "7f25d51bb1c3e8752c4727498699caf636d2b436",
+  "record_sha256": "d2bf725db8465a2dbc6fec6519b771652202d3b8df55111c633a5a40fc2dc7ea"
+}

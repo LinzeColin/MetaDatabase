@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-203",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "commands": [
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/vendor_sync.py --source ks_downloader --resolve-and-lock",
+      "command_sha256": "b86352aefc1c457f39a202fbe5f1571c07ae2b23ce6e09a997e81eee5cda44d6",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Vendor lock resolved; 8 focused tests passed."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_openapi_probe_connector.py tests/focused/test_scan_platform_isolation.py",
+      "command_sha256": "27e9fe373be3e585049d20457ce4664ae2ce7ee7e2a0bafd9ac8f9c4c1f9ccdb",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Vendor lock resolved; 8 focused tests passed."
+    }
+  ],
+  "record_sha256": "5b3a34496e4c1af7897c795c35191871ba8e04a2267d103e41bcd4c81551b9f9"
+}
