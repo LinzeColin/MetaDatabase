@@ -7,27 +7,31 @@
   "recorded_at": "2026-08-04T13:30Z",
   "status": "BLOCKED",
   "must_not_be_rewritten_as_pass": true,
-
   "honesty_note": "制品、判据、回滚已闭环。**Acceptance 仍未达成**——它要求在真实收藏页上捕获非空响应体并与肉眼可见条目数比对，那需要一个已登录的国内平台页面加上载入的扩展。见文末 acceptance_self_check。",
-
   "artifacts": [
-    {"path": "apps/browser-extension/net-observer.js",
-     "what": "逐字采用任务包 03_PREBUILT/extension/net-observer.js，diff 为空，一个字符未改",
-     "why_verbatim": "它是被设计过的预制件，且注释里那几条硬边界（clone 不消费流、绝不 JSON.parse、异常不影响页面）就是这个文件的价值所在"},
-    {"path": "apps/browser-extension/content/net-relay.js",
-     "what": "MAIN world ↔ background 的中继（新写）"},
-    {"path": "apps/browser-extension/content/platform-catalog.js",
-     "what": "新增 INTERCEPT_PREFIXES 与 interceptPrefixes()"},
-    {"path": "apps/browser-extension/background.js",
-     "what": "SA_INSTALL_NET_OBSERVER / SA_NET_CAPTURE / SA_GET_NET_CAPTURES"}
+    {
+      "path": "apps/browser-extension/net-observer.js",
+      "what": "逐字采用任务包 03_PREBUILT/extension/net-observer.js，diff 为空，一个字符未改",
+      "why_verbatim": "它是被设计过的预制件，且注释里那几条硬边界（clone 不消费流、绝不 JSON.parse、异常不影响页面）就是这个文件的价值所在"
+    },
+    {
+      "path": "apps/browser-extension/content/net-relay.js",
+      "what": "MAIN world ↔ background 的中继（新写）"
+    },
+    {
+      "path": "apps/browser-extension/content/platform-catalog.js",
+      "what": "新增 INTERCEPT_PREFIXES 与 interceptPrefixes()"
+    },
+    {
+      "path": "apps/browser-extension/background.js",
+      "what": "SA_INSTALL_NET_OBSERVER / SA_NET_CAPTURE / SA_GET_NET_CAPTURES"
+    }
   ],
-
   "why_two_files_not_one": {
     "reason": "MAIN world 的代码和页面共享全局对象——页面看得见它，也改得了它。",
     "consequence": "那一侧只放「包一层 fetch 把响应抄出来」这一件事，不放令牌、不放服务端地址、不放任何凭据。中继在隔离世界，页面碰不到。",
     "verified": "判据断言 net-observer.js 里不出现 Authorization / Bearer / token / endpoint，也不出现 chrome.runtime（MAIN world 里本来就没有）"
   },
-
   "hard_boundaries_verified": {
     "no_request_synthesis": "观察器里不 new XMLHttpRequest，也不出现 x-s / a_bogus / signature——签名全由页面自己完成",
     "no_modification": "只 clone() 读一份；页面拿到的响应体与我们不存在时一模一样（已在模拟运行中逐字比对）",
@@ -36,7 +40,6 @@
     "idempotent": "重复注入不重复包装（if (window[CHANNEL]) return），否则 fetch 会被包两层",
     "page_never_broken": "拦截路径上有多处 catch 兜底；中继的 sendMessage 失败也静默——service worker 睡着时不能把页面拖下水"
   },
-
   "simulated_run": {
     "what": "把观察器装进 Node 的 vm 沙箱里的假 window，模拟页面自己发两次请求",
     "matched_request": "https://api.bilibili.com/x/v3/fav/resource/list?media_id=1",
@@ -48,7 +51,6 @@
     "observer_ready_after_configure": true,
     "note": "这是机制验证，不是 Acceptance。Acceptance 要真实页面上的真实响应。"
   },
-
   "url_prefixes": {
     "rule": "这张表只许写实测抓到过的前缀，不许凭印象写",
     "why_it_matters": "猜错前缀的后果正是 INV-NO-SILENT-ZERO 要防的形状：观察器装上了、页面正常、一条都没拦到、界面显示已连接——和「这个人真的没有收藏」长得一模一样。",
@@ -68,28 +70,53 @@
     "null_vs_empty_list": "两者的区别是要命的：[] 会被当成「配置好了，只是没有前缀」，于是装出一个永远拦不到的观察器。判据专门守这一点。",
     "how_to_obtain_the_missing_two": "T09「抓到即固化」——第一次真实响应原样落盘成 fixture。那才是取得它们的正当途径。"
   },
-
-  "tests": {"count": 16, "file": "tests/focused/test_net_observer_contract.py"},
-
+  "tests": {
+    "count": 16,
+    "file": "tests/focused/test_net_observer_contract.py"
+  },
   "rollback": {
     "task_pack_says": "移除注入，国内源退回未连接",
     "how": "不再调用 SA_INSTALL_NET_OBSERVER；已注入的页面刷新即失效（观察器不持久化）；代码层 git revert",
     "no_persistent_state": "观察器不写 storage、不落盘；缓冲区只在 service worker 内存里且有 200 条上限"
   },
-
   "acceptance_self_check": {
     "requirement": "在真实收藏页上捕获到非空响应体，且其中条目数与页面上肉眼可见的条目数一致",
     "oracle": "捕获条目数 = 可见条目数；页面功能不受影响",
     "result": "NOT_RUN",
     "why_not_run": "需要两样东西同时到位：(1) 扩展以未打包形式载入 Chrome —— chrome:// 设置操作，只有 Owner 能做；(2) 一个已登录的 B站收藏页。两者都不在我能触及的范围内。",
-    "what_is_done": "机制、边界、幂等、不弄坏页面、空前缀显式失败，全部有判据并在模拟运行中验过",
+    "what_is_done": "机制、边界、幂等、不弄坏页面、空前缀显式失败，全部有判据；并已在**真实浏览器引擎**上跑过一次（不只是 Node 沙箱），且因此发现并修掉了注入顺序缺陷",
     "what_remains": "Owner 载入扩展后打开自己的 B站收藏夹，点一次同步；把捕获到的完整 URL 与条目数补进本文件，并按 T09 把首个真实响应原样固化成 fixture",
     "must_not_be_rewritten_as_pass": true
   },
-
   "stop_condition_check": {
     "rule": "若平台改用拦截覆盖不到的传输方式，停止该平台并回 Owner",
     "triggered": false,
     "note": "尚未在真实页面上运行，无法判断。fetch 与 XHR 之外的传输（如 WebSocket、Service Worker 内发起的请求）当前观察器覆盖不到——真跑起来若发现 B站走的是这些，按此条停该平台并回 Owner，不擅自扩大拦截面。"
+  },
+  "real_browser_run": {
+    "why_this_was_added": "原先只在 Node 的 vm 沙箱里验过——那是我手搭的假 window。假 window 证明不了 clone() 在真实浏览器引擎里到底会不会消费掉流，也证明不了真实注入顺序下消息收不收得到。",
+    "how": "本机起一个静态站，页面加载真实的 net-observer.js，用**真实浏览器的** window.fetch 与 XMLHttpRequest 请求一个返回 4 条 medias 的本地接口；外部站点与 localhost 都被浏览器策略挡住，最终经 preview_start 打开。",
+    "measured": {
+      "captured_count": 2,
+      "which": "fetch 与 XHR 两条路径各抄到一次",
+      "unmatched_url_ignored": true,
+      "note": "同域的 /api/x/space/acc/info 未被抄——白名单确实在生效",
+      "captured_item_count": 4,
+      "visible_count": 4,
+      "count_matches_visible": true,
+      "oracle_shape_satisfied": "这正是 T08 Oracle 的形状：捕获条目数 = 可见条目数（本次在本地构造页上成立；真实收藏页仍需 Owner）",
+      "bodies_identical_to_what_page_read": true,
+      "page_still_works": "页面把 4 条都渲染出来了——clone() 在真实引擎里确实没有消费掉流"
+    },
+    "defect_found_by_this_run": {
+      "what": "第一次跑出来 observer_installed 是 **false** —— SA_OBSERVER_INSTALLED 收不到。",
+      "root_cause": "观察器在 IIFE 末尾就 post 出这条消息；background 原先的注入顺序是「先 MAIN world 装观察器，再装中继」，于是中继挂上监听时消息早就发过去了。",
+      "the_comment_said_the_opposite_of_the_code": "我在那段代码上方写的注释是「顺序反了会漏掉 SA_OBSERVER_INSTALLED」——原则写对了，代码写反了。",
+      "why_the_node_sandbox_missed_it": "沙箱里判据是先挂监听再跑观察器，恰好是正确顺序；真实注入顺序是反的。**假环境把 bug 藏起来了。**",
+      "why_it_matters": "丢掉 INSTALLED 不是少一条日志——background 会分不清「观察器装好了」和「注入静默失败了」，正是本项目反复栽跟头的那种盲区。",
+      "fix": "中继先装，观察器后装",
+      "verified_after_fix": "同一个真实浏览器里重跑：observer_installed_seen 由 false 变 true，其余指标不变",
+      "guard": "test_relay_is_injected_before_the_observer —— 判据直接读 background.js 里两次 executeScript 的先后位置"
+    }
   }
 }

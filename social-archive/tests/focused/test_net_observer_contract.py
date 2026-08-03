@@ -248,3 +248,27 @@ def test_domestic_cookies_never_leave_the_browser(banned: str) -> None:
     from social_archive.credentials import DOMESTIC_PLATFORMS
 
     assert banned in DOMESTIC_PLATFORMS, "国内平台清单与 T05 的拒绝清单不一致"
+
+
+def test_relay_is_injected_before_the_observer() -> None:
+    """注入顺序：**中继先，观察器后**。
+
+    观察器在 IIFE 末尾就 post 出 SA_OBSERVER_INSTALLED；中继那时若还没挂上监听，
+    这条消息就掉进虚空，background 于是分不清「观察器装好了」和「注入静默失败了」。
+
+    这个顺序是在真实浏览器里跑出来才发现的——Node 沙箱里判据是先挂监听再跑观察器，
+    永远看不到这个问题；真实注入顺序恰好是反的。实测：
+      · 观察器先装 → observer_installed 收不到（false）
+      · 中继先装   → 收得到（true）
+    """
+    code = (EXT / "background.js").read_text(encoding="utf-8")
+    marker = 'if (message?.type === "SA_INSTALL_NET_OBSERVER")'
+    assert marker in code
+    block = code[code.index(marker):]
+    block = block[: block.index("SA_NET_CAPTURE")]
+    relay_at = block.index("content/net-relay.js")
+    observer_at = block.index("net-observer.js")
+    assert relay_at < observer_at, (
+        "观察器被排在中继前面注入——SA_OBSERVER_INSTALLED 会丢，"
+        "background 将无法区分「装好了」与「注入静默失败」"
+    )

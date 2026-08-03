@@ -1022,13 +1022,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
       if (!Number.isInteger(tabId)) return { ok: false, error: "没有可用的平台页面。" };
       try {
-        // MAIN world 先装观察器，再在隔离世界装中继——顺序反了会漏掉
-        // 观察器安装瞬间发出的那条 SA_OBSERVER_INSTALLED。
-        await chrome.scripting.executeScript({
-          target: { tabId }, world: "MAIN", files: ["net-observer.js"],
-        });
+        // **先装中继，再装观察器。** 顺序反了会漏掉观察器安装瞬间发出的那条
+        // SA_OBSERVER_INSTALLED —— 观察器在 IIFE 末尾就 post 了它，
+        // 那时如果中继还没挂上监听，这条消息就掉进虚空。
+        //
+        // 这个顺序是在真实浏览器里跑出来才发现的：Node 沙箱里我是先挂监听
+        // 再跑观察器，所以永远看不到这个问题；真实注入顺序是反的。
+        // 丢掉 INSTALLED 的后果不是少一条日志——background 会分不清
+        // 「观察器装好了」和「注入静默失败了」，正是本项目反复栽跟头的那种盲区。
         await chrome.scripting.executeScript({
           target: { tabId }, files: ["content/net-relay.js"],
+        });
+        await chrome.scripting.executeScript({
+          target: { tabId }, world: "MAIN", files: ["net-observer.js"],
         });
         await chrome.tabs.sendMessage(tabId, {
           type: "SA_OBSERVER_CONFIGURE", urlPrefixes: prefixes,
