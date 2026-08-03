@@ -43,7 +43,17 @@
       "how": "正则扫 options.html 的 <input id>，断言集合 ⊆ {endpoint}",
       "endpoint_exception": "服务地址输入框藏在 <details> 排障项里，正常路径不触及；这是唯一例外且已写进判据",
       "self_check": "判据自带 `assert inputs` —— 正则匹配到 0 个 input 和『没问题』长得一样，这条把两者分开",
-      "result": "PASS"
+      "result": "PASS",
+      "only_scanned_one_of_three_surfaces": {
+        "found_during": "上一处（T14 文案只验了 PWA、扩展那侧压根没词典）之后，回头问：**还有哪条验收我只验了一个面。**",
+        "what_was_wrong": "这条判据只扫 options.html。而扩展有三个界面：options / popup / sidepanel。",
+        "what_was_actually_there": "popup.html 里有一个 collectionKey 输入框。",
+        "is_it_a_violation": "**不是。** placeholder=\"可留空\"、没有 required——用户不填也能保存，是便利项不是门槛。T03 的 Oracle 说的是「连接流程键盘输入字符数 = 0」，这个框不在连接流程里。",
+        "but_the_guard_was_still_wrong": "只扫一个面意味着：将来谁在 popup 或 sidepanel 加一个**必填**输入，判据照样报绿。漏的不是今天的缺陷，是明天的。",
+        "fixed": "判据改为扫全部三个界面；每个输入控件都必须登记在 _ALLOWED_INPUTS 里并写明「为什么它不是门槛」，未登记即报红。",
+        "extra_guard": "登记在案不等于无害——另加一条断言 popup 那个**确实**可留空（有「可留空」提示、没有 required）。哪天有人给它加 required，登记表还写着「可留空」而实际已成门槛。",
+        "positive_control": "往 sidepanel.html 塞一个 required 的邀请码输入框，判据立刻报「出现了未登记的输入控件 #secretCode」；移除后复绿。"
+      }
     },
     "oracle_3_revoke_401": {
       "requirement": "撤销令牌后扩展上行得 401 且界面显示中文提示",

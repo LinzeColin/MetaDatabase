@@ -261,22 +261,58 @@ def test_no_pairing_code_client_path_anywhere() -> None:
     assert not offenders, f"配对码客户端链路回流了：{offenders}"
 
 
-def test_extension_setup_page_asks_for_no_typed_input() -> None:
-    """T03 Acceptance 原文：「扩展可用且全程无需用户输入任何字符」。
+#: 扩展里允许存在的输入控件，逐个写明**为什么它不构成门槛**。
+#: 新增任何输入控件都必须先进这张表——进不来就说明它是个门槛。
+_ALLOWED_INPUTS = {
+    # 藏在 <details class="advanced"> 里的排障项，正常路径不碰。
+    ("options.html", "endpoint"): "服务连接排障用，默认无需修改",
+    # placeholder="可留空"，不填也能保存。是个便利项，不是必填。
+    ("popup.html", "collectionKey"): "收藏夹名，可留空",
+}
 
-    判据打在**设置页有没有输入控件**上。除了"服务地址"那个高级排障项
-    （藏在 <details> 里，正常路径不碰），不该再有任何要用户敲字的地方。
+
+def test_no_extension_surface_asks_for_typed_input() -> None:
+    """T03 Acceptance 原文：「扩展可用且**全程**无需用户输入任何字符」。
+
+    ⚠️ 这条先前只扫 options.html —— 而扩展有三个界面。
+    popup.html 里就有一个 collectionKey 输入框（它是可选的，所以不违规），
+    但只扫一个面意味着：将来谁在 popup 或 sidepanel 加一个**必填**输入，
+    这条判据照样报绿。「只验了一个界面」这个错本会话已经犯过一次
+    （T14 的文案只验了 PWA，扩展那侧压根没有词典）。
     """
-    html = (ROOT / "apps/browser-extension/options.html").read_text(encoding="utf-8")
     import re
 
-    inputs = re.findall(r'<input[^>]*id="([^"]+)"[^>]*>', html)
-    assert inputs, "一个 input 都没扫到——正则大概没匹配上，这条守卫在空转"
-    assert set(inputs) <= {"endpoint"}, (
-        f"设置页出现了要用户输入的控件：{sorted(set(inputs) - {'endpoint'})}。"
-        "T03 要求全程零输入；服务地址是排障用的高级项，例外仅此一个。"
-    )
-    assert "one-time-code" not in html, "一次性码输入框又回来了"
+    surfaces = sorted((ROOT / "apps/browser-extension").glob("*.html"))
+    assert len(surfaces) >= 3, f"只扫到 {len(surfaces)} 个界面，扩展至少有三个"
+    seen = 0
+    for path in surfaces:
+        html = path.read_text(encoding="utf-8")
+        assert "one-time-code" not in html, f"{path.name} 里一次性码输入框又回来了"
+        for tag in re.findall(r"<input[^>]*>", html):
+            ident = re.search(r'id="([^"]+)"', tag)
+            assert ident, f"{path.name} 有一个没有 id 的 input，无法登记：{tag[:80]}"
+            seen += 1
+            key = (path.name, ident.group(1))
+            assert key in _ALLOWED_INPUTS, (
+                f"{path.name} 出现了未登记的输入控件 #{ident.group(1)}。"
+                "T03 要求全程零输入；确实必要的话请加进 _ALLOWED_INPUTS 并写明为什么它不是门槛。"
+            )
+    assert seen >= 2, "一个 input 都没扫到——正则大概没匹配上，这条守卫在空转"
+
+
+def test_the_only_free_text_input_is_genuinely_optional() -> None:
+    """登记在案不等于无害。popup 那个必须**确实可留空**。
+
+    哪天有人给它加上 required，或者把 placeholder 改成「请输入」，
+    它就从便利项变成门槛了，而登记表还写着「可留空」。
+    """
+    html = (ROOT / "apps/browser-extension/popup.html").read_text(encoding="utf-8")
+    import re
+
+    tag = re.search(r'<input[^>]*id="collectionKey"[^>]*>', html)
+    assert tag, "popup.html 里找不到 collectionKey —— 登记表该更新了"
+    assert "可留空" in tag.group(0), "collectionKey 不再标明可留空，它可能已变成必填"
+    assert "required" not in tag.group(0), "collectionKey 被标成必填了 —— 那就是门槛"
 
 
 def test_auth_switch_survived_the_deletion() -> None:
