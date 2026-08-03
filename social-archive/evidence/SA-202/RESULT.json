@@ -1,30 +1,90 @@
 {
-  "schema_version": "1.0",
-  "task_id": "SA-202",
-  "taskpack_version": "v0.0.0.5",
-  "stage": "S2",
-  "title": "接入 DouK/TikTokDownloader 抖音实验 Sidecar",
-  "status": "PASS",
-  "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
-  "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "adapt",
   "acceptance_ids": [
     "AC-SA-202"
   ],
+  "canary_statuses": {
+    "douyin": {
+      "credential_read": false,
+      "error_code": "OWNER_CANARY_NOT_AUTHORIZED",
+      "network_attempted": false,
+      "read_only": true,
+      "runtime_write": false,
+      "status": "BLOCKED_ENVIRONMENT"
+    }
+  },
+  "evidence_binding": {
+    "frozen_account_mirror_core_sha256": "0e7d7b4def9ecf1544206f26d9f5db9a6dbb2ec911ac7340866ef5cf190e447c",
+    "frozen_command_connectors_test_sha256": "ee8b5f3f8bed19d809a228fd01e4df288be42ce6911b16168615a6a761184e46",
+    "frozen_compose_workers_sha256": "8b36fa7d2ca4c350bd63a8cecc81e0a13e759d651c23cfbacc1fd806fdced337",
+    "frozen_scan_platform_isolation_test_sha256": "9f98d43e94e58af1a10a45a1ad4175a7c137457f7ccc4ec3e966e92b71e84d32",
+    "frozen_task_graph_sa202_sha256": "916ef99d69ad0352662e4d4e1eaeb2a33b65c2851f1d2b492c87efcb5f68a1fb",
+    "frozen_worker_profiles_test_sha256": "99ab0104a4b9eabe084aecb6542fbdbd3bebeaf7c1ce18b8d5b16d408bbc73ed",
+    "implementation_commit": "68e1685e160934d3caf25c7f3bc89833960f853f",
+    "implementation_tree": "b3e3e60f395cd7a01b8f30b559346ba430a009c0",
+    "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
+    "local_account_mirror_core_sha256": "4a83837abe5ca66404e0ade2d9ed0f4f2efeea92e68e0e790986def9f80d8c46",
+    "local_command_connectors_test_sha256": "5f837041fff3a0d70a87fd77d25759a10fbb718fbe08914df29177fab9548c48",
+    "local_compose_workers_sha256": "8b36fa7d2ca4c350bd63a8cecc81e0a13e759d651c23cfbacc1fd806fdced337",
+    "local_scan_platform_isolation_test_sha256": "aaa438f5d44142d8c4b48438b203537151740bb8fd89d662c4b64651fac93389",
+    "local_worker_profiles_test_sha256": "99ab0104a4b9eabe084aecb6542fbdbd3bebeaf7c1ce18b8d5b16d408bbc73ed",
+    "taskpack_zip_sha256": "921a9bda63c8e009b90f574d10ff5ffce1aa2e2dc68fbf1ae43627900b22a494",
+    "validated_head_after_latest_main_reconciliation": "68e1685e160934d3caf25c7f3bc89833960f853f"
+  },
+  "generated_at": "2026-08-03T00:26:25Z",
+  "implementation_status": "PASS",
+  "known_limitations": [
+    "No real owner Douyin account, browser-extension reload or pairing, provider request, Cookie/session read, DouK vendor resolution, Docker runtime, deployment, or production action was attempted.",
+    "The DouK/TikTokDownloader experimental candidate remains disabled and BLOCKED_CANDIDATE in this run: its source/vendor directory was not resolved, so its clean build, probe/output adaptation, and real favorites/likes Canary are NOT_RUN. The primary browser path remains independent.",
+    "The read-only Douyin canary is BLOCKED_ENVIRONMENT because no Owner authorization was supplied. It fail-closed before Settings, credential reads, network activity, or runtime writes.",
+    "Fixture/local PASS proves route extraction, relation/collection metadata preservation, failure isolation, and the batch protocol only. Real login detection, accessible collections, page totals, actual DOM labels, incremental arrival, rate limits, Sidecar compatibility, and provider behavior remain NOT_RUN.",
+    "PASS is limited to the v0.0.0.6 Task Pack local gate and does not assert product-runtime or world-state acceptance."
+  ],
+  "live_environment_status": "BLOCKED_ENVIRONMENT",
+  "oracle": "连接本人抖音后批量镜像收藏夹、收藏和点赞；浏览器路径为主，DouK/TikTokDownloader 为可替换隔离补全；算法失效时降级而不连坐。",
+  "predecessor_evidence": {
+    "pointer": "evidence/SA-202/history/pre-v0.0.0.6-douyin-account-mirror/PREVIOUS_EVIDENCE.json",
+    "prior_active_taskpack_version": "v0.0.0.5",
+    "prior_command_log_sha256": "02e128e8e0a07d92c99caae66407334224a1c18212275b4a3d8eaace2d27a1ab",
+    "prior_result_sha256": "04fcdd2d8b3f47692d7d74fb648fee8bd039e32b8ea2b730725eaa07ffc0e650"
+  },
+  "product_runtime_verdict": "NOT_RUN",
+  "record_sha256": "fbd87b7579c55bc072b8a63f18c2c8ebbfa2377b1a8f5cd2aed83fc950a4a2f7",
+  "result_summary": "S2 抖音冻结 Fixture 通过：浏览器主路径在收藏夹上下文中同时保留 /video/ 与 /note/ 内容候选的稳定 ID、关系及收藏夹元数据；DouK 健康门与 gallery-dl/yt-dlp/current-page 降级链保持隔离，Sidecar 算法失效不连坐主浏览器镜像。",
+  "schema_version": "1.0",
+  "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+  "semantic_reconciliation": {
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "file_dispositions": {
+      "apps/browser-extension/content/account-mirror-core.js": "adapt",
+      "compose.workers.yaml": "equivalent",
+      "src/social_archive/account_sync.py": "preserve_stronger_upstream",
+      "src/social_archive/connectors/http_workers.py": "preserve_stronger_upstream",
+      "src/social_archive/registry.py": "preserve_stronger_upstream",
+      "tests/focused/test_command_connectors.py": "preserve_stronger_upstream",
+      "tests/focused/test_scan_platform_isolation.py": "adapt",
+      "tests/focused/test_worker_profiles.py": "equivalent"
+    },
+    "scope": "The frozen DouK Compose Candidate remains byte-identical and disabled. Current upstream already isolates worker health failure from gallery-dl, yt-dlp, and generic current-page fallback. The adaptive slice closes the browser primary-route gap by accepting both Douyin video and note content URLs, with a behavior-level collection candidate regression; no vendor source or runtime was resolved."
+  },
+  "stage": "S2",
+  "status": "PASS",
+  "task_id": "SA-202",
+  "taskpack_version": "v0.0.0.6",
   "tests": [
     "TEST-SA-202"
   ],
-  "oracle": "上游算法失效时明确 degraded，不伪装可用；gallery-dl/yt-dlp 或当前页兜底继续。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "Vendor lock resolved; 9 focused tests passed.",
-  "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
-  },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "623cc7824cd556243c6064b93a4deab5bd2f4819619d6afef10eb6c3b6970109"
+  "title": "完成抖音收藏夹/收藏/点赞账号镜像",
+  "validation": {
+    "brand_check": "PASS; hits=[]",
+    "compose_douk_experimental_profile": "PASS: Docker Compose config-only validation passed with --no-env-resolution, --no-interpolate and --no-path-resolution; no image build or service start occurred.",
+    "douk_candidate": "BLOCKED_CANDIDATE: no local vendor source was resolved, and the required clean build, probe/output adaptation, and real favorites/likes Canary were intentionally not run; browser primary path is unaffected.",
+    "exact_taskpack_pytest": "14 passed in the existing project Python 3.12.13 venv; target is the frozen SA-202 pytest list.",
+    "extension_syntax_and_diff": "PASS: account-mirror-core.js passed node --check; git diff --check passed before the functional commit.",
+    "latest_main_reconciliation": "PASS: origin/main remained 7925695c0078bb3b98d71636f5a1315270d9de87 and is an ancestor of the validated implementation commit.",
+    "owner_canary_read_only": "douyin returned BLOCKED_ENVIRONMENT / OWNER_CANARY_NOT_AUTHORIZED with credential_read=false, network_attempted=false, runtime_write=false.",
+    "related_stage2_regression": "21 passed: connector degradation, account mirror sync, extension bridge/core, and Stage 2 domestic worker structure.",
+    "secret_scan": "PASS; hits=[]",
+    "uv_lock_check_offline": "PASS"
+  }
 }

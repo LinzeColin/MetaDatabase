@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-202",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "commands": [
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/vendor_sync.py --source douk --resolve-and-lock",
+      "command_sha256": "db9fd787d51d6455a734810899d890b5ecc95ca9f9bcde41b055719eeddece5f",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Vendor lock resolved; 9 focused tests passed."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_openapi_probe_connector.py tests/focused/test_health_gated_connector.py",
+      "command_sha256": "19a04bc31511ca2e66ba2369504769a017ec38432c4e19eb47674d4a20b7861e",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Vendor lock resolved; 9 focused tests passed."
+    }
+  ],
+  "record_sha256": "c03dd92bc4f30863311155070b386142ab9d1e7e27f3234c0cb0e2934a0d01b5"
+}
