@@ -93,6 +93,23 @@ def main() -> int:
     except Exception as exc:
         add("预签授权可校验", False, f"{type(exc).__name__}: {exc}"[:120])
 
+    # 3.5) 业务级健康:该评估的日子过了窗口却没评估(2026-07-28 事故根因 R3)
+    #      心跳只证明进程在转,不证明业务在做事——必须绑业务产出才能发现"空转"。
+    try:
+        from zoneinfo import ZoneInfo
+
+        from backend.app.workers.live_cycle import missed_evaluation
+        marker = Path(os.environ.get("ALPHA_RUNTIME_DIR", "runtime")) / "last_s1_eval.txt"
+        last_tag = marker.read_text().strip() if marker.exists() else ""
+        is_live = (os.environ.get("ALPHA_MODE", "").upper() == "MICRO_LIVE"
+                   and os.environ.get("LIVE_TRADING_ENABLED", "0") == "1")
+        missed, why = missed_evaluation(now.astimezone(ZoneInfo("America/New_York")),
+                                        last_eval_tag=last_tag, is_live=is_live)
+        add("评估日已按时评估(业务级)", not missed,
+            why if missed else f"最近评估:{last_tag or '尚未开始'}")
+    except Exception as exc:
+        add("评估产出可核验", False, f"{type(exc).__name__}: {exc}"[:120])
+
     # 4) 紧急刹车
     try:
         from backend.app.workers.killswitch import KillSwitch

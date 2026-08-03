@@ -91,6 +91,33 @@ def eval_trigger(now_et: datetime, *, force_exists: bool, makeup_today: bool) ->
     return (in_eval_window(now_et) or forced or makeup_ok), forced
 
 
+def missed_evaluation(now_et: datetime, *, last_eval_tag: str, is_live: bool,
+                      weekday: int = 1) -> tuple[bool, str]:
+    """业务级健康判据(纯函数):**该评估的日子已过了窗口,却没有当日评估记录**。
+
+    2026-07-28 事故的核心教训(根因 R3):心跳只证明"进程在转",不证明"业务在做事"。
+    当时 worker 空转 15.9 小时、喂了 1904 次心跳、页面始终显示"✅ 系统正常运行中",
+    而交易窗静默流逝、首单从未发生。**健康检查必须绑业务产出,不能只绑进程存活。**
+
+    返回 (是否漏评估, 人话原因)。只在实盘模式下判红——纸面/未上线不误报。
+    """
+    if not is_live:
+        return False, ""
+    if now_et.weekday() != weekday:                      # 今天本来就不该评估
+        return False, ""
+    minute = now_et.hour * 60 + now_et.minute
+    window_end = 9 * 60 + 30 + 90                        # 评估窗结束 = 开盘后 90 分钟
+    if minute <= window_end:                             # 窗口还没过完,不算漏
+        return False, ""
+    today_tag = now_et.date().isoformat()
+    if last_eval_tag == today_tag:                       # 今天已评估过
+        return False, ""
+    return True, (f"今天({today_tag})是评估日,评估窗(开盘后30-90分钟)已于 "
+                  f"{window_end // 60}:{window_end % 60:02d} ET 结束,"
+                  f"但没有当日评估记录(最近一次:{last_eval_tag or '从未'})。"
+                  "交易循环可能在空转——查心跳 detail 是否为 BLOCKED_ON_OPEND。")
+
+
 def plan_rebalance(
     target_weights: dict[str, float],
     positions: dict[str, int],
