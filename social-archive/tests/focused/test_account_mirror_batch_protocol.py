@@ -1,3 +1,5 @@
+import pytest
+
 from social_archive.account_sync import AccountSyncCoordinator
 from social_archive.models import AccountConnectRequest, AccountSyncRequest, CaptureRequest, SyncBatchRequest
 from social_archive.registry import ConnectorRegistry
@@ -32,6 +34,32 @@ def _item(external_id, relation="favorite", collection="tech"):
         relation_type=relation,
         collection_key=collection,
         title=external_id,
+    )
+
+
+DOMESTIC_ACCOUNT_CASES = (
+    ("xiaohongshu", "favorite"),
+    ("douyin", "favorite"),
+    ("kuaishou", "favorite"),
+    ("bilibili", "favorite"),
+)
+
+DOMESTIC_URL_PREFIXES = {
+    "xiaohongshu": "https://www.xiaohongshu.com/explore/",
+    "douyin": "https://www.douyin.com/video/",
+    "kuaishou": "https://www.kuaishou.com/short-video/",
+    "bilibili": "https://www.bilibili.com/video/",
+}
+
+
+def _domestic_item(platform, external_id, relation):
+    return CaptureRequest(
+        platform=platform,
+        url=f"{DOMESTIC_URL_PREFIXES[platform]}{external_id}",
+        external_content_id=external_id,
+        relation_type=relation,
+        collection_key="fixture",
+        title=f"{platform}-{external_id}",
     )
 
 
@@ -106,3 +134,82 @@ def test_partial_relation_never_triggers_absence_closure(settings, store, servic
         row = con.execute("SELECT status,missing_complete_scan_count FROM user_relation").fetchone()
     assert row["status"] == "active"
     assert row["missing_complete_scan_count"] == 0
+
+
+@pytest.mark.parametrize(("platform", "relation"), DOMESTIC_ACCOUNT_CASES)
+def test_each_domestic_platform_fixture_connects_first_full_then_incremental(
+    settings, store, service, platform, relation
+):
+    coordinator, account_id = _connected(settings, store, service, platform=platform, external=f"owner-{platform}")
+    first_run = coordinator.start_sync(account_id, AccountSyncRequest(
+        mode="first_full", relation_types=[relation], trigger_type="first_connect"
+    ))
+    assert first_run["mode"] == "first_full"
+
+    coordinator.ingest_batch(first_run["sync_run_id"], SyncBatchRequest(
+        relation_type=relation, scope_type="collection", collection_key="fixture",
+        collection_name="Stage 2 Fixture", completeness="partial", has_more=False,
+        items=[_domestic_item(platform, f"{platform}-first", relation)],
+    ))
+    first_complete = coordinator.ingest_batch(first_run["sync_run_id"], SyncBatchRequest(
+        relation_type=relation, scope_type="relation", completeness="complete", has_more=False, items=[]
+    ))
+    assert first_complete["status"] == "completed"
+    assert store.get_source_account(account_id)["last_sync_at"]
+
+    incremental_run = coordinator.start_sync(account_id, AccountSyncRequest(
+        mode="incremental", relation_types=[relation], trigger_type="manual"
+    ))
+    assert incremental_run["mode"] == "incremental"
+    coordinator.ingest_batch(incremental_run["sync_run_id"], SyncBatchRequest(
+        relation_type=relation, scope_type="collection", collection_key="fixture",
+        collection_name="Stage 2 Fixture", completeness="partial", has_more=False,
+        items=[_domestic_item(platform, f"{platform}-incremental", relation)],
+    ))
+    incremental_complete = coordinator.ingest_batch(incremental_run["sync_run_id"], SyncBatchRequest(
+        relation_type=relation, scope_type="relation", completeness="complete", has_more=False, items=[]
+    ))
+    assert incremental_complete["status"] == "completed"
+    assert store.list_library_table(platform=platform, sort_by="time", sort_dir="desc")["total"] == 2
+
+
+def test_paused_run_rejects_late_batch_until_resumed(settings, store, service):
+    coordinator, account_id = _connected(settings, store, service)
+    run_id = coordinator.start_sync(account_id, AccountSyncRequest(
+        mode="first_full", relation_types=["favorite"], trigger_type="first_connect"
+    ))["sync_run_id"]
+
+    coordinator.ingest_batch(run_id, SyncBatchRequest(
+        relation_type="favorite", scope_type="collection", collection_key="tech",
+        completeness="partial", has_more=True, cursor={"page": 1}, items=[_item("before-pause")],
+    ))
+    before_pause = store.get_sync_run(run_id)
+    assert before_pause["status"] == "scanning"
+    assert store.control_sync_run(run_id, "pause") is True
+
+    with pytest.raises(ValueError, match="同步已暂停"):
+        coordinator.ingest_batch(run_id, SyncBatchRequest(
+            relation_type="favorite", scope_type="collection", collection_key="tech",
+            completeness="partial", has_more=False, cursor={"page": 2}, items=[_item("late-batch")],
+        ))
+
+    paused = store.get_sync_run(run_id)
+    assert paused["status"] == "paused"
+    assert paused["imported_count"] == before_pause["imported_count"]
+    assert store.list_sync_seen_relation_ids(
+        sync_run_id=run_id, relation_type="favorite", collection_key="tech"
+    )
+
+    assert store.control_sync_run(run_id, "resume") is True
+    assert store.get_sync_run(run_id)["status"] == "queued"
+    coordinator.ingest_batch(run_id, SyncBatchRequest(
+        relation_type="favorite", scope_type="collection", collection_key="tech",
+        completeness="partial", has_more=False, cursor={"page": 2}, items=[_item("after-resume")],
+    ))
+    final = coordinator.ingest_batch(run_id, SyncBatchRequest(
+        relation_type="favorite", scope_type="relation", completeness="complete", has_more=False, items=[]
+    ))
+    assert final["status"] == "completed"
+    assert len(store.list_sync_seen_relation_ids(
+        sync_run_id=run_id, relation_type="favorite", collection_key="tech"
+    )) == 2

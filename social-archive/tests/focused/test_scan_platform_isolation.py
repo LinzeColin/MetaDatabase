@@ -2,6 +2,8 @@ import json
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from social_archive.models import CaptureRequest
 
 
@@ -28,23 +30,28 @@ def test_complete_scan_only_changes_the_scanned_platform(service, store):
     assert reddit_relation["missing_complete_scan_count"] == 0
 
 
-def test_kuaishou_complete_scan_never_changes_another_platform(service, store):
-    kuaishou_item = service.capture(CaptureRequest(
-        platform="kuaishou", url="https://www.kuaishou.com/short-video/100", relation_type="favorite",
-        requested_levels=["L0", "L1"],
+@pytest.mark.parametrize(("platform", "relation_type", "url"), (
+    ("xiaohongshu", "favorite", "https://www.xiaohongshu.com/explore/100"),
+    ("douyin", "favorite", "https://www.douyin.com/video/100"),
+    ("kuaishou", "favorite", "https://www.kuaishou.com/short-video/100"),
+    ("bilibili", "favorite", "https://www.bilibili.com/video/BV1fixture"),
+))
+def test_domestic_complete_scan_never_changes_another_platform(service, store, platform, relation_type, url):
+    domestic_item = service.capture(CaptureRequest(
+        platform=platform, url=url, relation_type=relation_type, requested_levels=["L0", "L1"],
     ))
     x_item = service.capture(CaptureRequest(
         platform="x", url="https://x.com/example/status/101", relation_type="bookmark",
         requested_levels=["L0", "L1"],
     ))
 
-    store.apply_complete_scan("kuaishou", set(), relation_type="favorite")
-    store.apply_complete_scan("kuaishou", set(), relation_type="favorite")
+    store.apply_complete_scan(platform, set(), relation_type=relation_type)
+    store.apply_complete_scan(platform, set(), relation_type=relation_type)
 
-    kuaishou_relation = store.get_content(kuaishou_item.content_id)["relations"][0]
+    domestic_relation = store.get_content(domestic_item.content_id)["relations"][0]
     x_relation = store.get_content(x_item.content_id)["relations"][0]
-    assert kuaishou_relation["status"] == "closed"
-    assert kuaishou_relation["missing_complete_scan_count"] == 2
+    assert domestic_relation["status"] == "closed"
+    assert domestic_relation["missing_complete_scan_count"] == 2
     assert x_relation["status"] == "active"
     assert x_relation["missing_complete_scan_count"] == 0
 

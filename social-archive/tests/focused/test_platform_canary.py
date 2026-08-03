@@ -111,3 +111,22 @@ def test_read_only_cli_does_not_persist_receipts(monkeypatch, capsys):
     emitted = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
     assert [item["platform"] for item in emitted] == ["generic-web", "x", "reddit", "instagram", "tiktok", "xiaohongshu", "douyin", "kuaishou", "bilibili"]
     assert calls == [(item["platform"], 2, True) for item in emitted]
+
+
+def test_read_only_all_cn_canary_covers_only_the_four_domestic_platforms(monkeypatch, capsys):
+    root = Path(__file__).resolve().parents[2]
+    module = _load_canary(root)
+    calls: list[tuple[str, int, bool]] = []
+
+    def fake_run(platform: str, limit: int, *, read_only: bool = False) -> dict:
+        calls.append((platform, limit, read_only))
+        return {"platform": platform, "status": "BLOCKED_ENVIRONMENT", "details": {"read_only": True}}
+
+    monkeypatch.setattr(module, "run_one", fake_run)
+    monkeypatch.setattr(module, "save", lambda _doc: (_ for _ in ()).throw(AssertionError("read-only must not persist")))
+    monkeypatch.setattr(sys, "argv", ["platform_canary.py", "all-cn", "--read-only", "--limit", "1"])
+
+    assert module.main() == 0
+    emitted = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+    assert [item["platform"] for item in emitted] == ["xiaohongshu", "douyin", "kuaishou", "bilibili"]
+    assert calls == [(item["platform"], 1, True) for item in emitted]

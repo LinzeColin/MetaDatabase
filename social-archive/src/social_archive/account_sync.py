@@ -494,6 +494,13 @@ class AccountSyncCoordinator:
         run = self.store.get_sync_run(sync_run_id)
         if not run:
             raise ValueError("同步运行不存在")
+        # The browser worker observes controls between scopes, but a batch that
+        # was already in flight can reach Core after the user pauses.  Core is
+        # the final authority: do not let that late batch mutate the journal,
+        # counters, checkpoints, or relation-closure evidence.  Resume moves
+        # the run back to queued before the worker sends another batch.
+        if run["status"] == "paused":
+            raise ValueError("同步已暂停，请先继续后再提交批次")
         if run["status"] in {"cancelled", "completed"}:
             raise ValueError("当前同步运行不能再接收数据")
         account = self.store.get_source_account(run["source_account_id"], include_handle=True)
