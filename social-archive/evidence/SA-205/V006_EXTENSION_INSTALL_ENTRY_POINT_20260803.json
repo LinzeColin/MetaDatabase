@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T07:16:00Z",
+  "status": "READY_FOR_OWNER",
+  "scope": "verified_extension_install_entry_point_on_the_v0006_production_deployment",
+  "requirement": "BUILD_AGENT_RUNBOOK Stage 1: the Owner must be given an explicit extension install entry point, not merely told the source exists.",
+  "verified_routes": {
+    "install_page": {"path": "/extension-install", "code": 200},
+    "package_download": {"path": "/downloads/social-archive-extension.zip", "code": 200, "bytes": 52670}
+  },
+  "package_identity": {
+    "sha256": "ee02e99922b62c6a410aedb1a5a000c2ac1953a37f2a8e9dca984471bd240d74",
+    "members": 20,
+    "manifest_name": "Social Archive",
+    "manifest_version": "0.0.0.6",
+    "has_bridge_js": true,
+    "note": "Built inside the image from apps/browser-extension, so a clean deploy cannot inherit a stale host ZIP."
+  },
+  "owner_steps_to_unblock_sa205": [
+    "Open https://social-archive.linzezhang.com/extension-install through the existing Cloudflare Access session and download the package.",
+    "Unzip it, then load it in the Chrome profile that is already signed in to Xiaohongshu, Douyin, Kuaishou and Bilibili: chrome://extensions, enable Developer mode, Load unpacked, select the unzipped folder.",
+    "Say when the extension is loaded. A one-time pairing code will be minted then, because it expires in 10 minutes; the supply path is already verified working against the live service.",
+    "The real four-platform Owner Canary can then run. No password, Cookie or token will ever be requested or handled."
+  ],
+  "why_the_agent_cannot_do_this": "No Chrome is connected to the agent session, so the Owner's logged-in profile is unreachable. Prior runs additionally established that neither the Extensions manager controls nor the DevTools Extensions.loadUnpacked command are available through the controlled browser surface.",
+  "does_not_establish": [
+    "SA-205 PASS. No extension is installed, no pairing exchange has occurred against production, and no platform account has been connected or mirrored."
+  ]
+}
