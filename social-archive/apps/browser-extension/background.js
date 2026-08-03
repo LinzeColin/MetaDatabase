@@ -521,7 +521,42 @@ async function connectBrowserPlatform(platform) {
 
 async function connectPlatform(platform) {
   if (platform === "generic-web" || platform === "chrome-bookmarks") return connectChromeBookmarks();
+  // 西方三源走 Cookie 托管（T06）：读本域会话 → 加密上传 → 服务端跑 gallery-dl / yt-dlp。
+  //
+  // **这一条先前是缺的**：SA_CONNECT_PLATFORM_SESSION 在 background 里建好了，
+  // 却没有任何界面通向它——点「连接 X」会掉进下面那条 browser_session 老路，
+  // 而那条路在 T03 拆掉 DOM 抓取之后只会回 LOGIN_PROOF_UNAVAILABLE。
+  // 也就是说 T06 整套机制从界面上够不着。在真实浏览器里跑 T05 时才发现。
+  if (globalThis.SACookieExport?.ALLOWED_PLATFORMS?.[platform]) {
+    return connectPlatformSessionByCookies(platform);
+  }
   return connectBrowserPlatform(platform);
+}
+
+/** 西方三源的连接入口：申请权限 → 导出会话 → 加密上传。 */
+async function connectPlatformSessionByCookies(platform) {
+  const spec = globalThis.SACookieExport.ALLOWED_PLATFORMS[platform];
+  const origins = spec.domains.flatMap(d => [`https://*.${d}/*`, `https://${d}/*`]);
+  const granted = await chrome.permissions.request({ permissions: ["cookies"], origins })
+    .catch(() => false);
+  if (!granted) {
+    return { ok: false, state: "unauthorized", platform,
+             failureCode: "PLATFORM_PERMISSION_DENIED",
+             error: "没有获得读取该平台登录状态的授权。" };
+  }
+  const config = await SA.getConfig();
+  try {
+    const { count } = await globalThis.SACookieExport.connectPlatformSession(platform, {
+      endpoint: config.endpoint, token: config.token,
+    });
+    // 只回条数，永远不回 cookie 的名或值。
+    return { ok: true, state: "connected", platform, count,
+             message: `已连接，登录状态已加密保存（${count} 条）。随时可以一键撤销。` };
+  } catch (error) {
+    const code = error?.code || "UPLOAD_FAILED";
+    return { ok: false, state: code === "NOT_LOGGED_IN" ? "needs_user_action" : "failed",
+             failureCode: code, error: error?.message || "连接失败" };
+  }
 }
 
 function resolveRelationUrl(platform, relation, profileUrl = "") {

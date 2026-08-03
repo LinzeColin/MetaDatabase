@@ -220,3 +220,34 @@ def test_domestic_domains_never_appear_in_the_allowed_table(domestic: str) -> No
     text = EXPORT.read_text(encoding="utf-8")
     allowed_block = text.split("ALLOWED_PLATFORMS", 1)[1].split("FORBIDDEN_PLATFORMS", 1)[0]
     assert domestic not in allowed_block
+
+
+def test_the_ui_actually_routes_western_sources_to_cookie_custody() -> None:
+    """T06 的机制必须**从界面够得着**。
+
+    实测踩到过：SA_CONNECT_PLATFORM_SESSION 建好了，却没有任何界面通向它——
+    background 的 connectPlatform() 把 x/instagram/youtube 一律送去
+    connectBrowserPlatform（DOM 抓取时代的老路），而那条路在 T03 之后
+    只会回 LOGIN_PROOF_UNAVAILABLE。也就是说点「连接 X」永远连不上，
+    而 T06 整套 Cookie 托管代码一行都不会被执行。
+
+    这是「写了但没接上」的第二次（第一次是失败文案词典没有生产调用方）。
+    """
+    background = (ROOT / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    assert "connectPlatformSessionByCookies" in background, "西方三源没有接到 Cookie 托管入口"
+    block = background.split("async function connectPlatform(", 1)[1].split("\n}", 1)[0]
+    assert "SACookieExport" in block, (
+        "connectPlatform 没有按平台分流——西方三源会掉进 browser_session 老路"
+    )
+    # 老路仍要保留给未来的国内平台，但不能再吞掉西方三源
+    assert "connectBrowserPlatform" in block
+
+
+def test_cookie_platforms_and_catalog_do_not_disagree() -> None:
+    """分流依据是 SACookieExport.ALLOWED_PLATFORMS，它必须与服务端托管清单一致。"""
+    from social_archive.credentials import CUSTODIAL_PLATFORMS
+
+    export = EXPORT.read_text(encoding="utf-8")
+    block = export.split("ALLOWED_PLATFORMS", 1)[1].split("FORBIDDEN_PLATFORMS", 1)[0]
+    for name in CUSTODIAL_PLATFORMS:
+        assert f"{name}:" in block, f"扩展的可导出清单缺 {name}，服务端却收它"

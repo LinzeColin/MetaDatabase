@@ -45,7 +45,40 @@ def targets():
     return json.load(urllib.request.urlopen(BASE + "/json"))
 
 def open_tab(url):
-    urllib.request.urlopen(urllib.request.Request(BASE + "/json/new?url=" + url, method="PUT")).read()
+    """新开一个标签页并**真的导航过去**。
+
+    坑：`PUT /json/new?url=...` 只会建出一个 about:blank，不会导航——
+    对 chrome-extension:// 和 https:// 都是如此。必须再用 Page.navigate。
+    """
+    raw = urllib.request.urlopen(
+        urllib.request.Request(BASE + "/json/new", method="PUT")).read()
+    tab = json.loads(raw)
+    import asyncio
+    import websockets
+
+    async def _go():
+        async with websockets.connect(tab["webSocketDebuggerUrl"], max_size=None) as ws:
+            c = Conn(ws)
+            await c.rpc("Page.enable")
+            await c.rpc("Page.navigate", {"url": url})
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        asyncio.run(_go())
+        return tab
+    raise RuntimeError("open_tab 需要在同步上下文调用；异步里请直接用 Page.navigate")
+
+
+async def open_tab_async(url):
+    """异步版：建标签页并导航，返回 target 描述。"""
+    import websockets
+    tab = json.loads(urllib.request.urlopen(
+        urllib.request.Request(BASE + "/json/new", method="PUT")).read())
+    async with websockets.connect(tab["webSocketDebuggerUrl"], max_size=None) as ws:
+        c = Conn(ws)
+        await c.rpc("Page.enable")
+        await c.rpc("Page.navigate", {"url": url})
+    return tab
 
 async def wake_sw(tries=6):
     """MV3 的 service worker 会闲置休眠。开一次扩展页面把它叫醒。"""

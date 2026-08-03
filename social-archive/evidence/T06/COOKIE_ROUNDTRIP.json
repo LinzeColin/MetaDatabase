@@ -6,17 +6,24 @@
   "recorded_at": "2026-08-04T12:10Z",
   "no_cookie_value_in_this_file": true,
   "honesty_note": "本文件记录制品与格式判据已闭环。**T06 的 Acceptance 仍未达成**，见文末 acceptance_self_check——它要求服务端用收到的凭据真的跑一次 gallery-dl 并拿到只有登录用户才看得到的内容，那需要 Owner 在浏览器里点一次连接。绝不把这里的进展写成 PASS。",
-
   "artifacts": [
-    {"path": "apps/browser-extension/cookie-export.js",
-     "what": "采自任务包 03_PREBUILT，格式部分逐字保留；模块形态与上传端点按 CONFLICT_ORDER 做了两处记名改动"},
-    {"path": "apps/browser-extension/background.js",
-     "what": "SA_CONNECT_PLATFORM_SESSION / SA_REVOKE_PLATFORM_SESSION 两个消息处理"},
-    {"path": "apps/browser-extension/manifest.json",
-     "what": "cookies 进 optional_permissions（不是 permissions）；补上 youtube.com / google.com 的可选 host"},
-    {"path": "tests/focused/test_cookie_export_format.py", "what": "16 条格式与边界判据"}
+    {
+      "path": "apps/browser-extension/cookie-export.js",
+      "what": "采自任务包 03_PREBUILT，格式部分逐字保留；模块形态与上传端点按 CONFLICT_ORDER 做了两处记名改动"
+    },
+    {
+      "path": "apps/browser-extension/background.js",
+      "what": "SA_CONNECT_PLATFORM_SESSION / SA_REVOKE_PLATFORM_SESSION 两个消息处理"
+    },
+    {
+      "path": "apps/browser-extension/manifest.json",
+      "what": "cookies 进 optional_permissions（不是 permissions）；补上 youtube.com / google.com 的可选 host"
+    },
+    {
+      "path": "tests/focused/test_cookie_export_format.py",
+      "what": "16 条格式与边界判据"
+    }
   ],
-
   "conflicts_recorded": [
     {
       "id": "C-T06-01",
@@ -43,7 +50,6 @@
       "order_basis": "实测事实(2) > 任务包(4)"
     }
   ],
-
   "format_verified": {
     "why_it_deserves_its_own_tests": "格式错了的表现是「文件生成成功、上传成功、界面显示已连接，然后取数是 0」——一个看起来哪儿都对、只有结果是空的失败。正是 INV-NO-SILENT-ZERO 要防的形状。",
     "checks": [
@@ -58,20 +64,27 @@
     ],
     "test_count": 16
   },
-
   "boundaries": {
     "domestic_refused_before_any_read": "四个国内平台在 exportPlatformSession 第一行就抛 PLATFORM_FORBIDDEN，连 chrome.cookies.getAll 都不会调用",
-    "allowed_platforms": ["instagram", "x", "youtube"],
+    "allowed_platforms": [
+      "instagram",
+      "x",
+      "youtube"
+    ],
     "cookies_is_optional_permission": "装插件时不申请，只在用户点「连接 X」那一刻才 chrome.permissions.request；撤销时连权限一起 remove——库里删了但权限还留着的话，用户看到的仍是「这个插件能读我的 Cookie」",
     "chrome_cookies_confined_to_one_module": {
       "what": "全扩展只有 cookie-export.js 一个文件出现 chrome.cookies",
       "guard": "test_extension_auth_and_privacy_boundaries_are_explicit（判据从「全仓禁止」收紧成「只许出现在这一个文件里」，不是删掉）"
     },
-    "still_forbidden_everywhere": ["document.cookie", "webRequest", "eval(", "new Function("],
+    "still_forbidden_everywhere": [
+      "document.cookie",
+      "webRequest",
+      "eval(",
+      "new Function("
+    ],
     "never_logged": "导出模块里一个 console 都没有，且有判据打在源码上",
     "not_logged_in_vs_permission_denied": "两个错误码分开——一个要用户去登录，一个要用户去授权，下一步不一样；合并成同一个的话用户会照着错的提示忙半天"
   },
-
   "boundary_tests_narrowed_not_deleted": {
     "why_this_matters": "v0.0.0.6 有两条判据断言「扩展完全不碰 Cookie」。T06 有意改变这条边界（authorization A2）。直接删掉它们会连「不许常驻申请 Cookie 权限」「不许在别的文件里读 Cookie」一起丢掉。",
     "narrowed": [
@@ -79,18 +92,20 @@
       "test_extension_e2n_contract::test_extension_auth_and_privacy_boundaries_are_explicit：chrome.cookies 从全仓禁止改为只许出现在 cookie-export.js"
     ]
   },
-
   "tests": {
     "new": 16,
-    "regression": {"passed": 367, "failed": 11, "baseline_failed": 11, "failure_set_identical": true}
+    "regression": {
+      "passed": 367,
+      "failed": 11,
+      "baseline_failed": 11,
+      "failure_set_identical": true
+    }
   },
-
   "rollback": {
     "task_pack_says": "撤下 cookies 权限，卡片退回未连接",
     "how": "chrome.permissions.remove({permissions:['cookies'], origins:[...]})；服务端 DELETE /v1/credentials/{platform}（T05 已建，带 secure_delete）；代码层 git revert 本次提交",
     "no_external_state": "本任务未上传任何真实会话，也未触碰线上配置"
   },
-
   "acceptance_self_check": {
     "requirement": "服务端收到的 cookies.txt 能让 gallery-dl 取到只有登录用户才看得到的内容",
     "oracle": "服务端用收到的凭据跑 gallery-dl -j，拿到 ≥1 条 Owner 私有条目（例如自己的书签）",
@@ -101,8 +116,26 @@
     "must_not_be_rewritten_as_pass": true,
     "stop_condition_reminder": "任务包原文：拿不到私有条目时先查 04_FIXTURES/COOKIE_FORMAT_COMPATIBILITY.json——会话 cookie 被丢是最常见原因。本任务已提前把那两条（不加前缀、expiry 写 0）做成判据，所以真出问题时可以先排除格式。"
   },
-
   "prerequisite_for_the_real_run": {
     "age_keys_must_be_configured_in_production": "T05 已记：写入凭据需要 SOCIAL_ARCHIVE_AGE_RECIPIENT 与 AGE_IDENTITY_FILE。未配置时 PUT /v1/credentials 返回 503 + 中文提示（不会静默失败），但连接就走不通。Owner 点连接之前需要先确认这两项在生产已就位。"
+  },
+  "verified_in_a_real_browser_and_found_the_mechanism_unreachable": {
+    "recorded_at": "2026-08-04T19:50Z",
+    "how": "沿用 T04 打通的路子：CDP Extensions.loadUnpacked 把扩展装进一次性 profile，用 Storage.setCookies 种下**我自己造的** x.com 测试 cookie（不是 Owner 的任何真实会话），再驱动扩展。",
+    "what_worked_live": {
+      "国内四平台在导出层被拒": "xiaohongshu / douyin / bilibili / kuaishou 全部 PLATFORM_FORBIDDEN，连 chrome.cookies.getAll 都不会调用",
+      "无权限时的错误码": "PERMISSION_DENIED，而不是 NOT_LOGGED_IN —— T06 里刻意分开的那两个码，在真实浏览器里确实分得开"
+    },
+    "the_defect_it_exposed": {
+      "what": "**SA_CONNECT_PLATFORM_SESSION 没有任何界面通向它。**",
+      "detail": "background 的 connectPlatform() 只分了两支：generic-web 走 Chrome 书签，其余一律 connectBrowserPlatform（DOM 抓取时代的老路）。而那条老路在 T03 拆掉取数通道之后只会回 LOGIN_PROOF_UNAVAILABLE。",
+      "consequence": "点「连接 X / Instagram / YouTube」永远连不上，**T06 整套 Cookie 托管代码一行都不会被执行**。制品、判据、证据都齐了，就是够不着。",
+      "how_it_was_found": "只有在真实浏览器里点那个按钮才会发现——单元判据测的是 SACookieExport 模块本身，它工作得很好；没有任何判据问过「谁调用它」。",
+      "this_is_the_second_time": "第一次是失败文案词典 describe_sync_outcome 没有生产调用方（T14）。同一个形态：**写了、测了、但没接上。**",
+      "fix": "connectPlatform() 按 SACookieExport.ALLOWED_PLATFORMS 分流；新增 connectPlatformSessionByCookies()：申请权限 → 导出 → 加密上传，只回条数不回值。",
+      "verified_after_fix": "真实浏览器里点「连接 X」，界面回「X：没有获得读取该平台登录状态的授权。」——正是新路径的中文提示（修之前会是「本版本无法确认这个页面的登录态」，那是老路）。",
+      "guard": "test_the_ui_actually_routes_western_sources_to_cookie_custody"
+    },
+    "still_not_run": "完整往返（真实会话 → 加密落库 → gallery-dl 取到私有条目）仍未做：需要真实的 X 登录态，而那只能是 Owner 的浏览器。权限授予也需要用户在 Chrome 的权限气泡上真的点一下——CDP 的合成点击能触发气泡，但气泡本身要人确认。"
   }
 }
