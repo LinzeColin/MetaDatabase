@@ -19,7 +19,12 @@
     "enabled": true,
     "automatic": true,
     "latency_ms": 3,
-    "capabilities": {"mode": "vault", "write": true, "readback": true, "root": "/var/lib/social-archive/obsidian-vault/Social Archive"}
+    "capabilities": {
+      "mode": "vault",
+      "write": true,
+      "readback": true,
+      "root": "/var/lib/social-archive/obsidian-vault/Social Archive"
+    }
   },
   "real_write": {
     "content_id": "cnt_701e57f09db0891e4389a5977ea61dd3",
@@ -33,7 +38,10 @@
       "projection_sha256": "5033b3415bfbdd01d865aaf953358ddb40c087e443c84e8f164d6d6d562e53d0",
       "error_code": null,
       "message_zh": "导入完成。",
-      "evidence_json": {"idempotent_binding": true, "provider_status": "done"}
+      "evidence_json": {
+        "idempotent_binding": true,
+        "provider_status": "done"
+      }
     }
   },
   "incidental_finding": {
@@ -50,5 +58,46 @@
     "No Obsidian REST token, Notion token, or any other secret was created, read, or written.",
     "No user content other than the canary row was exported in this run.",
     "No timer, tag, release, or push occurred."
-  ]
+  ],
+  "standard_markdown_and_jsonl_export": {
+    "command": "scripts/export_all.py",
+    "status": "done",
+    "item_count": 3,
+    "changed_files": 9,
+    "noop_files": 0,
+    "output_root": "/var/lib/social-archive/exports",
+    "artifacts_produced": [
+      "library.jsonl",
+      "markdown/",
+      "obsidian-vault/",
+      "notion-import.csv",
+      "feed.json",
+      "bookmarks.html",
+      "archivebox-urls.txt",
+      "EXPORT_MANIFEST.json"
+    ],
+    "jsonl_record_keys": [
+      "artifact_count",
+      "author_name",
+      "canonical_url",
+      "collection_key",
+      "content_id",
+      "first_observed_at",
+      "last_observed_at",
+      "metadata",
+      "platform",
+      "published_at",
+      "relation_status",
+      "relation_type",
+      "schema_version",
+      "text",
+      "title",
+      "verified_replica_count"
+    ],
+    "verdict": "PASS — the standard Markdown and JSONL halves of SA-403 both produce real, well-formed output on production."
+  },
+  "incidental_finding_notion_csv": {
+    "what": "export_all.py also emits notion-import.csv.",
+    "why_it_matters": "It gives a zero-credential path to get the library into Notion by manual CSV import. It is not the SA-402 API destination and does not substitute for it, but it means the Owner is not entirely without a Notion route while the Integration token is missing."
+  }
 }
