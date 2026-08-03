@@ -19,6 +19,15 @@
       "test": "tests/focused/test_deployment_contract.py::test_install_dry_run_is_zero_write_even_when_prerequisites_are_available",
       "actually_was": "测试夹具的文件清单漏建 scripts/build_extension_package.py，而 install.sh 要求它。看起来像 install.sh 坏了，其实是夹具漏建。",
       "note": "我本轮已动过这份清单（换 ensure_api_token.py），补齐是我的事"
+    },
+    {
+      "test": "（无对应判据——这是判据本身没覆盖到的地方）",
+      "what": "compose.yaml 声明 16 个 file-based secret，install.sh 只建 13 个。",
+      "why_it_matters": "Docker Compose 对 file-based secret 缺文件是**硬错**：少一个，docker compose up 直接起不来，报的是 Docker 自己的错，看不出哪一环漏了。而 start.sh 每次都跑 up -d --force-recreate。",
+      "pre_existing_part": "缺的 4 个里 github_markdown_token 是**既有的**——一次全新安装本来就会在 docker compose up 那步失败。另外 3 个是本轮新增（两个 OAuth secret + 凭据密钥）。",
+      "fix": "install.sh 的占位循环补齐 4 个；空占位是安全的，应用读到空值会返回 503 + 中文说明，不会静默当成配好了。",
+      "guard": "tests/focused/test_compose_secrets_are_all_created.py —— 把 compose 与 install.sh 的清单比对固化成判据",
+      "also": "顺手去掉 install.sh dry-run 文案里残留的「配对码」字样。"
     }
   ],
   "remaining_seven_verified_pre_existing": [

@@ -1,0 +1,81 @@
+"""compose 声明的每个 file-based secret，install.sh 都得建出来（v0.0.0.7）。
+
+## 为什么这条最要命
+
+Docker Compose 对 file-based secret 缺文件是**硬错**：少一个文件，
+`docker compose up` 直接起不来，报的还是 Docker 自己的错，
+看不出是哪一环没建。而 `start.sh` 每次都跑 `up -d --force-recreate`。
+
+发现时的实况：compose 声明 16 个，install.sh 只建 13 个。
+缺的 4 个里有 3 个是本轮加的（两个 OAuth secret + 凭据密钥），
+**另一个 github_markdown_token 是既有的**——也就是说一次全新安装
+本来就会在 docker compose up 那一步失败。
+
+## 这是同一个形状的第五次
+
+租户审计 → 脱敏面 → 回滚校验 → secret 供给（compose 没挂）→ 现在是
+secret 创建（install 没建）。**五次都不是逻辑错，是覆盖面错。**
+所以这次不只修，还把比对固化成判据。
+"""
+
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def _compose_file_secrets() -> set[str]:
+    text = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+    return set(re.findall(r"file:\s*\./runtime/secrets/([a-z_][a-z0-9_.]*)", text))
+
+
+def _install_created_secrets() -> set[str]:
+    text = (ROOT / "scripts/install.sh").read_text(encoding="utf-8")
+    match = re.search(r"for name in ([a-z_0-9 ]+); do", text)
+    assert match, "install.sh 里找不到那个建占位文件的循环——判据失去依附"
+    return set(match.group(1).split())
+
+
+def test_every_compose_secret_file_is_created_by_install() -> None:
+    declared = _compose_file_secrets()
+    assert len(declared) >= 10, f"只解析出 {len(declared)} 个 secret，判据大概没在查"
+    created = _install_created_secrets()
+    missing = sorted(declared - created)
+    assert not missing, (
+        f"compose 声明了这些 file-based secret，但 install.sh 不会创建：{missing}。"
+        "Compose 对缺文件是硬错——docker compose up 会直接起不来，"
+        "而报的是 Docker 自己的错，看不出是哪一环漏了。"
+    )
+
+
+def test_the_guard_would_notice_a_newly_declared_secret() -> None:
+    """先证明它抓得到：模拟 compose 新增一个 install 不认识的 secret。"""
+    declared = _compose_file_secrets() | {"some_brand_new_secret"}
+    created = _install_created_secrets()
+    assert "some_brand_new_secret" in (declared - created), "判据的比对逻辑本身是坏的"
+
+
+def test_systemd_host_prep_requires_the_same_set() -> None:
+    """宿主机那条路（systemd + 独立 secret 目录）不能和 compose 这条漂开。"""
+    prep = (ROOT / "scripts/prepare_systemd_host.sh").read_text(encoding="utf-8")
+    for name in ("google_oauth_client_secret", "github_oauth_client_secret", "credential_age_identity"):
+        assert name in prep, f"prepare_systemd_host.sh 不认识 {name}，宿主机那条路会缺文件"
+
+
+def test_placeholder_secrets_do_not_pretend_to_be_configured() -> None:
+    """空占位必须让应用**明确报未配置**，而不是静默当成配好了。
+
+    这是 INV-NO-SILENT-ZERO 在配置层的同一条：读到空值就说"没配"，
+    不要假装能跑然后在第一次真用时才炸。
+    """
+    from social_archive.credentials import CredentialUnavailable, CredentialVault
+
+    vault = CredentialVault(recipient="", identity_file="")
+    try:
+        vault.encrypt("x")
+    except CredentialUnavailable as exc:
+        assert "未配置" in str(exc) or "不能" in str(exc)
+    else:  # pragma: no cover
+        raise AssertionError("收件人为空时居然没报未配置——空占位会被当成配好了")

@@ -33,7 +33,7 @@ for required in pyproject.toml compose.yaml .env.example scripts/setup_wizard.py
 done
 if $DRY_RUN; then
   printf '预检通过：Python、Git、Docker/Compose 和安装源文件均可用。\n'
-  printf '未创建 .env、runtime、Secret、配对码、venv、Docker network 或镜像；未运行向导。\n'
+  printf '未创建 .env、runtime、Secret、venv、Docker network 或镜像；未运行向导。\n'
   exit 0
 fi
 mkdir -p runtime/{data,secrets,import,exports,vendor-src,evidence} runtime/vendor-output/{cli,xhs,kuaishou,douk}
@@ -45,7 +45,11 @@ if [[ "$(id -u)" == "0" ]]; then
   chmod 2770 runtime/data runtime/import runtime/vendor-output runtime/vendor-output/{cli,xhs,kuaishou,douk}
 fi
 chmod 700 runtime/secrets
-for name in r2_access_key_id r2_secret_access_key oci_access_key_id oci_secret_access_key github_token private_database_token social_archive_api_token cli_worker_token instagram_session notion_token obsidian_rest_token karakeep_api_token linkwarden_api_token; do
+# 这份清单必须覆盖 compose.yaml 里**每一个** file-based secret。
+# Compose 对缺文件是硬错：少一个，docker compose up 直接起不来，
+# 报的还是 Docker 自己的错，看不出是哪一环没建。
+# 空占位是安全的——应用读到空值会返回 503 + 中文说明，而不是静默当成"没配也能跑"。
+for name in r2_access_key_id r2_secret_access_key oci_access_key_id oci_secret_access_key github_token github_markdown_token private_database_token social_archive_api_token cli_worker_token instagram_session notion_token obsidian_rest_token karakeep_api_token linkwarden_api_token google_oauth_client_secret github_oauth_client_secret credential_age_identity; do
   [[ -e "runtime/secrets/$name" ]] || : > "runtime/secrets/$name"
   chmod 600 "runtime/secrets/$name"
 done
