@@ -1,0 +1,86 @@
+{
+  "task": "T15",
+  "claim": "同步跑到一半 service worker 被杀掉，任务能自己恢复；反复失败会显式收场，服务端那次 run 不再停在 queued",
+
+  "symptom_reproduced_earlier": {
+    "what_the_user_sees": "点了同步 → 转圈 → 永远不结束。再点一次还是一样。",
+    "underlying_state": "扩展队列里没有这条任务了，服务端那次 sync_run 一直停在 queued。",
+    "why_it_matters": "这不是偶发。MV3 的 service worker **空闲约 30 秒就被回收**，一次同步跑几十秒到几分钟，中途被杀是必然会发生的事。"
+  },
+
+  "three_causes_stacked": [
+    {
+      "where": "processSyncQueue（修改前）",
+      "code": "const item = queue.shift(); … await setSyncQueue(queue); … await syncAccountById(...)",
+      "problem": "**先把条目摘出队列并持久化，然后才去干活。** worker 死在干活途中，这条任务就彻底消失了——队列里没有，没有任何东西知道它存在过。"
+    },
+    {
+      "where": "锁（修改前）",
+      "code": "{ accountId, startedAt } + 判据「两小时内算别人在跑」",
+      "problem": "锁里没有归属信息。持锁的 worker 已经死了，锁还在，接下来**两个小时**里点什么都是 busy。",
+      "insight": "MV3 同一时刻只有一个 worker 实例，所以 storage 里一把 workerId 不等于当前值的锁，**一定**是死锁——不必等超时，可以立刻判定。这比拍一个超时数字准确得多。"
+    },
+    {
+      "where": "闹钟（修改前）",
+      "code": "chrome.alarms.create(name, { delayInMinutes: 0.5 })  // 一次性",
+      "problem": "靠 processSyncQueue 的 finally 去排下一次。worker 被杀时 finally **不执行**——于是再没有任何东西会唤醒它。这是三条里最致命的一条：前两条留下的残局，本来还指望下一次唤醒来收拾。"
+    }
+  ],
+
+  "fix": {
+    "file": "apps/browser-extension/background.js",
+    "changes": [
+      "WORKER_INSTANCE_ID：模块作用域在每次 worker 启动时重新求值，天然标识「当前这个 worker」。锁和在跑标记都带上它。",
+      "不再 shift：原地标记 startedAt/workerId/attempts，**跑完才移除**。",
+      "周期闹钟（periodInMinutes: 1）替代一次性闹钟；闲下来由 clearSyncQueueAlarmIfIdle 撤掉，不白唤醒。",
+      "reclaimAbandonedSyncWork()：回收死 worker 的锁，把被打断的条目清掉在跑标记放回队列。",
+      "**在模块顶层调用一次**——onStartup 只在浏览器启动时触发，而 worker 一天重启几十次；只挂 onStartup 等于绝大多数情况下不会恢复。",
+      "reportSyncGaveUp()：放弃时把「关系终批 + completeness=failed + failure_code=SYNC_INTERRUPTED」报给服务端。"
+    ]
+  },
+
+  "the_half_i_almost_shipped_broken": {
+    "what": "一开始只修了扩展这边：队列恢复、锁回收、放弃时往 chrome.storage 里写一条 lastResult。",
+    "why_that_was_not_enough": "查了一下 `SYNC_QUEUE_LAST_RESULT_KEY` 的消费方——**它在 background.js 里被写了四处，没有任何界面读它**。也就是说那条「我放弃了」的记录写进了没人看的地方。用户真正看得见的是服务端 sync_run 的状态，而那次 run 还停在 queued，界面照样转圈。修了一半，表现和没修一模一样。",
+    "fix": "放弃时用既有的「关系终批」机制通知服务端（scope_type=relation + 空 items + completeness=failed），服务端 _finalize_relation_scope 收到 failed 就把这次 run 落到 failed。没有新开协议。"
+  },
+
+  "second_thing_i_almost_got_wrong": {
+    "what": "关系类型一开始是从平台目录猜的：platformSpec(account.platform).relations[0]。",
+    "why_wrong": "**Chrome 书签账号的平台是 generic-web，平台目录里根本没有这一条**——它走 syncChromeBookmarks 那条独立路径，关系类型写死是 \"bookmark\"。而那恰恰是 Owner 已经连上、装了 62 条书签的那个账号。按平台猜，最常用的账号反而报不上去，run 照样卡死。",
+    "fix": "改成问**这次 run 自己**：run.relation_scope 是发起时写进去的那一组，是权威。平台目录只作为兜底。",
+    "guard": "判据里专门用 generic-web + relation_scope=['bookmark'] 打这一条。"
+  },
+
+  "guards": {
+    "file": "tests/focused/test_sync_queue_survives_worker_death.py",
+    "how_they_work": "**不打在源码文本上**（那种判据我改一次实现就会假红或假绿），而是把 background.js 真的加载进 Node 的 vm 沙箱当一个 worker 实例跑，storage 放在沙箱外面——这正是真实情况，chrome.storage.local 活得比 worker 久。「杀掉 worker」就是丢弃那个沙箱、用同一份 storage 再 boot 一个。",
+    "cases": [
+      "worker 死在同步途中 → 任务仍在队列、可再跑、死锁已回收、闹钟是周期的",
+      "打断到顶 → 显式失败（中文、无堆栈），不安静消失",
+      "本 worker 自己的锁不被回收（否则同一账号会被同步两遍）",
+      "放弃时通知服务端，且是关系终批 / completeness=failed / 空 items / 关系类型取自 run",
+      "上报失败（离线）不把本地恢复流程弄挂"
+    ],
+    "proved_by_reintroduction": [
+      {"revert": "把原地标记改回 queue.splice 摘除", "result": "1 failed —— 「干活期间条目就已经不在队列里了」，assert 0 == 1"},
+      {"revert": "拿掉 reportSyncGaveUp 调用", "result": "1 failed —— 「放弃时没有通知服务端」"}
+    ]
+  },
+
+  "a_mistake_worth_recording": {
+    "what": "判据一开始是手动调 reclaimAbandonedSyncWork() 来触发恢复，结果一直报「没有通知服务端」。",
+    "cause": "我自己加的顶层 bootstrap 在 worker 一启动就跑了一次恢复，把队列排空了；测试里那次手动调用看到的是空队列。**判据和被测代码抢同一个队列。**",
+    "fix": "改成不手动调，只 boot 一个 worker 然后等一下——那才是真实路径（周期闹钟把 worker 拉起来，恢复自动发生）。改完判据反而更真。",
+    "lesson": "调试时先直接调被测函数确认它本身是好的（reportSyncGaveUp 单独调返回 reported:true），再回头找为什么整条链路没走到，比盯着断言猜快得多。"
+  },
+
+  "what_this_does_not_prove": [
+    "没有在真实 Chrome 里让 worker 真的被回收一次再看恢复——沙箱模拟的是「worker 没了、storage 还在」这个状态，不是 Chrome 的回收时机本身。",
+    "MAX_SYNC_ATTEMPTS=3 是拍的，没有实测过「几次之后该放弃」。",
+    "periodInMinutes: 1 的实际唤醒频率受 Chrome 节流影响，没有实测。",
+    "SYNC_INTERRUPTED 这个失败码还没有进冻结文案词典（和 T12 的两个缺口一样，改词典要先改 ZERO_BARRIER_UX.md，那是 Owner 的裁定）。服务端收到它会走 unexplained_zero 的「这是产品的问题」——结论对，措辞不准。"
+  ],
+
+  "suite_after": "482 passed / 7 failed（7 条为 origin/main 既有）；发布门 9 道全绿；扩展预检 14 个脚本通过；明文扫描 478 文件 0 命中。"
+}

@@ -173,6 +173,22 @@ const netCaptureBuffer = [];
 const MIRROR_TAB_PREFIX = "saMirrorTab:";
 const ACTIVE_SYNC_STATES = new Set(["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"]);
 
+// ── MV3 service worker 会在同步跑到一半时被杀掉 ──────────────────────
+//
+// 这不是异常情况，是 MV3 的**常态**：worker 空闲约 30 秒就被回收，
+// 长任务跑到一半被终止，`finally` 不会执行。
+//
+// 这个常量是本次 worker 实例的身份。模块作用域在**每次 service worker
+// 启动时重新求值**，所以它天生就标识「当前这个 worker」。
+// 关键推论：MV3 同一时刻只有一个 worker 实例，所以
+// **storage 里一把 workerId 不等于当前值的锁，一定是死锁**
+// ——持有它的那个 worker 已经不在了，不必等它超时。
+const WORKER_INSTANCE_ID = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+
+// 被 worker 之死打断的任务重试几次。到顶之后必须**显式失败**而不是安静消失
+// （INV-NO-SILENT-ZERO）——否则用户看到的又是一次没有解释的 0 条。
+const MAX_SYNC_ATTEMPTS = 3;
+
 async function getPendingConnections() {
   const stored = await chrome.storage.local.get({ [PENDING_CONNECTIONS_KEY]: {} });
   return stored[PENDING_CONNECTIONS_KEY] || {};
@@ -275,7 +291,111 @@ async function controlSyncRun({ syncRunId, accountId = null, action }) {
 }
 
 async function scheduleSyncQueue(delayInMinutes = 0.5) {
-  await chrome.alarms.create(SYNC_QUEUE_ALARM, { delayInMinutes: Math.max(0.5, Number(delayInMinutes || 0.5)) });
+  // **周期闹钟，不是一次性的。** 原来用的是只有 delayInMinutes 的一次性闹钟，
+  // 靠 processSyncQueue 的 finally 去排下一次。worker 被杀时 finally 不执行，
+  // 于是没有任何东西会再唤醒它——队列就永远停在那儿。
+  // 周期闹钟由浏览器持有，worker 死了它照样会把 worker 拉起来，
+  // 这是 MV3 里唯一可靠的恢复入口。空闲时由 clearSyncQueueAlarmIfIdle 撤掉。
+  await chrome.alarms.create(SYNC_QUEUE_ALARM, {
+    delayInMinutes: Math.max(0.5, Number(delayInMinutes || 0.5)),
+    periodInMinutes: 1,
+  });
+}
+
+async function clearSyncQueueAlarmIfIdle() {
+  // 队列空了、也没有在跑的任务，就撤掉周期闹钟，别白白唤醒 worker。
+  const [queue, stored] = await Promise.all([
+    getSyncQueue(),
+    chrome.storage.local.get({ [SYNC_QUEUE_LOCK_KEY]: null }),
+  ]);
+  if (!queue.length && !stored[SYNC_QUEUE_LOCK_KEY]) {
+    await chrome.alarms.clear(SYNC_QUEUE_ALARM);
+  }
+}
+
+async function reportSyncGaveUp(item) {
+  // 把「这次同步我不再试了」报给服务端，让那次 run 从 queued 走到终态。
+  //
+  // 不报的后果：扩展这边收拾干净了，服务端那次 run 永远停在 queued，
+  // 界面就永远转圈——用户看到的和什么都没修一模一样。
+  //
+  // 用的是既有的「关系终批」机制（scope_type=relation + 空 items +
+  // completeness=failed），不新开协议：服务端 _finalize_relation_scope
+  // 收到 failed 就会把这次 run 落到 failed。
+  if (!item?.syncRunId) return { reported: false, reason: "没有 syncRunId，服务端本来就没有这次 run" };
+  try {
+    // 关系类型问**这次 run 自己**，不要从平台去猜。
+    // run.relation_scope 就是当初发起时写进去的那一组，是权威。
+    // 从平台猜会漏掉 Chrome 书签：它的平台是 generic-web，平台目录里
+    // 根本没有这一条（它走 syncChromeBookmarks 那条独立路径，
+    // 关系类型写死是 "bookmark"）——而那恰恰是最常用的账号。
+    const run = await SA.api(`/v1/sync-runs/${encodeURIComponent(item.syncRunId)}`, { timeoutMs: 8000 })
+      .catch(() => null);
+    let relation = (run?.relation_scope || [])[0];
+    if (!relation) {
+      const account = (await listAccounts()).find(entry => entry.id === item.accountId);
+      relation = platformSpec(account?.platform)?.relations?.[0];
+    }
+    if (!relation) return { reported: false, reason: "认不出这次同步的关系类型" };
+    await sendSyncBatch(item.syncRunId, {
+      relation_type: relation,
+      scope_type: "relation",
+      items: [],
+      completeness: "failed",
+      batch_index: 0,
+      has_more: false,
+      failure_code: "SYNC_INTERRUPTED",
+      cursor: { interrupted_attempts: Number(item.attempts || 0) },
+    });
+    return { reported: true };
+  } catch (error) {
+    // 报不上去（离线、run 已终态、令牌过期）不能反过来把恢复流程弄挂。
+    // 队列这边照样收拾干净，服务端那次 run 由它自己的超时兜底。
+    return { reported: false, reason: error?.message || "上报失败" };
+  }
+}
+
+async function reclaimAbandonedSyncWork() {
+  // 把上一个 worker 死掉时留下的残局收回来。
+  //
+  // 判据不是「锁过期了没」而是「**持锁的 worker 还在不在**」：
+  // MV3 同一时刻只有一个 worker 实例，所以 workerId 对不上就说明它已经没了，
+  // 不必等那两个小时的超时——那两个小时里用户点什么都是「busy」。
+  const stored = await chrome.storage.local.get({ [SYNC_QUEUE_LOCK_KEY]: null });
+  const lock = stored[SYNC_QUEUE_LOCK_KEY];
+  if (lock && lock.workerId && lock.workerId !== WORKER_INSTANCE_ID) {
+    await chrome.storage.local.remove(SYNC_QUEUE_LOCK_KEY);
+  }
+
+  const queue = await getSyncQueue();
+  let changed = false;
+  const kept = [];
+  for (const item of queue) {
+    // 标了 startedAt 却不是本 worker 起的 —— 它是被中断的，不是在跑的。
+    if (!item.startedAt || item.workerId === WORKER_INSTANCE_ID) { kept.push(item); continue; }
+    changed = true;
+    if (Number(item.attempts || 0) >= MAX_SYNC_ATTEMPTS) {
+      // 到顶了：**显式失败，不能安静地从队列里消失**。
+      // 安静消失的后果就是用户看到一次没有解释的 0 条，正是这一版要消灭的东西。
+      await chrome.storage.local.set({
+        [SYNC_QUEUE_LAST_RESULT_KEY]: {
+          ok: false, accountId: item.accountId, syncRunId: item.syncRunId || null,
+          failureCode: "SYNC_INTERRUPTED", attempts: Number(item.attempts || 0),
+          error: "同步被浏览器中断了多次，没有跑完。",
+          finishedAt: Date.now(),
+        },
+      });
+      // 光在本地记一笔不够：**服务端那次 run 还停在 queued**，界面一直转圈。
+      // 上面这条 lastResult 现在没有任何界面在读，真正被用户看见的是服务端的
+      // sync_run 状态。所以必须把"我放弃了"告诉服务端。
+      await reportSyncGaveUp(item);
+      continue;
+    }
+    // 还能再试：清掉在跑标记，放回队列
+    kept.push({ ...item, startedAt: null, workerId: null, updatedAt: Date.now() });
+  }
+  if (changed) await setSyncQueue(kept);
+  return { reclaimed: changed, queued: kept.length };
 }
 
 async function enqueueAccountSync({ accountId, syncRunId = null, tabId = null, profileUrl = "", triggerType = "manual" }) {
@@ -311,22 +431,48 @@ async function enqueueAllAccounts(triggerType = "manual") {
 }
 
 async function processSyncQueue() {
+  // 每次进来先收残局：上一个 worker 可能是在跑到一半时被杀掉的。
+  await reclaimAbandonedSyncWork();
+
   const stored = await chrome.storage.local.get({ [SYNC_QUEUE_LOCK_KEY]: null });
   const lock = stored[SYNC_QUEUE_LOCK_KEY];
-  if (lock && Date.now() - Number(lock.startedAt || 0) < 2 * 60 * 60 * 1000) {
-    await scheduleSyncQueue();
+  if (lock && lock.workerId === WORKER_INSTANCE_ID) {
+    // 只有**本 worker 自己**持的锁才算真的在跑（防同一实例内并发进入）。
+    // 别的 worker 留下的锁已经在 reclaim 里清掉了。
     return { ok: true, state: "busy" };
   }
+
   const queue = await getSyncQueue();
-  const item = queue.shift();
-  if (!item) return { ok: true, state: "empty" };
-  await setSyncQueue(queue);
+  const index = queue.findIndex(entry => !entry.startedAt);
+  if (index < 0) {
+    await clearSyncQueueAlarmIfIdle();
+    return { ok: true, state: "empty" };
+  }
+  const item = queue[index];
+
   const queuedControl = await getSyncControl(item.syncRunId);
   if (queuedControl?.action === "pause" || queuedControl?.action === "cancel") {
-    if (queue.length) await scheduleSyncQueue();
+    queue.splice(index, 1);
+    await setSyncQueue(queue);
     return { ok: true, state: queuedControl.action === "pause" ? "paused" : "cancelled", syncRunId: item.syncRunId };
   }
-  await chrome.storage.local.set({ [SYNC_QUEUE_LOCK_KEY]: { accountId: item.accountId, startedAt: Date.now() } });
+
+  // **不 shift。** 原来是先把条目从队列里取出来再干活，worker 中途被杀
+  // 这条任务就彻底消失了：队列里没有、服务端那次 run 永远停在 queued、
+  // 界面一直转圈。现在改成原地标记「在跑」，跑完才移除——
+  // 被打断的话 reclaimAbandonedSyncWork 会把标记清掉让它重来。
+  queue[index] = {
+    ...item,
+    startedAt: Date.now(),
+    workerId: WORKER_INSTANCE_ID,
+    attempts: Number(item.attempts || 0) + 1,
+    updatedAt: Date.now(),
+  };
+  await setSyncQueue(queue);
+  await chrome.storage.local.set({
+    [SYNC_QUEUE_LOCK_KEY]: { accountId: item.accountId, startedAt: Date.now(), workerId: WORKER_INSTANCE_ID },
+  });
+
   let result;
   try {
     result = await syncAccountById(item.accountId, item);
@@ -335,8 +481,11 @@ async function processSyncQueue() {
     result = { ok: false, accountId: item.accountId, error: error?.message || "同步失败", finishedAt: Date.now() };
     await chrome.storage.local.set({ [SYNC_QUEUE_LAST_RESULT_KEY]: result });
   } finally {
+    // 跑完了（不管成没成）才把它从队列里摘掉。
+    await removeQueuedSync({ accountId: item.accountId, syncRunId: item.syncRunId });
     await chrome.storage.local.remove(SYNC_QUEUE_LOCK_KEY);
     if ((await getSyncQueue()).length) await scheduleSyncQueue();
+    else await clearSyncQueueAlarmIfIdle();
   }
   return result;
 }
@@ -878,6 +1027,17 @@ chrome.runtime.onStartup.addListener(() => {
   chrome.alarms.create("sa-account-sync", { periodInMinutes: 360 }).catch(() => {});
   getSyncQueue().then(queue => queue.length ? scheduleSyncQueue() : null).catch(() => {});
 });
+
+// **每次 service worker 启动都要收残局，不能只挂在 onStartup 上。**
+// onStartup 只在**浏览器**启动时触发一次；而 MV3 的 worker 空闲约 30 秒
+// 就被回收、来事件再拉起，一天里能重启几十次。上一次同步如果是在
+// worker 被杀时中断的，那些残局只有在这里才收得到。
+//
+// 模块作用域在每次 worker 启动时重新求值——这是 MV3 里唯一的
+// 「worker 起来了」钩子。
+reclaimAbandonedSyncWork()
+  .then(state => (state.queued ? scheduleSyncQueue() : null))
+  .catch(() => {});
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete") injectFabIfAuthorized(tabId, tab.url).catch(() => {});
 });
