@@ -25,6 +25,20 @@ if $SELF_TEST; then
   "${PYTHON[@]}" - <<'PY'
 from pathlib import Path
 
+# A macOS-side copy leaves AppleDouble sidecars ("._name") beside real files.
+# They are binary resource forks, so rglob("*.py") picked them up and the
+# self-test died on an opaque UnicodeDecodeError instead of naming the
+# problem.  Report them as the deployment-hygiene failure they are.
+sidecars = sorted(
+    str(path)
+    for root in (Path("src"), Path("scripts"))
+    for path in root.rglob("._*")
+)
+if sidecars:
+    raise SystemExit(
+        "自检失败：部署树中存在 macOS AppleDouble 残留文件，请先删除：\n  "
+        + "\n  ".join(sidecars)
+    )
 for root in (Path("src"), Path("scripts")):
     for source in root.rglob("*.py"):
         compile(source.read_text(encoding="utf-8"), str(source), "exec")

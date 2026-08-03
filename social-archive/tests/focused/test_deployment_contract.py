@@ -511,3 +511,19 @@ def test_tunnel_renderer_uses_isolated_ports_and_has_no_file_write(tmp_path):
     assert rendered["config"]["ingress"][2]["path"] == r"^/social-archive(\.json|-health)$"
     assert "http://127.0.0.1:80" in serialized
     assert list(tmp_path.glob("*.yml")) == []
+
+
+def test_doctor_self_test_names_appledouble_sidecars_instead_of_crashing(tmp_path):
+    # A macOS-side deploy left ._api.py and ._db.py in the production tree.
+    # They are binary resource forks, so the self-test's rglob("*.py") compile
+    # loop died on an opaque UnicodeDecodeError that named no file.
+    doctor = (ROOT / "scripts" / "doctor.sh").read_text(encoding="utf-8")
+    assert 'rglob("._*")' in doctor
+    assert "AppleDouble" in doctor
+    # The guard must run before the compile loop, or the crash wins the race.
+    assert doctor.index('rglob("._*")') < doctor.index('for source in root.rglob("*.py"):')
+
+
+def test_deploy_tree_has_no_appledouble_sidecars():
+    offenders = [str(path.relative_to(ROOT)) for path in ROOT.rglob("._*") if ".venv" not in path.parts]
+    assert offenders == [], f"macOS AppleDouble sidecars must never be committed or deployed: {offenders}"
