@@ -45,7 +45,12 @@
         like: "https://space.bilibili.com/0"
       },
       contentPatterns: [/\/video\/(?:BV[a-zA-Z0-9]+|av\d+)/i],
-      collectionText: /收藏夹|收藏|稍后再看|合集/i
+      collectionText: /收藏夹|收藏|稍后再看|合集/i,
+      // The liked-video view shares a user-space route with other profile
+      // content, so it must be confirmed from the selected tab before scan.
+      relationTabMatchers: {
+        like: [/^(?:点赞|赞过|喜欢)$/]
+      }
     },
     x: {
       label: "X", relations: ["bookmark", "like"],

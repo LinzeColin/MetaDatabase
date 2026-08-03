@@ -161,20 +161,39 @@ def _bilibili_list(payload: dict) -> dict:
             "artifacts": [],
             "observations": [],
         }
-    observations = []
+    if result.get("status") != "success":
+        result.update({"run_id": run_id, "observations": []})
+        return result
+
     text = result.get("stdout", "").strip()
-    if text:
-        try:
-            parsed = json.loads(text)
-            payload_data = parsed.get("data", parsed) if isinstance(parsed, dict) else parsed
-            if isinstance(payload_data, dict) and isinstance(payload_data.get("items"), list):
-                observations = payload_data["items"]
-            elif isinstance(payload_data, list):
-                observations = payload_data
-            else:
-                observations = [payload_data]
-        except json.JSONDecodeError:
-            observations = [{"raw_text": line} for line in text.splitlines() if line.strip()]
+    try:
+        if not text:
+            raise ValueError("empty response")
+        parsed = json.loads(text)
+        if isinstance(parsed, dict) and parsed.get("ok") is False:
+            raise ValueError("upstream rejected the list request")
+        payload_data = parsed.get("data", parsed) if isinstance(parsed, dict) else parsed
+        if isinstance(payload_data, dict) and isinstance(payload_data.get("items"), list):
+            observations = payload_data["items"]
+        elif isinstance(payload_data, list):
+            observations = payload_data
+        elif isinstance(payload_data, dict):
+            observations = [payload_data]
+        else:
+            raise ValueError("response data is not a JSON object or list")
+    except (ValueError, json.JSONDecodeError):
+        return {
+            "status": "failed",
+            "run_id": run_id,
+            "exit_code": result.get("exit_code", 1),
+            "error_code": "BILI_INVALID_RESPONSE",
+            "message": "bilibili-cli 未返回可信的结构化 JSON；未导入原始文本。",
+            "retryable": True,
+            "stdout": "",
+            "stderr": "bilibili-cli 返回无效结构化数据",
+            "artifacts": [],
+            "observations": [],
+        }
     result.update({"run_id": run_id, "observations": observations})
     return result
 

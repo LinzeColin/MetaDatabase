@@ -201,3 +201,100 @@ console.log(JSON.stringify({{
             },
         ],
     }
+
+
+def test_bilibili_browser_mirror_requires_confirmed_like_scope_and_keeps_video_ids():
+    script = f"""
+const core = require({json.dumps(str(MIRROR_CORE))});
+function tab(text, selected = false) {{
+  const attrs = {{ 'aria-selected': selected ? 'true' : 'false' }};
+  return {{
+    textContent: text,
+    className: '',
+    getAttribute: key => attrs[key] || '',
+    click: () => {{ attrs['aria-selected'] = 'true'; }},
+  }};
+}}
+function card(label) {{
+  return {{
+    innerText: label,
+    textContent: label,
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    closest: () => null,
+  }};
+}}
+function anchor(href, label) {{
+  const parent = card(label);
+  return {{
+    href,
+    textContent: label,
+    title: label,
+    getAttribute: () => '',
+    closest: () => parent,
+  }};
+}}
+const like = tab('点赞', true);
+const scopeRoot = {{ querySelectorAll: () => [like] }};
+const root = {{
+  querySelectorAll: () => [
+    anchor('https://www.bilibili.com/video/BV1fixture?spm_id_from=333.1', '收藏视频'),
+    anchor('https://www.bilibili.com/video/av170001', '历史视频'),
+  ],
+}};
+const items = core.extractCandidates('bilibili', root, {{
+  relationType: 'favorite',
+  collectionKey: 'bilibili:fav:1',
+  collectionName: '默认收藏夹',
+  pageUrl: 'https://space.bilibili.com/0/favlist',
+}});
+console.log(JSON.stringify({{
+  activeLike: core.ensureRelationScope('bilibili', 'like', scopeRoot),
+  missingLike: core.ensureRelationScope('bilibili', 'like', {{ querySelectorAll: () => [] }}),
+  routeScopedHistory: core.ensureRelationScope('bilibili', 'history', {{ querySelectorAll: () => [] }}),
+  items: items.map(item => ({{
+    external_content_id: item.external_content_id,
+    url: item.url,
+    relation_type: item.relation_type,
+    collection_key: item.collection_key,
+  }})),
+}}));
+"""
+    completed = subprocess.run(
+        ["node", "-e", script],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    assert json.loads(completed.stdout) == {
+        "activeLike": {
+            "confirmed": True,
+            "reason": "TAB_ALREADY_SELECTED",
+            "clicked": False,
+        },
+        "missingLike": {
+            "confirmed": False,
+            "reason": "RELATION_TAB_NOT_FOUND",
+            "clicked": False,
+        },
+        "routeScopedHistory": {
+            "confirmed": True,
+            "reason": "ROUTE_SCOPED",
+            "clicked": False,
+        },
+        "items": [
+            {
+                "external_content_id": "BV1fixture",
+                "url": "https://www.bilibili.com/video/BV1fixture?spm_id_from=333.1",
+                "relation_type": "favorite",
+                "collection_key": "bilibili:fav:1",
+            },
+            {
+                "external_content_id": "av170001",
+                "url": "https://www.bilibili.com/video/av170001",
+                "relation_type": "favorite",
+                "collection_key": "bilibili:fav:1",
+            },
+        ],
+    }

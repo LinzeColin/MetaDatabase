@@ -159,6 +159,30 @@ def test_bilibili_sidecar_turns_upstream_rate_limit_into_structured_degraded(mon
     assert result["observations"] == []
 
 
+@pytest.mark.parametrize("stdout", ["", "not-json", json.dumps({"ok": False, "error": {"code": "invalid"}})])
+def test_bilibili_sidecar_refuses_empty_or_unstructured_list_output(monkeypatch, tmp_path, stdout):
+    server = _load_cli_server()
+    server.OUTPUT_ROOT = tmp_path
+
+    def fake_run(argv, run_dir, timeout=900, *, require_artifacts=True):
+        return {
+            "status": "success",
+            "exit_code": 0,
+            "stdout": stdout,
+            "stderr": "",
+            "artifacts": [],
+        }
+
+    monkeypatch.setattr(server, "_run", fake_run)
+    result = server._bilibili_list({"subcommand": "history", "limit": 20})
+
+    assert result["status"] == "failed"
+    assert result["error_code"] == "BILI_INVALID_RESPONSE"
+    assert result["retryable"] is True
+    assert result["observations"] == []
+    assert "raw_text" not in json.dumps(result, ensure_ascii=False)
+
+
 def test_bilibili_subprocess_gets_an_empty_per_run_home(monkeypatch, tmp_path):
     server = _load_cli_server()
     run_dir = tmp_path / "run"
