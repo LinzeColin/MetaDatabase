@@ -39,7 +39,11 @@
     "https://kuaishou.cn/*",
     "https://*.kuaishou.cn/*",
     "https://b23.tv/*",
-    "https://redd.it/*"
+    "https://redd.it/*",
+    "https://*.youtube.com/*",
+    "https://youtube.com/*",
+    "https://*.google.com/*",
+    "https://www.instagram.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -81,6 +85,7 @@
     }
   ],
   "optional_permissions": [
-    "bookmarks"
+    "bookmarks",
+    "cookies"
   ]
 }

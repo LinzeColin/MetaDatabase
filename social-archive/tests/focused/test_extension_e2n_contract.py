@@ -45,8 +45,20 @@ def test_extension_auth_and_privacy_boundaries_are_explicit():
     assert all("*://*/*" not in host for host in hosts)
     assert "bookmarks" in manifest.get("optional_permissions", [])
     assert "alarms" in manifest.get("permissions", [])
+    # v0.0.0.7 / T06：chrome.cookies 从"全仓禁止"收紧成"只许出现在一个文件里"。
+    # 西方三源的取数在服务端跑，需要 cookies.txt；但读 Cookie 的能力必须
+    # 关在一个可审计的模块里，不能散进 background/popup/content 任何一处。
+    # document.cookie / webRequest / eval 仍然全仓禁止——它们和 T06 无关。
+    cookie_readers = sorted(
+        str(path.relative_to(root)) for path in root.rglob("*.js")
+        if "chrome.cookies" in path.read_text(encoding="utf-8")
+    )
+    assert cookie_readers == ["cookie-export.js"], (
+        f"chrome.cookies 出现在了这些文件里：{cookie_readers}。"
+        "读 Cookie 的能力只允许存在于 cookie-export.js 一个模块里。"
+    )
     scripts = "\n".join(path.read_text(encoding="utf-8") for path in root.rglob("*.js"))
-    forbidden = ("document.cookie", "chrome.cookies", "webRequest", "eval(", "new Function(")
+    forbidden = ("document.cookie", "webRequest", "eval(", "new Function(")
     assert not any(token in scripts for token in forbidden)
     assert "chrome.permissions.request" in scripts
     assert "Cookie、Token" in (root / "options.html").read_text(encoding="utf-8")

@@ -1,5 +1,5 @@
 /* global SA */
-importScripts("shared.js", "content/platform-catalog.js", "content/extension-utils.js");
+importScripts("shared.js", "content/platform-catalog.js", "content/extension-utils.js", "cookie-export.js");
 
 const MENU_SAVE = "social-archive-save-page";
 const MENU_SELECTION = "social-archive-save-selection";
@@ -996,6 +996,53 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         throw new Error("凭据未能通过验证，请在档案馆页面重新点击连接插件。");
       }
       return { ok: true, paired: true, endpoint: next.endpoint, libraryUrl: next.libraryUrl };
+    }
+    // 西方三源的会话导出（v0.0.0.7 / T06）。
+    //
+    // cookies 是**可选权限**：装插件时不申请，只在用户点「连接 X」这一刻才要。
+    // 用户拒绝授权时说清楚是没授权，不要退回"没登录"——那两件事的下一步不一样。
+    if (message?.type === "SA_CONNECT_PLATFORM_SESSION") {
+      const platform = String(message.platform || "").trim().toLowerCase();
+      const spec = globalThis.SACookieExport?.ALLOWED_PLATFORMS?.[platform];
+      if (!spec) {
+        return { ok: false, state: "needs_user_action", error: "这个平台不通过浏览器会话连接。" };
+      }
+      const origins = spec.domains.flatMap(domain => [`https://*.${domain}/*`, `https://${domain}/*`]);
+      const granted = await chrome.permissions.request({ permissions: ["cookies"], origins })
+        .catch(() => false);
+      if (!granted) {
+        return { ok: false, state: "unauthorized", error: "没有获得读取该平台登录状态的授权。" };
+      }
+      const config = await SA.getConfig();
+      try {
+        const { count } = await globalThis.SACookieExport.connectPlatformSession(platform, {
+          endpoint: config.endpoint, token: config.token,
+        });
+        // 只回条数。**任何时候都不回、也不记 cookie 的名或值。**
+        return { ok: true, state: "connected", platform, count,
+                 message_zh: `已连接，登录状态已加密保存（${count} 条）。随时可以一键撤销。` };
+      } catch (error) {
+        const code = error?.code || "UPLOAD_FAILED";
+        return { ok: false, state: code === "NOT_LOGGED_IN" ? "needs_user_action" : "failed",
+                 failureCode: code, error: error?.message || "连接失败" };
+      }
+    }
+    if (message?.type === "SA_REVOKE_PLATFORM_SESSION") {
+      const platform = String(message.platform || "").trim().toLowerCase();
+      const config = await SA.getConfig();
+      const response = await fetch(`${config.endpoint}/v1/credentials/${encodeURIComponent(platform)}`, {
+        method: "DELETE", headers: { Authorization: `Bearer ${config.token}` },
+      }).catch(() => null);
+      if (!response?.ok) return { ok: false, error: "撤销失败，请稍后重试。" };
+      // 顺手把浏览器这边的权限也还回去——库里删了但权限还留着，
+      // 用户看到的仍是"这个插件能读我的 Cookie"。
+      const spec = globalThis.SACookieExport?.ALLOWED_PLATFORMS?.[platform];
+      if (spec) {
+        await chrome.permissions.remove({
+          origins: spec.domains.flatMap(d => [`https://*.${d}/*`, `https://${d}/*`]),
+        }).catch(() => null);
+      }
+      return { ok: true, state: "disconnected", message_zh: "已撤销，服务器上的登录信息已删除。" };
     }
     if (message?.type === "SA_OPEN_OPTIONS") {
       await chrome.runtime.openOptionsPage();
