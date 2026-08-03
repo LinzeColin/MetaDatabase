@@ -50,9 +50,8 @@
     "status": "recorded, not yet fixed"
   },
   "what_this_does_not_prove": [
-    "SA-403 closure. The frozen Oracle also covers the standard Markdown and JSONL destinations, which were not exercised in this run.",
     "SA-402. Notion remains unconfigured and is not addressed here.",
-    "Any account-level mirror. The exported item is the canary content row."
+    "Any account-level mirror. The exported items are existing captures, since no real account sync has run."
   ],
   "non_actions": [
     "No Obsidian REST token, Notion token, or any other secret was created, read, or written.",
