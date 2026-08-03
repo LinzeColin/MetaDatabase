@@ -44,4 +44,18 @@ SA-507 is blocked by all of the above.
 
 None. No push, tag, release, image publish or timer enablement, per the standing instruction not to push until the whole task pack is complete. The branch `claude/social-archive-v0-0-0-6-eaad48` is local only.
 
-Rollback points on the production host: `/opt/social-archive-rollback/opt-social-archive-source-20260803T055259Z.tar.gz`, the dated `.env` backups beside it, and the retained `:0.0.0.5` images.
+## Rollback
+
+The source tarball `/opt/social-archive-rollback/opt-social-archive-source-20260803T055259Z.tar.gz` was drilled and is sound: tar intact, 6351 members, `VERSION` 0.0.0.5, compose pinned to `:0.0.0.5`, Dockerfile and 28 source modules present. The dated `.env` backups sit beside it.
+
+**Correction:** an earlier version of this report also listed the `:0.0.0.5` images as retained. They are not — they were removed during the cleanup after the failed Karakeep pull, and the claim had been asserted rather than checked. Rollback therefore needs a rebuild rather than an instant image swap, roughly five minutes and about 1 GB of disk.
+
+```bash
+sudo tar -xzf /opt/social-archive-rollback/opt-social-archive-source-20260803T055259Z.tar.gz -C /opt \
+  && cd /opt/social-archive \
+  && sudo cp /opt/social-archive-rollback/env-20260803T055259Z.bak .env \
+  && sudo docker compose build core-api core-worker cli-tools \
+  && sudo docker compose up -d
+```
+
+That overwrites the source tree in place. `runtime/`, the secrets and the SQLite data plane live outside the tarball and are untouched.
