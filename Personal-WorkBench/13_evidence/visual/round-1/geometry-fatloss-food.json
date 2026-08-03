@@ -1,0 +1,39 @@
+{
+  "browser_window_css": [
+    1920,
+    878
+  ],
+  "capture_canvas_css": [
+    472,
+    1024
+  ],
+  "rects": {
+    ".food-card": {
+      "height": 616,
+      "width": 356,
+      "x": 826,
+      "y": 154
+    },
+    ".module-tabs": {
+      "height": 52,
+      "width": 356,
+      "x": 826,
+      "y": 86
+    },
+    ".upload-zone": {
+      "height": 130,
+      "width": 322,
+      "x": 843,
+      "y": 237
+    }
+  },
+  "reference_mode": true,
+  "reference_page": "fatloss-food",
+  "stage": {
+    "height": 1024,
+    "width": 472,
+    "x": 724,
+    "y": 0
+  },
+  "visible_text": "桌面\n待办\n记账\n减脂\n日程\n纪念\n日记\n存钱\n经期\n减脂记录\n坚持就是胜利！\n运动\n体重\n饮食\n饮食记录\n饮食照片（可选，帮您记录）\n点击上传食物照片\n食物\n-- 手动输入 --\n食物名称\n热量(千卡)\n餐次\n早餐\n午餐\n晚餐\n加餐\n日期\n备注\n＋ 记录饮食\n今日摄入总热量\n0\n千卡"
+}

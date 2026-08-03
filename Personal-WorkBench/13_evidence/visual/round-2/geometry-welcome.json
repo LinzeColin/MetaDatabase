@@ -1,0 +1,33 @@
+{
+  "browser_window_css": [
+    1920,
+    878
+  ],
+  "capture_canvas_css": [
+    472,
+    1024
+  ],
+  "rects": {
+    ".welcome-enter": {
+      "height": 63,
+      "width": 323,
+      "x": 798.5,
+      "y": 676
+    },
+    ".welcome-kitty": {
+      "height": 202,
+      "width": 205,
+      "x": 857.5,
+      "y": 258
+    }
+  },
+  "reference_mode": true,
+  "reference_page": "welcome",
+  "stage": {
+    "height": 1024,
+    "width": 472,
+    "x": 724,
+    "y": 0
+  },
+  "visible_text": "2026年8月2日  星期日\n\n嗨，小张张\n\n慢慢来，一切都在变好\n\n进入工作台  →"
+}

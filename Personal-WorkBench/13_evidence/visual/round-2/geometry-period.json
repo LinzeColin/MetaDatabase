@@ -1,0 +1,39 @@
+{
+  "browser_window_css": [
+    1920,
+    878
+  ],
+  "capture_canvas_css": [
+    472,
+    1024
+  ],
+  "rects": {
+    ".period-form": {
+      "height": 169,
+      "width": 356,
+      "x": 826,
+      "y": 90
+    },
+    ".period-history": {
+      "height": 159,
+      "width": 356,
+      "x": 826,
+      "y": 444
+    },
+    ".period-overview": {
+      "height": 151,
+      "width": 356,
+      "x": 826,
+      "y": 278
+    }
+  },
+  "reference_mode": true,
+  "reference_page": "period",
+  "stage": {
+    "height": 1024,
+    "width": 472,
+    "x": 724,
+    "y": 0
+  },
+  "visible_text": "桌面\n待办\n记账\n减脂\n日程\n纪念\n日记\n存钱\n经期\n经期记录\n开始日期\n结束日期\n＋ 记录经期\n周期概览\n当前周期\n--\n预测下次（估算）\n--\n平均周期\n--\n≡\n历史记录\n\n还没有经期记录"
+}

@@ -1,0 +1,39 @@
+{
+  "browser_window_css": [
+    1920,
+    878
+  ],
+  "capture_canvas_css": [
+    472,
+    1024
+  ],
+  "rects": {
+    ".ledger-form": {
+      "height": 406,
+      "width": 356,
+      "x": 826,
+      "y": 180
+    },
+    ".record-list-card": {
+      "height": 158,
+      "width": 356,
+      "x": 826,
+      "y": 602
+    },
+    ".summary-grid": {
+      "height": 82,
+      "width": 356,
+      "x": 826,
+      "y": 84
+    }
+  },
+  "reference_mode": true,
+  "reference_page": "ledger",
+  "stage": {
+    "height": 1024,
+    "width": 472,
+    "x": 724,
+    "y": 0
+  },
+  "visible_text": "桌面\n待办\n记账\n减脂\n日程\n纪念\n日记\n存钱\n经期\n记账本\n理性消费，快乐生活\n收入\n+¥0.00\n支出\n-¥0.00\n结余\n¥0.00\n支出\n收入\n金额\n日期\n分类\n餐饮\n交通\n购物\n工资\n其他\n备注（可选）\n＋ 记一笔\n≡\n账单明细\n\n还没有账单，记一笔吧～"
+}

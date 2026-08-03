@@ -1,0 +1,503 @@
+{
+  "schema_version": "1.0.0",
+  "round": 3,
+  "focus": "copy-crop-and-overlay",
+  "status": "PASS",
+  "routes": {
+    "welcome": {
+      "status": "PASS",
+      "capture_canvas_css": [
+        472,
+        1024
+      ],
+      "browser_window_css": [
+        1920,
+        878
+      ],
+      "screenshot_sha256": "bf4f0159d77d7e0717673b07170280bd8ee944eb45333261d6303280267d52f7",
+      "anchor": {
+        "status": "PASS",
+        "anchors": {
+          ".welcome-kitty": {
+            "actual": {
+              "x": 133.5,
+              "y": 258,
+              "width": 205,
+              "height": 202
+            },
+            "target": {
+              "x": 133.5,
+              "y": 258,
+              "width": 205,
+              "height": 202
+            },
+            "delta": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "tolerance_css_px": 5,
+            "status": "PASS"
+          },
+          ".welcome-enter": {
+            "actual": {
+              "x": 74.5,
+              "y": 676,
+              "width": 323,
+              "height": 63
+            },
+            "target": {
+              "x": 74.5,
+              "y": 676,
+              "width": 323,
+              "height": 63
+            },
+            "delta": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "tolerance_css_px": 8,
+            "status": "PASS"
+          }
+        }
+      },
+      "visible_copy_scan": {
+        "status": "PASS",
+        "banned_terms": []
+      },
+      "visual_metric": {
+        "compared_pixels": 258324,
+        "mean_absolute_rgb_difference": 11.771,
+        "diagnostic_changed_pixel_ratio_at_threshold_35": 0.05784,
+        "status": "DIAGNOSTIC_ONLY_NOT_A_SIMILARITY_PERCENTAGE"
+      },
+      "artifacts": [
+        "13_evidence/visual/round-3/actual-welcome-normalized.png",
+        "13_evidence/visual/round-3/diagnostic-diff-welcome.png",
+        "13_evidence/visual/round-3/diagnostic-heatmap-welcome.png",
+        "13_evidence/visual/round-3/diagnostic-overlay-welcome.png"
+      ]
+    },
+    "home": {
+      "status": "PASS",
+      "capture_canvas_css": [
+        472,
+        1024
+      ],
+      "browser_window_css": [
+        1920,
+        878
+      ],
+      "screenshot_sha256": "8e24a585f6770faf3017622d07c1b2bcf64e0b20831ff7e779b214fd31853bb2",
+      "anchor": {
+        "status": "PASS",
+        "anchors": {
+          ".sidebar": {
+            "actual": {
+              "x": 0,
+              "y": 0,
+              "width": 88,
+              "height": 1024
+            },
+            "target": {
+              "x": 0,
+              "y": 0,
+              "width": 88,
+              "height": 1024
+            },
+            "delta": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "tolerance_css_px": 30,
+            "status": "PASS"
+          },
+          ".quote-card": {
+            "actual": {
+              "x": 102,
+              "y": 212,
+              "width": 356,
+              "height": 111
+            },
+            "target": {
+              "x": 102,
+              "y": 212,
+              "width": 356,
+              "height": 111
+            },
+            "delta": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "tolerance_css_px": 9,
+            "status": "PASS"
+          },
+          ".habit-card:nth-child(1)": {
+            "actual": {
+              "x": 102,
+              "y": 379,
+              "width": 172.5,
+              "height": 139
+            },
+            "target": {
+              "x": 102,
+              "y": 380,
+              "width": 172.5,
+              "height": 139
+            },
+            "delta": {
+              "x": 0,
+              "y": -1,
+              "width": 0,
+              "height": 0
+            },
+            "tolerance_css_px": 9,
+            "status": "PASS"
+          },
+          ".habit-card:nth-child(5)": {
+            "actual": {
+              "x": 102,
+              "y": 679,
+              "width": 356,
+              "height": 139
+            },
+            "target": {
+              "x": 102,
+              "y": 679,
+              "width": 356,
+              "height": 139
+            },
+            "delta": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "tolerance_css_px": 10,
+            "status": "PASS"
+          }
+        }
+      },
+      "visible_copy_scan": {
+        "status": "PASS",
+        "banned_terms": []
+      },
+      "visual_metric": {
+        "compared_pixels": 250660,
+        "mean_absolute_rgb_difference": 14.561,
+        "diagnostic_changed_pixel_ratio_at_threshold_35": 0.0953,
+        "status": "DIAGNOSTIC_ONLY_NOT_A_SIMILARITY_PERCENTAGE"
+      },
+      "artifacts": [
+        "13_evidence/visual/round-3/actual-home-normalized.png",
+        "13_evidence/visual/round-3/diagnostic-diff-home.png",
+        "13_evidence/visual/round-3/diagnostic-heatmap-home.png",
+        "13_evidence/visual/round-3/diagnostic-overlay-home.png"
+      ]
+    },
+    "ledger": {
+      "status": "PASS",
+      "capture_canvas_css": [
+        472,
+        1024
+      ],
+      "browser_window_css": [
+        1920,
+        878
+      ],
+      "screenshot_sha256": "38fc1c6a2ac0ff35de44d492dd1f070a9ddcf4cd29410822e786878dd52094d6",
+      "anchor": {
+        "status": "PASS",
+        "anchors": {
+          ".summary-grid": {
+            "actual": {
+              "x": 102,
+              "y": 84,
+              "width": 356,
+              "height": 82
+            },
+            "target": {
+              "x": 102,
+              "y": 84,
+              "width": 356,
+              "height": 82
+            },
+            "delta": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "tolerance_css_px": 10,
+            "status": "PASS"
+          },
+          ".ledger-form": {
+            "actual": {
+              "x": 102,
+              "y": 180,
+              "width": 356,
+              "height": 406
+            },
+            "target": {
+              "x": 102,
+              "y": 180,
+              "width": 356,
+              "height": 406
+            },
+            "delta": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "tolerance_css_px": 12,
+            "status": "PASS"
+          },
+          ".record-list-card": {
+            "actual": {
+              "x": 102,
+              "y": 602,
+              "width": 356,
+              "height": 158
+            },
+            "target": {
+              "x": 102,
+              "y": 602,
+              "width": 356,
+              "height": 158
+            },
+            "delta": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "tolerance_css_px": 12,
+            "status": "PASS"
+          }
+        }
+      },
+      "visible_copy_scan": {
+        "status": "PASS",
+        "banned_terms": []
+      },
+      "visual_metric": {
+        "compared_pixels": 244435,
+        "mean_absolute_rgb_difference": 21.667,
+        "diagnostic_changed_pixel_ratio_at_threshold_35": 0.19086,
+        "status": "DIAGNOSTIC_ONLY_NOT_A_SIMILARITY_PERCENTAGE"
+      },
+      "artifacts": [
+        "13_evidence/visual/round-3/actual-ledger-normalized.png",
+        "13_evidence/visual/round-3/diagnostic-diff-ledger.png",
+        "13_evidence/visual/round-3/diagnostic-heatmap-ledger.png",
+        "13_evidence/visual/round-3/diagnostic-overlay-ledger.png"
+      ]
+    },
+    "fatloss-food": {
+      "status": "PASS",
+      "capture_canvas_css": [
+        472,
+        1024
+      ],
+      "browser_window_css": [
+        1920,
+        878
+      ],
+      "screenshot_sha256": "ecde17c4d0fda5d79c92081e59ddb6db5ae100d8c3d1fd49be6029a32a00ced0",
+      "anchor": {
+        "status": "PASS",
+        "anchors": {
+          ".module-tabs": {
+            "actual": {
+              "x": 102,
+              "y": 86,
+              "width": 356,
+              "height": 52
+            },
+            "target": {
+              "x": 102,
+              "y": 86,
+              "width": 356,
+              "height": 52
+            },
+            "delta": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "tolerance_css_px": 9,
+            "status": "PASS"
+          },
+          ".food-card": {
+            "actual": {
+              "x": 102,
+              "y": 154,
+              "width": 356,
+              "height": 616
+            },
+            "target": {
+              "x": 102,
+              "y": 154,
+              "width": 356,
+              "height": 616
+            },
+            "delta": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "tolerance_css_px": 12,
+            "status": "PASS"
+          },
+          ".upload-zone": {
+            "actual": {
+              "x": 119,
+              "y": 237,
+              "width": 322,
+              "height": 130
+            },
+            "target": {
+              "x": 119,
+              "y": 237,
+              "width": 322,
+              "height": 130
+            },
+            "delta": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "tolerance_css_px": 12,
+            "status": "PASS"
+          }
+        }
+      },
+      "visible_copy_scan": {
+        "status": "PASS",
+        "banned_terms": []
+      },
+      "visual_metric": {
+        "compared_pixels": 240285,
+        "mean_absolute_rgb_difference": 16.496,
+        "diagnostic_changed_pixel_ratio_at_threshold_35": 0.14803,
+        "status": "DIAGNOSTIC_ONLY_NOT_A_SIMILARITY_PERCENTAGE"
+      },
+      "artifacts": [
+        "13_evidence/visual/round-3/actual-fatloss-food-normalized.png",
+        "13_evidence/visual/round-3/diagnostic-diff-fatloss-food.png",
+        "13_evidence/visual/round-3/diagnostic-heatmap-fatloss-food.png",
+        "13_evidence/visual/round-3/diagnostic-overlay-fatloss-food.png"
+      ]
+    },
+    "period": {
+      "status": "PASS",
+      "capture_canvas_css": [
+        472,
+        1024
+      ],
+      "browser_window_css": [
+        1920,
+        878
+      ],
+      "screenshot_sha256": "e8e1683dc212b747e0a6b6c05a4234b5fb20420e6f76d69b9db70428b2cd1e61",
+      "anchor": {
+        "status": "PASS",
+        "anchors": {
+          ".period-form": {
+            "actual": {
+              "x": 102,
+              "y": 90,
+              "width": 356,
+              "height": 169
+            },
+            "target": {
+              "x": 102,
+              "y": 90,
+              "width": 356,
+              "height": 169
+            },
+            "delta": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "tolerance_css_px": 12,
+            "status": "PASS"
+          },
+          ".period-overview": {
+            "actual": {
+              "x": 102,
+              "y": 278,
+              "width": 356,
+              "height": 151
+            },
+            "target": {
+              "x": 102,
+              "y": 278,
+              "width": 356,
+              "height": 151
+            },
+            "delta": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "tolerance_css_px": 12,
+            "status": "PASS"
+          },
+          ".period-history": {
+            "actual": {
+              "x": 102,
+              "y": 444,
+              "width": 356,
+              "height": 159
+            },
+            "target": {
+              "x": 102,
+              "y": 444,
+              "width": 356,
+              "height": 159
+            },
+            "delta": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "tolerance_css_px": 12,
+            "status": "PASS"
+          }
+        }
+      },
+      "visible_copy_scan": {
+        "status": "PASS",
+        "banned_terms": []
+      },
+      "visual_metric": {
+        "compared_pixels": 236135,
+        "mean_absolute_rgb_difference": 14.626,
+        "diagnostic_changed_pixel_ratio_at_threshold_35": 0.10481,
+        "status": "DIAGNOSTIC_ONLY_NOT_A_SIMILARITY_PERCENTAGE"
+      },
+      "artifacts": [
+        "13_evidence/visual/round-3/actual-period-normalized.png",
+        "13_evidence/visual/round-3/diagnostic-diff-period.png",
+        "13_evidence/visual/round-3/diagnostic-heatmap-period.png",
+        "13_evidence/visual/round-3/diagnostic-overlay-period.png"
+      ]
+    }
+  }
+}

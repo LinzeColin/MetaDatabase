@@ -1,11 +1,11 @@
 import { readdir, readFile, stat } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
 import { dirname, join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const sourceRoots = ["app", "db", "scripts", ".openai"];
 const sourceExtensions = new Set([".ts", ".tsx", ".mjs", ".js", ".json"]);
-const ignoredDirectories = new Set(["_sites-preview", "node_modules", ".next", ".vinext", "dist", ".wrangler"]);
+const ignoredDirectories = new Set(["node_modules", ".next", ".vinext", "dist", ".wrangler"]);
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -13,7 +13,9 @@ function assert(condition, message) {
 
 async function collectFiles(path) {
   const info = await stat(path);
-  if (info.isFile()) return sourceExtensions.has(path.slice(path.lastIndexOf("."))) ? [path] : [];
+  if (info.isFile()) {
+    return sourceExtensions.has(path.slice(path.lastIndexOf("."))) ? [path] : [];
+  }
 
   const entries = await readdir(path, { withFileTypes: true });
   const files = [];
@@ -43,22 +45,30 @@ for (const [label, pattern] of secretPatterns) {
   assert(!matched, `${label} found in ${relative(root, matched?.path ?? root)}`);
 }
 
-const pagePath = join(root, "app", "page.tsx");
-const pageSource = await readFile(pagePath, "utf8");
-const isStarterSkeleton = pageSource.includes("SkeletonPreview");
-if (!isStarterSkeleton) {
-  const productionUi = source
-    .filter((entry) => entry.path.startsWith(join(root, "app")))
-    .map((entry) => entry.text)
-    .join("\n");
-  assert(/[\u3400-\u9fff]/.test(productionUi), "finished product UI must include Chinese visible copy");
+const [pageSource, layoutSource, packageJson] = await Promise.all([
+  readFile(join(root, "app", "page.tsx"), "utf8"),
+  readFile(join(root, "app", "layout.tsx"), "utf8"),
+  readFile(join(root, "package.json"), "utf8"),
+]);
+assert(!pageSource.includes("SkeletonPreview"), "S1 must replace the Sites starter skeleton");
+assert(!pageSource.includes("codex-preview"), "product pages must not retain preview metadata");
+assert(!layoutSource.includes("Starter Project"), "layout metadata must name the product");
+assert(!packageJson.includes("react-loading-skeleton"), "S1 must remove the disposable skeleton dependency");
+assert(/[\u3400-\u9fff]/.test(pageSource), "finished product UI must include Chinese visible copy");
+assert(pageSource.includes("data-reference-page"), "reference-mode route markers are required for visual QA");
+
+try {
+  await stat(join(root, "app", "_sites-preview"));
+  throw new Error("S1 must remove app/_sites-preview");
+} catch (error) {
+  if (error?.code !== "ENOENT") throw error;
 }
 
 console.log(
   JSON.stringify({
     status: "PASS",
-    stage: "S0",
-    starter_skeleton: isStarterSkeleton,
+    stage: "S1",
+    starter_skeleton: false,
     hosting_bindings: { d1: hosting.d1, r2: hosting.r2 },
     source_files_checked: files.length,
   }),

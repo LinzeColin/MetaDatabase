@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S1-T2",
+  "status": "PASS",
+  "generated_at": "2026-08-03T07:25:03.136Z",
+  "reference_routes": {
+    "welcome": {
+      "status": "PASS",
+      "required_classes": {
+        "welcome-page": true,
+        "welcome-kitty": true,
+        "welcome-enter": true
+      },
+      "account_entry": "HIDDEN",
+      "reference_marker": "PASS"
+    },
+    "home": {
+      "status": "PASS",
+      "required_classes": {
+        "sidebar": true,
+        "home-time": true,
+        "quote-card": true,
+        "habit-grid": true
+      },
+      "account_entry": "HIDDEN",
+      "reference_marker": "PASS"
+    },
+    "ledger": {
+      "status": "PASS",
+      "required_classes": {
+        "sidebar": true,
+        "summary-grid": true,
+        "ledger-form": true,
+        "record-list-card": true
+      },
+      "account_entry": "HIDDEN",
+      "reference_marker": "PASS"
+    },
+    "fatloss-food": {
+      "status": "PASS",
+      "required_classes": {
+        "sidebar": true,
+        "module-tabs": true,
+        "food-card": true,
+        "upload-zone": true
+      },
+      "account_entry": "HIDDEN",
+      "reference_marker": "PASS"
+    },
+    "period": {
+      "status": "PASS",
+      "required_classes": {
+        "sidebar": true,
+        "period-form": true,
+        "period-overview": true,
+        "period-history": true
+      },
+      "account_entry": "HIDDEN",
+      "reference_marker": "PASS"
+    }
+  },
+  "normal_mode": {
+    "status": "PASS",
+    "account_entry": "VISIBLE_OUTSIDE_REFERENCE_MODE"
+  },
+  "verification": "built worker HTML; no starter preview metadata or skeleton content"
+}
