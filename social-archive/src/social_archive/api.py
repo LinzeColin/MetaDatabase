@@ -19,7 +19,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
 from . import __version__, auth
-from .account_sync import AccountSyncCoordinator, PLATFORM_RELATIONS
+from .account_sync import AccountSyncCoordinator, PLATFORM_LABELS, PLATFORM_RELATIONS
 from .config import Settings
 from .db import RuntimeStore
 from .credentials import (
@@ -29,6 +29,7 @@ from .credentials import (
     CredentialVault,
 )
 from .destinations import DestinationRegistry, _markdown
+from .failure_copy import describe_sync_outcome
 from .models import (
     AccountConnectCompleteRequest,
     AccountConnectRequest,
@@ -355,12 +356,36 @@ def start_account_sync(account_id: str, request: AccountSyncRequest) -> dict[str
 def account_sync_runs(account_id: str, limit: int = Query(50, ge=1, le=500)) -> dict[str, Any]:
     if not store.get_source_account(account_id):
         raise HTTPException(status_code=404, detail="账号不存在")
-    return {"items": store.list_sync_runs(source_account_id=account_id, limit=limit)}
+    return {"items": [
+        _explain_sync_run(row)
+        for row in store.list_sync_runs(source_account_id=account_id, limit=limit)
+    ]}
+
+
+def _explain_sync_run(row: dict[str, Any]) -> dict[str, Any]:
+    """给同步运行补上「给人看的那句话」（v0.0.0.7 / T14）。
+
+    为什么放在服务端而不是各客户端各算一遍：
+    PWA 与扩展是两个界面，词典各抄一份就有两处会漂。更要命的是**漏抄**——
+    扩展先前压根没有词典，同步失败时只显示状态标签「需要处理」，
+    说不出为什么。T14 的验收原文是「界面说得出为什么」，那就得每个界面都能。
+
+    在这里算一次，两边都拿得到，且词典只有一处真源。
+    """
+    label = PLATFORM_LABELS.get(str(row.get("platform") or ""), str(row.get("platform") or ""))
+    outcome = describe_sync_outcome(
+        imported=int(row.get("imported_count") or 0),
+        failure_code=row.get("last_error_code"),
+        platform_label=label,
+        status=str(row.get("status") or ""),
+    )
+    return {**row, "outcome": outcome["outcome"],
+            "message_zh": outcome["message_zh"], "action_zh": outcome["action_zh"]}
 
 
 @app.get("/v1/sync-runs", dependencies=[Depends(require_token)])
 def sync_runs(limit: int = Query(100, ge=1, le=500)) -> dict[str, Any]:
-    return {"items": store.list_sync_runs(limit=limit)}
+    return {"items": [_explain_sync_run(row) for row in store.list_sync_runs(limit=limit)]}
 
 
 @app.get("/v1/sync-runs/{sync_run_id}", dependencies=[Depends(require_token)])
@@ -368,7 +393,7 @@ def sync_run_detail(sync_run_id: str) -> dict[str, Any]:
     row = store.get_sync_run(sync_run_id)
     if not row:
         raise HTTPException(status_code=404, detail="同步运行不存在")
-    return row
+    return _explain_sync_run(row)
 
 
 @app.post("/v1/sync-runs/{sync_run_id}/control", dependencies=[Depends(require_token)])

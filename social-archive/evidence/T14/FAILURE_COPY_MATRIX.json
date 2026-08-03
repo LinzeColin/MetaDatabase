@@ -131,5 +131,22 @@
     "fix": "index.html / app.js / sw.js 三处的 v=006 全部升到 v=007，SW 缓存名升到 social-archive-ui-v007-r1",
     "guard": "test_pwa_asset_version_is_not_stale 与 test_service_worker_replaces_the_stale_ui_cache_with_current_assets_immediately（后者是把原来钉 v006 的判据随版本移动，原则未变，并加了「旧版本号不许在任何一处残留」）",
     "note": "这不是本地环境问题——它会原样发生在生产上。"
+  },
+  "dictionary_had_no_production_caller_at_all": {
+    "found_during": "反向扫「我加的模块有没有生产代码在调用」——上一轮扫的是被删文件还有谁引用，这轮扫它的镜像面。",
+    "what_was_wrong": "failure_copy.py 落地之后，全仓**没有一个生产模块**调用 describe_sync_outcome。它只活在判据里，以及 PWA 那份手抄副本里。",
+    "consequence": "扩展那一侧根本没有词典。同步失败时 options.js 只显示状态标签「需要处理」，说不出为什么。**T14 的验收是「界面说得出为什么」——那就得每个界面都能，不是只有 PWA。**",
+    "why_i_missed_it_the_first_time": "上一轮我在真实浏览器里验的是 PWA，四种失败都渲染正确，于是判定 T14 达成。但那只验了一个界面。扩展有它自己的账号卡片，走的是另一条渲染路径。",
+    "root_fix": {
+      "what": "把词典接在**服务端**：/v1/sync-runs、/v1/accounts/{id}/sync-runs、/v1/sync-runs/{id} 三个端点都经 _explain_sync_run 补上 message_zh / action_zh / outcome。",
+      "why_server_side": "PWA 与扩展是两个界面。各抄一份词典就有两处会漂，而更要命的是**漏抄**——扩展先前就是漏抄的那个。在服务端算一次，两边都拿得到，词典只有一处真源。",
+      "extension_now_shows_it": "options.js 的账号卡片在有 last_error_code 时优先显示 message_zh，而不是状态标签。"
+    },
+    "guards": [
+      "test_the_dictionary_is_actually_wired_into_the_api —— 写了词典却没有生产代码调用，等于没写",
+      "test_every_sync_run_endpoint_returns_a_human_sentence —— 三个端点都要过 _explain_sync_run，漏一个就有界面说不出话",
+      "test_extension_shows_the_reason_not_just_the_status_label"
+    ],
+    "pwa_mirror_kept": "PWA 那份本地词典保留——它在服务端没返回 message_zh 时仍能兜底，且已有逐句漂移守卫。两者一致性由 test_pwa_dictionary_matches_the_python_one 盯着。"
   }
 }

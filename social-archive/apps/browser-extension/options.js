@@ -93,11 +93,17 @@
       const status=pending?"authorizing":(run && activeStates.has(run.status)?run.status:(account?.connection_state||"disconnected"));
       const imported=Number(run?.imported_count||0),discovered=Number(run?.discovered_count||0);
       const progress=discovered?Math.min(100,Math.round(imported/discovered*100)):(run&&activeStates.has(run.status)?18:(account?100:0));
+      // 失败时优先显示**为什么**（v0.0.0.7 / T14）。message_zh 由服务端算好下发，
+      // 词典只有一处真源，扩展不再需要自己抄一份——先前它压根没有词典，
+      // 同步失败只显示状态标签「需要处理」，说不出原因。
+      const failureText = run && run.last_error_code ? (run.message_zh || "") : "";
       const meta=pending
         ? `登录页已经打开。完成登录后会自动继续；未自动识别时点击“我已登录”。`
-        : account
-          ? (run&&activeStates.has(run.status)?`已导入 ${imported.toLocaleString("zh-CN")}/${discovered?discovered.toLocaleString("zh-CN"):"…"} 条`:`${Number(account.content_count||0).toLocaleString("zh-CN")} 条 · ${formatTime(account.last_sync_at)}`)
-          : relationCopy[platform];
+        : failureText
+          ? failureText
+          : account
+            ? (run&&activeStates.has(run.status)?`已导入 ${imported.toLocaleString("zh-CN")}/${discovered?discovered.toLocaleString("zh-CN"):"…"} 条`:`${Number(account.content_count||0).toLocaleString("zh-CN")} 条 · ${formatTime(account.last_sync_at)}`)
+            : relationCopy[platform];
       const action=pending
         ? `<button class="card-button primary" data-verify-platform="${platform}">我已登录，继续</button><button class="card-button" data-connect-platform="${platform}">重新打开</button>`
         : account

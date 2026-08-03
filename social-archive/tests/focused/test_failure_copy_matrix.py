@@ -296,3 +296,38 @@ def test_pwa_asset_version_is_not_stale() -> None:
         assert "v=006" not in text, f"{relative} 的资源版本号还停在 v006"
     sw = (ROOT / "apps/pwa/sw.js").read_text(encoding="utf-8")
     assert "social-archive-ui-v007" in sw, "service worker 缓存名还没升到 v007"
+
+
+# ── 词典必须被生产代码真的用上 ────────────────────────────────────
+
+
+def test_the_dictionary_is_actually_wired_into_the_api() -> None:
+    """写了词典却没有任何生产代码调用它，等于没写。
+
+    实测踩到过：failure_copy.py 落地之后，全仓**没有一个生产模块**调用
+    describe_sync_outcome——它只活在判据和 PWA 的一份手抄副本里。
+    结果是扩展那一侧根本没有词典，同步失败只显示状态标签「需要处理」。
+    T14 的验收是「界面说得出为什么」，那就得**每个**界面都能。
+    """
+    api = (ROOT / "src/social_archive/api.py").read_text(encoding="utf-8")
+    assert "describe_sync_outcome" in api, "API 没有使用失败文案词典"
+    assert "_explain_sync_run" in api
+
+
+def test_every_sync_run_endpoint_returns_a_human_sentence() -> None:
+    """三个返回同步运行的端点都要带上 message_zh，漏一个就有界面说不出话。"""
+    api = (ROOT / "src/social_archive/api.py").read_text(encoding="utf-8")
+    for marker in ('def sync_runs(', 'def account_sync_runs(', 'def sync_run_detail('):
+        assert marker in api, f"找不到端点 {marker}"
+    # 三处都必须过 _explain_sync_run
+    assert api.count("_explain_sync_run") >= 4, (
+        "有 sync-run 端点没有经过 _explain_sync_run —— 那个界面会拿不到中文说明"
+    )
+
+
+def test_extension_shows_the_reason_not_just_the_status_label() -> None:
+    options = (ROOT / "apps/browser-extension/options.js").read_text(encoding="utf-8")
+    assert "run.message_zh" in options, (
+        "扩展设置页没有显示失败原因，只有状态标签「需要处理」"
+    )
+    assert "last_error_code" in options
