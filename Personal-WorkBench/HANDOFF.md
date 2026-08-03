@@ -8,7 +8,7 @@
 
 - 阶段：`S0_IN_PROGRESS`
 - 本轮任务：`S0-T1` 目标仓语义对账；语义对账已记录，但完整任务包 Verifier 仍受本机 `tsc` 缺失阻断，因此 S0 尚未完成。
-- 下一任务：`S0-T2` Sites starter 与独立项目边界；当前为 `BLOCKED`，因为尚未有 Owner 创建的私有 Sites 项目/非敏感 `project_id`。专用创建接口可能返回短期源仓凭据，按安全边界未调用。
+- 下一任务：`S0-T2` Sites starter 与独立项目边界；当前为 `AWAITING_CREATE_CONFIRMATION`。已在 Owner 当前会话中只读确认 Sites 页面和“创建”入口可用，但尚未发送 prompt、创建 Site、写入 `project_id` 或触发任何外部副作用。
 - 本地项目根：`Personal-WorkBench/`（由 Owner 于 2026-08-03 指定）
 - 当前开发分支：`codex/personal-workbench-s0`；按 Owner 指令，在整个任务包完成前不推送 GitHub。
 - 任务包权威源：`/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8`
@@ -22,6 +22,7 @@
 - 因此只能把任务包的 SHA-256 清单完整性记为已验证；完整封包验证状态为 `NOT_PASS_DUE_TO_LOCAL_TOOLCHAIN`，不得写成产品、Saved Candidate、供应商或生产 PASS。
 - S0-T1 对账证据：`13_evidence/stage0_reconcile.json`。远端 `origin/main`、本地 `main` 与此 worktree 起点均为 `4a3efcffba10f318ac963377cd7cff046bcadb37`；未发现任何已跟踪的 `Personal-WorkBench` 源码或历史实现。
 - 官方 Sites 文档的只读核验确认：推荐 starter、D1 持久化数据、R2 文件对象、外部身份提供商、私有 Save Version → Deploy 的两阶段流程和 Settings 内 Secret 都与冻结架构一致；账户/区域/工作区权限与实际 runtime 反馈仍为 `UNKNOWN`。
+- 当前 Owner 会话的只读浏览器核验：Sites 列表和创建入口可见，说明 Sites 产品可访问；这不证明创建、Save、D1/R2 provision、身份服务或部署已经完成或可用。
 
 ## 已冻结的范围与边界
 
@@ -41,7 +42,7 @@
 
 ## 下一步与停止条件
 
-S0-T1 已按 19 项 DAG 完成一次分类；详见 `RUN_CONTRACT_S0_T1.md` 和 `13_evidence/stage0_reconcile.json`。`S0-T2` 的最小解除动作：Owner 在 ChatGPT Sites 中新建一个只限 Owner/管理员访问、未 Deploy 的独立项目，并只提供其不敏感 `project_id`；不得提供 token、Secret、Cookie 或密码。之后在下一个独立 run 核验推荐 starter 与绑定边界。
+S0-T1 已按 19 项 DAG 完成一次分类；详见 `RUN_CONTRACT_S0_T1.md` 和 `13_evidence/stage0_reconcile.json`。`S0-T2` 已到创建前确认点：取得明确确认后，才会在当前 Owner 会话中创建一个只限 Owner/管理员访问、未 Deploy 的独立 Site。该动作不会输入 Secret、Cookie、密码、授权素材或用户数据，也不会发布或推送 GitHub。
 
 在 `S0-T2` 之前，不得部署、不得请求或接收凭据、不得创建/修改真实 Sites、D1、R2、OAuth、邮件或 Turnstile 资源，也不得把任务包内的演示/私有素材作为公开素材使用。
 

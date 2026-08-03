@@ -54,10 +54,11 @@
     ]
   },
   "s0_t2_external_gate": {
-    "status": "BLOCKED_OWNER_PROJECT_ID_REQUIRED",
+    "status": "AWAITING_USER_CONFIRMATION_FOR_PRIVATE_CREATE",
     "sites_create_connector_called": false,
-    "reason": "专用创建接口可返回短期源仓写入凭据；本任务不请求、接收或复用凭据，且当前没有已 provision 的本地 hosting linkage 可安全复用。",
-    "minimal_unblock": "Owner 在 ChatGPT Sites 中创建新的私有、未 Deploy 项目，并仅提供不敏感的 opaque project_id；不得提供 token、Secret、Cookie 或密码。",
+    "owner_session_readonly_observation": "Sites 列表与创建入口在当前 Owner 会话中可见；未读取 Cookie、存储、密码、Token 或站点详情。",
+    "reason": "专用创建接口可返回短期源仓写入凭据；本任务不请求、接收或复用凭据。浏览器可见入口可以创建私有 Site，但该外部副作用需要 action-time 用户确认。",
+    "minimal_unblock": "Owner 明确确认创建新的私有、未 Deploy Site；不得提供 token、Secret、Cookie 或密码。",
     "no_architecture_change_over_30_percent": true
   },
   "s0_t1": {
@@ -78,7 +79,7 @@
     {
       "id": "S0-T2",
       "classification": "blocked",
-      "reason": "官方资料支持所需的 D1/R2/认证型 Site 形态；当前仍缺 Owner 创建的私有项目或其不敏感 project_id。专用创建接口可能返回短期凭据，按安全边界未调用。"
+      "reason": "官方资料支持所需的 D1/R2/认证型 Site 形态，且当前 Owner 会话已显示创建入口；创建私有 Site 属于外部副作用，等待 action-time 用户确认。专用创建接口可能返回短期凭据，按安全边界未调用。"
     },
     {
       "id": "S1-T1",
