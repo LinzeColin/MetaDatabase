@@ -45,7 +45,10 @@ def test_install_dry_run_is_zero_write_even_when_prerequisites_are_available(tmp
     scripts = project / "scripts"
     scripts.mkdir(parents=True)
     (scripts / "install.sh").write_text((ROOT / "scripts" / "install.sh").read_text(encoding="utf-8"), encoding="utf-8")
-    for relative in ("pyproject.toml", "compose.yaml", ".env.example", "scripts/setup_wizard.py", "scripts/ensure_api_token.py", "scripts/status_server.py"):
+    # 这份清单必须与 install.sh 的必需文件检查**一致**。少一个，dry-run 就会
+    # 报「安装源文件缺失」，而那看起来像 install.sh 坏了，其实是夹具漏建。
+    # build_extension_package.py 一直不在这里，所以这条判据从 origin/main 起就是红的。
+    for relative in ("pyproject.toml", "compose.yaml", ".env.example", "scripts/setup_wizard.py", "scripts/ensure_api_token.py", "scripts/status_server.py", "scripts/build_extension_package.py"):
         target = project / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text("fixture\n", encoding="utf-8")
