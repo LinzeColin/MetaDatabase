@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-304",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T07:14:00Z",
+  "status": "BLOCKED_ENVIRONMENT",
+  "error_code": "HOST_DISK_CAPACITY",
+  "scope": "optional_karakeep_linkwarden_archivebox_archiveweb_projection",
+  "executed_on": "OVH vps-83b882b4",
+  "what_passes": {
+    "focused_tests": "tests/focused/test_reader_profiles.py and tests/focused/test_openapi_probe_connector.py both pass, including the new locale-robustness regression.",
+    "compose_structure": "scripts/validate_compose.py compose.readers.yaml returns PASS on the production host.",
+    "archivebox_projection": {
+      "file": "/var/lib/social-archive/exports/archivebox-urls.txt",
+      "urls": 3,
+      "matches_library_row_count": true,
+      "verdict": "PASS — the ArchiveBox URL projection is produced correctly without deploying ArchiveBox."
+    },
+    "locale_fix_confirmed_in_the_field": "start_readers.sh now passes its secret guard under LC_ALL=C, where it previously aborted on an unbound \"secret\\xef\". That is the fix from commit eab69a55 working on the real host."
+  },
+  "why_blocked": {
+    "attempt": "Ran scripts/start_readers.sh karakeep on the production host. The secret guard passed because install.sh had already generated karakeep.env, so the profile proceeded to pull its images.",
+    "outcome": "The pull failed part-way with 'no space left on device' while extracting a layer into containerd. Free space had dropped to roughly 966 MB.",
+    "operator_error_acknowledged": "This run should have been a dry run or a pull-free config check. Starting the profile for real on a host at 95 percent was a misjudgement.",
+    "containment": {
+      "reader_containers_created": 0,
+      "partial_images_removed": 1,
+      "dangling_images_after_cleanup": 0,
+      "main_social_archive_stack": "all three containers healthy throughout",
+      "other_hosted_services": "27 containers still up; no unrelated service was affected",
+      "disk_after_cleanup": "2.0 GB free (95%)",
+      "production_endpoints_after": {"api_health": "200 v0.0.0.6", "library": "302 Access boundary", "status": "200"}
+    }
+  },
+  "requirement_to_unblock": {
+    "what": "The optional reader stacks are heavy: Karakeep pulls Meilisearch and a headless Chrome, Linkwarden pulls Postgres. Together they need several GB.",
+    "host_reality": "The 38 GB root is at 95 percent, holding roughly 8.9 GB of images and 14 GB of containerd layers for about eight unrelated projects.",
+    "decision_is_the_owners": "Either free host capacity or expand the disk, or accept SA-304 as permanently optional on this node. Pruning other projects' images or volumes is not a call the build agent should make."
+  },
+  "what_this_does_not_prove": [
+    "Any live Karakeep, Linkwarden, ArchiveBox or ArchiveWeb.page projection.",
+    "SA-305, the Stage 3 gate."
+  ],
+  "non_actions": [
+    "No unrelated project's image, volume, container or data was pruned or modified.",
+    "No secret value was printed to terminal, transcript, evidence or Git.",
+    "No user content was sent to any reader service."
+  ]
+}
