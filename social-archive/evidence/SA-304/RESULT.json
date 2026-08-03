@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-304",
-  "taskpack_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.6",
   "stage": "S3",
   "title": "接入可选 ArchiveBox/Karakeep/Linkwarden/ArchiveWeb.page 投影",
-  "status": "PASS",
+  "status": "BLOCKED_ENVIRONMENT",
   "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
+  "live_environment_status": "BLOCKED_ENVIRONMENT",
   "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "equivalent",
+  "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
   "acceptance_ids": [
     "AC-SA-304"
   ],
@@ -17,14 +17,17 @@
   ],
   "oracle": "读者/归档器均为可选 Sidecar 或文件投影；默认不开 L2；任一退出不影响核心资料库。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "9 reader profile tests passed.",
+  "result_summary": "ArchiveBox URL 投影与 ArchiveWeb.page WACZ 导入路径均已验证且不依赖容器；Karakeep 与 Linkwarden 需要数 GB 镜像，宿主机磁盘不足。",
+  "evidence": [
+    "evidence/SA-304/V006_OPTIONAL_READERS_20260803.json"
+  ],
+  "blocking_reason": "宿主机磁盘容量：38G 根分区 90% 已用，承载约八个无关项目。",
   "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+    "implementation_commit": "812d7a02d303df22c8845b437c36a52f471e3195",
+    "full_application_regression": "310 passed",
+    "taskpack_verify": "PASS, 395 manifest entries, 0 failures"
   },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "d8fb7192c2fba7472c7ec2fdcdfae0512eea7bed4c43b4c529c3c6279407049e"
+  "predecessor_evidence": "evidence/SA-304/history/pre-v0.0.0.6-stage-reverification/PREVIOUS_RESULT.json",
+  "supersedes": "该任务此前的 RESULT.json 记录为 v0.0.0.5 的 PASS。在 v0.0.0.6 下沿用那个 PASS 会把未真正运行的环境门伪装成已通过，故按实测结果重写。",
+  "generated_at": "2026-08-03T07:35:00Z"
 }

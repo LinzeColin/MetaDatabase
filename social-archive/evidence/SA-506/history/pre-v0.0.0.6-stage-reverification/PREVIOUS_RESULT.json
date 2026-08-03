@@ -1,0 +1,160 @@
+{
+  "schema_version": "3.0",
+  "task_id": "SA-506",
+  "stage": "S5",
+  "title": "Backup, restore, degradation, and rollback drill",
+  "recorded_at": "2026-08-02T02:49:58Z",
+  "status": "PASS",
+  "verdict": "PASS",
+  "target_repository": "LinzeColin/MetaDatabase",
+  "target_branch": "main",
+  "execution_worktree": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/MetaDatabase-social-archive-v005-s5-runtime",
+  "candidate_identity": {
+    "latest_main": "7b3b4d7546a66332444594fca824c3ad9a67e2a6",
+    "deployed_source_main": "034d46747b39a2cd00b897b022ba2550c3772a4d",
+    "restore_script_sha256": "db640d95def29e4ff40c905841b99b98a1ae78e09be5d347197496e1da12dc09",
+    "recovery_test_sha256": "ab1475b4f20618cd18ca3a76872ab184627a166ce635a654b2de00f230d7e1e2",
+    "operations_test_sha256": "18e4e81bd82a788f08952fb30adf6709a0e22d20e73f63ce9813ffd6f6285184",
+    "production_backup_manifest_sha256": "7b5283b0e821d4a12d58974abfdc47366a0896f54f03ee47bb5bb56565ef6488",
+    "backup_original_sha256": "b3a8cec092729045c19447f2f8efa0358d2a91b87aea92b5da737a0abca8d6b2",
+    "production_core_image": "sha256:89ba79c06a4dad801a29b4969974346984a5a522aec5ebcdd907a04c199a59c5",
+    "production_cli_image": "sha256:70251ca4c23e645828042b82d2a8f39168ea83677043c162c30a21dfd3c945fc"
+  },
+  "semantic_reconcile": [
+    {
+      "scope": "latest main delta c72c78f..7b3b4d7",
+      "classification": "equivalent",
+      "decision": "Preserve latest main; the delta is CyberBoss-only and has no Social Archive impact."
+    },
+    {
+      "scope": "scripts/restore.py",
+      "classification": "satisfied",
+      "decision": "Preserve the newer implementation with local, R2, and OCI recovery-descriptor support; do not apply the older Task Pack overlay."
+    },
+    {
+      "scope": "tests/stage/test_stage5_recovery.py",
+      "classification": "satisfied",
+      "decision": "Preserve the stronger three-test recovery suite."
+    },
+    {
+      "scope": "tests/stage/test_stage5_operations.py",
+      "classification": "satisfied",
+      "decision": "Preserve the stronger systemd, Cloudflare, and no-launchd contract tests."
+    },
+    {
+      "scope": "Preparation evidence blocker: no local backup manifest",
+      "classification": "obsolete",
+      "decision": "Production now has a verified manifest and a matching age identity."
+    },
+    {
+      "scope": "production restore, rebuild, missing-replica degradation, and rollback drill",
+      "classification": "apply",
+      "decision": "Execute only the frozen last-mile recovery evidence on the real host without switching production."
+    },
+    {
+      "scope": "v0.0.0.4 rollback assets and pre-v0.0.0.5 recovery tag",
+      "classification": "equivalent",
+      "decision": "Reuse existing release assets and annotated local recovery tag; do not create or upload a replacement."
+    }
+  ],
+  "frozen_commands": [
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage5_recovery.py tests/stage/test_stage5_operations.py",
+      "status": "PASS",
+      "exit_code": 0,
+      "result": "5 passed in 1.11s",
+      "environment": "TARGET_REPOSITORY bound to the execution worktree; python3 resolved through an existing dependency-complete project virtualenv; PYTHONPATH bound to the target worktree src directory."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/restore.py --latest --verify-only",
+      "status": "PASS",
+      "exit_code": 0,
+      "result": "Production manifest, age decryption, ciphertext/plaintext hashes, recovery bundle, and fact_count=1 verified.",
+      "environment": "The exact command body ran on the production deployment with its root-only environment and deployed virtualenv. The execution worktree probe separately returned BLOCKED_ENVIRONMENT because it intentionally has no production backup manifest."
+    }
+  ],
+  "acceptance": {
+    "fixture_restore": "PASS",
+    "real_manifest_verify_only": "PASS",
+    "isolated_real_restore": "PASS",
+    "sqlite_rebuild": "PASS",
+    "sqlite_integrity_check": "ok",
+    "fts_rebuild": "PASS",
+    "rebuilt_counts": {
+      "content": 1,
+      "relation": 1,
+      "artifact": 1,
+      "replica": 3
+    },
+    "missing_one_replica_degradation": "PASS",
+    "missing_replica_result": {
+      "removed_store_id": "github",
+      "remaining_store_ids": [
+        "oci",
+        "r2"
+      ],
+      "rebuild_exit_code": 1,
+      "error_code": "RUNTIME_REBUILD_REJECTED",
+      "target_sqlite_created": false
+    },
+    "version_rollback_drill": "PASS",
+    "version_rollback_scope": "Non-switching drill against real v0.0.0.4 rollback assets, local images, doctor self-test, and predeploy SQLite; the production rollback command was prepared but not executed.",
+    "recovery_label": "PASS",
+    "recovery_tag": {
+      "name": "social-archive-pre-v0.0.0.5-20260801t234823z",
+      "type": "annotated local tag",
+      "target_commit": "2aab055fadc5e72dbd889f33df47666727b2153f",
+      "remote_upload": false,
+      "remote_upload_reason": "User requires no GitHub upload before all phases are complete."
+    },
+    "plaintext_cleanup": "PASS",
+    "production_switch_performed": false,
+    "waited_for_real_time": false,
+    "blocking_assertions": "ALL_PASS"
+  },
+  "rollback": {
+    "rollback_version": "0.0.0.4",
+    "rollback_root": "/opt/social-archive-rollback-v004-20260802T005536Z",
+    "predeploy_database": "/var/backups/social-archive/release-20260802T005536Z/predeploy-social-archive.sqlite3",
+    "predeploy_database_sha256": "de4a3a823b9c7ecd6dd726f7c07b84df24f11a9eba475a01d33459106b7b6b83",
+    "predeploy_database_integrity_check": "ok",
+    "rollback_doctor_self_test": "PASS",
+    "simulated_target_version": "0.0.0.4",
+    "simulated_failed_release_version": "0.0.0.5",
+    "unique_command": "sudo -n bash /var/lib/social-archive/evidence/SA-506/20260802T024958Z/rollback-v004.sh",
+    "command_script_sha256": "4d420818ed3e5b2de553838813aad5298de5b43926570323144e98cb89a90e14",
+    "command_executed": false
+  },
+  "production_state_after": {
+    "service": "active",
+    "version": "0.0.0.5",
+    "health": "ok",
+    "paid_api_allowed": false,
+    "live_database_sha256_before": "3a636167441d56dbc310135299dd6c1c6cb1863704db8e29e26b6a69a237aaad",
+    "live_database_sha256_after": "3a636167441d56dbc310135299dd6c1c6cb1863704db8e29e26b6a69a237aaad",
+    "live_database_unchanged": true
+  },
+  "production_evidence": {
+    "directory": "/var/lib/social-archive/evidence/SA-506/20260802T024958Z",
+    "receipts": [
+      "isolated-recovery.json",
+      "production-invariants.json",
+      "missing-replica-degradation.attempt1.json",
+      "missing-replica-degradation.json",
+      "version-rollback-drill.json",
+      "rollback-v004.sh"
+    ]
+  },
+  "non_blocking_failures_preserved": [
+    "Initial local wrappers had TARGET_REPOSITORY unset and stopped at cd /social-archive.",
+    "System python3 lacked project dependencies and package import paths.",
+    "The execution worktree has no production backup manifest and correctly returned BLOCKED_ENVIRONMENT.",
+    "The host identity label vps-83b882b4 was not an SSH endpoint; the established alias linze-ovh was used.",
+    "The first missing-replica mutator did not recognize store_id and stopped before rebuild; its receipt is retained as attempt1."
+  ],
+  "source_changes": false,
+  "git_commit_created": false,
+  "github_upload_performed": false,
+  "threshold_evaluation": "Every SA-506 blocking assertion is PASS. No UNKNOWN, NOT_RUN, WAIVED, data overwrite, secret disclosure, paid path, access bypass, or integrity failure is counted as PASS.",
+  "next_task": "SA-507"
+}
