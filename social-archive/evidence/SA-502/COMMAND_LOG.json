@@ -1,62 +1,29 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-502",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T01:13:47.702205Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-  "source_main": "9d13085159653f9df7df7e2cde051eb585bdfd2e",
+  "taskpack_version": "v0.0.0.6",
+  "implementation_commit": "5341745f546ec113117b34784a89d2e7e2e4dd28",
+  "implementation_tree": "90d510987be571039d729aed15f53a3c8a38b814",
+  "record_context": "v0.0.0.6 stage re-verification against the live OVH production deployment. Secret values were never printed; Bearer tokens and GitHub tokens are shown redacted.",
   "commands": [
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/probe_object_store.py --store oci --encrypted-canary",
-      "command_sha256": "ff9f064f6b20e810ee2e86d7ede94f7e318fe141cbd30006f0ce438de90c6833",
+      "command": ".venv/bin/python scripts/probe_object_store.py --store oci --encrypted-canary（含于 --store all）",
+      "command_sha256": "d08a0acf7102f3bc728d7572220b23072b095ae8d4ff360ab13732b8416b1180",
       "executed": true,
-      "status": "BLOCKED_ENVIRONMENT",
-      "exit_code": 3,
-      "summary": "Initial local run stopped before write because the age recipient was absent."
-    },
-    {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/replicate_objects.py --once",
-      "command_sha256": "134fa2e35009e588631f34d3bcdfd55fa2740e6de6b8547abf9101992d25d4d3",
-      "executed": true,
-      "status": "BLOCKED_ENVIRONMENT",
-      "exit_code": 3,
-      "summary": "Initial local run stopped before write because the age recipient was absent."
-    },
-    {
-      "command": "systemd-run --wait --collect --pipe <LoadCredential:r2,oci> probe_object_store.py --store oci --encrypted-canary && replicate_objects.py --store all --limit 1 --once",
-      "command_sha256": "4dd73b6141d2051f6539c6140bec587c2286712b365e038a2e79a9e9f786bb54",
-      "executed": true,
-      "status": "PARTIAL",
-      "exit_code": 1,
-      "summary": "OCI canary and the single R2-to-OCI replication both passed, but the post-write receipt wrapper failed on a local Python quoting error after provider and DB receipts were already verified."
-    },
-    {
-      "command": "systemd-run --wait --collect --pipe <LoadCredential:r2,oci> verify OCI canary deletion and R2/OCI HEAD/download cipher SHA-256",
-      "command_sha256": "2a2a1a37266309c8ceb8e1563576ce6039d3d11f0d1a5182c19c47cf634b948e",
-      "executed": true,
-      "status": "PASS",
       "exit_code": 0,
-      "summary": "Verification-only continuation performed no upload: OCI canary deletion, local cached ciphertext, DB receipts, remote metadata, and independent R2/OCI downloads all matched the same cipher SHA-256."
+      "status": "PASS",
+      "summary": "OCI 与 R2 同一密文 SHA-256，回读一致后删除。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
+    },
+    {
+      "command": ".venv/bin/python -m pytest -q tests/focused/test_encrypted_replication.py tests/focused/test_s3_replication.py",
+      "command_sha256": "980149e68b55a3d8088f18a1a28c5ace3928be78ec926a4a4994502bebbc2890",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "SA-501/502 冻结命令目标通过。",
+      "environment": "local"
     }
   ],
-  "live_receipt": {
-    "generated_at": "2026-08-02T01:13:47.702205Z",
-    "production_version": "0.0.0.5",
-    "credential_custody": "systemd_transient_LoadCredential",
-    "evidence_path": "/var/lib/social-archive/evidence/SA-502/20260802T011156Z/RESULT.json",
-    "evidence_sha256": "95c22039df61ce28a002fe0b20acac5c8c0a84329c3122dd96dd0404c1e29430",
-    "artifact_id": "art_bb14eeeebda6d460b190081f167a6244",
-    "original_sha256": "bc0bc88b3bfc3bd3721c7fe113dfdc478d4a339f8b2596b0775a6b10ca4c2ba9",
-    "cipher_sha256": "8c9e7a0af73fd9bf6286c1d509477fa2d0d41e55155ae512e087512dca06a2d8",
-    "ciphertext_path": "/var/lib/social-archive/staging/encrypted/sha256/bc/0b/bc0bc88b3bfc3bd3721c7fe113dfdc478d4a339f8b2596b0775a6b10ca4c2ba9.age",
-    "ciphertext_retained_for_sa503": true,
-    "object_key": "primary-objects/sha256/bc/0b/bc0bc88b3bfc3bd3721c7fe113dfdc478d4a339f8b2596b0775a6b10ca4c2ba9.age",
-    "etag": "b6c29d00acebba78579e865831fda6a7",
-    "r2_readback": "PASS",
-    "oci_readback": "PASS",
-    "same_ciphertext": true,
-    "oci_canary_delete_readback": "NOT_FOUND"
-  },
-  "record_sha256": "05182b0995c28086bb302b04814a75a26c17f911d29708796b5e5925ac6289a7"
+  "generated_at": "2026-08-03T07:40:00Z"
 }

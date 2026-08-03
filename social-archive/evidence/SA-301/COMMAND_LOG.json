@@ -1,19 +1,29 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-301",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "taskpack_version": "v0.0.0.6",
+  "implementation_commit": "5341745f546ec113117b34784a89d2e7e2e4dd28",
+  "implementation_tree": "90d510987be571039d729aed15f53a3c8a38b814",
+  "record_context": "v0.0.0.6 stage re-verification against the live OVH production deployment. Secret values were never printed; Bearer tokens and GitHub tokens are shown redacted.",
   "commands": [
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_library_api.py tests/focused/test_ui_contract.py",
-      "command_sha256": "c5e20f9aef7620b1a9156040cb8924be4eef0ee3e12f9bc8250acc1e548dffc2",
+      "command": "curl -H 'Authorization: Bearer <redacted>' http://127.0.0.1:18765/v1/library",
+      "command_sha256": "66a7f10d8491650aee145fd5096eb67f87a073fadf3de6b70b14c332f33f2acc",
       "executed": true,
-      "status": "PASS",
       "exit_code": 0,
-      "summary": "5 library/UI tests passed; stronger feed/grid/detail behavior retained."
+      "status": "PASS",
+      "summary": "生产默认投影 sort_by=time sort_dir=desc，total=3，六个强制列齐全，facets 为 platforms/topics。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
+    },
+    {
+      "command": ".venv/bin/python -m pytest -q tests/focused/test_table_contract.py tests/focused/test_library_api.py tests/focused/test_pwa_contract.py",
+      "command_sha256": "6dff1d48d748e5049a1ad3c527033bdff0adc1708de8bfb59cfcb71ced992f4e",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "SA-301 冻结命令目标通过。",
+      "environment": "local"
     }
   ],
-  "record_sha256": "022f3f8d5902a5f50db7ba340bcf230f6fd04ef8acc28a02d861fbd8eaee4fe7"
+  "generated_at": "2026-08-03T07:40:00Z"
 }
