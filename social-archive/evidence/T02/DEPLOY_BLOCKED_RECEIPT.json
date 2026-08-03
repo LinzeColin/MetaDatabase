@@ -54,5 +54,24 @@
     "GET /v1/auth/providers on production": 404,
     "running_image": "social-archive/core:0.0.0.6 (healthy, up 12h)",
     "verdict": "BLOCKED 的理由已实测坐实，不是托词。见 evidence/PRODUCTION_STATE_VERIFIED.json"
+  },
+  "retested_locally_and_the_blocker_moved": {
+    "recorded_at": "2026-08-04T20:45Z",
+    "why_retested": "T04 打通了「扩展装进受控浏览器」这条路之后，T02 先前记的阻塞理由（要等新镜像上线）需要重核——本地实例其实就有 auth 路由。",
+    "what_now_works_locally": {
+      "providers 端点": "github configured=true（用 Owner 给的 client_id 与 secret，只在本机一次性实例里）",
+      "start 端点": "产出格式正确的授权 URL；state cookie 是 HttpOnly / Max-Age=600 / Path=/v1/auth / SameSite=lax —— CSRF 卫生齐备",
+      "会话→受保护接口": "带会话 /v1/auth/me 200（user=Owner, is_owner=true）、/v1/credentials 200",
+      "登出→401": "**Acceptance 的后半句在本地实测通过**：登出后两个端点都 401，提示是中文「请先登录你的档案馆。」"
+    },
+    "an_assumption_of_mine_was_wrong": {
+      "i_had_assumed": "OAuth 应用注册的回调是生产域名，本地 redirect_uri 对不上，所以本地登录走不通。",
+      "measured": "把授权 URL 在受控浏览器里打开，GitHub **没有拒绝**，而是显示「Sign in to GitHub to continue to **Social Archive**」——它认得这个应用，只是要求登录。",
+      "so": "阻塞点不是技术上的 redirect_uri 不匹配（至少在登录前这一步不是），而是**下一步需要 Owner 的 GitHub 密码**。"
+    },
+    "what_i_will_not_do": "不在任何密码框里输入内容。这是硬规矩，与能不能做无关。已离开该登录页，全程未与密码框交互。",
+    "the_remaining_step_is_now_precise": "Owner 在那个一次性 Chrome 窗口里用自己的 GitHub 账号登录一次。之后能不能走完还取决于 GitHub 在授权阶段对 redirect_uri 的校验——那一步没试过，不预判。",
+    "still_blocked_but_for_a_different_reason": "先前记的是「等 T18 部署」。现在更准确：**本地就能验的部分已经验完，剩下的那步需要 Owner 亲自输入凭据**。部署路径仍然可用，只是不再是唯一路径。",
+    "half_of_acceptance_is_now_measured": "「登出后受保护接口拒绝访问」——PASS（本地实服务端）。「用两个 provider 各登录成功一次」——仍 NOT_RUN。"
   }
 }
