@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "what": "origin/main 上就已存在的测试失败，逐条核对过原因",
+  "recorded_at": "2026-08-04T15:30Z",
+  "baseline_ref": "origin/main@49bbe45c",
+
+  "why_this_file_exists": "本分支一整轮都在报「N failed，与基线一致」，但那只比对了失败**名字**，没比对**原因**。名字一样、原因不同，就是把自己引入的回归当成了基线——这轮真的因此漏掉过两个缺陷（见 fixed_this_round）。所以把每一条的原因都核到 origin/main 的文件内容上，写下来，让 T17/T18 的放行门有据可查。",
+
+  "count_at_branch_start": 11,
+  "count_now": 7,
+
+  "fixed_this_round": [
+    {
+      "test": "tests/focused/test_reader_profiles.py（3 条参数化）",
+      "looked_like": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xef",
+      "actually_was": "**本分支自己引入的回归**：${secret} 的花括号被剥成 $secret，而其后紧跟全角分号（EF BC 9B）。bash 把那些字节吞进变量名，set -u 下 unbound variable 退出。",
+      "why_it_hid": "bash -n 通过、文件是合法 UTF-8、Python text=True 读输出时先抛 UnicodeDecodeError 把真正的错误盖住——三层遮蔽",
+      "same_bug_elsewhere": "scripts/prepare_systemd_host.sh 另有 3 处（生产主机准备脚本），是新判据扫出来的，我原本只发现 1 处",
+      "guard": "tests/focused/test_shell_variable_expansion.py"
+    },
+    {
+      "test": "tests/focused/test_deployment_contract.py::test_install_dry_run_is_zero_write_even_when_prerequisites_are_available",
+      "actually_was": "测试夹具的文件清单漏建 scripts/build_extension_package.py，而 install.sh 要求它。看起来像 install.sh 坏了，其实是夹具漏建。",
+      "note": "我本轮已动过这份清单（换 ensure_api_token.py），补齐是我的事"
+    }
+  ],
+
+  "remaining_seven_verified_pre_existing": [
+    {
+      "test": "test_deployment_contract::test_install_provisions_shared_nonroot_bind_mounts_for_core_and_cli_sidecar",
+      "reason": "断言 'groupadd --system --gid 10001 socialarchive' 在 Dockerfile 里；测试读 3 个 Dockerfile，其中 worker 那个不含该行",
+      "verified": "本分支对任何 Dockerfile 的改动 = 0 个文件"
+    },
+    {
+      "test": "test_library_api::test_library_uses_one_content_card_for_multiple_relations_and_preserves_detail",
+      "reason": "KeyError: 'relation_type' —— /v1/library 返回的字段名是 primary_relation（SQL 里 r.relation_type AS primary_relation），测试按 relation_type 取",
+      "verified": "该 SELECT 在 origin/main 与本分支**逐字相同**；本分支对 relation_type 的改动全是 INSERT 列表里补 user_id，不涉及这条 SELECT"
+    },
+    {
+      "test": "test_library_api::test_library_filters_literal_full_text_collection_and_observed_date",
+      "reason": "同上，KeyError: 'relation_type'"
+    },
+    {
+      "test": "test_pwa_contract::test_pwa_has_core_views_and_chinese_labels",
+      "reason": "断言 '连接中心' 在 index.html；基线 index.html 里就没有这个词",
+      "verified": "origin/main 计数 0，现在计数 0"
+    },
+    {
+      "test": "test_ui_contract::test_pwa_unified_library_has_feed_grid_detail_and_responsive_contract",
+      "reason": "断言 'id=\"library\"' 在 index.html；基线就没有",
+      "verified": "origin/main 计数 0，现在计数 0"
+    },
+    {
+      "test": "test_storage_completion_contract::test_extension_never_claims_completion_without_three_receipts",
+      "reason": "断言 '归档完成 3/3' 在 options.js；基线就没有",
+      "verified": "origin/main 计数 0，现在计数 0"
+    },
+    {
+      "test": "test_stage3_pwa::test_pwa_shell_is_self_contained_and_mobile_ready",
+      "reason": "断言 '三步开始使用' / '先保存第一条内容' / 'id=\"detailDialog\"' 在 index.html；三个基线都没有",
+      "verified": "origin/main 三项计数均为 0，现在均为 0"
+    }
+  ],
+
+  "common_shape": "这 7 条里有 5 条是同一个形状：判据断言某段界面文案/元素存在，而 origin/main 的 index.html / options.js 里根本没有它们。看起来像是判据写在了一个尚未实现（或已被改掉）的界面版本上。**本任务包没有任何一项要求实现它们**，所以不在射程内；但 T17/T18 的放行门会撞上，届时要么补实现、要么按 CONFLICT_ORDER 记录并作废这些判据——不能靠「一直是红的」糊过去。",
+
+  "method": "逐条把断言的字符串拿到 origin/main 的对应文件里数一次（git show origin/main:<path> | grep -c），确认基线与现在都是 0；以及确认本分支对相关文件的改动为空或不涉及该断言。"
+}
