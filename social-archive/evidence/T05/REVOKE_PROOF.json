@@ -89,5 +89,27 @@
       "drift_guard": "test_the_new_table_list_matches_what_the_schema_actually_adds：脚本里的 V0007_TABLES 必须覆盖 RuntimeStore.IDENTITY_TABLES，以后再加表忘了同步会红"
     },
     "tests": "tests/focused/test_rollback_discloses_dropped_tables.py（3 条）"
+  },
+  "verified_end_to_end_against_a_live_server": {
+    "recorded_at": "2026-08-04T20:20Z",
+    "why_this_was_missing": "先前所有验证都直接打在 CredentialStore 上，没走过 HTTP 端点。而端点那层有自己的东西：会话鉴权、400 vs 503 的区分、状态查询不回值。",
+    "setup": "本机真起 uvicorn，配了一对**独立的**凭据 age 密钥（与备份那对无关）；会话用 store.create_session 直接建——等同 OAuth 登录后拿到的那个，不需要真的走一遍 OAuth。",
+    "results": {
+      "国内四平台写入": "xiaohongshu / douyin / bilibili / kuaishou 全部 HTTP 400，detail 是「…的登录信息不会离开你的浏览器，本产品不接收它」",
+      "西方源写入": "HTTP 200，「登录信息已加密保存，随时可以一键撤销。」，cookie_count = 2（含一条 #HttpOnly_ 行）",
+      "落库形态": "algorithm=age-x25519，密文 334 字节",
+      "明文不落库": "往 cookie 值里埋了唯一标记串，按字节 grep .sqlite3 与 -wal —— **不存在**",
+      "密文确是 age 格式": "库文件里能找到 age-encryption.org/v1",
+      "状态查询": "只回 platform / connected / cookie_count / 时间；响应里没有 cipher、也没有 cookies_txt",
+      "一键撤销": "HTTP 200「已撤销并从库中删除。」，revoked=1",
+      "撤销后": "platform_credential 行数 = 0；且**撤销前记下的密文字节在库文件里也找不到了** —— PRAGMA secure_delete 实测生效"
+    },
+    "acceptance_clauses_all_covered": {
+      "国内平台凭据写入被拒": "PASS（HTTP 层四个平台逐个验）",
+      "西方凭据加密落库": "PASS（真实 age 加密，明文标记按字节确认不存在）",
+      "撤销后库中无残留": "PASS（0 行 + 密文字节也不在）",
+      "全仓扫描无明文": "PASS（473 个受控文件 0 命中，本轮再扫一次）"
+    },
+    "note_on_the_session": "凭据端点只认登录会话、不认共享 bearer —— 这次也顺带坐实了：用 store.create_session 造的会话能过，而这正是 OAuth 登录后会得到的东西。"
   }
 }
