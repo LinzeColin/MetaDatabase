@@ -35,9 +35,16 @@
     "SA-401's GitHub private Markdown destination performs a real authorized write into a private repository and the result is externally readable.",
     "SA-403's Obsidian and standard Markdown destinations both write and read back."
   ],
+  "single_destination_failure_isolation": {
+    "method": "Requested an export to an unavailable destination (notion, unconfigured) together with a working one (markdown), then compared the canonical row before and after.",
+    "response": {"destination_ids": ["markdown"], "skipped_destination_ids": ["notion"]},
+    "canonical_row_before_equals_after": true,
+    "receipts_after": [{"destination_id": "markdown", "status": "done", "error_code": null}],
+    "verdict": "PASS — the unavailable destination is reported explicitly in skipped_destination_ids rather than silently dropped, the healthy destination still completes, and the Canonical Store is untouched. No rollback."
+  },
   "what_this_does_not_prove": [
     "SA-402. Notion is unconfigured: it needs a free Integration token plus a shared data_source_id, both of which can only be created in Notion's own UI by the account holder. Recorded as needs_user_action, not PASS.",
-    "SA-404 closure. The frozen Oracle also requires that a single-destination failure does not roll back the Canonical Store, and a retry and reconciliation path; those were not exercised in this run.",
+    "SA-404 closure. The reconciliation and retry-after-transient-provider-error path was not exercised; the isolation case above uses an unavailable destination, not a destination that fails mid-write.",
     "The JSONL half of SA-403.",
     "Any account-level mirror. The exported row is the canary content, because no real account sync has run yet."
   ],
