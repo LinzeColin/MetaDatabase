@@ -17,7 +17,7 @@
   ],
   "oracle": "四个国内平台逐项验证连接、首次全量、增量、暂停/恢复、partial 防误删和单平台隔离；未运行真实账号不得写 PASS。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "SA-205 的本地 v0.0.0.6 阶段门通过：四个平台的 fixture 连接、首次全量、增量、暂停/恢复、partial 防误删与隔离回归均通过；暂停后抵达 Core 的迟到批次现在 fail-closed。当前 Chrome 没有 Social Archive 或四个平台的已登录低风险标签页，因此真实 Owner Canary 未运行，任务整体按冻结 Oracle 保持 BLOCKED_ENVIRONMENT，而非 PASS。",
+  "result_summary": "SA-205 的当前 v0.0.0.6 回归门通过：四个平台的 fixture 连接、首次全量、增量、暂停/恢复、partial 防误删与隔离回归均通过；来自悬浮保存或右键菜单的请求会固定使用来源标签页，避免活动标签页竞态。四个国内目标页面已在受控 Chrome 中打开，但同一 profile 没有 Social Archive 扩展，且当前生产目标仍不是有效的 v0.0.0.6 配对目标；真实 Owner Canary 尚未运行，任务整体按冻结 Oracle 保持 BLOCKED_ENVIRONMENT，而非 PASS。",
   "evidence_binding": {
     "taskpack_zip_sha256": "921a9bda63c8e009b90f574d10ff5ffce1aa2e2dc68fbf1ae43627900b22a494",
     "frozen_task_dag_sha256": "916ef99d69ad0352662e4d4e1eaeb2a33b65c2851f1d2b492c87efcb5f68a1fb",
@@ -37,9 +37,12 @@
     "frozen_compose_workers_sha256": "8b36fa7d2ca4c350bd63a8cecc81e0a13e759d651c23cfbacc1fd806fdced337",
     "local_compose_workers_sha256": "8b36fa7d2ca4c350bd63a8cecc81e0a13e759d651c23cfbacc1fd806fdced337",
     "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
-    "implementation_commit": "44dbbcf418ae656ccfd7fc9545a3bc2bd7a49f64",
-    "implementation_tree": "e5f4239045f36e34b2cc3266c99f5fd485dc8705",
-    "validated_head_after_latest_main_reconciliation": "44dbbcf418ae656ccfd7fc9545a3bc2bd7a49f64"
+    "implementation_commit": "f5db06d2740b5ede789cd01227c49adc3f8ea524",
+    "implementation_tree": "f8d7b73b4f7587f0ef03f202748e5b34879bcd6f",
+    "contract_validation_commit": "635a124fa6cc54c53e8572013e9510fb3591f6fb",
+    "validated_head_after_latest_main_reconciliation": "8ec3fe0333b913f0663f1552b01db9e7637d0f3c",
+    "validated_tree_after_latest_main_reconciliation": "a48b7dfce722577017a86f6df69b1cd9e2ad6606",
+    "current_extension_package_sha256": "6cbfd349213bbd811a9da27635604ebc70b2520141e780387c91e20d26439445"
   },
   "semantic_reconciliation": {
     "decision": "ADAPT_CURRENT_UPSTREAM",
@@ -55,48 +58,38 @@
     "scope": "冻结 Stage 2 Worker fixture 与当前 Compose 完全一致。当前上游已有扩展持久队列、控制状态和跨平台关系闭合边界；本任务只使 Core 成为暂停状态下的最终拒绝点，并把四个平台的 fixture connection/first-full/incremental 与跨平台隔离纳入回归。现有 --read-only Canary 在加载 Settings、读取凭证、访问网络或写 runtime 前 fail-closed，故保留其更强边界。"
   },
   "canary_statuses": {
-    "xiaohongshu": {
+    "historical_read_only_preflight": {
       "status": "BLOCKED_ENVIRONMENT",
       "error_code": "OWNER_CANARY_NOT_AUTHORIZED",
       "credential_read": false,
       "network_attempted": false,
-      "runtime_write": false
+      "runtime_write": false,
+      "scope": "This was a pre-authorization safety probe, retained as historical evidence only."
     },
-    "douyin": {
-      "status": "BLOCKED_ENVIRONMENT",
-      "error_code": "OWNER_CANARY_NOT_AUTHORIZED",
-      "credential_read": false,
-      "network_attempted": false,
-      "runtime_write": false
-    },
-    "kuaishou": {
-      "status": "BLOCKED_ENVIRONMENT",
-      "error_code": "OWNER_CANARY_NOT_AUTHORIZED",
-      "credential_read": false,
-      "network_attempted": false,
-      "runtime_write": false
-    },
-    "bilibili": {
-      "status": "BLOCKED_ENVIRONMENT",
-      "error_code": "OWNER_CANARY_NOT_AUTHORIZED",
-      "credential_read": false,
-      "network_attempted": false,
-      "runtime_write": false
+    "current_owner_canary": {
+      "owner_authorized_in_thread": true,
+      "domestic_target_pages_opened": 4,
+      "page_level_authentication_signal": "LIKELY_AUTHENTICATED",
+      "social_archive_extension_visible_in_controlled_chrome": false,
+      "allowed_loopback_bridge_ping": "NO_RESPONSE",
+      "real_provider_run": "NOT_RUN"
     }
   },
   "validation": {
-    "exact_taskpack_pytest": "17 passed: frozen Stage 2 fixture plus the frozen SA-205 batch and platform-isolation targets.",
+    "exact_taskpack_pytest": "17 passed within the current 58-test focused set: frozen Stage 2 fixture plus the frozen SA-205 batch and platform-isolation targets.",
+    "current_account_mirror_extension_domestic_regression": "58 passed in 2.71s: account-mirror, pairing, extension API/core/bridge, package, v0.0.0.6 contract, platform isolation, and Stage 2 domestic fixtures.",
     "related_stage2_regression": "75 passed: Stage 2, account mirror, Extension bridge/core, XHS/OpenAPI/health/CLI connectors, Bilibili, scan scope, workers, generic fallback, status projection, and Canary fixtures.",
     "paused_batch_boundary": "PASS: paused runs reject late batches before any account lookup, counter, checkpoint, receipt, or relation mutation; resume returns the run to queued and accepts the next batch.",
     "four_platform_fixture": "PASS: xiaohongshu, douyin, kuaishou, and bilibili each cover fixture connection, first_full, incremental, and platform-scoped relation closure.",
-    "owner_canary_read_only": "all-cn returned four BLOCKED_ENVIRONMENT / OWNER_CANARY_NOT_AUTHORIZED receipts; credential_read=false, network_attempted=false, runtime_write=false for each.",
-    "browser_precondition": "Chrome read-only tab inventory contained only a ChatGPT tab; no Social Archive or authenticated domestic-platform low-risk page was available to begin the real Owner Canary.",
+    "owner_canary_read_only": "Historical all-cn pre-authorization safety probe returned four BLOCKED_ENVIRONMENT / OWNER_CANARY_NOT_AUTHORIZED receipts; credential_read=false, network_attempted=false, runtime_write=false for each.",
+    "browser_precondition": "Four domestic target pages are now open in the controlled Chrome surface with a page-level likely-authenticated signal, but no Social Archive extension is visible in that profile and safe bridge PING receives no response. No session, Cookie, or page content was inspected.",
+    "extension_package_build": "PASS: current v0.0.0.6 package rebuilt from source; 20 members; SHA-256 6cbfd349213bbd811a9da27635604ebc70b2520141e780387c91e20d26439445.",
     "compose_static_config": "PASS: domestic workers and Bilibili cli-tools Compose configurations parsed with no env resolution, interpolation, path resolution, image build, or service start.",
     "extension_syntax": "PASS: background.js and account-mirror-core.js passed node --check.",
     "brand_check": "PASS; hits=[]",
     "secret_scan": "PASS; hits=[]",
     "uv_lock_check_offline": "PASS",
-    "latest_main_reconciliation": "PASS: origin/main remained 7925695c0078bb3b98d71636f5a1315270d9de87 and is an ancestor of the validated implementation commit."
+    "latest_main_reconciliation": "PASS: remote origin/main remains 7925695c0078bb3b98d71636f5a1315270d9de87 and is an ancestor of the current validated head."
   },
   "predecessor_evidence": {
     "pointer": "evidence/SA-205/history/pre-v0.0.0.6-stage2-gate/PREVIOUS_EVIDENCE.json",
@@ -106,11 +99,12 @@
   },
   "known_limitations": [
     "The sealed SA-205 Oracle expressly forbids PASS when real accounts are not run. The task remains BLOCKED_ENVIRONMENT even though all local blocking fixtures passed.",
-    "No real owner account, Social Archive pairing, browser-extension reload, provider request, Cookie/session read, vendor resolution, Docker runtime, deployment, cloud action, or production action was attempted.",
-    "The only Chrome observation was read-only and found no candidate Social Archive or authenticated domestic-platform tab; it did not inspect cookies, storage, passwords, or page content.",
+    "No real Owner account connection, Social Archive pairing, browser-extension installation/reload, provider request, Cookie/session read, vendor resolution, Docker runtime, deployment, cloud action, or production action has occurred.",
+    "The controlled Chrome surface has four domestic target pages but no installed Social Archive extension. The page-level authentication signal is not a provider receipt, and no cookies, storage, passwords, or page content were inspected.",
+    "The production target remains a mixed historical v0.0.0.5 PWA/Core image and is not a valid v0.0.0.6 Owner Canary target.",
     "The local all-cn read-only Canary proves its safety boundary only. It is not a real platform connection, discovery, pagination, pause/resume, or world-state receipt.",
     "The domestic Vendors remain unresolved/disabled in this run; no vendor_sync, Docker build, or service start was used."
   ],
-  "generated_at": "2026-08-03T01:06:08Z",
-  "record_sha256": "63e63be508062909a60c9f8af0971d1ae2a2561d0e8c8482c856c9dd13cc8332"
+  "generated_at": "2026-08-03T03:33:23Z",
+  "record_sha256": "23049fc51564e08e269b1cb3d2c14e103e42ab84f50020a6bc2b32bafd223000"
 }

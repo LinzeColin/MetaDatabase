@@ -2,12 +2,13 @@
   "schema_version": "1.0",
   "task_id": "SA-205",
   "taskpack_version": "v0.0.0.6",
-  "generated_at": "2026-08-03T01:06:08Z",
-  "implementation_commit": "44dbbcf418ae656ccfd7fc9545a3bc2bd7a49f64",
-  "implementation_tree": "e5f4239045f36e34b2cc3266c99f5fd485dc8705",
+  "generated_at": "2026-08-03T03:33:23Z",
+  "implementation_commit": "f5db06d2740b5ede789cd01227c49adc3f8ea524",
+  "implementation_tree": "f8d7b73b4f7587f0ef03f202748e5b34879bcd6f",
   "record_context": {
     "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
-    "validated_head_after_latest_main_reconciliation": "44dbbcf418ae656ccfd7fc9545a3bc2bd7a49f64"
+    "validated_head_after_latest_main_reconciliation": "8ec3fe0333b913f0663f1552b01db9e7637d0f3c",
+    "contract_validation_commit": "635a124fa6cc54c53e8572013e9510fb3591f6fb"
   },
   "commands": [
     {
@@ -64,8 +65,32 @@
       "executed": true,
       "exit_code": 0,
       "status": "PASS",
-      "summary": "Remote main remained 7925695c0078bb3b98d71636f5a1315270d9de87 and is an ancestor of the validated implementation commit."
+      "summary": "Historical latest-main verification at the original implementation commit."
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' <existing-project-python-3.12> -m pytest -q tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_account_mirror_sync.py tests/focused/test_cloud_pairing.py tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_extension_api.py tests/focused/test_extension_e2n_contract.py tests/focused/test_scan_platform_isolation.py tests/focused/test_v005_extension_package.py tests/focused/test_v005_pairing_destinations.py tests/focused/test_v006_account_mirror_contract.py tests/stage/test_stage2_domestic.py && node --check apps/browser-extension/background.js",
+      "command_sha256": "ea8e35d0018ed7f263218a9a0621bc6bf4c6fd89e95951ca83c1ab132555f9d2",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "58 passed in 2.71s; one pre-existing Starlette TestClient deprecation warning."
+    },
+    {
+      "command": "LC_ALL=C LANG=C python3 scripts/build_extension_package.py",
+      "command_sha256": "e84fd6ae6781d541fecfbd6063293ec6db3fa809fe673311d2170bd50e24ae1e",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Built the current v0.0.0.6 ZIP from source with 20 members and SHA-256 6cbfd349213bbd811a9da27635604ebc70b2520141e780387c91e20d26439445."
+    },
+    {
+      "command": "git ls-remote origin refs/heads/main && git rev-parse origin/main && git merge-base --is-ancestor origin/main HEAD",
+      "command_sha256": "f7e255ed70e405de960fe070973b205ee7de7f26a2956632249dfbe24e820472",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Remote main and local origin/main both resolve to 7925695c0078bb3b98d71636f5a1315270d9de87; it is an ancestor of the current validated head."
     }
   ],
-  "record_sha256": "ea21ab4e018b664997e28993a3877dcc3b7058770910a726c2fa5364dbe6bbc8"
+  "record_sha256": "7452117ddc6dd39a2a0f293a3826e493a7b2fa107333ad7efe7fc7d4407c7de5"
 }
