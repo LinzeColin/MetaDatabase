@@ -181,3 +181,21 @@ console.log(JSON.stringify({{
     assert payload["explicit"]["reason"] == "EXPLICIT_END_MARKER"
     assert payload["totalMiss"] == {"complete": False, "reason": "TERMINAL_NOT_PROVEN", "totalHint": 2}
     assert payload["totalMatch"] == {"complete": True, "reason": "TRUSTED_TOTAL_MATCH", "totalHint": 2}
+
+
+def test_existing_platform_tab_preference_preserves_the_owner_selected_tab():
+    script = f"""
+const core = require({json.dumps(str(CORE))});
+const tabs = [
+  {{ id: 101, active: false, url: 'https://example.invalid/first' }},
+  {{ id: 202, active: true, url: 'https://example.invalid/active' }},
+  {{ id: 303, active: false, url: 'https://example.invalid/last' }}
+];
+console.log(JSON.stringify({{
+  preferred: core.preferExistingPlatformTab(tabs, 303)?.id || null,
+  active: core.preferExistingPlatformTab(tabs)?.id || null,
+  empty: core.preferExistingPlatformTab([])
+}}));
+"""
+    payload = _run_node(script)
+    assert payload == {"preferred": 303, "active": 202, "empty": None}

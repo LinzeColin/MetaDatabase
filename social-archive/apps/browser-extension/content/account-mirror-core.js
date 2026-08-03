@@ -324,10 +324,16 @@
     return output;
   }
 
+  function preferExistingPlatformTab(tabs, preferredTabId = null) {
+    const candidates = (Array.isArray(tabs) ? tabs : []).filter(tab => Number.isInteger(tab?.id));
+    const preferred = candidates.find(tab => String(tab.id) === String(preferredTabId));
+    return preferred || candidates.find(tab => tab.active === true) || candidates[0] || null;
+  }
+
   const api = Object.freeze({
     PLATFORM_SPECS, cleanText, canonicalUrl, externalId, relationFromUrl, collectionFromElement,
     discoverCollectionScopes, extractCandidates, detectLoggedIn, ensureRelationScope, isAtBottom, explicitEnd,
-    totalHint, completionProof, flattenBookmarksTree, chunk
+    totalHint, completionProof, flattenBookmarksTree, chunk, preferExistingPlatformTab
   });
   globalThis.SAMirrorCore = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;

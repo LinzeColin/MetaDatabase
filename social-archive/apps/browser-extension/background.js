@@ -364,6 +364,15 @@ async function ensureAccountMirrorScripts(tabId) {
   }).catch(() => {});
 }
 
+async function findExistingPlatformTab(platform, preferredTabId = null) {
+  const patterns = SA.patternsForPlatform(platform);
+  if (!patterns.length) return null;
+  const tabs = await chrome.tabs.query({ url: patterns }).catch(() => []);
+  const select = globalThis.SAMirrorCore?.preferExistingPlatformTab;
+  if (typeof select === "function") return select(tabs, preferredTabId);
+  return tabs.find(tab => String(tab?.id) === String(preferredTabId)) || tabs.find(tab => tab?.active) || tabs[0] || null;
+}
+
 async function sendSyncBatch(syncRunId, body) {
   return SA.api(`/v1/sync-runs/${encodeURIComponent(syncRunId)}/batches`, {
     method: "POST",
@@ -468,6 +477,9 @@ async function connectBrowserPlatform(platform) {
   if (!spec) throw new Error("当前平台尚未配置账号镜像入口");
   const granted = await SA.requestPlatformPermission(platform);
   if (!granted) return { ok: false, state: "unauthorized", error: `未获得${spec.label}页面读取权限` };
+  // Reuse a tab from the same persistent Chrome profile whenever possible.
+  // It avoids opening a second login journey and preserves the owner-selected page context.
+  const existingTab = await findExistingPlatformTab(platform);
   const start = await SA.api("/v1/accounts/connect/start", {
     method: "POST",
     body: JSON.stringify({
@@ -476,7 +488,7 @@ async function connectBrowserPlatform(platform) {
     }),
     timeoutMs: 15000
   });
-  const tab = await chrome.tabs.create({ url: spec.home, active: true });
+  const tab = existingTab || await chrome.tabs.create({ url: spec.home, active: true });
   await setPendingConnection(platform, {
     connectionRef: start.connection_ref,
     authMethod: "browser_session",
@@ -484,12 +496,18 @@ async function connectBrowserPlatform(platform) {
     tabId: tab.id,
     relations: spec.relations
   });
+  if (existingTab?.id) {
+    await chrome.tabs.update(existingTab.id, { active: true });
+    await ensureAccountMirrorScripts(existingTab.id);
+  }
   return {
     ok: true,
     state: "authorizing",
     platform,
     tabId: tab.id,
-    message: `已打开${spec.label}。完成登录后，插件会自动读取收藏与点赞。`
+    message: existingTab
+      ? `已复用当前${spec.label}页面，正在确认登录态并启动首次同步。`
+      : `已在当前 Chrome profile 中打开${spec.label}，插件会检测现有登录态。`
   };
 }
 
@@ -726,22 +744,14 @@ async function completePendingBrowserConnection(message, senderTab) {
 async function verifyPendingPlatform(platform) {
   const pending = (await getPendingConnections())[platform];
   if (!pending) return { ok: false, state: "not_pending", error: "没有等待确认的连接流程，请重新点击连接账号" };
-  const patterns = SA.patternsForPlatform(platform);
-  const tabs = [];
-  for (const pattern of patterns) {
-    const found = await chrome.tabs.query({ url: pattern }).catch(() => []);
-    for (const tab of found) if (!tabs.some(item => item.id === tab.id)) tabs.push(tab);
-  }
-  const preferred = tabs.find(tab => tab.id === pending.tabId) || tabs[0];
+  const preferred = await findExistingPlatformTab(platform, pending.tabId);
   if (!preferred?.id) {
-    const spec = platformSpec(platform);
-    const tab = await chrome.tabs.create({ url: spec?.home || "about:blank", active: true });
-    return { ok: false, state: "authorizing", tabId: tab.id, error: `请先在已打开的${spec?.label || platform}页面完成登录` };
+    return { ok: false, state: "authorizing", error: "未找到可复用的平台页面；插件不会打开新的登录页。" };
   }
   await chrome.tabs.update(preferred.id, { active: true });
   await ensureAccountMirrorScripts(preferred.id);
   const state = await chrome.tabs.sendMessage(preferred.id, { type: "SA_MIRROR_DISCOVER_ACCOUNT" }).catch(() => null);
-  if (!state?.loggedIn) return { ok: false, state: "authorizing", error: state?.loginHint || "尚未检测到登录状态，请完成登录后再试" };
+  if (!state?.loggedIn) return { ok: false, state: "authorizing", error: "当前页面的登录态尚未确认；插件不会重新打开登录页。" };
   return completePendingBrowserConnection({ type: "SA_PLATFORM_PAGE_READY", platform, ...state }, preferred);
 }
 

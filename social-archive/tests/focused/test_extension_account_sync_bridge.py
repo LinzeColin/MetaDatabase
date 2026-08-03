@@ -42,6 +42,17 @@ def test_service_worker_uses_persistent_queue_and_scan_heartbeat():
     assert 'port.name !== "sa-account-mirror-scan"' in background
 
 
+def test_connection_reuses_an_existing_platform_tab_before_opening_a_new_page():
+    background = (EXT / "background.js").read_text(encoding="utf-8")
+    assert "async function findExistingPlatformTab(platform, preferredTabId = null)" in background
+    assert "const existingTab = await findExistingPlatformTab(platform);" in background
+    assert "const tab = existingTab || await chrome.tabs.create({ url: spec.home, active: true });" in background
+    assert "await setPendingConnection(platform" in background
+    assert "await ensureAccountMirrorScripts(existingTab.id);" in background
+    assert "findExistingPlatformTab(platform, pending.tabId)" in background
+    assert "插件不会打开新的登录页。" in background
+
+
 def test_generic_web_label_is_user_facing_chrome_bookmarks_and_web():
     pwa = PWA.read_text(encoding="utf-8")
     assert 'label: "Chrome书签/网页"' in pwa
