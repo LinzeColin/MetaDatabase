@@ -3,7 +3,7 @@
   "generated_on": "2026-08-03",
   "project": "胡楚靓工作台",
   "project_path": "Personal-WorkBench",
-  "status": "S0_T1_RECONCILED_S0_T2_REMOTE_SITE_PROVISIONED",
+  "status": "S0_COMPLETE_CURRENT_SITES_STARTER_VALIDATED",
   "product_pass_claimed": false,
   "taskpack": {
     "version": "v0.0.0.8",
@@ -15,8 +15,13 @@
       "mismatched_entries": 0
     },
     "native_verifier": {
-      "status": "NOT_PASS_DUE_TO_LOCAL_TOOLCHAIN",
-      "reported_error": "TypeScript strict 失败: [Errno 2] No such file or directory: 'tsc'",
+      "status": "PASS_FOR_SEALED_TASKPACK",
+      "command_context": "Read-only verifier run with the current project's locked TypeScript compiler available on PATH.",
+      "task_count": 19,
+      "requirement_count": 15,
+      "asset_count": 42,
+      "browser_status": "PASS",
+      "contract_checks": 47,
       "production_pass_claimed": false
     }
   },
@@ -61,7 +66,7 @@
     "project_id_location": "Personal-WorkBench/.openai/hosting.json",
     "owner_session_observation": "平台回执确认新项目已创建，D1=DB、R2=FILES、仅 Owner 可见、无外部成员、未部署且未发布。未读取 Cookie、存储、密码、Token 或站点设置。",
     "no_architecture_change_over_30_percent": true,
-    "local_build_status": "NOT_RUN_NO_LOCAL_CURRENT_SITES_STARTER_OR_LOCKFILE"
+    "local_build_status": "PASS_CURRENT_SITES_VINEXT_STARTER_NPM_CI_CHECK_BUILD_TEST"
   },
   "s0_t1": {
     "classification": "adapt",
@@ -81,7 +86,7 @@
     {
       "id": "S0-T2",
       "classification": "adapt",
-      "reason": "已在 Owner 授权的 Sites 工作流创建独立私有、未部署 Site，并写入真实 hosting linkage；当前 Sites starter 源码和 lockfile 尚未同步到 worktree，构建命令未运行。"
+      "reason": "已在 Owner 授权的 Sites 工作流创建独立私有、未部署 Site 并写入真实 hosting linkage；随后从当前官方 vinext starter 适配到已有 S0 证据的项目根，保留 linkage 与 lockfile，npm ci、check、build 和 starter render test 均通过。"
     },
     {
       "id": "S1-T1",
@@ -176,8 +181,8 @@
     "s0_t1_semantic_reconcile": "RECORDED",
     "s0_t2_remote_private_site": "RECORDED",
     "s0_t2_linkage_and_bindings": "RECORDED",
-    "s0_t2_build": "NOT_RUN_NO_LOCAL_CURRENT_SITES_STARTER_OR_LOCKFILE",
-    "s0_stage_complete": false,
-    "next_gate": "Synchronize the current Sites starter into this worktree, preserve its lockfile, and run the required S0 commands before starting S1."
+    "s0_t2_build": "PASS_CURRENT_SITES_VINEXT_STARTER",
+    "s0_stage_complete": true,
+    "next_gate": "In a new run, start S1 visual-truth and authorized-asset verification; do not mistake the starter skeleton or S0 build proof for product acceptance."
   }
 }

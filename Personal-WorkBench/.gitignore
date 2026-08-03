@@ -5,3 +5,11 @@ node_modules/
 .DS_Store
 dist/
 coverage/
+.next/
+.vinext/
+out/
+.wrangler/
+outputs/
+work/
+*.pem
+*.tsbuildinfo

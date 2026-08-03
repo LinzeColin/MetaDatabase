@@ -3,7 +3,7 @@
   "generated_on": "2026-08-03",
   "task": "S0-T2",
   "project": "胡楚靓工作台",
-  "status": "REMOTE_SITE_CREATED_LOCAL_BUILD_NOT_RUN",
+  "status": "S0_T2_COMPLETE_CURRENT_STARTER_VALIDATED",
   "product_pass_claimed": false,
   "remote_site": {
     "project_id": "appgprj_6a70366303988191b2ca996238860c9f",
@@ -26,12 +26,30 @@
     "weread_resource_reuse": false
   },
   "source_and_commands": {
-    "local_current_sites_starter": "NOT_SYNCED_TO_WORKTREE",
-    "package_lockfile": "NOT_PRESENT",
-    "npm_ci": "NOT_RUN_NO_LOCAL_SITES_STARTER_OR_LOCKFILE",
-    "npm_run_check": "NOT_RUN_NO_LOCAL_SITES_STARTER",
-    "npm_run_build": "NOT_RUN_NO_LOCAL_SITES_STARTER",
-    "reason": "The remote Site has been provisioned, but no current Sites starter source or lockfile was provided to this worktree. Creating placeholder scripts or copying the sealed cross-framework starter would not prove a Sites-compatible build."
+    "local_current_sites_starter": "SYNCED_OFFICIAL_SITES_VINEXT_STARTER",
+    "initialization": "Official sites-building init-site.sh ran in an isolated empty directory because the project root already contained S0 governance evidence; only starter source and its lockfile were merged, while the existing .openai/hosting.json was preserved.",
+    "package_manager": "npm",
+    "package_lockfile": "PRESENT",
+    "node_requirement": ">=22.13.0",
+    "runtime_type_contract": "@cloudflare/workers-types=4.20260515.1 with Cloudflare.Env DB/FILES declarations",
+    "npm_ci": "PASS",
+    "npm_run_check": "PASS",
+    "npm_run_build": "PASS",
+    "npm_test": "PASS_2_OF_2_STARTER_RENDER_TESTS",
+    "artifact_hosting_linkage": "PASS_SOURCE_EQUALS_DIST_OPENAI_HOSTING_JSON",
+    "dev_server": "STARTED_LOCAL_ONLY_FOR_STARTER_PREVIEW_AND_STOPPED_DURING_TEARDOWN",
+    "build_notice": "vinext reported the starter route as statically unclassified because its analyzer cannot infer dynamic API usage. The command exited 0; this does not prove final product routing behavior.",
+    "starter_skeleton_exception": "The official disposable loading skeleton remains intentionally unchanged in S0. S1 must replace it with the frozen Chinese product UI and remove its preview metadata and dependency before candidate validation."
+  },
+  "dependency_baseline": {
+    "npm_audit_summary": {
+      "low": 1,
+      "moderate": 4,
+      "high": 13,
+      "critical": 0,
+      "status": "OPEN_BASELINE_FINDING"
+    },
+    "note": "Reported by npm during locked installation. No audit fix was applied because it could rewrite the starter lockfile; dependency remediation remains a later validation task and this is not a production-security PASS."
   },
   "security_boundary": {
     "sites_create_connector_called": false,
@@ -41,7 +59,7 @@
     "deployment_or_publish_action": false
   },
   "evidence_limits": [
-    "The platform receipt is evidence of remote project creation, binding names, owner-only visibility, and no deployment; it is not a local build, Saved Version, real-account, OAuth, email, Turnstile, D1 schema, R2 object, or production acceptance receipt.",
+    "The platform receipt is evidence of remote project creation, binding names, owner-only visibility, and no deployment; the local build is evidence only for the uncustomized current starter. Neither proves a Saved Version, real-account, OAuth, email, Turnstile, D1 schema, R2 object, product UI, or production acceptance receipt.",
     "The opaque project identifier is a linkage identifier, not a credential; no source-repository credential was requested, received, or recorded."
   ]
 }
