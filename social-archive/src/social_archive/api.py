@@ -16,7 +16,7 @@ import uvicorn
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from . import __version__
 from .account_sync import AccountSyncCoordinator, PLATFORM_RELATIONS
@@ -57,6 +57,14 @@ PAIRING_STATE_FILENAME = "pairing-code-state.json"
 
 
 class PairingRequest(BaseModel):
+    # Every model in models.py forbids unknown fields, as does
+    # LocalObsidianReceiptRequest below; this model and ExportRequest did not,
+    # so a misspelled key was accepted and silently ignored.  For ExportRequest
+    # that meant a request naming "destinations" instead of "destination_ids"
+    # returned 202 having exported nothing, with skipped_destination_ids empty
+    # too, so a caller could not tell success from a no-op.
+    model_config = ConfigDict(extra="forbid")
+
     code: str = Field(min_length=6, max_length=200)
     device_name: str = Field(default="Chrome Extension", min_length=1, max_length=120)
 
@@ -109,6 +117,8 @@ async def pairing_body_limit(request: Request, call_next):
 
 
 class ExportRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     destination_ids: list[str] = Field(default_factory=list, max_length=8)
 
 

@@ -104,3 +104,24 @@ def test_library_filters_literal_full_text_collection_and_observed_date(tmp_path
     assert [item['id'] for item in same_day_scope] == [content_id]
     assert client.get('/v1/library?observed_from=9999-01-01').json()['items'] == []
     assert client.get('/v1/library?observed_from=not-a-date').status_code == 422
+
+
+def test_export_rejects_an_unknown_field_instead_of_silently_exporting_nothing(tmp_path, monkeypatch):
+    # A request naming "destinations" rather than "destination_ids" used to
+    # return 202 having exported nothing, with skipped_destination_ids empty
+    # too, so the caller could not tell success from a no-op.
+    client = _library_client(tmp_path, monkeypatch)
+    created = client.post('/v1/captures', json={
+        'platform': 'generic-web',
+        'url': 'https://example.test/articles/export-contract',
+        'relation_type': 'manual_save',
+        'requested_levels': ['L0'],
+    })
+    assert created.status_code == 202
+    content_id = created.json()['content_id']
+
+    wrong_field = client.post(f'/v1/library/{content_id}/export', json={'destinations': ['markdown']})
+    assert wrong_field.status_code == 422, wrong_field.text
+
+    correct_field = client.post(f'/v1/library/{content_id}/export', json={'destination_ids': []})
+    assert correct_field.status_code == 202
