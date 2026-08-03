@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T02:06:03Z",
+  "status": "NOT_READY_FOR_REAL_CANARY",
+  "scope": "read_only_production_origin_identity",
+  "source_head": "21a1c68169009592c54604e5e3615ca6396046a5",
+  "observed": {
+    "tunnel_origin": "127.0.0.1:18765",
+    "running_container": {
+      "name": "social-archive-core-api-1",
+      "image_tag": "social-archive/core:0.0.0.5",
+      "status": "running",
+      "compose_worktree": "v0006-s0/social-archive",
+      "version_file": "0.0.0.6"
+    },
+    "embedded_pwa": {
+      "service_worker_registration": "/assets/sw.js?v=table-s0",
+      "app_asset": "/assets/app.js?v=table-s0",
+      "cache_identity": "social-archive-ui-table-s0"
+    },
+    "embedded_extension_package": {
+      "manifest_version": "0.0.0.6",
+      "has_bridge_js": true
+    }
+  },
+  "conclusion": "The active origin is a mixed historical image: its extension ZIP and VERSION file are v0.0.0.6, but its PWA assets remain the table-s0 implementation that renders the old product surface. This explains the visible v0.0.0.5 installer flow and missing current bridge. It is not a valid v0.0.0.6 SA-205 Canary target.",
+  "mutations": {
+    "container_rebuilt_or_restarted": false,
+    "tunnel_or_cloudflare_changed": false,
+    "browser_profile_or_extension_changed": false,
+    "account_or_provider_action": false,
+    "credential_or_secret_access": false,
+    "deployment_or_production_change": false
+  },
+  "does_not_establish": [
+    "A user Chrome extension installation, reload, pairing, or account session state.",
+    "A real platform connection, source read, first full mirror, incremental mirror, pause/resume, partial protection, or isolation receipt.",
+    "SA-205 PASS, downstream task permission, release, push, or deployment authorization."
+  ]
+}
