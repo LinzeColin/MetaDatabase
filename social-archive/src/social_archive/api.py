@@ -16,12 +16,18 @@ import uvicorn
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from . import __version__, auth
 from .account_sync import AccountSyncCoordinator, PLATFORM_RELATIONS
 from .config import Settings
 from .db import RuntimeStore
+from .credentials import (
+    CredentialRejected,
+    CredentialStore,
+    CredentialUnavailable,
+    CredentialVault,
+)
 from .destinations import DestinationRegistry, _markdown
 from .models import (
     AccountConnectCompleteRequest,
@@ -53,9 +59,83 @@ app = FastAPI(title="Social Archive", version=__version__, docs_url="/api/docs",
 # Cookie 语义与失败文案，混进 pairing/token 那套只会互相污染。
 app.include_router(auth.build_router(settings, store))
 
+# 有界 Cookie 托管（v0.0.0.7 / T05）。
+credential_vault = CredentialVault(
+    recipient=settings.age_recipient, identity_file=settings.age_identity_file
+)
+credential_store = CredentialStore(store, credential_vault)
+
 
 class ExportRequest(BaseModel):
     destination_ids: list[str] = Field(default_factory=list, max_length=8)
+
+
+class CredentialUploadRequest(BaseModel):
+    """上传一份平台会话。
+
+    字段名刻意叫 cookies_txt 而不是 cookies/session/token —— 让它在日志、
+    异常和 diff 里一眼可辨，脱敏守卫也好按名字兜底。
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    # 1 MiB 足够任何平台的 cookies.txt；再大基本是误传了别的文件。
+    cookies_txt: str = Field(min_length=1, max_length=1_048_576)
+
+
+def _credential_user(request: Request) -> str:
+    """凭据路由只认**会话**，不认共享 bearer 令牌。
+
+    共享令牌是给扩展做业务上行的；凭据的写入与撤销必须绑定到一个具体的人，
+    否则"按 user_id 隔离"就成了空话——拿着同一个令牌谁都能覆盖别人的会话。
+    """
+    user_id = auth.session_user_id(request, store)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="请先登录你的档案馆。")
+    return user_id
+
+
+@app.get("/v1/credentials")
+def list_credentials(request: Request) -> dict[str, Any]:
+    """只回状态，永不回值。"""
+    user_id = _credential_user(request)
+    return {"items": [
+        {
+            "platform": item.platform, "connected": item.connected,
+            "cookie_count": item.cookie_count, "updated_at": item.updated_at,
+            "last_used_at": item.last_used_at,
+        }
+        for item in credential_store.status(user_id)
+    ]}
+
+
+@app.put("/v1/credentials/{platform}", status_code=200)
+def put_credential(platform: str, payload: CredentialUploadRequest, request: Request) -> dict[str, Any]:
+    user_id = _credential_user(request)
+    try:
+        status = credential_store.put(
+            user_id=user_id, platform=platform, cookies_txt=payload.cookies_txt
+        )
+    except CredentialRejected as exc:
+        # 400 而不是 422：这不是格式问题，是**产品明确不接收**这个平台的凭据。
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except CredentialUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return {
+        "platform": status.platform, "connected": True,
+        "cookie_count": status.cookie_count, "updated_at": status.updated_at,
+        "message_zh": "登录信息已加密保存，随时可以一键撤销。",
+    }
+
+
+@app.delete("/v1/credentials/{platform}")
+def delete_credential(platform: str, request: Request) -> dict[str, Any]:
+    user_id = _credential_user(request)
+    removed = credential_store.revoke(user_id=user_id, platform=platform)
+    return {
+        "platform": str(platform or "").strip().lower(), "revoked": removed,
+        "connected": False,
+        "message_zh": "已撤销并从库中删除。" if removed else "本来就没有保存这个平台的登录信息。",
+    }
 
 
 class LocalObsidianReceiptRequest(BaseModel):

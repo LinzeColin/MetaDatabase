@@ -418,3 +418,35 @@ CREATE INDEX IF NOT EXISTS idx_platform_collection_user ON platform_collection(u
 CREATE INDEX IF NOT EXISTS idx_sync_run_user ON sync_run(user_id, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_session_user ON session(user_id, expires_at);
 CREATE INDEX IF NOT EXISTS idx_oauth_identity_user ON oauth_identity(user_id);
+
+-- ── 有界 Cookie 托管（v0.0.0.7 / T05）──────────────────────────────
+--
+-- 只放西方三源（X / Instagram / YouTube）的会话，密文入库。
+-- 国内平台**永不出现在这张表里**：它们的 Cookie 一步都不离开 Owner 的浏览器
+-- （INV-DOMESTIC-COOKIE-STAYS）。拒绝发生在写入路径上，不是靠这里的 CHECK
+-- 兜底——但 CHECK 仍然写上，因为"应用层记得拦"和"库里不可能存在"是两件事，
+-- 后者才是不变量。
+--
+-- 密文直接存 BLOB 而不是存文件路径：撤销必须是一条 DELETE 就干净，
+-- 存路径的话删表行只是删了指针，密文还躺在磁盘上，"撤销后库中无残留"就成了假话。
+--
+-- 这里存的**只有密文**。明文从进程内存到 age 子进程，落地时已经是密文；
+-- 解密只发生在 materialize() 的 0600 临时文件里，用完即删，永不进持久卷。
+CREATE TABLE IF NOT EXISTS platform_credential (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  platform TEXT NOT NULL CHECK(platform IN ('x','instagram','youtube')),
+  algorithm TEXT NOT NULL DEFAULT 'age-x25519',
+  recipient_fingerprint TEXT NOT NULL,
+  cipher BLOB NOT NULL,
+  cipher_sha256 TEXT NOT NULL,
+  cipher_byte_size INTEGER NOT NULL,
+  -- 只记形态，不记内容：条数用于界面显示"已连接"，永远不存 cookie 名或值。
+  cookie_count INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  last_used_at TEXT,
+  UNIQUE(user_id, platform)
+);
+
+CREATE INDEX IF NOT EXISTS idx_platform_credential_user ON platform_credential(user_id, platform);
