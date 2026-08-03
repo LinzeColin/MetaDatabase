@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T03:02:43Z",
+  "source_head": "b92f6583dc020c3f311a94b6fd4cf3dbc6716593",
+  "scope": "read-only browser and unauthenticated network access-boundary diagnosis",
+  "browser_observation": {
+    "controlled_chrome_connections_navigation": "ERR_BLOCKED_BY_CLIENT",
+    "controlled_in_app_browser_connections_navigation": "ERR_BLOCKED_BY_CLIENT",
+    "temporary_browser_tabs_finalized": true
+  },
+  "network_observation": {
+    "root_status": 302,
+    "connections_status": 302,
+    "access_boundary": "Cloudflare Access login",
+    "request_authentication_material_supplied": false,
+    "response_session_or_signed_routing_material_recorded": false
+  },
+  "safety": {
+    "cookie_or_storage_inspection": false,
+    "credential_or_secret_access": false,
+    "provider_request": false,
+    "account_connection_or_sync": false,
+    "access_policy_or_deployment_mutation": false
+  },
+  "conclusion": "The public origin is reachable and protected by Cloudflare Access. The controlled browser surfaces cannot traverse its login boundary because both report client-side navigation blocking. This is neither a v0.0.0.6 source pairing failure nor evidence of an authenticated account Canary; no authentication material is retained or reused."
+}
