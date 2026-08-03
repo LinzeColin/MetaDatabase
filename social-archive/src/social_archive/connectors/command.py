@@ -11,6 +11,7 @@ from typing import Any
 import httpx
 
 from .base import ConnectorError, ConnectorResult
+from .. import gallerydl_runner
 from ..utils import assert_public_http_url, read_secret, redact
 
 
@@ -125,7 +126,37 @@ class CommandArtifactConnector:
         (run_dir / "command-result.json").write_text(json.dumps(evidence, ensure_ascii=False, indent=2), encoding="utf-8")
         files = [p for p in run_dir.rglob("*") if p.is_file() and p.name != "command-result.json" and "home" not in p.parts]
         status = "success" if result.returncode == 0 and files else "failed"
-        errors = [] if status == "success" else [{"code": "COMMAND_FAILED", "message": redact(result.stderr[-1000:] or "命令未产生文件"), "retryable": result.returncode not in {1, 2}}]
+        # 两个工具的退出码约定**不一样，不能共用一条规则**（实测自生产容器）：
+        #   yt-dlp      1=下载/抽取错误  2=用法错误  100/101=中止
+        #               （无效 URL → 1；错误参数 → 2）
+        #   gallery-dl  位掩码 1/4/8/16/32/64/128，见 gallerydl_runner
+        # 这里原来写的是 `result.returncode not in {1, 2}`——那是 **yt-dlp 的**约定，
+        # 套到 gallery-dl 上就成了：鉴权失败(16)、撞验证码(8)、URL 不支持(64)
+        # 统统判成「可重试」。而 db.finish_job 会把可重试的任务放回队列
+        # （status = "retry" if retryable else "failed"），于是一个永远不会好的
+        # 失败被反复重跑——正是 gallerydl_runner 模块文档里明令禁止的那种误判。
+        if status == "success":
+            errors = []
+        elif tool == "gallery-dl":
+            failure_code = gallerydl_runner.classify_exit_code(
+                result.returncode, url=clean, stderr=result.stderr
+            )
+            errors = [{
+                # 用定级后的码而不是笼统的 COMMAND_FAILED：后者在失败文案词典里
+                # 认不出来，界面会说「我们没能记录下原因」——而其实是知道的。
+                "code": failure_code or "COMMAND_FAILED",
+                "message": redact(result.stderr[-1000:] or "命令未产生文件"),
+                "retryable": gallerydl_runner.is_retryable_exit(
+                    result.returncode, url=clean, stderr=result.stderr
+                ),
+            }]
+        else:
+            # yt-dlp：1 和 2 重试都解决不了（2 是我们自己把参数传错了）。
+            errors = [{
+                "code": "URL_NOT_SUPPORTED" if result.returncode == 2 else "SERVER_UNREACHABLE",
+                "message": redact(result.stderr[-1000:] or "命令未产生文件"),
+                "retryable": False,
+            }]
         return ConnectorResult(self.connector_id, run_id, status, observations=[{"url": clean}], artifacts=[{"path": str(p), "type": "downloaded_file"} for p in files], scan_receipt={"completeness": "complete" if status == "success" else "failed", "item_count": len(files), "scope": "item", "execution_boundary": "local_dev_fallback"}, errors=errors)
 
     def instagram_saved(self, session_file: Path | None, username: str | None, limit: int = 20) -> ConnectorResult:

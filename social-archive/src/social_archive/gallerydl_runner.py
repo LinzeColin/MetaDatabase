@@ -128,6 +128,22 @@ def classify_exit_code(returncode: int, *, url: str = "", stderr: str = "") -> s
     return "SERVER_UNREACHABLE"
 
 
+# 哪些失败重试有意义。**白名单，不是黑名单**——默认不可重试。
+# 反过来写（"除了这几个都能重试"）的代价见 connectors/command.py 里那条注释：
+# 一个永远不会好的失败被放回队列反复重跑，界面转圈、日志刷屏，最后还是 0 条。
+RETRYABLE_FAILURE_CODES = frozenset({"SERVER_UNREACHABLE", "RATE_LIMITED"})
+
+
+def is_retryable_exit(returncode: int, *, url: str = "", stderr: str = "") -> bool:
+    """这个退出码值不值得让调度器再跑一次。"""
+    code = classify_exit_code(returncode, url=url, stderr=stderr)
+    if code is None:
+        # 退出码 0 却被判成失败（通常是"跑成功了但没产出文件"）。
+        # 重试也不会变出文件来。
+        return False
+    return code in RETRYABLE_FAILURE_CODES
+
+
 def classify_failure(errors: list[dict[str, str]], *, url: str = "") -> str | None:
     """把 gallery-dl 的错误归到一个失败码上。
 

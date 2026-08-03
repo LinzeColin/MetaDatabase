@@ -352,3 +352,52 @@ def test_every_exit_bit_produces_some_explanation() -> None:
         assert classify_exit_code(bit, url="https://example.com/x") is not None, (
             f"退出码 {bit} 没有对应的失败码——它会变成一次静默的零"
         )
+
+
+# ── 可重试性：把「永远不会好」的失败放回队列 ──────────────────────────
+#
+# db.finish_job 里：status = "done" if success else ("retry" if retryable else "failed")
+# 也就是说 retryable=True 会让任务**回到队列被再跑一次**。
+# 把一个鉴权失败标成可重试，后果是界面转圈、日志刷屏，最后还是 0 条。
+
+
+def test_retryability_is_a_whitelist_not_a_blacklist() -> None:
+    """默认不可重试。反过来写就会把没见过的失败一律放回队列。"""
+    from social_archive.gallerydl_runner import RETRYABLE_FAILURE_CODES, is_retryable_exit
+
+    assert RETRYABLE_FAILURE_CODES == frozenset({"SERVER_UNREACHABLE", "RATE_LIMITED"})
+    # 需要人去做点什么的，重试一万次也一样
+    assert not is_retryable_exit(16, url="https://reddit.com/u/me/saved"), "鉴权失败被判成可重试"
+    assert not is_retryable_exit(8, url="https://example.com/x"), "撞验证码被判成可重试"
+    assert not is_retryable_exit(64, url="https://example.com/x"), "URL 不支持被判成可重试"
+    assert not is_retryable_exit(32, url="https://example.com/x")
+    # 真的是环境问题的，才值得再跑
+    assert is_retryable_exit(128, url="https://example.com/x"), "OSError 应当可重试"
+
+
+def test_the_old_ytdlp_rule_would_have_retried_an_auth_failure_forever() -> None:
+    """记下这条规则原来错在哪：`returncode not in {1, 2}` 是 **yt-dlp 的**约定。
+
+    yt-dlp 实测：无效 URL → 1，错误参数 → 2。所以那个集合对 yt-dlp 是对的。
+    但它被同一行代码套在了 gallery-dl 上，而 gallery-dl 的退出码是位掩码。
+    """
+    from social_archive.gallerydl_runner import is_retryable_exit
+
+    for gallery_dl_exit in (8, 16, 32, 64):
+        assert gallery_dl_exit not in {1, 2}, "前提变了：这条判据记录的是旧规则的形状"
+        # 旧规则会说"可重试"，新规则说不
+        assert not is_retryable_exit(gallery_dl_exit, url="https://www.reddit.com/user/me/saved")
+
+
+def test_command_connector_reports_a_code_the_copy_dictionary_can_resolve() -> None:
+    """失败码要能被文案词典认出来，否则界面会说「我们没能记录下原因」。"""
+    from social_archive.failure_copy import DELIBERATELY_UNALIASED, resolve
+    from social_archive.gallerydl_runner import classify_exit_code
+
+    for rc in (4, 8, 16, 32, 64, 128):
+        code = classify_exit_code(rc, url="https://www.reddit.com/user/me/saved")
+        assert code is not None
+        resolved_or_deliberate = resolve(code) is not None or code in DELIBERATELY_UNALIASED
+        assert resolved_or_deliberate, (
+            f"退出码 {rc} 定级成 {code}，但文案词典既认不出它、也没把它列为故意不认的"
+        )

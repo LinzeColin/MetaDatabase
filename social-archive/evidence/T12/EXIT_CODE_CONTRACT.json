@@ -107,6 +107,30 @@
     "still_open": "怎么把它接到 CredentialStore（T05 明确拒收 reddit，因为它走 OAuth 不是 Cookie）仍未实现。但推迟的那个理由已经不成立了——形态是确定的：两个配置键，写进一份 gallery-dl 配置 JSON。这条现在是待做，不再是待查。"
   },
 
+  "second_instance_same_defect_class": {
+    "why_i_kept_looking": "第一处修完之后没停在那儿——同一类缺陷（把失败读成别的东西）很少只有一处。扫了所有会写同步终态的路径，找到第二处。",
+    "where": "src/social_archive/connectors/command.py:128（修改前）",
+    "the_line": "\"retryable\": result.returncode not in {1, 2}",
+    "what_is_wrong": "`{1, 2}` 是 **yt-dlp 的**退出码约定（实测：无效 URL → 1，错误参数 → 2），对 yt-dlp 是对的。但同一行代码同时服务两个工具——第 122 行 `argv` 里 gallery-dl 和 yt-dlp 二选一——而 gallery-dl 的退出码是位掩码。于是 gallery-dl 的 8（验证码）、16（鉴权）、32、64（URL 不支持）全都 `not in {1,2}` → **retryable=True**。",
+    "real_consequence": {
+      "chain": "db.py:548  status = \"done\" if success else (\"retry\" if retryable else \"failed\")",
+      "meaning": "retryable=True 的任务会被放回队列再跑。一个缺 OAuth 的 Reddit 同步因此会被反复重跑——界面转圈、日志刷屏、最后还是 0 条，而重试一万次也一样。这正是 gallerydl_runner 模块文档里写明禁止的那种误判，写在文档里，然后在隔壁文件里犯了。"
+    },
+    "fix": "按工具分开定级：gallery-dl 走 classify_exit_code/is_retryable_exit 的位掩码判定，yt-dlp 用它自己的约定。可重试是**白名单**（只有 SERVER_UNREACHABLE 与 RATE_LIMITED），默认不可重试。",
+    "bonus": "顺带把错误码从笼统的 COMMAND_FAILED 换成定级后的码。COMMAND_FAILED 在失败文案词典里认不出来，界面会说「我们没能记录下原因」——而其实是知道的。",
+    "measured_after_fix": [
+      {"tool": "gallery-dl", "exit": 64, "code": "URL_NOT_SUPPORTED", "retryable": false},
+      {"tool": "gallery-dl", "exit": 16, "code": "REDDIT_NOT_AUTHORIZED", "retryable": false, "copy": "Reddit 需要单独授权一次。[ 去授权 ]"},
+      {"tool": "gallery-dl", "exit": 20, "code": "REDDIT_NOT_AUTHORIZED", "retryable": false, "note": "20 = 16|4，位掩码判定在真实调用链上生效"},
+      {"tool": "gallery-dl", "exit": 8, "code": "CHALLENGE_REQUIRED", "retryable": false},
+      {"tool": "gallery-dl", "exit": 128, "code": "SERVER_UNREACHABLE", "retryable": true},
+      {"tool": "yt-dlp", "exit": 2, "code": "URL_NOT_SUPPORTED", "retryable": false},
+      {"tool": "yt-dlp", "exit": 1, "code": "SERVER_UNREACHABLE", "retryable": false}
+    ],
+    "verified_how": "直接调用 CommandArtifactConnector.capture_url()，patch 掉 _run 返回构造的退出码，走真实的错误组装与文案渲染路径。七条全部说得出原因，没有一条落到「已经是最新的」。",
+    "still_unfixed_nearby": "同文件第 222 行 bilibili 路径的 `\"retryable\": True` 是写死的常量，任何失败都会被放回队列。它不在 T12 的范围里（属于国内三源，走 T08/T09 的拦截路径），记在这里免得当作没看见。"
+  },
+
   "what_this_does_not_prove": [
     "没有跑通一次真实的 Reddit 取数——那需要 Owner 的 Reddit 授权。",
     "没有验证 --cookies 传给 gallery-dl 之后的真实行为。",
