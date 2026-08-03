@@ -37,6 +37,13 @@ sqlite3 "$SNAP" "PRAGMA integrity_check;" | grep -qx "ok" \
 TENANT_TABLES="source_account user_relation platform_collection sync_run"
 BUSINESS_TABLES="content user_relation source_account artifact platform_collection sync_run scan_receipt"
 
+# v0.0.0.7 之后才有的表。回滚到 v0.0.0.7 之前的快照会**整表消失**：
+# 登录身份、会话、扩展令牌、以及托管的平台凭据全部没有。
+# 那意味着回滚之后 Owner 会发现自己"没登录过、插件没连过、平台没连过"，
+# 而上面那套行数比对一个字都不会提——它只数它认识的那 7 张表。
+# 这里单独列出来，回滚前必须明确告知会丢什么。
+V0007_TABLES="users oauth_identity session extension_token platform_credential"
+
 echo "== 快照（迁移前）=="
 for t in $BUSINESS_TABLES; do
   n=$(sqlite3 "$SNAP" "SELECT COUNT(*) FROM $t;" 2>/dev/null || echo "-")
@@ -66,6 +73,32 @@ for t in $BUSINESS_TABLES; do
     MISMATCH=1
   fi
 done
+
+# ── 会被回滚抹掉的 v0.0.0.7 新表 ──────────────────────────────────
+# 全库 .restore 是整文件替换：快照里没有的表，恢复之后就不存在了。
+# 这不是"数据没变"，是"整张表连同结构一起没了"，必须说出来。
+echo ""
+echo "== 回滚会抹掉的 v0.0.0.7 新增表 =="
+WILL_DROP=0
+for t in $V0007_TABLES; do
+  in_db=$(sqlite3 "$DB" "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='$t';" 2>/dev/null || echo 0)
+  in_snap=$(sqlite3 "$SNAP" "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='$t';" 2>/dev/null || echo 0)
+  if [ "$in_db" = "1" ] && [ "$in_snap" = "0" ]; then
+    rows=$(sqlite3 "$DB" "SELECT COUNT(*) FROM $t;" 2>/dev/null || echo "?")
+    printf "  ✗ %-22s 当前有 %s 行，快照里没有这张表 —— 回滚后会整表消失\n" "$t" "$rows"
+    WILL_DROP=1
+  else
+    printf "  · %-22s 当前 %s / 快照 %s\n" "$t" "$in_db" "$in_snap"
+  fi
+done
+if [ "$WILL_DROP" = "1" ]; then
+  echo ""
+  echo "注意：上面标 ✗ 的表在回滚后不复存在。对 Owner 的实际表现是："
+  echo "  · 需要重新用 Google/GitHub 登录一次"
+  echo "  · 浏览器插件需要重新连接"
+  echo "  · 已托管的平台登录信息全部消失，需要重新连接各平台"
+  echo "这不是故障，是回滚的正常代价 —— 但必须先知道再决定。"
+fi
 
 if [ "$MISMATCH" = "1" ]; then
   echo ""

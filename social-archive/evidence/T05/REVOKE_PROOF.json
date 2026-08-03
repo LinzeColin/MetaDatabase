@@ -75,5 +75,19 @@
   "not_yet_done": {
     "no_real_platform_cookie_has_been_stored": "本任务只建托管能力并验证边界，**没有**上传任何真实平台会话。真实 Cookie 的导出与往返属于 T06。",
     "age_recipient_not_configured_in_prod_for_credentials": "生产是否已配 SOCIAL_ARCHIVE_AGE_RECIPIENT / AGE_IDENTITY_FILE 未在本任务中核对；未配置时写入会 503 且中文提示，不会静默失败。T06 之前需确认。"
+  },
+  "rollback_would_have_silently_dropped_this_table": {
+    "found_during": "回头核对 T05 新增的表有没有把既有机制一起带上——租户审计已经栽过一次（8 张表只数 4 张），回滚脚本是同一类。",
+    "what_was_wrong": "scripts/rollback_0007.sh 用整库 .restore 恢复，快照里没有的表恢复后就不存在了。它的行数比对只覆盖 7 张业务表，v0.0.0.7 新增的 users / oauth_identity / session / extension_token / **platform_credential** 一张都不在其中。",
+    "consequence": "拿一个 v0.0.0.7 之前的快照去 --verify，会得到干干净净的「✓ 校验通过」，而一执行就把登录身份、扩展令牌和**已托管的平台凭据**一起抹掉。对 Owner 的表现是「我明明连过，怎么全没了」。",
+    "why_it_is_the_same_shape_as_before": "机制只认识它被写下来时存在的那几张表。新增表时没同步扩它，它照样报绿——这是本会话第三次遇到同一个形状（租户审计、脱敏扫描面、回滚校验）。",
+    "fix": "--verify 新增一段：逐个比对 v0.0.0.7 新表在当前库/快照里是否存在，当前有而快照没有的明确标 ✗ 并报出行数，再用三句话说清对 Owner 意味着什么（要重新登录、插件要重连、平台凭据要重连）。",
+    "not_a_defect_in_rollback_itself": "回滚仍然是对的、可执行的——问题只在于**不说清代价**。所以补的是告知，不是拦截：INV-REVERSIBLE 要求能回滚，不要求回滚无代价。",
+    "verified": {
+      "positive": "用 origin/main 的 schema 造真快照 + 装了 1 条凭据的当前库，--verify 确实把 5 张表逐个列出并报出行数",
+      "negative": "同版本快照之间不报「会抹掉」——否则告警会被当噪音忽略",
+      "drift_guard": "test_the_new_table_list_matches_what_the_schema_actually_adds：脚本里的 V0007_TABLES 必须覆盖 RuntimeStore.IDENTITY_TABLES，以后再加表忘了同步会红"
+    },
+    "tests": "tests/focused/test_rollback_discloses_dropped_tables.py（3 条）"
   }
 }
