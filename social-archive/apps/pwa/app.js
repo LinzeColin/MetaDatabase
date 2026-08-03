@@ -48,6 +48,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
+  const PRODUCT_VERSION = "0.0.0.6";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -71,6 +72,7 @@
   const state = {
     rows: [], total: 0, facets: { platforms: [], topics: [] }, platformCounts: {},
     accounts: [], syncRuns: [], destinations: [], serviceReady: false,
+    extension: { detected: false, paired: false, compatible: false, version: "", refreshedAt: null },
     platform: "all", group: true, sortKey: "savedAt", sortDir: "desc", search: "",
     filters: { relation: "all", topic: "all", date: "all", archive: "all" },
     visibleColumns: new Set(columns.filter(column => !column.defaultHidden).map(column => column.key)),
@@ -626,13 +628,13 @@
     }
   }
 
-  function postToExtension(type, payload = {}) {
+  function postToExtension(type, payload = {}, timeoutMs = 2500) {
     const requestId = crypto.randomUUID();
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         window.removeEventListener("message", onMessage);
         reject(new Error("没有检测到 Social Archive 浏览器插件"));
-      }, 2500);
+      }, timeoutMs);
       function onMessage(event) {
         const data = event.data || {};
         if (event.source !== window || data.source !== "social-archive-extension" || data.requestId !== requestId) return;
@@ -646,10 +648,57 @@
     });
   }
 
+  function extensionStatus(payload = {}) {
+    const version = String(payload.version || "");
+    return {
+      detected: payload.detected === true,
+      paired: payload.paired === true,
+      compatible: version === PRODUCT_VERSION,
+      version,
+      refreshedAt: Date.now()
+    };
+  }
+
+  async function refreshExtensionStatus() {
+    try {
+      state.extension = extensionStatus(await postToExtension("SA_PING", {}, 1500));
+    } catch (_) {
+      state.extension = { detected: false, paired: false, compatible: false, version: "", refreshedAt: Date.now() };
+    }
+    return state.extension;
+  }
+
+  async function ensureExtensionReady() {
+    const extension = await refreshExtensionStatus();
+    if (!extension.detected) {
+      showToast("未检测到 Social Archive 浏览器插件，正在打开安装说明。", "needs");
+      location.href = "/extension-install";
+      return false;
+    }
+    if (!extension.compatible) {
+      showToast(`检测到插件 v${extension.version || "未知"}，请更新至 v${PRODUCT_VERSION}。`, "needs");
+      location.href = "/extension-install";
+      return false;
+    }
+    if (!extension.paired) {
+      await postToExtension("SA_OPEN_OPTIONS").catch(() => {});
+      showToast("插件已检测到，请在打开的设置页完成一次性配对。", "needs");
+      return false;
+    }
+    return true;
+  }
+
+  window.addEventListener("message", event => {
+    const data = event.data || {};
+    if (event.source !== window || data.source !== "social-archive-extension" || data.type !== "SA_BRIDGE_READY") return;
+    refreshExtensionStatus().catch(() => {});
+  });
+
   async function connectAccount(platform, button) {
     const meta = Object.values(platformMeta).find(item => item.server === platform) || platformMeta.web;
     if (button) { button.disabled = true; button.textContent = "正在打开…"; }
     try {
+      if (!await ensureExtensionReady()) return;
       const result = await postToExtension("SA_ACCOUNT_CONNECT", { platform });
       showToast(result.message || `${meta.label} 授权流程已打开`);
       setTimeout(() => loadAccountsAndDestinations().catch(() => {}), 1200);
@@ -670,6 +719,7 @@
     }
     if (button) { button.disabled = true; button.textContent = "正在启动…"; }
     try {
+      if (!await ensureExtensionReady()) return;
       const result = await postToExtension("SA_SYNC_ACCOUNT", { accountId });
       showToast(result.message || "同步已加入后台队列；已完成内容会立即出现在资料库。");
       setTimeout(() => loadAccountsAndDestinations().catch(() => {}), 800);
@@ -699,6 +749,7 @@
     const accounts = state.accounts.filter(item => ["connected", "degraded"].includes(item.connection_state));
     if (!accounts.length) { openSyncModal(); showToast("请先连接至少一个平台账号", "needs"); return; }
     try {
+      if (!await ensureExtensionReady()) return;
       const result = await postToExtension("SA_SYNC_ALL_ACCOUNTS");
       showToast(result.message || `已将 ${Number(result.queuedCount || accounts.length)} 个账号加入后台同步队列`);
       setTimeout(() => loadAccountsAndDestinations().catch(() => {}), 800);
@@ -899,14 +950,14 @@
     renderPlatformTabs();
     renderTable();
     renderPagination();
-    const results = await Promise.allSettled([loadHealth(), loadAccountsAndDestinations()]);
+    const results = await Promise.allSettled([loadHealth(), loadAccountsAndDestinations(), refreshExtensionStatus()]);
     if (results.some(result => result.status === "rejected")) {
       document.querySelector(".sync-strip")?.classList.add("error");
       $("connectedAccountCount").textContent = "服务连接异常";
       $("syncSummaryText").textContent = " · 请刷新页面或检查登录状态";
     }
     await loadLibrary();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=006-r1").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {

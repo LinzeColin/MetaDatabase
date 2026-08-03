@@ -17,6 +17,18 @@ def test_pwa_and_popup_route_account_sync_through_extension_runtime():
     assert "/v1/accounts/${encodeURIComponent(accountId)}/sync" not in pwa
 
 
+def test_pwa_pings_the_bridge_and_rejects_unpaired_or_wrong_version_extensions():
+    pwa = PWA.read_text(encoding="utf-8")
+    bridge = (EXT / "bridge.js").read_text(encoding="utf-8")
+    assert 'const PRODUCT_VERSION = "0.0.0.6"' in pwa
+    assert 'postToExtension("SA_PING", {}, 1500)' in pwa
+    assert 'data.type !== "SA_BRIDGE_READY"' in pwa
+    assert 'await postToExtension("SA_OPEN_OPTIONS")' in pwa
+    assert 'location.href = "/extension-install"' in pwa
+    assert 'message.type === "SA_PING"' in bridge
+    assert 'post("SA_PONG"' in bridge
+
+
 def test_service_worker_uses_persistent_queue_and_scan_heartbeat():
     background = (EXT / "background.js").read_text(encoding="utf-8")
     content = (EXT / "content/account-mirror.js").read_text(encoding="utf-8")
