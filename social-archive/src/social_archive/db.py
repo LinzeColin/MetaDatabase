@@ -97,7 +97,12 @@ class RuntimeStore:
             for name, declaration in relation_additions.items():
                 if relation_columns and name not in relation_columns:
                     con.execute(f"ALTER TABLE user_relation ADD COLUMN {name} {declaration}")
+            # v0.0.0.7 / T01 多租户。这四张表的 user_id 被下面的租户索引引用，
+            # 所以必须在 executescript 之前就位，否则 CREATE INDEX 会因缺列而失败。
+            self._add_tenant_columns(con)
             con.executescript(schema)
+            # 回填必须在建表之后（users 表要先存在），且在任何读取之前。
+            self._backfill_owner_tenancy(con)
             con.execute(
                 "UPDATE user_relation SET relation_observed_at=COALESCE(relation_observed_at,first_observed_at)"
             )
@@ -127,6 +132,88 @@ class RuntimeStore:
             for name, declaration in connector_additions.items():
                 if name not in connector_columns:
                     con.execute(f"ALTER TABLE connector_state ADD COLUMN {name} {declaration}")
+
+    # ── 多租户（v0.0.0.7 / T01）──────────────────────────────────────
+
+    #: 只有 Owner 一个用户时的确定性 id。确定性是有意的——迁移可以重复跑，
+    #: 回滚脚本也需要一个不必猜的目标。
+    OWNER_USER_ID = stable_id("usr", "owner")
+
+    #: 带 user_id 的表。content 与 artifact **有意不在此列**：它们是内容寻址、
+    #: 全局去重的，两个用户收藏同一条内容时只有一行，user_id 只能记"谁先到"，
+    #: 那是假隔离。真正的所有权边是 user_relation。
+    TENANT_TABLES = ("source_account", "user_relation", "platform_collection", "sync_run")
+
+    def _add_tenant_columns(self, con: sqlite3.Connection) -> None:
+        """幂等地给既有表加 user_id。新库这些表还不存在，跳过即可。"""
+        for table in self.TENANT_TABLES:
+            columns = {row[1] for row in con.execute(f"PRAGMA table_info({table})").fetchall()}
+            if columns and "user_id" not in columns:
+                con.execute(f"ALTER TABLE {table} ADD COLUMN user_id TEXT REFERENCES users(id)")
+
+    def _backfill_owner_tenancy(self, con: sqlite3.Connection) -> None:
+        """把既有数据全部归属给 Owner。
+
+        本版本只有 Owner 一个用户，所以"归属"是无歧义的。这一步必须做到
+        **一行不剩**——T01 的验收就是"不存在 user_id 为空的业务行"。
+
+        只有在确实存在待回填的行时才建 Owner 行，避免给一个全新的空库
+        凭空塞一个用户。
+        """
+        pending = sum(
+            con.execute(f"SELECT COUNT(*) FROM {table} WHERE user_id IS NULL OR user_id=''").fetchone()[0]
+            for table in self.TENANT_TABLES
+        )
+        if not pending:
+            return
+        con.execute(
+            "INSERT OR IGNORE INTO users(id, display_name, created_at, is_owner) VALUES(?,?,?,1)",
+            (self.OWNER_USER_ID, "Owner", utcnow()),
+        )
+        for table in self.TENANT_TABLES:
+            con.execute(
+                f"UPDATE {table} SET user_id=? WHERE user_id IS NULL OR user_id=''",
+                (self.OWNER_USER_ID,),
+            )
+
+    def _ensure_owner_user(self, con: sqlite3.Connection, now: str) -> str:
+        """保证 Owner 行存在并返回其 id。
+
+        写入路径必须能拿到一个真实存在的 user_id：user_id 上有外键，指向
+        不存在的行会直接违反约束。这一步幂等，重复调用不产生第二行。
+        """
+        con.execute(
+            "INSERT OR IGNORE INTO users(id, display_name, created_at, is_owner) VALUES(?,?,?,1)",
+            (self.OWNER_USER_ID, "Owner", now),
+        )
+        return self.OWNER_USER_ID
+
+    def tenancy_audit(self) -> dict[str, Any]:
+        """T01 的 Oracle：每张租户表还剩几行没有归属。全部为 0 才算迁移完成。"""
+        with self.connection() as con:
+            return {
+                "orphan_rows": {
+                    table: con.execute(
+                        f"SELECT COUNT(*) FROM {table} WHERE user_id IS NULL OR user_id=''"
+                    ).fetchone()[0]
+                    for table in self.TENANT_TABLES
+                },
+                "total_rows": {
+                    table: con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+                    for table in self.TENANT_TABLES
+                },
+                "users": con.execute("SELECT COUNT(*) FROM users").fetchone()[0],
+            }
+
+    def for_user(self, user_id: str) -> "TenantScope":
+        """取得一个按 user_id 收敛的读取视图。
+
+        面向用户的读取一律走这里。裸 RuntimeStore 的同名方法保留给 worker 与
+        运维路径（它们本来就要跨用户看作业队列），但**不得**被 API 层直接调用。
+        """
+        if not user_id:
+            raise ValueError("user_id 不能为空——空 user_id 会退化成全库读取")
+        return TenantScope(self, user_id)
 
     def capture(self, request: CaptureRequest) -> tuple[str, str, str]:
         now = utcnow()
@@ -160,16 +247,19 @@ class RuntimeStore:
                      last_synced_at=excluded.last_synced_at""",
                 (content_id, platform, request.external_content_id, canonical_url, request.title, request.author_name, request.published_at, now, now, metadata_json, summary, request.language, len(request.media_urls), now),
             )
+            # 归属：本版本只有 Owner 一个用户，故写入路径统一落 OWNER_USER_ID。
+            # T02 接上登录后，这里改成从会话取真实 user_id——这是那一步唯一要动的地方。
+            owner = self._ensure_owner_user(con, now)
             if request.source_account_id:
                 con.execute(
-                    """INSERT INTO source_account(id,platform,external_account_id,created_at,updated_at)
-                       VALUES(?,?,?,?,?)
+                    """INSERT INTO source_account(id,user_id,platform,external_account_id,created_at,updated_at)
+                       VALUES(?,?,?,?,?,?)
                        ON CONFLICT(id) DO UPDATE SET platform=excluded.platform,external_account_id=excluded.external_account_id,updated_at=excluded.updated_at""",
-                    (account_id, platform, request.source_account_id, now, now),
+                    (account_id, owner, platform, request.source_account_id, now, now),
                 )
             con.execute(
-                """INSERT INTO user_relation(id,source_account_id,content_id,relation_type,collection_key,status,first_observed_at,last_observed_at,relation_observed_at,missing_complete_scan_count,last_sync_run_id)
-                   VALUES(?,?,?,?,?,'active',?,?,?,?,?)
+                """INSERT INTO user_relation(id,user_id,source_account_id,content_id,relation_type,collection_key,status,first_observed_at,last_observed_at,relation_observed_at,missing_complete_scan_count,last_sync_run_id)
+                   VALUES(?,?,?,?,?,?,'active',?,?,?,?,?)
                    ON CONFLICT(id) DO UPDATE SET
                      status='active',
                      last_observed_at=excluded.last_observed_at,
@@ -177,7 +267,7 @@ class RuntimeStore:
                      missing_complete_scan_count=0,
                      last_sync_run_id=COALESCE(excluded.last_sync_run_id,user_relation.last_sync_run_id),
                      closed_at=NULL""",
-                (relation_id, account_id, content_id, request.relation_type, request.collection_key, now, now, relation_time, 0, str(request.raw_metadata.get("sync_run_id") or "") or None),
+                (relation_id, owner, account_id, content_id, request.relation_type, request.collection_key, now, now, relation_time, 0, str(request.raw_metadata.get("sync_run_id") or "") or None),
             )
             con.execute(
                 "INSERT OR IGNORE INTO observation(id,connector_id,content_id,observed_at,payload_json,payload_sha256) VALUES(?,?,?,?,?,?)",
@@ -520,6 +610,7 @@ class RuntimeStore:
         observed_to: str | None = None,
         limit: int = 100,
         offset: int = 0,
+        user_id: str | None = None,
     ) -> list[dict[str, Any]]:
         clauses = ["1=1"]
         where_args: list[Any] = []
@@ -544,6 +635,12 @@ class RuntimeStore:
                 clauses.append("0=1")
         relation_clauses: list[str] = []
         relation_args: list[Any] = []
+        # 租户过滤必须建在这里，不能在外层 content 上：它决定"用哪条关系去 join"，
+        # 于是别人的内容根本连不进结果集，而 LIMIT/OFFSET 语义仍然正确。
+        # 放外层再过滤会让一页返回不足 limit 条，翻页就错了。
+        if user_id:
+            relation_clauses.append("r2.user_id=?")
+            relation_args.append(user_id)
         if relation:
             relation_clauses.append("r2.relation_type=?")
             relation_args.append(relation)
@@ -604,9 +701,15 @@ class RuntimeStore:
         sort_dir: str = "desc",
         limit: int = 100,
         offset: int = 0,
+        user_id: str | None = None,
     ) -> dict[str, Any]:
         clauses = ["r.status='active'"]
         args: list[Any] = []
+        # 租户过滤加在关系表 r 上（这张表就是所有权边），facet 统计与分页共用同一组
+        # clauses，所以计数和翻页会一起被收敛到本用户，不会出现"总数是全库、页是自己"的错位。
+        if user_id:
+            clauses.append("r.user_id=?")
+            args.append(user_id)
         if platform:
             clauses.append("c.platform=?")
             args.append(platform.lower())
@@ -945,10 +1048,10 @@ class RuntimeStore:
         with self.connection() as con:
             if source_account_id:
                 con.execute(
-                    """INSERT INTO source_account(id,platform,external_account_id,created_at,updated_at)
-                       VALUES(?,?,?,?,?)
+                    """INSERT INTO source_account(id,user_id,platform,external_account_id,created_at,updated_at)
+                       VALUES(?,?,?,?,?,?)
                        ON CONFLICT(id) DO UPDATE SET platform=excluded.platform,external_account_id=excluded.external_account_id,updated_at=excluded.updated_at""",
-                    (account_id, connector_id.strip().lower(), source_account_id, now, now),
+                    (account_id, self._ensure_owner_user(con, now), connector_id.strip().lower(), source_account_id, now, now),
                 )
             con.execute(
                 """INSERT INTO scan_receipt(id,connector_id,source_account_id,relation_type,started_at,completed_at,completeness,item_count,cursor_start,cursor_end,failure_code,evidence_sha256)
@@ -1042,10 +1145,10 @@ class RuntimeStore:
         with self.connection() as con:
             con.execute(
                 """INSERT INTO source_account(
-                       id,platform,external_account_id,display_name,auth_ref,
+                       id,user_id,platform,external_account_id,display_name,auth_ref,
                        connection_state,auth_method,auth_handle_ref,auto_sync_enabled,
                        sync_interval_minutes,last_verified_at,metadata_json,created_at,updated_at
-                   ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                   ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                    ON CONFLICT(id) DO UPDATE SET
                      platform=excluded.platform,
                      external_account_id=excluded.external_account_id,
@@ -1060,6 +1163,7 @@ class RuntimeStore:
                      updated_at=excluded.updated_at""",
                 (
                     account_id,
+                    self._ensure_owner_user(con, now),
                     normalized_platform,
                     external_account_id,
                     display_name,
@@ -1157,10 +1261,12 @@ class RuntimeStore:
         collection_id = stable_id("col", source_account_id, relation_type, external)
         with self.connection() as con:
             con.execute(
+                # user_id 继承自所属 source_account——收藏夹属于谁，取决于账号属于谁，
+                # 不是取决于"当前是谁在跑"。用子查询而不是传参，写入路径就没有传错的机会。
                 """INSERT INTO platform_collection(
-                       id,source_account_id,external_collection_id,relation_type,name,item_count,
+                       id,user_id,source_account_id,external_collection_id,relation_type,name,item_count,
                        status,first_observed_at,last_observed_at,metadata_json
-                   ) VALUES(?,?,?,?,?,?,'active',?,?,?)
+                   ) VALUES(?,(SELECT user_id FROM source_account WHERE id=?),?,?,?,?,?,'active',?,?,?)
                    ON CONFLICT(id) DO UPDATE SET
                      name=excluded.name,
                      item_count=COALESCE(excluded.item_count,platform_collection.item_count),
@@ -1168,6 +1274,7 @@ class RuntimeStore:
                      metadata_json=excluded.metadata_json""",
                 (
                     collection_id,
+                    source_account_id,  # 供上面的 user_id 子查询使用
                     source_account_id,
                     external_collection_id,
                     relation_type,
@@ -1194,11 +1301,13 @@ class RuntimeStore:
         normalized_relations = list(dict.fromkeys(relation_types))
         with self.connection() as con:
             con.execute(
+                # 同上：同步运行归属于账号的主人。
                 """INSERT INTO sync_run(
-                       id,source_account_id,platform,mode,trigger_type,status,relation_scope_json,updated_at
-                   ) VALUES(?,?,?,?,?,'queued',?,?)""",
+                       id,user_id,source_account_id,platform,mode,trigger_type,status,relation_scope_json,updated_at
+                   ) VALUES(?,(SELECT user_id FROM source_account WHERE id=?),?,?,?,?,'queued',?,?)""",
                 (
                     run_id,
+                    source_account_id,  # 供上面的 user_id 子查询使用
                     source_account_id,
                     platform.strip().lower(),
                     mode,
@@ -1619,3 +1728,75 @@ class RuntimeStore:
             complete = int(con.execute("SELECT COUNT(*) FROM artifact WHERE status='complete'").fetchone()[0])
             pending = max(0, total - complete)
             return {"required_replicas": 3, "total_artifacts": total, "all_three_verified": complete, "pending": pending}
+
+
+class TenantScope:
+    """按 user_id 收敛的读取视图（v0.0.0.7 / T01）。
+
+    存在的理由：把"记得加 user_id"从**纪律**变成**类型**。
+    面向用户的读取只要走这里，就不可能忘记过滤；裸 RuntimeStore 留给 worker
+    与运维路径，它们本来就需要跨用户看作业队列。
+
+    单条获取（get_*）一律先验证归属再返回，**不归你的一律返回 None** ——
+    不是抛异常。返回 None 让调用方自然走向 404，而 403 会泄漏"这个 id 存在"
+    这一事实本身。
+    """
+
+    def __init__(self, store: RuntimeStore, user_id: str):
+        self._store = store
+        self.user_id = user_id
+
+    # ── 资料库 ────────────────────────────────────────────────────
+    def list_library(self, **kwargs: Any) -> list[dict[str, Any]]:
+        kwargs.pop("user_id", None)  # 调用方不得覆盖租户边界
+        return self._store.list_library(user_id=self.user_id, **kwargs)
+
+    def list_library_table(self, **kwargs: Any) -> dict[str, Any]:
+        kwargs.pop("user_id", None)
+        return self._store.list_library_table(user_id=self.user_id, **kwargs)
+
+    def get_content(self, content_id: str) -> dict[str, Any] | None:
+        """只有当本用户对该内容确有一条关系时才返回。
+
+        content 本身是全局去重的共享维度，光有 content_id 不代表有权看它；
+        凭据是 user_relation 上的那条边。
+        """
+        if not self._owns_content(content_id):
+            return None
+        return self._store.get_content(content_id)
+
+    def content_bodies(self, content_ids: list[str]) -> dict[str, str]:
+        owned = [cid for cid in content_ids if self._owns_content(cid)]
+        return self._store.content_bodies(owned) if owned else {}
+
+    # ── 来源账号 ──────────────────────────────────────────────────
+    def list_source_accounts(self) -> list[dict[str, Any]]:
+        return [a for a in self._store.list_source_accounts() if a.get("user_id") == self.user_id]
+
+    def get_source_account(self, account_id: str, *, include_handle: bool = False) -> dict[str, Any] | None:
+        account = self._store.get_source_account(account_id, include_handle=include_handle)
+        if account is None or account.get("user_id") != self.user_id:
+            return None
+        return account
+
+    # ── 同步运行 ──────────────────────────────────────────────────
+    def list_sync_runs(self, *, source_account_id: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
+        if source_account_id and self.get_source_account(source_account_id) is None:
+            return []
+        runs = self._store.list_sync_runs(source_account_id=source_account_id, limit=limit)
+        return [r for r in runs if r.get("user_id") == self.user_id]
+
+    def get_sync_run(self, sync_run_id: str) -> dict[str, Any] | None:
+        run = self._store.get_sync_run(sync_run_id)
+        if run is None or run.get("user_id") != self.user_id:
+            return None
+        return run
+
+    # ── 内部 ──────────────────────────────────────────────────────
+    def _owns_content(self, content_id: str) -> bool:
+        with self._store.connection() as con:
+            row = con.execute(
+                "SELECT 1 FROM user_relation WHERE content_id=? AND user_id=? LIMIT 1",
+                (content_id, self.user_id),
+            ).fetchone()
+        return row is not None

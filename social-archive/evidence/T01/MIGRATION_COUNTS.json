@@ -1,0 +1,169 @@
+{
+  "schema_version": "1.0",
+  "task": "T01",
+  "slice": "S1",
+  "taskpack_version": "v0.0.0.7",
+  "goal": "数据模型支持多用户，Owner 现有数据完整归属，任何跨租户读取被挡住",
+  "authorization": "A3",
+  "executed_by": "Delivery Agent (Claude Code)",
+  "executed_at": "2026-08-03T12:05Z/2026-08-03T12:09Z",
+  "classification": "adapt",
+  "classification_reason": "03_PREBUILT/sql/0007_multi_user.sql 假设表名 contents/relations/collections/objects，真实 Schema 为 content/user_relation/platform_collection/artifact。任务包自身已声明『表名以目标仓实际 Schema 为准，Delivery 需先观察再执行』，故属预期内的 adapt。",
+
+  "design_decision": {
+    "id": "D-T01-01",
+    "question": "哪些表带 user_id？",
+    "chosen": "租户锚定在 source_account / user_relation / platform_collection / sync_run 四张关系表；content 与 artifact 不带 user_id。",
+    "why": "content 是内容寻址、全局去重的（UNIQUE(platform, external_content_id)）。两个用户收藏同一条帖子时它只有一行，user_id 只能记下『谁先到』——那是一个看着像隔离、实际谁都拦不住的列。真正的所有权边是 user_relation（『我收藏了它』），隔离必须建在那里。这同时保住了 ARCHITECTURE.md 第 6 节列为『保留不动』的内容寻址内核。",
+    "deviation_from_taskpack": "任务包的 0007_multi_user.sql 给 contents 与 objects 也加了 user_id。本实现有意不照做，理由如上。属 L2 实施自由（adaptive_execution.implementation = DELIVERY_AGENT_DECIDES_WITHIN_L0_L1），未降低任何 Acceptance。",
+    "guarded_by": "tests/focused/test_tenancy.py::test_content_and_artifact_stay_shared —— 将来有人给 content 加 user_id 会在此失败并被迫先读该决定。",
+    "idempotency_key": {
+      "taskpack_proposed": "(user_id, platform, external_content_id, relation_type, collection_key)",
+      "kept_existing": "UNIQUE(source_account_id, content_id, relation_type, collection_key)",
+      "why": "既有键已隐含按用户收敛（一个 source_account 只属于一个 user），且比任务包的更细：同一用户在同一平台连两个账号时不会被错误合并成一行。未放宽，故不改。"
+    }
+  },
+
+  "artifacts": [
+    {"path": "src/social_archive/sql/runtime_schema.sql", "change": "新增 users / oauth_identity / session / extension_token 四张表；source_account / user_relation / platform_collection / sync_run 各加 user_id；新增 7 个租户索引"},
+    {"path": "src/social_archive/db.py", "change": "_add_tenant_columns / _backfill_owner_tenancy / _ensure_owner_user / tenancy_audit / for_user；新增 TenantScope 类；list_library 与 list_library_table 增加 user_id 过滤；四处写入路径带上归属"},
+    {"path": "tests/focused/test_tenancy.py", "change": "新增 11 个租户测试"},
+    {"path": "scripts/rollback_0007.sh", "change": "新增回滚脚本（--verify / --restore）"}
+  ],
+
+  "migration_verified_on_real_production_data": {
+    "why_not_synthetic": "合成数据只能证明代码自洽。任务包的教训是『编出来的形状会让测试全绿而生产失效』，所以迁移用的是生产库的一致性快照。",
+    "source": "OVH 生产库 /var/lib/social-archive/runtime/social-archive.sqlite3",
+    "snapshot_method": "sqlite3 .backup（走 SQLite 备份 API，正确处理 WAL；直接 cp 主库会丢掉 -wal 中的事务）",
+    "snapshot_integrity_check": "ok",
+    "snapshot_bytes": 557056,
+    "migration_command": "RuntimeStore(path).initialize() —— 与生产容器启动时走的是同一条路，不是另写一个只在这里用的迁移器",
+
+    "row_counts": {
+      "note": "T01 Oracle：迁移前后行数快照相等。迁移是纯加法，任何一张表变了都要按 stop_condition 停。",
+      "content":             {"before": 7,   "after": 7,   "equal": true},
+      "user_relation":       {"before": 7,   "after": 7,   "equal": true},
+      "source_account":      {"before": 3,   "after": 3,   "equal": true},
+      "platform_collection": {"before": 1,   "after": 1,   "equal": true},
+      "sync_run":            {"before": 11,  "after": 11,  "equal": true},
+      "artifact":            {"before": 136, "after": 136, "equal": true},
+      "scan_receipt":        {"before": 23,  "after": 23,  "equal": true},
+      "observation":         {"before": 11,  "after": 11,  "equal": true},
+      "job":                 {"before": 26,  "after": 26,  "equal": true},
+      "outbox":              {"before": 2,   "after": 2,   "equal": true},
+      "all_equal": true
+    },
+
+    "orphan_rows_after_migration": {
+      "note": "T01 Oracle：SELECT COUNT(*) 各表 user_id 为空 = 0",
+      "source_account": 0,
+      "user_relation": 0,
+      "platform_collection": 0,
+      "sync_run": 0,
+      "all_zero": true
+    },
+
+    "attribution": {
+      "users_created": 1,
+      "owner_user_id": "usr_4c1029697ee358715d3a14a2add817c4",
+      "owner_user_id_is_deterministic": "stable_id('usr','owner')；确定性是有意的——迁移可重复跑，回滚脚本也需要一个不必猜的目标",
+      "owner_owns": {"source_account": 3, "user_relation": 7, "sync_run": 11}
+    },
+
+    "tenancy_enforcement_on_real_data": {
+      "owner_view_rows": 7,
+      "unscoped_store_rows": 7,
+      "stranger_view_rows": 0,
+      "verdict": "PASS —— 陌生 user_id 在真实数据上读到 0 条"
+    }
+  },
+
+  "tests": {
+    "new_test_file": "tests/focused/test_tenancy.py",
+    "new_tests_passed": 11,
+    "named_oracle_test": {"name": "test_tenancy_forbids_cross_user_read", "result": "PASS", "note": "任务包 Oracle 点名的那个测试"},
+    "test_list": [
+      "test_migration_leaves_no_orphan_rows",
+      "test_migration_is_idempotent_and_preserves_row_counts",
+      "test_new_writes_are_never_unattributed",
+      "test_sync_run_inherits_tenancy_from_its_account",
+      "test_tenancy_forbids_cross_user_read",
+      "test_cross_user_read_blocked_in_table_view",
+      "test_cross_user_read_blocked_for_accounts_and_runs",
+      "test_scope_rejects_empty_user_id",
+      "test_caller_cannot_override_tenant_boundary",
+      "test_owner_user_id_is_deterministic",
+      "test_content_and_artifact_stay_shared"
+    ],
+
+    "full_regression": {
+      "method": "先 git stash 取干净 origin/main 基线，再恢复改动复跑——不这样做就分不清『既有失败』和『我弄坏的』",
+      "baseline_origin_main": {"passed": 288, "failed": 11},
+      "with_my_changes":      {"passed": 299, "failed": 11},
+      "delta_passed": 11,
+      "delta_failed": 0,
+      "conclusion": "新增的 11 个测试全部通过，既有测试一个都没被弄坏。",
+      "failure_sets_identical": true
+    },
+
+    "pre_existing_failures": {
+      "status": "PRE_EXISTING_NOT_CAUSED_BY_T01",
+      "count": 11,
+      "note": "这 11 个在干净的 origin/main 上就失败。**不是本任务造成的，也不由本任务修复**——T00 的分类里它们分属 T03/T04 等后续任务的射程。记在这里是为了它们不被当成 T01 的成绩或过失。",
+      "list": [
+        "test_deployment_contract.py::test_install_dry_run_is_zero_write_even_when_prerequisites_are_available",
+        "test_deployment_contract.py::test_install_provisions_shared_nonroot_bind_mounts_for_core_and_cli_sidecar",
+        "test_library_api.py::test_library_uses_one_content_card_for_multiple_relations_and_preserves_detail",
+        "test_library_api.py::test_library_filters_literal_full_text_collection_and_observed_date",
+        "test_pwa_contract.py::test_pwa_has_core_views_and_chinese_labels",
+        "test_reader_profiles.py::test_reader_start_profiles_require_only_their_own_secrets[karakeep-required_secrets1]",
+        "test_reader_profiles.py::test_reader_start_profiles_require_only_their_own_secrets[linkwarden-required_secrets2]",
+        "test_reader_profiles.py::test_reader_start_profiles_require_only_their_own_secrets[readers-required_secrets3]",
+        "test_storage_completion_contract.py::test_extension_never_claims_completion_without_three_receipts",
+        "test_ui_contract.py::test_pwa_unified_library_has_feed_grid_detail_and_responsive_contract",
+        "test_stage3_pwa.py::test_pwa_shell_is_self_contained_and_mobile_ready"
+      ],
+      "new_fact_for_taskpack": "origin/main 的测试套件本身不是绿的。任务包与 HANDOFF 都没提到这一点（HANDOFF 记的是『235 passed』）。后续任务不得把『全绿』当作可用判据——GOLDEN_TRANSACTION.md 本来也把 pytest 全绿列在『不能拿来当 PASS 的证据』里。"
+    }
+  },
+
+  "rollback": {
+    "artifact": "scripts/rollback_0007.sh",
+    "design": "迁移是加法（新表 + ADD COLUMN + 回填），SQLite 无法 DROP COLUMN，所以唯一诚实的回滚是恢复迁移前快照，而不是逐条撤销。",
+    "proven": true,
+    "proof_note": "INV-REVERSIBLE 要求『回滚能力在发布前被证明过』。写一个脚本文件不算证明，所以下面每一步都真的跑过。",
+    "steps_executed": [
+      {"step": "--verify", "result": "PASS", "detail": "7 张表行数逐一比对一致；未写入任何东西"},
+      {"step": "--restore", "result": "PASS", "detail": "从迁移前快照恢复"},
+      {"step": "独立复核", "result": "PASS", "detail": "users 表已消失(0)；四张租户表的 user_id 列已消失(0)；数据完好 content=7 user_relation=7 artifact=136"},
+      {"step": "回滚的回滚", "result": "PASS", "detail": ".pre-rollback 备份保留了迁移后状态(users=1)，可再恢复回去——回滚不是单向门"}
+    ],
+    "safety_properties": [
+      "恢复前自动另存当前库为 .pre-rollback-<ts>，回滚本身也可回滚",
+      "快照必须通过 integrity_check 才允许拿来覆盖",
+      "行数不一致时拒绝 --restore（说明快照与当前库不是同一条时间线，恢复会造成静默数据丢失）",
+      "用 sqlite3 .restore 而非 cp，正确处理 WAL"
+    ]
+  },
+
+  "production_application": {
+    "status": "DEFERRED_BY_DESIGN_NOT_SKIPPED",
+    "production_db_modified_by_this_task": false,
+    "verified_untouched_after": "users 表存在数=0；content=7 user_relation=7",
+    "why_deferred": "生产容器跑的是 social-archive/core:0.0.0.6 镜像，不含本任务的代码。若现在只把 Schema 推上生产，旧代码的 INSERT 不带 user_id，会立刻造出 T01 Acceptance 明令禁止的孤儿行——那是把验收做反。迁移由 initialize() 在容器启动时执行，与新镜像同时上线才是正确顺序。",
+    "where_it_belongs": "T18（发布）。届时按 T18 的既有 Acceptance『先证明能回滚，再发布』执行。",
+    "t18_precondition_registered": "部署前必须先 sqlite3 .backup 取快照，并把快照路径交给 scripts/rollback_0007.sh。本任务已证明该路径可用。",
+    "acceptance_impact": "无。T01 的 Acceptance 是『迁移后不存在 user_id 为空的业务行，且总行数与迁移前一致』，已在生产数据的一致性快照上完整达成，且用的是与生产同一条 initialize() 代码路径。"
+  },
+
+  "acceptance_self_check": {
+    "requirement_1": {"text": "迁移后不存在 user_id 为空的业务行", "result": "PASS", "evidence": "orphan_rows 四张表全部为 0（真实生产数据）"},
+    "requirement_2": {"text": "总行数与迁移前一致", "result": "PASS", "evidence": "10 张表逐一比对，全部相等"},
+    "requirement_3": {"text": "跨 user_id 读取被测试挡住", "result": "PASS", "evidence": "test_tenancy_forbids_cross_user_read 通过；真实数据上陌生 user_id 读到 0 条"},
+    "oracle": "SELECT COUNT(*) 各表 user_id 为空 = 0；迁移前后行数快照相等；test_tenancy_forbids_cross_user_read 通过",
+    "oracle_result": "PASS",
+    "stop_condition": {"text": "行数不一致或出现孤儿行即停，先恢复快照", "triggered": false, "why": "行数 10/10 一致，孤儿行 4/4 为 0"}
+  },
+
+  "next_task": {"id": "T02", "reason": "T01 已终结，T02（Google/GitHub 登录）以它为唯一前置。T02 的 environment_unknown 是两个 OAuth 应用的凭据。"}
+}

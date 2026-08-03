@@ -1,8 +1,54 @@
 PRAGMA journal_mode=WAL;
 PRAGMA foreign_keys=ON;
 
+-- ── 账号系统（v0.0.0.7 / T01）────────────────────────────────────────
+--
+-- 租户锚点是 source_account、user_relation 与 platform_collection 三张
+-- **关系**表，不是 content。
+--
+-- 为什么 content 不带 user_id：content 是内容寻址的、全局去重的
+-- （UNIQUE(platform, external_content_id)）。两个用户收藏同一条帖子时它只有一行，
+-- 那么 user_id 只能记下"谁先到"，成为一个看着像隔离、实际谁都拦不住的列。
+-- 真正的所有权边是 user_relation（"我收藏了它"），隔离必须建在那里。
+-- 这也保住了 ARCHITECTURE.md 要求"保留不动"的内容寻址内核。
+
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  display_name TEXT,
+  created_at TEXT NOT NULL,
+  -- 本版本站点仍在 Cloudflare Access 后面，只有 Owner 一个用户；
+  -- 但结构按多用户建，第二步只需要摘掉 Access。
+  is_owner INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS oauth_identity (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  provider TEXT NOT NULL CHECK(provider IN ('google','github')),
+  subject TEXT NOT NULL,          -- provider 侧的稳定唯一 ID，不是邮箱
+  created_at TEXT NOT NULL,
+  UNIQUE(provider, subject)
+);
+
+CREATE TABLE IF NOT EXISTS session (
+  id TEXT PRIMARY KEY,            -- 随机不可猜；Cookie 里只放这个，不用 JWT（撤销更简单）
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  revoked_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS extension_token (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT NOT NULL UNIQUE,  -- 只存哈希；明文只在签发那一刻交给扩展
+  created_at TEXT NOT NULL,
+  revoked_at TEXT
+);
+
 CREATE TABLE IF NOT EXISTS source_account (
   id TEXT PRIMARY KEY,
+  user_id TEXT REFERENCES users(id),
   platform TEXT NOT NULL,
   external_account_id TEXT,
   display_name TEXT,
@@ -42,8 +88,16 @@ CREATE TABLE IF NOT EXISTS content (
   UNIQUE(platform, canonical_url)
 );
 
+-- 所有权边。租户隔离建在这张表上，不在 content 上。
+-- 既有 UNIQUE(source_account_id, content_id, relation_type, collection_key) 已经
+-- 隐含按用户收敛（一个 source_account 只属于一个 user），且比任务包给的
+-- (user_id, platform, external_content_id, relation_type, collection_key) 更细
+-- ——同一用户在同一平台连两个账号时不会被错误合并。故幂等键保持不变。
+-- source_account_id 可为空（手动保存没有平台账号），所以 user_id 必须独立成列，
+-- 不能只靠 join source_account 推导。
 CREATE TABLE IF NOT EXISTS user_relation (
   id TEXT PRIMARY KEY,
+  user_id TEXT REFERENCES users(id),
   source_account_id TEXT,
   content_id TEXT NOT NULL,
   relation_type TEXT NOT NULL,
@@ -246,6 +300,7 @@ CREATE INDEX IF NOT EXISTS idx_destination_receipt_status ON destination_receipt
 -- cursors, queues and observed relation IDs, never browser cookies or headers.
 CREATE TABLE IF NOT EXISTS platform_collection (
   id TEXT PRIMARY KEY,
+  user_id TEXT REFERENCES users(id),
   source_account_id TEXT NOT NULL,
   external_collection_id TEXT,
   relation_type TEXT NOT NULL,
@@ -261,6 +316,7 @@ CREATE TABLE IF NOT EXISTS platform_collection (
 
 CREATE TABLE IF NOT EXISTS sync_run (
   id TEXT PRIMARY KEY,
+  user_id TEXT REFERENCES users(id),
   source_account_id TEXT NOT NULL,
   platform TEXT NOT NULL,
   mode TEXT NOT NULL CHECK(mode IN ('first_full','incremental','manual_repair','official_import','browser_import')),
@@ -352,3 +408,13 @@ CREATE INDEX IF NOT EXISTS idx_sync_seen_relation_scope ON sync_seen_relation(sy
 CREATE INDEX IF NOT EXISTS idx_sync_run_scope_status ON sync_run_scope(sync_run_id, status);
 CREATE INDEX IF NOT EXISTS idx_relation_time ON user_relation(relation_observed_at DESC);
 CREATE INDEX IF NOT EXISTS idx_content_synced ON content(last_synced_at DESC);
+
+-- ── 租户索引（v0.0.0.7 / T01）────────────────────────────────────────
+-- 每个用户可见读取都必须带 user_id，这些索引让那条路径不至于全表扫。
+CREATE INDEX IF NOT EXISTS idx_source_account_user ON source_account(user_id, platform);
+CREATE INDEX IF NOT EXISTS idx_relation_user ON user_relation(user_id, relation_type, status);
+CREATE INDEX IF NOT EXISTS idx_relation_user_time ON user_relation(user_id, relation_observed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_platform_collection_user ON platform_collection(user_id, relation_type);
+CREATE INDEX IF NOT EXISTS idx_sync_run_user ON sync_run(user_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_session_user ON session(user_id, expires_at);
+CREATE INDEX IF NOT EXISTS idx_oauth_identity_user ON oauth_identity(user_id);
