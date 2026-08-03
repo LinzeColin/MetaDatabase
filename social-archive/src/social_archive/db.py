@@ -301,6 +301,61 @@ class RuntimeStore:
             )
         return cur.rowcount > 0
 
+    # ── 扩展令牌（v0.0.0.7 / T03）────────────────────────────────────
+    #
+    # 取代一次性配对码。配对码在真实使用中连续失败三次（CONFLICT_ORDER 已废止它）：
+    # 十分钟有效期 + 手抄验证码本身就是技术门槛，与 INV-ZERO-BARRIER 直接冲突。
+    #
+    # 长期、可撤销、绑 user_id。明文只在签发那一刻返回一次，库里只留哈希——
+    # 库被读走也冒充不了扩展。
+
+    @staticmethod
+    def _hash_extension_token(plaintext: str) -> str:
+        return sha256_bytes(plaintext.encode("utf-8"))
+
+    def issue_extension_token(self, *, user_id: str) -> str:
+        """签发一枚新令牌并**撤销该用户此前所有令牌**。
+
+        为什么顺手撤旧的：用户重装扩展时会再点一次连接，旧令牌就此失联却仍然有效——
+        那是一枚永远没人用、也永远没人撤的活令牌。一次一枚，语义干净。
+        """
+        plaintext = secrets.token_urlsafe(32)
+        now = utcnow()
+        with self.connection() as con:
+            con.execute(
+                "UPDATE extension_token SET revoked_at=? WHERE user_id=? AND revoked_at IS NULL",
+                (now, user_id),
+            )
+            con.execute(
+                "INSERT INTO extension_token(id,user_id,token_hash,created_at) VALUES(?,?,?,?)",
+                (stable_id("ext", user_id, now, plaintext), user_id,
+                 self._hash_extension_token(plaintext), now),
+            )
+        return plaintext
+
+    def resolve_extension_token(self, plaintext: str) -> str | None:
+        """令牌 → user_id。已撤销的返回 None。
+
+        按哈希查而不是取出来逐个比：库里本来就没有明文可比。
+        """
+        if not plaintext:
+            return None
+        with self.connection() as con:
+            row = con.execute(
+                "SELECT user_id FROM extension_token WHERE token_hash=? AND revoked_at IS NULL",
+                (self._hash_extension_token(plaintext),),
+            ).fetchone()
+        return str(row["user_id"]) if row else None
+
+    def revoke_extension_tokens(self, user_id: str) -> int:
+        """一键撤销。撤销后扩展上行应当立刻拿到 401（T03 Oracle）。"""
+        with self.connection() as con:
+            cur = con.execute(
+                "UPDATE extension_token SET revoked_at=? WHERE user_id=? AND revoked_at IS NULL",
+                (utcnow(), user_id),
+            )
+        return cur.rowcount
+
     def revoke_all_sessions(self, user_id: str) -> int:
         """撤销某人全部会话。设备丢了、或怀疑泄漏时用。"""
         with self.connection() as con:

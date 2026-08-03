@@ -256,3 +256,73 @@ def test_callback_rejects_missing_or_mismatched_state(client) -> None:
     c.cookies.set("sa_oauth_state", "real-state")
     assert c.get("/v1/auth/github/callback?code=x&state=wrong").status_code == 400
     assert c.get("/v1/auth/github/callback?state=real-state").status_code == 400
+
+
+# ── 扩展令牌（T03：取代一次性配对码）────────────────────────────────
+
+
+def test_extension_token_roundtrip_and_revocation(store: RuntimeStore) -> None:
+    """T03 Oracle 的可测部分：撤销令牌后扩展上行应当得 401。
+    这条先在存储层把"撤销真的生效"钉死。"""
+    user_id = store.upsert_oauth_identity(provider="github", subject="1", display_name="x")
+    token = store.issue_extension_token(user_id=user_id)
+
+    assert store.resolve_extension_token(token) == user_id
+    assert store.revoke_extension_tokens(user_id) == 1
+    assert store.resolve_extension_token(token) is None, "撤销后令牌仍然有效"
+
+
+def test_plaintext_token_is_never_stored(store: RuntimeStore) -> None:
+    """库被读走也不能冒充扩展——只存哈希。"""
+    user_id = store.upsert_oauth_identity(provider="github", subject="1", display_name="x")
+    token = store.issue_extension_token(user_id=user_id)
+    with store.connection() as con:
+        rows = [dict(r) for r in con.execute("SELECT * FROM extension_token").fetchall()]
+    assert rows, "没有落库"
+    blob = repr(rows)
+    assert token not in blob, "明文令牌被写进了库"
+
+
+def test_issuing_replaces_the_previous_token(store: RuntimeStore) -> None:
+    """重装扩展会再点一次连接。旧令牌必须同时失效，
+    否则会留下一枚没人用也没人撤的活令牌。"""
+    user_id = store.upsert_oauth_identity(provider="github", subject="1", display_name="x")
+    old = store.issue_extension_token(user_id=user_id)
+    new = store.issue_extension_token(user_id=user_id)
+    assert old != new
+    assert store.resolve_extension_token(old) is None, "旧令牌没有被撤销"
+    assert store.resolve_extension_token(new) == user_id
+
+
+def test_unknown_and_empty_tokens_rejected(store: RuntimeStore) -> None:
+    assert store.resolve_extension_token("") is None
+    assert store.resolve_extension_token("not-a-real-token") is None
+
+
+def test_tokens_are_unguessable_and_unique(store: RuntimeStore) -> None:
+    user_id = store.upsert_oauth_identity(provider="github", subject="1", display_name="x")
+    tokens = {store.issue_extension_token(user_id=user_id) for _ in range(30)}
+    assert len(tokens) == 30
+    assert all(len(t) >= 32 for t in tokens)
+
+
+def test_extension_token_endpoint_requires_login(client) -> None:
+    """没登录不给令牌——否则任何人都能拿到一把能上行的钥匙。"""
+    c, _ = client
+    assert c.post("/v1/auth/extension-token").status_code == 401
+    assert c.delete("/v1/auth/extension-token").status_code == 401
+
+
+def test_logged_in_page_gets_token_without_user_typing_anything(client) -> None:
+    """零门槛的核心：页面替扩展取令牌，用户不接触令牌文本。"""
+    c, api_module = client
+    user_id = api_module.store.upsert_oauth_identity(
+        provider="github", subject="77", display_name="Linze"
+    )
+    c.cookies.set(SESSION_COOKIE, api_module.store.create_session(user_id=user_id))
+
+    token = c.post("/v1/auth/extension-token").json()["token"]
+    assert api_module.store.resolve_extension_token(token) == user_id
+
+    assert c.delete("/v1/auth/extension-token").json()["revoked"] == 1
+    assert api_module.store.resolve_extension_token(token) is None

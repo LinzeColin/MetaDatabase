@@ -252,6 +252,25 @@ def build_router(settings: Settings, store: RuntimeStore) -> APIRouter:
         # 让用户"登出失败"是没有意义的失败。
         return {"ok": True, "revoked": revoked}
 
+    @router.post("/extension-token")
+    def issue_extension_token(request: Request) -> dict[str, Any]:
+        """已登录页面替扩展取长期令牌（T03）。
+
+        取代一次性配对码：用户不接触令牌文本，全程零复制粘贴。
+        明文只在这里返回一次——库里只有哈希，丢了就重新点一次连接。
+        """
+        user_id = store.resolve_session(request.cookies.get(SESSION_COOKIE) or "")
+        if not user_id:
+            raise HTTPException(401, "还没有登录。")
+        return {"token": store.issue_extension_token(user_id=user_id)}
+
+    @router.delete("/extension-token")
+    def revoke_extension_token(request: Request) -> dict[str, Any]:
+        user_id = store.resolve_session(request.cookies.get(SESSION_COOKIE) or "")
+        if not user_id:
+            raise HTTPException(401, "还没有登录。")
+        return {"revoked": store.revoke_extension_tokens(user_id)}
+
     @router.get("/me")
     def me(request: Request) -> dict[str, Any]:
         user_id = store.resolve_session(request.cookies.get(SESSION_COOKIE) or "")
