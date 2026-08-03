@@ -83,10 +83,22 @@
     "requirement": "在真实收藏页上捕获到非空响应体，且其中条目数与页面上肉眼可见的条目数一致",
     "oracle": "捕获条目数 = 可见条目数；页面功能不受影响",
     "result": "NOT_RUN",
-    "why_not_run": "需要两样东西同时到位：(1) 扩展以未打包形式载入 Chrome —— chrome:// 设置操作，只有 Owner 能做；(2) 一个已登录的 B站收藏页。两者都不在我能触及的范围内。",
+    "why_not_run": "需要三样同时到位：(1) 扩展载入浏览器——**已解决**，CDP Extensions.loadUnpacked；(2) 已登录的国内平台收藏页；(3) 一个不被平台风控判定为自动化的浏览器环境。实测：干净的一次性 profile 打开 B 站首页即被返回验证码页，(2)(3) 都只能是 Owner 自己的浏览器。",
     "what_is_done": "机制、边界、幂等、不弄坏页面、空前缀显式失败，全部有判据；并已在**真实浏览器引擎**上跑过一次（不只是 Node 沙箱），且因此发现并修掉了注入顺序缺陷",
     "what_remains": "Owner 载入扩展后打开自己的 B站收藏夹，点一次同步；把捕获到的完整 URL 与条目数补进本文件，并按 T09 把首个真实响应原样固化成 fixture",
-    "must_not_be_rewritten_as_pass": true
+    "must_not_be_rewritten_as_pass": true,
+    "attempted_in_a_controlled_browser_and_why_it_stopped": {
+      "recorded_at": "2026-08-04T19:10Z",
+      "what_changed": "T04 那轮证明了扩展可以用 CDP 的 Extensions.loadUnpacked 装进一个一次性 Chrome 并真实驱动。于是回头再试 T08——先前记的『只有 Owner 能做』需要重新核。",
+      "what_i_did": "在同一个一次性 profile 里用 Page.navigate 打开 https://www.bilibili.com/。",
+      "what_happened": "平台返回**验证码页**（document.title = 「验证码_哔哩哔哩」，页面上存在验证码控件）。一个全新的自动化 profile 触发了 B 站的风控。",
+      "what_i_did_not_do": "**没有与验证码做任何交互**，读了标题与控件存在性之后直接离开该页面。",
+      "why_not": "任务包 L0 硬边界与产品自身的对外承诺都写着：不绕过验证码、设备风控或访问控制。这不是能力问题，是边界问题——绕过它就等于把这个产品变成它声明自己不是的东西。",
+      "what_this_establishes": "T08 的验收不只是『需要登录态』那么简单：**一个干净的自动化浏览器 profile 会被平台风控挡在门外**。真实产品跑在 Owner 自己的日常浏览器里（有历史、有设备指纹、有正常会话），不会触发这一层。",
+      "so_the_blocker_is_sharper_than_before": "先前写的是『需要扩展载入 + 已登录页面』。现在实测补上第三条：**还需要一个不被风控判定为自动化的浏览器环境**——而那恰恰只能是 Owner 自己的浏览器。",
+      "mechanism_status_unchanged": "观察器本身已在真实浏览器引擎上验过（真实 fetch/XHR、clone 不消费流、白名单生效、条目数与可见数一致），只是那次跑在本地构造页上。缺的是真实平台页，而真实平台页需要 Owner 的浏览器。",
+      "not_a_stop_condition_of_the_task_pack": "任务包给 T08 的 Stop Condition 是『平台改用拦截覆盖不到的传输方式』。这次不是那种情况——传输方式没变，是我进不去那个页面。所以不按那条停整个平台，只如实记录环境限制。"
+    }
   },
   "stop_condition_check": {
     "rule": "若平台改用拦截覆盖不到的传输方式，停止该平台并回 Owner",
