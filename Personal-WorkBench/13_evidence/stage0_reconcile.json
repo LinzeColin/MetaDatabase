@@ -1,0 +1,177 @@
+{
+  "schema_version": "1.0.0",
+  "generated_on": "2026-08-03",
+  "project": "胡楚靓工作台",
+  "project_path": "Personal-WorkBench",
+  "status": "PARTIAL_S0_T1_SEMANTIC_RECONCILE",
+  "product_pass_claimed": false,
+  "taskpack": {
+    "version": "v0.0.0.8",
+    "phase": "SEALED_TASKPACK",
+    "source_path": "/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8",
+    "sha256sums": {
+      "status": "PASS",
+      "matched_entries": 210,
+      "mismatched_entries": 0
+    },
+    "native_verifier": {
+      "status": "NOT_PASS_DUE_TO_LOCAL_TOOLCHAIN",
+      "reported_error": "TypeScript strict 失败: [Errno 2] No such file or directory: 'tsc'",
+      "production_pass_claimed": false
+    }
+  },
+  "target_repository": {
+    "remote": "git@github.com:LinzeColin/MetaDatabase.git",
+    "remote_main_sha": "4a3efcffba10f318ac963377cd7cff046bcadb37",
+    "local_main_sha": "4a3efcffba10f318ac963377cd7cff046bcadb37",
+    "s0_worktree_base_sha": "4a3efcffba10f318ac963377cd7cff046bcadb37",
+    "preexisting_tracked_project_source": "NOT_OBSERVED",
+    "preexisting_project_history": "NOT_OBSERVED"
+  },
+  "governance_resolution": {
+    "code_repository": "仅保存源码、治理和脱敏证据；不提交用户业务数据、运行时快照或 Secret。",
+    "product_runtime": "冻结架构指定 D1 为账户和结构化个人记录的在线权威源，R2 为用户私有图片字节权威源。",
+    "operations": "Private-Database 和 status 仅可接收脱敏运行事实；不得接收用户正文、经期、体重、账单、日记或图片。"
+  },
+  "official_sites_compatibility": {
+    "checked_on": "2026-08-03",
+    "status": "SUPPORTED_SHAPE_CONFIRMED_OWNER_ACCESS_UNKNOWN",
+    "sources": [
+      "https://learn.chatgpt.com/docs/sites",
+      "https://help.openai.com/en/articles/20001339",
+      "https://openai.com/policies/chatgpt-sites-terms/"
+    ],
+    "confirmed": [
+      "新项目可从 Sites 推荐 starter 开始；持久化结构数据可请求 D1，上传文件可请求 R2，公共外部身份提供商需要 authentication-enabled Site。",
+      "本地项目的 .openai/hosting.json 会在 Sites provision 后获得真实 project_id；D1/R2 binding 可声明为 DB/FILES。",
+      "Save Version 和 Deploy 是两步；每个 Deploy URL 都是生产 URL，须先保存私有候选再部署。",
+      "Secret 只应在 Sites Settings 管理，不能放入 prompt、附件、Site 内容或 .openai/hosting.json。"
+    ],
+    "constraints_preserved": [
+      "Sites 公测可用性依赖计划、地区与工作区设置，当前 Owner entitlement 未观察到。",
+      "Sites 不提供数据驻留或推理驻留保证；不得处理 PHI、支付卡数据或面向未成年儿童。",
+      "敏感个人数据必须遵守适用隐私法并提供相应透明度和同意控制；冻结任务包的非医疗、显式 opt-in、撤回和最小化边界不得弱化。"
+    ]
+  },
+  "s0_t2_external_gate": {
+    "status": "BLOCKED_OWNER_PROJECT_ID_REQUIRED",
+    "sites_create_connector_called": false,
+    "reason": "专用创建接口可返回短期源仓写入凭据；本任务不请求、接收或复用凭据，且当前没有已 provision 的本地 hosting linkage 可安全复用。",
+    "minimal_unblock": "Owner 在 ChatGPT Sites 中创建新的私有、未 Deploy 项目，并仅提供不敏感的 opaque project_id；不得提供 token、Secret、Cookie 或密码。",
+    "no_architecture_change_over_30_percent": true
+  },
+  "s0_t1": {
+    "classification": "adapt",
+    "semantic_result": "新的 MetaDatabase 子项目没有可保留的等价源码；用户指定的项目位置与独立 ChatGPT Sites 边界兼容。",
+    "workflow_adaptations": [
+      "用 git ls-remote 与 SHA 比较观察最新 origin/main，不在本 worktree 执行 git switch main。",
+      "冻结 Starter 仅作跨框架不变量来源；它没有 lockfile，不被当作可直接 npm ci 或部署的最终 Sites 项目。"
+    ],
+    "material_change_over_30_percent": "NOT_OBSERVED"
+  },
+  "classifications": [
+    {
+      "id": "S0-T1",
+      "classification": "adapt",
+      "reason": "已完成新目标目录、最新 main 和适用治理的语义对账；只读 main 观察替代 worktree 内切换 main。"
+    },
+    {
+      "id": "S0-T2",
+      "classification": "blocked",
+      "reason": "官方资料支持所需的 D1/R2/认证型 Site 形态；当前仍缺 Owner 创建的私有项目或其不敏感 project_id。专用创建接口可能返回短期凭据，按安全边界未调用。"
+    },
+    {
+      "id": "S1-T1",
+      "classification": "apply",
+      "reason": "目标项目尚无视觉实现；私有候选可使用冻结参考边界，公开部署前仍需最终获授权 Hello Kitty 原件及权利记录。"
+    },
+    {
+      "id": "S1-T2",
+      "classification": "apply",
+      "reason": "目标项目尚无页面骨架或设计 Token 实现，必须在当前推荐 starter 中兼容接入。"
+    },
+    {
+      "id": "S1-T3",
+      "classification": "apply",
+      "reason": "目标项目尚无可运行候选；五页三轮视觉差分须在 S1-T2 后按冻结 reference 执行。"
+    },
+    {
+      "id": "S2-T1",
+      "classification": "apply",
+      "reason": "目标项目尚无 D1 Schema 或迁移；冻结 SQL 只能作为适配来源，最终行为须在 Sites Saved Candidate 复验。"
+    },
+    {
+      "id": "S2-T2",
+      "classification": "apply",
+      "reason": "目标项目尚无 Better Auth、Google、邮件验证、找回或 Turnstile 集成。"
+    },
+    {
+      "id": "S2-T3",
+      "classification": "apply",
+      "reason": "目标项目尚无服务端会话派生租户守卫或 CRUD；不得以客户端 user_id 代替。"
+    },
+    {
+      "id": "S2-T4",
+      "classification": "apply",
+      "reason": "目标项目尚无 R2 私有对象 Adapter；对象键与所有权验证须由服务端控制。"
+    },
+    {
+      "id": "S3-T1",
+      "classification": "apply",
+      "reason": "尚未发现旧项目 IndexedDB 数据或迁移实现；未来导入需满足预览、幂等与成功前保留原数据。"
+    },
+    {
+      "id": "S3-T2",
+      "classification": "apply",
+      "reason": "目标项目尚无 11 个业务模块的云端适配；不得用整文件覆盖未来 starter。"
+    },
+    {
+      "id": "S3-T3",
+      "classification": "apply",
+      "reason": "目标项目尚无导出、删除、非阻塞隐私选择或数据最小化实现。"
+    },
+    {
+      "id": "S4-T1",
+      "classification": "apply",
+      "reason": "目标项目尚无可访问性、响应式和性能验收实现；必须在可运行候选上按冻结阈值验证。"
+    },
+    {
+      "id": "S4-T2",
+      "classification": "apply",
+      "reason": "目标项目尚无 D1/R2、邮件、OAuth 故障注入与恢复验证。"
+    },
+    {
+      "id": "S4-T3",
+      "classification": "apply",
+      "reason": "目标项目尚无冻结 Candidate 或独立 Verifier；后续必须由未修改产品代码的独立上下文验收。"
+    },
+    {
+      "id": "S5-T1",
+      "classification": "blocked",
+      "reason": "需要 Sites Save 权限和目标项目 linkage；当前尚未创建隔离 Sites 项目。"
+    },
+    {
+      "id": "S5-T2",
+      "classification": "blocked",
+      "reason": "需要 Owner 控制 Google、邮件 DNS、Sites Settings、可选域名和权利确认；当前均未观察到。"
+    },
+    {
+      "id": "S5-T3",
+      "classification": "blocked",
+      "reason": "需要明确生产 Deploy 授权、真实账户链路和上一 Saved Version；任务包 production_side_effect_authorization 为 false。"
+    },
+    {
+      "id": "S5-T4",
+      "classification": "blocked",
+      "reason": "需要既有 OVH/status/Private-Database Adapter 位置和最小写权限；当前未绑定。"
+    }
+  ],
+  "acceptance_assessment": {
+    "task_ids_classified": 19,
+    "unknown_classifications": 0,
+    "unexplained_conflicts": 0,
+    "s0_t1_semantic_reconcile": "RECORDED",
+    "s0_stage_complete": false,
+    "next_gate": "S0-T2 requires observable Owner Sites capability and runtime compatibility evidence."
+  }
+}
