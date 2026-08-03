@@ -1,19 +1,87 @@
 {
-  "schema_version": "1.0",
-  "task_id": "SA-105",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage1_western.py",
-      "command_sha256": "f889df8845700a2f7fd4178d2de48ef867251a517f93fdcec1eb7a15907bff7e",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage1_western.py tests/focused/test_account_mirror_batch_protocol.py",
+      "command_sha256": "978290f1dc41df64fabe1c4176c736c12b9548acc5cf83504c17b6bf4390c21e",
       "executed": true,
-      "status": "PASS",
       "exit_code": 0,
-      "summary": "4 stage tests passed."
+      "status": "PASS",
+      "summary": "7 passed after the read-only Canary fix."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage1_western.py tests/focused/test_platform_canary.py tests/focused/test_generic_web_connector.py tests/focused/test_social_archiver_import.py tests/focused/test_reddit_connector.py tests/focused/test_oauth_connectors.py tests/focused/test_x_connector.py tests/focused/test_x_zero_cost_gate.py tests/focused/test_instagram_connector.py tests/focused/test_command_connectors.py tests/focused/test_extension_e2n_contract.py tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_account_mirror_sync.py tests/focused/test_sync_run_controls.py tests/focused/test_connector_run_api.py",
+      "command_sha256": "2a68fdc50a7d254c62ec268b2406db4d2e748f0f12e991901412b426107f84c5",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "65 passed; one upstream Starlette deprecation warning."
+    },
+    {
+      "command": "python3 scripts/platform_canary.py generic-web --read-only --limit 1",
+      "command_sha256": "9876e2b25ecfd62d56ad3db4a7e58216219ea4a8dc5bfbdc2632bc093a4f2b34",
+      "executed": true,
+      "exit_code": 0,
+      "status": "BLOCKED_ENVIRONMENT",
+      "summary": "OWNER_CANARY_NOT_AUTHORIZED; credential_read=false; network_attempted=false; runtime_write=false."
+    },
+    {
+      "command": "python3 scripts/platform_canary.py reddit --read-only --limit 1",
+      "command_sha256": "ec54f88ceb213d3562718aedfdece51a362f66c8e4664155a1f05e6e999052d2",
+      "executed": true,
+      "exit_code": 0,
+      "status": "BLOCKED_ENVIRONMENT",
+      "summary": "OWNER_CANARY_NOT_AUTHORIZED; credential_read=false; network_attempted=false; runtime_write=false."
+    },
+    {
+      "command": "python3 scripts/platform_canary.py x --read-only --limit 1",
+      "command_sha256": "a94f869b3579ab93dd71066d3d2537b9c640433d74ab0de260bd76642c148d99",
+      "executed": true,
+      "exit_code": 0,
+      "status": "BLOCKED_ENVIRONMENT",
+      "summary": "OWNER_CANARY_NOT_AUTHORIZED; credential_read=false; network_attempted=false; runtime_write=false."
+    },
+    {
+      "command": "python3 scripts/platform_canary.py instagram --read-only --limit 1",
+      "command_sha256": "95261d734cfae4e809febf7914a8b6580ca62546d006ac15e6c84d86bb82dee9",
+      "executed": true,
+      "exit_code": 0,
+      "status": "BLOCKED_ENVIRONMENT",
+      "summary": "OWNER_CANARY_NOT_AUTHORIZED; credential_read=false; network_attempted=false; runtime_write=false."
+    },
+    {
+      "command": "python3 07_IMPLEMENTATION/apply/semantic_classify.py --repo \"$TARGET_REPOSITORY\"",
+      "command_sha256": "36b7ae95ebc97f92af108679e6d3c1393982d32d1b1cad6afeb78dc4f8b82519",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "ADAPT_CURRENT_UPSTREAM; satisfied=87, apply=26, adapt=103, equivalent=6, conflict=0, blocked=0."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/check_brand.py && python3 scripts/secret_scan.py scripts/platform_canary.py tests/focused/test_platform_canary.py tests/stage/test_stage1_western.py && uv lock --check --offline && python3 -m py_compile scripts/platform_canary.py && git diff --check",
+      "command_sha256": "84ff84d4e00a6f920a5beaff9eda31bd899d974ddce7887c5bb5f63e670b1e73",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Brand check, targeted secret scan, offline lock check, compile, and diff whitespace check passed."
+    },
+    {
+      "command": "git -C \"$TARGET_REPOSITORY\" ls-remote origin refs/heads/main && git -C \"$TARGET_REPOSITORY\" merge-base --is-ancestor 7925695c0078bb3b98d71636f5a1315270d9de87 HEAD",
+      "command_sha256": "170ab405365368ba6595b7f87ad3fb89f9cc7f0266fc3941378caa571e7307eb",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Remote main remained 7925695c0078bb3b98d71636f5a1315270d9de87; it is an ancestor of validated head 8b5b4afa46a07d69e7b392611d33fe93176b67fe."
     }
   ],
-  "record_sha256": "275461957d167a5e40bd3dd829e7b0662ab88a164eae9377a538df192b2219f7"
+  "generated_at": "2026-08-02T23:59:35Z",
+  "implementation_commit": "8b5b4afa46a07d69e7b392611d33fe93176b67fe",
+  "implementation_tree": "2abd20c571ec1af52013b99f064bea3e016b0bd5",
+  "record_context": {
+    "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
+    "validated_head_after_latest_main_reconciliation": "8b5b4afa46a07d69e7b392611d33fe93176b67fe"
+  },
+  "record_sha256": "676195b2c37bd2db1ce3c524ab5cf04dc7c515226e3c041125b7ce589f860088",
+  "schema_version": "1.0",
+  "task_id": "SA-105",
+  "taskpack_version": "v0.0.0.6"
 }

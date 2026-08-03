@@ -1,30 +1,94 @@
 {
-  "schema_version": "1.0",
-  "task_id": "SA-105",
-  "taskpack_version": "v0.0.0.5",
-  "stage": "S1",
-  "title": "通过国外与通用来源阶段门",
-  "status": "PASS",
-  "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
-  "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "equivalent",
   "acceptance_ids": [
     "AC-SA-105"
   ],
+  "canary_statuses": {
+    "generic-web": {
+      "error_code": "OWNER_CANARY_NOT_AUTHORIZED",
+      "status": "BLOCKED_ENVIRONMENT"
+    },
+    "instagram": {
+      "error_code": "OWNER_CANARY_NOT_AUTHORIZED",
+      "status": "BLOCKED_ENVIRONMENT"
+    },
+    "reddit": {
+      "error_code": "OWNER_CANARY_NOT_AUTHORIZED",
+      "status": "BLOCKED_ENVIRONMENT"
+    },
+    "x": {
+      "error_code": "OWNER_CANARY_NOT_AUTHORIZED",
+      "status": "BLOCKED_ENVIRONMENT"
+    }
+  },
+  "evidence_binding": {
+    "frozen_account_mirror_batch_protocol_test_sha256": "92f1fdef8574f5eb231283d492cbf4f788609c4049de76e46b48d7de83d8fc56",
+    "frozen_platform_canary_sha256": "90a3bfa2fcf12e7e261539035f36ee3663ee5d250ff4d9a355e0c7c1ff09868e",
+    "frozen_stage1_western_test_sha256": "037eb654475de77f8c2d9e5cd01282b56bc7bf725dacfe5b73ff3154e3f62e85",
+    "implementation_commit": "8b5b4afa46a07d69e7b392611d33fe93176b67fe",
+    "implementation_tree": "2abd20c571ec1af52013b99f064bea3e016b0bd5",
+    "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
+    "local_account_mirror_batch_protocol_test_sha256": "92f1fdef8574f5eb231283d492cbf4f788609c4049de76e46b48d7de83d8fc56",
+    "local_platform_canary_sha256": "9d91ba9cf1f209c881fde86b8844e2a0415ede792161462780f25a1f204e3164",
+    "local_platform_canary_test_sha256": "ec02a8ac5d6eb69214bb0f86caca4b12894d610d7cf178738485b022ac5131dd",
+    "local_stage1_western_test_sha256": "366b0ef5802f00326717082264c7b9f85f0c4f7e69d3e4bd2da7c1839310a7d3",
+    "semantic_classifier_sha256": "100f2a3d220ccc8a1326b2a540ba7b96922cb5fe8648d587d72ca5a8955ded21",
+    "semantic_report_sha256": "9f55f28a582e3bb3a28cd087fcd0723db77e2a4844ef89e9ba403db6e3feda27",
+    "taskpack_zip_sha256": "921a9bda63c8e009b90f574d10ff5ffce1aa2e2dc68fbf1ae43627900b22a494",
+    "validated_head_after_latest_main_reconciliation": "8b5b4afa46a07d69e7b392611d33fe93176b67fe"
+  },
+  "generated_at": "2026-08-02T23:59:35Z",
+  "implementation_status": "PASS",
+  "known_limitations": [
+    "No real owner account, OAuth/session secret, browser-extension reload or pairing, official export, provider request, Docker runtime, deployment, or production action was attempted.",
+    "The four Stage 1 provider canaries were deliberately invoked only with --read-only. Each is BLOCKED_ENVIRONMENT because no Owner authorization was supplied; the command did not read credentials, access the network, or write runtime evidence.",
+    "Fixture/local PASS proves contract behavior and the fail-closed canary boundary only. Real account totals, accessible scopes, collection membership, incremental arrival, permissions, rate limits, and platform behavior remain NOT_RUN.",
+    "PASS is limited to v0.0.0.6 Task Pack local gate checks; it is not product-runtime or world-state acceptance."
+  ],
+  "live_environment_status": "BLOCKED_ENVIRONMENT",
+  "oracle": "Chrome 书签、Reddit、X、Instagram 和导入 Fixture 的全量/增量/partial/去重链路通过；真实 Canary 分平台记录 PASS/DEGRADED/BLOCKED_ENVIRONMENT/FAIL，不互相阻塞。",
+  "predecessor_evidence": {
+    "pointer": "evidence/SA-105/history/pre-v0.0.0.6-stage1-gate/PREVIOUS_EVIDENCE.json",
+    "prior_active_taskpack_version": "v0.0.0.5",
+    "prior_command_log_sha256": "502eea2fadeb704abece543b4dc1831bac5c800062ee44dae0bbc643f49bbe64",
+    "prior_result_sha256": "ba8eaf4f3f329f68d3ea6b23e3d4da8c0c53d25731ace4f39d30d02d59d528b7"
+  },
+  "product_runtime_verdict": "NOT_RUN",
+  "record_sha256": "59fdcf0c7b864a2a2da123459ab9e17aad5c7e1291c2ba3314ba7604ca4bb4f2",
+  "result_summary": "S1 冻结 gate 的 Chrome 当前页、Social Archiver 导入、Reddit/X OAuth 和 Instagram 隔离 Sidecar Fixture 链路通过。当前 Stage 1 测试比冻结候选的“连接器文件存在”断言更强，覆盖 L0/L1/L3、导入幂等、OAuth 关系归一化与 session 不出 Sidecar。修复了已有 --read-only Canary 旗标未生效的问题：它现在在 Settings、秘密、网络和 runtime receipt 之前 fail closed，四个平台的 Owner Canary 如实记录为 BLOCKED_ENVIRONMENT，不会互相连坐或伪造成功。",
+  "schema_version": "1.0",
+  "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+  "semantic_reconciliation": {
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "scope": "The frozen S1 gate's file-existence test was retained as a strictly stronger current fixture suite. The current upstream canary already improved the core token and runtime-root boundary, but its declared --read-only flag still called live-capable code and persisted receipts. The adaptive slice makes the flag authoritative before Settings, secret, network, or runtime writes, preserves the authorized non-read-only path, and adds focused regression coverage.",
+    "summary": {
+      "adapt": 103,
+      "apply": 26,
+      "blocked": 0,
+      "conflict": 0,
+      "equivalent": 6,
+      "obsolete": 0,
+      "satisfied": 87
+    }
+  },
+  "stage": "S1",
+  "status": "PASS",
+  "task_id": "SA-105",
+  "taskpack_version": "v0.0.0.6",
   "tests": [
     "TEST-SA-105"
   ],
-  "oracle": "四类来源的 fixture 链路全部通过；真实 canary 分平台记录 PASS/FAIL/NOT_RUN，不互相阻塞。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "4 stage tests passed.",
-  "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
-  },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "fd16599b447aed0b30c673cabae1e9702f12188f9536eec294cd073c37b375a7"
+  "title": "通过国外与通用账号镜像阶段门",
+  "validation": {
+    "brand_check": "PASS; hits=[]",
+    "exact_taskpack_pytest": "7 passed.",
+    "git_diff_check": "PASS before functional commit.",
+    "latest_main_reconciliation": "PASS; origin/main=7925695c0078bb3b98d71636f5a1315270d9de87 remained unchanged and is an ancestor of validated head 8b5b4afa46a07d69e7b392611d33fe93176b67fe.",
+    "owner_canary_read_only": "generic-web, reddit, x, instagram each returned BLOCKED_ENVIRONMENT / OWNER_CANARY_NOT_AUTHORIZED with credential_read=false, network_attempted=false, runtime_write=false.",
+    "python_compile": "PASS; scripts/platform_canary.py compiled.",
+    "related_stage1_regression": "65 passed; one upstream Starlette deprecation warning.",
+    "secret_scan": "PASS; hits=[]",
+    "semantic_classifier": "PASS; ADAPT_CURRENT_UPSTREAM; conflict=0; blocked=0.",
+    "uv_lock_check_offline": "PASS"
+  }
 }
