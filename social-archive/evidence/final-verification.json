@@ -5,7 +5,7 @@
   "results": [
     {
       "argv": [
-        "/Users/linzezhang/.codex/worktrees/acc9/MetaDatabase/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "-B",
         "-m",
         "compileall",
@@ -19,7 +19,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/.codex/worktrees/acc9/MetaDatabase/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_brand.py"
       ],
       "exit_code": 0,
@@ -28,7 +28,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/.codex/worktrees/acc9/MetaDatabase/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/secret_scan.py",
         "."
       ],
@@ -38,7 +38,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/.codex/worktrees/acc9/MetaDatabase/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/validate_compose.py",
         "compose.yaml"
       ],
@@ -48,7 +48,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/.codex/worktrees/acc9/MetaDatabase/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/validate_compose.py",
         "compose.readers.yaml"
       ],
@@ -58,21 +58,39 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/.codex/worktrees/acc9/MetaDatabase/social-archive/.venv/bin/python",
-        "scripts/validate_compose.py",
-        "compose.workers.yaml"
-      ],
-      "exit_code": 0,
-      "stdout": "PASS：compose.workers.yaml 结构有效。\n",
-      "stderr": ""
-    },
-    {
-      "argv": [
-        "/Users/linzezhang/.codex/worktrees/acc9/MetaDatabase/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/validate_systemd.py"
       ],
       "exit_code": 0,
       "stdout": "PASS：systemd 运行合同完整，状态与复制只可写入 /var/lib/social-archive。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/preflight_extension.py"
+      ],
+      "exit_code": 0,
+      "stdout": "可以装载。manifest v3、version 0.0.0.6、14 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/scan_plaintext_credentials.py",
+        "--all"
+      ],
+      "exit_code": 0,
+      "stdout": "干净：扫了 473 个文件 + 2 份 diff，0 处命中\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/validate_deployment_contract.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"status\": \"PASS\", \"scope\": \"local_deployment_contract\", \"checks\": [{\"name\": \"isolated_loopback_ports_declared\", \"status\": \"PASS\"}, {\"name\": \"core_api_loopback_only\", \"status\": \"PASS\"}, {\"name\": \"core_api_read_only\", \"status\": \"PASS\"}, {\"name\": \"tunnel_library_loopback\", \"status\": \"PASS\"}, {\"name\": \"tunnel_api_loopback\", \"status\": \"PASS\"}, {\"name\": \"tunnel_status_projection_loopback\", \"status\": \"PASS\"}, {\"name\": \"tunnel_status_existing_site_passthrough\", \"status\": \"PASS\"}, {\"name\": \"tunnel_default_404\", \"status\": \"PASS\"}, {\"name\": \"library_access_policy\", \"status\": \"PASS\"}, {\"name\": \"separate_api_host\", \"status\": \"PASS\"}, {\"name\": \"public_health\", \"status\": \"PASS\"}, {\"name\": \"edge_rate_limit_not_relaxed\", \"status\": \"PASS\"}, {\"name\": \"extension_token_is_revocable\", \"status\": \"PASS\"}, {\"name\": \"real_rule_evidence_not_source\", \"status\": \"PASS\"}, {\"name\": \"api_host_has_no_public_pairing_path\", \"status\": \"PASS\"}, {\"name\": \"library_url_declared\", \"status\": \"PASS\"}, {\"name\": \"api_url_declared\", \"status\": \"PASS\"}, {\"name\": \"status_under_data_root\", \"status\": \"PASS\"}, {\"name\": \"status_not_project_runtime\", \"status\": \"PASS\"}, {\"name\": \"status_server_loopback_only\", \"status\": \"PASS\"}, {\"name\": \"status_server_shared_health_path\", \"status\": \"PASS\"}, {\"name\": \"status_server_readonly_methods\", \"status\": \"PASS\"}, {\"name\": \"status_web_no_write_path\", \"status\": \"PASS\"}, {\"name\": \"status_web_reads_projection_only\", \"status\": \"PASS\"}, {\"name\": \"status_web_port_from_environment_file\", \"status\": \"PASS\"}]}\n",
       "stderr": ""
     }
   ]

@@ -37,8 +37,14 @@ def structural_commands() -> list[list[str]]:
         [python, "scripts/secret_scan.py", "."],
         [python, "scripts/validate_compose.py", "compose.yaml"],
         [python, "scripts/validate_compose.py", "compose.readers.yaml"],
-        [python, "scripts/validate_compose.py", "compose.workers.yaml"],
+        # compose.workers.yaml 已随 v0.0.0.7 / T03 删除（那三个 HTTP worker 被实测证伪，
+        # 上游 API 没有任何收藏枚举接口）。这一行留着会让**发布门本身**永远 FAIL——
+        # 而且从 T03 起就是红的，只是没人跑它，所以一直没被发现。
         [python, "scripts/validate_systemd.py"],
+        # v0.0.0.7 新增的三道门。不挂进来的话，它们只在有人手动敲 pytest 时才生效。
+        [python, "scripts/preflight_extension.py"],
+        [python, "scripts/scan_plaintext_credentials.py", "--all"],
+        [python, "scripts/validate_deployment_contract.py"],
     ]
 
 
