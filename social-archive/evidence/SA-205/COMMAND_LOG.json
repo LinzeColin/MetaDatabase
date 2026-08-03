@@ -2,12 +2,12 @@
   "schema_version": "1.0",
   "task_id": "SA-205",
   "taskpack_version": "v0.0.0.6",
-  "generated_at": "2026-08-03T03:33:23Z",
-  "implementation_commit": "f5db06d2740b5ede789cd01227c49adc3f8ea524",
-  "implementation_tree": "f8d7b73b4f7587f0ef03f202748e5b34879bcd6f",
+  "generated_at": "2026-08-03T04:37:01Z",
+  "implementation_commit": "ceb02782b9d9a8582ba57a2484282d4d0f9475ff",
+  "implementation_tree": "2c09f4213671dfe01c8e6e1773be44a9bd90a6d4",
   "record_context": {
     "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
-    "validated_head_after_latest_main_reconciliation": "8ec3fe0333b913f0663f1552b01db9e7637d0f3c",
+    "validated_head_after_latest_main_reconciliation": "ceb02782b9d9a8582ba57a2484282d4d0f9475ff",
     "contract_validation_commit": "635a124fa6cc54c53e8572013e9510fb3591f6fb"
   },
   "commands": [
@@ -90,7 +90,31 @@
       "exit_code": 0,
       "status": "PASS",
       "summary": "Remote main and local origin/main both resolve to 7925695c0078bb3b98d71636f5a1315270d9de87; it is an ancestor of the current validated head."
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/python -m pytest -q tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_v005_extension_package.py tests/focused/test_extension_e2n_contract.py tests/focused/test_cloud_pairing.py tests/stage/test_stage2_domestic.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_scan_platform_isolation.py",
+      "command_sha256": "9a883f1fbbd3c6910911b3e0dd8e557bc3fc4bda12683721731c7691864b3ece",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "47 passed in 2.26s; includes the persistent-profile tab-reuse regression and v0.0.0.6 extension, pairing and Stage 2 checks."
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/python -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_scan_platform_isolation.py",
+      "command_sha256": "7d83104529e70c17779170bc6440773d7f0b4be0cdb0556333fe00a6849222fb",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "17 passed in 2.17s for the exact frozen v0.0.0.6 SA-205 pytest target."
+    },
+    {
+      "command": "node --check apps/browser-extension/background.js && node --check apps/browser-extension/content/account-mirror-core.js && LC_ALL=C LANG=C python3 scripts/build_extension_package.py && unzip -t dist/social-archive-extension.zip",
+      "command_sha256": "e1d22a958d181b82142d4b2c1be67f97a70c2f77903cc789b2b8727a868b53e1",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "JavaScript syntax, v0.0.0.6 package build and ZIP integrity passed; package SHA-256=164546b24d42ff23a8994d9b559eee821735f05159aa0d62a14c3f2b6fb4eff6."
     }
   ],
-  "record_sha256": "7452117ddc6dd39a2a0f293a3826e493a7b2fa107333ad7efe7fc7d4407c7de5"
+  "record_sha256": "fbe2603a567930e8705a032d4f8e67a55245c5b44b5f67ed49b4fa161857e5a3"
 }

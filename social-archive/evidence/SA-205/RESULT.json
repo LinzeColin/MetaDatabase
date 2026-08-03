@@ -17,7 +17,7 @@
   ],
   "oracle": "四个国内平台逐项验证连接、首次全量、增量、暂停/恢复、partial 防误删和单平台隔离；未运行真实账号不得写 PASS。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "SA-205 的当前 v0.0.0.6 回归门通过：四个平台的 fixture 连接、首次全量、增量、暂停/恢复、partial 防误删与隔离回归均通过；来自悬浮保存或右键菜单的请求会固定使用来源标签页，避免活动标签页竞态。四个国内目标页面已在受控 Chrome 中打开，但同一 profile 没有 Social Archive 扩展，且当前生产目标仍不是有效的 v0.0.0.6 配对目标；真实 Owner Canary 尚未运行，任务整体按冻结 Oracle 保持 BLOCKED_ENVIRONMENT，而非 PASS。",
+  "result_summary": "SA-205 的当前 v0.0.0.6 回归门通过：四个平台的 fixture 连接、首次全量、增量、暂停/恢复、partial 防误删与隔离回归均通过；来自悬浮保存或右键菜单的请求会固定使用来源标签页，避免活动标签页竞态。当前扩展连接路径还会优先复用同一持久 Chrome profile 已打开的平台页，不再创建第二个登录旅程。四个国内目标页面已在该 profile 中打开，但生产页面仍加载 v005-r1 资产而非当前 v0.0.0.6 壳；真实 Owner Canary 尚未运行，任务整体按冻结 Oracle 保持 BLOCKED_ENVIRONMENT，而非 PASS。",
   "evidence_binding": {
     "taskpack_zip_sha256": "921a9bda63c8e009b90f574d10ff5ffce1aa2e2dc68fbf1ae43627900b22a494",
     "frozen_task_dag_sha256": "916ef99d69ad0352662e4d4e1eaeb2a33b65c2851f1d2b492c87efcb5f68a1fb",
@@ -37,12 +37,13 @@
     "frozen_compose_workers_sha256": "8b36fa7d2ca4c350bd63a8cecc81e0a13e759d651c23cfbacc1fd806fdced337",
     "local_compose_workers_sha256": "8b36fa7d2ca4c350bd63a8cecc81e0a13e759d651c23cfbacc1fd806fdced337",
     "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
-    "implementation_commit": "f5db06d2740b5ede789cd01227c49adc3f8ea524",
-    "implementation_tree": "f8d7b73b4f7587f0ef03f202748e5b34879bcd6f",
+    "implementation_commit": "ceb02782b9d9a8582ba57a2484282d4d0f9475ff",
+    "implementation_tree": "2c09f4213671dfe01c8e6e1773be44a9bd90a6d4",
     "contract_validation_commit": "635a124fa6cc54c53e8572013e9510fb3591f6fb",
-    "validated_head_after_latest_main_reconciliation": "8ec3fe0333b913f0663f1552b01db9e7637d0f3c",
-    "validated_tree_after_latest_main_reconciliation": "a48b7dfce722577017a86f6df69b1cd9e2ad6606",
-    "current_extension_package_sha256": "6cbfd349213bbd811a9da27635604ebc70b2520141e780387c91e20d26439445",
+    "validated_head_after_latest_main_reconciliation": "ceb02782b9d9a8582ba57a2484282d4d0f9475ff",
+    "validated_tree_after_latest_main_reconciliation": "2c09f4213671dfe01c8e6e1773be44a9bd90a6d4",
+    "current_extension_package_sha256": "164546b24d42ff23a8994d9b559eee821735f05159aa0d62a14c3f2b6fb4eff6",
+    "persistent_profile_reuse_commit": "ceb02782b9d9a8582ba57a2484282d4d0f9475ff",
     "browser_extension_load_capability_probe_head": "40e869b116efb6e67fc2ad3c2daf3d4586e51d79"
   },
   "semantic_reconciliation": {
@@ -69,29 +70,32 @@
     },
     "current_owner_canary": {
       "owner_authorized_in_thread": true,
+      "persistent_external_chrome_profile_reused": true,
       "domestic_target_pages_opened": 4,
       "page_level_authentication_signal": "LIKELY_AUTHENTICATED",
-      "social_archive_extension_visible_in_controlled_chrome": false,
-      "allowed_loopback_bridge_ping": "NO_RESPONSE",
+      "product_extension_install_state": "NOT_OBSERVABLE_IN_CURRENT_RUN",
+      "allowed_loopback_bridge_ping": "NO_RESPONSE_HISTORICAL",
       "real_provider_run": "NOT_RUN"
     }
   },
   "validation": {
-    "exact_taskpack_pytest": "17 passed within the current 58-test focused set: frozen Stage 2 fixture plus the frozen SA-205 batch and platform-isolation targets.",
-    "current_account_mirror_extension_domestic_regression": "58 passed in 2.71s: account-mirror, pairing, extension API/core/bridge, package, v0.0.0.6 contract, platform isolation, and Stage 2 domestic fixtures.",
+    "exact_taskpack_pytest": "PASS: 17 passed in 2.17s for the frozen Stage 2 fixture plus the frozen SA-205 batch and platform-isolation targets.",
+    "current_account_mirror_extension_domestic_regression": "PASS: 47 passed in 2.26s across account-mirror core, extension bridge, package, pairing, v0.0.0.6 contract, platform isolation, and Stage 2 domestic fixtures.",
+    "persistent_profile_reuse_runtime_simulation": "PASS: the actual service-worker source selected an existing tab id, injected the mirror scripts into it, created zero extra tabs, and declined to create a new login page when no reusable tab existed.",
     "related_stage2_regression": "75 passed: Stage 2, account mirror, Extension bridge/core, XHS/OpenAPI/health/CLI connectors, Bilibili, scan scope, workers, generic fallback, status projection, and Canary fixtures.",
     "paused_batch_boundary": "PASS: paused runs reject late batches before any account lookup, counter, checkpoint, receipt, or relation mutation; resume returns the run to queued and accepts the next batch.",
     "four_platform_fixture": "PASS: xiaohongshu, douyin, kuaishou, and bilibili each cover fixture connection, first_full, incremental, and platform-scoped relation closure.",
     "owner_canary_read_only": "Historical all-cn pre-authorization safety probe returned four BLOCKED_ENVIRONMENT / OWNER_CANARY_NOT_AUTHORIZED receipts; credential_read=false, network_attempted=false, runtime_write=false for each.",
-    "browser_precondition": "Four domestic target pages are now open in the controlled Chrome surface with a page-level likely-authenticated signal, but no Social Archive extension is visible in that profile and safe bridge PING receives no response. No session, Cookie, or page content was inspected.",
-    "browser_extension_load_capability": "The controlled browser surface exposes neither normal extension-manager loading controls nor the official DevTools Extensions.loadUnpacked command. Both paths were probed without changing browser state.",
-    "extension_package_build": "PASS: current v0.0.0.6 package rebuilt from source; 20 members; SHA-256 6cbfd349213bbd811a9da27635604ebc70b2520141e780387c91e20d26439445.",
+    "browser_precondition": "PASS for reuse precondition: one target page each for xiaohongshu, douyin, kuaishou, and bilibili is open in the persistent external Chrome profile. No session, Cookie, storage, password, or page content was inspected.",
+    "browser_extension_load_capability": "The controlled browser surface previously exposed neither normal extension-manager loading controls nor the official DevTools Extensions.loadUnpacked command; in this run Chrome URL policy also denied a read-only chrome://extensions visit. No workaround was attempted.",
+    "production_runtime_version": "READ_ONLY: the authenticated production page loads /assets/app.js?v=005-r1, not the current v0.0.0.6 asset contract.",
+    "extension_package_build": "PASS: current v0.0.0.6 package rebuilt from source; 20 members; SHA-256 164546b24d42ff23a8994d9b559eee821735f05159aa0d62a14c3f2b6fb4eff6.",
     "compose_static_config": "PASS: domestic workers and Bilibili cli-tools Compose configurations parsed with no env resolution, interpolation, path resolution, image build, or service start.",
     "extension_syntax": "PASS: background.js and account-mirror-core.js passed node --check.",
     "brand_check": "PASS; hits=[]",
     "secret_scan": "PASS; hits=[]",
     "uv_lock_check_offline": "PASS",
-    "latest_main_reconciliation": "PASS: remote origin/main remains 7925695c0078bb3b98d71636f5a1315270d9de87 and is an ancestor of the current validated head."
+    "latest_main_reconciliation": "PASS: remote origin/main remains 7925695c0078bb3b98d71636f5a1315270d9de87 and is an ancestor of current validated head ceb02782b9d9a8582ba57a2484282d4d0f9475ff."
   },
   "predecessor_evidence": {
     "pointer": "evidence/SA-205/history/pre-v0.0.0.6-stage2-gate/PREVIOUS_EVIDENCE.json",
@@ -102,12 +106,12 @@
   "known_limitations": [
     "The sealed SA-205 Oracle expressly forbids PASS when real accounts are not run. The task remains BLOCKED_ENVIRONMENT even though all local blocking fixtures passed.",
     "No real Owner account connection, Social Archive pairing, browser-extension installation/reload, provider request, Cookie/session read, vendor resolution, Docker runtime, deployment, cloud action, or production action has occurred.",
-    "The controlled Chrome surface has four domestic target pages but no installed Social Archive extension. The page-level authentication signal is not a provider receipt, and no cookies, storage, passwords, or page content were inspected.",
-    "The controlled browser surface cannot activate the unpacked v0.0.0.6 extension through normal UI controls or its official raw DevTools extension command; no bypass was attempted.",
-    "The production target remains a mixed historical v0.0.0.5 PWA/Core image and is not a valid v0.0.0.6 Owner Canary target.",
+    "The persistent external Chrome profile has four domestic target pages, but product-extension installation remains unverified. The page-level authentication signal is not a provider receipt, and no cookies, storage, passwords, or page content were inspected.",
+    "The controlled browser surface cannot activate the unpacked v0.0.0.6 extension through normal UI controls or its official raw DevTools extension command; this run also received a Chrome URL-policy denial for chrome://extensions. No bypass was attempted.",
+    "The production target visibly serves /assets/app.js?v=005-r1, not the current v0.0.0.6 PWA contract, so it is not a valid v0.0.0.6 Owner Canary target.",
     "The local all-cn read-only Canary proves its safety boundary only. It is not a real platform connection, discovery, pagination, pause/resume, or world-state receipt.",
     "The domestic Vendors remain unresolved/disabled in this run; no vendor_sync, Docker build, or service start was used."
   ],
-  "generated_at": "2026-08-03T03:40:39Z",
-  "record_sha256": "334623f7c1e74d9aa3f65abdd69e29e90b625be3e015fb32d96dc6066b02e4d5"
+  "generated_at": "2026-08-03T04:37:01Z",
+  "record_sha256": "8e56088fef17f18878d95195f3e8a5ec94d181feeb0a689c58a4479eb0c09b44"
 }
