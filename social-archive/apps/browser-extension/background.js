@@ -163,6 +163,19 @@ async function injectFabIfAuthorized(tabId, url) {
 const PENDING_CONNECTIONS_KEY = "saPendingAccountConnections";
 const SYNC_QUEUE_KEY = "saAccountSyncQueue";
 const SYNC_QUEUE_LOCK_KEY = "saAccountSyncQueueLock";
+// A live sync refreshes its lock on every batch, so anything older than this
+// belongs to a worker MV3 has already terminated.
+const SYNC_QUEUE_LOCK_STALE_MS = 3 * 60 * 1000;
+
+async function refreshSyncQueueLock() {
+  const stored = await chrome.storage.local.get({ [SYNC_QUEUE_LOCK_KEY]: null });
+  const lock = stored[SYNC_QUEUE_LOCK_KEY];
+  if (lock) await chrome.storage.local.set({ [SYNC_QUEUE_LOCK_KEY]: { ...lock, heartbeatAt: Date.now() } });
+}
+
+// A lock can only be held by the running worker. If this file is evaluating,
+// any lock in storage was left by a worker that is already gone.
+chrome.storage.local.remove(SYNC_QUEUE_LOCK_KEY).catch(() => {});
 const SYNC_QUEUE_LAST_RESULT_KEY = "saAccountSyncQueueLastResult";
 const SYNC_CONTROL_KEY = "saSyncRunControls";
 const SYNC_QUEUE_ALARM = "sa-account-sync-queue";
@@ -311,10 +324,18 @@ async function enqueueAllAccounts(triggerType = "manual") {
 async function processSyncQueue() {
   const stored = await chrome.storage.local.get({ [SYNC_QUEUE_LOCK_KEY]: null });
   const lock = stored[SYNC_QUEUE_LOCK_KEY];
-  if (lock && Date.now() - Number(lock.startedAt || 0) < 2 * 60 * 60 * 1000) {
+  // The lock is released in a finally, but MV3 terminates the service worker at
+  // will, and a worker killed mid-sync never runs it. The lock then survived in
+  // storage for two hours while every later click returned "busy" and did
+  // nothing, with enqueue still reporting ok, so the UI showed no error and the
+  // sync counters sat at zero. A lock is only meaningful while the worker that
+  // took it is alive, so heartbeatAt has to be recent, not merely startedAt.
+  const heldFor = Date.now() - Number(lock?.heartbeatAt || lock?.startedAt || 0);
+  if (lock && heldFor < SYNC_QUEUE_LOCK_STALE_MS) {
     await scheduleSyncQueue();
     return { ok: true, state: "busy" };
   }
+  if (lock) await chrome.storage.local.remove(SYNC_QUEUE_LOCK_KEY);
   const queue = await getSyncQueue();
   const item = queue.shift();
   if (!item) return { ok: true, state: "empty" };
@@ -324,7 +345,7 @@ async function processSyncQueue() {
     if (queue.length) await scheduleSyncQueue();
     return { ok: true, state: queuedControl.action === "pause" ? "paused" : "cancelled", syncRunId: item.syncRunId };
   }
-  await chrome.storage.local.set({ [SYNC_QUEUE_LOCK_KEY]: { accountId: item.accountId, startedAt: Date.now() } });
+  await chrome.storage.local.set({ [SYNC_QUEUE_LOCK_KEY]: { accountId: item.accountId, startedAt: Date.now(), heartbeatAt: Date.now() } });
   let result;
   try {
     result = await syncAccountById(item.accountId, item);
@@ -388,6 +409,9 @@ async function findExistingPlatformTab(platform, preferredTabId = null) {
 }
 
 async function sendSyncBatch(syncRunId, body) {
+  // Every batch proves the worker is still alive, which is what keeps a long
+  // scan from having its own lock treated as abandoned.
+  await refreshSyncQueueLock();
   return SA.api(`/v1/sync-runs/${encodeURIComponent(syncRunId)}/batches`, {
     method: "POST",
     body: JSON.stringify(body),

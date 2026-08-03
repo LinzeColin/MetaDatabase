@@ -96,3 +96,31 @@ def test_connection_reuses_an_existing_platform_tab_before_opening_a_new_page():
 def test_generic_web_label_is_user_facing_chrome_bookmarks_and_web():
     pwa = PWA.read_text(encoding="utf-8")
     assert 'label: "Chrome书签/网页"' in pwa
+
+
+def test_sync_queue_lock_cannot_strand_clicks_after_a_worker_is_killed():
+    # MV3 terminates the service worker at will. The lock is released in a
+    # finally, which a killed worker never runs, so it survived in storage for
+    # two hours while every later click returned "busy" and did nothing -- and
+    # enqueue still reported ok, so the UI showed no error and the counters sat
+    # at zero. This is the "clicked sync, nothing happened" failure.
+    background = (EXT / "background.js").read_text(encoding="utf-8")
+
+    # A lock only means something while the worker holding it is alive, so the
+    # staleness test must use a heartbeat, not just when the sync started.
+    assert "SYNC_QUEUE_LOCK_STALE_MS" in background
+    assert "2 * 60 * 60 * 1000" not in background, "the two-hour lock window must be gone"
+    assert "lock?.heartbeatAt || lock?.startedAt" in background
+
+    # A live scan must keep proving it is alive, or a long sync would have its
+    # own lock treated as abandoned.
+    assert "async function refreshSyncQueueLock" in background
+    batch = background.split("async function sendSyncBatch", 1)[1].split("\n}", 1)[0]
+    assert "refreshSyncQueueLock()" in batch
+
+    # If this file is evaluating, any lock in storage belongs to a dead worker.
+    assert "chrome.storage.local.remove(SYNC_QUEUE_LOCK_KEY).catch" in background
+
+    # A stale lock must be cleared rather than merely stepped over.
+    process = background.split("async function processSyncQueue", 1)[1]
+    assert "if (lock) await chrome.storage.local.remove(SYNC_QUEUE_LOCK_KEY);" in process
