@@ -162,14 +162,56 @@ Oracle 含「撤销令牌后扩展上行得 401 且界面显示中文提示」�
 | `tests/focused/test_scan_platform_isolation.py` | 需逐函数看，可能有仍有效的覆盖 |
 | `tests/focused/test_extension_e2n_contract.py` | 同上 |
 
-**(b) 配对码链路**，散在 6 个文件。服务端侧入口在 `src/social_archive/api.py`：
-`/v1/pairing/status`、`/v1/pairing/exchange`、`/v1/pair`、`require_pairing_edge`、
-`PAIRING_PATHS` / `PAIRING_BODY_LIMIT_BYTES` / `PAIRING_RATE_LIMIT_PER_MINUTE` /
-`PAIRING_STATE_FILENAME`、`_read_pairing_record`、`settings.pairing_code_file`。
+**(b) 配对码链路** — 未做。**动手前务必先读下面这个区分，否则会删错东西。**
 
-**(c) 扩展改长期可撤销令牌**。T01 已经建好 `extension_token` 表
-（`token_hash` 唯一、带 `revoked_at`），T02 已经有会话——签发路径可以直接接：
-已登录页面向服务端取令牌，经既有 bridge 交给扩展，用户不接触令牌文本。
+> ### ⚠️ 「配对码」和「共享 API 令牌」是两个东西，只删前者
+>
+> 它们在代码里挨得很近、名字也像，但机制不同：
+>
+> | | 配对码 | 共享 API 令牌 |
+> |---|---|---|
+> | secret 文件 | `social_archive_pairing_code` | `social_archive_api_token` |
+> | Settings 字段 | `pairing_code_file` | `api_token_file` |
+> | 语义 | **一次性**、十分钟过期、要用户**手抄** | 长期共享 bearer |
+> | T03 要删的 | **就是它** | **不是它** |
+>
+> T03 的原文是「删除配对码签发/输入/校验全链路」。被 `CONFLICT_ORDER` 废止的
+> 理由也只针对配对码：「十分钟有效期与手抄验证码本身就是技术门槛」。
+> `api_token_file` 没有这个问题，删它会顺手把 `require_token` 的兜底一起拆了。
+>
+> 注意 `settings.pairing_required` 这个名字有误导性——它实际是**总鉴权开关**
+> （`require_token` 第一行 `if not settings.pairing_required: return` 直接早退，
+> 什么都不校验），不是「是否启用配对码」。删配对码时**不要连它一起删**，
+> 建议改名为 `auth_required` 并单独一次提交，免得混进删除的 diff 里看不清。
+
+`api.py` 里属于配对码、可以删的（约 250 行）：
+
+- 常量 `PAIRING_PATHS` / `PAIRING_BODY_LIMIT_BYTES` / `PAIRING_RATE_LIMIT_PER_MINUTE` / `PAIRING_STATE_FILENAME`
+- `PairingRateLimiter` 类与 `pairing_rate_limiter` / `pairing_state_lock`
+- 中间件 `pairing_body_limit`
+- `_read_pairing_record` / `_pairing_state_path` / `_read_pairing_state` / `_write_pairing_state`
+  / `_pairing_record_is_live` / `_pairing_attempts_remaining` / `_pairing_client_key`
+  / `_normalize_pairing_code` / `_exchange_pairing_code`
+- `require_pairing_edge`、`PairingRequest` 模型
+- 三条路由 `/v1/pairing/status`、`/v1/pairing/exchange`、`/v1/pair`
+- `config.py` 的 `pairing_code_file`
+
+测试侧 11 个文件引用 pairing，逐个看——有些只是用它做鉴权夹具，改用扩展令牌即可，
+不必整文件删。
+
+**(c) 扩展长期可撤销令牌 — 已完成。** 三层都通了：
+
+- 存储：`RuntimeStore.issue_extension_token / resolve_extension_token / revoke_extension_tokens`
+  （只存 sha256；签发时自动撤销该用户旧令牌）
+- 端点：`POST/DELETE /v1/auth/extension-token`（要会话，用户不接触令牌文本）
+- 鉴权：`require_token` 已先认扩展令牌
+
+Oracle「撤销令牌后扩展上行得 401」已在 HTTP 层被
+`test_extension_token_authenticates_protected_api` 证明。
+
+> 那条测试里埋了一个坑的记录，改它之前先读：`pairing_required` 默认为 False 时
+> `require_token` **直接早退不做任何鉴权**，那时「带令牌得 200」是假阳性。
+> 所以判据第一段必须先断言「不带凭据被拒」，否则后面的 200 说明不了任何事。
 
 > 顺序建议：先做 (b) 和 (c)——它们互补（撤掉配对码的同时补上令牌，扩展始终可用），
 > 且不依赖 T08。(a) 里 `background.js` 那部分最好与 T08 一起做，否则会出现一个
