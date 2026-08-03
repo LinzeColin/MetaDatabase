@@ -376,3 +376,35 @@ def test_every_extension_surface_that_shows_runs_uses_message_zh() -> None:
                      "apps/browser-extension/options.js"):
         text = (ROOT / relative).read_text(encoding="utf-8")
         assert "message_zh" in text, f"{relative} 显示同步状态却说不出失败原因"
+
+
+def test_no_http_status_code_is_ever_shown_as_a_user_message() -> None:
+    """冻结词典的规矩是对**所有**失败说的，不只是同步失败：
+    「界面上出现的失败必须用下面这些话，不得出现英文错误码或堆栈」。
+
+    实测踩到过：扩展与 PWA 的 api() 在服务端没给 detail 时，
+    兜底成 `HTTP ${status}` / FastAPI 默认的英文 "Internal Server Error"，
+    而这个字符串会被八处 toast(error.message) 直接甩给用户。
+    """
+    for relative in ("apps/browser-extension/shared.js", "apps/pwa/app.js"):
+        text = (ROOT / relative).read_text(encoding="utf-8")
+        code = "\n".join(
+            line for line in text.splitlines()
+            if not line.lstrip().startswith(("//", "*", "/*"))
+        )
+        assert "`HTTP ${response.status}`" not in code, (
+            f"{relative} 会把 HTTP 状态码当成给人看的提示语"
+        )
+        # 必须存在一个统一的中文兜底
+        assert ("SA_humanMessage" in code) or ("function humanMessage" in code), (
+            f"{relative} 没有统一的中文兜底函数"
+        )
+
+
+def test_the_chinese_fallback_covers_the_status_codes_that_actually_happen() -> None:
+    """兜底要真的覆盖会发生的状态码，而不是只写一句 else。"""
+    for relative in ("apps/browser-extension/shared.js", "apps/pwa/app.js"):
+        text = (ROOT / relative).read_text(encoding="utf-8")
+        block = text.split("humanMessage", 1)[1][:1200]
+        for code in ("401", "404", "429", "500"):
+            assert code in block, f"{relative} 的中文兜底没有覆盖 {code}"

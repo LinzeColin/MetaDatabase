@@ -106,6 +106,23 @@
     return next;
   }
 
+  /** 把任意失败变成一句能给人看的中文。
+   *
+   * 规则来自冻结词典（docs/ZERO_BARRIER_UX.md）：
+   * 界面上出现的失败不得含英文错误码或堆栈。
+   * 服务端的 detail 已经是中文，原样用；缺失或明显不是中文时，按状态码给一句。
+   */
+  function SA_humanMessage(detail, status) {
+    const text = String(detail || "").trim();
+    // 至少含一个中文字符才认为它是给人看的
+    if (text && /[\u4e00-\u9fff]/.test(text)) return text;
+    if (status === 401 || status === 403) return "登录状态已失效，请重新连接。";
+    if (status === 404) return "这个功能在当前版本还不可用。";
+    if (status === 429) return "请求太频繁，已自动放慢，稍后会继续。";
+    if (status >= 500) return "服务器暂时出了点问题。你的数据没有丢，请稍后重试。";
+    return "暂时连不上服务器。你的数据没有丢，请重试。";
+  }
+
   async function api(path, options = {}) {
     const config = await getConfig();
     const headers = new Headers(options.headers || {});
@@ -119,7 +136,11 @@
       let data = {};
       try { data = text ? JSON.parse(text) : {}; } catch (_) { data = { detail: text }; }
       if (!response.ok) {
-        const error = new Error(data.detail || `HTTP ${response.status}`);
+        // 抛给界面的话必须已经是中文（v0.0.0.7 / T14）。
+        // 服务端的 detail 本来就是中文；但它缺失时原先兜底成 `HTTP 500`——
+        // 英文加状态码，正是冻结词典明令禁止出现在界面上的东西。
+        // 在这里兜住，八处 toast(error.message) 就一次都不用改。
+        const error = new Error(SA_humanMessage(data.detail, response.status));
         error.status = response.status;
         error.payload = data;
         throw error;
@@ -139,7 +160,8 @@
     try {
       const response = await fetch(`${config.endpoint}${path}`, { ...options, headers, signal: controller.signal });
       const text = await response.text();
-      if (!response.ok) throw new Error(text || `HTTP ${response.status}`);
+      // apiText 拿到的 text 可能是一整页 HTML，绝不能直接当提示语。
+      if (!response.ok) throw new Error(SA_humanMessage(null, response.status));
       return text;
     } finally {
       clearTimeout(timer);

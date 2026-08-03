@@ -161,5 +161,18 @@
       "test_every_extension_surface_that_shows_runs_uses_message_zh —— 显示同步运行的界面必须能说出为什么"
     ],
     "pattern_note": "同一个错误连续三处：T14 只验 PWA、零输入只扫 options.html、失败文案只接了 options.js。**「验了一个面就当验完」是本会话最高频的失误形态**，比任何逻辑错误都多。"
+  },
+  "the_no_english_rule_applies_to_all_failures_not_just_sync": {
+    "found_during": "把「哪个界面漏了」推广成「哪条路径漏了」——sidepanel 那处是渲染 sync_run 的原始错误，那**别的失败**是怎么显示的？",
+    "what_was_wrong": "扩展与 PWA 的 api() 在服务端没给 detail 时，兜底成 `HTTP ${status}`；FastAPI 未处理异常的默认 detail 是英文 \"Internal Server Error\"。而这个字符串被**八处** toast(error.message) / showToast(error.message) 直接甩给用户。",
+    "rule_source": "冻结词典（docs/ZERO_BARRIER_UX.md）：「界面上出现的失败必须用下面这些话，不得出现英文错误码或堆栈」——说的是**所有**失败，不只是同步失败。",
+    "fix": "在两侧 api() 的抛出点加一个统一的中文兜底：服务端给了中文就原样用（至少含一个中文字符才算），否则按状态码给一句（401/403、404、429、5xx、其他）。**在源头兜住，八处 toast 一处都不用改。**",
+    "verified": "直接把两个兜底函数抠出来跑：中文 detail 原样透传；null / \"Internal Server Error\" / \"Traceback (most recent call last)\" 全部替换成中文。",
+    "a_guard_of_mine_broke_and_that_was_correct": {
+      "what": "我早先写的 test_extension_surfaces_a_chinese_message... 断言源码里有字面量 `data.detail ||`。这次把兜底改好之后，它反而红了。",
+      "why_it_was_a_bad_guard": "**它盯的是实现细节，不是性质。** 实现变好了它就报错，等于阻碍改进。",
+      "rewritten_to": "盯性质：存在统一的中文兜底、且源码里不出现 `HTTP ${response.status}` 这种拿状态码当提示语的写法。",
+      "lesson": "判据要钉住「必须成立的事」，不是「现在恰好是这么写的」。"
+    }
   }
 }

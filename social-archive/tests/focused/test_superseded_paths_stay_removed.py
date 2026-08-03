@@ -385,8 +385,15 @@ def test_extension_surfaces_a_chinese_message_when_it_cannot_reach_the_archive()
     options = (ROOT / "apps/browser-extension/options.js").read_text(encoding="utf-8")
     assert "还没有连上私人档案馆" in options, "扩展在连不上时没有中文提示"
     assert "无需输入任何内容" in options, "提示里没有告诉用户下一步（且下一步必须是零输入）"
+    # ⚠️ 这条判据自己被改过一次：原先断言源码里有字面量 `data.detail ||`，
+    # 于是我把兜底逻辑改好（改成一个统一的中文兜底函数）之后，它反而红了。
+    # **它盯的是实现细节，不是性质。** 现在改成盯性质：
+    #   服务端给了中文就用中文；没给就仍然给一句中文，绝不出现 HTTP 状态码。
     shared = (ROOT / "apps/browser-extension/shared.js").read_text(encoding="utf-8")
-    # 服务端的中文 detail 必须被透出来，而不是被 `HTTP ${status}` 盖掉
-    assert "data.detail ||" in shared, (
-        "扩展把服务端的中文说明丢掉了，只剩 HTTP 状态码"
+    assert "SA_humanMessage" in shared, "扩展没有统一的中文兜底"
+    code = "\n".join(
+        line for line in shared.splitlines() if not line.lstrip().startswith(("//", "*"))
+    )
+    assert "`HTTP ${response.status}`" not in code, (
+        "扩展仍会把 `HTTP 500` 这种英文状态码当成给人看的提示语"
     )

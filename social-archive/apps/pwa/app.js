@@ -129,6 +129,17 @@
   const dateFormatter = new Intl.DateTimeFormat("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
   const fullDateFormatter = new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
 
+  /** 见 shared.js 里的同名函数——两侧规则一致：界面上不出现英文错误码。 */
+  function humanMessage(detail, status) {
+    const text = String(detail || "").trim();
+    if (text && /[\u4e00-\u9fff]/.test(text)) return text;
+    if (status === 401 || status === 403) return "登录状态已失效，请重新登录。";
+    if (status === 404) return "这个功能在当前版本还不可用。";
+    if (status === 429) return "请求太频繁，已自动放慢，稍后会继续。";
+    if (status >= 500) return "服务器暂时出了点问题。你的数据没有丢，请稍后重试。";
+    return "暂时连不上服务器。你的数据没有丢，请重试。";
+  }
+
   async function api(path, options = {}) {
     const headers = new Headers(options.headers || {});
     if (options.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
@@ -140,7 +151,9 @@
       let payload = {};
       try { payload = text ? JSON.parse(text) : {}; } catch (_) { payload = { detail: text }; }
       if (!response.ok) {
-        const error = new Error(payload.detail || `请求失败（${response.status}）`);
+        // 同 shared.js：payload.detail 缺失或不是中文时不能把它原样甩给用户。
+        // FastAPI 未处理异常的默认 detail 是英文的 "Internal Server Error"。
+        const error = new Error(humanMessage(payload.detail, response.status));
         error.status = response.status;
         throw error;
       }
