@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T01:51:08Z",
+  "status": "NOT_READY_FOR_REAL_CANARY",
+  "scope": "production_identity_and_browser_precondition",
+  "source_head": "586ebd77e8de65f3b714e97fcbf9bca197dee341",
+  "observed": {
+    "cloudflare": {
+      "tunnel_name": "social-archive-v0004",
+      "tunnel_status": "healthy",
+      "library_route": "social-archive.linzezhang.com -> http://127.0.0.1:18765",
+      "api_route": "social-archive-api.linzezhang.com -> http://127.0.0.1:18765"
+    },
+    "owner_browser": {
+      "page_path": "/connections",
+      "rendered_product_version": "v0.0.0.5",
+      "domestic_worker_state": {
+        "xiaohongshu": "preferred_worker_unavailable",
+        "douyin": "preferred_worker_unavailable",
+        "kuaishou": "preferred_worker_unavailable"
+      }
+    },
+    "current_source": {
+      "product_version": "0.0.0.6",
+      "loopback_bridge_evidence": "evidence/SA-205/LOOPBACK_PAIRING_SMOKE.json"
+    }
+  },
+  "conclusion": "The production browser target has not reached the current v0.0.0.6 PWA/extension identity, so it cannot furnish a valid v0.0.0.6 SA-205 Owner Canary receipt.",
+  "mutations": {
+    "cloudflare_or_tunnel_changed": false,
+    "browser_profile_or_extension_changed": false,
+    "account_or_provider_action": false,
+    "credential_or_secret_access": false,
+    "deployment_or_production_change": false
+  },
+  "does_not_establish": [
+    "The production instance is unhealthy; only the v0.0.0.6 identity and domestic Worker prerequisites are not satisfied.",
+    "Any user Chrome extension installation, reload, pairing, or account session state.",
+    "Any real platform connection, source read, first full mirror, incremental mirror, pause/resume, partial protection, or isolation receipt.",
+    "SA-205 PASS, downstream task permission, release, push, or deployment authorization."
+  ]
+}
