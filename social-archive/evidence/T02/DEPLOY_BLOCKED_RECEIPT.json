@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "task": "T02",
+  "slice": "S1",
+  "recorded_at": "2026-08-04T13:00Z",
+  "status": "BLOCKED",
+  "must_not_be_rewritten_as_pass": true,
+
+  "note_this_is_the_second_block_not_the_first": {
+    "first_block": "凭据缺失（evidence/T02/CREDENTIAL_BLOCKED_RECEIPT.json）——**已解除**，两个 OAuth 应用已建并接进生产，见 LOGIN_RECEIPTS.json",
+    "this_block": "制品已就位但线上跑的还是旧镜像，真实登录无处可做"
+  },
+
+  "what_is_blocked": "Acceptance：Owner 在真实浏览器用 Google 与 GitHub 各登录成功一次；登出后受保护接口返回 401",
+  "why": "生产运行的是 social-archive/core:0.0.0.6 镜像，里面没有 auth 路由。本分支的 auth.py 只存在于代码里，没有上线。真实登录必须等新镜像部署——那是 T18。",
+
+  "measured_facts": {
+    "artifact_closed": true,
+    "tests": "31 条（tests/focused/test_auth_session.py），全过",
+    "credentials_provisioned": "四个 secret 已在 OVH 生产机 /opt/social-archive/runtime/secrets/，权限 0640、属主 uid 10001，字节数与预期长度一致",
+    "rollback_ready": ".env 有精确副本 /opt/social-archive/.env.pre-oauth-20260803T195929Z；两个 OAuth 应用可在各自后台删除",
+    "acceptance_result": "NOT_RUN"
+  },
+
+  "why_this_cannot_be_unblocked_by_more_work_here": "这不是缺代码，是缺一次部署。DAG 把部署放在 T18，而 T02 在 S1——任务包自身的排序造成 T02 的验收晚于它的位置。不改任务包、不改验收标准，如实记为 BLOCKED。",
+
+  "what_would_unblock_it": [
+    "T18 部署新镜像后，在干净浏览器各登录一次",
+    "把两行真实 oauth_identity subject 与一次 401 回执补进 evidence/T02/LOGIN_RECEIPTS.json"
+  ],
+
+  "owner_action_required": false,
+  "deployment_required": true
+}
