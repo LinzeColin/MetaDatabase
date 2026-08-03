@@ -3,7 +3,7 @@
   "generated_on": "2026-08-03",
   "project": "胡楚靓工作台",
   "project_path": "Personal-WorkBench",
-  "status": "PARTIAL_S0_T1_SEMANTIC_RECONCILE",
+  "status": "S0_T1_RECONCILED_S0_T2_REMOTE_SITE_PROVISIONED",
   "product_pass_claimed": false,
   "taskpack": {
     "version": "v0.0.0.8",
@@ -54,12 +54,14 @@
     ]
   },
   "s0_t2_external_gate": {
-    "status": "AWAITING_USER_CONFIRMATION_FOR_PRIVATE_CREATE",
+    "status": "COMPLETED_PRIVATE_SITE_CREATED_NOT_DEPLOYED",
+    "authorization": "Owner 2026-08-03 明确授权创建，且不允许等待确认。",
     "sites_create_connector_called": false,
-    "owner_session_readonly_observation": "Sites 列表与创建入口在当前 Owner 会话中可见；未读取 Cookie、存储、密码、Token 或站点详情。",
-    "reason": "专用创建接口可返回短期源仓写入凭据；本任务不请求、接收或复用凭据。浏览器可见入口可以创建私有 Site，但该外部副作用需要 action-time 用户确认。",
-    "minimal_unblock": "Owner 明确确认创建新的私有、未 Deploy Site；不得提供 token、Secret、Cookie 或密码。",
-    "no_architecture_change_over_30_percent": true
+    "creation_surface": "Owner-authorized ChatGPT Sites workflow",
+    "project_id_location": "Personal-WorkBench/.openai/hosting.json",
+    "owner_session_observation": "平台回执确认新项目已创建，D1=DB、R2=FILES、仅 Owner 可见、无外部成员、未部署且未发布。未读取 Cookie、存储、密码、Token 或站点设置。",
+    "no_architecture_change_over_30_percent": true,
+    "local_build_status": "NOT_RUN_NO_LOCAL_CURRENT_SITES_STARTER_OR_LOCKFILE"
   },
   "s0_t1": {
     "classification": "adapt",
@@ -78,8 +80,8 @@
     },
     {
       "id": "S0-T2",
-      "classification": "blocked",
-      "reason": "官方资料支持所需的 D1/R2/认证型 Site 形态，且当前 Owner 会话已显示创建入口；创建私有 Site 属于外部副作用，等待 action-time 用户确认。专用创建接口可能返回短期凭据，按安全边界未调用。"
+      "classification": "adapt",
+      "reason": "已在 Owner 授权的 Sites 工作流创建独立私有、未部署 Site，并写入真实 hosting linkage；当前 Sites starter 源码和 lockfile 尚未同步到 worktree，构建命令未运行。"
     },
     {
       "id": "S1-T1",
@@ -149,7 +151,7 @@
     {
       "id": "S5-T1",
       "classification": "blocked",
-      "reason": "需要 Sites Save 权限和目标项目 linkage；当前尚未创建隔离 Sites 项目。"
+      "reason": "需要完成 S0 的本地 current starter、构建与目标项目 linkage。"
     },
     {
       "id": "S5-T2",
@@ -172,7 +174,10 @@
     "unknown_classifications": 0,
     "unexplained_conflicts": 0,
     "s0_t1_semantic_reconcile": "RECORDED",
+    "s0_t2_remote_private_site": "RECORDED",
+    "s0_t2_linkage_and_bindings": "RECORDED",
+    "s0_t2_build": "NOT_RUN_NO_LOCAL_CURRENT_SITES_STARTER_OR_LOCKFILE",
     "s0_stage_complete": false,
-    "next_gate": "S0-T2 requires observable Owner Sites capability and runtime compatibility evidence."
+    "next_gate": "Synchronize the current Sites starter into this worktree, preserve its lockfile, and run the required S0 commands before starting S1."
   }
 }
