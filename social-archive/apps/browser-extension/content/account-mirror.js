@@ -46,6 +46,16 @@
     return () => { clearInterval(timer); send("finished"); try { port.disconnect(); } catch (_) {} };
   }
 
+  async function confirmRelationScope(platform, relationType) {
+    let scope = SAMirrorCore.ensureRelationScope(platform, relationType, document);
+    if (scope.confirmed || !scope.clicked) return scope;
+    // A tab switch can update its accessibility state asynchronously. Recheck
+    // once without clicking again; do not label an unproven page as a relation.
+    await new Promise(resolve => setTimeout(resolve, 450));
+    scope = SAMirrorCore.ensureRelationScope(platform, relationType, document, { allowClick: false });
+    return scope;
+  }
+
   async function scanRelation({
     syncRunId = "", relationType, collectionKey = "", collectionName = "",
     maxItems = 100000, maxScrolls = 1200, stableRoundsRequired = 5
@@ -53,6 +63,26 @@
     const platform = platformFromLocation();
     const closeHeartbeat = openScanHeartbeat(platform, relationType);
     try {
+      const relationScope = await confirmRelationScope(platform, relationType);
+      if (!relationScope.confirmed) {
+        return {
+          ok: true,
+          platform,
+          relationType: relationType || SAMirrorCore.relationFromUrl(platform, location.href),
+          collectionKey,
+          collectionName,
+          items: [],
+          completeness: "partial",
+          endConfirmed: false,
+          completionReason: relationScope.reason,
+          cursor: {
+            page_url: SAMirrorCore.canonicalUrl(location.href),
+            relation_scope_reason: relationScope.reason,
+            relation_scope_clicked: relationScope.clicked
+          },
+          failureCode: "RELATION_SCOPE_UNCONFIRMED"
+        };
+      }
       const discovered = new Map();
       let stableRounds = 0;
       let previousHeight = -1;

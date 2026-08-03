@@ -7,7 +7,13 @@
       home: "https://www.xiaohongshu.com/explore",
       relationUrls: { favorite: "https://www.xiaohongshu.com/user/profile", like: "https://www.xiaohongshu.com/user/profile" },
       contentPatterns: [/\/(?:explore|discovery\/item)\/[a-zA-Z0-9_-]+/],
-      collectionText: /收藏夹|合集|专辑/i
+      collectionText: /收藏夹|合集|专辑/i,
+      // Favorites and likes share the profile route. The browser must confirm
+      // the selected tab before it can label a page as either relation.
+      relationTabMatchers: {
+        favorite: [/^收藏$/, /收藏夹/],
+        like: [/^赞过$/, /^喜欢$/, /点赞/]
+      }
     },
     douyin: {
       label: "抖音", relations: ["favorite", "like"],
@@ -115,6 +121,37 @@
     }
     if (platform === "instagram") return "saved";
     return url.includes("like") || url.includes("liked") ? "like" : "favorite";
+  }
+
+  function relationTabIsActive(node) {
+    const attr = key => String(node?.getAttribute?.(key) || "").toLowerCase();
+    if (attr("aria-selected") === "true") return true;
+    if (["page", "step", "location", "true"].includes(attr("aria-current"))) return true;
+    if (["active", "selected", "current", "true"].includes(attr("data-state"))) return true;
+    if (["active", "selected", "current", "true"].includes(attr("data-active"))) return true;
+    return /(?:^|\s)(?:active|selected|current)(?:\s|$)/i.test(String(node?.className || ""));
+  }
+
+  function ensureRelationScope(platform, relationType, root = document, { allowClick = true } = {}) {
+    const spec = PLATFORM_SPECS[platform];
+    const matchers = spec?.relationTabMatchers?.[relationType] || [];
+    // Platforms with route-specific relations are already scoped by their URL.
+    if (!matchers.length) return { confirmed: true, reason: "ROUTE_SCOPED", clicked: false };
+    const tabs = [...(root?.querySelectorAll?.("button,a,[role='tab'],[role='button'],[data-e2e*='tab'],[data-testid*='tab'],[class*='tab']") || [])]
+      .filter(node => {
+        const text = cleanText(node.textContent || node.getAttribute?.("aria-label") || node.title || "", 128);
+        return matchers.some(matcher => matcher.test(text));
+      });
+    const selected = tabs.find(relationTabIsActive);
+    if (selected) return { confirmed: true, reason: "TAB_ALREADY_SELECTED", clicked: false };
+    const target = tabs[0];
+    if (!target) return { confirmed: false, reason: "RELATION_TAB_NOT_FOUND", clicked: false };
+    if (!allowClick || typeof target.click !== "function") {
+      return { confirmed: false, reason: "RELATION_TAB_SELECTION_UNCONFIRMED", clicked: false };
+    }
+    target.click();
+    if (relationTabIsActive(target)) return { confirmed: true, reason: "TAB_SELECTED", clicked: true };
+    return { confirmed: false, reason: "RELATION_TAB_SELECTION_UNCONFIRMED", clicked: true };
   }
 
   function collectionFromElement(anchor, fallback = "") {
@@ -278,7 +315,7 @@
 
   const api = Object.freeze({
     PLATFORM_SPECS, cleanText, canonicalUrl, externalId, relationFromUrl, collectionFromElement,
-    discoverCollectionScopes, extractCandidates, detectLoggedIn, isAtBottom, explicitEnd,
+    discoverCollectionScopes, extractCandidates, detectLoggedIn, ensureRelationScope, isAtBottom, explicitEnd,
     totalHint, completionProof, flattenBookmarksTree, chunk
   });
   globalThis.SAMirrorCore = api;

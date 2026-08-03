@@ -4,6 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CORE = ROOT / "apps/browser-extension/content/account-mirror-core.js"
+MIRROR = ROOT / "apps/browser-extension/content/account-mirror.js"
 
 
 def _run_node(script: str) -> dict:
@@ -63,6 +64,101 @@ console.log(JSON.stringify({{
         "xId": "123456",
         "xhsId": "abc-123",
     }
+
+
+def test_xhs_shared_profile_requires_a_confirmed_relation_tab_before_labeling():
+    script = f"""
+const core = require({json.dumps(str(CORE))});
+function tab(text, selected = false) {{
+  const attrs = {{ 'aria-selected': selected ? 'true' : 'false' }};
+  return {{
+    textContent: text,
+    className: '',
+    getAttribute: key => attrs[key] || '',
+    click: () => {{ attrs['aria-selected'] = 'true'; }}
+  }};
+}}
+const favorite = tab('收藏', true);
+const like = tab('赞过', false);
+const root = {{ querySelectorAll: () => [favorite, like] }};
+const selectedLike = core.ensureRelationScope('xiaohongshu', 'like', root);
+const missing = core.ensureRelationScope('xiaohongshu', 'like', {{ querySelectorAll: () => [] }});
+const routeScoped = core.ensureRelationScope('reddit', 'saved', root);
+console.log(JSON.stringify({{ selectedLike, missing, routeScoped, likeSelected: like.getAttribute('aria-selected') }}));
+"""
+    payload = _run_node(script)
+    assert payload["selectedLike"] == {"confirmed": True, "reason": "TAB_SELECTED", "clicked": True}
+    assert payload["likeSelected"] == "true"
+    assert payload["missing"] == {"confirmed": False, "reason": "RELATION_TAB_NOT_FOUND", "clicked": False}
+    assert payload["routeScoped"] == {"confirmed": True, "reason": "ROUTE_SCOPED", "clicked": False}
+
+
+def test_xhs_collection_discovery_keeps_collection_scope_separate_from_note_links():
+    script = f"""
+const core = require({json.dumps(str(CORE))});
+function link(text, href) {{
+  return {{
+    textContent: text,
+    href,
+    title: '',
+    getAttribute: () => '',
+  }};
+}}
+const root = {{
+  querySelectorAll: () => [
+    link('旅行收藏夹', 'https://www.xiaohongshu.com/user/profile/collection/travel'),
+    link('收藏夹中的笔记', 'https://www.xiaohongshu.com/explore/note-1')
+  ]
+}};
+console.log(JSON.stringify(core.discoverCollectionScopes('xiaohongshu', root)));
+"""
+    payload = _run_node(script)
+    assert payload == [{
+        "collectionKey": "xiaohongshu:/user/profile/collection/travel",
+        "collectionName": "旅行收藏夹",
+        "url": "https://www.xiaohongshu.com/user/profile/collection/travel",
+    }]
+
+
+def test_xhs_content_scan_returns_partial_without_a_confirmed_relation_tab():
+    script = f"""
+const fs = require('fs');
+const vm = require('vm');
+let listener = null;
+globalThis.location = {{ hostname: 'www.xiaohongshu.com', href: 'https://www.xiaohongshu.com/user/profile' }};
+globalThis.document = {{
+  querySelectorAll: () => [],
+  scrollingElement: {{ scrollHeight: 0, scrollTop: 0, scrollTo: () => {{}} }},
+  documentElement: {{ scrollHeight: 0, scrollTop: 0, scrollTo: () => {{}} }}
+}};
+globalThis.chrome = {{
+  runtime: {{
+    connect: () => ({{ postMessage: () => {{}}, disconnect: () => {{}} }}),
+    sendMessage: () => Promise.resolve(null),
+    onMessage: {{ addListener: fn => {{ listener = fn; }} }}
+  }}
+}};
+vm.runInThisContext(fs.readFileSync({json.dumps(str(CORE))}, 'utf8'), {{ filename: 'account-mirror-core.js' }});
+vm.runInThisContext(fs.readFileSync({json.dumps(str(MIRROR))}, 'utf8'), {{ filename: 'account-mirror.js' }});
+(async () => {{
+  const result = await new Promise((resolve, reject) => {{
+    const accepted = listener(
+      {{ type: 'SA_MIRROR_SCAN_RELATION', syncRunId: 'run-1', relationType: 'like' }},
+      {{}},
+      resolve
+    );
+    if (accepted !== true) reject(new Error('listener did not keep the async channel open'));
+  }});
+  console.log(JSON.stringify(result));
+}})().catch(error => {{ console.error(error); process.exit(1); }});
+"""
+    payload = _run_node(script)
+    assert payload["ok"] is True
+    assert payload["relationType"] == "like"
+    assert payload["items"] == []
+    assert payload["completeness"] == "partial"
+    assert payload["failureCode"] == "RELATION_SCOPE_UNCONFIRMED"
+    assert payload["cursor"]["relation_scope_reason"] == "RELATION_TAB_NOT_FOUND"
 
 
 def test_completion_proof_never_treats_stable_scroll_as_complete_without_evidence():
