@@ -326,3 +326,53 @@ def test_logged_in_page_gets_token_without_user_typing_anything(client) -> None:
 
     assert c.delete("/v1/auth/extension-token").json()["revoked"] == 1
     assert api_module.store.resolve_extension_token(token) is None
+
+
+def test_extension_token_authenticates_protected_api(tmp_path: Path, monkeypatch) -> None:
+    """T03 Oracle 的另一半：扩展拿新令牌就能上行，撤销后立刻 401。
+
+    判据打在**受保护业务端点的响应**上，不是打在 require_token 的内部分支上——
+    后者会随实现变化说谎。
+
+    ⚠️ 这条测试自己踩过一次坑，记在这里免得再踩：
+    默认 `pairing_required=False`，`require_token` 会**直接早退不做任何鉴权**。
+    那时"带令牌得 200"是**假阳性**——200 来自鉴权被关掉，不是来自令牌有效。
+    是撤销后仍然 200 才把这个假阳性暴露出来的。
+    所以必须先把 pairing_required 打开，判据才真的打在鉴权上。
+    """
+    from fastapi.testclient import TestClient
+
+    # Settings 是 frozen dataclass，改不了字段——只能在 reload 之前把环境摆好。
+    # pairing_required 打开时 ensure_directories 会强制要求 api_token_file，一并给上。
+    token_file = tmp_path / "api_token"
+    token_file.write_text("pairing-token-for-this-test", encoding="utf-8")
+    # 项目自己的密钥卫生守卫要求宿主机 secret 是 0600——照做，不绕过。
+    token_file.chmod(0o600)
+    monkeypatch.setenv("SOCIAL_ARCHIVE_DATA_ROOT", str(tmp_path / "data"))
+    monkeypatch.setenv("SOCIAL_ARCHIVE_PAIRING_REQUIRED", "1")
+    monkeypatch.setenv("SOCIAL_ARCHIVE_API_TOKEN_FILE", str(token_file))
+
+    import importlib
+
+    import social_archive.api as api_module
+
+    importlib.reload(api_module)
+    c = TestClient(api_module.app)
+    assert api_module.settings.pairing_required is True, "鉴权没打开，后面的判据无意义"
+
+    user_id = api_module.store.upsert_oauth_identity(
+        provider="github", subject="55", display_name="Linze"
+    )
+    token = api_module.store.issue_extension_token(user_id=user_id)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 先证明这个端点确实在鉴权：不带任何凭据必须被拒。
+    # 没有这一步，下面的 200 仍然可能是"鉴权没开"。
+    assert c.get("/v1/accounts").status_code in (401, 503), "端点根本没在鉴权，后面的判据无意义"
+
+    assert c.get("/v1/accounts", headers=headers).status_code == 200, "扩展令牌没被接受"
+
+    api_module.store.revoke_extension_tokens(user_id)
+    assert c.get("/v1/accounts", headers=headers).status_code in (401, 503), (
+        "撤销令牌后扩展仍然上行成功——T03 Oracle 明确要求这里必须拒绝"
+    )

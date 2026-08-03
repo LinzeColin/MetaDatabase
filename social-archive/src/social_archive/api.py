@@ -283,10 +283,15 @@ def require_token(request: Request, authorization: str | None = Header(default=N
         return
     if _trusted_library_access(request):
         return
+    supplied = authorization.removeprefix("Bearer ").strip() if authorization else ""
+    # v0.0.0.7 / T03：先认扩展令牌（长期、可撤销、绑 user_id）。
+    # 配对码那条路暂时保留，等它整条链路删干净再摘——先加后删，
+    # 否则会出现一个扩展既不能用旧机制也还没接上新机制的空窗期。
+    if supplied and store.resolve_extension_token(supplied):
+        return
     expected = _expected_token()
     if not expected:
         raise HTTPException(503, "服务端配对尚未完成")
-    supplied = authorization.removeprefix("Bearer ").strip() if authorization else ""
     if not supplied or not secrets.compare_digest(supplied, expected):
         raise HTTPException(401, "扩展尚未授权或令牌已失效")
 
