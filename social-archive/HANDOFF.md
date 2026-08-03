@@ -1,5 +1,32 @@
 # Social Archive handoff
 
+## v0.0.0.6 production cutover and real provider receipts (2026-08-03 UTC, supersedes the SA-205 block narrative below)
+
+**Production was never running v0.0.0.6, and it was never the developer Mac.** `evidence/SA-205/PRODUCTION_ORIGIN_READBACK.json` concluded the Cloudflare Tunnel origin was a local container from the `v0006-s0` worktree. That is retracted in `evidence/SA-205/PRODUCTION_ORIGIN_CORRECTION_20260803.json`: the public API and the Mac loopback reported different versions at the same instant, no cloudflared existed on the Mac at all, and deploying only the OVH host flipped the public endpoint while the Mac container stayed untouched. The real origin is `vps-83b882b4`, Compose project `/opt/social-archive`. Every prior "invalid production target" observation came from inspecting the wrong host.
+
+The current candidate is now deployed there: `social-archive/core:0.0.0.6`, public API reports `0.0.0.6`, the PWA serves `assets/app.js?v=006-r1` with cache identity `social-archive-ui-v006-r1`, and all three containers are healthy. Rollback artifacts are `/opt/social-archive-rollback/opt-social-archive-source-20260803T055259Z.tar.gz`, the dated `.env` backups beside it, and the retained `:0.0.0.5` images.
+
+**Five real defects were found by running the taskpack's own per-task gates, which prior runs had never done end to end.**
+
+1. **Pairing rotation could never reach a running Core.** Compose publishes each secret as a single-file bind mount, so the container follows the inode; `generate_pairing_code.py` rotated by temp-file plus `os.replace`, which allocates a new one. Core kept serving the pre-rotation record forever, which is why production sat at `one_time_code_available=false, attempts_remaining=0` and no extension could pair. Earlier runs recorded this as an unexplained environment block. Now rotates in place under `flock`, with the reader taking a shared lock. Verified live: minting now flips the public status to available with no restart.
+2. **Locale-fragile shell quoting.** `start_readers.sh` and `prepare_systemd_host.sh` interpolated bare `$secret`, `$HOST_DATA_ROOT` and `$key` immediately before full-width punctuation. Under a C/POSIX locale — what systemd units and `docker exec` normally get — bash folds the leading continuation byte into the identifier and `set -u` aborts. All four are braced, with a repo-wide regression.
+3. **`doctor.sh --self-test` crashed on the production host** with a `UnicodeDecodeError` naming no file, because a macOS-side copy had left nine AppleDouble sidecars in the tree and two sat beside `api.py` and `db.py`. Removed, and the self-test now names them instead of dying.
+4. **The GitHub archive repository pointed at `Private-Database`**, which would have collapsed the object-bytes plane into the structured-facts plane. Repointed, and the dedicated vault recreated — it did not exist, despite an earlier run recording its creation.
+5. **Two request models silently accepted unknown fields.** `ExportRequest` returned 202 having exported nothing when a caller wrote `destinations` instead of `destination_ids`, with `skipped_destination_ids` empty too. Both it and `PairingRequest` now forbid extras.
+
+**Real provider receipts now exist.** With the Owner's explicit instruction to lift the standing "no user data uploaded" hold, all 17 pending artifacts — the canary plus a real Bilibili video and a real Xiaohongshu post with their media — replicated to R2 and OCI, 17/17 PASS each. GitHub private Markdown, local Markdown, the Obsidian vault and JSONL all carry the same projection SHA-256, confirmed by independently re-fetching the GitHub copy and hashing it locally. The Private-Database fact synced no-clone and the re-run returned `NO_CHANGE`. Cold backup produced two verified remote copies, both independently restorable to the same plaintext, and object-level recovery passes for real from R2 and OCI. Obsidian never needed a token: the destination prefers a filesystem vault, and the earlier check read `SOCIAL_ARCHIVE_OBSIDIAN_VAULT`, which the product does not read.
+
+**Full application regression on this candidate: 310 passed**, with the single pre-existing non-failing Starlette deprecation warning.
+
+**Four gates remain, and each needs a person; none can be worked around without breaking a boundary.**
+
+- **SA-205** needs the official v0.0.0.6 extension installed in the Owner's logged-in Chrome. No browser is connected to the agent session, so the profile is unreachable. This also gates SA-303's live control state and the SA-305 gate.
+- **SA-503** needs a fine-grained token whose only repository is `LinzeColin/Social-Archive-Vault`, with Contents read/write. The repo and config are ready. Fine-grained tokens select repositories by ID, so recreating the name cannot re-attach the orphaned token and no API can widen it. Deliberately not worked around: using the broad local OAuth credential on the host, or retargeting the third copy at `Private-Database`, would each make the command pass while breaking a boundary. This also gates the three-target recovery half of SA-506, where `restore_object.py` correctly fails closed with `GITHUB_RECEIPT_REPOSITORY_MISMATCH`.
+- **SA-402** needs a Notion Integration token and a shared `data_source_id`, which exist only behind Notion's own UI. `export_all.py` does emit `notion-import.csv` as a zero-credential manual route.
+- **SA-304** needs host disk. The reader stacks want several GB and the 38 GB root sits at 95 percent with roughly 8.9 GB of images and 14 GB of containerd layers for about eight unrelated projects. A real `start_readers.sh karakeep` run exhausted the disk mid-pull; it was fully contained, but it should have been a dry run.
+
+Nothing has been pushed to `origin`. No tag, no release, no timer enabled.
+
 ## v0.0.0.6 current execution (2026-08-03 UTC)
 
 - **交接增量：PWA 桥接自动恢复（SA-205，未构成 Canary PASS）**。扩展在 `install` 或 `update` 时，会只查询三个已声明的 Social Archive PWA URL（生产域、`127.0.0.1:8765`、`localhost:8765`），并仅向已完成加载的 PWA 标签页重新注入 `bridge.js`。它不刷新任何页面、不创建标签页、不查询或注入四个平台页、不读取登录态；桥接脚本会移除同版本旧监听器后重新广播 `SA_BRIDGE_READY`，使 v0.0.0.6 PWA 自动重新探测扩展。验证已通过：`node --check` 两个扩展脚本；桥接/包/扩展契约回归 **18 passed**；冻结 SA-205 Stage 2 命令 **17 passed**；`git diff --check` 通过。生产 PWA 仍是 v005-r1，且当前持久 Chrome Profile 仍未检测到扩展；该生产身份与配对服务缺少一次性记录的问题没有被此源代码修复掩盖。后续 agent 必须从 GitHub `main` 继续：先保持同一持久已登录 Chrome Profile，不要求平台重新登录；等待 v0.0.0.6 依 DAG 到达部署阶段并让扩展通过正常受控安装路径可用后，再运行真实四平台 Owner Canary。SA-301 仍禁止启动。
