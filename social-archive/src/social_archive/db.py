@@ -1491,6 +1491,29 @@ class RuntimeStore:
             )
         return event_id
 
+    def unexplained_zero_runs(self, *, limit: int = 200) -> list[dict[str, object]]:
+        """INV-NO-SILENT-ZERO 的库层审计（v0.0.0.7 / T14）。
+
+        找出「已经跑到终态、一条都没进来、却没有任何失败码」的同步运行。
+        这正是 v0.0.0.6 那种静默的零：界面显示成功、表格是空的、
+        没有任何地方说得出为什么。
+
+        `completed` 且 imported=0 **不算**——那是「已经是最新的，没有新增」，
+        是好事，且界面上会显示成另一句话。只有 partial / failed /
+        blocked_environment 这些非成功终态才要求必须给出原因。
+        """
+        with self.connection() as con:
+            rows = con.execute(
+                """SELECT id,platform,status,imported_count,completeness,last_error_code
+                     FROM sync_run
+                    WHERE status IN ('partial','failed','blocked_environment')
+                      AND imported_count = 0
+                      AND (last_error_code IS NULL OR TRIM(last_error_code) = '')
+                    ORDER BY updated_at DESC LIMIT ?""",
+                (int(limit),),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
     def update_sync_run(
         self,
         sync_run_id: str,

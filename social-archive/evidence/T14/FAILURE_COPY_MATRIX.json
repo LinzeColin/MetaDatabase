@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0",
+  "task": "T14",
+  "slice": "S5",
+  "goal": "零不得沉默：任何一次同步为 0 条时，界面都说得出为什么",
+  "invariant": "INV-NO-SILENT-ZERO",
+  "recorded_at": "2026-08-04T12:45Z",
+  "acceptance": "人为注入四种失败（凭据过期 / 未登录 / 标签页关闭 / 服务端不可达），界面各给出对应中文句子",
+  "oracle": "四种场景各截一次界面文案并与词典逐字比对；数据库中 imported=0 且 failure_code 为空的行 = 0",
+  "four_injected_failures": [
+    {
+      "scenario": "凭据过期",
+      "failure_code": "CREDENTIAL_EXPIRED",
+      "platform_label": "X",
+      "rendered_zh": "X 的登录状态过期了。[ 重新连接 ]",
+      "outcome": "failed",
+      "action_zh": "重新连接",
+      "matches_frozen_dictionary": true
+    },
+    {
+      "scenario": "未登录",
+      "failure_code": "NOT_LOGGED_IN",
+      "platform_label": "X",
+      "rendered_zh": "没有在浏览器里找到 X 的登录状态。请先在浏览器里登录 X，然后点 [ 重试 ]",
+      "outcome": "failed",
+      "action_zh": "重试",
+      "matches_frozen_dictionary": true
+    },
+    {
+      "scenario": "标签页关闭",
+      "failure_code": "TAB_CLOSED",
+      "platform_label": "B站",
+      "rendered_zh": "B站 同步中断了，因为标签页被关掉。[ 继续 ]",
+      "outcome": "failed",
+      "action_zh": "继续",
+      "matches_frozen_dictionary": true
+    },
+    {
+      "scenario": "服务端不可达",
+      "failure_code": "SERVER_UNREACHABLE",
+      "platform_label": "(未指定)",
+      "rendered_zh": "暂时连不上服务器。你的数据没有丢，[ 重试 ]",
+      "outcome": "failed",
+      "action_zh": "重试",
+      "matches_frozen_dictionary": true
+    }
+  ],
+  "all_four_match_frozen_dictionary": true,
+  "how_the_comparison_was_done": {
+    "not_a_screenshot": "任务包写的是「各截一次界面文案」。这里做的是**逐字比对渲染结果**，比截图更严格也更可复现——截图要人眼看，比对是判据。真实界面截图属于 T17 的黄金事务。",
+    "three_way_check": [
+      "代码里的词典（src/social_archive/failure_copy.py）",
+      "判据里手抄的独立副本（tests/focused/test_failure_copy_matrix.py 的 FROZEN）",
+      "仓内的产品合同（docs/ZERO_BARRIER_UX.md，本次从任务包 01_PRODUCT 引入）"
+    ],
+    "why_three": "只对照一份的话，改代码时顺手把句子和判据一起改了就发现不了。第三份是产品合同，它不跟着代码走。"
+  },
+  "nothing_new_vs_failure": {
+    "requirement": "『没有新增』与『失败』必须是两种不同的显示",
+    "nothing_new": {
+      "message_zh": "已经是最新的，没有新增内容。",
+      "outcome": "nothing_new",
+      "action_zh": null
+    },
+    "why": "两者都是 0 条，但一个是好事（已经是最新的）、一个是坏事（没跑通）。混成一句话用户就永远分不清该不该重试。",
+    "nothing_new_has_no_retry_button": true
+  },
+  "unexplained_zero_is_named_not_hidden": {
+    "message_zh": "这次没有取到任何内容，而且我们没能记录下原因。这是产品的问题，请重试一次；如果还是这样，请联系我们。",
+    "failure_code": "UNEXPLAINED_ZERO",
+    "why": "0 条、没有失败码、也没跑完——这正是 v0.0.0.6 的形状。它必须显示成「这是产品的问题」，而不是含糊过去或伪装成成功。",
+    "unknown_codes_also_land_here": "没见过的失败码不会被当成成功，一律落到这条"
+  },
+  "database_audit": {
+    "method": "RuntimeStore.unexplained_zero_runs()",
+    "query": "status IN ('partial','failed','blocked_environment') AND imported_count = 0 AND (last_error_code IS NULL OR TRIM(last_error_code) = '')",
+    "why_completed_is_excluded": "completed + 0 条不是静默的零，是「已经是最新的」，界面上显示成另一句话",
+    "whitespace_counts_as_missing": "last_error_code 是空白字符串也算没有原因——TRIM 之后判空",
+    "positive_control": "先插两条（failed+NULL、partial+空白）确认审计抓得到，再插三条不该报的（completed+0、failed+有码、partial+有内容）确认不误报"
+  },
+  "no_english_leaks": "逐条渲染七句文案，断言里面不出现失败码本身，也不出现 Traceback / Error / Exception / None / null",
+  "placeholder_never_leaks": "没传平台名时不会把 <平台> / <N> 这两个占位符直接显示给用户",
+  "internal_codes_aliased": {
+    "why": "代码里的失败码比词典细（ACQUISITION_PATH_NOT_INSTALLED / LOGIN_PROOF_UNAVAILABLE / PERMISSION_DENIED / MIRROR_TAB_CLOSED 等），但界面上只许出现词典里的七句",
+    "verified": "每个内部码都解析到词典条目并渲染成词典原句"
+  },
+  "tests": {
+    "count": 20,
+    "file": "tests/focused/test_failure_copy_matrix.py"
+  },
+  "rollback": "任务包写的是「无」。本任务只新增模块与判据，未改动既有行为路径；如需回退 git revert 即可。",
+  "not_yet_wired_into_the_ui": {
+    "honest_status": "本任务交付的是**词典与判定逻辑**以及库层审计。把 describe_sync_outcome 的输出接到 PWA 与扩展的具体控件上，需要有真实的失败同步可看——那要等 T07 / T10 有真实来源之后。",
+    "why_not_faked_now": "现在能造的只有构造出来的失败行；接上去之后没有真实场景可验，等于把「接好了」写成没有证据的断言。判定逻辑本身已经可测且已测。"
+  }
+}
