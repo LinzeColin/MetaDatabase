@@ -198,7 +198,8 @@ def test_recovery_marks_submit_failed_when_broker_missing(tmp_path):
 def test_real_path_blocked_by_default_and_never_unlocks(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)  # 无授权文件/无配置的裸环境
     (tmp_path / "configs").mkdir()
-    (tmp_path / "configs/trading_governor_policy.yaml").write_text("x: 1\n")
+    (tmp_path / "configs/trading_governor_policy.yaml").write_text(
+        "x: 1\ncapital_authorization:\n  fat_finger_max_single_order_ratio: 0.9\n")
     (tmp_path / "configs/strategy_promotion.yaml").write_text("y: 1\n")
     gw, store, client, _ = make_env(tmp_path, mode=SystemMode.MICRO_LIVE)
     with pytest.raises(GateBlockedError) as ei:
@@ -226,7 +227,11 @@ def test_eleven_gates_all_green_allows_real(tmp_path, monkeypatch):
     """全绿路径:证明封锁是门禁所致而非死路——同时验证 unlock 只在此时发生。"""
     policy = tmp_path / "policy.yaml"
     promo = tmp_path / "promo.yaml"
-    policy.write_text("policy: live-mvp\n")
+    # 夹具须含真实的权威比例:授权校验现在会与 policy.yaml **实际比对**
+    # (此前校验写死 0.9,等于没在比对配置——空壳 policy 也能过)
+    policy.write_text("policy: live-mvp\n"
+                      "capital_authorization:\n"
+                      "  fat_finger_max_single_order_ratio: 0.9\n")
     promo.write_text("promo: v1\n")
     auth = {
         "authorization_id": "AUTH-TEST-1", "owner": "Linze", "mode": "MICRO_LIVE",
@@ -265,7 +270,9 @@ def test_eleven_gates_all_green_allows_real(tmp_path, monkeypatch):
 
 
 def test_authorization_validator_rejects_tampering(tmp_path):
-    policy = tmp_path / "p.yaml"; policy.write_text("a: 1\n")
+    # 授权校验会与 policy.yaml 实际比对权威比例,夹具须给出该值
+    policy = tmp_path / "p.yaml"
+    policy.write_text("a: 1\ncapital_authorization:\n  fat_finger_max_single_order_ratio: 0.9\n")
     promo = tmp_path / "q.yaml"; promo.write_text("b: 1\n")
     good = {
         "authorization_id": "A", "owner": "Linze", "mode": "MICRO_LIVE",

@@ -30,6 +30,15 @@ class BreakerLevel(str, Enum):
     DEMOTED_PAPER = "DEMOTED_PAPER"        # 月内 -8%:降回 Paper
 
 
+def _authoritative_fat_finger_ratio() -> float:
+    """单笔比例的权威来源(configs/trading_governor_policy.yaml)。
+
+    延迟导入避免循环依赖;读不到时由 truth 层回落最保守值(0.6),绝不乐观放大额度。
+    """
+    from backend.app.truth import fat_finger_ratio
+    return fat_finger_ratio()
+
+
 @dataclass(frozen=True)
 class BreakerThresholds:
     daily_stop_new_pct: float = 2.0
@@ -73,7 +82,9 @@ class RiskContext:
     current_gross_exposure_aud: Decimal = Decimal("0")
     pending_buy_reserved_aud: Decimal = Decimal("0")
     max_gross_exposure_aud: Decimal = Decimal("3000")
-    fat_finger_ratio: Decimal = Decimal("0.90")   # owner 2026-07-24 书面放宽(原 0.60);权威值见 configs/trading_governor_policy.yaml
+    # 缺省值从权威配置读(configs/trading_governor_policy.yaml),**不在此写死**——
+    # 2026-07-28 教训:比例散落七处,漏改一处即静默出事。
+    fat_finger_ratio: Decimal = field(default_factory=lambda: Decimal(str(_authoritative_fat_finger_ratio())))
     recent_order_times: Sequence[datetime] = field(default_factory=tuple)
     rate_limit_max_orders: int = 5
     rate_limit_window_minutes: int = 60
