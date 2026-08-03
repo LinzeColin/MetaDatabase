@@ -166,6 +166,10 @@ const SYNC_QUEUE_LOCK_KEY = "saAccountSyncQueueLock";
 const SYNC_QUEUE_LAST_RESULT_KEY = "saAccountSyncQueueLastResult";
 const SYNC_CONTROL_KEY = "saSyncRunControls";
 const SYNC_QUEUE_ALARM = "sa-account-sync-queue";
+// T08：MAIN world 观察器抄回来的原始响应，先缓冲在 service worker 里。
+// 上限存在的理由：一次大翻页可能抄回几十兆，撑爆 worker 会把整条同步弄挂。
+const NET_CAPTURE_LIMIT = 200;
+const netCaptureBuffer = [];
 const MIRROR_TAB_PREFIX = "saMirrorTab:";
 const ACTIVE_SYNC_STATES = new Set(["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"]);
 
@@ -996,6 +1000,64 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         throw new Error("凭据未能通过验证，请在档案馆页面重新点击连接插件。");
       }
       return { ok: true, paired: true, endpoint: next.endpoint, libraryUrl: next.libraryUrl };
+    }
+    // 国内三源：装 MAIN world 观察器（v0.0.0.7 / T08）。
+    //
+    // 硬边界：只包 fetch / XHR 抄一份响应，绝不合成请求、绝不改请求或响应、
+    // 绝不读 Cookie。签名（小红书 x-s/x-t、抖音 a_bogus）全由页面自己完成。
+    // 国内平台的 Cookie 一步都不出浏览器（INV-DOMESTIC-COOKIE-STAYS）。
+    if (message?.type === "SA_INSTALL_NET_OBSERVER") {
+      const platform = String(message.platform || "").trim().toLowerCase();
+      const tabId = Number(message.tabId);
+      const prefixes = globalThis.SAPlatformCatalog?.interceptPrefixes?.(platform);
+      // prefixes 为 null = 还没有实测过的前缀。**必须在这里显式失败**：
+      // 装一个前缀为空的观察器等于永远拦不到，而且页面一切正常、界面显示已连接——
+      // 正是 INV-NO-SILENT-ZERO 要防的那种零。
+      if (!Array.isArray(prefixes) || prefixes.length === 0) {
+        return {
+          ok: false, state: "needs_user_action", platform,
+          failureCode: "INTERCEPT_PREFIX_UNKNOWN",
+          error: `还没有确认 ${globalThis.SAPlatformCatalog?.platformLabel?.(platform) || platform} 的收藏接口地址，这个平台暂时不能同步。`,
+        };
+      }
+      if (!Number.isInteger(tabId)) return { ok: false, error: "没有可用的平台页面。" };
+      try {
+        // MAIN world 先装观察器，再在隔离世界装中继——顺序反了会漏掉
+        // 观察器安装瞬间发出的那条 SA_OBSERVER_INSTALLED。
+        await chrome.scripting.executeScript({
+          target: { tabId }, world: "MAIN", files: ["net-observer.js"],
+        });
+        await chrome.scripting.executeScript({
+          target: { tabId }, files: ["content/net-relay.js"],
+        });
+        await chrome.tabs.sendMessage(tabId, {
+          type: "SA_OBSERVER_CONFIGURE", urlPrefixes: prefixes,
+        });
+        return { ok: true, state: "observing", platform, prefixCount: prefixes.length };
+      } catch (error) {
+        return { ok: false, state: "failed", failureCode: "OBSERVER_INSTALL_FAILED",
+                 error: error?.message || "无法在该页面上启动同步。" };
+      }
+    }
+    // 观察器抄回来的原始响应。**服务端负责解析**——这里只搬运，不 JSON.parse：
+    // 解析失败会吞掉本来能救的数据（预制件的原话）。
+    if (message?.type === "SA_NET_CAPTURE") {
+      const body = String(message.body || "");
+      if (!body) return { ok: false, ignored: true };
+      netCaptureBuffer.push({
+        url: String(message.url || ""), status: Number(message.status || 0),
+        body, capturedAt: String(message.capturedAt || ""),
+      });
+      // 只留最近若干条，避免 service worker 内存被一次大翻页撑爆。
+      if (netCaptureBuffer.length > NET_CAPTURE_LIMIT) netCaptureBuffer.shift();
+      return { ok: true, buffered: netCaptureBuffer.length };
+    }
+    if (message?.type === "SA_GET_NET_CAPTURES") {
+      // 只回形态与条数，不回响应体——响应体里可能有平台返回的个人信息，
+      // 让它在消息里到处传是没必要的暴露面。
+      return { ok: true, count: netCaptureBuffer.length,
+               urls: netCaptureBuffer.map(item => item.url),
+               totalBytes: netCaptureBuffer.reduce((sum, item) => sum + item.body.length, 0) };
     }
     // 西方三源的会话导出（v0.0.0.7 / T06）。
     //

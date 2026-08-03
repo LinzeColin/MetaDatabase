@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "task": "T08",
+  "slice": "S3",
+  "goal": "在国内平台页面里拦到平台自己发出的收藏列表 API 响应",
+  "invariant": "INV-DOMESTIC-COOKIE-STAYS",
+  "recorded_at": "2026-08-04T13:30Z",
+  "status": "BLOCKED",
+  "must_not_be_rewritten_as_pass": true,
+
+  "honesty_note": "制品、判据、回滚已闭环。**Acceptance 仍未达成**——它要求在真实收藏页上捕获非空响应体并与肉眼可见条目数比对，那需要一个已登录的国内平台页面加上载入的扩展。见文末 acceptance_self_check。",
+
+  "artifacts": [
+    {"path": "apps/browser-extension/net-observer.js",
+     "what": "逐字采用任务包 03_PREBUILT/extension/net-observer.js，diff 为空，一个字符未改",
+     "why_verbatim": "它是被设计过的预制件，且注释里那几条硬边界（clone 不消费流、绝不 JSON.parse、异常不影响页面）就是这个文件的价值所在"},
+    {"path": "apps/browser-extension/content/net-relay.js",
+     "what": "MAIN world ↔ background 的中继（新写）"},
+    {"path": "apps/browser-extension/content/platform-catalog.js",
+     "what": "新增 INTERCEPT_PREFIXES 与 interceptPrefixes()"},
+    {"path": "apps/browser-extension/background.js",
+     "what": "SA_INSTALL_NET_OBSERVER / SA_NET_CAPTURE / SA_GET_NET_CAPTURES"}
+  ],
+
+  "why_two_files_not_one": {
+    "reason": "MAIN world 的代码和页面共享全局对象——页面看得见它，也改得了它。",
+    "consequence": "那一侧只放「包一层 fetch 把响应抄出来」这一件事，不放令牌、不放服务端地址、不放任何凭据。中继在隔离世界，页面碰不到。",
+    "verified": "判据断言 net-observer.js 里不出现 Authorization / Bearer / token / endpoint，也不出现 chrome.runtime（MAIN world 里本来就没有）"
+  },
+
+  "hard_boundaries_verified": {
+    "no_request_synthesis": "观察器里不 new XMLHttpRequest，也不出现 x-s / a_bogus / signature——签名全由页面自己完成",
+    "no_modification": "只 clone() 读一份；页面拿到的响应体与我们不存在时一模一样（已在模拟运行中逐字比对）",
+    "no_cookie_read": "整个文件不出现 document.cookie / chrome.cookies；国内平台凭据一步不出浏览器",
+    "no_parsing": "不出现 JSON.parse——解析属于服务端。预制件原话：解析失败会吞掉本来能救的数据",
+    "idempotent": "重复注入不重复包装（if (window[CHANNEL]) return），否则 fetch 会被包两层",
+    "page_never_broken": "拦截路径上有多处 catch 兜底；中继的 sendMessage 失败也静默——service worker 睡着时不能把页面拖下水"
+  },
+
+  "simulated_run": {
+    "what": "把观察器装进 Node 的 vm 沙箱里的假 window，模拟页面自己发两次请求",
+    "matched_request": "https://api.bilibili.com/x/v3/fav/resource/list?media_id=1",
+    "unmatched_request": "https://api.bilibili.com/x/space/acc/info?mid=1",
+    "captured": 1,
+    "body_byte_identical": true,
+    "page_still_got_full_body": true,
+    "observer_installed_reported": true,
+    "observer_ready_after_configure": true,
+    "note": "这是机制验证，不是 Acceptance。Acceptance 要真实页面上的真实响应。"
+  },
+
+  "url_prefixes": {
+    "rule": "这张表只许写实测抓到过的前缀，不许凭印象写",
+    "why_it_matters": "猜错前缀的后果正是 INV-NO-SILENT-ZERO 要防的形状：观察器装上了、页面正常、一条都没拦到、界面显示已连接——和「这个人真的没有收藏」长得一模一样。",
+    "bilibili": {
+      "prefix": "api.bilibili.com/x/v3/fav/resource/list",
+      "sources": [
+        "01_PRODUCT/FEATURE_MATRIX.md 第 33 行（引 bilibili-API-collect docs/fav/list.md）",
+        "00_CONTROL/PROJECT_CAPSULE.yaml 的 api.bilibili.com/x/v3/fav/*",
+        "14_EVIDENCE/PREPARATION_RECORD.json 的核对记录"
+      ],
+      "three_independent_sources_agree": true,
+      "why_bilibili_first": "纯 REST 无签名，是国内三源里最容易先跑通的一个"
+    },
+    "xiaohongshu": null,
+    "douyin": null,
+    "null_means": "**还没有实测过的前缀**，不是「没有前缀」。background 在装观察器之前就会拦住并回 INTERCEPT_PREFIX_UNKNOWN + 中文说明，绝不装一个前缀为空的观察器。",
+    "null_vs_empty_list": "两者的区别是要命的：[] 会被当成「配置好了，只是没有前缀」，于是装出一个永远拦不到的观察器。判据专门守这一点。",
+    "how_to_obtain_the_missing_two": "T09「抓到即固化」——第一次真实响应原样落盘成 fixture。那才是取得它们的正当途径。"
+  },
+
+  "tests": {"count": 16, "file": "tests/focused/test_net_observer_contract.py"},
+
+  "rollback": {
+    "task_pack_says": "移除注入，国内源退回未连接",
+    "how": "不再调用 SA_INSTALL_NET_OBSERVER；已注入的页面刷新即失效（观察器不持久化）；代码层 git revert",
+    "no_persistent_state": "观察器不写 storage、不落盘；缓冲区只在 service worker 内存里且有 200 条上限"
+  },
+
+  "acceptance_self_check": {
+    "requirement": "在真实收藏页上捕获到非空响应体，且其中条目数与页面上肉眼可见的条目数一致",
+    "oracle": "捕获条目数 = 可见条目数；页面功能不受影响",
+    "result": "NOT_RUN",
+    "why_not_run": "需要两样东西同时到位：(1) 扩展以未打包形式载入 Chrome —— chrome:// 设置操作，只有 Owner 能做；(2) 一个已登录的 B站收藏页。两者都不在我能触及的范围内。",
+    "what_is_done": "机制、边界、幂等、不弄坏页面、空前缀显式失败，全部有判据并在模拟运行中验过",
+    "what_remains": "Owner 载入扩展后打开自己的 B站收藏夹，点一次同步；把捕获到的完整 URL 与条目数补进本文件，并按 T09 把首个真实响应原样固化成 fixture",
+    "must_not_be_rewritten_as_pass": true
+  },
+
+  "stop_condition_check": {
+    "rule": "若平台改用拦截覆盖不到的传输方式，停止该平台并回 Owner",
+    "triggered": false,
+    "note": "尚未在真实页面上运行，无法判断。fetch 与 XHR 之外的传输（如 WebSocket、Service Worker 内发起的请求）当前观察器覆盖不到——真跑起来若发现 B站走的是这些，按此条停该平台并回 Owner，不擅自扩大拦截面。"
+  }
+}

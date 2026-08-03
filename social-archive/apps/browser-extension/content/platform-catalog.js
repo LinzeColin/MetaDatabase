@@ -97,6 +97,45 @@
     })
   });
 
+  /** 拦截用的 URL 前缀（v0.0.0.7 / T08）。
+   *
+   * ⚠️ **这张表只许写实测抓到过的前缀，不许凭印象写。**
+   *
+   * 预制件 net-observer.js 的原话：「这些前缀必须来自真实抓包，不要凭印象写。
+   * 首次运行时把命中的完整 URL 记进 evidence，供 Build Agent 校正。」
+   *
+   * 猜错前缀的后果正是 INV-NO-SILENT-ZERO 要防的形状：观察器装上了、
+   * 页面正常、一条都没拦到、界面显示"已连接"——和"这个人真的没有收藏"
+   * 长得一模一样。所以没实测过的一律写 null，而不是写一个看着像的。
+   *
+   * bilibili 这条有三处独立来源互相印证：
+   *   · 01_PRODUCT/FEATURE_MATRIX.md 第 33 行
+   *   · 00_CONTROL/PROJECT_CAPSULE.yaml 的 api.bilibili.com/x/v3/fav/*
+   *   · 14_EVIDENCE/PREPARATION_RECORD.json 的核对记录（引 bilibili-API-collect）
+   * 且该接口是纯 REST 无签名，是三个国内源里最容易先跑通的一个。
+   *
+   * 小红书与抖音写 null：任务包没有给出实测过的收藏列表接口前缀，
+   * T09「抓到即固化」才是取得它们的正当途径。
+   */
+  const INTERCEPT_PREFIXES = Object.freeze({
+    bilibili: Object.freeze(["api.bilibili.com/x/v3/fav/resource/list"]),
+    xiaohongshu: null,
+    douyin: null,
+  });
+
+  /** 取某平台的拦截前缀。
+   *
+   * 返回 null 表示**还没有实测过的前缀**——调用方必须把它当成显式失败，
+   * 不能当成空数组去装观察器。装上一个前缀为空的观察器 = 永远拦不到，
+   * 而且看起来一切正常。
+   */
+  function interceptPrefixes(platform) {
+    const key = String(platform || "");
+    return Object.prototype.hasOwnProperty.call(INTERCEPT_PREFIXES, key)
+      ? INTERCEPT_PREFIXES[key]
+      : null;
+  }
+
   function platformCatalogEntry(platform) {
     return PLATFORMS[String(platform || "")] || null;
   }
@@ -111,7 +150,10 @@
     return entry.relationUrls?.[relation] || entry.home || "";
   }
 
-  const api = Object.freeze({ PLATFORMS, platformCatalogEntry, platformLabel, relationUrl });
+  const api = Object.freeze({
+    PLATFORMS, platformCatalogEntry, platformLabel, relationUrl,
+    INTERCEPT_PREFIXES, interceptPrefixes,
+  });
   globalThis.SAPlatformCatalog = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })();
