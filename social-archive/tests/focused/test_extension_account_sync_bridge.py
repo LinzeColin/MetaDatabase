@@ -29,6 +29,25 @@ def test_pwa_pings_the_bridge_and_rejects_unpaired_or_wrong_version_extensions()
     assert 'post("SA_PONG"' in bridge
 
 
+def test_install_or_update_reconnects_existing_pwa_bridge_without_reloading_or_touching_platform_tabs():
+    background = (EXT / "background.js").read_text(encoding="utf-8")
+    bridge = (EXT / "bridge.js").read_text(encoding="utf-8")
+    assert "const PWA_BRIDGE_URL_PATTERNS" in background
+    assert '"https://social-archive.linzezhang.com/*"' in background
+    assert '"http://127.0.0.1:8765/*"' in background
+    assert '"http://localhost:8765/*"' in background
+    assert "async function reconnectOpenPwaBridgeTabs()" in background
+    assert "chrome.tabs.query({ url: PWA_BRIDGE_URL_PATTERNS })" in background
+    assert 'tab.status === "complete"' in background
+    assert 'files: ["bridge.js"]' in background
+    assert 'if (details.reason === "install" || details.reason === "update")' in background
+    assert "await reconnectOpenPwaBridgeTabs();" in background
+    assert "chrome.tabs.reload" not in background
+    assert 'const BRIDGE_STATE_KEY = "__socialArchiveExtensionBridgeState"' in bridge
+    assert "window.removeEventListener(\"message\", existing.listener)" in bridge
+    assert "existing.announce();" in bridge
+
+
 def test_pairing_supply_unavailable_is_exposed_without_platform_relogin_prompt():
     pwa = PWA.read_text(encoding="utf-8")
     background = (EXT / "background.js").read_text(encoding="utf-8")

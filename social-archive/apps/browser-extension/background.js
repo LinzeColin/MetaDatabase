@@ -3,6 +3,11 @@ importScripts("shared.js", "content/account-mirror-core.js");
 
 const MENU_SAVE = "social-archive-save-page";
 const MENU_SELECTION = "social-archive-save-selection";
+const PWA_BRIDGE_URL_PATTERNS = [
+  "https://social-archive.linzezhang.com/*",
+  "http://127.0.0.1:8765/*",
+  "http://localhost:8765/*"
+];
 
 async function ensureMenus() {
   await chrome.contextMenus.removeAll();
@@ -12,6 +17,15 @@ async function ensureMenus() {
 
 async function injectExtractor(tabId) {
   await chrome.scripting.executeScript({ target: { tabId }, files: ["content/extract-core.js", "content/extract.js"] });
+}
+
+async function reconnectOpenPwaBridgeTabs() {
+  const tabs = await chrome.tabs.query({ url: PWA_BRIDGE_URL_PATTERNS }).catch(() => []);
+  const completeTabs = tabs.filter(tab => typeof tab?.id === "number" && tab.status === "complete");
+  await Promise.all(completeTabs.map(tab =>
+    chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["bridge.js"] }).catch(() => null)
+  ));
+  return { found: tabs.length, injected: completeTabs.length };
 }
 
 async function extractFromTab(tab, mode) {
@@ -794,6 +808,9 @@ chrome.runtime.onInstalled.addListener(async details => {
   await ensureMenus();
   await chrome.alarms.create("sa-account-sync", { periodInMinutes: 360 });
   await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).catch(() => {});
+  if (details.reason === "install" || details.reason === "update") {
+    await reconnectOpenPwaBridgeTabs();
+  }
   if (details.reason === "install" && !config.onboardingComplete) {
     await chrome.tabs.create({ url: chrome.runtime.getURL("options.html?onboarding=1") });
   }

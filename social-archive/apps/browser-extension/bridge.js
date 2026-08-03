@@ -8,6 +8,8 @@
     "http://127.0.0.1:8765",
     "http://localhost:8765"
   ]);
+  const BRIDGE_STATE_KEY = "__socialArchiveExtensionBridgeState";
+  const bridgeVersion = chrome.runtime.getManifest().version;
 
   if (!allowedOrigins.has(location.origin)) return;
 
@@ -15,7 +17,16 @@
     window.postMessage({ source: EXTENSION_SOURCE, type, ...payload }, location.origin);
   }
 
-  window.addEventListener("message", event => {
+  const existing = globalThis[BRIDGE_STATE_KEY];
+  if (existing?.version === bridgeVersion && typeof existing.announce === "function") {
+    existing.announce();
+    return;
+  }
+  if (typeof existing?.listener === "function") {
+    window.removeEventListener("message", existing.listener);
+  }
+
+  const onMessage = event => {
     if (event.source !== window || event.origin !== location.origin) return;
     const message = event.data || {};
     if (message.source !== PAGE_SOURCE) return;
@@ -79,7 +90,11 @@
         .then(result => post("SA_OPTIONS_RESULT", { requestId: message.requestId, ...(result || {}) }))
         .catch(error => post("SA_OPTIONS_RESULT", { requestId: message.requestId, ok: false, message: error?.message || "无法打开设置" }));
     }
-  });
+  };
 
-  post("SA_BRIDGE_READY", { version: chrome.runtime.getManifest().version });
+  const announce = () => post("SA_BRIDGE_READY", { version: bridgeVersion });
+  globalThis[BRIDGE_STATE_KEY] = { version: bridgeVersion, listener: onMessage, announce };
+  window.addEventListener("message", onMessage);
+
+  announce();
 })();
