@@ -26,8 +26,14 @@
       label: "快手", relations: ["favorite", "like"],
       home: "https://www.kuaishou.com/",
       relationUrls: { favorite: "https://www.kuaishou.com/profile", like: "https://www.kuaishou.com/profile" },
-      contentPatterns: [/\/short-video\/[a-zA-Z0-9_-]+/],
-      collectionText: /收藏夹|合集|专辑/i
+      contentPatterns: [/\/(?:short-video|photo)\/[a-zA-Z0-9_-]+/],
+      collectionText: /收藏夹|合集|专辑/i,
+      // Favorites and likes share the profile route. Do not infer a relation
+      // from that route until its selected tab is observable in the DOM.
+      relationTabMatchers: {
+        favorite: [/^收藏$/, /^我的收藏$/],
+        like: [/^(?:赞过|点赞|喜欢)$/]
+      }
     },
     bilibili: {
       label: "B站", relations: ["favorite", "watch_later", "history", "like"],
@@ -99,7 +105,7 @@
       const patterns = {
         xiaohongshu: /\/(?:explore|discovery\/item)\/([a-zA-Z0-9_-]+)/,
         douyin: /\/(?:video|note)\/(\d+)/,
-        kuaishou: /\/short-video\/([a-zA-Z0-9_-]+)/,
+        kuaishou: /\/(?:short-video|photo)\/([a-zA-Z0-9_-]+)/,
         bilibili: /\/video\/(BV[a-zA-Z0-9]+|av\d+)/i,
         x: /\/[^/]+\/status\/(\d+)/,
         reddit: /\/comments\/([a-z0-9]+)/i,
