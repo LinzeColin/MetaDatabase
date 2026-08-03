@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "taskpack_version": "v0.0.0.6",
+  "checked_at": "2026-08-03T04:50:00Z",
+  "mode": "public_read_only",
+  "canary_target_status": "INVALID_FOR_V006_OWNER_CANARY",
+  "library_asset": {
+    "url": "https://social-archive.linzezhang.com/assets/app.js?v=005-r1",
+    "bytes": 34942,
+    "sha256": "038f9af351db6ec4a3a4780797cc1a68724c1e96dec0f6dc6d0a848be398e537",
+    "page_plugin_bridge_markers": {
+      "postMessage": false,
+      "SA_PING": false,
+      "SA_PONG": false,
+      "SA_PAIR": false,
+      "SA_CONFIGURE": false,
+      "chrome_runtime": false,
+      "social_archive_bridge_source": false
+    }
+  },
+  "pairing_status": {
+    "endpoint": "https://social-archive-api.linzezhang.com/v1/pairing/status",
+    "pairing_required": true,
+    "service_ready": true,
+    "one_time_code_available": false,
+    "expires_at_epoch": null,
+    "attempts_remaining": 0
+  },
+  "conclusion": "当前生产页面不具备 v0.0.0.6 的页面插件桥接合同；同时未配对扩展无法从生产 API 完成安全配对，因为 API 强制配对却没有可用的一次性配对记录。该结论不涉及也不推断任一平台的登录会话。",
+  "non_actions": [
+    "No platform account login, re-login, session, Cookie, password, browser storage, pairing code, token, pairing exchange, provider request, extension install/reload, deployment, cloud mutation, or production mutation occurred.",
+    "Only public static-asset and public pairing-status GET requests were made with no supplied credentials."
+  ],
+  "record_sha256": "5e58488f77af96b29036a402c9b5d6c92f0fd004978a32e51c5e90ec5a0adf48"
+}
