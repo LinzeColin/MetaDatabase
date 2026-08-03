@@ -305,3 +305,51 @@ console.log(JSON.stringify({{
             },
         ],
     }
+
+
+def test_relation_tab_active_matches_real_world_class_spellings(tmp_path):
+    # The class test used to require a standalone "active" token, so the
+    # ordinary BEM and utility spellings every Chinese SPA ships never matched.
+    # The selected tab could then never be confirmed and the scan imported
+    # nothing -- the "sync always reports 0" symptom. Negated spellings must
+    # still fail, or likes would be mislabelled as favorites.
+    import json
+    import subprocess
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    cases = {
+        "active": True, "is-active": True, "tab--selected": True, "active_tab": True,
+        "channel is-active": True, "nav-item current": True, "is_selected": True,
+        "inactive": False, "deactivated": False, "unselected": False,
+        "non-current": False, "in-active": False, "un_selected": False,
+        "tab": False, "reactive": False,
+    }
+    script = """
+const core = require(process.argv[1]);
+const cases = JSON.parse(process.argv[2]);
+const out = {};
+for (const cls of Object.keys(cases)) {
+  const root = { querySelectorAll: () => [ { className: cls, textContent: "收藏", getAttribute: () => "", tagName: "DIV", click(){} } ] };
+  out[cls] = core.ensureRelationScope("xiaohongshu", "favorite", root, { allowClick: false }).reason === "TAB_ALREADY_SELECTED";
+}
+console.log(JSON.stringify(out));
+"""
+    result = subprocess.run(
+        ["node", "-e", script, str(root / "apps/browser-extension/content/account-mirror-core.js"), json.dumps(cases)],
+        capture_output=True, text=True, check=True,
+    )
+    assert json.loads(result.stdout) == cases
+
+
+def test_unconfirmed_relation_scope_reports_the_real_tab_markup():
+    # A stale selector must be repairable against what the page actually ships,
+    # not guessed at.
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    core = (root / "apps/browser-extension/content/account-mirror-core.js").read_text(encoding="utf-8")
+    mirror = (root / "apps/browser-extension/content/account-mirror.js").read_text(encoding="utf-8")
+    assert "relationTabDiagnostic" in core
+    assert "observed_tabs" in core
+    assert "observed_tabs: relationScope.observed_tabs" in mirror

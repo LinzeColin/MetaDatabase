@@ -140,7 +140,30 @@
     if (["page", "step", "location", "true"].includes(attr("aria-current"))) return true;
     if (["active", "selected", "current", "true"].includes(attr("data-state"))) return true;
     if (["active", "selected", "current", "true"].includes(attr("data-active"))) return true;
-    return /(?:^|\s)(?:active|selected|current)(?:\s|$)/i.test(String(node?.className || ""));
+    // The class test previously required a standalone "active" token, so the
+    // ordinary BEM and utility spellings every Chinese SPA ships -- is-active,
+    // tab--selected, active_tab -- never matched, the selected tab could never
+    // be confirmed, and the scan imported nothing. Match the word within
+    // conventional delimiters, but still only as a whole word: "inactive" and
+    // "deactivated" must not count, or likes would be mislabelled as favorites.
+    return String(node?.className || "")
+      .split(/\s+/)
+      .some(token => /(?:^|[-_])(?:is[-_])?(?:active|selected|current)(?:[-_]|$)/i.test(token)
+        && !/(?:^|[-_])(?:in|de|un|non)[-_]?(?:active|selected|current)/i.test(token));
+  }
+
+  function relationTabDiagnostic(node) {
+    // Captured only when scope cannot be confirmed, so a stale selector can be
+    // repaired against the real markup instead of guessed at.
+    return {
+      text: cleanText(node?.textContent || "", 32),
+      class_name: String(node?.className || "").slice(0, 160),
+      aria_selected: String(node?.getAttribute?.("aria-selected") || ""),
+      aria_current: String(node?.getAttribute?.("aria-current") || ""),
+      data_state: String(node?.getAttribute?.("data-state") || ""),
+      data_active: String(node?.getAttribute?.("data-active") || ""),
+      tag: String(node?.tagName || "").toLowerCase()
+    };
   }
 
   function ensureRelationScope(platform, relationType, root = document, { allowClick = true } = {}) {
@@ -155,14 +178,19 @@
       });
     const selected = tabs.find(relationTabIsActive);
     if (selected) return { confirmed: true, reason: "TAB_ALREADY_SELECTED", clicked: false };
+    // Attach the real markup only when there is something to report, so the
+    // established unconfirmed-scope shape is unchanged when no tab was found.
+    const withObserved = result => (tabs.length
+      ? { ...result, observed_tabs: tabs.slice(0, 6).map(relationTabDiagnostic) }
+      : result);
     const target = tabs[0];
     if (!target) return { confirmed: false, reason: "RELATION_TAB_NOT_FOUND", clicked: false };
     if (!allowClick || typeof target.click !== "function") {
-      return { confirmed: false, reason: "RELATION_TAB_SELECTION_UNCONFIRMED", clicked: false };
+      return withObserved({ confirmed: false, reason: "RELATION_TAB_SELECTION_UNCONFIRMED", clicked: false });
     }
     target.click();
     if (relationTabIsActive(target)) return { confirmed: true, reason: "TAB_SELECTED", clicked: true };
-    return { confirmed: false, reason: "RELATION_TAB_SELECTION_UNCONFIRMED", clicked: true };
+    return withObserved({ confirmed: false, reason: "RELATION_TAB_SELECTION_UNCONFIRMED", clicked: true });
   }
 
   function collectionFromElement(anchor, fallback = "") {
