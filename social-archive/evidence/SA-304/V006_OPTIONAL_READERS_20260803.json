@@ -76,5 +76,12 @@
       "mechanism": "Docker: app plus Postgres",
       "disk_blocked": true
     }
+  },
+  "disk_headroom_update_20260803T0727Z": {
+    "at_time_of_block": "2.0 GB free (95%)",
+    "current": "4.1 GB free (90%)",
+    "why_it_improved": "Transient build pressure cleared and containerd released the layers orphaned by the failed reader pull and the image rebuild.",
+    "assessment": "Karakeep alone might now fit, since it needs roughly 2-3 GB. It is still tight: no margin on a host at 90 percent that serves eight production services, and one disk-full incident has already happened on this node today.",
+    "recommendation": "Do not retry unattended. If the Owner wants SA-304 closed, retry Karakeep alone with the disk watched, or free host capacity first. Retrying on my own initiative after having already caused one disk-full incident would not be justified."
   }
 }
