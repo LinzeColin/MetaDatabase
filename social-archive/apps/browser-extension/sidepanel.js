@@ -59,7 +59,14 @@
       card.querySelector(".status").textContent = label(run.status);
       const progress = run.discovered_count ? Math.min(100, Math.round(Number(run.imported_count || 0) / Number(run.discovered_count) * 100)) : (run.status === "completed" ? 100 : 18);
       card.querySelector(".progress span").style.width = `${progress}%`;
-      card.querySelector(".message").textContent = run.last_error_message || (run.status === "completed" ? "内容已进入资料库并继续后台导出。" : running.has(run.status) ? "已完成内容会立即显示；可以随时暂停或取消。" : run.status === "paused" ? "同步已暂停；点击继续会从现有进度恢复。" : "点击重试或重新连接账号。");
+      // 失败时显示服务端算好的冻结词典句子（v0.0.0.7 / T14）。
+      //
+      // **刻意不再显示 run.last_error_message**：那是上游原样抛回来的错误文本，
+      // 可能是英文、可能是一大坨 CSS——Reddit 未授权时 gallery-dl 塞回来的
+      // 就是十万字节的样式表（见 evidence/fixtures/gallerydl/）。
+      // T14 的硬规矩：界面上不得出现英文错误码或堆栈，给人看的永远是中文句子。
+      // 原始文本仍在库里，供日志与排查用，只是不往界面上放。
+      card.querySelector(".message").textContent = run.message_zh || (run.status === "completed" ? "内容已进入资料库并继续后台导出。" : running.has(run.status) ? "已完成内容会立即显示；可以随时暂停或取消。" : run.status === "paused" ? "同步已暂停；点击继续会从现有进度恢复。" : "点击重试或重新连接账号。");
 
       bindControl(card, ".pause", run, "pause", running.has(run.status));
       bindControl(card, ".resume", run, "resume", run.status === "paused");

@@ -148,5 +148,18 @@
       "test_extension_shows_the_reason_not_just_the_status_label"
     ],
     "pwa_mirror_kept": "PWA 那份本地词典保留——它在服务端没返回 message_zh 时仍能兜底，且已有逐句漂移守卫。两者一致性由 test_pwa_dictionary_matches_the_python_one 盯着。"
+  },
+  "third_surface_was_leaking_raw_upstream_text": {
+    "found_during": "「还有哪个界面我没看」问到第三遍。前两遍分别是：只验了 PWA（扩展没词典）、零输入判据只扫 options.html。",
+    "surface": "apps/browser-extension/sidepanel.js —— 任务中心，用户专门去看「哪些需要处理」的地方",
+    "what_it_did": "任务卡片的 .message 渲染的是 `run.last_error_message || <一句通用中文>`。",
+    "why_that_is_worse_than_no_message": "last_error_message 装的是**上游原样抛回来的文本**（account_sync.py 里取自 result.errors[0].message）。Reddit 未授权时 gallery-dl 塞回来的是**十万字节的 CSS**（真实样本在 evidence/fixtures/gallerydl/）。也就是说这个卡片有可能把一整坨样式表铺在用户眼前。",
+    "which_rule_it_broke": "T14 的硬规矩之二：界面上不得出现英文错误码或堆栈；给人看的永远是冻结词典里的中文句子。",
+    "fix": "改为优先 run.message_zh（服务端已按词典算好），并**彻底不再渲染** last_error_message。原始文本仍留在库里供日志与排查，只是不上界面。",
+    "guards": [
+      "test_no_surface_renders_raw_upstream_error_text —— 四个界面文件里都不许出现 last_error_message 的渲染（注释除外）",
+      "test_every_extension_surface_that_shows_runs_uses_message_zh —— 显示同步运行的界面必须能说出为什么"
+    ],
+    "pattern_note": "同一个错误连续三处：T14 只验 PWA、零输入只扫 options.html、失败文案只接了 options.js。**「验了一个面就当验完」是本会话最高频的失误形态**，比任何逻辑错误都多。"
   }
 }

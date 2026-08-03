@@ -331,3 +331,48 @@ def test_extension_shows_the_reason_not_just_the_status_label() -> None:
         "扩展设置页没有显示失败原因，只有状态标签「需要处理」"
     )
     assert "last_error_code" in options
+
+
+def test_no_surface_renders_raw_upstream_error_text() -> None:
+    """T14 硬规矩：界面上不得出现英文错误码或堆栈。
+
+    `last_error_message` 装的是上游原样抛回来的文本——可能是英文，
+    也可能是一大坨 CSS（Reddit 未授权时 gallery-dl 塞回来的就是十万字节样式表，
+    样本在 evidence/fixtures/gallerydl/）。它可以留在库里供排查，
+    但**不许直接渲染到界面上**。
+
+    实测踩到过：sidepanel.js 的任务卡片先前正是 `run.last_error_message || ...`。
+    """
+    surfaces = {
+        "apps/browser-extension/sidepanel.js",
+        "apps/browser-extension/options.js",
+        "apps/browser-extension/popup.js",
+        "apps/pwa/app.js",
+    }
+    offenders = []
+    for relative in sorted(surfaces):
+        path = ROOT / relative
+        if not path.is_file():
+            continue
+        for line in path.read_text(encoding="utf-8").splitlines():
+            code = line.strip()
+            if code.startswith("//") or code.startswith("*"):
+                continue
+            if "last_error_message" in code:
+                offenders.append(f"{relative}: {code[:90]}")
+    assert not offenders, (
+        f"这些界面直接渲染了上游原始错误文本：{offenders}。"
+        "给人看的必须是冻结词典里的中文句子（服务端已在 message_zh 里算好）。"
+    )
+
+
+def test_every_extension_surface_that_shows_runs_uses_message_zh() -> None:
+    """哪个界面显示同步运行，哪个界面就得能说出为什么。
+
+    本会话已经因为「只看了一个界面」栽过两次：T14 只验 PWA、
+    零输入判据只扫 options.html。这条一次把扩展三个面都覆盖到。
+    """
+    for relative in ("apps/browser-extension/sidepanel.js",
+                     "apps/browser-extension/options.js"):
+        text = (ROOT / relative).read_text(encoding="utf-8")
+        assert "message_zh" in text, f"{relative} 显示同步状态却说不出失败原因"
