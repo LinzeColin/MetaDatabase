@@ -146,6 +146,19 @@ class RuntimeStore:
     #: 那是假隔离。真正的所有权边是 user_relation。
     TENANT_TABLES = ("source_account", "user_relation", "platform_collection", "sync_run")
 
+    #: 身份／凭据类的表也带 user_id，但它们**不经 for_user 收敛**——
+    #: 它们不是"内容"，是"这个人是谁 / 他授权了什么"，读取路径本来就按会话直查。
+    #: 它们建表时 user_id 就是 NOT NULL，结构上不可能为空。
+    #:
+    #: 但 T01 的 Oracle 原文是「**各表** user_id 为空 = 0」——审计必须把它们也数进去，
+    #: 否则审计报的是"我数过的那几张表没问题"，而不是"没问题"。
+    #: T05 加 platform_credential 时就漏了：8 张表带 user_id，审计只覆盖 4 张。
+    IDENTITY_TABLES = ("oauth_identity", "session", "extension_token", "platform_credential")
+
+    #: 审计面 = 内容租户表 + 身份凭据表。新增任何带 user_id 的表都必须进这两者之一，
+    #: 有 test_every_user_id_table_is_audited 盯着。
+    AUDITED_TABLES = TENANT_TABLES + IDENTITY_TABLES
+
     def _add_tenant_columns(self, con: sqlite3.Connection) -> None:
         """幂等地给既有表加 user_id。新库这些表还不存在，跳过即可。"""
         for table in self.TENANT_TABLES:
@@ -191,19 +204,43 @@ class RuntimeStore:
         return self.OWNER_USER_ID
 
     def tenancy_audit(self) -> dict[str, Any]:
-        """T01 的 Oracle：每张租户表还剩几行没有归属。全部为 0 才算迁移完成。"""
+        """T01 的 Oracle：每张带 user_id 的表还剩几行没有归属。全部为 0 才算迁移完成。
+
+        覆盖面是 AUDITED_TABLES（内容租户表 + 身份凭据表），不是只有 TENANT_TABLES。
+        少数一张，审计报的就是"我数过的那几张没问题"而不是"没问题"——
+        这台机器已经在别处吃过这个亏。
+
+        `uncovered_tables` 是审计对自己的检查：库里任何带 user_id 却不在
+        AUDITED_TABLES 里的表都会被列出来。它非空就说明审计面漏了。
+        """
         with self.connection() as con:
+            present = {
+                row[0] for row in con.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table'"
+                ).fetchall()
+            }
+            audited = [table for table in self.AUDITED_TABLES if table in present]
+            uncovered = sorted(
+                name for name in present
+                if name not in self.AUDITED_TABLES
+                and any(
+                    column[1] == "user_id"
+                    for column in con.execute(f"PRAGMA table_info({name})").fetchall()
+                )
+            )
             return {
                 "orphan_rows": {
                     table: con.execute(
                         f"SELECT COUNT(*) FROM {table} WHERE user_id IS NULL OR user_id=''"
                     ).fetchone()[0]
-                    for table in self.TENANT_TABLES
+                    for table in audited
                 },
                 "total_rows": {
                     table: con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
-                    for table in self.TENANT_TABLES
+                    for table in audited
                 },
+                "audited_tables": audited,
+                "uncovered_tables": uncovered,
                 "users": con.execute("SELECT COUNT(*) FROM users").fetchone()[0],
             }
 

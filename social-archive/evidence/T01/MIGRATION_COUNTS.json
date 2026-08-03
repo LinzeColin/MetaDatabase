@@ -9,7 +9,6 @@
   "executed_at": "2026-08-03T12:05Z/2026-08-03T12:09Z",
   "classification": "adapt",
   "classification_reason": "03_PREBUILT/sql/0007_multi_user.sql 假设表名 contents/relations/collections/objects，真实 Schema 为 content/user_relation/platform_collection/artifact。任务包自身已声明『表名以目标仓实际 Schema 为准，Delivery 需先观察再执行』，故属预期内的 adapt。",
-
   "design_decision": {
     "id": "D-T01-01",
     "question": "哪些表带 user_id？",
@@ -23,14 +22,24 @@
       "why": "既有键已隐含按用户收敛（一个 source_account 只属于一个 user），且比任务包的更细：同一用户在同一平台连两个账号时不会被错误合并成一行。未放宽，故不改。"
     }
   },
-
   "artifacts": [
-    {"path": "src/social_archive/sql/runtime_schema.sql", "change": "新增 users / oauth_identity / session / extension_token 四张表；source_account / user_relation / platform_collection / sync_run 各加 user_id；新增 7 个租户索引"},
-    {"path": "src/social_archive/db.py", "change": "_add_tenant_columns / _backfill_owner_tenancy / _ensure_owner_user / tenancy_audit / for_user；新增 TenantScope 类；list_library 与 list_library_table 增加 user_id 过滤；四处写入路径带上归属"},
-    {"path": "tests/focused/test_tenancy.py", "change": "新增 11 个租户测试"},
-    {"path": "scripts/rollback_0007.sh", "change": "新增回滚脚本（--verify / --restore）"}
+    {
+      "path": "src/social_archive/sql/runtime_schema.sql",
+      "change": "新增 users / oauth_identity / session / extension_token 四张表；source_account / user_relation / platform_collection / sync_run 各加 user_id；新增 7 个租户索引"
+    },
+    {
+      "path": "src/social_archive/db.py",
+      "change": "_add_tenant_columns / _backfill_owner_tenancy / _ensure_owner_user / tenancy_audit / for_user；新增 TenantScope 类；list_library 与 list_library_table 增加 user_id 过滤；四处写入路径带上归属"
+    },
+    {
+      "path": "tests/focused/test_tenancy.py",
+      "change": "新增 11 个租户测试"
+    },
+    {
+      "path": "scripts/rollback_0007.sh",
+      "change": "新增回滚脚本（--verify / --restore）"
+    }
   ],
-
   "migration_verified_on_real_production_data": {
     "why_not_synthetic": "合成数据只能证明代码自洽。任务包的教训是『编出来的形状会让测试全绿而生产失效』，所以迁移用的是生产库的一致性快照。",
     "source": "OVH 生产库 /var/lib/social-archive/runtime/social-archive.sqlite3",
@@ -38,22 +47,60 @@
     "snapshot_integrity_check": "ok",
     "snapshot_bytes": 557056,
     "migration_command": "RuntimeStore(path).initialize() —— 与生产容器启动时走的是同一条路，不是另写一个只在这里用的迁移器",
-
     "row_counts": {
       "note": "T01 Oracle：迁移前后行数快照相等。迁移是纯加法，任何一张表变了都要按 stop_condition 停。",
-      "content":             {"before": 7,   "after": 7,   "equal": true},
-      "user_relation":       {"before": 7,   "after": 7,   "equal": true},
-      "source_account":      {"before": 3,   "after": 3,   "equal": true},
-      "platform_collection": {"before": 1,   "after": 1,   "equal": true},
-      "sync_run":            {"before": 11,  "after": 11,  "equal": true},
-      "artifact":            {"before": 136, "after": 136, "equal": true},
-      "scan_receipt":        {"before": 23,  "after": 23,  "equal": true},
-      "observation":         {"before": 11,  "after": 11,  "equal": true},
-      "job":                 {"before": 26,  "after": 26,  "equal": true},
-      "outbox":              {"before": 2,   "after": 2,   "equal": true},
+      "content": {
+        "before": 7,
+        "after": 7,
+        "equal": true
+      },
+      "user_relation": {
+        "before": 7,
+        "after": 7,
+        "equal": true
+      },
+      "source_account": {
+        "before": 3,
+        "after": 3,
+        "equal": true
+      },
+      "platform_collection": {
+        "before": 1,
+        "after": 1,
+        "equal": true
+      },
+      "sync_run": {
+        "before": 11,
+        "after": 11,
+        "equal": true
+      },
+      "artifact": {
+        "before": 136,
+        "after": 136,
+        "equal": true
+      },
+      "scan_receipt": {
+        "before": 23,
+        "after": 23,
+        "equal": true
+      },
+      "observation": {
+        "before": 11,
+        "after": 11,
+        "equal": true
+      },
+      "job": {
+        "before": 26,
+        "after": 26,
+        "equal": true
+      },
+      "outbox": {
+        "before": 2,
+        "after": 2,
+        "equal": true
+      },
       "all_equal": true
     },
-
     "orphan_rows_after_migration": {
       "note": "T01 Oracle：SELECT COUNT(*) 各表 user_id 为空 = 0",
       "source_account": 0,
@@ -62,14 +109,16 @@
       "sync_run": 0,
       "all_zero": true
     },
-
     "attribution": {
       "users_created": 1,
       "owner_user_id": "usr_4c1029697ee358715d3a14a2add817c4",
       "owner_user_id_is_deterministic": "stable_id('usr','owner')；确定性是有意的——迁移可重复跑，回滚脚本也需要一个不必猜的目标",
-      "owner_owns": {"source_account": 3, "user_relation": 7, "sync_run": 11}
+      "owner_owns": {
+        "source_account": 3,
+        "user_relation": 7,
+        "sync_run": 11
+      }
     },
-
     "tenancy_enforcement_on_real_data": {
       "owner_view_rows": 7,
       "unscoped_store_rows": 7,
@@ -77,11 +126,14 @@
       "verdict": "PASS —— 陌生 user_id 在真实数据上读到 0 条"
     }
   },
-
   "tests": {
     "new_test_file": "tests/focused/test_tenancy.py",
     "new_tests_passed": 11,
-    "named_oracle_test": {"name": "test_tenancy_forbids_cross_user_read", "result": "PASS", "note": "任务包 Oracle 点名的那个测试"},
+    "named_oracle_test": {
+      "name": "test_tenancy_forbids_cross_user_read",
+      "result": "PASS",
+      "note": "任务包 Oracle 点名的那个测试"
+    },
     "test_list": [
       "test_migration_leaves_no_orphan_rows",
       "test_migration_is_idempotent_and_preserves_row_counts",
@@ -95,17 +147,21 @@
       "test_owner_user_id_is_deterministic",
       "test_content_and_artifact_stay_shared"
     ],
-
     "full_regression": {
       "method": "先 git stash 取干净 origin/main 基线，再恢复改动复跑——不这样做就分不清『既有失败』和『我弄坏的』",
-      "baseline_origin_main": {"passed": 288, "failed": 11},
-      "with_my_changes":      {"passed": 299, "failed": 11},
+      "baseline_origin_main": {
+        "passed": 288,
+        "failed": 11
+      },
+      "with_my_changes": {
+        "passed": 299,
+        "failed": 11
+      },
       "delta_passed": 11,
       "delta_failed": 0,
       "conclusion": "新增的 11 个测试全部通过，既有测试一个都没被弄坏。",
       "failure_sets_identical": true
     },
-
     "pre_existing_failures": {
       "status": "PRE_EXISTING_NOT_CAUSED_BY_T01",
       "count": 11,
@@ -126,17 +182,32 @@
       "new_fact_for_taskpack": "origin/main 的测试套件本身不是绿的。任务包与 HANDOFF 都没提到这一点（HANDOFF 记的是『235 passed』）。后续任务不得把『全绿』当作可用判据——GOLDEN_TRANSACTION.md 本来也把 pytest 全绿列在『不能拿来当 PASS 的证据』里。"
     }
   },
-
   "rollback": {
     "artifact": "scripts/rollback_0007.sh",
     "design": "迁移是加法（新表 + ADD COLUMN + 回填），SQLite 无法 DROP COLUMN，所以唯一诚实的回滚是恢复迁移前快照，而不是逐条撤销。",
     "proven": true,
     "proof_note": "INV-REVERSIBLE 要求『回滚能力在发布前被证明过』。写一个脚本文件不算证明，所以下面每一步都真的跑过。",
     "steps_executed": [
-      {"step": "--verify", "result": "PASS", "detail": "7 张表行数逐一比对一致；未写入任何东西"},
-      {"step": "--restore", "result": "PASS", "detail": "从迁移前快照恢复"},
-      {"step": "独立复核", "result": "PASS", "detail": "users 表已消失(0)；四张租户表的 user_id 列已消失(0)；数据完好 content=7 user_relation=7 artifact=136"},
-      {"step": "回滚的回滚", "result": "PASS", "detail": ".pre-rollback 备份保留了迁移后状态(users=1)，可再恢复回去——回滚不是单向门"}
+      {
+        "step": "--verify",
+        "result": "PASS",
+        "detail": "7 张表行数逐一比对一致；未写入任何东西"
+      },
+      {
+        "step": "--restore",
+        "result": "PASS",
+        "detail": "从迁移前快照恢复"
+      },
+      {
+        "step": "独立复核",
+        "result": "PASS",
+        "detail": "users 表已消失(0)；四张租户表的 user_id 列已消失(0)；数据完好 content=7 user_relation=7 artifact=136"
+      },
+      {
+        "step": "回滚的回滚",
+        "result": "PASS",
+        "detail": ".pre-rollback 备份保留了迁移后状态(users=1)，可再恢复回去——回滚不是单向门"
+      }
     ],
     "safety_properties": [
       "恢复前自动另存当前库为 .pre-rollback-<ts>，回滚本身也可回滚",
@@ -145,7 +216,6 @@
       "用 sqlite3 .restore 而非 cp，正确处理 WAL"
     ]
   },
-
   "production_application": {
     "status": "DEFERRED_BY_DESIGN_NOT_SKIPPED",
     "production_db_modified_by_this_task": false,
@@ -155,15 +225,60 @@
     "t18_precondition_registered": "部署前必须先 sqlite3 .backup 取快照，并把快照路径交给 scripts/rollback_0007.sh。本任务已证明该路径可用。",
     "acceptance_impact": "无。T01 的 Acceptance 是『迁移后不存在 user_id 为空的业务行，且总行数与迁移前一致』，已在生产数据的一致性快照上完整达成，且用的是与生产同一条 initialize() 代码路径。"
   },
-
   "acceptance_self_check": {
-    "requirement_1": {"text": "迁移后不存在 user_id 为空的业务行", "result": "PASS", "evidence": "orphan_rows 四张表全部为 0（真实生产数据）"},
-    "requirement_2": {"text": "总行数与迁移前一致", "result": "PASS", "evidence": "10 张表逐一比对，全部相等"},
-    "requirement_3": {"text": "跨 user_id 读取被测试挡住", "result": "PASS", "evidence": "test_tenancy_forbids_cross_user_read 通过；真实数据上陌生 user_id 读到 0 条"},
+    "requirement_1": {
+      "text": "迁移后不存在 user_id 为空的业务行",
+      "result": "PASS",
+      "evidence": "orphan_rows 四张表全部为 0（真实生产数据）"
+    },
+    "requirement_2": {
+      "text": "总行数与迁移前一致",
+      "result": "PASS",
+      "evidence": "10 张表逐一比对，全部相等"
+    },
+    "requirement_3": {
+      "text": "跨 user_id 读取被测试挡住",
+      "result": "PASS",
+      "evidence": "test_tenancy_forbids_cross_user_read 通过；真实数据上陌生 user_id 读到 0 条"
+    },
     "oracle": "SELECT COUNT(*) 各表 user_id 为空 = 0；迁移前后行数快照相等；test_tenancy_forbids_cross_user_read 通过",
     "oracle_result": "PASS",
-    "stop_condition": {"text": "行数不一致或出现孤儿行即停，先恢复快照", "triggered": false, "why": "行数 10/10 一致，孤儿行 4/4 为 0"}
+    "stop_condition": {
+      "text": "行数不一致或出现孤儿行即停，先恢复快照",
+      "triggered": false,
+      "why": "行数 10/10 一致，孤儿行 4/4 为 0"
+    }
   },
-
-  "next_task": {"id": "T02", "reason": "T01 已终结，T02（Google/GitHub 登录）以它为唯一前置。T02 的 environment_unknown 是两个 OAuth 应用的凭据。"}
+  "next_task": {
+    "id": "T02",
+    "reason": "T01 已终结，T02（Google/GitHub 登录）以它为唯一前置。T02 的 environment_unknown 是两个 OAuth 应用的凭据。"
+  },
+  "audit_surface_widened_v0007": {
+    "found_during": "本轮回头逐条核对已标 done 的任务是否真的满足验收（T14 就是这么查出伪完成的）",
+    "what_was_wrong": "T01 的 Oracle 原文是「**各表** user_id 为空 = 0」，但 tenancy_audit() 只覆盖 TENANT_TABLES 四张。库里实际有 8 张表带 user_id。",
+    "how_it_got_worse": "我自己在 T05 加 platform_credential 时没同步扩审计面——审计照样报绿，因为它只数它认识的那四张。",
+    "why_it_matters": "审计只覆盖一部分时，它报的是「我数过的那几张没问题」，而不是「没问题」。两者在报告上长得一模一样——这正是本机反复吃亏的那个形状。",
+    "fix": {
+      "split": "TENANT_TABLES（内容，经 for_user 收敛）+ IDENTITY_TABLES（身份/凭据，按会话直查，不经 for_user）",
+      "audited": "AUDITED_TABLES = 两者之和，共 8 张",
+      "self_check": "审计新增 uncovered_tables 字段：库里任何带 user_id 却不在审计面里的表都会被列出来；非空即说明漏了"
+    },
+    "verified": {
+      "audited_tables": [
+        "source_account",
+        "user_relation",
+        "platform_collection",
+        "sync_run",
+        "oauth_identity",
+        "session",
+        "extension_token",
+        "platform_credential"
+      ],
+      "orphan_rows_all_zero": true,
+      "uncovered_tables": [],
+      "positive_control": "临时建一张带 user_id 的表，审计确实把它列进 uncovered_tables（test_audit_would_notice_a_new_unregistered_tenant_table）"
+    },
+    "existing_tests_tightened_not_loosened": "原有三条判据比对的是 4 张表的字典，现改为比对 8 张。判据变严，不是变松。",
+    "identity_tables_are_structurally_safe": "session / extension_token / oauth_identity / platform_credential 的 user_id 建表时就是 NOT NULL，插空值会 IntegrityError——已加判据实测。"
+  }
 }

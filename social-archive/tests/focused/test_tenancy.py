@@ -11,6 +11,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 import sqlite3
 from pathlib import Path
 
@@ -60,7 +62,7 @@ def _capture_for(store: RuntimeStore, user_id: str, *, url: str, title: str) -> 
 def test_migration_leaves_no_orphan_rows(store: RuntimeStore) -> None:
     store.capture(CaptureRequest(platform="x", url="https://x.com/a/1", title="a"))
     audit = store.tenancy_audit()
-    assert audit["orphan_rows"] == {t: 0 for t in RuntimeStore.TENANT_TABLES}, (
+    assert audit["orphan_rows"] == {t: 0 for t in RuntimeStore.AUDITED_TABLES}, (
         f"仍有未归属的业务行：{audit['orphan_rows']}"
     )
 
@@ -75,7 +77,7 @@ def test_migration_is_idempotent_and_preserves_row_counts(store: RuntimeStore) -
 
     assert after["total_rows"] == before["total_rows"], "重复迁移改变了行数"
     assert after["users"] == before["users"] == 1, "重复迁移多造了 users 行"
-    assert after["orphan_rows"] == {t: 0 for t in RuntimeStore.TENANT_TABLES}
+    assert after["orphan_rows"] == {t: 0 for t in RuntimeStore.AUDITED_TABLES}
 
 
 def test_new_writes_are_never_unattributed(store: RuntimeStore) -> None:
@@ -89,7 +91,7 @@ def test_new_writes_are_never_unattributed(store: RuntimeStore) -> None:
         auth_handle_ref=None,
         connection_state="connected",
     )
-    assert store.tenancy_audit()["orphan_rows"] == {t: 0 for t in RuntimeStore.TENANT_TABLES}
+    assert store.tenancy_audit()["orphan_rows"] == {t: 0 for t in RuntimeStore.AUDITED_TABLES}
 
 
 def test_sync_run_inherits_tenancy_from_its_account(store: RuntimeStore) -> None:
@@ -231,3 +233,65 @@ def test_content_and_artifact_stay_shared(store: RuntimeStore) -> None:
                 f"{table} 不应有 user_id：它是全局去重的，两个用户存同一条内容时只有一行，"
                 f"user_id 只能记下谁先到，是假隔离。所有权边在 user_relation 上。"
             )
+
+
+# ── 审计面本身要被守住（v0.0.0.7 / T01 补强）────────────────────────
+
+
+def test_every_user_id_table_is_audited(tmp_path) -> None:
+    """T01 的 Oracle 原文是「**各表** user_id 为空 = 0」。
+
+    审计如果只覆盖一部分表，它报的就是「我数过的那几张没问题」，
+    而不是「没问题」。两者在报告上长得一模一样。
+
+    实测踩到过：T05 新增 platform_credential 时没同步扩审计面——
+    库里 8 张表带 user_id，审计只覆盖 4 张，而它照样报绿。
+    """
+    from social_archive.db import RuntimeStore
+
+    store = RuntimeStore(tmp_path / "runtime.sqlite3")
+    store.initialize()
+    audit = store.tenancy_audit()
+    assert audit["uncovered_tables"] == [], (
+        f"这些表带 user_id 却不在审计面里：{audit['uncovered_tables']}。"
+        "新增带 user_id 的表时必须同时进 TENANT_TABLES 或 IDENTITY_TABLES。"
+    )
+    # 审计确实数到了东西——扫到 0 张表和「没问题」长得一样
+    assert len(audit["audited_tables"]) >= 8, (
+        f"审计只覆盖了 {len(audit['audited_tables'])} 张表，太少了，八成漏了"
+    )
+    assert set(audit["orphan_rows"]) == set(audit["audited_tables"])
+
+
+def test_audit_would_notice_a_new_unregistered_tenant_table(tmp_path) -> None:
+    """先证明自查抓得到，绿色才有意义。"""
+    from social_archive.db import RuntimeStore
+
+    store = RuntimeStore(tmp_path / "runtime.sqlite3")
+    store.initialize()
+    with store.connection() as con:
+        con.execute("CREATE TABLE sneaky_new_table (id TEXT PRIMARY KEY, user_id TEXT)")
+    assert store.tenancy_audit()["uncovered_tables"] == ["sneaky_new_table"], (
+        "新加了一张带 user_id 的表，审计却没发现——自查是坏的"
+    )
+
+
+def test_identity_tables_cannot_hold_an_empty_user_id(tmp_path) -> None:
+    """身份/凭据表不经 for_user 收敛，但 user_id 必须结构性非空。"""
+    import sqlite3
+
+    from social_archive.db import RuntimeStore
+
+    store = RuntimeStore(tmp_path / "runtime.sqlite3")
+    store.initialize()
+    with store.connection() as con:
+        con.execute(
+            "INSERT INTO users(id,display_name,created_at,is_owner) VALUES('u','U','t',1)"
+        )
+    for table, columns, values in (
+        ("session", "(id,user_id,created_at,expires_at)", "('s',NULL,'t','t')"),
+        ("extension_token", "(id,user_id,token_hash,created_at)", "('e',NULL,'h','t')"),
+    ):
+        with pytest.raises(sqlite3.IntegrityError):
+            with store.connection() as con:
+                con.execute(f"INSERT INTO {table}{columns} VALUES{values}")
