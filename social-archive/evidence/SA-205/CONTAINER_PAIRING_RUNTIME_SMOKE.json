@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T02:21:48Z",
+  "status": "PASS",
+  "scope": "actual_current_docker_core_plus_unpacked_extension_pairing",
+  "source_head": "4843e229f2c6616b1e50ec98cc9a3e28ac5f89bb",
+  "observed": {
+    "core_health_version": "0.0.0.6",
+    "pwa_app_asset": "/assets/app.js?v=006-r1",
+    "extension_package_manifest_version": "0.0.0.6",
+    "bridge": {
+      "response": "SA_PONG",
+      "detected": true,
+      "paired": true,
+      "version": "0.0.0.6"
+    },
+    "pairing_flow": [
+      "The actual unpacked extension Options page exposed the pairing UI.",
+      "The actual Core pairing exchange accepted a synthetic one-time code.",
+      "The actual extension stored the returned synthetic device configuration.",
+      "The actual PWA received the paired bridge response."
+    ]
+  },
+  "production_equivalent_security_boundary": {
+    "temporary_secret_mode_and_owner": "0600:10001:10001",
+    "pairing_required": true,
+    "api_and_pairing_secret_files_checked_without_exposing_values": true
+  },
+  "isolation": {
+    "temporary_container_removed": true,
+    "temporary_docker_volume_removed": true,
+    "temporary_chrome_profile_removed": true,
+    "temporary_image_tag_removed": true,
+    "synthetic_pairing_code_and_device_token_only": true,
+    "production_or_account_action": false,
+    "credential_or_secret_access": false
+  },
+  "conclusion": "A freshly built current v0.0.0.6 Core image, its PWA assets, its packaged extension, and the unpacked extension pairing transport work together under the production-equivalent secret-file permission boundary. The live v0.0.0.5/table-s0 origin is therefore a deployment identity issue rather than a current-source pairing defect.",
+  "does_not_establish": [
+    "A user Chrome extension installation, reload, pairing code, or account session state.",
+    "Any production deployment, Cloudflare or Tunnel change, real provider request, source read, first full mirror, incremental mirror, pause/resume, partial protection, or isolation receipt.",
+    "SA-205 PASS, downstream task permission, release, push, or deployment authorization."
+  ]
+}
