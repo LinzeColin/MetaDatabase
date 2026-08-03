@@ -1,30 +1,91 @@
 {
-  "schema_version": "1.0",
-  "task_id": "SA-201",
-  "taskpack_version": "v0.0.0.5",
-  "stage": "S2",
-  "title": "接入 XHS-Downloader 小红书 Sidecar",
-  "status": "PASS",
-  "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
-  "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "adapt",
   "acceptance_ids": [
     "AC-SA-201"
   ],
+  "canary_statuses": {
+    "xiaohongshu": {
+      "credential_read": false,
+      "error_code": "OWNER_CANARY_NOT_AUTHORIZED",
+      "network_attempted": false,
+      "read_only": true,
+      "runtime_write": false,
+      "status": "BLOCKED_ENVIRONMENT"
+    }
+  },
+  "evidence_binding": {
+    "frozen_account_mirror_batch_protocol_test_sha256": "92f1fdef8574f5eb231283d492cbf4f788609c4049de76e46b48d7de83d8fc56",
+    "frozen_account_mirror_content_sha256": "0bdf65f0b1e60e4520d0ed5999329a4644e010511b27536636b1bd645217b1cb",
+    "frozen_account_mirror_core_sha256": "0e7d7b4def9ecf1544206f26d9f5db9a6dbb2ec911ac7340866ef5cf190e447c",
+    "frozen_compose_workers_sha256": "8b36fa7d2ca4c350bd63a8cecc81e0a13e759d651c23cfbacc1fd806fdced337",
+    "frozen_extension_account_mirror_core_test_sha256": "72b75734e1a4dd4205d085e31c482ceaf7e69206d1253501c7a6680b9e06d9f9",
+    "frozen_task_graph_sa201_sha256": "3993fab0fbf9b6bf704a71375b23d13cc5ac9a46f3c50dcb4d66e04ed1765e9d",
+    "frozen_xhs_connector_test_sha256": "580653e8d0ddeb85c6b5cdba5c62a049787f946cf63b2ae3d6c8d1bbb8cf9370",
+    "implementation_commit": "b79cf1b1914b2df736d5f0d1a991d85e86498f55",
+    "implementation_tree": "7c7e5f59225b0defbf19ff60af9c38160eb2b5ab",
+    "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
+    "local_account_mirror_batch_protocol_test_sha256": "92f1fdef8574f5eb231283d492cbf4f788609c4049de76e46b48d7de83d8fc56",
+    "local_account_mirror_content_sha256": "27ce9c6fcdea6f47d790af4602d66792705dd6d6b39a1d118ffc10c8013d63ff",
+    "local_account_mirror_core_sha256": "9eac7587060714a79f2ba09072bd1cefe7208cedeaede4c07e9caf4872cb3bd6",
+    "local_compose_workers_sha256": "8b36fa7d2ca4c350bd63a8cecc81e0a13e759d651c23cfbacc1fd806fdced337",
+    "local_extension_account_mirror_core_test_sha256": "9001dd259b6938eece1a1974484570d90cee3a9497438a9501ee6b110ec0534d",
+    "local_xhs_connector_test_sha256": "957510cbe77a76194062f01f81af2c794bcde0922fbe321ad549c6d1efb676ac",
+    "taskpack_zip_sha256": "921a9bda63c8e009b90f574d10ff5ffce1aa2e2dc68fbf1ae43627900b22a494",
+    "validated_head_after_latest_main_reconciliation": "b79cf1b1914b2df736d5f0d1a991d85e86498f55"
+  },
+  "generated_at": "2026-08-03T00:17:22Z",
+  "implementation_status": "PASS",
+  "known_limitations": [
+    "No real owner Xiaohongshu account, browser-extension reload or pairing, provider request, Cookie/session read, XHS-Downloader vendor resolution, Docker runtime, deployment, or production action was attempted.",
+    "The read-only Xiaohongshu canary is BLOCKED_ENVIRONMENT because no Owner authorization was supplied. It fail-closed before Settings, credential reads, network activity, or runtime writes.",
+    "Fixture/local PASS proves relation-scope safety and the batch protocol only. Real login detection, accessible collections, page totals, actual DOM labels, incremental arrival, rate limits, Sidecar compatibility, and provider behavior remain NOT_RUN.",
+    "PASS is limited to the v0.0.0.6 Task Pack local gate and does not assert product-runtime or world-state acceptance."
+  ],
+  "live_environment_status": "BLOCKED_ENVIRONMENT",
+  "oracle": "连接本人小红书后批量发现收藏夹、收藏和点赞；分块累计全部页面，只有关系终点完整时才允许缺失判断，XHS-Downloader 只负责隔离补全。",
+  "predecessor_evidence": {
+    "pointer": "evidence/SA-201/history/pre-v0.0.0.6-xhs-account-mirror/PREVIOUS_EVIDENCE.json",
+    "prior_active_taskpack_version": "v0.0.0.5",
+    "prior_command_log_sha256": "ce59bfd63e3147995db30dff95ea2d5499f9430ed96fc746956f3ad85507bcc5",
+    "prior_result_sha256": "a3981c871c543ce76d006fd7b7c953d59ea99e68ce3019b2309cffeec9f8a156"
+  },
+  "product_runtime_verdict": "NOT_RUN",
+  "record_sha256": "bfa4bfcc482e481360d70ba5fa04c0f63d568092529c7cdf868a6c2a010073e9",
+  "result_summary": "S2 小红书冻结 Fixture 通过：收藏夹 scope 发现、收藏/点赞共享 profile 的标签确认、分块累计与 relation-final 协议均有回归覆盖。发现共享 profile URL 会造成关系误标的缺口后，当前 Extension 仅在标签已确认时标注 favorite/like；无法确认时返回 partial / RELATION_SCOPE_UNCONFIRMED，不导入或关闭关系。",
+  "schema_version": "1.0",
+  "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+  "semantic_reconciliation": {
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "file_dispositions": {
+      "apps/browser-extension/content/account-mirror-core.js": "adapt",
+      "apps/browser-extension/content/account-mirror.js": "adapt",
+      "compose.workers.yaml": "equivalent",
+      "src/social_archive/account_sync.py": "preserve_stronger_upstream",
+      "src/social_archive/connectors/http_workers.py": "preserve_stronger_upstream",
+      "src/social_archive/registry.py": "preserve_stronger_upstream",
+      "tests/focused/test_account_mirror_batch_protocol.py": "equivalent",
+      "tests/focused/test_extension_account_mirror_core.py": "adapt",
+      "tests/focused/test_xhs_connector.py": "preserve_stronger_upstream"
+    },
+    "scope": "The frozen compose worker is byte-identical. Current upstream keeps stronger OpenAPI validation, account pagination/checkpoint and relation-closure safeguards than the frozen overlay. The adaptive SA-201 slice adds a fail-closed relation-tab proof for Xiaohongshu because favorite and like share the same profile route; it preserves the existing browser batch protocol and returns partial rather than mislabeling an unproven page."
+  },
+  "stage": "S2",
+  "status": "PASS",
+  "task_id": "SA-201",
+  "taskpack_version": "v0.0.0.6",
   "tests": [
     "TEST-SA-201"
   ],
-  "oracle": "用户触发链接/列表读取和媒体保存可用；Worker 失败时当前页 L0/L1 不受影响；不读取浏览器 Cookie。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "Vendor lock resolved; 7 focused tests passed.",
-  "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
-  },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "78a2d98758e2a4d310b87919dcfd266af17e28659cca6780acb4cf8a3455d43d"
+  "title": "完成小红书收藏夹/收藏/点赞账号镜像",
+  "validation": {
+    "brand_check": "PASS; hits=[]",
+    "compose_xhs_profile": "PASS: Docker Compose config-only validation passed with --no-env-resolution, --no-interpolate and --no-path-resolution; no image build or service start occurred.",
+    "exact_taskpack_pytest": "13 passed in the existing project Python 3.12.13 venv; target is the frozen SA-201 pytest list.",
+    "extension_syntax_and_diff": "PASS: both changed content scripts passed node --check; git diff --check passed before the functional commit.",
+    "latest_main_reconciliation": "PASS: origin/main remained 7925695c0078bb3b98d71636f5a1315270d9de87 and is an ancestor of the validated implementation commit.",
+    "owner_canary_read_only": "xiaohongshu returned BLOCKED_ENVIRONMENT / OWNER_CANARY_NOT_AUTHORIZED with credential_read=false, network_attempted=false, runtime_write=false.",
+    "related_stage2_regression": "10 passed: account mirror sync, extension bridge, extension contract, and Stage 2 domestic worker structure.",
+    "secret_scan": "PASS; hits=[]",
+    "uv_lock_check_offline": "PASS"
+  }
 }

@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-201",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "commands": [
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/vendor_sync.py --source xhs_downloader --resolve-and-lock",
+      "command_sha256": "d09ec39b3696b92f5196dfe7dbf4be1ddee38376eefca77fd937c83f58e6d88f",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Vendor lock resolved; 7 focused tests passed."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_xhs_connector.py tests/focused/test_health_gated_connector.py",
+      "command_sha256": "0292ed2e5de7db9616ab7b9154bc076397330f92799a090acc8445bace584e8f",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Vendor lock resolved; 7 focused tests passed."
+    }
+  ],
+  "record_sha256": "10e3bbc3cb5ee3c6fb7c6b8e6fe36d063c03e840fd0b8932b3095904426a4c1c"
+}

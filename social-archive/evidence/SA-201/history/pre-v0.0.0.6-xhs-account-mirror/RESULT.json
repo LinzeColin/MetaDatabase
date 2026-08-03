@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-201",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S2",
+  "title": "接入 XHS-Downloader 小红书 Sidecar",
+  "status": "PASS",
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "adapt",
+  "acceptance_ids": [
+    "AC-SA-201"
+  ],
+  "tests": [
+    "TEST-SA-201"
+  ],
+  "oracle": "用户触发链接/列表读取和媒体保存可用；Worker 失败时当前页 L0/L1 不受影响；不读取浏览器 Cookie。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "Vendor lock resolved; 7 focused tests passed.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+  },
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "78a2d98758e2a4d310b87919dcfd266af17e28659cca6780acb4cf8a3455d43d"
+}
