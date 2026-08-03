@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T10:30:00Z",
+  "status": "FIXES_SHIPPED_AWAITING_OWNER_RELOAD",
+  "scope": "root_causes_of_account_mirror_importing_zero_items_diagnosed_from_real_production_receipts",
+  "owner_report": "同步效率永远是 0 — every sync reported zero discovered and zero imported.",
+  "what_was_already_working": {
+    "extension_paired": true,
+    "accounts_connected": 3,
+    "platforms": ["xiaohongshu", "douyin", "bilibili"],
+    "note": "Pairing was never the blocker it appeared to be. The connect flow had already stored each account's real profile URL."
+  },
+  "root_causes_found": [
+    {
+      "id": 1,
+      "defect": "The scan navigated to the spec placeholder https://www.xiaohongshu.com/user/profile, which carries no user id and is nobody's profile, so the page had no favorites or likes tabs at all.",
+      "evidence": "Every Xiaohongshu scan receipt recorded RELATION_SCOPE_UNCONFIRMED with reason RELATION_TAB_NOT_FOUND, observed_count 0, at exactly that relation_url.",
+      "why_it_persisted": "Only X and Bilibili had profile-derived URL overrides; Xiaohongshu, Douyin and Kuaishou always used the placeholder even though the connect flow had stored the real profile URL.",
+      "fix": "resolveRelationUrl prefers the stored profile URL whenever the spec entry is a same-origin profile route; the narrower per-platform overrides still win.",
+      "regression": "tests/focused/test_scan_platform_isolation.py::test_profile_scoped_relations_use_the_stored_profile_url"
+    },
+    {
+      "id": 2,
+      "defect": "processSyncQueue held a two-hour lock in chrome.storage.local, released only in a finally that a terminated MV3 service worker never runs.",
+      "evidence": "Not one POST /v1/accounts/.../sync reached the server across the whole window, while GET /v1/accounts and /v1/extension/bootstrap kept returning 200, so the extension was alive and the click simply never became a request. One earlier run had died recording 'the message channel closed before a response was received'.",
+      "why_it_was_invisible": "enqueueAllAccounts still returned ok, so the UI reported success on every click.",
+      "fix": "The lock carries a heartbeat refreshed on every batch, goes stale after three minutes instead of two hours, is cleared rather than stepped over, and is dropped outright when the service worker file evaluates.",
+      "regression": "tests/focused/test_extension_account_sync_bridge.py::test_sync_queue_lock_cannot_strand_clicks_after_a_worker_is_killed"
+    },
+    {
+      "id": 3,
+      "defect": "Scan failures recorded String(error) on a thrown array, producing cursor error '[object Object]' repeated.",
+      "impact": "Three earlier real failures were undiagnosable, which is why the first repair attempt targeted the wrong branch.",
+      "fix": "describeScanError yields a readable message for Error, string, error-like and plain objects.",
+      "regression": "tests/focused/test_scan_platform_isolation.py::test_scan_failures_record_a_readable_error_not_object_object"
+    },
+    {
+      "id": 4,
+      "defect": "The selected-tab check matched the class attribute with a standalone-word regex, so is-active, tab--selected, active_tab and channel is-active never matched.",
+      "status": "fixed, but was not the active cause",
+      "correction": "The receipts show the failing branch was RELATION_TAB_NOT_FOUND, not SELECTION_UNCONFIRMED. This fix is real and would have bitten next, but the first commit claiming it as the cause was wrong.",
+      "safety": "Negated spellings are excluded explicitly, so inactive, deactivated, unselected, non-current and in-active still fail; confirming the wrong tab would file likes as favorites.",
+      "regression": "tests/focused/test_scan_platform_isolation.py::test_relation_tab_active_matches_real_world_class_spellings"
+    },
+    {
+      "id": 5,
+      "defect": "Runs owned by a terminated service worker stayed in scanning forever, so the UI advertised syncing for work that had already died.",
+      "fix": "A run in an active state whose updated_at is older than fifteen minutes is reaped to failed with SYNC_RUN_ABANDONED and a plain-language message. Paused is deliberate and never reaped.",
+      "verified_on_production": "Three runs stuck since 08:51 now read failed / SYNC_RUN_ABANDONED.",
+      "regression": "tests/focused/test_sync_run_controls.py::test_abandoned_browser_sync_runs_are_reaped_instead_of_showing_syncing_forever"
+    }
+  ],
+  "zero_barrier_work": {
+    "pairing": "Typing a one-time code was the zero-barrier failure and it failed three times in real use against a ten-minute expiry. POST /v1/pairing/issue now hands the Access-authenticated library page the device config directly; it is stricter than require_token and rejects a Bearer, the API hostname and a short assertion, all verified on production.",
+    "extension_updates": "Every extension fix otherwise costs the Owner a six-step reinstall, which is incompatible with the zero-barrier requirement. Until Chrome Web Store publication there is no auto-update path, so fixes are batched and the Owner's unpacked folder was updated in place from the served package, reducing the action to a single reload click.",
+    "packaging_trap_hit_and_corrected": "The host dist/ ZIP is stale (36746 bytes) because the Dockerfile builds the package inside the image (54734 bytes). Writing the host copy into the Owner's folder silently delivered code with none of the fixes; caught by verifying each fix by name afterwards rather than trusting the copy."
+  },
+  "still_unproven": [
+    "The real four-platform Owner Canary. No account has yet mirrored a single item, so SA-205 remains BLOCKED_ENVIRONMENT.",
+    "The Bilibili and Douyin BROWSER_SCAN_FAILED cause. Only one readable instance exists so far, an MV3 message-channel close. The scan messaging was deliberately not re-architected on a single data point; the error path is now readable so the next failure can be fixed against real data."
+  ],
+  "non_actions": [
+    "No platform credential, Cookie or session was read or modified.",
+    "No secret value was printed to terminal, evidence or Git.",
+    "Nothing was pushed to origin."
+  ]
+}
