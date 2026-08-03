@@ -118,5 +118,13 @@
       "verified_after_fix": "同一个真实浏览器里重跑：observer_installed_seen 由 false 变 true，其余指标不变",
       "guard": "test_relay_is_injected_before_the_observer —— 判据直接读 background.js 里两次 executeScript 的先后位置"
     }
+  },
+  "permission_is_requested_before_injection": {
+    "found_during": "继续排查「硬编码清单/覆盖面」类缺陷时顺手核的：executeScript 需要目标站点的 host 权限，而观察器安装路径**没有先申请**。",
+    "what_would_have_happened": "Owner 载入扩展、打开自己的 B站收藏夹、点一次同步 —— executeScript 因缺权限直接抛，被 catch 成 OBSERVER_INSTALL_FAILED，界面显示「无法在该页面上启动同步」。用户不知道其实只要点一下授权。**这正好发生在我最希望顺畅的那一刻。**",
+    "why_it_is_the_same_mistake_as_T06": "把「没授权」和「注入失败」合并成一个错。T06 已经因为 NOT_LOGGED_IN 与 PERMISSION_DENIED 合并而分开过一次——两者的下一步不同，就不能合并。",
+    "fix": "注入前先 SA.requestPlatformPermission(platform)；被拒时回 PLATFORM_PERMISSION_DENIED + 中文说明，与注入失败区分开。",
+    "coverage_note": "bilibili 的 host 模式是 https://*.bilibili.com/* ——同时覆盖页面所在的 space.bilibili.com 与被拦截的 api.bilibili.com，一次授权两边都够。",
+    "new_failure_codes_are_in_the_copy_dictionary": "PLATFORM_PERMISSION_DENIED / OBSERVER_INSTALL_FAILED / INTERCEPT_PREFIX_UNKNOWN 三个都已进别名表，Python 与 PWA 两侧同步，并加了漂移守卫——漏同步的话界面会把已知原因显示成「我们没能记录下原因」，比不说更糟。"
   }
 }

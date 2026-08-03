@@ -1021,6 +1021,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         };
       }
       if (!Number.isInteger(tabId)) return { ok: false, error: "没有可用的平台页面。" };
+      // **先要权限，再注入。** executeScript 没有该站点的 host 权限会直接抛，
+      // 而那个异常和"注入本身失败"长得一样——用户看到的是「无法在该页面上启动同步」，
+      // 却不知道其实只需要点一下授权。这与 T06 把 NOT_LOGGED_IN 和
+      // PERMISSION_DENIED 分开是同一条道理：两者的下一步不同，就不能合并成一个错。
+      const granted = await SA.requestPlatformPermission(platform).catch(() => false);
+      if (!granted) {
+        return {
+          ok: false, state: "unauthorized", platform,
+          failureCode: "PLATFORM_PERMISSION_DENIED",
+          error: `没有获得读取${globalThis.SAPlatformCatalog?.platformLabel?.(platform) || platform}页面的授权，无法同步这个平台。`,
+        };
+      }
       try {
         // **先装中继，再装观察器。** 顺序反了会漏掉观察器安装瞬间发出的那条
         // SA_OBSERVER_INSTALLED —— 观察器在 IIFE 末尾就 post 了它，

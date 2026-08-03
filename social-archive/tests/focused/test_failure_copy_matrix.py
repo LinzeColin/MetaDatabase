@@ -252,6 +252,23 @@ def test_pwa_dictionary_matches_the_python_one() -> None:
         assert sentence in app_js, f"PWA 里 {code} 的文案与冻结词典不一致：应为 {sentence!r}"
 
 
+def test_pwa_alias_table_covers_every_internal_code_python_knows() -> None:
+    """别名表也会漂，而且比句子更容易漏。
+
+    Python 侧新加一个内部失败码、忘了同步 PWA，界面就会把它当成
+    「没见过的码」→ 落到 UNEXPLAINED_ZERO「这是产品的问题」。
+    明明知道原因却告诉用户「我们不知道」，比不说更糟。
+    """
+    from social_archive.failure_copy import _ALIASES
+
+    app_js = (ROOT / "apps/pwa/app.js").read_text(encoding="utf-8")
+    missing = [code for code in _ALIASES if code not in app_js]
+    assert not missing, (
+        f"这些内部失败码 Python 认识、PWA 不认识：{missing}。"
+        "界面会把它们显示成「我们没能记录下原因」，而其实是知道原因的。"
+    )
+
+
 def test_pwa_falls_back_to_the_unexplained_zero_sentence() -> None:
     """没见过的失败码在界面上也不能沉默。"""
     app_js = (ROOT / "apps/pwa/app.js").read_text(encoding="utf-8")
