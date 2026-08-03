@@ -136,6 +136,22 @@
       "verified_after_fix": "真实浏览器里点「连接 X」，界面回「X：没有获得读取该平台登录状态的授权。」——正是新路径的中文提示（修之前会是「本版本无法确认这个页面的登录态」，那是老路）。",
       "guard": "test_the_ui_actually_routes_western_sources_to_cookie_custody"
     },
-    "still_not_run": "完整往返（真实会话 → 加密落库 → gallery-dl 取到私有条目）仍未做：需要真实的 X 登录态，而那只能是 Owner 的浏览器。权限授予也需要用户在 Chrome 的权限气泡上真的点一下——CDP 的合成点击能触发气泡，但气泡本身要人确认。"
+    "still_not_run": "完整往返（真实会话 → 加密落库 → gallery-dl 取到私有条目）仍未做：需要真实的 X 登录态，而那只能是 Owner 的浏览器。权限授予也需要用户在 Chrome 的权限气泡上真的点一下——CDP 的合成点击能触发气泡，但气泡本身要人确认。",
+    "exactly_what_still_needs_a_human": {
+      "measured": {
+        "chrome.permissions.request({permissions:['cookies']})": "True —— 自动授予（和 bookmarks 一样）",
+        "chrome.permissions.request({origins:['https://*.x.com/*']})": "挂起未决 —— 弹出授权气泡，等人确认",
+        "合起来 contains(...)": "False"
+      },
+      "conclusion": "**卡的不是 API 权限，是 host 权限。** Chrome 对「让这个扩展访问 x.com」这类主机访问要求真人在气泡上确认；而 chrome.cookies 这种 API 权限在调试会话里会自动授予。",
+      "and_that_is_correct": "这不是缺陷，是设计如此，而且是对的：把一个扩展对某个站点的访问权自动授予出去，正是不该被自动化的那类同意。我不打算绕过它——能绕的话，这个产品「只在用户点连接时读取」的承诺就不成立了。",
+      "so_the_remaining_human_step_is_precise": "在那个一次性 Chrome 窗口上，对 host 权限气泡点一次「允许」。之后我可以把完整往返（导出 → 加密落库 → 密文校验 → 撤销后无残留）一次跑完。",
+      "what_i_verified_without_it": [
+        "国内四平台在导出层被拒（PLATFORM_FORBIDDEN），连 chrome.cookies 都不调用",
+        "无权限时报 PERMISSION_DENIED 而非 NOT_LOGGED_IN",
+        "界面现在确实走到了 Cookie 托管路径（修好分流之后）",
+        "cookies API 权限本身可授予"
+      ]
+    }
   }
 }
