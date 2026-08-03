@@ -120,8 +120,8 @@
       "command_sha256": "fd19a97b581567480cfa1aff61e824af001bf94f581c16f06ed957459d389dee",
       "executed": true,
       "exit_code": 0,
-      "status": "READ_ONLY",
-      "summary": "Production v005-r1 app.js: 34,942 bytes; SHA-256=038f9af351db6ec4a3a4780797cc1a68724c1e96dec0f6dc6d0a848be398e537; no postMessage, SA_PING, SA_PONG, SA_PAIR, SA_CONFIGURE, chrome.runtime, or social-archive bridge-source marker."
+      "status": "RETRACTED",
+      "summary": "RETRACTED: this unauthenticated request followed a Cloudflare Access redirect before it reached the PWA asset. Its byte/hash/token inventory is not production-PWA evidence and must not be used for bridge conclusions."
     },
     {
       "command": "curl -fsSL --compressed --connect-timeout 5 --max-time 20 'https://social-archive-api.linzezhang.com/v1/pairing/status' | <non-secret status field allowlist>",
@@ -146,7 +146,23 @@
       "exit_code": 0,
       "status": "PASS",
       "summary": "Exact frozen SA-205 target 17 passed in 1.08s; rebuilt package has 20 members, ZIP integrity passed, and SHA-256=4628f9a8c0797534d3d10712266c70464fe35ba04e457193ed3fc654f73a8bba."
+    },
+    {
+      "command": "persistent external Chrome Profile: open https://social-archive.linzezhang.com/ in the existing logged-in profile; inspect only title, referenced app asset, the visible extension status line, and the referenced v005 bridge envelope in a temporary same-profile asset tab; close the temporary asset tab",
+      "command_sha256": "da7df0a44366ccee366c091ad99ef77378770a85660bb65d691113a183d252d2",
+      "executed": true,
+      "exit_code": 0,
+      "status": "READ_ONLY",
+      "summary": "The authenticated PWA title is Social Archive and loads /assets/app.js?v=005-r1. Its source contains postMessage, SA_PING, SA_CONFIGURE, social-archive-web, and social-archive-extension. The page accepts source+requestId bridge responses; current v0.0.0.6 bridge keeps that envelope. The visible page state says “尚未检测到插件。可下载免费安装包，或先粘贴链接使用。”. Four domestic platform tabs remain present; no platform content or session state was read."
+    },
+    {
+      "command": "curl without credentials to the production library origin; record only HTTP status and whether Cloudflare Access intercepted before product HTML",
+      "command_sha256": "1e2be8a84145f796ac2707a54e8c15e72a066b0a4fff162f0015c1b86a7350f4",
+      "executed": true,
+      "exit_code": 0,
+      "status": "READ_ONLY",
+      "summary": "The no-credential library request was intercepted by Cloudflare Access before product HTML. This explains and retracts the earlier static-asset interpretation; no redirect value, session material, credential, or Access action was retained."
     }
   ],
-  "record_sha256": "9e5dfc2b0a7db7ed648f6644363aee0f47836bd527482f643dfe131bed955291"
+  "record_sha256": "2ed10d529db74e6fc437466d6e650565779025583cd40639688c9388f31af5a7"
 }
