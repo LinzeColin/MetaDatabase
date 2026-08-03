@@ -544,7 +544,8 @@ async function sendBrowserScopeBatches({ syncRunId, platform, relation, scopeRes
     platform,
     relation_type: relation,
     collection_key: collectionKey || item.collection_key || "",
-    collection_name: collectionName || item.collection_name || collectionKey || "",
+    // 同上：collection_name 只能在批次级别出现（下面 sendSyncBatch 已经带了）。
+    // 放到条目上会被 CaptureRequest 的 extra="forbid" 整批打回 422。
     destination_ids: serverDestinations(config)
   }));
   const chunks = SAExtensionUtils.chunk(items, 200);

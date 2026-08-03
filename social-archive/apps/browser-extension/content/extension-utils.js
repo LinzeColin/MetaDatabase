@@ -99,8 +99,15 @@
         const url = canonicalUrl(node.url);
         if (url) records.push({
           platform: "generic-web", url, external_content_id: `chrome-bookmark:${node.id}`,
+          // collection_name **不能**出现在条目上：服务端 CaptureRequest 是 extra="forbid"，
+          // 它只在批次级别收 collection_name（用来给收藏夹起显示名），条目级只收
+          // collection_key。多带这一个字段会让整批 422，一条都进不去。
+          // v0.0.0.6 一直带着它，所以 Chrome 书签同步从来没成功过——这是"永远是 0"
+          // 的第二个根因，与 T00 记录的 GID 那个各自独立。
+          // 文件夹路径没有丢：collection_key 就是它，raw_metadata.folder_path 也有一份，
+          // 而表格里"收藏夹"那一列本来就取自 collection_key。
           relation_type: "bookmark", collection_key: folders.filter(Boolean).join(" / ").slice(0, 512),
-          collection_name: folders.filter(Boolean).join(" / ").slice(0, 512), title: title || url, text: title || null,
+          title: title || url, text: title || null,
           relation_observed_at: safeIso(node.dateAdded) || new Date().toISOString(), media_urls: [],
           raw_metadata: { capture_source: "chrome_bookmarks", chrome_bookmark_id: String(node.id || ""), parent_id: String(node.parentId || ""), folder_path: folders.filter(Boolean) },
           requested_levels: ["L0", "L1", "L3"], destination_ids: ["social_archive", "markdown"]

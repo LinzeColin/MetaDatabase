@@ -1,0 +1,126 @@
+{
+  "schema_version": "1.0",
+  "task": "T04",
+  "slice": "S1",
+  "goal": "打通脊柱：Chrome 书签作为第一个来源，一次点击入库，表格可见，刷新与重登后可读回",
+  "milestone": "跑通即达 U3 + E4，本版本最重要的一个节点",
+  "recorded_at": "2026-08-04T10:40Z",
+
+  "headline": "脊柱通了，但通之前先撞上一个从 v0.0.0.6 就存在、导致 Chrome 书签同步从来没成功过的缺陷。这是「永远是 0」的第二个根因，与 T00 记下的 GID 问题各自独立。",
+
+  "defect_found_and_fixed": {
+    "symptom": "拿 Owner 真实书签跑第一批就 HTTP 422，62 条一条都进不去",
+    "server_said": "{\"type\":\"extra_forbidden\",\"loc\":[\"body\",\"items\",0,\"collection_name\"],\"msg\":\"Extra inputs are not permitted\"}",
+    "root_cause": "flattenBookmarksTree 给**每条记录**都带了 collection_name，而 CaptureRequest 是 extra=\"forbid\"：条目级只收 collection_key，collection_name 只在**批次**级别存在（用于给收藏夹起显示名，见 SyncBatchRequest 与 account_sync.py:514）。多这一个字段就是整批 422。",
+    "pre_existing": true,
+    "proof_it_predates_this_version": "git show 6b00d210^:...content/account-mirror-core.js 的第 307 行同样带 collection_name；该提交是本分支从 origin/main 分出前的状态。T03 的三分拆是逐字段等价搬运（188 项等价性检查 0 失败），没有引入也没有改变这个字段。",
+    "blast_radius": "两条路径都中招：Chrome 书签（flattenBookmarksTree）与浏览器账号镜像（background.js::sendBrowserScopeBatches 也在条目上放 collection_name）。后者所在的取数路已随 T03 停用，但缺陷仍在代码里，会成为 T08 的地雷，一并修掉。",
+    "fix": "两处都不再把 collection_name 放在条目上；批次级别本来就带着它，sendSyncBatch 那一行没动。",
+    "nothing_lost": "文件夹路径有两个落点都还在：collection_key（表格「收藏夹」那一列取的就是它，见 db.py:921 的 GROUP_CONCAT(collection_key)）与 raw_metadata.folder_path。",
+    "why_it_was_never_caught": "两侧各自都有测试且都是绿的——flattenBookmarksTree 的单元测试断言字段对不对（对的），CaptureRequest 的模型测试断言它拒绝多余字段（拒绝的）。**没有一个测试把两者对起来。每一边都绿，接缝是红的。**",
+    "regression_guard": {
+      "file": "tests/focused/test_extension_record_matches_server_model.py",
+      "count": 6,
+      "how": "用 node 跑**生产代码** flattenBookmarksTree 真的产出记录，再用**生产模型** CaptureRequest.model_validate 真的去校验——判据打在接缝上，不打在任何一边",
+      "not_a_reimplementation": "刻意不在 Python 里重写展平逻辑：重写的话守的就是复刻件，而不是真正会装进浏览器的那一份",
+      "guard_was_proven_to_fire": "把 collection_name 临时放回去，6 条里 3 条立刻变红（test_flattened_bookmarks_are_accepted_by_capture_request / test_no_field_is_batch_level_only / test_folder_path_survives_without_collection_name）；复原后 6 条全绿。不是「写完就信它有用」。"
+    }
+  },
+
+  "acceptance": {
+    "requirement": "点一次按钮，Owner 真实书签全部入库并出现在表格；刷新页面与退出重登后仍是同一批",
+    "data_source": "Owner 本机真实 Chrome 书签（~/Library/Application Support/Google/Chrome/Default/Bookmarks），不是构造夹具",
+    "how_the_run_was_driven": {
+      "what_was_real": "扩展会走的同一组 HTTP 端点（/v1/accounts/connect/start → /complete → /v1/accounts/{id}/sync → /v1/sync-runs/{id}/batches）、同样的 chunk(200) 分块、同样的两级 scope_type、同样的终批；服务端是本机真起的 uvicorn，不是 TestClient",
+      "what_was_substituted": "只有 chrome.bookmarks.getTree() 这一次调用——它只能在浏览器扩展上下文里调。用 Owner 磁盘上那份真实 Bookmarks 文件转成完全相同的形状喂进去（转换要处理两处格式差：type/children 的表示法，以及 date_added 是 1601 纪元微秒而扩展 API 是 1970 纪元毫秒）。",
+      "flatten_was_production_code": "记录由 apps/browser-extension/content/extension-utils.js 的 flattenBookmarksTree 真的产出，通过 node require 调用，不是 Python 复刻"
+    }
+  },
+
+  "oracle": {
+    "1_count_matches": {
+      "chrome_bookmarks_url_nodes": 62,
+      "flatten_output": 62,
+      "library_api_total": 62,
+      "sqlite_content_rows": 62,
+      "sqlite_bookmark_relations": 62,
+      "distinct_external_content_id": 62,
+      "result": "PASS —— 六个口径全部为 62",
+      "note": "源树中全部 62 条都是 http/https，没有会被丢弃的 javascript: 链接，所以期望值就是 62，不存在需要解释的差额"
+    },
+    "2_sampled_urls_openable": {
+      "method": "确定性抽样：按 external_content_id 排序取首/中/末三条",
+      "results": [
+        {"host": "www.flightsfrom.com", "http_status": 403, "note": "HEAD 与 GET 均被拒——反爬，不是链接坏"},
+        {"host": "anthropic-partners.skilljar.com", "http_status": 200},
+        {"host": "my.apps.factset.com", "http_status": 401, "note": "需要登录才能打开——Owner 浏览器带会话可开"}
+      ],
+      "naive_result": "匿名 HTTP 探针 1/3 返回 2xx",
+      "honesty_note": "**没有把这条判据改写成能过的样子。** 403 是反爬、401 是需要登录，两者都不代表链接坏；但也不能因此就报 PASS。所以补了一条不受对方策略影响、且更接近这条判据本意（URL 没被存坏）的检查，见下。",
+      "decisive_check_url_fidelity": {
+        "what": "把入库的 canonical_url 与源文件里的原始 URL 逐条比对",
+        "source_count": 62,
+        "stored_count": 62,
+        "identical": 57,
+        "tracking_params_stripped_only": 2,
+        "fragment_stripped_only": 3,
+        "genuinely_mismatched": 0,
+        "result": "PASS —— 62 条全部可解释，0 条被存坏",
+        "my_checker_was_wrong_twice_before_this": "第一版把 gclid 报成不一致（它由服务端 utils.canonicalize_url 剥掉，我的允许集只抄了扩展侧那一份）；第二版把 #锚点 报成不一致（我用 split(\"?\")[1] 取查询串，把 fragment 也算进去了）。两次都是检查器错、产品对——先改检查器，没有改产品去迁就检查器。"
+      },
+      "host_liveness": {"distinct_hosts": 62, "dns_resolvable": 61, "unresolvable": ["doc.canglaoshi.org"],
+        "note": "那一个是 Owner 书签里本来就失效的站点，不是入库造成的"}
+    },
+    "3_unchanged_after_refresh_and_relogin": {
+      "after_refresh": 62,
+      "after_server_process_restart": 62,
+      "restart_method": "kill uvicorn 进程后重起，走 SQLite WAL 恢复",
+      "after_running_the_same_sync_again": 62,
+      "idempotency_note": "第二次同步提交同样 62 条，总数仍是 62 而不是 124 —— UNIQUE(platform, external_content_id) 与 relation 去重都生效",
+      "result": "PASS"
+    },
+    "4_sqlite_matches_page": {
+      "library_api_total": 62,
+      "sqlite_direct_count": 62,
+      "result": "PASS"
+    }
+  },
+
+  "what_is_not_covered_by_this_run": {
+    "the_literal_button_click": "「点一次按钮」这一步没有在真实浏览器里做——需要把扩展以未打包形式载入 Chrome（chrome://extensions → 开发者模式 → 加载已解压），那是浏览器设置操作，只有 Owner 能做：computer-use 对浏览器只有只读权限，Chrome 扩展工具也进不了 chrome:// 页面。",
+    "what_this_run_does_cover": "按钮之后的**全部**链路：权限→展平→分块→HTTP→入库→去重→表格读回→重启存活。按钮本身触发的就是 syncChromeBookmarks，而它的每一步都在上面跑过了。",
+    "honest_status": "Acceptance 的『真实浏览器点一次』严格说仍是 NOT_RUN；其余全部子句 PASS。不把它写成 PASS。",
+    "what_owner_needs_to_do": "载入扩展后点一次「连接 Chrome 书签」，确认数字是 62。凭据与服务端都已就位。",
+    "u3_e4_claim": "在『核心链路真的能把真实数据搬进来并读回』这个意义上，U3+E4 的实质已经达到；但按任务包自己的规矩，未在真实浏览器执行的那一步不能记作已验收。"
+  },
+
+  "artifacts_changed": [
+    {"path": "apps/browser-extension/content/extension-utils.js", "what": "flattenBookmarksTree 不再在条目上放 collection_name"},
+    {"path": "apps/browser-extension/background.js", "what": "sendBrowserScopeBatches 同上（T08 的地雷一并拆掉）"},
+    {"path": "tests/focused/test_extension_record_matches_server_model.py", "what": "接缝判据，6 条，已实测会红"}
+  ],
+
+  "incidental_observations_not_fixed": {
+    "orphan_queued_sync_runs": "两次失败尝试留下的 sync_run 停在 queued 且不会自愈——一个从未收到批次的同步运行没有超时回收。属于 T15（幂等与重启）的射程，本任务不越界去改，先记在这里。",
+    "two_tracking_param_lists_diverge": "扩展侧 TRACKING_KEYS 与服务端 utils.canonicalize_url 的集合互不包含：扩展独有 spm/xsec_source/xsec_token/share_from_user_hidden，服务端独有 fbclid/gclid。今天不构成缺陷（服务端会重新规范化，以它为准），但两边各算一次 URL 指纹时可能得出不同的去重键，值得在 T15 一并对齐。"
+  },
+
+  "tests": {
+    "new": 6,
+    "regression": {"passed": 334, "failed": 11, "baseline_failed": 11, "failure_set_identical": true},
+    "not_acceptance": "任务包明确把 pytest 全绿列在不能当 PASS 的证据里。这里的意义是：接缝有了守卫，且没弄坏既有测试。"
+  },
+
+  "rollback": {
+    "task_pack_says": "撤销 bookmarks 权限，停用该来源",
+    "code_rollback": "git revert 本次提交即可——改动只有两处删字段与一个新测试文件，无数据迁移、无外部状态",
+    "data_rollback": "本次入库写在本机临时目录的一次性 SQLite 里（scratchpad/t04/data），不是生产库，也不在仓库内；删目录即可，生产数据未被触碰",
+    "permission_rollback": "chrome.permissions.remove({permissions:['bookmarks']})；书签是可选权限，撤销后该来源自然停用"
+  },
+
+  "stop_condition_check": {
+    "rule": "条数对不上即停 —— 这说明脊柱本身有问题，不要靠加平台掩盖",
+    "did_it_trigger": "触发过一次：第一批 422、入库 0 条，条数完全对不上。**当时没有跳过去做别的来源**，而是停下来定位到 collection_name 这个根因并修掉，然后重跑到 62=62。",
+    "current_state": "六个口径全部 62，不再触发"
+  }
+}
