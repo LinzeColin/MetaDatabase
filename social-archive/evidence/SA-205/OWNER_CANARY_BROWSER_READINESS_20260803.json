@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T03:17:19Z",
+  "source_head": "ee4f06b1c940f67dbf32777acf35014f086203da",
+  "scope": "Owner Canary browser-readiness and current extension-package preflight",
+  "frozen_regression": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' <existing-project-python-3.12> -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_scan_platform_isolation.py",
+    "exit_code": 0,
+    "result": "17 passed in 1.10s"
+  },
+  "browser_readiness": {
+    "domestic_platform_target_pages_opened": 4,
+    "page_level_authentication_signal": "LIKELY_AUTHENTICATED",
+    "authentication_signal_is_not_a_receipt": true,
+    "social_archive_extension_visible_in_extensions_manager": false,
+    "allowed_loopback_bridge_ping": "NO_RESPONSE"
+  },
+  "official_package": {
+    "path": "dist/social-archive-extension.zip",
+    "name": "Social Archive",
+    "version": "0.0.0.6",
+    "manifest_version": 3,
+    "members": 20,
+    "sha256": "e93f1dd2275d69604b0d898314e7a703eca2e66ab376551d5b91eb853bdb9d50"
+  },
+  "safety": {
+    "cookie_or_storage_inspection": false,
+    "credential_or_secret_access": false,
+    "extension_install_enable_reload_or_configuration_change": false,
+    "pairing_code_or_token_access": false,
+    "provider_request": false,
+    "account_connection_or_sync": false,
+    "production_or_cloud_mutation": false
+  },
+  "conclusion": "The four domestic target pages are available through the controlled Chrome surface, but the current Chrome profile has no visible Social Archive extension and the safe allowed-origin bridge probe receives no response. The current official v0.0.0.6 ZIP is built and internally identity-verified, but it is not installed. This establishes neither a real account connection nor SA-205 PASS."
+}
