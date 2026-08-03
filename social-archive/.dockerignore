@@ -37,7 +37,6 @@ __pycache__/
 .coverage
 coverage/
 dist/*
-!dist/social-archive-extension.zip
 build/
 *.egg-info/
 

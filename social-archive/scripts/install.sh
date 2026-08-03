@@ -28,7 +28,7 @@ done
 [[ -n "$PYTHON" ]] || fail '需要 Python 3.12 或更高版本（可使用 python3.12）。'
 command -v docker >/dev/null || fail '缺少 Docker。OVH Ubuntu 请按 Docker 官方仓库安装 Docker Engine 与 Compose plugin。'
 docker compose version >/dev/null 2>&1 || fail '缺少 docker compose plugin。'
-for required in pyproject.toml compose.yaml .env.example scripts/setup_wizard.py scripts/generate_pairing_code.py scripts/status_server.py; do
+for required in pyproject.toml compose.yaml .env.example scripts/setup_wizard.py scripts/generate_pairing_code.py scripts/status_server.py scripts/build_extension_package.py; do
   [[ -f "$required" ]] || fail "安装源文件缺失：$required"
 done
 if $DRY_RUN; then
@@ -90,6 +90,10 @@ fi
 # context.  It must therefore be checked out before the image build; the
 # default vendor pass deliberately resolves only source-less pip sidecars.
 .venv/bin/python scripts/vendor_sync.py --source bilibili_cli --resolve-and-lock
+# Keep the host-side package current for the local API/download route.  The
+# Dockerfile repeats this build inside the image so a clean checkout cannot
+# inherit a stale generated ZIP.
+"$PYTHON" scripts/build_extension_package.py
 docker network inspect social-archive-readers >/dev/null 2>&1 || docker network create social-archive-readers >/dev/null
 docker compose build core-api core-worker cli-tools
 printf '\n安装完成。当前一次性配对码：%s\n下一步只需运行：bash scripts/start.sh\n' "$PAIRING_CODE"

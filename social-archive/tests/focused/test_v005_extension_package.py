@@ -56,6 +56,13 @@ def test_core_image_includes_only_the_fixed_extension_package():
     dockerignore = (root / ".dockerignore").read_text(encoding="utf-8")
 
     assert "SOCIAL_ARCHIVE_EXTENSION_PACKAGE=/app/dist/social-archive-extension.zip" in dockerfile
-    assert "COPY dist/social-archive-extension.zip ./dist/social-archive-extension.zip" in dockerfile
+    assert "RUN python3 scripts/build_extension_package.py" in dockerfile
+    assert "COPY dist/social-archive-extension.zip ./dist/social-archive-extension.zip" not in dockerfile
     assert "dist/*" in dockerignore
-    assert "!dist/social-archive-extension.zip" in dockerignore
+    assert "!dist/social-archive-extension.zip" not in dockerignore
+
+
+def test_install_rebuilds_the_host_package_before_the_container_build():
+    install = (ROOT / "scripts/install.sh").read_text(encoding="utf-8")
+    assert "scripts/build_extension_package.py" in install
+    assert install.index('"$PYTHON" scripts/build_extension_package.py') < install.index("docker compose build core-api core-worker cli-tools")

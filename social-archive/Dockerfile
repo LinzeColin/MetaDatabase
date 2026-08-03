@@ -8,7 +8,10 @@ COPY pyproject.toml README.md VERSION ./
 COPY src ./src
 COPY apps ./apps
 COPY scripts ./scripts
-COPY dist/social-archive-extension.zip ./dist/social-archive-extension.zip
+# Build the extension inside the image from the checked-in v0.0.0.6 source.
+# `dist/` is intentionally ignored by Git, so copying a host-built ZIP here
+# could otherwise make a clean checkout fail or ship a stale extension.
+RUN python3 scripts/build_extension_package.py
 RUN pip install .
 RUN groupadd --system --gid 10001 socialarchive \
  && useradd --system --uid 10001 --gid socialarchive --create-home socialarchive \
