@@ -1,0 +1,19 @@
+{
+  "stage": "S2",
+  "status": "PASS_LOCAL_CONTRACT",
+  "objectKey": "users/{userId}/{module}/{objectId}",
+  "checks": {
+    "privateBucketOnly": true,
+    "magicAndMime": true,
+    "pixelDimensions": true,
+    "sizeLimitBytes": 10485760,
+    "ownerBeforeReadReplaceDelete": true,
+    "idempotentWrites": true
+  },
+  "savedCandidateR2": "NOT_RUN",
+  "fullDecodeValidation": "NOT_RUN_SAVED_CANDIDATE",
+  "notes": [
+    "No production R2 object or user content was accessed.",
+    "Saved Candidate R2 round-trip remains an external release gate."
+  ]
+}

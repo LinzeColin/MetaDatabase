@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { drizzle } from "drizzle-orm/d1";
-import * as schema from "./schema";
+import { authSchema } from "./schema";
 
 export function getDb() {
   if (!env.DB) {
@@ -9,5 +9,5 @@ export function getDb() {
     );
   }
 
-  return drizzle(env.DB, { schema });
+  return drizzle(env.DB, { schema: authSchema });
 }

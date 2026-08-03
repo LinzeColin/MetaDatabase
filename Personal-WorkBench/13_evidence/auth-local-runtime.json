@@ -1,0 +1,12 @@
+{
+  "stage": "S2",
+  "status": "PASS_LOCAL_WORKERS_RUNTIME",
+  "origin": "http://localhost:3000",
+  "authWithoutRuntimeMaterials": 503,
+  "publicConfig": {
+    "status": 200,
+    "hasSiteKey": false
+  },
+  "cspIncludesTurnstile": true,
+  "savedCandidate": "NOT_RUN"
+}

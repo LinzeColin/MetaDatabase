@@ -1,45 +1,48 @@
-# Personal-WorkBench — S1 完成交接
+# Personal-WorkBench — S2 本地完成交接
 
 ## 当前目标
 
-“胡楚靓工作台”已完成 S1 的私有候选源码、授权素材边界和五张冻结视觉真值验收。下一 run 进入 S2：在不改变 reference 模式页面的前提下，实现真实的多账户认证与账户边界。当前没有 Deploy、Sites Saved Version、GitHub push 或任何真实账户测试。
+“胡楚靓工作台”已完成 S2 的本地可验证实现：认证入口、账户边界、D1 迁移、服务端租户 CRUD、私有 R2 对象链与浏览器安全头均已纳入源码。当前 run 没有保存 Sites、部署、GitHub push 或真实用户/供应商测试；下一 run 不进入 S3，除非明确切换阶段。
 
 ## 当前状态
 
-- 阶段：`S1_COMPLETE_PRIVATE_CANDIDATE`
-- 产品源码：官方 Sites starter skeleton 已移除；`app/page.tsx` 提供 `welcome`、`home`、`ledger`、`fatloss-food`、`period` 五条 `?reference=` 冻结路线，固定为 472×1024 app-stage，正常路线才显示账户入口。
-- 私有素材：`public/private-reference-assets/` 有 37 项受控的参考裁切/衍生素材；`13_evidence/asset_manifest.json` 连同 5 张视觉真值形成 42 项来源、SHA-256、用途与权利记录。
-- 公开权利：最终 Hello Kitty 原始授权素材和权利记录仍未进入 workspace。因此 `npm run verify:assets -- --public-deploy` 预期失败为 `BLOCKED_ASSET_RIGHTS`；这只阻止公开 Deploy，不阻止当前私有候选源码和视觉验收。
-- Sites：仍是 S0 建立的独立、Owner-only、未 Deploy Site；D1=`DB`、R2=`FILES`。本轮未读取任何 Secret、Cookie、Token、密码或用户数据。
+- 阶段：`S2_LOCAL_IMPLEMENTATION_COMPLETE`
+- Saved Candidate：`NOT_RUN`。未配置也未读取 Google、邮件、Turnstile、最终 origin 或任何账户材料；真实回调、真实邮箱和真实 A/B 账户隔离尚未发生。
+- 公开 Deploy：仍为 `BLOCKED_ASSET_RIGHTS`。最终获授权 Hello Kitty 原图及权利记录未进入 workspace，当前私有参考裁切素材不可用于公开发布。
+- Sites：仍是 S0 的独立、Owner-only、未 Deploy Site；绑定逻辑名称仍为 D1=`DB`、R2=`FILES`。
+- 依赖风险：`npm audit --omit=dev --audit-level=critical` 当前报告 7 项（4 moderate / 3 high，0 critical），修复建议会强制改动任务包锁定的 Next/Drizzle 链路；本轮未执行破坏性自动升级。
 
-## 已核验证据
+## 已完成
 
-- S1-T1：`13_evidence/asset_manifest.json`。当前素材核验返回 `PASS_PRIVATE_CANDIDATE_PUBLIC_DEPLOY_BLOCKED`；若提供 `TASKPACK_ROOT`，5 张参考图和 5 张 mask 的 SHA-256 也已实际重算通过。
-- S1-T2：`13_evidence/ui_structure.json`。built worker 的五条 reference 路线均有冻结结构、没有账户 chrome；正常 home 才有独立账户入口。
-- S1-T3：`13_evidence/visual/manifest.json`。Chrome 本地预览的 3 轮、5 页、固定 472×1024 app-stage 截图、几何锚点、mask 差分、热图和 overlay 均已保留。差分指标明确为诊断值，未换算或宣称为相似度百分比。
-- 质量命令全部通过：`npm run check`、`npm run test:ui-structure`、`npm run test:visual`、`git diff --check`。`npm audit` 基线仍为 18 项（1 low / 4 moderate / 13 high，0 critical），未自动执行 `npm audit fix`。
+- `drizzle/0001_auth_and_product.sql` 与任务包冻结文件 SHA-256 一致：`9e353bf3148267cd3b6e86654643a202321b1c3ef361b6590944e0d237fee497`。`0002_s2_tenant_indexes.sql` 仅为 task-pack 漏掉 tenant-first 索引的 `outbox_events` 与 `security_audit_events` 添加索引，不修改冻结 `0001`。
+- Better Auth 和 Drizzle adapter 精确锁定为 `1.6.25`；配置包含邮箱验证、12–128 位密码、密码重设撤销会话、Google 最小 scope、禁用隐式绑定、显式 Google 绑定入口、D1 限流、Turnstile 和安全 Cookie。
+- 认证 UI 已提供登录、注册、忘记/重设密码、验证邮箱与账户设置；Turnstile 公钥仅由 `/api/auth/public-config` 返回，永不返回 secret 或供应商配置。
+- `app/api/workbench/` 覆盖 14 个多记录资源和一个 profile 单例资源。所有写入口先验服务端已验证 session，拒绝任意嵌套的客户端 tenant/owner 字段，使用参数化 `user_id` 谓词、幂等键和无正文审计行。
+- 私有文件对象键固定为 `users/{userId}/{module}/{objectId}`；图片做 MIME、魔数、尺寸、像素上限和 10 MiB 校验，读取/替换/删除先按 D1 `id + user_id` 验证所有权。
+- `worker/index.ts` 已统一设置 CSP、anti-frame、nosniff、referrer、permissions 与 cross-origin headers；仅 Turnstile 使用的 `challenges.cloudflare.com` 为允许的第三方表面。
+- 五条冻结 reference 路线未改动：结构回归和三轮视觉验收仍为 5/5 PASS。旧的未使用 ChatGPT 头部认证辅助文件已移除，避免与 Better Auth 形成双重身份来源。
+
+## 证据与命令
+
+- `13_evidence/schema.json`：空库、重复执行、索引和触发器为 `PASS_LOCAL_SQLITE`（25 tables / 4 triggers）。
+- `13_evidence/auth.json`、`13_evidence/auth-saved.json`、`13_evidence/auth-local-runtime.json`：本地认证契约通过；本地 Workers 无材料状态实测 `/api/auth/get-session=503`、`/api/auth/public-config=200`；Saved Candidate 明确 `NOT_RUN`。
+- `13_evidence/tenant_matrix.json`：15 个资源的 server-side tenant contract；SQLite A/B 读写隔离测试通过。
+- `13_evidence/r2.json`：私有对象键、校验、所有权优先与幂等合约通过；真实 R2 round trip `NOT_RUN`。
+- S2 命令：`npm run test:s2` 通过（`test:auth-saved` 预期输出 `NOT_RUN`）；`npm run check`、`npm test`、`npm run test:visual`、`git diff --check` 通过。
+- `RUN_CONTRACT_S2.md` 固化范围、停止条件和真实外部验收边界。
 
 ## 关键文件
 
-- 页面与 token：`app/page.tsx`、`app/globals.css`、`app/layout.tsx`
-- 仅 S1 视觉入口：`app/auth/sign-in/page.tsx`。它只是账户入口布局，不处理凭据；S2 才能接入真实认证。
-- 素材与公开发布门：`scripts/verify-assets.mjs`、`13_evidence/asset_manifest.json`
-- 结构与视觉验收：`tests/ui-structure.test.mjs`、`scripts/record-ui-structure.mjs`、`scripts/create-visual-evidence.mjs`、`scripts/finalize-visual-evidence.mjs`、`scripts/test-visual.mjs`
+- 身份与会话：`server/auth/`、`app/api/auth/[...all]/route.ts`、`app/auth/`、`app/account/page.tsx`
+- 数据隔离：`server/security/tenant.ts`、`server/data/`、`app/api/workbench/[resource]/`
+- 私有文件：`server/files/`、`app/api/workbench/files/`
+- 迁移与索引：`drizzle/0001_auth_and_product.sql`、`drizzle/0002_s2_tenant_indexes.sql`
+- 安全头：`worker/index.ts`
+- 验收：`scripts/verify-*.mjs`、`tests/*contract*`、`tests/schema.test.mjs`、`tests/tenant-isolation.test.mjs`、`tests/r2.test.mts`
 
-## 下一步（S2）
+## 下一步与外部验收门
 
-1. 保持五条 `?reference=` 路线无登录态、Cookie、调试或迁移信息；实现 Google、邮箱注册/验证、登录、忘记/重置密码和会话边界。
-2. 认证完成后再实现账户切换、D1 schema/RLS 型隔离和业务写入；不信任客户端 `user_id`，不把业务正文写入日志或证据。
-3. 公开 Deploy 前，Owner 必须在同容器与裁切框内原位提供最终获授权 Hello Kitty 原图及权利记录；不得用当前裁切素材、替代角色或“全部授权”文字绕过该实际资产缺口。
-
-## 可复核命令
-
-```bash
-cd Personal-WorkBench
-npm run check
-npm run test:ui-structure
-npm run test:visual
-TASKPACK_ROOT='/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8' npm run verify:assets -- --record
-npm run verify:assets -- --public-deploy # 预期 BLOCKED_ASSET_RIGHTS / exit 1
-git diff --check
-```
+1. 维持当前 S2 状态并等待下一阶段指令；不要将本地合约 PASS 写成真实 Google/邮件/Turnstile 或真实用户 PASS。
+2. Saved Candidate 阶段需要由运行平台内配置完成后（不在聊天中提供任何值）重新执行 D1 迁移、真实 Google/邮件/Turnstile 流程、真实 A/B IDOR、R2 upload/read/replace/delete 和跨设备会话验证。
+3. S3 只可在明确切换阶段后开始，并必须继续保持所有 `?reference=` 路线无登录态、Cookie、迁移或调试信息。
+4. 公开 Deploy 前仍必须在同容器/裁切框内提供最终获授权 Hello Kitty 原图与权利记录；不得以现有裁切素材或本地测试替代。

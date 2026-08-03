@@ -1,0 +1,6 @@
+{
+  "stage": "S2",
+  "status": "NOT_RUN",
+  "savedCandidate": "NOT_RUN",
+  "reason": "No Saved Candidate auth origin was supplied; no external account or provider flow was attempted."
+}

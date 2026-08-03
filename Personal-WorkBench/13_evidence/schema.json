@@ -1,0 +1,88 @@
+{
+  "stage": "S2",
+  "status": "PASS_LOCAL_SQLITE",
+  "migrations": {
+    "drizzle/0001_auth_and_product.sql": "9e353bf3148267cd3b6e86654643a202321b1c3ef361b6590944e0d237fee497",
+    "drizzle/0002_s2_tenant_indexes.sql": "0ad7272104284be3bc7c5aa2ee0fd6f4e97cef389cde3fb3dcf9b2ba28c338d4"
+  },
+  "empty": {
+    "tables": [
+      "account",
+      "anniversaries",
+      "diary_entries",
+      "exercise_entries",
+      "file_objects",
+      "food_entries",
+      "habit_checkins",
+      "habit_definitions",
+      "idempotency_keys",
+      "ledger_entries",
+      "legacy_imports",
+      "outbox_events",
+      "period_entries",
+      "privacy_consent_events",
+      "profile_settings",
+      "rateLimit",
+      "savings_goals",
+      "savings_transactions",
+      "schedule_events",
+      "security_audit_events",
+      "session",
+      "todos",
+      "user",
+      "verification",
+      "weight_entries"
+    ],
+    "triggers": [
+      "diary_photo_tenant_insert",
+      "diary_photo_tenant_update",
+      "food_photo_tenant_insert",
+      "food_photo_tenant_update"
+    ],
+    "foreignKeys": 1,
+    "missingTenantIndexes": []
+  },
+  "replay": {
+    "tables": [
+      "account",
+      "anniversaries",
+      "diary_entries",
+      "exercise_entries",
+      "file_objects",
+      "food_entries",
+      "habit_checkins",
+      "habit_definitions",
+      "idempotency_keys",
+      "ledger_entries",
+      "legacy_imports",
+      "outbox_events",
+      "period_entries",
+      "privacy_consent_events",
+      "profile_settings",
+      "rateLimit",
+      "savings_goals",
+      "savings_transactions",
+      "schedule_events",
+      "security_audit_events",
+      "session",
+      "todos",
+      "user",
+      "verification",
+      "weight_entries"
+    ],
+    "triggers": [
+      "diary_photo_tenant_insert",
+      "diary_photo_tenant_update",
+      "food_photo_tenant_insert",
+      "food_photo_tenant_update"
+    ],
+    "foreignKeys": 1,
+    "missingTenantIndexes": []
+  },
+  "saved_candidate_d1": "NOT_RUN",
+  "notes": [
+    "0001 is byte-identical to the frozen task-pack migration.",
+    "0002 adds only missing tenant-first operational indexes; it does not alter task-pack source.",
+    "A real Sites-bound D1 migration remains a later Saved Candidate gate."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "stage": "S2",
+  "status": "PASS_LOCAL_CONTRACT",
+  "tenantMatrix": {
+    "unauthenticated": "401 before input parsing",
+    "unverified": "403 before data access",
+    "userAOwnRecord": "server user_id predicate",
+    "userBReadsUserA": "404 via id + user_id predicate",
+    "clientSuppliedTenant": "400 before write",
+    "replaySameIdempotencyKey": "no-op",
+    "changedPayloadSameKey": "409"
+  },
+  "resources": 15,
+  "savedCandidateD1": "NOT_RUN",
+  "notes": [
+    "The local database isolation test is executed separately by npm run test:tenant.",
+    "Real D1/session execution remains a Saved Candidate gate."
+  ]
+}
