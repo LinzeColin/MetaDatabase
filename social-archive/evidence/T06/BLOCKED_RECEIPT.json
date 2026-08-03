@@ -6,9 +6,7 @@
   "status": "BLOCKED",
   "must_not_be_rewritten_as_pass": true,
   "no_cookie_value_in_this_file": true,
-
   "what_is_blocked": "Acceptance：服务端收到的 cookies.txt 能让 gallery-dl 取到只有登录用户才看得到的内容（Oracle：gallery-dl -j 拿到 ≥1 条 Owner 私有条目）",
-
   "why": "要拿到 Owner 真实的 X 会话只有两条路，两条都走不通：",
   "paths_considered": [
     {
@@ -22,7 +20,6 @@
       "verdict": "有能力做，但**不做**。这是判断，不是能力限制。"
     }
   ],
-
   "measured_facts": {
     "artifact_closed": true,
     "tests": "16 条（tests/focused/test_cookie_export_format.py），全过",
@@ -32,15 +29,26 @@
     "acceptance_result": "NOT_RUN",
     "no_real_session_was_ever_uploaded": true
   },
-
   "additional_prerequisite": "T05 已记：生产是否已配 SOCIAL_ARCHIVE_AGE_RECIPIENT 与 AGE_IDENTITY_FILE 尚未核对。未配置时 PUT /v1/credentials 返回 503 + 中文提示（不会静默失败），但连接走不通。Owner 点连接之前需先确认这两项在生产就位。",
-
   "what_would_unblock_it": [
     "Owner 载入扩展（chrome://extensions → 开发者模式 → 加载已解压 → 选 apps/browser-extension/）",
     "在已登录 X 的浏览器里点一次「连接 X」",
     "服务端跑 gallery-dl -j 验证能拿到私有条目，把条数与平台补进 evidence/T06/COOKIE_ROUNDTRIP.json（绝不记任何 cookie 值）"
   ],
-
   "owner_action_required": true,
-  "downstream_blocked_by_this": ["T07", "T11", "T15", "T16", "T17", "T18"]
+  "downstream_blocked_by_this": [
+    "T07",
+    "T11",
+    "T15",
+    "T16",
+    "T17",
+    "T18"
+  ],
+  "prerequisite_checked_against_production": {
+    "measured_at": "2026-08-04T16:20Z",
+    "GET /v1/credentials on production": 404,
+    "oauth_secrets_present": true,
+    "credential_age_identity_present": false,
+    "note": "T05/T06 一直记着「生产是否已配 age 密钥未核对」——现在核了：备份私钥是 root:root 0600，Core（uid 10001）**读不到**，所以原本复用它的设计在生产上会直接失败。凭据专用密钥尚未创建，T18 部署时一并建。详见 evidence/PRODUCTION_STATE_VERIFIED.json"
+  }
 }

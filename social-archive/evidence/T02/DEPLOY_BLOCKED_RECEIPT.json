@@ -48,5 +48,11 @@
     },
     "still_blocked": "本项修的是「部署时会缺东西」，不解除 T02 的阻塞——真实登录仍要等新镜像上线（T18）。但现在上线时不会再撞上这个 503。",
     "owner_action_added": "T18 部署前，宿主机 runtime/secrets/ 下需要新增一个 credential_age_identity（age-keygen 生成的独立密钥对），并把公钥填进 SOCIAL_ARCHIVE_CREDENTIAL_AGE_RECIPIENT。两个 OAuth secret 上一轮已就位。"
+  },
+  "blocked_reason_verified_against_production": {
+    "measured_at": "2026-08-04T16:20Z",
+    "GET /v1/auth/providers on production": 404,
+    "running_image": "social-archive/core:0.0.0.6 (healthy, up 12h)",
+    "verdict": "BLOCKED 的理由已实测坐实，不是托词。见 evidence/PRODUCTION_STATE_VERIFIED.json"
   }
 }
