@@ -30,42 +30,7 @@
       "also": "顺手去掉 install.sh dry-run 文案里残留的「配对码」字样。"
     }
   ],
-  "remaining_seven_verified_pre_existing": [
-    {
-      "test": "test_deployment_contract::test_install_provisions_shared_nonroot_bind_mounts_for_core_and_cli_sidecar",
-      "reason": "断言 'groupadd --system --gid 10001 socialarchive' 在 Dockerfile 里；测试读 3 个 Dockerfile，其中 worker 那个不含该行",
-      "verified": "本分支对任何 Dockerfile 的改动 = 0 个文件"
-    },
-    {
-      "test": "test_library_api::test_library_uses_one_content_card_for_multiple_relations_and_preserves_detail",
-      "reason": "KeyError: 'relation_type' —— /v1/library 返回的字段名是 primary_relation（SQL 里 r.relation_type AS primary_relation），测试按 relation_type 取",
-      "verified": "该 SELECT 在 origin/main 与本分支**逐字相同**；本分支对 relation_type 的改动全是 INSERT 列表里补 user_id，不涉及这条 SELECT"
-    },
-    {
-      "test": "test_library_api::test_library_filters_literal_full_text_collection_and_observed_date",
-      "reason": "同上，KeyError: 'relation_type'"
-    },
-    {
-      "test": "test_pwa_contract::test_pwa_has_core_views_and_chinese_labels",
-      "reason": "断言 '连接中心' 在 index.html；基线 index.html 里就没有这个词",
-      "verified": "origin/main 计数 0，现在计数 0"
-    },
-    {
-      "test": "test_ui_contract::test_pwa_unified_library_has_feed_grid_detail_and_responsive_contract",
-      "reason": "断言 'id=\"library\"' 在 index.html；基线就没有",
-      "verified": "origin/main 计数 0，现在计数 0"
-    },
-    {
-      "test": "test_storage_completion_contract::test_extension_never_claims_completion_without_three_receipts",
-      "reason": "断言 '归档完成 3/3' 在 options.js；基线就没有",
-      "verified": "origin/main 计数 0，现在计数 0"
-    },
-    {
-      "test": "test_stage3_pwa::test_pwa_shell_is_self_contained_and_mobile_ready",
-      "reason": "断言 '三步开始使用' / '先保存第一条内容' / 'id=\"detailDialog\"' 在 index.html；三个基线都没有",
-      "verified": "origin/main 三项计数均为 0，现在均为 0"
-    }
-  ],
+  "remaining_seven_verified_pre_existing": "见 all_seven_resolved_2026_08_04：七条已全部解决，此字段保留作历史记录。",
   "common_shape": "这 7 条里有 5 条是同一个形状：判据断言某段界面元素存在，而它在**冻结原型与当前 PWA 里都不存在**。已核实当前 PWA 对 Owner 批准的原型是 46/46 全覆盖，三条点名要求全部满足。所以这 5 条不是「缺实现」，是判据本身指向了一个未获批准的设计。处理建议见 five_ui_judges_verified_against_the_frozen_prototype.verdict。",
   "method": "逐条把断言的字符串拿到 origin/main 的对应文件里数一次（git show origin/main:<path> | grep -c），确认基线与现在都是 0；以及确认本分支对相关文件的改动为空或不涉及该断言。",
   "five_ui_judges_verified_against_the_frozen_prototype": {
@@ -111,5 +76,42 @@
     "the_behavior_was_never_broken": "先实测再改判据：一条内容配两种关系 → 库里确实只有 1 张卡；按任一关系过滤，卡上的 primary_relation 就是那个关系；按收藏夹过滤同理。**要证的行为一直是好的，红的只是字段名。**",
     "an_assertion_i_added_and_then_removed": "改的时候我顺手加了一条「过滤时 relations 必须仍含全部关系」，实测发现过滤后只剩被过滤的那一种（GROUP_CONCAT 在过滤后的行上算）。我一度想把它报成缺陷——**但任何规格都没这么要求，那只是我的偏好**。原判据对「保住细节」的定义是详情接口，那一条本来就过。所以我把断言改成不强求，并把观察到的事实写在注释里。**判据不该钉我以为应该怎样，只该钉说定了怎样。**",
     "remaining": 5
+  },
+  "all_seven_resolved_2026_08_04": {
+    "result": "**550 passed / 0 failed** —— 本分支第一次全绿。基线的 11 条、后来的 7 条，全部有交代。",
+    "what_they_actually_were": [
+      {
+        "n": 2,
+        "kind": "字段改名",
+        "detail": "library 的 relation_type/collection_key → primary_relation/primary_collection。行为一直对。"
+      },
+      {
+        "n": 3,
+        "kind": "v0.0.0.6 换界面留下的陈旧标记",
+        "detail": "id=library / detailDialog / 三步开始 / 连接中心 / data-view=feed|grid / @media 900|600 —— 全在同一个提交 40d833bf 里被换掉（卡片流→表格、对话框→抽屉、断点→1180/760）。能力一个没少，真实浏览器实测过。"
+      },
+      {
+        "n": 1,
+        "kind": "**直指生产事故根因**",
+        "detail": "test_install_provisions_… 断言 cli 镜像要有 useradd --gid socialarchive。它红着，而那正是 C-T00-01（sidecar 读不到自己的密钥）的根因。"
+      },
+      {
+        "n": 1,
+        "kind": "钉 UI 文案而不变量本身",
+        "detail": "「归档完成 3/3」那句在 v0.0.0.6 没了，但不变量一直被守着——只是守在数据层。已改成钉行为，且**比原来更严**：不只要求三张收据，还要求三份哈希彼此一致。"
+      }
+    ],
+    "the_method_that_worked": [
+      "1. 先问：这条断言现在成立吗？不成立是**行为坏了**还是**判据钉了旧名字**？",
+      "2. 用 `git log -S <那个字符串>` 查它什么时候进的、什么时候没的，跟界面/文档的改动时间对齐——**判「陈旧」不靠猜**。",
+      "3. 实测**能力**还在不在（真实浏览器、真实数据库），在就改判据去钉能力；不在就是真缺口。",
+      "4. 改完必须靠回退证明它会红。"
+    ],
+    "what_it_cost_to_have_carried_them": "整整一场会话把 7 条当背景噪音，其中一条一直在指名道姓地说出生产事故的根因。**「基线失败」这个标签把「我还没弄懂」包装成了「与我无关」。**",
+    "side_effects_found_while_resolving": [
+      "docs/00_零门槛运行手册.md 指着一个 v0.0.0.6 起就不存在的界面名字",
+      "scripts/browser_acceptance.py 整份对不上界面（每个选择器 0 命中、断言已删的 XHS 通道、无人调用）—— 已改成开跑即拒绝",
+      "/v1/storage/status 服务端算得出配额却没有任何界面在调 —— 已接上"
+    ]
   }
 }
