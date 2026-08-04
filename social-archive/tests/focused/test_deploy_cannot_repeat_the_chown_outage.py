@@ -79,3 +79,19 @@ def test_rsync_does_not_delete_and_does_not_touch_runtime_or_env() -> None:
     )
     for keep in ("runtime/", ".env", ".venv", ".git"):
         assert f"--exclude '{keep}'" in rsync, f"没有排除 {keep}——那是数据/密钥/远端环境"
+
+
+def test_it_also_checks_the_group_can_read_not_just_who_owns_it() -> None:
+    """属组对了还不够，权限位也要给组。
+
+    2026-08-04 实测抓到的：instagram_session 的属组是对的（10001），
+    而权限是 **0600**——组权限为零。cli-tools 跑在 uid 10002 / gid 10001，
+    于是它读不到自己的密钥，**Instagram 从来就没能工作过**。
+
+    只查属组的话，这个文件在上一关是"合格"的。
+    """
+    code = code_only(DEPLOY.read_text(encoding="utf-8"))
+    assert "BAD_MODE" in code, "只查了属组，没查组读位"
+    assert "10002" in code, "没写清 cli-tools 靠组权限读（uid 10002 不是属主）"
+    # 判据要看 mode 的中间那一位
+    assert "[4567]" in code, "组读位的判据不在了——写法变了就要跟着重写"

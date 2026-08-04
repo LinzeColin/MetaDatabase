@@ -84,6 +84,19 @@ if printf '%s\n' "$BEFORE" | grep -qv ':10001 '; then
   printf '%s\n' "$BEFORE" | grep -v ':10001 ' | sed 's/^/  异常：/'
   fail '有密钥的属组不是 10001（socialarchive-secrets）。先修好再部署——带着这个状态上线，/health 会是 200 而所有业务路由 500。'
 fi
+# **属组对了还不够，权限位也要给组。**
+#
+# 2026-08-04 实测抓到的：instagram_session 的属组是对的（10001），
+# 而权限是 **0600**——组权限为零。cli-tools 跑在 uid 10002 / gid 10001，
+# 于是它读不到自己的密钥，Instagram 从来就没能工作过。
+# 只查属组的话，这个文件在上面那一关是"合格"的。
+#
+# 判据：mode 的中间那一位（组）必须包含读位（4/5/6/7）。
+BAD_MODE="$(printf '%s\n' "$BEFORE" | awk '{ split($3, m, ""); if (m[2] != "" && m[2] !~ /^[4567]$/) print "  " $1 " mode=" $3 " —— 组读位是 0，容器读不到" }')"
+if [[ -n "$BAD_MODE" ]]; then
+  printf '%s\n' "$BAD_MODE"
+  fail '有密钥的组读位是 0。挂进容器的密钥，容器必须读得到（cli-tools 是 uid 10002 / gid 10001，只能靠组权限）。跑一次 scripts/install.sh 会把它们统一成 0640。'
+fi
 
 if $DRY_RUN; then
   printf '\n--dry-run：没有同步、没有构建、没有重启。\n'
