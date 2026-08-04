@@ -148,6 +148,15 @@
     {
       "argv": [
         "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/find_write_only_storage_keys.py"
+      ],
+      "exit_code": 0,
+      "stdout": "扫了扩展里 5 个 storage 键\n每个写进去的键都有人读。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/validate_deployment_contract.py"
       ],
       "exit_code": 0,

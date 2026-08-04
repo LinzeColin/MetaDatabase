@@ -67,6 +67,11 @@ def structural_commands() -> list[list[str]]:
         # 「读取当前列表」）。照旧文档操作的人会以为是自己错了，而**没有任何
         # 东西会报错**——这类缺陷比代码 bug 更难被发现。
         [python, "scripts/check_docs_match_the_ui.py"],
+        # 「建好了没接上」的第三种形态：往 chrome.storage 写了状态，
+        # 而没有任何界面读它。前两道门（未引用符号、无客户端接口）都看不见它。
+        # 这道门第一次跑就抓到 saAccountSyncQueueLastResult 写三处、读零处
+        # ——那正是我为「放弃时也要说得出原因」补的记录，写进了没人看的地方。
+        [python, "scripts/find_write_only_storage_keys.py"],
         [python, "scripts/validate_deployment_contract.py"],
     ]
 

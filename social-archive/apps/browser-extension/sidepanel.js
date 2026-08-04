@@ -77,6 +77,26 @@
     }
   }
 
+  async function showLocalFailureIfServerNeverHeardAboutIt() {
+    // 有一种失败**服务端根本不知道**：同步还没拿到 syncRunId 就被放弃了
+    // （MV3 的 worker 反复被杀，attempts 到顶）。那时唯一的记录是扩展本地的
+    // saAccountSyncQueueLastResult。
+    //
+    // 这个键此前**写了三处、读零处** —— 我当初为「放弃时也要说得出原因」
+    // 补的那条记录，写进了没人看的地方。写进没人读的地方，和没写是一回事，
+    // 但它看起来像写了。（scripts/find_write_only_storage_keys.py 扫出来的。）
+    try {
+      const stored = await chrome.storage.local.get({ saAccountSyncQueueLastResult: null });
+      const last = stored.saAccountSyncQueueLastResult;
+      if (!last || last.ok !== false) return;
+      // 服务端已经知道这次失败了，就别重复说
+      if (last.syncRunId && runs.some(run => run.id === last.syncRunId)) return;
+      showBanner(last.error || "上一次同步没有跑完。");
+    } catch (_) {
+      // 读不到本地记录不该影响主渲染——它是补充信息
+    }
+  }
+
   async function refresh() {
     try {
       const [accountResponse, runResponse] = await Promise.all([
@@ -87,6 +107,7 @@
       runs = runResponse.items || [];
       $("banner").classList.add("hidden");
       render();
+      await showLocalFailureIfServerNeverHeardAboutIt();
     } catch (error) {
       accounts = [];
       runs = [];
