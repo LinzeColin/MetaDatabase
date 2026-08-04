@@ -1,0 +1,34 @@
+{
+  "task": "T18",
+  "claim": "发现主机 venv 落后两个版本之后，**把「同一族的其它地方」逐个量了一遍**，不是修完一处就算完。",
+  "measured_at": "2026-08-05",
+  "why": "一处漂移几乎不会只有一处。主机 venv 那次的症状是完全静默的（systemctl success、备份 PASS），所以不能靠「有没有报错」去找剩下的——只能逐个去比内容。",
+  "checked": [
+    {
+      "什么": "主机 venv 的依赖（因为改 editable 时用了 --no-deps）",
+      "怎么量": "读 pyproject 声明的 6 个依赖，逐个在主机 venv 里查版本并与下限比",
+      "结果": "fastapi 0.141.1 / uvicorn 0.52.1 / pydantic 2.13.4 / httpx 0.28.1 / PyYAML 6.0.3 / boto3 1.43.62 —— **一个不缺，全部达到或高于下限**。--no-deps 是安全的。"
+    },
+    {
+      "什么": "cli-tools 容器（部署只重建 core-api）",
+      "怎么量": "先比时间（错的做法，见下），再**比内容**：容器里 /worker/server.py 与仓里 sidecars/cli-tools/server.py 的 sha256",
+      "结果": "ad47e833580c60e5 = ad47e833580c60e5，**逐字节相同**。它是同步的——但那是运气，不是机制，所以补了第 5.5 道门。"
+    },
+    {
+      "什么": "cli-tools 里有没有 social_archive（会不会有第二份旧库）",
+      "怎么量": "在容器里 import",
+      "结果": "ModuleNotFoundError —— 它根本不装这个包，没有第二份旧库的风险。干净的否定结论。"
+    }
+  ],
+  "two_mistakes_i_made_and_caught": {
+    "用本地时区判新旧": "`git log --since=\"2026-08-04 06:05\"` 里的时间按**本地时区**（UTC+8）解释，等于把窗口放宽了 8 小时。按它看，那个 T07 提交像是发生在镜像构建之后——**差点据此断定 cli-tools 跑的是旧代码**。换成真 UTC：提交 05:58:30Z，镜像 06:05:10Z，晚了 7 分钟，是包含在内的。",
+    "靠 find head 找文件": "第一次比对用的是 `find / -name server.py | head -1`。容器里还有 /usr/local/lib/python3.12/{http,xmlrpc}/server.py 两个同名文件。**那次侥幸比对了正确的文件**，只因为 -maxdepth 4 把标准库那两个挡在外面。现在第 5.5 道门里写死量到的 /worker/server.py。"
+  },
+  "a_mess_i_made_while_measuring_and_cleaned_up": "为了量「缓存命中时重建要多久」，我在生产上跑了一次 `docker compose build cli-tools`。它耗时 130 秒并且**产出了一个新镜像**（有一层没命中缓存），于是 :0.0.0.7 这个标签指向了一个**运行中容器并没有在用**的镜像。当场 `up -d cli-tools` 让两者重新对上（容器 healthy，server.py 哈希不变），并核了磁盘：可用 7G，悬空镜像 0 个。",
+  "why_the_gate_compares_instead_of_always_rebuilding": "always rebuild 的代价是每次部署 130 秒 + 一个新镜像。生产盘已经因为镜像堆积紧过一次（部署被自己的磁盘门挡下）。比对只是一次 sha256。",
+  "what_this_does_not_prove": [
+    "不证明主机上没有别的陈旧副本。这次只查了「代码从哪来」这条线上的三处：主机 venv、它的依赖、另一个容器。别的地方（比如 systemd unit）由部署脚本另外两道门管。",
+    "不证明 cli-tools 的 Dockerfile 没漂。第 5.5 道门比的是 server.py；Dockerfile 不在镜像里，比不了内容。改 Dockerfile 而不改 server.py 的话，这道门看不出来。",
+    "不证明主机 venv 的依赖**符合运行需要**——只证明它们符合 pyproject 声明的下限。声明本身漏写了什么，这条判据看不出来。"
+  ]
+}
