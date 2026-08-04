@@ -223,7 +223,8 @@ for shared_path in \
   "$HOST_DATA_ROOT/vendor-output" \
   "$HOST_DATA_ROOT/vendor-output/cli" \
   "$HOST_DATA_ROOT/status" \
-  "$HOST_DATA_ROOT/diagnostics"; do
+  "$HOST_DATA_ROOT/diagnostics" \
+  "$HOST_DATA_ROOT/evidence"; do
   install -d -m 2770 -o "$CORE_CONTAINER_UID" -g "$SYSTEM_USER" "$shared_path"
 done
 

@@ -83,3 +83,22 @@ def test_the_two_gids_are_not_the_same_variable() -> None:
     for name in DATA_PLANE_SERVICES:
         groups = [str(item) for item in (services[name].get("group_add") or [])]
         assert len(set(groups)) == 2, f"{name} 的两个组配成了同一个值：{groups}"
+
+
+def test_every_directory_the_code_writes_is_provisioned() -> None:
+    """代码会往数据根下的哪些目录写，provisioning 就得建哪些。
+
+    2026-08-05 实测：`/var/lib/social-archive/evidence` 是 root:socialarchive 2755
+    ——宿主服务账号写不进去。而 scripts/platform_canary.py 第 25 行正是往
+    `data_root / "evidence/platform-canaries"` 写。它现在没有被任何单元调用，
+    所以还没炸；**一旦接上就是一个 PermissionError**。
+
+    同一形状今天已经真炸过一次：诊断上报端点写 data_root/evidence → 500。
+    """
+    prepare = (ROOT / "scripts/prepare_systemd_host.sh").read_text(encoding="utf-8")
+    block = prepare.split("for shared_path in", 1)[1].split("; do", 1)[0]
+    for needed in ("runtime", "staging", "import", "exports", "vendor-output",
+                   "status", "diagnostics", "evidence"):
+        assert f'HOST_DATA_ROOT/{needed}"' in block, (
+            f"provisioning 不建 {needed}/ ——往那里写的代码会撞 PermissionError"
+        )
