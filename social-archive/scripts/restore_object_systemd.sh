@@ -82,7 +82,24 @@ case "$store" in
     ;;
   github)
     credential_properties=(
-      --property=LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_token
+      # **必须是 github_markdown_token，不是 github_token。**
+      #
+      # 2026-08-04 实测：
+      #   github_token          → GraphQL: Could not resolve to a Repository
+      #                           with the name 'LinzeColin/Private-Database'
+      #   github_markdown_token → {"nameWithOwner":"LinzeColin/Private-Database"}
+      #
+      # 也就是说**备份写得进去、按文档的恢复路取不出来**——复制单元
+      # （social-archive-replication.service:22）加载的一直是
+      # github_markdown_token，只有这里加载了另一个看不见私有仓的令牌。
+      #
+      # 「副本登记成 verified」和「副本取得回来」是两件事。三份副本在库里
+      # 都是 verified，而 github 那一份的取回演练直接失败：
+      # GITHUB_RELEASE_READ_FAILED。
+      #
+      # 凭据在 systemd 里的**名字**仍然叫 github_token（下面 export 的是
+      # $CREDENTIALS_DIRECTORY/github_token），改的只是它从哪个文件来。
+      --property=LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_markdown_token
     )
     ;;
 esac
