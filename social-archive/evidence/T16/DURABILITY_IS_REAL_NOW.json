@@ -1,0 +1,60 @@
+{
+  "task": "T16",
+  "claim": "生产上的三个持久化定时器已启用；全部 549 个制品现在都有两份已校验的异地副本（R2 + OCI）。第三份（GitHub Release）卡在一个不存在的仓库上。",
+  "authorization": "Owner 明确指示：「T16 18 你自己解决 能你做的就别让我做 我没有技术基础」（2026-08-04）。",
+  "before": {
+    "measured_at": "2026-08-04（本轮开工时）",
+    "artifacts": 549,
+    "with_any_offsite_replica": 19,
+    "with_none": 530,
+    "timers": "backup / replication / private-database-sync 三个全部 disabled + inactive，journalctl 90 天内全是 No entries"
+  },
+  "after": {
+    "measured_at": "2026-08-04T05:0x UTC（生产库直接查）",
+    "artifacts": 549,
+    "r2_verified": 549,
+    "oci_verified": 549,
+    "with_two_verified_replicas": 549,
+    "github_verified": 2,
+    "failed_replicas": 0,
+    "timers": "三个全部 enabled + active"
+  },
+  "the_thing_that_had_never_been_verified": {
+    "what": "交接里写着「启用后能看到唯一还没验过的那一环：云端凭据是否真的有效」。",
+    "how_i_checked": "先不启用定时器，只 `systemctl start social-archive-replication.service` 跑一次真实的复制，再直接查生产库的 object_replica 表。",
+    "result": "**R2 与 OCI 的凭据都有效。** 第一次单跑就把 201 个制品复制上去并逐个回读校验通过。"
+  },
+  "a_real_defect_found_and_fixed_on_the_way": {
+    "symptom": "第一次跑之后 18 条失败，object_key=\"encryption-failed\"、last_error_code=\"PermissionError\"；继续跑涨到 33 条。",
+    "wrong_first_guess": "先怀疑是制品文件读不了。**实测否定**：以 socialarchive 身份 `test -r` 与真读一段都成功。源文件没问题。",
+    "actual_root_cause": {
+      "where": "/var/lib/social-archive/staging/encrypted/sha256/<xx>/<yy>/ —— age 加密产物的缓存树",
+      "measurement": "533 个分片目录属主是 socialarchive:socialarchive，**33 个是 root:socialarchive，模式 2755（组只读）**。失败的复制正好 33 条，数字精确对上。",
+      "why": "某次有人用 root 手工跑过脚本，留下 33 个 root 属主的分片目录。此后以 User=socialarchive 运行的定时任务在这些分片里 mkdir 会被拒绝——而失败点在**写加密缓存**，不是读源文件，所以症状看起来像「读不了」。",
+      "fix": "chown -R socialarchive:socialarchive 整棵缓存树，并把目录改成 2775（setgid + 组可写），让 root 与 socialarchive 两个写入方不再互相锁死。",
+      "verified": "改完再跑一次 → 33 条失败全部清零，549/549 双副本。"
+    }
+  },
+  "still_blocked_on_owner": {
+    "item": "第三份副本（GitHub Release 加密包）",
+    "measured_facts": [
+      "配置指向 SOCIAL_ARCHIVE_GITHUB_ARCHIVE_REPOSITORY=LinzeColin/Social-Archive-Vault",
+      "**这个仓库不存在。** 用有私有仓权限的那个 token 查也解析不到（排除了「私有所以看不见」这个可能）。",
+      "顺带查出第二个问题：systemd 复制单元 LoadCredential 的是 runtime/secrets/github_token，而**那个 token 没有私有仓权限**（用它 `gh repo list` 只列得出公开仓，Private-Database 直接报 not resolvable）。Core 容器拿到的是另一个——compose 把 github_markdown_token 映射成容器内的 github_token。也就是说即使仓建好了，这条 systemd 路径仍然会失败。"
+    ],
+    "why_i_did_not_just_fix_it": "建 GitHub 仓库在 L0 硬边界的禁止清单里（「不得新建 GitHub 仓库」）。改归档仓指向哪里，是 Owner 对自己加密数据落在哪的决定，不替他选。",
+    "the_minimal_decision": [
+      "A）Owner 自己建一个私有仓 LinzeColin/Social-Archive-Vault，我把单元的 token 换成有权限的那个",
+      "B）把归档仓改指向已存在的私有仓（例如 Private-Database，事实与 Markdown 已经写在那里）",
+      "C）就用两份副本（R2+OCI），我把第三份干净地关掉，让单元不再报失败"
+    ],
+    "note": "在决定之前，复制单元每次都会以 exit 3 结束——**前两份副本已经写完并校验通过**，失败的只是第三份那一步。"
+  },
+  "what_this_does_not_prove": [
+    "没有验证过「从副本恢复」——只验证了写上去并回读校验哈希一致。真正的恢复演练是另一件事（scripts/restore_object.py），本次没做。",
+    "备份定时器（backup.timer）是每日触发，下一次在 22 小时后。**它这一轮没有真的跑过一次**，只确认了它已 enabled/active。",
+    "没有验证配额门（R2 8/9.25 GiB 等）在真实数据量下的行为——当前用量未测。",
+    "GitHub Release 那一份自始至终没有成功过（当前 2 条是更早留下的）。",
+    "生产上跑的是**部署中的旧代码**（v0.0.0.6 镜像），本分支的改动尚未部署（T18）。本次修的是宿主机上的文件属主，与代码版本无关。"
+  ]
+}
