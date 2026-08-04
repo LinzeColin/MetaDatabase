@@ -36,14 +36,23 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-API = ROOT / "src/social_archive/api.py"
+# **不能只扫 api.py。** 登录那 7 条路由在 auth.py 里（FastAPI router），
+# 这道门从来没看过它——于是「产品里没有登录按钮」这件事一直没被报出来：
+# 7 条路由里只有 POST /v1/auth/extension-token 有客户端调用，
+# 而 /v1/auth/{provider}/start **零调用**，用户打开页面根本没得点。
+# 实测于 Owner 说「我点击也登陆了」而服务端 oauth_identity / session 都是 0 之后。
+# 本轮第六次射程写错。
+API_FILES = [
+    ROOT / "src/social_archive/api.py",
+    ROOT / "src/social_archive/auth.py",
+]
 # **客户端不只有界面。** scripts/ 下的运维脚本（status_server、备份、复制）
 # 同样是这些接口的真实调用方。第一版只扫 apps/，把 /v1/jobs、
 # /v1/status-projection、/v1/storage/status 等一批全报成死接口——
 # **又一次射程写错**，本会话第三次。
 CLIENT_DIRS = ("apps", "scripts")
 
-ROUTE = re.compile(r'@(?:app|router)\.(get|post|put|delete|patch)\(\s*"(/v1/[^"]*)"')
+ROUTE = re.compile(r'@(?:app|router)\.(get|post|put|delete|patch)\(\s*"(/[^"]*)"')
 
 # 有意不给界面调的接口。每条写清为什么。
 NOT_FOR_CLIENTS: dict[str, str] = {
@@ -131,7 +140,8 @@ def client_text() -> str:
 
 
 def main() -> int:
-    api_text = API.read_text(encoding="utf-8")
+    api_text = "\n".join(p.read_text(encoding="utf-8") for p in API_FILES if p.is_file())
+    assert api_text, "一个路由文件都没读到——判据在空转"
     blob = client_text()
 
     routes: dict[str, set[str]] = {}

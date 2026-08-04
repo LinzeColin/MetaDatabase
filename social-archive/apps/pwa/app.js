@@ -156,6 +156,8 @@
   const state = {
     rows: [], total: 0, facets: { platforms: [], topics: [] }, platformCounts: {},
     accounts: [], syncRuns: [], destinations: [], serviceReady: false,
+    // 登录身份（v0.0.0.7 / T02）。null = 未登录，登录闸会盖住整页。
+    user: null,
     extension: { detected: false, paired: false, compatible: false, version: "", pairingRequired: false, oneTimeCodeAvailable: false, refreshedAt: null },
     platform: "all", group: true, sortKey: "savedAt", sortDir: "desc", search: "",
     filters: { relation: "all", topic: "all", date: "all", archive: "all" },
@@ -1026,10 +1028,39 @@
       <article class="settings-card"><label><input id="settingCompact" type="checkbox" ${document.body.classList.contains("compact") ? "checked" : ""}><span><strong>紧凑表格</strong><span>同屏显示更多收藏内容。</span></span></label></article>
       <article class="settings-card"><label><input id="settingDark" type="checkbox" ${document.documentElement.dataset.theme === "dark" ? "checked" : ""}><span><strong>深色主题</strong><span>只影响当前浏览器，不改变归档数据。</span></span></label></article>
       <article class="settings-card"><label><input type="checkbox" checked disabled><span><strong>默认 L0＋L1＋L3</strong><span>L2 页面快照默认关闭，不阻塞主流程。</span></span></label></article>
+    </div>
+    <div class="settings-grid" style="margin-top:10px">
+      <article class="settings-card"><div><strong>当前登录</strong><div class="muted" style="margin-top:4px">${escapeHtml(state.user?.display_name || "未知")}</div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn small" id="settingLogout">退出登录</button>
+          <button class="btn small subtle-danger" id="settingRevokeExtension">断开浏览器插件</button>
+        </div>
+        <div class="muted" style="margin-top:8px">退出登录不会删除任何已归档内容。断开插件后，插件上行会立刻失效，重新登录页面即可再次接上。</div>
+      </div></article>
     </div>`;
     $("settingGroup").addEventListener("change", event => { state.group = event.target.checked; $("groupBtn").classList.toggle("active", state.group); persistUi(); renderTable(); });
     $("settingCompact").addEventListener("change", event => { document.body.classList.toggle("compact", event.target.checked); $("densityBtn").classList.toggle("active", event.target.checked); persistUi(); });
     $("settingDark").addEventListener("change", event => { document.documentElement.dataset.theme = event.target.checked ? "dark" : "light"; persistUi(); });
+    $("settingLogout").addEventListener("click", logout);
+    // 断开插件（DELETE /v1/auth/extension-token）。此前这条路由**没有任何调用方**：
+    // 令牌发得出去、收不回来。INV-REVERSIBLE 同一条。
+    $("settingRevokeExtension").addEventListener("click", async event => {
+      const button = event.currentTarget;
+      if (!confirm("断开后浏览器插件会立刻失去访问权限（上行返回 401）。\n\n已归档的内容一条都不会删。重新打开本页面即可再次接上。\n\n确定断开吗？")) return;
+      button.disabled = true;
+      const original = button.textContent;
+      button.textContent = "正在断开…";
+      try {
+        await api("/v1/auth/extension-token", { method: "DELETE", timeoutMs: 8000 });
+        showToast("已断开浏览器插件。");
+        await refreshExtensionStatus();
+      } catch (error) {
+        showToast(error.message || "断开失败，请稍后再试。", "error");
+      } finally {
+        button.disabled = false;
+        button.textContent = original;
+      }
+    });
   }
 
   function openModal(id) { $(id)?.classList.add("open"); }
@@ -1179,7 +1210,90 @@
     return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); };
   }
 
+  /** 登录闸（v0.0.0.7 / T02）。
+   *
+   * ## 为什么这段是后补的
+   *
+   * `auth.py` 提供了 7 条登录路由，而全仓客户端**只调用其中一条**
+   * （POST /v1/auth/extension-token）。`/v1/auth/{provider}/start` 零调用——
+   * 也就是说产品里**根本没有登录按钮**。
+   *
+   * Owner 打开页面、点了、告诉我「我点击也登陆了」，而服务端
+   * oauth_identity 与 session 都是 0。不是他操作错了，是没有东西可点。
+   *
+   * 这一条一直没被发现，是因为「接口没人调」那道门只扫 api.py，
+   * 从没看过 auth.py（本轮第六次射程写错）。
+   *
+   * ## 契约
+   *
+   *   GET  /v1/auth/me                 401 = 未登录
+   *   GET  /v1/auth/providers          → [{name, configured}]，没配好的不显示
+   *   GET  /v1/auth/{name}/start       → {authorize_url}，**要自己跳过去**
+   *   POST /v1/auth/logout
+   *
+   * 没配好的 provider 不画按钮——比画一个点了就报 503 的按钮好。
+   */
+  async function requireLogin() {
+    const gate = $("loginGate");
+    try {
+      const me = await api("/v1/auth/me", { timeoutMs: 8000 });
+      state.user = me;
+      gate.classList.add("hidden");
+      return true;
+    } catch (error) {
+      if (error.status && error.status !== 401 && error.status !== 403) throw error;
+    }
+    state.user = null;
+    gate.classList.remove("hidden");
+    const buttons = $("loginButtons");
+    const note = $("loginNote");
+    try {
+      const { providers = [] } = await api("/v1/auth/providers", { timeoutMs: 8000 });
+      const usable = providers.filter(item => item.configured);
+      if (!usable.length) {
+        buttons.innerHTML = "";
+        note.textContent = "登录还没有配置好（缺少 Google / GitHub 的应用凭据），请联系管理员。";
+        return false;
+      }
+      const label = { google: "用 Google 登录", github: "用 GitHub 登录" };
+      buttons.innerHTML = usable
+        .map(item => `<button class="btn primary login-btn" data-login-provider="${escapeHtml(item.name)}">${escapeHtml(label[item.name] || item.name)}</button>`)
+        .join("");
+      note.textContent = "登录后浏览器插件会自动接上，你不需要输入任何字符。";
+      document.querySelectorAll("[data-login-provider]").forEach(button =>
+        button.addEventListener("click", () => startLogin(button.dataset.loginProvider, button)));
+    } catch (error) {
+      buttons.innerHTML = "";
+      note.textContent = `连不上档案馆服务：${error.message}`;
+    }
+    return false;
+  }
+
+  async function startLogin(provider, button) {
+    button.disabled = true;
+    const original = button.textContent;
+    button.textContent = "正在跳转…";
+    try {
+      // start 只返回 authorize_url 并种下 state cookie，**跳转要自己做**。
+      const { authorize_url: url } = await api(`/v1/auth/${encodeURIComponent(provider)}/start`, { timeoutMs: 10000 });
+      if (!url) throw new Error("没有拿到授权地址");
+      location.href = url;
+    } catch (error) {
+      button.disabled = false;
+      button.textContent = original;
+      $("loginNote").textContent = error.message || "登录没能开始，请稍后再试。";
+    }
+  }
+
+  async function logout() {
+    try { await api("/v1/auth/logout", { method: "POST", timeoutMs: 8000 }); } catch (_) { /* 已经登出也算登出 */ }
+    location.reload();
+  }
+
   async function init() {
+    // **先过登录闸。** 没登录时后面每一个接口都会 401，
+    // 那样用户看到的是一堆「服务连接异常」，而真正的原因是没登录。
+    if (!await requireLogin()) return;
     loadUiSettings();
     bind();
     updateSortLabel();
@@ -1195,7 +1309,7 @@
       $("syncSummaryText").textContent = " · 请刷新页面或检查登录状态";
     }
     await loadLibrary();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=007-r1").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=007-r2").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {

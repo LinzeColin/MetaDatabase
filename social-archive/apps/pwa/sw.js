@@ -2,7 +2,7 @@
 // v0.0.0.7 改了失败文案渲染（T14）与账号连接流程（T03/T06），
 // 名字还停在 v006 的话，这些改动对老用户等于没发布。
 // 实测踩到过：本地验 T14 时页面一直显示旧文案，就是它。
-const CACHE = "social-archive-ui-v007-r1";
+const CACHE = "social-archive-ui-v007-r2";
 const ASSETS = [
   "/",
   "/assets/styles.css?v=007-r1",

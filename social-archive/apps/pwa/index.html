@@ -8,6 +8,20 @@
 
 <link href="/assets/styles.css?v=007-r1" rel="stylesheet"/><link href="/assets/manifest.webmanifest?v=007-r1" rel="manifest"/><link href="/assets/favicon.svg" rel="icon" type="image/svg+xml"/></head>
 <body>
+<!-- 登录闸（v0.0.0.7 / T02）。
+     此前**产品里根本没有登录入口**：auth.py 提供了 7 条路由，而全仓客户端
+     只调用其中一条（换扩展令牌）。Owner 打开页面、以为自己登录了，
+     而服务端 oauth_identity 与 session 都是 0 —— 因为没有任何东西可点。
+     未登录时这一层盖住整页；登录后由 app.js 移除。 -->
+<div class="login-gate hidden" id="loginGate">
+  <div class="login-card">
+    <div class="brand-mark">SA</div>
+    <h1>Social Archive</h1>
+    <p>你的私人档案馆。用下面任意一个账号登录即可，<strong>不需要输入任何密码</strong>。</p>
+    <div class="login-buttons" id="loginButtons"></div>
+    <p class="login-note" id="loginNote"></p>
+  </div>
+</div>
 <header class="app-header">
 <div aria-label="Social Archive" class="brand">
 <div class="brand-mark">SA</div>
