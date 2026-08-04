@@ -54,7 +54,22 @@
     "没有验证过「从副本恢复」——只验证了写上去并回读校验哈希一致。真正的恢复演练是另一件事（scripts/restore_object.py），本次没做。",
     "备份定时器（backup.timer）是每日触发，下一次在 22 小时后。**它这一轮没有真的跑过一次**，只确认了它已 enabled/active。",
     "没有验证配额门（R2 8/9.25 GiB 等）在真实数据量下的行为——当前用量未测。",
-    "GitHub Release 那一份自始至终没有成功过（当前 2 条是更早留下的）。",
-    "生产上跑的是**部署中的旧代码**（v0.0.0.6 镜像），本分支的改动尚未部署（T18）。本次修的是宿主机上的文件属主，与代码版本无关。"
-  ]
+    "生产上跑的是**部署中的旧代码**（v0.0.0.6 镜像），本分支的改动尚未部署（T18）。本次修的是宿主机上的文件属主，与代码版本无关。",
+    "**没有做过一次真实恢复演练。** 三副本都写上去并回读校验了哈希，但没有真的从副本恢复过一个对象（scripts/restore_object.py 未跑）。写得进去不等于取得回来。"
+  ],
+  "third_replica_now_works_too": {
+    "at": "2026-08-04T06:09Z",
+    "owner_decision": "「私有仓就是 private database repo」——归档仓改指向 LinzeColin/Private-Database。",
+    "two_defects_both_required_fixing": [
+      "配置指向的 LinzeColin/Social-Archive-Vault **不存在**（用有私有权限的 token 查也解析不到，排除了「私有所以看不见」）。",
+      "systemd 复制单元 LoadCredential 的是 runtime/secrets/github_token，而**那个 token 没有私有仓权限**。Core 容器一直用的是另一个（compose 把 github_markdown_token 映射进去），只有这条 systemd 路径漏了。**只修其中一个仍然失败**，而两种失败的报错都是「私有归档仓验证失败」。"
+    ],
+    "measured_after": {
+      "unit": "Result=success，ExecMainStatus=0（此前恒为 exit 3）",
+      "github_release": "status PASS，repository LinzeColin/Private-Database，47 个对象打包，rejected_object_count 0",
+      "completion": "all_three_verified 549 / pending 0",
+      "db": "github verified 549 ｜ oci verified 549 ｜ r2 verified 549"
+    },
+    "verdict": "三副本目标达成。开工时 549 个制品里只有 19 个有任何异地副本。"
+  }
 }
