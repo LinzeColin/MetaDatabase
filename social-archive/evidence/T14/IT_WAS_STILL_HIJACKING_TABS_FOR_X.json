@@ -37,5 +37,12 @@
     "**不证明 x / reddit / instagram 现在真的同步得到东西。** 只证明它们不再抢标签页，而且走的是服务端那条路。服务端那条路能不能成，取决于凭据与授权——那是 T06，仍然要 Owner 授权一次 X。",
     "不证明经由闹钟 → processSyncQueue 的真实路径也是 0 次。测到的是直接调 syncAccountById 与 runBrowserAccountSync；闹钟那一层没有跑过。",
     "bilibili 那条矛盾（server_handled 与 sync_supported 相反）现在靠**分流顺序**避开，判据钉住了顺序。但两张服务端表本身仍然互相矛盾，没有合并——合并要先决定 SERVER_ACCOUNT_CONNECTORS 到底是「登记了谁」还是「做得成谁」，那是设计问题，不在本次范围内。"
-  ]
+  ],
+  "regression_check_on_the_one_path_that_works": {
+    "why": "这一轮我动了 syncAccountById 的分流（platformCapability / startServerSideSync / 顺序调整）。**唯一真的能用的那条路是 Chrome 书签**（T04 实测 62 条）——如果被这些改动带坏了，产品就一件事都做不成了。",
+    "how": "真 Chrome + 实际下发的包，在 service worker 里替换掉三条出口（syncChromeBookmarks / startServerSideSync / runBrowserAccountSync）并计数，另外把 chrome.tabs.update 也计数。",
+    "chrome_bookmarks": "{bookmarks:1, server:0, browser:0, tabs:0} —— 仍然直达书签那条路，**一个标签页都没碰**",
+    "not_syncable_x": "被拒绝：「本版本还不能自动读取这个平台的收藏列表，已停止，不会反复重试。」；server:0、browser:0、tabs:0 —— **没有掉进服务端那条同样干不成的路**，证明「先问能不能同步、再问谁来干」这个顺序是生效的",
+    "verdict": "没有回归。"
+  }
 }
