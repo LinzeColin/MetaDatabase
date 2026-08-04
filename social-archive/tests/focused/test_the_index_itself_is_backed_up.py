@@ -229,3 +229,51 @@ def test_the_index_keeps_up_with_the_artifacts() -> None:
     # 每天那一次仍然要留着：它是兜底，且不受 --skip-if-unchanged 影响
     daily = (ROOT / "deploy/systemd/social-archive-backup.service").read_text(encoding="utf-8")
     assert "backup_runtime_db.py" in daily, "每天那一次兜底被拿掉了"
+
+
+def test_the_index_can_have_the_same_three_copies_as_the_artifacts() -> None:
+    """制品有三份副本，索引原来只有两份。**同一件事该有同一个标准。**
+
+    尤其索引比制品更要紧：制品丢一个是丢一条内容，索引丢了是 552 个
+    都说不出是什么。
+    """
+    code = "\n".join(
+        l for l in (ROOT / "scripts/backup_runtime_db.py").read_text(encoding="utf-8").splitlines()
+        if not l.lstrip().startswith("#")
+    )
+    assert "--github" in code, "索引没有第三份副本的路"
+    assert "verify_draft_release" in code, "没有确认那个 release 真的是 Draft"
+    assert "GitHub Draft Release 回读哈希不一致" in code, "上传了却不回读比对"
+    # 复用，不抄第二遍
+    assert "from github_release_backup import" in code, (
+        "自己又写了一套 Draft Release 逻辑——两份必然漂开"
+    )
+
+
+def test_the_third_copy_is_not_attempted_before_the_first_is_verified() -> None:
+    """和 R2→OCI 同一条规矩：前一份没验成就不往下走。"""
+    code = "\n".join(
+        l for l in (ROOT / "scripts/backup_runtime_db.py").read_text(encoding="utf-8").splitlines()
+        if not l.lstrip().startswith("#")
+    )
+    assert 'if args.github and receipts.get("r2", {}).get("status") == "verified"' in code
+
+
+def test_the_github_copy_uses_a_draft_release_in_a_private_repo() -> None:
+    """草稿 + 私有仓：这两条是备份能放在 GitHub 上的前提。"""
+    code = (ROOT / "scripts/backup_runtime_db.py").read_text(encoding="utf-8")
+    assert "verify_private_repository" in code, "没有确认那是私有仓"
+    assert '"--draft"' in code, "建的不是 Draft Release"
+
+
+def test_only_the_daily_run_pushes_a_third_copy() -> None:
+    """Draft Release 每刻钟建一个会把仓刷爆，而且没必要——
+    前两份已经跟上了节奏，第三份每天补一次即可。"""
+    daily = (ROOT / "deploy/systemd/social-archive-backup.service").read_text(encoding="utf-8")
+    frequent = (ROOT / "deploy/systemd/social-archive-replication.service").read_text(encoding="utf-8")
+    daily_lines = [l for l in daily.splitlines() if l.startswith("ExecStart=") and "backup_runtime_db" in l]
+    frequent_lines = [l for l in frequent.splitlines() if l.startswith("ExecStart=") and "backup_runtime_db" in l]
+    assert daily_lines and all("--github" in l for l in daily_lines), "每天那一次没补第三份"
+    assert frequent_lines and not any("--github" in l for l in frequent_lines), (
+        "每刻钟都去建 Draft Release——会把私有仓刷爆"
+    )

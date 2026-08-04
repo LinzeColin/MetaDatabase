@@ -54,6 +54,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from backup import _s3_config, _upload_and_verify  # noqa: E402  复用同一份实现，不抄第二遍
+from github_release_backup import (  # noqa: E402  同上：Draft Release 那一套已经写好了
+    github_cli_environment,
+    run as run_gh,
+    verify_draft_release,
+    verify_private_repository,
+)
 from social_archive.config import Settings  # noqa: E402
 from social_archive.encryption import AgeEncryptor  # noqa: E402
 from social_archive.storage import StoredObject  # noqa: E402
@@ -135,6 +141,9 @@ def main() -> int:
     # 加上这个开关之后，可以每 15 分钟跑一次而只在库真的变了时才上传：
     # 闲着的那些轮次是一次 VACUUM INTO + 一次哈希，不产生任何流量。
     parser.add_argument("--skip-if-unchanged", action="store_true")
+    # 制品有三份副本，索引原来只有两份（R2 + OCI）。**同一件事该有同一个标准。**
+    parser.add_argument("--github", action="store_true",
+                        help="额外把快照放进 GitHub 私有仓的 Draft Release，凑齐第三份")
     args = parser.parse_args()
 
     settings = Settings.from_env()
@@ -214,6 +223,48 @@ def main() -> int:
         except Exception as exc:  # noqa: BLE001 - 提供方边界
             receipts["oci"] = {"status": "failed", "error_code": exc.__class__.__name__}
 
+    # **第三份：GitHub 私有仓的 Draft Release。**
+    #
+    # 制品有三份副本，索引原来只有两份。同一件事该有同一个标准——尤其索引
+    # 比制品更要紧：制品丢一个是丢一条内容，索引丢了是 552 个都说不出是什么。
+    #
+    # 复用 github_release_backup.py 里那一套（建 Draft、确认它真是 Draft、
+    # 上传、下载回读比哈希），不抄第二遍。
+    if args.github and receipts.get("r2", {}).get("status") == "verified":
+        repository = str(getattr(settings, "github_archive_repository", "") or "").strip()
+        github_env = github_cli_environment(settings.github_token_file)
+        if not repository or github_env is None:
+            receipts["github"] = {"status": "blocked_prerequisite",
+                                  "error_code": "GITHUB_VAULT_NOT_CONFIGURED"}
+        elif not shutil.which("gh"):
+            receipts["github"] = {"status": "blocked_prerequisite", "error_code": "GH_BINARY_MISSING"}
+        else:
+            tag = f"social-archive-runtime-db-{stamp}"
+            try:
+                verify_private_repository(repository, env=github_env)
+                run_gh(["gh", "release", "create", tag, "--repo", repository, "--draft",
+                        "--title", tag, "--notes", "Social Archive runtime index snapshot (age-encrypted)"],
+                       env=github_env)
+                verify_draft_release(repository, tag, env=github_env)
+                run_gh(["gh", "release", "upload", tag, str(ciphertext), "--repo", repository],
+                       env=github_env)
+                with tempfile.TemporaryDirectory(prefix="social-archive-gh-db-readback-") as readback:
+                    download_dir = Path(readback)
+                    run_gh(["gh", "release", "download", tag, "--repo", repository,
+                            "--dir", str(download_dir)], env=github_env)
+                    fetched = download_dir / ciphertext.name
+                    if not fetched.is_file() or sha256_file(fetched) != encrypted.cipher_sha256:
+                        raise RuntimeError("GitHub Draft Release 回读哈希不一致")
+                receipts["github"] = {
+                    "status": "verified",
+                    "object_key": f"gh-release://{repository}/{tag}#{ciphertext.name}",
+                    "cipher_sha256": encrypted.cipher_sha256,
+                    "original_sha256": encrypted.original_sha256,
+                    "encryption": encrypted.algorithm,
+                }
+            except Exception as exc:  # noqa: BLE001 - 提供方边界
+                receipts["github"] = {"status": "failed", "error_code": exc.__class__.__name__}
+
     verified = sum(1 for receipt in receipts.values() if receipt.get("status") == "verified")
     manifest = {
         "schema_version": "1.0",
@@ -227,6 +278,7 @@ def main() -> int:
         "object_key": key,
         "receipts": receipts,
         "verified_remote_copies": verified,
+        "required_verified_copies": REQUIRED_VERIFIED_COPIES,
     }
     (root / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"

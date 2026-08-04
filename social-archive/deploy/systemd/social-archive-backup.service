@@ -22,7 +22,11 @@ ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/backu
 # 盘没了的话，三个云上躺着 552 个加密块，而没有任何东西说得出它们是什么：
 # 标题、链接、关系、artifact→content 的对应，全在这个库里。
 # 制品还在，档案馆没了。
-ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/backup_runtime_db.py
+# 每天这一次带上 --github，把第三份补齐（制品是三份，索引也该是三份）。
+# 15 分钟那一次（在 replication 单元里）**不带** --github：
+# Draft Release 每刻钟建一个会把仓刷爆，而且没必要——
+# 前两份已经跟上了节奏，第三份每天补一次即可。
+ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/backup_runtime_db.py --github
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict
