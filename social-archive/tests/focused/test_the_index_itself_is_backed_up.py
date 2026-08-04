@@ -155,3 +155,77 @@ def test_decrypt_failure_does_not_echo_stderr() -> None:
         "把 age 的 stderr 回显出去了"
     )
     assert "不回显 stderr" in block, "没有写清为什么不回显——下一个人会顺手加回去"
+
+
+# ——— 「这次和上次一样吗」要判得准，两半都必须确定 ———
+
+
+def test_vacuum_into_is_deterministic_for_an_unchanged_database(tmp_path: Path) -> None:
+    """变更检测的前提。构造里特意留了 freelist（删过几行）。"""
+    import hashlib
+
+    source = tmp_path / "live.sqlite3"
+    con = sqlite3.connect(source)
+    con.execute("PRAGMA journal_mode=WAL")
+    con.execute("CREATE TABLE content(id TEXT PRIMARY KEY, title TEXT)")
+    con.executemany("INSERT INTO content VALUES(?,?)", [(f"c{i}", f"t{i}") for i in range(500)])
+    con.execute("DELETE FROM content WHERE id IN ('c1','c2','c3')")
+    con.commit()
+    module = _module()
+    hashes = {
+        hashlib.sha256(module.snapshot_database(source, tmp_path / f"s{n}.sqlite3").read_bytes()).hexdigest()
+        for n in range(3)
+    }
+    con.close()
+    assert len(hashes) == 1, "同一个库连做三次 VACUUM INTO 结果不一致，变更检测就没有依据"
+
+
+def test_the_gzip_header_does_not_leak_time_or_filename(tmp_path: Path) -> None:
+    """**只置 mtime=0 还不够。**
+
+    GzipFile 拿到 fileobj 时会从 `fileobj.name` 推出一个文件名写进头部。
+    实测：同样的内容写进 a.gz 与 b.gz，哈希 7bddc5ee… vs a5b42f87…，
+    **不一致**；显式 filename="" 之后两次都是 fc32ac2f…。
+    """
+    import hashlib
+
+    module = _module()
+    source = tmp_path / "payload"
+    source.write_bytes(b"hello" * 10000)
+    first = module._gzip(source, tmp_path / "first-name.gz")
+    second = module._gzip(source, tmp_path / "a-totally-different-name.gz")
+    assert hashlib.sha256(first.read_bytes()).hexdigest() == hashlib.sha256(second.read_bytes()).hexdigest(), (
+        "压出来的字节跟着文件名/时间变——「这次和上次一样吗」就判不准了"
+    )
+
+
+def test_unchanged_runs_do_not_upload_again() -> None:
+    code = "\n".join(
+        l for l in (ROOT / "scripts/backup_runtime_db.py").read_text(encoding="utf-8").splitlines()
+        if not l.lstrip().startswith("#")
+    )
+    assert "--skip-if-unchanged" in code, "没法跟着复制定时器跑"
+    assert "RUNTIME_DB_UNCHANGED" in code
+    skip_at = code.index("RUNTIME_DB_UNCHANGED")
+    # **锚在真正的调用上，不是文件顶部的 import。** 第一版钉在 "_upload_and_verify"
+    # 上，而那个名字在第 56 行的 import 里就出现了，于是判据永远说「先传后判」。
+    upload_at = code.index('receipts["r2"] = _upload_and_verify')
+    assert skip_at < upload_at, "先传了再判断，等于没省"
+
+
+def test_the_index_keeps_up_with_the_artifacts() -> None:
+    """制品每 ~15 分钟复制一次，索引原来一天才备一次。
+
+    机器在这两者之间没了，就会留下一批**有制品、没索引行**的孤儿密文
+    ——救回来也不知道是什么。
+    """
+    unit = (ROOT / "deploy/systemd/social-archive-replication.service").read_text(encoding="utf-8")
+    lines = [l for l in unit.splitlines() if l.startswith("ExecStart=")]
+    matched = [l for l in lines if "backup_runtime_db.py" in l]
+    assert matched, "复制单元不带索引快照——索引仍然落后制品一整天"
+    assert all("--skip-if-unchanged" in l for l in matched), (
+        "每 15 分钟无条件传一次 1MB，一年就是 35GB——必须只在库变了时才传"
+    )
+    # 每天那一次仍然要留着：它是兜底，且不受 --skip-if-unchanged 影响
+    daily = (ROOT / "deploy/systemd/social-archive-backup.service").read_text(encoding="utf-8")
+    assert "backup_runtime_db.py" in daily, "每天那一次兜底被拿掉了"

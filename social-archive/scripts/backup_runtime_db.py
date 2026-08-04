@@ -80,9 +80,40 @@ def snapshot_database(runtime_db: Path, target: Path) -> Path:
 
 
 def _gzip(source: Path, target: Path) -> Path:
-    with source.open("rb") as raw, gzip.open(target, "wb", compresslevel=6) as packed:
-        shutil.copyfileobj(raw, packed, length=1024 * 1024)
+    """确定性 gzip：**mtime 写 0，filename 写空**。
+
+    默认的 gzip 会把当前时间写进头部，于是同样的输入每次压出来的字节都不同，
+    `original_sha256` 就永远在变——那样「这次和上次一样吗」根本没法判。
+
+    **只置 mtime=0 还不够。** GzipFile 拿到 fileobj 时会从 `fileobj.name`
+    推出一个文件名也写进头部——实测：同样的内容写进 a.gz 与 b.gz，
+    哈希分别是 7bddc5ee… 与 a5b42f87…，**不一致**；显式 `filename=""`
+    之后两次都是 fc32ac2f…。这是我自己的自测抓出来的。
+
+    另一半：VACUUM INTO 对未变化的库是确定性的（同一个库连做三次，
+    哈希一致，且构造里带了 freelist）。两半都确定，整条链才可比。
+    """
+    with source.open("rb") as raw, target.open("wb") as out:
+        with gzip.GzipFile(fileobj=out, mode="wb", compresslevel=6, mtime=0, filename="") as packed:
+            shutil.copyfileobj(raw, packed, length=1024 * 1024)
     return target
+
+
+def previous_original_sha256(backups_root: Path) -> str | None:
+    """上一次成功的快照明文哈希。找不到就返回 None（当作「变了」）。"""
+    if not backups_root.is_dir():
+        return None
+    for directory in sorted(backups_root.iterdir(), reverse=True):
+        manifest = directory / "manifest.json"
+        if not manifest.is_file():
+            continue
+        try:
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if int(data.get("verified_remote_copies") or 0) >= REQUIRED_VERIFIED_COPIES:
+            return str(data.get("original_sha256") or "") or None
+    return None
 
 
 def _fail(code: str, message: str, **extra: Any) -> int:
@@ -97,6 +128,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="把运行库快照加密后复制到 R2 与 OCI")
     parser.add_argument("--output")
     parser.add_argument("--dry-run", action="store_true")
+    # **让它能跟着复制定时器跑。**
+    #
+    # 制品每 ~15 分钟复制一次，而索引原来一天才备一次。机器在这两者之间没了，
+    # 就会留下一批**有制品、没索引行**的孤儿密文——救回来也不知道是什么。
+    # 加上这个开关之后，可以每 15 分钟跑一次而只在库真的变了时才上传：
+    # 闲着的那些轮次是一次 VACUUM INTO + 一次哈希，不产生任何流量。
+    parser.add_argument("--skip-if-unchanged", action="store_true")
     args = parser.parse_args()
 
     settings = Settings.from_env()
@@ -123,26 +161,47 @@ def main() -> int:
         }, ensure_ascii=False))
         return 0
 
-    root.mkdir(parents=True, exist_ok=True)
-    try:
-        with tempfile.TemporaryDirectory(prefix="social-archive-db-backup-") as temporary:
-            work = Path(temporary)
+    # **先不建目录。** 这一轮可能因为「库没变」而什么都不产出；
+    # 先建再删会让「脚本里不许有删除动作」这条判据失去意义——
+    # 而那条判据守的是「不许自动删历史备份」，是对的。
+    #
+    # 密文先落在临时目录里；确认这一轮要上传之后，再建正式目录并把它挪过去。
+    # （**别让 encrypted.path 指向一个 with 块退出就消失的地方**——
+    #  第一版就是这么写的，上传会拿到一个不存在的文件。）
+    with tempfile.TemporaryDirectory(prefix="social-archive-db-backup-") as temporary:
+        work = Path(temporary)
+        try:
             snapshot = snapshot_database(settings.runtime_db, work / "runtime.sqlite3")
             packed = _gzip(snapshot, work / "runtime.sqlite3.gz")
             original_sha = sha256_file(packed)
-            encryptor = AgeEncryptor(recipient=settings.age_recipient, root=root / "encrypted")
+            encryptor = AgeEncryptor(recipient=settings.age_recipient, root=work / "encrypted")
             encrypted = encryptor.encrypt(
                 StoredObject(original_sha, packed.stat().st_size, packed, "application/gzip")
             )
             snapshot_bytes = snapshot.stat().st_size
-    except Exception as exc:  # noqa: BLE001 - 快照/加密边界
-        return _fail("RUNTIME_DB_SNAPSHOT_FAILED", "运行库快照或加密失败",
-                     error_type=exc.__class__.__name__)
+        except Exception as exc:  # noqa: BLE001 - 快照/加密边界
+            return _fail("RUNTIME_DB_SNAPSHOT_FAILED", "运行库快照或加密失败",
+                         error_type=exc.__class__.__name__)
+
+        if args.skip_if_unchanged:
+            previous = previous_original_sha256(settings.data_root / "backups/runtime-db")
+            if previous and previous == encrypted.original_sha256:
+                print(json.dumps({
+                    "schema_version": "1.0", "generated_at": utcnow(), "status": "PASS",
+                    "skipped": True, "reason": "RUNTIME_DB_UNCHANGED",
+                    "original_sha256": encrypted.original_sha256,
+                }, ensure_ascii=False))
+                return 0
+
+        # 这一轮确实要上传了，正式目录现在才建。
+        ciphertext = root / "encrypted" / encrypted.path.name
+        ciphertext.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(encrypted.path, ciphertext)
 
     key = f"backups/runtime-db/{stamp}/{encrypted.original_sha256}.sqlite3.gz.age"
     receipts: dict[str, Any] = {}
     try:
-        receipts["r2"] = _upload_and_verify(r2_config, encrypted.path, key, encrypted,
+        receipts["r2"] = _upload_and_verify(r2_config, ciphertext, key, encrypted,
                                             root / "readback" / "r2.age")
     except Exception as exc:  # noqa: BLE001 - 提供方边界
         receipts["r2"] = {"status": "failed", "error_code": exc.__class__.__name__}
@@ -150,7 +209,7 @@ def main() -> int:
         receipts["oci"] = {"status": "blocked_prerequisite", "error_code": "R2_BACKUP_NOT_VERIFIED"}
     else:
         try:
-            receipts["oci"] = _upload_and_verify(oci_config, encrypted.path, key, encrypted,
+            receipts["oci"] = _upload_and_verify(oci_config, ciphertext, key, encrypted,
                                                  root / "readback" / "oci.age")
         except Exception as exc:  # noqa: BLE001 - 提供方边界
             receipts["oci"] = {"status": "failed", "error_code": exc.__class__.__name__}

@@ -27,6 +27,16 @@ Environment=SOCIAL_ARCHIVE_OCI_SECRET_ACCESS_KEY_FILE=%d/oci_secret_access_key
 Environment=SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token
 ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/replicate_objects.py --store all --limit 200
 ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/github_release_backup.py --upload
+# **索引要跟上制品的节奏。**
+#
+# 制品在这条单元里每 ~15 分钟复制一次，而运行库索引原来一天才备一次
+# （social-archive-backup.timer，03:20 UTC）。机器在这两者之间没了，
+# 就会留下一批**有制品、没索引行**的孤儿密文——救回来也不知道是什么。
+#
+# --skip-if-unchanged：库没变的那些轮次只做一次 VACUUM INTO + 一次哈希，
+# 不产生任何流量。变更检测的两半都实测过是确定性的
+# （VACUUM INTO 连做三次哈希一致；gzip 置 mtime=0 且 filename=""）。
+ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/backup_runtime_db.py --skip-if-unchanged
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict
