@@ -514,6 +514,27 @@ class RuntimeStore:
                    VALUES(?,?,?,?,'queued',0,?,?,?)""",
                 (job_id, job_type, connector_id, payload_raw, now, now, now),
             )
+            # **失败过的活儿，要能被重新请求。**
+            #
+            # job_id 是 (job_type, connector_id, payload) 的稳定哈希，配 INSERT OR IGNORE
+            # ——对**还没跑完**的活儿这是对的：同一件事不该排两次。
+            # 但一条 status='failed' 的记录会把这件事**永久钉死**：之后每一次
+            # enqueue 都被 IGNORE 掉，接口照样返回 job_id 和 202，界面照样说
+            # 「已加入队列」，而**没有任何东西会跑**。
+            #
+            # 2026-08-04 实测：markdown 导出修好之后我重排 83 条，79 条跑了，
+            # 剩下 4 条纹丝不动——它们在 2026-08-03T17:23 失败过，job 表里那一行
+            # 从那时起就没再动过。接口返回的是那 4 个旧 id。
+            #
+            # 只复活 failed。queued/running/retry 不动（本来就要跑），
+            # done 也不动——把已完成的活儿因为一次重复入队就重跑，
+            # 是另一种意外，得由调用方明确要求。
+            con.execute(
+                """UPDATE job SET status='queued', not_before=?, lease_owner=NULL,
+                       lease_expires_at=NULL, updated_at=?
+                   WHERE id=? AND status='failed'""",
+                (now, now, job_id),
+            )
         return job_id
 
     def claim_job(self, owner: str, lease_seconds: int = 120) -> dict[str, Any] | None:
