@@ -1,0 +1,38 @@
+{
+  "task": "T16",
+  "claim": "耐久性链条上最后一环是一把钥匙：制品 552 个各三份副本、索引两份远程副本，而解开它们的 age 私钥**全机只有一份**。这一条我修不了——**存到哪里去只能由 Owner 定**。已把它做成 doctor 里的永久提醒，并顺手修好了那个「对着正确状态喊 16 个 FAIL」的诊断。",
+  "invariant": "INV-REVERSIBLE",
+  "measured_at": "2026-08-04",
+
+  "the_measurement": {
+    "method": "按内容 sha256 在 /opt /var /home /root /etc /srv /mnt /media 全搜（**不打印任何内容**）",
+    "hits": 1,
+    "location": "/opt/social-archive/runtime/secrets/age_identity.txt，189 字节，0600",
+    "backup_scripts_mentioning_it": "backup.py 0 处、backup_runtime_db.py 0 处、replicate_objects.py 0 处、github_release_backup.py 0 处",
+    "why_zero_is_correct": "**私钥绝不能进它保护的那些仓。** 传上去等于三份副本一起失去意义。"
+  },
+
+  "the_consequence_stated_plainly": "这台机器毁了，R2 / OCI / GitHub 上那些副本**一份也解不开**。552 个制品、两份索引快照，全都变成永远打不开的密文。",
+
+  "why_i_cannot_fix_this": "第二份钥匙放哪里，是一个只有 Owner 能下的判断：打印出来放抽屉、存进密码管理器、放另一台机器、刻在纸上进保险箱——每一种都有不同的信任与风险取舍。而我按规矩**不经手也不传输任何密钥材料**。所以这里只做两件事：把风险摆到看得见的地方，和说清哪里**不能**放。",
+
+  "what_was_built_instead": {
+    "doctor_warning": "scripts/doctor.sh 每次都打印：私钥在哪、只有这一份、机器毁了副本全解不开、在别处存一份、**别把它放进任何一个对象仓**。",
+    "deliberately_not_a_pass_fail": "**不做通过/失败。** 产品验证不了你有没有在别处存过它（那正是它安全的原因）；做成绿灯就是又一个假的绿灯。判据把这一点钉住了：那一节里不许出现 PASS/FAIL。"
+  },
+
+  "the_diagnostic_that_was_crying_wolf": {
+    "before": "doctor.sh 的秘密文件权限一节在生产上打出 **16 个 FAIL**——而那 16 个文件全都是对的：挂进容器的密钥必须 0640，容器（core uid 10001、cli-tools uid 10002 / gid 10001）只能靠组权限读。",
+    "why_it_matters": "**一个总是喊狼来了的诊断，用不了几次就会被人整段跳过。** 今天已经有过同种病的另一例：部署闸门把十二个密钥全报成「缺失」（那次是漏了 sudo）。",
+    "fix": "两类各判各的：挂进容器的允许 640/440，仅宿主使用的仍然只许 600/400/0。挂载名单从 compose.yaml 读，不抄第二份。",
+    "after": "16 个 FAIL → 3 个，且那 3 个是**真的**：google_oauth_client_id / github_oauth_client_id / social_archive_pairing_code 都是 0640，而它们既没挂进任何容器、全仓也没有任何代码读它们。收紧到 0600 之后 **FAIL 数为 0**，服务照常（/v1/accounts 200、/v1/auth/providers 200）。"
+  },
+
+  "one_stale_thing_left_alone": "`.env` 里还有一行指向 social_archive_pairing_code，而配对码那条路 T03 就删了。**没有动它**：改 .env 是运维配置变更，而它现在不读也不害人。记在这里让人决定。",
+
+  "what_this_does_not_prove": [
+    "不证明 Owner 会去存那份钥匙。提醒只是提醒。",
+    "不证明那三个被收紧的文件真的没用。依据是「全仓无引用 + 没挂进任何容器」，收紧后服务两条路由仍是 200——**但没有跑完整的登录流程复验**。",
+    "不证明 doctor 现在覆盖得够。它只看权限位与这一条钥匙提醒；属主、属组、以及「文件是不是空的」都没查。"
+  ]
+}
