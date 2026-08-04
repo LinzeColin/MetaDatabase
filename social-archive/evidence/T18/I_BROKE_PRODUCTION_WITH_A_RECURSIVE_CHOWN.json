@@ -1,0 +1,78 @@
+{
+  "task": "T18",
+  "claim": "2026-08-04 的部署过程中，我用一条 `sudo chown -R ubuntu:ubuntu /opt/social-archive` 把生产上所有需要鉴权的路由打断了约 6 分钟。已恢复并验证；根因已固化成脚本与判据。",
+  "severity": "生产事故（自造、自查、自修，Owner 未受影响时段内已恢复）",
+
+  "what_broke": {
+    "symptom": "GET /v1/accounts → 500 Internal Server Error；其余所有要鉴权的路由同理。",
+    "traceback_tail": "social_archive/api.py:194 _expected_token() → utils.py:181 read_secret() → PermissionError: [Errno 13] Permission denied: '/run/secrets/social_archive_api_token'",
+    "mechanism": [
+      "Compose 的 file-based secret 是 **bind 挂载**，容器里看到的属主就是宿主机文件的实时属主。",
+      "Core 容器跑在 uid 10001 / gid 10001（Dockerfile: USER socialarchive）。",
+      "密钥文件是 0640，属组必须是 10001（宿主机上的 socialarchive-secrets 组）。",
+      "`chown -R ubuntu:ubuntu` 把属组改成了 1000。uid 10001 既不是属主也不在属组 → 0640 一点权限都不给 → read_secret 抛 PermissionError。"
+    ]
+  },
+
+  "why_i_did_it": "rsync 报 `Permission denied`：/opt/social-archive 下的文件属主是 uid 501（我 Mac 上的 uid，早先某次 rsync 带过去的数字 id），而我在服务器上是 ubuntu(1000)。我要的只是「让 rsync 写得进去」，敲的却是一条递归改属主——**把整棵树连同密钥目录一起改了**。",
+
+  "how_long": {
+    "broken_at": "2026-08-04T08:19Z（新容器起来，第一条鉴权请求即 500）",
+    "detected_at": "2026-08-04T08:21Z",
+    "detected_by": "我自己的部署后验收——我去打 /v1/accounts 看能力表，收到 500。",
+    "restored_at": "2026-08-04T08:26Z",
+    "owner_impact": "未收到 Owner 报障。但这不是「没影响」——只是没被撞上。"
+  },
+
+  "the_part_that_should_have_caught_it_and_did_not": {
+    "fact": "Docker 健康检查全程 200。容器一直显示 healthy。",
+    "why": "/health 不读任何密钥。",
+    "already_written_down": "scripts/prepare_systemd_host.sh 第 205 行早就写着：「只给前者，容器 /health 照样 200 而业务路由一律 401，界面永远『同步中』」——**同一个失效模式，仓库里白纸黑字，我读过，然后照样踩了**。经验只写在注释里，拦不住现敲的命令。"
+  },
+
+  "proof_it_was_working_before_my_chown": [
+    "同一天更早，我通过 `DELETE /v1/accounts/{id}` 成功断开了三个账号（小红书/抖音/B站，state 全部变成 disconnected）——那条路由走的正是 require_token → read_secret。",
+    "Owner 当天已经登录并在用网站。",
+    "仓库自己写死了这个不变量：tests/focused/test_sidecar_can_read_its_own_secrets.py 与 scripts/prepare_systemd_host.sh 都记着 `/run/secrets/* = 10001:10001 0640`。"
+  ],
+
+  "how_it_was_restored": {
+    "command": "sudo chown -R 10001:10001 /opt/social-archive/runtime/secrets && sudo chmod 700 /opt/social-archive/runtime/secrets",
+    "note": "chown 不改 mode，所以权限位从头到尾没被动过（0640/0600/0400 各自的原值都在）。只需要把属主属组放回 10001:10001。",
+    "verified": [
+      "容器内 `test -r /run/secrets/social_archive_api_token` → 读得到",
+      "GET /v1/accounts → 200，能力表正确（4 个国内平台 sync_supported=false，x/reddit/instagram/generic-web=true）",
+      "三个问题账号仍是 disconnected（止血状态保持）",
+      "content 193 条 / user_relation 194 条 —— 与事故前一致，一条没丢",
+      "core-worker 近 5 分钟无报错；core-api 近 3 分钟 500 计数为 0"
+    ]
+  },
+
+  "blast_radius_checked": {
+    "data": "**没碰。** 真正的数据根是 /var/lib/social-archive（.env 里 SOCIAL_ARCHIVE_DATA_HOST_PATH 指向它），不在 /opt 下，属主仍是 10001:socialarchive。",
+    "host_systemd_jobs": {
+      "reasoning": "这些单元全部用 `LoadCredential=` 取密钥——systemd 以 root 读文件、再降权到 socialarchive 跑，与文件属主无关；且每个单元都写着 `ReadWritePaths=/var/lib/social-archive`，systemd 沙箱把 /opt 整个设成只读，它们本来就不往那儿写。",
+      "measured": "**不止是推理，是实测**。chown 发生在 08:15 前后，之后跑过的单元结果全是 success：social-archive-status 08:24、social-archive-private-database-sync 08:20。另外又手动跑了一次 social-archive-status.service → Result=success。",
+      "conclusion": "宿主侧未受影响。"
+    },
+    "other_projects": "同机还跑着 kmfa / coolify / memory-atlas / gatus。chown 的范围严格限于 /opt/social-archive，没有触及它们。",
+    "still_owned_by_ubuntu": "/opt/social-archive 的源码树（apps/、scripts/、evidence/…）现在归 ubuntu:ubuntu。这是**对的**：那是部署账号，rsync 要写它；此前的 501:staff 是个在这台机器上根本不存在的 uid。"
+  },
+
+  "what_changed_so_it_cannot_repeat": {
+    "script": "scripts/deploy_to_production.sh —— 此前**根本没有部署脚本**，每次都是现敲 ssh。这才是真正的根因：没有被固化的路径，就没有能守住的规矩。",
+    "four_things_it_enforces": [
+      "不做任何递归 chown。",
+      "部署前后各量一次密钥不变量（uid:gid:mode），不一致就中止并把前后两份都打出来。",
+      "上线前先给正在跑的镜像打 :rollback 标签（同一批层，不占额外磁盘）。",
+      "**验收打的是要鉴权的路由，不是 /health。** 这次那 6 分钟就是被 /health 的 200 骗过去的。"
+    ],
+    "also": "rsync 去掉了 `--delete`——第一次跑时它试图删掉远端我自己留的 .env.pre-* 备份。"
+  },
+
+  "what_this_does_not_prove": [
+    "不证明现在的属主布局就是最初那份。我用 `chown -R` 抹掉了逐文件的原始状态，恢复依据是**仓库自己写死的不变量**（10001:10001 0640）与恢复后的实测，不是原始快照。",
+    "/opt/social-archive/runtime/ 下的 private-database-spool、exports、evidence、vendors、vendor-src 现在归 ubuntu，socialarchive 写不进去。**已查明这不影响任何东西**：全仓 grep 不到 private-database-spool 的任何引用（旧布局的残留），而其余几个的真身在 /var/lib/social-archive 下——单元的 ReadWritePaths 只开了那一处。但它们仍是一堆没人负责的残留目录，不该继续留着。",
+    "不证明部署脚本本身跑通过完整一遍——它的 --dry-run 已验证会在工作树脏时正确中止，全流程要等下一次真部署。"
+  ]
+}
