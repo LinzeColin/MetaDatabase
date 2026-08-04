@@ -76,3 +76,24 @@ def test_reasons_are_written_for_platforms_that_exist() -> None:
     assert not unknown, f"给不存在的平台写了理由，永远不会显示：{unknown}"
     for platform in NOT_SYNCABLE_YET:
         assert platform in PLATFORM_LABELS, f"{platform} 没有中文名"
+
+
+def test_the_onboarding_sentence_is_not_a_second_capability_list() -> None:
+    """第 3 步那句「本版本能自动同步的是…」原来是硬编码的。
+
+    2026-08-05 实测它写着「Chrome 书签，以及连接后的 X / Instagram」——
+    而 X 与 Instagram **都同步不了**（X 被零费用门关着，Instagram 的授权
+    那一步没有 Owner 点得到的界面），两个都已经在 NOT_SYNCABLE_YET 里。
+    **那句文案比能力声明晚了整整一轮。**
+
+    这是同一种病的第五处，也是**第一处靠搜索找出来的**——搜「乐观措辞 +
+    中文」的用户可见串，47 处里就这一处在撒谎。
+    """
+    from pathlib import Path
+
+    app = (Path(__file__).resolve().parents[2] / "apps/pwa/app.js").read_text(encoding="utf-8")
+    code = "\n".join(l for l in app.splitlines() if not l.lstrip().startswith("//"))
+    step = code.split("第 3 步：连接一个能同步的来源", 1)[1][:900]
+    assert "state.platformSupport" in step, "那句话不是从能力声明现算的——它会再漂一次"
+    for hardcoded in ("X / Instagram", "小红书、抖音、B站、快手"):
+        assert hardcoded not in step, f"那句话里又硬编码了平台名单：{hardcoded}"

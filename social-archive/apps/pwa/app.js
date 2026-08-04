@@ -402,7 +402,26 @@
           ["connected", "degraded"].includes(item.connection_state)
           && state.platformSupport[item.platform]?.sync_supported !== false),
         title: "第 3 步：连接一个能同步的来源",
-        why: "本版本能自动同步的是 Chrome 书签，以及连接后的 X / Instagram。小红书、抖音、B站、快手暂时还不能自动读取。",
+        // **这句话原来是硬编码的**：「本版本能自动同步的是 Chrome 书签，
+        // 以及连接后的 X / Instagram。小红书、抖音、B站、快手暂时还不能自动读取。」
+        //
+        // 2026-08-05 实测：X 与 Instagram **都同步不了**（X 被零费用门关着，
+        // Instagram 的授权那一步没有 Owner 点得到的界面），两个都已经在
+        // NOT_SYNCABLE_YET 里。**这句文案比能力声明晚了整整一轮。**
+        //
+        // 这是同一种病的第五处，也是**第一处靠搜索找出来的**（前四处
+        // 要么是 Owner 撞出来的，要么是我给别的事取证时顺手撞见的）。
+        // 搜的是「乐观措辞 + 中文」的用户可见串，47 处里就这一处在撒谎。
+        //
+        // 现在从 state.platformSupport 现算，永远不会再漂。
+        why: (() => {
+          const names = Object.entries(state.platformSupport || {})
+            .filter(([, support]) => support?.sync_supported !== false)
+            .map(([id]) => platformMeta[serverToUiPlatform[id]]?.label || id);
+          return names.length
+            ? `本版本能自动同步的是：${names.join("、")}。其余平台可以用插件一条条保存。`
+            : "本版本还没有能自动同步的平台。可以用插件把看到的内容一条条保存进来。";
+        })(),
         action: "去连接",
         run: () => openSyncModal(),
       },

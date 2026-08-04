@@ -72,7 +72,19 @@ def test_it_does_not_push_people_toward_platforms_that_cannot_sync() -> None:
     """「连接一个来源」这一步必须只算能同步的，否则又是一次白忙。"""
     text = block()
     assert "sync_supported" in text, "没有区分能不能同步"
-    assert "小红书" in text and "暂时还不能" in text, "没有把做不到的事说清楚"
+    # **这一条原来断言那句话里要出现「小红书」和「暂时还不能」。**
+    #
+    # 它守的是「别把人推向做不到的平台」——那个用意对，保留。
+    # 但它是靠**一句硬编码的文案**来守的，而那句文案 2026-08-05 实测
+    # 已经过期了：它写着「Chrome 书签，以及连接后的 X / Instagram」，
+    # 而 X 与 Instagram 都已经进了 NOT_SYNCABLE_YET。
+    # **判据盯着一句会过期的话，就会跟着一起过期。**
+    #
+    # 现在那句话从 state.platformSupport 现算，所以改成钉住机制：
+    # 既要按能力筛选，那句说明也不许再硬编码平台名单。
+    assert "state.platformSupport" in text, "那句说明不是从能力声明现算的"
+    for hardcoded in ("X / Instagram", "小红书、抖音、B站、快手"):
+        assert hardcoded not in text, f"又硬编码了平台名单：{hardcoded}"
 
 
 def test_it_is_recomputed_after_anything_changes() -> None:
