@@ -31,6 +31,9 @@
     .detect.ready { border-color:var(--green); background:var(--soft); }
     .detect.ready .dot { background:var(--green); box-shadow:0 0 0 5px rgba(23,104,79,.18); }
     .privacy { margin-top:22px; padding:18px 20px; border-left:4px solid var(--green); border-radius:12px; background:var(--soft); line-height:1.6; }
+    .fixit { margin-top:18px; padding:14px 18px; border-radius:12px; background:var(--soft); line-height:1.6; }
+    .fixit summary { cursor:pointer; font-weight:600; }
+    .fixit p { margin:10px 0 0; }
     @media (max-width:680px) { main{padding-top:30px} ol{grid-template-columns:1fr} li{min-height:auto} }
   </style>
 </head>
@@ -47,11 +50,22 @@
       <a class="button secondary" href="/home">返回 Social Archive</a>
     </div>
     <ol aria-label="Chrome 插件安装步骤">
-      <li><strong>解压下载的 ZIP</strong><p>在“下载”文件夹双击解压 ZIP，得到一个插件文件夹。</p></li>
+      <li><strong>解压 ZIP，并把文件夹放到“文稿”里</strong>
+        <p>双击解压得到一个插件文件夹，<strong>把它拖进“文稿”（Documents）</strong>再往下做。
+          Chrome 是<strong>直接读这个文件夹</strong>运行插件的——留在“下载”里，
+          哪天你清理下载或清空废纸篓，插件就会坏掉。</p></li>
       <li><strong>打开扩展管理页</strong><p>在 Chrome 地址栏输入 <code>chrome://extensions</code> 并回车。</p></li>
       <li><strong>打开开发者模式</strong><p>点击页面右上角“开发者模式”开关。</p></li>
-      <li><strong>载入插件文件夹</strong><p>点击“加载已解压的扩展程序”，选择刚才解压的文件夹。</p></li>
+      <li><strong>载入插件文件夹</strong><p>点击“加载已解压的扩展程序”，选择放进“文稿”的那个文件夹。</p></li>
     </ol>
+    <details class="fixit">
+      <summary>点插件图标看到「ERR_FILE_NOT_FOUND / 文件可能已被移动、编辑或删除」怎么办</summary>
+      <p>这句话的意思是：<strong>插件条目还在，但它依赖的那个文件夹已经不在原来的位置了</strong>——
+        被清理、被移动、或者被重命名了。插件里没有任何东西丢失，重新指一次路就好。</p>
+      <p>做两件事：① 到 <code>chrome://extensions</code> 把 Social Archive 那一项<strong>移除</strong>；
+        ② 回到本页重新下载解压，把文件夹放进“文稿”，再“加载已解压的扩展程序”。
+        <strong>你保存过的内容都在服务器上，不会因为这一步丢失。</strong></p>
+    </details>
     <p class="privacy"><strong>隐私边界：</strong>插件永远不会向服务器索要或上传你的<strong>密码</strong>。登录状态分两种处理，取决于平台：小红书、抖音、B站、快手的 Cookie <strong>一步都不会离开你的浏览器</strong>；X、Instagram、YouTube 需要在服务器上替你取内容，因此在你点“连接”的那一刻会读取该站点的登录状态、<strong>加密后</strong>保存到你自己的服务器上，随时可以在设置页一键撤销并从库中删除。若安装包未生成，下载会明确报错，不会提供旧版本或第三方文件。</p>
   </main>
   <script>
