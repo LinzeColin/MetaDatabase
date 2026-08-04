@@ -234,7 +234,16 @@
       // （请求了零个 origin → executeScript 缺 host 权限 → OBSERVER_INSTALL_FAILED）。
       // 与其让人对着「无法在该页面上启动同步」发愣，不如现在就说清楚。
       if (!platform || !SA.patternsForPlatform(platform).length) {
-        throw new Error("这个页面不是可诊断的平台。请先打开小红书 / 抖音 / B站 / 快手 / X / Reddit / Instagram 的收藏页，并确认已登录。");
+        // **名单从 SA.PLATFORM_RULES 现算，不在这里抄第二份。**
+        // 原来这句话把七个平台名硬写在里面。它今天恰好还是对的，
+        // 但那正是「第二份名单」的样子——PLATFORM_RULES 一改它就漂，
+        // 而没有任何东西会提醒。同一天里第五处假话就是这么来的
+        // （首页那句「能自动同步 X / Instagram」比能力声明晚了一轮）。
+        const diagnosable = SA.PLATFORM_RULES
+          .filter(rule => rule.patterns.length)
+          .map(rule => rule.name)
+          .join(" / ");
+        throw new Error(`这个页面不是可诊断的平台。请先打开${diagnosable} 的收藏页，并确认已登录。`);
       }
       button.textContent = "正在安装观察器…";
       const installed = await chrome.runtime.sendMessage({
