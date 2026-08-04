@@ -265,6 +265,43 @@ class CommandArtifactConnector:
                 parsed = json.loads(text)
                 observations = self._bilibili_observations(parsed)
             except json.JSONDecodeError:
-                return ConnectorResult(self.connector_id, run_id, "failed", scan_receipt={"completeness": "failed", "item_count": 0, "scope": "account_relation"}, errors=[{"code": "BILI_INVALID_RESPONSE", "message": "bilibili-cli 未返回结构化 JSON", "retryable": True}])
+                # 契约被破坏：它退出 0 却没给结构化输出。**重试拿到的还是同样的东西。**
+                return ConnectorResult(self.connector_id, run_id, "failed", scan_receipt={"completeness": "failed", "item_count": 0, "scope": "account_relation"}, errors=[{"code": "BILI_INVALID_RESPONSE", "message": "bilibili-cli 未返回结构化 JSON", "retryable": False}])
         status = "success" if result.returncode == 0 else "failed"
-        return ConnectorResult(self.connector_id, run_id, status, observations=observations, scan_receipt={"completeness": "partial" if status == "success" else "failed", "item_count": len(observations), "scope": "account_relation"}, errors=[] if status == "success" else [{"code": "BILI_COMMAND_FAILED", "message": redact(result.stderr[-1000:]), "retryable": True}])
+        if status == "success":
+            errors: list[dict[str, Any]] = []
+        else:
+            errors = [self._bilibili_failure(result)]
+        return ConnectorResult(self.connector_id, run_id, status, observations=observations, scan_receipt={"completeness": "partial" if status == "success" else "failed", "item_count": len(observations), "scope": "account_relation"}, errors=errors)
+
+    @staticmethod
+    def _bilibili_failure(result: subprocess.CompletedProcess[str]) -> dict[str, Any]:
+        """按 bilibili-cli **自己报的原因**定级，而不是一律「可重试」。
+
+        原来这里写死 `"retryable": True`：未登录也重试、参数传错也重试，
+        而这两种重试一万次也一样——正是 gallerydl_runner 模块文档里
+        明令禁止的那种误判，只是换了个工具。
+
+        退出码与输出形态实测自生产 cli-tools 容器里的 /usr/local/bin/bili：
+
+            bili nonexistent-subcommand  → exit 2   （用法错误）
+            bili                          → exit 2
+            bili favorites（未登录）      → exit 1，且**输出结构化原因**：
+                                              ok: false
+                                              error:
+                                                code: not_authenticated
+
+        也就是说这个工具会明说为什么失败，而我们此前一个字都没读。
+        """
+        blob = f"{result.stdout}\n{result.stderr}"
+        if result.returncode == 2:
+            # 我们把参数传错了，用户帮不上忙
+            return {"code": "TOOL_NOT_ALLOWED",
+                    "message": redact(blob[-1000:]) or "bilibili-cli 用法错误",
+                    "retryable": False}
+        if "not_authenticated" in blob or "not_logged_in" in blob:
+            return {"code": "CREDENTIAL_EXPIRED",
+                    "message": "B站登录状态不可用，需要重新连接账号。",
+                    "retryable": False}
+        return {"code": "BILI_COMMAND_FAILED", "message": redact(blob[-1000:]),
+                "retryable": True}

@@ -2,21 +2,22 @@
   "task": "T12",
   "claim": "gallery-dl 的退出码契约，取自安装源与实跑，不是文档转述",
   "why_this_exists": "我写的 gallerydl_runner.run() 把 returncode 记进结果对象之后再没看过它。gallery-dl 失败时 stdout 是空的，空 stdout 被 `json.loads(stdout or \"[]\")` 变成空数组，于是一次硬失败与「跑完了、没有新增」在数据上完全同形，界面显示「已经是最新的，没有新增内容。」——正是这一版要消灭的那种静默的零，而它出在我自己写的、文档里专门讲「别把失败误判成别的东西」的那个模块里。",
-
   "source_of_truth": {
     "where": "生产 cli-tools 容器内的已安装包，不是官网文档",
     "version": "gallery-dl 1.32.8",
     "path": "/usr/local/lib/python3.12/site-packages/gallery_dl",
     "why_not_docs": "CONFLICT_ORDER 里实测事实高于官方文档。上一次照文档写的三元组常量所在模块（gallery_dl.message）在 1.32.8 里已经不存在，实际位置是 gallery_dl.extractor.message——文档没跟上，源码是准的。"
   },
-
   "triple_contract_reverified": {
     "read_from": "gallery_dl/extractor/message.py",
-    "values": {"Directory": 2, "Url": 3, "Queue": 6},
+    "values": {
+      "Directory": 2,
+      "Url": 3,
+      "Queue": 6
+    },
     "verdict": "与 evidence/fixtures/gallerydl/ 里固化的 fixture 一致，解析器不用改",
     "note": "1.32.8 里没有 Version 常量了；我们的解析器本来也没用它。"
   },
-
   "exit_code_is_a_bitmask": {
     "proof": [
       "gallery_dl/job.py:172  self.status |= exc.code",
@@ -35,7 +36,6 @@
       "128": "OSError（磁盘或网络 I/O；JSONDecodeError 走 1）"
     }
   },
-
   "measured_runs": [
     {
       "argv": "gallery-dl -j --no-download not-a-url",
@@ -53,7 +53,6 @@
     }
   ],
   "no_third_party_fetch": "两次实跑都刻意选了不出网或立刻 DNS 失败的目标；常量与配置键全部读自本地已安装源码。没有为了取证去抓任何真实平台。",
-
   "fix": {
     "file": "src/social_archive/gallerydl_runner.py",
     "what": "退出码非 0 且 JSON 里没有错误条目时，用 stderr + 退出码位掩码合成一条错误并定级；classify_exit_code() 是新增的判定函数。",
@@ -68,7 +67,6 @@
       "after_restore": "27 passed"
     }
   },
-
   "frozen_dictionary_gap": {
     "finding": "真实二进制会产生两种情况，而 ZERO_BARRIER_UX.md 的冻结词典（7 条）里没有对应句子。词典是产品合同，改它要先改那份文档——那是 Owner 的裁定，不是我的。所以我没有往词典里加句子。",
     "cases": [
@@ -92,7 +90,6 @@
       }
     ]
   },
-
   "reddit_token_storage_gap_now_answerable": {
     "previously": "T12 里我把「Reddit 的 OAuth refresh token 存在哪」推迟了，理由是「存法取决于 gallery-dl 期望的形态」。",
     "now_measured": {
@@ -106,7 +103,6 @@
     },
     "still_open": "怎么把它接到 CredentialStore（T05 明确拒收 reddit，因为它走 OAuth 不是 Cookie）仍未实现。但推迟的那个理由已经不成立了——形态是确定的：两个配置键，写进一份 gallery-dl 配置 JSON。这条现在是待做，不再是待查。"
   },
-
   "second_instance_same_defect_class": {
     "why_i_kept_looking": "第一处修完之后没停在那儿——同一类缺陷（把失败读成别的东西）很少只有一处。扫了所有会写同步终态的路径，找到第二处。",
     "where": "src/social_archive/connectors/command.py:128（修改前）",
@@ -119,21 +115,85 @@
     "fix": "按工具分开定级：gallery-dl 走 classify_exit_code/is_retryable_exit 的位掩码判定，yt-dlp 用它自己的约定。可重试是**白名单**（只有 SERVER_UNREACHABLE 与 RATE_LIMITED），默认不可重试。",
     "bonus": "顺带把错误码从笼统的 COMMAND_FAILED 换成定级后的码。COMMAND_FAILED 在失败文案词典里认不出来，界面会说「我们没能记录下原因」——而其实是知道的。",
     "measured_after_fix": [
-      {"tool": "gallery-dl", "exit": 64, "code": "URL_NOT_SUPPORTED", "retryable": false},
-      {"tool": "gallery-dl", "exit": 16, "code": "REDDIT_NOT_AUTHORIZED", "retryable": false, "copy": "Reddit 需要单独授权一次。[ 去授权 ]"},
-      {"tool": "gallery-dl", "exit": 20, "code": "REDDIT_NOT_AUTHORIZED", "retryable": false, "note": "20 = 16|4，位掩码判定在真实调用链上生效"},
-      {"tool": "gallery-dl", "exit": 8, "code": "CHALLENGE_REQUIRED", "retryable": false},
-      {"tool": "gallery-dl", "exit": 128, "code": "SERVER_UNREACHABLE", "retryable": true},
-      {"tool": "yt-dlp", "exit": 2, "code": "URL_NOT_SUPPORTED", "retryable": false},
-      {"tool": "yt-dlp", "exit": 1, "code": "SERVER_UNREACHABLE", "retryable": false}
+      {
+        "tool": "gallery-dl",
+        "exit": 64,
+        "code": "URL_NOT_SUPPORTED",
+        "retryable": false
+      },
+      {
+        "tool": "gallery-dl",
+        "exit": 16,
+        "code": "REDDIT_NOT_AUTHORIZED",
+        "retryable": false,
+        "copy": "Reddit 需要单独授权一次。[ 去授权 ]"
+      },
+      {
+        "tool": "gallery-dl",
+        "exit": 20,
+        "code": "REDDIT_NOT_AUTHORIZED",
+        "retryable": false,
+        "note": "20 = 16|4，位掩码判定在真实调用链上生效"
+      },
+      {
+        "tool": "gallery-dl",
+        "exit": 8,
+        "code": "CHALLENGE_REQUIRED",
+        "retryable": false
+      },
+      {
+        "tool": "gallery-dl",
+        "exit": 128,
+        "code": "SERVER_UNREACHABLE",
+        "retryable": true
+      },
+      {
+        "tool": "yt-dlp",
+        "exit": 2,
+        "code": "URL_NOT_SUPPORTED",
+        "retryable": false
+      },
+      {
+        "tool": "yt-dlp",
+        "exit": 1,
+        "code": "SERVER_UNREACHABLE",
+        "retryable": false
+      }
     ],
     "verified_how": "直接调用 CommandArtifactConnector.capture_url()，patch 掉 _run 返回构造的退出码，走真实的错误组装与文案渲染路径。七条全部说得出原因，没有一条落到「已经是最新的」。",
-    "still_unfixed_nearby": "同文件第 222 行 bilibili 路径的 `\"retryable\": True` 是写死的常量，任何失败都会被放回队列。它不在 T12 的范围里（属于国内三源，走 T08/T09 的拦截路径），记在这里免得当作没看见。"
+    "still_unfixed_nearby": "**已修（2026-08-04）。** 原文写着「同文件 bilibili 路径的 retryable: True 是写死的，不在 T12 范围里，记着免得当没看见」——那句「不在范围里」和「基线失败」是同一种借口。由 scripts/list_open_items.py 汇总时重新看见并处理。"
   },
-
   "what_this_does_not_prove": [
     "没有跑通一次真实的 Reddit 取数——那需要 Owner 的 Reddit 授权。",
     "没有验证 --cookies 传给 gallery-dl 之后的真实行为。",
     "measured_runs 只覆盖了退出码 64 这一条真实路径；16 / 8 / 128 是从源码常量推出来的，没有实跑触发过。判据覆盖了全部七个位，但「源码这么写」与「真跑会这样」之间那点差距，我没有抹掉。"
-  ]
+  ],
+  "bilibili_cli_exit_contract_measured": {
+    "why": "要按工具自己报的原因定级，就得先知道它怎么报。和 gallery-dl 一样，实测而不是猜。",
+    "source": "生产 cli-tools 容器里的 /usr/local/bin/bili",
+    "measured": [
+      {
+        "argv": "bili nonexistent-subcommand",
+        "exit": 2,
+        "meaning": "用法错误"
+      },
+      {
+        "argv": "bili（无参数）",
+        "exit": 2
+      },
+      {
+        "argv": "bili favorites（未登录）",
+        "exit": 1,
+        "stdout": "ok: false / schema_version: '1' / error: code: not_authenticated",
+        "meaning": "**它会明说原因**，而我们此前一个字都没读"
+      }
+    ],
+    "mapping": {
+      "exit 2": "TOOL_NOT_ALLOWED，不可重试（我们把参数传错了，用户帮不上忙）",
+      "输出含 not_authenticated": "CREDENTIAL_EXPIRED，不可重试，文案引导「重新连接」",
+      "其它 exit 1": "BILI_COMMAND_FAILED，仍可重试——**收紧不能把网络抖动也判死**",
+      "exit 0 但输出不是 JSON": "BILI_INVALID_RESPONSE，不可重试（契约被破坏，重试拿到的是同样的东西）"
+    },
+    "guards": "tests/focused/test_gallerydl_contract.py 新增 4 条，含一条专门守住「认不出的失败仍然可重试」。"
+  }
 }

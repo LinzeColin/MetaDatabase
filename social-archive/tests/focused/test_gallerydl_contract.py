@@ -411,3 +411,59 @@ def test_command_connector_reports_a_code_the_copy_dictionary_can_resolve() -> N
         assert resolved_or_deliberate, (
             f"退出码 {rc} 定级成 {code}，但文案词典既认不出它、也没把它列为故意不认的"
         )
+
+
+# ── bilibili-cli：按它自己报的原因定级 ────────────────────────────────
+#
+# 退出码与输出形态实测自生产 cli-tools 容器的 /usr/local/bin/bili：
+#     bili nonexistent-subcommand → exit 2（用法错误）
+#     bili favorites（未登录）    → exit 1，且输出 ok:false / error.code: not_authenticated
+# 也就是说它会**明说**为什么失败，而此前我们一律标成「可重试」。
+
+
+def _bili_result(returncode: int, stdout: str = "", stderr: str = ""):
+    import subprocess
+    return subprocess.CompletedProcess(args=["bili"], returncode=returncode,
+                                       stdout=stdout, stderr=stderr)
+
+
+def test_bilibili_usage_error_is_our_bug_not_a_retry() -> None:
+    """退出码 2 = 我们把参数传错了。让用户重试是骗他。"""
+    from social_archive.connectors.command import CommandArtifactConnector
+
+    failure = CommandArtifactConnector._bilibili_failure(_bili_result(2, stderr="usage: bili ..."))
+    assert failure["retryable"] is False
+    assert failure["code"] == "TOOL_NOT_ALLOWED"
+
+
+def test_bilibili_not_authenticated_asks_for_reconnect_not_retry() -> None:
+    """工具自己说了 not_authenticated —— 重试一万次也一样。"""
+    from social_archive.connectors.command import CommandArtifactConnector
+    from social_archive.failure_copy import describe_sync_outcome
+
+    failure = CommandArtifactConnector._bilibili_failure(
+        _bili_result(1, stdout="ok: false\nerror:\n  code: not_authenticated\n")
+    )
+    assert failure["retryable"] is False
+    assert failure["code"] == "CREDENTIAL_EXPIRED"
+    outcome = describe_sync_outcome(imported=0, failure_code=failure["code"], platform_label="B站")
+    assert outcome["action_zh"] == "重新连接", "应当引导去重连，而不是重试"
+
+
+def test_bilibili_unknown_failure_stays_retryable() -> None:
+    """认不出的失败仍然可以重试——**不能因为收紧而把网络抖动也判死**。"""
+    from social_archive.connectors.command import CommandArtifactConnector
+
+    failure = CommandArtifactConnector._bilibili_failure(_bili_result(1, stderr="connection reset"))
+    assert failure["retryable"] is True
+    assert failure["code"] == "BILI_COMMAND_FAILED"
+
+
+def test_bilibili_broken_contract_is_not_retryable() -> None:
+    """退出 0 却没给结构化输出：重试拿到的还是同样的东西。"""
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[2]
+              / "src/social_archive/connectors/command.py").read_text(encoding="utf-8")
+    marker = source[source.index("BILI_INVALID_RESPONSE"):]
+    assert '"retryable": False' in marker[:200], "契约被破坏时仍标成可重试"
