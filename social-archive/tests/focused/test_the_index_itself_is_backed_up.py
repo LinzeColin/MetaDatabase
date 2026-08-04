@@ -296,3 +296,33 @@ def test_the_drill_can_also_pull_from_github() -> None:
     # 取回来之后仍然要走完整链
     for step in ("--decrypt", "gzip.open", "sqlite3.connect", "PLAINTEXT_SHA256_MISMATCH"):
         assert step in code, f"GitHub 那条路没走完整链：缺 {step}"
+
+
+def test_the_durability_report_shows_the_index_too() -> None:
+    """那份对外的耐久性报告，不能只报制品。
+
+    2026-08-04 之前它写着 `all_three_verified: 549 / pending: 0 / PASS`
+    ——**每个字都是真的**，而当时运行库索引全世界只有一份：
+    552 个加密块躺在三个云上，没有任何东西说得出它们分别是什么。
+
+    「制品都齐了」被当成了「档案馆安全了」。差别不在数字对不对，
+    **在于没显示的那一格**。
+    """
+    code = "\n".join(
+        l for l in (ROOT / "scripts/replicate_objects.py").read_text(encoding="utf-8").splitlines()
+        if not l.lstrip().startswith("#")
+    )
+    assert 'report["index_backup"]' in code, "耐久性报告里没有索引这一格"
+    assert "_index_backup_status" in code
+    # 没备过就必须显式说出来，而不是缺字段
+    helper = code.split("def _index_backup_status", 1)[1]
+    assert '"MISSING"' in helper, "从未备份过时不报 MISSING——那会变成一格空白，看不出来"
+    assert "verified_remote_copies" in helper
+
+
+def test_the_index_status_is_read_not_recomputed() -> None:
+    """这份报告是复制任务顺手带出来的，不该在这里再跑一遍备份。"""
+    helper = (ROOT / "scripts/replicate_objects.py").read_text(encoding="utf-8").split(
+        "def _index_backup_status", 1)[1].split("\n\n\n", 1)[0]
+    for forbidden in ("upload", "boto3", "subprocess", "VACUUM"):
+        assert forbidden not in helper, f"这一格里出现了 {forbidden} —— 它只该读 manifest"
