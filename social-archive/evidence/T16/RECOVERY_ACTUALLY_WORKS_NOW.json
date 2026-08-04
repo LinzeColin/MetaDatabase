@@ -1,0 +1,42 @@
+{
+  "task": "T16",
+  "claim": "恢复路现在是真的通的：四个备份包各抽一个制品、三个仓各验一次共 12 次全部 PASS；并且做了一次**真写回**——从 GitHub 取回、解密、落盘，文件的 sha256 与库里登记的原文哈希逐字相同。途中又抓到一个「报成功而文件不在」的陷阱。",
+  "invariant": "INV-REVERSIBLE",
+  "measured_at": "2026-08-04",
+
+  "closing_my_own_limitations": "上一份证据里我写了三条局限：只验过一个制品、没验过别的备份包、只做了 verify-only 没真写回。**这一轮把三条都补了。**",
+
+  "drill_across_every_pack": {
+    "packs": [
+      "social-archive-backup-20260802T035535Z（2 个制品）",
+      "social-archive-backup-20260804T060736Z（500 个）",
+      "social-archive-backup-20260804T060948Z（47 个）",
+      "social-archive-backup-20260804T114017Z（3 个）"
+    ],
+    "method": "每个包抽一个制品，对 r2 / oci / github 各跑一次 --verify-only",
+    "result": "**12 次全部 PASS**"
+  },
+
+  "the_real_write_back": {
+    "command": "restore_object_systemd.sh --artifact-id art_ff118844cd059702f542afb89e970bf8 --from-store github --target /home/ubuntu/sa-restore-drill/restored",
+    "result": "{\"status\":\"PASS\",\"mode\":\"restore\",\"source_store\":\"github\",\"target_written\":true}",
+    "what_landed": "<目标>/restored/eb61ea04d1d5c10e12fbb25438fc3e07ccee392156bde97a59dd5d3e7b7520fb.bin，33660 字节，0600 root",
+    "hash_check": "取回文件的 sha256 = eb61ea04d1d5c10e12fbb25438fc3e07ccee392156bde97a59dd5d3e7b7520fb，**与库里登记的原文哈希逐字相同**",
+    "meaning": "从 GitHub 私有仓的 Draft Release 取回密文 → age 解密 → 落盘 → 明文字节与登记值一致。**这才是「副本能救回来」。**",
+    "cleanup": "演练目录已删。数据面一个字节都没动（脚本自己也拦：目标落进 /var/lib/social-archive 会报 RECOVERY_TARGET_INVALID『恢复目标不能落入运行数据面』）。"
+  },
+
+  "the_trap_found_on_the_way": {
+    "what": "`--target /tmp/xxx/restored.bin` 返回 `{\"status\":\"PASS\", …, \"target_written\": true}`，而宿主机上那个目录**是空的**。",
+    "why": "包装脚本用 `systemd-run --property=PrivateTmp=yes` 起单元，单元看到的 /tmp 与 /var/tmp 是**私有 tmpfs**，跑完就没了。",
+    "why_it_matters": "**真出事的时候，你会以为文件已经恢复出来了，手里却什么都没有。** 这是恢复路上最坏的一种失败：它报成功。",
+    "fix": "包装脚本在起单元**之前**拦住 /tmp 与 /var/tmp 的目标，并说清为什么、换到哪里。PrivateTmp 本身是对的（中间产物不该留在共享 /tmp），所以拦的是目标路径，不是那条属性。",
+    "guard": "判据钉住三件事：PrivateTmp=yes 还在（属性没了这道拦截就没必要）、拦截存在、拦截在 systemd-run 之前。反证已跑。"
+  },
+
+  "what_this_still_does_not_prove": [
+    "**没有做整库恢复演练。** 验的是「一个对象能不能救回来」，不是「整个档案馆能不能从零重建」。后者要一次完整的库 + CAS + 制品登记的联合恢复，本轮没做。",
+    "12 次抽样覆盖了四个包，但每个包只抽了 1 个制品。552 个制品里的其余 548 个没有逐个验过。",
+    "不证明 age 私钥的保管方式是对的。这次能解密只说明那把钥匙现在在宿主机上可用；钥匙本身的备份与轮换不在本轮范围。"
+  ]
+}

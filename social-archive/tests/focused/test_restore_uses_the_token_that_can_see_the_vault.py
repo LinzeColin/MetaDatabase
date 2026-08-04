@@ -53,3 +53,23 @@ def test_it_is_the_one_that_can_see_the_private_vault() -> None:
     assert _source_file(RESTORE.read_text(encoding="utf-8")).endswith("github_markdown_token"), (
         "恢复路加载的不是能看见 Private-Database 的那个令牌"
     )
+
+
+def test_it_refuses_a_target_that_private_tmp_would_swallow() -> None:
+    """`--target /tmp/...` 会报 PASS 而文件根本不在（v0.0.0.7 / T16）。
+
+    包装脚本用 `systemd-run --property=PrivateTmp=yes` 起单元，单元看到的
+    /tmp 与 /var/tmp 是私有 tmpfs，跑完就没了。
+
+    2026-08-04 实测：`--target /tmp/xxx/restored.bin` 返回
+    `{"status":"PASS", …, "target_written": true}`，宿主机上那个目录是空的。
+    **真出事的时候，你会以为文件已经恢复出来了，手里却什么都没有。**
+    """
+    text = RESTORE.read_text(encoding="utf-8")
+    code = "\n".join(l for l in text.splitlines() if not l.lstrip().startswith("#"))
+    assert "PrivateTmp=yes" in code, "判据失去依附：这条属性没了就不需要这道拦截了"
+    assert "/tmp/*|/var/tmp/*" in code, "没有拦住会被私有 tmpfs 吞掉的目标"
+    # 拦截必须在真正起单元之前
+    guard_at = code.index("/tmp/*|/var/tmp/*")
+    run_at = code.index("systemd-run")
+    assert guard_at < run_at, "拦在起单元之后，文件已经写进私有 tmpfs 了"
