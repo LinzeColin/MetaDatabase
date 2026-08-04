@@ -118,6 +118,38 @@ IN_PROGRESS_STATES: frozenset[str] = frozenset({
     "normalizing", "artifacting", "exporting",
 })
 
+# 「没跑完」类的失败码。共用一句话，因为对用户来说它们是同一件事：
+# 这次没走完，已经拿到的东西还在，可以再来一次。
+#
+# **这份名单不是靠读代码列出来的，是查生产库查出来的。**
+# 2026-08-04 在生产 sync_run 表里实际存在的失败码只有四种：
+#
+#     BROWSER_SCAN_FAILED         4 次   ← 早就在别名表里
+#     RELATION_SCOPE_UNCONFIRMED  7 次（已入库 169 条）
+#     STABLE_END_WITHOUT_PROOF    2 次（已入库  91 条）
+#     SYNC_RUN_ABANDONED          3 次
+#
+# 后三个**在当前代码里一个字都搜不到**——它们是 v0.0.0.6 留下的，
+# 那部分代码已经被 T03 删掉了，但记录还躺在库里。
+# 不认它们的后果：这 12 条历史记录在界面上会显示成
+# 「我们没能记录下原因」，而原因白纸黑字写在 last_error_code 里。
+#
+# 教训：失败文案词典是照着我能读到的代码路径建的，而生产库里有
+# 代码里已经不存在的码。**光读代码列不全，得去查真实数据。**
+INCOMPLETE_RUN_CODES: frozenset[str] = frozenset({
+    "SYNC_STALLED",               # 本版新增：非终态但很久没动
+    "SYNC_INTERRUPTED",           # 本版新增：worker 反复被杀，放弃
+    "SYNC_RUN_ABANDONED",         # v0.0.0.6 遗留
+    "RELATION_SCOPE_UNCONFIRMED", # v0.0.0.6 遗留
+    "STABLE_END_WITHOUT_PROOF",   # v0.0.0.6 遗留
+})
+_INCOMPLETE_SENTENCE = "这次同步卡住了，没有正常结束。你已经取到的内容都还在。"
+
+
+def code_key(code: str | None) -> str:
+    """失败码规范化。库里存的大小写不一定一致。"""
+    return str(code or "").strip().upper()
+
 
 def resolve(code: str | None) -> FailureCopy | None:
     """把任意失败码解析成词典里的一条。认不出来返回 None。"""
@@ -176,6 +208,13 @@ def describe_sync_outcome(
             "failure_code": resolved.code,
             "action_zh": resolved.action_zh,
         }
+    if str(code_key(failure_code)) in INCOMPLETE_RUN_CODES:
+        # 「没跑完」——不是没原因，也不是成功。
+        return {
+            "outcome": "stalled", "imported": imported,
+            "message_zh": _INCOMPLETE_SENTENCE,
+            "failure_code": code_key(failure_code), "action_zh": "重试",
+        }
     if str(status).lower() in IN_PROGRESS_STATES:
         if _is_stalled(updated_at, stale_after_seconds=stale_after_seconds):
             # 「正在同步，请稍候。」说一次是对的，说一整天就是骗人。
@@ -184,7 +223,7 @@ def describe_sync_outcome(
             # 审计挂在 status 上只够运维查；要让用户看见，必须在这一句里说。
             return {
                 "outcome": "stalled", "imported": imported,
-                "message_zh": "这次同步卡住了，没有正常结束。你已经取到的内容都还在。",
+                "message_zh": _INCOMPLETE_SENTENCE,
                 "failure_code": "SYNC_STALLED", "action_zh": "重试",
             }
         # 还在跑，不是失败。

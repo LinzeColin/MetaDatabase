@@ -438,3 +438,57 @@ def test_the_chinese_fallback_covers_the_status_codes_that_actually_happen() -> 
         block = text.split("humanMessage", 1)[1][:1200]
         for code in ("401", "404", "429", "500"):
             assert code in block, f"{relative} 的中文兜底没有覆盖 {code}"
+
+
+# ── 生产库里真实存在的失败码 ─────────────────────────────────────────
+#
+# 这一组的由来：我把词典是照着**能读到的代码路径**建的，然后去查了一次
+# 生产库，发现 sync_run 里实际存在的四个码里有三个**在当前代码中一个字
+# 都搜不到**——它们是 v0.0.0.6 留下的，那部分代码已被 T03 删掉，
+# 记录却还在库里。不认它们，这些历史记录在界面上会显示成
+# 「我们没能记录下原因」，而原因就明明白白写在 last_error_code 里。
+
+
+# 2026-08-04 生产 sync_run 表实测（code, 次数, 已入库条数）
+PRODUCTION_CODES = [
+    ("BROWSER_SCAN_FAILED", 4, 0),
+    ("RELATION_SCOPE_UNCONFIRMED", 7, 169),
+    ("STABLE_END_WITHOUT_PROOF", 2, 91),
+    ("SYNC_RUN_ABANDONED", 3, 0),
+]
+
+
+@pytest.mark.parametrize("code,runs,imported", PRODUCTION_CODES)
+def test_every_code_that_actually_exists_in_production_is_explainable(
+    code: str, runs: int, imported: int
+) -> None:
+    """生产库里真有的码，一个都不许落到「我们没能记录下原因」。"""
+    outcome = describe_sync_outcome(
+        imported=imported, failure_code=code, status="partial", platform_label="B站"
+    )
+    assert outcome["outcome"] != "unexplained_zero", (
+        f"{code} 在生产里出现过 {runs} 次，界面却会说「我们没能记录下原因」——"
+        "而原因就写在 last_error_code 里"
+    )
+    assert "我们没能记录下原因" not in str(outcome["message_zh"])
+
+
+def test_legacy_incomplete_codes_say_the_data_is_safe() -> None:
+    """「没跑完」要同时说清两件事：没正常结束，以及已拿到的没丢。"""
+    from social_archive.failure_copy import INCOMPLETE_RUN_CODES
+
+    for code in sorted(INCOMPLETE_RUN_CODES):
+        outcome = describe_sync_outcome(imported=0, failure_code=code, status="failed")
+        assert outcome["outcome"] == "stalled", f"{code} 落到了 {outcome['outcome']}"
+        assert "没有正常结束" in str(outcome["message_zh"])
+        assert "都还在" in str(outcome["message_zh"]), f"{code} 没告诉用户数据还在"
+        assert outcome["action_zh"] == "重试"
+
+
+def test_partial_runs_that_did_import_still_report_the_count_first() -> None:
+    """有新增就先报数——生产里那 169 条和 91 条不能被一句「卡住了」盖掉。"""
+    outcome = describe_sync_outcome(
+        imported=169, failure_code="RELATION_SCOPE_UNCONFIRMED", status="partial"
+    )
+    assert outcome["outcome"] == "imported"
+    assert outcome["message_zh"] == "新增 169 条。"
