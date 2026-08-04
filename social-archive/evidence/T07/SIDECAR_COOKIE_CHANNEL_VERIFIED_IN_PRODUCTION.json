@@ -1,0 +1,38 @@
+{
+  "task": "T07",
+  "claim": "Cookie 进 sidecar 这条通道在**生产上实测通了**：sidecar 收下 cookies_txt、真的把 --cookies 传给了 gallery-dl、值没有回显、临时文件用完就没了、日志里一个字符都没有。",
+  "authorization": "Owner 原话「cookie 可以进 ovh」（2026-08-04）。此前 evidence/HANDOFF_v0007.md 把这条列为「唯一需要 Owner 裁定的设计问题」——那份记录已经陈了，Owner 早就裁定过。",
+  "measured_at": "2026-08-04",
+  "host": "linze-ovh · social-archive-cli-tools-1",
+
+  "why_it_needed_a_production_test": "`capture_url` 有两条分支：配了 cli_worker_url 走 HTTP sidecar，否则跑本机二进制。v0.0.0.7 先把凭据接到了**本机分支**，而生产走的是 **sidecar 分支**——也就是说那次修复在生产上根本不生效，取到的永远只有公开内容。本机测试通过在这件事上一点用都没有。",
+
+  "how_measured": {
+    "method": "在 cli-tools 容器内直接 POST /v1/capture-url，带上一份含哨兵值的 cookies.txt。URL 用一个 gallery-dl 必然拒绝的地址，只验通道与生命周期，不真去下载任何东西。",
+    "sentinel": "cookies.txt 里放了一个只会出现在 cookie 值里的字符串，用它去搜返回体和日志。",
+    "auth_header": "X-Social-Archive-Worker-Token（第一次用 Authorization: Bearer 被 401 挡了——sidecar 用的是自定义头）"
+  },
+
+  "results": {
+    "used_cookies": true,
+    "exit_code": 64,
+    "stderr": "[gallery-dl][error] Unsupported URL 'https://example.com/sa-probe-does-not-exist'",
+    "what_exit_64_proves": "gallery-dl **真的被启动了**，而且是在 argv 组装完（含 --cookies <path>）之后才因为 URL 不支持而退出。参数通道是通的。",
+    "sentinel_in_response_body": false,
+    "sentinel_in_container_logs": 0,
+    "leftover_cookie_files_in_tmp": "无（finally 里的 unlink 生效了）"
+  },
+
+  "three_hard_constraints_each_verified": {
+    "只写进内存盘": "docker exec 实测：`tmpfs on /tmp type tmpfs (rw,nosuid,nodev,noexec,relatime,size=524288k)`，且 ReadonlyRootfs=true。**登录状态从不落盘**，容器一停就没了。",
+    "0600 且用完即删": "mkstemp 建出来就是 0600（没有先建后 chmod 的竞态窗口）；实测跑完 /tmp 下没有任何 sa-cookies-* 残留。",
+    "绝不进日志": "argv 里出现的是**路径**不是内容。实测：哨兵值既不在返回体里，也不在容器日志里（grep 计数 0）。"
+  },
+
+  "what_this_does_not_prove": [
+    "**不证明任何一个平台真的因此能取到内容了。** 这次用的是构造的 cookies.txt 和一个不存在的 URL；它证明的是「通道通了」，不是「拿这条通道去取 X/Instagram 的内容会成功」。后者要 Owner 先授权那些平台。",
+    "不证明 Core 那侧会在正确的时机把托管的会话解出来送过来。CredentialStore.materialize → capture_url(cookies_path=…) 这一段有本机判据，但**生产上没有跑过一次真实的带凭据抓取**。",
+    "不证明 512M 的 tmpfs 够用。平台的 cookies.txt 通常几 KB，但产出目录也在容器里，大文件抓取的行为没测过。",
+    "不证明这个设计是安全偏好上最优的。Owner 裁定了「可以进」，这份证据只记录「按他说的做了，而且做对了」。"
+  ]
+}

@@ -96,7 +96,7 @@ v0.0.0.6 取证阶段的手工产物，**没有任何定时备份**。
 
 详见 `evidence/T18/DURABILITY_UNITS_NEVER_ENABLED.json`。
 
-## 唯一需要 Owner 裁定的设计问题
+## ~~唯一需要 Owner 裁定的设计问题~~ —— 已裁定并实测（2026-08-04）
 
 **平台会话（Cookie）能不能进那个 24 小时联网的 cli-tools 容器？**
 
@@ -104,13 +104,21 @@ v0.0.0.6 取证阶段的手工产物，**没有任何定时备份**。
 二进制。v0.0.0.7 把凭据接到了**本机分支**，而生产走的是 **sidecar 分支**——
 所以那次修复在生产上暂时不生效。
 
-要接通有两条路，方向相反、工作量都不小：
+> **这一条已经不再悬着（2026-08-04）。** Owner 裁定：「cookie 可以进 ovh」。
+> 走的是第二条路——sidecar 的 `/v1/capture-url` 接收 `cookies_txt`。
+>
+> **生产实测已通过**：`used_cookies: true`，gallery-dl 真的带着 `--cookies <path>`
+> 被启动（exit 64 = URL 不支持，说明是在 argv 组装完之后才退出的），
+> 哨兵值既不在返回体也不在容器日志里（grep 计数 0），/tmp 下无残留。
+> /tmp 实测是 `tmpfs (rw,nosuid,nodev,noexec,size=512m)` 且 ReadonlyRootfs=true，
+> 也就是**登录状态从不落盘**。见 `evidence/T07/SIDECAR_COOKIE_CHANNEL_VERIFIED_IN_PRODUCTION.json`。
+>
+> 备份用的 age 私钥仍然**不进**这个容器——那是另一个答案，没有被这次裁定带走。
+
+下面是当时的两条候选路径，留作记录：
 
 - **不进容器**：改走共享卷传临时文件，或放弃进程隔离让 Core 自己跑工具
-- **可以进**：改 sidecar 的 `/v1/capture-url` 接口，让它接收 cookies
-
-compose 对**备份 age 私钥**的既有答案是明确的「不进」。Cookie 是不是同一个
-答案，属于安全偏好而不是技术选型，**不替 Owner 猜**。这一条卡着 T07/T10/T11。
+- **可以进**：改 sidecar 的 `/v1/capture-url` 接口，让它接收 cookies ← **已采用**
 
 见 `evidence/T06/CREDENTIALS_WERE_NEVER_USED.json`。
 
