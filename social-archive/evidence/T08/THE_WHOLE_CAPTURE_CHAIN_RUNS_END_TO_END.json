@@ -1,0 +1,30 @@
+{
+  "task": "T08",
+  "claim": "Owner 点一下诊断之后要跑的那整条链——刷新 → 注入中继 → 注入观察器 → 下发前缀 → 抓响应 → 转回 background → 生产解析器读出条目——**整条串起来在真 Chrome 里跑通了**。",
+  "measured_at": "2026-08-05",
+  "why_this_had_to_be_measured": "每一环都单独验过（解析器有判据、服务端接口打得通、插件装得上、三个全局都在），但「每一环都对」和「串起来能出条目」是两件事。这个项目今天已经在这个差别上栽过两次：藏了按钮而队列照抢标签页；静态判据说守卫在导航之前而实测抢了 2 下。**Owner 只需要动一次手，那一下如果链是断的，他什么也拿不到，而那一下已经用掉了。**",
+  "why_loopback_and_not_the_real_site": "去不了真站点，也不该去。所以在 127.0.0.1:8765 上重建同一条链：本地假收藏夹页 + 假接口，响应体用 2026-08-04 那次真实抓包记录下来的形状，再拿**生产同一个解析器**去读抓回来的字节。用 8765 是因为插件在装的时候就拿到了这个域的权限（manifest 的 host_permissions 里写着），不需要任何人点授权框。",
+  "how": [
+    "scripts/extension_capture_drill.py：自起一次性 profile 的 Chrome + 本地假站，跑完全删",
+    "装的是 dist/social-archive-extension.zip 解出来的 23 个文件——**Owner 会下载到的那个包**，不是源码目录",
+    "探针在 service worker 里照抄诊断按钮的顺序：reload → net-relay.js(ISOLATED) → net-observer.js(MAIN) → SA_OBSERVER_CONFIGURE",
+    "页面每 700ms 各发一次相对地址与绝对地址的请求"
+  ],
+  "results": {
+    "extension_id": "nbljppcaccgeokhmkdplgpkiicpfojpa",
+    "观察器自报": "installed=true, ready=true, prefixCount=1",
+    "抓到": "8 条",
+    "其中相对地址": "4 条",
+    "其中绝对地址": "4 条",
+    "生产解析器从第一条抓到的字节里读出": "2 条收藏",
+    "反例（换一个绝不会出现的前缀）": "0 条"
+  },
+  "what_the_counter_example_is_for": "反例抓到 0 条，才说明正例那 8 条是**前缀匹配匹配出来的**，而不是「抓了所有请求」。一个永远 PASS 的演练比没有演练更坏——它会让人以为验过了。",
+  "a_bug_this_drill_caught_in_itself": "判据原来写的是 `len(parse_bilibili_favlist(body))`。那个函数返回的是 `(条目, 还有下一页)` 两元组，`len` 永远等于 2——**而 2 正是这次期望的条目数**。条目为空它也会绿。写完就发现并改成先解包；这是本会话第 N 次「判据绿了但数的不是它以为的东西」。",
+  "what_this_does_not_prove": [
+    "不证明 B 站真实响应就是这个形状。形状取自 2026-08-04 那次真实抓包的记录，不是这次量出来的。",
+    "不证明 Owner 机器上的权限与策略与这里相同。",
+    "不证明真实平台页面上有 Cookie 的那次请求会成功——没登录时 B 站返回 `{\"code\":0,\"data\":null}`，那条路由解析器判 NOT_LOGGED_IN，另有判据。"
+  ],
+  "cleanup": "一次性 profile 已删，测试用 Chrome 已 terminate，本地假站已 shutdown。生产与 Owner 的 profile 一律没碰。"
+}
