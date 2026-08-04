@@ -1,5 +1,5 @@
 {
-  "status": "PASS",
+  "status": "FAIL",
   "suite_mode": "structural",
   "application_suite_rerun": false,
   "results": [
@@ -61,9 +61,9 @@
         "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/validate_systemd.py"
       ],
-      "exit_code": 0,
-      "stdout": "PASS：systemd 运行合同完整，状态与复制只可写入 /var/lib/social-archive。\n",
-      "stderr": ""
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "prepare_systemd_host.sh 不得启用或启动生产服务\n"
     },
     {
       "argv": [
@@ -108,7 +108,7 @@
         "scripts/check_evidence_declares_its_limits.py"
       ],
       "exit_code": 0,
-      "stdout": "检查 v0.0.0.7 证据 29 份（其中自锁 4 份）\n每一份都写了局限；自锁的没有一份被改写成 PASS。\n",
+      "stdout": "检查 v0.0.0.7 证据 30 份（其中自锁 4 份）\n每一份都写了局限；自锁的没有一份被改写成 PASS。\n",
       "stderr": ""
     },
     {

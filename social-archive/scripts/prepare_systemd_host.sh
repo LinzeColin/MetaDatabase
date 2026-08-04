@@ -268,3 +268,22 @@ systemctl daemon-reload
 
 printf '宿主机准备完成；可回滚备份：%s\n' "$backup_dir"
 printf '未启用或启动任何 unit、Docker、Tunnel 或云资源；由 Owner 完成下一步验收后再显式启用。\n'
+
+# **把「要启用什么」逐条列出来，不要只说「由 Owner 显式启用」。**
+#
+# 生产实测（2026-08-04）：只有 social-archive.service 与 status.timer 被启用过，
+# 而 backup / replication / private-database-sync 三个 timer 一直是 disabled，
+# journalctl 90 天内 "No entries" —— **从来没跑过**。
+# 后果：549 个制品里 530 个一个异地副本都没有，也没有任何定时备份。
+# 对一个以「归档」为卖点的产品，这是最要命的那种沉默失败。
+#
+# 不列清单的代价就是这个：一句笼统的「由 Owner 显式启用」，
+# 谁都不知道到底漏了哪几个。
+printf '\n必须由 Owner 显式启用的 unit（缺一个就有数据只存在一份的风险）：\n'
+printf '  systemctl enable --now social-archive.service\n'
+printf '  systemctl enable --now social-archive-backup.timer                  # 定时备份\n'
+printf '  systemctl enable --now social-archive-replication.timer             # 三地副本\n'
+printf '  systemctl enable --now social-archive-private-database-sync.timer   # 私有库同步\n'
+printf '  systemctl enable --now social-archive-status.timer\n'
+printf '  systemctl enable --now social-archive-cloudflared.service\n'
+printf '\n启用之后请跑一次 scripts/check_durability_units.sh 复核。\n'
