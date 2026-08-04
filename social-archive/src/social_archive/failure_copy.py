@@ -93,6 +93,18 @@ _ALIASES: dict[str, str] = {
     "UPLOAD_FAILED": "SERVER_UNREACHABLE",
     "BROWSER_SCAN_FAILED": "SERVER_UNREACHABLE",
     "RELATION_URL_UNAVAILABLE": "SERVER_UNREACHABLE",
+    # 诊断按钮读回来那一段（v0.0.0.7 / T08）。**这三个都不别名成 NOT_LOGGED_IN**：
+    # 它们说的是「我们读不懂平台给的东西」，让用户去重新登录只会让他白忙一趟。
+    # 落到 PRODUCT_FAULT_CODES：结论是「问题在我们这边，别反复重试」。
+    #
+    # 唯独 B 站那条 `code:0 / data:null` **确实**别名成 NOT_LOGGED_IN——
+    # 因为它的真实含义就是「这个浏览器没登录」（2026-08-04 实测，见
+    # platform_payloads.py 模块文档）。解析器直接给出 NOT_LOGGED_IN，
+    # 不经过这张表。
+    #
+    # NOTHING_CAPTURED 例外：观察器一条都没拦到，用户滚几屏再点一次就可能好，
+    # 所以它是 retryable 而不是产品缺陷。
+    "NOTHING_CAPTURED": "RATE_LIMITED",
     # 标签页/会话
     "MIRROR_TAB_CLOSED": "TAB_CLOSED",
     "PLATFORM_SESSION_EXPIRED": "CREDENTIAL_EXPIRED",
@@ -239,6 +251,13 @@ PRODUCT_FAULT_CODES: frozenset[str] = frozenset({
     # 这里是万一还是走到了的兜底——结论是「我们的问题、别重试」，
     # 而不是此前那句借来的「暂时连不上服务器，[ 重试 ]」。
     "ACQUISITION_PATH_NOT_INSTALLED",
+    # 拦到了平台的响应，却读不懂它（v0.0.0.7 / T08）。
+    # 让用户重试没有意义——同一份字节我们还是读不懂；要改的是解析器。
+    "UNREADABLE",
+    "PAYLOAD_NOT_JSON",
+    "PAYLOAD_SHAPE_CHANGED",
+    "PLATFORM_PARSER_MISSING",
+    "PLATFORM_REFUSED",
 })
 _PRODUCT_FAULT_SENTENCE = "这次没有取到内容，问题在我们这边，已经记下来了。不用反复重试。"
 

@@ -7,6 +7,7 @@ import os
 import secrets
 import threading
 import time
+from dataclasses import asdict
 from datetime import UTC, date, datetime
 from pathlib import Path, PurePosixPath
 from typing import Any, Literal
@@ -27,6 +28,7 @@ from .account_sync import (
     PLATFORM_RELATIONS,
 )
 from .config import Settings
+from .platform_payloads import PayloadUnreadable, parse_bilibili_favlist
 from .db import RuntimeStore
 from .credentials import (
     CUSTODIAL_PLATFORMS,
@@ -481,6 +483,75 @@ def ingest_sync_batch(sync_run_id: str, request: SyncBatchRequest) -> dict[str, 
 @app.get("/v1/connectors", dependencies=[Depends(require_token)])
 def connectors() -> dict[str, Any]:
     return {"items": registry.health_views(store.connector_states())}
+
+
+# 平台 → 响应解析器。**只登记有实测依据的**。
+#
+# 登记在这里 ≠ 这个平台可以同步。能不能同步由 account_sync.SYNCABLE_NOW 说了算，
+# 那张表要的是「整条链路跑通过」；这张表要的只是「这一段字节我们读得懂」。
+# bilibili 在这里、不在那里，正是当前的真实状态。
+PAYLOAD_PARSERS = {
+    "bilibili": parse_bilibili_favlist,
+}
+
+
+class CapturedResponse(BaseModel):
+    """观察器在 Owner 浏览器里抄回来的一条平台响应。
+
+    **正文原样送过来，扩展不解析**（background.js:1303 的原话：
+    「解析失败会吞掉本来能救的数据」）。原始字节到了这里，
+    读不懂还能留证、还能重放；在浏览器里读不懂就是彻底没了。
+    """
+
+    platform: str
+    url: str = ""
+    body: str
+
+
+@app.post("/v1/extension/captures/parse", dependencies=[Depends(require_token)])
+def parse_captured_response(payload: CapturedResponse) -> dict[str, Any]:
+    """把一条抓回来的响应体读成条目——**或者说清为什么读不成**。
+
+    这个端点存在的理由是一件实测出来的事（2026-08-04，纯 curl 无 Cookie）：
+
+        GET api.bilibili.com/x/v3/fav/resource/list?media_id=12&pn=1&ps=5
+        → HTTP 200 → {"code":0,"message":"OK","ttl":1,"data":null}
+
+    **HTTP 200、业务码 0、message "OK"、data 是 null。** 照常理写的解析器
+    会拿到空列表并报告「同步成功，0 条」——用户读到「你没有收藏」，
+    真相是「你没登录」。v0.0.0.6 生产上"永远是 0"就是这个形状。
+
+    所以这里**永远不会**返回 `{"items": [], "ok": true}` 那种含糊的成功：
+    要么给出条目，要么给出失败码 + 一句能照着做的中文。
+    """
+    platform = payload.platform.strip().lower()
+    parser = PAYLOAD_PARSERS.get(platform)
+    if parser is None:
+        return {
+            "ok": False,
+            "platform": platform,
+            "failure_code": "PLATFORM_PARSER_MISSING",
+            "message_zh": f"还没有写{platform}的响应解析，这一条读不了。",
+            "items": [],
+        }
+    try:
+        items, has_more = parser(payload.body)
+    except PayloadUnreadable as exc:
+        return {
+            "ok": False,
+            "platform": platform,
+            "failure_code": exc.failure_code,
+            "message_zh": exc.message_zh,
+            "items": [],
+        }
+    return {
+        "ok": True,
+        "platform": platform,
+        "failure_code": None,
+        "message_zh": f"读懂了 {len(items)} 条。",
+        "has_more": has_more,
+        "items": [asdict(item) for item in items],
+    }
 
 
 @app.get("/v1/extension/bootstrap", dependencies=[Depends(require_token)])

@@ -1324,6 +1324,47 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       });
       return { ok: true };
     }
+    /** 把抓到的响应真的读一遍——**「拦到了」和「读得懂」是两件事**。
+     *
+     * 诊断按钮原来只回报地址与字节数。那回答的是「有没有拦到」，
+     * 而 Owner 真正要知道的是「拦到的东西我们能不能用」。
+     *
+     * 2026-08-04 实测（纯 curl 无 Cookie）：B 站收藏接口在没登录时返回
+     * HTTP 200 + `{"code":0,"message":"OK","ttl":1,"data":null}`。
+     * 只看地址与字节数的话，这一条**看起来完全成功**。
+     *
+     * 解析在服务端做（响应体原样送过去，这里不 JSON.parse），
+     * 服务端要么给条目、要么给失败码 + 一句能照着做的中文。
+     */
+    if (message?.type === "SA_PARSE_NET_CAPTURES") {
+      const platform = String(message.platform || "").trim().toLowerCase();
+      if (!netCaptureBuffer.length) {
+        return { ok: false, readable: 0, total: 0,
+                 failureCode: "NOTHING_CAPTURED",
+                 message_zh: "一条响应都没拦到，没有可读的东西。" };
+      }
+      let readable = 0;
+      let items = 0;
+      let firstProblem = null;
+      for (const capture of netCaptureBuffer) {
+        const parsed = await SA.api("/v1/extension/captures/parse", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ platform, url: capture.url, body: capture.body }),
+          timeoutMs: 20000,
+        }).catch(error => ({ ok: false, failure_code: "SERVER_UNREACHABLE",
+                             message_zh: error?.message || "连不上你的档案馆。" }));
+        if (parsed?.ok) { readable += 1; items += (parsed.items || []).length; }
+        else if (!firstProblem) firstProblem = parsed;
+      }
+      return {
+        ok: readable > 0, readable, total: netCaptureBuffer.length, items,
+        failureCode: readable > 0 ? null : (firstProblem?.failure_code || "UNREADABLE"),
+        message_zh: readable > 0
+          ? `拦到 ${netCaptureBuffer.length} 条，其中 ${readable} 条读得懂，共 ${items} 条收藏。`
+          : (firstProblem?.message_zh || "拦到了响应，但一条都读不懂。"),
+      };
+    }
     if (message?.type === "SA_GET_NET_CAPTURES") {
       // 只回形态与条数，不回响应体——响应体里可能有平台返回的个人信息，
       // 让它在消息里到处传是没必要的暴露面。

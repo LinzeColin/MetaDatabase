@@ -250,10 +250,21 @@
       }
       const captured = await chrome.runtime.sendMessage({ type: "SA_GET_NET_CAPTURES" });
       const urls = (captured?.urls || []).filter((value, index, all) => all.indexOf(value) === index);
+      // **「拦到了」不等于「读得懂」。** 只报地址与字节数的话，
+      // 一条 `{"code":0,"message":"OK","data":null}` 看起来完全成功——
+      // 而它的真实含义是「这个浏览器没登录」。所以再往前走一步：
+      // 把抓到的响应真的读一遍，把结论也写进报告。
+      button.textContent = "正在读一遍抓到的内容…";
+      const readback = await chrome.runtime.sendMessage({
+        type: "SA_PARSE_NET_CAPTURES", platform,
+      }).catch(() => null);
       const report = [
         `平台：${platform || "（没认出来）"}`,
         `页面：${String(tab.url || "").split("?")[0]}`,
         `抓到 ${captured?.count || 0} 条响应，共 ${captured?.totalBytes || 0} 字节`,
+        `读得懂：${readback?.message_zh || "（没能读一遍）"}`,
+        ...(readback && !readback.ok && readback.failureCode
+          ? [`失败码：${readback.failureCode}`] : []),
         "",
         ...(urls.length ? urls.map(u => `  ${u}`) : ["  （一条都没抓到——可能这个页面没有翻页请求，试试滚动或切换收藏夹）"]),
       ].join("\n");

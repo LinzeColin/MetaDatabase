@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 532 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 535 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -115,7 +115,7 @@
         "scripts/check_every_failure_code_is_explainable.py"
       ],
       "exit_code": 0,
-      "stdout": "扫到失败码 47 个（src, apps）\n每一个都能落到一句中文。\n",
+      "stdout": "扫到失败码 49 个（src, apps）\n每一个都能落到一句中文。\n",
       "stderr": ""
     },
     {
@@ -124,7 +124,7 @@
         "scripts/check_evidence_declares_its_limits.py"
       ],
       "exit_code": 0,
-      "stdout": "检查 v0.0.0.7 证据 41 份（其中自锁 4 份）\n每一份都写了局限；自锁的没有一份被改写成 PASS。\n",
+      "stdout": "检查 v0.0.0.7 证据 44 份（其中自锁 4 份）\n每一份都写了局限；自锁的没有一份被改写成 PASS。\n",
       "stderr": ""
     },
     {
@@ -133,7 +133,7 @@
         "scripts/find_endpoints_no_client_calls.py"
       ],
       "exit_code": 0,
-      "stdout": "api.py 里的 /v1 路由 46 个；客户端目录 apps, scripts\n每个接口都至少有一处界面调用。\n",
+      "stdout": "api.py 里的 /v1 路由 47 个；客户端目录 apps, scripts\n每个接口都至少有一处界面调用。\n",
       "stderr": ""
     },
     {
@@ -160,7 +160,7 @@
         "scripts/find_messages_with_only_one_end.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 apps/ 下 22 个文件，33 个 SA_ 消息类型；另有 0 条已登记的单头例外\n每条消息都既有发送方也有接收方。\n",
+      "stdout": "扫了 apps/ 下 22 个文件，34 个 SA_ 消息类型；另有 0 条已登记的单头例外\n每条消息都既有发送方也有接收方。\n",
       "stderr": ""
     },
     {

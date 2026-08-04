@@ -66,6 +66,9 @@
     UPLOAD_FAILED: "SERVER_UNREACHABLE",
     BROWSER_SCAN_FAILED: "SERVER_UNREACHABLE",
     RELATION_URL_UNAVAILABLE: "SERVER_UNREACHABLE",
+    // 诊断按钮：观察器一条响应都没拦到（v0.0.0.7 / T08）。
+    // 滚几屏再点一次就可能好，所以是 retryable 而不是产品缺陷。
+    NOTHING_CAPTURED: "RATE_LIMITED",
     MIRROR_TAB_CLOSED: "TAB_CLOSED",
     PLATFORM_SESSION_EXPIRED: "CREDENTIAL_EXPIRED",
     // gallery-dl 退出码 8：撞上验证码/风控。我们不绕，把人引回浏览器自己过。
