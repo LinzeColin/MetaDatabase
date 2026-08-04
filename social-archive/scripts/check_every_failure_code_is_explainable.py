@@ -28,8 +28,16 @@ INV-NO-SILENT-ZERO 说的是「0 条时界面说得出为什么」。而失败�
 
 ## 它不保证什么
 
-只覆盖**字面量**。动态拼出来的码（`f"{prefix}_FAILED"`）扫不到——
-所以别那样写失败码。
+只覆盖**字面量**。动态拼出来的码（`f"{prefix}_FAILED"`、
+`exc.__class__.__name__`）它结构上就看不见。
+
+**这条局限已经被堵上了，但不是靠改这个脚本，而是靠禁掉那种写法：**
+`tests/focused/test_failure_copy_matrix.py::test_failure_codes_are_never_python_class_names`
+禁止把异常类名当失败码。写法被禁之后，扫字面量就够了。
+
+（这条局限不是假想。生产 connector_state 里真躺着一个 `CONNECTORERROR`，
+就是 `exc.__class__.__name__.upper()` 产生的——它落到「我们没能记录下原因」，
+而原因就在那个异常对象里。改的时候先找到三处，写了判据才发现是八处。）
 """
 
 from __future__ import annotations

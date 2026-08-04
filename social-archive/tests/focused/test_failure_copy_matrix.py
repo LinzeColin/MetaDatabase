@@ -520,6 +520,19 @@ def test_failure_codes_are_never_python_class_names() -> None:
             # 只在它被当作 code/error_code 用的时候才算
             if re.search(r'(error_)?code["\']?\s*[=:]\s*f?["\']?[^"\']*__class__\.__name__', line):
                 offenders.append(f"{path.name}:{lineno}  {line.strip()[:80]}")
+    # 扩展侧同样不许。当前实测是干净的（码都来自 cookie-export.js 的
+    # 显式构造参数，调用点全是字面量），这条判据是防它以后变脏。
+    apps = Path(__file__).resolve().parents[2] / "apps"
+    for path in apps.rglob("*.js"):
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            # 既要抓「直接赋给 code 字段」，也要抓「先赋给局部变量 code
+            # 再当失败码用」。第一版只写了前者，我拿后者试了一下——**没红**。
+            # 判据写完必须真的用反例试一次，这条本轮已经栽过好几回。
+            if re.search(
+                r'\b(failureCode|failure_code|code)\s*[=:]\s*[\w?.]*\.(name|constructor)\b', line
+            ):
+                offenders.append(f"{path.name}:{lineno}  {line.strip()[:80]}")
+
     assert not offenders, (
         "这些地方把异常类名当成了失败码，界面会显示「我们没能记录下原因」：\n  "
         + "\n  ".join(offenders)
