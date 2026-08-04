@@ -20,7 +20,12 @@ def test_pwa_and_popup_route_account_sync_through_extension_runtime():
 def test_pwa_pings_the_bridge_and_rejects_unpaired_or_wrong_version_extensions():
     pwa = PWA.read_text(encoding="utf-8")
     bridge = (EXT / "bridge.js").read_text(encoding="utf-8")
-    assert 'const PRODUCT_VERSION = "0.0.0.6"' in pwa
+    # 版本跟着仓根 VERSION 走，不再逐字钉死。**钉死的断言只能证明"没人动过它"**，
+    # 而这里恰恰相反：界面上原先一直显示 v0.0.0.6，正是因为没人动它。
+    expected_version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+    assert f'const PRODUCT_VERSION = "{expected_version}"' in pwa, (
+        f"PWA 自报的版本与 VERSION（{expected_version}）不一致——界面会显示错的版本号"
+    )
     assert 'postToExtension("SA_PING", {}, 1500)' in pwa
     assert 'data.type !== "SA_BRIDGE_READY"' in pwa
     # v0.0.0.7 / T03：不再把用户丢去设置页手抄配对码；未连接时就地取凭据接上。

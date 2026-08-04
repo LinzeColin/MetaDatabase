@@ -148,7 +148,7 @@ def main() -> int:
         path = parsed.path
         query = parse_qs(parsed.query)
         if path == "/health":
-            return response_json(route, {"status": "ok", "version": "0.0.0.6"})
+            return response_json(route, {"status": "ok", "version": _project_version()})
         if path == "/v1/extension/bootstrap":
             return response_json(route, {"connectors": connectors, "destinations": destinations, "jobs": jobs})
         if path == "/v1/library":

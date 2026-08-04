@@ -132,7 +132,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
-  const PRODUCT_VERSION = "0.0.0.6";
+  const PRODUCT_VERSION = "0.0.0.7";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -256,7 +256,7 @@
     try {
       const health = await api("/health", { timeoutMs: 5000 });
       state.serviceReady = health.status === "ok";
-      setServiceBadge("connected", `私人档案馆已连接 · v${health.version || "0.0.0.6"}`);
+      setServiceBadge("connected", `私人档案馆已连接 · v${health.version || PRODUCT_VERSION}`);
       // 存储吃紧时要**主动**说，别等用户发现媒体没下下来才去猜。
       //
       // 冻结词典里本来就有 DISK_QUOTA 那一句（「存储空间快满了，已经暂停

@@ -43,9 +43,18 @@ def public_status_bytes(path: Path) -> bytes | None:
     return (json.dumps(safe_document, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
 
 
+def _project_version() -> str:
+    """版本只有一个真源：仓根的 VERSION 文件。读不到就说不知道，不猜。"""
+    try:
+        return (Path(__file__).resolve().parents[1] / "VERSION").read_text(encoding="utf-8").strip() or "unknown"
+    except OSError:
+        return "unknown"
+
+
 def make_server(host: str, port: int, status_file: Path) -> ThreadingHTTPServer:
     class StatusProjectionHandler(BaseHTTPRequestHandler):
-        server_version = "SocialArchiveStatus/0.0.0.6"
+        # 版本读仓根 VERSION。写死会让状态站在升级后一直自报旧版本。
+        server_version = f"SocialArchiveStatus/{_project_version()}"
         sys_version = ""
 
         def log_message(self, _format: str, *_args: object) -> None:
