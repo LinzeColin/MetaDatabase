@@ -14,7 +14,7 @@ sparse    .github + social-archive
 
 主树 `GithubProject/MetaDatabase` 停在 main、0 脏文件，没被污染（铁律 2）。
 
-## DAG 状态（2026-08-04 更新）
+## DAG 状态（2026-08-04 二次更新）
 
 | 任务 | 状态 | 说明 |
 |---|---|---|
@@ -22,9 +22,9 @@ sparse    .github + social-archive
 | T01 | **done** | `evidence/T01/MIGRATION_COUNTS.json`；`tenancy_audit` 已挂到 `/v1/status` |
 | T02 | **in_progress** | 本地登录链路实测通过（登出→401 已验）；差 Owner 用真账号登录一次 |
 | T03 | **done** | `evidence/T03/REMOVAL_AND_ZERO_TYPING.json` |
-| T04 | **done** | 真实浏览器跑通：62 条书签 `queued→completed`，界面表格 62/62 逐条对上 |
-| T05 | **done** | 凭据托管；HTTP 层往返判据见 `test_credential_http_roundtrip.py` |
-| T06 | **partial** | 托管往返实测通过（合成会话）；**Oracle 未跑**，需 Owner 的 X 登录 |
+| T04 | **done** | 真实浏览器跑通：62 条书签 `queued→completed`，界面表格 62/62 逐条对上；另补 `DELETE /v1/accounts/{id}`（连得上断不开，见 `T04/CONNECT_HAD_NO_INVERSE.json`） |
+| T05 | **done** | 凭据托管；HTTP 层往返判据见 `test_credential_http_roundtrip.py`；隐私声明曾与实现相反，见 `T05/PRIVACY_CLAIM_WAS_FALSE.json` |
+| T06 | **partial** | 托管往返实测通过（合成会话）；**Oracle 未跑**，需 Owner 的 X 登录；「一键撤销」此前无入口，已接上（`T06/REVOKE_WAS_A_PROMISE_ONLY.json`） |
 | T07 | **blocked** | 卡在 sidecar 凭据策略（见下「唯一需要 Owner 裁定的设计问题」） |
 | T08 | **partial** | 拦截链路在真浏览器跑通（不碰任何平台）；真实收藏页未验 |
 | T09–T11 | pending | 依赖 T06/T08 的真实数据 |
@@ -90,17 +90,58 @@ compose 对**备份 age 私钥**的既有答案是明确的「不进」。Cookie
 
 ## 本轮反复撞到的一个形态：建好了没接上
 
-六次，每次都是模块写完、判据写好、全绿，然后才发现没有人在调它：
+十次以上，每次都是模块写完、判据写好、全绿，然后才发现没有人在调它：
 
     failure_copy 词典 / unexplained_zero_runs 审计 / 扩展的 lastResult /
-    CredentialStore.materialize / tenancy_audit / /v1/storage/status
+    CredentialStore.materialize / tenancy_audit / /v1/storage/status /
+    SA_REVOKE_PLATFORM_SESSION / GET /v1/credentials /
+    POST …/receipts/{id}/retry / 六个设不上的配置项
 
 **判据只证明「这个函数写得对」，不证明「有人在调它」。**
-已落成两道门：`find_unwired_code.py`（生产代码里零引用的公开符号）与
-`find_endpoints_no_client_calls.py`（服务端开着但没客户端请求的接口）。
+到 2026-08-04 已落成**六种形态、六道门**，全部挂在发布门里：
 
-写这两道门时我自己又把射程写错了三次（两次漏 `scripts/`——systemd 直接跑它，
-那也是生产；一次多算了 `scripts/`）。**新写一道门，第一件事是核它的射程。**
+| 门 | 看的是哪一种没接上 |
+|---|---|
+| `find_unwired_code.py` | Python 里零引用的公开符号 |
+| `find_endpoints_no_client_calls.py` | 服务端开着、没客户端请求的接口（**按方法判**，不只按路径） |
+| `find_write_only_storage_keys.py` | chrome.storage 写了没人读的键 |
+| `find_messages_with_only_one_end.py` | 扩展消息只有一头（有人听没人发／有人发没人听） |
+| `find_settings_with_no_way_to_set_them.py` | 代码读它、而任何部署面都设不上的配置项 |
+| `find_calls_to_functions_that_do_not_exist.py` | 调用了一个**根本不存在**的函数 |
+
+**新写一道门，第一件事是核它的射程。** 已经写错过五次：
+两次漏 `scripts/`（systemd 直接跑它，那也是生产）、一次多算了 `scripts/`、
+一次把「验收脚本里有调用」当成「产品里有人调」、一次把
+`platform_canary.py` 里的一句 `getenv` 当成「有地方能设这个变量」。
+**读的人不是设的人，测试桩不是用户。**
+
+另外两条同样代价高的教训：
+
+- **绿灯本身不是证据。** 新判据写完先做反证——把修复摘掉，看它变不变红。
+  本轮有一条判据断言 `'data-revoke-platform' in options`，把整段按钮 HTML
+  删掉之后照样全绿，因为 `querySelectorAll("[data-revoke-platform]")`
+  那一行里也有这个字符串：**判据被自己要找的选择器满足了。**
+- **「在小样本上噪声低」不等于「判据对」。** 第六道门在六个文件上试跑几乎零噪声，
+  扩到全 `apps/` 立刻炸出 23 条误报（class 写法 + `require` 解构没认）。
+
+## 这一轮补上的四处「说了但没做」
+
+按发现顺序，都是用户看得见的：
+
+1. **「随时可以一键撤销」是假的。** 服务端 DELETE 路由在、扩展处理体在，
+   而没有任何界面发得出那条消息。已接上（设置页每张卡片一颗按钮）。
+2. **安装页的隐私声明与产品相反。** 「插件不会把密码、Cookie 或浏览器登录状态
+   交给服务器」——对国内四源是真的，**对 X/Instagram/YouTube 是反的**
+   （T05/T06 的整套设计就是加密上传）。同一句话的机器版
+   （`/v1/extension/bootstrap` 的 `cookie_custody: False`）**由一条判据逐字钉着**。
+   已改成如实说明，并把三个写死的断言改成测量。
+3. **连得上、断不开。** 连接账号一次点击，此前没有任何反向动作，
+   而连上之后每 6 小时自己跑一次。已补 `DELETE /v1/accounts/{id}`——
+   **只断连接，一条内容都不删**。
+4. **六个配置项代码读它、任何部署面都设不上。** X/Reddit/Instagram 账号扫描
+   的身份与 token 全在这个状态：Owner 把该做的全做对了也一条都取不到，
+   而没有任何东西告诉他还差什么。身份改成取自已连接的账号，token 补进
+   compose secrets 与 `.env.example`。
 
 ## 三条必须知道的事实
 
