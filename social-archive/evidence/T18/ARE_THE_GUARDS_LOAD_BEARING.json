@@ -1,0 +1,29 @@
+{
+  "task": "T18",
+  "claim": "**判据绿着不代表它在守什么。** 用突变实测了约 70 条：把判据断言的那个字面量从源码里删掉，看它会不会红。能正确归属的**全部**是承重的。",
+  "measured_at": "2026-08-05",
+  "why": "上一轮只量了「锚点唯不唯一」这一个维度，而我在那份证据里自己写着「一个唯一的锚点照样可能配一个太小的窗口，那种这次看不出来」。不靠推理换个维度重量一遍——**唯一的证明是把它守的东西弄坏，它必须变红**。",
+  "method": "扫判据里的 `assert \"<字面量>\" in <变量>`，找出该判据读过的源文件中**剥掉注释后恰好出现一次**的那个，把含该字面量的行整行删掉，只跑这一个判据文件，期望它红。跑完原样还原。",
+  "result": {
+    "突变次数": "约 70",
+    "红了（承重）": "全部能正确归属的那些",
+    "报成「没守住」": 7,
+    "其中真问题": 0,
+    "其中探针认错文件": 7
+  },
+  "the_seven_misattributions": [
+    "\"127.0.0.1\" —— 断言打的是演练脚本 DRILL，探针去删了 background.js",
+    "\"/v1/credentials\" —— 断言打的是 api.py 的 disconnect_account，探针去删了 background.js",
+    "\"Path(identity).is_file()\" —— 断言打的是 restore.py，探针去删了 restore_object.py（两个文件都有这一句）",
+    "\"credential_age_recipient\" —— 断言打的是 Settings 的 dataclass 字段，探针去删了 api.py",
+    "\"umask 0007\" —— 断言打的是 container-entrypoint.sh，探针去删了 prepare_systemd_host.sh（那里只在注释里提过）",
+    "\"SACookieExport\" —— 断言打的是 background.js，探针去删了 cookie-export.js",
+    "\"HttpOnly\" —— 断言打的根本不是仓里的文件，是 Python 标准库的源码（inspect.getsource）"
+  ],
+  "why_it_was_not_turned_into_a_gate": "这一轮它的误报率是 **100%**（7 报 7 错）。一个总是喊狼来了的门，用不了几次就会被整段跳过，那时它连真的问题也挡不住——本仓已经在 doctor.sh 那 16 个假 FAIL 上学过这一课。它留作**手动工具**（scripts/probe_guards_are_load_bearing.py），改完一批判据后跑一次、人工过一遍。要变成门，得先把归属做成跟着变量走，而不是猜文件。",
+  "what_this_does_not_prove": [
+    "不证明所有判据都是承重的。探针只能覆盖 `assert \"字面量\" in 变量` 这一种形状，而且要求那个字面量在候选源文件里剥注释后恰好出现一次——`skipped` 有 114 条就是被这个条件挡掉的。",
+    "不证明承重的那些**守对了东西**。删掉一行能让它红，只说明它在盯着那一行；那一行是不是该盯的那一行，是另一回事。",
+    "不证明第二轮之后没有新的假绿。这是一次快照，不是常设检查——正因为它还不配当门。"
+  ]
+}
