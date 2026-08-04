@@ -213,7 +213,7 @@ def test_the_diagnostic_result_lands_on_his_own_server_not_in_his_clipboard(
     assert response.status_code == 200
     assert response.json()["recorded"] is True
 
-    landed = list((tmp_path / "data" / "evidence").glob("extension-diagnostics.jsonl"))
+    landed = list((tmp_path / "data" / "diagnostics").glob("extension-diagnostics.jsonl"))
     assert landed, "诊断结果没落盘"
     import json as _json
     record = _json.loads(landed[0].read_text(encoding="utf-8").splitlines()[-1])
@@ -243,3 +243,19 @@ def test_the_popup_still_keeps_copy_as_a_fallback() -> None:
     assert "/v1/extension/diagnostics" in block, "诊断结果没有送到他自己的服务器"
     assert "copyButton.classList.remove" in block, "复制按钮被拿掉了——存不上去时就没有退路了"
     assert "请点下面的「复制」发给开发者" in block, "存失败时没有告诉他还能怎么办"
+
+
+def test_an_unwritable_sink_is_a_message_not_a_stack_trace(tmp_path, monkeypatch) -> None:
+    """诊断上报是锦上添花；它挂掉不该给用户一串堆栈。
+
+    第一版直接抛，**实测在生产上 500**——data_root/evidence 是
+    root:socialarchive(980) 2755，而 Core 跑在 uid 10001 / gid 10001。
+    """
+    client = _client(tmp_path, monkeypatch)
+    blocked = tmp_path / "data" / "diagnostics"
+    blocked.parent.mkdir(parents=True, exist_ok=True)
+    blocked.write_text("我是一个文件，不是目录")  # mkdir 会失败
+    payload = client.post("/v1/extension/diagnostics", json={"platform": "bilibili"}).json()
+    assert payload["recorded"] is False
+    assert payload["failure_code"] == "DIAGNOSTIC_SINK_UNWRITABLE"
+    assert "复制" in payload["message_zh"], "没有告诉他还有哪条退路"

@@ -626,8 +626,11 @@ def record_diagnostic(report: DiagnosticReport) -> dict[str, Any]:
       就不会有「带迁移的回滚」那种最危险的回滚。
     · 追加写，永不覆盖：诊断可能要跑好几次，每次都是一条记录。
     """
-    target = settings.data_root / "evidence" / "extension-diagnostics.jsonl"
-    target.parent.mkdir(parents=True, exist_ok=True)
+    # **不能写 data_root/evidence。** 那个目录在生产上是 root:socialarchive(980)
+    # 2755，而 Core 跑在 uid 10001 / gid 10001——写不进去，实测 500 +
+    # PermissionError。写 diagnostics/，它由 prepare_systemd_host.sh 用
+    # `install -d -m 2770 -o 10001` 建出来，属主就是 Core 自己。
+    target = settings.data_root / "diagnostics" / "extension-diagnostics.jsonl"
     line = json.dumps({
         "at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "platform": report.platform.strip().lower(),
@@ -637,8 +640,21 @@ def record_diagnostic(report: DiagnosticReport) -> dict[str, Any]:
         "readable_count": report.readable_count,
         "note": report.note[:300],
     }, ensure_ascii=False)
-    with target.open("a", encoding="utf-8") as handle:
-        handle.write(line + "\n")
+    # **写不进去不是 500。** 诊断上报是个锦上添花的便利；它挂掉不该给用户
+    # 一串堆栈，而该告诉他还有复制按钮这条退路——弹窗里已经写好那句话了。
+    # 第一版就是直接抛，实测在生产上 500（evidence/ 目录 Core 写不进）。
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with target.open("a", encoding="utf-8") as handle:
+            handle.write(line + "\n")
+    except OSError as exc:
+        return {
+            "recorded": False,
+            "failure_code": "DIAGNOSTIC_SINK_UNWRITABLE",
+            "message_zh": "结果没能存到服务器（服务器上那个目录写不进去）。"
+                          "请点弹窗里的「复制」，把内容发给开发者。",
+            "detail": exc.__class__.__name__,
+        }
     return {"recorded": True, "message_zh": "诊断结果已存到你自己的服务器，不需要你再复制给谁。"}
 
 
