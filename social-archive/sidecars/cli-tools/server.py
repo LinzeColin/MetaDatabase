@@ -7,6 +7,7 @@ import secrets
 import shutil
 import socket
 import subprocess
+import tempfile
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -14,7 +15,12 @@ from urllib.parse import urlsplit
 
 OUTPUT_ROOT = Path(os.getenv("SOCIAL_ARCHIVE_CLI_OUTPUT_ROOT", "/work/output/cli")).resolve()
 TOKEN_FILE = os.getenv("SOCIAL_ARCHIVE_CLI_WORKER_TOKEN_FILE", "/run/secrets/cli_worker_token")
-MAX_BODY = 64 * 1024
+# 64 KiB 装得下 url + tool；带上 cookies.txt 之后要放宽。
+# 平台的 cookies.txt 通常几 KB，256 KiB 留足余量而不至于变成上传通道。
+MAX_BODY = 256 * 1024
+# 登录状态只落在 tmpfs（compose 给本容器挂的 /tmp 是内存盘），
+# 容器一停就没了。**绝不写进 OUTPUT_ROOT** —— 那是共享数据卷。
+COOKIE_TMPDIR = os.getenv("SOCIAL_ARCHIVE_COOKIE_TMPDIR", "/tmp")
 ALLOWED_TOOLS = {"gallery-dl", "yt-dlp", "instaloader", "bili"}
 BILI_SUBCOMMANDS = {"favorites", "watch-later", "history"}
 
@@ -87,19 +93,54 @@ def _run(argv: list[str], run_dir: Path, timeout: int = 900, *, require_artifact
 
 
 def _capture_url(payload: dict) -> dict:
+    """抓一个页面。可以带上调用方托管的平台登录状态。
+
+    ## cookies_txt 这个参数是 T07 的落点
+
+    Owner 明确裁定「Cookie 可以进 OVH」（2026-08-04）之后才加的。在此之前
+    `capture_url` 的 sidecar 分支**根本没有传 cookies 的通道**：Core 那侧
+    把托管的会话解密好了，走到这里却只发 url 和 tool——于是生产上
+    （生产走的正是 sidecar 分支）取到的永远只有公开内容。
+
+    ## 落地时的三条硬约束
+
+    1. **只写进 /tmp**。compose 给这个容器挂的是
+       `tmpfs: ["/tmp:rw,noexec,nosuid,size=512m"]` —— 内存盘。
+       也就是说**登录状态从不落盘**，容器一停就没了。
+    2. **0600 且用完即删**。mkstemp 建出来就是 0600（没有先建后 chmod 的
+       竞态窗口），finally 里删，异常路径也删。
+    3. **绝不进日志**。argv 里出现的是**路径**不是内容；_run 写的
+       command-result.json 记的也是 argv。cookies 的值不出现在任何输出里。
+    """
     url = _is_public_url(str(payload.get("url") or ""))
     tool = str(payload.get("tool") or "gallery-dl")
     if tool not in {"gallery-dl", "yt-dlp"}:
         raise ValueError("不支持的下载器")
+    cookies_txt = str(payload.get("cookies_txt") or "")
     run_id = str(uuid.uuid4())
     run_dir = OUTPUT_ROOT / run_id
     run_dir.mkdir(parents=True, exist_ok=False)
     if tool == "gallery-dl":
-        argv = ["gallery-dl", "--dest", str(run_dir), "--write-metadata", "--write-info-json", url]
+        argv = ["gallery-dl", "--dest", str(run_dir), "--write-metadata", "--write-info-json"]
     else:
-        argv = ["yt-dlp", "--no-playlist", "--restrict-filenames", "--write-info-json", "--write-subs", "--write-auto-subs", "--no-progress", "--paths", str(run_dir), url]
-    result = _run(argv, run_dir)
-    result.update({"run_id": run_id, "tool": tool, "observations": [{"url": url}]})
+        argv = ["yt-dlp", "--no-playlist", "--restrict-filenames", "--write-info-json",
+                "--write-subs", "--write-auto-subs", "--no-progress", "--paths", str(run_dir)]
+    cookies_file: Path | None = None
+    try:
+        if cookies_txt:
+            handle, raw = tempfile.mkstemp(prefix="sa-cookies-", suffix=".txt", dir=COOKIE_TMPDIR)
+            with os.fdopen(handle, "w", encoding="utf-8") as stream:
+                stream.write(cookies_txt)
+            cookies_file = Path(raw)
+            # 两个工具的 --cookies 都只收路径，不收管道。
+            argv += ["--cookies", str(cookies_file)]
+        argv.append(url)
+        result = _run(argv, run_dir)
+    finally:
+        if cookies_file is not None:
+            cookies_file.unlink(missing_ok=True)
+    result.update({"run_id": run_id, "tool": tool, "observations": [{"url": url}],
+                   "used_cookies": bool(cookies_txt)})
     return result
 
 

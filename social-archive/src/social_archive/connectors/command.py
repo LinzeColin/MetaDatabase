@@ -120,7 +120,26 @@ class CommandArtifactConnector:
         if tool not in {"gallery-dl", "yt-dlp"}:
             raise ConnectorError("TOOL_NOT_ALLOWED", f"不支持的工具：{tool}")
         if self.worker_url:
-            data = self._remote("/v1/capture-url", {"url": clean, "tool": tool})
+            # **把托管的登录状态一起送过去（v0.0.0.7 / T07）。**
+            #
+            # 在此之前这一行只发 url 和 tool：Core 这侧把会话解密好了，
+            # 走到 sidecar 分支却没有传它的通道——而**生产走的正是这一支**。
+            # 结果就是「凭据存进去了、从来没被用过」。
+            #
+            # Owner 2026-08-04 裁定「Cookie 可以进 OVH」之后才接通。
+            # 传的是内容而不是路径：两个容器不共享文件系统，路径过去也打不开。
+            # sidecar 那侧写进 tmpfs（内存盘）、0600、用完即删。
+            body: dict[str, Any] = {"url": clean, "tool": tool}
+            if cookies_path:
+                try:
+                    body["cookies_txt"] = Path(cookies_path).read_text(encoding="utf-8")
+                except OSError as exc:
+                    # 读不到就按未登录抓，但**说出来**——静默降级正是本版要消灭的。
+                    raise ConnectorError(
+                        "CREDENTIAL_UNREADABLE",
+                        f"托管的登录状态读不出来（{exc.__class__.__name__}），没有把它交给下载器。",
+                    ) from exc
+            data = self._remote("/v1/capture-url", body)
             status = str(data.get("status") or "failed")
             artifacts = self._remote_artifacts(data.get("artifacts") or [])
             errors = [] if status == "success" else [{"code": "CLI_WORKER_COMMAND_FAILED", "message": redact(str(data.get("stderr") or "Sidecar 未产生文件")), "retryable": status != "blocked_environment"}]
