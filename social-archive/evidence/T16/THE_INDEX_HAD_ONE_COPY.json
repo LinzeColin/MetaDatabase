@@ -1,0 +1,50 @@
+{
+  "task": "T16",
+  "claim": "给 552 个制品赋予意义的那张索引——运行库 sqlite3——**全世界只有一份**，就在生产那块盘上。已经补上：每次备份都取一致快照、加密、传 R2 与 OCI 并各自回读比对。生产实测已跑通。",
+  "invariant": "INV-REVERSIBLE",
+  "measured_at": "2026-08-04",
+
+  "the_gap": {
+    "artifacts": "552 个，每个三份已验证副本（R2 + OCI + GitHub）",
+    "the_index": "/var/lib/social-archive/runtime/social-archive.sqlite3，4,591,616 字节，**一份**",
+    "what_the_object_stores_actually_hold": "只有 `primary-objects/sha256/…`（制品字节）和 GitHub 的 release 包（也是制品字节）。全仓 grep 不到任何地方备份这个库。",
+    "what_the_backup_service_was_backing_up": "「私有库事实」。最近一次 `fact_count: 1`、1217 字节——**不是这个库**。",
+    "what_losing_that_disk_would_mean": "三个云上躺着 552 个加密块，**而没有任何东西说得出它们分别是什么**。标题、链接、关系、收藏时间、artifact→content 的对应、导出回执——全在这个 sqlite 里。**制品还在，档案馆没了。**",
+    "why_it_hid_so_long": "T16 的标题一直是「549/549 制品三副本齐全」。那句话是真的。它从没提过索引只有一份——**「制品」和「档案馆」被当成了一回事**。"
+  },
+
+  "what_was_built": {
+    "script": "scripts/backup_runtime_db.py",
+    "snapshot": "`VACUUM INTO`。**不能 cp**——库跑在 WAL 模式，直接拷主文件会拿到撕裂的中间态，且 -wal 里尚未合并的事务不在那个文件里。判据里用「故意不 checkpoint、把数据留在 -wal」构造：先证明 cp 会漏，再证明 VACUUM INTO 不漏。",
+    "pipeline": "gzip → age 加密（与制品同一个 recipient）→ 传 R2 回读比对 → 成功了再传 OCI 回读比对",
+    "why_sequential": "**第一份没验成就不往下走**，免得两边都是坏的还各自报成功。",
+    "exit_code": "少于两份已验证副本就退非零。「传上去了」不算数，「读回来一致」才算。",
+    "retention": "**不删旧快照。** 保留策略是运维决定；自动删历史备份是那种「出事才发现」的操作。",
+    "reuse": "上传与回读复用 backup.py 里既有的 _upload_and_verify，不抄第二遍。"
+  },
+
+  "production_run": {
+    "snapshot_byte_size": 4468736,
+    "cipher_byte_size": 962994,
+    "object_key": "backups/runtime-db/20260804T122649Z/ee2320eb507b4842593fee09886aaada6bce9875c9fefbfaf6bc7ec3fc7160af.sqlite3.gz.age",
+    "r2": "verified（上传后回读，密文哈希一致）",
+    "oci": "verified（同上）",
+    "verified_remote_copies": 2,
+    "status": "PASS"
+  },
+
+  "a_second_defect_found_on_the_way": {
+    "what": "我在仓里给 social-archive-backup.service 加了第二条 ExecStart，然后部署、daemon-reload、systemctl start——**全部 Result=success，而跑的还是旧的那一条**。",
+    "why": "rsync 只同步 /opt/social-archive；装着的 unit 在 /etc/systemd/system，从来没被更新过。",
+    "how_close_it_came": "**差一点就把「运行库备份跑通了」写进证据。** 是我去 grep 了一下装着的那份 unit 才发现。",
+    "fix": "部署脚本加一步漂移检查：逐个比对 deploy/systemd/*.service|*.timer 与装着的那份，有漂移就中止并打出那一行 cp。**只报，不自动装**——unit 以 root 跑，爆炸半径太大。检查排在构建之前。",
+    "verified": "生产上逐个正面核过：11 个 unit 全部存在且与仓里一致。"
+  },
+
+  "what_this_does_not_prove": [
+    "**没有从这份快照恢复过。** 证明的是「快照做出来了、传上去了、读回来一致」，不是「拿它能把档案馆重建起来」。整库恢复演练仍然没做。",
+    "只有两份远程副本（R2 + OCI），**没有 GitHub 那一份**。制品是三份，索引是两份。加第三份要走 release pack 那条路，本轮没做。",
+    "不证明每天都会跑成。这次是手动 `systemctl start`；定时器的实际触发没有观察过一个完整周期。",
+    "不证明快照与当时的库一致到事务级。VACUUM INTO 保证的是一个一致的读快照；跑的那一刻之后的写入自然不在里面。"
+  ]
+}
