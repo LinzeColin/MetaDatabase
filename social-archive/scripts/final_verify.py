@@ -58,6 +58,10 @@ def structural_commands() -> list[list[str]]:
         # 只活在文档里。这道门管住其中可机器查的那条：
         # 每份证据要写「这不能证明什么」，自锁的 BLOCKED 不许被改写成 PASS。
         [python, "scripts/check_evidence_declares_its_limits.py"],
+        # find_unwired_code 把带装饰器的函数当「框架注册」放过——对路由函数是对的，
+        # 但因此看不见另一半：路由注册了、服务端能响应，而**没有任何客户端请求它**。
+        # 这道门第一次跑就找出 /v1/storage/status 从来没被界面调过。
+        [python, "scripts/find_endpoints_no_client_calls.py"],
         [python, "scripts/validate_deployment_contract.py"],
     ]
 

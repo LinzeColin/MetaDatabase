@@ -249,6 +249,23 @@
       const health = await api("/health", { timeoutMs: 5000 });
       state.serviceReady = health.status === "ok";
       setServiceBadge("connected", `私人档案馆已连接 · v${health.version || "0.0.0.6"}`);
+      // 存储吃紧时要**主动**说，别等用户发现媒体没下下来才去猜。
+      //
+      // 冻结词典里本来就有 DISK_QUOTA 那一句（「存储空间快满了，已经暂停
+      // 下载媒体文件，文字和链接还在正常保存。」），而 /v1/storage/status
+      // **此前没有任何界面在调**——服务端算得出来，用户看不到。
+      // 这是「建好了没接上」的第 6 次，由 scripts/find_endpoints_no_client_calls.py 扫出来。
+      //
+      // 只在真的吃紧时改徽标：不吃紧就不打扰。接口自带 message_zh，
+      // 我们不另造句子（造句子等于绕过冻结词典）。
+      try {
+        const storage = await api("/v1/storage/status", { timeoutMs: 5000 });
+        if (storage && storage.l3_allowed === false && storage.message_zh) {
+          setServiceBadge("degraded", storage.message_zh);
+        }
+      } catch (_) {
+        // 存储状态取不到不该把「档案馆已连接」这条也弄没了——它是附加信息。
+      }
     } catch (error) {
       state.serviceReady = false;
       setServiceBadge("error", "私人档案馆暂时不可用");

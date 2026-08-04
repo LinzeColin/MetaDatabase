@@ -114,6 +114,15 @@
     {
       "argv": [
         "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/find_endpoints_no_client_calls.py"
+      ],
+      "exit_code": 0,
+      "stdout": "api.py 里的 /v1 路由 34 个；客户端目录 apps, scripts\n每个接口都至少有一处界面调用。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/validate_deployment_contract.py"
       ],
       "exit_code": 0,
