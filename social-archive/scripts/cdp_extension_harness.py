@@ -81,14 +81,28 @@ async def open_tab_async(url):
     return tab
 
 async def wake_sw(tries=6):
-    """MV3 的 service worker 会闲置休眠。开一次扩展页面把它叫醒。"""
+    """MV3 的 service worker 会闲置休眠。制造一次扩展事件把它叫醒。
+
+    **原来这里有个把自己锁死的判断**：只在「没有任何扩展页面」时才开一个。
+    可是安装时会自动打开 options.html——那个页面一直在，而它**早就加载完了、
+    不再产生任何事件**。于是条件永远不成立，一个新页都不开，
+    service worker 睡到超时，函数抛「叫不醒」。
+
+    实测：装完扩展等 30 秒再调这个函数，六次重试全部落空。
+
+    修法是别去猜「有没有页面」，直接**每一轮都制造一次新的加载事件**。
+    多开一个空白扩展页的代价是零，叫不醒的代价是整条真浏览器验证路都用不了。
+    """
     for _ in range(tries):
         sw = [t for t in targets() if t.get("type") == "service_worker" and EXT_ID in t.get("url", "")]
         if sw:
             return sw[0]
-        pages = [t for t in targets() if t.get("type") == "page" and EXT_ID in t.get("url", "")]
-        if not pages:
-            open_tab(f"chrome-extension://{EXT_ID}/options.html")
+        # 每一轮都开：页面「存在」不等于它「正在产生事件」。
+        # **必须用 open_tab_async。** wake_sw 本身是协程，而同步版 open_tab
+        # 检测到运行中的事件循环会直接抛「异步里请直接用 Page.navigate」——
+        # 也就是说原来这一行**只要真的走到就必然抛异常**，
+        # 它从来没有成功叫醒过任何一次 service worker。
+        await open_tab_async(f"chrome-extension://{EXT_ID}/options.html")
         await asyncio.sleep(2)
     raise RuntimeError("service worker 叫不醒")
 
