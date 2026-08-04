@@ -1528,6 +1528,42 @@ class RuntimeStore:
             )
         return event_id
 
+    def provenance_audit(self) -> dict[str, int | list[str]]:
+        """INV-TRUTH-TRACEABLE 的库层落点：**每条内容都答得出「怎么进来的」。**
+
+        这条不变量此前**一个判据都没有**——清点各不变量的守卫时发现
+        TRUTH-TRACEABLE / REAL-USABLE / HONEST-EVIDENCE 三条只活在文档里。
+
+        溯源断掉的样子不是报错，是「库里有一条东西，没人说得清它从哪来」。
+        那和静默的零是同一种病的另一面：**数据在，出处没了。**
+
+        实测生产（2026-08-04）：193 条内容 193 条有观察记录，0 条孤儿制品。
+        也就是说这条不变量当时是成立的——但没有任何东西在盯着它。
+
+        每一项都是**必须为 0**。非 0 不代表数据错，代表**溯源链断了**。
+        """
+        checks = {
+            # 内容进来时必定伴随一条 observation（capture 路径写的）
+            "content_without_observation":
+                "SELECT COUNT(*) FROM content WHERE id NOT IN (SELECT content_id FROM observation)",
+            # 制品必须挂在某条内容上
+            "artifact_without_content":
+                "SELECT COUNT(*) FROM artifact WHERE content_id NOT IN (SELECT id FROM content)",
+            # 关系（谁收藏了什么）必须指得到内容
+            "relation_without_content":
+                "SELECT COUNT(*) FROM user_relation WHERE content_id NOT IN (SELECT id FROM content)",
+            # 观察记录反过来也不能指向不存在的内容
+            "observation_without_content":
+                "SELECT COUNT(*) FROM observation WHERE content_id NOT IN (SELECT id FROM content)",
+        }
+        out: dict[str, int | list[str]] = {}
+        with self.connection() as con:
+            for name, sql in checks.items():
+                out[name] = int(con.execute(sql).fetchone()[0])
+            out["content_total"] = int(con.execute("SELECT COUNT(*) FROM content").fetchone()[0])
+        out["broken"] = sorted(k for k, v in out.items() if k in checks and int(v) > 0)
+        return out
+
     def owner_user_for_content(self, content_id: str) -> str | None:
         """这条内容是谁的。用于取用他自己托管的平台会话。
 

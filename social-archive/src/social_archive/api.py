@@ -279,6 +279,9 @@ def status() -> dict[str, Any]:
         # （由 scripts/find_unwired_code.py 扫出来，那是同一形态的第 5 次）。
         # `uncovered_tables` 非空说明审计面自己漏了表，比 orphan 计数更要紧。
         "tenancy": store.tenancy_audit(),
+        # INV-TRUTH-TRACEABLE。同样是「挂上来才算数」——这条不变量此前
+        # 一个判据都没有。broken 非空 = 库里有东西说不清从哪来。
+        "provenance": store.provenance_audit(),
     }
 
 
