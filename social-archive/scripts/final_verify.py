@@ -53,6 +53,11 @@ def structural_commands() -> list[list[str]]:
         # 补漏的后果不是少一句话，是界面说「我们没能记录下原因」而原因就在代码里。
         # 这道门第一次跑就找出 24 个说不出人话的码。
         [python, "scripts/check_every_failure_code_is_explainable.py"],
+        # INV-HONEST-EVIDENCE 的机器落点。清点各不变量的守卫时发现
+        # TRUTH-TRACEABLE / REAL-USABLE / HONEST-EVIDENCE **三条一个判据都没有**，
+        # 只活在文档里。这道门管住其中可机器查的那条：
+        # 每份证据要写「这不能证明什么」，自锁的 BLOCKED 不许被改写成 PASS。
+        [python, "scripts/check_evidence_declares_its_limits.py"],
         [python, "scripts/validate_deployment_contract.py"],
     ]
 

@@ -209,5 +209,10 @@
     "account_connect_blocked": "登录态无法确认（LOGIN_PROOF_UNAVAILABLE），因此平台账号连接在 T08 之前不可用。同样是显式失败而非假装成功。",
     "end_to_end_in_real_browser": "本文件所有判据都在本机静态核对与 TestClient 内完成。真实浏览器端到端属于 T18 部署后的验收。",
     "preexisting_baseline_failures": "11 条基线失败与本任务无关，其中 test_install_dry_run 因仓库缺 scripts/build_extension_package.py 而失败——那是 origin/main 上既有的缺陷，未在本任务中修复，也未被本任务加重。"
-  }
+  },
+  "what_this_does_not_prove": [
+    "证明的是「这些路径已删除且不会被悄悄加回」，**没有**证明替代路径（浏览器拦截）能取到数——那是 T08/T09/T10。",
+    "配对链路的客户端残留是这一轮才发现的（当时只删了服务端一半），说明「删干净了」这个判断本身需要反查引用，而不是看文件在不在。"
+  ],
+  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。"
 }

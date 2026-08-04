@@ -280,5 +280,10 @@
     },
     "existing_tests_tightened_not_loosened": "原有三条判据比对的是 4 张表的字典，现改为比对 8 张。判据变严，不是变松。",
     "identity_tables_are_structurally_safe": "session / extension_token / oauth_identity / platform_credential 的 user_id 建表时就是 NOT NULL，插空值会 IntegrityError——已加判据实测。"
-  }
+  },
+  "what_this_does_not_prove": [
+    "计数是迁移当时的快照；此后 T05 新建了 platform_credential，审计面由 AUDITED_TABLES 覆盖，但本文件的数字没有重算。",
+    "tenancy_audit 当时**没有任何调用方**（v0.0.0.7 后期才挂到 /v1/status），所以这些数字是我手动跑出来的，不是产品自己报的。"
+  ],
+  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。"
 }

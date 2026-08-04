@@ -174,5 +174,10 @@
       "rewritten_to": "盯性质：存在统一的中文兜底、且源码里不出现 `HTTP ${response.status}` 这种拿状态码当提示语的写法。",
       "lesson": "判据要钉住「必须成立的事」，不是「现在恰好是这么写的」。"
     }
-  }
+  },
+  "what_this_does_not_prove": [
+    "四种注入场景覆盖的是**当时词典里的四条**。后来实测发现代码里还有 24 个失败码说不出人话、生产库里还有 3 个当前代码已删除的遗留码——都不在这份矩阵里。",
+    "「数据库中 imported=0 且 failure_code 为空的行 = 0」当时是手动查的；这条审计（unexplained_zero_runs）在写下本文件时**没有任何调用方**。"
+  ],
+  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。"
 }

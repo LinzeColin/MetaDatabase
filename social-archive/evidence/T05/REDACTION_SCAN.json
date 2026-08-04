@@ -34,5 +34,10 @@
     "rule": "任何一次扫描发现明文，立即停止整个 S2",
     "triggered": false,
     "current": "0 处命中"
-  }
+  },
+  "what_this_does_not_prove": [
+    "扫的是仓内文件与 diff，**不含运行时日志与数据库内容**。生产日志里是否漏过明文，本文件不作保证。",
+    "阳性对照只种了一种形态的 cookie 串；扫描器对其它形态（base64、分片拼接）的召回没有测过。"
+  ],
+  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。"
 }

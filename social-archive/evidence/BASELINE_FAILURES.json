@@ -96,5 +96,10 @@
       "but_i_did_not_retire_them": "没有擅自删/反转这 5 条。理由：退休判据会让「7 failed」这个可见信号消失，而 goal 明令禁止降低验收标准；这属于影响放行门的裁定，应由 T17 或 Owner 定，不由我在证据里单方面执行。",
       "recommended_action_for_T17": "按 CONFLICT_ORDER 记一条 SUPERSEDED 并反转成守卫（做法可照抄 T03 对 DOM 抓取器判据的处理），而不是补实现一个未获批准的界面。"
     }
-  }
+  },
+  "what_this_does_not_prove": [
+    "只核到「origin/main 上是不是同样红」这一层，没有逐条判断这 7 条**该不该**修——它们分属 T03/T04 等后续任务的射程。",
+    "核的是失败原因而不只是名字，但对照的是文件内容，没有在 origin/main 上实跑过一次全量。"
+  ],
+  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。"
 }

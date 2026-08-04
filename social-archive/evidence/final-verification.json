@@ -81,7 +81,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 492 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 493 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -100,6 +100,15 @@
       ],
       "exit_code": 0,
       "stdout": "扫到失败码 38 个（src, apps）\n每一个都能落到一句中文。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_evidence_declares_its_limits.py"
+      ],
+      "exit_code": 0,
+      "stdout": "检查 v0.0.0.7 证据 28 份（其中自锁 4 份）\n每一份都写了局限；自锁的没有一份被改写成 PASS。\n",
       "stderr": ""
     },
     {

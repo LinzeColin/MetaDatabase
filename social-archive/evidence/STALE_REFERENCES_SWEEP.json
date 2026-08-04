@@ -3,9 +3,7 @@
   "what": "把本分支删掉的每个文件，反过来在全仓搜一遍谁还在引用它",
   "recorded_at": "2026-08-04T17:40Z",
   "why": "发布门 final_verify.py 就是这么坏掉的——T03 删了 compose.workers.yaml，却没人去查还有谁指着它。既然栽过一次，就把整类扫干净。",
-
   "method": "git diff origin/main --diff-filter=D 列出全部删除项，逐个 basename 在受版本控制的文件里反查引用，排除证据文件与守卫判据（它们本来就该提到这些名字）。",
-
   "deleted_non_evidence_files": [
     "apps/browser-extension/content/account-mirror-core.js",
     "apps/browser-extension/content/account-mirror.js",
@@ -18,7 +16,6 @@
     "tests/focused/test_worker_profiles.py",
     "tests/stage/test_stage2_domestic.py"
   ],
-
   "live_breakage_found_and_fixed": [
     {
       "where": "scripts/final_verify.py",
@@ -33,7 +30,6 @@
       "fixed_how": "重写成 SUPERSEDED 说明：为什么删（三个上游 API 都没有收藏枚举接口）、现在怎么取数（浏览器内拦截）、哪部分还没跑通（小红书/抖音前缀未实测，写的是 null 不是猜的值）。**没有直接删掉**——删了就把「为什么」也删了，而那才是有价值的部分，T03 对测试也是这么处理的。"
     }
   ],
-
   "deliberately_not_touched": {
     "what": "machine/task_dag.yaml 与 machine/traceability.json 里仍引用 compose.workers.yaml 与 test_stage2_domestic.py",
     "why_not": "那是 **v0.0.0.5 的封存记录**（文件自称 taskpack_version: v0.0.0.5、current_phase: SEALED_TASKPACK、task_count: 32），不是本版本的 DAG——本版本的任务清单在任务包的 TASK_DAG.json 里，19 项 T00–T18。",
@@ -41,10 +37,13 @@
     "is_anything_broken": "scripts/task_runner.py 会读它，但那是 v0.0.0.5 的驱动器：全仓没有任何地方调用它，也不在 final_verify 的 9 道门里。它对着当前树跑会失败，而这是**正确**的——它本来就不该驱动 v0.0.0.7。",
     "recorded_so_nobody_helpfully_fixes_it": "把这条写下来，是为了防止下一个人看到「引用了不存在的文件」就顺手去改。**不要改。**"
   },
-
   "clean": [
     "extension-utils.js / preflight_extension.py / ensure_api_token.py 里提到旧文件名的地方，全部是解释「为什么删」的注释，不是引用"
   ],
-
-  "lesson": "删文件时要反查引用，而不只是让测试变绿。测试绿只证明「测试没指着它」，不证明「没人指着它」——发布门、文档、机器可读元数据都不在测试的射程里。"
+  "lesson": "删文件时要反查引用，而不只是让测试变绿。测试绿只证明「测试没指着它」，不证明「没人指着它」——发布门、文档、机器可读元数据都不在测试的射程里。",
+  "what_this_does_not_prove": [
+    "只反查了**本分支删掉的文件**。更早版本删掉的东西如果仍被引用，这次扫不到。",
+    "按文件名反查，改名/移动造成的悬空引用（同名不同路径）可能漏。"
+  ],
+  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。"
 }

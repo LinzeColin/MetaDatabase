@@ -111,5 +111,10 @@
       "全仓扫描无明文": "PASS（473 个受控文件 0 命中，本轮再扫一次）"
     },
     "note_on_the_session": "凭据端点只认登录会话、不认共享 bearer —— 这次也顺带坐实了：用 store.create_session 造的会话能过，而这正是 OAuth 登录后会得到的东西。"
-  }
+  },
+  "what_this_does_not_prove": [
+    "撤销后的检查是「表里没有行、库文件里没有密文字节」，**不是磁盘取证**：PRAGMA secure_delete=ON 已开，但没有验证被覆盖的页面在物理层不可恢复。",
+    "验的是库层接口；HTTP 层的撤销往返直到 v0.0.0.7 后期才补上判据（test_credential_http_roundtrip）。"
+  ],
+  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。"
 }
