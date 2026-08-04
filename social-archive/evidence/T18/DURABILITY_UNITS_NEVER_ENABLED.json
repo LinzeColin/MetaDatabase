@@ -98,6 +98,32 @@
         "why_wrong": "**那个变量名是我猜的。** 真名是 SOCIAL_ARCHIVE_GITHUB_ARCHIVE_REPOSITORY，生产上有值。按猜的名字去 grep，grep 不到就报「缺」——又一次「判据指错了对象」，这次指错的是变量名。"
       }
     ],
-    "recommendation_now_stands_with_evidence": "启用那三个 timer 是安全的：脚本能跑、配置齐全、缺东西时会明确报错而不是静默。"
+    "recommendation_now_stands_with_evidence": "启用那三个 timer 是安全的：脚本能跑、配置齐全、缺东西时会明确报错而不是静默。",
+    "all_four_units_verified_not_just_two": {
+      "why": "上一轮我只验了 replicate_objects 与 github_release_backup 两个脚本，却在建议里一并推荐启用 backup.timer 与 private-database-sync.timer。**推荐四个只验了两个，就是挑选性执行。** 补齐。",
+      "results": [
+        {
+          "unit": "social-archive-backup.timer",
+          "script": "backup.py（324 行）",
+          "no_config": "退出 3 · AGE_RECIPIENT_MISSING · 「禁止明文备份」· local_checkout=false"
+        },
+        {
+          "unit": "social-archive-replication.timer",
+          "script": "replicate_objects.py（188 行）+ github_release_backup.py",
+          "no_config": "两者都退出 3 ·「禁止明文复制 / 备份」"
+        },
+        {
+          "unit": "social-archive-private-database-sync.timer",
+          "script": "sync_private_database.py（393 行）",
+          "no_config": "退出 3 · PRIVATE_DATABASE_CLIENT_UNAVAILABLE ·「禁止回退到本地 Private-Database 工作树」"
+        }
+      ],
+      "common_property": "**四个脚本缺配置时全都退出 3 并打印明确的中文原因，没有一个静默成功。** 这正是启用它们之前最该确认的性质：静默成功的备份等于没有备份，而且没人会发现。"
+    },
+    "two_more_variables_i_checked_wrong": {
+      "SOCIAL_ARCHIVE_PRIVATE_DB_TOKEN_FILE": "我报它在 /etc 里「缺」。实际是 prepare_systemd_host.sh 的 is_unit_credential_file_key **故意剥掉**的——凭据路径不进长期环境文件，由 unit 的 LoadCredential= 加 Environment=…=%d/private_database_token 注入。**按设计如此，不是缺失。**",
+      "SOCIAL_ARCHIVE_PRIVATE_DATABASE_ROOT": "我也报它「缺」。而 sync_private_database.py 里**根本不读这个变量**（grep 0 命中）。我在核一个它不需要的东西。",
+      "same_pattern_again": "这两次和前面猜错变量名是同一个毛病的第三、第四次：**先假定「它应该有 X」，再去 grep X，grep 不到就报缺**，而没先确认它到底需不需要 X、以及 X 是不是那个名字。"
+    }
   }
 }
