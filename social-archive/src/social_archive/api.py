@@ -375,6 +375,33 @@ def start_account_sync(account_id: str, request: AccountSyncRequest) -> dict[str
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
+@app.delete("/v1/accounts/{account_id}", dependencies=[Depends(require_token)])
+def disconnect_account(account_id: str) -> dict[str, Any]:
+    """断开一个已连接的账号。**只断连接，不删内容。**
+
+    INV-REVERSIBLE：加了什么就要能撤什么。连接账号一次点击，此前断开做不到，
+    而连上之后它每 6 小时自己跑一次——用户没有任何办法让它停下来。
+
+    归档的内容一条都不动：断开是"别再替我去取了"，不是"把我存的东西清掉"。
+    平台登录状态的撤销是另一件事，走 DELETE /v1/credentials/{platform}，
+    分开让用户各自决定；合并会让「我只是不想它自动跑」变成「登录状态也没了」。
+    """
+    result = store.disconnect_source_account(account_id)
+    if not result.get("found"):
+        raise HTTPException(status_code=404, detail="账号不存在")
+    kept = int(result["kept_content_count"])
+    return {
+        "account_id": account_id,
+        "connection_state": "disconnected",
+        "cancelled_runs": result["cancelled_runs"],
+        "kept_content_count": kept,
+        "message_zh": (
+            f"已断开连接，不会再自动同步。已经存下的 {kept} 条内容都留着，"
+            "随时可以重新连接。"
+        ),
+    }
+
+
 @app.get("/v1/accounts/{account_id}/sync-runs", dependencies=[Depends(require_token)])
 def account_sync_runs(account_id: str, limit: int = Query(50, ge=1, le=500)) -> dict[str, Any]:
     if not store.get_source_account(account_id):

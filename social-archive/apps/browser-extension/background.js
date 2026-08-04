@@ -1266,6 +1266,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // 西方三源的会话导出（v0.0.0.7 / T06）。cookies 是**可选权限**：
     // 装插件时不申请，只在用户点「连接 X」这一刻才要。用户拒绝授权时说清楚
     // 是没授权，不要退回"没登录"——那两件事的下一步不一样。
+    // 断开账号（v0.0.0.7 / INV-REVERSIBLE）。走 background 而不是让设置页直接
+    // 调接口：服务端标成 disconnected 之后，**扩展本地队列里那条待办还在**，
+    // 下一次唤醒照样会去跑它——服务端说断开了、插件还在同步，是最难查的那种不一致。
+    if (message?.type === "SA_DISCONNECT_ACCOUNT") {
+      const accountId = String(message.accountId || "").trim();
+      if (!accountId) return { ok: false, error: "没有指定要断开的账号。" };
+      const result = await SA.api(`/v1/accounts/${encodeURIComponent(accountId)}`, {
+        method: "DELETE", timeoutMs: 15000,
+      });
+      const removed = await removeQueuedSync({ accountId });
+      return { ok: true, state: "disconnected", removedFromQueue: removed,
+               message_zh: result?.message_zh || "已断开连接。" };
+    }
     if (message?.type === "SA_REVOKE_PLATFORM_SESSION") {
       const platform = String(message.platform || "").trim().toLowerCase();
       const config = await SA.getConfig();

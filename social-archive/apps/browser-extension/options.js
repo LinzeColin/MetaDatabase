@@ -125,7 +125,7 @@
       const action=pending
         ? `<button class="card-button primary" data-verify-platform="${platform}">我已登录，继续</button><button class="card-button" data-connect-platform="${platform}">重新打开</button>`
         : account
-          ? `<button class="card-button primary" data-sync-account="${SA.escapeHtml(account.id)}">立即同步</button>${["blocked_environment","failed"].includes(status)?`<button class="card-button" data-connect-platform="${platform}">重新连接</button>`:""}${revoke}`
+          ? `<button class="card-button primary" data-sync-account="${SA.escapeHtml(account.id)}">立即同步</button>${["blocked_environment","failed"].includes(status)?`<button class="card-button" data-connect-platform="${platform}">重新连接</button>`:""}<button class="card-button danger" data-disconnect-account="${SA.escapeHtml(account.id)}">断开连接</button>${revoke}`
           : custody
             ? `<button class="card-button" data-connect-platform="${platform}">重新连接</button>${revoke}`
             : `<button class="card-button primary" data-connect-platform="${platform}">连接账号</button>`;
@@ -135,6 +135,7 @@
     document.querySelectorAll("[data-verify-platform]").forEach(button=>button.addEventListener("click",()=>verifyPlatform(button.dataset.verifyPlatform,button)));
     document.querySelectorAll("[data-sync-account]").forEach(button=>button.addEventListener("click",()=>syncAccount(button.dataset.syncAccount,button)));
     document.querySelectorAll("[data-revoke-platform]").forEach(button=>button.addEventListener("click",()=>revokePlatform(button.dataset.revokePlatform,button)));
+    document.querySelectorAll("[data-disconnect-account]").forEach(button=>button.addEventListener("click",()=>disconnectAccount(button.dataset.disconnectAccount,button)));
   }
 
   function renderDestinations() {
@@ -183,6 +184,28 @@
       await loadData();
     }catch(error){toast(`${platformNames[platform]||platform}：${error.message}`,"error");}
     finally{button.disabled=false;button.textContent="撤销登录状态";}
+  }
+  /** 断开账号（v0.0.0.7 / INV-REVERSIBLE）。
+   *
+   * 连接是一次点击，此前**断开做不到**——而连上之后每 6 小时自己跑一次，
+   * 用户没有任何办法让它停下来。这颗按钮就是那个「停」。
+   *
+   * 措辞刻意把「不再同步」和「内容留着」分开说：断开是"别再替我去取了"，
+   * 不是"把我存的东西清掉"。归档的意义就是东西留下来。
+   */
+  async function disconnectAccount(accountId,button){
+    const account=accounts.find(item=>item.id===accountId);
+    const name=account?platformNames[account.platform]||account.platform:"这个账号";
+    const kept=Number(account?.content_count||0).toLocaleString("zh-CN");
+    if(!confirm(`断开 ${name} 之后不会再自动同步。\n\n已经存下的 ${kept} 条内容都会留着，随时可以重新连接。\n\n确定断开吗？`))return;
+    button.disabled=true;button.textContent="正在断开…";
+    try{
+      const result=await chrome.runtime.sendMessage({type:"SA_DISCONNECT_ACCOUNT",accountId});
+      if(!result?.ok)throw new Error(result?.error||"断开失败");
+      toast(result.message_zh||"已断开连接。");
+      await loadData();
+    }catch(error){toast(`${name}：${error.message}`,"error");}
+    finally{button.disabled=false;button.textContent="断开连接";}
   }
   async function syncAccount(accountId,button){
     button.disabled=true;button.textContent="正在启动…";

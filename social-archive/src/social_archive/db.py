@@ -1433,6 +1433,71 @@ class RuntimeStore:
             )
         return cur.rowcount == 1
 
+    def disconnect_source_account(self, account_id: str) -> dict[str, Any]:
+        """断开一个已连接的账号（v0.0.0.7 / INV-REVERSIBLE）。
+
+        ## 为什么需要它
+
+        清点不变量守卫时发现 INV-REVERSIBLE 只有一个（回滚脚本）。顺着把路由表
+        按「加了什么就要能撤什么」比一遍，缺口很直接：
+
+            POST /extension-token           ↔  DELETE /extension-token        ✓
+            PUT  /v1/credentials/{platform} ↔  DELETE /v1/credentials/{…}     ✓
+            登录                             ↔  登出                           ✓
+            **POST /v1/accounts/connect/…   ↔  （没有）**
+
+        连一个账号一次点击，断开做不到。而连上之后它每 6 小时自己跑一次
+        （auto_sync_enabled + sync_interval_minutes 默认 360），
+        **用户没有任何办法让它停下来。**
+
+        ## 只断连接，不删内容
+
+        归档的意义就是东西留下来。断开做四件事，一件都不多：
+
+          1. connection_state → disconnected，auto_sync_enabled → 0（不再自己跑）
+          2. 清掉 auth_ref / auth_handle_ref（不再持有连接凭证的引用）
+          3. 把还在跑的 sync_run 落到 cancelled（否则界面上永远转圈）
+          4. 如实报出**保留了多少条内容**——用户要知道断开不等于清空
+
+        平台凭据（Cookie 托管）的撤销是**另一件事**，走
+        DELETE /v1/credentials/{platform}，由调用方按用户意愿分别决定。
+        两件事合并会让「我只是不想它再自动跑了」变成「我的登录状态也没了」。
+        """
+        now = utcnow()
+        with self.connection() as con:
+            row = con.execute(
+                "SELECT platform,connection_state FROM source_account WHERE id=?", (account_id,)
+            ).fetchone()
+            if row is None:
+                return {"found": False}
+            already = str(row["connection_state"]) == "disconnected"
+            con.execute(
+                """UPDATE source_account
+                   SET connection_state='disconnected', auto_sync_enabled=0,
+                       auth_ref=NULL, auth_handle_ref=NULL, last_error_code=NULL, updated_at=?
+                   WHERE id=?""",
+                (now, account_id),
+            )
+            cancelled = con.execute(
+                """UPDATE sync_run SET status='cancelled', updated_at=?,
+                          last_error_code='ACCOUNT_DISCONNECTED',
+                          last_error_message='账号已断开连接，这次同步已停止。'
+                   WHERE source_account_id=?
+                     AND status NOT IN ('completed','partial','cancelled','failed','blocked_environment')""",
+                (now, account_id),
+            ).rowcount
+            kept = int(con.execute(
+                "SELECT COUNT(DISTINCT content_id) FROM user_relation "
+                "WHERE source_account_id=? AND status='active'", (account_id,)
+            ).fetchone()[0])
+        return {
+            "found": True,
+            "platform": str(row["platform"]),
+            "already_disconnected": already,
+            "cancelled_runs": int(cancelled),
+            "kept_content_count": kept,
+        }
+
     def upsert_platform_collection(
         self,
         *,
