@@ -26,6 +26,24 @@ if [ ! -x "${PY}" ]; then
   exit 0
 fi
 
+# final_verify 会重写 evidence/final-verification.json（时间戳）。
+# **检查不许改工作树**：否则每次提交完都留下一个脏文件，
+# 而「脏 0」正是我用来确认收尾干净的信号——让检查去污染它，
+# 等于把自己的仪表盘弄花。跑完原样放回去。
+SNAPSHOT="${ROOT}/evidence/final-verification.json"
+SNAPSHOT_BACKUP=""
+if [ -f "${SNAPSHOT}" ]; then
+  SNAPSHOT_BACKUP="$(mktemp)"
+  cp "${SNAPSHOT}" "${SNAPSHOT_BACKUP}"
+fi
+restore_snapshot() {
+  if [ -n "${SNAPSHOT_BACKUP}" ] && [ -f "${SNAPSHOT_BACKUP}" ]; then
+    cp "${SNAPSHOT_BACKUP}" "${SNAPSHOT}"
+    rm -f "${SNAPSHOT_BACKUP}"
+  fi
+}
+trap restore_snapshot EXIT
+
 printf 'pre-commit: 跑发布门（约 5 秒）…\n' >&2
 if ! (cd "${ROOT}" && "${PY}" scripts/final_verify.py >/tmp/sa-precommit.log 2>&1); then
   printf '\n✗ 发布门是红的，拒绝提交。\n\n' >&2
