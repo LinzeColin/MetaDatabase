@@ -241,8 +241,11 @@ def test_the_diagnostic_sink_has_no_place_to_put_a_response_body() -> None:
     # 2026-08-05 加了 dropped_count / not_parsed_count 两个——**都是计数**：
     # 缓冲区封顶 200、解析去重后封顶 30，收敛得不留痕迹的话，
     # 「抓到 200 条、读得懂 0 条」会读起来像「平台没发那个请求」。
+    # 2026-08-05 又加了 readable_urls：**哪几条读得懂**。
+    # 它是地址，不是响应体——T09 固化拦截前缀要的正是那个地址，
+    # 只报 readable_count 这个数字等于说了「有三条能读」却不说是哪三条。
     assert fields == {
-        "platform", "page_url", "urls",
+        "platform", "page_url", "urls", "readable_urls",
         "capture_count", "readable_count", "dropped_count", "not_parsed_count",
         "note",
     }

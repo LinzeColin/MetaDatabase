@@ -612,6 +612,12 @@ class DiagnosticReport(BaseModel):
     # 这两件事的下一步完全不同，而报告是我固化拦截前缀时唯一的依据。
     dropped_count: int = 0
     not_parsed_count: int = 0
+    # **哪几条读得懂。** 只收地址，仍然不收响应体。
+    #
+    # 只报 readable_count 这个数字，等于报了「有三条能读」却不说是哪三条——
+    # 而 T09（抓到即固化）要的恰恰是那个地址：拦截前缀就是从它身上取的。
+    # Owner 只按一次诊断，报告里少了这一样，那一按就白按。
+    readable_urls: list[str] = Field(default_factory=list)
     note: str = ""
 
 
@@ -649,6 +655,7 @@ def record_diagnostic(report: DiagnosticReport) -> dict[str, Any]:
         "readable_count": report.readable_count,
         "dropped_count": report.dropped_count,
         "not_parsed_count": report.not_parsed_count,
+        "readable_urls": report.readable_urls[:20],
         "note": report.note[:300],
     }, ensure_ascii=False)
     # **写不进去不是 500。** 诊断上报是个锦上添花的便利；它挂掉不该给用户

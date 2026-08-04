@@ -18,7 +18,8 @@ from fastapi.testclient import TestClient
 
 from tests.focused._source_slices import run_diagnosis_body
 
-EXT = Path(__file__).resolve().parents[2] / "apps/browser-extension"
+ROOT = Path(__file__).resolve().parents[2]
+EXT = ROOT / "apps/browser-extension"
 
 
 @pytest.fixture
@@ -93,3 +94,46 @@ def test_the_popup_tells_him_not_to_click_the_page() -> None:
     assert "别点页面" in loop, "没告诉他点页面会把这个窗关掉"
     assert "滚轮" in loop, "没说清用什么滚——「滚动」在鼠标上有两种做法，一种会关窗"
     assert "请往下滚动几屏…" not in loop, "那句会把人引去点页面的旧文案又回来了"
+
+
+def test_the_report_says_which_capture_was_readable_not_just_how_many(client_and_root) -> None:
+    """**T09（抓到即固化）要的是那个地址，不是一个数字。**
+
+    只报 readable_count=3，等于说了「有三条能读」却不说是哪三条。
+    拦截前缀正是从那个地址上取的——报告里少了它，Owner 那一按就白按，
+    还得再按一次，而他只按一次。
+    """
+    client, root = client_and_root
+    response = client.post("/v1/extension/diagnostics", json={
+        "platform": "bilibili", "page_url": "https://space.bilibili.com/1/favlist",
+        "urls": ["https://api.bilibili.com/x/v3/fav/resource/list?pn=1",
+                 "https://api.bilibili.com/x/web-interface/nav"],
+        "capture_count": 2, "readable_count": 1,
+        "readable_urls": ["https://api.bilibili.com/x/v3/fav/resource/list?pn=1"],
+        "note": "拦到 2 条，其中 1 条读得懂",
+    })
+    assert response.status_code == 200, response.text
+    line = json.loads(
+        (root / "diagnostics/extension-diagnostics.jsonl")
+        .read_text(encoding="utf-8").strip().splitlines()[-1]
+    )
+    assert line["readable_urls"] == ["https://api.bilibili.com/x/v3/fav/resource/list?pn=1"], (
+        "读得懂的那几条地址没落盘——固化拦截前缀时无从下手"
+    )
+    assert "body" not in json.dumps(line), "响应体绝不能上传"
+
+
+def test_the_whole_chain_carries_the_readable_urls() -> None:
+    """服务端收得下不等于弹窗送得上去，弹窗送得上去不等于 background 算得出来。
+
+    这是本项目栽过九次的那一族：两头都对，中间没接上。三段都钉。
+    """
+    background = (EXT / "background.js").read_text(encoding="utf-8")
+    parse = background.split("SA_PARSE_NET_CAPTURES", 1)[1][:5000]
+    assert "readableUrls.push(capture.url)" in parse, "background 没记下是哪一条读得懂"
+    assert "readableUrls," in parse or "readableUrls " in parse, "算出来了却没返回"
+    popup = (EXT / "popup.js").read_text(encoding="utf-8")
+    payload = popup.split("/v1/extension/diagnostics", 1)[1][:1400]
+    assert "readable_urls" in payload, "弹窗没把它送上去"
+    api = (ROOT / "src/social_archive/api.py").read_text(encoding="utf-8")
+    assert "readable_urls" in api, "服务端模型里没有这一项，pydantic 会静默丢掉"

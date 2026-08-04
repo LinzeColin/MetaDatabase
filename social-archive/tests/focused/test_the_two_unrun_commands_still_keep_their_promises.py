@@ -43,10 +43,15 @@ def test_the_two_ways_to_install_the_extension_are_the_same_thing() -> None:
     两者一旦分叉，就会出现「验过的那个不是他装的那个」。
     2026-08-05 实测两边逐字节相同（各 23 个文件）——把它钉住。
     """
+    # **每次都重打，不是「文件不在才打」。**
+    #
+    # 原来只在包不存在时才打，于是改完扩展源码、还没重打包时，这条判据比的是
+    # **一个旧包**，报出来的差异看着像「两条装法分叉了」，其实只是包过期。
+    # 2026-08-05 改 background.js 时就这么红过一次。
+    # 重打是确定性的，也不慢；比的应当是「打包这一步会不会漏文件」。
     package = ROOT / "dist/social-archive-extension.zip"
-    if not package.is_file():
-        subprocess.run([sys.executable, str(ROOT / "scripts/build_extension_package.py")],
-                       cwd=ROOT, check=True, capture_output=True)
+    subprocess.run([sys.executable, str(ROOT / "scripts/build_extension_package.py")],
+                   cwd=ROOT, check=True, capture_output=True)
     import tempfile, zipfile
 
     source = ROOT / "apps/browser-extension"

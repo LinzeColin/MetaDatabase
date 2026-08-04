@@ -1550,6 +1550,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       let readable = 0;
       let items = 0;
       let firstProblem = null;
+      const readableUrls = [];
       for (const capture of toParse) {
         const parsed = await SA.api("/v1/extension/captures/parse", {
           method: "POST",
@@ -1558,8 +1559,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           timeoutMs: 20000,
         }).catch(error => ({ ok: false, failure_code: "SERVER_UNREACHABLE",
                              message_zh: error?.message || "连不上你的档案馆。" }));
-        if (parsed?.ok) { readable += 1; items += (parsed.items || []).length; }
-        else if (!firstProblem) firstProblem = parsed;
+        if (parsed?.ok) {
+          readable += 1;
+          items += (parsed.items || []).length;
+          // **记下是哪一条读得懂的。**
+          //
+          // 只报一个「readable=3」的数字，等于报了「有三条能读」却不说是哪三条——
+          // 而 T09（抓到即固化）要的恰恰是那个地址：拦截前缀就是从它身上取的。
+          // Owner 只按一次诊断；报告里少了这一样，那一按就白按，还得再按一次。
+          //
+          // 送出去的仍然只有地址，**响应体一个字节都不上传**。
+          readableUrls.push(capture.url);
+        } else if (!firstProblem) firstProblem = parsed;
       }
       // **丢掉的条数要说出来。** 上限本身没问题，悄悄触顶才有问题——
       // 那会让「缓冲区满了、有用的那条没进来」看起来和「平台没发这个请求」一模一样。
@@ -1572,7 +1583,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const note = notes.length ? `（${notes.join("；")}）` : "";
       return {
         ok: readable > 0, readable, total: netCaptureBuffer.length, items, dropped,
-        parsed: toParse.length, notParsed,
+        parsed: toParse.length, notParsed, readableUrls,
         failureCode: readable > 0 ? null : (firstProblem?.failure_code || "UNREADABLE"),
         message_zh: readable > 0
           ? `拦到 ${netCaptureBuffer.length} 条${note}，其中 ${readable} 条读得懂，共 ${items} 条收藏。`

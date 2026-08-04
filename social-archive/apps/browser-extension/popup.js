@@ -330,6 +330,9 @@
           // 还是那条被挤掉了／没轮到读？下一步完全不同。
           dropped_count: Number(readback?.dropped || 0),
           not_parsed_count: Number(readback?.notParsed || 0),
+          // **哪几条读得懂——T09 固化拦截前缀就靠这一样。**
+          // 只报一个数字等于说了「有三条能读」却不说是哪三条。
+          readable_urls: Array.isArray(readback?.readableUrls) ? readback.readableUrls : [],
           note: String(readback?.message_zh || ""),
         }),
         timeoutMs: 15000,
