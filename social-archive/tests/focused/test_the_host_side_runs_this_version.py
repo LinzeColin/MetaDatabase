@@ -106,3 +106,43 @@ def test_the_rollback_point_is_pinned_before_the_build_and_verified_after() -> N
     assert "&& printf '  回滚点已定" not in code, (
         "又写回 `cmd && printf` 了——失败会被短路吞掉，什么都不说"
     )
+
+
+def test_the_disk_gate_only_reclaims_our_own_images() -> None:
+    """**这台机器还跑着别人的项目。**
+
+    磁盘门今天拦了两次，两次都要人手工回收——自动化是对的，但自动化的
+    边界必须卡死：只回收**带我们自己标签的**悬空镜像。
+
+    `docker system prune` 是明确禁止的（脚本里早就写着）；而「删掉所有悬空
+    镜像」看着温和，实际是在动别人的东西——别的项目可能正准备给某个悬空
+    镜像重新打标。
+    """
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    code = "\n".join(l for l in deploy.splitlines() if not l.lstrip().startswith("#"))
+    assert "label=com.socialarchive.project=social-archive" in code, (
+        "自动回收没有按标签筛——那会删到别的项目的悬空镜像"
+    )
+    # **禁的是「用它」，不是「提它」。**
+    # 脚本里唯一一处 system prune 在那句警告文案里（「**不要用** docker system
+    # prune」）——把提及也禁掉，判据就会红在一句正确的警告上。
+    # 这和早先「注释里出现 PASS 就报错」是同一种过严。
+    mentions = [l.strip() for l in code.splitlines() if "system prune" in l]
+    for line in mentions:
+        assert "不要用" in line, f"这一行像是在真的执行 system prune：{line[:90]}"
+    assert mentions, "那句「不要用 docker system prune」的警告没了"
+    # 收不够就得中止，不能默默继续构建
+    assert code.count("可用空间不足 5G，拒绝构建") == 1, "回收不够时不再中止了"
+
+
+def test_both_images_carry_the_label_the_gate_filters_on() -> None:
+    """筛条件和盖的戳必须对上——对不上就永远回收不到任何东西，
+
+    而那种失败是**静默**的：门会说「没有带我们标签的悬空镜像可收」，
+    听起来像「已经很干净了」。
+    """
+    for relative in ("Dockerfile", "sidecars/cli-tools/Dockerfile"):
+        text = (ROOT / relative).read_text(encoding="utf-8")
+        assert 'LABEL com.socialarchive.project="social-archive"' in text, (
+            f"{relative} 没盖标签，它造出来的悬空镜像永远收不掉"
+        )

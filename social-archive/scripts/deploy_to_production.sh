@@ -231,7 +231,27 @@ step "4) 构建前先看磁盘"
 FREE_GB="$(ssh -o ConnectTimeout=20 "$HOST" "df -BG --output=avail / | tail -1 | tr -dc '0-9'")"
 printf '  根分区可用 %sG\n' "$FREE_GB"
 if [[ -n "$FREE_GB" && "$FREE_GB" -lt 5 ]]; then
-  printf '  可以安全回收的（只删悬空镜像，不碰同机其它项目）：\n'
+  # **自己收拾自己的。** 这道门今天拦了两次，两次都是我手工去回收——
+  # 而「能你做的就别让我做」。但这台机器还跑着别人的项目，所以**只回收
+  # 带我们自己标签的悬空镜像**（Dockerfile 里的 com.socialarchive.project），
+  # 绝不 `docker system prune`，也不动没有这个标签的悬空镜像。
+  #
+  # 盖标签之前造出来的旧镜像没有这个戳，收不掉——那是对的，宁可收不掉，
+  # 不可误删别人的。收不够就照旧中止，把那行手工命令留给人。
+  printf '  空间不够，先回收**我们自己的**悬空镜像（带 com.socialarchive.project 标签的）：\n'
+  ssh -o ConnectTimeout=60 "$HOST" '
+    ids=$(sudo docker images -f "dangling=true" -f "label=com.socialarchive.project=social-archive" -q)
+    if [ -z "$ids" ]; then echo "    没有带我们标签的悬空镜像可收。"; else
+      for id in $ids; do
+        printf "    回收 %s\n" "$(sudo docker images --format "{{.ID}} {{.Size}}" -f "dangling=true" | grep "^$id" || echo "$id")"
+        sudo docker rmi "$id" >/dev/null 2>&1 || true
+      done
+    fi' || true
+  FREE_GB="$(ssh -o ConnectTimeout=20 "$HOST" "df -BG --output=avail / | tail -1 | tr -dc '0-9'")"
+  printf '  回收后可用 %sG\n' "$FREE_GB"
+fi
+if [[ -n "$FREE_GB" && "$FREE_GB" -lt 5 ]]; then
+  printf '  仍然不够。剩下的悬空镜像（含别的项目的，**不自动删**）：\n'
   ssh -o ConnectTimeout=20 "$HOST" 'sudo docker images -f "dangling=true" --format "    {{.ID}}  {{.Size}}  {{.CreatedSince}}"' || true
   fail "可用空间不足 5G，拒绝构建。先回收：ssh $HOST 'for id in \$(sudo docker images -f dangling=true -q); do sudo docker rmi \$id; done'  —— **只删悬空镜像，不要用 docker system prune**（这台机器还跑着 memory-atlas / gatus / coolify 等别人的项目）。"
 fi

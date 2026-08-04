@@ -1,5 +1,11 @@
 # Third-party downloaders stay in this isolated process image. No GPL/AGPL code is copied or imported into the proprietary core.
 FROM python:3.12-slim
+# **给自己的镜像盖个戳。**
+#
+# 这台机器还跑着 memory-atlas / gatus / coolify 等别人的项目。部署那道磁盘门
+# 需要回收空间时，只能回收**我们自己的**悬空镜像——按标签筛，不按「所有悬空」筛。
+# 不盖这个戳的话，自动回收就只能是「全删」，那是在动别人的东西。
+LABEL com.socialarchive.project="social-archive"
 ARG GALLERY_DL_VERSION=1.32.8
 ARG YT_DLP_VERSION=2026.7.4
 ARG INSTALOADER_VERSION=4.15.3
