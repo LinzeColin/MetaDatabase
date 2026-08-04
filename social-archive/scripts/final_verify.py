@@ -122,6 +122,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"注意：{len(skipped)} 道门只查了一半（环境不全时的降级），它们**不是完整通过**：")
         for item in skipped:
             print(f"  · {' '.join(item['argv'])} —— {item['why'][:100]}")
+        # 说清楚怎么让它们完整跑，否则「降级」就成了一句永远没人处理的告警。
+        # 实测：本机装了 docker（Compose v5.3.1），缺的只是 install.sh 会创建的
+        # .env 与 runtime/secrets/*.env。补上之后 validate_compose 就真的会去
+        # 跑 `docker compose config`，而不是只做结构检查。
+        print("  ↳ 让它们完整跑：在本工作树跑一次 `bash scripts/install.sh`"
+              "（它会创建 .env 与 runtime/secrets/ 下的 env 文件）。")
     return 0 if status == "PASS" else 1
 
 
