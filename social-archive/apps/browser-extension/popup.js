@@ -244,11 +244,34 @@
         type: "SA_INSTALL_NET_OBSERVER", platform, tabId: tab.id, diagnostic: true,
       });
       if (!installed?.ok) throw new Error(installed?.error || "无法在这个页面上开始观察");
-      for (let left = 10; left > 0; left -= 1) {
-        button.textContent = `请往下滚动几屏…还剩 ${left} 秒`;
+      // **等到真的抓到东西为止，而不是死等 10 秒。**
+      //
+      // 原来是固定 10 秒倒计时，然后不管抓没抓到都收工。这颗按钮 Owner
+      // 大概率只会点一次——他说过「能你做的就别让我做」——所以那一次
+      // 必须尽量成。滚得慢一点、页面加载久一点，10 秒就空手而归，
+      // 而报告只会说「一条都没抓到」，看不出是没请求还是没等够。
+      //
+      // 改成：每秒问一次，最多 30 秒；抓到之后连续 3 秒没有新增就提前收工
+      // （说明这一屏的翻页请求发完了，没必要再让人干等）。
+      let captured = { count: 0, urls: [], totalBytes: 0 };
+      let quiet = 0;
+      for (let elapsed = 0; elapsed < 30; elapsed += 1) {
         await new Promise(resolve => setTimeout(resolve, 1000));
+        const snapshot = await chrome.runtime.sendMessage({ type: "SA_GET_NET_CAPTURES" }).catch(() => null);
+        const count = Number(snapshot?.count || 0);
+        if (snapshot) captured = snapshot;
+        if (count > 0 && count === Number(captured.count)) quiet += 1; else quiet = 0;
+        if (count > 0) {
+          button.textContent = quiet >= 3
+            ? "够了，正在读…"
+            : `已抓到 ${count} 条，继续往下滚…`;
+          if (quiet >= 3) break;
+        } else {
+          button.textContent = elapsed < 10
+            ? `请往下滚动几屏…（${10 - elapsed} 秒）`
+            : `还没抓到，请再滚几屏…（还等 ${30 - elapsed} 秒）`;
+        }
       }
-      const captured = await chrome.runtime.sendMessage({ type: "SA_GET_NET_CAPTURES" });
       const urls = (captured?.urls || []).filter((value, index, all) => all.indexOf(value) === index);
       // **「拦到了」不等于「读得懂」。** 只报地址与字节数的话，
       // 一条 `{"code":0,"message":"OK","data":null}` 看起来完全成功——

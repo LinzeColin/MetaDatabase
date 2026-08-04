@@ -17,6 +17,7 @@ v0.0.0.6 生产上"永远是 0"就是这个形状。
 """
 
 import importlib
+import pathlib
 
 import pytest
 from fastapi.testclient import TestClient
@@ -45,6 +46,8 @@ def _client(tmp_path, monkeypatch) -> TestClient:
     return TestClient(api.app)
 
 # 2026-08-04 实测原文，逐字节。
+ROOT_APPS = pathlib.Path(__file__).resolve().parents[2] / "apps/browser-extension"
+
 ANONYMOUS_REAL_RESPONSE = '{"code":0,"message":"OK","ttl":1,"data":null}'
 
 
@@ -173,3 +176,20 @@ def test_an_unknown_platform_says_so_instead_of_pretending(tmp_path, monkeypatch
     assert payload["ok"] is False
     assert payload["failure_code"] == "PLATFORM_PARSER_MISSING"
     assert payload["items"] == []
+
+
+def test_the_diagnostic_waits_until_it_actually_catches_something() -> None:
+    """这颗按钮 Owner 大概率只点一次，那一次必须尽量成。
+
+    原来是固定 10 秒倒计时，不管抓没抓到都收工。滚得慢、页面加载久，
+    就空手而归，而报告只会说「一条都没抓到」——看不出是没请求还是没等够。
+
+    Owner 的原话：「能你做的就别让我做 我没有技术基础」。
+    让他重点一次，就是把本来该我们承担的不确定性丢给他。
+    """
+    popup = (ROOT_APPS / "popup.js").read_text(encoding="utf-8")
+    block = popup.split("async function runDiagnosis", 1)[1][:3000]
+    assert "for (let left = 10" not in block, "还是那个死等 10 秒的倒计时"
+    assert "SA_GET_NET_CAPTURES" in block, "不再轮询就没法提前收工"
+    assert "elapsed < 30" in block, "没有上限，可能一直转下去"
+    assert "quiet >= 3" in block, "抓到之后不会提前收工，让人白等"
