@@ -137,3 +137,28 @@ def test_the_whole_chain_carries_the_readable_urls() -> None:
     assert "readable_urls" in payload, "弹窗没把它送上去"
     api = (ROOT / "src/social_archive/api.py").read_text(encoding="utf-8")
     assert "readable_urls" in api, "服务端模型里没有这一项，pydantic 会静默丢掉"
+
+
+def test_the_button_does_not_promise_ten_seconds_it_cannot_keep() -> None:
+    """按钮原来写「开始看（10 秒）」，而实际最长要 30 秒等待 + 十几秒安装。
+
+    **他会以为卡住了，然后点别处——而弹窗一失焦就整个关掉**，诊断断在半路。
+    一个说不准的时间承诺，比不给时间更坏。
+    """
+    html = (EXT / "popup.html").read_text(encoding="utf-8")
+    assert "开始看（10 秒）" not in html, "又写回那个守不住的 10 秒了"
+    assert "别关这个窗" in html, "没有告诉他这个窗不能关"
+
+
+def test_he_is_told_about_the_permission_dialog_before_it_appears() -> None:
+    """安装那一步进门就要平台授权，Chrome 会弹一个原生框。
+
+    没人提前说的话，一个说自己「没有技术基础」的人最可能点「拒绝」——
+    然后拿到 PLATFORM_PERMISSION_DENIED，而他并不知道自己刚拒绝的是什么。
+    这一步在他**只按一次**的那条路上，不能靠他猜。
+    """
+    html = (EXT / "popup.html").read_text(encoding="utf-8")
+    assert "允许" in html, "弹窗界面上没有一处提到那个授权框"
+    popup = (EXT / "popup.js").read_text(encoding="utf-8")
+    loop = popup.split("async function runDiagnosis", 1)[1][:4000]
+    assert "浏览器要问你「允许吗」" in loop, "按钮在等授权时不说话，他不知道该点哪个"

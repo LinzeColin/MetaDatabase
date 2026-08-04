@@ -245,7 +245,14 @@
           .join(" / ");
         throw new Error(`这个页面不是可诊断的平台。请先打开${diagnosable} 的收藏页，并确认已登录。`);
       }
-      button.textContent = "正在安装观察器…";
+      // **浏览器要弹授权框了，先说一声。**
+      //
+      // installNetObserverForTab 进门就调 requestPlatformPermission，
+      // Chrome 会弹一个原生框问「允许此扩展读取 bilibili.com 上的数据吗」。
+      // 没人提前说的话，一个说自己「没有技术基础」的人最可能的反应是点「拒绝」——
+      // 然后拿到 PLATFORM_PERMISSION_DENIED，而他并不知道自己刚拒绝的是什么。
+      // 这一步在他**只按一次**的那条路上，不能靠他猜。
+      button.textContent = "浏览器要问你「允许吗」——点允许";
       const installed = await chrome.runtime.sendMessage({
         // diagnostic=true：让 background 按本页域名推前缀。
         // 不然只有 bilibili 有已知前缀，另外三个平台会被当场拒绝——

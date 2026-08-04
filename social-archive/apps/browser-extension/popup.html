@@ -61,7 +61,8 @@
           用法：在<strong>已登录</strong>的收藏页上点下面的按钮（<strong>会先刷新一次这个页面</strong>），然后<strong>往下滚动几屏</strong>，
           十秒后这里会列出它请求了哪些地址。<strong>只记地址和大小，不读取也不上传任何内容。</strong>
         </p>
-        <button id="diagnose" class="fallback-save">开始看（10 秒）</button>
+        <button id="diagnose" class="fallback-save">开始看（最多 30 秒，别关这个窗）</button>
+        <p style="margin:6px 0 0;font-size:11px;line-height:1.6;color:#6b6b66">点下去之后浏览器会弹一个框问「允许读取这个网站的数据吗」——<strong>点「允许」</strong>，不然看不了。整个过程别点页面、别切走，这个小窗一关就断在半路。</p>
         <pre id="diagnoseResult" class="hidden" style="margin:10px 0 0;padding:10px;border-radius:8px;background:#f2f2f0;font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-all;max-height:180px;overflow:auto"></pre>
         <button id="diagnoseCopy" class="fallback-save hidden" style="margin-top:8px">复制这段，发给开发者</button>
       </div>
