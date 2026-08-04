@@ -52,6 +52,11 @@ class DestinationView:
     latency_ms: int | None = None
     capabilities: dict[str, Any] | None = None
     last_message_zh: str | None = None
+    # **收到了多少条**。「连上了」不等于「收到了」——2026-08-04 实测，
+    # github 与 obsidian 都是 connected +「最近一次自动导入成功。」，
+    # 而各自只有 1 条回执，库里有 193 条。
+    exported_count: int = 0
+    content_total: int = 0
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -61,6 +66,13 @@ class DestinationView:
             "enabled": self.enabled,
             "configured": self.configured,
             "authorized": self.authorized,
+            "exported_count": self.exported_count,
+            "content_total": self.content_total,
+            "coverage_zh": (
+                "这里是主保存链路，全部内容都在。" if self.destination_id == "social_archive"
+                else f"已送到这里 {self.exported_count} / {self.content_total} 条。"
+                if self.content_total else "库里还没有内容。"
+            ),
             "automatic": self.automatic,
             "next_action_zh": self.next_action_zh,
             "privacy_note_zh": self.privacy_note_zh,
@@ -258,6 +270,9 @@ class DestinationRegistry:
 
     def views(self) -> list[dict[str, Any]]:
         persisted = {row["destination_id"]: row for row in self.store.destination_states()}
+        # **「连上了」和「收到了多少」是两件事。** 见 db.destination_coverage 的说明。
+        coverage = self.store.destination_coverage()
+        total = self.store.content_total()
         result: list[dict[str, Any]] = []
         for destination_id in ("social_archive", "markdown", "notion", "obsidian", "github", "karakeep", "linkwarden", "archivebox"):
             configuration_error: str | None = None
@@ -274,6 +289,7 @@ class DestinationRegistry:
             authorized = self.is_export_authorized(destination_id)
             message = configuration_error or row.get("last_message_zh")
             next_action = str(message or self._default_next_action(destination_id, configured, state))
+            exported = total if destination_id == "social_archive" else coverage.get(destination_id, 0)
             result.append(
                 DestinationView(
                     destination_id=destination_id,
@@ -289,6 +305,8 @@ class DestinationRegistry:
                     latency_ms=row.get("latency_ms"),
                     capabilities=row.get("capabilities") or {},
                     last_message_zh=message,
+                    exported_count=exported,
+                    content_total=total,
                 ).as_dict()
             )
         return result

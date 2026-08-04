@@ -504,6 +504,30 @@ class RuntimeStore:
             )
         return artifact_id
 
+    def destination_coverage(self) -> dict[str, int]:
+        """每个目的地**真的收到过多少条内容**。
+
+        为什么要有它：2026-08-04 实测，github 与 obsidian 的状态都是
+        `connected` + 「最近一次自动导入成功。」，而它们各自只有 **1 条**回执
+        ——库里有 193 条。默认导出集是 `["social_archive", "markdown"]`
+        （扩展的 DEFAULT_CONFIG 与 account_sync 两处都是），所以那两个目的地
+        从来就没有自动收到过东西。
+
+        界面说「连接成功、自动导入」，而实际是 1/193。**这不是谎，是没说全。**
+        把「收到了多少条」摆出来，比任何措辞都直接。
+        """
+        with self.connection() as con:
+            rows = con.execute(
+                """SELECT destination_id, COUNT(DISTINCT content_id) AS n
+                   FROM destination_receipt WHERE status IN ('done','noop')
+                   GROUP BY destination_id"""
+            ).fetchall()
+        return {row["destination_id"]: int(row["n"]) for row in rows}
+
+    def content_total(self) -> int:
+        with self.connection() as con:
+            return int(con.execute("SELECT COUNT(*) FROM content").fetchone()[0])
+
     def enqueue_job(self, job_type: str, payload: dict[str, Any], connector_id: str | None = None) -> str:
         payload_raw = json.dumps(payload, ensure_ascii=False, sort_keys=True)
         job_id = stable_id("job", job_type, connector_id, sha256_bytes(payload_raw.encode("utf-8")))
