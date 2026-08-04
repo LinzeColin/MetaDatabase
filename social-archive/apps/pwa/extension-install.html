@@ -43,7 +43,7 @@
       全程不用命令行，也不用填服务器、端口或任何 Token。</p>
     <div class="detect" id="detect"><span class="dot"></span><span id="detectText">正在检测插件…</span></div>
     <div class="actions">
-      <a class="button" href="/downloads/social-archive-extension.zip" download>1. 下载官方安装包</a>
+      <a class="button" href="/downloads/social-archive-extension.zip" download>先下载安装包</a>
       <a class="button secondary" href="/home">返回 Social Archive</a>
     </div>
     <ol aria-label="Chrome 插件安装步骤">
@@ -86,6 +86,9 @@
         });
       }
 
+      // 一直转下去看起来像卡住了。几次之后改口说清楚：
+      // 「还没装是正常的，装好这里会自己变绿」——**等待也要有解释**。
+      let rounds = 0;
       async function loop() {
         if (done) return;
         if (await ping()) {
@@ -94,6 +97,10 @@
           text.textContent = "✓ 已检测到插件，正在把你送回首页…";
           setTimeout(() => { location.href = "/"; }, 1500);
           return;
+        }
+        rounds += 1;
+        if (rounds === 2) {
+          text.textContent = "还没检测到插件——按下面四步装好即可，装好的那一刻这里会自动变绿并带你回首页。";
         }
         setTimeout(loop, 1500);
       }

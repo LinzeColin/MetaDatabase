@@ -83,3 +83,22 @@ def test_no_stale_version_string() -> None:
     html = PAGE.read_text(encoding="utf-8")
     stale = [m for m in re.findall(r"v?0\.0\.0\.\d", html) if m.lstrip("v") != version]
     assert not stale, f"页面上还留着过期版本号：{stale}"
+
+
+def test_there_is_only_one_step_one() -> None:
+    """按钮和卡片各有一个「1」，用户不知道从哪开始。
+
+    **这是真的打开页面看出来的**，源码断言看不出来：
+    按钮写「1. 下载官方安装包」，第一张卡片也是「1 解压下载的 ZIP」。
+    """
+    html = visible_text()
+    assert "1. 下载官方安装包" not in html, "下载按钮上还带着编号，和四张步骤卡片的编号打架"
+    assert "先下载安装包" in html
+
+
+def test_waiting_is_explained_instead_of_spinning_forever() -> None:
+    """一直显示「正在检测插件…」看起来像卡住了。等待也要有解释。"""
+    html = PAGE.read_text(encoding="utf-8")
+    script = html.split("<script", 1)[1]
+    assert "rounds" in script, "没有「等了几轮」的概念，只会一直转"
+    assert "还没检测到插件" in script, "等久了不改口说明情况"
