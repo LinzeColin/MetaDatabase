@@ -289,7 +289,10 @@ def test_systemd_host_prepare_keeps_long_lived_secrets_root_only_and_uses_unit_c
     assert "SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=$ROOT/runtime/secrets/github_token" not in prepare
     assert "validate_host_env_replacement" in prepare
     assert "拒绝覆盖并清空既有非 Secret 配置" in prepare
-    assert 'LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_token' in replication
+# 凭据来源是 github_markdown_token（唯一有私有仓权限的那个），
+    # target 名仍是 github_token —— 应用读的是 %d/github_token。
+    # 用 runtime/secrets/github_token 的话第三份副本永远失败（实测 2026-08-04）。
+    assert 'LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_markdown_token' in replication
     assert 'Environment=SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token' in replication
     assert 'LoadCredential=r2_access_key_id:/opt/social-archive/runtime/secrets/r2_access_key_id' in backup
     assert 'Environment=SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE=%d/r2_access_key_id' in backup

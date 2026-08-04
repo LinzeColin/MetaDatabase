@@ -13,7 +13,13 @@ LoadCredential=r2_access_key_id:/opt/social-archive/runtime/secrets/r2_access_ke
 LoadCredential=r2_secret_access_key:/opt/social-archive/runtime/secrets/r2_secret_access_key
 LoadCredential=oci_access_key_id:/opt/social-archive/runtime/secrets/oci_access_key_id
 LoadCredential=oci_secret_access_key:/opt/social-archive/runtime/secrets/oci_secret_access_key
-LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_token
+# **必须用有私有仓权限的那个 token。** 实测（2026-08-04）：
+# runtime/secrets/github_token 只看得见公开仓——用它查 Private-Database
+# 直接报 not resolvable，于是第三份副本（GitHub Release）永远失败，
+# 而错误信息说的是「私有归档仓验证失败」，听起来像仓库不对。
+# Core 容器拿到的一直是另一个（compose 把 github_markdown_token 映射进去），
+# 只有这条 systemd 路径漏了。
+LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_markdown_token
 Environment=SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE=%d/r2_access_key_id
 Environment=SOCIAL_ARCHIVE_R2_SECRET_ACCESS_KEY_FILE=%d/r2_secret_access_key
 Environment=SOCIAL_ARCHIVE_OCI_ACCESS_KEY_ID_FILE=%d/oci_access_key_id

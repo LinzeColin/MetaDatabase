@@ -17,7 +17,10 @@ def test_stage5_deployment_contract_keeps_core_private_and_status_runtime_only()
     assert "LoadCredential=api_token:/opt/social-archive/runtime/secrets/social_archive_api_token" in status_service
     assert "Environment=SOCIAL_ARCHIVE_API_TOKEN_FILE=%d/api_token" in status_service
     assert "StateDirectory=" not in status_service
-    assert "LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_token" in replication_service
+# 凭据来源是 github_markdown_token（唯一有私有仓权限的那个），
+    # target 名仍是 github_token —— 应用读的是 %d/github_token。
+    # 用 runtime/secrets/github_token 的话第三份副本永远失败（实测 2026-08-04）。
+    assert "LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_markdown_token" in replication_service
     assert "Environment=SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token" in replication_service
     assert "Environment=SOCIAL_ARCHIVE_STATUS_BIND_HOST=127.0.0.1" in status_web_service
     assert "ReadOnlyPaths=/var/lib/social-archive/status" in status_web_service
