@@ -1,0 +1,42 @@
+{
+  "task": "T16",
+  "claim": "索引补齐第三份副本，与制品同一个标准：R2 + OCI + GitHub 私有仓 Draft Release，**三份全部 verified**（各自上传后回读、密文哈希比对通过）。",
+  "invariant": "INV-REVERSIBLE",
+  "measured_at": "2026-08-04",
+
+  "production_run": {
+    "verified_remote_copies": 3,
+    "r2": "verified — backups/runtime-db/20260804T133149Z/d68879cc…",
+    "oci": "verified — 同一个 object_key",
+    "github": "verified — gh-release://LinzeColin/Private-Database/social-archive-runtime-db-…"
+  },
+
+  "why_the_index_deserves_the_same_standard_as_the_artifacts": "制品丢一个是丢一条内容；索引丢了是 552 个都说不出是什么。它**比制品更要紧**，却一直比制品少一份。",
+
+  "the_defect_found_while_wiring_it": {
+    "symptom": "第一次跑：`github: blocked_prerequisite / GITHUB_VAULT_NOT_CONFIGURED`。",
+    "cause": "**代码写好了，单元没给它钥匙。** social-archive-backup.service 从来没有 LoadCredential=github_token；复制单元有，备份单元没有。",
+    "shape": "又一次「建好了没接上」——这次接不上的不是两段代码，是代码与它运行时的凭据。",
+    "fix": "备份单元补上 `LoadCredential=github_token:…/github_markdown_token`（与复制单元同一个来源——runtime/secrets/github_token 只看得见公开仓），并把 SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE 指过去：**加载了凭据不告诉程序路径，一样等于没加载**。",
+    "guard": "判据钉住「备份单元与复制单元的 GitHub 令牌来源必须一致，且必须 export 路径」。"
+  },
+
+  "cadence_split": {
+    "every_15_minutes": "replication 单元，`--skip-if-unchanged`，**不带** --github",
+    "why": "Draft Release 每刻钟建一个会把私有仓刷爆，而且没必要——前两份已经跟上了节奏。",
+    "daily": "backup 单元，带 --github，把第三份补齐。"
+  },
+
+  "how_far_the_github_copy_is_proven": {
+    "proven": "上传之后**下载回读、密文 sha256 比对通过**——那份密文确实在 GitHub 上、且没坏。",
+    "chained": "同一份密文（同一个 cipher_sha256）已经在 R2/OCI 那两条路上被完整解过：age 解密 → gunzip → 打开 SQLite → 五张表行数与生产库逐个相同。",
+    "not_proven": "**没有单独从 GitHub 那份走一遍完整解密链。** restore_runtime_db_drill.py 的 --from-store 目前只有 r2 / oci。"
+  },
+
+  "what_this_does_not_prove": [
+    "见上：GitHub 那份只验到密文层，没单独跑过完整解密链。",
+    "不证明定时器在无人干预下会稳定补上第三份。这次是手动 `systemctl start`。",
+    "**快照仍然会越积越多**：脚本刻意不删旧快照，现在每次库变化都留一份，保留期需要人来定。",
+    "**私钥仍然只有一份。** 三份副本、两个云、一个 GitHub 私有仓——全都由同一把 age 私钥保护，而它只在生产那块盘上。这一条只有 Owner 能解。"
+  ]
+}
