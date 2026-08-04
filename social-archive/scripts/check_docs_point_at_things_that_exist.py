@@ -29,7 +29,16 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+# --root 让判据能在一份**临时副本**上验这个检查器，而不必去改仓里的真文档。
+# 一个会写仓里文件的判据是不可重入的：跑到一半被打断，就把一个改坏的文档
+# 留在工作树里；两次同时跑还会互相踩。
+_ARGUMENT_ROOT = None
+if "--root" in sys.argv:
+    _position = sys.argv.index("--root")
+    if _position + 1 < len(sys.argv):
+        _ARGUMENT_ROOT = sys.argv[_position + 1]
+
+ROOT = Path(_ARGUMENT_ROOT).resolve() if _ARGUMENT_ROOT else Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 
 # 明确标了作废、且**目的就是点名已删除脚本**的文档。
