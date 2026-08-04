@@ -591,6 +591,57 @@ def parse_captured_response(payload: CapturedResponse) -> dict[str, Any]:
     }
 
 
+class DiagnosticReport(BaseModel):
+    """诊断按钮抓到的**地址形态**——不含任何响应体。
+
+    响应体留在浏览器的内存缓冲里，从不上传：它可能带着平台返回的个人信息，
+    而要固化拦截前缀只需要地址。
+    """
+
+    platform: str
+    page_url: str = ""
+    urls: list[str] = Field(default_factory=list)
+    capture_count: int = 0
+    readable_count: int = 0
+    note: str = ""
+
+
+@app.post("/v1/extension/diagnostics", dependencies=[Depends(require_token)])
+def record_diagnostic(report: DiagnosticReport) -> dict[str, Any]:
+    """把诊断结果落到自己的服务器上，省掉「你复制给我」这一步。
+
+    ## 为什么
+
+    国内平台的收藏接口地址只存在于 Owner 已登录的浏览器里。诊断按钮把它们
+    抓出来显示在弹窗上，旁边一颗「复制」——**然后还要他把那段文字发给我**。
+
+    Owner 的原话：「能你做的就别让我做 我没有技术基础」。让他复制粘贴
+    一段技术文本，正是这句话要消掉的东西。落到他自己的服务器上之后，
+    我直接去读，他点完那一下就完了。
+
+    ## 边界
+
+    · **只收地址与计数，不收响应体。** 模型里根本没有 body 字段。
+    · 落的是 data_root 下的一个 JSONL，不进数据库——不改 schema，
+      就不会有「带迁移的回滚」那种最危险的回滚。
+    · 追加写，永不覆盖：诊断可能要跑好几次，每次都是一条记录。
+    """
+    target = settings.data_root / "evidence" / "extension-diagnostics.jsonl"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    line = json.dumps({
+        "at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        "platform": report.platform.strip().lower(),
+        "page_url": report.page_url.split("?")[0],
+        "urls": report.urls[:80],
+        "capture_count": report.capture_count,
+        "readable_count": report.readable_count,
+        "note": report.note[:300],
+    }, ensure_ascii=False)
+    with target.open("a", encoding="utf-8") as handle:
+        handle.write(line + "\n")
+    return {"recorded": True, "message_zh": "诊断结果已存到你自己的服务器，不需要你再复制给谁。"}
+
+
 @app.get("/v1/extension/bootstrap", dependencies=[Depends(require_token)])
 def extension_bootstrap() -> dict[str, Any]:
     """Single low-latency payload for popup/options/side-panel rendering."""

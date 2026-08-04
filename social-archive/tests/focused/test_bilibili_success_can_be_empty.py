@@ -193,3 +193,53 @@ def test_the_diagnostic_waits_until_it_actually_catches_something() -> None:
     assert "SA_GET_NET_CAPTURES" in block, "不再轮询就没法提前收工"
     assert "elapsed < 30" in block, "没有上限，可能一直转下去"
     assert "quiet >= 3" in block, "抓到之后不会提前收工，让人白等"
+
+
+def test_the_diagnostic_result_lands_on_his_own_server_not_in_his_clipboard(
+    tmp_path, monkeypatch
+) -> None:
+    """Owner 的原话：「能你做的就别让我做 我没有技术基础」。
+
+    诊断抓到的地址原来只显示在弹窗上，旁边一颗「复制」——**然后还要他
+    把那段技术文本发给我**。落到他自己的服务器上之后，他点完那一下就完了。
+    """
+    client = _client(tmp_path, monkeypatch)
+    response = client.post("/v1/extension/diagnostics", json={
+        "platform": "bilibili",
+        "page_url": "https://space.bilibili.com/1/favlist?fid=123",
+        "urls": ["https://api.bilibili.com/x/v3/fav/resource/list?media_id=12"],
+        "capture_count": 3, "readable_count": 0, "note": "读不懂",
+    })
+    assert response.status_code == 200
+    assert response.json()["recorded"] is True
+
+    landed = list((tmp_path / "data" / "evidence").glob("extension-diagnostics.jsonl"))
+    assert landed, "诊断结果没落盘"
+    import json as _json
+    record = _json.loads(landed[0].read_text(encoding="utf-8").splitlines()[-1])
+    assert record["platform"] == "bilibili"
+    assert record["urls"][0].startswith("https://api.bilibili.com/x/v3/fav/")
+    assert "?" not in record["page_url"], "页面地址的查询串没被剥掉"
+
+
+def test_the_diagnostic_sink_has_no_place_to_put_a_response_body() -> None:
+    """**只收地址与计数。** 响应体留在浏览器的内存缓冲里，从不上传。
+
+    它可能带着平台返回的个人信息，而固化拦截前缀只需要地址。
+    这条判据钉的是「模型里根本没有那个字段」，不是「我们没填它」。
+    """
+    from social_archive.api import DiagnosticReport
+
+    fields = set(DiagnosticReport.model_fields)
+    for forbidden in ("body", "bodies", "payload", "content", "raw"):
+        assert forbidden not in fields, f"诊断上报里出现了 {forbidden} 字段——响应体不许上传"
+    assert fields == {"platform", "page_url", "urls", "capture_count", "readable_count", "note"}
+
+
+def test_the_popup_still_keeps_copy_as_a_fallback() -> None:
+    """存不上去（没登录、没网）时，复制按钮仍是退路。"""
+    popup = (ROOT_APPS / "popup.js").read_text(encoding="utf-8")
+    block = popup.split("async function runDiagnosis", 1)[1][:5000]
+    assert "/v1/extension/diagnostics" in block, "诊断结果没有送到他自己的服务器"
+    assert "copyButton.classList.remove" in block, "复制按钮被拿掉了——存不上去时就没有退路了"
+    assert "请点下面的「复制」发给开发者" in block, "存失败时没有告诉他还能怎么办"

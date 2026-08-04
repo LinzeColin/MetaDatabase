@@ -294,6 +294,26 @@
       output.textContent = report;
       output.classList.remove("hidden");
       copyButton.classList.remove("hidden");
+      // **把结果直接存到他自己的服务器，省掉「你复制给我」这一步。**
+      //
+      // Owner 的原话：「能你做的就别让我做 我没有技术基础」。
+      // 让他复制粘贴一段技术文本，正是这句话要消掉的东西。
+      //
+      // 只送地址与计数，**不送响应体**——响应体留在 background 的内存缓冲里，
+      // 它可能带着平台返回的个人信息，而固化拦截前缀只需要地址。
+      // 复制按钮留着：存不上去（没登录、没网）时它仍是退路。
+      SA.api("/v1/extension/diagnostics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          platform, page_url: String(tab.url || ""), urls,
+          capture_count: Number(captured?.count || 0),
+          readable_count: Number(readback?.readable || 0),
+          note: String(readback?.message_zh || ""),
+        }),
+        timeoutMs: 15000,
+      }).then(() => showStatus("诊断结果已存到你的服务器，不用再复制给谁。", "ok"))
+        .catch(() => showStatus("结果存不到服务器，请点下面的「复制」发给开发者。", "needs"));
       copyButton.onclick = async () => {
         try { await navigator.clipboard.writeText(report); showStatus("已复制", "ok"); }
         catch (_) { showStatus("复制失败，请手动选中上面的文字", "error"); }
