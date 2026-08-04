@@ -51,5 +51,12 @@ if ! (cd "${ROOT}" && "${PY}" scripts/final_verify.py >/tmp/sa-precommit.log 2>&
   printf '\n修好再提交；确实要带着红门提交请用 git commit --no-verify（并在信息里说明为什么）。\n' >&2
   exit 1
 fi
-printf 'pre-commit: 发布门 12 道全绿。\n' >&2
+# **道数从产物里读，不写死。** 原来这里硬编码「12 道」，加了第 13 道之后
+# 它继续说 12——一个每次提交都在撒谎的数字，正是本轮反复在修的那类东西。
+GATES="$(sed -n 's/.*"exit_code".*/x/p' "${SNAPSHOT}" 2>/dev/null | wc -l | tr -d ' ')"
+if [ -n "${GATES}" ] && [ "${GATES}" != "0" ]; then
+  printf 'pre-commit: 发布门 %s 道全绿。\n' "${GATES}" >&2
+else
+  printf 'pre-commit: 发布门全绿。\n' >&2
+fi
 exit 0
