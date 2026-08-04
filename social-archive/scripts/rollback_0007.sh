@@ -127,7 +127,7 @@ fi
 #
 # 演练时实际炸过一次：撤销回滚（--restore <db> <db>.pre-rollback-…）
 # 与前一次回滚发生在同一秒，于是这次的 $PRE 与上次同名 ——
-# 而恢复的顺序是「先 .backup 写 $PRE，再 .restore 读 $SNAP」，
+# 而恢复的顺序是「先 .backup 写 ${PRE}，再 .restore 读 ${SNAP}」，
 # 当 $PRE == $SNAP 时，**备份把它正要恢复的那份快照先覆盖掉了**。
 # 结果：脚本打印「✓ 回滚完成」，而 users/session/platform_credential
 # 整批数据永久消失，且没有任何提示。
