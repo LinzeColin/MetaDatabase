@@ -172,12 +172,25 @@
     let host = "";
     try { host = new URL(value).hostname.toLowerCase(); } catch (_) { return PLATFORM_RULES.at(-1); }
     const test = needle => host === needle || host.endsWith(`.${needle}`);
-    if (test("xiaohongshu.com")) return PLATFORM_RULES.find(x => x.id === "xiaohongshu");
-    if (test("douyin.com")) return PLATFORM_RULES.find(x => x.id === "douyin");
-    if (test("kuaishou.com")) return PLATFORM_RULES.find(x => x.id === "kuaishou");
-    if (test("bilibili.com")) return PLATFORM_RULES.find(x => x.id === "bilibili");
+    // **短链域名也要认。**
+    //
+    // 这些域名本来就写在各平台的权限模式里（我们向用户要过它们的授权），
+    // 而认平台时却一个都不判——两张名单对不上，实测有 8 个域名
+    // 「要了权限、却认成普通网页」：xhslink.com / v.iesdouyin.com /
+    // gifshow.com / kuaishou.cn / b23.tv / redd.it。
+    //
+    // 其中 xhslink.com 就是小红书的标准分享链接。把一条小红书分享链
+    // 记成「普通网页」，等于丢掉平台那一侧的全部处理。
+    //
+    // （影响有限，因为这些域名多半会跳转到正域名，等用户点保存时地址栏
+    //  已经换过来了。但两张名单对不上本身就是个隐患，而且**要了权限
+    //  却不用**，对一个把「你的凭据只在你自己机器上」当卖点的产品尤其别扭。）
+    if (test("xiaohongshu.com") || test("xhslink.com")) return PLATFORM_RULES.find(x => x.id === "xiaohongshu");
+    if (test("douyin.com") || test("iesdouyin.com")) return PLATFORM_RULES.find(x => x.id === "douyin");
+    if (test("kuaishou.com") || test("kuaishou.cn") || test("gifshow.com")) return PLATFORM_RULES.find(x => x.id === "kuaishou");
+    if (test("bilibili.com") || test("b23.tv")) return PLATFORM_RULES.find(x => x.id === "bilibili");
     if (test("x.com") || test("twitter.com")) return PLATFORM_RULES.find(x => x.id === "x");
-    if (test("reddit.com")) return PLATFORM_RULES.find(x => x.id === "reddit");
+    if (test("reddit.com") || test("redd.it")) return PLATFORM_RULES.find(x => x.id === "reddit");
     if (test("instagram.com")) return PLATFORM_RULES.find(x => x.id === "instagram");
     return PLATFORM_RULES.at(-1);
   }
