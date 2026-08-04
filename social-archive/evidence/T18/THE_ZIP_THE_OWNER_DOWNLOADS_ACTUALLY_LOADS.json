@@ -2,16 +2,13 @@
   "task": "T18",
   "claim": "把**用户真正会下载到的那个 ZIP** 解开、装进一台真 Chrome，装得上、service worker 起得来、三个全局都在、版本是 0.0.0.7。",
   "measured_at": "2026-08-04",
-
   "why_this_and_not_just_the_source_directory": "上一次真浏览器验证装的是 `apps/browser-extension/` 这个源码目录。**那不是 Owner 会碰到的东西**——他碰到的是 /downloads 下的 ZIP。打包脚本挑文件、manifest 走的是同一份没错，但「同一份」是推理，不是测量。Owner 刚刚才因为一个装不上的插件卡住（ERR_FILE_NOT_FOUND），这一次不留推理。",
-
   "how": [
     "cp dist/social-archive-extension.zip（与 /downloads 下发的那份 sha256 一致：d5daa84c…）",
     "unzip 到一个干净目录 → 23 个文件",
     "起一次性 profile 的 Chrome（--user-data-dir=/tmp/sa-zip-profile，绝不碰 Owner 的 profile）",
     "CDP Extensions.loadUnpacked 指向解压目录"
   ],
-
   "results": {
     "装载": "成功，扩展 ID gdlckaooimniiphkbcloebcknclhcina",
     "service_worker": "起来了",
@@ -19,12 +16,17 @@
     "service worker 内自检": "typeof platformCanSyncNow = function | typeof SA = object | typeof SAPlatformCatalog = object | manifest 版本 0.0.0.7",
     "importScripts 是否生效": "是——SAPlatformCatalog 只可能来自 content/platform-catalog.js，它是被 background.js 第 2 行 importScripts 进来的"
   },
-
   "what_this_does_not_prove": [
     "不证明 Owner 那台机器上装得上。他的 Chrome 版本、扩展策略、已装扩展都可能不同。",
     "不证明装上之后能连上他的档案馆——那要他登录着的会话，这次用的是全新 profile，扩展没有任何凭据。",
     "不证明 ERR_FILE_NOT_FOUND 不会再发生。那个错的根因是**解压目录被移走/清理**，与包本身无关；安装页已经改了指引（放进「文稿」）并加了自救说明，但那条路要等他重装一次才算验过。"
   ],
-
-  "cleanup": "测试用 Chrome 已 kill，/tmp/sa-zip-profile 与解压目录都已删除。"
+  "cleanup": "测试用 Chrome 已 kill，/tmp/sa-zip-profile 与解压目录都已删除。",
+  "revalidated_2026_08_05": {
+    "why": "那次验的包 sha256 是 d5daa84c…，此后扩展改了很多（编排层拦截、自适应等待、诊断自动上报）。**验过的不是现在要发的那个包。**",
+    "package": "sha256 56bb239e9965babc…，23 个文件",
+    "chain": "本地重打 = 远端文件 = /downloads 实际下发，三处哈希逐字节相同",
+    "loaded_in_real_chrome": "装得上；service worker 起来；自检 platformCapability=function / startServerSideSync=function / platformCanSyncNow=function / SAPlatformCatalog=object / manifest 版本 0.0.0.7；popup 打得开且诊断与同步两颗按钮都在",
+    "contents": "包里带着诊断自动上报（/v1/extension/diagnostics）与自适应等待（elapsed < 30）"
+  }
 }
