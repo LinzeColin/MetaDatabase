@@ -87,16 +87,41 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     results = [run(command) for command in commands]
     status = "PASS" if all(int(result["exit_code"]) == 0 for result in results) else "FAIL"
+
+    # **「跳过」不是「通过」。**
+    #
+    # 有的门在环境不全时只做一半：validate_compose 在缺 .env 时
+    # 「跳过 Docker Compose 渲染」，然后照样以 PASS 开头、退出 0。
+    # 单看它自己的输出还算诚实（那句话就写在里面），但 14 道门聚合成一个
+    # "PASS" 打印出来之后，这件事就彻底看不见了——而我每轮都是看那一个
+    # PASS 来判断能不能提交的。
+    #
+    # 这里不改那些门的退出码（缺 .env 在开发机上是常态，让它红没有意义），
+    # 只是把「哪几道其实只查了一半」明说出来，并记进产物。
+    skipped = []
+    for result in results:
+        blob = f"{result.get('stdout', '')}{result.get('stderr', '')}"
+        if any(marker in blob for marker in ("跳过", "未检查", "SKIP", "skipped")):
+            skipped.append({
+                "argv": result.get("argv", [])[-2:],
+                "why": " ".join(blob.split())[:160],
+            })
+
     report = {
         "status": status,
         "suite_mode": suite_mode,
         "application_suite_rerun": bool(args.full),
+        "partial_checks": skipped,
         "results": results,
     }
     output = ROOT / "evidence/final-verification.json"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(status)
+    if skipped:
+        print(f"注意：{len(skipped)} 道门只查了一半（环境不全时的降级），它们**不是完整通过**：")
+        for item in skipped:
+            print(f"  · {' '.join(item['argv'])} —— {item['why'][:100]}")
     return 0 if status == "PASS" else 1
 
 

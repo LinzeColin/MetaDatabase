@@ -2,6 +2,22 @@
   "status": "PASS",
   "suite_mode": "structural",
   "application_suite_rerun": false,
+  "partial_checks": [
+    {
+      "argv": [
+        "scripts/validate_compose.py",
+        "compose.yaml"
+      ],
+      "why": "PASS：compose.yaml 结构有效；Owner 配置 .env 缺失，跳过 Docker Compose 渲染。"
+    },
+    {
+      "argv": [
+        "scripts/validate_compose.py",
+        "compose.readers.yaml"
+      ],
+      "why": "PASS：compose.readers.yaml 结构有效；Owner 配置 karakeep.env, linkwarden.env 缺失，跳过 Docker Compose 渲染。"
+    }
+  ],
   "results": [
     {
       "argv": [
