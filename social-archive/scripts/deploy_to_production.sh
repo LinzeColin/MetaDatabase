@@ -52,6 +52,12 @@ cd "$ROOT"
 VERSION="$(tr -d '[:space:]' < VERSION)"
 IMAGE="social-archive/core:${VERSION}"
 ROLLBACK_CANDIDATE="social-archive/core:rollback-candidate"
+# 磁盘门槛。**做成可配的，唯一的理由是它必须能被验。**
+#
+# 「空间不够 → 自动回收 → 重新量 → 还不够就中止」这一串，写死 5G 的话
+# 只能等生产真的快满了才跑得到——而那是最不该拿来做第一次验证的时刻。
+# 生产上不要设它，用默认值。
+MIN_FREE_GB="${SOCIAL_ARCHIVE_DEPLOY_MIN_FREE_GB:-5}"
 
 fail() { printf '\n部署中止：%s\n' "$1" >&2; exit 1; }
 step() { printf '\n=== %s ===\n' "$1"; }
@@ -229,8 +235,8 @@ step "4) 构建前先看磁盘"
 #
 # 但门槛该有：**盘紧的时候不许再往上叠一个 1GB 的镜像。**
 FREE_GB="$(ssh -o ConnectTimeout=20 "$HOST" "df -BG --output=avail / | tail -1 | tr -dc '0-9'")"
-printf '  根分区可用 %sG\n' "$FREE_GB"
-if [[ -n "$FREE_GB" && "$FREE_GB" -lt 5 ]]; then
+printf '  根分区可用 %sG（门槛 %sG）\n' "$FREE_GB" "$MIN_FREE_GB"
+if [[ -n "$FREE_GB" && "$FREE_GB" -lt "$MIN_FREE_GB" ]]; then
   # **自己收拾自己的。** 这道门今天拦了两次，两次都是我手工去回收——
   # 而「能你做的就别让我做」。但这台机器还跑着别人的项目，所以**只回收
   # 带我们自己标签的悬空镜像**（Dockerfile 里的 com.socialarchive.project），
@@ -250,10 +256,10 @@ if [[ -n "$FREE_GB" && "$FREE_GB" -lt 5 ]]; then
   FREE_GB="$(ssh -o ConnectTimeout=20 "$HOST" "df -BG --output=avail / | tail -1 | tr -dc '0-9'")"
   printf '  回收后可用 %sG\n' "$FREE_GB"
 fi
-if [[ -n "$FREE_GB" && "$FREE_GB" -lt 5 ]]; then
+if [[ -n "$FREE_GB" && "$FREE_GB" -lt "$MIN_FREE_GB" ]]; then
   printf '  仍然不够。剩下的悬空镜像（含别的项目的，**不自动删**）：\n'
   ssh -o ConnectTimeout=20 "$HOST" 'sudo docker images -f "dangling=true" --format "    {{.ID}}  {{.Size}}  {{.CreatedSince}}"' || true
-  fail "可用空间不足 5G，拒绝构建。先回收：ssh $HOST 'for id in \$(sudo docker images -f dangling=true -q); do sudo docker rmi \$id; done'  —— **只删悬空镜像，不要用 docker system prune**（这台机器还跑着 memory-atlas / gatus / coolify 等别人的项目）。"
+  fail "可用空间不足 ${MIN_FREE_GB}G，拒绝构建。先回收：ssh $HOST 'for id in \$(sudo docker images -f dangling=true -q); do sudo docker rmi \$id; done'  —— **只删悬空镜像，不要用 docker system prune**（这台机器还跑着 memory-atlas / gatus / coolify 等别人的项目）。"
 fi
 
 step "5) 构建并上线"

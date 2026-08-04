@@ -110,7 +110,13 @@ def test_it_refuses_to_build_when_the_disk_is_tight() -> None:
     """
     code = code_only(DEPLOY.read_text(encoding="utf-8"))
     assert "FREE_GB" in code, "部署前不看磁盘"
-    assert '"$FREE_GB" -lt 5' in code, "没有阈值，或者写法变了、判据要跟着改"
+    # 阈值 2026-08-05 做成了可配（默认仍是 5），好让「不够→回收→重量→决定」
+    # 那一串能在生产真的快满之前被验一次。判据跟着钉两件事：
+    # 有比较、且默认值没被人顺手调低。
+    assert '"$FREE_GB" -lt "$MIN_FREE_GB"' in code, "没有阈值，或者写法变了、判据要跟着改"
+    assert 'MIN_FREE_GB="${SOCIAL_ARCHIVE_DEPLOY_MIN_FREE_GB:-5}"' in code, (
+        "默认门槛不是 5 了——可配是为了能验，不是为了把门放宽"
+    )
     # 回收建议必须是安全的那一种
     assert "dangling=true" in code, "没有给出只删悬空镜像的回收办法"
     assert "docker system prune" in code, "没有点名那条危险命令"

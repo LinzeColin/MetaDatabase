@@ -132,7 +132,9 @@ def test_the_disk_gate_only_reclaims_our_own_images() -> None:
         assert "不要用" in line, f"这一行像是在真的执行 system prune：{line[:90]}"
     assert mentions, "那句「不要用 docker system prune」的警告没了"
     # 收不够就得中止，不能默默继续构建
-    assert code.count("可用空间不足 5G，拒绝构建") == 1, "回收不够时不再中止了"
+    # 钉的是**行为**，不是那个数字：门槛后来做成可配的了（为了能验那一串），
+    # 消息里的 5G 变成了 ${MIN_FREE_GB}G。判据锚在数字上就会红在一次正确的改动上。
+    assert code.count("可用空间不足 ${MIN_FREE_GB}G，拒绝构建") == 1, "回收不够时不再中止了"
 
 
 def test_both_images_carry_the_label_the_gate_filters_on() -> None:
@@ -146,3 +148,23 @@ def test_both_images_carry_the_label_the_gate_filters_on() -> None:
         assert 'LABEL com.socialarchive.project="social-archive"' in text, (
             f"{relative} 没盖标签，它造出来的悬空镜像永远收不掉"
         )
+
+
+def test_the_disk_threshold_defaults_to_five_and_can_be_raised_for_testing() -> None:
+    """门槛做成可配的，**唯一的理由是它必须能被验**。
+
+    「空间不够 → 自动回收 → 重新量 → 还不够就中止」这一串，门槛写死的话
+    只能等生产真的快满了才跑得到——而那是最不该拿来做第一次验证的时刻。
+
+    默认值必须还是 5：可配是为了验，不是为了让人随手调低把门放宽。
+    """
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    assert 'MIN_FREE_GB="${SOCIAL_ARCHIVE_DEPLOY_MIN_FREE_GB:-5}"' in deploy, (
+        "门槛不可配就没法验那一串；或者默认值被改掉了"
+    )
+    code = "\n".join(l for l in deploy.splitlines() if not l.lstrip().startswith("#"))
+    assert '-lt 5 ' not in code and '-lt 5]' not in code, "还有地方写死 5，改门槛时会漏掉"
+    assert code.count('-lt "$MIN_FREE_GB"') == 2, (
+        "回收前后两次比较必须都用同一个门槛——只改一处的话，"
+        "会出现「回收完仍不够却继续构建」"
+    )
