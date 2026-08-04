@@ -728,6 +728,18 @@
       const server = platformMeta[key].server;
       const accounts = state.accounts.filter(account => account.platform === server);
       if (!accounts.length) {
+        // **同步不了的平台，连了也没用。**
+        //
+        // 原来这里对所有平台一律画「连接账号」，旁边写「连接后自动首次全量同步」
+        // —— 而小红书/抖音/快手/B站 连上之后一条也同步不了。
+        // 这是和「立即同步」那颗按钮同一种假话，换了个位置。
+        const support = state.platformSupport[server];
+        if (support?.sync_supported === false) {
+          rows.push(`<tr><td><div class="platform-cell">${platformLogo(key)}<div><div>${escapeHtml(platformMeta[key].label)}</div><span class="muted">本版本暂不支持自动同步</span></div></div></td>`
+            + `<td><div class="connection-status"><span class="dot" style="background:var(--text-3)"></span>未连接</div></td><td>—</td>`
+            + `<td><span class="muted" style="line-height:1.5">${escapeHtml(support.not_syncable_reason || "")}</span></td><td>—</td><td>—</td></tr>`);
+          continue;
+        }
         rows.push(`<tr><td><div class="platform-cell">${platformLogo(key)}<div><div>${escapeHtml(platformMeta[key].label)}</div><span class="muted">尚未连接</span></div></div></td><td><div class="connection-status"><span class="dot" style="background:var(--text-3)"></span>未连接</div></td><td>—</td><td><span class="muted">连接后自动首次全量同步</span></td><td>—</td><td><button class="btn small" data-connect-platform="${server}">连接账号</button></td></tr>`);
         continue;
       }

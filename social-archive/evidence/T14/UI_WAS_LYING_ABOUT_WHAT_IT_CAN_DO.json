@@ -1,0 +1,55 @@
+{
+  "task": "T14",
+  "claim": "界面在三处对用户说了做不到的事；三处都已修好并部署。",
+  "invariants": ["INV-ZERO-BARRIER", "INV-NO-SILENT-ZERO"],
+  "how_it_surfaced": {
+    "not_by_audit": "不是审出来的，是 Owner 用了之后说的。",
+    "quotes": [
+      "「非常不好用 而且你的流程逻辑非常混乱 我都不知道应该怎么操作」",
+      "「点击同步全部账号后就会跳转到莫名其妙的页面，这太复杂了，点击同步不就是自动刷新全部同步吗，怎么实际功能和显示文字还不一样」"
+    ],
+    "why_no_gate_caught_it": "十八道门全绿、614 条判据全过——它们证明的是「函数写得对」「接口有人调」「文案能落到一句中文」，**没有一条在问「这颗按钮点下去会发生它承诺的事吗」**。"
+  },
+  "the_three_lies": [
+    {
+      "where": "账号卡片的「立即同步」",
+      "what_happened": "小红书/抖音/B站 都画了这颗按钮。点下去走到 acquireRelationItems()——那是显式 stub（T03 删掉 DOM 抓取器、T08 替代品未缝上），抛 ACQUISITION_PATH_NOT_INSTALLED。",
+      "the_worst_part": "**那个码在 failure_copy 里被别名成 SERVER_UNREACHABLE**，于是界面说「暂时连不上服务器。你的数据没有丢，[ 重试 ]」。Owner 一遍遍重试一件结构上不可能成功的事。这正是整个 v0.0.0.7 要消灭的缺陷类型，而它出在负责消灭它的那张表里。",
+      "fix": "account_sync.SYNCABLE_NOW / NOT_SYNCABLE_YET 由服务端下发；同步不了的平台**不画按钮**，位置上直接写「为什么」与「现在能做什么」。别名移除，改归 DELIBERATELY_UNALIASED + PRODUCT_FAULT_CODES（结论：我们的问题、别重试）。"
+    },
+    {
+      "where": "「立即同步全部」",
+      "what_happened": "两件事同时不对。一、插件未就绪时 `ensureExtensionReady` 直接 `location.href = \"/extension-install\"` —— 按钮写「同步」，实际做「跳转」，那条 toast 白搭（页面当场跳走，来不及读）。二、它把同步不了的账号也算进队列数，提示「已将 3 个账号加入后台同步队列」然后**什么也不发生**。",
+      "fix": "跳转前先 confirm（跳不跳由用户决定，且他知道为什么）；只数真同步得动的账号；一个都没有时明说，并给出现在能做的那件事。"
+    },
+    {
+      "where": "未连接状态下的「连接账号 · 连接后自动首次全量同步」",
+      "what_happened": "对同步不了的平台照样画。连了小红书之后一条也同步不了——同一种假话换了个位置。",
+      "fix": "同步不了的平台不画「连接账号」，改为直接说明。"
+    }
+  ],
+  "also_fixed": {
+    "top_strip": "「3 个账号已连接」在一条都同步不动时读起来像一切正常。改成「3 个账号已连接，其中 3 个本版本还不能自动同步」，并在一个都动不了时只说现在真正能做的那一件事。",
+    "manual": "docs/00_零门槛运行手册.md 补「现在这一版能做什么、不能做什么」实况表。"
+  },
+  "the_capability_has_exactly_one_source": "SYNCABLE_NOW 定在服务端，经 /v1/accounts 的 supported_platforms 下发。两个前端各维护一份必然漂开——判据专门守住界面里不许硬编码平台名单。",
+  "guards": {
+    "file": "tests/focused/test_sync_button_is_not_offered_where_it_cannot_work.py",
+    "count": 8,
+    "each_proved_by_reintroduction": [
+      "把 bilibili 标回可同步 → 变红（第一次做这个反证时 str.replace 没匹配上、静默无操作，看起来像判据失效；加断言重做才是真的）",
+      "去掉顶部「已连接 vs 同步得动」的区分 → 变红",
+      "把跳转改回直接跳 → 变红",
+      "去掉未连接分支的守卫 → 变红"
+    ]
+  },
+  "two_mistakes_of_my_own_on_the_way": [
+    "插代码时用了不存在的变量名（accountData，实际是 accountsResult）。`node --check` 查不出来，运行时才炸——和上一轮 loadAccounts() 同一类，而我那道门只查函数调用、不查变量引用。**这一类目前仍无守卫。**",
+    "第一次做反证时 str.replace 没匹配上，静默无操作，于是「反证没变红」看起来像判据失效。重做时加断言确认注入成功，判据立刻变红。"
+  ],
+  "what_this_does_not_prove": [
+    "**没有在真实浏览器里点过这些按钮。** 判据打在源码上，证明的是「不再画那颗按钮」「不再偷偷跳转」，不是「用户看着舒服了」。",
+    "没有解决根本问题：**国内四个平台仍然一条都同步不了**。这次修的是「不再骗人」，不是「能用了」。真正接通需要 T08 的取数缝隙，而那需要 Owner 在已登录的平台页面上配合一次。",
+    "没有系统审计过其余按钮的「名实是否相符」——这三处是 Owner 撞出来的，同类可能还有。已知的一个方向：所有会改变页面位置或打开新标签的动作都该复核，本次只核了 location.href 与 tabs.create 两类。"
+  ]
+}

@@ -138,3 +138,19 @@ def test_sync_all_counts_only_accounts_that_can_actually_sync() -> None:
     block = js.split("async function syncAllAccounts", 1)[1][:1400]
     assert "sync_supported !== false" in block, "把同步不了的账号也算进了队列数"
     assert "都还不能自动同步" in block, "一个都同步不动时没有明说"
+
+
+def test_connect_is_not_offered_for_platforms_that_still_cannot_sync() -> None:
+    """「连接账号 · 连接后自动首次全量同步」对同步不了的平台是假话。
+
+    和「立即同步」那颗按钮同一种问题，只是出现在未连接状态下。
+    连了小红书之后一条也同步不了——那颗按钮不该存在。
+    """
+    js = code_only(PWA.read_text(encoding="utf-8"))
+    block = js.split("function renderSyncTable", 1)[1][:5000]
+    empty_branch = block.split("if (!accounts.length)", 1)[1][:1800]
+    assert "sync_supported === false" in empty_branch, "未连接分支没有区分能不能同步"
+    guard_at = empty_branch.index("sync_supported === false")
+    connect_at = empty_branch.index('data-connect-platform="${server}">连接账号')
+    assert guard_at < connect_at, "「连接账号」仍会画给同步不了的平台"
+    assert "连接后自动首次全量同步" in empty_branch, "判据失去依附：那句话已经不在了"
