@@ -33,12 +33,12 @@ sparse    .github + social-archive
 |---|---|---|
 | T00 | **done** | `evidence/T00/CURRENT_TRUTH.json`；另见 `C-T00-01_STILL_BROKEN_IN_PRODUCTION.json` |
 | T01 | **done** | `evidence/T01/MIGRATION_COUNTS.json`；`tenancy_audit` 已挂到 `/v1/status` |
-| T02 | **in_progress** | 本地登录链路实测通过（登出→401 已验）；生产已部署，**只差 Owner 打开档案馆页面用 Google/GitHub 点一次登录** |
+| T02 | **done** | 生产实测闭环：Owner 用 Google 真登进去了（oauth_identity 06:23:50Z），三态实测 无Cookie→401 / 伪造→401 / 真会话→200。见 `T02/OWNER_IS_ACTUALLY_LOGGED_IN.json`。**GitHub 那条路仍未被任何真实登录验证过** |
 | T03 | **done** | `evidence/T03/REMOVAL_AND_ZERO_TYPING.json` |
 | T04 | **done** | 真实浏览器跑通：62 条书签 `queued→completed`，界面表格 62/62 逐条对上；另补 `DELETE /v1/accounts/{id}`（连得上断不开，见 `T04/CONNECT_HAD_NO_INVERSE.json`） |
 | T05 | **done** | 凭据托管；HTTP 层往返判据见 `test_credential_http_roundtrip.py`；隐私声明曾与实现相反，见 `T05/PRIVACY_CLAIM_WAS_FALSE.json` |
 | T06 | **partial** | 托管往返实测通过（合成会话）；**Oracle 未跑**，需 Owner 的 X 登录；「一键撤销」此前无入口，已接上（`T06/REVOKE_WAS_A_PROMISE_ONLY.json`） |
-| T07 | **blocked** | 卡在 sidecar 凭据策略（见下「唯一需要 Owner 裁定的设计问题」） |
+| T07 | **done** | Owner 已裁定「cookie 可以进 ovh」；Cookie 已接进 sidecar（tmpfs、0600、finally 里删、值不进日志）。见 `T07/COOKIES_MAY_ENTER_THE_SIDECAR.json` |
 | T08 | **partial** | 拦截链路在真浏览器跑通（不碰任何平台）；真实收藏页未验 |
 | T09–T11 | pending | 依赖 T06/T08 的真实数据 |
 | T12 | **done** | gallery-dl 退出码契约取自安装源；`evidence/T12/EXIT_CODE_CONTRACT.json` |
