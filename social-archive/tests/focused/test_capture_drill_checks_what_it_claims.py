@@ -122,3 +122,27 @@ def test_each_diagnostic_starts_from_a_clean_buffer() -> None:
     install = background.split("async function installNetObserverForTab", 1)[1].split("\nasync function", 1)[0]
     assert "netCaptureBuffer.length = 0" in install, "诊断开始时不清缓冲区，两次诊断会混在一起"
     assert "netCapturesDropped = 0" in install, "丢弃计数不清零，会把上一次丢掉的算到这一次头上"
+
+
+def test_the_diagnostic_does_not_upload_two_hundred_bodies_one_at_a_time() -> None:
+    """诊断模式的前缀是从域名推的，页面上**每一个**请求都会被抓。
+
+    真实收藏夹页跑满 200 条毫不费力。而解析是「一条一个 HTTP 往返、
+    每条 20 秒超时、还要把响应体整个传上去」——200 条就是几分钟的卡死。
+    **Owner 只按一次，卡在那里的话他不知道是没坏还是坏了。**
+
+    收敛两步：按去掉查询串的地址去重（页面反复轮询的是同一个接口，
+    而收藏列表那个地址是独一份的），再封顶取最早的若干条（收藏列表那个请求
+    是加载时打的，永远在最早的那几条里）。
+
+    **两步都不许静默**：没读的条数要说出来——悄悄少读几条，和「平台压根
+    没发那个请求」在界面上长得一模一样，而这两件事的下一步完全不同。
+    """
+    background = (Path(__file__).resolve().parents[2]
+                  / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    parse = background.split("SA_PARSE_NET_CAPTURES", 1)[1][:4000]
+    assert "PARSE_LIMIT" in parse, "解析没有封顶，200 条会把 Owner 卡在那里"
+    assert "seenUrls" in parse, "解析前没有按地址去重"
+    assert "for (const capture of toParse)" in parse, "还是在遍历整个缓冲区"
+    assert "notParsed" in parse, "没读的条数没算出来"
+    assert "没有逐条去读" in parse, "没读的条数没告诉用户——静默少读和「平台没发」长得一样"

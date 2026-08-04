@@ -1512,10 +1512,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                  failureCode: "NOTHING_CAPTURED",
                  message_zh: "一条响应都没拦到，没有可读的东西。" };
       }
+      // **先收敛要送出去的条数，再逐条问服务端。**
+      //
+      // 诊断模式的前缀是从域名推的（比如 bilibili.com），于是页面上**每一个**
+      // 请求都会被抓——心跳、埋点、推荐列表。真实收藏夹页跑满 200 条毫不费力。
+      // 而这里是「一条一个 HTTP 往返、每条 20 秒超时、还要把响应体整个传上去」，
+      // 200 条就是几分钟的卡死，外加 200 份响应体上传。
+      // **Owner 只按一次，卡在那里的话他不知道是没坏还是坏了。**
+      //
+      // 收敛两步，两步都不静默：
+      //   1. 按「去掉查询串的地址」去重——页面反复轮询的是同一个接口，
+      //      而收藏列表那个地址是独一份的，去重不会把它去掉。
+      //   2. 去重之后仍然封顶 30 条，**取最早的**——收藏列表那个请求是
+      //      页面加载时打的，永远在最早的那几条里。
+      const seenUrls = new Set();
+      const deduped = [];
+      for (const capture of netCaptureBuffer) {
+        const key = String(capture.url || "").split("?")[0];
+        if (seenUrls.has(key)) continue;
+        seenUrls.add(key);
+        deduped.push(capture);
+      }
+      const PARSE_LIMIT = 30;
+      const toParse = deduped.slice(0, PARSE_LIMIT);
+      const notParsed = netCaptureBuffer.length - toParse.length;
+
       let readable = 0;
       let items = 0;
       let firstProblem = null;
-      for (const capture of netCaptureBuffer) {
+      for (const capture of toParse) {
         const parsed = await SA.api("/v1/extension/captures/parse", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1529,13 +1554,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       // **丢掉的条数要说出来。** 上限本身没问题，悄悄触顶才有问题——
       // 那会让「缓冲区满了、有用的那条没进来」看起来和「平台没发这个请求」一模一样。
       const dropped = netCapturesDropped;
-      const droppedNote = dropped > 0 ? `（另有 ${dropped} 条因为太多没收下）` : "";
+      const notes = [];
+      if (dropped > 0) notes.push(`另有 ${dropped} 条因为太多没收下`);
+      // **没读的那些也要说出来。** 悄悄少读几条，和「平台压根没发那个请求」
+      // 在界面上长得一模一样，而这两件事的下一步完全不同。
+      if (notParsed > 0) notes.push(`其中 ${notParsed} 条是重复地址或超出本次上限，没有逐条去读`);
+      const note = notes.length ? `（${notes.join("；")}）` : "";
       return {
         ok: readable > 0, readable, total: netCaptureBuffer.length, items, dropped,
+        parsed: toParse.length, notParsed,
         failureCode: readable > 0 ? null : (firstProblem?.failure_code || "UNREADABLE"),
         message_zh: readable > 0
-          ? `拦到 ${netCaptureBuffer.length} 条${droppedNote}，其中 ${readable} 条读得懂，共 ${items} 条收藏。`
-          : (firstProblem?.message_zh || "拦到了响应，但一条都读不懂。") + droppedNote,
+          ? `拦到 ${netCaptureBuffer.length} 条${note}，其中 ${readable} 条读得懂，共 ${items} 条收藏。`
+          : (firstProblem?.message_zh || "拦到了响应，但一条都读不懂。") + note,
       };
     }
     if (message?.type === "SA_GET_NET_CAPTURES") {
