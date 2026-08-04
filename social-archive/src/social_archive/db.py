@@ -1528,6 +1528,21 @@ class RuntimeStore:
             )
         return event_id
 
+    def owner_user_for_content(self, content_id: str) -> str | None:
+        """这条内容是谁的。用于取用他自己托管的平台会话。
+
+        走 user_relation 而不是 content：**所有权边在关系上，不在内容上**
+        （同一条内容可以被不同的人各自收藏，内容本身没有主人）。
+        这一点在 TENANT_TABLES 的注释里已经写明。
+        """
+        with self.connection() as con:
+            row = con.execute(
+                "SELECT user_id FROM user_relation WHERE content_id=? AND user_id IS NOT NULL "
+                "ORDER BY first_observed_at LIMIT 1",
+                (str(content_id),),
+            ).fetchone()
+        return str(row["user_id"]) if row and row["user_id"] else None
+
     def stalled_active_runs(
         self, *, stale_after_seconds: int = 1800, limit: int = 200
     ) -> list[dict[str, object]]:

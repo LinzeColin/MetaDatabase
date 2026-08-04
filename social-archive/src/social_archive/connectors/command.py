@@ -106,7 +106,15 @@ class CommandArtifactConnector:
         except subprocess.TimeoutExpired as exc:
             raise ConnectorError("COMMAND_TIMEOUT", f"{binary} 超时", retryable=True) from exc
 
-    def capture_url(self, url: str, tool: str = "yt-dlp") -> ConnectorResult:
+    def capture_url(self, url: str, tool: str = "yt-dlp", *, cookies_path: str | None = None) -> ConnectorResult:
+        """抓一个页面。
+
+        `cookies_path` 指向一份**临时**的 cookies.txt（由 CredentialStore.materialize
+        解密落盘，0600，用完即删）。不给就按未登录抓——那样只拿得到公开内容。
+
+        这个参数是 T06 的落点：在它存在之前，托管的平台会话**存进去了却从来
+        没有交给过工具**，capture_url 的 argv 里根本没有 --cookies。
+        """
         clean = assert_public_http_url(url)
         if tool not in {"gallery-dl", "yt-dlp"}:
             raise ConnectorError("TOOL_NOT_ALLOWED", f"不支持的工具：{tool}")
@@ -120,7 +128,15 @@ class CommandArtifactConnector:
         run_id = str(uuid.uuid4())
         run_dir = self.staging_root / "runs" / run_id
         run_dir.mkdir(parents=True, exist_ok=False)
-        argv = ["gallery-dl", "--dest", str(run_dir), "--write-metadata", "--write-info-json", clean] if tool == "gallery-dl" else ["yt-dlp", "--no-playlist", "--restrict-filenames", "--write-info-json", "--write-subs", "--write-auto-subs", "--no-progress", "--paths", str(run_dir), clean]
+        if tool == "gallery-dl":
+            argv = ["gallery-dl", "--dest", str(run_dir), "--write-metadata", "--write-info-json"]
+        else:
+            argv = ["yt-dlp", "--no-playlist", "--restrict-filenames", "--write-info-json",
+                    "--write-subs", "--write-auto-subs", "--no-progress", "--paths", str(run_dir)]
+        if cookies_path:
+            # 两个工具的 --cookies 都只收**路径**，不收管道（见 credentials.py 的说明）。
+            argv += ["--cookies", str(cookies_path)]
+        argv.append(clean)
         result = self._run(argv, run_dir)
         evidence = {"argv": argv, "exit_code": result.returncode, "stdout": redact(result.stdout[-4000:]), "stderr": redact(result.stderr[-4000:])}
         (run_dir / "command-result.json").write_text(json.dumps(evidence, ensure_ascii=False, indent=2), encoding="utf-8")

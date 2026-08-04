@@ -11,6 +11,12 @@ import httpx
 from .account_sync import AccountSyncCoordinator
 from .config import Settings
 from .connectors.command import CommandArtifactConnector
+from .credentials import (
+    CUSTODIAL_PLATFORMS,
+    CredentialStore,
+    CredentialUnavailable,
+    CredentialVault,
+)
 from .db import RuntimeStore
 from .destinations import DestinationError, DestinationRegistry, retry_after_seconds_from_error
 from .downloader import DirectMediaDownloader
@@ -56,10 +62,41 @@ def process_job(job: dict, settings: Settings, store: RuntimeStore) -> None:
         except Exception as exc:  # noqa: BLE001 - worker isolates per artifact and reports a bounded message
             errors.append(f"direct:{exc.__class__.__name__}:{exc}")
     if not media_urls or saved == 0:
-        command = CommandArtifactConnector(payload.get("platform", "generic"), settings.staging_root, worker_url=settings.cli_worker_url, worker_token_file=settings.cli_worker_token_file, worker_output_root=settings.cli_output_root)
-        result = command.capture_url(payload["page_url"], tool="gallery-dl")
-        if result.status != "success":
-            result = command.capture_url(payload["page_url"], tool="yt-dlp")
+        platform = str(payload.get("platform", "generic")).lower()
+        command = CommandArtifactConnector(platform, settings.staging_root, worker_url=settings.cli_worker_url, worker_token_file=settings.cli_worker_token_file, worker_output_root=settings.cli_output_root)
+
+        def _capture(cookies_path: str | None) -> object:
+            out = command.capture_url(payload["page_url"], tool="gallery-dl", cookies_path=cookies_path)
+            if out.status != "success":
+                out = command.capture_url(payload["page_url"], tool="yt-dlp", cookies_path=cookies_path)
+            return out
+
+        # ——— T06 的落点：把托管的平台会话真的交给工具 ———
+        #
+        # 在这段之前，凭据**存进去了却从来没有被用过**：
+        # CredentialStore.materialize() 全仓只有测试在调，capture_url 的 argv
+        # 里根本没有 --cookies。也就是说 Owner 就算上传了 X 的会话，
+        # 服务端仍然按未登录去抓，只拿得到公开内容——
+        # 而 T06 的验收恰恰是「能取到只有登录用户才看得到的内容」。
+        # 不接这一段，那条验收**无论谁登录都不可能通过**。
+        cookie_note: str | None = None
+        user_id = store.owner_user_for_content(content_id) if platform in CUSTODIAL_PLATFORMS else None
+        if user_id:
+            vault = CredentialVault(
+                recipient=settings.credential_age_recipient,
+                identity_file=settings.credential_age_identity_file,
+            )
+            try:
+                with CredentialStore(store, vault).materialize(user_id=user_id, platform=platform) as cookies:
+                    result = _capture(str(cookies))
+            except CredentialUnavailable as exc:
+                # 没托管过这个平台的会话，或解不开。**照样按未登录抓一次**——
+                # 公开内容还能救回来；但把原因记下来，不许静默降级
+                # （INV-NO-SILENT-ZERO：0 条时说得出为什么）。
+                cookie_note = f"credential:{exc}"
+                result = _capture(None)
+        else:
+            result = _capture(None)
         for artifact in result.artifacts:
             source = Path(artifact["path"])
             if not source.exists():
@@ -68,6 +105,8 @@ def process_job(job: dict, settings: Settings, store: RuntimeStore) -> None:
             store.add_artifact(content_id=content_id, archive_level="L3", artifact_type="media", sha256=obj.sha256, byte_size=obj.byte_size, media_type=obj.media_type, local_path=str(obj.path))
             saved += 1
         errors.extend(e.get("message", "worker failed") for e in result.errors)
+        if cookie_note:
+            errors.append(cookie_note)
     if saved == 0:
         raise RuntimeError("L3 下载未产生对象；" + " | ".join(errors[-3:]))
 
