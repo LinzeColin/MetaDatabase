@@ -231,6 +231,37 @@ if [[ -n "$IMAGE_BEFORE" ]]; then
 fi
 ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && docker compose up -d core-api core-worker 2>&1 | tail -4"
 
+step "5.5) 另一个容器（cli-tools）是不是也跟上了这一版"
+# **部署只重建 core-api。** cli-tools 是另一个镜像，构建上下文是
+# sidecars/cli-tools/（Dockerfile + server.py）——改了它而不重建，
+# 跑着的就一直是旧的，**而 compose 会照常报 Healthy**。
+# 这与「主机 venv 落后两个版本」是同一族，只是换了个地方藏。
+#
+# 为什么不干脆每次都重建它：实测缓存命中也要 **130 秒**，而且会产出一个
+# 新镜像（有一层没命中缓存）。生产盘已经因为镜像堆积紧过一次。
+# 所以**先比对，不同才重建**——比对是一次 sha256，几乎不要钱。
+#
+# 比的是容器里的 /worker/server.py。这个路径是量出来的，不是猜的：
+# 容器里还有 /usr/local/lib/python3.12/{http,xmlrpc}/server.py 两个同名文件，
+# 早先用 `find | head -1` 差点比错了对象（那次侥幸对了，因为 -maxdepth 4
+# 把标准库那两个挡在外面）。**别再靠侥幸，写死量到的那个路径。**
+LOCAL_SIDECAR="$(shasum -a 256 sidecars/cli-tools/server.py | cut -d' ' -f1)"
+REMOTE_SIDECAR="$(ssh -o ConnectTimeout=20 "$HOST" "sudo docker exec social-archive-cli-tools-1 sha256sum /worker/server.py 2>/dev/null | cut -d' ' -f1" || true)"
+if [[ -z "$REMOTE_SIDECAR" ]]; then
+  printf '  cli-tools 容器没在跑或读不到 /worker/server.py——**跳过了这一步，这不是通过**。\n'
+elif [[ "$LOCAL_SIDECAR" == "$REMOTE_SIDECAR" ]]; then
+  printf '  cli-tools 跑的就是仓里这一份。\n'
+else
+  printf '  **cli-tools 落后了**（容器 %s，仓里 %s）——重建并换上（约两分钟）…\n' \
+    "${REMOTE_SIDECAR:0:12}" "${LOCAL_SIDECAR:0:12}"
+  ssh -o ConnectTimeout=300 "$HOST" "cd '$REMOTE_DIR' && sudo docker compose build cli-tools && sudo docker compose up -d cli-tools" >/dev/null 2>&1 \
+    || fail 'cli-tools 重建失败。'
+  REMOTE_SIDECAR="$(ssh -o ConnectTimeout=20 "$HOST" "sudo docker exec social-archive-cli-tools-1 sha256sum /worker/server.py | cut -d' ' -f1")"
+  [[ "$LOCAL_SIDECAR" == "$REMOTE_SIDECAR" ]] \
+    || fail "cli-tools 重建完还是对不上（容器 ${REMOTE_SIDECAR}，仓里 ${LOCAL_SIDECAR}）。"
+  printf '  已换上，现在与仓里一致。\n'
+fi
+
 step "6) 部署后再量一次密钥不变量"
 AFTER="$(secret_fingerprint)"
 if [[ "$BEFORE" != "$AFTER" ]]; then

@@ -52,3 +52,23 @@ def test_install_script_still_uses_an_editable_install() -> None:
     assert "pip install -e" in install, (
         "install.sh 改成了非 editable 安装——那样 rsync 完源码，主机那半边还是旧的"
     )
+
+
+def test_the_deploy_also_checks_the_other_container() -> None:
+    """部署只重建 core-api，而 cli-tools 是另一个镜像。
+
+    改了 sidecars/cli-tools/ 而不重建，跑着的就一直是旧的——**而 compose
+    会照常报 Healthy**。这与「主机 venv 落后两个版本」是同一族，换了个地方藏。
+
+    钉住三件：它会去比、比的是量出来的那个路径、不同的时候会真的修。
+    """
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    assert "cli-tools" in deploy, "部署完全不管另一个容器"
+    assert "/worker/server.py" in deploy, (
+        "比的不是量出来的那个路径——容器里还有两个同名的 server.py（标准库里的），"
+        "靠 find|head 早先差点比错对象"
+    )
+    assert "docker compose build cli-tools" in deploy, "发现落后了却不重建"
+    assert "这不是通过" in deploy, (
+        "容器没在跑时应当明说这是跳过；把跳过印成通过，正是本项目一直在防的那种谎"
+    )
