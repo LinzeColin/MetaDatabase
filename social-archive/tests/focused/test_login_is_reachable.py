@@ -23,6 +23,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from tests.focused._source_slices import js_function
+
 ROOT = Path(__file__).resolve().parents[2]
 PWA_JS = ROOT / "apps/pwa/app.js"
 PWA_HTML = ROOT / "apps/pwa/index.html"
@@ -50,7 +52,7 @@ def test_the_page_asks_whether_you_are_logged_in_before_anything_else() -> None:
     """
     js = code_only(PWA_JS.read_text(encoding="utf-8"))
     assert '"/v1/auth/me"' in js, "从不询问登录状态"
-    body = js.split("async function init()", 1)[1][:400]
+    body = js_function(js, "async function init")
     assert "requireLogin" in body, "init 没有先过登录闸"
     assert body.index("requireLogin") < body.index("loadUiSettings"), "登录闸不在最前面"
 

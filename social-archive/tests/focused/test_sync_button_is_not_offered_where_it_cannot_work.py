@@ -32,7 +32,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from tests.focused._source_slices import js_function
+from tests.focused._source_slices import py_function, js_function
 
 ROOT = Path(__file__).resolve().parents[2]
 PWA = ROOT / "apps/pwa/app.js"
@@ -74,7 +74,7 @@ def test_the_server_declares_which_platforms_can_sync_today() -> None:
 
 def test_the_api_hands_that_fact_to_the_client() -> None:
     api = (ROOT / "src/social_archive/api.py").read_text(encoding="utf-8")
-    block = api.split("def accounts()", 1)[1][:900]
+    block = py_function(api, "def accounts()")
     assert '"sync_supported"' in block, "/v1/accounts 不告诉界面能不能同步"
     assert '"not_syncable_reason"' in block, "只说不能，不说为什么与现在能做什么"
 

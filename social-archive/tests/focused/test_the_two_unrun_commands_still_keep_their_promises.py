@@ -81,3 +81,40 @@ def test_the_extension_instructions_self_check_before_telling_you_to_load() -> N
     assert script.index("preflight_extension.py") < script.index("chrome://extensions"), \
         "自检排在指引之后，等于没检"
     assert "自检没过——先别装" in script, "自检失败时没有拦住"
+
+
+def test_no_guard_anchors_on_a_string_that_appears_more_than_once() -> None:
+    """`split(anchor, 1)` 会**静默取第一处**——而第一处常常不是你要的那处。
+
+    2026-08-05 用这条规则当尺子量了一遍现有判据的锚点，量出一个**活的假绿**：
+    `test_promised_actions_have_buttons` 里锚在 `revokePlatform` 上，
+    而它在 options.js 里出现三次（前两次都在第 165 行那句事件绑定里），
+    函数定义在第 205 行——600 字的窗口根本够不到。实测：往真正的
+    revokePlatform 里塞一句直连 DELETE，那条判据**照样通过**。
+
+    这里把那几个仍在用的锚点钉住：剥掉注释之后必须唯一。
+    """
+    ext = ROOT / "apps/browser-extension"
+    checked = {
+        ext / "background.js": [
+            "netCaptureBuffer.length > NET_CAPTURE_LIMIT",
+            "SA_PARSE_NET_CAPTURES",
+            '"SA_DISCONNECT_ACCOUNT"',
+            '"SA_REVOKE_PLATFORM_SESSION"',
+        ],
+        ext / "popup.js": ["/v1/extension/diagnostics"],
+        ext / "options.js": ["const syncable"],
+    }
+    ambiguous = []
+    for path, anchors in checked.items():
+        code = "\n".join(
+            l for l in path.read_text(encoding="utf-8").splitlines()
+            if not l.lstrip().startswith(("//", "*", "/*"))
+        )
+        for anchor in anchors:
+            count = code.count(anchor)
+            if count != 1:
+                ambiguous.append(f"{path.name}: {anchor!r} 出现 {count} 次")
+    assert not ambiguous, (
+        "这些锚点不唯一，靠它们切窗口的判据可能一直在验错地方：" + "；".join(ambiguous)
+    )

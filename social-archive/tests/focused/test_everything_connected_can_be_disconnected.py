@@ -25,6 +25,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from tests.focused._source_slices import py_function
+
 ROOT = Path(__file__).resolve().parents[2]
 API = ROOT / "src/social_archive/api.py"
 AUTH = ROOT / "src/social_archive/auth.py"
@@ -131,6 +133,6 @@ def test_disconnect_and_credential_revoke_stay_separate() -> None:
     合并会让「我只是不想它再自动跑了」变成「我的登录状态也没了」。
     """
     api = API.read_text(encoding="utf-8")
-    block = api.split("def disconnect_account(", 1)[1][:1200]
+    block = py_function(api, "def disconnect_account(")
     assert "credential_store.revoke" not in block
     assert "/v1/credentials" in block, "至少要在文档里指出撤销走的是另一条路"

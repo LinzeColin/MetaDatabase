@@ -30,6 +30,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from tests.focused._source_slices import js_function
+
 ROOT = Path(__file__).resolve().parents[2]
 EXT = ROOT / "apps/browser-extension"
 PWA = ROOT / "apps/pwa/app.js"
@@ -91,7 +93,15 @@ def test_revoke_goes_through_background_so_permissions_come_back_too() -> None:
     """
     options = code_only(read(EXT / "options.js"))
     background = read(EXT / "background.js")
-    assert "/v1/credentials" not in options.split("revokePlatform", 1)[-1][:600], (
+    # **切的是真正那个函数，不是「第一次出现 revokePlatform 之后的 600 字」。**
+    #
+    # 原来那样写是个**假绿**：options.js 里 revokePlatform 出现三次，
+    # 头两次都在第 165 行那句事件绑定里（调用 + button.dataset.revokePlatform），
+    # 而函数定义在第 205 行。split(..., 1) 静默取第一处，600 字的窗口
+    # 根本够不到函数体——2026-08-05 实测：往真正的 revokePlatform 里塞一句
+    # `fetch("/v1/credentials/x",{method:"DELETE"})`，**这条判据照样通过**。
+    revoke = js_function(options, "async function revokePlatform")
+    assert "/v1/credentials" not in revoke, (
         "撤销绕过 background 直接调了 DELETE——那样浏览器这边的 cookies 权限不会被交还"
     )
     revoke_block = background.split('"SA_REVOKE_PLATFORM_SESSION"', 1)[1][:900]
@@ -130,7 +140,7 @@ def test_retry_button_only_appears_on_failed_receipts() -> None:
     点了才知道不能点，是把服务端的校验当成了交互设计。
     """
     pwa = code_only(read(PWA))
-    block = pwa.split("function renderReceiptList", 1)[1][:1200]
+    block = js_function(pwa, "function renderReceiptList")
     assert 'status === "failed"' in block, "所有回执都画了重试按钮，非失败的点下去会 409"
 
 
