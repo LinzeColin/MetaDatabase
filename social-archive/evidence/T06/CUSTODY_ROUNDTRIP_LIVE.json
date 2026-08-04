@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0",
+  "task": "T06",
+  "slice": "S2",
+  "recorded_at": "2026-08-04T00:25Z",
+  "status": "PARTIAL —— 托管往返实测通过；只剩「真实会话能取到私有内容」这一条 Oracle 未跑",
+  "no_cookie_value_in_this_file": true,
+
+  "why_this_file_supersedes_part_of_BLOCKED_RECEIPT": {
+    "the_stale_claim": "BLOCKED_RECEIPT.json 里 paths_considered[0] 写着：把扩展以未打包形式载入 Chrome「只有 Owner 能做」，理由是要走 chrome://extensions 而我进不去 chrome:// 页面。",
+    "falsified": "**那个理由已经不成立。** CDP 的 Extensions.loadUnpacked 一条命令就能装，本会话已多次实做（见 scripts/cdp_extension_harness.py 与 evidence/T04/RUN_NEVER_COMPLETED.json）。当时我测掉两条路就停止了搜索。",
+    "but_the_task_is_still_blocked": "阻塞点变了，不是消失了。真正卡住的是**拿到 Owner 真实的 X 登录态**——那需要 Owner 自己在浏览器里登录 X。装扩展这件事不再是阻塞点。",
+    "correction_discipline": "BLOCKED_RECEIPT.json 原文保留不改写（它标了 must_not_be_rewritten_as_pass）。这份文件负责说明它哪一条推理被推翻了、阻塞点移到了哪里。"
+  },
+
+  "what_was_measured_live": {
+    "setup": "本机实例，端口 8766，一次性 age 密钥对（age-keygen 现生成，验完即删）；上传的是**合成 cookies.txt**，值是 SYNTHETIC-… 字面量，不是任何真实账号的会话",
+    "why_synthetic_is_enough_here": "托管链路（加密→落库→取用→撤销）与 cookie 值本身无关。值是真是假，走的是同一段代码。真实会话只对最后那条 Oracle（gallery-dl 能不能看到私有内容）是必需的。",
+
+    "steps": [
+      {"step": "未登录访问 /v1/credentials", "result": "401", "note": "凭据路由只认会话，不认共享 bearer"},
+      {"step": "PUT /v1/credentials/x", "result": "200 · cookie_count=2 · 「登录信息已加密保存，随时可以一键撤销。」"},
+      {"step": "GET /v1/credentials", "result": "只回 platform/connected/cookie_count/updated_at —— **没有任何 cookie 值**"},
+      {"step": "查库文件字节", "result": "明文 cookie 值不在库里(False)；age 密文头在(True)"},
+      {"step": "查 platform_credential 行", "result": "algorithm=age-x25519 · cipher 348 字节 · 开头 b'age-encryption.org/v1\\n-> ' · 记了 cipher_sha256 与 recipient_fingerprint"},
+      {"step": "materialize（gallery-dl 取用时走的那条）", "result": "解密回来与原文逐字一致(auth_token 与 ct0 都在) · 权限 0600 · 路径在 data_root **之外** · with 退出后文件已消失"},
+      {"step": "DELETE /v1/credentials/x", "result": "200 · revoked=1 · 「已撤销并从库中删除。」"},
+      {"step": "再 DELETE 一次", "result": "200 · revoked=0 · 「本来就没有保存这个平台的登录信息。」—— 幂等且措辞不同，不假装删过"},
+      {"step": "撤销后查残留", "result": "platform_credential 0 行；库文件里既无明文也无 age 密文残留；WAL 不存在"}
+    ],
+
+    "fails_loudly_when_unconfigured": {
+      "how": "另起一个没配 age 收件人的实例（端口 8767）再 PUT",
+      "result": "HTTP 503 · 「服务器未配置加密收件人，暂时不能保存登录信息。」",
+      "why_it_matters": "没配就是没配，明确报错而不是静默存明文或静默丢弃。"
+    },
+
+    "boundaries_hold_live": [
+      {"platform": "xiaohongshu", "http": 400, "detail_head": "xiaohongshu 的登录信息不会离开你的浏览器，本产品不接收它。"},
+      {"platform": "douyin", "http": 400},
+      {"platform": "bilibili", "http": 400},
+      {"platform": "kuaishou", "http": 400},
+      {"platform": "reddit", "http": 400, "detail": "reddit 使用授权登录，不需要上传浏览器会话。",
+       "note": "Reddit 是因为**它自己的理由**被拒（走 OAuth），不是被并进国内四平台那条。两种拒绝说的是两件事。"}
+    ]
+  },
+
+  "session_setup_disclosure": {
+    "what_i_did": "本地实例的会话是我用 store.upsert_oauth_identity + store.create_session 直接建的，等同于 OAuth 回调成功后那一步。",
+    "why_that_is_not_cheating": "这是给**本机测试实例**准备状态，不是伪造一个针对真实部署的会话；也没有绕过任何生产鉴权。凭据端点仍然实测了未登录=401。",
+    "what_it_does_not_cover": "真正的 GitHub 登录往返仍未跑通（T02，需要 Owner 的密码，我不输）。"
+  },
+
+  "acceptance_status": {
+    "custody_roundtrip": "PASS（实测，见上）",
+    "oracle_private_content": "NOT_RUN",
+    "oracle_definition": "服务端拿这份 cookies.txt 跑 gallery-dl -j，能取到 ≥1 条只有登录用户才看得到的 Owner 私有条目",
+    "why_not_run": "需要 Owner 真实的 X 登录态。合成会话对这条 Oracle 无效——它验的正是「这份会话是真的有用的」。",
+    "what_would_unblock": "Owner 在一次性 Chrome 窗口里登录 X，然后对 host 权限气泡点一次「允许」；之后我可以把这条 Oracle 一次跑完。"
+  },
+
+  "cleanup": "一次性 age 密钥对、合成 cookies.txt、两个本地实例的数据根，验完即删。没有任何真实会话被上传过（no_real_session_was_ever_uploaded 仍为 true）。",
+
+  "what_this_does_not_prove": [
+    "没有验证真实 X 会话能取到私有内容——那是本任务唯一剩下的 Oracle。",
+    "没有验证扩展侧的 chrome.cookies 导出（需要 host 权限气泡）；扩展导出格式由 16 条判据覆盖，但没有在真浏览器里导出过一次真会话。",
+    "生产环境是否已配 credential age 收件人/私钥仍未核对（T18 的前置，已记）。",
+    "撤销后的残留检查是在 SQLite 文件与 WAL 上做的，没有做磁盘级取证（PRAGMA secure_delete=ON 已开，但未实测被覆盖的页面）。"
+  ]
+}
