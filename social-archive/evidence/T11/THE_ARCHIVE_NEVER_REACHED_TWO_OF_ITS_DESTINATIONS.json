@@ -35,6 +35,13 @@
       "是不是真写了": "remote_id 是真的 commit SHA（a50997500cd9296e…），不是占位符",
       "obsidian": "仍然 1 / 193，按他的选择没动"
     },
-    "why_this_number_can_be_trusted_this_time": "覆盖数不是脚本自己报的，是**回头去读界面那条接口**拿到的；作业状态是直接数库的；写没写成看的是 remote_id 有没有 commit SHA。三样互相独立。"
+    "why_this_number_can_be_trusted_this_time": "覆盖数不是脚本自己报的，是**回头去读界面那条接口**拿到的；作业状态是直接数库的；写没写成看的是 remote_id 有没有 commit SHA。三样互相独立。",
+    "写进去了_还是_写对了": {
+      "为什么还要再看一眼": "commit SHA 只证明「写进去了」。这个项目一整天都在分这两件事，不该在最后一步偷懒。",
+      "怎么看的": "在容器里用他自己的 token 打 GitHub contents API，把最新那条**原样取回来读**。",
+      "取回的内容": "469 字节，形状完整：YAML frontmatter 带 social_archive_id / platform / url / author / relation_types / collections，正文是标题 + 「原始链接：…」。",
+      "结论": "**写对了**，不是空文件、不是占位符。",
+      "它是什么_不是什么": "这是**元数据卡片 + 原始链接**（L1 投影），不是正文全文，也不含媒体文件。媒体在对象仓里（552 个制品三副本齐全），markdown 这一路只负责「能读、能搜、能跳回去」。如果 Owner 期待的是把视频正文也放进 GitHub，那是另一件事。"
+    }
   }
 }
