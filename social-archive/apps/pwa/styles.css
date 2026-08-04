@@ -160,6 +160,13 @@
       margin: 0 auto;
       padding: 24px 24px 48px;
     }
+    /* 下一步：永远只有一件事，且必须比周围都显眼。 */
+    .next-step { display:flex; align-items:center; gap:16px; padding:16px 18px; margin-bottom:14px;
+                 border:1px solid var(--brand); border-radius:14px; background:var(--brand-soft); }
+    .next-step.hidden { display:none; }
+    .next-step-body { flex:1; display:flex; flex-direction:column; gap:4px; min-width:0; }
+    .next-step-body strong { font-size:15px; }
+    .next-step-body span { color:var(--text-2); font-size:12.5px; line-height:1.5; }
     .sync-strip {
       display: flex;
       align-items: center;

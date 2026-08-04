@@ -355,7 +355,74 @@
     state.destinations = destinationsResult.items || [];
     renderSyncSummary();
     renderSyncTable();
+    renderNextStep();
     renderDestinationsModal();
+  }
+
+  /** 下一步：**永远只显示一件事**（v0.0.0.7 / INV-ZERO-BARRIER）。
+   *
+   * Owner 的原话：「我都不知道应该怎么操作」。首页此前把状态、账号表、
+   * 导出、设置一起摊开，没有任何东西说"现在该干嘛"。
+   *
+   * 规则：按顺序找到**第一个**没做完的事，只显示它；全做完就什么也不显示。
+   * 不排优先级、不并列、不给第二个选项——多给一个选择就是多一次犹豫。
+   */
+  function renderNextStep() {
+    const box = $("nextStep");
+    const steps = [
+      {
+        need: () => !state.extension.detected,
+        title: "第 1 步：安装浏览器插件",
+        why: "收藏内容要从你自己的浏览器里读，所以需要这个插件。装好后页面会自动认出来并带你回来。",
+        action: "去安装",
+        run: () => { location.href = "/extension-install"; },
+      },
+      {
+        need: () => state.extension.detected && !state.extension.compatible,
+        title: "第 1 步：更新浏览器插件",
+        why: `装着的是 v${state.extension.version || "未知"}，需要 v${PRODUCT_VERSION}。`,
+        action: "去更新",
+        run: () => { location.href = "/extension-install"; },
+      },
+      {
+        need: () => state.extension.detected && state.extension.compatible && !state.extension.paired,
+        title: "第 2 步：连接插件",
+        why: "点一下就好，你不需要输入任何字符。",
+        action: "连接",
+        run: async () => { if (await connectExtension()) { showToast("插件已连接。"); await refreshEverything(); } },
+      },
+      {
+        need: () => !state.accounts.some(item =>
+          ["connected", "degraded"].includes(item.connection_state)
+          && state.platformSupport[item.platform]?.sync_supported !== false),
+        title: "第 3 步：连接一个能同步的来源",
+        why: "本版本能自动同步的是 Chrome 书签，以及连接后的 X / Instagram。小红书、抖音、B站、快手暂时还不能自动读取。",
+        action: "去连接",
+        run: () => openSyncModal(),
+      },
+      {
+        need: () => !state.syncRuns.some(run => ["completed", "partial"].includes(run.status)),
+        title: "第 4 步：同步一次",
+        why: "把已连接来源里的收藏拉进档案馆。之后它会按周期自己跑。",
+        action: "立即同步全部",
+        run: () => syncAllAccounts(),
+      },
+    ];
+    const step = steps.find(item => {
+      try { return item.need(); } catch (_) { return false; }
+    });
+    if (!step) { box.classList.add("hidden"); return; }
+    box.classList.remove("hidden");
+    $("nextStepTitle").textContent = step.title;
+    $("nextStepWhy").textContent = step.why;
+    const button = $("nextStepAction");
+    button.textContent = step.action;
+    button.onclick = () => { Promise.resolve(step.run()).catch(error => showToast(error.message, "error")); };
+  }
+
+  async function refreshEverything() {
+    await Promise.allSettled([loadAccountsAndDestinations(), refreshExtensionStatus()]);
+    renderNextStep();
   }
 
   function renderSyncSummary() {
@@ -1386,6 +1453,7 @@
       $("syncSummaryText").textContent = " · 请刷新页面或检查登录状态";
     }
     await loadLibrary();
+    renderNextStep();
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=007-r2").catch(() => {});
   }
 

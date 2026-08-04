@@ -52,6 +52,13 @@
 </button>
 </header>
 <main class="page">
+<!-- 下一步（v0.0.0.7 / INV-ZERO-BARRIER）。
+     **永远只显示一件事。** Owner 的原话：「我都不知道应该怎么操作」。
+     此前首页把状态、账号表、导出、设置一起摊开，没有任何东西说"现在该干嘛"。 -->
+<section class="next-step hidden" id="nextStep">
+  <div class="next-step-body"><strong id="nextStepTitle"></strong><span id="nextStepWhy"></span></div>
+  <button class="btn primary" id="nextStepAction"></button>
+</section>
 <section aria-label="同步状态" class="sync-strip"><span class="pulse" id="syncPulse"></span><span><strong id="connectedAccountCount">正在读取账号状态</strong><span id="syncSummaryText"> · 请稍候</span></span><span class="strip-spacer"></span><button class="text-button" data-open-sync="">查看同步详情</button></section>
 <section class="page-head">
 <div>
