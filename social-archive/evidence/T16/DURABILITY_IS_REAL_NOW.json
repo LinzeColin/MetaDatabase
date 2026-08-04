@@ -1,6 +1,6 @@
 {
   "task": "T16",
-  "claim": "生产上的三个持久化定时器已启用；全部 549 个制品现在都有两份已校验的异地副本（R2 + OCI）。第三份（GitHub Release）卡在一个不存在的仓库上。",
+  "claim": "生产上的三个持久化定时器已启用；全部 549 个制品现在**三副本齐全**（R2 + OCI + GitHub Release），pending 0。开工前只有 19 个有任何异地副本。",
   "authorization": "Owner 明确指示：「T16 18 你自己解决 能你做的就别让我做 我没有技术基础」（2026-08-04）。",
   "before": {
     "measured_at": "2026-08-04（本轮开工时）",
@@ -10,14 +10,15 @@
     "timers": "backup / replication / private-database-sync 三个全部 disabled + inactive，journalctl 90 天内全是 No entries"
   },
   "after": {
-    "measured_at": "2026-08-04T05:0x UTC（生产库直接查）",
+    "measured_at": "2026-08-04T06:09 UTC（生产库直接查）",
     "artifacts": 549,
     "r2_verified": 549,
     "oci_verified": 549,
     "with_two_verified_replicas": 549,
-    "github_verified": 2,
+    "github_verified": 549,
     "failed_replicas": 0,
-    "timers": "三个全部 enabled + active"
+    "timers": "三个全部 enabled + active",
+    "with_three_verified_replicas": 549
   },
   "the_thing_that_had_never_been_verified": {
     "what": "交接里写着「启用后能看到唯一还没验过的那一环：云端凭据是否真的有效」。",
@@ -35,27 +36,11 @@
       "verified": "改完再跑一次 → 33 条失败全部清零，549/549 双副本。"
     }
   },
-  "still_blocked_on_owner": {
-    "item": "第三份副本（GitHub Release 加密包）",
-    "measured_facts": [
-      "配置指向 SOCIAL_ARCHIVE_GITHUB_ARCHIVE_REPOSITORY=LinzeColin/Social-Archive-Vault",
-      "**这个仓库不存在。** 用有私有仓权限的那个 token 查也解析不到（排除了「私有所以看不见」这个可能）。",
-      "顺带查出第二个问题：systemd 复制单元 LoadCredential 的是 runtime/secrets/github_token，而**那个 token 没有私有仓权限**（用它 `gh repo list` 只列得出公开仓，Private-Database 直接报 not resolvable）。Core 容器拿到的是另一个——compose 把 github_markdown_token 映射成容器内的 github_token。也就是说即使仓建好了，这条 systemd 路径仍然会失败。"
-    ],
-    "why_i_did_not_just_fix_it": "建 GitHub 仓库在 L0 硬边界的禁止清单里（「不得新建 GitHub 仓库」）。改归档仓指向哪里，是 Owner 对自己加密数据落在哪的决定，不替他选。",
-    "the_minimal_decision": [
-      "A）Owner 自己建一个私有仓 LinzeColin/Social-Archive-Vault，我把单元的 token 换成有权限的那个",
-      "B）把归档仓改指向已存在的私有仓（例如 Private-Database，事实与 Markdown 已经写在那里）",
-      "C）就用两份副本（R2+OCI），我把第三份干净地关掉，让单元不再报失败"
-    ],
-    "note": "在决定之前，复制单元每次都会以 exit 3 结束——**前两份副本已经写完并校验通过**，失败的只是第三份那一步。"
-  },
   "what_this_does_not_prove": [
-    "没有验证过「从副本恢复」——只验证了写上去并回读校验哈希一致。真正的恢复演练是另一件事（scripts/restore_object.py），本次没做。",
     "备份定时器（backup.timer）是每日触发，下一次在 22 小时后。**它这一轮没有真的跑过一次**，只确认了它已 enabled/active。",
     "没有验证配额门（R2 8/9.25 GiB 等）在真实数据量下的行为——当前用量未测。",
-    "生产上跑的是**部署中的旧代码**（v0.0.0.6 镜像），本分支的改动尚未部署（T18）。本次修的是宿主机上的文件属主，与代码版本无关。",
-    "**没有做过一次真实恢复演练。** 三副本都写上去并回读校验了哈希，但没有真的从副本恢复过一个对象（scripts/restore_object.py 未跑）。写得进去不等于取得回来。"
+    "恢复演练只跑了**一个**制品（三个仓各一次）。没有做全量恢复，也没有测过大文件。",
+    "没有演练「整库恢复」（scripts/restore.py + 快照），只演练了单对象。"
   ],
   "third_replica_now_works_too": {
     "at": "2026-08-04T06:09Z",
@@ -71,5 +56,47 @@
       "db": "github verified 549 ｜ oci verified 549 ｜ r2 verified 549"
     },
     "verdict": "三副本目标达成。开工时 549 个制品里只有 19 个有任何异地副本。"
+  },
+  "what_was_blocked_and_how_it_resolved": {
+    "item": "第三份副本（GitHub Release 加密包）",
+    "measured_facts": [
+      "配置指向 SOCIAL_ARCHIVE_GITHUB_ARCHIVE_REPOSITORY=LinzeColin/Social-Archive-Vault",
+      "**这个仓库不存在。** 用有私有仓权限的那个 token 查也解析不到（排除了「私有所以看不见」这个可能）。",
+      "顺带查出第二个问题：systemd 复制单元 LoadCredential 的是 runtime/secrets/github_token，而**那个 token 没有私有仓权限**（用它 `gh repo list` 只列得出公开仓，Private-Database 直接报 not resolvable）。Core 容器拿到的是另一个——compose 把 github_markdown_token 映射成容器内的 github_token。也就是说即使仓建好了，这条 systemd 路径仍然会失败。"
+    ],
+    "why_i_did_not_just_fix_it": "建 GitHub 仓库在 L0 硬边界的禁止清单里（「不得新建 GitHub 仓库」）。改归档仓指向哪里，是 Owner 对自己加密数据落在哪的决定，不替他选。",
+    "the_minimal_decision": [
+      "A）Owner 自己建一个私有仓 LinzeColin/Social-Archive-Vault，我把单元的 token 换成有权限的那个",
+      "B）把归档仓改指向已存在的私有仓（例如 Private-Database，事实与 Markdown 已经写在那里）",
+      "C）就用两份副本（R2+OCI），我把第三份干净地关掉，让单元不再报失败"
+    ],
+    "note": "在决定之前，复制单元每次都会以 exit 3 结束——**前两份副本已经写完并校验通过**，失败的只是第三份那一步。",
+    "resolved": "**已解决（2026-08-04T06:09Z）**，见 third_replica_now_works_too。保留原文作为「当时知道什么、据此提了什么问题」的记录。"
+  },
+  "restore_drill_all_three_stores": {
+    "at": "2026-08-04T06:1x UTC",
+    "why": "此前证据里一直写着「写得进去不等于取得回来」——三副本都只验证了**写上去并回读校验密文哈希**，没有真的解密还原过一次。",
+    "how": "scripts/restore_object.py --artifact-id <id> --from-store {r2,oci,github} --target <空目录>。写进 /tmp 下的新目录，**不碰原件**；用的是宿主机上的备份 age 私钥（该私钥按设计不进容器，只在恢复演练时读）。",
+    "artifact": "art_c9bebcf6c08fc9d5684cfe0f7a83720f（320 字节 metadata_json）",
+    "registered_sha256": "701a8b97e9c5566d12663f3a4e9757d49942ea42e9611bea24227faffe5bd9a0",
+    "results": [
+      {
+        "store": "r2",
+        "status": "PASS",
+        "restored_sha256_matches_registered": true
+      },
+      {
+        "store": "oci",
+        "status": "PASS",
+        "restored_sha256_matches_registered": true
+      },
+      {
+        "store": "github",
+        "status": "PASS",
+        "restored_sha256_matches_registered": true
+      }
+    ],
+    "verdict": "**三个仓各自都能独立取回并还原成原始字节。** 不是「有副本」，是「副本真的能用」。",
+    "a_refusal_worth_keeping": "第一次不给 --target 时脚本直接拒绝：RECOVERY_TARGET_MISSING「恢复写入必须指定新的空目录」。恢复默认不覆盖任何东西，这条设计在演练里真的挡了一次。"
   }
 }

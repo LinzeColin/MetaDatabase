@@ -45,7 +45,7 @@ sparse    .github + social-archive
 | T13 | pending | 依赖 T10 证明拦截路 → 而 T10 要 Owner 的已登录国内平台页面。**Acceptance 原文不在仓内**（见开头那段）。 |
 | T14 | **done** | 失败文案；两道门（失败码可解释、证据声明局限）已接进发布门 |
 | T15 | **done** | MV3 worker 之死的恢复；`evidence/T15/WORKER_DEATH_RECOVERY.json` |
-| T16 | **done** | 三个定时器已启用；**549/549 制品三副本齐全（R2+OCI+GitHub Release），pending 0**，开工前只有 19 个有任何副本。见 `T16/DURABILITY_IS_REAL_NOW.json`。**未做恢复演练** |
+| T16 | **done** | 三个定时器已启用；**549/549 制品三副本齐全（R2+OCI+GitHub Release），pending 0**，开工前只有 19 个有任何副本。**三个仓各做过一次恢复演练，取回的字节哈希与登记值一致**。见 `T16/DURABILITY_IS_REAL_NOW.json` |
 | T17 | pending | 黄金事务（端到端）从未成功过——它按定义需要一次真实平台取数，因此在 T06/T08 解开之前无法开始。**Acceptance 原文不在仓内**。 |
 | T18 | **已部署（2026-08-04T05:21Z）** | 生产跑 0.0.0.7；**C-T00-01 根因修复实测生效**（cli-tools uid/gid 正确、密钥可读、业务路由 401→200）；卡在 scanning 的那条 run 已自行落到终态。见 `T18/DEPLOYED_AND_VERIFIED.json`。**未做真实回滚演练**，退路齐全 |
 
