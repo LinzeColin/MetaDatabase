@@ -29,10 +29,18 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 PWA = ROOT / "apps/pwa/app.js"
+
+
+def _function_body(js: str, name: str) -> str:
+    """取一个顶层函数的函数体，切到下一个顶层 function 为止。"""
+    body = js.split(f"function {name}", 1)[1]
+    nxt = re.search(r"\n  (?:async )?function ", body)
+    return body[: nxt.start()] if nxt else body
 
 
 def code_only(text: str) -> str:
@@ -73,7 +81,10 @@ def test_the_ui_does_not_draw_a_button_that_cannot_work() -> None:
     js = code_only(PWA.read_text(encoding="utf-8"))
     assert "state.platformSupport" in js, "界面没有读服务端给的平台能力"
     assert "sync_supported === false" in js, "界面没有据此分支"
-    table = js.split("function renderSyncTable", 1)[1][:4000]
+    # **切到函数末尾，不用魔法数字。** 原来切 4000 字符；我在函数开头加了
+    # 一段注释，立即同步那颗按钮就被挤出窗口，判据当场 ValueError——
+    # 而代码是对的。判据自己钉在长度上，就会被无关的编辑打断。
+    table = _function_body(js, "renderSyncTable")
     branch_at = table.index("sync_supported === false")
     button_at = table.index('data-sync-account="${escapeHtml(account.id)}">立即同步')
     assert branch_at < button_at, (
@@ -85,7 +96,10 @@ def test_the_ui_does_not_draw_a_button_that_cannot_work() -> None:
 def test_the_capability_comes_from_one_place_only() -> None:
     """两个前端各维护一份清单必然漂开。界面里不许出现硬编码的平台名单。"""
     js = code_only(PWA.read_text(encoding="utf-8"))
-    table = js.split("function renderSyncTable", 1)[1][:4000]
+    # **切到函数末尾，不用魔法数字。** 原来切 4000 字符；我在函数开头加了
+    # 一段注释，立即同步那颗按钮就被挤出窗口，判据当场 ValueError——
+    # 而代码是对的。判据自己钉在长度上，就会被无关的编辑打断。
+    table = _function_body(js, "renderSyncTable")
     for hardcoded in ("xiaohongshu", "douyin", "kuaishou"):
         assert f'"{hardcoded}"' not in table.split("sync_supported")[1][:600], (
             "同步能力在界面里被硬编码了——服务端一改就对不上"
@@ -274,3 +288,46 @@ def test_it_asks_can_it_sync_before_asking_who_handles_it() -> None:
     can_at = route.index("capability.canSync")
     who_at = route.index("capability.serverHandled")
     assert can_at < who_at, "先问了「谁来干」，同步不了的平台会被交给一个同样干不成的服务端"
+
+
+def test_connect_is_gated_on_can_i_connect_not_on_can_i_sync() -> None:
+    """**「同步不了」不等于「连了没用」。**
+
+    把 x / instagram 移出 SYNCABLE_NOW 之后，renderSyncTable 里那段
+    「同步不了的平台，连了也没用」顺手把它们的**连接入口**也一起关掉了。
+    一次改动，两个后果，而第二个我没看见。
+
+    那句话对国内四家是真的——它们的 Cookie 一步都不离开浏览器，服务端
+    根本不接收（credentials.DOMESTIC_PLATFORMS 明确拒绝）。
+    **对 x / instagram 是假的**：托管的登录状态会被 worker.py 取原文件
+    那条路用到（CredentialStore.materialize → capture_url(cookies_path=…)）。
+    """
+    js = code_only(PWA.read_text(encoding="utf-8"))
+    table = _function_body(js, "renderSyncTable")
+    assert "connect_supported" in table, "连接入口仍然只看「能不能同步」"
+    branch = table.split("sync_supported === false", 1)[1][:1600]
+    assert "connect_supported" in branch, "同步不了那一支里没有再问一句「那连得上吗」"
+
+
+def test_the_server_publishes_whether_connecting_is_worth_it() -> None:
+    api = (ROOT / "src/social_archive/api.py").read_text(encoding="utf-8")
+    assert '"connect_supported": platform in SYNCABLE_NOW or platform in CUSTODIAL_PLATFORMS' in api, (
+        "服务端不下发「连它有没有用」，界面只能拿「能不能同步」凑合——那次就凑错了"
+    )
+
+
+def test_the_extension_options_page_makes_the_same_distinction() -> None:
+    """两个界面各有一份，修一边等于没修。
+
+    第一轮改「同步不了就不给按钮」时，我只改了网页那侧，扩展设置页
+    原样留着同样的三处假话——那道门（find_affordances_the_backend_says_cannot_work）
+    就是为了不再漏掉另一半。这次的「连了有没有用」也一样，两边都要有。
+    """
+    options = code_only((ROOT / "apps/browser-extension/options.js").read_text(encoding="utf-8"))
+    assert "connect_supported" in options, "扩展设置页仍然只看「能不能同步」"
+    block = options.split("const syncable", 1)[1][:2200]
+    assert "connectable" in block, "算出来了却没在分支里用"
+    not_syncable_branch = block.split("const action=!syncable", 1)[1][:600]
+    assert "connectable" in not_syncable_branch, (
+        "同步不了那一支里没有再问一句「那连得上吗」——x / instagram 的连接入口又没了"
+    )

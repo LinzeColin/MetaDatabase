@@ -805,9 +805,25 @@
         // 这是和「立即同步」那颗按钮同一种假话，换了个位置。
         const support = state.platformSupport[server];
         if (support?.sync_supported === false) {
+          // **「同步不了」不等于「连了没用」。**
+          //
+          // 上一版这里一律不画「连接账号」，理由写的是「同步不了的平台，
+          // 连了也没用」。那句话**对国内四家是真的**——它们的 CookI 一步
+          // 都不离开浏览器，服务端根本不接收；**对 X / Instagram 是假的**：
+          // 托管的登录状态会被取原文件那条路用到。
+          //
+          // 把 x/instagram 移出「能同步」之后，这段代码顺手连它们的连接入口
+          // 也一起关掉了——一次改动，两个后果，而第二个我没看见。
+          const canConnect = support.connect_supported !== false;
+          const connectCell = canConnect
+            ? `<button class="btn small" data-connect-platform="${server}">连接账号</button>`
+            : "—";
+          const extra = canConnect
+            ? `<br><span class="muted">连接之后，保存单条内容时服务器会用你的登录状态去尝试下载原文件。</span>`
+            : "";
           rows.push(`<tr><td><div class="platform-cell">${platformLogo(key)}<div><div>${escapeHtml(platformMeta[key].label)}</div><span class="muted">本版本暂不支持自动同步</span></div></div></td>`
             + `<td><div class="connection-status"><span class="dot" style="background:var(--text-3)"></span>未连接</div></td><td>—</td>`
-            + `<td><span class="muted" style="line-height:1.5">${escapeHtml(support.not_syncable_reason || "")}</span></td><td>—</td><td>—</td></tr>`);
+            + `<td><span class="muted" style="line-height:1.5">${escapeHtml(support.not_syncable_reason || "")}${extra}</span></td><td>—</td><td>${connectCell}</td></tr>`);
           continue;
         }
         rows.push(`<tr><td><div class="platform-cell">${platformLogo(key)}<div><div>${escapeHtml(platformMeta[key].label)}</div><span class="muted">尚未连接</span></div></div></td><td><div class="connection-status"><span class="dot" style="background:var(--text-3)"></span>未连接</div></td><td>—</td><td><span class="muted">连接后自动首次全量同步</span></td><td>—</td><td><button class="btn small" data-connect-platform="${server}">连接账号</button></td></tr>`);

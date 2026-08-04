@@ -134,6 +134,12 @@
       // 快手/B站 的取数路在本版本是 stub：画了按钮点下去必然失败，
       // 而失败文案曾经说的是「暂时连不上服务器，[ 重试 ]」。
       const syncable = platformSupport[platform]?.sync_supported !== false;
+      // **「同步不了」不等于「连了没用」。** 网页那侧犯过一次同样的错：
+      // 把 x / instagram 移出「能同步」之后，这段逻辑顺手把它们的**连接入口**
+      // 也一起关了。那对国内四家是对的（Cookie 一步不离开浏览器，服务端根本
+      // 不接收），对 x / instagram 是错的（托管的登录状态会被取原文件那条路用到）。
+      // 服务端为此单独下发 connect_supported，依据是 credentials.CUSTODIAL_PLATFORMS。
+      const connectable = platformSupport[platform]?.connect_supported !== false;
       // **守卫必须排在最前面。** 放在 pending 之后的话，一个同步不了的平台
       // 只要还留着未完成的连接流程，就仍会画出「我已登录，继续」和「重新打开」
       // ——把人推进一条走到头也没用的路。这一处是新加的那道门抓出来的，
@@ -141,7 +147,9 @@
       const action=!syncable
         ? (account
             ? `<button class="card-button danger" data-disconnect-account="${SA.escapeHtml(account.id)}">断开连接</button>${revoke}`
-            : "")
+            : connectable
+              ? `<button class="card-button" data-connect-platform="${platform}">连接账号</button>`
+              : "")
         : pending
         ? `<button class="card-button primary" data-verify-platform="${platform}">我已登录，继续</button><button class="card-button" data-connect-platform="${platform}">重新打开</button>`
         : account

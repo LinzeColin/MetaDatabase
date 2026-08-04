@@ -29,6 +29,7 @@ from .account_sync import (
     PLATFORM_RELATIONS,
 )
 from .config import Settings
+from .credentials import CUSTODIAL_PLATFORMS
 from .platform_payloads import PayloadUnreadable, parse_bilibili_favlist
 from .db import RuntimeStore
 from .credentials import (
@@ -350,6 +351,21 @@ def accounts() -> dict[str, Any]:
                 # 上一轮只挡住了「服务端说同步不了」的平台，
                 # 这一条挡住「服务端自己就能干、根本不该动浏览器」的平台。
                 "server_handled": platform in SERVER_ACCOUNT_CONNECTORS,
+                # **「能不能同步」和「连它有没有用」是两个问题。**
+                #
+                # 把 x / instagram 移出 SYNCABLE_NOW 之后，界面顺手把它们的
+                # 「连接账号」按钮也一起藏了——因为那段代码写的是
+                # 「同步不了的平台，连了也没用」。那句话对国内四家是真的
+                # （它们的 Cookie 一步都不离开浏览器，服务端根本不接收），
+                # **对 x / instagram 是假的**：托管的登录状态会被
+                # worker.py 的 L3 取原文件那条路用到
+                # （CredentialStore.materialize → capture_url(cookies_path=…)）。
+                #
+                # 所以再下发一条。判断依据是 credentials.CUSTODIAL_PLATFORMS
+                # ——那张表就是「哪些平台的登录状态可以托管」的真源。
+                # reddit 不在里面不是漏掉：它走 OAuth，没有 Cookie 要托管，
+                # 而 OAuth 那条路目前没有 Owner 点得到的入口。
+                "connect_supported": platform in SYNCABLE_NOW or platform in CUSTODIAL_PLATFORMS,
             }
             for platform, relations in PLATFORM_RELATIONS.items()
         ],
