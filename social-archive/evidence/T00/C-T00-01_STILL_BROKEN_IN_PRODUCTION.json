@@ -4,9 +4,7 @@
   "task": "T00（发现）/ T10·T18（修复落点）",
   "recorded_at": "2026-08-04T00:45Z",
   "claim": "v0.0.0.6「点了同步是 0」的第一处断点，**今天仍然存在于生产环境**。仓库侧已修，生产侧要等 T18 部署。",
-
   "why_i_looked_again": "HANDOFF_v0007.md 的「三条必须知道的事实」第一条写着：若新设计任何环节复用同一 secret 编排，**必须在 T10 前显式核对 GID**。我这一轮新加了 credential_age_identity 这个 secret，属于复用同一套编排，所以回头核。",
-
   "measured_in_production_2026_08_04": {
     "groups": {
       "socialarchive": 980,
@@ -15,39 +13,51 @@
     "secret_files": "/opt/social-archive/runtime/secrets/* 多数为 10001:10001 模式 0640",
     "env": "SOCIAL_ARCHIVE_HOST_DATA_GID=980",
     "containers": [
-      {"name": "core-api", "id": "uid=10001(socialarchive) gid=10001 groups=10001",
-       "reads_cli_worker_token": "OK"},
-      {"name": "cli-tools", "id": "uid=10002(cliworker) gid=999(cliworker) groups=999,980",
-       "reads_cli_worker_token": "**拒绝**"}
+      {
+        "name": "core-api",
+        "id": "uid=10001(socialarchive) gid=10001 groups=10001",
+        "reads_cli_worker_token": "OK"
+      },
+      {
+        "name": "cli-tools",
+        "id": "uid=10002(cliworker) gid=999(cliworker) groups=999,980",
+        "reads_cli_worker_token": "**拒绝**"
+      }
     ],
     "verdict": "cli-tools 的补充组是 980，而密钥要求 10001。**读不到自己的密钥。**"
   },
-
   "the_precise_mistake": {
     "two_jobs_two_groups": [
-      {"job": "写产出", "path": "/var/lib/social-archive/vendor-output",
-       "owner_mode": "10001:980 模式 2770（setgid）", "needs_gid": 980, "group": "socialarchive"},
-      {"job": "读密钥", "path": "/run/secrets/cli_worker_token",
-       "owner_mode": "10001:10001 模式 0640", "needs_gid": 10001, "group": "socialarchive-secrets"}
+      {
+        "job": "写产出",
+        "path": "/var/lib/social-archive/vendor-output",
+        "owner_mode": "10001:980 模式 2770（setgid）",
+        "needs_gid": 980,
+        "group": "socialarchive"
+      },
+      {
+        "job": "读密钥",
+        "path": "/run/secrets/cli_worker_token",
+        "owner_mode": "10001:10001 模式 0640",
+        "needs_gid": 10001,
+        "group": "socialarchive-secrets"
+      }
     ],
     "what_compose_had": "group_add 里**只有一个**条目 ${SOCIAL_ARCHIVE_HOST_DATA_GID}",
     "why_no_single_value_works": "设 980 → 写得了产出、读不了密钥（今天的状态）。设 10001 → 读得了密钥、写不了产出。**一个变量服务两个不同的组，必然有一边坏。**",
     "note_on_env_example": ".env.example 原本写的是 10001，生产 .env 是 980 —— 两处各坏一边，谁抄谁都不对。"
   },
-
   "why_it_is_invisible": {
     "chain": "cli-tools /health 仍然 200（健康检查不碰密钥）→ 业务路由一律 401 → job 层终态 failed / attempt=4 / 「CLI Sidecar 调用失败：HTTP 401」→ 而同一时刻 sync_run 仍是 scanning、last_error_code 为空",
     "user_sees": "界面永远「同步中」，没有任何地方说得出为什么",
     "relation_to_this_release": "这正是 INV-NO-SILENT-ZERO 要消灭的形状。它和本轮修的另外三处（gallery-dl 退出码、MV3 worker 之死、manual_save 不可枚举）是**同一类**：失败发生在某一层，而上层照样显示「在跑」。"
   },
-
   "the_comment_was_part_of_the_bug": {
     "old_text": "compose.yaml 里那句英文注释叫人把这个值设成 socialarchive 组的 gid",
     "problem": "那正是 980 —— 也就是把这个故障写进了操作指引。照着做必然复现。",
     "fixed": "该句已删；判据 test_the_old_comment_no_longer_tells_you_to_set_the_broken_value 盯着它别回来。",
     "a_false_positive_i_hit": "第一版判据红了，因为我自己在新注释里**逐字引用**了那句旧指引。改成转述后通过——顺带说明：盯字符串的判据很容易被自己的引用绊倒。"
   },
-
   "fix_in_repo": {
     "compose.yaml": "group_add 改为两个条目：${SOCIAL_ARCHIVE_HOST_DATA_GID:-980} 与 ${SOCIAL_ARCHIVE_HOST_SECRETS_GID:-10001}",
     ".env.example": "补 SOCIAL_ARCHIVE_HOST_SECRETS_GID=10001，并把 DATA_GID 从 10001 改成生产实测的 980；两条都写了「为什么是两个组」",
@@ -60,7 +70,6 @@
     "guard_proved_by_reintroduction": "把 group_add 退回单条目 → 2 条判据变红，其一原文：「少了读 /run/secrets/ 用的密钥组——这正是 C-T00-01」；恢复后 7 条全过。",
     "fixtures_updated_not_weakened": "test_deployment_contract.py 里四处合成 .env 补上了新变量。这不是放宽判据，而是契约新增了一个必需变量，夹具必须跟上——它们断言的是「合法 .env 能过 dry-run」，而合法的定义变了。"
   },
-
   "not_applied_to_production": {
     "why": "改生产的 .env 与重启容器属于部署动作（T18），且需要 Owner 决定时机。我不在未经许可的情况下动生产。",
     "what_production_needs": [
@@ -71,10 +80,27 @@
     ],
     "expected_effect": "cli-tools 的业务路由不再 401；job 层不再 attempt=4 失败。**注意这不会自动修好 sync_run 停在 scanning**——那是另外两处（已在本轮修掉）。"
   },
-
   "what_this_does_not_prove": [
     "没有在生产上实际应用修复，也没有验证修复后 401 消失——那需要部署。",
     "instagram_session 在生产是 0600 root:root，cli-tools 同样读不到；本轮没动它（Instagram 路径不在 T00–T18 的关键线上），记在这里免得当没看见。",
     "没有核对其余 secret 的属主是否都符合「10001:10001 0640」这一约定，只抽查了 ls 输出里可见的那些。"
-  ]
+  ],
+  "the_actual_root_cause_found_later_and_a_red_test_had_been_naming_it_all_along": {
+    "what_i_fixed_first": "compose 的 group_add 只有一个组 → 补成两个（数据组 980 + 密钥组 10001）。那是**绕过去**，不是根治。",
+    "the_real_root_cause": "sidecars/cli-tools/Dockerfile 里是 `useradd --system --uid 10002 --create-home cliworker` —— **没有 --gid**。useradd 于是顺手建了同名组 cliworker(999) 当主组。生产实测正是 uid=10002(cliworker) gid=999(cliworker)。而密钥属主 10001:10001 模式 0640，组位对不上。",
+    "if_the_image_were_right": "主组设成 socialarchive(10001)，容器**天然**读得到那些密钥，根本用不着 group_add 去补。",
+    "the_test_knew": {
+      "which": "tests/focused/test_deployment_contract.py::test_install_provisions_shared_nonroot_bind_mounts_for_core_and_cli_sidecar",
+      "it_asserts": [
+        "groupadd --system --gid 10001 socialarchive  在 cli Dockerfile 里",
+        "useradd --system --uid 10002 --gid socialarchive",
+        "chown -R cliworker:socialarchive /work /worker"
+      ],
+      "status_before": "**红的**，而且一直被我归进「7 条基线失败，属后续任务射程」里放着。",
+      "the_lesson": "**一条红着的判据一直在指名道姓地说出生产事故的根因，而我把它当背景噪音背了整场。** 我甚至在修 C-T00-01 时写过一份很详细的证据，却没回头看这条红判据在说什么——它要的正是那个修法。",
+      "generalized": "「基线失败」这个标签本身是危险的：它把「我还没弄懂」包装成「与我无关」。逐条弄懂的成本远低于放着不管的代价——本轮 7 条里，弄懂之后 3 条是字段/结构改名（改判据即可），1 条直接指出生产事故根因。"
+    },
+    "fix": "sidecars/cli-tools/Dockerfile 改成 groupadd socialarchive(10001) + useradd --gid socialarchive + chown cliworker:socialarchive。compose 的 group_add **保留**：它管的是宿主机数据目录（vendor-output 属主 10001:980 模式 2770），那是另一个组、另一件事。",
+    "still_needs_deploy": "镜像要重建才生效（image: social-archive/cli-tools:0.0.0.6 需重新 build）。生产上仍是旧镜像，所以 C-T00-01 在生产上依然存在，直到 T18 部署。"
+  }
 }

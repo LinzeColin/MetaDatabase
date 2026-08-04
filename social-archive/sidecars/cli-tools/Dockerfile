@@ -18,9 +18,26 @@ COPY --from=bilibili_cli bili_cli /opt/bilibili-cli/bili_cli
 RUN pip install --no-cache-dir /opt/bilibili-cli
 WORKDIR /worker
 COPY server.py /worker/server.py
-RUN useradd --system --uid 10002 --create-home cliworker \
+# **cliworker 的主组必须是 socialarchive(10001)，不能是它自己的 cliworker(999)。**
+#
+# 这就是 C-T00-01 的根因。原来这里是 `useradd --uid 10002 --create-home cliworker`
+# ——没有 --gid，于是 useradd 顺手建了个同名组 cliworker(999) 当主组。
+# 生产实测：uid=10002(cliworker) gid=999(cliworker) groups=999,980。
+#
+# 而 /run/secrets/cli_worker_token 的属主是 10001:10001、模式 0640。
+# 组位对不上 → **这个 sidecar 读不到自己的密钥** → /health 照样 200，
+# 业务路由一律 401，job 层 attempt=4 失败，而 sync_run 仍是 scanning、
+# last_error_code 为空 → 界面永远「同步中」。
+# 这是 v0.0.0.6「点了同步是 0」的第一处断点。
+#
+# 主组设成 socialarchive(10001) 之后，容器**天然**读得到那些密钥，
+# 不必靠 compose 的 group_add 去补。compose 那边的 group_add 仍然保留：
+# 它管的是宿主机数据目录（vendor-output 属主 10001:980 模式 2770），
+# 那是另一个组、另一件事。
+RUN groupadd --system --gid 10001 socialarchive \
+ && useradd --system --uid 10002 --gid socialarchive --create-home cliworker \
  && mkdir -p /work/output/cli \
- && chown -R cliworker:cliworker /work /worker
+ && chown -R cliworker:socialarchive /work /worker
 USER cliworker
 EXPOSE 5560
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5560/health', timeout=3)" || exit 1
