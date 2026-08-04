@@ -121,10 +121,26 @@ printf '  源码已同步；扩展包 sha256 逐字节一致。\n'
 step "3) 给正在跑的镜像打 :rollback"
 ssh -o ConnectTimeout=20 "$HOST" "docker image inspect '$IMAGE' >/dev/null 2>&1 && docker tag '$IMAGE' social-archive/core:rollback && docker images --format '  {{.Repository}}:{{.Tag}}  {{.ID}}' | grep social-archive/core || echo '  （没有同名旧镜像，首次部署）'"
 
-step "4) 构建并上线"
+step "4) 构建前先看磁盘"
+# **每次部署都会造一个 1GB 的镜像，旧的那个变成孤儿。** 我一天里部署了十几次，
+# 生产盘从 8.3G 可用掉到 3.0G（93%）。紧接着 /v1/accounts 报过一次
+# `sqlite3.OperationalError: unable to open database file`——SQLite 建不出
+# -wal/-shm 时就是这句话。复现不了（清完盘之后连打三次全 200），
+# 所以「磁盘」只是最合理的怀疑，不是已证实的根因。
+#
+# 但门槛该有：**盘紧的时候不许再往上叠一个 1GB 的镜像。**
+FREE_GB="$(ssh -o ConnectTimeout=20 "$HOST" "df -BG --output=avail / | tail -1 | tr -dc '0-9'")"
+printf '  根分区可用 %sG\n' "$FREE_GB"
+if [[ -n "$FREE_GB" && "$FREE_GB" -lt 5 ]]; then
+  printf '  可以安全回收的（只删悬空镜像，不碰同机其它项目）：\n'
+  ssh -o ConnectTimeout=20 "$HOST" 'sudo docker images -f "dangling=true" --format "    {{.ID}}  {{.Size}}  {{.CreatedSince}}"' || true
+  fail "可用空间不足 5G，拒绝构建。先回收：ssh $HOST 'for id in \$(sudo docker images -f dangling=true -q); do sudo docker rmi \$id; done'  —— **只删悬空镜像，不要用 docker system prune**（这台机器还跑着 memory-atlas / gatus / coolify 等别人的项目）。"
+fi
+
+step "5) 构建并上线"
 ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && docker compose build core-api 2>&1 | tail -3 && docker compose up -d core-api core-worker 2>&1 | tail -4"
 
-step "5) 部署后再量一次密钥不变量"
+step "6) 部署后再量一次密钥不变量"
 AFTER="$(secret_fingerprint)"
 if [[ "$BEFORE" != "$AFTER" ]]; then
   printf '  部署前：\n'; printf '%s\n' "$BEFORE" | sed 's/^/    /'
@@ -133,7 +149,7 @@ if [[ "$BEFORE" != "$AFTER" ]]; then
 fi
 printf '  与部署前逐字节一致。\n'
 
-step "6) 验收：打一条要鉴权的路由（不是 /health）"
+step "7) 验收：打一条要鉴权的路由（不是 /health）"
 sleep 8
 ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR'
   PORT=\$(grep -oP '(?<=^SOCIAL_ARCHIVE_CORE_LOOPBACK_PORT=)[0-9]+' .env 2>/dev/null || echo 18765)

@@ -95,3 +95,26 @@ def test_it_also_checks_the_group_can_read_not_just_who_owns_it() -> None:
     assert "10002" in code, "没写清 cli-tools 靠组权限读（uid 10002 不是属主）"
     # 判据要看 mode 的中间那一位
     assert "[4567]" in code, "组读位的判据不在了——写法变了就要跟着重写"
+
+
+def test_it_refuses_to_build_when_the_disk_is_tight() -> None:
+    """每次部署都造一个 1GB 的镜像，旧的变孤儿。
+
+    2026-08-04 我一天部署了十几次，生产盘从 8.3G 可用掉到 3.0G（93%），
+    紧接着 /v1/accounts 报过一次
+    `sqlite3.OperationalError: unable to open database file`
+    ——SQLite 建不出 -wal/-shm 时就是这句话。**复现不了**（清完盘之后
+    连打三次全 200），所以磁盘只是最合理的怀疑，不是已证实的根因。
+
+    但门槛该有：盘紧的时候不许再往上叠一个 1GB 的镜像。
+    """
+    code = code_only(DEPLOY.read_text(encoding="utf-8"))
+    assert "FREE_GB" in code, "部署前不看磁盘"
+    assert '"$FREE_GB" -lt 5' in code, "没有阈值，或者写法变了、判据要跟着改"
+    # 回收建议必须是安全的那一种
+    assert "dangling=true" in code, "没有给出只删悬空镜像的回收办法"
+    assert "docker system prune" in code, "没有点名那条危险命令"
+    warn = code.split("docker system prune", 1)[0][-260:]
+    assert "不要用" in warn, (
+        "提到了 docker system prune 却没说别用它——这台机器还跑着别人的项目"
+    )
