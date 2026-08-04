@@ -73,3 +73,19 @@ def test_it_refuses_a_target_that_private_tmp_would_swallow() -> None:
     guard_at = code.index("/tmp/*|/var/tmp/*")
     run_at = code.index("systemd-run")
     assert guard_at < run_at, "拦在起单元之后，文件已经写进私有 tmpfs 了"
+
+
+def test_the_backup_unit_uses_the_same_github_credential_too() -> None:
+    """索引的第三份副本放进 GitHub 私有仓，所以备份单元也要那把令牌。
+
+    2026-08-04 实测：第一次跑出来是 `github: blocked_prerequisite /
+    GITHUB_VAULT_NOT_CONFIGURED`——单元根本没加载 github_token。
+    **代码写好了、单元没给它钥匙**，又一次「建好了没接上」。
+    """
+    backup = (ROOT / "deploy/systemd/social-archive-backup.service").read_text(encoding="utf-8")
+    assert _source_file(backup) == _source_file(REPLICATION.read_text(encoding="utf-8")), (
+        "备份单元与复制单元加载的 GitHub 令牌来源不一致"
+    )
+    assert "SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token" in backup, (
+        "加载了凭据却没把路径告诉程序"
+    )
