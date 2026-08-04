@@ -4,17 +4,44 @@
   "measured_at": "2026-08-05",
   "why": "新加的第 20 道门只查「文档提到的脚本存不存在」。脚本存在**不等于**命令能跑——第一条真跑的 restore.sh 就当场是坏的。文档里最要命的一句，是出事那天才会被人读到的那一句。",
   "results": [
-    {"命令": "bash scripts/doctor.sh", "结果": "跑通，退出码 0，25 条 PASS。**但它看不见本项目真正出过事的那三件**（保命 timer / 异地副本 / 主机 venv 版本），已补上三段并再次实测通过。"},
-    {"命令": "bash scripts/restore.sh --dry-run <恢复点>", "结果": "**原来跑不起来**（BLOCKED_ENVIRONMENT：缺少 R2 恢复读取配置，根因是 .env 指的是容器里的 /run/secrets/…）。已修，现在 status=READY，identity_configured=true，并如实列出两处密钥路径兜底。"},
-    {"命令": "bash scripts/export.sh all", "结果": "跑通。第一次 193 条 / 196 个文件变更 / 3 个无变化；**紧接着再跑一次 0 变更 / 199 个无变化**——幂等，输出是确定性的。"},
-    {"命令": "bash scripts/backup.sh", "结果": "由 systemd 单元完整跑过（Result=success，私有库备份 PASS + 运行库快照三份远端全 verified），见 T16 的证据。"},
-    {"命令": "bash scripts/start.sh", "结果": "跑通。**并且专门核了它不会换掉 API 令牌**——它调 ensure_api_token.py，那个脚本文件存在且非空就直接返回。实测令牌指纹前后一致（c9f70eab0d34）。若它会换令牌，Owner 一跑这条，插件当场就断了。"},
-    {"命令": "bash scripts/stop.sh", "结果": "**没跑**。它是 `docker compose down`，会把生产停掉。为验一条命令而让档案馆下线，不划算——这一条如实记为未验证。"},
-    {"命令": "bash scripts/load_extension_instructions.sh", "结果": "**没跑**。它要在 Owner 的 Mac 上开访达窗口，在 Linux 主机上没有意义；而在开发机上跑会往用户桌面弹窗口。如实记为未验证。"}
+    {
+      "命令": "bash scripts/doctor.sh",
+      "结果": "跑通，退出码 0，25 条 PASS。**但它看不见本项目真正出过事的那三件**（保命 timer / 异地副本 / 主机 venv 版本），已补上三段并再次实测通过。"
+    },
+    {
+      "命令": "bash scripts/restore.sh --dry-run <恢复点>",
+      "结果": "**原来跑不起来**（BLOCKED_ENVIRONMENT：缺少 R2 恢复读取配置，根因是 .env 指的是容器里的 /run/secrets/…）。已修，现在 status=READY，identity_configured=true，并如实列出两处密钥路径兜底。"
+    },
+    {
+      "命令": "bash scripts/export.sh all",
+      "结果": "跑通。第一次 193 条 / 196 个文件变更 / 3 个无变化；**紧接着再跑一次 0 变更 / 199 个无变化**——幂等，输出是确定性的。"
+    },
+    {
+      "命令": "bash scripts/backup.sh",
+      "结果": "由 systemd 单元完整跑过（Result=success，私有库备份 PASS + 运行库快照三份远端全 verified），见 T16 的证据。"
+    },
+    {
+      "命令": "bash scripts/start.sh",
+      "结果": "跑通。**并且专门核了它不会换掉 API 令牌**——它调 ensure_api_token.py，那个脚本文件存在且非空就直接返回。实测令牌指纹前后一致（c9f70eab0d34）。若它会换令牌，Owner 一跑这条，插件当场就断了。"
+    },
+    {
+      "命令": "bash scripts/stop.sh",
+      "结果": "**没跑**。它是 `docker compose down`，会把生产停掉。为验一条命令而让档案馆下线，不划算——这一条如实记为未验证。"
+    },
+    {
+      "命令": "bash scripts/load_extension_instructions.sh",
+      "结果": "**没跑**。它要在 Owner 的 Mac 上开访达窗口，在 Linux 主机上没有意义；而在开发机上跑会往用户桌面弹窗口。如实记为未验证。"
+    }
   ],
   "what_this_does_not_prove": [
-    "不证明 stop.sh 与 load_extension_instructions.sh 能用——这两条明确没跑，理由见上。**它们仍是未验证的**。",
+    "不证明 stop.sh 与 load_extension_instructions.sh 能跑——这两条明确没跑，理由见上。**它们仍是未验证的**；钉住的只是它们各自的那句承诺。",
     "不证明手册里其它段落（不是命令的那些）说得对。这次只逐条跑了第一屏那 7 条命令。",
     "不证明 restore.sh 的**真恢复**能跑通。只跑了 --dry-run，真恢复会写盘，没在生产上做。"
-  ]
+  ],
+  "the_two_i_did_not_run_still_got_their_promises_pinned": {
+    "why": "跑不了不等于放着不管。这两条各自有一个**可以静态验证的承诺**，而那个承诺被改坏的后果，比命令跑不跑得起来严重得多。",
+    "stop.sh": "它打印「数据卷和长期事实未删除」。`docker compose down` 不带 `-v` 时确实不删卷——**那句话因此是真的**。判据钉住：只要那行出现 -v / --volumes 就红。反例验过：加上 -v 之后判据当场变红。有人哪天顺手加个「清理干净点」，那句话就变成**在用户照做完之后**才发现的谎。",
+    "load_extension_instructions.sh": "它的第一步是 preflight_extension.py（那个预检本身在发布门里，是绿的），不过就 exit 1 不让装。判据钉住这个顺序——装一个 Chrome 会直接拒绝的扩展，对一个说「我没有技术基础」的人是最难自己走出来的坑。",
+    "a_third_thing_this_turned_up": "那个脚本让人加载**源码目录** apps/browser-extension，而安装页让 Owner 解压**下载到的 ZIP**。两条装法一旦分叉，就会出现「验过的那个不是他装的那个」。实测两边**逐字节相同**（各 23 个文件），已落成判据钉住。"
+  }
 }
