@@ -59,9 +59,13 @@ MOUNTED_SECRETS=(
   karakeep_api_token linkwarden_api_token x_oauth_token reddit_oauth_token
 )
 
+# **每一处都要 sudo。** runtime/secrets 是 0700 且属主 10001，
+# 部署账号（ubuntu）连 `test -e` 都做不到——第一版没加 sudo，于是十二个密钥
+# 全被报成「缺失」。那次它**失败在安全的一侧**（中止部署），但一个总是喊狼来了
+# 的判据用不了几次就会被人绕过去，等于没有。
 secret_fingerprint() {
   ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && for f in ${MOUNTED_SECRETS[*]}; do
-    if [ -e runtime/secrets/\$f ]; then
+    if sudo test -e runtime/secrets/\$f; then
       printf '%s %s:%s %s\n' \"\$f\" \"\$(sudo stat -c %u runtime/secrets/\$f)\" \"\$(sudo stat -c %g runtime/secrets/\$f)\" \"\$(sudo stat -c %a runtime/secrets/\$f)\"
     else printf '%s 缺失\n' \"\$f\"; fi
   done"
