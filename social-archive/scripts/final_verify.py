@@ -103,6 +103,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         action="store_true",
         help="explicitly run pytest; do not use this during the SA-507 single-suite release run",
     )
+    parser.add_argument(
+        "--report",
+        default=None,
+        help=(
+            "把报告写到别处，而不是 evidence/final-verification.json。"
+            "部署脚本用它：部署的第 0 道门要求工作树干净，而它自己跑一次发布门就会"
+            "改写那份报告（里面有生成时间，每次都不同）——**于是上一次部署把下一次挡在门外**。"
+            "一个自己会把自己挡住的门，用不了几次就会有人绕过去，那时它连真的脏改动也挡不住。"
+        ),
+    )
     args = parser.parse_args(argv)
     commands = structural_commands()
     suite_mode = "structural"
@@ -139,7 +149,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "partial_checks": skipped,
         "results": results,
     }
-    output = ROOT / "evidence/final-verification.json"
+    output = Path(args.report) if args.report else ROOT / "evidence/final-verification.json"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(status)

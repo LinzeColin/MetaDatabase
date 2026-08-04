@@ -59,17 +59,24 @@ def test_the_deleted_workers_compose_is_not_referenced_anymore() -> None:
     )
 
 
-def test_release_gate_actually_passes_right_now() -> None:
+def test_release_gate_actually_passes_right_now(tmp_path) -> None:
     """最直接的一条：现在就跑一遍，它必须绿。
 
     这条比上面三条都强——上面查的是「引用对不对」，这条查的是「它真的过不过」。
+
+    报告写到 tmp_path，**不碰仓里那份**：发布门每跑一次都会重写
+    evidence/final-verification.json（里面有生成时间），于是「跑一遍测试」
+    就会弄脏工作树。而「脏 0」正是用来确认收尾干净的信号——
+    让检查去污染它，等于把自己的仪表盘弄花。
     """
+    report = tmp_path / "final-verification.json"
     completed = subprocess.run(
-        [sys.executable, str(FINAL_VERIFY)], cwd=ROOT,
+        [sys.executable, str(FINAL_VERIFY), "--report", str(report)], cwd=ROOT,
         capture_output=True, text=True, check=False,
     )
     assert completed.returncode == 0, (
-        "发布门当前是 FAIL —— 详见 evidence/final-verification.json：\n"
+        f"发布门当前是 FAIL —— 详见 {report}：\n"
         + completed.stdout[-500:] + completed.stderr[-500:]
     )
     assert "PASS" in completed.stdout
+    assert report.is_file(), "--report 没把报告写到指定位置"

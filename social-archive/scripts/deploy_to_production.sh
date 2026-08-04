@@ -78,7 +78,13 @@ secret_fingerprint() {
 
 step "0) 本地闸门：工作树干净 + 发布门全绿"
 [[ -z "$(git status --porcelain)" ]] || fail '本工作树有未提交改动。部署的必须是已入库的那一版，否则生产上跑的东西没有对应的提交。'
-.venv/bin/python scripts/final_verify.py >/dev/null || fail '发布门未通过。'
+# **报告写到别处。** 发布门会把结果写进 evidence/final-verification.json，
+# 而那份报告里有生成时间，每跑一次都不同——于是**这一次部署会把下一次挡在
+# 上面那道「工作树干净」的门外**。2026-08-05 实测：第二次部署当场就被自己
+# 上一次挡住了。一个自己会把自己挡住的门，用不了几次就会有人绕过去，
+# 那时它连真的脏改动也挡不住。
+.venv/bin/python scripts/final_verify.py --report "$(mktemp -t sa-gate)" >/dev/null \
+  || fail '发布门未通过。'
 .venv/bin/python scripts/build_extension_package.py >/dev/null || fail '扩展包没打出来——用户下载到的会是旧版本。'
 printf '  工作树干净；发布门通过；扩展包已重打。\n'
 
