@@ -62,6 +62,11 @@ def structural_commands() -> list[list[str]]:
         # 但因此看不见另一半：路由注册了、服务端能响应，而**没有任何客户端请求它**。
         # 这道门第一次跑就找出 /v1/storage/status 从来没被界面调过。
         [python, "scripts/find_endpoints_no_client_calls.py"],
+        # 文档教用户点的按钮，界面上必须真有。手工扫了三次、三次都找出真问题
+        # （连接中心改名、安装/连接两步指着不存在的按钮、教用户点 T03 已删的
+        # 「读取当前列表」）。照旧文档操作的人会以为是自己错了，而**没有任何
+        # 东西会报错**——这类缺陷比代码 bug 更难被发现。
+        [python, "scripts/check_docs_match_the_ui.py"],
         [python, "scripts/validate_deployment_contract.py"],
     ]
 

@@ -123,6 +123,15 @@
     {
       "argv": [
         "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_docs_match_the_ui.py"
+      ],
+      "exit_code": 0,
+      "stdout": "扫了 docs/ 里 15 处界面词引用\n每一处都在界面上找得到。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/validate_deployment_contract.py"
       ],
       "exit_code": 0,
