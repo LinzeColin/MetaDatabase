@@ -110,6 +110,13 @@ NOTHING_NEW = FailureCopy(
     "NOTHING_NEW", "已经是最新的，没有新增内容。", None, "informational"
 )
 
+# 还在跑的状态。这些**不是终态**，所以既不能报成功，也不能报失败。
+# 与 background.js 的 ACTIVE_SYNC_STATES 对应。
+IN_PROGRESS_STATES: frozenset[str] = frozenset({
+    "queued", "authorizing", "discovering", "scanning",
+    "normalizing", "artifacting", "exporting",
+})
+
 
 def resolve(code: str | None) -> FailureCopy | None:
     """把任意失败码解析成词典里的一条。认不出来返回 None。"""
@@ -148,6 +155,19 @@ def describe_sync_outcome(
             "message_zh": resolved.render(platform_label=platform_label, count=imported),
             "failure_code": resolved.code,
             "action_zh": resolved.action_zh,
+        }
+    if str(status).lower() in IN_PROGRESS_STATES:
+        # 还在跑，不是失败。
+        # 修这一条之前，一次刚排上队的同步会显示
+        # 「这次没有取到任何内容…这是产品的问题，请重试一次」——
+        # 用户刚点完就被告知产品坏了，而它其实只是还没开始跑。
+        #
+        # 注意：这不是把「卡住不动」这件事藏起来。真正卡死的运行由
+        # db.stalled_active_runs() 抓（那才是按"多久没动"判的），
+        # 而不是靠给每一次正常的排队都扣一顶"产品有问题"的帽子。
+        return {
+            "outcome": "in_progress", "imported": imported,
+            "message_zh": "正在同步，请稍候。", "failure_code": None, "action_zh": None,
         }
     if str(status).lower() in {"completed", "complete"} and not failure_code:
         # 真的跑完了、真的没有新增——这是好事，必须与失败区分开。

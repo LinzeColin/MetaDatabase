@@ -23,6 +23,18 @@ PLATFORM_RELATIONS: dict[str, list[str]] = {
     "generic-web": ["bookmark", "manual_save"],
 }
 
+# **允许**出现 ≠ **能去枚举**。
+#
+# 这些关系类型可以合法地存在于库里，但一次同步没法把它们"列出来"——
+# 没有任何平台页面能回答"我手动存过哪些"。把它们算进同步范围，
+# 那一路就永远等不到终批，整次 run 永远不收敛。
+#
+# 实测（本机真实 Chrome，首次连接 Chrome 书签）：62 条全部入库，
+# 运行状态却停在 scanning 不动，因为 relation_scope 是
+# ['bookmark', 'manual_save'] 而扩展只送 bookmark 的终批。
+# 界面上就是「点了同步，东西都进来了，圈还一直在转」。
+NON_SCANNABLE_RELATIONS: frozenset[str] = frozenset({"manual_save"})
+
 PLATFORM_LABELS = {
     "xiaohongshu": "小红书",
     "douyin": "抖音",
@@ -65,10 +77,34 @@ class AccountSyncCoordinator:
 
     @staticmethod
     def _relations(platform: str, requested: list[str] | None = None) -> list[str]:
+        """该平台**允许**出现的关系类型。用于校验批次，不是同步范围。"""
         allowed = PLATFORM_RELATIONS.get(platform, [])
         if not requested:
             return list(allowed)
         return [item for item in dict.fromkeys(requested) if item in allowed]
+
+    @staticmethod
+    def _scannable_relations(platform: str, requested: list[str] | None = None) -> list[str]:
+        """一次同步**能去枚举**的关系类型 —— 与「允许」不是一回事。
+
+        `manual_save` 是"用户自己手动存的这一条"（CaptureRequest 的默认值）。
+        它必须是**允许**的关系类型，否则手动收藏会被拒；
+        但它**不可枚举**：没有任何平台页面能列出"我手动存过哪些"。
+
+        把它放进同步范围的后果，实测于本机真实浏览器：
+
+            首次连接 Chrome 书签 → 62 条全部入库 → 运行状态却永远停在
+            `scanning`，因为 relation_scope 是 ['bookmark', 'manual_save']
+            而扩展只会送 bookmark 的终批，manual_save 那一路永远等不到，
+            于是这次 run 永远不收敛。
+
+        界面上就是：**点了同步，62 条都进来了，圈还一直在转。**
+        这正是这一版要消灭的那种「说不清楚发生了什么」。
+        """
+        return [
+            item for item in AccountSyncCoordinator._relations(platform, requested)
+            if item not in NON_SCANNABLE_RELATIONS
+        ]
 
     def connect_start(self, request: AccountConnectRequest) -> ConnectStartResult:
         platform = request.platform.strip().lower()
@@ -133,7 +169,7 @@ class AccountSyncCoordinator:
             raise ValueError("账号不存在")
         if account["connection_state"] not in {"connected", "degraded"}:
             raise ValueError("账号尚未连接，请先完成授权")
-        relations = self._relations(account["platform"], request.relation_types)
+        relations = self._scannable_relations(account["platform"], request.relation_types)
         if not relations:
             raise ValueError("该平台没有可同步的关系类型")
         mode = request.mode

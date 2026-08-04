@@ -116,15 +116,45 @@ def test_imported_count_is_reported_when_something_came_in() -> None:
 def test_zero_without_a_reason_is_called_out_not_dressed_up_as_success() -> None:
     """这是 INV-NO-SILENT-ZERO 的核心判据。
 
-    0 条、没有失败码、也没跑完——这正是 v0.0.0.6 的形状。
-    它必须显示成「产品的问题」，而不是含糊过去或伪装成成功。
+    **收窄过一次，理由记在这里。**
+
+    原来这条用 `status="scanning"` 当例子，断言它必须显示「这是产品的问题」。
+    在真实浏览器里跑下来发现那是错的：刚点完连接、run 还在排队的那几十秒，
+    用户看到的就是「这次没有取到任何内容…这是产品的问题，请重试一次」——
+    刚点完就被告知产品坏了，而它只是还没开始跑。
+
+    真正是 v0.0.0.6 那种形状的，是**已经收尾**却 0 条又说不出原因。
+    「永远到不了终态」那一种同样要抓，但它的判据是"多久没动"，
+    不是"当前什么状态"，所以归 db.stalled_active_runs()，
+    并且和这条一起挂在 /v1/status 的 sync_health 上。
     """
-    outcome = describe_sync_outcome(imported=0, failure_code=None, status="scanning")
-    assert outcome["outcome"] == "unexplained_zero"
-    assert outcome["failure_code"] == "UNEXPLAINED_ZERO"
-    assert "我们没能记录下原因" in str(outcome["message_zh"])
-    assert "这是产品的问题" in str(outcome["message_zh"])
-    assert outcome["action_zh"] == "重试"
+    # 已经收尾、0 条、没有失败码 —— 必须被点名
+    for terminal in ("partial", "failed", "blocked_environment"):
+        outcome = describe_sync_outcome(imported=0, failure_code=None, status=terminal)
+        assert outcome["outcome"] == "unexplained_zero", f"{terminal} 被含糊过去了"
+        assert outcome["failure_code"] == "UNEXPLAINED_ZERO"
+        assert "我们没能记录下原因" in str(outcome["message_zh"])
+        assert "这是产品的问题" in str(outcome["message_zh"])
+        assert outcome["action_zh"] == "重试"
+
+    # 未知状态同样不许含糊
+    unknown = describe_sync_outcome(imported=0, failure_code=None, status="")
+    assert unknown["outcome"] == "unexplained_zero"
+
+
+def test_the_invariant_has_an_actual_enforcement_point() -> None:
+    """两个审计必须真的挂在接口上。
+
+    在此之前 `unexplained_zero_runs` **没有任何调用方**——
+    也就是说「不许有说不清的零」这条不变量其实没有任何东西在执行，
+    唯一还在响的只是文案。文案一改，信号就没了。
+    """
+    from pathlib import Path
+
+    api = (Path(__file__).resolve().parents[2] / "src/social_archive/api.py").read_text(encoding="utf-8")
+    assert "unexplained_zero_runs(" in api, "终态静默零审计没有挂到接口上"
+    assert "stalled_active_runs(" in api, "卡住不动审计没有挂到接口上"
+    assert "sync_health" in api
 
 
 def test_internal_codes_are_aliased_into_dictionary_sentences() -> None:

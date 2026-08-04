@@ -1528,6 +1528,39 @@ class RuntimeStore:
             )
         return event_id
 
+    def stalled_active_runs(
+        self, *, stale_after_seconds: int = 1800, limit: int = 200
+    ) -> list[dict[str, object]]:
+        """卡在非终态不动的同步运行（v0.0.0.7 / T04）。
+
+        `unexplained_zero_runs` 只看**终态**（partial/failed/blocked_environment）。
+        但真正让用户看到「点了同步永远在转」的，恰恰是**永远到不了终态**的运行
+        ——它不在那三种状态里，所以那个审计一条都抓不到。
+
+        实测抓到过两种成因，都不是设想出来的：
+
+          1. 同步范围里混进了枚举不出来的关系类型（manual_save），
+             那一路永远等不到终批，run 永远停在 scanning。
+          2. MV3 的 service worker 被杀在半路，队列条目已被摘走，
+             没有任何东西会再推进它，run 永远停在 queued。
+
+        两条都修了，这个审计是**兜底**：将来再冒出第三种成因，
+        它至少能被看见，而不是又变成一次没人说得清的转圈。
+        """
+        cutoff = int(max(0, stale_after_seconds))
+        with self.connection() as con:
+            rows = con.execute(
+                """SELECT id,platform,status,imported_count,updated_at,started_at
+                     FROM sync_run
+                    WHERE status NOT IN
+                          ('completed','partial','failed','cancelled','blocked_environment')
+                      AND updated_at IS NOT NULL
+                      AND CAST((julianday('now') - julianday(updated_at)) * 86400 AS INTEGER) > ?
+                    ORDER BY updated_at ASC LIMIT ?""",
+                (cutoff, int(limit)),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
     def unexplained_zero_runs(self, *, limit: int = 200) -> list[dict[str, object]]:
         """INV-NO-SILENT-ZERO 的库层审计（v0.0.0.7 / T14）。
 

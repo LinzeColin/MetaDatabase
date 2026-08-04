@@ -261,6 +261,18 @@ def status() -> dict[str, Any]:
         "destinations": destinations.views(),
         "queue": {"items": store.list_jobs(limit=20)},
         "storage": {"items": store.quota_states(), "replicas": store.replica_summary(), "completion": store.replication_completion()},
+        # INV-NO-SILENT-ZERO 的两个审计。**必须挂在这里才算数**——
+        # 在此之前它们都只是库里的函数，没有任何调用方，
+        # 也就是说「不许有说不清的零」这条不变量其实没有任何东西在执行。
+        #
+        #   unexplained_zero  终态、0 条、没有失败码 —— v0.0.0.6 的那种零
+        #   stalled           永远到不了终态 —— 「点了同步一直在转」的那种
+        #
+        # 两者不重叠：前者只看终态，后者只看非终态。
+        "sync_health": {
+            "unexplained_zero": store.unexplained_zero_runs(limit=20),
+            "stalled": store.stalled_active_runs(limit=20),
+        },
     }
 
 
