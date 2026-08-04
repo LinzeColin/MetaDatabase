@@ -38,6 +38,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from backup import _s3_client, _s3_config  # noqa: E402
+from github_release_backup import (  # noqa: E402  复用同一套 gh 调用，不抄第二遍
+    github_cli_environment,
+    run as run_gh,
+    verify_draft_release,
+    verify_private_repository,
+)
 from social_archive.config import Settings  # noqa: E402
 from social_archive.utils import sha256_file, utcnow  # noqa: E402
 
@@ -67,7 +73,10 @@ def _counts(database: Path) -> dict[str, int]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="把运行库快照从对象仓取回并验证它打得开")
     parser.add_argument("--manifest", required=True, help="backup_runtime_db.py 写的 manifest.json")
-    parser.add_argument("--from-store", required=True, choices=("r2", "oci"))
+    # **github 也要能验。** 「登记成 verified」和「取得回来」是两件事——
+    # 这一天已经因为这个区别撞过两次（GitHub 制品取回路两个致命缺陷、
+    # 恢复报 target_written 而目录是空的）。第三份副本不能只验到密文层。
+    parser.add_argument("--from-store", required=True, choices=("r2", "oci", "github"))
     parser.add_argument("--target", required=True, help="一个全新的隔离目录")
     args = parser.parse_args()
 
@@ -87,16 +96,47 @@ def main() -> int:
     if not identity or not Path(identity).is_file():
         return _fail("AGE_IDENTITY_MISSING", "缺少 age 私钥，无法解密快照")
 
-    config = _s3_config(args.from_store)
-    if not config:
-        return _fail("OBJECT_STORE_NOT_CONFIGURED", f"{args.from_store} 未配置")
+    github_receipt = (manifest.get("receipts") or {}).get("github") or {}
+    if args.from_store == "github":
+        if github_receipt.get("status") != "verified":
+            return _fail("GITHUB_COPY_NOT_VERIFIED",
+                         "这份 manifest 里没有已验证的 GitHub 副本")
+        config = None
+    else:
+        config = _s3_config(args.from_store)
+        if not config:
+            return _fail("OBJECT_STORE_NOT_CONFIGURED", f"{args.from_store} 未配置")
 
     target.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="social-archive-db-restore-") as temporary:
         work = Path(temporary)
         ciphertext = work / "snapshot.gz.age"
-        client = _s3_client(config)
-        client.download_file(config["bucket"], manifest["object_key"], str(ciphertext))
+        if args.from_store == "github":
+            # object_key 形如 gh-release://<owner>/<repo>/<tag>#<资产名>
+            raw = str(github_receipt.get("object_key") or "")
+            try:
+                location, member = raw.split("#", 1)
+                _, rest = location.split("gh-release://", 1)
+                owner, repo, tag = rest.split("/", 2)
+            except ValueError:
+                return _fail("GITHUB_RECEIPT_INVALID", "GitHub 副本收据格式非法")
+            repository = f"{owner}/{repo}"
+            environment = github_cli_environment(settings.github_token_file)
+            if environment is None or not shutil.which("gh"):
+                return _fail("GITHUB_CLI_UNAVAILABLE", "缺少 gh 或 GitHub 令牌，无法取回")
+            verify_private_repository(repository, env=environment)
+            verify_draft_release(repository, tag, env=environment)
+            download_dir = work / "gh"
+            download_dir.mkdir(parents=True, exist_ok=True)
+            run_gh(["gh", "release", "download", tag, "--repo", repository,
+                    "--dir", str(download_dir)], env=environment)
+            fetched = download_dir / member
+            if not fetched.is_file():
+                return _fail("GITHUB_ASSET_MISSING", "Draft Release 里找不到那份密文")
+            shutil.copyfile(fetched, ciphertext)
+        else:
+            client = _s3_client(config)
+            client.download_file(config["bucket"], manifest["object_key"], str(ciphertext))
         if sha256_file(ciphertext) != manifest["cipher_sha256"]:
             return _fail("CIPHER_SHA256_MISMATCH", "远端密文回读哈希与 manifest 不一致")
 

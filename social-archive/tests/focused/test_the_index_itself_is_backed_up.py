@@ -277,3 +277,22 @@ def test_only_the_daily_run_pushes_a_third_copy() -> None:
     assert frequent_lines and not any("--github" in l for l in frequent_lines), (
         "每刻钟都去建 Draft Release——会把私有仓刷爆"
     )
+
+
+def test_the_drill_can_also_pull_from_github() -> None:
+    """**第三份副本不能只验到密文层。**
+
+    「登记成 verified」和「取得回来」是两件事——这一天已经因为这个区别
+    撞过两次：GitHub 制品取回路的两个致命缺陷、恢复报 target_written
+    而目录是空的。
+    """
+    code = "\n".join(
+        l for l in DRILL.read_text(encoding="utf-8").splitlines() if not l.lstrip().startswith("#")
+    )
+    assert '"r2", "oci", "github"' in code, "drill 取不了 GitHub 那一份"
+    assert "verify_draft_release" in code, "没有确认那个 release 真的是 Draft"
+    assert "verify_private_repository" in code, "没有确认那是私有仓"
+    assert "from github_release_backup import" in code, "又写了一套 gh 调用——两份必然漂开"
+    # 取回来之后仍然要走完整链
+    for step in ("--decrypt", "gzip.open", "sqlite3.connect", "PLAINTEXT_SHA256_MISMATCH"):
+        assert step in code, f"GitHub 那条路没走完整链：缺 {step}"
