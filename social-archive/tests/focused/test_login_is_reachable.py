@@ -61,8 +61,17 @@ def test_every_configured_provider_gets_a_button_and_the_click_goes_somewhere() 
     assert "item.configured" in js, "没过滤掉没配好的 provider——会画出点了就 503 的按钮"
     assert re.search(r"data-login-provider", js), "没有画出登录按钮"
     assert re.search(r'/v1/auth/\$\{encodeURIComponent\(provider\)\}/start', js), "按钮没有真的去发起登录"
-    # start 只回 authorize_url，**跳转要客户端自己做**；不跳等于点了没反应
-    assert "location.href = url" in js, "拿到授权地址却没跳过去"
+    # **必须是顶层跳转，且必须跳到 login_base 那个域。**
+    #
+    # state cookie 是 host-only：在哪个域调 /start 就种在哪个域，而回调地址
+    # 固定是 login_base。两者不同域 → 回调收不到 state → 400「登录链接已失效」。
+    # 实测：Owner 在资料库域点了好几次，callback 全是 400、session 始终 0。
+    #
+    # 用 fetch 也不行——跨域 fetch 种不上 SameSite=lax 的 cookie。
+    assert "state.loginBase" in js, "没有按 login_base 决定去哪个域发起登录"
+    assert "login_base" in js, "不读服务端给的 login_base"
+    assert re.search(r'location\.href = `\$\{base\}/v1/auth/', js), "登录不是顶层跳转"
+    assert "redirect=1" in js, "没有用 302 模式——fetch 拿到 JSON 之后跨域种不上 state cookie"
 
 
 def test_login_can_be_undone() -> None:

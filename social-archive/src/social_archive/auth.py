@@ -29,6 +29,7 @@ from typing import Any
 
 import httpx
 from fastapi import APIRouter, HTTPException, Query, Request, Response
+from fastapi.responses import RedirectResponse
 
 from .config import Settings
 from .db import RuntimeStore
@@ -166,11 +167,29 @@ def build_router(settings: Settings, store: RuntimeStore) -> APIRouter:
             "providers": [
                 {"name": name, "configured": provider_configured(settings, name)}
                 for name in PROVIDERS
-            ]
+            ],
+            # **登录必须整条链路同域。** state cookie 是 host-only 的：
+            # 在哪个域调 /start，它就种在哪个域；而回调地址是固定的
+            # public_base_url（那是登记在 Google/GitHub 应用里的那个）。
+            # 两者不同域时回调收不到 state，直接 400「登录链接已失效」——
+            # 实测 Owner 就是这么卡住的（callback 两次 400，session 始终 0）。
+            # 把该去的那个域告诉界面，让它把人送到对的地方发起登录。
+            "login_base": settings.public_base_url.rstrip("/"),
         }
 
     @router.get("/{provider_name}/start")
-    def start(provider_name: str, response: Response) -> dict[str, str]:
+    def start(
+        provider_name: str,
+        response: Response,
+        redirect: int = Query(default=0),
+    ):
+        """取授权地址。
+
+        `redirect=1` 时直接 302 过去，于是登录按钮可以是一次**顶层跳转**
+        而不是 fetch —— 顶层导航下 SameSite=lax 的 state cookie 才种得上，
+        跨域 fetch 则种不上（需要 SameSite=None 且 CORS 允许凭据，
+        那是把 cookie 放宽给全站，不值得）。
+        """
         provider = _require_provider(provider_name)
         client_id = _client_id(settings, provider.name)
         if not client_id or not _client_secret(settings, provider.name):
@@ -194,7 +213,17 @@ def build_router(settings: Settings, store: RuntimeStore) -> APIRouter:
                 "state": state,
             }
         )
-        return {"authorize_url": f"{provider.authorize_url}?{query}"}
+        authorize_url = f"{provider.authorize_url}?{query}"
+        if redirect:
+            # cookie 必须种在**这个** 302 响应上：直接 return 的响应对象
+            # 与注入的 response 不是同一个，种错了等于没种。
+            redirected = RedirectResponse(authorize_url, status_code=302)
+            redirected.set_cookie(
+                STATE_COOKIE, state, max_age=STATE_TTL_SECONDS, httponly=True,
+                secure=secure_cookie, samesite="lax", path="/v1/auth",
+            )
+            return redirected
+        return {"authorize_url": authorize_url}
 
     @router.get("/{provider_name}/callback")
     async def callback(
@@ -241,7 +270,18 @@ def build_router(settings: Settings, store: RuntimeStore) -> APIRouter:
         )
         # 绝不回显 session_id 或任何 token——Cookie 已经带上了，正文里再出现
         # 一次只会多一个泄漏面（日志、Referer、截图）。
-        return {"ok": True, "provider": provider.name}
+        #
+        # **跳回应用，不要甩一行 JSON。** 原来这里 return {"ok": True}：
+        # 登录成功之后用户看到的是浏览器里一行 {"ok":true,"provider":"google"}，
+        # 没有任何东西告诉他「成功了、回去吧」。跳回的是 public_base_url ——
+        # 会话 cookie 就种在这个域上，跳去别的域等于刚登录就又没登录。
+        landing = RedirectResponse(f"{settings.public_base_url.rstrip('/')}/", status_code=302)
+        landing.delete_cookie(STATE_COOKIE, path="/v1/auth")
+        landing.set_cookie(
+            SESSION_COOKIE, session_id, max_age=60 * 60 * 24 * 30, httponly=True,
+            secure=secure_cookie, samesite="lax", path="/",
+        )
+        return landing
 
     @router.post("/logout")
     def logout(request: Request, response: Response) -> dict[str, bool]:

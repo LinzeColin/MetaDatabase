@@ -158,6 +158,8 @@
     accounts: [], syncRuns: [], destinations: [], serviceReady: false,
     // 登录身份（v0.0.0.7 / T02）。null = 未登录，登录闸会盖住整页。
     user: null,
+    // 发起登录必须去的那个域（回调地址登记在它上面）。见 startLogin。
+    loginBase: "",
     extension: { detected: false, paired: false, compatible: false, version: "", pairingRequired: false, oneTimeCodeAvailable: false, refreshedAt: null },
     platform: "all", group: true, sortKey: "savedAt", sortDir: "desc", search: "",
     filters: { relation: "all", topic: "all", date: "all", archive: "all" },
@@ -1248,7 +1250,8 @@
     const buttons = $("loginButtons");
     const note = $("loginNote");
     try {
-      const { providers = [] } = await api("/v1/auth/providers", { timeoutMs: 8000 });
+      const { providers = [], login_base: loginBase = "" } = await api("/v1/auth/providers", { timeoutMs: 8000 });
+      state.loginBase = String(loginBase || "").replace(/\/$/, "");
       const usable = providers.filter(item => item.configured);
       if (!usable.length) {
         buttons.innerHTML = "";
@@ -1269,20 +1272,24 @@
     return false;
   }
 
-  async function startLogin(provider, button) {
+  /** 发起登录。
+   *
+   * **必须是顶层跳转，而且必须跳到 login_base 那个域。**
+   *
+   * state cookie 是 host-only 的：在哪个域调 /start 就种在哪个域，
+   * 而回调地址固定是 login_base（登记在 Google/GitHub 应用里的那个）。
+   * 两者不同域时，回调收不到 state → 400「登录链接已失效」。
+   * 实测：Owner 在资料库域点了好几次，callback 全是 400、session 始终 0。
+   *
+   * 用 fetch 也不行：跨域 fetch 种不上 SameSite=lax 的 cookie，
+   * 要种得上就得放宽到 SameSite=None + CORS 允许凭据——
+   * 那是把登录 cookie 放宽给整个站点，不值得。顶层导航天然满足 lax。
+   */
+  function startLogin(provider, button) {
     button.disabled = true;
-    const original = button.textContent;
     button.textContent = "正在跳转…";
-    try {
-      // start 只返回 authorize_url 并种下 state cookie，**跳转要自己做**。
-      const { authorize_url: url } = await api(`/v1/auth/${encodeURIComponent(provider)}/start`, { timeoutMs: 10000 });
-      if (!url) throw new Error("没有拿到授权地址");
-      location.href = url;
-    } catch (error) {
-      button.disabled = false;
-      button.textContent = original;
-      $("loginNote").textContent = error.message || "登录没能开始，请稍后再试。";
-    }
+    const base = state.loginBase || "";
+    location.href = `${base}/v1/auth/${encodeURIComponent(provider)}/start?redirect=1`;
   }
 
   async function logout() {
