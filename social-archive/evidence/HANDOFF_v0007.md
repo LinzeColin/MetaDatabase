@@ -47,7 +47,7 @@ sparse    .github + social-archive
 | T15 | **done** | MV3 worker 之死的恢复；`evidence/T15/WORKER_DEATH_RECOVERY.json` |
 | T16 | **done** | 三个定时器已启用；**549/549 制品三副本齐全（R2+OCI+GitHub Release），pending 0**，开工前只有 19 个有任何副本。**三个仓各做过一次恢复演练，取回的字节哈希与登记值一致**。见 `T16/DURABILITY_IS_REAL_NOW.json` |
 | T17 | pending | 黄金事务（端到端）从未成功过——它按定义需要一次真实平台取数，因此在 T06/T08 解开之前无法开始。**Acceptance 原文不在仓内**。 |
-| T18 | **已部署（2026-08-04T05:21Z）** | 生产跑 0.0.0.7；**C-T00-01 根因修复实测生效**（cli-tools uid/gid 正确、密钥可读、业务路由 401→200）；卡在 scanning 的那条 run 已自行落到终态。见 `T18/DEPLOYED_AND_VERIFIED.json`。**未做真实回滚演练**，退路齐全 |
+| T18 | **已部署（2026-08-04T05:21Z）** | 生产跑 0.0.0.7；**C-T00-01 根因修复实测生效**（cli-tools uid/gid 正确、密钥可读、业务路由 401→200）；卡在 scanning 的那条 run 已自行落到终态。见 `T18/DEPLOYED_AND_VERIFIED.json`。**回滚演练已做**（29 秒，三条路由全 200，内容 193 条未动，会话没被踢；见 `T18/ROLLBACK_DRILL_ON_PRODUCTION.json`）。但那次回滚目标只差一个提交，**跨版本/带迁移的回滚仍未验过**，且已无可用的跨版本回滚镜像 |
 
 ## 接手第一件事：~~生产上数据只有一份~~ —— **已解决（2026-08-04）**
 
