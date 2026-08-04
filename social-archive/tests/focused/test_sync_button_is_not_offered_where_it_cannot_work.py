@@ -90,3 +90,22 @@ def test_the_capability_comes_from_one_place_only() -> None:
         assert f'"{hardcoded}"' not in table.split("sync_supported")[1][:600], (
             "同步能力在界面里被硬编码了——服务端一改就对不上"
         )
+
+
+def test_the_top_strip_does_not_say_everything_is_fine() -> None:
+    """「N 个账号已连接」在一条都同步不动时是误导。
+
+    Owner 的实况：三个已连接账号（小红书/抖音/B站），顶部写「3 个账号已连接」，
+    读起来像一切正常——而那三个在本版本一条都同步不了。
+
+    一个都同步不动时，顶部必须只说**现在真正能做的那一件事**。
+    """
+    js = code_only(PWA.read_text(encoding="utf-8"))
+    block = js.split("function renderSyncSummary", 1)[1][:2200]
+    assert "sync_supported !== false" in block, "顶部没有区分「已连接」与「同步得动」"
+    assert "还不能自动同步" in block, "没有把差别说出来"
+    assert "保存到我的档案馆" in block, "没有给出现在真正能做的那件事"
+    # 顺序要紧：先判断「一个都动不了」，再走原来那套统计
+    stuck_at = block.index("stuck > 0 && !syncable")
+    generic_at = block.index("if (!state.accounts.length)")
+    assert stuck_at < generic_at, "被通用分支抢先，特殊情况说不出来"

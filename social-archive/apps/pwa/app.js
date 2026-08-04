@@ -362,7 +362,26 @@
     const connected = state.accounts.filter(item => ["connected", "degraded"].includes(item.connection_state)).length;
     const active = state.syncRuns.filter(item => ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(item.status));
     const failures = state.syncRuns.filter(item => ["failed", "blocked_environment"].includes(item.status));
-    $("connectedAccountCount").textContent = `${connected} 个账号已连接`;
+    // **「已连接」不等于「同步得动」。**
+    //
+    // Owner 有三个已连接账号（小红书/抖音/B站），顶部却写着「3 个账号已连接」，
+    // 读起来像一切正常——而那三个在本版本一条都同步不了。他的原话是
+    // 「不知道应该怎么操作」。这里必须把这个差别说出来，而不是让人点了才发现。
+    const syncable = state.accounts.filter(item =>
+      ["connected", "degraded"].includes(item.connection_state)
+      && state.platformSupport[item.platform]?.sync_supported !== false).length;
+    const stuck = connected - syncable;
+    $("connectedAccountCount").textContent = stuck > 0
+      ? `${connected} 个账号已连接，其中 ${stuck} 个本版本还不能自动同步`
+      : `${connected} 个账号已连接`;
+    if (stuck > 0 && !syncable) {
+      // 一个都同步不动时，顶部只说一件事：**现在真正能做的那一件**。
+      $("syncSummaryText").textContent =
+        " · 现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」；"
+        + "或连接 Chrome 书签一次性导入。";
+      document.querySelector(".sync-strip")?.classList.add("needs");
+      return;
+    }
     if (!state.accounts.length) {
       $("syncSummaryText").textContent = " · 连接一次账号后自动全量导入收藏、点赞和书签";
       document.querySelector(".sync-strip")?.classList.add("needs");
