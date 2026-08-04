@@ -168,8 +168,13 @@ class ConnectorRegistry:
             # 能打开那道零费用门**（那是 Owner 的花钱判断）。真实原因写在
             # NOT_SYNCABLE_YET 里，含「现在可以：…」那半句。
             if connector_id in NOT_SYNCABLE_YET:
-                if state == "healthy":
-                    state = "blocked_environment"
+                # **同一处境，只能有一个状态。** 修完第一版之后生产上是这样：
+                #     bilibili / instagram   blocked_environment
+                #     xiaohongshu/douyin/快手 degraded
+                # 同样是「本版本读不了」，却分成两种。`degraded` 读起来像
+                # 「暂时不行、待会儿再试」，而这件事重试多少次都一样。
+                # 一律按 blocked_environment 呈现。
+                state = "blocked_environment"
                 probe = {
                     **probe,
                     "state": state,

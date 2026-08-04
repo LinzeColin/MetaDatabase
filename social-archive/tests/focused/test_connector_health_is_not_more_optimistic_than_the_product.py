@@ -65,3 +65,21 @@ def test_the_clamp_reads_the_single_source_of_truth() -> None:
     assert "SYNCABLE_NOW" in code and "NOT_SYNCABLE_YET" in code
     for hardcoded in ("instagram", "bilibili", "tiktok", "xiaohongshu"):
         assert f'"{hardcoded}"' not in code, f"这里硬编码了 {hardcoded}——第二份名单必然漂开"
+
+
+def test_the_same_situation_gets_the_same_state(settings, store) -> None:
+    """同样是「本版本读不了」，不能一部分 degraded、一部分 blocked_environment。
+
+    `degraded` 读起来像「暂时不行、待会儿再试」，而这件事重试多少次都一样。
+    第一版修完后生产上正是这个样子：bilibili/instagram 是 blocked_environment，
+    小红书/抖音/快手 是 degraded。
+    """
+    states = {
+        view["connector_id"]: view["state"]
+        for view in _views(settings, store)
+        if view["connector_id"] in NOT_SYNCABLE_YET
+    }
+    assert states, "一个不可同步的平台都没有？判据失去依附"
+    assert set(states.values()) == {"blocked_environment"}, (
+        f"同一处境却有多种状态：{states}"
+    )
