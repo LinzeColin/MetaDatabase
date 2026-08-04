@@ -14,17 +14,93 @@ sparse    .github + social-archive
 
 主树 `GithubProject/MetaDatabase` 停在 main、0 脏文件，没被污染（铁律 2）。
 
-## DAG 状态
+## DAG 状态（2026-08-04 更新）
 
 | 任务 | 状态 | 说明 |
 |---|---|---|
-| T00 | **done** | 证据 `evidence/T00/CURRENT_TRUTH.json` |
-| T01 | **done** | 证据 `evidence/T01/MIGRATION_COUNTS.json` |
-| T02 | **in_progress** | 制品✓ 测试✓；Acceptance `NOT_RUN`，卡在真实 OAuth 凭据 |
-| T03 | **可以开工** | `depends_on` 只有 T00，不受 T02 阻塞 |
-| T04–T18 | pending | T04 依赖 T02+T03 |
+| T00 | **done** | `evidence/T00/CURRENT_TRUTH.json`；另见 `C-T00-01_STILL_BROKEN_IN_PRODUCTION.json` |
+| T01 | **done** | `evidence/T01/MIGRATION_COUNTS.json`；`tenancy_audit` 已挂到 `/v1/status` |
+| T02 | **in_progress** | 本地登录链路实测通过（登出→401 已验）；差 Owner 用真账号登录一次 |
+| T03 | **done** | `evidence/T03/REMOVAL_AND_ZERO_TYPING.json` |
+| T04 | **done** | 真实浏览器跑通：62 条书签 `queued→completed`，界面表格 62/62 逐条对上 |
+| T05 | **done** | 凭据托管；HTTP 层往返判据见 `test_credential_http_roundtrip.py` |
+| T06 | **partial** | 托管往返实测通过（合成会话）；**Oracle 未跑**，需 Owner 的 X 登录 |
+| T07 | **blocked** | 卡在 sidecar 凭据策略（见下「唯一需要 Owner 裁定的设计问题」） |
+| T08 | **partial** | 拦截链路在真浏览器跑通（不碰任何平台）；真实收藏页未验 |
+| T09–T11 | pending | 依赖 T06/T08 的真实数据 |
+| T12 | **done** | gallery-dl 退出码契约取自安装源；`evidence/T12/EXIT_CODE_CONTRACT.json` |
+| T13 | pending | |
+| T14 | **done** | 失败文案；两道门（失败码可解释、证据声明局限）已接进发布门 |
+| T15 | **done** | MV3 worker 之死的恢复；`evidence/T15/WORKER_DEATH_RECOVERY.json` |
+| T16 | **partial** | 回归判据在；**生产三副本实际没在跑**，见下 |
+| T17 | pending | |
+| T18 | **partial** | 回滚演练已做（并修掉演练暴露的数据丢失缺陷）；部署未做 |
 
-19 个任务的分类（apply 15 / adapt 4 / conflict 0）在 `CURRENT_TRUTH.json`。
+## 接手第一件事：生产上数据只有一份
+
+**2026-08-04 实测，这是本项目当前最大的风险，且与代码无关。**
+
+    制品总数              549
+    有 ≥1 个异地副本       19
+    **一个副本都没有**    530
+    三副本齐全             2
+
+    social-archive-backup.timer                  disabled / 从未运行
+    social-archive-replication.timer             disabled / 从未运行
+    social-archive-private-database-sync.timer   disabled / 从未运行
+
+journalctl 90 天内三个 unit 全是 "No entries"。`/var/backups` 里只有
+v0.0.0.6 取证阶段的手工产物，**没有任何定时备份**。
+
+不是配置缺失（六项必需配置在 `/etc/social-archive/social-archive.env` 里全在，
+四个脚本也都验过：缺配置时退出 3 并打印明确中文原因，不会静默成功）。
+**唯一的原因是这三个 timer 从来没有被启用过。**
+
+`prepare_systemd_host.sh` 按设计不启用任何 unit（装好 → 验收 → Owner 显式启用），
+那个取舍是对的；缺的是交接**没说要启用哪几个**。已补：脚本末尾逐条列出，
+并新增 `scripts/check_durability_units.sh` 在宿主机上复核。
+
+    systemctl enable --now social-archive-backup.timer \
+                           social-archive-replication.timer \
+                           social-archive-private-database-sync.timer
+    bash /opt/social-archive/scripts/check_durability_units.sh
+
+启用后 15 分钟内第一次触发，`journalctl -u social-archive-replication -f`
+能看到**唯一还没验过的那一环**：云端凭据是否真的有效。
+
+详见 `evidence/T18/DURABILITY_UNITS_NEVER_ENABLED.json`。
+
+## 唯一需要 Owner 裁定的设计问题
+
+**平台会话（Cookie）能不能进那个 24 小时联网的 cli-tools 容器？**
+
+`capture_url` 有两条分支：配了 `cli_worker_url` 走 HTTP sidecar，否则跑本机
+二进制。v0.0.0.7 把凭据接到了**本机分支**，而生产走的是 **sidecar 分支**——
+所以那次修复在生产上暂时不生效。
+
+要接通有两条路，方向相反、工作量都不小：
+
+- **不进容器**：改走共享卷传临时文件，或放弃进程隔离让 Core 自己跑工具
+- **可以进**：改 sidecar 的 `/v1/capture-url` 接口，让它接收 cookies
+
+compose 对**备份 age 私钥**的既有答案是明确的「不进」。Cookie 是不是同一个
+答案，属于安全偏好而不是技术选型，**不替 Owner 猜**。这一条卡着 T07/T10/T11。
+
+见 `evidence/T06/CREDENTIALS_WERE_NEVER_USED.json`。
+
+## 本轮反复撞到的一个形态：建好了没接上
+
+六次，每次都是模块写完、判据写好、全绿，然后才发现没有人在调它：
+
+    failure_copy 词典 / unexplained_zero_runs 审计 / 扩展的 lastResult /
+    CredentialStore.materialize / tenancy_audit / /v1/storage/status
+
+**判据只证明「这个函数写得对」，不证明「有人在调它」。**
+已落成两道门：`find_unwired_code.py`（生产代码里零引用的公开符号）与
+`find_endpoints_no_client_calls.py`（服务端开着但没客户端请求的接口）。
+
+写这两道门时我自己又把射程写错了三次（两次漏 `scripts/`——systemd 直接跑它，
+那也是生产；一次多算了 `scripts/`）。**新写一道门，第一件事是核它的射程。**
 
 ## 三条必须知道的事实
 
@@ -46,7 +122,7 @@ sparse    .github + social-archive
 
 ### 2. origin/main 的测试套件本身不是绿的
 
-干净基线：**288 passed / 11 failed**。这 11 个失败与本轮改动无关，
+干净基线（origin/main）：**288 passed / 11 failed**。
 分属 T03/T04 等后续任务射程。清单在 `evidence/T01/MIGRATION_COUNTS.json`
 的 `pre_existing_failures`。
 
@@ -54,7 +130,15 @@ HANDOFF.md 记的「235 passed」已过时。
 **不要拿「全绿」当可用判据**——`GOLDEN_TRANSACTION.md` 本来就把它列在
 「不能拿来当 PASS 的证据」里。
 
-当前分支：**322 passed / 同样 11 failed**（新增 34 个测试全过，既有一个没弄坏）。
+**当前分支：550 passed / 0 failed**（2026-08-04）。
+
+那 11 条（后期收敛为 7 条）已**全部结清**，逐条查清成因：2 条字段改名、
+3 条 v0.0.0.6 换界面留下的陈旧标记、1 条**直指生产事故根因**（cli 镜像缺
+`useradd --gid socialarchive`，正是 C-T00-01）、1 条钉 UI 文案而非不变量。
+详见 `evidence/BASELINE_FAILURES.json`。
+
+**教训：不要把「基线失败」当背景噪音。** 那个标签把「我还没弄懂」
+包装成「与我无关」，而其中一条一直在指名道姓地说出生产事故的根因。
 
 ### 3. 生产环境访问
 
@@ -86,7 +170,15 @@ compose 暴露的是 `8765/tcp -> 127.0.0.1:18765`。
 
 迁移**尚未上生产**：旧镜像的 INSERT 不带 `user_id`，只推 Schema 会立刻造出
 T01 Acceptance 禁止的孤儿行。迁移随新镜像由 `initialize()` 一起上线，归 T18。
-T18 部署前必须先 `sqlite3 .backup` 取快照并交给 `scripts/rollback_0007.sh`（已实证可用）。
+T18 部署前必须先 `sqlite3 .backup` 取快照并交给 `scripts/rollback_0007.sh`。
+
+> **注意：这份交接原来写的是「已实证可用」，那句话当时没有依据。**
+> 2026-08-04 第一次真跑演练，当场炸出一个数据丢失缺陷：撤销回滚与前一次
+> 回滚发生在同一秒时，备份文件名（只精确到秒）会**覆盖它正要恢复的那份
+> 快照**，脚本照样打印「✓ 回滚完成」而 users/session/platform_credential
+> 整批消失。已修并加判据，见 `evidence/T18/ROLLBACK_DRILL.json`。
+> 另：**只回滚数据库不够**——v0.0.0.7 的代码一启动就会把迁移静默重做一遍。
+> 正确顺序是「先停服务 → 回滚代码 → 回滚数据库 → 再启动」。
 
 ## T02 卡在哪
 
