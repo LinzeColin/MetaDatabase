@@ -10,6 +10,8 @@ HOST_ENV_FILE="$HOST_ENV_DIR/social-archive.env"
 SYSTEMD_DIR="/etc/systemd/system"
 BACKUP_ROOT="/var/backups/social-archive"
 SYSTEM_USER="socialarchive"
+# 密钥组与数据组是**两个**组：数据组管写产出，密钥组管读 /run/secrets/。
+SECRETS_GROUP="socialarchive-secrets"
 # Core runs unprivileged as this uid. It owns the shared bind data root; the
 # dedicated host service account is granted group access only to that data root.
 # Long-lived source secrets stay root-owned and are handed to a unit through
@@ -107,6 +109,8 @@ validate_source_contract() {
   [[ "$(env_value SOCIAL_ARCHIVE_IMPORT_HOST_PATH)" == "$HOST_DATA_ROOT/import" ]] || fail "生产 SOCIAL_ARCHIVE_IMPORT_HOST_PATH 必须精确为 $HOST_DATA_ROOT/import，禁止 Core 与宿主机分裂导入面。"
   [[ "$(env_value SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH)" == "$HOST_DATA_ROOT/vendor-output" ]] || fail "生产 SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH 必须精确为 $HOST_DATA_ROOT/vendor-output，禁止 Core 与 CLI Sidecar 分裂输出面。"
   [[ "$(env_value SOCIAL_ARCHIVE_HOST_DATA_GID)" =~ ^[0-9]+$ ]] || fail 'SOCIAL_ARCHIVE_HOST_DATA_GID 必须是宿主机 socialarchive 组的数字 gid。'
+  [[ "$(env_value SOCIAL_ARCHIVE_HOST_SECRETS_GID)" =~ ^[0-9]+$ ]] || fail 'SOCIAL_ARCHIVE_HOST_SECRETS_GID 必须是宿主机 socialarchive-secrets 组的数字 gid。缺了它，CLI Sidecar 读不到 /run/secrets/（C-T00-01）。'
+  [[ "$(env_value SOCIAL_ARCHIVE_HOST_SECRETS_GID)" != "$(env_value SOCIAL_ARCHIVE_HOST_DATA_GID)" ]] || fail '数据组与密钥组不能是同一个 gid：写产出要 socialarchive，读密钥要 socialarchive-secrets。配成一样必然有一边坏掉。'
   private_database_client="$(env_value SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT)"
   [[ -n "$private_database_client" ]] || fail '缺少 SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT；禁止回退到本地 Private-Database 工作树。'
   [[ "$(basename "$private_database_client")" == "private_db_client.py" && -f "$private_database_client" && ! -L "$private_database_client" ]] || fail 'SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT 必须指向已安装、非符号链接的官方 private_db_client.py；禁止 clone 或挂载 Private-Database。'
@@ -191,6 +195,16 @@ fi
 
 host_data_gid="$(id -g "$SYSTEM_USER")"
 [[ "$(env_value SOCIAL_ARCHIVE_HOST_DATA_GID)" == "$host_data_gid" ]] || fail "SOCIAL_ARCHIVE_HOST_DATA_GID 必须精确等于 $SYSTEM_USER 的 gid ($host_data_gid)，否则 CLI Sidecar 无法写入共享数据根。"
+
+# **写产出和读密钥是两个组，不能共用一个变量。**（C-T00-01）
+#   /var/lib/social-archive/vendor-output  10001:980   2770 → 要 socialarchive
+#   /run/secrets/*                         10001:10001 0640 → 要 socialarchive-secrets
+# 只给前者，容器 /health 照样 200 而业务路由一律 401，界面永远「同步中」。
+if ! getent group "$SECRETS_GROUP" >/dev/null 2>&1; then
+  groupadd --system "$SECRETS_GROUP"
+fi
+host_secrets_gid="$(getent group "$SECRETS_GROUP" | cut -d: -f3)"
+[[ "$(env_value SOCIAL_ARCHIVE_HOST_SECRETS_GID)" == "$host_secrets_gid" ]] || fail "SOCIAL_ARCHIVE_HOST_SECRETS_GID 必须精确等于 $SECRETS_GROUP 的 gid ($host_secrets_gid)，否则 CLI Sidecar 读不到 /run/secrets/ 下的密钥（这正是 C-T00-01）。"
 
 # These paths are deliberately shallow: the command establishes only new data
 # directories and never recursively changes ownership of existing user objects.

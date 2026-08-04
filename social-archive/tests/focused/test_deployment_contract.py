@@ -87,7 +87,8 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
         "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n"
         "SOCIAL_ARCHIVE_IMPORT_HOST_PATH=/var/lib/social-archive/import\n"
         "SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH=/var/lib/social-archive/vendor-output\n"
-        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n"
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=980\n"
+        "SOCIAL_ARCHIVE_HOST_SECRETS_GID=10001\n"
         f"SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT={private_database_client}\n",
         encoding="utf-8",
     )
@@ -148,7 +149,8 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
         "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n"
         "SOCIAL_ARCHIVE_IMPORT_HOST_PATH=/var/lib/social-archive/import\n"
         "SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH=/var/lib/social-archive/vendor-output\n"
-        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n"
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=980\n"
+        "SOCIAL_ARCHIVE_HOST_SECRETS_GID=10001\n"
         f"SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT={project / 'missing' / 'private_db_client.py'}\n",
         encoding="utf-8",
     )
@@ -163,7 +165,8 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
         "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n"
         "SOCIAL_ARCHIVE_IMPORT_HOST_PATH=./runtime/import\n"
         "SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH=/var/lib/social-archive/vendor-output\n"
-        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n"
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=980\n"
+        "SOCIAL_ARCHIVE_HOST_SECRETS_GID=10001\n"
         f"SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT={private_database_client}\n",
         encoding="utf-8",
     )
@@ -177,7 +180,8 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
         "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n"
         "SOCIAL_ARCHIVE_IMPORT_HOST_PATH=/var/lib/social-archive/import\n"
         "SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH=/var/lib/social-archive/vendor-output\n"
-        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n"
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=980\n"
+        "SOCIAL_ARCHIVE_HOST_SECRETS_GID=10001\n"
         f"SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT={private_database_client}\n",
         encoding="utf-8",
     )
@@ -217,6 +221,7 @@ def test_systemd_host_prepare_refuses_to_erase_existing_nonsecret_host_configura
         f"SOCIAL_ARCHIVE_IMPORT_HOST_PATH={data_root}/import\n"
         f"SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH={data_root}/vendor-output\n"
         "SOCIAL_ARCHIVE_HOST_DATA_GID=980\n"
+        "SOCIAL_ARCHIVE_HOST_SECRETS_GID=10001\n"
         f"SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT={private_database_client}\n",
         encoding="utf-8",
     )
@@ -395,12 +400,18 @@ def test_core_and_host_maintenance_share_an_explicit_bind_data_plane():
     assert "social_archive_data" not in (compose.get("volumes") or {})
 
     cli = compose["services"]["cli-tools"]
-    assert cli["group_add"] == ["${SOCIAL_ARCHIVE_HOST_DATA_GID:-10001}"]
+    assert cli["group_add"] == [
+        "${SOCIAL_ARCHIVE_HOST_DATA_GID:-980}",
+        # 写产出与读密钥是两个组。只给前者 → CLI Sidecar 读不到自己的密钥，
+        # /health 仍 200 而业务路由全 401（C-T00-01）。
+        "${SOCIAL_ARCHIVE_HOST_SECRETS_GID:-10001}",
+    ]
 
     example = (ROOT / ".env.example").read_text(encoding="utf-8")
     prepare = (ROOT / "scripts" / "prepare_systemd_host.sh").read_text(encoding="utf-8")
     assert "SOCIAL_ARCHIVE_DATA_HOST_PATH=./runtime/data" in example
-    assert "SOCIAL_ARCHIVE_HOST_DATA_GID=10001" in example
+    assert "SOCIAL_ARCHIVE_HOST_DATA_GID=980" in example
+    assert "SOCIAL_ARCHIVE_HOST_SECRETS_GID=10001" in example
     assert 'HOST_DATA_ROOT="/var/lib/social-archive"' in prepare
     assert "SOCIAL_ARCHIVE_DATA_HOST_PATH" in prepare
     assert "SOCIAL_ARCHIVE_DATA_ROOT" in prepare
