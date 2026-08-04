@@ -53,6 +53,38 @@ for name in r2_access_key_id r2_secret_access_key oci_access_key_id oci_secret_a
   [[ -e "runtime/secrets/$name" ]] || : > "runtime/secrets/$name"
   chmod 600 "runtime/secrets/$name"
 done
+# **挂进容器的那些，容器必须读得到。**
+#
+# 这条不变量此前**只存在于一句注释里**（scripts/prepare_systemd_host.sh:205
+# 写着「/run/secrets/* 10001:10001 0640」），没有任何一行代码去落实它。
+# 生产上那些 0640 是不知哪一次手敲出来的，而 instagram_session 被漏掉了，
+# 一直是 0600。
+#
+# 后果：cli-tools 跑在 uid 10002 / gid 10001，0600 owner=10001 一点权限都不给。
+# 2026-08-04 实测，Instagram 连接器返回
+# `[Errno 13] Permission denied: '/run/secrets/instagram_session'`
+# ——**不管有没有配 session，它从来就没能工作过。**
+#
+# 名单从 compose.yaml 自己读，不在这里再抄一份：抄的那份必然漂开。
+mounted="$("$PYTHON" - <<'PYMOUNTED'
+import pathlib, re
+text = pathlib.Path("compose.yaml").read_text(encoding="utf-8")
+# 服务块里的 secrets 引用（含 `- source: x` 形式）。定义块在文件末尾的顶层
+# `secrets:` 里，那里是 `name: {file: …}`，不带前导 `- `，天然不会被这条匹配到。
+names = set(re.findall(r"^\s+-\s+(?:source:\s*)?([a-z0-9_]+)\s*$", text, re.M))
+print(" ".join(sorted(names)))
+PYMOUNTED
+)"
+for name in $mounted; do
+  [[ -e "runtime/secrets/$name" ]] || continue
+  chmod 640 "runtime/secrets/$name"
+done
+if [[ "$(id -u)" == "0" ]]; then
+  for name in $mounted; do
+    [[ -e "runtime/secrets/$name" ]] || continue
+    chown 10001:10001 "runtime/secrets/$name"
+  done
+fi
 "$PYTHON" - <<'PYSECRETS'
 from pathlib import Path
 import secrets

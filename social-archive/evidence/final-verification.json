@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 543 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 544 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {

@@ -13,7 +13,39 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-SECRET_PATTERN = re.compile(r"(?i)(token|secret|password|cookie|authorization|session)[=: ]+[^\s,;]+")
+# 密钥脱敏。**这个正则改过一次，因为原来那版同时犯了两个方向相反的错。**
+#
+# 原版：r"(?i)(token|secret|password|cookie|authorization|session)[=: ]+[^\s,;]+"
+#
+#   1. **漏**。`Authorization: Bearer eyJhbGciOi….SIG` 里，关键词后面的第一段
+#      是 `Bearer`——于是它把 "Bearer" 这个词遮住，**把真正的 JWT 原样留在日志里**。
+#      实测：`Authorization=<已隐藏> eyJhbGciOiJIUzI1NiJ9.PAYLOAD.SIG`。
+#      这个函数存在的全部理由就是防这个。
+#   2. **过**。分隔符里有一个裸空格，于是中文里正常的
+#      「Instagram Session 尚未配置」被吃成「Instagram Session=<已隐藏>」，
+#      「缺少 Reddit OAuth token 或 username」被吃成
+#      「缺少 Reddit OAuth token=<已隐藏> username」。
+#      **用户最需要的那句解释，被脱敏器吃掉了。**
+#      2026-08-04 生产实测就是这么发现的：修好 Instagram 的权限之后，
+#      失败原因显示成 `Instagram Session=<已隐藏>`，什么也看不出来。
+#
+# 现在分两种写法处理：
+#
+#   · 显式赋值 `key=value` / `key: value` —— 一律遮到 `;` `,` 或行尾。
+#     Authorization 那种「Bearer <token>」整段都在这个范围里，不会再漏。
+#   · 只隔一个空格 `key value` —— **只在后面那段像密钥时才遮**：
+#     长度 ≥12，或者字母数字混排。这样 `Session 尚未配置`、`token 或 username`、
+#     `Authorization header missing` 都能留下，而 `password hunter2`、
+#     `Authorization Bearer eyJ…` 照遮不误。
+#
+# 这一版在「漏」的方向上**严格强于**旧版；在「过」的方向上只放过明显是散文的部分。
+_SECRET_KEY = r"(?i)(token|secret|password|passwd|cookie|authorization|session|api[_-]?key)"
+_ASSIGNED = re.compile(_SECRET_KEY + r"\s*[=:]\s*[^;,\n]+")
+_SPACED = re.compile(
+    _SECRET_KEY + r"[ \t]+((?:bearer|basic|token)[ \t]+)?"
+    r"(?=[!-~])(?:[A-Za-z0-9_.\-+/=]{12,}|[A-Za-z0-9_.\-+/=]*(?:[A-Za-z][0-9]|[0-9][A-Za-z])[A-Za-z0-9_.\-+/=]*)"
+    r"[^;,\n ]*"
+)
 SHARED_HOST_SECRET_ROOT = Path("/opt/social-archive/runtime/secrets")
 CORE_SECRET_UID_GID = 10001
 SYSTEMD_CREDENTIALS_ROOT = Path("/run/credentials")
@@ -102,7 +134,8 @@ def json_bytes(value: Any) -> bytes:
 
 
 def redact(value: str) -> str:
-    return SECRET_PATTERN.sub(lambda m: f"{m.group(1)}=<已隐藏>", value)
+    value = _ASSIGNED.sub(lambda m: f"{m.group(1)}=<已隐藏>", value)
+    return _SPACED.sub(lambda m: f"{m.group(1)}=<已隐藏>", value)
 
 
 def approved_shared_host_secret(path: Path, *, mode: int, uid: int, gid: int) -> bool:
