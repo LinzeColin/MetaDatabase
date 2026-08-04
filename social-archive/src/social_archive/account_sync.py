@@ -64,11 +64,29 @@ SERVER_ACCOUNT_CONNECTORS = {"x", "reddit", "instagram", "bilibili"}
 # 直接原因就是这个：界面提供了一个结构上不可能成功的动作。
 #
 # 规则：**能不能同步是服务端说了算，界面照着画**。不要在两个前端各维护一份。
+# 2026-08-04 生产实测把这张表砍到只剩一个。三条都是**打到生产上量出来的**，
+# 不是读代码推的（POST /v1/connectors/{id}/run）：
+#
+#   x          blocked_environment  X_ZERO_COST_NOT_CONFIRMED
+#              官方 X API 被零费用门关着（默认 false，Owner 的 L0 硬边界是
+#              「0 新增必付费用」）。账号同步走的是同一条 registry.run，
+#              所以**本版本没有任何一条 x 取数路能成**。
+#              旁边原来那行注释写着「Cookie 托管 + gallery-dl（T06/T07）」
+#              ——那是意图，代码没有实现它。
+#   reddit     blocked_environment  REDDIT_AUTH_MISSING「缺少 Reddit OAuth token 或 username」
+#              配置项确实"设得上"（写进 /run/secrets/reddit_oauth_token），
+#              但那要有服务器访问权限、要会编辑文件。**Owner 说过「我没有技术基础」。**
+#              没有界面，没有 OAuth 授权入口。
+#   instagram  HTTP 422「CLI Sidecar 调用失败」——连结构化失败都不是。
+#
+# 三个平台的界面上都画着「立即同步」。点下去分别得到
+# 「零费用门未确认」「缺少 Reddit OAuth token 或 username」「HTTP 422」。
+# 这正是 Owner 那句「点击同步不就是自动刷新全部同步吗，怎么实际功能和
+# 显示文字还不一样」，只是他还没连上这三个所以没撞到。
+#
+# **这张表是事实清单，不是愿景清单。** 量不出来的就不许留在里面。
 SYNCABLE_NOW: frozenset[str] = frozenset({
-    "generic-web",   # Chrome 书签，T04 实测 62 条全量跑通
-    "x",             # Cookie 托管 + gallery-dl（T06/T07），需先连接账号
-    "instagram",     # 同上，走 CLI sidecar 的 instagram_saved
-    "reddit",        # 官方 OAuth，需先配 token
+    "generic-web",   # Chrome 书签，T04 实测 62 条全量跑通——唯一有实测底的
 })
 # 暂时同步不了的，每条写清**为什么**与**现在能做什么**。
 # 界面直接把这句话显示出来，而不是让用户点了才知道。
@@ -77,6 +95,17 @@ NOT_SYNCABLE_YET: dict[str, str] = {
     "douyin": "本版本还不能自动读取抖音的收藏列表。现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。",
     "kuaishou": "本版本还不能自动读取快手的收藏列表。现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。",
     "bilibili": "本版本还不能自动读取 B 站的收藏夹。现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。",
+    # 下面三条的原因和上面四个不一样：上面四个是「取数路还没做出来」，
+    # 这三个是「路做了一半，而剩下那半不是你能补上的」。
+    # 文案里不出现「OAuth」「token」「sidecar」——Owner 说过他没有技术基础，
+    # 让他读这些词等于让他读我们的代码。
+    "x": "本版本还不能自动读取 X 的书签。原因是官方 X 接口可能收费，"
+         "而这个项目的硬规矩是绝不产生新的必付费用，所以那条路是主动关着的。"
+         "现在可以：在浏览器里打开任意一条推文，点插件的「保存到我的档案馆」。",
+    "reddit": "本版本还不能自动读取 Reddit 的收藏。授权那一步还没有做成你能点的界面。"
+              "现在可以：在浏览器里打开任意一个帖子，点插件的「保存到我的档案馆」。",
+    "instagram": "本版本还不能自动读取 Instagram 的收藏。授权那一步还没有做成你能点的界面。"
+                 "现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。",
 }
 
 
