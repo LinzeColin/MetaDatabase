@@ -39,6 +39,20 @@ def _node(script: str) -> object:
 # ── 硬边界：源码层 ───────────────────────────────────────────────────
 
 
+
+def _install_function() -> str:
+    """诊断按钮背后那段代码的正文。
+
+    它原来长在消息处理器里，2026-08-05 整段挪成了 installNetObserverForTab——
+    只为一件事：让真浏览器演练能调它本人，而不是照抄一遍它的顺序。
+    下面几条判据跟着挪到这里取，**取不到就直接报错**，不许静默退化成空串。
+    """
+    code = (EXT / "background.js").read_text(encoding="utf-8")
+    assert "async function installNetObserverForTab" in code, "安装函数不见了"
+    body = code.split("async function installNetObserverForTab", 1)[1]
+    return body.split("\nasync function", 1)[0]
+
+
 def test_observer_never_reads_cookies_or_synthesises_requests() -> None:
     code = "\n".join(
         line for line in OBSERVER.read_text(encoding="utf-8").splitlines()
@@ -157,6 +171,7 @@ const fs = require("fs"), vm = require("vm");
 const posted = [];
 const PAYLOAD = JSON.stringify({{ code: 0, data: {{ medias: [{{ id: 1 }}, {{ id: 2 }}] }} }});
 const sandbox = {{
+  setTimeout, clearTimeout,
   window: null,
   XMLHttpRequest: function () {{}},
   console,
@@ -217,7 +232,7 @@ def test_observer_ignores_everything_when_no_prefix_configured() -> None:
     script = f"""
 const fs = require("fs"), vm = require("vm");
 const posted = [];
-const sandbox = {{ console, Date, XMLHttpRequest: function () {{}} }};
+const sandbox = {{ console, Date, setTimeout, clearTimeout, XMLHttpRequest: function () {{}} }};
 sandbox.XMLHttpRequest.prototype.open = function () {{}};
 sandbox.XMLHttpRequest.prototype.send = function () {{}};
 sandbox.window = {{
@@ -261,11 +276,7 @@ def test_relay_is_injected_before_the_observer() -> None:
       · 观察器先装 → observer_installed 收不到（false）
       · 中继先装   → 收得到（true）
     """
-    code = (EXT / "background.js").read_text(encoding="utf-8")
-    marker = 'if (message?.type === "SA_INSTALL_NET_OBSERVER")'
-    assert marker in code
-    block = code[code.index(marker):]
-    block = block[: block.index("SA_NET_CAPTURE")]
+    block = _install_function()
     relay_at = block.index("content/net-relay.js")
     observer_at = block.index("net-observer.js")
     assert relay_at < observer_at, (
@@ -285,9 +296,8 @@ def test_the_diagnostic_does_not_require_the_answer_it_is_looking_for():
 
     诊断模式改为按当前标签页的域名推前缀。
     """
-    background = (EXT / "background.js").read_text(encoding="utf-8")
-    block = background.split('"SA_INSTALL_NET_OBSERVER"', 1)[1][:2200]
-    assert "message.diagnostic === true" in block, "没有诊断模式，前缀未知的平台会被直接拒绝"
+    block = _install_function()
+    assert "if (diagnostic)" in block, "没有诊断模式，前缀未知的平台会被直接拒绝"
     assert "chrome.tabs.get(tabId)" in block, "没有去读标签页的真实地址"
     assert "registrable" in block, "没有从域名推出前缀"
 
@@ -298,8 +308,8 @@ def test_the_diagnostic_cannot_be_told_what_to_capture():
     否则「诊断」就成了一个可以指定抓任意域名的通道。
     """
     background = (EXT / "background.js").read_text(encoding="utf-8")
-    block = background.split('"SA_INSTALL_NET_OBSERVER"', 1)[1][:2200]
-    diagnostic = block.split("message.diagnostic === true", 1)[1][:900]
+    block = _install_function()
+    diagnostic = block.split("if (diagnostic)", 1)[1][:900]
     assert "message.urlPrefixes" not in diagnostic, "诊断模式采信了调用方给的前缀"
     assert "prefixes = [registrable]" in diagnostic, "前缀不是从域名推出来的"
 
@@ -327,9 +337,19 @@ def test_the_diagnostic_reloads_first_so_it_does_not_use_a_stale_observer():
     而自报 installed/ready 全为 true —— 「装好了、就绪了、什么也没有」，
     最难查的那种。reload 之后同一套代码立刻抓到 6 条。
     """
-    background = (EXT / "background.js").read_text(encoding="utf-8")
-    block = background.split('"SA_INSTALL_NET_OBSERVER"', 1)[1][:5000]
+    block = _install_function()
     assert "chrome.tabs.reload(tabId)" in block, "诊断前不刷新页面，可能用到旧观察器"
+    # **这条判据的方向 2026-08-05 反过来了，而且是对的。**
+    #
+    # 原来钉的是「刷新排在注入之前」。那一版注入用的是 executeScript，
+    # 只能在页面加载完之后打进去；实测那样太晚——页面像真收藏夹页那样
+    # 只在加载时发一次请求的话，自报 installed/ready 全为 true 而抓到 0 条。
+    #
+    # 现在钉的是更强的一条：**注册要排在刷新之前**。注册成 document_start 的
+    # 内容脚本，脚本就比页面自己的 JS 先跑，那条缝才真的封上。
+    register_at = block.index("registerContentScripts")
     reload_at = block.index("chrome.tabs.reload(tabId)")
-    inject_at = block.index('files: ["content/net-relay.js"]')
-    assert reload_at < inject_at, "刷新排在注入之后，等于没刷"
+    assert register_at < reload_at, (
+        "注册排在刷新之后，等于这次刷新页面上没有观察器——"
+        "页面加载时打的那个请求会一条都抓不到"
+    )

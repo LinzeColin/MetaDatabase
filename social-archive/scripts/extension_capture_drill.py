@@ -85,15 +85,20 @@ FAKE_FAVLIST = {
     },
 }
 
-# 页面故意用两种写法各发一次：
+# **这个页面在加载时各发一次，然后就不发了。**
+#
+# 第一版写的是 setInterval 每 700ms 发一次——那样演练一定会 PASS，
+# 因为观察器无论多晚装上都还能等到下一轮。**真实收藏夹页不是这样的**：
+# 收藏列表那个请求是页面加载时打的，打完就没有了。
+# 一个比现实宽容的假页面，测出来的绿是假绿。
+#
+# 两种写法各一次：
 #   相对地址  —— 平台调自己接口的常规写法，也是 absolute() 那个补丁要保的路
 #   绝对地址  —— 补丁之前唯一能匹配上的写法，用来对照
 PAGE = f"""<!doctype html><meta charset="utf-8"><title>回环演练收藏夹</title>
-<body><p>这个页面只发请求，不做别的。</p><script>
-setInterval(() => {{
-  fetch("{FAV_PATH}?rel=1&pn=1").then(r => r.json()).catch(() => {{}});
-  fetch("http://127.0.0.1:{PORT}{FAV_PATH}?abs=1&pn=1").then(r => r.json()).catch(() => {{}});
-}}, 700);
+<body><p>这个页面在加载时发一次请求，之后不再发——和真实收藏夹页一样。</p><script>
+fetch("{FAV_PATH}?rel=1&pn=1").then(r => r.json()).catch(() => {{}});
+fetch("http://127.0.0.1:{PORT}{FAV_PATH}?abs=1&pn=1").then(r => r.json()).catch(() => {{}});
 </script></body>
 """
 
@@ -116,27 +121,49 @@ class _Handler(BaseHTTPRequestHandler):
         return
 
 
+# **调的是诊断按钮背后那个函数本人**，不是照抄一遍它的顺序。
+# 抄件和正本一分叉，演练就会在正本坏掉的时候继续绿。
+#
+# 平台传 generic-web 而不是 bilibili，**不是为了绕开授权，是因为绕不开**：
+# requestPlatformPermission 会弹一个原生授权框，CDP 点不到它。
+# 第一版想直接把 SA.requestPlatformPermission 换掉——SA 是 Object.freeze 的，
+# 赋值是个静默空操作，演练当场如实报回「没有获得读取 B 站页面的授权」。
+#
+# 换成 generic-web 之后走的是**同一条链**：它没有权限模式，
+# requestPlatformPermission 的 `if (!origins.length) return true` 直接放行；
+# 而前缀本来就是从**标签页自己的域名**推的，与平台无关。
+# 没被这个演练覆盖的只剩「向用户要平台授权」那一步——那一步本来也自动化不了。
+#
+# 只在反例里替换 chrome.tabs.get，用来把推出来的前缀弄成一个匹配不上的，替换完立刻还原。
 PROBE = r"""
 (async (config) => {
   const tabs = await chrome.tabs.query({ url: config.pageUrl + "*" });
   if (!tabs.length) return JSON.stringify({ error: "没有找到演练页面的标签页" });
   const tabId = tabs[0].id;
 
-  // 与诊断按钮走**完全相同**的顺序：刷新 → 中继 → 观察器 → 下发前缀。
-  // 顺序是这条链最脆的地方（先装观察器会丢掉 INSTALLED），所以照抄，不简化。
+  const realGet = chrome.tabs.get;
+  if (config.bogusHost) {
+    chrome.tabs.get = async (id) => {
+      const tab = await realGet.call(chrome.tabs, id);
+      return { ...tab, url: config.bogusHost };
+    };
+  }
+
   observerStateByTab.delete(tabId);
   netCaptureBuffer.length = 0;
-  await chrome.tabs.reload(tabId);
-  await new Promise(r => setTimeout(r, 1500));
-  await chrome.scripting.executeScript({ target: { tabId }, files: ["content/net-relay.js"] });
-  await chrome.scripting.executeScript({ target: { tabId }, world: "MAIN", files: ["net-observer.js"] });
-  await chrome.tabs.sendMessage(tabId, { type: "SA_OBSERVER_CONFIGURE", urlPrefixes: config.prefixes });
+  let installed = null, installError = null;
+  try {
+    installed = await installNetObserverForTab({
+      platform: "generic-web", tabId, diagnostic: true,
+    });
+  } catch (e) { installError = e && e.message; }
 
-  await new Promise(r => setTimeout(r, 3500));
+  await new Promise(r => setTimeout(r, 2000));
   const captures = netCaptureBuffer.map(c => ({ url: c.url, status: c.status, body: c.body }));
   const selfReport = observerStateByTab.get(tabId) || null;
   netCaptureBuffer.length = 0;
-  return JSON.stringify({ captures, selfReport, tabId });
+  chrome.tabs.get = realGet;
+  return JSON.stringify({ captures, selfReport, tabId, installed, installError });
 })(%s)
 """
 
@@ -206,13 +233,13 @@ async def run(chrome_binary: str, ext_dir: str, keep_going: bool) -> int:
             extension_id = loaded["result"]["id"]
         await asyncio.sleep(3)
 
-        def probe(prefixes):
-            return PROBE % json.dumps({"pageUrl": page_url, "prefixes": prefixes})
+        def probe(bogus_host=None):
+            return PROBE % json.dumps({"pageUrl": page_url, "bogusHost": bogus_host})
 
-        real = await _evaluate(base, extension_id, probe([FAV_PATH]))
-        # **反例先行**：换一个绝不会出现的前缀，必须抓到 0 条。
-        # 抓不到 0 条 = 这个演练量的不是它自称在量的东西。
-        counter = await _evaluate(base, extension_id, probe(["/绝不会出现的接口路径"]))
+        real = await _evaluate(base, extension_id, probe())
+        # **反例**：让它以为这个标签页在别的域名上，于是推出来的前缀绝对匹配不上。
+        # 反例还抓到东西 = 这个演练量的不是它自称在量的东西。
+        counter = await _evaluate(base, extension_id, probe("http://这个域名不存在.invalid/x"))
     finally:
         process.terminate()
         try:
@@ -236,6 +263,10 @@ async def run(chrome_binary: str, ext_dir: str, keep_going: bool) -> int:
         problems.append(f"观察器自报没装好或没就绪：{report}")
     if report.get("prefixCount") != 1:
         problems.append(f"下发的前缀条数没到观察器手里：{report}")
+    if real.get("installError"):
+        problems.append(f"安装那一步抛了：{real['installError']}")
+    elif not (real.get("installed") or {}).get("ok"):
+        problems.append(f"安装那一步自己就说没成：{real.get('installed')}")
     if not captures:
         problems.append("整条链一条都没抓到——这正是 Owner 会遇到的那种「点完什么也没有」")
 

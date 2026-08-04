@@ -61,7 +61,11 @@ def test_install_or_update_reconnects_existing_pwa_bridge_without_reloading_or_t
     ]
     for line in reloads:
         before = background.split(line)[0]
-        assert "message.diagnostic === true" in before[-800:], (
+        # 两种写法都算：处理器里判 message.diagnostic，
+        # 挪出来的 installNetObserverForTab 里判它自己那个入参 diagnostic。
+        # **写法可以变，「必须由用户发起」这件事不能变。**
+        assert ("message.diagnostic === true" in before[-800:]
+                or "if (diagnostic) {" in before[-800:]), (
             f"这一处 reload 不在用户发起的诊断分支里：{line}"
         )
     # 安装/更新那条路仍然不许碰任何标签页

@@ -7,24 +7,46 @@
   "how": [
     "scripts/extension_capture_drill.py：自起一次性 profile 的 Chrome + 本地假站，跑完全删",
     "装的是 dist/social-archive-extension.zip 解出来的 23 个文件——**Owner 会下载到的那个包**，不是源码目录",
-    "探针在 service worker 里照抄诊断按钮的顺序：reload → net-relay.js(ISOLATED) → net-observer.js(MAIN) → SA_OBSERVER_CONFIGURE",
-    "页面每 700ms 各发一次相对地址与绝对地址的请求"
+    "探针在 service worker 里**直接调 installNetObserverForTab 本人**——诊断按钮背后跑的就是它，不是照抄一遍它的顺序",
+    "页面在**加载时**各发一次相对地址与绝对地址的请求，之后不再发——和真收藏夹页一样"
   ],
   "results": {
     "extension_id": "nbljppcaccgeokhmkdplgpkiicpfojpa",
     "观察器自报": "installed=true, ready=true, prefixCount=1",
-    "抓到": "8 条",
-    "其中相对地址": "4 条",
-    "其中绝对地址": "4 条",
+    "抓到": "2 条（页面只在加载时发这两次）",
+    "其中相对地址": "1 条",
+    "其中绝对地址": "1 条",
     "生产解析器从第一条抓到的字节里读出": "2 条收藏",
-    "反例（换一个绝不会出现的前缀）": "0 条"
+    "反例（让它以为页面在另一个域名上，推出的前缀必定匹配不上）": "0 条"
   },
-  "what_the_counter_example_is_for": "反例抓到 0 条，才说明正例那 8 条是**前缀匹配匹配出来的**，而不是「抓了所有请求」。一个永远 PASS 的演练比没有演练更坏——它会让人以为验过了。",
+  "what_the_counter_example_is_for": "反例抓到 0 条，才说明正例那 2 条是**前缀匹配匹配出来的**，而不是「抓了所有请求」。一个永远 PASS 的演练比没有演练更坏——它会让人以为验过了，而这一天里它恰好真的漏过一次。",
   "a_bug_this_drill_caught_in_itself": "判据原来写的是 `len(parse_bilibili_favlist(body))`。那个函数返回的是 `(条目, 还有下一页)` 两元组，`len` 永远等于 2——**而 2 正是这次期望的条目数**。条目为空它也会绿。写完就发现并改成先解包；这是本会话第 N 次「判据绿了但数的不是它以为的东西」。",
   "what_this_does_not_prove": [
     "不证明 B 站真实响应就是这个形状。形状取自 2026-08-04 那次真实抓包的记录，不是这次量出来的。",
     "不证明 Owner 机器上的权限与策略与这里相同。",
     "不证明真实平台页面上有 Cookie 的那次请求会成功——没登录时 B 站返回 `{\"code\":0,\"data\":null}`，那条路由解析器判 NOT_LOGGED_IN，另有判据。"
   ],
-  "cleanup": "一次性 profile 已删，测试用 Chrome 已 terminate，本地假站已 shutdown。生产与 Owner 的 profile 一律没碰。"
+  "cleanup": "一次性 profile 已删，测试用 Chrome 已 terminate，本地假站已 shutdown。生产与 Owner 的 profile 一律没碰。",
+  "the_defect_this_drill_found": {
+    "what": "**观察器落地得太晚，页面加载时打的那个请求一条都抓不到。**",
+    "how_it_showed_up": "自报 installed=true、ready=true、prefixCount=1，而抓到 0 条——「装好了、就绪了、什么也没有」，本项目反复栽跟头的那种盲区。",
+    "root_cause": "原来是「刷新 → 等 1500ms → chrome.scripting.executeScript」。executeScript 只能在页面加载完之后打进去，而收藏列表那个请求是加载时打的，等打进去它早就结束了。",
+    "why_the_first_version_of_this_drill_missed_it": "第一版假页面用 setInterval 每 700ms 重发一次，观察器无论多晚装上都还能等到下一轮。**一个比现实宽容的假页面，测出来的绿是假绿。** 改成「加载时发一次，之后不再发」——和真收藏夹页一样——当场就红了。",
+    "fix": [
+      "注册成 document_start 的内容脚本（中继 ISOLATED + 观察器 MAIN）再刷新，两个世界的脚本都比页面自己的 JS 先跑",
+      "前缀仍然是随后下发的，那段缝由观察器自己的暂存区补上：配置到达前的响应先扣在页面世界里（封顶 50 条 / 30 秒），收到前缀那一刻补判、命中的才发出去",
+      "硬等 1500ms 换成 waitForTabComplete —— 硬等把「等够了」和「等到了」混成一件事",
+      "缓冲区满了改成丢新的、留早的，并把丢掉的条数报给用户；原来 shift() 丢最早的，而收藏列表那条**永远是最早的那几条之一**"
+    ],
+    "measured_after_fix": {
+      "抓到": 2,
+      "相对地址": 1,
+      "绝对地址": 1,
+      "生产解析器读出条目": 2,
+      "反例": 0,
+      "页面行为": "只在加载时各发一次，之后不再发"
+    }
+  },
+  "a_second_bug_this_drill_caught_in_itself": "第二版演练想把 SA.requestPlatformPermission 换成永远放行——SA 是 Object.freeze 的，赋值是个静默空操作，演练当场如实报回「没有获得读取 B 站页面的授权」。改用 generic-web 走同一条链（它没有权限模式，requestPlatformPermission 的 `if (!origins.length) return true` 直接放行；前缀本来就是从标签页域名推的，与平台无关）。没被覆盖的只剩「向用户要平台授权」那一步——那一步本来也自动化不了。",
+  "the_drill_calls_the_real_code_now": "安装那段整体挪成了 background.js 的 installNetObserverForTab，演练直接调它本人。照抄一遍顺序也能跑，但那测的是抄件；抄件和正本一分叉，演练就会在正本坏掉的时候继续绿——**这一天里正本恰好改了两处**。"
 }

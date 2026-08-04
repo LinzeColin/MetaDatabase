@@ -17,7 +17,10 @@
 //   拦截拿到的是 API 原始 JSON —— 字段全、翻页游标现成、平台改版只要接口没动就不受影响。
 //
 // 注入方式（由 background 调用）：
-//   chrome.scripting.executeScript({ target:{tabId}, world:"MAIN", files:["net-observer.js"] })
+//   chrome.scripting.registerContentScripts([{ ..., runAt:"document_start", world:"MAIN" }])
+//   然后刷新页面。**注册而不是 executeScript，是因为时机**：
+//   executeScript 只能在页面加载完之后打进去，而收藏列表那个请求是加载时打的，
+//   等打进去它早就结束了（实测 2026-08-05：自报 installed/ready 全 true，抓到 0 条）。
 //   world:"MAIN" 自 Chrome 95 起支持；本扩展 minimum_chrome_version 已是 116。
 
 (() => {
@@ -62,6 +65,37 @@
     return urlPrefixes.some((prefix) => full.includes(prefix) || String(url).includes(prefix));
   };
 
+  /** 配置到达之前发生的请求，先扣在这里，等前缀下来再补判。
+   *
+   * **这个暂存区是整条链最要紧的一块。** 观察器现在是 document_start 注入的，
+   * 比页面自己的 JS 早；而前缀由 background 随后通过消息下发，晚几百毫秒。
+   * 收藏列表那个请求恰恰是页面加载时打的——正好落在这条缝里。
+   *
+   * 实测（2026-08-05，真 Chrome + 回环假站，页面像真收藏夹页那样**只在加载时发一次**）：
+   * 观察器自报 installed/ready 全为 true，抓到 **0 条**。
+   * 而在此之前那版演练是绿的——因为假页面每 700ms 重发一次，比现实宽容。
+   *
+   * 边界不放宽：暂存只留在页面自己的世界里，**一条都不往外发**；
+   * 只有前缀下来之后判定命中的那些才发。条数封顶 50，30 秒没等到配置就整个丢掉。
+   */
+  const PENDING_LIMIT = 50;
+  const PENDING_TTL_MS = 30000;
+  let pending = [];
+  setTimeout(() => { if (urlPrefixes.length === 0) pending = []; }, PENDING_TTL_MS);
+
+  /** 还没配置就先扣着，配置过了就当场判。 */
+  const holdOrEmit = (url, status, text) => {
+    if (urlPrefixes.length === 0) {
+      if (pending.length < PENDING_LIMIT) pending.push({ url, status, text });
+      return;
+    }
+    if (shouldCapture(url)) emit(url, status, text);
+  };
+
+  /** 要不要把响应读出来。**没配置时一律要读**——那时还判不了命中，
+   * 读晚了流就被页面消费掉了，再也拿不回来。 */
+  const worthReading = (url) => urlPrefixes.length === 0 || shouldCapture(url);
+
   const emit = (url, status, bodyText) => {
     window[CHANNEL].matched += 1;
     post({
@@ -82,12 +116,12 @@
     try {
       // 记录时也用绝对地址：报给开发者的那份清单要能直接看出是哪个接口。
       const url = absolute(typeof args[0] === "string" ? args[0] : args[0]?.url);
-      if (shouldCapture(url)) {
+      if (worthReading(url)) {
         // clone() 是关键：直接读 response.body 会把流消费掉，页面就拿不到数据了。
         response
           .clone()
           .text()
-          .then((text) => emit(url, response.status, text))
+          .then((text) => holdOrEmit(url, response.status, text))
           .catch(() => {
             /* 读取失败不能影响页面，静默放过 */
           });
@@ -110,13 +144,13 @@
   XMLHttpRequest.prototype.send = function (...args) {
     this.addEventListener("load", () => {
       try {
-        if (shouldCapture(this.__saUrl)) {
+        if (worthReading(this.__saUrl)) {
           // responseType 为 "" 或 "text" 时 responseText 可读；其他类型跳过而不是报错。
           const text =
             this.responseType === "" || this.responseType === "text"
               ? this.responseText
               : null;
-          if (text) emit(this.__saUrl, this.status, text);
+          if (text) holdOrEmit(this.__saUrl, this.status, text);
         }
       } catch (_) {
         /* 同上 */
@@ -132,7 +166,15 @@
     if (!data || data.__socialArchiveControl !== true) return;
     if (data.type === "SA_OBSERVER_CONFIGURE" && Array.isArray(data.urlPrefixes)) {
       urlPrefixes = data.urlPrefixes;
-      post({ type: "SA_OBSERVER_READY", prefixCount: urlPrefixes.length });
+      // **补判暂存的那些。** 前缀下来之前发生的请求全扣在 pending 里，
+      // 现在才第一次有判据可用。不补这一步，页面加载时打的那个请求就永远丢了。
+      const held = pending;
+      pending = [];
+      for (const item of held) {
+        if (shouldCapture(item.url)) emit(item.url, item.status, item.text);
+      }
+      post({ type: "SA_OBSERVER_READY", prefixCount: urlPrefixes.length,
+             drained: held.length });
     }
   });
 

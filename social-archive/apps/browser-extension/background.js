@@ -169,6 +169,181 @@ const SYNC_QUEUE_ALARM = "sa-account-sync-queue";
 // T08：MAIN world 观察器抄回来的原始响应，先缓冲在 service worker 里。
 // 上限存在的理由：一次大翻页可能抄回几十兆，撑爆 worker 会把整条同步弄挂。
 const NET_CAPTURE_LIMIT = 200;
+const RELAY_SCRIPT_ID = "sa-net-relay";
+const OBSERVER_SCRIPT_ID = "sa-net-observer";
+// 缓冲区满了之后丢掉的条数。**必须报出去**——静默丢弃看起来就是「一条都没抓到」。
+let netCapturesDropped = 0;
+
+/** 等这个标签页重新加载完。
+ *
+ * 原来是硬等 1500ms。硬等的问题不是不准，是**它把「等够了」和「等到了」
+ * 混成一件事**：网慢一点就等不到，网快一点就白等。
+ */
+/** 把观察器装到某个标签页上——**诊断按钮背后真正跑的那段**。
+ *
+ * 从消息处理器里整段挪出来，只为一件事：**让演练能调到它本人**。
+ * 演练照抄一遍处理器的顺序也能跑，但那测的是抄件；抄件和正本一分叉，
+ * 演练就会在正本坏掉的时候继续绿——而这一天里正本恰好改了两处。
+ */
+async function installNetObserverForTab({ platform, tabId, diagnostic }) {
+    // **诊断模式：前缀由这个标签页自己的域名推出，不查表。**
+    //
+    // 死循环否则会成立：诊断按钮存在的目的就是**去发现**这些前缀，
+    // 而下面那张表只有 bilibili 有值（xiaohongshu / douyin / kuaishou 都是 null），
+    // 于是按钮在 3/4 的平台上当场被拒——工具拒绝执行它自己被造出来要做的事。
+    //
+    // 安全上不放宽：前缀**只从 tab.url 的域名推**，调用方给什么都不采信。
+    // 也就是说它最多只能看见「这个页面自己发出的、发往它自己域名的请求」。
+    let prefixes = globalThis.SAPlatformCatalog?.interceptPrefixes?.(platform);
+    // 两条路都要用到这个标签页的地址：诊断用它推前缀，注册内容脚本用它推 matches。
+    const observedTab = await chrome.tabs.get(tabId).catch(() => null);
+    if (diagnostic) {
+      let host = "";
+      try { host = new URL(observedTab?.url || "").hostname; } catch (_) { host = ""; }
+      // space.bilibili.com → bilibili.com；只留可注册域，覆盖它的 API 子域。
+      // **IP 地址要整个用**：127.0.0.1 按 slice(-2) 会变成 "0.1"，
+      // 那是个既抓不到东西又莫名其妙的前缀。
+      const isIp = /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.includes(":");
+      const registrable = isIp ? host : host.split(".").slice(-2).join(".");
+      if (!registrable) {
+        return { ok: false, state: "failed", failureCode: "DIAGNOSTIC_NO_HOST",
+                 error: "读不出当前页面的域名，无法开始诊断。" };
+      }
+      prefixes = [registrable];
+    }
+    // prefixes 为 null = 还没有实测过的前缀。**必须在这里显式失败**：
+    // 装一个前缀为空的观察器等于永远拦不到，而且页面一切正常、界面显示已连接——
+    // 正是 INV-NO-SILENT-ZERO 要防的那种零。
+    if (!Array.isArray(prefixes) || prefixes.length === 0) {
+      return {
+        ok: false, state: "needs_user_action", platform,
+        failureCode: "INTERCEPT_PREFIX_UNKNOWN",
+        error: `还没有确认 ${globalThis.SAPlatformCatalog?.platformLabel?.(platform) || platform} 的收藏接口地址，这个平台暂时不能同步。`,
+      };
+    }
+    if (!Number.isInteger(tabId)) return { ok: false, error: "没有可用的平台页面。" };
+    // **先要权限，再注入。** executeScript 没有该站点的 host 权限会直接抛，
+    // 而那个异常和"注入本身失败"长得一样——用户看到的是「无法在该页面上启动同步」，
+    // 却不知道其实只需要点一下授权。这与 T06 把 NOT_LOGGED_IN 和
+    // PERMISSION_DENIED 分开是同一条道理：两者的下一步不同，就不能合并成一个错。
+    const granted = await SA.requestPlatformPermission(platform).catch(() => false);
+    if (!granted) {
+      return {
+        ok: false, state: "unauthorized", platform,
+        failureCode: "PLATFORM_PERMISSION_DENIED",
+        error: `没有获得读取${globalThis.SAPlatformCatalog?.platformLabel?.(platform) || platform}页面的授权，无法同步这个平台。`,
+      };
+    }
+    try {
+      // **诊断前先刷新这个页面，而且观察器必须比页面自己的 JS 先就位。**
+      //
+      // 两件事叠在一起，缺一件都抓不到：
+      //
+      // 其一，观察器对同一次页面加载是幂等的（`if (window[CHANNEL]) return`），
+      // 于是**扩展更新之后、页面没重载过**的话，注入进去的新代码会直接返回，
+      // 实际生效的还是旧观察器。实测（2026-08-04，真实 Chrome）：
+      // 不 reload 时抓到 0 条且自报 installed/ready 全为 true。
+      //
+      // 其二，原来是「刷新 → 等 1500ms → executeScript」。**那样太晚了。**
+      // 实测（2026-08-05，真 Chrome + 回环假站，页面像真收藏夹页那样
+      // 只在加载时发一次请求）：自报 installed/ready 仍然全为 true，
+      // 抓到 **0 条**——收藏列表那个请求在观察器落地之前就打完了。
+      // 上一版演练之所以是绿的，是因为那个假页面每 700ms 重发一次，比现实宽容。
+      //
+      // 改法：注册成 document_start 的内容脚本再刷新，两个世界的脚本都比页面早。
+      // 前缀仍然是随后下发的，那段缝由观察器自己的暂存区补上。
+      const origin = (() => {
+        try { return new URL(observedTab?.url || "").origin + "/*"; }
+        catch (_) { return null; }
+      })();
+      if (!origin || origin.startsWith("null")) {
+        return { ok: false, state: "failed", failureCode: "DIAGNOSTIC_NO_HOST",
+                 error: "读不出当前页面的地址，无法开始诊断。" };
+      }
+      // **先注册中继，再注册观察器。** 顺序反了会漏掉观察器安装瞬间发出的那条
+      // SA_OBSERVER_INSTALLED —— 观察器在 IIFE 末尾就 post 了它，
+      // 那时如果中继还没挂上监听，这条消息就掉进虚空。
+      //
+      // 这个顺序是在真实浏览器里跑出来才发现的：Node 沙箱里我是先挂监听
+      // 再跑观察器，所以永远看不到这个问题；真实注入顺序是反的。
+      // 丢掉 INSTALLED 的后果不是少一条日志——background 会分不清
+      // 「观察器装好了」和「注入静默失败了」，正是本项目反复栽跟头的那种盲区。
+      await chrome.scripting
+        .unregisterContentScripts({ ids: [RELAY_SCRIPT_ID, OBSERVER_SCRIPT_ID] })
+        .catch(() => {});
+      await chrome.scripting.registerContentScripts([
+        { id: RELAY_SCRIPT_ID, matches: [origin], js: ["content/net-relay.js"],
+          runAt: "document_start", world: "ISOLATED", persistAcrossSessions: false },
+        { id: OBSERVER_SCRIPT_ID, matches: [origin], js: ["net-observer.js"],
+          runAt: "document_start", world: "MAIN", persistAcrossSessions: false },
+      ]);
+      if (diagnostic) {
+        await chrome.tabs.reload(tabId);
+        await waitForTabComplete(tabId);
+      } else {
+        // 非诊断路径不刷新用户的页面（那会打断他正在看的东西），
+        // 所以当前这一页仍然靠即时注入；注册是给随后的翻页导航用的。
+        await chrome.scripting.executeScript({
+          target: { tabId }, files: ["content/net-relay.js"],
+        });
+        await chrome.scripting.executeScript({
+          target: { tabId }, world: "MAIN", files: ["net-observer.js"],
+        });
+      }
+      await sendConfigureWithRetry(tabId, prefixes);
+      // 配置到达之前发生的请求由观察器扣在暂存区，收到前缀那一刻补发。
+      // 这里等一下，让补发的那些走完 中继 → background 这一段。
+      await new Promise(resolve => setTimeout(resolve, 900));
+      // **注册只为这一次。** 页面里已经跑起来的那份不受影响（翻页照样抓得到），
+      // 但不给平台留下一个常驻的 MAIN world 钩子。
+      await chrome.scripting
+        .unregisterContentScripts({ ids: [RELAY_SCRIPT_ID, OBSERVER_SCRIPT_ID] })
+        .catch(() => {});
+      // 把观察器**自己报回来的**状态一并交出去。注意它是异步到达的：
+      // 这一刻拿不到不等于注入失败，所以只做如实汇报，不拿它当判据。
+      const selfReport = observerStateByTab.get(tabId) || null;
+      return { ok: true, state: "observing", platform, prefixCount: prefixes.length,
+               observerSelfReport: selfReport };
+    } catch (error) {
+      return { ok: false, state: "failed", failureCode: "OBSERVER_INSTALL_FAILED",
+               error: error?.message || "无法在该页面上启动同步。" };
+    }
+}
+
+async function waitForTabComplete(tabId, timeoutMs = 15000) {
+  // reload 是异步的，刚发出去时 status 还是上一次加载留下的 complete，
+  // 直接轮询会当场"等到"。先给它一点时间进入 loading。
+  await new Promise(resolve => setTimeout(resolve, 300));
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const tab = await chrome.tabs.get(tabId).catch(() => null);
+    if (!tab) return false;
+    if (tab.status === "complete") return true;
+    await new Promise(resolve => setTimeout(resolve, 200));
+  }
+  return false;
+}
+
+/** 把前缀下发给中继，失败就再试几次。
+ *
+ * 中继是 document_start 注册的，正常情况下早就在听了；但页面刚开始加载的
+ * 那一瞬间 sendMessage 会以「接收端不存在」被拒。这里退让重试，
+ * **而不是把这一次失败当成没装上**——那正是本项目反复认错的那种盲区。
+ */
+async function sendConfigureWithRetry(tabId, prefixes, attempts = 5) {
+  let lastError = null;
+  for (let i = 0; i < attempts; i += 1) {
+    try {
+      return await chrome.tabs.sendMessage(tabId, {
+        type: "SA_OBSERVER_CONFIGURE", urlPrefixes: prefixes,
+      });
+    } catch (error) {
+      lastError = error;
+      await new Promise(resolve => setTimeout(resolve, 250 * (i + 1)));
+    }
+  }
+  throw lastError || new Error("无法把拦截配置发给页面。");
+}
 const netCaptureBuffer = [];
 // 观察器自报的安装/就绪状态（v0.0.0.7 / T08）。中继一直在发 SA_NET_OBSERVER_STATE，
 // **而 background 此前没有这条消息的处理体**——那条自报掉进虚空。
@@ -1268,93 +1443,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // 绝不读 Cookie。签名（小红书 x-s/x-t、抖音 a_bogus）全由页面自己完成。
     // 国内平台的 Cookie 一步都不出浏览器（INV-DOMESTIC-COOKIE-STAYS）。
     if (message?.type === "SA_INSTALL_NET_OBSERVER") {
-      const platform = String(message.platform || "").trim().toLowerCase();
-      const tabId = Number(message.tabId);
-      // **诊断模式：前缀由这个标签页自己的域名推出，不查表。**
-      //
-      // 死循环否则会成立：诊断按钮存在的目的就是**去发现**这些前缀，
-      // 而下面那张表只有 bilibili 有值（xiaohongshu / douyin / kuaishou 都是 null），
-      // 于是按钮在 3/4 的平台上当场被拒——工具拒绝执行它自己被造出来要做的事。
-      //
-      // 安全上不放宽：前缀**只从 tab.url 的域名推**，调用方给什么都不采信。
-      // 也就是说它最多只能看见「这个页面自己发出的、发往它自己域名的请求」。
-      let prefixes = globalThis.SAPlatformCatalog?.interceptPrefixes?.(platform);
-      if (message.diagnostic === true) {
-        const tab = await chrome.tabs.get(tabId).catch(() => null);
-        let host = "";
-        try { host = new URL(tab?.url || "").hostname; } catch (_) { host = ""; }
-        // space.bilibili.com → bilibili.com；只留可注册域，覆盖它的 API 子域。
-        // **IP 地址要整个用**：127.0.0.1 按 slice(-2) 会变成 "0.1"，
-        // 那是个既抓不到东西又莫名其妙的前缀。
-        const isIp = /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.includes(":");
-        const registrable = isIp ? host : host.split(".").slice(-2).join(".");
-        if (!registrable) {
-          return { ok: false, state: "failed", failureCode: "DIAGNOSTIC_NO_HOST",
-                   error: "读不出当前页面的域名，无法开始诊断。" };
-        }
-        prefixes = [registrable];
-      }
-      // prefixes 为 null = 还没有实测过的前缀。**必须在这里显式失败**：
-      // 装一个前缀为空的观察器等于永远拦不到，而且页面一切正常、界面显示已连接——
-      // 正是 INV-NO-SILENT-ZERO 要防的那种零。
-      if (!Array.isArray(prefixes) || prefixes.length === 0) {
-        return {
-          ok: false, state: "needs_user_action", platform,
-          failureCode: "INTERCEPT_PREFIX_UNKNOWN",
-          error: `还没有确认 ${globalThis.SAPlatformCatalog?.platformLabel?.(platform) || platform} 的收藏接口地址，这个平台暂时不能同步。`,
-        };
-      }
-      if (!Number.isInteger(tabId)) return { ok: false, error: "没有可用的平台页面。" };
-      // **先要权限，再注入。** executeScript 没有该站点的 host 权限会直接抛，
-      // 而那个异常和"注入本身失败"长得一样——用户看到的是「无法在该页面上启动同步」，
-      // 却不知道其实只需要点一下授权。这与 T06 把 NOT_LOGGED_IN 和
-      // PERMISSION_DENIED 分开是同一条道理：两者的下一步不同，就不能合并成一个错。
-      const granted = await SA.requestPlatformPermission(platform).catch(() => false);
-      if (!granted) {
-        return {
-          ok: false, state: "unauthorized", platform,
-          failureCode: "PLATFORM_PERMISSION_DENIED",
-          error: `没有获得读取${globalThis.SAPlatformCatalog?.platformLabel?.(platform) || platform}页面的授权，无法同步这个平台。`,
-        };
-      }
-      try {
-        // **诊断前先刷新这个页面。**
-        //
-        // 观察器对同一次页面加载是幂等的（`if (window[CHANNEL]) return`），
-        // 于是**扩展更新之后、页面没重载过**的话，注入进去的新代码会直接返回，
-        // 实际生效的还是旧观察器。实测（2026-08-04，真实 Chrome）：
-        // 不 reload 时抓到 0 条且自报 installed/ready 全为 true——
-        // 「装好了、就绪了、什么也没有」，最难查的那种。
-        if (message.diagnostic === true) {
-          await chrome.tabs.reload(tabId);
-          await new Promise(resolve => setTimeout(resolve, 1500));
-        }
-        // **先装中继，再装观察器。** 顺序反了会漏掉观察器安装瞬间发出的那条
-        // SA_OBSERVER_INSTALLED —— 观察器在 IIFE 末尾就 post 了它，
-        // 那时如果中继还没挂上监听，这条消息就掉进虚空。
-        //
-        // 这个顺序是在真实浏览器里跑出来才发现的：Node 沙箱里我是先挂监听
-        // 再跑观察器，所以永远看不到这个问题；真实注入顺序是反的。
-        // 丢掉 INSTALLED 的后果不是少一条日志——background 会分不清
-        // 「观察器装好了」和「注入静默失败了」，正是本项目反复栽跟头的那种盲区。
-        await chrome.scripting.executeScript({
-          target: { tabId }, files: ["content/net-relay.js"],
-        });
-        await chrome.scripting.executeScript({
-          target: { tabId }, world: "MAIN", files: ["net-observer.js"],
-        });
-        await chrome.tabs.sendMessage(tabId, {
-          type: "SA_OBSERVER_CONFIGURE", urlPrefixes: prefixes,
-        });
-        // 把观察器**自己报回来的**状态一并交出去。注意它是异步到达的：
-        // 这一刻拿不到不等于注入失败，所以只做如实汇报，不拿它当判据。
-        const selfReport = observerStateByTab.get(tabId) || null;
-        return { ok: true, state: "observing", platform, prefixCount: prefixes.length,
-                 observerSelfReport: selfReport };
-      } catch (error) {
-        return { ok: false, state: "failed", failureCode: "OBSERVER_INSTALL_FAILED",
-                 error: error?.message || "无法在该页面上启动同步。" };
-      }
+      return installNetObserverForTab({
+        platform: String(message.platform || "").trim().toLowerCase(),
+        tabId: Number(message.tabId),
+        diagnostic: message.diagnostic === true,
+      });
     }
     // 观察器抄回来的原始响应。**服务端负责解析**——这里只搬运，不 JSON.parse：
     // 解析失败会吞掉本来能救的数据（预制件的原话）。
@@ -1365,8 +1458,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         url: String(message.url || ""), status: Number(message.status || 0),
         body, capturedAt: String(message.capturedAt || ""),
       });
-      // 只留最近若干条，避免 service worker 内存被一次大翻页撑爆。
-      if (netCaptureBuffer.length > NET_CAPTURE_LIMIT) netCaptureBuffer.shift();
+      // 满了之后**丢新的、留早的**，并且把丢掉的条数记下来。
+      //
+      // 原来是 shift() 丢最早的那条。方向正好反了：收藏列表那个请求是
+      // 页面加载时打的，**它永远是最早的那几条之一**；而后面涌进来的是
+      // 心跳、埋点、图片信息之类的噪声。丢最早的等于专门丢掉唯一有用的那条，
+      // 而且丢得悄无声息——用户看到的是「拦到 200 条，0 条读得懂」。
+      if (netCaptureBuffer.length > NET_CAPTURE_LIMIT) {
+        netCaptureBuffer.pop();
+        netCapturesDropped += 1;
+      }
       return { ok: true, buffered: netCaptureBuffer.length };
     }
     if (message?.type === "SA_NET_OBSERVER_STATE") {
@@ -1413,12 +1514,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (parsed?.ok) { readable += 1; items += (parsed.items || []).length; }
         else if (!firstProblem) firstProblem = parsed;
       }
+      // **丢掉的条数要说出来。** 上限本身没问题，悄悄触顶才有问题——
+      // 那会让「缓冲区满了、有用的那条没进来」看起来和「平台没发这个请求」一模一样。
+      const dropped = netCapturesDropped;
+      const droppedNote = dropped > 0 ? `（另有 ${dropped} 条因为太多没收下）` : "";
       return {
-        ok: readable > 0, readable, total: netCaptureBuffer.length, items,
+        ok: readable > 0, readable, total: netCaptureBuffer.length, items, dropped,
         failureCode: readable > 0 ? null : (firstProblem?.failure_code || "UNREADABLE"),
         message_zh: readable > 0
-          ? `拦到 ${netCaptureBuffer.length} 条，其中 ${readable} 条读得懂，共 ${items} 条收藏。`
-          : (firstProblem?.message_zh || "拦到了响应，但一条都读不懂。"),
+          ? `拦到 ${netCaptureBuffer.length} 条${droppedNote}，其中 ${readable} 条读得懂，共 ${items} 条收藏。`
+          : (firstProblem?.message_zh || "拦到了响应，但一条都读不懂。") + droppedNote,
       };
     }
     if (message?.type === "SA_GET_NET_CAPTURES") {
