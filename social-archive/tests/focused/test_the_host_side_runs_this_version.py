@@ -79,3 +79,30 @@ def test_the_deploy_also_checks_the_other_container() -> None:
     assert "这不是通过" in deploy, (
         "容器没在跑时应当明说这是跳过；把跳过印成通过，正是本项目一直在防的那种谎"
     )
+
+
+def test_the_rollback_point_is_pinned_before_the_build_and_verified_after() -> None:
+    """**回滚点是出事那天唯一能回的地方，它自己不能悄悄失效。**
+
+    2026-08-05 实测：第 3 步只记下镜像 ID、等构建完再打标——而构建会把同名
+    旧镜像收走，等到打标时 `docker tag <旧ID>` 报 No such image。那一行当时
+    写成 `docker tag … && printf …`，失败被 && 短路吞掉，**一声不吭**。
+    于是当天十几次部署，:rollback 一直停在很多版之前的镜像上，
+    而每次结尾还照印那行「回滚一行命令」。
+
+    三条一起钉：构建前用临时标签钉住、失败要 fail 而不是静默、
+    转正之后回头核对它指向的确实是部署前那个镜像。
+    """
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    code = "\n".join(l for l in deploy.splitlines() if not l.lstrip().startswith("#"))
+    assert "ROLLBACK_CANDIDATE" in code, "构建前没有把当前镜像钉住，构建会把它收走"
+    pin = code.split("ROLLBACK_CANDIDATE}'\"", 1)
+    assert "|| fail" in code.split("docker tag", 1)[1][:400], (
+        "打标失败会被静默吞掉——那正是 :rollback 停在旧版上十几次没人发现的原因"
+    )
+    assert 'ROLLBACK_ID' in code and '"$ROLLBACK_ID" == "$IMAGE_BEFORE"' in code, (
+        "转正之后没有回头核对回滚点指向的是不是部署前那个镜像"
+    )
+    assert "&& printf '  回滚点已定" not in code, (
+        "又写回 `cmd && printf` 了——失败会被短路吞掉，什么都不说"
+    )

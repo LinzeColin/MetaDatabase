@@ -51,6 +51,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 VERSION="$(tr -d '[:space:]' < VERSION)"
 IMAGE="social-archive/core:${VERSION}"
+ROLLBACK_CANDIDATE="social-archive/core:rollback-candidate"
 
 fail() { printf '\n部署中止：%s\n' "$1" >&2; exit 1; }
 step() { printf '\n=== %s ===\n' "$1"; }
@@ -174,6 +175,19 @@ step "3) 记下正在跑的镜像（回滚点）"
 IMAGE_BEFORE="$(ssh -o ConnectTimeout=20 "$HOST" "docker image inspect -f '{{.Id}}' '$IMAGE' 2>/dev/null || true")"
 if [[ -n "$IMAGE_BEFORE" ]]; then
   printf '  正在跑：%s\n' "${IMAGE_BEFORE#sha256:}" | cut -c1-28
+  # **先用一个临时标签把它钉住。**
+  #
+  # 只记 ID、等构建完再打标是不行的：2026-08-05 实测，构建会把同名旧镜像
+  # 收走，等到要打标时 `docker tag <旧ID>` 报 **No such image**。
+  # 而那一行当时写成 `docker tag … && printf …`，失败被 && 短路吞掉，
+  # **一声不吭**——于是今天十几次部署，:rollback 一直停在很多版之前的
+  # b2d060c5 上，而每次结尾还照印那行「回滚一行命令」。
+  #
+  # 打一个临时标签是幂等的、不占额外空间（同一批层），而且**中止的部署
+  # 不会动 :rollback**——那个临时标签自己无害。
+  ssh -o ConnectTimeout=20 "$HOST" "docker tag '${IMAGE_BEFORE}' '${ROLLBACK_CANDIDATE}'" \
+    || fail '钉不住当前镜像，无法保证回滚点——先查 docker 再部署。'
+  printf '  已用 %s 钉住它，构建不会把它收走。\n' "$ROLLBACK_CANDIDATE"
 else
   printf '  （没有同名旧镜像，首次部署）\n'
 fi
@@ -224,10 +238,16 @@ fi
 
 step "5) 构建并上线"
 ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && docker compose build core-api 2>&1 | tail -3" || fail '构建失败，什么都没换，回滚点原样保留。'
-# 构建成了，这才把回滚点定下来——**在 up 之前**，那一刻正在跑的还是旧的。
+# 构建成了，这才把回滚点从临时标签转正——**在 up 之前**，那一刻跑的还是旧的。
+# 用临时标签而不是 ID：ID 可能已经被这次构建收走了（见第 3 步那段注释）。
 if [[ -n "$IMAGE_BEFORE" ]]; then
-  ssh -o ConnectTimeout=20 "$HOST" "docker tag '${IMAGE_BEFORE}' social-archive/core:rollback" \
-    && printf '  回滚点已定在部署前那个镜像上。\n'
+  ssh -o ConnectTimeout=20 "$HOST" \
+    "docker tag '${ROLLBACK_CANDIDATE}' social-archive/core:rollback && docker rmi '${ROLLBACK_CANDIDATE}' >/dev/null 2>&1 || true" \
+    || fail '回滚点没定成。这次上线会没有可回的地方，先查清楚再继续。'
+  ROLLBACK_ID="$(ssh -o ConnectTimeout=20 "$HOST" "docker image inspect -f '{{.Id}}' social-archive/core:rollback")"
+  [[ "$ROLLBACK_ID" == "$IMAGE_BEFORE" ]] \
+    || fail "回滚点指向的不是部署前那个镜像（回滚点 ${ROLLBACK_ID}，部署前 ${IMAGE_BEFORE}）。"
+  printf '  回滚点已定在部署前那个镜像 %s 上（已核对）。\n' "${IMAGE_BEFORE#sha256:}" | cut -c1-56
 fi
 ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && docker compose up -d core-api core-worker 2>&1 | tail -4"
 
