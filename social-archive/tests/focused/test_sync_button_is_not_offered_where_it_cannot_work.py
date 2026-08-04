@@ -109,3 +109,32 @@ def test_the_top_strip_does_not_say_everything_is_fine() -> None:
     stuck_at = block.index("stuck > 0 && !syncable")
     generic_at = block.index("if (!state.accounts.length)")
     assert stuck_at < generic_at, "被通用分支抢先，特殊情况说不出来"
+
+
+def test_a_sync_button_never_navigates_the_page_away_on_its_own() -> None:
+    """按钮写「同步」就不能偷偷做「跳转」。
+
+    Owner 的原话：「点击同步全部账号后就会跳转到莫名其妙的页面…
+    怎么实际功能和显示文字还不一样」。
+
+    原因：ensureExtensionReady 在插件未就绪时直接 `location.href =
+    "/extension-install"`。那条 toast 也白搭——页面当场就跳走了，没人来得及读。
+
+    跳不跳必须由用户决定，而且他得知道为什么。
+    """
+    js = code_only(PWA.read_text(encoding="utf-8"))
+    block = js.split("async function ensureExtensionReady", 1)[1][:1800]
+    jumps = [line.strip() for line in block.splitlines() if "location.href" in line]
+    assert jumps, "这段里已经没有跳转了——判据失去依附，请重写"
+    for line in jumps:
+        assert "confirm(" in block.split(line)[0][-400:] or "if (confirm" in line, (
+            f"这一处跳转没有先征求用户同意：{line}"
+        )
+
+
+def test_sync_all_counts_only_accounts_that_can_actually_sync() -> None:
+    """「已将 3 个账号加入队列」然后什么也不发生，是最伤信任的一种假话。"""
+    js = code_only(PWA.read_text(encoding="utf-8"))
+    block = js.split("async function syncAllAccounts", 1)[1][:1400]
+    assert "sync_supported !== false" in block, "把同步不了的账号也算进了队列数"
+    assert "都还不能自动同步" in block, "一个都同步不动时没有明说"

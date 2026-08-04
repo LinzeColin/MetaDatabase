@@ -921,14 +921,24 @@
 
   async function ensureExtensionReady() {
     const extension = await refreshExtensionStatus();
+    // **不要把页面跳走。**
+    //
+    // 原来这两处直接 location.href = "/extension-install"：用户点的按钮写着
+    // 「立即同步全部」，页面却跳到一个安装说明页。Owner 的原话：
+    // 「点击同步全部账号后就会跳转到莫名其妙的页面…怎么实际功能和显示文字还不一样」。
+    //
+    // 那条 toast 也白搭 —— 页面当场就跳走了，没人来得及读。
+    // 改成先问一句：跳不跳由用户决定，而且他知道为什么要跳。
     if (!extension.detected) {
-      showToast("未检测到 Social Archive 浏览器插件，正在打开安装说明。", "needs");
-      location.href = "/extension-install";
+      if (confirm("还没有检测到 Social Archive 浏览器插件。\n\n同步收藏需要它来读取你自己浏览器里的登录状态。\n\n要现在打开安装说明吗？")) {
+        location.href = "/extension-install";
+      }
       return false;
     }
     if (!extension.compatible) {
-      showToast(`检测到插件 v${extension.version || "未知"}，请更新至 v${PRODUCT_VERSION}。`, "needs");
-      location.href = "/extension-install";
+      if (confirm(`检测到的插件是 v${extension.version || "未知"}，需要 v${PRODUCT_VERSION}。\n\n要现在打开更新说明吗？`)) {
+        location.href = "/extension-install";
+      }
       return false;
     }
     if (!extension.paired) {
@@ -1025,12 +1035,23 @@
   }
 
   async function syncAllAccounts() {
-    const accounts = state.accounts.filter(item => ["connected", "degraded"].includes(item.connection_state));
-    if (!accounts.length) { openSyncModal(); showToast("请先连接至少一个平台账号", "needs"); return; }
+    const connected = state.accounts.filter(item => ["connected", "degraded"].includes(item.connection_state));
+    // **只数真的同步得动的。** 原来这里把所有已连接账号都算进去，于是
+    // 点「立即同步全部」会提示「已将 3 个账号加入队列」，然后什么也不发生——
+    // 因为那三个平台的取数路在本版本是 stub。名实不符正出在这里。
+    const accounts = connected.filter(item =>
+      state.platformSupport[item.platform]?.sync_supported !== false);
+    if (!connected.length) { openSyncModal(); showToast("请先连接至少一个平台账号", "needs"); return; }
+    if (!accounts.length) {
+      showToast("已连接的账号在本版本都还不能自动同步。现在可以在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。", "needs");
+      openSyncModal();
+      return;
+    }
     try {
       if (!await ensureExtensionReady()) return;
       const result = await postToExtension("SA_SYNC_ALL_ACCOUNTS");
-      showToast(result.message || `已将 ${Number(result.queuedCount || accounts.length)} 个账号加入后台同步队列`);
+      showToast(result.message || `已将 ${Number(result.queuedCount || accounts.length)} 个账号加入后台同步队列`
+        + (connected.length > accounts.length ? `（另有 ${connected.length - accounts.length} 个本版本还不能自动同步）` : ""));
       setTimeout(() => loadAccountsAndDestinations().catch(() => {}), 800);
     } catch (error) {
       showToast(`无法启动同步：${error.message}。请确认 Social Archive 插件已安装并连接。`, "error");
