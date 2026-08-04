@@ -26,6 +26,9 @@ from social_archive.worker import MediaUnavailable
     ("HTTP Error 403: Forbidden", "MEDIA_BLOCKED_BY_PLATFORM"),
     ("HTTP Error 429: Too Many Requests", "MEDIA_TEMPORARILY_UNAVAILABLE"),
     ("Read timed out", "MEDIA_TEMPORARILY_UNAVAILABLE"),
+    # 实测那一条：抖音的图文帖（note），yt-dlp 只认视频。
+    ("ERROR: Unsupported URL: https://www.douyin.com/note/7669569097575796479",
+     "MEDIA_TYPE_UNSUPPORTED"),
     ("something else entirely", "MEDIA_NOT_RETRIEVED"),
 ])
 def test_the_code_matches_what_actually_happened(detail: str, expected: str) -> None:
@@ -43,7 +46,8 @@ def test_a_structural_block_is_not_retryable() -> None:
 def test_every_new_code_has_a_chinese_sentence() -> None:
     from social_archive.failure_copy import describe_sync_outcome
 
-    for code in ("MEDIA_BLOCKED_BY_PLATFORM", "MEDIA_NOT_RETRIEVED", "MEDIA_TEMPORARILY_UNAVAILABLE"):
+    for code in ("MEDIA_BLOCKED_BY_PLATFORM", "MEDIA_NOT_RETRIEVED",
+                 "MEDIA_TEMPORARILY_UNAVAILABLE", "MEDIA_TYPE_UNSUPPORTED"):
         out = describe_sync_outcome(imported=0, failure_code=code, platform_label="抖音")
         assert out["message_zh"], f"{code} 说不出人话"
         assert "JOB_FAILED" not in out["message_zh"]

@@ -149,6 +149,12 @@ class MediaUnavailable(RuntimeError):
             return "MEDIA_BLOCKED_BY_PLATFORM"
         if "http error 429" in lowered or "timed out" in lowered or "timeout" in lowered:
             return "MEDIA_TEMPORARILY_UNAVAILABLE"
+        # 工具不认这种内容形态，而不是平台把我们挡住了。
+        # 实测那一条：`ERROR: Unsupported URL: https://www.douyin.com/note/…`
+        # ——抖音的图文帖（note），yt-dlp 只认视频。
+        # 对用户而言两者都是「没有原文件」，但原因不同：这条不是谁挡了谁。
+        if "unsupported url" in lowered or "no video formats" in lowered:
+            return "MEDIA_TYPE_UNSUPPORTED"
         return "MEDIA_NOT_RETRIEVED"
 
 

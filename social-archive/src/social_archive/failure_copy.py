@@ -269,6 +269,7 @@ PRODUCT_FAULT_CODES: frozenset[str] = frozenset({
     "PLATFORM_REFUSED",
     "MEDIA_BLOCKED_BY_PLATFORM",
     "MEDIA_NOT_RETRIEVED",
+    "MEDIA_TYPE_UNSUPPORTED",
 })
 _PRODUCT_FAULT_SENTENCE = "这次没有取到内容，问题在我们这边，已经记下来了。不用反复重试。"
 
