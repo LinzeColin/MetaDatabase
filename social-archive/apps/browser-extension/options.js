@@ -16,6 +16,9 @@
   let runs = [];
   let destinations = [];
   let pendingConnections = {};
+  // 托管中的登录状态（v0.0.0.7 / T06）。服务端 GET /v1/credentials 只回形态：
+  // 平台、有没有、几条、什么时候存的。**永远不回 cookie 的名或值。**
+  let credentials = [];
   let serviceReady = false;
 
   function setServiceMessage(message = "", type = "needs") {
@@ -65,13 +68,16 @@
   }
 
   async function loadData() {
-    if (!await checkService()) { accounts=[]; runs=[]; destinations=[]; render(); return; }
+    if (!await checkService()) { accounts=[]; runs=[]; destinations=[]; credentials=[]; render(); return; }
     try {
-      const [accountData, runData, bootstrap, pendingData] = await Promise.all([
+      const [accountData, runData, bootstrap, pendingData, credentialData] = await Promise.all([
         SA.api("/v1/accounts",{timeoutMs:8000}), SA.api("/v1/sync-runs?limit=200",{timeoutMs:8000}), SA.api("/v1/extension/bootstrap",{timeoutMs:8000}),
-        chrome.runtime.sendMessage({type:"SA_GET_PENDING_CONNECTIONS"}).catch(()=>({items:{}}))
+        chrome.runtime.sendMessage({type:"SA_GET_PENDING_CONNECTIONS"}).catch(()=>({items:{}})),
+        // 单独兜底：托管状态读不到不该让整页空白——其余四项是这一页的主体。
+        SA.api("/v1/credentials",{timeoutMs:8000}).catch(()=>({items:[]}))
       ]);
       accounts=accountData.items||[]; runs=runData.items||[]; destinations=bootstrap.destinations||[]; pendingConnections=pendingData.items||{};
+      credentials=credentialData.items||[];
     } catch(error){ toast(`状态读取失败：${error.message}`,"error"); }
     render();
   }
@@ -90,7 +96,12 @@
       const account=accounts.find(item=>item.platform===platform && (platform!=="generic-web" || item.external_account_id==="chrome-bookmarks"));
       const run=account?latestRun(account.id):null;
       const pending=Boolean(pendingConnections[platform]);
-      const status=pending?"authorizing":(run && activeStates.has(run.status)?run.status:(account?.connection_state||"disconnected"));
+      // 托管登录状态是**独立于 source_account 的**一份事实：走 Cookie 托管连接
+      // （connectPlatformSessionByCookies）只会把加密后的登录状态存进服务端，
+      // 不会建 source_account 行。此前这一页只看 accounts，于是连接成功弹出
+      //「已连接，登录状态已加密保存（N 条）」之后，刷新回来卡片仍显示「未连接」。
+      const custody=credentials.find(item=>item.platform===platform && item.connected)||null;
+      const status=pending?"authorizing":(run && activeStates.has(run.status)?run.status:(account?.connection_state||(custody?"connected":"disconnected")));
       const imported=Number(run?.imported_count||0),discovered=Number(run?.discovered_count||0);
       const progress=discovered?Math.min(100,Math.round(imported/discovered*100)):(run&&activeStates.has(run.status)?18:(account?100:0));
       // 失败时优先显示**为什么**（v0.0.0.7 / T14）。message_zh 由服务端算好下发，
@@ -103,17 +114,27 @@
           ? failureText
           : account
             ? (run&&activeStates.has(run.status)?`已导入 ${imported.toLocaleString("zh-CN")}/${discovered?discovered.toLocaleString("zh-CN"):"…"} 条`:`${Number(account.content_count||0).toLocaleString("zh-CN")} 条 · ${formatTime(account.last_sync_at)}`)
-            : relationCopy[platform];
+            : custody
+              ? `登录状态已加密保存（${Number(custody.cookie_count||0).toLocaleString("zh-CN")} 条）· ${formatTime(custody.updated_at)}`
+              : relationCopy[platform];
+      // 「随时可以一键撤销」是连接成功时**当着用户面许下的原话**（background.js）。
+      // 此前撤销只存在于两处代码里：服务端 DELETE /v1/credentials/{platform}，
+      // 以及扩展的 SA_REVOKE_PLATFORM_SESSION 处理体——**而没有任何界面发出这条消息**。
+      // 也就是说这句承诺在产品上是假的。这颗按钮就是把它变成真的。
+      const revoke=custody?`<button class="card-button danger" data-revoke-platform="${platform}">撤销登录状态</button>`:"";
       const action=pending
         ? `<button class="card-button primary" data-verify-platform="${platform}">我已登录，继续</button><button class="card-button" data-connect-platform="${platform}">重新打开</button>`
         : account
-          ? `<button class="card-button primary" data-sync-account="${SA.escapeHtml(account.id)}">立即同步</button>${["blocked_environment","failed"].includes(status)?`<button class="card-button" data-connect-platform="${platform}">重新连接</button>`:""}`
-          : `<button class="card-button primary" data-connect-platform="${platform}">连接账号</button>`;
+          ? `<button class="card-button primary" data-sync-account="${SA.escapeHtml(account.id)}">立即同步</button>${["blocked_environment","failed"].includes(status)?`<button class="card-button" data-connect-platform="${platform}">重新连接</button>`:""}${revoke}`
+          : custody
+            ? `<button class="card-button" data-connect-platform="${platform}">重新连接</button>${revoke}`
+            : `<button class="card-button primary" data-connect-platform="${platform}">连接账号</button>`;
       return `<article class="account-card"><header><span class="platform-icon">${platformIcons[platform]}</span><span class="account-title"><strong>${platformNames[platform]}</strong><small>${SA.escapeHtml(account?.display_name||"未连接")}</small></span><span class="state ${SA.escapeHtml(status)}">${SA.escapeHtml(stateLabel(status))}</span></header><div class="account-meta">${SA.escapeHtml(meta)}</div><div class="progress"><span style="width:${progress}%"></span></div><div class="account-actions">${action}</div></article>`;
     }).join("");
     document.querySelectorAll("[data-connect-platform]").forEach(button=>button.addEventListener("click",()=>connectPlatform(button.dataset.connectPlatform,button)));
     document.querySelectorAll("[data-verify-platform]").forEach(button=>button.addEventListener("click",()=>verifyPlatform(button.dataset.verifyPlatform,button)));
     document.querySelectorAll("[data-sync-account]").forEach(button=>button.addEventListener("click",()=>syncAccount(button.dataset.syncAccount,button)));
+    document.querySelectorAll("[data-revoke-platform]").forEach(button=>button.addEventListener("click",()=>revokePlatform(button.dataset.revokePlatform,button)));
   }
 
   function renderDestinations() {
@@ -143,6 +164,25 @@
     try{const result=await chrome.runtime.sendMessage({type:"SA_VERIFY_PLATFORM_SESSION",platform});if(!result?.ok)throw new Error(result?.error||"尚未检测到登录状态");toast(result.message||"账号已连接，首次同步已经开始");await loadData();}
     catch(error){toast(`${platformNames[platform]}：${error.message}`,"needs");}
     finally{button.disabled=false;button.textContent="我已登录，继续";}
+  }
+  /** 一键撤销托管的登录状态（v0.0.0.7 / T06 · INV-REVERSIBLE）。
+   *
+   * 走 background 而不是直接 fetch：撤销要做的**不止**服务端删库那一半，
+   * 还要把浏览器这边的 cookies 权限一起还回去（chrome.permissions.remove）。
+   * 只删服务端的话，用户在扩展详情页看到的仍然是「这个插件能读我的 Cookie」——
+   * 撤销了却看不出撤销了，和没撤销一样。那段逻辑在 background 里，
+   * 权限 API 也只有 background 能调。
+   */
+  async function revokePlatform(platform,button){
+    if(!confirm(`撤销后，服务器上保存的 ${platformNames[platform]||platform} 登录状态会被立即删除，插件也会交还读取该站点 Cookie 的权限。\n\n需要时可以重新连接。确定撤销吗？`))return;
+    button.disabled=true;button.textContent="正在撤销…";
+    try{
+      const result=await chrome.runtime.sendMessage({type:"SA_REVOKE_PLATFORM_SESSION",platform});
+      if(!result?.ok)throw new Error(result?.error||"撤销失败");
+      toast(result.message_zh||"已撤销，服务器上的登录信息已删除。");
+      await loadData();
+    }catch(error){toast(`${platformNames[platform]||platform}：${error.message}`,"error");}
+    finally{button.disabled=false;button.textContent="撤销登录状态";}
   }
   async function syncAccount(accountId,button){
     button.disabled=true;button.textContent="正在启动…";

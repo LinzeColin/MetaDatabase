@@ -170,6 +170,11 @@ const SYNC_QUEUE_ALARM = "sa-account-sync-queue";
 // 上限存在的理由：一次大翻页可能抄回几十兆，撑爆 worker 会把整条同步弄挂。
 const NET_CAPTURE_LIMIT = 200;
 const netCaptureBuffer = [];
+// 观察器自报的安装/就绪状态（v0.0.0.7 / T08）。中继一直在发 SA_NET_OBSERVER_STATE，
+// **而 background 此前没有这条消息的处理体**——那条自报掉进虚空。
+// 它掉了的后果正是安装那段注释里写明不许发生的：分不清「观察器装好了」
+// 和「注入静默失败了」。按 tab 记，标签页关掉就没意义了。
+const observerStateByTab = new Map();
 const MIRROR_TAB_PREFIX = "saMirrorTab:";
 const ACTIVE_SYNC_STATES = new Set(["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"]);
 
@@ -917,42 +922,17 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
   return { ok: true, syncRunId, status: latest.status, results };
 }
 
-async function completePendingBrowserConnection(message, senderTab) {
-  const platform = message.platform;
-  const pending = (await getPendingConnections())[platform];
-  if (!pending || !message.loggedIn) return { ok: false, ignored: true };
-  if (Date.now() - Number(pending.createdAt || 0) > 30 * 60 * 1000) {
-    await setPendingConnection(platform, null);
-    return { ok: false, state: "expired", error: "连接流程已过期，请重新点击连接账号" };
-  }
-  const completed = await SA.api(`/v1/accounts/connect/${encodeURIComponent(platform)}/complete`, {
-    method: "POST",
-    body: JSON.stringify({
-      connection_ref: pending.connectionRef,
-      external_account_id: message.externalAccountId || `browser-session:${platform}`,
-      display_name: message.accountName || `${platformSpec(platform)?.label || platform}账号`,
-      verified: true,
-      metadata: {
-        auth_method: "browser_session",
-        auto_sync_enabled: true,
-        sync_interval_minutes: 360,
-        verification_source: "browser_content_script",
-        profile_url: message.profileUrl || ""
-      }
-    }),
-    timeoutMs: 15000
-  });
-  await setPendingConnection(platform, null);
-  await enqueueAccountSync({
-    accountId: completed.account_id,
-    syncRunId: completed.first_sync?.sync_run_id || null,
-    tabId: senderTab?.id || pending.tabId || null,
-    profileUrl: message.profileUrl || "",
-    triggerType: "first_connect"
-  });
-  return { ok: true, state: "connected", accountId: completed.account_id, message: "账号已连接，首次全量同步已进入后台队列" };
-}
-
+// v0.0.0.7 / T03 收尾：这里原先是 completePendingBrowserConnection —— 由内容脚本
+// 发 SA_PLATFORM_PAGE_READY 触发，凭页面上的登录迹象把账号标记为已连接。
+// **整段删除。**
+//
+// 它的触发条件在 T03 删掉 DOM 抓取器之后就再也不会成立：没有任何脚本发那条消息，
+// 而它读的 message.loggedIn / externalAccountId / accountName 三个字段在全仓
+// 无人产出。真正的登录态确认在 verifyPendingPlatform 里，那里明确返回
+// LOGIN_PROOF_UNAVAILABLE 并说清楚原因——那是诚实的阻塞，这段是它的残骸。
+//
+// 留着的坏处不是占地方：它让「浏览器会话连接」在代码上看起来是完整的一条闭环，
+// 而实际上中间那一环不存在。本轮反复栽的就是这种「看着接上了」。
 async function verifyPendingPlatform(platform) {
   const pending = (await getPendingConnections())[platform];
   if (!pending) return { ok: false, state: "not_pending", error: "没有等待确认的连接流程，请重新点击连接账号" };
@@ -1044,6 +1024,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 chrome.permissions.onAdded.addListener(async () => {
   try { const tab = await SA.activeTab(); await injectFabIfAuthorized(tab.id, tab.url); } catch (_) {}
 });
+// 标签页没了，那一页的观察器自报也就没有意义了。不清会随着开关标签页无限增长。
+chrome.tabs.onRemoved.addListener(tabId => { observerStateByTab.delete(tabId); });
 
 
 chrome.alarms.onAlarm.addListener(alarm => {
@@ -1112,22 +1094,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       accountId: message.accountId ? String(message.accountId) : null,
       action: String(message.action || "")
     });
-    if (message?.type === "SA_GET_SYNC_CONTROL_STATE") {
-      const control = await getSyncControl(String(message.syncRunId || ""));
-      return { ok: true, action: control?.action || null };
-    }
-    if (message?.type === "SA_PLATFORM_PAGE_READY") return completePendingBrowserConnection(message, sender?.tab);
+    // 删除：SA_GET_SYNC_CONTROL_STATE（读一次暂停/取消标记）。全仓没有发送方。
+    // 暂停/取消真正生效的路是编排层每一轮自己查 stopStateFor()，那条还在。
     if (message?.type === "SA_CAPTURE_ACTIVE") return captureActive(message, sender?.tab);
     if (message?.type === "SA_OPEN_TASK_CENTER") {
       const tab = await SA.activeTab().catch(() => null);
       if (tab?.windowId) await chrome.sidePanel.open({ windowId: tab.windowId });
       return { ok: true };
     }
-    if (message?.type === "SA_REFRESH_FAB") {
-      const tab = await SA.activeTab();
-      await injectFabIfAuthorized(tab.id, tab.url);
-      return { ok: true };
-    }
+    // 删除：SA_REFRESH_FAB（手动重注浮动按钮）。全仓没有发送方，
+    // 而 tabs.onUpdated / onActivated 已经在注了。
     if (message?.type === "SA_WEB_BRIDGE_STATUS") {
       const config = await SA.getConfig();
       // 就绪与否只有一个判据：拿现有令牌真的调一次受保护接口。
@@ -1152,14 +1128,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         version: chrome.runtime.getManifest().version
       };
     }
-    if (message?.type === "SA_WEB_BRIDGE_CONFIGURE") {
-      const current = await SA.getConfig();
-      const endpoint = String(message.endpoint || current.endpoint || "").replace(/\/$/, "");
-      const libraryUrl = String(message.libraryUrl || current.libraryUrl || endpoint).replace(/\/$/, "");
-      if (!/^https?:\/\//i.test(endpoint) || !/^https?:\/\//i.test(libraryUrl)) throw new Error("服务地址无效");
-      const next = await SA.setConfig({ endpoint, libraryUrl, onboardingComplete: true });
-      return { ok: true, paired: Boolean(next.token), endpoint: next.endpoint, libraryUrl: next.libraryUrl };
-    }
+    // 这里原先是 SA_WEB_BRIDGE_CONFIGURE：把页面下发的 endpoint / libraryUrl
+    // 写进扩展配置。**连同 bridge.js 里那条转发一起删除。**
+    // 理由见下面 SA_WEB_BRIDGE_ADOPT_TOKEN 的注释——同一个文件里写着
+    //「不接受页面下发」，上面却留着一个接受页面下发的入口。
     // 取代旧的一次性码流程（v0.0.0.7 / T03）。
     //
     // 旧流程：服务端生成一串码 → 用户从终端/邮件里找到它 → 手抄进扩展设置页 →
@@ -1246,7 +1218,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         await chrome.tabs.sendMessage(tabId, {
           type: "SA_OBSERVER_CONFIGURE", urlPrefixes: prefixes,
         });
-        return { ok: true, state: "observing", platform, prefixCount: prefixes.length };
+        // 把观察器**自己报回来的**状态一并交出去。注意它是异步到达的：
+        // 这一刻拿不到不等于注入失败，所以只做如实汇报，不拿它当判据。
+        const selfReport = observerStateByTab.get(tabId) || null;
+        return { ok: true, state: "observing", platform, prefixCount: prefixes.length,
+                 observerSelfReport: selfReport };
       } catch (error) {
         return { ok: false, state: "failed", failureCode: "OBSERVER_INSTALL_FAILED",
                  error: error?.message || "无法在该页面上启动同步。" };
@@ -1265,6 +1241,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (netCaptureBuffer.length > NET_CAPTURE_LIMIT) netCaptureBuffer.shift();
       return { ok: true, buffered: netCaptureBuffer.length };
     }
+    if (message?.type === "SA_NET_OBSERVER_STATE") {
+      const tabId = Number(sender?.tab?.id);
+      if (!Number.isInteger(tabId)) return { ok: false, ignored: true };
+      const previous = observerStateByTab.get(tabId) || {};
+      observerStateByTab.set(tabId, {
+        installed: previous.installed || message.state === "SA_OBSERVER_INSTALLED",
+        ready: previous.ready || message.state === "SA_OBSERVER_READY",
+        prefixCount: Number(message.prefixCount || previous.prefixCount || 0),
+      });
+      return { ok: true };
+    }
     if (message?.type === "SA_GET_NET_CAPTURES") {
       // 只回形态与条数，不回响应体——响应体里可能有平台返回的个人信息，
       // 让它在消息里到处传是没必要的暴露面。
@@ -1272,36 +1259,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                urls: netCaptureBuffer.map(item => item.url),
                totalBytes: netCaptureBuffer.reduce((sum, item) => sum + item.body.length, 0) };
     }
-    // 西方三源的会话导出（v0.0.0.7 / T06）。
+    // 删除：SA_CONNECT_PLATFORM_SESSION。它和 connectPlatformSessionByCookies()
+    // 是逐行重复的两份同一逻辑，而界面走的是函数直调（connectPlatform 分流）。
+    // 两份同样的东西只有一份会被改到，另一份就成了下一次「看着接上了」的来源。
     //
-    // cookies 是**可选权限**：装插件时不申请，只在用户点「连接 X」这一刻才要。
-    // 用户拒绝授权时说清楚是没授权，不要退回"没登录"——那两件事的下一步不一样。
-    if (message?.type === "SA_CONNECT_PLATFORM_SESSION") {
-      const platform = String(message.platform || "").trim().toLowerCase();
-      const spec = globalThis.SACookieExport?.ALLOWED_PLATFORMS?.[platform];
-      if (!spec) {
-        return { ok: false, state: "needs_user_action", error: "这个平台不通过浏览器会话连接。" };
-      }
-      const origins = spec.domains.flatMap(domain => [`https://*.${domain}/*`, `https://${domain}/*`]);
-      const granted = await chrome.permissions.request({ permissions: ["cookies"], origins })
-        .catch(() => false);
-      if (!granted) {
-        return { ok: false, state: "unauthorized", error: "没有获得读取该平台登录状态的授权。" };
-      }
-      const config = await SA.getConfig();
-      try {
-        const { count } = await globalThis.SACookieExport.connectPlatformSession(platform, {
-          endpoint: config.endpoint, token: config.token,
-        });
-        // 只回条数。**任何时候都不回、也不记 cookie 的名或值。**
-        return { ok: true, state: "connected", platform, count,
-                 message_zh: `已连接，登录状态已加密保存（${count} 条）。随时可以一键撤销。` };
-      } catch (error) {
-        const code = error?.code || "UPLOAD_FAILED";
-        return { ok: false, state: code === "NOT_LOGGED_IN" ? "needs_user_action" : "failed",
-                 failureCode: code, error: error?.message || "连接失败" };
-      }
-    }
+    // 西方三源的会话导出（v0.0.0.7 / T06）。cookies 是**可选权限**：
+    // 装插件时不申请，只在用户点「连接 X」这一刻才要。用户拒绝授权时说清楚
+    // 是没授权，不要退回"没登录"——那两件事的下一步不一样。
     if (message?.type === "SA_REVOKE_PLATFORM_SESSION") {
       const platform = String(message.platform || "").trim().toLowerCase();
       const config = await SA.getConfig();

@@ -500,6 +500,12 @@
     .status-pill.pending { background: var(--warning-soft); color: var(--warning); }
     .status-pill.issue { background: var(--danger-soft); color: var(--danger); }
     .export-dots { display: flex; align-items: center; gap: 6px; }
+    /* 目的地回执逐条列出，失败的那条带「重试」（v0.0.0.7 / T14）。 */
+    .receipt-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .receipt-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .receipt-row > span:first-child { min-width: 92px; color: var(--text); }
+    .receipt-row .muted { display: inline; flex: 1; margin-top: 0; font-size: 11px; }
+    .receipt-row .btn.small { min-height: 26px; padding: 0 8px; font-size: 11px; }
     .export-dot { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-size: 9px; font-weight: 900; border: 1px solid var(--line); background: var(--surface-2); color: var(--text-3); }
     .export-dot.done { background: var(--success-soft); border-color: color-mix(in srgb, var(--success) 25%, var(--line)); color: var(--success); }
     .link-btn { min-height: 32px; padding: 0 9px; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; color: var(--brand-2); display: inline-flex; align-items: center; gap: 5px; text-decoration: none; font-weight: 800; font-size: 11px; }

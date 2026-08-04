@@ -38,13 +38,16 @@
       return;
     }
 
-    if (message.type === "SA_CONFIGURE") {
-      chrome.runtime.sendMessage({ type: "SA_WEB_BRIDGE_CONFIGURE", endpoint: message.endpoint, libraryUrl: message.libraryUrl })
-        .then(result => post("SA_PAIR_RESULT", { requestId: message.requestId, ...(result || {}) }))
-        .catch(error => post("SA_PAIR_RESULT", { requestId: message.requestId, ok: false, message: error?.message || "连接失败" }));
-      return;
-    }
-
+    // v0.0.0.7 / T03 收尾：这里原先转发 SA_CONFIGURE → SA_WEB_BRIDGE_CONFIGURE，
+    // 让页面下发 endpoint 与 libraryUrl 写进扩展配置。**已整条删除。**
+    //
+    // 删的理由不是"没人用"，是它和二十行之后那条规则直接冲突：
+    // SA_WEB_BRIDGE_ADOPT_TOKEN 明写「服务地址取扩展自己的托管配置，不接受页面
+    // 下发——页面能改端点就等于任何拿到桥的页面都能把上行改到别处去」。
+    // 而这条转发做的正是那件事。桥注入在档案馆页面上，同源的任何脚本都能发它。
+    //
+    // 没人发它只说明**今天**没被用到，不等于用不了。端点由 setConfig 托管，
+    // 采纳令牌那条路（SA_ADOPT_TOKEN）已经覆盖了真实的连接流程。
     // v0.0.0.7 / T03：原先这里转发用户手抄的一次性码（SA_PAIR）。
     // 现在转发的是**已登录页面替扩展取到的长期令牌**——页面用自己的会话
     // 调 /v1/auth/extension-token 换来，用户一个字符都不输入。

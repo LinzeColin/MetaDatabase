@@ -71,9 +71,13 @@ def test_extension_and_pwa_expose_cooperative_sync_controls():
     sidepanel_html = (EXT / "sidepanel.html").read_text(encoding="utf-8")
     pwa = PWA.read_text(encoding="utf-8")
 
+    # SA_GET_SYNC_CONTROL_STATE 从这张表里去掉了：它是一条**没有任何发送方**的
+    # 消息（find_messages_with_only_one_end 抓到），已随其处理体一并删除。
+    # 这里断言的是暂停/取消真正生效的那条路——编排层每一轮自己查 stopStateFor()，
+    # 那条不依赖任何消息，也就不受影响。
     for token in (
         "SYNC_CONTROL_KEY", "controlSyncRun", "removeQueuedSync",
-        "stopStateFor", "SA_GET_SYNC_CONTROL_STATE",
+        "stopStateFor",
     ):
         assert token in background
     assert 'message.type === "SA_CONTROL_SYNC_RUN"' in bridge

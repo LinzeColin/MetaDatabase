@@ -595,7 +595,51 @@
         <div class="meta-item"><span>最近同步</span><strong>${escapeHtml(formatDate(row.syncedAt, true))}</strong></div>
       </div></div>
       <div class="drawer-section"><h3>归档文件 · ${artifacts.length || row.media} 项</h3><div class="media-grid">${(artifacts.length || row.media) ? Array.from({ length: Math.min(artifacts.length || row.media, 3) }, (_, index) => `<div class="media-thumb" data-label="${escapeHtml(artifacts[index]?.artifact_type || (index === 0 ? "封面" : `媒体 ${index + 1}`))}"></div>`).join("") : '<div style="color:var(--text-3)">该条内容当前只有结构化信息与原始链接。</div>'}</div></div>
-      <div class="drawer-section"><h3>自动导出</h3><div class="export-dots">${["M", "N", "O", "G"].map(mark => `<span class="export-dot ${row.export.includes(mark) ? "done" : ""}">${mark}</span>`).join("")}<span style="margin-left:6px;color:var(--text-3);font-size:12px">${receipts.length ? `${receipts.length} 个真实回执` : "尚无已完成回执"}</span></div></div>`;
+      <div class="drawer-section"><h3>自动导出</h3><div class="export-dots">${["M", "N", "O", "G"].map(mark => `<span class="export-dot ${row.export.includes(mark) ? "done" : ""}">${mark}</span>`).join("")}<span style="margin-left:6px;color:var(--text-3);font-size:12px">${receipts.length ? `${receipts.length} 个真实回执` : "尚无已完成回执"}</span></div>${renderReceiptList(receipts)}</div>`;
+    document.querySelectorAll("[data-retry-receipt]").forEach(button => button.addEventListener("click", () => retryReceipt(button.dataset.retryReceipt, button)));
+  }
+
+  /** 失败的目的地回执要能**在界面上**重试（v0.0.0.7 / T14）。
+   *
+   * 此前这里只显示一个数字「N 个真实回执」——失败了也只是让这个数变大，
+   * 既说不出是哪个目的地失败、也没有任何补救动作。而服务端的
+   * `POST /v1/destinations/receipts/{id}/retry` 一直开着，**全仓唯一的
+   * 调用方是验收脚本 browser_acceptance.py**：能被测试驱动，用户点不到。
+   *
+   * 冻结词典里那句「[ 重试 ]」指的就是这类动作。文案许诺了一个动作，
+   * 界面上却没有对应的按钮，这条承诺就是假的。
+   */
+  function renderReceiptList(receipts) {
+    if (!receipts.length) return "";
+    const rows = receipts.map(receipt => {
+      const status = String(receipt.status || "");
+      const name = destinationNames[receipt.destination_id] || receipt.destination_id;
+      const label = { done: "已写入", noop: "无需写入", failed: "写入失败" }[status] || status;
+      // 只有失败的才给重试。服务端对非 failed 的回执返回 409，
+      // 在界面上就该是"根本没有这颗按钮"，而不是点了才被拒绝。
+      const button = status === "failed"
+        ? `<button class="btn small" data-retry-receipt="${escapeHtml(receipt.id)}">重试</button>`
+        : "";
+      return `<div class="receipt-row"><span>${escapeHtml(name)}</span>`
+        + `<span class="muted">${escapeHtml(label)}${receipt.message_zh ? ` · ${escapeHtml(receipt.message_zh)}` : ""}</span>`
+        + `${button}</div>`;
+    });
+    return `<div class="receipt-list">${rows.join("")}</div>`;
+  }
+
+  async function retryReceipt(receiptId, button) {
+    button.disabled = true;
+    const original = button.textContent;
+    button.textContent = "正在重试…";
+    try {
+      const result = await api(`/v1/destinations/receipts/${encodeURIComponent(receiptId)}/retry`, { method: "POST" });
+      showToast(result?.message_zh || "已重新排队，稍后会自动完成。");
+      await loadLibrary();
+    } catch (error) {
+      showToast(error.message || "重试失败，请稍后再试。", "error");
+      button.disabled = false;
+      button.textContent = original;
+    }
   }
 
   function closeDetail() {

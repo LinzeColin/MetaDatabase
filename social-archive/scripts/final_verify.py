@@ -72,6 +72,11 @@ def structural_commands() -> list[list[str]]:
         # 这道门第一次跑就抓到 saAccountSyncQueueLastResult 写三处、读零处
         # ——那正是我为「放弃时也要说得出原因」补的记录，写进了没人看的地方。
         [python, "scripts/find_write_only_storage_keys.py"],
+        # 第四种形态：扩展内部的消息只有一头。有人听没人发（功能在代码上完整、
+        # 在产品上够不着），或有人发没人听（消息落进虚空，发送处 catch 掉，
+        # 连报错都没有）。这道门第一次跑就抓到 SA_REVOKE_PLATFORM_SESSION——
+        # 而连接成功时产品**当着用户面许诺**「随时可以一键撤销」。
+        [python, "scripts/find_messages_with_only_one_end.py"],
         [python, "scripts/validate_deployment_contract.py"],
     ]
 

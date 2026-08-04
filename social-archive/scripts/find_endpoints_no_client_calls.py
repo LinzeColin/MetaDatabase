@@ -54,6 +54,12 @@ NOT_FOR_CLIENTS: dict[str, str] = {
     # —— 下面两条是**真的没人调**，登记在此是为了让「知道」可查，不是让检查器闭嘴 ——
     "/v1/import/markdown": "**没有任何调用方**。界面走的是 /v1/import/social-archiver（ZIP 导入）。这条是早期的单文件导入，未接界面。",
     "/v1/search": "**没有任何调用方**。资料库自己带全文与多维筛选（/v1/library?q=…），这条是它之前的独立搜索接口，已被取代但没删。",
+    "/v1/jobs": (
+        "GET 有真实调用方（status_server）；**POST /v1/jobs/{id}/retry 没有**。"
+        "界面上没有任何地方逐条列出下载任务，因此也无从画那颗按钮——"
+        "用户目前只能重跑整次同步。这是加了方法维度之后新暴露出来的，"
+        "登记在此是为了让「知道」可查，不是让检查器闭嘴。要接的话得先有任务列表界面。"
+    ),
 }
 
 
@@ -74,6 +80,37 @@ def _strip_comments(text: str, suffix: str) -> str:
             continue
         lines.append(line)
     return "\n".join(lines)
+
+
+METHOD_IN_OPTIONS = re.compile(r'method\s*:\s*"(get|post|put|delete|patch)"', re.I)
+METHOD_AS_CALL = re.compile(r'\.(get|post|put|delete|patch)\(', re.I)
+
+
+def methods_near(blob: str, probe: str) -> set[str]:
+    """这个路径在客户端里被用哪些 HTTP 方法调过。
+
+    **为什么必须看方法。** 第一版只比对路径字符串，于是
+    `GET /v1/credentials`（列出已托管的平台）被判为「有人调」——
+    因为同一个前缀出现在别处的 `PUT` 和 `DELETE` 调用里。
+    实际上那条 GET 一个调用方都没有，而界面因此永远不知道
+    哪些平台存着登录状态，「一键撤销」的按钮也就无从画起。
+
+    窗口取前后各 220 字符：`fetch(url, { method: "DELETE", … })` 这类
+    写法里方法名和 URL 通常隔着几十个字符，行内匹配会漏。
+    没写方法的按 GET 算——fetch 与 SA.api 的默认值都是 GET。
+    """
+    found: set[str] = set()
+    start = 0
+    while True:
+        index = blob.find(probe, start)
+        if index < 0:
+            break
+        start = index + len(probe)
+        window = blob[max(0, index - 220): index + 220]
+        hits = {m.upper() for m in METHOD_IN_OPTIONS.findall(window)}
+        hits |= {m.upper() for m in METHOD_AS_CALL.findall(window)}
+        found |= hits or {"GET"}
+    return found
 
 
 def client_text() -> str:
@@ -112,6 +149,12 @@ def main() -> int:
             continue
         if probe not in blob:
             dead.append(f"  {','.join(sorted(routes[path])):18s} {path}")
+            continue
+        called = methods_near(blob, probe)
+        missing = sorted(routes[path] - called)
+        if missing:
+            dead.append(f"  {','.join(missing):18s} {path}"
+                        f"（这个路径有人调，但没人用这个方法：已见 {','.join(sorted(called))}）")
 
     print(f"api.py 里的 /v1 路由 {len(routes)} 个；客户端目录 {', '.join(CLIENT_DIRS)}")
     if dead:

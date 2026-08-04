@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 503 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 504 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -152,6 +152,15 @@
       ],
       "exit_code": 0,
       "stdout": "扫了扩展里 5 个 storage 键\n每个写进去的键都有人读。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/find_messages_with_only_one_end.py"
+      ],
+      "exit_code": 0,
+      "stdout": "扫了 apps/ 下 22 个文件，32 个 SA_ 消息类型；另有 2 条已登记的单头例外\n每条消息都既有发送方也有接收方。\n",
       "stderr": ""
     },
     {
