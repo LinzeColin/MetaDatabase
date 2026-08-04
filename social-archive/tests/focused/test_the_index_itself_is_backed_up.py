@@ -113,3 +113,45 @@ def test_the_backup_timer_actually_runs_it() -> None:
         "备份单元不跑运行库快照——索引仍然只有一份"
     )
     assert any(l.endswith("backup.py --once") for l in lines), "原来那条私有库备份被挤掉了"
+
+
+# ——— 取回演练：证明那份快照不只是「传上去了」，而是真的打得开 ———
+
+DRILL = ROOT / "scripts/restore_runtime_db_drill.py"
+
+
+def test_the_drill_goes_all_the_way_to_opening_the_database() -> None:
+    """密文哈希一致只说明字节没坏，**不说明解密之后是一个能用的 SQLite**。
+
+    这一天里已经吃过两次同形状的亏：三份副本全登记 verified 而 GitHub
+    那条取回路根本跑不通；恢复报 target_written: true 而目标目录是空的。
+    """
+    code = "\n".join(
+        l for l in DRILL.read_text(encoding="utf-8").splitlines() if not l.lstrip().startswith("#")
+    )
+    for step in ("download_file", "age", "--decrypt", "gzip.open", "sqlite3.connect"):
+        assert step in code, f"演练没走到这一步：{step}"
+    assert "COMPARED_TABLES" in code, "打开了却不数表，等于只验了它是个文件"
+
+
+def test_the_drill_refuses_to_write_into_the_live_data_plane() -> None:
+    code = DRILL.read_text(encoding="utf-8")
+    assert "RECOVERY_TARGET_INVALID" in code, "没有拦住落进运行数据面的目标"
+    assert "settings.runtime_db.parent" in code, "没有把运行库所在目录算进保护范围"
+
+
+def test_it_checks_both_the_ciphertext_and_the_plaintext_hash() -> None:
+    """只比密文哈希不够：解密出来的东西也得对得上 manifest。"""
+    code = DRILL.read_text(encoding="utf-8")
+    assert "CIPHER_SHA256_MISMATCH" in code
+    assert "PLAINTEXT_SHA256_MISMATCH" in code
+
+
+def test_decrypt_failure_does_not_echo_stderr() -> None:
+    """解密失败的输出里可能带密钥材料的片段。"""
+    code = DRILL.read_text(encoding="utf-8")
+    block = code.split("AGE_DECRYPT_FAILED", 1)[0][-400:]
+    assert "completed.stderr" not in code.split("AGE_DECRYPT_FAILED", 1)[1][:200], (
+        "把 age 的 stderr 回显出去了"
+    )
+    assert "不回显 stderr" in block, "没有写清为什么不回显——下一个人会顺手加回去"
