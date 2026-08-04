@@ -3,6 +3,19 @@
 接手前只需读三样：本文件、`09_ROADMAP/TASK_DAG.json`、`evidence/T00/CURRENT_TRUTH.json`。
 其余结论都已落在证据文件里，**不要重新调研**。
 
+> **`09_ROADMAP/TASK_DAG.json` 不在这个仓里。** 它属于单独交付的 v0.0.0.7 任务包
+> （同理还有 `CONFLICT_ORDER.md`、`GOLDEN_TRANSACTION.md`、`10_ACCEPTANCE/`、
+> `11_AGENT/`、`03_PREBUILT/`——本文件与 docs/ 里凡是这几个前缀的路径都是仓外的）。
+>
+> 手上没有任务包时，仓内关于 T00–T18 的记录只有两处，别去别处找：
+>
+>   · 下面那张 DAG 状态表（每个节点的状态与证据指向）
+>   · `evidence/T00/CURRENT_TRUTH.json` 的 `task_classification.tasks`
+>     （每个节点一行分类与一句观察，**没有 Acceptance 原文**）
+>
+> 仓里那份 `machine/task_dag.yaml` 是**封存的 v0.0.0.5 任务包**（SA-xxx，32 条），
+> 不是这一版的 DAG。照它做会做错版本。
+
 ## 工作位置
 
 ```
@@ -29,11 +42,11 @@ sparse    .github + social-archive
 | T08 | **partial** | 拦截链路在真浏览器跑通（不碰任何平台）；真实收藏页未验 |
 | T09–T11 | pending | 依赖 T06/T08 的真实数据 |
 | T12 | **done** | gallery-dl 退出码契约取自安装源；`evidence/T12/EXIT_CODE_CONTRACT.json` |
-| T13 | pending | |
+| T13 | pending | 依赖 T10 证明拦截路 → 而 T10 要 Owner 的已登录国内平台页面。**Acceptance 原文不在仓内**（见开头那段）。 |
 | T14 | **done** | 失败文案；两道门（失败码可解释、证据声明局限）已接进发布门 |
 | T15 | **done** | MV3 worker 之死的恢复；`evidence/T15/WORKER_DEATH_RECOVERY.json` |
 | T16 | **partial** | 回归判据在；**生产三副本实际没在跑**，见下 |
-| T17 | pending | |
+| T17 | pending | 黄金事务（端到端）从未成功过——它按定义需要一次真实平台取数，因此在 T06/T08 解开之前无法开始。**Acceptance 原文不在仓内**。 |
 | T18 | **partial** | 回滚演练已做（并修掉演练暴露的数据丢失缺陷）；部署未做 |
 
 ## 接手第一件事：生产上数据只有一份
