@@ -99,7 +99,7 @@
         "scripts/check_every_failure_code_is_explainable.py"
       ],
       "exit_code": 0,
-      "stdout": "扫到失败码 41 个（src, apps）\n每一个都能落到一句中文。\n",
+      "stdout": "扫到失败码 46 个（src, apps）\n每一个都能落到一句中文。\n",
       "stderr": ""
     },
     {

@@ -71,6 +71,7 @@
     // gallery-dl 退出码 8：撞上验证码/风控。我们不绕，把人引回浏览器自己过。
     // 冻结词典里没有「验证码」这一条，落到最接近的 NOT_LOGGED_IN。
     CHALLENGE_REQUIRED: "NOT_LOGGED_IN",
+    BILI_SIDECAR_BLOCKED: "SERVER_UNREACHABLE",
     ITEM_INGEST_FAILED: "SERVER_UNREACHABLE",
     // 「没归类的异常」的稳定兜底码。**不要用 Python 类名当失败码**：
     // 那是无限集合，词典追不上，界面只能说「我们没能记录下原因」。

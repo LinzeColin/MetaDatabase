@@ -61,6 +61,13 @@ PATTERNS = (
     re.compile(r'error_code\s*[=:]\s*"([A-Z][A-Z0-9_]+)"'),
     re.compile(r'"code"\s*:\s*"([A-Z][A-Z0-9_]+)"'),
     re.compile(r'code\s*:\s*"([A-Z][A-Z0-9_]+)"'),
+    # **兜底写法**：`failure_code: error?.failureCode || "BROWSER_SCAN_FAILED"`
+    # 前面几条都要求引号紧跟冒号，于是整整一类码被漏掉了。
+    # 实测：把 BROWSER_SCAN_FAILED 的别名删掉，这道门**照样通过**——
+    # 因为它压根没看见那个码。漏掉的还有 UPLOAD_FAILED、
+    # RELATION_TERMINAL_NOT_PROVEN。
+    re.compile(r'\|\|\s*"([A-Z][A-Z0-9_]+)"'),
+    re.compile(r'\bor\s+"([A-Z][A-Z0-9_]+)"'),
 )
 
 # 不是失败码的大写字面量（状态、类型、算法名等）。每条写清它是什么。

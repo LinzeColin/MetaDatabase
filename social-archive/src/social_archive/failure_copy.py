@@ -130,6 +130,7 @@ _ALIASES: dict[str, str] = {
     # 生产历史数据里已经存在的那个类名码，也认一下——库里的记录改不了
     "CONNECTORERROR": "SERVER_UNREACHABLE",
     "ITEM_INGEST_FAILED": "SERVER_UNREACHABLE",
+    "BILI_SIDECAR_BLOCKED": "SERVER_UNREACHABLE",
 }
 
 # **故意不放进 _ALIASES 的码**，写在这里是为了让"没漏，是有意的"这件事看得见：
@@ -186,6 +187,9 @@ INCOMPLETE_RUN_CODES: frozenset[str] = frozenset({
     # 到了单次同步的条数上限就停——**不是失败**，是没跑完。
     # 已取到的都在库里，下次续着跑。用「卡住了…都还在」这句正合适。
     "ACCOUNT_SYNC_ITEM_LIMIT_REACHED",
+    # 关系没拿到终批证明——扫完了但证不出"确实到头了"。
+    # 对用户就是「没跑完，已取到的还在」，与其它 INCOMPLETE 同类。
+    "RELATION_TERMINAL_NOT_PROVEN",
 })
 _INCOMPLETE_SENTENCE = "这次同步卡住了，没有正常结束。你已经取到的内容都还在。"
 

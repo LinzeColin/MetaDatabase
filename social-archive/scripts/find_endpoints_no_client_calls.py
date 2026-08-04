@@ -57,6 +57,25 @@ NOT_FOR_CLIENTS: dict[str, str] = {
 }
 
 
+def _strip_comments(text: str, suffix: str) -> str:
+    """把注释去掉再找调用。
+
+    **注释里提到一个接口不等于有人在调它。** 实测踩到过：
+    我在 app.js 里写了一段注释解释「/v1/storage/status 此前没人调」，
+    然后把真正的调用改掉，这道门**照样通过**——因为那段注释满足了它。
+    判据把自己的说明文字当成了证据。
+    """
+    lines = []
+    for line in text.splitlines():
+        stripped = line.lstrip()
+        if suffix in {".js"} and (stripped.startswith("//") or stripped.startswith("*")):
+            continue
+        if suffix in {".py", ".sh"} and stripped.startswith("#"):
+            continue
+        lines.append(line)
+    return "\n".join(lines)
+
+
 def client_text() -> str:
     chunks: list[str] = []
     for folder in CLIENT_DIRS:
@@ -68,7 +87,7 @@ def client_text() -> str:
                 if path.name == Path(__file__).name:
                     continue  # 别把自己的正则和说明当成调用
                 try:
-                    chunks.append(path.read_text(encoding="utf-8"))
+                    chunks.append(_strip_comments(path.read_text(encoding="utf-8"), path.suffix))
                 except (OSError, UnicodeDecodeError):
                     continue
     return "\n".join(chunks)
