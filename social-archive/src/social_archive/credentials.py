@@ -169,6 +169,24 @@ class CredentialStore:
             # 空字符串当成功会让"已连接"变成假的，之后取数永远是 0 且没人知道为什么。
             raise CredentialRejected("没有读到这个平台的登录信息，请先在浏览器里登录该平台。")
         cipher = self._vault.encrypt(text)
+        # **存之前先确认这份密文我们自己解得开。**
+        #
+        # 加密只需要收件人公钥（环境变量），解密需要私钥文件。两者是分开配的，
+        # 所以完全可能出现：收件人配好了、私钥文件是空的或根本不存在 ——
+        # 这时 PUT 会成功，界面说「登录信息已加密保存，随时可以一键撤销」，
+        # 而这份凭据**永远读不回来**，直到某次真的要用时才炸。
+        #
+        # 生产实测过这个前提不是假想：runtime/secrets/credential_age_identity
+        # 在生产上根本不存在，而 install.sh 建的是空占位文件。
+        #
+        # 多一次 age 调用换「说存好了就是真存好了」。凭据写入是低频操作，值。
+        try:
+            if self._vault.decrypt_to_bytes(cipher) != text.encode("utf-8"):
+                raise CredentialUnavailable("加密自检没通过：解出来的内容和存进去的不一致。")
+        except CredentialUnavailable:
+            raise
+        except OSError as exc:  # age 不在、私钥不可读等
+            raise CredentialUnavailable(f"加密自检失败，没有保存：{exc}") from exc
         now = datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
         row_id = stable_id("cred", user_id, name)
         with self._store.connection() as con:

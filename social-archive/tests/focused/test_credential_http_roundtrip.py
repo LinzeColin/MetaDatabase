@@ -170,3 +170,49 @@ def test_reddit_is_refused_for_its_own_reason(tmp_path, monkeypatch) -> None:
                         json={"cookies_txt": SYNTHETIC}, cookies=cookies).json()["detail"]
     assert "授权登录" in detail
     assert "不会离开你的浏览器" not in detail, "把 Reddit 并进了国内平台那条理由"
+
+
+def test_storing_is_refused_when_we_could_not_read_it_back(tmp_path, monkeypatch) -> None:
+    """收件人配了、私钥没配 —— 这时**不许**报「已加密保存」。
+
+    加密只要公钥，解密要私钥，两者分开配。所以完全可能出现
+    「存得进、读不回」：PUT 成功、界面说存好了，而这份凭据永远取不出来，
+    直到某次真的要用时才炸。
+
+    生产上这个前提是实测到的：credential_age_identity 文件根本不存在，
+    而 install.sh 建的是空占位。
+    """
+    client, api = _client(tmp_path, monkeypatch, with_age_key=True)
+    cookies = _login(api)
+
+    # 只把**私钥**拿掉，收件人保留 —— 精确复现那个配置
+    api.credential_vault = type(api.credential_vault)(
+        recipient=api.settings.credential_age_recipient, identity_file=None
+    )
+    api.credential_store = type(api.credential_store)(api.store, api.credential_vault)
+
+    resp = client.put("/v1/credentials/x", json={"cookies_txt": SYNTHETIC}, cookies=cookies)
+    assert resp.status_code == 503, f"缺私钥却报了成功：{resp.status_code} {resp.text}"
+    assert "解密" in resp.json()["detail"] or "自检" in resp.json()["detail"]
+
+    # 而且**什么都不许留下**——半存不存比不存更糟
+    listed = client.get("/v1/credentials", cookies=cookies).json()["items"]
+    assert all(not i["connected"] for i in listed), "自检失败了却把密文留在库里"
+    assert b"age-encryption.org" not in Path(api.settings.runtime_db).read_bytes()
+
+
+def test_a_corrupt_identity_is_caught_at_write_time_not_at_read_time(tmp_path, monkeypatch) -> None:
+    """私钥文件存在但是空的（install.sh 建的正是空占位）——同样要当场拒绝。"""
+    client, api = _client(tmp_path, monkeypatch, with_age_key=True)
+    cookies = _login(api)
+
+    empty = tmp_path / "empty_identity.txt"
+    empty.write_text("", encoding="utf-8")
+    api.credential_vault = type(api.credential_vault)(
+        recipient=api.settings.credential_age_recipient, identity_file=str(empty)
+    )
+    api.credential_store = type(api.credential_store)(api.store, api.credential_vault)
+
+    resp = client.put("/v1/credentials/x", json={"cookies_txt": SYNTHETIC}, cookies=cookies)
+    assert resp.status_code == 503, f"空私钥却报了成功：{resp.status_code} {resp.text}"
+    assert b"age-encryption.org" not in Path(api.settings.runtime_db).read_bytes()
