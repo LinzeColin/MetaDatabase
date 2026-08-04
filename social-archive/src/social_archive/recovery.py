@@ -258,3 +258,36 @@ def rebuild_runtime_projection(recovery_root: Path, target: Path) -> dict[str, i
         "artifact_count": artifact_count,
         "replica_count": replica_count,
     }
+
+
+# ---- 恢复节点上的密钥路径 -------------------------------------------------
+#
+# **恢复是出事那天才跑的东西，那一天不能再去现场试路径。**
+#
+# 2026-08-05 实测：`.env` 里那几个 *_FILE 指的是 /run/secrets/… ——那是**容器里**
+# 的挂载点，主机上根本不存在。于是在主机上照着运维手册跑
+# `bash scripts/restore.sh --latest --dry-run`，拿到的是
+# 「缺少 R2 恢复读取配置」；而那两个密钥就在主机的 runtime/secrets/ 下。
+#
+# 兜底的边界卡死：**只找同名文件、只在这一个目录下找**，两处都没有就照旧失败。
+# 绝不猜别的名字——密钥这种东西「找个像的顶上」是最坏的行为，
+# 它会把一份错的凭据当成对的用下去，而错误要到很久以后才显形。
+SECRET_FALLBACK_DIR = Path(__file__).resolve().parents[2] / "runtime/secrets"
+SECRET_PATH_FALLBACKS: list[str] = []
+
+
+def resolve_secret_path(configured: str | None) -> str | None:
+    """配置指的路径不在，就去恢复节点的 runtime/secrets/ 找同名文件。
+
+    用过就记一笔到 `SECRET_PATH_FALLBACKS`——**静默兜底比不兜底更坏**：
+    它会让人以为配置本来就是对的，换一台机器照抄配置又撞同一堵墙。
+    """
+    if not configured:
+        return configured
+    if Path(configured).is_file():
+        return configured
+    candidate = SECRET_FALLBACK_DIR / Path(configured).name
+    if candidate.is_file():
+        SECRET_PATH_FALLBACKS.append(f"{configured} → {candidate}")
+        return str(candidate)
+    return configured

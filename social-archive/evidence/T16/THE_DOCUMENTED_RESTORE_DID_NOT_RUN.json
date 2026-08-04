@@ -1,0 +1,26 @@
+{
+  "task": "T16 / T18",
+  "claim": "运维手册第 14 行让人跑的那条恢复命令，**在主机上跑不起来**。已修，并照着手册原样跑通。",
+  "measured_at": "2026-08-05",
+  "how_it_surfaced": "新加的第 20 道门只查「文档提到的脚本存不存在」，restore.sh 是存在的。于是顺手照着手册那一行真跑了一次——`bash scripts/restore.sh --latest --dry-run --from-store r2` → `{\"status\":\"BLOCKED_ENVIRONMENT\",\"message\":\"缺少 R2 恢复读取配置\"}`。**脚本在，命令不通。**",
+  "root_cause": "`.env` 里那几个 *_FILE 指的是 /run/secrets/… ——容器里的挂载点，主机上不存在；而密钥就在主机的 runtime/secrets/ 下，只是路径不同。",
+  "why_this_one_is_worse_than_the_earlier_same_bug": "同一个根因我在半小时前修过一次——**修的是 restore_object.py，我手边正在用的那个**。而运维手册让人跑的是 restore.sh（它调 restore.py），那个没修。**修了手边的，没修文档指的那个**，正是「出事那天才发现」的标准配方。",
+  "fix": [
+    "兜底搬进 src/social_archive/recovery.py 的 resolve_secret_path()，两个恢复脚本共用一份，判据钉死「两个都得用共享那份」",
+    "边界不变：只找同名文件、只在 runtime/secrets/ 一个目录下找、两处都没有照旧失败、绝不猜别的名字",
+    "用过就在输出里列出来，READY / PASS / BLOCKED 三条路都列"
+  ],
+  "two_more_things_wrong_in_the_dry_run_itself": {
+    "identity_configured 只看配了没配": "原来是 `bool(identity)`。`.env` 里配着一个容器里的路径、主机上文件根本不在，而 --dry-run 照样报 identity_configured=true。**演练说准备好了，真恢复时才发现没有**——那是演练最坏的失效方式。改成看文件在不在。",
+    "manifest 印出字符串 None": "从远端读时 manifest_path 是 None，演练分支直接 str() 出来就是 \"None\"。真恢复那条路早就写对了（remote:latest），是演练这条没跟上——**而演练正是给人看的那条**。顺带补上 source_store。"
+  },
+  "verified_after_fix": {
+    "命令": "照运维手册原样：bash scripts/restore.sh --latest --dry-run --from-store r2",
+    "结果": "status=READY，identity_configured=true，cipher_sha256=b5133e43c3955d…，并如实列出两处兜底（r2_access_key_id 与 r2_secret_access_key 各自从 /run/secrets/ 落到 runtime/secrets/）"
+  },
+  "what_this_does_not_prove": [
+    "不证明**真恢复**能跑通。这次只跑了 --dry-run（手册第一条就是它）。真恢复会写盘，需要一个空目录与一次有意的操作，没有在生产上做。",
+    "不证明在一台全新机器上能跑。这次是在生产主机上，那台机器有 age 私钥与对象仓凭据；换机器要先把它们搬过去，而 age 私钥全机只有一份，第二份放哪儿仍待 Owner 裁定。",
+    "不证明手册里其它命令都通。这次只跑了恢复这一条——它是最要紧的一条，但不是唯一一条。"
+  ]
+}

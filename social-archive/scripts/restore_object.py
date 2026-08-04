@@ -15,6 +15,7 @@ from urllib.parse import urlsplit
 
 from social_archive.config import Settings
 from social_archive.storage import create_s3_client
+from social_archive.recovery import SECRET_PATH_FALLBACKS, resolve_secret_path
 from social_archive.utils import read_secret, sha256_file
 
 
@@ -124,42 +125,13 @@ def load_runtime_descriptor(runtime_db: Path, artifact_id: str) -> dict[str, Any
 
 
 
-# **恢复要用的密钥，路径在主机上是另一套。**
-#
-# 2026-08-05 实测：`.env` 里那几个 *_FILE 指的是 /run/secrets/… ——那是**容器里**
-# 的挂载点，主机上根本不存在。于是在主机上直接跑恢复脚本，会连着撞两堵墙：
-#   OBJECT_STORE_CONFIG_MISSING（读不到 R2 的两个键）
-#   AGE_IDENTITY_MISSING（读不到 age 私钥）
-# 而主机上这些密钥就在 runtime/secrets/ 下，只是名字不带路径。
-#
-# **恢复是出事那天才跑的东西。** 那一天再去现场发现「配置指向一个不存在的路径」，
-# 是最坏的时机。所以这里加一条兜底：配置指的路径不存在时，去
-# <部署目录>/runtime/secrets/<同名文件> 找一次，**并且把这次兜底如实报出来**。
-#
-# 兜底的边界卡死：只看同名文件、只在这一个目录下找、两处都没有就照旧失败。
-# 绝不猜别的名字，也不去别的目录翻。
-_SECRET_FALLBACK_DIR = Path(__file__).resolve().parents[1] / "runtime/secrets"
-_SECRET_FALLBACKS: list[str] = []
-
-
-def _resolve_secret_path(configured: str | None) -> str | None:
-    """配置指的路径不在，就去主机的 runtime/secrets/ 找同名文件。"""
-    if not configured:
-        return configured
-    if Path(configured).is_file():
-        return configured
-    candidate = _SECRET_FALLBACK_DIR / Path(configured).name
-    if candidate.is_file():
-        _SECRET_FALLBACKS.append(f"{configured} → {candidate}")
-        return str(candidate)
-    return configured
 
 def _s3_config(store_id: str) -> dict[str, str]:
     prefix = f"SOCIAL_ARCHIVE_{store_id.upper()}"
     endpoint = os.getenv(f"{prefix}_ENDPOINT", "").strip()
     bucket = os.getenv(f"{prefix}_BUCKET", "").strip()
-    access_key_id = read_secret(_resolve_secret_path(os.getenv(f"{prefix}_ACCESS_KEY_ID_FILE")))
-    secret_access_key = read_secret(_resolve_secret_path(os.getenv(f"{prefix}_SECRET_ACCESS_KEY_FILE")))
+    access_key_id = read_secret(resolve_secret_path(os.getenv(f"{prefix}_ACCESS_KEY_ID_FILE")))
+    secret_access_key = read_secret(resolve_secret_path(os.getenv(f"{prefix}_SECRET_ACCESS_KEY_FILE")))
     region_name = os.getenv(f"{prefix}_REGION", "auto").strip() or "auto"
     addressing_style = os.getenv(f"{prefix}_ADDRESSING_STYLE", "path").strip() or "path"
     s3_compatibility = os.getenv(f"{prefix}_S3_COMPATIBILITY", "aws").strip().lower() or "aws"
@@ -489,7 +461,7 @@ def main() -> int:
         target = _validated_target(args.target, settings) if args.target else None
         if not args.verify_only and target is None:
             raise RecoveryBlocked("RECOVERY_TARGET_MISSING", "恢复写入必须指定新的空目录")
-        identity = _resolve_secret_path(
+        identity = resolve_secret_path(
             settings.age_identity_file or os.getenv("SOCIAL_ARCHIVE_AGE_IDENTITY_FILE"))
         if args.dry_run:
             if args.from_store in {"r2", "oci"}:
@@ -529,13 +501,13 @@ def main() -> int:
             "target_written": not args.verify_only,
             # 兜底用过就说出来。**静默兜底比不兜底更坏**——它会让人以为
             # 配置本来就是对的，下一台机器上照抄配置又撞同一堵墙。
-            "secret_path_fallbacks": list(_SECRET_FALLBACKS),
+            "secret_path_fallbacks": list(SECRET_PATH_FALLBACKS),
         }, ensure_ascii=False))
         return 0
     except RecoveryBlocked as exc:
         print(json.dumps({"status": "BLOCKED_ENVIRONMENT", "error_code": exc.code,
                           "message": exc.message,
-                          "secret_path_fallbacks": list(_SECRET_FALLBACKS)}, ensure_ascii=False))
+                          "secret_path_fallbacks": list(SECRET_PATH_FALLBACKS)}, ensure_ascii=False))
         return 3
     except RecoveryFailure as exc:
         print(json.dumps({"status": "FAIL", "error_code": exc.code, "message": exc.message}, ensure_ascii=False))
