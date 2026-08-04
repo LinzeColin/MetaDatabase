@@ -142,7 +142,7 @@
         "scripts/check_docs_match_the_ui.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 docs/ 里 21 处界面词引用\n每一处都在界面上找得到。\n",
+      "stdout": "扫了 docs/ 里 22 处界面词引用\n每一处都在界面上找得到。\n",
       "stderr": ""
     },
     {
