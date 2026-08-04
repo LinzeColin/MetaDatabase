@@ -1,0 +1,43 @@
+{
+  "task": "T04",
+  "claim": "「62 条出现在表格里」这句验收，这次是**在真实浏览器里看渲染结果**验的，不再是读接口 JSON 反推。",
+
+  "why_this_file_exists": {
+    "the_false_completion": "先前我把 T04 标成完成，理由是 /v1/library 返回 62 条。那是**伪完成**：接口有数据和用户看得见，是两件事。这一条我自己在 evidence/T04/SPINE_U3_E4.json 里记过，一直没补。",
+    "why_it_can_be_closed_now": "T04 的运行以前根本到不了终态（见 RUN_NEVER_COMPLETED.json），修完之后才第一次有一次真正跑完的同步可以拿来看界面。"
+  },
+
+  "setup": {
+    "browser": "一次性 Chrome profile（--disable-sync），与 Owner 日常浏览器完全隔离",
+    "data": "Owner 真实书签，62 条，经由点真按钮 → 扩展 → 服务端入库",
+    "page": "http://127.0.0.1:8765/ —— API 自己挂的 PWA，不是另起的静态服务",
+    "how_measured": "CDP 连到那个页面，直接查 DOM：数 `table tbody tr a[href^=http]`，拿到的是**真的渲染出来的行**，不是接口回包"
+  },
+
+  "measured": {
+    "page_title": "Social Archive · 多平台收藏资料库",
+    "header_line": "1 个账号已连接 · 最近同步 2026-08-04 10:06",
+    "table_header": "平台 / 时间 / 关系 / 主题分类 / 关键词 / 内容 / 作者 / 收藏夹 / 媒体 / 归档状态 / 自动导出 / 链接",
+    "pagination_markers": ["共 62", "第 1 / 2", "62/62"],
+    "page_1_rows": 50,
+    "page_2_rows": 12,
+    "unique_across_both": 62,
+    "api_total": 62,
+    "missing": 0,
+    "verdict": "接口 62 条 → 页面上逐条对得上 62 条，**一条不缺**"
+  },
+
+  "a_mismeasure_i_made_and_corrected": {
+    "what": "第一次数出来是 59 行，我差点当成「少了 3 条」去查。",
+    "why_wrong": "选择器 `table tbody tr` 把页面上**两张表**都数了（资料库表 + 下方的账号表），而且是在渲染还没稳定的时刻取的。",
+    "how_i_caught_it": "没有停在「59≠62」上直接下结论，而是把两边的 URL 集合逐条 diff。一 diff 就看出缺的 12 条正好是第二页——是分页，不是丢数据。",
+    "lesson": "计数对不上时，先确认自己数的是不是同一样东西。这已经是本会话第二次栽在「判据指错了对象」上。"
+  },
+
+  "what_this_does_not_prove": [
+    "只验了列表页渲染。单条详情页、排序、筛选没有在真实浏览器里逐个点过。",
+    "62 条的**内容正确性**没有逐条比对（标题/URL 是否与 Chrome 书签一一对应），只验了条数与 URL 集合一致。",
+    "没有在移动端视口下看过。",
+    "这是本机一次性实例，不是生产部署。"
+  ]
+}
