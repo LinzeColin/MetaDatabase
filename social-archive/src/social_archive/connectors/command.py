@@ -62,7 +62,27 @@ class CommandArtifactConnector:
                     "observations": [],
                     "artifacts": [],
                 }
-            raise ConnectorError("CLI_WORKER_FAILED", f"CLI Sidecar 调用失败：HTTP {status_code}", retryable=True) from exc
+            # **Sidecar 已经把原因写在响应体里了，别把它扔掉。**
+            #
+            # sidecars/cli-tools/server.py 第 286 行返回的是
+            # `{"status":"failed","error":"<异常类名>","message":"<真实原因>", …}`，
+            # 而 raise_for_status() 先抛，于是这里原样丢掉那段，换成一句
+            # 「CLI Sidecar 调用失败：HTTP 422」。
+            #
+            # 实测（2026-08-04 生产）：跑一次 instagram 连接器，用户拿到的
+            # 就是 `{"detail":"CLI Sidecar 调用失败：HTTP 422"}` —— 没有失败码、
+            # 没有中文下一步，连它到底缺什么都看不出来。**原因一直都在，
+            # 只是被我们扔了。** 这和「读不懂就报没有」是同一种毛病的镜像：
+            # 读到了原因，然后丢掉。
+            upstream = ""
+            try:
+                body = exc.response.json() if exc.response is not None else None
+                if isinstance(body, dict):
+                    upstream = str(body.get("message") or body.get("error") or "").strip()
+            except (ValueError, AttributeError):
+                upstream = ""
+            detail = f"：{upstream}" if upstream else f"：HTTP {status_code}"
+            raise ConnectorError("CLI_WORKER_FAILED", f"下载工具没能完成这次读取{detail}", retryable=True) from exc
         except (httpx.HTTPError, ValueError) as exc:
             raise ConnectorError("CLI_WORKER_FAILED", f"CLI Sidecar 调用失败：{exc.__class__.__name__}", retryable=True) from exc
         if not isinstance(data, dict):
