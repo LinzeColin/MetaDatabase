@@ -58,11 +58,19 @@ def test_an_update_path_exists_and_rebuilds() -> None:
     assert build_at < recreate_at, "先重建容器再 build，等于这次更新还是旧镜像"
 
 
-def test_it_refuses_on_a_dirty_tree(tmp_path: Path) -> None:
-    """带着说不清的本地改动更新生产，是把「我不知道装了什么」变成既成事实。"""
+def test_it_refuses_on_a_dirty_tree_but_still_runs_without_git() -> None:
+    """两件事都要：脏工作树要拦，**非 git 目录不能被拦死**。
+
+    实测 2026-08-04：生产的 /opt/social-archive **不是 git 检出**
+    （`git rev-parse` 报 not a git repository）。第一版无条件要求工作树干净，
+    于是它在唯一真正需要用它的那台机器上直接拒绝运行——
+    判据全绿、本机能跑，**只是跑不了生产**。
+    """
     text = UPDATE.read_text(encoding="utf-8")
     assert "git status --porcelain" in text
     assert "工作树不干净" in text
+    assert "git rev-parse --git-dir" in text, "没有先判断这是不是 git 检出"
+    assert "跳过干净度检查" in text, "非 git 目录会被拦死，而生产正是非 git"
 
 
 def test_the_script_is_valid_bash() -> None:

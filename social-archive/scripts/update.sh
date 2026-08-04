@@ -46,11 +46,18 @@ else
   ON_SYSTEMD=0
 fi
 
-if [[ -n "$(git status --porcelain 2>/dev/null || true)" ]]; then
-  fail '工作树不干净。先提交或还原本地改动——否则这次更新带上去的东西你自己也说不清是什么。'
+# **生产上 /opt/social-archive 不是 git 检出**（实测 2026-08-04：
+# `git rev-parse` 报 not a git repository）。第一版这里无条件要求工作树干净，
+# 于是它在唯一真正需要用它的那台机器上直接拒绝运行——
+# 判据全绿、脚本能跑，**只是跑不了生产**。
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  if [[ -n "$(git status --porcelain)" ]]; then
+    fail '工作树不干净。先提交或还原本地改动——否则这次更新带上去的东西你自己也说不清是什么。'
+  fi
+  printf '当前提交：%s\n' "$(git rev-parse --short HEAD)"
+else
+  printf '当前目录不是 git 检出（生产就是这样），跳过干净度检查。\n'
 fi
-
-printf '当前提交：%s\n' "$(git rev-parse --short HEAD 2>/dev/null || echo '未知')"
 printf '版本：%s\n\n' "$(cat VERSION 2>/dev/null || echo '未知')"
 
 printf '== 1/3 重建镜像（这一步是 systemctl restart 不会做的）==\n'
