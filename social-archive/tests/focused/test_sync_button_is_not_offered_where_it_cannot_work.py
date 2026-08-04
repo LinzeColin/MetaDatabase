@@ -154,3 +154,40 @@ def test_connect_is_not_offered_for_platforms_that_still_cannot_sync() -> None:
     connect_at = empty_branch.index('data-connect-platform="${server}">连接账号')
     assert guard_at < connect_at, "「连接账号」仍会画给同步不了的平台"
     assert "连接后自动首次全量同步" in empty_branch, "判据失去依附：那句话已经不在了"
+
+
+def test_the_queue_itself_refuses_before_touching_any_tab() -> None:
+    """藏起按钮不够——**真正干活的那条路必须也拦**。
+
+    Owner 的原话：「软件抽风 每次都是把目标网页开了关关了开」。
+
+    机制：每分钟一次的 processSyncQueue 取出任务 → runBrowserAccountSync →
+    navigateMirrorTab 用 `chrome.tabs.update(tabId, { url, active: true })`
+    **把用户的标签页导航到收藏页并切到前台** → acquireRelationItems 抛错 →
+    下一分钟再来一次。
+
+    我上一轮只在界面上藏了「立即同步」，队列照跑。**藏按钮只挡住了入口之一。**
+    """
+    background = (ROOT / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    text = code_only(background)
+    assert "async function platformCanSyncNow(" in text, "扩展不问服务端这个平台能不能同步"
+
+    # 入队那一层：同步不了的根本不进队列
+    enqueue = text.split("async function enqueueAllAccounts", 1)[1][:900]
+    assert "platformCanSyncNow" in enqueue, "同步不了的平台仍会被放进队列"
+
+    # 干活那一层：碰标签页之前先拦
+    run = text.split("async function runBrowserAccountSync", 1)[1][:1200]
+    assert "platformCanSyncNow" in run, "真正干活那条路没拦"
+    guard_at = run.index("platformCanSyncNow")
+    nav_at = run.index("navigateMirrorTab") if "navigateMirrorTab" in run else len(run)
+    assert guard_at < nav_at, "拦在导航之后，标签页已经被抢了"
+
+
+def test_the_capability_is_not_duplicated_inside_the_extension() -> None:
+    """能力由服务端说了算。扩展里再维护一份名单必然漂开。"""
+    text = code_only((ROOT / "apps/browser-extension/background.js").read_text(encoding="utf-8"))
+    block = text.split("async function platformCanSyncNow", 1)[1][:700]
+    for hardcoded in ("xiaohongshu", "douyin", "kuaishou", "bilibili"):
+        assert f'"{hardcoded}"' not in block, "扩展里硬编码了平台名单——服务端一改就对不上"
+    assert "supported_platforms" in block, "没有读服务端下发的能力"

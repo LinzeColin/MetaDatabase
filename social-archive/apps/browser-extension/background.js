@@ -426,7 +426,10 @@ async function enqueueAccountSync({ accountId, syncRunId = null, tabId = null, p
 }
 
 async function enqueueAllAccounts(triggerType = "manual") {
-  const accounts = (await listAccounts()).filter(item => ["connected", "degraded"].includes(item.connection_state));
+  const connected = (await listAccounts()).filter(item => ["connected", "degraded"].includes(item.connection_state));
+  // 同步不了的平台**根本不进队列**——进了就会每分钟抢一次用户的标签页。
+  const capability = await Promise.all(connected.map(item => platformCanSyncNow(item.platform)));
+  const accounts = connected.filter((_, index) => capability[index]);
   const results = [];
   for (const account of accounts) {
     try { results.push(await enqueueAccountSync({ accountId: account.id, triggerType })); }
@@ -498,6 +501,34 @@ async function processSyncQueue() {
 async function listAccounts() {
   const response = await SA.api("/v1/accounts", { timeoutMs: 10000 });
   return response.items || [];
+}
+
+/** 这个平台现在真的同步得动吗（v0.0.0.7 / INV-ZERO-BARRIER）。
+ *
+ * ## 为什么必须在这一层拦，而不只是藏起按钮
+ *
+ * 界面上把「立即同步」藏掉之后，**队列照跑**：每分钟一次的
+ * processSyncQueue 取出任务 → runBrowserAccountSync →
+ * navigateMirrorTab 用 `chrome.tabs.update(tabId, { url, active: true })`
+ * **把用户的标签页导航到收藏页并切到前台** → acquireRelationItems 抛错 →
+ * 下一分钟再来一次。
+ *
+ * Owner 的原话：「软件抽风 每次都是把目标网页开了关关了开」。
+ * 那就是这个循环。**藏按钮只挡住了入口之一，真正干活的那条路没拦。**
+ *
+ * 能力由服务端说了算（account_sync.SYNCABLE_NOW），扩展照着做，
+ * 不在这里维护第二份名单。
+ */
+async function platformCanSyncNow(platform) {
+  try {
+    const response = await SA.api("/v1/accounts", { timeoutMs: 10000 });
+    const entry = (response.supported_platforms || []).find(item => item.platform === platform);
+    // 问不到就按「能」处理：宁可跑一次失败的同步，也不要因为一次网络抖动
+    // 把本来能用的平台全体停掉。
+    return entry ? entry.sync_supported !== false : true;
+  } catch (_) {
+    return true;
+  }
 }
 
 async function listSyncRuns() {
@@ -876,6 +907,13 @@ async function scanOneBrowserRelation({ tabId, platform, relation, syncRunId, pr
 async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, profileUrl = "", triggerType = "manual" }) {
   const spec = platformSpec(account.platform);
   if (!spec) throw new Error("该平台暂不支持浏览器账号同步");
+  // **在碰任何标签页之前先拦。** 入队那一层已经滤过一次，这里是第二道：
+  // 队列里可能还留着旧任务（chrome.storage 里的），它们不该再去抢标签页。
+  if (!await platformCanSyncNow(account.platform)) {
+    const error = new Error("本版本还不能自动读取这个平台的收藏列表，已停止，不会反复重试。");
+    error.failureCode = "ACQUISITION_PATH_NOT_INSTALLED";
+    throw error;
+  }
   if (!syncRunId) {
     const started = await SA.api(`/v1/accounts/${encodeURIComponent(account.id)}/sync`, {
       method: "POST",
