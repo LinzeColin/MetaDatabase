@@ -116,8 +116,11 @@ def parse_bilibili_favlist(body: str) -> tuple[list[FavItem], bool]:
         # **实测形状。** code=0、message=OK、data=null。
         # 绝不能变成"0 条收藏"。
         raise PayloadUnreadable(
-            "B站返回了成功，但没有给任何收藏内容——通常是这个浏览器还没登录 B 站，"
-            "或者这个收藏夹不公开。**这不代表你没有收藏。**"
+            # **这句里不许出现 Markdown 星号。** 界面是 textContent 渲染，
+            # `**…**` 会被原样显示成两个星号——用户看到的是乱码般的强调符，
+            # 不是强调。要强调就靠语序和用词。
+            "B站返回了成功，但没有给任何收藏内容。这不代表你没有收藏——"
+            "通常是这个浏览器还没登录 B 站，或者这个收藏夹不公开。"
             "在浏览器里打开 B 站确认已登录，然后再同步一次。",
             "NOT_LOGGED_IN",
         )

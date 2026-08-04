@@ -114,6 +114,28 @@ def test_documented_item_shape_maps_when_it_does_match() -> None:
     assert only.favorited_at == 1700000000
 
 
+def test_no_markdown_asterisks_leak_into_user_facing_copy() -> None:
+    """界面是 textContent 渲染，`**…**` 会被原样显示成两个星号。
+
+    第一版这句里写了 `**这不代表你没有收藏。**`——想强调，实际效果是
+    在用户眼前放两个莫名其妙的星号。要强调就靠语序和用词。
+    """
+    with pytest.raises(PayloadUnreadable) as caught:
+        parse_bilibili_favlist(ANONYMOUS_REAL_RESPONSE)
+    assert "**" not in caught.value.message_zh, "用户面前会出现 Markdown 星号"
+    assert "不代表你没有收藏" in caught.value.message_zh, "强调的意思不能因为去掉星号就丢了"
+
+
+def test_unknown_platform_message_uses_the_chinese_name(tmp_path, monkeypatch) -> None:
+    """别把 `xiaohongshu` 这种内部 id 甩给用户——那是在让他读我们的代码。"""
+    payload = _client(tmp_path, monkeypatch).post(
+        "/v1/extension/captures/parse",
+        json={"platform": "xiaohongshu", "body": "{}"},
+    ).json()
+    assert "小红书" in payload["message_zh"]
+    assert "xiaohongshu" not in payload["message_zh"]
+
+
 def test_garbage_is_not_silently_an_empty_page() -> None:
     for body in ("", "not json at all", "[1,2,3]"):
         with pytest.raises(PayloadUnreadable) as caught:

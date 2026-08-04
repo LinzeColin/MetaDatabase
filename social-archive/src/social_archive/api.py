@@ -531,7 +531,9 @@ def parse_captured_response(payload: CapturedResponse) -> dict[str, Any]:
             "ok": False,
             "platform": platform,
             "failure_code": "PLATFORM_PARSER_MISSING",
-            "message_zh": f"还没有写{platform}的响应解析，这一条读不了。",
+            # 用中文名。把 `xiaohongshu` 这种内部 id 甩给用户，
+            # 是在让他读我们的代码。
+            "message_zh": f"还没有写{PLATFORM_LABELS.get(platform, platform)}的响应解析，这一条读不了。",
             "items": [],
         }
     try:
