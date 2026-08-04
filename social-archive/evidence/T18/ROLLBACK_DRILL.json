@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "task": "T18",
+  "recorded_at": "2026-08-04T01:30Z",
+  "claim": "回滚演练真跑了一遍。**演练把回滚脚本自己的数据丢失缺陷炸了出来**——它会一边毁掉数据一边打印「✓ 回滚完成」。",
+
+  "why_now": "T00 的分类里 T18 写着「发布与回滚演练未做」。部署要 Owner 定时机，但**回滚演练不需要**：本机就能造出真实的迁移前后两个库。",
+
+  "how_the_pre_migration_database_was_built": {
+    "not_simulated": "没有手工删列删表去「模拟」v0.0.0.6——SQLite 本来也不能 DROP COLUMN，那种模拟做出来的不是真东西。",
+    "actually_done": "从 origin/main 逐文件导出整棵 src/ 树（28 个文件，含 sql/runtime_schema.sql），用**那份代码**建库。",
+    "verified_it_really_is_v6": [
+      "credentials.py / failure_copy.py 不存在（v0.0.0.7 才有）",
+      "users / session / oauth_identity / extension_token / platform_credential 五张表都不存在",
+      "source_account / user_relation / sync_run 都没有 user_id 列"
+    ],
+    "a_false_start_i_caught": "第一次导出用 `git archive` 与不带 ./ 的路径，**导出了 0 个文件**，于是 import 悄悄回退到当前 v0.0.0.7 包，打印出「v0.0.0.6 有 users 表」。是表名列表看着不对才发现的。**又一次「判据指错了对象」，这次差点写进证据。**"
+  },
+
+  "migration_verified": {
+    "method": "把 v0.0.0.6 的库复制一份，用 v0.0.0.7 的 RuntimeStore.initialize() 打开",
+    "result": [
+      "五张新表全部建出",
+      "三张租户表都加上了 user_id",
+      "**迁移前写入的业务数据 cnt_old 仍在** —— 加法迁移的关键性质"
+    ]
+  },
+
+  "rollback_verified": {
+    "verify_step": "--verify 逐条列出五张会整表消失的表及其行数，并把对 Owner 的实际表现说清楚（要重新登录、插件要重连、托管的平台登录信息全没）。未写入任何东西。",
+    "restore_step": "--restore 先把当前库另存 .pre-rollback，再 .restore；恢复后 integrity_check = ok，租户列消失，cnt_old 仍在 1 条。",
+    "refusal": "拿一个行数对不上的快照去 --restore：退出码 1，拒绝执行，**库一个字节没动**（users 表仍在、cnt_extra 没混进来）。"
+  },
+
+  "the_defect_the_drill_found": {
+    "severity": "数据丢失，且报成功",
+    "trigger": "撤销回滚（--restore <db> <db>.pre-rollback-…）与前一次回滚发生在**同一秒**",
+    "mechanism": [
+      "备份文件名是 ${DB}.pre-rollback-$(date -u +%Y%m%dT%H%M%SZ) —— 只精确到秒",
+      "同一秒内第二次恢复算出的 $PRE 与上次同名",
+      "而恢复顺序是：先 `.backup` 写 $PRE，再 `.restore` 读 $SNAP",
+      "撤销回滚时 $PRE 恰好等于 $SNAP → **备份把它正要恢复的那份快照先覆盖掉了**"
+    ],
+    "observed": "脚本打印「✓ 回滚完成」，而撤销之后 `SELECT COUNT(*) FROM users` = **0**（应为 1）。users / session / platform_credential 整批数据永久消失，没有任何提示。",
+    "why_it_survived_review": "前几步演练里两次恢复相隔了几秒，一切正常。**只有把两次操作压在同一秒里才会触发**——这正是读代码看不出、必须真跑的那类缺陷。",
+    "note": "这也是「看起来成功」的最坏形态：**回滚工具自己把数据弄丢了还报成功**。它和本轮修的其它几处（gallery-dl 退出码、静默降级、卡死的 run）是同一族。"
+  },
+
+  "fixes": {
+    "collision_proof_name": "备份名加进程号后缀；判据打在「秒之外还有别的区分位」上，不钉某一种写法（$$ / %N / RANDOM 都行）。",
+    "three_refusals": [
+      "备份目标已存在 → 拒绝覆盖",
+      "备份目标与快照解析后是同一个文件 → 拒绝（那正是自毁快照的路径）",
+      "快照名形如 <db>.pre-rollback-* → 明确提示「这是撤销上一次回滚」"
+    ],
+    "verify_exit_code": "--verify 发现行数不一致时退出 1。原来无论对不对得上都 exit 0——**「没查成」和「查出问题」共用一个退出码**，任何把它当门用的地方都会被骗。（--restore 自己还会再拒一次，所以没出过事，但这条本身是错的。）",
+    "direction_aware_selfcheck": "恢复有两个方向，期望值相反：往回滚要求租户列消失，撤销回滚要求租户列保留。原来只认前者，于是一次**成功的撤销**会打出三行「! 可能有问题」，让对的事看着像错的。现在先判方向再判对错。"
+  },
+
+  "reverified_after_fix": {
+    "same_second_undo": "回滚 + 撤销压在同一秒内重跑：备份名带后缀不再碰撞，脚本明确打印「这是撤销上一次回滚」与「方向：撤销回滚」，撤销后 `users` = **1**。",
+    "guards": "tests/focused/test_rollback_drill.py 四条；把随机后缀去掉即变红，报文原样打出那一行 PRE= 与后果说明。"
+  },
+
+  "what_this_does_not_prove": [
+    "**没有在生产上跑过回滚**，也没有碰生产库。整个演练在本机临时目录里进行。",
+    "只演练了 T01 的多租户迁移这一条。对象存储/三副本层面的回滚（restore_object.py）没有演练。",
+    "没有演练「回滚之后服务能不能正常起来」——只验了库文件本身（integrity_check、表结构、行数）。",
+    "同一秒碰撞是构造出来的；没有测更极端的并发（两个进程同时跑 --restore）。脚本没有加锁，那种情况的行为未知。"
+  ]
+}

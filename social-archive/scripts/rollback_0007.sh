@@ -109,12 +109,41 @@ fi
 
 if [ "$MODE" = "--verify" ]; then
   echo ""
+  if [ "$MISMATCH" = "1" ]; then
+    # **「没查成」和「查出问题」不能用同一个退出码。**
+    # 原来这里无论有没有对不上都 exit 0，于是
+    # `--verify && --restore` 这种写法会一路走下去
+    # （--restore 自己还会再拒一次，所以没出过事——但 --verify 本身
+    #  说了「有问题」却报成功，任何把它当门用的地方都会被骗）。
+    echo "✗ 校验未通过：行数对不上（未写入任何东西）。"
+    exit 1
+  fi
   echo "✓ 校验通过（未写入任何东西）。确认无误后用 --restore 执行。"
   exit 0
 fi
 
 # ── 真的恢复 ──────────────────────────────────────────────────────
-PRE="${DB}.pre-rollback-$(date -u +%Y%m%dT%H%M%SZ)"
+# 备份文件名。**带随机后缀，不能只靠秒级时间戳。**
+#
+# 演练时实际炸过一次：撤销回滚（--restore <db> <db>.pre-rollback-…）
+# 与前一次回滚发生在同一秒，于是这次的 $PRE 与上次同名 ——
+# 而恢复的顺序是「先 .backup 写 $PRE，再 .restore 读 $SNAP」，
+# 当 $PRE == $SNAP 时，**备份把它正要恢复的那份快照先覆盖掉了**。
+# 结果：脚本打印「✓ 回滚完成」，而 users/session/platform_credential
+# 整批数据永久消失，且没有任何提示。
+PRE="${DB}.pre-rollback-$(date -u +%Y%m%dT%H%M%SZ)-$$"
+
+# 三道拦：宁可拒绝，也不要「看起来成功」。
+[ -e "$PRE" ] && fail "备份目标已存在，拒绝覆盖: $PRE"
+if [ "$(cd "$(dirname "$PRE")" && pwd -P)/$(basename "$PRE")" = "$(cd "$(dirname "$SNAP")" && pwd -P)/$(basename "$SNAP")" ]; then
+  fail "备份目标与快照是同一个文件，继续下去会先把快照毁掉: $SNAP"
+fi
+case "$(basename "$SNAP")" in
+  "$(basename "$DB")".pre-rollback-*)
+    # 这是「撤销回滚」，合法；但要说清方向，别让人以为在往回滚。
+    echo "  注意：快照是一份 .pre-rollback 备份 —— 这是**撤销上一次回滚**。" ;;
+esac
+
 echo ""
 echo "== 恢复 =="
 echo "  先把当前库存一份: $PRE"
@@ -129,12 +158,34 @@ echo ""
 echo "== 恢复后自检 =="
 sqlite3 "$DB" "PRAGMA integrity_check;" | grep -qx "ok" || fail "恢复后 integrity_check 失败"
 
-# 租户列应当已经不在了（快照是迁移前的）
+# 恢复有**两个方向**，自检的期望值是相反的：
+#   往回滚  快照是迁移前的 → 租户列应当消失
+#   撤销回滚 快照是迁移后的（.pre-rollback）→ 租户列应当还在
+# 原来这里只认第一种，于是一次**成功的撤销**会打出三行「! 可能有问题」，
+# 让对的事看着像错的。先判方向，再判对错。
+SNAP_HAS_TENANCY=0
+sqlite3 "$SNAP" "PRAGMA table_info(sync_run);" | grep -q "|user_id|" && SNAP_HAS_TENANCY=1
+
+if [ "$SNAP_HAS_TENANCY" = "1" ]; then
+  echo "  方向：撤销回滚（快照是迁移后的），租户列应当**保留**"
+else
+  echo "  方向：回滚到迁移前，租户列应当**消失**"
+fi
+
 for t in $TENANT_TABLES; do
   if sqlite3 "$DB" "PRAGMA table_info($t);" | grep -q "|user_id|"; then
-    printf "  ! %-22s 仍有 user_id —— 快照可能本来就是迁移后的\n" "$t"
+    have=1
   else
-    printf "  ✓ %-22s user_id 已消失\n" "$t"
+    have=0
+  fi
+  if [ "$have" = "$SNAP_HAS_TENANCY" ]; then
+    if [ "$have" = "1" ]; then
+      printf "  ✓ %-22s user_id 仍在（符合撤销方向）\n" "$t"
+    else
+      printf "  ✓ %-22s user_id 已消失\n" "$t"
+    fi
+  else
+    printf "  ! %-22s 与快照方向不符 —— 恢复结果和预期不一致\n" "$t"
   fi
 done
 
