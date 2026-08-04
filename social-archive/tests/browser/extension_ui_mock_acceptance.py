@@ -90,7 +90,7 @@ def mock_script(base_url: str) -> str:
   globalThis.chrome = {{
     runtime: {{
       getURL: path => `${{base}}/${{path}}`,
-      getManifest: () => ({{ version: '0.0.0.6' }}),
+      getManifest: () => ({{ version: '0.0.0.7' }}),
       openOptionsPage: async () => true,
       sendMessage: async message => {{
         if (message?.type === 'SA_GET_PENDING_CONNECTIONS') return {{ ok:true, items:{{}} }};
