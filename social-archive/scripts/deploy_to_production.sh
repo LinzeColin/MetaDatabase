@@ -189,5 +189,28 @@ ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR'
   echo '  /health 200，/v1/accounts 200。鉴权链路是通的。'" \
   || fail "验收失败。回滚：ssh $HOST \"cd $REMOTE_DIR && docker tag social-archive/core:rollback $IMAGE && docker compose up -d core-api core-worker\""
 
+step "8) 验收：下载页真正下发的那个包，是不是刚部署的这个"
+# **磁盘上有那个文件**和**下载路由下发那个文件**是两件不同的事，
+# 而 Owner 拿到的是后者。第 2 步只比过 dist/ 下的字节。
+#
+# 而且必须从机器内部打，并且**要看 content-type**：
+# 2026-08-05 在外网 curl 了一次，拿回来的是 Cloudflare Access 的登录页，
+# 34963 字节、哈希漂亮得很——差点据此断定「下载页发的是另一个包」。
+# 一个 200 + text/html 的登录页，和一个包，哈希看起来一样体面。
+ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR'
+  PORT=\$(grep -oP '(?<=^SOCIAL_ARCHIVE_CORE_LOOPBACK_PORT=)[0-9]+' .env 2>/dev/null || echo 18765)
+  TYPE=\$(curl -s -o /tmp/sa_zip_check.zip -w '%{content_type}' --max-time 30 \"http://127.0.0.1:\$PORT/downloads/social-archive-extension.zip\")
+  SERVED=\$(sha256sum /tmp/sa_zip_check.zip | cut -d' ' -f1)
+  rm -f /tmp/sa_zip_check.zip
+  case \"\$TYPE\" in
+    application/zip*) ;;
+    *) echo \"  下载路由回的不是包，是 \$TYPE —— 别拿它的哈希当数\"; exit 1 ;;
+  esac
+  if [ \"\$SERVED\" != '$LOCAL_ZIP' ]; then
+    echo \"  下载页下发的不是刚部署的包（下发 \${SERVED:0:16}，本地 ${LOCAL_ZIP:0:16}）\"; exit 1
+  fi
+  echo '  下载页下发的就是刚部署的那个包，逐字节一致。'" \
+  || fail "下载页下发的包对不上。Owner 装到的会是别的东西——这一步不能放过。"
+
 printf '\n部署完成。回滚一行命令：\n'
 printf '  ssh %s "cd %s && docker tag social-archive/core:rollback %s && docker compose up -d core-api core-worker"\n' "$HOST" "$REMOTE_DIR" "$IMAGE"
