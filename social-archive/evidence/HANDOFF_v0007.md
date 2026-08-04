@@ -73,6 +73,28 @@
 not_yet_supported 如实报出还没做的条数。生产实测 overall=healthy、
 not_yet_supported=8。
 
+## 每次提交都会看到的那条 git 警告：**别照它说的做**
+
+提交时 git 会反复印这两句：
+
+    warning: The last gc run reported the following...
+    warning: There are too many unreachable loose objects; run 'git prune' to remove them.
+
+**它让你跑的正是那条销毁过 2467 个提交、且不可恢复的命令。** 本机铁律 3
+明文禁止给 gc 加那个「立刻清掉不可达对象」的参数，而 `git prune` 是同一件事
+的另一个写法。
+
+量过了，不值得为它冒任何险：
+
+  · 松散对象 733 MiB / 12969 个，打包的 371 MiB，`.git` 合计 1.1G
+  · 本机可用 **622 GiB** —— 那 733 MiB 是可用空间的 **0.1%**
+
+所以**什么都不做**：不清理，不 gc，连那个 gc.log 也不删——删掉它等于把
+自动 gc 放回来，而自动 gc 到期照样会自己去清。这条警告是噪音，不是问题。
+
+（真要清理时唯一安全的写法是 `git gc --no-prune`：只重新打包，一个对象都不删。
+但在腾出 0.1% 空间这件事上，它也不必要。）
+
 ## 工作位置
 
 ```

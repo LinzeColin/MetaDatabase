@@ -22,7 +22,7 @@
   ],
   "two_mistakes_i_made_and_caught": {
     "用本地时区判新旧": "`git log --since=\"2026-08-04 06:05\"` 里的时间按**本地时区**（UTC+8）解释，等于把窗口放宽了 8 小时。按它看，那个 T07 提交像是发生在镜像构建之后——**差点据此断定 cli-tools 跑的是旧代码**。换成真 UTC：提交 05:58:30Z，镜像 06:05:10Z，晚了 7 分钟，是包含在内的。",
-    "靠 find head 找文件": "第一次比对用的是 `find / -name server.py | head -1`。容器里还有 /usr/local/lib/python3.12/{http,xmlrpc}/server.py 两个同名文件。**那次侥幸比对了正确的文件**，只因为 -maxdepth 4 把标准库那两个挡在外面。现在第 5.5 道门里写死量到的 /worker/server.py。"
+    "靠 find head 找文件": "第一次比对用的是 `find / -name server.py | head -1`。容器里还有 /usr/local/lib/python3.12/{http,xmlrpc}/server.py 两个同名文件。**那次侥幸比对了正确的文件**，只因为 -maxdepth 4 把标准库那两个挡在外面。现在第 5.5 道门里写死量到的路径，并且比的是 /worker/server.py 与 /worker/Dockerfile.built 两个文件。"
   },
   "a_mess_i_made_while_measuring_and_cleaned_up": "为了量「缓存命中时重建要多久」，我在生产上跑了一次 `docker compose build cli-tools`。它耗时 130 秒并且**产出了一个新镜像**（有一层没命中缓存），于是 :0.0.0.7 这个标签指向了一个**运行中容器并没有在用**的镜像。当场 `up -d cli-tools` 让两者重新对上（容器 healthy，server.py 哈希不变），并核了磁盘：可用 7G，悬空镜像 0 个。",
   "why_the_gate_compares_instead_of_always_rebuilding": "always rebuild 的代价是每次部署 130 秒 + 一个新镜像。生产盘已经因为镜像堆积紧过一次（部署被自己的磁盘门挡下）。比对只是一次 sha256。",
