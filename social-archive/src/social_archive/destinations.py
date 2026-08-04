@@ -395,7 +395,12 @@ class DestinationRegistry:
             return "needs_user_action", "SECRET_OR_PATH_PERMISSION", str(exc)
         if isinstance(exc, ValueError):
             return "needs_user_action", "INVALID_CONFIGURATION", str(exc)
-        return "degraded", exc.__class__.__name__.upper(), f"连接失败：{exc}"
+        # **不要拿 Python 类名当失败码。** 它对用户没有意义、泄漏实现，
+        # 而且是个无限集合——文案词典永远追不上，于是界面只能说
+        # 「我们没能记录下原因」，而原因就在异常里。
+        # 生产实测：connector_state 里躺着 CONNECTORERROR，正是这么来的。
+        # 类名留在 message 里给日志看，码用稳定的那个。
+        return "degraded", "DESTINATION_PROBE_FAILED", f"连接失败（{exc.__class__.__name__}）：{exc}"
 
     def _record_export_failure(
         self,

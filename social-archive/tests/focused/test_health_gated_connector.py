@@ -49,7 +49,14 @@ def test_ambiguous_openapi_worker_degrades_without_guessing_or_posting(monkeypat
     result = connector.capture({"url": "https://www.douyin.com/video/fixture"})
 
     assert health["state"] == "degraded"
-    assert health["error_code"] == "ConnectorError"
+    # **失败码要稳定，不能是 Python 类名。**
+    # 这条原来断言 error_code == "ConnectorError" —— 它把反模式钉住了：
+    # 类名对用户没有意义、泄漏实现，而且是无限集合，文案词典追不上，
+    # 于是界面只能说「我们没能记录下原因」。生产 connector_state 里
+    # 就躺着一个这么来的 CONNECTORERROR。
+    # 现在码用稳定的那个，类名仍然留在 message 里给运维看——诊断信息没丢。
+    assert health["error_code"] == "WORKER_PROBE_OR_CALL_FAILED"
+    assert "ConnectorError" in health["message"], "类名从诊断信息里也没了，那是丢信息"
     assert result.status == "degraded"
     assert result.errors[0]["code"] == "WORKER_PROBE_OR_CALL_FAILED"
     assert seen["post"] == 0

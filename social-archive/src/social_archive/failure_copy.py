@@ -120,6 +120,16 @@ _ALIASES: dict[str, str] = {
     "OBSIDIAN_LOCAL_BRIDGE_FAILED": "SERVER_UNREACHABLE",
     "X_AUTH_MISSING": "CREDENTIAL_EXPIRED",   # X 没授权过或授权掉了 → 去重新连接
     "X_RATE_LIMITED": "RATE_LIMITED",
+    # 三处「没归类的异常」兜底码。它们原来直接用 Python 类名当码
+    # （CONNECTORERROR / HEALTH_XXXERROR / …），那是个无限集合，
+    # 词典永远追不上，于是界面只能说「我们没能记录下原因」。
+    # 生产 connector_state 里就躺着一个 CONNECTORERROR。
+    "DESTINATION_PROBE_FAILED": "SERVER_UNREACHABLE",
+    "HEALTH_PROBE_FAILED": "SERVER_UNREACHABLE",
+    "JOB_FAILED": "SERVER_UNREACHABLE",
+    # 生产历史数据里已经存在的那个类名码，也认一下——库里的记录改不了
+    "CONNECTORERROR": "SERVER_UNREACHABLE",
+    "ITEM_INGEST_FAILED": "SERVER_UNREACHABLE",
 }
 
 # **故意不放进 _ALIASES 的码**，写在这里是为了让"没漏，是有意的"这件事看得见：

@@ -91,7 +91,8 @@ class CommandArtifactConnector:
                     data = response.json()
                 return {"state": "healthy", "mode": "isolated_http_sidecar", "tools": data.get("tools", {})}
             except (httpx.HTTPError, ValueError) as exc:
-                return {"state": "degraded", "mode": "isolated_http_sidecar", "error_code": exc.__class__.__name__}
+                return {"state": "degraded", "mode": "isolated_http_sidecar",
+                        "error_code": "HEALTH_PROBE_FAILED", "detail": exc.__class__.__name__}
         binaries = {name: bool(shutil.which(name)) for name in sorted(self.ALLOWED)}
         return {"state": "healthy" if any(binaries.values()) else "blocked_environment", "mode": "local_dev_fallback", "binaries": binaries}
 

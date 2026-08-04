@@ -71,6 +71,13 @@
     // gallery-dl 退出码 8：撞上验证码/风控。我们不绕，把人引回浏览器自己过。
     // 冻结词典里没有「验证码」这一条，落到最接近的 NOT_LOGGED_IN。
     CHALLENGE_REQUIRED: "NOT_LOGGED_IN",
+    ITEM_INGEST_FAILED: "SERVER_UNREACHABLE",
+    // 「没归类的异常」的稳定兜底码。**不要用 Python 类名当失败码**：
+    // 那是无限集合，词典追不上，界面只能说「我们没能记录下原因」。
+    DESTINATION_PROBE_FAILED: "SERVER_UNREACHABLE",
+    HEALTH_PROBE_FAILED: "SERVER_UNREACHABLE",
+    JOB_FAILED: "SERVER_UNREACHABLE",
+    CONNECTORERROR: "SERVER_UNREACHABLE",
     // ── 连接器 / OAuth / 各 worker（由 Python 侧同步而来）──
     // 这一批此前整层没进过表：界面会把它们显示成「我们没能记录下原因」，
     // 而原因就写在代码里。scripts/check_every_failure_code_is_explainable.py 扫出来的。

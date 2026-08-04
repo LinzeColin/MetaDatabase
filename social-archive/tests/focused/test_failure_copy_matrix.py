@@ -11,6 +11,7 @@ INV-NO-SILENT-ZERO：任何一次同步为 0 条时，界面都说得出为什�
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -492,3 +493,34 @@ def test_partial_runs_that_did_import_still_report_the_count_first() -> None:
     )
     assert outcome["outcome"] == "imported"
     assert outcome["message_zh"] == "新增 169 条。"
+
+
+def test_failure_codes_are_never_python_class_names() -> None:
+    """**不要拿异常类名当失败码。**
+
+    生产 connector_state 里躺着一个 `CONNECTORERROR`——它来自
+    `exc.__class__.__name__.upper()`。这类码有三个问题：
+
+      1. 对用户没有意义，且泄漏实现细节
+      2. 是**无限集合**，文案词典永远追不上，于是界面只能说
+         「我们没能记录下原因」——而原因就在异常对象里
+      3. `check_every_failure_code_is_explainable.py` 是扫**字面量**的，
+         动态拼出来的码它结构上就看不见
+
+改法是：码用稳定的那个，类名留在 message 里（那一栏是给日志和运维看的）。
+    """
+    from pathlib import Path
+
+    src = Path(__file__).resolve().parents[2] / "src/social_archive"
+    offenders = []
+    for path in src.rglob("*.py"):
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if "__class__.__name__" not in line:
+                continue
+            # 只在它被当作 code/error_code 用的时候才算
+            if re.search(r'(error_)?code["\']?\s*[=:]\s*f?["\']?[^"\']*__class__\.__name__', line):
+                offenders.append(f"{path.name}:{lineno}  {line.strip()[:80]}")
+    assert not offenders, (
+        "这些地方把异常类名当成了失败码，界面会显示「我们没能记录下原因」：\n  "
+        + "\n  ".join(offenders)
+    )

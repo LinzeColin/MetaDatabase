@@ -581,7 +581,9 @@ class AccountSyncCoordinator:
                 responses.append(response)
                 relation_ids_by_collection.setdefault(collection_key, set()).add(response.relation_id)
             except (ValueError, OSError) as exc:
-                errors.append({"index": index, "code": exc.__class__.__name__, "message": str(exc)[:500]})
+                # 条目级错误：码要稳定，具体异常留在 message 里
+                errors.append({"index": index, "code": "ITEM_INGEST_FAILED",
+                               "message": f"{exc.__class__.__name__}: {exc}"[:500]})
 
         if relation_ids_by_collection:
             self.store.record_sync_seen_relations(

@@ -126,7 +126,8 @@ def _finish_failed_job(store: RuntimeStore, job: dict, exc: Exception) -> None:
     store.finish_job(
         job["id"],
         success=False,
-        error_code=exc.__class__.__name__,
+        # 稳定码；具体是哪个异常留在 error_message 里（那一栏是给运维看的）
+        error_code="JOB_FAILED",
         error_message=str(exc)[:2000],
         retryable=retryable,
         retry_after_seconds=retry_after_seconds_from_error(exc),

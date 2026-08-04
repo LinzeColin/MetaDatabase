@@ -87,8 +87,10 @@ class ConnectorRegistry:
             except Exception as exc:  # Status rendering must fail closed, never crash on bad configuration.
                 probe = {
                     "state": "degraded",
-                    "error_code": f"HEALTH_{exc.__class__.__name__.upper()}",
+                    # 同上：稳定码 + 类名进 message，不要用类名当码
+                    "error_code": "HEALTH_PROBE_FAILED",
                     "message_zh": "连接器状态检查失败；仍可使用保存当前页面。",
+                    "detail": exc.__class__.__name__,
                 }
             latency_ms = max(0, round((time.perf_counter() - started) * 1000))
             state = str(probe.get("state") or row.get("state") or "disabled")
