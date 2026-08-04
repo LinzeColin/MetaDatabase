@@ -233,7 +233,16 @@ def test_the_diagnostic_sink_has_no_place_to_put_a_response_body() -> None:
     fields = set(DiagnosticReport.model_fields)
     for forbidden in ("body", "bodies", "payload", "content", "raw"):
         assert forbidden not in fields, f"诊断上报里出现了 {forbidden} 字段——响应体不许上传"
-    assert fields == {"platform", "page_url", "urls", "capture_count", "readable_count", "note"}
+    # **这个集合是精确相等，不是「包含」。** 加字段必须是个有意识的动作，
+    # 而不是顺手加上去、等哪天发现响应体已经在往外走。
+    # 2026-08-05 加了 dropped_count / not_parsed_count 两个——**都是计数**：
+    # 缓冲区封顶 200、解析去重后封顶 30，收敛得不留痕迹的话，
+    # 「抓到 200 条、读得懂 0 条」会读起来像「平台没发那个请求」。
+    assert fields == {
+        "platform", "page_url", "urls",
+        "capture_count", "readable_count", "dropped_count", "not_parsed_count",
+        "note",
+    }
 
 
 def test_the_popup_still_keeps_copy_as_a_fallback() -> None:

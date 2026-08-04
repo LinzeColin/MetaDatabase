@@ -318,6 +318,12 @@
           platform, page_url: String(tab.url || ""), urls,
           capture_count: Number(captured?.count || 0),
           readable_count: Number(readback?.readable || 0),
+          // 少收下的、没去读的也报上去。缓冲区封顶 200、解析去重后封顶 30，
+          // 两处收敛都必要，但**收敛得不留痕迹就危险**：
+          // 「抓到 200 条、读得懂 0 条」到底是平台没发那个请求，
+          // 还是那条被挤掉了／没轮到读？下一步完全不同。
+          dropped_count: Number(readback?.dropped || 0),
+          not_parsed_count: Number(readback?.notParsed || 0),
           note: String(readback?.message_zh || ""),
         }),
         timeoutMs: 15000,

@@ -603,6 +603,15 @@ class DiagnosticReport(BaseModel):
     urls: list[str] = Field(default_factory=list)
     capture_count: int = 0
     readable_count: int = 0
+    # **少收下的、没去读的，都要有个数。**
+    #
+    # 拦截缓冲区会在 200 条封顶，解析前还会按地址去重并封顶 30 条。
+    # 这两处收敛都是必要的（否则 Owner 那一按会卡几分钟），但收敛得
+    # **不留痕迹**就危险了：报告上「抓到 200 条、读得懂 0 条」，
+    # 到底是平台没发那个请求，还是那条被挤掉了 / 没轮到读？
+    # 这两件事的下一步完全不同，而报告是我固化拦截前缀时唯一的依据。
+    dropped_count: int = 0
+    not_parsed_count: int = 0
     note: str = ""
 
 
@@ -638,6 +647,8 @@ def record_diagnostic(report: DiagnosticReport) -> dict[str, Any]:
         "urls": report.urls[:80],
         "capture_count": report.capture_count,
         "readable_count": report.readable_count,
+        "dropped_count": report.dropped_count,
+        "not_parsed_count": report.not_parsed_count,
         "note": report.note[:300],
     }, ensure_ascii=False)
     # **写不进去不是 500。** 诊断上报是个锦上添花的便利；它挂掉不该给用户
