@@ -99,3 +99,22 @@ def test_restore_direction_is_stated_not_guessed() -> None:
     """
     assert "SNAP_HAS_TENANCY" in TEXT, "自检没有判断恢复方向"
     assert "撤销回滚" in TEXT and "回滚到迁移前" in TEXT, "两个方向没有分别说明"
+
+
+def test_rollback_warns_that_code_must_be_rolled_back_too() -> None:
+    """只回滚数据库是不够的——实测 v0.0.0.7 的代码会把迁移静默重做一遍。
+
+    演练结果（回滚后用 v0.0.0.7 代码打开同一个库）：
+
+        initialize() 没报错
+        users / session / oauth_identity / platform_credential  **又被建回来了**
+        users 行数 0                    ← 表回来了但数据没有
+        sync_run.user_id                又加回来了
+        业务数据 cnt_old                1 条（完好）
+
+    也就是说：回滚等于白做，而且**你会以为它做成了**。
+    这条警告不写出来，回滚工具就是在骗人。
+    """
+    assert "把代码也回滚" in TEXT, "没有警告「只回滚数据库不够」"
+    assert "静默" in TEXT, "没有说清重做迁移是无声无息的"
+    assert "先停服务" in TEXT and "回滚代码" in TEXT, "没有给出正确顺序"
