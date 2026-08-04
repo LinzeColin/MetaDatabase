@@ -1117,20 +1117,30 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
   // **在碰任何标签页之前先拦。** 入队那一层已经滤过一次，这里是第二道：
   // 队列里可能还留着旧任务（chrome.storage 里的），它们不该再去抢标签页。
   const capability = await platformCapability(account.platform);
-  if (capability.serverHandled) {
-    // 走到这里说明有人绕过了 syncAccountById 的分流——最常见的是
-    // chrome.storage 里压着一条**升级前**入队的旧任务。
-    //
-    // **不抛错，改交给服务端。** 抛错会写成一次 completeness=failed 的
-    // 同步回执，用户看到一次失败——可他什么都没做错，我们只是路由错了。
-    // 而且那会引入一个新的失败码，词典里没有对应的句子
-    // （ZERO_BARRIER_UX.md 是冻结词典，不能因为内部路由问题就往里加）。
-    return startServerSideSync(account.id, triggerType);
-  }
+  // **顺序和 syncAccountById 一样：先问「同步得动吗」，再问「谁来干」。**
+  //
+  // 这里原来是反的——先看 serverHandled，交给服务端。理由写着「抛错会写成
+  // 一次 completeness=failed，用户什么都没做错」。**那个理由对，顺序错。**
+  //
+  // bilibili 同时 server_handled=true 和 sync_supported=false。走到这条路的
+  // 是 chrome.storage 里压着的升级前旧任务；先看 serverHandled 就把它交给
+  // 服务端，而服务端对它同样没有能用的取数实现——那次 run 停在半路，
+  // **界面一直转圈**。而隔壁 syncAccountById 的注释早就写明了这一点：
+  // 「服务端登记了这个平台」不等于「服务端做得成」。
+  //
+  // 先判 canSync 并不引入新失败码：ACQUISITION_PATH_NOT_INSTALLED 是既有的，
+  // 冻结词典里有对应句子，隔壁那条路用的就是它。**一次说得清的失败，
+  // 比一个永远转圈的界面好。**
   if (!capability.canSync) {
     const error = new Error("本版本还不能自动读取这个平台的收藏列表，已停止，不会反复重试。");
     error.failureCode = "ACQUISITION_PATH_NOT_INSTALLED";
     throw error;
+  }
+  if (capability.serverHandled) {
+    // 走到这里说明有人绕过了 syncAccountById 的分流——最常见的是
+    // chrome.storage 里压着一条**升级前**入队的旧任务。
+    // 这个平台确实同步得动，只是该由服务端干，所以交过去，不抛错。
+    return startServerSideSync(account.id, triggerType);
   }
   if (!syncRunId) {
     const started = await SA.api(`/v1/accounts/${encodeURIComponent(account.id)}/sync`, {

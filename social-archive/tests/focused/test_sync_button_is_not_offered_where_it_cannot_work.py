@@ -32,6 +32,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from tests.focused._source_slices import js_function
+
 ROOT = Path(__file__).resolve().parents[2]
 PWA = ROOT / "apps/pwa/app.js"
 
@@ -115,7 +117,7 @@ def test_the_top_strip_does_not_say_everything_is_fine() -> None:
     一个都同步不动时，顶部必须只说**现在真正能做的那一件事**。
     """
     js = code_only(PWA.read_text(encoding="utf-8"))
-    block = js.split("function renderSyncSummary", 1)[1][:2200]
+    block = js_function(js, "function renderSyncSummary")
     assert "sync_supported !== false" in block, "顶部没有区分「已连接」与「同步得动」"
     assert "还不能自动同步" in block, "没有把差别说出来"
     assert "保存到我的档案馆" in block, "没有给出现在真正能做的那件事"
@@ -137,7 +139,7 @@ def test_a_sync_button_never_navigates_the_page_away_on_its_own() -> None:
     跳不跳必须由用户决定，而且他得知道为什么。
     """
     js = code_only(PWA.read_text(encoding="utf-8"))
-    block = js.split("async function ensureExtensionReady", 1)[1][:1800]
+    block = js_function(js, "async function ensureExtensionReady")
     jumps = [line.strip() for line in block.splitlines() if "location.href" in line]
     assert jumps, "这段里已经没有跳转了——判据失去依附，请重写"
     for line in jumps:
@@ -149,7 +151,7 @@ def test_a_sync_button_never_navigates_the_page_away_on_its_own() -> None:
 def test_sync_all_counts_only_accounts_that_can_actually_sync() -> None:
     """「已将 3 个账号加入队列」然后什么也不发生，是最伤信任的一种假话。"""
     js = code_only(PWA.read_text(encoding="utf-8"))
-    block = js.split("async function syncAllAccounts", 1)[1][:1400]
+    block = js_function(js, "async function syncAllAccounts")
     assert "sync_supported !== false" in block, "把同步不了的账号也算进了队列数"
     assert "都还不能自动同步" in block, "一个都同步不动时没有明说"
 
@@ -161,7 +163,7 @@ def test_connect_is_not_offered_for_platforms_that_still_cannot_sync() -> None:
     连了小红书之后一条也同步不了——那颗按钮不该存在。
     """
     js = code_only(PWA.read_text(encoding="utf-8"))
-    block = js.split("function renderSyncTable", 1)[1][:5000]
+    block = js_function(js, "function renderSyncTable")
     empty_branch = block.split("if (!accounts.length)", 1)[1][:1800]
     assert "sync_supported === false" in empty_branch, "未连接分支没有区分能不能同步"
     guard_at = empty_branch.index("sync_supported === false")
@@ -188,11 +190,11 @@ def test_the_queue_itself_refuses_before_touching_any_tab() -> None:
     assert "async function platformCanSyncNow(" in text, "少了「能不能同步」这一问"
 
     # 入队那一层：同步不了的根本不进队列
-    enqueue = text.split("async function enqueueAllAccounts", 1)[1][:900]
+    enqueue = js_function(text, "async function enqueueAllAccounts")
     assert "platformCanSyncNow" in enqueue, "同步不了的平台仍会被放进队列"
 
     # 干活那一层：碰标签页之前先拦
-    run = text.split("async function runBrowserAccountSync", 1)[1][:2400]
+    run = js_function(text, "async function runBrowserAccountSync")
     assert "platformCapability" in run, "真正干活那条路没拦"
     guard_at = run.index("platformCapability")
     nav_at = run.index("navigateMirrorTab") if "navigateMirrorTab" in run else len(run)
@@ -202,7 +204,7 @@ def test_the_queue_itself_refuses_before_touching_any_tab() -> None:
 def test_the_capability_is_not_duplicated_inside_the_extension() -> None:
     """能力由服务端说了算。扩展里再维护一份名单必然漂开。"""
     text = code_only((ROOT / "apps/browser-extension/background.js").read_text(encoding="utf-8"))
-    block = text.split("async function platformCapability", 1)[1][:900]
+    block = js_function(text, "async function platformCapability")
     for hardcoded in ("xiaohongshu", "douyin", "kuaishou", "bilibili"):
         assert f'"{hardcoded}"' not in block, "扩展里硬编码了平台名单——服务端一改就对不上"
     assert "supported_platforms" in block, "没有读服务端下发的能力"
@@ -227,7 +229,7 @@ def test_platforms_the_server_syncs_itself_never_touch_a_tab() -> None:
     text = code_only((ROOT / "apps/browser-extension/background.js").read_text(encoding="utf-8"))
 
     # 分流那一层：服务端能干的，走服务端接口，不进浏览器路
-    route = text.split("async function syncAccountById", 1)[1][:2400]
+    route = js_function(text, "async function syncAccountById")
     assert "serverHandled" in route, "分流层不看服务端是否自己就能同步"
     server_at = route.index("serverHandled")
     browser_at = route.index("runBrowserAccountSync")
@@ -236,7 +238,7 @@ def test_platforms_the_server_syncs_itself_never_touch_a_tab() -> None:
     # 交接的实现自己得真的去调那个接口——判据钉在机制上，不钉在某个恰好
     # 出现在附近的字符串上。（第一版就钉错了：把 `/sync` 钉在分流块里，
     # 把那段逻辑抽成函数之后判据立刻转红，而代码是对的。）
-    handoff = text.split("async function startServerSideSync", 1)[1][:600]
+    handoff = js_function(text, "async function startServerSideSync")
     assert "/sync" in handoff, "交给服务端的那个函数没有调服务端的同步接口"
     assert "chrome.tabs" not in handoff, "交给服务端的路上还在碰标签页"
 
@@ -244,7 +246,7 @@ def test_platforms_the_server_syncs_itself_never_touch_a_tab() -> None:
     # 注意它不是「拒绝」而是「改交给服务端」——拒绝会写成一次
     # completeness=failed 的回执，用户看到一次失败，可他什么都没做错，
     # 是我们路由错了；而且那要往冻结词典里加一个新句子。
-    run = text.split("async function runBrowserAccountSync", 1)[1][:2400]
+    run = js_function(text, "async function runBrowserAccountSync")
     assert "startServerSideSync" in run, "旧任务仍能从这条路抢标签页"
     guard_at = run.index("startServerSideSync")
     nav_at = run.index("navigateMirrorTab") if "navigateMirrorTab" in run else len(run)
@@ -284,7 +286,7 @@ def test_it_asks_can_it_sync_before_asking_who_handles_it() -> None:
     **「服务端登记了这个平台」不等于「服务端做得成」。**
     """
     text = code_only((ROOT / "apps/browser-extension/background.js").read_text(encoding="utf-8"))
-    route = text.split("async function syncAccountById", 1)[1][:2600]
+    route = js_function(text, "async function syncAccountById")
     can_at = route.index("capability.canSync")
     who_at = route.index("capability.serverHandled")
     assert can_at < who_at, "先问了「谁来干」，同步不了的平台会被交给一个同样干不成的服务端"
@@ -331,3 +333,31 @@ def test_the_extension_options_page_makes_the_same_distinction() -> None:
     assert "connectable" in not_syncable_branch, (
         "同步不了那一支里没有再问一句「那连得上吗」——x / instagram 的连接入口又没了"
     )
+
+
+def test_both_routing_paths_ask_can_it_sync_before_who_does_it() -> None:
+    """**两条路都要先问「同步得动吗」，再问「谁来干」。**
+
+    syncAccountById 一直是对的（顺序写在它自己的注释里）。而
+    runBrowserAccountSync 原来是**反的**：先看 serverHandled，交给服务端。
+    它的理由写着「抛错会写成一次 completeness=failed，用户什么都没做错」——
+    那个理由对，顺序错。
+
+    bilibili 同时 server_handled=true 和 sync_supported=false。走这条路的是
+    chrome.storage 里压着的升级前旧任务；先看 serverHandled 就把它交给服务端，
+    而服务端对它同样没有能用的取数实现——那次 run 停在半路，**界面一直转圈**。
+
+    先判 canSync 不引入新失败码：ACQUISITION_PATH_NOT_INSTALLED 是既有的，
+    冻结词典里有句子。**一次说得清的失败，比一个永远转圈的界面好。**
+    """
+    background = (ROOT / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    for name in ("async function syncAccountById", "async function runBrowserAccountSync"):
+        body = js_function(background, name)
+        can_sync = body.find("capability.canSync")
+        server_handled = body.find("capability.serverHandled")
+        assert can_sync != -1 and server_handled != -1, f"{name} 里少了一次能力判断"
+        assert can_sync < server_handled, (
+            f"{name} 先问了「谁来干」再问「同步得动吗」——"
+            "对 bilibili 这种 server_handled 且不可同步的平台，那会把它交给"
+            "一个同样做不成的服务端，界面永远转圈"
+        )

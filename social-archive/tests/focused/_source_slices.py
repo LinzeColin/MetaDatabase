@@ -45,3 +45,28 @@ def install_net_observer_body(background_js: str) -> str:
     return js_function_body(
         background_js, "async function installNetObserverForTab", "\nasync function"
     )
+
+
+def js_function(source: str, declaration: str) -> str:
+    """从 `declaration` 切到**同一缩进层级的下一个声明**为止。
+
+    比 `js_function_body(...)` 少一件事要操心：边界不用手写。
+    缩进从声明那一行自己读出来——background.js 的顶层函数在第 0 列，
+    popup.js 的在第 2 列，写死边界就要按文件分别记，而记错了不会报错，
+    只会**悄悄多切一大段**（那正是固定字节窗口那一族的病）。
+    """
+    assert declaration in source, f"源码里找不到 {declaration}——判据钉的东西没了"
+    head = source.index(declaration)
+    line_start = source.rfind("\n", 0, head) + 1
+    indent = source[line_start:head]
+    assert indent.strip() == "", f"{declaration} 不在行首，切不出可靠的边界"
+
+    body = source[head + len(declaration):]
+    starters = ("async function ", "function ", "const ", "let ", "class ")
+    best = len(body)
+    for starter in starters:
+        marker = "\n" + indent + starter
+        found = body.find(marker)
+        if found != -1:
+            best = min(best, found)
+    return body[:best]
