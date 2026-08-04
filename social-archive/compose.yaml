@@ -32,6 +32,13 @@ services:
       - obsidian_rest_token
       - karakeep_api_token
       - linkwarden_api_token
+      # X / Reddit 的账号扫描走各自的官方 OAuth。这两个此前**只存在于代码里**：
+      # registry.py 读它们，而 .env.example、compose、部署脚本、文档一处都没有
+      # ——也就是说没有任何文档化的路径能把 token 放进容器，两个连接器
+      # 永远返回 blocked_environment（scripts/find_settings_with_no_way_to_set_them.py）。
+      # 空占位是安全的：读到空值走的是「尚未授权」那一支，有中文说明。
+      - x_oauth_token
+      - reddit_oauth_token
     networks: [default, social_archive_readers]
     restart: unless-stopped
     security_opt: ["no-new-privileges:true"]
@@ -130,6 +137,8 @@ secrets:
   credential_age_identity: {file: ./runtime/secrets/credential_age_identity}
   cli_worker_token: {file: ./runtime/secrets/cli_worker_token}
   instagram_session: {file: ./runtime/secrets/instagram_session}
+  x_oauth_token: {file: ./runtime/secrets/x_oauth_token}
+  reddit_oauth_token: {file: ./runtime/secrets/reddit_oauth_token}
   notion_token: {file: ./runtime/secrets/notion_token}
   obsidian_rest_token: {file: ./runtime/secrets/obsidian_rest_token}
   karakeep_api_token: {file: ./runtime/secrets/karakeep_api_token}

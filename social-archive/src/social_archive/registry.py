@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import time
 from pathlib import Path
@@ -40,6 +41,44 @@ class ConnectorRegistry:
     def _secret(env_name: str):
         return lambda: read_secret(os.getenv(env_name))
 
+    # 已连接账号的 external_account_id 有可能是占位值而不是真身份。
+    # 浏览器会话连接在拿不到真实账号名时写的是 `browser-session:{platform}`；
+    # Chrome 书签那条固定写 `chrome-bookmarks`。这两种都不能当平台身份用。
+    _PLACEHOLDER_ACCOUNT_IDS = frozenset({"chrome-bookmarks"})
+    _PLACEHOLDER_ACCOUNT_PREFIXES = ("browser-session:",)
+    # 每个平台对身份的形状要求不同，先验形状再用。形状不对就退回环境变量，
+    # 而不是拿一个明显不对的值去请求平台——那会换来一个 404，
+    # 而 404 的文案说的是"接口失败"，不是"我们不知道你是谁"。
+    _IDENTITY_SHAPE = {
+        "x": re.compile(r"\A[0-9]{1,32}\Z"),           # X API v2 用数字 user id
+        "reddit": re.compile(r"\A[A-Za-z0-9_-]{3,20}\Z"),
+        "instagram": re.compile(r"\A[A-Za-z0-9_.]{1,30}\Z"),
+    }
+
+    @classmethod
+    def _account_identity(cls, connector_id: str, request: ConnectorRunRequest, env_name: str) -> str | None:
+        """平台身份优先取**这次运行绑定的那个已连接账号**，环境变量只兜底。
+
+        为什么这样改：`ConnectorRunRequest.source_account_id` 一直带着已连接账号的
+        external_account_id 传进来，而这三个分支从来没看过它，一律去读环境变量。
+        那四个环境变量在 .env.example、compose、部署脚本、文档里**一处都没有**
+        （scripts/find_settings_with_no_way_to_set_them.py 抓到的），
+        于是 Owner 把该做的都做对了——部署、登录、连接账号——这三个平台的
+        服务端同步仍然一条都取不到，而没有任何文档告诉他还差什么。
+
+        身份本来就该来自"你连的那个账号"，而不是一个部署时手填的变量。
+        """
+        external = str(getattr(request, "source_account_id", "") or "").strip()
+        shape = cls._IDENTITY_SHAPE.get(connector_id)
+        if (
+            external
+            and external not in cls._PLACEHOLDER_ACCOUNT_IDS
+            and not external.startswith(cls._PLACEHOLDER_ACCOUNT_PREFIXES)
+            and (shape is None or shape.fullmatch(external))
+        ):
+            return external
+        return os.getenv(env_name)
+
     @staticmethod
     def _x_api_zero_cost_confirmed() -> bool:
         return os.getenv("SOCIAL_ARCHIVE_X_API_ZERO_COST_CONFIRMED", "false").strip().lower() in {"1", "true", "yes", "on"}
@@ -64,7 +103,7 @@ class ConnectorRegistry:
                 return {"state":"blocked_environment", "error_code":"X_ZERO_COST_NOT_CONFIRMED"}
             return XConnector(os.getenv("SOCIAL_ARCHIVE_X_USER_ID"), self._secret("SOCIAL_ARCHIVE_X_OAUTH_TOKEN_FILE")).health()
         if connector_id == "reddit":
-            return RedditConnector(os.getenv("SOCIAL_ARCHIVE_REDDIT_USERNAME"), os.getenv("SOCIAL_ARCHIVE_REDDIT_USER_AGENT","SocialArchive/0.0.0.6"), self._secret("SOCIAL_ARCHIVE_REDDIT_OAUTH_TOKEN_FILE")).health()
+            return RedditConnector(os.getenv("SOCIAL_ARCHIVE_REDDIT_USERNAME"), os.getenv("SOCIAL_ARCHIVE_REDDIT_USER_AGENT","SocialArchive/0.0.0.7"), self._secret("SOCIAL_ARCHIVE_REDDIT_OAUTH_TOKEN_FILE")).health()
         if connector_id == "instagram":
             probe = self.command.health()
             return probe if probe.get("state") == "healthy" else {"state":"blocked_environment", "error_code":probe.get("error_code", "CLI_SIDECAR_NOT_READY")}
@@ -123,13 +162,13 @@ class ConnectorRegistry:
             if not self._x_api_zero_cost_confirmed():
                 result = self._x_zero_cost_block()
             else:
-                result = XConnector(os.getenv("SOCIAL_ARCHIVE_X_USER_ID"), self._secret("SOCIAL_ARCHIVE_X_OAUTH_TOKEN_FILE")).fetch(relation, request.limit, request.cursor)
+                result = XConnector(self._account_identity("x", request, "SOCIAL_ARCHIVE_X_USER_ID"), self._secret("SOCIAL_ARCHIVE_X_OAUTH_TOKEN_FILE")).fetch(relation, request.limit, request.cursor)
         elif connector_id == "reddit":
             relation = "upvoted" if relation == "upvoted" else "saved"
-            result = RedditConnector(os.getenv("SOCIAL_ARCHIVE_REDDIT_USERNAME"), os.getenv("SOCIAL_ARCHIVE_REDDIT_USER_AGENT","SocialArchive/0.0.0.6"), self._secret("SOCIAL_ARCHIVE_REDDIT_OAUTH_TOKEN_FILE")).fetch(relation, request.limit, request.cursor)
+            result = RedditConnector(self._account_identity("reddit", request, "SOCIAL_ARCHIVE_REDDIT_USERNAME"), os.getenv("SOCIAL_ARCHIVE_REDDIT_USER_AGENT","SocialArchive/0.0.0.7"), self._secret("SOCIAL_ARCHIVE_REDDIT_OAUTH_TOKEN_FILE")).fetch(relation, request.limit, request.cursor)
         elif connector_id == "instagram":
             session = Path(os.getenv("SOCIAL_ARCHIVE_INSTAGRAM_SESSION_FILE", ""))
-            result = self.command.instagram_saved(session if session else None, os.getenv("SOCIAL_ARCHIVE_INSTAGRAM_USERNAME"), request.limit)
+            result = self.command.instagram_saved(session if session else None, self._account_identity("instagram", request, "SOCIAL_ARCHIVE_INSTAGRAM_USERNAME"), request.limit)
             relation = "saved"
         elif connector_id == "tiktok":
             if not url:

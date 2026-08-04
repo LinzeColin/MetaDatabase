@@ -77,6 +77,11 @@ def structural_commands() -> list[list[str]]:
         # 连报错都没有）。这道门第一次跑就抓到 SA_REVOKE_PLATFORM_SESSION——
         # 而连接成功时产品**当着用户面许诺**「随时可以一键撤销」。
         [python, "scripts/find_messages_with_only_one_end.py"],
+        # 第五种：代码读一个配置项，而 .env.example / compose / 部署脚本 / 文档
+        # 一处都没有它——**没有任何文档化的路径能把它设上**。第一次跑就抓到
+        # X / Reddit / Instagram 账号扫描要的六项全在这个状态：Owner 把该做的
+        # 全做对了，这三个平台仍然一条都取不到，而没有任何东西告诉他还差什么。
+        [python, "scripts/find_settings_with_no_way_to_set_them.py"],
         [python, "scripts/validate_deployment_contract.py"],
     ]
 
