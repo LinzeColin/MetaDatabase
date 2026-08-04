@@ -22,15 +22,26 @@
     li strong { display:block; margin-bottom:8px; font-size:1.08rem; }
     li p { margin:0; color:#4b554f; line-height:1.55; }
     code { padding:2px 7px; border-radius:6px; background:var(--soft); font-family:"SFMono-Regular",Menlo,monospace; overflow-wrap:anywhere; }
+    /* 实时检测条（v0.0.0.7）。原来这一页是纯静态的：装好了也不会有任何反应，
+       用户只能自己猜「好了没有」，然后手动切回去。 */
+    .detect { display:flex; align-items:center; gap:12px; margin:0 0 26px; padding:16px 20px;
+              border:1px solid var(--line); border-radius:16px; background:rgba(255,253,248,.9); font-weight:600; }
+    .detect .dot { width:11px; height:11px; border-radius:50%; background:#b8a98f; flex:none;
+                   box-shadow:0 0 0 5px rgba(184,169,143,.18); }
+    .detect.ready { border-color:var(--green); background:var(--soft); }
+    .detect.ready .dot { background:var(--green); box-shadow:0 0 0 5px rgba(23,104,79,.18); }
     .privacy { margin-top:22px; padding:18px 20px; border-left:4px solid var(--green); border-radius:12px; background:var(--soft); line-height:1.6; }
     @media (max-width:680px) { main{padding-top:30px} ol{grid-template-columns:1fr} li{min-height:auto} }
   </style>
 </head>
 <body>
   <main>
-    <p class="eyebrow">Social Archive v0.0.0.6 · 免费安装</p>
-    <h1>五分钟装好，之后看到好内容只点一下。</h1>
-    <p class="lead">Chrome Web Store 上架前使用官方 ZIP 安装包。下面六步不需要命令行，也不用填写服务器、端口或 Token。</p>
+    <p class="eyebrow">Social Archive · 免费安装</p>
+    <h1>四步装好，之后看到好内容只点一下。</h1>
+    <p class="lead"><strong>浏览器不允许网页替你安装扩展</strong>——这一步只能你自己点四下。
+      装好之后本页会自己认出来，并把你送回首页，你不需要判断"好了没有"。
+      全程不用命令行，也不用填服务器、端口或任何 Token。</p>
+    <div class="detect" id="detect"><span class="dot"></span><span id="detectText">正在检测插件…</span></div>
     <div class="actions">
       <a class="button" href="/downloads/social-archive-extension.zip" download>1. 下载官方安装包</a>
       <a class="button secondary" href="/home">返回 Social Archive</a>
@@ -40,10 +51,54 @@
       <li><strong>打开扩展管理页</strong><p>在 Chrome 地址栏输入 <code>chrome://extensions</code> 并回车。</p></li>
       <li><strong>打开开发者模式</strong><p>点击页面右上角“开发者模式”开关。</p></li>
       <li><strong>载入插件文件夹</strong><p>点击“加载已解压的扩展程序”，选择刚才解压的文件夹。</p></li>
-      <li><strong>返回网站并刷新</strong><p>回到 Social Archive。页面会显示“已检测到插件，还需要连接”。</p></li>
-      <li><strong>点击连接</strong><p>回到已登录的 Social Archive 页面点一下“连接插件”，插件会自动接上——你不需要输入任何字符。</p></li>
     </ol>
     <p class="privacy"><strong>隐私边界：</strong>插件永远不会向服务器索要或上传你的<strong>密码</strong>。登录状态分两种处理，取决于平台：小红书、抖音、B站、快手的 Cookie <strong>一步都不会离开你的浏览器</strong>；X、Instagram、YouTube 需要在服务器上替你取内容，因此在你点“连接”的那一刻会读取该站点的登录状态、<strong>加密后</strong>保存到你自己的服务器上，随时可以在设置页一键撤销并从库中删除。若安装包未生成，下载会明确报错，不会提供旧版本或第三方文件。</p>
   </main>
+  <script>
+    // 装好之后**自动回首页**，不让用户自己判断「好了没有」。
+    //
+    // 原来这一页是纯静态的：第 5、6 步写着「返回网站并刷新」「点击连接」——
+    // 把两个本来可以自动完成的动作丢给了人。Owner 的原话：
+    // 「然后当插件准备好之后。就自动回退到首页。」
+    //
+    // 检测走的是和主页面同一条桥：向自己 postMessage 一个 SA_PING，
+    // 扩展注入的 bridge.js 会回一条带同样 requestId 的消息。
+    // 桥没注入（＝插件没装）时就什么也不会回来，于是继续等。
+    (() => {
+      "use strict";
+      const dot = document.getElementById("detect");
+      const text = document.getElementById("detectText");
+      let done = false;
+
+      function ping() {
+        return new Promise(resolve => {
+          const requestId = (crypto.randomUUID && crypto.randomUUID()) || String(Math.random());
+          const timer = setTimeout(() => { window.removeEventListener("message", onMessage); resolve(false); }, 1200);
+          function onMessage(event) {
+            const data = event.data || {};
+            if (event.source !== window || data.source !== "social-archive-extension" || data.requestId !== requestId) return;
+            clearTimeout(timer);
+            window.removeEventListener("message", onMessage);
+            resolve(true);
+          }
+          window.addEventListener("message", onMessage);
+          window.postMessage({ source: "social-archive-web", type: "SA_PING", requestId }, location.origin);
+        });
+      }
+
+      async function loop() {
+        if (done) return;
+        if (await ping()) {
+          done = true;
+          dot.classList.add("ready");
+          text.textContent = "✓ 已检测到插件，正在把你送回首页…";
+          setTimeout(() => { location.href = "/"; }, 1500);
+          return;
+        }
+        setTimeout(loop, 1500);
+      }
+      loop();
+    })();
+  </script>
 </body>
 </html>

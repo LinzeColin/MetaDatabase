@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 524 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 525 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -124,7 +124,7 @@
         "scripts/check_evidence_declares_its_limits.py"
       ],
       "exit_code": 0,
-      "stdout": "检查 v0.0.0.7 证据 38 份（其中自锁 4 份）\n每一份都写了局限；自锁的没有一份被改写成 PASS。\n",
+      "stdout": "检查 v0.0.0.7 证据 39 份（其中自锁 4 份）\n每一份都写了局限；自锁的没有一份被改写成 PASS。\n",
       "stderr": ""
     },
     {
@@ -179,6 +179,15 @@
       ],
       "exit_code": 0,
       "stdout": "扫了 apps/ 下 17 个脚本\n每一处函数调用都找得到定义。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/find_affordances_the_backend_says_cannot_work.py"
+      ],
+      "exit_code": 0,
+      "stdout": "检查了 2 个渲染平台级动作的界面\n每一处承诺型按钮都先问过服务端能不能做到。\n",
       "stderr": ""
     },
     {

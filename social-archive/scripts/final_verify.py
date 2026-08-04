@@ -86,6 +86,12 @@ def structural_commands() -> list[list[str]]:
         # 不查标识符，判据也测不到（没人在 Node 里真跑那个 IIFE），
         # 只有用户点到那颗按钮的一刻才会炸。这道门是我自己刚犯完这个错才加的。
         [python, "scripts/find_calls_to_functions_that_do_not_exist.py"],
+        # 第七种，也是最贵的一种：代码全都接上了，**它对用户说了做不到的事**。
+        # 前六道门全绿、614 条判据全过的时候，界面正在让 Owner
+        # 一遍遍重试一件结构上不可能成功的事。它们证明的是「函数写得对」
+        # 「接口有人调」「文案能落到一句中文」——**没有一条在问
+        # 「这颗按钮点下去会发生它承诺的事吗」**。这道门补的就是那一问。
+        [python, "scripts/find_affordances_the_backend_says_cannot_work.py"],
         [python, "scripts/validate_deployment_contract.py"],
     ]
 

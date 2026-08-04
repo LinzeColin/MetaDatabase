@@ -19,6 +19,9 @@
   // 托管中的登录状态（v0.0.0.7 / T06）。服务端 GET /v1/credentials 只回形态：
   // 平台、有没有、几条、什么时候存的。**永远不回 cookie 的名或值。**
   let credentials = [];
+  // 每个平台「现在同步得动吗」，来自服务端（account_sync.SYNCABLE_NOW）。
+  // **网页那侧修过一遍，这一侧漏了** —— 同一份假话在两个界面各有一份。
+  let platformSupport = {};
   let serviceReady = false;
 
   function setServiceMessage(message = "", type = "needs") {
@@ -77,6 +80,7 @@
         SA.api("/v1/credentials",{timeoutMs:8000}).catch(()=>({items:[]}))
       ]);
       accounts=accountData.items||[]; runs=runData.items||[]; destinations=bootstrap.destinations||[]; pendingConnections=pendingData.items||{};
+      platformSupport=Object.fromEntries((accountData.supported_platforms||[]).map(item=>[item.platform,item]));
       credentials=credentialData.items||[];
     } catch(error){ toast(`状态读取失败：${error.message}`,"error"); }
     render();
@@ -116,13 +120,29 @@
             ? (run&&activeStates.has(run.status)?`已导入 ${imported.toLocaleString("zh-CN")}/${discovered?discovered.toLocaleString("zh-CN"):"…"} 条`:`${Number(account.content_count||0).toLocaleString("zh-CN")} 条 · ${formatTime(account.last_sync_at)}`)
             : custody
               ? `登录状态已加密保存（${Number(custody.cookie_count||0).toLocaleString("zh-CN")} 条）· ${formatTime(custody.updated_at)}`
-              : relationCopy[platform];
+              : (platformSupport[platform]?.sync_supported === false
+                ? (platformSupport[platform]?.not_syncable_reason || "本版本还不能自动同步这个平台。")
+                : relationCopy[platform]);
       // 「随时可以一键撤销」是连接成功时**当着用户面许下的原话**（background.js）。
       // 此前撤销只存在于两处代码里：服务端 DELETE /v1/credentials/{platform}，
       // 以及扩展的 SA_REVOKE_PLATFORM_SESSION 处理体——**而没有任何界面发出这条消息**。
       // 也就是说这句承诺在产品上是假的。这颗按钮就是把它变成真的。
       const revoke=custody?`<button class="card-button danger" data-revoke-platform="${platform}">撤销登录状态</button>`:"";
-      const action=pending
+      // **同步不了的平台不给同步/连接按钮。**
+      //
+      // 与网页那侧同一条规则（见 account_sync.SYNCABLE_NOW）。小红书/抖音/
+      // 快手/B站 的取数路在本版本是 stub：画了按钮点下去必然失败，
+      // 而失败文案曾经说的是「暂时连不上服务器，[ 重试 ]」。
+      const syncable = platformSupport[platform]?.sync_supported !== false;
+      // **守卫必须排在最前面。** 放在 pending 之后的话，一个同步不了的平台
+      // 只要还留着未完成的连接流程，就仍会画出「我已登录，继续」和「重新打开」
+      // ——把人推进一条走到头也没用的路。这一处是新加的那道门抓出来的，
+      // 不是我自己看出来的。
+      const action=!syncable
+        ? (account
+            ? `<button class="card-button danger" data-disconnect-account="${SA.escapeHtml(account.id)}">断开连接</button>${revoke}`
+            : "")
+        : pending
         ? `<button class="card-button primary" data-verify-platform="${platform}">我已登录，继续</button><button class="card-button" data-connect-platform="${platform}">重新打开</button>`
         : account
           ? `<button class="card-button primary" data-sync-account="${SA.escapeHtml(account.id)}">立即同步</button>${["blocked_environment","failed"].includes(status)?`<button class="card-button" data-connect-platform="${platform}">重新连接</button>`:""}<button class="card-button danger" data-disconnect-account="${SA.escapeHtml(account.id)}">断开连接</button>${revoke}`
