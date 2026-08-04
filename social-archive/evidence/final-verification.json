@@ -81,7 +81,16 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 490 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 491 个文件 + 2 份 diff，0 处命中\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/find_unwired_code.py"
+      ],
+      "exit_code": 0,
+      "stdout": "已知没接上（3 个，非失败——但别让它悄悄变长）：\n  ConnectorStateView：连接器状态视图模型，当前接口直接回字典，没走这个模型\n  revoke_all：撤销某人全部平台凭据。代码是对的，但界面上没有「断开全部」这个动作——缺的是产品决策，不是代码\n  revoke_all_sessions：登出全部设备。同上，界面没有这个入口\n\n每个公开符号都至少有一处生产代码引用。\n",
       "stderr": ""
     },
     {

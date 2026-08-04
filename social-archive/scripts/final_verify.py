@@ -44,6 +44,11 @@ def structural_commands() -> list[list[str]]:
         # v0.0.0.7 新增的三道门。不挂进来的话，它们只在有人手动敲 pytest 时才生效。
         [python, "scripts/preflight_extension.py"],
         [python, "scripts/scan_plaintext_credentials.py", "--all"],
+        # 「建好了没接上」在本会话出现了**五次**（失败文案词典、静默零审计、
+        # 扩展的 lastResult、凭据托管、多租户审计）。每一次都是模块写完、
+        # 判据全绿，然后才发现没有人在调它。判据证明「函数写得对」，
+        # 不证明「有人在调」。这道门把第六次挡在发布之前。
+        [python, "scripts/find_unwired_code.py"],
         [python, "scripts/validate_deployment_contract.py"],
     ]
 

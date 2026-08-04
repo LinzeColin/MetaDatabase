@@ -209,13 +209,14 @@ def _trusted_library_access(request: Request) -> bool:
     return bool(expected_host and actual_host == expected_host and len(assertion) >= 80)
 
 
-def require_api_hostname(request: Request) -> None:
-    """Keep unauthenticated pairing endpoints off the private-library hostname."""
-    expected_host = _public_hostname(settings.public_base_url)
-    local_hosts = {"localhost", "127.0.0.1", "::1"}
-    if settings.pairing_required and expected_host and expected_host not in local_hosts:
-        if _request_hostname(request) != expected_host:
-            raise HTTPException(404, "该入口只在扩展 API 域名提供")
+# v0.0.0.7 / T03：这里原有 `require_api_hostname`，用途是
+# 「把**未鉴权的配对端点**挡在私有资料库域名之外」。配对链路已随 T03 删除，
+# 于是它守的那批端点一个都不存在了，全仓也没有任何一处 Depends 引用它
+# （scripts/find_unwired_code.py 扫出来的）。
+#
+# 留着比删掉更糟：一个名字叫 require_* 的函数摆在鉴权代码中间，
+# 会让人以为这层防护还在生效。**没有生效的防护要显式删掉，不能留着装样子。**
+# 真正的鉴权在下面的 require_token 与 auth.session_user_id。
 
 
 def require_token(request: Request, authorization: str | None = Header(default=None)) -> None:
@@ -273,6 +274,11 @@ def status() -> dict[str, Any]:
             "unexplained_zero": store.unexplained_zero_runs(limit=20),
             "stalled": store.stalled_active_runs(limit=20),
         },
+        # T01 的 Oracle。**同样是挂上来才算数**——它此前和上面两个审计一样，
+        # 写好了、有判据、全绿，而生产代码里一个调用方都没有
+        # （由 scripts/find_unwired_code.py 扫出来，那是同一形态的第 5 次）。
+        # `uncovered_tables` 非空说明审计面自己漏了表，比 orphan 计数更要紧。
+        "tenancy": store.tenancy_audit(),
     }
 
 
