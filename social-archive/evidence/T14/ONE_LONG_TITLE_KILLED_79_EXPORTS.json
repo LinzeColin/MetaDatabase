@@ -1,0 +1,47 @@
+{
+  "task": "T14",
+  "claim": "一个太长的抖音标题让 markdown 导出从 2026-08-03T17:23 起彻底停摆，193 条内容里 79 条再也没导出过。而界面给的原因是「请先点击『检查连接』」——指错了方向，照着做也修不好。",
+  "invariant": "INV-REAL-USABLE",
+  "found_by": "不是判据发现的。我在核对导出目的地的状态时，看见 markdown 显示 needs_user_action，就去数了一下磁盘上到底有没有文件。",
+
+  "the_evidence_on_production": {
+    "destination_receipt": "markdown done 110 / failed 4",
+    "coverage": "content 193 条，而 markdown 回执只覆盖 114 条 —— **79 条从没导出过**",
+    "the_first_failure": "2026-08-03T17:23:03.561628Z：`连接失败：[Errno 36] File name too long: '/var/lib/social-archive/exports/markdown/douyin/.迈特威四…'`",
+    "the_next_three": "同一秒内的另外三条，全是「目的地尚未完成主动连接检查或授权已失效；请先点击『检查连接』。」",
+    "destination_state": "state=needs_user_action, last_error_code=DESTINATION_PROBE_REQUIRED, last_success_at=17:23:03.522726Z（**失败前 39 毫秒还成功过**）",
+    "files_on_disk": "110 个 .md，时间戳全部停在 2026-08-03 17:22–17:23"
+  },
+
+  "two_defects_stacked": {
+    "root_cause": {
+      "what": "`safe_slug` 按**字符**截到 120，而文件系统对单个名字分量的上限是 255 **字节**。一个 120 字的中文标题在 UTF-8 下是 360 字节。",
+      "fix": "改成按字节截（预算 180 字节），并且在字符边界上收口——不能把一个多字节字符切成两半。180 的余量算法：调用方还要拼 `-{id后8位}.md`（12 字节），atomic_write 的 mkstemp 再拼 `.{名字}.{8位随机}`（约 +10 字节）。",
+      "side_effect": "英文标题反而更宽了：原来 120 个字符，现在 180 个。"
+    },
+    "the_escalation": {
+      "what": "那条 OSError 走的是「目的地健康度」这条路，把整个 markdown 目的地降级；之后每一条新内容都被 require_export_authorization 挡下。**目的地本身好得很——出错前 39 毫秒它刚成功写过。坏的是这一条内容的名字。**",
+      "fix": "`_is_item_scoped_failure`：ENAMETOOLONG 只记失败回执，不动目的地状态。",
+      "deliberately_narrow": "**只放行 ENAMETOOLONG 这一种。** EACCES / ENOSPC / EROFS / EIO / ENOENT 确实意味着目的地不健康，必须继续降级——放宽这里等于把真正的故障藏起来。判据逐个钉住了这五个。"
+    }
+  },
+
+  "a_guard_of_mine_gave_a_false_pass": {
+    "what": "第一版判据写的是 `\"_is_item_scoped_failure\" in source`。反证时把 `if not self._is_item_scoped_failure(exc):` 换成 `if True:`——**判据照样绿**。",
+    "why": "上一行的注释里还写着那个名字。",
+    "count": "**这是本会话第五次被自己写的注释骗过**：注释里提到一个标识符，被当成了对它的引用。",
+    "fix": "先剥注释，再找调用形态 `self._is_item_scoped_failure(`。改完反证转红。"
+  },
+
+  "counter_examples_run": [
+    "把 safe_slug 换回 `value[:120]` → 6 条判据里 3 条转红",
+    "把 `if not self._is_item_scoped_failure(exc):` 换成 `if True:` → 转红（修好判据之后）"
+  ],
+
+  "what_this_does_not_prove": [
+    "**不证明那 79 条会自动补上。** 修复让新内容不再被卡住，但已经积压的那些要不要重导、怎么重导，没有做——那需要一次批量重放，属于另一件事。",
+    "不证明 180 字节在所有文件系统上都够。ext4/xfs/APFS 都是 255 字节上限；网络文件系统或某些同步盘可能更严。",
+    "不证明别的目的地没有同样的问题。Obsidian（destinations.py:693）和私有库（:1127）也用 safe_slug 拼路径，它们**跟着一起修好了**，但没有单独实测过。",
+    "不证明 markdown 目的地现在是 connected。它的持久状态仍然是 needs_user_action；要回到 connected 需要跑一次连接检查——**没有跑**，因为那会改生产状态，而这一轮的目的是把根因修掉。"
+  ]
+}

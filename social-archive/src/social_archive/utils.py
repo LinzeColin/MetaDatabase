@@ -108,10 +108,40 @@ def assert_public_http_url(value: str, resolve_dns: bool = False) -> str:
     return clean
 
 
+# 单个文件名分量的字节上限。ext4/xfs/APFS 都是 255 **字节**，不是 255 个字符。
+#
+# 留出的余量：
+#   · 调用方还要拼 `-{id 后 8 位}.md` = 12 字节
+#   · atomic_write 用 mkstemp 建临时文件，名字是 `.{最终名}.{8 位随机}` ≈ +10 字节
+# 180 字节给这两样留足了空间，还剩富余给别的调用方（Obsidian 路径、私有库路径）。
+SLUG_BYTE_BUDGET = 180
+
+
 def safe_slug(value: str, fallback: str = "item") -> str:
+    """把任意标题变成一个能落地的文件名分量。
+
+    ## 为什么按**字节**截，不按字符截
+
+    原来是 `value[:120]`。一个 120 字的中文标题在 UTF-8 下是 **360 字节**，
+    远超文件系统对单个名字分量的 255 字节上限。
+
+    2026-08-03T17:23 生产上实测炸了：
+
+        [Errno 36] File name too long:
+        '/var/lib/social-archive/exports/markdown/douyin/.迈特威四…'
+
+    而且后果不止丢一条：那次失败把**整个 markdown 目的地**降级成
+    needs_user_action，之后每一条导出都被授权闸门挡下，界面显示的是
+    「请先点击『检查连接』」——**一个太长的标题，让 79 条内容再也没导出过**，
+    而给用户看的原因完全指错了方向。
+    """
     value = unicodedata.normalize("NFKC", value)
     value = re.sub(r"[^\w.-]+", "-", value, flags=re.UNICODE).strip("-._")
-    return (value[:120] or fallback).lower()
+    encoded = value.encode("utf-8")
+    if len(encoded) > SLUG_BYTE_BUDGET:
+        # 在字节边界上截，再用 errors="ignore" 丢掉被切成两半的那个字符。
+        value = encoded[:SLUG_BYTE_BUDGET].decode("utf-8", errors="ignore").strip("-._")
+    return (value or fallback).lower()
 
 
 def atomic_write(path: Path, data: bytes, mode: int = 0o640) -> None:

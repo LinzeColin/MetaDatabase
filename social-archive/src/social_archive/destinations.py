@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import errno
 import hashlib
 import json
 import time
@@ -402,6 +403,27 @@ class DestinationRegistry:
         # 类名留在 message 里给日志看，码用稳定的那个。
         return "degraded", "DESTINATION_PROBE_FAILED", f"连接失败（{exc.__class__.__name__}）：{exc}"
 
+    @staticmethod
+    def _is_item_scoped_failure(exc: Exception) -> bool:
+        """这条错说的是**这一条内容**，还是**这个目的地**？
+
+        2026-08-03T17:23 生产上：一条抖音长标题拼出的文件名超过了文件系统
+        255 字节的上限，抛 `OSError [Errno 36] File name too long`。
+
+        那条错走的是「目的地健康度」这条路，把整个 markdown 目的地降级；
+        之后每一条新内容都被授权闸门挡下。结果：**193 条内容里 79 条
+        再也没有导出过**，而界面给的原因是「请先点击『检查连接』」——
+        指错了方向，照着做也修不好（下一个长标题会再炸一次）。
+
+        目的地本身好得很：同一秒之前它刚成功写了 110 个文件。
+        坏的是这一条内容的名字。
+
+        **判据只放行 ENAMETOOLONG 这一种。** 其余的 OSError
+        （权限、磁盘满、只读文件系统、IO 错误）确实意味着目的地不健康，
+        必须继续降级——放宽这里等于把真正的故障藏起来。
+        """
+        return isinstance(exc, OSError) and exc.errno == errno.ENAMETOOLONG
+
     def _record_export_failure(
         self,
         *,
@@ -436,14 +458,16 @@ class DestinationRegistry:
             error_code=code,
             evidence=failure_evidence,
         )
-        self.store.upsert_destination_state(
-            destination_id,
-            state=state,
-            enabled=True,
-            error_code=code,
-            last_checked_at=utcnow(),
-            message_zh=message,
-        )
+        # **单条内容的问题不改目的地的健康度。** 见 _is_item_scoped_failure。
+        if not self._is_item_scoped_failure(exc):
+            self.store.upsert_destination_state(
+                destination_id,
+                state=state,
+                enabled=True,
+                error_code=code,
+                last_checked_at=utcnow(),
+                message_zh=message,
+            )
         return receipt_id
 
     def export(
