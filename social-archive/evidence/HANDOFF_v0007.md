@@ -119,7 +119,8 @@ sparse    .github + social-archive
 | T06 | **partial** | 托管往返实测通过（合成会话）；**Oracle 未跑**，需 Owner 的 X 登录；「一键撤销」此前无入口，已接上（`T06/REVOKE_WAS_A_PROMISE_ONLY.json`） |
 | T07 | **done** | Owner 已裁定「cookie 可以进 ovh」；Cookie 已接进 sidecar（tmpfs、0600、finally 里删、值不进日志）。见 `T07/COOKIES_MAY_ENTER_THE_SIDECAR.json` |
 | T08 | **partial** | 整条链在真 Chrome 里跑通（回环，不碰任何平台）：注入 → 两个世界通消息 →抓到相对与绝对地址 → **生产解析器读出条目**；连按两次不串味；反例 0 条。08-05 由此揪出并修掉四个缺陷（见下）。真实收藏页仍未验 |
-| T09 | **工具就位（2026-08-05）** | 「抓到即固化」原来两头都断：**没人读那份诊断报告**，而且报告里只有 readable_count 这个数字、不说是哪条读得懂。两处都接上了（readable_urls 三段接通 + scripts/freeze_intercept_prefix.py）。拿生产上真报告跑过：**REFUSED / NOTHING_READABLE**——它拒绝从 urls 里挑一个看着像的，那正是它存在的理由。**只差 Owner 按那一下。** 见 `T09/` 下 1 份证据 |
+| T09 | **工具就位（2026-08-05）** | 「抓到即固化」原来两头都断：**没人读那份诊断报告**，而且报告里只有 readable_count 这个数字、不说是哪条读得懂。两处都接上了（readable_urls 三段接通 + scripts/freeze_intercept_prefix.py）。拿生产上真报告跑过：**REFUSED / NOTHING_READABLE**——它拒绝从 urls 里挑一个看着像的，那正是它存在的理由。**只差 Owner 按那一下。**
+**但固化不等于能同步**：实测（08-05）全仓只有 installNetObserverForTab 读那张前缀表，唯一调用方是诊断按钮，而诊断那条路进门就把读到的前缀**整个覆盖掉**（改用当前页域名推的）；没有任何地方以 diagnostic=false 调它。**让同步真的用上这个前缀是 T10/T11**，那一格还没做。见 `T09/` 下 1 份证据 |
 | T10–T11 | pending | 依赖 T06/T08 的真实数据 |
 | T12 | **done** | gallery-dl 退出码契约取自安装源；`evidence/T12/EXIT_CODE_CONTRACT.json` |
 | T13 | pending | 依赖 T10 证明拦截路 → 而 T10 要 Owner 的已登录国内平台页面。**Acceptance 原文不在仓内**（见开头那段）。 |

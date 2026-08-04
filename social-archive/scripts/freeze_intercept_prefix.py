@@ -147,8 +147,13 @@ def main() -> int:
         result["applied"] = True
         result["catalog"] = str(catalog_path)
         result["reminder"] = (
-            "写进去了，但**还没有人验过它真能拦到**。下一步：重打扩展包、装上、"
-            "在那个平台的收藏页跑一次同步，看抓到的条数与解析出来的条目数。"
+            "写进去了，但**今天还没有任何东西会去用它**。实测（2026-08-05）："
+            "整个仓里只有 background.js 的 installNetObserverForTab 读这张表，"
+            "而唯一的调用方是弹窗的诊断按钮（diagnostic=true），那条路进门第一件事"
+            "就是把读到的前缀**整个覆盖掉**，改用当前页域名推出来的。"
+            "没有任何地方以 diagnostic=false 调它。"
+            "\n所以固化是必要的一步，但不是最后一步：**让同步真的用上这个前缀是 T10/T11**，"
+            "那一格还没做。别把「写进去了」当成「能同步了」。"
         )
 
     print(json.dumps(result, ensure_ascii=False))

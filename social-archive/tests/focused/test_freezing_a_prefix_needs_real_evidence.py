@@ -105,6 +105,11 @@ def test_apply_writes_the_catalog_and_says_it_is_still_unverified(tmp_path) -> N
     written = catalog.read_text(encoding="utf-8")
     assert 'bilibili: Object.freeze(["api.bilibili.com/x/v3/fav/resource/list"])' in written
     assert "xiaohongshu: null" in written, "改了不该改的那一项"
-    assert "还没有人验过它真能拦到" in out["reminder"], (
-        "写进去就说完了——而「写进去」和「真能拦到」是两件事，这个项目一直栽在这上面"
+    # 提醒的措辞 2026-08-05 改过一次，而且是往更严的方向改：
+    # 原来写「还没有人验过它真能拦到」——**其实比这更糟**，
+    # 今天根本没有任何东西会去用这个前缀（唯一的读者是诊断，而诊断进门就把它
+    # 覆盖掉）。判据跟着改成钉住这个更强的说法。
+    assert "还没有任何东西会去用它" in out["reminder"], (
+        "写进去就说完了——而「写进去」和「能同步了」之间隔着一整格（T10/T11）"
     )
+    assert "T10/T11" in out["reminder"], "没有指明缺的是哪一格"
