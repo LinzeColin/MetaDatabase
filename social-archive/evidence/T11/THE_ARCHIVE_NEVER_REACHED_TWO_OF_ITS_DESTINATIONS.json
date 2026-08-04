@@ -1,0 +1,27 @@
+{
+  "task": "T11",
+  "claim": "Owner 连上的 GitHub 与 Obsidian，各自只收到 **1 / 193** 条。不是坏了，是**投递只在新内容进来时发生**——他后来才连上，此前入库的不会自己追上去。",
+  "measured_at": "2026-08-05",
+  "measured_in_production": {
+    "markdown": "已送到这里 193 / 193 条",
+    "obsidian": "已送到这里 1 / 193 条（缺 192）",
+    "github": "已送到这里 1 / 193 条（缺 192）",
+    "notion / karakeep / linkwarden / archivebox": "needs_user_action，0 条，尚未连接"
+  },
+  "is_the_ui_lying": "**没有。** 界面上那行「已送到这里 1 / 193 条」是如实的——那是 08-04 加的覆盖数在起作用，这次也顺手在生产上验了：接口给的 coverage_zh 与网页、扩展设置页两处渲染都对得上。它只是不够醒目，看起来像「慢」，不像「这 192 条永远不会去」。",
+  "why_it_matters": "在他那一侧，「我连上了 GitHub，我的档案应该都在那儿」是最自然的期待。而在这个工具之前，把 192 条补上去的唯一办法是**在界面上逐条点 192 次导出**。",
+  "what_was_built": "scripts/backfill_destination.py：默认**只看不动**；只给已经授权过导出的目的地补投；入队的是与单条导出**完全相同**的作业（不另开一条只有补投才走的路，那种路最容易和主路分叉）；作业 id 是稳定哈希 + INSERT OR IGNORE，重复跑不会重复投。",
+  "dry_run_result": "容器里跑：github 与 obsidian 各 missing 192 / would_enqueue 192，applied=false。",
+  "a_trap_i_fell_into_again_the_fourth_time_today": {
+    "什么": "在**主机上**跑这个脚本，github 报「这个目的地还没有一次成功的写入授权」。我差一点据此说「他连上的 GitHub 其实一直没在工作」。",
+    "真相": "去**容器里**跑同一个判定——True。.env 里的 SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE 指着 /run/secrets/github_token，那是容器里的挂载点，主机上不存在；read_secret 读不到就当成没配。",
+    "为什么必须分开报": "这两件事的下一步**完全相反**：一个是「去连接向导里完成一次写入」，另一个是「换个地方跑」。把后者报成前者，会让人去改一个没坏的东西。",
+    "改法": "脚本先判「跑错地方」再判「没授权」，并直接给出该敲的那行 docker compose exec。今天这个坑已经绊过四次：恢复脚本、运维手册那条命令、主机上的判定探针、这个。"
+  },
+  "not_executed_and_why": "**没有真跑 --apply。** 那会往 Owner 的 GitHub 私有仓与 Obsidian 各写 192 条，共 384 次外部写入。他的数据、他连的目的地，产品的本意就是送过去；但**批量往外部账号写**这种事，该由他点头，不该由我顺手做完再说。已在会话里把这个决定摆给他。",
+  "what_this_does_not_prove": [
+    "不证明补投真能成。只跑了 --dry-run；真投递要 worker 逐条跑，**入队不等于送到**，跑完还要回头看覆盖数。",
+    "不证明这 192 条在他那边是想要的。也许他连 GitHub 只是试一下。这正是不该我替他决定的原因。",
+    "不证明别的目的地没有同样的缺口。notion / karakeep / linkwarden / archivebox 都还没连上，谈不上补投。"
+  ]
+}
