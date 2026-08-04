@@ -1,0 +1,59 @@
+{
+  "task": "T18",
+  "claim": "v0.0.0.7 已部署到生产并逐项验证；C-T00-01 的根因修复真的生效了。",
+  "authorization": "Owner 明确指示：「T16 18 你自己解决 能你做的就别让我做 我没有技术基础」（2026-08-04）。",
+  "deployed_at": "2026-08-04T05:21Z",
+  "host": "OVH vps-83b882b4，/opt/social-archive",
+  "before_touching_anything": {
+    "why": "回滚只有在退路先建好时才成立。",
+    "db_snapshot": "/var/backups/social-archive/pre-v0007-20260804T050655Z.sqlite3（sqlite3 .backup，integrity_check=ok，计数与实库逐项一致：content 193 / artifact 549 / object_replica 1100 / source_account 3 / sync_run 17）",
+    "code_tarball": "/var/backups/social-archive/code-pre-v0007-20260804T050854Z.tar.gz（629K，整棵代码树）",
+    "env_backup": "/opt/social-archive/.env.pre-v0007-*",
+    "old_image_kept": "social-archive/core:0.0.0.6 保留在宿主机上作为主回滚镜像"
+  },
+  "surprises_found_at_deploy_time": [
+    {
+      "what": "**/opt/social-archive 不是 git 检出**（git rev-parse 报 not a git repository）",
+      "consequence": "我前一天写的 scripts/update.sh 第一件事就是要求 git 工作树干净，于是它**在唯一真正需要用它的那台机器上直接拒绝运行**。本机判据全绿、脚本能跑，只是跑不了生产。",
+      "fix": "改成先判断是不是 git 检出；判据补上「非 git 目录不能被拦死」。"
+    },
+    {
+      "what": "**compose 的镜像标签还停在 0.0.0.6**，而 VERSION 已是 0.0.0.7",
+      "consequence": "用同一标签构建会把旧镜像原地覆盖 —— **「回滚 = 把标签切回去」这条退路会当场消失**。这是版本号真源的第八处，前七处是「说错话」，这一处是可回滚性本身。",
+      "fix": "升到 0.0.0.7，并新增 test_image_tags_follow_version.py 钉住。"
+    },
+    {
+      "what": "**磁盘 38G 已用 37G（98%）**，core-api 镜像构建在最后一步 no space left on device 失败",
+      "handling": "只做安全回收：docker builder prune（885MB）+ apt-get clean + 删掉那个构建失败的半成品镜像。**没有动其它项目的镜像与数据**（本机还跑着 kmfa/coolify/memory-atlas/gatus 等无关服务，/srv 8.7G 属于别的项目）。",
+      "still_open": "构建后仅剩 321M；清理后回到约 1.2G / 97%。**这是一个独立于本次部署的生产风险，需要 Owner 决定怎么处置**（多半要扩盘或清理 /srv 与其它项目的镜像，那不在本仓射程内）。"
+    }
+  ],
+  "verified_after_deploy": {
+    "version": "三个容器全部 social-archive/*:0.0.0.7；/health 返回 version 0.0.0.7",
+    "C-T00-01": {
+      "what_it_was": "cli-tools 容器读不到 /run/secrets/cli_worker_token（加错了组：给的是 GID 980，密钥要 GID 10001），于是 /health 正常 200、业务路由一律 401，而错误停在 job 层从未传播到界面 —— 界面永远「同步中」。",
+      "now_measured": [
+        "容器内 id：uid=10002(cliworker) gid=10001(socialarchive) groups=10001,980 —— 正是 Dockerfile 那处修复",
+        "/run/secrets/cli_worker_token 可读且非空 ✓",
+        "core-api → cli-tools 业务请求 **HTTP 200**（此前一律 401）"
+      ],
+      "verdict": "**根因修复在生产上真的生效了。** 这也证实了「systemctl restart 不重建镜像」那条：不 build 的话这一切都不会发生。"
+    },
+    "credential_custody": "credential_age_identity 已生成（与备份那把 age 密钥分开）、按 root:socialarchive-secrets 0640 落盘、在 core-api 容器内可读 ✓",
+    "tenancy_audit": "全部表 orphan_rows = 0",
+    "provenance_audit": "broken = []，193 条内容全部答得出出处",
+    "sync_runs": {
+      "before": "1 条停在 scanning（就是「永远转圈」那条）",
+      "after": "**0 条停在非终态**。那条 bilibili run 在重启后 05:22:17 自己落到 partial + RELATION_SCOPE_UNCONFIRMED —— 有终态、有原因。",
+      "distribution": "partial 14 / failed 3 / cancelled 1"
+    },
+    "durability": "R2 已校验 549 / OCI 已校验 549 / 双副本 549（同一天早些时候完成，见 T16 证据）"
+  },
+  "what_this_does_not_prove": [
+    "**没有跑通一次真实的平台同步。** 国内三源仍走浏览器拦截路，而那条路的取数缝隙（acquireRelationItems）是显式 stub；西方三源需要 Owner 登录。部署证明的是「产品跑起来了、断点修好了」，不是「能取到内容了」。",
+    "没有做过一次真实回滚演练。退路（库快照 + 代码 tar + core:0.0.0.6 镜像）都在，但没有真的走一遍。",
+    "T02 登录链路在生产上没有实测——需要 Owner 用真账号点一次。",
+    "第三份副本（GitHub Release）仍然失败：配置指向的 LinzeColin/Social-Archive-Vault 不存在，建仓在 L0 硬边界的禁止清单里。",
+    "磁盘 97% 这个风险没有解决，只是没让它更糟。"
+  ]
+}

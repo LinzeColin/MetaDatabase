@@ -33,7 +33,7 @@ sparse    .github + social-archive
 |---|---|---|
 | T00 | **done** | `evidence/T00/CURRENT_TRUTH.json`；另见 `C-T00-01_STILL_BROKEN_IN_PRODUCTION.json` |
 | T01 | **done** | `evidence/T01/MIGRATION_COUNTS.json`；`tenancy_audit` 已挂到 `/v1/status` |
-| T02 | **in_progress** | 本地登录链路实测通过（登出→401 已验）；差 Owner 用真账号登录一次 |
+| T02 | **in_progress** | 本地登录链路实测通过（登出→401 已验）；生产已部署，**只差 Owner 打开档案馆页面用 Google/GitHub 点一次登录** |
 | T03 | **done** | `evidence/T03/REMOVAL_AND_ZERO_TYPING.json` |
 | T04 | **done** | 真实浏览器跑通：62 条书签 `queued→completed`，界面表格 62/62 逐条对上；另补 `DELETE /v1/accounts/{id}`（连得上断不开，见 `T04/CONNECT_HAD_NO_INVERSE.json`） |
 | T05 | **done** | 凭据托管；HTTP 层往返判据见 `test_credential_http_roundtrip.py`；隐私声明曾与实现相反，见 `T05/PRIVACY_CLAIM_WAS_FALSE.json` |
@@ -47,7 +47,7 @@ sparse    .github + social-archive
 | T15 | **done** | MV3 worker 之死的恢复；`evidence/T15/WORKER_DEATH_RECOVERY.json` |
 | T16 | **基本闭环** | 三个定时器已启用；**549/549 制品已有两份已校验异地副本（R2+OCI）**，开工前只有 19 个。第三份（GitHub Release）卡在一个不存在的仓库上，需 Owner 一句话决定。见 `T16/DURABILITY_IS_REAL_NOW.json` |
 | T17 | pending | 黄金事务（端到端）从未成功过——它按定义需要一次真实平台取数，因此在 T06/T08 解开之前无法开始。**Acceptance 原文不在仓内**。 |
-| T18 | **partial** | 回滚演练已做（并修掉演练暴露的数据丢失缺陷）；部署未做 |
+| T18 | **已部署（2026-08-04T05:21Z）** | 生产跑 0.0.0.7；**C-T00-01 根因修复实测生效**（cli-tools uid/gid 正确、密钥可读、业务路由 401→200）；卡在 scanning 的那条 run 已自行落到终态。见 `T18/DEPLOYED_AND_VERIFIED.json`。**未做真实回滚演练**，退路齐全 |
 
 ## 接手第一件事：~~生产上数据只有一份~~ —— **已解决（2026-08-04）**
 
