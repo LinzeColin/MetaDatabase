@@ -91,6 +91,35 @@ _ALIASES: dict[str, str] = {
     # 它的下一步动作（回浏览器操作后重试）是对的，只是措辞说的是"登录"。
     # 这是词典的缺口，不是映射的将就，见 evidence/T12/EXIT_CODE_CONTRACT.json。
     "CHALLENGE_REQUIRED": "NOT_LOGGED_IN",
+    # ── 连接器层（connectors/command.py）──
+    # 这一层的码此前**整层都没进过词典**：七个码全部落到「我们没能记录下原因」，
+    # 而原因就写在异常里。教训与生产遗留码那次相同，但这次不是数据的问题——
+    # **是我只扫了同步路径，没扫连接器路径。**
+    "CLI_WORKER_FAILED": "SERVER_UNREACHABLE",        # sidecar 连不上/报错，重试有意义
+    "CLI_WORKER_COMMAND_FAILED": "SERVER_UNREACHABLE",
+    "COMMAND_FAILED": "SERVER_UNREACHABLE",
+    "COMMAND_TIMEOUT": "SERVER_UNREACHABLE",          # 超时，重试有意义
+    "BILI_COMMAND_FAILED": "SERVER_UNREACHABLE",
+    "BILI_RATE_LIMITED": "RATE_LIMITED",              # 词典里本来就有这一条
+    # 缺 Instagram 会话或缺 instaloader。对用户来说下一步是去连 Instagram。
+    "INSTAGRAM_SESSION_OR_BINARY_MISSING": "NOT_LOGGED_IN",
+    "INSTAGRAM_SIDECAR_BLOCKED": "SERVER_UNREACHABLE",
+    # ── 账号 / OAuth / 各 worker ──
+    # 这一批是 scripts/check_every_failure_code_is_explainable.py 扫出来的：
+    # 一次性找到 24 个说不出人话的码。此前词典只覆盖了同步路径的一小部分。
+    "ACCOUNT_REAUTH_REQUIRED": "CREDENTIAL_EXPIRED",
+    "REDDIT_AUTH_MISSING": "REDDIT_NOT_AUTHORIZED",
+    "REDDIT_RATE_LIMITED": "RATE_LIMITED",
+    "INSTAGRAM_SESSION_PERMISSIONS": "NOT_LOGGED_IN",   # 会话文件权限不安全，我们拒用；要重新上传
+    "X_API_FAILED": "SERVER_UNREACHABLE",
+    "REDDIT_API_FAILED": "SERVER_UNREACHABLE",
+    "XHS_WORKER_FAILED": "SERVER_UNREACHABLE",
+    "WORKER_PROBE_OR_CALL_FAILED": "SERVER_UNREACHABLE",
+    "INSTALOADER_FAILED": "SERVER_UNREACHABLE",
+    "BILI_INVALID_RESPONSE": "SERVER_UNREACHABLE",
+    "OBSIDIAN_LOCAL_BRIDGE_FAILED": "SERVER_UNREACHABLE",
+    "X_AUTH_MISSING": "CREDENTIAL_EXPIRED",   # X 没授权过或授权掉了 → 去重新连接
+    "X_RATE_LIMITED": "RATE_LIMITED",
 }
 
 # **故意不放进 _ALIASES 的码**，写在这里是为了让"没漏，是有意的"这件事看得见：
@@ -104,6 +133,8 @@ _ALIASES: dict[str, str] = {
 #   ——结论对（是我们的问题、去找我们），代价是那句"我们没能记录下原因"
 #   在这里不准确（原因是记了的，就在 last_error_code 里）。
 #   要真正说准，得往冻结词典里加一条，那是改产品合同，先改 ZERO_BARRIER_UX.md。
+#   —— 现在它由 PRODUCT_FAULT_CODES 接管：结论仍是「我们的问题、别重试」，
+#   但不再借用那句不准确的「我们没能记录下原因」。
 DELIBERATELY_UNALIASED: frozenset[str] = frozenset({"URL_NOT_SUPPORTED"})
 
 # 「没有新增」不是失败。它必须与失败**显示成两种东西**。
@@ -142,8 +173,36 @@ INCOMPLETE_RUN_CODES: frozenset[str] = frozenset({
     "SYNC_RUN_ABANDONED",         # v0.0.0.6 遗留
     "RELATION_SCOPE_UNCONFIRMED", # v0.0.0.6 遗留
     "STABLE_END_WITHOUT_PROOF",   # v0.0.0.6 遗留
+    # 到了单次同步的条数上限就停——**不是失败**，是没跑完。
+    # 已取到的都在库里，下次续着跑。用「卡住了…都还在」这句正合适。
+    "ACCOUNT_SYNC_ITEM_LIMIT_REACHED",
 })
 _INCOMPLETE_SENTENCE = "这次同步卡住了，没有正常结束。你已经取到的内容都还在。"
+
+# **「是我们的问题」与「我们不知道为什么」是两回事。**
+#
+# 原来这两种都落到 unexplained_zero，那句话里有「我们没能记录下原因」——
+# 对下面这些码是**假话**：原因记得清清楚楚（部署没配、URL 不支持、
+# 命令不在白名单），只是用户帮不上忙。说「不知道原因」会让用户
+# 反复重试一个永远不会好的东西，还顺带损失了我们本可以给出的诚实。
+#
+# 这些码的共同点：**用户做什么都没用，得我们去修。**
+PRODUCT_FAULT_CODES: frozenset[str] = frozenset({
+    "URL_NOT_SUPPORTED",            # gallery-dl 退出码 32/64：我们传错了 URL
+    "CLI_WORKER_NOT_CONFIGURED",    # 部署里压根没配下载 sidecar
+    "CLI_WORKER_INVALID_RESPONSE",  # sidecar 回了我们读不懂的东西
+    "COMMAND_NOT_ALLOWED",          # 我们请求了一个不在白名单里的命令
+    "TOOL_NOT_ALLOWED",             # 同上：我们点名了一个不支持的工具
+    "ACCOUNT_WRITE_FORBIDDEN",      # 我们试图写一个只读账号路径
+    "INVALID_CONFIGURATION",        # 目的地配置错了，用户改不了
+    "OPENAPI_INVALID_DOCUMENT",     # 我们喂给 worker 的 OpenAPI 文档有问题
+    "OPENAPI_ROUTE_AMBIGUOUS",      # 同上
+    # L0 边界：X 的付费 API 未确认零成本，我们**主动不走**。
+    # 这是产品的选择，不是用户的错，重试也不会变——所以既不给重试按钮，
+    # 也不说「我们不知道为什么」。
+    "X_ZERO_COST_NOT_CONFIRMED",
+})
+_PRODUCT_FAULT_SENTENCE = "这次没有取到内容，问题在我们这边，已经记下来了。不用反复重试。"
 
 
 def code_key(code: str | None) -> str:
@@ -207,6 +266,13 @@ def describe_sync_outcome(
             "message_zh": resolved.render(platform_label=platform_label, count=imported),
             "failure_code": resolved.code,
             "action_zh": resolved.action_zh,
+        }
+    if code_key(failure_code) in PRODUCT_FAULT_CODES:
+        # 知道原因、但用户帮不上忙。**不许说「我们不知道为什么」。**
+        return {
+            "outcome": "product_fault", "imported": imported,
+            "message_zh": _PRODUCT_FAULT_SENTENCE,
+            "failure_code": code_key(failure_code), "action_zh": None,
         }
     if str(code_key(failure_code)) in INCOMPLETE_RUN_CODES:
         # 「没跑完」——不是没原因，也不是成功。

@@ -49,6 +49,10 @@ def structural_commands() -> list[list[str]]:
         # 判据全绿，然后才发现没有人在调它。判据证明「函数写得对」，
         # 不证明「有人在调」。这道门把第六次挡在发布之前。
         [python, "scripts/find_unwired_code.py"],
+        # 失败码 → 中文句子是**人手维护**的映射表，新加一个码没人提醒你补词典。
+        # 补漏的后果不是少一句话，是界面说「我们没能记录下原因」而原因就在代码里。
+        # 这道门第一次跑就找出 24 个说不出人话的码。
+        [python, "scripts/check_every_failure_code_is_explainable.py"],
         [python, "scripts/validate_deployment_contract.py"],
     ]
 

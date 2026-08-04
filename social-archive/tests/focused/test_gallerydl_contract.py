@@ -317,17 +317,27 @@ def test_auth_exit_distinguishes_reddit_from_other_platforms() -> None:
 
 def test_unsupported_url_never_tells_the_user_to_retry() -> None:
     """32/64 是我们传错了 URL。让用户重试是骗他——重试一万次也一样。"""
-    from social_archive.failure_copy import DELIBERATELY_UNALIASED, describe_sync_outcome
+    from social_archive.failure_copy import (
+        DELIBERATELY_UNALIASED,
+        PRODUCT_FAULT_CODES,
+        describe_sync_outcome,
+    )
     from social_archive.gallerydl_runner import classify_exit_code
 
     code = classify_exit_code(64, url="https://example.com/x")
     assert code == "URL_NOT_SUPPORTED"
     assert code in DELIBERATELY_UNALIASED, "被顺手加了别名，就会退化成一句「重试」"
+    assert code in PRODUCT_FAULT_CODES, "它是我们的 bug，必须走「问题在我们这边」那一支"
 
     outcome = describe_sync_outcome(imported=0, failure_code=code, status="completed")
+    # 判据打在**性质**上，不打在某一句措辞上：
+    #   不能说「连不上服务器」、不能诱导重试、不能装成「没有新增」、
+    #   而且不能说「我们不知道为什么」——原因是知道的。
     assert outcome["message_zh"] != "暂时连不上服务器。你的数据没有丢，[ 重试 ]"
-    assert "产品的问题" in outcome["message_zh"]
     assert outcome["outcome"] != "nothing_new"
+    assert outcome["action_zh"] is None, "给了重试按钮就是在骗人：重试一万次也一样"
+    assert "我们这边" in outcome["message_zh"] or "产品的问题" in outcome["message_zh"]
+    assert "没能记录下原因" not in outcome["message_zh"], "原因是知道的，不许说不知道"
 
 
 def test_challenge_exit_does_not_promise_we_will_bypass_it() -> None:
