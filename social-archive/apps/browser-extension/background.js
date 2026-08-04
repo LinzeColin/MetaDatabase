@@ -186,6 +186,18 @@ let netCapturesDropped = 0;
  * 演练就会在正本坏掉的时候继续绿——而这一天里正本恰好改了两处。
  */
 async function installNetObserverForTab({ platform, tabId, diagnostic }) {
+  // **每次诊断都是一次新的测量，先把上一次的清干净。**
+  //
+  // 缓冲区原来从头到尾没人清过，只靠 service worker 睡着（约 30 秒）自然消失。
+  // 于是连按两次诊断，第二次会把第一次的响应一起数进去——「拦到 N 条」对不上这一次；
+  // 换个平台再按更糟：拿 xiaohongshu 去解析上一轮 bilibili 的字节，全判读不懂，
+  // 报回来的第一条问题完全指错方向。
+  //
+  // 这个缺口是**演练替产品做了它该做的事**才露出来的：探针里得手写
+  // netCaptureBuffer.length = 0 才量得准——要手动清，说明产品自己没清。
+  netCaptureBuffer.length = 0;
+  netCapturesDropped = 0;
+  observerStateByTab.delete(tabId);
     // **诊断模式：前缀由这个标签页自己的域名推出，不查表。**
     //
     // 死循环否则会成立：诊断按钮存在的目的就是**去发现**这些前缀，

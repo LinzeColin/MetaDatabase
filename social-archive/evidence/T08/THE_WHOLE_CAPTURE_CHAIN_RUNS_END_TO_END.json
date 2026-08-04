@@ -17,7 +17,8 @@
     "其中相对地址": "1 条",
     "其中绝对地址": "1 条",
     "生产解析器从第一条抓到的字节里读出": "2 条收藏",
-    "反例（让它以为页面在另一个域名上，推出的前缀必定匹配不上）": "0 条"
+    "反例（让它以为页面在另一个域名上，推出的前缀必定匹配不上）": "0 条",
+    "连按第二次抓到": "2 条（不是 4 条）"
   },
   "what_the_counter_example_is_for": "反例抓到 0 条，才说明正例那 2 条是**前缀匹配匹配出来的**，而不是「抓了所有请求」。一个永远 PASS 的演练比没有演练更坏——它会让人以为验过了，而这一天里它恰好真的漏过一次。",
   "a_bug_this_drill_caught_in_itself": "判据原来写的是 `len(parse_bilibili_favlist(body))`。那个函数返回的是 `(条目, 还有下一页)` 两元组，`len` 永远等于 2——**而 2 正是这次期望的条目数**。条目为空它也会绿。写完就发现并改成先解包；这是本会话第 N 次「判据绿了但数的不是它以为的东西」。",
@@ -48,5 +49,12 @@
     }
   },
   "a_second_bug_this_drill_caught_in_itself": "第二版演练想把 SA.requestPlatformPermission 换成永远放行——SA 是 Object.freeze 的，赋值是个静默空操作，演练当场如实报回「没有获得读取 B 站页面的授权」。改用 generic-web 走同一条链（它没有权限模式，requestPlatformPermission 的 `if (!origins.length) return true` 直接放行；前缀本来就是从标签页域名推的，与平台无关）。没被覆盖的只剩「向用户要平台授权」那一步——那一步本来也自动化不了。",
-  "the_drill_calls_the_real_code_now": "安装那段整体挪成了 background.js 的 installNetObserverForTab，演练直接调它本人。照抄一遍顺序也能跑，但那测的是抄件；抄件和正本一分叉，演练就会在正本坏掉的时候继续绿——**这一天里正本恰好改了两处**。"
+  "the_drill_calls_the_real_code_now": "安装那段整体挪成了 background.js 的 installNetObserverForTab，演练直接调它本人。照抄一遍顺序也能跑，但那测的是抄件；抄件和正本一分叉，演练就会在正本坏掉的时候继续绿——**这一天里正本恰好改了两处**。",
+  "a_third_defect_the_drill_exposed": {
+    "what": "**缓冲区从头到尾没人清过。**",
+    "consequence": "连按两次诊断，第二次会把第一次的响应一起数进去，「拦到 N 条」对不上这一次；换个平台再按更糟——拿这个平台去解析上一轮那个平台的字节，全判读不懂，报回来的第一条问题完全指错方向。原来只靠 service worker 睡着（约 30 秒）自然消失，而「点完没反应就再点一次」恰恰是最常见的动作。",
+    "how_it_surfaced": "**演练替产品做了它该做的事才露出来的**：探针里得手写 netCaptureBuffer.length = 0 才量得准——要手动清，说明产品自己没清。",
+    "fix": "installNetObserverForTab 开头清缓冲区与丢弃计数：一次诊断 = 一次新的测量。",
+    "verified": "演练去掉手动清零，改成连按两次：第一次 2 条，第二次 2 条（不是 4 条）。反例那一轮也拿到 0 条——它同时证明了前两轮的残留确实被清掉了。"
+  }
 }

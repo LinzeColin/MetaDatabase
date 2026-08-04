@@ -149,8 +149,8 @@ PROBE = r"""
     };
   }
 
-  observerStateByTab.delete(tabId);
-  netCaptureBuffer.length = 0;
+  // **这里故意不清缓冲区。** 清是产品自己该做的事——
+  // 探针替它清，就等于把「连按两次诊断会不会串味」这个问题藏起来。
   let installed = null, installError = null;
   try {
     installed = await installNetObserverForTab({
@@ -161,7 +161,6 @@ PROBE = r"""
   await new Promise(r => setTimeout(r, 2000));
   const captures = netCaptureBuffer.map(c => ({ url: c.url, status: c.status, body: c.body }));
   const selfReport = observerStateByTab.get(tabId) || null;
-  netCaptureBuffer.length = 0;
   chrome.tabs.get = realGet;
   return JSON.stringify({ captures, selfReport, tabId, installed, installError });
 })(%s)
@@ -237,6 +236,9 @@ async def run(chrome_binary: str, ext_dir: str, keep_going: bool) -> int:
             return PROBE % json.dumps({"pageUrl": page_url, "bogusHost": bogus_host})
 
         real = await _evaluate(base, extension_id, probe())
+        # **连按两次。** 第二次抓到的条数必须和第一次一样，不能翻倍——
+        # 缓冲区若不清，第二次会把第一次的响应一起数进去。
+        again = await _evaluate(base, extension_id, probe())
         # **反例**：让它以为这个标签页在别的域名上，于是推出来的前缀绝对匹配不上。
         # 反例还抓到东西 = 这个演练量的不是它自称在量的东西。
         counter = await _evaluate(base, extension_id, probe("http://这个域名不存在.invalid/x"))
@@ -295,6 +297,15 @@ async def run(chrome_binary: str, ext_dir: str, keep_going: bool) -> int:
     elif captures and parsed_items != 2:
         problems.append(f"读出来的条目数不对：{parsed_items}，应为 2")
 
+    first_count = len(captures)
+    second_count = len(again.get("captures") or [])
+    if again.get("error"):
+        problems.append(f"第二次诊断出错：{again['error']}")
+    elif second_count != first_count:
+        problems.append(
+            f"连按两次诊断，第一次抓到 {first_count} 条、第二次 {second_count} 条——"
+            "缓冲区没清干净，上一次的响应被算进了这一次"
+        )
     if counter.get("captures"):
         problems.append(
             f"反例也抓到了 {len(counter['captures'])} 条——"
@@ -309,6 +320,7 @@ async def run(chrome_binary: str, ext_dir: str, keep_going: bool) -> int:
         "captured_relative_url": len(relative),
         "captured_absolute_url": len(absolute),
         "parsed_items_from_first_capture": parsed_items,
+        "captured_on_a_second_press": second_count,
         "counter_example_captured": len(counter.get("captures") or []),
         "problems": problems,
     }, ensure_ascii=False))

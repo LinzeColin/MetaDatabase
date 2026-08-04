@@ -105,3 +105,20 @@ def test_a_full_buffer_drops_the_newest_not_the_oldest() -> None:
     assert "netCapturesDropped" in overflow, "丢掉的条数没记，触顶会变成静默的零"
     assert "dropped" in background.split("SA_PARSE_NET_CAPTURES", 1)[1][:3000], \
         "丢掉的条数没报给用户——静默触顶和「平台没发这个请求」看起来一模一样"
+
+
+def test_each_diagnostic_starts_from_a_clean_buffer() -> None:
+    """一次诊断 = 一次新的测量，不能带着上一次的残留。
+
+    缓冲区原来从头到尾没人清过，只靠 service worker 睡着（约 30 秒）自然消失。
+    连按两次诊断，第二次会把第一次的响应一起数进去；换个平台再按更糟——
+    拿这个平台去解析上一轮那个平台的字节，全判读不懂，报回来的第一条问题指错方向。
+
+    **这个缺口是演练替产品做了它该做的事才露出来的**：探针里得手写
+    netCaptureBuffer.length = 0 才量得准——要手动清，说明产品自己没清。
+    """
+    background = (Path(__file__).resolve().parents[2]
+                  / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    install = background.split("async function installNetObserverForTab", 1)[1].split("\nasync function", 1)[0]
+    assert "netCaptureBuffer.length = 0" in install, "诊断开始时不清缓冲区，两次诊断会混在一起"
+    assert "netCapturesDropped = 0" in install, "丢弃计数不清零，会把上一次丢掉的算到这一次头上"
