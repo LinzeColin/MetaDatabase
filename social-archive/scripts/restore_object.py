@@ -308,11 +308,31 @@ def extract_verified_github_ciphertext(download_dir: Path, descriptor: dict[str,
             path = str(item.get("path") or "")
             original = _sha256(item.get("original_sha256"), field="github.object.original_sha256")
             expected_path = f"objects/{original}.age"
-            if path != expected_path or path in expected_members:
-                raise RecoveryFailure("GITHUB_PACK_INVALID", "GitHub Release 对象路径非法或重复")
+            if path != expected_path:
+                raise RecoveryFailure("GITHUB_PACK_INVALID", "GitHub Release 对象路径非法")
             if item.get("encryption") != "age-x25519":
                 raise RecoveryFailure("GITHUB_PACK_INVALID", "GitHub Release 对象加密算法错误")
-            _sha256(item.get("cipher_sha256"), field="github.object.cipher_sha256")
+            cipher = _sha256(item.get("cipher_sha256"), field="github.object.cipher_sha256")
+            # **同一条路径出现两次，不一定是坏的。**
+            #
+            # 对象是按内容寻址的（路径 = objects/{原文 sha256}.age），所以
+            # **两个制品只要字节相同，就必然指向同一条路径**。清单里保留两条
+            # 记录是对的：它记的是「哪个 artifact 对应哪个对象」，
+            # 而多对一是这套设计的正常结果。
+            #
+            # 原来这里一见重复就整包判废。2026-08-04 实测：
+            # 20260804T060736Z 那个包 500 个对象里有 **3 组**这样的重复，
+            # 于是**整包 500 个对象一个都恢复不了**——而三份副本在库里
+            # 全都登记着 verified。
+            #
+            # 真正该拦的是「同一条路径下挂着两份**不同**的内容」，那才是坏了。
+            previous = expected_members.get(path)
+            if previous is not None:
+                if previous.get("cipher_sha256") != cipher:
+                    raise RecoveryFailure(
+                        "GITHUB_PACK_INVALID", "GitHub Release 同一路径下有两份不同的密文"
+                    )
+                continue
             expected_members[path] = item
         with tarfile.open(assembled, "r") as archive:
             members = {member.name: member for member in archive.getmembers()}
