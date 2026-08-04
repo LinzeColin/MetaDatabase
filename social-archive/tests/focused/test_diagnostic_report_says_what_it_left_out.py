@@ -16,6 +16,8 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from tests.focused._source_slices import run_diagnosis_body
+
 EXT = Path(__file__).resolve().parents[2] / "apps/browser-extension"
 
 
@@ -42,6 +44,7 @@ def client_and_root(tmp_path, monkeypatch) -> tuple[TestClient, Path]:
     client = TestClient(api.app)
     client.headers.update({"Authorization": "Bearer drill-token"})
     return client, root
+
 
 
 def test_the_server_records_what_was_dropped_and_never_read(client_and_root) -> None:
@@ -76,3 +79,17 @@ def test_the_popup_actually_sends_those_two_numbers() -> None:
     assert "readback?.dropped" in payload and "readback?.notParsed" in payload, (
         "送的不是解析那一步真的算出来的数"
     )
+
+
+def test_the_popup_tells_him_not_to_click_the_page() -> None:
+    """弹窗一失去焦点就整个关掉，正在跑的诊断会断在半路。
+
+    断在半路的后果不是「慢一点」：抓到的东西不会被读，结果也不会存到服务器，
+    **而 Owner 只按一次**。用滚轮滚不会夺走焦点，点一下页面会——
+    而这行字原来只写「请往下滚动几屏」，照着做最自然的动作恰好是先点一下页面。
+    """
+    popup = (EXT / "popup.js").read_text(encoding="utf-8")
+    loop = run_diagnosis_body(popup)
+    assert "别点页面" in loop, "没告诉他点页面会把这个窗关掉"
+    assert "滚轮" in loop, "没说清用什么滚——「滚动」在鼠标上有两种做法，一种会关窗"
+    assert "请往下滚动几屏…" not in loop, "那句会把人引去点页面的旧文案又回来了"

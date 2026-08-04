@@ -273,12 +273,18 @@
         if (count > 0) {
           button.textContent = quiet >= 3
             ? "够了，正在读…"
-            : `已抓到 ${count} 条，继续往下滚…`;
+            : `已抓到 ${count} 条，继续用滚轮往下滚…`;
           if (quiet >= 3) break;
         } else {
+          // **「滚」要说清是用滚轮滚，别点页面。**
+          //
+          // 这个弹窗一失去焦点就整个关掉，而它一关，正在跑的诊断就断在半路：
+          // 抓到的东西不会被读、结果也不会存到服务器。**而 Owner 只按一次。**
+          // 用滚轮滚不会夺走焦点，点一下页面会。这行字原来只写「请往下滚动几屏」——
+          // 照着做最自然的动作恰好是先点一下页面。
           button.textContent = elapsed < 10
-            ? `请往下滚动几屏…（${10 - elapsed} 秒）`
-            : `还没抓到，请再滚几屏…（还等 ${30 - elapsed} 秒）`;
+            ? `用滚轮往下滚几屏（别点页面，一点这个窗就关了）…（${10 - elapsed} 秒）`
+            : `还没抓到，再用滚轮滚几屏…（还等 ${30 - elapsed} 秒）`;
         }
       }
       const urls = (captured?.urls || []).filter((value, index, all) => all.indexOf(value) === index);

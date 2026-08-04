@@ -24,6 +24,8 @@ from fastapi.testclient import TestClient
 
 from social_archive.platform_payloads import PayloadUnreadable, parse_bilibili_favlist
 
+from tests.focused._source_slices import run_diagnosis_body
+
 
 def _client(tmp_path, monkeypatch) -> TestClient:
     """按 tests/focused/test_library_api.py 里既有的方式起一个 app。"""
@@ -49,6 +51,7 @@ def _client(tmp_path, monkeypatch) -> TestClient:
 ROOT_APPS = pathlib.Path(__file__).resolve().parents[2] / "apps/browser-extension"
 
 ANONYMOUS_REAL_RESPONSE = '{"code":0,"message":"OK","ttl":1,"data":null}'
+
 
 
 def test_the_real_anonymous_response_is_a_failure_not_an_empty_list() -> None:
@@ -188,7 +191,7 @@ def test_the_diagnostic_waits_until_it_actually_catches_something() -> None:
     让他重点一次，就是把本来该我们承担的不确定性丢给他。
     """
     popup = (ROOT_APPS / "popup.js").read_text(encoding="utf-8")
-    block = popup.split("async function runDiagnosis", 1)[1][:3000]
+    block = run_diagnosis_body(popup)
     assert "for (let left = 10" not in block, "还是那个死等 10 秒的倒计时"
     assert "SA_GET_NET_CAPTURES" in block, "不再轮询就没法提前收工"
     assert "elapsed < 30" in block, "没有上限，可能一直转下去"
@@ -248,7 +251,7 @@ def test_the_diagnostic_sink_has_no_place_to_put_a_response_body() -> None:
 def test_the_popup_still_keeps_copy_as_a_fallback() -> None:
     """存不上去（没登录、没网）时，复制按钮仍是退路。"""
     popup = (ROOT_APPS / "popup.js").read_text(encoding="utf-8")
-    block = popup.split("async function runDiagnosis", 1)[1][:5000]
+    block = run_diagnosis_body(popup)
     assert "/v1/extension/diagnostics" in block, "诊断结果没有送到他自己的服务器"
     assert "copyButton.classList.remove" in block, "复制按钮被拿掉了——存不上去时就没有退路了"
     assert "请点下面的「复制」发给开发者" in block, "存失败时没有告诉他还能怎么办"

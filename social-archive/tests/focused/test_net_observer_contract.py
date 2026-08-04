@@ -22,6 +22,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.focused._source_slices import install_net_observer_body, run_diagnosis_body
+
 ROOT = Path(__file__).resolve().parents[2]
 EXT = ROOT / "apps/browser-extension"
 OBSERVER = EXT / "net-observer.js"
@@ -51,6 +53,7 @@ def _install_function() -> str:
     assert "async function installNetObserverForTab" in code, "安装函数不见了"
     body = code.split("async function installNetObserverForTab", 1)[1]
     return body.split("\nasync function", 1)[0]
+
 
 
 def test_observer_never_reads_cookies_or_synthesises_requests() -> None:
@@ -322,7 +325,7 @@ def test_the_diagnostic_says_up_front_when_the_page_is_not_diagnosable():
     OBSERVER_INSTALL_FAILED「无法在该页面上启动同步」。用户对着那句话没法行动。
     """
     popup = (EXT / "popup.js").read_text(encoding="utf-8")
-    block = popup.split("async function runDiagnosis", 1)[1][:2000]
+    block = run_diagnosis_body(popup)
     assert "patternsForPlatform" in block, "没有先确认这个平台有权限模式"
     assert "不是可诊断的平台" in block, "认不出时没有给出人能看懂的话"
     guard_at = block.index("patternsForPlatform")
