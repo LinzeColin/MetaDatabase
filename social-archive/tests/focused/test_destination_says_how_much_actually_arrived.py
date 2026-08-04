@@ -68,3 +68,28 @@ def test_a_connected_destination_with_nothing_in_it_says_so(settings, store, ser
     )
     assert "1 / 3" in views["markdown"]["coverage_zh"]
     assert "0 / 3" in views["github"]["coverage_zh"]
+
+
+def test_both_uis_actually_show_the_coverage() -> None:
+    """**加了字段没人读，等于没加。**
+
+    2026-08-05：我给目的地视图加了 exported_count / coverage_zh，
+    一小时后去查——**两个界面一个都没读它**。这正是这一整天在清的
+    「建好了没接上」，而这一次是我自己刚犯的。
+    """
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    for rel in ("apps/pwa/app.js", "apps/browser-extension/options.js"):
+        text = (root / rel).read_text(encoding="utf-8")
+        assert "coverage_zh" in text, f"{rel} 不显示「已送到这里 N / M 条」"
+
+
+def test_the_coverage_line_sits_with_the_destination_card() -> None:
+    """显示在那张卡片里，不是塞在别处——否则用户看不到它挨着哪个目的地。"""
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    pwa = (root / "apps/pwa/app.js").read_text(encoding="utf-8")
+    card = pwa.split("destination-live-card", 1)[1][:1200]
+    assert "coverage_zh" in card, "覆盖率那一行不在目的地卡片里"

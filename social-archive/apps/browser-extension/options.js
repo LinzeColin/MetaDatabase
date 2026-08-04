@@ -171,7 +171,7 @@
     const map=new Map(destinations.map(item=>[item.destination_id,item]));
     $("destinationGrid").innerHTML=order.map(id=>{
       const item=map.get(id)||{};const state=id==="social_archive"||id==="markdown"?(item.state||"connected"):(item.state||"needs_user_action");
-      return `<article class="destination-card"><header><strong>${destinationNames[id]}</strong><span class="state ${SA.escapeHtml(state)}">${SA.escapeHtml(SA.statusCopy(state))}</span></header><p>${SA.escapeHtml(item.last_message_zh||item.next_action_zh||(state==="connected"?"自动写入已开启":"在网站连接向导中完成一次真实写入"))}</p></article>`;
+      return `<article class="destination-card"><header><strong>${destinationNames[id]}</strong><span class="state ${SA.escapeHtml(state)}">${SA.escapeHtml(SA.statusCopy(state))}</span></header><p>${SA.escapeHtml(item.last_message_zh||item.next_action_zh||(state==="connected"?"自动写入已开启":"在网站连接向导中完成一次真实写入"))}</p><p class="muted">${SA.escapeHtml(item.coverage_zh||"")}</p></article>`;
     }).join("");
   }
   function render(){renderSummary();renderAccounts();renderDestinations();}
