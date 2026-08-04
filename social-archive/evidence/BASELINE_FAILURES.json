@@ -101,5 +101,15 @@
     "只核到「origin/main 上是不是同样红」这一层，没有逐条判断这 7 条**该不该**修——它们分属 T03/T04 等后续任务的射程。",
     "核的是失败原因而不只是名字，但对照的是文件内容，没有在 origin/main 上实跑过一次全量。"
   ],
-  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。"
+  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。",
+  "two_of_the_seven_fixed_2026_08_04": {
+    "which": [
+      "test_library_api::test_library_uses_one_content_card_for_multiple_relations_and_preserves_detail",
+      "test_library_api::test_library_filters_literal_full_text_collection_and_observed_date"
+    ],
+    "why_they_were_red": "两条都 KeyError 在 `item['relation_type']` / `item['collection_key']` 上。这两个字段在 v0.0.0.5 前后被改名成 **primary_relation / primary_collection**，判据卡在旧名字上。",
+    "the_behavior_was_never_broken": "先实测再改判据：一条内容配两种关系 → 库里确实只有 1 张卡；按任一关系过滤，卡上的 primary_relation 就是那个关系；按收藏夹过滤同理。**要证的行为一直是好的，红的只是字段名。**",
+    "an_assertion_i_added_and_then_removed": "改的时候我顺手加了一条「过滤时 relations 必须仍含全部关系」，实测发现过滤后只剩被过滤的那一种（GROUP_CONCAT 在过滤后的行上算）。我一度想把它报成缺陷——**但任何规格都没这么要求，那只是我的偏好**。原判据对「保住细节」的定义是详情接口，那一条本来就过。所以我把断言改成不强求，并把观察到的事实写在注释里。**判据不该钉我以为应该怎样，只该钉说定了怎样。**",
+    "remaining": 5
+  }
 }

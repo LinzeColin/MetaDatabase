@@ -46,8 +46,23 @@ def test_library_uses_one_content_card_for_multiple_relations_and_preserves_deta
     items = client.get('/v1/library?platform=generic-web').json()['items']
     assert len(items) == 1
     content_id = items[0]['id']
-    filtered = client.get('/v1/library?platform=generic-web&relation=bookmark').json()['items']
-    assert [(item['id'], item['relation_type']) for item in filtered] == [(content_id, 'bookmark')]
+    # 字段名从 relation_type 改成了 primary_relation（v0.0.0.5 起）。
+    # 这条判据卡在旧名字上，KeyError 了很久——**而它要证的行为一直是好的**。
+    # 实测：一条内容两种关系 → 库里 1 张卡；按任一关系过滤，卡上的
+    # primary_relation 就是那个关系；relations 里两种都在。
+    for wanted in ('bookmark', 'manual_save'):
+        filtered = client.get(f'/v1/library?platform=generic-web&relation={wanted}').json()['items']
+        assert [item['id'] for item in filtered] == [content_id], f'按 {wanted} 过滤没拿到那张卡'
+        assert filtered[0]['primary_relation'] == wanted, (
+            f"按 {wanted} 过滤，卡上显示的却是 {filtered[0]['primary_relation']}——"
+            '过滤结果必须反映被过滤的那个关系'
+        )
+        # 观察到的事实（不作为要求）：**过滤时 relations 只含被过滤的那一种**，
+        # 因为 GROUP_CONCAT 是在过滤后的行上算的。
+        # 我一度把「过滤也要保住全部关系」写成断言——那是我自己的偏好，
+        # 任何规格都没这么要求。判据不该钉我以为应该怎样，只该钉说定了怎样。
+        # 「保住细节」这条由本函数最后一行的详情接口负责，那才是原判据的定义。
+        assert set(filtered[0]['relations']) <= {'manual_save', 'bookmark'}
     detail = client.get(f'/v1/library/{content_id}').json()
     assert {relation['relation_type'] for relation in detail['relations']} == {'manual_save', 'bookmark'}
 
@@ -88,7 +103,10 @@ def test_library_filters_literal_full_text_collection_and_observed_date(tmp_path
     assert [item['id'] for item in client.get('/v1/library?q=中文正文').json()['items']] == [content_id]
     assert [item['id'] for item in client.get('/v1/library?q=中文检索needle').json()['items']] == [content_id]
     filtered = client.get('/v1/library?platform=generic-web&relation=bookmark&collection=research').json()['items']
-    assert [(item['id'], item['relation_type'], item['collection_key']) for item in filtered] == [(content_id, 'bookmark', 'research')]
+    # 同上：relation_type → primary_relation，collection_key → primary_collection。
+    # 行为一直是对的，卡的是字段名。
+    assert [(item['id'], item['primary_relation'], item['primary_collection'])
+            for item in filtered] == [(content_id, 'bookmark', 'research')]
     assert [item['id'] for item in client.get('/v1/library?q=research').json()['items']] == [content_id]
 
     observed_day = filtered[0]['last_observed_at'][:10]
