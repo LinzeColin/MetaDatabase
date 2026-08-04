@@ -48,14 +48,28 @@ def test_service_worker_replaces_the_stale_ui_cache_with_current_assets_immediat
     index_html = (ROOT / "apps/pwa/index.html").read_text(encoding="utf-8")
     app_js = (ROOT / "apps/pwa/app.js").read_text(encoding="utf-8")
     service_worker = (ROOT / "apps/pwa/sw.js").read_text(encoding="utf-8")
-    assert 'const CACHE = "social-archive-ui-v007-r1";' in service_worker
+    # **不逐字钉死版本号。** 这个值本来就必须随每次界面改动而变，
+    # 钉死它只能证明「没人动过它」——而「没人动它」正是这条判据要防的那个 bug。
+    # （实测：补登录闸时把 r1 顶成 r2，这条判据反而报红。）
+    # 改成断言四处**互相一致**：缓存名、三处 ?v= 查询串必须是同一个版本。
+    import re as _re
+
+    cache_match = _re.search(r'const CACHE = "social-archive-ui-(v\d+-r\d+)";', service_worker)
+    assert cache_match, "sw.js 里找不到带版本的缓存名"
+    tag = cache_match.group(1).split("-", 1)[1]  # v007-r2 → r2
+    version = cache_match.group(1).replace("v0", "0").replace("-", "-")  # 仅用于报错信息
     assert "self.skipWaiting()" in service_worker
     assert "self.clients.claim()" in service_worker
-    assert 'href="/assets/styles.css?v=007-r1"' in index_html
-    assert 'src="/assets/app.js?v=007-r1"' in index_html
-    assert 'register("/assets/sw.js?v=007-r1")' in app_js
+    for text, name in ((index_html, "index.html"), (app_js, "app.js"), (service_worker, "sw.js")):
+        stamps = set(_re.findall(r"\?v=(00\d-r\d+)", text))
+        assert stamps, f"{name} 里没有任何带版本的资源引用"
+        assert len(stamps) == 1, f"{name} 里混着多个版本戳 {sorted(stamps)}——总有一个资源不会刷新"
+        assert stamps.pop().endswith(tag), (
+            f"{name} 的资源版本戳与 sw.js 的缓存名（{cache_match.group(1)}）不一致，"
+            "会出现「缓存换了、资源没换」或反过来"
+        )
     assert '"/home"' not in service_worker
-    assert '"/assets/app.js?v=007-r1"' in service_worker
+    assert "/assets/app.js?v=" in service_worker
     # 旧版本号不许残留在任何一处——留一处就等于那一个资源永远不刷新
     for text in (index_html, app_js, service_worker):
         assert "v=006" not in text and "v005" not in text

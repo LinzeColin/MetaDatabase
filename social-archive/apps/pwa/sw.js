@@ -5,10 +5,10 @@
 const CACHE = "social-archive-ui-v007-r2";
 const ASSETS = [
   "/",
-  "/assets/styles.css?v=007-r1",
-  "/assets/app.js?v=007-r1",
+  "/assets/styles.css?v=007-r2",
+  "/assets/app.js?v=007-r2",
   "/assets/favicon.svg",
-  "/assets/manifest.webmanifest?v=007-r1"
+  "/assets/manifest.webmanifest?v=007-r2"
 ];
 
 self.addEventListener("install", event => {
