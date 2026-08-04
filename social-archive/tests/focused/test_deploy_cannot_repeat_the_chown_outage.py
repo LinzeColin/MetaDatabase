@@ -118,3 +118,23 @@ def test_it_refuses_to_build_when_the_disk_is_tight() -> None:
     assert "不要用" in warn, (
         "提到了 docker system prune 却没说别用它——这台机器还跑着别人的项目"
     )
+
+
+def test_it_notices_when_the_installed_systemd_units_have_drifted() -> None:
+    """rsync 只同步 /opt/social-archive，装着的 unit 在 /etc/systemd/system。
+
+    2026-08-04 实测：我在仓里给 social-archive-backup.service 加了第二条
+    ExecStart（备份运行库），部署、daemon-reload、systemctl start 全都
+    `Result=success`——**而跑的还是旧的那一条**。装着的 unit 从来没被更新过。
+    差一点就把「备份跑通了」写进证据。
+    """
+    code = code_only(DEPLOY.read_text(encoding="utf-8"))
+    assert "/etc/systemd/system/" in code, "部署时不看装着的 unit 是不是旧的"
+    assert "DRIFT" in code, "没有漂移检查"
+    # 只报不自动装：unit 以 root 跑，自动安装的爆炸半径太大
+    assert "sudo cp /etc/systemd" not in code and "install -m" not in code, (
+        "部署脚本自己去装 unit 了——那是 root 权限的东西，应当由人来敲"
+    )
+    drift_at = code.index("DRIFT")
+    build_at = code.index("docker compose build")
+    assert drift_at < build_at, "构建都跑完了才发现 unit 是旧的"

@@ -121,6 +121,34 @@ printf '  源码已同步；扩展包 sha256 逐字节一致。\n'
 step "3) 给正在跑的镜像打 :rollback"
 ssh -o ConnectTimeout=20 "$HOST" "docker image inspect '$IMAGE' >/dev/null 2>&1 && docker tag '$IMAGE' social-archive/core:rollback && docker images --format '  {{.Repository}}:{{.Tag}}  {{.ID}}' | grep social-archive/core || echo '  （没有同名旧镜像，首次部署）'"
 
+step "3.5) systemd 单元有没有漂"
+# **rsync 只同步 /opt/social-archive，装着的 unit 在 /etc/systemd/system。**
+#
+# 2026-08-04 实测：我在仓里给 social-archive-backup.service 加了第二条
+# ExecStart（备份运行库），部署、daemon-reload、systemctl start 全都
+# `Result=success`——**而跑的还是旧的那一条**。装着的 unit 从来没被更新过。
+# 差一点就把「备份跑通了」写进证据。
+#
+# **只报，不自动装。** unit 以 root 跑，自动安装的爆炸半径太大；
+# 这里给出那一行 cp，由人来敲。
+DRIFT=""
+for unit in deploy/systemd/*.service deploy/systemd/*.timer; do
+  [[ -e "$unit" ]] || continue
+  name="$(basename "$unit")"
+  if ! ssh -o ConnectTimeout=20 "$HOST" "sudo diff -q /etc/systemd/system/${name} ${REMOTE_DIR}/${unit} >/dev/null 2>&1"; then
+    DRIFT="${DRIFT}  ${name}\n"
+  fi
+done
+if [[ -n "$DRIFT" ]]; then
+  printf '  **这些 systemd 单元与仓里的不一致**（装着的是旧的）：\n'
+  printf "$DRIFT"
+  printf '  同步它们（unit 以 root 跑，所以由你来敲）：\n'
+  printf "    ssh %s 'sudo cp %s/deploy/systemd/{%s} /etc/systemd/system/ && sudo systemctl daemon-reload'\n" \
+    "$HOST" "$REMOTE_DIR" "$(printf "$DRIFT" | tr -d ' ' | paste -sd, -)"
+  fail 'systemd 单元有漂移。改了 unit 而不装上去，跑的还是旧的——而 systemctl 照样报 success。'
+fi
+printf '  所有 systemd 单元与仓里一致。\n'
+
 step "4) 构建前先看磁盘"
 # **每次部署都会造一个 1GB 的镜像，旧的那个变成孤儿。** 我一天里部署了十几次，
 # 生产盘从 8.3G 可用掉到 3.0G（93%）。紧接着 /v1/accounts 报过一次
