@@ -66,6 +66,9 @@
     UPLOAD_FAILED: "SERVER_UNREACHABLE",
     BROWSER_SCAN_FAILED: "SERVER_UNREACHABLE",
     RELATION_URL_UNAVAILABLE: "SERVER_UNREACHABLE",
+    // 原始媒体文件没取到（v0.0.0.7）。内容本身已经保存好了，
+    // 少的只是那个视频/图片文件。限流/超时才可以再试。
+    MEDIA_TEMPORARILY_UNAVAILABLE: "RATE_LIMITED",
     // 诊断按钮：观察器一条响应都没拦到（v0.0.0.7 / T08）。
     // 滚几屏再点一次就可能好，所以是 retryable 而不是产品缺陷。
     NOTHING_CAPTURED: "RATE_LIMITED",

@@ -108,7 +108,48 @@ def process_job(job: dict, settings: Settings, store: RuntimeStore) -> None:
         if cookie_note:
             errors.append(cookie_note)
     if saved == 0:
-        raise RuntimeError("L3 下载未产生对象；" + " | ".join(errors[-3:]))
+        raise MediaUnavailable(errors)
+
+
+class MediaUnavailable(RuntimeError):
+    """原始媒体文件没能取到。
+
+    ## 为什么单独成一个异常
+
+    2026-08-04 生产实测：193 条内容里 34 条没有 L3 原文件，对应 33 个失败任务
+    （抖音 32、B站 1）。它们给用户看到的是
+
+        JOB_FAILED  L3 下载未产生对象；WARNING: [Douyin] 7669577378074578239:
+                    Failed to parse JSON: Expecting va…
+
+    三处都不对：**码是通用的**（JOB_FAILED 说明不了任何事）、
+    **正文是截断的英文工具输出**、**没有下一步**。
+
+    而真相是可以说清楚的：抖音和 B 站都不让服务器直接取原文件
+    （抖音返回的东西 yt-dlp 解不了，B 站回 HTTP 412 风控）。
+    国内平台的 Cookie 按 INV-DOMESTIC-COOKIE-STAYS 一步都不离开浏览器，
+    所以服务端**结构上**就拿不到——**重试多少次都一样**。
+
+    要说给用户的是：内容本身已经保存好了（标题、链接、正文都在），
+    少的只是那个原始视频文件。
+    """
+
+    def __init__(self, errors: list[str]) -> None:
+        joined = " | ".join(errors[-3:])
+        super().__init__("L3 下载未产生对象；" + joined)
+        self.failure_code = self._classify(joined)
+        self.retryable = self.failure_code == "MEDIA_TEMPORARILY_UNAVAILABLE"
+
+    @staticmethod
+    def _classify(detail: str) -> str:
+        lowered = detail.lower()
+        # 平台明确挡住了服务器：抖音的 JSON 解不了、B站的 412 风控。
+        # **我们不绕**（L0 边界），所以这是结构性的，不是暂时的。
+        if "failed to parse json" in lowered or "http error 412" in lowered or "http error 403" in lowered:
+            return "MEDIA_BLOCKED_BY_PLATFORM"
+        if "http error 429" in lowered or "timed out" in lowered or "timeout" in lowered:
+            return "MEDIA_TEMPORARILY_UNAVAILABLE"
+        return "MEDIA_NOT_RETRIEVED"
 
 
 def _retryable_destination_failure(exc: Exception) -> bool:
@@ -123,11 +164,16 @@ def _finish_failed_job(store: RuntimeStore, job: dict, exc: Exception) -> None:
     retryable = job.get("attempt_count", 0) < 3
     if job.get("job_type") == "export_destination":
         retryable = retryable and _retryable_destination_failure(exc)
+    # 异常自己带了失败码就用它的。**JOB_FAILED 只是兜底**——它说明不了
+    # 任何事，而界面上「说不出原因」和「原因就在代码里」是两回事。
+    code = getattr(exc, "failure_code", None) or "JOB_FAILED"
+    if hasattr(exc, "retryable"):
+        # 结构性失败不许再重试：平台挡住服务器这件事，重试多少次都一样。
+        retryable = retryable and bool(exc.retryable)
     store.finish_job(
         job["id"],
         success=False,
-        # 稳定码；具体是哪个异常留在 error_message 里（那一栏是给运维看的）
-        error_code="JOB_FAILED",
+        error_code=code,
         error_message=str(exc)[:2000],
         retryable=retryable,
         retry_after_seconds=retry_after_seconds_from_error(exc),

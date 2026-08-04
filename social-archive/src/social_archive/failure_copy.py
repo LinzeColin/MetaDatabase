@@ -93,6 +93,15 @@ _ALIASES: dict[str, str] = {
     "UPLOAD_FAILED": "SERVER_UNREACHABLE",
     "BROWSER_SCAN_FAILED": "SERVER_UNREACHABLE",
     "RELATION_URL_UNAVAILABLE": "SERVER_UNREACHABLE",
+    # 原始媒体文件没取到（v0.0.0.7）。**这三个和「同步失败」不是一回事**：
+    # 内容本身已经保存好了（标题、链接、正文都在），少的只是那个视频/图片文件。
+    #
+    # MEDIA_BLOCKED_BY_PLATFORM 是结构性的：抖音返回的东西 yt-dlp 解不了、
+    # B站回 HTTP 412 风控。我们**不绕**（L0 边界），而国内平台的 Cookie
+    # 按 INV-DOMESTIC-COOKIE-STAYS 一步都不离开浏览器——服务端拿不到就是拿不到。
+    # 所以它落 PRODUCT_FAULT_CODES：结论是「问题在我们这边，别反复重试」。
+    # MEDIA_TEMPORARILY_UNAVAILABLE 才是真的可以再试（限流、超时）。
+    "MEDIA_TEMPORARILY_UNAVAILABLE": "RATE_LIMITED",
     # 诊断按钮读回来那一段（v0.0.0.7 / T08）。**这三个都不别名成 NOT_LOGGED_IN**：
     # 它们说的是「我们读不懂平台给的东西」，让用户去重新登录只会让他白忙一趟。
     # 落到 PRODUCT_FAULT_CODES：结论是「问题在我们这边，别反复重试」。
@@ -258,6 +267,8 @@ PRODUCT_FAULT_CODES: frozenset[str] = frozenset({
     "PAYLOAD_SHAPE_CHANGED",
     "PLATFORM_PARSER_MISSING",
     "PLATFORM_REFUSED",
+    "MEDIA_BLOCKED_BY_PLATFORM",
+    "MEDIA_NOT_RETRIEVED",
 })
 _PRODUCT_FAULT_SENTENCE = "这次没有取到内容，问题在我们这边，已经记下来了。不用反复重试。"
 
