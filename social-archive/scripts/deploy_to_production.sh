@@ -22,9 +22,12 @@
 #
 #   1. **不做任何递归 chown。** 属主问题用 sudo 定点解决，不用大扫除。
 #   2. **部署前后各量一次密钥不变量**（uid:gid:mode），漂了就大声说。
-#   3. **上线前先给正在跑的镜像打 :rollback 标签**，不占额外磁盘（同一批层）。
+#   3. **回滚点在构建成功之后才定**，且按镜像 ID 定，不按标签——
+#      中止的部署什么都没换掉，就不该动回滚点。
 #   4. **验收打的是要鉴权的路由，不是 /health。** 上面那 10 分钟就是被
 #      /health 的 200 骗过去的。
+#   5. **验收还要打一次下载路由**：磁盘上有那个包，和下载页下发那个包，
+#      是两件不同的事，而 Owner 拿到的是后者。
 #
 # 用法：bash scripts/deploy_to_production.sh [--host linze-ovh] [--dry-run]
 
@@ -118,8 +121,19 @@ REMOTE_ZIP="$(ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && sha256sum di
 [[ "$LOCAL_ZIP" == "$REMOTE_ZIP" ]] || fail "扩展包没同步过去（本地 ${LOCAL_ZIP}，远端 ${REMOTE_ZIP}）。"
 printf '  源码已同步；扩展包 sha256 逐字节一致。\n'
 
-step "3) 给正在跑的镜像打 :rollback"
-ssh -o ConnectTimeout=20 "$HOST" "docker image inspect '$IMAGE' >/dev/null 2>&1 && docker tag '$IMAGE' social-archive/core:rollback && docker images --format '  {{.Repository}}:{{.Tag}}  {{.ID}}' | grep social-archive/core || echo '  （没有同名旧镜像，首次部署）'"
+step "3) 记下正在跑的镜像（回滚点）"
+# **只记，不打标。** 打标要等构建真的成了再打。
+#
+# 2026-08-05 实测：一次部署在第 4 步（磁盘不足）中止，而第 3 步已经把
+# :rollback 挪到了当时正在跑的那个镜像上——于是 :rollback 和 :0.0.0.7
+# 指向同一个镜像，**回滚点没了**，而结尾那行「回滚一行命令」还照印不误。
+# 中止的部署不该动回滚点：它什么都没换掉。
+IMAGE_BEFORE="$(ssh -o ConnectTimeout=20 "$HOST" "docker image inspect -f '{{.Id}}' '$IMAGE' 2>/dev/null || true")"
+if [[ -n "$IMAGE_BEFORE" ]]; then
+  printf '  正在跑：%s\n' "${IMAGE_BEFORE#sha256:}" | cut -c1-28
+else
+  printf '  （没有同名旧镜像，首次部署）\n'
+fi
 
 step "3.5) systemd 单元有没有漂"
 # **rsync 只同步 /opt/social-archive，装着的 unit 在 /etc/systemd/system。**
@@ -166,7 +180,13 @@ if [[ -n "$FREE_GB" && "$FREE_GB" -lt 5 ]]; then
 fi
 
 step "5) 构建并上线"
-ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && docker compose build core-api 2>&1 | tail -3 && docker compose up -d core-api core-worker 2>&1 | tail -4"
+ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && docker compose build core-api 2>&1 | tail -3" || fail '构建失败，什么都没换，回滚点原样保留。'
+# 构建成了，这才把回滚点定下来——**在 up 之前**，那一刻正在跑的还是旧的。
+if [[ -n "$IMAGE_BEFORE" ]]; then
+  ssh -o ConnectTimeout=20 "$HOST" "docker tag '${IMAGE_BEFORE}' social-archive/core:rollback" \
+    && printf '  回滚点已定在部署前那个镜像上。\n'
+fi
+ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && docker compose up -d core-api core-worker 2>&1 | tail -4"
 
 step "6) 部署后再量一次密钥不变量"
 AFTER="$(secret_fingerprint)"
