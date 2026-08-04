@@ -119,7 +119,8 @@ sparse    .github + social-archive
 | T06 | **partial** | 托管往返实测通过（合成会话）；**Oracle 未跑**，需 Owner 的 X 登录；「一键撤销」此前无入口，已接上（`T06/REVOKE_WAS_A_PROMISE_ONLY.json`） |
 | T07 | **done** | Owner 已裁定「cookie 可以进 ovh」；Cookie 已接进 sidecar（tmpfs、0600、finally 里删、值不进日志）。见 `T07/COOKIES_MAY_ENTER_THE_SIDECAR.json` |
 | T08 | **partial** | 整条链在真 Chrome 里跑通（回环，不碰任何平台）：注入 → 两个世界通消息 →抓到相对与绝对地址 → **生产解析器读出条目**；连按两次不串味；反例 0 条。08-05 由此揪出并修掉四个缺陷（见下）。真实收藏页仍未验 |
-| T09–T11 | pending | 依赖 T06/T08 的真实数据 |
+| T09 | **工具就位（2026-08-05）** | 「抓到即固化」原来两头都断：**没人读那份诊断报告**，而且报告里只有 readable_count 这个数字、不说是哪条读得懂。两处都接上了（readable_urls 三段接通 + scripts/freeze_intercept_prefix.py）。拿生产上真报告跑过：**REFUSED / NOTHING_READABLE**——它拒绝从 urls 里挑一个看着像的，那正是它存在的理由。**只差 Owner 按那一下。** 见 `T09/` 下 1 份证据 |
+| T10–T11 | pending | 依赖 T06/T08 的真实数据 |
 | T12 | **done** | gallery-dl 退出码契约取自安装源；`evidence/T12/EXIT_CODE_CONTRACT.json` |
 | T13 | pending | 依赖 T10 证明拦截路 → 而 T10 要 Owner 的已登录国内平台页面。**Acceptance 原文不在仓内**（见开头那段）。 |
 | T14 | **done（2026-08-04 大幅返工）** | 失败文案；两道门已接进发布门。本轮实测推翻了三处「界面说得到、后端做不到」：**插件每分钟抢用户标签页**（藏了按钮而队列照跑；x 也在抢，实测一次抢 2 下）、**SYNCABLE_NOW 四个平台三个是假的**（x 被零费用门关着、reddit/instagram 没有 Owner 能点的授权入口）、**一个太长的抖音标题让 79 条内容一个多月没导出**（safe_slug 按字符截而文件系统按字节算，且单条失败拖垮了整个目的地）。另修：失败任务被永久钉死（接口回 202 而什么都不跑）、34 条内容没有原文件时只给一段截断的英文工具输出。并第一次把生产 payload 灌进真实渲染代码读出 Owner 会看到的那八行字。见 `T14/` 下 12 份证据 |
