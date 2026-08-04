@@ -2,15 +2,12 @@
   "task": "T03",
   "claim": "用**实际下发的那个安装包**装进真 Chrome，安装页在 0.6 秒内自动认出插件并把人送回首页；页面与扩展之间那条桥实测答 SA_PONG。Owner 的第一步路径是通的。",
   "measured_at": "2026-08-05",
-
   "why_this_needed_measuring": "此前验过的是「包能装上」「service worker 起得来」「popup 打得开」。**没有验过的是那条最要紧的路**：装好之后，页面自己认得出来吗？Owner 的原话是「当插件准备好之后就自动回退到首页」——那句承诺一直没被实测过。",
-
   "setup": {
     "extension": "dist/social-archive-extension.zip 解压后 loadUnpacked（与 /downloads 下发的 sha256 一致：1c3ed485…）",
     "page": "apps/pwa 的真实文件，按 api.py 的挂载方式摆好，起在 http://127.0.0.1:8765 —— **扩展 manifest 里写死允许注入的三个来源之一**",
     "browser": "一次性 profile 的真 Chrome，绝不碰 Owner 的 profile"
   },
-
   "measurements": {
     "install_page_timeline": [
       "+0.6s  /extension-install.html  「✓ 已检测到插件，正在把你送回首页…」",
@@ -19,7 +16,6 @@
     "bridge_handshake": "在首页直接按真实协议问一次：`{source:\"social-archive-web\", type:\"SA_PING\"}` → **SA_PONG**",
     "protocol_is_not_loose": "换成 `source:\"social-archive-page\"` → **无回应**。桥只认文档里那个来源，不是见消息就答。"
   },
-
   "the_wrong_conclusion_i_almost_published": {
     "what_i_saw": "探针里 `typeof window.__socialArchiveExtensionBridgeState` 一直是 `undefined`，而安装页却说「已检测到插件」。",
     "what_i_almost_wrote": "「安装页的检测是假阳性——桥根本没注入，它却报检测到了，会把没装插件的人直接弹回首页。」",
@@ -27,10 +23,28 @@
     "what_settled_it": "改用真实协议直接问：SA_PONG 回来了。**桥一直在，只是我在错误的世界里找它。**",
     "the_lesson": "这一天里第三次「我读错了自己的观测」（前两次：把 manifest 的 path 用 str(v)[:70] 截断后当成 path 有问题；把 object_key 用 [:80] 截断后差点下错结论）。**观测手段本身要先被怀疑一次。**"
   },
-
   "what_this_does_not_prove": [
     "**不证明 Owner 那台机器上会一样。** 这里用的是 127.0.0.1:8765（manifest 允许的三个来源之一），他用的是 https://social-archive.linzezhang.com——同一条 manifest 规则，但没有在那个来源上实测过（那需要他的 Cloudflare Access 会话）。",
-    "不证明「装好之后自动接上凭据」那一段成立。这次页面接的是本地静态服务，没有档案馆后端，SA_ADOPT_TOKEN 那条路没有走。",
+    "**happy path 用的是本地桩 API**，不是生产。证明的是「这条协议链路成立」，不是「连生产也一次通」——生产那一段还隔着 Cloudflare Access 和真实的 /v1/auth/extension-token。",
     "不证明安装的四步指引对他好用。验的是「装完之后会发生什么」，不是「他能不能装完」。"
-  ]
+  ],
+  "token_adoption_now_measured_too": {
+    "why": "上一版这份证据里写着「不证明『装好之后自动接上凭据』那一段成立——SA_ADOPT_TOKEN 那条路没有走」。走了。",
+    "happy_path": {
+      "before": "SA_PING → detected=true, **paired=false**",
+      "adopt": "SA_ADOPT_TOKEN（带令牌）→ **ok=true**",
+      "after": "SA_PING → detected=true, **paired=true**",
+      "setup": "把演练副本的 runtime-config.json 指向一台本地桩 API（**没有动发布包**），桩只认那一个测试令牌。"
+    },
+    "fail_closed_path": {
+      "what": "令牌是假的、或扩展配置的 API 不可达时",
+      "result": "ok=false, state=needs_user_action, error=「凭据未能通过验证，请在档案馆页面重新点击连接插件。」",
+      "why_it_matters": "**扩展不盲信页面递过来的令牌**——它会先拿去调一次受保护接口验过才存。页面能递令牌，但递什么都算数的话，任何同源脚本都能把它接到别处去。"
+    },
+    "two_harness_bugs_i_hit_first": [
+      "第一次把 payload 嵌套成 `{payload:{token:…}}`——而页面真实的形状是**摊平的** `{source,type,requestId,...payload}`。扩展收不到 token，回「没有收到访问凭据」。**是我的探针错了，不是产品错了。**",
+      "紧接着用真实形状再试，得到「凭据未能通过验证」——那也不是缺陷：令牌是假的，而扩展**用的是它自己托管配置里的 API 地址**，不是我的本地桩。把演练副本指向桩之后就通了。"
+    ],
+    "the_pattern": "这一天里第四次「先怀疑产品、后发现是自己的观测/构造有问题」。**每次都值得先验一遍手里的尺子。**"
+  }
 }
