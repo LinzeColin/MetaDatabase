@@ -160,7 +160,7 @@
         "scripts/find_messages_with_only_one_end.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 apps/ 下 22 个文件，33 个 SA_ 消息类型；另有 2 条已登记的单头例外\n每条消息都既有发送方也有接收方。\n",
+      "stdout": "扫了 apps/ 下 22 个文件，33 个 SA_ 消息类型；另有 0 条已登记的单头例外\n每条消息都既有发送方也有接收方。\n",
       "stderr": ""
     },
     {

@@ -197,6 +197,72 @@
     }
   }
 
+  /** 诊断：这个平台的收藏页到底请求了哪些接口（v0.0.0.7 / T08 前置）。
+   *
+   * ## 为什么需要人配合
+   *
+   * 小红书/抖音/B站/快手 的收藏列表读不了，缺的不是代码，是**平台自己返回的
+   * 数据长什么样**——而那只存在于 Owner 已登录的浏览器里。我拿不到，
+   * 也不该拿：那需要他的登录态。
+   *
+   * 这颗按钮把他要做的减到「打开收藏页 → 点一下 → 滚几屏」。
+   *
+   * ## 只记形态，不读内容
+   *
+   * 观察器抄回来的响应体留在 background 的内存缓冲里；这里只问
+   * SA_GET_NET_CAPTURES，它**只回地址、条数与总字节数，不回响应体**。
+   * 页面上显示的、以及让用户复制的，都只有地址。
+   *
+   * 用的是两块早就建好、却一直没有任何界面能触发的管道
+   * （SA_INSTALL_NET_OBSERVER / SA_GET_NET_CAPTURES）——
+   * find_messages_with_only_one_end 里那两条例外，就是它们。
+   */
+  async function runDiagnosis() {
+    const button = $("diagnose");
+    const output = $("diagnoseResult");
+    const copyButton = $("diagnoseCopy");
+    button.disabled = true;
+    const original = button.textContent;
+    try {
+      const tab = await SA.activeTab();
+      // shared.js 导出的是 platformFromUrl，返回规则对象。
+      // （第一版写成 SA.detectPlatform / SAExtensionUtils —— 两个都不存在，
+      //   而属性调用是我那道「调用了不存在的函数」的门看不见的盲区。）
+      const platform = SA.platformFromUrl(tab.url)?.id || "";
+      button.textContent = "正在安装观察器…";
+      const installed = await chrome.runtime.sendMessage({
+        type: "SA_INSTALL_NET_OBSERVER", platform, tabId: tab.id,
+      });
+      if (!installed?.ok) throw new Error(installed?.error || "无法在这个页面上开始观察");
+      for (let left = 10; left > 0; left -= 1) {
+        button.textContent = `请往下滚动几屏…还剩 ${left} 秒`;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      const captured = await chrome.runtime.sendMessage({ type: "SA_GET_NET_CAPTURES" });
+      const urls = (captured?.urls || []).filter((value, index, all) => all.indexOf(value) === index);
+      const report = [
+        `平台：${platform || "（没认出来）"}`,
+        `页面：${String(tab.url || "").split("?")[0]}`,
+        `抓到 ${captured?.count || 0} 条响应，共 ${captured?.totalBytes || 0} 字节`,
+        "",
+        ...(urls.length ? urls.map(u => `  ${u}`) : ["  （一条都没抓到——可能这个页面没有翻页请求，试试滚动或切换收藏夹）"]),
+      ].join("\n");
+      output.textContent = report;
+      output.classList.remove("hidden");
+      copyButton.classList.remove("hidden");
+      copyButton.onclick = async () => {
+        try { await navigator.clipboard.writeText(report); showStatus("已复制", "ok"); }
+        catch (_) { showStatus("复制失败，请手动选中上面的文字", "error"); }
+      };
+    } catch (error) {
+      showStatus(error?.message || "诊断失败", "error");
+    } finally {
+      button.disabled = false;
+      button.textContent = original;
+    }
+  }
+
+  $("diagnose").addEventListener("click", runDiagnosis);
   $("primarySync").addEventListener("click", syncAll);
   $("manageAccounts").addEventListener("click", () => chrome.runtime.sendMessage({ type: "SA_OPEN_ACCOUNT_CENTER" }).then(() => window.close()));
   $("refresh").addEventListener("click", refresh);

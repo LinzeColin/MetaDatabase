@@ -84,17 +84,9 @@ def consumer_patterns(name: str) -> list[re.Pattern[str]]:
 
 # 只有一头、但**现在**是对的。每条都要写清楚什么时候会被接上。
 ONE_ENDED_ON_PURPOSE: dict[str, str] = {
-    "SA_INSTALL_NET_OBSERVER": (
-        "T08 的观察器安装入口。已建好并在真实浏览器里驱动通过，但取数缝隙 "
-        "acquireRelationItems() 目前是显式 stub（抛 ACQUISITION_PATH_NOT_INSTALLED），"
-        "所以还没有界面路径通向它。**接上的条件**：Owner 在已登录的国内平台页面上"
-        "确认收藏接口的响应形状（见 evidence/T08/OBSERVER_LIVE_IN_REAL_BROWSER.json 的"
-        "what_is_still_missing），缝隙填上之后由 scanBrowserScope 发出。"
-    ),
-    "SA_GET_NET_CAPTURES": (
-        "读观察器缓冲区的形态与条数。与 SA_INSTALL_NET_OBSERVER 同一族，"
-        "**接上的条件**相同：取数缝隙填上之后由同步编排读取。"
-    ),
+    # **本来这里有两条：SA_INSTALL_NET_OBSERVER 与 SA_GET_NET_CAPTURES。**
+    # 它们现在真的有发送方了——popup 的「帮开发者看一眼这个平台」按钮，
+    # 所以从名单里去掉。豁免用完就该退掉，留着会变成一张没人再核的名单。
 }
 
 

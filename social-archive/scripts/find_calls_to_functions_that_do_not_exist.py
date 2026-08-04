@@ -80,6 +80,43 @@ def code_only(text: str) -> str:
     )
 
 
+# shared.js 的导出表：`return { api, apiText, activeTab, … }`。
+# 扩展各页面通过全局 SA 用它们。
+SA_EXPORTS = re.compile(r"\n    (?:return \{|)([\w,\s]+)\n  \};")
+
+
+def shared_exports(root: Path) -> set[str]:
+    """shared.js 到底导出了哪些名字。
+
+    **属性调用是前面那套检查的盲区**：`SA.detectPlatform(...)` 里
+    detectPlatform 前面有个点，正则特意跳过了它。而本轮已经三次
+    因为「引用了不存在的名字」在运行时才炸——两次是变量，一次就是
+    这种 SA.xxx。SA 这个命名空间的导出表是可枚举的，那就枚举它。
+    """
+    path = root / "apps/browser-extension/shared.js"
+    if not path.is_file():
+        return set()
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    # **导出表在 `globalThis.SA = Object.freeze({ … })` 里，不是 return 语句。**
+    # 第一版按 `return {…}` 找，抓到的是别处几个无关的对象字面量，
+    # 于是 26 个真实存在的 SA.* 全被报成「不存在」——**判据自己造出的假红**。
+    match = re.search(r"globalThis\.SA\s*=\s*Object\.freeze\(\{(.*?)\}\)", text, re.S)
+    if not match:
+        return set()
+    return {
+        name.strip() for name in match.group(1).replace("\n", " ").split(",")
+        if name.strip().isidentifier()
+    }
+
+
+def undefined_sa_calls(text: str, exports: set[str]) -> list[str]:
+    """`SA.foo(` 里的 foo 必须在 shared.js 的导出表里。"""
+    if not exports:
+        return []
+    used = set(re.findall(r"\bSA\.(\w+)\s*\(", text))
+    return sorted(used - exports)
+
+
 def undefined_calls(text: str) -> list[str]:
     code = code_only(text)
     declared = set(DECLARED.findall(code)) | set(METHOD.findall(code))
@@ -97,11 +134,14 @@ def main() -> int:
 
     broken: dict[str, list[str]] = {}
     scanned = 0
+    exports = shared_exports(ROOT)
     for path in sorted(APPS.rglob("*.js")):
         if "node_modules" in str(path):
             continue
         scanned += 1
-        missing = undefined_calls(path.read_text(encoding="utf-8", errors="ignore"))
+        source = path.read_text(encoding="utf-8", errors="ignore")
+        missing = undefined_calls(source)
+        missing += [f"SA.{name}" for name in undefined_sa_calls(code_only(source), exports)]
         if missing:
             broken[str(path.relative_to(ROOT))] = missing
 
