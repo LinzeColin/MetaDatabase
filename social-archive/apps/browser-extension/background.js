@@ -1189,8 +1189,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const tab = await chrome.tabs.get(tabId).catch(() => null);
         let host = "";
         try { host = new URL(tab?.url || "").hostname; } catch (_) { host = ""; }
-        // space.bilibili.com → bilibili.com；只留可注册域，覆盖它的 API 子域
-        const registrable = host.split(".").slice(-2).join(".");
+        // space.bilibili.com → bilibili.com；只留可注册域，覆盖它的 API 子域。
+        // **IP 地址要整个用**：127.0.0.1 按 slice(-2) 会变成 "0.1"，
+        // 那是个既抓不到东西又莫名其妙的前缀。
+        const isIp = /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.includes(":");
+        const registrable = isIp ? host : host.split(".").slice(-2).join(".");
         if (!registrable) {
           return { ok: false, state: "failed", failureCode: "DIAGNOSTIC_NO_HOST",
                    error: "读不出当前页面的域名，无法开始诊断。" };
@@ -1221,6 +1224,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         };
       }
       try {
+        // **诊断前先刷新这个页面。**
+        //
+        // 观察器对同一次页面加载是幂等的（`if (window[CHANNEL]) return`），
+        // 于是**扩展更新之后、页面没重载过**的话，注入进去的新代码会直接返回，
+        // 实际生效的还是旧观察器。实测（2026-08-04，真实 Chrome）：
+        // 不 reload 时抓到 0 条且自报 installed/ready 全为 true——
+        // 「装好了、就绪了、什么也没有」，最难查的那种。
+        if (message.diagnostic === true) {
+          await chrome.tabs.reload(tabId);
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
         // **先装中继，再装观察器。** 顺序反了会漏掉观察器安装瞬间发出的那条
         // SA_OBSERVER_INSTALLED —— 观察器在 IIFE 末尾就 post 了它，
         // 那时如果中继还没挂上监听，这条消息就掉进虚空。

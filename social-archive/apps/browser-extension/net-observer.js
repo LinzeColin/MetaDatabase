@@ -38,9 +38,28 @@
     window.postMessage({ __socialArchive: true, ...payload }, window.location.origin);
   };
 
+  /** 把 fetch / XHR 拿到的地址补全成绝对地址再比对。
+   *
+   * **这一步原先没有，导致同源相对地址一律匹配不上。**
+   * 实测（2026-08-04，真实 Chrome + 本地探针页）：页面每 1.2 秒
+   * `fetch("/fav-list?page=N")` 一次，观察器自报 installed/ready 都为 true，
+   * 而抓到的条数是 **0** —— 因为比对的是原始参数 `/fav-list?page=N`，
+   * 里面根本不含域名。
+   *
+   * 而**同源相对地址正是各平台调自己接口的常规写法**，也就是说这条拦截路
+   * 在真实平台上很可能一条都抓不到，且表现为「装好了、就绪了、什么也没有」。
+   * 静态审查看不出这种问题：每一行单看都是对的。
+   */
+  const absolute = (url) => {
+    if (!url) return url;
+    try { return new URL(String(url), window.location.href).href; }
+    catch (_) { return String(url); }
+  };
+
   const shouldCapture = (url) => {
     if (!url || urlPrefixes.length === 0) return false;
-    return urlPrefixes.some((prefix) => url.includes(prefix));
+    const full = absolute(url);
+    return urlPrefixes.some((prefix) => full.includes(prefix) || String(url).includes(prefix));
   };
 
   const emit = (url, status, bodyText) => {
@@ -61,7 +80,8 @@
   window.fetch = async function (...args) {
     const response = await nativeFetch.apply(this, args);
     try {
-      const url = typeof args[0] === "string" ? args[0] : args[0]?.url;
+      // 记录时也用绝对地址：报给开发者的那份清单要能直接看出是哪个接口。
+      const url = absolute(typeof args[0] === "string" ? args[0] : args[0]?.url);
       if (shouldCapture(url)) {
         // clone() 是关键：直接读 response.body 会把流消费掉，页面就拿不到数据了。
         response
@@ -83,7 +103,7 @@
   const nativeSend = XMLHttpRequest.prototype.send;
 
   XMLHttpRequest.prototype.open = function (method, url, ...rest) {
-    this.__saUrl = url;
+    this.__saUrl = absolute(url);
     return nativeOpen.call(this, method, url, ...rest);
   };
 

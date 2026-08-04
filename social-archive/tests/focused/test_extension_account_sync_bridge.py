@@ -48,7 +48,25 @@ def test_install_or_update_reconnects_existing_pwa_bridge_without_reloading_or_t
     assert 'files: ["bridge.js"]' in background
     assert 'if (details.reason === "install" || details.reason === "update")' in background
     assert "await reconnectOpenPwaBridgeTabs();" in background
-    assert "chrome.tabs.reload" not in background
+    # **这一条原来是一刀切：`"chrome.tabs.reload" not in background`。**
+    #
+    # 它要守的是「装/更新插件时不能悄悄刷新用户的标签页」——那个用意完全正确，
+    # 悄悄重载会丢掉用户正在看的东西。但一刀切也把**用户自己点出来的**刷新
+    # 一起禁了：诊断按钮必须先重载页面，否则注入进去的新观察器会被幂等守卫
+    # 直接返回，实际生效的还是旧的那份（实测：抓 0 条而自报 installed/ready 全 true）。
+    #
+    # 所以收窄到它真正要守的那件事：**每一处 reload 都必须在用户发起的分支里**。
+    reloads = [
+        line.strip() for line in background.splitlines() if "chrome.tabs.reload" in line
+    ]
+    for line in reloads:
+        before = background.split(line)[0]
+        assert "message.diagnostic === true" in before[-800:], (
+            f"这一处 reload 不在用户发起的诊断分支里：{line}"
+        )
+    # 安装/更新那条路仍然不许碰任何标签页
+    install_path = background.split("async function reconnectOpenPwaBridgeTabs()", 1)[1][:800]
+    assert "chrome.tabs.reload" not in install_path, "装/更新时又去重载标签页了"
     assert 'const BRIDGE_STATE_KEY = "__socialArchiveExtensionBridgeState"' in bridge
     assert "window.removeEventListener(\"message\", existing.listener)" in bridge
     assert "existing.announce();" in bridge

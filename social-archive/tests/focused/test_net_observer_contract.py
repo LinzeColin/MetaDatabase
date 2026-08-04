@@ -318,3 +318,18 @@ def test_the_diagnostic_says_up_front_when_the_page_is_not_diagnosable():
     guard_at = block.index("patternsForPlatform")
     install_at = block.index("SA_INSTALL_NET_OBSERVER")
     assert guard_at < install_at, "判断排在安装之后，等于没判断"
+
+
+def test_the_diagnostic_reloads_first_so_it_does_not_use_a_stale_observer():
+    """观察器对同一次页面加载幂等，扩展更新后不重载 = 用的还是旧代码。
+
+    实测（2026-08-04，真实 Chrome + 本地探针页）：不 reload 时抓到 **0 条**，
+    而自报 installed/ready 全为 true —— 「装好了、就绪了、什么也没有」，
+    最难查的那种。reload 之后同一套代码立刻抓到 6 条。
+    """
+    background = (EXT / "background.js").read_text(encoding="utf-8")
+    block = background.split('"SA_INSTALL_NET_OBSERVER"', 1)[1][:5000]
+    assert "chrome.tabs.reload(tabId)" in block, "诊断前不刷新页面，可能用到旧观察器"
+    reload_at = block.index("chrome.tabs.reload(tabId)")
+    inject_at = block.index('files: ["content/net-relay.js"]')
+    assert reload_at < inject_at, "刷新排在注入之后，等于没刷"
