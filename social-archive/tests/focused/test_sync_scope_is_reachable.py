@@ -140,3 +140,62 @@ def test_stalled_runs_are_detectable_since_the_copy_no_longer_screams() -> None:
             f"抓到的是 {stalled}——应该只有那条卡了 40 分钟的 scanning："
             f"刚动过的({ids['fresh']})和已收尾的({ids['done']})都不算"
         )
+
+
+def test_a_run_that_has_been_in_progress_all_day_stops_saying_please_wait() -> None:
+    """「正在同步，请稍候。」说一次是对的，说一整天就是骗人。
+
+    界面读的是 /v1/sync-runs，不是 /v1/status —— 后者根本没有客户端在读。
+    所以卡住这件事必须在这一句里说出来，挂在 status 上只够运维查。
+    """
+    from datetime import UTC, datetime, timedelta
+
+    from social_archive.failure_copy import describe_sync_outcome
+
+    fresh = describe_sync_outcome(
+        imported=0, failure_code=None, status="scanning",
+        updated_at=datetime.now(UTC).isoformat(),
+    )
+    assert fresh["outcome"] == "in_progress"
+    assert fresh["message_zh"] == "正在同步，请稍候。"
+
+    stuck = describe_sync_outcome(
+        imported=0, failure_code=None, status="scanning",
+        updated_at=(datetime.now(UTC) - timedelta(hours=6)).isoformat(),
+    )
+    assert stuck["outcome"] == "stalled", "卡了六小时还在说「请稍候」"
+    assert "卡住" in stuck["message_zh"]
+    assert stuck["action_zh"] == "重试"
+    # 不能吓唬人说数据没了
+    assert "你已经取到的内容都还在" in stuck["message_zh"]
+
+
+def test_a_missing_or_broken_timestamp_does_not_mark_everything_stalled() -> None:
+    """时间戳缺失/格式坏掉时，不能把正常运行一律判成卡住。"""
+    from social_archive.failure_copy import describe_sync_outcome
+
+    for stamp in ("", None, "不是时间"):
+        row = describe_sync_outcome(
+            imported=0, failure_code=None, status="queued", updated_at=stamp,
+        )
+        assert row["outcome"] == "in_progress", f"updated_at={stamp!r} 被判成了 {row['outcome']}"
+
+
+def test_both_uis_can_actually_show_the_stalled_sentence() -> None:
+    """卡住这件事要真的出现在界面上，不能只存在于接口回包里。
+
+    这条判据的由来：`_explain_sync_run` 只往行里塞 outcome/message_zh，
+    **不写 last_error_code**。而 PWA 原来只在 `run.last_error_code` 有值时
+    才渲染那一行说明——于是卡住的运行在 PWA 上什么都不显示。
+    又是「修了一半」：服务端算出来了，用户看不见。
+    """
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    pwa = (root / "apps/pwa/app.js").read_text(encoding="utf-8")
+    side = (root / "apps/browser-extension/sidepanel.js").read_text(encoding="utf-8")
+
+    assert 'run.outcome === "stalled"' in pwa, (
+        "PWA 只认 last_error_code；卡住的运行没有失败码，界面上就什么都不说"
+    )
+    assert "run.message_zh" in side, "侧边栏没有用服务端算好的那句话"

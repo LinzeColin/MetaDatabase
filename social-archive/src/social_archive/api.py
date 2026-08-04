@@ -390,6 +390,8 @@ def _explain_sync_run(row: dict[str, Any]) -> dict[str, Any]:
         failure_code=row.get("last_error_code"),
         platform_label=label,
         status=str(row.get("status") or ""),
+        # 卡住与否要看"多久没动"，所以时间戳必须一起传下去。
+        updated_at=row.get("updated_at"),
     )
     return {**row, "outcome": outcome["outcome"],
             "message_zh": outcome["message_zh"], "action_zh": outcome["action_zh"]}

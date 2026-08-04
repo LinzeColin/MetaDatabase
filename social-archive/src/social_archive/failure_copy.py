@@ -24,6 +24,7 @@ v0.0.0.6 的失败长这样：同步跑完、界面显示成功、表格里 0 �
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
 
 @dataclass(frozen=True)
@@ -129,8 +130,27 @@ def resolve(code: str | None) -> FailureCopy | None:
     return COPY_BY_CODE.get(aliased) if aliased else None
 
 
+def _is_stalled(updated_at: str | None, *, stale_after_seconds: int) -> bool:
+    """非终态但很久没动过。判据是**多久没动**，不是当前是什么状态。
+
+    时间戳缺失或读不懂时一律回 False —— 宁可少报，也不能把一堆正常运行
+    误判成卡住（那会让"卡住"这个提示很快被用户学会忽略）。
+    """
+    stamp = str(updated_at or "").strip()
+    if not stamp:
+        return False
+    try:
+        moved = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if moved.tzinfo is None:
+        moved = moved.replace(tzinfo=UTC)
+    return (datetime.now(UTC) - moved).total_seconds() > stale_after_seconds
+
+
 def describe_sync_outcome(
-    *, imported: int, failure_code: str | None, platform_label: str = "", status: str = ""
+    *, imported: int, failure_code: str | None, platform_label: str = "", status: str = "",
+    updated_at: str | None = None, stale_after_seconds: int = 1800,
 ) -> dict[str, object]:
     """一次同步跑完之后，界面该说什么。
 
@@ -157,6 +177,16 @@ def describe_sync_outcome(
             "action_zh": resolved.action_zh,
         }
     if str(status).lower() in IN_PROGRESS_STATES:
+        if _is_stalled(updated_at, stale_after_seconds=stale_after_seconds):
+            # 「正在同步，请稍候。」说一次是对的，说一整天就是骗人。
+            # 这是 INV-NO-SILENT-ZERO 真正落到用户眼前的地方：界面读的是
+            # /v1/sync-runs，而不是 /v1/status（那个端点根本没有客户端在读）。
+            # 审计挂在 status 上只够运维查；要让用户看见，必须在这一句里说。
+            return {
+                "outcome": "stalled", "imported": imported,
+                "message_zh": "这次同步卡住了，没有正常结束。你已经取到的内容都还在。",
+                "failure_code": "SYNC_STALLED", "action_zh": "重试",
+            }
         # 还在跑，不是失败。
         # 修这一条之前，一次刚排上队的同步会显示
         # 「这次没有取到任何内容…这是产品的问题，请重试一次」——
