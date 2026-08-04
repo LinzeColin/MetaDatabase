@@ -1096,12 +1096,33 @@ def storage_status() -> dict[str, Any]:
 @app.get("/v1/status-projection", dependencies=[Depends(require_token)])
 def status_projection() -> dict[str, Any]:
     connector_items = registry.health_views(store.connector_states())
-    overall = "healthy" if all(item["state"] == "healthy" for item in connector_items) else "degraded"
+    # **「还没做到」不是「坏了」。**
+    #
+    # 2026-08-05 打生产量出来的：9 个连接器里 8 个是 blocked_environment
+    # （x/reddit/instagram/tiktok/小红书/抖音/快手/B站——全是**能力声明**里
+    # 写着本版本还不能自动读取的），唯一能工作的 generic-web 是 healthy。
+    # 于是 overall 恒为 degraded，**永远不可能变成 healthy**。
+    #
+    # 一盏永远红着的灯，教会人不再看这盏灯。而它还报错了事实：
+    # 那 8 个不是出了故障，是这一版本就没打算支持——那是已知状态，不是异常。
+    #
+    # 所以只对**本该工作的**那些判健康。被声明为「还不能」的不计入，
+    # 但**它们的条数要报出来**，不能让「全绿」把「大部分还没做」盖掉。
+    countable = [item for item in connector_items if item["state"] != "blocked_environment"]
+    not_yet_supported = len(connector_items) - len(countable)
+    if not countable:
+        # 一个本该工作的都没有，就绝不报健康——那才是真的静默的零。
+        overall = "degraded"
+    elif all(item["state"] == "healthy" for item in countable):
+        overall = "healthy"
+    else:
+        overall = "degraded"
     return {
         "project": "Social Archive",
         "version": __version__,
         "generated_at": utcnow(),
         "overall": overall,
+        "not_yet_supported": not_yet_supported,
         "connectors": connector_items,
         "destinations": destinations.views(),
         "storage": store.quota_states(),

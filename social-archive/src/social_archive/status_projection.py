@@ -64,6 +64,10 @@ def sanitize_status_document(document: object) -> dict[str, object]:
         "version": version,
         "generated_at": generated_at,
         "overall": overall,
+        # 被声明为「本版本还不能自动读取」的连接器条数。
+        # overall 不把它们算作故障，**但也不许把它们藏起来**——
+        # 「全绿」盖住「大部分还没做」，是另一种形式的谎。
+        "not_yet_supported": max(0, int(raw.get("not_yet_supported") or 0)),
         "connectors": _safe_rows(
             raw.get("connectors"),
             ("connector_id", "display_name", "state", "last_checked_at", "latency_ms", "last_error_code", "last_message_zh", "next_action_zh"),
