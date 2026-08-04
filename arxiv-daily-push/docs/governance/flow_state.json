@@ -7,9 +7,9 @@
       "state": "blocked_by_input"
     },
     "BL-ADP-DAILY.scan": {
-      "at": "2026-08-04T07:03:08.124086+08:00",
-      "note": "静默归零(绿着的 cron 背后什么都没产出):FAIL  SILENT ZERO: newest completed run 2026-08-03 (降级) ingested arXiv=0 -- ingest broken (P08-c",
-      "state": "blocked"
+      "at": "2026-08-05T07:05:02.729488+08:00",
+      "note": "看门狗全绿:最新一轮真的抓到了论文、候选非空,页面路由与新鲜度都正常",
+      "state": "healthy"
     }
   }
 }
