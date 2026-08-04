@@ -42,7 +42,27 @@ BUSINESS_TABLES="content user_relation source_account artifact platform_collecti
 # 那意味着回滚之后 Owner 会发现自己"没登录过、插件没连过、平台没连过"，
 # 而上面那套行数比对一个字都不会提——它只数它认识的那 7 张表。
 # 这里单独列出来，回滚前必须明确告知会丢什么。
-V0007_TABLES="users oauth_identity session extension_token platform_credential"
+#
+# **这张表原先是手写死的五个名字。** 手写的问题不是今天不对，是
+# 将来加一张表时**没有任何东西提醒你回来改这一行**——而这一段的全部意义
+# 就是"必须说出来"。漏一张，它就会安静地不说，且看起来一切正常。
+# 改成现算：当前库里有、快照里没有的表，就是回滚会抹掉的表。
+V0007_TABLES=$(
+  sqlite3 "$DB" "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name;" 2>/dev/null \
+  | while read -r t; do
+      [ -n "$t" ] || continue
+      in_snap=$(sqlite3 "$SNAP" "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='$t';" 2>/dev/null || echo 0)
+      # **必须写成 if，不能写成 `[ … ] && printf`。**
+      # 后者在条件为假时返回 1，于是循环的退出码是 1，命令替换的退出码也是 1，
+      # 而本脚本开着 set -e —— 快照里什么都不缺（也就是最正常的那种情况）
+      # 会让整个脚本在这一行**直接退出**。实测踩到：判据
+      # test_verify_stays_quiet_when_the_snapshot_already_has_the_new_tables 立刻变红。
+      if [ "$in_snap" = "0" ]; then printf '%s ' "$t"; fi
+    done
+)
+# 一张都算不出来时不静默通过：要么快照与当前库同构（正常），
+# 要么 sqlite3 读不到库（异常）。后者必须报出来，否则这一节会假装"没什么会丢"。
+sqlite3 "$DB" "SELECT 1;" >/dev/null 2>&1 || fail "读不到当前库，无法判断回滚会抹掉哪些表"
 
 echo "== 快照（迁移前）=="
 for t in $BUSINESS_TABLES; do
@@ -78,8 +98,9 @@ done
 # 全库 .restore 是整文件替换：快照里没有的表，恢复之后就不存在了。
 # 这不是"数据没变"，是"整张表连同结构一起没了"，必须说出来。
 echo ""
-echo "== 回滚会抹掉的 v0.0.0.7 新增表 =="
+echo "== 回滚会抹掉的表（当前库里有、快照里没有）=="
 WILL_DROP=0
+DROPPED=""
 for t in $V0007_TABLES; do
   in_db=$(sqlite3 "$DB" "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='$t';" 2>/dev/null || echo 0)
   in_snap=$(sqlite3 "$SNAP" "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='$t';" 2>/dev/null || echo 0)
@@ -87,22 +108,30 @@ for t in $V0007_TABLES; do
     rows=$(sqlite3 "$DB" "SELECT COUNT(*) FROM $t;" 2>/dev/null || echo "?")
     printf "  ✗ %-22s 当前有 %s 行，快照里没有这张表 —— 回滚后会整表消失\n" "$t" "$rows"
     WILL_DROP=1
+    DROPPED="$DROPPED $t"
   else
     printf "  · %-22s 当前 %s / 快照 %s\n" "$t" "$in_db" "$in_snap"
   fi
 done
 if [ "$WILL_DROP" = "1" ]; then
   echo ""
+  # 后果按**实际会掉哪几张表**来说。原先无论掉了什么都照念这三条，
+  # 表列表改成现算之后再照念就会说出与事实不符的话。
   echo "注意：上面标 ✗ 的表在回滚后不复存在。对 Owner 的实际表现是："
-  echo "  · 需要重新用 Google/GitHub 登录一次"
-  echo "  · 浏览器插件需要重新连接"
-  echo "  · 已托管的平台登录信息全部消失，需要重新连接各平台"
+  case " $DROPPED " in *" users "*|*" session "*|*" oauth_identity "*)
+    echo "  · 需要重新用 Google/GitHub 登录一次" ;; esac
+  case " $DROPPED " in *" extension_token "*)
+    echo "  · 浏览器插件需要重新连接" ;; esac
+  case " $DROPPED " in *" platform_credential "*)
+    echo "  · 已托管的平台登录信息全部消失，需要重新连接各平台" ;; esac
+  case " $DROPPED " in *" content "*|*" artifact "*|*" user_relation "*)
+    echo "  · **归档内容本身也在消失的表里** —— 这已经不是普通回滚，先停下来确认快照对不对" ;; esac
   echo "这不是故障，是回滚的正常代价 —— 但必须先知道再决定。"
   echo ""
   echo "**同时必须把代码也回滚到 v0.0.0.6。** 实测（2026-08-04）："
   echo "  回滚数据库之后，如果还用 v0.0.0.7 的代码启动服务，"
   echo "  RuntimeStore.initialize() 会**静默地把迁移重做一遍**："
-  echo "    · 上面那五张表会被重新建出来，但是**空的**"
+  echo "    · 上面标 ✗ 的那些表会被重新建出来，但是**空的**"
   echo "    · 租户列也会重新加回去"
   echo "    · 不报错、不警告，业务数据（content 等）完好"
   echo "  结果是回滚等于白做，而且你会以为它做成了。"

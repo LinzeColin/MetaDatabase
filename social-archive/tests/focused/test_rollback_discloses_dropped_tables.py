@@ -90,20 +90,50 @@ def test_verify_stays_quiet_when_the_snapshot_already_has_the_new_tables(tmp_pat
     assert "回滚后会整表消失" not in result.stdout
 
 
-def test_the_new_table_list_matches_what_the_schema_actually_adds() -> None:
-    """脚本里那份 V0007_TABLES 不能和 schema 漂开。
+def test_the_dropped_table_list_is_computed_not_hand_written(tmp_path: Path) -> None:
+    """会被抹掉的表必须**现算**，不能是脚本里手写的一串名字。
 
-    漂开的方式很隐蔽：以后再加一张带 user_id 的表，忘了加进这里，
-    回滚就又会静默抹掉它——和这次 platform_credential 一模一样。
+    ## 原来这条判据在守什么
+
+    脚本里原有一行 `V0007_TABLES="users oauth_identity session …"`，
+    这条判据比对它与 `RuntimeStore.IDENTITY_TABLES`，防止两边漂开。
+    它守住的是「今天这五个名字对不对」。
+
+    ## 为什么改成现在这样
+
+    手写清单的问题不是今天不对，是**将来加一张表时没有任何东西提醒你回来改它**
+    ——而这一节的全部意义就是"必须说出来"。漏一张，它安静地不说，且看起来正常。
+    比对判据也只能证明"这五个还在"，证明不了"没漏第六个"。
+
+    所以清单改成从两个库的 sqlite_master 现算，判据也跟着改成：
+    **给当前库塞一张脚本从没听说过的表，看它说不说得出来。**
+    这比比对清单强——它不依赖任何人维护任何名单。
     """
     from social_archive.db import RuntimeStore
 
-    listed = set(
-        SCRIPT.read_text(encoding="utf-8")
-        .split('V0007_TABLES="', 1)[1].split('"', 1)[0].split()
+    text = SCRIPT.read_text(encoding="utf-8")
+    assert 'V0007_TABLES="users' not in text, "又退回手写清单了"
+    assert "sqlite_master" in text.split("V0007_TABLES=", 1)[1][:600], "清单不是从库里算出来的"
+
+    snapshot = tmp_path / "snapshot.sqlite3"
+    current = tmp_path / "runtime.sqlite3"
+    RuntimeStore(snapshot).initialize()
+    with sqlite3.connect(snapshot) as con:
+        for table in RuntimeStore.IDENTITY_TABLES:
+            con.execute(f"DROP TABLE IF EXISTS {table}")
+    RuntimeStore(current).initialize()
+    # 脚本从没听说过这张表。现算的清单必须照样把它说出来。
+    with sqlite3.connect(current) as con:
+        con.execute("CREATE TABLE a_table_the_script_never_heard_of(id TEXT PRIMARY KEY)")
+        con.execute("INSERT INTO a_table_the_script_never_heard_of VALUES('x')")
+
+    result = subprocess.run(
+        ["bash", str(SCRIPT), "--verify", str(current), str(snapshot)],
+        capture_output=True, text=True, check=False,
     )
-    # 审计面里的身份类表必须全部被回滚脚本认识
-    assert set(RuntimeStore.IDENTITY_TABLES) <= listed, (
-        f"这些表回滚脚本不认识，会被静默抹掉：{set(RuntimeStore.IDENTITY_TABLES) - listed}"
+    out = result.stdout
+    assert "a_table_the_script_never_heard_of" in out, (
+        "将来新加的表被静默抹掉——这正是手写清单会犯的错"
     )
-    assert "users" in listed, "users 表也是 v0.0.0.7 新增的"
+    for table in RuntimeStore.IDENTITY_TABLES:
+        assert table in out, f"--verify 没有提到 {table} 会被抹掉"
