@@ -58,10 +58,9 @@
     ]
   },
   "what_this_does_not_prove": [
-    "**没有验证启用之后复制真的能成功。** r2 / oci / github 的凭据是否有效、桶是否存在、配额是否够，全都没验——那需要真的跑一次复制。",
     "没有查清 19 个已有副本是什么时候、由谁产生的（推测是 v0.0.0.6 SA-507 取证阶段的手工运行，但没有证据）。",
-    "没有验证 replicate_objects.py 本身在当前代码下还能不能正常工作（它没有被本轮的任何改动碰过，但也没跑过）。",
-    "对象级恢复 restore_object.py 只演练了拒绝路径（对象不存在 / 收据不完整），**没有真的从任何一个 store 恢复过一个对象**——那需要云凭据。"
+    "对象级恢复 restore_object.py 只演练了拒绝路径（对象不存在 / 收据不完整），**没有真的从任何一个 store 恢复过一个对象**——那需要云凭据。",
+    "仍未证明：**云端凭据（r2/oci 的 key、github token）是否有效**。配置项齐全 ≠ 密钥没过期、桶还在、配额够。那只有真跑一次复制才知道，而那需要在生产上启用 timer——是 Owner 的动作。"
   ],
   "a_second_wrong_move_and_the_guard_that_caught_it": {
     "what_i_did": "为了让交接说清楚，我把 `systemctl enable --now …` 六条命令直接印进了 prepare_systemd_host.sh 的输出。",
@@ -69,5 +68,36 @@
     "is_the_guard_too_blunt": "它分不清「印出来」和「执行」。但这条钝是**对的**：装好与启用必须是两个人为分开的动作，而一个 grep 不到的例外迟早会变成真的执行。判据宁可钝，不可漏。",
     "fix": "prepare_systemd_host.sh 只列 unit 名字与各自作用，命令交给 scripts/check_durability_units.sh —— 那是只读检查器，不是准备器。",
     "and_i_committed_it_red": "**我在门是 FAIL 的状态下提交了一次**（提交 74）。原因是提交信息在跑完之前就写好了——本会话第二次犯，而这次比第一次严重：第一次只是数字写错，这次是把红的门提交了进去。下一提交修复。"
+  },
+  "preflight_before_recommending_enable": {
+    "why": "我上一轮建议 Owner 启用那三个 timer，同时坦白「没验证启用后复制真的能成功」。在他动手之前把这句补上——否则我的建议可能让他每 15 分钟收一次失败日志。",
+    "scripts_still_work": {
+      "replicate_objects.py": "加载正常（188 行）；--dry-run 无凭据时退出 3，输出 {\"status\":\"BLOCKED_ENVIRONMENT\",\"message\":\"缺少 SOCIAL_ARCHIVE_AGE_RECIPIENT；禁止明文复制\"}",
+      "github_release_backup.py": "同样退出 3，「禁止明文备份」",
+      "verdict": "**失败得很响亮，不会静默跳过。** 这一点很重要：如果它们在缺配置时静默成功，副本数会一直是 0 而没人知道。"
+    },
+    "production_config_is_complete": {
+      "checked_in": "/etc/social-archive/social-archive.env —— **unit 实际读的那一份**，不是 /opt 下的 .env",
+      "all_present": [
+        "SOCIAL_ARCHIVE_AGE_RECIPIENT",
+        "SOCIAL_ARCHIVE_R2_BUCKET",
+        "SOCIAL_ARCHIVE_R2_ENDPOINT",
+        "SOCIAL_ARCHIVE_OCI_BUCKET",
+        "SOCIAL_ARCHIVE_OCI_ENDPOINT",
+        "SOCIAL_ARCHIVE_GITHUB_ARCHIVE_REPOSITORY"
+      ],
+      "conclusion": "六项全在。**唯一的原因就是 timer 没启用**，不是配置缺失。启用之后应当能真的复制。"
+    },
+    "two_false_findings_i_caught_before_reporting": [
+      {
+        "claim": "`replicate_objects.py --store {r2,oci,all}` 没有 github，所以三副本永远凑不齐。",
+        "why_wrong": "social-archive-replication.service 有**两条 ExecStart**：replicate_objects.py --store all（r2+oci）与 github_release_backup.py --upload（github）。一个 unit 覆盖三个 store。**我只看了脚本参数，没看 unit。**"
+      },
+      {
+        "claim": "SOCIAL_ARCHIVE_GITHUB_BACKUP_REPO 缺失。",
+        "why_wrong": "**那个变量名是我猜的。** 真名是 SOCIAL_ARCHIVE_GITHUB_ARCHIVE_REPOSITORY，生产上有值。按猜的名字去 grep，grep 不到就报「缺」——又一次「判据指错了对象」，这次指错的是变量名。"
+      }
+    ],
+    "recommendation_now_stands_with_evidence": "启用那三个 timer 是安全的：脚本能跑、配置齐全、缺东西时会明确报错而不是静默。"
   }
 }
