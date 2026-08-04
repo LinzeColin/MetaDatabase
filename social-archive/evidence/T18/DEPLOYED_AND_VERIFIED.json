@@ -9,7 +9,7 @@
     "db_snapshot": "/var/backups/social-archive/pre-v0007-20260804T050655Z.sqlite3（sqlite3 .backup，integrity_check=ok，计数与实库逐项一致：content 193 / artifact 549 / object_replica 1100 / source_account 3 / sync_run 17）",
     "code_tarball": "/var/backups/social-archive/code-pre-v0007-20260804T050854Z.tar.gz（629K，整棵代码树）",
     "env_backup": "/opt/social-archive/.env.pre-v0007-*",
-    "old_image_kept": "social-archive/core:0.0.0.6 保留在宿主机上作为主回滚镜像"
+    "old_image_kept": "**这句话已经不成立，本条是更正。** 当时确实保留了 social-archive/core:0.0.0.6，但随后磁盘两次告急（一度 0 可用），我把它删了以完成构建。现在宿主机上**只有 0.0.0.7 的镜像**，没有可切回去的旧镜像。"
   },
   "surprises_found_at_deploy_time": [
     {
@@ -55,5 +55,42 @@
     "T02 登录链路在生产上没有实测——需要 Owner 用真账号点一次。",
     "第三份副本（GitHub Release）仍然失败：配置指向的 LinzeColin/Social-Archive-Vault 不存在，建仓在 L0 硬边界的禁止清单里。",
     "磁盘 97% 这个风险没有解决，只是没让它更糟。"
-  ]
+  ],
+  "rollback_path_as_it_actually_stands": {
+    "corrected_at": "2026-08-04T06:2x UTC",
+    "why_this_entry_exists": "证据里原本写着「保留 core:0.0.0.6 作为主回滚镜像」。那句话在写下时是真的，**在磁盘告急之后就不再是真的了**，而我没有回来改。自述与事实脱节，比一开始就没写更糟。",
+    "what_actually_exists": [
+      {
+        "item": "迁移前库快照",
+        "path": "/var/backups/social-archive/pre-v0007-20260804T050655Z.sqlite3",
+        "size": "2.9M",
+        "integrity_check": "ok",
+        "verified_to_be_pre_migration": "它**没有 users 表** —— 05:06 取快照时生产还跑着旧代码。这是真正的迁移前状态，回滚目标正确。"
+      },
+      {
+        "item": "整棵代码树",
+        "path": "/var/backups/social-archive/code-pre-v0007-20260804T050854Z.tar.gz",
+        "size": "632K"
+      },
+      {
+        "item": "当前状态快照（新增）",
+        "path": "/var/backups/social-archive/post-v0007-20260804T062359Z.sqlite3",
+        "size": "4.2M",
+        "integrity_check": "ok",
+        "purpose": "与上面那份用途不同：这份是「回到今天这个已知良好状态」，含 users 表。"
+      },
+      {
+        "item": "旧镜像",
+        "path": "（没有）",
+        "consequence": "回滚必须**从代码 tar 重建镜像**，不能只切标签。7.7G 可用空间够，但要多花几分钟。"
+      }
+    ],
+    "rollback_verify_was_actually_run": {
+      "command": "bash scripts/rollback_0007.sh --verify <实库> <迁移前快照>",
+      "result": "**按设计拒绝**：退出 1，「行数不一致…恢复会丢掉这些差异。请人工确认后再决定，本脚本不替你做这个判断。」",
+      "why_it_refused": "快照取于 05:06，其后复制任务写入了 549×3 条副本记录，object_replica 行数已经对不上。",
+      "is_that_a_problem": "**不是——这正是要的行为。** 它宁可拒绝也不「看起来成功」。但它同时说明一件必须知道的事：**那份快照已经落后了**，回滚到它会丢掉今天的副本记录（可通过重跑复制重新生成，不是不可恢复的数据）。",
+      "and_it_correctly_listed_what_would_disappear": "users / session / oauth_identity / extension_token / platform_credential —— 现算出来的，不是手写清单。"
+    }
+  }
 }
