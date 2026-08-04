@@ -4,17 +4,25 @@
   "recorded_at": "2026-08-04T01:50Z",
   "severity": "本会话最严重的一条",
   "claim": "生产上**备份、三地复制、私有库同步三个 timer 从来没有启用过**，journalctl 90 天内全是 No entries。549 个制品里 530 个一个异地副本都没有。数据只存在于 OVH 那一块盘上。",
-
   "how_it_surfaced": "在演练对象级恢复（restore_object.py）时，发现它拒绝恢复 status != 'complete' 的制品。查生产：549 个制品里只有 2 个是 complete。顺着查副本，再顺着查 timer。",
-
   "measured_in_production_2026_08_04": {
     "artifacts_total": 549,
     "with_at_least_one_replica": 19,
     "with_zero_replicas": 530,
     "with_all_three_replicas": 2,
-    "artifact_status": {"complete": 2, "staged": 547},
-    "replica_by_store": {"r2": 19, "oci": 19, "github": 2},
-    "zero_replica_by_level": {"L1": 265, "L3": 265},
+    "artifact_status": {
+      "complete": 2,
+      "staged": 547
+    },
+    "replica_by_store": {
+      "r2": 19,
+      "oci": 19,
+      "github": 2
+    },
+    "zero_replica_by_level": {
+      "L1": 265,
+      "L3": 265
+    },
     "data_root_size": "40M",
     "systemd": {
       "social-archive.service": "enabled / active",
@@ -26,22 +34,18 @@
     "journalctl_90_days": "三个 disabled 的 unit 全部 'No entries' —— 从来没跑过",
     "backup_dir_contents": "只有 v0.0.0.6 取证阶段留下的手工产物（phasea-*, phase-b-*, release-*），没有任何定时备份"
   },
-
   "what_it_means": "产品的卖点是「归档」。而 96.5% 的制品存在于且仅存在于一块盘上，没有定时备份，没有异地副本。那块盘坏了就没了。**而界面照样显示「已归档」。**",
-
   "a_wrong_root_cause_i_published_and_corrected": {
     "what_i_first_concluded": "prepare_systemd_host.sh 装了 11 个 unit、跑了 daemon-reload，却从来不 systemctl enable —— 我当场判定这是脚本缺陷。",
     "why_that_was_wrong": "读完脚本末尾才发现它明确写着「未启用或启动任何 unit…由 Owner 完成下一步验收后再显式启用」。**不启用是设计，不是 bug**：装好 → 验收 → 显式启用，这个取舍本身是对的（自动拉起一个还没验收的服务更危险）。",
     "the_actual_gap": "交接只说了一句「由 Owner 显式启用」，**没说要启用哪几个**，也没有任何东西回头核一遍。于是五个里启了两个，剩下三个——恰好是保命的那三个——没人发现。",
     "lesson": "这是本会话第四次「先下结论再读完」。前三次是判据指错对象，这次是把一个**有意的设计**当成了缺陷。差别在于：如果我照着「修」下去，会把一条正确的安全取舍改掉。"
   },
-
   "fixes": {
     "prepare_systemd_host.sh": "--apply 结束时**逐条列出**要启用的 unit 与完整命令，并标注每个是干什么的（定时备份 / 三地副本 / 私有库同步）。一句笼统的「由 Owner 显式启用」正是漏掉三个的原因。",
     "scripts/check_durability_units.sh": "新增。在宿主机上跑，逐个核 is-enabled / is-active，任一没启用就退出 1，并把后果说清楚：「备份没启用 = 没有任何定时备份；复制没启用 = 制品只存在于本机这一块盘上；两者都静默——界面照样显示已归档」。",
     "why_a_shell_script_not_a_pytest": "这件事只有在**宿主机上**才问得出答案，测试机上没有那些 unit。做成 pytest 只会永远 skip，那比没有更糟。"
   },
-
   "what_i_did_not_do": {
     "did_not_enable_anything": "**没有在生产上启用任何 unit。** 这是改动 Owner 的生产系统，属于部署动作。",
     "why_not_just_do_it": "启用备份是有益的，但仍是未经许可的生产状态变更；而且有个实际风险：r2 / oci 的凭据我无法验证是否可用（它们是 root 独占的，我也不该去读）。凭据无效时，一个每 15 分钟触发的 timer 会持续失败刷日志。该不该现在启、按什么顺序启，是 Owner 的判断。",
@@ -53,11 +57,17 @@
       "再看一次 /v1/status 的 storage.completion，确认 530 那个数字开始下降"
     ]
   },
-
   "what_this_does_not_prove": [
     "**没有验证启用之后复制真的能成功。** r2 / oci / github 的凭据是否有效、桶是否存在、配额是否够，全都没验——那需要真的跑一次复制。",
     "没有查清 19 个已有副本是什么时候、由谁产生的（推测是 v0.0.0.6 SA-507 取证阶段的手工运行，但没有证据）。",
     "没有验证 replicate_objects.py 本身在当前代码下还能不能正常工作（它没有被本轮的任何改动碰过，但也没跑过）。",
     "对象级恢复 restore_object.py 只演练了拒绝路径（对象不存在 / 收据不完整），**没有真的从任何一个 store 恢复过一个对象**——那需要云凭据。"
-  ]
+  ],
+  "a_second_wrong_move_and_the_guard_that_caught_it": {
+    "what_i_did": "为了让交接说清楚，我把 `systemctl enable --now …` 六条命令直接印进了 prepare_systemd_host.sh 的输出。",
+    "what_broke": "validate_systemd.py 当场判 FAIL：「prepare_systemd_host.sh 不得启用或启动生产服务」。它的规则是**在这个文件里看到 systemctl enable / start 字样就拒绝**。",
+    "is_the_guard_too_blunt": "它分不清「印出来」和「执行」。但这条钝是**对的**：装好与启用必须是两个人为分开的动作，而一个 grep 不到的例外迟早会变成真的执行。判据宁可钝，不可漏。",
+    "fix": "prepare_systemd_host.sh 只列 unit 名字与各自作用，命令交给 scripts/check_durability_units.sh —— 那是只读检查器，不是准备器。",
+    "and_i_committed_it_red": "**我在门是 FAIL 的状态下提交了一次**（提交 74）。原因是提交信息在跑完之前就写好了——本会话第二次犯，而这次比第一次严重：第一次只是数字写错，这次是把红的门提交了进去。下一提交修复。"
+  }
 }

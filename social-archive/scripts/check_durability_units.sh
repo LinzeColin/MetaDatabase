@@ -46,7 +46,11 @@ if [ "${BAD}" = "1" ]; then
   printf '  备份没启用 = 没有任何定时备份\n'
   printf '  复制没启用 = 制品只存在于本机这一块盘上\n'
   printf '  两者都静默 —— 界面照样显示「已归档」。\n'
-  printf '\n启用命令见 prepare_systemd_host.sh --apply 的输出末尾。\n'
+  printf '\n启用命令（由 Owner 执行，本脚本只读不改）：\n'
+  for unit in "${REQUIRED[@]}"; do
+    printf '  systemctl enable --now %s\n' "${unit}"
+  done
+  printf '\n启用后重跑本脚本复核；再看 /v1/status 的 storage.completion。\n'
   exit 1
 fi
 printf '\n✓ 保命的 unit 都已启用。\n'

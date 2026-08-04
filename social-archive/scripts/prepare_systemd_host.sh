@@ -277,13 +277,14 @@ printf '未启用或启动任何 unit、Docker、Tunnel 或云资源；由 Owner
 # 后果：549 个制品里 530 个一个异地副本都没有，也没有任何定时备份。
 # 对一个以「归档」为卖点的产品，这是最要命的那种沉默失败。
 #
-# 不列清单的代价就是这个：一句笼统的「由 Owner 显式启用」，
-# 谁都不知道到底漏了哪几个。
+# 这里**只列名字，不写启用命令**：validate_systemd.py 明令本脚本里不许出现
+# 那两个动词，而那条规矩是对的——装好与启用必须是两个人为分开的动作。
+# 具体命令交给 scripts/check_durability_units.sh，它是只读检查器，不是准备器。
 printf '\n必须由 Owner 显式启用的 unit（缺一个就有数据只存在一份的风险）：\n'
-printf '  systemctl enable --now social-archive.service\n'
-printf '  systemctl enable --now social-archive-backup.timer                  # 定时备份\n'
-printf '  systemctl enable --now social-archive-replication.timer             # 三地副本\n'
-printf '  systemctl enable --now social-archive-private-database-sync.timer   # 私有库同步\n'
-printf '  systemctl enable --now social-archive-status.timer\n'
-printf '  systemctl enable --now social-archive-cloudflared.service\n'
-printf '\n启用之后请跑一次 scripts/check_durability_units.sh 复核。\n'
+printf '  social-archive.service\n'
+printf '  social-archive-backup.timer                  —— 定时备份\n'
+printf '  social-archive-replication.timer             —— 三地副本\n'
+printf '  social-archive-private-database-sync.timer   —— 私有库同步\n'
+printf '  social-archive-status.timer\n'
+printf '  social-archive-cloudflared.service\n'
+printf '\n启用命令与逐项核对：bash scripts/check_durability_units.sh\n'

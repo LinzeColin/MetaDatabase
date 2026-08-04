@@ -1,5 +1,5 @@
 {
-  "status": "FAIL",
+  "status": "PASS",
   "suite_mode": "structural",
   "application_suite_rerun": false,
   "results": [
@@ -61,9 +61,9 @@
         "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/validate_systemd.py"
       ],
-      "exit_code": 1,
-      "stdout": "",
-      "stderr": "prepare_systemd_host.sh 不得启用或启动生产服务\n"
+      "exit_code": 0,
+      "stdout": "PASS：systemd 运行合同完整，状态与复制只可写入 /var/lib/social-archive。\n",
+      "stderr": ""
     },
     {
       "argv": [
@@ -81,7 +81,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 497 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 499 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
