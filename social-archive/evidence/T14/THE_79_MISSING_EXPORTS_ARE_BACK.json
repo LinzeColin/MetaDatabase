@@ -1,0 +1,39 @@
+{
+  "task": "T14",
+  "claim": "修完根因之后把积压的导出补上了：磁盘上的 markdown 文件从 110 个变成 193 个，193 条内容**全部**有成功回执。补的过程中又撞出第三个缺陷：失败过的活儿被永久钉死，重排接口返回 202 而什么都不会跑。",
+  "measured_at": "2026-08-04",
+
+  "before": {
+    "markdown_files_on_disk": 110,
+    "receipts": "done 110 / failed 4",
+    "coverage": "114 / 193（**79 条从没导出过**）",
+    "newest_file": "2026-08-03 17:23"
+  },
+  "after": {
+    "markdown_files_on_disk": 193,
+    "receipts": "done 193 / failed 4（那 4 条 failed 是 2026-08-03 的历史记录，回执按次追加，不覆盖）",
+    "coverage": "193 / 193",
+    "pending_jobs": 0
+  },
+
+  "how": [
+    "先把根因修掉（safe_slug 按字节截）并部署",
+    "跑一次 markdown 的连接检查 → state 从 needs_user_action 回到 connected，authorized=true",
+    "对每一条没有成功回执的内容调 POST /v1/library/{id}/export（**用的是产品自己的接口，不是直接写库**）",
+    "83 条里 79 条跑完，4 条纹丝不动 → 查出第三个缺陷",
+    "修掉之后再排一次那 4 条 → 193/193"
+  ],
+
+  "the_third_defect_found_while_backfilling": {
+    "what": "`enqueue_job` 用 (job_type, connector_id, payload) 的稳定哈希当 job_id，配 `INSERT OR IGNORE`。一条 `status='failed'` 的记录因此把这件事**永久钉死**：之后每一次 enqueue 都被 IGNORE，接口照样返回 job_id 和 202，界面照样说「已加入队列」，而没有任何东西会跑。",
+    "evidence": "那 4 条的 job 行停在 2026-08-03T17:23，我重排之后仍然没动过；接口返回的是那 4 个旧 id。",
+    "fix": "enqueue 时把 failed 的那一行拉回 queued。**只复活 failed**——queued/running/retry 本来就要跑，done 不动（把已完成的活儿因为一次重复入队就重跑是另一种意外）。",
+    "guard": "4 条判据，其中一条专测「回到 queued 还不够，得真的能被 worker 领走」——反证时正是它转红。"
+  },
+
+  "what_this_does_not_prove": [
+    "不证明这 193 个文件的**内容**是对的。只数了文件数和回执数，没有逐个打开看。",
+    "不证明别的目的地（Obsidian / GitHub / Notion）也补齐了。它们的回执分别只有 1 / 1 / 0 条——**远远没有覆盖 193 条内容**，但那不是这次要修的东西，也没有实测过它们卡在哪。已记为待办。",
+    "不证明用户会看见「已恢复」。destination_state 现在是 connected，但界面上那 4 条历史失败回执仍然在，看上去像是还有问题。**没有删它们**——那是真实发生过的事。"
+  ]
+}
