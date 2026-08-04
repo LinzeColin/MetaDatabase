@@ -34,9 +34,37 @@ def test_the_canonical_store_is_not_counted_by_receipts(settings, store) -> None
     assert "主保存链路" in view["coverage_zh"]
 
 
-def test_a_connected_destination_with_nothing_in_it_says_so(settings, store) -> None:
-    """这条正是生产上 github / obsidian 的形状：连着，却几乎什么都没收到。"""
-    view = next(v for v in DestinationRegistry(settings, store).views()
-                if v["destination_id"] == "github")
-    assert view["exported_count"] == 0
-    assert "0 /" in view["coverage_zh"] or "库里还没有内容" in view["coverage_zh"]
+def test_a_connected_destination_with_nothing_in_it_says_so(settings, store, service) -> None:
+    """这条正是生产上 github / obsidian 的形状：连着，却几乎什么都没收到。
+
+    **必须先往库里放真东西。** 第一版在空库上测，total 和 exported 都是 0，
+    于是把 `exported = coverage.get(...)` 改成 `exported = total` 也照样绿——
+    判据没有区分能力。反证跑不红的判据等于没有。
+    """
+    from social_archive.models import CaptureRequest
+
+    for index in range(3):
+        service.capture(CaptureRequest(
+            platform="generic-web",
+            url=f"https://example.com/a{index}",
+            relation_type="manual_save",
+            requested_levels=["L0"],
+            destination_ids=["social_archive"],
+        ))
+    # 只给 markdown 记一条成功回执，github 一条都不给
+    with store.connection() as con:
+        content_id = con.execute("SELECT id FROM content LIMIT 1").fetchone()["id"]
+    store.record_destination_receipt(
+        destination_id="markdown", content_id=content_id, status="done",
+        projection_sha256="0" * 64, attempted_at="2026-08-04T00:00:00Z",
+        message_zh="导入完成。",
+    )
+
+    views = {v["destination_id"]: v for v in DestinationRegistry(settings, store).views()}
+    assert views["markdown"]["content_total"] == 3
+    assert views["markdown"]["exported_count"] == 1, "收到了 1 条却没这么报"
+    assert views["github"]["exported_count"] == 0, (
+        "github 一条回执都没有，却报了收到过内容——覆盖率不是从回执数来的"
+    )
+    assert "1 / 3" in views["markdown"]["coverage_zh"]
+    assert "0 / 3" in views["github"]["coverage_zh"]
