@@ -67,5 +67,25 @@
       "note": "登记后 API 域那两个可以保留，两边都能用。代码这侧只需把 _redirect_uri 从 public_base_url 换成 public_library_url。",
       "what_i_did_not_do": "**没有把 cookie 的 Domain 放宽到 .linzezhang.com。** 那样会让登录 cookie 对该域名下所有子域可见（status、其它项目都在同一个父域），拿可用性换掉一层隔离，不替 Owner 做这个取舍。"
     }
+  },
+  "fixed_and_measured_on_production": {
+    "at": "2026-08-04T06:0x UTC",
+    "what_owner_hit": {
+      "log": "GET /v1/auth/github/start 200 → GET /v1/auth/google/callback **400** → GET /v1/auth/github/callback **400**",
+      "db": "oauth_identity 0 / session 0",
+      "meaning": "他点了好几次，每次都倒在回调那一步。预判成立。"
+    },
+    "the_fix": [
+      "/v1/auth/providers 多回 login_base —— 告诉界面该去哪个域发起登录（配置驱动，不在前端写死域名）",
+      "/start 支持 ?redirect=1 直接 302 —— 登录必须是**顶层跳转**：跨域 fetch 种不上 SameSite=lax 的 cookie",
+      "callback 成功后 302 跳回应用，不再甩一行 {\"ok\":true}"
+    ],
+    "measured_proof_without_owner_account": {
+      "start_redirect": "HTTP 302 → accounts.google.com，**且 set-cookie: sa_oauth_state 就在这个 302 响应上**（种在注入的 response 上等于没种，这一处刻意验过）",
+      "callback_with_matching_cookie": "HTTP **502**「登录服务暂时不可用」—— 说明**已经走过 state 校验**，倒在假 code 的兑换上（预期）",
+      "callback_without_cookie": "HTTP 400「登录链接已失效」—— 正是 Owner 撞的那个",
+      "conclusion": "同域之后 state 校验通过。剩下只差一个真实 OAuth code，那需要 Owner 的账号。"
+    },
+    "what_is_still_not_proven": "**没有完成过一次真实登录。** 上面证明的是「那堵墙拆了」，不是「登录成功了」。session 表仍为 0，直到 Owner 真的点一次。"
   }
 }
