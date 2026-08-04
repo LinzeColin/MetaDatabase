@@ -302,3 +302,19 @@ def test_the_diagnostic_cannot_be_told_what_to_capture():
     diagnostic = block.split("message.diagnostic === true", 1)[1][:900]
     assert "message.urlPrefixes" not in diagnostic, "诊断模式采信了调用方给的前缀"
     assert "prefixes = [registrable]" in diagnostic, "前缀不是从域名推出来的"
+
+
+def test_the_diagnostic_says_up_front_when_the_page_is_not_diagnosable():
+    """认不出的页面要当场说清楚，而不是走到注入失败才吐一句看不懂的话。
+
+    platformFromUrl 认不出时回落到 generic-web，而它的权限模式是**空数组**：
+    继续走下去 = 请求零个 origin → executeScript 缺 host 权限 →
+    OBSERVER_INSTALL_FAILED「无法在该页面上启动同步」。用户对着那句话没法行动。
+    """
+    popup = (EXT / "popup.js").read_text(encoding="utf-8")
+    block = popup.split("async function runDiagnosis", 1)[1][:2000]
+    assert "patternsForPlatform" in block, "没有先确认这个平台有权限模式"
+    assert "不是可诊断的平台" in block, "认不出时没有给出人能看懂的话"
+    guard_at = block.index("patternsForPlatform")
+    install_at = block.index("SA_INSTALL_NET_OBSERVER")
+    assert guard_at < install_at, "判断排在安装之后，等于没判断"

@@ -229,6 +229,13 @@
       // （第一版写成 SA.detectPlatform / SAExtensionUtils —— 两个都不存在，
       //   而属性调用是我那道「调用了不存在的函数」的门看不见的盲区。）
       const platform = SA.platformFromUrl(tab.url)?.id || "";
+      // **先把话说在前面。** platformFromUrl 认不出来时会回落到 generic-web，
+      // 而它的权限模式是空的：继续走下去会以一句看不懂的注入失败告终
+      // （请求了零个 origin → executeScript 缺 host 权限 → OBSERVER_INSTALL_FAILED）。
+      // 与其让人对着「无法在该页面上启动同步」发愣，不如现在就说清楚。
+      if (!platform || !SA.patternsForPlatform(platform).length) {
+        throw new Error("这个页面不是可诊断的平台。请先打开小红书 / 抖音 / B站 / 快手 / X / Reddit / Instagram 的收藏页，并确认已登录。");
+      }
       button.textContent = "正在安装观察器…";
       const installed = await chrome.runtime.sendMessage({
         // diagnostic=true：让 background 按本页域名推前缀。
