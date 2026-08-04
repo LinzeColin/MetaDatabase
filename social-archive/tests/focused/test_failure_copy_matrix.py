@@ -17,11 +17,13 @@ from pathlib import Path
 import pytest
 
 from social_archive.failure_copy import (
+
     COPY_BY_CODE,
     NOTHING_NEW,
     describe_sync_outcome,
     resolve,
 )
+from tests.focused._source_slices import js_function
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -443,9 +445,19 @@ def test_no_http_status_code_is_ever_shown_as_a_user_message() -> None:
 
 def test_the_chinese_fallback_covers_the_status_codes_that_actually_happen() -> None:
     """兜底要真的覆盖会发生的状态码，而不是只写一句 else。"""
-    for relative in ("apps/browser-extension/shared.js", "apps/pwa/app.js"):
+    # **切函数，不切「humanMessage 之后的 1200 字」。**
+    #
+    # 两个文件里 humanMessage 都出现两三次：第一处恰好是定义，后面几处是调用。
+    # 也就是说旧写法**现在是对的，但只是因为定义碰巧排在最前**——
+    # 哪天有人在定义上面加一处调用，窗口就滑到调用点上，
+    # 判据会从「验兜底覆盖了哪些状态码」变成「验调用点附近有没有这些数字」，
+    # 而且**不会报错，只会继续绿**。
+    for relative, declaration in (
+        ("apps/browser-extension/shared.js", "function SA_humanMessage"),
+        ("apps/pwa/app.js", "function humanMessage"),
+    ):
         text = (ROOT / relative).read_text(encoding="utf-8")
-        block = text.split("humanMessage", 1)[1][:1200]
+        block = js_function(text, declaration)
         for code in ("401", "404", "429", "500"):
             assert code in block, f"{relative} 的中文兜底没有覆盖 {code}"
 
