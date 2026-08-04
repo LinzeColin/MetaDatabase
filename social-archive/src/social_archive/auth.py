@@ -105,9 +105,27 @@ def _require_provider(name: str) -> Provider:
 
 
 def _redirect_uri(settings: Settings, provider: str) -> str:
-    # 与 OWNER_OAUTH_SETUP.md 里登记的回调地址必须逐字符一致，
-    # 差一个字符就是 redirect_uri_mismatch。结尾没有斜杠。
-    return f"{settings.public_base_url.rstrip('/')}/v1/auth/{provider}/callback"
+    """回调地址。
+
+    与 Google / GitHub 应用里登记的必须**逐字符一致**，差一个字符就是
+    redirect_uri_mismatch。结尾没有斜杠。
+
+    ## 用 library 域，不是 api 域
+
+    原来这里用的是 `public_base_url`（API 域）。实测（2026-08-04）：
+    Google 对该地址明确回 **Error 400: redirect_uri_mismatch**，
+    而对 `public_library_url` 那个**认**。也就是说 Owner 当初登记的是
+    资料库域，代码却一直在用 API 域。
+
+    探测方式：拿同一个 client_id 换不同 redirect_uri 构造授权链接，
+    跟随跳转看最终落点是 `signin/oauth/error` 还是登录页。**不要靠
+    「跳到了登录页」推断地址已登记**——那一跳是无条件的，
+    Google 在其后才校验；我就是这么先下错了一次结论的。
+
+    用 library 域还顺带让整条链路同域：state cookie、session cookie
+    与 PWA 的同源请求全部落在同一个域上。
+    """
+    return f"{settings.public_library_url.rstrip('/')}/v1/auth/{provider}/callback"
 
 
 async def _exchange_code(
@@ -170,11 +188,12 @@ def build_router(settings: Settings, store: RuntimeStore) -> APIRouter:
             ],
             # **登录必须整条链路同域。** state cookie 是 host-only 的：
             # 在哪个域调 /start，它就种在哪个域；而回调地址是固定的
-            # public_base_url（那是登记在 Google/GitHub 应用里的那个）。
+            # public_library_url（**实测**那才是登记在 Google 应用里的那个）。
             # 两者不同域时回调收不到 state，直接 400「登录链接已失效」——
             # 实测 Owner 就是这么卡住的（callback 两次 400，session 始终 0）。
             # 把该去的那个域告诉界面，让它把人送到对的地方发起登录。
-            "login_base": settings.public_base_url.rstrip("/"),
+            # **必须与 _redirect_uri 同域**，否则 state cookie 又对不上。
+            "login_base": settings.public_library_url.rstrip("/"),
         }
 
     @router.get("/{provider_name}/start")
@@ -273,9 +292,11 @@ def build_router(settings: Settings, store: RuntimeStore) -> APIRouter:
         #
         # **跳回应用，不要甩一行 JSON。** 原来这里 return {"ok": True}：
         # 登录成功之后用户看到的是浏览器里一行 {"ok":true,"provider":"google"}，
-        # 没有任何东西告诉他「成功了、回去吧」。跳回的是 public_base_url ——
+        # 没有任何东西告诉他「成功了、回去吧」。跳回的是 public_library_url ——
         # 会话 cookie 就种在这个域上，跳去别的域等于刚登录就又没登录。
-        landing = RedirectResponse(f"{settings.public_base_url.rstrip('/')}/", status_code=302)
+        # 跳回**会话 cookie 所在的那个域**（与 _redirect_uri 同域），
+        # 跳去别的域等于刚登录就又没登录。
+        landing = RedirectResponse(f"{settings.public_library_url.rstrip('/')}/", status_code=302)
         landing.delete_cookie(STATE_COOKIE, path="/v1/auth")
         landing.set_cookie(
             SESSION_COOKIE, session_id, max_age=60 * 60 * 24 * 30, httponly=True,

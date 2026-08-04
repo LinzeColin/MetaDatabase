@@ -89,3 +89,26 @@ def test_the_endpoint_gate_now_covers_the_auth_router() -> None:
     gate = (ROOT / "scripts/find_endpoints_no_client_calls.py").read_text(encoding="utf-8")
     assert "auth.py" in gate, "接口门又只扫 api.py 了"
     assert AUTH.is_file()
+
+
+def test_the_callback_uses_the_domain_that_is_actually_registered() -> None:
+    """回调地址必须与 login_base、登录后落点是**同一个域**。
+
+    实测（2026-08-04）：Google 对 `public_base_url`（API 域）那个回调地址
+    明确回 **Error 400: redirect_uri_mismatch**，对 `public_library_url`
+    那个则认。Owner 当初登记的是资料库域，代码却一直在用 API 域。
+
+    三处必须一致，任何一处漂开都会重新制造那个 400：
+
+      _redirect_uri   → 决定 Google 把人送回哪
+      login_base      → 决定界面在哪个域发起登录（state cookie 种在那里）
+      登录后的落点     → 会话 cookie 在哪个域，就必须跳回哪个域
+
+    **不要靠「跳到了登录页」推断地址已登记**——那一跳是无条件的，
+    Google 在其后才校验。本轮就是这么先下错了一次结论。
+    """
+    text = (ROOT / "src/social_archive/auth.py").read_text(encoding="utf-8")
+    redirect_fn = text.split("def _redirect_uri", 1)[1].split("\ndef ", 1)[0]
+    assert "public_library_url" in redirect_fn, "回调地址又用回了没登记的那个域"
+    assert '"login_base": settings.public_library_url' in text, "login_base 与回调地址不同域"
+    assert 'RedirectResponse(f"{settings.public_library_url' in text, "登录后跳去了会话 cookie 不在的域"
