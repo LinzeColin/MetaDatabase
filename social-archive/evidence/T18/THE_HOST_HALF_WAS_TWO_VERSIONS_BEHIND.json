@@ -1,0 +1,36 @@
+{
+  "task": "T18 / T16",
+  "severity": "与 08-04「三个 timer 从没启用」同一级别：完全静默，且直接压在耐久性上",
+  "claim": "生产主机的 venv 里装着的 social_archive 是 **0.0.0.5**，落后两个版本；而备份、复制、私有库同步、状态发布**四个 timer 全跑在它上面**。",
+  "measured_at": "2026-08-05",
+  "how_it_surfaced": "我刚把 overall 改成「只对本该工作的连接器判健康」并新增 not_yet_supported。改完自问了一句：**发布出来的那份状态页会不会只剩一个绿灯、把「8 个还没做」藏了**？去看生产上真正发布出来的 JSON——overall 是 healthy，而 not_yet_supported **整个字段不存在**。追下去才发现不是我漏加了字段，是发布它的那半边根本没跑这一版代码。",
+  "measured": {
+    "容器里的 Core": "0.0.0.7（/v1/status-projection 报的，字段齐全）",
+    "主机 venv": "0.0.0.5",
+    "site-packages 里是什么": "一份**拷贝**，不是 install.sh 写的 `pip install -e`",
+    "与仓里不同的文件": 21,
+    "拷贝里根本不存在的模块": ["account_sync.py", "auth.py", "credentials.py", "failure_copy.py", "gallerydl_runner.py", "platform_payloads.py"],
+    "跑在主机 venv 上的 timer": ["social-archive-backup", "social-archive-replication", "social-archive-private-database-sync", "social-archive-status"],
+    "这些脚本 import 的模块里有多少在差异清单上": "config / db / utils 三个全在——其中 utils.redact() 的旧版会把 \"Bearer\" 藏掉却把 JWT 原样留下"
+  },
+  "why_it_was_invisible": "systemctl 报 success，备份报 PASS，复制照常推进 552/552。**没有任何一处会喊**。唯一的症状是发布出来的状态页少了一个这一版才有的字段——只有拿着新字段名去对，才看得出来。这是本项目第九次撞上同一族：**两头都对，中间没接上**。",
+  "a_second_thing_found_on_the_way": "`/opt/social-archive/.venv/bin/pip` 执行不了（`No such file or directory`）——shebang 指着一个已经不存在的解释器路径，说明这个 venv 被搬过。用 `.venv/bin/python -m pip` 才行。这多半就是它当初变成一份拷贝的原因。",
+  "fix": [
+    "按 install.sh 的原样改回 editable：`sudo .venv/bin/python -m pip install -e . --no-deps`（--no-deps 一个依赖都不碰）",
+    "部署脚本加第 2.5 道门：检查主机 venv 的 social_archive.__file__ 是否指向 <部署目录>/src/，不是就**当场修好再验一遍**，版本号也要与 VERSION 一致",
+    "pyproject 的 version 从 0.0.0.6 追到 0.0.0.7（两个地方各写一份版本号，本来就是漂移的温床）"
+  ],
+  "verified_after_fix": {
+    "主机 venv 指向": "/opt/social-archive/src/social_archive/__init__.py（editable）",
+    "主机 venv 版本": "0.0.0.7",
+    "六个 timer 脚本 import": "全部 OK（status_publish / backup / backup_runtime_db / replicate_objects / sync_private_database / github_release_backup）",
+    "状态发布单元重跑": "Result=success；发布出来的 JSON 现在是 version 0.0.0.7 / overall healthy / **not_yet_supported 8**",
+    "三个耐久性单元各跑一次": "replication、private-database-sync、backup 全部 Result=success",
+    "复制覆盖": "r2 / oci / github 各 552 verified，没有因为换库退化"
+  },
+  "what_this_does_not_prove": [
+    "不证明这两个版本之间主机那半边**做错过什么**。已知的只是它跑的不是这一版；具体有没有因此写坏过数据，没有量过，也没有办法回溯量。",
+    "不证明其它主机上不会再漂。第 2.5 道门只在**用这个脚本部署**时生效；有人手工 rsync 就绕过去了。",
+    "不证明 editable 安装以后不会被别的东西覆盖。它防的是「部署完忘了重装」，不防「有人再跑一次非 editable 的 pip install」——那种情况下一次部署会再修一遍。"
+  ]
+}

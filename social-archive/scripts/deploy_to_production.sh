@@ -18,7 +18,7 @@
 # 界面永远『同步中』」。我读过那句话，然后还是踩了同一个坑——
 # 因为部署路径没被固化下来，那条经验只存在于注释里，拦不住现敲的命令。
 #
-# ## 这个脚本守住的四件事
+# ## 这个脚本守住的六件事
 #
 #   1. **不做任何递归 chown。** 属主问题用 sudo 定点解决，不用大扫除。
 #   2. **部署前后各量一次密钥不变量**（uid:gid:mode），漂了就大声说。
@@ -28,6 +28,8 @@
 #      /health 的 200 骗过去的。
 #   5. **验收还要打一次下载路由**：磁盘上有那个包，和下载页下发那个包，
 #      是两件不同的事，而 Owner 拿到的是后者。
+#   6. **主机 venv 必须指向仓里的 src/**。容器重建了、主机 venv 没人管——
+#      实测它落后了两个版本，而四个耐久性 timer 全跑在它上面。
 #
 # 用法：bash scripts/deploy_to_production.sh [--host linze-ovh] [--dry-run]
 
@@ -120,6 +122,41 @@ LOCAL_ZIP="$(shasum -a 256 dist/social-archive-extension.zip | cut -d' ' -f1)"
 REMOTE_ZIP="$(ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && sha256sum dist/social-archive-extension.zip | cut -d' ' -f1")"
 [[ "$LOCAL_ZIP" == "$REMOTE_ZIP" ]] || fail "扩展包没同步过去（本地 ${LOCAL_ZIP}，远端 ${REMOTE_ZIP}）。"
 printf '  源码已同步；扩展包 sha256 逐字节一致。\n'
+
+step "2.5) 主机 venv 装的是不是仓里这一份"
+# **容器重建了，主机的 venv 没人管。**
+#
+# 2026-08-05 实测：容器里的 Core 报 0.0.0.7，而主机 venv 里装着的
+# social_archive 是 **0.0.0.5** —— 整整落后两个版本，site-packages 里放的是
+# 一份**拷贝**（不是 install.sh 写的 `pip install -e`），21 个文件与仓里不同，
+# account_sync / auth / credentials / platform_payloads 等六个模块**根本不存在**。
+#
+# 而备份、复制、私有库同步、状态发布**四个 timer 全都跑在主机 venv 上**。
+# 它们 import 的 config / db / utils 三个都在这 21 个里面——其中 utils.redact()
+# 这一版之前会把 "Bearer" 藏掉却把 JWT 原样留下。
+#
+# 症状是完全静默的：systemctl 报 success，备份 PASS，而发布出来的状态页
+# 少了一个这一版才有的字段——**只有去对字段才看得出来**。
+#
+# 这一步会自己修（editable 安装是幂等的，--no-deps 不碰任何依赖），修完再验一遍。
+VENV_SRC="$(ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && sudo .venv/bin/python -c 'import social_archive; print(social_archive.__file__)' 2>/dev/null || true")"
+case "$VENV_SRC" in
+  "$REMOTE_DIR"/src/*)
+    printf '  主机 venv 指向仓里的 src/，没有漂。\n' ;;
+  *)
+    printf '  **主机 venv 装的是一份拷贝**（%s）——正在按 install.sh 的原样改回 editable…\n' "${VENV_SRC:-读不出来}"
+    ssh -o ConnectTimeout=60 "$HOST" "cd '$REMOTE_DIR' && sudo .venv/bin/python -m pip install -e . --no-deps" >/dev/null 2>&1 \
+      || fail '主机 venv 改 editable 失败。四个 timer 会继续跑旧代码。'
+    VENV_SRC="$(ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && sudo .venv/bin/python -c 'import social_archive; print(social_archive.__file__)'")"
+    case "$VENV_SRC" in
+      "$REMOTE_DIR"/src/*) printf '  已改好，现在指向 %s\n' "$VENV_SRC" ;;
+      *) fail "主机 venv 还是没指向仓里的 src/（${VENV_SRC}）。" ;;
+    esac ;;
+esac
+VENV_VERSION="$(ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && sudo .venv/bin/python -c 'import social_archive; print(social_archive.__version__)'")"
+[[ "$VENV_VERSION" == "$VERSION" ]] \
+  || fail "主机 venv 报的版本是 ${VENV_VERSION}，仓里是 ${VERSION}——四个 timer 跑的不是这一版。"
+printf '  主机 venv 版本 %s，与仓里一致。\n\n' "$VENV_VERSION"
 
 step "3) 记下正在跑的镜像（回滚点）"
 # **只记，不打标。** 打标要等构建真的成了再打。
