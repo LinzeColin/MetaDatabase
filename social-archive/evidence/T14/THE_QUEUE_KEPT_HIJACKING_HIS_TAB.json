@@ -1,0 +1,64 @@
+{
+  "task": "T14",
+  "claim": "插件每分钟抢走 Owner 正在看的标签页，把它导航到收藏页再切到前台，然后失败、重试。根因是「藏了按钮，没拦干活那一层」。已在编排层拦住并部署。",
+
+  "owner_words": "软件抽风 每次都是把目标网页开了关关了开",
+
+  "mechanism": {
+    "chain": [
+      "chrome.alarms 每 periodInMinutes: 1 触发一次 SYNC_QUEUE_ALARM",
+      "→ processSyncQueue 取出队列里的任务",
+      "→ runBrowserAccountSync",
+      "→ navigateMirrorTab: `chrome.tabs.update(tabId, { url, active: true })` —— **导航用户的标签页并把它切到前台**",
+      "→ acquireRelationItems 抛错（这个平台本来就没装取数路径）",
+      "→ MAX_SYNC_ATTEMPTS = 3 次重试",
+      "→ 下一分钟再来一遍"
+    ],
+    "why_it_never_stopped": "失败是结构性的（平台不在 SYNCABLE_NOW 里），不是暂时的。重试永远不会成功，队列也永远不空。"
+  },
+
+  "what_i_got_wrong_the_first_time": {
+    "fix_i_shipped_before": "在两个界面（apps/pwa/app.js 的 renderSyncTable、apps/browser-extension/options.js 的 renderAccounts）里，按 sync_supported 把「立即同步」按钮藏掉，并补了一道门 find_affordances_the_backend_says_cannot_work.py 守住它。",
+    "why_it_did_not_help": "**按钮只是入口之一。** 队列是持久化在 chrome.storage 里的，闹钟照响，任务照跑。我拦住了人点按钮的那条路，没拦住机器自己跑的那条路。",
+    "the_lesson": "「界面上看不到」不等于「做不到」。凡是能自己触发的东西，拦截必须落在**真正干活的那一层**。"
+  },
+
+  "the_fix": {
+    "single_source_of_truth": "能力由服务端说了算：account_sync.SYNCABLE_NOW → /v1/accounts 的 supported_platforms[].sync_supported。扩展里**不留第二份名单**（判据钉死：platformCanSyncNow 函数体内不许出现任何平台名字面量）。",
+    "three_places": [
+      "platformCanSyncNow(platform) —— 问服务端",
+      "enqueueAllAccounts —— 同步不了的**根本不进队列**",
+      "runBrowserAccountSync —— **在 navigateMirrorTab 之前**落终态，一个标签页都不碰"
+    ],
+    "why_two_layers_not_one": "chrome.storage 里可能还压着入队时未经检查的旧任务。它们不该因为「入队那天没拦」就获得抢标签页的权利。",
+    "fail_open_on_purpose": "问不到能力（网络抖动、服务端不可达）时按「能同步」处理。宁可跑一次会失败的同步，也不要因为一次抖动把本来能用的平台全体停掉。"
+  },
+
+  "guards": {
+    "file": "tests/focused/test_sync_button_is_not_offered_where_it_cannot_work.py",
+    "assertions": [
+      "runBrowserAccountSync 里 platformCanSyncNow 的位置必须**早于** navigateMirrorTab",
+      "enqueueAllAccounts 必须调用 platformCanSyncNow",
+      "platformCanSyncNow 函数体内不许出现 xiaohongshu/douyin/kuaishou/bilibili 任何一个字面量"
+    ],
+    "counter_example_run": "把干活层的守卫换成 `if (false)` → 判据转红；还原 → 639 条全过，19 道发布门全绿。"
+  },
+
+  "immediate_relief_before_the_fix_shipped": {
+    "action": "先在生产上把三个同步不了的账号 DELETE 断开（state=disconnected, auto_sync=0）",
+    "result": "xiaohongshu / douyin / bilibili 全部 disconnected；**内容一条没删**：content 193 / user_relation 194。",
+    "told_owner": "在修复上线前可以先到 chrome://extensions 把插件关掉。"
+  },
+
+  "deployed": {
+    "at": "2026-08-04T08:5xZ（走 scripts/deploy_to_production.sh 完整跑通的那一次）",
+    "verified_in_the_running_image": "docker exec … grep -c platformCanSyncNow /app/apps/browser-extension/background.js → 3",
+    "extension_package": "sha256 d5daa84cb6ce8110d30cf7f037e72cba14c025ee798db4a79d746e1abd64cb24，与本机打的那份逐字节一致（容器内、/downloads 两处都核过）"
+  },
+
+  "what_this_does_not_prove": [
+    "**Owner 那边还没生效。** 修复在新的安装包里；他机器上那份是旧的，而且当时已经坏了（ERR_FILE_NOT_FOUND，见 extension-install 页新增的自救说明）。要重新加载一次插件才会带上这个拦截。",
+    "没有在真浏览器里跑一遍「装上新包 → 队列里留着旧任务 → 确认标签页不再被抢」。判据证明的是拦截写在了导航之前，不是实测拦住了。",
+    "不解决国内平台**为什么**同步不了。那是 T08 的取数路径问题，仍然卡在需要 Owner 出示一次登录态页面 + 跑一次插件里的诊断按钮。"
+  ]
+}
