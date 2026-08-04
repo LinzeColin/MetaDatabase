@@ -115,6 +115,13 @@ class ConnectorRegistry:
         return live.health() if live else {"state":"disabled"}
 
     def health_views(self, persisted: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        # **函数内导入是为了断开循环**：account_sync 需要 ConnectorRegistry，
+        # 这里又需要它的能力声明。放到模块顶部会让 registry 变成
+        # partially initialized module（实测：22 个测试集体 ImportError）。
+        # 另一条路是把这两个常量挪进一个无依赖的小模块——但那样会出现
+        # 两个名字指同一件事，而"两份必然漂开"是这一天反复吃过的亏。
+        from .account_sync import NOT_SYNCABLE_YET, SYNCABLE_NOW
+
         by_id = {row["connector_id"]:row for row in persisted}
         result=[]
         for connector_id, display in DISPLAY.items():
@@ -133,6 +140,51 @@ class ConnectorRegistry:
                 }
             latency_ms = max(0, round((time.perf_counter() - started) * 1000))
             state = str(probe.get("state") or row.get("state") or "disabled")
+            # **连接器的健康度不许比产品自己的能力声明更乐观。**
+            #
+            # 2026-08-05 生产实测，这份视图说：
+            #     instagram  healthy  「可直接点击"读取/保存"。」
+            #     bilibili   healthy  「可直接点击"读取/保存"。」
+            #     tiktok     healthy  「可直接点击"读取/保存"。」
+            # 而真跑一次：instagram → INSTAGRAM_SIDECAR_BLOCKED（session 是空的）、
+            # bilibili → BILI_SIDECAR_BLOCKED。tiktok 甚至不在 PLATFORM_RELATIONS 里，
+            # 界面上根本没有它。
+            #
+            # 根因：这三个的探针是 `self.command.health()`——它测的是
+            # **「CLI sidecar 活着吗」**，不是「这个连接器干得成活吗」。
+            # sidecar 活着，于是三个都报 healthy。
+            #
+            # 真正的前置条件（instagram 的 session、bilibili 的登录态）没法在
+            # 状态探针里廉价地验——真验就得跑一次取数。所以这里换个判法：
+            # **产品已经在 SYNCABLE_NOW 里声明过哪些平台现在同步得动**，
+            # 连接器视图不得比那份声明更乐观。同一处真源，同一句中文。
+            #
+            # 这是同一种病的第四处：前三处是「立即同步」按钮、连接入口、
+            # 目的地「自动导入」。
+            # 已经是 blocked 的也要换文案：实测 x 那一条显示的是
+            #     「状态代码：X_ZERO_COST_NOT_CONFIRMED。尚未配置真实账号或
+            #      Worker；先使用保存当前页面，再按向导配置。」
+            # ——把失败码摆给用户看，还叫他「按向导配置」，**而没有任何向导
+            # 能打开那道零费用门**（那是 Owner 的花钱判断）。真实原因写在
+            # NOT_SYNCABLE_YET 里，含「现在可以：…」那半句。
+            if connector_id in NOT_SYNCABLE_YET:
+                if state == "healthy":
+                    state = "blocked_environment"
+                probe = {
+                    **probe,
+                    "state": state,
+                    "error_code": probe.get("error_code") or "PLATFORM_NOT_SYNCABLE_YET",
+                    "message_zh": NOT_SYNCABLE_YET[connector_id],
+                }
+            elif state == "healthy" and connector_id not in SYNCABLE_NOW:
+                # 不在任何一张表里的（例如 tiktok，它连 PLATFORM_RELATIONS 都不在）
+                state = "blocked_environment"
+                probe = {
+                    **probe,
+                    "state": state,
+                    "error_code": probe.get("error_code") or "PLATFORM_NOT_SYNCABLE_YET",
+                    "message_zh": "本版本还不能自动读取这个平台的内容。",
+                }
             next_action = {
                 "healthy":"可直接点击“读取/保存”。","degraded":"首选 Worker 不可用；仍可保存当前页面。运行诊断查看唯一修复动作。",
                 "blocked_environment":"尚未配置真实账号或 Worker；先使用保存当前页面，再按向导配置。",

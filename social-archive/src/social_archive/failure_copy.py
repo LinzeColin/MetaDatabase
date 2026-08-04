@@ -260,6 +260,11 @@ PRODUCT_FAULT_CODES: frozenset[str] = frozenset({
     # 这里是万一还是走到了的兜底——结论是「我们的问题、别重试」，
     # 而不是此前那句借来的「暂时连不上服务器，[ 重试 ]」。
     "ACQUISITION_PATH_NOT_INSTALLED",
+    # 连接器视图被钳到能力声明之下时用的码（v0.0.0.7 / registry.health_views）。
+    # 结论与 ACQUISITION_PATH_NOT_INSTALLED 同一类：**这条路本版本就没装**，
+    # 不是用户做错了什么，也不是重试能解决的。真正要显示的那句中文
+    # 由 NOT_SYNCABLE_YET 逐平台给出（「现在可以：…」那半句在那里）。
+    "PLATFORM_NOT_SYNCABLE_YET",
     # 拦到了平台的响应，却读不懂它（v0.0.0.7 / T08）。
     # 让用户重试没有意义——同一份字节我们还是读不懂；要改的是解析器。
     "UNREADABLE",
