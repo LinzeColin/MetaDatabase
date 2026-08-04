@@ -69,8 +69,19 @@ COPY_BY_CODE: dict[str, FailureCopy] = {item.code: item for item in _DICTIONARY}
 # 词典之外的内部码映射到词典里的某一条。
 # 有这张表是因为代码里的失败码比词典细——但**界面上只许出现词典里的句子**。
 _ALIASES: dict[str, str] = {
-    # T03 拆掉取数通道之后的显式失败
-    "ACQUISITION_PATH_NOT_INSTALLED": "SERVER_UNREACHABLE",
+    # T03 拆掉取数通道之后的显式失败。
+    #
+    # **这里原先别名成 SERVER_UNREACHABLE，那是错的。** 那句词典文案是
+    # 「暂时连不上服务器。你的数据没有丢，[ 重试 ]」——而真实原因是
+    # **本版本根本没有实现这条取数路**。于是界面让用户一遍遍重试一件
+    # 永远不可能成功的事。Owner 的原话：「不知道应该怎么操作。」
+    #
+    # 正确的做法有两层，缺一不可：
+    #   · 界面**根本不给这些平台画「立即同步」按钮**（account_sync.SYNCABLE_NOW），
+    #     从源头上不让用户点到——这是主要修法。
+    #   · 万一还是走到这个码，落进 DELIBERATELY_UNALIASED：文案说
+    #     「这是产品的问题，请联系我们」，把人导向对的地方，
+    #     而不是导向一个无穷重试。
     "LOGIN_PROOF_UNAVAILABLE": "NOT_LOGGED_IN",
     # 扩展侧
     "PERMISSION_DENIED": "NOT_LOGGED_IN",
@@ -146,7 +157,14 @@ _ALIASES: dict[str, str] = {
 #   要真正说准，得往冻结词典里加一条，那是改产品合同，先改 ZERO_BARRIER_UX.md。
 #   —— 现在它由 PRODUCT_FAULT_CODES 接管：结论仍是「我们的问题、别重试」，
 #   但不再借用那句不准确的「我们没能记录下原因」。
-DELIBERATELY_UNALIASED: frozenset[str] = frozenset({"URL_NOT_SUPPORTED"})
+DELIBERATELY_UNALIASED: frozenset[str] = frozenset({
+    "URL_NOT_SUPPORTED",
+    # 本版本没有实现这条取数路。给它任何别名都会变成一句「重试」，
+    # 而重试一万次也一样。落进 unexplained_zero 的「这是产品的问题、
+    # 请联系我们」虽然措辞也不完美，但**它把人导向对的方向**。
+    # 主要修法在界面侧：这些平台根本不画「立即同步」按钮。
+    "ACQUISITION_PATH_NOT_INSTALLED",
+})
 
 # 「没有新增」不是失败。它必须与失败**显示成两种东西**。
 NOTHING_NEW = FailureCopy(
@@ -215,6 +233,12 @@ PRODUCT_FAULT_CODES: frozenset[str] = frozenset({
     # 这是产品的选择，不是用户的错，重试也不会变——所以既不给重试按钮，
     # 也不说「我们不知道为什么」。
     "X_ZERO_COST_NOT_CONFIRMED",
+    # 本版本没实现这条取数路（T03 删掉 DOM 抓取器、T08 的替代品还没缝上）。
+    # 用户做什么都没用，得我们去补。**主要修法在界面侧**：这些平台
+    # 根本不画「立即同步」按钮（见 account_sync.SYNCABLE_NOW）；
+    # 这里是万一还是走到了的兜底——结论是「我们的问题、别重试」，
+    # 而不是此前那句借来的「暂时连不上服务器，[ 重试 ]」。
+    "ACQUISITION_PATH_NOT_INSTALLED",
 })
 _PRODUCT_FAULT_SENTENCE = "这次没有取到内容，问题在我们这边，已经记下来了。不用反复重试。"
 

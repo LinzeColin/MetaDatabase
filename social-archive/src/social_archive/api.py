@@ -19,7 +19,13 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
 from . import __version__, auth
-from .account_sync import AccountSyncCoordinator, PLATFORM_LABELS, PLATFORM_RELATIONS
+from .account_sync import (
+    NOT_SYNCABLE_YET,
+    SYNCABLE_NOW,
+    AccountSyncCoordinator,
+    PLATFORM_LABELS,
+    PLATFORM_RELATIONS,
+)
 from .config import Settings
 from .db import RuntimeStore
 from .credentials import (
@@ -314,8 +320,16 @@ def _safe_account_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
 def accounts() -> dict[str, Any]:
     return {
         "items": store.list_source_accounts(),
+        # **每个平台附上「现在同步得动吗」。** 界面照着画，不自己判断。
+        # 给不出 sync_supported 的话，界面只能对所有平台一律画「立即同步」，
+        # 而其中四个点下去必然失败——那正是 Owner 说「不知道怎么操作」的来源。
         "supported_platforms": [
-            {"platform": platform, "relations": relations}
+            {
+                "platform": platform,
+                "relations": relations,
+                "sync_supported": platform in SYNCABLE_NOW,
+                "not_syncable_reason": NOT_SYNCABLE_YET.get(platform, ""),
+            }
             for platform, relations in PLATFORM_RELATIONS.items()
         ],
     }

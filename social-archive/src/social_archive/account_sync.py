@@ -51,6 +51,34 @@ PLATFORM_LABELS = {
 # path; the product never asks the owner to paste cookies or headers.
 SERVER_ACCOUNT_CONNECTORS = {"x", "reddit", "instagram", "bilibili"}
 
+# **本版本真的同步得动的平台。** 这不是「支持哪些平台」的愿景清单，
+# 是「现在点下去会成功」的事实清单。
+#
+# 为什么必须有它：小红书 / 抖音 / 快手 / B站 走浏览器拦截路，而那条路的
+# 取数缝隙 acquireRelationItems() 目前是显式 stub（T03 删掉 DOM 抓取器之后，
+# T08 的替代品还没缝上）。界面却照样给它们画「立即同步」按钮，点下去拿到的是
+# ACQUISITION_PATH_NOT_INSTALLED —— 而那个码被别名成 SERVER_UNREACHABLE，
+# 于是用户看到「暂时连不上服务器，[ 重试 ]」，**一遍遍重试一件永远不可能成功的事**。
+#
+# Owner 的原话：「非常不好用，而且你的流程逻辑非常混乱，我都不知道应该怎么操作。」
+# 直接原因就是这个：界面提供了一个结构上不可能成功的动作。
+#
+# 规则：**能不能同步是服务端说了算，界面照着画**。不要在两个前端各维护一份。
+SYNCABLE_NOW: frozenset[str] = frozenset({
+    "generic-web",   # Chrome 书签，T04 实测 62 条全量跑通
+    "x",             # Cookie 托管 + gallery-dl（T06/T07），需先连接账号
+    "instagram",     # 同上，走 CLI sidecar 的 instagram_saved
+    "reddit",        # 官方 OAuth，需先配 token
+})
+# 暂时同步不了的，每条写清**为什么**与**现在能做什么**。
+# 界面直接把这句话显示出来，而不是让用户点了才知道。
+NOT_SYNCABLE_YET: dict[str, str] = {
+    "xiaohongshu": "本版本还不能自动读取小红书的收藏列表。现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。",
+    "douyin": "本版本还不能自动读取抖音的收藏列表。现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。",
+    "kuaishou": "本版本还不能自动读取快手的收藏列表。现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。",
+    "bilibili": "本版本还不能自动读取 B 站的收藏夹。现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。",
+}
+
 
 @dataclass(frozen=True)
 class ConnectStartResult:

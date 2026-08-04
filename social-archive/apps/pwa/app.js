@@ -160,6 +160,8 @@
     user: null,
     // 发起登录必须去的那个域（回调地址登记在它上面）。见 startLogin。
     loginBase: "",
+    // 每个平台「现在同步得动吗」，来自服务端。见 renderSyncTable。
+    platformSupport: {},
     extension: { detected: false, paired: false, compatible: false, version: "", pairingRequired: false, oneTimeCodeAvailable: false, refreshedAt: null },
     platform: "all", group: true, sortKey: "savedAt", sortDir: "desc", search: "",
     filters: { relation: "all", topic: "all", date: "all", archive: "all" },
@@ -345,6 +347,10 @@
       api("/v1/accounts"), api("/v1/sync-runs?limit=200"), api("/v1/destinations")
     ]);
     state.accounts = accountsResult.items || [];
+    // 能不能同步由**服务端**说了算，界面照着画（见 account_sync.SYNCABLE_NOW）。
+    // 两个前端各维护一份「哪些平台能同步」必然漂开，那是又一处「看着接上了」。
+    state.platformSupport = Object.fromEntries(
+      (accountsResult.supported_platforms || []).map(item => [item.platform, item]));
     state.syncRuns = runsResult.items || [];
     state.destinations = destinationsResult.items || [];
     renderSyncSummary();
@@ -722,6 +728,18 @@
           action = `<button class="btn small" data-control-run="${escapeHtml(run.id)}" data-account-id="${escapeHtml(account.id)}" data-control-action="retry">重试</button>`;
         } else if (status === "blocked_environment") {
           action = `<button class="btn small" data-connect-platform="${server}">重新连接</button>`;
+        } else if (state.platformSupport[account.platform]?.sync_supported === false) {
+          // **不给一个点下去必然失败的按钮。**
+          //
+          // 小红书/抖音/快手/B站 走浏览器拦截路，而那条路的取数缝隙目前是
+          // 显式 stub。此前界面照样画「立即同步」，点下去拿到
+          // ACQUISITION_PATH_NOT_INSTALLED，而那个码被别名成 SERVER_UNREACHABLE，
+          // 于是用户看到「暂时连不上服务器，[ 重试 ]」——**一遍遍重试一件
+          // 永远不可能成功的事**。Owner 的原话是「不知道应该怎么操作」。
+          //
+          // 现在：不画那颗按钮，把「为什么」和「现在能做什么」直接写出来。
+          action = `<span class="muted" style="max-width:280px;display:inline-block;line-height:1.5">`
+            + `${escapeHtml(state.platformSupport[account.platform]?.not_syncable_reason || "本版本还不能自动同步这个平台。")}</span>`;
         } else {
           action = `<button class="btn small" data-sync-account="${escapeHtml(account.id)}">立即同步</button>`;
         }

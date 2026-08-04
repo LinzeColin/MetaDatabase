@@ -159,9 +159,18 @@ def test_the_invariant_has_an_actual_enforcement_point() -> None:
 
 
 def test_internal_codes_are_aliased_into_dictionary_sentences() -> None:
-    """代码里的失败码比词典细，但界面上只许出现词典里的句子。"""
+    """代码里的失败码比词典细，但界面上只许出现词典里的句子。
+
+    **ACQUISITION_PATH_NOT_INSTALLED 从这张表里去掉了。** 它原先别名成
+    SERVER_UNREACHABLE，也就是对用户说「暂时连不上服务器，[ 重试 ]」——
+    而真实原因是**本版本根本没实现这条取数路**。Owner 因此一遍遍重试一件
+    永远不可能成功的事，原话是「不知道应该怎么操作」。
+
+    现在它进 PRODUCT_FAULT_CODES：结论是「我们的问题、别重试」。
+    主要修法在界面侧——这些平台根本不画「立即同步」按钮，
+    见 test_sync_button_is_not_offered_where_it_cannot_work。
+    """
     for internal, expect_code in (
-        ("ACQUISITION_PATH_NOT_INSTALLED", "SERVER_UNREACHABLE"),
         ("LOGIN_PROOF_UNAVAILABLE", "NOT_LOGGED_IN"),
         ("PERMISSION_DENIED", "NOT_LOGGED_IN"),
         ("MIRROR_TAB_CLOSED", "TAB_CLOSED"),
@@ -537,3 +546,22 @@ def test_failure_codes_are_never_python_class_names() -> None:
         "这些地方把异常类名当成了失败码，界面会显示「我们没能记录下原因」：\n  "
         + "\n  ".join(offenders)
     )
+
+
+def test_the_unimplemented_path_never_tells_the_user_to_retry() -> None:
+    """一个永远不会成功的东西，绝不能配一句「重试」。
+
+    这是本轮最贵的一处教训：Owner 点小红书/抖音/B站 的「立即同步」，
+    看到的是「暂时连不上服务器。你的数据没有丢，[ 重试 ]」——
+    而那条取数路在本版本压根没实现。
+    """
+    from social_archive.failure_copy import (
+        DELIBERATELY_UNALIASED,
+        PRODUCT_FAULT_CODES,
+        _ALIASES,
+    )
+
+    code = "ACQUISITION_PATH_NOT_INSTALLED"
+    assert code not in _ALIASES, "又被别名成某句词典文案了——那必然带上「重试」"
+    assert code in DELIBERATELY_UNALIASED
+    assert code in PRODUCT_FAULT_CODES, "没有归到「这是我们的问题」那一支"
