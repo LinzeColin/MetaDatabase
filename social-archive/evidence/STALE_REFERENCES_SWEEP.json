@@ -45,5 +45,23 @@
     "只反查了**本分支删掉的文件**。更早版本删掉的东西如果仍被引用，这次扫不到。",
     "按文件名反查，改名/移动造成的悬空引用（同名不同路径）可能漏。"
   ],
-  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。"
+  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。",
+  "second_sweep_2026_08_04_by_concept_not_by_filename": {
+    "why": "第一次扫的方法是「把本分支删掉的**文件**反过来搜谁还在引用」。我在这份文件的局限里自己写过：改名/移动造成的悬空引用可能漏。这次是顺着 v0.0.0.6 的一次界面改名撞出来的，验证了那条局限是真的。",
+    "trigger": "重核 test_pwa_contract 时发现「连接中心」在 v0.0.0.6（40d833bf）已改名为「账号同步中心」，而手册与判据都没跟。顺手全仓搜旧词。",
+    "found": [
+      {
+        "where": "docs/00_零门槛运行手册.md:15",
+        "what": "「在连接中心授权常用平台」——指着一个 v0.0.0.6 起就不存在的界面名字",
+        "fix": "改成「账号同步中心」"
+      },
+      {
+        "where": "scripts/browser_acceptance.py",
+        "what": "**整份脚本对不上现在的界面**：#sourceCards / #destinationCards / #detailDialog 全部 0 命中，还断言「XHS-Downloader Sidecar」可见——那条取数通道 T03 已删。而且全仓没有任何地方调用它。",
+        "fix": "不删（267 行选择器与断言是重做验收时的现成参照），改成**开跑即拒绝**并逐条列出过时项。留着一个跑不通却名叫 browser_acceptance 的脚本，是假的保证，比没有更糟。"
+      }
+    ],
+    "a_false_pass_from_my_own_check": "改完我用 `ast.parse` 验语法，**它通过了**——而文件实际 import 不了：`from __future__ import annotations` 被我的文件头挤到了第 46 行，而它必须是第一条语句。`ast.parse` 不管这条规则，`compile()` 才管。**又一次「检查器没在检查我以为它在检查的东西」。**",
+    "method_note": "按概念/字符串扫，比按文件名扫多找到两处。两种都要做：文件名扫得到删除，字符串扫得到改名。"
+  }
 }

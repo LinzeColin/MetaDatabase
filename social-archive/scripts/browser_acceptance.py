@@ -1,4 +1,51 @@
+"""真实浏览器 UI 验收 —— **这份脚本已经对不上现在的界面，跑不通。**
+
+## 为什么保留而不是删掉
+
+它驱动的每一个选择器在当前 PWA 里都不存在了（2026-08-04 实测）：
+
+    #sourceCards        0 命中
+    #destinationCards   0 命中
+    #detailDialog       0 命中
+    连接中心（链接名）   v0.0.0.6 改名为「账号同步中心」
+    XHS-Downloader Sidecar  T03 已删除这条取数通道
+
+而且**全仓没有任何地方调用它**。
+
+留着比删掉危险的地方在于：文件名叫 browser_acceptance.py，
+看见它的人（包括以后的我）会以为 PWA 有自动化验收。
+**那是假的保证，比没有更糟。**
+
+所以它现在**开跑就拒绝**，把过时的地方逐条说清楚，而不是跑到一半
+在某个 locator 上报个看不懂的超时。267 行的选择器与断言留着，
+将来重做界面验收时是现成的参照。
+
+要重新启用：把下面 STALE_SELECTORS 逐条对到新界面上，然后删掉这个闸。
+"""
+
 from __future__ import annotations
+
+
+STALE_SELECTORS = {
+    "#sourceCards": "九类来源卡片；当前界面没有这个容器",
+    "#destinationCards": "五类目的地卡片；同上",
+    "#detailDialog": "详情弹窗；当前是 drawer 结构",
+    "连接中心": "v0.0.0.6（40d833bf）改名为「账号同步中心」",
+    "XHS-Downloader Sidecar": "T03 已删除该取数通道，界面上不该再出现",
+}
+
+
+def _refuse_because_it_is_stale() -> int:
+    import json as _json
+    print(_json.dumps({
+        "status": "BLOCKED_STALE",
+        "message": "本脚本对不上当前界面，拒绝运行（跑下去只会在某个 locator 上莫名超时）",
+        "stale": STALE_SELECTORS,
+        "how_to_reenable": "逐条对到新界面后，删除 main() 开头的这道闸",
+    }, ensure_ascii=False, indent=2))
+    return 3
+
+
 
 import argparse
 import json
@@ -9,6 +56,9 @@ from urllib.parse import parse_qs, urlparse
 
 
 def main() -> int:
+    # 这道闸在最前面：不许它跑到一半才发现界面全变了。
+    return _refuse_because_it_is_stale()
+
     parser = argparse.ArgumentParser(description="Social Archive 离线真实浏览器 UI 验收")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
