@@ -1564,6 +1564,47 @@ class RuntimeStore:
         out["broken"] = sorted(k for k, v in out.items() if k in checks and int(v) > 0)
         return out
 
+    def privacy_facts(self) -> dict[str, Any]:
+        """把「隐私边界」从一句自称改成一次测量（v0.0.0.7）。
+
+        `/v1/extension/bootstrap` 此前回的是三个写死的字面量：
+
+            "cookie_custody": False, "password_custody": False,
+            "user_triggered_capture_only": True
+
+        其中 `cookie_custody: False` 从 T05/T06 起就是**假的**——产品确实在
+        托管西方三源的登录状态（加密后落库）。一个自称是隐私边界的字段说了假话，
+        比没有这个字段更糟：读它的人会据此以为不存在这件事。
+
+        而且它被一条判据逐字钉住（test_extension_api 断言整个字典），
+        **错的事实由绿灯守着**，是本轮遇到过最糟的形状。
+
+        所以这里全部改成算出来的：
+          · 密码：扫 sqlite_master 里有没有 password 形状的列。**不是"我们不存"，
+            是"库里现在没有这种列"**——能出示的出示，只能自述的别写成事实。
+          · 自动同步：数有多少个账号开着定时同步。这直接反驳了
+            "user_triggered_capture_only"——连接过的账号会按周期自己跑。
+        """
+        password_shaped = re.compile(r"(?i)\b(password|passwd|pwd)\b")
+        columns: list[str] = []
+        auto_sync = 0
+        with self.connection() as con:
+            for row in con.execute(
+                "SELECT name, sql FROM sqlite_master WHERE type='table' AND sql IS NOT NULL"
+            ):
+                for line in str(row["sql"]).splitlines():
+                    field = line.strip().split(" ", 1)[0].strip(",()\"'`")
+                    if field and password_shaped.fullmatch(field):
+                        columns.append(f"{row['name']}.{field}")
+            try:
+                auto_sync = int(con.execute(
+                    "SELECT COUNT(*) FROM source_account "
+                    "WHERE auto_sync_enabled=1 AND connection_state IN ('connected','degraded')"
+                ).fetchone()[0])
+            except sqlite3.Error:
+                auto_sync = 0
+        return {"password_shaped_columns": sorted(columns), "auto_sync_accounts": auto_sync}
+
     def owner_user_for_content(self, content_id: str) -> str | None:
         """这条内容是谁的。用于取用他自己托管的平台会话。
 

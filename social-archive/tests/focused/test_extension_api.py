@@ -47,11 +47,24 @@ def test_extension_bootstrap_is_single_render_payload(tmp_path, monkeypatch):
     assert body["project"] == "Social Archive"
     assert body["version"] == "0.0.0.6"
     assert body["archive_defaults"] == ["L0", "L1", "L3"]
-    assert body["privacy"] == {
-        "cookie_custody": False,
-        "password_custody": False,
-        "user_triggered_capture_only": True,
+    # 这条断言原先逐字钉着 {"cookie_custody": False, "password_custody": False,
+    # "user_triggered_capture_only": True}。**其中第一条从 T05/T06 起就是假的**
+    # ——产品确实在托管西方三源的登录状态（加密后落库）。
+    # 也就是说：一句错的事实，由一盏绿灯守着。
+    #
+    # 现在这三项全部由 store.privacy_facts() 与托管清单算出来，判据也跟着
+    # 改成断言"算出来的东西对不对"，而不是"字面量有没有被改动"。
+    privacy = body["privacy"]
+    assert privacy["cookie_custody"] is True, "产品在托管西方三源的登录状态，不能对外说没有"
+    assert set(privacy["cookie_custody_platforms"]) == {"x", "instagram", "youtube"}
+    assert set(privacy["cookie_never_leaves_browser_platforms"]) == {
+        "xiaohongshu", "douyin", "bilibili", "kuaishou"
     }
+    assert privacy["password_custody"] is False
+    assert privacy["password_shaped_columns"] == [], (
+        "库里出现了 password 形状的列——这不是文案问题，是 L0 边界被越过了"
+    )
+    assert privacy["auto_sync_accounts"] == 0, "全新库里不该有开着定时同步的账号"
     assert {"connectors", "destinations", "jobs", "storage", "summary"} <= body.keys()
     assert all({"last_checked_at", "latency_ms", "last_message_zh"} <= item.keys() for item in body["connectors"])
     assert all({"last_checked_at", "latency_ms", "last_message_zh"} <= item.keys() for item in body["destinations"])

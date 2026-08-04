@@ -23,6 +23,8 @@ from .account_sync import AccountSyncCoordinator, PLATFORM_LABELS, PLATFORM_RELA
 from .config import Settings
 from .db import RuntimeStore
 from .credentials import (
+    CUSTODIAL_PLATFORMS,
+    DOMESTIC_PLATFORMS,
     CredentialRejected,
     CredentialStore,
     CredentialUnavailable,
@@ -449,6 +451,7 @@ def extension_bootstrap() -> dict[str, Any]:
     storage_items = store.quota_states()
     replicas = store.replica_summary()
     destination_receipts = store.list_destination_receipts(limit=30)
+    privacy_facts = store.privacy_facts()
     connected_sources = sum(1 for item in connector_items if item["state"] == "healthy")
     connected_destinations = sum(1 for item in destination_items if item["state"] == "connected")
     return {
@@ -477,10 +480,21 @@ def extension_bootstrap() -> dict[str, Any]:
             "paired": bool(_expected_token()) if settings.pairing_required else True,
             "mode": "cloud_first" if settings.public_base_url.startswith("https://") else "local_development",
         },
+        # 这一段此前是三个写死的字面量，其中 cookie_custody: False 从 T05/T06
+        # 起就是**假的**——产品确实在托管西方三源的登录状态（加密后落库）。
+        # 一个自称是隐私边界的字段说了假话，比没有这个字段更糟。
+        # 现在全部改成算出来的，并且把「哪些托管、哪些绝不出浏览器」分开说清楚——
+        # 那个区别本来就是这个产品的设计，不是需要含糊过去的东西。
         "privacy": {
-            "cookie_custody": False,
-            "password_custody": False,
-            "user_triggered_capture_only": True,
+            "cookie_custody": bool(CUSTODIAL_PLATFORMS),
+            "cookie_custody_platforms": sorted(CUSTODIAL_PLATFORMS),
+            "cookie_never_leaves_browser_platforms": sorted(DOMESTIC_PLATFORMS),
+            # 不是「我们不存密码」这句自称，是「库里现在没有这种列」这个测量。
+            "password_custody": bool(privacy_facts["password_shaped_columns"]),
+            "password_shaped_columns": privacy_facts["password_shaped_columns"],
+            # 取代原先的 user_triggered_capture_only: True。它不成立——
+            # 连接过的账号会按周期自己跑。这里给的是数目，不是一句形容。
+            "auto_sync_accounts": privacy_facts["auto_sync_accounts"],
         },
     }
 
