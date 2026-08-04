@@ -2,7 +2,6 @@
   "task": "T00",
   "claim": ".env.example 里有 5 个键全仓没有任何地方读。**没有为此加第 20 道门**——因为同一条检查会对另外 4 个键误报，而今天已经证明「总是喊狼来了的检查」会被整段跳过。",
   "measured_at": "2026-08-04",
-
   "measurement": {
     "total_keys_in_env_example": 84,
     "naive_grep_says_unread": 9,
@@ -19,15 +18,17 @@
     ],
     "why_they_are_false_positives": "backup.py 的 `_s3_config` 用 `prefix = f\"SOCIAL_ARCHIVE_{store_id.upper()}\"` **动态拼出键名**，字面 grep 永远搜不到。实测：只设这两个键调用 `_s3_config('r2')`，它确实去读了它们。"
   },
-
   "why_i_did_not_build_the_gate": "9 个报警里 4 个是误报——44%。今天已经有两个同形状的教训：doctor.sh 对着正确的权限打了 16 个 FAIL；部署闸门把 12 个密钥全报成「缺失」。**一个总是喊狼来了的检查，用不了几次就会被人整段跳过**，那时它连真的那 5 个也一起挡不住。要做对，得先枚举所有动态拼名字的地方，而那张名单本身又会漂——用一个会漂的名单去防漂移，不划算。",
-
   "what_was_done_instead": "把 5 个真的死键测出来记在这里，交给人决定删不删。**没有动 .env.example，也没有动生产的 .env** ——删配置键是运维变更，而它们现在不读也不害人。",
-
   "one_more_stale_thing_recorded_earlier": "生产的 .env 里还有一行指向 runtime/secrets/social_archive_pairing_code，而配对码那条路 T03 就删了。同样没动。",
-
   "what_this_does_not_prove": [
     "不证明那 5 个键真的可以删。判据是「全仓无引用」，而动态拼名字的写法就是这条判据的盲区——**我刚被它坑过一次**。删之前应当逐个再确认一遍。",
     "不证明另外 75 个键都在用。这次只查了 grep 判定为「没人读」的那 9 个。"
-  ]
+  ],
+  "a_better_measurement_was_attempted_and_failed_2026_08_05": {
+    "idea": "既然 grep 的盲区是动态拼出来的键名，就别用 grep：把 os.environ 换成一个会记账的映射，把能跑的路径都跑一遍，看**哪些键真的被读过**。",
+    "result": "**没用。** 84 个键里报出 71 个「一次都没读过」——里面包括 SOCIAL_ARCHIVE_RUNTIME_DB 这种明摆着在读的。原因是 Settings.from_env() 拿着占位值 'x' 早早抛了 ValueError，后面的键根本没走到。",
+    "why_it_is_recorded": "**一个看起来很精确、其实严重少数的量法，比 grep 更危险**——它会让人放心地删掉还在用的键。写下来，免得下一个人（或下一个我）再造一遍同一个坏探针。要让它可用，得先给每个键按类型造出能通过校验的值，那张表本身又会漂。",
+    "decision": "维持原判：**不删**。这 5 个键现在不读也不害人，而删配置键是运维变更。"
+  }
 }
