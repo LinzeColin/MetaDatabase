@@ -116,6 +116,28 @@ def test_env_example_documents_the_new_secret_paths() -> None:
 
 
 def test_systemd_host_prep_creates_the_same_secret_files() -> None:
+    """宿主机预检要求的 secret 集合，必须覆盖 compose 声明的全部。
+
+    这条原先是 `assert "google_oauth_client_secret" in prep` 那样的**文本抽查**
+    ——脚本里写着那个名字就算数。于是脚本手写的十五个名字与 compose 的十九个
+    差了四个，它一直是绿的。
+
+    脚本改成从 compose 现读之后，文本抽查连"名字在不在文件里"都不成立了，
+    正好逼出正确写法：**比对集合，不比对文本。**
+    """
+    import re
+
     prep = (ROOT / "scripts/prepare_systemd_host.sh").read_text(encoding="utf-8")
-    for name in ("google_oauth_client_secret", "github_oauth_client_secret", "credential_age_identity"):
-        assert name in prep, f"prepare_systemd_host.sh 不会为 {name} 建文件与权限"
+    assert "compose*.yaml" in prep, "宿主机预检不再从 compose 推导 secret 清单"
+    declared = set()
+    for path in sorted(ROOT.glob("compose*.yaml")):
+        declared |= set(re.findall(
+            r"file:\s*\./runtime/secrets/([a-z_][a-z0-9_.]*)",
+            path.read_text(encoding="utf-8"),
+        ))
+    assert len(declared) >= 10, f"只解析出 {len(declared)} 个 secret，判据大概没在查"
+    # 这几个是本轮明确要求覆盖到的，单独点名，免得集合比对因两边同时漏而假绿。
+    for name in ("google_oauth_client_secret", "github_oauth_client_secret",
+                 "credential_age_identity", "instagram_session",
+                 "x_oauth_token", "reddit_oauth_token"):
+        assert name in declared, f"compose 里没有 {name}，宿主机预检也就不会要求它"

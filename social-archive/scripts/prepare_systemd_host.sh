@@ -36,28 +36,32 @@ UNITS=(
 # Source files remain in runtime/secrets. PID 1 alone opens them for the
 # named systemd units and provides short-lived per-unit credential copies.
 # The script never changes their ownership or mode.
-HOST_SECRET_NAMES=(
-  r2_access_key_id
-  r2_secret_access_key
-  oci_access_key_id
-  oci_secret_access_key
-  github_token
-  private_database_token
-  social_archive_api_token
-  google_oauth_client_secret
-  github_oauth_client_secret
-  credential_age_identity
-  cli_worker_token
-  notion_token
-  obsidian_rest_token
-  karakeep_api_token
-  linkwarden_api_token
-)
 
 fail() {
   printf 'systemd 宿主机准备停止：%s\n' "$1" >&2
   exit 2
 }
+
+#
+# **这份名单原先是手写的十五个名字，而 compose 声明了十九个。**
+# 差的那几个（instagram_session 与本轮新增的两个 OAuth token）不会在这里报缺，
+# 于是这个脚本一路通过，然后 `docker compose up` 用 Docker 自己的错误挂掉——
+# 正是 test_compose_secrets_are_all_created 的说明里写明「最要命」的那种。
+#
+# 改成从 compose 现读：凡是声明成 `./runtime/secrets/<name>` 的，都必须存在。
+# 这样加一个新 secret 时**不需要有人记得回来改这一行**。
+# >>> DERIVE_HOST_SECRET_NAMES（判据会原样取出这一段单独跑，别在中间插别的）
+HOST_SECRET_NAMES=()
+while IFS= read -r secret_name; do
+  [[ -n "$secret_name" ]] && HOST_SECRET_NAMES+=("$secret_name")
+done < <(
+  grep -hoE 'file:[[:space:]]*\./runtime/secrets/[A-Za-z0-9_.]+' "$ROOT"/compose*.yaml 2>/dev/null \
+    | sed 's#.*/##' | sort -u
+)
+# <<< DERIVE_HOST_SECRET_NAMES
+# 一个都没读到 = 解析失败或 compose 不在，不能当成"没有要检查的"。
+[[ ${#HOST_SECRET_NAMES[@]} -gt 0 ]] \
+  || fail '从 compose 里没解析出任何 file-based secret —— 拒绝在什么都不检查的情况下继续。'
 
 env_value() {
   file_env_value "$ROOT/.env" "$1"

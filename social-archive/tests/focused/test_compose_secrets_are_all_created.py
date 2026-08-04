@@ -21,6 +21,7 @@ secret 创建（install 没建）。**五次都不是逻辑错，是覆盖面错
 from __future__ import annotations
 
 import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -70,11 +71,45 @@ def test_the_guard_would_notice_a_newly_declared_secret() -> None:
     assert "some_brand_new_secret" in (declared - created), "判据的比对逻辑本身是坏的"
 
 
-def test_systemd_host_prep_requires_the_same_set() -> None:
-    """宿主机那条路（systemd + 独立 secret 目录）不能和 compose 这条漂开。"""
+def test_systemd_host_prep_requires_the_same_set(tmp_path: Path) -> None:
+    """宿主机那条路（systemd + 独立 secret 目录）不能和 compose 这条漂开。
+
+    ## 这条判据原先名不副实
+
+    函数名说的是「同一套」，实际只抽查了三个名字在不在文件里。于是
+    `prepare_systemd_host.sh` 手写的十五个名字与 compose 声明的十九个
+    **差了四个**（instagram_session 与本轮新增的两个 OAuth token），
+    而它一直是绿的。
+
+    差的后果就是本文件开头写明「最要命」的那种：预检一路通过，
+    然后 `docker compose up` 用 Docker 自己的错误挂掉。
+
+    现在真的比对全集——而脚本那边也改成从 compose 现读，不再手写。
+    """
     prep = (ROOT / "scripts/prepare_systemd_host.sh").read_text(encoding="utf-8")
-    for name in ("google_oauth_client_secret", "github_oauth_client_secret", "credential_age_identity"):
-        assert name in prep, f"prepare_systemd_host.sh 不认识 {name}，宿主机那条路会缺文件"
+    assert "HOST_SECRET_NAMES=(\n  r2_access_key_id" not in prep, "又退回手写清单了"
+
+    # 原样取出脚本里那段推导单独跑，而不是读源码猜它会得出什么。
+    # 从标记那一行的**行尾**切起：标记后面还跟着一句中文说明，
+    # 直接按标记切会把那句话当成第一行 shell 代码（实测：command not found）。
+    block = prep.split("# >>> DERIVE_HOST_SECRET_NAMES", 1)[1].split("\n", 1)[1]
+    block = block.split("# <<< DERIVE_HOST_SECRET_NAMES", 1)[0]
+    script = tmp_path / "derive.sh"
+    script.write_text(
+        f'set -euo pipefail\nROOT="{ROOT}"\n{block}\n'
+        'printf "%s\\n" "${HOST_SECRET_NAMES[@]}"\n',
+        encoding="utf-8",
+    )
+    result = subprocess.run(["bash", str(script)], capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stderr
+    derived = {line.strip() for line in result.stdout.splitlines() if line.strip()}
+    assert len(derived) >= 10, f"只推导出 {len(derived)} 个，判据大概没在查"
+
+    missing = sorted(_compose_file_secrets() - derived)
+    assert not missing, (
+        f"compose 声明了这些 secret，而 prepare_systemd_host.sh 不会要求它们存在：{missing}。"
+        "预检会一路通过，然后 docker compose up 用 Docker 自己的错误挂掉。"
+    )
 
 
 def test_placeholder_secrets_do_not_pretend_to_be_configured() -> None:

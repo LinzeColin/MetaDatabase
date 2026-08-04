@@ -8,6 +8,7 @@ import shlex
 import subprocess
 import sys
 import urllib.error
+import re
 from pathlib import Path
 
 import yaml
@@ -71,6 +72,31 @@ def test_install_dry_run_is_zero_write_even_when_prerequisites_are_available(tmp
     assert not (project / "runtime").exists()
 
 
+def _provision_source_tree(project: Path) -> None:
+    """把夹具的 secret 清单也交给 compose 决定。
+
+    这份清单原先是**第四份手写名单**（compose / install.sh /
+    prepare_systemd_host.sh / 这里）。四份里任何一份漏一个，
+    dry-run 就会报「缺少宿主机 Secret」——看起来像脚本坏了，其实是夹具漏建。
+
+    prepare_systemd_host.sh 现在从 compose 现读必需清单，所以夹具也照抄真
+    compose，再按它建占位。少一份要维护的名单。
+    """
+    for compose in sorted(ROOT.glob("compose*.yaml")):
+        (project / compose.name).write_text(compose.read_text(encoding="utf-8"), encoding="utf-8")
+    secrets = project / "runtime" / "secrets"
+    secrets.mkdir(parents=True, exist_ok=True)
+    names = set()
+    for compose in sorted(ROOT.glob("compose*.yaml")):
+        names |= set(re.findall(
+            r"file:\s*\./runtime/secrets/([a-z_][a-z0-9_.]*)",
+            compose.read_text(encoding="utf-8"),
+        ))
+    assert names, "从 compose 里没解析出 secret —— 夹具在空转"
+    for name in sorted(names):
+        (secrets / name).write_text("fixture\n", encoding="utf-8")
+
+
 def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
     project = tmp_path / "project"
     scripts = project / "scripts"
@@ -111,29 +137,7 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
         "social-archive-status-web.service",
     ):
         (units / name).write_text("fixture\n", encoding="utf-8")
-    secrets = project / "runtime" / "secrets"
-    secrets.mkdir(parents=True)
-    for name in (
-        "r2_access_key_id",
-        "r2_secret_access_key",
-        "oci_access_key_id",
-        "oci_secret_access_key",
-        "github_token",
-        "private_database_token",
-        "social_archive_api_token",
-        # v0.0.0.7：登录与凭据托管的三个 secret。这份夹具清单必须跟着
-        # prepare_systemd_host.sh 的必需列表走，否则 dry-run 会报「缺少宿主机 Secret」
-        # ——看起来像脚本坏了，其实是夹具漏建（本仓已经犯过同样的错）。
-        "google_oauth_client_secret",
-        "github_oauth_client_secret",
-        "credential_age_identity",
-        "cli_worker_token",
-        "notion_token",
-        "obsidian_rest_token",
-        "karakeep_api_token",
-        "linkwarden_api_token",
-    ):
-        (secrets / name).write_text("fixture\n", encoding="utf-8")
+    _provision_source_tree(project)
     before = sorted(str(path.relative_to(project)) for path in project.rglob("*"))
 
     result = subprocess.run(["bash", "scripts/prepare_systemd_host.sh", "--dry-run"], cwd=project, text=True, capture_output=True, check=False)
@@ -244,29 +248,7 @@ def test_systemd_host_prepare_refuses_to_erase_existing_nonsecret_host_configura
         "social-archive-status-web.service",
     ):
         (units / name).write_text("fixture\n", encoding="utf-8")
-    secrets = project / "runtime" / "secrets"
-    secrets.mkdir(parents=True)
-    for name in (
-        "r2_access_key_id",
-        "r2_secret_access_key",
-        "oci_access_key_id",
-        "oci_secret_access_key",
-        "github_token",
-        "private_database_token",
-        "social_archive_api_token",
-        # v0.0.0.7：登录与凭据托管的三个 secret。这份夹具清单必须跟着
-        # prepare_systemd_host.sh 的必需列表走，否则 dry-run 会报「缺少宿主机 Secret」
-        # ——看起来像脚本坏了，其实是夹具漏建（本仓已经犯过同样的错）。
-        "google_oauth_client_secret",
-        "github_oauth_client_secret",
-        "credential_age_identity",
-        "cli_worker_token",
-        "notion_token",
-        "obsidian_rest_token",
-        "karakeep_api_token",
-        "linkwarden_api_token",
-    ):
-        (secrets / name).write_text("fixture\n", encoding="utf-8")
+    _provision_source_tree(project)
     host_env = project / "etc" / "social-archive" / "social-archive.env"
     host_env.parent.mkdir(parents=True)
     host_env.write_text("SOCIAL_ARCHIVE_R2_ENDPOINT=https://fixture.invalid\n", encoding="utf-8")
