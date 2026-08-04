@@ -245,10 +245,14 @@ step "5.5) 另一个容器（cli-tools）是不是也跟上了这一版"
 # 容器里还有 /usr/local/lib/python3.12/{http,xmlrpc}/server.py 两个同名文件，
 # 早先用 `find | head -1` 差点比错了对象（那次侥幸对了，因为 -maxdepth 4
 # 把标准库那两个挡在外面）。**别再靠侥幸，写死量到的那个路径。**
-LOCAL_SIDECAR="$(shasum -a 256 sidecars/cli-tools/server.py | cut -d' ' -f1)"
-REMOTE_SIDECAR="$(ssh -o ConnectTimeout=20 "$HOST" "sudo docker exec social-archive-cli-tools-1 sha256sum /worker/server.py 2>/dev/null | cut -d' ' -f1" || true)"
+# **两个文件都要比。** 只比 server.py 的话，「只改 Dockerfile」那种改动
+# 一点都看不出来——Dockerfile 因此被复制进了镜像（/worker/Dockerfile.built）。
+LOCAL_SIDECAR="$(cat sidecars/cli-tools/server.py sidecars/cli-tools/Dockerfile | shasum -a 256 | cut -d' ' -f1)"
+REMOTE_SIDECAR="$(ssh -o ConnectTimeout=20 "$HOST" "sudo docker exec social-archive-cli-tools-1 sh -c 'cat /worker/server.py /worker/Dockerfile.built 2>/dev/null | sha256sum' 2>/dev/null | cut -d' ' -f1" || true)"
+# 旧镜像里没有 Dockerfile.built，cat 只读到 server.py，哈希自然对不上——
+# 那正是该重建的信号，不用特判。
 if [[ -z "$REMOTE_SIDECAR" ]]; then
-  printf '  cli-tools 容器没在跑或读不到 /worker/server.py——**跳过了这一步，这不是通过**。\n'
+  printf '  cli-tools 容器没在跑或读不到 /worker/ 下那两个文件——**跳过了这一步，这不是通过**。\n'
 elif [[ "$LOCAL_SIDECAR" == "$REMOTE_SIDECAR" ]]; then
   printf '  cli-tools 跑的就是仓里这一份。\n'
 else
@@ -256,7 +260,7 @@ else
     "${REMOTE_SIDECAR:0:12}" "${LOCAL_SIDECAR:0:12}"
   ssh -o ConnectTimeout=300 "$HOST" "cd '$REMOTE_DIR' && sudo docker compose build cli-tools && sudo docker compose up -d cli-tools" >/dev/null 2>&1 \
     || fail 'cli-tools 重建失败。'
-  REMOTE_SIDECAR="$(ssh -o ConnectTimeout=20 "$HOST" "sudo docker exec social-archive-cli-tools-1 sha256sum /worker/server.py | cut -d' ' -f1")"
+  REMOTE_SIDECAR="$(ssh -o ConnectTimeout=20 "$HOST" "sudo docker exec social-archive-cli-tools-1 sh -c 'cat /worker/server.py /worker/Dockerfile.built | sha256sum'" | cut -d' ' -f1)"
   [[ "$LOCAL_SIDECAR" == "$REMOTE_SIDECAR" ]] \
     || fail "cli-tools 重建完还是对不上（容器 ${REMOTE_SIDECAR}，仓里 ${LOCAL_SIDECAR}）。"
   printf '  已换上，现在与仓里一致。\n'

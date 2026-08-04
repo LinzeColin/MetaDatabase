@@ -69,6 +69,13 @@ def test_the_deploy_also_checks_the_other_container() -> None:
         "靠 find|head 早先差点比错对象"
     )
     assert "docker compose build cli-tools" in deploy, "发现落后了却不重建"
+    assert "Dockerfile.built" in deploy, (
+        "只比 server.py 的话，「只改 Dockerfile 不改 server.py」那种改动看不出来"
+    )
+    dockerfile = (ROOT / "sidecars/cli-tools/Dockerfile").read_text(encoding="utf-8")
+    assert "COPY Dockerfile /worker/Dockerfile.built" in dockerfile, (
+        "镜像里没有 Dockerfile 的副本，那道门就没得比"
+    )
     assert "这不是通过" in deploy, (
         "容器没在跑时应当明说这是跳过；把跳过印成通过，正是本项目一直在防的那种谎"
     )

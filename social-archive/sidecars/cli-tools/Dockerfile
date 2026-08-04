@@ -18,6 +18,16 @@ COPY --from=bilibili_cli bili_cli /opt/bilibili-cli/bili_cli
 RUN pip install --no-cache-dir /opt/bilibili-cli
 WORKDIR /worker
 COPY server.py /worker/server.py
+# **把 Dockerfile 自己也放进镜像。**
+#
+# 部署那道「cli-tools 跟上了没有」的门比的是 server.py 的哈希——
+# 而只改 Dockerfile、不改 server.py 的那种改动，它一点都看不出来。
+# 我把这个洞写进证据的当天就补上了：镜像里有这一份，门就能连 Dockerfile
+# 一起比，不必靠构建参数或标签那一套。
+#
+# 不循环：COPY 复制的是**构建那一刻的 Dockerfile 本身**，包括这几行注释。
+# 里面没有任何密钥（只有版本号和一段讲主组为什么必须是 socialarchive 的说明）。
+COPY Dockerfile /worker/Dockerfile.built
 # **cliworker 的主组必须是 socialarchive(10001)，不能是它自己的 cliworker(999)。**
 #
 # 这就是 C-T00-01 的根因。原来这里是 `useradd --uid 10002 --create-home cliworker`
