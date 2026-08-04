@@ -61,6 +61,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from social_archive.platform_payloads import parse_bilibili_favlist  # noqa: E402
 
+HERE = Path(__file__).resolve().parent
 PORT = 8765
 FAV_PATH = "/x/v3/fav/resource/list"
 
@@ -312,6 +313,48 @@ async def run(chrome_binary: str, ext_dir: str, keep_going: bool) -> int:
             "这个演练根本不是在量前缀匹配，它测不出真问题"
         )
 
+    # ---- 最后一段：把这次真抓到的地址，走一遍 T09 的固化 ----
+    #
+    # freeze_intercept_prefix.py 到今天为止只被验过「拒绝」那几条路——
+    # 成功那条一次都没跑过。**而它成功那条正是 Owner 按完诊断之后要走的路。**
+    # 这里补上：拿**这次真浏览器抓到、且生产解析器读得懂**的那个地址，
+    # 造一份和弹窗上报格式一致的报告，跑一次固化，写进一份**临时**目录副本。
+    freeze: dict[str, Any] = {"ran": False}
+    if parsed_items and captures:
+        with tempfile.TemporaryDirectory(prefix="sa-freeze-") as work:
+            # **别叫 report。** 上面已经有一个 report 是观察器的自报状态，
+            # 重名会把它顶掉——第一版就是这么把 PosixPath 塞进了最终输出。
+            report_path = Path(work) / "extension-diagnostics.jsonl"
+            report_path.write_text(json.dumps({
+                "at": "drill", "platform": "bilibili",
+                "page_url": page_url,
+                "urls": [c["url"] for c in captures],
+                "readable_urls": [captures[0]["url"]],
+                "capture_count": len(captures), "readable_count": 1,
+            }, ensure_ascii=False) + "\n", encoding="utf-8")
+            catalog = Path(work) / "platform-catalog.js"
+            catalog.write_text(
+                "const INTERCEPT_PREFIXES = Object.freeze({\n"
+                "    bilibili: Object.freeze([\"unset\"]),\n"
+                "    xiaohongshu: null,\n"
+                "  });\n", encoding="utf-8")
+            run = subprocess.run(
+                [sys.executable, str(HERE / "freeze_intercept_prefix.py"),
+                 "--platform", "bilibili", "--report", str(report_path),
+                 "--apply", "--catalog", str(catalog)],
+                capture_output=True, text=True, check=False)
+            written = catalog.read_text(encoding="utf-8")
+            freeze = {
+                "ran": True, "exit_code": run.returncode,
+                "stdout": run.stdout.strip()[-260:],
+                "catalog_now_says": next(
+                    (l.strip() for l in written.splitlines() if "bilibili:" in l), ""),
+            }
+        if run.returncode != 0:
+            problems.append(f"固化那一步失败：{run.stdout.strip()[-160:]}")
+        elif FAV_PATH not in freeze["catalog_now_says"]:
+            problems.append(f"固化写进去的不是这次抓到的那个地址：{freeze['catalog_now_says']}")
+
     print(json.dumps({
         "status": "PASS" if not problems else "FAIL",
         "extension_id": extension_id,
@@ -322,6 +365,7 @@ async def run(chrome_binary: str, ext_dir: str, keep_going: bool) -> int:
         "parsed_items_from_first_capture": parsed_items,
         "captured_on_a_second_press": second_count,
         "counter_example_captured": len(counter.get("captures") or []),
+        "froze_the_prefix_from_what_was_captured": freeze,
         "problems": problems,
     }, ensure_ascii=False))
     return 0 if not problems or keep_going else 4

@@ -146,3 +146,22 @@ def test_the_diagnostic_does_not_upload_two_hundred_bodies_one_at_a_time() -> No
     assert "for (const capture of toParse)" in parse, "还是在遍历整个缓冲区"
     assert "notParsed" in parse, "没读的条数没算出来"
     assert "没有逐条去读" in parse, "没读的条数没告诉用户——静默少读和「平台没发」长得一样"
+
+
+def test_the_drill_goes_all_the_way_through_freezing_the_prefix() -> None:
+    """演练要走到**固化**为止，不能停在「读得懂」。
+
+    freeze_intercept_prefix.py 的**成功那条路**在此之前一次都没跑过——
+    单元判据验的全是它的「拒绝」。而成功那条恰恰是 Owner 按完诊断之后要走的。
+
+    演练里那个地址是**真 Chrome 抓到、生产解析器读得懂**的那一个，
+    比手写的报告更有说服力。写进去的是一份**临时**目录副本，真目录不碰。
+    """
+    assert "freeze_intercept_prefix.py" in DRILL, "演练停在「读得懂」，没走到固化"
+    assert "catalog_now_says" in DRILL, "没有回头核对目录里到底写进去了什么"
+    assert "tempfile.TemporaryDirectory(prefix=\"sa-freeze-\")" in DRILL, (
+        "固化那一步没有写进临时副本——演练绝不能改真的平台目录"
+    )
+    assert 'FAV_PATH not in freeze["catalog_now_says"]' in DRILL, (
+        "写进去了但没核对是不是这次抓到的那个地址"
+    )
