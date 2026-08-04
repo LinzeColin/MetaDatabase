@@ -721,12 +721,19 @@
         } else {
           action = `<button class="btn small" data-sync-account="${escapeHtml(account.id)}">立即同步</button>`;
         }
+        // 断开（v0.0.0.7 / INV-REVERSIBLE）。只在没有正在跑的任务时给——
+        // 跑到一半时该点的是上面的「取消」，两颗按钮意思不同，别摆在一起让人选。
+        if (account.connection_state !== "disconnected"
+            && !["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting", "paused"].includes(status)) {
+          action += `<button class="btn small subtle-danger" data-disconnect-account="${escapeHtml(account.id)}">断开</button>`;
+        }
         rows.push(`<tr><td><div class="platform-cell">${platformLogo(key)}<div><div>${escapeHtml(account.display_name || account.external_account_id || platformMeta[key].label)}</div><span class="muted">${escapeHtml(platformMeta[key].label)}</span></div></div></td><td><div class="connection-status ${stateClass}"><span class="dot"></span>${escapeHtml(connectionLabels[status] || status || "未知")}</div></td><td><strong style="color:var(--text)">${Number(account.content_count || 0).toLocaleString("zh-CN")}</strong> 条</td><td><div class="sync-progress"><div style="font-size:11px;color:var(--text-3)">${run ? `${imported}/${discovered || "…"} · ${connectionLabels[run.status] || run.status}` : "首次同步尚未开始"}</div>${run && (run.last_error_code || run.outcome === "stalled") ? `<div class="muted" style="font-size:11px;margin-top:2px" data-failure-reason>${escapeHtml(run.outcome === "stalled" ? (run.message_zh || "") : (failureSentence(run.last_error_code, platformMeta[key].label, run.imported_count)?.text || ""))}</div>` : ""}<div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div></div></td><td>${escapeHtml(formatDate(account.last_sync_at, true))}</td><td><div class="sync-action-stack">${action}</div></td></tr>`);
       }
     }
     $("syncTableBody").innerHTML = rows.join("");
     document.querySelectorAll("[data-connect-platform]").forEach(button => button.addEventListener("click", () => connectAccount(button.dataset.connectPlatform, button)));
     document.querySelectorAll("[data-sync-account]").forEach(button => button.addEventListener("click", () => syncAccount(button.dataset.syncAccount, button)));
+    document.querySelectorAll("[data-disconnect-account]").forEach(button => button.addEventListener("click", () => disconnectAccount(button.dataset.disconnectAccount, button)));
     document.querySelectorAll("[data-control-run]").forEach(button => button.addEventListener("click", () => controlSyncRun(
       button.dataset.controlRun,
       button.dataset.accountId,
@@ -910,6 +917,33 @@
       showToast(`${meta.label}：${error.message}`, "error");
     } finally {
       if (button) { button.disabled = false; button.textContent = "连接账号"; }
+    }
+  }
+
+  /** 断开账号（v0.0.0.7 / INV-REVERSIBLE）。
+   *
+   * 连接是一次点击，此前断开做不到——而连上之后每 6 小时自己跑一次。
+   *
+   * 这里直接调接口而不像扩展那样走 background：网页这一侧没有本地同步队列，
+   * 要清的那份队列在扩展里，由扩展自己那颗按钮负责。两边都能断，
+   * 各自清各自那一半。
+   */
+  async function disconnectAccount(accountId, button) {
+    const account = state.accounts.find(item => item.id === accountId);
+    if (!account) return;
+    const label = account.display_name || platformMeta[serverToUiPlatform[account.platform]]?.label || "这个账号";
+    const kept = Number(account.content_count || 0).toLocaleString("zh-CN");
+    if (!confirm(`断开 ${label} 之后不会再自动同步。\n\n已经存下的 ${kept} 条内容都会留着，随时可以重新连接。\n\n确定断开吗？`)) return;
+    if (button) { button.disabled = true; button.textContent = "正在断开…"; }
+    try {
+      const result = await api(`/v1/accounts/${encodeURIComponent(accountId)}`, { method: "DELETE" });
+      showToast(result?.message_zh || "已断开连接。");
+      await loadAccountsAndDestinations();
+      renderSyncTable();
+    } catch (error) {
+      showToast(`${label}：${error.message}`, "error");
+    } finally {
+      if (button) { button.disabled = false; button.textContent = "断开"; }
     }
   }
 

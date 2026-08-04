@@ -223,6 +223,11 @@
     .btn.primary { color: white; background: var(--brand); border-color: var(--brand); box-shadow: 0 7px 18px rgba(55, 103, 232, .22); }
     .btn.primary:hover { background: var(--brand-2); border-color: var(--brand-2); box-shadow: 0 9px 24px rgba(55, 103, 232, .28); }
     .btn.small { min-height: 34px; padding: 0 10px; border-radius: 8px; font-size: 12px; }
+    /* subtle-danger 在 app.js 里被用了三处（暂停/取消，以及本轮的断开），
+       而样式表里**一条规则都没有**——按钮画出来和普通按钮长得一模一样。
+       这是"引用了一个不存在的类"，和引用一个不存在的函数是同一种没接上。 */
+    .btn.subtle-danger { border-color: #f0c4bf; color: #b42318; }
+    .btn.subtle-danger:hover { background: #fff0ee; }
 
     .platform-tabs-wrap {
       position: relative;

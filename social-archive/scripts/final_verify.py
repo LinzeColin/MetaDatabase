@@ -82,6 +82,10 @@ def structural_commands() -> list[list[str]]:
         # X / Reddit / Instagram 账号扫描要的六项全在这个状态：Owner 把该做的
         # 全做对了，这三个平台仍然一条都取不到，而没有任何东西告诉他还差什么。
         [python, "scripts/find_settings_with_no_way_to_set_them.py"],
+        # 第六种，也是最直接的一种：**函数压根不存在**。node --check 只查语法
+        # 不查标识符，判据也测不到（没人在 Node 里真跑那个 IIFE），
+        # 只有用户点到那颗按钮的一刻才会炸。这道门是我自己刚犯完这个错才加的。
+        [python, "scripts/find_calls_to_functions_that_do_not_exist.py"],
         [python, "scripts/validate_deployment_contract.py"],
     ]
 
