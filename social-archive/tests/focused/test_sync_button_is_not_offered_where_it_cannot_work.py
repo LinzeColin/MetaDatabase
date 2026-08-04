@@ -170,16 +170,17 @@ def test_the_queue_itself_refuses_before_touching_any_tab() -> None:
     """
     background = (ROOT / "apps/browser-extension/background.js").read_text(encoding="utf-8")
     text = code_only(background)
-    assert "async function platformCanSyncNow(" in text, "扩展不问服务端这个平台能不能同步"
+    assert "async function platformCapability(" in text, "扩展不问服务端这个平台的能力"
+    assert "async function platformCanSyncNow(" in text, "少了「能不能同步」这一问"
 
     # 入队那一层：同步不了的根本不进队列
     enqueue = text.split("async function enqueueAllAccounts", 1)[1][:900]
     assert "platformCanSyncNow" in enqueue, "同步不了的平台仍会被放进队列"
 
     # 干活那一层：碰标签页之前先拦
-    run = text.split("async function runBrowserAccountSync", 1)[1][:1200]
-    assert "platformCanSyncNow" in run, "真正干活那条路没拦"
-    guard_at = run.index("platformCanSyncNow")
+    run = text.split("async function runBrowserAccountSync", 1)[1][:2400]
+    assert "platformCapability" in run, "真正干活那条路没拦"
+    guard_at = run.index("platformCapability")
     nav_at = run.index("navigateMirrorTab") if "navigateMirrorTab" in run else len(run)
     assert guard_at < nav_at, "拦在导航之后，标签页已经被抢了"
 
@@ -187,7 +188,89 @@ def test_the_queue_itself_refuses_before_touching_any_tab() -> None:
 def test_the_capability_is_not_duplicated_inside_the_extension() -> None:
     """能力由服务端说了算。扩展里再维护一份名单必然漂开。"""
     text = code_only((ROOT / "apps/browser-extension/background.js").read_text(encoding="utf-8"))
-    block = text.split("async function platformCanSyncNow", 1)[1][:700]
+    block = text.split("async function platformCapability", 1)[1][:900]
     for hardcoded in ("xiaohongshu", "douyin", "kuaishou", "bilibili"):
         assert f'"{hardcoded}"' not in block, "扩展里硬编码了平台名单——服务端一改就对不上"
     assert "supported_platforms" in block, "没有读服务端下发的能力"
+
+
+def test_platforms_the_server_syncs_itself_never_touch_a_tab() -> None:
+    """**上一轮只修了一半。**
+
+    上一轮挡住的是「服务端说同步不了」的平台（小红书/抖音/快手/B站）。
+    可 syncAccountById 里除了 Chrome 书签之外**一律**走 runBrowserAccountSync，
+    而 x / reddit / instagram 明明在服务端的 SERVER_ACCOUNT_CONNECTORS 里、
+    根本不需要浏览器参与。
+
+    实测（2026-08-04，真 Chrome，stub 掉 chrome.tabs.update 记录调用）：
+    对 x 跑一次 runBrowserAccountSync，**用户的标签页被抢了 2 次**——
+    先导到 x.com/i/bookmarks，再导到 x.com/home，两次都是 active: true。
+    而且它连异常都没抛，队列会认为这次跑完了、下次接着来。
+
+    也就是说 Owner 那句「每次都是把目标网页开了关关了开」，在他连上 X 的
+    那一刻就会原样复发。
+    """
+    text = code_only((ROOT / "apps/browser-extension/background.js").read_text(encoding="utf-8"))
+
+    # 分流那一层：服务端能干的，走服务端接口，不进浏览器路
+    route = text.split("async function syncAccountById", 1)[1][:2400]
+    assert "serverHandled" in route, "分流层不看服务端是否自己就能同步"
+    server_at = route.index("serverHandled")
+    browser_at = route.index("runBrowserAccountSync")
+    assert server_at < browser_at, "先掉进浏览器路了，分流没起作用"
+    assert "startServerSideSync" in route[:browser_at], "分流到了服务端之外的什么地方"
+    # 交接的实现自己得真的去调那个接口——判据钉在机制上，不钉在某个恰好
+    # 出现在附近的字符串上。（第一版就钉错了：把 `/sync` 钉在分流块里，
+    # 把那段逻辑抽成函数之后判据立刻转红，而代码是对的。）
+    handoff = text.split("async function startServerSideSync", 1)[1][:600]
+    assert "/sync" in handoff, "交给服务端的那个函数没有调服务端的同步接口"
+    assert "chrome.tabs" not in handoff, "交给服务端的路上还在碰标签页"
+
+    # 干活那一层：第二道拦截，防 chrome.storage 里压着**升级前**入队的旧任务。
+    # 注意它不是「拒绝」而是「改交给服务端」——拒绝会写成一次
+    # completeness=failed 的回执，用户看到一次失败，可他什么都没做错，
+    # 是我们路由错了；而且那要往冻结词典里加一个新句子。
+    run = text.split("async function runBrowserAccountSync", 1)[1][:2400]
+    assert "startServerSideSync" in run, "旧任务仍能从这条路抢标签页"
+    guard_at = run.index("startServerSideSync")
+    nav_at = run.index("navigateMirrorTab") if "navigateMirrorTab" in run else len(run)
+    assert guard_at < nav_at, "拦在导航之后，标签页已经被抢了"
+
+
+def test_the_server_publishes_who_handles_each_platform() -> None:
+    """能力仍然只有一处真源：服务端说了算，扩展照做。"""
+    api = (ROOT / "src/social_archive/api.py").read_text(encoding="utf-8")
+    assert '"server_handled": platform in SERVER_ACCOUNT_CONNECTORS' in api, (
+        "/v1/accounts 不下发「这个平台由谁同步」，扩展只能猜——而它上次就猜错了"
+    )
+
+
+def test_the_server_handoff_exists_once_not_twice() -> None:
+    """两处都要把活交给服务端，但**实现只能有一份**。
+
+    两份同样的逻辑，只有一份会被改到，另一份就成了下一次「看着接上了」。
+    """
+    text = code_only((ROOT / "apps/browser-extension/background.js").read_text(encoding="utf-8"))
+    assert text.count("async function startServerSideSync") == 1, "交给服务端的实现不止一份"
+    assert text.count("/v1/accounts/${encodeURIComponent(accountId)}/sync") == 1, (
+        "调服务端同步接口的地方不止一处——两份会漂开"
+    )
+
+
+def test_it_asks_can_it_sync_before_asking_who_handles_it() -> None:
+    """顺序要紧，反了 bilibili 就出事。
+
+    bilibili 同时满足两件事：
+      · server_handled = true（在服务端的 SERVER_ACCOUNT_CONNECTORS 里）
+      · sync_supported = false（不在 SYNCABLE_NOW 里）
+
+    先看 serverHandled 就会把它交给服务端，而服务端对它同样没有能用的
+    取数实现——那次 run 停在半路，界面一直转圈。
+
+    **「服务端登记了这个平台」不等于「服务端做得成」。**
+    """
+    text = code_only((ROOT / "apps/browser-extension/background.js").read_text(encoding="utf-8"))
+    route = text.split("async function syncAccountById", 1)[1][:2600]
+    can_at = route.index("capability.canSync")
+    who_at = route.index("capability.serverHandled")
+    assert can_at < who_at, "先问了「谁来干」，同步不了的平台会被交给一个同样干不成的服务端"

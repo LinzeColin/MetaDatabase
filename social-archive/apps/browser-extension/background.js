@@ -519,16 +519,36 @@ async function listAccounts() {
  * 能力由服务端说了算（account_sync.SYNCABLE_NOW），扩展照着做，
  * 不在这里维护第二份名单。
  */
-async function platformCanSyncNow(platform) {
+/** 把这次同步交给服务端，一个标签页都不碰。 */
+async function startServerSideSync(accountId, triggerType = "manual") {
+  const started = await SA.api(`/v1/accounts/${encodeURIComponent(accountId)}/sync`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ trigger_type: triggerType }),
+    timeoutMs: 20000,
+  });
+  return { ok: true, state: "queued", handledBy: "server",
+           syncRunId: started?.sync_run_id || null,
+           message_zh: started?.next_action_zh || "同步已开始。" };
+}
+
+async function platformCapability(platform) {
   try {
     const response = await SA.api("/v1/accounts", { timeoutMs: 10000 });
     const entry = (response.supported_platforms || []).find(item => item.platform === platform);
-    // 问不到就按「能」处理：宁可跑一次失败的同步，也不要因为一次网络抖动
-    // 把本来能用的平台全体停掉。
-    return entry ? entry.sync_supported !== false : true;
+    // 问不到就按「能同步、且要浏览器参与」处理：宁可跑一次失败的同步，
+    // 也不要因为一次网络抖动把本来能用的平台全体停掉。
+    return {
+      canSync: entry ? entry.sync_supported !== false : true,
+      serverHandled: entry ? entry.server_handled === true : false,
+    };
   } catch (_) {
-    return true;
+    return { canSync: true, serverHandled: false };
   }
+}
+
+async function platformCanSyncNow(platform) {
+  return (await platformCapability(platform)).canSync;
 }
 
 async function listSyncRuns() {
@@ -909,7 +929,18 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
   if (!spec) throw new Error("该平台暂不支持浏览器账号同步");
   // **在碰任何标签页之前先拦。** 入队那一层已经滤过一次，这里是第二道：
   // 队列里可能还留着旧任务（chrome.storage 里的），它们不该再去抢标签页。
-  if (!await platformCanSyncNow(account.platform)) {
+  const capability = await platformCapability(account.platform);
+  if (capability.serverHandled) {
+    // 走到这里说明有人绕过了 syncAccountById 的分流——最常见的是
+    // chrome.storage 里压着一条**升级前**入队的旧任务。
+    //
+    // **不抛错，改交给服务端。** 抛错会写成一次 completeness=failed 的
+    // 同步回执，用户看到一次失败——可他什么都没做错，我们只是路由错了。
+    // 而且那会引入一个新的失败码，词典里没有对应的句子
+    // （ZERO_BARRIER_UX.md 是冻结词典，不能因为内部路由问题就往里加）。
+    return startServerSideSync(account.id, triggerType);
+  }
+  if (!capability.canSync) {
     const error = new Error("本版本还不能自动读取这个平台的收藏列表，已停止，不会反复重试。");
     error.failureCode = "ACQUISITION_PATH_NOT_INSTALLED";
     throw error;
@@ -1002,6 +1033,31 @@ async function syncAccountById(accountId, options = {}) {
       syncRunId: options.syncRunId || null,
       triggerType: options.triggerType || "manual"
     });
+  }
+  // **服务端自己就能取的平台，一个标签页都不该碰。**
+  //
+  // 实测（2026-08-04，真 Chrome）：对 x 跑一次 runBrowserAccountSync，
+  // 用户的标签页被抢了 2 次——先导到 x.com/i/bookmarks，再导到 x.com/home，
+  // 两次都是 active: true（切到前台）。而 x 在服务端的
+  // SERVER_ACCOUNT_CONNECTORS 里，本来就不需要浏览器参与。
+  //
+  // 上一轮修的是「服务端说同步不了」的平台；这一条修的是
+  // 「服务端自己就能干」的平台。同一个抱怨的另一半。
+  const capability = await platformCapability(account.platform);
+  // **顺序要紧：先问「同步得动吗」，再问「谁来干」。**
+  //
+  // 反过来的话 bilibili 会出事：它同时 server_handled=true（在
+  // SERVER_ACCOUNT_CONNECTORS 里）**和** sync_supported=false（不在
+  // SYNCABLE_NOW 里）。先看 serverHandled 就会把它交给服务端，
+  // 而服务端对它同样没有能用的取数实现——于是那次 run 停在半路，
+  // 界面一直转圈。**「服务端登记了这个平台」不等于「服务端做得成」。**
+  if (!capability.canSync) {
+    const error = new Error("本版本还不能自动读取这个平台的收藏列表，已停止，不会反复重试。");
+    error.failureCode = "ACQUISITION_PATH_NOT_INSTALLED";
+    throw error;
+  }
+  if (capability.serverHandled) {
+    return startServerSideSync(accountId, options.triggerType || "manual");
   }
   return runBrowserAccountSync({
     account,

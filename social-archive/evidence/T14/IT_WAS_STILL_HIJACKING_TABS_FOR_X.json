@@ -1,0 +1,41 @@
+{
+  "task": "T14",
+  "claim": "上一轮只修了一半。x / reddit / instagram —— 界面说「能同步」的那三个 —— 点下去仍然会抢用户的标签页。实测：一次 runBrowserAccountSync 抢了 2 次。已修，修完实测 0 次。",
+  "found_by": "不是判据发现的，也不是 Owner 撞到的。是我在真 Chrome 里给上一个修复取证时顺手多问了一句「那 x 呢」。",
+  "the_half_i_missed": {
+    "what_i_fixed_last_round": "服务端说 sync_supported=false 的平台（小红书/抖音/快手/B站）不进队列、不碰标签页。",
+    "what_i_did_not_look_at": "syncAccountById 的分流：**除了 Chrome 书签之外一律走 runBrowserAccountSync**。而 x / reddit / instagram 在服务端的 SERVER_ACCOUNT_CONNECTORS 里，服务端自己就能取，根本不需要浏览器参与。",
+    "why_the_guard_did_not_catch_it": "上一轮的守卫问的是「这个平台同步得动吗」。x 的答案是「同步得动」——于是守卫放行，然后它照样掉进浏览器路。**守卫问对了一个问题，而这里需要问的是另一个问题：谁来干这活。**"
+  },
+  "measured_before_the_fix": {
+    "how": "真 Chrome + CDP，stub 掉 chrome.tabs.update 记录每一次调用，然后跑 runBrowserAccountSync({account:{platform:'x'}})。",
+    "result": "动过用户标签页 2 次：→ https://x.com/i/bookmarks（active=true），→ https://x.com/home（active=true）",
+    "worse": "它连异常都没抛（thrown = null）。也就是说队列会认为这次跑完了、下一轮接着来——**和 Owner 描述的「开了关关了开」一模一样**，只是发生在他还没连 X，所以没撞上。"
+  },
+  "the_fix": {
+    "one_source_of_truth": "服务端在 /v1/accounts 的 supported_platforms[] 里下发 `server_handled`（来自 SERVER_ACCOUNT_CONNECTORS）。扩展照做，不自己判断——它上次就是自己判断然后判错的。",
+    "two_layers": [
+      "syncAccountById —— 服务端能干的，直接 POST /v1/accounts/{id}/sync，不进浏览器路",
+      "runBrowserAccountSync —— 第二道，防 chrome.storage 里压着**升级前**入队的旧任务"
+    ],
+    "second_layer_hands_off_instead_of_refusing": "第二道不是「拒绝」而是「改交给服务端」。拒绝会写成一次 completeness=failed 的回执，用户看到一次失败——可他什么都没做错，是我们路由错了；而且那要往冻结词典（ZERO_BARRIER_UX.md）里加一个新句子。",
+    "one_implementation_not_two": "交接逻辑抽成 startServerSideSync()，判据钉住「只能有一份」——两份同样的东西只有一份会被改到，另一份就成了下一次「看着接上了」。",
+    "order_matters": "**先问「同步得动吗」，再问「谁来干」。** 反过来 bilibili 会出事：它同时 server_handled=true（在 SERVER_ACCOUNT_CONNECTORS 里）和 sync_supported=false（不在 SYNCABLE_NOW 里）。先看 serverHandled 就会把它交给服务端，而服务端对它同样没有能用的取数实现——那次 run 停在半路，界面一直转圈。**「服务端登记了这个平台」不等于「服务端做得成」。** 这一条写第一版时正好搞反了，是在给证据写 what_this_does_not_prove 的时候自己发现的。"
+  },
+  "measured_after_the_fix": {
+    "syncAccountById('acc_x')": "{ok:true, state:queued, handledBy:server, syncRunId:run_test} —— **动过标签页 0 次**",
+    "旧任务直闯 runBrowserAccountSync": "同样交给了服务端 —— **动过标签页 0 次**",
+    "实际发出的请求": "GET /v1/accounts , POST /v1/accounts/acc_x/sync"
+  },
+  "gates_that_fired": [
+    "find_calls_to_functions_that_do_not_exist.py —— 我在重构时写了 `options_triggerType(triggerType)`，一个不存在的函数。node --check 查不出来，判据也测不到，**只有用户点到那颗按钮的一刻才会炸**。这道门当场抓住了。（这是本会话第四次引用不存在的标识符。）",
+    "check_every_failure_code_is_explainable.py —— 第一版新造了 SERVER_HANDLED_PLATFORM 这个码而词典里没有对应的句子，转红。促成了「改交给服务端而不是拒绝」这个更好的设计。"
+  ],
+  "counter_example": "把分流去掉让 x 又掉回浏览器路 → 判据转红；还原 → 652 条全过，19 道发布门全绿。",
+  "a_guard_i_wrote_wrong_first": "第一版判据把 `/sync` 这个字符串钉在分流代码块里。把交接逻辑抽成函数之后，字符串移走了，判据立刻转红——**而代码是对的**。改成钉在机制上：分流块里必须出现 startServerSideSync，而 startServerSideSync 自己必须调 /sync 且不碰 chrome.tabs。",
+  "what_this_does_not_prove": [
+    "**不证明 x / reddit / instagram 现在真的同步得到东西。** 只证明它们不再抢标签页，而且走的是服务端那条路。服务端那条路能不能成，取决于凭据与授权——那是 T06，仍然要 Owner 授权一次 X。",
+    "不证明经由闹钟 → processSyncQueue 的真实路径也是 0 次。测到的是直接调 syncAccountById 与 runBrowserAccountSync；闹钟那一层没有跑过。",
+    "bilibili 那条矛盾（server_handled 与 sync_supported 相反）现在靠**分流顺序**避开，判据钉住了顺序。但两张服务端表本身仍然互相矛盾，没有合并——合并要先决定 SERVER_ACCOUNT_CONNECTORS 到底是「登记了谁」还是「做得成谁」，那是设计问题，不在本次范围内。"
+  ]
+}

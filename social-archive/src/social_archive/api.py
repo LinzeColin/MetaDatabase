@@ -21,6 +21,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from . import __version__, auth
 from .account_sync import (
+    SERVER_ACCOUNT_CONNECTORS,
     NOT_SYNCABLE_YET,
     SYNCABLE_NOW,
     AccountSyncCoordinator,
@@ -331,6 +332,24 @@ def accounts() -> dict[str, Any]:
                 "relations": relations,
                 "sync_supported": platform in SYNCABLE_NOW,
                 "not_syncable_reason": NOT_SYNCABLE_YET.get(platform, ""),
+                # **谁来干这活：服务端，还是浏览器。**
+                #
+                # 少了这一条，扩展只能猜——而它猜错了。syncAccountById 里
+                # 除了 Chrome 书签之外一律走 runBrowserAccountSync，
+                # 那条路会 `chrome.tabs.update(tabId, {url, active: true})`
+                # **抢走用户正在看的标签页并切到前台**，然后撞上
+                # acquireRelationItems() 这个显式 stub。
+                #
+                # 实测（2026-08-04，真 Chrome）：对 x 跑一次
+                # runBrowserAccountSync，标签页被抢了 2 次
+                # （→ x.com/i/bookmarks，→ x.com/home，两次 active=true），
+                # 而服务端这边 x 明明在 SERVER_ACCOUNT_CONNECTORS 里、
+                # 根本不需要浏览器参与。
+                #
+                # 这是同一个 Owner 抱怨（「把目标网页开了关关了开」）的另一半：
+                # 上一轮只挡住了「服务端说同步不了」的平台，
+                # 这一条挡住「服务端自己就能干、根本不该动浏览器」的平台。
+                "server_handled": platform in SERVER_ACCOUNT_CONNECTORS,
             }
             for platform, relations in PLATFORM_RELATIONS.items()
         ],
