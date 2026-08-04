@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# 提交前先把发布门跑一遍。**只在这次提交动了 social-archive/ 时才跑。**
+#
+# 为什么存在：本会话我两次在门是红的状态下提交，
+# 两次都是因为**提交信息在跑完之前就写好了**。
+#   第一次：测试数字写错（539/7 实为 538/8）
+#   第二次：validate_systemd 判 FAIL，10 个测试红，照样提交了进去
+#
+# 「下次注意」不是修复。这个 hook 是修复。
+#
+# 射程限制很重要：.git/hooks 是**整个仓库共享**的，本仓还有别的 worktree
+# 在做别的项目。无差别地跑 social-archive 的门会把别人的提交也卡住。
+# 所以先看这次提交碰没碰 social-archive/，没碰就直接放行。
+set -uo pipefail
+
+if ! git diff --cached --name-only | grep -q '^social-archive/'; then
+  exit 0
+fi
+
+ROOT="$(git rev-parse --show-toplevel)/social-archive"
+PY="${ROOT}/.venv/bin/python"
+
+if [ ! -x "${PY}" ]; then
+  printf 'pre-commit: 找不到 %s，跳过发布门检查。\n' "${PY}" >&2
+  printf '            **这是跳过，不是通过。**\n' >&2
+  exit 0
+fi
+
+printf 'pre-commit: 跑发布门（约 5 秒）…\n' >&2
+if ! (cd "${ROOT}" && "${PY}" scripts/final_verify.py >/tmp/sa-precommit.log 2>&1); then
+  printf '\n✗ 发布门是红的，拒绝提交。\n\n' >&2
+  tail -20 /tmp/sa-precommit.log >&2
+  printf '\n修好再提交；确实要带着红门提交请用 git commit --no-verify（并在信息里说明为什么）。\n' >&2
+  exit 1
+fi
+printf 'pre-commit: 发布门 12 道全绿。\n' >&2
+exit 0
