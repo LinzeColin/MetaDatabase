@@ -231,7 +231,10 @@
       const platform = SA.platformFromUrl(tab.url)?.id || "";
       button.textContent = "正在安装观察器…";
       const installed = await chrome.runtime.sendMessage({
-        type: "SA_INSTALL_NET_OBSERVER", platform, tabId: tab.id,
+        // diagnostic=true：让 background 按本页域名推前缀。
+        // 不然只有 bilibili 有已知前缀，另外三个平台会被当场拒绝——
+        // 而这颗按钮存在的目的正是去发现那些前缀。
+        type: "SA_INSTALL_NET_OBSERVER", platform, tabId: tab.id, diagnostic: true,
       });
       if (!installed?.ok) throw new Error(installed?.error || "无法在这个页面上开始观察");
       for (let left = 10; left > 0; left -= 1) {

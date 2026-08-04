@@ -78,6 +78,10 @@ NOT_A_FAILURE_CODE = {
     "PLATFORM_MISMATCH",                          # 批次内条目级错误，不进 sync_run.last_error_code
     "CONTRACT_VIOLATION", "CONTRACTVIOLATION",    # 解析器内部标记
     "MISSINGBINARY",                              # 同上
+    # 诊断按钮专用：读不出当前标签页的域名。**不进 sync_run**，
+    # 只在插件弹窗里就地显示一句中文（「读不出当前页面的域名，无法开始诊断。」）。
+    # 走失败文案词典反而会把它变成一句同步失败，那是另一回事。
+    "DIAGNOSTIC_NO_HOST",
 }
 
 

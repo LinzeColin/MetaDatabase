@@ -272,3 +272,33 @@ def test_relay_is_injected_before_the_observer() -> None:
         "观察器被排在中继前面注入——SA_OBSERVER_INSTALLED 会丢，"
         "background 将无法区分「装好了」与「注入静默失败」"
     )
+
+
+def test_the_diagnostic_does_not_require_the_answer_it_is_looking_for():
+    """诊断模式不能依赖「拦截前缀已知」——那正是它要去发现的东西。
+
+    实测（2026-08-04）：平台目录里只有 bilibili 有拦截前缀，
+    xiaohongshu / douyin / kuaishou 全是 null。而 SA_INSTALL_NET_OBSERVER
+    在前缀为空时会显式拒绝（INTERCEPT_PREFIX_UNKNOWN）——
+    **于是那颗「帮开发者看一眼这个平台」的按钮在 3/4 的平台上当场被拒，
+    工具拒绝执行它自己被造出来要做的事。**
+
+    诊断模式改为按当前标签页的域名推前缀。
+    """
+    background = (EXT / "background.js").read_text(encoding="utf-8")
+    block = background.split('"SA_INSTALL_NET_OBSERVER"', 1)[1][:2200]
+    assert "message.diagnostic === true" in block, "没有诊断模式，前缀未知的平台会被直接拒绝"
+    assert "chrome.tabs.get(tabId)" in block, "没有去读标签页的真实地址"
+    assert "registrable" in block, "没有从域名推出前缀"
+
+
+def test_the_diagnostic_cannot_be_told_what_to_capture():
+    """前缀只从 tab.url 推，调用方给什么都不采信。
+
+    否则「诊断」就成了一个可以指定抓任意域名的通道。
+    """
+    background = (EXT / "background.js").read_text(encoding="utf-8")
+    block = background.split('"SA_INSTALL_NET_OBSERVER"', 1)[1][:2200]
+    diagnostic = block.split("message.diagnostic === true", 1)[1][:900]
+    assert "message.urlPrefixes" not in diagnostic, "诊断模式采信了调用方给的前缀"
+    assert "prefixes = [registrable]" in diagnostic, "前缀不是从域名推出来的"

@@ -1176,7 +1176,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message?.type === "SA_INSTALL_NET_OBSERVER") {
       const platform = String(message.platform || "").trim().toLowerCase();
       const tabId = Number(message.tabId);
-      const prefixes = globalThis.SAPlatformCatalog?.interceptPrefixes?.(platform);
+      // **诊断模式：前缀由这个标签页自己的域名推出，不查表。**
+      //
+      // 死循环否则会成立：诊断按钮存在的目的就是**去发现**这些前缀，
+      // 而下面那张表只有 bilibili 有值（xiaohongshu / douyin / kuaishou 都是 null），
+      // 于是按钮在 3/4 的平台上当场被拒——工具拒绝执行它自己被造出来要做的事。
+      //
+      // 安全上不放宽：前缀**只从 tab.url 的域名推**，调用方给什么都不采信。
+      // 也就是说它最多只能看见「这个页面自己发出的、发往它自己域名的请求」。
+      let prefixes = globalThis.SAPlatformCatalog?.interceptPrefixes?.(platform);
+      if (message.diagnostic === true) {
+        const tab = await chrome.tabs.get(tabId).catch(() => null);
+        let host = "";
+        try { host = new URL(tab?.url || "").hostname; } catch (_) { host = ""; }
+        // space.bilibili.com → bilibili.com；只留可注册域，覆盖它的 API 子域
+        const registrable = host.split(".").slice(-2).join(".");
+        if (!registrable) {
+          return { ok: false, state: "failed", failureCode: "DIAGNOSTIC_NO_HOST",
+                   error: "读不出当前页面的域名，无法开始诊断。" };
+        }
+        prefixes = [registrable];
+      }
       // prefixes 为 null = 还没有实测过的前缀。**必须在这里显式失败**：
       // 装一个前缀为空的观察器等于永远拦不到，而且页面一切正常、界面显示已连接——
       // 正是 INV-NO-SILENT-ZERO 要防的那种零。
