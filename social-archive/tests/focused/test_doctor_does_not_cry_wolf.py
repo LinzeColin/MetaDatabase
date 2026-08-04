@@ -52,8 +52,23 @@ def test_it_always_warns_that_there_is_only_one_key() -> None:
     assert "备份私钥" in text, "诊断里没有这一条"
     assert "一份也解不开" in text, "没有把后果说出来"
     assert "别把它放进任何一个对象仓" in text, "没有说清哪里**不能**存"
-    # 不能做成 PASS/FAIL：产品验证不了
-    warning = text.split("备份私钥", 1)[1][:900]
-    assert "PASS" not in warning and "FAIL" not in warning, (
+    # 不能做成 PASS/FAIL：产品验证不了。
+    #
+    # **窗口按结构切，不按字节数切。** 原来是「备份私钥」之后的 900 个字符，
+    # 2026-08-05 给 doctor 加了三段新检查（保命 unit / 异地副本 / 主机 venv），
+    # 它们合法地带着 PASS/FAIL，一落进那个 900 字窗口，这条判据就红了——
+    # **而它要守的那件事一点没变**。固定字节窗口钉的是位置，不是事实；
+    # 本会话已经在 JS 判据上栽过同一种。
+    after = text.split("备份私钥", 1)[1]
+    # 切到下一段小标题为止。标记里那个反斜杠是 shell 源码里的 `printf '\n…`，
+    # 用 chr(92) 拼出来，免得在 Python 与 shell 两层转义里数错斜杠——
+    # 第一版就数错了，切出来的窗口 3666 字符，整整包住了后面三段新检查。
+    warning = after.split("printf '" + chr(92) + "n保命的 unit", 1)[0]
+    assert "别把它放进任何一个对象仓" in warning, "切出来的窗口没盖住那条提醒本身"
+    # **只看会被执行的行。** 判据要守的是「脚本不会给这一条打通过/失败」，
+    # 而不是「附近的注释里不许出现 PASS 这个词」——注释里出现是完全正常的
+    # （旁边那段就在讲「doctor 全绿 25 条 PASS 却看不见三件事」）。
+    code = "\n".join(l for l in warning.splitlines() if not l.lstrip().startswith("#"))
+    assert "PASS" not in code and "FAIL" not in code, (
         "把一件产品验证不了的事做成了通过/失败——那会变成又一个假的绿灯"
     )

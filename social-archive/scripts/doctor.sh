@@ -113,6 +113,73 @@ if [[ -f runtime/secrets/age_identity.txt ]]; then
 else
   printf '  没找到 runtime/secrets/age_identity.txt —— 现有备份将无法解密。\n'
 fi
+# **诊断必须看得见「本项目真正出过事的那三件」。**
+#
+# 2026-08-05 实测：doctor.sh 全绿、25 条 PASS、退出码 0——而它检查的是
+# 版本、Docker、容器状态、密钥权限。这三件它一件都看不见：
+#
+#   · 保命的 timer 有没有启用   —— 08-04：三个全 disabled，90 天 No entries，
+#                                  549 个制品里 530 个零异地副本
+#   · 异地副本跟没跟上         —— 同上，界面照样显示「已归档」
+#   · 主机 venv 是不是这一版   —— 08-05：落后两个版本，而四个 timer 全跑在它上面
+#
+# 一个说「都好」而看不见这三件的诊断，和 /health 返回 200 而所有业务路由
+# 500 是同一种谎。
+printf '\n保命的 unit（备份 / 复制 / 私有库同步）：\n'
+if [[ -r /etc/systemd/system/social-archive-backup.timer ]]; then
+  bash scripts/check_durability_units.sh 2>&1 | sed 's/^/  /'
+else
+  printf '  这台机器上没装 systemd unit —— **跳过，这不是通过**。\n'
+fi
+
+printf '\n异地副本跟上了没有：\n'
+# 08-04 那次最要命的地方不是「没备份」，是**没人看得出来没备份**：
+# 549 个制品里 530 个零异地副本，而界面照样显示「已归档」。
+# 这里直接数库，不问任何自述。
+"${PYTHON[@]}" - <<'PYEOF' 2>/dev/null | sed 's/^/  /' || printf '  读不到运行库 —— **跳过，这不是通过**。\n'
+import os, sqlite3, sys
+db = os.environ.get("SOCIAL_ARCHIVE_RUNTIME_DB", "")
+if not db or not os.path.isfile(db):
+    sys.exit(1)
+c = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+try:
+    total = c.execute("SELECT COUNT(*) FROM artifact").fetchone()[0]
+    zero = c.execute(
+        "SELECT COUNT(*) FROM artifact WHERE id NOT IN (SELECT artifact_id FROM object_replica)"
+    ).fetchone()[0]
+    three = c.execute(
+        "SELECT COUNT(*) FROM (SELECT artifact_id FROM object_replica WHERE status='verified' "
+        "GROUP BY artifact_id HAVING COUNT(DISTINCT store_id) >= 3)"
+    ).fetchone()[0]
+finally:
+    c.close()
+if total == 0:
+    print("库里还没有制品。")
+elif zero:
+    print(f"FAIL {total} 个制品里 **{zero} 个一个异地副本都没有**（三副本齐全的 {three} 个）")
+else:
+    print(f"PASS {total} 个制品全都有异地副本，其中三副本齐全 {three} 个")
+PYEOF
+
+printf '\n主机 venv 跑的是不是仓里这一版：\n'
+if [[ -x .venv/bin/python ]]; then
+  venv_file="$(.venv/bin/python -c 'import social_archive; print(social_archive.__file__)' 2>/dev/null || true)"
+  venv_version="$(.venv/bin/python -c 'import social_archive; print(social_archive.__version__)' 2>/dev/null || true)"
+  want_version="$(tr -d '[:space:]' < VERSION)"
+  case "$venv_file" in
+    "$PWD"/src/*) printf '  PASS 指向仓里的 src/\n' ;;
+    "") printf '  FAIL 读不出主机 venv 里的 social_archive\n' ;;
+    *)  printf '  FAIL 装的是一份拷贝（%s）—— 四个 timer 会跑旧代码\n' "$venv_file" ;;
+  esac
+  if [[ "$venv_version" == "$want_version" ]]; then
+    printf '  PASS 版本 %s，与 VERSION 一致\n' "$venv_version"
+  else
+    printf '  FAIL 主机 venv 报 %s，仓里是 %s\n' "${venv_version:-读不出}" "$want_version"
+  fi
+else
+  printf '  没有 .venv —— **跳过，这不是通过**。\n'
+fi
+
 if $BUNDLE; then
   out="runtime/evidence/diagnostic-$(date -u +%Y%m%dT%H%M%SZ)"
   mkdir -p "$out"
