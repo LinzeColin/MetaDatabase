@@ -30,8 +30,20 @@
   "verified_in_a_real_browser": {
     "how": "把下发的那个 ZIP 装进一次性 profile 的真 Chrome，打开 chrome-extension://<id>/options.html，数 .account-card",
     "cards": 9,
-    "titles": ["Chrome 书签", "小红书", "抖音", "快手", "B站", "X", "Reddit", "Instagram", "YouTube"],
-    "youtube_buttons": ["连接账号"],
+    "titles": [
+      "Chrome 书签",
+      "小红书",
+      "抖音",
+      "快手",
+      "B站",
+      "X",
+      "Reddit",
+      "Instagram",
+      "YouTube"
+    ],
+    "youtube_buttons": [
+      "连接账号"
+    ],
     "counter_example": "把 youtube 从 platformOrder 拿掉重打包再跑，演练当场 FAIL：「**设置页里没有 'YouTube' 这张卡**——没有卡就没有「连接账号」按钮」"
   },
   "verified_in_production_after_deploy": {
@@ -54,6 +66,32 @@
   "what_this_does_not_prove": [
     "**不证明连接会成功。** 只证明那张卡和那个按钮存在、点得到。点下去之后的授权流程仍未被任何真实账号走通（platform_credential 表仍然一行都没有）。",
     "不证明 youtube 能同步——取数通路仍未建（T09/T10）。",
-    "**不证明第八张表不存在。** 这个平台上已经连续三次「以为查全了又冒出一张」；现在能说的只是：已知的七张都核过了。"
-  ]
+    "**仍然不证明没有下一张表。** 那道门自己声明了盲区：拼出来的平台名、从配置读的、嵌套太深的，它都看不到。**查不到不等于没问题。**"
+  ],
+  "what_happened_after_this_file_was_written": {
+    "why_this_section_exists": "本文件最后一条写着「**不证明第八张表不存在**……只能说已知的七张都核过了」。那句话是诚实的，但**挂着一个自认的缺口不去查，等于把它留给下一个人踩**。当天就去查了。",
+    "how": "不再靠回忆数表，改用机器扫：**一行里出现三个以上平台名、或一个括号块里出现三个以上，就当它是一张平台表**。",
+    "what_it_found": [
+      "popup.js 的 platformShort / platformName —— youtube 出现次数**零**（点插件图标看到的就是它）",
+      "sidepanel.js 的 icons / names —— 同样为零",
+      "options.js 的 relationCopy —— 「这个平台归档什么」那一行",
+      "**apps/pwa/app.js 的 platformMeta** —— Owner 的库里，YouTube 会被标成「Chrome书签/网页」",
+      "extract-core.js 的 LIST_SELECTORS —— 抓取选择器",
+      "registry.py 的 account_relation 集合 —— 漏了它，扫描回执里的 scope 会写成 item",
+      "platform_canary / browser_acceptance 的平台清单",
+      "**extension-utils.js 的 CONTENT_ID_PATTERNS** —— 最隐蔽的一处，见下"
+    ],
+    "the_worst_one": {
+      "what": "CONTENT_ID_PATTERNS 按 pathname 匹配，而 YouTube 的 id 在**查询串**里（/watch?v=…）。",
+      "why_no_regex_could_fix_it": "路径永远是 `/watch`。取不到就落到「退回整个 URL」那条兜底。",
+      "consequence": "对别的平台那只是「粒度粗一点」；**对 YouTube 是去重彻底失效**——它的分享链接几乎总带着 &t= / &list= / &pp=，同一个视频每次保存都算成一条新内容。",
+      "fix": "externalId 里为 youtube 单开一条（含 youtu.be 短链）。库里当时零条 youtube 内容，无迁移问题。",
+      "guard": "行为判据（真跑模块）：三种 URL 形态归一、**两个不同视频不许撞成同一个 id**、bilibili 不受波及。"
+    },
+    "now_checked_by": {
+      "真浏览器接线演练": "service worker 那四张 + 设置页那张卡（--expect-connect-card）",
+      "第 22 道门 check_every_platform_table_is_complete.py": "全仓扫平台表，逐张问「可托管的平台都在里面吗」；有意的子集要登记并写下理由"
+    },
+    "the_count_is_no_longer_the_point": "本文件原来说「已知的七张都核过了」。**现在不数这个数了**——数得清的从来不是问题，问题是我以为数完了。改成让机器每次去数。"
+  }
 }
