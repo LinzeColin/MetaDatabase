@@ -244,6 +244,22 @@ class ConnectorRegistry:
                 "blocked_environment":"尚未配置真实账号或 Worker；先使用保存当前页面，再按向导配置。",
                 "paused":"已因配额或安全门暂停；L0/L1 仍可用。","disabled":"该连接器当前关闭；通用保存不受影响。"
             }.get(state,"运行诊断。")
+            # **「下一步」也不许指向一个不存在的东西。**
+            #
+            # 上面那句通用文案说「尚未配置真实账号或 **Worker**；……再**按向导配置**」。
+            # 2026-08-05 生产实测，八个被挡住的连接器全在显示它。而：
+            #   · 那三个 Worker 在 T03 就被实测证伪、连同 compose.workers.yaml 删掉了；
+            #   · **没有任何向导能打开这几条路**——bilibili/小红书/抖音/快手是取数路
+            #     本版本就没建；x 是 Owner 的零费用判断；reddit/instagram 的授权那步
+            #     还没有他点得到的界面。
+            #
+            # 叫一个说自己「没有技术基础」的人去「按向导配置」一个不存在的向导，
+            # 比不给下一步更坏——他会去找，找不到，然后以为是自己的问题。
+            #
+            # 上面那行 message_zh 已经说了真话（NOT_SYNCABLE_YET 里带「现在可以：…」）。
+            # 这里就别再给一句对不上的了。任务包 T13：**指错方向的 BLOCKED 也不算。**
+            if state == "blocked_environment" and connector_id in NOT_SYNCABLE_YET:
+                next_action = "本版本没有能打开这条路的设置项；照上面那句话做就行。"
             error_code = probe.get("error_code") or (row.get("last_error_code") if state == row.get("state") else None)
             message = str(probe.get("message_zh") or "")
             if not message and state == row.get("state"):

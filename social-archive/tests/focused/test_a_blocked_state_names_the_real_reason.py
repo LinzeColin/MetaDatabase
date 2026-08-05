@@ -80,3 +80,25 @@ def test_the_message_and_the_code_tell_the_same_story(settings, store, monkeypat
                 if item["connector_id"] == "xiaohongshu")
     assert view["last_message_zh"] == NOT_SYNCABLE_YET["xiaohongshu"], "文案不是能力声明里那句"
     assert view["last_error_code"] == "PLATFORM_NOT_SYNCABLE_YET", "码和文案讲的不是同一件事"
+
+
+def test_the_next_step_does_not_point_at_a_wizard_that_cannot_help(settings, store, monkeypatch) -> None:
+    """**「下一步」也不许指向一个不存在的东西。**
+
+    通用文案说「尚未配置真实账号或 Worker；……再按向导配置」。生产实测八个
+    被挡住的连接器全在显示它。而那三个 Worker 在 T03 就被删了，**也没有任何
+    向导能打开这几条路**：bilibili/小红书/抖音/快手是取数路本版本就没建，
+    x 是 Owner 的零费用判断，reddit/instagram 的授权那步还没有他点得到的界面。
+
+    叫一个说自己「没有技术基础」的人去按一个不存在的向导，比不给下一步更坏——
+    他会去找，找不到，然后以为是自己的问题。
+    """
+    registry = ConnectorRegistry(settings)
+    monkeypatch.setattr(registry, "_live_probe",
+                        lambda _: {"state": "degraded", "error_code": "HEALTH_PROBE_FAILED"})
+    for view in registry.health_views(store.connector_states()):
+        if view["connector_id"] not in NOT_SYNCABLE_YET:
+            continue
+        step = view["next_action_zh"]
+        assert "向导" not in step, f"{view['connector_id']} 仍被指向一个打不开这条路的向导：{step}"
+        assert "Worker" not in step, f"{view['connector_id']} 的下一步还在提已经删掉的 Worker：{step}"
