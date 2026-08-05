@@ -115,7 +115,16 @@
         "scripts/check_docs_point_at_things_that_exist.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了全仓 29 份文档，63 处 scripts/ 引用\n文档让人跑的每一个脚本都在；写着「已删」的也确实不在了。\n",
+      "stdout": "扫了全仓 29 份文档，66 处 scripts/ 引用\n文档让人跑的每一个脚本都在；写着「已删」的也确实不在了。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_the_stated_version_is_the_real_one.py"
+      ],
+      "exit_code": 0,
+      "stdout": "真源 pyproject.toml 说版本是 0.0.0.7；核了 5 处\n每一处声明的版本都和真源一样，CHANGELOG 里也有这一版。\n",
       "stderr": ""
     },
     {

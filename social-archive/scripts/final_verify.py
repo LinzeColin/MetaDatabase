@@ -53,6 +53,12 @@ def structural_commands() -> list[list[str]]:
         # 让人跑 `scripts/restore.sh`——那一天再发现脚本不在，是最坏的时机。
         # 这道门把文档里出现的 scripts/xxx 逐个去磁盘上找一遍。
         [python, "scripts/check_docs_point_at_things_that_exist.py"],
+        # 同一类：文档安静地说一个不成立的事实。2026-08-05 数了一遍全仓的版本号，
+        # README 第 1 行说 v0.0.0.6、AGENTS.md 第 9 行说 v0.0.0.6——**而 AGENTS.md
+        # 是接手的 agent 读的那一份**，每一个后来的人都会被它告知一个错的版本；
+        # CHANGELOG 最新一节停在 v0.0.0.4，v5/v6/v7 三版一条都没有。
+        # 改版本时代码里那几处会因为跑不起来被发现，文档里这几处不会。
+        [python, "scripts/check_the_stated_version_is_the_real_one.py"],
         # 失败码 → 中文句子是**人手维护**的映射表，新加一个码没人提醒你补词典。
         # 补漏的后果不是少一句话，是界面说「我们没能记录下原因」而原因就在代码里。
         # 这道门第一次跑就找出 24 个说不出人话的码。
