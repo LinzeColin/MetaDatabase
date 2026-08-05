@@ -58,3 +58,21 @@ def test_the_labels_are_chinese_not_the_key_repeated() -> None:
     latin_only = [f"{key}: {value}" for key, value in _labels().items()
                   if re.fullmatch(r"[A-Za-z_ ]+", value)]
     assert not latin_only, f"这些标签根本不是中文：{latin_only}"
+
+
+def test_no_two_relations_share_a_label() -> None:
+    """**关系筛选是照这张表画的，重名就意味着下拉里出现两个一样的选项。**
+
+    2026-08-06：`saved` 与 `favorite` 都叫「收藏」、`like` 与 `upvoted` 都叫「点赞」。
+    在表格那一列里无所谓（用户不在乎内部名），但筛选里并排两个「收藏」时
+    没人分得清该点哪个——而生产上两个都有内容（favorite 46 条、saved 5 条）。
+    """
+    labels = _labels()
+    seen: dict[str, list[str]] = {}
+    for key, value in labels.items():
+        seen.setdefault(value, []).append(key)
+    clashes = {name: keys for name, keys in seen.items() if len(keys) > 1}
+    assert not clashes, (
+        "**这些关系共用同一个中文名**，关系筛选里会并排出现一模一样的选项："
+        + "；".join(f"「{name}」← {keys}" for name, keys in clashes.items())
+    )

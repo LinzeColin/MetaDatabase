@@ -100,7 +100,8 @@ FAKE: dict[str, object] = {
                                # 关系 facet：**「观看历史」此前不在写死的四个里**，
                                # 而它是 Owner 库里最大的一组（193 条里 71 条）。
                                "relations": [{"relation": "history", "count": 71},
-                                             {"relation": "like", "count": 69}],
+                                             {"relation": "favorite", "count": 46},
+                                             {"relation": "saved", "count": 5}],
                                "topics": [{"topic": "未分类", "count": 193}]}},
     "/v1/status": {"connectors": [], "destinations": []},
 }

@@ -33,8 +33,14 @@
   const serverToUiPlatform = Object.fromEntries(Object.entries(platformMeta).filter(([key]) => key !== "all").map(([key, value]) => [value.server, key]));
 
   const relationLabels = {
-    manual_save: "手动保存", bookmark: "书签", saved: "收藏", favorite: "收藏",
-    like: "点赞", upvoted: "点赞", watch_later: "稍后再看", history: "观看历史", collection: "收藏夹",
+    // **每个关系值一个独一无二的中文名。**
+    // 2026-08-06：`saved` 与 `favorite` 都叫「收藏」、`like` 与 `upvoted` 都叫「点赞」。
+    // 在表格那一列里这没关系（用户不在乎内部名），**但关系筛选是照这张表画的**，
+    // 于是下拉里会并排出现两个一模一样的「收藏」——生产上两个都有内容
+    // （favorite 46 条、saved 5 条），用户没法分辨该点哪一个。
+    // 它们本来就是不同平台的不同关系，给不同的名字更准。
+    manual_save: "手动保存", bookmark: "书签", saved: "已保存", favorite: "收藏",
+    like: "点赞", upvoted: "顶过", watch_later: "稍后再看", history: "观看历史", collection: "收藏夹",
     // **playlist 此前不在这张表里**（2026-08-06）。它是 YouTube 的第二种关系
     // （PLATFORM_RELATIONS["youtube"] = ["watch_later", "playlist"]），而下面那句
     // 取不到标签时会退回原值——用户会在「关系」那一列看到一个英文单词 playlist。
