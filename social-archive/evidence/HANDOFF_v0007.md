@@ -102,11 +102,17 @@ ALLOWED/FORBIDDEN、以及服务端那几张。接 youtube 时我两次宣布「
 改完之后跑这个，它在真 Chrome 里一次问完四张表：
 
 ```
+python3 scripts/build_extension_package.py          # dist/ 是 gitignore 的，得先造
 unzip -q -o dist/social-archive-extension.zip -d /tmp/sa-wire
 python3 scripts/extension_platform_wiring_drill.py --ext-dir /tmp/sa-wire \
     --platform <平台> --sample-url <该平台一个真实页面> \
     --expect-custody yes|forbidden|not-yet
 ```
+
+第一行别省。`dist/` 在 `.gitignore` 里（第 41 行），克隆下来是没有那个 ZIP 的——
+**这一段最初就漏了那一行**，写的人（我）机器上刚好有，于是看不出来。
+演练要装的是**下发给 Owner 的那个包**，不是 `apps/browser-extension/` 目录，
+所以这一步不能跳：包和源不一样的时候，正是最需要它红的时候。
 
 `--expect-custody` 有**三种**状态，别只想成两种：`yes` = 白名单里有
 （x / instagram / youtube）；`forbidden` = 禁止名单里有、白名单里没有

@@ -5,6 +5,7 @@
 而且那时候没人有心情去翻仓库。
 """
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -12,12 +13,23 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 CHECK = ROOT / "scripts/check_docs_point_at_things_that_exist.py"
 
+# git 钩子会把这些塞进环境；子进程继承之后会去问**主仓**而不是沙盒。
+_LEAKED_BY_GIT_HOOKS = ("GIT_DIR", "GIT_INDEX_FILE", "GIT_WORK_TREE",
+                        "GIT_COMMON_DIR", "GIT_PREFIX", "GIT_OBJECT_DIRECTORY")
+_CLEAN_GIT_ENV = {k: v for k, v in os.environ.items() if k not in _LEAKED_BY_GIT_HOOKS}
 
-def _run(root: Path | None = None) -> subprocess.CompletedProcess:
+
+def _run(root: Path | None = None, env: dict | None = None) -> subprocess.CompletedProcess:
+    """**故意不洗环境。**
+
+    pre-commit 跑这道门时，环境里就是带着 GIT_DIR 的。判据要是先替它洗一遍，
+    检查器自己漏没漏那一步就再也测不出来了——那正是它出问题的场景。
+    """
     argv = [sys.executable, str(CHECK)]
     if root is not None:
         argv += ["--root", str(root)]
-    return subprocess.run(argv, cwd=ROOT, capture_output=True, text=True, check=False)
+    return subprocess.run(argv, cwd=ROOT, env=env,
+                          capture_output=True, text=True, check=False)
 
 
 def _sandbox(tmp_path: Path, doc_text: str) -> Path:
@@ -157,6 +169,101 @@ def test_a_path_into_a_sibling_repo_is_not_flagged(tmp_path) -> None:
     (tmp_path / "手册.md").write_text("python scripts/validate_compatibility.py\n",
                                       encoding="utf-8")
     assert _run(tmp_path).returncode != 0, "去掉外部前缀之后仍然放过——正则放得太松"
+
+
+def _git_sandbox(tmp_path: Path, doc_text: str, ignore: str) -> Path:
+    """一个**真 git 仓**的沙盒——`git check-ignore` 得有仓才答得出话。
+
+    **`git init` 也要摘掉钩子塞进来的环境变量。** pre-commit 跑测试时
+    环境里有 GIT_DIR，`git init` 会去初始化**那个**目录而不是 tmp_path，
+    沙盒于是根本没有 .git，判据便红在一个和它无关的地方。
+
+    第一版还把 init 的退出码 `check=False` 吞了——**失败了也一声不吭**，
+    正是今天在别处修过的那种写法。
+    """
+    (tmp_path / "docs").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "scripts").mkdir(parents=True, exist_ok=True)
+    (tmp_path / ".gitignore").write_text(ignore, encoding="utf-8")
+    (tmp_path / "docs/手册.md").write_text(doc_text, encoding="utf-8")
+    done = subprocess.run(["git", "init", "-q"], cwd=tmp_path, env=_CLEAN_GIT_ENV,
+                          capture_output=True, text=True, check=False)
+    assert done.returncode == 0, f"沙盒建不出 git 仓：{done.stdout}{done.stderr}"
+    assert (tmp_path / ".git").is_dir(), "git init 报成功，而 .git 不在沙盒里"
+    return tmp_path
+
+
+def test_it_catches_a_code_block_using_a_gitignored_artifact(tmp_path) -> None:
+    """**这类漏我肉眼看不出来：我这台机器上那个文件就在那儿。**
+
+    交接里真写过这一段——`dist/` 在 .gitignore 第 41 行，
+    照着敲的人第一步就卡住，而我怎么读都读不出问题。
+    """
+    root = _git_sandbox(
+        tmp_path,
+        "```\nunzip -q -o dist/social-archive-extension.zip -d /tmp/x\n```\n",
+        "dist/\n")
+    done = _run(root)
+    assert done.returncode != 0, "代码块让人用一个 gitignore 挡着的文件，这道门却放过了"
+    assert "只有作者机器上有" in done.stdout, done.stdout
+
+
+def test_a_code_block_that_builds_it_first_is_fine(tmp_path) -> None:
+    """同一个代码块里先有一条造它的命令，就不是漏。"""
+    root = _git_sandbox(
+        tmp_path,
+        "```\npython3 scripts/build_extension_package.py\n"
+        "unzip -q -o dist/social-archive-extension.zip -d /tmp/x\n```\n",
+        "dist/\n")
+    # 那条造包的命令自己也得存在，否则红的是**另一条规则**（让人跑不存在的脚本）。
+    # 第一版忘了造它，于是这条判据红在了它不打算验的地方。
+    (root / "scripts/build_extension_package.py").write_text("", encoding="utf-8")
+    done = _run(root)
+    assert done.returncode == 0, done.stdout
+
+
+def test_a_tracked_path_in_a_code_block_is_not_flagged(tmp_path) -> None:
+    """没被 gitignore 挡的路径不归这条规则管。
+
+    实测过「查代码块里所有路径」那种写法：5 处命中**全是误报**
+    （`L0/L1`、`origin/main` 这类带斜杠的散文和 git 引用）。
+    """
+    root = _git_sandbox(tmp_path, "```\ncat docs/手册.md\n```\n", "dist/\n")
+    done = _run(root)
+    assert done.returncode == 0, done.stdout
+
+
+def test_the_check_does_not_ask_whether_the_file_happens_to_exist(tmp_path) -> None:
+    """**「在不在」恰恰是那个骗人的信号。**
+
+    文件在作者机器上存在，正是这类漏藏得住的原因。所以判据只问 .gitignore。
+    这里把那个文件真造出来——它必须照样红。
+    """
+    root = _git_sandbox(
+        tmp_path, "```\nunzip -q -o dist/pkg.zip -d /tmp/x\n```\n", "dist/\n")
+    (root / "dist").mkdir(exist_ok=True)
+    (root / "dist/pkg.zip").write_text("我在作者机器上是存在的\n", encoding="utf-8")
+    done = _run(root)
+    assert done.returncode != 0, "文件恰好存在，这道门就放过了——那正是漏的成因"
+
+
+def test_it_survives_the_environment_a_git_hook_hands_it(tmp_path) -> None:
+    """**这道门最常跑的地方就是 pre-commit，而钩子会塞 GIT_DIR 进环境。**
+
+    子进程继承之后，`git check-ignore` 会拿着它去问**主仓**而不是 cwd 那个仓。
+    第一次撞上时它表现为「单独跑绿、提交时红」的偶发失败——而根本不偶发，
+    只在钩子里必错。
+    """
+    root = _git_sandbox(
+        tmp_path, "```\nunzip -q -o dist/pkg.zip -d /tmp/x\n```\n", "dist/\n")
+    dirty = dict(os.environ)
+    dirty["GIT_DIR"] = str(ROOT / ".git")
+    dirty["GIT_INDEX_FILE"] = str(ROOT / ".git/index")
+    done = _run(root, env=dirty)
+    assert done.returncode != 0, (
+        "带着钩子的环境变量跑，这道门就答错了——它去问了主仓，不是 cwd 那个仓\n"
+        + done.stdout + done.stderr
+    )
+    assert "只有作者机器上有" in done.stdout, done.stdout
 
 
 def test_the_stale_root_handoff_says_it_is_not_current() -> None:

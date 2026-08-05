@@ -50,15 +50,36 @@
 守它的判据当场把这件事点红了。装饰性的保护比没有保护更坏，它让人以为
 查过了，所以已删掉。
 
+## 代码块里那种「只有作者机器上才有」的路径
+
+原来这里写着一句边界：「只查 `scripts/`，别的路径没人会照着敲」。
+**同一天就被我自己推翻了**——我往交接里写了这段：
+
+    unzip -q -o dist/social-archive-extension.zip -d /tmp/sa-wire
+
+而 `dist/` 在 `.gitignore` 第 41 行。照着敲的人第一步就卡住。
+
+这类漏**看不出来**：我这台机器上那个文件就在那儿，我怎么读都读不出问题。
+正因为肉眼看不出来，才值得让机器每次都问一遍。判据只问 `.gitignore`，
+**不问这个文件此刻在不在**——「在不在」恰恰是那个骗人的信号。
+
+同一个代码块里先有一条造它的命令就算数（现在那段第一行是
+`python3 scripts/build_extension_package.py`）。
+
 ## 边界
 
-· 只查 `scripts/` 开头的路径。文档里还有别的路径，但那一类没人会照着敲。
+· `scripts/` 那一类查得最细，因为它最常被照着敲。
+· 代码块里只查**被 .gitignore 挡住的**路径，不查所有路径——
+  实测所有路径那种查法 5 处命中全是误报（`L0/L1`、`origin/main`
+  这类带斜杠的散文和 git 引用），而 gitignore 那种查法 1 命中 0 误报。
 · 只查存在，不查内容对不对——那是另一件事，也更难自动化。
 """
 
 from __future__ import annotations
 
+import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -97,6 +118,33 @@ NOT_OURS = {".git", "node_modules", ".venv", "dist", "build", "__pycache__", ".p
 # 交接不是作废文档，把它整份放行等于对最要紧的那一份闭眼。所以按**行**判。
 RECORDS_A_DELETION = ("已删", "已移除", "删掉", "不要照着", "已废弃", "不再")
 
+# 代码块里那种一看就是要复制去敲的路径。
+FENCE = "```"
+COPY_PASTE_PATH = re.compile(
+    r"(?<![A-Za-z0-9_./~-])([a-zA-Z][A-Za-z0-9_.-]*(?:/[A-Za-z0-9_.-]+)+\.[A-Za-z0-9]{1,5})")
+
+
+# **git 钩子会把 GIT_DIR 之类塞进环境变量，子进程会继承。**
+#
+# 这道门最常跑的地方就是 pre-commit。在钩子里，`git check-ignore` 会拿着
+# 继承来的 GIT_DIR 去问**主仓**，而不是 cwd 指的那个仓——同一条判据
+# 单独跑是绿的、在钩子里跑是红的。第一次撞上时它表现为「偶发失败」，
+# 而根本不偶发：只在钩子里必错。
+#
+# 判据要问的是「cwd 这个仓怎么说」，所以把这几个变量摘掉再问。
+_LEAKED_BY_GIT_HOOKS = ("GIT_DIR", "GIT_INDEX_FILE", "GIT_WORK_TREE",
+                        "GIT_COMMON_DIR", "GIT_PREFIX", "GIT_OBJECT_DIRECTORY")
+
+
+def _is_gitignored(reference: str, cache: dict[str, bool]) -> bool:
+    if reference not in cache:
+        environment = {key: value for key, value in os.environ.items()
+                       if key not in _LEAKED_BY_GIT_HOOKS}
+        cache[reference] = subprocess.run(
+            ["git", "check-ignore", "-q", reference], cwd=ROOT, env=environment,
+            capture_output=True, check=False).returncode == 0
+    return cache[reference]
+
 
 def main() -> int:
     documents = [path for path in sorted(ROOT.rglob("*.md"))
@@ -107,10 +155,45 @@ def main() -> int:
 
     missing: list[str] = []
     stale_records: list[str] = []
+    only_on_the_authors_machine: list[str] = []
+    ignored_checked = 0
+    ignored_cache: dict[str, bool] = {}
     checked = 0
     for document in documents:
         lines = document.read_text(encoding="utf-8").splitlines()
+        in_fence = False
+        block_start = 0
         for number, line in enumerate(lines, 1):
+            if line.strip().startswith(FENCE):
+                in_fence = not in_fence
+                block_start = number if in_fence else 0
+                continue
+            if in_fence:
+                # **`dist/…` 在我这台机器上有，克隆下来的人没有。**
+                #
+                # 2026-08-05 我往交接里写了「跑这个演练」，第一行是
+                #     unzip -q -o dist/social-archive-extension.zip -d /tmp/sa-wire
+                # 而 dist/ 在 .gitignore 第 41 行。照着敲的人第一步就卡住。
+                #
+                # 这类漏我**看不出来**：我的机器上那个文件就在那儿。
+                # 正因为看不出来，才值得让机器每次都问一遍。
+                # 同一个代码块里先有一条造它的命令（scripts/…）就算数。
+                builds_it = any("scripts/" in earlier
+                                for earlier in lines[block_start:number - 1])
+                for reference in sorted(set(COPY_PASTE_PATH.findall(line))):
+                    if reference.startswith(("http", "www.")):
+                        continue
+                    # 判据只问 .gitignore，**不问这个文件此刻在不在**——
+                    # 它在我这儿在，正是这类漏看不出来的原因。
+                    if not _is_gitignored(reference, ignored_cache):
+                        continue
+                    ignored_checked += 1
+                    if builds_it:
+                        continue
+                    only_on_the_authors_machine.append(
+                        f"{document.relative_to(ROOT)}:{number} 让人用 {reference}，"
+                        "而它被 .gitignore 挡着——克隆下来没有这个文件，"
+                        "同一个代码块里也没有一条造它的命令")
             # **看这一行和它上面那一行。**
             #
             # 只看本行时，交接里这句被判成「让人跑一个不存在的脚本」：
@@ -143,12 +226,15 @@ def main() -> int:
                     continue
                 missing.append(f"{here} 让人跑 {reference}，而它不在")
 
-    print(f"扫了全仓 {len(documents)} 份文档，{checked} 处 scripts/ 引用")
-    if missing or stale_records:
+    print(f"扫了全仓 {len(documents)} 份文档，{checked} 处 scripts/ 引用、"
+          f"{ignored_checked} 处代码块里被 .gitignore 挡着的路径")
+    if missing or stale_records or only_on_the_authors_machine:
         for item in missing:
             print(f"  **不合格**：{item}")
         for item in stale_records:
             print(f"  **记录与事实不符**：{item}")
+        for item in only_on_the_authors_machine:
+            print(f"  **只有作者机器上有**：{item}")
         print("  ↳ 文档里最要命的一句，是出事那天才会被人读到的那一句。")
         return 1
     print("文档让人跑的每一个脚本都在；写着「已删」的也确实不在了。")
