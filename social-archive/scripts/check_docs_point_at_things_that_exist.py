@@ -11,11 +11,30 @@
 
 这道门只做一件很小的事：把文档里出现的 `scripts/xxx` 逐个去磁盘上找一下。
 
-## 已知且**故意**指向不存在文件的地方
+## 它扫哪些地方
 
-`docs/DOMESTIC_WORKERS_ZH.md` 开头写着「不要照着这份文档的旧内容操作」，
-然后**特意点名**那两个已删除的脚本，好让照着旧版做的人知道发生了什么。
-那是对的，所以它在白名单里——但白名单只对**明确标了作废的文档**开口。
+`docs/` **和 `evidence/`**。原来只扫前者——直到 2026-08-05 我往
+`evidence/HANDOFF_v0007.md` 里写了一段「要加新平台就跑这个」，写完才想起来：
+**接手的人第一份读的就是交接**，而它整个在这道门的视野之外。
+这道门存在的理由，正好是挡这件事。
+
+## 「已删 `scripts/xxx`」是记录，不是指令
+
+那种句子必须放行，否则每一条删除记录都会把这道门点红。判别按**行**做，
+不按整份文档：交接不是作废文档，把它整份开白名单，等于对最要紧的那一份闭眼。
+
+两处细节都是被真语料逼出来的：
+
+· **放行看两行**（本行 + 上一行）。散文会折行，交接里「已删」在上一行、
+  `stop_workers.sh` 折到了下一行，只看本行就会误报。
+· **指控只看本行**。「说已删而它还在」这一侧要是也看两行，
+  「已删 A。/ 现在改用 B。」里的 B 就会被上一行牵连——又是一次指错原因。
+
+原来这里还有一张**按整份文档**开的白名单，为 `docs/DOMESTIC_WORKERS_ZH.md`
+一份而设。加上按行判之后它变成了纯装饰：那份文档的两处引用，一处落在
+「不要照着」那一行、一处靠折行窗口盖住，白名单拿掉什么都不会发生——
+守它的判据当场把这件事点红了。装饰性的保护比没有保护更坏，它让人以为
+查过了，所以已删掉。
 
 ## 边界
 
@@ -39,44 +58,75 @@ if "--root" in sys.argv:
         _ARGUMENT_ROOT = sys.argv[_position + 1]
 
 ROOT = Path(_ARGUMENT_ROOT).resolve() if _ARGUMENT_ROOT else Path(__file__).resolve().parents[1]
-DOCS = ROOT / "docs"
-
-# 明确标了作废、且**目的就是点名已删除脚本**的文档。
-# 加进这张表之前先问一句：这份文档开头有没有一句让人别照着做的话？
-DELIBERATELY_POINTS_AT_DELETED = {
-    "DOMESTIC_WORKERS_ZH.md": "开头已声明「不要照着这份文档的旧内容操作」，正文点名两个已删除的脚本是为了让人知道发生了什么",
-}
 
 SCRIPT_REFERENCE = re.compile(r"scripts/[A-Za-z0-9_.-]+")
 
+# **交接也是文档，而且是最可能被照着敲的那一份。**
+#
+# 这道门原来只扫 docs/。2026-08-05 我往 evidence/HANDOFF_v0007.md 里写了
+# 一段「要加新平台就跑这个」，写完才想起来：接手的人第一份读的就是交接，
+# 而它整个在这道门的视野之外——这道门存在的理由正好是挡这件事。
+SCANNED = ("docs", "evidence")
+
+# 「已删 `scripts/xxx`」是**记录**，不是让人去跑。按整份文档开白名单太粗：
+# 交接不是作废文档，把它整份放行等于对最要紧的那一份闭眼。所以按**行**判。
+RECORDS_A_DELETION = ("已删", "已移除", "删掉", "不要照着", "已废弃", "不再")
+
 
 def main() -> int:
-    if not DOCS.is_dir():
-        print("docs/ 不在，跳过——**这不是通过**。")
+    roots = [ROOT / name for name in SCANNED if (ROOT / name).is_dir()]
+    if not roots:
+        print(f"{'/、'.join(SCANNED)}/ 都不在，跳过——**这不是通过**。")
         return 0
 
     missing: list[str] = []
+    stale_records: list[str] = []
     checked = 0
-    for document in sorted(DOCS.rglob("*.md")):
-        name = document.name
-        text = document.read_text(encoding="utf-8")
-        for reference in sorted(set(SCRIPT_REFERENCE.findall(text))):
-            checked += 1
-            if (ROOT / reference).exists():
-                continue
-            if name in DELIBERATELY_POINTS_AT_DELETED:
-                continue
-            missing.append(f"{document.relative_to(ROOT)} 让人跑 {reference}，而它不在")
+    documents = [path for root in roots for path in sorted(root.rglob("*.md"))]
+    for document in documents:
+        lines = document.read_text(encoding="utf-8").splitlines()
+        for number, line in enumerate(lines, 1):
+            # **看这一行和它上面那一行。**
+            #
+            # 只看本行时，交接里这句被判成「让人跑一个不存在的脚本」：
+            #     已删 `compose.workers.yaml`（…）+ `scripts/start_workers.sh`
+            #     + `scripts/stop_workers.sh`。原先 6 个测试**反转**成了…
+            # 「已删」在上一行，stop_workers 折到了下一行——散文本来就会折行。
+            #
+            # 取两行而不是整段：整段里可能前半句说「已删 A」、后半句说「去跑 B」，
+            # 那样 B 就被前半句挡住了。两行把这个风险摁在一个折行之内。
+            #
+            # 而且**两行只用在放行那一侧**。指控那一侧（「说已删，它却还在」）
+            # 仍然只看本行：否则
+            #     已删 scripts/foo.sh。
+            #     现在改用 scripts/final_verify.py。
+            # 第二行会被上一行的「已删」牵连，报成「说它已删而它还在」——
+            # 又是一次指错原因。**放宽用宽窗，指控用窄窗。**
+            window = line + ("\n" + lines[number - 2] if number >= 2 else "")
+            is_record = any(word in window for word in RECORDS_A_DELETION)
+            accuses_deletion = any(word in line for word in RECORDS_A_DELETION)
+            for reference in sorted(set(SCRIPT_REFERENCE.findall(line))):
+                checked += 1
+                here = f"{document.relative_to(ROOT)}:{number}"
+                if (ROOT / reference).exists():
+                    # 反过来也值得一说：写着「已删」而它还在，说明删漏了，
+                    # 或者这句记录是错的。两种都会让人相信一个不成立的事实。
+                    if accuses_deletion and "不要照着" not in line:
+                        stale_records.append(f"{here} 说 {reference} 已删，而它还在")
+                    continue
+                if is_record:
+                    continue
+                missing.append(f"{here} 让人跑 {reference}，而它不在")
 
-    print(f"扫了 docs/ 下 {len(list(DOCS.rglob('*.md')))} 份文档，"
-          f"{checked} 处 scripts/ 引用；另有 {len(DELIBERATELY_POINTS_AT_DELETED)} 份已登记为「故意指向已删除的」")
-    if missing:
-        print(f"**不合格 {len(missing)} 处**：")
+    print(f"扫了 {'/、'.join(SCANNED)}/ 下 {len(documents)} 份文档，{checked} 处 scripts/ 引用")
+    if missing or stale_records:
         for item in missing:
-            print(f"  {item}")
+            print(f"  **不合格**：{item}")
+        for item in stale_records:
+            print(f"  **记录与事实不符**：{item}")
         print("  ↳ 文档里最要命的一句，是出事那天才会被人读到的那一句。")
         return 1
-    print("文档让人跑的每一个脚本都在。")
+    print("文档让人跑的每一个脚本都在；写着「已删」的也确实不在了。")
     return 0
 
 
