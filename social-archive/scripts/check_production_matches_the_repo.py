@@ -55,8 +55,14 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-COMPARED = ("scripts", "src")
-SUFFIXES = ("*.py", "*.sh")
+# **apps/ 一开始不在这里，而它才是 Owner 看得见的那一半。**
+#
+# 2026-08-05 改了一处 PWA 的样式，正要部署时才想起来这道检查只比
+# scripts/ 与 src/——也就是说**界面代码漂了它一句话都不会说**。
+# 一道叫「生产跑的是不是仓里这一份」的门，漏掉用户唯一看得见的那部分，
+# 是它能犯的最难堪的错。
+COMPARED = ("scripts", "src", "apps")
+SUFFIXES = ("*.py", "*.sh", "*.js", "*.css", "*.html", "*.json")
 
 
 def _local_hashes() -> dict[str, str]:

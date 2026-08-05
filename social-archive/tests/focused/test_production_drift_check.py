@@ -246,3 +246,23 @@ def test_the_deploy_names_a_python_that_exists() -> None:
     assert "${PY}" not in call_line, "又用了那个不存在的变量"
     assert ".venv/bin/python" in call_line, f"解释器写法可疑：{call_line.strip()!r}"
     assert (ROOT / ".venv/bin/python").exists(), "那个解释器不在"
+
+
+def test_it_compares_the_half_the_owner_can_see() -> None:
+    """**apps/ 一开始不在比较范围里。**
+
+    2026-08-05 改了一处 PWA 样式，正要部署时才想起来这道检查只比
+    scripts/ 与 src/——**界面代码漂了它一句话都不会说**。
+    一道叫「生产跑的是不是仓里这一份」的门，漏掉用户唯一看得见的那部分，
+    是它能犯的最难堪的错。补上之后比较范围从 111 个文件涨到 141 个。
+    """
+    assert '"apps"' in CHECK_SOURCE, "比较范围里没有 apps/——界面漂了不会报"
+    for suffix in ('"*.js"', '"*.css"', '"*.html"'):
+        assert suffix in CHECK_SOURCE, f"前端文件后缀 {suffix} 不在比较范围里"
+
+
+def test_widening_the_scope_did_not_make_it_blind_to_the_old_half() -> None:
+    """加了新范围，旧范围不许丢——**这是加范围时最容易犯的错**。"""
+    assert '"scripts"' in CHECK_SOURCE and '"src"' in CHECK_SOURCE
+    for suffix in ('"*.py"', '"*.sh"'):
+        assert suffix in CHECK_SOURCE, f"原来的后缀 {suffix} 被挤掉了"
