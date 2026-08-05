@@ -85,3 +85,34 @@ def test_the_archive_itself_is_called_one_thing() -> None:
     tables = {name: _table(*spec) for name, spec in TABLES.items()}
     names = {table.get("social_archive") for table in tables.values() if "social_archive" in table}
     assert names == {"我的档案馆"}, f"档案馆自己被叫成了：{names}"
+
+
+def test_the_old_name_is_gone_from_the_prose_too() -> None:
+    """**判据比的是三张表，看不见正文。**
+
+    2026-08-06 改完三张表之后，拿真 Chrome 打开设置页一读，页面上**还留着**
+    「主档案」——它写在 `options.html` 的一句正文里
+    （「主档案与 Markdown 默认开启」），不在任何一张表里。
+
+    我当时还写下过「「主档案」只有这一张表里的 2 处」——**那句是错的**：
+    两处里一处在表里、一处是正文。表比对不到正文，只有真去看页面才发现。
+
+    这条把那个词整个禁掉：面向用户的文件里不许再出现。
+    """
+    offenders = []
+    for folder in ("apps",):
+        for path in sorted((ROOT / folder).rglob("*")):
+            if not path.is_file() or path.suffix not in (".html", ".js"):
+                continue
+            for line_no, line in enumerate(path.read_text(encoding="utf-8", errors="ignore")
+                                           .splitlines(), 1):
+                if "主档案" not in line:
+                    continue
+                # 说明这段历史的注释不算——它正是为了让人别再写回去
+                if line.lstrip().startswith(("//", "*", "<!--")) or "**" in line:
+                    continue
+                offenders.append(f"{path.relative_to(ROOT)}:{line_no}")
+    assert not offenders, (
+        "**「主档案」又回来了**：" + "、".join(offenders)
+        + "。同一样东西在三处叫三个名字，对没有技术基础的人就是三样东西。"
+    )

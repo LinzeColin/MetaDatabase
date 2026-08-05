@@ -163,7 +163,10 @@
   const destinationNames = {
     // **同一个东西三个名字**（2026-08-06）：资料库叫它「Social Archive」、
   // 扩展叫「我的档案馆」、设置页叫「主档案」。产品在别处一律叫「档案馆」
-  // （全仓 54 处，其中面向用户的「我的档案馆」14 处，而「主档案」只有这一张表里的 2 处）。
+  // （全仓 54 处，其中面向用户的「我的档案馆」14 处；「主档案」只有 2 处，
+  //   **而且我第一次数错了**：以为两处都在表里，其实一处在表里、一处是
+  //   options.html 的正文「主档案与 Markdown 默认开启」。改完表之后拿真 Chrome
+  //   打开设置页一读，页面上还留着那个词——**判据比的是三张表，看不见正文**。）
   // 对一个说自己没有技术基础的人，同一样东西三个名字就是三样东西。
   social_archive: "我的档案馆", markdown: "Markdown", notion: "Notion", obsidian: "Obsidian",
     github: "GitHub Private", karakeep: "Karakeep", linkwarden: "Linkwarden", archivebox: "ArchiveBox"
