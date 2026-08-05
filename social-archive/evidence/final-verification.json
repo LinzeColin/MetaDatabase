@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 644 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 645 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -115,7 +115,7 @@
         "scripts/check_docs_point_at_things_that_exist.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了全仓 29 份文档，70 处 scripts/ 引用、1 处代码块里被 .gitignore 挡着的路径\n文档让人跑的每一个脚本都在；写着「已删」的也确实不在了。\n",
+      "stdout": "扫了全仓 29 份文档，71 处 scripts/ 引用、1 处代码块里被 .gitignore 挡着的路径\n文档让人跑的每一个脚本都在；写着「已删」的也确实不在了。\n",
       "stderr": ""
     },
     {
@@ -151,7 +151,7 @@
         "scripts/check_evidence_declares_its_limits.py"
       ],
       "exit_code": 0,
-      "stdout": "检查 v0.0.0.7 证据 92 份（其中自锁 4 份）\n每一份都写了局限；自锁的没有一份被改写成 PASS。\n",
+      "stdout": "检查 v0.0.0.7 证据 93 份（其中自锁 4 份）\n每一份都写了局限；自锁的没有一份被改写成 PASS。\n",
       "stderr": ""
     },
     {

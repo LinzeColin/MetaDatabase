@@ -182,3 +182,28 @@ def test_no_secret_shaped_literal_survives_in_this_file() -> None:
     text = Path(__file__).read_text(encoding="utf-8")
     hits = _scan.scan_text("self", text)
     assert not hits, f"这个判据文件自己就有形状完好的密钥：{hits[:2]}"
+
+
+def test_the_production_scan_never_prints_the_value() -> None:
+    """**一个把密钥打给你看的泄漏检查器，自己就是下一个泄漏点。**"""
+    source = (ROOT / "scripts/scan_production_for_leaked_secrets.py").read_text(encoding="utf-8")
+    assert '"value_len": h["value_len"]' in source, "没有只报长度"
+    for leak in ('h["value"]', "hit['value']", '"value":'):
+        assert leak not in source, f"它会把值本身打出来：{leak}"
+
+
+def test_the_production_scan_refuses_to_pass_on_an_empty_sweep() -> None:
+    """**什么都没扫到和「干净」长得一样。** 路径写错、没权限，现象都是 0。"""
+    source = (ROOT / "scripts/scan_production_for_leaked_secrets.py").read_text(encoding="utf-8")
+    assert "NOTHING_WAS_SCANNED" in source
+    assert "这不是通过" in source
+
+
+def test_the_production_scan_reuses_the_one_scanner() -> None:
+    """远端跑的是**送过去的同一个扫描器**，不在那边再抄一份判定逻辑。
+
+    抄第二份的话，两份必然漂开——这一天已经在别处吃过这个亏。
+    """
+    source = (ROOT / "scripts/scan_production_for_leaked_secrets.py").read_text(encoding="utf-8")
+    assert "sa_scanner.py" in source and "scan_text" in source
+    assert "rm -f /tmp/sa_scanner.py" in source, "跑完没把扫描器从生产删掉"
