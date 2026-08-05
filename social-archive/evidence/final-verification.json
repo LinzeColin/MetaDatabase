@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 680 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 682 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -160,7 +160,7 @@
         "scripts/check_evidence_declares_its_limits.py"
       ],
       "exit_code": 0,
-      "stdout": "检查 v0.0.0.7 证据 108 份（其中自锁 6 份）\n每一份都写了局限；自锁的没有一份被改写成 PASS。\n",
+      "stdout": "检查 v0.0.0.7 证据 109 份（其中自锁 6 份）\n每一份都写了局限；自锁的没有一份被改写成 PASS。\n",
       "stderr": ""
     },
     {
@@ -170,6 +170,15 @@
       ],
       "exit_code": 0,
       "stdout": "api.py 里的 /v1 路由 50 个；客户端目录 apps, scripts\n每个接口都至少有一处界面调用。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/find_client_calls_to_routes_that_do_not_exist.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"routes_found\": 52,\n  \"distinct_client_calls\": 19,\n  \"calls_to_nothing\": [],\n  \"message_zh\": \"界面调的每一个地址，服务端都有。\",\n  \"what_this_does_not_prove\": \"只看字面量、不查方法；POST 打一条只有 GET 的路由，这道门看不出来。\"\n}\n",
       "stderr": ""
     },
     {
