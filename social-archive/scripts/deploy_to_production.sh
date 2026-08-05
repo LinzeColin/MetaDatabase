@@ -273,7 +273,21 @@ if [[ -n "$FREE_KB" && "$FREE_KB" -lt "$MIN_FREE_KB" ]]; then
   ssh -o ConnectTimeout=20 "$HOST" 'sudo docker images --format "      {{.Repository}}:{{.Tag}}  {{.Size}}" | grep social-archive' || true
   printf '    悬空镜像（含别的项目的，**不自动删**）：\n'
   ssh -o ConnectTimeout=20 "$HOST" 'sudo docker images -f "dangling=true" --format "      {{.ID}}  {{.Size}}  {{.CreatedSince}}"' || true
-  fail "可用空间不足 ${MIN_FREE_GB}G，拒绝构建。按上面那张表挑：悬空镜像有的话用 \`ssh $HOST 'for id in \$(sudo docker images -f dangling=true -q); do sudo docker rmi \$id; done'\`；一个都没有就多半是 Build Cache 占着（\`docker builder prune\` 会影响同机别的项目的构建速度，**由人决定**）。**任何情况下都不要用 docker system prune**（这台机器还跑着 memory-atlas / gatus / coolify 等别人的项目）。"
+  fail "可用空间不足 ${MIN_FREE_GB}G，拒绝构建。
+
+  **我们自己的已经收过了**（上面那一步只收带 com.socialarchive.project 标签的悬空镜像），
+  所以还不够的话，占地方的多半不是我们的。按上面那张表挑，而且**逐个挑**：
+
+  · 悬空镜像那张表里可能有别的项目的——**它对他们可能正是回滚点**。
+    确认某一个确实该删，再单独 \`sudo docker rmi <ID>\`。
+    **一个一个来；不要用整张列表一锅端，也不要用 docker system prune**——
+    它们会把别人的一起删掉。
+    （这里故意不写出那条一锅端的命令：**报错信息里的命令是会被照抄的**，
+      写出来当反面教材，和写出来让人用没什么区别。）
+  · 一个都没有就多半是 Build Cache 占着。\`docker builder prune\` 会拖慢
+    同机别的项目的构建，**由人决定**。
+  · **任何情况下都不要用 docker system prune**（这台机器还跑着
+    memory-atlas / gatus / coolify 等别人的项目）。"
 fi
 
 step "5) 构建并上线"
@@ -400,6 +414,28 @@ step "9) 验收：仓、主机、**镜像里那一份**，三份是不是同一�
   · container_is_running_older_code —— 服务执行的不是你以为的那一版，要重建镜像
   两者的下一步完全不同，报告里已分开列。"
 printf '  三份一致：仓 = 主机 = 镜像。\n'
+
+step "10) 收掉自己上一次留下的那个镜像"
+# **谁开的谁收。** 每成功部署一次，就有一个 1GB 的旧镜像变成悬空——
+# 上一次的回滚点被这一次顶替掉了（:rollback 只留一层，那是设计）。
+#
+# 原来只有「磁盘不够」那条路才回收，于是它**一直攒到把门顶住为止**：
+# 2026-08-05 实测 7.31G → 部署一次 → 5.19G，两次就顶到 5G 门槛。
+# 那天为了腾地方，最后是让 Owner 去裁定删同机别的项目的缓存——
+# **而真正该收的是我们自己每次留下的这一个。**
+#
+# 只收**带我们标签、且已经悬空**的（`com.socialarchive.project`）：
+# 这台机器还跑着 memory-atlas / gatus / coolify 等别人的项目，
+# 任何情况下都不 `docker system prune`，也不动没有这个标签的悬空镜像。
+# 收不掉就只是少收一点，绝不因此让部署失败——它已经成功了。
+RECLAIMED="$(ssh -o ConnectTimeout=60 "$HOST" '
+  ids=$(sudo docker images -f "dangling=true" -f "label=com.socialarchive.project=social-archive" -q)
+  n=0
+  for id in $ids; do sudo docker rmi "$id" >/dev/null 2>&1 && n=$((n+1)); done
+  echo "$n"' 2>/dev/null || echo 0)"
+FREE_KB="$(free_kb)"
+printf '  回收了 %s 个我们自己的悬空镜像；根分区可用 %sG\n' \
+  "${RECLAIMED:-0}" "$(show_gb "$FREE_KB")"
 
 printf '\n部署完成。回滚一行命令：\n'
 printf '  ssh %s "cd %s && docker tag social-archive/core:rollback %s && docker compose up -d core-api core-worker"\n' "$HOST" "$REMOTE_DIR" "$IMAGE"

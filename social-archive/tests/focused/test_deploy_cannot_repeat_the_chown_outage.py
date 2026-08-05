@@ -154,3 +154,51 @@ def test_it_notices_when_the_installed_systemd_units_have_drifted() -> None:
     drift_at = code.index("DRIFT")
     build_at = code.index("docker compose build")
     assert drift_at < build_at, "构建都跑完了才发现 unit 是旧的"
+
+
+def test_the_deploy_cleans_up_the_image_it_orphaned_itself() -> None:
+    """**谁开的谁收。** 每成功部署一次就留下一个 1GB 的悬空镜像。
+
+    :rollback 只留一层（那是设计），所以这一次的部署会把上一次的回滚点顶掉，
+    那个镜像随即变成悬空。原来只有「磁盘不够」那条路才回收，于是它
+    **一直攒到把门顶住为止**——2026-08-05 实测 7.31G → 部署一次 → 5.19G，
+    两次就顶到 5G 门槛。
+
+    那天为了腾地方，最后是让 Owner 去裁定删同机别的项目的缓存。
+    **而真正该收的是我们自己每次留下的这一个。**
+    """
+    code = code_only(DEPLOY.read_text(encoding="utf-8"))
+    # **钉的是那条命令，不是步骤标题。**
+    # 第一版写的是 `assert "10)" in code`——把步骤改名成「10) 什么都不收」
+    # 它照样绿。判据钉在编号上等于没钉。
+    tail = code.split("三份一致")[-1]
+    assert "dangling=true" in tail and "docker rmi" in tail, (
+        "**三份一致之后没有回收自己留下的悬空镜像**——"
+        "每成功部署一次就攒一个 1GB，攒到把磁盘门顶住为止"
+    )
+    assert "docker rmi" in tail.split("dangling=true")[-1], (
+        "列出来了却没删——列表本身不省地方"
+    )
+
+
+def test_every_dangling_sweep_is_fenced_to_our_own_label() -> None:
+    """**这台机器还跑着别人的项目。**
+
+    memory-atlas / gatus / coolify 都在同一个 docker 里。任何一次
+    `docker rmi $(docker images -f dangling=true -q)` 都会连他们的一起删掉，
+    而悬空镜像对他们可能正是回滚点。
+
+    所以判据钉的不是「这一处写对了」，是**每一处都必须写对**：
+    凡是拿 dangling 列表去删的，同一条命令里必须有我们自己的标签。
+    """
+    code = code_only(DEPLOY.read_text(encoding="utf-8"))
+    for line in code.splitlines():
+        if 'dangling=true' not in line:
+            continue
+        # 只列出来给人看的不算（没有 -q，也没喂给 rmi）
+        if "-q" not in line:
+            continue
+        assert "label=com.socialarchive.project" in line, (
+            "**这一行会把别的项目的悬空镜像一起删掉**——"
+            f"拿 dangling 列表去删，必须同时按我们自己的标签过滤：\n    {line.strip()}"
+        )
