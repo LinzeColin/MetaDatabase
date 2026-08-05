@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 699 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 703 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -115,7 +115,7 @@
         "scripts/check_docs_point_at_things_that_exist.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了全仓 29 份文档，73 处 scripts/ 引用、1 处代码块里被 .gitignore 挡着的路径\n文档让人跑的每一个脚本都在；写着「已删」的也确实不在了。\n",
+      "stdout": "扫了全仓 30 份文档，74 处 scripts/ 引用、1 处代码块里被 .gitignore 挡着的路径\n文档让人跑的每一个脚本都在；写着「已删」的也确实不在了。\n",
       "stderr": ""
     },
     {
@@ -187,7 +187,7 @@
         "scripts/check_docs_match_the_ui.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 docs/ 里 25 处界面词引用\n每一处都在界面上找得到。\n",
+      "stdout": "扫了 docs/ 里 39 处界面词引用\n每一处都在界面上找得到。\n",
       "stderr": ""
     },
     {
@@ -251,6 +251,15 @@
       ],
       "exit_code": 0,
       "stdout": "{\n  \"status\": \"PASS\",\n  \"platforms_checked\": 9,\n  \"syncable_now\": [\n    \"bilibili\",\n    \"generic-web\"\n  ],\n  \"scannable_relations\": {\n    \"bilibili\": [\n      \"favorite\"\n    ]\n  },\n  \"server_handled\": [\n    \"instagram\",\n    \"reddit\",\n    \"x\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"界面承诺的和代码里有的，逐个平台对上了。\",\n  \"what_this_does_not_prove\": \"只对四张静态表。「那条取数路真的读得回东西」由 bilibili_acquisition_drill.py（打真接口）与 bilibili_end_to_end_drill.py（真 Chrome 跑整条链）去证。\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_the_guide_matches_the_product.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"task\": \"G4\",\n  \"guide\": \"docs/使用说明.md\",\n  \"buttons_checked\": 6,\n  \"claimed_auto\": [\n    \"bilibili\",\n    \"generic-web\"\n  ],\n  \"product_auto\": [\n    \"bilibili\",\n    \"generic-web\"\n  ],\n  \"claimed_manual\": [\n    \"douyin\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"x\",\n    \"xiaohongshu\",\n    \"youtube\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"使用说明里写的每一步，产品里都真的有。\",\n  \"what_this_does_not_prove\": \"不检查步骤顺不顺、语气好不好，只保证说的每件事都存在。\"\n}\n",
       "stderr": ""
     },
     {

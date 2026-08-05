@@ -128,6 +128,12 @@ def structural_commands() -> list[list[str]]:
         # 「界面画的按钮服务端认不认」，这一道问的是
         # 「服务端认了的，扩展里真的有实现吗」——**两个方向**。
         [python, "scripts/check_sync_promises_match_reality.py"],
+        # 第九种：**说明书开始骗人**（v0.0.0.7 / G4）。
+        # 这个仓已经有过一模一样的教训：CONNECT_IS_CLICKABLE_TODAY 里写过一句
+        # 详细的操作路径，然后发现没有任何界面读那个字段——写完就是隐形的。
+        # 一份没人核对的使用说明是同一类东西：写的时候对，改一次代码就开始骗人，
+        # 而**读它的人是 Owner，他没有别的办法发现自己被骗了**。
+        [python, "scripts/check_the_guide_matches_the_product.py"],
         [python, "scripts/validate_deployment_contract.py"],
     ]
 

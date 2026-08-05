@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "task": "G4",
+  "guide": "docs/使用说明.md",
+  "buttons_checked": 6,
+  "claimed_auto": [
+    "bilibili",
+    "generic-web"
+  ],
+  "product_auto": [
+    "bilibili",
+    "generic-web"
+  ],
+  "claimed_manual": [
+    "douyin",
+    "instagram",
+    "kuaishou",
+    "reddit",
+    "x",
+    "xiaohongshu",
+    "youtube"
+  ],
+  "problems": [],
+  "message_zh": "使用说明里写的每一步，产品里都真的有。",
+  "what_this_does_not_prove": "不检查步骤顺不顺、语气好不好，只保证说的每件事都存在。"
+}
