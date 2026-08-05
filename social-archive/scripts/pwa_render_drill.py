@@ -67,6 +67,11 @@ ROOT = Path(__file__).resolve().parents[1]
 PWA = ROOT / "apps/pwa"
 PORT = 8765
 
+# 同步中心的抬头（2026-08-06）：它此前承诺「自动全量导入」，
+# 而九个平台里八个不能自动同步。改成照实说之后，**同样要亲眼看见它画出来**——
+# 那句话是静态 HTML，但「在文件里」和「在页面上」是两件事，这一整天都在拆这个。
+SYNC_HEADER = "本版本只有 Chrome 书签能自动读取"
+
 COVERAGE = "已送到这里 1 / 193 条。"
 GAP = "**还有 192 条从来没送到这里。**"
 PRIVACY = "开锁用的令牌只存在你的服务器上，插件拿不到。"
@@ -171,6 +176,7 @@ READ_DOM = r"""
     _modalBodyExists: !!document.getElementById("destinationsModalBody"),
     _modalBodyHtmlLen: (document.getElementById("destinationsModalBody") || {}).innerHTML?.length ?? -1,
     _errors: (window.__drillErrors || []).slice(0, 4),
+    syncHeader: (document.getElementById("syncModalTitle")?.parentElement?.innerText || ""),
     cardCount: cards.length,
     // 整张卡的可见文字——那两段话必须在里面
     text: cards.map(c => c.innerText).join("\n---\n").slice(0, 1200),
@@ -252,6 +258,10 @@ async def run(chrome: str) -> int:
         problems.append("**差额那句没显示**——服务端说了实话，界面照旧报平安")
     if PRIVACY not in text:
         problems.append("**隐私说明没显示**——八条写了没人看，正是它当初的毛病")
+    if SYNC_HEADER not in str(measured.get("syncHeader") or ""):
+        problems.append(
+            f"**同步中心的抬头没显示那句限定语**：{SYNC_HEADER}。"
+            "抬头此前承诺「自动全量导入」，而九个平台里八个做不到。")
 
     print(json.dumps({
         "status": "PASS" if not problems else "FAIL",
@@ -259,6 +269,8 @@ async def run(chrome: str) -> int:
         "privacy_note_class_present": measured.get("hasPrivacyClass"),
         "problems": problems,
         "rendered_text": text[:400],
+        # 同步中心那句限定语，**照原样印出来**：它是这次要亲眼看见的东西之一。
+        "sync_centre_header": str(measured.get("syncHeader") or "").replace("\n", " ")[:200],
         # **失败时必须说清页面当时在干什么。** 只报一句「0 张卡」而不说
         # 页面报了什么错，下一个人还得把这一段重新查一遍。
         "page_said": {key.lstrip("_"): value for key, value in sorted(measured.items())
