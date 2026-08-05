@@ -107,3 +107,25 @@ def test_the_next_step_does_not_point_at_a_wizard_that_cannot_help(settings, sto
         step = view["next_action_zh"]
         assert "向导" not in step, f"{view['connector_id']} 仍被指向一个打不开这条路的向导：{step}"
         assert "Worker" not in step, f"{view['connector_id']} 的下一步还在提已经删掉的 Worker：{step}"
+
+
+def test_a_platform_in_no_capability_table_also_gets_an_honest_next_step(
+    settings, store, monkeypatch
+) -> None:
+    """tiktok 不在任何一张能力表里，走的是**另一条**钳制分支。
+
+    那条分支只在探针说 healthy 时才触发——所以上面那些用 degraded 探针的判据
+    **一条都碰不到它**。2026-08-05 实测：修完上线后其它平台都对了，
+    只有 tiktok 还写着「按向导配置」，而判据全绿。
+
+    **一个只修了一半的修复，比没修更难发现。** 这条判据专门走那条分支。
+    """
+    registry = ConnectorRegistry(settings)
+    monkeypatch.setattr(registry, "_live_probe", lambda _: {"state": "healthy"})
+    view = next(item for item in registry.health_views(store.connector_states())
+                if item["connector_id"] == "tiktok")
+    assert view["state"] == "blocked_environment", "探针说 healthy 时它没有被能力声明钳住"
+    assert "向导" not in view["next_action_zh"], (
+        f"tiktok 仍被指向一个打不开这条路的向导：{view['next_action_zh']}"
+    )
+    assert "Worker" not in view["next_action_zh"]
