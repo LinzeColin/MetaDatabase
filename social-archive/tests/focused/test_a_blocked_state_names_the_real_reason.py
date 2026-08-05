@@ -129,3 +129,24 @@ def test_a_platform_in_no_capability_table_also_gets_an_honest_next_step(
         f"tiktok 仍被指向一个打不开这条路的向导：{view['next_action_zh']}"
     )
     assert "Worker" not in view["next_action_zh"]
+
+
+def test_no_next_step_anywhere_mentions_the_deleted_workers() -> None:
+    """**整张「下一步」表里都不许再提那三个 Worker。**
+
+    它们在 T03 就被实测证伪、连同 compose.workers.yaml 删掉了。
+    degraded 那句现在其实到不了（能力钳制把不可同步的都压成 blocked_environment，
+    而 generic-web 的探针无条件 healthy）——但**到不了的假话仍然是假话**：
+    下一个读代码的人会以为 Worker 还在这套架构里。
+    """
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[2] / "src/social_archive/registry.py").read_text(encoding="utf-8")
+    table = source.split("next_action = {", 1)[1].split("}.get(state", 1)[0]
+    # **只看会显示给人的那几句，不看解释它们的注释。**
+    # 表里那段注释正是在讲「不该再提那三个已删的 Worker」——把注释也算进去，
+    # 判据就会红在一句正确的说明上。今天第三次栽在同一处（doctor 的 PASS、
+    # 部署脚本的 system prune，现在是这个）。
+    shown = "\n".join(l for l in table.splitlines() if not l.lstrip().startswith("#"))
+    assert "Worker" not in shown, f"「下一步」表里还在提已删的 Worker：{shown[:200]}"
+    assert "向导" not in shown, "「下一步」表里还在指向一个打不开这些路的向导"

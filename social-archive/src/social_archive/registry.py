@@ -242,11 +242,23 @@ class ConnectorRegistry:
                     "error_code": probe.get("error_code") or "PLATFORM_NOT_SYNCABLE_YET",
                     "message_zh": "本版本还不能自动读取这个平台的内容。",
                 }
+            # 每一句都必须对**真的会看到它的那个人**成立。
+            #
+            # · degraded：现在到不了（能力钳制把不可同步的都压成 blocked_environment，
+            #   而 generic-web 的探针无条件 healthy）。留着是为了万一将来某个探针真回它，
+            #   那时也不该再提那三个已删的组件。
+            # · blocked_environment：原文是「尚未配置真实账号或 Worker；……再按向导配置」。
+            #   两处都指向不存在的东西——那三个 HTTP worker 在 T03 就被实测证伪删掉了，
+            #   而没有任何向导能打开这些路。下面那个 clamped_by_capability 分支会覆盖它，
+            #   但**表里留着一句假话本身就是隐患**：哪天有连接器从别的路走到这个状态，
+            #   它就会原样显示出来。
             next_action = {
-                "healthy":"可直接点击“读取/保存”。","degraded":"首选 Worker 不可用；仍可保存当前页面。运行诊断查看唯一修复动作。",
-                "blocked_environment":"尚未配置真实账号或 Worker；先使用保存当前页面，再按向导配置。",
-                "paused":"已因配额或安全门暂停；L0/L1 仍可用。","disabled":"该连接器当前关闭；通用保存不受影响。"
-            }.get(state,"运行诊断。")
+                "healthy": "可直接点击“读取/保存”。",
+                "degraded": "这个来源暂时不可用；先用“保存当前页面”。不用你做什么，下次检查会自动再试。",
+                "blocked_environment": "本版本还不能自动读取这个来源；先用“保存当前页面”。",
+                "paused": "已因配额或安全门暂停；L0/L1 仍可用。",
+                "disabled": "该连接器当前关闭；通用保存不受影响。",
+            }.get(state, "运行诊断。")
             # **「下一步」也不许指向一个不存在的东西。**
             #
             # 上面那句通用文案说「尚未配置真实账号或 **Worker**；……再**按向导配置**」。
