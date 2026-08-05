@@ -63,18 +63,34 @@ def test_it_returns_to_home_on_its_own() -> None:
 
 
 def test_the_steps_are_only_the_ones_a_human_must_do() -> None:
-    """能自动的不要写成步骤。原来的第 5、6 步是人替机器干活。"""
+    """能自动的不要写成步骤。原来的第 5、6 步是人替机器干活。
+
+    **2026-08-06 这一页从一份变成两份**：首次安装四步 + 更新四步。
+    原来这条数的是整页的 `<li>`，于是加了更新那一段之后它报「现在是 8」。
+    意图没变（每一步都得是人非做不可的），所以改成**按块各数一次**。
+    """
     html = visible_text()
-    steps = re.findall(r"<li><strong>([^<]+)</strong>", html)
-    assert len(steps) == 4, f"步骤应当只剩四步（人必须做的那四下），现在是 {len(steps)}：{steps}"
+    for block_id, expected in (("installSteps", 4), ("updateBlock", 4)):
+        block = re.search(rf'id="{block_id}"[^>]*>(.*?)</(?:ol|section)>', html, re.S)
+        assert block, f"{block_id} 那一块找不到了——判据的射程失效，先修判据"
+        steps = re.findall(r"<li><strong>([^<]+)</strong>", block.group(1))
+        assert len(steps) == expected, (
+            f"{block_id} 应当是 {expected} 步（人必须做的那几下），现在是 {len(steps)}：{steps}"
+        )
     for gone in ("返回网站并刷新", "点击连接"):
         assert gone not in html, f"「{gone}」这一步已经自动化了，不该还写在步骤里"
 
 
 def test_it_says_plainly_that_the_browser_forbids_auto_install() -> None:
-    """做不到的事要直说，而不是让用户以为是自己没找到那个按钮。"""
+    """做不到的事要直说，而不是让用户以为是自己没找到那个按钮。
+
+    **原话从「安装扩展」改成了「安装或更新扩展」**（2026-08-06）：
+    更新同样是浏览器不许网页代劳的，而这一页此前压根没提更新。
+    这里钉的是那句话的**意思**在，不是逐字。
+    """
     html = PAGE.read_text(encoding="utf-8")
-    assert "浏览器不允许网页替你安装扩展" in html
+    assert "浏览器不允许网页替你安装" in html, "没有直说浏览器不许网页代劳"
+    assert "或更新" in html, "只说了安装——而更新同样是浏览器不许代劳的，这一页正是为它才重写的"
 
 
 def test_no_stale_version_string() -> None:

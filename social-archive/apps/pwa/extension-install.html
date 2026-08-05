@@ -39,17 +39,43 @@
 </head>
 <body>
   <main>
-    <p class="eyebrow">Social Archive · 免费安装</p>
-    <h1>四步装好，之后看到好内容只点一下。</h1>
-    <p class="lead"><strong>浏览器不允许网页替你安装扩展</strong>——这一步只能你自己点四下。
-      装好之后本页会自己认出来，并把你送回首页，你不需要判断"好了没有"。
-      全程不用命令行，也不用填服务器、端口或任何 Token。</p>
+    <p class="eyebrow" id="eyebrow">Social Archive · 免费安装</p>
+    <h1 id="headline">正在看你这台电脑上是什么情况…</h1>
+    <p class="lead" id="lead"><strong>浏览器不允许网页替你安装或更新扩展</strong>——这几下只能你自己点。
+      这一页会先认一认你现在的状态，再只给你该做的那几步。</p>
     <div class="detect" id="detect"><span class="dot"></span><span id="detectText">正在检测插件…</span></div>
     <div class="actions">
-      <a class="button" href="/downloads/social-archive-extension.zip" download>先下载安装包</a>
-      <a class="button secondary" href="/home">返回 Social Archive</a>
+      <a class="button" id="downloadBtn" href="/downloads/social-archive-extension.zip" download>先下载安装包</a>
+      <!-- 原来这里写的是 href="/home"，而**那个地址回 404**（2026-08-06 实测）。
+           首页就是 "/"。一个「返回」按钮把人送进 404，比没有按钮更糟。 -->
+      <a class="button secondary" href="/">返回资料库</a>
     </div>
-    <ol aria-label="Chrome 插件安装步骤">
+    <section id="updateBlock" hidden>
+      <h2 style="font-size:19px;margin:26px 0 6px">你已经装过了，这次只需要<strong>换掉里面的文件</strong></h2>
+      <p class="lead" style="margin:0 0 14px">下面每一步都实测过。<strong>关键是那个文件夹的位置不能变</strong>——
+        位置一变，Chrome 会把它当成另一个插件，你已经连好的凭据会留在旧的那个上。</p>
+      <ol aria-label="Chrome 插件更新步骤">
+        <li><strong>下载新版安装包</strong>
+          <p>就是上面那颗「先下载安装包」。下载完双击解压。</p></li>
+        <li><strong>把解压出来的文件，覆盖进你原来那个插件文件夹</strong>
+          <p><strong>不要新建文件夹，也不要换地方。</strong>把新解压出来的那些文件，
+            直接盖进你当初放在“文稿”里的那个插件文件夹（系统问「是否替换」就选替换）。</p>
+          <p>忘了它在哪？打开 <code>chrome://extensions</code>，Social Archive 那一项里
+            写着它的文件夹位置。</p></li>
+        <li><strong>点一下「重新加载」</strong>
+          <p>在 <code>chrome://extensions</code> 上找到 Social Archive 那一项，
+            点它的<strong>重新加载（⟳）</strong>按钮。</p></li>
+        <li><strong>回到本页</strong>
+          <p>版本对上了，上面那一条会自动变绿并把你送回资料库。
+            <strong>你不需要自己判断成没成。</strong></p></li>
+      </ol>
+      <p class="privacy" style="margin-top:14px"><strong>别做这一件事：</strong>
+        更新时<strong>不要再点一次「加载已解压的扩展程序」</strong>去装新文件夹。
+        实测过：换一个文件夹装，Chrome 会给它一个<strong>新的插件 ID</strong>——
+        等于你同时装了两个插件，而已经连好的凭据留在旧的那个上，新的那个还得重连一次。
+        在原文件夹里覆盖再重新加载，<strong>ID 不变、凭据也还在</strong>。</p>
+    </section>
+    <ol id="installSteps" aria-label="Chrome 插件安装步骤">
       <li><strong>解压 ZIP，并把文件夹放到“文稿”里</strong>
         <p>双击解压得到一个插件文件夹，<strong>把它拖进“文稿”（Documents）</strong>再往下做。
           Chrome 是<strong>直接读这个文件夹</strong>运行插件的——留在“下载”里，
@@ -84,20 +110,52 @@
       const text = document.getElementById("detectText");
       let done = false;
 
+      // **应答里是带版本号的**（background.js 的 SA_WEB_BRIDGE_STATUS 会回 version），
+      // 而这一页原来只看「有没有回应」，把版本整个丢掉了。后果很具体：
+      // 装着旧插件的人，首页说「去更新」→ 跳到这里 → 旧插件应答 → 这里说
+      // 「✓ 已检测到插件，正在把你送回首页」→ 回到首页 → 还是「去更新」。
+      // **一个死循环**，而整页没有一个字讲怎么更新。Owner 的原话：
+      // 「不能真的更新插件版本，整个软件完全不能使用」。
       function ping() {
         return new Promise(resolve => {
           const requestId = (crypto.randomUUID && crypto.randomUUID()) || String(Math.random());
-          const timer = setTimeout(() => { window.removeEventListener("message", onMessage); resolve(false); }, 1200);
+          const timer = setTimeout(() => { window.removeEventListener("message", onMessage); resolve(null); }, 1200);
           function onMessage(event) {
             const data = event.data || {};
             if (event.source !== window || data.source !== "social-archive-extension" || data.requestId !== requestId) return;
             clearTimeout(timer);
             window.removeEventListener("message", onMessage);
-            resolve(true);
+            resolve(data);
           }
           window.addEventListener("message", onMessage);
           window.postMessage({ source: "social-archive-web", type: "SA_PING", requestId }, location.origin);
         });
+      }
+
+      // 该装成哪个版本，问服务端要——**不写死在这一页里**，
+      // 写死的话升一次版就得记得改两处，而漏改的那次没人会发现。
+      let requiredVersion = "";
+      async function loadRequiredVersion() {
+        try {
+          const health = await fetch("/health", { cache: "no-store" }).then(r => r.json());
+          requiredVersion = String(health.version || "");
+        } catch (_) { requiredVersion = ""; }
+      }
+
+      const show = (id, on) => { const el = document.getElementById(id); if (el) el.hidden = !on; };
+      function paintInstall() {
+        document.getElementById("headline").textContent = "四步装好，之后看到好内容只点一下。";
+        document.getElementById("eyebrow").textContent = "Social Archive · 免费安装";
+        show("updateBlock", false); show("installSteps", true);
+      }
+      function paintUpdate(installed) {
+        document.getElementById("eyebrow").textContent = "Social Archive · 更新已装的插件";
+        document.getElementById("headline").textContent = "你装的是旧版，换掉文件就好。";
+        document.getElementById("lead").innerHTML =
+          "你这台电脑上装着 <strong>v" + (installed || "未知") + "</strong>，" +
+          "而资料库需要 <strong>v" + (requiredVersion || "更新的版本") + "</strong>。" +
+          "<strong>不用重装、也不用重新连接</strong>——按下面几步把文件换掉即可。";
+        show("updateBlock", true); show("installSteps", false);
       }
 
       // 一直转下去看起来像卡住了。几次之后改口说清楚：
@@ -105,20 +163,37 @@
       let rounds = 0;
       async function loop() {
         if (done) return;
-        if (await ping()) {
+        const reply = await ping();
+
+        if (reply) {
+          const installed = String(reply.version || "");
+          // **版本对上了才算好。** 只看「有没有回应」的那一版，会把装着旧插件的人
+          // 一遍遍送回首页，而首页又把他送回来。
+          if (requiredVersion && installed && installed !== requiredVersion) {
+            paintUpdate(installed);
+            dot.classList.remove("ready");
+            text.textContent = "检测到 v" + installed + "，需要 v" + requiredVersion +
+              "——按下面几步换掉文件，换好这里会自动变绿。";
+            setTimeout(loop, 1500);   // 继续盯着，换好了立刻变绿
+            return;
+          }
           done = true;
           dot.classList.add("ready");
-          text.textContent = "✓ 已检测到插件，正在把你送回首页…";
+          text.textContent = installed
+            ? "✓ 插件已是 v" + installed + "，正在把你送回资料库…"
+            : "✓ 已检测到插件，正在把你送回资料库…";
           setTimeout(() => { location.href = "/"; }, 1500);
           return;
         }
+
+        paintInstall();
         rounds += 1;
         if (rounds === 2) {
-          text.textContent = "还没检测到插件——按下面四步装好即可，装好的那一刻这里会自动变绿并带你回首页。";
+          text.textContent = "还没检测到插件——按下面四步装好即可，装好的那一刻这里会自动变绿并带你回资料库。";
         }
         setTimeout(loop, 1500);
       }
-      loop();
+      loadRequiredVersion().then(loop);
     })();
   </script>
 </body>
