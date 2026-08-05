@@ -25,7 +25,8 @@
     {
       "what": "**磁盘 38G 已用 37G（98%）**，core-api 镜像构建在最后一步 no space left on device 失败",
       "handling": "只做安全回收：docker builder prune（885MB）+ apt-get clean + 删掉那个构建失败的半成品镜像。**没有动其它项目的镜像与数据**（本机还跑着 kmfa/coolify/memory-atlas/gatus 等无关服务，/srv 8.7G 属于别的项目）。",
-      "still_open": "构建后仅剩 321M；清理后回到约 1.2G / 97%。**这是一个独立于本次部署的生产风险，需要 Owner 决定怎么处置**（多半要扩盘或清理 /srv 与其它项目的镜像，那不在本仓射程内）。"
+      "still_open": "构建后仅剩 321M；清理后回到约 1.2G / 97%。**这是一个独立于本次部署的生产风险，需要 Owner 决定怎么处置**（多半要扩盘或清理 /srv 与其它项目的镜像，那不在本仓射程内）。",
+      "it_actually_happened_2026_08_05": "**这条预判的风险当天就兑现了。** 部署被磁盘门挡住（可用 3.2G < 门槛 5G），而这一次连安全回收都不够用：`docker builder prune` 回收 **0B**（60 项缓存全 active），删掉回滚镜像换来 1.5G（3.2G → 4.7G），**仍差 0.3G**。因为我们能删的已经删完了——整机 34G 里我们只占 2.4G。详情与完整的占用分布见 T18/THE_DISK_IS_FULL_AND_ALMOST_NONE_OF_IT_IS_OURS.json。**「需要 Owner 决定」那句话当时是对的，现在是必须了**：它已经从「风险」变成「下一次部署过不去」。"
     }
   ],
   "verified_after_deploy": {
