@@ -127,8 +127,13 @@ for (const [name, entry] of Object.entries(catalog.PLATFORMS)) {{
 console.log(JSON.stringify(out));
 """
     payload = _run_node(script)
+    # **这个集合是精确相等，加平台必须是个有意识的动作。**
+    # 2026-08-05 由 7 变 8：Owner 裁定接上 youtube（它此前在服务端凭据表、
+    # Cookie 导出白名单、manifest 权限三处都有，唯独用户点得到的那层没有）。
+    # 目录里没有它的话，platformLabel 会把内部 id「youtube」直接甩给用户。
     assert set(payload) == {
         "xiaohongshu", "douyin", "kuaishou", "bilibili", "x", "reddit", "instagram",
+        "youtube",
     }
     for name, entry in payload.items():
         # 只有这四个字段。多一个 selector 混进来，这条就会红——

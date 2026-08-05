@@ -69,6 +69,15 @@
         like: "https://space.bilibili.com/0"
       })
     }),
+    youtube: Object.freeze({
+      label: "YouTube",
+      relations: ["watch_later", "playlist"],
+      home: "https://www.youtube.com/",
+      relationUrls: Object.freeze({
+        watch_later: "https://www.youtube.com/playlist?list=WL",
+        playlist: "https://www.youtube.com/feed/playlists"
+      })
+    }),
     x: Object.freeze({
       label: "X",
       relations: ["bookmark", "like"],

@@ -106,9 +106,16 @@
     }
 
     if (collected.length === 0) {
+      // **用中文名，并且说下一步。**
+      //
+      // 原来是「没有在浏览器里找到 ${platform} 的登录状态。」——两个毛病：
+      //   · ${platform} 是内部 id，用户看到的是「youtube」「xiaohongshu」
+      //     这种词。Owner 的原话：「我没有技术基础」。
+      //   · 只说了缺什么，没说该干什么。他会盯着这句话不知道下一步。
+      const label = globalThis.SAPlatformCatalog?.platformLabel?.(platform) || platform;
       throw new CookieExportError(
         "NOT_LOGGED_IN",
-        `没有在浏览器里找到 ${platform} 的登录状态。`,
+        `没有在这个浏览器里找到${label}的登录状态。先在这个浏览器登录一次${label}，再回来点「连接」。`,
       );
     }
 

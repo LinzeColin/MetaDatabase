@@ -131,3 +131,34 @@ def test_every_clickable_platform_has_an_honest_capability_line() -> None:
     assert not silent, (
         f"这些平台界面上点得到，却既不在「能同步」也没有一句说不能的理由：{silent}"
     )
+
+
+def _catalog_platform_ids() -> set[str]:
+    """content/platform-catalog.js 里那份平台目录。
+
+    **第三张表。** 我第一版只对了「服务端 ↔ shared.js」两张，于是接上 youtube
+    之后它在目录里仍然缺席——platformLabel("youtube") 返回的是内部 id
+    「youtube」本身，任何用中文名的地方都会把它甩给用户看。
+    一个只覆盖两张表的判据，挡不住第三张表上的同一个洞。
+    """
+    done = subprocess.run(
+        ["node", "-e",
+         'const c=require("./apps/browser-extension/content/platform-catalog.js");'
+         'console.log(JSON.stringify(Object.keys(c.PLATFORMS)));'],
+        cwd=ROOT, capture_output=True, text=True, check=True)
+    return set(json.loads(done.stdout))
+
+
+def test_every_clickable_platform_has_a_chinese_name_in_the_catalog() -> None:
+    """点得到的每一个平台，目录里都要有中文名。
+
+    没有的话 platformLabel 会原样返回内部 id——而界面上多处直接显示它，
+    用户看到的就是「youtube」「xiaohongshu」这种词。
+    Owner 的原话：「我没有技术基础」。
+    """
+    ui = _ui_platform_ids() - {"generic-web"}   # 通用网页不是平台，目录里本就没有
+    missing = sorted(ui - _catalog_platform_ids())
+    assert not missing, (
+        f"这些平台点得到、目录里却没有中文名：{missing}——"
+        "platformLabel 会把内部 id 直接甩给用户"
+    )
