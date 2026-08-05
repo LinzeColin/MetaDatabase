@@ -32,6 +32,17 @@ cookie-export.js 的。block / code / text / body 这些名字在判据文件里
 
 **每一条能追到归属的断言都是承重的。** 误报从 7 降到 0。
 
+## 当天晚些时候重跑（判据从 ~600 涨到 965 之后）
+
+    候选 377 · 突变 299 · 承重 299 · 报「没守住」0 · 归属追不到 78
+
+**仍然是 0。** 顺带修了这个脚本自己的一处静默截断：默认预算是 40，
+而输出里从来没说过那是个上限——`"load_bearing": 40` 读起来就是
+「全查过了，全承重」，实际只覆盖了 377 条候选里的 11%。
+我自己就差点拿一次被截断的运行去和上面那次 236 的完整运行比，
+当成「覆盖悄悄掉了」去查。现在报告会说清 候选多少、跑了多少、
+以及**「预算用完」与「归属追不到」是两回事**。
+
 ## 为什么仍然不挂进 pre-commit
 
 不是因为慢（123 秒还能接受），是因为**它会写源码文件**：每次突变都要把
@@ -169,8 +180,23 @@ def _sources_in_module_body(tree: ast.Module, constants: dict[str, str]) -> dict
 
 
 def main() -> int:
+    # **默认只跑 40 次，而输出里从来没说过这是个上限。**
+    #
+    # 2026-08-05：我不带参数跑了一次，看到 `"load_bearing": 40`，
+    # 又想起文档里记着的那次是 236——差点当成「这道探针的覆盖悄悄掉了」去查。
+    # 它没掉，是我拿一次**被截断的**运行去比一次完整运行。
+    #
+    # 报告里不说「40 是上限、一共有多少条候选」，读起来就是「全查过了，全承重」。
+    # **静默截断读起来和「覆盖完整」一模一样**，这正是这个项目反复在拆的那种话。
     budget = int(sys.argv[1]) if len(sys.argv) > 1 else 40
+    requested = budget
+    candidates = 0
     results: dict = {"load_bearing": 0, "not_load_bearing": [], "unresolved": 0}
+    for test in sorted(pathlib.Path("tests/focused").glob("test_*.py")):
+        try:
+            candidates += len(dict.fromkeys(_claims(test)))
+        except SyntaxError:
+            pass
     for test in sorted(pathlib.Path("tests/focused").glob("test_*.py")):
         if budget <= 0:
             break
@@ -203,6 +229,23 @@ def main() -> int:
             else:
                 results["not_load_bearing"].append(
                     {"test": test.name, "source": relative, "literal": literal})
+    attempted = results["load_bearing"] + len(results["not_load_bearing"])
+    results["mutation_budget"] = requested
+    results["candidates_found"] = candidates
+    # **「预算用完」和「归属追不到」是两回事，别混成一句。**
+    #
+    # 第一版把两者都算成「没跑到」，于是一次预算充足的完整运行
+    # （299 突变 + 78 追不到 = 377 全看过）被描述成「只突变了 299 条」，
+    # 读起来像被截断了。指错原因，今天第七次。
+    truncated = results["unresolved"] + attempted < candidates
+    results["coverage_zh"] = (
+        f"**预算用完了**：只突变了 {attempted} 条，候选有 {candidates} 条"
+        f"（上限 {requested}，命令行第一个参数可以调）。没跑到的不是「通过」，是没查。"
+        if truncated else
+        f"{candidates} 条候选全看过了：{attempted} 条做了突变验证，"
+        f"{results['unresolved']} 条**追不到归属所以跳过**——"
+        "跳过不是通过，那几条这道探针管不了。"
+    )
     print(json.dumps(results, ensure_ascii=False, indent=2))
     return 0
 
