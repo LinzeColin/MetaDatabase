@@ -33,6 +33,14 @@ ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/backu
 # Draft Release 每刻钟建一个会把仓刷爆，而且没必要——
 # 前两份已经跟上了节奏，第三份每天补一次即可。
 ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/backup_runtime_db.py --github
+# 清掉超过保留期的旧快照。**保留期 48 小时是 Owner 2026-08-06 定的**——
+# backup_runtime_db.py 一直故意不删，它的文件头写着「保留策略是运维决定」，
+# 等的就是这个决定。
+#
+# **挂在最后一条，是因为 Type=oneshot 的 ExecStart 按顺序执行、前一条失败就不往下走。**
+# 于是自然得到那条安全性质：**只有新快照真的做成了，才去清旧的**。
+# 脚本自己还有两道底线：最新那一份永远不删（哪怕它也超期）；名字认不出的一律不动。
+ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/prune_runtime_db_snapshots.py --apply
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict
