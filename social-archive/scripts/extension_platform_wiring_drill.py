@@ -132,6 +132,16 @@ def judge(measured: dict, platform: str, decoy_url: str, expect_custody: str) ->
                 f"设置页现有的是：{card.get('titles')}")
         elif not any("连接" in text for text in card.get("buttons", [])):
             problems.append(f"卡片在，但上面没有连接类按钮：{card.get('buttons')}")
+        # **档案馆自己在这一屏只许有一个名字。**
+        # 三张目的地名字表曾经把它写成三个（Social Archive／我的档案馆／主档案），
+        # 而改完三张表之后页面上**还留着**「主档案」——它在 options.html 的一句
+        # 正文里，不在任何表里。判据比表看不见正文，只有读渲染出来的页面才发现。
+        if card.get("saysMainArchive"):
+            problems.append(
+                "**设置页上还写着「主档案」**——那是档案馆自己的旧叫法。"
+                "同一样东西在不同界面上叫不同名字，对没有技术基础的人就是不同的东西。")
+        if card.get("saysMyArchive") is False:
+            problems.append("设置页上没有出现「我的档案馆」——档案馆自己那张卡可能没画出来")
     if measured["decoyDetected"] == platform:
         problems.append(f"误伤：{decoy_url} 也被认成了 {platform}")
     return problems
@@ -144,11 +154,21 @@ CARD_PROBE = r"""
     buttons: [...card.querySelectorAll(".card-button")].map(b => b.textContent),
   }));
   const mine = cards.find(c => c.title === config.label);
+  const pageText = document.body.innerText || "";
   return JSON.stringify({
     total: cards.length,
     found: !!mine,
     buttons: mine ? mine.buttons : [],
     titles: cards.map(c => c.title),
+    // **档案馆自己在这一屏叫什么。**
+    //
+    // 2026-08-06：三张目的地名字表把它写成三个名字（Social Archive／
+    // 我的档案馆／主档案）。改完三张表之后**页面上还留着「主档案」**——
+    // 它写在 options.html 的一句正文里，不在任何一张表里。
+    // 判据比的是表，看不见正文；**只有把渲染出来的页面读回来才发现**。
+    // 那次是拿一个临时脚本查的，查完就没了——现在把它固化在这儿。
+    saysMainArchive: pageText.includes("主档案"),
+    saysMyArchive: pageText.includes("我的档案馆"),
   });
 })(%s)
 """
