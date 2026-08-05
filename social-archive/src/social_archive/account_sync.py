@@ -281,7 +281,19 @@ class AccountSyncCoordinator:
         account = self.store.get_source_account(account_id, include_handle=True)
         if not run or not account:
             raise ValueError("同步运行或账号不存在")
-        if run["status"] in {"cancelled", "completed", "partial", "failed"}:
+        # **终态就是终态，别把它翻出来重跑。**
+        #
+        # 这一组原来少了 `blocked_environment`——而 db.py 那边把它算作终态
+        # （`completed = status in {..., "blocked_environment"}`，会写 completed_at）。
+        # 实测（2026-08-06）：把一个 run 打到 blocked_environment、账号此刻仍然连着，
+        # 再投一次同一个任务，**它真的往下跑到连接器去了**。也就是说一个已经
+        # 报给用户「被环境挡住了」、而且已经盖了完成时间的运行，会被悄悄重跑一遍。
+        #
+        # 从阻塞里出来的正当路子是**用户点重试**：db.py 的 retry 迁移
+        # （`{partial, failed, blocked_environment} → queued`）会把它重新排队，
+        # 那时 status 是 queued，这里自然就放行了。
+        if run["status"] in {"cancelled", "completed", "partial", "failed",
+                             "blocked_environment"}:
             return
         if account["connection_state"] not in {"connected", "degraded"}:
             self.store.update_sync_run(run_id, status="blocked_environment", completeness="unknown", error_code="ACCOUNT_REAUTH_REQUIRED", error_message="账号需要重新连接")
