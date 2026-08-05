@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""缓冲区满了之后丢哪一条——**丢错方向就等于什么都没抓到**（v0.0.0.7 / T08）。
+"""Owner 按下那颗诊断按钮之后，两件最容易骗人的事（v0.0.0.7 / T08）。
+
+一是**缓冲区满了丢哪一条**——丢错方向就等于什么都没抓到；
+二是**那一按到底存没存**——读懂了不等于进了档案馆。
+两件事失败的样子都一样：界面报着好看的数字，实际什么也没有。
 
 ## 这条性质为什么要紧
 
@@ -36,10 +40,27 @@
 
 顺带验空 body 那条：`{ok:false, ignored:true}`，且不占缓冲区。
 
+## 第二段：那一按到底存没存
+
+`/v1/extension/captures/parse` **只把响应读成条目，不落库**——回来的 items
+在后台只被数了个数（`items += …length`），条目本身丢掉了。
+而报给用户的原话曾经是「共 60 条收藏。」：他按了一下、看到自己的收藏被认出来，
+合理的理解就是「进去了」。**然后资料库里一条都没有。**
+
+这不是 bug，是这条路的本分——诊断按钮的目的是**找出该盯哪个地址**，
+让它真的入库是 T10（还差一条非诊断的安装路）。但**话要说准**。
+
+所以起一个假档案馆，让 parse 一律回「读懂了 2 条」，然后按一次，断言：
+
+  · `imported` 是 0（这条路本来就不入库，报成别的数就是又一次「看着像存了」）
+  · 那句话里**必须出现「还没有进」**——只报「共 60 条收藏」就是在骗人
+
 ## 边界
 
 · 一次性 profile，跑完删；不联网、不碰生产、不碰任何真实平台。
-· 只验缓冲区这一段。观察器有没有装上、抄得对不对，那是别的演练的事。
+· 假档案馆不解析真实字节，它只负责「回一个成功的形状」。
+  这里验的是**后台怎么向用户转述**，不是解析器对不对。
+· 观察器有没有装上、抄得对不对，那是别的演练的事。
 """
 
 from __future__ import annotations
@@ -51,13 +72,43 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import urllib.request
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import websockets
 
 OVERFLOW = 5          # 比上限多发这么多条
 PORT = 9361
+API_PORT = 8765       # 假档案馆：扩展装好就有这个域的权限
+
+# 「读懂了」和「存下来了」是两件事。假服务端一律回「读懂了两条」，
+# 于是那一按会报「共 60 条收藏」——**而它一条都没存**。要验的就是它有没有说这句实话。
+PARSE_REPLY = {
+    "ok": True, "platform": "bilibili", "failure_code": None,
+    "message_zh": "读懂了 2 条。", "has_more": False,
+    "items": [{"external_id": "a", "title": "条目一", "url": "https://example.invalid/a"},
+              {"external_id": "b", "title": "条目二", "url": "https://example.invalid/b"}],
+}
+
+
+class _Api(BaseHTTPRequestHandler):
+    """只回一个端点：把抓到的响应「读成条目」。**它不落库，真服务端也不落。**"""
+
+    def log_message(self, *args) -> None:
+        return
+
+    def do_POST(self) -> None:  # noqa: N802
+        length = int(self.headers.get("Content-Length") or 0)
+        if length:
+            self.rfile.read(length)
+        body = json.dumps(PARSE_REPLY, ensure_ascii=False).encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
 
 async def _rpc_factory(ws):
@@ -77,6 +128,21 @@ async def _rpc_factory(ws):
 
 # 从设置页发。**不能从 service worker 自己发**——MV3 里 sendMessage 不会
 # 投递给发送方自己的 onMessage，那样一条都到不了，而结果看起来像「缓冲区是空的」。
+CONFIGURE = """
+(async () => {
+  await chrome.storage.local.set({ endpoint: "http://127.0.0.1:%d", token: "fixture-token" });
+  const c = await SA.getConfig();
+  return JSON.stringify({ endpoint: c.endpoint, hasToken: !!c.token });
+})()
+""" % API_PORT
+
+PARSE = """
+(async () => {
+  const r = await chrome.runtime.sendMessage({ type: "SA_PARSE_NET_CAPTURES", platform: "bilibili" });
+  return JSON.stringify(r || {});
+})()
+"""
+
 SEND = """
 (async () => {
   const limit = %d, extra = %d;
@@ -117,6 +183,8 @@ READ = """
 
 async def run(chrome: str, ext_dir: str) -> int:
     profile = Path(tempfile.mkdtemp(prefix="sa-buffer-profile-"))
+    api = ThreadingHTTPServer(("127.0.0.1", API_PORT), _Api)
+    threading.Thread(target=api.serve_forever, daemon=True).start()
     process = subprocess.Popen(
         [chrome, f"--user-data-dir={profile}", f"--remote-debugging-port={PORT}",
          "--no-first-run", "--no-default-browser-check", "--disable-sync",
@@ -126,6 +194,7 @@ async def run(chrome: str, ext_dir: str) -> int:
     base = f"http://127.0.0.1:{PORT}"
     sent: dict = {}
     measured: dict = {}
+    parsed: dict = {}
     try:
         for _ in range(40):
             try:
@@ -153,6 +222,14 @@ async def run(chrome: str, ext_dir: str) -> int:
             targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
             hits = [t for t in targets if t["type"] == kind and needle in t["url"]]
             return hits[0] if hits else None
+
+        worker = find("service_worker", extension_id)
+        if worker:
+            async with websockets.connect(worker["webSocketDebuggerUrl"], max_size=None) as ws:
+                rpc = await _rpc_factory(ws)
+                await rpc("Runtime.enable")
+                await rpc("Runtime.evaluate",
+                          {"expression": CONFIGURE, "returnByValue": True, "awaitPromise": True})
 
         page = find("page", "options.html")
         if not page:
@@ -189,7 +266,19 @@ async def run(chrome: str, ext_dir: str) -> int:
                                  ensure_ascii=False))
                 return 4
             measured = json.loads(payload["result"]["value"])
+
+        # **第二段：那一按到底有没有把东西存下来。**
+        page = find("page", "options.html")
+        async with websockets.connect(page["webSocketDebuggerUrl"], max_size=None) as ws:
+            rpc = await _rpc_factory(ws)
+            await rpc("Runtime.enable")
+            result = await rpc("Runtime.evaluate",
+                               {"expression": PARSE, "returnByValue": True, "awaitPromise": True})
+            payload = result.get("result", {})
+            if not payload.get("exceptionDetails"):
+                parsed = json.loads(payload["result"]["value"])
     finally:
+        api.shutdown()
         process.terminate()
         try:
             process.wait(timeout=10)
@@ -220,14 +309,38 @@ async def run(chrome: str, ext_dir: str) -> int:
     if measured.get("hasEmptyUrl"):
         problems.append("空 body 那条占了缓冲区位置")
 
+    # ---- 那一按到底存没存 ----
+    #
+    # /v1/extension/captures/parse **只把响应读成条目，不落库**。回来的 items
+    # 在后台只被数了个数，条目本身丢掉了。而报给用户的原话是「共 N 条收藏。」——
+    # 他按了一下、看到自己的收藏被认出来了，合理的理解就是「进去了」。
+    # **然后资料库里一条都没有。** 这一段验的就是它有没有把这句实话说出来。
+    said = str(parsed.get("message_zh") or "")
+    if not parsed:
+        problems.append("**SA_PARSE_NET_CAPTURES 没回话**——存没存这一段什么都没验到")
+    elif not parsed.get("items"):
+        problems.append(f"假服务端回了条目，后台却报 0 条：{said[:80]}")
+    else:
+        if parsed.get("imported") != 0:
+            problems.append(
+                f"imported 不是 0（{parsed.get('imported')}）——"
+                "**这条路本来就不入库**，报成别的数就是又一次「看着像存了」")
+        if "还没有进" not in said:
+            problems.append(
+                f"**它说了「共 {parsed.get('items')} 条收藏」却没说这些东西还没进档案馆**："
+                f"{said[:110]}")
+
     print(json.dumps({
         "status": "PASS" if not problems else "FAIL",
         "sent": sent,
         "buffer": measured,
+        "that_one_press": {"items": parsed.get("items"), "imported": parsed.get("imported"),
+                           "message_zh": (parsed.get("message_zh") or "")[:160]},
         "problems": problems,
         "what_this_does_not_prove": (
-            "只验缓冲区满了之后丢哪一条。观察器有没有装上、抄回来的内容对不对，"
-            "那是 T08 别的演练的事。"
+            "验两件事：缓冲区满了丢哪一条、那一按怎么向用户转述。"
+            "**不验解析对不对**（假档案馆只回一个成功的形状），"
+            "也不验观察器有没有按时装上——那是 T08 别的演练的事。"
         ),
     }, ensure_ascii=False))
     return 0 if not problems else 4

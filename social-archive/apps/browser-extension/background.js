@@ -1603,12 +1603,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       // 在界面上长得一模一样，而这两件事的下一步完全不同。
       if (notParsed > 0) notes.push(`其中 ${notParsed} 条是重复地址或超出本次上限，没有逐条去读`);
       const note = notes.length ? `（${notes.join("；")}）` : "";
+      // **读懂了不等于存下来了。**
+      //
+      // 这条路把响应体送去 /v1/extension/captures/parse，那个端点只负责「读成条目」，
+      // **不落库**——回来的 items 在上面只被数了个数（`items += …length`），条目本身丢掉了。
+      // 而报给用户的原话是「共 12 条收藏。」：他按了一下、看到自己的收藏被认出来了，
+      // 合理的理解就是「进去了」。**然后资料库里一条都没有。**
+      //
+      // 这正是 INV-NO-SILENT-ZERO 要防的形状，只不过这次出现在一句话里而不是一个计数里。
+      // 让它真的入库是 T10（那还要一条非诊断的安装路，见 evidence/T09），**这里先把话说准**：
+      // 说清这一按是探路、东西还没进去、下一步是什么。
+      const importedNote = items > 0
+        ? `**这 ${items} 条还没有进你的档案馆**——这一按是探路，`
+          + `目的是找出该盯哪个地址。找到之后才谈把它们收进来。`
+        : "";
       return {
         ok: readable > 0, readable, total: netCaptureBuffer.length, items, dropped,
         parsed: toParse.length, notParsed, readableUrls,
+        // **这一按到底有没有把东西存下来**，让调用方能直接读，不用去解那句中文。
+        imported: 0,
         failureCode: readable > 0 ? null : (firstProblem?.failure_code || "UNREADABLE"),
         message_zh: readable > 0
           ? `拦到 ${netCaptureBuffer.length} 条${note}，其中 ${readable} 条读得懂，共 ${items} 条收藏。`
+            + importedNote
           : (firstProblem?.message_zh || "拦到了响应，但一条都读不懂。") + note,
       };
     }
