@@ -1445,7 +1445,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (!token) throw new Error("没有收到访问凭据，请在档案馆页面重新点击连接插件。");
       const next = await SA.setConfig({
         endpoint,
-        libraryUrl: String(message.libraryUrl || current.libraryUrl || "").replace(/\/$/, "") || current.libraryUrl,
+        // **页面给的 libraryUrl 只在与端点同源时才收。**
+        //
+        // 上面那条规则写着「服务地址不接受页面下发」，而这一行原本是
+        // `message.libraryUrl || current.libraryUrl`——页面给什么就用什么。
+        // 二十行外的注释还记着：`SA_WEB_BRIDGE_CONFIGURE` 被整条删除，
+        // 正是因为它「让页面下发 endpoint 与 libraryUrl 写进扩展配置」。
+        // **那次删掉了 endpoint 那一半，libraryUrl 这一半原样留在了隔壁。**
+        //
+        // 2026-08-05 的桥边界演练实测：页面发一条 SA_ADOPT_TOKEN 夹带
+        // libraryUrl，端点纹丝不动（那条守住了），而 libraryUrl 被改成了
+        // 页面指定的地址。它是「打开档案馆」那颗按钮的去处——用户点它时
+        // 认为那是自己的档案馆。
+        //
+        // 同源才收：真档案馆页面发的就是它自己的地址，天然同源；
+        // 别处发来的一律退回扩展自己那份。
+        libraryUrl: (() => {
+          const offered = String(message.libraryUrl || "").replace(/\/$/, "");
+          if (!offered) return current.libraryUrl;
+          try {
+            if (new URL(offered).origin === new URL(endpoint).origin) return offered;
+          } catch (_) { /* 不是合法地址就退回 */ }
+          return current.libraryUrl;
+        })(),
         token,
         onboardingComplete: true
       });
