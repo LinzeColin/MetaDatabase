@@ -234,7 +234,13 @@ def main() -> int:
         "only_local_not_deployed_yet": only_local,
         "container_is_running_older_code": container_stale,
         "container_note": container_note,
-        "note": "只比 scripts/ 与 src/ 下的 .py/.sh；runtime/、密钥、数据本来就该两边不同。",
+        # **这句话要从常量生成，不能手写。**
+        # 手写那版说「只比 scripts/ 与 src/ 下的 .py/.sh」，而范围早就加上了
+        # apps/ 与前端后缀——一道专门查「说的和实际是不是一回事」的门，
+        # 自己的自述先陈了。
+        "note": (f"只比 {'/、'.join(COMPARED)} 下的 "
+                 f"{'/'.join(s.lstrip('*') for s in SUFFIXES)}；"
+                 "runtime/、密钥、数据本来就该两边不同。"),
     }, ensure_ascii=False))
     return 0 if status == "PASS" else 4
 

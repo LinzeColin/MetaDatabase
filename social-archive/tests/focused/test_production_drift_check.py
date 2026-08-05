@@ -266,3 +266,13 @@ def test_widening_the_scope_did_not_make_it_blind_to_the_old_half() -> None:
     assert '"scripts"' in CHECK_SOURCE and '"src"' in CHECK_SOURCE
     for suffix in ('"*.py"', '"*.sh"'):
         assert suffix in CHECK_SOURCE, f"原来的后缀 {suffix} 被挤掉了"
+
+
+def test_its_own_description_is_generated_not_typed() -> None:
+    """**一道查「说的和实际是不是一回事」的门，自己的自述先陈了。**
+
+    手写那版说「只比 scripts/ 与 src/ 下的 .py/.sh」，而范围早就加上了
+    apps/ 与前端后缀。手写的自述必然和常量走散——生成的不会。
+    """
+    assert '"note": "只比 scripts/ 与 src/' not in CHECK_SOURCE, "自述又写死了"
+    assert "'/、'.join(COMPARED)" in CHECK_SOURCE, "自述不是从比较范围那个常量生成的"
