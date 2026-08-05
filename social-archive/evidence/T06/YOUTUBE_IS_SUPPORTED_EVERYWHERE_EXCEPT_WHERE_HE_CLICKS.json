@@ -31,5 +31,18 @@
       "域名判定没有误伤": "youtube.com / youtu.be → youtube；mail.google.com 与 google.com/search → generic-web",
       "凭据托管往返": "判据实测：存得进、读接口不吐明文、cookie 数对得上（合成会话）；扩展那侧按 ALLOWED_PLATFORMS 分流到托管路"
     }
+  },
+  "verified_in_a_real_browser_not_by_comparing_tables": {
+    "为什么要这一步": "接上之后我两次宣布「封住了」，两次都错：先说「B 站顺手连一下」（硬边界禁止），再说「两个方向都封住」（漏了第三张表 platform-catalog）。**两次都是宣布完成之后才发现的。** 对表这种做法本身就容易漏一张表——所以最后去问真运行时。",
+    "怎么做的": "把**下发的那个 ZIP** 解开装进一次性 profile 的 Chrome，在 service worker 里一次性问四样东西。",
+    "问到的": {
+      "识别": "https://www.youtube.com/playlist?list=WL → youtube",
+      "权限模式": "*.youtube.com / youtube.com / *.google.com 三条",
+      "中文名": "「YouTube」——不是内部 id（这正是第三张表缺席时的症状）",
+      "关系页": "稍后观看 → https://www.youtube.com/playlist?list=WL",
+      "Cookie 导出": "允许，域名 [youtube.com, google.com]；且不在禁止名单里",
+      "没有误伤": "mail.google.com → generic-web，Gmail 不会被当成 YouTube"
+    },
+    "结论": "四张表在**真运行时里**是一致的，而且验的是他真会下载到的那个包。"
   }
 }
