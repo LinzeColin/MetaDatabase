@@ -213,3 +213,36 @@ def test_an_unreadable_container_is_not_reported_as_agreement() -> None:
     """
     assert "容器里一个文件都没数到" in CHECK_SOURCE
     assert "查不了，见 container_note" in CHECK_SOURCE, "查不了的时候被当成通过了"
+
+
+def test_the_deploy_actually_runs_this_check() -> None:
+    """**建好了没接上，是这个项目最常见的失败形态；这道检查自己不能是下一例。**
+
+    部署脚本第 8 道门只核了扩展包那一个文件。这道检查补的是其余一百多个，
+    但它只有被部署真的调用才算数——放在仓里等人想起来，等于没有。
+    """
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    code = "\n".join(line for line in deploy.splitlines()
+                     if not line.strip().startswith("#"))
+    assert "check_production_matches_the_repo.py" in code, (
+        "部署脚本没有调用这道检查——只在注释里提到不算"
+    )
+    # 而且必须能让部署失败，不能只是打印一行好看的。
+    tail = code.split("check_production_matches_the_repo.py", 1)[1][:400]
+    assert "fail" in tail, "调用了，但对不上的时候不会让部署失败"
+
+
+def test_the_deploy_names_a_python_that_exists() -> None:
+    """调用它用的解释器必须是真存在的那一个。
+
+    第一版写成 `\"${PY}\"`，而这个脚本里根本没有 PY 这个变量——
+    `set -u` 会当场报错，部署直接断在最后一步。
+    **写的时候顺手抄了另一个脚本的写法，没核这里有没有那个变量。**
+    """
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    call_line = next(line for line in deploy.splitlines()
+                     if "check_production_matches_the_repo.py" in line
+                     and not line.strip().startswith("#"))
+    assert "${PY}" not in call_line, "又用了那个不存在的变量"
+    assert ".venv/bin/python" in call_line, f"解释器写法可疑：{call_line.strip()!r}"
+    assert (ROOT / ".venv/bin/python").exists(), "那个解释器不在"

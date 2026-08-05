@@ -374,5 +374,25 @@ ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR'
   echo '  下载页下发的就是刚部署的那个包，逐字节一致。'" \
   || fail "下载页下发的包对不上。Owner 装到的会是别的东西——这一步不能放过。"
 
+step "9) 验收：仓、主机、**镜像里那一份**，三份是不是同一份代码"
+# 第 8 步只核了**扩展包**那一个文件。其余一百多个源文件，在这一步之前
+# 从来没有任何东西核过——而 /opt/social-archive **不是 git 检出**，
+# 那台机器上没有 `git status` 可问。
+#
+# **要比的是三份。** 2026-08-05 才弄清楚：容器里的 /app 是**烤进镜像的**，
+# 不是主机目录的绑定挂载（只有 /run/secrets/* 是）。所以
+#   rsync 同步到主机 ≠ 服务在跑它。
+# 当天就撞上了：把修好的脚本放到主机、在容器里跑，跑的还是旧的。
+# 上面那句「systemctl restart 不会重建镜像」说的是同一件事的另一面。
+#
+# 放在最后一步，是因为它要的正是「构建完、容器起来之后」的状态。
+.venv/bin/python scripts/check_production_matches_the_repo.py \
+    --host "$HOST" --remote-dir "$REMOTE_DIR" --explain-differences \
+  || fail "仓／主机／镜像三份对不上。**别把这一步当噪音**：
+  · only_on_production            —— 生产上有来路不明的代码正在跑
+  · container_is_running_older_code —— 服务执行的不是你以为的那一版，要重建镜像
+  两者的下一步完全不同，报告里已分开列。"
+printf '  三份一致：仓 = 主机 = 镜像。\n'
+
 printf '\n部署完成。回滚一行命令：\n'
 printf '  ssh %s "cd %s && docker tag social-archive/core:rollback %s && docker compose up -d core-api core-worker"\n' "$HOST" "$REMOTE_DIR" "$IMAGE"
