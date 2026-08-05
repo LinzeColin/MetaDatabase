@@ -88,6 +88,10 @@ def test_every_domain_we_asked_permission_for_is_a_domain_we_recognise() -> None
 
     对一个把「你的凭据只在你自己机器上」当卖点的产品，**要了权限却不用**
     尤其别扭；而两张名单对不上本身就是隐患。
+
+    **一处登记在案的例外**：youtube 要 google.com 的 Cookie（登录态有一部分
+    挂在 Google 账号域上），但不该把 google.com 认成 YouTube——Gmail、Drive
+    都不是 YouTube。「要这个域的权限」与「按这个域认平台」是两件事。
     """
     script = f"""
 const fs = require("fs"), vm = require("vm");
@@ -96,10 +100,15 @@ sandbox.globalThis = sandbox; sandbox.self = sandbox; sandbox.window = sandbox;
 vm.runInContext(fs.readFileSync({json.dumps(str(SHARED))}, "utf8"), vm.createContext(sandbox));
 const SA = sandbox.SA;
 const bad = [];
+// **登记的例外**：一个平台可能需要某个域的权限，却不该按那个域去认平台。
+// youtube 要 google.com 的 Cookie（登录态有一部分挂在 Google 账号域上），
+// 但把 google.com 认成 YouTube 是错的——Gmail、Drive 都不是 YouTube。
+const RECOGNITION_EXEMPT = new Set(["www.google.com"]);
 for (const rule of SA.PLATFORM_RULES) {{
   for (const p of rule.patterns) {{
     const host = p.replace(/^https:\\/\\//, "").replace(/\\/\\*$/, "").replace(/^\\*\\./, "www.");
     const got = SA.platformFromUrl("https://" + host + "/x");
+    if (RECOGNITION_EXEMPT.has(host)) continue;
     if (!got || got.id !== rule.id) bad.push(host + " → " + (got && got.id) + "（应为 " + rule.id + "）");
   }}
 }}

@@ -17,11 +17,11 @@ from .utils import read_secret, utcnow
 
 DISPLAY = {
     "generic-web":"通用网页","x":"X","reddit":"Reddit","instagram":"Instagram","tiktok":"TikTok",
-    "xiaohongshu":"小红书","douyin":"抖音","kuaishou":"快手","bilibili":"哔哩哔哩"
+    "xiaohongshu":"小红书","douyin":"抖音","kuaishou":"快手","bilibili":"哔哩哔哩","youtube":"YouTube"
 }
 DEFAULT_RELATION = {
     "generic-web":"manual_save","x":"bookmark","reddit":"saved","instagram":"saved","tiktok":"saved",
-    "xiaohongshu":"saved","douyin":"saved","kuaishou":"saved","bilibili":"favorite"
+    "xiaohongshu":"saved","douyin":"saved","kuaishou":"saved","bilibili":"favorite","youtube":"watch_later"
 }
 
 

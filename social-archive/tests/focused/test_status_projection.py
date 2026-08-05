@@ -12,8 +12,12 @@ from social_archive.registry import ConnectorRegistry
 
 def test_connector_registry_always_contains_all_platforms(settings, store):
     items = ConnectorRegistry(settings).health_views(store.connector_states())
-    assert len(items) == 9
-    assert {item["connector_id"] for item in items} >= {"x", "xiaohongshu", "bilibili", "generic-web"}
+    # 2026-08-05 由 9 变 10：Owner 裁定把 youtube 接上（它此前在服务端凭据表、
+    # Cookie 导出白名单、manifest 权限三处都有，唯独界面上没有入口）。
+    # **这个数字写死是有意的**——加平台是产品决定，不该悄悄发生。
+    assert len(items) == 10
+    assert {item["connector_id"] for item in items} >= {
+        "x", "xiaohongshu", "bilibili", "generic-web", "youtube"}
 
 
 def test_connector_status_uses_fresh_probe_metadata_and_fails_closed(settings, store, monkeypatch):

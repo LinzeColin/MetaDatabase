@@ -20,6 +20,8 @@ PLATFORM_RELATIONS: dict[str, list[str]] = {
     "x": ["bookmark", "like"],
     "reddit": ["saved", "upvoted"],
     "instagram": ["saved"],
+    # YouTube 的「稍后观看」与播放列表都要登录态才看得见，正是托管凭据的用武之地。
+    "youtube": ["watch_later", "playlist"],
     "generic-web": ["bookmark", "manual_save"],
 }
 
@@ -43,6 +45,7 @@ PLATFORM_LABELS = {
     "x": "X",
     "reddit": "Reddit",
     "instagram": "Instagram",
+    "youtube": "YouTube",
     "generic-web": "通用网页",
 }
 
@@ -91,6 +94,15 @@ SYNCABLE_NOW: frozenset[str] = frozenset({
 # 暂时同步不了的，每条写清**为什么**与**现在能做什么**。
 # 界面直接把这句话显示出来，而不是让用户点了才知道。
 NOT_SYNCABLE_YET: dict[str, str] = {
+    # 2026-08-05 由 Owner 裁定接上 youtube 的入口。**能连不等于能同步**：
+    # 凭据托管那条路是通的（服务端凭据表、Cookie 导出白名单一直都支持它），
+    # 而「把稍后观看/播放列表列出来」那条取数路一行都没写。
+    # 所以它进这张表，和别的「还不能」的平台一样，一句话说清现在能做什么。
+    "youtube": (
+        "本版本还不能自动读取 YouTube 的稍后观看和播放列表。"
+        "现在可以：连接 YouTube（把登录状态交给你自己的服务器保管），"
+        "以及在任意视频页点插件保存当前这一条。"
+    ),
     "xiaohongshu": "本版本还不能自动读取小红书的收藏列表。现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。",
     "douyin": "本版本还不能自动读取抖音的收藏列表。现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。",
     "kuaishou": "本版本还不能自动读取快手的收藏列表。现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。",

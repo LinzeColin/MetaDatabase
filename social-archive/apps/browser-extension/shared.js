@@ -26,6 +26,12 @@
     { id: "x", name: "X", patterns: ["https://x.com/*", "https://*.x.com/*", "https://twitter.com/*"] },
     { id: "reddit", name: "Reddit", patterns: ["https://*.reddit.com/*", "https://redd.it/*"] },
     { id: "instagram", name: "Instagram", patterns: ["https://*.instagram.com/*"] },
+    // **youtube 在服务端凭据表、Cookie 导出白名单、manifest 权限里一直都有，
+    // 唯独这里没有——于是权限要了、存得下、导得出，而用户点不到。**
+    // 2026-08-05 由 Owner 裁定接上。google.com 也要，因为 YouTube 的登录态
+    // 有一部分挂在 Google 账号域上（cookie-export 的 ALLOWED_PLATFORMS 里
+    // 早就把这两个域写在一起了）。
+    { id: "youtube", name: "YouTube", patterns: ["https://*.youtube.com/*", "https://youtube.com/*", "https://*.google.com/*"] },
     { id: "generic-web", name: "普通网页", patterns: [] }
   ]);
 
@@ -192,6 +198,7 @@
     if (test("x.com") || test("twitter.com")) return PLATFORM_RULES.find(x => x.id === "x");
     if (test("reddit.com") || test("redd.it")) return PLATFORM_RULES.find(x => x.id === "reddit");
     if (test("instagram.com")) return PLATFORM_RULES.find(x => x.id === "instagram");
+    if (test("youtube.com") || test("youtu.be")) return PLATFORM_RULES.find(x => x.id === "youtube");
     return PLATFORM_RULES.at(-1);
   }
 
