@@ -1,0 +1,35 @@
+{
+  "task": "T03",
+  "claim": "那条为「页面不许下发配置」而整条删除的转发，**只删掉了一半**：endpoint 那一半没了，libraryUrl 这一半原样留在隔壁的 SA_ADOPT_TOKEN 里。已修，但**尚未上线**。",
+  "measured_at": "2026-08-05T11:0Z",
+  "how_it_was_found": "拿当天刚建好的假服务器基础设施，给桥那条边界写了个演练：假档案馆页面发一条 SA_ADOPT_TOKEN，**夹带一个指向别处的地址**，然后回头问扩展配置变了没有。",
+  "what_the_drill_saw": {
+    "endpoint": "纹丝不动 —— 那条守住了",
+    "libraryUrl": "**被改成了页面指定的地址**"
+  },
+  "why_that_contradicts_the_code_itself": [
+    "background.js 那条规则：「服务地址取扩展自己的托管配置，不接受页面下发——页面能改端点就等于任何拿到桥的页面都能把上行改到别处去」。",
+    "bridge.js 记着：`SA_CONFIGURE → SA_WEB_BRIDGE_CONFIGURE` 已整条删除，原文是**「让页面下发 endpoint 与 libraryUrl 写进扩展配置」**。",
+    "**那次删掉的是 endpoint 那一半。** libraryUrl 这一半留在了 ADOPT_TOKEN 的处理体里：`message.libraryUrl || current.libraryUrl`，页面优先。"
+  ],
+  "why_it_matters": "libraryUrl 是「打开档案馆」那颗按钮的去处。用户点它时，认为那是自己的档案馆。",
+  "how_far_it_reaches": "**范围有限，不是任意网站可利用。** 桥只注入在档案馆自己的源上（manifest 的 matches：线上域 + 127.0.0.1:8765 + localhost:8765），要用它得先站上其中一个源——现实里最可能的是真服务没起时，本机有别的东西占着 8765。它不是远程可利用的漏洞，但**它和代码自己写下的规则冲突**。",
+  "the_fix": "同源才收：真档案馆页面发的就是它自己的地址，天然同源；别处发来的一律退回扩展自己那份。",
+  "the_drill_runs_both_directions": {
+    "cross_origin": "必须退回扩展自己那份 —— 这是边界",
+    "same_origin": "**必须收下** —— 少了这条，「把 libraryUrl 整个忽略掉」也能过，那是把边界修成了「功能没了」",
+    "third_check": "令牌必须真被采纳，否则「端点没被改」可能只是消息压根没送到"
+  },
+  "counter_example": "退回修复前那一行重打包再跑 → cross_origin 当场红。",
+  "not_shipped_yet": {
+    "state": "**生产下发的那个包仍是有问题的那版。** 实测：从下载路由取包解开看，同源检查不在、旧写法还在。",
+    "why": "服务的 `/app/dist/` 是**烤进镜像的**（实测 dist 不在挂载列表里，只有 /var/lib/social-archive 那几个是），所以换包必须重建镜像；而重建被磁盘门挡着（可用 4.7G < 门槛 5G）。",
+    "what_unblocks_it": "见 T18/THE_DISK_IS_FULL_AND_ALMOST_NONE_OF_IT_IS_OURS.json——属于我们的可回收空间已经清完，剩下的候选都属于别的项目，**要 Owner 裁定**。",
+    "hashes": {"本地含修复": "a0894d16…", "生产（主机与镜像一致）": "9a4b30be…"}
+  },
+  "what_this_does_not_prove": [
+    "**只验了两条边界**（页面能不能改端点、能不能改档案馆地址）。桥还能收别的消息（SA_PING / SA_WEB_BRIDGE_STATUS），那些没在这里验。",
+    "**不证明没有别的半删除。** 这一处是「删了一半」，同一次清理里还删过别的东西——有没有类似残留，这次没有系统性地查。",
+    "不证明修复已到用户手里：**它现在只在仓里和本地包里。**"
+  ]
+}

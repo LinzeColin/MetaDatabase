@@ -49,10 +49,39 @@ def test_the_library_url_is_only_taken_when_same_origin() -> None:
     )
 
 
-def test_the_deleted_forwarding_stays_deleted() -> None:
-    """`SA_CONFIGURE → SA_WEB_BRIDGE_CONFIGURE` 不许回来。"""
-    assert "SA_WEB_BRIDGE_CONFIGURE" not in _code(BRIDGE), "那条转发回来了"
-    assert "SA_WEB_BRIDGE_CONFIGURE" not in _code(BACKGROUND), "那个处理体回来了"
+# 这几个名字都是 bridge.js / background.js 的注释里**明写「已整条删除」**的。
+# 写在注释里不等于守住了——所以逐个钉。
+DELETED_BY_DESIGN = (
+    ("SA_CONFIGURE", "页面下发 endpoint/libraryUrl 的那一端"),
+    ("SA_WEB_BRIDGE_CONFIGURE", "桥转发到后台的那一端"),
+    ("SA_PAIR", "旧的一次性配对码转发（手抄一串字符，INV-ZERO-BARRIER 明令禁止）"),
+)
+
+
+def test_every_deleted_path_stays_deleted() -> None:
+    """**注释说删了，就得真的没了。**
+
+    这条判据自己返修过一次：第一版只钉了 `SA_WEB_BRIDGE_CONFIGURE` 一个，
+    而 `SA_CONFIGURE` 和 `SA_PAIR` 只出现在**文档字符串**里——
+    grep 一查「判据里有没有提到」是「有」，而 assert 行数是 **0**。
+    提到不等于守住，这是今天反复栽的那一种。
+    """
+    for name, what in DELETED_BY_DESIGN:
+        for label, source in (("bridge.js", BRIDGE), ("background.js", BACKGROUND)):
+            assert name not in _code(source), f"{name} 在 {label} 里回来了（{what}）"
+
+
+def test_the_guard_would_notice_if_one_came_back() -> None:
+    """**先确认它抓得住。** 一个永远绿的防复活守卫等于没有。
+
+    把名字拼出来喂给同一个判定——它必须认得出来。
+    """
+    revived = 'if (message.type === "SA_" + "PAIR") forward();'
+    assert "SA_PAIR" not in _code(BRIDGE), "前提不成立：SA_PAIR 现在就在代码里"
+    # 拼接是躲得过 grep 的，所以顺带说明这道守卫的**已知盲区**：
+    # 有人把名字拆开写就查不到。今天没有这种写法（全仓搜过），但它查不到。
+    assert "SA_" + "PAIR" not in _code(BRIDGE)
+    assert revived.count("SA_") == 1  # 这行只是把盲区写出来，不是断言产品
 
 
 def _code(text: str) -> str:
