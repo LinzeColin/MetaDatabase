@@ -63,6 +63,14 @@ NOT_FOR_CLIENTS: dict[str, str] = {
     # —— 下面两条是**真的没人调**，登记在此是为了让「知道」可查，不是让检查器闭嘴 ——
     "/v1/import/markdown": "**没有任何调用方**。界面走的是 /v1/import/social-archiver（ZIP 导入）。这条是早期的单文件导入，未接界面。",
     "/v1/search": "**没有任何调用方**。资料库自己带全文与多维筛选（/v1/library?q=…），这条是它之前的独立搜索接口，已被取代但没删。",
+    "/v1/accounts/{account_id}/sync-runs": (
+        "**没有任何调用方。** 界面一律按全局列：`/v1/sync-runs?limit=200`，"
+        "再在前端按账号筛。2026-08-05 才发现——此前这道门只比前缀，"
+        "客户端某处出现过 `/v1/accounts` 就算它被调过了。"
+        "**已知的代价**：全局那条封顶 200 条，某个账号的同步历史一旦被别的账号"
+        "挤出前 200，界面就翻不到了；那时候这条按账号列的接口才真正用得上。"
+        "登记在此是为了让「知道」可查，不是让检查器闭嘴。"
+    ),
     "/v1/jobs": (
         "GET 有真实调用方（status_server）；**POST /v1/jobs/{id}/retry 没有**。"
         "界面上没有任何地方逐条列出下载任务，因此也无从画那颗按钮——"
@@ -153,10 +161,26 @@ def main() -> int:
         # 允许按前缀豁免：/v1/connectors 一条即覆盖 /v1/connectors/{id}/run
         if any(path == k or path.startswith(k.rstrip("/") + "/") for k in NOT_FOR_CLIENTS):
             continue
-        # 带路径参数的按前缀找：客户端是拼出来的
-        probe = path.split("{")[0].rstrip("/")
-        if not probe:
+        # **参数后面还有段的，光比前缀会漏。**
+        #
+        # 原来一律 `path.split("{")[0]` 取前缀去找。于是
+        # `/v1/accounts/{id}/sync-runs` 只要客户端某处出现过 `/v1/accounts`
+        # 就算「有人调」——而客户端**从来只按全局列** `/v1/sync-runs`，
+        # 那条按账号列的接口一次都没被请求过。2026-08-05 实测捞出来的。
+        #
+        # 现在按**整条 URL 的形状**找：前缀 + 中间随便什么（客户端是拼出来的）
+        # + 参数后面那一段。两头都得对上才算调过。
+        prefix = path.split("{")[0].rstrip("/")
+        if not prefix:
             continue
+        tail = path.rsplit("}", 1)[1] if "}" in path else ""
+        if tail:
+            shape = re.escape(path.split("{")[0]) + r"[^\s\"'`]*?" + re.escape(tail)
+            if not re.search(shape, blob):
+                dead.append(f"  {','.join(sorted(routes[path])):18s} {path}"
+                            f"（前缀 {prefix} 有人用，但没有一处拼出 …{tail}）")
+                continue
+        probe = prefix
         if probe not in blob:
             dead.append(f"  {','.join(sorted(routes[path])):18s} {path}")
             continue

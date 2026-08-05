@@ -56,3 +56,42 @@ def test_the_rule_itself_is_stated_not_just_the_gate_name() -> None:
     """只列门的名字没有用——**作者要的是「我该怎么写」**。"""
     for phrase in ("这不能证明什么", "直角引号", "pyproject.toml"):
         assert phrase in AGENTS, f"AGENTS.md 里没说清这条规矩：{phrase}"
+
+
+def test_a_route_with_a_segment_after_its_parameter_is_matched_whole() -> None:
+    """**光比前缀会漏。**
+
+    `/v1/accounts/{id}/sync-runs` 原来只要客户端某处出现过 `/v1/accounts`
+    就算「有人调」——而客户端从来只按全局列 `/v1/sync-runs`，
+    那条按账号列的接口一次都没被请求过。2026-08-05 实测捞出来的。
+    """
+    source = (ROOT / "scripts/find_endpoints_no_client_calls.py").read_text(encoding="utf-8")
+    assert "没有一处拼出" in source, "参数后面那一段没有单独去找"
+    assert 'tail = path.rsplit("}", 1)[1]' in source, "还是只取前缀"
+
+
+def test_exemptions_say_what_they_cost() -> None:
+    """**登记在此是为了让「知道」可查，不是让检查器闭嘴。**
+
+    这句话是那张豁免表自己写的。所以每一条都得说清「为什么界面不该调」，
+    真的没人调的那几条还得说清代价——否则豁免就只是消音。
+    """
+    import ast
+
+    source = (ROOT / "scripts/find_endpoints_no_client_calls.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    table = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.AnnAssign) and getattr(node.target, "id", "") == "NOT_FOR_CLIENTS":
+            table = ast.literal_eval(node.value)
+    assert table, "找不到那张豁免表"
+    for route, reason in table.items():
+        assert reason.strip(), f"{route} 这条豁免没写理由"
+    # **按长度卡是错的**：`/v1/health` 的理由就是「探活」两个字，够了。
+    # 真正危险的是那几条「确实没人调」的——它们不是「界面不该调」，
+    # 而是「本该有人调而没有」。那种必须说清代价，否则豁免就是消音。
+    unc = {r: why for r, why in table.items() if "没有任何调用方" in why}
+    assert unc, "一条「确实没人调」的都没有？那这张表多半被人清空过"
+    for route, why in unc.items():
+        assert len(why) >= 40, f"{route} 说了没人调，却没说清后果：{why!r}"
+    assert "不是让检查器闭嘴" in source, "那句话是这张表的立场，别删掉"
