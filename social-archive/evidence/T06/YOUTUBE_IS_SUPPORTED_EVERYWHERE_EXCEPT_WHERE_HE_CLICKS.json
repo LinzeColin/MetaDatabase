@@ -1,0 +1,19 @@
+{
+  "task": "T06",
+  "claim": "youtube 在**三层**里都是受支持的托管平台，唯独在 Owner 唯一碰得到的那一层里不存在——没有任何入口能连它。",
+  "measured_at": "2026-08-05",
+  "the_three_layers_that_do_support_it": {
+    "服务端凭据表": "src/social_archive/credentials.py：CUSTODIAL_PLATFORMS = {x, instagram, youtube}，而且库里有 CHECK(platform IN ('x','instagram','youtube')) 顶着",
+    "扩展的 Cookie 导出": "cookie-export.js：ALLOWED_PLATFORMS = {x, instagram, youtube}；国内四平台在第一行就被 FORBIDDEN_PLATFORMS 拒掉",
+    "扩展的权限声明": "manifest 的 optional_host_permissions 里有 https://*.youtube.com/*、https://youtube.com/*、https://*.google.com/*"
+  },
+  "the_layer_that_does_not": "apps/browser-extension/shared.js 的 PLATFORM_RULES——它驱动界面、权限请求与平台识别。里面有 xiaohongshu / douyin / kuaishou / bilibili / x / reddit / instagram / generic-web，**没有 youtube**。也就是说：权限要了，存得下，导得出，**而他点不到**。",
+  "how_it_surfaced": "在核 T06 那句「需 Owner 的 X 登录」是不是框窄了。我先想当然地说「任何一个他连上的平台都算，比如 B 站」——**那是错的**：bilibili 在 FORBIDDEN_PLATFORMS 里，国内平台的 Cookie 永远不出浏览器（INV-DOMESTIC-COOKIE-STAYS）。去核允许名单，才看见 youtube 躺在里面。",
+  "why_it_matters_for_T06": "T06 的 Oracle 是「gallery-dl -j 拿到 ≥1 条 Owner 私有条目」，没限定平台。可用的只有 ALLOWED_PLATFORMS 那三个：x 压着零费用门（只有 Owner 能开）、instagram 的授权那步没有他点得到的界面、**youtube 什么门都没压**——而且他已经是 Google 用户（T02 就是用 Google 登进去的）。也就是说 youtube 很可能是这一格**最省事的一条路**，而它现在连入口都没有。",
+  "what_i_did_not_do": "**没有自作主张把 youtube 加进 PLATFORM_RULES。** 那会在界面上凭空多出一个平台、多一处「连接」承诺、还要在能力声明（SYNCABLE_NOW / NOT_SYNCABLE_YET）里给它一个诚实的位置。加平台是产品决定，已把它摆给 Owner。",
+  "what_this_does_not_prove": [
+    "不证明 youtube 那条路真能跑通。三层支持它，不等于 gallery-dl 拿着那份 cookies 就能取到他的私有条目——**那正是 Oracle 要验的事**，而 Oracle 一次都没跑过。",
+    "不证明 PLATFORM_RULES 里漏掉 youtube 是个疏忽。也可能是有意为之（比如当初决定先不做），只是没有任何地方写下这个决定——**没写下来的决定，和疏忽长得一模一样**。",
+    "不证明加上去就安全。真加的话得同时给它一个诚实的能力声明，否则「每个平台要么能同步、要么有一句说不能的理由」那道判据会当场红——那道判据是对的。"
+  ]
+}
