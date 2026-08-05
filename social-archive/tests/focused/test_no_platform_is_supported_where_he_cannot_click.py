@@ -93,3 +93,41 @@ def test_the_registered_exceptions_are_really_absent_from_the_ui() -> None:
     ui = _ui_platform_ids()
     stale = sorted(set(STATUS_ONLY_PLATFORMS) & ui)
     assert not stale, f"这些已经在界面上了，该从 STATUS_ONLY_PLATFORMS 里删掉：{stale}"
+
+
+def test_every_clickable_platform_is_known_to_the_server() -> None:
+    """**反过来也要成立。**
+
+    界面上有、而服务端不认识的平台，会让他点一个后端放不下的东西：
+    连接时找不到关系类型、状态页没有它、能力声明里也没有它的位置——
+    而「每个平台要么能同步、要么有一句说不能的理由」那道判据只管
+    服务端那张表，界面上多出来的它一个字都看不见。
+
+    两个方向都钉住，这类缺口才是封死的。
+    """
+    ui = _ui_platform_ids()
+    tables = _server_tables()
+    unknown = sorted(
+        platform for platform in ui
+        if platform not in tables["PLATFORM_RELATIONS"]
+        or platform not in tables["PLATFORM_LABELS"]
+    )
+    assert not unknown, (
+        f"这些平台界面上点得到、服务端却不认识：{unknown}。"
+        "连接时会找不到关系类型，能力声明里也没有它的位置。"
+    )
+
+
+def test_every_clickable_platform_has_an_honest_capability_line() -> None:
+    """点得到的每一个，要么在「现在能同步」里，要么有一句说不能的理由。
+
+    这条和 test_syncable_now_is_a_fact_list 里那条是同一件事，
+    但**从界面那一侧数**——那一侧多出一个平台时，服务端那条数不到它。
+    """
+    ui = _ui_platform_ids()
+    tables = _server_tables()
+    declared = tables["SYNCABLE_NOW"] | set(tables["NOT_SYNCABLE_YET"])
+    silent = sorted(ui - declared)
+    assert not silent, (
+        f"这些平台界面上点得到，却既不在「能同步」也没有一句说不能的理由：{silent}"
+    )
