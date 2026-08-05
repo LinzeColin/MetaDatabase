@@ -182,15 +182,26 @@ class DestinationRegistry:
         }.get(destination_id, destination_id)
 
     def _privacy_note(self, destination_id: str) -> str:
+        """一句话说清「东西去了哪、钥匙在谁手里」。
+
+        **这段话此前没有任何界面显示。** 2026-08-05 数了一遍服务端产出的
+        中文文案字段，六个里就它一个没人读——写了八条，一条都没露过面。
+
+        顺带重写了措辞。原来那八条是给工程师看的：「REST 令牌只从 0600 Secret
+        读取」「Integration Token 不返回扩展」「L3 对象走加密副本」。
+        Owner 说过他没有技术基础，**让他读这些词等于让他读我们的代码**——
+        而这偏偏是他最该看懂的一段：他的东西去了哪儿。
+        技术细节没有丢，只是搬到了 docs/ 与代码注释里，那才是它们该待的地方。
+        """
         return {
-            "social_archive": "所有内容先进入私人档案馆；这是唯一主保存链路。",
-            "markdown": f"自动写入 {self.settings.export_root / 'markdown'}，可随时迁移。",
-            "obsidian": "优先直写用户选择的 Vault；REST 令牌只从 0600 Secret 读取。",
-            "notion": "Integration Token 只从服务端 0600 Secret 读取，不返回扩展。",
-            "github": "只允许私有仓库；Git 树存 Markdown/清单，L3 对象走加密副本。",
-            "karakeep": "仅发送 URL 到独立 Karakeep；Social Archive 仍是唯一事实源。",
-            "linkwarden": "仅发送 URL 到独立 Linkwarden；投影可删除和重建。",
-            "archivebox": "只写入可重放 URL 队列；ArchiveBox 0.7.4 不作为权威数据库。",
+            "social_archive": "所有内容都先存进你自己的档案馆，这是唯一的主保存点。",
+            "markdown": f"在你自己的机器上写成 Markdown 文件（{self.settings.export_root / 'markdown'}），随时可以直接拷走。",
+            "obsidian": "直接写进你选的那个 Obsidian 库。开锁用的令牌只存在你的服务器上，插件拿不到。",
+            "notion": "开锁用的令牌只存在你的服务器上，插件拿不到。",
+            "github": "只往**私有**仓库写，别人看不到。大文件是加密之后才上传的。",
+            "karakeep": "只把网址发过去，内容本身不出你的档案馆。",
+            "linkwarden": "只把网址发过去，内容本身不出你的档案馆。",
+            "archivebox": "只把网址排进队列。它不是权威副本——真东西始终在你的档案馆里。",
         }.get(destination_id, "")
 
     def _default_next_action(self, destination_id: str, configured: bool, state: str) -> str:

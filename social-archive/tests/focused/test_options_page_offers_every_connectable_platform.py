@@ -71,18 +71,21 @@ def test_every_card_has_a_name_and_an_icon() -> None:
     assert not missing_icons, f"这些平台没有图标：{missing_icons}"
 
 
-def test_the_next_action_names_the_button_that_really_exists() -> None:
+def test_the_button_named_in_the_copy_really_exists() -> None:
     """**那句话里的每个词都要能在界面上找到。**
 
-    第一版写「点插件里的「连接」」，两处都错：按钮叫「连接账号」，
-    而且它在设置页、不在 YouTube 页面上。
+    「点哪儿」那句话该长什么样，由
+    test_connect_next_action_matches_the_extension.py 盯着——那边盯的是
+    **界面真正显示的那句**（NOT_SYNCABLE_YET），不是这个不显示的字段。
+    这里只钉一件事：被点名的按钮，设置页上真有。
     """
-    for platform, sentence in CONNECT_IS_CLICKABLE_TODAY.items():
-        assert "连接账号" in sentence, (
-            f"{platform} 那句没有点名真实按钮「连接账号」：{sentence!r}"
+    from social_archive.account_sync import NOT_SYNCABLE_YET
+
+    for platform in CONNECT_IS_CLICKABLE_TODAY:
+        assert "连接账号" in NOT_SYNCABLE_YET.get(platform, ""), (
+            f"{platform} 显示的那句话没点名按钮"
         )
-        assert "连接账号" in OPTIONS, "设置页里已经没有「连接账号」这个按钮了"
-        assert "设置" in sentence, f"{platform} 那句没说要先进设置页"
+    assert "连接账号" in OPTIONS, "设置页里已经没有「连接账号」这个按钮了"
 
 
 def test_a_platform_without_a_card_can_never_be_called_clickable() -> None:

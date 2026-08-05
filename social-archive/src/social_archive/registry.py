@@ -65,9 +65,18 @@ INCIDENTAL_PROBE_FAILURES = frozenset({
 #     连接根本不要求你正开着 YouTube。
 # 而且当时**那张卡片压根不存在**——options.js 的 platformOrder 里没有 youtube。
 # 也就是说我刚修好一句假的下一步，又写了一句更具体的假下一步。
+# **注意：今天没有任何界面读 next_action_zh 这个字段。**
+#
+# 2026-08-05 查过：连接器卡片显示的是 account_sync.NOT_SYNCABLE_YET
+# （经 /v1/accounts 的 not_syncable_reason 传过去），不是这里。
+# 所以让 Owner 点哪儿那句话**必须写在那张表里**，写在这儿是隐形的——
+# 同一天在目的地那侧刚踩过一次一模一样的坑。
+#
+# 这张表留着，因为 /v1/status 的连接器投影确实带着它，而且
+# 「这个平台今天点不点得到」这件事本身要有个单一真源给判据用。
+# **但它不是给用户看的那句话。**
 CONNECT_IS_CLICKABLE_TODAY: dict[str, str] = {
-    "youtube": "点插件图标 → 右上角「···」打开设置 → 找到 YouTube 那张卡片 → "
-               "点「连接账号」。登录状态只交给你自己的服务器保管。",
+    "youtube": "点 YouTube 那张卡片上的「连接账号」——登录状态只交给你自己的服务器保管。",
 }
 
 

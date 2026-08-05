@@ -166,3 +166,37 @@ def test_an_unauthorized_destination_is_not_nagged_about_coverage() -> None:
     对一个还没连上的目的地说「还有 193 条没送到」，是把顺序说反了。
     """
     assert "authorized and total" in SOURCE, "没授权的也会被报差额"
+
+
+def test_the_privacy_note_is_actually_shown_somewhere() -> None:
+    """**写了八条隐私说明，一条都没露过面。**
+
+    2026-08-05 数了一遍服务端产出的中文文案字段：六个里就 privacy_note_zh
+    一个没有任何界面读。而这偏偏是他最该看懂的一段——他的东西去了哪儿。
+
+    「建好了没接上」这次落在隐私说明上。
+    """
+    for name in ("apps/pwa/app.js", "apps/browser-extension/options.js"):
+        source = (ROOT / name).read_text(encoding="utf-8")
+        assert "privacy_note_zh" in source, f"{name} 不显示隐私说明——那八条写了没人看"
+
+
+def test_the_privacy_note_is_written_for_him_not_for_us() -> None:
+    """**Owner 说过他没有技术基础，让他读这些词等于让他读我们的代码。**
+
+    原来那八条是给工程师看的：「REST 令牌只从 0600 Secret 读取」、
+    「Integration Token 不返回扩展」、「L3 对象走加密副本」。
+    技术细节没有丢，只是搬到 docs/ 与代码注释里——那才是它们该待的地方。
+    """
+    import inspect
+
+    from social_archive.destinations import DestinationRegistry
+
+    body = inspect.getsource(DestinationRegistry._privacy_note)
+    # 只看 return 的那张表，不看上面的说明（说明里正是在引用这些词）。
+    table = body.split("return {", 1)[1]
+    for jargon in ("0600", "Secret", "Token", "REST", "L3", "Git 树", "投影"):
+        assert jargon not in table, f"隐私说明里还有让他读代码的词：{jargon!r}"
+    # 而且每一条都要真说了点什么
+    registry_notes = [line for line in table.splitlines() if '":' in line]
+    assert len(registry_notes) >= 8, f"隐私说明少了几条：{len(registry_notes)}"

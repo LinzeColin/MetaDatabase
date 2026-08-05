@@ -76,15 +76,29 @@ def test_a_domestic_platform_can_never_be_listed_as_clickable() -> None:
         )
 
 
-def test_the_sentence_tells_you_where_to_click() -> None:
+def test_the_sentence_the_owner_actually_reads_tells_him_where_to_click() -> None:
     """一句「去连接吧」没有用——**得说清点哪儿**。
 
-    Owner 说过他没有技术基础。指不到具体位置的下一步，和没有下一步差不多。
+    **而且要说在他真能看到的那句话里。** 这条判据原本盯的是
+    registry.CONNECT_IS_CLICKABLE_TODAY，2026-08-05 查出来
+    **没有任何界面读那个字段**：连接器卡片显示的是
+    account_sync.NOT_SYNCABLE_YET（经 /v1/accounts 的 not_syncable_reason）。
+    盯着一个不显示的字段要求它「说清位置」，是在守一句没人读的话。
     """
-    for platform, sentence in CONNECT_IS_CLICKABLE_TODAY.items():
-        assert "点" in sentence, f"{platform} 那句没说要点什么"
-        assert "插件" in sentence or "扩展" in sentence, f"{platform} 那句没说在哪儿点"
-        assert len(sentence) >= 20, f"{platform} 那句太短，说不清位置：{sentence!r}"
+    from social_archive.account_sync import NOT_SYNCABLE_YET
+
+    for platform in CONNECT_IS_CLICKABLE_TODAY:
+        shown = NOT_SYNCABLE_YET.get(platform, "")
+        assert shown, f"{platform} 说是点得到的，而界面上那句话是空的"
+        assert "连接账号" in shown, (
+            f"{platform} 显示的那句话没点名「连接账号」这颗按钮：{shown}"
+        )
+        assert "这张卡片" in shown or "卡片上" in shown, (
+            f"{platform} 那句话没说按钮在哪张卡上：{shown}"
+        )
+        # 界面上真有这颗按钮（options.js 渲染的就是它）
+        assert "连接账号" in (ROOT / "apps/browser-extension/options.js").read_text(
+            encoding="utf-8"), "设置页里已经没有「连接账号」这颗按钮了"
 
 
 def test_platforms_held_by_a_gate_are_not_called_clickable() -> None:
