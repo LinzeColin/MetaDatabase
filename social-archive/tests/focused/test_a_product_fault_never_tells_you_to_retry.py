@@ -104,3 +104,46 @@ def test_the_pwa_alias_table_has_not_drifted_from_the_server() -> None:
         + "。从 apps/pwa/app.js 的 failureAliases 里删掉，让它落到那句"
           "「这是产品的问题…请联系我们」的兜底上。"
     )
+
+
+# **两侧只准许有意的差异，而现在一条都没有。**
+# 有意让某个码只出现在一侧时，写进这里并说清为什么；空着就是「必须完全一致」。
+ONE_SIDED_ON_PURPOSE: dict[str, str] = {}
+
+
+def test_both_alias_tables_say_exactly_the_same_thing() -> None:
+    """服务端与界面的失败码别名表必须**逐条一致**。
+
+    上面那条只钉「产品缺陷类」这一小块。而漂开这件事不挑类别——
+    2026-08-06 实测漂开的那两条恰好都在那一块里，纯属运气。
+
+    这条把整张表钉上：**同一个失败码，两个界面不许给用户两句不同的话。**
+    实测两侧各 39 条、逐条相同，所以这个不变量今天是真的成立的，
+    不是一句愿望。
+    """
+    import re
+    from pathlib import Path
+
+    app_js = (Path(__file__).resolve().parents[2] / "apps/pwa/app.js").read_text(encoding="utf-8")
+    block = re.search(r"const failureAliases = \{(.*?)\n  \};", app_js, re.S)
+    assert block, "PWA 里的 failureAliases 找不到了——判据的射程失效，先修判据"
+    body = "\n".join(l for l in block.group(1).splitlines() if not l.lstrip().startswith("//"))
+    pwa = dict(re.findall(r'^\s*([A-Z_]+)\s*:\s*"([A-Z_]+)"', body, re.M))
+    assert len(pwa) >= 20, f"只解析出 {len(pwa)} 条别名——**解析失败和「两边一致」长得一样**，先修判据"
+
+    server = dict(failure_copy._ALIASES)
+    for code in ONE_SIDED_ON_PURPOSE:
+        pwa.pop(code, None)
+        server.pop(code, None)
+
+    only_server = sorted(set(server) - set(pwa))
+    only_pwa = sorted(set(pwa) - set(server))
+    differs = sorted(f"{c}: 服务端→{server[c]} ／ 界面→{pwa[c]}"
+                     for c in set(server) & set(pwa) if server[c] != pwa[c])
+    assert not (only_server or only_pwa or differs), (
+        "**两张失败码别名表漂开了**——同一个码会给用户两句不同的话：\n"
+        + (f"  只在服务端：{only_server}\n" if only_server else "")
+        + (f"  只在界面：{only_pwa}\n" if only_pwa else "")
+        + ("  指向不同：\n    " + "\n    ".join(differs) if differs else "")
+        + "\n确实要只在一侧的话，写进 ONE_SIDED_ON_PURPOSE 并说明为什么。"
+    )
