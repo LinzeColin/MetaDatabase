@@ -191,9 +191,6 @@ if [[ -n "$IMAGE_BEFORE" ]]; then
   #
   # 打一个临时标签是幂等的、不占额外空间（同一批层），而且**中止的部署
   # 不会动 :rollback**——那个临时标签自己无害。
-  ssh -o ConnectTimeout=20 "$HOST" "docker tag '${IMAGE_BEFORE}' '${ROLLBACK_CANDIDATE}'" \
-    || fail '钉不住当前镜像，无法保证回滚点——先查 docker 再部署。'
-  printf '  已用 %s 钉住它，构建不会把它收走。\n' "$ROLLBACK_CANDIDATE"
 else
   printf '  （没有同名旧镜像，首次部署）\n'
 fi
@@ -257,12 +254,33 @@ if [[ -n "$FREE_GB" && "$FREE_GB" -lt "$MIN_FREE_GB" ]]; then
   printf '  回收后可用 %sG\n' "$FREE_GB"
 fi
 if [[ -n "$FREE_GB" && "$FREE_GB" -lt "$MIN_FREE_GB" ]]; then
-  printf '  仍然不够。剩下的悬空镜像（含别的项目的，**不自动删**）：\n'
-  ssh -o ConnectTimeout=20 "$HOST" 'sudo docker images -f "dangling=true" --format "    {{.ID}}  {{.Size}}  {{.CreatedSince}}"' || true
-  fail "可用空间不足 ${MIN_FREE_GB}G，拒绝构建。先回收：ssh $HOST 'for id in \$(sudo docker images -f dangling=true -q); do sudo docker rmi \$id; done'  —— **只删悬空镜像，不要用 docker system prune**（这台机器还跑着 memory-atlas / gatus / coolify 等别人的项目）。"
+  # **建议要指向真正占地方的东西。**
+  #
+  # 2026-08-05 实测：门在 4G 上拦下部署，而**悬空镜像是 0 个**——
+  # 它却还在叫人「回收悬空镜像」。那是又一次「下一步指向一个帮不上忙的东西」，
+  # 和我今天在连接器文案上修的是同一种病，只不过这次在我自己的门里。
+  # 所以先把真实占用摆出来，让人看着数字决定。
+  printf '  仍然不够。**先看清什么在占地方**（悬空镜像可能一个都没有）：\n'
+  ssh -o ConnectTimeout=20 "$HOST" 'sudo docker system df 2>/dev/null | sed "s/^/    /"' || true
+  printf '    我们自己的镜像：\n'
+  ssh -o ConnectTimeout=20 "$HOST" 'sudo docker images --format "      {{.Repository}}:{{.Tag}}  {{.Size}}" | grep social-archive' || true
+  printf '    悬空镜像（含别的项目的，**不自动删**）：\n'
+  ssh -o ConnectTimeout=20 "$HOST" 'sudo docker images -f "dangling=true" --format "      {{.ID}}  {{.Size}}  {{.CreatedSince}}"' || true
+  fail "可用空间不足 ${MIN_FREE_GB}G，拒绝构建。按上面那张表挑：悬空镜像有的话用 \`ssh $HOST 'for id in \$(sudo docker images -f dangling=true -q); do sudo docker rmi \$id; done'\`；一个都没有就多半是 Build Cache 占着（\`docker builder prune\` 会影响同机别的项目的构建速度，**由人决定**）。**任何情况下都不要用 docker system prune**（这台机器还跑着 memory-atlas / gatus / coolify 等别人的项目）。"
 fi
 
 step "5) 构建并上线"
+# **钉住当前镜像放在这里，不放在第 3 步。**
+#
+# 2026-08-05 实测：原来第 3 步就打 :rollback-candidate，而部署可能在第 4 步
+# （磁盘不够）中止——那个标签就留下来，**死死钉住一个 1.06GB 的镜像**，
+# 它因此永远不会变成悬空、永远收不掉。于是「磁盘不够 → 中止 → 又多钉一个」
+# 自己喂自己。挪到磁盘门之后、构建之前，中止的部署就不会留下它。
+if [[ -n "$IMAGE_BEFORE" ]]; then
+  ssh -o ConnectTimeout=20 "$HOST" "docker tag '${IMAGE_BEFORE}' '${ROLLBACK_CANDIDATE}'" \
+    || fail '钉不住当前镜像，无法保证回滚点——先查 docker 再部署。'
+  printf '  已用 %s 钉住部署前那个镜像，构建不会把它收走。\n' "$ROLLBACK_CANDIDATE"
+fi
 ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && docker compose build core-api 2>&1 | tail -3" || fail '构建失败，什么都没换，回滚点原样保留。'
 # 构建成了，这才把回滚点从临时标签转正——**在 up 之前**，那一刻跑的还是旧的。
 # 用临时标签而不是 ID：ID 可能已经被这次构建收走了（见第 3 步那段注释）。

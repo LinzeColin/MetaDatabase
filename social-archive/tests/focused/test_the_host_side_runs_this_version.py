@@ -168,3 +168,34 @@ def test_the_disk_threshold_defaults_to_five_and_can_be_raised_for_testing() -> 
         "回收前后两次比较必须都用同一个门槛——只改一处的话，"
         "会出现「回收完仍不够却继续构建」"
     )
+
+
+def test_an_aborted_deploy_does_not_leave_a_tag_pinning_a_gigabyte() -> None:
+    """**钉住镜像的动作必须排在磁盘门之后。**
+
+    2026-08-05 实测：原来第 3 步就打 :rollback-candidate，而部署可能在第 4 步
+    （磁盘不够）中止——那个标签留下来，死死钉住一个 1.06GB 的镜像，
+    它因此永远不会变成悬空、永远收不掉。于是**「磁盘不够 → 中止 → 又多钉一个」
+    自己喂自己**。
+    """
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    code = "\n".join(l for l in deploy.splitlines() if not l.lstrip().startswith("#"))
+    disk_gate = code.index("构建前先看磁盘")
+    pin = code.index("ROLLBACK_CANDIDATE}'\"")
+    assert pin > disk_gate, (
+        "又把「钉住镜像」排到磁盘门前面了——中止的部署会留下一个钉着 1GB 的标签"
+    )
+
+
+def test_the_disk_advice_does_not_send_you_after_nothing() -> None:
+    """悬空镜像可能一个都没有——那时还叫人「回收悬空镜像」就是白跑一趟。
+
+    这和我今天在连接器文案上修的是同一种病（下一步指向一个帮不上忙的东西），
+    只不过这次在自己的门里。
+    """
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    assert "docker system df" in deploy, "收不够时不摆出真实占用，人无从下手"
+    assert "Build Cache" in deploy or "builder prune" in deploy, (
+        "没提 Build Cache——实测拦下部署那次悬空是 0 个，占地方的是它"
+    )
+    assert "由人决定" in deploy, "builder prune 会影响同机别的项目，不能替人决定"
