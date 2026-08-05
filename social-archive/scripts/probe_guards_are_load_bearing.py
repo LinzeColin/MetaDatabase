@@ -317,15 +317,14 @@ def main() -> int:
                 # **反向判据的突变是「把它塞回去」。**
                 # 原样附在文件末尾，不加注释符号——很多判据会先剥注释再查
                 # （deploy 那条就是 `code_only()`），塞成注释等于没塞。
-                if literal in original:
-                    # **多半不是判据错了，是它查的不是整份文件。**
-                    # 实例：`"chown -R" not in code`，而 code 是剥掉注释之后的文本——
-                    # 那句 `chown -R` 就写在解释事故的注释里。原文里有、判据看的那份里没有。
-                    results["unresolved"] += 1
-                    results["unresolved_detail"].append(
-                        {"test": test.name, "source": relative, "literal": literal[:60],
-                         "why": "原文里已经有这个字面量了——判据多半查的是过滤/切片之后的文本，这种插法证不了它"})
-                    continue
+                # **原文里已经有这个字面量也照样突变。**
+                #
+                # 第一版遇到这种就跳过，理由是「多半是判据查的过滤后文本」。
+                # 那个判断对，但**跳过是多余的**：判据现在是绿的，就说明这个字面量
+                # 不在它真正查的那份文本里（比如 `chown -R` 只写在注释里，
+                # 而 `code_only()` 把注释剥掉了）。往文件里再塞一条**非注释**的，
+                # 它就会进到那份文本里去——这正是要验的那一下。
+                # 白跳过了 5 条，其中包括 `"chown -R" not in code`。
                 mutated = original + "\n" + literal + "\n"
             budget -= 1
             source.write_text(mutated, encoding="utf-8")
