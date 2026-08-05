@@ -10,10 +10,26 @@
   "the_layer_that_does_not": "apps/browser-extension/shared.js 的 PLATFORM_RULES——它驱动界面、权限请求与平台识别。里面有 xiaohongshu / douyin / kuaishou / bilibili / x / reddit / instagram / generic-web，**没有 youtube**。也就是说：权限要了，存得下，导得出，**而他点不到**。",
   "how_it_surfaced": "在核 T06 那句「需 Owner 的 X 登录」是不是框窄了。我先想当然地说「任何一个他连上的平台都算，比如 B 站」——**那是错的**：bilibili 在 FORBIDDEN_PLATFORMS 里，国内平台的 Cookie 永远不出浏览器（INV-DOMESTIC-COOKIE-STAYS）。去核允许名单，才看见 youtube 躺在里面。",
   "why_it_matters_for_T06": "T06 的 Oracle 是「gallery-dl -j 拿到 ≥1 条 Owner 私有条目」，没限定平台。可用的只有 ALLOWED_PLATFORMS 那三个：x 压着零费用门（只有 Owner 能开）、instagram 的授权那步没有他点得到的界面、**youtube 什么门都没压**——而且他已经是 Google 用户（T02 就是用 Google 登进去的）。也就是说 youtube 很可能是这一格**最省事的一条路**，而它现在连入口都没有。",
-  "what_i_did_not_do": "**没有自作主张把 youtube 加进 PLATFORM_RULES。** 那会在界面上凭空多出一个平台、多一处「连接」承诺、还要在能力声明（SYNCABLE_NOW / NOT_SYNCABLE_YET）里给它一个诚实的位置。加平台是产品决定，已把它摆给 Owner。",
   "what_this_does_not_prove": [
-    "不证明 youtube 那条路真能跑通。三层支持它，不等于 gallery-dl 拿着那份 cookies 就能取到他的私有条目——**那正是 Oracle 要验的事**，而 Oracle 一次都没跑过。",
-    "不证明 PLATFORM_RULES 里漏掉 youtube 是个疏忽。也可能是有意为之（比如当初决定先不做），只是没有任何地方写下这个决定——**没写下来的决定，和疏忽长得一模一样**。",
-    "不证明加上去就安全。真加的话得同时给它一个诚实的能力声明，否则「每个平台要么能同步、要么有一句说不能的理由」那道判据会当场红——那道判据是对的。"
-  ]
+    "**不证明 T06 的 Oracle 就此能过。** 那要用他真实的 YouTube 登录态跑一次 gallery-dl 并取到私有条目——凭据表现在仍然一行都没有。这里做完的只是「把路修通」。",
+    "不证明 YouTube 那条取数路能做。「把稍后观看列出来」一行代码都没有，所以它老老实实待在 NOT_SYNCABLE_YET 里。",
+    "不证明 google.com 那条权限一定够。cookie-export 认为 YouTube 的登录态挂在 youtube.com 与 google.com 两个域上，这一点没有用真实会话验证过。"
+  ],
+  "owner_decided_wire_it_up": {
+    "他的选择": "**接上。**",
+    "改了哪几张表": "扩展的 PLATFORM_RULES 与域名判定；服务端的 PLATFORM_RELATIONS（watch_later / playlist）与中文名；registry 的显示名与默认关系；能力声明进 NOT_SYNCABLE_YET。",
+    "能连不等于能同步": "它进的是 NOT_SYNCABLE_YET，带一句「现在可以：连接 YouTube（把登录状态交给你自己的服务器保管），以及在任意视频页点插件保存当前这一条」。凭据托管那条路是通的，而「把稍后观看列出来」那条取数路一行都没写——不许在界面上承诺它。",
+    "三条判据当场拦下且都拦对": [
+      "「每个平台要么能同步、要么有一句说不能的理由」——逼我给它诚实的声明",
+      "「要了权限的域名都得认得出」——我给它加了 google.com 权限（YouTube 登录态有一部分挂在 Google 账号域上），但**把 google.com 认成 YouTube 是错的**（Gmail、Drive 都不是）。登记成在案例外并写明：「要这个域的权限」与「按这个域认平台」是两件事。",
+      "连接器数量 9 → 10。那个数字写死是有意的：**加平台是产品决定，不该悄悄发生**。"
+    ],
+    "verified_in_production": {
+      "下发的包里有它": "本地包与生产下载路由取回的包，shared.js 里各 1 处 id: \"youtube\"",
+      "接口如实告诉界面": "sync_supported=false、connect_supported=true、not_syncable_reason 带「现在可以：…」",
+      "connect_supported 没有乱给": "四个国内平台 false（Cookie 不出浏览器）、reddit false（不在托管名单里）、x / instagram / youtube true、generic-web true——**正好等于托管名单 ∪ {generic-web}**",
+      "域名判定没有误伤": "youtube.com / youtu.be → youtube；mail.google.com 与 google.com/search → generic-web",
+      "凭据托管往返": "判据实测：存得进、读接口不吐明文、cookie 数对得上（合成会话）；扩展那侧按 ALLOWED_PLATFORMS 分流到托管路"
+    }
+  }
 }
