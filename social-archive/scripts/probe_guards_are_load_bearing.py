@@ -36,6 +36,22 @@ cookie-export.js 的。block / code / text / body 这些名字在判据文件里
 
     候选 377 · 突变 299 · 承重 299 · 报「没守住」0 · 归属追不到 78
 
+**那 78 条不是原理上追不到，是少走了一步。** 让它报出「追不到的是哪些」
+之后，78 条全指向 `background.js`、`popup.js` 这类**光秃秃的文件名**——
+成因是判据里最常见的写法：
+
+    EXT = ROOT / "apps/browser-extension"
+    source = (EXT / "background.js").read_text(...)
+
+`_path_from` 遇到 `EXT / "..."` 时左边是个 Name、追不动，就只返回了
+`"background.js"`。把常量表传进去之后：
+
+    候选 379 · 突变 355 · **承重 355** · 报「没守住」0 · 归属追不到 24
+
+**多验了 56 条，仍然一条「没守住」都没有。** 剩下那 24 条是另一回事：
+它们来自 `for text, name in ((pwa, "app.js"), ...)` 这种循环——
+那个字面量是**标签**，不是路径。追它就得靠猜，所以照实报「跳过」。
+
 **仍然是 0。** 顺带修了这个脚本自己的一处静默截断：默认预算是 40，
 而输出里从来没说过那是个上限——`"load_bearing": 40` 读起来就是
 「全查过了，全承重」，实际只覆盖了 377 条候选里的 11%。
@@ -72,13 +88,26 @@ INHERITING_CALLS = {"js_function", "py_function", "run_diagnosis_body",
                     "after_unique", "read"}
 
 
-def _path_from(node: ast.AST) -> str | None:
-    """从 `ROOT / "apps/x.js"` 这种表达式里取出那个相对路径。"""
+def _path_from(node: ast.AST, constants: dict[str, str] | None = None) -> str | None:
+    """从 `ROOT / "apps/x.js"` 这种表达式里取出那个相对路径。
+
+    **左边是个变量时也要能追。** 判据里最常见的写法是
+
+        EXT = ROOT / "apps/browser-extension"
+        source = (EXT / "background.js").read_text(...)
+
+    第一版遇到 `EXT / "background.js"` 时，左边是个 Name、追不动，
+    于是只返回 `"background.js"`——一个不存在的路径。那 78 条
+    「归属追不到」全是这么来的：**不是原理上追不到，是少走了一步**。
+    这 78 条里有 31 条指向 background.js，而它正是本版本改得最多的文件。
+    """
     if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
         right = node.right
         if isinstance(right, ast.Constant) and isinstance(right.value, str):
-            left = _path_from(node.left)
+            left = _path_from(node.left, constants)
             return f"{left}/{right.value}" if left else right.value
+    if isinstance(node, ast.Name) and constants:
+        return constants.get(node.id)
     if isinstance(node, ast.Constant) and isinstance(node.value, str):
         return node.value
     return None
@@ -98,7 +127,9 @@ def _sources_in(tree: ast.AST, constants: dict[str, str]) -> dict[str, str]:
         if (isinstance(value, ast.Call) and isinstance(value.func, ast.Attribute)
                 and value.func.attr == "read_text"):
             base = value.func.value
-            path = _path_from(base)
+            # 常量表要传进去：`(EXT / "background.js").read_text()` 里的 EXT
+            # 只有查表才知道是 apps/browser-extension。
+            path = _path_from(base, constants)
             if path is None and isinstance(base, ast.Name):
                 path = constants.get(base.id)
             if path:
@@ -127,7 +158,7 @@ def _module_constants(tree: ast.AST) -> dict[str, str]:
     constants: dict[str, str] = {}
     for node in tree.body:
         if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
-            path = _path_from(node.value)
+            path = _path_from(node.value, constants)
             if path and "/" in path:
                 constants[node.targets[0].id] = path
     return constants
@@ -191,7 +222,10 @@ def main() -> int:
     budget = int(sys.argv[1]) if len(sys.argv) > 1 else 40
     requested = budget
     candidates = 0
-    results: dict = {"load_bearing": 0, "not_load_bearing": [], "unresolved": 0}
+    # **只报一个数字「追不到 78 条」，等于没报。**
+    # 没人能从那个数字看出「这 78 条是没人守，还是这道探针够不着」。
+    results: dict = {"load_bearing": 0, "not_load_bearing": [],
+                     "unresolved": 0, "unresolved_detail": []}
     for test in sorted(pathlib.Path("tests/focused").glob("test_*.py")):
         try:
             candidates += len(dict.fromkeys(_claims(test)))
@@ -210,11 +244,18 @@ def main() -> int:
             source = ROOT / relative
             if not source.is_file():
                 results["unresolved"] += 1
+                results["unresolved_detail"].append(
+                    {"test": test.name, "source": relative, "why": "指向的文件不在"})
                 continue
             original = source.read_text(encoding="utf-8")
             mutated = "\n".join(l for l in original.splitlines() if literal not in l)
             if mutated == original:
+                # **删不掉 = 这条断言的字面量在那个文件里根本不出现。**
+                # 多半是归属追错了文件，或者断言的是行为而不是字面量。
                 results["unresolved"] += 1
+                results["unresolved_detail"].append(
+                    {"test": test.name, "source": relative,
+                     "literal": literal[:60], "why": "那个文件里找不到这个字面量"})
                 continue
             budget -= 1
             source.write_text(mutated, encoding="utf-8")
