@@ -1139,7 +1139,7 @@
     const account = state.accounts.find(item => item.id === accountId);
     if (!account) return;
     const active = latestRunFor(accountId);
-    if (active && ["queued", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(active.status)) {
+    if (active && ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(active.status)) {
       showToast(`${account.display_name || platformMeta[serverToUiPlatform[account.platform]]?.label || "账号"} 正在同步：已导入 ${active.imported_count || 0}/${active.discovered_count || "…"} 条`);
       return;
     }

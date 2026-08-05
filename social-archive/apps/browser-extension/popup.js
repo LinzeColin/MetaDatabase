@@ -50,7 +50,7 @@
 
   function renderSummary(serviceConnected) {
     const connected = accounts.filter(account => ["connected", "degraded"].includes(account.connection_state)).length;
-    const active = runs.filter(run => ["queued", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(run.status));
+    const active = runs.filter(run => ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(run.status));
     const total = accounts.reduce((sum, account) => sum + Number(account.content_count || 0), 0);
     $("serviceState").className = `service-pill ${serviceConnected ? "connected" : "error"}`;
     $("serviceState").textContent = serviceConnected ? "已连接" : "待连接";
@@ -92,7 +92,7 @@
       const current = run?.status || account.connection_state || "connected";
       const imported = Number(run?.imported_count || 0);
       const discovered = Number(run?.discovered_count || 0);
-      const detail = ["queued", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(current)
+      const detail = ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(current)
         ? `同步 ${imported}/${discovered || "…"}`
         : `${Number(account.content_count || 0).toLocaleString("zh-CN")} 条 · ${formatTime(account.last_sync_at)}`;
       return `<article class="account-row"><span class="platform-dot">${SA.escapeHtml(platformShort[account.platform] || "网")}</span><span class="account-copy"><strong>${SA.escapeHtml(account.display_name || account.external_account_id || platformName[account.platform] || account.platform)}</strong><small>${SA.escapeHtml(detail)}</small></span><span class="state-label ${SA.escapeHtml(current)}">${SA.escapeHtml(statusName[current] || current)}</span></article>`;
@@ -121,7 +121,7 @@
       accounts = accountData.items || [];
       runs = runData.items || [];
       bootstrap = bootstrapData;
-      const pending = runs.filter(run => ["queued", "discovering", "scanning", "normalizing", "artifacting", "exporting", "failed", "blocked_environment"].includes(run.status)).length;
+      const pending = runs.filter(run => ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting", "failed", "blocked_environment"].includes(run.status)).length;
       $("taskCount").textContent = String(pending);
       $("taskCount").classList.toggle("hidden", pending === 0);
     } catch (_) {
@@ -148,7 +148,7 @@
       window.close();
       return;
     }
-    const active = runs.some(run => ["queued", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(run.status));
+    const active = runs.some(run => ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(run.status));
     if (active) {
       await chrome.runtime.sendMessage({ type: "SA_OPEN_TASK_CENTER" });
       window.close();
