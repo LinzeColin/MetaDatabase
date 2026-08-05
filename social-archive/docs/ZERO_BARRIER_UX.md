@@ -124,7 +124,14 @@
 ## 第 6 屏 · 表格
 
 沿用 v0.0.0.6 已获 Owner 批准的表格原型（`Social_Archive_UIUX_Table_Prototype_v0.0.0.6.html`，
-sha256 `237127a2d8fdefd511b68e75b45ba7d920dd8fa08eb0423d02a45eb236d01839`）：
+sha256 `237127a2d8fdefd511b68e75b45ba7d920dd8fa08eb0423d02a45eb236d01839`）。
+
+> **那个文件不在这个仓里，在任务包里**（和 Acceptance 原文一样）。
+> 2026-08-05 有人（我）照着这行字在仓里找了一遍，没找到——写下来免得下一个人
+> 再找一次。哈希不是摆设：`evidence/BASELINE_FAILURES.json` 里记着一次实测，
+> declared 与 measured 逐字节相同，也就是说**拿到任务包的人可以核**。
+
+以此为准：
 平台分组、默认关系时间倒序、允许列排序。本版本不改设计，只保证它有数据。
 
 ## 错误文案词典（冻结）
