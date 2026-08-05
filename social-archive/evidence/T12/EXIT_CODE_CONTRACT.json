@@ -161,7 +161,7 @@
       }
     ],
     "verified_how": "直接调用 CommandArtifactConnector.capture_url()，patch 掉 _run 返回构造的退出码，走真实的错误组装与文案渲染路径。七条全部说得出原因，没有一条落到「已经是最新的」。",
-    "still_unfixed_nearby": "**已修（2026-08-04）。** 原文写着「同文件 bilibili 路径的 retryable: True 是写死的，不在 T12 范围里，记着免得当没看见」——那句「不在范围里」和「基线失败」是同一种借口。由 scripts/list_open_items.py 汇总时重新看见并处理。"
+    "fixed_2026_08_04_key_renamed_2026_08_05": "**已修（2026-08-04）。** 原文写着「同文件 bilibili 路径的 retryable: True 是写死的，不在 T12 范围里，记着免得当没看见」——那句「不在范围里」和「基线失败」是同一种借口。由 scripts/list_open_items.py 汇总时重新看见并处理。"
   },
   "what_this_does_not_prove": [
     "没有跑通一次真实的 Reddit 取数——那需要 Owner 的 Reddit 授权。",
