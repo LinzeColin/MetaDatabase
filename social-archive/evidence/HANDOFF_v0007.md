@@ -238,7 +238,7 @@ sparse    .github + social-archive
 | T02 | **done** | 生产实测闭环：Owner 用 Google 真登进去了（oauth_identity 06:23:50Z），三态实测 无Cookie→401 / 伪造→401 / 真会话→200。见 `T02/OWNER_IS_ACTUALLY_LOGGED_IN.json`。**GitHub 那条路仍未被任何真实登录验证过** |
 | T03 | **done** | `evidence/T03/REMOVAL_AND_ZERO_TYPING.json` |
 | T04 | **done** | 真实浏览器跑通：62 条书签 `queued→completed`，界面表格 62/62 逐条对上；另补 `DELETE /v1/accounts/{id}`（连得上断不开，见 `T04/CONNECT_HAD_NO_INVERSE.json`） |
-| T05 | **done** | 凭据托管；HTTP 层往返判据见 `test_credential_http_roundtrip.py`；隐私声明曾与实现相反，见 `T05/PRIVACY_CLAIM_WAS_FALSE.json` |
+| T05 | **done（2026-08-05 补了一次真查）** | 凭据托管；HTTP 层往返判据见 `test_credential_http_roundtrip.py`；隐私声明曾与实现相反，见 `T05/PRIVACY_CLAIM_WAS_FALSE.json`。**「值不进日志」这条此前从没真查过**——不是没查，是**验它的工具认不出该找什么**：两道密钥扫描门都认不出 Notion / Obsidian / R2 私密访问密钥，以及 **age 私钥**（占位符过滤按前缀跳过 A 开头的值，而 age 私钥永远以 AGE- 开头）。当天把扫描器补齐后第一次真查：生产运行数据 2119 个文件 + 五个单元近 14 天共 3536 行日志，**0 处命中**。见 `T05/SECRET_VALUES_NEVER_REACHED_THE_LOGS.json` |
 | T06 | **partial** | 托管往返实测通过（合成会话）；「一键撤销」已接上。**Oracle 仍未跑，而且是真的跑不了**：08-05 实测 platform_credential 表一行都没有，没有任何凭据在托管。但原来那句「**需 Owner 的 X 登录**」框窄了——Oracle 原文是「gallery-dl 取到 Owner 私有条目」，**没说哪个平台**，任何一个他连上的平台都算；而 X 还额外压着零费用门。他本来就要为 T08 打开 B 站收藏夹页，同一次点一下「连接」这格就有机会一起动。回执里两处已陈：凭据专用 age 密钥**已建好且容器读得到**，downstream 那张表里 T07/T15/T16/T18 早已 done。见 `T06/BLOCKED_RECEIPT.json` 的 rechecked 段 |
 | T07 | **done** | Owner 已裁定「cookie 可以进 ovh」；Cookie 已接进 sidecar（tmpfs、0600、finally 里删、值不进日志）。见 `T07/COOKIES_MAY_ENTER_THE_SIDECAR.json` |
 | T08 | **partial** | 整条链在真 Chrome 里跑通（回环，不碰任何平台）：注入 → 两个世界通消息 →抓到相对与绝对地址 → **生产解析器读出条目**；连按两次不串味；反例 0 条。08-05 由此揪出并修掉四个缺陷（见下）。真实收藏页仍未验 |
