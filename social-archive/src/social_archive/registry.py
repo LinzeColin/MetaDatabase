@@ -57,9 +57,17 @@ INCIDENTAL_PROBE_FAILURES = frozenset({
 #
 # 加平台时这是**第五张表**（扩展那四张见 extension_platform_wiring_drill.py）。
 # 判据 test_connect_next_action_matches_the_extension.py 盯着它别走散。
+# **这句话里的每个词都要能在界面上找到。**
+#
+# 第一版写的是「打开任意一个 YouTube 页面，点插件里的「连接」」，两处都错：
+#   · 按钮叫**「连接账号」**，不叫「连接」；
+#   · 它在**扩展的设置页**（弹窗右上角那个「···」进去），不在 YouTube 页面上；
+#     连接根本不要求你正开着 YouTube。
+# 而且当时**那张卡片压根不存在**——options.js 的 platformOrder 里没有 youtube。
+# 也就是说我刚修好一句假的下一步，又写了一句更具体的假下一步。
 CONNECT_IS_CLICKABLE_TODAY: dict[str, str] = {
-    "youtube": "打开任意一个 YouTube 页面，点插件里的「连接」——"
-               "登录状态只交给你自己的服务器保管。",
+    "youtube": "点插件图标 → 右上角「···」打开设置 → 找到 YouTube 那张卡片 → "
+               "点「连接账号」。登录状态只交给你自己的服务器保管。",
 }
 
 

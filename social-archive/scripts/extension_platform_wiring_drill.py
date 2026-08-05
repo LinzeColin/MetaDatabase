@@ -9,9 +9,16 @@
   · 再说「两个方向都封住了」——**漏了第三张表**（content/platform-catalog.js），
     于是 platformLabel("youtube") 原样返回内部 id
 
-**两次都是宣布完成之后才发现的。** 一个平台散在四张表里
-（shared.js 的 PLATFORM_RULES、platform-catalog.js 的 PLATFORMS、
-cookie-export.js 的 ALLOWED/FORBIDDEN、以及服务端那几张），
+**两次都是宣布完成之后才发现的。** 而且**第三次比前两次更糟**：
+2026-08-05 又发现 `options.js` 里那三张表（platformOrder / platformNames /
+platformIcons）里一个 youtube 都没有——**设置页根本不给它出卡片**，
+于是那个「连接账号」按钮不存在，交接里让 Owner 做的第二件事**做不了**。
+当时这个演练已经全绿：它问的是 service worker 那四张表，
+**问不到设置页会不会出这张卡**。
+
+一个平台散在**七张**表里（shared.js 的 PLATFORM_RULES、
+platform-catalog.js 的 PLATFORMS、cookie-export.js 的 ALLOWED/FORBIDDEN、
+options.js 的 platformOrder/platformNames/platformIcons、以及服务端那几张），
 靠人去对，总会漏掉一张。
 
 所以这个演练不对表：**把下发的那个 ZIP 装进真 Chrome，在 service worker 里
@@ -114,9 +121,37 @@ def judge(measured: dict, platform: str, decoy_url: str, expect_custody: str) ->
         if measured["custodyForbidden"]:
             problems.append("它被放进了禁止名单——那张表是给「Cookie 永不出浏览器」的"
                             "国内平台留的，别用它表达「还没做」")
+    card = measured.get("connectCard")
+    if card is not None:
+        if card.get("error"):
+            problems.append(f"设置页那一步没做成：{card['error']}")
+        elif not card.get("found"):
+            problems.append(
+                f"**设置页里没有 {measured.get('label')!r} 这张卡**——"
+                f"没有卡就没有「连接账号」按钮，说「去连接它」等于指着一个不存在的按钮。"
+                f"设置页现有的是：{card.get('titles')}")
+        elif not any("连接" in text for text in card.get("buttons", [])):
+            problems.append(f"卡片在，但上面没有连接类按钮：{card.get('buttons')}")
     if measured["decoyDetected"] == platform:
         problems.append(f"误伤：{decoy_url} 也被认成了 {platform}")
     return problems
+
+
+CARD_PROBE = r"""
+(config => {
+  const cards = [...document.querySelectorAll(".account-card")].map(card => ({
+    title: card.querySelector(".account-title strong")?.textContent || "",
+    buttons: [...card.querySelectorAll(".card-button")].map(b => b.textContent),
+  }));
+  const mine = cards.find(c => c.title === config.label);
+  return JSON.stringify({
+    total: cards.length,
+    found: !!mine,
+    buttons: mine ? mine.buttons : [],
+    titles: cards.map(c => c.title),
+  });
+})(%s)
+"""
 
 
 async def _rpc_factory(ws):
@@ -135,7 +170,7 @@ async def _rpc_factory(ws):
 
 
 async def run(chrome: str, ext_dir: str, platform: str, sample_url: str,
-              decoy_url: str, expect_custody: str) -> int:
+              decoy_url: str, expect_custody: str, expect_connect_card: bool = False) -> int:
     profile = Path(tempfile.mkdtemp(prefix="sa-wiring-profile-"))
     process = subprocess.Popen(
         [chrome, f"--user-data-dir={profile}", "--remote-debugging-port=9348",
@@ -184,6 +219,33 @@ async def run(chrome: str, ext_dir: str, platform: str, sample_url: str,
                                  ensure_ascii=False))
                 return 4
             measured = json.loads(payload["result"]["value"])
+
+        # **再开一次设置页，看那张卡到底在不在。**
+        #
+        # 上面问的全是 service worker 里的表。设置页那三张（platformOrder /
+        # platformNames / platformIcons）是**另一个文件、另一个执行环境**，
+        # service worker 看不见它们——2026-08-05 漏掉 youtube 的正是这里。
+        if expect_connect_card:
+            async with websockets.connect(version["webSocketDebuggerUrl"], max_size=None) as ws:
+                rpc = await _rpc_factory(ws)
+                created = await rpc("Target.createTarget",
+                                    {"url": f"chrome-extension://{extension_id}/options.html"})
+                target_id = created["result"]["targetId"]
+            await asyncio.sleep(3)
+            pages = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
+            page = next((item for item in pages if item.get("id") == target_id), None)
+            if page is None:
+                measured["connectCard"] = {"error": "OPTIONS_PAGE_DID_NOT_OPEN"}
+            else:
+                async with websockets.connect(page["webSocketDebuggerUrl"], max_size=None) as ws:
+                    rpc = await _rpc_factory(ws)
+                    await rpc("Runtime.enable")
+                    card_probe = CARD_PROBE % json.dumps({"label": measured.get("label")})
+                    result = await rpc("Runtime.evaluate",
+                                       {"expression": card_probe, "returnByValue": True})
+                    value = result.get("result", {}).get("result", {}).get("value")
+                    measured["connectCard"] = json.loads(value) if value else {
+                        "error": "CARD_PROBE_RETURNED_NOTHING"}
     finally:
         process.terminate()
         try:
@@ -213,6 +275,8 @@ def main() -> int:
     parser.add_argument("--expect-custody", choices=("yes", "forbidden", "not-yet"),
                         default="yes",
                         help="yes=白名单里有；forbidden=国内平台硬边界；not-yet=两张表都没有")
+    parser.add_argument("--expect-connect-card", action="store_true",
+                        help="真打开扩展设置页，确认这个平台有卡片和「连接账号」按钮")
     parser.add_argument("--chrome",
                         default="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
     args = parser.parse_args()
@@ -220,7 +284,8 @@ def main() -> int:
         print(json.dumps({"status": "FAIL", "error_code": "EXT_DIR_MISSING"}, ensure_ascii=False))
         return 2
     return asyncio.run(run(args.chrome, str(Path(args.ext_dir).resolve()), args.platform,
-                           args.sample_url, args.decoy_url, args.expect_custody))
+                           args.sample_url, args.decoy_url, args.expect_custody,
+                           args.expect_connect_card))
 
 
 if __name__ == "__main__":

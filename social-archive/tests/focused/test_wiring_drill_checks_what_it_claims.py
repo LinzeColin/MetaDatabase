@@ -133,3 +133,26 @@ def test_it_leaves_nothing_behind_and_never_touches_production() -> None:
     assert "process.terminate()" in DRILL, "测试用 Chrome 没关"
     for forbidden in ("linze-ovh", "/opt/social-archive", "social-archive.linzezhang.com"):
         assert forbidden not in DRILL, f"演练里出现了生产的东西：{forbidden}"
+
+
+def test_it_can_also_check_the_options_page_card() -> None:
+    """**service worker 那四张表全绿，设置页仍可能没有那张卡。**
+
+    2026-08-05 就是这样：youtube 在检测/权限/中文名/关系地址四处都接上了，
+    这个演练全绿，而 `options.js` 的 platformOrder 里一个 youtube 都没有——
+    设置页不出卡片，「连接账号」按钮不存在，交接里让 Owner 做的第二件事做不了。
+
+    service worker 看不见设置页（另一个文件、另一个执行环境），
+    所以必须真把 options.html 开起来数卡片。
+    """
+    assert "--expect-connect-card" in DRILL, "没有能力去核那张卡"
+    assert "options.html" in DRILL, "没有真去打开设置页"
+    assert "account-card" in DRILL, "没有真去数卡片"
+    assert "没有卡就没有" in DRILL, "卡片缺席时没有把后果说出来"
+
+
+def test_the_card_check_looks_for_a_connect_button_not_just_the_card() -> None:
+    """卡片在、按钮不在，一样点不动——两件事都要看。"""
+    assert '"连接" in text for text in card.get("buttons"' in DRILL, (
+        "只看了卡片在不在，没看上面有没有连接按钮"
+    )

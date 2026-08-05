@@ -2,9 +2,21 @@
 (() => {
   "use strict";
   const $ = id => document.getElementById(id);
-  const platformOrder = ["generic-web", "xiaohongshu", "douyin", "kuaishou", "bilibili", "x", "reddit", "instagram"];
-  const platformNames = { "generic-web":"Chrome 书签", xiaohongshu:"小红书", douyin:"抖音", kuaishou:"快手", bilibili:"B站", x:"X", reddit:"Reddit", instagram:"Instagram" };
-  const platformIcons = { "generic-web":"书", xiaohongshu:"红", douyin:"抖", kuaishou:"快", bilibili:"B", x:"X", reddit:"R", instagram:"I" };
+  // **这三张表是「加平台」的第五、六、七张。**
+  //
+  // 2026-08-05：youtube 在插件那四张表里都接上了（检测、权限、中文名、关系地址），
+  // 真浏览器里的接线演练也全绿——**而这里一个字都没有**。
+  // 后果不是显示难看，是**设置页根本不给 YouTube 出卡片**，
+  // 于是那个「连接账号」按钮不存在，交接里让 Owner 做的第二件事**做不了**。
+  //
+  // 更要命的是同一天我还在服务端写了句「点插件里的连接」当下一步——
+  // 指着一个不存在的按钮。**指错方向的下一步，比不给下一步更坏。**
+  //
+  // 加平台时这三张也要一起改；judge 在
+  // tests/focused/test_options_page_offers_every_connectable_platform.py。
+  const platformOrder = ["generic-web", "xiaohongshu", "douyin", "kuaishou", "bilibili", "x", "reddit", "instagram", "youtube"];
+  const platformNames = { "generic-web":"Chrome 书签", xiaohongshu:"小红书", douyin:"抖音", kuaishou:"快手", bilibili:"B站", x:"X", reddit:"Reddit", instagram:"Instagram", youtube:"YouTube" };
+  const platformIcons = { "generic-web":"书", xiaohongshu:"红", douyin:"抖", kuaishou:"快", bilibili:"B", x:"X", reddit:"R", instagram:"I", youtube:"Y" };
   const relationCopy = {
     "generic-web":"全部 Chrome 书签与文件夹", xiaohongshu:"收藏夹、收藏、点赞", douyin:"收藏夹、收藏、点赞",
     kuaishou:"收藏、点赞", bilibili:"收藏夹、稍后再看、历史、点赞", x:"书签、点赞", reddit:"Saved、Upvoted", instagram:"Saved Collections"
