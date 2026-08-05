@@ -37,12 +37,7 @@
   ],
   "owner_action_required": true,
   "downstream_blocked_by_this": [
-    "T07",
-    "T11",
-    "T15",
-    "T16",
-    "T17",
-    "T18"
+    "T17（只剩「取得那一站」）"
   ],
   "prerequisite_checked_against_production": {
     "measured_at": "2026-08-04T16:20Z",
@@ -50,5 +45,22 @@
     "oauth_secrets_present": true,
     "credential_age_identity_present": false,
     "note": "T05/T06 一直记着「生产是否已配 age 密钥未核对」——现在核了：备份私钥是 root:root 0600，Core（uid 10001）**读不到**，所以原本复用它的设计在生产上会直接失败。凭据专用密钥尚未创建，T18 部署时一并建。详见 evidence/PRODUCTION_STATE_VERIFIED.json"
+  },
+  "rechecked_2026_08_05": {
+    "为什么重核": "这份回执是 08-04 写的，写得很扎实（四条路逐条试过）。但**回执也会陈**——今天已经因为交接表里陈掉的「依赖」白停过两格（T11、T13）。所以把它依据的事实逐条重量。",
+    "仍然成立的": {
+      "Oracle 没跑": "真的没跑。platform_credential 表**一行都没有**——没有任何平台凭据在托管，gallery-dl 无从谈起。这个 BLOCKED 是真的。",
+      "只有 Owner 能做那一步": "仍然成立。读他的浏览器会话得由他点一次连接。"
+    },
+    "已经不成立的": {
+      "「凭据专用密钥尚未创建，T18 部署时一并建」": "**已经建好了**。生产实测：runtime/secrets/credential_age_identity 存在且非空，容器里也读得到（0640、组 10001）。这条前置不再挡路。",
+      "downstream_blocked_by_this 那张表": "写着 T07/T11/T15/T16/T17/T18 都被它挡着。**今天量下来 T07、T15、T16、T18 全是 done，T11 的投递侧也在没有它的情况下推进了**。真正还等着它的只有 T17 里「取得那一站」。"
+    },
+    "框得太窄的一处": {
+      "回执写的": "「要拿到 Owner 真实的 **X** 会话」",
+      "Oracle 原文": "「gallery-dl -j 拿到 ≥1 条 **Owner 私有条目**」——没说是哪个平台。",
+      "所以": "**任何**一个他连上的平台都能让这个 Oracle 跑起来，不必等 X。而 X 那条路还额外压着零费用门（只有他能开）。他本来就要为 T08 打开 B 站收藏夹页——同一次里点一下「连接」，这一格就有机会一起动。",
+      "没有替他决定": "连不连、连哪个，是他的事；这里只是把「必须是 X」这个不必要的窄口子拆掉。"
+    }
   }
 }

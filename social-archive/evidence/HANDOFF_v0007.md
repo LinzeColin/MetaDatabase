@@ -140,7 +140,7 @@ sparse    .github + social-archive
 | T03 | **done** | `evidence/T03/REMOVAL_AND_ZERO_TYPING.json` |
 | T04 | **done** | 真实浏览器跑通：62 条书签 `queued→completed`，界面表格 62/62 逐条对上；另补 `DELETE /v1/accounts/{id}`（连得上断不开，见 `T04/CONNECT_HAD_NO_INVERSE.json`） |
 | T05 | **done** | 凭据托管；HTTP 层往返判据见 `test_credential_http_roundtrip.py`；隐私声明曾与实现相反，见 `T05/PRIVACY_CLAIM_WAS_FALSE.json` |
-| T06 | **partial** | 托管往返实测通过（合成会话）；**Oracle 未跑**，需 Owner 的 X 登录；「一键撤销」此前无入口，已接上（`T06/REVOKE_WAS_A_PROMISE_ONLY.json`） |
+| T06 | **partial** | 托管往返实测通过（合成会话）；「一键撤销」已接上。**Oracle 仍未跑，而且是真的跑不了**：08-05 实测 platform_credential 表一行都没有，没有任何凭据在托管。但原来那句「**需 Owner 的 X 登录**」框窄了——Oracle 原文是「gallery-dl 取到 Owner 私有条目」，**没说哪个平台**，任何一个他连上的平台都算；而 X 还额外压着零费用门。他本来就要为 T08 打开 B 站收藏夹页，同一次点一下「连接」这格就有机会一起动。回执里两处已陈：凭据专用 age 密钥**已建好且容器读得到**，downstream 那张表里 T07/T15/T16/T18 早已 done。见 `T06/BLOCKED_RECEIPT.json` 的 rechecked 段 |
 | T07 | **done** | Owner 已裁定「cookie 可以进 ovh」；Cookie 已接进 sidecar（tmpfs、0600、finally 里删、值不进日志）。见 `T07/COOKIES_MAY_ENTER_THE_SIDECAR.json` |
 | T08 | **partial** | 整条链在真 Chrome 里跑通（回环，不碰任何平台）：注入 → 两个世界通消息 →抓到相对与绝对地址 → **生产解析器读出条目**；连按两次不串味；反例 0 条。08-05 由此揪出并修掉四个缺陷（见下）。真实收藏页仍未验 |
 | T09 | **工具就位（2026-08-05）** | 「抓到即固化」原来两头都断：**没人读那份诊断报告**，而且报告里只有 readable_count 这个数字、不说是哪条读得懂。两处都接上了（readable_urls 三段接通 + scripts/freeze_intercept_prefix.py）。拿生产上真报告跑过：**REFUSED / NOTHING_READABLE**——它拒绝从 urls 里挑一个看着像的，那正是它存在的理由。**只差 Owner 按那一下。**
