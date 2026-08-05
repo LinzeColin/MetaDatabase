@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "task": "T15",
+  "slice": "S1",
+  "recorded_at": "2026-08-06T11:30Z",
+  "status": "PASS",
+  "claim": "「批量修改分类」按下去从来没成功过——那条路由根本不存在（405）。已补齐并验到「改完之后按那个主题筛得出来」。",
+  "how_i_found_it": "上一份证据里我留了一句局限：「批量修改分类那条手动路没验」。挂着不查就是留给下一个人踩，所以顺手查了。",
+  "what_was_broken": {
+    "界面打的是": "POST /v1/library/classify（apps/pwa/app.js 分类表单的 submit）",
+    "而 api.py 里": "`/v1/library` 下只有 GET /v1/library、GET /v1/library/{id}、POST /v1/library/{id}/export、GET /v1/library/{id}/markdown 四条。**没有 classify。**",
+    "实测": "405 Method Not Allowed。用户选中若干条、填好主题、点「保存到 N 条内容」，得到一句英文报错。",
+    "存储层也没有": "分类此前只在 capture 那条路上写过，没有「改已入库内容的分类」这个方法。"
+  },
+  "what_i_added": [
+    "RuntimeStore.reclassify_content",
+    "ClassifyRequest",
+    "POST /v1/library/classify"
+  ],
+  "one_deliberate_difference_from_the_capture_path": "capture 那边是「有就覆盖、没有就保留原样」（`CASE WHEN excluded.topic != '未分类'`）——自动来的不该抹掉人填过的东西。**这里是人亲手填的，就照他说的写**，包括把主题改回「未分类」；source 记 manual、confidence 记 1.0。",
+  "and_it_reports_two_numbers": "`requested` 是点名了几条，`updated` 是真的改了几条。**两者不一样时说出来**——选中的内容里若有已经不在库里的，报一句「都改好了」就是又一次「看着成了」。一条都没改到时回 404，不回 200。",
+  "my_first_version_had_the_exact_bug_i_have_been_hunting_all_day": {
+    "症状": "接口回 `{\"updated\": 1}`，而资料库里读回来还是「未分类」。**报了成功、什么都没存。**",
+    "原因": "连接是 `isolation_level=None`（自动提交），而我写了 `BEGIN IMMEDIATE` 开显式事务；`connection()` 的 finally 里只有 `con.close()`，**没有提交**——关掉就等于回滚。库里其余五处事务每一处都显式 `COMMIT`，我漏了。",
+    "是什么抓到的": "那条「改完之后按那个主题筛得出来」的判据。**只断言接口回 200 的话，它会一直绿着**——而那正是这个缺陷的形状。"
+  },
+  "load_bearing_proof": [
+    "把 COMMIT 去掉 → 红",
+    "改成像 capture 那样「未分类不覆盖」→ 红（人改不回未分类了）"
+  ],
+  "what_this_does_not_prove": [
+    "**没有在真浏览器里点过那颗按钮。** 判据走的是接口层（TestClient），核到「界面打的那个地址、那三个字段」为止；表单本身的行为（选中集合怎么传、报错怎么显示）没有验。",
+    "**不证明自动归类能用。** 193 条生产内容全是「未分类」、置信度全 0.0——自动那条路仍然不产出任何主题，这次补的是手动那条。",
+    "没有量过 500 条上限那一端的行为（模型限了 max_length=500，但没有真发过 500 条）。"
+  ]
+}

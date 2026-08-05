@@ -82,6 +82,18 @@ credential_vault = CredentialVault(
 credential_store = CredentialStore(store, credential_vault)
 
 
+class ClassifyRequest(BaseModel):
+    """「批量修改分类」那颗按钮送上来的东西（v0.0.0.7 / T15）。
+
+    **这个模型和它的路由此前都不存在**，而 `apps/pwa/app.js` 一直在往
+    `POST /v1/library/classify` 发这三个字段。2026-08-06 实测：405 Method Not Allowed。
+    """
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    content_ids: list[str] = Field(min_length=1, max_length=500)
+    topic: str = Field(default="未分类", max_length=256)
+    keywords: list[str] = Field(default_factory=list, max_length=32)
+
+
 class ExportRequest(BaseModel):
     destination_ids: list[str] = Field(default_factory=list, max_length=8)
 
@@ -1082,6 +1094,30 @@ def export_content(content_id: str, request: ExportRequest) -> dict[str, Any]:
         "skipped_destination_ids": skipped_destination_ids,
         "job_ids": job_ids,
     }
+
+
+@app.post("/v1/library/classify", dependencies=[Depends(require_token)])
+def classify_library_items(request: ClassifyRequest) -> dict[str, Any]:
+    """把选中的内容改成同一个主题与关键词。
+
+    **这条路由此前不存在。** 界面上「批量修改分类」那颗按钮一直在调它，
+    实测回的是 405——按下去从来没成功过一次。
+
+    报数分两个：`requested` 是他点名了几条，`updated` 是真的改了几条。
+    **两者不一样时要说出来**——选中的内容里若有已经不在库里的，
+    报一句「都改好了」就是又一次「看着成了」。
+    """
+    result = store.reclassify_content(
+        request.content_ids, topic=request.topic, keywords=request.keywords)
+    if not result["updated"]:
+        raise HTTPException(404, "选中的内容都不在库里，没有改动任何一条。")
+    result["message_zh"] = (
+        f"已把 {result['updated']} 条改成「{result['topic']}」。"
+        if not result["missing"] else
+        f"已把 {result['updated']} 条改成「{result['topic']}」；"
+        f"另有 {len(result['missing'])} 条不在库里，没有改动。"
+    )
+    return result
 
 
 @app.get("/v1/library/{content_id}/markdown", dependencies=[Depends(require_token)])

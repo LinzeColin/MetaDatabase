@@ -850,6 +850,66 @@ class RuntimeStore:
             result["evidence"] = {}
         return result
 
+    def reclassify_content(
+        self, content_ids: list[str], *, topic: str, keywords: list[str]
+    ) -> dict[str, Any]:
+        """把已入库内容的主题与关键词改成用户填的这一份。
+
+        **这个方法此前不存在，而界面一直在调它背后那个接口。**
+        2026-08-06 实测：`POST /v1/library/classify` 回 405 Method Not Allowed——
+        「批量修改分类」那颗按钮从来就没成功过一次。
+
+        与 capture 那条路上的写入有两处**故意不同**：
+
+          · capture 那边是「有就覆盖、没有就保留原样」（`CASE WHEN ... != '未分类'`），
+            因为它是自动来的、不该抹掉人填过的东西。
+            **这里是人亲手填的，就照他说的写**，包括把主题改回「未分类」。
+          · source 记 `manual`、confidence 记 1.0：**人说的话不打折**。
+
+        返回里把「点名了几条」和「真的改了几条」分开报——
+        选中的内容里若有已经不在库里的，**不许当成改成功了**。
+        """
+        wanted = list(dict.fromkeys(item for item in content_ids if item))
+        if not wanted:
+            return {"requested": 0, "updated": 0, "missing": []}
+        clean_topic = (topic or "未分类").strip()[:256] or "未分类"
+        clean_keywords = list(dict.fromkeys(
+            item.strip() for item in keywords if item and item.strip()))[:32]
+        now = utcnow()
+        with self.connection() as con:
+            con.execute("BEGIN IMMEDIATE")
+            placeholders = ",".join("?" for _ in wanted)
+            existing = [
+                str(row[0]) for row in
+                con.execute(f"SELECT id FROM content WHERE id IN ({placeholders})", wanted)
+            ]
+            for content_id in existing:
+                con.execute(
+                    """INSERT INTO content_classification(
+                           content_id,topic,keywords_json,confidence,source,updated_at)
+                       VALUES(?,?,?,?,?,?)
+                       ON CONFLICT(content_id) DO UPDATE SET
+                         topic=excluded.topic,
+                         keywords_json=excluded.keywords_json,
+                         confidence=excluded.confidence,
+                         source=excluded.source,
+                         updated_at=excluded.updated_at""",
+                    (content_id, clean_topic,
+                     json.dumps(clean_keywords, ensure_ascii=False), 1.0, "manual", now),
+                )
+            # **必须显式 COMMIT。** 连接是 `isolation_level=None`（自动提交），
+            # 而 `BEGIN IMMEDIATE` 开了显式事务；`connection()` 的 finally 里只有
+            # `con.close()`，**没有提交** —— 关掉就等于回滚。
+            #
+            # 第一版忘了这一句：接口回 `{"updated": 1}`，而资料库里读回来还是「未分类」。
+            # **报了成功、什么都没存**——正是这一整天在拆的那种东西，这次是我自己写的。
+            # 抓到它的是那条「改完之后按那个主题筛得出来」的判据：
+            # 只断言接口回了 200 的话，它会一直绿着。
+            con.execute("COMMIT")
+        missing = [item for item in wanted if item not in set(existing)]
+        return {"requested": len(wanted), "updated": len(existing), "missing": missing,
+                "topic": clean_topic, "keywords": clean_keywords}
+
     def list_library(
         self,
         *,
