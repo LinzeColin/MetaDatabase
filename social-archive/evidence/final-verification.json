@@ -139,6 +139,15 @@
     {
       "argv": [
         "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_every_destination_table_is_complete.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"destinations\": [\n    \"social_archive\",\n    \"markdown\",\n    \"obsidian\",\n    \"notion\",\n    \"github\",\n    \"karakeep\",\n    \"linkwarden\",\n    \"archivebox\"\n  ],\n  \"tables_checked\": {\n    \"服务端·隐私说明\": 941,\n    \"资料库·名字\": 234,\n    \"扩展·共用名字\": 274,\n    \"设置页·名字\": 205,\n    \"设置页·顺序\": 107\n  },\n  \"problems\": [],\n  \"message_zh\": \"8 个目的地，5 张表都齐。\",\n  \"what_this_does_not_prove\": \"只查在不在，不查写得对不对；名字拼错了它照样绿。\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_every_failure_code_is_explainable.py"
       ],
       "exit_code": 0,

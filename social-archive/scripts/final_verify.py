@@ -65,6 +65,10 @@ def structural_commands() -> list[list[str]]:
         # 这道门不靠人记得有几张表：一行里出现三个以上平台名就当它是平台表，
         # 逐张问「可托管的平台都在里面吗」，有意的子集必须登记并写下理由。
         [python, "scripts/check_every_platform_table_is_complete.py"],
+        # 加目的地和加平台是同一个形状，而它一直没有对应的门。
+        # 2026-08-06 实测：加一个 brandnewdest，1020 条判据全过、23 道门全绿，
+        # 而用户会在「自动导出」那张面板上看到一个没有名字的 id。
+        [python, "scripts/check_every_destination_table_is_complete.py"],
         # 失败码 → 中文句子是**人手维护**的映射表，新加一个码没人提醒你补词典。
         # 补漏的后果不是少一句话，是界面说「我们没能记录下原因」而原因就在代码里。
         # 这道门第一次跑就找出 24 个说不出人话的码。
