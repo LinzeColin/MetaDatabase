@@ -151,8 +151,14 @@ def main() -> int:
         return 2
     if hits:
         print(f"!! 发现 {len(hits)} 处疑似明文凭据（S2 必须停）：", file=sys.stderr)
-        for hit in hits[:20]:
+        shown = hits[:20]
+        for hit in shown:
             print(f"   {hit['file']}:{hit['line_no']} {hit['kind']} 值长 {hit['value_len']}", file=sys.stderr)
+        # 总数上面已经报了，但**不说这张单子是截断的，读的人会以为就这些**。
+        # 这是查明文凭据的那道门，少列一条就可能少堵一个泄漏点。
+        if len(hits) > len(shown):
+            print(f"   …… 还有 {len(hits) - len(shown)} 处没列出来"
+                  f"（只显示前 {len(shown)} 条；完整清单用 --json 取）", file=sys.stderr)
         return 1
     print(f"干净：扫了 {scanned} 个文件 + {diff_scanned} 份 diff，0 处命中")
     return 0
