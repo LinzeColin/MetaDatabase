@@ -89,7 +89,15 @@ _ALIASES: dict[str, str] = {
     # 但词典里没有单独一句，暂时落到最接近的那条（NOT_LOGGED_IN 会引导他回到平台页）。
     "PLATFORM_PERMISSION_DENIED": "NOT_LOGGED_IN",
     "OBSERVER_INSTALL_FAILED": "SERVER_UNREACHABLE",
-    "INTERCEPT_PREFIX_UNKNOWN": "SERVER_UNREACHABLE",
+    # **INTERCEPT_PREFIX_UNKNOWN 从这里搬走了**（2026-08-06）。
+    # 它原先也别名成 SERVER_UNREACHABLE，就写在上面那段说明的第四行下面——
+    # 而那段说明讲的正是「别把『本版本没实现』说成『暂时连不上服务器 [重试]』」。
+    # 同一个坑，隔着四行又踩了一次。
+    #
+    # 它的真实含义（background.js 里那句原话）是：
+    #     「还没有确认 <平台> 的收藏接口地址，这个平台暂时不能同步。」
+    # 重试一万次也一样——要它变绿得先有人按诊断、把前缀固化下来（T09/T10）。
+    # 已移入 DELIBERATELY_UNALIASED。
     "UPLOAD_FAILED": "SERVER_UNREACHABLE",
     "BROWSER_SCAN_FAILED": "SERVER_UNREACHABLE",
     "RELATION_URL_UNAVAILABLE": "SERVER_UNREACHABLE",
@@ -185,6 +193,13 @@ DELIBERATELY_UNALIASED: frozenset[str] = frozenset({
     # 请联系我们」虽然措辞也不完美，但**它把人导向对的方向**。
     # 主要修法在界面侧：这些平台根本不画「立即同步」按钮。
     "ACQUISITION_PATH_NOT_INSTALLED",
+    # 同一类：**这个平台的收藏接口地址还没被确认过**，所以取数路装不起来。
+    # 和上面那条的区别只是「哪一段没装」，对用户是同一件事：重试没有用。
+    #
+    # 今天它还打不到用户面前（只有诊断那条路会装观察器，而诊断分支
+    # 自己推前缀、不查表）。**但 T10 一接上非诊断安装路，它立刻就可达**——
+    # 那时候如果还别名着「暂时连不上服务器」，就又是一次让人无穷重试。
+    "INTERCEPT_PREFIX_UNKNOWN",
 })
 
 # 「没有新增」不是失败。它必须与失败**显示成两种东西**。
@@ -260,6 +275,15 @@ PRODUCT_FAULT_CODES: frozenset[str] = frozenset({
     # 这里是万一还是走到了的兜底——结论是「我们的问题、别重试」，
     # 而不是此前那句借来的「暂时连不上服务器，[ 重试 ]」。
     "ACQUISITION_PATH_NOT_INSTALLED",
+    # 同一类，只是「哪一段没装」不同：**这个平台的收藏接口地址还没被确认过**，
+    # 所以观察器装不起来（background.js 里那句原话是「还没有确认 <平台> 的
+    # 收藏接口地址，这个平台暂时不能同步」）。
+    #
+    # 它原先别名成 SERVER_UNREACHABLE，就写在那段「别把『没实现』说成
+    # 『暂时连不上服务器 [重试]』」的说明下面第四行——**同一个坑隔着四行又踩一次**。
+    # 今天它还打不到用户面前（只有诊断那条路装观察器，而诊断自己推前缀、不查表），
+    # **但 T10 一接上非诊断安装路它立刻可达**。
+    "INTERCEPT_PREFIX_UNKNOWN",
     # 连接器视图被钳到能力声明之下时用的码（v0.0.0.7 / registry.health_views）。
     # 结论与 ACQUISITION_PATH_NOT_INSTALLED 同一类：**这条路本版本就没装**，
     # 不是用户做错了什么，也不是重试能解决的。真正要显示的那句中文

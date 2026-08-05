@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0",
+  "task": "T14",
+  "slice": "S1",
+  "recorded_at": "2026-08-06T03:40Z",
+  "status": "PASS",
+  "claim": "「我们没做这件事」又一次被说成「暂时连不上，重试」——同一个坑隔着四行踩了第二次，已修并落成判据。",
+  "how_i_found_it": {
+    "起点": "去查生产上 16 条 discovered=0 / imported=0 的同步记录，怀疑是「静默的零」。",
+    "查下来不是": "那些记录都带着 `last_error_code: BROWSER_SCAN_FAILED`，`sync_health.unexplained_zero` 报空是**对的**。",
+    "但顺着别名表往下读，撞见了这个": "`INTERCEPT_PREFIX_UNKNOWN` 别名成 `SERVER_UNREACHABLE`。"
+  },
+  "why_it_is_wrong": {
+    "那句话是": "「暂时连不上服务器。你的数据没有丢，[ 重试 ]」（retryable）。",
+    "它的真实含义": "「还没有确认 <平台> 的收藏接口地址，这个平台暂时不能同步。」（background.js 原话）",
+    "所以": "**重试一万次也一样。** 要它变绿，得先有人按诊断按钮、把前缀固化下来（T09），再把非诊断安装路接上（T10）。",
+    "最难看的一点": "它就写在 `_ALIASES` 上面那段说明**下面第四行**——而那段说明讲的正是「别把『本版本没实现』说成『暂时连不上服务器 [重试]』」，是上一次踩坑之后写的。**说明写在旁边，没能拦住第二次。**"
+  },
+  "is_it_reachable_today": {
+    "不是": "只有诊断那条路会装观察器，而诊断分支自己按当前页域名推前缀、根本不查表，所以走不到这个码。",
+    "但 T10 一接就可达": "非诊断安装路查表；xiaohongshu / douyin 的前缀是 null，第一时间就会撞上它。**现在修，比等它打到用户脸上再修便宜。**"
+  },
+  "the_fix": {
+    "移到": "`PRODUCT_FAULT_CODES` + `DELIBERATELY_UNALIASED`，和 `ACQUISITION_PATH_NOT_INSTALLED` 同一类。",
+    "落成判据": "tests/focused/test_a_product_fault_never_tells_you_to_retry.py",
+    "判据分两层": "通则——`PRODUCT_FAULT_CODES` 里每个码落到用户面前的那句话都不许是 retryable 类；具体——那两个吃过亏的名字单独钉住（有人把它从表里拿出去，通则不会红，因为通则只遍历表里的）。",
+    "反例两向都红": [
+      "别名回 SERVER_UNREACHABLE → 2 条全红",
+      "从产品缺陷类里拿出去 → 具体那条红"
+    ]
+  },
+  "what_this_does_not_prove": [
+    "**不证明这句话在界面上长什么样。** 判据管的是「类别对不对」，不管文案好不好听，也不管界面有没有真的把它显示出来。",
+    "只覆盖 `PRODUCT_FAULT_CODES` 这一张表。别的类别里若也有「说成可重试」的错配，这条判据看不见。",
+    "生产上那 16 条 0/0 的记录**没有被这次改动影响**——它们的码是 BROWSER_SCAN_FAILED，属于「没跑完」那一类，本来就该可重试。"
+  ]
+}
