@@ -872,16 +872,31 @@ class RuntimeStore:
             literal_query = _literal_fts_query(q)
             cjk_terms = _cjk_substrings(q)
             if literal_query:
-                clauses.append("c.id IN (SELECT content_id FROM content_fts WHERE content_fts MATCH ?)")
-                where_args.append(literal_query)
+                # **搜索框写着「搜索标题、内容、关键词、作者或链接」——链接那一项此前是假的。**
+                #
+                # content_fts 只索引 title / author_name / body / tags，**没有 url**。
+                # 2026-08-06 对着生产（193 条）实测：`bilibili` 有 31 条（那是标题里出现的），
+                # 而 `http`、`com`、`BV`、`douyin` **全是 0**——尽管这 193 条的链接里
+                # 每一条都含 http 和 com。也就是说粘一个网址进去永远找不到东西，
+                # 而界面明明白白承诺了「或链接」。
+                #
+                # 用 LIKE 直接查 c.canonical_url，不动 FTS 的表结构（那要重建索引、动生产数据）。
+                # 与 FTS 之间是 **OR**：链接命中也算命中。
+                clauses.append(
+                    "(c.id IN (SELECT content_id FROM content_fts WHERE content_fts MATCH ?)"
+                    " OR c.canonical_url LIKE ? ESCAPE '\\')"
+                )
+                where_args.extend([literal_query, _like_pattern(q.strip())])
             for term in cjk_terms:
                 pattern = _like_pattern(term)
+                # 中文那一路同样要能命中链接（小红书/B站的链接里也可能带中文）。
                 clauses.append(
-                    """c.id IN (SELECT content_id FROM content_fts
+                    """(c.id IN (SELECT content_id FROM content_fts
                        WHERE title LIKE ? ESCAPE '\\' OR author_name LIKE ? ESCAPE '\\'
-                          OR body LIKE ? ESCAPE '\\' OR tags LIKE ? ESCAPE '\\')"""
+                          OR body LIKE ? ESCAPE '\\' OR tags LIKE ? ESCAPE '\\')
+                       OR c.canonical_url LIKE ? ESCAPE '\\')"""
                 )
-                where_args.extend([pattern, pattern, pattern, pattern])
+                where_args.extend([pattern, pattern, pattern, pattern, pattern])
             if not literal_query and not cjk_terms:
                 clauses.append("0=1")
         relation_clauses: list[str] = []
@@ -984,16 +999,31 @@ class RuntimeStore:
             literal_query = _literal_fts_query(q)
             cjk_terms = _cjk_substrings(q)
             if literal_query:
-                clauses.append("c.id IN (SELECT content_id FROM content_fts WHERE content_fts MATCH ?)")
-                args.append(literal_query)
+                # **搜索框写着「搜索标题、内容、关键词、作者或链接」——链接那一项此前是假的。**
+                #
+                # content_fts 只索引 title / author_name / body / tags，**没有 url**。
+                # 2026-08-06 对着生产（193 条）实测：`bilibili` 有 31 条（那是标题里出现的），
+                # 而 `http`、`com`、`BV`、`douyin` **全是 0**——尽管这 193 条的链接里
+                # 每一条都含 http 和 com。也就是说粘一个网址进去永远找不到东西，
+                # 而界面明明白白承诺了「或链接」。
+                #
+                # 用 LIKE 直接查 c.canonical_url，不动 FTS 的表结构（那要重建索引、动生产数据）。
+                # 与 FTS 之间是 **OR**：链接命中也算命中。
+                clauses.append(
+                    "(c.id IN (SELECT content_id FROM content_fts WHERE content_fts MATCH ?)"
+                    " OR c.canonical_url LIKE ? ESCAPE '\\')"
+                )
+                args.extend([literal_query, _like_pattern(q.strip())])
             for term in cjk_terms:
                 pattern = _like_pattern(term)
+                # 中文那一路同样要能命中链接（小红书/B站的链接里也可能带中文）。
                 clauses.append(
-                    """c.id IN (SELECT content_id FROM content_fts
+                    """(c.id IN (SELECT content_id FROM content_fts
                        WHERE title LIKE ? ESCAPE '\\' OR author_name LIKE ? ESCAPE '\\'
-                          OR body LIKE ? ESCAPE '\\' OR tags LIKE ? ESCAPE '\\')"""
+                          OR body LIKE ? ESCAPE '\\' OR tags LIKE ? ESCAPE '\\')
+                       OR c.canonical_url LIKE ? ESCAPE '\\')"""
                 )
-                args.extend([pattern, pattern, pattern, pattern])
+                args.extend([pattern, pattern, pattern, pattern, pattern])
             if not literal_query and not cjk_terms:
                 clauses.append("0=1")
         where = " AND ".join(clauses)
