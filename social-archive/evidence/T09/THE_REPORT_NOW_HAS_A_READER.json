@@ -30,5 +30,17 @@
     },
     "what_makes_this_better_than_a_unit_test": "那个地址不是我手写进报告里的，是**真 Chrome 在回环站点上抓下来、再由生产解析器判定读得懂**的那一个。整条链上任何一环把地址弄丢或改形，最后写进目录的东西就对不上。",
     "a_bug_this_caught_in_the_drill_itself": "第一版把临时报告的变量也叫 `report`，把上面那个「观察器自报状态」顶掉了，最终输出里塞进一个 PosixPath 当场崩。重名改掉了。"
+  },
+  "the_handoff_command_was_run_against_production_2026_08_05": {
+    "为什么单独验这个": "交接里给了一条命令让下一个人在容器里跑。**这个仓栽过同类的坑**：我自己写的交接命令在干净 clone 上跑不起来（dist/ 被 gitignore 挡着），而在我本机看不出来，因为文件就在那儿。所以照抄交接里那一行，真跑一次。",
+    "照抄的那一行": "sudo docker exec social-archive-core-api-1 python /app/scripts/freeze_intercept_prefix.py --platform bilibili --report /var/lib/social-archive/diagnostics/extension-diagnostics.jsonl",
+    "结果": {
+      "跑起来了": "是——脚本在镜像里、报告路径在容器里都对得上",
+      "它说了什么": "REFUSED / NOTHING_READABLE：「bilibili 有 2 条诊断记录，但**没有一条读得懂**」",
+      "退出码": 4,
+      "**这正是它该做的**": "那 2 条是 Owner 用**旧插件**按出来的——观察器落地太晚，页面加载时打的那个请求一条都没抓到。这时候写进平台目录的只能是「看着像的」，脚本拒绝写，并且用退出码说出来。"
+    },
+    "顺带纠正我自己的一次误读": "第一次量退出码时我写的是 `... | tail -6; echo $?`——**那读到的是 tail 的退出码**，于是看着像「拒绝了却退 0」。重新量才是 4。**管道会把退出码换成最后一个命令的**，这条在别处也会咬人。",
+    "所以 Owner 那一步是通的": "他重装插件、在 B 站收藏夹页按一次诊断之后，readable_urls 会有内容，同一条命令就会给出可用前缀。**卡住的只剩他那一下。**"
   }
 }
