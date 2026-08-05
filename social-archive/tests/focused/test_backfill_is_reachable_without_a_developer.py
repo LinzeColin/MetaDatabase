@@ -57,3 +57,51 @@ def test_the_missing_list_comes_from_what_actually_arrived() -> None:
     body = db.split("def content_ids_missing_from_destination(", 1)[1].split("\n    def ", 1)[0]
     assert "destination_binding" in body, "不是从「真的送到了」那张表判的"
     assert "FROM job" not in body, "从作业表判，会把还在队里的算成已送"
+
+
+def _render(item: dict) -> str:
+    """真的把 backfillButton 跑一遍，而不是在源码里找字符串。
+
+    判据只比字符串的话，「条件写反了」这种错一个都抓不到——
+    源码里 `if (!(missing > 0))` 和 `if (missing > 0)` 都能通过「含有 missing」
+    这类检查。本会话已经在别处栽过：判据绿着，而它验的根本不是那件事。
+    """
+    import subprocess
+
+    app = APP.read_text(encoding="utf-8")
+    body = app.split("function backfillButton(item) {", 1)[1].split("\n  }", 1)[0]
+    script = (
+        "const escapeHtml = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');\n"
+        "function backfillButton(item) {" + body + "\n}\n"
+        f"console.log(backfillButton({json.dumps(item)}));"
+    )
+    done = subprocess.run(["node", "-e", script], cwd=ROOT, capture_output=True,
+                          text=True, check=True)
+    return done.stdout.strip()
+
+
+def test_a_connected_destination_that_is_behind_gets_a_button_with_the_real_number() -> None:
+    html = _render({"destination_id": "obsidian", "state": "connected",
+                    "content_total": 193, "exported_count": 1})
+    assert 'data-backfill-destination="obsidian"' in html
+    assert "192" in html, f"按钮上的数字不对：{html}"
+
+
+def test_a_destination_that_is_already_complete_gets_no_button() -> None:
+    html = _render({"destination_id": "github", "state": "connected",
+                    "content_total": 193, "exported_count": 193})
+    assert html == "", f"已经齐了却还挂着补投按钮：{html}"
+
+
+def test_a_destination_that_is_not_connected_gets_no_button() -> None:
+    """还没连上就给补投按钮，点了只会失败——那是在制造一次注定的失败。"""
+    html = _render({"destination_id": "notion", "state": "needs_user_action",
+                    "content_total": 193, "exported_count": 0})
+    assert html == "", f"没连上却给了补投按钮：{html}"
+
+
+def test_an_empty_library_gets_no_button() -> None:
+    """库里一条都没有时，「把没送过去的 0 条补上」是句废话。"""
+    html = _render({"destination_id": "obsidian", "state": "connected",
+                    "content_total": 0, "exported_count": 0})
+    assert html == "", f"空库也挂了按钮：{html}"
