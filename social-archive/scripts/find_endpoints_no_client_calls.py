@@ -27,6 +27,18 @@ failure_copy 词典、unexplained_zero_runs 审计、扩展的 lastResult、
 - 只看 `apps/`（PWA 与扩展）。外部脚本、curl、第三方集成不算客户端。
 - 拼接得太碎的调用（`"/v1/" + kind + "/status"`）扫不到。
 - **「有人调」不等于「调对了」**，只等于「不是死接口」。
+- **更要紧的一条：「有调用点」不等于「走得到」。**
+
+  这道门找的是路径字符串在不在客户端代码里，**它看不出那段代码有没有可能执行**。
+  2026-08-05 实测到一个现成的例子：`/v1/captures/batch` 在
+  `background.js:116` 确确实实被调用，而那一整段在 `mode === "list"` 分支里，
+  **四个调用方全都传 `mode: "page"`**——那条分支今天一次都走不到。
+  也就是说这道门在这一条上是**绿的，指着一段永远不会执行的代码**。
+
+  没有把它改成可达性分析：那要做数据流，而这道门的价值在于便宜、稳。
+  改成钉在别处——`tests/focused/test_the_batch_capture_path_has_no_reachable_caller.py`
+  把「今天没有任何调用方传 list」这件事记成判据，**有人接上时它会红**，
+  那时再回来更新这里的认知。
 """
 
 from __future__ import annotations
