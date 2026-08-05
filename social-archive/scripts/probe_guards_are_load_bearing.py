@@ -113,9 +113,13 @@ def _path_from(node: ast.AST, constants: dict[str, str] | None = None) -> str | 
     return None
 
 
-def _sources_in(tree: ast.AST, constants: dict[str, str]) -> dict[str, str]:
+def _sources_in(tree: ast.AST, constants: dict[str, str],
+                path_funcs: dict[str, str] | None = None) -> dict[str, str]:
     """变量名 → 它读的是哪个源文件。追不到的变量不进这张表。"""
     found: dict[str, str] = {}
+    # **局部的路径变量也要能查。** `root = _extension_root()` 之后，
+    # `(root / "background.js")` 里的 root 只有在这张表里才追得动。
+    paths = dict(constants)
     for node in ast.walk(tree):
         if not isinstance(node, ast.Assign) or len(node.targets) != 1:
             continue
@@ -123,15 +127,26 @@ def _sources_in(tree: ast.AST, constants: dict[str, str]) -> dict[str, str]:
         if not isinstance(target, ast.Name):
             continue
         value = node.value
+        # x = _some_root()  —— 零参 helper 返回的路径
+        if (path_funcs and isinstance(value, ast.Call)
+                and isinstance(value.func, ast.Name) and value.func.id in path_funcs):
+            paths[target.id] = path_funcs[value.func.id]
+            continue
+        # x = ROOT / "apps/..."  —— 局部的纯路径赋值
+        if isinstance(value, ast.BinOp):
+            local_path = _path_from(value, paths)
+            if local_path and "/" in local_path:
+                paths[target.id] = local_path
+                continue
         # x = <路径表达式>.read_text(...)
         if (isinstance(value, ast.Call) and isinstance(value.func, ast.Attribute)
                 and value.func.attr == "read_text"):
             base = value.func.value
             # 常量表要传进去：`(EXT / "background.js").read_text()` 里的 EXT
             # 只有查表才知道是 apps/browser-extension。
-            path = _path_from(base, constants)
+            path = _path_from(base, paths)
             if path is None and isinstance(base, ast.Name):
-                path = constants.get(base.id)
+                path = paths.get(base.id)
             if path:
                 found[target.id] = path
                 continue
@@ -154,6 +169,37 @@ def _origin_of(value: ast.AST, known: dict[str, str]) -> str | None:
     return None
 
 
+def _path_returning_functions(tree: ast.AST, constants: dict[str, str]) -> dict[str, str]:
+    """模块级里 `def _x(): return <路径表达式>` 这种小helper → 它返回的路径。
+
+    **判据文件里最常见的第二种写法。** 比如：
+
+        def _extension_root() -> Path:
+            return Path(__file__).parents[2] / "apps/browser-extension"
+
+        def test_...():
+            root = _extension_root()
+            background = (root / "background.js").read_text(...)
+
+    没有这一步的话，`root` 追不到，于是 `root / "background.js"` 只剩下
+    `"background.js"`——一个不存在的路径，报成「归属追不到」。
+    2026-08-06 实测：24 条追不到里，**全部**是这一种。
+    """
+    out: dict[str, str] = {}
+    for node in tree.body:
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        if node.args.args or node.args.kwonlyargs:
+            continue                      # 只认零参的：带参数的返回什么要看调用点
+        body = [s for s in node.body if not isinstance(s, ast.Expr)]  # 跳过 docstring
+        if len(body) != 1 or not isinstance(body[0], ast.Return) or body[0].value is None:
+            continue
+        path = _path_from(body[0].value, constants)
+        if path and "/" in path:
+            out[node.name] = path
+    return out
+
+
 def _module_constants(tree: ast.AST) -> dict[str, str]:
     constants: dict[str, str] = {}
     for node in tree.body:
@@ -168,6 +214,7 @@ def _claims(test: pathlib.Path) -> list[tuple[str, str]]:
     """判据里每一处 `assert "字面量" in 变量` → (字面量, 源文件相对路径)。"""
     tree = ast.parse(test.read_text(encoding="utf-8"))
     constants = _module_constants(tree)
+    path_funcs = _path_returning_functions(tree, constants)
     out: list[tuple[str, str]] = []
     # **一个判据函数一份作用域。**
     #
@@ -179,7 +226,7 @@ def _claims(test: pathlib.Path) -> list[tuple[str, str]]:
                  if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
     for function in functions:
         module_level = {k: v for k, v in _sources_in_module_body(tree, constants).items()}
-        scope = {**module_level, **_sources_in(function, constants)}
+        scope = {**module_level, **_sources_in(function, constants, path_funcs)}
         out.extend(_asserts_in(function, scope))
     return out
 
