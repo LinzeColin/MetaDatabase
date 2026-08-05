@@ -1183,9 +1183,47 @@
     if (!body) return;
     body.innerHTML = `<div class="destination-live-grid">${state.destinations.map(item => {
       const stateName = item.state || "needs_user_action";
-      return `<article class="destination-live-card"><header><strong>${escapeHtml(destinationNames[item.destination_id] || item.destination_id)}</strong><span class="state-label ${escapeHtml(stateName)}">${escapeHtml(connectionLabels[stateName] || stateName)}</span></header><p>${escapeHtml(item.last_message_zh || item.next_action_zh || "完成一次真实写入后才会显示已连接。")}</p><p class="muted">${escapeHtml(item.coverage_zh || "")}</p><footer><small>${item.last_checked_at ? `最近检查 ${escapeHtml(formatDate(item.last_checked_at, true))}` : "尚未实测"}</small>${!["social_archive", "markdown"].includes(item.destination_id) ? `<button class="btn small" data-probe-destination="${escapeHtml(item.destination_id)}">检查连接</button>` : ""}</footer></article>`;
+      return `<article class="destination-live-card"><header><strong>${escapeHtml(destinationNames[item.destination_id] || item.destination_id)}</strong><span class="state-label ${escapeHtml(stateName)}">${escapeHtml(connectionLabels[stateName] || stateName)}</span></header><p>${escapeHtml(item.last_message_zh || item.next_action_zh || "完成一次真实写入后才会显示已连接。")}</p><p class="muted">${escapeHtml(item.coverage_zh || "")}</p><footer><small>${item.last_checked_at ? `最近检查 ${escapeHtml(formatDate(item.last_checked_at, true))}` : "尚未实测"}</small>${!["social_archive", "markdown"].includes(item.destination_id) ? `<button class="btn small" data-probe-destination="${escapeHtml(item.destination_id)}">检查连接</button>` : ""}${backfillButton(item)}</footer></article>`;
     }).join("")}</div>`;
     document.querySelectorAll("[data-probe-destination]").forEach(button => button.addEventListener("click", () => probeDestination(button.dataset.probeDestination, button)));
+    document.querySelectorAll("[data-backfill-destination]").forEach(button => button.addEventListener("click", () => backfillDestination(button.dataset.backfillDestination, Number(button.dataset.backfillMissing || 0), button)));
+  }
+
+  /** 少送了就给个补的按钮。**没少送就不要出现**——按钮本身就是一句话。
+   *
+   * 2026-08-05 实测：Owner 连上 GitHub 与 Obsidian 之后，两边各只有
+   * 1 / 193 条。不是坏了——投递只在**新内容进来时**发生，他后来才连上。
+   * 而在他那一侧，「我连上了，我的档案应该都在那儿」是最自然的期待。
+   * 在这个按钮之前，补上去的唯一办法是逐条点 192 次，或者让开发者
+   * 登进服务器敲命令——两条都不该是他要走的路。
+   */
+  function backfillButton(item) {
+    const total = Number(item.content_total || 0);
+    const done = Number(item.exported_count || 0);
+    const missing = total - done;
+    if (!(missing > 0) || item.state !== "connected") return "";
+    return `<button class="btn small" data-backfill-destination="${escapeHtml(item.destination_id)}" data-backfill-missing="${missing}">把没送过去的 ${missing} 条补上</button>`;
+  }
+
+  async function backfillDestination(destinationId, missing, button) {
+    const name = destinationNames[destinationId] || destinationId;
+    // **往外部账号批量写，先问一句。** 192 条不是一次点击该有的默默后果。
+    if (!window.confirm(`要把 ${missing} 条补送到「${name}」吗？\n\n它们会一条条送过去，可能要几分钟。`)) return;
+    button.disabled = true;
+    const original = button.textContent;
+    button.textContent = "正在排队…";
+    try {
+      const result = await api(`/v1/destinations/${encodeURIComponent(destinationId)}/backfill`, { method: "POST" });
+      showToast(result.message_zh || `已排队 ${result.enqueued} 条。`, "ok");
+    } catch (error) {
+      showToast(error?.message || "补投没能开始", "error");
+    } finally {
+      button.disabled = false;
+      button.textContent = original;
+      // 与「检查连接」用同一个刷新入口——**别自己造第二个**，
+      // 两个刷新路径最后总会有一个忘了更新某处。
+      await loadAccountsAndDestinations().catch(() => {});
+    }
   }
 
   async function probeDestination(id, button) {

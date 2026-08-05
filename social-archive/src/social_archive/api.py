@@ -920,6 +920,43 @@ def probe_destination(destination_id: str) -> dict[str, Any]:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
+@app.post("/v1/destinations/{destination_id}/backfill", status_code=202, dependencies=[Depends(require_token)])
+def backfill_destination(destination_id: str) -> dict[str, Any]:
+    """把**已经在库里、却还没送到这个目的地**的内容补投一遍。
+
+    2026-08-05 打生产量出来的：Owner 连上 GitHub 与 Obsidian 之后，两边各只有
+    1 / 193 条。不是坏了——投递只在**新内容进来时**发生，他后来才连上，
+    此前入库的不会自己追上去。而在他那一侧，「我连上了 GitHub，我的档案
+    应该都在那儿」是最自然的期待。
+
+    在这个接口之前，把 192 条补上去的唯一办法是**在界面上逐条点 192 次**，
+    或者让我登进服务器敲命令——两条都不该是他要走的路。
+
+    · 只给**已经授权过导出**的目的地补投（「界面上选了它」≠「授权往那里写」）。
+    · 入队的是与单条导出**完全相同**的作业，不另开一条只有补投才走的路。
+    · 作业 id 是稳定哈希 + INSERT OR IGNORE，重复点不会重复投。
+    · **入队不等于送到**：返回里说清这一点，覆盖数要等 worker 跑完才会变。
+    """
+    destination_id = destination_id.strip().lower()
+    if destination_id not in destinations.known_ids():
+        raise HTTPException(status_code=404, detail="目的地不存在")
+    if not destinations.is_export_authorized(destination_id):
+        raise HTTPException(status_code=409,
+                            detail="这个目的地还没有一次成功的写入授权，先在连接向导里完成一次真实写入。")
+    missing = store.content_ids_missing_from_destination(destination_id)
+    for content_id in missing:
+        store.enqueue_job("export_destination",
+                          {"content_id": content_id, "destination_id": destination_id},
+                          connector_id=destination_id)
+    return {
+        "destination_id": destination_id,
+        "enqueued": len(missing),
+        "message_zh": (f"已排队 {len(missing)} 条。**排队不等于送到**——"
+                       "它们会一条条送过去，过一会儿回来看这里的「已送到」数字。")
+        if missing else "这里已经是齐的，没有需要补的。",
+    }
+
+
 @app.get("/v1/destinations/receipts", dependencies=[Depends(require_token)])
 def destination_receipts(
     limit: int = Query(default=100, ge=1, le=500),

@@ -504,6 +504,25 @@ class RuntimeStore:
             )
         return artifact_id
 
+    def content_ids_missing_from_destination(self, destination_id: str) -> list[str]:
+        """还没送到这个目的地的内容 id。
+
+        判据取的是 destination_binding —— 那张表记的是「**真的送到了**」，
+        不是「排过队」。用作业表去判会把还在队里的算成已送，
+        于是补投第二次就少投一批。
+        """
+        with self.connection() as con:
+            return [
+                str(row[0])
+                for row in con.execute(
+                    "SELECT c.id FROM content c WHERE NOT EXISTS ("
+                    "  SELECT 1 FROM destination_binding b"
+                    "  WHERE b.content_id = c.id AND b.destination_id = ?)"
+                    " ORDER BY c.first_observed_at",
+                    (destination_id,),
+                )
+            ]
+
     def destination_coverage(self) -> dict[str, int]:
         """每个目的地**真的收到过多少条内容**。
 

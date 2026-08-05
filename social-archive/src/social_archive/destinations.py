@@ -215,6 +215,10 @@ class DestinationRegistry:
     def known_destination_ids() -> tuple[str, ...]:
         return DESTINATION_IDS
 
+    def known_ids(self) -> frozenset[str]:
+        """所有认得的目的地 id。接口层用它把「不存在」和「没授权」分开报。"""
+        return frozenset(DESTINATION_IDS)
+
     def is_export_authorized(self, destination_id: str, *, allow_recovery: bool = False) -> bool:
         """Return whether a destination passed a current active authorization gate.
 
