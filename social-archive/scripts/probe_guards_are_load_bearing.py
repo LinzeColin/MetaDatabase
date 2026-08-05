@@ -210,12 +210,12 @@ def _module_constants(tree: ast.AST) -> dict[str, str]:
     return constants
 
 
-def _claims(test: pathlib.Path) -> list[tuple[str, str]]:
-    """判据里每一处 `assert "字面量" in 变量` → (字面量, 源文件相对路径)。"""
+def _claims(test: pathlib.Path) -> list[tuple[str, str, str]]:
+    """判据里每一处 `assert "字面量" (not) in 变量` → (字面量, 源文件, 正向还是反向)。"""
     tree = ast.parse(test.read_text(encoding="utf-8"))
     constants = _module_constants(tree)
     path_funcs = _path_returning_functions(tree, constants)
-    out: list[tuple[str, str]] = []
+    out: list[tuple[str, str, str]] = []
     # **一个判据函数一份作用域。**
     #
     # 原来是整份文件拉平成一张表，于是后面某个判据里的 `block = ...`
@@ -231,15 +231,23 @@ def _claims(test: pathlib.Path) -> list[tuple[str, str]]:
     return out
 
 
-def _asserts_in(function: ast.AST, scope: dict[str, str]) -> list[tuple[str, str]]:
-    out: list[tuple[str, str]] = []
+def _asserts_in(function: ast.AST, scope: dict[str, str]) -> list[tuple[str, str, str]]:
+    """`assert "字面量" in 变量` 与 `not in` 两种都收。
+
+    **反向那种此前一条都没验过，而它守的恰恰是最贵的几条**：
+    `"chown -R" not in code`（那次把十二个密钥的属组改掉、/health 全程 200
+    的事故）、`"--delete" not in rsync`（远端我自己留的备份）。
+    「删掉的东西不许回来」这类判据，不验就只是一句愿望。
+    """
+    out: list[tuple[str, str, str]] = []
     for node in ast.walk(function):
         if not isinstance(node, ast.Assert):
             continue
         test_node = node.test
         if not (isinstance(test_node, ast.Compare) and len(test_node.ops) == 1
-                and isinstance(test_node.ops[0], ast.In)):
+                and isinstance(test_node.ops[0], (ast.In, ast.NotIn))):
             continue
+        kind = "in" if isinstance(test_node.ops[0], ast.In) else "not_in"
         left, right = test_node.left, test_node.comparators[0]
         if not (isinstance(left, ast.Constant) and isinstance(left.value, str)):
             continue
@@ -247,7 +255,7 @@ def _asserts_in(function: ast.AST, scope: dict[str, str]) -> list[tuple[str, str
             continue
         if len(left.value) < 8:
             continue
-        out.append((left.value, scope[right.id]))
+        out.append((left.value, scope[right.id], kind))
     return out
 
 
@@ -285,7 +293,7 @@ def main() -> int:
             claims = _claims(test)
         except SyntaxError:
             continue
-        for literal, relative in dict.fromkeys(claims):
+        for literal, relative, kind in dict.fromkeys(claims):
             if budget <= 0:
                 break
             source = ROOT / relative
@@ -295,28 +303,69 @@ def main() -> int:
                     {"test": test.name, "source": relative, "why": "指向的文件不在"})
                 continue
             original = source.read_text(encoding="utf-8")
-            mutated = "\n".join(l for l in original.splitlines() if literal not in l)
-            if mutated == original:
-                # **删不掉 = 这条断言的字面量在那个文件里根本不出现。**
-                # 多半是归属追错了文件，或者断言的是行为而不是字面量。
-                results["unresolved"] += 1
-                results["unresolved_detail"].append(
-                    {"test": test.name, "source": relative,
-                     "literal": literal[:60], "why": "那个文件里找不到这个字面量"})
-                continue
+            if kind == "in":
+                mutated = "\n".join(l for l in original.splitlines() if literal not in l)
+                if mutated == original:
+                    # **删不掉 = 这条断言的字面量在那个文件里根本不出现。**
+                    # 多半是归属追错了文件，或者断言的是行为而不是字面量。
+                    results["unresolved"] += 1
+                    results["unresolved_detail"].append(
+                        {"test": test.name, "source": relative,
+                         "literal": literal[:60], "why": "那个文件里找不到这个字面量"})
+                    continue
+            else:
+                # **反向判据的突变是「把它塞回去」。**
+                # 原样附在文件末尾，不加注释符号——很多判据会先剥注释再查
+                # （deploy 那条就是 `code_only()`），塞成注释等于没塞。
+                if literal in original:
+                    # **多半不是判据错了，是它查的不是整份文件。**
+                    # 实例：`"chown -R" not in code`，而 code 是剥掉注释之后的文本——
+                    # 那句 `chown -R` 就写在解释事故的注释里。原文里有、判据看的那份里没有。
+                    results["unresolved"] += 1
+                    results["unresolved_detail"].append(
+                        {"test": test.name, "source": relative, "literal": literal[:60],
+                         "why": "原文里已经有这个字面量了——判据多半查的是过滤/切片之后的文本，这种插法证不了它"})
+                    continue
+                mutated = original + "\n" + literal + "\n"
             budget -= 1
             source.write_text(mutated, encoding="utf-8")
             try:
                 run = subprocess.run([sys.executable, "-m", "pytest", str(test), "-q", "-x"],
                                      capture_output=True, text=True, timeout=180)
+                output = (run.stdout or "") + (run.stderr or "")
                 red = run.returncode != 0
+                # **红了还不够，得是「断言没过」那种红。**
+                #
+                # 反向突变是往文件里塞文本，那可能把 yaml/json 解析弄崩、
+                # 或者让别的判据抛异常——那种红不证明这条判据守住了什么，
+                # 它只证明我把文件弄坏了。只认 AssertionError。
+                asserted = "AssertionError" in output or "assert" in output
             finally:
                 source.write_text(original, encoding="utf-8")
-            if red:
+            if red and asserted:
                 results["load_bearing"] += 1
+            elif red:
+                results["unresolved"] += 1
+                results["unresolved_detail"].append(
+                    {"test": test.name, "source": relative, "literal": literal[:60], "kind": kind,
+                     "why": "突变之后判据是因为别的错误红的（不是断言没过），这条不算验到"})
+            elif kind == "not_in":
+                # **绿了不代表这条判据是摆设。**
+                #
+                # 反向突变是把字面量附在**文件末尾**，而判据常常只看文件里的一小段：
+                #   overflow = background.split("…NET_CAPTURE_LIMIT", 1)[1][:200]
+                #   assert "netCaptureBuffer.shift()" not in overflow
+                # 塞在末尾根本进不了那 200 个字符，判据当然不红——**它没错，是我够不着**。
+                #
+                # 2026-08-06 差点把这一条报成「没守住」。手工把 shift() 塞进它自己
+                # 那个窗口里，判据当场就红了。所以这里只报「证不了」，不报「没守住」。
+                results["unresolved"] += 1
+                results["unresolved_detail"].append(
+                    {"test": test.name, "source": relative, "literal": literal[:60], "kind": kind,
+                     "why": "反向突变塞在文件末尾；判据若只看文件里的一小段就够不着，**这不等于它是摆设**"})
             else:
                 results["not_load_bearing"].append(
-                    {"test": test.name, "source": relative, "literal": literal})
+                    {"test": test.name, "source": relative, "literal": literal, "kind": kind})
     attempted = results["load_bearing"] + len(results["not_load_bearing"])
     results["mutation_budget"] = requested
     results["candidates_found"] = candidates
