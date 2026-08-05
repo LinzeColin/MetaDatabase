@@ -216,3 +216,54 @@ def test_a_corrupt_identity_is_caught_at_write_time_not_at_read_time(tmp_path, m
     resp = client.put("/v1/credentials/x", json={"cookies_txt": SYNTHETIC}, cookies=cookies)
     assert resp.status_code == 503, f"空私钥却报了成功：{resp.status_code} {resp.text}"
     assert b"age-encryption.org" not in Path(api.settings.runtime_db).read_bytes()
+
+
+# 合成的 YouTube 会话，**不是任何真实账号的**。
+SYNTHETIC_YOUTUBE = (
+    "# Netscape HTTP Cookie File\n"
+    ".youtube.com\tTRUE\t/\tTRUE\t0\tSID\tSYNTHETIC-NOT-A-REAL-SESSION\n"
+    ".google.com\tTRUE\t/\tTRUE\t2000000000\tSAPISID\tSYNTHETIC-ALSO-NOT-REAL\n"
+)
+
+
+def test_youtube_can_actually_be_custodied(tmp_path, monkeypatch) -> None:
+    """**我刚跟 Owner 说「在 YouTube 页点一次连接就能跑起来」——先验了再说。**
+
+    2026-08-05 把 youtube 接进界面之前，它在服务端凭据表、Cookie 导出白名单、
+    manifest 权限三处都已支持，唯独没有入口。接上之后我承诺了这条路可用，
+    而这份判据里**一处 youtube 都没有**——承诺和证据之间隔着一整条没验过的路。
+
+    这条判据把那条路走一遍：存得进、读不出明文、cookie 数对得上。
+    """
+    client, api = _client(tmp_path, monkeypatch, with_age_key=True)
+    cookies = _login(api)
+
+    put = client.put("/v1/credentials/youtube",
+                     json={"cookies_txt": SYNTHETIC_YOUTUBE}, cookies=cookies)
+    assert put.status_code == 200, put.text
+    assert put.json()["cookie_count"] == 2, "两条 cookie 应当都被收下（youtube.com 与 google.com）"
+    assert put.json()["connected"] is True
+
+    got = client.get("/v1/credentials", cookies=cookies)
+    assert "SYNTHETIC-NOT-A-REAL-SESSION" not in got.text, "读接口把 cookie 值吐回来了"
+    entry = next(i for i in got.json()["items"] if i["platform"] == "youtube")
+    assert entry["connected"] is True and entry["cookie_count"] == 2
+
+
+def test_the_extension_routes_youtube_to_the_custody_path() -> None:
+    """服务端收得下，不等于扩展会把它送过去。
+
+    connectPlatform 是按 SACookieExport.ALLOWED_PLATFORMS 分流的——
+    youtube 在那张表里，所以它走托管路而不是 browser_session 老路。
+    **这是本项目栽过十次的那一族：两头都对，中间没接上。**
+    """
+    from pathlib import Path
+
+    ext = Path(__file__).resolve().parents[2] / "apps/browser-extension"
+    exporter = (ext / "cookie-export.js").read_text(encoding="utf-8")
+    allowed = exporter.split("ALLOWED_PLATFORMS = Object.freeze({", 1)[1].split("});", 1)[0]
+    assert "youtube" in allowed, "Cookie 导出白名单里没有 youtube，扩展这一侧根本导不出"
+    background = (ext / "background.js").read_text(encoding="utf-8")
+    assert "SACookieExport?.ALLOWED_PLATFORMS?.[platform]" in background, (
+        "connectPlatform 不再按那张白名单分流了——youtube 可能掉回 browser_session 老路"
+    )
