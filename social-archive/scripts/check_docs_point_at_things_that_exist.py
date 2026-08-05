@@ -13,10 +13,24 @@
 
 ## 它扫哪些地方
 
-`docs/` **和 `evidence/`**。原来只扫前者——直到 2026-08-05 我往
-`evidence/HANDOFF_v0007.md` 里写了一段「要加新平台就跑这个」，写完才想起来：
-**接手的人第一份读的就是交接**，而它整个在这道门的视野之外。
-这道门存在的理由，正好是挡这件事。
+**整个仓的 md**，只排掉不是我们写的目录（node_modules/.venv/dist…）。
+
+范围这件事漏过两次，两次都是同一天：先只扫 `docs/`，直到我往
+`evidence/HANDOFF_v0007.md` 里写了一段「要加新平台就跑这个」——
+**接手的人第一份读的就是交接**，而它整个在门外。补上 evidence/ 之后，
+一数才发现仓根还有一份 `HANDOFF.md`，19 处引用，同样在门外。
+
+**列目录的白名单每补一次，就等下一次漏。** 所以反过来：全扫，只排除
+明确不是我们写的。
+
+## 只认仓根下的 `scripts/xxx`
+
+`HANDOFF.md` 里有这么一句：
+
+    python ../social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py
+
+原来的正则见 `scripts/` 就算数，把这条**隔壁仓的路径**截出尾巴，报成
+「让人跑一个不存在的脚本」。本仓当然没有那个文件——那不是缺陷，是指错原因。
 
 ## 「已删 `scripts/xxx`」是记录，不是指令
 
@@ -59,14 +73,25 @@ if "--root" in sys.argv:
 
 ROOT = Path(_ARGUMENT_ROOT).resolve() if _ARGUMENT_ROOT else Path(__file__).resolve().parents[1]
 
-SCRIPT_REFERENCE = re.compile(r"scripts/[A-Za-z0-9_.-]+")
+# **只认仓根下的 `scripts/xxx`。**
+#
+# 原来的正则在任何地方见到 `scripts/` 就算数，于是 HANDOFF.md 里这一句
+#     python ../social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py
+# 被截出尾巴 `scripts/validate_compatibility.py`，报成「让人跑一个不存在的脚本」。
+# **那是隔壁仓的路径**，本仓当然没有——又一次指错原因。
+# 前面不许再跟路径分隔符（`/` 或 `.`），外部路径就不会被截尾巴。
+SCRIPT_REFERENCE = re.compile(r"(?<![A-Za-z0-9_./-])scripts/[A-Za-z0-9_.-]+")
 
 # **交接也是文档，而且是最可能被照着敲的那一份。**
 #
 # 这道门原来只扫 docs/。2026-08-05 我往 evidence/HANDOFF_v0007.md 里写了
 # 一段「要加新平台就跑这个」，写完才想起来：接手的人第一份读的就是交接，
 # 而它整个在这道门的视野之外——这道门存在的理由正好是挡这件事。
-SCANNED = ("docs", "evidence")
+# 扫**整个仓**的 md，而不是列几个目录。
+# 列目录这件事已经漏过两次：先漏了 evidence/（交接在里面），
+# 补上之后又发现仓根的 HANDOFF.md 也在外面。白名单式的范围
+# 每补一次就等下一次漏——不如反过来：全扫，只排除不是我们写的东西。
+NOT_OURS = {".git", "node_modules", ".venv", "dist", "build", "__pycache__", ".pytest_cache"}
 
 # 「已删 `scripts/xxx`」是**记录**，不是让人去跑。按整份文档开白名单太粗：
 # 交接不是作废文档，把它整份放行等于对最要紧的那一份闭眼。所以按**行**判。
@@ -74,15 +99,15 @@ RECORDS_A_DELETION = ("已删", "已移除", "删掉", "不要照着", "已废�
 
 
 def main() -> int:
-    roots = [ROOT / name for name in SCANNED if (ROOT / name).is_dir()]
-    if not roots:
-        print(f"{'/、'.join(SCANNED)}/ 都不在，跳过——**这不是通过**。")
+    documents = [path for path in sorted(ROOT.rglob("*.md"))
+                 if not (set(path.relative_to(ROOT).parts) & NOT_OURS)]
+    if not documents:
+        print("一份 md 都没扫到，跳过——**这不是通过**。")
         return 0
 
     missing: list[str] = []
     stale_records: list[str] = []
     checked = 0
-    documents = [path for root in roots for path in sorted(root.rglob("*.md"))]
     for document in documents:
         lines = document.read_text(encoding="utf-8").splitlines()
         for number, line in enumerate(lines, 1):
@@ -118,7 +143,7 @@ def main() -> int:
                     continue
                 missing.append(f"{here} 让人跑 {reference}，而它不在")
 
-    print(f"扫了 {'/、'.join(SCANNED)}/ 下 {len(documents)} 份文档，{checked} 处 scripts/ 引用")
+    print(f"扫了全仓 {len(documents)} 份文档，{checked} 处 scripts/ 引用")
     if missing or stale_records:
         for item in missing:
             print(f"  **不合格**：{item}")

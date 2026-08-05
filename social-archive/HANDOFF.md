@@ -1,5 +1,16 @@
 # Social Archive handoff
 
+> **这份不是当前交接。** 它停在 **v0.0.0.6（2026-08-03）**，正文里的
+> 「current execution」指的是那一天的 v0.0.0.6，不是今天。
+>
+> **当前交接是 [`evidence/HANDOFF_v0007.md`](evidence/HANDOFF_v0007.md)。**
+> 要接手、要知道 Owner 还欠哪几下、要知道哪些格子没做完，读那一份。
+>
+> 这份留着是因为它是 v0.0.0.6 的记录（SA-205 那条线、当时的 Canary 约束、
+> 那个 ZIP 的哈希），删了就查不到了。但**别照着它判断今天的状态**——
+> 2026-08-05 发现它躺在仓根、名字又恰好是最容易被点开的那个，
+> 而当前那份藏在 evidence/ 里。
+
 ## v0.0.0.6 current execution (2026-08-03 UTC)
 
 - **交接增量：PWA 桥接自动恢复（SA-205，未构成 Canary PASS）**。扩展在 `install` 或 `update` 时，会只查询三个已声明的 Social Archive PWA URL（生产域、`127.0.0.1:8765`、`localhost:8765`），并仅向已完成加载的 PWA 标签页重新注入 `bridge.js`。它不刷新任何页面、不创建标签页、不查询或注入四个平台页、不读取登录态；桥接脚本会移除同版本旧监听器后重新广播 `SA_BRIDGE_READY`，使 v0.0.0.6 PWA 自动重新探测扩展。验证已通过：`node --check` 两个扩展脚本；桥接/包/扩展契约回归 **18 passed**；冻结 SA-205 Stage 2 命令 **17 passed**；`git diff --check` 通过。生产 PWA 仍是 v005-r1，且当前持久 Chrome Profile 仍未检测到扩展；该生产身份与配对服务缺少一次性记录的问题没有被此源代码修复掩盖。后续 agent 必须从 GitHub `main` 继续：先保持同一持久已登录 Chrome Profile，不要求平台重新登录；等待 v0.0.0.6 依 DAG 到达部署阶段并让扩展通过正常受控安装路径可用后，再运行真实四平台 Owner Canary。SA-301 仍禁止启动。

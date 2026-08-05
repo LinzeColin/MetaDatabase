@@ -126,6 +126,50 @@ def test_the_handoff_is_scanned_too(tmp_path) -> None:
     assert "nothing_here.sh" in done.stdout
 
 
+def test_a_markdown_at_the_repo_root_is_scanned(tmp_path) -> None:
+    """**范围漏过两次，两次都是同一天。**
+
+    先只扫 docs/（漏了 evidence/ 里的交接），补上之后才发现仓根还有一份
+    `HANDOFF.md`，19 处引用，同样在门外。列目录的白名单每补一次就等下一次漏，
+    所以现在全扫。
+    """
+    (tmp_path / "scripts").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "随便一份.md").write_text("跑 `scripts/absent.sh`。\n", encoding="utf-8")
+    done = _run(tmp_path)
+    assert done.returncode != 0, "仓根的 md 没被扫到"
+    assert "absent.sh" in done.stdout
+
+
+def test_a_path_into_a_sibling_repo_is_not_flagged(tmp_path) -> None:
+    """`../隔壁仓/…/scripts/x.py` 不是本仓的引用，本仓没有它是正常的。
+
+    原来的正则见 `scripts/` 就算数，把 HANDOFF.md 里那条隔壁仓路径截出尾巴
+    报成缺陷。**指错原因比不报更糟**——会让人去补一个本来就不该在这儿的文件。
+    """
+    (tmp_path / "scripts").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "手册.md").write_text(
+        "python ../social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py\n",
+        encoding="utf-8")
+    done = _run(tmp_path)
+    assert done.returncode == 0, done.stdout + done.stderr
+
+    # 对照面：去掉前面那段外部路径，它就该被抓。
+    (tmp_path / "手册.md").write_text("python scripts/validate_compatibility.py\n",
+                                      encoding="utf-8")
+    assert _run(tmp_path).returncode != 0, "去掉外部前缀之后仍然放过——正则放得太松"
+
+
+def test_the_stale_root_handoff_says_it_is_not_current() -> None:
+    """仓根 `HANDOFF.md` 停在 v0.0.0.6，而当前那份在 evidence/ 里。
+
+    名字最容易被点开的那一份，正文第三行写着「v0.0.0.6 current execution」。
+    接手的人照着它判断今天的状态，会得到一个两个版本前的答案。
+    """
+    head = "\n".join((ROOT / "HANDOFF.md").read_text(encoding="utf-8").splitlines()[:14])
+    assert "不是当前交接" in head, "仓根那份交接没说自己不是当前的"
+    assert "evidence/HANDOFF_v0007.md" in head, "没有指出当前交接在哪"
+
+
 def test_the_deprecated_doc_still_warns_the_reader() -> None:
     """那份作废文档必须在开头告诉读者别照着做。
 
