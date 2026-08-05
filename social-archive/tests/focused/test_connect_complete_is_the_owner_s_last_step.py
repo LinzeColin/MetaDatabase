@@ -129,3 +129,46 @@ def test_reconnecting_the_same_account_does_not_double_up(tmp_path, monkeypatch)
     items = client.get("/v1/accounts").json().get("items", [])
     youtube = [item for item in items if item.get("platform") == "youtube"]
     assert len(youtube) == 1, f"同一次连接被记成了 {len(youtube)} 个账号"
+
+
+# ---- 连接流程在扩展那一侧的两颗按钮 ----
+#
+# 2026-08-05 又量了一次：扩展里 25 种消息类型，**判据里没出现过的 9 种**。
+# 其中一种是 `SA_VERIFY_PLATFORM_SESSION`——设置页那颗「我已登录，继续」。
+#
+# 连接是两步：点「连接账号」打开登录页 → 人去登录 → 点「我已登录，继续」。
+# **第二颗按钮此前一条判据都没有。**
+
+from pathlib import Path  # noqa: E402
+
+_EXT = Path(__file__).resolve().parents[2] / "apps/browser-extension"
+_BACKGROUND = (_EXT / "background.js").read_text(encoding="utf-8")
+_OPTIONS = (_EXT / "options.js").read_text(encoding="utf-8")
+
+
+def test_both_buttons_of_the_connect_flow_have_a_listener_behind_them() -> None:
+    """两颗按钮各自发的消息，后台都得真的接。
+
+    只接第一颗的话，用户点完「我已登录，继续」什么都不会发生——
+    而那正是他登录之后唯一能做的动作。
+    """
+    for message, button in (("SA_ACCOUNT_CONNECT", "连接账号"),
+                            ("SA_VERIFY_PLATFORM_SESSION", "我已登录，继续")):
+        assert message in _OPTIONS, f"设置页不再发 {message}（按钮：{button}）"
+        assert f'message?.type === "{message}"' in _BACKGROUND, (
+            f"后台没有接 {message}——「{button}」点下去会石沉大海"
+        )
+
+
+def test_the_verify_button_reaches_a_function_that_exists() -> None:
+    """**真浏览器里问过**：verifyPendingPlatform 在 service worker 里是个函数。
+
+    这条判据打在源码上，而 2026-08-05 用一次性 profile 的真 Chrome 核过一遍：
+    verifyPendingPlatform / connectPlatform / captureActive /
+    openAccountCenter / getPendingConnections 五个全部是函数。
+    （captureActive 的 fn.length 是 0，因为它的两个参数都有默认值，不是没接上。）
+    """
+    assert "verifyPendingPlatform" in _BACKGROUND
+    assert 'SA_VERIFY_PLATFORM_SESSION"' in _BACKGROUND
+    handler = _BACKGROUND.split('message?.type === "SA_VERIFY_PLATFORM_SESSION"')[1][:120]
+    assert "verifyPendingPlatform" in handler, f"这条消息没有走到那个函数：{handler[:60]}"

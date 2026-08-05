@@ -24,6 +24,14 @@
   "what_this_does_not_prove": [
     "**不证明连接会成功。** 这几条判据跑的是本地 TestClient 与合成账号；真实平台会话（T06 的 Oracle）仍然 NOT_RUN，仍要 Owner 去连一次。",
     "不证明其余 38 条路由的覆盖**够**——只证明它们在判据里出现过。出现过不等于验到了要害。",
-    "**没有把「路由覆盖」做成门。** 5 条里 4 条各有各的正当理由；一道要求 100% 的门只会逼人写没意义的判据。"
-  ]
+    "**没有把「路由覆盖」做成门。** 5 条里 4 条各有各的正当理由；一道要求 100% 的门只会逼人写没意义的判据。",
+    "**扩展那 9 种没判据的消息里，只补了 1 种。** 其余 8 种仍只有源码层断言——证明的是「接上了」，不是「点下去真的做了那件事」。"
+  ],
+  "the_same_count_on_the_extension_side": {
+    "measured": "扩展里 25 种消息类型，**判据里没出现过的 9 种**。",
+    "the_one_that_mattered": "SA_VERIFY_PLATFORM_SESSION —— 设置页那颗**「我已登录，继续」**。连接是两步：点「连接账号」打开登录页 → 人去登录 → 点这一颗。**第二颗按钮此前一条判据都没有**，而那是他登录之后唯一能做的动作。",
+    "verified_in_a_real_browser": "把下发的包装进一次性 profile 的真 Chrome，在 service worker 里问了一遍：verifyPendingPlatform / connectPlatform / captureActive / openAccountCenter / getPendingConnections **五个全是函数**。（captureActive 的 fn.length 是 0，因为两个参数都有默认值——不是没接上。）",
+    "guarded": "两条判据：两颗按钮各自发的消息后台都得真的接；verify 那条消息必须走到 verifyPendingPlatform。反例：删掉后台那条分支 → 两条当场红。",
+    "still_uncovered": "其余 8 种消息（SA_CAPTURE_ACTIVE、SA_NET_CAPTURE、SA_WEB_BRIDGE_* 等）仍然只有源码层的断言，**没有行为判据**。要真验它们得把整个归档服务也搭起来，那是另一件事。"
+  }
 }
