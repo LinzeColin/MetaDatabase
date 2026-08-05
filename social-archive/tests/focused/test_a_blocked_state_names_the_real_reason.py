@@ -96,8 +96,13 @@ def test_the_next_step_does_not_point_at_a_wizard_that_cannot_help(settings, sto
     registry = ConnectorRegistry(settings)
     monkeypatch.setattr(registry, "_live_probe",
                         lambda _: {"state": "degraded", "error_code": "HEALTH_PROBE_FAILED"})
+    # **凡是被能力声明钳住的都要查，不只是 NOT_SYNCABLE_YET 里那些。**
+    #
+    # 第一版只查了那张表里的，于是 tiktok 漏网——它不在任何能力表里，
+    # 走的是另一条钳制分支。上线之后才在生产上看见只有它还写着「按向导配置」。
+    # **一个只修了一半的修复，比没修更难发现**：判据是绿的。
     for view in registry.health_views(store.connector_states()):
-        if view["connector_id"] not in NOT_SYNCABLE_YET:
+        if view["state"] != "blocked_environment":
             continue
         step = view["next_action_zh"]
         assert "向导" not in step, f"{view['connector_id']} 仍被指向一个打不开这条路的向导：{step}"

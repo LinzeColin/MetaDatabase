@@ -186,7 +186,9 @@ class ConnectorRegistry:
             # ——把失败码摆给用户看，还叫他「按向导配置」，**而没有任何向导
             # 能打开那道零费用门**（那是 Owner 的花钱判断）。真实原因写在
             # NOT_SYNCABLE_YET 里，含「现在可以：…」那半句。
+            clamped_by_capability = False
             if connector_id in NOT_SYNCABLE_YET:
+                clamped_by_capability = True
                 # **同一处境，只能有一个状态。** 修完第一版之后生产上是这样：
                 #     bilibili / instagram   blocked_environment
                 #     xiaohongshu/douyin/快手 degraded
@@ -232,6 +234,7 @@ class ConnectorRegistry:
                 }
             elif state == "healthy" and connector_id not in SYNCABLE_NOW:
                 # 不在任何一张表里的（例如 tiktok，它连 PLATFORM_RELATIONS 都不在）
+                clamped_by_capability = True
                 state = "blocked_environment"
                 probe = {
                     **probe,
@@ -258,7 +261,14 @@ class ConnectorRegistry:
             #
             # 上面那行 message_zh 已经说了真话（NOT_SYNCABLE_YET 里带「现在可以：…」）。
             # 这里就别再给一句对不上的了。任务包 T13：**指错方向的 BLOCKED 也不算。**
-            if state == "blocked_environment" and connector_id in NOT_SYNCABLE_YET:
+            # **两条钳制分支都要覆盖。**
+            #
+            # 第一版只判 `connector_id in NOT_SYNCABLE_YET`，于是 tiktok 漏了——
+            # 它不在任何一张能力表里，走的是另一条 elif（「不在表里的」）。
+            # 上线后生产实测：其它平台都改好了，**只有 tiktok 还在显示
+            # 「按向导配置」**。判据当时只覆盖了 NOT_SYNCABLE_YET 里的那些，
+            # 所以没红——一个只修了一半的修复，比没修更难发现。
+            if clamped_by_capability:
                 next_action = "本版本没有能打开这条路的设置项；照上面那句话做就行。"
             error_code = probe.get("error_code") or (row.get("last_error_code") if state == row.get("state") else None)
             message = str(probe.get("message_zh") or "")
