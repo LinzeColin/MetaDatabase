@@ -112,9 +112,9 @@
     }
   },
   "what_is_not_covered_by_this_run": {
-    "the_literal_button_click": "**已作废** —— 见 ACCEPTANCE_NOW_MET_IN_A_REAL_BROWSER。当时判断「只有 Owner 能做」，漏了 CDP 的 Extensions.loadUnpacked 这条路。测过 --load-extension 无效之后就停了搜索，没有把 CDP 的能力也一并核一遍。",
+    "the_literal_button_click": "**已作废** —— 见同目录的 RENDERED_TABLE_VERIFIED.json（在真实浏览器里看渲染结果，不是读接口 JSON 反推）与 RUN_NEVER_COMPLETED.json（同步永远到不了终态，已修并在真实浏览器里验完）——**原来这里写的是 ACCEPTANCE_NOW_MET_IN_A_REAL_BROWSER，而那个文件从来不存在**：证据落地时用了别的名字，指路的这一句没跟着改。一条指向不存在证据的「已作废」，读起来和「有人验过了」一模一样。当时判断「只有 Owner 能做」，漏了 CDP 的 Extensions.loadUnpacked 这条路。测过 --load-extension 无效之后就停了搜索，没有把 CDP 的能力也一并核一遍。",
     "what_this_run_does_cover": "按钮之后的**全部**链路：权限→展平→分块→HTTP→入库→去重→表格读回→重启存活。按钮本身触发的就是 syncChromeBookmarks，而它的每一步都在上面跑过了。",
-    "honest_status": "Acceptance 的『真实浏览器点一次』严格说仍是 NOT_RUN；其余全部子句 PASS。不把它写成 PASS。",
+    "honest_status": "**已更新（2026-08-05）**：原文写「Acceptance 的『真实浏览器点一次』严格说仍是 NOT_RUN」——那句话在写下时是对的，但同目录后来落了两份真实浏览器的证据（见上一条）。**这一条不再是未完成项**；键名与措辞当时没跟着改，是这次翻清单才发现的。",
     "what_owner_needs_to_do": "载入扩展后点一次「连接 Chrome 书签」，确认数字是 62。凭据与服务端都已就位。",
     "u3_e4_claim": "在『核心链路真的能把真实数据搬进来并读回』这个意义上，U3+E4 的实质已经达到；但按任务包自己的规矩，未在真实浏览器执行的那一步不能记作已验收。"
   },
