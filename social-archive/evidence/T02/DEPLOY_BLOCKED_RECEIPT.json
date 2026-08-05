@@ -73,5 +73,28 @@
     "the_remaining_step_is_now_precise": "Owner 在那个一次性 Chrome 窗口里用自己的 GitHub 账号登录一次。之后能不能走完还取决于 GitHub 在授权阶段对 redirect_uri 的校验——那一步没试过，不预判。",
     "still_blocked_but_for_a_different_reason": "先前记的是「等 T18 部署」。现在更准确：**本地就能验的部分已经验完，剩下的那步需要 Owner 亲自输入凭据**。部署路径仍然可用，只是不再是唯一路径。",
     "half_of_acceptance_is_now_measured": "「登出后受保护接口拒绝访问」——PASS（本地实服务端）。「用两个 provider 各登录成功一次」——仍 NOT_RUN。"
+  },
+  "the_disk_gate_was_measuring_with_a_rounding_bug": {
+    "measured_at": "2026-08-05",
+    "缺陷": "这道门用 `df -BG --output=avail` 取整数 G，而 **-BG 是向上取整**。生产真实可用 4.84G 时它读到 5G，于是「至少 5G」的门当场放行。最坏情况虚报接近 1G——4.01G 也会被报成 5G。",
+    "为什么这个方向特别糟": "虚报的方向恰好是不安全那一侧。这道门存在的理由是「盘紧的时候别再往上叠一个 1GB 的镜像」，而它偏偏在最紧的时候才开始说谎。",
+    "对着生产同时跑了两种量法": {
+      "真实可用": "4.84G",
+      "旧量法（df -BG）": "读到 5G → **放行**",
+      "新量法（df -k 精确比较）": "5,077,xxx KB < 5,242,880 KB → **拦下**"
+    },
+    "改法": "两处测点都改成用 KB 量、按 KB 比较，并把精确值印到两位小数。门槛仍是 5G，一个字没动——**这次修的是尺子，不是刻度**。",
+    "它对我自己不方便，而这正是它可信的地方": "我发现它的时候，正想用它放行一次部署（生产上的扩展缺少 libraryUrl 同源判定）。**修好之后那次部署当场被自己拦住了。** 一道只在对自己有利时才准的门不是门。"
+  },
+  "what_is_actually_still_blocking_the_security_fix": {
+    "缺陷": "生产上的 background.js 收下页面下发的 libraryUrl **不校验同源**，「打开档案馆」那颗按钮能被指到别处。本地已修（同源才收），未部署。",
+    "射程（实测 manifest，不是估计）": "桥只跑在 https://social-archive.linzezhang.com/*、http://127.0.0.1:8765/*、http://localhost:8765/*，且没有 externally_connectable。**任意网站打不到它**——要利用得先在档案馆那个源上执行脚本（XSS），或者在本机占住 8765 端口。",
+    "所以定级": "真缺陷、纵深防御那一层，**不是远程可利用**。不值得为它在半夜删掉别人项目的数据，也不值得靠一个取整缺陷放行。",
+    "为什么没随上一次部署上去": "没有神秘原因：主机上的 apps/browser-extension/background.js 时间戳是 2026-08-04 21:40，修复是 08-05 做的。四小时前那次构建带上去的是 08-04 的源码。镜像里的 ZIP 是构建时用镜像内源码现打的（Dockerfile `RUN build_extension_package.py`），所以源码没上去、ZIP 就是旧的。",
+    "证据": {
+      "生产下发的 ZIP": "sha256 9a4b30be0cee29fcea4f330383dddb88bc278a3c7446859ed8b8b88cbd1a2463",
+      "里面有没有同源判定": "没有（`new URL(offered).origin` 不在 background.js 里）",
+      "主机源码": "同样没有"
+    }
   }
 }

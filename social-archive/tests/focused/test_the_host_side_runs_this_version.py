@@ -164,7 +164,10 @@ def test_the_disk_threshold_defaults_to_five_and_can_be_raised_for_testing() -> 
     )
     code = "\n".join(l for l in deploy.splitlines() if not l.lstrip().startswith("#"))
     assert '-lt 5 ' not in code and '-lt 5]' not in code, "还有地方写死 5，改门槛时会漏掉"
-    assert code.count('-lt "$MIN_FREE_GB"') == 2, (
+    assert "MIN_FREE_KB=$(( MIN_FREE_GB * 1048576 ))" in code, (
+        "门槛以 G 配、以 KB 比，中间的换算必须在场——少了它就是拿 G 去比 KB"
+    )
+    assert code.count('-lt "$MIN_FREE_KB"') == 2, (
         "回收前后两次比较必须都用同一个门槛——只改一处的话，"
         "会出现「回收完仍不够却继续构建」"
     )

@@ -17,6 +17,7 @@
 所以这里守的不是"别写错某一行"，是**那条路径本身必须存在，且带着这三道闸**。
 """
 
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -109,11 +110,20 @@ def test_it_refuses_to_build_when_the_disk_is_tight() -> None:
     但门槛该有：盘紧的时候不许再往上叠一个 1GB 的镜像。
     """
     code = code_only(DEPLOY.read_text(encoding="utf-8"))
-    assert "FREE_GB" in code, "部署前不看磁盘"
+    assert "FREE_KB" in code, "部署前不看磁盘"
+    # **尺子不能向上取整。**
+    # 2026-08-05 对着生产同时跑了两种量法：真实可用 4.84G，
+    # `df -BG` 读到 5G → 这道「至少 5G」的门当场放行；改成按 KB 精确比较后拦下。
+    # 最坏情况虚报接近 1G（4.01G 也报成 5G），而**虚报的方向恰好是不安全那一侧**：
+    # 它存在的理由就是「盘紧的时候别再叠一个 1GB 的镜像」，却偏偏在最紧时说谎。
+    assert "df -k --output=avail" in code, "磁盘量法不是精确的 KB"
+    assert not re.search(r"df -B[A-Z][^|]*--output=avail", code), (
+        "又用回了向上取整的块单位——4.01G 会被报成 5G，门在最需要它的时候放行"
+    )
     # 阈值 2026-08-05 做成了可配（默认仍是 5），好让「不够→回收→重量→决定」
     # 那一串能在生产真的快满之前被验一次。判据跟着钉两件事：
     # 有比较、且默认值没被人顺手调低。
-    assert '"$FREE_GB" -lt "$MIN_FREE_GB"' in code, "没有阈值，或者写法变了、判据要跟着改"
+    assert '"$FREE_KB" -lt "$MIN_FREE_KB"' in code, "没有阈值，或者写法变了、判据要跟着改"
     assert 'MIN_FREE_GB="${SOCIAL_ARCHIVE_DEPLOY_MIN_FREE_GB:-5}"' in code, (
         "默认门槛不是 5 了——可配是为了能验，不是为了把门放宽"
     )

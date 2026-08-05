@@ -231,9 +231,16 @@ step "4) 构建前先看磁盘"
 # 所以「磁盘」只是最合理的怀疑，不是已证实的根因。
 #
 # 但门槛该有：**盘紧的时候不许再往上叠一个 1GB 的镜像。**
-FREE_GB="$(ssh -o ConnectTimeout=20 "$HOST" "df -BG --output=avail / | tail -1 | tr -dc '0-9'")"
-printf '  根分区可用 %sG（门槛 %sG）\n' "$FREE_GB" "$MIN_FREE_GB"
-if [[ -n "$FREE_GB" && "$FREE_GB" -lt "$MIN_FREE_GB" ]]; then
+# **用 KB 量，不要用向上取整的块单位。**
+# 2026-08-05 实测：真实可用 4.84G，`df -BG` 报 5G，于是这道「至少 5G」的门
+# 当场放行。最坏情况虚报接近 1G（4.01G 也会报成 5G），而它拦的正是
+# 「盘紧的时候别再往上叠一个 1GB 的镜像」——虚报的方向恰好是不安全那一侧。
+free_kb() { ssh -o ConnectTimeout=20 "$HOST" "df -k --output=avail / | tail -1 | tr -dc '0-9'"; }
+show_gb() { awk -v kb="$1" 'BEGIN{printf "%.2f", kb/1048576}'; }
+MIN_FREE_KB=$(( MIN_FREE_GB * 1048576 ))
+FREE_KB="$(free_kb)"
+printf '  根分区可用 %sG（门槛 %sG）\n' "$(show_gb "$FREE_KB")" "$MIN_FREE_GB"
+if [[ -n "$FREE_KB" && "$FREE_KB" -lt "$MIN_FREE_KB" ]]; then
   # **自己收拾自己的。** 这道门今天拦了两次，两次都是我手工去回收——
   # 而「能你做的就别让我做」。但这台机器还跑着别人的项目，所以**只回收
   # 带我们自己标签的悬空镜像**（Dockerfile 里的 com.socialarchive.project），
@@ -250,10 +257,10 @@ if [[ -n "$FREE_GB" && "$FREE_GB" -lt "$MIN_FREE_GB" ]]; then
         sudo docker rmi "$id" >/dev/null 2>&1 || true
       done
     fi' || true
-  FREE_GB="$(ssh -o ConnectTimeout=20 "$HOST" "df -BG --output=avail / | tail -1 | tr -dc '0-9'")"
-  printf '  回收后可用 %sG\n' "$FREE_GB"
+  FREE_KB="$(free_kb)"
+  printf '  回收后可用 %sG\n' "$(show_gb "$FREE_KB")"
 fi
-if [[ -n "$FREE_GB" && "$FREE_GB" -lt "$MIN_FREE_GB" ]]; then
+if [[ -n "$FREE_KB" && "$FREE_KB" -lt "$MIN_FREE_KB" ]]; then
   # **建议要指向真正占地方的东西。**
   #
   # 2026-08-05 实测：门在 4G 上拦下部署，而**悬空镜像是 0 个**——
