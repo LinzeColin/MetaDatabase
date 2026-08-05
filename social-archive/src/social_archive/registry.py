@@ -398,7 +398,9 @@ class ConnectorRegistry:
             raise ValueError("未知平台连接器。")
 
         account_scope = request.source_account_id or ""
-        scope = "account_relation" if connector_id in {"x", "reddit", "instagram", "bilibili"} else "item"
+        # youtube 的关系是 watch_later / playlist——**账号级的关系，不是单条内容**，
+        # 和 x 的书签、reddit 的 saved 同类。漏了它，扫描回执里的 scope 会写成 item。
+        scope = "account_relation" if connector_id in {"x", "reddit", "instagram", "bilibili", "youtube"} else "item"
         result.scan_receipt.setdefault("scope", scope)
         result.scan_receipt.setdefault("relation_type", relation)
         result.scan_receipt.setdefault("collection_key", request.collection_key)

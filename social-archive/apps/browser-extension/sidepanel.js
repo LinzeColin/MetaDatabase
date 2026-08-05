@@ -4,8 +4,8 @@
   const $ = id => document.getElementById(id);
   const running = new Set(["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"]);
   const needsAction = new Set(["partial", "failed", "blocked_environment"]);
-  const icons = { xiaohongshu: "小", douyin: "抖", kuaishou: "快", bilibili: "B", x: "X", reddit: "R", instagram: "In", "generic-web": "书" };
-  const names = { xiaohongshu: "小红书", douyin: "抖音", kuaishou: "快手", bilibili: "B站", x: "X", reddit: "Reddit", instagram: "Instagram", "generic-web": "Chrome书签/网页" };
+  const icons = { xiaohongshu: "小", douyin: "抖", kuaishou: "快", bilibili: "B", x: "X", reddit: "R", instagram: "In", youtube: "Y", "generic-web": "书" };
+  const names = { xiaohongshu: "小红书", douyin: "抖音", kuaishou: "快手", bilibili: "B站", x: "X", reddit: "Reddit", instagram: "Instagram", youtube: "YouTube", "generic-web": "Chrome书签/网页" };
   let accounts = [];
   let runs = [];
   let filter = "active";

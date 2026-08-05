@@ -114,6 +114,7 @@ def main() -> int:
             ("generic-web", "普通网页"), ("x", "X"), ("reddit", "Reddit"),
             ("instagram", "Instagram"), ("tiktok", "TikTok"), ("xiaohongshu", "小红书"),
             ("douyin", "抖音"), ("kuaishou", "快手"), ("bilibili", "B站"),
+            ("youtube", "YouTube"),
         ]
     ]
     destinations = [

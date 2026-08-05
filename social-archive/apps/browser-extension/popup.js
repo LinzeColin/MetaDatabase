@@ -2,8 +2,8 @@
 (() => {
   "use strict";
   const $ = id => document.getElementById(id);
-  const platformShort = { xiaohongshu: "小", douyin: "抖", kuaishou: "快", bilibili: "B", x: "X", reddit: "R", instagram: "In", "generic-web": "网" };
-  const platformName = { xiaohongshu: "小红书", douyin: "抖音", kuaishou: "快手", bilibili: "B站", x: "X", reddit: "Reddit", instagram: "Instagram", "generic-web": "Chrome 书签" };
+  const platformShort = { xiaohongshu: "小", douyin: "抖", kuaishou: "快", bilibili: "B", x: "X", reddit: "R", instagram: "In", youtube: "Y", "generic-web": "网" };
+  const platformName = { xiaohongshu: "小红书", douyin: "抖音", kuaishou: "快手", bilibili: "B站", x: "X", reddit: "Reddit", instagram: "Instagram", youtube: "YouTube", "generic-web": "Chrome 书签" };
   const statusName = { connected: "已连接", degraded: "降级可用", completed: "同步完成", partial: "部分完成", queued: "等待同步", discovering: "正在发现", scanning: "同步中", normalizing: "正在整理", artifacting: "正在归档", exporting: "正在导出", failed: "需要处理", blocked_environment: "重新连接", paused: "已暂停" };
 
   let config = null;
