@@ -43,6 +43,25 @@ INCIDENTAL_PROBE_FAILURES = frozenset({
     "WORKER_PROBE_OR_CALL_FAILED",
 })
 
+# **今天真点得到「连接」的平台，以及点在哪。**
+#
+# 被挡住的连接器统一显示「本版本没有能打开这条路的设置项」。那句话对八个
+# 平台是真的，对 youtube 是**假的**——2026-08-05 生产实测，它的说明写着
+# 「现在可以：连接 YouTube」，紧跟着的下一步却说没有设置项。自相矛盾，
+# 而且否掉的正是交接里唯一让 Owner 去做的那件事。
+#
+# 为什么不直接用 credentials.CUSTODIAL_PLATFORMS（x / instagram / youtube）：
+#   · x         —— 压着零费用硬门，Owner 不确认就没有任何设置项能开
+#   · instagram —— 授权那一步还没做成他点得到的界面
+# 「服务端支持托管」不等于「他现在点得到」。**这张表只记后者。**
+#
+# 加平台时这是**第五张表**（扩展那四张见 extension_platform_wiring_drill.py）。
+# 判据 test_connect_next_action_matches_the_extension.py 盯着它别走散。
+CONNECT_IS_CLICKABLE_TODAY: dict[str, str] = {
+    "youtube": "打开任意一个 YouTube 页面，点插件里的「连接」——"
+               "登录状态只交给你自己的服务器保管。",
+}
+
 
 class ConnectorRegistry:
     def __init__(self, settings: Settings):
@@ -282,6 +301,24 @@ class ConnectorRegistry:
             # 所以没红——一个只修了一半的修复，比没修更难发现。
             if clamped_by_capability:
                 next_action = "本版本没有能打开这条路的设置项；照上面那句话做就行。"
+                # **但对确实点得到的那个平台，这句话现在是假的。**
+                #
+                # 2026-08-05 生产实测抓到的：youtube 的 message_zh 已经写着
+                # 「现在可以：连接 YouTube（把登录状态交给你自己的服务器保管）」，
+                # 而紧跟着的下一步却说「没有能打开这条路的设置项」——
+                # **两句话自相矛盾，而且后一句指着交接里唯一让 Owner 去做的那件事。**
+                #
+                # 成因还是那个：同一天我给 youtube 接上了界面入口（扩展那四张表），
+                # 却没回头改服务端这张表。**第五张表。**
+                #
+                # 这里不写死「凡 CUSTODIAL_PLATFORMS 都点得到」——那三个里：
+                #   · x         —— 压着零费用门，Owner 不确认就没有任何设置项能开
+                #   · instagram —— 授权那一步还没有做成他点得到的界面
+                #   · youtube   —— 什么门都不压，插件里就有那个按钮
+                # 所以只列**今天真点得到**的，并由判据盯着它别和扩展那几张表走散。
+                clickable = CONNECT_IS_CLICKABLE_TODAY.get(connector_id)
+                if clickable:
+                    next_action = clickable
             error_code = probe.get("error_code") or (row.get("last_error_code") if state == row.get("state") else None)
             message = str(probe.get("message_zh") or "")
             if not message and state == row.get("state"):
