@@ -294,6 +294,30 @@ class DestinationRegistry:
             message = configuration_error or row.get("last_message_zh")
             next_action = str(message or self._default_next_action(destination_id, configured, state))
             exported = total if destination_id == "social_archive" else coverage.get(destination_id, 0)
+            # **数字诚实了，下一步还在说「一切正常」。**
+            #
+            # 2026-08-04 那次修的是 coverage_zh，让它照实说「已送到 1 / 193 条」。
+            # 但 next_action 没动。2026-08-05 生产实测，Owner 看到的是：
+            #
+            #   Obsidian    已送到 1 / 193 条    下一步：最近一次自动导入成功。
+            #   ArchiveBox  已送到 0 / 193 条    下一步：连接检查通过，可以自动导入。
+            #
+            # 两句下一步单独看都是真的——最近那一次确实成功、连接确实通过——
+            # **而它们把「192 条从来没到过这里」说成了「一切正常」**。
+            # 他没有技术背景，读到「导入成功」就不会再往下想。
+            #
+            # 差额不是错误，是**投递只在新内容进来时发生**：他后来才连上的目的地，
+            # 先前入库的内容不会自己追上去。所以这里不改状态、不报错，
+            # 只把那个差额和它的成因摆到下一步里，并给出补投那条命令。
+            if authorized and total and exported < total and destination_id != "social_archive":
+                next_action = (
+                    f"**还有 {total - exported} 条从来没送到这里。** "
+                    "自动投递只在新内容进来时发生，先前入库的不会自己追上去。"
+                    "要补投，在服务器上跑一次："
+                    f"docker compose exec core-api python /app/scripts/backfill_destination.py "
+                    f"--destination {destination_id} --apply"
+                    f"（原本的状态：{next_action}）"
+                )
             result.append(
                 DestinationView(
                     destination_id=destination_id,
