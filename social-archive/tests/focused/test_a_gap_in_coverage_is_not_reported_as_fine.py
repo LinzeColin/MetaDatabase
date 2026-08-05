@@ -200,3 +200,16 @@ def test_the_privacy_note_is_written_for_him_not_for_us() -> None:
     # 而且每一条都要真说了点什么
     registry_notes = [line for line in table.splitlines() if '":' in line]
     assert len(registry_notes) >= 8, f"隐私说明少了几条：{len(registry_notes)}"
+
+
+def test_the_privacy_note_class_actually_has_a_style() -> None:
+    """引一个不存在的 class，等于给自己留一个「以为它长这样」的错觉。
+
+    第一版给隐私说明加了 `class="muted privacy-note"`，而 styles.css 里
+    压根没有 `.privacy-note`——它照样渲染（靠 muted），但那个类名什么都没做。
+    **不做事的类名比没有类名更坏**：下次有人以为改它就能改样式。
+    """
+    app = (ROOT / "apps/pwa/app.js").read_text(encoding="utf-8")
+    styles = (ROOT / "apps/pwa/styles.css").read_text(encoding="utf-8")
+    if "privacy-note" in app:
+        assert ".privacy-note" in styles, "app.js 用了 privacy-note，样式表里没有它"
