@@ -25,6 +25,25 @@ DEFAULT_RELATION = {
 }
 
 
+# **「探针没打通」不是原因，是症状。**
+#
+# 2026-08-05 生产实测：xiaohongshu 报 HEALTH_PROBE_FAILED，douyin 与 kuaishou 报
+# WORKER_PROBE_OR_CALL_FAILED——而它们的探针去连的是 xhs-worker:5556 之类的地址，
+# 那三个 worker 早在 T03 就**被实测证伪、连同 compose.workers.yaml 一起删掉了**。
+#
+# 也就是说这些码指着一个**故意移除**的组件。「探针挂了」读起来像「有东西宕了，
+# 重启一下」，而真相是「这条路本版本就没有」。任务包 T13 的原话是
+# **沉默不算 BLOCKED**——同理，**指错原因的 BLOCKED 也不算**：它把人送去修一个
+# 不存在的东西。
+#
+# 这张表只放这一类「顺带撞上的传输/探针失败」。像 X_ZERO_COST_NOT_CONFIRMED
+# 那样**本身就是真原因**的码不在此列，必须原样留着——它比通用码有用得多。
+INCIDENTAL_PROBE_FAILURES = frozenset({
+    "HEALTH_PROBE_FAILED",
+    "WORKER_PROBE_OR_CALL_FAILED",
+})
+
+
 class ConnectorRegistry:
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -175,11 +194,41 @@ class ConnectorRegistry:
                 # 「暂时不行、待会儿再试」，而这件事重试多少次都一样。
                 # 一律按 blocked_environment 呈现。
                 state = "blocked_environment"
+                # **失败码也要换掉，不能只换文案。**
+                #
+                # 原来写的是 `probe.get("error_code") or "PLATFORM_NOT_SYNCABLE_YET"`
+                # ——探针有码就留探针的。2026-08-05 生产实测，于是出现：
+                #     xiaohongshu  HEALTH_PROBE_FAILED
+                #     douyin/快手  WORKER_PROBE_OR_CALL_FAILED
+                #     bilibili/reddit/instagram/tiktok  PLATFORM_NOT_SYNCABLE_YET
+                # 同样是「本版本读不了」，前三个却报成探针挂了。
+                #
+                # 而那三个探针挂掉的原因是：它们去连 xhs-worker:5556 之类的地址，
+                # 那三个 worker 早在 T03 就**被实测证伪并连同 compose.workers.yaml
+                # 一起删掉了**。也就是说，失败码指着一个**故意移除**的组件。
+                #
+                # 「探针挂了」读起来像「有东西宕了，重启一下」，而真相是
+                # 「这条路本版本就没有」。任务包 T13 的原话是**沉默不算 BLOCKED**——
+                # 同理，**指错原因的 BLOCKED 也不算**：它把人送去修一个不存在的东西。
+                #
+                # 探针的原码不丢，挪进 detail 留作排查线索；对外的那个码必须是真实原因。
+                # **只换「顺带撞上的」那种码，不换真原因。**
+                # x 报的 X_ZERO_COST_NOT_CONFIRMED 就是真原因（Owner 的零费用门），
+                # 比通用码更有用，必须留着。要换掉的只有下面这几个——它们说的是
+                # 「探针没打通」，而探针打不通恰恰是因为对面那个组件被删了。
+                probe_code = probe.get("error_code")
+                incidental = probe_code in INCIDENTAL_PROBE_FAILURES
                 probe = {
                     **probe,
                     "state": state,
-                    "error_code": probe.get("error_code") or "PLATFORM_NOT_SYNCABLE_YET",
+                    "error_code": ("PLATFORM_NOT_SYNCABLE_YET" if incidental or not probe_code
+                                   else probe_code),
                     "message_zh": NOT_SYNCABLE_YET[connector_id],
+                    "detail": "；".join(
+                        part for part in (probe.get("detail"),
+                                          f"探针另报 {probe_code}" if incidental else "")
+                        if part
+                    ) or None,
                 }
             elif state == "healthy" and connector_id not in SYNCABLE_NOW:
                 # 不在任何一张表里的（例如 tiktok，它连 PLATFORM_RELATIONS 都不在）
@@ -207,7 +256,16 @@ class ConnectorRegistry:
                 "technical_gate":row.get("technical_gate", "pass" if state=="healthy" else "unknown"),
                 "last_success_at":row.get("last_success_at"),"last_error_code":error_code,
                 "last_checked_at":checked_at,"latency_ms":latency_ms,"last_message_zh":message,
-                "next_action_zh":next_action
+                "next_action_zh":next_action,
+                # 排查线索：被换掉的那个探针码留在这里。
+                #
+                # **不加这一项的话，上面那段「把探针码挪进 detail」等于白写**——
+                # 视图行根本不带 detail，线索到不了任何人手里。
+                # （这正是本项目一整天在抓的那种：写了，没接上。）
+                #
+                # 只走要鉴权的那条投影；对外发布的那份由 sanitize_status_document
+                # 按白名单裁掉，不会把内部探针码摆到公开页上。
+                "detail": probe.get("detail"),
             })
         return result
 
