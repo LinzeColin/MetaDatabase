@@ -94,9 +94,12 @@ def test_only_on_production_and_logic_differences_are_what_fail_it() -> None:
     这道门把它归进 comment_only，而没有和真的逻辑漂移混在一起。
     """
     code = _code_only(CHECK_SOURCE)
-    assert 'status = "FAIL" if only_on_production or logic_differs else "PASS"' in code, (
-        "失败条件不是「只在生产有」加「逻辑不同」这两类"
-    )
+    # 失败条件后来长了一项（镜像比仓旧），所以不钉死整句，钉三个组成部分。
+    assert 'status = "FAIL" if' in code
+    for part in ("only_on_production", "logic_differs", "container_stale"):
+        assert part in code.split('status = "FAIL" if')[1].split("else")[0], (
+            f"{part} 不在失败条件里"
+        )
     assert '"comment_only": comment_only' in code, "只差注释的那一类没有单独报出来"
 
 
@@ -120,14 +123,93 @@ def test_it_never_writes_to_production() -> None:
     """
     import ast
 
-    literals = [node.value for node in ast.walk(ast.parse(CHECK_SOURCE))
-                if isinstance(node, ast.Constant) and isinstance(node.value, str)]
-    # 说明性的长文本（docstring 那类）不是要送去执行的东西，排掉。
-    commands = [text for text in literals if "\n" not in text.strip() or "sudo" in text]
-    for dangerous in ("rsync", "docker ", "systemctl", "rm -", "mv ", " > ", "tee "):
+    # **只取真正送进 subprocess.run(...) 的字符串。**
+    #
+    # 前两版都拿「所有字符串字面量」当命令，于是接连冤枉了两处：
+    #   · 模块开头解释「代码是 rsync 送上去的」那段说明
+    #   · 「systemctl restart 不会重建镜像」那句**给人看的提示**
+    # 两处都不是要送去执行的东西。**判据自己指错原因，今天第四次。**
+    # 会跑到那台机器上的只可能是 subprocess.run 的参数，那就只看它。
+    tree = ast.parse(CHECK_SOURCE)
+    commands: list[str] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        target = node.func
+        name = getattr(target, "attr", None) or getattr(target, "id", None)
+        if name != "run":
+            continue
+        for argument in list(node.args) + [kw.value for kw in node.keywords]:
+            for inner in ast.walk(argument):
+                if isinstance(inner, ast.Constant) and isinstance(inner.value, str):
+                    commands.append(inner.value)
+                elif isinstance(inner, ast.JoinedStr):
+                    commands.append("".join(
+                        part.value for part in inner.values
+                        if isinstance(part, ast.Constant) and isinstance(part.value, str)))
+    assert commands, "一条送去执行的字符串都没找到——**这不是通过**，是这条判据瞎了"
+    # `docker exec` 本身不危险——危险的是**用它做了什么**。这道门用它进容器
+    # 数文件，那是只读的。所以禁的是会动容器的那些子命令，不是 docker 三个字母。
+    for dangerous in ("rsync", "docker restart", "docker rm", "docker stop",
+                      "docker compose", "docker cp", "systemctl", "rm -", "mv ",
+                      " > ", "tee "):
         offenders = [text for text in commands if dangerous in text]
         assert not offenders, f"要送去生产执行的字符串里有 {dangerous!r}：{offenders[:1]}"
 
+    # 进了容器之后跑的也必须只是读：只允许 find / sha256sum / xargs / cd。
+    for text in commands:
+        if "docker exec" not in text:
+            continue
+        for verb in ("python", "sh -c", "bash", "apt", "pip", "chown", "chmod"):
+            assert verb not in text, f"docker exec 里出现了不是只读的动作：{verb!r}"
+
     # 而且真正会跑的那几个词必须在——否则这条判据可能只是「什么都没找到」。
-    assert any("sha256sum" in text for text in commands), "没看到它真去算哈希"
-    assert any("find" in text for text in commands), "没看到它真去列文件"
+    #
+    # **这两条查整份源码，不查 subprocess 参数。** 和上面正好相反，是有意的：
+    # 命令常常先拼进一个变量再传出去（`command = f"cd ... sha256sum ..."`），
+    # AST 那条路看不见它。而这两条是**正向确认**，宽一点只会漏放行、不会冤枉人。
+    # 指控用窄窗，确认用宽窗——今天在文档那道门上已经定过同一条规矩。
+    assert "sha256sum" in CHECK_SOURCE, "没看到它真去算哈希"
+    assert "find " in CHECK_SOURCE, "没看到它真去列文件"
+
+
+def test_it_also_compares_the_copy_inside_the_image() -> None:
+    """**要比的是三份，不是两份。**
+
+    2026-08-05 才弄清楚：容器里的 `/app` 是**烤进镜像的**，不是主机目录的
+    绑定挂载（只有 `/run/secrets/*` 是）。当天就撞上了——把修好的脚本放到
+    主机上，在容器里跑，跑的还是旧的。
+
+    只比「仓 ←→ 主机」会得出一个安心但不成立的结论：主机同步对了，
+    **服务可能还在跑上一版**。运维手册那句「systemctl restart 不会重建镜像」
+    说的是同一件事的另一面。
+    """
+    code = _code_only(CHECK_SOURCE)
+    assert "_container_hashes" in code, "根本没去看镜像里那一份"
+    assert "docker exec" in CHECK_SOURCE, "没有真去容器里数文件"
+    assert "container_is_running_older_code" in code, "镜像旧了没有单独报出来"
+    assert "container_stale" in code and "status = \"FAIL\"" in code, (
+        "镜像比仓旧的时候不会让这道门红"
+    )
+
+
+def test_a_stale_image_is_not_lumped_in_with_undeployed_files() -> None:
+    """「镜像比仓旧」和「新写的还没发」是两回事，**下一步完全不同**。
+
+    前者要重建镜像（deploy/update.sh），后者只是还没同步。
+    报成同一类的话，人会去做错的那一件。
+    """
+    code = _code_only(CHECK_SOURCE)
+    assert "only_local_not_deployed_yet" in code and "container_is_running_older_code" in code
+    assert code.count("container_is_running_older_code") >= 1
+    # 镜像旧了那条提示必须说清楚要做什么
+    assert "重建镜像" in CHECK_SOURCE, "没告诉人镜像旧了该怎么办"
+
+
+def test_an_unreadable_container_is_not_reported_as_agreement() -> None:
+    """**容器里一个文件都没数到，绝不能报成「一样」。**
+
+    容器名写错、docker 没权限、容器没起来——现象都是「零个文件」。
+    """
+    assert "容器里一个文件都没数到" in CHECK_SOURCE
+    assert "查不了，见 container_note" in CHECK_SOURCE, "查不了的时候被当成通过了"

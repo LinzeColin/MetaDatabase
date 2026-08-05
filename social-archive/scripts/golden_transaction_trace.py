@@ -179,8 +179,38 @@ def main() -> int:
             "detail": (run.stdout.strip() or run.stderr.strip())[-300:],
         }
         if run.returncode != 0:
-            problems.append(f"从 {args.from_store} 取回 {artifact_id} 失败——"
-                            "前面几站都是数据库自述，只有这一站是真的把字节拿回来")
+            # **先分清是「取不回来」还是「你在没有钥匙的地方跑」。**
+            #
+            # 2026-08-05 实测：在 core-api 容器里跑这一步，报
+            #   BLOCKED_ENVIRONMENT / OBJECT_STORE_CONFIG_MISSING（缺少 R2 恢复配置）
+            # 于是整份报告变成 FAIL，那句话读起来像「异地副本取不回来了」。
+            # **而副本好得很**：同一个制品，改用 restore_object_systemd.sh
+            # 走带凭据的瞬时单元，731 字节取回来，sha256 与库里逐字符相同。
+            #
+            # 原因是**按设计如此**：备份/恢复用的对象仓凭据是 systemd 的
+            # LoadCredential，只在那些单元里可见；core-api 容器不该拿着它们。
+            #
+            # 这两件事的下一步完全相反：一个是「异地副本出问题了，赶紧查」，
+            # 另一个是「换个地方跑」。**把后者报成前者，会让人在半夜去查一个
+            # 没坏的备份链。** 同一个坑在 backfill 那边已经吃过一次。
+            detail = str(restore.get("detail") or "")
+            wrong_place = ("OBJECT_STORE_CONFIG_MISSING" in detail
+                           or "AGE_IDENTITY_MISSING" in detail
+                           or "BLOCKED_ENVIRONMENT" in detail)
+            if wrong_place:
+                restore["error_code"] = "RUN_ME_THROUGH_THE_SYSTEMD_WRAPPER"
+                restore["message_zh"] = (
+                    "**这不是取不回来，是这里没有钥匙。** 对象仓凭据是 systemd 的 "
+                    "LoadCredential，只在那些单元里可见——core-api 容器按设计就不该拿着它们。"
+                    "换成：sudo bash /opt/social-archive/scripts/restore_object_systemd.sh "
+                    f"--artifact-id {artifact_id} --from-store {args.from_store} --target <全新隔离目录>"
+                )
+                problems.append(
+                    f"最后那一站没验成：{args.from_store} 的凭据在这个进程里看不到"
+                    "（**不是副本有问题**，见 restored_from_remote_and_hash_checked.message_zh）")
+            else:
+                problems.append(f"从 {args.from_store} 取回 {artifact_id} 失败——"
+                                "前面几站都是数据库自述，只有这一站是真的把字节拿回来")
         if not args.restore_target:
             shutil.rmtree(target, ignore_errors=True)
 
