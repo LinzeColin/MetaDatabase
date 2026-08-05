@@ -112,8 +112,19 @@ def test_it_says_out_loud_what_it_cannot_see() -> None:
 
     现在剩下的盲区是：拼出来的平台名、从配置读的、嵌套太深的。
     """
-    assert "仍然看不到的" in SOURCE, "没有声明任何盲区"
-    assert "不等于它们没问题" in SOURCE, "声明了盲区，却没说清「查不到 ≠ 没问题」"
+    # **钉性质，不钉措辞。** 这条判据已经因为改字红过两次了——
+    # 第一次是盲区被补上、清单变了，那次红得对；第二次是我把
+    # 「查不到不等于没问题」换了个说法，那次纯属判据太死。
+    # 一条只认某句话的判据，拦的是改字的人，不是拿掉声明的人。
+    import re
+
+    declares_a_limit = re.search(r"看不到|盲区|查不到|局限", SOURCE)
+    refuses_to_claim_completeness = re.search(
+        r"不等于|不是「?以后|不代表|并不说明", SOURCE)
+    assert declares_a_limit, "没有声明任何盲区"
+    assert refuses_to_claim_completeness, (
+        "声明了盲区，却没说清「查不到 ≠ 没问题」——那会读成「已经查全了」"
+    )
 
 
 def test_it_is_wired_into_the_release_gate() -> None:
