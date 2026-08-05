@@ -108,7 +108,7 @@ def main() -> int:
         print(f"**界面上找不到的 {len(missing)} 处**——照着文档操作的人会以为是自己错了：")
         for line in missing:
             print(line)
-        print("\n改文档去对齐界面，或写进 NOT_UI_STRINGS 说明它不是界面词。")
+        print("\n直角引号「」在这个仓里**专表界面上真有的那个词**。\n  · 想强调 → 用 **粗体** 或破折号，别用直角引号\n  · 真是界面词 → 改文档去对齐界面\n  · 确实不是界面词、又非用不可 → 写进 NOT_UI_STRINGS 并说明理由\n  （这条约定写在 AGENTS.md「写文档时的一条排版约定」那节）")
         return 1
     print("每一处都在界面上找得到。")
     return 0
