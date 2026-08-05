@@ -161,7 +161,11 @@
   }
 
   const destinationNames = {
-    social_archive: "Social Archive", markdown: "Markdown", notion: "Notion", obsidian: "Obsidian",
+    // **同一个东西三个名字**（2026-08-06）：资料库叫它「Social Archive」、
+  // 扩展叫「我的档案馆」、设置页叫「主档案」。产品在别处一律叫「档案馆」
+  // （全仓 54 处，其中面向用户的「我的档案馆」14 处，而「主档案」只有这一张表里的 2 处）。
+  // 对一个说自己没有技术基础的人，同一样东西三个名字就是三样东西。
+  social_archive: "我的档案馆", markdown: "Markdown", notion: "Notion", obsidian: "Obsidian",
     github: "GitHub Private", karakeep: "Karakeep", linkwarden: "Linkwarden", archivebox: "ArchiveBox"
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
