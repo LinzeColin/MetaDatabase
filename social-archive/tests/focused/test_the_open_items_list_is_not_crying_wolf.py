@@ -61,3 +61,26 @@ def test_it_is_never_a_gate() -> None:
     assert "这不是门" in SOURCE
     for red in ("sys.exit(1)", "return 1"):
         assert red not in SOURCE, f"它变成门了：{red}"
+
+
+def test_a_todo_written_as_prose_is_still_counted() -> None:
+    """**别拿位置当判据。**
+
+    真待办常常写成一句话：「T06 的 Oracle 仍然 NOT_RUN——它需要 Owner 登录」，
+    NOT_RUN 落在句子中间。我第一版想用「值以 NOT_RUN 开头才算」来把
+    记账原则筛掉，**当场误伤三条真待办**，19 条一下掉到 13 条。
+    """
+    prose = {"what_this_does_not_prove": [
+        "**没有用真实平台会话跑通过一次。** T06 的 Oracle 仍然 NOT_RUN——需要 Owner 登录"]}
+    assert _walk(prose), "写成一句话的待办被漏掉了"
+
+
+def test_a_bookkeeping_rule_about_not_run_is_not_a_todo() -> None:
+    """T00 那条 `honesty_note` 说的是**本文件的记账原则**：
+    「未执行的标 NOT_RUN……绝不改写成 PASS」。那不是待办。"""
+    assert not _walk({"honesty_note": "未执行的标 NOT_RUN，未确认的标 UNVERIFIED，绝不改写成 PASS。"})
+
+
+def test_quoting_a_superseded_sentence_is_not_a_todo() -> None:
+    """「**原文写**『……仍是 NOT_RUN』，后来被两份证据超越了」——引用，不是待办。"""
+    assert not _walk({"honest_status": "原文写「严格说仍是 NOT_RUN」，后来已被超越"})

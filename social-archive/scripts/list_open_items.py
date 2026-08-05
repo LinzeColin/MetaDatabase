@@ -74,6 +74,20 @@ def walk(node: object, path: str, out: list[str]) -> None:
         for index, item in enumerate(node):
             walk(item, f"{path}[{index}]", out)
     elif isinstance(node, str) and "NOT_RUN" in node:
+        # **「还没做」和「在讲 NOT_RUN 这件事」要分开，但别用位置去分。**
+        #
+        # 有两种字符串里带 NOT_RUN 却不是待办：
+        #   T00 的 honesty_note：「未执行的标 NOT_RUN……绝不改写成 PASS」
+        #                        —— 那是本文件的**记账原则**
+        #   T04 更新后的 honest_status：「原文写『……仍是 NOT_RUN』」
+        #                        —— 那是在**引用一句已经被超越的旧话**
+        #
+        # 第一版想用「值以 NOT_RUN 开头才算」来分，**当场误伤三条真待办**——
+        # 像「T06 的 Oracle 仍然 NOT_RUN——它需要 Owner 登录」这种，
+        # NOT_RUN 落在句子中间，却是货真价实的未完成项。19 条一下掉到 13 条。
+        # 所以改成只排掉那两种明确的形态，别拿位置当判据。
+        if path.endswith("honesty_note") or "原文写" in node or "原来写" in node:
+            return
         out.append(f"{path}: {node[:150]}")
 
 
