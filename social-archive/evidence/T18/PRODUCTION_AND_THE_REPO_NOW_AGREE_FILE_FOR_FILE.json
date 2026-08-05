@@ -30,9 +30,19 @@
   },
   "the_drift_check_closed_the_loop": {
     "tool": "scripts/check_production_matches_the_repo.py（同日新建）",
-    "before_deploy": {"only_on_production": 0, "logic_differs": 2, "comment_only": 1, "not_deployed_yet": 3},
-    "after_deploy": {"only_on_production": 0, "logic_differs": 0, "comment_only": 0, "not_deployed_yet": 0,
-                     "file_count": "本地 110 / 生产 110"},
+    "before_deploy": {
+      "only_on_production": 0,
+      "logic_differs": 2,
+      "comment_only": 1,
+      "not_deployed_yet": 3
+    },
+    "after_deploy": {
+      "only_on_production": 0,
+      "logic_differs": 0,
+      "comment_only": 0,
+      "not_deployed_yet": 0,
+      "file_count": "本地 110 / 生产 110"
+    },
     "why_it_matters": "`/opt/social-archive` 不是 git 检出，那台机器上**没有 `git status` 可问**。在这个工具之前，「生产跑的是不是仓里这一份」只能临时拼四条命令去问，而部署脚本第 8 道门只核了**扩展包**那一个文件。"
   },
   "rollback": {
@@ -43,6 +53,22 @@
   "what_this_does_not_prove": [
     "**不证明 youtube 能同步了。** 这次改的是文案不是能力——它依然读不到稍后观看。变的是它不再告诉 Owner「没有设置项」。",
     "不证明跨版本回滚：回滚点只差这一次部署，**带迁移的跨版本回滚仍未验过**（且已无可用的跨版本镜像）。",
-    "一致性是**这一刻**的：任何人再往 /opt/social-archive 手工放一个文件，它立刻就不成立了——所以那个检查要当例行动作跑，不是一次性结论。"
-  ]
+    "一致性是**这一刻**的：任何人再往 /opt/social-archive 手工放一个文件，它立刻就不成立了——所以那个检查要当例行动作跑，不是一次性结论。",
+    "**「一致」这个词第一次写下时并不成立**——那时只比了三份中的两份。见 a_correction_to_this_file。一个结论的措辞比它的数字更容易骗人：110/110 是真的，「生产与仓一致」当时却不是。"
+  ],
+  "a_correction_to_this_file": {
+    "what_was_overstated": "本文件最初写「生产与仓逐文件一致（110/110）」，而当时那个工具**只比了两份**：仓 ←→ 主机。",
+    "what_was_missing": "容器里的 `/app` 是**烤进镜像的**，不是主机目录的绑定挂载（只有 /run/secrets/* 是）。**服务真正执行的是镜像里那一份。** 主机同步对了，服务完全可能还在跑上一版。",
+    "how_it_surfaced": "把修好的 golden_transaction_trace.py scp 到主机、在容器里跑，跑的还是旧的。",
+    "fixed": "check_production_matches_the_repo.py 现在比三份，并把「镜像比仓旧」单列成一类（下一步是重建镜像，与「还没同步」要做的完全相反）。",
+    "re_measured_after_the_second_deploy": {
+      "file_count": "本地 110 / 生产 110 / 镜像 110",
+      "only_on_production": 0,
+      "logic_differs": 0,
+      "comment_only": 0,
+      "not_deployed_yet": 0,
+      "container_is_running_older_code": 0,
+      "status": "PASS —— 这一次「一致」是三份都比过的"
+    }
+  }
 }
