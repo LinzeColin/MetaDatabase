@@ -327,20 +327,33 @@ def main() -> int:
                 # 白跳过了 5 条，其中包括 `"chown -R" not in code`。
                 mutated = original + "\n" + literal + "\n"
             budget -= 1
-            source.write_text(mutated, encoding="utf-8")
-            try:
-                run = subprocess.run([sys.executable, "-m", "pytest", str(test), "-q", "-x"],
-                                     capture_output=True, text=True, timeout=180)
-                output = (run.stdout or "") + (run.stderr or "")
-                red = run.returncode != 0
-                # **红了还不够，得是「断言没过」那种红。**
+
+            def _attempt(text: str) -> tuple[bool, bool]:
+                """把源文件换成 text，跑一次判据，回 (红了吗, 是断言红的吗)。"""
+                source.write_text(text, encoding="utf-8")
+                try:
+                    got = subprocess.run([sys.executable, "-m", "pytest", str(test), "-q", "-x"],
+                                         capture_output=True, text=True, timeout=180)
+                finally:
+                    source.write_text(original, encoding="utf-8")
+                blob = (got.stdout or "") + (got.stderr or "")
+                return got.returncode != 0, ("AssertionError" in blob or "assert" in blob)
+
+            red, asserted = _attempt(mutated)
+            if red and not asserted and kind == "in":
+                # **整行删掉常常把源文件弄成语法错误**——判据于是因为 import 失败而红，
+                # 那不证明这条断言守住了什么。实测：删掉 destinations.py 里那一行之后，
+                # 报的是 `ImportError while loading conftest`。
                 #
-                # 反向突变是往文件里塞文本，那可能把 yaml/json 解析弄崩、
-                # 或者让别的判据抛异常——那种红不证明这条判据守住了什么，
-                # 它只证明我把文件弄坏了。只认 AssertionError。
-                asserted = "AssertionError" in output or "assert" in output
-            finally:
-                source.write_text(original, encoding="utf-8")
+                # 退一步用更轻的一刀：**在字面量的最后一个字符前插一个 Z**。
+                # 这样字面量不再出现（断言该红），而语法通常仍然成立：
+                #   destination_id != "social_archive"  →  … "social_archiveZ"
+                #   destination_binding                 →  destination_bindinZg
+                gentler = original.replace(literal, literal[:-1] + "Z" + literal[-1], 1)
+                if gentler != original and literal not in gentler:
+                    red, asserted = _attempt(gentler)
+            run = None
+            output = ""
             if red and asserted:
                 results["load_bearing"] += 1
             elif red:
