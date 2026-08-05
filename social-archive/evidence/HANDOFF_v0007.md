@@ -92,6 +92,31 @@ cookie-export 的 FORBIDDEN_PLATFORMS 在第一行就拒）。我一度说「开
    今天全仓只有诊断那条路读它，而诊断进门就把它覆盖掉。
    **让同步真的用上这个前缀是 T10**，那一格还没做。
 
+### 要加一个新平台的话（这条路现在是可重复的）
+
+一个平台散在**四张表**里：`shared.js` 的 PLATFORM_RULES、
+`content/platform-catalog.js` 的 PLATFORMS、`cookie-export.js` 的
+ALLOWED/FORBIDDEN、以及服务端那几张。接 youtube 时我两次宣布「封住了」，
+两次都错，**两次都是宣布完成之后才发现的**——靠人对表总会漏一张。
+
+改完之后跑这个，它在真 Chrome 里一次问完四张表：
+
+```
+unzip -q -o dist/social-archive-extension.zip -d /tmp/sa-wire
+python3 scripts/extension_platform_wiring_drill.py --ext-dir /tmp/sa-wire \
+    --platform <平台> --sample-url <该平台一个真实页面> \
+    --expect-custody yes|forbidden|not-yet
+```
+
+`--expect-custody` 有**三种**状态，别只想成两种：`yes` = 白名单里有
+（x / instagram / youtube）；`forbidden` = 禁止名单里有、白名单里没有
+（国内四平台的硬边界）；`not-yet` = 两张表都没有（支持这个平台，但托管
+还没做，比如 reddit）。**「还没做」不要拿禁止名单去表达**——那张表是给
+「Cookie 永不出浏览器」留的，被当成待办清单用之后就说不清它在表达什么。
+
+它**不证明**这个平台能真的同步——那要等取数通路（T09/T17）。
+见 `T06/ADDING_A_PLATFORM_NOW_HAS_A_REPEATABLE_ACCEPTANCE_PATH.json`。
+
 ## 2026-08-05 的四个缺陷（都在 Owner 唯一要动手的那条路上）
 
 写了一个回环演练把「拦截 → 读懂」整条链跑一遍，**第一版报 PASS 是假绿**：
