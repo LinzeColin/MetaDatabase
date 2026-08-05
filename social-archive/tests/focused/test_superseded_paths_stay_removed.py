@@ -268,6 +268,12 @@ _ALLOWED_INPUTS = {
     ("options.html", "endpoint"): "服务连接排障用，默认无需修改",
     # placeholder="可留空"，不填也能保存。是个便利项，不是必填。
     ("popup.html", "collectionKey"): "收藏夹名，可留空",
+    # **复选框不是「输入字符」，是点一下。** 零输入那条禁的是让人打字
+    # （粘 Cookie、填令牌、抄请求头），不是禁掉所有开关。
+    # 而它存在的理由恰恰是零门槛的另一面：那颗浮动按钮此前**关不掉**——
+    # showFloatingButton 默认 true 且全仓没人写它，「怎么让这个按钮消失」
+    # 在界面上没有答案。见 evidence/T11/THE_LOCAL_OBSIDIAN_PATH_IS_BUILT_BUT_UNREACHABLE.json
+    ("options.html", "showFloatingButton"): "复选框（点一下，不打字）；关掉页面上那颗浮动按钮",
 }
 
 
@@ -293,6 +299,13 @@ def test_no_extension_surface_asks_for_typed_input() -> None:
             assert ident, f"{path.name} 有一个没有 id 的 input，无法登记：{tag[:80]}"
             seen += 1
             key = (path.name, ident.group(1))
+            # **登记不等于随便什么控件都行。** 登记为「复选框」的必须真是复选框，
+            # 否则今天登记一个 checkbox、明天改成 type="text"，判据照样绿。
+            if "复选框" in _ALLOWED_INPUTS.get(key, ""):
+                assert 'type="checkbox"' in tag, (
+                    f"{path.name} 的 #{ident.group(1)} 登记时写的是复选框，"
+                    f"现在却不是了：{tag[:90]}"
+                )
             assert key in _ALLOWED_INPUTS, (
                 f"{path.name} 出现了未登记的输入控件 #{ident.group(1)}。"
                 "T03 要求全程零输入；确实必要的话请加进 _ALLOWED_INPUTS 并写明为什么它不是门槛。"

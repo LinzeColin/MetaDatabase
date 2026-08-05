@@ -282,5 +282,19 @@
   $("openLibrary").addEventListener("click",async()=>chrome.tabs.create({url:(await SA.getConfig()).libraryUrl}));
   $("openDestinationCenter").addEventListener("click",async()=>chrome.tabs.create({url:`${(await SA.getConfig()).libraryUrl}/?open=destinations`}));
   $("finish").addEventListener("click",async()=>{await SA.setConfig({onboardingComplete:true});chrome.tabs.create({url:(await SA.getConfig()).libraryUrl});});
+  // 页面上那颗浮动按钮的开关。**此前 showFloatingButton 只有默认值 true，
+  // 全仓没有任何一处写它**——按钮出现在每个已授权的平台页面上，而用户没有
+  // 任何办法关掉它。「怎么让这个按钮消失」这个问题在界面上没有答案。
+  (async () => {
+    const box = $("showFloatingButton");
+    if (!box) return;
+    box.checked = (await SA.getConfig()).showFloatingButton !== false;
+    box.addEventListener("change", async () => {
+      await SA.setConfig({ showFloatingButton: box.checked });
+      // 已经打开的页面上那颗按钮要下一次加载才消失，说清楚，别让人以为没生效。
+      toast(box.checked ? "已开启；打开平台页面就能看到它。"
+                        : "已关掉；已经开着的页面刷新一次才会消失。");
+    });
+  })();
   loadData();
 })();

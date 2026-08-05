@@ -71,7 +71,14 @@ NOT_FOR_CLIENTS: dict[str, str] = {
     "/v1/status": "运维/诊断用（sync_health、tenancy、provenance 三个审计挂在这里），不是界面数据源",
     "/v1/health": "探活",
     "/v1/connectors": "连接器目录，目前只有判据在用；界面走 /v1/accounts 那条路",
-    "/v1/destinations/obsidian-local/receipts": "扩展的本机 Obsidian 桥回执入口，由桥自己 POST，不在仓内客户端里",
+    "/v1/destinations/obsidian-local/receipts": (
+        # **原来这里写的是「由桥自己 POST，不在仓内客户端里」——那句是错的。**
+        # 桥就在仓内（background.js 的 exportLocalObsidian），它只是**不 POST**。
+        # 一个写错了理由的豁免，比没有豁免更难被发现：它读起来像是有人查过了。
+        "本机 Obsidian 回执入口。**目前没有任何客户端会调它**——"
+        "exportLocalObsidian() 把 Markdown PUT 进本机仓库之后直接返回，从不回执；"
+        "而且它自己也走不到（obsidianLocalEnabled 全仓没人写）。"
+        "整条路的状态见 evidence/T11/THE_LOCAL_OBSIDIAN_PATH_IS_BUILT_BUT_UNREACHABLE.json"),
     # —— 下面两条是**真的没人调**，登记在此是为了让「知道」可查，不是让检查器闭嘴 ——
     "/v1/import/markdown": "**没有任何调用方**。界面走的是 /v1/import/social-archiver（ZIP 导入）。这条是早期的单文件导入，未接界面。",
     "/v1/search": "**没有任何调用方**。资料库自己带全文与多维筛选（/v1/library?q=…），这条是它之前的独立搜索接口，已被取代但没删。",
