@@ -244,6 +244,19 @@ def main() -> int:
         }, ensure_ascii=False))
         return 4
 
+    # **这里只传 r2 与 oci 两处，没有 GitHub——那是对的，别去「补」第三份。**
+    #
+    # 2026-08-05 补上这条链的取回演练时数了一遍：索引（runtime-db）有三份
+    # 异地副本，而这些 fact 只有两份。看着像少了一份，其实不是：
+    #
+    #   · 索引那第三份落在 `gh-release://LinzeColin/Private-Database/...`，
+    #     而索引本身在 GitHub 上**没有家**——那一份是实打实的第三个故障域。
+    #   · 这些 fact 的**规范住处就是那个仓**（sync_private_database.py 里
+    #     称它 "the Private-Database facts authority"）。再往那儿放一份备份，
+    #     备份与源同生共死，加的是份数，不是安全度。
+    #
+    # 所以 fact 这条链的故障域其实也是三个：GitHub 上的源 + R2 + OCI，
+    # 而且后两个与源相互独立。**在同一个仓里再放一份才是退步。**
     key = f"backups/private-database/{stamp}/{encrypted.original_sha256}.tar.gz.age"
     receipts: dict[str, Any] = {}
     try:

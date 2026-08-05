@@ -17,10 +17,18 @@
     "why_the_last_step_is_the_point": "密文哈希一致只说明字节没坏；明文哈希一致只说明整包没坏。manifest 里给了 100 条 fact 各自的 sha256——不逐条核一遍，等于守着一张对得上的清单却从没点过数。"
   },
   "results": {
-    "r2": {"status": "PASS", "fact_count": 100, "every_fact_hash_matched": true,
-           "hashed_as": "line_with_newline"},
-    "oci": {"status": "PASS", "fact_count": 100, "every_fact_hash_matched": true,
-            "hashed_as": "line_with_newline"},
+    "r2": {
+      "status": "PASS",
+      "fact_count": 100,
+      "every_fact_hash_matched": true,
+      "hashed_as": "line_with_newline"
+    },
+    "oci": {
+      "status": "PASS",
+      "fact_count": 100,
+      "every_fact_hash_matched": true,
+      "hashed_as": "line_with_newline"
+    },
     "manifest": "/var/lib/social-archive/backups/private-database/20260805T033505Z/manifest.json",
     "object_key": "backups/private-database/20260805T033505Z/feda78b5cb1defb29be66e31ffd41f819a1596ae44a9aed4903080953f159b5b.tar.gz.age",
     "note": "这一份正是**备份 timer 自主触发那一次**（03:35）的产物，不是手工跑出来的。"
@@ -45,7 +53,7 @@
   },
   "what_this_does_not_prove": [
     "**不证明 fact 的内容是对的。** 只核了哈希与条数——「取回来的和存进去的一样」不等于「存进去的本来就对」。",
-    "不证明 GitHub 那份：这条链的 manifest 里只有 r2 / oci 两份回执（verified_remote_copies=2），与 runtime-db 的三份不同。",
+    "不证明 GitHub 那份——**因为按设计就不该有那一份**。这条链的 manifest 里只有 r2 / oci 两份回执，看着比索引的三份少一个，其实不是：这些 fact 的规范住处就是 LinzeColin/Private-Database 那个仓（索引的第三份也落在那儿，而索引在 GitHub 上没有家）。再往同一个仓放一份备份，备份与源同生共死。故障域其实同样是三个：GitHub 上的源 + R2 + OCI。已把这条理由写进 backup.py，免得下一个人去「补」那第三份。",
     "**age 私钥仍是全机一份的单点。** 这两次取回都靠它解开。"
   ],
   "cleanup": "演练目录 /srv/sa-drills 已删；全程只读远端，生产数据面一个字节没动。"
