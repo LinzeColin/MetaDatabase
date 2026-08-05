@@ -1134,6 +1134,18 @@ class RuntimeStore:
                     WHERE {where} GROUP BY c.platform ORDER BY count DESC""",
                 args,
             ).fetchall()
+            # **关系也要出 facet。** 界面上那个「关系」筛选此前是写死的四个
+            # （收藏/点赞/书签/稍后再看），而且**没有任何代码去重建它**。
+            # 2026-08-06 对着生产量：书签 0 条、稍后再看 1 条，
+            # 而**最大的那一组「观看历史」71 条（193 条里的 37%）根本不在名单上**。
+            # 主题那个筛选早就是照 facet 重建的，关系这个一直没跟上。
+            relation_rows = con.execute(
+                f"""SELECT r.relation_type AS relation,COUNT(DISTINCT c.id) AS count
+                    FROM content c JOIN user_relation r ON r.content_id=c.id
+                    LEFT JOIN content_classification cc ON cc.content_id=c.id
+                    WHERE {where} GROUP BY r.relation_type ORDER BY count DESC LIMIT 100""",
+                args,
+            ).fetchall()
             topic_rows = con.execute(
                 f"""SELECT COALESCE(cc.topic,'未分类') AS topic,COUNT(DISTINCT c.id) AS count
                     FROM content c JOIN user_relation r ON r.content_id=c.id
@@ -1158,6 +1170,7 @@ class RuntimeStore:
             "sort_dir": direction.lower(),
             "facets": {
                 "platforms": [dict(row) for row in platform_rows],
+                "relations": [dict(row) for row in relation_rows],
                 "topics": [dict(row) for row in topic_rows],
             },
         }

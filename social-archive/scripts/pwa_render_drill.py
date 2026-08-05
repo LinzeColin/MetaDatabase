@@ -96,7 +96,12 @@ FAKE: dict[str, object] = {
     # 2026-08-06 对着生产量过：那五个各返回 0 条，而 facets 里唯一的
     # 「未分类」是 193 条——静态那份从头到尾没有一个能选出东西来。
     "/v1/library": {"items": [], "total": 0,
-                    "facets": {"platforms": [], "topics": [{"topic": "未分类", "count": 193}]}},
+                    "facets": {"platforms": [],
+                               # 关系 facet：**「观看历史」此前不在写死的四个里**，
+                               # 而它是 Owner 库里最大的一组（193 条里 71 条）。
+                               "relations": [{"relation": "history", "count": 71},
+                                             {"relation": "like", "count": 69}],
+                               "topics": [{"topic": "未分类", "count": 193}]}},
     "/v1/status": {"connectors": [], "destinations": []},
 }
 
@@ -183,6 +188,8 @@ READ_DOM = r"""
     _errors: (window.__drillErrors || []).slice(0, 4),
     syncHeader: (document.getElementById("syncModalTitle")?.parentElement?.innerText || ""),
     topicOptions: [...(document.getElementById("topicFilter")?.options || [])].map(o => o.value),
+    relationOptions: [...(document.getElementById("relationFilter")?.options || [])]
+                       .map(o => o.value + "=" + o.textContent),
     cardCount: cards.length,
     // 整张卡的可见文字——那两段话必须在里面
     text: cards.map(c => c.innerText).join("\n---\n").slice(0, 1200),
@@ -264,6 +271,11 @@ async def run(chrome: str) -> int:
         problems.append("**差额那句没显示**——服务端说了实话，界面照旧报平安")
     if PRIVACY not in text:
         problems.append("**隐私说明没显示**——八条写了没人看，正是它当初的毛病")
+    relations = list(measured.get("relationOptions") or [])
+    if relations and not any(r.startswith("history=") for r in relations):
+        problems.append(f"**关系筛选没有照数据重建**：{relations}——夹具里最大的一组是 history")
+    if any("观看历史" not in r for r in relations if r.startswith("history=")):
+        problems.append("关系筛选里 history 没有显示成中文")
     topics = list(measured.get("topicOptions") or [])
     if topics and "未分类" not in topics:
         problems.append(f"**主题下拉没有照数据重建**：{topics}——夹具里只有「未分类」")
@@ -284,6 +296,7 @@ async def run(chrome: str) -> int:
         # 同步中心那句限定语，**照原样印出来**：它是这次要亲眼看见的东西之一。
         "sync_centre_header": str(measured.get("syncHeader") or "").replace("\n", " ")[:200],
         "topic_options": measured.get("topicOptions"),
+        "relation_options": measured.get("relationOptions"),
         # **失败时必须说清页面当时在干什么。** 只报一句「0 张卡」而不说
         # 页面报了什么错，下一个人还得把这一段重新查一遍。
         "page_said": {key.lstrip("_"): value for key, value in sorted(measured.items())

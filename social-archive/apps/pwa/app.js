@@ -354,6 +354,7 @@
       if (state.page > maxPage) { state.page = maxPage; return loadLibrary(); }
       renderPlatformTabs();
       renderTopicOptions();
+      renderRelationOptions();
       renderTable();
       renderPagination();
       updateEmptyState(state.total ? "ready" : "empty");
@@ -538,6 +539,26 @@
       state.selected.clear();
       loadLibrary({ resetPage: true });
     }));
+  }
+
+  /** 关系筛选照真实数据重建（v0.0.0.7 / T15）。
+   *
+   * **此前它是写死的四个，而且没有任何代码去重建它。**
+   * 2026-08-06 对着生产量：书签 0 条、稍后再看 1 条，
+   * 而最大的那一组「观看历史」71 条（193 条里的 37%）**根本不在名单上**——
+   * Owner 没法筛出自己最大的那一堆。主题那个筛选早就照 facet 重建了，
+   * 这个一直没跟上。
+   */
+  function renderRelationOptions() {
+    const select = $("relationFilter");
+    if (!select) return;
+    const current = state.filters.relation;
+    const relations = (state.facets.relations || []).map(item => item.relation).filter(Boolean);
+    if (!relations.length) return;           // 还没读到数据时别把它清空
+    select.innerHTML = `<option value="all">全部关系</option>${relations.map(value =>
+      `<option value="${escapeHtml(value)}">${escapeHtml(relationLabels[value] || value)}</option>`).join("")}`;
+    select.value = relations.includes(current) ? current : "all";
+    if (select.value !== current) state.filters.relation = "all";
   }
 
   function renderTopicOptions() {

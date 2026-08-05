@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "task": "T15",
+  "slice": "S1",
+  "recorded_at": "2026-08-06T13:40Z",
+  "status": "PASS",
+  "claim": "关系筛选写死了四个，而 Owner 最大的那一组（观看历史，193 条里 71 条）不在里面。已改成照真实数据重建。",
+  "how_i_found_it": "上一条修完主题筛选之后，去核「界面上到底发出去了什么」，顺手看了同一排的其它筛选。",
+  "measured_against_production": {
+    "筛选里有的": {
+      "收藏": 46,
+      "点赞": 69,
+      "书签": 0,
+      "稍后再看": 1
+    },
+    "筛选里没有的": {
+      "观看历史": 71,
+      "保存": 5,
+      "手动保存": 2
+    },
+    "一句话": "**Owner 筛不出自己最大的那一堆（37%）**，而筛选里摆着一个 0 条的「书签」。"
+  },
+  "why_it_was_worse_than_the_topic_one": "主题那个虽然也写死了五个，但 `renderTopicOptions()` 会照 facet 把它整个重建——**用户实际看到的是对的**。关系这个**没有任何代码去重建它**，服务端也从来没出过 relations 这个 facet。写死的那四个就是用户看到的全部。",
+  "the_fix": [
+    "服务端 facets 加 relations（与 platforms/topics 同一个查询形状）",
+    "界面加 renderRelationOptions() 照它重建，标签走 relationLabels",
+    "index.html 里只留「全部关系」"
+  ],
+  "verified_in_a_real_browser": {
+    "夹具给的 facet": "history 71 / like 69",
+    "真 DOM 里读到的下拉": "['all=全部关系', 'history=观看历史', 'like=点赞']",
+    "反例": "把 renderRelationOptions() 的调用删掉 → 演练当场红，说「关系筛选没有照数据重建」。"
+  },
+  "the_guards": [
+    "服务端 facet 按真实数据出、带条数",
+    "index.html 里只许留 all（**别再写回去**）",
+    "**定义了不等于被调到**：renderRelationOptions 至少要出现两次（定义 + 调用）"
+  ],
+  "what_this_does_not_prove": [
+    "**没有在生产的真实数据上看过这个下拉**——演练用的是夹具。生产的 facet 现在会回七种关系，但那一屏我没打开过（要 Owner 的登录态）。",
+    "不证明筛出来的条数对。判据核的是「筛选里有哪些选项」，不是「选了之后结果对不对」。",
+    "`relationApiValues` 那张旧的中文→英文映射还留着（line 44）：新下拉直接用英文值，走的是 `|| state.filters.relation` 那条兜底。**它现在是死的，但删它要另外确认没人用**，这次没动。"
+  ]
+}
