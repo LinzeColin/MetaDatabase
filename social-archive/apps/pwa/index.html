@@ -123,7 +123,11 @@
 <div class="filter-field"><label for="topicFilter">主题分类</label><!-- 这里只放「全部主题」。**其余选项由 renderTopicOptions() 照真实数据重建**，写死的会骗人：2026-08-06 对着生产量过，原先写死的五个（AI与技术/商业与投资/机械制造/学习研究/生活方式）**各返回 0 条**，而真实数据里唯一的「未分类」有 193 条、却不在那份名单里。 -->
 <select id="topicFilter"><option value="all">全部主题</option></select></div>
 <div class="filter-field"><label for="dateFilter">时间范围</label><select id="dateFilter"><option value="all">全部时间</option><option value="7">最近 7 天</option><option value="30">最近 30 天</option><option value="90">最近 90 天</option></select></div>
-<div class="filter-field"><label for="archiveFilter">归档状态</label><select id="archiveFilter"><option value="all">全部状态</option><option value="完整">完整归档</option><option value="处理中">处理中</option><option value="需处理">需要处理</option></select></div>
+<div class="filter-field"><label for="archiveFilter">归档状态</label><!-- 这三个必须和 db.py 里那个 CASE 出的 archive_status 一字不差。
+     2026-08-06 之前是「完整 / 处理中 / 需处理」——而服务端出的是
+     「完整 / 处理中 / **仅元数据**」：`需处理` 服务端从来不产出（选了永远 0 条），
+     而真会出现的 `仅元数据` 反倒筛不出来。 -->
+<select id="archiveFilter"><option value="all">全部状态</option><option value="完整">完整归档</option><option value="处理中">处理中</option><option value="仅元数据">仅元数据</option></select></div>
 </div>
 </section>
 <section aria-label="收藏内容表格" class="table-card">
