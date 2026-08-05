@@ -1308,12 +1308,83 @@ async function verifyPendingPlatform(platform) {
   //
   // 这里**不能退回"猜它已登录"**：猜错的后果是拿一个未登录的会话去发起首次全量同步，
   // 平台返回空列表，系统记一条"同步完成、0 条"——又是 INV-NO-SILENT-ZERO 那个洞。
-  // T08 的拦截路会用"是否收到过带身份的 API 响应"来确认，那是可证的信号。
+  //
+  // **2026-08-06 / G1：B 站这条有可证的信号了。**
+  // 上面那段原话写着「T08 的拦截路会用『是否收到过带身份的 API 响应』来确认，
+  // 那是可证的信号」——而 bilibili-reader.js 的 currentUser() 正是它：
+  // 直接问 B 站 `/x/web-interface/nav`，回 isLogin + mid + uname。
+  // 这比"收到过带身份的响应"还硬一档：身份是**平台自己说的**，
+  // 而且顺带给出真实的账号标识，不必再拿占位符去建账号。
+  if (platform === "bilibili") return verifyBilibiliSession(pending, preferred.id);
   return {
     ok: false,
     state: "authorizing",
     failureCode: "LOGIN_PROOF_UNAVAILABLE",
     error: "本版本无法确认这个页面的登录态，账号暂不能连接；请等待版本更新后重试。"
+  };
+}
+
+/** 确认 B 站登录态，确认得了就把账号真的建起来（v0.0.0.7 / G1）。
+ *
+ * 这一步不做的话，G1 那条取数路对 Owner 来说是**够不着的**：
+ * 点「连接 B 站」→ 拿到 LOGIN_PROOF_UNAVAILABLE → 账号建不起来 →
+ * 没有账号就没有同步 → 收藏夹读得再好也没人调它。
+ */
+async function verifyBilibiliSession(pending, tabId) {
+  let who;
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId }, files: ["content/bilibili-reader.js"],
+    });
+    const injected = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: () => globalThis.SABilibiliReader.currentUser(),
+    });
+    who = injected?.[0]?.result;
+  } catch (error) {
+    return { ok: false, state: "authorizing", failureCode: "BILIBILI_TAB_NOT_ON_PLATFORM",
+             error: "没能在这个 B 站页面上确认登录态，请停在 B 站页面再点一次。" };
+  }
+  if (!who?.ok) {
+    // **没登录就说没登录，不要建账号。** 建了的话下一步就是拿一个空会话
+    // 去跑首次全量同步，然后记一条「同步完成、0 条」——INV-NO-SILENT-ZERO。
+    return {
+      ok: false, state: "needs_user_action",
+      failureCode: who?.failureCode || "BILIBILI_NOT_LOGGED_IN",
+      error: who?.error || "还没在这个浏览器里登录 B 站。请在这个页面登录，然后再点一次「连接账号」。",
+    };
+  }
+  const displayName = who.name ? `B站 · ${who.name}` : "B站账号";
+  const completed = await SA.api("/v1/accounts/connect/bilibili/complete", {
+    method: "POST",
+    body: JSON.stringify({
+      connection_ref: pending.connectionRef,
+      // 账号标识用 B 站自己的 mid —— 换个昵称、换台机器都还是同一个账号。
+      external_account_id: String(who.mid),
+      display_name: displayName,
+      verified: true,
+      // **这里一个字都不许沾凭据。** 服务端 _safe_account_metadata 会把带
+      // cookie/token/password/auth_header 字样的键整个打回 422，而那是对的：
+      // 账号元数据会进运行日志。这里只写"是怎么确认的"，不写"用什么确认的"。
+      metadata: {
+        auth_method: "browser_session",
+        verified_by: "bilibili_nav_api",
+        auto_sync_enabled: true,
+        sync_interval_minutes: 360,
+      },
+    }),
+    timeoutMs: 15000,
+  });
+  await setPendingConnection("bilibili", null);
+  const queued = await enqueueAccountSync({
+    accountId: completed.account_id,
+    syncRunId: completed.first_sync?.sync_run_id || null,
+    triggerType: "first_connect",
+  });
+  return {
+    ...queued, ok: true, state: "connected", platform: "bilibili",
+    accountId: completed.account_id, displayName,
+    message: `已确认登录（${displayName}），正在后台读取你的收藏夹。`,
   };
 }
 

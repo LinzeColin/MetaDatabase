@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 695 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 699 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -178,7 +178,7 @@
         "scripts/find_client_calls_to_routes_that_do_not_exist.py"
       ],
       "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"routes_found\": 52,\n  \"distinct_client_calls\": 19,\n  \"calls_to_nothing\": [],\n  \"message_zh\": \"界面调的每一个地址，服务端都有。\",\n  \"what_this_does_not_prove\": \"只看字面量、不查方法；POST 打一条只有 GET 的路由，这道门看不出来。\"\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"routes_found\": 52,\n  \"distinct_client_calls\": 20,\n  \"calls_to_nothing\": [],\n  \"message_zh\": \"界面调的每一个地址，服务端都有。\",\n  \"what_this_does_not_prove\": \"只看字面量、不查方法；POST 打一条只有 GET 的路由，这道门看不出来。\"\n}\n",
       "stderr": ""
     },
     {
@@ -242,6 +242,15 @@
       ],
       "exit_code": 0,
       "stdout": "检查了 3 处会承诺「这个平台能用」的地方（界面 + 服务端视图）\n每一处承诺型按钮都先问过服务端能不能做到。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_sync_promises_match_reality.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"platforms_checked\": 9,\n  \"syncable_now\": [\n    \"bilibili\",\n    \"generic-web\"\n  ],\n  \"scannable_relations\": {\n    \"bilibili\": [\n      \"favorite\"\n    ]\n  },\n  \"server_handled\": [\n    \"instagram\",\n    \"reddit\",\n    \"x\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"界面承诺的和代码里有的，逐个平台对上了。\",\n  \"what_this_does_not_prove\": \"只对四张静态表。「那条取数路真的读得回东西」由 bilibili_acquisition_drill.py（打真接口）与 bilibili_end_to_end_drill.py（真 Chrome 跑整条链）去证。\"\n}\n",
       "stderr": ""
     },
     {

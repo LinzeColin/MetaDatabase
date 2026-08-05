@@ -121,6 +121,13 @@ def structural_commands() -> list[list[str]]:
         # 「接口有人调」「文案能落到一句中文」——**没有一条在问
         # 「这颗按钮点下去会发生它承诺的事吗」**。这道门补的就是那一问。
         [python, "scripts/find_affordances_the_backend_says_cannot_work.py"],
+        # 第八种：**同一件事在四个地方各说各的**（v0.0.0.7 / G2）。
+        # 「这个平台能不能同步」写在服务端两张表、扩展的取数缝隙、
+        # 以及扩展的扫描范围表里；任意两处漂开，用户拿到的都是同一样东西——
+        # 一颗结构上不可能成功的按钮。上面那道 find_affordances 问的是
+        # 「界面画的按钮服务端认不认」，这一道问的是
+        # 「服务端认了的，扩展里真的有实现吗」——**两个方向**。
+        [python, "scripts/check_sync_promises_match_reality.py"],
         [python, "scripts/validate_deployment_contract.py"],
     ]
 

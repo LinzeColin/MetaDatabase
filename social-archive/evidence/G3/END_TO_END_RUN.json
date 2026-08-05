@@ -1,0 +1,81 @@
+{
+  "status": "PASS",
+  "task": "G3",
+  "journey": {
+    "connect": {
+      "ok": true,
+      "state": "authorizing",
+      "platform": "bilibili",
+      "tabId": 756259028,
+      "message": "已在当前 Chrome profile 中打开B站，插件会检测现有登录态。"
+    },
+    "verify": {
+      "ok": true,
+      "state": "connected",
+      "accountId": "acct-1",
+      "syncRunId": "run-1",
+      "queuedCount": 1,
+      "message": "已确认登录（B站 · 测试账号），正在后台读取你的收藏夹。",
+      "platform": "bilibili",
+      "displayName": "B站 · 测试账号"
+    },
+    "sync": {
+      "ok": true,
+      "syncRunId": "run-1",
+      "status": "completed",
+      "results": [
+        {
+          "accepted": 0
+        }
+      ]
+    }
+  },
+  "account_created": {
+    "id": "acct-1",
+    "platform": "bilibili",
+    "external_account_id": "1919810",
+    "display_name": "B站 · 测试账号",
+    "metadata": {
+      "auth_method": "browser_session",
+      "verified_by": "bilibili_nav_api",
+      "auto_sync_enabled": true,
+      "sync_interval_minutes": 360
+    }
+  },
+  "items_received": 3,
+  "item_urls": [
+    "https://www.bilibili.com/video/BV1aaaaaaaaa",
+    "https://www.bilibili.com/video/BV1bbbbbbbbb",
+    "https://www.bilibili.com/video/BV1cccccccccc"
+  ],
+  "collections": [
+    "111",
+    "222"
+  ],
+  "batches": [
+    {
+      "relation": "favorite",
+      "scope": "collection",
+      "items": 3,
+      "completeness": "partial",
+      "failure_code": null
+    },
+    {
+      "relation": "favorite",
+      "scope": "relation",
+      "items": 0,
+      "completeness": "complete",
+      "failure_code": null
+    }
+  ],
+  "bilibili_endpoints_called": [
+    "/",
+    "/0/favlist",
+    "/favicon.ico",
+    "/x/v3/fav/folder/created/list-all",
+    "/x/v3/fav/resource/list",
+    "/x/web-interface/nav"
+  ],
+  "problems": [],
+  "what_this_does_not_prove": "对面是本机固定装置，不是真 B 站——「B 站真的会那样回」由 bilibili_acquisition_drill.py 打真接口去证。另外**没有验权限授予那一下**：演练点不了 chrome.permissions.request 的弹窗，所以加载前把 bilibili 的 host 权限从可选挪成了必需。那一下由 Owner 在设置页点「连接账号」时给。"
+}

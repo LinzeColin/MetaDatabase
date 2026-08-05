@@ -216,6 +216,21 @@
   async function requestPlatformPermission(platformId) {
     const origins = patternsForPlatform(platformId);
     if (!origins.length) return true;
+    // **已经有了就别再问。**
+    //
+    // `chrome.permissions.request` 要求「在一次用户手势期间调用」，
+    // 没有手势就直接抛 "This function must be called during a user gesture"
+    // —— **即使这个权限早就授予过**。
+    //
+    // 后果不是测试跑不了，是**定时自动同步每次都会炸**：
+    // 自动同步由 chrome.alarms 触发（默认 360 分钟一次），那条路上没有任何
+    // 用户手势，而它一路会走到取数前的这一句。用户当初点「连接账号」时
+    // 明明给过权限，之后每一次自动同步却都失败——而且失败原因是一句
+    // 讲手势的英文，和「同步」这件事看不出关系。
+    //
+    // 2026-08-06 由 G3 的端到端演练撞出来（它在 service worker 里跑整条链，
+    // 同样没有手势——**和定时同步是同一个形状**）。
+    if (await chrome.permissions.contains({ origins }).catch(() => false)) return true;
     return chrome.permissions.request({ origins });
   }
 
