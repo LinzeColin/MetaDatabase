@@ -23,7 +23,7 @@ cookie-export.js 的 ALLOWED/FORBIDDEN、以及服务端那几张），
         --platform youtube --sample-url https://www.youtube.com/playlist?list=WL
 
     # 期望这个平台**不能**托管 Cookie（国内四平台）时：
-    ... --platform bilibili --sample-url https://space.bilibili.com/1/favlist --expect-custody no
+    ... --platform bilibili --sample-url https://space.bilibili.com/1/favlist --expect-custody forbidden
 
 ## 边界
 
@@ -62,6 +62,61 @@ PROBE = r"""
   return JSON.stringify(out);
 })(%s)
 """
+
+
+def judge(measured: dict, platform: str, decoy_url: str, expect_custody: str) -> list[str]:
+    """**只判定，不碰浏览器。**
+
+    搬出来是因为守它的判据原本全是 grep 源码。其中一条断言
+    「国内平台的 Cookie 必须永不出浏览器」这句话在不在文件里——
+    而我刚给这段加的注释里**也有这句话**，于是即便把整个分支删掉，
+    那条判据照样是绿的。这就是今天已经栽过好几次的「判据钉在注释上」。
+
+    判定单独成函数之后，判据可以直接喂它一个假的 measured 看它红不红——
+    那是反例，不是 grep。
+    """
+    problems = []
+    if measured["detected"] != platform:
+        problems.append(f"那个地址没有被认成 {platform}，而是 {measured['detected']}")
+    if not measured["permissionPatterns"]:
+        problems.append("没有权限模式——连不上，也读不了那个站点")
+    # **中文名退回内部 id，正是第三张表缺席的症状。**
+    if not measured["label"] or measured["label"] == platform:
+        problems.append(f"中文名退回了内部 id（{measured['label']!r}）——"
+                        "platform-catalog 里多半没有它，用户会看到这个词")
+    if not measured["relations"]:
+        problems.append("目录里没有声明任何关系类型")
+    if any(not str(u or "").startswith("https://") for u in measured["relationUrls"]):
+        problems.append(f"有关系类型没有对应的 https 地址：{measured['relationUrls']}")
+    # **托管有三种状态，不是两种。**
+    #
+    # 第一版只有 yes/no，于是 reddit 被判 FAIL，理由还是
+    # 「国内平台的 Cookie 必须永不出浏览器」——**而 reddit 根本不是国内平台**。
+    # 那是我自己的演练在指错原因，和今天早上在 T13 里修的是同一种病。
+    #
+    #   yes        白名单里有、禁止名单里没有        —— x / instagram / youtube
+    #   forbidden  禁止名单里有、白名单里没有        —— 国内四平台，硬边界
+    #   not-yet    两张表都没有                      —— 支持这个平台，但托管还没做
+    if expect_custody == "yes":
+        if not measured["custodyAllowed"]:
+            problems.append("Cookie 导出白名单里没有它——连接会走不通")
+        if measured["custodyForbidden"]:
+            problems.append("它同时出现在禁止名单里，两张表自相矛盾")
+    elif expect_custody == "forbidden":
+        if measured["custodyAllowed"]:
+            problems.append("**它不该能托管 Cookie，而白名单里有它**")
+        if not measured["custodyForbidden"]:
+            problems.append("它不在禁止名单里——国内平台的 Cookie 必须永不出浏览器，"
+                            "这条硬边界要靠那张表兜住")
+    else:   # not-yet
+        if measured["custodyAllowed"]:
+            problems.append("说好托管还没做，白名单里却有它")
+        if measured["custodyForbidden"]:
+            problems.append("它被放进了禁止名单——那张表是给「Cookie 永不出浏览器」的"
+                            "国内平台留的，别用它表达「还没做」")
+    if measured["decoyDetected"] == platform:
+        problems.append(f"误伤：{decoy_url} 也被认成了 {platform}")
+    return problems
 
 
 async def _rpc_factory(ws):
@@ -137,31 +192,7 @@ async def run(chrome: str, ext_dir: str, platform: str, sample_url: str,
             process.kill()
         shutil.rmtree(profile, ignore_errors=True)
 
-    problems = []
-    if measured["detected"] != platform:
-        problems.append(f"那个地址没有被认成 {platform}，而是 {measured['detected']}")
-    if not measured["permissionPatterns"]:
-        problems.append("没有权限模式——连不上，也读不了那个站点")
-    # **中文名退回内部 id，正是第三张表缺席的症状。**
-    if not measured["label"] or measured["label"] == platform:
-        problems.append(f"中文名退回了内部 id（{measured['label']!r}）——"
-                        "platform-catalog 里多半没有它，用户会看到这个词")
-    if not measured["relations"]:
-        problems.append("目录里没有声明任何关系类型")
-    if any(not str(u or "").startswith("https://") for u in measured["relationUrls"]):
-        problems.append(f"有关系类型没有对应的 https 地址：{measured['relationUrls']}")
-    if expect_custody == "yes":
-        if not measured["custodyAllowed"]:
-            problems.append("Cookie 导出白名单里没有它——连接会走不通")
-        if measured["custodyForbidden"]:
-            problems.append("它同时出现在禁止名单里，两张表自相矛盾")
-    else:
-        if measured["custodyAllowed"]:
-            problems.append("**它不该能托管 Cookie，而白名单里有它**")
-        if not measured["custodyForbidden"]:
-            problems.append("它不在禁止名单里——国内平台的 Cookie 必须永不出浏览器")
-    if measured["decoyDetected"] == platform:
-        problems.append(f"误伤：{decoy_url} 也被认成了 {platform}")
+    problems = judge(measured, platform, decoy_url, expect_custody)
 
     print(json.dumps({
         "status": "PASS" if not problems else "FAIL",
@@ -179,8 +210,9 @@ def main() -> int:
     parser.add_argument("--sample-url", required=True, help="这个平台的一个真实页面地址")
     parser.add_argument("--decoy-url", default="https://mail.google.com/mail/u/0/",
                         help="一个**不该**被认成这个平台的地址")
-    parser.add_argument("--expect-custody", choices=("yes", "no"), default="yes",
-                        help="这个平台该不该允许 Cookie 托管")
+    parser.add_argument("--expect-custody", choices=("yes", "forbidden", "not-yet"),
+                        default="yes",
+                        help="yes=白名单里有；forbidden=国内平台硬边界；not-yet=两张表都没有")
     parser.add_argument("--chrome",
                         default="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
     args = parser.parse_args()

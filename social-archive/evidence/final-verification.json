@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 610 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 624 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -133,7 +133,7 @@
         "scripts/check_evidence_declares_its_limits.py"
       ],
       "exit_code": 0,
-      "stdout": "检查 v0.0.0.7 证据 79 份（其中自锁 4 份）\n每一份都写了局限；自锁的没有一份被改写成 PASS。\n",
+      "stdout": "检查 v0.0.0.7 证据 84 份（其中自锁 4 份）\n每一份都写了局限；自锁的没有一份被改写成 PASS。\n",
       "stderr": ""
     },
     {
@@ -142,7 +142,7 @@
         "scripts/find_endpoints_no_client_calls.py"
       ],
       "exit_code": 0,
-      "stdout": "api.py 里的 /v1 路由 48 个；客户端目录 apps, scripts\n每个接口都至少有一处界面调用。\n",
+      "stdout": "api.py 里的 /v1 路由 49 个；客户端目录 apps, scripts\n每个接口都至少有一处界面调用。\n",
       "stderr": ""
     },
     {
