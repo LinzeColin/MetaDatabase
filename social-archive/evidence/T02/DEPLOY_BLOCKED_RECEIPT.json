@@ -96,5 +96,16 @@
       "里面有没有同源判定": "没有（`new URL(offered).origin` 不在 background.js 里）",
       "主机源码": "同样没有"
     }
+  },
+  "it_was_unblocked_later_on_2026_08_05": {
+    "status_stays_blocked_on_purpose": "**这份收据的 status 仍然是 BLOCKED，自锁标记也没动。** 那天它确实被拦住了，后来解开不等于当时没被拦——把历史收据改写成 PASS，就再也看不出这道门拦过谁。",
+    "怎么解开的": "把实测摆给 Owner 让他定：我们自己的东西一点都不剩（两个镜像都在跑、数据 196M、Docker 报可回收 0B），剩下的大块全是同机别的项目的。他选了删过期的 trivy 扫描缓存。",
+    "删之前先看了目标": "/srv/linze/.trivycache 里只有 trivy 自己的漏洞库：trivy.db 1.19G、trivy-java.db 1.48G、fanal.db 8M，外加两个 metadata.json。**没有一个非缓存文件**，最后改动停在 2026-07-19。都是从上游下载的，下次扫描自己会补回来。",
+    "可用空间": "4.84G → 7.31G",
+    "然后部署一次通过": {
+      "九道门全绿": "含磁盘（7.30G）、密钥不变量前后逐字节一致、鉴权路由 200、下载页下发的包与刚部署的逐字节一致、仓=主机=镜像 145 个文件三份一致",
+      "回滚点": "重新钉住了 109de20b58c366——此前那个被我删掉之后一直空着",
+      "安全缺陷已上线修复": "生产下发的扩展从 9a4b30be… 变成 a0894d16…，background.js 里 `new URL(offered).origin === new URL(endpoint).origin` 在场。"
+    }
   }
 }
