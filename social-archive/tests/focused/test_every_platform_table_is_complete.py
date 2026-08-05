@@ -159,14 +159,11 @@ def test_the_pwa_library_knows_youtube() -> None:
     assert ".platform-logo.yt" in styles, "那个平台标记没有样式，会是个没上色的方块"
 
 
-def test_youtube_content_ids_ignore_url_noise() -> None:
-    """**YouTube 的 id 在查询串里，而那张表按 pathname 匹配。**
-
-    取不到就退回整个 URL。对别的平台那只是「粒度粗一点」，
-    对 YouTube 是去重彻底失效——它的 URL 几乎总带着 &t= / &list= / &pp=，
-    同一个视频每次都会算成新内容。
-    """
-    utils = (ROOT / "apps/browser-extension/content/extension-utils.js").read_text(encoding="utf-8")
-    assert 'platform === "youtube"' in utils, "externalId 没有为 youtube 单开一条"
-    assert 'searchParams.get("v")' in utils, "没有从查询串里取 v"
-    assert "youtu.be" in utils, "短链形式没处理"
+# YouTube 内容 id 的判据**不在这里**——它在
+# tests/focused/test_extension_shared_modules.py::
+#   test_youtube_ids_survive_the_junk_youtube_puts_in_its_urls
+#
+# 第一版写在这个文件里，而且是 grep 源码（断言 'searchParams.get("v")' 在不在）。
+# 那种写法**证明不了它算得对**：改成 get("V")、写错短链判断、
+# 或者两个不同视频撞成同一个 id，grep 全都照样绿。
+# 那边用 _run_node 真跑模块，三种 URL 形态归一、不同视频不撞、别的平台不受波及。

@@ -166,3 +166,35 @@ def test_catalog_and_utils_contain_no_dom_scraping():
         )
         for token in banned:
             assert token not in code, f"{path.name} 的代码里出现了 {token}——抓取器在回流"
+
+
+def test_youtube_ids_survive_the_junk_youtube_puts_in_its_urls():
+    """**YouTube 的内容 id 在查询串里，而那张表按 pathname 匹配。**
+
+    路径永远是 `/watch`，再精巧的正则也取不到 id，于是会落到
+    「退回整个 URL」那条兜底。对别的平台那只是「粒度粗一点」；
+    对 YouTube 是**去重彻底失效**——它的分享链接几乎总带着
+    `&t=`、`&list=`、`&pp=`，同一个视频每次保存都会算成一条新内容。
+
+    这条判据跑真模块，不 grep 源码：三种 URL 形态必须归到同一个 id。
+    """
+    script = f"""
+const utils = require({json.dumps(str(UTILS))});
+console.log(JSON.stringify({{
+  plain: utils.externalId('youtube', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
+  noisy: utils.externalId('youtube', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=42s&list=WL&pp=xyz'),
+  short: utils.externalId('youtube', 'https://youtu.be/dQw4w9WgXcQ'),
+  otherVideo: utils.externalId('youtube', 'https://www.youtube.com/watch?v=oHg5SJYRHA0'),
+  biliUnaffected: utils.externalId('bilibili', 'https://www.bilibili.com/video/BV1xx411c7mD?spm=1'),
+}}));
+"""
+    payload = _run_node(script)
+    assert payload["plain"] == "dQw4w9WgXcQ"
+    # 带一堆参数的分享链接，必须和干净链接归成同一条内容。
+    assert payload["noisy"] == payload["plain"], (
+        "同一个视频因为 URL 上的噪音被算成了两条内容——去重失效"
+    )
+    assert payload["short"] == payload["plain"], "youtu.be 短链没归一"
+    # 反面：不同视频绝不能撞成同一个 id，那是**静默丢数据**。
+    assert payload["otherVideo"] != payload["plain"], "两个不同的视频撞成了同一个 id"
+    assert payload["biliUnaffected"] == "BV1xx411c7mD", "改动波及了别的平台"
