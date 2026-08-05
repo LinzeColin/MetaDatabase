@@ -1,0 +1,59 @@
+{
+  "task": "T06",
+  "claim": "交接里「他可以做的第二件事：连接 YouTube」**一直是一句做不到的指示**——设置页从不给 YouTube 出卡片，那个「连接账号」按钮不存在。已修、已在真 Chrome 里核过、已上线。",
+  "measured_at": "2026-08-05T05:4Z",
+  "how_it_surfaced": [
+    "同一天我刚在服务端修好一句自相矛盾的「下一步」，给 youtube 写上「点插件里的「连接」」。",
+    "写完顺手去核**那个按钮到底叫什么**——结果发现按钮不存在：",
+    "    options.js:5  platformOrder = [... \"reddit\", \"instagram\"]   ← 没有 youtube",
+    "设置页按这张表出卡片。**没有卡片就没有按钮。**",
+    "也就是说：我刚修好一句假的下一步，又写了一句更具体的假下一步。"
+  ],
+  "why_every_previous_check_was_green": [
+    "同一天已经为 youtube 做过并全部通过：",
+    "  · 真浏览器接线演练：检测 / 权限模式 / 中文名 / 关系地址（四张表）",
+    "  · Cookie 托管两个方向（白名单里有、禁止名单里没有）",
+    "  · 服务端 CUSTODIAL_PLATFORMS",
+    "**它们问的都不是「设置页会不会出这张卡」。**",
+    "options.js 里那三张表（platformOrder / platformNames / platformIcons）",
+    "是第五、六、七张，**从来没有任何东西看过它们**——",
+    "service worker 看不见设置页：另一个文件、另一个执行环境。"
+  ],
+  "the_fix": {
+    "options_js": "platformOrder / platformNames / platformIcons 三张表都补上 youtube",
+    "next_action_text": {
+      "before": "打开任意一个 YouTube 页面，点插件里的「连接」——两处都错：按钮叫「连接账号」；它在设置页、不在 YouTube 页面上，连接也不要求你正开着 YouTube。",
+      "after": "点插件图标 → 右上角「···」打开设置 → 找到 YouTube 那张卡片 → 点「连接账号」。登录状态只交给你自己的服务器保管。"
+    },
+    "handoff": "那一段改了，并写明它此前错了两次。"
+  },
+  "verified_in_a_real_browser": {
+    "how": "把下发的那个 ZIP 装进一次性 profile 的真 Chrome，打开 chrome-extension://<id>/options.html，数 .account-card",
+    "cards": 9,
+    "titles": ["Chrome 书签", "小红书", "抖音", "快手", "B站", "X", "Reddit", "Instagram", "YouTube"],
+    "youtube_buttons": ["连接账号"],
+    "counter_example": "把 youtube 从 platformOrder 拿掉重打包再跑，演练当场 FAIL：「**设置页里没有 'YouTube' 这张卡**——没有卡就没有「连接账号」按钮」"
+  },
+  "verified_in_production_after_deploy": {
+    "next_action_zh": "点插件图标 → 右上角「···」打开设置 → 找到 YouTube 那张卡片 → 点「连接账号」。登录状态只交给你自己的服务器保管。",
+    "download_route_package": "options.js 里的 platformOrder 已含 youtube（从生产下载路由取包后解出来看的，不是看本地）"
+  },
+  "the_drill_now_covers_seven_tables": {
+    "script": "scripts/extension_platform_wiring_drill.py --expect-connect-card",
+    "what_changed": "service worker 那四张问完之后，**真把 options.html 开起来**数卡片、看按钮。",
+    "why_it_had_to_be_the_real_page": "那三张表在页面脚本里，service worker 里读不到；只对源码 grep 又回到「靠人对表」。"
+  },
+  "the_pattern_this_is_the_third_instance_of": [
+    "「我以为已经查全了，又冒出一张表」——youtube 这一个平台上已经发生三次：",
+    "  1. 说「开 B 站时顺手连一下」——硬边界禁止（国内平台 Cookie 不出浏览器）",
+    "  2. 说「两个方向都封住了」——漏了 platform-catalog.js，中文名退回内部 id",
+    "  3. **本次**：四张表全绿，而设置页那三张一个字都没有，按钮根本不存在",
+    "每一次都是**宣布完成之后**才发现的。演练每次都跟着扩一张表——",
+    "这是它唯一有效的长法：**被真实的漏推着长，而不是靠我想全**。"
+  ],
+  "what_this_does_not_prove": [
+    "**不证明连接会成功。** 只证明那张卡和那个按钮存在、点得到。点下去之后的授权流程仍未被任何真实账号走通（platform_credential 表仍然一行都没有）。",
+    "不证明 youtube 能同步——取数通路仍未建（T09/T10）。",
+    "**不证明第八张表不存在。** 这个平台上已经连续三次「以为查全了又冒出一张」；现在能说的只是：已知的七张都核过了。"
+  ]
+}
