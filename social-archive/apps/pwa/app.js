@@ -142,7 +142,19 @@
     // 是同一类。**解释就写在上一行，下一行照样踩进去。**
     // 2026-08-06 删掉，让它落到同一个兜底上。
     PLATFORM_PERMISSION_DENIED: "NOT_LOGGED_IN",
-    OBSERVER_INSTALL_FAILED: "SERVER_UNREACHABLE"
+    OBSERVER_INSTALL_FAILED: "SERVER_UNREACHABLE",
+    // ── B 站收藏夹取数（v0.0.0.7 / G1）。**必须和 failure_copy.py 的 _ALIASES 一字不差。**
+    // 这两张表是同一份词典的两个副本，判据
+    // test_both_alias_tables_say_exactly_the_same_thing 会逐条比对；
+    // 只改一边的话，同一个失败码在插件里有话说、在资料库页面上却变成
+    // 「我们没能记录下原因」。
+    BILIBILI_NOT_LOGGED_IN: "NOT_LOGGED_IN",
+    BILIBILI_FORBIDDEN: "NOT_LOGGED_IN",
+    BILIBILI_NO_FOLDERS: "NOT_LOGGED_IN",
+    BILIBILI_TAB_UNAVAILABLE: "TAB_CLOSED",
+    BILIBILI_TAB_NOT_ON_PLATFORM: "TAB_CLOSED",
+    BILIBILI_NETWORK_ERROR: "SERVER_UNREACHABLE",
+    BILIBILI_HTTP_ERROR: "SERVER_UNREACHABLE"
   };
 
   /** 把一个失败码变成给人看的中文句子。认不出来也不能沉默。 */

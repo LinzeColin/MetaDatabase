@@ -132,6 +132,40 @@
     douyin: null,
   });
 
+  /** 一次同步**真的去枚举**的关系类型（v0.0.0.7 / G1）。
+   *
+   * 与上面 `PLATFORMS[x].relations`（**允许**出现的关系）不是一回事——
+   * 服务端 `_scannable_relations()` 早就把这两件事分开了（它把 `manual_save`
+   * 排除在扫描范围外：手动存的那些没有任何页面能列出来）。这里是同一条道理
+   * 在扩展这一侧的对应物。
+   *
+   * 为什么必须有它：B 站声明了四种关系（收藏夹/稍后再看/历史/点赞），
+   * 而 G1 只把**收藏夹**那条取数路做出来了。照 `spec.relations` 循环的话，
+   * 一次同步会跑四轮、后三轮各抛一次 ACQUISITION_PATH_NOT_INSTALLED，
+   * 于是「收藏夹明明读成功了」的那次运行整体停在非完成态，
+   * 用户看到的是一个失败的同步——**而他要的那件事其实成了**。
+   *
+   * 规则和 SYNCABLE_NOW 一样：**这是事实清单，不是愿景清单。**
+   * 取数路没做出来的关系不许写进来；写进来就等于承诺这一版读得到。
+   */
+  const SCANNABLE_RELATIONS = Object.freeze({
+    // 收藏夹走 B 站自己的公开接口（content/bilibili-reader.js），2026-08-06 实测。
+    // 稍后再看 / 历史 / 点赞三条的取数路本版本没有做，所以不列。
+    bilibili: Object.freeze(["favorite"]),
+  });
+
+  /** 这一版对该平台真的会去枚举哪些关系。
+   *
+   * 没登记的平台按「声明什么就扫什么」——保持原行为，不悄悄改变别的平台。
+   */
+  function scannableRelations(platform) {
+    const key = String(platform || "");
+    if (Object.prototype.hasOwnProperty.call(SCANNABLE_RELATIONS, key)) {
+      return Array.from(SCANNABLE_RELATIONS[key]);
+    }
+    return Array.from(platformCatalogEntry(key)?.relations || []);
+  }
+
   /** 取某平台的拦截前缀。
    *
    * 返回 null 表示**还没有实测过的前缀**——调用方必须把它当成显式失败，
@@ -162,6 +196,7 @@
   const api = Object.freeze({
     PLATFORMS, platformCatalogEntry, platformLabel, relationUrl,
     INTERCEPT_PREFIXES, interceptPrefixes,
+    SCANNABLE_RELATIONS, scannableRelations,
   });
   globalThis.SAPlatformCatalog = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;

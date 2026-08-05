@@ -52,7 +52,19 @@ PLATFORM_LABELS = {
 # These platforms can be attempted by the server-side prebuilt adapters. Other
 # platforms use the extension/isolated-worker batch protocol as the primary free
 # path; the product never asks the owner to paste cookies or headers.
-SERVER_ACCOUNT_CONNECTORS = {"x", "reddit", "instagram", "bilibili"}
+# v0.0.0.7 / G1：**bilibili 从这里移走。**
+#
+# 它留在这张表里是一处结构性矛盾，而不只是一个没做完的连接器：
+# 服务端那条路（CommandArtifactConnector → bilibili-cli sidecar）要拿到
+# Owner 的 B 站登录态才跑得动，而 `cookie-export.js` 的
+# `FORBIDDEN_PLATFORMS = {xiaohongshu, douyin, bilibili, kuaishou}`
+# 规定这四个平台的 Cookie **永远不出浏览器**（INV-DOMESTIC-COOKIE-STAYS）。
+# 也就是说服务端**永远拿不到**它需要的东西——这条路不是"还没做完"，是"不许做"。
+#
+# 后果不是抽象的：extension 的 runBrowserAccountSync 先看 canSync 再看
+# serverHandled，一旦 bilibili 进了 SYNCABLE_NOW，serverHandled=True 会把它
+# 从**能跑通的浏览器路**踢到**永远跑不通的服务端路**上去。
+SERVER_ACCOUNT_CONNECTORS = {"x", "reddit", "instagram"}
 
 # **本版本真的同步得动的平台。** 这不是「支持哪些平台」的愿景清单，
 # 是「现在点下去会成功」的事实清单。
@@ -89,7 +101,22 @@ SERVER_ACCOUNT_CONNECTORS = {"x", "reddit", "instagram", "bilibili"}
 #
 # **这张表是事实清单，不是愿景清单。** 量不出来的就不许留在里面。
 SYNCABLE_NOW: frozenset[str] = frozenset({
-    "generic-web",   # Chrome 书签，T04 实测 62 条全量跑通——唯一有实测底的
+    "generic-web",   # Chrome 书签，T04 实测 62 条全量跑通
+    # v0.0.0.7 / G1（2026-08-06）：B 站收藏夹。取数在 Owner 自己的浏览器里，
+    # 调 B 站自己的公开 REST 接口（apps/browser-extension/content/bilibili-reader.js）。
+    # 零费用、不要他粘任何东西、Cookie 不出浏览器。
+    #
+    # 进这张表的凭据是**打真实接口量出来的**，不是读文档推的：
+    #   GET /x/v3/fav/folder/created/list-all → 收藏夹清单（权威来源）
+    #   GET /x/v3/fav/resource/list           → 条目，翻页终点由接口自己的
+    #                                           has_more 决定，再和 info.media_count 对账
+    #   CORS：Origin 为 www/space.bilibili.com 时回 allow-credentials: true
+    # 实测一个 10 条的公开收藏夹：声明 10 / 读到 10 / 翻 3 页 / 跳过 0。
+    #
+    # **本版本只读「收藏夹」这一种关系。** 稍后再看/历史/点赞的取数路没做，
+    # 由 platform-catalog.js 的 SCANNABLE_RELATIONS 限定扫描范围——
+    # 不写进那张表就等于不承诺，界面也不会假装它们会被同步。
+    "bilibili",
 })
 # 暂时同步不了的，每条写清**为什么**与**现在能做什么**。
 # 界面直接把这句话显示出来，而不是让用户点了才知道。
@@ -115,7 +142,10 @@ NOT_SYNCABLE_YET: dict[str, str] = {
     "xiaohongshu": "本版本还不能自动读取小红书的收藏列表。现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。",
     "douyin": "本版本还不能自动读取抖音的收藏列表。现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。",
     "kuaishou": "本版本还不能自动读取快手的收藏列表。现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。",
-    "bilibili": "本版本还不能自动读取 B 站的收藏夹。现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。",
+    # bilibili 已于 2026-08-06（G1）移出这张表 —— 它现在在 SYNCABLE_NOW 里。
+    # **这一行不要再加回来**：两张表同时提到同一个平台时，界面读的是
+    # sync_supported（来自 SYNCABLE_NOW），而 not_syncable_reason 会照样显示，
+    # 于是卡片上会出现「立即同步」按钮 + 「本版本还不能自动读取」两句自相矛盾的话。
     # 下面三条的原因和上面四个不一样：上面四个是「取数路还没做出来」，
     # 这三个是「路做了一半，而剩下那半不是你能补上的」。
     # 文案里不出现「OAuth」「token」「sidecar」——Owner 说过他没有技术基础，

@@ -87,7 +87,7 @@
         "scripts/preflight_extension.py"
       ],
       "exit_code": 0,
-      "stdout": "可以装载。manifest v3、version 0.0.0.7、14 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
+      "stdout": "可以装载。manifest v3、version 0.0.0.7、15 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
       "stderr": ""
     },
     {
@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 694 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 695 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -151,7 +151,7 @@
         "scripts/check_every_failure_code_is_explainable.py"
       ],
       "exit_code": 0,
-      "stdout": "扫到失败码 50 个（src, apps）\n每一个都能落到一句中文。\n",
+      "stdout": "扫到失败码 66 个（src, apps）\n每一个都能落到一句中文。\n",
       "stderr": ""
     },
     {
@@ -205,7 +205,7 @@
         "scripts/find_messages_with_only_one_end.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 apps/ 下 22 个文件，34 个 SA_ 消息类型；另有 0 条已登记的单头例外\n每条消息都既有发送方也有接收方。\n",
+      "stdout": "扫了 apps/ 下 23 个文件，34 个 SA_ 消息类型；另有 0 条已登记的单头例外\n每条消息都既有发送方也有接收方。\n",
       "stderr": ""
     },
     {
@@ -232,7 +232,7 @@
         "scripts/find_calls_to_functions_that_do_not_exist.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 apps/ 下 17 个脚本\n每一处函数调用都找得到定义。\n",
+      "stdout": "扫了 apps/ 下 18 个脚本\n每一处函数调用都找得到定义。\n",
       "stderr": ""
     },
     {

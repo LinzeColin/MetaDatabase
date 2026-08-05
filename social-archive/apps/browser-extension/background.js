@@ -1028,10 +1028,80 @@ async function sendBrowserScopeBatches({ syncRunId, platform, relation, scopeRes
  * completeness=failed + failure_code=ACQUISITION_PATH_NOT_INSTALLED，
  * 用户看到的是"这条没成，原因是什么"，而不是"这条空"。
  */
-async function acquireRelationItems() {
+async function acquireRelationItems({ tabId, platform, relation } = {}) {
+  if (platform === "bilibili" && relation === "favorite") {
+    return acquireBilibiliFavorites({ tabId });
+  }
   const error = new Error("本版本尚未接入平台列表读取通道，请等待版本更新后重试。");
   error.failureCode = "ACQUISITION_PATH_NOT_INSTALLED";
   throw error;
+}
+
+/** B 站收藏夹：在**他自己的 B 站标签页里**调 B 站自己的公开接口（v0.0.0.7 / G1）。
+ *
+ * 取数逻辑全在 content/bilibili-reader.js，那份文件可以在 Node 里直接跑
+ * （它同时挂 globalThis 和 module.exports），所以判据能打真实接口去验它，
+ * 而不是验一份我自己写的、和实现共用同一套假设的固定装置。
+ *
+ * **为什么必须在标签页里跑，不能在 service worker 里跑：**
+ * worker 发出去的请求源是 `chrome-extension://…`，而 B 站的 CORS 只回显
+ * 它自己的子域（2026-08-06 实测：Origin 为 www / space.bilibili.com 时
+ * 回 `access-control-allow-origin` 同源 + `allow-credentials: true`）。
+ * 更要紧的是 INV-DOMESTIC-COOKIE-STAYS：在页面里发请求，带凭据的是浏览器本身，
+ * 这段代码从头到尾没有读过、存过、传过任何 cookie 的名或值。
+ */
+async function acquireBilibiliFavorites({ tabId }) {
+  if (!Number.isInteger(tabId)) {
+    const error = new Error("没有可用的 B 站页面。");
+    error.failureCode = "BILIBILI_TAB_UNAVAILABLE";
+    throw error;
+  }
+  // 先要权限再注入：executeScript 缺 host 权限时抛的异常和「注入失败」长得一样，
+  // 而这两件事的下一步完全不同（一个是点一下授权，一个是真的坏了）。
+  const granted = await SA.requestPlatformPermission("bilibili").catch(() => false);
+  if (!granted) {
+    const error = new Error("没有获得读取 B 站页面的授权，无法同步收藏夹。");
+    error.failureCode = "PLATFORM_PERMISSION_DENIED";
+    throw error;
+  }
+  const tab = await chrome.tabs.get(tabId).catch(() => null);
+  // **必须确认这个标签页真的停在 bilibili.com 上。** 不在的话请求源不对，
+  // B 站的 CORS 会拒，报出来的错会指向一个完全不相干的方向。
+  if (!/^https:\/\/([a-z0-9-]+\.)*bilibili\.com\//i.test(String(tab?.url || ""))) {
+    const error = new Error("当前页面不在 B 站上，没法用你的登录态读收藏夹。");
+    error.failureCode = "BILIBILI_TAB_NOT_ON_PLATFORM";
+    throw error;
+  }
+  await chrome.scripting.executeScript({
+    target: { tabId }, files: ["content/bilibili-reader.js"],
+  });
+  const injected = await chrome.scripting.executeScript({
+    target: { tabId },
+    // executeScript 会 await 返回的 Promise，所以这里直接把结果交出去。
+    func: () => globalThis.SABilibiliReader.readAllFavorites(),
+  });
+  const result = injected?.[0]?.result;
+  if (!result || typeof result !== "object") {
+    const error = new Error("读取 B 站收藏夹没有返回结果。");
+    error.failureCode = "BILIBILI_NO_RESULT";
+    throw error;
+  }
+  if (!result.ok) {
+    // **读不到就报读不到。** 绝不 return { ok:true, items: [] } —— 那会在服务端
+    // 留下一条 completeness=complete / item_count=0 的回执，也就是
+    // INV-NO-SILENT-ZERO 禁止的那种零：界面显示同步成功、库里一条没有。
+    const error = new Error(result.error || "读取 B 站收藏夹失败。");
+    error.failureCode = result.failureCode || "BILIBILI_READ_FAILED";
+    throw error;
+  }
+  return {
+    ok: true,
+    items: result.items || [],
+    completeness: result.completeness || "partial",
+    failureCode: result.failureCode || null,
+    completionReason: result.completionReason || null,
+    cursor: result.cursor || {},
+  };
 }
 
 async function scanBrowserScope({ tabId, platform, relation, syncRunId, url, collectionKey = "", collectionName = "", alreadyLoaded = false }) {
@@ -1099,7 +1169,12 @@ async function scanOneBrowserRelation({ tabId, platform, relation, syncRunId, pr
     failure_code: allComplete ? null : (failureCodes[0] || "RELATION_TERMINAL_NOT_PROVEN"),
     cursor: {
       relation_url: url,
-      discovered_collections: Math.max(0, scopeResults.length - 1),
+      // 收藏夹个数优先取**取数器自己数出来的那个**。
+      // `scopeResults.length - 1` 只在「一个收藏夹跑一个 scope」的形态下才对；
+      // B 站这条路是一个 scope 里读完全部收藏夹、每条自带 collection_key，
+      // 于是那个减法恒等于 0——**明明读了 7 个收藏夹，回执上写着 0 个**。
+      discovered_collections: Number(
+        baseResult?.cursor?.collections_found ?? Math.max(0, scopeResults.length - 1)),
       imported_items: imported,
       scope_completion: scopeResults.map(item => ({
         collection_key: item.collectionKey || "",
@@ -1122,11 +1197,14 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
   // 这里原来是反的——先看 serverHandled，交给服务端。理由写着「抛错会写成
   // 一次 completeness=failed，用户什么都没做错」。**那个理由对，顺序错。**
   //
-  // bilibili 同时 server_handled=true 和 sync_supported=false。走到这条路的
-  // 是 chrome.storage 里压着的升级前旧任务；先看 serverHandled 就把它交给
-  // 服务端，而服务端对它同样没有能用的取数实现——那次 run 停在半路，
+  // 当初的例子是 bilibili：它同时 server_handled=true 和 sync_supported=false。
+  // 走到这条路的是 chrome.storage 里压着的升级前旧任务；先看 serverHandled
+  // 就把它交给服务端，而服务端对它同样没有能用的取数实现——那次 run 停在半路，
   // **界面一直转圈**。而隔壁 syncAccountById 的注释早就写明了这一点：
   // 「服务端登记了这个平台」不等于「服务端做得成」。
+  //
+  // **2026-08-06 / G1：bilibili 现在走的是本函数下面的浏览器路。**
+  // 规矩没变，只是例子换成了 x / reddit / instagram。
   //
   // 先判 canSync 并不引入新失败码：ACQUISITION_PATH_NOT_INSTALLED 是既有的，
   // 冻结词典里有对应句子，隔壁那条路用的就是它。**一次说得清的失败，
@@ -1142,10 +1220,26 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
     // 这个平台确实同步得动，只是该由服务端干，所以交过去，不抛错。
     return startServerSideSync(account.id, triggerType);
   }
+  // **扫描范围要用「这一版真的读得到的关系」，不是「这个平台声明的关系」。**
+  //
+  // B 站声明四种（收藏夹/稍后再看/历史/点赞），而 G1 只做出了收藏夹那条取数路。
+  // 照 spec.relations 循环的话，一次同步跑四轮、后三轮各抛一次
+  // ACQUISITION_PATH_NOT_INSTALLED，整个 run 停在非完成态——
+  // **他要的那件事（收藏夹）其实成了，界面却给他一个失败的同步。**
+  //
+  // 这也必须同步告诉服务端：relation_scope 里留着读不到的关系，
+  // 那次 run 永远等不齐所有关系的终结批次，状态就一直不会收敛。
+  const scannable = globalThis.SAPlatformCatalog?.scannableRelations?.(account.platform)
+    || spec.relations;
+  if (!Array.isArray(scannable) || scannable.length === 0) {
+    const error = new Error("本版本没有这个平台可枚举的关系类型。");
+    error.failureCode = "ACQUISITION_PATH_NOT_INSTALLED";
+    throw error;
+  }
   if (!syncRunId) {
     const started = await SA.api(`/v1/accounts/${encodeURIComponent(account.id)}/sync`, {
       method: "POST",
-      body: JSON.stringify({ mode: account.last_sync_at ? "incremental" : "first_full", relation_types: spec.relations, trigger_type: triggerType }),
+      body: JSON.stringify({ mode: account.last_sync_at ? "incremental" : "first_full", relation_types: scannable, trigger_type: triggerType }),
       timeoutMs: 15000
     });
     syncRunId = started.sync_run_id;
@@ -1153,8 +1247,8 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
   let tab = tabId ? await chrome.tabs.get(tabId).catch(() => null) : null;
   if (!tab) tab = await chrome.tabs.create({ url: spec.home, active: true });
   const results = [];
-  for (let index = 0; index < spec.relations.length; index += 1) {
-    const relation = spec.relations[index];
+  for (let index = 0; index < scannable.length; index += 1) {
+    const relation = scannable[index];
     try {
       const relationResult = await scanOneBrowserRelation({ tabId: tab.id, platform: account.platform, relation, syncRunId, profileUrl });
       results.push(relationResult);
@@ -1179,7 +1273,9 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
       }));
     }
     await chrome.action.setBadgeBackgroundColor({ color: "#171717" });
-    await chrome.action.setBadgeText({ text: `${index + 1}/${spec.relations.length}` });
+    // 分母也要用 scannable：用 spec.relations 的话，B 站读完唯一那条会显示 "1/4"，
+    // badge 停在 1/4 看起来像卡住了，而它其实已经做完了。
+    await chrome.action.setBadgeText({ text: `${index + 1}/${scannable.length}` });
   }
   const latest = await SA.api(`/v1/sync-runs/${encodeURIComponent(syncRunId)}`, { timeoutMs: 10000 });
   await chrome.action.setBadgeBackgroundColor({ color: latest.status === "completed" ? "#1f7a4c" : "#9a6700" });
@@ -1243,11 +1339,16 @@ async function syncAccountById(accountId, options = {}) {
   const capability = await platformCapability(account.platform);
   // **顺序要紧：先问「同步得动吗」，再问「谁来干」。**
   //
-  // 反过来的话 bilibili 会出事：它同时 server_handled=true（在
-  // SERVER_ACCOUNT_CONNECTORS 里）**和** sync_supported=false（不在
-  // SYNCABLE_NOW 里）。先看 serverHandled 就会把它交给服务端，
-  // 而服务端对它同样没有能用的取数实现——于是那次 run 停在半路，
-  // 界面一直转圈。**「服务端登记了这个平台」不等于「服务端做得成」。**
+  // 这条规矩当初是被 bilibili 逼出来的：它曾经同时 server_handled=true
+  // （在 SERVER_ACCOUNT_CONNECTORS 里）**和** sync_supported=false
+  // （不在 SYNCABLE_NOW 里）。先看 serverHandled 就会把它交给服务端，
+  // 而服务端对它同样没有能用的取数实现——那次 run 停在半路，界面一直转圈。
+  //
+  // **2026-08-06 / G1：bilibili 已经不是这个例子了。** 它现在
+  // sync_supported=true、server_handled=false，走的是下面的浏览器路
+  // （acquireBilibiliFavorites）。之所以把这段历史留着，是因为**规矩仍然成立**：
+  // 「服务端登记了这个平台」不等于「服务端做得成」，x / reddit / instagram
+  // 三个现在就是这个形状。
   if (!capability.canSync) {
     const error = new Error("本版本还不能自动读取这个平台的收藏列表，已停止，不会反复重试。");
     error.failureCode = "ACQUISITION_PATH_NOT_INSTALLED";

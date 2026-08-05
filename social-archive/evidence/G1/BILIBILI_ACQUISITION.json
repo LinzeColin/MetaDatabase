@@ -1,0 +1,87 @@
+{
+  "status": "PASS",
+  "task": "G1",
+  "what_this_is": "B 站收藏夹取数路的实测记录。SYNCABLE_NOW 收 bilibili 的依据就是这份。",
+  "live_probe_ran": true,
+  "live": {
+    "live_folder": {
+      "ok": true,
+      "partial": false,
+      "failureCode": null,
+      "declared": 10,
+      "read": 10,
+      "skipped": 0,
+      "pages": 3,
+      "folder_title": "B站 × WAIC AI会客厅",
+      "all_urls_openable": true,
+      "sample_url": "https://www.bilibili.com/video/BV1nB3u6tERu"
+    },
+    "live_folder_list": {
+      "ok": true,
+      "count": 4,
+      "failureCode": null
+    },
+    "live_not_logged_in": {
+      "ok": false,
+      "failureCode": "BILIBILI_NOT_LOGGED_IN",
+      "behaved_as_expected": true
+    },
+    "live_invisible_folder": {
+      "ok": false,
+      "failureCode": "BILIBILI_FOLDER_NOT_VISIBLE",
+      "behaved_as_expected": true
+    }
+  },
+  "fixture": {
+    "pagination_stuck": {
+      "failureCode": "BILIBILI_PAGINATION_STUCK",
+      "partial": true,
+      "kept": 2,
+      "calls": 2
+    },
+    "count_mismatch": {
+      "failureCode": "BILIBILI_COUNT_MISMATCH",
+      "partial": true,
+      "declared": 10,
+      "read": 2
+    },
+    "deeplink_only": {
+      "kept": 1,
+      "skipped": 1,
+      "failureCode": null,
+      "kept_url": "https://www.bilibili.com/video/BV11111111"
+    },
+    "too_many_pages": {
+      "failureCode": "BILIBILI_TOO_MANY_PAGES",
+      "partial": true,
+      "calls": 200,
+      "cap": 200
+    },
+    "no_folders_is_not_success": {
+      "ok": false,
+      "failureCode": "BILIBILI_NO_FOLDERS",
+      "refused_to_report_silent_zero": true
+    },
+    "happy_path": {
+      "ok": true,
+      "completeness": "complete",
+      "items": 3,
+      "collections": 2,
+      "every_item_has_collection_key": true
+    }
+  },
+  "problems": [],
+  "zero_cost": {
+    "api_key_required": false,
+    "paid_tier_required": false,
+    "note": "B 站收藏夹接口是公开 REST，无签名、无 API key。不触及 L0「0 新增必付费用」。"
+  },
+  "cookie_handling": {
+    "reads_cookie_values": false,
+    "stores_cookie_values": false,
+    "transmits_cookie_values": false,
+    "note": "请求由**页面自己**发出（content script + credentials:'include'），带凭据的是浏览器。符合 INV-DOMESTIC-COOKIE-STAYS：cookie-export.js 的 FORBIDDEN_PLATFORMS 里就有 bilibili。"
+  },
+  "owner_actions_required": [],
+  "what_this_does_not_prove": "**没有证明 Owner 自己的收藏夹读得出来。** 那需要他本人的 B 站登录态，这台机器上没有也不该有。这份证据能保证的是：接口理解、翻页终点、解析、以及六种读不到的分类都是对的，且每一种都会明确报出来、不会静默成零。真实登录态下的那一次，发生在他自己的浏览器里。"
+}

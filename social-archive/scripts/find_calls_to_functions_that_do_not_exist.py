@@ -74,8 +74,38 @@ IntersectionObserver MutationObserver
 
 
 def code_only(text: str) -> str:
+    """把注释剥干净。**第四次被自己写的说明文字骗**，所以这次连块注释一起剥。
+
+    原来只剥两种行：以 `//` 开头的、以 `*` 开头的（块注释的中间行）。
+    漏掉的是**写在一行里的块注释**：
+
+        /** 条目的网址。**只认 http(s)**，`bilibili://` 深链一律拒绝。 */
+
+    这一行既不以 `//` 开头也不以 `*` 开头，于是整行留了下来，
+    `http(` 被 CALLED 认成一次函数调用，判据报「调用了一个不存在的函数 http()」。
+    2026-08-06 实测：一句中文注释里的「http(s)」就够让这道门报一条假缺陷。
+
+    **先剥块注释再剥行注释**，顺序不能反：块注释里可能有以 `//` 开头的行，
+    但反过来按行剥会把 `/** … */` 的首尾行留下。
+
+    **块注释的起点必须锚在行首**（前面只许有空白）。这一条是用一次翻车换来的：
+
+    第一版写的是裸的 `/\\*.*?\\*/`，结果凭空造出 **10 条误报**
+    （captureActive / navigateMirrorTab / getConfig …，这些都是好端端声明过的）。
+    原因是 manifest 那类**匹配模式字符串里含 `/*`**：
+
+        "https://*.bilibili.com/*"      ← `.com/*` 这两个字符就是一个"块注释开始"
+
+    于是它从那儿一路吃到后面某个 `*/`，把中间真正的函数声明整段吞掉，
+    声明没了，调用自然就成了"不存在的函数"。
+    **一道判据把好代码报成坏代码，比它漏报更贵。**
+
+    锚在行首之后，字符串里的 `/*` 不再被当成注释起点；代价是"写在代码后面的
+    行尾块注释"不剥——那是原来就有的行为，不构成退步。
+    """
+    without_blocks = re.sub(r"(?m)^[ \t]*/\*.*?\*/", " ", text, flags=re.S)
     return "\n".join(
-        line for line in text.splitlines()
+        line for line in without_blocks.splitlines()
         if not line.lstrip().startswith("//") and not line.lstrip().startswith("*")
     )
 

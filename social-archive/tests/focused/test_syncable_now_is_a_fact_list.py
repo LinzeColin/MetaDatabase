@@ -14,6 +14,9 @@
 以及**不在表里的每一项都要有一句用户读得懂的原因**。
 """
 
+import json
+from pathlib import Path
+
 from social_archive.account_sync import (
     NOT_SYNCABLE_YET,
     PLATFORM_LABELS,
@@ -21,13 +24,44 @@ from social_archive.account_sync import (
     SYNCABLE_NOW,
 )
 
-# 只有这一个平台跑通过真实数据：T04 实测 62 条 Chrome 书签全量入库。
-# 往这里加名字之前，先拿出**打到生产上量出来的**证据，不是读代码推的。
-PROVEN_BY_REAL_DATA = {"generic-web"}
+ROOT = Path(__file__).resolve().parents[2]
+
+# 「有实测底」不再是一个写死的名单，而是**仓里真有一份跑出来的实测记录**。
+#
+# 写死名单的毛病是加名字太便宜：改一行就多一个平台，而没有任何东西去查
+# 它凭什么在里面。改成读证据之后，「进 SYNCABLE_NOW」必须先「跑出一份
+# status=PASS 且真打过接口的记录」——判据和事实之间有了一条实线。
+PROVEN_EVIDENCE = {
+    # T04 实测 62 条 Chrome 书签全量入库。这条早于本机制，仍按老规矩认。
+    "generic-web": None,
+    # v0.0.0.7 / G1：scripts/bilibili_acquisition_drill.py 生成。
+    "bilibili": "evidence/G1/BILIBILI_ACQUISITION.json",
+}
+
+
+def _proven() -> set[str]:
+    proven: set[str] = set()
+    for platform, relative in PROVEN_EVIDENCE.items():
+        if relative is None:
+            proven.add(platform)
+            continue
+        report = ROOT / relative
+        if not report.is_file():
+            continue
+        try:
+            data = json.loads(report.read_text(encoding="utf-8"))
+        except ValueError:
+            continue
+        # **两个条件缺一不可**：跑出来是 PASS，而且真的打过接口。
+        # 只看 status 的话，一次 --no-live（离线降级）跑出来的 PASS
+        # 也会被当成「量过了」——那正是"降级当通过"的老毛病。
+        if data.get("status") == "PASS" and data.get("live_probe_ran") is True:
+            proven.add(platform)
+    return proven
 
 
 def test_nothing_claims_to_be_syncable_without_a_measured_basis() -> None:
-    unproven = sorted(SYNCABLE_NOW - PROVEN_BY_REAL_DATA)
+    unproven = sorted(SYNCABLE_NOW - _proven())
     assert not unproven, (
         f"这些平台自称「能同步」而没有实测底：{unproven}。"
         "界面会给它们画「立即同步」，点下去是什么，谁也没量过。"

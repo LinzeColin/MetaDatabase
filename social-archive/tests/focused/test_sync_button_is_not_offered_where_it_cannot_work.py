@@ -39,10 +39,55 @@ PWA = ROOT / "apps/pwa/app.js"
 
 
 def _function_body(js: str, name: str) -> str:
-    """取一个顶层函数的函数体，切到下一个顶层 function 为止。"""
+    """取一个顶层函数的函数体，切到下一个顶层 function 为止。
+
+    ⚠️ **只对缩进两格的写法有效**（PWA 的 app.js 是一个大 IIFE，
+    里面的函数都缩进两格）。background.js 的函数声明在第 0 列，
+    这个正则永远匹配不到，于是它会把「从这个函数开始到文件结尾」整段返回。
+    """
     body = js.split(f"function {name}", 1)[1]
     nxt = re.search(r"\n  (?:async )?function ", body)
     return body[: nxt.start()] if nxt else body
+
+
+def _braced_body(js: str, name: str) -> str:
+    """靠**数括号**取函数体——顶层函数、嵌套函数都对。
+
+    2026-08-06：上面那个 `_function_body` 拿去切 background.js 的
+    `acquireRelationItems` 时，一个字符都没切掉——返回了 **31588 字符**，
+    也就是从那个函数一直到文件末尾。于是「缝隙里有没有 bilibili 分支」
+    这个判据实际上在问「整个文件后半段里有没有 bilibili 这个词」，
+    答案恒为是：**把分支整段删掉，判据照样绿。**
+
+    这一条是靠反例查出来的，不是看代码看出来的——判据写完先把它守的东西
+    弄坏一次，是唯一能分辨「真的守住了」和「摆设」的办法。
+    """
+    start = js.index(f"function {name}")
+    # **要先跳过参数表。** 直接找 start 之后的第一个 `{` 会撞上解构参数：
+    #     async function acquireRelationItems({ tabId, platform, relation } = {}) {
+    # 第一个 `{` 是 `{ tabId, platform, relation }`，切出来 29 个字符。
+    # 那次反例照样报红——但**是因为这 29 个字符里也没有 "bilibili"**，
+    # 红得凑巧而不是红得对。正例同时必须是绿的，才说明判据量的是那件事。
+    paren = js.index("(", start)
+    depth = 0
+    for index in range(paren, len(js)):
+        if js[index] == "(":
+            depth += 1
+        elif js[index] == ")":
+            depth -= 1
+            if depth == 0:
+                paren = index
+                break
+    opening = js.index("{", paren)
+    depth = 0
+    for index in range(opening, len(js)):
+        if js[index] == "{":
+            depth += 1
+        elif js[index] == "}":
+            depth -= 1
+            if depth == 0:
+                return js[opening: index + 1]
+    raise AssertionError(f"{name} 的花括号没有闭合")
 
 
 def code_only(text: str) -> str:
@@ -56,15 +101,42 @@ def test_the_server_declares_which_platforms_can_sync_today() -> None:
     from social_archive.account_sync import NOT_SYNCABLE_YET, PLATFORM_RELATIONS, SYNCABLE_NOW
 
     assert SYNCABLE_NOW, "没有任何平台被标为可同步——那界面什么都画不出来"
-    # 走浏览器拦截路的四个国内源，本版本取数缝隙是 stub，必须**不在**可同步清单里
+    # 走浏览器路的四个国内源。原来这里写死「四个都必须不在清单里」，
+    # 依据是取数缝隙 acquireRelationItems() 当时是个 stub。
+    #
+    # 2026-08-06 / G1：B 站那条取数路做出来了（content/bilibili-reader.js，
+    # 调 B 站自己的公开接口）。**所以判据不能再写死名单，要去问那条缝隙本身。**
+    # 写死名单的话，每次接通一个平台都得改判据，而改判据的人正是最该被判据挡住的人。
+    background = (ROOT / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    seam = code_only(_braced_body(background, "acquireRelationItems"))
+    # 先证明切得对：切出来的应该是那个只有几行的分流函数，不是半个文件。
+    # （原来用 _function_body 切出来 31588 字符，判据因此变成摆设。）
+    assert len(seam) < 1200, (
+        f"acquireRelationItems 的函数体切出来 {len(seam)} 字符——切歪了，"
+        "下面那句「缝隙里有没有这个平台」问的就不是缝隙了"
+    )
     for platform in ("xiaohongshu", "douyin", "kuaishou", "bilibili"):
-        assert platform not in SYNCABLE_NOW, (
-            f"{platform} 被标成可同步，而它的取数路是个 stub —— 用户会点到一个必然失败的按钮"
-        )
+        # 缝隙里有没有真的为这个平台分流出去（而不是掉进那个 throw）。
+        wired = f'"{platform}"' in seam
+        if platform in SYNCABLE_NOW:
+            assert wired, (
+                f"{platform} 被标成可同步，而 acquireRelationItems 里没有它的分支 —— "
+                "用户会点到一个必然失败的按钮"
+            )
+            continue
         assert NOT_SYNCABLE_YET.get(platform), f"{platform} 没有写清「为什么不能」与「现在能做什么」"
         assert "保存到我的档案馆" in NOT_SYNCABLE_YET[platform], (
             f"{platform} 的说明没有给出现在真的能用的那个动作"
         )
+    # 反过来也要成立：**没接通的平台不许出现在可同步清单里**。
+    for platform in ("xiaohongshu", "douyin", "kuaishou"):
+        assert platform not in SYNCABLE_NOW, (
+            f"{platform} 的取数路还是 stub，不该出现在可同步清单里"
+        )
+    # 一个平台不许同时出现在两张表里：界面读 sync_supported 画按钮、
+    # 同时把 not_syncable_reason 显示出来，卡片上会出现两句自相矛盾的话。
+    both = sorted(SYNCABLE_NOW & set(NOT_SYNCABLE_YET))
+    assert not both, f"这些平台同时被标成「能同步」和「还不能同步」：{both}"
     # Chrome 书签是实测跑通过的（T04，62 条）
     assert "generic-web" in SYNCABLE_NOW
     # 清单不能提到不存在的平台

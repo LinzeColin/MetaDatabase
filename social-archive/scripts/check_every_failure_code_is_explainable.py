@@ -68,6 +68,23 @@ PATTERNS = (
     # RELATION_TERMINAL_NOT_PROVEN。
     re.compile(r'\|\|\s*"([A-Z][A-Z0-9_]+)"'),
     re.compile(r'\bor\s+"([A-Z][A-Z0-9_]+)"'),
+    # **三元写法**：同一个坑的第三种形态（2026-08-06 / G1 实测）。
+    #
+    #     failureCode: countMatches ? null : "BILIBILI_COUNT_MISMATCH",
+    #     failureCode: allComplete ? null
+    #       : (skipped.length ? "BILIBILI_SOME_ITEMS_HAVE_NO_URL"
+    #                         : "BILIBILI_SOME_FOLDERS_INCOMPLETE"),
+    #
+    # 上面每一条都要求引号**紧跟**在冒号后面，于是这三个码整整齐齐地
+    # 从这道门下面走过去了：新写的 17 个 B 站失败码，它只看见 14 个。
+    # 漏掉的那 3 个若真发生，用户看到的就是「我们没能记录下原因」——
+    # 而这道门存在的唯一目的就是防这句话。
+    #
+    # 改成**开窗**：`failureCode:` 之后 240 字符内的所有大写字面量都算。
+    # 窗口开大的代价是可能多收几个不相干的常量，那会让这道门更严而不是更松；
+    # 而漏收的代价是一条永远没人解释的失败码。两边不对称，宁可多收。
+    re.compile(r'(?:failure_code|failureCode|error_code)\s*[=:][^;}\n]{0,240}?'
+               r'"([A-Z][A-Z0-9_]{3,})"', re.S),
 )
 
 # 不是失败码的大写字面量（状态、类型、算法名等）。每条写清它是什么。

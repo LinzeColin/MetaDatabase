@@ -89,6 +89,25 @@ _ALIASES: dict[str, str] = {
     # 但词典里没有单独一句，暂时落到最接近的那条（NOT_LOGGED_IN 会引导他回到平台页）。
     "PLATFORM_PERMISSION_DENIED": "NOT_LOGGED_IN",
     "OBSERVER_INSTALL_FAILED": "SERVER_UNREACHABLE",
+    # ── B 站收藏夹取数（v0.0.0.7 / G1）。分三类，判据是**用户下一步该做什么**。
+    #
+    # 第一类：他自己做得了。落到词典里已有的那两句。
+    "BILIBILI_NOT_LOGGED_IN": "NOT_LOGGED_IN",
+    # -403：B 站说权限不够。最常见的成因就是登录态没带上或已过期，
+    # 而 NOT_LOGGED_IN 那句正好把他引回 B 站页面去确认——下一步是对的。
+    "BILIBILI_FORBIDDEN": "NOT_LOGGED_IN",
+    # 一个收藏夹都没列出来。**这句不能说成「你没有收藏」**：
+    # 接口在没带上登录态时同样回「成功 + 空」（实测 code:0 / data:null），
+    # 两者在字节上分不开，而其中一个他自己就能解决。
+    "BILIBILI_NO_FOLDERS": "NOT_LOGGED_IN",
+    # 同步途中那个标签页没了或被导航走了 —— 和"标签页被关掉"是同一件事。
+    "BILIBILI_TAB_UNAVAILABLE": "TAB_CLOSED",
+    "BILIBILI_TAB_NOT_ON_PLATFORM": "TAB_CLOSED",
+    # 第二类：真的是一次暂时性的网络失败，**重试确实可能好**。
+    # 这里用 SERVER_UNREACHABLE 不违反上面那条禁令 —— 那条禁的是把
+    # 「本版本没实现」说成「暂时连不上，重试」；这两个码是货真价实的连不上。
+    "BILIBILI_NETWORK_ERROR": "SERVER_UNREACHABLE",
+    "BILIBILI_HTTP_ERROR": "SERVER_UNREACHABLE",
     # **INTERCEPT_PREFIX_UNKNOWN 从这里搬走了**（2026-08-06）。
     # 它原先也别名成 SERVER_UNREACHABLE，就写在上面那段说明的第四行下面——
     # 而那段说明讲的正是「别把『本版本没实现』说成『暂时连不上服务器 [重试]』」。
@@ -244,6 +263,17 @@ INCOMPLETE_RUN_CODES: frozenset[str] = frozenset({
     # 关系没拿到终批证明——扫完了但证不出"确实到头了"。
     # 对用户就是「没跑完，已取到的还在」，与其它 INCOMPLETE 同类。
     "RELATION_TERMINAL_NOT_PROVEN",
+    # ── B 站收藏夹（v0.0.0.7 / G1）第三类：**读到了一部分，但没读完。**
+    # 这几个码的共同点是「已取到的都在库里，只是这次没到底」，
+    # 正是 _INCOMPLETE_SENTENCE 那句话说的情形。
+    #
+    # 把它们放进这里而不是 PRODUCT_FAULT_CODES 是有后果的：产品故障那句
+    # 说「不用反复重试」，而这几种**再跑一次通常就补齐了**。
+    "BILIBILI_TOO_MANY_PAGES",             # 收藏夹超过翻页上限，只读了前面一段
+    "BILIBILI_PAGINATION_STUCK",           # 接口说还有更多、却给了空页，停在这里
+    "BILIBILI_COUNT_MISMATCH",             # 声明 N 条、只读到 M 条，差额没有解释
+    "BILIBILI_SOME_FOLDERS_INCOMPLETE",    # 有收藏夹没读完
+    "BILIBILI_SOME_ITEMS_HAVE_NO_URL",     # 有条目读不出可打开的网址，已跳过并记下
 })
 _INCOMPLETE_SENTENCE = "这次同步卡住了，没有正常结束。你已经取到的内容都还在。"
 
@@ -299,6 +329,17 @@ PRODUCT_FAULT_CODES: frozenset[str] = frozenset({
     "MEDIA_BLOCKED_BY_PLATFORM",
     "MEDIA_NOT_RETRIEVED",
     "MEDIA_TYPE_UNSUPPORTED",
+    # ── B 站收藏夹（v0.0.0.7 / G1）第四类：**知道原因，但他帮不上忙。**
+    # B 站回了我们没处理过的错误码，或者回了我们读不懂的形状——
+    # 两种都得我们改解析器，重试一万次是同一份字节。
+    "BILIBILI_API_ERROR",
+    "BILIBILI_SHAPE_UNKNOWN",
+    # 「成功码 + 空数据」。登录态那条路已经由上面 BILIBILI_NOT_LOGGED_IN /
+    # BILIBILI_NO_FOLDERS 单独接住了；能走到这一个，说明账号是认得的、
+    # 收藏夹清单也拿到了，偏偏某个收藏夹回了 data:null —— 那就是我们的事。
+    "BILIBILI_FOLDER_NOT_VISIBLE",
+    "BILIBILI_NO_RESULT",       # 注入的读取器什么都没返回
+    "BILIBILI_READ_FAILED",     # 兜底：读取器报了失败但没给码
 })
 _PRODUCT_FAULT_SENTENCE = "这次没有取到内容，问题在我们这边，已经记下来了。不用反复重试。"
 
