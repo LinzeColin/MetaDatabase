@@ -26,6 +26,7 @@
     x: { label: "X", short: "X", cls: "x", server: "x" },
     reddit: { label: "Reddit", short: "R", cls: "reddit", server: "reddit" },
     ins: { label: "Instagram", short: "In", cls: "ins", server: "instagram" },
+    yt: { label: "YouTube", short: "Y", cls: "yt", server: "youtube" },
     web: { label: "Chrome书签/网页", short: "书", cls: "web", server: "generic-web" }
   };
   const platformOrder = ["all", "xhs", "dy", "ks", "bili", "x", "reddit", "ins", "web"];

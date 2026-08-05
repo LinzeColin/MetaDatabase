@@ -70,7 +70,23 @@
 
   function externalId(platform, url) {
     try {
-      const path = new URL(url).pathname;
+      const parsed = new URL(url);
+      // **youtube 的内容 id 在查询串里，不在路径里。**
+      //
+      // 上面那张表按 pathname 匹配，而 YouTube 是 `/watch?v=<id>`——
+      // 路径永远是 `/watch`，再精巧的正则也取不到 id。于是它会落到
+      // 下面那句「退回整个 URL」，而 YouTube 的 URL 几乎总带着
+      // `&t=`、`&list=`、`&pp=` 这类会变的参数：**同一个视频每次都算成新内容**。
+      // 退回整个 URL 对别的平台是「粒度粗一点」，对 YouTube 是去重彻底失效。
+      if (platform === "youtube") {
+        const v = parsed.searchParams.get("v");
+        if (v) return v;
+        if (parsed.hostname.endsWith("youtu.be")) {
+          const short = parsed.pathname.replace(/^\//, "");
+          if (short) return short;
+        }
+      }
+      const path = parsed.pathname;
       // 认不出来就退回整个 URL——宁可去重粒度粗一点，也不要返回空串，
       // 空串会让不同内容撞成同一个 key，是"静默丢数据"。
       return path.match(CONTENT_ID_PATTERNS[platform])?.[1] || url;

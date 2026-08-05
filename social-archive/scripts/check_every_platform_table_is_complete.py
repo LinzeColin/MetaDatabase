@@ -28,8 +28,13 @@
 
 · 只扫源码（`apps/` `src/` `scripts/`），不扫测试与证据——
   那些地方出现平台名单是正常的。
-· 只按「一行里 ≥3 个平台名」认表。跨行的表会被这条规则漏掉，
-  **这不是「没有问题」，只是这条规则看不到**——已知的局限写在这里。
+· 认表有两条规则：**一行里 ≥3 个平台名**，以及**一个括号块里 ≥3 个**。
+  后者是补上来的：第一版只有前者，把「跨行的表看不到」写成了已知盲区，
+  而那不是「没有问题」。补完当天就从盲区里捞出两处真缺失——
+  PWA 的 platformMeta（Owner 的库里 YouTube 会被标成「Chrome书签/网页」）
+  和抓取选择器 LIST_SELECTORS。
+· 仍然看不到的：把平台名拼出来的（`"you"+"tube"`）、从配置读的、
+  以及散在三个以上括号层里的。**这几类它查不到，不等于它们没问题。**
 """
 
 from __future__ import annotations
@@ -61,6 +66,12 @@ DELIBERATE_SUBSETS = {
     "SERVER_ACCOUNT_CONNECTORS": "服务端直连的那几个；youtube 走 Cookie 托管，不走这条",
     "all-cn": "国内平台的 canary 批次",
     "INCIDENTAL_PROBE_FAILURES": "失败码表，不是平台表",
+    "CONTENT_ID_PATTERNS": "按 pathname 匹配；youtube 的 id 在查询串里（watch?v=），"
+                           "由 externalId 的专门分支处理，放进这张表反而取不到",
+    "INTERCEPT_PREFIXES": "只放**实测过**的收藏接口前缀，没实测的一律 null——"
+                          "写一个看着像的比空着更坏（T09 才是取得它们的正当途径）",
+    "self._connectors": "三个 HTTP worker 平台的实例；x/instagram/youtube 走别的代码路径",
+    "_IDENTITY_SHAPE": "只放**账号 id 有已知形状**的平台；没有形状的走 shape is None 那条",
 }
 
 
@@ -70,6 +81,38 @@ def _table_name(line: str) -> str:
     if found:
         return next((g for g in found.groups() if g), "?")
     return "?"
+
+
+def _blocks(lines: list[str]) -> list[tuple[int, str]]:
+    """把「赋值 + 花括号/方括号」的整块取出来，一块只报一次。
+
+    第一版只看单行，于是跨行的表全看不见。而滑动窗口那种做法噪音极大：
+    同一张表在每一行都报一次，20 处里有 15 处是同一张。
+    这里按括号配平取块，**一张表只出现一次**。
+    """
+    out: list[tuple[int, str]] = []
+    opener = re.compile(r"[=:]\s*(?:frozenset\(|new Set\(|Object\.freeze\()?\s*[\{\[]\s*$")
+    for index, line in enumerate(lines):
+        if line.strip().startswith(("#", "//", "*")) or not opener.search(line):
+            continue
+        # **窗口不能截断。** 第一版取 60 行，而 platform-catalog 的 PLATFORMS
+        # 块有 80 行——于是它读到一半就下结论，报「PLATFORMS 里没有 instagram」，
+        # 而 instagram 就在第 99 行。**指控一个没错的表**，今天第五次。
+        # 现在只按括号配平收块；配不平就**明说没读完**，不装作读完了。
+        depth = 0
+        chunk = []
+        closed = False
+        for probe in lines[index:]:
+            chunk.append(probe)
+            depth += probe.count("{") + probe.count("[")
+            depth -= probe.count("}") + probe.count("]")
+            if depth <= 0 and len(chunk) > 1:
+                closed = True
+                break
+        if not closed:
+            continue        # 读到文件尾都没配平，多半不是一张表，别据此指控
+        out.append((index + 1, "\n".join(chunk)))
+    return out
 
 
 def main() -> int:
@@ -102,6 +145,22 @@ def main() -> int:
                         continue
                     problems.append(
                         f"{path.relative_to(ROOT)}:{number} 这张表（{name}）里没有 {platform}"
+                    )
+
+            # **再按括号块看一遍**——跨行的表单行规则一个都看不见。
+            for start, block in _blocks(lines):
+                names = {name for name in KNOWN if re.search(rf"\b{name}\b", block)}
+                if len(names) < 3:
+                    continue
+                head = lines[start - 1]
+                if any(marker in block for marker in DELIBERATE_SUBSETS):
+                    continue
+                tables += 1
+                for platform in sorted(CUSTODIAL_PLATFORMS):
+                    if re.search(rf"\b{platform}\b", block):
+                        continue
+                    problems.append(
+                        f"{path.relative_to(ROOT)}:{start} 这个块（{_table_name(head)}）里没有 {platform}"
                     )
 
     print(f"扫了 {'/'.join(SCANNED)} 下 {tables} 处平台表；"

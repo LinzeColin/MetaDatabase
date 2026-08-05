@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 638 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 640 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -133,7 +133,7 @@
         "scripts/check_every_platform_table_is_complete.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 apps/src/scripts 下 20 处平台表；已登记的有意子集 5 张\n每一张平台表都提到了所有可托管平台。\n",
+      "stdout": "扫了 apps/src/scripts 下 31 处平台表；已登记的有意子集 9 张\n每一张平台表都提到了所有可托管平台。\n",
       "stderr": ""
     },
     {

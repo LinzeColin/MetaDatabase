@@ -303,6 +303,7 @@
     .platform-logo.x { background: #111318; }
     .platform-logo.reddit { background: linear-gradient(145deg, #ff6937, #e84818); }
     .platform-logo.ins { background: linear-gradient(145deg, #8d42dc, #ef3c69 56%, #ffbd55); }
+    .platform-logo.yt { background: linear-gradient(145deg, #ff0000, #cc0000); }
     .platform-logo.web { background: linear-gradient(145deg, #29a68e, #167968); }
 
     .toolbar-shell {

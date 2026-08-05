@@ -104,12 +104,16 @@ def test_exemptions_are_keyed_on_the_line_not_the_table_name() -> None:
 
 
 def test_it_says_out_loud_what_it_cannot_see() -> None:
-    """跨行的表这条规则看不到——**那不是「没有问题」，是这条规则的盲区**。
+    """**一道门把自己的盲区说出来，和它查到什么一样重要。**
 
-    一道门把自己的盲区说出来，和它查到什么一样重要。
+    这条判据本身被改过一次：它原来钉的是「跨行的表看不到」那句话，
+    而那个盲区**后来被补上了**——于是判据红了。红得对：
+    盲区清单变了，声明就得跟着变。它钉的是「有没有声明」，不是某一句话。
+
+    现在剩下的盲区是：拼出来的平台名、从配置读的、嵌套太深的。
     """
-    assert "跨行的表会被这条规则漏掉" in SOURCE
-    assert "这不是「没有问题」" in SOURCE
+    assert "仍然看不到的" in SOURCE, "没有声明任何盲区"
+    assert "不等于它们没问题" in SOURCE, "声明了盲区，却没说清「查不到 ≠ 没问题」"
 
 
 def test_it_is_wired_into_the_release_gate() -> None:
@@ -118,3 +122,51 @@ def test_it_is_wired_into_the_release_gate() -> None:
     assert "check_every_platform_table_is_complete.py" in code, (
         "这道门没被发布门调用——只在注释里提到不算"
     )
+
+
+def test_it_sees_tables_that_span_multiple_lines() -> None:
+    """**第一版把「跨行的表看不到」写成了已知盲区——而那不是「没有问题」。**
+
+    补上块检测当天就从盲区里捞出两处真缺失：PWA 的 platformMeta
+    （Owner 的库里 YouTube 会被标成「Chrome书签/网页」）和抓取选择器。
+    """
+    assert "_blocks" in SOURCE, "只按单行认表，跨行的一张都看不见"
+    assert "括号配平" in SOURCE or "depth" in SOURCE, "没有按括号配平取块"
+
+
+def test_the_block_window_never_truncates() -> None:
+    """**窗口截断会让它指控一个没错的表。**
+
+    第一版取 60 行，而 platform-catalog 的 PLATFORMS 块有 80 行——
+    它读到一半就下结论，报「PLATFORMS 里没有 instagram」，
+    而 instagram 就在第 99 行。配不平时必须放弃，不能据此指控。
+    """
+    assert "lines[index:]" in SOURCE, "块窗口还是定长的，会读到一半就下结论"
+    assert "closed" in SOURCE and "if not closed" in SOURCE, (
+        "配不平的时候没有放弃，可能拿半截块去指控"
+    )
+
+
+def test_the_pwa_library_knows_youtube() -> None:
+    """Owner 的库里，YouTube 不能显示成「Chrome书签/网页」。
+
+    PWA 的 platformMeta 缺 youtube 时会走 `|| platformMeta.web` 兜底——
+    不崩，但标签、图标、筛选标签页全是错的。
+    """
+    app = (ROOT / "apps/pwa/app.js").read_text(encoding="utf-8")
+    assert 'server: "youtube"' in app, "PWA 的平台元数据里没有 youtube"
+    styles = (ROOT / "apps/pwa/styles.css").read_text(encoding="utf-8")
+    assert ".platform-logo.yt" in styles, "那个平台标记没有样式，会是个没上色的方块"
+
+
+def test_youtube_content_ids_ignore_url_noise() -> None:
+    """**YouTube 的 id 在查询串里，而那张表按 pathname 匹配。**
+
+    取不到就退回整个 URL。对别的平台那只是「粒度粗一点」，
+    对 YouTube 是去重彻底失效——它的 URL 几乎总带着 &t= / &list= / &pp=，
+    同一个视频每次都会算成新内容。
+    """
+    utils = (ROOT / "apps/browser-extension/content/extension-utils.js").read_text(encoding="utf-8")
+    assert 'platform === "youtube"' in utils, "externalId 没有为 youtube 单开一条"
+    assert 'searchParams.get("v")' in utils, "没有从查询串里取 v"
+    assert "youtu.be" in utils, "短链形式没处理"
