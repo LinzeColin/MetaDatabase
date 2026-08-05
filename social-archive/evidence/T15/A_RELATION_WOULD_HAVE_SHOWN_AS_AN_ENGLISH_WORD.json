@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "task": "T15",
+  "slice": "S1",
+  "recorded_at": "2026-08-06T12:30Z",
+  "status": "PASS",
+  "claim": "YouTube 的「播放列表」在资料库里会显示成英文单词 playlist。已补上中文名并落成判据。",
+  "how_i_found_it": "生产上那 193 条里有 71 条关系是 `history`——顺手数了一遍：服务端会回几种关系，界面认得几种。",
+  "the_gap": {
+    "服务端 PLATFORM_RELATIONS 里的 9 种": [
+      "bookmark",
+      "favorite",
+      "history",
+      "like",
+      "manual_save",
+      "playlist",
+      "saved",
+      "upvoted",
+      "watch_later"
+    ],
+    "界面 relationLabels 里只有 8 种": "**少了 `playlist`**。",
+    "取标签的写法": "`relationLabels[...] || relationLabels[...] || item.primary_relation || \"收藏\"` —— **取不到就退回原值**，用户看到英文单词。",
+    "为什么现在没人看见": "还没有 playlist 的内容进来。**但它是接上就露的那种**——playlist 是 YouTube 的第二种关系（`[\"watch_later\", \"playlist\"]`），而 YouTube 恰恰是交接里让 Owner 去连的那个平台。"
+  },
+  "the_guards": [
+    "服务端会回的每一种关系，界面都必须有中文名（反例：把 playlist 拿掉 → 红）",
+    "**标签必须真是中文**——少了这条，`playlist: \"playlist\"` 也能让上一条绿，而用户看到的还是英文（反例：这么写 → 红）",
+    "解析出的标签少于 8 个直接失败——**解析失败和「都齐了」长得一样**"
+  ],
+  "what_this_does_not_prove": [
+    "**没有真的让一条 playlist 内容走完整条路**——今天库里一条都没有。核到的是「表里有了、取得到中文」。",
+    "只查了资料库那张表。扩展那一侧的 `relationCopy` 是按平台写文案的，不是按关系值，没有并进这条判据。",
+    "不证明这些中文名译得好，只证明不是英文。"
+  ]
+}

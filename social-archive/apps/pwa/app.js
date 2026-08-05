@@ -34,7 +34,12 @@
 
   const relationLabels = {
     manual_save: "手动保存", bookmark: "书签", saved: "收藏", favorite: "收藏",
-    like: "点赞", upvoted: "点赞", watch_later: "稍后再看", history: "观看历史", collection: "收藏夹"
+    like: "点赞", upvoted: "点赞", watch_later: "稍后再看", history: "观看历史", collection: "收藏夹",
+    // **playlist 此前不在这张表里**（2026-08-06）。它是 YouTube 的第二种关系
+    // （PLATFORM_RELATIONS["youtube"] = ["watch_later", "playlist"]），而下面那句
+    // 取不到标签时会退回原值——用户会在「关系」那一列看到一个英文单词 playlist。
+    // YouTube 恰恰是交接里让 Owner 去连的那个平台。
+    playlist: "播放列表"
   };
   const relationApiValues = { "收藏": "favorite", "点赞": "like", "书签": "bookmark", "稍后再看": "watch_later" };
   const connectionLabels = {
