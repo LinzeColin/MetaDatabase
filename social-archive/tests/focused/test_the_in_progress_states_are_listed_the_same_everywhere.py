@@ -15,8 +15,17 @@
     apps/browser-extension/popup.js    ×4   内联字面量
     apps/pwa/app.js                    ×4   内联字面量
 
-十一处是**匿名的内联数组**——最容易漂的那种：加一个新状态的人只会改
-自己手边那一处。
+数清楚一点（**第一版这里写「十一处是匿名的」，那是我自己数错了**——
+用来分类的启发式把 Python 那两个具名常量也算成了匿名）：
+
+    4 处是具名常量，而且**三个不同的名字**：
+        IN_PROGRESS_STATES（服务端）、ACTIVE_SYNC_STATES（background）、
+        activeStates（options）、running（sidepanel）
+    2 处是 db.py 状态迁移表里 pause / cancel 两个键
+    **8 处是彻头彻尾的匿名内联数组**
+
+匿名那些最容易漂：加一个新状态的人只会改自己手边那一处。
+而三个不同的名字意味着，就算想全局搜一遍也搜不齐。
 
 **而它已经漂了。** 这条判据第一次跑就红在五处：popup.js 四处、app.js 一处，
 **全都少了 `authorizing`**。后果是：账号正在授权那一段，

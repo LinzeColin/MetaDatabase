@@ -8,7 +8,7 @@
   "how_i_found_it": {
     "线索": "`failure_copy.IN_PROGRESS_STATES` 的注释写着「与 background.js 的 ACTIVE_SYNC_STATES 对应」——**一句话点明两处要对应，却没有任何东西在核**。",
     "先只当是两处": "量了一下：两处一致，各 7 个。",
-    "再问一句「还有没有别处也抄了」": "**十四处。** 其中十一处是匿名的内联数组。",
+    "再问一句「还有没有别处也抄了」": "**十四处。** 数清楚是：4 处具名常量（而且是**三个不同的名字**——IN_PROGRESS_STATES／ACTIVE_SYNC_STATES／activeStates／running）、2 处是 db.py 状态迁移表的 pause/cancel 两个键、**8 处彻头彻尾的匿名内联数组**。（第一版我写「十一处匿名」，是分类的启发式把 Python 那两个具名常量也算进去了，已更正。）",
     "判据第一次跑就红": "五处少 `authorizing`：popup.js 四处、pwa/app.js 一处。"
   },
   "what_it_broke": {
@@ -38,5 +38,6 @@
     "**只认字面量写在一起的那种。** 拆成常量再拼、或从接口取的，这条判据看不见。",
     "不保证这七个状态本身是对的，只保证十四处说的是同一件事。",
     "**没有在真界面上复现过那个症状**（要造一个停在 authorizing 的同步任务）。这里核到的是「五处清单少一个」以及它们各自被用在哪，不是「亲眼看见计数错了」。"
-  ]
+  ],
+  "why_a_global_search_would_not_have_found_them_all": "**同一个概念在扩展里就有三个名字**（ACTIVE_SYNC_STATES / activeStates / running）。按名字搜只会搜到自己知道的那一个；这条判据按**内容**认，才把十四处一次数齐。"
 }
