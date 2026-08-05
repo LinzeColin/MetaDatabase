@@ -76,8 +76,29 @@ def test_a_gap_is_named_in_the_next_step(settings, store, service) -> None:
     assert "还有 2 条从来没送到这里" in markdown["next_action_zh"], (
         "覆盖 1/3，而下一步只字不提那 2 条：" + markdown["next_action_zh"]
     )
+    # **界面渲染的是 last_message_zh || next_action_zh**，前者优先。
+    # 只写后一个字段的话，这句话永远轮不到显示——第一版就是那样，写完即隐形。
+    assert "还有 2 条从来没送到这里" in (markdown["last_message_zh"] or ""), (
+        "界面先读 last_message_zh，而那里没有差额——这句话不会被显示出来："
+        + str(markdown["last_message_zh"])
+    )
     # 主保存链路是满的，不该被这条提示打扰。
     assert "从来没送到这里" not in views["social_archive"]["next_action_zh"]
+    assert "从来没送到这里" not in (views["social_archive"]["last_message_zh"] or "")
+
+
+def test_both_uis_read_the_field_the_gap_is_written_into() -> None:
+    """**两个界面渲染的都是 `last_message_zh || next_action_zh`。**
+
+    这条判据钉的是那个优先级：只要界面还先读 last_message_zh，
+    服务端就必须把差额写进那个字段，否则这句话写了也白写。
+    界面哪天改成只读 next_action_zh，这条会红——那时该回来重看这段逻辑。
+    """
+    for name in ("apps/pwa/app.js", "apps/browser-extension/options.js"):
+        source = (ROOT / name).read_text(encoding="utf-8")
+        assert "last_message_zh" in source and "next_action_zh" in source, (
+            f"{name} 不再同时读这两个字段了——服务端那段「两个字段都写」要重看"
+        )
 
 
 def test_it_says_why_the_gap_exists_not_just_that_it_does() -> None:
@@ -89,17 +110,42 @@ def test_it_says_why_the_gap_exists_not_just_that_it_does() -> None:
     assert "先前入库的不会自己追上去" in SOURCE
 
 
-def test_it_gives_the_command_that_actually_fixes_it() -> None:
-    """说了差额还得说怎么补——**而且是那条真能跑的命令**。
+def test_it_points_at_the_button_before_the_command(settings, store, service) -> None:
+    """**他点得到的那颗按钮排在命令前面。**
 
-    在主机上跑会报 RUN_ME_INSIDE_THE_CONTAINER（密钥路径是容器里的挂载点），
-    所以这里给的必须是 `docker compose exec` 那一条。
+    第一版只给了 `docker compose exec …`。而档案馆页面上早就有一颗
+    「把没送过去的 N 条补上」，出现条件和服务端这段判断**一模一样**
+    （missing > 0 且 connected）。对一个说自己没有技术基础的人，
+    让他去 ssh 一台服务器、而同一张卡片上就摆着那颗按钮——
+    **那不是帮忙，是把他支开。**
     """
-    assert "backfill_destination.py" in SOURCE
-    assert "docker compose exec core-api" in SOURCE, (
-        "给的命令在主机上跑不通——那等于没给"
+    app = (ROOT / "apps/pwa/app.js").read_text(encoding="utf-8")
+    # 服务端那句话里点名的按钮，界面上必须真有这个词。
+    assert "把没送过去的" in app, "档案馆页面上没有这颗按钮了"
+    # **顺序要在生成出来的那句话里量，不能在源码里量。**
+    # 第一版用 SOURCE.index 比位置，结果量到的是我写在代码上面那段注释里的
+    # 「docker compose exec」——**判据钉在注释上**，今天第六次。
+    from social_archive.models import CaptureRequest
+
+    for index in range(2):
+        service.capture(CaptureRequest(
+            platform="generic-web", url=f"https://example.com/order{index}",
+            relation_type="manual_save", requested_levels=["L0"],
+            destination_ids=["social_archive"]))
+    registry = DestinationRegistry(settings, store)
+    registry.probe("markdown")
+    view = next(v for v in registry.views() if v["destination_id"] == "markdown")
+    message = str(view["last_message_zh"] or "")
+    assert "把没送过去的" in message, f"那句话没点名他点得到的按钮：{message}"
+    assert "docker compose exec core-api" in message, "在主机上跑不通的命令等于没给"
+    assert message.index("把没送过去的") < message.index("docker compose exec"), (
+        "命令排在按钮前面——他会先看到那条要 ssh 的：" + message
     )
     assert (ROOT / "scripts/backfill_destination.py").exists(), "那个脚本不在"
+    assert "backfill" not in (ROOT / "apps/browser-extension/options.js").read_text(
+        encoding="utf-8"), (
+        "扩展设置页现在也有补送按钮了——那句话该把它也说上"
+    )
 
 
 def test_a_full_destination_keeps_its_ordinary_next_step() -> None:

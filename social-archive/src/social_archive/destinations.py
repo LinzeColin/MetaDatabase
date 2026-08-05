@@ -310,14 +310,34 @@ class DestinationRegistry:
             # 先前入库的内容不会自己追上去。所以这里不改状态、不报错，
             # 只把那个差额和它的成因摆到下一步里，并给出补投那条命令。
             if authorized and total and exported < total and destination_id != "social_archive":
-                next_action = (
+                # **先说他点得到的那颗按钮，再说命令。**
+                #
+                # 第一版这里只给了 `docker compose exec …` 那条命令。而档案馆页面
+                # 上早就有一颗「把没送过去的 N 条补上」的按钮，出现条件和这段判断
+                # **一模一样**（missing > 0 且 connected），点下去还会先问一次。
+                # 对一个说自己没有技术基础的人，让他去 ssh 一台服务器，
+                # 而同一张卡片上就摆着那颗按钮——**那不是帮忙，是把他支开**。
+                # 命令留着，是给在服务器上收拾的人用的（扩展设置页没有那颗按钮）。
+                gap = (
                     f"**还有 {total - exported} 条从来没送到这里。** "
                     "自动投递只在新内容进来时发生，先前入库的不会自己追上去。"
-                    "要补投，在服务器上跑一次："
-                    f"docker compose exec core-api python /app/scripts/backfill_destination.py "
-                    f"--destination {destination_id} --apply"
-                    f"（原本的状态：{next_action}）"
+                    f"在档案馆页面这张卡片上点「把没送过去的 {total - exported} 条补上」就行，"
+                    "它会先问你一次。"
+                    "（在服务器上收拾的话：docker compose exec core-api python "
+                    f"/app/scripts/backfill_destination.py --destination {destination_id} --apply）"
                 )
+                # **两个字段都要写。**
+                #
+                # 第一版只改了 next_action_zh，而两个界面渲染的都是
+                #     item.last_message_zh || item.next_action_zh
+                # ——`last_message_zh` 在前，对已连接的目的地它总是有值
+                # （「最近一次自动导入成功。」），于是**永远轮不到 next_action_zh**。
+                # 也就是说那个修复写完就是隐形的：服务端说了实话，界面照旧报平安。
+                #
+                # 「建好了没接上」这次落在我自己二十分钟前的修复上。
+                # 改界面要改两处、而且下次多一个界面就又漏一处；写在源头只写一次。
+                next_action = f"{gap}（原本的状态：{next_action}）"
+                message = f"{gap}（最近一次的状态：{message}）" if message else gap
             result.append(
                 DestinationView(
                     destination_id=destination_id,

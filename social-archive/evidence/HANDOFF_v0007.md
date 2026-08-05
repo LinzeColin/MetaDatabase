@@ -107,19 +107,26 @@ cookie-export 的 FORBIDDEN_PLATFORMS 在第一行就拒）。我一度说「开
 
 ### 要加一个新平台的话（这条路现在是可重复的）
 
-一个平台散在**四张表**里：`shared.js` 的 PLATFORM_RULES、
-`content/platform-catalog.js` 的 PLATFORMS、`cookie-export.js` 的
-ALLOWED/FORBIDDEN、以及服务端那几张。接 youtube 时我两次宣布「封住了」，
-两次都错，**两次都是宣布完成之后才发现的**——靠人对表总会漏一张。
+**别去数有几张表。** 接 youtube 那天我数过三次，三次都少数了：
+先说四张，补完发现设置页那三张没接（**于是那颗「连接账号」按钮根本不存在**），
+补完再扫又冒出四张（popup ×2、sidepanel ×2、options 的 relationCopy），
+顺着还揪出 PWA 的 platformMeta（库里会把 YouTube 标成「Chrome书签/网页」）
+和 CONTENT_ID_PATTERNS（**YouTube 去重彻底失效**）。
 
-改完之后跑这个，它在真 Chrome 里一次问完四张表：
+**每一次都是宣布完成之后才发现的。** 所以现在不数了，让两样东西替你数：
+
+  · 发布门第 22 道 `check_every_platform_table_is_complete.py`——全仓扫平台表
+  · 下面这个演练——在真 Chrome 里问运行时，包括**真开一次设置页看那张卡在不在**
+
+改完之后跑这个：
 
 ```
 python3 scripts/build_extension_package.py          # dist/ 是 gitignore 的，得先造
 unzip -q -o dist/social-archive-extension.zip -d /tmp/sa-wire
 python3 scripts/extension_platform_wiring_drill.py --ext-dir /tmp/sa-wire \
     --platform <平台> --sample-url <该平台一个真实页面> \
-    --expect-custody yes|forbidden|not-yet
+    --expect-custody yes|forbidden|not-yet \
+    --expect-connect-card        # 真开设置页，确认那张卡和「连接账号」按钮都在
 ```
 
 第一行别省。`dist/` 在 `.gitignore` 里（第 41 行），克隆下来是没有那个 ZIP 的——
@@ -221,7 +228,7 @@ sparse    .github + social-archive
 | T09 | **工具就位（2026-08-05）** | 「抓到即固化」原来两头都断：**没人读那份诊断报告**，而且报告里只有 readable_count 这个数字、不说是哪条读得懂。两处都接上了（readable_urls 三段接通 + scripts/freeze_intercept_prefix.py）。拿生产上真报告跑过：**REFUSED / NOTHING_READABLE**——它拒绝从 urls 里挑一个看着像的，那正是它存在的理由。**只差 Owner 按那一下。**
 **但固化不等于能同步**：实测（08-05）全仓只有 installNetObserverForTab 读那张前缀表，唯一调用方是诊断按钮，而诊断那条路进门就把读到的前缀**整个覆盖掉**（改用当前页域名推的）；没有任何地方以 diagnostic=false 调它。**让同步真的用上这个前缀是 T10/T11**，那一格还没做。见 `T09/` 下 1 份证据 |
 | T10 | pending | 依赖 T08 的真实数据（拦截路要 Owner 那次诊断） |
-| T11 | **投递这一侧大幅前进（2026-08-05）** | 打生产量出来：他连的 GitHub 与 Obsidian **各只收到 1 / 193 条**——不是坏了，投递只在新内容进来时发生，他后来才连上。Owner 裁定「只补 GitHub」，已执行完：**193 / 193，零失败**，写进 LinzeColin/Private-Database，并**把文件从 GitHub 取回来读过**（YAML frontmatter + 标题 + 原始链接，469 字节，不是空文件）。补投不再需要开发者登服务器：卡片上有按钮，接口三条边界（不存在 404 / 没授权 409 / 已齐 0 条）生产实测过。**Obsidian 的 192 条按他的选择没动。** 见 `T11/` 下 1 份证据 |
+| T11 | **投递这一侧大幅前进（2026-08-05）** | 打生产量出来：他连的 GitHub 与 Obsidian **各只收到 1 / 193 条**——不是坏了，投递只在新内容进来时发生，他后来才连上。Owner 裁定「只补 GitHub」，已执行完：**193 / 193，零失败**，写进 LinzeColin/Private-Database，并**把文件从 GitHub 取回来读过**（YAML frontmatter + 标题 + 原始链接，469 字节，不是空文件）。补投不再需要开发者登服务器：卡片上有按钮，接口三条边界（不存在 404 / 没授权 409 / 已齐 0 条）生产实测过。**Obsidian 的 192 条按他的选择没动**——但界面此前把这件事说成了「最近一次自动导入成功」。已改：覆盖不满时那句话会说清差多少、为什么差（投递只在新内容进来时发生）、以及**点哪颗按钮**（档案馆卡片上那颗「把没送过去的 N 条补上」）。见 `T11/` 下 2 份证据 |
 | T12 | **done** | gallery-dl 退出码契约取自安装源；`evidence/T12/EXIT_CODE_CONTRACT.json` |
 | T13 | **partial（2026-08-05）** | 原来写着「依赖 T10 证明拦截路」——**那是错的**。全仓搜到任务包原话（引自 T02 那份 BLOCKED 回执）：**「沉默不算 BLOCKED」**，讲的是阻塞状态要附真实回执，与拦截路无关，**从来不依赖 Owner 那次诊断**。顺着它修了一处：xiaohongshu/douyin/快手 报的是 HEALTH_PROBE_FAILED / WORKER_PROBE_OR_CALL_FAILED，而那三个探针连的 worker 早在 T03 就被证伪删除——**失败码指着一个故意移除的组件**。已改为报真实原因并把探针码留作 detail 线索，生产实测通过。**Acceptance 原文仍不在仓内**，只按那一句能验的验了。**2026-08-05 又把九个被挡住的连接器逐个看了一遍**：每一个都带真实失败码 + 人话说明 + 下一步，沉默的一个都没有。但抓到一处自相矛盾——youtube 的说明写着「现在可以：连接 YouTube」，紧跟的下一步却说「本版本没有能打开这条路的设置项」，**否掉的正是交接里唯一让 Owner 做的那件事**。成因是同一天接完插件那四张表没回头改服务端这张（第五张表）。已修并落判据。见 `T13/` 下 2 份证据 |
 | T14 | **done（2026-08-04 大幅返工）** | 失败文案；两道门已接进发布门。本轮实测推翻了三处「界面说得到、后端做不到」：**插件每分钟抢用户标签页**（藏了按钮而队列照跑；x 也在抢，实测一次抢 2 下）、**SYNCABLE_NOW 四个平台三个是假的**（x 被零费用门关着、reddit/instagram 没有 Owner 能点的授权入口）、**一个太长的抖音标题让 79 条内容一个多月没导出**（safe_slug 按字符截而文件系统按字节算，且单条失败拖垮了整个目的地）。另修：失败任务被永久钉死（接口回 202 而什么都不跑）、34 条内容没有原文件时只给一段截断的英文工具输出。并第一次把生产 payload 灌进真实渲染代码读出 Owner 会看到的那八行字。见 `T14/` 下 12 份证据 |
