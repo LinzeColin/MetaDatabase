@@ -2,8 +2,8 @@
   "schema": "linze.flow_state.v1",
   "steps": {
     "BL-ADP-DAILY.deliver": {
-      "at": "2026-08-06T04:20:51.005863+08:00",
-      "note": "生产开关 ADP_PRODUCTION_ENABLED 未设为 true,投递作业每天被跳过(mode=daily-run)",
+      "at": "2026-08-06T04:39:16.844346+08:00",
+      "note": "生产开关 ADP_PRODUCTION_ENABLED 未设为 true,投递作业每天被跳过(mode=watchdog)",
       "state": "blocked_by_input"
     },
     "BL-ADP-DAILY.scan": {
