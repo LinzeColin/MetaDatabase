@@ -116,7 +116,8 @@
 </div>
 <div class="filter-panel" id="filterPanel">
 <div class="filter-field"><label for="relationFilter">关系类型</label><select id="relationFilter"><option value="all">全部关系</option><option value="收藏">收藏</option><option value="点赞">点赞</option><option value="书签">书签</option><option value="稍后再看">稍后再看</option></select></div>
-<div class="filter-field"><label for="topicFilter">主题分类</label><select id="topicFilter"><option value="all">全部主题</option><option value="AI与技术">AI与技术</option><option value="商业与投资">商业与投资</option><option value="机械制造">机械制造</option><option value="学习研究">学习研究</option><option value="生活方式">生活方式</option></select></div>
+<div class="filter-field"><label for="topicFilter">主题分类</label><!-- 这里只放「全部主题」。**其余选项由 renderTopicOptions() 照真实数据重建**，写死的会骗人：2026-08-06 对着生产量过，原先写死的五个（AI与技术/商业与投资/机械制造/学习研究/生活方式）**各返回 0 条**，而真实数据里唯一的「未分类」有 193 条、却不在那份名单里。 -->
+<select id="topicFilter"><option value="all">全部主题</option></select></div>
 <div class="filter-field"><label for="dateFilter">时间范围</label><select id="dateFilter"><option value="all">全部时间</option><option value="7">最近 7 天</option><option value="30">最近 30 天</option><option value="90">最近 90 天</option></select></div>
 <div class="filter-field"><label for="archiveFilter">归档状态</label><select id="archiveFilter"><option value="all">全部状态</option><option value="完整">完整归档</option><option value="处理中">处理中</option><option value="需处理">需要处理</option></select></div>
 </div>

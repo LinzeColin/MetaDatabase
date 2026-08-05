@@ -91,7 +91,12 @@ FAKE: dict[str, object] = {
         "privacy_note_zh": PRIVACY,
         "capabilities": {}, "last_checked_at": "2026-08-05T00:00:00Z",
     }]},
-    "/v1/library": {"items": [], "total": 0},
+    # facets 带上一个真实形状的主题：**下拉框是照它重建的**，
+    # 而 index.html 里写死的那五个（AI与技术/商业与投资/…）只是初始占位。
+    # 2026-08-06 对着生产量过：那五个各返回 0 条，而 facets 里唯一的
+    # 「未分类」是 193 条——静态那份从头到尾没有一个能选出东西来。
+    "/v1/library": {"items": [], "total": 0,
+                    "facets": {"platforms": [], "topics": [{"topic": "未分类", "count": 193}]}},
     "/v1/status": {"connectors": [], "destinations": []},
 }
 
@@ -177,6 +182,7 @@ READ_DOM = r"""
     _modalBodyHtmlLen: (document.getElementById("destinationsModalBody") || {}).innerHTML?.length ?? -1,
     _errors: (window.__drillErrors || []).slice(0, 4),
     syncHeader: (document.getElementById("syncModalTitle")?.parentElement?.innerText || ""),
+    topicOptions: [...(document.getElementById("topicFilter")?.options || [])].map(o => o.value),
     cardCount: cards.length,
     // 整张卡的可见文字——那两段话必须在里面
     text: cards.map(c => c.innerText).join("\n---\n").slice(0, 1200),
@@ -258,6 +264,12 @@ async def run(chrome: str) -> int:
         problems.append("**差额那句没显示**——服务端说了实话，界面照旧报平安")
     if PRIVACY not in text:
         problems.append("**隐私说明没显示**——八条写了没人看，正是它当初的毛病")
+    topics = list(measured.get("topicOptions") or [])
+    if topics and "未分类" not in topics:
+        problems.append(f"**主题下拉没有照数据重建**：{topics}——夹具里只有「未分类」")
+    stale = [x for x in topics if x in ("AI与技术", "商业与投资", "机械制造", "学习研究", "生活方式")]
+    if stale:
+        problems.append(f"**下拉里还留着写死的假主题**：{stale}。生产实测它们各返回 0 条。")
     if SYNC_HEADER not in str(measured.get("syncHeader") or ""):
         problems.append(
             f"**同步中心的抬头没显示那句限定语**：{SYNC_HEADER}。"
@@ -271,6 +283,7 @@ async def run(chrome: str) -> int:
         "rendered_text": text[:400],
         # 同步中心那句限定语，**照原样印出来**：它是这次要亲眼看见的东西之一。
         "sync_centre_header": str(measured.get("syncHeader") or "").replace("\n", " ")[:200],
+        "topic_options": measured.get("topicOptions"),
         # **失败时必须说清页面当时在干什么。** 只报一句「0 张卡」而不说
         # 页面报了什么错，下一个人还得把这一段重新查一遍。
         "page_said": {key.lstrip("_"): value for key, value in sorted(measured.items())
