@@ -33,15 +33,30 @@ from social_archive import failure_copy
 
 def test_no_product_fault_code_resolves_to_a_retryable_sentence() -> None:
     """产品缺陷类的码，不许落到一句让人重试的话上。"""
+    # **字段名是 kind，不是 failure_class。**
+    # 第一版写的是 `copy.failure_class`——那个属性根本不存在，而这条判据
+    # 照样绿：产品缺陷类的码大多 resolve() 返回 None，那一支永远没进去过。
+    # 反例当时「红了」也是假的，红在 AttributeError 上，不是红在断言上。
+    # **一条永远走不到断言的判据，和没有这条判据是一回事。**
+    checked = 0
     wrong: list[str] = []
     for code in sorted(failure_copy.PRODUCT_FAULT_CODES):
         copy = failure_copy.resolve(code)
-        if copy is not None and copy.failure_class == "retryable":
+        if copy is None:
+            continue                      # 不给别名 = 落到「这是产品的问题」，正是要的
+        checked += 1
+        if copy.kind == "retryable":
             wrong.append(f"{code} → {copy.code}「{copy.template[:34]}」")
     assert not wrong, (
         "**这些码的意思是「我们没做这件事」，落下来的却是一句「重试」**：\n  "
         + "\n  ".join(wrong)
         + "\n重试一万次也一样——把它移出 _ALIASES，或改别名到一条非 retryable 的词条。"
+    )
+    # **有别名的那些必须真的被查过。** 全都 resolve 成 None 的话，
+    # 上面那个循环一次都没进 if，而判据照样绿——那正是第一版的样子。
+    aliased = [c for c in failure_copy.PRODUCT_FAULT_CODES if failure_copy.resolve(c) is not None]
+    assert checked == len(aliased), (
+        f"该查 {len(aliased)} 个有别名的产品缺陷码，实际只查了 {checked} 个"
     )
 
 
@@ -60,3 +75,32 @@ def test_the_two_codes_that_burned_us_are_still_product_faults() -> None:
         assert failure_copy._ALIASES.get(code) != "SERVER_UNREACHABLE", (
             f"{code} 又被别名回「暂时连不上服务器 [重试]」了——这个坑已经踩过两次。"
         )
+
+
+def test_the_pwa_alias_table_has_not_drifted_from_the_server() -> None:
+    """**两张表，各修各的，必然漂开。**
+
+    服务端把 `ACQUISITION_PATH_NOT_INSTALLED` 移出别名表（改成「这是产品的问题」）
+    之后，PWA 那一侧**没跟着改**——2026-08-06 实测，它还别名着
+    `SERVER_UNREACHABLE`，也就是「暂时连不上服务器，[ 重试 ]」。
+
+    同一个失败码，服务端说「我们的问题」，界面说「重试」。
+    这条判据不比对整张表（两侧本来就粗细不同），只钉一件事：
+    **服务端认定为产品缺陷的码，界面不许把它别名成别的句子。**
+    """
+    import re
+    from pathlib import Path
+
+    app_js = (Path(__file__).resolve().parents[2] / "apps/pwa/app.js").read_text(encoding="utf-8")
+    block = re.search(r"const failureAliases = \{(.*?)\n  \};", app_js, re.S)
+    assert block, "PWA 里的 failureAliases 找不到了——判据的射程失效，先修判据"
+    body = "\n".join(l for l in block.group(1).splitlines() if not l.lstrip().startswith("//"))
+    aliased_in_pwa = set(re.findall(r"^\s*([A-Z_]+)\s*:", body, re.M))
+
+    drifted = sorted(aliased_in_pwa & failure_copy.PRODUCT_FAULT_CODES)
+    assert not drifted, (
+        "**服务端认定这些是产品缺陷，而界面把它们别名成了别的句子**："
+        + ", ".join(drifted)
+        + "。从 apps/pwa/app.js 的 failureAliases 里删掉，让它落到那句"
+          "「这是产品的问题…请联系我们」的兜底上。"
+    )

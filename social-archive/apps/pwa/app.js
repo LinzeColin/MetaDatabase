@@ -61,7 +61,18 @@
   };
   // 内部失败码比词典细，但界面上只许出现词典里的七句。
   const failureAliases = {
-    ACQUISITION_PATH_NOT_INSTALLED: "SERVER_UNREACHABLE",
+    // **ACQUISITION_PATH_NOT_INSTALLED 从这里删掉了**（2026-08-06）。
+    //
+    // 服务端早就把它移出别名表了（failure_copy.DELIBERATELY_UNALIASED），
+    // 理由写得很清楚：它的含义是「本版本没有实现这条取数路」，
+    // 别名成 SERVER_UNREACHABLE 就变成「暂时连不上服务器，[ 重试 ]」——
+    // **让人一遍遍重试一件永远不可能成功的事**。
+    //
+    // 而这一侧没跟着改。**同一个失败码，服务端说「这是产品的问题」，
+    // 界面说「暂时连不上，重试」——两张表各修各的，就会这样漂开。**
+    // 删掉之后它落到下面 failureSentence 的兜底句：
+    // 「这是产品的问题…如果还是这样，请联系我们」——措辞不完美，
+    // 但它把人导向对的方向。
     LOGIN_PROOF_UNAVAILABLE: "NOT_LOGGED_IN",
     PERMISSION_DENIED: "NOT_LOGGED_IN",
     UPLOAD_FAILED: "SERVER_UNREACHABLE",
@@ -113,7 +124,12 @@
     // URL_NOT_SUPPORTED（退出码 32/64）**故意不在这里**：它是我们传错了 URL，
     // 给它任何别名都会变成一句「重试」，而重试一万次也一样。
     // 让它落到 UNEXPLAINED_ZERO 的「这是产品的问题…联系我们」，结论是对的。
-    INTERCEPT_PREFIX_UNKNOWN: "SERVER_UNREACHABLE",
+    //
+    // **INTERCEPT_PREFIX_UNKNOWN 原来就写在这一行**，别名成 SERVER_UNREACHABLE——
+    // 紧挨着上面那三行「给它任何别名都会变成一句『重试』，而重试一万次也一样」。
+    // 它的含义是「还没有确认这个平台的收藏接口地址」，和 URL_NOT_SUPPORTED
+    // 是同一类。**解释就写在上一行，下一行照样踩进去。**
+    // 2026-08-06 删掉，让它落到同一个兜底上。
     PLATFORM_PERMISSION_DENIED: "NOT_LOGGED_IN",
     OBSERVER_INSTALL_FAILED: "SERVER_UNREACHABLE"
   };
