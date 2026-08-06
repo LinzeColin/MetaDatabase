@@ -270,6 +270,16 @@ def health() -> dict[str, Any]:
         "time": utcnow(),
         "paid_api_allowed": settings.paid_api_allowed,
         "archive_defaults": {"L0": True, "L1": True, "L2": settings.l2_enabled, "L3": settings.l3_enabled},
+        # **后台在不在跑，也算健康的一部分。**
+        #
+        # 2026-08-06 一次被打断的部署留下 core-api 起来了、core-worker 卡在
+        # Created 没启动。而这个端点由 api 提供，它照样回 "ok" ——
+        # 从外面完全看不出后台没在跑，任务只会静静积压。
+        # 一个只报"我自己还在"的健康检查，正是这个产品一直在防的那种沉默。
+        #
+        # 放在这里（而不是只放 /v1/status）是因为**部署脚本打的就是这一条**，
+        # 而那次故障恰恰要在部署当场被发现。
+        "worker": store.worker_liveness(),
     }
 
 

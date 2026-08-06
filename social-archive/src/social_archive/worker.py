@@ -192,7 +192,16 @@ def run() -> None:
     store = RuntimeStore(settings.runtime_db)
     store.initialize()
     owner = f"{socket.gethostname()}:{os.getpid()}"
+    # 心跳节流：轮询默认 2 秒一次，每次都写库太吵。15 秒一次足够
+    # 让「120 秒没动过就算挂了」这条判断有八次机会。
+    last_beat = 0.0
     while True:
+        now = time.monotonic()
+        if now - last_beat >= 15:
+            # **空转的那一轮也要写。** 只在有任务时写的话，
+            # 「闲着但活着」和「死了」在数据上分不开。
+            store.record_worker_heartbeat(owner)
+            last_beat = now
         job = store.claim_job(owner)
         if not job:
             time.sleep(settings.worker_poll_seconds)

@@ -1479,6 +1479,58 @@ class RuntimeStore:
             )
         return receipt_id
 
+    def record_worker_heartbeat(self, owner: str) -> None:
+        """Worker 还活着。每轮循环写一次，**空转的那一轮也要写**。
+
+        只在有任务时写的话，一个"闲着但活着"的 worker 和一个"死了"的 worker
+        在数据上分不开——而恰恰是没任务的时候最需要知道它还在。
+        """
+        now = utcnow()
+        with self.connection() as con:
+            con.execute("BEGIN IMMEDIATE")
+            con.execute(
+                """INSERT INTO worker_heartbeat(worker_id,owner,last_seen_at)
+                   VALUES('default',?,?)
+                   ON CONFLICT(worker_id) DO UPDATE SET owner=excluded.owner,
+                     last_seen_at=excluded.last_seen_at""",
+                (str(owner)[:256], now),
+            )
+            con.execute("COMMIT")
+
+    def worker_liveness(self, *, stale_after_seconds: int = 120) -> dict[str, Any]:
+        """Worker 最近一次露面是什么时候。
+
+        **从来没写过心跳**（`last_seen_at` 为 None）与**写过但很久没动**
+        是两件事，分开报：前者多半是刚部署完还没起来，或者这一版的 worker
+        根本没在写心跳；后者是它挂了。合成一个布尔值会把这两种都说成"死了"。
+        """
+        with self.connection() as con:
+            row = con.execute(
+                "SELECT owner,last_seen_at FROM worker_heartbeat WHERE worker_id='default'"
+            ).fetchone()
+        if not row:
+            return {"ever_seen": False, "alive": False, "last_seen_at": None,
+                    "seconds_since": None,
+                    "note": "从来没收到过 worker 心跳——它可能没启动，或者跑的是不写心跳的旧版本。"}
+        stamp = str(row["last_seen_at"] or "")
+        try:
+            seen = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+        except ValueError:
+            return {"ever_seen": True, "alive": False, "last_seen_at": stamp,
+                    "seconds_since": None, "note": "心跳时间戳读不懂。"}
+        if seen.tzinfo is None:
+            seen = seen.replace(tzinfo=UTC)
+        seconds = (datetime.now(UTC) - seen).total_seconds()
+        return {
+            "ever_seen": True,
+            "alive": seconds <= stale_after_seconds,
+            "last_seen_at": stamp,
+            "seconds_since": round(seconds, 1),
+            "note": ("" if seconds <= stale_after_seconds else
+                     f"worker 已经 {int(seconds)} 秒没动过——后台任务不会有人处理，"
+                     "而接口本身照样是好的。"),
+        }
+
     def apply_complete_scan(
         self,
         connector_id: str,

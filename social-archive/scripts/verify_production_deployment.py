@@ -118,6 +118,17 @@ def main() -> int:
     problems: list[str] = []
     if measured["health"].get("version") != want:
         problems.append(f"生产 /health 说 {measured['health'].get('version')}，仓里是 {want}")
+    # **后台在不在跑。** 2026-08-06 一次被打断的部署留下 core-api 起来了、
+    # core-worker 卡在 Created 没启动——而 /health 由 api 提供，照样回 ok。
+    # 从外面完全看不出后台没在跑，任务只会静静积压。
+    # 这一条要在**部署当场**问，那正是它最容易发生的时刻。
+    worker = measured["health"].get("worker") or {}
+    if not worker:
+        problems.append("生产的 /health 里没有 worker 这一块——这一版还没带上心跳，"
+                        "或者部署的不是这一版")
+    elif not worker.get("alive"):
+        problems.append(f"**后台 worker 没在跑**：{worker.get('note') or worker}"
+                        "——接口是好的，但同步任务不会有人处理")
     package = measured["package"]
     if package["manifest_version"] != want:
         problems.append(

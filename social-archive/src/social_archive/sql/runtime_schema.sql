@@ -269,6 +269,20 @@ CREATE TABLE IF NOT EXISTS destination_receipt (
   FOREIGN KEY(content_id) REFERENCES content(id)
 );
 
+-- Worker 心跳（v0.0.0.18）。
+--
+-- 2026-08-06 一次被打断的部署留下的状态是：core-api 起来了、**core-worker 卡在
+-- Created 没启动**。而 /health 由 api 提供，它照样回 ok——**从外面完全看不出
+-- 后台没在跑**，任务只会静静积压。这正是这个产品一直在防的那个形状：
+-- 健康检查不读出问题的那半边。
+--
+-- 一行就够：worker 每轮循环写一次时间戳，/health 拿它和现在比。
+CREATE TABLE IF NOT EXISTS worker_heartbeat (
+  worker_id TEXT PRIMARY KEY,
+  owner TEXT NOT NULL,
+  last_seen_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS quota_state (
   store_id TEXT PRIMARY KEY,
   measured_bytes INTEGER NOT NULL DEFAULT 0,
