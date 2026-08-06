@@ -169,7 +169,17 @@ class _FakeWithLibrary(shape._Fake):                        # noqa: SLF001
                 self.end_headers()
                 self.wfile.write(body)
                 return
-            body = b"{}"
+            # **/health 要像样。** 徽章那句话是照它画的；回 `{}` 的话
+            # 走的是"需要连接"那一支，而要验的正是"已连接"那一支上
+            # 有没有把插件版本显示出来。
+            if path == "/health":
+                body = json.dumps({
+                    "status": "ok", "version": "0.0.0.22",
+                    "minimum_extension_version": "0.0.0.9",
+                    "worker": {"ever_seen": True, "alive": True},
+                }).encode("utf-8")
+            else:
+                body = b"{}"
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
@@ -217,7 +227,13 @@ async def _open_library(base: str, extension_id: str) -> dict:
                               ' await new Promise(r => setTimeout(r, 4200));'
                               ' const back = document.getElementById("connectModalBackdrop");'
                               ' const frame = document.getElementById("connectFrame");'
-                              ' return JSON.stringify({ tried: true,'
+                              # **徽章上读不读得出插件版本。**
+                              # 他说「不能用」时我要的第一件事就是"你装的是哪一版"，
+                              # 而我这一整天都在猜它。现在指着这一行让他读给我——
+                              # 所以这一行必须真的在那儿。
+                              ' const badge = (document.getElementById("serviceBadge")'
+                              '   || {}).textContent || "";'
+                              ' return JSON.stringify({ tried: true, badge,'
                               ' panelOpen: !!back && back.classList.contains("open"),'
                               ' frameSrc: (frame && frame.getAttribute("src") || "").slice(0, 40),'
                               ' contentReloads: window.__saContentHits || 0,'
@@ -543,6 +559,16 @@ async def run(chrome: str) -> int:
             f"**在资料库上点「连接第一个账号」没把面板打开**："
             f"{json.dumps(measured_frame.get('click'), ensure_ascii=False)}"
             "——他还是得自己找路")
+    elif "插件 v" not in str((measured_frame.get("click") or {}).get("badge") or ""):
+        # **我在使用说明里指着这一行让他读。**
+        #
+        # 「顶上会写 …·插件 v0.0.0.22，两个数字一样就说明更新成功了」——
+        # 那一行不在的话，我就是又一次指着一个不存在的东西
+        # （今天已经三次：保存按钮的名字、面板上的「我已登录，继续」、
+        #   同步中心那句话）。所以它必须每次发布都被真的读一遍。
+        problems.append(
+            f"**徽章上读不出插件版本**：{(measured_frame.get('click') or {}).get('badge')!r}"
+            "——而使用说明里正指着这一行让他判断有没有更新成功")
     elif not (measured_frame.get("click") or {}).get("contentReloads"):
         # 面板报"连上了"之后，资料库那张表必须被重读——否则他连上了
         # 却一条新内容都看不到，会以为没成。
