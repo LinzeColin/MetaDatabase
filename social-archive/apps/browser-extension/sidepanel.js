@@ -47,6 +47,21 @@
     $("actionCount").textContent = states.filter(status => needsAction.has(status)).length;
     const list = visible();
     $("empty").classList.toggle("hidden", list.length > 0);
+    // **空状态要照实际情况说话。**
+    //
+    // 写死的那两句是「没有需要处理的同步 / 连接账号后…会显示在这里」。
+    // 而他刚连完账号、刚同步完一次，打开这一页看到的就是这两句——
+    // 上面明明写着「1 已完成」，下面却在教他去连接账号。
+    // 实测（2026-08-06 真 Chrome）：0 同步中 / 1 已完成 / 0 需处理，列表空、
+    // 空状态照旧那两句。**默认筛选是「同步中」，空是对的，说的话不对。**
+    if (list.length === 0) {
+      const done = Number($("doneCount").textContent || 0);
+      const everRan = runs.length > 0;
+      $("emptyTitle").textContent = everRan ? "现在没有正在跑的同步" : "还没有同步过";
+      $("emptyCopy").textContent = everRan
+        ? `最近${done ? `完成了 ${done} 次` : "的同步"}——点上面的「全部」可以看。`
+        : "连接账号后，首次全量和后续增量同步会显示在这里。";
+    }
     $("list").replaceChildren();
     for (const run of list) {
       const account = accounts.find(item => item.id === run.source_account_id) || {};

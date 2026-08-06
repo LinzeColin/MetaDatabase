@@ -3,7 +3,7 @@
 <main><div id="banner" class="banner hidden"></div><section class="summary"><article><strong id="activeCount">0</strong><span>同步中</span></article><article><strong id="doneCount">0</strong><span>已完成</span></article><article><strong id="actionCount">0</strong><span>需处理</span></article></section>
 <div class="primary-actions"><button id="syncAll" class="button primary">同步全部账号</button><button id="connectAccount" class="button">连接账号</button></div>
 <div class="filters"><button class="active" data-filter="active">同步中</button><button data-filter="needs">需处理</button><button data-filter="all">全部</button></div>
-<div id="list" class="list"></div><div id="empty" class="empty"><span>✓</span><h2>没有需要处理的同步</h2><p>连接账号后，首次全量和后续增量同步会显示在这里。</p></div></main>
+<div id="list" class="list"></div><div id="empty" class="empty"><span>✓</span><h2 id="emptyTitle">没有需要处理的同步</h2><p id="emptyCopy">连接账号后，首次全量和后续增量同步会显示在这里。</p></div></main>
 <footer><button id="openLibrary">打开资料库</button><button id="openSettings">账号与导出</button></footer>
 <template id="cardTemplate"><article class="card"><div class="card-head"><span class="platform"></span><span class="title"><strong></strong><small></small></span><span class="status"></span></div><div class="progress"><span></span></div><p class="message"></p><div class="actions"><button class="pause">暂停</button><button class="resume">继续</button><button class="retry">重试</button><button class="cancel">取消</button><button class="details">查看资料库</button></div></article></template>
 <script src="shared.js"></script><script src="sidepanel.js"></script></body></html>

@@ -6,7 +6,7 @@
       "ok": true,
       "state": "authorizing",
       "platform": "bilibili",
-      "tabId": 1202510179,
+      "tabId": 1741478470,
       "message": "已在当前 Chrome profile 中打开B站，插件会检测现有登录态。"
     },
     "verify": {
@@ -21,33 +21,33 @@
     },
     "tabs_before": [
       {
-        "id": 1202510177,
+        "id": 1741478468,
         "active": false
       },
       {
-        "id": 1202510178,
+        "id": 1741478469,
         "active": false
       },
       {
-        "id": 1202510179,
+        "id": 1741478470,
         "url": "https://www.bilibili.com/",
         "active": false
       },
       {
-        "id": 1202510180,
+        "id": 1741478471,
         "active": true
       }
     ],
-    "my_tab_id": 1202510180,
+    "my_tab_id": 1741478471,
     "queue_before": [
       {
         "accountId": "acct-1",
-        "enqueuedAt": 1785986659070,
+        "enqueuedAt": 1785987216176,
         "profileUrl": "",
         "syncRunId": "run-1",
         "tabId": null,
         "triggerType": "first_connect",
-        "updatedAt": 1785986659070
+        "updatedAt": 1785987216176
       }
     ],
     "alarm_scheduled": true,
@@ -65,20 +65,20 @@
     "queue_after": [],
     "tabs_after": [
       {
-        "id": 1202510177,
+        "id": 1741478468,
         "active": false
       },
       {
-        "id": 1202510178,
+        "id": 1741478469,
         "active": false
       },
       {
-        "id": 1202510179,
+        "id": 1741478470,
         "url": "https://www.bilibili.com/",
         "active": false
       },
       {
-        "id": 1202510180,
+        "id": 1741478471,
         "active": true
       }
     ],
@@ -105,6 +105,16 @@
       "diagnoseWhy": "小红书、抖音、快手、X、Reddit、Instagram、YouTube的收藏列表现在还读不了",
       "saveIsCollapsed": true,
       "mentionsBilibiliCannotRead": false
+    },
+    "sidepanel": {
+      "renders": true,
+      "activeCount": "0",
+      "doneCount": "1",
+      "actionCount": "0",
+      "cardCount": 0,
+      "firstCard": "",
+      "emptyShown": true,
+      "bodyStart": "SA 账号同步 收藏、点赞与书签 ↻ 0 同步中 1 已完成 0 需处理 同步全部账号 连接账号 同步中 需处理 全部 ✓ 现在没有正在跑的同步 最近完成了 1 次——点上面的「全部」可以看。 打开资料库 账号与导出"
     }
   },
   "account_created": {

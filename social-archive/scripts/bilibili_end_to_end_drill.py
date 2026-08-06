@@ -418,6 +418,25 @@ POPUP_PROBE = r"""
 })()
 """
 
+# 侧边栏（弹窗上「同步进度」打开的那一页）。同样只读，不点。
+SIDEPANEL_PROBE = r"""
+(() => {
+  const get = id => document.getElementById(id);
+  const text = (document.body.innerText || "").replace(/\s+/g, " ");
+  const cards = [...document.querySelectorAll(".card")];
+  return JSON.stringify({
+    renders: Boolean(get("list")),
+    activeCount: (get("activeCount") || {}).textContent || "",
+    doneCount: (get("doneCount") || {}).textContent || "",
+    actionCount: (get("actionCount") || {}).textContent || "",
+    cardCount: cards.length,
+    firstCard: cards.length ? (cards[0].innerText || "").replace(/\s+/g, " ").slice(0, 120) : "",
+    emptyShown: !(get("empty") || {}).hidden && !(get("empty") || {}).classList?.contains("hidden"),
+    bodyStart: text.slice(0, 120),
+  });
+})()
+"""
+
 async def run(chrome: str, ext_src: Path = EXT_SRC) -> int:
     workspace = Path(tempfile.mkdtemp(prefix="sa-bili-e2e-"))
     profile = workspace / "profile"
@@ -532,6 +551,30 @@ async def run(chrome: str, ext_src: Path = EXT_SRC) -> int:
                         "expression": POPUP_PROBE, "returnByValue": True, "timeout": 20000})
                     value = got.get("result", {}).get("result", {}).get("value")
                     measured["popup"] = json.loads(value) if value else {"error": "空"}
+            # 侧边栏（同步进度）
+            async with websockets.connect(version["webSocketDebuggerUrl"], max_size=None) as ws:
+                rpc = await _rpc_factory(ws)
+                await rpc("Target.createTarget",
+                          {"url": f"chrome-extension://{extension_id}/sidepanel.html"})
+            await asyncio.sleep(4)
+            targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
+            panels = [t for t in targets if t.get("type") == "page"
+                      and "sidepanel.html" in t.get("url", "")]
+            if panels:
+                async with websockets.connect(panels[0]["webSocketDebuggerUrl"],
+                                              max_size=None) as ws:
+                    rpc = await _rpc_factory(ws)
+                    await rpc("Runtime.enable")
+                    got = await rpc("Runtime.evaluate", {
+                        "expression": SIDEPANEL_PROBE, "returnByValue": True, "timeout": 20000})
+                    value = got.get("result", {}).get("result", {}).get("value")
+                    measured["sidepanel"] = json.loads(value) if value else {"error": "空"}
+            else:
+                # **打不开也要留痕。** 沉默地跳过和「验过了」长得一模一样——
+                # 第一版就是这样：探针没跑，断言整段被 falsy 跳过，演练照样 PASS。
+                measured["sidepanel"] = {"error": "SIDEPANEL_TARGET_NOT_FOUND",
+                                         "targets": [t.get("url", "")[:80] for t in targets
+                                                     if t.get("type") == "page"]}
     finally:
         process.terminate()
         try:
@@ -641,6 +684,23 @@ async def run(chrome: str, ext_src: Path = EXT_SRC) -> int:
         hint = str(popup.get("manageAccountsHint") or "")
         if "可自动同步" not in hint:
             problems.append(f"「连接与管理账号」那句没有照事实清单重写：{hint[:60]!r}")
+
+    # 侧边栏：弹窗上「同步进度」打开的那一页
+    panel = measured.get("sidepanel") or {}
+    if panel.get("error"):
+        problems.append(f"**侧边栏那一页没验到**：{panel.get('error')}"
+                        f"——沉默跳过和「验过了」长得一样，所以这里必须报出来")
+    elif panel:
+        if not panel.get("renders"):
+            problems.append("**侧边栏渲染不出来**——弹窗上「同步进度」点开是空的")
+        if panel.get("doneCount") != "1":
+            problems.append(f"侧边栏没把刚跑完那次算进「已完成」：{panel.get('doneCount')!r}")
+        # **默认筛选是「同步中」，跑完之后列表是空的——那是对的。**
+        # 要盯的是它这时候说什么：写死的那两句是「连接账号后…会显示在这里」，
+        # 而他刚连完、刚同步完，那句话在教他做已经做过的事。
+        body = str(panel.get("bodyStart") or "")
+        if "连接账号后" in body:
+            problems.append("**侧边栏在教他去连接账号**，而他刚连完并同步完一次")
 
     # **收藏夹的名字要真的送到服务端。**
     # 服务端建收藏夹记录的条件是 `if batch.collection_name:`——批次不带名字，
