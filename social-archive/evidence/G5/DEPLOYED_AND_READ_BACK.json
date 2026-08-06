@@ -2,13 +2,13 @@
   "status": "PASS",
   "task": "G5",
   "host": "linze-ovh",
-  "expected_version": "0.0.0.8",
+  "expected_version": "0.0.0.9",
   "measured_from_production": {
     "health": {
       "status": "ok",
       "project": "Social Archive",
-      "version": "0.0.0.8",
-      "time": "2026-08-06T00:24:25.636529Z",
+      "version": "0.0.0.9",
+      "time": "2026-08-06T00:45:50.870034Z",
       "paid_api_allowed": false,
       "archive_defaults": {
         "L0": true,
@@ -56,10 +56,10 @@
       }
     },
     "package": {
-      "manifest_version": "0.0.0.8",
+      "manifest_version": "0.0.0.9",
       "file_count": 24,
       "has_bilibili_reader": true,
-      "sha256": "3424116bb19d454ec478b67442d5c9f60eff6b4fa02c67f1f0b1ef1cb55b57d9"
+      "sha256": "8cac9936ebed9a33c3463994d6c769e6b05f8482c36d2a144a7ac7deb7837aaa"
     },
     "install_page": {
       "bytes": 10630,
@@ -70,7 +70,7 @@
       "stale_versions": []
     },
     "library_page": {
-      "product_version": "0.0.0.8",
+      "product_version": "0.0.0.9",
       "knows_bilibili_failure_codes": true
     }
   },
