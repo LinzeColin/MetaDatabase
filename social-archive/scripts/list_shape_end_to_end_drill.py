@@ -216,7 +216,14 @@ class _Api(BaseHTTPRequestHandler):
             self._json(200, {"items": received["accounts"], "supported_platforms": [
                 {"platform": PLATFORM, "relations": [RELATION],
                  "sync_supported": True, "not_syncable_reason": "",
-                 "server_handled": False, "connect_supported": True}]})
+                 "server_handled": False, "connect_supported": True},
+                # **只能手动保存的那一类也要下发**：连接面板要照列它们并写清原因，
+                # 而不是把它们藏起来（Owner 验收标准第 1 条）。
+                {"platform": "x", "relations": ["bookmark"],
+                 "sync_supported": False,
+                 "not_syncable_reason": "本版本还不能自动读取 X 的书签。"
+                                        "现在可以：在浏览器里打开任意一条推文，点插件的「保存当前页面」。",
+                 "server_handled": True, "connect_supported": False}]})
         elif path == "/v1/sync-runs":
             self._json(200, {"items": [{"id": k, "source_account_id": "acct-1", **v}
                                        for k, v in received["runs"].items()]})

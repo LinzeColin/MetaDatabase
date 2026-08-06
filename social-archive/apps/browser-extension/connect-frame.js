@@ -118,10 +118,19 @@
     const connected = new Set((accounts.items || [])
       .filter(item => ["connected", "degraded"].includes(item.connection_state))
       .map(item => item.platform));
-    // **只列这一版真的连得上的。** 连不上的不画按钮——一颗结构上不可能
-    // 成功的按钮，比没有按钮更伤人。原因那一句在账号页的卡片上写着。
-    const rows = (accounts.supported_platforms || [])
-      .filter(item => item.sync_supported !== false);
+    // **连不上的不画按钮，但要把话说清。**
+    //
+    // 上一版是直接不显示。那不叫说清：他打开面板找 X，一行都没有，
+    // 于是不知道是这个软件不支持、还是自己没找对地方。
+    // Owner 的验收标准第 1 条写的是「做不到自动的平台，界面必须**当场说清**
+    // 这个只能手动保存」——**不显示不等于说清**。
+    //
+    // 所以照列，只是不画按钮，把服务端那句原因显示在旁边。
+    // 一颗结构上不可能成功的按钮比没有按钮更伤人；而一行没有解释的空白
+    // 同样让人卡住。
+    const all = accounts.supported_platforms || [];
+    const rows = all.filter(item => item.sync_supported !== false);
+    const manualOnly = all.filter(item => item.sync_supported === false);
     if (!rows.length) {
       list.innerHTML = "<li><span class=\"name\">本版本还没有能自动同步的来源。</span></li>";
       return;
@@ -193,6 +202,20 @@
         }
       });
       item.append(name, state, button);
+      list.append(item);
+    }
+    for (const row of manualOnly) {
+      const item = document.createElement("li");
+      item.className = "manual";
+      const name = document.createElement("span");
+      name.className = "name";
+      name.textContent = LABELS[row.platform] || row.platform;
+      const why = document.createElement("span");
+      why.className = "why";
+      // 原因由服务端下发（NOT_SYNCABLE_YET），**这里不自己编一句**：
+      // 两处各写一份必然漂，这个仓在平台文案上已经漂过好几轮。
+      why.textContent = row.not_syncable_reason || "本版本还不能自动读取这个平台。";
+      item.append(name, why);
       list.append(item);
     }
     // 面板高度告诉外面，免得 iframe 里出现第二根滚动条——**那也是一种乱**。

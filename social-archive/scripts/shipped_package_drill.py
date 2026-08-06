@@ -272,7 +272,12 @@ async def _open_library(base: str, extension_id: str) -> dict:
                           ' const verify = document.querySelector("[data-verify]");'
                           ' chrome.runtime.sendMessage = real;'
                           ' chrome.permissions.contains = hadContains;'
+                          # **做不到自动的平台要照列并说清**（验收标准第 1 条）。
+                          # 上一版是直接不显示——他打开面板找 X 一行都没有，
+                          # 不知道是不支持还是自己没找对地方。**不显示不等于说清。**
+                          ' const manual = document.querySelector("li.manual");'
                           ' return JSON.stringify({ hasBox: true, clicked: true,'
+                          '   manualRow: manual ? (manual.textContent || "").slice(0, 80) : "",'
                           '   diagnosisShown: shownAfterFail, diagnosisText: textAfterFail,'
                           '   verifyButton: verify ? verify.textContent : "" });'
                           ' })()',
@@ -541,6 +546,10 @@ async def run(chrome: str) -> int:
     elif measured_frame.get("clicked") and "不是 JSON" not in str(measured_frame.get("diagnosisText") or ""):
         problems.append(
             f"**诊断显示出来了，但内容对不上**：{measured_frame.get('diagnosisText')!r}")
+    elif measured_frame.get("clicked") and "保存当前页面" not in str(measured_frame.get("manualRow") or ""):
+        problems.append(
+            f"**只能手动保存的平台没有照列并说清**：{measured_frame.get('manualRow')!r}"
+            "——他打开面板找不到它，不知道是不支持还是自己没找对地方")
     elif measured_frame.get("clicked") and "我已登录" not in str(measured_frame.get("verifyButton") or ""):
         # **第二种结局不许是死路。** 自动认不出登录态时（他还没在那个平台登录），
         # 下一步必须就在这一页上；否则他登录完回到面板，手里只有一颗

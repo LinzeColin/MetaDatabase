@@ -1,7 +1,7 @@
 {
   "status": "PASS",
   "package": "dist/social-archive-extension.zip",
-  "package_sha256_prefix": "c2263721d1fa938a",
+  "package_sha256_prefix": "24670f18d1731f64",
   "manifest": {
     "version": "0.0.0.22",
     "host": [
@@ -34,15 +34,16 @@
     "embedded": true,
     "api": "function",
     "hasButton": true,
-    "text": "连接账号\n\n点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。\n\n小红书\n等你登录\n连接账号\n我已登录，继续\n请先在平台页面登录",
+    "text": "连接账号\n\n点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。\n\n小红书\n等你登录\n连接账号\n我已登录，继续\nX\n本版本还不能自动读取 X 的书签。现在可以：在浏览器里打开任意一条推文，点插件的「保存当前页面」。\n请先在平台",
     "click": {
       "tried": true,
       "panelOpen": true,
-      "frameSrc": "chrome-extension://ampefgpdmejgklgpmcegb",
+      "frameSrc": "chrome-extension://jgkogkodlnopaonknkmeo",
       "syncStillOpen": false
     },
     "hasBox": true,
     "clicked": true,
+    "manualRow": "X本版本还不能自动读取 X 的书签。现在可以：在浏览器里打开任意一条推文，点插件的「保存当前页面」。",
     "diagnosisShown": true,
     "diagnosisText": "把下面这段整段发给我，我照着修：\n抓到 5 条响应，没有一条像收藏列表。\n· https://p.example.com/api/log —— 不是 JSON\n· https://p.example.com/api/feed —— 只有 20% 的元素在同一个位置带得出 id",
     "verifyButton": "我已登录，继续"
