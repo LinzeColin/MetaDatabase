@@ -67,23 +67,37 @@ ROUTES = {
     "/api/config": {"flags": {"a": 1, "b": 2, "c": 3, "d": 4}},
     "/api/user": {"user": {"id": 1, "nickname": "我"}},
     # 推荐流：有数组、长度够，但元素带不出 id
-    "/api/homefeed": {"data": [{"banner": f"b{i}", "img": f"u{i}"} for i in range(6)]},
+    # **推荐流也带 id**——真实的发现页就是这样。
+    # 原来这里写的是只有 banner 的假数据，识别器当然认不上，
+    # 于是「在发现页上跑」这个错看起来无害。真实情况下它会被认成列表，
+    # **把首页推荐当成他的收藏导进档案馆**。
+    "/api/homefeed": {"data": {"items": [
+        {"note_id": f"rec{i}", "display_title": f"推荐 {i}",
+         "user": {"nickname": f"某人{i}"}, "create_time": 1800000000 + i}
+        for i in range(6)]}},
     "/api/collect/page": {"data": {"notes": NOTES}},
 }
 
-PAGE = """<!doctype html><meta charset=utf-8><title>收藏</title>
-<h1>我的收藏</h1>
-<script>
-// 像真收藏页那样打好几个请求。
-// **两批**：一批在解析时就发（埋点常这样），一批在"水合"之后发——
-// 真实的 SPA（小红书/抖音/快手都是）列表请求属于后者。
-// 两批都放，才验得出观察器到底赶得上哪一批。
-["/api/log"].forEach(p => fetch(p).then(r => r.json()).catch(() => {}));
-setTimeout(() => {
-  ["/api/config","/api/user","/api/homefeed","/api/collect/page"]
-    .forEach(p => fetch(p).then(r => r.json()).catch(() => {}));
-}, 400);
-</script>"""
+def _page(paths: list[str]) -> str:
+    """页面在加载时打哪些请求，**按它是哪一页决定**。
+
+    这一条是被一个真缺陷逼出来的：原来假站对任何路径都返回同一个页面
+    （都会打 /api/collect/page），于是「连接时打开的是发现页而不是收藏页」
+    这个错**被固定装置完全掩盖**——夹具是我编的，它当然对我有利。
+    """
+    listed = ",".join(f'"{item}"' for item in paths)
+    return ("<!doctype html><meta charset=utf-8><title>页</title><h1>页</h1>\n"
+            "<script>\n"
+            '["/api/log"].forEach(p => fetch(p).then(r => r.json()).catch(() => {}));\n'
+            f"setTimeout(() => {{ [{listed}]\n"
+            "  .forEach(p => fetch(p).then(r => r.json()).catch(() => {})); }, 400);\n"
+            "</script>")
+
+
+# **发现页**：只有推荐流，没有收藏列表。真实的 /explore 就是这样。
+EXPLORE_PAGE = _page(["/api/config", "/api/user", "/api/homefeed"])
+# **收藏页**：这里才发收藏列表。
+FAVOURITE_PAGE = _page(["/api/config", "/api/user", "/api/homefeed", "/api/collect/page"])
 
 
 class _Fake(BaseHTTPRequestHandler):
@@ -98,7 +112,9 @@ class _Fake(BaseHTTPRequestHandler):
             body = json.dumps(ROUTES[path], ensure_ascii=False).encode()
             kind = "application/json"
         else:
-            body = PAGE.encode()
+            # /user/profile 是收藏页；其余（含 /explore）都不发收藏列表
+            page = FAVOURITE_PAGE if "/user/profile" in path else EXPLORE_PAGE
+            body = page.encode()
             kind = "text/html; charset=utf-8"
         self.send_response(200)
         self.send_header("Content-Type", kind)
@@ -353,6 +369,11 @@ async def run(chrome: str) -> int:
         if word in blob:
             problems.append(f"账号元数据里出现了 {word}")
     landed = [item for batch in received["batches"] for item in (batch.get("items") or [])]
+    # **绝不许把首页推荐当成他的收藏。**
+    polluted = [i.get("url") for i in landed if "rec" in str(i.get("url", ""))]
+    if polluted:
+        problems.append(f"**把发现页的推荐当成收藏导进来了**：{polluted[:3]}"
+                        "——连接时打开的必须是收藏页，不是发现页")
     if len(landed) != len(NOTES):
         problems.append(f"档案馆只收到 {len(landed)} 条，页面上有 {len(NOTES)} 条")
 

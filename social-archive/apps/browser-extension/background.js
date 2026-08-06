@@ -1138,6 +1138,20 @@ const SHAPE_READ_PLATFORMS = Object.freeze({
 });
 
 async function acquireByListShape({ tabId, platform, relation }) {
+  // **先把标签页导到收藏页上。**
+  //
+  // 收藏列表只有在收藏页加载时才会被请求。连接账号那条路开的是 spec.home
+  // （小红书是 /explore，**发现页**），在那儿装观察器只会抓到推荐流——
+  // 而推荐流的条目也带 id，会被认成列表。
+  //
+  // 实测（2026-08-06，真 Chrome + 按路径区分的假站）：不导航时导进来的是
+  // rec0…rec5 六条**首页推荐**，而界面还说「已在你的小红书收藏页上认出 6 条」。
+  // **那句话是假的，而档案馆已经被污染了。**
+  //
+  // 这个错原先被固定装置完全掩盖：假站对任何路径都返回同一个页面。
+  // 夹具是我编的，它当然对我有利。
+  const relationUrl = resolveRelationUrl(platform, relation, "");
+  if (relationUrl) await navigateMirrorTab(tabId, relationUrl);
   const installed = await installNetObserverForTab({ platform, tabId, shapeMode: true });
   if (!installed?.ok) {
     const error = new Error(installed?.error || "没能在这个页面上装上读取器。");

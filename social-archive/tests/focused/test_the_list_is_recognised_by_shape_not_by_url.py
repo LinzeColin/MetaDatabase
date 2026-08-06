@@ -167,3 +167,43 @@ def test_the_background_strips_it_before_the_cursor_too() -> None:
     assert "matched_url: globalThis.SAListShape.safePath(" in code, (
         "游标里的 matched_url 没剥查询串——签名会跟着回执落到服务端"
     )
+
+
+def test_a_feed_that_looks_identical_never_wins_by_chance() -> None:
+    """**收藏页上推荐流和收藏列表可以长得一模一样。**
+
+    都带 id、标题、作者、时间——纯按形状打分会打平，谁赢是碰运气。
+    实测（真 Chrome + 假站）：随机挑中推荐流，于是 **6 条首页推荐被当成
+    他的收藏导进档案馆**，而界面还说「已在你的小红书收藏页上认出 6 条」。
+
+    破平局用地址里的词。**注意这只是提示、不是前提**：
+    没有这些词照样认得出（这条路的全部意义就是不需要预先知道地址），
+    只有分数打平时才拿它当参考。
+    """
+    same = lambda prefix, n: [                                   # noqa: E731
+        {"note_id": f"{prefix}{i}", "display_title": f"t{i}",
+         "user": {"nickname": "u"}, "create_time": 1700000000 + i} for i in range(n)]
+    caps = [
+        _capture("https://p.example.com/api/homefeed", {"data": {"items": same("rec", 6)}}),
+        _capture("https://p.example.com/api/collect/page", {"data": {"notes": same("fav", 6)}}),
+    ]
+    out = _run(f"console.log(JSON.stringify(S.recogniseList({json.dumps(caps)})));")
+    assert out["ok"] is True
+    assert "collect" in out["best"]["url"], (
+        f"打平时挑中了推荐流：{out['best']['url']}——那会把首页推荐存进他的档案馆"
+    )
+    # 反过来：顺序调换也要挑对（不能只是碰巧靠排序赢的）
+    out2 = _run(f"console.log(JSON.stringify(S.recogniseList({json.dumps(caps[::-1])})));")
+    assert "collect" in out2["best"]["url"], "换个顺序就挑错了——那说明它靠的是顺序不是规则"
+
+
+def test_the_hint_is_only_a_tiebreaker_not_a_requirement() -> None:
+    """**地址里没有那些词，照样要认得出。**
+
+    否则就退回了「必须先知道地址」——那正是这条路要解开的结。
+    """
+    caps = [_capture("https://p.example.com/xyz/abc", {"d": [
+        {"item_id": f"x{i}", "title": f"t{i}", "author": "a", "time": i} for i in range(5)]})]
+    out = _run(f"console.log(JSON.stringify(S.recogniseList({json.dumps(caps)})));")
+    assert out["ok"] is True, "地址里没有提示词就认不出了——那等于又要先知道地址"
+    assert out["best"]["stats"]["count"] == 5

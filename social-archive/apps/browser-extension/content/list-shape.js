@@ -170,7 +170,35 @@
         rejected.push({ url: safePath(url), why });
       }
     }
-    candidates.sort((a, b) => b.stats.points - a.stats.points);
+    // **打平时怎么办。**
+    //
+    // 收藏页上会同时出现收藏列表和推荐流，而它们的形状可以一模一样
+    // （都带 id、标题、作者、时间）——纯按形状打分会打平，谁赢是碰运气。
+    // 实测：假站上两者都是满分，随机挑中推荐流，于是**6 条首页推荐被当成
+    // 他的收藏导进档案馆**。
+    //
+    // 破平局用**地址里的词**——注意这只是提示，不是前提：
+    // 没有这些词照样能认（这条路的全部意义就是不需要预先知道地址），
+    // 只有分数打平时才拿它当参考。
+    // 反向词同样重要：feed / recommend / explore 这类是推荐流的标志。
+    const COLLECTION_HINTS = ["collect", "fav", "bookmark", "star", "like", "history"];
+    const FEED_HINTS = ["feed", "recommend", "explore", "discover", "trending", "hot"];
+    const hint = (url) => {
+      const text = safePath(url).toLowerCase();
+      let score = 0;
+      if (COLLECTION_HINTS.some(word => text.includes(word))) score += 1;
+      if (FEED_HINTS.some(word => text.includes(word))) score -= 1;
+      return score;
+    };
+    candidates.sort((a, b) => {
+      const byPoints = b.stats.points - a.stats.points;
+      // 分差明显就按分数；只有几乎打平时才看地址提示
+      if (Math.abs(byPoints) > 0.01) return byPoints;
+      const byHint = hint(b.url) - hint(a.url);
+      if (byHint !== 0) return byHint;
+      // 还是分不出就取条目多的那个——收藏通常比一屏推荐多
+      return b.stats.count - a.stats.count;
+    });
     if (!candidates.length) {
       // **认不出就说认不出。** 绝不返回空列表当成「他没有收藏」。
       return {
