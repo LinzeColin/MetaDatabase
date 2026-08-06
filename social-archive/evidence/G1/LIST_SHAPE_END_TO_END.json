@@ -1,5 +1,35 @@
 {
   "status": "PASS",
+  "connect": {
+    "ok": true,
+    "state": "authorizing",
+    "platform": "xiaohongshu",
+    "tabId": 100262961,
+    "message": "已在当前 Chrome profile 中打开小红书，插件会检测现有登录态。"
+  },
+  "verify": {
+    "ok": true,
+    "state": "connected",
+    "accountId": "acct-1",
+    "syncRunId": "run-1",
+    "queuedCount": 1,
+    "message": "已在你的小红书收藏页上认出 7 条，正在存进档案馆。",
+    "platform": "xiaohongshu"
+  },
+  "account_created": {
+    "id": "acct-1",
+    "platform": "xiaohongshu",
+    "connection_state": "connected",
+    "external_account_id": "browser-session",
+    "display_name": "小红书账号",
+    "metadata": {
+      "auth_method": "browser_session",
+      "verified_by": "list_shape_recognised",
+      "auto_sync_enabled": true,
+      "sync_interval_minutes": 360
+    }
+  },
+  "items_landed": 7,
   "install": {
     "ok": true,
     "state": "observing",
@@ -15,10 +45,10 @@
   "captured_responses": 5,
   "captured_urls": [
     "https://www.xiaohongshu.com/api/log",
-    "https://www.xiaohongshu.com/api/user",
     "https://www.xiaohongshu.com/api/config",
-    "https://www.xiaohongshu.com/api/collect/page",
-    "https://www.xiaohongshu.com/api/homefeed"
+    "https://www.xiaohongshu.com/api/user",
+    "https://www.xiaohongshu.com/api/homefeed",
+    "https://www.xiaohongshu.com/api/collect/page"
   ],
   "recognised": "https://www.xiaohongshu.com/api/collect/page",
   "matched_path": "data.notes",

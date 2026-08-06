@@ -107,6 +107,73 @@ class _Fake(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
 
+
+FAKE_API_PORT = 8765
+received: dict = {"accounts": [], "batches": [], "runs": {}}
+
+
+class _Api(BaseHTTPRequestHandler):
+    """假档案馆。只实现「连接账号 → 建账号 → 收批次」这条链用得到的。"""
+
+    protocol_version = "HTTP/1.1"
+
+    def log_message(self, *args) -> None:
+        return
+
+    def _json(self, code: int, payload: dict) -> None:
+        body = json.dumps(payload, ensure_ascii=False).encode()
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_GET(self) -> None:  # noqa: N802
+        path = urlparse(self.path).path
+        if path == "/health":
+            self._json(200, {"status": "ok", "version": "0.0.0.21"})
+        elif path == "/v1/accounts":
+            self._json(200, {"items": received["accounts"], "supported_platforms": [
+                {"platform": "xiaohongshu", "relations": ["favorite"],
+                 "sync_supported": True, "not_syncable_reason": "",
+                 "server_handled": False, "connect_supported": True}]})
+        elif path == "/v1/sync-runs":
+            self._json(200, {"items": [{"id": k, "source_account_id": "acct-1", **v}
+                                       for k, v in received["runs"].items()]})
+        elif path.startswith("/v1/sync-runs/"):
+            self._json(200, received["runs"].get(path.rsplit("/", 1)[-1], {"status": "running"}))
+        elif path in ("/v1/extension/bootstrap", "/v1/credentials"):
+            self._json(200, {"destinations": [], "items": []})
+        else:
+            self._json(404, {"detail": "not found"})
+
+    def do_POST(self) -> None:  # noqa: N802
+        path = urlparse(self.path).path
+        body = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")
+        if path == "/v1/accounts/connect/start":
+            self._json(202, {"connection_ref": "ref-abcdef123456", "platform": "xiaohongshu",
+                             "state": "authorizing", "auth_method": "browser_session",
+                             "next_action_zh": "请在平台页面登录",
+                             "supported_relations": ["favorite"]})
+        elif path.endswith("/complete"):
+            received["accounts"].append({"id": "acct-1", "platform": "xiaohongshu",
+                                         "connection_state": "connected",
+                                         "external_account_id": body.get("external_account_id"),
+                                         "display_name": body.get("display_name"),
+                                         "metadata": body.get("metadata") or {}})
+            received["runs"]["run-1"] = {"status": "running", "sync_run_id": "run-1"}
+            self._json(201, {"account_id": "acct-1", "first_sync": {"sync_run_id": "run-1"}})
+        elif path.endswith("/sync"):
+            received["runs"]["run-1"] = {"status": "running", "sync_run_id": "run-1"}
+            self._json(202, {"sync_run_id": "run-1"})
+        elif "/batches" in path:
+            received["batches"].append(body)
+            received["runs"]["run-1"] = {"status": "completed", "sync_run_id": "run-1"}
+            self._json(202, {"accepted": len(body.get("items") or [])})
+        else:
+            self._json(404, {"detail": "not found"})
+
+
 def _cert(folder: Path) -> ssl.SSLContext:
     cert, key = folder / "c.pem", folder / "k.pem"
     subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes",
@@ -148,6 +215,20 @@ async def _rpc_factory(ws):
 
 JOURNEY = r"""
 (async () => {
+  await SA.setConfig({ endpoint: "http://127.0.0.1:%(api)d", token: "drill" });
+  const out0 = {};
+  // **他真正会走的那条路**：点「连接账号」→ 点「我已登录，继续」
+  out0.connect = await connectPlatform("xiaohongshu");
+  await new Promise(r => setTimeout(r, 2500));
+  out0.verify = await verifyPendingPlatform("xiaohongshu");
+  // 连接成功会把首次同步排进队列。**走真队列**（闹钟处理器跑的就是这个函数），
+  // 而不是直接调同步——那样会跳过"任务到底有没有被排上"这一整段。
+  out0.queued = (await getSyncQueue()).length;
+  try {
+    out0.sync = await processSyncQueue();
+  } catch (error) {
+    out0.sync = { error: String(error && error.message || error) };
+  }
   const tab = await chrome.tabs.create({ url: "https://www.xiaohongshu.com/user/profile",
                                          active: false });
   await new Promise(r => setTimeout(r, 2500));
@@ -168,6 +249,7 @@ JOURNEY = r"""
   }
   out.captured = netCaptureBuffer.length;
   out.capturedUrls = netCaptureBuffer.map(c => c.url);
+  Object.assign(out, out0);
   return JSON.stringify(out);
 })()
 """
@@ -182,6 +264,8 @@ async def run(chrome: str) -> int:
     server = ThreadingHTTPServer(("127.0.0.1", FAKE_PORT), _Fake)
     server.socket = context.wrap_socket(server.socket, server_side=True)
     threading.Thread(target=server.serve_forever, daemon=True).start()
+    api_server = ThreadingHTTPServer(("127.0.0.1", FAKE_API_PORT), _Api)
+    threading.Thread(target=api_server.serve_forever, daemon=True).start()
     process = subprocess.Popen(
         [chrome, f"--user-data-dir={workspace / 'profile'}",
          f"--remote-debugging-port={DEBUG_PORT}", "--no-first-run",
@@ -216,7 +300,7 @@ async def run(chrome: str) -> int:
         async with websockets.connect(workers[0]["webSocketDebuggerUrl"], max_size=None) as ws:
             rpc = await _rpc_factory(ws)
             await rpc("Runtime.enable")
-            got = await rpc("Runtime.evaluate", {"expression": JOURNEY, "userGesture": True,
+            got = await rpc("Runtime.evaluate", {"expression": JOURNEY % {"api": FAKE_API_PORT}, "userGesture": True,
                                                  "awaitPromise": True, "returnByValue": True,
                                                  "timeout": 90000})
             payload = got.get("result", {})
@@ -231,6 +315,7 @@ async def run(chrome: str) -> int:
         except subprocess.TimeoutExpired:
             process.kill()
         server.shutdown()
+        api_server.shutdown()
         shutil.rmtree(workspace, ignore_errors=True)
 
     if measured.get("error"):
@@ -256,8 +341,27 @@ async def run(chrome: str) -> int:
         problems.append("**报了 complete**——页面只发了滚动到的那一批，"
                         "报完整会让消失检测把没滚到的当成他取消了收藏")
 
+    verify = measured.get("verify") or {}
+    if not verify.get("ok"):
+        problems.append(f"**「我已登录，继续」这一步没成**：{verify.get('failureCode')} / "
+                        f"{verify.get('error')}——账号建不起来，可同步就是空话")
+    account = (received["accounts"] or [{}])[0]
+    if not account:
+        problems.append("**档案馆里没建起账号**")
+    blob = json.dumps(account.get("metadata") or {}, ensure_ascii=False).lower()
+    for word in ("cookie", "token", "password"):
+        if word in blob:
+            problems.append(f"账号元数据里出现了 {word}")
+    landed = [item for batch in received["batches"] for item in (batch.get("items") or [])]
+    if len(landed) != len(NOTES):
+        problems.append(f"档案馆只收到 {len(landed)} 条，页面上有 {len(NOTES)} 条")
+
     report = {
         "status": "PASS" if not problems else "FAIL",
+        "connect": measured.get("connect"),
+        "verify": verify,
+        "account_created": account,
+        "items_landed": len(landed),
         "install": measured.get("install"),
         "captured_right_after_install": measured.get("afterInstall"),
         "captured_responses": measured.get("captured"),

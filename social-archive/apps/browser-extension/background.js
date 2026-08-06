@@ -1513,11 +1513,76 @@ async function verifyPendingPlatform(platform) {
   // 这比"收到过带身份的响应"还硬一档：身份是**平台自己说的**，
   // 而且顺带给出真实的账号标识，不必再拿占位符去建账号。
   if (platform === "bilibili") return verifyBilibiliSession(pending, preferred.id);
+  if (SHAPE_READ_PLATFORMS[platform]) {
+    return verifyByListShape(platform, pending, preferred.id);
+  }
   return {
     ok: false,
     state: "authorizing",
     failureCode: "LOGIN_PROOF_UNAVAILABLE",
     error: "本版本无法确认这个页面的登录态，账号暂不能连接；请等待版本更新后重试。"
+  };
+}
+
+/** 按形状读的平台，怎么确认「他登录了」（v0.0.0.21）。
+ *
+ * **我刚把这三个平台开成可同步，却没给它们确认登录的路**——
+ * verifyPendingPlatform 只有 bilibili 分支，其余一律回 LOGIN_PROOF_UNAVAILABLE。
+ * 于是「连接账号」永远连不上，而卡片上已经画着「立即同步」。
+ * 这正是两轮前给 B 站修掉的那个坑，我在同一个地方又踩了一次。
+ *
+ * 这三个平台没有 B 站那种公开的身份接口。但**这条路不需要身份**：
+ * 收藏列表只有登录之后才会出现在页面的响应里——
+ * **认出列表本身就是登录的证据**，而且正好是同步要用的那份证据。
+ *
+ * ⚠️ **账号标识是个常量。** 拿不到平台的用户 id，就不假装拿得到。
+ * 后果说清楚：同一个平台只会有一个账号记录；他要是换号登录，
+ * 新号的收藏会并进同一条账号下。**这是已知的取舍，不是遗漏**——
+ * 编一个假的用户 id 更糟。
+ */
+async function verifyByListShape(platform, pending, tabId) {
+  let read;
+  try {
+    read = await acquireByListShape({ tabId, platform, relation: "favorite" });
+  } catch (error) {
+    // **认不出就说认不出，并把诊断一起交出去**——不要让他去猜，
+    // 也不要回头请他把界面上那句话抄给我。
+    return {
+      ok: false, state: "needs_user_action", platform,
+      failureCode: error?.failureCode || "LIST_SHAPE_NOT_RECOGNISED",
+      error: error?.message || "没能在这个页面上认出你的收藏列表。",
+      diagnosis: error?.detail || null,
+    };
+  }
+  const label = globalThis.SAPlatformCatalog?.platformLabel?.(platform) || platform;
+  const completed = await SA.api(
+    `/v1/accounts/connect/${encodeURIComponent(platform)}/complete`, {
+      method: "POST",
+      body: JSON.stringify({
+        connection_ref: pending.connectionRef,
+        external_account_id: "browser-session",
+        display_name: `${label}账号`,
+        verified: true,
+        // 一个字都不许沾凭据——服务端会把带 cookie/token 字样的键整批打回。
+        metadata: {
+          auth_method: "browser_session",
+          verified_by: "list_shape_recognised",
+          auto_sync_enabled: true,
+          sync_interval_minutes: 360,
+        },
+      }),
+      timeoutMs: 15000,
+    });
+  await setPendingConnection(platform, null);
+  const queued = await enqueueAccountSync({
+    accountId: completed.account_id,
+    syncRunId: completed.first_sync?.sync_run_id || null,
+    triggerType: "first_connect",
+  });
+  return {
+    ...queued, ok: true, state: "connected", platform,
+    accountId: completed.account_id,
+    message: `已在你的${label}收藏页上认出 ${read.items.length} 条，正在存进档案馆。`,
   };
 }
 
