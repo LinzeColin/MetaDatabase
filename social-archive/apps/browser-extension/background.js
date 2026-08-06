@@ -11,7 +11,7 @@ const PWA_BRIDGE_URL_PATTERNS = [
 
 async function ensureMenus() {
   await chrome.contextMenus.removeAll();
-  chrome.contextMenus.create({ id: MENU_SAVE, title: "保存到我的档案馆", contexts: ["page", "link", "image", "video"] });
+  chrome.contextMenus.create({ id: MENU_SAVE, title: "保存当前页面", contexts: ["page", "link", "image", "video"] });
   chrome.contextMenus.create({ id: MENU_SELECTION, title: "保存选中文本到我的档案馆", contexts: ["selection"] });
 }
 

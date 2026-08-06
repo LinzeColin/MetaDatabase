@@ -134,7 +134,7 @@ def test_the_server_declares_which_platforms_can_sync_today() -> None:
             )
             continue
         assert NOT_SYNCABLE_YET.get(platform), f"{platform} 没有写清「为什么不能」与「现在能做什么」"
-        assert "保存到我的档案馆" in NOT_SYNCABLE_YET[platform], (
+        assert "保存当前页面" in NOT_SYNCABLE_YET[platform], (
             f"{platform} 的说明没有给出现在真的能用的那个动作"
         )
     # 反过来也要成立：**没接通的平台不许出现在可同步清单里**。
@@ -209,7 +209,7 @@ def test_the_top_strip_does_not_say_everything_is_fine() -> None:
     block = js_function(js, "function renderSyncSummary")
     assert "sync_supported !== false" in block, "顶部没有区分「已连接」与「同步得动」"
     assert "还不能自动同步" in block, "没有把差别说出来"
-    assert "保存到我的档案馆" in block, "没有给出现在真正能做的那件事"
+    assert "保存当前页面" in block, "没有给出现在真正能做的那件事"
     # 顺序要紧：先判断「一个都动不了」，再走原来那套统计
     stuck_at = block.index("stuck > 0 && !syncable")
     generic_at = block.index("if (!state.accounts.length)")

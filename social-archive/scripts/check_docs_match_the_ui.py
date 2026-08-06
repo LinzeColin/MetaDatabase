@@ -87,11 +87,41 @@ def ui_blob() -> str:
         for path in base.rglob("*"):
             if path.suffix in {".js", ".html"} and path.is_file():
                 try:
-                    chunks.append(path.read_text(encoding="utf-8"))
+                    chunks.append(_ui_text(path))
                 except (OSError, UnicodeDecodeError):
                     continue
     return "\n".join(chunks)
 
+
+
+def _ui_text(path) -> str:
+    """读界面文件，**把整行注释剔掉**。
+
+    2026-08-06：我把悬浮按钮从「保存到我的档案馆」改名成「保存当前页面」，
+    同时在旁边写了一段注释解释为什么改。两道文案判据**都照样绿**——
+    因为旧名字还活在那段注释里，而语料是整份文件原样拼起来的。
+    也就是说：**只要我在注释里提过那个词，它就永远"还在界面上"。**
+    这个仓被自己的散文骗到已经是第六次了。
+
+    只剔**整行**注释，不碰行内的 `//`：manifest 里的
+    `"https://*.bilibili.com/*"` 和各种网址都含 `//`，
+    上一次用非锚定的正则去剔，直接吃掉了真代码。
+    """
+    kept = []
+    block = False
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.lstrip()
+        if block:
+            if "*/" in stripped:
+                block = False
+            continue
+        if stripped.startswith("/*"):
+            block = "*/" not in stripped
+            continue
+        if stripped.startswith("//") or stripped.startswith("*") or stripped.startswith("<!--"):
+            continue
+        kept.append(line)
+    return "\n".join(kept)
 
 def main() -> int:
     blob = ui_blob()

@@ -595,7 +595,7 @@
     if (stuck > 0 && !syncable) {
       // 一个都同步不动时，顶部只说一件事：**现在真正能做的那一件**。
       $("syncSummaryText").textContent =
-        " · 现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」；"
+        " · 现在可以：在浏览器里打开任意一条内容，点插件的「保存当前页面」；"
         + "或连接 Chrome 书签一次性导入。";
       document.querySelector(".sync-strip")?.classList.add("needs");
       return;
@@ -1358,7 +1358,7 @@
       state.platformSupport[item.platform]?.sync_supported !== false);
     if (!connected.length) { openSyncModal(); showToast("请先连接至少一个平台账号", "needs"); return; }
     if (!accounts.length) {
-      showToast("已连接的账号在本版本都还不能自动同步。现在可以在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。", "needs");
+      showToast("已连接的账号在本版本都还不能自动同步。现在可以在浏览器里打开任意一条内容，点插件的「保存当前页面」。", "needs");
       openSyncModal();
       return;
     }
