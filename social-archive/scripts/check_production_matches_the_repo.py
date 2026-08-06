@@ -65,8 +65,14 @@ COMPARED = ("scripts", "src", "apps")
 SUFFIXES = ("*.py", "*.sh", "*.js", "*.css", "*.html", "*.json")
 
 
-def container_never_runs(name: str) -> bool:
-    """这个文件进了镜像，但容器从来不执行它吗？
+def inert_in_the_image(name: str) -> bool:
+    """这个文件进了镜像，但**改它不会改变镜像做的任何事**吗？
+
+    名字原来叫 `container_never_runs`，2026-08-07 改掉了：那个名字是错的，
+    而错的名字会把人引到错的豁免上。`build_extension_package.py` 容器同样
+    从来不跑（它在构建期跑），但它**决定了镜像里那个扩展包长什么样**，
+    所以它绝不能豁免。要问的不是「容器跑不跑它」，是「改了它，镜像做的事
+    会不会变」。
 
     **开发期脚本和服务跑的东西，分开说。**
 
@@ -84,13 +90,24 @@ def container_never_runs(name: str) -> bool:
     **放在模块级是因为它有第二个调用方**（does_this_deploy_need_a_rebuild.py，
     它拿这条规则决定要不要真去构建镜像）。这种规则一旦被抄成两份，
     两份就会各自漂——而漂的那天，一边说「不用重建」另一边说「在跑旧代码」。
+
+    **名单只列豁免项，所以新加的东西默认不豁免**——方向是安全的那一侧。
+    往里加名字要有测量支撑，而那个测量已经落成判据
+    （tests/focused/test_production_drift_check.py 里那条：豁免的每一个脚本，
+    都不许被 Dockerfile / ENTRYPOINT / compose / src / apps 引用，
+    也不许被任何 systemd 单元的 ExecStart 调用）。
     """
     base = name.rsplit("/", 1)[-1]
     return name.startswith("scripts/") and (
         base.startswith("check_") or base.endswith("_drill.py")
         or base in {"run_all_drills.py", "drill_extension_dir.py", "final_verify.py",
-                    # 部署时从**我这台机器**调、ssh 过去问容器的，容器自己不跑它。
-                    "does_this_deploy_need_a_rebuild.py"})
+                    # 下面这三个都是**从我这台机器跑、ssh 过去操作主机**的，
+                    # 镜像里那份是 `COPY scripts` 顺带带进去的死文件。
+                    # 2026-08-07 实测：ENTRYPOINT 是 `exec "$@"`，src/、apps/、
+                    # Dockerfile、compose、systemd 单元里一处引用都没有。
+                    "does_this_deploy_need_a_rebuild.py",
+                    "deploy_to_production.sh",
+                    "reclaim_our_superseded_images.sh"})
 
 
 def _local_hashes() -> dict[str, str]:
@@ -246,10 +263,10 @@ def main() -> int:
             there = _without_comments(done.stdout)
             (comment_only if here == there else logic_differs).append(name)
 
-    dev_only_differs = [name for name in logic_differs if container_never_runs(name)]
-    logic_differs = [name for name in logic_differs if not container_never_runs(name)]
+    dev_only_differs = [name for name in logic_differs if inert_in_the_image(name)]
+    logic_differs = [name for name in logic_differs if not inert_in_the_image(name)]
     if container_stale:
-        container_stale = [name for name in container_stale if not container_never_runs(name)]
+        container_stale = [name for name in container_stale if not inert_in_the_image(name)]
 
     # **「只在生产有」单独作为失败条件。** 那是没人说得清来路的代码，正在跑。
     status = "FAIL" if only_on_production or logic_differs or container_stale else "PASS"

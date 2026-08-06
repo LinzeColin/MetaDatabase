@@ -96,11 +96,11 @@ def test_the_exemption_uses_the_same_rule_as_the_drift_check() -> None:
     """**这条规则只有一份。** 抄成两份的那天，一边说「不用重建」，
     另一边说「服务在跑旧代码」，而两边都自称查过了。
     """
-    source_file = Path(_module.container_never_runs.__code__.co_filename)
+    source_file = Path(_module.inert_in_the_image.__code__.co_filename)
     assert source_file.name == "check_production_matches_the_repo.py", (
         f"重建判断用的规则来自 {source_file.name}，不是漂移检查那一份")
-    assert "def container_never_runs" not in SCRIPT.read_text(encoding="utf-8"), (
-        "重建判断里自己又定义了一份 container_never_runs——**这就是抄第二份**")
+    assert "def inert_in_the_image" not in SCRIPT.read_text(encoding="utf-8"), (
+        "重建判断里自己又定义了一份 inert_in_the_image——**这就是抄第二份**")
 
 
 # ------------------------------------------------- 镜像输入清单是现读的，不是抄的

@@ -276,28 +276,99 @@ def test_its_own_description_is_generated_not_typed() -> None:
     """
     assert '"note": "只比 scripts/ 与 src/' not in CHECK_SOURCE, "自述又写死了"
     assert "'/、'.join(COMPARED)" in CHECK_SOURCE, "自述不是从比较范围那个常量生成的"
-def test_only_scripts_the_container_never_runs_are_exempt_from_drift() -> None:
-    """**「开发期脚本不同」这个豁免不许扩大到服务真跑的东西。**
+
+
+def _executable_text(path: Path) -> str:
+    """只留**真会执行**的部分：注释和 docstring 里提到不算「有人调它」。
+
+    第一版直接 `name in text`，于是 `src/social_archive/failure_copy.py` 里
+    一句「这批码是 scripts/check_every_failure_code_is_explainable.py 扫出来的」
+    就把判据打红了。**那是出处说明，不是调用**——照它改的话，我会去删注释来
+    让判据变绿，而那正好把最该留的东西删掉。
+
+    .py 用 ast 去掉 docstring（ast 本来就不保留注释）；其余按行去掉
+    `#` 与 `//` 开头的注释。
+    """
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    if path.suffix == ".py":
+        import ast
+        try:
+            tree = ast.parse(text)
+        except SyntaxError:
+            return text
+        for node in ast.walk(tree):
+            body = getattr(node, "body", None)
+            if isinstance(body, list) and body and isinstance(body[0], ast.Expr) \
+                    and isinstance(getattr(body[0], "value", None), ast.Constant) \
+                    and isinstance(body[0].value.value, str):
+                body.pop(0)
+                if not body:
+                    body.append(ast.Pass())
+        return ast.unparse(ast.fix_missing_locations(tree))
+    return "\n".join(line for line in text.splitlines()
+                     if not line.lstrip().startswith(("#", "//")))
+
+
+def test_the_exemption_never_covers_what_shapes_the_image() -> None:
+    """**这个豁免不许扩大到「改了它，镜像做的事会变」的东西。**
 
     2026-08-07：我连着两次只改了一道判据和一个演练，而漂移检查报的是
     「服务执行的不是你以为的那一版，要重建镜像」——听起来像生产在跑旧代码，
     而他那边跑的东西一个字节没变。**指错原因的告警比不告警更费人。**
 
-    所以判据和演练单独归一类。但那个豁免是有边界的：容器的 ENTRYPOINT 是
-    `container-entrypoint.sh`，构建期只用 `build_extension_package.py`——
-    **这两个一旦被豁免，生产就真的可能在跑旧代码而这道门还说 PASS**。
+    所以判据和演练单独归一类。但边界在这儿：`container-entrypoint.sh` 是
+    ENTRYPOINT，`build_extension_package.py` 决定镜像里那个扩展包长什么样
+    （它容器同样不跑，是**构建期**跑的——所以判断标准不能是「容器跑不跑」）。
+    **这两个一旦被豁免，生产就真的可能在跑旧代码而这道门还说 PASS。**
     """
-    dev_only = _module.container_never_runs
+    inert = _module.inert_in_the_image
 
     for exempt in ("scripts/check_brand.py", "scripts/list_shape_end_to_end_drill.py",
                    "scripts/run_all_drills.py", "scripts/final_verify.py"):
-        assert dev_only(exempt), f"{exempt} 该被归成开发期脚本"
+        assert inert(exempt), f"{exempt} 该被归成开发期脚本"
     for must_fail in ("src/social_archive/api.py", "apps/pwa/app.js",
                       "apps/browser-extension/background.js",
                       "scripts/container-entrypoint.sh",
-                      "scripts/build_extension_package.py",
-                      "scripts/deploy_to_production.sh"):
-        assert not dev_only(must_fail), (
-            f"**{must_fail} 被豁免了**——它要么是服务真在跑的，要么是构建/部署本身。"
+                      "scripts/build_extension_package.py"):
+        assert not inert(must_fail), (
+            f"**{must_fail} 被豁免了**——改了它，镜像做的事就会变。"
             "豁免它等于生产在跑旧代码而这道门还说 PASS"
         )
+
+
+def test_every_exempt_script_is_provably_unreferenced() -> None:
+    """**豁免名单里的每一个，都要能证明「没人调它」——不是我记得，是现查。**
+
+    2026-08-07 往名单里加 `deploy_to_production.sh` 之前，我手工核了两件事：
+    ENTRYPOINT 是 `exec "$@"`；src/、apps/、Dockerfile、compose、systemd 单元
+    里一处引用都没有。**手工核过的东西必须落成判据**，否则下一次加名字的人
+    （很可能还是我）会凭印象加。
+
+    两个方向都查：
+      · 镜像行为 —— Dockerfile / ENTRYPOINT / compose / src / apps
+      · **主机行为 —— systemd 单元的 ExecStart**。主机上真有 9 个 timer 在跑
+        `/opt/social-archive/scripts/` 下的脚本；哪天有人把其中一个的名字
+        写成 `check_` 开头，它就会被这条规则自动豁免，而它明明在跑。
+    """
+    inert = _module.inert_in_the_image
+    exempt = sorted(path.name for path in (ROOT / "scripts").iterdir()
+                    if path.is_file() and inert(f"scripts/{path.name}"))
+    assert exempt, "一个都没豁免？规则或目录不对"
+
+    callers: list[tuple[str, str]] = []
+    for relative in ("Dockerfile", "compose.yaml", "scripts/container-entrypoint.sh"):
+        path = ROOT / relative
+        if path.is_file():
+            callers.append((relative, _executable_text(path)))
+    for directory in ("src", "apps"):
+        for path in (ROOT / directory).rglob("*"):
+            if path.is_file() and path.suffix in {".py", ".js", ".sh", ".html", ".json"}:
+                callers.append((str(path.relative_to(ROOT)), _executable_text(path)))
+    for unit in (ROOT / "deploy/systemd").glob("*.service"):
+        callers.append((f"deploy/systemd/{unit.name}", _executable_text(unit)))
+
+    for name in exempt:
+        for where, text in callers:
+            assert name not in text, (
+                f"**{name} 被豁免了，可是 {where} 里引用着它。**\n"
+                "豁免的前提是「改了它，镜像/主机做的事不会变」——有人调它就不成立了。")

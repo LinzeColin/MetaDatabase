@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """这次部署到底需不需要重建镜像？
 
-2026-08-07：连着两次，我改的只有一道判据和一个演练（容器从来不跑它们），
+2026-08-07：连着两次，我改的只有一道判据和一个演练（容器从来不跑它们，
+改了也不影响镜像做的任何事），
 而部署脚本照旧走到第 4 步「构建前先看磁盘」，被 4.38G < 5G 拦下中止。
 **一次根本不需要构建的部署，卡在了「构建前」的门上。**
 
@@ -34,8 +35,8 @@
 · 它不看 pyproject.toml / VERSION / README.md，而这三个都在 COPY 里。
   改了依赖不重建，装的还是旧依赖。
 
-**「容器从来不跑它」这条规则只有一份**，从那道门 import 过来
-（container_never_runs）。抄成两份的那天，一边会说「不用重建」，
+**「改它不会改变镜像做的任何事」这条规则只有一份**，从那道门 import
+过来（inert_in_the_image）。抄成两份的那天，一边会说「不用重建」，
 另一边会说「在跑旧代码」。
 
 ## 不确定一律算「要重建」
@@ -69,13 +70,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# **「容器从来不跑它」这条规则从漂移检查 import，不抄第二份。**
+# **这条规则从漂移检查 import，不抄第二份。**
 _SPEC = importlib.util.spec_from_file_location(
     "_production_drift_rule", ROOT / "scripts/check_production_matches_the_repo.py")
 _RULE_MODULE = importlib.util.module_from_spec(_SPEC)
 sys.modules["_production_drift_rule"] = _RULE_MODULE
 _SPEC.loader.exec_module(_RULE_MODULE)
-container_never_runs = _RULE_MODULE.container_never_runs
+inert_in_the_image = _RULE_MODULE.inert_in_the_image
 
 # 构建期在镜像里生成、仓里没有（或本就不该比）的东西。
 # **只排除这些，不排除任何仓里真有的文件。**
@@ -169,9 +170,9 @@ def decide(local: dict[str, str], inside: dict[str, str]) -> dict[str, list[str]
                      if local[name] != inside[name])
     missing = sorted(set(local) - set(inside))
     return {
-        "runtime_differs": [n for n in differs if not container_never_runs(n)],
-        "missing_from_image": [n for n in missing if not container_never_runs(n)],
-        "dev_only_differs": [n for n in differs + missing if container_never_runs(n)],
+        "runtime_differs": [n for n in differs if not inert_in_the_image(n)],
+        "missing_from_image": [n for n in missing if not inert_in_the_image(n)],
+        "dev_only_differs": [n for n in differs + missing if inert_in_the_image(n)],
     }
 
 
@@ -211,7 +212,7 @@ def main() -> int:
             "服务真跑的东西和镜像里那份不一致，必须重建。"
             if must_build else
             "COPY 进镜像的每一个文件都和镜像里那份逐字节一致"
-            "（开发期脚本除外，容器从来不跑它们）——**这次不用重建**。"),
+            "（开发期脚本除外——改它们不会改变镜像做的任何事）——**这次不用重建**。"),
         "note": ("比的是镜像里 /app 的内容 vs 仓里 COPY 的输入。"
                  "base image 有没有更新、apt 包有没有新版本，不在这道判断里。"),
     }
