@@ -344,8 +344,14 @@
       setServiceBadge("needs", "后台没在跑 · 新的同步会排队等着");
       return;
     }
+    // **原来这句写的是「插件可更新（不影响使用）」。**
+    //
+    // 那句话在只改文案的版本上是对的，在 v0.0.0.22 上就成了误导：
+    // Reddit / Instagram 这两个平台的取数路在插件里，**不更新插件就没有它们**，
+    // 而资料库这边一切正常，他没有任何理由去点更新。
+    // 「不影响使用」会让他以为不用管，然后一直看不到新平台却不知道为什么。
     const spare = state.extension.detected && state.extension.compatible
-      && state.extension.outdated ? " · 插件可更新（不影响使用）" : "";
+      && state.extension.outdated ? " · 插件有新版：现在能用，但新增的平台要更新插件后才有" : "";
     setServiceBadge("connected",
       `私人档案馆已连接 · v${health.version || PRODUCT_VERSION}${spare}`);
   }

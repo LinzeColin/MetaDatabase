@@ -15,7 +15,7 @@
 
 ⚠️ 这里跑的是把 `paintServiceBadge` 抽出来在 Node 里喂三种状态。
 **不是浏览器检查**：资料库那个演练加载不了扩展，
-`state.extension.detected` 永远是 false，走不到「插件可更新」那一支。
+`state.extension.detected` 永远是 false，走不到「插件有新版」那一支。
 浏览器里验到的是另外两支（后台挂了 / 一切正常），在 pwa_render_drill 里。
 """
 
@@ -67,7 +67,7 @@ DEAD = {"ever_seen": True, "alive": False}
 
 
 def test_a_dead_worker_wins_over_everything_else() -> None:
-    """后台挂了是最要紧的一件事，不许被「插件可更新」盖过去。"""
+    """后台挂了是最要紧的一件事，不许被「插件有新版」盖过去。"""
     out = _paint({"health": {"version": "9.9.9.9", "worker": DEAD},
                   "extension": {"detected": True, "compatible": True, "outdated": True}})
     assert "后台没在跑" in out["text"], out
@@ -78,15 +78,20 @@ def test_an_outdated_but_usable_extension_is_mentioned_not_blocked() -> None:
     """**这一支就是那个没人读的字段。** 说一句，但不拦。"""
     out = _paint({"health": {"version": "9.9.9.9", "worker": ALIVE},
                   "extension": {"detected": True, "compatible": True, "outdated": True}})
-    assert "插件可更新" in out["text"], f"「有新版本」那半边还是没说：{out}"
-    assert "不影响使用" in out["text"], "没说清它不影响使用，他会以为又被挡住了"
+    assert "插件有新版" in out["text"], f"「有新版本」那半边还是没说：{out}"
+    # **两件事都要说，少一件都会误导。**
+    # 只说「不影响使用」：v0.0.0.22 起不成立了——Reddit / Instagram 的取数路
+    # 在插件里，不更新就是没有，而资料库这边一切正常，他没理由去点更新。
+    # 只说「不更新就没有新平台」：他会以为自己又被挡在外面了（那是上一版的伤）。
+    assert "现在能用" in out["text"], "没说清它现在就能用，他会以为又被挡住了"
+    assert "更新" in out["text"], "没说清不更新会少什么，他不会有理由去更新"
     assert out["cls"] == "connected", "只是有新版本，不该画成告警"
 
 
 def test_a_current_extension_says_nothing_extra() -> None:
     out = _paint({"health": {"version": "9.9.9.9", "worker": ALIVE},
                   "extension": {"detected": True, "compatible": True, "outdated": False}})
-    assert "插件可更新" not in out["text"], f"插件已是最新却还在提示更新：{out}"
+    assert "插件有新版" not in out["text"], f"插件已是最新却还在提示更新：{out}"
     assert "已连接" in out["text"]
 
 
