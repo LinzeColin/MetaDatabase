@@ -540,6 +540,29 @@ ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR'
   echo '  下载页下发的就是刚部署的那个包，逐字节一致。'" \
   || fail "下载页下发的包对不上。Owner 装到的会是别的东西——这一步不能放过。"
 
+step "8.5) 验收：装上这个包的真 Chrome，够不够得着**刚部署的这台生产**"
+# **十四个演练一个都没碰过真生产。** 它们全带着
+#   --host-resolver-rules=MAP social-archive.linzezhang.com 127.0.0.1:<假端口>
+# 把域名指到本机假服务器上。那对演练是对的（要可重复、要造边界情况），
+# 但意味着「插件能不能连上他那台真服务器」**从来没被验过**——
+# 而验收条件第 4 条写的正是「不拿本地结果冒充线上结果」。
+#
+# **放在第 8 步之后**：它验的是刚部署完的这一版。放前面验的是上一版。
+#
+# 2026-08-07 写这条时先栽了一次：探针把端点写死成资料库域名
+# （social-archive.linzezhang.com，在 Cloudflare Access 后面），量出
+# 「插件够不着生产」，我差点就那么报了。插件真正用的是 runtime-config.json 里的
+# **api 域名**。现在端点一律取插件自己的配置，资料库域名留作**负对照**——
+# 它必须是不通的，否则这条探针连「挡住了」都认不出来。
+if [ -z "${SA_SKIP_DRILLS:-}" ]; then
+  .venv/bin/python scripts/production_reachability_drill.py >/dev/null \
+    || fail "装上发布包的真 Chrome 够不着生产。**这是 Owner 那边「点了没反应」的形状**——
+  跑 scripts/production_reachability_drill.py 看它报的是哪一条。"
+  printf '  真 Chrome + 发布包 + 真令牌，从生产读回了条目；负对照（Access 后的域名）确认不通。\n'
+else
+  printf '  ⚠️  跳过了（SA_SKIP_DRILLS）——**这一版没有「插件够得着生产」的证据**。\n'
+fi
+
 step "9) 验收：仓、主机、**镜像里那一份**，三份是不是同一份代码"
 # 第 8 步只核了**扩展包**那一个文件。其余一百多个源文件，在这一步之前
 # 从来没有任何东西核过——而 /opt/social-archive **不是 git 检出**，

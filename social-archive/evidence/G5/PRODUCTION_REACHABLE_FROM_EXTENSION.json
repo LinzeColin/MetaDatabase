@@ -1,0 +1,35 @@
+{
+  "status": "FAIL",
+  "endpoint": "https://social-archive-api.linzezhang.com",
+  "token_supplied": true,
+  "measured_in_real_chrome": {
+    "endpoint_the_extension_itself_uses": "https://social-archive-api.linzezhang.com",
+    "api_call": "resolved",
+    "api_keys": [
+      "items",
+      "total",
+      "limit",
+      "offset",
+      "sort_by",
+      "sort_dir",
+      "facets"
+    ],
+    "api_looks_like_a_web_page": false,
+    "api_items": 1,
+    "has_host_permission": true,
+    "raw_status": 401,
+    "raw_redirected": false,
+    "raw_final_host": "social-archive-api.linzezhang.com",
+    "raw_body_head": "{\"detail\":\"扩展尚未授权或令牌已失效\"}",
+    "manual_type": "basic",
+    "manual_status": 401,
+    "health_type": "basic",
+    "health_status": 200,
+    "control_blocked_host_type": "basic",
+    "control_blocked_host_status": 401
+  },
+  "problems": [
+    "**负对照没被挡住**（basic）——资料库域名在 Cloudflare Access 后面，从插件里本该访问不到。它都通了，说明这条探针分辨不出通与不通，**上面那个「通了」不作数**。"
+  ],
+  "what_this_answers_zh": "装上发布包、用**插件自己配置的端点**、拿真令牌调 /v1/library，**插件到底拿到什么**。其余十四个演练都把这个域名映射到本机假服务器，所以这条路此前从没被走过。负对照是资料库域名（在 Access 后面），它必须不通。"
+}
