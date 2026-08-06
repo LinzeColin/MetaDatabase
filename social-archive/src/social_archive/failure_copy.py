@@ -274,6 +274,11 @@ INCOMPLETE_RUN_CODES: frozenset[str] = frozenset({
     "BILIBILI_COUNT_MISMATCH",             # 声明 N 条、只读到 M 条，差额没有解释
     "BILIBILI_SOME_FOLDERS_INCOMPLETE",    # 有收藏夹没读完
     "BILIBILI_SOME_ITEMS_HAVE_NO_URL",     # 有条目读不出可打开的网址，已跳过并记下
+    # 按形状认列表那条路（v0.0.0.21 / 小红书·抖音·快手）：
+    # **一次只看得到他滚动过的那些**。页面加载时先发一批，往下滚才发下一批。
+    # 这不是失败，是没读完——已取到的都在库里，再同步一次能读到更多。
+    # **绝不能报 complete**：报了会让"消失检测"把没滚到的当成他取消了收藏。
+    "PARTIAL_BY_PAGE_SCROLL",
 })
 _INCOMPLETE_SENTENCE = "这次同步卡住了，没有正常结束。你已经取到的内容都还在。"
 

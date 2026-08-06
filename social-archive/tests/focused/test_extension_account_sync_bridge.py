@@ -64,9 +64,30 @@ def test_install_or_update_reconnects_existing_pwa_bridge_without_reloading_or_t
         # 两种写法都算：处理器里判 message.diagnostic，
         # 挪出来的 installNetObserverForTab 里判它自己那个入参 diagnostic。
         # **写法可以变，「必须由用户发起」这件事不能变。**
+        # v0.0.0.21 加了第三种：按形状读列表（shapeMode）。它也必须刷新——
+        # 观察器要比页面自己的 fetch 先就位，不刷新就一条也抓不到
+        # （实测：自报 installed/ready 全 true，而 netCaptureBuffer 是空的）。
+        #
+        # **放它进来的前提写在下一条断言里**：那条路不许复用用户自己开着的页面。
+        # 只放宽这里而不验那个前提的话，就等于允许刷新他正在看的小红书页。
         assert ("message.diagnostic === true" in before[-800:]
-                or "if (diagnostic) {" in before[-800:]), (
+                or "if (diagnostic) {" in before[-800:]
+                or "if (diagnostic || shapeMode) {" in before[-900:]), (
             f"这一处 reload 不在用户发起的诊断分支里：{line}"
+        )
+
+    # **按形状读的平台，不许复用用户自己开着的那个页面。**
+    #
+    # 上面刚放宽了「shapeMode 也能刷新」，而刷新他正开着的小红书页
+    # = 打断他正在看的东西、丢掉滚动位置。两条必须成对存在：
+    # 只有「同步自己开的后台页」才谈得上随便刷。
+    if "shapeMode" in background:
+        assert "SHAPE_READ_PLATFORMS[account.platform]" in background, (
+            "按形状读的平台没有和「不复用已有标签页」绑在一起——"
+            "那条路会刷新他正开着的平台页"
+        )
+        assert "if (!tab && !ownTabOnly)" in background, (
+            "复用已有标签页那一行没有排除按形状读的平台"
         )
     # 安装/更新那条路仍然不许碰任何标签页
     install_path = background.split("async function reconnectOpenPwaBridgeTabs()", 1)[1][:800]

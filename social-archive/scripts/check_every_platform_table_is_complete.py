@@ -67,6 +67,17 @@ KNOWN = ("xiaohongshu", "douyin", "kuaishou", "bilibili", "instagram", "reddit",
 # `platforms`——一行是全平台、一行是 all-cn 的国内子集。**两者分不开**，
 # 于是要么一起放行（漏掉真的缺失），要么一起报错（冤枉有意的子集）。
 DELIBERATE_SUBSETS = {
+    # SHAPE_READ_PLATFORMS（v0.0.0.21）：**按形状认列表**那条路覆盖的平台。
+    # 它是有意的子集——只放"主路径是扩展读页面列表、且接口带签名所以只能拦截"
+    # 的那三个国内源。
+    #   · x / reddit / instagram：Owner 的平台表里主路径是扩展读当前页 + 官方导出导入，
+    #     媒体走 gallery-dl / Instaloader，不走这条拦截路
+    #   · youtube：主路径同上，且它的列表不是这种一次性 JSON 响应
+    #   · bilibili：接口公开无签名，直接调更准（content/bilibili-reader.js）
+    #   · generic-web：Chrome 书签，根本没有页面响应可拦
+    "SHAPE_READ_PLATFORMS": "只覆盖三个「接口带签名、只能拦截」的国内源；"
+                            "其余平台按 Owner 的平台表走别的主路径",
+
     "FORBIDDEN_PLATFORMS": "国内四平台的硬边界名单，youtube 本来就不该在里面",
     "DOMESTIC_PLATFORMS": "同上，国内平台专用",
     "SERVER_ACCOUNT_CONNECTORS": "服务端直连的那几个；youtube 走 Cookie 托管，不走这条",

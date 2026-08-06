@@ -1,5 +1,5 @@
 /* global SA */
-importScripts("shared.js", "content/platform-catalog.js", "content/extension-utils.js", "cookie-export.js");
+importScripts("shared.js", "content/platform-catalog.js", "content/list-shape.js", "content/extension-utils.js", "cookie-export.js");
 
 const MENU_SAVE = "social-archive-save-page";
 const MENU_SELECTION = "social-archive-save-selection";
@@ -185,7 +185,7 @@ let netCapturesDropped = 0;
  * 演练照抄一遍处理器的顺序也能跑，但那测的是抄件；抄件和正本一分叉，
  * 演练就会在正本坏掉的时候继续绿——而这一天里正本恰好改了两处。
  */
-async function installNetObserverForTab({ platform, tabId, diagnostic }) {
+async function installNetObserverForTab({ platform, tabId, diagnostic, shapeMode }) {
   // **每次诊断都是一次新的测量，先把上一次的清干净。**
   //
   // 缓冲区原来从头到尾没人清过，只靠 service worker 睡着（约 30 秒）自然消失。
@@ -227,11 +227,33 @@ async function installNetObserverForTab({ platform, tabId, diagnostic }) {
     // 装一个前缀为空的观察器等于永远拦不到，而且页面一切正常、界面显示已连接——
     // 正是 INV-NO-SILENT-ZERO 要防的那种零。
     if (!Array.isArray(prefixes) || prefixes.length === 0) {
-      return {
-        ok: false, state: "needs_user_action", platform,
-        failureCode: "INTERCEPT_PREFIX_UNKNOWN",
-        error: `还没有确认 ${globalThis.SAPlatformCatalog?.platformLabel?.(platform) || platform} 的收藏接口地址，这个平台暂时不能同步。`,
-      };
+      // **没有前缀不再等于不能同步。**
+      //
+      // 原来这里一律拒绝，理由是「装一个前缀为空的观察器 = 永远拦不到」。
+      // 那句话只在"靠地址挑响应"的前提下成立——而观察器本来就支持
+      // 不带前缀（net-observer.js:97：全都收下），缺的只是"收下之后
+      // 怎么认出哪个是列表"。content/list-shape.js 就是补这一块。
+      //
+      // 于是 shapeMode 打开时，前缀改成"这个标签页自己的可注册域"，
+      // 也就是**只收这个平台自己发出的、发往它自己域名的响应**——
+      // 和诊断模式同一条安全边界，不放宽。
+      if (!shapeMode) {
+        return {
+          ok: false, state: "needs_user_action", platform,
+          failureCode: "INTERCEPT_PREFIX_UNKNOWN",
+          error: `还没有确认 ${globalThis.SAPlatformCatalog?.platformLabel?.(platform) || platform} 的收藏接口地址，这个平台暂时不能同步。`,
+        };
+      }
+      let host = "";
+      try { host = new URL(observedTab?.url || "").hostname; } catch (_) { host = ""; }
+      const isIp = /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.includes(":");
+      const registrable = isIp ? host : host.split(".").slice(-2).join(".");
+      if (!registrable) {
+        return { ok: false, state: "failed", platform,
+                 failureCode: "DIAGNOSTIC_NO_HOST",
+                 error: "读不出当前页面的域名，无法开始读取。" };
+      }
+      prefixes = [registrable];
     }
     if (!Number.isInteger(tabId)) return { ok: false, error: "没有可用的平台页面。" };
     // **先要权限，再注入。** executeScript 没有该站点的 host 权限会直接抛，
@@ -289,7 +311,18 @@ async function installNetObserverForTab({ platform, tabId, diagnostic }) {
         { id: OBSERVER_SCRIPT_ID, matches: [origin], js: ["net-observer.js"],
           runAt: "document_start", world: "MAIN", persistAcrossSessions: false },
       ]);
-      if (diagnostic) {
+      // **按形状认那条路也必须刷新。**
+      //
+      // 原来只有诊断模式刷新，理由写在下面：「非诊断路径不刷新用户的页面
+      // （那会打断他正在看的东西）」——对**他正在看的**页面，那是对的。
+      // 但按形状读列表时，这个标签页是同步自己开的后台页，刷新它谁也打断不了；
+      // 而**不刷新就一条也抓不到**：观察器要包 fetch/XHR，
+      // 而页面在它装上之前早就把列表请求打完了。
+      //
+      // 实测（2026-08-06，真 Chrome + 假小红书站）：不刷新时
+      // 观察器自报 installed:true / ready:true / prefixCount:1，
+      // 而 netCaptureBuffer **一条都没有**——「装上了」和「赶上了」是两回事。
+      if (diagnostic || shapeMode) {
         await chrome.tabs.reload(tabId);
         await waitForTabComplete(tabId);
       } else {
@@ -1080,9 +1113,78 @@ async function acquireRelationItems({ tabId, platform, relation } = {}) {
   if (platform === "bilibili" && relation === "favorite") {
     return acquireBilibiliFavorites({ tabId });
   }
+  if (SHAPE_READ_PLATFORMS[platform]) {
+    return acquireByListShape({ tabId, platform, relation });
+  }
   const error = new Error("本版本尚未接入平台列表读取通道，请等待版本更新后重试。");
   error.failureCode = "ACQUISITION_PATH_NOT_INSTALLED";
   throw error;
+}
+
+/** 三个国内源共用的取数路：**在他自己的收藏页上，认出平台自己发的那个列表**。
+ *
+ * 和 B 站那条的区别：B 站的接口是公开无签名的，我们直接调；
+ * 这三个的接口有签名，**所以不去调，只看页面自己发出的响应**——
+ * 签名由页面自己做，我们连碰都不碰。
+ *
+ * 每条内容的网址由 id 拼。**这几个模板是这个仓里早就在用的**
+ * （tests/focused/test_account_mirror_batch_protocol.py 的 DOMESTIC_URL_PREFIXES），
+ * 不是我现编的。
+ */
+const SHAPE_READ_PLATFORMS = Object.freeze({
+  xiaohongshu: "https://www.xiaohongshu.com/explore/",
+  douyin: "https://www.douyin.com/video/",
+  kuaishou: "https://www.kuaishou.com/short-video/",
+});
+
+async function acquireByListShape({ tabId, platform, relation }) {
+  const installed = await installNetObserverForTab({ platform, tabId, shapeMode: true });
+  if (!installed?.ok) {
+    const error = new Error(installed?.error || "没能在这个页面上装上读取器。");
+    error.failureCode = installed?.failureCode || "OBSERVER_INSTALL_FAILED";
+    throw error;
+  }
+  // 列表那个请求是页面加载时打的，装好之后要给它时间发出来。
+  await new Promise(resolve => setTimeout(resolve, 6000));
+  const captures = netCaptureBuffer.map(item => ({
+    url: item.url, status: item.status, text: item.body,
+  }));
+  const found = globalThis.SAListShape.recogniseList(captures);
+  if (!found.ok) {
+    // **认不出就报认不出。** 绝不返回空列表当成「他没有收藏」。
+    const error = new Error(found.error);
+    error.failureCode = found.failureCode;
+    error.detail = { captured: captures.length, rejected: found.rejected.slice(0, 8) };
+    throw error;
+  }
+  const prefix = SHAPE_READ_PLATFORMS[platform];
+  const { items, skipped } = globalThis.SAListShape.normaliseItems(found.best, {
+    platform,
+    urlBuilder: (raw, id) => (id ? `${prefix}${id}` : ""),
+  });
+  if (!items.length) {
+    const error = new Error("认出了列表，但里面没有一条能在浏览器里打开的内容。");
+    error.failureCode = "LIST_SHAPE_NOT_RECOGNISED";
+    throw error;
+  }
+  return {
+    ok: true,
+    items,
+    // **一次只看得到他滚动过的那些。** 不敢报 complete——
+    // 报 complete 会让"消失检测"把没滚到的当成他取消了收藏，那是会丢数据的。
+    completeness: "partial",
+    failureCode: "PARTIAL_BY_PAGE_SCROLL",
+    completionReason: `这次读到 ${items.length} 条（页面加载时发出的那一批）。`
+      + "往下滚动之后再同步一次，能读到更多。",
+    cursor: {
+      source: "page_response_shape",
+      matched_url: found.best.url,
+      matched_path: found.best.path,
+      captured_responses: captures.length,
+      observed_count: items.length,
+      skipped_count: skipped.length,
+    },
+  };
 }
 
 /** B 站收藏夹：在**他自己的 B 站标签页里**调 B 站自己的公开接口（v0.0.0.7 / G1）。
@@ -1300,8 +1402,15 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
     syncRunId = started.sync_run_id;
   }
   let tab = tabId ? await chrome.tabs.get(tabId).catch(() => null) : null;
+  // **按形状读的平台不许复用他自己开着的页面。**
+  //
+  // 那条路要刷新页面才抓得到列表请求（观察器得比页面自己的 fetch 先就位），
+  // 而刷新他正开着的小红书页 = 打断他正在看的东西、丢掉他的滚动位置。
+  // 判据 test_install_or_update_...without_touching_platform_tabs 守的就是这条。
+  // 所以这些平台一律用同步自己开的后台页——刷新它谁也打断不了。
+  const ownTabOnly = Boolean(SHAPE_READ_PLATFORMS[account.platform]);
   // 他已经开着的那个平台页优先用——**别为了同步再开一个**。
-  if (!tab) tab = await findExistingPlatformTab(account.platform);
+  if (!tab && !ownTabOnly) tab = await findExistingPlatformTab(account.platform);
   let tabOpenedByUs = false;
   if (!tab) {
     // **后台开，不抢焦点，跑完关掉。**

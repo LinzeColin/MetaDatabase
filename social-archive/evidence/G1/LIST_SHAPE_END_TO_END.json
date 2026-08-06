@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "install": {
+    "ok": true,
+    "state": "observing",
+    "platform": "xiaohongshu",
+    "prefixCount": 1,
+    "observerSelfReport": {
+      "installed": true,
+      "ready": true,
+      "prefixCount": 1
+    }
+  },
+  "captured_right_after_install": 5,
+  "captured_responses": 5,
+  "captured_urls": [
+    "https://www.xiaohongshu.com/api/log",
+    "https://www.xiaohongshu.com/api/user",
+    "https://www.xiaohongshu.com/api/config",
+    "https://www.xiaohongshu.com/api/homefeed",
+    "https://www.xiaohongshu.com/api/collect/page"
+  ],
+  "recognised": "https://www.xiaohongshu.com/api/collect/page",
+  "matched_path": "data.notes",
+  "items": 7,
+  "sample_urls": [
+    "https://www.xiaohongshu.com/explore/n1",
+    "https://www.xiaohongshu.com/explore/n2",
+    "https://www.xiaohongshu.com/explore/n3"
+  ],
+  "completeness": "partial",
+  "failure_code": "PARTIAL_BY_PAGE_SCROLL",
+  "problems": [],
+  "what_this_does_not_prove": "**不证明真小红书的响应长这样**——那要 Owner 自己的登录态，只能发生在他的浏览器里。这里证明的是：不知道接口地址也能装上观察器、能收到页面自己的响应、能从噪声里认出列表、能变成可入库的条目，而且不会把推荐流认成收藏。"
+}

@@ -279,7 +279,15 @@ def test_relay_is_injected_before_the_observer() -> None:
       · 观察器先装 → observer_installed 收不到（false）
       · 中继先装   → 收得到（true）
     """
-    block = _install_function()
+    # **先剥注释再找。**
+    #
+    # 原来直接在原文里 index()，于是**注释里提到 net-observer.js 就会被当成注入点**。
+    # 2026-08-06 实测：给那一段加了一句解释性注释（里面写着 "net-observer.js:97"），
+    # 这条判据当场报「观察器排在中继前面」——而注入顺序一个字都没动。
+    # 这个仓已经被自己写的说明文字骗过四次，这是第五次。
+    import re as _re
+    raw = _install_function()
+    block = _re.sub(r"(?m)^[ \t]*//.*$", "", raw)
     relay_at = block.index("content/net-relay.js")
     observer_at = block.index("net-observer.js")
     assert relay_at < observer_at, (
