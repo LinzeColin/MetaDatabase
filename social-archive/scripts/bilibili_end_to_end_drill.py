@@ -300,13 +300,26 @@ JOURNEY = r"""
   out.tabs_before = await snapshot();
   out.my_tab_id = mine.id;
 
-  // ③ 同步（连接成功时已入队，这里直接跑一次，免得等闹钟）
+  // ③ 同步 —— **走队列，不走捷径**。
+  //
+  // 之前这里直接调 syncAccountById，注释写着「免得等闹钟」。
+  // 那样跳过了整整一段：连接成功后 enqueueAccountSync 有没有真的把任务入队、
+  // 周期闹钟有没有真的排上、processSyncQueue 会不会真的把它取出来跑。
+  // 那一段断了的话，他点完「我已登录，继续」会看到「正在后台读取你的收藏夹」，
+  // **然后什么都不会发生**——而这正是这个项目反复栽的「看着接上了」。
+  out.queue_before = await getSyncQueue();
+  const alarm = await chrome.alarms.get(SYNC_QUEUE_ALARM);
+  out.alarm_scheduled = Boolean(alarm);
+  out.alarm_period_minutes = alarm ? alarm.periodInMinutes : null;
   try {
-    out.sync = await syncAccountById("acct-1", { triggerType: "scheduled" });
+    // 闹钟处理器里跑的就是这一个函数（background.js: onAlarm → processSyncQueue）。
+    // 直接调它，等于把那 30 秒快进掉，而链路一段都没少。
+    out.sync = await processSyncQueue();
   } catch (error) {
     out.sync = { error: String(error && error.message || error),
                  failureCode: error && error.failureCode || null };
   }
+  out.queue_after = await getSyncQueue();
   await new Promise(r => setTimeout(r, 500));
   out.tabs_after = await snapshot();
   const after = out.tabs_after.find(t => t.active);
@@ -449,6 +462,18 @@ async def run(chrome: str) -> int:
             "——定时同步每 6 小时跑一次，他什么都没点")
     if (measured.get("tabs_created_by_sync") or 0) > 0:
         problems.append(f"同步凭空开了 {measured['tabs_created_by_sync']} 个标签页")
+
+    # **首次同步是不是真的被排上了。**
+    # 他点完「我已登录，继续」看到的是「正在后台读取你的收藏夹」——
+    # 这句话背后必须真有一个任务在队列里、且有闹钟会来取它。
+    if not measured.get("queue_before"):
+        problems.append("**连接成功后队列是空的** —— 界面说「正在后台读取」，"
+                        "而其实没有任何任务被排上，他会一直等下去")
+    if not measured.get("alarm_scheduled"):
+        problems.append("**没有排上周期闹钟** —— MV3 里 worker 随时会被杀，"
+                        "没有闹钟就没有任何东西会再来唤醒队列")
+    if measured.get("queue_after"):
+        problems.append(f"跑完之后队列里还剩 {len(measured['queue_after'])} 个任务没被取走")
 
     report = {
         "status": "PASS" if not problems else "FAIL",

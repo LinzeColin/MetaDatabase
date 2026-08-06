@@ -6,7 +6,7 @@
       "ok": true,
       "state": "authorizing",
       "platform": "bilibili",
-      "tabId": 2011695478,
+      "tabId": 1880356288,
       "message": "已在当前 Chrome profile 中打开B站，插件会检测现有登录态。"
     },
     "verify": {
@@ -21,24 +21,37 @@
     },
     "tabs_before": [
       {
-        "id": 2011695476,
+        "id": 1880356286,
         "active": false
       },
       {
-        "id": 2011695477,
+        "id": 1880356287,
         "active": false
       },
       {
-        "id": 2011695478,
+        "id": 1880356288,
         "url": "https://www.bilibili.com/",
         "active": false
       },
       {
-        "id": 2011695479,
+        "id": 1880356289,
         "active": true
       }
     ],
-    "my_tab_id": 2011695479,
+    "my_tab_id": 1880356289,
+    "queue_before": [
+      {
+        "accountId": "acct-1",
+        "enqueuedAt": 1785977370052,
+        "profileUrl": "",
+        "syncRunId": "run-1",
+        "tabId": null,
+        "triggerType": "first_connect",
+        "updatedAt": 1785977370052
+      }
+    ],
+    "alarm_scheduled": true,
+    "alarm_period_minutes": 1,
     "sync": {
       "ok": true,
       "syncRunId": "run-1",
@@ -49,22 +62,23 @@
         }
       ]
     },
+    "queue_after": [],
     "tabs_after": [
       {
-        "id": 2011695476,
+        "id": 1880356286,
         "active": false
       },
       {
-        "id": 2011695477,
+        "id": 1880356287,
         "active": false
       },
       {
-        "id": 2011695478,
+        "id": 1880356288,
         "url": "https://www.bilibili.com/",
         "active": false
       },
       {
-        "id": 2011695479,
+        "id": 1880356289,
         "active": true
       }
     ],
