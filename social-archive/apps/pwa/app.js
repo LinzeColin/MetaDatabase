@@ -605,7 +605,9 @@
       return;
     }
     if (!state.accounts.length) {
-      $("syncSummaryText").textContent = " · 连接一次账号后自动全量导入收藏、点赞和书签";
+      // **别承诺点赞。** SCANNABLE_RELATIONS 里一个平台都没有点赞——那条取数路没做。
+      // 承诺一件不会发生的事比不提更糟：他会以为点赞被同步丢了，回头来找。
+      $("syncSummaryText").textContent = " · 连接一次账号后自动全量导入收藏与书签";
       document.querySelector(".sync-strip")?.classList.add("needs");
       return;
     }

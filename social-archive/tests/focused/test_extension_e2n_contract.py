@@ -32,7 +32,9 @@ def test_extension_has_account_mirror_first_surfaces():
     ):
         assert phrase in text
     options = (root / "options.html").read_text(encoding="utf-8")
-    assert "连接一次账号，收藏、点赞和书签自动搬进来" in options
+    # v0.0.0.22：原来钉的是带「点赞」的那句。那句在超售——一个平台都没有同步点赞。
+    # **逐字钉文案的判据会把当时的错一起钉牢**：这句超售了多少版，它就替它挡了多少版。
+    assert "连接一次账号，收藏和书签自动搬进来" in options
     assert "立即同步全部账号" in options
 
 

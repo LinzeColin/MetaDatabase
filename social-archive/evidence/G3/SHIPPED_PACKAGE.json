@@ -28,7 +28,7 @@
     "threw": "This function must be called during a user gesture"
   },
   "permission_request_from_extension_page": {
-    "prompted": true
+    "returned": true
   },
   "permission_request_from_service_worker": {
     "bookmarks": {

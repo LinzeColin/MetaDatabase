@@ -183,6 +183,49 @@ def main() -> int:
             problems.append({"platform": platform, "problem":
                              f"扫描范围里有这个平台没声明过的关系：{extra}"})
 
+    # ---- 第六条：**别承诺一种不会被同步的关系** -------------------------
+    #
+    # 上面五条都在问「哪个平台」。这一条问「哪一种东西」——它是另一个维度，
+    # 而界面在这个维度上一直在超售：
+    #
+    #     账号同步中心      「连接一次账号后自动全量导入收藏、点赞和书签」
+    #     设置页大标题      「连接一次账号，收藏、点赞和书签自动搬进来」
+    #     侧边栏抬头        「收藏、点赞与书签」
+    #     插件弹窗          「首次全量后只同步新增收藏、点赞和书签」
+    #
+    # **点赞一个平台都没有做**（SCANNABLE_RELATIONS 里只有收藏和 Saved）。
+    # 承诺一件不会发生的事比不提更糟：他会以为点赞被同步丢了，回头来找。
+    #
+    # 判据要窄：只在**同时出现同步措辞**的句子里抓，否则会误伤
+    # 「按收藏、点赞或书签时间排序」（那是在讲已有条目怎么排）
+    # 和手动保存那个下拉框里的「点赞」选项（那是让他给一条内容打标签）。
+    RELATION_WORDS = {"点赞": "like", "稍后再看": "watch_later", "稍后观看": "watch_later",
+                      "观看历史": "history", "播放列表": "playlist"}
+    PROMISE_WORDS = ("自动同步", "自动全量", "全量导入", "自动搬", "只同步新增", "自动导入")
+    scannable_everywhere = {relation for relations in scannable.values() for relation in relations}
+    scannable_everywhere.add("bookmark")     # Chrome 书签走 syncAccountById 的专用路
+    surfaces = ["apps/pwa/index.html", "apps/pwa/app.js",
+                "apps/browser-extension/options.html", "apps/browser-extension/popup.html",
+                "apps/browser-extension/sidepanel.html", "apps/browser-extension/popup.js",
+                "apps/browser-extension/options.js", "apps/browser-extension/sidepanel.js"]
+    for name in surfaces:
+        path = ROOT / name
+        if not path.is_file():
+            continue
+        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            stripped = line.strip()
+            if stripped.startswith(("//", "*", "<!--", "#")):
+                continue
+            if not any(word in stripped for word in PROMISE_WORDS):
+                continue
+            for word, relation in RELATION_WORDS.items():
+                if word in stripped and relation not in scannable_everywhere:
+                    problems.append({
+                        "platform": "-", "problem":
+                        f"{name}:{number} 承诺会同步「{word}」，而**没有任何平台在扫描这种关系**"
+                        f"（扫描范围里只有 {sorted(scannable_everywhere)}）。"
+                        "他会以为这些被同步丢了，回头来找：" + stripped[:90]})
+
     report = {
         "status": "PASS" if not problems else "FAIL",
         "platforms_checked": len(PLATFORM_RELATIONS),

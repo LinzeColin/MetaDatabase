@@ -74,7 +74,16 @@
       $("summaryTitle").textContent = "还没有连接平台账号";
       $("summaryCopy").textContent = "连接一次账号后自动全量导入，不需要逐条点击。";
       $("primarySyncLabel").textContent = "连接第一个账号";
-      $("primarySyncHint").textContent = "支持 8 个平台与 Chrome 书签";
+      // **写死的数会漂。** 这里原来写「支持 8 个平台与 Chrome 书签」——
+      // 加一个平台就错一次，而且「支持」在这一屏读起来像「能自动同步」，
+      // 实际那个数是"可保存的平台数"。改成按能力声明现算，并说清是哪一种。
+      {
+        const syncable = Object.values(platformSupport)
+          .filter(item => item?.sync_supported !== false).length;
+        $("primarySyncHint").textContent = syncable
+          ? `本版本有 ${syncable} 个来源能自动同步`
+          : "本版本还没有能自动同步的来源";
+      }
       return;
     }
     $("summaryTitle").textContent = `${connected} 个账号 · ${total.toLocaleString("zh-CN")} 条内容`;
@@ -85,7 +94,10 @@
       $("primarySyncLabel").textContent = "查看同步进度";
       $("primarySyncHint").textContent = "已完成内容会立即出现在资料库";
     } else {
-      $("summaryCopy").textContent = "首次全量后只同步新增收藏、点赞和书签。";
+      // **别承诺点赞。** 这句原来写「只同步新增收藏、点赞和书签」，
+      // 而 SCANNABLE_RELATIONS 里一个平台都没有点赞——那条取数路没做。
+      // 承诺一件不会发生的事，比不提更糟：他会以为点赞丢了。
+      $("summaryCopy").textContent = "首次全量之后，只同步新增的那些。";
       $("primarySyncLabel").textContent = "立即同步全部账号";
       $("primarySyncHint").textContent = "无需逐条打开帖子";
     }
