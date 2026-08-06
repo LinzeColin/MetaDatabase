@@ -185,7 +185,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
-  const PRODUCT_VERSION = "0.0.0.10";
+  const PRODUCT_VERSION = "0.0.0.11";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -217,7 +217,7 @@
     platformSupport: {},
     extension: { detected: false, paired: false, compatible: false, version: "", pairingRequired: false, oneTimeCodeAvailable: false, refreshedAt: null },
     platform: "all", group: true, sortKey: "savedAt", sortDir: "desc", search: "",
-    filters: { relation: "all", topic: "all", date: "all", archive: "all" },
+    filters: { relation: "all", topic: "all", collection: "all", date: "all", archive: "all" },
     visibleColumns: new Set(columns.filter(column => !column.defaultHidden).map(column => column.key)),
     selected: new Set(), collapsedGroups: new Set(), detailRow: null,
     page: 1, pageSize: 50, loading: false
@@ -346,6 +346,9 @@
     if (state.platform !== "all") params.set("platform", platformMeta[state.platform].server);
     if (state.filters.relation !== "all") params.set("relation", relationApiValues[state.filters.relation] || state.filters.relation);
     if (state.filters.topic !== "all") params.set("topic", state.filters.topic);
+    // 收藏夹用**库里存的那个 key**（B 站是媒体 id），不是显示名——
+    // 拿显示名去筛什么都筛不出来。
+    if (state.filters.collection !== "all") params.set("collection", state.filters.collection);
     if (state.filters.archive !== "all") {
       const archive = { "完整": "完整", "处理中": "处理中", "需处理": "仅元数据" }[state.filters.archive];
       if (archive) params.set("archive", archive);
@@ -379,6 +382,7 @@
       if (state.page > maxPage) { state.page = maxPage; return loadLibrary(); }
       renderPlatformTabs();
       renderTopicOptions();
+      renderCollectionOptions();
       renderRelationOptions();
       renderTable();
       renderPagination();
@@ -584,6 +588,31 @@
       `<option value="${escapeHtml(value)}">${escapeHtml(relationLabels[value] || value)}</option>`).join("")}`;
     select.value = relations.includes(current) ? current : "all";
     if (select.value !== current) state.filters.relation = "all";
+  }
+
+  /** 收藏夹筛选（v0.0.0.10）。**整栏由真实数据重建，没有收藏夹就整个藏起来。**
+   *
+   * 藏起来是有意的：绝大多数平台本来就没有收藏夹的概念，永远显示一个
+   * 只有「全部收藏夹」一项的下拉框，是在界面上摆一个点了没用的东西。
+   *
+   * value 用 key（库里存的媒体 id），显示用 label（「学习」）——
+   * 两者混淆的话，他点了一个看得懂的名字，却筛不出任何东西。
+   */
+  function renderCollectionOptions() {
+    const select = $("collectionFilter");
+    const field = $("collectionField");
+    if (!select || !field) return;
+    const collections = (state.facets.collections || []).filter(item => item.key);
+    field.hidden = collections.length === 0;
+    if (!collections.length) {
+      state.filters.collection = "all";
+      return;
+    }
+    const current = state.filters.collection;
+    select.innerHTML = `<option value="all">全部收藏夹</option>${collections.map(item =>
+      `<option value="${escapeHtml(item.key)}">${escapeHtml(item.label || item.key)}（${Number(item.count || 0)}）</option>`).join("")}`;
+    select.value = collections.some(item => item.key === current) ? current : "all";
+    if (select.value !== current) state.filters.collection = "all";
   }
 
   function renderTopicOptions() {
@@ -1424,7 +1453,7 @@
       $("filterBtn").classList.toggle("active", open);
       $("filterBtn").setAttribute("aria-expanded", String(open));
     });
-    [["relationFilter", "relation"], ["topicFilter", "topic"], ["dateFilter", "date"], ["archiveFilter", "archive"]].forEach(([id, key]) => $(id).addEventListener("change", event => { state.filters[key] = event.target.value; loadLibrary({ resetPage: true }); }));
+    [["relationFilter", "relation"], ["topicFilter", "topic"], ["collectionFilter", "collection"], ["dateFilter", "date"], ["archiveFilter", "archive"]].forEach(([id, key]) => $(id).addEventListener("change", event => { state.filters[key] = event.target.value; loadLibrary({ resetPage: true }); }));
     $("groupBtn").addEventListener("click", () => {
       if (state.platform !== "all") state.platform = "all";
       state.group = !state.group;

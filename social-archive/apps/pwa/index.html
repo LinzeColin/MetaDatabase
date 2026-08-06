@@ -122,6 +122,11 @@
 <select id="relationFilter"><option value="all">全部关系</option></select></div>
 <div class="filter-field"><label for="topicFilter">主题分类</label><!-- 这里只放「全部主题」。**其余选项由 renderTopicOptions() 照真实数据重建**，写死的会骗人：2026-08-06 对着生产量过，原先写死的五个（AI与技术/商业与投资/机械制造/学习研究/生活方式）**各返回 0 条**，而真实数据里唯一的「未分类」有 193 条、却不在那份名单里。 -->
 <select id="topicFilter"><option value="all">全部主题</option></select></div>
+<!-- 收藏夹（v0.0.0.10）。**默认藏着，有收藏夹才由 renderCollectionOptions() 显示。**
+     绝大多数平台没有收藏夹这个概念，常驻一个只有「全部收藏夹」的下拉框
+     等于在界面上摆一个点了没用的东西。-->
+<div class="filter-field" id="collectionField" hidden><label for="collectionFilter">收藏夹</label>
+<select id="collectionFilter"><option value="all">全部收藏夹</option></select></div>
 <div class="filter-field"><label for="dateFilter">时间范围</label><select id="dateFilter"><option value="all">全部时间</option><option value="7">最近 7 天</option><option value="30">最近 30 天</option><option value="90">最近 90 天</option></select></div>
 <div class="filter-field"><label for="archiveFilter">归档状态</label><!-- 这三个必须和 db.py 里那个 CASE 出的 archive_status 一字不差。
      2026-08-06 之前是「完整 / 处理中 / 需处理」——而服务端出的是

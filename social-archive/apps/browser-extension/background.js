@@ -1025,6 +1025,11 @@ async function sendBrowserScopeBatches({ syncRunId, platform, relation, scopeRes
         scope_type: "collection",
         collection_key: group.key,
         collection_name: group.name,
+        // **外部 id 必须显式给。** 不给的话服务端会拿「名字」当外部 id
+        // （upsert_platform_collection: `external = external_collection_id or name`），
+        // 而关系上存的 collection_key 是媒体 id —— 两边永远对不上，
+        // 于是名字存进去了却**查不回来**，库里还是一串数字。
+        external_collection_id: group.key,
         items: chunks[index],
         completeness: "partial",
         batch_index: index,
@@ -1039,6 +1044,7 @@ async function sendBrowserScopeBatches({ syncRunId, platform, relation, scopeRes
         scope_type: "collection",
         collection_key: group.key,
         collection_name: group.name,
+        external_collection_id: group.key,
         items: [],
         completeness: scopeResult.completeness === "complete" ? "complete" : "partial",
         batch_index: chunks.length,

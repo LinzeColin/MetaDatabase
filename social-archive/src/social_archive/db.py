@@ -1109,7 +1109,17 @@ class RuntimeStore:
                    (SELECT GROUP_CONCAT(dr.destination_id) FROM destination_receipt dr WHERE dr.content_id=c.id AND dr.status='done') AS export_destination_ids,
                    ROW_NUMBER() OVER (PARTITION BY c.id ORDER BY COALESCE(r.relation_observed_at,r.first_observed_at) DESC,r.id) AS row_rank,
                    GROUP_CONCAT(r.relation_type) OVER (PARTITION BY c.id) AS relation_types,
-                   GROUP_CONCAT(NULLIF(r.collection_key,'')) OVER (PARTITION BY c.id) AS collection_names
+                   -- **这一列以前直接拼 collection_key，却叫 collection_names。**
+                   -- 于是界面拿到的是「111」「222」这种媒体 id，而不是「学习」「音乐」。
+                   -- 名字一直存在 platform_collection 里，只是从来没人 join 过它。
+                   -- 查不到名字就退回 key —— 那样至少还能分组，而不是整列空掉。
+                   GROUP_CONCAT(NULLIF(COALESCE(
+                       (SELECT pc.name FROM platform_collection pc
+                         WHERE pc.source_account_id = r.source_account_id
+                           AND pc.relation_type = r.relation_type
+                           AND pc.external_collection_id = r.collection_key
+                         LIMIT 1),
+                       r.collection_key), '')) OVER (PARTITION BY c.id) AS collection_names
             FROM content c
             JOIN user_relation r ON r.content_id=c.id
             LEFT JOIN source_account sa ON sa.id=r.source_account_id
@@ -1153,6 +1163,24 @@ class RuntimeStore:
                     WHERE {where} GROUP BY COALESCE(cc.topic,'未分类') ORDER BY count DESC LIMIT 100""",
                 args,
             ).fetchall()
+            # 收藏夹分面（v0.0.0.10）。前三个分面早就有了，唯独收藏夹没有——
+            # 而 B 站接上之后，「按收藏夹看」是他最自然的一个动作：
+            # 库里的 collection_key 是媒体 id，没有这一栏他连哪些收藏夹存在都不知道。
+            # `key` 给筛选用（库里存的就是它），`label` 给人看。
+            collection_rows = con.execute(
+                f"""SELECT r.collection_key AS key,
+                           COALESCE((SELECT pc.name FROM platform_collection pc
+                                      WHERE pc.source_account_id = r.source_account_id
+                                        AND pc.relation_type = r.relation_type
+                                        AND pc.external_collection_id = r.collection_key
+                                      LIMIT 1), r.collection_key) AS label,
+                           COUNT(DISTINCT c.id) AS count
+                    FROM content c JOIN user_relation r ON r.content_id=c.id
+                    LEFT JOIN content_classification cc ON cc.content_id=c.id
+                    WHERE {where} AND COALESCE(r.collection_key,'')<>''
+                    GROUP BY r.collection_key ORDER BY count DESC LIMIT 100""",
+                args,
+            ).fetchall()
         for row in rows:
             try:
                 row["keywords"] = json.loads(row.pop("keywords_json") or "[]")
@@ -1172,6 +1200,7 @@ class RuntimeStore:
                 "platforms": [dict(row) for row in platform_rows],
                 "relations": [dict(row) for row in relation_rows],
                 "topics": [dict(row) for row in topic_rows],
+                "collections": [dict(row) for row in collection_rows],
             },
         }
 

@@ -92,12 +92,17 @@ def _one_sync(coordinator, account_id, folders: dict[str, list[str]],
             coordinator.ingest_batch(run, SyncBatchRequest(
                 relation_type="favorite", scope_type="collection",
                 collection_key=collection, collection_name=names[collection],
+                # **外部 id 必须是媒体 id，不能让它默认成名字。**
+                # 服务端 `external = external_collection_id or name`，
+                # 而库里 join 用的是 r.collection_key（媒体 id）——不给就永远对不上。
+                external_collection_id=collection,
                 items=[_bilibili_item(bvid, collection) for bvid in bvids],
                 completeness="partial", batch_index=0, batch_count=1, has_more=False))
             # 收藏夹级终批
             coordinator.ingest_batch(run, SyncBatchRequest(
                 relation_type="favorite", scope_type="collection",
                 collection_key=collection, collection_name=names[collection],
+                external_collection_id=collection,
                 items=[], completeness="complete", batch_index=1, batch_count=2,
                 has_more=False))
     else:
@@ -250,3 +255,52 @@ def test_manual_saves_are_never_closed_by_an_automatic_sync(settings, store, ser
     assert row["status"] == "active", (
         "**自动同步把他手动存的那条销账了** —— 七个平台只能手动保存，那是他仅有的数据"
     )
+
+
+def test_the_library_shows_folder_names_not_media_ids(settings, store, service) -> None:
+    """库里要显示「学习」「音乐」，不是「111」「222」（v0.0.0.10）。
+
+    这条链上有三个环节，缺一个他就只能看到一串数字：
+
+      1. 扩展要按收藏夹分批，并带上 collection_name **和** external_collection_id
+         （不带后者，服务端会拿名字当外部 id，而关系上存的是媒体 id，永远对不上）
+      2. 服务端要建 platform_collection 记录（条件是 `if batch.collection_name:`）
+      3. 库的查询要 join 回去把名字取出来
+
+    第 3 步以前根本不存在：那一列直接拼 `r.collection_key`，**却叫 collection_names**
+    ——一个名字撒谎的列，读代码的人会以为已经处理过了。
+    """
+    coordinator, account_id = _connect(settings, store, service)
+    _one_sync(coordinator, account_id, FOLDERS, per_collection=True)
+
+    table = store.list_library_table(limit=50, offset=0)
+    names = {name for row in table["items"] for name in (row.get("collections") or [])}
+    assert names == {"学习", "音乐"}, (
+        f"库里显示的是 {sorted(names)} —— 他要看的是收藏夹的名字，不是媒体 id"
+    )
+
+    # 分面：他得先看得到有哪些收藏夹，才谈得上按收藏夹筛
+    facets = {row["label"]: row for row in table["facets"]["collections"]}
+    assert set(facets) == {"学习", "音乐"}, f"收藏夹分面不对：{sorted(facets)}"
+    assert facets["学习"]["count"] == 2 and facets["音乐"]["count"] == 1
+    # **筛选用的 key 必须是库里真正存的那个**，不是显示名——否则点了筛不出东西
+    assert facets["学习"]["key"] == "111"
+
+    filtered = store.list_library_table(limit=50, offset=0, collection="111")
+    assert {row["title"] for row in filtered["items"]} == {"BV1aaaaaaaaa", "BV1bbbbbbbbb"}, (
+        "按收藏夹筛出来的不对——分面给的 key 和查询用的 key 对不上"
+    )
+
+
+def test_a_folder_with_no_stored_name_falls_back_to_its_key(settings, store, service) -> None:
+    """查不到名字时退回 key，而不是让整列空掉。
+
+    只有一个默认收藏夹时扩展走的是不分批那条路，批次不带 collection_name，
+    于是 platform_collection 没有记录。那种情况下显示媒体 id 不好看，
+    但**比什么都不显示强**：至少还能分组、还能筛。
+    """
+    coordinator, account_id = _connect(settings, store, service)
+    _one_sync(coordinator, account_id, FOLDERS, per_collection=False)
+    table = store.list_library_table(limit=50, offset=0)
+    names = {name for row in table["items"] for name in (row.get("collections") or [])}
+    assert names == {"111", "222"}, f"没有名字时该退回 key，实际是 {sorted(names)}"

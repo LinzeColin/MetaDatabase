@@ -102,7 +102,12 @@ FAKE: dict[str, object] = {
                                "relations": [{"relation": "history", "count": 71},
                                              {"relation": "favorite", "count": 46},
                                              {"relation": "saved", "count": 5}],
-                               "topics": [{"topic": "未分类", "count": 193}]}},
+                               "topics": [{"topic": "未分类", "count": 193}],
+                               # 收藏夹分面（v0.0.0.10）。key 是库里存的媒体 id，
+                               # label 是给人看的名字——**筛选必须用 key**，
+                               # 用 label 去筛什么都筛不出来。
+                               "collections": [{"key": "111", "label": "学习", "count": 2},
+                                               {"key": "222", "label": "音乐", "count": 1}]}},
     "/v1/status": {"connectors": [], "destinations": []},
 }
 
@@ -189,6 +194,9 @@ READ_DOM = r"""
     _errors: (window.__drillErrors || []).slice(0, 4),
     syncHeader: (document.getElementById("syncModalTitle")?.parentElement?.innerText || ""),
     topicOptions: [...(document.getElementById("topicFilter")?.options || [])].map(o => o.value),
+  collectionFieldHidden: Boolean(document.getElementById("collectionField")?.hidden),
+  collectionOptions: [...(document.getElementById("collectionFilter")?.options || [])]
+    .map(o => ({ value: o.value, text: o.textContent })),
     relationOptions: [...(document.getElementById("relationFilter")?.options || [])]
                        .map(o => o.value + "=" + o.textContent),
     cardCount: cards.length,
@@ -283,6 +291,19 @@ async def run(chrome: str) -> int:
     stale = [x for x in topics if x in ("AI与技术", "商业与投资", "机械制造", "学习研究", "生活方式")]
     if stale:
         problems.append(f"**下拉里还留着写死的假主题**：{stale}。生产实测它们各返回 0 条。")
+    # 收藏夹筛选（v0.0.0.10）。夹具里有两个收藏夹，那一栏就该露出来并照数据重建。
+    if measured.get("collectionFieldHidden"):
+        problems.append("**有收藏夹却没有显示那一栏**——他看不到自己有哪些收藏夹，也就无从按收藏夹看")
+    options = measured.get("collectionOptions") or []
+    values = [item.get("value") for item in options]
+    if values[:1] != ["all"] or sorted(values[1:]) != ["111", "222"]:
+        problems.append(f"**收藏夹筛选没有照数据重建**：{values}")
+    texts = " ".join(str(item.get("text") or "") for item in options)
+    if "学习" not in texts or "音乐" not in texts:
+        problems.append(f"**下拉里显示的不是收藏夹的名字**：{texts!r}——他看到的会是一串媒体 id")
+    # **筛选值必须是 key，不是显示名。** 拿名字去筛，点了什么都筛不出来。
+    if any(str(item.get("value")) in ("学习", "音乐") for item in options):
+        problems.append("收藏夹筛选的取值用了显示名——库里存的是媒体 id，这样筛不出东西")
     if SYNC_HEADER not in str(measured.get("syncHeader") or ""):
         problems.append(
             f"**同步中心的抬头没显示那句限定语**：{SYNC_HEADER}。"
@@ -298,6 +319,8 @@ async def run(chrome: str) -> int:
         "sync_centre_header": str(measured.get("syncHeader") or "").replace("\n", " ")[:200],
         "topic_options": measured.get("topicOptions"),
         "relation_options": measured.get("relationOptions"),
+        "collection_filter_hidden": measured.get("collectionFieldHidden"),
+        "collection_options": measured.get("collectionOptions"),
         # **失败时必须说清页面当时在干什么。** 只报一句「0 张卡」而不说
         # 页面报了什么错，下一个人还得把这一段重新查一遍。
         "page_said": {key.lstrip("_"): value for key, value in sorted(measured.items())
