@@ -86,6 +86,10 @@ def _scannable() -> dict[str, list[str]]:
 
 
 def main() -> int:
+    try:
+        from social_archive.credentials import CUSTODIAL_PLATFORMS as CUSTODIAL
+    except ImportError:
+        CUSTODIAL = set()
     from social_archive.account_sync import (
         NOT_SYNCABLE_YET,
         PLATFORM_RELATIONS,
@@ -101,6 +105,16 @@ def main() -> int:
     # 那条路 T04 实测 62 条全量跑通，是这个产品里最早能用的一条。
     # 一道把唯一跑通过的平台判成坏的门，会被人直接关掉。
     router = _braced_body(background, "syncAccountById")
+    # **能同步 ≠ 连得上账号。** 这两件事是分开的两条路，而少了后者
+    # 前者就是空话：卡片上画着「立即同步」，而「连接账号」永远连不上。
+    #
+    # 这个坑踩过两次：
+    #   · G1 给 B 站做完取数路，才发现 verifyPendingPlatform 一律回
+    #     LOGIN_PROOF_UNAVAILABLE，账号根本建不起来
+    #   · v0.0.0.21 把小红书/抖音/快手开成可同步，**同一处又踩一次**——
+    #     而且是在报告「五个平台可自动同步」之后才发现，那句话当时是空的
+    # 第二次之后不能再靠记性。
+    verify = _braced_body(background, "verifyPendingPlatform")
     # 第四条（v0.0.0.21）：按形状认页面自己发的列表。缝隙里不出现平台名——
     # 它查 SHAPE_READ_PLATFORMS，所以得去那张表里看。
     shape_block = re.search(
@@ -136,6 +150,22 @@ def main() -> int:
                                  "acquireRelationItems 里没分支、syncAccountById 里没专用路、"
                                  "SHAPE_READ_PLATFORMS 里没有它、服务端也没连接器。"
                                  "点下去必然掉进那个 throw"})
+            # 连账号的四条合法路：
+            #   ① verifyPendingPlatform 里为它分流（B 站、以及按形状读的三个）
+            #   ② syncAccountById 里的专用路（Chrome 书签走 connectChromeBookmarks）
+            #   ③ Cookie 托管（西方三源）
+            #   ④ 服务端连接器
+            connectable = (f'"{platform}"' in verify
+                           or platform in shape_platforms and "SHAPE_READ_PLATFORMS" in verify
+                           or f'"{platform}"' in router
+                           or platform in SERVER_ACCOUNT_CONNECTORS
+                           or platform in CUSTODIAL)
+            if not connectable:
+                problems.append({"platform": platform, "problem":
+                                 "**声明能同步，却没有一条连账号的路**——"
+                                 "verifyPendingPlatform 里没有它的分支，"
+                                 "卡片上会画着「立即同步」而「连接账号」永远连不上。"
+                                 "能同步 ≠ 连得上，少了后者前者就是空话"})
             relations = scannable.get(platform, PLATFORM_RELATIONS.get(platform, []))
             if not relations:
                 problems.append({"platform": platform, "problem":
