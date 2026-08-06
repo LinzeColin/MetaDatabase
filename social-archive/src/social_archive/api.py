@@ -283,6 +283,34 @@ def require_token(request: Request, authorization: str | None = Header(default=N
 MINIMUM_EXTENSION_VERSION = "0.0.0.9"
 
 
+def _free_disk() -> dict[str, Any]:
+    """数据库所在那块盘还剩多少。**量的是数据库那条路，不是根分区。**
+
+    量错地方是这类检查最常见的空转：根分区宽裕而数据盘满了，它照样报健康。
+    这里用数据库文件所在目录去问，问不出来就说问不出来——
+    **不许拿 0 或者 null 冒充「没问题」**（这个仓栽在空默认值上不止一次）。
+    """
+    import shutil
+
+    target = Path(settings.runtime_db).expanduser().resolve()
+    for candidate in (target, *target.parents):
+        if candidate.exists():
+            try:
+                usage = shutil.disk_usage(candidate)
+            except OSError as error:                      # noqa: PERF203
+                return {"measured": False, "why_zh": f"量不出来：{error}"}
+            return {
+                "measured": True,
+                "measured_at": str(candidate),
+                "free_bytes": usage.free,
+                "free_gb": round(usage.free / 1024 ** 3, 2),
+                "total_gb": round(usage.total / 1024 ** 3, 2),
+                "used_percent": round(100 * (usage.total - usage.free) / usage.total, 1)
+                if usage.total else None,
+            }
+    return {"measured": False, "why_zh": "数据库路径的每一层都不存在，量不到盘"}
+
+
 @app.get("/health")
 def health() -> dict[str, Any]:
     return {
@@ -302,6 +330,18 @@ def health() -> dict[str, Any]:
         # 放在这里（而不是只放 /v1/status）是因为**部署脚本打的就是这一条**，
         # 而那次故障恰恰要在部署当场被发现。
         "worker": store.worker_liveness(),
+        # **盘满是这个服务已知的死法，而此前没有任何东西会先说一声。**
+        #
+        # 2026-08-05 那次：/v1/accounts 报 `sqlite3.OperationalError:
+        # unable to open database file`——SQLite 建不出 -wal/-shm 时就是这句。
+        # 部署脚本因此立了「不足 5G 不许构建」那道门，但那只拦住**我**，
+        # 拦不住盘自己满：2026-08-07 实测同机另一个项目的容器可写层
+        # 2.5 小时涨了 0.58G（2.48→3.06GB），而我们自己的服务一声不吭。
+        #
+        # 放在 /health 是因为它是唯一一条不需要鉴权、任何监控都打得到的路。
+        # **只报事实，不在这里判死活**：判多少算低是监控的事，
+        # 而一个会因为磁盘把自己标成不健康的服务，会在还能用的时候被摘掉。
+        "disk": _free_disk(),
         # 资料库据此判「这个插件还能用吗」。**不是拿它和当前版本比相等**——
         # 见 MINIMUM_EXTENSION_VERSION 上面那段。
         "minimum_extension_version": MINIMUM_EXTENSION_VERSION,
