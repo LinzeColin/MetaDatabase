@@ -49,6 +49,25 @@ manifest["optional_host_permissions"] = []
 
 **读这些演练的结论时要记得这条边界。** 绿不等于"他那边也这样"。
 
+## 怎么跑
+
+**每个都零参数直接跑**：
+
+```bash
+python scripts/<演练名>.py
+```
+
+扩展类演练不给 `--ext-dir` 时会**现打一次发布包再解出来用**——
+也就是说它们默认验的是他真正下载的那一份。Chrome 也由演练自己起
+（临时 profile，跑完收掉），不需要你先开一个带调试端口的浏览器。
+
+这一条是被两次实事逼出来的：`extension_routing_drill` 不自己起 Chrome，
+只抛一句 `Connection refused`，看起来像它坏了；其余七个要先打包再解压
+才跑得动。**要先做准备才跑得动的演练，就是没人跑的演练。**
+
+`extension_platform_wiring_drill` 还要 `--platform` 和 `--sample-url`
+（它一次验一个平台），恢复类那三个要备份清单——那几个的参数是它们的题目本身。
+
 ## 清单
 
 | 演练 | 什么时候跑 | 它回答的问题 |

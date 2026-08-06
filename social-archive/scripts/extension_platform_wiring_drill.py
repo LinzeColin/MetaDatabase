@@ -52,6 +52,9 @@ from pathlib import Path
 
 import websockets
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+from drill_extension_dir import resolve_ext_dir  # noqa: E402
+
 PROBE = r"""
 (config => {
   const out = {};
@@ -287,7 +290,8 @@ async def run(chrome: str, ext_dir: str, platform: str, sample_url: str,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="在真 Chrome 里问一遍这个平台四张表都接上了吗")
-    parser.add_argument("--ext-dir", required=True)
+    parser.add_argument("--ext-dir", default=None,
+                        help="解压好的扩展目录；不给就用 dist 里的发布包")
     parser.add_argument("--platform", required=True)
     parser.add_argument("--sample-url", required=True, help="这个平台的一个真实页面地址")
     parser.add_argument("--decoy-url", default="https://mail.google.com/mail/u/0/",
@@ -300,6 +304,9 @@ def main() -> int:
     parser.add_argument("--chrome",
                         default="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
     args = parser.parse_args()
+    # 没给 --ext-dir 就用发布包：要先打包再解压才跑得动的演练，
+    # 就是没人跑的演练；默认用发布包还顺带让它验的是他真正下载的那一份。
+    args.ext_dir = resolve_ext_dir(args.ext_dir)
     if not Path(args.ext_dir).is_dir():
         print(json.dumps({"status": "FAIL", "error_code": "EXT_DIR_MISSING"}, ensure_ascii=False))
         return 2

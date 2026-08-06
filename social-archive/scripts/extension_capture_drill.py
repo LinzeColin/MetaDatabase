@@ -61,6 +61,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from social_archive.platform_payloads import parse_bilibili_favlist  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+from drill_extension_dir import resolve_ext_dir  # noqa: E402
+
 HERE = Path(__file__).resolve().parent
 PORT = 8765
 FAV_PATH = "/x/v3/fav/resource/list"
@@ -373,12 +376,16 @@ async def run(chrome_binary: str, ext_dir: str, keep_going: bool) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="在真 Chrome 里走一遍拦截→读懂整条链")
-    parser.add_argument("--ext-dir", required=True, help="解压好的扩展目录")
+    parser.add_argument("--ext-dir", default=None,
+                        help="解压好的扩展目录；不给就用 dist 里的发布包")
     parser.add_argument("--chrome",
                         default="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
     parser.add_argument("--report-only", action="store_true",
                         help="照常输出但不用退出码判失败（排查时用）")
     args = parser.parse_args()
+    # 没给 --ext-dir 就用发布包：要先打包再解压才跑得动的演练，
+    # 就是没人跑的演练；默认用发布包还顺带让它验的是他真正下载的那一份。
+    args.ext_dir = resolve_ext_dir(args.ext_dir)
     if not Path(args.ext_dir).is_dir():
         print(json.dumps({"status": "FAIL", "error_code": "EXT_DIR_MISSING",
                           "detail": args.ext_dir}, ensure_ascii=False))
