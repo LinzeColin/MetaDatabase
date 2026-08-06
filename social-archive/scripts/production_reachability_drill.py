@@ -76,8 +76,12 @@ PROBE = r"""
   await SA.setConfig({ endpoint: existing.endpoint, token: "%(token)s" });
 
   // ① 插件自己的那层封装——他那边真正走的就是这一条
+  const started = Date.now();
   try {
+    // **用插件的真实默认超时（15s），不许为了让演练变绿而放宽。**
+    // 他遇到的就是那个值；放宽等于换一个他那边不存在的配置来测。
     const data = await SA.api("/v1/library?limit=1");
+    out.api_ms = Date.now() - started;
     out.api_call = "resolved";
     out.api_keys = Object.keys(data || {}).slice(0, 8);
     const preview = JSON.stringify(data).slice(0, 120);
@@ -85,6 +89,7 @@ PROBE = r"""
     out.api_items = Array.isArray(data && data.items) ? data.items.length : null;
   } catch (error) {
     out.api_call = "threw";
+    out.api_ms = Date.now() - started;
     out.api_message = String(error && error.message).slice(0, 200);
     out.api_status = (error && error.status) || null;
   }
@@ -157,12 +162,18 @@ async def _open_connect_panel(base: str, extension_id: str) -> dict:
     url = f"chrome-extension://{extension_id}/connect-frame.html"
     urllib.request.urlopen(urllib.request.Request(
         base + "/json/new?" + url, method="PUT"), timeout=10).read()
-    await asyncio.sleep(3)
-    targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
-    pages = [item for item in targets if item.get("type") == "page"
-             and "connect-frame.html" in item.get("url", "")]
+    # **定死的等待会变成假失败。** 上一次就报了「连接面板没打开」，
+    # 而它只是没在 3 秒里出现。轮询到出现为止，超时了再说打不开。
+    pages: list = []
+    for _ in range(20):
+        await asyncio.sleep(0.5)
+        targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
+        pages = [item for item in targets if item.get("type") == "page"
+                 and "connect-frame.html" in item.get("url", "")]
+        if pages:
+            break
     if not pages:
-        return {"drill_error": "连接面板没打开"}
+        return {"drill_error": "连接面板没打开（等了 10 秒）"}
     async with websockets.connect(pages[0]["webSocketDebuggerUrl"], max_size=None) as ws:
         rpc = await shape._rpc_factory(ws)
         await rpc("Runtime.enable")
@@ -194,7 +205,51 @@ async def _open_connect_panel(base: str, extension_id: str) -> dict:
         payload = got.get("result", {})
         if payload.get("exceptionDetails"):
             return {"drill_error": str(payload["exceptionDetails"])[:200]}
-        return json.loads(payload["result"]["value"])
+        panel = json.loads(payload["result"]["value"])
+
+        # **真按一次那颗按钮。** 画出来了不等于按得动——验收条件第 1 条写的是
+        # 「绝不给一颗结构上不可能成功的按钮」，而这个项目最贵的一个缺陷正是
+        # 这种：`chrome.permissions.request` 在 service worker 里**结构上不可能**
+        # 成功，于是每颗按钮在全新安装上都是死的，而所有判据都绿。
+        #
+        # 挑 Chrome 书签：它不需要任何平台登录，也不托管任何 Cookie。
+        # **权限框弹出来就停在那儿**（没人去点），所以这一按**不会往他的档案馆
+        # 写任何东西**——没有授权就不会同步。这是有意的：验的是"按得动"，
+        # 不是"同步完了"，而后者会往他的真库里塞测试数据。
+        #
+        # 三种结局要分开，它们的下一步完全不同：
+        #   prompted  → 弹框起来了 = 结构上走得通（**这就是要的信号**）
+        #   said_no   → 当场回了"没有获得需要的授权" = 请求根本没弹出来
+        #   errored   → 报了别的错
+        clicked = await rpc("Runtime.evaluate", {
+            "expression": r"""(async () => {
+              const rows = Array.from(document.querySelectorAll("#list li"));
+              const target = rows.find(li =>
+                ((li.querySelector(".name") || {}).textContent || "").includes("书签"));
+              if (!target) return JSON.stringify({ skipped: "面板里没有 Chrome 书签这一行" });
+              const button = target.querySelector("button");
+              if (!button) return JSON.stringify({ skipped: "那一行没有按钮" });
+              button.click();
+              await new Promise(r => setTimeout(r, 5000));
+              // **提示语在 #note 里。** 第一版写的是 `#say`——那个 id 不存在，
+              // 于是回落到整页文本，而下面那个 160 字的截断正好把提示语切掉了。
+              // 判据自己输出的例句被截断，比没有例句更糟：它看起来像"没有提示"。
+              const box = document.querySelector("#note");
+              const note = box ? (box.innerText || "") : "**页面里没有 #note**";
+              return JSON.stringify({
+                button_after: button.textContent,
+                button_disabled: button.disabled,
+                note: note.replace(/\s+/g, " ").slice(0, 160),
+              });
+            })()""",
+            "userGesture": True, "awaitPromise": True,
+            "returnByValue": True, "timeout": 30000})
+        press = clicked.get("result", {})
+        if press.get("exceptionDetails"):
+            panel["press"] = {"drill_error": str(press["exceptionDetails"])[:200]}
+        else:
+            panel["press"] = json.loads(press["result"]["value"])
+        return panel
 
 
 async def run(chrome: str, token: str) -> int:
@@ -211,10 +266,17 @@ async def run(chrome: str, token: str) -> int:
 
     # **注意这里没有 --host-resolver-rules。** 这正是它和其余演练的唯一区别：
     # 域名要真的解析到他那台服务器，中间要真的经过 Cloudflare。
+    # **无头。** 2026-08-07 Owner 说：「为什么你永远都要不停开了又关关了又开
+    # 我的浏览器」——13 个演练每个都起一个**可见的** Chrome，一次部署跑 15 个，
+    # 就是十五次抢他的屏幕，而我调试时还会连跑好几遍。
+    # 这些演练一个都不需要人看着，弹出来纯粹是我没加这个开关。
+    # 要看着调试时设 SA_DRILL_HEADED=1。
+    headless = [] if os.environ.get("SA_DRILL_HEADED") else ["--headless=new"]
     process = subprocess.Popen(
         [chrome, f"--user-data-dir={workspace / 'profile'}",
          f"--remote-debugging-port={DEBUG_PORT}", "--no-first-run",
          "--no-default-browser-check", "--disable-sync",
+         *headless,
          "--password-store=basic", "--use-mock-keychain", "about:blank"],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     base = f"http://127.0.0.1:{DEBUG_PORT}"
@@ -330,6 +392,24 @@ async def run(chrome: str, token: str) -> int:
                     problems.append(
                         f"**{name} 不能自动同步，却没说为什么**（那一行只有"
                         f"「{row.get('own_text', '')[:40]}」）——列出来不等于说清。")
+
+        # **按下去走不走得通。** 画出来了不等于按得动。
+        press = panel.get("press") or {}
+        if press.get("drill_error"):
+            problems.append(f"按按钮那一步跑炸了：{press['drill_error']}")
+        elif press.get("skipped"):
+            problems.append(f"没能按到那颗按钮：{press['skipped']}")
+        else:
+            note = press.get("note", "")
+            if "还没有获得需要的授权" in note:
+                problems.append(
+                    "**按下去当场回「还没有获得需要的授权」**——权限框根本没弹出来。"
+                    "这正是 service worker 里 chrome.permissions.request 结构上不可能"
+                    "成功那个缺陷的形状：每颗按钮在全新安装上都是死的。")
+            elif press.get("button_after") != "正在连接…":
+                problems.append(
+                    f"按下去之后按钮变成了「{press.get('button_after')}」"
+                    f"（提示：{note[:80]}）——它没有停在等授权那一步。")
     # **负对照要被判，不能只被量。**
     #
     # 资料库域名在 Cloudflare Access 后面，从插件里访问必然被 302 打断

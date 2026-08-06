@@ -135,6 +135,7 @@ async def run_case(chrome: str, ext_dir: str, offered: str) -> dict:
     threading.Thread(target=server.serve_forever, daemon=True).start()
     process = subprocess.Popen(
         [chrome, f"--user-data-dir={profile}", "--remote-debugging-port=9357",
+         *([] if __import__("os").environ.get("SA_DRILL_HEADED") else ["--headless=new"]),   # Owner 不该被弹窗打断；调试设 SA_DRILL_HEADED=1
          "--no-first-run", "--no-default-browser-check", "--disable-sync",
          "--disable-background-networking", "--no-service-autorun",
          "--password-store=basic", "--use-mock-keychain", "about:blank"],

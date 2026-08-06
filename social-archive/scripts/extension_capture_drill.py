@@ -209,6 +209,7 @@ async def run(chrome_binary: str, ext_dir: str, keep_going: bool) -> int:
     profile = Path(tempfile.mkdtemp(prefix="sa-capture-profile-"))
     process = subprocess.Popen(
         [chrome_binary, f"--user-data-dir={profile}", "--remote-debugging-port=9344",
+         *([] if __import__("os").environ.get("SA_DRILL_HEADED") else ["--headless=new"]),   # Owner 不该被弹窗打断；调试设 SA_DRILL_HEADED=1
          "--no-first-run", "--no-default-browser-check", "--disable-sync",
          "--disable-background-networking", "--no-service-autorun",
          "--password-store=basic", "--use-mock-keychain", page_url],

@@ -420,6 +420,7 @@ async def run(chrome: str, platform: str) -> int:
     process = subprocess.Popen(
         [chrome, f"--user-data-dir={workspace / 'profile'}",
          f"--remote-debugging-port={DEBUG_PORT}", "--no-first-run",
+         *([] if __import__("os").environ.get("SA_DRILL_HEADED") else ["--headless=new"]),   # Owner 不该被弹窗打断；调试设 SA_DRILL_HEADED=1
          "--no-default-browser-check", "--disable-sync", "--disable-background-networking",
          "--password-store=basic", "--use-mock-keychain",
          f"--host-resolver-rules=MAP *{SPEC['domain']} 127.0.0.1:{FAKE_PORT}",

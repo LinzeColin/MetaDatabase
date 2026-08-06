@@ -448,6 +448,7 @@ async def run(chrome: str, ext_src: Path = EXT_SRC) -> int:
     api = _serve(_Api, FAKE_API_PORT)
     process = subprocess.Popen(
         [chrome, f"--user-data-dir={profile}", f"--remote-debugging-port={DEBUG_PORT}",
+         *([] if __import__("os").environ.get("SA_DRILL_HEADED") else ["--headless=new"]),   # Owner 不该被弹窗打断；调试设 SA_DRILL_HEADED=1
          "--no-first-run", "--no-default-browser-check", "--disable-sync",
          "--disable-background-networking", "--password-store=basic", "--use-mock-keychain",
          # 把 B 站指到本机的假站上。扩展代码一行没改，它以为对面是真的。

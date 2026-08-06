@@ -154,6 +154,7 @@ async def _case(chrome: str, ext_dir: str | None, version: str,
     profile = Path(tempfile.mkdtemp(prefix="sa-install-page-"))
     process = subprocess.Popen(
         [chrome, f"--user-data-dir={profile}", f"--remote-debugging-port={DEBUG_PORT}",
+         *([] if __import__("os").environ.get("SA_DRILL_HEADED") else ["--headless=new"]),   # Owner 不该被弹窗打断；调试设 SA_DRILL_HEADED=1
          "--no-first-run", "--no-default-browser-check", "--disable-sync",
          "--disable-background-networking", "--password-store=basic",
          "--use-mock-keychain", "about:blank"],
