@@ -1097,22 +1097,38 @@
       if (error) error.textContent = "请选择非空的 ZIP 导出包。";
       return;
     }
-    if (file.size > MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES) {
-      if (error) error.textContent = "导入包超过 200 MiB，请拆分后重试。";
+    // 官方导出包（尤其 Instagram / Google Takeout）动辄几百兆，上限单独放宽。
+    const source = $("importSource")?.value || "social-archiver";
+    const isDataExport = source === "data-export";
+    const cap = isDataExport ? 500 * 1024 * 1024 : MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES;
+    if (file.size > cap) {
+      if (error) error.textContent = `导入包超过 ${Math.round(cap / 1024 / 1024)} MiB，请拆分后重试。`;
       return;
     }
     const original = submit?.textContent || "开始导入";
     if (submit) { submit.disabled = true; submit.textContent = "正在导入…"; }
     try {
-      const result = await api("/v1/import/social-archiver", {
+      const platform = ($("importPlatform")?.value || "").trim();
+      const query = platform ? `?platform_hint=${encodeURIComponent(platform)}` : "";
+      const result = await api(
+        isDataExport ? `/v1/import/data-export${query}` : "/v1/import/social-archiver", {
         method: "POST",
         headers: {
           "Content-Type": "application/zip",
           "X-Archive-Filename": safeArchiveFilename(file)
         },
         body: file,
-        timeoutMs: 120000
+        timeoutMs: 300000
       });
+      // **逐个文件说清楚。** 官方包里常有几十个文件，只报总数的话
+      // 「有 30 个没看懂」就消失了——那正是这个导入器最该说的事。
+      if (Array.isArray(result.files) && result.files.length) {
+        const blind = result.files.filter(item => !item.found);
+        if (blind.length) {
+          showToast(`读了 ${result.files.length} 个文件，其中 ${blind.length} 个没看懂（详见任务中心）`,
+                    "needs");
+        }
+      }
       const imported = Number(result.imported ?? result.accepted ?? 0);
       closeModal("importModalBackdrop");
       $("importForm")?.reset();

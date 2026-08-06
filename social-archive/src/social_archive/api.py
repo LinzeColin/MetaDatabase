@@ -29,6 +29,7 @@ from .account_sync import (
     PLATFORM_RELATIONS,
 )
 from .config import Settings
+from .data_export_import import read_export_archive
 from .credentials import CUSTODIAL_PLATFORMS
 from .platform_payloads import PayloadUnreadable, parse_bilibili_favlist
 from .db import RuntimeStore
@@ -902,6 +903,51 @@ def import_markdown(request: MarkdownImportRequest) -> dict[str, Any]:
         return service.import_markdown(request)
     except (ValueError, OSError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/v1/import/data-export", dependencies=[Depends(require_token)])
+async def import_data_export(
+    request: Request,
+    platform_hint: str = Query(default="import", min_length=1, max_length=64),
+    relation_type: str = Query(default="saved"),
+    limit: int = Query(default=5000, ge=1, le=20000),
+) -> dict[str, Any]:
+    """读平台官方的「下载我的数据」压缩包。
+
+    Owner 的平台表里 Instagram 与 X 的主路径就含「官方导出导入」——
+    那是平台自己给的完整数据，不会因为接口改版而坏。
+
+    **回执里每个文件都有一行**：读懂了几条、没读懂为什么。
+    只报总数的话，「另外 30 个文件没看懂」就消失了。
+    """
+    content_length = request.headers.get("content-length")
+    if content_length and int(content_length) > 500 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="导出包超过 500 MiB")
+    payload = await request.body()
+    read = read_export_archive(payload, limit=limit)
+    if not read.get("ok"):
+        raise HTTPException(status_code=422, detail=read.get("error") or "读不出这个包")
+    captured, errors = [], []
+    for record in read["items"]:
+        try:
+            captured.append(service.capture(CaptureRequest(
+                platform=platform_hint,
+                url=record["url"],
+                title=record.get("title") or None,
+                relation_type=relation_type,
+                relation_observed_at=None,
+            )).content_id)
+        except (ValueError, OSError) as exc:
+            errors.append({"url": record.get("url"), "code": "ITEM_INGEST_FAILED",
+                           "message": f"{exc.__class__.__name__}: {exc}"[:300]})
+    return {
+        "imported": len(captured),
+        "read": read["counted"],
+        "file_count": read["file_count"],
+        # **每个文件都留一行**，好让「有 30 个文件没看懂」说得出来
+        "files": read["files"],
+        "errors": errors,
+    }
 
 
 @app.post("/v1/import/social-archiver", dependencies=[Depends(require_token)])

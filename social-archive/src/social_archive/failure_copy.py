@@ -340,6 +340,11 @@ PRODUCT_FAULT_CODES: frozenset[str] = frozenset({
     "BILIBILI_FOLDER_NOT_VISIBLE",
     "BILIBILI_NO_RESULT",       # 注入的读取器什么都没返回
     "BILIBILI_READ_FAILED",     # 兜底：读取器报了失败但没给码
+    # 在页面发出的响应里没认出收藏列表（v0.0.0.21 / 形状识别）。
+    # **这一条更可能是"他不在收藏页上"而不是产品坏了**，但重试同一页没用——
+    # 要他换到收藏页并往下滚。文案里那句话已经这么说了，
+    # 所以归到「我们这边的事」而不是给一颗重试按钮。
+    "LIST_SHAPE_NOT_RECOGNISED",
 })
 _PRODUCT_FAULT_SENTENCE = "这次没有取到内容，问题在我们这边，已经记下来了。不用反复重试。"
 
