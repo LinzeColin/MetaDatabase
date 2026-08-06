@@ -276,6 +276,13 @@ async def run(chrome: str) -> int:
         "manifest": measured.get("manifest"),
         "modules_present": measured.get("modules"),
         "host_permission_granted_on_a_fresh_install": granted,
+        # **连接那一步说了什么，必须留在证据里。**
+        #
+        # 主机权限是在这一步申请的。而 MV3 里 `chrome.permissions.request`
+        # 要求「在一次用户手势期间调用」——service worker 处理消息时**手势还在不在**，
+        # 是个必须量、不能推的问题。量不到就会变成：他点了「连接账号」，
+        # 什么框都没弹，然后每次同步都失败。
+        "connect_said": measured.get("connect"),
         "install_said": measured.get("install"),
         "acquire_said": acquire,
         "manifest_files_missing_from_package": missing,
