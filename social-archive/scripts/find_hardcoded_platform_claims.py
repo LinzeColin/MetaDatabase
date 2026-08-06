@@ -112,6 +112,69 @@ def _literals(text: str, suffix: str) -> list[tuple[int, str]]:
 EXCLUSIVE_WORDS = ("只有", "仅有", "仅支持", "只支持", "其余平台", "其他平台都", "都还不能", "均不支持")
 
 
+def _privacy_promise_matches_the_code() -> list[dict]:
+    """安装页那段隐私声明里点名的平台，必须和代码里的两张表一致。
+
+    那段话是这个产品里最高风险的一句承诺（「Cookie 一步都不会离开你的浏览器」），
+    而它是**手写的平台名单**——2026-08-07 就漂了一次：Instagram 改走扩展读取
+    之后，声明里还写着「点连接那一刻会读取 Instagram 的登录状态」，
+    而实际上不会；同时 Reddit 也改走扩展读取了，声明里却一个字没提。
+
+    **一句写错方向的隐私声明，比没有更糟**：它让人以为我们读了不读的东西，
+    也让人不知道我们真读了什么。所以这里从两张表现算，不看散文。
+    """
+    import re as _re
+
+    page = ROOT / "apps/pwa/extension-install.html"
+    background = ROOT / "apps/browser-extension/background.js"
+    cookie_export = ROOT / "apps/browser-extension/cookie-export.js"
+    if not all(path.is_file() for path in (page, background, cookie_export)):
+        return [{"where": "隐私声明", "problem": "对照用的文件缺了，射程失效"}]
+    shape_block = _re.search(r"SHAPE_READ_PLATFORMS = Object\.freeze\(\{(.*?)\}\);",
+                             background.read_text(encoding="utf-8"), _re.S)
+    allowed_block = _re.search(r"ALLOWED_PLATFORMS\s*=\s*Object\.freeze\(\{(.*?)\n  \}\)",
+                               cookie_export.read_text(encoding="utf-8"), _re.S)
+    if not shape_block or not allowed_block:
+        return [{"where": "隐私声明", "problem": "读不到那两张表，射程失效"}]
+    shape = set(_re.findall(r"^\s*([a-z0-9-]+):", shape_block.group(1), _re.M))
+    allowed = set(_re.findall(r"^\s*([a-z0-9-]+):", allowed_block.group(1), _re.M))
+    reads_on_connect = allowed - shape          # 点「连接」那一刻真的会读 cookie 的
+    labels = {"xiaohongshu": "小红书", "douyin": "抖音", "kuaishou": "快手",
+              "bilibili": "B站", "reddit": "Reddit", "instagram": "Instagram",
+              "x": "X", "youtube": "YouTube"}
+    text = page.read_text(encoding="utf-8")
+    sentence = ""
+    for part in text.split("<p class=\"privacy\">")[1:]:
+        sentence = part.split("</p>")[0]
+        break
+    out: list[dict] = []
+    if not sentence:
+        return [{"where": "隐私声明", "problem": "找不到那段话了，射程失效"}]
+    for platform in sorted(reads_on_connect):
+        if labels.get(platform, platform) not in sentence:
+            out.append({"where": "隐私声明", "platform": platform,
+                        "problem": f"点「连接」会读 {labels.get(platform, platform)} 的登录状态，"
+                                   "而隐私声明里没点它的名——他不知道我们读了什么"})
+    # **过度声称那个方向也要抓。**
+    #
+    # 第一版只匹配字面「只有 X」，而实际写的是「只有 X、Instagram 和 YouTube」——
+    # 于是把 Instagram 错加进"点连接就读"那一半，判据照样绿。
+    # 改成按「只有」切开：它之后那半句讲的就是"谁会被读"。
+    reads_clause = sentence.split("只有", 1)[1] if "只有" in sentence else ""
+    if not reads_clause:
+        out.append({"where": "隐私声明",
+                    "problem": "找不到「只有…才会读」那半句——射程失效，先修判据"})
+    for platform in sorted(shape):
+        # 走扩展读取的平台，连接时**不**读 Cookie。把它写进那半句
+        # 就是在说我们读了不读的东西——**一句写错方向的隐私声明比没有更糟**。
+        if reads_clause and labels.get(platform, platform) in reads_clause:
+            out.append({"where": "隐私声明", "platform": platform,
+                        "problem": f"{labels.get(platform, platform)} 走的是扩展读取，"
+                                   "点连接不会读它的 Cookie，而隐私声明把它写进了"
+                                   "「会读登录状态」那一半——说我们读了不读的东西"})
+    return out
+
+
 def main() -> int:
     hits: list[dict] = []
     scanned = 0
@@ -138,6 +201,14 @@ def main() -> int:
             #
             # 排他句和举例长得完全不一样：举例是「比如 X」，排他是「只有 X 能」
             # 或「都不能」。按这个形状抓，不必降低那条下限。
+            # 隐私声明那一段**由更严的一条专管**（_privacy_promise_matches_the_code）：
+            # 它不是"这句话里有没有平台名"，而是**逐个平台去对代码里的两张表**——
+            # 谁在连接时会被读 Cookie、谁不会。那条比这条严，所以这里让路。
+            #
+            # 让路是有代价的：豁免正是判据烂掉的方式。所以那条专管的判据在
+            # 找不到那段话时会直接报「射程失效」，而不是安静地通过。
+            if 'class="privacy"' in chunk or "隐私边界" in chunk:
+                continue
             if any(word in chunk for word in EXCLUSIVE_WORDS) and named:
                 hits.append({
                     "where": f"{name}:{line_no}",
@@ -162,6 +233,8 @@ def main() -> int:
                 "capability_words": said,
                 "text": chunk.strip()[:140],
             })
+
+    hits.extend(_privacy_promise_matches_the_code())
 
     # **一个文件都没扫到 = 这道门失效了**，不是"干净"。
     if scanned < 5:
