@@ -283,6 +283,8 @@ async def _rpc_factory(ws):
 JOURNEY = r"""
 (async () => {
   const out = {};
+  const snapshot = async () => (await chrome.tabs.query({})).map(
+    t => ({ id: t.id, url: t.url, active: t.active }));
   await SA.setConfig({ endpoint: "http://127.0.0.1:%(api)d", token: "drill-token" });
   // ① 点「连接账号」那一下
   out.connect = await connectPlatform("bilibili");
@@ -290,13 +292,26 @@ JOURNEY = r"""
   await new Promise(r => setTimeout(r, 2500));
   // ② 点「我已登录，继续」那一下 —— 这一步以前一律回 LOGIN_PROOF_UNAVAILABLE
   out.verify = await verifyPendingPlatform("bilibili");
-  // ③ 首次同步（连接成功时已入队，这里直接跑一次，免得等闹钟）
+
+  // **同步开始之前，把用户"正在看的那一页"摆出来。**
+  // 定时同步每 6 小时跑一次，跑的时候他多半正在看别的东西。
+  const mine = await chrome.tabs.create({ url: "about:blank", active: true });
+  await new Promise(r => setTimeout(r, 800));
+  out.tabs_before = await snapshot();
+  out.my_tab_id = mine.id;
+
+  // ③ 同步（连接成功时已入队，这里直接跑一次，免得等闹钟）
   try {
-    out.sync = await syncAccountById("acct-1", { triggerType: "manual" });
+    out.sync = await syncAccountById("acct-1", { triggerType: "scheduled" });
   } catch (error) {
     out.sync = { error: String(error && error.message || error),
                  failureCode: error && error.failureCode || null };
   }
+  await new Promise(r => setTimeout(r, 500));
+  out.tabs_after = await snapshot();
+  const after = out.tabs_after.find(t => t.active);
+  out.still_looking_at_my_tab = Boolean(after && after.id === mine.id);
+  out.tabs_created_by_sync = out.tabs_after.length - out.tabs_before.length;
   return JSON.stringify(out);
 })()
 """
@@ -416,6 +431,24 @@ async def run(chrome: str) -> int:
     scoped = [b.get("relation_type") for b in received["batches"]]
     if set(scoped) - {"favorite"}:
         problems.append(f"扫描范围超出了本版本能读的关系：{sorted(set(scoped))}")
+
+    # **定时同步不许抢他正在看的那一页。**
+    #
+    # 这条是 2026-08-06 读代码看出来、再用这个演练量实的：
+    # runBrowserAccountSync 建标签页用的是 `active: true`，
+    # navigateMirrorTab 又用 `chrome.tabs.update(tabId, { url, active: true })`
+    # 把它导航到收藏夹页并切到前台。自动同步每 6 小时一次——
+    # **等于每 6 小时抢一次他的屏幕**，而他什么都没点。
+    #
+    # 取数改成调接口之后，那次导航连必要性都没有了：我们只需要一个
+    # bilibili 源的标签页，不需要它停在收藏夹页上，更不需要它在前台。
+    if measured.get("still_looking_at_my_tab") is False:
+        active = next((t for t in (measured.get("tabs_after") or []) if t.get("active")), {})
+        problems.append(
+            f"**同步把他正在看的那一页抢走了**（跳到 {str(active.get('url'))[:60]!r}）"
+            "——定时同步每 6 小时跑一次，他什么都没点")
+    if (measured.get("tabs_created_by_sync") or 0) > 0:
+        problems.append(f"同步凭空开了 {measured['tabs_created_by_sync']} 个标签页")
 
     report = {
         "status": "PASS" if not problems else "FAIL",

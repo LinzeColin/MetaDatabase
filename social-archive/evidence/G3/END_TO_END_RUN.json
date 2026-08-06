@@ -6,7 +6,7 @@
       "ok": true,
       "state": "authorizing",
       "platform": "bilibili",
-      "tabId": 756259028,
+      "tabId": 2011695478,
       "message": "已在当前 Chrome profile 中打开B站，插件会检测现有登录态。"
     },
     "verify": {
@@ -19,6 +19,26 @@
       "platform": "bilibili",
       "displayName": "B站 · 测试账号"
     },
+    "tabs_before": [
+      {
+        "id": 2011695476,
+        "active": false
+      },
+      {
+        "id": 2011695477,
+        "active": false
+      },
+      {
+        "id": 2011695478,
+        "url": "https://www.bilibili.com/",
+        "active": false
+      },
+      {
+        "id": 2011695479,
+        "active": true
+      }
+    ],
+    "my_tab_id": 2011695479,
     "sync": {
       "ok": true,
       "syncRunId": "run-1",
@@ -28,7 +48,28 @@
           "accepted": 0
         }
       ]
-    }
+    },
+    "tabs_after": [
+      {
+        "id": 2011695476,
+        "active": false
+      },
+      {
+        "id": 2011695477,
+        "active": false
+      },
+      {
+        "id": 2011695478,
+        "url": "https://www.bilibili.com/",
+        "active": false
+      },
+      {
+        "id": 2011695479,
+        "active": true
+      }
+    ],
+    "still_looking_at_my_tab": true,
+    "tabs_created_by_sync": 0
   },
   "account_created": {
     "id": "acct-1",
@@ -70,7 +111,6 @@
   ],
   "bilibili_endpoints_called": [
     "/",
-    "/0/favlist",
     "/favicon.ico",
     "/x/v3/fav/folder/created/list-all",
     "/x/v3/fav/resource/list",

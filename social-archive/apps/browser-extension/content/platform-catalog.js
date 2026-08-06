@@ -154,6 +154,25 @@
     bilibili: Object.freeze(["favorite"]),
   });
 
+  /** 取数是**调平台自己的接口**，而不是读页面（v0.0.0.8）。
+   *
+   * 这个区别决定了同步要不要动用户的标签页：
+   *
+   *   读页面  →  必须把标签页导航到那个关系页、等它加载完
+   *   调接口  →  只需要一个**该平台源**的标签页（为了带上登录态、过 CORS），
+   *              停在哪一页都行，也不必在前台
+   *
+   * 2026-08-06 实测（端到端演练）：同步会新开一个标签页、把它导航到
+   * `space.bilibili.com/0/favlist` 并**切到前台**。自动同步每 6 小时一次——
+   * 等于每 6 小时抢一次他的屏幕，而他什么都没点。
+   * 取数改成调接口之后，那次导航连必要性都没有了。
+   */
+  const API_ACQUISITION = Object.freeze({ bilibili: true });
+
+  function acquiresViaPlatformApi(platform) {
+    return API_ACQUISITION[String(platform || "")] === true;
+  }
+
   /** 这一版对该平台真的会去枚举哪些关系。
    *
    * 没登记的平台按「声明什么就扫什么」——保持原行为，不悄悄改变别的平台。
@@ -197,6 +216,7 @@
     PLATFORMS, platformCatalogEntry, platformLabel, relationUrl,
     INTERCEPT_PREFIXES, interceptPrefixes,
     SCANNABLE_RELATIONS, scannableRelations,
+    API_ACQUISITION, acquiresViaPlatformApi,
   });
   globalThis.SAPlatformCatalog = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;

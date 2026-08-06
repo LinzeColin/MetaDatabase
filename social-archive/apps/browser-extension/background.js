@@ -1122,7 +1122,14 @@ async function scanOneBrowserRelation({ tabId, platform, relation, syncRunId, pr
       failure_code: "RELATION_URL_UNAVAILABLE", has_more: false
     });
   }
-  await navigateMirrorTab(tabId, url);
+  // **取数靠调接口的平台，不导航。**
+  //
+  // 读页面的路必须把标签页拖到那个关系页上；调接口的路只需要一个该平台源的
+  // 标签页（带登录态 + 过 CORS），停在哪儿都行。对 B 站再导航一次到
+  // space.bilibili.com/0/favlist 是纯粹的副作用——而它每 6 小时发生一次。
+  if (!globalThis.SAPlatformCatalog?.acquiresViaPlatformApi?.(platform)) {
+    await navigateMirrorTab(tabId, url);
+  }
   // v0.0.0.7 / T03：收藏夹枚举原先由 DOM 抓取器扫页面里的链接文字猜出来
   // （靠一张"看着像收藏夹"的中文文案正则表）。
   // 抓取器已删。T08 从平台自己的 API 响应里拿收藏夹清单——那是权威来源，
@@ -1245,7 +1252,22 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
     syncRunId = started.sync_run_id;
   }
   let tab = tabId ? await chrome.tabs.get(tabId).catch(() => null) : null;
-  if (!tab) tab = await chrome.tabs.create({ url: spec.home, active: true });
+  // 他已经开着的那个平台页优先用——**别为了同步再开一个**。
+  if (!tab) tab = await findExistingPlatformTab(account.platform);
+  let tabOpenedByUs = false;
+  if (!tab) {
+    // **后台开，不抢焦点，跑完关掉。**
+    //
+    // 原来是 `active: true`。自动同步每 6 小时一次，跑的时候他多半正在看别的东西——
+    // 等于每 6 小时抢一次他的屏幕，而他什么都没点。实测（端到端演练）：
+    // 同步新开一个标签页 → 导航到 space.bilibili.com/0/favlist → 切到前台。
+    //
+    // 连接账号那条路不一样，那里 `active: true` 是对的：他刚点了「连接账号」，
+    // 而且需要在那个页面上登录。**区别是他有没有主动要这个页面。**
+    tab = await chrome.tabs.create({ url: spec.home, active: false });
+    tabOpenedByUs = true;
+    await waitForTabComplete(tab.id).catch(() => {});
+  }
   const results = [];
   for (let index = 0; index < scannable.length; index += 1) {
     const relation = scannable[index];
@@ -1277,6 +1299,10 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
     // badge 停在 1/4 看起来像卡住了，而它其实已经做完了。
     await chrome.action.setBadgeText({ text: `${index + 1}/${scannable.length}` });
   }
+  // **自己开的自己收。** 不关的话，每 6 小时攒一个后台标签页，
+  // 一天四个、一周二十八个——他会在某天发现浏览器里堆满了 B 站页面，
+  // 而且完全不知道是谁开的。只关我们开的那个；复用他自己的页面时绝不动它。
+  if (tabOpenedByUs) await chrome.tabs.remove(tab.id).catch(() => {});
   const latest = await SA.api(`/v1/sync-runs/${encodeURIComponent(syncRunId)}`, { timeoutMs: 10000 });
   await chrome.action.setBadgeBackgroundColor({ color: latest.status === "completed" ? "#1f7a4c" : "#9a6700" });
   await chrome.action.setBadgeText({ text: latest.status === "completed" ? "✓" : "!" });
