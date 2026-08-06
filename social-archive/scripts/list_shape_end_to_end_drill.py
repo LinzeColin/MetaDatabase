@@ -86,6 +86,11 @@ def _instagram(prefix: str, n: int, base: int) -> dict:
 # （X 也一样），理由都是「0% 的元素带得出 id」——因为 id 不在元素身上，在壳里。
 # 而这个缺陷同时伤着已经上线的小红书（标题作者取不到，全存成 null）。
 # 所以这张表的用处是**逼着这条路在不止一种形状上成立**。
+# 追踪剂：只有这条链会碰到的一个 Cookie。名字和值都取得足够特别，
+# 出现在服务端收到的任何地方都不可能是巧合。
+COOKIE_NAME = "sa_drill_domestic_session"
+COOKIE_VALUE = "DOMESTIC-COOKIE-MUST-NOT-LEAVE-7f3a91"
+
 ITEM_COUNT = 7
 PLATFORMS: dict[str, dict] = {
     "xiaohongshu": {
@@ -146,6 +151,15 @@ def _page(paths: list[str]) -> str:
     listed = ",".join(f'"{item}"' for item in paths)
     return ("<!doctype html><meta charset=utf-8><title>页</title><h1>页</h1>\n"
             "<script>\n"
+            # **种一个特征 Cookie，当追踪剂。**
+            #
+            # 安装页上写着「小红书、抖音、B站、快手的 Cookie 一步都不会离开
+            # 你的浏览器」。守着这句的判据全是**源码层面**的（表里有没有、
+            # 会不会打日志）——而他读到的是一句**运行时**的承诺。
+            # 这里在页面上种一个只有这条链会碰到的值，跑完整条链之后
+            # 翻检服务端收到的每一个字节：出现一次就算这句话是假的。
+            f'document.cookie = "{COOKIE_NAME}={COOKIE_VALUE}; path=/";\n'
+
             '["/api/log"].forEach(p => fetch(p).then(r => r.json()).catch(() => {}));\n'
             f"setTimeout(() => {{ [{listed}]\n"
             "  .forEach(p => fetch(p).then(r => r.json()).catch(() => {})); }, 400);\n"
@@ -282,6 +296,15 @@ def _stage(folder: Path) -> Path:
     optional = manifest.get("optional_host_permissions", [])
     manifest["host_permissions"] = sorted(set(manifest.get("host_permissions", [])) | set(optional))
     manifest["optional_host_permissions"] = []
+    # **cookies 权限也授上。**
+    #
+    # 不授的话 `chrome.cookies` 根本不存在，那条「这条链碰没碰过 Cookie」的
+    # 观测就是**空过**——监视器无事可包，计数永远是 0。我第一版就是这么空过的。
+    # 授上之后它对应的是真实情况：他为 Instagram 授过 cookies，
+    # 而国内平台那条链**在有能力读的前提下仍然一次都不读**，那才叫承诺成立。
+    manifest["permissions"] = sorted(set(manifest.get("permissions", []))
+                                     | set(manifest.get("optional_permissions", [])))
+    manifest["optional_permissions"] = []
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     return staged
 
@@ -304,6 +327,27 @@ async def _rpc_factory(ws):
 JOURNEY = r"""
 (async () => {
   await SA.setConfig({ endpoint: "http://127.0.0.1:%(api)d", token: "drill" });
+  // **监视 chrome.cookies：这条链碰它一次都不许。**
+  //
+  // 安装页上写着「小红书、抖音、B站、快手的 Cookie 一步都不会离开你的浏览器」。
+  // 守着这句的判据全是源码层面的（表里有没有、会不会打日志），
+  // 而他读到的是一句**运行时**的承诺。这里把整个 chrome.cookies 换成计数器，
+  // 跑完整条链再看计数——**碰过就是碰过**，源码怎么写不重要。
+  //
+  // （光在页面上种一个 Cookie 当追踪剂是不够的：取数那一段跑在
+  //  service worker 里，那里 `document` 根本不存在，种什么都带不出去，
+  //  于是那种"反证"永远不会红——我第一版就是这么空过一次。）
+  const cookieCalls = [];
+  if (chrome.cookies) {
+    for (const name of ["get", "getAll", "getAllCookieStores", "set", "remove"]) {
+      const real = chrome.cookies[name];
+      if (typeof real !== "function") continue;
+      chrome.cookies[name] = (...args) => {
+        cookieCalls.push({ fn: name, arg: JSON.stringify(args[0] || {}).slice(0, 120) });
+        return real.apply(chrome.cookies, args);
+      };
+    }
+  }
   const out0 = {};
   // **他真正会走的那条路**：点「连接账号」→ 点「我已登录，继续」
   out0.connect = await connectPlatform("%(platform)s");
@@ -334,6 +378,8 @@ JOURNEY = r"""
                   failureCode: error && error.failureCode || null,
                   detail: error && error.detail || null };
   }
+  out.cookieCalls = cookieCalls;
+  out.cookiesApiPresent = Boolean(chrome.cookies);
   out.captured = netCaptureBuffer.length;
   out.capturedUrls = netCaptureBuffer.map(c => c.url);
   Object.assign(out, out0);
@@ -488,9 +534,41 @@ async def run(chrome: str, platform: str) -> int:
     if len(landed) != ITEM_COUNT:
         problems.append(f"档案馆只收到 {len(landed)} 条，页面上有 {ITEM_COUNT} 条")
 
+    # **翻检服务端收到的每一个字节。**
+    #
+    # 不只是批次：账号、回执、游标、诊断——凡是这条链送出去的，全在 received 里。
+    leaked = json.dumps(received, ensure_ascii=False)
+    # **碰没碰过 chrome.cookies**——这是那句承诺真正的机制。
+    cookie_calls = measured.get("cookieCalls")
+    if cookie_calls is None:
+        problems.append("**没量到这条链有没有碰 chrome.cookies**——这不是通过，是没测到")
+    elif not measured.get("cookiesApiPresent"):
+        # **不是"没碰"，是"根本没能力碰"。** 两者都算承诺成立，但**说法不一样**，
+        # 而空过的那种会让这条观测永远绿——所以这里明说它没测到什么。
+        problems.append("**这一趟里 chrome.cookies 根本不存在**（cookies 权限没授上），"
+                        "于是「碰没碰过」这条什么也没验到——夹具要把它授上才算测过")
+    elif cookie_calls:
+        problems.append(
+            f"**这条链读了浏览器的 Cookie**：{cookie_calls[:3]}——"
+            "安装页上写着国内平台的 Cookie 一步都不会离开浏览器"
+            "（INV-DOMESTIC-COOKIE-STAYS）")
+    for needle, what in ((COOKIE_VALUE, "Cookie 的值"), (COOKIE_NAME, "Cookie 的名字")):
+        if needle in leaked:
+            problems.append(
+                f"**{what}离开了浏览器**——它出现在服务端收到的数据里。"
+                "安装页上写着「小红书、抖音、B站、快手的 Cookie 一步都不会离开你的浏览器」，"
+                "那句话就是假的（INV-DOMESTIC-COOKIE-STAYS）")
+
     report = {
         "status": "PASS" if not problems else "FAIL",
         "platform": PLATFORM,
+        # 这条链送到服务端的总字节数，以及追踪剂在不在里面
+        "bytes_sent_to_archive": len(leaked),
+        # 两条独立的证据：**碰没碰过 cookies API**（机制），
+        # 以及**追踪剂在不在送出去的字节里**（结果）。
+        "chrome_cookies_calls": measured.get("cookieCalls"),
+        "cookies_api_was_available": measured.get("cookiesApiPresent"),
+        "domestic_cookie_stayed_in_browser": COOKIE_VALUE not in leaked and COOKIE_NAME not in leaked,
         "relation": RELATION,
         "response_shape": SPEC["derived_by"],
         "url_derived_by": ways if items else [],
