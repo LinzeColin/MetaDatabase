@@ -209,6 +209,31 @@ async function installNetObserverForTab({ platform, tabId, diagnostic, shapeMode
     let prefixes = globalThis.SAPlatformCatalog?.interceptPrefixes?.(platform);
     // 两条路都要用到这个标签页的地址：诊断用它推前缀，注册内容脚本用它推 matches。
     const observedTab = await chrome.tabs.get(tabId).catch(() => null);
+    // **没权限的时候，先说没权限。**
+    //
+    // 这些平台的主机权限全在 `optional_host_permissions` 里（连接账号那一步
+    // 才申请）。而**没有权限时 `chrome.tabs.get()` 读不到 url**——于是下面
+    // 那两处会算出空域名，回一句「读不出当前页面的域名，无法开始读取」。
+    //
+    // 那句话把人指向错的方向：他会去看是不是页面没打开、是不是网址不对，
+    // 而真正的原因是**权限没给或被撤销了**，下一步是重新点一次「连接账号」。
+    // 这个仓自己写过：**指错原因的 BLOCKED 不算 BLOCKED**，
+    // 它把人送去修一个不存在的东西。
+    //
+    // 2026-08-06 由「加载他真正下载的那个 zip」那个演练测出来的：
+    // 全新安装、未连接的状态下走一次读取，拿到的就是 DIAGNOSTIC_NO_HOST。
+    // 此前十个演练全都在加载前把可选权限提升成必给权限，**这个状态从没被走过**。
+    if (!observedTab?.url) {
+      const state = await SA.permissionState(platform).catch(() => ({ authorized: true }));
+      if (state.authorized === false) {
+        return {
+          ok: false, state: "needs_user_action", platform,
+          failureCode: "PLATFORM_PERMISSION_MISSING",
+          error: `还没有获得读取${globalThis.SAPlatformCatalog?.platformLabel?.(platform) || platform}页面的授权。`
+                 + "请回到插件的账号页，点一次「连接账号」并在浏览器弹出的框里选「允许」。",
+        };
+      }
+    }
     if (diagnostic) {
       let host = "";
       try { host = new URL(observedTab?.url || "").hostname; } catch (_) { host = ""; }

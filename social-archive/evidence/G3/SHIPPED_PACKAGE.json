@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "package": "dist/social-archive-extension.zip",
+  "package_sha256_prefix": "3ac6594f06193c57",
+  "manifest": {
+    "version": "0.0.0.22",
+    "host": [
+      "https://social-archive-api.linzezhang.com/*",
+      "https://social-archive.linzezhang.com/*",
+      "http://127.0.0.1:8765/*",
+      "http://localhost:8765/*"
+    ],
+    "optionalHost": 24
+  },
+  "modules_present": {
+    "listShape": true,
+    "catalog": true,
+    "cookies": true
+  },
+  "host_permission_granted_on_a_fresh_install": {
+    "https://*.xiaohongshu.com/*": false,
+    "https://*.reddit.com/*": false,
+    "https://*.instagram.com/*": false,
+    "https://*.bilibili.com/*": false,
+    "https://*.xiaohongshu.com/* (连接之后)": false
+  },
+  "install_said": {
+    "ok": false,
+    "state": "needs_user_action",
+    "platform": "xiaohongshu",
+    "failureCode": "PLATFORM_PERMISSION_MISSING",
+    "error": "还没有获得读取小红书页面的授权。请回到插件的账号页，点一次「连接账号」并在浏览器弹出的框里选「允许」。"
+  },
+  "acquire_said": {
+    "threw": "还没有获得读取小红书页面的授权。请回到插件的账号页，点一次「连接账号」并在浏览器弹出的框里选「允许」。",
+    "failureCode": "PLATFORM_PERMISSION_MISSING"
+  },
+  "manifest_files_missing_from_package": [],
+  "problems": [],
+  "message_zh": "他下载的那个包和我一直在测的是同一个东西，而且权限不足时它说得出话。",
+  "what_this_does_not_prove": "不证明真平台的响应长什么样——那要 Owner 的登录态。这里只回答：他装上的那一份，和我一直在测的那一份，是不是同一个东西。"
+}

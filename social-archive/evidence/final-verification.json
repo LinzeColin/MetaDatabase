@@ -115,7 +115,7 @@
         "scripts/check_docs_point_at_things_that_exist.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了全仓 30 份文档，77 处 scripts/ 引用、1 处代码块里被 .gitignore 挡着的路径\n文档让人跑的每一个脚本都在；写着「已删」的也确实不在了。\n",
+      "stdout": "扫了全仓 31 份文档，80 处 scripts/ 引用、1 处代码块里被 .gitignore 挡着的路径\n文档让人跑的每一个脚本都在；写着「已删」的也确实不在了。\n",
       "stderr": ""
     },
     {
@@ -133,7 +133,7 @@
         "scripts/check_every_platform_table_is_complete.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 apps/src/scripts 下 31 处平台表；已登记的有意子集 14 张\n每一张平台表都提到了所有可托管平台。\n",
+      "stdout": "扫了 apps/src/scripts 下 32 处平台表；已登记的有意子集 14 张\n每一张平台表都提到了所有可托管平台。\n",
       "stderr": ""
     },
     {
@@ -151,7 +151,7 @@
         "scripts/check_every_failure_code_is_explainable.py"
       ],
       "exit_code": 0,
-      "stdout": "扫到失败码 68 个（src, apps）\n每一个都能落到一句中文。\n",
+      "stdout": "扫到失败码 69 个（src, apps）\n每一个都能落到一句中文。\n",
       "stderr": ""
     },
     {
@@ -187,7 +187,7 @@
         "scripts/check_docs_match_the_ui.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 docs/ 里 40 处界面词引用\n每一处都在界面上找得到。\n",
+      "stdout": "扫了 docs/ 里 44 处界面词引用\n每一处都在界面上找得到。\n",
       "stderr": ""
     },
     {
@@ -260,6 +260,15 @@
       ],
       "exit_code": 0,
       "stdout": "{\n  \"status\": \"PASS\",\n  \"functions_checked\": 82,\n  \"senders_scanned\": [\n    \"apps/browser-extension/bridge.js\",\n    \"apps/browser-extension/content/bilibili-reader.js\",\n    \"apps/browser-extension/content/extension-utils.js\",\n    \"apps/browser-extension/content/extract-core.js\",\n    \"apps/browser-extension/content/extract.js\",\n    \"apps/browser-extension/content/fab.js\",\n    \"apps/browser-extension/content/list-shape.js\",\n    \"apps/browser-extension/content/net-relay.js\",\n    \"apps/browser-extension/content/platform-catalog.js\",\n    \"apps/browser-extension/cookie-export.js\",\n    \"apps/browser-extension/net-observer.js\",\n    \"apps/browser-extension/options.html\",\n    \"apps/browser-extension/options.js\",\n    \"apps/browser-extension/popup.html\",\n    \"apps/browser-extension/popup.js\",\n    \"apps/browser-extension/shared.js\",\n    \"apps/browser-extension/sidepanel.html\",\n    \"apps/browser-extension/sidepanel.js\",\n    \"apps/pwa/app.js\",\n    \"apps/pwa/extension-install.html\",\n    \"apps/pwa/index.html\",\n    \"apps/pwa/sw.js\"\n  ],\n  \"message_types_handled\": [\n    \"SA_ACCOUNT_CONNECT\",\n    \"SA_CAPTURE_ACTIVE\",\n    \"SA_CONNECT_PLATFORM_SESSION\",\n    \"SA_CONTROL_SYNC_RUN\",\n    \"SA_DISCONNECT_ACCOUNT\",\n    \"SA_GET_NET_CAPTURES\",\n    \"SA_GET_PENDING_CONNECTIONS\",\n    \"SA_INSTALL_NET_OBSERVER\",\n    \"SA_MEDIA_SESSION_PLATFORMS\",\n    \"SA_NET_CAPTURE\",\n    \"SA_NET_OBSERVER_STATE\",\n    \"SA_OPEN_ACCOUNT_CENTER\",\n    \"SA_OPEN_OPTIONS\",\n    \"SA_OPEN_TASK_CENTER\",\n    \"SA_PARSE_NET_CAPTURES\",\n    \"SA_REVOKE_PLATFORM_SESSION\",\n    \"SA_SYNC_ACCOUNT\",\n    \"SA_SYNC_ALL_ACCOUNTS\",\n    \"SA_VERIFY_PLATFORM_SESSION\",\n    \"SA_WEB_BRIDGE_ADOPT_TOKEN\",\n    \"SA_WEB_BRIDGE_STATUS\"\n  ],\n  \"message_types_sent\": [\n    \"SA_ACCOUNT_CONNECT\",\n    \"SA_CAPTURE_ACTIVE\",\n    \"SA_CONNECT_PLATFORM_SESSION\",\n    \"SA_CONTROL_SYNC_RUN\",\n    \"SA_DISCONNECT_ACCOUNT\",\n    \"SA_GET_NET_CAPTURES\",\n    \"SA_GET_PENDING_CONNECTIONS\",\n    \"SA_INSTALL_NET_OBSERVER\",\n    \"SA_MEDIA_SESSION_PLATFORMS\",\n    \"SA_NET_CAPTURE\",\n    \"SA_NET_OBSERVER_STATE\",\n    \"SA_OBSERVER_CONFIGURE\",\n    \"SA_OBSERVER_INSTALLED\",\n    \"SA_OBSERVER_READY\",\n    \"SA_OPEN_ACCOUNT_CENTER\",\n    \"SA_OPEN_OPTIONS\",\n    \"SA_OPEN_TASK_CENTER\",\n    \"SA_PARSE_NET_CAPTURES\",\n    \"SA_PING\",\n    \"SA_RAW_RESPONSE\",\n    \"SA_REVOKE_PLATFORM_SESSION\",\n    \"SA_SYNC_ACCOUNT\",\n    \"SA_SYNC_ALL_ACCOUNTS\",\n    \"SA_VERIFY_PLATFORM_SESSION\",\n    \"SA_WEB_BRIDGE_ADOPT_TOKEN\",\n    \"SA_WEB_BRIDGE_STATUS\"\n  ],\n  \"message_types_sent_to_background\": [\n    \"SA_ACCOUNT_CONNECT\",\n    \"SA_CAPTURE_ACTIVE\",\n    \"SA_CONNECT_PLATFORM_SESSION\",\n    \"SA_CONTROL_SYNC_RUN\",\n    \"SA_DISCONNECT_ACCOUNT\",\n    \"SA_GET_NET_CAPTURES\",\n    \"SA_GET_PENDING_CONNECTIONS\",\n    \"SA_INSTALL_NET_OBSERVER\",\n    \"SA_MEDIA_SESSION_PLATFORMS\",\n    \"SA_NET_CAPTURE\",\n    \"SA_NET_OBSERVER_STATE\",\n    \"SA_OPEN_ACCOUNT_CENTER\",\n    \"SA_OPEN_OPTIONS\",\n    \"SA_OPEN_TASK_CENTER\",\n    \"SA_PARSE_NET_CAPTURES\",\n    \"SA_REVOKE_PLATFORM_SESSION\",\n    \"SA_SYNC_ACCOUNT\",\n    \"SA_SYNC_ALL_ACCOUNTS\",\n    \"SA_VERIFY_PLATFORM_SESSION\",\n    \"SA_WEB_BRIDGE_ADOPT_TOKEN\",\n    \"SA_WEB_BRIDGE_STATUS\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"每个机制都有调得到它的路。\",\n  \"what_this_does_not_prove\": \"只看名字有没有被提到，不看那条路真的跑得通——那是演练的事。这道门只防最便宜也最常犯的那种：根本没接线。\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_every_drill_has_a_caller.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"drills_found\": [\n    \"bilibili_acquisition_drill.py\",\n    \"bilibili_end_to_end_drill.py\",\n    \"disaster_recovery_drill.py\",\n    \"extension_bridge_boundary_drill.py\",\n    \"extension_capture_buffer_drill.py\",\n    \"extension_capture_drill.py\",\n    \"extension_install_page_drill.py\",\n    \"extension_platform_wiring_drill.py\",\n    \"extension_routing_drill.py\",\n    \"extension_save_page_drill.py\",\n    \"list_shape_end_to_end_drill.py\",\n    \"pwa_render_drill.py\",\n    \"restore_private_database_drill.py\",\n    \"restore_runtime_db_drill.py\",\n    \"shipped_package_drill.py\"\n  ],\n  \"registry\": \"docs/DRILLS.md\",\n  \"cadences\": {\n    \"shipped_package_drill.py\": \"每次发布\",\n    \"list_shape_end_to_end_drill.py\": \"改到那条路时\",\n    \"bilibili_end_to_end_drill.py\": \"改到那条路时\",\n    \"bilibili_acquisition_drill.py\": \"改到那条路时\",\n    \"extension_capture_drill.py\": \"改到那条路时\",\n    \"extension_capture_buffer_drill.py\": \"改到那条路时\",\n    \"extension_save_page_drill.py\": \"改到那条路时\",\n    \"extension_routing_drill.py\": \"改到那条路时\",\n    \"extension_platform_wiring_drill.py\": \"改到那条路时\",\n    \"extension_bridge_boundary_drill.py\": \"改到那条路时\",\n    \"extension_install_page_drill.py\": \"改到那条路时\",\n    \"pwa_render_drill.py\": \"改到那条路时\",\n    \"disaster_recovery_drill.py\": \"定期\",\n    \"restore_private_database_drill.py\": \"定期\",\n    \"restore_runtime_db_drill.py\": \"定期\"\n  },\n  \"run_by_deploy\": [\n    \"shipped_package_drill.py\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"每个演练都有一条会触发它的路，或至少写清了什么时候跑。\",\n  \"what_this_does_not_prove\": \"不保证演练写得对，也不保证它最近跑过。只保证有一条路会触发它。\"\n}\n",
       "stderr": ""
     },
     {

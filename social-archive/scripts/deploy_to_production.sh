@@ -108,6 +108,21 @@ step "0) 本地闸门：工作树干净 + 发布门全绿"
 .venv/bin/python scripts/final_verify.py --report "$(mktemp -t sa-gate)" >/dev/null \
   || fail '发布门未通过。'
 .venv/bin/python scripts/build_extension_package.py >/dev/null || fail '扩展包没打出来——用户下载到的会是旧版本。'
+# **打完就在真 Chrome 里装一次这个包。**
+#
+# 仓里十一个真 Chrome 演练，在这之前**一个都没有调用方**——全靠人记得去跑。
+# 而且它们全都加载源码目录，并且在加载前把可选权限提成必给权限；
+# 他真正下载的那一份、在权限未授予的状态下会怎样，从来没被走过。
+# 2026-08-06 第一次跑就抓到：读取失败时报的是「读不出当前页面的域名」，
+# 把他指向错的方向。
+#
+# 这一条放在这里而不是发布门里：它要起一个真 Chrome，约一分钟，
+# 每次提交都跑太贵；而**发布前必须跑**——发出去的就是这个包。
+if [ -z "${SA_SKIP_PACKAGE_DRILL:-}" ]; then
+  .venv/bin/python scripts/shipped_package_drill.py >/dev/null \
+    || fail '发布包在真 Chrome 里没通过——用户装上的那一份和我们测的不是同一个东西。设 SA_SKIP_PACKAGE_DRILL=1 可跳过（跳过就等于没验过它）。'
+  printf '  发布包已在真 Chrome 里原样装过一次。\n'
+fi
 printf '  工作树干净；发布门通过；扩展包已重打。\n'
 
 step "1) 部署前量一次密钥不变量"

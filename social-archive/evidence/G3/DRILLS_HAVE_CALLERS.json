@@ -1,0 +1,44 @@
+{
+  "status": "PASS",
+  "drills_found": [
+    "bilibili_acquisition_drill.py",
+    "bilibili_end_to_end_drill.py",
+    "disaster_recovery_drill.py",
+    "extension_bridge_boundary_drill.py",
+    "extension_capture_buffer_drill.py",
+    "extension_capture_drill.py",
+    "extension_install_page_drill.py",
+    "extension_platform_wiring_drill.py",
+    "extension_routing_drill.py",
+    "extension_save_page_drill.py",
+    "list_shape_end_to_end_drill.py",
+    "pwa_render_drill.py",
+    "restore_private_database_drill.py",
+    "restore_runtime_db_drill.py",
+    "shipped_package_drill.py"
+  ],
+  "registry": "docs/DRILLS.md",
+  "cadences": {
+    "shipped_package_drill.py": "每次发布",
+    "list_shape_end_to_end_drill.py": "改到那条路时",
+    "bilibili_end_to_end_drill.py": "改到那条路时",
+    "bilibili_acquisition_drill.py": "改到那条路时",
+    "extension_capture_drill.py": "改到那条路时",
+    "extension_capture_buffer_drill.py": "改到那条路时",
+    "extension_save_page_drill.py": "改到那条路时",
+    "extension_routing_drill.py": "改到那条路时",
+    "extension_platform_wiring_drill.py": "改到那条路时",
+    "extension_bridge_boundary_drill.py": "改到那条路时",
+    "extension_install_page_drill.py": "改到那条路时",
+    "pwa_render_drill.py": "改到那条路时",
+    "disaster_recovery_drill.py": "定期",
+    "restore_private_database_drill.py": "定期",
+    "restore_runtime_db_drill.py": "定期"
+  },
+  "run_by_deploy": [
+    "shipped_package_drill.py"
+  ],
+  "problems": [],
+  "message_zh": "每个演练都有一条会触发它的路，或至少写清了什么时候跑。",
+  "what_this_does_not_prove": "不保证演练写得对，也不保证它最近跑过。只保证有一条路会触发它。"
+}

@@ -68,9 +68,13 @@
     TAB_CLOSED: { text: "<平台> 同步中断了，因为标签页被关掉。[ 继续 ]", action: "继续" },
     RATE_LIMITED: { text: "<平台> 请求太频繁，已自动放慢。已经收到的 <N> 条都保住了，稍后会自动继续。", action: null },
     SERVER_UNREACHABLE: { text: "暂时连不上服务器。你的数据没有丢，[ 重试 ]", action: "重试" },
-    DISK_QUOTA: { text: "存储空间快满了，已经暂停下载媒体文件，文字和链接还在正常保存。", action: null }
+    DISK_QUOTA: { text: "存储空间快满了，已经暂停下载媒体文件，文字和链接还在正常保存。", action: null },
+    // v0.0.0.22 追加的第八句（前七句一个字没动）。理由见
+    // docs/ZERO_BARRIER_UX.md：没有主机权限时连标签页网址都读不到，
+    // 原来会回一句「读不出当前页面的域名」，把他指向"是不是页面没打开"。
+    PLATFORM_PERMISSION_MISSING: { text: "还没有获得读取 <平台> 页面的授权。请点 [ 连接账号 ]，在浏览器弹出的框里选「允许」。", action: "连接账号" }
   };
-  // 内部失败码比词典细，但界面上只许出现词典里的七句。
+  // 内部失败码比词典细，但界面上只许出现词典里的八句。
   const failureAliases = {
     // **ACQUISITION_PATH_NOT_INSTALLED 从这里删掉了**（2026-08-06）。
     //

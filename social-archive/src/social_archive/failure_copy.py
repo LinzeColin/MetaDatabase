@@ -52,6 +52,12 @@ _DICTIONARY: tuple[FailureCopy, ...] = (
                 "重试", "needs_user_action"),
     FailureCopy("REDDIT_NOT_AUTHORIZED", "Reddit 需要单独授权一次。[ 去授权 ]",
                 "去授权", "needs_user_action"),
+    # v0.0.0.22：**没授权 ≠ 没登录**，下一步在两个不同的地方。
+    # 没登录 → 回平台页登录；没授权 → 回插件点「连接账号」，在浏览器弹的框里选允许。
+    FailureCopy("PLATFORM_PERMISSION_MISSING",
+                "还没有获得读取 <平台> 页面的授权。请点 [ 连接账号 ]，"
+                "在浏览器弹出的框里选「允许」。",
+                "连接账号", "needs_user_action"),
     FailureCopy("TAB_CLOSED", "<平台> 同步中断了，因为标签页被关掉。[ 继续 ]",
                 "继续", "retryable"),
     FailureCopy("RATE_LIMITED",
@@ -88,6 +94,19 @@ _ALIASES: dict[str, str] = {
     # 没授权读平台页面：对用户来说下一步是"去授权"，和"去登录"不是一回事，
     # 但词典里没有单独一句，暂时落到最接近的那条（NOT_LOGGED_IN 会引导他回到平台页）。
     "PLATFORM_PERMISSION_DENIED": "NOT_LOGGED_IN",
+    # **没授权和没登录不是一回事**，而这一条尤其不能混。
+    #
+    # v0.0.0.22：这些平台的主机权限全在 optional_host_permissions 里，
+    # 连接账号那一步才申请。**没有权限时 chrome.tabs.get() 连 url 都读不到**，
+    # 于是代码原来算出空域名、回一句「读不出当前页面的域名」——
+    # 那把人指向「是不是页面没打开」，而真因是授权没给或被撤销了。
+    # 由「加载他真正下载的那个 zip」那个演练测出来（此前十个演练都在加载前
+    # 把可选权限提成必给权限，这个状态从没被走过）。
+    #
+    # 落到 NOT_LOGGED_IN 会把他送回平台页去登录，那是错的方向；
+    # 正确的下一步是回插件点一次「连接账号」。所以单独给一条。
+    # （它在冻结词典里有自己的一条，不需要别名——留这行注释是为了说明
+    #   为什么它不像 PLATFORM_PERMISSION_DENIED 那样被折叠到 NOT_LOGGED_IN）
     "OBSERVER_INSTALL_FAILED": "SERVER_UNREACHABLE",
     # ── B 站收藏夹取数（v0.0.0.7 / G1）。分三类，判据是**用户下一步该做什么**。
     #
