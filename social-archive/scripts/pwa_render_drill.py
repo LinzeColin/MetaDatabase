@@ -77,6 +77,15 @@ GAP = "**还有 192 条从来没送到这里。**"
 PRIVACY = "开锁用的令牌只存在你的服务器上，插件拿不到。"
 
 FAKE: dict[str, object] = {
+    # /health 夹具（v0.0.0.18）。**worker 故意设成挂了**——
+    # 这一栏存在的全部意义就是那种情况下界面说什么。
+    # 设成活着的话，这条断言永远走不到它要验的那一支。
+    "/health": {"status": "ok", "project": "Social Archive", "version": "9.9.9.9",
+                "worker": {"ever_seen": True, "alive": False,
+                           "last_seen_at": "2026-08-06T00:00:00Z",
+                           "seconds_since": 9999.0,
+                           "note": "worker 已经 9999 秒没动过——后台任务不会有人处理，"
+                                   "而接口本身照样是好的。"}},
     "/v1/auth/me": {"user_id": "fixture", "display_name": "夹具用户"},
     "/v1/auth/providers": {"items": []},
     "/v1/accounts": {"items": []},
@@ -194,6 +203,8 @@ READ_DOM = r"""
     _errors: (window.__drillErrors || []).slice(0, 4),
     syncHeader: (document.getElementById("syncModalTitle")?.parentElement?.innerText || ""),
     topicOptions: [...(document.getElementById("topicFilter")?.options || [])].map(o => o.value),
+  serviceBadge: (document.getElementById("serviceBadge") || {}).textContent || "",
+  serviceBadgeClass: (document.getElementById("serviceBadge") || {}).className || "",
   collectionFieldHidden: Boolean(document.getElementById("collectionField")?.hidden),
   collectionOptions: [...(document.getElementById("collectionFilter")?.options || [])]
     .map(o => ({ value: o.value, text: o.textContent })),
@@ -291,6 +302,15 @@ async def run(chrome: str) -> int:
     stale = [x for x in topics if x in ("AI与技术", "商业与投资", "机械制造", "学习研究", "生活方式")]
     if stale:
         problems.append(f"**下拉里还留着写死的假主题**：{stale}。生产实测它们各返回 0 条。")
+    # 后台没在跑时，那颗徽章不许还说「已连接」（v0.0.0.18）。
+    # 夹具把 worker 设成挂了，所以这里必须看到那句新话。
+    badge = str(measured.get("serviceBadge") or "")
+    if "已连接" in badge:
+        problems.append(f"**后台没在跑，徽章还说「{badge}」**"
+                        "——他点同步、任务排队、什么都不发生，而界面说一切正常")
+    if "后台没在跑" not in badge:
+        problems.append(f"徽章没说后台没在跑：{badge!r}")
+
     # 收藏夹筛选（v0.0.0.10）。夹具里有两个收藏夹，那一栏就该露出来并照数据重建。
     if measured.get("collectionFieldHidden"):
         problems.append("**有收藏夹却没有显示那一栏**——他看不到自己有哪些收藏夹，也就无从按收藏夹看")
@@ -319,6 +339,7 @@ async def run(chrome: str) -> int:
         "sync_centre_header": str(measured.get("syncHeader") or "").replace("\n", " ")[:200],
         "topic_options": measured.get("topicOptions"),
         "relation_options": measured.get("relationOptions"),
+        "service_badge": measured.get("serviceBadge"),
         "collection_filter_hidden": measured.get("collectionFieldHidden"),
         "collection_options": measured.get("collectionOptions"),
         # **失败时必须说清页面当时在干什么。** 只报一句「0 张卡」而不说

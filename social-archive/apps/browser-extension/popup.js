@@ -11,6 +11,7 @@
   let platform = null;
   let accounts = [];
   let platformSupport = {};
+  let workerState = null;
   let runs = [];
   let bootstrap = null;
 
@@ -53,8 +54,15 @@
     const connected = accounts.filter(account => ["connected", "degraded"].includes(account.connection_state)).length;
     const active = runs.filter(run => ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(run.status));
     const total = accounts.reduce((sum, account) => sum + Number(account.content_count || 0), 0);
-    $("serviceState").className = `service-pill ${serviceConnected ? "connected" : "error"}`;
-    $("serviceState").textContent = serviceConnected ? "已连接" : "待连接";
+    // 后台没在跑要单独说一句——它和「连不上」不是一回事：
+    // 连不上是他这边的配置问题，后台没跑是服务器那边的事，
+    // 而两者的表现（同步永远不完成）一模一样。分开说他才知道该找谁。
+    const workerDown = Boolean(workerState && workerState.ever_seen
+                               && workerState.alive === false);
+    $("serviceState").className = `service-pill ${
+      !serviceConnected ? "error" : workerDown ? "needs" : "connected"}`;
+    $("serviceState").textContent = !serviceConnected ? "待连接"
+      : workerDown ? "后台没在跑" : "已连接";
     if (!serviceConnected) {
       $("summaryTitle").textContent = "私人档案馆尚未连接";
       $("summaryCopy").textContent = "打开设置完成一次配对。";
@@ -181,6 +189,9 @@
       // 在 B 站接上之后整整两个版本都还挂在那儿。
       platformSupport = Object.fromEntries(
         (accountData.supported_platforms || []).map(item => [item.platform, item]));
+      // /health 不需要鉴权，单独取一次；读不到就当没这回事（保持原样）
+      workerState = await SA.api("/health", { timeoutMs: 5000 })
+        .then(payload => payload.worker || null).catch(() => null);
       const pending = runs.filter(run => ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting", "failed", "blocked_environment"].includes(run.status)).length;
       $("taskCount").textContent = String(pending);
       $("taskCount").classList.toggle("hidden", pending === 0);

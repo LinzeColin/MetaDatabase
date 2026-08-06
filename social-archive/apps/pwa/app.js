@@ -185,7 +185,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
-  const PRODUCT_VERSION = "0.0.0.18";
+  const PRODUCT_VERSION = "0.0.0.19";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -315,7 +315,19 @@
     try {
       const health = await api("/health", { timeoutMs: 5000 });
       state.serviceReady = health.status === "ok";
-      setServiceBadge("connected", `私人档案馆已连接 · v${health.version || PRODUCT_VERSION}`);
+      // **后台没在跑的时候，这颗徽章不许还是绿的。**
+      //
+      // 2026-08-06 一次被打断的部署留下 core-worker 没启动，而 /health 由 api
+      // 提供、照样回 ok。徽章只看 status，于是显示「私人档案馆已连接」——
+      // 他点同步、任务排队、什么都不发生，**而界面从头到尾说一切正常**。
+      // v0.0.0.18 让 /health 带上 worker 心跳；这里是把它说给他听的那一半。
+      // 「判据盯 JSON、漏了用户看的散文」是这个项目栽过的坑，不能只加字段。
+      const worker = health.worker || null;
+      if (worker && worker.ever_seen && worker.alive === false) {
+        setServiceBadge("needs", "后台没在跑 · 新的同步会排队等着");
+      } else {
+        setServiceBadge("connected", `私人档案馆已连接 · v${health.version || PRODUCT_VERSION}`);
+      }
       // 存储吃紧时要**主动**说，别等用户发现媒体没下下来才去猜。
       //
       // 冻结词典里本来就有 DISK_QUOTA 那一句（「存储空间快满了，已经暂停
