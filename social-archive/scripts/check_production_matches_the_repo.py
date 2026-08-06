@@ -218,6 +218,29 @@ def main() -> int:
             there = _without_comments(done.stdout)
             (comment_only if here == there else logic_differs).append(name)
 
+    # **开发期脚本和服务跑的东西，分开说。**
+    #
+    # 判据和演练（scripts/check_*.py、scripts/*_drill.py）会被打进镜像
+    # （Dockerfile 里 `COPY scripts ./scripts`），但**容器从来不跑它们**——
+    # ENTRYPOINT 是 container-entrypoint.sh，构建期只用 build_extension_package.py。
+    #
+    # 2026-08-07：我连着两次只改了一道判据和一个演练，而这道门报的是
+    # 「服务执行的不是你以为的那一版，要重建镜像」——**听起来像生产在跑旧代码**，
+    # 而实际上他那边跑的东西一个字节没变。这个仓一整天都在修同一种病：
+    # **指错原因的告警，比不告警更费人**。
+    #
+    # 所以照报（差异就是差异，不许藏），但分开归类，并且不因为它单独失败。
+    def _dev_only(name: str) -> bool:
+        base = name.rsplit("/", 1)[-1]
+        return name.startswith("scripts/") and (
+            base.startswith("check_") or base.endswith("_drill.py")
+            or base in {"run_all_drills.py", "drill_extension_dir.py", "final_verify.py"})
+
+    dev_only_differs = [name for name in logic_differs if _dev_only(name)]
+    logic_differs = [name for name in logic_differs if not _dev_only(name)]
+    if container_stale:
+        container_stale = [name for name in container_stale if not _dev_only(name)]
+
     # **「只在生产有」单独作为失败条件。** 那是没人说得清来路的代码，正在跑。
     status = "FAIL" if only_on_production or logic_differs or container_stale else "PASS"
     print(json.dumps({
@@ -231,6 +254,12 @@ def main() -> int:
             "或旧版本删剩的。这一类最要紧。" if only_on_production else "无"),
         "logic_differs": logic_differs,
         "comment_only": comment_only,
+        # 判据和演练：进了镜像，但容器从来不跑它们。差异照报，不算服务在跑旧代码。
+        "dev_only_differs": dev_only_differs,
+        "dev_only_means": (
+            "判据/演练与仓里不一致。它们被 COPY 进镜像，但 ENTRYPOINT 不跑它们——"
+            "**服务的行为不受影响**，下次发布会一起带上。"
+            if dev_only_differs else "无"),
         "only_local_not_deployed_yet": only_local,
         "container_is_running_older_code": container_stale,
         "container_note": container_note,
