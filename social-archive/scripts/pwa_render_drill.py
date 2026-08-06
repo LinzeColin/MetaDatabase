@@ -70,7 +70,12 @@ PORT = 8765
 # 同步中心的抬头（2026-08-06）：它此前承诺「自动全量导入」，
 # 而九个平台里八个不能自动同步。改成照实说之后，**同样要亲眼看见它画出来**——
 # 那句话是静态 HTML，但「在文件里」和「在页面上」是两件事，这一整天都在拆这个。
-SYNC_HEADER = "本版本只有 Chrome 书签能自动读取"
+# 同步中心那段话现在是**照接口现算的**，不再是写死的一句。
+# 所以这里不再断言某一句字面，而是断言：
+#   · 它把接口说能同步的那些点了名（B站）
+#   · 它没有写死的排他句（那种句子一加平台就变成假话）
+SYNC_HEADER_MUST_NAME = "B站"
+SYNC_HEADER_MUST_NOT_SAY = ("只有 Chrome 书签", "其余平台的自动读取还没接上")
 
 COVERAGE = "已送到这里 1 / 193 条。"
 GAP = "**还有 192 条从来没送到这里。**"
@@ -88,7 +93,16 @@ FAKE: dict[str, object] = {
                                    "而接口本身照样是好的。"}},
     "/v1/auth/me": {"user_id": "fixture", "display_name": "夹具用户"},
     "/v1/auth/providers": {"items": []},
-    "/v1/accounts": {"items": []},
+    # **能同步的平台由接口下发**：同步中心那段话是照它现算的。
+    # 以前那段话写死在 index.html 里（「本版本只有 Chrome 书签能自动读取」），
+    # v0.0.0.21 起就成了假话——所以这里要给它真东西去算。
+    "/v1/accounts": {"items": [], "supported_platforms": [
+        {"platform": "bilibili", "relations": ["favorite"], "sync_supported": True,
+         "not_syncable_reason": "", "server_handled": False, "connect_supported": True},
+        {"platform": "x", "relations": ["bookmark"], "sync_supported": False,
+         "not_syncable_reason": "本版本还不能自动读取 X 的书签。现在可以：在浏览器里打开任意一条推文，点插件的「保存当前页面」。",
+         "server_handled": True, "connect_supported": False},
+    ]},
     "/v1/sync-runs": {"items": []},
     "/v1/destinations": {"items": [{
         "destination_id": "obsidian", "display_name": "Obsidian", "state": "connected",
@@ -201,7 +215,13 @@ READ_DOM = r"""
     _modalBodyExists: !!document.getElementById("destinationsModalBody"),
     _modalBodyHtmlLen: (document.getElementById("destinationsModalBody") || {}).innerHTML?.length ?? -1,
     _errors: (window.__drillErrors || []).slice(0, 4),
-    syncHeader: (document.getElementById("syncModalTitle")?.parentElement?.innerText || ""),
+    // **先打开同步中心再读**：那段话是打开时现算的（paintSyncModalCopy）。
+    // 不打开就读，读到的是 index.html 里那个占位句——而判据会以为它没渲染。
+    syncHeader: (() => {
+      try { document.getElementById("emptyConnectAccount")?.click(); } catch (_) {}
+      return (document.getElementById("syncModalCopy")?.innerText
+              || document.getElementById("syncModalTitle")?.parentElement?.innerText || "");
+    })(),
     topicOptions: [...(document.getElementById("topicFilter")?.options || [])].map(o => o.value),
   serviceBadge: (document.getElementById("serviceBadge") || {}).textContent || "",
   serviceBadgeClass: (document.getElementById("serviceBadge") || {}).className || "",
@@ -324,10 +344,17 @@ async def run(chrome: str) -> int:
     # **筛选值必须是 key，不是显示名。** 拿名字去筛，点了什么都筛不出来。
     if any(str(item.get("value")) in ("学习", "音乐") for item in options):
         problems.append("收藏夹筛选的取值用了显示名——库里存的是媒体 id，这样筛不出东西")
-    if SYNC_HEADER not in str(measured.get("syncHeader") or ""):
+    header = str(measured.get("syncHeader") or "")
+    for forbidden in SYNC_HEADER_MUST_NOT_SAY:
+        if forbidden in header:
+            problems.append(
+                f"**同步中心的抬头里有写死的排他句**：「{forbidden}」——"
+                "那种句子一加平台就变成假话，而它是他打开那一页第一眼看到的")
+    if SYNC_HEADER_MUST_NAME not in header:
         problems.append(
-            f"**同步中心的抬头没显示那句限定语**：{SYNC_HEADER}。"
-            "抬头此前承诺「自动全量导入」，而九个平台里八个做不到。")
+            f"**同步中心的抬头没照接口点名能同步的平台**（找不到「{SYNC_HEADER_MUST_NAME}」）："
+            f"{header[:120]!r}——那段话是照 /v1/accounts 现算的，"
+            "算不出来说明它又退回成一句写死的话，或者根本没渲染")
 
     print(json.dumps({
         "status": "PASS" if not problems else "FAIL",
