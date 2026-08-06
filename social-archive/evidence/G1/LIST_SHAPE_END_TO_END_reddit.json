@@ -1,7 +1,7 @@
 {
   "status": "PASS",
   "platform": "reddit",
-  "bytes_sent_to_archive": 4680,
+  "bytes_sent_to_archive": 4713,
   "chrome_cookies_calls": [],
   "cookies_api_was_available": true,
   "domestic_cookie_stayed_in_browser": true,
@@ -33,6 +33,7 @@
     "metadata": {
       "auth_method": "browser_session",
       "verified_by": "list_shape_recognised",
+      "extension_version": "0.0.0.22",
       "auto_sync_enabled": true,
       "sync_interval_minutes": 360
     }
@@ -54,8 +55,8 @@
   "captured_urls": [
     "https://www.reddit.com/api/log",
     "https://www.reddit.com/api/config",
-    "https://www.reddit.com/api/user",
     "https://www.reddit.com/svc/best",
+    "https://www.reddit.com/api/user",
     "https://www.reddit.com/svc/saved"
   ],
   "recognised": "https://www.reddit.com/svc/saved",
