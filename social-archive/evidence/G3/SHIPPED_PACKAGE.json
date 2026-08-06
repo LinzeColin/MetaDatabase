@@ -34,7 +34,13 @@
     "embedded": true,
     "api": "function",
     "hasButton": true,
-    "text": "连接账号\n\n点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。\n\n小红书\n未连接\n连接账号"
+    "text": "连接账号\n\n点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。\n\n小红书\n未连接\n连接账号",
+    "click": {
+      "tried": true,
+      "panelOpen": true,
+      "frameSrc": "chrome-extension://fehgggkeieblkpgldemja",
+      "syncStillOpen": false
+    }
   },
   "permission_request_from_service_worker": {
     "bookmarks": {

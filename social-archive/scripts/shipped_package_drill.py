@@ -52,6 +52,7 @@ import urllib.request
 import zipfile
 from http.server import ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlparse
 
 import websockets
 
@@ -149,10 +150,28 @@ class _FakeWithLibrary(shape._Fake):                        # noqa: SLF001
 
     def do_GET(self) -> None:                               # noqa: N802
         host = (self.headers.get("Host") or "").split(":")[0]
-        if host.endswith("linzezhang.com") and LIBRARY_PAGE["html"]:
-            body = LIBRARY_PAGE["html"].encode("utf-8")
+        if host.endswith("linzezhang.com"):
+            path = urlparse(self.path).path
+            # **上真的那一份资料库**，不是我手写的一页。
+            # 手写的那页只能证明"iframe 能加载"；他抱怨的是**导航**——
+            # 「去连接」那颗按钮到底会不会把面板开出来，只有真页面答得了。
+            served = {"/": ROOT / "apps/pwa/index.html",
+                      "/index.html": ROOT / "apps/pwa/index.html",
+                      "/assets/app.js": ROOT / "apps/pwa/app.js",
+                      "/assets/styles.css": ROOT / "apps/pwa/styles.css"}.get(path)
+            if served and served.is_file():
+                kind = "text/html; charset=utf-8" if served.suffix == ".html" else (
+                    "text/javascript; charset=utf-8" if served.suffix == ".js" else "text/css")
+                body = served.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", kind)
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
+            body = b"{}"
             self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)
@@ -170,15 +189,42 @@ async def _open_library(base: str, extension_id: str) -> dict:
     urllib.request.urlopen(urllib.request.Request(
         base + "/json/new?https://social-archive.linzezhang.com/", method="PUT"),
         timeout=10).read()
-    await asyncio.sleep(3)
+    await asyncio.sleep(4)
+    # **按他真会走的那一下来**：在资料库上点「连接第一个账号」。
+    # 这一步答的是导航那个问题——面板会不会被打开，而不是"iframe 能不能加载"。
+    targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
+    pages = [item for item in targets if item.get("type") == "page"
+             and "linzezhang.com" in item.get("url", "")]
+    clicked: dict = {"tried": False}
+    if pages:
+        async with websockets.connect(pages[0]["webSocketDebuggerUrl"], max_size=None) as ws:
+            rpc = await shape._rpc_factory(ws)
+            await rpc("Runtime.enable")
+            got = await rpc("Runtime.evaluate", {
+                "expression": '(async () => { const b = document.getElementById("emptyConnectAccount");'
+                              ' if (!b) return JSON.stringify({ tried: false, why: "找不到那颗按钮" });'
+                              ' b.click(); await new Promise(r => setTimeout(r, 2500));'
+                              ' const back = document.getElementById("connectModalBackdrop");'
+                              ' const frame = document.getElementById("connectFrame");'
+                              ' return JSON.stringify({ tried: true,'
+                              ' panelOpen: !!back && back.classList.contains("open"),'
+                              ' frameSrc: (frame && frame.getAttribute("src") || "").slice(0, 40),'
+                              ' syncStillOpen: !!document.getElementById("syncModalBackdrop")'
+                              '   && document.getElementById("syncModalBackdrop").classList.contains("open") }); })()',
+                "userGesture": True, "awaitPromise": True, "returnByValue": True, "timeout": 20000})
+            payload = got.get("result", {})
+            if not payload.get("exceptionDetails"):
+                clicked = json.loads(payload["result"]["value"])
+    await asyncio.sleep(2)
     targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
     frames = [item for item in targets
               if extension_id in item.get("url", "") and "connect-frame" in item.get("url", "")]
     if not frames:
         pages = [item.get("url", "")[:80] for item in targets if item.get("type") == "page"]
-        return {"embedded": False,
+        return {"embedded": False, "click": clicked,
                 "why": "连接面板没有作为 iframe 加载出来——他还是得跳去插件的账号页",
-                "targets": pages[:6]}
+                "targets": [item.get("url", "")[:80] for item in targets
+                            if item.get("type") == "page"][:6]}
     async with websockets.connect(frames[0]["webSocketDebuggerUrl"], max_size=None) as ws:
         rpc = await shape._rpc_factory(ws)
         await rpc("Runtime.enable")
@@ -191,7 +237,7 @@ async def _open_library(base: str, extension_id: str) -> dict:
         if payload.get("exceptionDetails"):
             return {"embedded": True, "why": str(payload["exceptionDetails"])[:200]}
         detail = json.loads(payload["result"]["value"])
-        return {"embedded": True, **detail}
+        return {"embedded": True, **detail, "click": clicked}
 
 
 async def _open_options(base: str, extension_id: str) -> dict:
@@ -421,6 +467,17 @@ async def run(chrome: str) -> int:
     elif not str(measured_frame.get("text") or "").strip():
         # **一片空白不算通过。** 面板打不开时也要说得出为什么。
         problems.append("**面板嵌进去了，但整页是空的**——他会以为软件坏了")
+    elif not (measured_frame.get("click") or {}).get("panelOpen"):
+        # **导航那一下也要验。** 「面板能加载」和「他点那颗按钮面板会打开」
+        # 是两件事，而他抱怨的正是后者。这里点的是真资料库页上那颗
+        # 「连接第一个账号」，不是我手写的一页。
+        problems.append(
+            f"**在资料库上点「连接第一个账号」没把面板打开**："
+            f"{json.dumps(measured_frame.get('click'), ensure_ascii=False)}"
+            "——他还是得自己找路")
+    elif (measured_frame.get("click") or {}).get("syncStillOpen"):
+        # 两个弹窗叠着还是"乱"：他分不清该看哪一层。
+        problems.append("**连接面板打开时账号同步中心还开着**——两层弹窗叠在一起")
     elif not measured_frame.get("hasButton"):
         # **只证明它加载了还不够，要看见它画出按钮。**
         # 面板画不出按钮时用户面对的就是一片说明文字加一句错误——
