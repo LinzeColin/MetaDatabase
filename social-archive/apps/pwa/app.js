@@ -216,6 +216,7 @@
     // 每个平台「现在同步得动吗」，来自服务端。见 renderSyncTable。
     platformSupport: {},
     minimumExtensionVersion: "",
+    health: null,
     extension: { detected: false, paired: false, compatible: false, outdated: false, version: "", pairingRequired: false, oneTimeCodeAvailable: false, refreshedAt: null },
     platform: "all", group: true, sortKey: "savedAt", sortDir: "desc", search: "",
     filters: { relation: "all", topic: "all", collection: "all", date: "all", archive: "all" },
@@ -327,6 +328,28 @@
     badge.textContent = text;
   }
 
+  /** 画服务徽章。**必须两个来源都读**：/health（服务与后台）与插件状态。
+   *
+   * 抽出来是因为它们是**并行加载**的（refreshEverything / 启动时的
+   * Promise.allSettled），谁先回来不一定。第一版把「插件可更新」写在
+   * loadHealth 里，于是插件状态如果后回来，那句话就永远不会出现——
+   * 而 refreshEverything 压根不调 loadHealth，徽章连重画的机会都没有。
+   * **靠调用顺序成立的界面，早晚会在某次加载里失灵。**
+   */
+  function paintServiceBadge() {
+    const health = state.health;
+    if (!health) return;
+    const worker = health.worker || null;
+    if (worker && worker.ever_seen && worker.alive === false) {
+      setServiceBadge("needs", "后台没在跑 · 新的同步会排队等着");
+      return;
+    }
+    const spare = state.extension.detected && state.extension.compatible
+      && state.extension.outdated ? " · 插件可更新（不影响使用）" : "";
+    setServiceBadge("connected",
+      `私人档案馆已连接 · v${health.version || PRODUCT_VERSION}${spare}`);
+  }
+
   async function loadHealth() {
     try {
       const health = await api("/health", { timeoutMs: 5000 });
@@ -341,11 +364,18 @@
       // 服务端说「不低于这个版本就还能用」。拿不到就退回旧行为（要求完全相等），
       // 那是更严的一侧——**读不到就从严，不要从宽**。
       state.minimumExtensionVersion = health.minimum_extension_version || "";
+      state.health = health;
       const worker = health.worker || null;
       if (worker && worker.ever_seen && worker.alive === false) {
         setServiceBadge("needs", "后台没在跑 · 新的同步会排队等着");
       } else {
-        setServiceBadge("connected", `私人档案馆已连接 · v${health.version || PRODUCT_VERSION}`);
+        // **「有新版本」要说，但不许拦。**
+        //
+        // 上一版把兼容判据改成「不低于下限」时我写下这句话：
+        // 「界面文案这类改动值得提示『有新版本』，不值得把人挡在外面」。
+        // 然后我只做了「不挡」那一半——`outdated` 算出来了，**没有任何地方读它**。
+        // 「建好了没接上」，而且是在修完同一个毛病的下一轮里自己犯的。
+        paintServiceBadge();
       }
       // 存储吃紧时要**主动**说，别等用户发现媒体没下下来才去猜。
       //
@@ -534,6 +564,9 @@
 
   async function refreshEverything() {
     await Promise.allSettled([loadAccountsAndDestinations(), refreshExtensionStatus()]);
+    // 插件状态可能刚变（他刚更新完），徽章要跟着重画——
+    // 否则「插件可更新」那句话会一直挂着，或者一直不出现。
+    paintServiceBadge();
     renderNextStep();
   }
 
@@ -1666,6 +1699,9 @@
     renderTable();
     renderPagination();
     const results = await Promise.allSettled([loadHealth(), loadAccountsAndDestinations(), refreshExtensionStatus()]);
+    // 三件是并行的，谁先回来不一定；全部落地之后再画一次，
+    // 徽章才既知道后台状态、也知道插件版本。
+    paintServiceBadge();
     if (results.some(result => result.status === "rejected")) {
       document.querySelector(".sync-strip")?.classList.add("error");
       $("connectedAccountCount").textContent = "服务连接异常";
