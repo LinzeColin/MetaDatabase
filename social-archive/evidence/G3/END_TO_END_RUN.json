@@ -4,13 +4,6 @@
   "journey": {
     "connect": {
       "ok": true,
-      "state": "authorizing",
-      "platform": "bilibili",
-      "tabId": 1741478470,
-      "message": "已在当前 Chrome profile 中打开B站，插件会检测现有登录态。"
-    },
-    "verify": {
-      "ok": true,
       "state": "connected",
       "accountId": "acct-1",
       "syncRunId": "run-1",
@@ -19,35 +12,35 @@
       "platform": "bilibili",
       "displayName": "B站 · 测试账号"
     },
+    "verify": {
+      "ok": false,
+      "state": "not_pending",
+      "error": "没有等待确认的连接流程，请重新点击连接账号"
+    },
     "tabs_before": [
       {
-        "id": 1741478468,
+        "id": 190627330,
         "active": false
       },
       {
-        "id": 1741478469,
+        "id": 190627331,
         "active": false
       },
       {
-        "id": 1741478470,
-        "url": "https://www.bilibili.com/",
-        "active": false
-      },
-      {
-        "id": 1741478471,
+        "id": 190627334,
         "active": true
       }
     ],
-    "my_tab_id": 1741478471,
+    "my_tab_id": 190627334,
     "queue_before": [
       {
         "accountId": "acct-1",
-        "enqueuedAt": 1785987216176,
+        "enqueuedAt": 1786013043020,
         "profileUrl": "",
         "syncRunId": "run-1",
         "tabId": null,
         "triggerType": "first_connect",
-        "updatedAt": 1785987216176
+        "updatedAt": 1786013043020
       }
     ],
     "alarm_scheduled": true,
@@ -65,20 +58,15 @@
     "queue_after": [],
     "tabs_after": [
       {
-        "id": 1741478468,
+        "id": 190627330,
         "active": false
       },
       {
-        "id": 1741478469,
+        "id": 190627331,
         "active": false
       },
       {
-        "id": 1741478470,
-        "url": "https://www.bilibili.com/",
-        "active": false
-      },
-      {
-        "id": 1741478471,
+        "id": 190627334,
         "active": true
       }
     ],
@@ -114,7 +102,7 @@
       "cardCount": 0,
       "firstCard": "",
       "emptyShown": true,
-      "bodyStart": "SA 账号同步 收藏、点赞与书签 ↻ 0 同步中 1 已完成 0 需处理 同步全部账号 连接账号 同步中 需处理 全部 ✓ 现在没有正在跑的同步 最近完成了 1 次——点上面的「全部」可以看。 打开资料库 账号与导出"
+      "bodyStart": "SA 账号同步 收藏与书签 ↻ 0 同步中 1 已完成 0 需处理 同步全部账号 连接账号 同步中 需处理 全部 ✓ 现在没有正在跑的同步 最近完成了 1 次——点上面的「全部」可以看。 打开资料库 账号与导出"
     }
   },
   "account_created": {

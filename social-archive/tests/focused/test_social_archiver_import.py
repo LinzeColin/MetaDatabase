@@ -85,8 +85,12 @@ def test_pwa_exposes_zero_tech_social_archiver_import():
     assert "导入 Social Archiver / Markdown ZIP" in html
     assert "openImport" in html and "archiveFile" in html
     assert "/v1/import/social-archiver" in js
-    assert 'accept=".zip,application/zip,application/x-zip-compressed"' in html
-    assert '"Content-Type": "application/zip"' in js
+    # v0.0.0.22：文件类型放开了——bilibili-cli 那类工具导出的是一个裸的
+    # JSON/YAML 清单，原来只认 .zip 等于那条导入路从入口就关着。
+    # 仍然必须收 .zip（Social Archiver 那条本来就是打包的），所以钉的是"含 .zip"。
+    assert '.zip' in html and 'accept=' in html
+    # v0.0.0.22：内容类型改成 application/octet-stream——上传的不一定是压缩包了。
+    assert '"Content-Type": "application/octet-stream"' in js
     assert '"X-Archive-Filename": safeArchiveFilename(file)' in js
     assert "body: file" in js
     assert "MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024" in js

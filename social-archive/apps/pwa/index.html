@@ -202,11 +202,11 @@
      不会因为接口改版而坏，也不用逆向任何东西。-->
 <label for="importSource">这个包是哪来的<select id="importSource" name="importSource">
 <option value="social-archiver">Social Archiver / 本地 Markdown 工具导出的</option>
-<option value="data-export">平台官方的「下载我的数据」包</option>
+<option value="data-export">平台官方的「下载我的数据」包，或 bilibili-cli 这类工具导出的清单</option>
 </select></label>
 <label for="importPlatform">算作哪个平台<input id="importPlatform" name="importPlatform" maxlength="64" placeholder="留空就记成「导入」" type="text"/></label>
-<label for="archiveFile">ZIP 导出包<input accept=".zip,application/zip,application/x-zip-compressed" id="archiveFile" name="archiveFile" required type="file"/></label>
-<p class="form-help">仅接受 ZIP。官方导出包最大 500 MiB，其余 200 MiB。重复导入同一包会复用已有内容，不创建重复关系。<strong>导入完会逐个文件告诉你读懂了几条、哪些没看懂</strong>——不会只报一个总数。</p>
+<label for="archiveFile">导出包或清单文件<input accept=".zip,.json,.yaml,.yml,.csv,.html,application/zip,application/x-zip-compressed" id="archiveFile" name="archiveFile" required type="file"/></label>
+<p class="form-help">ZIP 压缩包，或 bilibili-cli 这类工具导出的单个 JSON / YAML / CSV / HTML 清单。官方导出包最大 500 MiB，其余 200 MiB。重复导入同一包会复用已有内容，不创建重复关系。<strong>导入完会逐个文件告诉你读懂了几条、哪些没看懂</strong>——不会只报一个总数。</p>
 <div aria-live="polite" class="inline-error" id="importError"></div>
 <div class="form-actions"><button class="btn" data-close-modal="importModalBackdrop" type="button">取消</button><button class="btn primary" id="importSubmit" type="submit">开始导入</button></div>
 </form>

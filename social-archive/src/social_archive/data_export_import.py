@@ -49,7 +49,10 @@ import csv
 import io
 import json
 import re
+import re
 import zipfile
+
+import yaml
 from typing import Any
 
 # 一个条目至少要有的东西：能打开的网址。
@@ -57,7 +60,9 @@ URL_KEYS = ("url", "link", "permalink", "href", "expanded_url", "canonical_url",
             "webpage_url", "share_url", "note_url")
 TITLE_KEYS = ("title", "name", "text", "full_text", "desc", "description", "caption")
 TIME_KEYS = ("created_at", "created_utc", "timestamp", "time", "date", "add_date",
-             "fav_time", "saved_at")
+             "fav_time", "saved_at",
+              # bilibili-cli 的清单用 pubdate / ctime 记时间
+              "pubdate", "ctime", "fav_time")
 
 HTTP = re.compile(r"https?://[^\s\"'<>\\]+")
 # Netscape 书签：<A HREF="…" ADD_DATE="…">标题</A>
@@ -104,6 +109,24 @@ def _records_from_object(payload: Any) -> list[dict]:
     if not isinstance(payload, dict):
         return out
     url = _first(payload, URL_KEYS)
+    # **有些清单里根本没有网址，只有编号。**
+    #
+    # bilibili-cli 这类工具导出的条目通常长这样：
+    #     {bvid: BV1xx…, title: …, owner: {name: …}, pubdate: …}
+    # 一个 url 字段都没有。上面那条按 url 找的路径会整份漏掉，
+    # 而它明明是一份完整、干净、他自己导出来的收藏清单。
+    #
+    # 这两个模板**不是我现编的**：仓里 registry.py:436 与
+    # platform_payloads.py:184/191 早就在用同一份写法。
+    # 顺序也和按形状读那条路一致：**取来的优先于拼来的**——
+    # 只有在条目自己说不出网址时才拼。
+    if not (isinstance(url, str) and HTTP.match(url)):
+        bvid = _first(payload, ("bvid", "bv_id", "bvId"))
+        aid = _first(payload, ("aid", "av_id", "avid"))
+        if isinstance(bvid, str) and re.fullmatch(r"BV[0-9A-Za-z]{8,12}", bvid.strip()):
+            url = f"https://www.bilibili.com/video/{bvid.strip()}"
+        elif isinstance(aid, (int, str)) and str(aid).strip().isdigit():
+            url = f"https://www.bilibili.com/video/av{str(aid).strip()}"
     if isinstance(url, str) and HTTP.match(url):
         out.append({
             "url": url,
@@ -144,6 +167,29 @@ def _read_csv(text: str) -> list[dict]:
     return out
 
 
+def _read_yaml(text: str) -> list[dict]:
+    """读 YAML 清单（bilibili-cli 这类工具的默认输出之一）。
+
+    Owner 的项目表里 bilibili-cli 的角色是「JSON/YAML 导入」。
+    JSON 那一半本来就走 `_read_json`；YAML 这一半此前**完全没有**——
+    上传一个 .yaml 会掉进最后那个兜底（正则捡链接），
+    而 bilibili-cli 的条目里连链接都没有，于是回执是「读不出任何链接」。
+
+    只认安全子集（`safe_load`），不执行任何标签。
+    """
+    stripped = text.strip()
+    # 一份 JSON 也是合法 YAML；让 JSON 走它自己那条路，回执里的形状名才准。
+    if not stripped or stripped[0] in "[{":
+        return []
+    try:
+        payload = yaml.safe_load(stripped)
+    except yaml.YAMLError:
+        return []
+    if payload is None:
+        return []
+    return _records_from_object(payload)
+
+
 def _read_json(text: str) -> list[dict]:
     stripped = JS_WRAPPED.sub("", text.strip())
     stripped = stripped.rstrip(";").strip()
@@ -169,7 +215,7 @@ def _read_one(name: str, blob: bytes) -> tuple[list[dict], str]:
         except Exception:                                   # noqa: BLE001
             return [], "跳过：不是文本，解码不了"
     for reader, shape in ((_read_json, "JSON"), (_read_html, "HTML 书签"),
-                          (_read_csv, "CSV")):
+                          (_read_csv, "CSV"), (_read_yaml, "YAML")):
         found = reader(text)
         if found:
             return found, f"按 {shape} 读到 {len(found)} 条"
@@ -181,7 +227,8 @@ def _read_one(name: str, blob: bytes) -> tuple[list[dict], str]:
     return [], "读不出任何链接"
 
 
-def read_export_archive(payload: bytes, *, limit: int = 10000) -> dict[str, Any]:
+def read_export_archive(payload: bytes, *, limit: int = 10000,
+                        filename: str = "") -> dict[str, Any]:
     """读一个官方数据导出包。
 
     **回执里每个文件都有一行**，读懂了几条、没读懂为什么——
@@ -190,9 +237,34 @@ def read_export_archive(payload: bytes, *, limit: int = 10000) -> dict[str, Any]
     try:
         archive = zipfile.ZipFile(io.BytesIO(payload))
     except zipfile.BadZipFile:
-        return {"ok": False, "failure_code": "NOT_A_ZIP",
-                "error": "这不是一个能打开的压缩包。请上传平台给你的那个原始 .zip。",
-                "files": [], "items": []}
+        # **不是压缩包，就当成一个文件来读。**
+        #
+        # Owner 的项目表里 bilibili-cli 的角色是「JSON/YAML 导入」，
+        # 而那类工具吐出来的就是**一个裸文件**，不是压缩包。
+        # 原来这里一律回「这不是一个能打开的压缩包」——
+        # 也就是说那条导入路对他手上真实的文件**从入口就关着**。
+        found, note = _read_one(filename or "上传的文件", payload)
+        items: list[dict] = []
+        seen: set[str] = set()
+        for record in found:
+            url = str(record.get("url") or "")
+            if url and url not in seen:
+                seen.add(url)
+                items.append(record)
+            if len(items) >= limit:
+                break
+        name = filename or "上传的文件"
+        if not items:
+            return {"ok": False, "failure_code": "FILE_HAS_NO_LINKS",
+                    "error": f"这个文件里没有找到任何条目（{note}）。"
+                             "如果它是压缩包，请确认没有被解压过；"
+                             "如果是清单文件，请确认里面是导出的条目而不是配置。",
+                    "files": [{"name": name, "found": 0, "new": 0, "note": note}],
+                    "items": []}
+        return {"ok": True,
+                "files": [{"name": name, "found": len(found), "new": len(items),
+                           "note": f"{note}（**按单个文件读的**，不是压缩包）"}],
+                "items": items, "counted": len(items), "file_count": 1}
 
     files: list[dict] = []
     items: list[dict] = []

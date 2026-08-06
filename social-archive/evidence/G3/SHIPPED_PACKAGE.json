@@ -1,7 +1,7 @@
 {
   "status": "PASS",
   "package": "dist/social-archive-extension.zip",
-  "package_sha256_prefix": "b9782bbf3983c18f",
+  "package_sha256_prefix": "5c42265ffdb12376",
   "manifest": {
     "version": "0.0.0.22",
     "host": [
@@ -28,7 +28,7 @@
     "threw": "This function must be called during a user gesture"
   },
   "permission_request_from_extension_page": {
-    "returned": true
+    "prompted": true
   },
   "permission_request_from_service_worker": {
     "bookmarks": {

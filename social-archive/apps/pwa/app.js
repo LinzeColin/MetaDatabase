@@ -1127,16 +1127,24 @@
     const submit = $("importSubmit");
     if (error) error.textContent = "";
     if (!file) {
-      if (error) error.textContent = "请选择一个 ZIP 导出包。";
+      if (error) error.textContent = "请选择一个文件。";
       return;
     }
-    if (!file.name.toLowerCase().endsWith(".zip") || file.size <= 0) {
-      if (error) error.textContent = "请选择非空的 ZIP 导出包。";
+    // **压缩包不是唯一形态。** bilibili-cli 这类工具导出的是一个裸的
+    // JSON/YAML 清单，而 Owner 的项目表里它的角色就是「JSON/YAML 导入」。
+    // 原来这里只认 .zip——那条导入路对他手上真实的文件从入口就关着。
+    // Social Archiver 那条仍然只收 ZIP（它本来就是打包的）。
+    const sourceValue = $("importSource")?.value || "social-archiver";
+    const allowed = sourceValue === "data-export"
+      ? [".zip", ".json", ".yaml", ".yml", ".csv", ".html", ".htm"]
+      : [".zip"];
+    const lower = file.name.toLowerCase();
+    if (!allowed.some(suffix => lower.endsWith(suffix)) || file.size <= 0) {
+      if (error) error.textContent = `请选择非空的 ${allowed.join(" / ")} 文件。`;
       return;
     }
     // 官方导出包（尤其 Instagram / Google Takeout）动辄几百兆，上限单独放宽。
-    const source = $("importSource")?.value || "social-archiver";
-    const isDataExport = source === "data-export";
+    const isDataExport = sourceValue === "data-export";
     const cap = isDataExport ? 500 * 1024 * 1024 : MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES;
     if (file.size > cap) {
       if (error) error.textContent = `导入包超过 ${Math.round(cap / 1024 / 1024)} MiB，请拆分后重试。`;
@@ -1151,7 +1159,7 @@
         isDataExport ? `/v1/import/data-export${query}` : "/v1/import/social-archiver", {
         method: "POST",
         headers: {
-          "Content-Type": "application/zip",
+          "Content-Type": "application/octet-stream",
           "X-Archive-Filename": safeArchiveFilename(file)
         },
         body: file,

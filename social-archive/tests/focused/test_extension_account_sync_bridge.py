@@ -139,7 +139,11 @@ def test_connection_reuses_an_existing_platform_tab_before_opening_a_new_page():
     background = (EXT / "background.js").read_text(encoding="utf-8")
     assert "async function findExistingPlatformTab(platform, preferredTabId = null)" in background
     assert "const existingTab = await findExistingPlatformTab(platform);" in background
-    assert "const tab = existingTab || await chrome.tabs.create({ url: spec.home, active: true });" in background
+    # v0.0.0.22：**不许抢焦点**。Owner 的原话「几个页面乱七八糟的跳来跳去非常乱」，
+    # 而这正是他自己定的铁律第 4 条。原来 active: true —— 点一下连接账号，
+    # 浏览器当场跳到平台首页，他得自己找回来再点第二次「我已登录，继续」。
+    # 复用已有标签页这条不变（这条判据本来守的就是它），改的只是别把人拽过去。
+    assert "const tab = existingTab || await chrome.tabs.create({ url: spec.home, active: false });" in background
     assert "await setPendingConnection(platform" in background
     # 原有一条断言此处会注入抓取器脚本。抓取器已删，注入随之取消；
     # **复用已有标签页**这条边界本身与取数方式无关，是 INV-ZERO-BARRIER 的一部分

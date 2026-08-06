@@ -443,10 +443,28 @@ async def run(chrome: str, platform: str) -> int:
         problems.append("**报了 complete**——页面只发了滚动到的那一批，"
                         "报完整会让消失检测把没滚到的当成他取消了收藏")
 
+    # **一次点击就该完事**（v0.0.0.22）。
+    #
+    # Owner：「几个页面乱七八糟的跳来跳去非常乱」——而这正是他自己定的铁律第 4 条。
+    # 连接现在会在后台轮询确认登录态，成了就直接连上；只有自动认不出来时，
+    # 才把平台页翻到前台并要他点「我已登录，继续」。
+    #
+    # 所以这里认两种结局，**但都必须真的连上**：
+    #   · 连接自己就完成了（state=connected）——正常路，他只点了一次
+    #   · 连接仍在等确认，而后面那次显式确认成功——他还没登录时的退路
+    # 两种都不成立才叫失败。
+    connect = measured.get("connect") or {}
     verify = measured.get("verify") or {}
-    if not verify.get("ok"):
-        problems.append(f"**「我已登录，继续」这一步没成**：{verify.get('failureCode')} / "
-                        f"{verify.get('error')}——账号建不起来，可同步就是空话")
+    if not (connect.get("state") == "connected" or verify.get("ok")):
+        problems.append(
+            f"**连不上**：连接说 {json.dumps(connect, ensure_ascii=False)[:160]}；"
+            f"确认说 {verify.get('failureCode')} / {verify.get('error')}"
+            "——账号建不起来，可同步就是空话")
+    # **别把「跳走了」当成成功。** 自动认出来的那条路上，
+    # 连接返回时状态必须已经是 connected；否则他就得再点一次、再跳一次。
+    if connect.get("state") == "authorizing" and verify.get("ok"):
+        problems.append("连接没能自动确认，退回到了「我已登录，继续」那条路——"
+                        "在这个夹具里页面本来就是已登录状态，说明自动确认那几轮没起作用")
     account = (received["accounts"] or [{}])[0]
     if not account:
         problems.append("**档案馆里没建起账号**")

@@ -911,6 +911,8 @@ async def import_data_export(
     platform_hint: str = Query(default="import", min_length=1, max_length=64),
     relation_type: str = Query(default="saved"),
     limit: int = Query(default=5000, ge=1, le=20000),
+    # 文件名只用来在回执里叫得出它的名字，以及区分"压缩包 / 单个清单文件"。
+    x_archive_filename: str = Header(default=""),
 ) -> dict[str, Any]:
     """读平台官方的「下载我的数据」压缩包。
 
@@ -924,7 +926,9 @@ async def import_data_export(
     if content_length and int(content_length) > 500 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="导出包超过 500 MiB")
     payload = await request.body()
-    read = read_export_archive(payload, limit=limit)
+    # **不是压缩包也要能读。** bilibili-cli 这类工具吐的是一个裸的
+    # JSON/YAML 清单文件，而 Owner 的项目表里它的角色正是「JSON/YAML 导入」。
+    read = read_export_archive(payload, limit=limit, filename=x_archive_filename[:180])
     if not read.get("ok"):
         raise HTTPException(status_code=422, detail=read.get("error") or "读不出这个包")
     captured, errors = [], []

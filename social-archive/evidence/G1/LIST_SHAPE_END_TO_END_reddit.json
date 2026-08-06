@@ -8,19 +8,17 @@
   ],
   "connect": {
     "ok": true,
-    "state": "authorizing",
-    "platform": "reddit",
-    "tabId": 212415735,
-    "message": "已在当前 Chrome profile 中打开Reddit，插件会检测现有登录态。"
-  },
-  "verify": {
-    "ok": true,
     "state": "connected",
     "accountId": "acct-1",
     "syncRunId": "run-1",
     "queuedCount": 1,
     "message": "已在你的Reddit收藏页上认出 6 条，正在存进档案馆。",
     "platform": "reddit"
+  },
+  "verify": {
+    "ok": false,
+    "state": "not_pending",
+    "error": "没有等待确认的连接流程，请重新点击连接账号"
   },
   "account_created": {
     "id": "acct-1",
@@ -52,8 +50,8 @@
   "captured_urls": [
     "https://www.reddit.com/api/log",
     "https://www.reddit.com/api/config",
-    "https://www.reddit.com/api/user",
     "https://www.reddit.com/svc/best",
+    "https://www.reddit.com/api/user",
     "https://www.reddit.com/svc/saved"
   ],
   "recognised": "https://www.reddit.com/svc/saved",

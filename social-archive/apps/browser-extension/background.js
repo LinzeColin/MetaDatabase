@@ -947,7 +947,14 @@ async function connectBrowserPlatform(platform) {
     }),
     timeoutMs: 15000
   });
-  const tab = existingTab || await chrome.tabs.create({ url: spec.home, active: true });
+  // **不许抢焦点。** Owner 的原话：「几个页面乱七八糟的跳来跳去非常乱」。
+  // 而这正是他自己定的铁律第 4 条（ZERO_BARRIER_UX.md）：
+  // 「整个连接流程在同一个页面内推进，不要开新标签让用户在页面间找路」。
+  //
+  // 原来这里 active: true —— 点一下「连接账号」，浏览器当场跳到平台首页，
+  // 他得自己找回插件那一页，再点第二次「我已登录，继续」。两次跳、两次点。
+  // 现在标签页在后台开，他人不动。
+  const tab = existingTab || await chrome.tabs.create({ url: spec.home, active: false });
   await setPendingConnection(platform, {
     connectionRef: start.connection_ref,
     authMethod: "browser_session",
@@ -955,17 +962,40 @@ async function connectBrowserPlatform(platform) {
     tabId: tab.id,
     relations: spec.relations
   });
-  if (existingTab?.id) {
-    await chrome.tabs.update(existingTab.id, { active: true });
+  // **一次点击就该完事。** 确认登录态这一步不再要他回来点第二次：
+  // 这里当场后台轮询几轮，成了就直接连上并排首次同步。
+  //
+  // 轮询而不是等一次：页面要时间加载、登录态要时间生效。
+  // 上限定在 4 轮 × 3 秒——超过这个时间他会以为按钮坏了，
+  // 那时才把平台页翻到前台，并明说要他做什么。
+  for (let round = 0; round < 4; round += 1) {
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    let verified = null;
+    try {
+      verified = await verifyPendingPlatform(platform, { keepInBackground: true });
+    } catch (_) {
+      verified = null;
+    }
+    if (verified?.ok) {
+      // 我们开的标签页，用完自己收掉——别在他的浏览器里留一堆。
+      if (!existingTab && Number.isInteger(tab.id)) {
+        await chrome.tabs.remove(tab.id).catch(() => {});
+      }
+      return { ...verified, platform,
+               message: verified.message || `${spec.label}已连接，首次同步已经开始。` };
+    }
+  }
+  // 没自动认出来：多半是他还没在那个平台登录。**这时才把页面翻到前台**，
+  // 并且说清下一步——而不是一开始就把他丢过去。
+  if (Number.isInteger(tab.id)) {
+    await chrome.tabs.update(tab.id, { active: true }).catch(() => {});
   }
   return {
     ok: true,
     state: "authorizing",
     platform,
     tabId: tab.id,
-    message: existingTab
-      ? `已复用当前${spec.label}页面，正在确认登录态并启动首次同步。`
-      : `已在当前 Chrome profile 中打开${spec.label}，插件会检测现有登录态。`
+    message: `请在刚打开的${spec.label}页面登录，然后回到这里点「我已登录，继续」。`
   };
 }
 
@@ -1571,14 +1601,16 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
 //
 // 留着的坏处不是占地方：它让「浏览器会话连接」在代码上看起来是完整的一条闭环，
 // 而实际上中间那一环不存在。本轮反复栽的就是这种「看着接上了」。
-async function verifyPendingPlatform(platform) {
+async function verifyPendingPlatform(platform, { keepInBackground = false } = {}) {
   const pending = (await getPendingConnections())[platform];
   if (!pending) return { ok: false, state: "not_pending", error: "没有等待确认的连接流程，请重新点击连接账号" };
   const preferred = await findExistingPlatformTab(platform, pending.tabId);
   if (!preferred?.id) {
     return { ok: false, state: "authorizing", error: "未找到可复用的平台页面；插件不会打开新的登录页。" };
   }
-  await chrome.tabs.update(preferred.id, { active: true });
+  // 自动确认那几轮不许抢焦点（keepInBackground）——他还在账号页上看着按钮转。
+  // 他自己点「我已登录，继续」时才翻到前台，那是他主动要看那一页。
+  if (!keepInBackground) await chrome.tabs.update(preferred.id, { active: true });
   // v0.0.0.7 / T03：登录态确认原先靠扫页面上有没有"登录"按钮、有没有头像元素。
   // 那是 DOM 抓取，已删。
   //

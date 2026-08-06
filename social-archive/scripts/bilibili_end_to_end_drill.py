@@ -585,10 +585,15 @@ async def run(chrome: str, ext_src: Path = EXT_SRC) -> int:
         api.shutdown()
         shutil.rmtree(workspace, ignore_errors=True)
 
+    # **一次点击就该完事**（v0.0.0.22）：连接会在后台轮询确认登录态，
+    # 成了就直接连上；只有自动认不出来时才要他点「我已登录，继续」。
+    # 所以两种结局都认，但都必须真的连上。
+    connect = measured.get("connect") or {}
     verify = measured.get("verify") or {}
-    if not verify.get("ok"):
+    if not (connect.get("state") == "connected" or verify.get("ok")):
         problems.append(
-            f"**「我已登录，继续」这一步没成**：{verify.get('failureCode')} / {verify.get('error')}"
+            f"**连不上**：连接说 {json.dumps(connect, ensure_ascii=False)[:160]}；"
+            f"确认说 {verify.get('failureCode')} / {verify.get('error')}"
             "——账号建不起来，后面整条都跑不了")
     if verify.get("failureCode") == "LOGIN_PROOF_UNAVAILABLE":
         problems.append("还是那句 LOGIN_PROOF_UNAVAILABLE —— 登录态确认根本没接上")
