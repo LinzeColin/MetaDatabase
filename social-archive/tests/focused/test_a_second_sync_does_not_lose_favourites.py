@@ -68,17 +68,46 @@ def _connect(settings, store, service):
     return coordinator, account_id
 
 
-def _one_sync(coordinator, account_id, folders: dict[str, list[str]]) -> str:
+# **两种批次形状都要验。**
+#
+# `per_collection=True`  —— v0.0.0.9 起扩展真正发的那种：按收藏夹分批，
+#                          每批带自己的 collection_key + collection_name + 终批。
+#                          分批之前收藏夹的名字整个丢在地上（服务端建收藏夹记录的
+#                          条件是 `if batch.collection_name:`）。
+# `per_collection=False` —— 分批之前那种：一整批、批次级 key 为空，
+#                          全靠服务端那行 `batch.collection_key or item.collection_key`
+#                          兜底。**这条路仍然要成立**：cursor 里没有收藏夹清单时
+#                          （比如只有一个默认收藏夹）就会走它。
+SHAPES = (True, False)
+
+
+def _one_sync(coordinator, account_id, folders: dict[str, list[str]],
+              *, per_collection: bool = True) -> str:
     """跑一次完整同步，批次形状照抄 sendBrowserScopeBatches 真正发出去的那种。"""
     run = coordinator.start_sync(account_id, AccountSyncRequest(
         mode="incremental", relation_types=["favorite"], trigger_type="manual"))["sync_run_id"]
-    items = [_bilibili_item(bvid, collection)
-             for collection, bvids in folders.items() for bvid in bvids]
-    # ① 条目批次：scope_type=collection，**批次级 collection_key 是空的**
-    coordinator.ingest_batch(run, SyncBatchRequest(
-        relation_type="favorite", scope_type="collection", collection_key="",
-        items=items, completeness="partial", batch_index=0, batch_count=2, has_more=False))
-    # ② 关系级终批：这一条才让"消失检测"跑起来
+    names = {"111": "学习", "222": "音乐"}
+    if per_collection:
+        for collection, bvids in folders.items():
+            coordinator.ingest_batch(run, SyncBatchRequest(
+                relation_type="favorite", scope_type="collection",
+                collection_key=collection, collection_name=names[collection],
+                items=[_bilibili_item(bvid, collection) for bvid in bvids],
+                completeness="partial", batch_index=0, batch_count=1, has_more=False))
+            # 收藏夹级终批
+            coordinator.ingest_batch(run, SyncBatchRequest(
+                relation_type="favorite", scope_type="collection",
+                collection_key=collection, collection_name=names[collection],
+                items=[], completeness="complete", batch_index=1, batch_count=2,
+                has_more=False))
+    else:
+        items = [_bilibili_item(bvid, collection)
+                 for collection, bvids in folders.items() for bvid in bvids]
+        coordinator.ingest_batch(run, SyncBatchRequest(
+            relation_type="favorite", scope_type="collection", collection_key="",
+            items=items, completeness="partial", batch_index=0, batch_count=2,
+            has_more=False))
+    # 关系级终批：这一条才让"消失检测"跑起来
     coordinator.ingest_batch(run, SyncBatchRequest(
         relation_type="favorite", scope_type="relation", collection_key="",
         items=[], completeness="complete", batch_index=1, batch_count=2, has_more=False))
@@ -95,13 +124,15 @@ def _active(store) -> set[str]:
     return {str(row["eid"]) for row in rows}
 
 
-def test_the_first_sync_files_every_item_under_its_own_folder(settings, store, service) -> None:
+@pytest.mark.parametrize("per_collection", SHAPES)
+def test_the_first_sync_files_every_item_under_its_own_folder(
+        settings, store, service, per_collection) -> None:
     """条目挂到自己的收藏夹上，而不是批次那个空的 collection_key。
 
     挂错的话消失检测就会在错误的桶里比对——那是下面两条判据的前提。
     """
     coordinator, account_id = _connect(settings, store, service)
-    _one_sync(coordinator, account_id, FOLDERS)
+    _one_sync(coordinator, account_id, FOLDERS, per_collection=per_collection)
     with store.connection() as con:
         rows = con.execute(
             """SELECT c.external_content_id AS eid, r.collection_key AS ck
@@ -114,7 +145,9 @@ def test_the_first_sync_files_every_item_under_its_own_folder(settings, store, s
     )
 
 
-def test_syncing_twice_with_the_same_favourites_loses_nothing(settings, store, service) -> None:
+@pytest.mark.parametrize("per_collection", SHAPES)
+def test_syncing_twice_with_the_same_favourites_loses_nothing(
+        settings, store, service, per_collection) -> None:
     """**同一批收藏同步两次，一条都不许少。**
 
     自动同步每 6 小时一次，也就是说这条路每天要走四遍。任何"每次都记一次缺席"
@@ -127,18 +160,20 @@ def test_syncing_twice_with_the_same_favourites_loses_nothing(settings, store, s
     所以下一条反过来验"该销账时真的销"。**两条一起才有意义。**
     """
     coordinator, account_id = _connect(settings, store, service)
-    _one_sync(coordinator, account_id, FOLDERS)
+    _one_sync(coordinator, account_id, FOLDERS, per_collection=per_collection)
     assert _active(store) == {"BV1aaaaaaaaa", "BV1bbbbbbbbb", "BV1cccccccccc"}
-    _one_sync(coordinator, account_id, FOLDERS)
+    _one_sync(coordinator, account_id, FOLDERS, per_collection=per_collection)
     assert _active(store) == {"BV1aaaaaaaaa", "BV1bbbbbbbbb", "BV1cccccccccc"}, (
         "**第二次同步把收藏弄丢了**——它们一直在，只是批次和条目的收藏夹归属对不上"
     )
     # 再来一次，确保不是"第二次刚好还没到两次缺席"
-    _one_sync(coordinator, account_id, FOLDERS)
+    _one_sync(coordinator, account_id, FOLDERS, per_collection=per_collection)
     assert _active(store) == {"BV1aaaaaaaaa", "BV1bbbbbbbbb", "BV1cccccccccc"}
 
 
-def test_a_real_unfavourite_does_close_after_two_complete_scans(settings, store, service) -> None:
+@pytest.mark.parametrize("per_collection", SHAPES)
+def test_a_real_unfavourite_does_close_after_two_complete_scans(
+        settings, store, service, per_collection) -> None:
     """反过来也要成立：**真的取消收藏了，要认出来。**
 
     只验"什么都不关"是不够的——一个永远不关的实现同样能过上面那条，
@@ -146,11 +181,11 @@ def test_a_real_unfavourite_does_close_after_two_complete_scans(settings, store,
     两次完整扫描才关闭，是刻意的：一次读漏不该销账。
     """
     coordinator, account_id = _connect(settings, store, service)
-    _one_sync(coordinator, account_id, FOLDERS)
+    _one_sync(coordinator, account_id, FOLDERS, per_collection=per_collection)
     shorter = {"111": ["BV1aaaaaaaaa"], "222": ["BV1cccccccccc"]}   # 取消了 BV1bbbbbbbbb
-    _one_sync(coordinator, account_id, shorter)
+    _one_sync(coordinator, account_id, shorter, per_collection=per_collection)
     assert "BV1bbbbbbbbb" in _active(store), "**一次缺席就销账了**——读漏一次就会丢数据"
-    _one_sync(coordinator, account_id, shorter)
+    _one_sync(coordinator, account_id, shorter, per_collection=per_collection)
     assert "BV1bbbbbbbbb" not in _active(store), (
         "连续两次完整扫描都没看见它，却还留着——取消收藏永远不会反映出来"
     )

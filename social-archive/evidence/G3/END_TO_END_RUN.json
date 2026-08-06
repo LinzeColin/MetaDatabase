@@ -6,7 +6,7 @@
       "ok": true,
       "state": "authorizing",
       "platform": "bilibili",
-      "tabId": 1880356288,
+      "tabId": 342435781,
       "message": "已在当前 Chrome profile 中打开B站，插件会检测现有登录态。"
     },
     "verify": {
@@ -21,33 +21,33 @@
     },
     "tabs_before": [
       {
-        "id": 1880356286,
+        "id": 342435779,
         "active": false
       },
       {
-        "id": 1880356287,
+        "id": 342435780,
         "active": false
       },
       {
-        "id": 1880356288,
+        "id": 342435781,
         "url": "https://www.bilibili.com/",
         "active": false
       },
       {
-        "id": 1880356289,
+        "id": 342435782,
         "active": true
       }
     ],
-    "my_tab_id": 1880356289,
+    "my_tab_id": 342435782,
     "queue_before": [
       {
         "accountId": "acct-1",
-        "enqueuedAt": 1785977370052,
+        "enqueuedAt": 1785978217987,
         "profileUrl": "",
         "syncRunId": "run-1",
         "tabId": null,
         "triggerType": "first_connect",
-        "updatedAt": 1785977370052
+        "updatedAt": 1785978217987
       }
     ],
     "alarm_scheduled": true,
@@ -65,20 +65,20 @@
     "queue_after": [],
     "tabs_after": [
       {
-        "id": 1880356286,
+        "id": 342435779,
         "active": false
       },
       {
-        "id": 1880356287,
+        "id": 342435780,
         "active": false
       },
       {
-        "id": 1880356288,
+        "id": 342435781,
         "url": "https://www.bilibili.com/",
         "active": false
       },
       {
-        "id": 1880356289,
+        "id": 342435782,
         "active": true
       }
     ],
@@ -111,8 +111,29 @@
     {
       "relation": "favorite",
       "scope": "collection",
-      "items": 3,
+      "items": 2,
       "completeness": "partial",
+      "failure_code": null
+    },
+    {
+      "relation": "favorite",
+      "scope": "collection",
+      "items": 0,
+      "completeness": "complete",
+      "failure_code": null
+    },
+    {
+      "relation": "favorite",
+      "scope": "collection",
+      "items": 1,
+      "completeness": "partial",
+      "failure_code": null
+    },
+    {
+      "relation": "favorite",
+      "scope": "collection",
+      "items": 0,
+      "completeness": "complete",
       "failure_code": null
     },
     {

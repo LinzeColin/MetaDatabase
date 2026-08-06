@@ -561,7 +561,26 @@ class AccountSyncCoordinator:
             ))
             if not collections:
                 collections.add("")
+            # **同一次同步里，一个收藏夹只许记一次缺席。**
+            #
+            # `apply_complete_scan` 有两个调用点：收藏夹级终批一个（下面 ingest 那段），
+            # 关系级终批这里一个。两边都跑的话，一次同步就给同一条关系记了**两次**缺席
+            # ——而"连续两次缺席才关闭"这个安全设计的全部意义，就是让**一次**读漏
+            # （网络抖动、翻页卡住）不至于销账。两次并作一次，那道保险等于没有。
+            #
+            # v0.0.0.9 之前这条路是死的（DOM 抓取器删掉后没人发收藏夹级终批），
+            # 所以一直没暴露。B 站改成按收藏夹分批之后它立刻活了：
+            # 判据 test_a_real_unfavourite_does_close_after_two_complete_scans
+            # 在 per_collection=True 那一档当场变红——**取消收藏后一次同步就销账**。
+            already_scanned = {
+                str(scope["collection_key"])
+                for scope in self.store.list_sync_run_scopes(sync_run_id)
+                if scope["collection_key"] not in {"__relation__", "__mixed__"}
+                and scope.get("completeness") == "complete"
+            }
             for collection_key in collections:
+                if collection_key in already_scanned:
+                    continue
                 observed = self.store.list_sync_seen_relation_ids(
                     sync_run_id=sync_run_id,
                     relation_type=relation_type,

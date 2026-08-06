@@ -475,6 +475,22 @@ async def run(chrome: str) -> int:
     if measured.get("queue_after"):
         problems.append(f"跑完之后队列里还剩 {len(measured['queue_after'])} 个任务没被取走")
 
+    # **收藏夹的名字要真的送到服务端。**
+    # 服务端建收藏夹记录的条件是 `if batch.collection_name:`——批次不带名字，
+    # platform_collection 一行都不会建，「学习」「音乐」这些名字读到了却被丢在地上，
+    # 库里只剩 collection_key="111" 这种媒体 id，他根本认不出那是哪个收藏夹。
+    named = {b.get("collection_key"): b.get("collection_name")
+             for b in received["batches"] if b.get("collection_key")}
+    expected_names = {str(f["id"]): f["title"] for f in FOLDERS}
+    if named != expected_names:
+        problems.append(f"**收藏夹的名字没送到**：收到 {named}，应当是 {expected_names}"
+                        "——他在库里只会看到一串媒体 id")
+    # 每个收藏夹都该有自己的终批，否则单个收藏夹的完整性没有回执
+    finals_by_collection = {b.get("collection_key") for b in received["batches"]
+                            if b.get("collection_key") and not (b.get("items") or [])}
+    if finals_by_collection != set(expected_names):
+        problems.append(f"有收藏夹没有自己的终批：{sorted(set(expected_names) - finals_by_collection)}")
+
     report = {
         "status": "PASS" if not problems else "FAIL",
         "task": "G3",

@@ -968,6 +968,37 @@ async function navigateMirrorTab(tabId, url) {
   await waitForTabComplete(tabId);
 }
 
+/** 一次取回多个收藏夹时，按收藏夹拆批次发（v0.0.0.9）。
+ *
+ * B 站那条路一次读完全部收藏夹，条目各自带着 `collection_key`（媒体 id），
+ * 而批次级 `collection_key` 是空的。**空的批次级 key 有两个后果：**
+ *
+ *   1. `collection_name` 也就无处可放 —— 而服务端建收藏夹记录的条件正是
+ *      `if batch.collection_name:`。于是 `platform_collection` 一行都不会建，
+ *      「学习」「音乐」这些名字**读到了却被丢在地上**，
+ *      库里只剩 `collection_key = "111"` 这种媒体 id。
+ *   2. 收藏夹级的终批（`if (collectionKey)` 那一段）不会发，
+ *      每个收藏夹自己的完整性没有回执。
+ *
+ * 取数器本来就把名字带回来了（`cursor.collections` 里每个都有
+ * `collection_key` + `collection_name`），只是没人转发。这里补上：
+ * 条目按自己的 `collection_key` 分组，一组一批，名字从 cursor 里查。
+ *
+ * 批次级 key 非空时（读页面那条路，一次一个收藏夹）行为不变。
+ */
+function _groupItemsByCollection(items, scopeResult) {
+  const names = new Map(
+    (scopeResult?.cursor?.collections || [])
+      .map(entry => [String(entry.collection_key || ""), String(entry.collection_name || "")]));
+  const groups = new Map();
+  for (const item of items) {
+    const key = String(item.collection_key || "");
+    if (!groups.has(key)) groups.set(key, { key, name: names.get(key) || "", items: [] });
+    groups.get(key).items.push(item);
+  }
+  return [...groups.values()];
+}
+
 async function sendBrowserScopeBatches({ syncRunId, platform, relation, scopeResult, collectionKey = "", collectionName = "" }) {
   const config = await SA.getConfig();
   const items = (scopeResult.items || []).map(item => ({
@@ -979,37 +1010,48 @@ async function sendBrowserScopeBatches({ syncRunId, platform, relation, scopeRes
     // 放到条目上会被 CaptureRequest 的 extra="forbid" 整批打回 422。
     destination_ids: serverDestinations(config)
   }));
-  const chunks = SAExtensionUtils.chunk(items, 200);
-  for (let index = 0; index < chunks.length; index += 1) {
-    await sendSyncBatch(syncRunId, {
-      relation_type: relation,
-      scope_type: "collection",
-      collection_key: collectionKey,
-      collection_name: collectionName,
-      items: chunks[index],
-      completeness: "partial",
-      batch_index: index,
-      batch_count: chunks.length || 1,
-      has_more: index < chunks.length - 1,
-      cursor: { ...scopeResult.cursor, batch_index: index, collection_key: collectionKey }
-    });
+  // 批次级 key 为空 = 这一趟一次取回了多个收藏夹（B 站那条路）。按收藏夹分组，
+  // 好让每组都带上自己的名字与终批；非空时照旧只有一组，行为完全不变。
+  const groups = collectionKey
+    ? [{ key: collectionKey, name: collectionName, items }]
+    : _groupItemsByCollection(items, scopeResult);
+  let totalChunks = 0;
+  for (const group of groups) {
+    const chunks = SAExtensionUtils.chunk(group.items, 200);
+    totalChunks += chunks.length;
+    for (let index = 0; index < chunks.length; index += 1) {
+      await sendSyncBatch(syncRunId, {
+        relation_type: relation,
+        scope_type: "collection",
+        collection_key: group.key,
+        collection_name: group.name,
+        items: chunks[index],
+        completeness: "partial",
+        batch_index: index,
+        batch_count: chunks.length || 1,
+        has_more: index < chunks.length - 1,
+        cursor: { ...scopeResult.cursor, batch_index: index, collection_key: group.key }
+      });
+    }
+    if (group.key) {
+      await sendSyncBatch(syncRunId, {
+        relation_type: relation,
+        scope_type: "collection",
+        collection_key: group.key,
+        collection_name: group.name,
+        items: [],
+        completeness: scopeResult.completeness === "complete" ? "complete" : "partial",
+        batch_index: chunks.length,
+        batch_count: chunks.length + 1,
+        has_more: false,
+        failure_code: scopeResult.failureCode || null,
+        cursor: { ...scopeResult.cursor, collection_key: group.key }
+      });
+    }
   }
-  if (collectionKey) {
-    await sendSyncBatch(syncRunId, {
-      relation_type: relation,
-      scope_type: "collection",
-      collection_key: collectionKey,
-      collection_name: collectionName,
-      items: [],
-      completeness: scopeResult.completeness === "complete" ? "complete" : "partial",
-      batch_index: chunks.length,
-      batch_count: chunks.length + 1,
-      has_more: false,
-      failure_code: scopeResult.failureCode || null,
-      cursor: { ...scopeResult.cursor, collection_key: collectionKey }
-    });
-  }
-  return { imported: items.length, chunks: chunks.length, complete: scopeResult.completeness === "complete" };
+  return { imported: items.length, chunks: totalChunks,
+           collections: groups.length,
+           complete: scopeResult.completeness === "complete" };
 }
 
 /** 取数缝隙 —— **T08 只需要换掉这一个函数体**。
