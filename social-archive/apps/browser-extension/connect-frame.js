@@ -22,6 +22,19 @@
     instagram: "Instagram", youtube: "YouTube",
   };
 
+  /** 把诊断摆成一段能整段复制的话。 */
+  function showDiagnosis(detail) {
+    const box = document.getElementById("diagnosis");
+    if (!box) return;
+    if (!detail) { box.hidden = true; box.textContent = ""; return; }
+    const lines = [`抓到 ${detail.captured ?? "?"} 条响应，没有一条像收藏列表。`];
+    for (const item of (detail.rejected || []).slice(0, 6)) {
+      lines.push(`· ${item.url} —— ${item.why}`);
+    }
+    box.textContent = `把下面这段整段发给我，我照着修：\n${lines.join("\n")}`;
+    box.hidden = false;
+  }
+
   function say(message, kind = "") {
     note.textContent = message || "";
     note.className = `note ${kind}`.trim();
@@ -103,12 +116,30 @@
             return;
           }
           const result = await chrome.runtime.sendMessage({ type: "SA_ACCOUNT_CONNECT", platform });
-          if (!result?.ok) throw new Error(result?.error || "连接未完成");
+          if (!result?.ok) {
+            // **诊断要挂在 error 上，不然下面那句 showDiagnosis 永远是空的。**
+            // 我第一版就漏了这一步——"建好了没接上"当场又犯一次，
+            // 而它只有在真 Chrome 里跑一遍才看得见。
+            const failure = new Error(result?.error || "连接未完成");
+            failure.diagnosis = result?.diagnosis || null;
+            throw failure;
+          }
           say(result.message || `${name.textContent}已连接。`);
+          showDiagnosis(null);
           state.textContent = result.state === "connected" ? "已连接" : "正在确认登录态";
           tell("connected", { platform, state: result.state || "" });
         } catch (error) {
           say(`${name.textContent}：${error.message}`, "error");
+          // **认不出的时候，把「为什么」也摆出来。**
+          //
+          // 那段诊断（抓到几条响应、每条为什么被淘汰）插件早就算好并放在
+          // 返回值的 diagnosis 里，而**服务端和界面没有任何地方读它**——
+          // 于是他只看到「没认出你的收藏列表」，而我要的东西谁也拿不到，
+          // 只能再来一轮：「你把界面上那句话抄给我」。他说过不要这种来回。
+          //
+          // 这里就地渲染成一段可以整段复制的话。**不含签名和查询串**：
+          // 诊断里的地址早在 list-shape.js 的 safePath 就剥过了。
+          showDiagnosis(error.diagnosis);
         } finally {
           button.disabled = false;
           button.textContent = original;

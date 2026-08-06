@@ -41,6 +41,11 @@
   button[disabled] { opacity: .55; cursor: default; }
   .note { margin-top: 12px; font-size: 12px; opacity: .75; min-height: 1.4em; }
   .note.error { color: #b3261e; opacity: 1; }
+  /* 认不出收藏列表时那段可复制的诊断。他把这一段发给我就够了。 */
+  .diagnosis { margin-top: 10px; padding: 10px 12px; border-radius: 8px;
+               border: 1px dashed rgba(128,128,128,.4); font-size: 12px;
+               line-height: 1.5; white-space: pre-wrap; word-break: break-all;
+               user-select: text; max-height: 190px; overflow: auto; }
 </style>
 </head>
 <body>
@@ -48,6 +53,7 @@
 <p class="lead">点一次就好。浏览器会弹一个授权框，选「允许」——<strong>你不用离开这一页</strong>。</p>
 <ul id="list"><li><span class="name">正在读取可连接的来源…</span></li></ul>
 <div aria-live="polite" class="note" id="note"></div>
+<pre class="diagnosis" hidden id="diagnosis"></pre>
 <script src="content/platform-catalog.js"></script>
 <script src="shared.js"></script>
 <script src="connect-frame.js"></script>

@@ -228,6 +228,42 @@ async def _open_library(base: str, extension_id: str) -> dict:
     async with websockets.connect(frames[0]["webSocketDebuggerUrl"], max_size=None) as ws:
         rpc = await shape._rpc_factory(ws)
         await rpc("Runtime.enable")
+        # **认不出时那段诊断有没有真的显示出来。**
+        # 插件早就算好并放在返回值的 diagnosis 里，而在这之前**没有任何界面读它**——
+        # 他只看到「没认出你的收藏列表」，我要的东西谁也拿不到，又是一轮来回。
+        # **造一次"认不出"，看那段诊断真的填进去没有。**
+        # 只看"这块地方存不存在"抓不到我刚修的那种 bug（诊断没挂到 error 上，
+        # 于是它永远是空的）。这里把 sendMessage 换成必定失败的一版，
+        # 点一下按钮，再读那块地方的字。
+        shown = await rpc("Runtime.evaluate", {
+            "expression": '(async () => {'
+                          ' const box = document.getElementById("diagnosis");'
+                          ' if (!box) return JSON.stringify({ hasBox: false });'
+                          # **权限那一步也要绕开**：`permissions.request` 会弹一个
+                          # 没人去点的框，于是点击永远卡在那儿，根本走不到我要验的
+                          # 那一步。第一版忘了这个，演练红了——**而且红在错的理由上**。
+                          ' const hadContains = chrome.permissions.contains;'
+                          ' chrome.permissions.contains = async () => true;'
+                          ' const real = chrome.runtime.sendMessage;'
+                          ' chrome.runtime.sendMessage = async (msg) =>'
+                          '   msg && msg.type === "SA_ACCOUNT_CONNECT"'
+                          '     ? { ok: false, error: "没能在这个页面上认出你的收藏列表。",'
+                          '         diagnosis: { captured: 5, rejected: ['
+                          '           { url: "https://p.example.com/api/log", why: "不是 JSON" },'
+                          '           { url: "https://p.example.com/api/feed", why: "只有 20% 的元素在同一个位置带得出 id" } ] } }'
+                          '     : real(msg);'
+                          ' const button = document.querySelector("button");'
+                          ' if (!button) return JSON.stringify({ hasBox: true, clicked: false });'
+                          ' button.click();'
+                          ' await new Promise(r => setTimeout(r, 1200));'
+                          ' chrome.runtime.sendMessage = real;'
+                          ' chrome.permissions.contains = hadContains;'
+                          ' return JSON.stringify({ hasBox: true, clicked: true,'
+                          '   diagnosisShown: !box.hidden, diagnosisText: (box.textContent || "").slice(0, 160) });'
+                          ' })()',
+            "userGesture": True, "awaitPromise": True, "returnByValue": True, "timeout": 15000})
+        diagnosis_box = json.loads(
+            (shown.get("result", {}).get("result", {}) or {}).get("value") or '{"hasBox": false}')
         got = await rpc("Runtime.evaluate", {
             "expression": 'JSON.stringify({ api: typeof chrome?.permissions?.request,'
                           ' hasButton: !!document.querySelector("button"),'
@@ -237,7 +273,7 @@ async def _open_library(base: str, extension_id: str) -> dict:
         if payload.get("exceptionDetails"):
             return {"embedded": True, "why": str(payload["exceptionDetails"])[:200]}
         detail = json.loads(payload["result"]["value"])
-        return {"embedded": True, **detail, "click": clicked}
+        return {"embedded": True, **detail, "click": clicked, **diagnosis_box}
 
 
 async def _open_options(base: str, extension_id: str) -> dict:
@@ -478,6 +514,18 @@ async def run(chrome: str) -> int:
     elif (measured_frame.get("click") or {}).get("syncStillOpen"):
         # 两个弹窗叠着还是"乱"：他分不清该看哪一层。
         problems.append("**连接面板打开时账号同步中心还开着**——两层弹窗叠在一起")
+    elif not measured_frame.get("hasBox"):
+        problems.append("**面板上没有放诊断的地方**——认不出收藏列表时他只看得到"
+                        "一句「没认出」，而为什么认不出谁也拿不到，又要来回一轮")
+    elif measured_frame.get("clicked") and not measured_frame.get("diagnosisShown"):
+        # **有地方 ≠ 填得进去。** 我第一版就是诊断没挂到 error 上，
+        # 那块地方一直在、一直是空的——只验"存不存在"根本抓不到。
+        problems.append(
+            f"**造了一次认不出，诊断那块地方还是空的**：{measured_frame.get('diagnosisText')!r}"
+            "——他手上仍然只有一句「没认出」")
+    elif measured_frame.get("clicked") and "不是 JSON" not in str(measured_frame.get("diagnosisText") or ""):
+        problems.append(
+            f"**诊断显示出来了，但内容对不上**：{measured_frame.get('diagnosisText')!r}")
     elif not measured_frame.get("hasButton"):
         # **只证明它加载了还不够，要看见它画出按钮。**
         # 面板画不出按钮时用户面对的就是一片说明文字加一句错误——
