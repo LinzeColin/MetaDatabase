@@ -108,6 +108,32 @@ async function captureActive(message = {}, sourceTab = null) {
     }
   }
   if (!items.length) return { ok: false, state: "needs_user_action", error: "当前可见区域没有可读取的内容" };
+  // **信息流不是一条内容。**
+  //
+  // 2026-08-06 在 Owner 生产库里量到三条这样的行：
+  //     https://www.bilibili.com/            标题「哔哩哔哩 (゜-゜)つロ 干杯~」
+  //     https://www.douyin.com/jingxuan      标题「抖音精选电脑版…」
+  //     https://www.xiaohongshu.com/explore  标题「肯德基为什么总想下架吮指原味鸡？」
+  // 最后那条最坏：标题是页面上**第一条笔记**的，看起来像一条真内容，
+  // 半年后点开却是信息流——而那时他已经想不起来当初想存的是哪一条。
+  //
+  // 判据不靠平台特例：`CONTENT_ID_PATTERNS` 本来就写着每个平台的内容 id
+  // 在 URL 里长什么样。匹配不上，这一页就不是"一条内容"。
+  // 表里没有的平台（youtube / 普通网页）不管——那些本来就整页存。
+  if (message.mode === "page") {
+    const platform = SA.platformFromUrl(tab.url)?.id || "";
+    const pattern = globalThis.SAExtensionUtils?.CONTENT_ID_PATTERNS?.[platform];
+    if (pattern && !pattern.test(String(tab.url || ""))) {
+      const label = globalThis.SAPlatformCatalog?.platformLabel?.(platform) || platform;
+      return {
+        ok: false, state: "needs_user_action",
+        failureCode: "PAGE_IS_A_FEED_NOT_AN_ITEM",
+        error: `这一页是${label}的列表/信息流，不是某一条内容。`
+               + "请先点开你想存的那一条，再按保存；"
+               + `或者用「立即同步」把${label}的收藏整批读进来。`,
+      };
+    }
+  }
   let saved = [];
   const failed = [];
   const localDestinationErrors = [];

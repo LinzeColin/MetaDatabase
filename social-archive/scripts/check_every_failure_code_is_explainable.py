@@ -89,6 +89,12 @@ PATTERNS = (
 
 # 不是失败码的大写字面量（状态、类型、算法名等）。每条写清它是什么。
 NOT_A_FAILURE_CODE = {
+    # 保存前的当场拒绝：这一页是信息流，不是一条内容。
+    # **不进 sync_run**——它是同步调用的返回值，弹窗直接把 error 那句原话显示出来
+    # （「这一页是小红书的列表/信息流，不是某一条内容。请先点开你想存的那一条…」）。
+    # 立这条护栏的由头是 Owner 生产库里那三行：bilibili 首页、抖音精选、小红书发现页
+    # 各被当成"一条内容"存了下来，其中小红书那条还借用了页面上第一条笔记的标题。
+    "PAGE_IS_A_FEED_NOT_AN_ITEM",
     "L0", "L1", "L2", "L3",                       # 归档层级
     "UNEXPLAINED_ZERO",                           # 词典自己产生的兜底码
     "NOTHING_NEW", "SYNC_STALLED",                # 同上，由 describe_sync_outcome 产生

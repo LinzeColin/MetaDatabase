@@ -457,3 +457,32 @@ def test_a_relation_nobody_scans_is_never_closed(settings, store, service) -> No
         assert after.get(ident) == "active", (
             f"「{relation}」这一版根本没人扫，却被销账了（{ident} → {after.get(ident)}）"
         )
+
+
+def test_a_feed_page_is_refused_instead_of_saved_as_one_item() -> None:
+    """**信息流不是一条内容**（v0.0.0.22）。
+
+    2026-08-06 在 Owner 生产库里量到三行：
+
+        https://www.bilibili.com/            标题「哔哩哔哩 (゜-゜)つロ 干杯~」
+        https://www.douyin.com/jingxuan      标题「抖音精选电脑版…」
+        https://www.xiaohongshu.com/explore  标题「肯德基为什么总想下架吮指原味鸡？」
+
+    最后那条最坏：标题取自页面上**第一条笔记**，看起来像一条真内容，
+    半年后点开却是信息流——那时他已经想不起来当初想存哪一条。
+
+    护栏不靠平台特例：`CONTENT_ID_PATTERNS` 本来就写着每个平台的内容 id
+    在 URL 里长什么样。这条判据钉住它真的被用在了保存那一步。
+    """
+    from pathlib import Path
+
+    background = (Path(__file__).resolve().parents[2]
+                  / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    body = background.split("async function captureActive", 1)[1].split("\nasync function", 1)[0]
+    assert "CONTENT_ID_PATTERNS" in body, (
+        "保存那一步没有用内容 id 的 URL 规则——信息流会被当成一条内容存下来"
+    )
+    assert "PAGE_IS_A_FEED_NOT_AN_ITEM" in body
+    # **只拦整页保存**：列表模式本来就是一次读一批，不该被这条挡住。
+    guard = body.split("PAGE_IS_A_FEED_NOT_AN_ITEM", 1)[0]
+    assert 'message.mode === "page"' in guard, "这条护栏把列表读取也挡住了"
