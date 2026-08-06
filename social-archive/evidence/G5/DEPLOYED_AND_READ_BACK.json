@@ -2,13 +2,13 @@
   "status": "PASS",
   "task": "G5",
   "host": "linze-ovh",
-  "expected_version": "0.0.0.20",
+  "expected_version": "0.0.0.21",
   "measured_from_production": {
     "health": {
       "status": "ok",
       "project": "Social Archive",
-      "version": "0.0.0.20",
-      "time": "2026-08-06T05:31:39.419679Z",
+      "version": "0.0.0.21",
+      "time": "2026-08-06T06:46:22.745720Z",
       "paid_api_allowed": false,
       "archive_defaults": {
         "L0": true,
@@ -19,23 +19,23 @@
       "worker": {
         "ever_seen": true,
         "alive": true,
-        "last_seen_at": "2026-08-06T05:31:33.239965Z",
-        "seconds_since": 6.2,
+        "last_seen_at": "2026-08-06T06:46:18.922020Z",
+        "seconds_since": 3.8,
         "note": ""
       },
       "minimum_extension_version": "0.0.0.9"
     },
     "platforms": {
       "xiaohongshu": {
-        "sync_supported": false,
+        "sync_supported": true,
         "server_handled": false
       },
       "douyin": {
-        "sync_supported": false,
+        "sync_supported": true,
         "server_handled": false
       },
       "kuaishou": {
-        "sync_supported": false,
+        "sync_supported": true,
         "server_handled": false
       },
       "bilibili": {
@@ -64,10 +64,10 @@
       }
     },
     "package": {
-      "manifest_version": "0.0.0.20",
-      "file_count": 24,
+      "manifest_version": "0.0.0.21",
+      "file_count": 25,
       "has_bilibili_reader": true,
-      "sha256": "288e43f6ccd8be16c882e70b3b1929965fab3f053b35f08b53cf6aa80393e26c"
+      "sha256": "5660c542fad461e0d13408615a720b22e9193cab47710a8c595ddbc8dc448f74"
     },
     "install_page": {
       "bytes": 11540,
@@ -82,12 +82,12 @@
       "manifest.webmanifest": "f71aae80fe412c13defe7908aca3227dec3d4f0f19f4397b71c2e3062485836d",
       "styles.css": "d2a490200b18ef8ed44dee85030c5de88a5b497c3556c1af39ceb83c8f6e13c6",
       "extension-install.html": "7b177d771beb1553f1cc86a618ee8a556640a3070eccc1feb6f41c592d6acee7",
-      "index.html": "8fd279b3316ccb3926c82e2b383cec3e2daca2db784f70dd13528a0d1243ce7f",
-      "app.js": "815101aee4e71b4db1c4e4324bcb2f7c721d9b19ae3f9c90dea6b4cd44a99deb",
+      "index.html": "4e54f656d9fb0f819c092e0d32817c4a8a1f7f2b3207c434d5ec7af996df6cf3",
+      "app.js": "ea5f4d30ec6d1adcdc1ba65c6d535de72a0770151753dfd2e6695b4d81a638b6",
       "favicon.svg": "7b6ebae15b9a72d52b7452880487b9893fdd3ceaa8e0a6105f22a3f2a7486d0a"
     },
     "library_page": {
-      "product_version": "0.0.0.20",
+      "product_version": "0.0.0.21",
       "knows_bilibili_failure_codes": true
     }
   },
