@@ -128,6 +128,11 @@ def structural_commands() -> list[list[str]]:
         # 「界面画的按钮服务端认不认」，这一道问的是
         # 「服务端认了的，扩展里真的有实现吗」——**两个方向**。
         [python, "scripts/check_sync_promises_match_reality.py"],
+        # **建好了，但没有任何东西调得到它**（v0.0.0.22 / G2）。
+        # 这一类已经栽过五次，最近一次是 Instagram 的连接按钮被 Cookie 托管吃掉：
+        # 今天能跑通的那条路从界面上够不着。写测试防不住——要防的恰恰是
+        # 「我没想到要为它写测试」，所以反过来枚举每个函数和每种消息问「谁调它」。
+        [python, "scripts/check_no_mechanism_is_unreachable.py"],
         # 第九种：**说明书开始骗人**（v0.0.0.7 / G4）。
         # 这个仓已经有过一模一样的教训：CONNECT_IS_CLICKABLE_TODAY 里写过一句
         # 详细的操作路径，然后发现没有任何界面读那个字段——写完就是隐形的。

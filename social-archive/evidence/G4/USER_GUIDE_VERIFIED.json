@@ -7,19 +7,21 @@
     "bilibili",
     "douyin",
     "generic-web",
+    "instagram",
     "kuaishou",
+    "reddit",
     "xiaohongshu"
   ],
   "product_auto": [
     "bilibili",
     "douyin",
     "generic-web",
+    "instagram",
     "kuaishou",
+    "reddit",
     "xiaohongshu"
   ],
   "claimed_manual": [
-    "instagram",
-    "reddit",
     "x",
     "youtube"
   ],

@@ -64,7 +64,11 @@ PLATFORM_LABELS = {
 # 后果不是抽象的：extension 的 runBrowserAccountSync 先看 canSync 再看
 # serverHandled，一旦 bilibili 进了 SYNCABLE_NOW，serverHandled=True 会把它
 # 从**能跑通的浏览器路**踢到**永远跑不通的服务端路**上去。
-SERVER_ACCOUNT_CONNECTORS = {"x", "reddit", "instagram"}
+# v0.0.0.22：reddit / instagram 移出去了。它们的主路径是**扩展读取**
+# （Owner 给的平台表里就是这么写的），而服务端这条 2026-08-04 打生产量出来
+# 两条都不通。留在这张表里的后果不是中性的：runBrowserAccountSync 见到
+# server_handled=true 就不参与，等于把它们钉死在那条不通的路上。
+SERVER_ACCOUNT_CONNECTORS = {"x"}
 
 # **本版本真的同步得动的平台。** 这不是「支持哪些平台」的愿景清单，
 # 是「现在点下去会成功」的事实清单。
@@ -135,6 +139,21 @@ SYNCABLE_NOW: frozenset[str] = frozenset({
     "xiaohongshu",
     "douyin",
     "kuaishou",
+    # v0.0.0.22：Reddit / Instagram 换到同一条路上。
+    #
+    # 它们原先挂在服务端连接器上，而 2026-08-04 打生产量出来两条都不通
+    # （reddit 缺授权、instagram 的 Sidecar 调用回 422）。**服务端那条
+    # 从来就不是主路径**——Owner 给的平台表里，这两个写的是「扩展读取 / 导出导入」。
+    #
+    # 让它们走得通的是同一天修掉的那个缺陷：识别器原先只看元素**自己身上**的
+    # 字段，而这两家的 id 都藏在壳里（`children[].data.id`、`items[].media.pk`），
+    # 于是「0% 的元素带得出 id」，一条都认不出。
+    #
+    # **证据强度和上面三个同级**：机制在真 Chrome + 假站上跑通，
+    # 真平台的响应长什么样没验过——那要 Owner 的登录态。
+    # 认不出时它明确说得出来，不会静默也不会丢数据。
+    "reddit",
+    "instagram",
 })
 # 暂时同步不了的，每条写清**为什么**与**现在能做什么**。
 # 界面直接把这句话显示出来，而不是让用户点了才知道。
@@ -168,10 +187,6 @@ NOT_SYNCABLE_YET: dict[str, str] = {
     "x": "本版本还不能自动读取 X 的书签。原因是官方 X 接口可能收费，"
          "而这个项目的硬规矩是绝不产生新的必付费用，所以那条路是主动关着的。"
          "现在可以：在浏览器里打开任意一条推文，点插件的「保存到我的档案馆」。",
-    "reddit": "本版本还不能自动读取 Reddit 的收藏。授权那一步还没有做成你能点的界面。"
-              "现在可以：在浏览器里打开任意一个帖子，点插件的「保存到我的档案馆」。",
-    "instagram": "本版本还不能自动读取 Instagram 的收藏。授权那一步还没有做成你能点的界面。"
-                 "现在可以：在浏览器里打开任意一条内容，点插件的「保存到我的档案馆」。",
 }
 
 

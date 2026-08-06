@@ -141,7 +141,10 @@ def test_the_server_declares_which_platforms_can_sync_today() -> None:
     # 2026-08-06 / v0.0.0.21：小红书/抖音/快手已经接上「按形状认列表」那条路，
     # 所以它们从这份名单里挪走了。留在这里的是仍然没有任何取数路的那些——
     # **这条断言的意义一个字没变**：可同步清单里不许有接不通的平台。
-    for platform in ("x", "reddit", "instagram", "youtube"):
+    # v0.0.0.22：reddit / instagram 也接上了同一条路（识别器原先只看元素自己
+    # 身上的字段，而这两家的 id 藏在壳里，所以一条都认不出——修掉之后才通）。
+    # **这条断言的意义仍然一个字没变**：可同步清单里不许有接不通的平台。
+    for platform in ("x", "youtube"):
         if platform in SERVER_ACCOUNT_CONNECTORS:
             continue          # 服务端连接器那条路另算
         assert platform not in SYNCABLE_NOW, (

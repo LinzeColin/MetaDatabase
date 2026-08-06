@@ -55,6 +55,14 @@ MECHANISM_PROVEN_PLATFORM_SHAPE_UNVERIFIED = {
     "xiaohongshu": "evidence/G1/LIST_SHAPE_END_TO_END.json",
     "douyin": "evidence/G1/LIST_SHAPE_END_TO_END.json",
     "kuaishou": "evidence/G1/LIST_SHAPE_END_TO_END.json",
+    # v0.0.0.22：同一条路、**各自跑一遍**，不共用一份证据。
+    #
+    # 共用是危险的：Reddit 和 Instagram 的响应形状和国内三家完全不同
+    # （id 藏在 `children[].data` / `items[].media` 里），而正是这个差别
+    # 让第一版识别器在它们身上**一条都认不出**。拿小红书那份证据替它们背书，
+    # 等于把「没验过」写成「验过了」。
+    "reddit": "evidence/G1/LIST_SHAPE_END_TO_END_reddit.json",
+    "instagram": "evidence/G1/LIST_SHAPE_END_TO_END_instagram.json",
 }
 
 

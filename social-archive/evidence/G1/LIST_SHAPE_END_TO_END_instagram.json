@@ -1,17 +1,17 @@
 {
   "status": "PASS",
-  "platform": "xiaohongshu",
-  "relation": "favorite",
-  "response_shape": "id_template",
+  "platform": "instagram",
+  "relation": "saved",
+  "response_shape": "slug_template",
   "url_derived_by": [
-    "id_template"
+    "slug_template"
   ],
   "connect": {
     "ok": true,
     "state": "authorizing",
-    "platform": "xiaohongshu",
-    "tabId": 71378834,
-    "message": "已在当前 Chrome profile 中打开小红书，插件会检测现有登录态。"
+    "platform": "instagram",
+    "tabId": 1841917085,
+    "message": "已在当前 Chrome profile 中打开Instagram，插件会检测现有登录态。"
   },
   "verify": {
     "ok": true,
@@ -19,15 +19,15 @@
     "accountId": "acct-1",
     "syncRunId": "run-1",
     "queuedCount": 1,
-    "message": "已在你的小红书收藏页上认出 7 条，正在存进档案馆。",
-    "platform": "xiaohongshu"
+    "message": "已在你的Instagram收藏页上认出 6 条，正在存进档案馆。",
+    "platform": "instagram"
   },
   "account_created": {
     "id": "acct-1",
-    "platform": "xiaohongshu",
+    "platform": "instagram",
     "connection_state": "connected",
     "external_account_id": "browser-session",
-    "display_name": "小红书账号",
+    "display_name": "Instagram账号",
     "metadata": {
       "auth_method": "browser_session",
       "verified_by": "list_shape_recognised",
@@ -39,7 +39,7 @@
   "install": {
     "ok": true,
     "state": "observing",
-    "platform": "xiaohongshu",
+    "platform": "instagram",
     "prefixCount": 1,
     "observerSelfReport": {
       "installed": true,
@@ -50,19 +50,19 @@
   "captured_right_after_install": 5,
   "captured_responses": 5,
   "captured_urls": [
-    "https://www.xiaohongshu.com/api/log",
-    "https://www.xiaohongshu.com/api/config",
-    "https://www.xiaohongshu.com/api/homefeed",
-    "https://www.xiaohongshu.com/api/user",
-    "https://www.xiaohongshu.com/api/collect/page"
+    "https://www.instagram.com/api/log",
+    "https://www.instagram.com/api/config",
+    "https://www.instagram.com/api/user",
+    "https://www.instagram.com/api/v1/feed/timeline",
+    "https://www.instagram.com/api/v1/collections/saved"
   ],
-  "recognised": "https://www.xiaohongshu.com/api/collect/page",
-  "matched_path": "data.notes",
+  "recognised": "https://www.instagram.com/api/v1/collections/saved",
+  "matched_path": "items",
   "items": 7,
   "sample_urls": [
-    "https://www.xiaohongshu.com/explore/n1",
-    "https://www.xiaohongshu.com/explore/n2",
-    "https://www.xiaohongshu.com/explore/n3"
+    "https://www.instagram.com/p/Cn1xYz",
+    "https://www.instagram.com/p/Cn2xYz",
+    "https://www.instagram.com/p/Cn3xYz"
   ],
   "completeness": "partial",
   "failure_code": "PARTIAL_BY_PAGE_SCROLL",

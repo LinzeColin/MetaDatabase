@@ -49,11 +49,18 @@
   const TIME_KEYS = ["create_time", "created_at", "time", "timestamp", "publish_time",
                      "fav_time", "collect_time"];
 
+  // 能拿来拼网址的「链接字段」和「短码」。**和 id 分开**：
+  // id 是用来认「这是一批同类条目」的，链接是用来打开的，两件事。
+  const LINK_KEYS = ["url", "link", "share_url", "note_url", "permalink", "web_url"];
+  const SLUG_KEYS = ["shortcode", "code", "bvid"];
+
   // 一个数组至少要这么多元素才当它是列表。
   // 太小的话，一条配置里的两个开关也会被当成列表。
   const MIN_ITEMS = 3;
   // 至少这么大比例的元素要长得一样，才算「同一批东西」。
   const MIN_HOMOGENEITY = 0.7;
+  // 一条元素里往下挖几层去找 id。**不是越深越好**，见下面那段。
+  const MAX_ITEM_DEPTH = 5;
 
   function has(object, keys) {
     if (!object || typeof object !== "object") return null;
@@ -62,6 +69,70 @@
       if (value !== undefined && value !== null && value !== "") return key;
     }
     return null;
+  }
+
+  /** 在一条元素**内部**找字段，广度优先、限深，返回 `{path, value}`。
+   *
+   * ## 为什么非要这个
+   *
+   * 第一版只看元素自己身上的字段。用三家真实的响应形状试认，**三家全军覆没**，
+   * 理由都一样：「只有 0% 的元素带得出 id」——因为 id 不在元素身上，
+   * **在包了一层的对象里**：
+   *
+   *     Reddit     children[].data.id
+   *     Instagram  items[].media.pk
+   *     X          entries[].content.itemContent.tweet_results.result.rest_id
+   *
+   * 「元素外面套一层壳」是极常见的接口写法，第一版碰巧只在**字段摊平**的
+   * 响应上验过，就当成通例了。
+   *
+   * **而且这不只是「多认几个平台」的事**：小红书自己的条目就是
+   * `id` 在外、`display_title` / `user.nickname` 在 `note_card` 里。
+   * 照第一版的算法，id 找得到（所以照样入库），标题和作者却一个都取不到——
+   * **真站上会存进一批没标题没作者的条目**，而判据全绿。
+   *
+   * ## 挖得越深，越要旁证
+   *
+   * 往下挖是有代价的：`id` 是最常见的字段名之一，挖五层几乎能在任何数组里
+   * 挖出一个 id 来（埋点事件、配置项、实验分组都带 id）。所以加两条约束：
+   *
+   *   1. **路径要一致**——不是「每条都有 id」，是「每条的 id 在同一个位置」。
+   *      杂物数组挖出来的 id 位置七零八落，过不了这条。
+   *   2. **挖到壳里去的（路径带 `.`）必须另有标题或作者佐证**，
+   *      光有 id 不算。摊平的那种维持原样，不加码。
+   */
+  function findKeyDeep(root, keys, { scalarOnly = false, maxDepth = MAX_ITEM_DEPTH } = {}) {
+    let level = [{ node: root, path: "" }];
+    for (let depth = 0; depth <= maxDepth && level.length; depth += 1) {
+      const next = [];
+      for (const { node, path } of level) {
+        if (!node || typeof node !== "object" || Array.isArray(node)) continue;
+        for (const key of keys) {
+          const value = node[key];
+          if (value === undefined || value === null || value === "") continue;
+          if (scalarOnly && typeof value === "object") continue;
+          return { path: path ? `${path}.${key}` : key, value };
+        }
+        for (const [key, value] of Object.entries(node)) {
+          if (value && typeof value === "object" && !Array.isArray(value)) {
+            next.push({ node: value, path: path ? `${path}.${key}` : key });
+          }
+        }
+      }
+      // 宽度也要封顶，不然一条巨大的元素能把这里跑成指数
+      level = next.length > 60 ? next.slice(0, 60) : next;
+    }
+    return null;
+  }
+
+  function atPath(object, path) {
+    if (!path) return object;
+    let node = object;
+    for (const key of path.split(".")) {
+      if (!node || typeof node !== "object") return null;
+      node = node[key];
+    }
+    return node;
   }
 
   /** 把 JSON 里所有「像列表」的数组找出来，连同它在哪。 */
@@ -85,35 +156,67 @@
     return out;
   }
 
-  /** 给一个数组打分：它有多像一批收藏条目。 */
+  /** 给一个数组打分：它有多像一批收藏条目。
+   *
+   * 关键不是「每条有没有 id」，是「**每条的 id 在不在同一个位置**」——
+   * 一批同类条目的结构是一致的，杂物数组不是。所以先统计 id 出现的路径，
+   * 取最常见的那一条当基准，其余字段都在**那条路径指向的那层**上找。
+   */
   function score(items) {
     const sample = items.slice(0, 50);
-    let withId = 0, withTitle = 0, withAuthor = 0, withTime = 0;
-    const idKeys = new Set();
+    const paths = new Map();
     for (const item of sample) {
-      const idKey = has(item, ID_KEYS);
-      if (idKey) { withId += 1; idKeys.add(idKey); }
-      if (has(item, TITLE_KEYS)) withTitle += 1;
-      if (has(item, AUTHOR_KEYS)) withAuthor += 1;
-      if (has(item, TIME_KEYS)) withTime += 1;
+      const hit = findKeyDeep(item, ID_KEYS, { scalarOnly: true });
+      if (hit) paths.set(hit.path, (paths.get(hit.path) || 0) + 1);
+    }
+    let idPath = "", withId = 0;
+    for (const [path, count] of paths) {
+      // 一样多的时候取**浅**的那条：id 比 meta.id 更可能是这批东西的正身
+      if (count > withId || (count === withId && path.length < idPath.length)) {
+        idPath = path;
+        withId = count;
+      }
+    }
+    // id 所在的那层对象，就是这条内容的正身（Reddit 的 `data`、IG 的 `media`）。
+    // 标题、作者、时间都要在**它**身上找，不是在外面那层壳上找。
+    const corePath = idPath.includes(".") ? idPath.slice(0, idPath.lastIndexOf(".")) : "";
+    const idKey = idPath ? idPath.slice(idPath.lastIndexOf(".") + 1) : "";
+    let withTitle = 0, withAuthor = 0, withTime = 0;
+    for (const item of sample) {
+      const core = atPath(item, corePath);
+      if (!core || typeof core !== "object") continue;
+      if (findKeyDeep(core, TITLE_KEYS, { scalarOnly: true, maxDepth: 2 })) withTitle += 1;
+      if (findKeyDeep(core, AUTHOR_KEYS, { maxDepth: 2 })) withAuthor += 1;
+      if (findKeyDeep(core, TIME_KEYS, { scalarOnly: true, maxDepth: 2 })) withTime += 1;
     }
     const n = sample.length || 1;
     const idRate = withId / n;
+    const titleRate = withTitle / n, authorRate = withAuthor / n, timeRate = withTime / n;
     // **齐不齐**比「有没有」更能分辨列表与杂物：
     // 一批收藏条目字段高度一致，而推荐流／配置往往参差不齐。
-    const homogeneous = idRate >= MIN_HOMOGENEITY;
+    const consistent = idRate >= MIN_HOMOGENEITY;
+    // **挖到壳里去的要另有旁证。** 见 findKeyDeep 的那段：`id` 太常见了，
+    // 挖五层几乎能在任何数组里挖出一个来。摊平的那种维持原样，不加码。
+    const wrapped = Boolean(corePath);
+    const corroborated = titleRate >= MIN_HOMOGENEITY || authorRate >= MIN_HOMOGENEITY;
+    const homogeneous = consistent && (!wrapped || corroborated);
     return {
       count: items.length,
       id_rate: Number(idRate.toFixed(2)),
-      title_rate: Number((withTitle / n).toFixed(2)),
-      author_rate: Number((withAuthor / n).toFixed(2)),
-      time_rate: Number((withTime / n).toFixed(2)),
-      id_keys: [...idKeys],
+      title_rate: Number(titleRate.toFixed(2)),
+      author_rate: Number(authorRate.toFixed(2)),
+      time_rate: Number(timeRate.toFixed(2)),
+      id_keys: idKey ? [idKey] : [],
+      id_path: idPath,
+      core_path: corePath,
       // 打分：**id 是硬条件**，其余是加分项
-      points: homogeneous
-        ? idRate * 4 + (withTitle / n) * 2 + (withAuthor / n) + (withTime / n)
-        : 0,
-      rejected: homogeneous ? "" : `只有 ${Math.round(idRate * 100)}% 的元素带得出 id，不像一批同类条目`,
+      points: homogeneous ? idRate * 4 + titleRate * 2 + authorRate + timeRate : 0,
+      rejected: homogeneous ? ""
+        : !consistent
+          ? `只有 ${Math.round(idRate * 100)}% 的元素在同一个位置带得出 id，不像一批同类条目`
+          : `id 藏在 ${corePath} 里（不在元素本身上），而只有 `
+            + `${Math.round(titleRate * 100)}% 有标题、${Math.round(authorRate * 100)}% 有作者——`
+            + "挖得越深越要旁证，否则埋点和配置里的 id 也会被认成内容",
     };
   }
 
@@ -212,45 +315,85 @@
     return { ok: true, best: candidates[0], candidates, rejected };
   }
 
-  /** 把认出来的条目归一化。**不认识的字段一律不猜**，宁可少几个字段。 */
-  function normaliseItems(best, { platform, urlBuilder } = {}) {
+  /** 把认出来的条目归一化。**不认识的字段一律不猜**，宁可少几个字段。
+   *
+   * ## 网址是**取**来的，不是**编**来的
+   *
+   * 优先级写死成这样，而且每条都记下来它是怎么来的（`derived_by`）：
+   *
+   *   1. 条目自带绝对网址        → 直接用（最可靠）
+   *   2. 条目自带相对路径        → 拼上这个平台自己的域（Reddit 的 permalink）
+   *   3. 短码 + 模板             → 例如 Instagram 的 `code`
+   *   4. id + 模板               → 国内三家走这条，模板在测试里验过
+   *   5. **都不成立 → 跳过并报数**，绝不硬拼一个打不开的网址
+   *
+   * 第 5 条是要害。拼错的网址比没有更糟：它会安安静静地进档案馆，
+   * 半年后点开才发现全是 404，而那时已经无从追溯。宁可当场说
+   * 「这次 12 条里有 5 条说不出网址」。
+   */
+  function normaliseItems(best, { platform, urlBuilder, origin } = {}) {
     const items = [];
     const skipped = [];
+    const corePath = best.stats?.core_path || "";
+    const idKey = (best.stats?.id_keys || [])[0] || "";
     for (const raw of best.items) {
-      const idKey = has(raw, ID_KEYS);
-      const externalId = idKey ? String(raw[idKey]) : "";
-      const url = typeof urlBuilder === "function"
-        ? urlBuilder(raw, externalId)
-        : (has(raw, ["url", "link", "share_url", "note_url"])
-            ? String(raw[has(raw, ["url", "link", "share_url", "note_url"])]) : "");
+      const core = atPath(raw, corePath);
+      if (!core || typeof core !== "object") {
+        skipped.push({ id: "", reason: "这条的结构和同批其余的不一样" });
+        continue;
+      }
+      const idValue = idKey && core[idKey] !== undefined && core[idKey] !== null
+        ? core[idKey]
+        : findKeyDeep(core, ID_KEYS, { scalarOnly: true })?.value;
+      const externalId = idValue === undefined || idValue === null ? "" : String(idValue);
+      const linkHit = findKeyDeep(core, LINK_KEYS, { scalarOnly: true, maxDepth: 2 });
+      const linkText = linkHit ? String(linkHit.value) : "";
+      const slugHit = findKeyDeep(core, SLUG_KEYS, { scalarOnly: true, maxDepth: 1 });
+      let url = "";
+      let derivedBy = "";
+      if (/^https?:\/\//i.test(linkText)) {
+        url = linkText;
+        derivedBy = "link_field";
+      } else if (/^\/[^/]/.test(linkText) && origin) {
+        url = String(origin).replace(/\/+$/, "") + linkText;
+        derivedBy = "relative_link";
+      } else if (typeof urlBuilder === "function") {
+        const slug = slugHit ? String(slugHit.value) : "";
+        url = urlBuilder(core, slug || externalId, raw) || "";
+        derivedBy = slug ? "slug_template" : "id_template";
+      }
       if (!/^https?:\/\//i.test(String(url || ""))) {
         skipped.push({ id: externalId, reason: "没有能在浏览器里打开的网址" });
         continue;
       }
-      const titleKey = has(raw, TITLE_KEYS);
-      const authorKey = has(raw, AUTHOR_KEYS);
-      const authorRaw = authorKey ? raw[authorKey] : null;
+      const titleHit = findKeyDeep(core, TITLE_KEYS, { scalarOnly: true, maxDepth: 2 });
+      const authorHit = findKeyDeep(core, AUTHOR_KEYS, { maxDepth: 2 });
+      const authorRaw = authorHit ? authorHit.value : null;
       items.push({
         url,
         external_content_id: externalId.slice(0, 512) || null,
-        title: titleKey ? String(raw[titleKey]).slice(0, 2048) : null,
+        title: titleHit ? String(titleHit.value).slice(0, 2048) : null,
         author_name: (typeof authorRaw === "string" ? authorRaw
           : authorRaw && typeof authorRaw === "object"
-            ? String(authorRaw.nickname || authorRaw.name || authorRaw.user_name || "")
+            ? String(authorRaw.nickname || authorRaw.name || authorRaw.user_name
+                     || authorRaw.screen_name || authorRaw.username || "")
             : "").slice(0, 1024) || null,
         // **这里也要剥。** raw_metadata 会入库、会出现在导出里，
         // 而签名/token 就在查询串上。同一个泄漏点的第二处——
         // 这个仓在「修一处就当修完了」上栽过四次，这次一起修。
         raw_metadata: { source: "page_response_shape", platform: platform || "",
-                        matched_path: best.path, matched_url: safePath(best.url) },
+                        matched_path: best.path, matched_url: safePath(best.url),
+                        // 网址是取来的还是拼来的，**留在证据里**——
+                        // 全是 id_template 的时候，那批网址一条都没被验证过
+                        derived_by: derivedBy },
       });
     }
     return { items, skipped };
   }
 
   const api = Object.freeze({
-    recogniseList, normaliseItems, findArrays, score, safePath,
-    MIN_ITEMS, MIN_HOMOGENEITY, ID_KEYS,
+    recogniseList, normaliseItems, findArrays, score, safePath, findKeyDeep, atPath,
+    MIN_ITEMS, MIN_HOMOGENEITY, MAX_ITEM_DEPTH, ID_KEYS, LINK_KEYS, SLUG_KEYS,
   });
   globalThis.SAListShape = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;

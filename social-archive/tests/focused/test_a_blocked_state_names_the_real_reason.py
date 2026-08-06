@@ -3,7 +3,7 @@
 于是它们不再落到 PLATFORM_NOT_SYNCABLE_YET 那一支。
 
 **判据本身守的东西没变**——「探针挂了」不许被当成「这条路本版本就没有」的原因——
-只是换成了仍然没有取数路的平台（reddit / instagram / youtube）。
+只是换成了仍然没有取数路的平台（x / youtube）。
 换平台而不是改断言，是因为要守的那件事一个字都没变。
 
 指错原因的 BLOCKED 不算 BLOCKED（v0.0.0.7 / T13）。
@@ -18,7 +18,7 @@ evidence/T02/CREDENTIAL_BLOCKED_RECEIPT.json）。同一条道理再走一步：
     xiaohongshu   blocked_environment   HEALTH_PROBE_FAILED
     douyin        blocked_environment   WORKER_PROBE_OR_CALL_FAILED
     kuaishou      blocked_environment   WORKER_PROBE_OR_CALL_FAILED
-    bilibili / reddit / instagram / tiktok   PLATFORM_NOT_SYNCABLE_YET
+    bilibili / youtube / tiktok   PLATFORM_NOT_SYNCABLE_YET
 
 同样是「本版本读不了」，前三个却报成探针挂了。而它们的探针去连的是
 xhs-worker:5556 之类的地址——那三个 worker 早在 T03 就被实测证伪、
@@ -41,7 +41,7 @@ def test_an_incidental_probe_failure_never_becomes_the_stated_reason(
     monkeypatch.setattr(registry, "_live_probe",
                         lambda _: {"state": "degraded", "error_code": probe_code})
     view = next(item for item in registry.health_views(store.connector_states())
-                if item["connector_id"] == "reddit")
+                if item["connector_id"] == "youtube")
     assert view["last_error_code"] == "PLATFORM_NOT_SYNCABLE_YET", (
         f"{probe_code} 被当成了原因——「探针挂了」读起来像「有东西宕了，重启一下」，"
         "而真相是这条路本版本就没有"
@@ -73,7 +73,7 @@ def test_the_probe_code_is_kept_as_a_clue_not_thrown_away(settings, store, monke
                         lambda _: {"state": "degraded", "error_code": "HEALTH_PROBE_FAILED"})
     views = {item["connector_id"]: item for item in registry.health_views(store.connector_states())}
     raw = registry.health_views(store.connector_states())
-    assert views["reddit"]["last_error_code"] == "PLATFORM_NOT_SYNCABLE_YET"
+    assert views["youtube"]["last_error_code"] == "PLATFORM_NOT_SYNCABLE_YET"
     assert any("HEALTH_PROBE_FAILED" in str(item.get("detail") or "") for item in raw), (
         "探针的原码被直接扔了——排查时会少一条线索"
     )
@@ -85,8 +85,8 @@ def test_the_message_and_the_code_tell_the_same_story(settings, store, monkeypat
     monkeypatch.setattr(registry, "_live_probe",
                         lambda _: {"state": "degraded", "error_code": "HEALTH_PROBE_FAILED"})
     view = next(item for item in registry.health_views(store.connector_states())
-                if item["connector_id"] == "reddit")
-    assert view["last_message_zh"] == NOT_SYNCABLE_YET["reddit"], "文案不是能力声明里那句"
+                if item["connector_id"] == "youtube")
+    assert view["last_message_zh"] == NOT_SYNCABLE_YET["youtube"], "文案不是能力声明里那句"
     assert view["last_error_code"] == "PLATFORM_NOT_SYNCABLE_YET", "码和文案讲的不是同一件事"
 
 
@@ -96,7 +96,7 @@ def test_the_next_step_does_not_point_at_a_wizard_that_cannot_help(settings, sto
     通用文案说「尚未配置真实账号或 Worker；……再按向导配置」。生产实测八个
     被挡住的连接器全在显示它。而那三个 Worker 在 T03 就被删了，**也没有任何
     向导能打开这几条路**：bilibili/小红书/抖音/快手是取数路本版本就没建，
-    x 是 Owner 的零费用判断，reddit/instagram 的授权那步还没有他点得到的界面。
+    x 是 Owner 的零费用判断，youtube 的取数路一行都还没写。
 
     叫一个说自己「没有技术基础」的人去按一个不存在的向导，比不给下一步更坏——
     他会去找，找不到，然后以为是自己的问题。

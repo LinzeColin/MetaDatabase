@@ -1,17 +1,17 @@
 {
   "status": "PASS",
-  "platform": "xiaohongshu",
-  "relation": "favorite",
-  "response_shape": "id_template",
+  "platform": "reddit",
+  "relation": "saved",
+  "response_shape": "relative_link",
   "url_derived_by": [
-    "id_template"
+    "relative_link"
   ],
   "connect": {
     "ok": true,
     "state": "authorizing",
-    "platform": "xiaohongshu",
-    "tabId": 71378834,
-    "message": "已在当前 Chrome profile 中打开小红书，插件会检测现有登录态。"
+    "platform": "reddit",
+    "tabId": 212415735,
+    "message": "已在当前 Chrome profile 中打开Reddit，插件会检测现有登录态。"
   },
   "verify": {
     "ok": true,
@@ -19,15 +19,15 @@
     "accountId": "acct-1",
     "syncRunId": "run-1",
     "queuedCount": 1,
-    "message": "已在你的小红书收藏页上认出 7 条，正在存进档案馆。",
-    "platform": "xiaohongshu"
+    "message": "已在你的Reddit收藏页上认出 6 条，正在存进档案馆。",
+    "platform": "reddit"
   },
   "account_created": {
     "id": "acct-1",
-    "platform": "xiaohongshu",
+    "platform": "reddit",
     "connection_state": "connected",
     "external_account_id": "browser-session",
-    "display_name": "小红书账号",
+    "display_name": "Reddit账号",
     "metadata": {
       "auth_method": "browser_session",
       "verified_by": "list_shape_recognised",
@@ -39,7 +39,7 @@
   "install": {
     "ok": true,
     "state": "observing",
-    "platform": "xiaohongshu",
+    "platform": "reddit",
     "prefixCount": 1,
     "observerSelfReport": {
       "installed": true,
@@ -50,19 +50,19 @@
   "captured_right_after_install": 5,
   "captured_responses": 5,
   "captured_urls": [
-    "https://www.xiaohongshu.com/api/log",
-    "https://www.xiaohongshu.com/api/config",
-    "https://www.xiaohongshu.com/api/homefeed",
-    "https://www.xiaohongshu.com/api/user",
-    "https://www.xiaohongshu.com/api/collect/page"
+    "https://www.reddit.com/api/log",
+    "https://www.reddit.com/api/config",
+    "https://www.reddit.com/api/user",
+    "https://www.reddit.com/svc/best",
+    "https://www.reddit.com/svc/saved"
   ],
-  "recognised": "https://www.xiaohongshu.com/api/collect/page",
-  "matched_path": "data.notes",
+  "recognised": "https://www.reddit.com/svc/saved",
+  "matched_path": "data.children",
   "items": 7,
   "sample_urls": [
-    "https://www.xiaohongshu.com/explore/n1",
-    "https://www.xiaohongshu.com/explore/n2",
-    "https://www.xiaohongshu.com/explore/n3"
+    "https://www.reddit.com/r/sub/comments/n1/t/",
+    "https://www.reddit.com/r/sub/comments/n2/t/",
+    "https://www.reddit.com/r/sub/comments/n3/t/"
   ],
   "completeness": "partial",
   "failure_code": "PARTIAL_BY_PAGE_SCROLL",

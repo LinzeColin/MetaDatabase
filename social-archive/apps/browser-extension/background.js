@@ -952,10 +952,34 @@ async function connectPlatform(platform) {
   // 却没有任何界面通向它——点「连接 X」会掉进下面那条 browser_session 老路，
   // 而那条路在 T03 拆掉 DOM 抓取之后只会回 LOGIN_PROOF_UNAVAILABLE。
   // 也就是说 T06 整套机制从界面上够不着。在真实浏览器里跑 T05 时才发现。
+  // **两条路，别互相吞掉（v0.0.0.22）。**
+  //
+  // Instagram 同时落在两张表里：它既能按形状读页面上的列表（**主路径**），
+  // 也支持 Cookie 托管（那是给服务端下载媒体用的**补全**路径）。
+  // 原来的顺序让 Cookie 托管把「连接账号」这颗按钮吃掉了——而 2026-08-04
+  // 打生产量到的是 instagram 的 Sidecar 回 422：**那条路今天什么都换不来**，
+  // 却挡着今天真能跑通的这条。演练里现形的样子是「没有等待确认的连接流程」。
+  //
+  // 所以顺序改成：能按形状读的，连接就走那条——不碰 cookie、不弹权限框。
+  // Cookie 托管既没删也没变得够不着：它有自己的入口
+  // （SA_CONNECT_PLATFORM_SESSION + 卡片上那颗「保存登录状态」），
+  // 而 check_no_mechanism_is_unreachable.py 盯着「别把机制做成够不着的」。
+  if (SHAPE_READ_PLATFORMS[platform]) return connectBrowserPlatform(platform);
   if (globalThis.SACookieExport?.ALLOWED_PLATFORMS?.[platform]) {
     return connectPlatformSessionByCookies(platform);
   }
   return connectBrowserPlatform(platform);
+}
+
+/** 哪些平台的「保存登录状态」需要一颗**单独的**按钮。
+ *
+ * 只有同时满足两条的才需要：支持 Cookie 托管，**而且**连接按钮已经被
+ * 主路径占走了。别的平台（X / YouTube）连接按钮本来就是 Cookie 托管，
+ * 再多一颗只会让人不知道该点哪个。
+ */
+function mediaSessionPlatforms() {
+  const custodial = globalThis.SACookieExport?.ALLOWED_PLATFORMS || {};
+  return Object.keys(custodial).filter(platform => SHAPE_READ_PLATFORMS[platform]);
 }
 
 /** 西方三源的连接入口：申请权限 → 导出会话 → 加密上传。 */
@@ -1135,6 +1159,18 @@ const SHAPE_READ_PLATFORMS = Object.freeze({
   xiaohongshu: "https://www.xiaohongshu.com/explore/",
   douyin: "https://www.douyin.com/video/",
   kuaishou: "https://www.kuaishou.com/short-video/",
+  // v0.0.0.22：Reddit / Instagram 也走这条。
+  //
+  // 它们原先挂在服务端连接器上，而 2026-08-04 打生产量出来的结果是
+  // **两条都不通**（reddit 缺授权、instagram 的 Sidecar 调用 422）。
+  // Owner 给的平台表里，这两个的主路径写的就是「扩展读取 / 导出导入」——
+  // 服务端那条本来就不是主路径。
+  //
+  // 这两个模板只在**取不到条目自带的网址时**才用得上：Reddit 的条目带
+  // `permalink`（相对路径，拼上本站域），Instagram 带 `code`（短码套模板）。
+  // 见 list-shape.js 里 normaliseItems 的取址顺序——**取来的优先于拼出来的**。
+  reddit: "https://redd.it/",
+  instagram: "https://www.instagram.com/p/",
 });
 
 async function acquireByListShape({ tabId, platform, relation }) {
@@ -1172,8 +1208,12 @@ async function acquireByListShape({ tabId, platform, relation }) {
     throw error;
   }
   const prefix = SHAPE_READ_PLATFORMS[platform];
+  // 相对路径（Reddit 的 permalink）要拼回**这个平台自己的域**，不是我们编一个。
+  let origin = "";
+  try { origin = new URL(relationUrl).origin; } catch (_) { origin = ""; }
   const { items, skipped } = globalThis.SAListShape.normaliseItems(found.best, {
     platform,
+    origin,
     urlBuilder: (raw, id) => (id ? `${prefix}${id}` : ""),
   });
   if (!items.length) {
@@ -1823,6 +1863,15 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   (async () => {
     if (message?.type === "SA_ACCOUNT_CONNECT") return connectPlatform(String(message.platform || ""));
+    // **薄薄一层转发，不是第二份实现。** 上一版这个消息是把
+    // connectPlatformSessionByCookies 逐行抄了一遍，所以被删掉——两份同样的
+    // 东西只有一份会被改到。这里只转发，删掉的那个理由不成立。
+    if (message?.type === "SA_CONNECT_PLATFORM_SESSION") {
+      return connectPlatformSessionByCookies(String(message.platform || ""));
+    }
+    if (message?.type === "SA_MEDIA_SESSION_PLATFORMS") {
+      return { ok: true, platforms: mediaSessionPlatforms() };
+    }
     if (message?.type === "SA_VERIFY_PLATFORM_SESSION") return verifyPendingPlatform(String(message.platform || ""));
     if (message?.type === "SA_GET_PENDING_CONNECTIONS") return { ok: true, items: await getPendingConnections() };
     if (message?.type === "SA_OPEN_ACCOUNT_CENTER") return openAccountCenter();

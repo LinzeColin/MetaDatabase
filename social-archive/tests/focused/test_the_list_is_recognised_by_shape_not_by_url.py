@@ -207,3 +207,96 @@ def test_the_hint_is_only_a_tiebreaker_not_a_requirement() -> None:
     out = _run(f"console.log(JSON.stringify(S.recogniseList({json.dumps(caps)})));")
     assert out["ok"] is True, "地址里没有提示词就认不出了——那等于又要先知道地址"
     assert out["best"]["stats"]["count"] == 5
+
+
+# ---------------------------------------------------------------------------
+# 元素外面套一层壳（2026-08-06）
+#
+# 第一版只看元素**自己身上**的字段。拿三家真实的响应形状去试认，三家全灭，
+# 理由一模一样：「只有 0% 的元素带得出 id」——因为 id 不在元素身上：
+#
+#     Reddit     children[].data.id
+#     Instagram  items[].media.pk
+#     X          entries[].content.itemContent.tweet_results.result.rest_id
+#
+# **而这不只是「少认几个平台」。** 小红书自己的条目就是这个形状：
+# `id` 摊在外面，`display_title` / `user.nickname` 在 `note_card` 里。
+# 照第一版：id 找得到 → 照样入库；标题作者取不到 → 全是 null。
+# **真站上会存进一批没标题没作者的条目，而判据全绿。**
+# 上面那些判据一条都没抓到，因为夹具里的条目全是我摊平了写的。
+# ---------------------------------------------------------------------------
+
+def _wrapped(prefix: str, n: int, wrapper: str) -> list:
+    return [{"id": f"{prefix}{i}", wrapper: {
+        "display_title": f"第{i}条", "user": {"nickname": f"作者{i}"},
+        "create_time": 1700000000 + i}} for i in range(1, n + 1)]
+
+
+def test_the_title_and_author_are_not_lost_when_the_item_has_a_wrapper() -> None:
+    """这条盯的是**已经上线的小红书**，不是将来某个平台。"""
+    caps = [_capture("https://p.example.com/api/collect/page",
+                     {"data": {"items": _wrapped("n", 5, "note_card")}})]
+    out = _run(f"console.log(JSON.stringify(S.recogniseList({json.dumps(caps)})));")
+    assert out["ok"] is True, f"套一层壳就认不出了：{out.get('rejected')}"
+    # 这个形状里 **id 摊在外面、内容在壳里**，所以「正身」还是元素本身
+    # （core_path 为空），救回标题作者的是那个限深搜索。
+    assert out["best"]["stats"]["core_path"] == "", out["best"]["stats"]
+    assert out["best"]["stats"]["title_rate"] == 1.0, "标题在壳里，取不到就会全存成 null"
+    assert out["best"]["stats"]["author_rate"] == 1.0, "作者在壳里，取不到就会全存成 null"
+
+    body = (f"const f = S.recogniseList({json.dumps(caps)});"
+            "console.log(JSON.stringify(S.normaliseItems(f.best, "
+            "{platform:'p', urlBuilder:(raw,id)=>`https://p.example.com/x/${id}`})));")
+    got = _run(body)
+    assert len(got["items"]) == 5
+    assert got["items"][0]["title"] == "第1条", got["items"][0]
+    assert got["items"][0]["author_name"] == "作者1", got["items"][0]
+    assert got["items"][0]["url"].endswith("/x/n1"), "id 在壳外，拼网址要用外面那个"
+
+
+def test_digging_into_a_wrapper_needs_corroboration() -> None:
+    """**挖得越深越要旁证。**
+
+    `id` 是最常见的字段名之一——挖五层几乎能在任何数组里挖出一个来
+    （埋点事件、实验分组、配置项都带 id）。所以放宽深度的同时必须收紧判据：
+    挖到壳里去的，必须另有一致的标题或作者，光有 id 不算。
+    否则这个改动会把一堆埋点数组认成他的收藏。
+    """
+    events = [{"seq": i, "payload": {"id": f"evt{i}", "ms": i}} for i in range(8)]
+    out = _run("console.log(JSON.stringify(S.recogniseList("
+               f"{json.dumps([_capture('https://p.example.com/api/track', {'e': events})])})));")
+    assert out["ok"] is False, f"埋点数组被认成收藏列表了：{out.get('best', {}).get('path')}"
+    assert "旁证" in out["rejected"][0]["why"], out["rejected"]
+
+
+def test_the_url_is_taken_from_the_data_before_it_is_ever_built() -> None:
+    """**拼错的网址比没有更糟。**
+
+    它会安安静静进档案馆，半年后点开才发现全是 404，那时已无从追溯。
+    所以顺序是：条目自带的绝对网址 → 相对路径拼本站域 → 短码套模板 →
+    id 套模板 → **都不成立就跳过并报数**。每条还要记下它是怎么来的。
+    """
+    items = [{"data": {"id": f"a{i}", "title": f"t{i}", "author": f"u{i}",
+                       "permalink": f"/r/s/comments/a{i}/t/"}} for i in range(4)]
+    body = (f"const f = S.recogniseList({json.dumps([_capture('https://p.example.com/l', {'children': items})])});"
+            "console.log(JSON.stringify(S.normaliseItems(f.best, "
+            "{platform:'p', origin:'https://www.example.com',"
+            " urlBuilder:(raw,id)=>`https://WRONG.example.com/${id}`})));")
+    got = _run(body)
+    assert len(got["items"]) == 4, got
+    assert got["items"][0]["url"] == "https://www.example.com/r/s/comments/a0/t/", got["items"][0]
+    assert got["items"][0]["raw_metadata"]["derived_by"] == "relative_link"
+    assert "WRONG" not in json.dumps(got), "数据里明明带着网址，却去拼了一个"
+
+
+def test_an_item_with_no_derivable_url_is_skipped_and_counted() -> None:
+    """没法说出网址的，跳过并报数——**不许硬拼一个**。"""
+    items = [{"data": {"id": "", "title": f"t{i}", "author": "u"}} for i in range(4)]
+    body = (f"const f = S.recogniseList({json.dumps([_capture('https://p.example.com/l', {'children': items})])});"
+            "console.log(JSON.stringify(f.ok ? S.normaliseItems(f.best, "
+            "{platform:'p', urlBuilder:(raw,id)=>(id?`https://p.example.com/${id}`:'')}) "
+            ": {items:[],skipped:[]}));")
+    got = _run(body)
+    assert not got["items"], "没有 id 也没有链接，却拼出了网址"
+    if got["skipped"]:
+        assert got["skipped"][0]["reason"] == "没有能在浏览器里打开的网址"

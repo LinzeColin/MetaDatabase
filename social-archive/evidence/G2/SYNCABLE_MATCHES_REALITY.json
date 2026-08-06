@@ -5,7 +5,9 @@
     "bilibili",
     "douyin",
     "generic-web",
+    "instagram",
     "kuaishou",
+    "reddit",
     "xiaohongshu"
   ],
   "scannable_relations": {
@@ -20,11 +22,15 @@
     ],
     "kuaishou": [
       "favorite"
+    ],
+    "reddit": [
+      "saved"
+    ],
+    "instagram": [
+      "saved"
     ]
   },
   "server_handled": [
-    "instagram",
-    "reddit",
     "x"
   ],
   "problems": [],

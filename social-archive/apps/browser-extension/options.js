@@ -89,7 +89,10 @@
         SA.api("/v1/accounts",{timeoutMs:8000}), SA.api("/v1/sync-runs?limit=200",{timeoutMs:8000}), SA.api("/v1/extension/bootstrap",{timeoutMs:8000}),
         chrome.runtime.sendMessage({type:"SA_GET_PENDING_CONNECTIONS"}).catch(()=>({items:{}})),
         // 单独兜底：托管状态读不到不该让整页空白——其余四项是这一页的主体。
-        SA.api("/v1/credentials",{timeoutMs:8000}).catch(()=>({items:[]}))
+        SA.api("/v1/credentials",{timeoutMs:8000}).catch(()=>({items:[]})),
+        // **只能加在末尾。** 插在中间会把后面每一项都挪一位，而解构名字不会报错，
+        // 只会静静地把 credentials 读成别的东西——服务徽章那次就是这么坏的。
+        loadMediaSessionPlatforms()
       ]);
       accounts=accountData.items||[]; runs=runData.items||[]; destinations=bootstrap.destinations||[]; pendingConnections=pendingData.items||{};
       platformSupport=Object.fromEntries((accountData.supported_platforms||[]).map(item=>[item.platform,item]));
@@ -175,9 +178,16 @@
           : custody
             ? `<button class="card-button" data-connect-platform="${platform}">重新连接</button>${revoke}`
             : `<button class="card-button primary" data-connect-platform="${platform}">连接账号</button>`;
-      return `<article class="account-card"><header><span class="platform-icon">${platformIcons[platform]}</span><span class="account-title"><strong>${platformNames[platform]}</strong><small>${SA.escapeHtml(account?.display_name||"未连接")}</small></span><span class="state ${SA.escapeHtml(status)}">${SA.escapeHtml(stateLabel(status))}</span></header><div class="account-meta">${SA.escapeHtml(meta)}</div><div class="progress"><span style="width:${progress}%"></span></div><div class="account-actions">${action}</div></article>`;
+      // **两条路，两颗按钮。** Instagram 的连接走扩展读取（主路径，不碰 cookie），
+      // 而「保存登录状态」是给下载媒体用的补全路径——它没被删，只是不再霸占
+      // 「连接账号」那颗按钮。少了这一颗，那套机制就变成从界面上够不着的，
+      // 而这个仓在「建好了没接上」上已经栽过五次。
+      const mediaSession = mediaSessionPlatforms.includes(platform) && account
+        ? `<button class="card-button" data-save-session="${platform}">保存登录状态</button>` : "";
+      return `<article class="account-card"><header><span class="platform-icon">${platformIcons[platform]}</span><span class="account-title"><strong>${platformNames[platform]}</strong><small>${SA.escapeHtml(account?.display_name||"未连接")}</small></span><span class="state ${SA.escapeHtml(status)}">${SA.escapeHtml(stateLabel(status))}</span></header><div class="account-meta">${SA.escapeHtml(meta)}</div><div class="progress"><span style="width:${progress}%"></span></div><div class="account-actions">${action}${mediaSession}</div></article>`;
     }).join("");
     document.querySelectorAll("[data-connect-platform]").forEach(button=>button.addEventListener("click",()=>connectPlatform(button.dataset.connectPlatform,button)));
+    document.querySelectorAll("[data-save-session]").forEach(button=>button.addEventListener("click",()=>saveMediaSession(button.dataset.saveSession,button)));
     document.querySelectorAll("[data-verify-platform]").forEach(button=>button.addEventListener("click",()=>verifyPlatform(button.dataset.verifyPlatform,button)));
     document.querySelectorAll("[data-sync-account]").forEach(button=>button.addEventListener("click",()=>syncAccount(button.dataset.syncAccount,button)));
     document.querySelectorAll("[data-revoke-platform]").forEach(button=>button.addEventListener("click",()=>revokePlatform(button.dataset.revokePlatform,button)));
@@ -205,6 +215,26 @@
       else setTimeout(()=>loadData().catch(()=>{}),2500);
     }catch(error){toast(`${platformNames[platform]}：${error.message}`,"error");}
     finally{button.disabled=false;button.textContent="连接账号";}
+  }
+  /** 保存登录状态：给「下载原图原视频」那条补全路径用的（v0.0.0.22）。
+   *
+   * 和「连接账号」是两件事，文案里要说清，否则他不知道这颗按钮干嘛的。
+   */
+  let mediaSessionPlatforms=[];
+  async function loadMediaSessionPlatforms(){
+    try{const r=await chrome.runtime.sendMessage({type:"SA_MEDIA_SESSION_PLATFORMS"});
+        mediaSessionPlatforms=Array.isArray(r?.platforms)?r.platforms:[];}
+    catch(_){mediaSessionPlatforms=[];}
+  }
+  async function saveMediaSession(platform,button){
+    button.disabled=true;button.textContent="正在保存…";
+    try{
+      const result=await chrome.runtime.sendMessage({type:"SA_CONNECT_PLATFORM_SESSION",platform});
+      if(!result?.ok)throw new Error(result?.error||"没能保存登录状态");
+      toast(result.message||"登录状态已加密保存，随时可以一键撤销");
+      await loadData();
+    }catch(error){toast(`${platformNames[platform]}：${error.message}`,"needs");}
+    finally{button.disabled=false;button.textContent="保存登录状态";}
   }
   async function verifyPlatform(platform,button){
     button.disabled=true;button.textContent="正在检查…";

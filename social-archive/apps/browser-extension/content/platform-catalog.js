@@ -157,6 +157,11 @@
     xiaohongshu: Object.freeze(["favorite"]),
     douyin: Object.freeze(["favorite"]),
     kuaishou: Object.freeze(["favorite"]),
+    // v0.0.0.22：同一条路。Reddit 的 saved、Instagram 的 saved 都有
+    // **不需要用户名的固定地址**（/user/me/saved、/your_activity/saved），
+    // 所以能直接导过去。upvoted 那条没验过，不列——不列就等于不承诺。
+    reddit: Object.freeze(["saved"]),
+    instagram: Object.freeze(["saved"]),
   });
 
   /** 取数是**调平台自己的接口**，而不是读页面（v0.0.0.8）。

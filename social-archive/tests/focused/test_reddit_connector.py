@@ -11,6 +11,26 @@ from social_archive.connectors.oauth import RedditConnector
 from social_archive.models import AccountSyncRequest, CaptureRequest, ConnectorRunRequest
 
 
+@pytest.fixture()
+def server_owned_reddit(monkeypatch):
+    """让 Reddit 这个账号**由服务端连接器驱动同步**（v0.0.0.22）。
+
+    下面四条验的是「服务端连接器驱动一次账号同步」这台机器：翻页、断点续、
+    **限流永远不许关掉一个关系**、缺授权要报 blocked_environment。
+    这台机器还活着——今天 x 走的就是它。
+
+    变的只是**谁走这条路**：v0.0.0.22 起 Reddit 的生产路线改成扩展按形状读页面
+    （服务端那条 2026-08-04 打生产量出来是 REDDIT_AUTH_MISSING，一直不通），
+    所以它从 SERVER_ACCOUNT_CONNECTORS 里挪走了。
+
+    这里仍然拿 Reddit 的连接器来驱动，是因为**它是有真实翻页语义的那一个**
+    （after 游标、限流、关系闭合）。换成别的连接器，这四条就退化成走过场。
+    """
+    from social_archive import account_sync as module
+    monkeypatch.setattr(module, "SERVER_ACCOUNT_CONNECTORS",
+                        set(module.SERVER_ACCOUNT_CONNECTORS) | {"reddit"})
+
+
 def test_reddit_saved_normalizes_complete_scan(monkeypatch):
     seen: dict[str, object] = {}
 
@@ -122,7 +142,7 @@ def test_reddit_rate_limit_is_retryable_unknown_and_preserves_page_cursor(monkey
     assert seen["params"] == {"limit": 5, "raw_json": 1, "after": "t3_resume"}
 
 
-def test_reddit_account_sync_follows_pages_and_closes_only_after_full_relation(settings, store, service):
+def test_reddit_account_sync_follows_pages_and_closes_only_after_full_relation(settings, store, service, server_owned_reddit):
     account_id = store.upsert_source_account(
         platform="reddit",
         external_account_id="owner",
@@ -214,7 +234,7 @@ def test_reddit_account_sync_follows_pages_and_closes_only_after_full_relation(s
     assert saved_checkpoint["last_complete_sync_run_id"] == started["sync_run_id"]
 
 
-def test_reddit_account_sync_resumes_checkpoint_and_rate_limit_never_closes_relation(settings, store, service):
+def test_reddit_account_sync_resumes_checkpoint_and_rate_limit_never_closes_relation(settings, store, service, server_owned_reddit):
     account_id = store.upsert_source_account(
         platform="reddit",
         external_account_id="owner",
@@ -282,7 +302,7 @@ def test_reddit_account_sync_resumes_checkpoint_and_rate_limit_never_closes_rela
     assert relation["missing_complete_scan_count"] == 0
 
 
-def test_reddit_checkpoint_resume_requires_fresh_scan_before_relation_closure(settings, store, service):
+def test_reddit_checkpoint_resume_requires_fresh_scan_before_relation_closure(settings, store, service, server_owned_reddit):
     account_id = store.upsert_source_account(
         platform="reddit",
         external_account_id="owner",
@@ -358,7 +378,7 @@ def test_reddit_checkpoint_resume_requires_fresh_scan_before_relation_closure(se
     assert relation["missing_complete_scan_count"] == 0
 
 
-def test_reddit_account_sync_reports_missing_oauth_as_blocked_environment(settings, store, service):
+def test_reddit_account_sync_reports_missing_oauth_as_blocked_environment(settings, store, service, server_owned_reddit):
     account_id = store.upsert_source_account(
         platform="reddit",
         external_account_id="owner",
