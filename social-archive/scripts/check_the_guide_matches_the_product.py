@@ -224,6 +224,60 @@ def main() -> int:
                     f"而**{'插件弹窗' if '点插件的' in str(sentence) else '界面'}上没有这个按钮**"
                     "——这句话会原样显示在平台卡片上，他照着找会找不到")
 
+    # ④ **说「实测」的，必须真有打过真接口的证据**（v0.0.0.22）。
+    #
+    # 说明书那张表里 Chrome 书签那一行写着「实测 62 条全量入库」——
+    # 而那 62 条**只存在于演练里**：2026-08-06 去生产上查，他库里根本没有
+    # 这个来源的账号。同一句过度声称我当天在代码注释和判据里都更正了，
+    # **唯独说明书没跟上**，而说明书恰恰是他会读的那一份。
+    #
+    # 判据不看措辞好坏，只做一件事：把"实测"这个词和**证据文件里的
+    # live_probe_ran** 绑起来——那个字段的意思就是"真的打过接口"，
+    # 而不是"机制在假站上跑通了"。
+    import glob as _glob
+    import pathlib as _pathlib
+
+    live_probed: set[str] = set()
+    for path in sorted(_glob.glob(str(ROOT / "evidence" / "**" / "*.json"), recursive=True)):
+        try:
+            data = json.loads(_pathlib.Path(path).read_text(encoding="utf-8"))
+        except (ValueError, OSError):
+            continue
+        if not isinstance(data, dict):
+            continue
+        if data.get("status") == "PASS" and data.get("live_probe_ran") is True:
+            # 平台名可能在字段里，也可能在文件名里（BILIBILI_ACQUISITION.json）
+            named = str(data.get("platform") or "")
+            if named:
+                live_probed.add(named.lower())
+            stem = _pathlib.Path(path).stem.lower()
+            for candidate in PLATFORM_LABELS:
+                if candidate.replace("-", "_") in stem:
+                    live_probed.add(candidate)
+    # **说明书里的叫法和代码里的标签不是一套。**
+    #
+    # 第一版直接拿 PLATFORM_LABELS 去匹配，于是那一行
+    # 「| Chrome 书签 | ✅ 能 | 实测 62 条全量入库 |」一个也没命中——
+    # generic-web 在代码里叫「通用网页」。反证当场戳穿：把那句假话放回去，
+    # 判据照样绿。**判据认不出的名字，等于它没在看那一行。**
+    GUIDE_ALIASES = {"generic-web": ("Chrome 书签", "通用网页")}
+    for line in text.splitlines():
+        if "实测" not in line or not line.strip().startswith("|"):
+            continue
+        # **按单元格精确比**，不按"包含"：标签里有一个单字母的 X，
+        # 用包含匹配会把任何带 X 的行都算成 X 那一行。
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        for platform, label in PLATFORM_LABELS.items():
+            names = set(GUIDE_ALIASES.get(platform, ())) | {label}
+            if not (names & set(cells)):
+                continue
+            if platform not in live_probed:
+                problems.append(
+                    f"说明书里给「{label}」写了「实测」，而**没有一份证据文件说打过真接口**"
+                    f"（live_probe_ran=true 的只有 {sorted(live_probed) or '一个都没有'}）。"
+                    "机制在假站上跑通不叫实测——他读到「实测」会以为"
+                    "这条路在他自己的数据上验过")
+
     # **一个都没查到 = 这道门失效了**，不是"通过了"。
     if checked_buttons < 5:
         problems.append(f"只核对到 {checked_buttons} 处界面文案——**这不是通过**，"
