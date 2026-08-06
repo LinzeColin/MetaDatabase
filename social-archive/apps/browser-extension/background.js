@@ -1178,7 +1178,8 @@ async function acquireByListShape({ tabId, platform, relation }) {
       + "往下滚动之后再同步一次，能读到更多。",
     cursor: {
       source: "page_response_shape",
-      matched_url: found.best.url,
+      // 第三处：游标会落进服务端回执。同样只留路径。
+      matched_url: globalThis.SAListShape.safePath(found.best.url),
       matched_path: found.best.path,
       captured_responses: captures.length,
       observed_count: items.length,
@@ -1447,7 +1448,20 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
         // "本版本没接取数通道"和"这次扫描炸了"混成同一条，
         // 用户和 T14 的文案矩阵都分不出该怎么办。
         failure_code: error?.failureCode || "BROWSER_SCAN_FAILED",
-        cursor: { error: String(error?.message || error).slice(0, 300) },
+        // **失败时把诊断一起送上去。**
+        //
+        // acquireByListShape 认不出列表时，已经算好了"看到过哪些响应、
+        // 每个为什么被淘汰"——而这一行原来只取 message，把它整个丢掉。
+        // 丢掉的后果是：真出问题时**只能回头请 Owner 把界面上那句话抄给我**，
+        // 而那正是他说过三次不要的「重复地反攻」。
+        //
+        // 放进 cursor 之后，它跟着这次同步落进服务端的回执——
+        // 我从生产直接读得到，不用他做任何事。
+        // 只留 URL 和淘汰理由，**不留响应内容**（那可能是他的私人数据）。
+        cursor: {
+          error: String(error?.message || error).slice(0, 300),
+          ...(error?.detail ? { diagnosis: error.detail } : {}),
+        },
         has_more: false
       }));
     }

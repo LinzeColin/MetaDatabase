@@ -114,3 +114,56 @@ def test_it_does_not_know_any_platform_names() -> None:
                      if not line.lstrip().startswith(("*", "/*", "//")))
     for name in ("xiaohongshu", "douyin", "kuaishou", "bilibili", "小红书", "抖音", "快手"):
         assert name not in code, f"识别器里写死了平台名 {name}——它就该只认形状"
+
+
+def test_no_signature_or_token_ever_leaves_the_browser() -> None:
+    """**平台的签名/token 在查询串里，一个都不许跟出去。**
+
+    抖音的 a_bogus、小红书的 xsec_token 都在查询串上。而这条路会把
+    「看到过哪些响应」写进三个地方，每一个都会离开浏览器：
+
+      1. 认不出时的诊断  → 跟着同步回执落到服务端
+      2. 条目的 raw_metadata → **入库**，还会出现在导出里
+      3. 同步游标 matched_url → 落到服务端回执
+
+    只留路径不影响用处（要的是"哪个端点"，不是那串签名），
+    而漏掉任何一处都等于把他的凭据写进了我们的日志。
+    **这个仓在「修一处就当修完了」上栽过四次**，所以三处一起验。
+    """
+    secret = "SIGNATURE_MUST_NOT_LEAK"
+    payload = {"data": {"notes": [
+        {"note_id": f"n{i}", "title": f"t{i}", "url": f"https://e/{i}"} for i in range(4)]}}
+    noisy = {"junk": 1}
+    out = _run(
+        f"const caps = [{{url: 'https://p/api/list?a_bogus={secret}', "
+        f"text: JSON.stringify({json.dumps(payload)})}},"
+        f" {{url: 'https://p/api/log?token={secret}', "
+        f"text: JSON.stringify({json.dumps(noisy)})}}];\n"
+        "const r = S.recogniseList(caps);\n"
+        "const n = S.normaliseItems(r.best, { platform: 'x' });\n"
+        "console.log(JSON.stringify({ rejected: r.rejected, items: n.items, "
+        "matched: r.best.url }));")
+    # ① 诊断（淘汰记录）
+    assert secret not in json.dumps(out["rejected"]), (
+        f"淘汰记录里带出了签名：{out['rejected']}"
+    )
+    # ② 入库的元数据
+    assert secret not in json.dumps(out["items"]), (
+        f"条目的 raw_metadata 里带出了签名：{out['items'][0]['raw_metadata']}"
+    )
+    assert out["items"][0]["raw_metadata"]["matched_url"] == "https://p/api/list"
+    # ③ 路径本身要留着——剥太狠就没用了
+    assert "/api/log" in json.dumps(out["rejected"]), "把路径也剥掉了，诊断就没用了"
+
+
+def test_the_background_strips_it_before_the_cursor_too() -> None:
+    """第三处在 background：同步游标里的 matched_url 也会落到服务端。"""
+    from pathlib import Path
+
+    background = (Path(__file__).resolve().parents[2]
+                  / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    code = "\n".join(line for line in background.splitlines()
+                     if not line.lstrip().startswith("//"))
+    assert "matched_url: globalThis.SAListShape.safePath(" in code, (
+        "游标里的 matched_url 没剥查询串——签名会跟着回执落到服务端"
+    )

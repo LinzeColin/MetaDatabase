@@ -122,6 +122,23 @@
    * @param captures [{url, status, text}]
    * @returns {ok, best?, candidates, rejected, failureCode?, error?}
    */
+  /** 诊断里只留路径，**丢掉查询串**。
+   *
+   * 平台的列表接口常把签名/时间戳/token 放在查询串里
+   * （抖音的 a_bogus、小红书的 xsec_token 都是）。诊断会跟着同步回执
+   * 落到服务端，而这个仓的硬规矩是**凭据绝不落进日志或证据**。
+   * 只留路径不影响用处：我要的是"哪个端点"，不是那串签名。
+   */
+  function safePath(url) {
+    const text = String(url || "");
+    try {
+      const parsed = new URL(text);
+      return parsed.origin + parsed.pathname;
+    } catch (_) {
+      return text.split("?")[0].slice(0, 300);
+    }
+  }
+
   function recogniseList(captures) {
     const candidates = [];
     const rejected = [];
@@ -131,12 +148,12 @@
       try {
         payload = JSON.parse(String(capture?.text || ""));
       } catch (_) {
-        rejected.push({ url, why: "不是 JSON" });
+        rejected.push({ url: safePath(url), why: "不是 JSON" });
         continue;
       }
       const arrays = findArrays(payload, "", [], 0);
       if (!arrays.length) {
-        rejected.push({ url, why: `没有长度 ≥ ${MIN_ITEMS} 的对象数组` });
+        rejected.push({ url: safePath(url), why: `没有长度 ≥ ${MIN_ITEMS} 的对象数组` });
         continue;
       }
       let bestHere = null;
@@ -150,7 +167,7 @@
       if (bestHere) candidates.push(bestHere);
       else {
         const why = score(arrays[0].items).rejected || "数组里的元素不像内容条目";
-        rejected.push({ url, why });
+        rejected.push({ url: safePath(url), why });
       }
     }
     candidates.sort((a, b) => b.stats.points - a.stats.points);
@@ -193,15 +210,18 @@
           : authorRaw && typeof authorRaw === "object"
             ? String(authorRaw.nickname || authorRaw.name || authorRaw.user_name || "")
             : "").slice(0, 1024) || null,
+        // **这里也要剥。** raw_metadata 会入库、会出现在导出里，
+        // 而签名/token 就在查询串上。同一个泄漏点的第二处——
+        // 这个仓在「修一处就当修完了」上栽过四次，这次一起修。
         raw_metadata: { source: "page_response_shape", platform: platform || "",
-                        matched_path: best.path, matched_url: best.url },
+                        matched_path: best.path, matched_url: safePath(best.url) },
       });
     }
     return { items, skipped };
   }
 
   const api = Object.freeze({
-    recogniseList, normaliseItems, findArrays, score,
+    recogniseList, normaliseItems, findArrays, score, safePath,
     MIN_ITEMS, MIN_HOMOGENEITY, ID_KEYS,
   });
   globalThis.SAListShape = api;
