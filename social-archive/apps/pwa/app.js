@@ -185,7 +185,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
-  const PRODUCT_VERSION = "0.0.0.19";
+  const PRODUCT_VERSION = "0.0.0.20";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -215,7 +215,8 @@
     loginBase: "",
     // 每个平台「现在同步得动吗」，来自服务端。见 renderSyncTable。
     platformSupport: {},
-    extension: { detected: false, paired: false, compatible: false, version: "", pairingRequired: false, oneTimeCodeAvailable: false, refreshedAt: null },
+    minimumExtensionVersion: "",
+    extension: { detected: false, paired: false, compatible: false, outdated: false, version: "", pairingRequired: false, oneTimeCodeAvailable: false, refreshedAt: null },
     platform: "all", group: true, sortKey: "savedAt", sortDir: "desc", search: "",
     filters: { relation: "all", topic: "all", collection: "all", date: "all", archive: "all" },
     visibleColumns: new Set(columns.filter(column => !column.defaultHidden).map(column => column.key)),
@@ -305,6 +306,21 @@
     }, 3000);
   }
 
+  /** 版本比大小。`0.0.0.9` 与 `0.0.0.10` 用字符串比会得到错的答案
+   *  （"0.0.0.9" > "0.0.0.10"，因为 '9' > '1'），所以逐段按数字比。
+   *  今天正好升过 0.0.0.9 → 0.0.0.10，这个坑是真的会踩到。
+   */
+  function compareVersions(left, right) {
+    const a = String(left || "").split(".").map(Number);
+    const b = String(right || "").split(".").map(Number);
+    for (let i = 0; i < Math.max(a.length, b.length); i += 1) {
+      const x = Number.isFinite(a[i]) ? a[i] : 0;
+      const y = Number.isFinite(b[i]) ? b[i] : 0;
+      if (x !== y) return x < y ? -1 : 1;
+    }
+    return 0;
+  }
+
   function setServiceBadge(stateName, text) {
     const badge = $("serviceBadge");
     badge.className = `service-badge ${stateName}`;
@@ -322,6 +338,9 @@
       // 他点同步、任务排队、什么都不发生，**而界面从头到尾说一切正常**。
       // v0.0.0.18 让 /health 带上 worker 心跳；这里是把它说给他听的那一半。
       // 「判据盯 JSON、漏了用户看的散文」是这个项目栽过的坑，不能只加字段。
+      // 服务端说「不低于这个版本就还能用」。拿不到就退回旧行为（要求完全相等），
+      // 那是更严的一侧——**读不到就从严，不要从宽**。
+      state.minimumExtensionVersion = health.minimum_extension_version || "";
       const worker = health.worker || null;
       if (worker && worker.ever_seen && worker.alive === false) {
         setServiceBadge("needs", "后台没在跑 · 新的同步会排队等着");
@@ -1094,7 +1113,14 @@
     return {
       detected: payload.detected === true,
       paired: payload.paired === true,
-      compatible: version === PRODUCT_VERSION,
+      // **不再要求完全相等。** 相等判据意味着服务端每升一个补丁版本，
+      // 所有已装插件当场全被判成不兼容——同步、保存、连接全被挡住，
+      // 而那正是 Owner 说「整个软件完全不能使用」时撞上的那道门。
+      compatible: state.minimumExtensionVersion
+        ? compareVersions(version, state.minimumExtensionVersion) >= 0
+        : version === PRODUCT_VERSION,
+      // 能用，但不是最新——值得提一句，不值得把人挡在外面。
+      outdated: version !== PRODUCT_VERSION,
       version,
       refreshedAt: Date.now()
     };
@@ -1165,7 +1191,8 @@
       return false;
     }
     if (!extension.compatible) {
-      if (confirm(`检测到的插件是 v${extension.version || "未知"}，需要 v${PRODUCT_VERSION}。\n\n要现在打开更新说明吗？`)) {
+      const need = state.minimumExtensionVersion || PRODUCT_VERSION;
+      if (confirm(`检测到的插件是 v${extension.version || "未知"}，至少需要 v${need}。\n\n要现在打开更新说明吗？`)) {
         location.href = "/extension-install";
       }
       return false;

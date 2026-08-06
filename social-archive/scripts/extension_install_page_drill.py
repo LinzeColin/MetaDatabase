@@ -70,6 +70,7 @@ PORT = 8765
 DEBUG_PORT = 9375
 
 served_version = {"value": "0.0.0.7"}
+served_minimum = {"value": "0.0.0.9"}
 
 
 class _Handler(BaseHTTPRequestHandler):
@@ -86,8 +87,14 @@ class _Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802
         path = self.path.split("?")[0]
         if path == "/health":
-            self._send(200, json.dumps({"status": "ok", "version": served_version["value"]}).encode(),
-                       "application/json")
+            self._send(200, json.dumps({
+                "status": "ok",
+                "version": served_version["value"],
+                # 下限（v0.0.0.20）。**这一栏才是拦不拦的依据**——
+                # 拿当前版本去要求相等的话，服务端每升一个补丁版本
+                # 就把所有人挡在门外。
+                "minimum_extension_version": served_minimum["value"],
+            }).encode(), "application/json")
             return
         name = {"/": "index.html", "": "index.html",
                 "/extension-install": "extension-install.html"}.get(path, path.lstrip("/"))
@@ -135,8 +142,10 @@ READ = r"""
 """
 
 
-async def _case(chrome: str, ext_dir: str | None, version: str) -> dict:
+async def _case(chrome: str, ext_dir: str | None, version: str,
+                minimum: str = "0.0.0.9") -> dict:
     served_version["value"] = version
+    served_minimum["value"] = minimum
     profile = Path(tempfile.mkdtemp(prefix="sa-install-page-"))
     process = subprocess.Popen(
         [chrome, f"--user-data-dir={profile}", f"--remote-debugging-port={DEBUG_PORT}",
@@ -216,7 +225,23 @@ async def run(chrome: str, ext_dir: str) -> int:
         elif same.get("url") != "/":
             problems.append(f"版本对上了却没有把人送回资料库（还停在 {same.get('url')}）")
 
-        stale = await _case(chrome, ext_dir, "9.9.9.9")
+        # **第四种：装的不是最新，但高于下限——不许拦。**
+        #
+        # 这一条是 v0.0.0.20 加的，因为在它之前判据是「版本必须完全相等」：
+        # 服务端每升一个补丁版本，所有已装插件当场全被判成不兼容，
+        # 同步、保存、连接全被挡住，直到用户手动去覆盖文件。
+        # 2026-08-06 一天升了 19 个版本——**每一次都会把他整个锁在外面**，
+        # 而他这一轮开工时的原话正是「整个软件完全不能使用」。
+        newer_server = await _case(chrome, ext_dir, "9.9.9.9", minimum="0.0.0.1")
+        report["装的不是最新但够用"] = newer_server
+        if newer_server.get("error"):
+            problems.append(f"「不是最新但够用」那一趟没跑成：{newer_server['error']}")
+        elif newer_server.get("url") != "/":
+            problems.append(
+                "**插件版本高于下限却被拦住了**——服务端升一个补丁版本就把人锁在门外，"
+                f"那正是「整个软件完全不能使用」的来源（停在 {newer_server.get('url')}）")
+
+        stale = await _case(chrome, ext_dir, "9.9.9.9", minimum="9.9.9.9")
         report["装了但版本旧"] = stale
         if stale.get("error"):
             problems.append(f"「版本旧」那一趟没跑成：{stale['error']}")

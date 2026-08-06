@@ -135,11 +135,24 @@
       // 该装成哪个版本，问服务端要——**不写死在这一页里**，
       // 写死的话升一次版就得记得改两处，而漏改的那次没人会发现。
       let requiredVersion = "";
+      let minimumVersion = "";
+      /** 版本逐段按数字比。字符串比会说 "0.0.0.9" > "0.0.0.10"。 */
+      function compareVersions(left, right) {
+        const a = String(left || "").split(".").map(Number);
+        const b = String(right || "").split(".").map(Number);
+        for (let i = 0; i < Math.max(a.length, b.length); i += 1) {
+          const x = Number.isFinite(a[i]) ? a[i] : 0;
+          const y = Number.isFinite(b[i]) ? b[i] : 0;
+          if (x !== y) return x < y ? -1 : 1;
+        }
+        return 0;
+      }
       async function loadRequiredVersion() {
         try {
           const health = await fetch("/health", { cache: "no-store" }).then(r => r.json());
           requiredVersion = String(health.version || "");
-        } catch (_) { requiredVersion = ""; }
+          minimumVersion = String(health.minimum_extension_version || "");
+        } catch (_) { requiredVersion = ""; minimumVersion = ""; }
       }
 
       const show = (id, on) => { const el = document.getElementById(id); if (el) el.hidden = !on; };
@@ -153,7 +166,7 @@
         document.getElementById("headline").textContent = "你装的是旧版，换掉文件就好。";
         document.getElementById("lead").innerHTML =
           "你这台电脑上装着 <strong>v" + (installed || "未知") + "</strong>，" +
-          "而资料库需要 <strong>v" + (requiredVersion || "更新的版本") + "</strong>。" +
+          "而资料库至少需要 <strong>v" + (minimumVersion || requiredVersion || "更新的版本") + "</strong>。" +
           "<strong>不用重装、也不用重新连接</strong>——按下面几步把文件换掉即可。";
         show("updateBlock", true); show("installSteps", false);
       }
@@ -169,10 +182,16 @@
           const installed = String(reply.version || "");
           // **版本对上了才算好。** 只看「有没有回应」的那一版，会把装着旧插件的人
           // 一遍遍送回首页，而首页又把他送回来。
-          if (requiredVersion && installed && installed !== requiredVersion) {
+          // **只有低于下限才拦。** 相等判据会让服务端每升一个补丁版本
+          // 就把所有人挡在门外——那正是「整个软件完全不能使用」的来源。
+          // 拿不到下限就退回旧行为（要求相等），那是更严的一侧。
+          const tooOld = minimumVersion
+            ? compareVersions(installed, minimumVersion) < 0
+            : Boolean(requiredVersion && installed !== requiredVersion);
+          if (installed && tooOld) {
             paintUpdate(installed);
             dot.classList.remove("ready");
-            text.textContent = "检测到 v" + installed + "，需要 v" + requiredVersion +
+            text.textContent = "检测到 v" + installed + "，至少需要 v" + (minimumVersion || requiredVersion) +
               "——按下面几步换掉文件，换好这里会自动变绿。";
             setTimeout(loop, 1500);   // 继续盯着，换好了立刻变绿
             return;
