@@ -1,7 +1,7 @@
 {
   "status": "PASS",
   "package": "dist/social-archive-extension.zip",
-  "package_sha256_prefix": "c7843ce20c2caa09",
+  "package_sha256_prefix": "c2263721d1fa938a",
   "manifest": {
     "version": "0.0.0.22",
     "host": [
@@ -34,17 +34,18 @@
     "embedded": true,
     "api": "function",
     "hasButton": true,
-    "text": "连接账号\n\n点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。\n\n小红书\n未连接\n连接账号\n小红书：没能在这个页面上认出你的收藏列表。\n把下面这段整段发给我，我照着修：\n抓到 5 条响应，没有一条像收藏列表。\n· https",
+    "text": "连接账号\n\n点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。\n\n小红书\n等你登录\n连接账号\n我已登录，继续\n请先在平台页面登录",
     "click": {
       "tried": true,
       "panelOpen": true,
-      "frameSrc": "chrome-extension://cfmoididbjjlgpomagnlf",
+      "frameSrc": "chrome-extension://gkcoajhnoicjnicpgifgi",
       "syncStillOpen": false
     },
     "hasBox": true,
     "clicked": true,
     "diagnosisShown": true,
-    "diagnosisText": "把下面这段整段发给我，我照着修：\n抓到 5 条响应，没有一条像收藏列表。\n· https://p.example.com/api/log —— 不是 JSON\n· https://p.example.com/api/feed —— 只有 20% 的元素在同一个位置带得出 id"
+    "diagnosisText": "把下面这段整段发给我，我照着修：\n抓到 5 条响应，没有一条像收藏列表。\n· https://p.example.com/api/log —— 不是 JSON\n· https://p.example.com/api/feed —— 只有 20% 的元素在同一个位置带得出 id",
+    "verifyButton": "我已登录，继续"
   },
   "permission_request_from_service_worker": {
     "bookmarks": {

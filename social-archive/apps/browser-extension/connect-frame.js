@@ -35,6 +35,40 @@
     box.hidden = false;
   }
 
+  /** 「我已登录，继续」——就地长出来的第二颗按钮。 */
+  function showVerify(platform, label, item, state) {
+    if (item.querySelector("[data-verify]")) return;
+    const verify = document.createElement("button");
+    verify.type = "button";
+    verify.dataset.verify = platform;
+    verify.textContent = "我已登录，继续";
+    verify.addEventListener("click", async () => {
+      verify.disabled = true;
+      verify.textContent = "正在检查…";
+      try {
+        const result = await chrome.runtime.sendMessage({
+          type: "SA_VERIFY_PLATFORM_SESSION", platform });
+        if (!result?.ok) {
+          const failure = new Error(result?.error || "还没检测到登录状态");
+          failure.diagnosis = result?.diagnosis || null;
+          throw failure;
+        }
+        say(result.message || `${label}已连接。`);
+        showDiagnosis(null);
+        state.textContent = "已连接";
+        verify.remove();
+        tell("connected", { platform, state: "connected" });
+      } catch (error) {
+        say(`${label}：${error.message}`, "error");
+        showDiagnosis(error.diagnosis);
+      } finally {
+        verify.disabled = false;
+        verify.textContent = "我已登录，继续";
+      }
+    });
+    item.append(verify);
+  }
+
   function say(message, kind = "") {
     note.textContent = message || "";
     note.className = `note ${kind}`.trim();
@@ -126,7 +160,20 @@
           }
           say(result.message || `${name.textContent}已连接。`);
           showDiagnosis(null);
-          state.textContent = result.state === "connected" ? "已连接" : "正在确认登录态";
+          if (result.state === "connected") {
+            state.textContent = "已连接";
+            button.textContent = "重新连接";
+          } else {
+            // **自动认不出登录态时，下一步必须就在这一页上。**
+            //
+            // 连接会先在后台轮询确认；确认不了（多半是他还没在那个平台登录）
+            // 就把平台页翻到前台，让他先登录。此前这颗「我已登录，继续」
+            // 只在插件的账号页上有——**面板上没有**，于是他登录完回到面板，
+            // 手里只有一颗「连接账号」，而再点一次就是从头再来。
+            // 我在给他的说明里把这一步写成了一条路，而那条路当时是断的。
+            state.textContent = "等你登录";
+            showVerify(platform, name.textContent, item, state);
+          }
           tell("connected", { platform, state: result.state || "" });
         } catch (error) {
           say(`${name.textContent}：${error.message}`, "error");

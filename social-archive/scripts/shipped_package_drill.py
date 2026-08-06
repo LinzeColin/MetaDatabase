@@ -256,10 +256,25 @@ async def _open_library(base: str, extension_id: str) -> dict:
                           ' if (!button) return JSON.stringify({ hasBox: true, clicked: false });'
                           ' button.click();'
                           ' await new Promise(r => setTimeout(r, 1200));'
+                          # **诊断要在第一次点击之后就记下来**：第二次点击走的是
+                          # 成功路径，它会（正确地）把诊断清空，之后再读就是空的。
+                          ' const shownAfterFail = !box.hidden;'
+                          ' const textAfterFail = (box.textContent || "").slice(0, 160);'
+                          # **第二种结局也要验**：自动认不出登录态时，
+                          # 「我已登录，继续」必须就地长出来。之前它只在插件的账号页上，
+                          # 面板上没有——而我在说明里把这一步写成了一条路。
+                          ' chrome.runtime.sendMessage = async (msg) =>'
+                          '   msg && msg.type === "SA_ACCOUNT_CONNECT"'
+                          '     ? { ok: true, state: "authorizing", message: "请先在平台页面登录" }'
+                          '     : real(msg);'
+                          ' button.click();'
+                          ' await new Promise(r => setTimeout(r, 1200));'
+                          ' const verify = document.querySelector("[data-verify]");'
                           ' chrome.runtime.sendMessage = real;'
                           ' chrome.permissions.contains = hadContains;'
                           ' return JSON.stringify({ hasBox: true, clicked: true,'
-                          '   diagnosisShown: !box.hidden, diagnosisText: (box.textContent || "").slice(0, 160) });'
+                          '   diagnosisShown: shownAfterFail, diagnosisText: textAfterFail,'
+                          '   verifyButton: verify ? verify.textContent : "" });'
                           ' })()',
             "userGesture": True, "awaitPromise": True, "returnByValue": True, "timeout": 15000})
         diagnosis_box = json.loads(
@@ -526,6 +541,13 @@ async def run(chrome: str) -> int:
     elif measured_frame.get("clicked") and "不是 JSON" not in str(measured_frame.get("diagnosisText") or ""):
         problems.append(
             f"**诊断显示出来了，但内容对不上**：{measured_frame.get('diagnosisText')!r}")
+    elif measured_frame.get("clicked") and "我已登录" not in str(measured_frame.get("verifyButton") or ""):
+        # **第二种结局不许是死路。** 自动认不出登录态时（他还没在那个平台登录），
+        # 下一步必须就在这一页上；否则他登录完回到面板，手里只有一颗
+        # 「连接账号」，再点一次就是从头再来。
+        problems.append(
+            f"**自动认不出登录态时，面板上没有长出「我已登录，继续」**："
+            f"{measured_frame.get('verifyButton')!r}——他登录完回来没有下一步")
     elif not measured_frame.get("hasButton"):
         # **只证明它加载了还不够，要看见它画出按钮。**
         # 面板画不出按钮时用户面对的就是一片说明文字加一句错误——
