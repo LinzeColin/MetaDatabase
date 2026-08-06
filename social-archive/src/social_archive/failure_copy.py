@@ -301,6 +301,21 @@ INCOMPLETE_RUN_CODES: frozenset[str] = frozenset({
 })
 _INCOMPLETE_SENTENCE = "这次同步卡住了，没有正常结束。你已经取到的内容都还在。"
 
+# **「没读完」和「卡住了」不是一回事**，而按形状读那条路每一次成功都报"没读完"。
+#
+# 2026-08-07 量到的：
+#   第一次（读到 7 条新的）  →「新增 7 条。」            对
+#   之后每 6 小时（没有新增）→「这次同步卡住了，没有正常结束。」+ 一颗「重试」
+#
+# 后面那种是**稳态**：页面加载时发出的那一批他已经存过了，再同步自然没有新增。
+# 于是他每 6 小时看到一次"卡住了"，点重试还是同一批——
+# **一个永远变不绿的红不是信号，是噪音**，而这个仓为这句话立过判据。
+_SCROLL_PARTIAL_SENTENCE = (
+    "这次没有读到新的内容——页面加载时能看到的那一批，都已经在你的档案馆里了。"
+    "想要更早的：打开收藏页往下滚动一会儿，再点一次同步。"
+)
+SCROLL_PARTIAL_CODES: frozenset[str] = frozenset({"PARTIAL_BY_PAGE_SCROLL"})
+
 # **「是我们的问题」与「我们不知道为什么」是两回事。**
 #
 # 原来这两种都落到 unexplained_zero，那句话里有「我们没能记录下原因」——
@@ -440,6 +455,14 @@ def describe_sync_outcome(
         return {
             "outcome": "product_fault", "imported": imported,
             "message_zh": _PRODUCT_FAULT_SENTENCE,
+            "failure_code": code_key(failure_code), "action_zh": None,
+        }
+    if str(code_key(failure_code)) in SCROLL_PARTIAL_CODES:
+        # **这不是失败，也不是卡住**：他能看到的那一批已经全在库里了。
+        # 给的是"想要更多该怎么做"，不是一颗点了也一样的「重试」。
+        return {
+            "outcome": "informational", "imported": imported,
+            "message_zh": _SCROLL_PARTIAL_SENTENCE,
             "failure_code": code_key(failure_code), "action_zh": None,
         }
     if str(code_key(failure_code)) in INCOMPLETE_RUN_CODES:

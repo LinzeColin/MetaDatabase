@@ -503,12 +503,46 @@ def test_legacy_incomplete_codes_say_the_data_is_safe() -> None:
     """「没跑完」要同时说清两件事：没正常结束，以及已拿到的没丢。"""
     from social_archive.failure_copy import INCOMPLETE_RUN_CODES
 
-    for code in sorted(INCOMPLETE_RUN_CODES):
+    from social_archive.failure_copy import SCROLL_PARTIAL_CODES
+
+    # **「没读完」和「卡住了」不是一回事**——按形状读那条路每一次成功都报"没读完"，
+    # 而它的稳态是"没有新增"（他能看到的那一批已经全在库里）。
+    # 那种情况说「同步卡住了」+ 给一颗「重试」是错的：重试读到的还是同一批，
+    # 于是他每 6 小时看到一次永远变不绿的红。那几个码单独走一条，见下一条判据。
+    for code in sorted(INCOMPLETE_RUN_CODES - SCROLL_PARTIAL_CODES):
         outcome = describe_sync_outcome(imported=0, failure_code=code, status="failed")
         assert outcome["outcome"] == "stalled", f"{code} 落到了 {outcome['outcome']}"
         assert "没有正常结束" in str(outcome["message_zh"])
         assert "都还在" in str(outcome["message_zh"]), f"{code} 没告诉用户数据还在"
         assert outcome["action_zh"] == "重试"
+
+
+def test_a_scroll_partial_with_nothing_new_is_not_shown_as_stuck() -> None:
+    """**这是按形状读那条路的稳态，不是故障。**
+
+    2026-08-07 量到：第一次读到 7 条显示「新增 7 条。」（对），
+    而之后每 6 小时那次没有新增，显示的是
+    「这次同步卡住了，没有正常结束。」+ 一颗「重试」——
+    而重试读到的还是同一批。**一个永远变不绿的红不是信号，是噪音。**
+
+    正确的话是：能看到的那一批已经全在库里了；想要更早的，
+    去收藏页往下滚一会儿再同步。
+    """
+    from social_archive.failure_copy import SCROLL_PARTIAL_CODES
+
+    for code in sorted(SCROLL_PARTIAL_CODES):
+        outcome = describe_sync_outcome(imported=0, failure_code=code, status="partial")
+        assert outcome["outcome"] != "stalled", f"{code} 被当成卡住了"
+        assert "卡住" not in str(outcome["message_zh"]), f"{code} 的文案说它卡住了"
+        assert "往下滚" in str(outcome["message_zh"]), (
+            f"{code} 没告诉他想要更多该做什么"
+        )
+        assert outcome["action_zh"] != "重试", (
+            "给了一颗「重试」——点了读到的还是同一批，那是一颗骗人的按钮"
+        )
+        # 读到新的时候仍然先报数
+        got = describe_sync_outcome(imported=5, failure_code=code, status="partial")
+        assert got["message_zh"] == "新增 5 条。"
 
 
 def test_partial_runs_that_did_import_still_report_the_count_first() -> None:
