@@ -1,5 +1,5 @@
 {
-  "status": "PASS",
+  "status": "FAIL",
   "endpoint": "https://social-archive-api.linzezhang.com",
   "token_supplied": true,
   "measured_in_real_chrome": {
@@ -26,8 +26,74 @@
     "health_type": "basic",
     "health_status": 200,
     "control_blocked_host_type": "opaqueredirect",
-    "control_blocked_host_status": 0
+    "control_blocked_host_status": 0,
+    "connect_panel": {
+      "rows": 9,
+      "buttons": [
+        {
+          "name": "小红书",
+          "state": "未连接",
+          "button": "连接账号",
+          "own_text": "小红书"
+        },
+        {
+          "name": "抖音",
+          "state": "未连接",
+          "button": "连接账号",
+          "own_text": "抖音"
+        },
+        {
+          "name": "快手",
+          "state": "未连接",
+          "button": "连接账号",
+          "own_text": "快手"
+        },
+        {
+          "name": "B站",
+          "state": "未连接",
+          "button": "连接账号",
+          "own_text": "B站"
+        },
+        {
+          "name": "Reddit",
+          "state": "未连接",
+          "button": "连接账号",
+          "own_text": "Reddit"
+        },
+        {
+          "name": "Instagram",
+          "state": "未连接",
+          "button": "连接账号",
+          "own_text": "Instagram"
+        },
+        {
+          "name": "Chrome 书签",
+          "state": "未连接",
+          "button": "连接账号",
+          "own_text": "Chrome 书签"
+        },
+        {
+          "name": "X",
+          "state": "",
+          "button": null,
+          "own_text": "X"
+        },
+        {
+          "name": "YouTube",
+          "state": "",
+          "button": null,
+          "own_text": "YouTube"
+        }
+      ],
+      "says_it_cannot_read_sources": false,
+      "says_nothing_syncs": false,
+      "manual_only_mentioned": false,
+      "body_head": "连接账号 点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。 小红书 未连接 连接账号 抖音 未连接 连接账号 快手 未连接 连接账号 B站 未连接 连接账号 Reddit 未连接 连接账号 Instagram 未连接 连接账号 Chrome 书签 未连接 连接账号 X 本版本还不能自动读取 X 的书签。原因是官方 X 接口可能收费，而这个项目的硬规矩是绝不产生新的必付费用，所"
+    }
   },
-  "problems": [],
+  "problems": [
+    "**X 不能自动同步，却没说为什么**（那一行只有「X」）——列出来不等于说清。",
+    "**YouTube 不能自动同步，却没说为什么**（那一行只有「YouTube」）——列出来不等于说清。"
+  ],
   "what_this_answers_zh": "装上发布包、用**插件自己配置的端点**、拿真令牌调 /v1/library，**插件到底拿到什么**。其余十四个演练都把这个域名映射到本机假服务器，所以这条路此前从没被走过。负对照是资料库域名（在 Access 后面），它必须不通。"
 }

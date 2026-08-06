@@ -139,6 +139,64 @@ PROBE = r"""
 """
 
 
+async def _open_connect_panel(base: str, extension_id: str) -> dict:
+    """把连接面板对着**真生产**打开，看它画出什么。
+
+    面板启动就调 `/v1/accounts`；调不通它会显示「读不到可连接的来源」。
+    所以这一页正好回答验收条件第 1 条的两半：
+
+      · **有没有一颗结构上不可能成功的按钮**——能画出按钮，说明服务端
+        确实报了这个平台可同步；
+      · **做不到自动的平台有没有当场说清**——`sync_supported === false` 的
+        要照列，只是不画按钮，旁边带服务端给的原因。**不显示不等于说清。**
+
+    面板本来是嵌在资料库页里的 iframe，这里单开一页：`parent` 就是它自己，
+    那句 postMessage 落空，不影响渲染。资料库页在 Cloudflare Access 后面，
+    单开面板正好绕过「要人登录」，而量到的恰恰是插件那一侧。
+    """
+    url = f"chrome-extension://{extension_id}/connect-frame.html"
+    urllib.request.urlopen(urllib.request.Request(
+        base + "/json/new?" + url, method="PUT"), timeout=10).read()
+    await asyncio.sleep(3)
+    targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
+    pages = [item for item in targets if item.get("type") == "page"
+             and "connect-frame.html" in item.get("url", "")]
+    if not pages:
+        return {"drill_error": "连接面板没打开"}
+    async with websockets.connect(pages[0]["webSocketDebuggerUrl"], max_size=None) as ws:
+        rpc = await shape._rpc_factory(ws)
+        await rpc("Runtime.enable")
+        await asyncio.sleep(2)                       # 等它把 /v1/accounts 拉回来
+        got = await rpc("Runtime.evaluate", {
+            "expression": r"""JSON.stringify((() => {
+              const rows = Array.from(document.querySelectorAll("#list li"));
+              const text = document.body.innerText || "";
+              return {
+                rows: rows.length,
+                buttons: rows.map(li => {
+                  const button = li.querySelector("button");
+                  return {
+                    name: (li.querySelector(".name") || {}).textContent || "",
+                    state: (li.querySelector(".state") || {}).textContent || "",
+                    button: button ? button.textContent : null,
+                    // **没有按钮的那一行，必须自己带着原因。**
+                    // 只数「列出来了几行」是查不出「列了但没说为什么」的。
+                    own_text: (li.innerText || "").replace(/\s+/g, " ").trim(),
+                  };
+                }),
+                says_it_cannot_read_sources: text.includes("读不到可连接的来源"),
+                says_nothing_syncs: text.includes("本版本还没有能自动同步的来源"),
+                manual_only_mentioned: text.includes("只能手动"),
+                body_head: text.slice(0, 200).replace(/\s+/g, " "),
+              };
+            })())""",
+            "returnByValue": True, "timeout": 20000})
+        payload = got.get("result", {})
+        if payload.get("exceptionDetails"):
+            return {"drill_error": str(payload["exceptionDetails"])[:200]}
+        return json.loads(payload["result"]["value"])
+
+
 async def run(chrome: str, token: str) -> int:
     if not ZIP.is_file():
         print(json.dumps({"status": "FAIL", "error_code": "PACKAGE_MISSING",
@@ -201,6 +259,9 @@ async def run(chrome: str, token: str) -> int:
                         problems.append(f"探针跑炸了：{str(payload['exceptionDetails'])[:200]}")
                     else:
                         measured = json.loads(payload["result"]["value"])
+            if measured:
+                panel = await _open_connect_panel(base, extension_id)
+                measured["connect_panel"] = panel
     finally:
         process.terminate()
         shutil.rmtree(workspace, ignore_errors=True)
@@ -237,6 +298,38 @@ async def run(chrome: str, token: str) -> int:
                 f"（裸 fetch：{measured.get('raw_error') or measured.get('raw_status')}）")
     if not measured:
         problems.append("**一个数都没量到**——这不是通过。")
+
+    # **面板对着真生产画出什么。** 验收条件第 1 条的两半都在这里。
+    panel = measured.get("connect_panel") or {}
+    if measured and not panel:
+        problems.append("连接面板那一段没量到——**这不是通过**。")
+    elif panel.get("drill_error"):
+        problems.append(f"连接面板打不开：{panel['drill_error']}")
+    else:
+        if panel.get("says_it_cannot_read_sources"):
+            problems.append(
+                "**面板显示「读不到可连接的来源」**——他打开就是这一句，"
+                "一颗按钮都没有。")
+        if panel.get("says_nothing_syncs"):
+            problems.append("**面板说「本版本还没有能自动同步的来源」**——"
+                            "服务端一个可同步平台都没报。")
+        actionable = [row for row in panel.get("buttons", []) if row.get("button")]
+        if not actionable:
+            problems.append("**面板里一颗能点的按钮都没有**——"
+                            f"画了 {panel.get('rows')} 行，没有一行带按钮。")
+        for row in panel.get("buttons", []):
+            if row.get("name", "").islower() and "_" in row.get("name", ""):
+                problems.append(f"**按钮上写的是平台 id 不是名字**：{row['name']}")
+            # **「列出来了」不等于「说清了」。** 验收条件第 1 条要的是
+            # 「做不到自动的平台，界面必须**当场说清**这个只能手动保存」——
+            # 一行只有名字、没有原因，和不显示一样让人卡住。
+            if not row.get("button"):
+                name = row.get("name", "")
+                explanation = row.get("own_text", "").replace(name, "").strip()
+                if len(explanation) < 8:
+                    problems.append(
+                        f"**{name} 不能自动同步，却没说为什么**（那一行只有"
+                        f"「{row.get('own_text', '')[:40]}」）——列出来不等于说清。")
     # **负对照要被判，不能只被量。**
     #
     # 资料库域名在 Cloudflare Access 后面，从插件里访问必然被 302 打断

@@ -54,8 +54,8 @@
   "captured_responses": 5,
   "captured_urls": [
     "https://www.xiaohongshu.com/api/log",
-    "https://www.xiaohongshu.com/api/user",
     "https://www.xiaohongshu.com/api/config",
+    "https://www.xiaohongshu.com/api/user",
     "https://www.xiaohongshu.com/api/collect/page",
     "https://www.xiaohongshu.com/api/homefeed"
   ],
