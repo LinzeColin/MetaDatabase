@@ -39,6 +39,13 @@ def _like_pattern(value: str) -> str:
     return "%" + value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
 
 
+# **成因不在我们这边的失败**：自动入队不许把它们复活。
+# 平台挡住服务器、内容形态工具不认——这两种重排一万次也一样，
+# 而每次重排都是一次真的对外请求（Owner 生产库里量到每天约 128 次）。
+STRUCTURAL_FAILURE_CODES = ("MEDIA_BLOCKED_BY_PLATFORM", "MEDIA_TYPE_UNSUPPORTED")
+STRUCTURAL_PLACEHOLDERS = ",".join("?" for _ in STRUCTURAL_FAILURE_CODES)
+
+
 class RuntimeStore:
     def __init__(self, path: Path):
         self.path = path
@@ -547,6 +554,20 @@ class RuntimeStore:
         with self.connection() as con:
             return int(con.execute("SELECT COUNT(*) FROM content").fetchone()[0])
 
+    def force_requeue_failed_job(self, job_id: str) -> bool:
+        """显式重排一个结构性失败的活儿（换了下载器之类的时候用）。
+
+        自动入队不会碰它们——见 `enqueue_job` 里那段。这里是"我确实知道
+        成因变了"的出口，**必须有人明确调它**，不是顺带发生的。
+        """
+        with self.connection() as con:
+            changed = con.execute(
+                """UPDATE job SET status='queued', not_before=?, lease_owner=NULL,
+                       lease_expires_at=NULL, updated_at=? WHERE id=? AND status='failed'""",
+                (utcnow(), utcnow(), job_id),
+            ).rowcount
+        return bool(changed)
+
     def enqueue_job(self, job_type: str, payload: dict[str, Any], connector_id: str | None = None) -> str:
         payload_raw = json.dumps(payload, ensure_ascii=False, sort_keys=True)
         job_id = stable_id("job", job_type, connector_id, sha256_bytes(payload_raw.encode("utf-8")))
@@ -572,11 +593,29 @@ class RuntimeStore:
             # 只复活 failed。queued/running/retry 不动（本来就要跑），
             # done 也不动——把已完成的活儿因为一次重复入队就重跑，
             # 是另一种意外，得由调用方明确要求。
+            # **但结构性失败不许被这条复活。**
+            #
+            # 2026-08-07 在 Owner 生产库里量到：32 个 download_l3 挂着
+            # MEDIA_BLOCKED_BY_PLATFORM，而 attempt_count 全是 6。
+            # 那不是重试策略的问题（那个码的 retryable 本来就是 False），
+            # 是**每 6 小时一次同步会重新 capture 同一条抖音内容 → 同一个
+            # job id → 上面那条 UPDATE 把它复活 → 再打一次注定失败的请求**。
+            #
+            # 32 条 × 每天 4 次同步 ≈ 每天 128 次对抖音 CDN 的无效请求，
+            # 而且**永远不会停**——那条内容只要还在他的收藏里就一直这样。
+            # 这是「永远变不绿的红」的机器版本：一件结构上不可能成功的事，
+            # 被无限重排。
+            #
+            # 复活的本意是"我们把成因修好了，让它再跑一次"——那些成因在我们这边
+            # （导出实现坏了、部署没配）。平台挡住服务器不在我们这边，
+            # 修不好，也就不该被自动重排。真要重排（比如换了下载器），
+            # 由调用方显式 force_requeue_failed_job()。
             con.execute(
-                """UPDATE job SET status='queued', not_before=?, lease_owner=NULL,
+                f"""UPDATE job SET status='queued', not_before=?, lease_owner=NULL,
                        lease_expires_at=NULL, updated_at=?
-                   WHERE id=? AND status='failed'""",
-                (now, now, job_id),
+                   WHERE id=? AND status='failed'
+                     AND COALESCE(last_error_code,'') NOT IN ({STRUCTURAL_PLACEHOLDERS})""",
+                (now, now, job_id, *STRUCTURAL_FAILURE_CODES),
             )
         return job_id
 

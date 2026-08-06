@@ -8,7 +8,7 @@
       "status": "ok",
       "project": "Social Archive",
       "version": "0.0.0.22",
-      "time": "2026-08-06T16:39:46.995021Z",
+      "time": "2026-08-06T16:55:40.529925Z",
       "paid_api_allowed": false,
       "archive_defaults": {
         "L0": true,
@@ -19,7 +19,7 @@
       "worker": {
         "ever_seen": true,
         "alive": true,
-        "last_seen_at": "2026-08-06T16:39:35.685672Z",
+        "last_seen_at": "2026-08-06T16:55:29.268240Z",
         "seconds_since": 11.3,
         "note": ""
       },
