@@ -110,6 +110,27 @@ def inert_in_the_image(name: str) -> bool:
                     "reclaim_our_superseded_images.sh"})
 
 
+def container_note_for(stale: list[str], file_count: int) -> str:
+    """给「镜像里那一份」的那句人话。**它必须由最终那份名单现算。**
+
+    2026-08-07 实测：这句话原来算在豁免过滤**之前**，于是同一份报告里
+    `status: PASS`、`container_is_running_older_code: []`，
+    旁边那句话却写着「**镜像比仓旧——主机同步过了，但没重建镜像**」。
+    三个字段说三种话，而人只会读那句话。
+
+    这个仓一整天都在修同一种病：**指错原因的告警，比不告警更费人**。
+
+    所以做成纯函数、在拼报告那一刻调用——**它拿不到过滤前的名单**，
+    顺序就错不了。靠「我把它挪到了正确的位置」是守不住的：
+    下一个人往中间插一行就又反过来了。
+    """
+    if not stale:
+        return f"镜像里 {file_count} 个文件；**它才是服务在执行的那一份**"
+    return ("**镜像比仓旧——主机同步过了，但没重建镜像。** "
+            "运维手册那句「systemctl restart 不会重建镜像」说的就是这个。"
+            "跑 scripts/deploy_to_production.sh（或生产上的 update.sh）才会重建。")
+
+
 def _local_hashes() -> dict[str, str]:
     import hashlib
     found: dict[str, str] = {}
@@ -225,6 +246,7 @@ def main() -> int:
     # **第三份：镜像里那一份。** 主机同步对了不等于服务在跑它——
     # /app 是烤进镜像的，改主机不重建镜像的话，容器里纹丝不动。
     container_stale: list[str] = []
+    container_files: int | None = None
     container_note = "没查（--container 给了空串）"
     if args.container:
         inside, container_error = _container_hashes(args.host, args.container)
@@ -235,12 +257,7 @@ def main() -> int:
             container_stale = sorted(
                 name for name in set(local) & set(inside) if local[name] != inside[name]
             ) + sorted(set(local) - set(inside))
-            container_note = (
-                f"镜像里 {len(inside)} 个文件；**它才是服务在执行的那一份**"
-                if not container_stale else
-                "**镜像比仓旧——主机同步过了，但没重建镜像。** "
-                "运维手册那句「systemctl restart 不会重建镜像」说的就是这个。"
-                "跑 scripts/deploy_to_production.sh（或生产上的 update.sh）才会重建。")
+            container_files = len(inside)
 
     buckets = classify(local, remote)
     only_on_production = buckets["only_on_production"]
@@ -266,7 +283,12 @@ def main() -> int:
     dev_only_differs = [name for name in logic_differs if inert_in_the_image(name)]
     logic_differs = [name for name in logic_differs if not inert_in_the_image(name)]
     if container_stale:
+        dev_only_differs += [n for n in container_stale if inert_in_the_image(n)]
         container_stale = [name for name in container_stale if not inert_in_the_image(name)]
+        dev_only_differs = sorted(set(dev_only_differs))
+
+    if args.container and container_files is not None:
+        container_note = container_note_for(container_stale, container_files)
 
     # **「只在生产有」单独作为失败条件。** 那是没人说得清来路的代码，正在跑。
     status = "FAIL" if only_on_production or logic_differs or container_stale else "PASS"

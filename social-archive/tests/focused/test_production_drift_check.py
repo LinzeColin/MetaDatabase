@@ -372,3 +372,25 @@ def test_every_exempt_script_is_provably_unreferenced() -> None:
             assert name not in text, (
                 f"**{name} 被豁免了，可是 {where} 里引用着它。**\n"
                 "豁免的前提是「改了它，镜像/主机做的事不会变」——有人调它就不成立了。")
+
+
+def test_the_container_note_is_computed_from_the_final_list() -> None:
+    """**那句人话不许和字段互相矛盾。**
+
+    2026-08-07 实测：它算在豁免过滤之前，于是同一份报告里
+    `status: PASS`、`container_is_running_older_code: []`，
+    旁边却写着「镜像比仓旧——主机同步过了，但没重建镜像」。
+    三个字段说三种话，而人只会读那句话。
+
+    做成纯函数之后它**拿不到过滤前的名单**，顺序就错不了。
+    这里连「main 里不许再自己拼这句话」一起钉住——否则改回去毫无阻力。
+    """
+    note_for = _module.container_note_for
+    assert "服务在执行的那一份" in note_for([], 171)
+    assert "镜像比仓旧" not in note_for([], 171)
+    assert "镜像比仓旧" in note_for(["src/social_archive/api.py"], 171)
+
+    body = CHECK_SOURCE.split("def main(", 1)[1]
+    assert "镜像比仓旧" not in body, (
+        "**main 里又自己拼了一遍这句话**——两份文案会各自漂，"
+        "而漂的那天报告里的字段和人话说的是两件事")

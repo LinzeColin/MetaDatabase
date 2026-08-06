@@ -294,6 +294,15 @@ if (( NEEDS_REBUILD == 0 )); then
 fi
 
 step "4) 构建前先看磁盘"
+# **这两个函数和门槛定义在 if 外面。**
+#
+# 2026-08-07 实测：我把整段磁盘检查包进 `if (( NEEDS_REBUILD == 1 ))` 时，
+# 把函数**定义**也一起包了进去。于是跳过构建的那条路上第 10 步一跑就是
+# `free_kb: command not found`——**部署到最后一步才炸，而前面九步全绿**。
+# 定义要放在分支外，分支只管要不要「用」它们。
+free_kb() { ssh -o ConnectTimeout=20 "$HOST" "df -k --output=avail / | tail -1 | tr -dc '0-9'"; }
+show_gb() { awk -v kb="$1" 'BEGIN{printf "%.2f", kb/1048576}'; }
+MIN_FREE_KB=$(( MIN_FREE_GB * 1048576 ))
 if (( NEEDS_REBUILD == 0 )); then
   printf '  跳过：这次不构建，不会新增镜像。\n'
 fi
@@ -309,9 +318,6 @@ if (( NEEDS_REBUILD == 1 )); then
 # 2026-08-05 实测：真实可用 4.84G，`df -BG` 报 5G，于是这道「至少 5G」的门
 # 当场放行。最坏情况虚报接近 1G（4.01G 也会报成 5G），而它拦的正是
 # 「盘紧的时候别再往上叠一个 1GB 的镜像」——虚报的方向恰好是不安全那一侧。
-free_kb() { ssh -o ConnectTimeout=20 "$HOST" "df -k --output=avail / | tail -1 | tr -dc '0-9'"; }
-show_gb() { awk -v kb="$1" 'BEGIN{printf "%.2f", kb/1048576}'; }
-MIN_FREE_KB=$(( MIN_FREE_GB * 1048576 ))
 FREE_KB="$(free_kb)"
 printf '  根分区可用 %sG（门槛 %sG）\n' "$(show_gb "$FREE_KB")" "$MIN_FREE_GB"
 if [[ -n "$FREE_KB" && "$FREE_KB" -lt "$MIN_FREE_KB" ]]; then
