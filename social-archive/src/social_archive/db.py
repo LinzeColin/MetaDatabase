@@ -1167,18 +1167,33 @@ class RuntimeStore:
             # 而 B 站接上之后，「按收藏夹看」是他最自然的一个动作：
             # 库里的 collection_key 是媒体 id，没有这一栏他连哪些收藏夹存在都不知道。
             # `key` 给筛选用（库里存的就是它），`label` 给人看。
+            # **只提供「我们知道名字」的收藏夹。**
+            #
+            # 2026-08-06 对着生产量出来的：他库里 193 条中有 100 条带着
+            # v0.0.0.6 那个 DOM 抓取器留下的 collection_key，而那个抓取器
+            # 正是因为不可靠才被 T03 删掉的。它留下的东西长这样：
+            #
+            #   '综合视频直播专栏 更多筛选 清空历史批量管理全部时长10分钟以下…'  70 条
+            #   'bilibili:/3493091105311656/favlist'                        30 条
+            #
+            # 第一版这道分面照单全收，于是**一串 100 字的页面文案会出现在他的筛选下拉框里**。
+            # 判据全绿、接口也没错——错的是把说不出名字的 key 当成收藏夹端给用户。
+            #
+            # 规则：有 platform_collection 记录（也就是平台自己告诉我们的名字）才算数。
+            # 走 API 那条路的收藏夹永远有名字；说不出名字的一律不进筛选框。
+            # 条目自身的 `collections` 仍然退回 key —— 那是"这条属于哪一组"，
+            # 少了它连分组都没有；而筛选框是"请选一个"，端不出名字就不该请人选。
             collection_rows = con.execute(
-                f"""SELECT r.collection_key AS key,
-                           COALESCE((SELECT pc.name FROM platform_collection pc
-                                      WHERE pc.source_account_id = r.source_account_id
-                                        AND pc.relation_type = r.relation_type
-                                        AND pc.external_collection_id = r.collection_key
-                                      LIMIT 1), r.collection_key) AS label,
+                f"""SELECT r.collection_key AS key, pc.name AS label,
                            COUNT(DISTINCT c.id) AS count
                     FROM content c JOIN user_relation r ON r.content_id=c.id
+                    JOIN platform_collection pc
+                      ON pc.source_account_id = r.source_account_id
+                     AND pc.relation_type = r.relation_type
+                     AND pc.external_collection_id = r.collection_key
                     LEFT JOIN content_classification cc ON cc.content_id=c.id
                     WHERE {where} AND COALESCE(r.collection_key,'')<>''
-                    GROUP BY r.collection_key ORDER BY count DESC LIMIT 100""",
+                    GROUP BY r.collection_key, pc.name ORDER BY count DESC LIMIT 100""",
                 args,
             ).fetchall()
         for row in rows:

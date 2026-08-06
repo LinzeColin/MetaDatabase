@@ -304,3 +304,30 @@ def test_a_folder_with_no_stored_name_falls_back_to_its_key(settings, store, ser
     table = store.list_library_table(limit=50, offset=0)
     names = {name for row in table["items"] for name in (row.get("collections") or [])}
     assert names == {"111", "222"}, f"没有名字时该退回 key，实际是 {sorted(names)}"
+
+
+def test_a_folder_we_cannot_name_is_not_offered_as_a_filter(settings, store, service) -> None:
+    """说不出名字的 key 不许进筛选框（v0.0.0.11）。
+
+    2026-08-06 对着**生产**量出来的：他库里 193 条中有 100 条带着 v0.0.0.6
+    那个 DOM 抓取器留下的 collection_key，而那个抓取器正是因为不可靠才被删掉的。
+    它留下的长这样：
+
+        '综合视频直播专栏 更多筛选 清空历史批量管理全部时长10分钟以下…'   70 条
+
+    分面第一版照单全收，于是**一串 100 字的页面文案会出现在他的筛选下拉框里**。
+    判据全绿、接口也没错——错的是把说不出名字的 key 当成收藏夹端给用户。
+
+    条目自身的 `collections` 仍然退回 key（"这条属于哪一组"，少了它连分组都没有）；
+    筛选框是"请选一个"，端不出名字就不该请人选。
+    """
+    coordinator, account_id = _connect(settings, store, service)
+    # per_collection=False：批次不带 collection_name → 没有 platform_collection 记录
+    _one_sync(coordinator, account_id, FOLDERS, per_collection=False)
+    table = store.list_library_table(limit=50, offset=0)
+    assert table["facets"]["collections"] == [], (
+        "**说不出名字的收藏夹进了筛选框** —— 他会在下拉里看到一串没头没尾的字符串"
+    )
+    # 但条目上仍然要能看出分组
+    names = {name for row in table["items"] for name in (row.get("collections") or [])}
+    assert names == {"111", "222"}, "条目连分组都看不出来了——退回 key 那条被一起砍掉了"
