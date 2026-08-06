@@ -33,8 +33,8 @@
   "connect_panel_embedded_in_library": {
     "embedded": true,
     "api": "function",
-    "hasButton": false,
-    "text": "连接账号\n\n点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。\n\n正在读取可连接的来源…\n读不到可连接的来源：扩展尚未授权或令牌已失效"
+    "hasButton": true,
+    "text": "连接账号\n\n点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。\n\n小红书\n未连接\n连接账号"
   },
   "permission_request_from_service_worker": {
     "bookmarks": {

@@ -8,7 +8,7 @@
       "status": "ok",
       "project": "Social Archive",
       "version": "0.0.0.22",
-      "time": "2026-08-06T10:51:55.922199Z",
+      "time": "2026-08-06T11:08:46.376098Z",
       "paid_api_allowed": false,
       "archive_defaults": {
         "L0": true,
@@ -19,8 +19,8 @@
       "worker": {
         "ever_seen": true,
         "alive": true,
-        "last_seen_at": "2026-08-06T10:51:43.835396Z",
-        "seconds_since": 12.1,
+        "last_seen_at": "2026-08-06T11:08:33.834521Z",
+        "seconds_since": 12.5,
         "note": ""
       },
       "minimum_extension_version": "0.0.0.9"
@@ -65,9 +65,9 @@
     },
     "package": {
       "manifest_version": "0.0.0.22",
-      "file_count": 25,
+      "file_count": 27,
       "has_bilibili_reader": true,
-      "sha256": "f82ff852ff8b8692e3c3748be511df3219a88a632f150db73215b88860d60086"
+      "sha256": "9ce2398aade04070cd84746bf18c0a8245e96798bb85e8fcd1b7370e4c66a747"
     },
     "install_page": {
       "bytes": 11540,
@@ -82,8 +82,8 @@
       "manifest.webmanifest": "f71aae80fe412c13defe7908aca3227dec3d4f0f19f4397b71c2e3062485836d",
       "styles.css": "d2a490200b18ef8ed44dee85030c5de88a5b497c3556c1af39ceb83c8f6e13c6",
       "extension-install.html": "7b177d771beb1553f1cc86a618ee8a556640a3070eccc1feb6f41c592d6acee7",
-      "index.html": "6d94ad4fe2ab7fd1d6b5d4941ff5e93f602117d174e08b0b2fffb3d32bb45359",
-      "app.js": "be07037430057c5bbcaf92b8ec9761bbff93593fdaab439073079b4e6806624d",
+      "index.html": "659818c98f056d253e3f33a3547c573d9ea1cc713e8ac4e071d1231eab624725",
+      "app.js": "90f9e11e5f7792c75cae2a5503830609c6e86bcba84276da7ea96cc4cf8b53f2",
       "favicon.svg": "7b6ebae15b9a72d52b7452880487b9893fdd3ceaa8e0a6105f22a3f2a7486d0a"
     },
     "library_page": {

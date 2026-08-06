@@ -66,6 +66,8 @@ DEBUG_PORT = 9381
 PROBE = r"""
 (async () => {
   const out = { modules: {}, permissions: {}, manifest: {} };
+  // 指向假档案馆，好让连接面板问得出「有哪些来源可连」。
+  await SA.setConfig({ endpoint: "http://127.0.0.1:%(api)d", token: "drill" });
   const manifest = chrome.runtime.getManifest();
   out.manifest = { version: manifest.version,
                    host: manifest.host_permissions || [],
@@ -291,6 +293,11 @@ async def run(chrome: str) -> int:
     server = ThreadingHTTPServer(("127.0.0.1", shape.FAKE_PORT), _FakeWithLibrary)
     server.socket = context.wrap_socket(server.socket, server_side=True)
     threading.Thread(target=server.serve_forever, daemon=True).start()
+    # **假档案馆**：面板要调 /v1/accounts 才知道该画哪些按钮。
+    # 不起它的话，面板永远停在「读不到可连接的来源」——那等于没验过它工作。
+    shape.received["accounts"].clear()
+    api_server = ThreadingHTTPServer(("127.0.0.1", shape.FAKE_API_PORT), shape._Api)
+    threading.Thread(target=api_server.serve_forever, daemon=True).start()
 
     process = subprocess.Popen(
         [chrome, f"--user-data-dir={workspace / 'profile'}",
@@ -337,7 +344,8 @@ async def run(chrome: str) -> int:
                     rpc = await shape._rpc_factory(ws)
                     await rpc("Runtime.enable")
                     got = await rpc("Runtime.evaluate",
-                                    {"expression": PROBE, "userGesture": True,
+                                    {"expression": PROBE % {"api": shape.FAKE_API_PORT},
+                                     "userGesture": True,
                                      "awaitPromise": True, "returnByValue": True,
                                      "timeout": 60000})
                     payload = got.get("result", {})
@@ -373,6 +381,7 @@ async def run(chrome: str) -> int:
         except subprocess.TimeoutExpired:
             process.kill()
         server.shutdown()
+        api_server.shutdown()
         shutil.rmtree(workspace, ignore_errors=True)
 
     for name, present in (measured.get("modules") or {}).items():
@@ -412,6 +421,13 @@ async def run(chrome: str) -> int:
     elif not str(measured_frame.get("text") or "").strip():
         # **一片空白不算通过。** 面板打不开时也要说得出为什么。
         problems.append("**面板嵌进去了，但整页是空的**——他会以为软件坏了")
+    elif not measured_frame.get("hasButton"):
+        # **只证明它加载了还不够，要看见它画出按钮。**
+        # 面板画不出按钮时用户面对的就是一片说明文字加一句错误——
+        # 那和"跳去别的页面"一样，还是连不上。
+        problems.append(
+            f"**面板加载了，但一颗按钮都没画出来**：{measured_frame.get('text')}"
+            "——他在这一页上无从下手")
     elif measured_frame.get("api") != "function":
         problems.append(
             f"**面板嵌进去了，但里面没有权限 API**：{json.dumps(measured_frame, ensure_ascii=False)[:220]}"
