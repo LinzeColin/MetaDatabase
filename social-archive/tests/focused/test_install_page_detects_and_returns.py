@@ -104,6 +104,14 @@ def test_no_stale_version_string() -> None:
     # 代码里的字符串仍然在范围内（那些可能被显示出来）。
     without_comments = re.sub(r"<!--.*?-->", " ", html, flags=re.S)
     without_comments = re.sub(r"/\*.*?\*/", " ", without_comments, flags=re.S)
+    # **整行的 `//` 注释同理**：它和块注释一样是历史标注，用户看不到。
+    # 上面那段理由写的是"注释里的版本号是历史标注，不是页面显示的内容"，
+    # 而它只剥了块注释——于是一段讲「下限是 0.0.0.9、他装的是 0.0.0.21」的
+    # 行注释会被当成"页面上留着过期版本号"。
+    # **只剥整行**：`https://` 里也有 `//`，非锚定的剥法会吃掉真内容
+    # （这个仓上一次那么干，直接吃掉了 manifest 里的匹配模式）。
+    without_comments = "\n".join(
+        line for line in without_comments.splitlines() if not line.lstrip().startswith("//"))
     stale = [m for m in re.findall(r"v?0\.0\.0\.\d", without_comments)
              if m.lstrip("v") != version]
     assert not stale, f"页面上还留着过期版本号：{stale}"

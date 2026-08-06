@@ -1,5 +1,5 @@
 {
-  "status": "PASS",
+  "status": "FAIL",
   "task": "G5",
   "host": "linze-ovh",
   "expected_version": "0.0.0.22",
@@ -8,7 +8,7 @@
       "status": "ok",
       "project": "Social Archive",
       "version": "0.0.0.22",
-      "time": "2026-08-06T13:09:44.670127Z",
+      "time": "2026-08-06T13:30:10.691311Z",
       "paid_api_allowed": false,
       "archive_defaults": {
         "L0": true,
@@ -19,8 +19,8 @@
       "worker": {
         "ever_seen": true,
         "alive": true,
-        "last_seen_at": "2026-08-06T13:09:32.953929Z",
-        "seconds_since": 11.7,
+        "last_seen_at": "2026-08-06T13:30:10.001816Z",
+        "seconds_since": 0.7,
         "note": ""
       },
       "minimum_extension_version": "0.0.0.9"
@@ -83,7 +83,7 @@
       "styles.css": "d2a490200b18ef8ed44dee85030c5de88a5b497c3556c1af39ceb83c8f6e13c6",
       "extension-install.html": "7b177d771beb1553f1cc86a618ee8a556640a3070eccc1feb6f41c592d6acee7",
       "index.html": "659818c98f056d253e3f33a3547c573d9ea1cc713e8ac4e071d1231eab624725",
-      "app.js": "6ded30d9effcc6d4dfb886c61514c699bc6701e1fd62ea591c269395bcb0ab77",
+      "app.js": "12b0888a5a30bd7d21e5518fda77f21e4efaa628d43ee3fa3f7122ff77135b8a",
       "favicon.svg": "7b6ebae15b9a72d52b7452880487b9893fdd3ceaa8e0a6105f22a3f2a7486d0a"
     },
     "library_page": {
@@ -91,7 +91,9 @@
       "knows_bilibili_failure_codes": true
     }
   },
-  "problems": [],
+  "problems": [
+    "**生产上的 extension-install.html 不是仓里这一份**（仓 e6199d5aa3a5… / 线上 7b177d771beb…）——多半是这次部署没成，而版本号看不出来"
+  ],
   "why_origin_not_public": "资料库域名挡在 Cloudflare Access 后面，不带登录态 curl 只会拿到 302 到登录页的143 字节，四条断言会全报 False 而页面其实好端端的（2026-08-06 实测踩过）。所以从 origin 量——那是 Access 放行之后 Owner 真正拿到的那一份。",
   "what_this_does_not_prove": "没有证明 Owner 自己的 B 站收藏夹读得出来——那要他本人的登录态，发生在他自己的浏览器里。这里证明的是：他要用到的每一样东西，生产上都是新的那一份。"
 }

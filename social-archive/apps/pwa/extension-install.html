@@ -196,6 +196,29 @@
             setTimeout(loop, 1500);   // 继续盯着，换好了立刻变绿
             return;
           }
+          // **高于下限、但不是最新——这一档以前没有，于是成了一个死循环。**
+          //
+          // 下限是 0.0.0.9，他装的是 0.0.0.21：不算 tooOld，于是这一页说
+          // 「✓ 插件已是 v0.0.0.21，正在把你送回资料库…」并把他送回去；
+          // 而资料库那边正让他更新（旧版的权限申请在 service worker 里，
+          // **连接账号一次也不会成**）。他就在两页之间来回打转。
+          //
+          // 上面那段注释警告过反方向的死循环（首页说去更新→这里说已装好→回首页）。
+          // 这是同一个循环的另一半：**这一页只认"太旧"，不认"旧"。**
+          //
+          // 这一档不拦（他仍然能保存、能看资料库），但**不许自动送回去**：
+          // 把换文件那几步摆出来，并说清不换会少什么。
+          const behind = requiredVersion
+            && compareVersions(installed || "0", requiredVersion) < 0;
+          if (installed && behind) {
+            paintUpdate(installed);
+            dot.classList.remove("ready");
+            text.textContent = "检测到 v" + installed + "，最新是 v" + requiredVersion +
+              "——现在也能保存和查看，但连接账号需要更新后才成。" +
+              "按下面几步换掉文件，换好这里会自动变绿。";
+            setTimeout(loop, 1500);
+            return;
+          }
           done = true;
           dot.classList.add("ready");
           text.textContent = installed

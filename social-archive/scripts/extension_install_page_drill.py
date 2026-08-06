@@ -236,10 +236,32 @@ async def run(chrome: str, ext_dir: str) -> int:
         report["装的不是最新但够用"] = newer_server
         if newer_server.get("error"):
             problems.append(f"「不是最新但够用」那一趟没跑成：{newer_server['error']}")
-        elif newer_server.get("url") != "/":
-            problems.append(
-                "**插件版本高于下限却被拦住了**——服务端升一个补丁版本就把人锁在门外，"
-                f"那正是「整个软件完全不能使用」的来源（停在 {newer_server.get('url')}）")
+        else:
+            # **「不拦」是「有路走」，不是「自动把他送回去」。**
+            #
+            # 这一条原来断言页面必须自动跳回 /。而那让另一半的死循环成立：
+            # 资料库那边说「请更新插件：旧版连不上账号」（真的连不上——旧版的
+            # 权限申请在 service worker 里，一次也不会成），他点过来，
+            # 这一页说「✓ 插件已是 v0.0.0.21，正在把你送回资料库…」并送他回去，
+            # 回去还是那句话。**两页互相甩，中间没有一处告诉他该换文件。**
+            #
+            # 现在这一档：不拦（回资料库的链接在、保存和查看都照常），
+            # 但停下来把换文件那几步摆出来，并说清不换会少什么。
+            if not newer_server.get("backHref"):
+                problems.append(
+                    "**版本旧一点的时候没有回资料库的路**——那就成了拦人。"
+                    "这一档他仍然能保存、能查看，不该被堵在这一页上")
+            if not newer_server.get("updateShown"):
+                problems.append(
+                    "**版本旧一点的时候没给换文件的步骤**——资料库那边正让他来更新，"
+                    "这一页却什么也不说，他会在两页之间来回打转")
+            if "连接账号需要更新" not in str(newer_server.get("detect") or ""):
+                problems.append(
+                    f"没说清不更新会少什么：{newer_server.get('detect')!r}"
+                    "——他不知道为什么要折腾这一趟")
+            if "**" in str(newer_server.get("detect") or ""):
+                problems.append(
+                    f"页面上有没被渲染的 Markdown 星号：{newer_server.get('detect')!r}")
 
         stale = await _case(chrome, ext_dir, "9.9.9.9", minimum="9.9.9.9")
         report["装了但版本旧"] = stale
