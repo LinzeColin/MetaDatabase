@@ -52,6 +52,15 @@
   // 能拿来拼网址的「链接字段」和「短码」。**和 id 分开**：
   // id 是用来认「这是一批同类条目」的，链接是用来打开的，两件事。
   const LINK_KEYS = ["url", "link", "share_url", "note_url", "permalink", "web_url"];
+  // 封面/图片/视频**按字段名认**，不按平台认，也不按域名认。
+  // 各家放的位置差得远（note_card.cover.url_default / video.cover.url_list[0] /
+  // preview.images[].source.url / image_versions2.candidates[].url），
+  // 但**键名里总有 cover / image / thumb / video 这类词**。
+  const MEDIA_KEY_WORDS = ["cover", "image", "img", "thumb", "pic", "photo",
+                           "video", "url_list", "candidates", "media", "preview"];
+  // 一条内容最多带几个媒体地址。多了没用（库里只显示一张），
+  // 而且**批次会因此变大**——他一次同步几百条时那是真的流量。
+  const MAX_MEDIA_PER_ITEM = 3;
   const SLUG_KEYS = ["shortcode", "code", "bvid"];
 
   // 一个数组至少要这么多元素才当它是列表。
@@ -123,6 +132,41 @@
       level = next.length > 60 ? next.slice(0, 60) : next;
     }
     return null;
+  }
+
+  /** 从一条内容里把封面/图片/视频的地址挖出来。
+   *
+   * 规则只有一条：**这个值是 http(s) 字符串，而它所在的键路径里有媒体词**。
+   * 不看域名（各家 CDN 域名根本无法穷举），不看后缀
+   * （很多平台的图片地址不带 .jpg）。
+   *
+   * 为什么要它：按形状读进来的条目此前**一个媒体地址都不带**，
+   * 他打开资料库看到的是一排纯文字。而 CaptureRequest 一直支持 media_urls，
+   * 批次协议也一直原样透传——**缺的只是取数这一步没取**。
+   */
+  function findMedia(root, maxDepth = 4) {
+    const found = [];
+    let level = [{ node: root, path: "" }];
+    for (let depth = 0; depth <= maxDepth && level.length && found.length < MAX_MEDIA_PER_ITEM; depth += 1) {
+      const next = [];
+      for (const { node, path } of level) {
+        if (!node || typeof node !== "object") continue;
+        for (const [key, value] of Object.entries(node)) {
+          const here = path ? `${path}.${key}` : key;
+          const looksLikeMedia = MEDIA_KEY_WORDS.some(word => here.toLowerCase().includes(word));
+          if (typeof value === "string") {
+            if (looksLikeMedia && /^https?:\/\//i.test(value) && !found.includes(value)) {
+              found.push(value);
+              if (found.length >= MAX_MEDIA_PER_ITEM) return found;
+            }
+          } else if (value && typeof value === "object") {
+            next.push({ node: value, path: here });
+          }
+        }
+      }
+      level = next.length > 60 ? next.slice(0, 60) : next;
+    }
+    return found;
   }
 
   function atPath(object, path) {
@@ -369,8 +413,12 @@
       const titleHit = findKeyDeep(core, TITLE_KEYS, { scalarOnly: true, maxDepth: 2 });
       const authorHit = findKeyDeep(core, AUTHOR_KEYS, { maxDepth: 2 });
       const authorRaw = authorHit ? authorHit.value : null;
+      // **媒体地址取不到就是空数组，不编。** 空数组在这里是诚实的"没有"，
+      // 而不是"没问"——findMedia 真的走过一遍这条内容。
+      const media = findMedia(core).filter(item => item !== url).slice(0, MAX_MEDIA_PER_ITEM);
       items.push({
         url,
+        media_urls: media,
         external_content_id: externalId.slice(0, 512) || null,
         title: titleHit ? String(titleHit.value).slice(0, 2048) : null,
         author_name: (typeof authorRaw === "string" ? authorRaw

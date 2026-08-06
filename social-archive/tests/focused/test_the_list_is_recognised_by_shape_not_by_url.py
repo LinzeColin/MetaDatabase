@@ -300,3 +300,42 @@ def test_an_item_with_no_derivable_url_is_skipped_and_counted() -> None:
     assert not got["items"], "没有 id 也没有链接，却拼出了网址"
     if got["skipped"]:
         assert got["skipped"][0]["reason"] == "没有能在浏览器里打开的网址"
+
+
+def test_the_cover_image_comes_along() -> None:
+    """**按形状读进来的条目此前一个媒体地址都不带。**
+
+    他打开资料库看到的是一排纯文字。而 `CaptureRequest` 一直支持 `media_urls`、
+    批次协议（items 就是 CaptureRequest）也一直原样透传——
+    **缺的只是取数这一步没取**。
+
+    取法只有一条规则：这个值是 http(s) 字符串，而它所在的**键路径里有媒体词**
+    （cover / image / thumb / video / candidates …）。不看域名（各家 CDN
+    穷举不完），不看后缀（很多平台的图片地址不带 .jpg）。
+    """
+    items = [{"id": f"n{i}", "note_card": {
+        "display_title": f"笔记{i}", "user": {"nickname": "作者"},
+        "cover": {"url_default": f"https://img.example/{i}.webp"}}} for i in range(4)]
+    body = (f"const f = S.recogniseList({json.dumps([_capture('https://p.example.com/l', {'notes': items})])});"
+            "console.log(JSON.stringify(S.normaliseItems(f.best, "
+            "{platform:'p', urlBuilder:(raw,id)=>`https://p.example.com/x/${id}`})));")
+    got = _run(body)
+    assert len(got["items"]) == 4
+    assert got["items"][0]["media_urls"] == ["https://img.example/0.webp"], got["items"][0]
+
+
+def test_a_head_shot_next_to_the_content_is_not_mistaken_for_a_cover() -> None:
+    """**取不到就空着，不许拿别的顶。**
+
+    条目里没有任何媒体字段时必须是空数组——那是诚实的"没有"。
+    随手抓一个 http 串（比如作者主页链接）顶上去，他会看到一排错的缩略图，
+    而且**看起来像是对的**。
+    """
+    items = [{"id": f"n{i}", "title": f"t{i}",
+              "author": {"name": "作者", "home": "https://p.example.com/user/1"}}
+             for i in range(4)]
+    body = (f"const f = S.recogniseList({json.dumps([_capture('https://p.example.com/l', {'notes': items})])});"
+            "console.log(JSON.stringify(S.normaliseItems(f.best, "
+            "{platform:'p', urlBuilder:(raw,id)=>`https://p.example.com/x/${id}`})));")
+    got = _run(body)
+    assert got["items"][0]["media_urls"] == [], got["items"][0]

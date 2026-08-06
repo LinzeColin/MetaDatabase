@@ -59,7 +59,11 @@ DEBUG_PORT = 9379
 def _flat(prefix: str, n: int, base: int) -> list[dict]:
     """字段摊平的条目（小红书那种）。"""
     return [{"note_id": f"{prefix}{i}", "display_title": f"{prefix} 第 {i} 条",
-             "user": {"nickname": f"作者{i}"}, "create_time": base + i} for i in range(1, n + 1)]
+             "user": {"nickname": f"作者{i}"}, "create_time": base + i,
+             # 封面：真实条目都带，而按形状读此前一个媒体地址都不取——
+             # 他打开资料库看到的是一排纯文字。
+             "cover": {"url_default": f"https://img.example/{prefix}{i}.webp"}}
+            for i in range(1, n + 1)]
 
 
 def _reddit(prefix: str, n: int, base: int) -> dict:
@@ -67,7 +71,11 @@ def _reddit(prefix: str, n: int, base: int) -> dict:
     return {"kind": "Listing", "data": {"after": None, "children": [
         {"kind": "t3", "data": {"id": f"{prefix}{i}", "title": f"{prefix} 帖子 {i}",
                                 "author": f"u{i}", "created_utc": base + i,
-                                "permalink": f"/r/sub/comments/{prefix}{i}/t/"}}
+                                "permalink": f"/r/sub/comments/{prefix}{i}/t/",
+                                # 真实帖子带这个；键路径里有 preview/image，
+                                # 而取封面认的就是键名不是平台。
+                                "preview": {"images": [{"source": {
+                                    "url": f"https://preview.redd.it/{prefix}{i}.jpg"}}]}}}
         for i in range(1, n + 1)]}}
 
 
@@ -76,7 +84,10 @@ def _instagram(prefix: str, n: int, base: int) -> dict:
     return {"items": [
         {"media": {"pk": f"31234{i}", "id": f"31234{i}_9", "code": f"C{prefix}{i}xYz",
                    "taken_at": base + i, "caption": {"text": f"{prefix} 说明 {i}"},
-                   "user": {"username": f"u{i}", "full_name": f"名字{i}"}}}
+                   "user": {"username": f"u{i}", "full_name": f"名字{i}"},
+                   # 真实条目一定有这个
+                   "image_versions2": {"candidates": [
+                       {"url": f"https://scontent.example/{prefix}{i}.jpg"}]}}}
         for i in range(1, n + 1)]}
 
 
@@ -531,6 +542,12 @@ async def run(chrome: str, platform: str) -> int:
     if polluted:
         problems.append(f"**把发现页的推荐当成收藏导进来了**：{polluted[:3]}"
                         "——连接时打开的必须是收藏页，不是发现页")
+    # **封面要一路落到档案馆**，不是只在扩展里取到就算。
+    without_media = [item.get("url") for item in landed if not (item.get("media_urls") or [])]
+    if without_media:
+        problems.append(
+            f"**有条目没带上封面**：{without_media[:3]}——他打开资料库看到的是一排纯文字，"
+            "而 CaptureRequest 一直支持 media_urls、批次协议也一直透传，缺的只是取数那一步")
     if len(landed) != ITEM_COUNT:
         problems.append(f"档案馆只收到 {len(landed)} 条，页面上有 {ITEM_COUNT} 条")
 
