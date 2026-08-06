@@ -167,10 +167,27 @@ def test_the_disk_threshold_defaults_to_five_and_can_be_raised_for_testing() -> 
     assert "MIN_FREE_KB=$(( MIN_FREE_GB * 1048576 ))" in code, (
         "门槛以 G 配、以 KB 比，中间的换算必须在场——少了它就是拿 G 去比 KB"
     )
-    assert code.count('-lt "$MIN_FREE_KB"') == 2, (
-        "回收前后两次比较必须都用同一个门槛——只改一处的话，"
-        "会出现「回收完仍不够却继续构建」"
-    )
+    # **不写死比较次数。**
+    #
+    # 原来这里断言「正好 2 次」。2026-08-07 加了第二段回收（收掉我们自己上一个
+    # 版本的镜像）之后它就红了——而那次改动**恰恰是对的**：多一段回收就该多一次
+    # 重量、多一次比较。写死次数的判据在这里守不住任何东西，只是拦住了加回收。
+    #
+    # 它真正要守的是两件事，直接写出来：
+    #   · 每一处比较都用同一个门槛（不许有人在某一段里写死数字）
+    #   · **每一次「回收完再比一次」之前都重新量过**——少了重量那一步，
+    #     回收多少都没用，门看的还是回收前那个数。
+    lines = code.splitlines()
+    compares = [i for i, line in enumerate(lines) if "-lt " in line and "FREE_KB" in line]
+    measures = [i for i, line in enumerate(lines) if 'FREE_KB="$(free_kb)"' in line]
+    assert len(compares) >= 2, "回收之后必须重新比一次，否则回收了也白回收"
+    for index in compares:
+        assert '-lt "$MIN_FREE_KB"' in lines[index], (
+            f"第 {index} 行的比较没用 $MIN_FREE_KB：{lines[index].strip()}")
+    for previous, current in zip(compares, compares[1:]):
+        assert any(previous < m < current for m in measures), (
+            f"第 {current} 行又比了一次，**中间却没有重新量**——"
+            "回收完不重量，门看的还是回收前那个数")
 
 
 def test_an_aborted_deploy_does_not_leave_a_tag_pinning_a_gigabyte() -> None:

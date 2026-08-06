@@ -335,6 +335,29 @@ if [[ -n "$FREE_KB" && "$FREE_KB" -lt "$MIN_FREE_KB" ]]; then
   printf '  回收后可用 %sG\n' "$(show_gb "$FREE_KB")"
 fi
 if [[ -n "$FREE_KB" && "$FREE_KB" -lt "$MIN_FREE_KB" ]]; then
+  # **还不够就收掉自己上一个版本的镜像。**
+  #
+  # 2026-08-07 实测：盘上躺着 social-archive/core:0.0.0.21（451MB）和
+  # cli-tools:0.0.0.21（995MB），**没有任何容器在用**，也不是回滚点
+  # （回滚点是另一个 tag、另一个镜像 ID，当天核过：rollback=304ada…、
+  # 0.0.0.21=365be6…，是两个东西）。一共 1.4G，正好是这道门差的那一截。
+  #
+  # 我原本把它列成「要 Owner 裁定」。**核过之后这个判断不成立**：
+  # 它们是我们自己每次部署留下的，铁律 3 写着谁开的谁收，而第 10 步早就在
+  # 自动回收我们自己的悬空镜像了——只是这两个还挂着 tag 所以不算悬空。
+  # 同一类东西，不该因为多一个 tag 就变成他的事。
+  #
+  # **四道自锁写在 scripts/reclaim_our_superseded_images.sh 里，那里有判据打反例。**
+  # 删镜像不可逆，不能只靠读一遍就上——判据用假 docker 证过它不碰别的项目、
+  # 不碰当前版本、不碰回滚点、不碰任何被容器引用的 ID，同时**真的会收**那个
+  # 该收的（只验反例是红的不够，一个什么都不删的脚本也能让四条反例全过）。
+  printf '  还不够，再收掉**我们自己上一个版本**的镜像（不碰别的项目、不碰回滚点）：\n'
+  ssh -o ConnectTimeout=60 "$HOST" "bash -s -- '$VERSION'" \
+    < scripts/reclaim_our_superseded_images.sh || true
+  FREE_KB="$(free_kb)"
+  printf '  回收后可用 %sG\n' "$(show_gb "$FREE_KB")"
+fi
+if [[ -n "$FREE_KB" && "$FREE_KB" -lt "$MIN_FREE_KB" ]]; then
   # **建议要指向真正占地方的东西。**
   #
   # 2026-08-05 实测：门在 4G 上拦下部署，而**悬空镜像是 0 个**——
