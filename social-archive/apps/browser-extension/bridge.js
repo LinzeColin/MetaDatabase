@@ -33,7 +33,12 @@
 
     if (message.type === "SA_PING") {
       chrome.runtime.sendMessage({ type: "SA_WEB_BRIDGE_STATUS" })
-        .then(result => post("SA_PONG", { requestId: message.requestId, ...(result || {}) }))
+        // **把连接面板的地址一起给它。** 网页拿不到扩展 ID，而没有这个地址
+        // 就只能把人跳到插件的账号页去——那正是 Owner 说的"跳来跳去"。
+        // 面板本身是扩展页面（授权框只能在那里弹），以 iframe 嵌在资料库里，
+        // manifest 的 web_accessible_resources 只对档案馆这两个域放行。
+        .then(result => post("SA_PONG", { requestId: message.requestId, ...(result || {}),
+          connectFrameUrl: chrome.runtime.getURL("connect-frame.html") }))
         .catch(error => post("SA_PONG", { requestId: message.requestId, detected: true, paired: false, error: error?.message || "插件状态读取失败" }));
       return;
     }

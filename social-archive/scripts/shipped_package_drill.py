@@ -128,6 +128,70 @@ PROBE = r"""
 """
 
 
+LIBRARY_HTML = """<!doctype html><meta charset=utf-8><title>假资料库</title>
+<h1>资料库</h1>
+<iframe id="f" src="chrome-extension://%(ext)s/connect-frame.html"
+        style="width:520px;height:320px;border:0"></iframe>"""
+
+# 扩展 id 要装上之后才知道，而假站在那之前就起来了——用一个盒子传。
+LIBRARY_PAGE = {"html": ""}
+
+
+class _FakeWithLibrary(shape._Fake):                        # noqa: SLF001
+    """假站同时扮演两个角色：平台站，和**档案馆自己的站**。
+
+    「不跳页」那条路必须在档案馆的域名下验：面板能不能被嵌进来，
+    取决于 manifest 里 web_accessible_resources 的 matches 是否放行那个域。
+    在别的域名下试等于没试。
+    """
+
+    def do_GET(self) -> None:                               # noqa: N802
+        host = (self.headers.get("Host") or "").split(":")[0]
+        if host.endswith("linzezhang.com") and LIBRARY_PAGE["html"]:
+            body = LIBRARY_PAGE["html"].encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        super().do_GET()
+
+
+async def _open_library(base: str, extension_id: str) -> dict:
+    """**在档案馆自己的域名下**打开一页，把连接面板嵌进去。
+
+    这是「不跳页」那条路的要害：面板必须是扩展页面（授权框只能在那儿弹），
+    同时必须能被资料库嵌进来（manifest 的 web_accessible_resources 只对
+    档案馆那两个域放行）。这两条只要有一条不成立，他就还得跳走。
+    """
+    urllib.request.urlopen(urllib.request.Request(
+        base + "/json/new?https://social-archive.linzezhang.com/", method="PUT"),
+        timeout=10).read()
+    await asyncio.sleep(3)
+    targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
+    frames = [item for item in targets
+              if extension_id in item.get("url", "") and "connect-frame" in item.get("url", "")]
+    if not frames:
+        pages = [item.get("url", "")[:80] for item in targets if item.get("type") == "page"]
+        return {"embedded": False,
+                "why": "连接面板没有作为 iframe 加载出来——他还是得跳去插件的账号页",
+                "targets": pages[:6]}
+    async with websockets.connect(frames[0]["webSocketDebuggerUrl"], max_size=None) as ws:
+        rpc = await shape._rpc_factory(ws)
+        await rpc("Runtime.enable")
+        got = await rpc("Runtime.evaluate", {
+            "expression": 'JSON.stringify({ api: typeof chrome?.permissions?.request,'
+                          ' hasButton: !!document.querySelector("button"),'
+                          ' text: (document.body.innerText || "").slice(0, 120) })',
+            "returnByValue": True, "timeout": 10000})
+        payload = got.get("result", {})
+        if payload.get("exceptionDetails"):
+            return {"embedded": True, "why": str(payload["exceptionDetails"])[:200]}
+        detail = json.loads(payload["result"]["value"])
+        return {"embedded": True, **detail}
+
+
 async def _open_options(base: str, extension_id: str) -> dict:
     """打开扩展自己的 options 页，在**那里**试一次权限申请。"""
     url = f"chrome-extension://{extension_id}/options.html"
@@ -224,7 +288,7 @@ async def run(chrome: str) -> int:
     shape.ROUTES = shape._routes(shape.SPEC)
     shape.EXPLORE_PAGE, shape.FAVOURITE_PAGE = shape._pages(shape.SPEC)
     context = shape._cert(workspace)
-    server = ThreadingHTTPServer(("127.0.0.1", shape.FAKE_PORT), shape._Fake)
+    server = ThreadingHTTPServer(("127.0.0.1", shape.FAKE_PORT), _FakeWithLibrary)
     server.socket = context.wrap_socket(server.socket, server_side=True)
     threading.Thread(target=server.serve_forever, daemon=True).start()
 
@@ -233,12 +297,14 @@ async def run(chrome: str) -> int:
          f"--remote-debugging-port={DEBUG_PORT}", "--no-first-run",
          "--no-default-browser-check", "--disable-sync", "--disable-background-networking",
          "--password-store=basic", "--use-mock-keychain",
-         f"--host-resolver-rules=MAP *xiaohongshu.com 127.0.0.1:{shape.FAKE_PORT}",
+         "--host-resolver-rules=MAP *xiaohongshu.com 127.0.0.1:"
+         f"{shape.FAKE_PORT},MAP social-archive.linzezhang.com 127.0.0.1:{shape.FAKE_PORT}",
          "--ignore-certificate-errors", "--allow-insecure-localhost", "about:blank"],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     base = f"http://127.0.0.1:{DEBUG_PORT}"
     load_error = ""
     measured_page: dict = {}
+    measured_frame: dict = {}
     try:
         for _ in range(40):
             try:
@@ -293,6 +359,13 @@ async def run(chrome: str) -> int:
                         _open_options(base, extension_id), timeout=40)
                 except Exception as error:                  # noqa: BLE001
                     measured_page = {"drill_error": str(error)[:200]}
+                # **不跳页那条路**：连接面板能不能被资料库嵌进去。
+                LIBRARY_PAGE["html"] = LIBRARY_HTML % {"ext": extension_id}
+                try:
+                    measured_frame = await asyncio.wait_for(
+                        _open_library(base, extension_id), timeout=40)
+                except Exception as error:                  # noqa: BLE001
+                    measured_frame = {"drill_error": str(error)[:200]}
     finally:
         process.terminate()
         try:
@@ -324,6 +397,25 @@ async def run(chrome: str) -> int:
         problems.append(
             f"**没量到扩展页面里的权限申请到底会怎样**：{json.dumps(measured_page, ensure_ascii=False)}"
             "——这不是通过，是这一段没跑成。修法有没有效仍然不知道")
+    # **不跳页那条路必须被证明**，而且"没量到"不算通过。
+    if not measured_frame.get("embedded"):
+        problems.append(
+            f"**连接面板没能嵌进资料库**：{json.dumps(measured_frame, ensure_ascii=False)[:220]}"
+            "——那他每次连账号还是得跳去插件的账号页，"
+            "而那正是他说的「几个页面乱七八糟的跳来跳去」")
+    elif "**" in str(measured_frame.get("text") or ""):
+        # HTML 里没有 Markdown。星号原样显示出来是**用户看得见的**缺陷，
+        # 而它只在真的把那一页渲染出来之后才看得到——判据读源码是读不出的。
+        problems.append(
+            f"**面板上有没被渲染的 Markdown 星号**：{measured_frame.get('text')[:80]}"
+            "——HTML 里 ** 不是加粗，是两个星号")
+    elif not str(measured_frame.get("text") or "").strip():
+        # **一片空白不算通过。** 面板打不开时也要说得出为什么。
+        problems.append("**面板嵌进去了，但整页是空的**——他会以为软件坏了")
+    elif measured_frame.get("api") != "function":
+        problems.append(
+            f"**面板嵌进去了，但里面没有权限 API**：{json.dumps(measured_frame, ensure_ascii=False)[:220]}"
+            "——那颗按钮点下去弹不出授权框，等于白嵌")
     granted = measured.get("permissions") or {}
     # **这里不判对错，只判「说不说得出来」。**
     #
@@ -367,6 +459,8 @@ async def run(chrome: str) -> int:
         # 在 service worker 里直接申请权限会怎样——三种权限各量一次
         # 同一个 API 在扩展页面里调——**这是修法的证据**
         "permission_request_from_extension_page": measured_page,
+        # 嵌在资料库里的连接面板——**「不跳页」靠它成立**
+        "connect_panel_embedded_in_library": measured_frame,
         "permission_request_from_service_worker": {
             name: measured.get(f"gesture_{name}") for name in ("bookmarks", "cookies", "host")},
         "install_said": measured.get("install"),

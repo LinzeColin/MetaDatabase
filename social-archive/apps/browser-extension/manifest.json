@@ -87,5 +87,21 @@
   "optional_permissions": [
     "bookmarks",
     "cookies"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "connect-frame.html",
+        "connect-frame.js",
+        "shared.js",
+        "content/platform-catalog.js"
+      ],
+      "matches": [
+        "https://social-archive.linzezhang.com/*",
+        "https://social-archive-api.linzezhang.com/*",
+        "http://127.0.0.1:8765/*",
+        "http://localhost:8765/*"
+      ]
+    }
   ]
 }

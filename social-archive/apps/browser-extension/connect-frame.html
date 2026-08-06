@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>连接账号</title>
+<!--
+  **这一页是为了不跳页而存在的。**
+
+  Owner 的原话：「你还是几个页面乱七八糟的跳来跳去非常乱」。
+  而这正是他自己定的铁律第 4 条（ZERO_BARRIER_UX.md）：
+  「整个连接流程在同一个页面内推进，不要开新标签让用户在页面间找路」。
+
+  挡在中间的是一条浏览器的硬规矩：`chrome.permissions.request`
+  **只能在扩展自己的页面里、在一次用户手势期间调用**。
+  网页不行（没有 permissions API），内容脚本不行（同上），
+  service worker 也不行（手势跨不过 sendMessage 那道边界，
+  2026-08-06 实测三种权限全抛 "must be called during a user gesture"）。
+
+  所以原来只能把他从资料库**跳到**插件的账号页。
+
+  这一页解开那个结：它是扩展自己的页面，但**以 iframe 嵌在资料库里**
+  （manifest 的 web_accessible_resources 只放行档案馆那两个域）。
+  他点的按钮在扩展的上下文里，授权框弹得出来——而他人没离开资料库。
+-->
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; padding: 14px 16px 18px;
+         font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+         background: transparent; }
+  h1 { font-size: 15px; margin: 0 0 4px; }
+  p.lead { margin: 0 0 12px; opacity: .75; font-size: 13px; }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  li { display: flex; align-items: center; gap: 10px;
+       border: 1px solid rgba(128,128,128,.28); border-radius: 10px; padding: 10px 12px; }
+  .name { font-weight: 600; flex: 1; }
+  .state { font-size: 12px; opacity: .7; }
+  button { font: inherit; font-weight: 600; padding: 7px 14px; border-radius: 999px;
+           border: 1px solid rgba(128,128,128,.35); background: #171717; color: #fff;
+           cursor: pointer; }
+  button[disabled] { opacity: .55; cursor: default; }
+  .note { margin-top: 12px; font-size: 12px; opacity: .75; min-height: 1.4em; }
+  .note.error { color: #b3261e; opacity: 1; }
+</style>
+</head>
+<body>
+<h1>连接账号</h1>
+<p class="lead">点一次就好。浏览器会弹一个授权框，选「允许」——<strong>你不用离开这一页</strong>。</p>
+<ul id="list"><li><span class="name">正在读取可连接的来源…</span></li></ul>
+<div aria-live="polite" class="note" id="note"></div>
+<script src="content/platform-catalog.js"></script>
+<script src="shared.js"></script>
+<script src="connect-frame.js"></script>
+</body>
+</html>

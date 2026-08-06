@@ -3,6 +3,8 @@
   "functions_checked": 83,
   "senders_scanned": [
     "apps/browser-extension/bridge.js",
+    "apps/browser-extension/connect-frame.html",
+    "apps/browser-extension/connect-frame.js",
     "apps/browser-extension/content/bilibili-reader.js",
     "apps/browser-extension/content/extension-utils.js",
     "apps/browser-extension/content/extract-core.js",

@@ -1220,6 +1220,10 @@
       // 能用，但不是最新——值得提一句，不值得把人挡在外面。
       outdated: version !== PRODUCT_VERSION,
       version,
+      // 连接面板的地址（扩展页面）。网页拿不到扩展 ID，所以由插件在
+      // SA_PONG 里给。**只有它在，连接才能留在这一页里做**；不在就退回
+      // 打开插件账号页那条老路，并照实说是要跳走。
+      connectFrameUrl: typeof payload.connectFrameUrl === "string" ? payload.connectFrameUrl : "",
       refreshedAt: Date.now()
     };
   }
@@ -1310,14 +1314,52 @@
     refreshExtensionStatus().catch(() => {});
   });
 
+  /** 在资料库里就地打开连接面板（v0.0.0.22）。
+   *
+   * Owner：「几个页面乱七八糟的跳来跳去非常乱」。而这正是他自己定的铁律第 4 条。
+   *
+   * 挡在中间的是浏览器的硬规矩：`chrome.permissions.request` 只能在**扩展
+   * 自己的页面**里、在一次用户手势期间调用。网页不行、内容脚本不行、
+   * service worker 也不行（实测三种权限全抛 "must be called during a user gesture"）。
+   *
+   * 解法是把那个扩展页面**嵌进来**：iframe 里的点击就在扩展的上下文里，
+   * 授权框弹得出来，而他人没离开资料库。
+   */
+  function openConnectPanel() {
+    const url = state.extension.connectFrameUrl;
+    if (!url) return false;
+    const frame = document.getElementById("connectFrame");
+    if (!frame) return false;
+    if (frame.getAttribute("src") !== url) frame.setAttribute("src", url);
+    openModal("connectModalBackdrop");
+    return true;
+  }
+
+  // 面板里连上了就把账号列表刷新一遍——他不用自己去点刷新。
+  window.addEventListener("message", event => {
+    const data = event.data;
+    if (!data || data.source !== "social-archive-connect-frame") return;
+    if (data.type === "size" && Number(data.height) > 0) {
+      const frame = document.getElementById("connectFrame");
+      if (frame) frame.style.height = `${Math.min(560, Number(data.height) + 24)}px`;
+    }
+    if (data.type === "connected") {
+      setTimeout(() => loadAccountsAndDestinations().catch(() => {}), 1200);
+    }
+  });
+
   async function connectAccount(platform, button) {
     const meta = Object.values(platformMeta).find(item => item.server === platform) || platformMeta.web;
     if (button) { button.disabled = true; button.textContent = "正在打开…"; }
     try {
       if (!await ensureExtensionReady()) return;
-      // 授权那一步只能在插件自己的页面里做（内容脚本没有 permissions API，
-      // 手势也跨不过消息边界）。所以这颗按钮的作用是**把他送到做得到的地方**，
-      // 文案要照实说，别让他以为点完就连上了。
+      // **先试着就地开面板**——他人不动，授权框在这一页上弹。
+      if (openConnectPanel()) {
+        showToast("在这一页上点「连接账号」就行，不用跳走。");
+        return;
+      }
+      // 面板拿不到（插件太旧，还没有这一页）：退回打开插件账号页那条老路，
+      // 并**照实说是要跳走**，别让他以为点完就连上了。
       const result = await postToExtension("SA_ACCOUNT_CONNECT", { platform });
       showToast(result.message || `已打开插件的账号页——请在那一页点「连接账号」`);
       setTimeout(() => loadAccountsAndDestinations().catch(() => {}), 1200);

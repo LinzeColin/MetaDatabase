@@ -87,7 +87,7 @@
         "scripts/preflight_extension.py"
       ],
       "exit_code": 0,
-      "stdout": "可以装载。manifest v3、version 0.0.0.22、16 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
+      "stdout": "可以装载。manifest v3、version 0.0.0.22、17 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
       "stderr": ""
     },
     {
@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 730 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 731 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -133,7 +133,7 @@
         "scripts/check_every_platform_table_is_complete.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 apps/src/scripts 下 32 处平台表；已登记的有意子集 14 张\n每一张平台表都提到了所有可托管平台。\n",
+      "stdout": "扫了 apps/src/scripts 下 34 处平台表；已登记的有意子集 14 张\n每一张平台表都提到了所有可托管平台。\n",
       "stderr": ""
     },
     {
@@ -205,7 +205,7 @@
         "scripts/find_messages_with_only_one_end.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 apps/ 下 24 个文件，36 个 SA_ 消息类型；另有 0 条已登记的单头例外\n每条消息都既有发送方也有接收方。\n",
+      "stdout": "扫了 apps/ 下 26 个文件，36 个 SA_ 消息类型；另有 0 条已登记的单头例外\n每条消息都既有发送方也有接收方。\n",
       "stderr": ""
     },
     {
@@ -232,7 +232,7 @@
         "scripts/find_calls_to_functions_that_do_not_exist.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 apps/ 下 19 个脚本\n每一处函数调用都找得到定义。\n",
+      "stdout": "扫了 apps/ 下 20 个脚本\n每一处函数调用都找得到定义。\n",
       "stderr": ""
     },
     {
@@ -259,7 +259,7 @@
         "scripts/check_no_mechanism_is_unreachable.py"
       ],
       "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"functions_checked\": 83,\n  \"senders_scanned\": [\n    \"apps/browser-extension/bridge.js\",\n    \"apps/browser-extension/content/bilibili-reader.js\",\n    \"apps/browser-extension/content/extension-utils.js\",\n    \"apps/browser-extension/content/extract-core.js\",\n    \"apps/browser-extension/content/extract.js\",\n    \"apps/browser-extension/content/fab.js\",\n    \"apps/browser-extension/content/list-shape.js\",\n    \"apps/browser-extension/content/net-relay.js\",\n    \"apps/browser-extension/content/platform-catalog.js\",\n    \"apps/browser-extension/cookie-export.js\",\n    \"apps/browser-extension/net-observer.js\",\n    \"apps/browser-extension/options.html\",\n    \"apps/browser-extension/options.js\",\n    \"apps/browser-extension/popup.html\",\n    \"apps/browser-extension/popup.js\",\n    \"apps/browser-extension/shared.js\",\n    \"apps/browser-extension/sidepanel.html\",\n    \"apps/browser-extension/sidepanel.js\",\n    \"apps/pwa/app.js\",\n    \"apps/pwa/extension-install.html\",\n    \"apps/pwa/index.html\",\n    \"apps/pwa/sw.js\"\n  ],\n  \"message_types_handled\": [\n    \"SA_ACCOUNT_CONNECT\",\n    \"SA_CAPTURE_ACTIVE\",\n    \"SA_CONNECT_PLATFORM_SESSION\",\n    \"SA_CONTROL_SYNC_RUN\",\n    \"SA_DISCONNECT_ACCOUNT\",\n    \"SA_GET_NET_CAPTURES\",\n    \"SA_GET_PENDING_CONNECTIONS\",\n    \"SA_INSTALL_NET_OBSERVER\",\n    \"SA_MEDIA_SESSION_PLATFORMS\",\n    \"SA_NET_CAPTURE\",\n    \"SA_NET_OBSERVER_STATE\",\n    \"SA_OPEN_ACCOUNT_CENTER\",\n    \"SA_OPEN_OPTIONS\",\n    \"SA_OPEN_TASK_CENTER\",\n    \"SA_PARSE_NET_CAPTURES\",\n    \"SA_REVOKE_PLATFORM_SESSION\",\n    \"SA_SYNC_ACCOUNT\",\n    \"SA_SYNC_ALL_ACCOUNTS\",\n    \"SA_VERIFY_PLATFORM_SESSION\",\n    \"SA_WEB_BRIDGE_ADOPT_TOKEN\",\n    \"SA_WEB_BRIDGE_STATUS\"\n  ],\n  \"message_types_sent\": [\n    \"SA_ACCOUNT_CONNECT\",\n    \"SA_CAPTURE_ACTIVE\",\n    \"SA_CONNECT_PLATFORM_SESSION\",\n    \"SA_CONTROL_SYNC_RUN\",\n    \"SA_DISCONNECT_ACCOUNT\",\n    \"SA_GET_NET_CAPTURES\",\n    \"SA_GET_PENDING_CONNECTIONS\",\n    \"SA_INSTALL_NET_OBSERVER\",\n    \"SA_MEDIA_SESSION_PLATFORMS\",\n    \"SA_NET_CAPTURE\",\n    \"SA_NET_OBSERVER_STATE\",\n    \"SA_OBSERVER_CONFIGURE\",\n    \"SA_OBSERVER_INSTALLED\",\n    \"SA_OBSERVER_READY\",\n    \"SA_OPEN_ACCOUNT_CENTER\",\n    \"SA_OPEN_OPTIONS\",\n    \"SA_OPEN_TASK_CENTER\",\n    \"SA_PARSE_NET_CAPTURES\",\n    \"SA_PING\",\n    \"SA_RAW_RESPONSE\",\n    \"SA_REVOKE_PLATFORM_SESSION\",\n    \"SA_SYNC_ACCOUNT\",\n    \"SA_SYNC_ALL_ACCOUNTS\",\n    \"SA_VERIFY_PLATFORM_SESSION\",\n    \"SA_WEB_BRIDGE_ADOPT_TOKEN\",\n    \"SA_WEB_BRIDGE_STATUS\"\n  ],\n  \"message_types_sent_to_background\": [\n    \"SA_ACCOUNT_CONNECT\",\n    \"SA_CAPTURE_ACTIVE\",\n    \"SA_CONNECT_PLATFORM_SESSION\",\n    \"SA_CONTROL_SYNC_RUN\",\n    \"SA_DISCONNECT_ACCOUNT\",\n    \"SA_GET_NET_CAPTURES\",\n    \"SA_GET_PENDING_CONNECTIONS\",\n    \"SA_INSTALL_NET_OBSERVER\",\n    \"SA_MEDIA_SESSION_PLATFORMS\",\n    \"SA_NET_CAPTURE\",\n    \"SA_NET_OBSERVER_STATE\",\n    \"SA_OPEN_ACCOUNT_CENTER\",\n    \"SA_OPEN_OPTIONS\",\n    \"SA_OPEN_TASK_CENTER\",\n    \"SA_PARSE_NET_CAPTURES\",\n    \"SA_REVOKE_PLATFORM_SESSION\",\n    \"SA_SYNC_ACCOUNT\",\n    \"SA_SYNC_ALL_ACCOUNTS\",\n    \"SA_VERIFY_PLATFORM_SESSION\",\n    \"SA_WEB_BRIDGE_ADOPT_TOKEN\",\n    \"SA_WEB_BRIDGE_STATUS\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"每个机制都有调得到它的路。\",\n  \"what_this_does_not_prove\": \"只看名字有没有被提到，不看那条路真的跑得通——那是演练的事。这道门只防最便宜也最常犯的那种：根本没接线。\"\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"functions_checked\": 83,\n  \"senders_scanned\": [\n    \"apps/browser-extension/bridge.js\",\n    \"apps/browser-extension/connect-frame.html\",\n    \"apps/browser-extension/connect-frame.js\",\n    \"apps/browser-extension/content/bilibili-reader.js\",\n    \"apps/browser-extension/content/extension-utils.js\",\n    \"apps/browser-extension/content/extract-core.js\",\n    \"apps/browser-extension/content/extract.js\",\n    \"apps/browser-extension/content/fab.js\",\n    \"apps/browser-extension/content/list-shape.js\",\n    \"apps/browser-extension/content/net-relay.js\",\n    \"apps/browser-extension/content/platform-catalog.js\",\n    \"apps/browser-extension/cookie-export.js\",\n    \"apps/browser-extension/net-observer.js\",\n    \"apps/browser-extension/options.html\",\n    \"apps/browser-extension/options.js\",\n    \"apps/browser-extension/popup.html\",\n    \"apps/browser-extension/popup.js\",\n    \"apps/browser-extension/shared.js\",\n    \"apps/browser-extension/sidepanel.html\",\n    \"apps/browser-extension/sidepanel.js\",\n    \"apps/pwa/app.js\",\n    \"apps/pwa/extension-install.html\",\n    \"apps/pwa/index.html\",\n    \"apps/pwa/sw.js\"\n  ],\n  \"message_types_handled\": [\n    \"SA_ACCOUNT_CONNECT\",\n    \"SA_CAPTURE_ACTIVE\",\n    \"SA_CONNECT_PLATFORM_SESSION\",\n    \"SA_CONTROL_SYNC_RUN\",\n    \"SA_DISCONNECT_ACCOUNT\",\n    \"SA_GET_NET_CAPTURES\",\n    \"SA_GET_PENDING_CONNECTIONS\",\n    \"SA_INSTALL_NET_OBSERVER\",\n    \"SA_MEDIA_SESSION_PLATFORMS\",\n    \"SA_NET_CAPTURE\",\n    \"SA_NET_OBSERVER_STATE\",\n    \"SA_OPEN_ACCOUNT_CENTER\",\n    \"SA_OPEN_OPTIONS\",\n    \"SA_OPEN_TASK_CENTER\",\n    \"SA_PARSE_NET_CAPTURES\",\n    \"SA_REVOKE_PLATFORM_SESSION\",\n    \"SA_SYNC_ACCOUNT\",\n    \"SA_SYNC_ALL_ACCOUNTS\",\n    \"SA_VERIFY_PLATFORM_SESSION\",\n    \"SA_WEB_BRIDGE_ADOPT_TOKEN\",\n    \"SA_WEB_BRIDGE_STATUS\"\n  ],\n  \"message_types_sent\": [\n    \"SA_ACCOUNT_CONNECT\",\n    \"SA_CAPTURE_ACTIVE\",\n    \"SA_CONNECT_PLATFORM_SESSION\",\n    \"SA_CONTROL_SYNC_RUN\",\n    \"SA_DISCONNECT_ACCOUNT\",\n    \"SA_GET_NET_CAPTURES\",\n    \"SA_GET_PENDING_CONNECTIONS\",\n    \"SA_INSTALL_NET_OBSERVER\",\n    \"SA_MEDIA_SESSION_PLATFORMS\",\n    \"SA_NET_CAPTURE\",\n    \"SA_NET_OBSERVER_STATE\",\n    \"SA_OBSERVER_CONFIGURE\",\n    \"SA_OBSERVER_INSTALLED\",\n    \"SA_OBSERVER_READY\",\n    \"SA_OPEN_ACCOUNT_CENTER\",\n    \"SA_OPEN_OPTIONS\",\n    \"SA_OPEN_TASK_CENTER\",\n    \"SA_PARSE_NET_CAPTURES\",\n    \"SA_PING\",\n    \"SA_RAW_RESPONSE\",\n    \"SA_REVOKE_PLATFORM_SESSION\",\n    \"SA_SYNC_ACCOUNT\",\n    \"SA_SYNC_ALL_ACCOUNTS\",\n    \"SA_VERIFY_PLATFORM_SESSION\",\n    \"SA_WEB_BRIDGE_ADOPT_TOKEN\",\n    \"SA_WEB_BRIDGE_STATUS\"\n  ],\n  \"message_types_sent_to_background\": [\n    \"SA_ACCOUNT_CONNECT\",\n    \"SA_CAPTURE_ACTIVE\",\n    \"SA_CONNECT_PLATFORM_SESSION\",\n    \"SA_CONTROL_SYNC_RUN\",\n    \"SA_DISCONNECT_ACCOUNT\",\n    \"SA_GET_NET_CAPTURES\",\n    \"SA_GET_PENDING_CONNECTIONS\",\n    \"SA_INSTALL_NET_OBSERVER\",\n    \"SA_MEDIA_SESSION_PLATFORMS\",\n    \"SA_NET_CAPTURE\",\n    \"SA_NET_OBSERVER_STATE\",\n    \"SA_OPEN_ACCOUNT_CENTER\",\n    \"SA_OPEN_OPTIONS\",\n    \"SA_OPEN_TASK_CENTER\",\n    \"SA_PARSE_NET_CAPTURES\",\n    \"SA_REVOKE_PLATFORM_SESSION\",\n    \"SA_SYNC_ACCOUNT\",\n    \"SA_SYNC_ALL_ACCOUNTS\",\n    \"SA_VERIFY_PLATFORM_SESSION\",\n    \"SA_WEB_BRIDGE_ADOPT_TOKEN\",\n    \"SA_WEB_BRIDGE_STATUS\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"每个机制都有调得到它的路。\",\n  \"what_this_does_not_prove\": \"只看名字有没有被提到，不看那条路真的跑得通——那是演练的事。这道门只防最便宜也最常犯的那种：根本没接线。\"\n}\n",
       "stderr": ""
     },
     {

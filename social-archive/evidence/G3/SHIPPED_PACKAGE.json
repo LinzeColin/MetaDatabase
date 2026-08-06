@@ -1,7 +1,7 @@
 {
   "status": "PASS",
   "package": "dist/social-archive-extension.zip",
-  "package_sha256_prefix": "5c42265ffdb12376",
+  "package_sha256_prefix": "9ce2398aade04070",
   "manifest": {
     "version": "0.0.0.22",
     "host": [
@@ -29,6 +29,12 @@
   },
   "permission_request_from_extension_page": {
     "prompted": true
+  },
+  "connect_panel_embedded_in_library": {
+    "embedded": true,
+    "api": "function",
+    "hasButton": false,
+    "text": "连接账号\n\n点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。\n\n正在读取可连接的来源…\n读不到可连接的来源：扩展尚未授权或令牌已失效"
   },
   "permission_request_from_service_worker": {
     "bookmarks": {

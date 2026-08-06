@@ -1,0 +1,125 @@
+/* global SA */
+/** 嵌在资料库里的「连接账号」小面板（v0.0.0.22）。
+ *
+ * 它存在的唯一理由是**不跳页**：`chrome.permissions.request` 只能在扩展
+ * 自己的页面里、在一次用户手势期间调用，所以这一页必须是扩展页面；
+ * 而它以 iframe 嵌在资料库里，所以他人没离开原来那一页。
+ *
+ * **这里不重写连接逻辑**。它只做两件 background 做不到的事：
+ *   1. 在手势还在的时候把权限要到手
+ *   2. 把结果告诉外面那一页
+ * 真正的连接仍然是 background 的 SA_ACCOUNT_CONNECT。
+ * 两份同样的逻辑只有一份会被改到——这个仓为此删过一个消息处理器。
+ */
+(() => {
+  "use strict";
+
+  const list = document.getElementById("list");
+  const note = document.getElementById("note");
+  const LABELS = {
+    "generic-web": "Chrome 书签", xiaohongshu: "小红书", douyin: "抖音",
+    kuaishou: "快手", bilibili: "B站", x: "X", reddit: "Reddit",
+    instagram: "Instagram", youtube: "YouTube",
+  };
+
+  function say(message, kind = "") {
+    note.textContent = message || "";
+    note.className = `note ${kind}`.trim();
+  }
+
+  /** 告诉外面那一页：这里发生了什么。 */
+  function tell(type, detail) {
+    parent.postMessage({ source: "social-archive-connect-frame", type, ...detail }, "*");
+  }
+
+  /** 这颗按钮那条路会用到哪些权限——**在手势还在的时候一次要齐**。
+   *
+   * 和 options.js 的 grantWhatConnectNeeds 是同一条规矩，**名字也保持一致**：
+   * 判据按这个名字认「发连接消息前有没有先在页面里要权限」。这里必须重复一次
+   * 而不是调那边：两份文件不共享作用域，而**把它挪进 shared.js 会让
+   * background 也能调到一个只在页面里才成立的函数**——那正是这个 bug 的来源。
+   */
+  async function grantWhatConnectNeeds(platform, custodial, mediaSession) {
+    const origins = SA.patternsForPlatform(platform) || [];
+    const permissions = [];
+    if (platform === "generic-web" || platform === "chrome-bookmarks") permissions.push("bookmarks");
+    else if (custodial.includes(platform) && !mediaSession.includes(platform)) permissions.push("cookies");
+    const request = {};
+    if (permissions.length) request.permissions = permissions;
+    if (origins.length) request.origins = origins;
+    if (!request.permissions && !request.origins) return true;
+    if (await chrome.permissions.contains(request).catch(() => false)) return true;
+    return chrome.permissions.request(request).catch(() => false);
+  }
+
+  async function render() {
+    let accounts = { items: [], supported_platforms: [] };
+    try {
+      accounts = await SA.api("/v1/accounts", { timeoutMs: 8000 });
+    } catch (error) {
+      say(`读不到可连接的来源：${error.message}`, "error");
+      return;
+    }
+    let custodial = [];
+    let mediaSession = [];
+    try {
+      const reply = await chrome.runtime.sendMessage({ type: "SA_MEDIA_SESSION_PLATFORMS" });
+      custodial = Array.isArray(reply?.custodial) ? reply.custodial : [];
+      mediaSession = Array.isArray(reply?.platforms) ? reply.platforms : [];
+    } catch (_) { /* 读不到就按"不需要额外权限"处理，下一步会自己报错 */ }
+
+    const connected = new Set((accounts.items || [])
+      .filter(item => ["connected", "degraded"].includes(item.connection_state))
+      .map(item => item.platform));
+    // **只列这一版真的连得上的。** 连不上的不画按钮——一颗结构上不可能
+    // 成功的按钮，比没有按钮更伤人。原因那一句在账号页的卡片上写着。
+    const rows = (accounts.supported_platforms || [])
+      .filter(item => item.sync_supported !== false);
+    if (!rows.length) {
+      list.innerHTML = "<li><span class=\"name\">本版本还没有能自动同步的来源。</span></li>";
+      return;
+    }
+    list.innerHTML = "";
+    for (const row of rows) {
+      const platform = row.platform;
+      const item = document.createElement("li");
+      const name = document.createElement("span");
+      name.className = "name";
+      name.textContent = LABELS[platform] || platform;
+      const state = document.createElement("span");
+      state.className = "state";
+      state.textContent = connected.has(platform) ? "已连接" : "未连接";
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = connected.has(platform) ? "重新连接" : "连接账号";
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+        const original = button.textContent;
+        button.textContent = "正在连接…";
+        say("");
+        try {
+          if (!await grantWhatConnectNeeds(platform, custodial, mediaSession)) {
+            say(`${name.textContent}：还没有获得需要的授权。再点一次，并在浏览器弹出的框里选「允许」。`, "error");
+            return;
+          }
+          const result = await chrome.runtime.sendMessage({ type: "SA_ACCOUNT_CONNECT", platform });
+          if (!result?.ok) throw new Error(result?.error || "连接未完成");
+          say(result.message || `${name.textContent}已连接。`);
+          state.textContent = result.state === "connected" ? "已连接" : "正在确认登录态";
+          tell("connected", { platform, state: result.state || "" });
+        } catch (error) {
+          say(`${name.textContent}：${error.message}`, "error");
+        } finally {
+          button.disabled = false;
+          button.textContent = original;
+        }
+      });
+      item.append(name, state, button);
+      list.append(item);
+    }
+    // 面板高度告诉外面，免得 iframe 里出现第二根滚动条——**那也是一种乱**。
+    tell("size", { height: document.body.scrollHeight });
+  }
+
+  render().catch(error => say(`打不开：${error.message}`, "error"));
+})();
