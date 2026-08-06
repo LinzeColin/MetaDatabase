@@ -1,0 +1,80 @@
+{
+  "status": "PASS",
+  "task": "G5",
+  "host": "linze-ovh",
+  "expected_version": "0.0.0.8",
+  "measured_from_production": {
+    "health": {
+      "status": "ok",
+      "project": "Social Archive",
+      "version": "0.0.0.8",
+      "time": "2026-08-06T00:24:25.636529Z",
+      "paid_api_allowed": false,
+      "archive_defaults": {
+        "L0": true,
+        "L1": true,
+        "L2": false,
+        "L3": true
+      }
+    },
+    "platforms": {
+      "xiaohongshu": {
+        "sync_supported": false,
+        "server_handled": false
+      },
+      "douyin": {
+        "sync_supported": false,
+        "server_handled": false
+      },
+      "kuaishou": {
+        "sync_supported": false,
+        "server_handled": false
+      },
+      "bilibili": {
+        "sync_supported": true,
+        "server_handled": false
+      },
+      "x": {
+        "sync_supported": false,
+        "server_handled": true
+      },
+      "reddit": {
+        "sync_supported": false,
+        "server_handled": true
+      },
+      "instagram": {
+        "sync_supported": false,
+        "server_handled": true
+      },
+      "youtube": {
+        "sync_supported": false,
+        "server_handled": false
+      },
+      "generic-web": {
+        "sync_supported": true,
+        "server_handled": false
+      }
+    },
+    "package": {
+      "manifest_version": "0.0.0.8",
+      "file_count": 24,
+      "has_bilibili_reader": true,
+      "sha256": "3424116bb19d454ec478b67442d5c9f60eff6b4fa02c67f1f0b1ef1cb55b57d9"
+    },
+    "install_page": {
+      "bytes": 10630,
+      "says_overwrite_same_folder": true,
+      "warns_new_extension_id": true,
+      "compares_versions": true,
+      "back_href": "/",
+      "stale_versions": []
+    },
+    "library_page": {
+      "product_version": "0.0.0.8",
+      "knows_bilibili_failure_codes": true
+    }
+  },
+  "problems": [],
+  "why_origin_not_public": "资料库域名挡在 Cloudflare Access 后面，不带登录态 curl 只会拿到 302 到登录页的143 字节，四条断言会全报 False 而页面其实好端端的（2026-08-06 实测踩过）。所以从 origin 量——那是 Access 放行之后 Owner 真正拿到的那一份。",
+  "what_this_does_not_prove": "没有证明 Owner 自己的 B 站收藏夹读得出来——那要他本人的登录态，发生在他自己的浏览器里。这里证明的是：他要用到的每一样东西，生产上都是新的那一份。"
+}
