@@ -144,7 +144,8 @@ PROBE = r"""
 """
 
 
-async def _open_connect_panel(base: str, extension_id: str) -> dict:
+async def _open_connect_panel(base: str, extension_id: str,
+                              press: str | None = None) -> dict:
     """把连接面板对着**真生产**打开，看它画出什么。
 
     面板启动就调 `/v1/accounts`；调不通它会显示「读不到可连接的来源」。
@@ -160,6 +161,10 @@ async def _open_connect_panel(base: str, extension_id: str) -> dict:
     单开面板正好绕过「要人登录」，而量到的恰恰是插件那一侧。
     """
     url = f"chrome-extension://{extension_id}/connect-frame.html"
+    # **快照要在建页之前取。** 取在之后的话，新建的那一页自己就在"已见过"里，
+    # 于是永远被过滤掉，报「连接面板没打开」——一条自己把自己挡住的判据。
+    seen_before = {item.get("id") for item in
+                   json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())}
     urllib.request.urlopen(urllib.request.Request(
         base + "/json/new?" + url, method="PUT"), timeout=10).read()
     # **定死的等待会变成假失败。** 上一次就报了「连接面板没打开」，
@@ -169,7 +174,8 @@ async def _open_connect_panel(base: str, extension_id: str) -> dict:
         await asyncio.sleep(0.5)
         targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
         pages = [item for item in targets if item.get("type") == "page"
-                 and "connect-frame.html" in item.get("url", "")]
+                 and "connect-frame.html" in item.get("url", "")
+                 and item.get("id") not in seen_before]
         if pages:
             break
     if not pages:
@@ -221,35 +227,48 @@ async def _open_connect_panel(base: str, extension_id: str) -> dict:
         #   prompted  → 弹框起来了 = 结构上走得通（**这就是要的信号**）
         #   said_no   → 当场回了"没有获得需要的授权" = 请求根本没弹出来
         #   errored   → 报了别的错
+        if press is None:
+            return panel
         clicked = await rpc("Runtime.evaluate", {
-            "expression": r"""(async () => {
-              const rows = Array.from(document.querySelectorAll("#list li"));
-              const target = rows.find(li =>
-                ((li.querySelector(".name") || {}).textContent || "").includes("书签"));
-              if (!target) return JSON.stringify({ skipped: "面板里没有 Chrome 书签这一行" });
-              const button = target.querySelector("button");
-              if (!button) return JSON.stringify({ skipped: "那一行没有按钮" });
+            "expression": (r"""(async () => {
+              // **一次只按一颗，按完这一页就关掉。**
+              //
+              // 2026-08-07 第一版在同一页里连按 7 颗，结果：前两颗停在
+              // 「正在连接…」，后五颗当场回「还没有获得需要的授权」，
+              // 看起来像五个平台的按钮全是死的——**而那是我自己造出来的**：
+              // Chrome 一次只允许一个权限框，前面的框没人点，后面的请求就被直接拒。
+              // 用户不会连按 7 颗。差点把一条自伤报成产品缺陷。
+              const rows = Array.from(document.querySelectorAll("#list li"))
+                .filter(li => li.querySelector("button"));
+              const li = rows.find(row =>
+                ((row.querySelector(".name") || {}).textContent || "").trim() === "%(press)s");
+              if (!li) return JSON.stringify({ skipped: "面板里没有这一行：%(press)s" });
+              const button = li.querySelector("button");
+              const before = button.textContent;
               button.click();
-              await new Promise(r => setTimeout(r, 5000));
-              // **提示语在 #note 里。** 第一版写的是 `#say`——那个 id 不存在，
-              // 于是回落到整页文本，而下面那个 160 字的截断正好把提示语切掉了。
-              // 判据自己输出的例句被截断，比没有例句更糟：它看起来像"没有提示"。
+              await new Promise(r => setTimeout(r, 3000));
               const box = document.querySelector("#note");
-              const note = box ? (box.innerText || "") : "**页面里没有 #note**";
-              return JSON.stringify({
-                button_after: button.textContent,
-                button_disabled: button.disabled,
-                note: note.replace(/\s+/g, " ").slice(0, 160),
-              });
-            })()""",
+              return JSON.stringify({ pressed: [{
+                name: "%(press)s", before,
+                after: button.textContent,
+                disabled: button.disabled,
+                note: (box ? box.innerText : "**页面里没有 #note**")
+                        .replace(/\s+/g, " ").slice(0, 120),
+              }] });
+            })()""" % {"press": press}),
             "userGesture": True, "awaitPromise": True,
             "returnByValue": True, "timeout": 30000})
-        press = clicked.get("result", {})
-        if press.get("exceptionDetails"):
-            panel["press"] = {"drill_error": str(press["exceptionDetails"])[:200]}
+        pressed_payload = clicked.get("result", {})
+        if pressed_payload.get("exceptionDetails"):
+            panel["press"] = {"drill_error": str(pressed_payload["exceptionDetails"])[:200]}
         else:
-            panel["press"] = json.loads(press["result"]["value"])
-        return panel
+            panel["press"] = json.loads(pressed_payload["result"]["value"])
+    # **关掉这张页。** 那个没人点的权限框跟着它走——不关的话，
+    # 下一个平台的请求会被 Chrome 直接拒，看起来像那个平台的按钮是死的。
+    urllib.request.urlopen(urllib.request.Request(
+        base + "/json/close/" + pages[0]["id"], method="GET"), timeout=10).read()
+    await asyncio.sleep(1)
+    return panel
 
 
 async def run(chrome: str, token: str) -> int:
@@ -322,7 +341,18 @@ async def run(chrome: str, token: str) -> int:
                     else:
                         measured = json.loads(payload["result"]["value"])
             if measured:
+                # 第一趟：只看面板画出什么，不按任何按钮。
                 panel = await _open_connect_panel(base, extension_id)
+                # 之后每颗按钮**各开一张新面板页**，按完就关。
+                # 同一页里连按会互相打架：Chrome 一次只允许一个权限框。
+                everyone = [row["name"] for row in panel.get("buttons", [])
+                            if row.get("button")]
+                presses = []
+                for name in everyone:
+                    one = await _open_connect_panel(base, extension_id, press=name)
+                    presses.extend((one.get("press") or {}).get("pressed", [])
+                                   or [{"name": name, "drill_error": str(one.get("press"))[:120]}])
+                panel["press"] = {"pressed": presses}
                 measured["connect_panel"] = panel
     finally:
         process.terminate()
@@ -400,16 +430,20 @@ async def run(chrome: str, token: str) -> int:
         elif press.get("skipped"):
             problems.append(f"没能按到那颗按钮：{press['skipped']}")
         else:
-            note = press.get("note", "")
-            if "还没有获得需要的授权" in note:
-                problems.append(
-                    "**按下去当场回「还没有获得需要的授权」**——权限框根本没弹出来。"
-                    "这正是 service worker 里 chrome.permissions.request 结构上不可能"
-                    "成功那个缺陷的形状：每颗按钮在全新安装上都是死的。")
-            elif press.get("button_after") != "正在连接…":
-                problems.append(
-                    f"按下去之后按钮变成了「{press.get('button_after')}」"
-                    f"（提示：{note[:80]}）——它没有停在等授权那一步。")
+            for one in press.get("pressed", []):
+                name, note = one.get("name", "?"), one.get("note", "")
+                if "还没有获得需要的授权" in note and one.get("after") != "正在连接…":
+                    problems.append(
+                        f"**{name}：按下去当场回「还没有获得需要的授权」**——"
+                        "权限框根本没弹出来。这正是 service worker 里 "
+                        "chrome.permissions.request 结构上不可能成功那个缺陷的形状："
+                        "每颗按钮在全新安装上都是死的。")
+                elif one.get("after") != "正在连接…":
+                    problems.append(
+                        f"**{name}：按下去之后按钮变成了「{one.get('after')}」**"
+                        f"（提示：{note[:60]}）——它没有停在等授权那一步。")
+            if not press.get("pressed"):
+                problems.append("**一颗按钮都没按到**——这不是通过。")
     # **负对照要被判，不能只被量。**
     #
     # 资料库域名在 Cloudflare Access 后面，从插件里访问必然被 302 打断

@@ -4,7 +4,7 @@
   "token_supplied": true,
   "measured_in_real_chrome": {
     "endpoint_the_extension_itself_uses": "https://social-archive-api.linzezhang.com",
-    "api_ms": 518,
+    "api_ms": 483,
     "api_call": "resolved",
     "api_keys": [
       "items",
@@ -91,9 +91,57 @@
       "manual_only_mentioned": false,
       "body_head": "连接账号 点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。 小红书 未连接 连接账号 抖音 未连接 连接账号 快手 未连接 连接账号 B站 未连接 连接账号 Reddit 未连接 连接账号 Instagram 未连接 连接账号 Chrome 书签 未连接 连接账号 X 本版本还不能自动读取 X 的书签。原因是官方 X 接口可能收费，而这个项目的硬规矩是绝不产生新的必付费用，所",
       "press": {
-        "button_after": "正在连接…",
-        "button_disabled": true,
-        "note": ""
+        "pressed": [
+          {
+            "name": "小红书",
+            "before": "连接账号",
+            "after": "正在连接…",
+            "disabled": true,
+            "note": ""
+          },
+          {
+            "name": "抖音",
+            "before": "连接账号",
+            "after": "正在连接…",
+            "disabled": true,
+            "note": ""
+          },
+          {
+            "name": "快手",
+            "before": "连接账号",
+            "after": "正在连接…",
+            "disabled": true,
+            "note": ""
+          },
+          {
+            "name": "B站",
+            "before": "连接账号",
+            "after": "正在连接…",
+            "disabled": true,
+            "note": ""
+          },
+          {
+            "name": "Reddit",
+            "before": "连接账号",
+            "after": "正在连接…",
+            "disabled": true,
+            "note": ""
+          },
+          {
+            "name": "Instagram",
+            "before": "连接账号",
+            "after": "正在连接…",
+            "disabled": true,
+            "note": ""
+          },
+          {
+            "name": "Chrome 书签",
+            "before": "连接账号",
+            "after": "正在连接…",
+            "disabled": true,
+            "note": ""
+          }
+        ]
       }
     }
   },
