@@ -10,6 +10,7 @@
   let tab = null;
   let platform = null;
   let accounts = [];
+  let platformSupport = {};
   let runs = [];
   let bootstrap = null;
 
@@ -110,6 +111,59 @@
     }).join("");
   }
 
+  /** 把弹窗里三句会漂的话，照服务端的事实清单重写（v0.0.0.14）。
+   *
+   * 这三句说的都是同一件事：「哪些平台能自动同步」。
+   * 写死的后果已经发生过——B 站接上两个版本之后，诊断面板还在说它读不了。
+   *
+   * **读不到就不动写死的那份**：服务不可达时保持原样，
+   * 总比把它清成空白强。
+   */
+  function renderPlatformCopy() {
+    const support = Object.values(platformSupport);
+    if (!support.length) return;
+    const names = Object.fromEntries((SA.PLATFORM_RULES || []).map(rule => [rule.id, rule.name]));
+    const label = platform => names[platform] || platform;
+    const syncable = support.filter(item => item.sync_supported).map(item => label(item.platform));
+    const manual = support.filter(item => !item.sync_supported).map(item => label(item.platform));
+    const hint = $("manageAccountsHint");
+    if (hint && syncable.length) {
+      hint.textContent = `${syncable.join("、")}可自动同步；其余平台用下面的「保存当前页面」`;
+    }
+    const why = $("diagnoseWhy");
+    if (why && manual.length) {
+      why.textContent = `${manual.join("、")}的收藏列表现在还读不了`;
+    }
+    // **手动保存对多数平台是唯一的路，不该叫「备用」。**
+    // 九个平台里能自动同步的只有两个，其余七个只能这样存。
+    const summary = $("saveSummary");
+    if (summary) {
+      summary.textContent = manual.length > syncable.length
+        ? `保存当前页面（${manual.length} 个平台只能这样存）`
+        : "保存当前页面";
+    }
+    openSavePanelWhenItIsTheOnlyWay();
+  }
+
+  /** 当前这一页所属的平台没法自动同步时，**把保存面板默认展开**（v0.0.0.14）。
+   *
+   * 它原来叫「备用：保存当前页面」，收在一个折叠面板里。
+   * 而九个平台里只有两个能自动同步——**其余七个手动保存是唯一的路**，
+   * 把唯一的路收在一个写着「备用」的折叠框里，等于让他自己去翻。
+   *
+   * 不无条件展开：他正看着 B 站或书签时，自动同步才是主路，
+   * 展开只会占掉弹窗的高度。**按他当前看的这一页决定。**
+   */
+  function openSavePanelWhenItIsTheOnlyWay() {
+    const button = $("savePage");
+    const panel = button && button.closest("details");
+    if (!panel || !platform) return;
+    const support = platformSupport[platform.id];
+    // 读不到能力表就不动它——宁可保持原样，也不要凭猜改变界面。
+    if (!support) return;
+    if (support.sync_supported === false) panel.open = true;
+  }
+
   async function refresh() {
     let serviceConnected = true;
     try {
@@ -121,6 +175,12 @@
       accounts = accountData.items || [];
       runs = runData.items || [];
       bootstrap = bootstrapData;
+      // **服务端已经把「哪些平台能自动同步」下发过来了，此前这里把它扔掉。**
+      // 于是弹窗里那几句话全是写死的，改一次扫描范围就漂一次——
+      // 诊断面板那句「小红书、抖音、B站、快手的收藏列表现在还读不了」
+      // 在 B 站接上之后整整两个版本都还挂在那儿。
+      platformSupport = Object.fromEntries(
+        (accountData.supported_platforms || []).map(item => [item.platform, item]));
       const pending = runs.filter(run => ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting", "failed", "blocked_environment"].includes(run.status)).length;
       $("taskCount").textContent = String(pending);
       $("taskCount").classList.toggle("hidden", pending === 0);
@@ -130,6 +190,7 @@
       runs = [];
       bootstrap = null;
     }
+    renderPlatformCopy();
     renderSummary(serviceConnected);
     renderAccounts();
     renderDestinations();

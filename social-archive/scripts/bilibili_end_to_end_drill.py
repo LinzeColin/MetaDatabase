@@ -166,11 +166,23 @@ class _Api(BaseHTTPRequestHandler):
         if path == "/v1/accounts":
             self._json(200, {
                 "items": received["accounts"],
-                "supported_platforms": [{
-                    "platform": "bilibili", "relations": ["favorite"],
-                    "sync_supported": True, "not_syncable_reason": "",
-                    "server_handled": False, "connect_supported": True,
-                }],
+                # **照生产的形状给全九个平台**，不是只给 bilibili。
+                # 只给一个的话，弹窗里那几句照事实清单重写的话会算出
+                # 「只有哔哩哔哩」——看着像产品说错了，其实是夹具不全。
+                "supported_platforms": (
+                    [{"platform": "bilibili", "relations": ["favorite"],
+                      "sync_supported": True, "not_syncable_reason": "",
+                      "server_handled": False, "connect_supported": True},
+                     {"platform": "generic-web", "relations": ["bookmark"],
+                      "sync_supported": True, "not_syncable_reason": "",
+                      "server_handled": False, "connect_supported": True}]
+                    + [{"platform": name, "relations": ["favorite"],
+                        "sync_supported": False,
+                        "not_syncable_reason": "本版本还不能自动读取。现在可以：点插件的「保存到我的档案馆」。",
+                        "server_handled": name in ("x", "reddit", "instagram"),
+                        "connect_supported": name in ("x", "reddit", "instagram", "youtube")}
+                       for name in ("xiaohongshu", "douyin", "kuaishou",
+                                    "x", "reddit", "instagram", "youtube")]),
             })
             return
         # **列表要放在详情前面判。** `enqueueAccountSync` 进门第一件事就是
@@ -365,6 +377,31 @@ OPTIONS_PROBE = r"""
 })()
 """
 
+# 弹窗（点插件图标看到的那个）。使用说明里两次指到它，而它从来没在真 Chrome 里
+# 被打开过——只有一个 Playwright 的假 popup harness。**只读，不点。**
+POPUP_PROBE = r"""
+(() => {
+  const text = (document.body.innerText || "").replace(/\s+/g, " ");
+  const get = id => document.getElementById(id);
+  return JSON.stringify({
+    hasSettingsButton: Boolean(get("settings")),
+    hasSaveButton: Boolean(get("savePage")),
+    hasOpenLibrary: Boolean(get("openLibrary")),
+    manageAccountsHint: (get("manageAccountsHint") || {}).textContent || "",
+    saveSummary: (get("saveSummary") || {}).textContent || "",
+    diagnoseWhy: (get("diagnoseWhy") || {}).textContent || "",
+    // 「保存当前页面」是不是藏在一个收起来的 details 里
+    saveIsCollapsed: (() => {
+      const b = get("savePage");
+      const d = b && b.closest("details");
+      return Boolean(d && !d.open);
+    })(),
+    mentionsBilibiliCannotRead: text.includes("B站的收藏列表现在还读不了")
+      || /小红书、抖音、B站/.test(text),
+  });
+})()
+"""
+
 async def run(chrome: str) -> int:
     workspace = Path(tempfile.mkdtemp(prefix="sa-bili-e2e-"))
     profile = workspace / "profile"
@@ -461,6 +498,24 @@ async def run(chrome: str) -> int:
                         "expression": OPTIONS_PROBE, "returnByValue": True, "timeout": 20000})
                     value = card.get("result", {}).get("result", {}).get("value")
                     measured["options_card"] = json.loads(value) if value else {"error": "空"}
+            # 弹窗那一页
+            async with websockets.connect(version["webSocketDebuggerUrl"], max_size=None) as ws:
+                rpc = await _rpc_factory(ws)
+                await rpc("Target.createTarget",
+                          {"url": f"chrome-extension://{extension_id}/popup.html"})
+            await asyncio.sleep(4)
+            targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
+            popups = [t for t in targets if t.get("type") == "page"
+                      and "popup.html" in t.get("url", "")]
+            if popups:
+                async with websockets.connect(popups[0]["webSocketDebuggerUrl"],
+                                              max_size=None) as ws:
+                    rpc = await _rpc_factory(ws)
+                    await rpc("Runtime.enable")
+                    got = await rpc("Runtime.evaluate", {
+                        "expression": POPUP_PROBE, "returnByValue": True, "timeout": 20000})
+                    value = got.get("result", {}).get("result", {}).get("value")
+                    measured["popup"] = json.loads(value) if value else {"error": "空"}
     finally:
         process.terminate()
         try:
@@ -557,6 +612,19 @@ async def run(chrome: str) -> int:
         over = [word for word in ("稍后再看", "观看历史", "点赞") if word in text]
         if over:
             problems.append(f"**卡片承诺了这一版不会读的东西**：{over}（卡片原文：{text[:80]}）")
+
+    # 弹窗：使用说明里两次指到它
+    popup = measured.get("popup") or {}
+    if popup and not popup.get("error"):
+        if not popup.get("hasSettingsButton"):
+            problems.append("弹窗上没有那颗「···」——使用说明第 3 步从这里进设置页")
+        if not popup.get("hasSaveButton"):
+            problems.append("**弹窗上没有「保存当前页面」**——七个平台只能靠它存东西")
+        if popup.get("mentionsBilibiliCannotRead"):
+            problems.append("**弹窗还在说 B 站的收藏列表读不了**——它已经读得了两个版本了")
+        hint = str(popup.get("manageAccountsHint") or "")
+        if "可自动同步" not in hint:
+            problems.append(f"「连接与管理账号」那句没有照事实清单重写：{hint[:60]!r}")
 
     # **收藏夹的名字要真的送到服务端。**
     # 服务端建收藏夹记录的条件是 `if batch.collection_name:`——批次不带名字，

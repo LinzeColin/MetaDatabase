@@ -25,7 +25,7 @@
       </button>
       <button id="manageAccounts" class="secondary-action">
         <span class="action-icon">＋</span>
-        <span><strong>连接与管理账号</strong><small>小红书、抖音、快手、B站、X、Reddit、Instagram、Chrome 书签</small></span>
+        <span><strong>连接与管理账号</strong><small id="manageAccountsHint">小红书、抖音、快手、B站、X、Reddit、Instagram、Chrome 书签</small></span>
       </button>
     </section>
 
@@ -40,7 +40,7 @@
     </section>
 
     <details class="fallback-panel">
-      <summary>备用：保存当前页面</summary>
+      <summary id="saveSummary">保存当前页面</summary>
       <div class="site-card">
         <div><span id="platformBadge" class="platform-badge">普通网页</span><h2 id="pageTitle">正在识别当前页面…</h2></div>
         <div id="authorization" class="auth-row" aria-live="polite"></div>
@@ -56,7 +56,7 @@
       <summary>帮开发者看一眼这个平台（诊断）</summary>
       <div class="site-card">
         <p style="margin:0 0 10px;line-height:1.6;font-size:12px">
-          小红书、抖音、B站、快手的收藏列表现在还读不了——缺的是<strong>平台自己返回的数据长什么样</strong>，
+          <span id="diagnoseWhy">小红书、抖音、快手的收藏列表现在还读不了</span>——缺的是<strong>平台自己返回的数据长什么样</strong>，
           而那只存在于你已登录的浏览器里。<br><br>
           用法：在<strong>已登录</strong>的收藏页上点下面的按钮（<strong>会先刷新一次这个页面</strong>），然后<strong>往下滚动几屏</strong>，
           十秒后这里会列出它请求了哪些地址。<strong>只记地址和大小，不读取也不上传任何内容。</strong>
