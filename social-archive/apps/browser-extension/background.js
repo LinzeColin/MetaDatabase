@@ -946,7 +946,7 @@ async function connectChromeBookmarks() {
       external_account_id: "chrome-bookmarks",
       display_name: "Chrome 书签",
       verified: true,
-      metadata: { auth_method: "chrome_bookmarks", permission: "bookmarks", auto_sync_enabled: true, sync_interval_minutes: 360 }
+      metadata: { auth_method: "chrome_bookmarks", permission: "bookmarks", auto_sync_enabled: true, sync_interval_minutes: 360, extension_version: chrome.runtime.getManifest().version }
     })
   });
   const queued = await enqueueAccountSync({
@@ -1704,6 +1704,15 @@ async function verifyByListShape(platform, pending, tabId) {
         metadata: {
           auth_method: "browser_session",
           verified_by: "list_shape_recognised",
+          // **插件版本要记下来。**
+          //
+          // 2026-08-07 去生产库里查「他装的是哪一版」——**查不到**：账号
+          // metadata、同步记录、evidence 里都没有版本号。于是他说「不能用」时
+          // 只能猜，而猜出来的第一句往往是"你在旧版上"——那正是他最烦的来回。
+          //
+          // 版本号不是凭据，写进来是安全的（_safe_account_metadata 只挡
+          // cookie/token/password/auth_header 那几类键）。
+          extension_version: chrome.runtime.getManifest().version,
           auto_sync_enabled: true,
           sync_interval_minutes: 360,
         },
@@ -1768,6 +1777,15 @@ async function verifyBilibiliSession(pending, tabId) {
       metadata: {
         auth_method: "browser_session",
         verified_by: "bilibili_nav_api",
+        // **插件版本要记下来。**
+        //
+        // 2026-08-07 去生产库里查「他装的是哪一版」——**查不到**：账号
+        // metadata、同步记录、evidence 里都没有版本号。于是他说「不能用」时
+        // 只能猜，而猜出来的第一句往往是"你在旧版上"——那正是他最烦的来回。
+        //
+        // 版本号不是凭据，写进来是安全的（_safe_account_metadata 只挡
+        // cookie/token/password/auth_header 那几类键）。
+        extension_version: chrome.runtime.getManifest().version,
         auto_sync_enabled: true,
         sync_interval_minutes: 360,
       },

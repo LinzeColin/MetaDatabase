@@ -6,7 +6,7 @@
     {
       "drill": "shipped_package_drill.py",
       "status": "PASS",
-      "seconds": 29.7,
+      "seconds": 29.8,
       "problems": []
     },
     {
@@ -18,19 +18,19 @@
     {
       "drill": "extension_install_page_drill.py",
       "status": "PASS",
-      "seconds": 37.9,
+      "seconds": 37.8,
       "problems": []
     },
     {
       "drill": "extension_save_page_drill.py",
       "status": "PASS",
-      "seconds": 5.5,
+      "seconds": 6.0,
       "problems": []
     },
     {
       "drill": "extension_routing_drill.py",
       "status": "PASS",
-      "seconds": 3.9,
+      "seconds": 4.0,
       "problems": []
     },
     {
@@ -42,7 +42,7 @@
     {
       "drill": "extension_capture_buffer_drill.py",
       "status": "PASS",
-      "seconds": 4.5,
+      "seconds": 4.6,
       "problems": []
     },
     {
@@ -54,37 +54,37 @@
     {
       "drill": "pwa_render_drill.py",
       "status": "PASS",
-      "seconds": 9.1,
+      "seconds": 9.2,
       "problems": []
     },
     {
       "drill": "bilibili_end_to_end_drill.py",
       "status": "PASS",
-      "seconds": 24.6,
+      "seconds": 24.7,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform xiaohongshu",
       "status": "PASS",
-      "seconds": 41.2,
+      "seconds": 41.0,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform reddit",
       "status": "PASS",
-      "seconds": 41.1,
+      "seconds": 40.7,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform instagram",
       "status": "PASS",
-      "seconds": 41.0,
+      "seconds": 40.6,
       "problems": []
     },
     {
       "drill": "extension_platform_wiring_drill.py --platform xiaohongshu --sample-url https://www.xiaohongshu.com/explore/abc123 --expect-custody forbidden --expect-connect-card",
       "status": "PASS",
-      "seconds": 7.0,
+      "seconds": 6.9,
       "problems": []
     }
   ],

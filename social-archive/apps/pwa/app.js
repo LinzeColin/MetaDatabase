@@ -378,8 +378,18 @@
     // 「不影响使用」会让他以为不用管，然后一直看不到新平台却不知道为什么。
     const spare = state.extension.detected && state.extension.compatible
       && state.extension.outdated ? " · 请更新插件：旧版连不上账号（已存的内容不受影响）" : "";
+    // **插件版本一直显示出来。**
+    //
+    // 2026-08-07 我去生产库里查「他装的是哪一版」——查不到：账号 metadata、
+    // 同步记录、evidence 里都没有版本号。于是他说「不能用」时我只能猜，
+    // 而猜的第一句往往是"你在旧版上"——那正是他最烦的来回。
+    //
+    // 记进服务端只对**连接之后**有用；而他最需要说清版本的时刻恰恰是
+    // "连不上"的时候。所以这里让他随时能从屏幕上读一行给我。
+    const installed = state.extension.detected && state.extension.version
+      ? ` · 插件 v${state.extension.version}` : "";
     setServiceBadge("connected",
-      `私人档案馆已连接 · v${health.version || PRODUCT_VERSION}${spare}`);
+      `私人档案馆已连接 · v${health.version || PRODUCT_VERSION}${installed}${spare}`);
   }
 
   async function loadHealth() {

@@ -122,3 +122,23 @@ def test_it_does_not_depend_on_which_request_finishes_first() -> None:
     assert "paintServiceBadge" in refresh, (
         "refreshEverything 不重画徽章——他刚更新完插件，那句话会一直挂着"
     )
+
+
+def test_the_badge_shows_which_extension_version_is_installed() -> None:
+    """**他随时要能读出插件版本，不用我去查他的库。**
+
+    2026-08-07 去生产库里查「他装的是哪一版」——查不到：账号 metadata、
+    同步记录、evidence 里都没有版本号。于是他说「不能用」时我只能猜，
+    而猜的第一句往往是"你在旧版上"，那正是他最烦的来回。
+
+    连接时把版本记进服务端只对**连接之后**有用；而他最需要说清版本的时刻
+    恰恰是"连不上"的时候。所以徽章上一直显示。
+    """
+    out = _paint({"health": {"version": "9.9.9.9", "worker": ALIVE},
+                  "extension": {"detected": True, "compatible": True,
+                                "outdated": False, "version": "0.0.0.22"}})
+    assert "插件 v0.0.0.22" in out["text"], f"徽章上读不出插件版本：{out}"
+    # 没装插件时不许硬编一个版本号出来
+    blank = _paint({"health": {"version": "9.9.9.9", "worker": ALIVE},
+                    "extension": {"detected": False, "compatible": False, "version": ""}})
+    assert "插件 v" not in blank["text"], f"没装插件却显示了版本：{blank}"
