@@ -87,7 +87,19 @@ out["install_page"] = {
     "warns_new_extension_id": "新的插件 ID" in body,
     "compares_versions": "requiredVersion" in body,
     "back_href": back.group(1) if back else "",
-    "stale_versions": sorted(set(re.findall(r"v?0\.0\.0\.\d", body))),
+    # **注释里的版本号是历史标注，不是页面显示的内容。**
+    #
+    # 这一条和 tests/focused/test_install_page_detects_and_returns.py 里那条
+    # 是**同一条规则的两份实现**（一份查仓里的文件，一份查生产真正下发的字节，
+    # 两份都要有）。2026-08-06 我只修了判据那一份：它剥了注释，这一份没剥，
+    # 于是同一个页面在两处得出相反结论——判据全绿、生产验收报「还印着旧版本号」。
+    # 这个仓在「同一道门在两处布局给出相反结论」上栽过。
+    #
+    # 只剥整行的注释：`https://` 里也有 `//`，非锚定的剥法会吃掉真内容。
+    "stale_versions": sorted(set(re.findall(r"v?0\.0\.0\.\d", "\n".join(
+        line for line in re.sub(r"<!--.*?-->", " ", re.sub(r"/\*.*?\*/", " ", body, flags=re.S),
+                                flags=re.S).splitlines()
+        if not line.lstrip().startswith("//"))))),
 }
 app = open("/tmp/sa_app.js", encoding="utf-8").read()
 import os
