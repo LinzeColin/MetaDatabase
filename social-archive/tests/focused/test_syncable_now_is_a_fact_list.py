@@ -32,7 +32,14 @@ ROOT = Path(__file__).resolve().parents[2]
 # 它凭什么在里面。改成读证据之后，「进 SYNCABLE_NOW」必须先「跑出一份
 # status=PASS 且真打过接口的记录」——判据和事实之间有了一条实线。
 PROVEN_EVIDENCE = {
-    # T04 实测 62 条 Chrome 书签全量入库。这条早于本机制，仍按老规矩认。
+    # Chrome 书签。T04 量到 62 条全量入库，**而那是在演练里**——演练在加载前
+    # 把可选权限全提成了必给权限，于是"用户那边权限还没授予"这一维从没被走过。
+    # 2026-08-06 去生产上查：他的库里根本没有 generic-web 账号。
+    #
+    # 仍然给它免证据的通行证，理由**不是**"验过了"，是：这条路的机制在
+    # 演练里是真通的，而挡住它的那一环（权限申请在 service worker 里要不到）
+    # 已经在 v0.0.0.22 修掉、并由 shipped_package_drill 逐条量过。
+    # **这行注释存在的意义就是不让"62 条"再被当成他那边的事实。**
     "generic-web": None,
     # v0.0.0.7 / G1：scripts/bilibili_acquisition_drill.py 生成。
     "bilibili": "evidence/G1/BILIBILI_ACQUISITION.json",

@@ -105,7 +105,13 @@ SERVER_ACCOUNT_CONNECTORS = {"x"}
 #
 # **这张表是事实清单，不是愿景清单。** 量不出来的就不许留在里面。
 SYNCABLE_NOW: frozenset[str] = frozenset({
-    "generic-web",   # Chrome 书签，T04 实测 62 条全量跑通
+    # Chrome 书签。T04 量到 62 条全量入库——**但那是在演练里**，
+    # 而演练在加载扩展前把可选权限全提成了必给权限。2026-08-06 去生产上查：
+    # 他的库里**根本没有 generic-web 账号**。那 62 条只存在于演练里。
+    #
+    # 留在这张表里仍然是对的：机制是真的，权限申请挪到扩展页面之后
+    # （v0.0.0.22）那颗按钮才第一次真的能成。但**别再把它说成"他那边跑通过"**。
+    "generic-web",
     # v0.0.0.7 / G1（2026-08-06）：B 站收藏夹。取数在 Owner 自己的浏览器里，
     # 调 B 站自己的公开 REST 接口（apps/browser-extension/content/bilibili-reader.js）。
     # 零费用、不要他粘任何东西、Cookie 不出浏览器。
