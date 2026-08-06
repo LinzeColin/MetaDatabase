@@ -24,31 +24,31 @@
     {
       "drill": "extension_save_page_drill.py",
       "status": "PASS",
-      "seconds": 5.4,
+      "seconds": 5.5,
       "problems": []
     },
     {
       "drill": "extension_routing_drill.py",
       "status": "PASS",
-      "seconds": 4.0,
+      "seconds": 3.9,
       "problems": []
     },
     {
       "drill": "extension_capture_drill.py",
       "status": "PASS",
-      "seconds": 16.0,
+      "seconds": 15.9,
       "problems": []
     },
     {
       "drill": "extension_capture_buffer_drill.py",
       "status": "PASS",
-      "seconds": 4.6,
+      "seconds": 4.5,
       "problems": []
     },
     {
       "drill": "extension_bridge_boundary_drill.py",
       "status": "PASS",
-      "seconds": 13.2,
+      "seconds": 13.0,
       "problems": []
     },
     {
@@ -60,25 +60,25 @@
     {
       "drill": "bilibili_end_to_end_drill.py",
       "status": "PASS",
-      "seconds": 24.8,
+      "seconds": 24.6,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform xiaohongshu",
       "status": "PASS",
-      "seconds": 41.1,
+      "seconds": 41.2,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform reddit",
       "status": "PASS",
-      "seconds": 41.2,
+      "seconds": 41.1,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform instagram",
       "status": "PASS",
-      "seconds": 41.1,
+      "seconds": 41.0,
       "problems": []
     },
     {

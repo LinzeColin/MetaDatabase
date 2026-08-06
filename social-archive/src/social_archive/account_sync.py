@@ -12,6 +12,10 @@ from .service import ArchiveService
 from .utils import utcnow
 
 
+# 按形状读那条路认不出他是谁（它只读收藏页，不去主页），所以完成连接时
+# 报这个固定值。它不是一个真的账号标识，**只是"这台浏览器里那个已登录的人"**。
+UNIDENTIFIED_BROWSER_ACCOUNT = "browser-session"
+
 PLATFORM_RELATIONS: dict[str, list[str]] = {
     "xiaohongshu": ["favorite", "like"],
     "douyin": ["favorite", "like"],
@@ -294,6 +298,27 @@ class AccountSyncCoordinator:
             raise ValueError("连接凭据无效，请重新连接账号")
         if not 15 <= sync_interval_minutes <= 10080:
             raise ValueError("账号同步间隔必须在 15–10080 分钟")
+        # **同一个平台再连一次，认领已有的那个账号，别开第二个。**
+        #
+        # 2026-08-07 在 Owner 生产库里量到的形状：他三个账号的
+        # external_account_id 是**主页地址**（上一代取数路留下的）——
+        #     xiaohongshu  https://www.xiaohongshu.com/user/profile/68f8b613…
+        #     douyin       https://www.douyin.com/user/self?from_nav=1
+        #     bilibili     https://space.bilibili.com/3493091105311656
+        # 而按形状读那条路认不出他是谁（它只读收藏页，不去主页），
+        # 完成连接时报的是固定的 "browser-session"。
+        #
+        # 两者对不上，于是**重连会新建一行**：他的 85 条抖音、102 条 B 站
+        # 留在旧账号下面，新卡片上写着 0 条。数据没丢，但他看到的是"东西没了"。
+        #
+        # 所以：这个平台已经有一个同样连接方式的账号时，沿用它的外部 id。
+        # 沿用而不是改写，是因为 `user_relation.source_account_id` 是从
+        # 外部 id 推出来的——改写它等于把已有条目和账号的关系割断。
+        if external_account_id == UNIDENTIFIED_BROWSER_ACCOUNT:
+            existing = self.store.find_source_account_by_platform(
+                platform=platform, auth_method=auth_method)
+            if existing and existing.get("external_account_id"):
+                external_account_id = str(existing["external_account_id"])
         account_id = self.store.upsert_source_account(
             platform=platform,
             external_account_id=external_account_id,

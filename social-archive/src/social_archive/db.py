@@ -1622,6 +1622,27 @@ class RuntimeStore:
     # Account-mirror state belongs to the rebuildable runtime journal.  The
     # methods below intentionally expose opaque handle references only to the
     # coordinator, never to public account-list responses.
+    def find_source_account_by_platform(
+        self, *, platform: str, auth_method: str | None = None
+    ) -> dict[str, Any] | None:
+        """这个平台上已经有账号了吗（用来认领，而不是开第二个）。
+
+        取**最早建的那一个**：他的条目挂在那上面。取最新的会在已经分叉过
+        一次之后越走越偏。
+        """
+        clauses = ["platform=?"]
+        params: list[Any] = [platform.strip().lower()]
+        if auth_method:
+            clauses.append("auth_method=?")
+            params.append(auth_method)
+        with self.connection() as con:
+            row = con.execute(
+                f"SELECT * FROM source_account WHERE {' AND '.join(clauses)} "
+                "ORDER BY created_at LIMIT 1",
+                params,
+            ).fetchone()
+        return dict(row) if row else None
+
     def upsert_source_account(
         self,
         *,
