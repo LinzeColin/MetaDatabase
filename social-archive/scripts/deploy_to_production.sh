@@ -31,6 +31,21 @@
 #   6. **主机 venv 必须指向仓里的 src/**。容器重建了、主机 venv 没人管——
 #      实测它落后了两个版本，而四个耐久性 timer 全跑在它上面。
 #
+# ## 跑到一半被打断了怎么办
+#
+# 2026-08-06 实测过一次：调用方（我这边的工具）10 分钟超时，SIGTERM 打断在
+# 第 5 步 `docker compose up` 中间。结果是**镜像已经构建好、api 和 cli-tools
+# 起来了，而 core-worker 卡在 Created 没启动**——后台任务全部积压，
+# 而 /health 是好的（它由 api 提供），**从外面看不出来**。
+#
+# 恢复只要一条命令，compose up 是幂等的：
+#
+#     ssh <host> 'cd /opt/social-archive && sudo docker compose up -d core-api core-worker cli-tools'
+#
+# 然后**一定要跑一次完整回读**（scripts/verify_production_deployment.py 与
+# scripts/check_production_matches_the_repo.py）——被打断的部署最容易留下
+# 「一半新一半旧」，而那正是三份一致性检查存在的理由。
+#
 # 用法：bash scripts/deploy_to_production.sh [--host linze-ovh] [--dry-run]
 
 set -euo pipefail
