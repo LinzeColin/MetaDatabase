@@ -1,5 +1,5 @@
 {
-  "status": "PASS",
+  "status": "FAIL",
   "task": "G5",
   "host": "linze-ovh",
   "expected_version": "0.0.0.20",
@@ -8,7 +8,7 @@
       "status": "ok",
       "project": "Social Archive",
       "version": "0.0.0.20",
-      "time": "2026-08-06T05:10:48.351904Z",
+      "time": "2026-08-06T05:14:40.587573Z",
       "paid_api_allowed": false,
       "archive_defaults": {
         "L0": true,
@@ -19,8 +19,8 @@
       "worker": {
         "ever_seen": true,
         "alive": true,
-        "last_seen_at": "2026-08-06T05:10:43.599042Z",
-        "seconds_since": 4.8,
+        "last_seen_at": "2026-08-06T05:14:28.216957Z",
+        "seconds_since": 12.4,
         "note": ""
       },
       "minimum_extension_version": "0.0.0.9"
@@ -77,12 +77,18 @@
       "back_href": "/",
       "stale_versions": []
     },
+    "served_sha256": {
+      "app.js": "9f126d31970bf37d2730ba2804cd416342d7a420fe3c54b8a1527c81a9264c89",
+      "extension-install.html": "7b177d771beb1553f1cc86a618ee8a556640a3070eccc1feb6f41c592d6acee7"
+    },
     "library_page": {
       "product_version": "0.0.0.20",
       "knows_bilibili_failure_codes": true
     }
   },
-  "problems": [],
+  "problems": [
+    "**生产上的 app.js 不是仓里这一份**（仓 815101aee4e7… / 线上 9f126d31970b…）——多半是这次部署没成，而版本号看不出来"
+  ],
   "why_origin_not_public": "资料库域名挡在 Cloudflare Access 后面，不带登录态 curl 只会拿到 302 到登录页的143 字节，四条断言会全报 False 而页面其实好端端的（2026-08-06 实测踩过）。所以从 origin 量——那是 Access 放行之后 Owner 真正拿到的那一份。",
   "what_this_does_not_prove": "没有证明 Owner 自己的 B 站收藏夹读得出来——那要他本人的登录态，发生在他自己的浏览器里。这里证明的是：他要用到的每一样东西，生产上都是新的那一份。"
 }

@@ -83,6 +83,10 @@ out["install_page"] = {
     "stale_versions": sorted(set(re.findall(r"v?0\.0\.0\.\d", body))),
 }
 app = open("/tmp/sa_app.js", encoding="utf-8").read()
+out["served_sha256"] = {
+    "app.js": hashlib.sha256(open("/tmp/sa_app.js","rb").read()).hexdigest(),
+    "extension-install.html": hashlib.sha256(open("/tmp/sa_install.html","rb").read()).hexdigest(),
+}
 pv = re.search(r'const PRODUCT_VERSION = "([0-9.]+)"', app)
 out["library_page"] = {
     "product_version": pv.group(1) if pv else "",
@@ -161,6 +165,27 @@ def main() -> int:
             "——它会把刚更新好的插件判成不兼容，人又回到「去更新」的循环里")
     if not library["knows_bilibili_failure_codes"]:
         problems.append("资料库页面不认识 B 站的失败码，会显示「我们没能记录下原因」")
+
+    # **服务器发的页面，和仓里这一份是不是同一份字节。**
+    #
+    # 2026-08-06 这一条是被一次假绿逼出来的：我改了资料库页面、不升版本就部署，
+    # 部署因磁盘不足**中止了**，而这个脚本报 PASS——因为它当时只比版本，
+    # 而版本本来就还是上一次部署留下的那个。**「PASS」当时的意思是
+    # 「上一版好好的」，我却读成了「我这次的改动上线了」。**
+    #
+    # 不升版本部署是这一版新立的规矩（界面文案不该逼人重装插件），
+    # 而它的代价正是：**版本号不再能证明你的改动到没到**。所以改成比字节。
+    import hashlib as _hashlib
+    for name, path in (("app.js", ROOT / "apps/pwa/app.js"),
+                       ("extension-install.html", ROOT / "apps/pwa/extension-install.html")):
+        local = _hashlib.sha256(path.read_bytes()).hexdigest()
+        served = (measured.get("served_sha256") or {}).get(name, "")
+        if not served:
+            problems.append(f"没能取到生产上 {name} 的指纹——这一条没验到，不算通过")
+        elif served != local:
+            problems.append(
+                f"**生产上的 {name} 不是仓里这一份**（仓 {local[:12]}… / 线上 {served[:12]}…）"
+                "——多半是这次部署没成，而版本号看不出来")
 
     report = {
         "status": "PASS" if not problems else "FAIL",
