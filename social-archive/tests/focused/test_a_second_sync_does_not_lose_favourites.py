@@ -355,3 +355,105 @@ def test_a_folder_we_cannot_name_is_not_offered_as_a_filter(settings, store, ser
     # 条目那一格也一样不许显示——见下面那条判据的说明。
     names = {name for row in table["items"] for name in (row.get("collections") or [])}
     assert names == set(), f"说不出名字的 key 出现在了条目上：{sorted(names)}"
+
+
+# ---------------------------------------------------------------------------
+# **他库里真实的那 194 条**（2026-08-06 从生产只读量到的形状）
+#
+#   bilibili  history      收藏夹key 是抓页面抓进来的一大段界面文字      70 条
+#   douyin    like         空                                          69 条
+#   bilibili  favorite     bilibili:/3493091105311656/favlist           30 条
+#   douyin    favorite     空                                          16 条
+#
+# 这些是**旧那条 DOM 抓取路**留下的，key 的写法和现在这条路完全不同
+# （现在 B 站用媒体 id 当 key，抖音走按形状读、只报 partial）。
+#
+# 他的三个账号现在都是「未连接」。**他一旦重连，第一次同步会怎样，
+# 是这个产品眼下唯一会让他真损失东西的地方**——而上面那些判据用的都是
+# 我编的干净形状，谁也没拿他真实的那份试过。
+# ---------------------------------------------------------------------------
+
+HIS_SHAPE = [
+    ("bilibili", "favorite", "bilibili:/3493091105311656/favlist", "BVold1"),
+    ("bilibili", "favorite", "bilibili:/3493091105311656/favlist", "BVold2"),
+    ("bilibili", "history", "综合视频直播专栏 更多筛选 清空历史批量管理全部时长", "BVold3"),
+    ("douyin", "like", "", "dyold1"),
+    ("douyin", "favorite", "", "dyold2"),
+]
+
+
+def _seed_his_library(store, service, account_id: str) -> None:
+    """**必须种在同一个账号的范围里**，否则这些判据是空的。
+
+    第一版我把内部账号 id 传进 capture，而销账用的是
+    `stable_id("acct", platform, external_account_id)`——两边算出来的
+    账号范围不一样，于是那些行**靠账号隔离幸免**，和分桶一点关系没有。
+    反证当场戳穿：把分桶整个去掉，这两条判据照样绿。
+    """
+    external = store.get_source_account(account_id, include_handle=True)["external_account_id"]
+    for platform, relation, collection, ident in HIS_SHAPE:
+        service.capture(CaptureRequest(
+            platform=platform,
+            url=f"https://example.invalid/{platform}/{ident}",
+            external_content_id=ident,
+            relation_type=relation,
+            collection_key=collection,
+            source_account_id=external,
+            title=ident,
+        ))
+
+
+def _statuses(store) -> dict[str, str]:
+    with store.connection() as con:
+        return {row[0]: row[1] for row in con.execute(
+            "SELECT c.external_content_id, r.status FROM user_relation r "
+            "JOIN content c ON c.id=r.content_id")}
+
+
+def test_reconnecting_never_closes_the_rows_the_old_scraper_left(
+    settings, store, service
+) -> None:
+    """**他重连之后，那 194 条一条都不许被判成「取消收藏」。**
+
+    旧那条路留下的 collection_key 和现在这条路产出的完全不是一套写法
+    （`bilibili:/…/favlist` vs 媒体 id）。销账是**按 collection_key 分桶**的，
+    所以新扫描扫的是新桶、碰不到旧桶——这条判据就是把这件事钉死，
+    免得哪天有人"顺手统一一下 key"，把他两年的收藏一次销掉。
+    """
+    coordinator, account_id = _connect(settings, store, service)
+    _seed_his_library(store, service, account_id)
+    before = _statuses(store)
+    assert len(before) >= len(HIS_SHAPE)
+
+    # 重连后的第一次同步：只读收藏夹，而且是**新写法的 key**（媒体 id）
+    _one_sync(coordinator, account_id, FOLDERS)
+    _one_sync(coordinator, account_id, FOLDERS)          # 连着两次，凑满销账门槛
+
+    after = _statuses(store)
+    lost = sorted(ident for ident, status in after.items()
+                  if status != "active" and ident in {row[3] for row in HIS_SHAPE})
+    assert not lost, (
+        f"**重连之后把他原来的条目销账了**：{lost}——"
+        "旧 key 和新 key 不是一套写法，销账按 key 分桶，不该碰得到它们"
+    )
+    for ident in {row[3] for row in HIS_SHAPE}:
+        assert after.get(ident) == "active", f"{ident} 不见了或被关掉了：{after.get(ident)}"
+
+
+def test_a_relation_nobody_scans_is_never_closed(settings, store, service) -> None:
+    """**没人扫的关系类型不许被销账。**
+
+    他有 69 条抖音「点赞」和 71 条 B 站「历史」。
+    这两种关系**这一版根本没有取数路**（SCANNABLE_RELATIONS 里只有收藏），
+    所以一次同步永远不会"看见"它们。要是销账不按关系类型分桶，
+    这 140 条会在两次同步之后集体消失——而他完全不知道为什么。
+    """
+    coordinator, account_id = _connect(settings, store, service)
+    _seed_his_library(store, service, account_id)
+    _one_sync(coordinator, account_id, FOLDERS)
+    _one_sync(coordinator, account_id, FOLDERS)
+    after = _statuses(store)
+    for ident, relation in (("dyold1", "like"), ("BVold3", "history")):
+        assert after.get(ident) == "active", (
+            f"「{relation}」这一版根本没人扫，却被销账了（{ident} → {after.get(ident)}）"
+        )

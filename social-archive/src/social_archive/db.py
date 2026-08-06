@@ -2190,6 +2190,38 @@ class RuntimeStore:
             ).fetchall()
         return {str(row["collection_key"] or "") for row in rows}
 
+    def list_registered_collections(
+        self,
+        *,
+        platform: str,
+        external_account_id: str,
+        relation_type: str,
+    ) -> set[str]:
+        """平台**确认存在过**的收藏夹（`platform_collection` 里登记过的）。
+
+        和 `list_existing_relation_collections` 的区别是要害：后者只是
+        「库里有条目挂着这个 key」，而 key 可能是**上一代取数路留下的写法**。
+
+        2026-08-06 在 Owner 生产库里量到：他有 30 条 B 站收藏挂在
+        `bilibili:/3493091105311656/favlist` 这个 key 上——那是 T03 删掉的
+        DOM 抓取器留下的写法，而现在这条路用的是媒体 id。
+        关系级销账会把"库里已有的收藏夹"也算进待检查名单（本意是
+        「这次同步里变空的收藏夹也要关掉」），于是那个旧 key 被当成
+        **一个变空了的收藏夹**，连续两次同步之后整桶销账——**他 30 条收藏没了**。
+
+        登记过的才可能"变空"：一个收藏夹要先被平台报出来（带名字）才会进
+        `platform_collection`。旧 key 从没登记过，所以它不是"变空"，
+        是"我们换了写法"。这两件事必须分开，**因为一件该关，另一件会丢数据**。
+        """
+        account_id = stable_id("acct", platform.strip().lower(), external_account_id)
+        with self.connection() as con:
+            rows = con.execute(
+                """SELECT DISTINCT external_collection_id FROM platform_collection
+                   WHERE source_account_id=? AND relation_type=?""",
+                (account_id, relation_type),
+            ).fetchall()
+        return {str(row["external_collection_id"] or "") for row in rows if row["external_collection_id"]}
+
     def upsert_sync_run_scope(
         self,
         *,

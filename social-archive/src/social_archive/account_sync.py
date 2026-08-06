@@ -590,11 +590,26 @@ class AccountSyncCoordinator:
                 sync_run_id=sync_run_id,
                 relation_type=relation_type,
             )
+            # **只有平台确认存在过的收藏夹才可能"变空"。**
+            #
+            # 库里挂着某个 key 不等于那是一个收藏夹——它可能是**上一代取数路
+            # 留下的写法**。2026-08-06 在 Owner 生产库里量到：30 条 B 站收藏挂在
+            # `bilibili:/3493091105311656/favlist` 上（T03 删掉的 DOM 抓取器留的），
+            # 而现在这条路用媒体 id。不加这道交集的话，那个旧 key 会被当成
+            # 「一个变空了的收藏夹」，重连之后两次同步就把**他 30 条收藏销账**。
+            #
+            # 登记过（platform_collection 里有名字）的才算数：真被他删掉的收藏夹
+            # 一定登记过，所以「变空要关掉」那个本意一点没丢。
+            registered = self.store.list_registered_collections(
+                platform=account["platform"],
+                external_account_id=account["external_account_id"],
+                relation_type=relation_type,
+            )
             collections.update(self.store.list_existing_relation_collections(
                 platform=account["platform"],
                 external_account_id=account["external_account_id"],
                 relation_type=relation_type,
-            ))
+            ) & registered)
             if not collections:
                 collections.add("")
             # **同一次同步里，一个收藏夹只许记一次缺席。**
