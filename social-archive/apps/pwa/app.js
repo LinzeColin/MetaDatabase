@@ -550,7 +550,9 @@
             : "本版本还没有能自动同步的平台。可以用插件把看到的内容一条条保存进来。";
         })(),
         action: "去连接",
-        run: () => openSyncModal(),
+        // **直接开连接面板**（不跳页那一层就在这里生效）。面板拿不到时
+        // 退回同步中心——插件太旧还没有那一页时才会发生。
+        run: () => { if (!openConnectPanel()) openSyncModal(); },
       },
       {
         need: () => !state.syncRuns.some(run => ["completed", "partial"].includes(run.status)),
@@ -1331,6 +1333,10 @@
     const frame = document.getElementById("connectFrame");
     if (!frame) return false;
     if (frame.getAttribute("src") !== url) frame.setAttribute("src", url);
+    // **一次只留一层。** 两个弹窗叠着还是"乱"——他分不清该看哪一层、
+    // 关掉一层会不会把事情弄丢。连接面板打开时把账号同步中心收起来；
+    // 面板关掉时不自动把它翻回来，让他停在资料库上。
+    closeModal("syncModalBackdrop");
     openModal("connectModalBackdrop");
     return true;
   }
@@ -1673,14 +1679,18 @@
     $("syncModalBackdrop").addEventListener("click", event => { if (event.target === event.currentTarget) closeModal("syncModalBackdrop"); });
     $("syncAllBtn").addEventListener("click", syncAllAccounts);
     $("modalSyncAll").addEventListener("click", syncAllAccounts);
-    $("connectNewAccount").addEventListener("click", renderSyncConnectPicker);
+    // 「连接新账号」直接开连接面板——原来它再画一层"选平台"的选择器，
+    // 于是路径变成：资料库 → 同步中心 → 选平台 → 连接。面板本身就是那张列表。
+    $("connectNewAccount").addEventListener("click", () => {
+      if (!openConnectPanel()) renderSyncConnectPicker();
+    });
     $("bulkClear").addEventListener("click", () => { state.selected.clear(); renderTable(); });
     $("bulkExport").addEventListener("click", bulkExport);
     $("bulkCategory").addEventListener("click", () => { renderClassificationModal(); openModal("classificationModalBackdrop"); });
     $("emptyConnectAccount").addEventListener("click", event => {
       const action = event.currentTarget.dataset.action;
       if (action === "retry") loadLibrary();
-      else openSyncModal();
+      else if (!openConnectPanel()) openSyncModal();
     });
     document.querySelectorAll("[data-nav]").forEach(button => button.addEventListener("click", () => {
       const nav = button.dataset.nav;
