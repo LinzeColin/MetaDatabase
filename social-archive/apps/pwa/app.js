@@ -72,7 +72,10 @@
     // v0.0.0.22 追加的第八句（前七句一个字没动）。理由见
     // docs/ZERO_BARRIER_UX.md：没有主机权限时连标签页网址都读不到，
     // 原来会回一句「读不出当前页面的域名」，把他指向"是不是页面没打开"。
-    PLATFORM_PERMISSION_MISSING: { text: "还没有获得读取 <平台> 页面的授权。请点 [ 连接账号 ]，在浏览器弹出的框里选「允许」。", action: "连接账号" }
+    PLATFORM_PERMISSION_MISSING: { text: "还没有获得读取 <平台> 页面的授权。请点 [ 连接账号 ]，在浏览器弹出的框里选「允许」。", action: "连接账号" },
+    // 第九句。原来它被别名成 SERVER_UNREACHABLE，于是界面说「暂时连不上服务器」——
+    // 服务器好好的，出问题的是在浏览器里读平台页那一步。他会去查一个没坏的东西。
+    BROWSER_SCAN_FAILED: { text: "在你的浏览器里读 <平台> 的页面时没能完成。请打开该平台的收藏页、确认已登录，然后点 [ 重试 ]。", action: "重试" }
   };
   // 内部失败码比词典细，但界面上只许出现词典里的八句。
   const failureAliases = {
@@ -91,7 +94,6 @@
     LOGIN_PROOF_UNAVAILABLE: "NOT_LOGGED_IN",
     PERMISSION_DENIED: "NOT_LOGGED_IN",
     UPLOAD_FAILED: "SERVER_UNREACHABLE",
-    BROWSER_SCAN_FAILED: "SERVER_UNREACHABLE",
     RELATION_URL_UNAVAILABLE: "SERVER_UNREACHABLE",
     // 原始媒体文件没取到（v0.0.0.7）。内容本身已经保存好了，
     // 少的只是那个视频/图片文件。限流/超时才可以再试。

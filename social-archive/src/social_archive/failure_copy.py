@@ -54,6 +54,9 @@ _DICTIONARY: tuple[FailureCopy, ...] = (
                 "去授权", "needs_user_action"),
     # v0.0.0.22：**没授权 ≠ 没登录**，下一步在两个不同的地方。
     # 没登录 → 回平台页登录；没授权 → 回插件点「连接账号」，在浏览器弹的框里选允许。
+    FailureCopy("BROWSER_SCAN_FAILED",
+                "在你的浏览器里读 <平台> 的页面时没能完成。请打开该平台的收藏页、确认已登录，然后点 [ 重试 ]。",
+                "重试", "needs_user_action"),
     FailureCopy("PLATFORM_PERMISSION_MISSING",
                 "还没有获得读取 <平台> 页面的授权。请点 [ 连接账号 ]，"
                 "在浏览器弹出的框里选「允许」。",
@@ -137,7 +140,11 @@ _ALIASES: dict[str, str] = {
     # 重试一万次也一样——要它变绿得先有人按诊断、把前缀固化下来（T09/T10）。
     # 已移入 DELIBERATELY_UNALIASED。
     "UPLOAD_FAILED": "SERVER_UNREACHABLE",
-    "BROWSER_SCAN_FAILED": "SERVER_UNREACHABLE",
+    # **BROWSER_SCAN_FAILED 从别名表里拿掉了**（v0.0.0.22）。
+    # 它别名成 SERVER_UNREACHABLE，于是界面说「暂时连不上服务器」——
+    # 而服务器好好的，出问题的是**在他浏览器里读平台页面**那一步。
+    # 他会去查网络、查服务器，查一个没坏的东西。
+    # 2026-08-07 在生产库里量到这个码出现过 5 次。现在它在冻结词典里有自己一条。
     "RELATION_URL_UNAVAILABLE": "SERVER_UNREACHABLE",
     # 原始媒体文件没取到（v0.0.0.7）。**这三个和「同步失败」不是一回事**：
     # 内容本身已经保存好了（标题、链接、正文都在），少的只是那个视频/图片文件。
