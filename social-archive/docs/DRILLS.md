@@ -28,6 +28,27 @@
 | 改到那条路时 | 改动碰到它验的那条链 | 人（改的人） |
 | 定期 | 恢复类，季度或换机器后 | 人 |
 
+## 这些演练的绿，覆盖不到哪一维
+
+**除 `shipped_package_drill.py` 外，每一个真 Chrome 演练在加载前都做这件事：**
+
+```
+manifest["host_permissions"] = host_permissions | optional_host_permissions
+manifest["optional_host_permissions"] = []
+```
+
+为的是不弹权限框、跑得顺。代价是它们的绿**不覆盖权限那一维**——
+2026-08-06 量出来的：三个权限申请点全在 service worker 里，而
+`chrome.permissions.request` 在那里**一个都要不到**
+（`This function must be called during a user gesture`）。
+也就是说账号页上每一颗连接按钮都拿不到权限，而十一个演练全绿。
+
+权限那一维现在由 `shipped_package_drill.py` 覆盖：它原样解包、不改 manifest，
+并且把同一个 API 在两个地方各调一次做对比
+（service worker 里抛异常、扩展页面里弹出授权框）。
+
+**读这些演练的结论时要记得这条边界。** 绿不等于"他那边也这样"。
+
 ## 清单
 
 | 演练 | 什么时候跑 | 它回答的问题 |
