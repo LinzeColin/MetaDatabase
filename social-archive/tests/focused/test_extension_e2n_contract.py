@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[2]
+
 
 def _extension_root() -> Path:
     return Path(__file__).parents[2] / "apps/browser-extension"
@@ -10,7 +12,7 @@ def test_extension_has_account_mirror_first_surfaces():
     root = _extension_root()
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["manifest_version"] == 3
-    assert manifest["version"] == "0.0.0.7"
+    assert manifest["version"] == (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     assert manifest["action"]["default_popup"] == "popup.html"
     assert manifest["side_panel"]["default_path"] == "sidepanel.html"
     assert manifest["options_page"] == "options.html"

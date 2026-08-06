@@ -97,7 +97,15 @@ def test_no_stale_version_string() -> None:
     """这一页曾经写着 v0.0.0.6，而产品早就不是那个版本。"""
     version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     html = PAGE.read_text(encoding="utf-8")
-    stale = [m for m in re.findall(r"v?0\.0\.0\.\d", html) if m.lstrip("v") != version]
+    # **注释里的版本号是历史标注，不是页面显示的内容。**
+    # 这条判据关心的是「用户看到一个过期的版本号」，而
+    # `/* 实时检测条（v0.0.0.7）。…… */` 说的是"这段是哪一版加的"——
+    # 把它算进来，等于每次升版都要去改一句在讲历史的注释，改完那句话就成了假的。
+    # 代码里的字符串仍然在范围内（那些可能被显示出来）。
+    without_comments = re.sub(r"<!--.*?-->", " ", html, flags=re.S)
+    without_comments = re.sub(r"/\*.*?\*/", " ", without_comments, flags=re.S)
+    stale = [m for m in re.findall(r"v?0\.0\.0\.\d", without_comments)
+             if m.lstrip("v") != version]
     assert not stale, f"页面上还留着过期版本号：{stale}"
 
 

@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import importlib
+from pathlib import Path
 
 from fastapi.testclient import TestClient
+
+# 版本从真源读，不写死——升一次版改一次测试是没道理的，
+# 而且写死的那个数正是升版时最容易忘的东西。
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def _client(tmp_path, monkeypatch) -> TestClient:
@@ -35,7 +40,8 @@ def test_extension_install_guide_and_package_are_real_downloads(tmp_path, monkey
     assert package.status_code == 200
     assert package.content == b"PK\x03\x04fixture-extension"
     assert package.headers["content-type"] == "application/zip"
-    assert "social-archive-extension-v0.0.0.7.zip" in package.headers["content-disposition"]
+    version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+    assert f"social-archive-extension-v{version}.zip" in package.headers["content-disposition"]
     assert len(package.headers["x-social-archive-sha256"]) == 64
 
 
@@ -45,7 +51,7 @@ def test_extension_bootstrap_is_single_render_payload(tmp_path, monkeypatch):
     assert response.status_code == 200
     body = response.json()
     assert body["project"] == "Social Archive"
-    assert body["version"] == "0.0.0.7"
+    assert body["version"] == (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     assert body["archive_defaults"] == ["L0", "L1", "L3"]
     # 这条断言原先逐字钉着 {"cookie_custody": False, "password_custody": False,
     # "user_triggered_capture_only": True}。**其中第一条从 T05/T06 起就是假的**

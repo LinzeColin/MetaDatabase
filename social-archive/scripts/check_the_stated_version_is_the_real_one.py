@@ -55,6 +55,26 @@ MUST_AGREE = [
      "仓库的门面，第一行"),
     ("AGENTS.md", re.compile(r"^-\s*版本：`v([0-9.]+)`", re.M),
      "**接手的 agent 读的那一份**——它说错，后面每一个人都被告知错的版本"),
+    # 下面四处是 2026-08-06 / G5 补的。它们**一直是承重位，只是这道门看不见**：
+    # 升版时全靠手改，而这台机器已经因为手改版本位出过两次错（两次都是漏了位）。
+    ("VERSION", re.compile(r"^\s*([0-9.]+)\s*$"),
+     "**部署脚本拿它拼镜像 tag**（social-archive/core:${VERSION}）。"
+     "它和 compose.yaml 里 pin 的 tag 一旦不一致，"
+     "部署起来的就不是刚构建的那个镜像——而且现场看不出来"),
+    ("apps/browser-extension/runtime-config.json", None,
+     "插件界面上显示的版本；和 manifest 不一致会让人以为装错了"),
+    ("compose.yaml", re.compile(r"image:\s*social-archive/core:([0-9.]+)"),
+     "生产真正跑的那个镜像 tag"),
+    ("compose.yaml", re.compile(r"image:\s*social-archive/cli-tools:([0-9.]+)"),
+     "sidecar 镜像 tag"),
+    # 这一处是升版当天被一条测试撞出来的——**而它是最贵的一处**：
+    # 资料库页面用它判插件兼容性（`compatible: version === PRODUCT_VERSION`）。
+    # 它不跟着升，资料库会把刚更新好的插件判成不兼容，Owner 就又回到
+    # 「去更新 → 更新完还是去更新」那个循环里——正是这一轮开工时要修的那件事。
+    ("apps/pwa/app.js", re.compile(r'const PRODUCT_VERSION = "([0-9.]+)"'),
+     "**资料库页面判断插件兼容性的那个数**"),
+    ("apps/obsidian-plugin/manifest.json", None,
+     "Obsidian 插件报的版本"),
 ]
 
 

@@ -39,6 +39,14 @@ def _sandbox(tmp_path: Path, version: str = "9.9.9", **overrides) -> Path:
         "README.md": f"# Social Archive v{version}\n",
         "AGENTS.md": f"## 唯一身份\n\n- 版本：`v{version}`\n",
         "CHANGELOG.md": f"# Changelog\n\n## v{version} — x\n",
+        # 2026-08-06 / G5：这四处一直是承重位，判据此前看不见它们。
+        # 假仓里也得有，否则判据会正确地报「它本该声明版本却不在」。
+        "VERSION": f"{version}\n",
+        "apps/browser-extension/runtime-config.json": json.dumps({"version": version}),
+        "compose.yaml": (f"services:\n  core:\n    image: social-archive/core:{version}\n"
+                         f"  cli:\n    image: social-archive/cli-tools:{version}\n"),
+        "apps/pwa/app.js": f'const PRODUCT_VERSION = "{version}";\n',
+        "apps/obsidian-plugin/manifest.json": json.dumps({"version": version}),
     }
     stated.update(overrides)
     for name, text in stated.items():
