@@ -54,6 +54,7 @@ manifest["optional_host_permissions"] = []
 | 演练 | 什么时候跑 | 它回答的问题 |
 |---|---|---|
 | `shipped_package_drill.py` | 每次发布 | 他下载的那个 zip，和我一直在测的是同一个东西吗；权限没给时它说得对吗 |
+| `extension_update_in_place_drill.py` | 每次发布 | 在原文件夹里覆盖再重载：ID 变不变、版本更不更新、已配对的凭据还在不在 |
 | `list_shape_end_to_end_drill.py` | 改到那条路时 | 不知道接口地址，能不能从页面自己发的响应里认出收藏列表（`--platform` 逐个平台跑） |
 | `bilibili_end_to_end_drill.py` | 改到那条路时 | 从连接账号到档案馆里真的出现条目，真 Chrome 里整条通不通 |
 | `bilibili_acquisition_drill.py` | 改到那条路时 | B 站收藏夹取数路真的读得到吗（打真接口） |

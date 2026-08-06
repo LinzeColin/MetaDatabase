@@ -121,7 +121,12 @@ step "0) 本地闸门：工作树干净 + 发布门全绿"
 if [ -z "${SA_SKIP_PACKAGE_DRILL:-}" ]; then
   .venv/bin/python scripts/shipped_package_drill.py >/dev/null \
     || fail '发布包在真 Chrome 里没通过——用户装上的那一份和我们测的不是同一个东西。设 SA_SKIP_PACKAGE_DRILL=1 可跳过（跳过就等于没验过它）。'
-  printf '  发布包已在真 Chrome 里原样装过一次。\n'
+  # 「覆盖再重载」那三句承诺（ID 不变 / 版本更新 / 凭据还在）写在安装页、
+  # 使用说明和每一条更新指引里，而在这之前**从没有演练做过这件事**。
+  # 它是每个用户更新时必走的一下，所以放在发布前必跑。
+  .venv/bin/python scripts/extension_update_in_place_drill.py >/dev/null \
+    || fail '「覆盖再重载」在真 Chrome 里没通过——安装页上那三句承诺至少有一句不成立。'
+  printf '  发布包已在真 Chrome 里原样装过一次，覆盖重载也验过。\n'
 fi
 printf '  工作树干净；发布门通过；扩展包已重打。\n'
 

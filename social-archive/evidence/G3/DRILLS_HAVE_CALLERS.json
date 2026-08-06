@@ -11,6 +11,7 @@
     "extension_platform_wiring_drill.py",
     "extension_routing_drill.py",
     "extension_save_page_drill.py",
+    "extension_update_in_place_drill.py",
     "list_shape_end_to_end_drill.py",
     "pwa_render_drill.py",
     "restore_private_database_drill.py",
@@ -20,6 +21,7 @@
   "registry": "docs/DRILLS.md",
   "cadences": {
     "shipped_package_drill.py": "每次发布",
+    "extension_update_in_place_drill.py": "每次发布",
     "list_shape_end_to_end_drill.py": "改到那条路时",
     "bilibili_end_to_end_drill.py": "改到那条路时",
     "bilibili_acquisition_drill.py": "改到那条路时",
@@ -36,6 +38,7 @@
     "restore_runtime_db_drill.py": "定期"
   },
   "run_by_deploy": [
+    "extension_update_in_place_drill.py",
     "shipped_package_drill.py"
   ],
   "problems": [],

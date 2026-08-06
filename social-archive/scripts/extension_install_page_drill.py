@@ -27,6 +27,8 @@
     同一个文件夹装两次 → ID 相同
     换一个文件夹装     → ID 不同
     在原文件夹里换掉文件再重新载入 → ID 不变、版本更新、**已存的凭据还在**
+                                     （2026-08-06 起由 extension_update_in_place_drill.py
+                                      真的做一遍——在这之前这三句只是散文）
 
 所以正确做法是「**在原文件夹里覆盖，再点重新加载**」，而不是换个地方重装。
 换地方 = 两个插件 + 凭据留在旧的那个上。这段话现在写在页面里。
@@ -288,7 +290,9 @@ async def run(chrome: str, ext_dir: str) -> int:
         "problems": problems,
         "what_this_does_not_prove": (
             "只验这一页的行为。真去 Chrome 里覆盖文件夹、点重新加载那几下是人做的，"
-            "演练替不了；但「覆盖再重载」这条路本身另有实测（ID 不变、版本更新、凭据还在）。"
+            "演练替不了；但「覆盖再重载」这条路本身由 "
+            "extension_update_in_place_drill.py 真的跑一遍（ID 不变、版本更新、凭据还在）"
+            "——那三句以前只写在这里，没人做过。"
         ),
     }, ensure_ascii=False, indent=2))
     return 0 if not problems else 4
