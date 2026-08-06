@@ -34,6 +34,22 @@ Chrome 的 `--host-resolver-rules` 把 `*.bilibili.com` 指到本机的假站上
    也就是说：这个演练验的是「权限有了之后，链子通不通」。
    权限那一下由 Owner 在设置页点「连接账号」时给。
 3. 一次性 profile，跑完删；不碰 Owner 的 profile，不碰生产。
+
+## 验的是哪一份扩展
+
+默认是仓里的 `apps/browser-extension/`。**但 Owner 装的不是它**，
+他装的是下载页发的那个 zip 解开之后的东西。这个仓栽过一次一模一样的：
+「47 道门全在验暂存目录，从没人打开过最终那个 zip」——改成回读自验证之后，
+第一次跑就抓到 283 个中文名乱码。
+
+所以每次部署之后**至少跑一次真包**：
+
+    ssh linze-ovh 'curl -s -o /tmp/e.zip http://127.0.0.1:18765/downloads/social-archive-extension.zip'
+    scp linze-ovh:/tmp/e.zip /tmp/ && unzip -q /tmp/e.zip -d /tmp/unpacked
+    python3 scripts/bilibili_end_to_end_drill.py --ext-dir /tmp/unpacked
+
+2026-08-06 v0.0.0.16 这样跑过一次：24 个文件、manifest 0.0.0.16、
+整条链 PASS（连接 → 确认登录 → 同步 → 3 条入库 → 设置页显示已连接）。
 """
 
 from __future__ import annotations
@@ -265,14 +281,14 @@ def _make_cert(folder: Path) -> ssl.SSLContext:
     return context
 
 
-def _stage_extension(folder: Path) -> Path:
+def _stage_extension(folder: Path, source: Path = EXT_SRC) -> Path:
     """复制一份扩展，把 bilibili 的 host 权限**从可选挪成必需**。
 
     理由写在文件头：演练点不了 `chrome.permissions.request` 的弹窗。
     只动 manifest 的这一处，其余代码原样——验的还是真代码。
     """
     staged = folder / "extension"
-    shutil.copytree(EXT_SRC, staged)
+    shutil.copytree(source, staged)
     manifest_path = staged / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     # **整张 optional 表一起挪，不要只挑名字里带 bilibili 的那几条。**
@@ -402,13 +418,13 @@ POPUP_PROBE = r"""
 })()
 """
 
-async def run(chrome: str) -> int:
+async def run(chrome: str, ext_src: Path = EXT_SRC) -> int:
     workspace = Path(tempfile.mkdtemp(prefix="sa-bili-e2e-"))
     profile = workspace / "profile"
     problems: list[str] = []
     measured: dict = {}
     context = _make_cert(workspace)
-    staged = _stage_extension(workspace)
+    staged = _stage_extension(workspace, ext_src)
     bili = _serve(_Bili, FAKE_BILI_PORT, context)
     api = _serve(_Api, FAKE_API_PORT)
     process = subprocess.Popen(
@@ -674,8 +690,19 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="B 站：从连接账号到档案馆里有条目，整条跑一遍")
     parser.add_argument("--chrome",
                         default="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+    # **他真正拿到的是下载页发的那个 zip，不是仓里的源码目录。**
+    # 这个仓已经栽过一次「47 道门全在验暂存目录，从没人打开过最终那个 zip」——
+    # 改成回读自验证之后第一次跑就抓到 283 个中文名乱码。
+    parser.add_argument("--ext-dir", default=None,
+                        help="用这个目录当扩展（默认是仓里的源码目录）。"
+                             "把生产下发的 zip 解开指到这里，验的才是他真正装的那份。")
     args = parser.parse_args()
-    return asyncio.run(run(args.chrome))
+    source = Path(args.ext_dir).resolve() if args.ext_dir else EXT_SRC
+    if not source.is_dir():
+        print(json.dumps({"status": "FAIL", "error_code": "EXT_DIR_MISSING",
+                          "path": str(source)}, ensure_ascii=False))
+        return 2
+    return asyncio.run(run(args.chrome, source))
 
 
 if __name__ == "__main__":
