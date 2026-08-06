@@ -292,18 +292,42 @@ def test_the_library_shows_folder_names_not_media_ids(settings, store, service) 
     )
 
 
-def test_a_folder_with_no_stored_name_falls_back_to_its_key(settings, store, service) -> None:
-    """查不到名字时退回 key，而不是让整列空掉。
+def test_a_folder_we_cannot_name_is_not_shown_on_the_row_either(settings, store, service) -> None:
+    """说不出名字的收藏夹，**表格那一格也不许显示**。
 
-    只有一个默认收藏夹时扩展走的是不分批那条路，批次不带 collection_name，
-    于是 platform_collection 没有记录。那种情况下显示媒体 id 不好看，
-    但**比什么都不显示强**：至少还能分组、还能筛。
+    中间有一版写的是「查不到名字就退回 key，至少还能分组」。
+    对着生产一读就知道那句话站不住：他库里 100 条带着 v0.0.0.6 抓取器留下的 key，
+    其中一个是一百字的页面文案（'综合视频直播专栏 更多筛选 清空历史…'）。
+    那种东西出现在「收藏夹」这一格里，比显示「未分组」糟得多。
+
+    **而我第一次只修了筛选框，没修表格那一格。**同一个缺陷的第二处：
+    这个项目已经在「同一道门在两处布局给出相反结论」上栽过，
+    所以这条判据和上面那条筛选框的判据必须一起存在。
     """
     coordinator, account_id = _connect(settings, store, service)
     _one_sync(coordinator, account_id, FOLDERS, per_collection=False)
     table = store.list_library_table(limit=50, offset=0)
     names = {name for row in table["items"] for name in (row.get("collections") or [])}
-    assert names == {"111", "222"}, f"没有名字时该退回 key，实际是 {sorted(names)}"
+    assert names == set(), (
+        f"说不出名字的 key 出现在了条目上：{sorted(names)}"
+        "——界面会把它直接画进「收藏夹」那一格"
+    )
+    assert table["facets"]["collections"] == [], "筛选框那边也不该有"
+
+
+def test_a_named_folder_shows_on_both_the_row_and_the_filter(settings, store, service) -> None:
+    """反过来：**名字知道的时候，两处都要有。**
+
+    只验"说不出名字的不显示"是不够的——一个"什么都不显示"的实现同样能过，
+    而那意味着收藏夹这个功能整个是死的。
+    """
+    coordinator, account_id = _connect(settings, store, service)
+    _one_sync(coordinator, account_id, FOLDERS, per_collection=True)
+    table = store.list_library_table(limit=50, offset=0)
+    names = {name for row in table["items"] for name in (row.get("collections") or [])}
+    assert names == {"学习", "音乐"}, f"条目那一格没有显示收藏夹名字：{sorted(names)}"
+    labels = {row["label"] for row in table["facets"]["collections"]}
+    assert labels == {"学习", "音乐"}, f"筛选框里没有：{sorted(labels)}"
 
 
 def test_a_folder_we_cannot_name_is_not_offered_as_a_filter(settings, store, service) -> None:
@@ -318,8 +342,8 @@ def test_a_folder_we_cannot_name_is_not_offered_as_a_filter(settings, store, ser
     分面第一版照单全收，于是**一串 100 字的页面文案会出现在他的筛选下拉框里**。
     判据全绿、接口也没错——错的是把说不出名字的 key 当成收藏夹端给用户。
 
-    条目自身的 `collections` 仍然退回 key（"这条属于哪一组"，少了它连分组都没有）；
-    筛选框是"请选一个"，端不出名字就不该请人选。
+    我第一次只修了筛选框，**条目那一格照旧把 key 画出来**——同一个缺陷的第二处。
+    两处现在用同一条规矩：说得出名字才显示。
     """
     coordinator, account_id = _connect(settings, store, service)
     # per_collection=False：批次不带 collection_name → 没有 platform_collection 记录
@@ -328,6 +352,6 @@ def test_a_folder_we_cannot_name_is_not_offered_as_a_filter(settings, store, ser
     assert table["facets"]["collections"] == [], (
         "**说不出名字的收藏夹进了筛选框** —— 他会在下拉里看到一串没头没尾的字符串"
     )
-    # 但条目上仍然要能看出分组
+    # 条目那一格也一样不许显示——见下面那条判据的说明。
     names = {name for row in table["items"] for name in (row.get("collections") or [])}
-    assert names == {"111", "222"}, "条目连分组都看不出来了——退回 key 那条被一起砍掉了"
+    assert names == set(), f"说不出名字的 key 出现在了条目上：{sorted(names)}"

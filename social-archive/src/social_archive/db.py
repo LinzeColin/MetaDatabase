@@ -1112,14 +1112,21 @@ class RuntimeStore:
                    -- **这一列以前直接拼 collection_key，却叫 collection_names。**
                    -- 于是界面拿到的是「111」「222」这种媒体 id，而不是「学习」「音乐」。
                    -- 名字一直存在 platform_collection 里，只是从来没人 join 过它。
-                   -- 查不到名字就退回 key —— 那样至少还能分组，而不是整列空掉。
-                   GROUP_CONCAT(NULLIF(COALESCE(
+                   --
+                   -- **只取查得到名字的。** 中间那一版写的是"查不到就退回 key，
+                   -- 那样至少还能分组"——对着生产一读就知道那句话站不住：
+                   -- 他库里 100 条带着 v0.0.0.6 抓取器留下的 key，其中一个是
+                   -- 一百字的页面文案（'综合视频直播专栏 更多筛选 清空历史…'）。
+                   -- 那种东西出现在「收藏夹」这一格里，比显示「未分组」糟得多。
+                   -- 说不出名字的一律不显示——和筛选框那边同一条规矩。
+                   -- **两个界面对同一件事必须给同一个答案**，这个项目已经在
+                   -- 「同一道门在两处布局给出相反结论」上栽过。
+                   GROUP_CONCAT(NULLIF(
                        (SELECT pc.name FROM platform_collection pc
                          WHERE pc.source_account_id = r.source_account_id
                            AND pc.relation_type = r.relation_type
                            AND pc.external_collection_id = r.collection_key
-                         LIMIT 1),
-                       r.collection_key), '')) OVER (PARTITION BY c.id) AS collection_names
+                         LIMIT 1), '')) OVER (PARTITION BY c.id) AS collection_names
             FROM content c
             JOIN user_relation r ON r.content_id=c.id
             LEFT JOIN source_account sa ON sa.id=r.source_account_id
