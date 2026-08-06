@@ -339,3 +339,37 @@ def test_a_head_shot_next_to_the_content_is_not_mistaken_for_a_cover() -> None:
             "{platform:'p', urlBuilder:(raw,id)=>`https://p.example.com/x/${id}`})));")
     got = _run(body)
     assert got["items"][0]["media_urls"] == [], got["items"][0]
+
+
+def test_the_cover_url_reaches_the_download_queue(store, service) -> None:
+    """**取到封面 ≠ 封面进了档案馆。**
+
+    我上一条报告写的是「封面一路落到档案馆」。去核这句话：
+    `media_urls` 进服务端之后只做两件事——记一个 `media_count`（**数量，不是地址**），
+    和排一个 `download_l3` 任务把它下下来。资料库那一列画的是数字，不是图。
+
+    所以「落到档案馆」只在**下载任务这一层**成立。这条判据把那一层钉住：
+    地址必须真的进了下载队列，否则封面就只是一个计数器加一。
+    """
+    from social_archive.models import CaptureRequest
+
+    response = service.capture(CaptureRequest(
+        platform="xiaohongshu",
+        url="https://www.xiaohongshu.com/explore/covertest1",
+        external_content_id="covertest1",
+        relation_type="favorite",
+        title="带封面的一条",
+        media_urls=["https://img.example/cover-under-test.webp"],
+    ))
+    assert response.job_ids, "没有排下载任务——封面只是让计数器加一"
+    job = store.get_job(response.job_ids[0])
+    assert job["job_type"] == "download_l3"
+    # `get_job` 不回 payload（它只回状态那几列），所以直接从库里读那一行——
+    # 要验的正是"地址真的进了队列"，而不是"排了一个任务"。
+    with store.connection() as con:
+        raw = con.execute("SELECT payload_json FROM job WHERE id=?",
+                          (response.job_ids[0],)).fetchone()["payload_json"]
+    payload = json.loads(raw)
+    assert "https://img.example/cover-under-test.webp" in payload["media_urls"], (
+        f"下载任务里没有那个封面地址：{payload}"
+    )
