@@ -54,6 +54,13 @@ curl -s -m 20 -H "Authorization: Bearer $TOKEN" "$B/v1/accounts" > /tmp/sa_accou
 curl -s -m 60 -o /tmp/sa_ext.zip "$B/downloads/social-archive-extension.zip"
 curl -s -m 20 "$B/extension-install" > /tmp/sa_install.html
 curl -s -m 20 "$B/assets/app.js" > /tmp/sa_app.js
+# **apps/pwa/ 下每一个文件都要比**，不是只比我这次改过的那两个。
+# 只比手挑的几个，等于「我记得改了什么就验什么」——而漏掉的那些
+# 恰恰是没人注意、于是也没人发现它没上线的。
+mkdir -p /tmp/sa_pwa
+for f in app.js extension-install.html index.html styles.css sw.js manifest.webmanifest favicon.svg; do
+  curl -s -m 20 -o "/tmp/sa_pwa/$f" "$B/assets/$f" || true
+done
 python3 - <<'PY'
 import json, re, zipfile, hashlib
 out = {}
@@ -83,10 +90,12 @@ out["install_page"] = {
     "stale_versions": sorted(set(re.findall(r"v?0\.0\.0\.\d", body))),
 }
 app = open("/tmp/sa_app.js", encoding="utf-8").read()
-out["served_sha256"] = {
-    "app.js": hashlib.sha256(open("/tmp/sa_app.js","rb").read()).hexdigest(),
-    "extension-install.html": hashlib.sha256(open("/tmp/sa_install.html","rb").read()).hexdigest(),
-}
+import os
+out["served_sha256"] = {}
+for name in os.listdir("/tmp/sa_pwa"):
+    blob = open(os.path.join("/tmp/sa_pwa", name), "rb").read()
+    # 空文件多半是那条路由压根没有，别把它当成"内容不一致"
+    out["served_sha256"][name] = hashlib.sha256(blob).hexdigest() if blob else ""
 pv = re.search(r'const PRODUCT_VERSION = "([0-9.]+)"', app)
 out["library_page"] = {
     "product_version": pv.group(1) if pv else "",
@@ -94,6 +103,7 @@ out["library_page"] = {
 }
 print(json.dumps(out, ensure_ascii=False))
 PY
+rm -rf /tmp/sa_pwa
 rm -f /tmp/sa_health.json /tmp/sa_accounts.json /tmp/sa_ext.zip /tmp/sa_install.html /tmp/sa_app.js
 '''
 
@@ -176,10 +186,16 @@ def main() -> int:
     # 不升版本部署是这一版新立的规矩（界面文案不该逼人重装插件），
     # 而它的代价正是：**版本号不再能证明你的改动到没到**。所以改成比字节。
     import hashlib as _hashlib
-    for name, path in (("app.js", ROOT / "apps/pwa/app.js"),
-                       ("extension-install.html", ROOT / "apps/pwa/extension-install.html")):
+    served_map = measured.get("served_sha256") or {}
+    pwa_files = sorted(item for item in (ROOT / "apps/pwa").iterdir() if item.is_file())
+    # **一个都没比到 = 这一条失效了**，不是"通过"
+    if len(served_map) < 3:
+        problems.append(f"只取到 {len(served_map)} 个页面指纹——**这不是通过**，"
+                        "是这一条的射程失效了")
+    for path in pwa_files:
+        name = path.name
         local = _hashlib.sha256(path.read_bytes()).hexdigest()
-        served = (measured.get("served_sha256") or {}).get(name, "")
+        served = served_map.get(name, "")
         if not served:
             problems.append(f"没能取到生产上 {name} 的指纹——这一条没验到，不算通过")
         elif served != local:
