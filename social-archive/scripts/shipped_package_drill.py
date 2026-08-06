@@ -204,11 +204,23 @@ async def _open_library(base: str, extension_id: str) -> dict:
                 "expression": '(async () => { const b = document.getElementById("emptyConnectAccount");'
                               ' if (!b) return JSON.stringify({ tried: false, why: "找不到那颗按钮" });'
                               ' b.click(); await new Promise(r => setTimeout(r, 2500));'
+                              # **连上之后资料库那张表要被重读**，否则他连上了
+                              # 却一条新内容都看不到（首次同步要几秒，而那张表没人重读）。
+                              # 这里数 /v1/contents 被打了几次：面板报 connected 之后必须再打。
+                              ' window.__saContentHits = 0;'
+                              ' const realFetch = window.fetch;'
+                              ' window.fetch = (...a) => { try {'
+                              '   if (String(a[0]).includes("/v1/library")) window.__saContentHits++;'
+                              ' } catch (_) {} return realFetch(...a); };'
+                              ' window.postMessage({ source: "social-archive-connect-frame",'
+                              '   type: "connected", platform: "xiaohongshu", state: "connected" }, "*");'
+                              ' await new Promise(r => setTimeout(r, 4200));'
                               ' const back = document.getElementById("connectModalBackdrop");'
                               ' const frame = document.getElementById("connectFrame");'
                               ' return JSON.stringify({ tried: true,'
                               ' panelOpen: !!back && back.classList.contains("open"),'
                               ' frameSrc: (frame && frame.getAttribute("src") || "").slice(0, 40),'
+                              ' contentReloads: window.__saContentHits || 0,'
                               ' syncStillOpen: !!document.getElementById("syncModalBackdrop")'
                               '   && document.getElementById("syncModalBackdrop").classList.contains("open") }); })()',
                 "userGesture": True, "awaitPromise": True, "returnByValue": True, "timeout": 20000})
@@ -531,6 +543,12 @@ async def run(chrome: str) -> int:
             f"**在资料库上点「连接第一个账号」没把面板打开**："
             f"{json.dumps(measured_frame.get('click'), ensure_ascii=False)}"
             "——他还是得自己找路")
+    elif not (measured_frame.get("click") or {}).get("contentReloads"):
+        # 面板报"连上了"之后，资料库那张表必须被重读——否则他连上了
+        # 却一条新内容都看不到，会以为没成。
+        problems.append(
+            "**连上之后资料库那张表没有被重读**——他连上了却看不到任何新条目，"
+            "而首次同步要几秒钟才落库")
     elif (measured_frame.get("click") or {}).get("syncStillOpen"):
         # 两个弹窗叠着还是"乱"：他分不清该看哪一层。
         problems.append("**连接面板打开时账号同步中心还开着**——两层弹窗叠在一起")

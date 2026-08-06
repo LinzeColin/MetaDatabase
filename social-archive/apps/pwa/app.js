@@ -1350,7 +1350,21 @@
       if (frame) frame.style.height = `${Math.min(560, Number(data.height) + 24)}px`;
     }
     if (data.type === "connected") {
-      setTimeout(() => loadAccountsAndDestinations().catch(() => {}), 1200);
+      // **连上之后要看得见条目，不只是看见"已连接"。**
+      //
+      // 上一版只刷账号列表：他连上、卡片变绿，而资料库里**一条新内容都没有**，
+      // 因为首次同步要几秒钟，而那张表没人去重读。他会以为没成。
+      // Owner 的验收标准第 2 条最后一步就是「看见条目」。
+      //
+      // 刷三次：立刻（账号状态）、3 秒（首批多半已经落库）、
+      // 12 秒（条数多的时候）。刷完就停——不做无限轮询，
+      // 那会在他把页面开着不管的时候一直打服务器。
+      const refresh = () => Promise.allSettled([
+        loadAccountsAndDestinations(), loadLibrary(),
+      ]).catch(() => {});
+      setTimeout(refresh, 1200);
+      setTimeout(refresh, 3000);
+      setTimeout(refresh, 12000);
     }
   });
 

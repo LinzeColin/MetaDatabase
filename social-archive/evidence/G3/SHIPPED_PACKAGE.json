@@ -38,7 +38,8 @@
     "click": {
       "tried": true,
       "panelOpen": true,
-      "frameSrc": "chrome-extension://jgkogkodlnopaonknkmeo",
+      "frameSrc": "chrome-extension://akalmjdhmicijponodoia",
+      "contentReloads": 2,
       "syncStillOpen": false
     },
     "hasBox": true,
