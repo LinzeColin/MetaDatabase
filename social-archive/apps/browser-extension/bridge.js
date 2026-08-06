@@ -64,8 +64,20 @@
     }
 
     if (message.type === "SA_ACCOUNT_CONNECT") {
-      chrome.runtime.sendMessage({ type: "SA_ACCOUNT_CONNECT", platform: message.platform })
-        .then(result => post("SA_ACCOUNT_CONNECT_RESULT", { requestId: message.requestId, ...(result || {}) }))
+      // **这条路拿不到权限，所以它不做连接，只把人送到做得到的地方。**
+      //
+      // 连接账号要先拿到平台权限（主机 / bookmarks / cookies），而
+      // `chrome.permissions.request` 有两条硬要求：要有用户手势，
+      // 而且**内容脚本里根本没有 permissions API**。这里是档案馆网页上的
+      // 内容脚本，两条都不满足——转发给 background 也没用，
+      // 手势不会跨过 sendMessage 那道边界（实测三种权限全抛
+      // "This function must be called during a user gesture"）。
+      //
+      // 所以这颗按钮原来是**结构上不可能成功**的。改成打开插件的账号页：
+      // 那是一个扩展页面，点击手势和 permissions API 都在那儿。
+      chrome.runtime.sendMessage({ type: "SA_OPEN_ACCOUNT_CENTER" })
+        .then(() => post("SA_ACCOUNT_CONNECT_RESULT", { requestId: message.requestId, ok: true,
+          message: "已打开插件的账号页——请在那一页点「连接账号」，浏览器会弹出授权框。" }))
         .catch(error => post("SA_ACCOUNT_CONNECT_RESULT", { requestId: message.requestId, ok: false, message: error?.message || "无法连接账号" }));
       return;
     }

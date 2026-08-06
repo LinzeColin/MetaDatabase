@@ -208,6 +208,25 @@
     if(!serviceReady){toast("请先连接私人档案馆","needs");location.hash="service";return;}
     button.disabled=true;button.textContent="正在连接…";
     try{
+      // **权限必须在这里要，不能到 service worker 里去要。**
+      //
+      // `chrome.permissions.request` 要求「在一次用户手势期间调用」，而**用户手势
+      // 不会跨过 sendMessage 那道边界**：background 收到消息时手势已经没了。
+      // 原来这一步直接发消息，由 connectBrowserPlatform 去调 request——
+      // 实测（真 Chrome + 原样解包的发布包）抛的是
+      // 「This function must be called during a user gesture」。
+      //
+      // 也就是说**全新安装点「连接账号」，权限框根本不会弹出来**，
+      // 之后每次读取都拿不到权限。这是结构上不可能成功的那种按钮。
+      //
+      // 这里是点击处理器，手势还在。popup.js:46 早就是这么写的——
+      // 正确写法仓里一直有，只是账号页这条路没用它。
+      // background 那边的 requestPlatformPermission 会先 contains 再 request，
+      // 所以这里给到了，那边就直接放行，不会问第二次。
+      if(!await grantWhatConnectNeeds(platform)){
+        toast(`${platformNames[platform]}：还没有获得需要的授权。请再点一次「连接账号」，并在浏览器弹出的框里选「允许」。`,"needs");
+        return;
+      }
       const result=await chrome.runtime.sendMessage({type:"SA_ACCOUNT_CONNECT",platform});
       if(!result?.ok)throw new Error(result?.error||"连接未完成");
       toast(result.message||"授权流程已打开");
@@ -221,12 +240,63 @@
    * 和「连接账号」是两件事，文案里要说清，否则他不知道这颗按钮干嘛的。
    */
   let mediaSessionPlatforms=[];
+  let custodialPlatforms=[];
   async function loadMediaSessionPlatforms(){
     try{const r=await chrome.runtime.sendMessage({type:"SA_MEDIA_SESSION_PLATFORMS"});
-        mediaSessionPlatforms=Array.isArray(r?.platforms)?r.platforms:[];}
-    catch(_){mediaSessionPlatforms=[];}
+        mediaSessionPlatforms=Array.isArray(r?.platforms)?r.platforms:[];
+        custodialPlatforms=Array.isArray(r?.custodial)?r.custodial:[];}
+    catch(_){mediaSessionPlatforms=[];custodialPlatforms=[];}
+  }
+
+  /** 这颗按钮点下去，那条路会用到哪些权限——**在手势还在的时候一次要齐**。
+   *
+   * ## 为什么必须在这里
+   *
+   * `chrome.permissions.request` 要求「在一次用户手势期间调用」，而**手势不会
+   * 跨过 sendMessage 那道边界**：background 收到消息时它已经没了。
+   *
+   * 三个申请点原来全在 background 里。实测（真 Chrome + 原样解包的发布包，
+   * 在 service worker 里直接调）**三种权限一个都要不到**：
+   *
+   *     bookmarks  This function must be called during a user gesture
+   *     cookies    同上
+   *     host       同上
+   *
+   * 也就是说账号页上**每一颗「连接账号」在全新安装时都拿不到它要的权限**——
+   * 包括 Chrome 书签那一颗，而那是我一直说"实测跑通"的那个平台
+   * （那份实测跑在演练里，而演练在加载前把可选权限全提成了必给权限）。
+   *
+   * popup.js:46 一直是对的写法（在页面上下文里要），只是账号页这条路没用它。
+   * background 那边的 requestPlatformPermission 会先 contains 再 request，
+   * 所以这里给到了，那边直接放行，不会问第二次。
+   *
+   * ## 三条路各要什么
+   *
+   *   Chrome 书签      bookmarks（它没有域名，patterns 是空的）
+   *   浏览器读取平台   该平台的域名
+   *   登录状态托管     cookies + 该平台的域名
+   */
+  async function grantWhatConnectNeeds(platform){
+    const origins=SA.patternsForPlatform(platform)||[];
+    const permissions=[];
+    if(platform==="generic-web"||platform==="chrome-bookmarks")permissions.push("bookmarks");
+    // 同时支持两条路的平台（Instagram）连接走的是浏览器读取，不要 cookies；
+    // 它的登录状态托管有单独那颗「保存登录状态」，在那儿单独要。
+    else if(custodialPlatforms.includes(platform)&&!mediaSessionPlatforms.includes(platform))permissions.push("cookies");
+    const request={};
+    if(permissions.length)request.permissions=permissions;
+    if(origins.length)request.origins=origins;
+    if(!request.permissions&&!request.origins)return true;
+    if(await chrome.permissions.contains(request).catch(()=>false))return true;
+    return chrome.permissions.request(request).catch(()=>false);
   }
   async function saveMediaSession(platform,button){
+    // 同一条规矩：cookies 和域名都要在手势还在的时候要到手。
+    const origins=SA.patternsForPlatform(platform)||[];
+    const need={permissions:["cookies"],...(origins.length?{origins}:{})};
+    const ok=await chrome.permissions.contains(need).catch(()=>false)
+      || await chrome.permissions.request(need).catch(()=>false);
+    if(!ok){toast(`${platformNames[platform]}：没有获得读取登录状态的授权。`,"needs");return;}
     button.disabled=true;button.textContent="正在保存…";
     try{
       const result=await chrome.runtime.sendMessage({type:"SA_CONNECT_PLATFORM_SESSION",platform});

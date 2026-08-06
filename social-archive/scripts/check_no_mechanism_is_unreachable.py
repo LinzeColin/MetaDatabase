@@ -134,6 +134,43 @@ def main() -> int:
                        "那颗按钮点下去什么也不会发生",
         })
 
+    # ---- 4. 权限在 service worker 里要，等于要不到 ---------------------
+    #
+    # `chrome.permissions.request` 要求「在一次用户手势期间调用」，而**手势不会
+    # 跨过 sendMessage 那道边界**。三个申请点原来全在 background 里，实测
+    # （真 Chrome + 原样解包的发布包，在 service worker 里直接调）三种权限
+    # **一个都要不到**：bookmarks / cookies / host 全抛
+    # "This function must be called during a user gesture"。
+    #
+    # 后果是账号页上每一颗「连接账号」在全新安装时都拿不到权限——
+    # 包括 Chrome 书签那一颗，而那是一直被当成"实测跑通"的平台
+    # （那份实测跑在演练里，而演练在加载前把可选权限全提成了必给权限）。
+    #
+    # 规矩：**发出去会走到权限申请的消息，发送方所在的那个函数里必须先要权限。**
+    # 页面上有手势，service worker 里没有。
+    NEEDS_PERMISSION_FIRST = ("SA_ACCOUNT_CONNECT", "SA_CONNECT_PLATFORM_SESSION")
+    for path in senders:
+        if path.suffix != ".js":
+            continue
+        text = path.read_text(encoding="utf-8")
+        for name in NEEDS_PERMISSION_FIRST:
+            for hit in re.finditer(rf'sendMessage\(\{{\s*type\s*:\s*"{name}"', text):
+                # 往前找这个调用所在函数的开头，看它有没有先要权限
+                head = text.rfind("function ", 0, hit.start())
+                window = text[head: hit.start()] if head >= 0 else text[:hit.start()]
+                if "permissions.request" not in window and "grantWhatConnectNeeds" not in window \
+                        and "requestPlatformPermission" not in window:
+                    problems.append({
+                        "kind": "权限在没有手势的地方要",
+                        "where": f"{path.relative_to(ROOT)}",
+                        "name": name,
+                        "problem": f"发 `{name}` 之前没有在页面里申请权限——"
+                                   "background 收到消息时用户手势已经没了，"
+                                   "`chrome.permissions.request` 会抛 "
+                                   "\"must be called during a user gesture\"，"
+                                   "**那颗按钮在全新安装时结构上不可能成功**",
+                    })
+
     report = {
         "status": "PASS" if not problems else "FAIL",
         "functions_checked": len(_top_level_functions(background)) + len(_top_level_functions(ui_text)),

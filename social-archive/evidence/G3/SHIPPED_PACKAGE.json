@@ -1,7 +1,7 @@
 {
   "status": "PASS",
   "package": "dist/social-archive-extension.zip",
-  "package_sha256_prefix": "3ac6594f06193c57",
+  "package_sha256_prefix": "b9782bbf3983c18f",
   "manifest": {
     "version": "0.0.0.22",
     "host": [
@@ -23,6 +23,23 @@
     "https://*.instagram.com/*": false,
     "https://*.bilibili.com/*": false,
     "https://*.xiaohongshu.com/* (连接之后)": false
+  },
+  "connect_said": {
+    "threw": "This function must be called during a user gesture"
+  },
+  "permission_request_from_extension_page": {
+    "prompted": true
+  },
+  "permission_request_from_service_worker": {
+    "bookmarks": {
+      "threw": "This function must be called during a user gesture"
+    },
+    "cookies": {
+      "threw": "This function must be called during a user gesture"
+    },
+    "host": {
+      "threw": "This function must be called during a user gesture"
+    }
   },
   "install_said": {
     "ok": false,

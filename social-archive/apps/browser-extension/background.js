@@ -1895,7 +1895,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return connectPlatformSessionByCookies(String(message.platform || ""));
     }
     if (message?.type === "SA_MEDIA_SESSION_PLATFORMS") {
-      return { ok: true, platforms: mediaSessionPlatforms() };
+      // custodial 那一份是给账号页用的：它要知道「点这颗按钮会走哪条路」，
+      // 才知道该在手势还在的时候申请哪些权限。
+      return { ok: true, platforms: mediaSessionPlatforms(),
+               custodial: Object.keys(globalThis.SACookieExport?.ALLOWED_PLATFORMS || {}) };
     }
     if (message?.type === "SA_VERIFY_PLATFORM_SESSION") return verifyPendingPlatform(String(message.platform || ""));
     if (message?.type === "SA_GET_PENDING_CONNECTIONS") return { ok: true, items: await getPendingConnections() };

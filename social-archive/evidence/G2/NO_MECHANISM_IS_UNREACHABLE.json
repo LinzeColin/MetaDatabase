@@ -1,6 +1,6 @@
 {
   "status": "PASS",
-  "functions_checked": 82,
+  "functions_checked": 83,
   "senders_scanned": [
     "apps/browser-extension/bridge.js",
     "apps/browser-extension/content/bilibili-reader.js",

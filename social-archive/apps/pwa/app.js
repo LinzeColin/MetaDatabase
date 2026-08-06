@@ -1280,8 +1280,11 @@
     if (button) { button.disabled = true; button.textContent = "正在打开…"; }
     try {
       if (!await ensureExtensionReady()) return;
+      // 授权那一步只能在插件自己的页面里做（内容脚本没有 permissions API，
+      // 手势也跨不过消息边界）。所以这颗按钮的作用是**把他送到做得到的地方**，
+      // 文案要照实说，别让他以为点完就连上了。
       const result = await postToExtension("SA_ACCOUNT_CONNECT", { platform });
-      showToast(result.message || `${meta.label} 授权流程已打开`);
+      showToast(result.message || `已打开插件的账号页——请在那一页点「连接账号」`);
       setTimeout(() => loadAccountsAndDestinations().catch(() => {}), 1200);
     } catch (error) {
       showToast(`${meta.label}：${error.message}`, "error");

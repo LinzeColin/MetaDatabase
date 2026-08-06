@@ -89,6 +89,18 @@ PROBE = r"""
   // （connectBrowserPlatform → SA.requestPlatformPermission）。
   // 第一版探针跳过连接直接读，于是量到「权限全无」就以为没人申请——
   // 其实是我自己没走那一步。
+  // **先把机制本身量清楚，别从产品代码去推。**
+  //
+  // 问题不是"连接小红书失败"，是"service worker 里到底能不能申请权限"。
+  // 三个申请点都在 background 里：主机权限（浏览器读取）、bookmarks（Chrome 书签）、
+  // cookies（登录状态托管）。如果机制本身不行，那就是三处一起坏，
+  // 而 Chrome 书签是我一直说"实测跑通"的那一个。
+  for (const [name, request] of [["bookmarks", { permissions: ["bookmarks"] }],
+                                 ["cookies", { permissions: ["cookies"] }],
+                                 ["host", { origins: ["https://*.xiaohongshu.com/*"] }]]) {
+    try { out[`gesture_${name}`] = await chrome.permissions.request(request); }
+    catch (error) { out[`gesture_${name}`] = { threw: String(error && error.message || error) }; }
+  }
   try { out.connect = await connectPlatform("xiaohongshu"); }
   catch (error) { out.connect = { threw: String(error && error.message || error) }; }
   for (const origin of ["https://*.xiaohongshu.com/*"]) {
@@ -114,6 +126,46 @@ PROBE = r"""
   return JSON.stringify(out);
 })()
 """
+
+
+async def _open_options(base: str, extension_id: str) -> dict:
+    """打开扩展自己的 options 页，在**那里**试一次权限申请。"""
+    url = f"chrome-extension://{extension_id}/options.html"
+    urllib.request.urlopen(urllib.request.Request(
+        base + "/json/new?" + url, method="PUT"), timeout=10).read()
+    await asyncio.sleep(2)
+    targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
+    pages = [item for item in targets
+             if item.get("type") == "page" and extension_id in item.get("url", "")]
+    if not pages:
+        return {"drill_error": "options 页没打开"}
+    async with websockets.connect(pages[0]["webSocketDebuggerUrl"], max_size=None) as ws:
+        rpc = await shape._rpc_factory(ws)
+        await rpc("Runtime.enable")
+        # 先确认这个页面上下文本身是活的——不然下面超时了分不清是
+        # 「弹框没人点」还是「页面压根没打开」。
+        alive = await rpc("Runtime.evaluate", {
+            "expression": 'JSON.stringify({ hasApi: typeof chrome?.permissions?.request })',
+            "returnByValue": True, "timeout": 10000})
+        probe = json.loads(alive.get("result", {}).get("result", {}).get("value") or "{}")
+        if probe.get("hasApi") != "function":
+            return {"drill_error": f"options 页里没有 permissions API：{probe}"}
+        # **弹框一旦弹出来就没人去点**，所以用竞速把三种结局分开：
+        #   threw    → 结构上走不通（修法不成立）
+        #   returned → 直接有了答案（权限本来就有，或被直接拒）
+        #   prompted → 弹框弹出来了，等着人点——**这就是修法成立的信号**
+        got = await rpc("Runtime.evaluate", {
+            "expression": '(async () => JSON.stringify(await Promise.race(['
+                          'chrome.permissions.request({ origins: ["https://*.xiaohongshu.com/*"] })'
+                          '.then(ok => ({ returned: ok }))'
+                          '.catch(e => ({ threw: String(e && e.message || e) })), '
+                          'new Promise(r => setTimeout(() => r({ prompted: true }), 5000))'
+                          '])))()',
+            "userGesture": True, "awaitPromise": True, "returnByValue": True, "timeout": 20000})
+        payload = got.get("result", {})
+        if payload.get("exceptionDetails"):
+            return {"drill_error": str(payload["exceptionDetails"])[:200]}
+        return json.loads(payload["result"]["value"])
 
 
 async def run(chrome: str) -> int:
@@ -186,6 +238,7 @@ async def run(chrome: str) -> int:
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     base = f"http://127.0.0.1:{DEBUG_PORT}"
     load_error = ""
+    measured_page: dict = {}
     try:
         for _ in range(40):
             try:
@@ -226,6 +279,20 @@ async def run(chrome: str) -> int:
                         problems.append(f"探针跑炸了：{str(payload['exceptionDetails'])[:300]}")
                     else:
                         measured = json.loads(payload["result"]["value"])
+                # **同一个 API，换个地方调，看还抛不抛。**
+                #
+                # 修法是把权限申请从 service worker 挪到扩展自己的页面。
+                # 这一段就是那个修法的证据：在 options 页里调 permissions.request，
+                # 它**不许再抛 user gesture**。返回 false 可以（弹框没人点），
+                # 抛异常不行——抛异常等于这条路结构上走不通。
+                #
+                # **必须放在 worker 那一段之后**：打开 options 页会让 worker 的
+                # 调试目标失效，先开页面的话上面整段会以 HTTP 500 收场。
+                try:
+                    measured_page = await asyncio.wait_for(
+                        _open_options(base, extension_id), timeout=40)
+                except Exception as error:                  # noqa: BLE001
+                    measured_page = {"drill_error": str(error)[:200]}
     finally:
         process.terminate()
         try:
@@ -243,6 +310,20 @@ async def run(chrome: str) -> int:
                         f"而仓是 {(ROOT / 'VERSION').read_text(encoding='utf-8').strip()}"
                         "——他下载到的是旧包")
 
+    # **修法必须被证明，而且"没量到"不算通过。**
+    #
+    # 第一版只在 threw 里含 "gesture" 时才报问题——于是 drill_error（页面没打开、
+    # 超时）会安安静静地过去。这个仓栽在"空默认值吞掉不知道"上不止一次：
+    # `[]`/`{}`/没测到，都会被读成"没问题"。
+    if "gesture" in str(measured_page.get("threw", "")).lower():
+        problems.append(
+            "**在扩展自己的页面里申请权限也抛 user gesture**："
+            f"{measured_page.get('threw')}——那说明把申请挪到页面里这个修法不成立，"
+            "得另想办法，而不是让那颗按钮继续画在那儿")
+    elif not (measured_page.get("prompted") or "returned" in measured_page):
+        problems.append(
+            f"**没量到扩展页面里的权限申请到底会怎样**：{json.dumps(measured_page, ensure_ascii=False)}"
+            "——这不是通过，是这一段没跑成。修法有没有效仍然不知道")
     granted = measured.get("permissions") or {}
     # **这里不判对错，只判「说不说得出来」。**
     #
@@ -283,6 +364,11 @@ async def run(chrome: str) -> int:
         # 是个必须量、不能推的问题。量不到就会变成：他点了「连接账号」，
         # 什么框都没弹，然后每次同步都失败。
         "connect_said": measured.get("connect"),
+        # 在 service worker 里直接申请权限会怎样——三种权限各量一次
+        # 同一个 API 在扩展页面里调——**这是修法的证据**
+        "permission_request_from_extension_page": measured_page,
+        "permission_request_from_service_worker": {
+            name: measured.get(f"gesture_{name}") for name in ("bookmarks", "cookies", "host")},
         "install_said": measured.get("install"),
         "acquire_said": acquire,
         "manifest_files_missing_from_package": missing,
