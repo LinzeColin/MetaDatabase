@@ -615,3 +615,32 @@ def test_the_unimplemented_path_never_tells_the_user_to_retry() -> None:
     assert code not in _ALIASES, "又被别名成某句词典文案了——那必然带上「重试」"
     assert code in DELIBERATELY_UNALIASED
     assert code in PRODUCT_FAULT_CODES, "没有归到「这是我们的问题」那一支"
+
+
+def test_the_library_prefers_the_servers_sentence_over_its_own_dictionary() -> None:
+    """**两张失败码词典，服务端那张说了算。**
+
+    这一侧（apps/pwa/app.js）有一张自己的词典，服务端也有一张。两张各修各的
+    就会漂开——这个仓吃过一次：ACQUISITION_PATH_NOT_INSTALLED 在服务端是
+    「这是产品的问题」，在界面上是「暂时连不上，重试」，让人反复重试一件
+    不可能成功的事。
+
+    2026-08-07 又撞一次：按形状读那条路的**稳态**码 PARTIAL_BY_PAGE_SCROLL
+    不在界面那张表里，于是落到兜底句「我们没能记录下原因。这是产品的问题」，
+    而服务端刚给它写了一句准确的话。**界面把服务端盖掉了。**
+
+    所以顺序必须是：服务端的 message_zh 优先，没有才回落到本地词典。
+    """
+    from pathlib import Path
+
+    app = (Path(__file__).resolve().parents[2] / "apps/pwa/app.js").read_text(encoding="utf-8")
+    code = "\n".join(l for l in app.splitlines() if not l.lstrip().startswith("//"))
+    assert "function runSentence" in code, "找不到那个统一入口——判据射程失效"
+    body = code.split("function runSentence", 1)[1].split("function failureSentence", 1)[0]
+    assert "run.message_zh" in body, "没有优先用服务端那句话"
+    assert body.index("run.message_zh") < body.index("failureSentence"), (
+        "本地词典排在服务端前面——它会盖掉服务端刚写对的那句话"
+    )
+    # 账号表那一行必须走这个入口，不能自己再拼一次
+    row = code.split("data-failure-reason", 1)[1][:200]
+    assert "runSentence(" in row, f"账号表那一行绕开了统一入口：{row[:120]}"

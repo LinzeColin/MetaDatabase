@@ -162,6 +162,26 @@
   };
 
   /** 把一个失败码变成给人看的中文句子。认不出来也不能沉默。 */
+  /** 一次运行该显示哪句话。**服务端说了的，就用服务端的。**
+   *
+   * 这一侧有一张自己的失败码词典，而服务端也有一张——**两张表各修各的就会漂开**，
+   * 这个仓为此吃过亏（ACQUISITION_PATH_NOT_INSTALLED 在服务端是「这是产品的问题」，
+   * 在这一侧是「暂时连不上，重试」，让人反复重试一件不可能成功的事）。
+   *
+   * 2026-08-07 又撞一次：按形状读那条路的稳态码 PARTIAL_BY_PAGE_SCROLL
+   * 不在这一侧的表里，于是落到兜底句「我们没能记录下原因。这是产品的问题」——
+   * 而服务端那边刚刚给它写了一句准确的话（「能看到的那一批都已经在库里了，
+   * 想要更早的往下滚一会儿再同步」）。**界面把它盖掉了。**
+   *
+   * 所以顺序改成：服务端的 message_zh 优先，没有才回落到本地词典。
+   * 本地那张表留着当兜底（离线、老服务端），但不再有资格盖过服务端。
+   */
+  function runSentence(run, platformLabel) {
+    if (!run) return "";
+    if (run.message_zh) return run.message_zh;
+    return failureSentence(run.last_error_code, platformLabel, run.imported_count)?.text || "";
+  }
+
   function failureSentence(code, platformLabel, count) {
     const key = String(code || "").trim().toUpperCase();
     if (!key) return null;
@@ -1067,7 +1087,7 @@
             && !["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting", "paused"].includes(status)) {
           action += `<button class="btn small subtle-danger" data-disconnect-account="${escapeHtml(account.id)}">断开</button>`;
         }
-        rows.push(`<tr><td><div class="platform-cell">${platformLogo(key)}<div><div>${escapeHtml(account.display_name || account.external_account_id || platformMeta[key].label)}</div><span class="muted">${escapeHtml(platformMeta[key].label)}</span></div></div></td><td><div class="connection-status ${stateClass}"><span class="dot"></span>${escapeHtml(connectionLabels[status] || status || "未知")}</div></td><td><strong style="color:var(--text)">${Number(account.content_count || 0).toLocaleString("zh-CN")}</strong> 条</td><td><div class="sync-progress"><div style="font-size:11px;color:var(--text-3)">${run ? `${imported}/${discovered || "…"} · ${connectionLabels[run.status] || run.status}` : "首次同步尚未开始"}</div>${run && (run.last_error_code || run.outcome === "stalled") ? `<div class="muted" style="font-size:11px;margin-top:2px" data-failure-reason>${escapeHtml(run.outcome === "stalled" ? (run.message_zh || "") : (failureSentence(run.last_error_code, platformMeta[key].label, run.imported_count)?.text || ""))}</div>` : ""}<div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div></div></td><td>${escapeHtml(formatDate(account.last_sync_at, true))}</td><td><div class="sync-action-stack">${action}</div></td></tr>`);
+        rows.push(`<tr><td><div class="platform-cell">${platformLogo(key)}<div><div>${escapeHtml(account.display_name || account.external_account_id || platformMeta[key].label)}</div><span class="muted">${escapeHtml(platformMeta[key].label)}</span></div></div></td><td><div class="connection-status ${stateClass}"><span class="dot"></span>${escapeHtml(connectionLabels[status] || status || "未知")}</div></td><td><strong style="color:var(--text)">${Number(account.content_count || 0).toLocaleString("zh-CN")}</strong> 条</td><td><div class="sync-progress"><div style="font-size:11px;color:var(--text-3)">${run ? `${imported}/${discovered || "…"} · ${connectionLabels[run.status] || run.status}` : "首次同步尚未开始"}</div>${run && (run.last_error_code || run.outcome === "stalled") ? `<div class="muted" style="font-size:11px;margin-top:2px" data-failure-reason>${escapeHtml(runSentence(run, platformMeta[key].label))}</div>` : ""}<div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div></div></td><td>${escapeHtml(formatDate(account.last_sync_at, true))}</td><td><div class="sync-action-stack">${action}</div></td></tr>`);
       }
     }
     $("syncTableBody").innerHTML = rows.join("");
