@@ -1,7 +1,7 @@
 {
   "status": "PASS",
   "package": "dist/social-archive-extension.zip",
-  "package_sha256_prefix": "24670f18d1731f64",
+  "package_sha256_prefix": "e5ac1d0a3627b50c",
   "manifest": {
     "version": "0.0.0.22",
     "host": [
@@ -38,7 +38,7 @@
     "click": {
       "tried": true,
       "panelOpen": true,
-      "frameSrc": "chrome-extension://nbpbgejiimmgdmjmmkgmn",
+      "frameSrc": "chrome-extension://glpofbbgnioeabibiafap",
       "contentReloads": 2,
       "syncStillOpen": false
     },

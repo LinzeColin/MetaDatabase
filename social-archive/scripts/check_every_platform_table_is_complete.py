@@ -146,6 +146,63 @@ def _blocks(lines: list[str]) -> list[tuple[int, str]]:
     return out
 
 
+# 允许自己写一份平台中文名的地方。**每一处都要有理由**，
+# 因为每多一份，改名字就要多记一处，而漏掉的那处会显示原始 id。
+NAME_TABLE_ALLOWED = {
+    "apps/browser-extension/content/platform-catalog.js": "扩展这边的真源",
+    "apps/browser-extension/options.js": "设置页；它还要画平台卡片的图标和关系说明，整套一起维护",
+    "apps/pwa/app.js": "资料库；名字和图标、列宽绑在一起",
+    "src/social_archive/account_sync.py": "服务端真源",
+}
+
+
+def _extra_name_tables() -> list[dict]:
+    """又多了一份平台中文名表吗（v0.0.0.22）。
+
+    仓里已经有四份（服务端、扩展目录、设置页、资料库）。
+    2026-08-07 我在连接面板里加了**第五份**——正是我一直在抱怨的那种漂移：
+    改一个名字要记得改五处，漏一处就有一个界面显示原始 id。
+    而目录里本来就有 `platformLabel`，那一页也已经加载了目录。
+
+    **是碰巧发现的**，不是任何判据抓到的。所以立这一条。
+    """
+    import re as _re
+
+    # **图标表不算名字表。** 第一版把 `{xiaohongshu: "小", douyin: "抖"}`
+    # 也报了——那是一个字的图标，目录里没有它，本来就该各页自己写。
+    # 只认"值有两个字以上"的，那才是名字。
+    pairs = _re.compile(
+        r'["\']?(xiaohongshu|douyin|kuaishou|bilibili|instagram|youtube)["\']?\s*:\s*'
+        r'["\'][^"\']{2,}["\']')
+    # **这条问的是「又多了一份」，不是「存在一份」。**
+    #
+    # 一份表是真源，两份才开始漂。所以只有在**真源已经存在**的前提下
+    # 才去报多出来的那些——否则这条会把"仓里唯一那张表"也判成违规
+    # （它自己的自检夹具就是那样一棵只有一个文件的树，第一版当场把它判红了）。
+    source_of_truth_present = any(
+        (ROOT / name).is_file() for name in NAME_TABLE_ALLOWED)
+    out: list[dict] = []
+    if not source_of_truth_present:
+        return out
+    for path in sorted(ROOT.glob("apps/**/*.js")):
+        relative = str(path.relative_to(ROOT))
+        if relative in NAME_TABLE_ALLOWED:
+            continue
+        text = path.read_text(encoding="utf-8")
+        for number, line in enumerate(text.splitlines(), start=1):
+            if line.lstrip().startswith(("//", "*")):
+                continue
+            if len(set(pairs.findall(line))) >= 3:
+                out.append({
+                    "where": f"{relative}:{number}",
+                    "problem": "**又写了一份平台中文名表**——仓里已经有四份，"
+                               "改一个名字要记得改五处，漏一处就有一个界面显示原始 id。"
+                               "用 SAPlatformCatalog.platformLabel()；"
+                               "确实要自己一份就写进 NAME_TABLE_ALLOWED 并说明理由",
+                })
+    return out
+
+
 def main() -> int:
     problems: list[str] = []
     tables = 0
@@ -194,8 +251,12 @@ def main() -> int:
                         f"{path.relative_to(ROOT)}:{start} 这个块（{_table_name(head)}）里没有 {platform}"
                     )
 
+    extra = _extra_name_tables()
+    problems.extend(f"{item['where']} {item['problem']}" for item in extra)
+
     print(f"扫了 {'/'.join(SCANNED)} 下 {tables} 处平台表；"
-          f"已登记的有意子集 {len(DELIBERATE_SUBSETS)} 张")
+          f"已登记的有意子集 {len(DELIBERATE_SUBSETS)} 张；"
+          f"允许自带平台中文名的地方 {len(NAME_TABLE_ALLOWED)} 处")
     if problems:
         print(f"**漏了 {len(problems)} 处**：")
         for item in sorted(set(problems)):

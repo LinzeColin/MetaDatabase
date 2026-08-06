@@ -5,7 +5,13 @@
   const running = new Set(["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"]);
   const needsAction = new Set(["partial", "failed", "blocked_environment"]);
   const icons = { xiaohongshu: "小", douyin: "抖", kuaishou: "快", bilibili: "B", x: "X", reddit: "R", instagram: "In", youtube: "Y", "generic-web": "书" };
-  const names = { xiaohongshu: "小红书", douyin: "抖音", kuaishou: "快手", bilibili: "B站", x: "X", reddit: "Reddit", instagram: "Instagram", youtube: "YouTube", "generic-web": "Chrome书签/网页" };
+  // **平台中文名走目录，不在这里再写一份。**
+  // 仓里已经有四份（服务端、扩展目录、设置页、资料库）——改一个名字要记得改
+  // 五处，漏一处就有一个界面显示原始 id。图标留在本地：目录里没有图标，
+  // 那本来就该各页自己定。
+  const platformName = platform => platform === "generic-web"
+    ? "Chrome书签/网页"
+    : (globalThis.SAPlatformCatalog?.platformLabel?.(platform) || platform);
   let accounts = [];
   let runs = [];
   let filter = "active";
@@ -69,7 +75,7 @@
       const card = fragment.querySelector(".card");
       card.classList.add(run.status);
       card.querySelector(".platform").textContent = icons[run.platform] || "网";
-      card.querySelector(".title strong").textContent = account.display_name || names[run.platform] || run.platform;
+      card.querySelector(".title strong").textContent = account.display_name || platformName(run.platform) || run.platform;
       card.querySelector(".title small").textContent = `${run.mode === "first_full" ? "首次全量" : "增量同步"} · ${Number(run.imported_count || 0).toLocaleString("zh-CN")}/${Number(run.discovered_count || 0) || "…"} 条`;
       card.querySelector(".status").textContent = label(run.status);
       const progress = run.discovered_count ? Math.min(100, Math.round(Number(run.imported_count || 0) / Number(run.discovered_count) * 100)) : (run.status === "completed" ? 100 : 18);

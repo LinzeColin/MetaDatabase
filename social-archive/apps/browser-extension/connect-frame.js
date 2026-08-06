@@ -16,11 +16,20 @@
 
   const list = document.getElementById("list");
   const note = document.getElementById("note");
-  const LABELS = {
-    "generic-web": "Chrome 书签", xiaohongshu: "小红书", douyin: "抖音",
-    kuaishou: "快手", bilibili: "B站", x: "X", reddit: "Reddit",
-    instagram: "Instagram", youtube: "YouTube",
-  };
+  /** 平台中文名。**不在这里再写一份表。**
+   *
+   * 这个仓已经有四份平台名表（服务端 PLATFORM_LABELS、扩展目录、
+   * 设置页 platformNames、资料库 platformMeta），而我上一版在这里加了第五份——
+   * 正是我一直在抱怨的那种漂移：改一个名字要记得改五处，漏一处就有一个界面
+   * 显示原始 id。目录（content/platform-catalog.js）已经在这一页里加载了，
+   * 它就有 platformLabel。
+   *
+   * generic-web 目录里没有（它不是平台页面），只这一个特例，写在这儿。
+   */
+  function label(platform) {
+    if (platform === "generic-web" || platform === "chrome-bookmarks") return "Chrome 书签";
+    return globalThis.SAPlatformCatalog?.platformLabel?.(platform) || platform;
+  }
 
   /** 把诊断摆成一段能整段复制的话。 */
   function showDiagnosis(detail) {
@@ -141,7 +150,7 @@
       const item = document.createElement("li");
       const name = document.createElement("span");
       name.className = "name";
-      name.textContent = LABELS[platform] || platform;
+      name.textContent = label(platform);
       const state = document.createElement("span");
       state.className = "state";
       state.textContent = connected.has(platform) ? "已连接" : "未连接";
@@ -209,7 +218,7 @@
       item.className = "manual";
       const name = document.createElement("span");
       name.className = "name";
-      name.textContent = LABELS[row.platform] || row.platform;
+      name.textContent = label(row.platform);
       const why = document.createElement("span");
       why.className = "why";
       // 原因由服务端下发（NOT_SYNCABLE_YET），**这里不自己编一句**：
