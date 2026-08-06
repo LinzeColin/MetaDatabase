@@ -41,6 +41,10 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import shutil
+import subprocess
+import tempfile
+import time
 import sys
 import urllib.request
 from pathlib import Path
@@ -152,16 +156,65 @@ async def run(base: str, ext_dir: str) -> int:
     return 0 if not problems else 4
 
 
+def _reachable(base: str) -> bool:
+    try:
+        urllib.request.urlopen(base + "/json/version", timeout=2).read()
+        return True
+    except Exception:                                       # noqa: BLE001
+        return False
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="在真 Chrome 里验一次扩展的同步分流")
     parser.add_argument("--ext-dir", required=True, help="解压好的扩展目录")
     parser.add_argument("--cdp", default="http://127.0.0.1:9343")
+    parser.add_argument("--chrome",
+                        default="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
     args = parser.parse_args()
     if not Path(args.ext_dir).is_dir():
         print(json.dumps({"status": "FAIL", "error_code": "EXT_DIR_MISSING",
                           "detail": args.ext_dir}, ensure_ascii=False))
         return 2
-    return asyncio.run(run(args.cdp.rstrip("/"), str(Path(args.ext_dir).resolve())))
+    base = args.cdp.rstrip("/")
+    # **自己起 Chrome。**
+    #
+    # 这个演练原来要求你先手工开一个带 --remote-debugging-port 的浏览器，
+    # 否则只会抛一句 `URLError: Connection refused`——看起来像它坏了。
+    # 而 DRILLS.md 把它归在「改到那条路时」跑，也就是说**跑不起来的那一刻
+    # 正是没人再管它的那一刻**。这个仓刚查过一遍：15 个演练，调用方 0。
+    # 跑不起来的演练和没有演练是一回事。
+    process = None
+    workspace = None
+    if not _reachable(base):
+        port = base.rsplit(":", 1)[-1]
+        workspace = tempfile.mkdtemp(prefix="sa-routing-")
+        process = subprocess.Popen(
+            [args.chrome, f"--user-data-dir={workspace}/profile",
+             f"--remote-debugging-port={port}", "--no-first-run",
+             "--no-default-browser-check", "--disable-sync",
+             "--disable-background-networking", "--password-store=basic",
+             "--use-mock-keychain", "about:blank"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        for _ in range(40):
+            if _reachable(base):
+                break
+            time.sleep(0.5)
+        else:
+            process.terminate()
+            print(json.dumps({"status": "FAIL", "error_code": "CHROME_NOT_UP",
+                              "detail": f"起不来，也连不上 {base}"}, ensure_ascii=False))
+            return 2
+    try:
+        return asyncio.run(run(base, str(Path(args.ext_dir).resolve())))
+    finally:
+        if process is not None:
+            process.terminate()
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                process.kill()
+        if workspace:
+            shutil.rmtree(workspace, ignore_errors=True)
 
 
 if __name__ == "__main__":

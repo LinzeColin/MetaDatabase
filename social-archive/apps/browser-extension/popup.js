@@ -6,9 +6,9 @@
   // **平台中文名走目录，不在这里再写一份。**
   // 仓里已经有四份（服务端、扩展目录、设置页、资料库）；每多一份，
   // 改一个名字就要多记一处，漏掉的那处会显示原始 id。
-  const platformName = new Proxy({}, { get: (_, key) => String(key) === "generic-web"
+  const platformName = platform => platform === "generic-web"
     ? "Chrome 书签 / 网页"
-    : (globalThis.SAPlatformCatalog?.platformLabel?.(String(key)) || String(key)) });
+    : (globalThis.SAPlatformCatalog?.platformLabel?.(platform) || platform);
   const statusName = { connected: "已连接", degraded: "降级可用", completed: "同步完成", partial: "部分完成", queued: "等待同步", discovering: "正在发现", scanning: "同步中", normalizing: "正在整理", artifacting: "正在归档", exporting: "正在导出", failed: "需要处理", blocked_environment: "重新连接", paused: "已暂停" };
 
   let config = null;
@@ -121,7 +121,7 @@
       const detail = ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(current)
         ? `同步 ${imported}/${discovered || "…"}`
         : `${Number(account.content_count || 0).toLocaleString("zh-CN")} 条 · ${formatTime(account.last_sync_at)}`;
-      return `<article class="account-row"><span class="platform-dot">${SA.escapeHtml(platformShort[account.platform] || "网")}</span><span class="account-copy"><strong>${SA.escapeHtml(account.display_name || account.external_account_id || platformName[account.platform] || account.platform)}</strong><small>${SA.escapeHtml(detail)}</small></span><span class="state-label ${SA.escapeHtml(current)}">${SA.escapeHtml(statusName[current] || current)}</span></article>`;
+      return `<article class="account-row"><span class="platform-dot">${SA.escapeHtml(platformShort[account.platform] || "网")}</span><span class="account-copy"><strong>${SA.escapeHtml(account.display_name || account.external_account_id || platformName(account.platform) || account.platform)}</strong><small>${SA.escapeHtml(detail)}</small></span><span class="state-label ${SA.escapeHtml(current)}">${SA.escapeHtml(statusName[current] || current)}</span></article>`;
     }).join("");
   }
 
