@@ -125,10 +125,30 @@ def main() -> int:
     changelog = ROOT / "CHANGELOG.md"
     if changelog.is_file():
         checked += 1
-        if not re.search(rf"^##\s+v{re.escape(truth)}\b", changelog.read_text(encoding="utf-8"), re.M):
+        text = changelog.read_text(encoding="utf-8")
+        if not re.search(rf"^##\s+v{re.escape(truth)}\b", text, re.M):
             problems.append(
                 f"CHANGELOG.md 里没有 v{truth} 这一节——"
                 "「这一版改了什么」是出问题那天要翻的东西")
+        # **反过来那一半：CHANGELOG 宣布了一个代码里不存在的版本。**
+        #
+        # 2026-08-06 我就这么干了一次：`bump_version.py 0.0.0.22` 少给了
+        # `--apply`（不给就只看），报告里的 `"applied": false` 我没读，
+        # 于是**版本号一处都没改**，而 CHANGELOG 已经写好了 v0.0.0.22 那一节。
+        # 接着提交、部署、验收——全绿。生产上跑的是 0.0.0.21 的镜像，
+        # 而仓里躺着一份宣布 0.0.0.22 已经发布的变更记录。
+        #
+        # 原来的判据只问「当前版本有没有条目」，**方向是单向的**：
+        # 记录跑到代码前面去，它一个字都不会说。
+        newest = max((tuple(int(part) for part in found.split("."))
+                      for found in re.findall(r"^##\s+v(\d+(?:\.\d+){1,3})\b", text, re.M)),
+                     default=None)
+        if newest and newest > tuple(int(part) for part in truth.split(".")):
+            stated_newest = ".".join(str(part) for part in newest)
+            problems.append(
+                f"CHANGELOG.md 最新一节是 v{stated_newest}，而真源 {name} 说版本是 "
+                f"v{truth}——**变更记录跑到代码前面去了**。"
+                "多半是升版工具只跑了预览没跑 --apply：那份记录在宣布一件没发生的事")
 
     print(f"真源 {name} 说版本是 {truth}；核了 {checked} 处")
     if problems:
