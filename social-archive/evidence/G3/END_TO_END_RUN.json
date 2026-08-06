@@ -6,7 +6,7 @@
       "ok": true,
       "state": "authorizing",
       "platform": "bilibili",
-      "tabId": 342435781,
+      "tabId": 330432220,
       "message": "已在当前 Chrome profile 中打开B站，插件会检测现有登录态。"
     },
     "verify": {
@@ -21,33 +21,33 @@
     },
     "tabs_before": [
       {
-        "id": 342435779,
+        "id": 330432218,
         "active": false
       },
       {
-        "id": 342435780,
+        "id": 330432219,
         "active": false
       },
       {
-        "id": 342435781,
+        "id": 330432220,
         "url": "https://www.bilibili.com/",
         "active": false
       },
       {
-        "id": 342435782,
+        "id": 330432221,
         "active": true
       }
     ],
-    "my_tab_id": 342435782,
+    "my_tab_id": 330432221,
     "queue_before": [
       {
         "accountId": "acct-1",
-        "enqueuedAt": 1785978217987,
+        "enqueuedAt": 1785983178374,
         "profileUrl": "",
         "syncRunId": "run-1",
         "tabId": null,
         "triggerType": "first_connect",
-        "updatedAt": 1785978217987
+        "updatedAt": 1785983178374
       }
     ],
     "alarm_scheduled": true,
@@ -65,29 +65,44 @@
     "queue_after": [],
     "tabs_after": [
       {
-        "id": 342435779,
+        "id": 330432218,
         "active": false
       },
       {
-        "id": 342435780,
+        "id": 330432219,
         "active": false
       },
       {
-        "id": 342435781,
+        "id": 330432220,
         "url": "https://www.bilibili.com/",
         "active": false
       },
       {
-        "id": 342435782,
+        "id": 330432221,
         "active": true
       }
     ],
     "still_looking_at_my_tab": true,
-    "tabs_created_by_sync": 0
+    "tabs_created_by_sync": 0,
+    "options_card": {
+      "gridExists": true,
+      "cardCount": 9,
+      "mentionsBilibili": true,
+      "biliCardText": "B B站 B站 · 测试账号 已连接 3 条 · 08-06 10:00 立即同步 断开连接",
+      "biliButtons": [
+        "立即同步",
+        "断开连接"
+      ],
+      "anyConnectButton": true,
+      "anySyncButton": true
+    }
   },
   "account_created": {
     "id": "acct-1",
     "platform": "bilibili",
+    "connection_state": "connected",
+    "content_count": 3,
+    "last_sync_at": "2026-08-06T00:00:00Z",
     "external_account_id": "1919810",
     "display_name": "B站 · 测试账号",
     "metadata": {

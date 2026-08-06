@@ -134,7 +134,13 @@
               ? `登录状态已加密保存（${Number(custody.cookie_count||0).toLocaleString("zh-CN")} 条）· ${formatTime(custody.updated_at)}`
               : (platformSupport[platform]?.sync_supported === false
                 ? (platformSupport[platform]?.not_syncable_reason || "本版本还不能自动同步这个平台。")
-                : relationCopy[platform]);
+                // **优先照「这一版真的会读什么」写**。relationCopy 是一张写死的散文表，
+                // B 站那条写着「收藏夹、稍后再看、历史、点赞」而实际只读收藏夹——
+                // 他点「连接账号」时以为四样都会同步。目录里没登记的平台
+                // （取数路还没做的那些）仍然用 relationCopy，行为不变。
+                : (globalThis.SAPlatformCatalog?.SCANNABLE_RELATIONS?.[platform]
+                    ? globalThis.SAPlatformCatalog.scannableSummary(platform)
+                    : relationCopy[platform]));
       // 「随时可以一键撤销」是连接成功时**当着用户面许下的原话**（background.js）。
       // 此前撤销只存在于两处代码里：服务端 DELETE /v1/credentials/{platform}，
       // 以及扩展的 SA_REVOKE_PLATFORM_SESSION 处理体——**而没有任何界面发出这条消息**。

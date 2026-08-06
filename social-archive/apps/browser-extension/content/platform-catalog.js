@@ -173,6 +173,38 @@
     return API_ACQUISITION[String(platform || "")] === true;
   }
 
+  /** 关系类型的中文名（v0.0.0.13）。
+   *
+   * 放在这里而不是各页面自己写一份，是因为这件事已经在三处各说各的：
+   * PWA 的 app.js 有一份、options.js 的 relationCopy 有一份**整句的散文**、
+   * 服务端 PLATFORM_LABELS 旁边还有一份。散文那份最危险——
+   * 它不是逐项列举，而是一句写死的话，改了扫描范围也不会有人想起去改它。
+   */
+  const RELATION_LABELS = Object.freeze({
+    manual_save: "手动保存", bookmark: "书签", saved: "已保存", favorite: "收藏夹",
+    like: "点赞", upvoted: "顶过", watch_later: "稍后再看", history: "观看历史",
+    playlist: "播放列表", collection: "收藏夹",
+  });
+
+  function relationLabel(relation) {
+    const key = String(relation || "");
+    return RELATION_LABELS[key] || key;
+  }
+
+  /** 这个平台**这一版真的会读**哪些东西，写成一句给人看的话。
+   *
+   * 设置页那张卡原来用的是一张写死的散文表（options.js 的 relationCopy），
+   * B 站那条写着「收藏夹、稍后再看、历史、点赞」——**而这一版只读收藏夹**。
+   * 他点「连接账号」时以为四样都会同步，连上之后只会看到一样。
+   * 这正是验收标准里那句「绝不给一颗结构上不可能成功的按钮」的同一类问题：
+   * 按钮能按，但它承诺的东西有四分之三不会发生。
+   */
+  function scannableSummary(platform) {
+    const relations = scannableRelations(platform);
+    if (!relations.length) return "";
+    return relations.map(relationLabel).join("、");
+  }
+
   /** 这一版对该平台真的会去枚举哪些关系。
    *
    * 没登记的平台按「声明什么就扫什么」——保持原行为，不悄悄改变别的平台。
@@ -216,6 +248,7 @@
     PLATFORMS, platformCatalogEntry, platformLabel, relationUrl,
     INTERCEPT_PREFIXES, interceptPrefixes,
     SCANNABLE_RELATIONS, scannableRelations,
+    RELATION_LABELS, relationLabel, scannableSummary,
     API_ACQUISITION, acquiresViaPlatformApi,
   });
   globalThis.SAPlatformCatalog = api;

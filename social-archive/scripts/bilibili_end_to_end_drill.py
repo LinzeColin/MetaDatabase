@@ -177,6 +177,16 @@ class _Api(BaseHTTPRequestHandler):
         # `listSyncRuns()` → GET /v1/sync-runs?limit=200；第一版只实现了
         # `/v1/sync-runs/{id}`，于是列表落到 404，而 shared.js 把 404 翻成
         # 「这个功能在当前版本还不可用。」——一句和真实原因毫无关系的话。
+        # 设置页进门要同时拿这几样；**任何一样 404，整页的卡片都会退成「未连接」**
+        # （options.js 的 Promise.all 一挂就走 catch，accounts 被清空）。
+        # 第一版只实现了 /v1/accounts，于是卡片一直显示未连接——
+        # 看起来像产品缺陷，其实是这个假服务端缺件。
+        if path == "/v1/extension/bootstrap":
+            self._json(200, {"destinations": [], "endpoint": "", "version": "0.0.0.13"})
+            return
+        if path == "/v1/credentials":
+            self._json(200, {"items": []})
+            return
         if path == "/v1/sync-runs":
             self._json(200, {"items": [
                 {"id": run_id, "source_account_id": "acct-1", **payload}
@@ -199,7 +209,10 @@ class _Api(BaseHTTPRequestHandler):
             return
         if path == "/v1/accounts/connect/bilibili/complete":
             received["accounts"].append({
-                "id": "acct-1", "platform": "bilibili",
+                # **connection_state 不能少。** 少了它设置页那张卡会一直显示「未连接」，
+                # 而账号其实已经建好了——那样演练验的就不是连上之后的样子。
+                "id": "acct-1", "platform": "bilibili", "connection_state": "connected",
+                "content_count": 3, "last_sync_at": "2026-08-06T00:00:00Z",
                 "external_account_id": body.get("external_account_id"),
                 "display_name": body.get("display_name"),
                 "metadata": body.get("metadata") or {},
@@ -330,6 +343,28 @@ JOURNEY = r"""
 """
 
 
+
+# 设置页上 B 站那张卡到底长什么样。**只读，不点任何东西。**
+OPTIONS_PROBE = r"""
+(() => {
+  const grid = document.getElementById("accountGrid");
+  const cards = [...(grid ? grid.querySelectorAll(".account-card, .card, [data-platform]") : [])];
+  const text = (grid && grid.innerText) || "";
+  const bili = cards.find(el => (el.innerText || "").includes("B站")
+                             || (el.innerText || "").includes("哔哩"));
+  return JSON.stringify({
+    gridExists: Boolean(grid),
+    cardCount: cards.length,
+    mentionsBilibili: text.includes("B站") || text.includes("哔哩"),
+    biliCardText: bili ? (bili.innerText || "").replace(/\s+/g, " ").slice(0, 200) : "",
+    biliButtons: bili ? [...bili.querySelectorAll("button")].map(b => (b.textContent || "").trim()) : [],
+    // 已连接的账号上该有「立即同步」；未连接的该有「连接账号」
+    anyConnectButton: text.includes("连接账号"),
+    anySyncButton: text.includes("立即同步"),
+  });
+})()
+"""
+
 async def run(chrome: str) -> int:
     workspace = Path(tempfile.mkdtemp(prefix="sa-bili-e2e-"))
     profile = workspace / "profile"
@@ -397,6 +432,35 @@ async def run(chrome: str) -> int:
                 problems.append(f"整条链跑炸了：{str(payload['exceptionDetails'])[:300]}")
             else:
                 measured = json.loads(payload["result"]["value"])
+
+        # ── 设置页那张卡片（v0.0.0.13）。
+        #
+        # 上面那一段是在 service worker 里直接调 connectPlatform / verifyPendingPlatform，
+        # **它绕过了 Owner 真正会走的那条路**：打开设置页 → 找到 B 站那张卡 → 点按钮。
+        # 使用说明第 3 步指的就是这张卡，而它从来没有在真浏览器里被看过一眼：
+        # 卡片出不出来、按钮上写什么，全靠读 options.js 推。
+        # 这个项目在「那张卡根本不出现，于是交接里让他做的事做不了」上栽过一次。
+        if not problems:
+            await asyncio.sleep(1)
+            async with websockets.connect(version["webSocketDebuggerUrl"], max_size=None) as ws:
+                rpc = await _rpc_factory(ws)
+                await rpc("Target.createTarget",
+                          {"url": f"chrome-extension://{extension_id}/options.html"})
+            await asyncio.sleep(4)
+            targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
+            pages = [t for t in targets if t.get("type") == "page"
+                     and "options.html" in t.get("url", "")]
+            if not pages:
+                problems.append("设置页打不开——使用说明第 3 步指的就是它")
+            else:
+                async with websockets.connect(pages[0]["webSocketDebuggerUrl"],
+                                              max_size=None) as ws:
+                    rpc = await _rpc_factory(ws)
+                    await rpc("Runtime.enable")
+                    card = await rpc("Runtime.evaluate", {
+                        "expression": OPTIONS_PROBE, "returnByValue": True, "timeout": 20000})
+                    value = card.get("result", {}).get("result", {}).get("value")
+                    measured["options_card"] = json.loads(value) if value else {"error": "空"}
     finally:
         process.terminate()
         try:
@@ -474,6 +538,25 @@ async def run(chrome: str) -> int:
                         "没有闹钟就没有任何东西会再来唤醒队列")
     if measured.get("queue_after"):
         problems.append(f"跑完之后队列里还剩 {len(measured['queue_after'])} 个任务没被取走")
+
+    # 设置页那张卡：Owner 真正会点的地方
+    card = measured.get("options_card") or {}
+    if card and not card.get("error"):
+        if not card.get("gridExists"):
+            problems.append("**设置页上根本没有账号卡片区**——使用说明第 3 步无从做起")
+        if not card.get("mentionsBilibili"):
+            problems.append("**设置页上没有 B 站那张卡**——他找不到可以点的地方"
+                            f"（卡片数 {card.get('cardCount')}）")
+        buttons = card.get("biliButtons") or []
+        if not card.get("anySyncButton") and "立即同步" not in buttons:
+            problems.append(f"已连接的 B 站账号上没有「立即同步」按钮：{buttons}")
+        # **卡片不许承诺这一版不会读的东西。**
+        # 原来那张写死的散文表给 B 站写的是「收藏夹、稍后再看、历史、点赞」，
+        # 而这一版只读收藏夹——他点「连接账号」时以为四样都会同步。
+        text = str(card.get("biliCardText") or "")
+        over = [word for word in ("稍后再看", "观看历史", "点赞") if word in text]
+        if over:
+            problems.append(f"**卡片承诺了这一版不会读的东西**：{over}（卡片原文：{text[:80]}）")
 
     # **收藏夹的名字要真的送到服务端。**
     # 服务端建收藏夹记录的条件是 `if batch.collection_name:`——批次不带名字，
