@@ -133,7 +133,7 @@
         "scripts/check_every_platform_table_is_complete.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 apps/src/scripts 下 35 处平台表；已登记的有意子集 10 张\n每一张平台表都提到了所有可托管平台。\n",
+      "stdout": "扫了 apps/src/scripts 下 34 处平台表；已登记的有意子集 12 张\n每一张平台表都提到了所有可托管平台。\n",
       "stderr": ""
     },
     {
@@ -187,7 +187,7 @@
         "scripts/check_docs_match_the_ui.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 docs/ 里 41 处界面词引用\n每一处都在界面上找得到。\n",
+      "stdout": "扫了 docs/ 里 42 处界面词引用\n每一处都在界面上找得到。\n",
       "stderr": ""
     },
     {
@@ -250,7 +250,7 @@
         "scripts/check_sync_promises_match_reality.py"
       ],
       "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"platforms_checked\": 9,\n  \"syncable_now\": [\n    \"bilibili\",\n    \"generic-web\"\n  ],\n  \"scannable_relations\": {\n    \"bilibili\": [\n      \"favorite\"\n    ]\n  },\n  \"server_handled\": [\n    \"instagram\",\n    \"reddit\",\n    \"x\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"界面承诺的和代码里有的，逐个平台对上了。\",\n  \"what_this_does_not_prove\": \"只对四张静态表。「那条取数路真的读得回东西」由 bilibili_acquisition_drill.py（打真接口）与 bilibili_end_to_end_drill.py（真 Chrome 跑整条链）去证。\"\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"platforms_checked\": 9,\n  \"syncable_now\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"kuaishou\",\n    \"xiaohongshu\"\n  ],\n  \"scannable_relations\": {\n    \"bilibili\": [\n      \"favorite\"\n    ],\n    \"xiaohongshu\": [\n      \"favorite\"\n    ],\n    \"douyin\": [\n      \"favorite\"\n    ],\n    \"kuaishou\": [\n      \"favorite\"\n    ]\n  },\n  \"server_handled\": [\n    \"instagram\",\n    \"reddit\",\n    \"x\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"界面承诺的和代码里有的，逐个平台对上了。\",\n  \"what_this_does_not_prove\": \"只对四张静态表。「那条取数路真的读得回东西」由 bilibili_acquisition_drill.py（打真接口）与 bilibili_end_to_end_drill.py（真 Chrome 跑整条链）去证。\"\n}\n",
       "stderr": ""
     },
     {
@@ -259,7 +259,7 @@
         "scripts/check_the_guide_matches_the_product.py"
       ],
       "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"task\": \"G4\",\n  \"guide\": \"docs/使用说明.md\",\n  \"buttons_checked\": 8,\n  \"claimed_auto\": [\n    \"bilibili\",\n    \"generic-web\"\n  ],\n  \"product_auto\": [\n    \"bilibili\",\n    \"generic-web\"\n  ],\n  \"claimed_manual\": [\n    \"douyin\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"x\",\n    \"xiaohongshu\",\n    \"youtube\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"使用说明里写的每一步，产品里都真的有。\",\n  \"what_this_does_not_prove\": \"不检查步骤顺不顺、语气好不好，只保证说的每件事都存在。\"\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"task\": \"G4\",\n  \"guide\": \"docs/使用说明.md\",\n  \"buttons_checked\": 8,\n  \"claimed_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"kuaishou\",\n    \"xiaohongshu\"\n  ],\n  \"product_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"kuaishou\",\n    \"xiaohongshu\"\n  ],\n  \"claimed_manual\": [\n    \"instagram\",\n    \"reddit\",\n    \"x\",\n    \"youtube\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"使用说明里写的每一步，产品里都真的有。\",\n  \"what_this_does_not_prove\": \"不检查步骤顺不顺、语气好不好，只保证说的每件事都存在。\"\n}\n",
       "stderr": ""
     },
     {

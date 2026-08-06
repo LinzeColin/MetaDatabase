@@ -101,6 +101,12 @@ def main() -> int:
     # 那条路 T04 实测 62 条全量跑通，是这个产品里最早能用的一条。
     # 一道把唯一跑通过的平台判成坏的门，会被人直接关掉。
     router = _braced_body(background, "syncAccountById")
+    # 第四条（v0.0.0.21）：按形状认页面自己发的列表。缝隙里不出现平台名——
+    # 它查 SHAPE_READ_PLATFORMS，所以得去那张表里看。
+    shape_block = re.search(
+        r"const SHAPE_READ_PLATFORMS = Object\.freeze\(\{(.*?)\}\);", background, re.S)
+    shape_platforms = (set(re.findall(r"^\s*([a-z0-9-]+):", shape_block.group(1), re.M))
+                       if shape_block else set())
     scannable = _scannable()
     problems: list[dict] = []
 
@@ -122,12 +128,14 @@ def main() -> int:
             #   ③ 服务端连接器（x / reddit / instagram 走这条）
             wired = (f'"{platform}"' in seam
                      or f'"{platform}"' in router
-                     or platform in SERVER_ACCOUNT_CONNECTORS)
+                     or platform in SERVER_ACCOUNT_CONNECTORS
+                     or platform in shape_platforms)
             if not wired:
                 problems.append({"platform": platform, "problem":
                                  "声明能同步，但三条取数路都没有它——"
                                  "acquireRelationItems 里没分支、syncAccountById 里没专用路、"
-                                 "服务端也没连接器。点下去必然掉进那个 throw"})
+                                 "SHAPE_READ_PLATFORMS 里没有它、服务端也没连接器。"
+                                 "点下去必然掉进那个 throw"})
             relations = scannable.get(platform, PLATFORM_RELATIONS.get(platform, []))
             if not relations:
                 problems.append({"platform": platform, "problem":

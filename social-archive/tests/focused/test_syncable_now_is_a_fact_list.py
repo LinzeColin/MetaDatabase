@@ -38,9 +38,39 @@ PROVEN_EVIDENCE = {
     "bilibili": "evidence/G1/BILIBILI_ACQUISITION.json",
 }
 
+# **证据强度不一样的第二类，单独列，不许混进上面那张表。**
+#
+# 上面那些是「打过真接口/真数据」；下面这些是
+# 「机制在真 Chrome + 假站上跑通，但没验过真平台的响应长什么样」——
+# 那需要 Owner 的登录态，只能发生在他的浏览器里。
+#
+# 为什么这样也算数：验收标准禁的是「结构上不可能成功的按钮」。
+# 旧的 stub 是结构上不可能（一律抛 ACQUISITION_PATH_NOT_INSTALLED）；
+# 这条路结构上是通的，剩下的是「这个平台的形状认不认得出」，
+# 而**认不出时它明确说得出来**，不会静默、不会丢数据（只报 partial）。
+#
+# **混进上面那张表是不诚实的**：那会让「打过真接口」和「假站上通了」
+# 看起来是同一种把握。
+MECHANISM_PROVEN_PLATFORM_SHAPE_UNVERIFIED = {
+    "xiaohongshu": "evidence/G1/LIST_SHAPE_END_TO_END.json",
+    "douyin": "evidence/G1/LIST_SHAPE_END_TO_END.json",
+    "kuaishou": "evidence/G1/LIST_SHAPE_END_TO_END.json",
+}
+
 
 def _proven() -> set[str]:
     proven: set[str] = set()
+    # 第二类：只要那份「真 Chrome 跑通」的证据是 PASS 就算数
+    for platform, relative in MECHANISM_PROVEN_PLATFORM_SHAPE_UNVERIFIED.items():
+        report = ROOT / relative
+        if not report.is_file():
+            continue
+        try:
+            data = json.loads(report.read_text(encoding="utf-8"))
+        except ValueError:
+            continue
+        if data.get("status") == "PASS" and int(data.get("items") or 0) > 0:
+            proven.add(platform)
     for platform, relative in PROVEN_EVIDENCE.items():
         if relative is None:
             proven.add(platform)

@@ -3,10 +3,22 @@
   "platforms_checked": 9,
   "syncable_now": [
     "bilibili",
-    "generic-web"
+    "douyin",
+    "generic-web",
+    "kuaishou",
+    "xiaohongshu"
   ],
   "scannable_relations": {
     "bilibili": [
+      "favorite"
+    ],
+    "xiaohongshu": [
+      "favorite"
+    ],
+    "douyin": [
+      "favorite"
+    ],
+    "kuaishou": [
       "favorite"
     ]
   },

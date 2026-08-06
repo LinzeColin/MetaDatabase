@@ -152,6 +152,11 @@
     // 收藏夹走 B 站自己的公开接口（content/bilibili-reader.js），2026-08-06 实测。
     // 稍后再看 / 历史 / 点赞三条的取数路本版本没有做，所以不列。
     bilibili: Object.freeze(["favorite"]),
+    // v0.0.0.21：这三个走「按形状认页面自己发的列表」。
+    // 只读收藏——点赞那条列表页面不一定会发，没验过就不承诺。
+    xiaohongshu: Object.freeze(["favorite"]),
+    douyin: Object.freeze(["favorite"]),
+    kuaishou: Object.freeze(["favorite"]),
   });
 
   /** 取数是**调平台自己的接口**，而不是读页面（v0.0.0.8）。

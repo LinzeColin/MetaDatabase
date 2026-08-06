@@ -98,7 +98,8 @@ def code_only(text: str) -> str:
 
 
 def test_the_server_declares_which_platforms_can_sync_today() -> None:
-    from social_archive.account_sync import NOT_SYNCABLE_YET, PLATFORM_RELATIONS, SYNCABLE_NOW
+    from social_archive.account_sync import (NOT_SYNCABLE_YET, PLATFORM_RELATIONS,
+                                          SERVER_ACCOUNT_CONNECTORS, SYNCABLE_NOW)
 
     assert SYNCABLE_NOW, "没有任何平台被标为可同步——那界面什么都画不出来"
     # 走浏览器路的四个国内源。原来这里写死「四个都必须不在清单里」，
@@ -115,9 +116,17 @@ def test_the_server_declares_which_platforms_can_sync_today() -> None:
         f"acquireRelationItems 的函数体切出来 {len(seam)} 字符——切歪了，"
         "下面那句「缝隙里有没有这个平台」问的就不是缝隙了"
     )
+    # 第四条取数路（v0.0.0.21）：按形状认页面自己发的列表。
+    # **缝隙里不会出现平台名**——它查的是 SHAPE_READ_PLATFORMS 那张表，
+    # 所以得去那张表里看，否则接通了的平台会被判成"没接"。
+    shape_block = re.search(
+        r"const SHAPE_READ_PLATFORMS = Object\.freeze\(\{(.*?)\}\);", background, re.S)
+    shape_platforms = (set(re.findall(r"^\s*([a-z0-9-]+):", shape_block.group(1), re.M))
+                       if shape_block else set())
+    assert shape_platforms, "找不到 SHAPE_READ_PLATFORMS——这条判据的射程失效了"
     for platform in ("xiaohongshu", "douyin", "kuaishou", "bilibili"):
         # 缝隙里有没有真的为这个平台分流出去（而不是掉进那个 throw）。
-        wired = f'"{platform}"' in seam
+        wired = f'"{platform}"' in seam or platform in shape_platforms
         if platform in SYNCABLE_NOW:
             assert wired, (
                 f"{platform} 被标成可同步，而 acquireRelationItems 里没有它的分支 —— "
@@ -129,7 +138,12 @@ def test_the_server_declares_which_platforms_can_sync_today() -> None:
             f"{platform} 的说明没有给出现在真的能用的那个动作"
         )
     # 反过来也要成立：**没接通的平台不许出现在可同步清单里**。
-    for platform in ("xiaohongshu", "douyin", "kuaishou"):
+    # 2026-08-06 / v0.0.0.21：小红书/抖音/快手已经接上「按形状认列表」那条路，
+    # 所以它们从这份名单里挪走了。留在这里的是仍然没有任何取数路的那些——
+    # **这条断言的意义一个字没变**：可同步清单里不许有接不通的平台。
+    for platform in ("x", "reddit", "instagram", "youtube"):
+        if platform in SERVER_ACCOUNT_CONNECTORS:
+            continue          # 服务端连接器那条路另算
         assert platform not in SYNCABLE_NOW, (
             f"{platform} 的取数路还是 stub，不该出现在可同步清单里"
         )

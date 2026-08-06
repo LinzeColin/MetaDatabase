@@ -5,19 +5,22 @@
   "buttons_checked": 8,
   "claimed_auto": [
     "bilibili",
-    "generic-web"
+    "douyin",
+    "generic-web",
+    "kuaishou",
+    "xiaohongshu"
   ],
   "product_auto": [
     "bilibili",
-    "generic-web"
+    "douyin",
+    "generic-web",
+    "kuaishou",
+    "xiaohongshu"
   ],
   "claimed_manual": [
-    "douyin",
     "instagram",
-    "kuaishou",
     "reddit",
     "x",
-    "xiaohongshu",
     "youtube"
   ],
   "problems": [],

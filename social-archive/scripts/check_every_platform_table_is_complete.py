@@ -67,6 +67,14 @@ KNOWN = ("xiaohongshu", "douyin", "kuaishou", "bilibili", "instagram", "reddit",
 # `platforms`——一行是全平台、一行是 all-cn 的国内子集。**两者分不开**，
 # 于是要么一起放行（漏掉真的缺失），要么一起报错（冤枉有意的子集）。
 DELIBERATE_SUBSETS = {
+    # SYNCABLE_NOW（v0.0.0.21 起跨过 3 个平台，才被这道门当成"平台表"）：
+    # **它本来就是事实清单**——只放"这一版真的读得动"的。
+    # x / reddit / instagram / youtube 不在里面，各自的原因写在 NOT_SYNCABLE_YET。
+    "SYNCABLE_NOW": "事实清单，不是平台目录；不在里面的都在 NOT_SYNCABLE_YET 里写了原因",
+    # SCANNABLE_RELATIONS：这一版**真的会去枚举**的关系。
+    # 没登记的平台按「声明什么就扫什么」，所以不列 ≠ 漏了。
+    "SCANNABLE_RELATIONS": "只登记需要收窄扫描范围的平台；其余按平台目录声明的关系扫",
+
     # SHAPE_READ_PLATFORMS（v0.0.0.21）：**按形状认列表**那条路覆盖的平台。
     # 它是有意的子集——只放"主路径是扩展读页面列表、且接口带签名所以只能拦截"
     # 的那三个国内源。
