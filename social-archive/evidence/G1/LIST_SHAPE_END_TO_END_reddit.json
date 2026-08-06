@@ -54,10 +54,10 @@
   "captured_responses": 5,
   "captured_urls": [
     "https://www.reddit.com/api/log",
+    "https://www.reddit.com/api/user",
     "https://www.reddit.com/api/config",
     "https://www.reddit.com/svc/best",
-    "https://www.reddit.com/svc/saved",
-    "https://www.reddit.com/api/user"
+    "https://www.reddit.com/svc/saved"
   ],
   "recognised": "https://www.reddit.com/svc/saved",
   "matched_path": "data.children",

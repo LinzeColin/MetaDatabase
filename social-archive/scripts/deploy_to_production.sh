@@ -272,10 +272,21 @@ step "3.7) 这次到底要不要重建镜像"
 # 逐字节比「仓里的 COPY 输入」和「镜像里 /app 那一份」。
 # **一切不确定（ssh 不通、读不出清单、一个文件都没数到）都算「要重建」**——
 # 白构建一次只是慢，漏构建一次是他打开界面发现改的东西没上去而部署报了成功。
+#
+# **开关只能往「多构建」那一侧拨。** 没有反向的开关（能强制跳过构建的开关，
+# 迟早会有人在真该重建的时候拨它）。它有两个用处：
+#   · 判断万一错了，有一条不用改代码的退路；
+#   · **让「磁盘不够 → 中止」那条路走得到**——不然它只在盘真的快满时才跑得到，
+#     而那是最不该拿来做第一次验证的时刻。这和门槛做成可配是同一个理由。
 NEEDS_REBUILD=1
-if REBUILD_JSON="$(.venv/bin/python scripts/does_this_deploy_need_a_rebuild.py \
+if [[ -n "${SOCIAL_ARCHIVE_DEPLOY_FORCE_REBUILD:-}" ]]; then
+  printf '  SOCIAL_ARCHIVE_DEPLOY_FORCE_REBUILD 已设：**强制重建**，不问判断。\n'
+elif REBUILD_JSON="$(.venv/bin/python scripts/does_this_deploy_need_a_rebuild.py \
       --host "$HOST" 2>&1)"; then
   NEEDS_REBUILD=0
+fi
+if [[ -n "${SOCIAL_ARCHIVE_DEPLOY_FORCE_REBUILD:-}" ]]; then
+  REBUILD_JSON='{"why_zh": "强制重建（SOCIAL_ARCHIVE_DEPLOY_FORCE_REBUILD）"}'
 fi
 printf '  %s\n' "$(printf '%s' "$REBUILD_JSON" | .venv/bin/python -c '
 import json, sys
@@ -371,24 +382,49 @@ if [[ -n "$FREE_KB" && "$FREE_KB" -lt "$MIN_FREE_KB" ]]; then
   # 和我今天在连接器文案上修的是同一种病，只不过这次在我自己的门里。
   # 所以先把真实占用摆出来，让人看着数字决定。
   printf '  仍然不够。**先看清什么在占地方**（悬空镜像可能一个都没有）：\n'
-  ssh -o ConnectTimeout=20 "$HOST" 'sudo docker system df 2>/dev/null | sed "s/^/    /"' || true
+  DF_TABLE="$(ssh -o ConnectTimeout=20 "$HOST" 'sudo docker system df 2>/dev/null' || true)"
+  printf '%s\n' "$DF_TABLE" | sed 's/^/    /'
   printf '    我们自己的镜像：\n'
   ssh -o ConnectTimeout=20 "$HOST" 'sudo docker images --format "      {{.Repository}}:{{.Tag}}  {{.Size}}" | grep social-archive' || true
   printf '    悬空镜像（含别的项目的，**不自动删**）：\n'
-  ssh -o ConnectTimeout=20 "$HOST" 'sudo docker images -f "dangling=true" --format "      {{.ID}}  {{.Size}}  {{.CreatedSince}}"' || true
+  DANGLING="$(ssh -o ConnectTimeout=20 "$HOST" 'sudo docker images -f "dangling=true" --format "      {{.ID}}  {{.Size}}  {{.CreatedSince}}"' || true)"
+  printf '%s\n' "$DANGLING"
+  # **建议要读那张表，不许猜。**
+  #
+  # 2026-08-07 实测：这段原来写着「一个都没有就多半是 Build Cache 占着，
+  # 跑 docker builder prune」。而当时那张表上 **Build Cache 的 RECLAIMABLE 是 0B**
+  # ——照着做会白等一场，什么都收不回来。
+  # 这正是我今天一整天在修的那种病，只不过这次在我自己的报错里：
+  # **指错原因的告警，比不告警更费人。**
+  # 所以现在从表里现取 RECLAIMABLE，收不回来就直说收不回来。
+  CACHE_RECLAIMABLE="$(printf '%s\n' "$DF_TABLE" | awk '/^Build Cache/ {print $NF}')"
+  case "${CACHE_RECLAIMABLE:-0B}" in
+    0B|0|"") CACHE_ADVICE="· **构建缓存收不回来**（上表 RECLAIMABLE = ${CACHE_RECLAIMABLE:-0B}）——
+    \`docker builder prune\` 在这里是白跑，别浪费时间。" ;;
+    *) CACHE_ADVICE="· 构建缓存可回收 ${CACHE_RECLAIMABLE}。\`docker builder prune\` 会拖慢
+    同机别的项目的下一次构建，**由人决定**。" ;;
+  esac
+  if [[ -z "$(printf '%s' "$DANGLING" | tr -d '[:space:]')" ]]; then
+    DANGLING_ADVICE="· **悬空镜像一个都没有**——这条路这次帮不上忙。"
+  else
+    DANGLING_ADVICE="· 上面那张悬空镜像表里可能有别的项目的——**它对他们可能正是回滚点**。
+    确认某一个确实该删，再单独 \`sudo docker rmi <ID>\`。
+    **一个一个来；不要用整张列表一锅端**——那会把别人的一起删掉。
+    （这里故意不写出那条一锅端的命令：**报错信息里的命令是会被照抄的**。）"
+  fi
+  # 谁在涨——把最大的那个可写层摆出来，人一眼就知道该找谁。
+  printf '    可写层最大的容器（**涨的多半是它，不一定是我们的**）：\n'
+  ssh -o ConnectTimeout=30 "$HOST" \
+    'sudo docker ps -as --format "{{.Names}}\t{{.Size}}" 2>/dev/null | sort -t"	" -k2 -hr | head -3 | sed "s/^/      /"' || true
   fail "可用空间不足 ${MIN_FREE_GB}G，拒绝构建。
 
-  **我们自己的已经收过了**（上面那一步只收带 com.socialarchive.project 标签的悬空镜像），
-  所以还不够的话，占地方的多半不是我们的。按上面那张表挑，而且**逐个挑**：
+  **我们自己的已经收过了**：悬空镜像 + 上一个版本的镜像，两轮都跑过了。
+  还不够的话，占地方的不是我们的。按上面那几张表挑：
 
-  · 悬空镜像那张表里可能有别的项目的——**它对他们可能正是回滚点**。
-    确认某一个确实该删，再单独 \`sudo docker rmi <ID>\`。
-    **一个一个来；不要用整张列表一锅端，也不要用 docker system prune**——
-    它们会把别人的一起删掉。
-    （这里故意不写出那条一锅端的命令：**报错信息里的命令是会被照抄的**，
-      写出来当反面教材，和写出来让人用没什么区别。）
-  · 一个都没有就多半是 Build Cache 占着。\`docker builder prune\` 会拖慢
-    同机别的项目的构建，**由人决定**。
+  ${DANGLING_ADVICE}
+  ${CACHE_ADVICE}
+  · 上面「可写层最大的容器」那一行如果不是 social-archive 开头，
+    **那是别的项目在涨**，找它的主人，不要在这里删。
   · **任何情况下都不要用 docker system prune**（这台机器还跑着
     memory-atlas / gatus / coolify 等别人的项目）。"
 fi
