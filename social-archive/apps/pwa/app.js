@@ -1078,7 +1078,32 @@
     )));
   }
 
-  function openSyncModal() { renderSyncTable(); $("syncModalBackdrop").classList.add("open"); }
+  /** 账号同步中心正文：**按能力声明现算**（v0.0.0.22）。
+   *
+   * 这句话原来写死在 index.html 里：「本版本**只有 Chrome 书签**能自动读取；
+   * 其余平台的自动读取还没接上」。写下时是对的，v0.0.0.21 起就成了假话——
+   * 现在有 7 个平台能自动同步，而他打开账号同步中心第一眼看到的就是这句。
+   *
+   * 判据没抓到是**它自己写明的下限**：只抓一句话里点名三个以上平台的，
+   * 「点名一两个的漏得掉」。这句只点名一个。下限本身有道理（避开正常举例），
+   * 所以补的是判据的另一条模式（排他句「只有 X 能…」），不是降低下限。
+   *
+   * 同一种病的第六处。前五处的教训一样：**用户可见的能力句必须现算**。
+   */
+  function paintSyncModalCopy() {
+    const node = document.getElementById("syncModalCopy");
+    if (!node) return;
+    const names = Object.entries(state.platformSupport || {})
+      .filter(([, support]) => support?.sync_supported !== false)
+      .map(([id]) => platformMeta[serverToUiPlatform[id]]?.label || id);
+    node.textContent = names.length
+      ? `连接一次账号，之后只同步新增内容。本版本能自动同步的是：${names.join("、")}。`
+        + "其余平台可以用插件一条条保存，或导入官方数据包。"
+      : "连接一次账号，之后只同步新增内容。本版本还没有能自动同步的平台，"
+        + "可以用插件一条条保存，或导入官方数据包。";
+  }
+
+  function openSyncModal() { paintSyncModalCopy(); renderSyncTable(); $("syncModalBackdrop").classList.add("open"); }
   function closeModal(id) { $(id)?.classList.remove("open"); }
 
   function openImportModal() {

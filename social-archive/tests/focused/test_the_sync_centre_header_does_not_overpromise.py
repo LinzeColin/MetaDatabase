@@ -41,26 +41,61 @@ def _sync_centre_header() -> str:
     return block.group(0)
 
 
-def test_the_header_says_so_while_most_platforms_cannot_sync() -> None:
-    cannot = sorted(set(PLATFORM_RELATIONS) - set(SYNCABLE_NOW))
-    if not cannot:
-        # 哪天全都接上了，这条判据自己会告诉你该改抬头了。
-        return
+def _painter() -> str:
+    """app.js 里现算那句话的那一段。"""
+    app = (ROOT / "apps/pwa/app.js").read_text(encoding="utf-8")
+    code = "\n".join(l for l in app.splitlines() if not l.lstrip().startswith("//"))
+    assert "function paintSyncModalCopy" in code, (
+        "找不到现算同步中心正文的那个函数——判据的射程失效，先修判据"
+    )
+    body = code.split("function paintSyncModalCopy", 1)[1]
+    return body[: body.index("function openSyncModal")]
+
+
+def test_the_header_is_not_a_second_capability_list() -> None:
+    """**这句话必须现算，不能写死在 HTML 里。**
+
+    v0.0.0.22 之前它是硬编码的：「本版本**只有 Chrome 书签**能自动读取；
+    其余平台的自动读取还没接上」。写下时是对的，v0.0.0.21 起就成了假话
+    （那时已经 5 个平台能同步，现在 7 个），而**他打开这个弹窗第一眼看到的就是它**。
+
+    原来这条判据只要求抬头里带一句限定语——硬编码那句**带着限定语**，
+    所以它一直是绿的。限定语不是重点，**名单会不会跟着能力声明走**才是。
+    """
     header = _sync_centre_header()
-    assert "还没接上" in header or "还不能" in header, (
-        f"**{len(cannot)}/{len(PLATFORM_RELATIONS)} 个平台还不能自动同步**"
-        f"（{cannot}），而同步中心的抬头一句限定语都没有：\n  {header[:120]}"
+    for hardcoded in ("Chrome 书签", "小红书", "抖音", "B站", "快手", "Reddit", "Instagram"):
+        assert hardcoded not in header, (
+            f"同步中心的抬头里又写死了平台名「{hardcoded}」：{header[:140]}\n"
+            "——它会在下一次加平台时开始骗人。改成从 state.platformSupport 现算"
+        )
+    assert "state.platformSupport" in _painter(), (
+        "那句话不是从能力声明现算的——它会再漂一次"
     )
 
 
-def test_the_platform_it_names_can_actually_sync() -> None:
-    """**别一边写「只有 X 能」，一边 X 自己也做不到。**
+def test_it_still_says_what_the_other_platforms_can_do() -> None:
+    """能同步的说清楚之后，**剩下那些也要给一句现在能做什么**。
 
-    抬头点名了「Chrome 书签」，对应 SYNCABLE_NOW 里的 generic-web。
-    这条把那句话和那张表绑在一起。
+    只列"能自动同步的是 A、B、C"，他会以为别的平台这个软件不管。
     """
-    header = _sync_centre_header()
-    if "Chrome 书签" in header:
-        assert "generic-web" in SYNCABLE_NOW, (
-            "抬头说只有 Chrome 书签能自动读取，而 generic-web 不在 SYNCABLE_NOW 里"
-        )
+    cannot = sorted(set(PLATFORM_RELATIONS) - set(SYNCABLE_NOW))
+    if not cannot:
+        # 哪天全都接上了，这条判据自己会告诉你该改这句话了。
+        return
+    painter = _painter()
+    assert "一条条保存" in painter or "逐条保存" in painter, (
+        f"**{len(cannot)}/{len(PLATFORM_RELATIONS)} 个平台还不能自动同步**（{cannot}），"
+        "而现算的那句话没告诉他这些平台现在能做什么"
+    )
+
+
+def test_the_names_it_prints_come_from_the_capability_declaration() -> None:
+    """**别一边写「能自动同步的是 X」，一边 X 自己做不到。**
+
+    现算之后这条不再靠人核对：名单是从 sync_supported 过滤出来的，
+    而 sync_supported 来自服务端的 SYNCABLE_NOW。这条钉住那条过滤仍在。
+    """
+    painter = _painter()
+    assert "sync_supported" in painter, (
+        "名单不是按 sync_supported 过滤的——那它随时可能列出一个同步不了的平台"
+    )

@@ -107,6 +107,11 @@ def _literals(text: str, suffix: str) -> list[tuple[int, str]]:
     return found
 
 
+# 排他措辞：这类句子在宣布一份**会随版本变的名单**，写死必然过期。
+# 和举例（「比如小红书」）形状完全不同，所以不受"至少三个平台"那条下限约束。
+EXCLUSIVE_WORDS = ("只有", "仅有", "仅支持", "只支持", "其余平台", "其他平台都", "都还不能", "均不支持")
+
+
 def main() -> int:
     hits: list[dict] = []
     scanned = 0
@@ -120,6 +125,29 @@ def main() -> int:
         text = path.read_text(encoding="utf-8")
         for line_no, chunk in _literals(text, path.suffix):
             named = [word for word in PLATFORM_NAMES if word in chunk]
+            # **排他句：点名一个也要抓**（v0.0.0.22）。
+            #
+            # 下面那条「至少三个平台」的下限是对的——它避开正常举例
+            # （「比如小红书」）。但它漏掉了另一种形状：
+            #
+            #     「本版本**只有 Chrome 书签**能自动读取；其余平台还没接上」
+            #
+            # 这句写死在账号同步中心的正文里，v0.0.0.21 起就是假话（那时已经
+            # 5 个平台能同步，现在 7 个），而**他打开那个弹窗第一眼看到的就是它**。
+            # 只点名一个，所以三个那条下限从设计上就漏。
+            #
+            # 排他句和举例长得完全不一样：举例是「比如 X」，排他是「只有 X 能」
+            # 或「都不能」。按这个形状抓，不必降低那条下限。
+            if any(word in chunk for word in EXCLUSIVE_WORDS) and named:
+                hits.append({
+                    "where": f"{name}:{line_no}",
+                    "platforms": sorted(set(named)),
+                    "capability_words": [w for w in EXCLUSIVE_WORDS if w in chunk],
+                    "why": "**排他句**：它宣布「只有这些能」或「其余都不能」，"
+                           "而那份名单会随版本变。这种句子必须现算，不能写死",
+                    "text": chunk.strip()[:140],
+                })
+                continue
             # 「哔哩哔哩」与「B站」指同一个平台，别把它数成两个
             distinct = {("bilibili" if word in ("哔哩哔哩", "B站") else word)
                         for word in named}
