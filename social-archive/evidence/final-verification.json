@@ -277,7 +277,7 @@
         "scripts/check_the_guide_matches_the_product.py"
       ],
       "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"task\": \"G4\",\n  \"guide\": \"docs/使用说明.md\",\n  \"buttons_checked\": 10,\n  \"claimed_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"product_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"claimed_manual\": [\n    \"x\",\n    \"youtube\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"使用说明里写的每一步，产品里都真的有。\",\n  \"what_this_does_not_prove\": \"不检查步骤顺不顺、语气好不好，只保证说的每件事都存在。\"\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"task\": \"G4\",\n  \"guide\": \"docs/使用说明.md\",\n  \"buttons_checked\": 13,\n  \"claimed_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"product_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"claimed_manual\": [\n    \"x\",\n    \"youtube\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"使用说明里写的每一步，产品里都真的有。\",\n  \"what_this_does_not_prove\": \"不检查步骤顺不顺、语气好不好，只保证说的每件事都存在。\"\n}\n",
       "stderr": ""
     },
     {

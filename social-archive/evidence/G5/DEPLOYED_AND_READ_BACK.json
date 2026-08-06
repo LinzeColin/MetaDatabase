@@ -8,7 +8,7 @@
       "status": "ok",
       "project": "Social Archive",
       "version": "0.0.0.22",
-      "time": "2026-08-06T12:24:12.899191Z",
+      "time": "2026-08-06T12:35:44.969346Z",
       "paid_api_allowed": false,
       "archive_defaults": {
         "L0": true,
@@ -19,8 +19,8 @@
       "worker": {
         "ever_seen": true,
         "alive": true,
-        "last_seen_at": "2026-08-06T12:24:04.495903Z",
-        "seconds_since": 8.4,
+        "last_seen_at": "2026-08-06T12:35:33.285884Z",
+        "seconds_since": 11.7,
         "note": ""
       },
       "minimum_extension_version": "0.0.0.9"
@@ -67,7 +67,7 @@
       "manifest_version": "0.0.0.22",
       "file_count": 27,
       "has_bilibili_reader": true,
-      "sha256": "c7843ce20c2caa09fd0b94549f4022c91e0a6697b1235de80b69f00203778b12"
+      "sha256": "c2263721d1fa938ae3fc62474917f1bf2c321c9888a755fcca363930426cf5e9"
     },
     "install_page": {
       "bytes": 11540,

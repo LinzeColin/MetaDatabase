@@ -139,6 +139,91 @@ def main() -> int:
                 f"说明里让他点「{label}」，而**九个界面文件里一个都没有这个字样**"
                 "——他会在界面上找不到它。要么改说明，要么这确实不是我们的界面文案，"
                 "那就写进 NOT_OUR_UI 并说清它是谁的")
+    # ①bis **在不在那个界面上**，不只是"在不在某个界面上"（v0.0.0.22）。
+    #
+    # 上面那条只问「九个界面文件里有没有这个词」。它漏掉的是**指错界面**，
+    # 而这一类我已经犯了两次：
+    #
+    #   · 说明里让他「点插件的『保存到我的档案馆』」——那个名字确实存在，
+    #     但它在网页右下角那颗悬浮按钮上，不在插件弹窗里。他打开弹窗找不到。
+    #   · 说明里让他「回到面板上点『我已登录，继续』」——那颗按钮当时只在
+    #     插件的账号页上，**面板上根本没有**。他登录完回来没有下一步。
+    #
+    # 两次都是判据全绿。所以这里按**章节**收紧：说明第 3 步整节都写着
+    # 「就在资料库这一页上」，那么这一节里点名的每个按钮，
+    # 都必须在那一页真正渲染的东西里找得到——连接面板。
+    STEP_SURFACES = {
+        # 第 3 步真正会经过的界面：资料库那一页 → 嵌进去的连接面板 →
+        # （备选入口）插件弹窗。**只列这三处**——列多了这条判据就退化成
+        # 上面那条「九个文件里有没有」，一次也抓不到指错界面。
+        "第 3 步": (
+            ["apps/pwa/index.html", "apps/pwa/app.js",
+             "apps/browser-extension/connect-frame.html",
+             "apps/browser-extension/connect-frame.js",
+             "apps/browser-extension/popup.html", "apps/browser-extension/popup.js"],
+            "第 3 步只经过资料库、连接面板和插件弹窗这三处",
+        ),
+        # 手动保存那一节整节写着「点插件图标 → …」，那就得在**插件弹窗**里。
+        # 这一节正是第一次犯错的地方：说明写「点插件的『保存到我的档案馆』」，
+        # 而那个名字在网页右下角那颗悬浮按钮上，弹窗里没有。
+        "想手动存某一条": (
+            ["apps/browser-extension/popup.html", "apps/browser-extension/popup.js"],
+            "这一节写的是「点插件图标 → …」，那就得在插件弹窗里找得到",
+        ),
+    }
+    for heading, (files, why) in STEP_SURFACES.items():
+        chunk = ""
+        for part in text.split("### ")[1:]:
+            if part.startswith(heading):
+                chunk = part.split("\n### ")[0]
+                break
+        if not chunk:
+            problems.append(f"说明里找不到「{heading}」那一节——这道门的射程失效了")
+            continue
+        surface = "\n".join(_ui_text(ROOT / name) for name in files if (ROOT / name).is_file())
+        if not surface:
+            problems.append(f"「{heading}」指向的界面文件一个都不存在：{files}")
+            continue
+        for label in sorted(set(re.findall(r"「([^」]{1,20})」", chunk))):
+            if label in NOT_OUR_UI or label not in blob:
+                continue          # 不是界面词、或上面那条已经报过了
+            if label not in surface:
+                problems.append(
+                    f"「{heading}」让他点「{label}」，而**那个界面上没有这个按钮**"
+                    f"（{why}）。它在别处存在，所以上面那条查不出来——"
+                    "他会按着说明在那一页上找一颗不存在的按钮")
+
+    # ①ter **服务端写给用户看的话，也要按同一把尺量**（v0.0.0.22）。
+    #
+    # 这道门一直只量 docs/使用说明.md。而平台卡片上那句「本版本还不能自动读取…
+    # 现在可以：…点插件的「X」」是**服务端下发的**（NOT_SYNCABLE_YET），
+    # 界面直接显示它——判据一次都没看过它。
+    #
+    # 历史上那次就出在这里：那句话写着「点插件的『保存到我的档案馆』」，
+    # 而插件弹窗上那颗叫「保存当前页面」；「保存到我的档案馆」是网页右下角
+    # 那颗悬浮按钮。**他打开弹窗会找不到。** 说明书那边一直是对的，
+    # 所以这道门一直绿。
+    from social_archive.registry import CONNECT_IS_CLICKABLE_TODAY  # noqa: PLC0415
+    server_copy = dict(NOT_SYNCABLE_YET)
+    server_copy.update({f"registry:{k}": v for k, v in
+                        (CONNECT_IS_CLICKABLE_TODAY or {}).items()})
+    for where, sentence in server_copy.items():
+        for label in sorted(set(re.findall(r"「([^」]{1,20})」", str(sentence)))):
+            if label in NOT_OUR_UI:
+                continue
+            checked_buttons += 1
+            # 「点插件的「X」」——那就必须在插件弹窗里
+            surface_files = (["apps/browser-extension/popup.html",
+                              "apps/browser-extension/popup.js"]
+                             if "点插件的" in str(sentence) else UI_FILES)
+            surface = "\n".join(_ui_text(ROOT / name) for name in surface_files
+                                if (ROOT / name).is_file())
+            if label not in surface:
+                problems.append(
+                    f"服务端给「{where}」写的那句话让他点「{label}」，"
+                    f"而**{'插件弹窗' if '点插件的' in str(sentence) else '界面'}上没有这个按钮**"
+                    "——这句话会原样显示在平台卡片上，他照着找会找不到")
+
     # **一个都没查到 = 这道门失效了**，不是"通过了"。
     if checked_buttons < 5:
         problems.append(f"只核对到 {checked_buttons} 处界面文案——**这不是通过**，"
