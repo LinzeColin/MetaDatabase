@@ -87,7 +87,7 @@
         "scripts/preflight_extension.py"
       ],
       "exit_code": 0,
-      "stdout": "可以装载。manifest v3、version 0.0.0.19、15 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
+      "stdout": "可以装载。manifest v3、version 0.0.0.20、15 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
       "stderr": ""
     },
     {
@@ -124,7 +124,7 @@
         "scripts/check_the_stated_version_is_the_real_one.py"
       ],
       "exit_code": 0,
-      "stdout": "真源 pyproject.toml 说版本是 0.0.0.19；核了 11 处\n每一处声明的版本都和真源一样，CHANGELOG 里也有这一版。\n",
+      "stdout": "真源 pyproject.toml 说版本是 0.0.0.20；核了 11 处\n每一处声明的版本都和真源一样，CHANGELOG 里也有这一版。\n",
       "stderr": ""
     },
     {

@@ -469,7 +469,11 @@
       {
         need: () => state.extension.detected && !state.extension.compatible,
         title: "第 1 步：更新浏览器插件",
-        why: `装着的是 v${state.extension.version || "未知"}，需要 v${PRODUCT_VERSION}。`,
+        // **说下限，不说当前版本。** 判据已经改成「不低于下限」，
+        // 而这句话还在报当前版本——他会以为必须追到最新那一版。
+        // 同一件事的第二处：改了闸门、漏了它旁边那句话。
+        why: `装着的是 v${state.extension.version || "未知"}，至少需要 v${
+          state.minimumExtensionVersion || PRODUCT_VERSION}。`,
         action: "去更新",
         run: () => { location.href = "/extension-install"; },
       },
