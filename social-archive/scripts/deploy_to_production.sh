@@ -118,15 +118,19 @@ step "0) 本地闸门：工作树干净 + 发布门全绿"
 #
 # 这一条放在这里而不是发布门里：它要起一个真 Chrome，约一分钟，
 # 每次提交都跑太贵；而**发布前必须跑**——发出去的就是这个包。
-if [ -z "${SA_SKIP_PACKAGE_DRILL:-}" ]; then
-  .venv/bin/python scripts/shipped_package_drill.py >/dev/null \
-    || fail '发布包在真 Chrome 里没通过——用户装上的那一份和我们测的不是同一个东西。设 SA_SKIP_PACKAGE_DRILL=1 可跳过（跳过就等于没验过它）。'
-  # 「覆盖再重载」那三句承诺（ID 不变 / 版本更新 / 凭据还在）写在安装页、
-  # 使用说明和每一条更新指引里，而在这之前**从没有演练做过这件事**。
-  # 它是每个用户更新时必走的一下，所以放在发布前必跑。
-  .venv/bin/python scripts/extension_update_in_place_drill.py >/dev/null \
-    || fail '「覆盖再重载」在真 Chrome 里没通过——安装页上那三句承诺至少有一句不成立。'
-  printf '  发布包已在真 Chrome 里原样装过一次，覆盖重载也验过。\n'
+# **十四个真 Chrome 演练全跑一遍**（约 5 分钟）。
+#
+# 原来这里只跑两个，其余归在 DRILLS.md 的「改到那条路时」——那一档靠人判断
+# 「我这次碰到哪条链了」，而判断错的代价是那条链这一版整个没有证据。
+# 零参数化做完之后（每个演练自己起 Chrome、自己打包），判断不再需要：
+# 一条命令 4 分 42 秒，发布前全跑。
+#
+# 跳过的方式留着，但**跳过就等于这一版没有端到端证据**。
+if [ -z "${SA_SKIP_DRILLS:-}" ]; then
+  .venv/bin/python scripts/run_all_drills.py \
+    || fail '真 Chrome 演练没全过——上面那张表里打 ✗ 的就是没通的链。设 SA_SKIP_DRILLS=1 可跳过（跳过就等于这一版没有端到端证据）。'
+else
+  printf '  ⚠️  跳过了真 Chrome 演练（SA_SKIP_DRILLS）——这一版没有端到端证据。\n'
 fi
 printf '  工作树干净；发布门通过；扩展包已重打。\n'
 

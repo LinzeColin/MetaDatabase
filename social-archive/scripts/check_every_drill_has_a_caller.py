@@ -62,6 +62,19 @@ def main() -> int:
         return 4
     registry = REGISTRY.read_text(encoding="utf-8")
     deploy = DEPLOY.read_text(encoding="utf-8") if DEPLOY.is_file() else ""
+    # **调用链要跟一层。**
+    #
+    # 部署脚本现在不再逐个点名演练，而是调 run_all_drills.py 一次跑完 14 个。
+    # 只看部署脚本本身的话，那 14 个会被判成"没人调"——而它们恰恰是
+    # 被调得最齐的一次。所以把部署脚本里点名的那些 scripts/*.py 也读进来。
+    #
+    # 只跟一层：再深就等于在这里写一个调用图分析器，而那种东西自己会长出 bug，
+    # 到时候没人知道该信它还是信产品。
+    import re as _re
+    for referenced in sorted(set(_re.findall(r"scripts/([a-z0-9_]+\.py)", deploy))):
+        helper = ROOT / "scripts" / referenced
+        if helper.is_file() and helper != DEPLOY:
+            deploy += "\n" + helper.read_text(encoding="utf-8")
 
     rows: dict[str, str] = {}
     for line in registry.splitlines():

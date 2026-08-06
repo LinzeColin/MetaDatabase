@@ -67,6 +67,10 @@ KNOWN = ("xiaohongshu", "douyin", "kuaishou", "bilibili", "instagram", "reddit",
 # `platforms`——一行是全平台、一行是 all-cn 的国内子集。**两者分不开**，
 # 于是要么一起放行（漏掉真的缺失），要么一起报错（冤枉有意的子集）。
 DELIBERATE_SUBSETS = {
+    # run_all_drills 里那张「要参数的演练」表：只列**这一版真的有链可跑**的平台。
+    # x / youtube 这一版没有取数链，给它们排一次演练等于跑一个空壳。
+    # 多列一个不是更全，是假证据。
+    "PARAMETRISED": "全量演练的参数表；只放这一版真的有链可跑的平台",
     # 按形状读那条路的演练（list_shape_end_to_end_drill.py）：
     # 它造的是**假站**，一个平台一套响应形状。只有走这条路的平台才在里面——
     # x 走不通（它的 id 埋在五层 GraphQL 壳里，识别器够不着，见 SYNCABLE_NOW 的注释），

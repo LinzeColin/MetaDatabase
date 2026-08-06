@@ -38,7 +38,20 @@
     "restore_runtime_db_drill.py": "定期"
   },
   "run_by_deploy": [
+    "bilibili_end_to_end_drill.py",
+    "disaster_recovery_drill.py",
+    "extension_bridge_boundary_drill.py",
+    "extension_capture_buffer_drill.py",
+    "extension_capture_drill.py",
+    "extension_install_page_drill.py",
+    "extension_platform_wiring_drill.py",
+    "extension_routing_drill.py",
+    "extension_save_page_drill.py",
     "extension_update_in_place_drill.py",
+    "list_shape_end_to_end_drill.py",
+    "pwa_render_drill.py",
+    "restore_private_database_drill.py",
+    "restore_runtime_db_drill.py",
     "shipped_package_drill.py"
   ],
   "problems": [],
