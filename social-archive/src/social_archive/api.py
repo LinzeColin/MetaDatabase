@@ -1382,6 +1382,20 @@ if pwa_root.exists():
     def extension_install_guide() -> FileResponse:
         return FileResponse(pwa_root / "extension-install.html")
 
+    @app.get("/guide")
+    def usage_guide() -> FileResponse:
+        """完整使用说明。
+
+        **在这条路由之前，这份说明他打不开。** 它一直躺在 git 工作树里
+        （`docs/使用说明.md`），有判据核着它每一步在产品里真的存在，
+        而产品里没有任何入口指向它——于是每次他要装、要连，
+        都是我在聊天里现敲一遍步骤。**那不叫使用说明，那叫我记得。**
+
+        这一页由 `scripts/build_guide_page.py` 从那份 md 生成，
+        发布门里 `--check` 挡住「改了 md 忘了重生成」。
+        """
+        return FileResponse(pwa_root / "guide.html")
+
     @app.get("/item/{content_id}")
     def pwa_item(content_id: str) -> FileResponse:
         return FileResponse(pwa_root / "index.html")

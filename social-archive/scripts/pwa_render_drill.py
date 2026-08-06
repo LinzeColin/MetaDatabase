@@ -169,6 +169,11 @@ class _Handler(BaseHTTPRequestHandler):
         # 第一版照着 URL 去找 apps/pwa/assets/app.js，**整个脚本 404**，
         # 于是页面一个接口都没请求——报出来却只是一句「0 张卡」。
         name = "index.html" if path in ("/", "") else path.lstrip("/")
+        # 真服务端有一条 `/guide` 路由（api.py），映到 guide.html。
+        # **假服务端要跟着映**，否则这里 404 而生产上是好的——
+        # 那种差异会让演练验的是一个他那边不存在的形状。
+        if name == "guide":
+            name = "guide.html"
         if name.startswith("assets/"):
             name = name[len("assets/"):]
         target = PWA / name
@@ -280,11 +285,37 @@ async def run(chrome: str) -> int:
             await rpc("Page.reload", {"ignoreCache": True})
             await asyncio.sleep(4)
             result = await rpc("Runtime.evaluate", {"expression": READ_DOM, "returnByValue": True})
+            guide_reading = None
             payload = result.get("result", {})
             if payload.get("exceptionDetails"):
                 measured = {"error": str(payload["exceptionDetails"])[:300]}
             else:
                 measured = json.loads(payload["result"]["value"])
+
+            # **顺路把使用说明那一页也打开看一眼。**
+            #
+            # 2026-08-07 之前那份说明躺在 git 工作树里，他打不开——每次要装、
+            # 要连都是我在聊天里现敲步骤。现在有了 `/guide`，就得有东西证明
+            # 它**在浏览器里真的渲染出来了**，而不只是"文件生成了、判据绿了"。
+            # 尤其要看横向溢出：里面有两张表，表一旦撑破就没法读。
+            await rpc("Page.navigate", {"url": f"http://127.0.0.1:{PORT}/guide"})
+            await asyncio.sleep(2)
+            got = await rpc("Runtime.evaluate", {"expression": r"""
+              JSON.stringify({
+                h1: (document.querySelector("h1") || {}).textContent || "",
+                sections: document.querySelectorAll("h2").length,
+                tables: document.querySelectorAll("table").length,
+                text_length: (document.body.innerText || "").length,
+                overflows_sideways:
+                  document.documentElement.scrollWidth > window.innerWidth + 1,
+                back_link: (document.querySelector("a.back") || {}).getAttribute
+                  ? document.querySelector("a.back").getAttribute("href") : null,
+                leftover_markdown: /\*\*|^\s*\|/m.test(document.body.innerText || ""),
+              })""", "returnByValue": True})
+            guide_payload = got.get("result", {})
+            guide_reading = ({"error": str(guide_payload["exceptionDetails"])[:200]}
+                             if guide_payload.get("exceptionDetails")
+                             else json.loads(guide_payload["result"]["value"]))
     finally:
         server.shutdown()
         process.terminate()
@@ -357,11 +388,34 @@ async def run(chrome: str) -> int:
             f"{header[:120]!r}——那段话是照 /v1/accounts 现算的，"
             "算不出来说明它又退回成一句写死的话，或者根本没渲染")
 
+    # 使用说明那一页
+    if guide_reading is None:
+        problems.append("**使用说明那一页没量到**——这不是通过。")
+    elif guide_reading.get("error"):
+        problems.append(f"使用说明那一页读不了：{guide_reading['error']}")
+    else:
+        if not guide_reading.get("h1"):
+            problems.append("**使用说明那一页是空的**——他点「怎么用」会看到一片白")
+        if guide_reading.get("sections", 0) < 4:
+            problems.append(
+                f"使用说明只渲染出 {guide_reading.get('sections')} 个小节——"
+                "那份说明有六节，少了说明转换掉了东西")
+        if guide_reading.get("overflows_sideways"):
+            problems.append("**使用说明那一页横向溢出**——里面那两张表撑破了，手机上没法读")
+        if guide_reading.get("leftover_markdown"):
+            problems.append("**使用说明那一页上有没转干净的 markdown**（`**` 或表格行）")
+        if guide_reading.get("back_link") != "/":
+            problems.append(f"使用说明那一页回不去资料库（返回链接={guide_reading.get('back_link')!r}）")
+    measured["guide_page"] = guide_reading
+
     print(json.dumps({
         "status": "PASS" if not problems else "FAIL",
         "cards_rendered": measured.get("cardCount"),
         "privacy_note_class_present": measured.get("hasPrivacyClass"),
         "problems": problems,
+        # **量到的东西要印出来。** 不印的话，"通过了"和"根本没量"长得一样——
+        # 我自己就先按一个不存在的键去读，读出 null 还以为是没量到。
+        "guide_page": guide_reading,
         "rendered_text": text[:400],
         # 同步中心那句限定语，**照原样印出来**：它是这次要亲眼看见的东西之一。
         "sync_centre_header": str(measured.get("syncHeader") or "").replace("\n", " ")[:200],
@@ -379,6 +433,7 @@ async def run(chrome: str) -> int:
             "假数据是最小形状。这证明「这一段会被画出来」，不证明「画出来的数是对的」。"
         ),
     }, ensure_ascii=False))
+
     return 0 if not problems else 4
 
 

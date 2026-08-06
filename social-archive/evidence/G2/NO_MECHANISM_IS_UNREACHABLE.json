@@ -24,6 +24,7 @@
     "apps/browser-extension/sidepanel.js",
     "apps/pwa/app.js",
     "apps/pwa/extension-install.html",
+    "apps/pwa/guide.html",
     "apps/pwa/index.html",
     "apps/pwa/sw.js"
   ],

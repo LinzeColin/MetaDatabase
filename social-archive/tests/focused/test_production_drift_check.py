@@ -360,9 +360,16 @@ def test_every_exempt_script_is_provably_unreferenced() -> None:
         path = ROOT / relative
         if path.is_file():
             callers.append((relative, _executable_text(path)))
+    # **只扫「有可能真的调起一个 python 脚本」的文件类型。**
+    #
+    # 第一版把 .html/.js/.json 也扫了，于是 2026-08-07 被自己生成的
+    # `apps/pwa/guide.html` 打红——那一页正文里有一句「这份说明由
+    # scripts/check_the_guide_matches_the_product.py 逐条核对过」。
+    # **那是说明在讲出处，不是调用**：一张 HTML 页面执行不了 python 脚本。
+    # 和先前 failure_copy.py 那次是同一类误报，只是换了个文件类型。
     for directory in ("src", "apps"):
         for path in (ROOT / directory).rglob("*"):
-            if path.is_file() and path.suffix in {".py", ".js", ".sh", ".html", ".json"}:
+            if path.is_file() and path.suffix in {".py", ".sh"}:
                 callers.append((str(path.relative_to(ROOT)), _executable_text(path)))
     for unit in (ROOT / "deploy/systemd").glob("*.service"):
         callers.append((f"deploy/systemd/{unit.name}", _executable_text(unit)))
