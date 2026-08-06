@@ -262,7 +262,42 @@ if [[ -n "$DRIFT" ]]; then
 fi
 printf '  所有 systemd 单元与仓里一致。\n'
 
+step "3.7) 这次到底要不要重建镜像"
+# 2026-08-07：我连着两次改的只有文档、判据和演练（容器从来不跑它们），
+# 而部署照旧走到第 4 步「构建前先看磁盘」，被 4.38G < 5G 拦下中止——
+# **一次根本不需要构建的部署，卡在了「构建前」的门上。**
+# 于是那些对生产零风险的改动全都推不上去。
+#
+# 镜像的输入是可以穷举的（就写在 Dockerfile 的 COPY 里），所以这件事有精确答案：
+# 逐字节比「仓里的 COPY 输入」和「镜像里 /app 那一份」。
+# **一切不确定（ssh 不通、读不出清单、一个文件都没数到）都算「要重建」**——
+# 白构建一次只是慢，漏构建一次是他打开界面发现改的东西没上去而部署报了成功。
+NEEDS_REBUILD=1
+if REBUILD_JSON="$(.venv/bin/python scripts/does_this_deploy_need_a_rebuild.py \
+      --host "$HOST" 2>&1)"; then
+  NEEDS_REBUILD=0
+fi
+printf '  %s\n' "$(printf '%s' "$REBUILD_JSON" | .venv/bin/python -c '
+import json, sys
+try:
+    payload = json.loads(sys.stdin.read())
+except Exception as exc:                       # 读不懂它说什么 → 上面已按「要重建」
+    print(f"判断输出读不懂（按「要重建」处理）：{exc}")
+else:
+    print(payload.get("why_zh", "（没给理由）"))
+    for name in payload.get("runtime_differs", []) + payload.get("missing_from_image", []):
+        print(f"    要重建，因为：{name}")
+')"
+if (( NEEDS_REBUILD == 0 )); then
+  printf '  **跳过构建与上线。** 服务在跑的那一份已经是仓里这一份，重建出来会一模一样。\n'
+  printf '  （源码已经 rsync 到主机；下面的验收照跑，不因为跳过构建而少一道。）\n'
+fi
+
 step "4) 构建前先看磁盘"
+if (( NEEDS_REBUILD == 0 )); then
+  printf '  跳过：这次不构建，不会新增镜像。\n'
+fi
+if (( NEEDS_REBUILD == 1 )); then
 # **每次部署都会造一个 1GB 的镜像，旧的那个变成孤儿。** 我一天里部署了十几次，
 # 生产盘从 8.3G 可用掉到 3.0G（93%）。紧接着 /v1/accounts 报过一次
 # `sqlite3.OperationalError: unable to open database file`——SQLite 建不出
@@ -328,8 +363,13 @@ if [[ -n "$FREE_KB" && "$FREE_KB" -lt "$MIN_FREE_KB" ]]; then
   · **任何情况下都不要用 docker system prune**（这台机器还跑着
     memory-atlas / gatus / coolify 等别人的项目）。"
 fi
+fi   # NEEDS_REBUILD == 1（不构建就不看磁盘：不会新增镜像）
 
 step "5) 构建并上线"
+if (( NEEDS_REBUILD == 0 )); then
+  printf '  跳过：镜像里那份已经和仓一致，重建出来会一模一样。\n'
+  printf '  **回滚点不动**——没造新镜像，就没有"上一个"需要退回去。\n'
+else
 # **钉住当前镜像放在这里，不放在第 3 步。**
 #
 # 2026-08-05 实测：原来第 3 步就打 :rollback-candidate，而部署可能在第 4 步
@@ -354,6 +394,7 @@ if [[ -n "$IMAGE_BEFORE" ]]; then
   printf '  回滚点已定在部署前那个镜像 %s 上（已核对）。\n' "${IMAGE_BEFORE#sha256:}" | cut -c1-56
 fi
 ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && docker compose up -d core-api core-worker 2>&1 | tail -4"
+fi   # NEEDS_REBUILD
 
 step "5.5) 另一个容器（cli-tools）是不是也跟上了这一版"
 # **部署只重建 core-api。** cli-tools 是另一个镜像，构建上下文是

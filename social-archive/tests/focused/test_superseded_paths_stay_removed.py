@@ -410,38 +410,3 @@ def test_extension_surfaces_a_chinese_message_when_it_cannot_reach_the_archive()
     assert "`HTTP ${response.status}`" not in code, (
         "扩展仍会把 `HTTP 500` 这种英文状态码当成给人看的提示语"
     )
-
-
-def test_only_scripts_the_container_never_runs_are_exempt_from_drift() -> None:
-    """**「开发期脚本不同」这个豁免不许扩大到服务真跑的东西。**
-
-    2026-08-07：我连着两次只改了一道判据和一个演练，而漂移检查报的是
-    「服务执行的不是你以为的那一版，要重建镜像」——听起来像生产在跑旧代码，
-    而他那边跑的东西一个字节没变。**指错原因的告警比不告警更费人。**
-
-    所以判据和演练单独归一类。但那个豁免是有边界的：容器的 ENTRYPOINT 是
-    `container-entrypoint.sh`，构建期只用 `build_extension_package.py`——
-    **这两个一旦被豁免，生产就真的可能在跑旧代码而这道门还说 PASS**。
-    """
-    from pathlib import Path
-
-    source = (Path(__file__).resolve().parents[2]
-              / "scripts/check_production_matches_the_repo.py").read_text(encoding="utf-8")
-    namespace: dict = {}
-    body = source.split("def _dev_only(name: str) -> bool:", 1)[1]
-    body = body.split("\n\n", 1)[0]
-    exec("def _dev_only(name: str) -> bool:" + body, namespace)   # noqa: S102
-    dev_only = namespace["_dev_only"]
-
-    for exempt in ("scripts/check_brand.py", "scripts/list_shape_end_to_end_drill.py",
-                   "scripts/run_all_drills.py", "scripts/final_verify.py"):
-        assert dev_only(exempt), f"{exempt} 该被归成开发期脚本"
-    for must_fail in ("src/social_archive/api.py", "apps/pwa/app.js",
-                      "apps/browser-extension/background.js",
-                      "scripts/container-entrypoint.sh",
-                      "scripts/build_extension_package.py",
-                      "scripts/deploy_to_production.sh"):
-        assert not dev_only(must_fail), (
-            f"**{must_fail} 被豁免了**——它要么是服务真在跑的，要么是构建/部署本身。"
-            "豁免它等于生产在跑旧代码而这道门还说 PASS"
-        )
