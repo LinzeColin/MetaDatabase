@@ -67,7 +67,7 @@ DEAD = {"ever_seen": True, "alive": False}
 
 
 def test_a_dead_worker_wins_over_everything_else() -> None:
-    """后台挂了是最要紧的一件事，不许被「插件有新版」盖过去。"""
+    """后台挂了是最要紧的一件事，不许被更新提示盖过去。"""
     out = _paint({"health": {"version": "9.9.9.9", "worker": DEAD},
                   "extension": {"detected": True, "compatible": True, "outdated": True}})
     assert "后台没在跑" in out["text"], out
@@ -78,20 +78,30 @@ def test_an_outdated_but_usable_extension_is_mentioned_not_blocked() -> None:
     """**这一支就是那个没人读的字段。** 说一句，但不拦。"""
     out = _paint({"health": {"version": "9.9.9.9", "worker": ALIVE},
                   "extension": {"detected": True, "compatible": True, "outdated": True}})
-    assert "插件有新版" in out["text"], f"「有新版本」那半边还是没说：{out}"
-    # **两件事都要说，少一件都会误导。**
-    # 只说「不影响使用」：v0.0.0.22 起不成立了——Reddit / Instagram 的取数路
-    # 在插件里，不更新就是没有，而资料库这边一切正常，他没理由去点更新。
-    # 只说「不更新就没有新平台」：他会以为自己又被挡在外面了（那是上一版的伤）。
-    assert "现在能用" in out["text"], "没说清它现在就能用，他会以为又被挡住了"
-    assert "更新" in out["text"], "没说清不更新会少什么，他不会有理由去更新"
+    assert "更新插件" in out["text"], f"「该更新了」那半边还是没说：{out}"
+    # **两件事都要说，少一件都会误导** —— 而"哪两件"随事实变过两次：
+    #
+    #   v0.0.0.21 之前：「插件可更新（不影响使用）」。当时是对的。
+    #   v0.0.0.22 加平台后：不更新就没有新平台，「不影响使用」开始误导。
+    #   同一版量到权限那件事后：**旧插件根本连不上账号**——权限申请在
+    #     service worker 里，那里任何权限都要不到（实测三种全抛 user gesture）。
+    #     于是「现在能用」这四个字也不成立了：他点「连接账号」不会有任何反应。
+    #
+    # 所以现在要说的是：**哪块坏了**（连不上账号）+ **哪块还好**（已存的内容）。
+    assert "连不上账号" in out["text"], (
+        "没说清旧插件连不上账号——他会一直去点那颗不会成功的按钮"
+    )
+    assert "已存的内容不受影响" in out["text"], (
+        "没说清已存的内容还在，他会以为数据出了问题"
+    )
+    assert "更新" in out["text"], "没说该做什么"
     assert out["cls"] == "connected", "只是有新版本，不该画成告警"
 
 
 def test_a_current_extension_says_nothing_extra() -> None:
     out = _paint({"health": {"version": "9.9.9.9", "worker": ALIVE},
                   "extension": {"detected": True, "compatible": True, "outdated": False}})
-    assert "插件有新版" not in out["text"], f"插件已是最新却还在提示更新：{out}"
+    assert "更新插件" not in out["text"], f"插件已是最新却还在提示更新：{out}"
     assert "已连接" in out["text"]
 
 

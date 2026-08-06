@@ -355,7 +355,7 @@
     // 而资料库这边一切正常，他没有任何理由去点更新。
     // 「不影响使用」会让他以为不用管，然后一直看不到新平台却不知道为什么。
     const spare = state.extension.detected && state.extension.compatible
-      && state.extension.outdated ? " · 插件有新版：现在能用，但新增的平台要更新插件后才有" : "";
+      && state.extension.outdated ? " · 请更新插件：旧版连不上账号（已存的内容不受影响）" : "";
     setServiceBadge("connected",
       `私人档案馆已连接 · v${health.version || PRODUCT_VERSION}${spare}`);
   }
@@ -1378,10 +1378,18 @@
         showToast("在这一页上点「连接账号」就行，不用跳走。");
         return;
       }
-      // 面板拿不到（插件太旧，还没有这一页）：退回打开插件账号页那条老路，
-      // 并**照实说是要跳走**，别让他以为点完就连上了。
-      const result = await postToExtension("SA_ACCOUNT_CONNECT", { platform });
-      showToast(result.message || `已打开插件的账号页——请在那一页点「连接账号」`);
+      // **面板拿不到 = 他装的是旧插件，而旧插件连不上账号。**
+      //
+      // 不是"少了个新界面"那么轻。旧插件把权限申请放在 service worker 里，
+      // 而那里**任何权限都要不到**（实测三种全抛 user gesture）——
+      // 也就是说他点「连接账号」，授权框根本不会弹，然后什么也不会发生。
+      // 那正是他这些天一直撞到的那堵墙。
+      //
+      // 所以这里不能只说「已打开插件的账号页」——那会把他送去再撞一次。
+      // 直接说清：先更新插件，并把安装页打开。
+      showToast("你装的是旧版插件，连接账号在旧版上不会成功——"
+                + "先更新插件（正在为你打开更新说明），更新后回到这里再点一次。", "needs");
+      window.open("/extension-install", "_blank", "noopener");
       setTimeout(() => loadAccountsAndDestinations().catch(() => {}), 1200);
     } catch (error) {
       showToast(`${meta.label}：${error.message}`, "error");
