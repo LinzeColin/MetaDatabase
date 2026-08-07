@@ -106,3 +106,54 @@ def test_a_missing_field_counts_as_on_not_off() -> None:
     assert "acc-old" in _queued(accounts), (
         "服务端没给这个字段，扩展就把他的自动同步关了——"
         "缺失是「不知道」，不是「关」")
+
+
+@pytest.mark.skipif(not BACKGROUND.is_file(), reason="background.js 不存在")
+def test_reconnecting_chrome_bookmarks_really_reconnects_it() -> None:
+    r"""**「连接」这个词得当真**——它不能只排一次同步就说连上了。
+
+    `connectChromeBookmarks` 原来是 `if (existing) { 排同步; return 已连接 }`：
+    账号已存在就**根本不调连接接口**。他要是先断开过，那一行仍是
+    `disconnected` + `auto_sync_enabled=0`，而界面对他说「Chrome 书签已连接」。
+
+    ★ 这个错以前被另一个错盖住：那次同步成功会把状态翻回 connected，
+    而定时任务当时只看状态，于是照样跑。今天给定时任务加上
+    「看 auto_sync_enabled」之后，盖子没了——它会被永久挡在门外。
+    **两个错互相抵消，修一个就露出另一个**（这个仓在这上面栽过）。
+
+    所以这条判据看的是**有没有真的走连接接口**，不是界面说了什么。
+    """
+    import json as _json
+
+    body = r"""
+    const storage = {}, alarms = {}, calls = [];
+    const worker = bootWorker(storage, alarms, { onFetch: (url, opts) => {
+      calls.push(String(url).replace(/^https?:\/\/[^/]+/, ''));
+      if (url.includes('/v1/accounts/connect/') && url.includes('/complete'))
+        return { account_id: 'acc-bm', first_sync: { sync_run_id: 'run-1' } };
+      if (url.includes('/v1/accounts/connect/start')) return { connection_ref: 'ref-1' };
+      if (url.includes('/v1/accounts')) return { items: __A__ };
+      if (url.includes('/v1/sync-runs')) return { items: [] };
+      return { items: [] };
+    }});
+    const out = await worker.connectChromeBookmarks();
+    console.log(JSON.stringify({ state: out && out.state, calls }));
+    """
+    disconnected = [{"id": "acc-bm", "platform": "generic-web",
+                     "external_account_id": "chrome-bookmarks",
+                     "connection_state": "disconnected", "auto_sync_enabled": False}]
+    result = _harness._node(_harness._script(
+        body.replace("__A__", _json.dumps(disconnected))))
+    joined = " ".join(result["calls"])
+    assert "/complete" in joined, (
+        f"账号是断开的，「连接」却没走连接接口：{result['calls']}——"
+        "它只排了一次同步，然后对他说「已连接」；那一行还是 disconnected，"
+        "自动同步永远不会自己跑起来")
+
+    # **正例也要有**：本来就连着的，不该每次都重跑一遍连接。
+    connected = [{**disconnected[0], "connection_state": "connected",
+                  "auto_sync_enabled": True}]
+    result = _harness._node(_harness._script(
+        body.replace("__A__", _json.dumps(connected))))
+    assert "/complete" not in " ".join(result["calls"]), (
+        f"已经连着的账号又跑了一遍连接流程：{result['calls']}")

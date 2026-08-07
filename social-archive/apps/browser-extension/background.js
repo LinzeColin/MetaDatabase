@@ -939,7 +939,21 @@ async function connectChromeBookmarks() {
   const granted = await chrome.permissions.request({ permissions: ["bookmarks"] });
   if (!granted) return { ok: false, state: "unauthorized", error: "你没有授权读取 Chrome 书签" };
   const existing = (await listAccounts()).find(item => item.platform === "generic-web" && item.external_account_id === "chrome-bookmarks");
-  if (existing) {
+  // **这条捷径只对「本来就连着」的账号成立**（2026-08-07）。
+  //
+  // 原来是 `if (existing)`：账号已存在就只排一次同步，**根本不调连接接口**，
+  // 然后对他说「Chrome 书签已连接」。可他要是先断开过，那一行仍旧是
+  // `disconnected` + `auto_sync_enabled=0`——**界面说连上了，账号还是断的。**
+  //
+  // 以前这个错被另一个错盖住了：那次同步成功会调
+  // `set_source_account_state(id,"connected")` 把状态翻回来，而定时任务
+  // 当时只看状态，于是照样跑。今天给定时任务加上「看 auto_sync_enabled」之后，
+  // 盖子没了——它会被永久挡在门外。**两个错互相抵消，修一个就露出另一个。**
+  //
+  // 走完整的 start/complete 是安全的：upsert 以 (platform, external_account_id)
+  // 为键，认领原来那一行而不是开一个新的（test_reconnecting_adopts_the_
+  // existing_account_instead_of_forking 钉着这一条）。
+  if (existing && ["connected", "degraded"].includes(existing.connection_state)) {
     const queued = await enqueueAccountSync({ accountId: existing.id, triggerType: "manual" });
     return { ...queued, state: "connected", message: "Chrome 书签已连接，首次全量同步已进入后台队列" };
   }
