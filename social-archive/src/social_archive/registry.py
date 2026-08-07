@@ -340,8 +340,32 @@ class ConnectorRegistry:
             message = str(probe.get("message_zh") or "")
             if not message and state == row.get("state"):
                 message = str(row.get("last_message_zh") or "")
+            # **服务端探不到 ≠ 他那边同步不了。**
+            #
+            # 2026-08-07 打生产读 /v1/status：小红书 degraded / HEALTH_PROBE_FAILED
+            # （detail: ConnectError）、抖音和快手 WORKER_PROBE_OR_CALL_FAILED，
+            # 三条的文案都是「这个来源暂时不可用；先用"保存当前页面"」。
+            #
+            # **对这三家那句是错的。** 它们靠的是**他浏览器里的登录状态**
+            # （形状识别那条路），服务端本来就没有、按 INV-DOMESTIC-COOKIE-STAYS
+            # 也永远不该有他的 Cookie——服务端探不通是**预期**，不是故障。
+            # 而同一时刻连接面板正给它们画着能用的「连接账号」：
+            # **两处对同一件事说反话**，他照哪一句都不对。
+            #
+            # 判断依据用 SERVER_ACCOUNT_CONNECTORS：不在里面的，
+            # 同步就不经过服务端，服务端探针说什么都不该被读成"这个来源不行"。
+            from .account_sync import SERVER_ACCOUNT_CONNECTORS
+            browser_side = (connector_id in SYNCABLE_NOW
+                            and connector_id not in SERVER_ACCOUNT_CONNECTORS)
+            if not message and browser_side and error_code:
+                message = ("这个来源是在你自己的浏览器里同步的，服务器这边探不到它很正常，"
+                           "不影响你在资料库上点「连接账号」。")
+                next_action = "在资料库上点「连接账号」即可"
             if not message:
-                message = f"状态代码：{error_code}。{next_action}" if error_code else next_action
+                # **不许把内部码摆给他看。**
+                # 这一处 registry.py 自己的注释里就记着同样的事故
+                # （x 那条曾显示「状态代码：X_ZERO_COST_NOT_CONFIRMED」）。
+                message = next_action
             result.append({
                 "connector_id":connector_id,"display_name":display,"state":state,
                 "policy_gate":row.get("policy_gate","pass"),"auth_gate":row.get("auth_gate","pass" if state=="healthy" else "unknown"),

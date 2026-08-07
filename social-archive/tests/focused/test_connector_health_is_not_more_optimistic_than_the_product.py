@@ -83,3 +83,29 @@ def test_the_same_situation_gets_the_same_state(settings, store) -> None:
     assert set(states.values()) == {"blocked_environment"}, (
         f"同一处境却有多种状态：{states}"
     )
+
+
+def test_a_browser_side_platform_is_not_reported_as_unavailable():
+    """**服务端探不到 ≠ 他那边同步不了。**
+
+    2026-08-07 打生产读 /v1/status：小红书 `HEALTH_PROBE_FAILED`（detail 是
+    ConnectError）、抖音和快手 `WORKER_PROBE_OR_CALL_FAILED`，三条文案都是
+
+        状态代码：HEALTH_PROBE_FAILED。这个来源暂时不可用；先用"保存当前页面"。
+
+    **两处不对：** 把内部码摆给他看（registry.py 自己的注释里就记着 x 那次
+    同样的事故）；以及**「这个来源暂时不可用」对这三家是错的**——它们靠的是
+    他浏览器里的登录状态，服务端按 INV-DOMESTIC-COOKIE-STAYS 永远不该有他的
+    Cookie，**探不通是预期不是故障**。而同一时刻连接面板正给它们画着能用的
+    「连接账号」：两处对同一件事说反话。
+    """
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[2]
+              / "src/social_archive/registry.py").read_text(encoding="utf-8")
+    assert 'message = f"状态代码：{error_code}。{next_action}"' not in source, (
+        "又把内部码拼进给用户看的句子里了")
+    assert "SERVER_ACCOUNT_CONNECTORS" in source, (
+        "没有区分「走服务端」和「走他浏览器」——服务端探针对后者说什么都不作数")
+    assert "服务器这边探不到它很正常" in source, (
+        "浏览器侧平台探测失败时，没有给出那句解释")
