@@ -154,6 +154,71 @@ def _canonical_s3_key(original_sha256: str) -> str:
     return f"primary-objects/sha256/{original_sha256[:2]}/{original_sha256[2:4]}/{original_sha256}.age"
 
 
+def _s3_head(descriptor: dict[str, Any], *, store_id: str, config: dict[str, str]):
+    """HEAD 一次并校验元数据。**不下载、不解密。**
+
+    抽出来是因为「东西还在不在」和「东西能不能还原」是两个问题，
+    而后者需要 age 私钥。2026-08-07 想在生产上确认「加密存三份」是否
+    仍然成立，发现**唯一的核对入口整条都被私钥挡着**——而
+    `object_replica` 里那三行 `verified` 是**写入当时**的记录，
+    不代表对象今天还在（这个仓已经因为「记录说 verified」栽过）。
+    """
+    receipt = descriptor["replicas"][store_id]
+    expected_key = _canonical_s3_key(descriptor["original_sha256"])
+    if receipt["object_key"] != expected_key:
+        raise RecoveryFailure("S3_RECEIPT_KEY_MISMATCH", f"{store_id.upper()} 对象键不符合内容寻址合同")
+    client = create_s3_client(
+        endpoint_url=config["endpoint"],
+        access_key_id=config["access_key_id"],
+        secret_access_key=config["secret_access_key"],
+        region_name=config["region_name"],
+        addressing_style=config["addressing_style"],
+        s3_compatibility=config["s3_compatibility"],
+    )
+    head = client.head_object(Bucket=config["bucket"], Key=expected_key)
+    metadata = {str(key).lower(): str(value) for key, value in (head.get("Metadata") or {}).items()}
+    if (
+        metadata.get("original-sha256", "").lower() != descriptor["original_sha256"]
+        or metadata.get("cipher-sha256", "").lower() != descriptor["cipher_sha256"]
+        or metadata.get("encryption") != "age-x25519"
+    ):
+        raise RecoveryFailure("S3_METADATA_MISMATCH", f"{store_id.upper()} 远端元数据与收据不一致")
+    return client, expected_key, head
+
+
+def presence_s3(descriptor: dict[str, Any], *, store_id: str, config: dict[str, str]) -> dict[str, Any]:
+    try:
+        _client, key, head = _s3_head(descriptor, store_id=store_id, config=config)
+    except RecoveryFailure:
+        raise
+    except Exception as exc:  # noqa: BLE001 - 不泄漏供应商诊断或凭据
+        raise RecoveryFailure("S3_OBJECT_MISSING", f"{store_id.upper()} 上找不到这个对象") from exc
+    return {"object_key": key, "byte_size": int(head.get("ContentLength") or 0),
+            "encryption": "age-x25519"}
+
+
+def presence_github(descriptor: dict[str, Any], *, settings: Settings) -> dict[str, Any]:
+    repository = str(settings.github_archive_repository or "").strip()
+    if not repository:
+        raise RecoveryBlocked("GITHUB_REPOSITORY_MISSING", "缺少 GitHub Vault 仓配置")
+    repository, tag, member = _github_receipt_location(descriptor, repository)
+    if not shutil.which("gh"):
+        raise RecoveryBlocked("GH_BINARY_MISSING", "缺少 gh CLI，无法读取 GitHub Vault")
+    environment = _github_environment(settings.github_token_file)
+    try:
+        release = json.loads(_run_gh(
+            ["gh", "release", "view", tag, "--repo", repository, "--json", "isDraft,assets"],
+            env=environment))
+    except (ValueError, json.JSONDecodeError) as exc:
+        raise RecoveryFailure("GITHUB_RELEASE_READ_FAILED", "GitHub Vault Draft 状态不可验证") from exc
+    if not isinstance(release, dict) or release.get("isDraft") is not True:
+        raise RecoveryFailure("GITHUB_RELEASE_NOT_DRAFT", "GitHub 恢复副本不是 Draft Release")
+    assets = [str(item.get("name") or "") for item in (release.get("assets") or [])]
+    if not assets:
+        raise RecoveryFailure("GITHUB_ASSET_MISSING", "这个 Draft Release 上一个附件都没有")
+    return {"release_tag": tag, "asset_count": len(assets), "member": member}
+
+
 def download_s3_ciphertext(
     descriptor: dict[str, Any],
     *,
@@ -161,27 +226,8 @@ def download_s3_ciphertext(
     config: dict[str, str],
     target: Path,
 ) -> None:
-    receipt = descriptor["replicas"][store_id]
-    expected_key = _canonical_s3_key(descriptor["original_sha256"])
-    if receipt["object_key"] != expected_key:
-        raise RecoveryFailure("S3_RECEIPT_KEY_MISMATCH", f"{store_id.upper()} 对象键不符合内容寻址合同")
     try:
-        client = create_s3_client(
-            endpoint_url=config["endpoint"],
-            access_key_id=config["access_key_id"],
-            secret_access_key=config["secret_access_key"],
-            region_name=config["region_name"],
-            addressing_style=config["addressing_style"],
-            s3_compatibility=config["s3_compatibility"],
-        )
-        head = client.head_object(Bucket=config["bucket"], Key=expected_key)
-        metadata = {str(key).lower(): str(value) for key, value in (head.get("Metadata") or {}).items()}
-        if (
-            metadata.get("original-sha256", "").lower() != descriptor["original_sha256"]
-            or metadata.get("cipher-sha256", "").lower() != descriptor["cipher_sha256"]
-            or metadata.get("encryption") != "age-x25519"
-        ):
-            raise RecoveryFailure("S3_METADATA_MISMATCH", f"{store_id.upper()} 远端元数据与收据不一致")
+        client, expected_key, head = _s3_head(descriptor, store_id=store_id, config=config)
         target.parent.mkdir(parents=True, exist_ok=True)
         temporary = target.with_name(f".{target.name}.download")
         try:
@@ -452,6 +498,12 @@ def main() -> int:
     parser.add_argument("--target")
     parser.add_argument("--runtime-db")
     parser.add_argument("--verify-only", action="store_true")
+    # **「还在不在」不需要私钥。**（2026-08-07）
+    # verify-only 是「下载并解密还原一遍」，那当然要私钥；而灾难恢复的第一问
+    # 是「东西还在吗」，它该能在任何一台机器上问得出来。原先这条路整个被
+    # 私钥挡着，于是「加密存三份」这句承诺在生产上**没有任何办法当场核实**。
+    parser.add_argument("--presence-only", action="store_true",
+                        help="只确认副本还在（HEAD / 列附件），不下载、不解密、不需要 age 私钥")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     try:
@@ -475,6 +527,22 @@ def main() -> int:
                 "original_sha256": descriptor["original_sha256"],
                 "cipher_sha256": descriptor["cipher_sha256"],
                 "identity_configured": bool(identity and Path(identity).is_file()),
+            }, ensure_ascii=False))
+            return 0
+        if args.presence_only:
+            if args.from_store in {"r2", "oci"}:
+                found = presence_s3(descriptor, store_id=args.from_store,
+                                    config=_s3_config(args.from_store))
+            else:
+                found = presence_github(descriptor, settings=settings)
+            print(json.dumps({
+                "status": "PASS", "mode": "presence_only",
+                "source_store": args.from_store,
+                "artifact_id": descriptor["artifact_id"],
+                "found": found,
+                "what_this_does_not_prove_zh": (
+                    "只证明**副本还在、远端元数据对得上**。能不能真的还原出原文"
+                    "要 --verify-only（那一档需要 age 私钥）。"),
             }, ensure_ascii=False))
             return 0
         if not identity:
