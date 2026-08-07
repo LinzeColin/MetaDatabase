@@ -35,6 +35,7 @@ api 域名，根本不是那一个。**我量的是一个他那边不存在的�
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import importlib.util
 import json
 import os
@@ -50,6 +51,8 @@ import websockets
 
 ROOT = Path(__file__).resolve().parents[1]
 ZIP = ROOT / "dist" / "social-archive-extension.zip"
+DOWNLOAD_URL = ("https://social-archive-api.linzezhang.com"
+                "/downloads/social-archive-extension.zip")
 DEBUG_PORT = 9384
 # 资料库（PWA）那个域名在 Cloudflare Access 后面——**它是负对照，不是端点**。
 LIBRARY_HOST = "https://social-archive.linzezhang.com"
@@ -280,7 +283,35 @@ async def run(chrome: str, token: str) -> int:
 
     workspace = Path(tempfile.mkdtemp(prefix="sa-production-"))
     unpacked = workspace / "extension"
-    with zipfile.ZipFile(ZIP) as archive:
+
+    # **解的是他下载到的那一份，不是我本地打的那一份。**
+    #
+    # 2026-08-07 之前这里解 `dist/social-archive-extension.zip`——我这台机器上
+    # 刚打出来的那个。那和「他点下载拿到什么」是两件事，而这个演练的题目
+    # 恰恰是后者。今天两者 sha256 一致（45d11d14…），但**一致是要量出来的，
+    # 不是假定的**：哪天部署漏了一步，本地这份照样是新的。
+    downloaded = workspace / "downloaded.zip"
+    served_sha = local_sha = ""
+    try:
+        # **要带浏览器 UA。** 2026-08-07 实测：默认的 `Python-urllib/3.x`
+        # 被 Cloudflare 直接 403，换成浏览器 UA 就 200。
+        # 他用 Chrome 点下载不受影响，但**任何脚本去取这个包都会被挡**——
+        # 包括这个演练。第一次跑就报「下载不到他那份包」，
+        # 而包本身是好好的。
+        request = urllib.request.Request(
+            DOWNLOAD_URL, headers={"User-Agent": "Mozilla/5.0 (drill)"})
+        with urllib.request.urlopen(request, timeout=90) as response:
+            downloaded.write_bytes(response.read())
+        served_sha = hashlib.sha256(downloaded.read_bytes()).hexdigest()
+        source = downloaded
+    except Exception as error:                       # noqa: BLE001
+        problems_early = f"下载不到他那份包（{DOWNLOAD_URL}）：{str(error)[:120]}"
+        source = ZIP
+    else:
+        problems_early = ""
+    if ZIP.is_file():
+        local_sha = hashlib.sha256(ZIP.read_bytes()).hexdigest()
+    with zipfile.ZipFile(source) as archive:
         archive.extractall(unpacked)
 
     # **注意这里没有 --host-resolver-rules。** 这正是它和其余演练的唯一区别：
@@ -300,7 +331,11 @@ async def run(chrome: str, token: str) -> int:
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     base = f"http://127.0.0.1:{DEBUG_PORT}"
     measured: dict = {}
-    problems: list[str] = []
+    problems: list[str] = [problems_early] if problems_early else []
+    if served_sha and local_sha and served_sha != local_sha:
+        problems.append(
+            f"**他下载到的包和仓里刚打的不是同一个**（下载 {served_sha[:16]}，"
+            f"本地 {local_sha[:16]}）——发出去的不是这一版代码。")
     try:
         for _ in range(40):
             try:
@@ -466,6 +501,11 @@ async def run(chrome: str, token: str) -> int:
         "status": status,
         "endpoint": measured.get("endpoint_the_extension_itself_uses"),
         "token_supplied": bool(token),          # **只记有没有，不记是什么**
+        "package_he_would_download": {
+            "url": DOWNLOAD_URL,
+            "sha256": served_sha[:16] or "（没下到）",
+            "same_as_repo_build": bool(served_sha) and served_sha == local_sha,
+        },
         "measured_in_real_chrome": measured,
         "problems": problems,
         "what_this_answers_zh": (

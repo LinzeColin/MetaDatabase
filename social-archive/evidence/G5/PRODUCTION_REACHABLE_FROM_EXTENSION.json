@@ -2,9 +2,14 @@
   "status": "PASS",
   "endpoint": "https://social-archive-api.linzezhang.com",
   "token_supplied": true,
+  "package_he_would_download": {
+    "url": "https://social-archive-api.linzezhang.com/downloads/social-archive-extension.zip",
+    "sha256": "45d11d14ca0e40f7",
+    "same_as_repo_build": true
+  },
   "measured_in_real_chrome": {
     "endpoint_the_extension_itself_uses": "https://social-archive-api.linzezhang.com",
-    "api_ms": 483,
+    "api_ms": 539,
     "api_call": "resolved",
     "api_keys": [
       "items",
