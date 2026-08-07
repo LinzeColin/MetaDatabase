@@ -82,6 +82,8 @@ GAP = "**还有 192 条从来没送到这里。**"
 PRIVACY = "开锁用的令牌只存在你的服务器上，插件拿不到。"
 
 FAKE: dict[str, object] = {
+    # PWA_RENDER_FIXTURE：这一整块是**假接口的响应夹具**，不是平台表。
+    # 里面出现哪几个平台只取决于"这一屏要验什么"，列全九个不会多验到任何东西。
     # /health 夹具（v0.0.0.18）。**worker 故意设成挂了**——
     # 这一栏存在的全部意义就是那种情况下界面说什么。
     # 设成活着的话，这条断言永远走不到它要验的那一支。
@@ -118,7 +120,15 @@ FAKE: dict[str, object] = {
     # 而 index.html 里写死的那五个（AI与技术/商业与投资/…）只是初始占位。
     # 2026-08-06 对着生产量过：那五个各返回 0 条，而 facets 里唯一的
     # 「未分类」是 193 条——静态那份从头到尾没有一个能选出东西来。
-    "/v1/library": {"items": [], "total": 0,
+    # **夹具里必须有一条"没有标题"的**：Owner 库里 193 条有 6 条是这样
+    # （archive_status 是「完整」，title 是空的）。没有它，那条兜底永远验不到。
+    "/v1/library": {"items": [
+        {"id": "cnt_no_title", "platform": "douyin", "title": "",
+         "canonical_url": "https://www.douyin.com/video/7584040037701733683?source=Baidu",
+         "archive_status": "完整", "primary_relation": "favorite",
+         "relations": ["favorite"], "collections": [], "export_destinations": [],
+         "media_count": 0, "artifact_count": 0},
+    ], "total": 1,
                     "facets": {"platforms": [],
                                # 关系 facet：**「观看历史」此前不在写死的四个里**，
                                # 而它是 Owner 库里最大的一组（193 条里 71 条）。
@@ -236,6 +246,13 @@ READ_DOM = r"""
     relationOptions: [...(document.getElementById("relationFilter")?.options || [])]
                        .map(o => o.value + "=" + o.textContent),
     cardCount: cards.length,
+    // **内容条目的标题原样取回来。**
+    //
+    // 上面那个 `cards` 是 `.destination-live-card`（目的地卡片），
+    // 不是内容——我第一版拿它去验标题，读回来的是「Obsidian」，
+    // 反例当然不会红。**判据指错了对象。** 内容在 #tableBody 的行里。
+    itemRowsRaw: [...document.querySelectorAll("#tableBody tr")]
+      .map(row => (row.innerText || "").replace(/\s+/g, " | ").slice(0, 140)),
     // 整张卡的可见文字——那两段话必须在里面
     text: cards.map(c => c.innerText).join("\n---\n").slice(0, 1200),
     hasPrivacyClass: !!document.querySelector(".destination-live-card .privacy-note"),
@@ -363,6 +380,19 @@ async def run(chrome: str) -> int:
                           "message_zh": "页面主脚本一次都没被请求到——**这不是通过也不是产品缺陷**，"
                                         "是这个假服务端没把它喂出去。"}, ensure_ascii=False))
         return 4
+    # **没有标题的那条，卡片上要能认得出是哪一条。**
+    #
+    # 2026-08-07 把他生产库 193 条全拉下来看：6 条 title 是空的，
+    # 而 archive_status 是「完整」。原来兜底成一句固定的「无标题内容」——
+    # 六张卡片长得一模一样，他要么全点开，要么当它们不存在。
+    rows_raw = measured.get("itemRowsRaw") or []
+    if rows_raw and any("无标题内容" in row for row in rows_raw):
+        problems.append(
+            "**没有标题的条目显示成「无标题内容」**——他库里有 6 条是这样，"
+            "六行长得一模一样，他分不出哪行是哪条。用链接的尾巴认人。")
+    if rows_raw and not any("douyin.com/video/7584040037701733683" in row for row in rows_raw):
+        problems.append(
+            f"没有标题的那条，行里认不出是哪一条：{rows_raw!r}")
     if not measured.get("cardCount"):
         problems.append("**一张目的地卡片都没渲染出来**——那这次什么都没验到")
     if COVERAGE not in text:
@@ -463,6 +493,8 @@ async def run(chrome: str) -> int:
     print(json.dumps({
         "status": "PASS" if not problems else "FAIL",
         "cards_rendered": measured.get("cardCount"),
+        # **量到的要印出来**：不印的话「通过了」和「根本没量」长得一样。
+        "item_rows_raw": measured.get("itemRowsRaw"),
         "privacy_note_class_present": measured.get("hasPrivacyClass"),
         "problems": problems,
         # **量到的东西要印出来。** 不印的话，"通过了"和"根本没量"长得一样——

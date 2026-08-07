@@ -549,6 +549,24 @@ async def run(chrome: str, platform: str) -> int:
         problems.append(
             f"**有条目没带上封面**：{without_media[:3]}——他打开资料库看到的是一排纯文字，"
             "而 CaptureRequest 一直支持 media_urls、批次协议也一直透传，缺的只是取数那一步")
+    # **发布时间要一路落到档案馆。**
+    #
+    # 2026-08-07 量他生产库：193 条里只有 2 条有 published_at。B 站那条路
+    # 取了（bilibili-reader.js:129 的 `media.pubtime`），而**形状识别这条路
+    # 把时间只用于打分、没写进条目**——抖音/小红书/快手/Reddit/Instagram
+    # 五个平台的发布时间全丢了。键早就在 TIME_KEYS 里，值就在假响应的
+    # `create_time` 上，缺的只是把它放进 items.push 那一步。
+    #
+    # 和 media_urls 那条是同一族：**扩展取到了 ≠ 落进了档案馆。**
+    without_time = [item.get("url") for item in landed if not item.get("published_at")]
+    if without_time:
+        problems.append(
+            f"**有条目没带上发布时间**：{without_time[:3]}——他表格里那一列会是空的，"
+            "而假响应里 create_time 就在那儿")
+    bad_time = [item.get("published_at") for item in landed
+                if item.get("published_at") and not str(item["published_at"]).startswith("20")]
+    if bad_time:
+        problems.append(f"**发布时间不像日期**：{bad_time[:3]}——宁可空着也不许印错的")
     if len(landed) != ITEM_COUNT:
         problems.append(f"档案馆只收到 {len(landed)} 条，页面上有 {ITEM_COUNT} 条")
 

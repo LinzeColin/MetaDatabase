@@ -67,6 +67,10 @@ KNOWN = ("xiaohongshu", "douyin", "kuaishou", "bilibili", "instagram", "reddit",
 # `platforms`——一行是全平台、一行是 all-cn 的国内子集。**两者分不开**，
 # 于是要么一起放行（漏掉真的缺失），要么一起报错（冤枉有意的子集）。
 DELIBERATE_SUBSETS = {
+    # pwa_render_drill.py 的 FAKE 块：假接口的响应夹具，不是平台表。
+    # 里面有哪几个平台只取决于"这一屏要验什么"——2026-08-07 为了验
+    # 「没有标题的条目怎么显示」加了一条抖音，就凑够三个被当成表了。
+    "PWA_RENDER_FIXTURE": "PWA 渲染演练的响应夹具；平台只按这一屏要验的东西放",
     # popup_states_drill.py 里那两处：**不是平台表，是造三个账号的夹具**。
     # 它验的是「从没连过 / 连过后来断了 / 连着」三种状态下弹窗说什么，
     # 和平台是谁无关；照抄的是 Owner 生产库里那三个账号的形状，

@@ -46,8 +46,14 @@
   const TITLE_KEYS = ["title", "desc", "description", "caption", "display_title",
                       "content", "text", "name"];
   const AUTHOR_KEYS = ["author", "user", "nickname", "owner", "upper", "user_name"];
+  // **这张表是按真实平台的字段名列的，不是我编的同义词。**
+  // 2026-08-07 加了后四个：演练的假响应用的就是各家真实的键
+  // （Reddit `created_utc`、Instagram `taken_at` / 网页版 `taken_at_timestamp`、
+  // B 站 `pubtime`），而它们一个都不在这张表里——**于是那三家的发布时间
+  // 在形状识别这条路上全丢了**，而键就写在响应里。
   const TIME_KEYS = ["create_time", "created_at", "time", "timestamp", "publish_time",
-                     "fav_time", "collect_time"];
+                     "fav_time", "collect_time",
+                     "created_utc", "taken_at", "taken_at_timestamp", "pubtime"];
 
   // 能拿来拼网址的「链接字段」和「短码」。**和 id 分开**：
   // id 是用来认「这是一批同类条目」的，链接是用来打开的，两件事。
@@ -375,6 +381,38 @@
    * 半年后点开才发现全是 404，而那时已经无从追溯。宁可当场说
    * 「这次 12 条里有 5 条说不出网址」。
    */
+  /** 把页面上那个时间字段变成 ISO；**看不懂就返回 null，绝不猜**。
+   *
+   * 2026-08-07 量他生产库：193 条里只有 2 条有 published_at。B 站那条路
+   * （bilibili-reader.js:129）取了 `media.pubtime`，而**形状识别这条路
+   * 把时间只用于打分、没写进条目**——抖音/小红书/快手/Reddit/Instagram
+   * 五个平台的发布时间就这么丢了。键早就在 TIME_KEYS 里，值就在手边。
+   *
+   * 三种形态都见过：秒（10 位）、毫秒（13 位）、ISO 字符串。
+   * **拿不准的一律返回 null**：表格里空着，好过印一个错的日期——
+   * 错的日期会被他当成真的，而空着他知道是没有。
+   */
+  function isoFromLooseTime(value) {
+    if (value === null || value === undefined || value === "") return null;
+    let ms = null;
+    if (typeof value === "number" || /^\d{9,14}$/.test(String(value).trim())) {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return null;
+      ms = n < 1e11 ? n * 1000 : n;            // 10 位是秒，13 位是毫秒
+    } else if (typeof value === "string") {
+      const parsed = Date.parse(value);
+      if (Number.isNaN(parsed)) return null;
+      ms = parsed;
+    } else {
+      return null;
+    }
+    // **离谱的一律丢掉。** 2005 年之前、或者比现在还晚一天以上，
+    // 多半是把别的数字当成了时间戳。
+    const floor = Date.UTC(2005, 0, 1);
+    if (!(ms > floor && ms < Date.now() + 86400000)) return null;
+    return new Date(ms).toISOString();
+  }
+
   function normaliseItems(best, { platform, urlBuilder, origin } = {}) {
     const items = [];
     const skipped = [];
@@ -421,6 +459,8 @@
         media_urls: media,
         external_content_id: externalId.slice(0, 512) || null,
         title: titleHit ? String(titleHit.value).slice(0, 2048) : null,
+        published_at: isoFromLooseTime(
+          (findKeyDeep(core, TIME_KEYS, { scalarOnly: true, maxDepth: 2 }) || {}).value),
         author_name: (typeof authorRaw === "string" ? authorRaw
           : authorRaw && typeof authorRaw === "object"
             ? String(authorRaw.nickname || authorRaw.name || authorRaw.user_name

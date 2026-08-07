@@ -1,7 +1,7 @@
 {
   "status": "PASS",
   "platform": "reddit",
-  "bytes_sent_to_archive": 4713,
+  "bytes_sent_to_archive": 5021,
   "chrome_cookies_calls": [],
   "cookies_api_was_available": true,
   "domestic_cookie_stayed_in_browser": true,
@@ -55,9 +55,9 @@
   "captured_urls": [
     "https://www.reddit.com/api/log",
     "https://www.reddit.com/api/config",
+    "https://www.reddit.com/svc/saved",
     "https://www.reddit.com/api/user",
-    "https://www.reddit.com/svc/best",
-    "https://www.reddit.com/svc/saved"
+    "https://www.reddit.com/svc/best"
   ],
   "recognised": "https://www.reddit.com/svc/saved",
   "matched_path": "data.children",

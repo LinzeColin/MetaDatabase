@@ -32,6 +32,16 @@
   const platformOrder = ["all", "xhs", "dy", "ks", "bili", "x", "reddit", "ins", "web"];
   const serverToUiPlatform = Object.fromEntries(Object.entries(platformMeta).filter(([key]) => key !== "all").map(([key, value]) => [value.server, key]));
 
+  /** 没有标题时，用链接的尾巴认人——比六张一模一样的「无标题内容」有用。 */
+  function _urlLabel(url) {
+    if (!url) return "";
+    try {
+      const parsed = new URL(url);
+      const tail = parsed.pathname.replace(/\/+$/, "").split("/").filter(Boolean).slice(-2).join("/");
+      return tail ? `${parsed.hostname.replace(/^www\./, "")}/${tail}` : parsed.hostname;
+    } catch (_) { return ""; }
+  }
+
   const relationLabels = {
     // **每个关系值一个独一无二的中文名。**
     // 2026-08-06：`saved` 与 `favorite` 都叫「收藏」、`like` 与 `upvoted` 都叫「点赞」。
@@ -312,7 +322,14 @@
       id: String(item.id), platform, savedAt: item.relation_time || item.last_observed_at,
       publishedAt: item.published_at, relation, relationRaw: item.primary_relation,
       topic: item.topic || "未分类", keywords: Array.isArray(item.keywords) ? item.keywords : [],
-      title: item.title || "无标题内容", content: item.summary || "已保留结构化关系、原始链接和归档信息。",
+      // **「无标题内容」×6 张，他分不出哪张是哪张。**
+      //
+      // 2026-08-07 把他生产库里 193 条全拉下来看：6 条 title 是空的，
+      // 而 archive_status 是「完整」。兜底成一句固定的话不算错，但那六张卡片
+      // 长得一模一样——他要么全点开，要么当它们不存在。
+      // 用链接的尾巴认人：`douyin.com/video/7584040037701733683` 一眼能对上。
+      title: item.title || _urlLabel(item.canonical_url) || "无标题内容",
+      content: item.summary || "已保留结构化关系、原始链接和归档信息。",
       author: item.author_name || "未知作者", collection: item.primary_collection || collections.join("、") || "未分组",
       media: Number(item.media_count || item.artifact_count || 0), archive: item.archive_status || "仅元数据",
       export: exportDestinations.map(id => destinationMarks[id]).filter(Boolean), exportDestinations,
