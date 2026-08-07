@@ -96,7 +96,15 @@ def main() -> int:
             continue
         blob = found.group(0)
         checked[label] = len(blob)
-        missing = [i for i in ids if i != "social_archive" and not re.search(rf'\b{i}\b', blob)]
+        # **主目的地原来被排除在外，而那条排除买不到任何东西。**
+        #
+        # 2026-08-07 逐个改坏这些门时发现：从「扩展·共用名字」那张表里删掉
+        # `social_archive: "我的档案馆"`，**这道门照样绿**。
+        # 而 shared.js 的 `destinationLabel` 是 `DESTINATION_NAMES[id] || id`——
+        # 掉了就把 `social_archive` 这个内部值印给他看。
+        #
+        # 当场量过：五张表**现在都有它**。所以排除它只是让门看不见这一格。
+        missing = [i for i in ids if not re.search(rf'\b{i}\b', blob)]
         if missing:
             problems.append({"表": label, "文件": relative, "缺": missing})
 
