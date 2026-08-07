@@ -150,6 +150,29 @@ $DIRTY_AFTER_DRILLS
 **扩展包是在这期间重打的**，它对应不上任何一个提交。先把树弄干净再部署。"
 printf '  工作树干净；发布门通过；扩展包已重打；演练跑完后镜像输入仍未被动过。\n'
 
+step "0.9) 硬闸：服务器上有没有国内平台的登录信息"
+# 说明书里最重的那一句：「国内平台（B站、小红书、抖音、快手）的登录信息
+# **永远不离开浏览器**，这一条是写死在代码里的」。
+#
+# 仓里为 INV-DOMESTIC-COOKIE-STAYS 立过好几道门——**全在扫代码**。
+# 代码对不对，和**他那台服务器上此刻有没有**，是两个问题：一次误配、
+# 一次手工导入、一个没删干净的旧版本，都能让第二个问题的答案变成「有」，
+# 而所有扫代码的门照样全绿。
+#
+# **这一条是门不是播报**（其余三条生产侧检查都是播报）：那些答的是
+# 「他那份数据长什么样」，而这一条答的是「最硬的那条承诺破了没有」。
+# 破了就不该接着发别的东西——生产库的这个状态和本次部署无关，
+# 所以查在最前面。
+#
+# 留一个绕行口，但**它必须被显式设置，而且会喊出来**：一个没法绕的硬闸
+# 会逼人去改判据，那比绕行更坏。
+if [ -z "${SA_ALLOW_DOMESTIC_CREDENTIAL_ON_SERVER:-}" ]; then
+  .venv/bin/python scripts/check_no_domestic_cookie_reached_the_server.py --brief \
+    || fail '服务器上存着国内平台的登录信息——这是对 Owner 最硬那条承诺的违反。先处理它再发布；确实要带着它发布请设 SA_ALLOW_DOMESTIC_CREDENTIAL_ON_SERVER=1（并说明为什么）。'
+else
+  printf '  ⚠️  跳过了「国内平台 Cookie 不出浏览器」这道硬闸（SA_ALLOW_DOMESTIC_CREDENTIAL_ON_SERVER）。\n'
+fi
+
 step "1) 部署前量一次密钥不变量"
 BEFORE="$(secret_fingerprint)"
 printf '%s\n' "$BEFORE" | sed 's/^/  /'
