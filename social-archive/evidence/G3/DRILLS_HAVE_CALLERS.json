@@ -13,6 +13,7 @@
     "extension_save_page_drill.py",
     "extension_update_in_place_drill.py",
     "list_shape_end_to_end_drill.py",
+    "popup_states_drill.py",
     "production_reachability_drill.py",
     "pwa_render_drill.py",
     "restore_private_database_drill.py",
@@ -22,6 +23,7 @@
   "registry": "docs/DRILLS.md",
   "cadences": {
     "shipped_package_drill.py": "每次发布",
+    "popup_states_drill.py": "每次发布",
     "production_reachability_drill.py": "每次发布",
     "extension_update_in_place_drill.py": "每次发布",
     "list_shape_end_to_end_drill.py": "改到那条路时",
@@ -51,6 +53,7 @@
     "extension_save_page_drill.py",
     "extension_update_in_place_drill.py",
     "list_shape_end_to_end_drill.py",
+    "popup_states_drill.py",
     "production_reachability_drill.py",
     "pwa_render_drill.py",
     "restore_private_database_drill.py",

@@ -40,6 +40,8 @@ ZERO_ARG = [
     "extension_capture_buffer_drill.py",
     "extension_bridge_boundary_drill.py",
     "pwa_render_drill.py",
+    # 他点插件图标看到的第一屏：三种状态各说各的话（2026-08-07）
+    "popup_states_drill.py",
     "bilibili_end_to_end_drill.py",
 ]
 

@@ -76,9 +76,24 @@
       return;
     }
     if (!connected) {
-      $("summaryTitle").textContent = "还没有连接平台账号";
-      $("summaryCopy").textContent = "连接一次账号后自动全量导入，不需要逐条点击。";
-      $("primarySyncLabel").textContent = "连接第一个账号";
+      // **「一个都没连过」和「连过、后来断了」是两回事。**
+      //
+      // 2026-08-07 读生产才看清 Owner 的实况：三个账号躺在库里
+      // （小红书「我」/ 抖音「我的」/ B 站），全是 disconnected，
+      // 而 8/3 那晚它们真的自动同步进来过 260 条。
+      // 而这一屏对他说的是「还没有连接平台账号」「连接**第一个**账号」——
+      // **两句对他都是假的**，还把「重连一次就恢复」这条唯一要做的事盖掉了。
+      //
+      // 断开不清空内容（db.py：「只断连接，不删内容」），所以还要说一句
+      // 东西都在——否则「未连接」很容易被读成「我的收藏没了」。
+      const everConnected = accounts.length > 0;
+      $("summaryTitle").textContent = everConnected
+        ? `${accounts.length} 个账号已断开` : "还没有连接平台账号";
+      $("summaryCopy").textContent = everConnected
+        ? `已经存下的 ${total.toLocaleString("zh-CN")} 条内容一条都没少。重新连接一次就会继续同步。`
+        : "连接一次账号后自动全量导入，不需要逐条点击。";
+      $("primarySyncLabel").textContent = everConnected
+        ? "重新连接账号" : "连接第一个账号";
       // **写死的数会漂。** 这里原来写「支持 8 个平台与 Chrome 书签」——
       // 加一个平台就错一次，而且「支持」在这一屏读起来像「能自动同步」，
       // 实际那个数是"可保存的平台数"。改成按能力声明现算，并说清是哪一种。
