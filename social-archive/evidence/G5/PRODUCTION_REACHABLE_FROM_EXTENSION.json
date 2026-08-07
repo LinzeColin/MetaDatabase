@@ -1,180 +1,53 @@
 {
-  "status": "PASS",
+  "status": "FAIL",
   "endpoint": "https://social-archive-api.linzezhang.com",
   "token_supplied": true,
   "package_he_would_download": {
     "url": "https://social-archive-api.linzezhang.com/downloads/social-archive-extension.zip",
-    "sha256": "12455f4ead9ceadc",
+    "sha256": "a1348fc52f3ff084",
     "same_as_repo_build": true
   },
   "measured_in_real_chrome": {
     "endpoint_the_extension_itself_uses": "https://social-archive-api.linzezhang.com",
-    "api_ms": 415,
-    "api_call": "resolved",
-    "api_keys": [
-      "items",
-      "total",
-      "limit",
-      "offset",
-      "sort_by",
-      "sort_dir",
-      "facets"
-    ],
-    "api_looks_like_a_web_page": false,
-    "api_items": 1,
-    "has_host_permission": true,
-    "raw_status": 401,
-    "raw_redirected": false,
-    "raw_final_host": "social-archive-api.linzezhang.com",
-    "raw_body_head": "{\"detail\":\"扩展尚未授权或令牌已失效\"}",
-    "manual_type": "basic",
-    "manual_status": 401,
-    "health_type": "basic",
-    "health_status": 200,
+    "api_call": "threw",
+    "api_ms": 72,
+    "api_message": "Failed to fetch",
+    "api_status": null,
+    "has_host_permission": false,
+    "raw_error": "TypeError: Failed to fetch",
+    "manual_error": "TypeError: Failed to fetch",
+    "health_error": "TypeError: Failed to fetch",
     "control_blocked_host_type": "opaqueredirect",
     "control_blocked_host_status": 0,
     "connect_panel": {
-      "rows": 9,
+      "rows": 1,
       "buttons": [
         {
-          "name": "小红书",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "小红书 未连接 连接账号"
-        },
-        {
-          "name": "抖音",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "抖音 未连接 连接账号"
-        },
-        {
-          "name": "快手",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "快手 未连接 连接账号"
-        },
-        {
-          "name": "B站",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "B站 未连接 连接账号"
-        },
-        {
-          "name": "Reddit",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "Reddit 未连接 连接账号"
-        },
-        {
-          "name": "Instagram",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "Instagram 未连接 连接账号"
-        },
-        {
-          "name": "Chrome 书签",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "Chrome 书签 未连接 连接账号"
-        },
-        {
-          "name": "X",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "X 本版本还不能自动读取 X 的书签。原因是官方 X 接口可能收费，而这个项目的硬规矩是绝不产生新的必付费用，所以那条路是主动关着的。现在可以：在浏览器里打开任意一条推文，点插件的「保存当前页面」。 未连接 连接账号"
-        },
-        {
-          "name": "YouTube",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "YouTube 本版本还不能自动读取 YouTube 的稍后观看和播放列表。现在可以：点这张卡片上的「连接账号」，把登录状态交给你自己的服务器保管；以及在任意视频页点插件保存当前这一条。 未连接 连接账号"
+          "name": "正在读取可连接的来源…",
+          "state": "",
+          "button": null,
+          "own_text": "正在读取可连接的来源…"
         }
       ],
-      "says_it_cannot_read_sources": false,
+      "says_it_cannot_read_sources": true,
       "says_nothing_syncs": false,
       "manual_only_mentioned": false,
-      "body_head": "连接账号 点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。 小红书 未连接 连接账号 抖音 未连接 连接账号 快手 未连接 连接账号 B站 未连接 连接账号 Reddit 未连接 连接账号 Instagram 未连接 连接账号 Chrome 书签 未连接 连接账号 X 本版本还不能自动读取 X 的书签。原因是官方 X 接口可能收费，而这个项目的硬规矩是绝不产生新的必付费用，所",
+      "body_head": "连接账号 点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。 正在读取可连接的来源… 读不到可连接的来源：Failed to fetch",
       "connect_supported_platforms": [
-        "xiaohongshu",
-        "douyin",
-        "kuaishou",
-        "bilibili",
-        "x",
-        "reddit",
-        "instagram",
-        "youtube",
-        "generic-web"
+        "<读不到 /v1/accounts>"
       ],
       "press": {
-        "pressed": [
-          {
-            "name": "小红书",
-            "before": "连接账号",
-            "after": "正在连接…",
-            "disabled": true,
-            "note": ""
-          },
-          {
-            "name": "抖音",
-            "before": "连接账号",
-            "after": "正在连接…",
-            "disabled": true,
-            "note": ""
-          },
-          {
-            "name": "快手",
-            "before": "连接账号",
-            "after": "正在连接…",
-            "disabled": true,
-            "note": ""
-          },
-          {
-            "name": "B站",
-            "before": "连接账号",
-            "after": "正在连接…",
-            "disabled": true,
-            "note": ""
-          },
-          {
-            "name": "Reddit",
-            "before": "连接账号",
-            "after": "正在连接…",
-            "disabled": true,
-            "note": ""
-          },
-          {
-            "name": "Instagram",
-            "before": "连接账号",
-            "after": "正在连接…",
-            "disabled": true,
-            "note": ""
-          },
-          {
-            "name": "Chrome 书签",
-            "before": "连接账号",
-            "after": "正在连接…",
-            "disabled": true,
-            "note": ""
-          },
-          {
-            "name": "X",
-            "before": "连接账号",
-            "after": "正在连接…",
-            "disabled": true,
-            "note": ""
-          },
-          {
-            "name": "YouTube",
-            "before": "连接账号",
-            "after": "正在连接…",
-            "disabled": true,
-            "note": ""
-          }
-        ]
+        "pressed": []
       }
     }
   },
-  "problems": [],
+  "problems": [
+    "插件没有这个域名的权限——`host_permissions` 里少了它。",
+    "**面板显示「读不到可连接的来源」**——他打开就是这一句，一颗按钮都没有。",
+    "**服务端说这些平台能连，面板却没给按钮**：['<读不到 /v1/accounts>']——一条通着的路被做成了够不着的（而文案可能正指着那颗按钮）",
+    "**面板里一颗能点的按钮都没有**——画了 1 行，没有一行带按钮。",
+    "**正在读取可连接的来源… 不能自动同步，却没说为什么**（那一行只有「正在读取可连接的来源…」）——列出来不等于说清。",
+    "**一颗按钮都没按到**——这不是通过。"
+  ],
   "what_this_answers_zh": "装上发布包、用**插件自己配置的端点**、拿真令牌调 /v1/library，**插件到底拿到什么**。其余十四个演练都把这个域名映射到本机假服务器，所以这条路此前从没被走过。负对照是资料库域名（在 Access 后面），它必须不通。"
 }
