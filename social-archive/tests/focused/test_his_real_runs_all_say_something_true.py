@@ -1,0 +1,94 @@
+"""他生产库里那 20 次同步，逐条渲染成句子，逐条看对不对（2026-08-07）。
+
+## 为什么用他的真数据当夹具
+
+失败文案一直是照着「我能想到的码」写的。而 2026-08-04 那次教训写在
+`failure_copy.py` 里：**生产库里有代码里已经不存在的码**（v0.0.0.6 留下的
+RELATION_SCOPE_UNCONFIRMED / STABLE_END_WITHOUT_PROOF / SYNC_RUN_ABANDONED），
+光读代码列不全。
+
+这条判据反过来做：把 `evidence/G1/PRODUCTION_AGGREGATION_REALLY_HAPPENED.json`
+里**真实发生过的每一次运行**（平台/状态/错误码/导入条数原样）喂进去，
+看它说出来的那句话成不成立。
+
+## 它抓到了什么
+
+一条 `cancelled`（没有 failure_code、0 条）说的是
+
+    这次没有取到任何内容，而且我们没能记录下原因。**这是产品的问题**，请重试一次
+
+而 `cancelled` 的来路是 db.py 断开账号那一步：「把还在跑的 sync_run 落到
+cancelled（否则界面上永远转圈）」。**那是有人主动断开，不是产品出错。**
+和 `failure_copy.py` 里已经修过的「刚排上队就被告知产品坏了」是同一种错。
+"""
+
+from __future__ import annotations
+
+import json
+import re
+from pathlib import Path
+
+from social_archive.failure_copy import describe_sync_outcome
+
+ROOT = Path(__file__).resolve().parents[2]
+EVIDENCE = ROOT / "evidence/G1/PRODUCTION_AGGREGATION_REALLY_HAPPENED.json"
+LABELS = {"xiaohongshu": "小红书", "douyin": "抖音", "bilibili": "B站"}
+
+
+def _runs() -> list[dict]:
+    assert EVIDENCE.is_file(), (
+        f"{EVIDENCE.relative_to(ROOT)} 不在——**这条判据没有夹具就等于没有**。"
+        "跑一次 scripts/read_production_sync_history.py")
+    runs = json.loads(EVIDENCE.read_text(encoding="utf-8"))["all_runs"]
+    assert len(runs) >= 10, f"只有 {len(runs)} 次运行，这份夹具太薄，说明不了什么"
+    return runs
+
+
+def _sentence(run: dict) -> dict:
+    return describe_sync_outcome(
+        imported=run.get("imported_count") or 0,
+        failure_code=run.get("last_error_code"),
+        platform_label=LABELS.get(run["platform"], run["platform"]),
+        status=run["status"])
+
+
+def test_every_real_run_gets_a_sentence() -> None:
+    for run in _runs():
+        text = str(_sentence(run).get("message_zh") or "")
+        assert text.strip(), f"{run['platform']}/{run['status']}/{run.get('last_error_code')} 没有句子"
+
+
+def test_no_internal_code_reaches_the_sentence() -> None:
+    """**他不该在界面上读到 `RELATION_SCOPE_UNCONFIRMED` 这种词。**"""
+    for run in _runs():
+        text = str(_sentence(run).get("message_zh") or "")
+        leaked = re.findall(r"[A-Z][A-Z_]{4,}", text)
+        assert not leaked, (
+            f"{run['platform']}/{run.get('last_error_code')} 的句子里有内部码：{leaked}\n  {text}")
+
+
+def test_a_cancelled_run_is_not_called_a_product_fault() -> None:
+    """**被中断不是失败，更不是产品坏了。**
+
+    `cancelled` 的来路是断开账号时把在跑的运行落下来——有人主动断开。
+    给它扣一顶「这是产品的问题」的帽子，会让他以为软件坏了而去重试，
+    而真正要做的是重新连接。
+    """
+    cancelled = [run for run in _runs() if run["status"] == "cancelled"]
+    assert cancelled, "他库里那条 cancelled 不见了——这条判据失去了它的样本"
+    for run in cancelled:
+        out = _sentence(run)
+        text = str(out.get("message_zh") or "")
+        assert "产品的问题" not in text, f"把一次主动中断说成产品出错：{text}"
+        assert "没能记录下原因" not in text, f"原因是知道的（被中断），别说不知道：{text}"
+        assert "都还在" in text, f"没说清已取到的内容还在：{text}"
+
+
+def test_the_runs_that_imported_things_report_the_count() -> None:
+    """**进了东西就先报数**——他要先知道拿到了多少，再听别的。"""
+    for run in _runs():
+        imported = run.get("imported_count") or 0
+        if imported <= 0:
+            continue
+        text = str(_sentence(run).get("message_zh") or "")
+        assert str(imported) in text, f"进了 {imported} 条却没在句子里报数：{text}"

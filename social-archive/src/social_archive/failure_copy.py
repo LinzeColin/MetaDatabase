@@ -508,6 +508,23 @@ def describe_sync_outcome(
             "outcome": "nothing_new", "imported": 0,
             "message_zh": NOTHING_NEW.template, "failure_code": None, "action_zh": None,
         }
+    if str(status).lower() in {"cancelled", "canceled"}:
+        # **被中断不是失败，更不是产品坏了。**
+        #
+        # 2026-08-07 拿 Owner 生产库里那 20 次同步逐条渲染，发现有一条
+        # `cancelled`（没有 failure_code、0 条）落到了最下面那句
+        # 「我们没能记录下原因。**这是产品的问题**」——而 cancelled 的来路是
+        # db.py 断开账号时那一步：「把还在跑的 sync_run 落到 cancelled
+        # （否则界面上永远转圈）」。**那是有人主动断开，不是产品出错。**
+        #
+        # 这和上面那条「刚排上队就被告知产品坏了」是同一种错，换了个状态：
+        # 把一个正常的状态扣上"产品有问题"的帽子。
+        return {
+            "outcome": "cancelled", "imported": imported,
+            "message_zh": "这次同步被中断了（多半是那时断开了账号）。"
+                          "已经取到的内容都还在，重新连接之后可以再同步一次。",
+            "failure_code": None, "action_zh": None,
+        }
     # 到这里说明：0 条、没有失败码、也没跑完。这正是 v0.0.0.6 的那种静默的零。
     return {
         "outcome": "unexplained_zero", "imported": 0,
