@@ -127,3 +127,37 @@ def test_there_is_an_explicit_way_to_requeue_a_structural_failure(store) -> None
                      error_message="http error 403", retryable=False)
     assert store.force_requeue_failed_job(job_id) is True
     assert store.get_job(job_id)["status"] == "queued"
+
+
+def test_a_blocked_video_is_not_called_a_complete_archive(service, store):
+    """**「完整」不许盖住"视频没存下来"。**
+
+    2026-08-07 量他生产库：193 条全标着「完整」，而任务表里有 33 个
+    download_l3 是 failed（`MEDIA_BLOCKED_BY_PLATFORM`——B 站/抖音把下载挡了）。
+    那 33 条有正文、没有视频，而这一列对他说「完整」——**他会以为视频存下来了**。
+
+    正文那几个 artifact 确实是 complete 的，所以旧的判断（有一个 complete
+    就叫完整）在字面上不假，**在意思上是假的**。
+    """
+    captured = service.capture(CaptureRequest(
+        platform="bilibili", url="https://www.bilibili.com/video/BV1x",
+        relation_type="favorite", requested_levels=["L0", "L1"]))
+    content_id = captured.content_id
+    with store.connection() as con:
+        con.execute(
+            "INSERT INTO artifact(id,content_id,archive_level,artifact_type,sha256,"
+            "byte_size,created_at,status)"
+            " VALUES('art_blocked_test',?,'L0','metadata','deadbeef',1,datetime('now'),'complete')",
+            (content_id,))
+    before = [row for row in store.list_library_table(limit=50)["items"] if row["id"] == content_id]
+    assert before and before[0]["archive_status"] == "完整", "正常情况下就该是完整"
+
+    store.enqueue_job("download_l3", {"content_id": content_id, "platform": "bilibili",
+                                      "page_url": "https://www.bilibili.com/video/BV1x",
+                                      "media_urls": []}, "generic")
+    with store.connection() as con:
+        con.execute("UPDATE job SET status='failed',last_error_code='MEDIA_BLOCKED_BY_PLATFORM'"
+                    " WHERE job_type='download_l3'")
+    after = [row for row in store.list_library_table(limit=50)["items"] if row["id"] == content_id]
+    assert after and after[0]["archive_status"] == "视频没存下", (
+        f"视频被平台挡了，这一列还说「{after[0]['archive_status']}」——他会以为视频存下来了")

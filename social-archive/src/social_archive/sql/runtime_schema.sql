@@ -302,6 +302,11 @@ CREATE VIRTUAL TABLE IF NOT EXISTS content_fts USING fts5(
 );
 
 CREATE INDEX IF NOT EXISTS idx_job_claim ON job(status, not_before, lease_expires_at);
+-- 「这条内容的视频有没有被平台挡下来」——资料库那一列要按它现算。
+-- 部分表达式索引：只索引真正失败的那些 L3 任务，表再大也只有几十行。
+CREATE INDEX IF NOT EXISTS idx_job_l3_failed_content
+    ON job(json_extract(payload_json, '$.content_id'))
+    WHERE job_type = 'download_l3' AND status = 'failed';
 CREATE INDEX IF NOT EXISTS idx_outbox_delivery ON outbox(status, not_before);
 CREATE INDEX IF NOT EXISTS idx_relation_content ON user_relation(content_id, status);
 CREATE INDEX IF NOT EXISTS idx_artifact_sha ON artifact(sha256);

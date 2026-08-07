@@ -1140,6 +1140,18 @@ class RuntimeStore:
                    COALESCE(cc.confidence,0) AS classification_confidence,COALESCE(cc.source,'local_rules') AS classification_source,
                    (SELECT COUNT(*) FROM artifact a WHERE a.content_id=c.id) AS artifact_count,
                    CASE
+                     -- **「完整」不许盖住"视频没存下来"。**
+                     --
+                     -- 2026-08-07 量他生产库：193 条全标着「完整」，而任务表里
+                     -- 有 33 个 download_l3 是 failed（MEDIA_BLOCKED_BY_PLATFORM
+                     -- ——B 站/抖音把下载挡了）。那 33 条有正文、没有视频，
+                     -- 而这一列对他说「完整」。**他会以为视频存下来了。**
+                     --
+                     -- 判断放在最前面：正文那几个 artifact 是 complete 的，
+                     -- 按原来的顺序会先命中「完整」，这一档永远轮不到。
+                     WHEN EXISTS(SELECT 1 FROM job j
+                                 WHERE j.job_type='download_l3' AND j.status='failed'
+                                   AND json_extract(j.payload_json,'$.content_id')=c.id) THEN '视频没存下'
                      WHEN EXISTS(SELECT 1 FROM artifact a WHERE a.content_id=c.id AND a.status='complete') THEN '完整'
                      WHEN EXISTS(SELECT 1 FROM artifact a WHERE a.content_id=c.id AND a.status IN ('staged','ready')) THEN '处理中'
                      ELSE '仅元数据'
