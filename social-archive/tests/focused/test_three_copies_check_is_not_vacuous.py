@@ -64,3 +64,28 @@ def test_the_guide_sentence_this_guards_still_exists() -> None:
     """守的是说明书那句话，那句话得还在。"""
     guide = (ROOT / "docs/使用说明.md").read_text(encoding="utf-8")
     assert "加密存三份" in guide, "说明书那句承诺被改了——这条判据也要跟着改"
+
+def test_unreachable_is_not_reported_as_lost() -> None:
+    """**「够不着」和「没了」要分开说。**（2026-08-07）
+
+    当天真实情况：Vault 仓好好的（换一把 token 就看得见），是配的那把恢复
+    token 的仓授权清单里没有它。报成「副本没了」会把人指去补一份副本，
+    而真正该做的是修凭据——**两句话让人做的事完全不同。**
+    """
+    problems, _ = summarise({
+        "r2": [dict(_OK)], "oci": [dict(_OK)],
+        "github": [{"status": "BLOCKED_ENVIRONMENT",
+                    "error_code": "GITHUB_VAULT_NOT_VISIBLE_TO_THIS_TOKEN"}],
+    })
+    assert any("这不等于副本没了" in p for p in problems), problems
+    assert not any("真的找不到了" in p for p in problems), problems
+
+
+def test_a_really_missing_object_is_reported_as_lost() -> None:
+    """**反过来也要准**：对象真没了，就不能说成「够不着」。"""
+    problems, _ = summarise({
+        "r2": [{"status": "FAIL", "error_code": "S3_OBJECT_MISSING"}],
+        "oci": [dict(_OK)], "github": [dict(_OK)],
+    })
+    assert any("真的找不到了" in p for p in problems), problems
+    assert not any("这不等于副本没了" in p for p in problems), problems

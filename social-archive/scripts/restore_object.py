@@ -205,6 +205,20 @@ def presence_github(descriptor: dict[str, Any], *, settings: Settings) -> dict[s
     if not shutil.which("gh"):
         raise RecoveryBlocked("GH_BINARY_MISSING", "缺少 gh CLI，无法读取 GitHub Vault")
     environment = _github_environment(settings.github_token_file)
+    # **先问「这把 token 看不看得见这个仓」。**（2026-08-07）
+    #
+    # 原来直接 `gh release view`，仓看不见和 release 不在会落进同一个错误码，
+    # 报出来是「GitHub Private Draft Release 读取失败」——**读起来像副本没了**。
+    # 当天真实情况是：仓好好的（换一把 token 就看得见），是配的这把恢复 token
+    # 的仓授权清单里没有它。**够不着不等于没了，这两句话让人做的事完全不同。**
+    try:
+        _run_gh(["gh", "repo", "view", repository, "--json", "nameWithOwner"], env=environment)
+    except Exception as exc:  # noqa: BLE001 - 不泄漏供应商诊断或凭据
+        raise RecoveryBlocked(
+            "GITHUB_VAULT_NOT_VISIBLE_TO_THIS_TOKEN",
+            "配置的这把恢复 token 看不见 Vault 仓——**副本在不在无从判断，"
+            "这不等于副本没了**；要么给这把 token 加上该仓的权限，"
+            "要么把配置指到有权限的那一把") from exc
     try:
         release = json.loads(_run_gh(
             ["gh", "release", "view", tag, "--repo", repository, "--json", "isDraft,assets"],

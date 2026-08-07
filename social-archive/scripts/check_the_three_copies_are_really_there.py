@@ -57,10 +57,21 @@ def summarise(per_store: dict[str, list[dict]]) -> tuple[list[str], dict]:
         if not rows:
             problems.append(f"**{store}：一个都没查**——这不是通过，是这条判据没跑到")
         elif not ok:
-            problems.append(
-                f"**{store}：{len(rows)} 个抽样一个都够不着**"
-                f"（{measured[store]['codes']}）——"
-                "说明书对他说「加密存三份」，而这一份今天确认不了")
+            # **「够不着」和「没了」要分开说**——读的人要做的事完全不同：
+            # 前者去修凭据／配置，后者去补一份副本。混成一句会把人指错方向。
+            blocked = [c for c in measured[store]["codes"]
+                       if "NOT_VISIBLE" in c or "MISSING_CONFIG" in c
+                       or c.endswith("CONFIG_MISSING") or "TOKEN_MISSING" in c]
+            if blocked:
+                problems.append(
+                    f"**{store}：{len(rows)} 个抽样一个都**够不着**（{blocked}）——"
+                    "**这不等于副本没了**，是这台机器上的凭据／配置到不了它。"
+                    "在修好之前，说明书那句「加密存三份」在这台机器上验不出第三份")
+            else:
+                problems.append(
+                    f"**{store}：{len(rows)} 个抽样一个都不在**"
+                    f"（{measured[store]['codes']}）——"
+                    "说明书对他说「加密存三份」，而这一份**真的找不到了**")
         elif len(ok) < len(rows):
             problems.append(
                 f"**{store}：{len(rows)} 个抽样里只有 {len(ok)} 个在**"
