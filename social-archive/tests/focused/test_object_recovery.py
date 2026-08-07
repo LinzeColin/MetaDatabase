@@ -5,6 +5,7 @@ import importlib.util
 import re
 import shutil
 import subprocess
+import sys
 import tarfile
 from pathlib import Path
 
@@ -205,6 +206,42 @@ def test_presence_only_says_so_when_the_object_is_gone(monkeypatch):
     _fake_s3(module, monkeypatch, missing=True, metadata={})
     with pytest.raises(module.RecoveryFailure, match="找不到这个对象"):
         module.presence_s3(descriptor, store_id="r2", config=_S3_CONFIG)
+
+
+def test_presence_only_actually_runs_as_a_command(monkeypatch, tmp_path, capsys):
+    """**判据要经过被保证的那条路。**（2026-08-07）
+
+    上面几条直接调 `presence_s3`，从没走过 `main()`——于是 `--presence-only`
+    漏在「恢复写入必须指定新的空目录」那道闸外面：编译绿、单测绿，
+    **而工具在生产上第一次真跑，三个存储全报 RECOVERY_TARGET_MISSING**。
+
+    这个仓记着这一条（「检查不经过被保证之物」），我又栽了一次。
+    所以这条判据按**命令行**跑，不按函数跑。
+    """
+    import json as _json
+
+    module = _load_script(Path(__file__).resolve().parents[2])
+    descriptor, _plain, cipher = _descriptor(module)
+    _fake_s3(module, monkeypatch, cipher=cipher, metadata={
+        "original-sha256": descriptor["original_sha256"],
+        "cipher-sha256": descriptor["cipher_sha256"],
+        "encryption": "age-x25519",
+    })
+    monkeypatch.setattr(module, "load_runtime_descriptor", lambda *_a, **_k: descriptor)
+    monkeypatch.setattr(module, "_s3_config", lambda _store: dict(_S3_CONFIG))
+    monkeypatch.setattr(
+        sys, "argv",
+        ["restore_object.py", "--artifact-id", descriptor["artifact_id"],
+         "--from-store", "r2", "--presence-only"])
+
+    code = module.main()
+    printed = _json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+    assert code == 0, printed
+    assert printed["status"] == "PASS", printed
+    assert printed["mode"] == "presence_only"
+    assert printed["found"]["byte_size"] == len(cipher)
+    # **不许把「还在」说成「能还原」。**
+    assert "--verify-only" in printed["what_this_does_not_prove_zh"]
 
 
 def test_github_pack_extracts_only_verified_target_ciphertext(tmp_path):

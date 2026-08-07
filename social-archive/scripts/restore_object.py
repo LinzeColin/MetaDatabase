@@ -511,7 +511,11 @@ def main() -> int:
         runtime_db = Path(args.runtime_db).expanduser().resolve() if args.runtime_db else settings.runtime_db
         descriptor = load_runtime_descriptor(runtime_db, args.artifact_id)
         target = _validated_target(args.target, settings) if args.target else None
-        if not args.verify_only and target is None:
+        # **只读的两档不需要恢复目标**：--verify-only 解密到临时目录再丢掉，
+        # --presence-only 连下载都不做。2026-08-07 加 presence 时漏在这里，
+        # 编译绿、单测绿（它们直接调 presence_s3，从没走过 main），
+        # 而工具在生产上第一次真跑就报「恢复写入必须指定新的空目录」。
+        if not (args.verify_only or args.presence_only) and target is None:
             raise RecoveryBlocked("RECOVERY_TARGET_MISSING", "恢复写入必须指定新的空目录")
         identity = resolve_secret_path(
             settings.age_identity_file or os.getenv("SOCIAL_ARCHIVE_AGE_IDENTITY_FILE"))
