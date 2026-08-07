@@ -58,7 +58,9 @@ curl -s -m 20 "$B/assets/app.js" > /tmp/sa_app.js
 # 只比手挑的几个，等于「我记得改了什么就验什么」——而漏掉的那些
 # 恰恰是没人注意、于是也没人发现它没上线的。
 mkdir -p /tmp/sa_pwa
-for f in app.js extension-install.html index.html styles.css sw.js manifest.webmanifest favicon.svg; do
+# **这张名单要跟着 apps/pwa/ 走。** 下面的判据枚举那个目录里的每个文件，
+# 名单漏一个就报「没能取到指纹」——2026-08-07 新加 guide.html 时就漏了。
+for f in app.js extension-install.html index.html guide.html styles.css sw.js manifest.webmanifest favicon.svg; do
   curl -s -m 20 -o "/tmp/sa_pwa/$f" "$B/assets/$f" || true
 done
 python3 - <<'PY'

@@ -107,7 +107,9 @@ def inert_in_the_image(name: str) -> bool:
                     # Dockerfile、compose、systemd 单元里一处引用都没有。
                     "does_this_deploy_need_a_rebuild.py",
                     "deploy_to_production.sh",
-                    "reclaim_our_superseded_images.sh"})
+                    "reclaim_our_superseded_images.sh",
+                    "verify_production_deployment.py",
+                    "read_production_sync_history.py"})
 
 
 def container_note_for(stale: list[str], file_count: int) -> str:

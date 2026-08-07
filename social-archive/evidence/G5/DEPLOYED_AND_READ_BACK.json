@@ -8,7 +8,7 @@
       "status": "ok",
       "project": "Social Archive",
       "version": "0.0.0.22",
-      "time": "2026-08-06T22:50:53.702122Z",
+      "time": "2026-08-07T01:00:09.749634Z",
       "paid_api_allowed": false,
       "archive_defaults": {
         "L0": true,
@@ -19,9 +19,17 @@
       "worker": {
         "ever_seen": true,
         "alive": true,
-        "last_seen_at": "2026-08-06T22:50:48.540536Z",
-        "seconds_since": 5.2,
+        "last_seen_at": "2026-08-07T01:00:03.762913Z",
+        "seconds_since": 6.0,
         "note": ""
+      },
+      "disk": {
+        "measured": true,
+        "measured_at": "/var/lib/social-archive/runtime/social-archive.sqlite3",
+        "free_bytes": 7976427520,
+        "free_gb": 7.43,
+        "total_gb": 37.7,
+        "used_percent": 80.3
       },
       "minimum_extension_version": "0.0.0.9"
     },
@@ -70,7 +78,7 @@
       "sha256": "45d11d14ca0e40f7df4c62fbe839f7917de120291384c7d99788560f653ba064"
     },
     "install_page": {
-      "bytes": 12559,
+      "bytes": 12674,
       "says_overwrite_same_folder": true,
       "warns_new_extension_id": true,
       "compares_versions": true,
@@ -81,8 +89,9 @@
       "sw.js": "eeb0474868edd7aab94d4e9fef9cb84c20fdff3bdda162e78fc4fe66b07bfc02",
       "manifest.webmanifest": "f71aae80fe412c13defe7908aca3227dec3d4f0f19f4397b71c2e3062485836d",
       "styles.css": "d2a490200b18ef8ed44dee85030c5de88a5b497c3556c1af39ceb83c8f6e13c6",
-      "extension-install.html": "e6df817e5dc6bd64947862ea4e7a16e4fbde66432a6a44f895c6d4ca3f420d1c",
-      "index.html": "659818c98f056d253e3f33a3547c573d9ea1cc713e8ac4e071d1231eab624725",
+      "extension-install.html": "04e3dc4849a99f9871ee4dcb13d1b0ba0159887955f3a57e54ba0bee7113c06c",
+      "guide.html": "d0a6f06f62a4dd2099a448104a14efb182d54355058714d39670776662342f82",
+      "index.html": "a0a7b6bce039014f77de65b7673323c0bf80a268c77078f65fb63f7fe7cea85e",
       "app.js": "5e5b62804613368cf57a76df0826e438614fc1b3569ae388971998db73c9d538",
       "favicon.svg": "7b6ebae15b9a72d52b7452880487b9893fdd3ceaa8e0a6105f22a3f2a7486d0a"
     },
