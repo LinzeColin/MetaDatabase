@@ -2,7 +2,7 @@
   "status": "PASS",
   "task": "G4",
   "guide": "docs/使用说明.md",
-  "buttons_checked": 14,
+  "buttons_checked": 16,
   "claimed_auto": [
     "bilibili",
     "douyin",

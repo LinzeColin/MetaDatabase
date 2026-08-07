@@ -92,3 +92,28 @@ def test_the_runs_that_imported_things_report_the_count() -> None:
             continue
         text = str(_sentence(run).get("message_zh") or "")
         assert str(imported) in text, f"进了 {imported} 条却没在句子里报数：{text}"
+
+
+def test_a_blocked_download_is_not_called_a_lost_content() -> None:
+    """**「视频被平台挡了」不等于「这次没有取到内容」。**
+
+    2026-08-07 他生产库里有 33 个 download_l3 是
+    `MEDIA_BLOCKED_BY_PLATFORM`（B 站 412 风控、抖音返回的东西 yt-dlp 解不了）。
+    那一条原来落进 PRODUCT_FAULT_CODES，于是对他说
+
+        这次没有取到内容，问题在我们这边，已经记下来了。不用反复重试。
+
+    **两处都不对**：内容取到了（正文、标题、链接全在，33 条一条不缺），
+    而「问题在我们这边、已经记下来了」听起来像会修——它是**有意的边界**
+    （不绕平台风控、国内 Cookie 不出浏览器），不会变。说得像会变就是骗他等。
+    """
+    from social_archive.failure_copy import describe_sync_outcome
+
+    out = describe_sync_outcome(imported=0, failure_code="MEDIA_BLOCKED_BY_PLATFORM",
+                                platform_label="B站", status="partial")
+    text = str(out["message_zh"])
+    assert "没有取到内容" not in text, f"内容其实取到了，只是没有视频：{text}"
+    assert "问题在我们这边" not in text, (
+        f"这是有意的边界，不是待修的缺陷；说成「我们的问题」会让他等一个不会来的修复：{text}")
+    assert "已经存下来了" in text and "不受影响" in text, (
+        f"没说清他手上还有什么：{text}")

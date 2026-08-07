@@ -61,6 +61,23 @@ _DICTIONARY: tuple[FailureCopy, ...] = (
                 "还没有获得读取 <平台> 页面的授权。请点 [ 连接账号 ]，"
                 "在浏览器弹出的框里选「允许」。",
                 "连接账号", "needs_user_action"),
+    # v0.0.0.22（2026-08-07）：这一条原来落进 PRODUCT_FAULT_CODES，于是对他说
+    # 「**这次没有取到内容**，问题在我们这边，已经记下来了。不用反复重试。」
+    # **两处都不对**：
+    #   · 内容取到了——正文、标题、链接全在库里，少的只是那个视频文件。
+    #     他生产库里 33 条就是这样，而它们的正文一条不缺。
+    #   · 「问题在我们这边、已经记下来了」听起来像会修。而它是**有意的边界**：
+    #     抖音返回的东西 yt-dlp 解不了、B站回 412 风控，我们不绕（L0 边界），
+    #     国内平台的 Cookie 按 INV-DOMESTIC-COOKIE-STAYS 一步都不离开浏览器。
+    #     **这一条不会变**，说得像会变就是骗他等。
+    FailureCopy("MEDIA_BLOCKED_BY_PLATFORM",
+                "内容已经存下来了，只有视频/图片文件没取到——<平台> 把下载挡住了。"
+                "我们不绕过平台的风控，所以这一条会一直是这样；正文和链接不受影响。",
+                None, "informational"),
+    FailureCopy("MEDIA_TYPE_UNSUPPORTED",
+                "内容已经存下来了，只有那个文件没取到——它的格式我们还处理不了。"
+                "正文和链接不受影响。",
+                None, "informational"),
     FailureCopy("TAB_CLOSED", "<平台> 同步中断了，因为标签页被关掉。[ 继续 ]",
                 "继续", "retryable"),
     FailureCopy("RATE_LIMITED",
