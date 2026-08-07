@@ -145,15 +145,19 @@
       return;
     }
     list.innerHTML = "";
-    for (const row of rows) {
-      const platform = row.platform;
-      const item = document.createElement("li");
-      const name = document.createElement("span");
-      name.className = "name";
-      name.textContent = label(platform);
-      const state = document.createElement("span");
-      state.className = "state";
-      state.textContent = connected.has(platform) ? "已连接" : "未连接";
+
+    /** 造一颗「连接账号」按钮。**两处共用，不许各写一份。**
+     *
+     * 2026-08-07 查生产时发现：X / YouTube 的 `connect_supported` 是 true、
+     * background 里那条 Cookie 托管的连接路是通的（`connectPlatform` 的注释
+     * 写着「别的平台（X / YouTube）连接按钮本来就是 Cookie 托管」）、
+     * 服务端下发的原因文案里白纸黑字写着**「点这张卡片上的『连接账号』」**——
+     * **而面板对它们一颗按钮都不画。**
+     *
+     * 他会照着那句话去找，然后找不到。这和「给一颗按不动的按钮」是同一种伤：
+     * 说明指向一个不存在的东西。
+     */
+    function connectButtonFor(platform, name, state, item) {
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = connected.has(platform) ? "重新连接" : "连接账号";
@@ -210,7 +214,19 @@
           button.textContent = original;
         }
       });
-      item.append(name, state, button);
+      return button;
+    }
+
+    for (const row of rows) {
+      const platform = row.platform;
+      const item = document.createElement("li");
+      const name = document.createElement("span");
+      name.className = "name";
+      name.textContent = label(platform);
+      const state = document.createElement("span");
+      state.className = "state";
+      state.textContent = connected.has(platform) ? "已连接" : "未连接";
+      item.append(name, state, connectButtonFor(platform, name, state, item));
       list.append(item);
     }
     for (const row of manualOnly) {
@@ -225,6 +241,18 @@
       // 两处各写一份必然漂，这个仓在平台文案上已经漂过好几轮。
       why.textContent = row.not_syncable_reason || "本版本还不能自动读取这个平台。";
       item.append(name, why);
+      // **不能自动同步 ≠ 不能连接。**
+      //
+      // X / YouTube 走的是 Cookie 托管：连上之后登录状态交给他自己的服务器
+      // 保管（那是非国内平台，不违反「国内平台 Cookie 不出浏览器」）。
+      // 服务端把这件事标在 `connect_supported` 上，文案里也在叫他点这颗按钮。
+      // 只按 `sync_supported` 决定画不画，就把一条通着的路做成了够不着的。
+      if (row.connect_supported) {
+        const state = document.createElement("span");
+        state.className = "state";
+        state.textContent = connected.has(row.platform) ? "已连接" : "未连接";
+        item.append(state, connectButtonFor(row.platform, name, state, item));
+      }
       list.append(item);
     }
     // 面板高度告诉外面，免得 iframe 里出现第二根滚动条——**那也是一种乱**。

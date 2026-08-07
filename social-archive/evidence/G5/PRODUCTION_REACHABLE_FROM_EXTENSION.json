@@ -1,11 +1,11 @@
 {
-  "status": "PASS",
+  "status": "FAIL",
   "endpoint": "https://social-archive-api.linzezhang.com",
   "token_supplied": true,
   "package_he_would_download": {
     "url": "https://social-archive-api.linzezhang.com/downloads/social-archive-extension.zip",
     "sha256": "45d11d14ca0e40f7",
-    "same_as_repo_build": true
+    "same_as_repo_build": false
   },
   "measured_in_real_chrome": {
     "endpoint_the_extension_itself_uses": "https://social-archive-api.linzezhang.com",
@@ -150,6 +150,8 @@
       }
     }
   },
-  "problems": [],
+  "problems": [
+    "**他下载到的包和仓里刚打的不是同一个**（下载 45d11d14ca0e40f7，本地 bc5597d5135db195）——发出去的不是这一版代码。"
+  ],
   "what_this_answers_zh": "装上发布包、用**插件自己配置的端点**、拿真令牌调 /v1/library，**插件到底拿到什么**。其余十四个演练都把这个域名映射到本机假服务器，所以这条路此前从没被走过。负对照是资料库域名（在 Access 后面），它必须不通。"
 }

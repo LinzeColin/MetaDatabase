@@ -50,6 +50,11 @@ from pathlib import Path
 import websockets
 
 ROOT = Path(__file__).resolve().parents[1]
+# 平台 id → 面板上显示的名字。**只用于把「服务端说能连」和「面板画了没有」
+# 对上号**，不参与任何渲染——渲染用的名字由扩展的 SAPlatformCatalog 出。
+_LABELS = {"xiaohongshu": "小红书", "douyin": "抖音", "kuaishou": "快手",
+           "bilibili": "B站", "reddit": "Reddit", "instagram": "Instagram",
+           "generic-web": "Chrome 书签", "x": "X", "youtube": "YouTube"}
 ZIP = ROOT / "dist" / "social-archive-extension.zip"
 DOWNLOAD_URL = ("https://social-archive-api.linzezhang.com"
                 "/downloads/social-archive-extension.zip")
@@ -188,7 +193,14 @@ async def _open_connect_panel(base: str, extension_id: str,
         await rpc("Runtime.enable")
         await asyncio.sleep(2)                       # 等它把 /v1/accounts 拉回来
         got = await rpc("Runtime.evaluate", {
-            "expression": r"""JSON.stringify((() => {
+            "expression": r"""(async () => {
+              let capable = [];
+              try {
+                const accounts = await SA.api("/v1/accounts", { timeoutMs: 8000 });
+                capable = (accounts.supported_platforms || [])
+                  .filter(p => p.connect_supported).map(p => p.platform);
+              } catch (_) { capable = ["<读不到 /v1/accounts>"]; }
+              return JSON.stringify((() => {
               const rows = Array.from(document.querySelectorAll("#list li"));
               const text = document.body.innerText || "";
               return {
@@ -205,11 +217,20 @@ async def _open_connect_panel(base: str, extension_id: str,
                   };
                 }),
                 says_it_cannot_read_sources: text.includes("读不到可连接的来源"),
+                // **服务端说能连的，面板必须有一颗按钮。**
+                // 2026-08-07：X / YouTube 的 connect_supported 是 true、
+                // background 里那条 Cookie 托管的路是通的、服务端文案还写着
+                // 「点这张卡片上的『连接账号』」——而面板一颗都不画。
+                // 只按 sync_supported 决定画不画，就把一条通着的路做成够不着的。
+
                 says_nothing_syncs: text.includes("本版本还没有能自动同步的来源"),
                 manual_only_mentioned: text.includes("只能手动"),
                 body_head: text.slice(0, 200).replace(/\s+/g, " "),
+                connect_supported_platforms: capable,
               };
-            })())""",
+            })());
+            })()""",
+            "awaitPromise": True,
             "returnByValue": True, "timeout": 20000})
         payload = got.get("result", {})
         if payload.get("exceptionDetails"):
@@ -440,6 +461,24 @@ async def run(chrome: str, token: str) -> int:
         if panel.get("says_nothing_syncs"):
             problems.append("**面板说「本版本还没有能自动同步的来源」**——"
                             "服务端一个可同步平台都没报。")
+        # **服务端说能连的，面板必须有一颗按钮。**
+        #
+        # 2026-08-07 查生产时抓到的：X / YouTube 的 `connect_supported` 是 true、
+        # background 里那条 Cookie 托管的连接路是通的、服务端下发的原因文案里
+        # 还写着「点这张卡片上的『连接账号』」——**而面板一颗都不画**。
+        # 他会照着那句话去找，然后找不到。这和「给一颗按不动的按钮」是同一种伤，
+        # 只是方向反过来：说明指向一个不存在的东西。
+        capable = set(panel.get("connect_supported_platforms") or [])
+        drawn = {row.get("platform_guess") for row in panel.get("buttons", [])
+                 if row.get("button")}
+        missing = sorted(name for name in capable
+                         if not any(name in str(row.get("own_text", "")).lower()
+                                    or _LABELS.get(name, "\u0000") in str(row.get("name", ""))
+                                    for row in panel.get("buttons", []) if row.get("button")))
+        if missing:
+            problems.append(
+                f"**服务端说这些平台能连，面板却没给按钮**：{missing}——"
+                "一条通着的路被做成了够不着的（而文案可能正指着那颗按钮）")
         actionable = [row for row in panel.get("buttons", []) if row.get("button")]
         if not actionable:
             problems.append("**面板里一颗能点的按钮都没有**——"
