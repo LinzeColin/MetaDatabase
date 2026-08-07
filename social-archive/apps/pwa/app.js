@@ -627,9 +627,13 @@
       ["connected", "degraded"].includes(item.connection_state)
       && state.platformSupport[item.platform]?.sync_supported !== false).length;
     const stuck = connected - syncable;
+    // **「0 个账号已连接」是真话，也是一句没用的话。**
+    // 他有三个账号躺在那儿，这一行该说的是那件事。
     $("connectedAccountCount").textContent = stuck > 0
       ? `${connected} 个账号已连接，其中 ${stuck} 个本版本还不能自动同步`
-      : `${connected} 个账号已连接`;
+      : (!connected && state.accounts.length
+         ? `${state.accounts.length} 个账号已断开`
+         : `${connected} 个账号已连接`);
     if (stuck > 0 && !syncable) {
       // 一个都同步不动时，顶部只说一件事：**现在真正能做的那一件**。
       $("syncSummaryText").textContent =
@@ -642,6 +646,22 @@
       // **别承诺点赞。** SCANNABLE_RELATIONS 里一个平台都没有点赞——那条取数路没做。
       // 承诺一件不会发生的事比不提更糟：他会以为点赞被同步丢了，回头来找。
       $("syncSummaryText").textContent = " · 连接一次账号后自动全量导入收藏与书签";
+      document.querySelector(".sync-strip")?.classList.add("needs");
+      return;
+    }
+    if (!connected) {
+      // **有账号、但一个都没连着——这和「还没开始用」完全是两回事。**
+      //
+      // 2026-08-07 读生产看到的 Owner 实况：三个账号全是 disconnected，
+      // 而 8/3 那晚它们真的自动同步进来过 260 条。这一屏当时对他说的是
+      // 「0 个账号已连接 · 首次同步尚未开始」——**后半句直接和他的数据矛盾**，
+      // 前半句技术上不假却什么也没告诉他。
+      //
+      // 断开不清空内容（db.py：「只断连接，不删内容」），所以要把这句说出来：
+      // 「未连接」很容易被读成「我的收藏没了」。
+      // 「N 个账号已断开」由上面那一行说，这里不重复——**重复会挤掉真正要说的话**。
+      $("syncSummaryText").textContent =
+        " · 已存下的内容一条都没少 · 重新连接一次就会继续同步";
       document.querySelector(".sync-strip")?.classList.add("needs");
       return;
     }
@@ -661,7 +681,20 @@
         : ` · ${failures.length} 个账号需要重新连接，其他账号不受影响`;
     } else {
       const lastSync = state.accounts.map(item => item.last_sync_at).filter(Boolean).sort().at(-1);
-      $("syncSummaryText").textContent = lastSync ? ` · 最近同步 ${formatDate(lastSync, true)}` : " · 首次同步尚未开始";
+      // **「没有记录」不等于「没发生过」。**
+      //
+      // `last_sync_at` 只在一次同步**完全跑完**时才写（account_sync.py 里
+      // 那两处 UPDATE 都挂在 `final_status == "completed"` 上）。而实际发生过的
+      // 是：跑完了、导进来 102 条、结局却是 partial——于是这个字段永远是空的，
+      // 这一句就永远说「首次同步尚未开始」。**Owner 库里 193 条，它还这么说。**
+      //
+      // 那个字段的语义不动：它同时管着「没完整跑过就不许走增量」那条安全设计，
+      // 改它等于把那道保险拆了。所以这里改的是**这句话**——库里已经有东西的时候，
+      // 不许说"还没开始"。
+      $("syncSummaryText").textContent = lastSync
+        ? ` · 最近同步 ${formatDate(lastSync, true)}`
+        : (state.total ? " · 已存下的内容都在；上一次完整同步的时间没有记录"
+                       : " · 首次同步尚未开始");
     }
   }
 

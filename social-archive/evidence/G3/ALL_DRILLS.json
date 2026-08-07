@@ -1,12 +1,12 @@
 {
   "status": "PASS",
-  "ran": 14,
+  "ran": 15,
   "failed": 0,
   "results": [
     {
       "drill": "shipped_package_drill.py",
       "status": "PASS",
-      "seconds": 29.8,
+      "seconds": 36.2,
       "problems": []
     },
     {
@@ -18,7 +18,7 @@
     {
       "drill": "extension_install_page_drill.py",
       "status": "PASS",
-      "seconds": 37.8,
+      "seconds": 37.9,
       "problems": []
     },
     {
@@ -36,13 +36,13 @@
     {
       "drill": "extension_capture_drill.py",
       "status": "PASS",
-      "seconds": 16.0,
+      "seconds": 15.9,
       "problems": []
     },
     {
       "drill": "extension_capture_buffer_drill.py",
       "status": "PASS",
-      "seconds": 4.8,
+      "seconds": 4.9,
       "problems": []
     },
     {
@@ -54,25 +54,31 @@
     {
       "drill": "pwa_render_drill.py",
       "status": "PASS",
-      "seconds": 10.9,
+      "seconds": 11.5,
+      "problems": []
+    },
+    {
+      "drill": "popup_states_drill.py",
+      "status": "PASS",
+      "seconds": 16.1,
       "problems": []
     },
     {
       "drill": "bilibili_end_to_end_drill.py",
       "status": "PASS",
-      "seconds": 24.5,
+      "seconds": 24.6,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform xiaohongshu",
       "status": "PASS",
-      "seconds": 41.0,
+      "seconds": 41.1,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform reddit",
       "status": "PASS",
-      "seconds": 41.0,
+      "seconds": 41.1,
       "problems": []
     },
     {
@@ -93,6 +99,6 @@
     "restore_private_database_drill.py": "同上",
     "restore_runtime_db_drill.py": "同上"
   },
-  "message_zh": "14 个演练全绿。",
+  "message_zh": "15 个演练全绿。",
   "what_this_does_not_prove": "不跑恢复类那三个（要真实备份），也不证明真平台的响应长什么样（那要 Owner 的登录态）。它回答的是：**这一版的每条链，在真 Chrome 里还走得通吗。**"
 }

@@ -9,7 +9,12 @@
   const platformName = platform => platform === "generic-web"
     ? "Chrome 书签 / 网页"
     : (globalThis.SAPlatformCatalog?.platformLabel?.(platform) || platform);
-  const statusName = { connected: "已连接", degraded: "降级可用", completed: "同步完成", partial: "部分完成", queued: "等待同步", discovering: "正在发现", scanning: "同步中", normalizing: "正在整理", artifacting: "正在归档", exporting: "正在导出", failed: "需要处理", blocked_environment: "重新连接", paused: "已暂停" };
+  // **少一个键，用户就看到一个英文单词。**
+  // 2026-08-07：这里原来没有 disconnected，而 `statusName[current] || current`
+  // 会安静地兜底成英文原文——他那三个断开的账号卡片上印的就是 `disconnected`。
+  // 兜底本身没错（少了总比空白好），错的是它**不出声**。
+  // 演练里现在有一条：账号卡片上不许出现任何英文状态 id。
+  const statusName = { connected: "已连接", degraded: "降级可用", disconnected: "未连接", authorizing: "正在授权", completed: "同步完成", partial: "部分完成", queued: "等待同步", discovering: "正在发现", scanning: "同步中", normalizing: "正在整理", artifacting: "正在归档", exporting: "正在导出", failed: "需要处理", blocked_environment: "重新连接", paused: "已暂停", cancelled: "已取消" };
 
   let config = null;
   let tab = null;
@@ -33,10 +38,12 @@
   function latestRun(accountId) {
     return runs.filter(run => run.source_account_id === accountId).sort((a, b) => String(b.updated_at || "").localeCompare(String(a.updated_at || "")))[0] || null;
   }
-  function formatTime(value) {
-    if (!value) return "尚未同步";
+  // 「没有时间戳」不等于「没同步过」——见 options.js 里同名函数上面那段。
+  // 这张卡片原来会印 `103 条 · 尚未同步`，同一行里自相矛盾。
+  function formatTime(value, blank = "尚未同步") {
+    if (!value) return blank;
     const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "尚未同步";
+    if (Number.isNaN(date.getTime())) return blank;
     return new Intl.DateTimeFormat("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).format(date).replaceAll("/", "-");
   }
 
@@ -135,7 +142,7 @@
       const discovered = Number(run?.discovered_count || 0);
       const detail = ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(current)
         ? `同步 ${imported}/${discovered || "…"}`
-        : `${Number(account.content_count || 0).toLocaleString("zh-CN")} 条 · ${formatTime(account.last_sync_at)}`;
+        : `${Number(account.content_count || 0).toLocaleString("zh-CN")} 条 · ${formatTime(account.last_sync_at, Number(account.content_count || 0) ? "同步时间没有记录" : "尚未同步")}`;
       return `<article class="account-row"><span class="platform-dot">${SA.escapeHtml(platformShort[account.platform] || "网")}</span><span class="account-copy"><strong>${SA.escapeHtml(account.display_name || account.external_account_id || platformName(account.platform) || account.platform)}</strong><small>${SA.escapeHtml(detail)}</small></span><span class="state-label ${SA.escapeHtml(current)}">${SA.escapeHtml(statusName[current] || current)}</span></article>`;
     }).join("");
   }

@@ -53,7 +53,13 @@
   }
   function stateLabel(value) { return ({connected:"已连接",degraded:"降级可用",disconnected:"未连接",authorizing:"正在授权",queued:"等待同步",discovering:"正在发现",scanning:"正在同步",normalizing:"正在整理",artifacting:"正在归档",exporting:"正在导出",completed:"同步完成",partial:"部分完成",failed:"需要处理",blocked_environment:"重新连接"})[value] || value || "未连接"; }
   function latestRun(accountId) { return runs.filter(run => run.source_account_id === accountId).sort((a,b)=>String(b.updated_at||"").localeCompare(String(a.updated_at||"")))[0] || null; }
-  function formatTime(value) { if(!value)return"尚未同步";const d=new Date(value);return Number.isNaN(d.getTime())?"尚未同步":new Intl.DateTimeFormat("zh-CN",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(d).replaceAll("/","-"); }
+  // **「没有时间戳」不等于「没同步过」。**
+  //
+  // `last_sync_at` 只在一次同步**完全跑完**时才写（account_sync.py 里那两处
+  // UPDATE 都挂在 `final_status == "completed"` 上）。而实际发生过的是：
+  // 跑完了、导进来 102 条、结局是 partial——字段永远是空的。
+  // 于是这张卡片会印出 `103 条 · 尚未同步`：**同一行里自相矛盾**。
+  function formatTime(value, blank = "尚未同步") { if(!value)return blank;const d=new Date(value);return Number.isNaN(d.getTime())?blank:new Intl.DateTimeFormat("zh-CN",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(d).replaceAll("/","-"); }
 
   async function checkService() {
     config = await SA.getConfig();
@@ -132,7 +138,7 @@
         : failureText
           ? failureText
           : account
-            ? (run&&activeStates.has(run.status)?`已导入 ${imported.toLocaleString("zh-CN")}/${discovered?discovered.toLocaleString("zh-CN"):"…"} 条`:`${Number(account.content_count||0).toLocaleString("zh-CN")} 条 · ${formatTime(account.last_sync_at)}`)
+            ? (run&&activeStates.has(run.status)?`已导入 ${imported.toLocaleString("zh-CN")}/${discovered?discovered.toLocaleString("zh-CN"):"…"} 条`:`${Number(account.content_count||0).toLocaleString("zh-CN")} 条 · ${formatTime(account.last_sync_at, Number(account.content_count||0) ? "同步时间没有记录" : "尚未同步")}`)
             : custody
               ? `登录状态已加密保存（${Number(custody.cookie_count||0).toLocaleString("zh-CN")} 条）· ${formatTime(custody.updated_at)}`
               : (platformSupport[platform]?.sync_supported === false

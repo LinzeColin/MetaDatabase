@@ -120,10 +120,14 @@ async def _rpc_factory(ws):
     return rpc
 
 
-READ = """JSON.stringify({
+READ = r"""JSON.stringify({
   title: (document.getElementById('summaryTitle')||{}).textContent||'',
   copy: (document.getElementById('summaryCopy')||{}).textContent||'',
-  button: (document.getElementById('primarySyncLabel')||{}).textContent||''
+  button: (document.getElementById('primarySyncLabel')||{}).textContent||'',
+  // **账号卡片那一行才是印「103 条 · 尚未同步」的地方**——同一行里自相矛盾。
+  // 只读顶上那三句的话，这处永远验不到。
+  accounts: ((document.getElementById('accountList')||{}).innerText||'')
+              .replace(/\s+/g, ' ').slice(0, 200)
 })"""
 
 
@@ -241,6 +245,26 @@ async def run(chrome: str) -> int:
                 "「未连接」很容易被读成「我的收藏没了」")
         if stale.get("title") == fresh.get("title") or live.get("title") == stale.get("title"):
             problems.append("**三种状态里有两种说同一句话**——那就等于没分状态")
+        # **账号卡片不许自相矛盾。**
+        cards = stale.get("accounts", "")
+        if "尚未同步" in cards and "条" in cards:
+            problems.append(
+                f"**账号卡片印着「N 条 · 尚未同步」**：{cards[:80]!r}——"
+                "同一行里自相矛盾（`last_sync_at` 只在完全跑完时才写，"
+                "而他那几次跑完了、进了 102 条、结局是 partial）")
+        # **账号卡片上不许出现英文状态 id。**
+        # `statusName[current] || current` 那种兜底会安静地把内部值印给用户；
+        # 少一个键就漏一个词，而它不出声。这条通用地挡住，不只挡 disconnected。
+        RAW_STATES = ("disconnected", "connected", "degraded", "authorizing", "queued",
+                      "discovering", "scanning", "normalizing", "artifacting",
+                      "exporting", "completed", "partial", "failed",
+                      "blocked_environment", "paused", "cancelled")
+        for reading in (stale, live):
+            leaked = [name for name in RAW_STATES if name in reading.get("accounts", "")]
+            if leaked:
+                problems.append(
+                    f"**账号卡片上印着英文状态**：{leaked}——"
+                    "他看到的是内部值，不是人话")
         if "条内容" not in live.get("title", ""):
             problems.append(f"连着的时候不报条数：{live.get('title')!r}")
 

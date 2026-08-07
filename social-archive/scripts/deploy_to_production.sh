@@ -579,9 +579,35 @@ step "8.5) 验收：装上这个包的真 Chrome，够不够得着**刚部署的
 # **api 域名**。现在端点一律取插件自己的配置，资料库域名留作**负对照**——
 # 它必须是不通的，否则这条探针连「挡住了」都认不出来。
 if [ -z "${SA_SKIP_DRILLS:-}" ]; then
-  .venv/bin/python scripts/production_reachability_drill.py >/dev/null \
-    || fail "装上发布包的真 Chrome 够不着生产。**这是 Owner 那边「点了没反应」的形状**——
-  跑 scripts/production_reachability_drill.py 看它报的是哪一条。"
+  # **别把诊断丢进 /dev/null。**
+  #
+  # 2026-08-07 这一步红了一次，而部署只说得出「够不着生产」——因为我把演练的
+  # 输出重定向掉了。**说不出原因的告警和指错原因的告警一样费人**，
+  # 而这正是我一整天在修的那种病，又出在我自己新加的步骤里。
+  #
+  # 重试一次，但**重试要说出来**：静默重试等于把不稳定藏起来。
+  # 那一次重跑就过了（api 1032ms），所以它是瞬时的——可瞬时不等于不存在。
+  DRILL_OUT="$(mktemp -t sa-reach)"
+  if ! .venv/bin/python scripts/production_reachability_drill.py > "$DRILL_OUT" 2>&1; then
+    printf '  第一次没过，10 秒后重试一次（**这次重试本身就是要报告的事**）…\n'
+    .venv/bin/python -c 'import time; time.sleep(10)'
+    if ! .venv/bin/python scripts/production_reachability_drill.py > "$DRILL_OUT" 2>&1; then
+      printf '  演练报的问题：\n'
+      .venv/bin/python -c '
+import json, sys
+try:
+    payload = json.load(open(sys.argv[1]))
+except Exception:
+    print("    （输出不是 JSON，原样贴前 400 字）")
+    print("   ", open(sys.argv[1]).read()[:400].replace("\n", " "))
+else:
+    for item in payload.get("problems") or ["（它没说出是哪一条——那本身是缺陷）"]:
+        print(f"    · {item}")
+' "$DRILL_OUT"
+      fail "装上发布包的真 Chrome 够不着生产。**这是 Owner 那边「点了没反应」的形状**。"
+    fi
+    printf '  **重试后过了**——这一版有瞬时的够不着，记下来，别当没发生。\n'
+  fi
   printf '  真 Chrome + 发布包 + 真令牌，从生产读回了条目；负对照（Access 后的域名）确认不通。\n'
 else
   printf '  ⚠️  跳过了（SA_SKIP_DRILLS）——**这一版没有「插件够得着生产」的证据**。\n'

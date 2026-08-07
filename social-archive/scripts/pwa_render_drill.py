@@ -286,11 +286,39 @@ async def run(chrome: str) -> int:
             await asyncio.sleep(4)
             result = await rpc("Runtime.evaluate", {"expression": READ_DOM, "returnByValue": True})
             guide_reading = None
+            disconnected_reading = None
             payload = result.get("result", {})
             if payload.get("exceptionDetails"):
                 measured = {"error": str(payload["exceptionDetails"])[:300]}
             else:
                 measured = json.loads(payload["result"]["value"])
+
+            # **第二遍：三个账号全断开。**
+            #
+            # 2026-08-07 读生产看到的 Owner 实况：三个账号全是 disconnected，
+            # 而 8/3 那晚它们真的自动同步进来过 260 条。这一屏当时对他说的是
+            # 「0 个账号已连接 · 首次同步尚未开始」——**后半句直接和他的数据矛盾**。
+            #
+            # 夹具默认是"一个账号都没有"，走的是另一条路；不换一遍就永远验不到
+            # 他真正会看到的那一屏。
+            FAKE["/v1/accounts"] = {                      # noqa: PLW2901
+                "items": [
+                    {"id": f"acct-{i}", "platform": platform, "display_name": name,
+                     "connection_state": "disconnected", "content_count": count,
+                     "auto_sync_enabled": False}
+                    for i, (platform, name, count) in enumerate(  # POPUP_STATE_FIXTURE
+                        [("xiaohongshu", "我", 1), ("douyin", "我的", 86),
+                         ("bilibili", "B站账号", 103)])],
+                "supported_platforms": FAKE["/v1/accounts"]["supported_platforms"],
+            }
+            await rpc("Page.reload", {"ignoreCache": True})
+            await asyncio.sleep(4)
+            got = await rpc("Runtime.evaluate", {"expression": r"""
+              JSON.stringify({
+                count: (document.getElementById("connectedAccountCount")||{}).textContent||"",
+                summary: (document.getElementById("syncSummaryText")||{}).textContent||"",
+              })""", "returnByValue": True})
+            disconnected_reading = json.loads(got["result"]["result"]["value"])
 
             # **顺路把使用说明那一页也打开看一眼。**
             #
@@ -388,6 +416,30 @@ async def run(chrome: str) -> int:
             f"{header[:120]!r}——那段话是照 /v1/accounts 现算的，"
             "算不出来说明它又退回成一句写死的话，或者根本没渲染")
 
+    # 三个账号全断开那一屏
+    if not disconnected_reading:
+        problems.append("**「三个账号全断开」那一屏没量到**——这不是通过。")
+    else:
+        summary = disconnected_reading.get("summary", "")
+        if "首次同步尚未开始" in summary:
+            problems.append(
+                "**账号断开、库里有内容，界面却说「首次同步尚未开始」**——"
+                "那直接和他的数据矛盾（他库里 193 条，8/3 真的同步过）")
+        if "一条都没少" not in summary:
+            problems.append(
+                f"断开那一屏没说清内容还在：{summary!r}——"
+                "「未连接」很容易被读成「我的收藏没了」")
+        if "重新连接" not in summary:
+            problems.append(f"断开那一屏没说下一步该干什么：{summary!r}")
+        count_line = disconnected_reading.get("count", "")
+        if "个账号已断开" in summary and "个账号已断开" in count_line:
+            problems.append(
+                "首行和正文都在说「N 个账号已断开」——**重复会挤掉真正要说的话**")
+        if "已连接" in count_line and count_line.startswith("0"):
+            problems.append(
+                f"首行还是「{count_line}」——真话，但对他没用："
+                "他有三个账号躺在那儿，这一行该说的是那件事")
+
     # 使用说明那一页
     if guide_reading is None:
         problems.append("**使用说明那一页没量到**——这不是通过。")
@@ -416,6 +468,7 @@ async def run(chrome: str) -> int:
         # **量到的东西要印出来。** 不印的话，"通过了"和"根本没量"长得一样——
         # 我自己就先按一个不存在的键去读，读出 null 还以为是没量到。
         "guide_page": guide_reading,
+        "all_accounts_disconnected": disconnected_reading,
         "rendered_text": text[:400],
         # 同步中心那句限定语，**照原样印出来**：它是这次要亲眼看见的东西之一。
         "sync_centre_header": str(measured.get("syncHeader") or "").replace("\n", " ")[:200],
