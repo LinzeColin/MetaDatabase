@@ -1,0 +1,33 @@
+{
+  "status": "FAIL",
+  "sampled_artifacts": [
+    "art_00ca5e8cef67db2334329dcf088e15c0",
+    "art_00fbeb6793d229abee9ced0b9ec1cb68"
+  ],
+  "measured": {
+    "r2": {
+      "checked": 2,
+      "present": 2,
+      "codes": []
+    },
+    "oci": {
+      "checked": 2,
+      "present": 2,
+      "codes": []
+    },
+    "github": {
+      "checked": 2,
+      "present": 0,
+      "codes": [
+        "GITHUB_RELEASE_READ_FAILED"
+      ]
+    },
+    "copies_confirmed_today": 2
+  },
+  "problems": [
+    "**github：2 个抽样一个都够不着**（['GITHUB_RELEASE_READ_FAILED']）——说明书对他说「加密存三份」，而这一份今天确认不了",
+    "**今天只确认了 2 份，而说明书写的是三份。**在把这一句改掉、或者把够不着的那份修好之前，那句话是超售的。"
+  ],
+  "what_this_does_not_prove_zh": "抽样只答「这家存储今天够不够得着」，**答不了「每一个对象都还在」**；也不证明能还原出原文——那要 --verify-only（需要 age 私钥）。",
+  "boundary_zh": "只读；每家一次 HEAD / 一次列附件；不下载、不解密。"
+}

@@ -666,6 +666,18 @@ step "8.8) 读一眼：产品对他那份数据说的话对不对"
 .venv/bin/python scripts/audit_production_against_the_product.py --brief 2>/dev/null \
   || printf '  读不到审计结果（不影响部署）\n'
 
+step "8.9) 读一眼：「加密存三份」今天真的确认了几份"
+# 说明书对他说「数据存在哪？你自己的服务器上，**加密存三份**」。
+# 而库里那三行 `verified` 是**写入当时**的记录，不是今天的事实。
+#
+# 2026-08-07 第一次真问：r2 在、oci 在、**github 读不到**——
+# 而 GitHub 正是 2026-08-04 迁移之后当主备份的那一份。
+#
+# **是播报不是门**：一份备份存储暂时够不着，不该卡住一个界面修复的上线；
+# 做成门只会逼人绕过去。但它必须每次都说出来，不能再是隐形的假设。
+.venv/bin/python scripts/check_the_three_copies_are_really_there.py --sample 2 --brief 2>/dev/null \
+  || printf '  ↳ 上面这行不是绿的：说明书写的是三份，今天没确认满三份。\n'
+
 step "9) 验收：仓、主机、**镜像里那一份**，三份是不是同一份代码"
 # 第 8 步只核了**扩展包**那一个文件。其余一百多个源文件，在这一步之前
 # 从来没有任何东西核过——而 /opt/social-archive **不是 git 检出**，
