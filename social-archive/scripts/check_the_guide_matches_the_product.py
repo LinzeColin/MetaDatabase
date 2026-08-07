@@ -326,9 +326,39 @@ def main() -> int:
             problems.append(f"说明里出现了「{word}」——这份文档只写现在能做什么，"
                             "写计划会让它开始骗人")
 
+    # ⑤ **说明里的时间间隔，必须和代码里那个闹钟一致**（2026-08-07）。
+    #
+    # 「之后每 6 小时自己跑一次」出现在正文和那张图里各一次。改一次
+    # `periodInMinutes`，这两句就开始骗人——而前面四条规则一个都碰不到它们：
+    # 它们查的是按钮名、平台表、路由、禁用词。
+    background = (ROOT / "apps/browser-extension/background.js").read_text(encoding="utf-8")
+    periods = {int(m) for m in re.findall(
+        r'"sa-account-sync",\s*\{\s*periodInMinutes:\s*(\d+)', background)}
+    stated = {int(h) for h in re.findall(r"每\s*(\d+)\s*小时", text)}
+    if not periods:
+        problems.append("读不出扩展里那个自动同步闹钟的周期——**这不是通过，是没数到**")
+    elif stated and {p // 60 for p in periods} != stated:
+        problems.append(
+            f"说明写「每 {sorted(stated)} 小时」，而扩展里的闹钟是 {sorted(periods)} 分钟"
+            f"（{sorted(p // 60 for p in periods)} 小时）——他会按错的节奏等")
+
+    # ⑥ **不许把他库里的实数写死在散文里**（2026-08-07）。
+    #
+    # 原来写着「实测你库里 193 条有 33 条是这样」。写的当天是真的，
+    # 而他一同步就成了假的——**说明书开始对他的数据说错话，而他没有别的办法
+    # 发现**。这个仓栽过同形的一次：判据盯着 JSON，漏了用户真正读的那段散文。
+    # 数量该由资料库现算着显示，散文只说「有这类条目」。
+    frozen = re.findall(r"(?:你)?库里[^。\n]{0,12}?(\d+)\s*条", text)
+    if frozen:
+        problems.append(
+            f"说明里写死了他库里的条数：{frozen}——**同步一次就成假话**。"
+            "改成「看资料库那一列的实数」，别在散文里冻一个会过期的数字")
+
     report = {
         "status": "PASS" if not problems else "FAIL",
         "task": "G4",
+        "sync_period_minutes": sorted(periods),
+        "sync_hours_stated_in_guide": sorted(stated),
         "guide": str(GUIDE.relative_to(ROOT)),
         "buttons_checked": checked_buttons,
         "claimed_auto": sorted(auto_ids),

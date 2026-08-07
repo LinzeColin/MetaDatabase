@@ -1,6 +1,12 @@
 {
   "status": "PASS",
   "task": "G4",
+  "sync_period_minutes": [
+    360
+  ],
+  "sync_hours_stated_in_guide": [
+    6
+  ],
   "guide": "docs/使用说明.md",
   "buttons_checked": 16,
   "claimed_auto": [
