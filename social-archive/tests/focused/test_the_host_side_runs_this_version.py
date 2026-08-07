@@ -219,3 +219,29 @@ def test_the_disk_advice_does_not_send_you_after_nothing() -> None:
         "没提 Build Cache——实测拦下部署那次悬空是 0 个，占地方的是它"
     )
     assert "由人决定" in deploy, "builder prune 会影响同机别的项目，不能替人决定"
+
+
+def test_the_rollback_line_is_never_printed_without_checking() -> None:
+    """**不许承诺一个没查过的回滚点。**
+
+    2026-08-07 实测：`social-archive/core:rollback` 已经不在了，而部署结尾
+    照旧印着一条用它的命令——照抄会得到 `No such image`。
+    **那是出事那一刻才会被发现的假承诺。**
+
+    它为什么会没：这台机器上跑着 Coolify，它自带的清理会 prune 掉**没有容器
+    在用的镜像**。回滚点按定义就是那一类，而 `docker image prune -a` 不看 tag，
+    所以**任何 tag 都保不住它**——这不是我们能修的，能修的是不再假定它在。
+
+    没有回滚点时要说清还能怎么退（走仓重部署），而不是留一条会报错的命令。
+    """
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    code = "\n".join(l for l in deploy.splitlines() if not l.lstrip().startswith("#"))
+    tail = code.split("部署完成", 1)[1]
+    assert "docker image inspect social-archive/core:rollback" in tail, (
+        "结尾没有现查回滚点在不在就把回滚命令印出去了")
+    printed = tail.index("docker tag social-archive/core:rollback")
+    checked = tail.index("docker image inspect social-archive/core:rollback")
+    assert checked < printed, "**先印命令后查**——顺序反了，等于没查"
+    assert "没有回滚点" in tail, "回滚点不在时没有说清，人会以为还能退"
+    assert "git checkout" in tail, (
+        "没给出没有回滚点时的退路。**仓才是真源**：镜像可以被别人清掉，代码不会没")

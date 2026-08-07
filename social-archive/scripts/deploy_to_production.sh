@@ -617,5 +617,23 @@ FREE_KB="$(free_kb)"
 printf '  回收了 %s 个我们自己的悬空镜像；根分区可用 %sG\n' \
   "${RECLAIMED:-0}" "$(show_gb "$FREE_KB")"
 
-printf '\n部署完成。回滚一行命令：\n'
-printf '  ssh %s "cd %s && docker tag social-archive/core:rollback %s && docker compose up -d core-api core-worker"\n' "$HOST" "$REMOTE_DIR" "$IMAGE"
+# **先确认回滚点真的在，再把那条命令印出来。**
+#
+# 2026-08-07 实测：`social-archive/core:rollback` 已经不存在了，而这里照旧
+# 印着一条用它的命令——照抄会得到 `No such image`。**那是在出事那一刻
+# 才会被发现的假承诺**，正是这个仓一整天在修的那种「下一步指向一个不存在
+# 的东西」。
+#
+# 它为什么会没：这台机器上跑着 Coolify，它自带的清理会 prune 掉**没有容器
+# 在用的镜像**——回滚点按定义就是那一类，任何 tag 都保不住它
+# （`docker image prune -a` 不看 tag）。所以这里不假定它在，**每次现查**。
+printf '\n部署完成。\n'
+if ssh -o ConnectTimeout=20 "$HOST" "docker image inspect social-archive/core:rollback >/dev/null 2>&1"; then
+  printf '回滚一行命令：\n'
+  printf '  ssh %s "cd %s && docker tag social-archive/core:rollback %s && docker compose up -d core-api core-worker"\n' "$HOST" "$REMOTE_DIR" "$IMAGE"
+else
+  printf '**这台机器上现在没有回滚点**（social-archive/core:rollback 不存在）。\n'
+  printf '  同机 Coolify 的清理会 prune 掉没有容器在用的镜像，任何 tag 都挡不住。\n'
+  printf '  真要回退，走仓：git checkout %s 之前那个提交，再跑一次这个脚本。\n' "$(git rev-parse --short HEAD)"
+  printf '  （仓才是真源。镜像可以没，代码不会没。）\n'
+fi
