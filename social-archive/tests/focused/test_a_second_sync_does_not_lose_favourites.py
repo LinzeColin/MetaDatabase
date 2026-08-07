@@ -440,51 +440,62 @@ def test_reconnecting_never_closes_the_rows_the_old_scraper_left(
         assert after.get(ident) == "active", f"{ident} 不见了或被关掉了：{after.get(ident)}"
 
 
-def test_the_same_thing_holds_when_the_batch_omits_external_collection_id(
+def _registered(store, account_id) -> set[str]:
+    return store.list_registered_collections(
+        platform="bilibili",
+        external_account_id=store.get_source_account(
+            account_id, include_handle=True)["external_account_id"],
+        relation_type="favorite")
+
+
+def test_only_the_new_folders_get_registered_never_the_old_key(
     settings, store, service
 ) -> None:
-    """**上面那条判据的夹具，比真实扩展多发了一个字段。**（2026-08-07）
+    """**销账的射程 = 登记过的收藏夹。这条判据盯的就是那个射程。**（2026-08-07）
 
-    `_one_sync` 一直显式带着 `external_collection_id=collection`，旁边还写着
-    「外部 id 必须是媒体 id，不能让它默认成名字」——**而真实的扩展从来不发
-    这个字段**（模型默认 None，background.js 只发 collection_key + collection_name）。
+    `list_registered_collections` 的文档写着：他那 30 条挂在
+    `bilibili:/3493091105311656/favlist` 下的收藏，是靠**从没被登记过**活着的——
+    登记过的收藏夹才会被判成「变空」而整桶销账。
 
-    夹具替产品补上了一个它自己拿不到的字段，于是两件事一起看不见：
-      1. 分面 JOIN 永远匹配不上 → 说明书答应的「收藏夹」筛选永远不出现
-         （2026-08-07 在他生产库上量到：那条 JOIN 匹配 **0 条**）；
-      2. 服务端补上兜底（`external_collection_id or collection_key`）之后，
-         **登记的范围变大了**——而「登记过的收藏夹才可能被判成变空」正是
-         `list_registered_collections` 用来保护他那 30 条旧收藏的那道闸。
+    上面那条判据只看「有没有被销账」，看不见**射程本身有没有被放大**。
+    今天差点就放大了：我一度在服务端加了「没给 external_collection_id 就退回
+    collection_key」的兜底（起因是他生产上三行登记的外部 id 全是 NULL）。
+    量清楚之后撤了——那三行是 8/3–8/4 的历史遗留，扩展从 v0.0.0.11 起就一直
+    显式发那个 id；兜底对真实客户端是死代码，却会把旧 key 也拉进登记范围。
 
-    所以这里按**真实形状**再跑一遍同一个场景：批次不发 external_collection_id，
-    他那 194 条仍旧一条都不许被销账。
+    所以这里直接量射程：新收藏夹必须在里面（否则筛选栏不出现），
+    旧 key 必须不在（否则他 30 条收藏会被两次同步关掉）。
     """
     coordinator, account_id = _connect(settings, store, service)
     _seed_his_library(store, service, account_id)
+    _one_sync(coordinator, account_id, FOLDERS)
 
+    registered = _registered(store, account_id)
+    assert registered >= set(FOLDERS), (
+        f"新收藏夹没登记上：{registered}——那么资料库上方那一栏「收藏夹」筛选不会出现")
+    assert "bilibili:/3493091105311656/favlist" not in registered, (
+        f"旧那条抓取路留下的 key 被登记成了收藏夹：{registered}——"
+        "登记过就可能被判成「变空」，他那 30 条旧收藏会被两次同步关掉")
+
+
+def test_a_client_that_omits_the_id_widens_nothing(
+    settings, store, service
+) -> None:
+    """**客户端不给外部 id，服务端不猜——射程不许因此变大。**
+
+    这条和上一条是一对：上一条保证「该在的在」，这条保证「不该在的不会被猜进来」。
+    """
+    coordinator, account_id = _connect(settings, store, service)
+    _seed_his_library(store, service, account_id)
     _one_sync(coordinator, account_id, FOLDERS, send_external_id=False)
     _one_sync(coordinator, account_id, FOLDERS, send_external_id=False)
 
     after = _statuses(store)
     lost = sorted(ident for ident, status in after.items()
                   if status != "active" and ident in {row[3] for row in HIS_SHAPE})
-    assert not lost, (
-        f"**按真实批次形状跑，他原来的条目被销账了**：{lost}——"
-        "服务端把 collection_key 登记成收藏夹之后，旧 key 有可能被当成"
-        "「一个变空了的收藏夹」，而那正是 2026-08-06 那条保护要挡的事")
-
-    # 顺带钉住另一半：兜底之后，新收藏夹**确实**登记上了（否则筛选栏又没了）。
-    registered = store.list_registered_collections(
-        platform="bilibili",
-        external_account_id=store.get_source_account(
-            account_id, include_handle=True)["external_account_id"],
-        relation_type="favorite")
-    assert registered >= set(FOLDERS), (
-        f"真实形状下收藏夹没登记上：{registered}——"
-        "那么资料库上方那一栏「收藏夹」筛选还是不会出现")
-    assert "bilibili:/3493091105311656/favlist" not in registered, (
-        "旧那条抓取路留下的 key 被登记成了收藏夹——"
-        "登记过就可能被判成「变空」，他那 30 条旧收藏会被两次同步关掉")
+    assert not lost, f"**他原来的条目被销账了**：{lost}"
+    assert _registered(store, account_id) == set(), (
+        "客户端没给外部 id，服务端却自己猜了一个登记上——**销账的射程被放大了**")
 
 
 def test_a_relation_nobody_scans_is_never_closed(settings, store, service) -> None:

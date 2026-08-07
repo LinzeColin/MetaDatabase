@@ -763,28 +763,27 @@ class AccountSyncCoordinator:
 
         self.store.update_sync_run(sync_run_id, status="normalizing")
         if batch.collection_name:
-            # **登记收藏夹用的 id，必须就是关系存进去的那个 key。**（2026-08-07）
+            # **服务端不替客户端猜这个 id。**（2026-08-07）
             #
-            # 分面那条 SQL 是
-            #     JOIN platform_collection pc ON … pc.external_collection_id = r.collection_key
-            # 而这两边此前来自**两个不同的字段**：关系存 `batch.collection_key`，
-            # 登记存 `batch.external_collection_id`——而扩展从来不发后者
-            # （模型默认 None）。于是它们永远碰不上。
+            # 一度想在这里加「没给就退回 collection_key」的兜底，理由是生产上
+            # `platform_collection` 三行的 `external_collection_id` 全是 NULL，
+            # 分面那条 JOIN（`pc.external_collection_id = r.collection_key`）
+            # 匹配 0 条，于是说明书答应的「收藏夹」筛选一直不出现。
             #
-            # 2026-08-07 在他生产库上量出来的：`platform_collection` 有 3 行
-            # （8/3–8/4 真同步写的，名字是「收藏」「合集和系列」），
-            # `external_collection_id` **三行全是 NULL**，那条 JOIN 匹配 **0 条**。
-            # 而说明书写着「B 站连上之后，资料库上方会多出一个收藏夹筛选」——
-            # **按原来的写法，那一栏在他数据上永远不会出现。**
+            # **量清楚之后没加**：那三行是 8/3–8/4 写的，而扩展在 v0.0.0.11
+            # （8f32ef76）就已经显式发 `external_collection_id: group.key` 了，
+            # 现在凡是发 collection_name 的批次都同时发它。兜底对真实客户端
+            # 是死代码，却有真代价——**登记过的收藏夹才可能被判成「变空」**
+            # （见 list_registered_collections），兜底会把登记范围放大，
+            # 而他那 30 条挂在旧 key 下的收藏正是靠「没登记过」活着的。
             #
-            # 没给 external_collection_id 就退回 collection_key：那才是这批条目
-            # 真正被存进去的身份。给了就用给的（平台自己的 id 更权威）。
+            # 真正要守的不变量在客户端那一侧：发名字就必须一起发 id。
+            # 判据：test_the_collections_filter_can_actually_appear.py。
             self.store.upsert_platform_collection(
                 source_account_id=account["id"],
                 relation_type=batch.relation_type,
                 name=batch.collection_name,
-                external_collection_id=(batch.external_collection_id
-                                        or batch.collection_key or None),
+                external_collection_id=batch.external_collection_id,
                 item_count=None,
                 metadata={"sync_run_id": sync_run_id},
             )
