@@ -143,7 +143,7 @@
       const detail = ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(current)
         ? `同步 ${imported}/${discovered || "…"}`
         : `${Number(account.content_count || 0).toLocaleString("zh-CN")} 条 · ${formatTime(account.last_sync_at, Number(account.content_count || 0) ? "同步时间没有记录" : "尚未同步")}`;
-      return `<article class="account-row"><span class="platform-dot">${SA.escapeHtml(platformShort[account.platform] || "网")}</span><span class="account-copy"><strong>${SA.escapeHtml(account.display_name || account.external_account_id || platformName(account.platform) || account.platform)}</strong><small>${SA.escapeHtml(detail)}</small></span><span class="state-label ${SA.escapeHtml(current)}">${SA.escapeHtml(statusName[current] || current)}</span></article>`;
+      return `<article class="account-row"><span class="platform-dot">${SA.escapeHtml(platformShort[account.platform] || "网")}</span><span class="account-copy"><strong>${SA.escapeHtml(account.display_name || account.external_account_id || platformName(account.platform) || account.platform)}</strong><small>${SA.escapeHtml(detail)}</small></span><span class="state-label ${SA.escapeHtml(current)}">${SA.escapeHtml(statusName[current] || "状态未知")}</span></article>`;
     }).join("");
   }
 

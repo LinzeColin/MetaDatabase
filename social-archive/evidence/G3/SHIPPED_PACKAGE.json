@@ -1,7 +1,7 @@
 {
   "status": "PASS",
   "package": "dist/social-archive-extension.zip",
-  "package_sha256_prefix": "a95b1c34ce086933",
+  "package_sha256_prefix": "02fc87b8c958635a",
   "manifest": {
     "version": "0.0.0.22",
     "host": [
@@ -39,7 +39,7 @@
       "tried": true,
       "badge": "私人档案馆已连接 · v0.0.0.22 · 插件 v0.0.0.22",
       "panelOpen": true,
-      "frameSrc": "chrome-extension://jcbfghmkbliebmpkcmkkd",
+      "frameSrc": "chrome-extension://dogldpchdechmjknnbjii",
       "contentReloads": 2,
       "syncStillOpen": false
     },
