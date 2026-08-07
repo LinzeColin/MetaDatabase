@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import shutil
 import sqlite3
+
+from social_archive.git_env import clean_git_env
 import subprocess
 from pathlib import Path
 
@@ -30,7 +32,7 @@ def _pre_v0007_snapshot(path: Path) -> None:
     """用 origin/main 的 schema 造一个 v0.0.0.7 之前的快照。"""
     schema = subprocess.run(
         ["git", "show", "origin/main:social-archive/src/social_archive/sql/runtime_schema.sql"],
-        cwd=ROOT, capture_output=True, text=True, check=True,
+        cwd=ROOT, env=clean_git_env(), capture_output=True, text=True, check=True,
     ).stdout
     con = sqlite3.connect(path)
     con.executescript(schema)

@@ -180,7 +180,20 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="这次部署要不要重建镜像")
     parser.add_argument("--host", default="linze-ovh")
     parser.add_argument("--container", default="social-archive-core-api-1")
+    # **谁进镜像，这里说了算——别处别再抄一份。**
+    # 部署脚本要在演练跑完之后再查一次「进镜像的那些文件有没有被改过」，
+    # 范围必须正好是这一份（演练自己会写 evidence/，那不算脏）。
+    parser.add_argument("--list-inputs", action="store_true",
+                        help="只打 Dockerfile COPY 的输入清单，一行一个")
     args = parser.parse_args()
+
+    if args.list_inputs:
+        sources, error = image_inputs_from_dockerfile(ROOT / "Dockerfile")
+        if error:
+            print(f"读不出镜像输入清单：{error}", file=sys.stderr)
+            return 3
+        print("\n".join(sources))
+        return 0
 
     def verdict(reason: str, **extra) -> int:
         """**任何不确定都从这里出去，一律「要重建」。**"""

@@ -36,7 +36,6 @@ from __future__ import annotations
 import argparse
 import io
 import json
-import os
 import subprocess
 import sys
 import urllib.request
@@ -44,13 +43,11 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-# **git 钩子会把这些塞进环境**，子进程继承之后会去问那个仓而不是 cwd 这个。
-# 仓里已经为此栽过一次（见 test_docs_do_not_send_you_to_a_missing_script.py），
-# 这条判据第一次跑进 pre-commit 就又栽了同一跤：单独跑绿、钩子里红。
-# **不洗环境的话，`cwd=ROOT` 是没有用的**——GIT_DIR 压过 cwd。
-_LEAKED_BY_GIT_HOOKS = ("GIT_DIR", "GIT_INDEX_FILE", "GIT_WORK_TREE",
-                        "GIT_COMMON_DIR", "GIT_PREFIX", "GIT_OBJECT_DIRECTORY")
-_CLEAN_GIT_ENV = {k: v for k, v in os.environ.items() if k not in _LEAKED_BY_GIT_HOOKS}
+# **不洗环境的话 `cwd=ROOT` 是没有用的**——git 钩子塞的 GIT_DIR 压过 cwd。
+# 这条判据第一次跑进 pre-commit 就栽了：单独跑绿、钩子里红。唯一出处在
+# social_archive.git_env，全仓由 check_git_calls_cannot_be_hijacked_by_hooks.py 拦着。
+sys.path.insert(0, str(ROOT / "src"))
+from social_archive.git_env import clean_git_env      # noqa: E402
 EVIDENCE = ROOT / "evidence" / "G5" / "SHIPPED_PACKAGE_IS_THE_COMMIT.json"
 URL = ("https://social-archive-api.linzezhang.com"
        "/downloads/social-archive-extension.zip")
@@ -98,7 +95,7 @@ def compare(package: dict[str, bytes], head_bytes) -> tuple[list[str], dict]:
 def _head_reader(prefix: str):
     def read(rel: str) -> bytes | None:
         done = subprocess.run(["git", "show", f"HEAD:{prefix}{rel}"],
-                              cwd=ROOT, env=_CLEAN_GIT_ENV,
+                              cwd=ROOT, env=clean_git_env(),
                               capture_output=True, check=False)
         return done.stdout if done.returncode == 0 else None
     return read
@@ -107,7 +104,7 @@ def _head_reader(prefix: str):
 def _prefix() -> str:
     """仓根不一定就是这个目录——**现算，别写死。**"""
     top = subprocess.run(["git", "rev-parse", "--show-toplevel"],
-                         cwd=ROOT, env=_CLEAN_GIT_ENV,
+                         cwd=ROOT, env=clean_git_env(),
                          capture_output=True, text=True, check=True)
     inside = ROOT.relative_to(Path(top.stdout.strip())).as_posix()
     return (f"{inside}/" if inside != "." else "") + "apps/browser-extension/"

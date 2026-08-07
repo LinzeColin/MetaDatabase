@@ -139,6 +139,13 @@ def structural_commands() -> list[list[str]]:
         # 可选权限提成必给权限，于是"他真正下载的那个包在权限未授予时会怎样"
         # 从没被走过；第一次真跑就抓到一句指错方向的失败文案。
         [python, "scripts/check_every_drill_has_a_caller.py"],
+        # **git 钩子会把 GIT_DIR 塞进环境，子进程于是去问那个仓**（2026-08-07）。
+        # 一天之内踩了三次，症状都是「单独跑绿、pre-commit 里红」；仓里更早
+        # 已经为同一件事栽过一次，教训写在测试里——**写下来没有用，得有人拦**。
+        # 最坏的一种不是红，是静悄悄读了另一个仓：数出得来，只是错的。
+        # 当场抓到两处存量的，其中一处是明文凭据扫描器——它靠 git ls-files
+        # 决定扫哪些文件，环境脏了它会去扫别的仓然后报「0 处命中」。
+        [python, "scripts/check_git_calls_cannot_be_hijacked_by_hooks.py"],
         # 第九种：**说明书开始骗人**（v0.0.0.7 / G4）。
         # 这个仓已经有过一模一样的教训：CONNECT_IS_CLICKABLE_TODAY 里写过一句
         # 详细的操作路径，然后发现没有任何界面读那个字段——写完就是隐形的。

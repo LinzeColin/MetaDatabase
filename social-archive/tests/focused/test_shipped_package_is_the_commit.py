@@ -86,25 +86,27 @@ def test_it_still_reads_the_right_repo_when_a_git_hook_dirties_the_env(tmp_path)
 
     **真去驱动判据**，不是在这里复述一遍洗环境的技巧——那样把判据里的
     `env=` 删掉，这条还是绿的。做法是把 `GIT_DIR` 指到一个**空的**仓
-    （没有 HEAD），然后重新加载判据模块：没洗环境的话，`git show` 会去问
+    （没有 HEAD），再调判据自己那条读法：没洗环境的话，`git show` 会去问
     那个空仓，一个文件都读不出来。
     """
     import os
 
+    from social_archive.git_env import LEAKED_BY_GIT_HOOKS, clean_git_env
+
     empty = tmp_path / "someone-elses-repo"
     empty.mkdir()
     subprocess.run(["git", "init", "-q"], cwd=empty,
-                   env=_module._CLEAN_GIT_ENV, check=True)
+                   env=clean_git_env(), check=True)
 
-    saved = {k: os.environ.get(k) for k in _module._LEAKED_BY_GIT_HOOKS}
+    saved = {k: os.environ.get(k) for k in LEAKED_BY_GIT_HOOKS}
     try:
         os.environ["GIT_DIR"] = str(empty / ".git")
         os.environ["GIT_WORK_TREE"] = str(empty)
-        spec = importlib.util.spec_from_file_location("_pkg_check_dirty", SCRIPT)
-        dirty = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(dirty)                 # 在脏环境下重新加载
-        assert "GIT_DIR" not in dirty._CLEAN_GIT_ENV, "判据没有把 GIT_DIR 洗掉"
-        got = dirty._head_reader(dirty._prefix())("manifest.json")
+        # **环境是脏的，现在直接驱动判据自己那条读法。**
+        # `clean_git_env()` 是函数、每次现算，所以不用重新加载模块——
+        # 把判据里的 `env=` 删掉，这一条当场红。
+        assert "GIT_DIR" not in clean_git_env(), "洗环境这一步自己没生效"
+        got = _module._head_reader(_module._prefix())("manifest.json")
         assert got and b'"manifest_version"' in got, (
             "环境里有别的仓的 GIT_DIR 时，判据读不到 HEAD 里的 manifest.json——"
             "它会在 pre-commit 里全程空扫，而空扫恰好被它自己判成失败，"
@@ -123,10 +125,8 @@ def test_the_git_prefix_is_computed_not_hardcoded() -> None:
     assert prefix.endswith("apps/browser-extension/"), prefix
     # 走判据自己那条读法（**它会洗掉钩子塞的 GIT_DIR**）。这一行原来是裸的
     # subprocess.run，于是 pre-commit 里红、单独跑绿——上一条判据钉的就是它。
-    done = subprocess.run(["git", "show", f"HEAD:{prefix}manifest.json"],
-                          cwd=ROOT, env=_module._CLEAN_GIT_ENV,
-                          capture_output=True, check=False)
-    assert done.returncode == 0, (
+    got = _module._head_reader(prefix)("manifest.json")
+    assert got is not None, (
         f"用现算出来的前缀 {prefix} 读不到 HEAD 里的 manifest.json——"
         "那么这条判据在生产上会全程空扫")
-    assert b'"manifest_version"' in done.stdout
+    assert b'"manifest_version"' in got

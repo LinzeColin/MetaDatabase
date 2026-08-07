@@ -37,6 +37,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from social_archive.git_env import clean_git_env
+
 ROOT = Path(__file__).resolve().parents[1]
 
 # Netscape cookies.txt：domain \t flag \t path \t secure \t expiry \t name \t value
@@ -189,7 +191,9 @@ def scan_text(name: str, text: str) -> list[dict]:
 
 def tracked_files(all_files: bool) -> list[Path]:
     if all_files:
+        # **环境脏了这里会去列另一个仓的文件，然后报「泄漏项=0」。**
         out = subprocess.run(["git", "ls-files"], cwd=ROOT, text=True,
+                             env=clean_git_env(),
                              capture_output=True, check=True).stdout.split("\n")
         return [ROOT / p for p in out if p.strip()]
     paths: list[Path] = []

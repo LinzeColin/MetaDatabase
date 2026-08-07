@@ -132,7 +132,23 @@ if [ -z "${SA_SKIP_DRILLS:-}" ]; then
 else
   printf '  ⚠️  跳过了真 Chrome 演练（SA_SKIP_DRILLS）——这一版没有端到端证据。\n'
 fi
-printf '  工作树干净；发布门通过；扩展包已重打。\n'
+# **再查一次工作树——这一次是在演练跑完之后。**
+#
+# 2026-08-07：上面那道「工作树干净」在最开头就过完了，而随后的演练要跑五分钟，
+# **每个演练自己会重打一次包**。我在那五分钟里改了 manifest，于是坏的那份被
+# 打出来、同步上去，生产上摆了四十分钟一个打不开连接面板的扩展。
+#
+# 范围不能是整棵树——演练自己会写 evidence/*.json，那不算脏。
+# 正好是**进镜像的那些输入**，而那份清单由 Dockerfile 现算，不在这里抄第二份。
+INPUTS="$(.venv/bin/python scripts/does_this_deploy_need_a_rebuild.py --list-inputs)" \
+  || fail '读不出镜像输入清单——那就无法判断演练期间有没有人动过它们。'
+[[ -n "$INPUTS" ]] || fail '镜像输入清单是空的——**这不是「没有改动」**，是没数到。'
+# shellcheck disable=SC2086
+DIRTY_AFTER_DRILLS="$(git status --porcelain -- $INPUTS)"
+[[ -z "$DIRTY_AFTER_DRILLS" ]] || fail "演练跑完之后，进镜像的这些文件被改过：
+$DIRTY_AFTER_DRILLS
+**扩展包是在这期间重打的**，它对应不上任何一个提交。先把树弄干净再部署。"
+printf '  工作树干净；发布门通过；扩展包已重打；演练跑完后镜像输入仍未被动过。\n'
 
 step "1) 部署前量一次密钥不变量"
 BEFORE="$(secret_fingerprint)"
