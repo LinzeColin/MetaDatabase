@@ -183,6 +183,31 @@ def main() -> int:
             problems.append({"platform": platform, "problem":
                              f"扫描范围里有这个平台没声明过的关系：{extra}"})
 
+    # ---- 第五条半：**每个要扫的关系，都得有它自己的页面地址** -----------
+    #
+    # 2026-08-07 逐个改坏这些门时找到的：`resolveRelationUrl` 是
+    #
+    #     let url = spec?.relationUrls?.[relation] || spec?.home;
+    #
+    # **那个 `|| spec.home` 是个静默的坑**：往 SCANNABLE_RELATIONS 里加一个
+    # 没有地址的关系，同步就会导航到平台**首页**，把首页信息流当成那种关系
+    # 收进来——而且可能落成一次 completeness=complete 的扫描，
+    # 于是缺席闭合会拿首页那批去销掉他真正的那批。
+    #
+    # 演练里已经有一条「绝不许把首页推荐当成他的收藏」（list_shape 那个），
+    # 但它只在跑到的那个平台上有效；这一条是静态的，覆盖所有平台所有关系。
+    catalog_text = CATALOG.read_text(encoding="utf-8")
+    for platform, relations in scannable.items():
+        chunk = catalog_text.split(f"{platform}: Object.freeze({{", 1)
+        block = chunk[1].split("relationUrls: Object.freeze({", 1)[1].split("})", 1)[0] \
+            if len(chunk) > 1 and "relationUrls" in chunk[1][:600] else ""
+        have = set(re.findall(r'(\w+):\s*"', block))
+        for relation in relations:
+            if relation not in have:
+                problems.append({"platform": platform, "problem":
+                                 f"要扫 {relation}，而 relationUrls 里没有它的地址——"
+                                 "同步会退回平台首页，把首页信息流当成这种关系收进来"})
+
     # ---- 第六条：**别承诺一种不会被同步的关系** -------------------------
     #
     # 上面五条都在问「哪个平台」。这一条问「哪一种东西」——它是另一个维度，
