@@ -357,6 +357,20 @@ class ConnectorRegistry:
             from .account_sync import SERVER_ACCOUNT_CONNECTORS
             browser_side = (connector_id in SYNCABLE_NOW
                             and connector_id not in SERVER_ACCOUNT_CONNECTORS)
+            # **存留的那句也要盖掉。**
+            #
+            # 第一版只在「没有消息」时才换，于是 reddit 漏了：它库里存着
+            # 一句旧的 OAuth 探测结果「最近一次读取未完成；请按下一步处理」，
+            # 而 reddit 今天走的是浏览器那条路（演练每次发布都在跑）。
+            # **对浏览器侧平台，任何来自服务端探针的消息都是在说另一条路。**
+            #
+            # 同时把状态从 blocked_environment 降到 degraded：那一档是留给
+            # 「本版本根本做不了」的（tiktok / youtube），而 reddit 做得了——
+            # 用同一档会让他以为这个平台不支持。
+            if browser_side and state != "healthy":
+                if state == "blocked_environment":
+                    state = "degraded"
+                message = ""
             if not message and browser_side and error_code:
                 message = ("这个来源是在你自己的浏览器里同步的，服务器这边探不到它很正常，"
                            "不影响你在资料库上点「连接账号」。")

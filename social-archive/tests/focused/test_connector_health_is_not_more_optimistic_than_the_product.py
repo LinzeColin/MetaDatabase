@@ -109,3 +109,27 @@ def test_a_browser_side_platform_is_not_reported_as_unavailable():
         "没有区分「走服务端」和「走他浏览器」——服务端探针对后者说什么都不作数")
     assert "服务器这边探不到它很正常" in source, (
         "浏览器侧平台探测失败时，没有给出那句解释")
+
+
+def test_a_syncable_browser_platform_is_never_marked_structurally_blocked() -> None:
+    """**`blocked_environment` 是留给"本版本根本做不了"的。**
+
+    2026-08-07 生产上 reddit 是 `blocked_environment` + 「最近一次读取未完成；
+    请按下一步处理或使用保存当前页面。」——那是一句**旧的 OAuth 探测结果**
+    留在库里的，而 reddit 今天走的是浏览器那条路（演练每次发布都在跑，
+    面板上那颗按钮按下去会停在「正在连接…」）。
+
+    用 tiktok / youtube 同一档去标它，他会以为这个平台不支持。
+    浏览器侧平台的服务端探测失败最多只能降到 `degraded`，
+    而且那句消息必须被换掉——**任何来自服务端探针的话都是在说另一条路**。
+    """
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[2]
+              / "src/social_archive/registry.py").read_text(encoding="utf-8")
+    assert 'if browser_side and state != "healthy":' in source, (
+        "浏览器侧平台的探测结果没有被单独处理")
+    assert 'state = "degraded"' in source.split("if browser_side")[1][:400], (
+        "浏览器侧平台还会被标成 blocked_environment——那一档是「本版本做不了」的意思")
+    assert 'message = ""' in source.split("if browser_side")[1][:400], (
+        "库里存着的那句服务端探测结果没被换掉——reddit 就是这么漏的")
