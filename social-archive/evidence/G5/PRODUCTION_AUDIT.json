@@ -1,0 +1,84 @@
+{
+  "status": "PASS",
+  "measured_from_production": {
+    "items_total": 193,
+    "archive_status": {
+      "完整": 160,
+      "视频没存下": 33
+    },
+    "items_without_title": 6,
+    "items_with_nothing_to_identify_them": 0,
+    "fields_present": {
+      "title": 187,
+      "author_name": 36,
+      "published_at": 2,
+      "summary": 185,
+      "canonical_url": 193
+    },
+    "accounts": [
+      {
+        "platform": "bilibili",
+        "connection_state": "disconnected",
+        "auto_sync_enabled": false,
+        "content_count": 101
+      },
+      {
+        "platform": "douyin",
+        "connection_state": "disconnected",
+        "auto_sync_enabled": false,
+        "content_count": 85
+      },
+      {
+        "platform": "xiaohongshu",
+        "connection_state": "disconnected",
+        "auto_sync_enabled": false,
+        "content_count": 0
+      }
+    ],
+    "connectors": [
+      {
+        "connector_id": "generic-web",
+        "state": "healthy"
+      },
+      {
+        "connector_id": "x",
+        "state": "blocked_environment"
+      },
+      {
+        "connector_id": "reddit",
+        "state": "degraded"
+      },
+      {
+        "connector_id": "instagram",
+        "state": "healthy"
+      },
+      {
+        "connector_id": "tiktok",
+        "state": "blocked_environment"
+      },
+      {
+        "connector_id": "xiaohongshu",
+        "state": "degraded"
+      },
+      {
+        "connector_id": "douyin",
+        "state": "degraded"
+      },
+      {
+        "connector_id": "kuaishou",
+        "state": "degraded"
+      },
+      {
+        "connector_id": "bilibili",
+        "state": "healthy"
+      },
+      {
+        "connector_id": "youtube",
+        "state": "blocked_environment"
+      }
+    ]
+  },
+  "problems": [],
+  "what_this_does_not_prove": "它验的是**产品对他这份数据说的话对不对**，不验机制在真 Chrome 里走不走得通——那是演练的事。两件事都要。",
+  "boundary_zh": "只读；不取正文、不取 Cookie、不碰凭据表；数全部现算。"
+}
