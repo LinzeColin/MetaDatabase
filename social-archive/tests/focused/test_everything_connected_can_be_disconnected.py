@@ -90,6 +90,51 @@ def test_disconnect_stops_auto_sync_and_keeps_the_content(tmp_path) -> None:
     assert result["kept_content_count"] == before["content_count"]
 
 
+def test_reconnecting_brings_auto_sync_back(tmp_path) -> None:
+    """**说明书答应过他这一句，得有人守着**（2026-08-07）。
+
+    `docs/使用说明.md` 的「以前能同步，现在账号显示未连接」那一段写着：
+
+        连上之后自动同步会跟着恢复。
+
+    断开那一半一直有判据（上面那条：auto_sync_enabled 必须变 False），
+    **回来那一半一个都没有**。而他现在生产上三个账号全是
+    `disconnected` + `auto_sync_enabled=0`——这句话正是他接下来要依赖的那句。
+
+    还要顺带钉住「不分叉」：重连必须认领原来那一行，否则他存下的内容
+    留在旧账号底下，新账号看着是空的。
+    """
+    from social_archive.db import RuntimeStore
+
+    guide = (ROOT / "docs/使用说明.md").read_text(encoding="utf-8")
+    assert "连上之后自动同步会跟着恢复" in guide, (
+        "说明书里那句承诺被改了或删了——**这条判据守的就是它**，"
+        "改承诺就要一起改这里，别让判据守着一句已经不存在的话")
+
+    store = RuntimeStore(tmp_path / "runtime.sqlite3")
+    store.initialize()
+    first = store.upsert_source_account(
+        platform="douyin", external_account_id="browser-session", display_name="抖音",
+        auth_method="browser_session", auth_handle_ref=None,
+        connection_state="connected", auto_sync_enabled=True,
+    )
+    store.disconnect_source_account(first)
+    off = {a["id"]: a for a in store.list_source_accounts()}[first]
+    assert off["auto_sync_enabled"] is False and off["connection_state"] == "disconnected"
+
+    again = store.upsert_source_account(
+        platform="douyin", external_account_id="browser-session", display_name="抖音",
+        auth_method="browser_session", auth_handle_ref=None,
+        connection_state="connected",
+    )
+    assert again == first, "**重连开出了第二行**——他存下的内容会留在旧账号底下"
+    back = {a["id"]: a for a in store.list_source_accounts()}[again]
+    assert back["connection_state"] == "connected", back
+    assert back["auto_sync_enabled"] is True, (
+        "重连之后自动同步没跟着回来——说明书对他说会恢复，而它没有。"
+        "他会以为连上了就完事，然后等一个永远不会来的同步")
+
+
 def test_disconnect_is_idempotent(tmp_path) -> None:
     """再点一次不能报错。用户重复点是常态，不是异常。"""
     from social_archive.db import RuntimeStore
