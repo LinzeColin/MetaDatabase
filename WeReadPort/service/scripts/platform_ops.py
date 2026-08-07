@@ -382,7 +382,14 @@ def r2_to_oci() -> dict:
     target = os.environ.get("WRP_OCI_RCLONE_TARGET", "").strip()
     if not source or not target:
         raise RuntimeError("R2_OR_OCI_REMOTE_NOT_CONFIGURED")
-    command = ["rclone", "sync", source, target, "--checksum", "--immutable", "--transfers", "4", "--checkers", "8", "--log-level", "NOTICE"]
+    # --fast-list 是 R2 免费额度的硬要求，不是性能调优：
+    # rclone 默认按前缀逐个 ListObjects，在内容寻址树上会炸成几千次调用。
+    # 2026-08-07 实测：不加时这一个每日任务打 9,300 次 ListObjects = 288,300/月
+    # = R2 Class A 免费额度(100万/月)的 28.8%,是全账号最大的单一 Class A 消费者,
+    # 且随对象数线性增长。加上后是一次递归列举(1000 key/页),约 14 次。
+    # 它只改"怎么列",不改比对与传输语义(--checksum --immutable 照旧)。
+    # 规则见 Private-Database OPS/AGENT_ONBOARDING.md §9.7。**删掉它等于把账单打开。**
+    command = ["rclone", "sync", source, target, "--fast-list", "--checksum", "--immutable", "--transfers", "4", "--checkers", "8", "--log-level", "NOTICE"]
     completed = subprocess.run(command, capture_output=True, text=True, timeout=3600, env=rclone_environment())
     if completed.returncode != 0:
         raise RuntimeError("R2_OCI_SYNC_FAILED")
