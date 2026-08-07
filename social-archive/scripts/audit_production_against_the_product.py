@@ -59,14 +59,18 @@ def _get(path: str, token: str) -> dict:
         return json.loads(response.read())
 
 
-def audit(library: dict, accounts: dict, status: dict) -> tuple[list[str], dict]:
+def audit(library: dict, accounts: dict, status: dict,
+          runs_codes: set[str] | None = None) -> tuple[list[str], dict]:
     """**判断逻辑与取数分开。**
 
     分开是为了能用「修之前那些真实形状」喂它，证明它真的会红——
     一条永远说 PASS 的审计等于没有。判据在
     tests/focused/test_production_audit_catches_what_it_missed.py。
     """
+    from social_archive.failure_copy import describe_sync_outcome
+
     items = library["items"]
+    runs_codes = runs_codes or set()
     problems: list[str] = []
     # ── 1. 界面上的字里不许出现内部码 ────────────────────────────────
     # 十处里有两处是这个：状态页印 `HEALTH_PROBE_FAILED`、
@@ -116,7 +120,34 @@ def audit(library: dict, accounts: dict, status: dict) -> tuple[list[str], dict]
             f"**{len(faceless)} 条内容在表格里认不出是哪一条**"
             "（标题为空，而且没有链接可以兜底）")
 
-    # ── 5. 账号状态与「界面会说什么」对不对得上 ──────────────────────
+    # ── 5. 生产里出现过的每个失败码，都要能说成人话 ─────────────────
+    #
+    # failure_copy.py 里记着 2026-08-04 的教训：**生产库里有代码里已经不存在
+    # 的码**（v0.0.0.6 留下的三个），光读代码列不全。所以反过来：
+    # 把生产**真出现过**的码逐个渲染一遍，看它说得出话、且不泄漏内部码。
+    # 这样将来冒出一个谁都没想到的新码，这里会当场发现。
+    for code in sorted(runs_codes):
+        try:
+            rendered = describe_sync_outcome(
+                imported=0, failure_code=code, platform_label="某平台", status="partial")
+        except Exception as error:                        # noqa: BLE001
+            problems.append(f"**失败码 {code} 渲染时抛异常**：{str(error)[:80]}")
+            continue
+        text = str(rendered.get("message_zh") or "")
+        if not text.strip():
+            problems.append(f"**失败码 {code} 说不出话**——他只会看到一片空白")
+        # **「有话说」还不够**：不认识的码会落进 unexplained_zero 那句
+        # 「我们没能记录下原因。这是产品的问题」——它有话说、也不泄漏码，
+        # 但那句话的意思正是「**我们没有为这个码写过文案**」。
+        # 按结局判才准，按有没有字判会漏掉每一个新码。
+        if rendered.get("outcome") == "unexplained_zero":
+            problems.append(
+                f"**失败码 {code} 没有人为它写过文案**——他看到的会是"
+                "「我们没能记录下原因，这是产品的问题」，而原因就写在这个码里")
+        for hit in re.findall(r"[A-Z][A-Z_]{4,}", text):
+            problems.append(f"**失败码 {code} 的句子里有内部码**：{hit}")
+
+    # ── 6. 账号状态与「界面会说什么」对不对得上 ──────────────────────
     account_items = accounts.get("items", [])
     connected = [a for a in account_items
                  if a.get("connection_state") in ("connected", "degraded")]
@@ -163,11 +194,19 @@ def main() -> int:
     library = _get("/v1/library?limit=500", token)
     accounts = _get("/v1/accounts", token)
     status = _get("/v1/status", token)
-    problems, measured = audit(library, accounts, status)
+    # 生产里**真出现过**的失败码——不是我从代码里列的那些。
+    history = ROOT / "evidence/G1/PRODUCTION_AGGREGATION_REALLY_HAPPENED.json"
+    runs_codes: set[str] = set()
+    if history.is_file():
+        runs_codes = {run["last_error_code"] for run
+                      in json.loads(history.read_text(encoding="utf-8"))["all_runs"]
+                      if run.get("last_error_code")}
+    problems, measured = audit(library, accounts, status, runs_codes)
 
     report = {
         "status": "PASS" if not problems else "FAIL",
         "measured_from_production": measured,
+        "failure_codes_seen_in_production": sorted(runs_codes),
         "problems": problems,
         "what_this_does_not_prove": (
             "它验的是**产品对他这份数据说的话对不对**，不验机制在真 Chrome 里"

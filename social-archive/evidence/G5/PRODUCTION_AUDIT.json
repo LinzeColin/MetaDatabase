@@ -78,6 +78,13 @@
       }
     ]
   },
+  "failure_codes_seen_in_production": [
+    "BROWSER_SCAN_FAILED",
+    "PLATFORM_PERMISSION_MISSING",
+    "RELATION_SCOPE_UNCONFIRMED",
+    "STABLE_END_WITHOUT_PROOF",
+    "SYNC_RUN_ABANDONED"
+  ],
   "problems": [],
   "what_this_does_not_prove": "它验的是**产品对他这份数据说的话对不对**，不验机制在真 Chrome 里走不走得通——那是演练的事。两件事都要。",
   "boundary_zh": "只读；不取正文、不取 Cookie、不碰凭据表；数全部现算。"

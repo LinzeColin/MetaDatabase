@@ -116,3 +116,30 @@ def test_an_item_with_neither_title_nor_link_is_a_problem() -> None:
     items = [{"id": "cnt_3", "title": "", "canonical_url": "", "archive_status": "完整"}]
     problems, _ = audit(_library(items), _accounts(), _status(HEALTHY))
     assert any("认不出是哪一条" in p for p in problems), problems
+
+
+def test_it_catches_a_failure_code_with_no_human_sentence() -> None:
+    """**生产里冒出一个谁都没想到的新码，这里要当场发现。**
+
+    failure_copy.py 里记着 2026-08-04 的教训：生产库里有代码里已经不存在的码
+    （v0.0.0.6 留下的三个），**光读代码列不全**。所以反过来——把生产真出现过的
+    码逐个渲染，看它说得出话、且不泄漏内部码。
+    """
+    problems, _ = audit(_library(), _accounts(), _status(HEALTHY),
+                        {"A_CODE_NOBODY_WROTE_COPY_FOR"})
+    assert problems, "一个没有人话的新码没被发现"
+    assert any("A_CODE_NOBODY_WROTE_COPY_FOR" in p for p in problems), problems
+
+
+def test_the_codes_his_production_really_emitted_all_have_sentences() -> None:
+    """他生产里真出现过的那五个码，逐个必须说得出人话。"""
+    import json as _json
+
+    history = ROOT / "evidence/G1/PRODUCTION_AGGREGATION_REALLY_HAPPENED.json"
+    assert history.is_file(), "取证文件不在——这条判据没有夹具就等于没有"
+    codes = {run["last_error_code"] for run
+             in _json.loads(history.read_text(encoding="utf-8"))["all_runs"]
+             if run.get("last_error_code")}
+    assert len(codes) >= 4, f"只有 {len(codes)} 个码，这份夹具太薄"
+    problems, _ = audit(_library(), _accounts(), _status(HEALTHY), codes)
+    assert problems == [], problems
