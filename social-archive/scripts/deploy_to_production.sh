@@ -375,6 +375,29 @@ if [[ -n "$FREE_KB" && "$FREE_KB" -lt "$MIN_FREE_KB" ]]; then
   printf '  回收后可用 %sG\n' "$(show_gb "$FREE_KB")"
 fi
 if [[ -n "$FREE_KB" && "$FREE_KB" -lt "$MIN_FREE_KB" ]]; then
+  # **第三段：收掉没被引用的构建缓存。**
+  #
+  # 2026-08-07 我手工做过一次：那天可用掉到 3.23G——**就是当初 SQLite
+  # 建不出 -wal 那次事故的水位**——`docker builder prune -f` 收回 913.7MB，
+  # 回到 7.60G，默认门槛照常过。
+  #
+  # **不加 -a。** 不加就只收「没有任何东西引用」的那部分：不动镜像、
+  # 不动容器、不动卷。加了 -a 会把同机每个项目的下一次构建都拖慢，
+  # 那才是要人裁定的事。
+  #
+  # 为什么做成自动的：Owner 说过「我已经给你至少十次了，你再不断重复
+  # 这个步骤流程环节」。**能我做的就别拿去问他**——这一步的代价是
+  # 「下次构建慢一点」，不是任何不可逆的东西。
+  #
+  # 收到 0 也很正常（刚收过、或者缓存全被现有镜像引用着）：
+  # 那不是失败，下面还会重新量一次再决定要不要中止。
+  printf '  还不够，再收掉**没被引用的构建缓存**（不加 -a：不动镜像/容器/卷）：\n'
+  ssh -o ConnectTimeout=180 "$HOST" 'sudo docker builder prune -f 2>&1 | tail -1' \
+    | sed 's/^/    /' || true
+  FREE_KB="$(free_kb)"
+  printf '  回收后可用 %sG\n' "$(show_gb "$FREE_KB")"
+fi
+if [[ -n "$FREE_KB" && "$FREE_KB" -lt "$MIN_FREE_KB" ]]; then
   # **建议要指向真正占地方的东西。**
   #
   # 2026-08-05 实测：门在 4G 上拦下部署，而**悬空镜像是 0 个**——
@@ -399,10 +422,11 @@ if [[ -n "$FREE_KB" && "$FREE_KB" -lt "$MIN_FREE_KB" ]]; then
   # 所以现在从表里现取 RECLAIMABLE，收不回来就直说收不回来。
   CACHE_RECLAIMABLE="$(printf '%s\n' "$DF_TABLE" | awk '/^Build Cache/ {print $NF}')"
   case "${CACHE_RECLAIMABLE:-0B}" in
-    0B|0|"") CACHE_ADVICE="· **构建缓存收不回来**（上表 RECLAIMABLE = ${CACHE_RECLAIMABLE:-0B}）——
-    \`docker builder prune\` 在这里是白跑，别浪费时间。" ;;
-    *) CACHE_ADVICE="· 构建缓存可回收 ${CACHE_RECLAIMABLE}。\`docker builder prune\` 会拖慢
-    同机别的项目的下一次构建，**由人决定**。" ;;
+    0B|0|"") CACHE_ADVICE="· 构建缓存**上面已经自动收过了**，现在没有无引用的可收
+    （不加 -a，所以不碰别的项目正在复用的层）。这条路这次帮不上忙。" ;;
+    *) CACHE_ADVICE="· 上面自动收过一轮之后，构建缓存里还剩 ${CACHE_RECLAIMABLE} 标着可回收。
+    要再往下收只能 \`docker builder prune -a\`，那会把同机每个项目的下一次构建
+    都拖慢，**由人决定**。" ;;
   esac
   if [[ -z "$(printf '%s' "$DANGLING" | tr -d '[:space:]')" ]]; then
     DANGLING_ADVICE="· **悬空镜像一个都没有**——这条路这次帮不上忙。"
