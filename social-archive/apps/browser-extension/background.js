@@ -697,7 +697,19 @@ async function enqueueAccountSync({ accountId, syncRunId = null, tabId = null, p
 }
 
 async function enqueueAllAccounts(triggerType = "manual") {
-  const connected = (await listAccounts()).filter(item => ["connected", "degraded"].includes(item.connection_state));
+  // **界面上写着「自动同步=关」的账号，定时任务不许去动它**（2026-08-07）。
+  //
+  // 原来这里只看 connection_state。而 `set_source_account_state(id, "connected")`
+  // （account_sync.py，一次同步成功后调）**只改状态、不碰 auto_sync_enabled**——
+  // 于是可以出现「已连接 + 自动同步=关」这一行：他在弹窗和资料库里都看到
+  // 「自动同步=关」，而每 6 小时的 sa-account-sync 照样去替他跑。
+  // **产品说的和产品做的不一致，而他没有别的办法发现。**
+  //
+  // 只挡显式的 `false`：字段缺失（老版本服务端、或将来新增的账号类型）按开算，
+  // 否则一个读不到的字段会把他所有的自动同步静默关掉——那是更坏的方向。
+  const connected = (await listAccounts()).filter(item =>
+    ["connected", "degraded"].includes(item.connection_state)
+    && item.auto_sync_enabled !== false);
   // 同步不了的平台**根本不进队列**——进了就会每分钟抢一次用户的标签页。
   const capability = await Promise.all(connected.map(item => platformCanSyncNow(item.platform)));
   const accounts = connected.filter((_, index) => capability[index]);
