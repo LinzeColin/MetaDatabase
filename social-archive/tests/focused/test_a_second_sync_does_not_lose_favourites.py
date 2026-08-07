@@ -82,7 +82,7 @@ SHAPES = (True, False)
 
 
 def _one_sync(coordinator, account_id, folders: dict[str, list[str]],
-              *, per_collection: bool = True) -> str:
+              *, per_collection: bool = True, send_external_id: bool = True) -> str:
     """跑一次完整同步，批次形状照抄 sendBrowserScopeBatches 真正发出去的那种。"""
     run = coordinator.start_sync(account_id, AccountSyncRequest(
         mode="incremental", relation_types=["favorite"], trigger_type="manual"))["sync_run_id"]
@@ -95,14 +95,14 @@ def _one_sync(coordinator, account_id, folders: dict[str, list[str]],
                 # **外部 id 必须是媒体 id，不能让它默认成名字。**
                 # 服务端 `external = external_collection_id or name`，
                 # 而库里 join 用的是 r.collection_key（媒体 id）——不给就永远对不上。
-                external_collection_id=collection,
+                external_collection_id=collection if send_external_id else None,
                 items=[_bilibili_item(bvid, collection) for bvid in bvids],
                 completeness="partial", batch_index=0, batch_count=1, has_more=False))
             # 收藏夹级终批
             coordinator.ingest_batch(run, SyncBatchRequest(
                 relation_type="favorite", scope_type="collection",
                 collection_key=collection, collection_name=names[collection],
-                external_collection_id=collection,
+                external_collection_id=collection if send_external_id else None,
                 items=[], completeness="complete", batch_index=1, batch_count=2,
                 has_more=False))
     else:
@@ -438,6 +438,53 @@ def test_reconnecting_never_closes_the_rows_the_old_scraper_left(
     )
     for ident in {row[3] for row in HIS_SHAPE}:
         assert after.get(ident) == "active", f"{ident} 不见了或被关掉了：{after.get(ident)}"
+
+
+def test_the_same_thing_holds_when_the_batch_omits_external_collection_id(
+    settings, store, service
+) -> None:
+    """**上面那条判据的夹具，比真实扩展多发了一个字段。**（2026-08-07）
+
+    `_one_sync` 一直显式带着 `external_collection_id=collection`，旁边还写着
+    「外部 id 必须是媒体 id，不能让它默认成名字」——**而真实的扩展从来不发
+    这个字段**（模型默认 None，background.js 只发 collection_key + collection_name）。
+
+    夹具替产品补上了一个它自己拿不到的字段，于是两件事一起看不见：
+      1. 分面 JOIN 永远匹配不上 → 说明书答应的「收藏夹」筛选永远不出现
+         （2026-08-07 在他生产库上量到：那条 JOIN 匹配 **0 条**）；
+      2. 服务端补上兜底（`external_collection_id or collection_key`）之后，
+         **登记的范围变大了**——而「登记过的收藏夹才可能被判成变空」正是
+         `list_registered_collections` 用来保护他那 30 条旧收藏的那道闸。
+
+    所以这里按**真实形状**再跑一遍同一个场景：批次不发 external_collection_id，
+    他那 194 条仍旧一条都不许被销账。
+    """
+    coordinator, account_id = _connect(settings, store, service)
+    _seed_his_library(store, service, account_id)
+
+    _one_sync(coordinator, account_id, FOLDERS, send_external_id=False)
+    _one_sync(coordinator, account_id, FOLDERS, send_external_id=False)
+
+    after = _statuses(store)
+    lost = sorted(ident for ident, status in after.items()
+                  if status != "active" and ident in {row[3] for row in HIS_SHAPE})
+    assert not lost, (
+        f"**按真实批次形状跑，他原来的条目被销账了**：{lost}——"
+        "服务端把 collection_key 登记成收藏夹之后，旧 key 有可能被当成"
+        "「一个变空了的收藏夹」，而那正是 2026-08-06 那条保护要挡的事")
+
+    # 顺带钉住另一半：兜底之后，新收藏夹**确实**登记上了（否则筛选栏又没了）。
+    registered = store.list_registered_collections(
+        platform="bilibili",
+        external_account_id=store.get_source_account(
+            account_id, include_handle=True)["external_account_id"],
+        relation_type="favorite")
+    assert registered >= set(FOLDERS), (
+        f"真实形状下收藏夹没登记上：{registered}——"
+        "那么资料库上方那一栏「收藏夹」筛选还是不会出现")
+    assert "bilibili:/3493091105311656/favlist" not in registered, (
+        "旧那条抓取路留下的 key 被登记成了收藏夹——"
+        "登记过就可能被判成「变空」，他那 30 条旧收藏会被两次同步关掉")
 
 
 def test_a_relation_nobody_scans_is_never_closed(settings, store, service) -> None:
