@@ -244,7 +244,17 @@ def download_s3_ciphertext(
 
 
 def _github_environment(token_file: str | None) -> dict[str, str]:
-    token = read_secret(token_file)
+    # **和 R2/OCI 走同一条路径解析。**（2026-08-07）
+    #
+    # 三家的 `*_FILE` 配的都是容器内路径 `/run/secrets/…`，在主机上都不存在；
+    # R2/OCI 靠 `resolve_secret_path` 回退到 runtime/secrets/ 找同名文件，
+    # **而这里直接 read_secret，不回退**。于是在生产机上真跑一次
+    # `--presence-only`：r2 PASS、oci PASS、**github 报「缺少 Vault 专用恢复
+    # token」**——三份副本里唯一读不到的，恰好是迁移之后的那份主备份。
+    #
+    # `resolve_secret_path` 会把用过的回退记进 SECRET_PATH_FALLBACKS 并打进
+    # 报告，所以这不是静默兜底：配置该修还是看得见。
+    token = read_secret(resolve_secret_path(token_file))
     if not token:
         raise RecoveryBlocked("GITHUB_TOKEN_MISSING", "缺少 GitHub Vault 专用恢复 token")
     environment = dict(os.environ)

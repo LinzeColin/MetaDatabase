@@ -244,6 +244,49 @@ def test_presence_only_actually_runs_as_a_command(monkeypatch, tmp_path, capsys)
     assert "--verify-only" in printed["what_this_does_not_prove_zh"]
 
 
+def test_every_stores_secret_goes_through_the_same_path_fallback(monkeypatch, tmp_path):
+    """**三家存储的凭据，必须用同一条路径解析。**（2026-08-07）
+
+    三家的 `*_FILE` 配的都是容器内路径 `/run/secrets/…`，主机上都不存在。
+    R2/OCI 靠 `resolve_secret_path` 回退到 `runtime/secrets/` 找同名文件；
+    GitHub 那条**直接 read_secret，不回退**。在生产机上真跑一次
+    `--presence-only` 就看见了：r2 PASS、oci PASS、
+    **github「缺少 Vault 专用恢复 token」**——三份副本里唯一读不到的，
+    恰好是迁移之后的那份主备份。
+
+    判据不抄清单：从源码里把每一处 `read_secret(` 找出来，逐个要求它的参数
+    经过 `resolve_secret_path`。将来加第四家存储，漏了照样红。
+    """
+    source = (Path(__file__).resolve().parents[2] / "scripts/restore_object.py").read_text(encoding="utf-8")
+    calls = re.findall(r"read_secret\(([^)]*(?:\([^)]*\))?[^)]*)\)", source)
+    assert calls, "一处 read_secret 都没找到——这条判据在空扫"
+    bare = [c.strip() for c in calls if "resolve_secret_path" not in c]
+    assert not bare, (
+        f"这些凭据没走路径回退：{bare}——配置里写的是容器内路径，"
+        "在恢复节点上读不到，而其他存储能读到：**你会以为那一份副本没了**")
+
+
+def test_the_github_token_is_found_through_the_fallback(monkeypatch, tmp_path):
+    """真去驱动一次：配置指着一个不存在的路径，同名文件在回退目录里。"""
+    from social_archive import recovery as recovery_module
+
+    module = _load_script(Path(__file__).resolve().parents[2])
+    fallback_dir = tmp_path / "secrets"
+    fallback_dir.mkdir()
+    token_file = fallback_dir / "github_token"
+    token_file.write_text("ghp_fixture\n", encoding="utf-8")
+    token_file.chmod(0o600)          # 宿主机秘密文件必须 0600——那道闸是对的
+    monkeypatch.setattr(recovery_module, "SECRET_FALLBACK_DIR", fallback_dir)
+    monkeypatch.setattr(module, "resolve_secret_path", recovery_module.resolve_secret_path)
+
+    env = module._github_environment("/run/secrets/github_token")
+    assert env["GH_TOKEN"] == "ghp_fixture"
+    assert "GITHUB_TOKEN" not in env, "旧的 GITHUB_TOKEN 没被清掉"
+    assert any("github_token" in item for item in recovery_module.SECRET_PATH_FALLBACKS), (
+        "用了回退却没记一笔——**静默兜底比不兜底更坏**，"
+        "它会让人以为配置本来就是对的，换台机器照抄又撞同一堵墙")
+
+
 def test_github_pack_extracts_only_verified_target_ciphertext(tmp_path):
     module = _load_script(Path(__file__).resolve().parents[2])
     descriptor, _plain, cipher = _descriptor(module)

@@ -6,7 +6,7 @@
     {
       "drill": "shipped_package_drill.py",
       "status": "PASS",
-      "seconds": 36.1,
+      "seconds": 29.8,
       "problems": []
     },
     {
@@ -18,7 +18,7 @@
     {
       "drill": "extension_install_page_drill.py",
       "status": "PASS",
-      "seconds": 37.4,
+      "seconds": 37.6,
       "problems": []
     },
     {
@@ -30,13 +30,13 @@
     {
       "drill": "extension_routing_drill.py",
       "status": "PASS",
-      "seconds": 4.0,
+      "seconds": 3.9,
       "problems": []
     },
     {
       "drill": "extension_capture_drill.py",
       "status": "PASS",
-      "seconds": 16.0,
+      "seconds": 15.9,
       "problems": []
     },
     {
@@ -48,7 +48,7 @@
     {
       "drill": "extension_bridge_boundary_drill.py",
       "status": "PASS",
-      "seconds": 12.9,
+      "seconds": 13.0,
       "problems": []
     },
     {
@@ -66,7 +66,7 @@
     {
       "drill": "bilibili_end_to_end_drill.py",
       "status": "PASS",
-      "seconds": 24.7,
+      "seconds": 24.5,
       "problems": []
     },
     {
@@ -78,7 +78,7 @@
     {
       "drill": "list_shape_end_to_end_drill.py --platform reddit",
       "status": "PASS",
-      "seconds": 40.6,
+      "seconds": 41.1,
       "problems": []
     },
     {
