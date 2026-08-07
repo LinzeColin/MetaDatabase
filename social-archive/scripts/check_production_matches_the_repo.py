@@ -109,7 +109,8 @@ def inert_in_the_image(name: str) -> bool:
                     "deploy_to_production.sh",
                     "reclaim_our_superseded_images.sh",
                     "verify_production_deployment.py",
-                    "read_production_sync_history.py"})
+                    "read_production_sync_history.py",
+                    "audit_production_against_the_product.py"})
 
 
 def container_note_for(stale: list[str], file_count: int) -> str:
