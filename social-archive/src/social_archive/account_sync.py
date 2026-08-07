@@ -763,11 +763,28 @@ class AccountSyncCoordinator:
 
         self.store.update_sync_run(sync_run_id, status="normalizing")
         if batch.collection_name:
+            # **登记收藏夹用的 id，必须就是关系存进去的那个 key。**（2026-08-07）
+            #
+            # 分面那条 SQL 是
+            #     JOIN platform_collection pc ON … pc.external_collection_id = r.collection_key
+            # 而这两边此前来自**两个不同的字段**：关系存 `batch.collection_key`，
+            # 登记存 `batch.external_collection_id`——而扩展从来不发后者
+            # （模型默认 None）。于是它们永远碰不上。
+            #
+            # 2026-08-07 在他生产库上量出来的：`platform_collection` 有 3 行
+            # （8/3–8/4 真同步写的，名字是「收藏」「合集和系列」），
+            # `external_collection_id` **三行全是 NULL**，那条 JOIN 匹配 **0 条**。
+            # 而说明书写着「B 站连上之后，资料库上方会多出一个收藏夹筛选」——
+            # **按原来的写法，那一栏在他数据上永远不会出现。**
+            #
+            # 没给 external_collection_id 就退回 collection_key：那才是这批条目
+            # 真正被存进去的身份。给了就用给的（平台自己的 id 更权威）。
             self.store.upsert_platform_collection(
                 source_account_id=account["id"],
                 relation_type=batch.relation_type,
                 name=batch.collection_name,
-                external_collection_id=batch.external_collection_id,
+                external_collection_id=(batch.external_collection_id
+                                        or batch.collection_key or None),
                 item_count=None,
                 metadata={"sync_run_id": sync_run_id},
             )
