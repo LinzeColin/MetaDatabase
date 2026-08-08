@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import {
+  buildAuthRequest,
+  SIGN_UP_VERIFICATION_PATH,
+  VERIFIED_LOGIN_PATH,
+} from "../app/auth/_components/auth-flow.ts";
 import { readAuthRuntimeConfig } from "../server/auth/runtime.ts";
 import { requireVerifiedIdentity, rejectClientTenantFields } from "../server/security/tenant.ts";
 
@@ -34,4 +39,48 @@ test("only verified identities can enter tenant data handlers", () => {
 test("nested tenant fields are rejected before a write can be prepared", () => {
   assert.throws(() => rejectClientTenantFields({ title: "x", nested: { user_id: "user_b" } }));
   assert.doesNotThrow(() => rejectClientTenantFields({ title: "x", values: [1, 2] }));
+});
+
+test("email verification resend stays same-origin and does not place email in the callback", () => {
+  const request = buildAuthRequest("verify-email", {
+    email: "member@example.test",
+    password: "",
+    name: "",
+    captchaResponse: "",
+    resetToken: "",
+  });
+
+  assert.equal(request.endpoint, "/api/auth/send-verification-email");
+  assert.deepEqual(request.body, {
+    email: "member@example.test",
+    callbackURL: VERIFIED_LOGIN_PATH,
+  });
+  assert.equal(VERIFIED_LOGIN_PATH, "/auth/sign-in?verified=1");
+  assert.equal(SIGN_UP_VERIFICATION_PATH, "/auth/verify-email");
+  assert.equal(VERIFIED_LOGIN_PATH.includes("member@example.test"), false);
+});
+
+test("email sign-up and password reset keep the documented callback contracts", () => {
+  const base = {
+    email: "member@example.test",
+    password: "correct-horse-battery-staple",
+    name: "Member",
+    captchaResponse: "captcha-token",
+    resetToken: "reset-token",
+  };
+
+  assert.deepEqual(buildAuthRequest("sign-up", base), {
+    endpoint: "/api/auth/sign-up/email",
+    body: {
+      name: "Member",
+      email: "member@example.test",
+      password: "correct-horse-battery-staple",
+      callbackURL: VERIFIED_LOGIN_PATH,
+      captchaResponse: "captcha-token",
+    },
+  });
+  assert.deepEqual(buildAuthRequest("reset-password", base), {
+    endpoint: "/api/auth/reset-password",
+    body: { newPassword: "correct-horse-battery-staple", token: "reset-token" },
+  });
 });

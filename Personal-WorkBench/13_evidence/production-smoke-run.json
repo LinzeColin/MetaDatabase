@@ -1,0 +1,52 @@
+{
+  "schema_version": "3.0",
+  "subject_phase": "S5-T3",
+  "status": "BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK",
+  "verdict": "NOT_ISSUED_PRE_VERIFIER",
+  "generated_at": "2026-08-08T21:47:09.580Z",
+  "environment": {
+    "production_origin_configured": false,
+    "production_origin_kind": "NOT_CONFIGURED",
+    "can_resolve_origin": false
+  },
+  "checks": {
+    "routes": {
+      "root": null,
+      "sign_in": null,
+      "sign_up": null,
+      "forgot_password": null,
+      "verify_email": null,
+      "public_config": null,
+      "profile_probe": null
+    },
+    "production_assets": {
+      "candidate_version_probe": null
+    },
+    "credentials": {
+      "has_google_live_account": false,
+      "has_mail_account": false,
+      "has_password": false
+    },
+    "evidence_links": {
+      "owner_activation": {
+        "exists": true,
+        "status": "BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK",
+        "phase": "S5-T2"
+      },
+      "auth_saved": {
+        "exists": true,
+        "status": "NOT_RUN",
+        "phase": null
+      }
+    }
+  },
+  "command_results": [],
+  "risks": [
+    "未设置生产 Origin（需配置 SITES_PRODUCTION_ORIGIN 或 PRODUCTION_SMOKE_ORIGIN）。"
+  ],
+  "next_steps": [
+    "先设置生产环境地址（推荐 SITES_PRODUCTION_ORIGIN=https://xxx.pages.dev 或正式域名）。",
+    "完成 Sites Saved Candidate 部署并发布可访问 URL 后再执行本脚本。",
+    "生产 Origin 可达后执行 `npm run verify:owner-activation` 与 `npm run verify:public-launch` 复核环境门槛。"
+  ]
+}

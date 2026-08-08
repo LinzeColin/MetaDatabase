@@ -1,0 +1,28 @@
+{
+  "task_id": "S3-T1",
+  "status": "PASS_LOCAL_CONTRACT",
+  "candidate_commit": null,
+  "environment": {
+    "db": "node:sqlite Memory",
+    "runner": "node:test + cloudflare alias loader"
+  },
+  "evidence_files": [
+    "tests/legacy-import.test.mts"
+  ],
+  "checks": {
+    "preview": "PASS",
+    "apply": "PASS",
+    "idempotent_replay": "PASS",
+    "duplicate_or_invalid_rejected": "PASS",
+    "test_schema": "PASS",
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "verify_assets": "PASS_PRIVATE_CANDIDATE_PUBLIC_DEPLOY_BLOCKED"
+  },
+  "notes": [
+    "legacy-import.ts 在本地完成预览与幂等导入路径。",
+    "应用前的重复/无效 payload 会被拒绝，不产生不一致状态。",
+    "重复 apply 返回 replayed=false，但可重用已有完成态，保持幂等行为。",
+    "资产检查通过，但公开部署仍受资产授权门控。"
+  ]
+}

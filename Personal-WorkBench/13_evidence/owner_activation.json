@@ -1,0 +1,193 @@
+{
+  "schema_version": "2.0.0",
+  "subject_phase": "S5-T2",
+  "status": "BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK",
+  "verdict": "NOT_ISSUED_PRE_VERIFIER",
+  "runAt": "2026-08-08T21:04:27.068Z",
+  "generated_at": "2026-08-08T21:04:27.068Z",
+  "environment": {
+    "taskpack_available": true,
+    "production_origin": null,
+    "runtime_origin": null
+  },
+  "command_results": [],
+  "checks": {
+    "required_secrets": {
+      "BETTER_AUTH_SECRET": {
+        "present": false
+      },
+      "APP_ORIGIN": {
+        "present": false
+      },
+      "GOOGLE_CLIENT_ID": {
+        "present": false
+      },
+      "GOOGLE_CLIENT_SECRET": {
+        "present": false
+      },
+      "RESEND_API_KEY": {
+        "present": false
+      },
+      "TURNSTILE_SITE_KEY": {
+        "present": false
+      },
+      "TURNSTILE_SECRET_KEY": {
+        "present": false
+      },
+      "LEGAL_OPERATOR_NAME": {
+        "present": false
+      },
+      "PRIVACY_CONTACT_EMAIL": {
+        "present": false
+      },
+      "MAIL_FROM_FROM_RUNTIME": {
+        "source": "missing",
+        "present": {
+          "MAIL_FROM": false,
+          "AUTH_FROM_EMAIL": false
+        }
+      }
+    },
+    "wrangler": {
+      "whoami": {
+        "status": null,
+        "ok": false,
+        "skipped": true,
+        "reason": "wrangler 配置缺失/异常，请先完成 wrangler 登录与 token 检查",
+        "output_redacted": false,
+        "auth_recovery_hint": "检测到 wrangler 配置不满足认证要求：建议执行 `npx wrangler logout && npx wrangler login`，或在非交互场景设置 CLOUDFLARE_API_TOKEN"
+      },
+      "pages_project_list": {
+        "status": null,
+        "ok": false,
+        "skipped": true,
+        "reason": "已跳过 wrangler pages project list：认证条件未满足",
+        "output_redacted": false
+      },
+      "auth_channel": "NONE",
+      "auth_mode": "SKIP",
+      "auth_recovery_hint": "检测到 wrangler 配置不满足认证要求：建议执行 `npx wrangler logout && npx wrangler login`，或在非交互场景设置 CLOUDFLARE_API_TOKEN",
+      "config": {
+        "exists": false,
+        "path": "~/.wrangler/config/default.toml",
+        "expired": true,
+        "has_token": false,
+        "reason": "wrangler 配置文件不存在"
+      }
+    },
+    "owner_approval": {
+      "exists": true,
+      "owner_decision": "APPROVED",
+      "production_side_effect_authorization": true
+    },
+    "asset_rights": {
+      "status": "PRIVATE_CANDIDATE_PASS_PUBLIC_DEPLOY_BLOCKED",
+      "current_state": "BLOCKED_ASSET_RIGHTS",
+      "owner_declaration_present": true
+    },
+    "callbacks": {
+      "expected_callback": null,
+      "auth_callback_route_present": true,
+      "callback_platform_register_verification": "NOT_VERIFIED_LOCALLY"
+    },
+    "privacy_gate": {
+      "privacy_policy_version_present": false,
+      "privacy_notice_hash_present": false,
+      "privacy_policy_version_match": false,
+      "privacy_notice_hash_match": false,
+      "legal_operator_name_present": false,
+      "privacy_contact_email_present": false
+    },
+    "sites_shape": {
+      "project_id": "appgprj_6a70366303988191b2ca996238860c9f",
+      "d1": "DB",
+      "r2": "FILES",
+      "reused_projectevidence": false
+    },
+    "sites_bindings_contract": {
+      "exists": true,
+      "project_policy": "create_new_isolated_project",
+      "forbidden_project_reuse": "WeRead project_id and its bindings",
+      "d1_match": true,
+      "r2_match": true,
+      "project_id_match": null,
+      "project_id_note": "契约中的 project_id 使用占位标识，需在项目正式 provision 后由生产配置确认",
+      "expected_secret_keys": [
+        "BETTER_AUTH_SECRET",
+        "APP_ORIGIN",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "RESEND_API_KEY",
+        "MAIL_FROM",
+        "TURNSTILE_SITE_KEY",
+        "TURNSTILE_SECRET_KEY"
+      ],
+      "present_secret_keys": [],
+      "hosting_json_after_provision": {
+        "project_id": "generated_by_sites_and_never_hand_invented",
+        "d1": "DB",
+        "r2": "FILES"
+      },
+      "project_id_contract": "generated_by_sites_and_never_hand_invented"
+    },
+    "release_verifier": {
+      "exists": true,
+      "status": "PASS_BUILD_LAST_MILE_READINESS",
+      "phase": "S4-T3"
+    }
+  },
+  "evidence": {
+    "owner_approval": {
+      "source": "taskpack/OWNER_APPROVAL.json",
+      "exists": true,
+      "status": "UNKNOWN"
+    },
+    "sites_bindings_contract": {
+      "source": "taskpack/10_deployment/SITES_BINDINGS_CONTRACT.json",
+      "exists": true,
+      "status": "UNKNOWN"
+    },
+    "asset_manifest": {
+      "source": "13_evidence/asset_manifest.json",
+      "exists": true,
+      "status": "PRIVATE_CANDIDATE_PASS_PUBLIC_DEPLOY_BLOCKED"
+    },
+    "release_verifier": {
+      "source": "13_evidence/verifier.json",
+      "exists": true,
+      "status": "PASS_BUILD_LAST_MILE_READINESS"
+    },
+    "env_privacy_constants": {
+      "policy_version_present": true,
+      "notice_hash_present": true
+    }
+  },
+  "risks": [
+    "未检测到 wrangler oauth_token：请执行 `npx wrangler logout` 后再 `npx wrangler login` 重新完成授权，当前配置路径： ~/.wrangler/config/default.toml",
+    "缺少环境值：BETTER_AUTH_SECRET",
+    "缺少环境值：APP_ORIGIN",
+    "缺少环境值：GOOGLE_CLIENT_ID",
+    "缺少环境值：GOOGLE_CLIENT_SECRET",
+    "缺少环境值：RESEND_API_KEY",
+    "缺少环境值：TURNSTILE_SITE_KEY",
+    "缺少环境值：TURNSTILE_SECRET_KEY",
+    "缺少环境值：LEGAL_OPERATOR_NAME",
+    "缺少环境值：PRIVACY_CONTACT_EMAIL",
+    "缺少邮件发送发件人：MAIL_FROM（任务包要求）与 AUTH_FROM_EMAIL（运行时要求）均未配置",
+    "APP_ORIGIN 无效：必须是 HTTPS origin（生产环境）",
+    "SITES_BINDINGS_CONTRACT 约定密钥未完整配置到环境：BETTER_AUTH_SECRET, APP_ORIGIN, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, RESEND_API_KEY, MAIL_FROM, TURNSTILE_SITE_KEY, TURNSTILE_SECRET_KEY",
+    "缺少运营者名称（LEGAL_OPERATOR_NAME）。",
+    "缺少隐私联系邮箱（PRIVACY_CONTACT_EMAIL）。",
+    "缺少隐私声明环境值：PRIVACY_POLICY_VERSION 或 PRIVACY_NOTICE_SHA256。",
+    "asset_manifest 当前状态为 PUBLIC_DEPLOY_BLOCKED：公开授权素材权利和最终素材替换尚未提交。必须阻断本地预检通过。"
+  ],
+  "next_steps": [
+    "按 RUN_CONTRACT_S5_T2.md 逐项推进：先完成本地身份与证据口径齐套，再进入生产副作用授权。",
+    "检测到 wrangler 配置不满足认证要求：建议执行 `npx wrangler logout && npx wrangler login`，或在非交互场景设置 CLOUDFLARE_API_TOKEN",
+    "将必需 Secrets（APP_ORIGIN、BETTER_AUTH_SECRET、GOOGLE_CLIENT_ID/SECRET、RESEND_API_KEY、TURNSTILE_SITE_KEY/SECRET_KEY、LEGAL_OPERATOR_NAME、PRIVACY_CONTACT_EMAIL、MAIL_FROM 或 AUTH_FROM_EMAIL）逐项补齐到 Sites Settings。",
+    "完成 Google callback 验证、邮件发送域、Turnstile、隐私信息（运营者名/联系邮箱/版本哈希）与资产授权，确认 OWNER_APPROVAL.production_side_effect_authorization 为 true。",
+    "确认 `.openai/hosting.json` 的 project_id 与 SITES_BINDINGS_CONTRACT.json 占位 `generated_by_sites_and_never_hand_invented` 差异在正式 provision 后核对一致。",
+    "同步任务包《胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包》最新 OWNER_APPROVAL 与资产清单，补齐后重新运行 `npm run verify:owner-activation`。",
+    "完成上述后只在 risks 清空且 next_steps 无阻断项时，方可进入 S5-T3。"
+  ]
+}

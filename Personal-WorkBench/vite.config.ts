@@ -10,9 +10,13 @@ const { d1, r2 } = hostingConfig;
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
+// Validation must never implicitly load the operator's ignored local variables.
+// The fixture moves Wrangler's dev-variable lookup away from the project root.
+const isNoSecretLocalRuntime = process.env.WORKBENCH_NO_SECRET_RUNTIME === "1";
+const noSecretRuntimeConfigPath = "./tests/fixtures/no-secret-wrangler.json";
 
 const localBindingConfig = {
-  main: "./worker/index.ts",
+  main: isNoSecretLocalRuntime ? "../../worker/index.ts" : "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
   d1_databases: d1
     ? [
@@ -52,6 +56,7 @@ export default defineConfig(async () => {
       sites(),
       cloudflare({
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
+        configPath: isNoSecretLocalRuntime ? noSecretRuntimeConfigPath : undefined,
         config: localBindingConfig,
       }),
     ],

@@ -9,6 +9,7 @@ const sourceFiles = [
   "server/auth/mail.ts",
   "app/api/auth/[...all]/route.ts",
   "app/auth/_components/auth-form.tsx",
+  "app/auth/_components/auth-flow.ts",
   "app/account/page.tsx",
   "app/api/auth/public-config/route.ts",
 ];
@@ -25,8 +26,9 @@ export async function verifyAuthContract() {
   const runtime = sources[1];
   const route = sources[3];
   const form = sources[4];
-  const account = sources[5];
-  const publicConfig = sources[6];
+  const flow = sources[5];
+  const account = sources[6];
+  const publicConfig = sources[7];
   const requiredFragments = [
     "requireEmailVerification: true",
     "minPasswordLength: 12",
@@ -47,7 +49,11 @@ export async function verifyAuthContract() {
   assert.ok(runtime.includes('code = "AUTH_RUNTIME_NOT_READY"'));
   assert.ok(!runtime.includes("console."));
   assert.ok(!route.includes("error.message"));
-  assert.ok(form.includes('"/api/auth/request-password-reset"'));
+  assert.ok(flow.includes('"/api/auth/request-password-reset"'));
+  assert.ok(flow.includes('"/api/auth/send-verification-email"'));
+  assert.ok(flow.includes("callbackURL: VERIFIED_LOGIN_PATH"));
+  assert.ok(form.includes('searchParams.get("verified") === "1"'));
+  assert.ok(form.includes("重新发送验证邮件"));
   assert.ok(form.includes('"/api/auth/sign-in/social"'));
   assert.ok(form.includes("challenges.cloudflare.com/turnstile"));
   assert.ok(account.includes('"/api/auth/link-social"'));

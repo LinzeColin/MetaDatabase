@@ -1,12 +1,13 @@
 {
   "stage": "S2",
-  "status": "PASS_LOCAL_WORKERS_RUNTIME",
-  "origin": "http://localhost:3000",
+  "status": "PASS_LOCAL_NO_SECRET_AUTH_BOUNDARY",
+  "probeMode": "IN_PROCESS_NO_SECRET_ROUTE_HARNESS",
+  "origin": null,
   "authWithoutRuntimeMaterials": 503,
   "publicConfig": {
     "status": 200,
     "hasSiteKey": false
   },
-  "cspIncludesTurnstile": true,
+  "cspContractIncludesTurnstile": true,
   "savedCandidate": "NOT_RUN"
 }

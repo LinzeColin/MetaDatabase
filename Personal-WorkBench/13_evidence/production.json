@@ -1,0 +1,18 @@
+{
+  "task_id": "S5-T3",
+  "status": "BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK",
+  "candidate_commit": null,
+  "environment": {
+    "origin_configured": false,
+    "origin_kind": "NOT_CONFIGURED",
+    "checked_at": "2026-08-08T21:47:09.580Z"
+  },
+  "evidence_files": [
+    "13_evidence/auth-saved.json",
+    "13_evidence/owner_activation.json",
+    "13_evidence/asset_manifest.json"
+  ],
+  "notes": "生产链路验证脚本先输出可复现的预检阻断信息，真实 OAuth/邮箱/回归脚本需在生产域名下另行执行。",
+  "phase": "BLOCKED",
+  "reason": "未设置生产 Origin（需配置 SITES_PRODUCTION_ORIGIN 或 PRODUCTION_SMOKE_ORIGIN）。"
+}

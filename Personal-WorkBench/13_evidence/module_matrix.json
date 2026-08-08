@@ -1,0 +1,38 @@
+{
+  "stage": "S3",
+  "contract": "S3-T2",
+  "status": "PASS_LOCAL_SQLITE_SMOKE",
+  "scope": [
+    "habits",
+    "habit-checkins",
+    "todos",
+    "ledger",
+    "food",
+    "exercise",
+    "weights",
+    "schedule",
+    "anniversaries",
+    "diary",
+    "savings-goals",
+    "savings-transactions",
+    "periods",
+    "ui-smoke"
+  ],
+  "checks": {
+    "crud_matrix": "pass",
+    "tenant_isolation": "pass",
+    "reference_routes_smoke": "pass",
+    "offline_replay": "not_run",
+    "second_device_sync": "not_run"
+  },
+  "commands": {
+    "modules": "npm run test:modules",
+    "e2e": "npm run test:e2e"
+  },
+  "notes": [
+    "本地 SQLite 矩阵覆盖了 12 个业务表的新增/查询/更新/删除与租户隔离。",
+    "前端交互层在待办页已接入离线 outbox 与重放语义（仅覆盖 POST /todos）；跨模块与跨设备冲突提示仍按下一阶段推进。",
+    "公开发布与 Saved Candidate 验收仍受 公开素材与凭据门控影响。"
+  ],
+  "risk": "next_phase: S3-T3（待办/账本/其他模块导出删除与隐私开关）"
+}

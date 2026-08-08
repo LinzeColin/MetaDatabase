@@ -1,0 +1,18 @@
+{
+  "task_id": "S5-T4",
+  "status": "NOT_RUN_LOCAL_OPS_PROJECTION",
+  "candidate_commit": null,
+  "environment": {
+    "origin_configured": false,
+    "origin_kind": "NOT_CONFIGURED"
+  },
+  "evidence_files": [
+    "13_evidence/production.json",
+    "13_evidence/owner_activation.json",
+    "13_evidence/r2.json",
+    "13_evidence/tenant_matrix.json"
+  ],
+  "notes": "本脚本为 S5-T4 投影可用性预检工具；高敏字段投影必须在真实 adapter 写入链路完成后再次核验。",
+  "phase": "BLOCKED",
+  "reason": "STATUS_ADAPTER 适配器未配置 endpoint（建议设置 STATUS_ADAPTER_BASE / OVH_ADAPTER_BASE / PRIVATE_DATABASE_ADAPTER_BASE）。; OVH 适配器未配置 endpoint（建议设置 STATUS_ADAPTER_BASE / OVH_ADAPTER_BASE / PRIVATE_DATABASE_ADAPTER_BASE）。; PRIVATE_DATABASE 适配器未配置 endpoint（建议设置 STATUS_ADAPTER_BASE / OVH_ADAPTER_BASE / PRIVATE_DATABASE_ADAPTER_BASE）。; 未设置 PRODUCTION_ORIGIN 或 SITES_PRODUCTION_ORIGIN，无法执行投影写入通道预检。; S5-T3 生产烟雾（包含链路预检）未成功通过，不建议先执行 ops projection。"
+}

@@ -1,0 +1,79 @@
+{
+  "schema_version": "3.0",
+  "target_project": "胡楚靓工作台",
+  "product_version": "v0.0.0.8",
+  "subject_phase": "S4-T3",
+  "status": "PASS_BUILD_LAST_MILE_READINESS",
+  "verdict": "NOT_ISSUED_PRE_VERIFIER",
+  "runAt": "2026-08-08T21:48:57.675Z",
+  "command_results": [
+    {
+      "name": "npm run test:quality",
+      "command": "npm run test:quality",
+      "status": 0,
+      "signal": null,
+      "ok": true,
+      "output_redacted": true
+    },
+    {
+      "name": "npm run test:visual",
+      "command": "npm run test:visual",
+      "status": 0,
+      "signal": null,
+      "ok": true,
+      "output_redacted": true
+    },
+    {
+      "name": "npm run test:resilience",
+      "command": "npm run test:resilience",
+      "status": 0,
+      "signal": null,
+      "ok": true,
+      "output_redacted": true
+    },
+    {
+      "name": "python3 12_scripts/verify_taskpack.py",
+      "command": "python3 12_scripts/verify_taskpack.py",
+      "status": 0,
+      "signal": null,
+      "ok": true,
+      "output_redacted": true
+    }
+  ],
+  "taskpack_available": true,
+  "taskpack_check": {
+    "status": "PASS_FOR_SEALED_TASKPACK",
+    "phase": "SEALED_TASKPACK",
+    "command_output_redacted": true
+  },
+  "evidence": {
+    "quality": {
+      "source": "13_evidence/quality.json",
+      "exists": true,
+      "status": "PASS_LOCAL_QUALITY",
+      "phase": "S4-T1",
+      "run_at": "2026-08-08T21:48:57.871Z"
+    },
+    "visual": {
+      "source": "13_evidence/visual/manifest.json",
+      "exists": true,
+      "status": "PASS",
+      "phase": null,
+      "run_at": null
+    },
+    "resilience": {
+      "source": "13_evidence/resilience.json",
+      "exists": true,
+      "status": "PASS_LOCAL_RETRY_RESILIENCE",
+      "phase": "S4-T2",
+      "run_at": "2026-08-08T21:49:10.240Z"
+    }
+  },
+  "risks": [
+    "Saved Candidate 未运行；环境边界与正式 OAuth/邮件/Google/Turnstile 未覆盖",
+    "该本地预检不转化为正式产品 PASS 或公开 Deploy 权限"
+  ],
+  "notes": [
+    "该结果只用于冻结候选准备；最终产品裁决需由独立 Verifier 在 FROZEN_CANDIDATE 上重跑。"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": "2.0",
+  "stage": "S4",
+  "phase": "S4-T2",
+  "status": "PASS_LOCAL_RETRY_RESILIENCE",
+  "runAt": "2026-08-08T21:49:10.240Z",
+  "checks": {
+    "test_target": "tests/outbox-replay.test.mts",
+    "runtime": "node-test",
+    "output_captured": false
+  },
+  "test": {
+    "statusCode": 0,
+    "output_captured": false,
+    "output_redacted": true
+  },
+  "notes": [
+    "离线队列重放行为采用可测纯函数，支持冲突/不可用/网络异常下停止重放并保留未成功记录。",
+    "在 503 与网络异常下，未发送成功的动作不会丢弃；顺序可追踪。"
+  ]
+}

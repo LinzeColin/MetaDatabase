@@ -2,8 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-
-type AuthMode = "sign-in" | "sign-up" | "forgot-password" | "reset-password" | "verify-email";
+import { useSearchParams } from "next/navigation";
+import {
+  buildAuthRequest,
+  SIGN_UP_VERIFICATION_PATH,
+  type AuthMode,
+  usesTurnstileFor,
+} from "./auth-flow";
 
 type TurnstileApi = {
   render(
@@ -35,16 +40,8 @@ const initialMessages: Record<AuthMode, string> = {
   "sign-up": "注册后请完成邮箱验证，再开始记录。",
   "forgot-password": "我们会用相同提示保护你的账户信息。",
   "reset-password": "设置一个至少 12 位的新密码。",
-  "verify-email": "打开邮件中的链接后即可完成验证。",
+  "verify-email": "请打开验证邮件中的链接；未收到时可重新发送。",
 };
-
-function endpointFor(mode: AuthMode): string | null {
-  if (mode === "sign-in") return "/api/auth/sign-in/email";
-  if (mode === "sign-up") return "/api/auth/sign-up/email";
-  if (mode === "forgot-password") return "/api/auth/request-password-reset";
-  if (mode === "reset-password") return "/api/auth/reset-password";
-  return null;
-}
 
 function titleFor(mode: AuthMode): string {
   return {
@@ -65,6 +62,7 @@ function linkFor(mode: AuthMode): { href: string; label: string } {
 function safeMessage(response: Response, mode: AuthMode): string {
   if (response.status === 503 || response.status >= 500) return "服务暂时不可用，请稍后再试。";
   if (mode === "forgot-password") return "如果该邮箱可以接收重设邮件，我们已发送下一步说明。";
+  if (mode === "verify-email") return "如果该邮箱可以接收验证邮件，我们已发送下一步说明。";
   if (mode === "sign-up") return "请检查填写内容；若账户已存在，请直接登录或完成邮箱验证。";
   if (mode === "sign-in") return "账号或密码不正确，或邮箱尚未完成验证。";
   return "链接无效或已过期，请重新发起操作。";
@@ -77,7 +75,10 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
   const [turnstileToken, setTurnstileToken] = useState("");
   const [message, setMessage] = useState(initialMessages[mode]);
   const [submitting, setSubmitting] = useState(false);
-  const usesTurnstile = mode === "sign-in" || mode === "sign-up" || mode === "forgot-password";
+  const searchParams = useSearchParams();
+  const usesTurnstile = usesTurnstileFor(mode);
+  const showVerifiedSignInMessage = mode === "sign-in" && searchParams.get("verified") === "1" && message === initialMessages["sign-in"];
+  const displayedMessage = showVerifiedSignInMessage ? "邮箱已验证，请登录。" : message;
 
   useEffect(() => {
     if (turnstileSiteKey) return;
@@ -160,8 +161,6 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
 
   async function submitForm(event: React.FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
-    const endpoint = endpointFor(mode);
-    if (!endpoint) return;
     if (usesTurnstile && siteKey && !turnstileToken) {
       setMessage("请完成验证后继续。");
       return;
@@ -171,24 +170,22 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
     const email = String(fields.get("email") ?? "").trim();
     const password = String(fields.get("password") ?? "");
     const name = String(fields.get("name") ?? "").trim();
-    const token = new URLSearchParams(window.location.search).get("token") ?? "";
-    const body =
-      mode === "sign-up"
-        ? { name, email, password, callbackURL: "/", captchaResponse: turnstileToken }
-        : mode === "sign-in"
-          ? { email, password, callbackURL: "/", captchaResponse: turnstileToken }
-          : mode === "forgot-password"
-            ? { email, redirectTo: "/auth/reset-password", captchaResponse: turnstileToken }
-            : { newPassword: password, token };
+    const request = buildAuthRequest(mode, {
+      email,
+      password,
+      name,
+      captchaResponse: turnstileToken,
+      resetToken: new URLSearchParams(window.location.search).get("token") ?? "",
+    });
 
     setSubmitting(true);
     setMessage("");
     try {
-      const response = await fetch(endpoint, {
+      const response = await fetch(request.endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify(body),
+        body: JSON.stringify(request.body),
       });
       if (!response.ok) {
         setMessage(safeMessage(response, mode));
@@ -198,9 +195,13 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
         window.location.assign("/");
         return;
       }
-      if (mode === "sign-up") setMessage("注册信息已提交，请前往邮箱完成验证。");
+      if (mode === "sign-up") {
+        window.location.assign(SIGN_UP_VERIFICATION_PATH);
+        return;
+      }
       if (mode === "forgot-password") setMessage("如果该邮箱可以接收重设邮件，我们已发送下一步说明。");
       if (mode === "reset-password") setMessage("密码已更新，请重新登录。");
+      if (mode === "verify-email") setMessage("如果该邮箱可以接收验证邮件，我们已发送下一步说明。");
     } catch {
       setMessage("服务暂时不可用，请稍后再试。");
     } finally {
@@ -216,41 +217,41 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
       <section className="card auth-card auth-card-expanded" aria-labelledby="auth-title">
         <Link className="auth-back" href="/" aria-label="返回工作台">←</Link>
         <h1 id="auth-title">{titleFor(mode)}</h1>
-        <p className="auth-message" aria-live="polite">{message}</p>
+        <p className="auth-message" aria-live="polite">{displayedMessage}</p>
+        <form className="auth-form" onSubmit={submitForm}>
+          {mode === "sign-up" ? (
+            <label><span>名字</span><input name="name" autoComplete="name" maxLength={80} required /></label>
+          ) : null}
+          {mode !== "reset-password" ? (
+            <label><span>邮箱</span><input name="email" type="email" autoComplete="email" required /></label>
+          ) : null}
+          {showPassword ? (
+            <label>
+              <span>{mode === "reset-password" ? "新密码" : "密码"}</span>
+              <input
+                name="password"
+                type="password"
+                autoComplete={mode === "reset-password" ? "new-password" : "current-password"}
+                minLength={12}
+                maxLength={128}
+                required
+              />
+            </label>
+          ) : null}
+          {usesTurnstile ? <div className="turnstile-slot" ref={turnstileContainer} /> : null}
+          <button type="submit" className="auth-submit" disabled={submitting}>
+            {submitting ? "请稍候…" : mode === "sign-up" ? "注册" : mode === "forgot-password" ? "发送说明" : mode === "reset-password" ? "更新密码" : mode === "verify-email" ? "重新发送验证邮件" : "登录"}
+          </button>
+        </form>
         {mode === "verify-email" ? (
           <Link className="auth-primary-link" href="/auth/sign-in">返回登录</Link>
         ) : (
-          <form className="auth-form" onSubmit={submitForm}>
-            {mode === "sign-up" ? (
-              <label><span>名字</span><input name="name" autoComplete="name" maxLength={80} required /></label>
-            ) : null}
-            {mode !== "reset-password" ? (
-              <label><span>邮箱</span><input name="email" type="email" autoComplete="email" required /></label>
-            ) : null}
-            {showPassword ? (
-              <label>
-                <span>{mode === "reset-password" ? "新密码" : "密码"}</span>
-                <input
-                  name="password"
-                  type="password"
-                  autoComplete={mode === "reset-password" ? "new-password" : "current-password"}
-                  minLength={12}
-                  maxLength={128}
-                  required
-                />
-              </label>
-            ) : null}
-            {usesTurnstile ? <div className="turnstile-slot" ref={turnstileContainer} /> : null}
-            <button type="submit" className="auth-submit" disabled={submitting}>
-              {submitting ? "请稍候…" : mode === "sign-up" ? "注册" : mode === "forgot-password" ? "发送说明" : mode === "reset-password" ? "更新密码" : "登录"}
-            </button>
-          </form>
+          <Link className="auth-secondary-link" href={link.href}>{link.label}</Link>
         )}
         {mode === "sign-in" || mode === "sign-up" ? (
           <button type="button" className="auth-google" onClick={submitGoogle} disabled={submitting}>使用 Google 继续</button>
         ) : null}
         {mode === "sign-in" ? <Link className="auth-secondary-link" href="/auth/forgot-password">忘记密码？</Link> : null}
-        <Link className="auth-secondary-link" href={link.href}>{link.label}</Link>
       </section>
     </main>
   );

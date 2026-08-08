@@ -8,6 +8,8 @@ import {
 import { IdempotencyConflictError, IdempotencyError } from "@/server/data/idempotency";
 import { ResourceInputError } from "@/server/data/resources";
 import { PrivateFileInputError } from "@/server/files/private-files";
+import { AccountDeleteStateError, AccountInputError, AccountNotFoundError } from "@/server/data/account-lifecycle";
+import { LegacyImportConflictError } from "@/server/data/legacy-import";
 
 export function notFoundResponse(): Response {
   return Response.json({ message: "未找到内容。" }, { status: 404, headers: { "Cache-Control": "no-store" } });
@@ -36,12 +38,23 @@ export function apiErrorResponse(error: unknown): Response {
     return Response.json({ message: "请勿重复使用此操作标识。" }, { status: 409, headers: { "Cache-Control": "no-store" } });
   }
   if (
+    error instanceof LegacyImportConflictError ||
+    error instanceof AccountInputError ||
     error instanceof IdempotencyError ||
     error instanceof ResourceInputError ||
     error instanceof TenantInputError ||
     error instanceof PrivateFileInputError
   ) {
-    return Response.json({ message: "填写内容有误，请检查后重试。" }, { status: 400, headers: { "Cache-Control": "no-store" } });
+    return Response.json(
+      { message: error instanceof LegacyImportConflictError ? error.message : "填写内容有误，请检查后重试。" },
+      {
+        status: error instanceof LegacyImportConflictError ? 409 : 400,
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
+  }
+  if (error instanceof AccountNotFoundError || error instanceof AccountDeleteStateError) {
+    return Response.json({ message: error.message }, { status: error.status, headers: { "Cache-Control": "no-store" } });
   }
   return Response.json({ message: "服务暂时不可用，请稍后再试。" }, { status: 500, headers: { "Cache-Control": "no-store" } });
 }

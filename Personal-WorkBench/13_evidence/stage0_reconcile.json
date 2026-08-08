@@ -8,7 +8,7 @@
   "taskpack": {
     "version": "v0.0.0.8",
     "phase": "SEALED_TASKPACK",
-    "source_path": "/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8",
+    "source_path": "TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8",
     "sha256sums": {
       "status": "PASS",
       "matched_entries": 210,

@@ -1,0 +1,67 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+
+async function render(path) {
+  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
+  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}-${Math.random()}`);
+  const { default: worker } = await import(workerUrl.href);
+  return worker.fetch(
+    new Request(`http://localhost${path}`, {
+      headers: { accept: "text/html" },
+      method: "GET",
+    }),
+    {
+      ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) },
+    },
+    { waitUntil() {}, passThroughOnException() {} },
+  );
+}
+
+const expectedReferenceRoutes = ["home", "ledger", "fatloss-food", "period"];
+const expectedViewRoutes = ["home", "todo", "schedule", "diary", "savings", "anniversary"];
+
+test("e2e smoke: frozen reference routes stay renderable", async () => {
+  for (const route of expectedReferenceRoutes) {
+    const response = await render(`/?reference=${route}`);
+    assert.equal(response.status, 200, route);
+    const html = await response.text();
+    assert.match(html, new RegExp(`data-reference-page=\"${route}\"`), route);
+    assert.match(html, /class=\"sidebar\"/);
+    assert.match(html, /class=\"nav-list\"/);
+  }
+
+  for (const route of expectedViewRoutes) {
+    const response = await render(`/?view=${route}`);
+    assert.equal(response.status, 200, route);
+    const html = await response.text();
+    assert.match(html, /class=\"app-stage/);
+    assert.match(html, /data-reference-mode=\"false\"/);
+    assert.match(html, /class=\"account-entry normal-only\"/);
+  }
+});
+
+test("e2e smoke: normal mode carries account entry and no reference-only lock", async () => {
+  const [home, auth] = await Promise.all([render("/?view=home"), render("/auth/sign-in")]);
+  assert.equal(home.status, 200);
+  assert.equal(auth.status, 200);
+  const homeHtml = await home.text();
+  const authHtml = await auth.text();
+  assert.match(homeHtml, /class=\"account-entry normal-only\"/);
+  assert.match(homeHtml, /data-reference-mode=\"false\"/);
+  assert.match(authHtml, /欢迎回来/);
+});
+
+test("e2e smoke: email verification recovery and post-verification sign-in guidance render", async () => {
+  const [verification, verifiedSignIn] = await Promise.all([
+    render("/auth/verify-email"),
+    render("/auth/sign-in?verified=1"),
+  ]);
+  assert.equal(verification.status, 200);
+  assert.equal(verifiedSignIn.status, 200);
+
+  const verificationHtml = await verification.text();
+  const verifiedSignInHtml = await verifiedSignIn.text();
+  assert.match(verificationHtml, /验证邮箱/);
+  assert.match(verificationHtml, /重新发送验证邮件/);
+  assert.match(verifiedSignInHtml, /邮箱已验证，请登录。/);
+});

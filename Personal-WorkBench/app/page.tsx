@@ -2,6 +2,7 @@
 
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import TodoPageClient from "./_components/workbench/todo-page-client";
 
 const PRIVATE_ASSET_ROOT = "/private-reference-assets";
 const RUNTIME_ASSET_ROOT = `${PRIVATE_ASSET_ROOT}/runtime`;
@@ -429,6 +430,14 @@ function Period({ reference }: { reference: boolean }) {
 }
 
 function GenericPage({ reference, route }: { reference: boolean; route: string }) {
+  if (route === "todo") {
+    return (
+      <Shell pageClass="todo-page" reference={reference} route="todo">
+        <TodoPageClient />
+      </Shell>
+    );
+  }
+
   const label =
     ({ todo: "待办事项", schedule: "日程安排", anniversary: "纪念日", diary: "日记", savings: "存钱计划" } as Record<string, string>)[route] ??
     "工作台";

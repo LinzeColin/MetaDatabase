@@ -1,0 +1,79 @@
+{
+  "schema_version": "3.0",
+  "subject_phase": "S5-T4",
+  "status": "NOT_RUN_LOCAL_OPS_PROJECTION",
+  "verdict": "NOT_ISSUED_PRE_VERIFIER",
+  "generated_at": "2026-08-08T21:47:13.514Z",
+  "environment": {
+    "production_origin_configured": false,
+    "production_origin_kind": "NOT_CONFIGURED",
+    "timestamp": "2026-08-08T21:47:13.514Z"
+  },
+  "checks": {
+    "static_projection_guards": {
+      "audit_schema_guard": true,
+      "schema_has_security_audit_events": true,
+      "schema_disallows_file_objects_leak": true
+    },
+    "adapters": {
+      "status": {
+        "name": "STATUS_ADAPTER",
+        "endpoint_configured": false,
+        "status": "missing",
+        "status_code": null,
+        "write_mode_hint": "true"
+      },
+      "ovh": {
+        "name": "OVH",
+        "endpoint_configured": false,
+        "status": "missing",
+        "status_code": null,
+        "write_mode_hint": "readwrite"
+      },
+      "private_database": {
+        "name": "PRIVATE_DATABASE",
+        "endpoint_configured": false,
+        "status": "missing",
+        "status_code": null,
+        "write_mode_hint": "readwrite"
+      }
+    },
+    "evidence_links": {
+      "production_smoke": {
+        "exists": true,
+        "status": "BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK",
+        "phase": "BLOCKED"
+      },
+      "owner_activation": {
+        "exists": true,
+        "status": "BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK",
+        "phase": "S5-T2"
+      },
+      "verifier": {
+        "exists": true,
+        "status": "PASS_BUILD_LAST_MILE_READINESS",
+        "phase": "S4-T3"
+      }
+    },
+    "canaries": {
+      "email_in_projection_candidate": false,
+      "period_in_projection_candidate": false,
+      "weight_in_projection_candidate": false,
+      "diary_in_projection_candidate": false,
+      "consent_in_projection_candidate": false
+    }
+  },
+  "command_results": [],
+  "risks": [
+    "STATUS_ADAPTER 适配器未配置 endpoint（建议设置 STATUS_ADAPTER_BASE / OVH_ADAPTER_BASE / PRIVATE_DATABASE_ADAPTER_BASE）。",
+    "OVH 适配器未配置 endpoint（建议设置 STATUS_ADAPTER_BASE / OVH_ADAPTER_BASE / PRIVATE_DATABASE_ADAPTER_BASE）。",
+    "PRIVATE_DATABASE 适配器未配置 endpoint（建议设置 STATUS_ADAPTER_BASE / OVH_ADAPTER_BASE / PRIVATE_DATABASE_ADAPTER_BASE）。",
+    "未设置 PRODUCTION_ORIGIN 或 SITES_PRODUCTION_ORIGIN，无法执行投影写入通道预检。",
+    "S5-T3 生产烟雾（包含链路预检）未成功通过，不建议先执行 ops projection。"
+  ],
+  "next_steps": [
+    "补齐三个 adapter endpoint（STATUS/OVH/PDB）与最小只读凭据。",
+    "确认本地审计路径仅写入脱敏字段，且对象键/正文字段不被投影。",
+    "待 S5-T3 生产链路通过后再次执行 `npm run verify:ops-projection`。"
+  ]
+}

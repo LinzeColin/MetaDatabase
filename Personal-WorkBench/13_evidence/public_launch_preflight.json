@@ -1,0 +1,124 @@
+{
+  "schema_version": "3.0",
+  "subject_phase": "PRE_S5_T1_LOCAL_PREFLIGHT",
+  "canonical_task": "S5-T1",
+  "canonical_task_completion": "NOT_GRANTED_BY_THIS_LOCAL_PRECHECK",
+  "status": "PASS_LOCAL_PUBLIC_LAUNCH_PRECHECK",
+  "verdict": "LOCAL_PRECHECK_ONLY",
+  "runAt": "2026-08-08T21:19:16.830Z",
+  "environment": {
+    "taskpack_available": true,
+    "auth_runtime_mode": "IN_PROCESS_NO_SECRET_ROUTE_HARNESS",
+    "dev_probe_enabled": false
+  },
+  "command_results": [
+    {
+      "name": "npm run test:s2",
+      "command": "npm run test:s2",
+      "status": 0,
+      "signal": null,
+      "ok": true,
+      "output_redacted": true
+    },
+    {
+      "name": "npm run test:auth-runtime",
+      "command": "npm run test:auth-runtime",
+      "status": 0,
+      "signal": null,
+      "ok": true,
+      "output_redacted": true
+    }
+  ],
+  "evidence": {
+    "auth_contract": {
+      "source": "13_evidence/auth.json",
+      "exists": true,
+      "status": "PASS_LOCAL_CONTRACT",
+      "saved_candidate": "NOT_RUN"
+    },
+    "auth_saved": {
+      "source": "13_evidence/auth-saved.json",
+      "exists": true,
+      "status": "NOT_RUN",
+      "saved_candidate": "NOT_RUN"
+    },
+    "tenant_contract": {
+      "source": "13_evidence/tenant_matrix.json",
+      "exists": true,
+      "status": "PASS_LOCAL_CONTRACT",
+      "saved_candidate": null
+    },
+    "r2_contract": {
+      "source": "13_evidence/r2.json",
+      "exists": true,
+      "status": "PASS_LOCAL_CONTRACT",
+      "saved_candidate": null
+    },
+    "auth_runtime": {
+      "source": "13_evidence/auth-local-runtime.json",
+      "exists": true,
+      "status": "PASS_LOCAL_NO_SECRET_AUTH_BOUNDARY",
+      "saved_candidate": "NOT_RUN"
+    },
+    "module_matrix": {
+      "source": "13_evidence/module_matrix.json",
+      "exists": true,
+      "status": "PASS_LOCAL_SQLITE_SMOKE",
+      "saved_candidate": null
+    },
+    "asset_manifest": {
+      "source": "13_evidence/asset_manifest.json",
+      "exists": true,
+      "status": "PRIVATE_CANDIDATE_PASS_PUBLIC_DEPLOY_BLOCKED",
+      "saved_candidate": null
+    },
+    "owner_activation": {
+      "source": "13_evidence/owner_activation.json",
+      "exists": true,
+      "status": "BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK",
+      "saved_candidate": null
+    }
+  },
+  "checks": {
+    "local_contract_passed": true,
+    "local_auth_runtime_ready": true,
+    "public_deploy_eligible": false,
+    "public_deploy_authorization": "NOT_GRANTED_BY_LOCAL_PRECHECK",
+    "external_gates": [
+      {
+        "id": "authorized_public_assets",
+        "satisfied": false,
+        "observed_status": "PRIVATE_CANDIDATE_PASS_PUBLIC_DEPLOY_BLOCKED",
+        "reason": "最终获授权 Hello Kitty 素材与权利记录必须在公开部署前通过。"
+      },
+      {
+        "id": "owner_activation",
+        "satisfied": false,
+        "observed_status": "BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK",
+        "reason": "Sites 运行时配置、隐私门与 Owner 激活预检必须通过。"
+      },
+      {
+        "id": "saved_candidate_identity",
+        "satisfied": false,
+        "observed_status": "NOT_RUN",
+        "reason": "真实 Google、邮箱、Turnstile 与回调链路必须在候选环境验证。"
+      },
+      {
+        "id": "second_device_sync",
+        "satisfied": false,
+        "observed_status": "not_run",
+        "reason": "跨设备读取与隔离必须有独立真实回放证据。"
+      }
+    ]
+  },
+  "risks": [
+    "authorized_public_assets 未满足：最终获授权 Hello Kitty 素材与权利记录必须在公开部署前通过。（当前=PRIVATE_CANDIDATE_PASS_PUBLIC_DEPLOY_BLOCKED）",
+    "owner_activation 未满足：Sites 运行时配置、隐私门与 Owner 激活预检必须通过。（当前=BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK）",
+    "saved_candidate_identity 未满足：真实 Google、邮箱、Turnstile 与回调链路必须在候选环境验证。（当前=NOT_RUN）",
+    "second_device_sync 未满足：跨设备读取与隔离必须有独立真实回放证据。（当前=not_run）"
+  ],
+  "next_steps": [
+    "本地预检仅证明本地合同与运行时边界；它不授予公开 Deploy 权限。",
+    "完成最终获授权素材、Owner 激活、真实 OAuth/邮箱/Turnstile 与跨设备回放后，按 S5-T2/S5-T3 独立验收。"
+  ]
+}

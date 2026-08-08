@@ -1,0 +1,133 @@
+{
+  "schema_version": "2.0",
+  "stage": "S4",
+  "phase": "S4-T1",
+  "status": "PASS_LOCAL_QUALITY",
+  "runAt": "2026-08-08T21:48:57.871Z",
+  "environment": {
+    "runtime_mode": "NO_SECRET_LOCAL_VITE",
+    "port": 4174,
+    "script": "verify-quality"
+  },
+  "checks": {
+    "touches": {
+      "thresholdPx": 44,
+      "failedCount": 0,
+      "results": [
+        {
+          "selector": ".primary",
+          "property": "min-height",
+          "expectedMinPx": 44,
+          "observedPx": 48,
+          "passed": true
+        },
+        {
+          "selector": ".nav-item",
+          "property": "min-height",
+          "expectedMinPx": 44,
+          "observedPx": 80,
+          "passed": true
+        },
+        {
+          "selector": ".welcome-enter",
+          "property": "height",
+          "expectedMinPx": 44,
+          "observedPx": 63,
+          "passed": true
+        },
+        {
+          "selector": ".account-entry",
+          "property": "min-height",
+          "expectedMinPx": 44,
+          "observedPx": 44,
+          "passed": true
+        },
+        {
+          "selector": ".welcome-account-link",
+          "property": "min-height",
+          "expectedMinPx": 44,
+          "observedPx": 44,
+          "passed": true
+        },
+        {
+          "selector": ".auth-submit",
+          "property": "min-height",
+          "expectedMinPx": 44,
+          "observedPx": 44,
+          "passed": true
+        },
+        {
+          "selector": ".auth-google",
+          "property": "min-height",
+          "expectedMinPx": 44,
+          "observedPx": 44,
+          "passed": true
+        },
+        {
+          "selector": ".auth-primary-link",
+          "property": "min-height",
+          "expectedMinPx": 44,
+          "observedPx": 44,
+          "passed": true
+        },
+        {
+          "selector": ".auth-back",
+          "property": "width",
+          "expectedMinPx": 44,
+          "observedPx": 44,
+          "passed": true
+        },
+        {
+          "selector": ".segmented button",
+          "property": "min-height",
+          "expectedMinPx": 44,
+          "observedPx": 44,
+          "passed": true
+        },
+        {
+          "selector": ".module-tab",
+          "property": "min-height",
+          "expectedMinPx": 44,
+          "observedPx": 44,
+          "passed": true
+        }
+      ]
+    },
+    "viewport": {
+      "overflowXHidden": true,
+      "widthClip": true
+    },
+    "a11y": {
+      "blockingDialogs": 0,
+      "buttonLabels": true,
+      "focusRing": true,
+      "ariaFragments": true
+    },
+    "reducedMotion": {
+      "implemented": true
+    },
+    "responsive": {
+      "breakpointsObserved": [
+        360,
+        471,
+        768,
+        1280
+      ],
+      "media471Found": true
+    },
+    "performance": {
+      "routeP95Ms": 17.010707999999795,
+      "saveP95Ms": 9.888083000000734,
+      "routeThresholdMs": 350,
+      "saveThresholdMs": 1200
+    }
+  },
+  "notes": {
+    "routePerf": [
+      "Local unauthenticated GET routes and save endpoints only."
+    ],
+    "knownGaps": [
+      "Saved Candidate/production runtime profiling not executed in this local-only phase."
+    ]
+  }
+}

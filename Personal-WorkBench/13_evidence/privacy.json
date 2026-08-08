@@ -1,0 +1,32 @@
+{
+  "stage": "S3",
+  "contract": "S3-T3",
+  "status": "PASS_LOCAL_ACCOUNT_LIFECYCLE",
+  "checks": {
+    "parsePrivacyInput": "PASS",
+    "setPrivacyConsent": "PASS",
+    "getPrivacyState": "PASS",
+    "getAccountExport": "PASS",
+    "processDeleteRequest": "PASS",
+    "deleteConfirmReplayAndUndo": "PASS"
+  },
+  "commands": {
+    "privacy": "npm run test:privacy",
+    "accountLifecycle": "npm run test:account-lifecycle",
+    "typecheck": "npm run typecheck"
+  },
+  "environment": {
+    "db": "node:sqlite Memory + D1Mock",
+    "runner": "node:test + cloudflare alias loader",
+    "session": "mocked"
+  },
+  "evidenceFiles": [
+    "tests/privacy.test.mts",
+    "tests/account-lifecycle.test.mts"
+  ],
+  "notes": [
+    "隐私状态/版本/同意时间线与页面字段完成对齐。",
+    "删除 request/confirm/undo 覆盖了重试令牌与错误输入校验。",
+    "导出链路返回 hash 与快照 schema 已通过本地校验。"
+  ]
+}
