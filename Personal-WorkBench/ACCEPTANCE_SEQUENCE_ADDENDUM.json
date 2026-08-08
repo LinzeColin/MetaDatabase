@@ -1,0 +1,163 @@
+{
+  "schema_version": "1.0.0",
+  "addendum_id": "PWB-S4-S5-SEQUENCE-001",
+  "status": "OWNER_AUTHORIZED_EXECUTION_ORDER",
+  "created_at": "2026-08-09T00:00:00+10:00",
+  "purpose": "Resolve the frozen S4/S5 evidence-order cycle without changing any product requirement, Oracle, threshold, visual truth, architecture, or public-release gate.",
+  "owner_authorization": {
+    "source": "Direct owner instruction in this Codex task: 全部授权 不允许任何block",
+    "scope": "Authorize this explicit execution-order reconciliation only.",
+    "does_not_authorize": [
+      "Waiving any frozen requirement, Oracle, threshold, or evidence item",
+      "Treating local checks, UNKNOWN, NOT_RUN, or WAIVED as product acceptance",
+      "Changing the frozen taskpack source files",
+      "Changing Sites audience, deploying publicly, configuring secrets, or using unlicensed assets"
+    ]
+  },
+  "source_taskpack": {
+    "product_version": "v0.0.0.8",
+    "taskpack_version": "v0.0.0.8",
+    "frozen_files": [
+      {
+        "path": "06_tasks/TASK_DAG.json",
+        "sha256": "a608630c553628111933804097ed8c25b68ac8331f834402ab53c7ae6b016386"
+      },
+      {
+        "path": "07_acceptance/ACCEPTANCE_CONTRACT.json",
+        "sha256": "16ebeebbc2b3aa95469c2ef5b74a4953d0cff8bb67be92eb087c98cb49b91d0a"
+      },
+      {
+        "path": "07_acceptance/ORACLES.json",
+        "sha256": "79078d6bb5c876f0dc384256a53d57e8394ba5ae1ab341ce63edb48ad6fe482c"
+      },
+      {
+        "path": "07_acceptance/TRACEABILITY_MATRIX.csv",
+        "sha256": "537c0adce1efb0c2438c749b9b6945980ef6491b0c7da879d5920cbda88e3b6d"
+      },
+      {
+        "path": "OWNER_APPROVAL.json",
+        "sha256": "d236d598548f07f9e124533d36a6a55f6413bb1f4f2bcfd14698f7d6be2750c8"
+      }
+    ]
+  },
+  "nonnegotiable_invariants": [
+    "07_acceptance/ACCEPTANCE_CONTRACT.json remains the only source of requirement text, threshold, Oracle, and evidence path.",
+    "07_acceptance/ORACLES.json remains the only source of Oracle definitions.",
+    "All fifteen frozen requirements must have real evidence bound to the exact source commit, tree, build artifact or Saved Version, and candidate configuration identity before final acceptance.",
+    "P0 and P1 must both be zero; UNKNOWN, NOT_RUN, and WAIVED never count as PASS.",
+    "Builder checks are observations only and never substitute for an independent final verifier.",
+    "The frozen five-page visual truth and all existing architecture boundaries remain unchanged.",
+    "No public audience change occurs before S6-T1 final independent acceptance and the pre-existing asset, privacy, and provider gates all pass.",
+    "No secret, user data, provider credential, or asset-rights record is added to this repository."
+  ],
+  "observed_cycle": {
+    "source_s4_t3": "S4-T3 requires a Saved Candidate and 15/15 real Acceptance evidence.",
+    "source_s5_t1": "S5-T1 depends on S4-T3 before it can save a private Version.",
+    "downstream_evidence": [
+      "R-003 requires real Saved Candidate provider callbacks through S5-T3.",
+      "R-009 requires a Saved Version and rollback evidence through S5-T1 and S5-T3.",
+      "R-012 requires the sanitized operational projection through S5-T4.",
+      "R-014 requires production recovery evidence through S5-T3.",
+      "R-015 requires configured privacy and operational evidence through S5-T2 and S5-T4."
+    ],
+    "resolution": "Split the original S4-T3 into a non-final independent readiness gate and a post-evidence final independent acceptance; preserve all original requirements for the latter."
+  },
+  "sequence": [
+    {
+      "id": "S4-T3A",
+      "name": "Independent candidate-readiness gate",
+      "deps": ["S4-T1", "S4-T2"],
+      "mode": "independent_readiness_review",
+      "audience": "none",
+      "outcome": "READINESS_PASS or BLOCKED",
+      "may_unblock": ["S5-T1"],
+      "must_not_claim": [
+        "15/15 formal acceptance",
+        "A product PASS",
+        "Authority to change public audience or deploy publicly"
+      ]
+    },
+    {
+      "id": "S5-T1",
+      "name": "Save private evidence candidate",
+      "deps": ["S4-T3A"],
+      "mode": "private_saved_version",
+      "audience": "private",
+      "must_record": ["saved_version identity", "exact source commit", "tree", "build identity", "binding presence-only manifest"],
+      "must_not_claim": ["S4 final PASS", "public deployment", "R-009 final PASS before rollback evidence"]
+    },
+    {
+      "id": "S5-T2",
+      "name": "Owner configuration on the private candidate",
+      "deps": ["S5-T1"],
+      "mode": "private_configuration",
+      "audience": "private",
+      "must_record": ["redacted provider/configuration evidence", "asset-rights decision", "privacy gate decision"],
+      "must_not_claim": ["public launch readiness without all existing gates"]
+    },
+    {
+      "id": "S5-T3",
+      "name": "Controlled deployed candidate and recovery evidence",
+      "deps": ["S5-T2"],
+      "mode": "controlled_private_deploy",
+      "audience": "controlled_private",
+      "must_record": ["real auth journeys", "A/B tenant matrix", "D1/R2 reconciliation", "rollback and restore", "negative provider and recovery paths"],
+      "must_not_claim": ["public release", "final independent acceptance"]
+    },
+    {
+      "id": "S5-T4",
+      "name": "Sanitized operations projection",
+      "deps": ["S5-T3"],
+      "mode": "controlled_private_operations_projection",
+      "audience": "controlled_private",
+      "must_record": ["redacted adapter facts", "sensitive-field canary", "idempotency and read-only checks"],
+      "must_not_claim": ["public release", "final independent acceptance"]
+    },
+    {
+      "id": "S6-T1",
+      "name": "Final independent acceptance",
+      "deps": ["S5-T4"],
+      "mode": "independent_final_verifier",
+      "audience": "controlled_private",
+      "outcome": "PASS or FAIL",
+      "must_require": ["all fifteen requirement evidence records", "P0=0", "P1=0", "UNKNOWN=0", "NOT_RUN=0", "WAIVED=0"],
+      "must_not_claim": ["PASS if any exact-subject or evidence-integrity binding is absent"]
+    },
+    {
+      "id": "S6-T2",
+      "name": "Public audience confirmation",
+      "deps": ["S6-T1"],
+      "mode": "owner_public_release",
+      "audience": "public",
+      "must_require": ["S6-T1 PASS", "all pre-existing asset-rights, privacy, provider, rollback, and audience gates pass", "no uncommitted source or evidence drift"],
+      "must_not_claim": ["GitHub upload before the overall taskpack is complete"]
+    }
+  ],
+  "requirement_evidence_plan": [
+    {"requirement_id": "R-001", "frozen_oracle": "O-001", "source_tasks": ["S1-T1", "S1-T2", "S1-T3"], "earliest_real_candidate_phase": "S5-T1", "final_acceptance_phase": "S6-T1"},
+    {"requirement_id": "R-002", "frozen_oracle": "O-002", "source_tasks": ["S1-T2", "S1-T3", "S4-T1"], "earliest_real_candidate_phase": "S5-T1", "final_acceptance_phase": "S6-T1"},
+    {"requirement_id": "R-003", "frozen_oracle": "O-003", "source_tasks": ["S2-T2", "S5-T3"], "earliest_real_candidate_phase": "S5-T3", "final_acceptance_phase": "S6-T1"},
+    {"requirement_id": "R-004", "frozen_oracle": "O-004", "source_tasks": ["S2-T3", "S2-T4", "S4-T3", "S5-T3"], "earliest_real_candidate_phase": "S5-T3", "final_acceptance_phase": "S6-T1"},
+    {"requirement_id": "R-005", "frozen_oracle": "O-005", "source_tasks": ["S2-T1", "S2-T3", "S2-T4"], "earliest_real_candidate_phase": "S5-T3", "final_acceptance_phase": "S6-T1"},
+    {"requirement_id": "R-006", "frozen_oracle": "O-006", "source_tasks": ["S3-T1", "S4-T2"], "earliest_real_candidate_phase": "S5-T3", "final_acceptance_phase": "S6-T1"},
+    {"requirement_id": "R-007", "frozen_oracle": "O-007", "source_tasks": ["S3-T3", "S5-T4"], "earliest_real_candidate_phase": "S5-T4", "final_acceptance_phase": "S6-T1"},
+    {"requirement_id": "R-008", "frozen_oracle": "O-008", "source_tasks": ["S1-T1", "S5-T2"], "earliest_real_candidate_phase": "S5-T2", "final_acceptance_phase": "S6-T1"},
+    {"requirement_id": "R-009", "frozen_oracle": "O-009", "source_tasks": ["S0-T2", "S5-T1", "S5-T3"], "earliest_real_candidate_phase": "S5-T3", "final_acceptance_phase": "S6-T1"},
+    {"requirement_id": "R-010", "frozen_oracle": "O-010", "source_tasks": ["S1-T3"], "earliest_real_candidate_phase": "S5-T1", "final_acceptance_phase": "S6-T1"},
+    {"requirement_id": "R-011", "frozen_oracle": "O-011", "source_tasks": ["S3-T2", "S4-T1"], "earliest_real_candidate_phase": "S5-T3", "final_acceptance_phase": "S6-T1"},
+    {"requirement_id": "R-012", "frozen_oracle": "O-012", "source_tasks": ["S5-T4"], "earliest_real_candidate_phase": "S5-T4", "final_acceptance_phase": "S6-T1"},
+    {"requirement_id": "R-013", "frozen_oracle": "O-013", "source_tasks": ["S4-T1", "S4-T3"], "earliest_real_candidate_phase": "S5-T3", "final_acceptance_phase": "S6-T1"},
+    {"requirement_id": "R-014", "frozen_oracle": "O-014", "source_tasks": ["S2-T3", "S3-T1", "S4-T2", "S5-T3"], "earliest_real_candidate_phase": "S5-T3", "final_acceptance_phase": "S6-T1"},
+    {"requirement_id": "R-015", "frozen_oracle": "O-015", "source_tasks": ["S3-T3", "S4-T3", "S5-T2", "S5-T4"], "earliest_real_candidate_phase": "S5-T4", "final_acceptance_phase": "S6-T1"}
+  ],
+  "final_independent_acceptance": {
+    "task_id": "S6-T1",
+    "requirement_count": 15,
+    "evidence_integrity": "Every evidence record must bind the exact source commit, tree, candidate identity, build or Saved Version identity, test identifier, raw-evidence digest or governed reference, and verifier result.",
+    "failure_rule": "Any missing, mismatched, UNKNOWN, NOT_RUN, WAIVED, P0, or P1 result is FAIL, not a conditional PASS."
+  },
+  "rollback": {
+    "before_s6_t2": "Keep the candidate private; on any failure restrict access and revert to the previous Saved Version without asserting public release.",
+    "after_s6_t2": "Use the frozen rollback procedure: restrict audience, deploy the previous Saved Version, preserve evidence, and stop the release sequence."
+  }
+}

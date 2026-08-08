@@ -1,5 +1,7 @@
 # Run Contract — S4-T3 冻结 Candidate 准备验收
 
+> 历史说明：此文件记录原 S4-T3 的 Builder 本地预检，不能构成正式 15/15 裁决。由于冻结任务包的 Saved Candidate 证据循环，后续执行顺序由 [PWB-S4-S5-SEQUENCE-001](./ACCEPTANCE_SEQUENCE_ADDENDUM.md) 约束：先完成 `S4-T3A` 独立就绪审查，再在私有 Candidate 采证，最后由 `S6-T1` 做正式独立验收。
+
 ## 目标
 
 在不改动现有可运行架构与视觉真值的前提下，建立 S4-T3 所需的验收预检：

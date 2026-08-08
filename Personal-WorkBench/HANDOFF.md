@@ -2,13 +2,14 @@
 
 ## 当前目标
 
-完成 `S4-T3` failure branch 的第 1 轮本地整改并冻结新的候选；只有新的精确 commit 通过独立 Verifier，且任务包验收顺序允许所需的 Candidate 证据时，才可重新评估 `S5-T1` 私有 Saved Version。不得公开部署。
+完成 S4/S5 验收顺序增补的本地校验并冻结新的候选；下一阶段必须由独立 context 对精确 source commit 执行 `S4-T3A` 候选就绪审查。只有 `READINESS_PASS` 才可重新评估 `S5-T1` 私有 Saved Version；不得公开部署。
 
 ## 当前状态
 
-- 当前推进阶段：`S4-T3_REMEDIATION_ROUND_1_LOCAL_VALIDATED_PENDING_INDEPENDENT_VERIFIER`
+- 当前推进阶段：`S4_S5_SEQUENCE_ADDENDUM_LOCAL_VALIDATED_PENDING_S4_T3A`
+- 2026-08-09：已创建 `PWB-S4-S5-SEQUENCE-001`，将不可满足的 `S4-T3 → S5-T1` 证据循环拆为 `S4-T3A` 独立就绪审查、私有 Candidate 的 S5-T1 至 S5-T4 真实采证、`S6-T1` 15/15 最终独立验收和 `S6-T2` 公开 audience 确认。增补通过 `npm run test:acceptance-sequence`（3/3）和对冻结目录执行的 `npm run validate:acceptance-sequence`；后者返回 `PASS_SEQUENCE_ADDENDUM_INTEGRITY_ONLY` / `NOT_PRODUCT_ACCEPTANCE`。它以五个冻结文件 SHA-256 绑定输入，不改原任务包、Oracle、阈值、视觉或架构，并明确禁止以本地/UNKNOWN/NOT_RUN/WAIVED 冒充产品 PASS。
 - 2026-08-09T09:10:10+10:00：针对精确 Subject `4f96d9262204be42729ea70f64141b8bf289357f` 的独立审查 P1，已完成本地整改；本阶段收尾将其冻结为新的本地 commit：账户页在敏感跨设备启用前展示版本化中文隐私说明（含收集字段、目的、D1/R2 权威存储、无数据驻留保证、保留/导出/删除/撤回、联系渠道和非医疗边界）；所有自定义写路由执行 same-origin Origin/CSRF 边界；账户删除要求 10 分钟内的新 Better Auth session；运行时支持冻结 binding `MAIL_FROM`，并在两个 sender 名同时冲突时 fail closed。`lint`、`typecheck`、聚焦 auth/API、privacy/account-lifecycle/legacy/R2/tenant/module、e2e 与 build 已通过。未访问 Sites、GitHub、真实 provider、D1/R2 或任何用户数据。
-- `S5-T1` 保持 BLOCKED：上一轮独立 S4-T3 结论不可由本地整改覆盖；尚需新 commit 的独立复核，以及 Owner 冻结解决 S4 15/15 证据与 S5 Saved Version 依赖的验收顺序。
+- `S5-T1` 仍未启用：上一轮独立 S4-T3 结论不可由本地整改覆盖；现在前置是对新精确 commit 的 `S4-T3A` 独立 `READINESS_PASS`。该就绪结果只允许私有采证，不能称为最终 15/15 PASS 或公开发布许可。
 - 2026-08-09：首个冻结候选 `3210a4737e575978a627a9a8b6d092c2d9162a1e` 的独立审查 Round 1 为 `BLOCKED`；其正式 S4-T3 追溯/15 项验收/Sites 私有 Version 证据尚不存在，且不能由本地 `verify:release` 替代。该结论保留为历史审查事实，新的修复不会倒改它。
 - 2026-08-09：已修复审查发现的本地 P1：服务端敏感云端门现在要求当前 policy 的明确同意、未撤回和 active 删除状态；覆盖账单、体重、日记、经期、日记图片与含敏感内容的旧数据导入。账户删除改为 R2 删除失败即保持 pending 并可重试，不再删除元数据/用户。替代候选已在本地提交，仍未创建 Sites Version、修改 Sites 环境、改变访问策略、部署或上传 GitHub。
 - 2026-08-09：本地 P0 验证已重跑通过（unit、privacy、modules、e2e、quality、visual、recovery、check、build 与干净环境 `verify:release`）；`verify:release` 仍明确为 `NOT_ISSUED_PRE_VERIFIER`，不可替代 S4-T3 独立裁决。尚未创建 Sites Version、修改 Sites 环境、改变访问策略、部署或上传 GitHub。
@@ -156,7 +157,7 @@
 ## 未解决风险
 
 - `S4-T3` 仍未通过：首个冻结候选的独立 Round 1 已确认缺少正式 15/15 acceptance traceability、精确 subject binding 和真实 Sites 私有 Version 证据；当前修复候选必须独立复核。
-- 冻结任务包存在验收顺序缺口：S4-T3 阈值要求 15/15 真实 Acceptance 证据，而 R-009 等路径要求 S5-T1 首先创建的 Saved Version，S5-T1 又依赖 S4-T3。不得以本地结果或未授权的任务包语义变更跨越该门。
+- `PWB-S4-S5-SEQUENCE-001` 已将 S4/S5 的验收顺序环以 Owner 授权的项目内增补固定并由 SHA 校验；它尚未替代任何真实 Candidate、provider、D1/R2、回滚或 15/15 最终证据。冻结任务包原件保持不变。
 - 通用 Verifier 的任务包导入器未识别该任务包的 canonical manifest 布局；不可伪造导入成功或正向报告，需使用兼容适配器/人工任务包追溯证据完成正式裁决。
 
 - 未登录 wrangler（`wrangler whoami` 失败）：仅影响 CLI 侧的 Pages 核验；Sites 控制面已独立复核当前身份为 owner，但这不替代运行时环境、素材授权或真实认证链路验收。
@@ -191,6 +192,6 @@
 
 ## 下一步
 
-1. 将本轮整改冻结为新的精确 commit，并对该 commit 重新运行与 Builder 分离的 S4-T3 Verifier；`NOT_RUN`、`UNKNOWN` 或本地自检不得计为 PASS。
-2. Owner 冻结一份解决 S4/S5 Candidate-evidence 顺序的新验收约束；不得在实现线程静默放宽既有 Oracle。
-3. 只有新候选的独立裁决、验收追溯和顺序约束均可证实时，才复核 Sites source linkage、私有访问与保存 Version 所需权限；仅保存私有 Version，记录真实 `saved_version.json`。S5-T2/公开部署继续保持下游。
+1. 将顺序增补冻结为精确 commit；由与 Builder 分离的 context 按 `RUN_CONTRACT_S4_T3A.md` 对新候选执行独立就绪审查。`NOT_RUN`、`UNKNOWN` 或本地自检不得计为最终 PASS。
+2. 仅在 `S4-T3A=READINESS_PASS` 后，复核 Sites source linkage、私有访问与保存 Version 所需权限；只创建私有采证 Candidate 并记录真实 `saved_version.json`。
+3. 依增补完成 S5-T2 至 S5-T4 的真实采证，再由独立 `S6-T1` 对 15/15 进行最终裁决；公开 audience 与 GitHub 上传继续保持下游。
