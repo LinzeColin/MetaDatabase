@@ -10,6 +10,7 @@ import { ResourceInputError } from "@/server/data/resources";
 import { PrivateFileInputError } from "@/server/files/private-files";
 import { AccountDeleteStateError, AccountInputError, AccountNotFoundError } from "@/server/data/account-lifecycle";
 import { LegacyImportConflictError } from "@/server/data/legacy-import";
+import { SensitiveCloudConsentRequiredError } from "@/server/security/privacy-consent";
 
 export function notFoundResponse(): Response {
   return Response.json({ message: "未找到内容。" }, { status: 404, headers: { "Cache-Control": "no-store" } });
@@ -32,6 +33,12 @@ export function apiErrorResponse(error: unknown): Response {
   }
   if (error instanceof VerificationRequiredError) {
     return Response.json({ message: "请先完成邮箱验证。" }, { status: 403, headers: { "Cache-Control": "no-store" } });
+  }
+  if (error instanceof SensitiveCloudConsentRequiredError) {
+    return Response.json(
+      { message: "请先在账户中心开启敏感内容跨设备保存。" },
+      { status: 403, headers: { "Cache-Control": "no-store" } },
+    );
   }
   if (error instanceof NotAccessibleError) return notFoundResponse();
   if (error instanceof IdempotencyConflictError) {

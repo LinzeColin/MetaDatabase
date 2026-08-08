@@ -24,3 +24,52 @@ test("worker CSP permits only the Turnstile third-party surface", async () => {
   assert.ok(worker.includes("img-src 'self' data: blob:"));
   assert.ok(worker.includes("X-Content-Type-Options"));
 });
+
+test("sensitive cloud paths gate storage before normal API persistence", async () => {
+  const [collection, record, files, fileRecord, privateFiles, legacyPreview, legacyApply] = await Promise.all([
+    readFile("app/api/workbench/[resource]/route.ts", "utf8"),
+    readFile("app/api/workbench/[resource]/[id]/route.ts", "utf8"),
+    readFile("app/api/workbench/files/route.ts", "utf8"),
+    readFile("app/api/workbench/files/[id]/route.ts", "utf8"),
+    readFile("server/files/private-files.ts", "utf8"),
+    readFile("app/api/workbench/legacy-import/preview/route.ts", "utf8"),
+    readFile("app/api/workbench/legacy-import/apply/route.ts", "utf8"),
+  ]);
+
+  const collectionGate = "await requireSensitiveCloudConsent(env.DB, userId, resourceName);";
+  const collectionGet = collection.indexOf("export async function GET");
+  const collectionPost = collection.indexOf("export async function POST");
+  assert.ok(collection.indexOf(collectionGate, collectionGet) < collection.indexOf("await listTenantRecords", collectionGet));
+  assert.ok(collection.indexOf(collectionGate, collectionPost) < collection.indexOf("readJson(request)", collectionPost));
+
+  const recordGet = record.indexOf("export async function GET");
+  const recordPatch = record.indexOf("export async function PATCH");
+  assert.ok(
+    record.indexOf("await requireSensitiveCloudConsent(env.DB, current.identity.userId, current.resourceName);", recordGet)
+      < record.indexOf("await getTenantRecord", recordGet),
+  );
+  assert.ok(
+    record.indexOf("await requireSensitiveCloudConsent(env.DB, userId, current.resourceName);", recordPatch)
+      < record.indexOf("readJson(request)", recordPatch),
+  );
+
+  assert.ok(
+    files.indexOf("await requireSensitiveCloudConsent(env.DB, userId, upload.module);")
+      < files.lastIndexOf("beginIdempotentWrite"),
+  );
+  assert.ok(
+    fileRecord.indexOf("await requirePrivateFileCloudConsent(env, userId, id);")
+      < fileRecord.indexOf("readPrivateFileForm(request)"),
+  );
+  assert.ok(privateFiles.includes("await requireSensitiveCloudConsent(env.DB, input.userId, input.module);"));
+  assert.ok(privateFiles.includes("await requireSensitiveCloudConsent(env.DB, userId, row.module);"));
+
+  assert.ok(
+    legacyPreview.lastIndexOf("await requireLegacyImportConsent(env.DB, identity.userId, envelope);")
+      < legacyPreview.lastIndexOf("previewLegacyImport"),
+  );
+  assert.ok(
+    legacyApply.lastIndexOf("await requireLegacyImportConsent(env.DB, userId, envelope);")
+      < legacyApply.lastIndexOf("beginIdempotentWrite"),
+  );
+});

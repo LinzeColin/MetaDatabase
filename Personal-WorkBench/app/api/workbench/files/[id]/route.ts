@@ -6,6 +6,7 @@ import { readPrivateFileForm } from "@/server/files/form";
 import {
   deletePrivateFile,
   getPrivateFile,
+  requirePrivateFileCloudConsent,
   replacePrivateFile,
 } from "@/server/files/private-files";
 import { apiErrorResponse, notFoundResponse } from "@/server/http/api";
@@ -55,6 +56,7 @@ export async function PUT(request: Request, context: Context): Promise<Response>
     const { id: rawId } = await context.params;
     const id = safeId(rawId);
     if (!id) return notFoundResponse();
+    await requirePrivateFileCloudConsent(env, userId, id);
     const upload = await readPrivateFileForm(request);
     const endpoint = `PUT:/api/workbench/files/${id}`;
     const lease = await beginIdempotentWrite(env.DB, {
@@ -90,6 +92,7 @@ export async function DELETE(request: Request, context: Context): Promise<Respon
     const { id: rawId } = await context.params;
     const id = safeId(rawId);
     if (!id) return notFoundResponse();
+    // Deleting a caller-owned object remains available after withdrawal.
     const endpoint = `DELETE:/api/workbench/files/${id}`;
     const lease = await beginIdempotentWrite(env.DB, {
       userId,

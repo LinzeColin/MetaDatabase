@@ -150,6 +150,64 @@ test("processDeleteRequest request + confirm deletes account data and files", as
   }
 });
 
+test("processDeleteRequest keeps deletion pending when private object removal fails, then retries safely", async () => {
+  const db = await setupDb();
+  const d1 = asD1Mock(db);
+  try {
+    const now = Date.now();
+    db.prepare(
+      `INSERT INTO profile_settings
+        (user_id, display_name, timezone, locale, show_welcome, privacy_consent_state, data_version, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 1, 'not_requested', 1, ?, ?)`,
+    )
+      .run("user_lifecycle", "Life User", "UTC", "zh-CN", now, now);
+    db.prepare(
+      "INSERT INTO file_objects (id, user_id, object_key, module, content_type, byte_size, sha256, width, height, created_at, updated_at, state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')",
+    )
+      .run("f_retry", "user_lifecycle", "users/user_lifecycle/diary/f_retry", "diary", "image/png", 120, "c".repeat(64), null, null, now, now);
+    db.prepare(
+      "INSERT INTO outbox_events (id, user_id, event_type, aggregate_id, payload_json, state, attempt_count, next_attempt_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'pending', 0, ?, ?, ?)",
+    )
+      .run("o_retry", "user_lifecycle", "test", "record_retry", "{}", now, now, now);
+
+    const request = await processDeleteRequest(d1, {}, "user_lifecycle", { action: "request" });
+    await assert.rejects(
+      () => processDeleteRequest(d1, { FILES: { delete: async () => { throw new Error("r2 unavailable"); } } }, "user_lifecycle", {
+        action: "confirm",
+        recoveryToken: request.recoveryToken!,
+      }),
+      (error): error is AccountDeleteStateError => error instanceof AccountDeleteStateError,
+    );
+
+    const stateAfterFailure = await getDeletionState(d1, "user_lifecycle");
+    assert.equal(stateAfterFailure.state, "pending");
+    assert.equal(
+      db.prepare('SELECT id FROM "user" WHERE id = ? LIMIT 1').get("user_lifecycle") !== undefined,
+      true,
+    );
+    assert.equal(
+      db.prepare("SELECT id FROM file_objects WHERE user_id = ? LIMIT 1").get("user_lifecycle") !== undefined,
+      true,
+    );
+    assert.equal(
+      db.prepare("SELECT id FROM outbox_events WHERE user_id = ? LIMIT 1").get("user_lifecycle") !== undefined,
+      true,
+    );
+
+    const deleted: string[] = [];
+    await processDeleteRequest(
+      d1,
+      { FILES: { delete: async (key: string) => { deleted.push(key); } } },
+      "user_lifecycle",
+      { action: "confirm", recoveryToken: request.recoveryToken! },
+    );
+    assert.equal(deleted.includes("users/user_lifecycle/diary/f_retry"), true);
+    assert.equal(db.prepare('SELECT id FROM "user" WHERE id = ? LIMIT 1').get("user_lifecycle"), undefined);
+  } finally {
+    db.close();
+  }
+});
+
 test("processDeleteRequest undo恢复和错误令牌重试", async () => {
   const db = await setupDb();
   const d1 = asD1Mock(db);

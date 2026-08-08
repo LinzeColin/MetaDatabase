@@ -2,7 +2,11 @@ import { env } from "cloudflare:workers";
 import { createAuth } from "@/server/auth";
 import { requireVerifiedSession } from "@/server/auth/session";
 import { beginIdempotentWrite } from "@/server/data/idempotency";
-import { applyLegacyImport } from "@/server/data/legacy-import";
+import {
+  applyLegacyImport,
+  requireLegacyImportConsent,
+  validateLegacyEnvelope,
+} from "@/server/data/legacy-import";
 import { apiErrorResponse, readJson } from "@/server/http/api";
 
 export const runtime = "edge";
@@ -15,15 +19,17 @@ export async function POST(request: Request): Promise<Response> {
     userId = identity.userId;
 
     const body = await readJson(request);
+    const envelope = validateLegacyEnvelope(body);
+    await requireLegacyImportConsent(env.DB, userId, envelope);
     const lease = await beginIdempotentWrite(env.DB, {
       userId,
       endpoint,
       idempotencyKey: request.headers.get("idempotency-key"),
-      payload: body,
+      payload: envelope,
     });
 
     try {
-      const result = await applyLegacyImport(env.DB, userId, body);
+      const result = await applyLegacyImport(env.DB, userId, envelope);
       await lease.complete();
       return Response.json(result, { headers: { "Cache-Control": "no-store" } });
     } catch (error) {

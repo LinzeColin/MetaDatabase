@@ -2,11 +2,13 @@
 
 ## 当前目标
 
-完成 `S5-T1` Save Version 私有候选的冻结准备；只在精确候选 commit 的独立 Verifier 裁决和 Sites source linkage 均可证实时，才保存私有 Version。不得公开部署。
+完成 `S5-T1` Save Version 私有候选的冻结准备；当前已冻结的本地候选须交给独立 Verifier。只有精确 commit 的独立裁决和 Sites source linkage 均可证实时，才保存私有 Version。不得公开部署。
 
 ## 当前状态
 
-- 当前推进阶段：`S5-T1_PRIVATE_CANDIDATE_FREEZE_PREPARED`
+- 当前推进阶段：`S5-T1_PRIVATE_CANDIDATE_READY_FOR_INDEPENDENT_VERIFIER`
+- 2026-08-09：首个冻结候选 `3210a4737e575978a627a9a8b6d092c2d9162a1e` 的独立审查 Round 1 为 `BLOCKED`；其正式 S4-T3 追溯/15 项验收/Sites 私有 Version 证据尚不存在，且不能由本地 `verify:release` 替代。该结论保留为历史审查事实，新的修复不会倒改它。
+- 2026-08-09：已修复审查发现的本地 P1：服务端敏感云端门现在要求当前 policy 的明确同意、未撤回和 active 删除状态；覆盖账单、体重、日记、经期、日记图片与含敏感内容的旧数据导入。账户删除改为 R2 删除失败即保持 pending 并可重试，不再删除元数据/用户。替代候选已在本地提交，仍未创建 Sites Version、修改 Sites 环境、改变访问策略、部署或上传 GitHub。
 - 2026-08-09：本地 P0 验证已重跑通过（unit、privacy、modules、e2e、quality、visual、recovery、check、build 与干净环境 `verify:release`）；`verify:release` 仍明确为 `NOT_ISSUED_PRE_VERIFIER`，不可替代 S4-T3 独立裁决。尚未创建 Sites Version、修改 Sites 环境、改变访问策略、部署或上传 GitHub。
 - 2026-08-09：生产/运维预检证据已收敛为状态、时延、存在性和脱敏引用；不再写入命令输出、响应正文、原始嵌套证据、本机绝对路径或配置值。对应回归由 `test:release-evidence` 覆盖。
 - 2026-08-08T20:41Z：现有 ChatGPT Sites 项目处于 `active` 且当前身份为 `owner`，但仍无已保存版本、预览/生产 URL 或生产环境变量；未创建版本、未部署、未上传 GitHub。
@@ -36,6 +38,17 @@
 - S5-T2 可执行清单已补齐在 [RUN_CONTRACT_S5_T2.md](/Users/linzezhang/.codex/worktrees/ef81/MetaDatabase/Personal-WorkBench/RUN_CONTRACT_S5_T2.md)（含复制执行命令与证据刷新要求）
 
 ## 已改动
+
+- `server/security/privacy-consent.ts`
+  - 新增敏感云端处理的唯一服务端门：要求当前版本同意、未撤回且账户未处于 pending 删除；普通模块不受阻塞。
+- `app/api/workbench/[resource]/*`、`app/api/workbench/files/*`、`server/files/private-files.ts`
+  - 敏感记录与日记图片在读取、创建、替换以及幂等记录写入前均执行服务端门；本人删除路径保持可用以支持数据清除。
+- `server/data/legacy-import.ts`、`app/api/workbench/legacy-import/*`
+  - 含账单、体重、日记、经期或日记图片的导入，在写入导入状态/幂等键前必须通过同意门；仅普通数据的导入仍可预览。
+- `server/data/account-lifecycle.ts`
+  - R2 对象删除失败或缺失绑定时 fail-closed，保留 pending 状态、恢复口令、文件元数据和后续删除步骤用于安全重试。
+- `tests/privacy.test.mts`、`tests/r2.test.mts`、`tests/legacy-import.test.mts`、`tests/account-lifecycle.test.mts`、`tests/api-contract.test.mjs`
+  - 覆盖未同意、旧 policy、撤回、日记对象、旧数据导入与 R2 删除中断/重试的负向和恢复路径。
 
 - `app/_components/workbench/outbox-queue.ts`
   - 新增 outbox 队列读写与重放策略模块，提炼 `read/write/append/replay` 逻辑。
@@ -94,6 +107,9 @@
 
 ## 验证命令与结果
 
+- 本轮安全修补（2026-08-09）：`npm run lint`、`npm run typecheck`、`npm run test:unit`、`npm run test:privacy`、`npm run test:account-lifecycle`、`npm run test:legacy-import`、`npm run test:modules`、`npm run build`、`npm run test:e2e`、`npm run test:quality`、`npm run test:visual`、`npm run test:recovery`、`npm run check`、`npm run test:release-evidence` 均通过。
+- 干净环境 `npm run verify:release`：通过，状态 `PASS_BUILD_LAST_MILE_READINESS`，verdict 仍为 `NOT_ISSUED_PRE_VERIFIER`；不构成 S4-T3 或 S5-T1 通过。
+
 - `npm run test:quality`（通过）
 - `npm run test:visual`（通过）
 - `npm run test:resilience`（通过）
@@ -137,6 +153,9 @@
 
 ## 未解决风险
 
+- `S4-T3` 仍未通过：首个冻结候选的独立 Round 1 已确认缺少正式 15/15 acceptance traceability、精确 subject binding 和真实 Sites 私有 Version 证据；当前修复候选必须独立复核。
+- 通用 Verifier 的任务包导入器未识别该任务包的 canonical manifest 布局；不可伪造导入成功或正向报告，需使用兼容适配器/人工任务包追溯证据完成正式裁决。
+
 - 未登录 wrangler（`wrangler whoami` 失败）：仅影响 CLI 侧的 Pages 核验；Sites 控制面已独立复核当前身份为 owner，但这不替代运行时环境、素材授权或真实认证链路验收。
 - 当前机本地未落盘可用 wrangler token（默认路径 `~/Library/Preferences/.wrangler/config/default.toml` 目前不存在可用 `oauth_token`）
 - `wrangler whoami` 常见失败（400 Bad Request）可先执行 `wrangler logout` 后 `wrangler login`，再重试 `whoami` 与 `pages project list --json`
@@ -169,6 +188,6 @@
 
 ## 下一步
 
-1. 为当前冻结 commit 获取与 Builder 分离的 S4-T3 Verifier 裁决；`NOT_RUN`、`UNKNOWN` 或本地自检不得计为 PASS。
-2. Verifier 通过后，复核 Sites 的精确 source linkage、私有访问与保存 Version 所需权限；仅保存私有 Version，记录真实 `saved_version.json`。
+1. 对当前已通过本地回归的精确冻结候选执行与 Builder 分离的 S4-T3 Verifier；`NOT_RUN`、`UNKNOWN` 或本地自检不得计为 PASS。
+2. 只有该候选的独立裁决和验收追溯真实通过后，才复核 Sites 的精确 source linkage、私有访问与保存 Version 所需权限；仅保存私有 Version，记录真实 `saved_version.json`。
 3. S5-T1 完成后才可进入 S5-T2 的生产环境激活；真实 OAuth、邮件、Turnstile、公开素材权利和生产部署仍全部保持下游。

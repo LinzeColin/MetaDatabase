@@ -35,7 +35,7 @@
     "test:quality": "node scripts/verify-quality.mjs",
     "test:resilience": "node --experimental-strip-types scripts/verify-offline-replay.mts",
     "test:api": "node --test tests/api-contract.test.mjs",
-    "test:r2": "node scripts/verify-r2-contract.mjs && node --experimental-strip-types --test tests/r2.test.mts",
+    "test:r2": "node scripts/verify-r2-contract.mjs && node --import ./tests/register-cloudflare-workers-loader.mjs --experimental-strip-types --test tests/r2.test.mts",
     "test:recovery": "npm run test:resilience",
     "test:regression": "npm run test:modules && npm run test:e2e",
     "verify:release": "node scripts/verify-release.mjs",

@@ -1,4 +1,5 @@
 import { NotAccessibleError } from "../security/tenant.ts";
+import { requireSensitiveCloudConsent } from "../security/privacy-consent.ts";
 
 export const privateFileModules = ["food", "diary", "profile", "other"] as const;
 export type PrivateFileModule = (typeof privateFileModules)[number];
@@ -12,6 +13,7 @@ type FilesEnv = { DB: D1Database; FILES: R2Bucket };
 type FileRow = {
   id: string;
   object_key: string;
+  module: PrivateFileModule;
   content_type: string;
   byte_size: number;
 };
@@ -140,6 +142,7 @@ export async function createPrivateFile(
     validated: { contentType: string; byteSize: number; sha256: string; width: number; height: number };
   },
 ): Promise<void> {
+  await requireSensitiveCloudConsent(env.DB, input.userId, input.module);
   const now = Date.now();
   const objectKey = buildPrivateObjectKey(input.userId, input.module, input.id);
   await env.DB.prepare(
@@ -177,7 +180,7 @@ export async function createPrivateFile(
 
 async function ownedFile(env: FilesEnv, userId: string, id: string): Promise<FileRow> {
   const row = await env.DB.prepare(
-    `SELECT id, object_key, content_type, byte_size FROM file_objects
+    `SELECT id, object_key, module, content_type, byte_size FROM file_objects
      WHERE id = ? AND user_id = ? AND state = 'active' LIMIT 1`,
   )
     .bind(id, userId)
@@ -186,8 +189,19 @@ async function ownedFile(env: FilesEnv, userId: string, id: string): Promise<Fil
   return row;
 }
 
+/**
+ * Allows a route to deny a sensitive replacement before reading its request
+ * body or creating an idempotency row. The object metadata remains tenant
+ * scoped and no object body is read here.
+ */
+export async function requirePrivateFileCloudConsent(env: FilesEnv, userId: string, id: string): Promise<void> {
+  const row = await ownedFile(env, userId, id);
+  await requireSensitiveCloudConsent(env.DB, userId, row.module);
+}
+
 export async function getPrivateFile(env: FilesEnv, userId: string, id: string) {
   const row = await ownedFile(env, userId, id);
+  await requireSensitiveCloudConsent(env.DB, userId, row.module);
   const object = await env.FILES.get(row.object_key);
   if (!object) throw new NotAccessibleError();
   return { object, contentType: row.content_type, byteSize: row.byte_size };
@@ -195,10 +209,11 @@ export async function getPrivateFile(env: FilesEnv, userId: string, id: string) 
 
 export async function privateFileExists(env: FilesEnv, userId: string, id: string): Promise<boolean> {
   const row = await env.DB.prepare(
-    "SELECT id FROM file_objects WHERE id = ? AND user_id = ? AND state = 'active' LIMIT 1",
+    "SELECT id, module FROM file_objects WHERE id = ? AND user_id = ? AND state = 'active' LIMIT 1",
   )
     .bind(id, userId)
-    .first<{ id: string }>();
+    .first<Pick<FileRow, "id" | "module">>();
+  if (row) await requireSensitiveCloudConsent(env.DB, userId, row.module);
   return Boolean(row);
 }
 
@@ -212,6 +227,7 @@ export async function replacePrivateFile(
   },
 ): Promise<void> {
   const row = await ownedFile(env, input.userId, input.id);
+  await requireSensitiveCloudConsent(env.DB, input.userId, row.module);
   await env.FILES.put(row.object_key, input.buffer, {
     httpMetadata: { contentType: input.validated.contentType },
   });
@@ -234,6 +250,7 @@ export async function replacePrivateFile(
 
 export async function deletePrivateFile(env: FilesEnv, userId: string, id: string): Promise<void> {
   const row = await ownedFile(env, userId, id);
+  // Account and record erasure remain available even after a consent withdrawal.
   await env.DB.prepare(
     `UPDATE file_objects SET state = 'pending_delete', updated_at = ?
      WHERE id = ? AND user_id = ? AND state = 'active'`,

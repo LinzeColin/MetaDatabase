@@ -13,6 +13,7 @@ import {
 } from "@/server/data/tenant-store";
 import { apiErrorResponse, notFoundResponse, readJson } from "@/server/http/api";
 import { writeRedactedSecurityEvent } from "@/server/security/audit";
+import { requireSensitiveCloudConsent } from "@/server/security/privacy-consent";
 
 export const runtime = "edge";
 
@@ -34,6 +35,7 @@ export async function GET(request: Request, context: Context): Promise<Response>
     const { resource: resourceName } = await context.params;
     const resource = getTenantResource(resourceName);
     if (!resource) return notFoundResponse();
+    await requireSensitiveCloudConsent(env.DB, userId, resourceName);
     const data = await listTenantRecords(env.DB, resource, userId);
     return Response.json({ data }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
@@ -51,6 +53,7 @@ export async function POST(request: Request, context: Context): Promise<Response
     const { resource: resourceName } = await context.params;
     const resource = getTenantResource(resourceName);
     if (!resource) return notFoundResponse();
+    await requireSensitiveCloudConsent(env.DB, userId, resourceName);
     eventType = `workbench.${resourceName}.create`;
 
     const body = await readJson(request);

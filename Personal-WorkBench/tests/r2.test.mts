@@ -7,6 +7,7 @@ import {
   PrivateFileInputError,
   validatePrivateImageUpload,
 } from "../server/files/private-files.ts";
+import { SensitiveCloudConsentRequiredError } from "../server/security/privacy-consent.ts";
 
 const png = new Uint8Array([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
@@ -49,4 +50,34 @@ test("file creation records owner metadata before writing the private object", a
   await createPrivateFile(env, { userId: "user_a", id: "rec_a", module: "food", buffer: png, validated });
   assert.match(operations[0], /INSERT INTO file_objects/);
   assert.equal(operations[1], "put:users/user_a/food/rec_a");
+});
+
+test("diary image creation stops before D1 or R2 writes without current consent", async () => {
+  const operations: string[] = [];
+  const env = {
+    DB: {
+      prepare() {
+        return {
+          bind() {
+            return {
+              first: async () => null,
+              run: async () => {
+                operations.push("d1-write");
+                return { meta: { changes: 1 } };
+              },
+            };
+          },
+        };
+      },
+    },
+    FILES: {
+      put: async () => { operations.push("r2-write"); },
+    },
+  } as unknown as { DB: D1Database; FILES: R2Bucket };
+  const validated = await validatePrivateImageUpload("image/png", png);
+  await assert.rejects(
+    () => createPrivateFile(env, { userId: "user_a", id: "diary_a", module: "diary", buffer: png, validated }),
+    (error): error is SensitiveCloudConsentRequiredError => error instanceof SensitiveCloudConsentRequiredError,
+  );
+  assert.deepEqual(operations, []);
 });

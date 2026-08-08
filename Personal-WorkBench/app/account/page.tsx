@@ -12,6 +12,7 @@ type PrivacySnapshot = {
   revokedAt: number | null;
   policyVersion: string | null;
   currentVersion: string;
+  deletionState: "active" | "pending" | null;
   noticeSha256?: string | null;
 };
 type DeletionState = "active" | "pending";
@@ -46,6 +47,7 @@ export default function AccountPage() {
     revokedAt: null,
     policyVersion: null,
     currentVersion: "policy-2026-08-05-v1",
+    deletionState: "active",
   });
   const [deletion, setDeletion] = useState<DeletionState>("active");
   const [deletionToken, setDeletionToken] = useState("");
@@ -83,6 +85,7 @@ export default function AccountPage() {
           revokedAt: snapshot.revokedAt ?? null,
           policyVersion: snapshot.policyVersion ?? null,
           currentVersion: snapshot.currentVersion,
+          deletionState: snapshot.deletionState ?? "active",
         });
         setPrivacyNoticeHash(snapshot.noticeSha256 ?? "e".repeat(64));
       }
@@ -270,7 +273,10 @@ useEffect(() => {
   }
 
   const isPendingDelete = deletion === "pending";
-  const privacyAccepted = privacy.state === "accepted";
+  const privacyAccepted =
+    privacy.state === "accepted" &&
+    privacy.policyVersion === privacy.currentVersion &&
+    privacy.deletionState === "active";
 
   return (
     <main className="auth-shell">

@@ -9,6 +9,12 @@ import {
   applyLegacyImport,
   previewLegacyImport,
 } from "../server/data/legacy-import.ts";
+import {
+  ACCOUNT_PRIVACY_NOTICE_SHA256,
+  ACCOUNT_PRIVACY_POLICY_VERSION,
+  setPrivacyConsent,
+} from "../server/data/account-lifecycle.ts";
+import { SensitiveCloudConsentRequiredError } from "../server/security/privacy-consent.ts";
 
 type LegacyImportDb = Parameters<typeof previewLegacyImport>[0];
 
@@ -162,6 +168,11 @@ test("legacy import preview and apply are idempotent and resumable", async () =>
   const d1 = asD1Mock(db);
   try {
     const payload = legacyEnvelope();
+    await setPrivacyConsent(d1, "user_legacy", {
+      decision: "accepted",
+      policyVersion: ACCOUNT_PRIVACY_POLICY_VERSION,
+      noticeSha256: ACCOUNT_PRIVACY_NOTICE_SHA256,
+    });
 
     const preview = await previewLegacyImport(d1, "user_legacy", payload);
     assert.equal(preview.state, "previewed");
@@ -195,6 +206,33 @@ test("legacy import preview and apply are idempotent and resumable", async () =>
       .prepare("SELECT COUNT(1) AS count FROM habit_definitions WHERE user_id = ?")
       .get("user_legacy") as { count: number };
     assert.equal(habitsCountAfterReplay.count, 1);
+  } finally {
+    db.close();
+  }
+});
+
+test("legacy import leaves sensitive payload local until cross-device consent is accepted", async () => {
+  const db = await setupDb();
+  const d1 = asD1Mock(db);
+  try {
+    await assert.rejects(
+      () => previewLegacyImport(d1, "user_legacy", legacyEnvelope()),
+      (error): error is SensitiveCloudConsentRequiredError => error instanceof SensitiveCloudConsentRequiredError,
+    );
+    assert.equal(
+      (db.prepare("SELECT COUNT(1) AS count FROM legacy_imports WHERE user_id = ?").get("user_legacy") as { count: number }).count,
+      0,
+    );
+
+    const ordinaryOnly = legacyEnvelope({
+      modules: {
+        todos: [{ id: "todo_plain_01", title: "普通本地记录", dueDate: "2026-08-05" }],
+      },
+      imageManifest: [],
+    });
+    const preview = await previewLegacyImport(d1, "user_legacy", ordinaryOnly);
+    assert.equal(preview.state, "previewed");
+    assert.equal(preview.preview.counts.todos, 1);
   } finally {
     db.close();
   }

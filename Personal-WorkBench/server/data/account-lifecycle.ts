@@ -93,6 +93,7 @@ export type PrivacyStateSnapshot = {
   policyVersion: string | null;
   consentedAt: number | null;
   revokedAt: number | null;
+  deletionState: "active" | "pending" | null;
 };
 
 export type AccountDeletionInfo = {
@@ -250,15 +251,16 @@ export async function getAccountExport(db: AccountDb, userId: string): Promise<A
 
 export async function getPrivacyState(db: AccountDb, userId: string): Promise<PrivacyStateSnapshot> {
   const profile = await db
-    .prepare(`SELECT privacy_policy_version, privacy_consent_state, privacy_consented_at, privacy_revoked_at
+    .prepare(`SELECT privacy_policy_version, privacy_consent_state, privacy_consented_at, privacy_revoked_at, deletion_state
       FROM profile_settings WHERE user_id = ? LIMIT 1`)
     .bind(userId)
-    .first<Pick<ProfileRow, "privacy_policy_version" | "privacy_consent_state" | "privacy_consented_at" | "privacy_revoked_at">>();
+    .first<Pick<ProfileRow, "privacy_policy_version" | "privacy_consent_state" | "privacy_consented_at" | "privacy_revoked_at" | "deletion_state">>();
   return {
     state: profile?.privacy_consent_state ?? "not_requested",
     policyVersion: profile?.privacy_policy_version ?? null,
     consentedAt: profile?.privacy_consented_at ?? null,
     revokedAt: profile?.privacy_revoked_at ?? null,
+    deletionState: profile?.deletion_state ?? null,
   };
 }
 
@@ -425,11 +427,17 @@ async function removeAccountData(
     .all<Pick<FileRow, "id" | "object_key">>();
   const fileRows = files.results;
 
+  if (fileRows.length > 0 && !fileEnv.FILES) {
+    throw new AccountDeleteStateError("私有文件存储暂不可用，删除仍待确认。");
+  }
+
   for (const file of fileRows) {
     try {
-      await fileEnv.FILES?.delete(file.object_key);
+      await fileEnv.FILES!.delete(file.object_key);
     } catch {
-      // R2 delete is best-effort: metadata deletion is still required to complete account reset.
+      // Do not remove D1 ownership metadata or the user until every R2 object is gone.
+      // The pending deletion state and recovery token deliberately remain retryable.
+      throw new AccountDeleteStateError("私有文件删除未完成，请重试确认删除。");
     }
   }
 
@@ -457,7 +465,6 @@ export async function confirmAccountDeletion(
   input: { recoveryToken: string },
 ): Promise<void> {
   await assertDeletionToken(db, userId, input.recoveryToken);
-  await db.prepare("DELETE FROM outbox_events WHERE user_id = ?").bind(userId).run();
   await removeAccountData(db, fileEnv, userId);
 }
 

@@ -6,6 +6,7 @@ import { readPrivateFileForm } from "@/server/files/form";
 import { createPrivateFile, privateFileExists } from "@/server/files/private-files";
 import { apiErrorResponse } from "@/server/http/api";
 import { writeRedactedSecurityEvent } from "@/server/security/audit";
+import { requireSensitiveCloudConsent } from "@/server/security/privacy-consent";
 
 export const runtime = "edge";
 
@@ -23,6 +24,7 @@ export async function POST(request: Request): Promise<Response> {
     const identity = await requireVerifiedSession(createAuth(env), request.headers);
     userId = identity.userId;
     const upload = await readPrivateFileForm(request);
+    await requireSensitiveCloudConsent(env.DB, userId, upload.module);
     const endpoint = "POST:/api/workbench/files";
     const idempotencyKey = request.headers.get("idempotency-key");
     const lease = await beginIdempotentWrite(env.DB, {

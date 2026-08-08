@@ -11,6 +11,10 @@ import {
   parsePrivacyInput,
   setPrivacyConsent,
 } from "../server/data/account-lifecycle.ts";
+import {
+  SensitiveCloudConsentRequiredError,
+  requireSensitiveCloudConsent,
+} from "../server/security/privacy-consent.ts";
 
 type PrivacyDb = Pick<Parameters<typeof getPrivacyState>[0], "prepare">;
 
@@ -159,6 +163,55 @@ test("setPrivacyConsent creates profile row when missing and writes consent even
     assert.equal(snapshot.policyVersion, ACCOUNT_PRIVACY_POLICY_VERSION);
     assert.equal((snapshot.consentedAt ?? 0) > 0, true);
     assert.equal(snapshot.revokedAt !== null, true);
+  } finally {
+    db.close();
+  }
+});
+
+test("sensitive cloud targets require an active opt-in and ordinary data remains available", async () => {
+  const db = await setupDb();
+  const d1 = asD1Mock(db);
+  const sensitiveTargets = ["ledger", "weights", "diary", "periods"];
+  try {
+    for (const target of sensitiveTargets) {
+      await assert.rejects(
+        () => requireSensitiveCloudConsent(d1, "user_privacy", target),
+        (error): error is SensitiveCloudConsentRequiredError => error instanceof SensitiveCloudConsentRequiredError,
+      );
+    }
+    await requireSensitiveCloudConsent(d1, "user_privacy", "todos");
+    await requireSensitiveCloudConsent(d1, "user_privacy", "food");
+
+    await setPrivacyConsent(d1, "user_privacy", {
+      decision: "accepted",
+      policyVersion: "2026-08-02.v1",
+      noticeSha256: ACCOUNT_PRIVACY_NOTICE_SHA256,
+    });
+    await assert.rejects(
+      () => requireSensitiveCloudConsent(d1, "user_privacy", "diary"),
+      (error): error is SensitiveCloudConsentRequiredError => error instanceof SensitiveCloudConsentRequiredError,
+    );
+
+    await setPrivacyConsent(d1, "user_privacy", {
+      decision: "accepted",
+      policyVersion: ACCOUNT_PRIVACY_POLICY_VERSION,
+      noticeSha256: ACCOUNT_PRIVACY_NOTICE_SHA256,
+    });
+    for (const target of sensitiveTargets) {
+      await requireSensitiveCloudConsent(d1, "user_privacy", target);
+    }
+
+    await setPrivacyConsent(d1, "user_privacy", {
+      decision: "revoked",
+      policyVersion: ACCOUNT_PRIVACY_POLICY_VERSION,
+      noticeSha256: ACCOUNT_PRIVACY_NOTICE_SHA256,
+    });
+    for (const target of sensitiveTargets) {
+      await assert.rejects(
+        () => requireSensitiveCloudConsent(d1, "user_privacy", target),
+        (error): error is SensitiveCloudConsentRequiredError => error instanceof SensitiveCloudConsentRequiredError,
+      );
+    }
   } finally {
     db.close();
   }

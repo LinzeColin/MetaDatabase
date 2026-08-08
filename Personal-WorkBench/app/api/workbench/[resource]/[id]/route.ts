@@ -10,6 +10,7 @@ import {
 } from "@/server/data/tenant-store";
 import { apiErrorResponse, notFoundResponse, readJson } from "@/server/http/api";
 import { writeRedactedSecurityEvent } from "@/server/security/audit";
+import { requireSensitiveCloudConsent } from "@/server/security/privacy-consent";
 
 export const runtime = "edge";
 
@@ -40,6 +41,7 @@ export async function GET(request: Request, context: Context): Promise<Response>
   try {
     const current = await contextFor(request, context);
     if (!current.resource || !current.id) return notFoundResponse();
+    await requireSensitiveCloudConsent(env.DB, current.identity.userId, current.resourceName);
     const data = await getTenantRecord(env.DB, current.resource, current.identity.userId, current.id);
     if (!data) return notFoundResponse();
     return Response.json({ data }, { headers: { "Cache-Control": "no-store" } });
@@ -55,6 +57,7 @@ export async function PATCH(request: Request, context: Context): Promise<Respons
     const current = await contextFor(request, context);
     userId = current.identity.userId;
     if (!current.resource || !current.id) return notFoundResponse();
+    await requireSensitiveCloudConsent(env.DB, userId, current.resourceName);
     eventType = `workbench.${current.resourceName}.update`;
 
     const body = await readJson(request);
@@ -92,6 +95,8 @@ export async function DELETE(request: Request, context: Context): Promise<Respon
     const current = await contextFor(request, context);
     userId = current.identity.userId;
     if (!current.resource || !current.id) return notFoundResponse();
+    // Erasure remains available after withdrawal: it removes the caller's own data
+    // and never returns or creates new sensitive cloud content.
     eventType = `workbench.${current.resourceName}.delete`;
     const endpoint = `DELETE:/api/workbench/${current.resourceName}/${current.id}`;
     const lease = await beginIdempotentWrite(env.DB, {

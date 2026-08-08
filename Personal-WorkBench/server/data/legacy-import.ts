@@ -1,5 +1,6 @@
 import { sha256 } from "@/server/data/idempotency";
 import { normalizeResourceInput, tenantResources, type TenantResource } from "@/server/data/resources";
+import { requireAcceptedSensitiveCloudConsent } from "@/server/security/privacy-consent";
 
 export type LegacyModule =
   | "habits"
@@ -114,6 +115,8 @@ const MODULES: LegacyModule[] = [
   "period",
 ];
 
+const SENSITIVE_LEGACY_MODULES: readonly LegacyModule[] = ["ledger", "weight", "diary", "period"];
+
 const LEGACY_MODULE_TO_RESOURCE: Record<LegacyModule, keyof typeof tenantResources> = {
   habits: "habits",
   todos: "todos",
@@ -206,6 +209,23 @@ export function validateLegacyEnvelope(value: unknown): WorkbenchLegacyEnvelope 
   }
 
   return value as WorkbenchLegacyEnvelope;
+}
+
+export function legacyImportContainsSensitiveData(envelope: WorkbenchLegacyEnvelope): boolean {
+  if (SENSITIVE_LEGACY_MODULES.some((moduleName) => (envelope.modules[moduleName]?.length ?? 0) > 0)) {
+    return true;
+  }
+  return envelope.imageManifest.some((item) => item.module === "diary");
+}
+
+/** Blocks any D1 import-state write or data import until sensitive sync is enabled. */
+export async function requireLegacyImportConsent(
+  db: LegacyImportDb,
+  userId: string,
+  envelope: WorkbenchLegacyEnvelope,
+): Promise<void> {
+  if (!legacyImportContainsSensitiveData(envelope)) return;
+  await requireAcceptedSensitiveCloudConsent(db, userId);
 }
 
 export function buildPreview(envelope: WorkbenchLegacyEnvelope, payloadSha256: string): ImportPreview {
@@ -383,6 +403,7 @@ export async function previewLegacyImport(
   rawEnvelope: unknown,
 ): Promise<LegacyImportResult> {
   const envelope = validateLegacyEnvelope(rawEnvelope);
+  await requireLegacyImportConsent(db, userId, envelope);
   const payloadSha256 = await hashEnvelope(envelope);
   const preview = buildPreview(envelope, payloadSha256);
 
@@ -441,6 +462,7 @@ export async function applyLegacyImport(
   rawEnvelope: unknown,
 ): Promise<LegacyImportResult> {
   const envelope = validateLegacyEnvelope(rawEnvelope);
+  await requireLegacyImportConsent(db, userId, envelope);
   const payloadSha256 = await hashEnvelope(envelope);
   const preview = buildPreview(envelope, payloadSha256);
 
