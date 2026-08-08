@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { createAuth } from "@/server/auth";
-import { requireVerifiedSession } from "@/server/auth/session";
+import { requireVerifiedMutationSession, requireVerifiedSession } from "@/server/auth/session";
 import { beginIdempotentWrite } from "@/server/data/idempotency";
 import { readPrivateFileForm } from "@/server/files/form";
 import {
@@ -51,7 +51,7 @@ export async function GET(request: Request, context: Context): Promise<Response>
 export async function PUT(request: Request, context: Context): Promise<Response> {
   let userId: string | null = null;
   try {
-    const identity = await requireVerifiedSession(createAuth(env), request.headers);
+    const identity = await requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN);
     userId = identity.userId;
     const { id: rawId } = await context.params;
     const id = safeId(rawId);
@@ -87,7 +87,7 @@ export async function PUT(request: Request, context: Context): Promise<Response>
 export async function DELETE(request: Request, context: Context): Promise<Response> {
   let userId: string | null = null;
   try {
-    const identity = await requireVerifiedSession(createAuth(env), request.headers);
+    const identity = await requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN);
     userId = identity.userId;
     const { id: rawId } = await context.params;
     const id = safeId(rawId);

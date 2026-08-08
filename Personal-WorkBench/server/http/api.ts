@@ -1,6 +1,7 @@
 import { AuthRuntimeNotReadyError } from "@/server/auth";
 import {
   NotAccessibleError,
+  ReauthenticationRequiredError,
   TenantInputError,
   UnauthorizedError,
   VerificationRequiredError,
@@ -11,6 +12,7 @@ import { PrivateFileInputError } from "@/server/files/private-files";
 import { AccountDeleteStateError, AccountInputError, AccountNotFoundError } from "@/server/data/account-lifecycle";
 import { LegacyImportConflictError } from "@/server/data/legacy-import";
 import { SensitiveCloudConsentRequiredError } from "@/server/security/privacy-consent";
+import { SameOriginRequiredError } from "@/server/security/mutation-origin";
 
 export function notFoundResponse(): Response {
   return Response.json({ message: "未找到内容。" }, { status: 404, headers: { "Cache-Control": "no-store" } });
@@ -33,6 +35,12 @@ export function apiErrorResponse(error: unknown): Response {
   }
   if (error instanceof VerificationRequiredError) {
     return Response.json({ message: "请先完成邮箱验证。" }, { status: 403, headers: { "Cache-Control": "no-store" } });
+  }
+  if (error instanceof SameOriginRequiredError) {
+    return Response.json({ message: "请求来源无效，请刷新后重试。" }, { status: 403, headers: { "Cache-Control": "no-store" } });
+  }
+  if (error instanceof ReauthenticationRequiredError) {
+    return Response.json({ message: "为保护账户安全，请重新登录后再继续删除。" }, { status: 403, headers: { "Cache-Control": "no-store" } });
   }
   if (error instanceof SensitiveCloudConsentRequiredError) {
     return Response.json(

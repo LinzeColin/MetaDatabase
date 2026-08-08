@@ -2,11 +2,13 @@
 
 ## 当前目标
 
-完成 `S5-T1` Save Version 私有候选的冻结准备；当前已冻结的本地候选须交给独立 Verifier。只有精确 commit 的独立裁决和 Sites source linkage 均可证实时，才保存私有 Version。不得公开部署。
+完成 `S4-T3` failure branch 的第 1 轮本地整改并冻结新的候选；只有新的精确 commit 通过独立 Verifier，且任务包验收顺序允许所需的 Candidate 证据时，才可重新评估 `S5-T1` 私有 Saved Version。不得公开部署。
 
 ## 当前状态
 
-- 当前推进阶段：`S5-T1_PRIVATE_CANDIDATE_READY_FOR_INDEPENDENT_VERIFIER`
+- 当前推进阶段：`S4-T3_REMEDIATION_ROUND_1_LOCAL_VALIDATED_PENDING_INDEPENDENT_VERIFIER`
+- 2026-08-09T09:10:10+10:00：针对精确 Subject `4f96d9262204be42729ea70f64141b8bf289357f` 的独立审查 P1，已完成本地整改；本阶段收尾将其冻结为新的本地 commit：账户页在敏感跨设备启用前展示版本化中文隐私说明（含收集字段、目的、D1/R2 权威存储、无数据驻留保证、保留/导出/删除/撤回、联系渠道和非医疗边界）；所有自定义写路由执行 same-origin Origin/CSRF 边界；账户删除要求 10 分钟内的新 Better Auth session；运行时支持冻结 binding `MAIL_FROM`，并在两个 sender 名同时冲突时 fail closed。`lint`、`typecheck`、聚焦 auth/API、privacy/account-lifecycle/legacy/R2/tenant/module、e2e 与 build 已通过。未访问 Sites、GitHub、真实 provider、D1/R2 或任何用户数据。
+- `S5-T1` 保持 BLOCKED：上一轮独立 S4-T3 结论不可由本地整改覆盖；尚需新 commit 的独立复核，以及 Owner 冻结解决 S4 15/15 证据与 S5 Saved Version 依赖的验收顺序。
 - 2026-08-09：首个冻结候选 `3210a4737e575978a627a9a8b6d092c2d9162a1e` 的独立审查 Round 1 为 `BLOCKED`；其正式 S4-T3 追溯/15 项验收/Sites 私有 Version 证据尚不存在，且不能由本地 `verify:release` 替代。该结论保留为历史审查事实，新的修复不会倒改它。
 - 2026-08-09：已修复审查发现的本地 P1：服务端敏感云端门现在要求当前 policy 的明确同意、未撤回和 active 删除状态；覆盖账单、体重、日记、经期、日记图片与含敏感内容的旧数据导入。账户删除改为 R2 删除失败即保持 pending 并可重试，不再删除元数据/用户。替代候选已在本地提交，仍未创建 Sites Version、修改 Sites 环境、改变访问策略、部署或上传 GitHub。
 - 2026-08-09：本地 P0 验证已重跑通过（unit、privacy、modules、e2e、quality、visual、recovery、check、build 与干净环境 `verify:release`）；`verify:release` 仍明确为 `NOT_ISSUED_PRE_VERIFIER`，不可替代 S4-T3 独立裁决。尚未创建 Sites Version、修改 Sites 环境、改变访问策略、部署或上传 GitHub。
@@ -154,6 +156,7 @@
 ## 未解决风险
 
 - `S4-T3` 仍未通过：首个冻结候选的独立 Round 1 已确认缺少正式 15/15 acceptance traceability、精确 subject binding 和真实 Sites 私有 Version 证据；当前修复候选必须独立复核。
+- 冻结任务包存在验收顺序缺口：S4-T3 阈值要求 15/15 真实 Acceptance 证据，而 R-009 等路径要求 S5-T1 首先创建的 Saved Version，S5-T1 又依赖 S4-T3。不得以本地结果或未授权的任务包语义变更跨越该门。
 - 通用 Verifier 的任务包导入器未识别该任务包的 canonical manifest 布局；不可伪造导入成功或正向报告，需使用兼容适配器/人工任务包追溯证据完成正式裁决。
 
 - 未登录 wrangler（`wrangler whoami` 失败）：仅影响 CLI 侧的 Pages 核验；Sites 控制面已独立复核当前身份为 owner，但这不替代运行时环境、素材授权或真实认证链路验收。
@@ -188,6 +191,6 @@
 
 ## 下一步
 
-1. 对当前已通过本地回归的精确冻结候选执行与 Builder 分离的 S4-T3 Verifier；`NOT_RUN`、`UNKNOWN` 或本地自检不得计为 PASS。
-2. 只有该候选的独立裁决和验收追溯真实通过后，才复核 Sites 的精确 source linkage、私有访问与保存 Version 所需权限；仅保存私有 Version，记录真实 `saved_version.json`。
-3. S5-T1 完成后才可进入 S5-T2 的生产环境激活；真实 OAuth、邮件、Turnstile、公开素材权利和生产部署仍全部保持下游。
+1. 将本轮整改冻结为新的精确 commit，并对该 commit 重新运行与 Builder 分离的 S4-T3 Verifier；`NOT_RUN`、`UNKNOWN` 或本地自检不得计为 PASS。
+2. Owner 冻结一份解决 S4/S5 Candidate-evidence 顺序的新验收约束；不得在实现线程静默放宽既有 Oracle。
+3. 只有新候选的独立裁决、验收追溯和顺序约束均可证实时，才复核 Sites source linkage、私有访问与保存 Version 所需权限；仅保存私有 Version，记录真实 `saved_version.json`。S5-T2/公开部署继续保持下游。

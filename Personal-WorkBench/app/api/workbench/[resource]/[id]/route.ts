@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { createAuth } from "@/server/auth";
-import { requireVerifiedSession } from "@/server/auth/session";
+import { requireVerifiedMutationSession, requireVerifiedSession } from "@/server/auth/session";
 import { beginIdempotentWrite } from "@/server/data/idempotency";
 import { getTenantResource, normalizeResourceInput } from "@/server/data/resources";
 import {
@@ -28,8 +28,10 @@ async function record(userId: string, eventType: string, outcome: "success" | "r
   }
 }
 
-async function contextFor(request: Request, context: Context) {
-  const identity = await requireVerifiedSession(createAuth(env), request.headers);
+async function contextFor(request: Request, context: Context, mutation = false) {
+  const identity = mutation
+    ? await requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN)
+    : await requireVerifiedSession(createAuth(env), request.headers);
   const { resource: resourceName, id: rawId } = await context.params;
   const resource = getTenantResource(resourceName);
   const id = safeId(rawId);
@@ -54,7 +56,7 @@ export async function PATCH(request: Request, context: Context): Promise<Respons
   let userId: string | null = null;
   let eventType = "workbench.update";
   try {
-    const current = await contextFor(request, context);
+    const current = await contextFor(request, context, true);
     userId = current.identity.userId;
     if (!current.resource || !current.id) return notFoundResponse();
     await requireSensitiveCloudConsent(env.DB, userId, current.resourceName);
@@ -92,7 +94,7 @@ export async function DELETE(request: Request, context: Context): Promise<Respon
   let userId: string | null = null;
   let eventType = "workbench.delete";
   try {
-    const current = await contextFor(request, context);
+    const current = await contextFor(request, context, true);
     userId = current.identity.userId;
     if (!current.resource || !current.id) return notFoundResponse();
     // Erasure remains available after withdrawal: it removes the caller's own data

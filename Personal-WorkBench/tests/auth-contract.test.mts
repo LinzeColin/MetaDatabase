@@ -5,8 +5,14 @@ import {
   SIGN_UP_VERIFICATION_PATH,
   VERIFIED_LOGIN_PATH,
 } from "../app/auth/_components/auth-flow.ts";
-import { readAuthRuntimeConfig } from "../server/auth/runtime.ts";
-import { requireVerifiedIdentity, rejectClientTenantFields } from "../server/security/tenant.ts";
+import { getPublicAuthPageConfig, readAuthRuntimeConfig } from "../server/auth/runtime.ts";
+import {
+  ReauthenticationRequiredError,
+  requireFreshVerifiedIdentity,
+  requireVerifiedIdentity,
+  rejectClientTenantFields,
+} from "../server/security/tenant.ts";
+import { SameOriginRequiredError, assertSameOriginMutation } from "../server/security/mutation-origin.ts";
 
 const fakeDatabase = {} as D1Database;
 const validRuntime = {
@@ -27,6 +33,24 @@ test("runtime readiness is all-or-nothing and does not expose field names", () =
   assert.equal(readAuthRuntimeConfig({ ...validRuntime, APP_ORIGIN: "http://example.test" }), null);
 });
 
+test("mail sender accepts the frozen binding name and rejects conflicting aliases", () => {
+  const bindingOnly = { ...validRuntime, AUTH_FROM_EMAIL: undefined, MAIL_FROM: "noreply@example.test" };
+  assert.equal(readAuthRuntimeConfig(bindingOnly)?.fromEmail, "noreply@example.test");
+  assert.equal(readAuthRuntimeConfig({ ...validRuntime, MAIL_FROM: "other@example.test" }), null);
+  assert.deepEqual(
+    getPublicAuthPageConfig({
+      ...validRuntime,
+      LEGAL_OPERATOR_NAME: "Example Operator",
+      PRIVACY_CONTACT_EMAIL: "privacy@example.test",
+    }),
+    {
+      turnstileSiteKey: "turnstile-site-key",
+      legalOperatorName: "Example Operator",
+      privacyContactEmail: "privacy@example.test",
+    },
+  );
+});
+
 test("only verified identities can enter tenant data handlers", () => {
   assert.deepEqual(
     requireVerifiedIdentity({ user: { id: "user_a", email: "a@example.test", emailVerified: true } }),
@@ -34,6 +58,42 @@ test("only verified identities can enter tenant data handlers", () => {
   );
   assert.throws(() => requireVerifiedIdentity({ user: { id: "user_a", email: "a@example.test", emailVerified: false } }));
   assert.throws(() => requireVerifiedIdentity(null));
+});
+
+test("account deletion requires a recent verified session", () => {
+  const now = 1_000_000;
+  const identity = {
+    user: { id: "user_a", email: "a@example.test", emailVerified: true },
+    session: { createdAt: new Date(now - 1) },
+  };
+  assert.deepEqual(requireFreshVerifiedIdentity(identity, 10 * 60 * 1000, now), { userId: "user_a", email: "a@example.test" });
+  assert.throws(
+    () => requireFreshVerifiedIdentity({ ...identity, session: { createdAt: new Date(now - 10 * 60 * 1000) } }, 10 * 60 * 1000, now),
+    ReauthenticationRequiredError,
+  );
+  assert.throws(() => requireFreshVerifiedIdentity({ user: identity.user }, 10 * 60 * 1000, now), ReauthenticationRequiredError);
+});
+
+test("custom mutations reject absent, cross-site, and mismatched origins", () => {
+  const expected = "https://workbench.example.test";
+  assert.doesNotThrow(() => assertSameOriginMutation(
+    new Request(`${expected}/api/workbench/profile`, {
+      method: "PUT",
+      headers: { origin: expected, "sec-fetch-site": "same-origin" },
+    }),
+    expected,
+  ));
+  assert.throws(
+    () => assertSameOriginMutation(new Request(`${expected}/api/workbench/profile`, { method: "PUT" }), expected),
+    SameOriginRequiredError,
+  );
+  assert.throws(
+    () => assertSameOriginMutation(
+      new Request(`${expected}/api/workbench/profile`, { method: "PUT", headers: { origin: "https://evil.example.test" } }),
+      expected,
+    ),
+    SameOriginRequiredError,
+  );
 });
 
 test("nested tenant fields are rejected before a write can be prepared", () => {

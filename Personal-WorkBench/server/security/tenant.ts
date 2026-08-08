@@ -21,6 +21,15 @@ export class VerificationRequiredError extends Error {
   }
 }
 
+export class ReauthenticationRequiredError extends Error {
+  status = 403;
+  code = "REAUTHENTICATION_REQUIRED";
+
+  constructor() {
+    super("A recent authentication is required.");
+  }
+}
+
 export class NotAccessibleError extends Error {
   status = 404;
   code = "NOT_FOUND";
@@ -84,6 +93,38 @@ export function requireVerifiedIdentity(session: unknown): SessionIdentity {
   if (emailVerified !== true) throw new VerificationRequiredError();
 
   return { userId: id, email };
+}
+
+function sessionCreatedAt(session: unknown): number | null {
+  if (!session || typeof session !== "object") return null;
+  const value = (session as { session?: { createdAt?: unknown } }).session?.createdAt;
+  if (value instanceof Date) return Number.isFinite(value.getTime()) ? value.getTime() : null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string") {
+    const parsed = Date.parse(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+/** Better Auth creates a new session after a password/OIDC reauthentication. */
+export function requireFreshVerifiedIdentity(
+  session: unknown,
+  maxAgeMs = 10 * 60 * 1000,
+  now = Date.now(),
+): SessionIdentity {
+  const identity = requireVerifiedIdentity(session);
+  const createdAt = sessionCreatedAt(session);
+  if (
+    createdAt === null ||
+    !Number.isFinite(maxAgeMs) ||
+    maxAgeMs <= 0 ||
+    createdAt > now + 5 * 60 * 1000 ||
+    now - createdAt >= maxAgeMs
+  ) {
+    throw new ReauthenticationRequiredError();
+  }
+  return identity;
 }
 
 export function tenantWhere(userId: string): { sql: "user_id = ?"; values: [string] } {

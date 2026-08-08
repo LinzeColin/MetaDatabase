@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { createAuth } from "@/server/auth";
-import { requireVerifiedSession } from "@/server/auth/session";
+import { requireVerifiedMutationSession } from "@/server/auth/session";
 import { beginIdempotentWrite, stableRecordId } from "@/server/data/idempotency";
 import { readPrivateFileForm } from "@/server/files/form";
 import { createPrivateFile, privateFileExists } from "@/server/files/private-files";
@@ -21,7 +21,7 @@ async function record(userId: string, outcome: "success" | "rejected" | "failed"
 export async function POST(request: Request): Promise<Response> {
   let userId: string | null = null;
   try {
-    const identity = await requireVerifiedSession(createAuth(env), request.headers);
+    const identity = await requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN);
     userId = identity.userId;
     const upload = await readPrivateFileForm(request);
     await requireSensitiveCloudConsent(env.DB, userId, upload.module);

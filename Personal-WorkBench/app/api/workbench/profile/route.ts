@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { createAuth } from "@/server/auth";
-import { requireVerifiedSession } from "@/server/auth/session";
+import { requireVerifiedMutationSession, requireVerifiedSession } from "@/server/auth/session";
 import { beginIdempotentWrite } from "@/server/data/idempotency";
 import { ResourceInputError } from "@/server/data/resources";
 import { apiErrorResponse, readJson } from "@/server/http/api";
@@ -69,7 +69,7 @@ export async function GET(request: Request): Promise<Response> {
 export async function PUT(request: Request): Promise<Response> {
   let userId: string | null = null;
   try {
-    const identity = await requireVerifiedSession(createAuth(env), request.headers);
+    const identity = await requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN);
     userId = identity.userId;
     const values = parseProfile(await readJson(request));
     const endpoint = "PUT:/api/workbench/profile";

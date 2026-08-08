@@ -6,8 +6,11 @@ export type AuthRuntimeEnv = {
   GOOGLE_CLIENT_SECRET?: string;
   RESEND_API_KEY?: string;
   AUTH_FROM_EMAIL?: string;
+  MAIL_FROM?: string;
   TURNSTILE_SECRET_KEY?: string;
   TURNSTILE_SITE_KEY?: string;
+  LEGAL_OPERATOR_NAME?: string;
+  PRIVACY_CONTACT_EMAIL?: string;
 };
 
 export type AuthRuntimeConfig = {
@@ -55,6 +58,12 @@ function canonicalOrigin(value: string | undefined): string | null {
   }
 }
 
+function publicContactEmail(value: string | undefined): string | null {
+  const normalized = nonEmpty(value);
+  if (!normalized || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) return null;
+  return normalized;
+}
+
 /**
  * This intentionally returns a single generic readiness state. Neither route
  * responses nor browser pages enumerate unavailable settings or secret names.
@@ -65,7 +74,13 @@ export function readAuthRuntimeConfig(env: AuthRuntimeEnv): AuthRuntimeConfig | 
   const googleClientId = nonEmpty(env.GOOGLE_CLIENT_ID);
   const googleClientSecret = nonEmpty(env.GOOGLE_CLIENT_SECRET);
   const resendApiKey = nonEmpty(env.RESEND_API_KEY);
-  const fromEmail = nonEmpty(env.AUTH_FROM_EMAIL);
+  const authFromEmail = nonEmpty(env.AUTH_FROM_EMAIL);
+  const mailFrom = nonEmpty(env.MAIL_FROM);
+  // MAIL_FROM is the frozen Sites binding name. AUTH_FROM_EMAIL is the
+  // application name kept for backwards compatibility. If both are present,
+  // fail closed rather than silently send mail from an unexpected address.
+  if (authFromEmail && mailFrom && authFromEmail.toLowerCase() !== mailFrom.toLowerCase()) return null;
+  const fromEmail = authFromEmail ?? mailFrom;
   const turnstileSecretKey = nonEmpty(env.TURNSTILE_SECRET_KEY);
   const turnstileSiteKey = nonEmpty(env.TURNSTILE_SITE_KEY);
 
@@ -99,7 +114,13 @@ export function readAuthRuntimeConfig(env: AuthRuntimeEnv): AuthRuntimeConfig | 
 
 export function getPublicAuthPageConfig(env: AuthRuntimeEnv): {
   turnstileSiteKey: string | null;
+  legalOperatorName: string | null;
+  privacyContactEmail: string | null;
 } {
   const config = readAuthRuntimeConfig(env);
-  return { turnstileSiteKey: config?.turnstileSiteKey ?? null };
+  return {
+    turnstileSiteKey: config?.turnstileSiteKey ?? null,
+    legalOperatorName: nonEmpty(env.LEGAL_OPERATOR_NAME),
+    privacyContactEmail: publicContactEmail(env.PRIVACY_CONTACT_EMAIL),
+  };
 }

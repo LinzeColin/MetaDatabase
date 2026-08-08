@@ -1,4 +1,9 @@
-import { requireVerifiedIdentity, type SessionIdentity } from "@/server/security/tenant";
+import {
+  requireFreshVerifiedIdentity,
+  requireVerifiedIdentity,
+  type SessionIdentity,
+} from "@/server/security/tenant";
+import { assertSameOriginMutation } from "@/server/security/mutation-origin";
 
 type SessionReader = {
   api: {
@@ -12,4 +17,22 @@ export async function requireVerifiedSession(
 ): Promise<SessionIdentity> {
   const session = await auth.api.getSession({ headers });
   return requireVerifiedIdentity(session);
+}
+
+export async function requireFreshVerifiedSession(
+  auth: SessionReader,
+  headers: Headers,
+): Promise<SessionIdentity> {
+  const session = await auth.api.getSession({ headers });
+  return requireFreshVerifiedIdentity(session);
+}
+
+export async function requireVerifiedMutationSession(
+  auth: SessionReader,
+  request: Request,
+  expectedAppOrigin: string | undefined,
+): Promise<SessionIdentity> {
+  const identity = await requireVerifiedSession(auth, request.headers);
+  assertSameOriginMutation(request, expectedAppOrigin);
+  return identity;
 }

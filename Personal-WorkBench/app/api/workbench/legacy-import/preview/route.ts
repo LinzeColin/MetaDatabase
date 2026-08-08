@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { createAuth } from "@/server/auth";
-import { requireVerifiedSession } from "@/server/auth/session";
+import { requireVerifiedMutationSession } from "@/server/auth/session";
 import {
   previewLegacyImport,
   requireLegacyImportConsent,
@@ -12,7 +12,7 @@ export const runtime = "edge";
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    const identity = await requireVerifiedSession(createAuth(env), request.headers);
+    const identity = await requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN);
     const body = await readJson(request);
     const envelope = validateLegacyEnvelope(body);
     await requireLegacyImportConsent(env.DB, identity.userId, envelope);

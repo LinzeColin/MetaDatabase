@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { createAuth } from "@/server/auth";
-import { requireVerifiedSession } from "@/server/auth/session";
+import { requireVerifiedMutationSession } from "@/server/auth/session";
 import { beginIdempotentWrite } from "@/server/data/idempotency";
 import {
   applyLegacyImport,
@@ -15,7 +15,7 @@ export async function POST(request: Request): Promise<Response> {
   let userId: string | null = null;
   const endpoint = "POST:/api/workbench/legacy-import/apply";
   try {
-    const identity = await requireVerifiedSession(createAuth(env), request.headers);
+    const identity = await requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN);
     userId = identity.userId;
 
     const body = await readJson(request);

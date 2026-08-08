@@ -14,6 +14,8 @@ type PrivacySnapshot = {
   currentVersion: string;
   deletionState: "active" | "pending" | null;
   noticeSha256?: string | null;
+  legalOperatorName?: string | null;
+  privacyContactEmail?: string | null;
 };
 type DeletionState = "active" | "pending";
 
@@ -48,6 +50,8 @@ export default function AccountPage() {
     policyVersion: null,
     currentVersion: "policy-2026-08-05-v1",
     deletionState: "active",
+    legalOperatorName: null,
+    privacyContactEmail: null,
   });
   const [deletion, setDeletion] = useState<DeletionState>("active");
   const [deletionToken, setDeletionToken] = useState("");
@@ -55,6 +59,7 @@ export default function AccountPage() {
   const [exported, setExported] = useState("");
   const [exportHash, setExportHash] = useState("");
   const [privacyNoticeHash, setPrivacyNoticeHash] = useState("e".repeat(64));
+  const [requiresFreshLogin, setRequiresFreshLogin] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
 
   async function loadAccount() {
@@ -86,6 +91,8 @@ export default function AccountPage() {
           policyVersion: snapshot.policyVersion ?? null,
           currentVersion: snapshot.currentVersion,
           deletionState: snapshot.deletionState ?? "active",
+          legalOperatorName: snapshot.legalOperatorName ?? null,
+          privacyContactEmail: snapshot.privacyContactEmail ?? null,
         });
         setPrivacyNoticeHash(snapshot.noticeSha256 ?? "e".repeat(64));
       }
@@ -183,7 +190,12 @@ useEffect(() => {
         | { action: string; recoveryToken?: string; exportHash?: string; tokenExpiresAt?: number | null }
         | null;
       if (!response.ok || !body || body.action !== "request") {
-        setMessage("删除请求失败，请重试。");
+        if (response.status === 403) {
+          setRequiresFreshLogin(true);
+          setMessage("为保护账户安全，请重新登录后再开始删除。");
+        } else {
+          setMessage("删除请求失败，请重试。");
+        }
         return;
       }
       setDeletionToken(body.recoveryToken ?? "");
@@ -215,7 +227,12 @@ useEffect(() => {
         setMessage("账户已删除，请退出并刷新页面确认。");
         setDeletionToken("");
       } else {
-        setMessage("删除确认失败，请使用恢复口令重试。");
+        if (response.status === 403) {
+          setRequiresFreshLogin(true);
+          setMessage("为保护账户安全，请重新登录后再确认删除。");
+        } else {
+          setMessage("删除确认失败，请使用恢复口令重试。");
+        }
       }
     } catch {
       setMessage("服务暂时不可用，请稍后再试。");
@@ -242,7 +259,12 @@ useEffect(() => {
         await loadAccount();
         setMessage("已撤销账户删除，状态恢复正常。");
       } else {
-        setMessage("撤销失败，请重新请求删除后再试。");
+        if (response.status === 403) {
+          setRequiresFreshLogin(true);
+          setMessage("为保护账户安全，请重新登录后再撤销删除。");
+        } else {
+          setMessage("撤销失败，请重新请求删除后再试。");
+        }
       }
     } catch {
       setMessage("服务暂时不可用，请稍后再试。");
@@ -277,6 +299,7 @@ useEffect(() => {
     privacy.state === "accepted" &&
     privacy.policyVersion === privacy.currentVersion &&
     privacy.deletionState === "active";
+  const privacyDisclosureReady = Boolean(privacy.legalOperatorName && privacy.privacyContactEmail);
 
   return (
     <main className="auth-shell">
@@ -313,6 +336,11 @@ useEffect(() => {
               <p className="account-note">
                 当前删除状态：{deletion === "pending" ? "待确认" : "正常"}，恢复口令将在 <strong>{prettyDate(tokenExpiresAt)}</strong> 后失效。
               </p>
+              {requiresFreshLogin ? (
+                <p className="account-note">
+                  为保护账户安全，请先 <Link href="/auth/sign-in">重新登录</Link>，再回到账户页继续删除。
+                </p>
+              ) : null}
               {exportHash ? <p className="account-note">导出摘要：<code>{exportHash}</code></p> : null}
               {deletionToken ? <p className="account-note">恢复口令（本页暂存）：<code>{deletionToken}</code></p> : null}
               {exported ? (
@@ -325,19 +353,26 @@ useEffect(() => {
 
             <section className="account-section" aria-label="隐私与跨设备">
               <p className="account-section-title">敏感内容跨设备最小化</p>
+              <div className="account-note" role="note" aria-label="敏感跨设备保存隐私说明">
+                <p><strong>敏感跨设备保存隐私说明（{privacy.currentVersion}）</strong></p>
+                <p>本机记录不会被这项选择阻塞；只有你明确开启后，经期、体重、日记、账单及相关私有图片才会开始新的云端处理，以便你在其他设备继续访问。</p>
+                <p>启用后的权威云端数据分别保存在 D1 与私有 R2；ChatGPT Sites 当前无数据驻留保证。数据会保留到你撤回同意或删除账户；你可随时导出全部账户数据、关闭并撤回，或开始可恢复的删除流程。</p>
+                <p>本产品不是医疗、诊断、治疗或 PHI 服务，也不面向儿童。运营者：{privacy.legalOperatorName ?? "当前候选尚未配置"}；隐私联系：{privacy.privacyContactEmail ? <a href={`mailto:${privacy.privacyContactEmail}`}>{privacy.privacyContactEmail}</a> : "当前候选尚未配置"}。</p>
+              </div>
               <p className="account-note">
                 当前策略：{privacyAccepted ? "已开启" : "未开启"}（版本 {privacy.policyVersion ?? privacy.currentVersion}）
               </p>
               <p className="account-note">首次开启前已同意版本：{privacy.policyVersion || "未同意"}，同意时间：{prettyDate(privacy.consentedAt)}。</p>
               {privacy.revokedAt ? <p className="account-note">最近撤回：{prettyDate(privacy.revokedAt)}。</p> : null}
               <div className="account-actions">
-                <button type="button" className="auth-primary-link" onClick={() => void setConsent("accepted")} disabled={isBusy || privacyAccepted}>
+                <button type="button" className="auth-primary-link" onClick={() => void setConsent("accepted")} disabled={isBusy || privacyAccepted || !privacyDisclosureReady}>
                   开启敏感跨设备
                 </button>
                 <button type="button" className="auth-google" onClick={() => void setConsent("revoked")} disabled={isBusy || !privacyAccepted}>
                   关闭并撤回
                 </button>
               </div>
+              {!privacyDisclosureReady ? <p className="account-note">隐私联系信息尚未配置，当前环境不能开启敏感跨设备保存。</p> : null}
             </section>
           </>
         ) : <Link className="auth-primary-link" href="/auth/sign-in">去登录</Link>}

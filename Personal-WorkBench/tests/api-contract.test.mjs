@@ -9,6 +9,48 @@ test("all resource writes establish a session before body parsing", async () => 
   assert.ok(record.indexOf("requireVerifiedSession") < record.indexOf("readJson(request)"));
 });
 
+test("all custom mutation routes use the shared same-origin session boundary", async () => {
+  const mutationRoutes = [
+    "app/api/account/privacy/route.ts",
+    "app/api/workbench/[resource]/route.ts",
+    "app/api/workbench/[resource]/[id]/route.ts",
+    "app/api/workbench/files/route.ts",
+    "app/api/workbench/files/[id]/route.ts",
+    "app/api/workbench/legacy-import/apply/route.ts",
+    "app/api/workbench/legacy-import/preview/route.ts",
+    "app/api/workbench/profile/route.ts",
+  ];
+  const sources = await Promise.all(mutationRoutes.map((path) => readFile(path, "utf8")));
+  for (const source of sources) {
+    assert.ok(source.includes("requireVerifiedMutationSession"));
+  }
+
+  const deletion = await readFile("app/api/account/delete/route.ts", "utf8");
+  assert.ok(deletion.includes("requireFreshVerifiedSession"));
+  assert.ok(deletion.includes("assertSameOriginMutation(request, env.APP_ORIGIN)"));
+});
+
+test("account UI presents the full sensitive cross-device privacy disclosure before enable", async () => {
+  const [page, route] = await Promise.all([
+    readFile("app/account/page.tsx", "utf8"),
+    readFile("app/api/account/privacy/route.ts", "utf8"),
+  ]);
+  for (const requiredText of [
+    "敏感跨设备保存隐私说明",
+    "权威云端数据",
+    "无数据驻留保证",
+    "导出全部账户数据",
+    "关闭并撤回",
+    "不是医疗、诊断、治疗或 PHI 服务",
+  ]) {
+    assert.ok(page.includes(requiredText), `missing disclosure text: ${requiredText}`);
+  }
+  assert.ok(page.includes("privacyDisclosureReady"));
+  assert.ok(route.includes("legalOperatorName"));
+  assert.ok(route.includes("privacyContactEmail"));
+  assert.ok(route.includes("隐私联系信息尚未配置"));
+});
+
 test("resource data access only uses static resource mappings and user predicates", async () => {
   const store = await readFile("server/data/tenant-store.ts", "utf8");
   assert.ok(store.includes('WHERE user_id = ?'));
