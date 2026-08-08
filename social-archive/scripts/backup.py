@@ -56,6 +56,15 @@ def _s3_client(config: dict[str, str]):
     )
 
 
+def _upload_args(config: dict[str, str], metadata: dict[str, str], *, content_type: str | None = None) -> dict[str, Any]:
+    args: dict[str, Any] = {"Metadata": metadata}
+    if content_type:
+        args["ContentType"] = content_type
+    if config.get("s3_compatibility", "aws") == "aws":
+        args["StorageClass"] = "STANDARD"
+    return args
+
+
 def _upload_and_verify(
     config: dict[str, str],
     ciphertext: Path,
@@ -72,7 +81,7 @@ def _upload_and_verify(
         "cipher-sha256": encrypted.cipher_sha256,
         "encryption": encrypted.algorithm,
     }
-    client.upload_file(str(ciphertext), config["bucket"], key, ExtraArgs={"Metadata": metadata})
+    client.upload_file(str(ciphertext), config["bucket"], key, ExtraArgs=_upload_args(config, metadata))
     head = client.head_object(Bucket=config["bucket"], Key=key)
     remote = head.get("Metadata") or {}
     if any(remote.get(name) != value for name, value in metadata.items()):
@@ -112,8 +121,10 @@ def _upload_recovery_descriptor_and_verify(
     client = _s3_client(config)
     metadata = {"descriptor-sha256": digest, "kind": "social-archive-recovery-descriptor"}
     client.put_object(
-        Bucket=config["bucket"], Key=key, Body=body,
-        ContentType="application/json", Metadata=metadata,
+        Bucket=config["bucket"],
+        Key=key,
+        Body=body,
+        **_upload_args(config, metadata, content_type="application/json"),
     )
     head = client.head_object(Bucket=config["bucket"], Key=key)
     if (head.get("Metadata") or {}) != metadata:

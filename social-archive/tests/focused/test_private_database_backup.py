@@ -99,7 +99,13 @@ def test_backup_remote_receipt_binds_original_cipher_and_algorithm(monkeypatch, 
 
     class FakeClient:
         def upload_file(self, source, bucket, key, ExtraArgs):
-            uploaded.update({"bytes": Path(source).read_bytes(), "bucket": bucket, "key": key, "metadata": ExtraArgs["Metadata"]})
+            uploaded.update({
+                "bytes": Path(source).read_bytes(),
+                "bucket": bucket,
+                "key": key,
+                "metadata": ExtraArgs["Metadata"],
+                "storage_class": ExtraArgs["StorageClass"],
+            })
 
         def head_object(self, **_kwargs):
             return {"Metadata": uploaded["metadata"], "ETag": '"fixture-etag"'}
@@ -121,6 +127,7 @@ def test_backup_remote_receipt_binds_original_cipher_and_algorithm(monkeypatch, 
         "cipher-sha256": encrypted.cipher_sha256,
         "encryption": "age-x25519",
     }
+    assert uploaded["storage_class"] == "STANDARD"
     assert result["status"] == "verified"
     assert result["cipher_sha256"] == encrypted.cipher_sha256
     assert not list((tmp_path / "readback").glob("*"))
@@ -136,7 +143,12 @@ def test_recovery_descriptor_is_hash_verified_and_contains_no_fact_payload(monke
 
     class FakeClient:
         def put_object(self, **kwargs):
-            uploaded.update({"body": kwargs["Body"], "metadata": kwargs["Metadata"], "key": kwargs["Key"]})
+            uploaded.update({
+                "body": kwargs["Body"],
+                "metadata": kwargs["Metadata"],
+                "key": kwargs["Key"],
+                "storage_class": kwargs["StorageClass"],
+            })
 
         def head_object(self, **_kwargs):
             return {"Metadata": uploaded["metadata"]}
@@ -164,6 +176,7 @@ def test_recovery_descriptor_is_hash_verified_and_contains_no_fact_payload(monke
     payload = json.loads(uploaded["body"])
     assert result["status"] == "verified"
     assert uploaded["key"].endswith("/recovery.json")
+    assert uploaded["storage_class"] == "STANDARD"
     assert "facts" not in payload and "body" not in payload and "ciphertext" not in payload
 
 

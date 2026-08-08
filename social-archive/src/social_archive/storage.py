@@ -128,6 +128,7 @@ class S3ReplicaStore:
         self.store_id = store_id
         self.bucket = bucket
         self.prefix = prefix.strip("/")
+        self.s3_compatibility = s3_compatibility
         self.client = create_s3_client(
             endpoint_url=endpoint_url,
             access_key_id=access_key_id,
@@ -149,7 +150,10 @@ class S3ReplicaStore:
             "cipher-sha256": obj.cipher_sha256,
             "encryption": obj.algorithm,
         }
-        self.client.upload_file(str(obj.path), self.bucket, key, ExtraArgs={"Metadata": metadata})
+        extra_args: dict[str, object] = {"Metadata": metadata}
+        if self.s3_compatibility == "aws":
+            extra_args["StorageClass"] = "STANDARD"
+        self.client.upload_file(str(obj.path), self.bucket, key, ExtraArgs=extra_args)
         head = self.client.head_object(Bucket=self.bucket, Key=key)
         remote = head.get("Metadata") or {}
         if (

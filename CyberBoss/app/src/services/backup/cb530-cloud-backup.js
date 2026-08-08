@@ -329,7 +329,7 @@ async function putR2Object({ accountId, token, objectKey, sourcePath, expectedSh
   }
   const put = await safeFetch(fetchImpl, endpoint, {
     method: "PUT",
-    headers: { ...headers, "content-type": contentTypeFor(key) },
+    headers: { ...headers, "content-type": contentTypeFor(key), "cf-r2-storage-class": "Standard" },
     body,
   }, "CB530_R2_PUT_FAILED");
   if (!isSuccess(put.status)) {
