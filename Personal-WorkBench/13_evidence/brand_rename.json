@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PASS_PRIVATE_BRAND_RENAME",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-09",
+  "product": {
+    "display_name": "个人日程",
+    "technical_slug": "mydairy"
+  },
+  "source": {
+    "local_commit": "4703a8b1f2c05c8b4d12fa523812e801f8f7d9d5",
+    "sites_source_commit": "a5336e7a50e7d30858e4e5c91ae48bb4cd113d35",
+    "sites_source_parent": "b792154129538aecbc03ff443ba5253cd4161c01",
+    "project_tree": "7205afacde2179d49bc3a0dceefe96d905ecdb4a",
+    "source_tree_matches_local_project_tree": true
+  },
+  "sites": {
+    "title": "个人日程",
+    "saved_version_number": 8,
+    "private_deployment_status": "SUCCEEDED",
+    "environment_revision": 7,
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "public_release_claimed": false
+  },
+  "custom_domain": {
+    "hostname": "mydairy.linzezhang.com",
+    "status": "ACTIVE",
+    "provider_status": "ACTIVE",
+    "ssl_status": "ACTIVE",
+    "canonical_app_origin_switched": false,
+    "reason": "Google OAuth redirect URI、Turnstile allowed hostname 与 APP_ORIGIN 必须在同一受控变更中验证后才能切换，以避免认证或写入路由回归。"
+  },
+  "intentional_compatibility_exceptions": [
+    "封存任务包路径与历史证据保留原始命名，避免倒改冻结事实。",
+    "旧 outbox storage key 只作为一次性迁移读源；写入新队列后会删除旧 key。",
+    "既有 Better Auth cookie prefix 保留，待双 cookie 迁移实测后再更换，以避免当前会话中断。"
+  ],
+  "final_acceptance_claimed": false,
+  "sensitive_values_recorded": false
+}
