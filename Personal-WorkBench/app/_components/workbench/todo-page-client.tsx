@@ -279,7 +279,7 @@ export default function TodoPageClient() {
               <span>截止日期</span>
               <input
                 className="input"
-                placeholder={toChineseDate("")}
+                placeholder="YYYY-MM-DD"
                 value={dueDate}
                 onChange={(event) => setDueDate(event.currentTarget.value)}
                 required

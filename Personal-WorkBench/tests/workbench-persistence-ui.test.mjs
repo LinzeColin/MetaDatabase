@@ -4,6 +4,7 @@ import test from "node:test";
 
 const lifecycleSource = "app/_components/workbench/lifestyle-pages-client.tsx";
 const resourceSource = "app/_components/workbench/tenant-resource-client.tsx";
+const todoSource = "app/_components/workbench/todo-page-client.tsx";
 
 test("workbench pages bind every visible lifecycle module to the tenant resource client", async () => {
   const source = await readFile(lifecycleSource, "utf8");
@@ -59,6 +60,22 @@ test("habit controls always acknowledge a failed save without claiming a complet
   assert.match(source, /未完成\$\{card\.label\}打卡：请先登录并完成邮箱验证，或检查网络后重试。/);
   assert.match(source, /未能取消\$\{card\.label\}打卡，请检查后重试。/);
   assert.match(source, /已完成\$\{card\.label\}打卡，历史记录已同步。/);
+});
+
+test("period record control immediately acknowledges pending and failed saves", async () => {
+  const source = await readFile(lifecycleSource, "utf8");
+
+  assert.match(source, /setFeedback\("正在保存经期记录…"\);/);
+  assert.match(source, /setFeedback\("未能保存经期记录，请查看上方状态提示后重试。"\);/);
+  assert.match(source, /setFeedback\("经期记录已保存，历史记录已更新。"\);/);
+});
+
+test("todo date placeholder is stable across server and browser rendering", async () => {
+  const source = await readFile(todoSource, "utf8");
+
+  assert.match(source, /placeholder="YYYY-MM-DD"/);
+  assert.doesNotMatch(source, /placeholder=\{toChineseDate\(""\)\}/);
+  assert.match(source, /dueDate: safeString\(dueDate, toChineseDate\(""\)\)/);
 });
 
 test("built-in habit requests use a stable ASCII idempotency key", async () => {

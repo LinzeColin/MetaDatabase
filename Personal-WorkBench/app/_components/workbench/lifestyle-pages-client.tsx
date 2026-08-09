@@ -699,8 +699,12 @@ export function PeriodClient({ reference }: { reference: boolean }) {
       setFeedback("结束日期不能早于开始日期。");
       return;
     }
+    setFeedback("正在保存经期记录…");
     const saved = await periods.create({ endDate: end, note: note.trim(), startDate: start });
-    if (!saved) return;
+    if (!saved) {
+      setFeedback("未能保存经期记录，请查看上方状态提示后重试。");
+      return;
+    }
     setStartDate(todayIsoDate());
     setEndDate(todayIsoDate());
     setNote("");
