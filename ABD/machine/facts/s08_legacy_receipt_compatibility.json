@@ -6,7 +6,8 @@
   "purpose": "S08 stage-review remediation: exact successor hashes for paths previously declared evolvable by immutable legacy receipt oracles, including the user-directed fast targeted CI successor.",
   "approved_successor_hashes": {
     ".github/workflows/abd-stage0-validation.yml": "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
-    "abd_acceptance/__main__.py": "9d2cd12ba8d2c709a23fdd2a3d5ac0e4fec54e42ebddf9fb81063a53a33703bf",
+    "abd_acceptance/__init__.py": "73c938eca7294d2dc03d604344d85031d4164aef5a02990dd0d884af3e8f44d1",
+    "abd_acceptance/__main__.py": "248292e87b5be8e4b93eea6cd4b2cad8ef6f49318847e2280f082f535008007a",
     "abd_acceptance/advice_card.py": "dee206dd764d61dc21397282b6872d26c29be7eaf5d6e050e6a51085b2581b7a",
     "abd_acceptance/capacity_governance.py": "b0467d5ae675c6c39d808ba89a86a9733701384c7fab557c0a2541b7ae06608a",
     "abd_acceptance/cloudflare_edge.py": "87478c65637ecc88622150b95e6d4eba3c954852f8b2ee0d481faca90e798cfa",

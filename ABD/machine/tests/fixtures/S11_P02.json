@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S11-P02-EVIDENCE-TIERS-AND-MINIMUM-ODDS",
+  "contract_id": "AC-S11-P02",
+  "requirement_id": "REQ-S11-P02",
+  "stage_id": "S11",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "expected_evidence_tiers_sha256": "cb9a99a5520821c8687f09872ce742ff811e7b8f5336d9a59344a0ab5e81f6ff",
+  "expected_threshold_vectors_sha256": "ba8e2fc3388b811c1ee076b5562e90674441a816b5c36075591ecf453984a694",
+  "expected_report_sha256": "d0c088df83c5b612df7efdae407b71658291b6561dd82431f6b6653d2ab0edc6",
+  "expected_baseline_tiers": ["E4", "E4", "E3", "E2", "E1", "E0", "E0", "E0", "E0", "E0", "E4", "E0"],
+  "expected_final_actions": [
+    "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+    "NO_RECOMMENDATION",
+    "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+    "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+    "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION"
+  ],
+  "required_reason_codes": [
+    "ALL_EVIDENCE_AND_PRICE_GATES_STABLE",
+    "ADVERSE_STABILITY_FLIP",
+    "EVIDENCE_TIER_E0",
+    "IDENTITY_CONFIDENCE_BELOW_THRESHOLD",
+    "REQUIRED_FEATURE_COMPLETENESS_BELOW_THRESHOLD",
+    "ODDS_BELOW_MINIMUM",
+    "SOURCE_CONTRACT_NOT_PASSED"
+  ],
+  "expected_adverse_flip_vector": "V02-E4-EXACT-MINIMUM-ODDS-ADVERSE-FLIP",
+  "expected_adverse_flip_dimensions": ["probability_minus", "threshold_plus", "friction_plus", "odds_adverse", "all_adverse"],
+  "claim_boundary": {
+    "network_accessed": false,
+    "actual_market_or_odds_observed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}
