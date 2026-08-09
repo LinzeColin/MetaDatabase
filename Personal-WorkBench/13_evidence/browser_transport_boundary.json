@@ -1,25 +1,35 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "task_id": "S5-T3",
   "status": "OBSERVED_AGENT_BROWSER_TRANSPORT_BOUNDARY",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
   "observed_at": "2026-08-09",
-  "source_commit": "a3d4f756f77f0028cc4ea16624f56e20c4cae318",
-  "scope": "Read-only browser-automation transport diagnosis plus one user-authorized habit-click replay.",
+  "source_commit": "366d1641744ce2b1cc1f890dcbc0332a73c3145a",
+  "scope": "User-authorized current-private-version Google callback, authenticated resource-read and one non-sensitive habit-click replay in the agent-controlled browser.",
+  "current_private_version": {
+    "sites_version_number": 9,
+    "environment_revision": 8,
+    "canonical_origin": "https://mydairy.linzezhang.com"
+  },
   "observations": {
     "page_loaded": true,
+    "google_social_authorization_started": true,
+    "google_callback_returned_to_application": true,
+    "account_identifier_recorded": false,
     "habit_click_client_result": "FETCH_REJECTED_GENERIC_NETWORK_STATE",
     "direct_read_only_api_navigation_result": "ERR_BLOCKED_BY_CLIENT",
     "tested_route_classes": [
       "/api/workbench/*",
       "/api/auth/*"
     ],
-    "sites_worker_log_query_returned_matching_events": false
+    "authenticated_resource_gets_observed_in_sites_worker_logs": true,
+    "authenticated_resource_get_status": 200,
+    "habit_mutation_observed_in_sites_worker_logs": false
   },
   "interpretation": {
-    "proven": "The agent-controlled Browser Use surface blocks API transport before the application can observe the request.",
+    "proven": "The current private version completes the Google callback and its authenticated resource-read routes reach the Worker with HTTP 200. The agent-controlled Browser Use surface rejects direct API navigation and the user-interface mutation request before a matching Worker mutation event is observed.",
     "not_proven": [
-      "A Worker route failure",
+      "A Worker read-route failure",
       "A D1 persistence failure",
       "A Better Auth session failure",
       "A defect in an ordinary end-user browser"
@@ -28,5 +38,6 @@
   },
   "next_required_evidence": "Run one bounded A/B write-and-history replay in a controlled user runtime not subject to the agent browser API-request guard, then bind it to the currently deployed private version.",
   "sensitive_values_recorded": false,
-  "user_data_read_or_written": false
+  "business_user_data_read_or_written": false,
+  "account_session_created": true
 }

@@ -1,15 +1,15 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "task_id": "S5-T3",
   "status": "IN_PROGRESS_PRIVATE_RUNTIME_ACCEPTANCE",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
   "observed_at": "2026-08-09",
   "candidate": {
-    "frozen_source_commit": "65b3f2be519ea96bb7d8808db45b40a3343f2d25",
-    "sites_source_projection_commit": "b792154129538aecbc03ff443ba5253cd4161c01",
-    "saved_version_number": 7,
-    "source_projection_matches_saved_candidate": true,
-    "environment_revision": 7
+    "local_source_commit": "366d1641744ce2b1cc1f890dcbc0332a73c3145a",
+    "sites_source_commit": "10578878b0fb8cbfcf6bb0f85e8c97c6045c6e14",
+    "saved_version_number": 9,
+    "source_projection_matches_current_project_tree": true,
+    "environment_revision": 8
   },
   "private_access": {
     "site_active": true,
@@ -23,11 +23,11 @@
     "raw_url_recorded": false
   },
   "controlled_deployment_and_recovery": {
-    "version_7_private_deploy": "SUCCEEDED",
-    "version_6_private_rollback": "SUCCEEDED",
-    "version_7_private_restore": "SUCCEEDED",
-    "live_version_matches_restored_version": true,
-    "all_observed_deployments_environment_revision": 7
+    "version_9_private_deploy": "SUCCEEDED",
+    "prior_version_6_private_rollback": "SUCCEEDED",
+    "prior_version_7_private_restore": "SUCCEEDED",
+    "live_version_matches_version_9": true,
+    "current_deployment_environment_revision": 8
   },
   "observed_interface": {
     "nine_primary_views_render_distinct_content": true,
@@ -40,20 +40,22 @@
   "authentication": {
     "email_login_form_rendered": true,
     "google_authorization_reached_account_selection": true,
-    "google_callback_after_account_selection": "NOT_RUN_NO_CONTROLLED_TEST_ACCOUNT",
+    "google_callback_after_account_selection": "PASS_PRIVATE_CURRENT_VERSION",
+    "account_identifier_recorded": false,
     "email_registration_verification_replay": "NOT_RUN_NO_CONTROLLED_TEST_ACCOUNT",
     "password_reset_replay_for_current_version": "NOT_RUN_NO_CONTROLLED_TEST_ACCOUNT"
   },
   "tenant_and_history": {
     "local_server_session_tenant_contract": "PASS_LOCAL_CONTRACT",
+    "authenticated_habits_and_habit_checkins_read_routes": "PASS_WORKER_HTTP_200",
     "real_a_b_tenant_isolation": "NOT_RUN_NO_CONTROLLED_TEST_ACCOUNT",
     "real_cross_device_history": "NOT_RUN_NO_CONTROLLED_TEST_ACCOUNT",
     "real_d1_r2_reconciliation": "NOT_RUN_NO_CONTROLLED_TEST_ACCOUNT"
   },
   "raw_unauthenticated_smoke": {
     "evidence_file": "13_evidence/production-smoke-run.json",
-    "status": "BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK",
-    "interpretation": "The raw HTTPS requests received the Sites private access gate. Their 401 responses do not establish an application-route failure."
+    "status": "AGENT_BROWSER_API_TRANSPORT_GUARD",
+    "interpretation": "The agent-controlled browser blocks direct API navigation with ERR_BLOCKED_BY_CLIENT. The same controlled Google session reached the application and the Worker logs contain HTTP 200 authenticated resource-read events; neither observation proves a normal end-user mutation failure."
   },
   "evidence_files": [
     "13_evidence/saved_version.json",
@@ -65,8 +67,8 @@
   "final_acceptance_claimed": false,
   "public_deploy_eligible": false,
   "remaining_required_s5_t3_evidence": [
-    "controlled-account completion of email and Google authentication journeys",
-    "A/B tenant write and isolation replay",
+    "controlled-account completion of email authentication journeys",
+    "A/B tenant write and isolation replay in a runtime not subject to the agent-browser mutation guard",
     "cross-device history readback and D1/R2 reconciliation",
     "negative provider and recovery-path replay"
   ],
