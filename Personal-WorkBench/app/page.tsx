@@ -197,7 +197,7 @@ function Home({ reference }: { reference: boolean }) {
 
   return (
     <Shell pageClass="home-page" reference={reference} route="home">
-      <HomeClient habitCards={habitCards} />
+      <HomeClient habitCards={habitCards} reference={reference} />
     </Shell>
   );
 }
@@ -244,7 +244,11 @@ function GenericPage({ reference, route }: { reference: boolean; route: string }
   return (
     <Shell pageClass="generic-page" reference={reference} route={route}>
       <PageHead icon="nav_desktop.png" title={label} />
-      <GenericPageClient label={label} />
+      <GenericPageClient
+        label={label}
+        reference={reference}
+        route={route as "schedule" | "anniversary" | "diary" | "savings"}
+      />
     </Shell>
   );
 }

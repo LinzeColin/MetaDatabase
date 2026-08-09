@@ -51,6 +51,28 @@ test("e2e smoke: normal mode carries account entry and no reference-only lock", 
   assert.match(authHtml, /欢迎回来/);
 });
 
+test("e2e smoke: every primary menu route renders its own normal-mode content", async () => {
+  const routes = [
+    ["home", "每日打卡"],
+    ["todo", "待办列表"],
+    ["ledger", "记账本"],
+    ["fatloss-food", "减脂记录"],
+    ["schedule", "日程安排"],
+    ["anniversary", "纪念日"],
+    ["diary", "日记"],
+    ["savings", "存钱计划"],
+    ["period", "经期记录"],
+  ];
+
+  for (const [route, distinctiveText] of routes) {
+    const response = await render(`/?view=${route}`);
+    assert.equal(response.status, 200, route);
+    const html = await response.text();
+    assert.match(html, new RegExp(distinctiveText), route);
+    assert.match(html, /data-reference-mode="false"/, route);
+  }
+});
+
 test("e2e smoke: email verification recovery and post-verification sign-in guidance render", async () => {
   const [verification, verifiedSignIn] = await Promise.all([
     render("/auth/verify-email"),
