@@ -234,3 +234,27 @@ test("Version 21 A/B tenant replay retains no test-account material", async () =
   assert.equal(serialized.includes("token="), false);
   assert.equal(serialized.includes("Bearer "), false);
 });
+
+test("Version 21 partial auth recovery replay retains no provider or reset material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_21_auth_recovery_partial_replay.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 21);
+  assert.equal(evidence.google_oauth.sign_in_action_reached_google_account_selection, true);
+  assert.equal(evidence.google_oauth.successful_current_version_callback_and_session, false);
+  assert.equal(evidence.email_password_recovery.password_reset_mail_delivery, "PASS");
+  assert.equal(evidence.email_password_recovery.new_password_submission_by_agent, "NOT_PERFORMED");
+  assert.equal(evidence.scope_and_cleanup.browser_cookie_or_storage_inspected, false);
+  assert.equal(evidence.scope_and_cleanup.temporary_credentials_or_mail_references_retained_in_evidence, false);
+  assert.equal(evidence.scope_and_cleanup.temporary_mailbox_deleted, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_browser_tabs_finalized, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_credentials_cleared_from_test_runtime, true);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});

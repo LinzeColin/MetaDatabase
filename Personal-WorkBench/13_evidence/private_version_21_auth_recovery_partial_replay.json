@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PARTIAL_PRIVATE_VERSION_21_AUTH_RECOVERY_REPLAY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "local_source_commit": "518723e2efddd25e5fac95951483254cd84ee157",
+    "sites_source_commit": "91037c9cd02cd2dfca42124243cb212af049d0c4",
+    "sites_version_number": 21,
+    "deployment_environment_revision": 8,
+    "canonical_origin": "https://mydairy.linzezhang.com",
+    "site_title": "个人日程"
+  },
+  "google_oauth": {
+    "sign_in_action_reached_google_account_selection": true,
+    "account_selection_attempted_without_identity_recording": true,
+    "returned_to_canonical_application_error_endpoint": true,
+    "state_or_csrf_security_guard_observed": true,
+    "successful_current_version_callback_and_session": false,
+    "provider_credentials_or_account_identity_recorded": false,
+    "interpretation": "This is an agent-controlled Chrome transport observation. It does not establish a provider-configuration defect or a normal end-user Google failure."
+  },
+  "email_password_recovery": {
+    "temporary_email_registration_verification_and_delivery": "PASS",
+    "forgot_password_neutral_submission_feedback": "PASS",
+    "password_reset_mail_delivery": "PASS",
+    "password_reset_link_reached_canonical_reset_page": "PASS",
+    "new_password_submission_by_agent": "NOT_PERFORMED",
+    "new_password_sign_in": "NOT_PROVEN"
+  },
+  "scope_and_cleanup": {
+    "browser_cookie_or_storage_inspected": false,
+    "real_user_business_data_read_or_written": false,
+    "temporary_credentials_or_mail_references_retained_in_evidence": false,
+    "temporary_mailbox_deleted": true,
+    "temporary_browser_tabs_finalized": true,
+    "temporary_credentials_cleared_from_test_runtime": true,
+    "public_audience_or_runtime_values_changed": false,
+    "generated_test_account_remains_isolated_pending_non_destructive_cleanup": true
+  },
+  "not_proven": [
+    "Current Version 21 successful Google OAuth callback and session",
+    "Final password update and new-password sign-in",
+    "Sign-out and session recovery replay",
+    "Physical second-device history readback",
+    "Direct D1 or R2 reconciliation",
+    "Public multi-user audience or final product acceptance"
+  ]
+}
