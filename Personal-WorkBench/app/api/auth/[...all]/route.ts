@@ -13,6 +13,33 @@ function unavailableResponse(): Response {
   );
 }
 
+type UnexpectedAuthFailureCategory =
+  | "database"
+  | "authentication_library"
+  | "provider"
+  | "runtime"
+  | "unknown";
+
+function classifyUnexpectedAuthFailure(error: unknown): UnexpectedAuthFailureCategory {
+  const signal = `${safeErrorName(error) ?? ""} ${safeErrorCode(error) ?? ""}`.toLowerCase();
+  if (/d1|sqlite|sql|drizzle|database/.test(signal)) return "database";
+  if (/better.?auth|session|account/.test(signal)) return "authentication_library";
+  if (/oauth|google|turnstile|captcha|mail|resend|nitrosend/.test(signal)) return "provider";
+  if (/binding|module|import|worker|environment|runtime/.test(signal)) return "runtime";
+  return "unknown";
+}
+
+function safeErrorName(error: unknown): string | null {
+  if (!(error instanceof Error)) return null;
+  return /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(error.name) ? error.name : null;
+}
+
+function safeErrorCode(error: unknown): string | null {
+  if (!error || typeof error !== "object" || !("code" in error)) return null;
+  const code = (error as { code?: unknown }).code;
+  return typeof code === "string" && /^[A-Z][A-Z0-9_]{0,63}$/.test(code) ? code : null;
+}
+
 async function handle(request: Request): Promise<Response> {
   try {
     return await createAuth(env).handler(request);
@@ -26,6 +53,14 @@ async function handle(request: Request): Promise<Response> {
       });
       return unavailableResponse();
     }
+
+    // Classify only within the worker and never serialize the exception,
+    // message, request, user data, Origin, or any configuration value.
+    console.error("auth_handler_unexpected_error", {
+      category: classifyUnexpectedAuthFailure(error),
+      error_name: safeErrorName(error) ?? typeof error,
+      error_code: safeErrorCode(error),
+    });
 
     // Deliberately avoid serializing unexpected provider/database failures.
     return Response.json(
