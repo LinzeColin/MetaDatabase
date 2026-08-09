@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="27" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S19.stage_review_test" name="test_candidate_preflight_passes_without_stage_review_reports" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_each_signed_phase_receipt_is_current_and_hash_pinned[P01]" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_each_signed_phase_receipt_is_current_and_hash_pinned[P02]" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_each_signed_phase_receipt_is_current_and_hash_pinned[P03]" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_each_signed_phase_receipt_is_current_and_hash_pinned[P04]" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_frozen_baseline_hashes_remain_exact" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_contract_scope_and_execution_policy_are_exact" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_taskpack_trace_is_closed_for_all_s19_phases" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_findings_are_resolved_and_limitations_remain_explicit" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_alpha_beta_ga_and_final_delivery_boundaries_are_preserved" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_external_boundary_is_local_no_action_only" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_oracle_is_static_no_network_process_wait_or_order" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_cli_wiring_is_exact" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_rollback_drill_keeps_runtime_and_release_blocked" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_positive_snapshot_is_no_action_only" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_negative_snapshot_cases_fail_closed[PHASE_RECEIPT_FAIL]" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_negative_snapshot_cases_fail_closed[TASKPACK_TRACE_FAIL]" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_negative_snapshot_cases_fail_closed[ALPHA_GATE_FAIL]" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_negative_snapshot_cases_fail_closed[MODEL_AND_GA_BOUNDARY_FAIL]" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_negative_snapshot_cases_fail_closed[FINAL_DELIVERY_BOUNDARY_FAIL]" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_negative_snapshot_cases_fail_closed[RELEASE_CHAIN_FAIL]" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_negative_snapshot_cases_fail_closed[EXTERNAL_BOUNDARY_FAIL]" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_negative_snapshot_cases_fail_closed[PORTABILITY_FAIL]" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_negative_snapshot_cases_fail_closed[OPEN_FINDING_FAIL]" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_malformed_snapshot_fails_closed" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_candidate_evidence_build_is_pass_and_remains_nonproduction" time="0.000" />
+    <testcase classname="tests.S19.stage_review_test" name="test_noncanonical_evidence_directory_is_refused_without_writing" time="0.000" />
+  </testsuite>
+</testsuites>
