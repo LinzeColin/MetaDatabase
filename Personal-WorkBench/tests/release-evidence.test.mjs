@@ -166,3 +166,23 @@ test("Version 18 account-entry deployment evidence retains no account or runtime
   assert.equal(serialized.includes("Bearer "), false);
   assert.equal(serialized.includes("token="), false);
 });
+
+test("Version 18 in-app mutation replay retains no session or record material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/version_18_agent_controlled_in_app_workbench_post_replay.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.current_private_version.sites_version_number, 18);
+  assert.equal(evidence.mutation_attempt.workbench_write_response_observed, false);
+  assert.equal(evidence.post_attempt_readback.habits_http_status, 200);
+  assert.equal(evidence.post_attempt_readback.habit_checkins_http_status, 200);
+  assert.equal(evidence.no_user_records_read_or_written, true);
+  assert.equal(evidence.cleanup.temporary_browser_tab_finalized, true);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("Bearer "), false);
+  assert.equal(serialized.includes("token="), false);
+});

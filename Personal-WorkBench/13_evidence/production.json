@@ -75,6 +75,7 @@
     "reset_password_missing_token_feedback": "PASS_LOCAL_PRE_REQUEST_PREFLIGHT_AND_PRIVATE_VERSION_14_DEPLOY",
     "version_14_cross_surface_habit_mutation_replay": "INCONCLUSIVE_AGENT_TRANSPORT_BOUNDARY_NO_VISIBLE_STATE_CHANGE",
     "version_17_agent_controlled_chrome_workbench_post_replay": "INCONCLUSIVE_AUTH_AND_READ_PASS_WORKBENCH_POST_TRANSPORT_BOUNDARY_TEST_ACCOUNT_DELETED",
+    "version_18_agent_controlled_in_app_workbench_post_replay": "INCONCLUSIVE_MUTATION_REQUEST_DID_NOT_REACH_WORKBENCH_API_NO_VISIBLE_RECORD",
     "ordinary_desktop_browser_private_access_gate": "PASS_PRIVATE_VERSION_17_CHATGPT_AUTHENTICATION_REQUIRED_NO_CONTROLLED_SITE_SESSION",
     "raw_user_records_read": false,
     "test_user_data_written_then_cleaned": true,
@@ -106,6 +107,7 @@
   "tenant_and_history": {
     "local_server_session_tenant_contract": "PASS_LOCAL_CONTRACT",
     "authenticated_habits_and_habit_checkins_read_routes": "PASS_PRIVATE_VERSION_18_HTTP_200_NO_RESPONSE_BODY_READ",
+    "version_18_agent_controlled_in_app_habit_read_after_failed_mutation": "PASS_PRIVATE_VERSION_18_HTTP_200_NO_CACHE_NO_RESPONSE_BODY_READ",
     "real_a_b_tenant_isolation": "PASS_PRIVATE_CURRENT_VERSION_TEST_RECORDS_CLEANED",
     "separate_authenticated_session_history_readback": "PASS_PRIVATE_CURRENT_VERSION_TEST_RECORDS_CLEANED",
     "real_cross_device_history": "NOT_RUN_PHYSICAL_SECOND_DEVICE",
@@ -137,6 +139,7 @@
     "13_evidence/version_17_signin_guidance_source_transport_boundary.json",
     "13_evidence/private_version_17_signin_guidance_deployment.json",
     "13_evidence/private_version_18_account_entry_deployment.json",
+    "13_evidence/version_18_agent_controlled_in_app_workbench_post_replay.json",
     "13_evidence/version_16_storage_binding_reconciliation.json",
     "13_evidence/version_14_controlled_browser_replay.json",
     "13_evidence/version_17_agent_controlled_chrome_workbench_post_replay.json",
@@ -151,6 +154,6 @@
     "successful authenticated ordinary-browser mutation replay outside the agent-browser request guard",
     "physical second-device history readback and direct D1/R2 reconciliation"
   ],
-  "current_version_18_note": "Version 18 is the current owner-only private deployment. It changes only the visible login-or-account entry so an authenticated user reaches /account and an unauthenticated user still receives the existing login path; it does not change authentication, user data, consent rules, runtime values, access policy, D1/R2, or public audience. The current account page visibly reports that sensitive-sync contact configuration is not ready, while the Sites control plane exposes key presence only and no runtime values were read.",
+  "current_version_18_note": "Version 18 is the current owner-only private deployment. It changes only the visible login-or-account entry so an authenticated user reaches /account and an unauthenticated user still receives the existing login path; it does not change authentication, user data, consent rules, runtime values, access policy, D1/R2, or public audience. The current account page visibly reports that sensitive-sync contact configuration is not ready, while the Sites control plane exposes key presence only and no runtime values were read. A current Version 18 agent-controlled in-app mutation attempt did not emit a workbench API response or visible record, while a read-only reload returned HTTP 200 for both habits and habit-checkins without cache; that transport boundary does not prove a normal end-user, Worker, D1/R2, or Better Auth failure.",
   "notes": "This record contains private control-plane and rendered-UI facts only. Version 17 privately deploys the shared workbench data-client repair that gives an actionable sign-in path when browser request transport is uncertain, without claiming that a record was saved. Its source was restored through a tree-identical isolated full-object projection after a historical partial-projection transport failure; source, archive and saved-version provenance were read back. The site remains active/owner/custom with one allowed user, zero groups, zero external visitors and environment revision 8. A Version 17 rendered nonempty-invalid-token replay reached the neutral invalid-or-expired recovery result without claiming password update or service unavailability; its temporary input was cleared before tab closure. A separate Version 17 unknown-alias reset replay returned the same neutral next-steps response, with zero exact-alias mailbox matches before submission, immediately after, and after one bounded 30-second readback; that is only a current-version non-enumeration and negative-delivery observation, not proof of a later non-delivery, existing-account reset failure, or provider outage. A fresh ordinary Safari tab separately reached the current Version 17 private Sites gate and then the standard ChatGPT login page, but had no controlled authenticated session; it proves the unauthenticated gate, not a normal-browser workbench write or failure. Current Version 17 Sites site, environment, and saved-version metadata likewise exposes only logical DB/FILES bindings and provenance, not physical D1/R2 mappings; the prior authorized Workers directory also did not expose the Sites target, so no direct storage reconciliation is claimed. A separate Version 17 Chrome extension-controlled replay completed fresh email auth, verified-session account reads and test-account deletion, while two workbench habit POST attempts still fell into the browser fetch-exception UI without a visible record; this is a constrained agent-browser transport observation, not an ordinary end-user, Worker, D1/R2, or Better Auth verdict. No runtime setting, access policy, D1/R2 resource, user record or public audience changed. Historical Version 9 email, A/B tenant isolation and separate-session history evidence remains scoped to its controlled test records and cleanup; Version 14 browser observations remain an agent-transport boundary; Version 15 and Version 16 retain their own deployment and rollback evidence. None of these private facts proves an ordinary-browser authenticated mutation, physical second-device history, direct D1/R2 reconciliation, public launch eligibility or final product acceptance."
 }
