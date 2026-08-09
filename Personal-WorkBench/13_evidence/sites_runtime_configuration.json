@@ -1,20 +1,30 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "subject_phase": "S5-T2",
-  "status": "PARTIAL_PRIVATE_RUNTIME_CONFIGURATION",
+  "status": "PASS_PRIVATE_RUNTIME_CONFIGURATION_PRESENCE_ONLY",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
-  "generated_at": "2026-08-09T03:31:00Z",
+  "generated_at": "2026-08-09T07:35:45Z",
   "source": {
     "kind": "ChatGPT Sites control-plane key-level readback",
+    "readback_scope": [
+      "configuration revision",
+      "entry key",
+      "Secret classification",
+      "entry counts",
+      "private access shape",
+      "saved candidate deployment state"
+    ],
     "values_recorded": false,
+    "values_read_or_logged": false,
     "private_access_preserved": true,
-    "deployment_created": true,
     "live_origin_value_recorded": false,
     "origin_bootstrap_evidence": "13_evidence/origin_bootstrap.json"
   },
   "settings": {
-    "revision": 5,
-    "entry_count": 13,
+    "revision": 7,
+    "entry_count": 14,
+    "secret_entry_count": 11,
+    "non_secret_entry_count": 3,
     "entries": [
       {"key": "APP_ORIGIN", "is_secret": true},
       {"key": "BETTER_AUTH_SECRET", "is_secret": true},
@@ -27,37 +37,48 @@
       {"key": "PRIVACY_CONTACT_EMAIL", "is_secret": true},
       {"key": "PRIVACY_NOTICE_SHA256", "is_secret": false},
       {"key": "PRIVACY_POLICY_VERSION", "is_secret": false},
+      {"key": "RESEND_API_KEY", "is_secret": true},
       {"key": "TURNSTILE_SECRET_KEY", "is_secret": true},
       {"key": "TURNSTILE_SITE_KEY", "is_secret": true}
     ]
   },
-  "provider_contract": {
-    "resend_remains_default": true,
-    "selected_compatible_provider": "nitrosend",
-    "selection_requires": ["MAIL_PROVIDER=nitrosend", "NITROSEND_API_KEY"],
-    "mailport_boundary_preserved": true,
-    "provider_values_or_sender_identity_recorded": false
+  "private_site_state": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_users_count": 1,
+    "allowed_groups_count": 0,
+    "external_visitor_count": 0,
+    "access_policy_revision": 1,
+    "site_live_url_present": true,
+    "site_preview_url_present": false
   },
-  "operator_and_contact": {
-    "source": "owner-controlled verified mail brand",
-    "owner_scope_confirmed": true,
-    "values_recorded": false
+  "saved_candidate_relation": {
+    "evidence": "13_evidence/saved_version.json",
+    "version_number": 7,
+    "candidate_source_bound": true,
+    "candidate_deployment_action_called": false,
+    "candidate_deployed": false,
+    "conclusion": "The existing live site cannot be the Version 7 candidate because Version 7 has no deployment readback."
   },
-  "turnstile": {
-    "widget_created": true,
-    "hostname_bound_to_current_origin": true,
-    "mode": "managed",
-    "preclearance_enabled": false,
-    "key_pair_written_as_sites_secrets": true,
-    "values_recorded": false
+  "configuration_boundaries": {
+    "key_presence_only": true,
+    "does_not_prove_nonempty_values": true,
+    "does_not_prove_current_runtime_is_version_7": true,
+    "does_not_prove_real_auth_or_data_write": true,
+    "does_not_change_access_or_configuration": true
   },
-  "google_oauth": {
-    "client_replaced_after_redirect_mismatch": true,
-    "exact_callback_registered": true,
-    "non_submitting_probe_reached_account_selection": true,
-    "authorization_code_issued": false,
-    "values_recorded": false
+  "prior_value_free_supporting_evidence": {
+    "owner_activation": {
+      "source": "13_evidence/owner_activation.json",
+      "status": "PASS_LOCAL_OWNER_ACTIVATION_PRECHECK",
+      "configuration_source": "local_environment_presence_only"
+    },
+    "google_oauth_callback": {
+      "source": "13_evidence/google_oauth_callback.json",
+      "status": "PASS_GOOGLE_OAUTH_CALLBACK",
+      "not_revalidated_from_secret_values_in_this_readback": true
+    }
   },
-  "remaining_required_configuration": [],
-  "next_gate": "All S5-T2 configuration items are present, but Settings revision 5 requires a later controlled private deployment to become runtime-active. The bootstrap deployment only allocated a private Origin and is not S5-T3."
+  "next_gate": "S5-T3 must deploy only saved Version 7 to the existing custom/private audience, prove signed-in data writes and histories with isolated accounts, then run an explicit rollback check."
 }
