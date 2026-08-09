@@ -1,12 +1,12 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "task_id": "S5-T3",
   "status": "PASS_PRIVATE_INVALID_RESET_TOKEN_SERVER_REJECTION",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
-  "observed_at": "2026-08-09",
-  "scope": "One current private Version 14 reset-password submission with a newly generated nonempty invalid token and a temporary test password. The token and password were used only in transient browser state, then cleared before the tab was closed. No email, account selection, cookie, browser storage, mail content, user record, or identifier was read or retained.",
+  "observed_at": "2026-08-10",
+  "scope": "One current private Version 17 rendered reset-password submission with a newly generated nonempty invalid token and a temporary test password. The token and password were used only in transient browser state, then cleared before the tab was closed. No email, account selection, cookie, browser storage, mail content, user record, identifier, or raw URL was retained.",
   "current_private_version": {
-    "sites_version_number": 14,
+    "sites_version_number": 17,
     "environment_revision": 8,
     "canonical_origin": "https://mydairy.linzezhang.com"
   },
@@ -29,10 +29,10 @@
     "conclusion": "The nonempty-token replay reached the server-rejection user path rather than the missing-token preflight, network-exception fallback, or success state."
   },
   "interpretation": {
-    "proven": "Current private Version 14 renders a neutral invalid-or-expired-link result for one nonempty invalid reset token and does not claim that a password was updated.",
+    "proven": "Current private Version 17 renders a neutral invalid-or-expired-link result for one nonempty invalid reset token and does not claim that a password was updated or that the service is unavailable.",
     "not_proven": [
       "A real reset token's expiry timing or one-time-use behavior",
-      "An existing-account password-reset delivery failure",
+      "An existing-account password-reset delivery failure or any provider delivery outcome",
       "A successful authenticated ordinary-browser mutation or history readback",
       "Physical second-device synchronization"
     ],

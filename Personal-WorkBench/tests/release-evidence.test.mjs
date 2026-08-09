@@ -50,3 +50,18 @@ test("controlled browser replay evidence does not retain test credentials", asyn
   assert.equal(serialized.includes("@"), false);
   assert.equal(serialized.includes("Bearer "), false);
 });
+
+test("invalid reset replay evidence does not retain temporary reset material", async () => {
+  const evidence = JSON.parse(
+    await readFile(new URL("../13_evidence/invalid_reset_token_server_rejection_replay.json", import.meta.url), "utf8"),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.replay.temporary_password_cleared, true);
+  assert.equal(evidence.replay.temporary_browser_tab_closed, true);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+  assert.equal(serialized.includes("Pwb!"), false);
+});
