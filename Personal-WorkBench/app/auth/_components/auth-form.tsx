@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   buildAuthRequest,
+  resolveCaptchaResponse,
   SIGN_UP_VERIFICATION_PATH,
   type AuthMode,
   usesTurnstileFor,
@@ -161,7 +162,11 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
 
   async function submitForm(event: React.FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
-    if (usesTurnstile && siteKey && !turnstileToken) {
+    const renderedTurnstileToken = usesTurnstile
+      ? document.querySelector<HTMLInputElement>('input[name="cf-turnstile-response"]')?.value ?? ""
+      : "";
+    const captchaResponse = resolveCaptchaResponse(turnstileToken, renderedTurnstileToken);
+    if (usesTurnstile && siteKey && !captchaResponse) {
       setMessage("请完成验证后继续。");
       return;
     }
@@ -174,7 +179,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
       email,
       password,
       name,
-      captchaResponse: turnstileToken,
+      captchaResponse,
       resetToken: new URLSearchParams(window.location.search).get("token") ?? "",
     });
 

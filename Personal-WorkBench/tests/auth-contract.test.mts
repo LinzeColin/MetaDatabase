@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildAuthRequest,
+  resolveCaptchaResponse,
   SIGN_UP_VERIFICATION_PATH,
   VERIFIED_LOGIN_PATH,
 } from "../app/auth/_components/auth-flow.ts";
@@ -45,6 +46,12 @@ test("runtime readiness is all-or-nothing and does not expose field names", () =
 
 test("Better Auth rate-limit timestamp remains an epoch-millisecond number", () => {
   assert.equal(rateLimit.lastRequest.mapToDriverValue(1_234_567_890), 1_234_567_890);
+});
+
+test("managed Turnstile retains a rendered response during callback timing", () => {
+  assert.equal(resolveCaptchaResponse("callback-token", "rendered-token"), "callback-token");
+  assert.equal(resolveCaptchaResponse("", "rendered-token"), "rendered-token");
+  assert.equal(resolveCaptchaResponse("  ", "  "), "");
 });
 
 test("NitroSend is a fail-closed alternate MailPort while Resend remains default", () => {

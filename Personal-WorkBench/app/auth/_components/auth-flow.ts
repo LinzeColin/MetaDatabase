@@ -21,6 +21,15 @@ export function usesTurnstileFor(mode: AuthMode): boolean {
 }
 
 /**
+ * Managed Turnstile can populate its rendered hidden input just before React
+ * processes the callback. Prefer the callback state, then use that same
+ * rendered response so a valid token is never discarded by a timing race.
+ */
+export function resolveCaptchaResponse(callbackToken: string, renderedToken: string): string {
+  return callbackToken.trim() || renderedToken.trim();
+}
+
+/**
  * Keeps every browser-auth request on an explicit, same-origin Better Auth
  * endpoint. Callback paths are constants so an untrusted query cannot become
  * an open redirect or leak an email address through the URL.
