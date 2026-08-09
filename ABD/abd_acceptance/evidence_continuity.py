@@ -61,6 +61,8 @@ S11_STAGE_REVIEW_INDEX_ID = "INDEX-S11-STAGE-REVIEW"
 S11_STAGE_REVIEW_EVIDENCE_PATH = Path("machine/evidence/EVD-S11-STAGE-REVIEW.json")
 S12_P01_INDEX_ID = "INDEX-AC-S12-P01"
 S12_P01_EVIDENCE_PATH = Path("machine/evidence/EVD-S12-P01.json")
+S12_P02_INDEX_ID = "INDEX-AC-S12-P02"
+S12_P02_EVIDENCE_PATH = Path("machine/evidence/EVD-S12-P02.json")
 
 PHASE_ARTIFACT_PATHS = {
     "ART-S07-P04-01": EVIDENCE_INDEX_PATH,
@@ -90,7 +92,7 @@ PINNED_BASELINE_HASHES: Dict[str, str] = {
     P03_EVIDENCE_PATH.as_posix(): "ca87f049463efa377e18ada24ba7cdeb1cf2c1aff920b9d872794d4146728fa9",
     P03_ROLLBACK_PATH.as_posix(): "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf",
 }
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "5cc60e14d54110ea742f38a26d4f647d6c481eb30b60c1b5f8cb4346be7224ec"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "9b92d40fe86cafe49cac1c66ffd331334dc78fa46c023a54891d5ea0deb8be86"
 LEGACY_EVIDENCE_CODE_HASH = "20a388d41762688b7336698a0069f5c2a6fa817fa7d78436f3ee7d86e460263f"
 FULL_REGRESSION_TEST_MINIMUM = 5028
 REQUIRED_COVERAGE = Decimal("1.0000")
@@ -744,6 +746,56 @@ def _s12_p01_index_successor(root: Path, index_by_id: Mapping[str, Mapping[str, 
     }
 
 
+def _s12_p02_index_successor(root: Path, index_by_id: Mapping[str, Mapping[str, Any]]) -> Dict[str, Any]:
+    """Allow the frozen planned row or its one exact S12/P02 successor."""
+
+    row = index_by_id.get(S12_P02_INDEX_ID)
+    if row is None:
+        return {"state": "INVALID", "valid": False, "reason": "frozen planned S12/P02 index row is missing"}
+    planned = (
+        row.get("id") == S12_P02_INDEX_ID
+        and row.get("kind") == "ACCEPTANCE_EVIDENCE"
+        and row.get("acceptance_contract_id") == "AC-S12-P02"
+        and row.get("requirement_id") == "REQ-S12-P02"
+        and row.get("expected_artifact") == S12_P02_EVIDENCE_PATH.as_posix()
+        and row.get("pass_gate") == "不把高度相关机会重复计入30%覆盖。"
+        and row.get("status") == "PLANNED"
+    )
+    if planned:
+        return {"state": "PLANNED", "valid": True}
+    evidence_path = root / S12_P02_EVIDENCE_PATH
+    try:
+        evidence = strict_json_load(evidence_path)
+        artifact_hash = sha256_file(evidence_path)
+    except Exception as exc:
+        return {"state": "INVALID", "valid": False, "reason": "%s: %s" % (type(exc).__name__, exc)}
+    valid = (
+        row.get("id") == S12_P02_INDEX_ID
+        and row.get("kind") == "PHASE_EVIDENCE"
+        and row.get("stage_id") == "S12"
+        and row.get("contract_id") == "AC-S12-P02"
+        and row.get("requirement_id") == "REQ-S12-P02"
+        and row.get("status") == "PASS"
+        and row.get("actual_artifact") == S12_P02_EVIDENCE_PATH.as_posix()
+        and row.get("artifact_sha256") == artifact_hash
+        and row.get("next") == "S12/P03_READY_NOT_STARTED"
+        and isinstance(evidence, Mapping)
+        and evidence.get("contract_id") == "AC-S12-P02"
+        and evidence.get("requirement_id") == "REQ-S12-P02"
+        and evidence.get("stage_id") == "S12"
+        and evidence.get("phase_id") == "P02"
+        and evidence.get("status") == "PASS"
+        and evidence.get("decision") == "CAPACITY_CORRELATION_READY_DOWNSTREAM_ECONOMICS_AND_FALSIFICATION_GATES_REQUIRED"
+        and evidence.get("next") == "S12/P03_READY_NOT_STARTED"
+        and evidence.get("release_status") == "S12_P02_LOCAL_EVIDENCE_ONLY_STAGE_REVIEW_REQUIRED_BEFORE_UPLOAD"
+    )
+    return {
+        "state": "VALID" if valid else "INVALID",
+        "valid": valid,
+        "artifact_hash_matches": row.get("artifact_sha256") == artifact_hash,
+    }
+
+
 def _check_taskpack_continuity(
     root: Path,
     fixture: Mapping[str, Any] | None,
@@ -760,6 +812,7 @@ def _check_taskpack_continuity(
         s10_successor = _s10_stage_review_index_successor(root, lookup["index_by_id"])
         s11_successor = _s11_stage_review_index_successor(root, lookup["index_by_id"])
         s12_p01_successor = _s12_p01_index_successor(root, lookup["index_by_id"])
+        s12_p02_successor = _s12_p02_index_successor(root, lookup["index_by_id"])
         expected_index_count = (
         expected_counts.get("index")
             + sum(successor["state"] == "VALID" for successor in (s09_successor, s10_successor, s11_successor))
@@ -771,6 +824,8 @@ def _check_taskpack_continuity(
             and (s11_successor["state"] == "ABSENT" or s10_successor["state"] == "VALID")
             and s12_p01_successor.get("valid") is True
             and (s12_p01_successor["state"] == "PLANNED" or s11_successor["state"] == "VALID")
+            and s12_p02_successor.get("valid") is True
+            and (s12_p02_successor["state"] == "PLANNED" or s12_p01_successor["state"] == "VALID")
         )
         counts_ok = (
             isinstance(expected_counts, Mapping)
@@ -782,6 +837,7 @@ def _check_taskpack_continuity(
             and s10_successor.get("valid") is True
             and s11_successor.get("valid") is True
             and s12_p01_successor.get("valid") is True
+            and s12_p02_successor.get("valid") is True
             and successors_ordered
             and len(index) == expected_index_count
         )
@@ -789,7 +845,7 @@ def _check_taskpack_continuity(
             checks,
             "S07P04-ALL-LINK-COLLECTIONS-COVERED",
             counts_ok and not any(orphans.values()),
-            {"counts": {"requirements": len(requirements), "contracts": len(contracts), "tasks": len(tasks), "traceability": len(traceability), "index": len(index)}, "expected_index_count": expected_index_count, "s09_stage_review_successor": s09_successor, "s10_stage_review_successor": s10_successor, "s11_stage_review_successor": s11_successor, "s12_p01_successor": s12_p01_successor, "successors_ordered": successors_ordered, "orphans": orphans},
+            {"counts": {"requirements": len(requirements), "contracts": len(contracts), "tasks": len(tasks), "traceability": len(traceability), "index": len(index)}, "expected_index_count": expected_index_count, "s09_stage_review_successor": s09_successor, "s10_stage_review_successor": s10_successor, "s11_stage_review_successor": s11_successor, "s12_p01_successor": s12_p01_successor, "s12_p02_successor": s12_p02_successor, "successors_ordered": successors_ordered, "orphans": orphans},
         )
         requirement = _row(requirements, REQUIREMENT_ID)
         contract = _row(contracts, CONTRACT_ID)

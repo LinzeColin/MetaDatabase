@@ -1,0 +1,138 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "S12-P02-CAPACITY-CORRELATION-FROZEN",
+  "contract_id": "AC-S12-P02",
+  "requirement_id": "REQ-S12-P02",
+  "stage_id": "S12",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "p01_evidence_sha256": "9462cfab12b28218bf84419d45bf0c4d512aa406d5547de108f0dfbb09d4214a",
+  "correlation_graph_sha256": "a2e4e0adc3af1424956b5a90237210f95819a04a0e58eb74f29576c94293de29",
+  "expected_capacity_report_sha256": "5faf8ec203240a492d5de07553a32413fc5455a7406657d193f219850e13cf7f",
+  "bankroll_cents": 30000,
+  "platform_limits": [
+    {
+      "platform_id": "SYNTHETIC-TAB-A",
+      "remaining_capacity_cents": 1800,
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    },
+    {
+      "platform_id": "SYNTHETIC-SPORTSBET-B",
+      "remaining_capacity_cents": 1600,
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    },
+    {
+      "platform_id": "SYNTHETIC-OTHER-C",
+      "remaining_capacity_cents": 700,
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    }
+  ],
+  "cluster_exposures": [
+    {
+      "cluster_id": "C01-SAME-EVENT-MARKETS",
+      "existing_exposure_cents": 0,
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    },
+    {
+      "cluster_id": "C02-PARTICIPANT-OR-TEAM-WINDOW",
+      "existing_exposure_cents": 0,
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    },
+    {
+      "cluster_id": "C03-LEAGUE-WEATHER-LINEUP",
+      "existing_exposure_cents": 0,
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    },
+    {
+      "cluster_id": "C04-FUTURES-SINGLE-EVENT",
+      "existing_exposure_cents": 0,
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    },
+    {
+      "cluster_id": "C05-SOURCE-ANOMALY",
+      "existing_exposure_cents": 1500,
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    },
+    {
+      "cluster_id": "C06-SHARED-MODEL-OR-DATA",
+      "existing_exposure_cents": 0,
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    }
+  ],
+  "opportunities": [
+    {
+      "opportunity_id": "S12-P02-C01-A",
+      "correlation_cluster_id": "C01-SAME-EVENT-MARKETS",
+      "platform_id": "SYNTHETIC-TAB-A",
+      "requested_capacity_cents": 1500,
+      "executable_fraction": "0.8000",
+      "candidate_status": "SYNTHETIC_ELIGIBLE_CAPACITY_ONLY",
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    },
+    {
+      "opportunity_id": "S12-P02-C01-B",
+      "correlation_cluster_id": "C01-SAME-EVENT-MARKETS",
+      "platform_id": "SYNTHETIC-TAB-A",
+      "requested_capacity_cents": 1400,
+      "executable_fraction": "0.8000",
+      "candidate_status": "SYNTHETIC_ELIGIBLE_CAPACITY_ONLY",
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    },
+    {
+      "opportunity_id": "S12-P02-C02-A",
+      "correlation_cluster_id": "C02-PARTICIPANT-OR-TEAM-WINDOW",
+      "platform_id": "SYNTHETIC-TAB-A",
+      "requested_capacity_cents": 1300,
+      "executable_fraction": "0.8000",
+      "candidate_status": "SYNTHETIC_ELIGIBLE_CAPACITY_ONLY",
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    },
+    {
+      "opportunity_id": "S12-P02-C03-A",
+      "correlation_cluster_id": "C03-LEAGUE-WEATHER-LINEUP",
+      "platform_id": "SYNTHETIC-SPORTSBET-B",
+      "requested_capacity_cents": 1500,
+      "executable_fraction": "0.9000",
+      "candidate_status": "SYNTHETIC_ELIGIBLE_CAPACITY_ONLY",
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    },
+    {
+      "opportunity_id": "S12-P02-C03-B",
+      "correlation_cluster_id": "C03-LEAGUE-WEATHER-LINEUP",
+      "platform_id": "SYNTHETIC-SPORTSBET-B",
+      "requested_capacity_cents": 1200,
+      "executable_fraction": "0.9000",
+      "candidate_status": "SYNTHETIC_ELIGIBLE_CAPACITY_ONLY",
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    },
+    {
+      "opportunity_id": "S12-P02-C04-A",
+      "correlation_cluster_id": "C04-FUTURES-SINGLE-EVENT",
+      "platform_id": "SYNTHETIC-SPORTSBET-B",
+      "requested_capacity_cents": 1200,
+      "executable_fraction": "0.7500",
+      "candidate_status": "SYNTHETIC_ELIGIBLE_CAPACITY_ONLY",
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    },
+    {
+      "opportunity_id": "S12-P02-C05-A",
+      "correlation_cluster_id": "C05-SOURCE-ANOMALY",
+      "platform_id": "SYNTHETIC-OTHER-C",
+      "requested_capacity_cents": 700,
+      "executable_fraction": "0.7500",
+      "candidate_status": "SYNTHETIC_ELIGIBLE_CAPACITY_ONLY",
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    },
+    {
+      "opportunity_id": "S12-P02-C06-A",
+      "correlation_cluster_id": "C06-SHARED-MODEL-OR-DATA",
+      "platform_id": "SYNTHETIC-OTHER-C",
+      "requested_capacity_cents": 800,
+      "executable_fraction": "0.7500",
+      "candidate_status": "SYNTHETIC_ELIGIBLE_CAPACITY_ONLY",
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    }
+  ]
+}

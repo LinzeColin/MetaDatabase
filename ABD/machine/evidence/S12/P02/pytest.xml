@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="17" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S12.P02_test" name="test_frozen_capacity_report_is_an_exact_replay" time="0.000" />
+    <testcase classname="tests.S12.P02_test" name="test_candidate_preflight_passes_without_generated_test_reports" time="0.000" />
+    <testcase classname="tests.S12.P02_test" name="test_highly_correlated_members_are_counted_once_per_declared_cluster" time="0.000" />
+    <testcase classname="tests.S12.P02_test" name="test_platform_capacity_is_applied_once_across_independent_clusters" time="0.000" />
+    <testcase classname="tests.S12.P02_test" name="test_capacity_never_becomes_a_30_percent_return_or_order_claim" time="0.000" />
+    <testcase classname="tests.S12.P02_test" name="test_malformed_or_unauditable_inputs_fail_closed[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S12.P02_test" name="test_malformed_or_unauditable_inputs_fail_closed[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S12.P02_test" name="test_malformed_or_unauditable_inputs_fail_closed[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S12.P02_test" name="test_malformed_or_unauditable_inputs_fail_closed[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S12.P02_test" name="test_malformed_or_unauditable_inputs_fail_closed[&lt;lambda&gt;4]" time="0.000" />
+    <testcase classname="tests.S12.P02_test" name="test_graph_or_p01_receipt_tampering_fails_closed" time="0.000" />
+    <testcase classname="tests.S12.P02_test" name="test_one_in_ten_thousand_executable_fraction_perturbation_preserves_correction[delta0]" time="0.000" />
+    <testcase classname="tests.S12.P02_test" name="test_one_in_ten_thousand_executable_fraction_perturbation_preserves_correction[delta1]" time="0.000" />
+    <testcase classname="tests.S12.P02_test" name="test_core_sources_have_no_network_soak_or_order_capability" time="0.000" />
+    <testcase classname="tests.S12.P02_test" name="test_candidate_fails_closed_when_capacity_report_is_tampered" time="0.000" />
+    <testcase classname="tests.S12.P02_test" name="test_rollback_is_local_and_has_no_external_side_effect" time="0.000" />
+    <testcase classname="tests.S12.P02_test" name="test_acceptance_cli_is_wired_to_the_exact_contract" time="0.000" />
+  </testsuite>
+</testsuites>
