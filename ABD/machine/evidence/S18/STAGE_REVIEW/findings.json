@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S18-WHOLE-STAGE-REVIEW",
+  "stage_id": "S18",
+  "fixed_clock": "2026-08-10T05:00:00+10:00",
+  "findings": [
+    {
+      "id": "S18-REVIEW-001",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_STAGE_REVIEW",
+      "observation": "蓝绿、canary 与探针制品可能被误读为已在 OVH 或 Cloudflare 上切流和运行。",
+      "resolution": "P01 将发布流程限定为离线确定性控制面；任何探针失败、未知或格式错误都回到上一签名槽位并保持建议禁用。",
+      "resolution_evidence": ["release_pipeline.yml", "canary_policy.json", "machine/evidence/EVD-S18-P01.json"],
+      "external_state_changed": false,
+      "real_time_soak_waited": false
+    },
+    {
+      "id": "S18-REVIEW-002",
+      "severity": "CRITICAL",
+      "status": "RESOLVED_IN_STAGE_REVIEW",
+      "observation": "高优先级告警与有限自愈若没有唯一动作、资金/风险不变量或本地 outbox 边界，可能被误解为可对账户或订单产生动作。",
+      "resolution": "P02 为每个高优先级告警固定唯一逻辑动作；P03 保持资金事实与风险门不可变，并将所有升级限制为未发送的本地结构化 outbox。",
+      "resolution_evidence": ["alerts.json", "self_heal_policy.json", "machine/evidence/EVD-S18-P02.json", "machine/evidence/EVD-S18-P03.json"],
+      "external_state_changed": false,
+      "real_time_soak_waited": false
+    },
+    {
+      "id": "S18-REVIEW-003",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_STAGE_REVIEW",
+      "observation": "日周月值守、补丁、备份和容灾逻辑可能被误读为已安装调度器、执行真实备份或进行真实灾难恢复。",
+      "resolution": "P04 将正常周期固定为无需用户维护的离线控制面；任何任务失败或不安全输入仅触发暂停合同和本地 owner outbox 升级。",
+      "resolution_evidence": ["operations_runbook.md", "scheduled_jobs.json", "maintenance_calendar.json", "machine/evidence/EVD-S18-P04.json"],
+      "external_state_changed": false,
+      "real_time_soak_waited": false
+    }
+  ],
+  "summary": {"total": 3, "open": 0, "resolved": 3, "blocked": 0},
+  "explicit_limitations": [
+    "S18 只复核冻结的本地发布、告警、自愈和值守控制及其已签名证据。",
+    "S18 复审通过不构成真实 OVH、Cloudflare、数据库、TAB/Gmail、调度器、备份、容灾、市场、账户、部署或实际收益证明。",
+    "本复审不覆盖既有阶段的独立连续性限制，且不通过引用覆盖或消除它们。",
+    "A$300×1.3^n 的30%月度目标仍为 UNVERIFIED_NOT_GUARANTEED。"
+  ],
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "github_upload_performed": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

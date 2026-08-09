@@ -53,6 +53,8 @@ from .stage16_review import verify_existing_stage_review_evidence as verify_exis
 from .stage16_review import write_stage_review_evidence as write_stage16_review_evidence
 from .stage17_review import verify_existing_stage_review_evidence as verify_existing_stage17_review_evidence
 from .stage17_review import write_stage_review_evidence as write_stage17_review_evidence
+from .stage18_review import verify_existing_stage_review_evidence as verify_existing_stage18_review_evidence
+from .stage18_review import write_stage_review_evidence as write_stage18_review_evidence
 from .gmail_authorization import write_phase_evidence as write_gmail_authorization_phase_evidence
 from .mail_preservation import write_phase_evidence as write_mail_preservation_phase_evidence
 from .attachment_security import write_phase_evidence as write_attachment_security_phase_evidence
@@ -229,6 +231,7 @@ def main() -> int:
             "STAGE-REVIEW-S15": verify_existing_stage15_review_evidence,
             "STAGE-REVIEW-S16": verify_existing_stage16_review_evidence,
             "STAGE-REVIEW-S17": verify_existing_stage17_review_evidence,
+            "STAGE-REVIEW-S18": verify_existing_stage18_review_evidence,
         }
         if args.verify_existing not in existing_verifiers:
             parser.error("existing evidence verifier is not implemented: %s" % args.verify_existing)
@@ -339,6 +342,7 @@ def main() -> int:
         "STAGE-REVIEW-S15": write_stage15_review_evidence,
         "STAGE-REVIEW-S16": write_stage16_review_evidence,
         "STAGE-REVIEW-S17": write_stage17_review_evidence,
+        "STAGE-REVIEW-S18": write_stage18_review_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)
