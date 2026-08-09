@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S15-WHOLE-STAGE-REVIEW",
+  "stage_id": "S15",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "findings": [
+    {
+      "id": "F-S15-001-WHOLE-STAGE-REVIEW-CONTRACT-MISSING",
+      "severity": "MEDIUM",
+      "status": "RESOLVED",
+      "affected_stage": "S15",
+      "observed": "本 run 开始时 S15/P01--P04 已签名，但没有 S15 整阶段复审合同、夹具、判定器、测试、finding 或 stage-review 收据。",
+      "remediation": "新增失败关闭的 S15 本地复审合同、单次固定快照、P01--P04 收据重放、静态边界检查和 stage-review 签名入口。",
+      "verification": "仅以 tests/S15/stage_review_test.py、四份既有 Phase receipt verifier、依赖扫描、Task Pack 静态校验和本复审收据复验确认；不重跑 Phase 套件或全量回归。",
+      "external_state_changed": false
+    },
+    {
+      "id": "F-S15-002-LEGACY_CONTINUITY_S15_REVIEW_SUCCESSOR_UNDECLARED",
+      "severity": "MEDIUM",
+      "status": "RESOLVED",
+      "affected_stage": "S15",
+      "observed": "S15 stage-review 索引行首次写入后，S08 legacy compatibility 的单一复验暴露 S07 连续证据门仅精确承认到 S14，返回 S07P04-ALL-LINK-COLLECTIONS-COVERED 失败。",
+      "remediation": "在既有 S07 连续证据失败关闭逻辑中加入仅接受当前签名 STAGE-REVIEW-S15 收据的 successor；仅刷新已在 S08 allow-list 中的 evidence_continuity.py 精确 SHA-256 及其既有 pins。",
+      "verification": "tests/S08/stage_review_test.py::test_legacy_receipt_successor_compatibility_is_hash_pinned_and_replays 以一条定向 JUnit 收据复验；不运行 S08 全套、全量回归或真实时间 soak。",
+      "external_state_changed": false
+    }
+  ],
+  "summary": {"total": 2, "open": 0, "resolved": 2, "blocked": 0},
+  "explicit_limitations": [
+    {
+      "id": "S15-LOCAL-EVIDENCE-BOUNDARY",
+      "status": "UNVERIFIED_OUT_OF_SCOPE",
+      "statement": "S15 复审只证明冻结本地测试、来源合同、多表面配置与追踪证据链；不证明真实网络故障、浏览器、OVH、Cloudflare、TAB/Gmail、数据库、账户、订单、部署、上线或实际收益。"
+    }
+  ],
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "github_upload_performed": false,
+    "production_deployed_or_activated": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

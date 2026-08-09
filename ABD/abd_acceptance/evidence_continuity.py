@@ -65,6 +65,8 @@ S13_STAGE_REVIEW_INDEX_ID = "INDEX-S13-STAGE-REVIEW"
 S13_STAGE_REVIEW_EVIDENCE_PATH = Path("machine/evidence/EVD-S13-STAGE-REVIEW.json")
 S14_STAGE_REVIEW_INDEX_ID = "INDEX-S14-STAGE-REVIEW"
 S14_STAGE_REVIEW_EVIDENCE_PATH = Path("machine/evidence/EVD-S14-STAGE-REVIEW.json")
+S15_STAGE_REVIEW_INDEX_ID = "INDEX-S15-STAGE-REVIEW"
+S15_STAGE_REVIEW_EVIDENCE_PATH = Path("machine/evidence/EVD-S15-STAGE-REVIEW.json")
 S12_P01_INDEX_ID = "INDEX-AC-S12-P01"
 S12_P01_EVIDENCE_PATH = Path("machine/evidence/EVD-S12-P01.json")
 S12_P02_INDEX_ID = "INDEX-AC-S12-P02"
@@ -102,7 +104,7 @@ PINNED_BASELINE_HASHES: Dict[str, str] = {
     P03_EVIDENCE_PATH.as_posix(): "ca87f049463efa377e18ada24ba7cdeb1cf2c1aff920b9d872794d4146728fa9",
     P03_ROLLBACK_PATH.as_posix(): "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf",
 }
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "476846a8d549486bd5a0cd777d3d3491d9cb6acaf6ed2173c1297e1b4f581ab9"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "ef962d413c169fc36d815b85d711944adc4121bb8cbb7788035f55793c5ebc38"
 LEGACY_EVIDENCE_CODE_HASH = "20a388d41762688b7336698a0069f5c2a6fa817fa7d78436f3ee7d86e460263f"
 FULL_REGRESSION_TEST_MINIMUM = 5028
 REQUIRED_COVERAGE = Decimal("1.0000")
@@ -1014,6 +1016,42 @@ def _s14_stage_review_index_successor(root: Path, index_by_id: Mapping[str, Mapp
     }
 
 
+def _s15_stage_review_index_successor(root: Path, index_by_id: Mapping[str, Mapping[str, Any]]) -> Dict[str, Any]:
+    """Allow only the exact S15 review receipt to extend the frozen index."""
+
+    row = index_by_id.get(S15_STAGE_REVIEW_INDEX_ID)
+    if row is None:
+        return {"state": "ABSENT", "valid": True}
+    evidence_path = root / S15_STAGE_REVIEW_EVIDENCE_PATH
+    try:
+        evidence = strict_json_load(evidence_path)
+        artifact_hash = sha256_file(evidence_path)
+    except Exception as exc:
+        return {"state": "INVALID", "valid": False, "reason": "%s: %s" % (type(exc).__name__, exc)}
+    valid = (
+        row.get("id") == S15_STAGE_REVIEW_INDEX_ID
+        and row.get("kind") == "STAGE_REVIEW_EVIDENCE"
+        and row.get("stage_id") == "S15"
+        and row.get("contract_id") == "STAGE-REVIEW-S15"
+        and row.get("status") == "PASS"
+        and row.get("actual_artifact") == S15_STAGE_REVIEW_EVIDENCE_PATH.as_posix()
+        and row.get("artifact_sha256") == artifact_hash
+        and row.get("next") == "S15/GITHUB_STAGE_UPLOAD_READY"
+        and isinstance(evidence, Mapping)
+        and evidence.get("contract_id") == "STAGE-REVIEW-S15"
+        and evidence.get("stage_id") == "S15"
+        and evidence.get("status") == "PASS"
+        and evidence.get("decision") == "S15_WHOLE_STAGE_REVIEW_PASS"
+        and evidence.get("next") == "S15/GITHUB_STAGE_UPLOAD_READY"
+        and evidence.get("release_status") == "S15_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT"
+    )
+    return {
+        "state": "VALID" if valid else "INVALID",
+        "valid": valid,
+        "artifact_hash_matches": row.get("artifact_sha256") == artifact_hash,
+    }
+
+
 def _check_taskpack_continuity(
     root: Path,
     fixture: Mapping[str, Any] | None,
@@ -1036,6 +1074,7 @@ def _check_taskpack_continuity(
         s12_stage_review_successor = _s12_stage_review_index_successor(root, lookup["index_by_id"])
         s13_stage_review_successor = _s13_stage_review_index_successor(root, lookup["index_by_id"])
         s14_stage_review_successor = _s14_stage_review_index_successor(root, lookup["index_by_id"])
+        s15_stage_review_successor = _s15_stage_review_index_successor(root, lookup["index_by_id"])
         expected_index_count = (
             expected_counts.get("index")
             + sum(
@@ -1047,6 +1086,7 @@ def _check_taskpack_continuity(
                     s12_stage_review_successor,
                     s13_stage_review_successor,
                     s14_stage_review_successor,
+                    s15_stage_review_successor,
                 )
             )
             if isinstance(expected_counts.get("index"), int)
@@ -1069,6 +1109,8 @@ def _check_taskpack_continuity(
             and (s13_stage_review_successor["state"] == "ABSENT" or s12_stage_review_successor["state"] == "VALID")
             and s14_stage_review_successor.get("valid") is True
             and (s14_stage_review_successor["state"] == "ABSENT" or s13_stage_review_successor["state"] == "VALID")
+            and s15_stage_review_successor.get("valid") is True
+            and (s15_stage_review_successor["state"] == "ABSENT" or s14_stage_review_successor["state"] == "VALID")
         )
         counts_ok = (
             isinstance(expected_counts, Mapping)
@@ -1086,6 +1128,7 @@ def _check_taskpack_continuity(
             and s12_stage_review_successor.get("valid") is True
             and s13_stage_review_successor.get("valid") is True
             and s14_stage_review_successor.get("valid") is True
+            and s15_stage_review_successor.get("valid") is True
             and successors_ordered
             and len(index) == expected_index_count
         )
@@ -1093,7 +1136,7 @@ def _check_taskpack_continuity(
             checks,
             "S07P04-ALL-LINK-COLLECTIONS-COVERED",
             counts_ok and not any(orphans.values()),
-            {"counts": {"requirements": len(requirements), "contracts": len(contracts), "tasks": len(tasks), "traceability": len(traceability), "index": len(index)}, "expected_index_count": expected_index_count, "s09_stage_review_successor": s09_successor, "s10_stage_review_successor": s10_successor, "s11_stage_review_successor": s11_successor, "s12_p01_successor": s12_p01_successor, "s12_p02_successor": s12_p02_successor, "s12_p03_successor": s12_p03_successor, "s12_p04_successor": s12_p04_successor, "s12_stage_review_successor": s12_stage_review_successor, "s13_stage_review_successor": s13_stage_review_successor, "s14_stage_review_successor": s14_stage_review_successor, "successors_ordered": successors_ordered, "orphans": orphans},
+            {"counts": {"requirements": len(requirements), "contracts": len(contracts), "tasks": len(tasks), "traceability": len(traceability), "index": len(index)}, "expected_index_count": expected_index_count, "s09_stage_review_successor": s09_successor, "s10_stage_review_successor": s10_successor, "s11_stage_review_successor": s11_successor, "s12_p01_successor": s12_p01_successor, "s12_p02_successor": s12_p02_successor, "s12_p03_successor": s12_p03_successor, "s12_p04_successor": s12_p04_successor, "s12_stage_review_successor": s12_stage_review_successor, "s13_stage_review_successor": s13_stage_review_successor, "s14_stage_review_successor": s14_stage_review_successor, "s15_stage_review_successor": s15_stage_review_successor, "successors_ordered": successors_ordered, "orphans": orphans},
         )
         requirement = _row(requirements, REQUIREMENT_ID)
         contract = _row(contracts, CONTRACT_ID)

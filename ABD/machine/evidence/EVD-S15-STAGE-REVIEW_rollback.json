@@ -1,0 +1,128 @@
+{
+  "artifacts": {
+    "abd_acceptance/e2e_multi_environment.py": {
+      "sha256": "3c55f069087eab79f797283670e787f3e9d82507a1bb2e5ac7ee5c717096f359",
+      "status": "PASS"
+    },
+    "abd_acceptance/software_correctness.py": {
+      "sha256": "f1ff2c06878e2c05c58d808d37cad76566abc50b3d4e54e4aa97281644bea29e",
+      "status": "PASS"
+    },
+    "abd_acceptance/source_contract_integration.py": {
+      "sha256": "8f6a06278f4ea9684653d0cb18f346ac22095af06a76784bc3d949af9cb62020",
+      "status": "PASS"
+    },
+    "abd_acceptance/stage15_review.py": {
+      "sha256": "62b3efd17bc220274d071f79a7a3bd513ecaf1c84954c0bcb9514f79d246dbe3",
+      "status": "PASS"
+    },
+    "abd_acceptance/traceability_proxy.py": {
+      "sha256": "0962daec70f055d76fec4e7753b2b1aa9e057f9310ac58207342cf2d422ef755",
+      "status": "PASS"
+    },
+    "contract_tests.json": {
+      "sha256": "2104fb11ceb792e0a572942b1451f242d47eb7fa588d55838372e691f20b4d9c",
+      "status": "PASS"
+    },
+    "e2e_evidence.json": {
+      "sha256": "7ca2390c513a716873423035244cec0a7280ea47194305296cb30251e251113a",
+      "status": "PASS"
+    },
+    "e2e_tests.json": {
+      "sha256": "9eaa3c409f66fd3fcff7a3b166ef0a75983d5a5bc6fc2136bb533d7875bbea31",
+      "status": "PASS"
+    },
+    "environment_matrix.json": {
+      "sha256": "28c5dac00b2691785ff1918037b385d46cfe73e6d1b1893ae7fe4dc92693cf06",
+      "status": "PASS"
+    },
+    "fixtures_manifest.json": {
+      "sha256": "89cdb94782a5b3534daeaa7bc4f147d6298b6b28144ef817713fbaca3aa85305",
+      "status": "PASS"
+    },
+    "integration_tests.json": {
+      "sha256": "602618f18aceb02da8406df0b36ed31726280e257ac49f575168867005f60675",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S15-P01.json": {
+      "sha256": "5ea76d98f26bb3225844a0e9ab62c58041647ca5e3337c4c722d7d842ddfc98a",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S15-P01_rollback.json": {
+      "sha256": "cd3b6d2d8e0934103e168c89758f24be727e996f65f86eead8e733ddb678854b",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S15-P02.json": {
+      "sha256": "b3e8c7f5eb604d19029ff23eb0f4c382ac194634a9fdc4fe8f44e998dde22521",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S15-P02_rollback.json": {
+      "sha256": "971bc1d3b8059d064cfa4b379c3978e557a0f328a8c26122d95b0f8d4826f499",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S15-P03.json": {
+      "sha256": "c669a73781f28bb8fd1a5521f284c24f47bbe9595ad12f95ad9c47c27c809c29",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S15-P03_rollback.json": {
+      "sha256": "6761c0afe059c562d2147c0d1c731e3b9dc52f1d5dd6c71da08195554c99e258",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S15-P04.json": {
+      "sha256": "3fd288e66d3c473881dc92257992eb41b85422a5c0aaa92f1ff00e202a15feda",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S15-P04_rollback.json": {
+      "sha256": "3d44192dc0724a4414608e4f2bd5363f5082ee041bb0d3e5c43ea835b36e5a13",
+      "status": "PASS"
+    },
+    "machine/evidence/S15/STAGE_REVIEW/findings.json": {
+      "sha256": "e911995e7e17e2cba30df669b5f7575b3df685935f525b899d34f820bb57297a",
+      "status": "PASS"
+    },
+    "machine/facts/stage15_review_contract.json": {
+      "sha256": "299e60beeb1e557b03cf0dc7545d9c24421fbfe1c56b64d5a60daf9c2aac91b5",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S15_STAGE_REVIEW.json": {
+      "sha256": "3eaa707328a42beecb425da756083b1fa90b74c13414a372a7d67d68429ff6cb",
+      "status": "PASS"
+    },
+    "property_tests.json": {
+      "sha256": "be82dd1473627c080f1565ee2d9116f6e1ca4ebaae75b67aab56581731d8d174",
+      "status": "PASS"
+    },
+    "schema_tests.json": {
+      "sha256": "24913c321fbaef507541b4e9284edcf083f941fe572ae46620bbf1e715faf111",
+      "status": "PASS"
+    },
+    "software_gate.json": {
+      "sha256": "2a610b254e32b773f6ea7299151d584549550868757a352bd6b94517f0beaf8e",
+      "status": "PASS"
+    },
+    "tests/S15/stage_review_test.py": {
+      "sha256": "8b57494f7f5ca26cddf36b0e5b89f4aca9f4e82e749b3085a2f4153c1d4c99bd",
+      "status": "PASS"
+    },
+    "traceability_validator.py": {
+      "sha256": "84e523af17592a70bba09388a3de3a1c84e024130fb617ad070d2b8ffe531c69",
+      "status": "PASS"
+    },
+    "unit_tests.json": {
+      "sha256": "688067381ddc749ad82388bc307522700bdb8331f12cf05fb1f0849ef369d125",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "STAGE-REVIEW-S15",
+  "database_state_changed": false,
+  "evidence_id": "EVD-S15-STAGE-REVIEW-ROLLBACK",
+  "external_state_changed": false,
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "CLOSE_S15_REVIEW_CANDIDATE_PRESERVE_SIGNED_PHASE_EVIDENCE_NO_EXTERNAL_MUTATION",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}
