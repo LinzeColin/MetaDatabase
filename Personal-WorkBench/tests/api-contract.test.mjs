@@ -129,9 +129,9 @@ test("sensitive cloud paths gate storage before normal API persistence", async (
   );
 });
 
-test("storage health probe is verified-session-only and data-free", async () => {
+test("storage check is verified-session-only and data-free", async () => {
   const [route, helper] = await Promise.all([
-    readFile("app/api/mydairy/storage-health/route.ts", "utf8"),
+    readFile("app/storage-check/route.ts", "utf8"),
     readFile("server/storage/binding-health.ts", "utf8"),
   ]);
   const handler = route.slice(route.indexOf("export async function GET"));
