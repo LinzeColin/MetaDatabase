@@ -1,0 +1,255 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S13-P02-VISIBLE-QUOTE-CHECK",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_VISIBLE_PAGE_NO_NETWORK",
+  "claim_boundary": {
+    "actual_market_or_odds_observed": false,
+    "automatic_platform_open_performed": false,
+    "browser_extension_installed_or_executed": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_account_accessed": false,
+    "real_time_soak_waited": false
+  },
+  "ticket": {
+    "schema_version": "1.0.0",
+    "ticket_id": "S13-P02-TICKET-ALPHA",
+    "synthetic_test_only": true,
+    "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+    "event_id": "EVENT-SYNTH-ALPHA-001",
+    "market_id": "MARKET-SYNTH-WINNER",
+    "selection_id": "SELECTION-SYNTH-ALPHA",
+    "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "provider_contracts_sha256": "a9d0fd864fad7ac4c14ec6a324d447abbc8497b256a232f9ca04b3115b15364a",
+    "minimum_odds": "2.200000",
+    "advice_expires_at": "2026-08-09T00:01:00+10:00",
+    "risk_feature_required": true,
+    "open_mode": "COPY_INSTRUCTION_ONLY_NO_AUTO_OPEN",
+    "copy_instruction_zh": "在已选平台的当前页面核对赛事、盘口、选择、赔率和剩余可用时间；全部绿色后仅由你自行完成最终下单。"
+  },
+  "cases": [
+    {
+      "case_id": "M01-GREEN-EXACT-MINIMUM",
+      "snapshot": {
+        "schema_version": "1.0.0",
+        "snapshot_id": "S13-P02-SNAPSHOT-GREEN",
+        "input_mode": "FROZEN_SYNTHETIC_VISIBLE_PAGE_NO_NETWORK",
+        "synthetic_test_only": true,
+        "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+        "event_id": "EVENT-SYNTH-ALPHA-001",
+        "market_id": "MARKET-SYNTH-WINNER",
+        "selection_id": "SELECTION-SYNTH-ALPHA",
+        "current_odds": "2.200000",
+        "observed_at": "2026-08-09T00:00:40+10:00",
+        "risk_feature_enabled": true,
+        "visible_fields_complete": true
+      },
+      "expected_status": "GREEN_READY_FOR_OWNER_FINAL_ORDER",
+      "expected_failed_gate_ids": [],
+      "expected_action": "OWNER_FINAL_ORDER_MANUAL_ONLY"
+    },
+    {
+      "case_id": "M02-ODDS-ONE-TICK-BELOW",
+      "snapshot": {
+        "schema_version": "1.0.0",
+        "snapshot_id": "S13-P02-SNAPSHOT-ODDS-TICK",
+        "input_mode": "FROZEN_SYNTHETIC_VISIBLE_PAGE_NO_NETWORK",
+        "synthetic_test_only": true,
+        "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+        "event_id": "EVENT-SYNTH-ALPHA-001",
+        "market_id": "MARKET-SYNTH-WINNER",
+        "selection_id": "SELECTION-SYNTH-ALPHA",
+        "current_odds": "2.199999",
+        "observed_at": "2026-08-09T00:00:40+10:00",
+        "risk_feature_enabled": true,
+        "visible_fields_complete": true
+      },
+      "expected_status": "RED_REVOKE_DO_NOT_ORDER",
+      "expected_failed_gate_ids": ["CURRENT_ODDS_BELOW_MINIMUM"],
+      "expected_action": "DO_NOT_ORDER"
+    },
+    {
+      "case_id": "M03-ODDS-POINT-0001-BELOW",
+      "snapshot": {
+        "schema_version": "1.0.0",
+        "snapshot_id": "S13-P02-SNAPSHOT-ODDS-POINT-0001-BELOW",
+        "input_mode": "FROZEN_SYNTHETIC_VISIBLE_PAGE_NO_NETWORK",
+        "synthetic_test_only": true,
+        "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+        "event_id": "EVENT-SYNTH-ALPHA-001",
+        "market_id": "MARKET-SYNTH-WINNER",
+        "selection_id": "SELECTION-SYNTH-ALPHA",
+        "current_odds": "2.199900",
+        "observed_at": "2026-08-09T00:00:40+10:00",
+        "risk_feature_enabled": true,
+        "visible_fields_complete": true
+      },
+      "expected_status": "RED_REVOKE_DO_NOT_ORDER",
+      "expected_failed_gate_ids": ["CURRENT_ODDS_BELOW_MINIMUM"],
+      "expected_action": "DO_NOT_ORDER"
+    },
+    {
+      "case_id": "M04-ODDS-POINT-0001-ABOVE",
+      "snapshot": {
+        "schema_version": "1.0.0",
+        "snapshot_id": "S13-P02-SNAPSHOT-ODDS-POINT-0001-ABOVE",
+        "input_mode": "FROZEN_SYNTHETIC_VISIBLE_PAGE_NO_NETWORK",
+        "synthetic_test_only": true,
+        "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+        "event_id": "EVENT-SYNTH-ALPHA-001",
+        "market_id": "MARKET-SYNTH-WINNER",
+        "selection_id": "SELECTION-SYNTH-ALPHA",
+        "current_odds": "2.200100",
+        "observed_at": "2026-08-09T00:00:40+10:00",
+        "risk_feature_enabled": true,
+        "visible_fields_complete": true
+      },
+      "expected_status": "GREEN_READY_FOR_OWNER_FINAL_ORDER",
+      "expected_failed_gate_ids": [],
+      "expected_action": "OWNER_FINAL_ORDER_MANUAL_ONLY"
+    },
+    {
+      "case_id": "M05-EVENT-IDENTITY-MISMATCH",
+      "snapshot": {
+        "schema_version": "1.0.0",
+        "snapshot_id": "S13-P02-SNAPSHOT-EVENT-MISMATCH",
+        "input_mode": "FROZEN_SYNTHETIC_VISIBLE_PAGE_NO_NETWORK",
+        "synthetic_test_only": true,
+        "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+        "event_id": "EVENT-SYNTH-BETA-002",
+        "market_id": "MARKET-SYNTH-WINNER",
+        "selection_id": "SELECTION-SYNTH-ALPHA",
+        "current_odds": "2.200000",
+        "observed_at": "2026-08-09T00:00:40+10:00",
+        "risk_feature_enabled": true,
+        "visible_fields_complete": true
+      },
+      "expected_status": "RED_REVOKE_DO_NOT_ORDER",
+      "expected_failed_gate_ids": ["EVENT_IDENTITY_MISMATCH"],
+      "expected_action": "DO_NOT_ORDER"
+    },
+    {
+      "case_id": "M06-MARKET-AND-SELECTION-MISMATCH",
+      "snapshot": {
+        "schema_version": "1.0.0",
+        "snapshot_id": "S13-P02-SNAPSHOT-MARKET-SELECTION-MISMATCH",
+        "input_mode": "FROZEN_SYNTHETIC_VISIBLE_PAGE_NO_NETWORK",
+        "synthetic_test_only": true,
+        "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+        "event_id": "EVENT-SYNTH-ALPHA-001",
+        "market_id": "MARKET-SYNTH-TOTAL",
+        "selection_id": "SELECTION-SYNTH-BETA",
+        "current_odds": "2.200000",
+        "observed_at": "2026-08-09T00:00:40+10:00",
+        "risk_feature_enabled": true,
+        "visible_fields_complete": true
+      },
+      "expected_status": "RED_REVOKE_DO_NOT_ORDER",
+      "expected_failed_gate_ids": ["MARKET_IDENTITY_MISMATCH", "SELECTION_IDENTITY_MISMATCH"],
+      "expected_action": "DO_NOT_ORDER"
+    },
+    {
+      "case_id": "M07-VISIBLE-FIELDS-UNAVAILABLE",
+      "snapshot": {
+        "schema_version": "1.0.0",
+        "snapshot_id": "S13-P02-SNAPSHOT-FIELDS-UNAVAILABLE",
+        "input_mode": "FROZEN_SYNTHETIC_VISIBLE_PAGE_NO_NETWORK",
+        "synthetic_test_only": true,
+        "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+        "event_id": "EVENT-SYNTH-ALPHA-001",
+        "market_id": "MARKET-SYNTH-WINNER",
+        "selection_id": "SELECTION-SYNTH-ALPHA",
+        "current_odds": "2.200000",
+        "observed_at": "2026-08-09T00:00:40+10:00",
+        "risk_feature_enabled": true,
+        "visible_fields_complete": false
+      },
+      "expected_status": "RED_REVOKE_DO_NOT_ORDER",
+      "expected_failed_gate_ids": ["VISIBLE_FIELDS_UNAVAILABLE"],
+      "expected_action": "DO_NOT_ORDER"
+    },
+    {
+      "case_id": "M08-RISK-DISABLED",
+      "snapshot": {
+        "schema_version": "1.0.0",
+        "snapshot_id": "S13-P02-SNAPSHOT-RISK-DISABLED",
+        "input_mode": "FROZEN_SYNTHETIC_VISIBLE_PAGE_NO_NETWORK",
+        "synthetic_test_only": true,
+        "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+        "event_id": "EVENT-SYNTH-ALPHA-001",
+        "market_id": "MARKET-SYNTH-WINNER",
+        "selection_id": "SELECTION-SYNTH-ALPHA",
+        "current_odds": "2.200000",
+        "observed_at": "2026-08-09T00:00:40+10:00",
+        "risk_feature_enabled": false,
+        "visible_fields_complete": true
+      },
+      "expected_status": "RED_REVOKE_DO_NOT_ORDER",
+      "expected_failed_gate_ids": ["RISK_FEATURE_DISABLED"],
+      "expected_action": "DO_NOT_ORDER"
+    },
+    {
+      "case_id": "M09-EXPIRED-AT-BOUNDARY",
+      "snapshot": {
+        "schema_version": "1.0.0",
+        "snapshot_id": "S13-P02-SNAPSHOT-EXPIRED",
+        "input_mode": "FROZEN_SYNTHETIC_VISIBLE_PAGE_NO_NETWORK",
+        "synthetic_test_only": true,
+        "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+        "event_id": "EVENT-SYNTH-ALPHA-001",
+        "market_id": "MARKET-SYNTH-WINNER",
+        "selection_id": "SELECTION-SYNTH-ALPHA",
+        "current_odds": "2.200000",
+        "observed_at": "2026-08-09T00:01:00+10:00",
+        "risk_feature_enabled": true,
+        "visible_fields_complete": true
+      },
+      "expected_status": "RED_REVOKE_DO_NOT_ORDER",
+      "expected_failed_gate_ids": ["ADVICE_EXPIRED"],
+      "expected_action": "DO_NOT_ORDER"
+    },
+    {
+      "case_id": "M10-GREEN-ONE-SECOND-LEFT",
+      "snapshot": {
+        "schema_version": "1.0.0",
+        "snapshot_id": "S13-P02-SNAPSHOT-ONE-SECOND-LEFT",
+        "input_mode": "FROZEN_SYNTHETIC_VISIBLE_PAGE_NO_NETWORK",
+        "synthetic_test_only": true,
+        "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+        "event_id": "EVENT-SYNTH-ALPHA-001",
+        "market_id": "MARKET-SYNTH-WINNER",
+        "selection_id": "SELECTION-SYNTH-ALPHA",
+        "current_odds": "2.200000",
+        "observed_at": "2026-08-09T00:00:59+10:00",
+        "risk_feature_enabled": true,
+        "visible_fields_complete": true
+      },
+      "expected_status": "GREEN_READY_FOR_OWNER_FINAL_ORDER",
+      "expected_failed_gate_ids": [],
+      "expected_action": "OWNER_FINAL_ORDER_MANUAL_ONLY"
+    }
+  ],
+  "adverse_scenarios": [
+    {
+      "scenario_id": "ADVERSE-ODDS-ONE-TICK",
+      "base_case_id": "M01-GREEN-EXACT-MINIMUM",
+      "odds_down_ticks": 1,
+      "seconds_later": 0,
+      "expected_status": "RED_REVOKE_DO_NOT_ORDER",
+      "expected_failed_gate_ids": ["CURRENT_ODDS_BELOW_MINIMUM"]
+    },
+    {
+      "scenario_id": "ADVERSE-TIME-PLUS-TWO-SECONDS",
+      "base_case_id": "M10-GREEN-ONE-SECOND-LEFT",
+      "odds_down_ticks": 0,
+      "seconds_later": 2,
+      "expected_status": "RED_REVOKE_DO_NOT_ORDER",
+      "expected_failed_gate_ids": ["ADVICE_EXPIRED"]
+    }
+  ]
+}
