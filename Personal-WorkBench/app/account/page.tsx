@@ -147,7 +147,9 @@ useEffect(() => {
     try {
       const response = await fetch("/api/auth/sign-out", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
+        body: JSON.stringify({}),
       });
       if (!response.ok) {
         setMessage("退出登录失败，请稍后再试。");

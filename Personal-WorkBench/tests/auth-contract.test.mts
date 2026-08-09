@@ -258,7 +258,9 @@ test("account sign-out uses the Better Auth same-origin endpoint and returns to 
 
   assert.match(signOutSection, /fetch\("\/api\/auth\/sign-out"/);
   assert.match(signOutSection, /method: "POST"/);
+  assert.match(signOutSection, /headers: \{ "Content-Type": "application\/json" \}/);
   assert.match(signOutSection, /credentials: "same-origin"/);
+  assert.match(signOutSection, /body: JSON\.stringify\(\{\}\)/);
   assert.match(accountPage, /window\.location\.assign\("\/auth\/sign-in\?signed_out=1"\)/);
   assert.match(accountPage, />退出登录</);
   assert.match(authForm, /searchParams\.get\("signed_out"\) === "1"/);
