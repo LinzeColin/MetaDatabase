@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-HOST-BUNDLE",
+  "product_version": "0.0.0.1",
+  "purpose": "Stage a non-secret ABD host bundle without activating any runtime service.",
+  "inputs": {
+    "required_stage_files": [
+      "config.json",
+      "runtime.env",
+      "infra/compose.yml"
+    ],
+    "canonical_service_definition": "infra/systemd/abd.service",
+    "oci_image_must_already_be_loaded_by_digest": true,
+    "runtime_config_must_keep_activation_requested_false": true
+  },
+  "host_paths": {
+    "config": "/etc/abd",
+    "state": "/var/lib/abd",
+    "logs": "/var/log/abd",
+    "secrets": "/etc/abd/secrets",
+    "releases": "/opt/abd/releases"
+  },
+  "capacity_gate": {
+    "actual_host_capacity_must_not_be_represented_as_verified_without_direct_evidence": true,
+    "declared_target_status": "DECLARED_TARGET_NOT_ACCOUNT_VERIFIED",
+    "activation_requires_verified_host_capacity_and_swap_boundary": true
+  },
+  "forbidden_effects": {
+    "boolean_semantics": "A true value means the named effect is forbidden in this phase, not that it was performed.",
+    "create_runtime_secret_file": true,
+    "create_current_release_symlink": true,
+    "install_systemd_unit": true,
+    "reload_or_start_systemd_service": true,
+    "configure_cloudflared_or_cloudflare": true,
+    "connect_database_market_tab_gmail_or_account": true,
+    "recommendation_generated_or_enabled": true,
+    "order_submission_enabled": true,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "next_gate": "A later independent phase must independently re-check capacity and swap, prepare an exact canonical release, create the required runtime secret file, install the frozen service definition, and run a bounded startup probe before any Cloudflare configuration."
+}

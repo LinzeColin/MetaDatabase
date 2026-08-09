@@ -103,3 +103,17 @@ def test_runtime_build_sources_pin_the_reviewed_amd64_base_image() -> None:
     assert "--pull=false" in script
     assert "--network=none" in script
     assert contract["base_image"]["resolved_reference"] == BASE_IMAGE
+
+
+def test_host_bundle_contract_and_candidate_unit_do_not_activate_runtime() -> None:
+    contract = json.loads((RUNTIME / "host_bundle_contract.json").read_text(encoding="utf-8"))
+    script = (RUNTIME / "provision_host_bundle.sh").read_text(encoding="utf-8")
+
+    assert contract["capacity_gate"]["declared_target_status"] == "DECLARED_TARGET_NOT_ACCOUNT_VERIFIED"
+    assert "true value means the named effect is forbidden" in contract["forbidden_effects"]["boolean_semantics"]
+    assert contract["inputs"]["canonical_service_definition"] == "infra/systemd/abd.service"
+    assert contract["forbidden_effects"]["reload_or_start_systemd_service"] is True
+    assert "systemctl" not in script
+    assert "/opt/abd/current" not in script
+    assert "cloudflared" not in script
+    assert "abd-runtime.service" not in script
