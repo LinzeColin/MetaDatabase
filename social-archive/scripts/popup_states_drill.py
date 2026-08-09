@@ -217,8 +217,36 @@ async def run(chrome: str) -> int:
                         got = await rpc("Runtime.evaluate",
                                         {"expression": READ, "returnByValue": True})
                         measured[label] = json.loads(got["result"]["result"]["value"])
-                    urllib.request.urlopen(urllib.request.Request(
-                        base + "/json/close/" + pages[0]["id"]), timeout=10).read()
+                    if label == "连着":
+                        # ── 「同步进度」那颗按钮真的打得开侧边栏吗（2026-08-10）──
+                        #
+                        # `chrome.sidePanel.open()` 和 `permissions.request` 是同一条
+                        # 规矩：要用户手势，**而手势不跨 sendMessage**。原来这颗按钮
+                        # 是把事情发给 background 去做，在真 Chrome 里量到 service
+                        # worker 处理带手势发出的消息时照样抛
+                        # 「may only be called in response to a user gesture」。
+                        #
+                        # **判据不能看「弹窗关掉了没有」**：修复前那种写法是
+                        # `.then(() => window.close())`，background 抛没抛它都关，
+                        # 于是反例和正例都会报「开了」——我第一版就是这么写的。
+                        # 唯一算数的信号是 **sidepanel.html 这个 target 出没出现**。
+                        async with websockets.connect(pages[0]["webSocketDebuggerUrl"],
+                                                      max_size=None) as ws:
+                            rpc = await _rpc_factory(ws)
+                            await rpc("Runtime.enable")
+                            await rpc("Runtime.evaluate", {
+                                "expression": 'document.getElementById("taskCenter")?.click()',
+                                "userGesture": True, "returnByValue": True, "timeout": 8000})
+                        await asyncio.sleep(2.5)
+                        opened = [t.get("url") for t in json.loads(
+                            urllib.request.urlopen(base + "/json", timeout=5).read())
+                            if "sidepanel.html" in (t.get("url") or "")]
+                        measured["同步进度按钮"] = {"sidepanel_targets": opened}
+                    for target in json.loads(
+                            urllib.request.urlopen(base + "/json", timeout=5).read()):
+                        if target.get("id") == pages[0]["id"]:
+                            urllib.request.urlopen(urllib.request.Request(
+                                base + "/json/close/" + pages[0]["id"]), timeout=10).read()
                     await asyncio.sleep(0.5)
     finally:
         server.shutdown()
@@ -267,6 +295,15 @@ async def run(chrome: str) -> int:
                     "他看到的是内部值，不是人话")
         if "条内容" not in live.get("title", ""):
             problems.append(f"连着的时候不报条数：{live.get('title')!r}")
+        # **「同步进度」那颗按钮真的打得开侧边栏吗。**「没量到」不算通过。
+        panel = measured.get("同步进度按钮")
+        if panel is None:
+            problems.append("**没量到「同步进度」那颗按钮会怎样**——这不是通过，是没跑到")
+        elif not panel.get("sidepanel_targets"):
+            problems.append(
+                "**点「同步进度」没打开侧边栏**——`chrome.sidePanel.open()` 要用户手势，"
+                "而手势不跨 sendMessage。把它交给 background 就是这个结果，"
+                "而且弹窗照样会关掉，所以他看到的是「点了没反应」")
 
     report = {
         "status": "PASS" if not problems else "FAIL",

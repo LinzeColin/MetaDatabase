@@ -18,6 +18,11 @@
       "copy": "首次全量之后，只同步新增的那些。",
       "button": "立即同步全部账号",
       "accounts": "小 我 1 条 · 同步时间没有记录 已连接 抖 我的 86 条 · 同步时间没有记录 已连接 B B站账号 103 条 · 同步时间没有记录 已连接"
+    },
+    "同步进度按钮": {
+      "sidepanel_targets": [
+        "chrome-extension://oohijkbnibacojimjgfoklbjedkcklla/sidepanel.html"
+      ]
     }
   },
   "problems": [],

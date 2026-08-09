@@ -44,6 +44,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+from js_source import code_only                              # noqa: E402
+
 EXT = ROOT / "apps/browser-extension"
 BACKGROUND = EXT / "background.js"
 # 界面侧 = **除 background.js 外的一切**，不是一张写死的名单。
@@ -80,11 +83,17 @@ def _uses(text: str, name: str) -> int:
 
 def main() -> int:
     problems: list[dict] = []
-    background = BACKGROUND.read_text(encoding="utf-8")
+    # **注释里提一句不算接线**（2026-08-10）。
+    #
+    # 我把走不通的 `SA_OPEN_TASK_CENTER` 删掉，并在注释里写清「原来两处都是
+    # `chrome.runtime.sendMessage({type:"SA_OPEN_TASK_CENTER"})`」，
+    # 这道门当场报「界面会发它、background 接不住」。
+    # **一道逼人删掉解释性注释的判据，比没有这道判据更坏。**
+    background = code_only(BACKGROUND)
     senders = sorted({path for pattern in SENDER_GLOBS for path in ROOT.glob(pattern)
                       if path.is_file() and path != BACKGROUND})
-    frontend_text = "\n".join(path.read_text(encoding="utf-8") for path in senders)
-    ui_text = (EXT / "options.js").read_text(encoding="utf-8")
+    frontend_text = "\n".join(code_only(path) for path in senders)
+    ui_text = code_only(EXT / "options.js")
 
     # ---- 1. 没人调的函数 -------------------------------------------------
     for source, text in (("background.js", background), ("options.js", ui_text)):

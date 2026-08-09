@@ -247,6 +247,38 @@
     return serviceConnected;
   }
 
+  /** 打开侧边栏（同步进度／任务中心）——**必须在这一页里调**（2026-08-10）。
+   *
+   * 原来两处都是 `chrome.runtime.sendMessage({type:"SA_OPEN_TASK_CENTER"})`，
+   * 由 background 去调 `chrome.sidePanel.open`。而它和
+   * `chrome.permissions.request` 是同一条规矩：**要用户手势，而手势不跨
+   * sendMessage**。今天用发布包里那个扩展在真 Chrome 里量了三次：
+   *
+   *   service worker 里直接调                       抛「`sidePanel.open()` may only be
+   *                                                  called in response to a user gesture.」
+   *   service worker 处理**带手势发出的消息**时调     照样抛（Chrome 不特判 onMessage）
+   *   在页面里调（中间还隔一次 await 拿 windowId）    ok
+   *
+   * 对照：同一个 service worker 里 `setPanelBehavior()`（不需要手势）是成功的，
+   * 所以不是无头浏览器不支持侧边栏。
+   *
+   * 而原来这两处 `await sendMessage(...)` 之后**直接 `window.close()`，
+   * 连返回值都不看**——所以他看到的是「点了没反应」。
+   *
+   * **打不开就不要关窗**：关掉之后那句话他也读不到。
+   */
+  async function openTaskCenter() {
+    try {
+      const win = await chrome.windows.getCurrent();
+      await chrome.sidePanel.open({ windowId: win.id });
+      window.close();
+      return true;
+    } catch (error) {
+      showStatus(`打不开同步进度：${error?.message || "未知原因"}`, "error");
+      return false;
+    }
+  }
+
   async function syncAll() {
     const serviceConnected = await refresh();
     if (!serviceConnected) {
@@ -261,8 +293,10 @@
     }
     const active = runs.some(run => ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(run.status));
     if (active) {
-      await chrome.runtime.sendMessage({ type: "SA_OPEN_TASK_CENTER" });
-      window.close();
+      // **这里的手势可能已经过期**：上面 `await refresh()` 是一次网络往返，
+      // 而 Chrome 的瞬时手势只有几秒。过期了 openTaskCenter 会说出来，
+      // 而不是像原来那样静静把弹窗关掉。
+      await openTaskCenter();
       return;
     }
     setBusy(true);
@@ -475,7 +509,7 @@
   $("settings").addEventListener("click", () => chrome.runtime.openOptionsPage());
   $("manageDestinations").addEventListener("click", () => chrome.runtime.openOptionsPage());
   $("savePage").addEventListener("click", runCapture);
-  $("taskCenter").addEventListener("click", () => chrome.runtime.sendMessage({ type: "SA_OPEN_TASK_CENTER" }).then(() => window.close()));
+  $("taskCenter").addEventListener("click", openTaskCenter);
   $("openLibrary").addEventListener("click", async () => chrome.tabs.create({ url: (await SA.getConfig()).libraryUrl }));
 
   Promise.all([refresh(), initCurrentPage()]).catch(error => showStatus(error?.message || "插件初始化失败", "error"));

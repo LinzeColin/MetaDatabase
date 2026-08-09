@@ -39,11 +39,15 @@
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "scripts"))
+from js_source import code_only                              # noqa: E402
+
 EXT = ROOT / "apps/browser-extension"
 
 # 有用户手势的上下文：它们是**页面**，`chrome.permissions.request` 在那儿是对的写法。
@@ -59,25 +63,14 @@ def _js_files() -> list[Path]:
 
 
 def _code(path: Path) -> str:
-    """**只留代码**，把整行注释剔掉；行数保持不变，好报准位置。
+    """**只留代码**，整行注释剔掉。
 
-    第一版没剔：`bridge.js` 里有一整段解释「内容脚本里根本没有 permissions
-    API」的注释，被判成了违规；我自己刚写进 background.js 的那几行注释也是。
-    这个仓两边都栽过——注释让文案判据错绿，也能让结构判据错红。
+    第一版是我自己抄的一份：`bridge.js` 里一整段解释「内容脚本里根本没有
+    permissions API」的注释被判成了违规。同一天 `check_no_mechanism_is_
+    unreachable.py` 也栽在同一件事上（注释里的 sendMessage 被当成真发送）。
+    抄成三份的那天三份会各自漂，所以统一走 `scripts/js_source.py`。
     """
-    kept, block = [], False
-    for line in path.read_text(encoding="utf-8").splitlines():
-        stripped = line.lstrip()
-        if block:
-            kept.append("")
-            block = "*/" not in stripped
-            continue
-        if stripped.startswith("/*"):
-            kept.append("")
-            block = "*/" not in stripped
-            continue
-        kept.append("" if stripped.startswith(("//", "*")) else line)
-    return "\n".join(kept)
+    return code_only(path)
 
 
 def test_the_service_worker_has_no_bare_permission_request() -> None:

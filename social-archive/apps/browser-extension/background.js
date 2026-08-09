@@ -2025,11 +2025,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // 删除：SA_GET_SYNC_CONTROL_STATE（读一次暂停/取消标记）。全仓没有发送方。
     // 暂停/取消真正生效的路是编排层每一轮自己查 stopStateFor()，那条还在。
     if (message?.type === "SA_CAPTURE_ACTIVE") return captureActive(message, sender?.tab);
-    if (message?.type === "SA_OPEN_TASK_CENTER") {
-      const tab = await SA.activeTab().catch(() => null);
-      if (tab?.windowId) await chrome.sidePanel.open({ windowId: tab.windowId });
-      return { ok: true };
-    }
+    // 删除：SA_OPEN_TASK_CENTER（打开侧边栏）。**它结构上就走不通**：
+    // `chrome.sidePanel.open()` 要用户手势，而**手势不跨 sendMessage**——
+    // 2026-08-10 在真 Chrome 里量过，service worker 处理一条带手势发出的
+    // 消息时调它，照样抛「may only be called in response to a user gesture」。
+    // 而 popup 那两处发完消息就 window.close()，返回值没人看，
+    // 于是他看到的是「点了没反应」。现在由 popup 自己在有手势的那一页里调。
     // 删除：SA_REFRESH_FAB（手动重注浮动按钮）。全仓没有发送方，
     // 而 tabs.onUpdated / onActivated 已经在注了。
     if (message?.type === "SA_WEB_BRIDGE_STATUS") {
