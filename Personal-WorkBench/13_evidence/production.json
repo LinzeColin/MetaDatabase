@@ -68,6 +68,7 @@
     "homepage_login_or_account_entry_visible_in_live_v13": true,
     "reset_password_missing_token_feedback": "PASS_LOCAL_PRE_REQUEST_PREFLIGHT_AND_PRIVATE_VERSION_14_DEPLOY",
     "version_14_cross_surface_habit_mutation_replay": "INCONCLUSIVE_AGENT_TRANSPORT_BOUNDARY_NO_VISIBLE_STATE_CHANGE",
+    "version_17_agent_controlled_chrome_workbench_post_replay": "INCONCLUSIVE_AUTH_AND_READ_PASS_WORKBENCH_POST_TRANSPORT_BOUNDARY_TEST_ACCOUNT_DELETED",
     "ordinary_desktop_browser_private_access_gate": "PASS_AUTHENTICATION_REQUIRED_NO_CONTROLLED_SITE_SESSION",
     "raw_user_records_read": false,
     "test_user_data_written_then_cleaned": true,
@@ -87,7 +88,8 @@
     "password_reset_replay_for_current_version": "PASS_PRIVATE_CURRENT_VERSION",
     "post_reset_email_password_credentials_for_current_version": "PASS_PRIVATE_CURRENT_VERSION",
     "reset_password_missing_token_does_not_issue_request": "PASS_LOCAL_AUTH_CONTRACT",
-    "ordinary_chrome_email_login_replay": "NOT_COMPLETED_NEUTRAL_AUTH_FAILURE_ONE_ATTEMPT",
+    "ordinary_chrome_email_login_replay": "PASS_PRIVATE_VERSION_17_AGENT_CONTROLLED_CHROME_EMAIL_SIGNUP_VERIFY_SIGNIN_NOT_ORDINARY_BROWSER_EVIDENCE",
+    "agent_controlled_chrome_workbench_post_replay": "INCONCLUSIVE_PRIVATE_VERSION_17_TWO_NON_SENSITIVE_ATTEMPTS_NO_VISIBLE_RECORD_TEST_ACCOUNT_DELETED",
     "ordinary_desktop_browser_workbench_replay": "NOT_RUN_NO_CONTROLLED_AUTHENTICATED_DESKTOP_SESSION",
     "negative_password_reset_non_enumeration_replay": "OBSERVED_PRIVATE_VERSION_14_CONTROLLED_ALIAS_NO_MAIL_WITHIN_28_SECONDS",
     "invalid_reset_token_server_rejection_replay": "PASS_PRIVATE_VERSION_17_RENDERED_SERVER_REJECTION",
@@ -128,7 +130,8 @@
     "13_evidence/version_17_signin_guidance_source_transport_boundary.json",
     "13_evidence/private_version_17_signin_guidance_deployment.json",
     "13_evidence/version_16_storage_binding_reconciliation.json",
-    "13_evidence/version_14_controlled_browser_replay.json"
+    "13_evidence/version_14_controlled_browser_replay.json",
+    "13_evidence/version_17_agent_controlled_chrome_workbench_post_replay.json"
   ],
   "product_pass_claimed": false,
   "final_acceptance_claimed": false,
@@ -138,5 +141,5 @@
     "physical second-device history readback and direct D1/R2 reconciliation",
     "negative provider delivery replay under current Version 17 (invalid-token recovery rejection replay is current)"
   ],
-  "notes": "This record contains private control-plane and rendered-UI facts only. Version 17 privately deploys the shared workbench data-client repair that gives an actionable sign-in path when browser request transport is uncertain, without claiming that a record was saved. Its source was restored through a tree-identical isolated full-object projection after a historical partial-projection transport failure; source, archive and saved-version provenance were read back. The site remains active/owner/custom with one allowed user, zero groups, zero external visitors and environment revision 8. A Version 17 rendered nonempty-invalid-token replay reached the neutral invalid-or-expired recovery result without claiming password update or service unavailability; its temporary input was cleared before tab closure, and it neither proves provider delivery behavior nor reads user data. No runtime setting, access policy, D1/R2 resource, user record or public audience changed. Historical Version 9 email, A/B tenant isolation and separate-session history evidence remains scoped to its controlled test records and cleanup; Version 14 browser observations remain an agent-transport boundary; Version 15 and Version 16 retain their own deployment and rollback evidence. None of these private facts proves an ordinary-browser authenticated mutation, physical second-device history, direct D1/R2 reconciliation, public launch eligibility or final product acceptance."
+  "notes": "This record contains private control-plane and rendered-UI facts only. Version 17 privately deploys the shared workbench data-client repair that gives an actionable sign-in path when browser request transport is uncertain, without claiming that a record was saved. Its source was restored through a tree-identical isolated full-object projection after a historical partial-projection transport failure; source, archive and saved-version provenance were read back. The site remains active/owner/custom with one allowed user, zero groups, zero external visitors and environment revision 8. A Version 17 rendered nonempty-invalid-token replay reached the neutral invalid-or-expired recovery result without claiming password update or service unavailability; its temporary input was cleared before tab closure, and it neither proves provider delivery behavior nor reads user data. A separate Version 17 Chrome extension-controlled replay completed fresh email auth, verified-session account reads and test-account deletion, while two workbench habit POST attempts still fell into the browser fetch-exception UI without a visible record; this is a constrained agent-browser transport observation, not an ordinary end-user, Worker, D1/R2, or Better Auth verdict. No runtime setting, access policy, D1/R2 resource, user record or public audience changed. Historical Version 9 email, A/B tenant isolation and separate-session history evidence remains scoped to its controlled test records and cleanup; Version 14 browser observations remain an agent-transport boundary; Version 15 and Version 16 retain their own deployment and rollback evidence. None of these private facts proves an ordinary-browser authenticated mutation, physical second-device history, direct D1/R2 reconciliation, public launch eligibility or final product acceptance."
 }

@@ -65,3 +65,20 @@ test("invalid reset replay evidence does not retain temporary reset material", a
   assert.equal(serialized.includes("Bearer "), false);
   assert.equal(serialized.includes("Pwb!"), false);
 });
+
+test("Version 17 Chrome transport evidence retains no controlled-account material", async () => {
+  const evidence = JSON.parse(
+    await readFile(new URL("../13_evidence/version_17_agent_controlled_chrome_workbench_post_replay.json", import.meta.url), "utf8"),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.cleanup.test_account_deletion_confirmed, true);
+  assert.equal(evidence.cleanup.temporary_credentials_and_mail_references_cleared, true);
+  assert.equal(evidence.cleanup.temporary_browser_tabs_finalized, true);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+  assert.equal(serialized.includes("Pwb!"), false);
+});
