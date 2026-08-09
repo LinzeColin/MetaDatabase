@@ -1,5 +1,5 @@
 {
-  "file_count": 1093,
+  "file_count": 1097,
   "files": [
     {
       "bytes": 25,
@@ -17,9 +17,9 @@
       "sha256": "a1b6d13afea6f383061d2d3405efe2f2d8f4867fbb08a5edf0e53415c16a239a"
     },
     {
-      "bytes": 116772,
+      "bytes": 118355,
       "path": "HANDOFF.md",
-      "sha256": "d147d62782be9c450fcddeeab85d444976e9edea34c267c8e404d3d8a99dc031"
+      "sha256": "10c9ab32a31d4da62741a38a3182397a5bf0e03eaa2b326412fa5995da17e014"
     },
     {
       "bytes": 643,
@@ -4637,9 +4637,19 @@
       "sha256": "749569f373742b5ee02aec7b3ce4307d14c9e2359651817e82755e42f17f3a0f"
     },
     {
-      "bytes": 1775,
+      "bytes": 2179,
       "path": "runtime/host_bundle_contract.json",
-      "sha256": "b4884d0ff461538a4ee91ca19ff28dc52535cf2e8ba0367c26b354542dad5fbb"
+      "sha256": "1ddc1833cbba09bb46dd8382996c530bc0658c0d573c03a559c39d7073d3d7d7"
+    },
+    {
+      "bytes": 5643,
+      "path": "runtime/host_capacity_gate.py",
+      "sha256": "975fb0040b1ac3592b72707faa399eb4bc0f179f91d65a2df0d6aa456f7183c6"
+    },
+    {
+      "bytes": 945,
+      "path": "runtime/install_host_capacity_gate.sh",
+      "sha256": "5fadc7fe3e0d50bba3682c237f30c4066b29ab402e7cb9c6836087050c59224d"
     },
     {
       "bytes": 1941,
@@ -4650,6 +4660,16 @@
       "bytes": 1506,
       "path": "runtime/release_contract.json",
       "sha256": "c7d22cac8facd371b2b111f0ff258877d037e6c4f0a9dbd2bd81d450a1085d1e"
+    },
+    {
+      "bytes": 64,
+      "path": "runtime/systemd/10-host-capacity-gate.conf",
+      "sha256": "bbb89523453251b389e044b4043802237860f2300941e47e16fcc07b27bed83a"
+    },
+    {
+      "bytes": 3973,
+      "path": "runtime_tests/test_host_capacity_gate.py",
+      "sha256": "49c18edc05071726ee9574a1d537fe3ed6e341784666e24e0712b3ba3e4a383f"
     },
     {
       "bytes": 5506,

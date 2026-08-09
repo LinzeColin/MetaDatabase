@@ -25,6 +25,16 @@
     "declared_target_status": "DECLARED_TARGET_NOT_ACCOUNT_VERIFIED",
     "activation_requires_verified_host_capacity_and_swap_boundary": true
   },
+  "post_freeze_activation_guard": {
+    "script": "runtime/host_capacity_gate.py",
+    "systemd_drop_in": "runtime/systemd/10-host-capacity-gate.conf",
+    "installer": "runtime/install_host_capacity_gate.sh",
+    "minimum_vcpu": 2,
+    "minimum_memory_kib": 4194304,
+    "minimum_physical_disk_bytes": 42949672960,
+    "required_swap_entries": 0,
+    "failure_mode": "FAIL_CLOSED_NO_SERVICE_START"
+  },
   "forbidden_effects": {
     "boolean_semantics": "A true value means the named effect is forbidden in this phase, not that it was performed.",
     "create_runtime_secret_file": true,
