@@ -2,7 +2,7 @@
 
 ## 当前目标
 
-在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11/P01--P04、整个 S11 的本地独立复审和 GitHub 阶段上传均已完成；PR #174 的 CI 修复仍须以远端结果确认。S12/P01--P04 和整个 S12 的本地独立复审均已完成、签名并复现；下一 run 只能进行 S12 整体 GitHub 阶段上传，上传前不再引入新开发变更，上传后仍不得部署或激活生产。
+在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11/P01--P04、整个 S11 的本地独立复审和 GitHub 阶段上传均已完成；S12/P01--P04、整个 S12 的本地独立复审及 GitHub 阶段上传亦已完成、签名并复现。PR #174 的新 S12 远端检查仍为排队或执行中；下一 run 只能读取其远端结果或处理实际失败，仍不得部署或激活生产。
 
 ## 当前状态
 
@@ -13,6 +13,7 @@
 - S12/P03 已本地签名通过：`machine/evidence/EVD-S12-P03.json`（SHA-256 `10ece6229575dc17dfed64e802d734d1ad199df592393b9525552d9f26c04a58`），下一状态为 `S12/P04_READY_NOT_STARTED`。`economics.py` 仅重放 P02 的 4,000 分冻结合成容量和三条固定情景收益带：最高上界为 800 分，仍比月度目标增量 9,000 分短 8,200 分。全部输出同时含区间、置信度与失败概率，但明确为合成敏感性披露，不是市场预测、实际收益、ROI、推荐或订单；新增现金为 A$0，现有资源与机会成本不被重标为零。
 - S12/P04 已本地签名通过：`machine/evidence/EVD-S12-P04.json`（SHA-256 `73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b`），下一状态为 `S12/STAGE_REVIEW_READY_NOT_STARTED`。`target_falsification.py` 固化 90 天/1,000 独立等效信号可行性、6 个完整自然月证伪和 12 个完整自然月实际验证的硬门。当前冻结证据只有 0 个经验观察日和 5 个独立等效信号；合成 6 月/1,000 信号/95% 上界 29.99% 的测试案例仍明确为 `SYNTHETIC_TEST_ONLY_NOT_EMPIRICAL`。因此不宣称可行、证伪或验证；P03 的 8,200 分短缺只报告，绝不放宽阈值、仓位、风险、来源或证据门。
 - S12 整体复审已本地签名通过：`machine/evidence/EVD-S12-STAGE-REVIEW.json`（SHA-256 `c75fee3783bd0d2c432e3442a19d16e1a572ec668f485dda101de5a26cabb0f1`），`STAGE-REVIEW-S12` 为 `90/90 PASS`、`findings.json` 为 `0 total / 0 open`，下一状态为 `S12/GITHUB_STAGE_UPLOAD_READY`。它精确复核四份 Phase receipt/rollback、冻结基线、12 个任务链与目标曲线现金流、相关性容量、合成敏感性、证伪/验证/短缺仅报告四项控制；9 个冻结快照各单次执行，无 Phase 测试套件重跑、全量回归或真实时间 soak。通过不改变 `UNVERIFIED_NOT_GUARANTEED`，也不代表 GitHub 上传、远端 CI、OVH、Cloudflare、市场、账户或生产完成。
+- S12 GitHub 阶段上传已完成：`codex/abd-v0001-s11-p01` 的 S12 五个已签名本地提交已推送到 `origin`，并更新既有 Draft [PR #174](https://github.com/LinzeColin/MetaDatabase/pull/174)（base 为 `main`）。上传后单次即时远端读取显示：一个 `ABD continuous validation / verify` push 检查为 `IN_PROGRESS`，PR 的 `ABD continuous validation / verify` 与 `Dual-Plane Governance / dual-plane` 均为 `QUEUED`。这只证明上传与即时状态，未声称远端 CI 通过、PR 已合并或生产已部署。
 - S11/P01 已本地签名通过：`machine/evidence/EVD-S11-P01.json`（SHA-256 `4bf25a1a68e3078f512a7cbf0992285e2890d62b5284de24eefd750390b7e2f8`），下一状态为 `S11/P02_READY_NOT_STARTED`。`friction.py` 只重放冻结合成的价格恶化、拒绝、结算和操作摩擦；滚动 P95 使用保守 upper-nearest-rank，`effective_friction = max(default, rolling_observed_p95)`。正的合成净期望仍只输出 `NO_ORDER_RESEARCH_ONLY`，不生成建议或订单。
 - S11/P02 已本地签名通过：`machine/evidence/EVD-S11-P02.json`（SHA-256 `59e814b20d237eff982ff763bb3573ba8c129e6817c4c1cf61e273c366bab065`），下一状态为 `S11/P03_READY_NOT_STARTED`。`decision_gate.py` 以 50 位 `Decimal` 固化 E4/E3/E2/E1/E0 证据分层、共同硬门、`o_min=(1+r_min+c_effective)/p_L` 和向上赔率舍入；4 个稳定候选仍仅为 `CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES`，其余 8 个为 `NO_RECOMMENDATION`，不生成推荐、订单或收益保证。
 - S11/P03 已本地签名通过：`machine/evidence/EVD-S11-P03.json`（SHA-256 `c3d0c61870a37e6c8ee3e71650008fdcf23d4bc2da4d1ec9e83e8e846a4b12d4`），下一状态为 `S11/P04_READY_NOT_STARTED`。`platform_router.py` 只对冻结合成 provider ID 以 50 位 `Decimal` 重放 `S_platform = r_L − P_stale − P_settlement − P_minimum_stake − P_action_friction`；仅唯一最高分且全部门通过者才是 `ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES`，并列、来源/结算/动作通道、最低金额、过期、最低赔率和任一不利扰动均失败关闭为 `NO_RECOMMENDATION`。它不生成真实平台、建议、订单或收益保证。
@@ -188,11 +189,11 @@
 
 ## 未解决风险
 
-- S11/P01--P04、整体复审和 GitHub 阶段上传均已完成，但当前 CI 修复尚未获得新的远端结果；本地复审与分支上传不代表远程 CI、合并、发布、OVH、Cloudflare 或生产可用。
-- S12/P01--P04 与整体复审仅完成本地冻结合成验收；它们不代表 S12 GitHub 上传、远端 CI、合并、发布、OVH、Cloudflare、真实市场、真实账户、TAB/Gmail 归档或生产上线完成。
+- S11/P01--P04、整体复审和 GitHub 阶段上传均已完成；其修复后的远端检查曾在较早提交上显示成功，但不能替代或外推至更新后的 S12 提交。
+- S12/P01--P04、整体复审和 GitHub 上传均已完成；S12 的新远端检查在即时快照中仍为 `QUEUED` 或 `IN_PROGRESS`，因此不代表远端 CI、合并、发布、OVH、Cloudflare、真实市场、真实账户、TAB/Gmail 归档或生产上线完成。
 - S08 legacy receipt compatibility 的一条定向重放已 `1 passed`；它只证明既有明确 allow-list 中的当前哈希与四份旧 receipt 可重放，不代表 S08/S12 新的远端 CI、发布或生产状态。
 - 真实市场、真实账户、TAB/Gmail 证据归档、OVH、Cloudflare 与生产上线均未验证、未部署且不应据此推断完成。
 
 ## 下一步
 
-保持 PR #174 的远端 CI 状态与 S12 本地结果彼此独立；不得把 pending 或本地复审结果外推为 CI、合并、部署、OVH、Cloudflare、真实市场、账户或生产上线完成。下一次 run 只进行 S12 GitHub 阶段上传，不启动 S13、不部署；若上传前发现新问题，停止上传并在后续单一修复 run 闭合。保持零新增现金、无真实时间 soak、无全量测试/完整回归。
+保持 PR #174 的远端 CI 状态与 S12 本地结果彼此独立；不得把 pending 或本地复审结果外推为 CI、合并、部署、OVH、Cloudflare、真实市场、账户或生产上线完成。下一次 run 只单次读取 PR #174 的 S12 远端 CI/评审状态；若有实际失败，仅在后续单一修复 run 闭合；若已通过且无新问题，才按 Task Graph 在另一个独立 Phase run 启动 S13/P01。保持零新增现金、无真实时间 soak、无全量测试/完整回归。
