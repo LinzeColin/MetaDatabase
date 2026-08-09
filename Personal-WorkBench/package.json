@@ -44,6 +44,7 @@
     "verify:public-launch": "node scripts/verify-public-launch-preflight.mjs",
     "verify:owner-activation": "node scripts/verify-owner-activation.mjs",
     "verify:ops-projection": "node scripts/verify-ops-projection.mjs",
+    "verify:source-projection": "node scripts/verify-source-projection.mjs",
     "validate:acceptance-sequence": "node scripts/validate-acceptance-sequence-addendum.mjs",
     "test:s2": "npm run db:verify && npm run test:schema && npm run test:auth && npm run test:auth-saved && npm run test:tenant && npm run test:api && npm run test:r2"
   },

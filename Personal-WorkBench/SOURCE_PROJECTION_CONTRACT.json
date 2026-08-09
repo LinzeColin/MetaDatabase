@@ -1,0 +1,67 @@
+{
+  "contract_id": "PWB-S5-SOURCE-PROJECTION-001",
+  "status": "ACTIVE_FOR_PRIVATE_S5_T1_ONLY",
+  "purpose": "When the Sites source repository cannot receive the MetaDatabase parent history, create a deterministic project-root source commit whose Git tree is exactly the frozen Personal-WorkBench subtree.",
+  "authorization_basis": "Owner instruction in this thread: 全部授权 不允许任何block; this contract is limited to source transport compatibility and does not alter product architecture, taskpack requirements, visual truth, public audience, or acceptance thresholds.",
+  "scope": {
+    "allowed": [
+      "deterministically project the frozen Personal-WorkBench subtree into a temporary project-root Git repository",
+      "use the projection commit only as the Sites source commit after every mapping check passes",
+      "record both the MetaDatabase source identity and projection identity in the future real saved_version evidence"
+    ],
+    "prohibited": [
+      "changing product source, UI, assets, taskpack files, Oracle thresholds, or the frozen source subtree",
+      "treating the projection as a product acceptance result",
+      "creating a Sites Version, changing access, configuring Secrets, deploying, or handling user data in this contract phase",
+      "omitting either the MetaDatabase source identity or the projection identity from later evidence"
+    ]
+  },
+  "source": {
+    "repository": "MetaDatabase",
+    "commit": "cf7b156e76376f9e7783b1b1d68f5e8b1f09eb85",
+    "root_tree": "2733e8de41616ea442701da41a7ac35e13d3b978",
+    "project_path": "Personal-WorkBench",
+    "project_tree": "b831d4564fc01352edfa3f5f26020965f3825df4",
+    "tracked_file_count": 293
+  },
+  "projection": {
+    "branch": "main",
+    "parent": null,
+    "tree": "b831d4564fc01352edfa3f5f26020965f3825df4",
+    "commit": "3eaf351c2381c98b5fc49a3ed1c78d4c38e581b7",
+    "author_name": "Personal-WorkBench Source Projection",
+    "author_email": "noreply@local.invalid",
+    "timestamp_utc": "2026-08-09T00:00:00Z",
+    "commit_message_lines": [
+      "source-projection: Personal-WorkBench",
+      "",
+      "MetaDatabase-Commit: cf7b156e76376f9e7783b1b1d68f5e8b1f09eb85",
+      "MetaDatabase-Root-Tree: 2733e8de41616ea442701da41a7ac35e13d3b978",
+      "MetaDatabase-Project-Tree: b831d4564fc01352edfa3f5f26020965f3825df4",
+      "Projection-Schema: PWB-S5-SOURCE-PROJECTION-001"
+    ]
+  },
+  "acceptance": {
+    "validator_command": "npm run verify:source-projection",
+    "required_results": [
+      "source commit and root tree resolve exactly",
+      "source project tree resolves exactly",
+      "archive-to-project-root write-tree equals source.project_tree",
+      "deterministic projection commit equals projection.commit",
+      "projection commit tree equals source.project_tree",
+      "projection commit has no parent",
+      "no remote Sites action occurs during validation"
+    ],
+    "future_saved_version_evidence_must_include": [
+      "source.commit",
+      "source.root_tree",
+      "source.project_tree",
+      "projection.commit",
+      "projection.tree",
+      "archive SHA-256",
+      "Sites Version identity",
+      "private access readback",
+      "no-deploy readback"
+    ]
+  }
+}
