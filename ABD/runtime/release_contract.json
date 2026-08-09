@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-RUNTIME-ARTIFACT",
+  "product_version": "0.0.0.1",
+  "purpose": "Build a portable, non-secret OCI artifact for the ABD observation control plane.",
+  "target": {
+    "platform": "linux/amd64",
+    "host_provider": "OVHcloud",
+    "host_plan": "VPS-1"
+  },
+  "base_image": {
+    "repository": "docker.io/library/python:3.12-alpine",
+    "digest_reference_required": true,
+    "tag_only_reference_allowed": false,
+    "automatic_pull_allowed": false,
+    "automatic_paid_upgrade_allowed": false
+  },
+  "runtime_boundary": {
+    "external_network_accessed_by_runtime": false,
+    "database_accessed_by_runtime": false,
+    "market_tab_gmail_or_account_accessed_by_runtime": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_module_present": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "build_boundary": {
+    "command": "runtime/build_oci.sh <oci-output.tar>",
+    "build_network": "none",
+    "base_image_must_already_be_cached": true,
+    "output_must_not_overwrite_existing_file": true,
+    "production_deployed_or_activated": false
+  },
+  "next_gate": "Transfer a reviewed OCI artifact and a non-secret runtime bundle to the verified host; do not activate recommendations, orders, sources, Gmail, or browser automation."
+}
