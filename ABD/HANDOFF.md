@@ -2,7 +2,7 @@
 
 ## 当前目标
 
-在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11/P01--P04、整个 S11 的本地独立复审和 GitHub 阶段上传均已完成；PR #174 的 CI 修复仍须以远端结果确认。S12/P01--P04 已在本地完成、签名并复现；下一 run 只能进行 S12 整体复审及其发现修复，完成后才可上传。S12 尚未整体复审或上传，仍不得部署或激活生产。
+在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11/P01--P04、整个 S11 的本地独立复审和 GitHub 阶段上传均已完成；PR #174 的 CI 修复仍须以远端结果确认。S12/P01--P04 和整个 S12 的本地独立复审均已完成、签名并复现；下一 run 只能进行 S12 整体 GitHub 阶段上传，上传前不再引入新开发变更，上传后仍不得部署或激活生产。
 
 ## 当前状态
 
@@ -12,6 +12,7 @@
 - S12/P02 已本地签名通过：`machine/evidence/EVD-S12-P02.json`，下一状态为 `S12/P03_READY_NOT_STARTED`。`capacity_model.py` 仅对 8 条冻结合成候选重放已签名 S11 相关簇、5% 簇上限、平台剩余容量和可执行比例：去重后容量从 7,290 分降至 5,090 分，再受平台限额降至 4,000 分；只有 5 个独立等效信号，明确为 `INSUFFICIENT_INDEPENDENT_EQUIVALENT_SIGNALS_TARGET_UNVERIFIED`，不把容量当作收益、30%覆盖、推荐或订单。
 - S12/P03 已本地签名通过：`machine/evidence/EVD-S12-P03.json`（SHA-256 `10ece6229575dc17dfed64e802d734d1ad199df592393b9525552d9f26c04a58`），下一状态为 `S12/P04_READY_NOT_STARTED`。`economics.py` 仅重放 P02 的 4,000 分冻结合成容量和三条固定情景收益带：最高上界为 800 分，仍比月度目标增量 9,000 分短 8,200 分。全部输出同时含区间、置信度与失败概率，但明确为合成敏感性披露，不是市场预测、实际收益、ROI、推荐或订单；新增现金为 A$0，现有资源与机会成本不被重标为零。
 - S12/P04 已本地签名通过：`machine/evidence/EVD-S12-P04.json`（SHA-256 `73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b`），下一状态为 `S12/STAGE_REVIEW_READY_NOT_STARTED`。`target_falsification.py` 固化 90 天/1,000 独立等效信号可行性、6 个完整自然月证伪和 12 个完整自然月实际验证的硬门。当前冻结证据只有 0 个经验观察日和 5 个独立等效信号；合成 6 月/1,000 信号/95% 上界 29.99% 的测试案例仍明确为 `SYNTHETIC_TEST_ONLY_NOT_EMPIRICAL`。因此不宣称可行、证伪或验证；P03 的 8,200 分短缺只报告，绝不放宽阈值、仓位、风险、来源或证据门。
+- S12 整体复审已本地签名通过：`machine/evidence/EVD-S12-STAGE-REVIEW.json`（SHA-256 `c75fee3783bd0d2c432e3442a19d16e1a572ec668f485dda101de5a26cabb0f1`），`STAGE-REVIEW-S12` 为 `90/90 PASS`、`findings.json` 为 `0 total / 0 open`，下一状态为 `S12/GITHUB_STAGE_UPLOAD_READY`。它精确复核四份 Phase receipt/rollback、冻结基线、12 个任务链与目标曲线现金流、相关性容量、合成敏感性、证伪/验证/短缺仅报告四项控制；9 个冻结快照各单次执行，无 Phase 测试套件重跑、全量回归或真实时间 soak。通过不改变 `UNVERIFIED_NOT_GUARANTEED`，也不代表 GitHub 上传、远端 CI、OVH、Cloudflare、市场、账户或生产完成。
 - S11/P01 已本地签名通过：`machine/evidence/EVD-S11-P01.json`（SHA-256 `4bf25a1a68e3078f512a7cbf0992285e2890d62b5284de24eefd750390b7e2f8`），下一状态为 `S11/P02_READY_NOT_STARTED`。`friction.py` 只重放冻结合成的价格恶化、拒绝、结算和操作摩擦；滚动 P95 使用保守 upper-nearest-rank，`effective_friction = max(default, rolling_observed_p95)`。正的合成净期望仍只输出 `NO_ORDER_RESEARCH_ONLY`，不生成建议或订单。
 - S11/P02 已本地签名通过：`machine/evidence/EVD-S11-P02.json`（SHA-256 `59e814b20d237eff982ff763bb3573ba8c129e6817c4c1cf61e273c366bab065`），下一状态为 `S11/P03_READY_NOT_STARTED`。`decision_gate.py` 以 50 位 `Decimal` 固化 E4/E3/E2/E1/E0 证据分层、共同硬门、`o_min=(1+r_min+c_effective)/p_L` 和向上赔率舍入；4 个稳定候选仍仅为 `CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES`，其余 8 个为 `NO_RECOMMENDATION`，不生成推荐、订单或收益保证。
 - S11/P03 已本地签名通过：`machine/evidence/EVD-S11-P03.json`（SHA-256 `c3d0c61870a37e6c8ee3e71650008fdcf23d4bc2da4d1ec9e83e8e846a4b12d4`），下一状态为 `S11/P04_READY_NOT_STARTED`。`platform_router.py` 只对冻结合成 provider ID 以 50 位 `Decimal` 重放 `S_platform = r_L − P_stale − P_settlement − P_minimum_stake − P_action_friction`；仅唯一最高分且全部门通过者才是 `ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES`，并列、来源/结算/动作通道、最低金额、过期、最低赔率和任一不利扰动均失败关闭为 `NO_RECOMMENDATION`。它不生成真实平台、建议、订单或收益保证。
@@ -40,6 +41,7 @@
 - `tests/S12/P02_test.py` 定向测试：`17 passed`；覆盖同簇重复不计、跨簇共享平台总额、万分之一可执行比例扰动、P01/相关图/报告篡改失败关闭、回滚及无外部能力边界。`AC-S12-P02` 带 JUnit、依赖扫描与 Task Pack 报告的签名验收为 `25/25 PASS`；`--verify-existing AC-S12-P02`：PASS，连续证据 `49/49 PASS`，S08 旧收据兼容性精确重放 `1 passed`。未运行全量测试、完整回归或真实时间 soak。
 - `tests/S12/P03_test.py` 定向测试：`21 passed`；覆盖固定重放、三条收益带及各自置信度/失败概率、A$0 新增现金和机会成本披露、P01/P02/容量/产物篡改失败关闭、`±0.0001` 收益率扰动、回滚及无外部能力边界。`AC-S12-P03` 带 JUnit、依赖扫描与 Task Pack 报告的签名验收为 `30/30 PASS`；`--verify-existing AC-S12-P01`、`AC-S12-P02`、`AC-S12-P03` 均 PASS，连续证据 `49/49 PASS`。只运行 P03 定向测试与 S08 旧收据兼容性定向重放，未运行全量测试、完整回归或真实时间 soak。
 - `tests/S12/P04_test.py` 定向测试：`30 passed`；覆盖冻结重放、当前无经验数据状态、合成证伪案例不得冒充经验数据、6 月/1,000 信号/95% 上界与 12 月/现金流调整/完整证据/零对账差异硬边界、`±0.0001` 阈值、P01--P03 与派生产物篡改失败关闭、回滚及无外部能力边界。`AC-S12-P04` 带 JUnit、依赖扫描和 Task Pack 报告的签名验收为 `33/33 PASS`，P01--P04 receipt 均可复验，连续证据 `49/49 PASS`，下一状态为 `S12/STAGE_REVIEW_READY_NOT_STARTED`。S08 旧收据兼容性定向重放 `1 passed`；仅运行这些定向检查，不运行全量测试、完整回归或真实时间 soak。
+- `tests/S12/stage_review_test.py` 定向复审：`24 passed`；JUnit 已规范化。`STAGE-REVIEW-S12` 带 Phase receipt 复验、Task Pack 报告和依赖扫描的签名验收为 `90/90 PASS`，四项 S12 控制和零发现均通过；连续证据 `49/49 PASS`。S08 旧收据兼容性精确重放 `1 passed`，只刷新既有 allow-list 中的 `abd_acceptance/__main__.py` 与 `abd_acceptance/evidence_continuity.py` 当前 SHA-256，未扩展 allow-list、来源、风险豁免或旧收据内容。未运行全量测试、完整回归或真实时间 soak。
 - `tests/S11/P01_test.py` 定向测试：`19 passed`；覆盖四类摩擦组成、四个时距段、滚动 P95 / 默认值最大规则、`+0.0001` 摩擦与一档不利赔率、重放哈希、篡改、回滚及无外部能力边界。
 - `tests/S11/P02_test.py` 定向测试：`32 passed`；覆盖 E4--E0、最低赔率公式与向上舍入、`±0.0001` 阈值和一档不利赔率、五类不利扰动、固定重放、篡改、回滚及无外部能力边界。
 - `AC-S11-P02` 候选预检和带 JUnit、依赖扫描、Task Pack 报告的签名验收：`29/29 PASS`；`--verify-existing AC-S11-P02`：PASS。Task Pack 静态校验 `49/49 PASS`，依赖扫描 PASS；只运行 S11/P02 定向测试和一次 S8 legacy 单测，未运行全量测试、完整回归或真实时间 soak。
@@ -94,6 +96,7 @@
 - `abd_acceptance/decision_gate.py`
 - `abd_acceptance/platform_router.py`
 - `abd_acceptance/risk_engine.py`
+- `abd_acceptance/stage12_review.py`
 - `abd_acceptance/stage11_review.py`
 - `abd_acceptance/stage10_review.py`
 - `abd_acceptance/__main__.py`
@@ -126,8 +129,10 @@
 - `machine/tests/fixtures/S11_P03.json`
 - `machine/tests/fixtures/S11_P04.json`
 - `machine/tests/fixtures/S11_STAGE_REVIEW.json`
+- `machine/tests/fixtures/S12_STAGE_REVIEW.json`
 - `machine/facts/stage10_review_contract.json`
 - `machine/facts/stage11_review_contract.json`
+- `machine/facts/stage12_review_contract.json`
 - `machine/tests/fixtures/S10_STAGE_REVIEW.json`
 - `tests/S10/P01_test.py`
 - `tests/S10/P02_test.py`
@@ -142,6 +147,7 @@
 - `tests/S11/P03_test.py`
 - `tests/S11/P04_test.py`
 - `tests/S11/stage_review_test.py`
+- `tests/S12/stage_review_test.py`
 - `tests/S10/stage_review_test.py`
 - `machine/evidence/EVD-S10-P01.json`
 - `machine/evidence/EVD-S10-P02.json`
@@ -170,6 +176,8 @@
 - `machine/evidence/EVD-S11-P04_rollback.json`
 - `machine/evidence/EVD-S11-STAGE-REVIEW.json`
 - `machine/evidence/EVD-S11-STAGE-REVIEW_rollback.json`
+- `machine/evidence/EVD-S12-STAGE-REVIEW.json`
+- `machine/evidence/EVD-S12-STAGE-REVIEW_rollback.json`
 - `machine/evidence/S11/P04/pytest.xml`
 - `machine/evidence/S11/P03/pytest.xml`
 - `machine/evidence/S11/P01/pytest.xml`
@@ -181,10 +189,10 @@
 ## 未解决风险
 
 - S11/P01--P04、整体复审和 GitHub 阶段上传均已完成，但当前 CI 修复尚未获得新的远端结果；本地复审与分支上传不代表远程 CI、合并、发布、OVH、Cloudflare 或生产可用。
-- S12/P01--P04 仅完成本地冻结合成验收；它们不代表 S12 整体复审、GitHub 上传、远端 CI、合并、发布、OVH、Cloudflare、真实市场、真实账户、TAB/Gmail 归档或生产上线完成。
+- S12/P01--P04 与整体复审仅完成本地冻结合成验收；它们不代表 S12 GitHub 上传、远端 CI、合并、发布、OVH、Cloudflare、真实市场、真实账户、TAB/Gmail 归档或生产上线完成。
 - S08 legacy receipt compatibility 的一条定向重放已 `1 passed`；它只证明既有明确 allow-list 中的当前哈希与四份旧 receipt 可重放，不代表 S08/S12 新的远端 CI、发布或生产状态。
 - 真实市场、真实账户、TAB/Gmail 证据归档、OVH、Cloudflare 与生产上线均未验证、未部署且不应据此推断完成。
 
 ## 下一步
 
-保持 PR #174 的远端 CI 状态与 S12/P01--P04 本地结果彼此独立；不得把 pending 或本地结果外推为 CI、合并、部署、OVH、Cloudflare、真实市场、账户或生产上线完成。下一次 run 只进行整个 S12 复审；若有发现，先在后续单一修复 run 闭合，再整体上传。保持零新增现金、无真实时间 soak、无全量测试/完整回归。
+保持 PR #174 的远端 CI 状态与 S12 本地结果彼此独立；不得把 pending 或本地复审结果外推为 CI、合并、部署、OVH、Cloudflare、真实市场、账户或生产上线完成。下一次 run 只进行 S12 GitHub 阶段上传，不启动 S13、不部署；若上传前发现新问题，停止上传并在后续单一修复 run 闭合。保持零新增现金、无真实时间 soak、无全量测试/完整回归。
