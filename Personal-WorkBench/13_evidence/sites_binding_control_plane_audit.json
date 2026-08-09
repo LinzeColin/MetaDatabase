@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "INCONCLUSIVE_NO_SITES_TO_PHYSICAL_D1_R2_MAPPING",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-09",
+  "scope": "Read-only inspection of the current Sites control plane, the checked-in logical hosting manifest, and local runtime-binding configuration. The Sites environment response was reduced to key names, secret classifications, and counts only. No environment contents, source credential, bypass token, D1 SQL, D1 record, R2 object, runtime-setting change, access-policy change, or user-data operation was performed.",
+  "current_private_version": {
+    "sites_version_number": 14,
+    "sites_source_commit": "0df65653f67ce98c3a8ee157095e4e52c5c0ca2b",
+    "environment_revision": 8,
+    "site_active": true,
+    "access_mode": "custom",
+    "current_user_role": "owner",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0
+  },
+  "logical_bindings": {
+    "hosting_manifest_d1": "DB",
+    "hosting_manifest_r2": "FILES",
+    "runtime_type_contract_d1": "DB",
+    "runtime_type_contract_r2": "FILES",
+    "local_vite_d1_database_id": "LOCAL_PLACEHOLDER_ONLY",
+    "local_vite_r2_bucket_name": "LOCAL_PLACEHOLDER_ONLY"
+  },
+  "sites_control_plane_observation": {
+    "environment_entry_count": 15,
+    "environment_secret_entry_count": 11,
+    "environment_non_secret_entry_count": 4,
+    "environment_metadata_contains_physical_d1_identifier": false,
+    "environment_metadata_contains_physical_r2_bucket_name": false,
+    "site_and_version_metadata_contains_physical_d1_identifier": false,
+    "site_and_version_metadata_contains_physical_r2_bucket_name": false
+  },
+  "prior_authorized_cloudflare_catalog_reference": {
+    "evidence_file": "13_evidence/cloudflare_d1_binding_discovery.json",
+    "discoverable_personal_schedule_d1_binding": false,
+    "d1_sql_executed": false,
+    "d1_records_read": false,
+    "r2_operations_executed": 0
+  },
+  "result": {
+    "physical_d1_identifier": "NOT_EXPOSED_BY_SAFE_SITES_CONTROL_PLANE_SURFACES",
+    "physical_r2_bucket_name": "NOT_EXPOSED_BY_SAFE_SITES_CONTROL_PLANE_SURFACES",
+    "direct_d1_r2_reconciliation": "NOT_RUN_NO_AUTHORIZED_SITES_TO_PHYSICAL_BINDING_MAPPING"
+  },
+  "interpretation": {
+    "proven": "The current private Sites project is active at Version 14 with the checked-in logical bindings DB and FILES. The inspected Sites metadata exposes runtime environment entries and version provenance, but no physical D1 identifier or R2 bucket name. The local Vite configuration deliberately contains only development placeholders, not production resource identifiers.",
+    "not_proven": [
+      "The physical D1 identifier behind the current DB binding",
+      "The physical R2 bucket behind the current FILES binding",
+      "D1 schema or test-record reconciliation",
+      "R2 object reconciliation",
+      "Physical second-device synchronization"
+    ],
+    "decision": "Do not infer a physical resource from logical names, local placeholders, or arbitrary Cloudflare catalog entries. Direct D1/R2 reconciliation remains pending until an authorized read-only Sites-to-physical-binding mapping surface is available."
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
