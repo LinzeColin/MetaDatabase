@@ -108,6 +108,8 @@ from .security_analysis import verify_existing_phase_evidence as verify_security
 from .security_analysis import write_phase_evidence as write_security_analysis_phase_evidence
 from .component_governance import verify_existing_phase_evidence as verify_component_governance_phase_evidence
 from .component_governance import write_phase_evidence as write_component_governance_phase_evidence
+from .artifact_provenance import verify_existing_phase_evidence as verify_artifact_provenance_phase_evidence
+from .artifact_provenance import write_phase_evidence as write_artifact_provenance_phase_evidence
 
 
 def main() -> int:
@@ -163,6 +165,7 @@ def main() -> int:
             "AC-S14-P01": verify_threat_model_phase_evidence,
             "AC-S14-P02": verify_security_analysis_phase_evidence,
             "AC-S14-P03": verify_component_governance_phase_evidence,
+            "AC-S14-P04": verify_artifact_provenance_phase_evidence,
             "STAGE-REVIEW-S11": verify_existing_stage_review_evidence,
             "STAGE-REVIEW-S12": verify_existing_stage12_review_evidence,
             "STAGE-REVIEW-S13": verify_existing_stage13_review_evidence,
@@ -252,6 +255,7 @@ def main() -> int:
         "AC-S14-P01": write_threat_model_phase_evidence,
         "AC-S14-P02": write_security_analysis_phase_evidence,
         "AC-S14-P03": write_component_governance_phase_evidence,
+        "AC-S14-P04": write_artifact_provenance_phase_evidence,
         "STAGE-REVIEW-S11": write_stage11_review_evidence,
         "STAGE-REVIEW-S12": write_stage12_review_evidence,
         "STAGE-REVIEW-S13": write_stage13_review_evidence,

@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="42" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S14.P04_test" name="test_frozen_taskpack_contract_is_exact" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_candidate_preflight_passes" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_p03_predecessor_is_current" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_provenance_validates" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_signing_policy_validates" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_rollback_policy_validates" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_fixture_validates" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_source_inputs_are_current" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_dependency_trace_retains_zero_runtime_dependencies" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_build_environment_is_local_only" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_local_attestation_recomputes_exactly" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_companion_documents_are_hash_bound" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_release_boundary_blocks_real_release" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_external_boundary_is_unchanged" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_frozen_snapshot_cases[PASS]" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_frozen_snapshot_cases[P03_PREDECESSOR_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_frozen_snapshot_cases[PROVENANCE_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_frozen_snapshot_cases[SIGNING_POLICY_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_frozen_snapshot_cases[ROLLBACK_POLICY_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_frozen_snapshot_cases[SOURCE_TRACE_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_frozen_snapshot_cases[DEPENDENCY_TRACE_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_frozen_snapshot_cases[BUILD_ENVIRONMENT_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_frozen_snapshot_cases[ATTESTATION_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_frozen_snapshot_cases[EXTERNAL_BOUNDARY_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_frozen_snapshot_cases[POINT_0001_COVERAGE_LOW]" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_frozen_snapshot_cases[POINT_0001_COVERAGE_HIGH]" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_frozen_snapshot_cases[FOREIGN_ODDS_INPUT_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_source_hash_mismatch_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_dependency_hash_mismatch_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_build_environment_mismatch_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_attestation_mismatch_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_real_release_claim_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_source_base_revision_is_predecessor_not_release_claim" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_missing_signing_boundary_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_missing_rollback_boundary_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_point_0001_coverage_low_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_point_0001_coverage_high_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_unfavorable_foreign_odds_input_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_malformed_snapshot_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_snapshot_replay_is_deterministic" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_evidence_build_is_deterministic_before_reports" time="0.000" />
+    <testcase classname="tests.S14.P04_test" name="test_rollback_drill_is_local_and_preserves_no_external_state" time="0.000" />
+  </testsuite>
+</testsuites>

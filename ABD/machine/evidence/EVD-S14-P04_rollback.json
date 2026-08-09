@@ -1,0 +1,47 @@
+{
+  "artifacts": {
+    "abd_acceptance/artifact_provenance.py": {
+      "sha256": "134df4e2c720a37d314333739edbac5c32da504f55f8a9040eb90982b1356220",
+      "status": "PASS"
+    },
+    "artifact_signing.md": {
+      "sha256": "97a77ba52653268e7a6cc06599b8b4dc1e846b886c706b91fea123e8be86918d",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S14-P03.json": {
+      "sha256": "5d0644b143115c6cdd99eb8774b8f8cbc68a618ba86b82772ff6797e7293708c",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S14-P03_rollback.json": {
+      "sha256": "39437e5a68e6cb86bc6a4122bcda763b501be4196d2973a64c0d2a2b2c8d64b2",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S14_P04.json": {
+      "sha256": "082c164d0c3ed6424acf08cac94e8df5da49b594a0d57b280c40a1049da996e5",
+      "status": "PASS"
+    },
+    "provenance.json": {
+      "sha256": "a6c3ec77c4f37b4ee8765c43dee830cbb1c21c3176c11acabc53b9d551ed8992",
+      "status": "PASS"
+    },
+    "security_rollback.md": {
+      "sha256": "25a109c3ab719fceec877c5957058b017b4d7f96743e16e864e733370cb7a396",
+      "status": "PASS"
+    },
+    "tests/S14/P04_test.py": {
+      "sha256": "3461a8992c5c397cead05311802550444a8878c493aae3c382c15f964ffaa73a",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S14-P04",
+  "evidence_id": "EVD-S14-P04-ROLLBACK",
+  "external_state_changed": false,
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_S14_P04_LOCAL_RELEASE_CANDIDATE_PRESERVE_P03_AND_SIGNED_EVIDENCE_NO_EXTERNAL_MUTATION",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

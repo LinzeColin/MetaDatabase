@@ -1,0 +1,276 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S14-P04-ARTIFACT-PROVENANCE",
+  "contract_id": "AC-S14-P04",
+  "requirement_id": "REQ-S14-P04",
+  "stage_id": "S14",
+  "phase_id": "P04",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "minimum_targeted_pytest_cases": 37,
+  "expected_decision": "LOCAL_PRE_RELEASE_PROVENANCE_COMPLETE_STAGE_REVIEW_REQUIRED",
+  "expected_next": "S14/STAGE_REVIEW_READY_NOT_STARTED",
+  "snapshot_case_count": 13,
+  "snapshot_cases": [
+    {
+      "case_id": "PASS",
+      "snapshot": {
+        "p03_receipt_current": true,
+        "provenance_closed": true,
+        "signing_policy_closed": true,
+        "rollback_policy_closed": true,
+        "source_trace_closed": true,
+        "dependency_trace_closed": true,
+        "build_environment_trace_closed": true,
+        "attestation_valid": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P04_PROVENANCE_VERIFIED_NO_ACTION",
+        "reason_codes": []
+      }
+    },
+    {
+      "case_id": "P03_PREDECESSOR_FAIL",
+      "snapshot": {
+        "p03_receipt_current": false,
+        "provenance_closed": true,
+        "signing_policy_closed": true,
+        "rollback_policy_closed": true,
+        "source_trace_closed": true,
+        "dependency_trace_closed": true,
+        "build_environment_trace_closed": true,
+        "attestation_valid": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION",
+        "reason_codes": ["P03_RECEIPT_NOT_CURRENT"]
+      }
+    },
+    {
+      "case_id": "PROVENANCE_FAIL",
+      "snapshot": {
+        "p03_receipt_current": true,
+        "provenance_closed": false,
+        "signing_policy_closed": true,
+        "rollback_policy_closed": true,
+        "source_trace_closed": true,
+        "dependency_trace_closed": true,
+        "build_environment_trace_closed": true,
+        "attestation_valid": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION",
+        "reason_codes": ["PROVENANCE_NOT_CLOSED"]
+      }
+    },
+    {
+      "case_id": "SIGNING_POLICY_FAIL",
+      "snapshot": {
+        "p03_receipt_current": true,
+        "provenance_closed": true,
+        "signing_policy_closed": false,
+        "rollback_policy_closed": true,
+        "source_trace_closed": true,
+        "dependency_trace_closed": true,
+        "build_environment_trace_closed": true,
+        "attestation_valid": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION",
+        "reason_codes": ["SIGNING_POLICY_NOT_CLOSED"]
+      }
+    },
+    {
+      "case_id": "ROLLBACK_POLICY_FAIL",
+      "snapshot": {
+        "p03_receipt_current": true,
+        "provenance_closed": true,
+        "signing_policy_closed": true,
+        "rollback_policy_closed": false,
+        "source_trace_closed": true,
+        "dependency_trace_closed": true,
+        "build_environment_trace_closed": true,
+        "attestation_valid": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION",
+        "reason_codes": ["ROLLBACK_POLICY_NOT_CLOSED"]
+      }
+    },
+    {
+      "case_id": "SOURCE_TRACE_FAIL",
+      "snapshot": {
+        "p03_receipt_current": true,
+        "provenance_closed": true,
+        "signing_policy_closed": true,
+        "rollback_policy_closed": true,
+        "source_trace_closed": false,
+        "dependency_trace_closed": true,
+        "build_environment_trace_closed": true,
+        "attestation_valid": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION",
+        "reason_codes": ["SOURCE_TRACE_NOT_CLOSED"]
+      }
+    },
+    {
+      "case_id": "DEPENDENCY_TRACE_FAIL",
+      "snapshot": {
+        "p03_receipt_current": true,
+        "provenance_closed": true,
+        "signing_policy_closed": true,
+        "rollback_policy_closed": true,
+        "source_trace_closed": true,
+        "dependency_trace_closed": false,
+        "build_environment_trace_closed": true,
+        "attestation_valid": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION",
+        "reason_codes": ["DEPENDENCY_TRACE_NOT_CLOSED"]
+      }
+    },
+    {
+      "case_id": "BUILD_ENVIRONMENT_FAIL",
+      "snapshot": {
+        "p03_receipt_current": true,
+        "provenance_closed": true,
+        "signing_policy_closed": true,
+        "rollback_policy_closed": true,
+        "source_trace_closed": true,
+        "dependency_trace_closed": true,
+        "build_environment_trace_closed": false,
+        "attestation_valid": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION",
+        "reason_codes": ["BUILD_ENVIRONMENT_TRACE_NOT_CLOSED"]
+      }
+    },
+    {
+      "case_id": "ATTESTATION_FAIL",
+      "snapshot": {
+        "p03_receipt_current": true,
+        "provenance_closed": true,
+        "signing_policy_closed": true,
+        "rollback_policy_closed": true,
+        "source_trace_closed": true,
+        "dependency_trace_closed": true,
+        "build_environment_trace_closed": true,
+        "attestation_valid": false,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION",
+        "reason_codes": ["LOCAL_ATTESTATION_INVALID"]
+      }
+    },
+    {
+      "case_id": "EXTERNAL_BOUNDARY_FAIL",
+      "snapshot": {
+        "p03_receipt_current": true,
+        "provenance_closed": true,
+        "signing_policy_closed": true,
+        "rollback_policy_closed": true,
+        "source_trace_closed": true,
+        "dependency_trace_closed": true,
+        "build_environment_trace_closed": true,
+        "attestation_valid": true,
+        "external_effect_boundary_preserved": false,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION",
+        "reason_codes": ["EXTERNAL_ACTION_BOUNDARY_RELAXED"]
+      }
+    },
+    {
+      "case_id": "POINT_0001_COVERAGE_LOW",
+      "snapshot": {
+        "p03_receipt_current": true,
+        "provenance_closed": true,
+        "signing_policy_closed": true,
+        "rollback_policy_closed": true,
+        "source_trace_closed": true,
+        "dependency_trace_closed": true,
+        "build_environment_trace_closed": true,
+        "attestation_valid": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "0.9999",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION",
+        "reason_codes": ["PROVENANCE_COVERAGE_NOT_EXACT"]
+      }
+    },
+    {
+      "case_id": "POINT_0001_COVERAGE_HIGH",
+      "snapshot": {
+        "p03_receipt_current": true,
+        "provenance_closed": true,
+        "signing_policy_closed": true,
+        "rollback_policy_closed": true,
+        "source_trace_closed": true,
+        "dependency_trace_closed": true,
+        "build_environment_trace_closed": true,
+        "attestation_valid": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0001",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION",
+        "reason_codes": ["PROVENANCE_COVERAGE_NOT_EXACT"]
+      }
+    },
+    {
+      "case_id": "FOREIGN_ODDS_INPUT_FAIL",
+      "snapshot": {
+        "p03_receipt_current": true,
+        "provenance_closed": true,
+        "signing_policy_closed": true,
+        "rollback_policy_closed": true,
+        "source_trace_closed": true,
+        "dependency_trace_closed": true,
+        "build_environment_trace_closed": true,
+        "attestation_valid": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": true
+      },
+      "expected": {
+        "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION",
+        "reason_codes": ["FOREIGN_ODDS_INPUT_REJECTED"]
+      }
+    }
+  ]
+}
