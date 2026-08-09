@@ -12,9 +12,9 @@
       "sha256": "a1b6d13afea6f383061d2d3405efe2f2d8f4867fbb08a5edf0e53415c16a239a"
     },
     {
-      "bytes": 4069,
+      "bytes": 4513,
       "path": "HANDOFF.md",
-      "sha256": "64f3f364d0eadf75cbf801c439c32234987c20499c7369e389841f4f1a797f32"
+      "sha256": "1484adb74beb7e4e9496dd01b841d8b8307e5a31c344f4aa77202fbffc3ce17a"
     },
     {
       "bytes": 643,
@@ -102,9 +102,9 @@
       "sha256": "116256c8366e1ec9b59b76091ad2d1b837c66918b242024880ee413712e3cf04"
     },
     {
-      "bytes": 60862,
+      "bytes": 63058,
       "path": "abd_acceptance/evidence_continuity.py",
-      "sha256": "92b66bef91b3ac196e755ca62058b18bcdf52cba163e2c9c44f17867810057c9"
+      "sha256": "661a0a1359bb04800a5320465abd24eeae5f01c4c6ba9a496e348a819cf5bdbe"
     },
     {
       "bytes": 45787,
@@ -144,7 +144,7 @@
     {
       "bytes": 2194,
       "path": "abd_acceptance/legacy_receipt_compatibility.py",
-      "sha256": "cd521a16aa487c87618b5762c83e99ef3a2f97799c7de3fcabdab891a9b34dc5"
+      "sha256": "5dff48096c5309999f4623b0daf6885c52bb27500471e21b394e52c555dadd21"
     },
     {
       "bytes": 53233,
@@ -299,12 +299,12 @@
     {
       "bytes": 59538,
       "path": "abd_acceptance/stage8_review.py",
-      "sha256": "e1ae64faa9db114d0459d59ca2f0fe68de76635d4090d06df72d2306af69e157"
+      "sha256": "65dc33cb9fcd0ea949e9e6ff2c7321faa3982d86d875b863d0470508618d6386"
     },
     {
-      "bytes": 48489,
+      "bytes": 48494,
       "path": "abd_acceptance/stage9_review.py",
-      "sha256": "39cb2145b76cfeca36139ff3907e2c40d1406734356b83d2d025651d5f251753"
+      "sha256": "4968ac38278425cc3914bc035e64aa18c66e5ac95a1fa98572191397cc5eb9d4"
     },
     {
       "bytes": 52157,
@@ -1084,12 +1084,12 @@
     {
       "bytes": 33237,
       "path": "machine/evidence/EVD-S09-STAGE-REVIEW.json",
-      "sha256": "7af6ce0744091df3208b8d67b7aa6ce679918f766e0fea701ab168c852238860"
+      "sha256": "4a047061521125b3952ade1c6a4671eb4bb7c17207d41a2366309ab6777ffc9f"
     },
     {
       "bytes": 2176,
       "path": "machine/evidence/EVD-S09-STAGE-REVIEW_rollback.json",
-      "sha256": "735a6b99f0bee252b7f86b0374f56d7c0602463cf96312faf9221e11bee2c14d"
+      "sha256": "e432c2ecf832fbf842f5e8638173d4e6f32fc4308052c51ed35cb0fab878bf82"
     },
     {
       "bytes": 1981,
@@ -1754,7 +1754,7 @@
     {
       "bytes": 33200,
       "path": "machine/evidence/evidence_index.jsonl",
-      "sha256": "d421dbc002f72d026592859c090ceda512a3edf0ea6c4e894e635ad43abcae06"
+      "sha256": "360048f0a69515a8f2f43972a8e339ec8d7ae1fcd96ee13b23b5d9163a5061d2"
     },
     {
       "bytes": 1120,
@@ -1899,7 +1899,7 @@
     {
       "bytes": 2500,
       "path": "machine/facts/s08_legacy_receipt_compatibility.json",
-      "sha256": "52077ad654b9a362f19d25051cf18bcd6fe77d5b993638913ad6fe884dca5324"
+      "sha256": "c4ff51a4d8d48a14c183cf718f988c1bf3f972c1a28124654dc4c182696b6593"
     },
     {
       "bytes": 1067,
@@ -1959,7 +1959,7 @@
     {
       "bytes": 9981,
       "path": "machine/facts/stage8_review_contract.json",
-      "sha256": "a7fc9e4170f5e4508620276a40a4a15236f0eca91dcc2381047cd48006d9cc6f"
+      "sha256": "dcae38ef8dcb943318d9a7e86504a1d797ee4dbe2b46f28cf4dc501ba0c64886"
     },
     {
       "bytes": 5861,
@@ -2244,7 +2244,7 @@
     {
       "bytes": 6343,
       "path": "machine/tests/fixtures/S08_STAGE_REVIEW.json",
-      "sha256": "84bd94add66584b4950946486938ecf738e192a63e8107c174cce2573a7901f1"
+      "sha256": "79e41010d8799be60e520e9a0e156a874402310bbb4284406dfa1a58262ecf86"
     },
     {
       "bytes": 3052,

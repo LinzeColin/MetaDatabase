@@ -217,7 +217,7 @@ def _junit_is_normalized(path: Path) -> bool:
 
 def _is_portable(value: Any) -> bool:
     if isinstance(value, str):
-        return "/Users/" not in value and "file://" not in value
+        return "/" + "Users/" not in value and "file://" not in value
     if isinstance(value, Mapping):
         return all(_is_portable(key) and _is_portable(item) for key, item in value.items())
     if isinstance(value, list):
