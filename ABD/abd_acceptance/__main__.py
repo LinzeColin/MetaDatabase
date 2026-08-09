@@ -40,6 +40,7 @@ from .source_capabilities import write_phase_evidence as write_source_capability
 from .source_scheduler import write_phase_evidence as write_source_scheduler_phase_evidence
 from .coverage_observability import write_phase_evidence as write_coverage_observability_phase_evidence
 from .stage5_review import write_stage5_review_evidence
+from .stage11_review import verify_existing_stage_review_evidence, write_stage_review_evidence as write_stage11_review_evidence
 from .gmail_authorization import write_phase_evidence as write_gmail_authorization_phase_evidence
 from .mail_preservation import write_phase_evidence as write_mail_preservation_phase_evidence
 from .attachment_security import write_phase_evidence as write_attachment_security_phase_evidence
@@ -125,6 +126,7 @@ def main() -> int:
             "AC-S11-P02": verify_decision_gate_phase_evidence,
             "AC-S11-P03": verify_platform_router_phase_evidence,
             "AC-S11-P04": verify_risk_engine_phase_evidence,
+            "STAGE-REVIEW-S11": verify_existing_stage_review_evidence,
         }
         if args.verify_existing not in existing_verifiers:
             parser.error("existing evidence verifier is not implemented: %s" % args.verify_existing)
@@ -200,6 +202,7 @@ def main() -> int:
         "AC-S11-P02": write_decision_gate_phase_evidence,
         "AC-S11-P03": write_platform_router_phase_evidence,
         "AC-S11-P04": write_risk_engine_phase_evidence,
+        "STAGE-REVIEW-S11": write_stage11_review_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)

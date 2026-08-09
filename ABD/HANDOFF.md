@@ -2,7 +2,7 @@
 
 ## 当前目标
 
-在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1` 的 S11。当前已完成并固化 S11/P04；下一次 run 只能进行整个 S11 的独立复审，不得上传、部署或激活生产。
+在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1` 的 S11。S11/P01--P04 与整个 S11 的本地独立复审均已完成；下一次 run 只能进行 S11 的 GitHub 阶段上传，仍不得部署或激活生产。
 
 ## 当前状态
 
@@ -12,6 +12,7 @@
 - S11/P02 已本地签名通过：`machine/evidence/EVD-S11-P02.json`（SHA-256 `59e814b20d237eff982ff763bb3573ba8c129e6817c4c1cf61e273c366bab065`），下一状态为 `S11/P03_READY_NOT_STARTED`。`decision_gate.py` 以 50 位 `Decimal` 固化 E4/E3/E2/E1/E0 证据分层、共同硬门、`o_min=(1+r_min+c_effective)/p_L` 和向上赔率舍入；4 个稳定候选仍仅为 `CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES`，其余 8 个为 `NO_RECOMMENDATION`，不生成推荐、订单或收益保证。
 - S11/P03 已本地签名通过：`machine/evidence/EVD-S11-P03.json`（SHA-256 `c3d0c61870a37e6c8ee3e71650008fdcf23d4bc2da4d1ec9e83e8e846a4b12d4`），下一状态为 `S11/P04_READY_NOT_STARTED`。`platform_router.py` 只对冻结合成 provider ID 以 50 位 `Decimal` 重放 `S_platform = r_L − P_stale − P_settlement − P_minimum_stake − P_action_friction`；仅唯一最高分且全部门通过者才是 `ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES`，并列、来源/结算/动作通道、最低金额、过期、最低赔率和任一不利扰动均失败关闭为 `NO_RECOMMENDATION`。它不生成真实平台、建议、订单或收益保证。
 - S11/P04 已本地签名通过：`machine/evidence/EVD-S11-P04.json`（SHA-256 `d9bc525ce3902cdda3ca6ad6253cc77ab69cddb4641b3d4d7e2c207f59c49ed2`），下一状态为 `S11/STAGE_REVIEW_READY_NOT_STARTED`。`risk_engine.py` 以 50 位 `Decimal` 重放完整凯利 `f_K=(p_Lo-1)/(o-1)`，再取阶段系数、单票、赛事、相关簇和总未结暴露可用容量的最小值，并向下舍入至平台步长；Alpha 为零，Beta/GA 分别受 1.5%/2.0% 单票上限约束。日损 3%、策略切片回撤 10%、灾难线 70%、账本差异非零和低于最低金额均停止新增候选；7 日 7.5% 回撤仅诊断/缩小范围，目标短缺仅诊断且绝不放宽门。12 个冻结向量中仅 6 个保持风险门候选，`K11` 在风险阈值收紧 `0.0001` 时稳定地降级为 `NO_RECOMMENDATION`。所有结果仍是合成风险候选，不生成最终建议、真实订单或收益保证。
+- S11 整体复审已本地签名通过：`machine/evidence/EVD-S11-STAGE-REVIEW.json`（SHA-256 `e893872c2095a43a041f20e6101a87802dc9b6269ed2e21aabecb7e73c5ab168`），`STAGE-REVIEW-S11` 带 JUnit、依赖扫描和 Task Pack 报告的验收为 `91/91 PASS`，下一状态为 `S11/GITHUB_STAGE_UPLOAD_READY`。它只核验四份既有 Phase 收据、冻结基线、任务链和四项 S11 控制；9 个冻结快照各单次执行，无 Phase 测试套件重跑、全量回归或真实时间 soak。`--verify-existing STAGE-REVIEW-S11` 已 PASS。
 - 复审发现的唯一过程缺口（四个已签名 Phase 未预置整体复审合同）已以独立合同、冻结 fixture、离线判定器和回滚 receipt 闭合；`findings.json` 为 `1 resolved / 0 open`。该闭合不修改任何冻结 Phase 基线或放宽证据、数值、风险、安全和来源门。
 - S10/P01 已签名通过：`machine/evidence/EVD-S10-P01.json`，下一状态为 `S10/P02_READY_NOT_STARTED`。其时间交叉验证只使用冻结合成输入，校准结论不构成推荐、下注、订单或收益承诺。
 - S10/P02 已签名通过：`machine/evidence/EVD-S10-P02.json`（SHA-256 `1481efc71fcc185c57a06ddee11d3e0015e534b2084cd90b43dda8ef55fcaa69`），下一状态为 `S10/P03_READY_NOT_STARTED`。
@@ -35,6 +36,7 @@
 - `AC-S11-P03` 候选预检：`26/26 PASS`；带 JUnit、依赖扫描和 Task Pack 报告的签名验收：`30/30 PASS`；`--verify-existing AC-S11-P01`、`AC-S11-P02`、`AC-S11-P03` 均 PASS。仅运行 S11/P03 定向测试、静态包校验和本地依赖扫描；无全量测试、完整回归或真实时间 soak。
 - `tests/S11/P04_test.py` 定向测试：`44 passed`；覆盖完整凯利、Alpha/Beta/GA 系数、单票/赛事/相关簇/总暴露容量、最低金额不向上凑单、日损/7日诊断/策略切片/灾难线/账本差异、目标短缺不放宽门、`p−0.0001`、风险阈值收紧 `0.0001`、不利赔率跳动、固定重放、篡改、回滚及无外部能力边界。
 - `AC-S11-P04` 候选预检：`26/26 PASS`；带 JUnit、依赖扫描和 Task Pack 报告的签名验收：`30/30 PASS`；`--verify-existing AC-S11-P01`、`AC-S11-P02`、`AC-S11-P03`、`AC-S11-P04` 均 PASS。依赖扫描 PASS、Task Pack 静态校验 `49/49 PASS`；仅运行 S11/P04 定向测试与 S8 兼容性哈希链定向检查，无全量测试、完整回归或真实时间 soak。
+- `tests/S11/stage_review_test.py` 定向复审：`22 passed`；JUnit 已规范化。`STAGE-REVIEW-S11` 候选预检 `87/87 PASS`，带报告签名验收 `91/91 PASS`，付费/未知依赖扫描 PASS，Task Pack 静态校验 `49/49 PASS`，工件清单 `674` 文件与 `675` 条 checksum 已重建。为 dispatcher 增加复审入口后，S08 legacy successor 链的最小精确哈希验证 PASS；只刷新既有 allow-list 中的 `abd_acceptance/__main__.py`，未扩展 allow-list 或改写旧收据。
 - S11/P01 候选预检：`28/28 PASS`；带测试、扫描和 Task Pack 报告的验收：`32/32 PASS`；`--verify-existing AC-S11-P01`：PASS。依赖扫描 PASS、零新增现金；仅执行 S11/P01 定向测试与 S08 legacy compatibility 定向重放，没有全量测试、完整回归或真实时间 soak。
 - `tests/S10/P02_test.py` 定向测试：`22 passed`。覆盖固定重放、非退化 block 分布、1,000/2,000 次数、10% 分位、保守不抬升、单调性、±0.0001 边界、输入/manifest/P01 receipt/evidence-index 篡改、回滚与无外部能力边界。
 - 付费/未知依赖扫描 PASS；无外部访问或账单操作。
@@ -81,6 +83,7 @@
 - `abd_acceptance/decision_gate.py`
 - `abd_acceptance/platform_router.py`
 - `abd_acceptance/risk_engine.py`
+- `abd_acceptance/stage11_review.py`
 - `abd_acceptance/stage10_review.py`
 - `abd_acceptance/__main__.py`
 - `abd_acceptance/budget.py`
@@ -92,7 +95,9 @@
 - `machine/tests/fixtures/S11_P02.json`
 - `machine/tests/fixtures/S11_P03.json`
 - `machine/tests/fixtures/S11_P04.json`
+- `machine/tests/fixtures/S11_STAGE_REVIEW.json`
 - `machine/facts/stage10_review_contract.json`
+- `machine/facts/stage11_review_contract.json`
 - `machine/tests/fixtures/S10_STAGE_REVIEW.json`
 - `tests/S10/P01_test.py`
 - `tests/S10/P02_test.py`
@@ -102,6 +107,7 @@
 - `tests/S11/P02_test.py`
 - `tests/S11/P03_test.py`
 - `tests/S11/P04_test.py`
+- `tests/S11/stage_review_test.py`
 - `tests/S10/stage_review_test.py`
 - `machine/evidence/EVD-S10-P01.json`
 - `machine/evidence/EVD-S10-P02.json`
@@ -120,18 +126,22 @@
 - `machine/evidence/EVD-S11-P03_rollback.json`
 - `machine/evidence/EVD-S11-P04.json`
 - `machine/evidence/EVD-S11-P04_rollback.json`
+- `machine/evidence/EVD-S11-STAGE-REVIEW.json`
+- `machine/evidence/EVD-S11-STAGE-REVIEW_rollback.json`
 - `machine/evidence/S11/P04/pytest.xml`
 - `machine/evidence/S11/P03/pytest.xml`
 - `machine/evidence/S11/P01/pytest.xml`
+- `machine/evidence/S11/STAGE_REVIEW/findings.json`
+- `machine/evidence/S11/STAGE_REVIEW/pytest.xml`
 - `machine/evidence/S10/STAGE_REVIEW/findings.json`
 - `machine/evidence/S10/STAGE_REVIEW/pytest.xml`
 
 ## 未解决风险
 
-- S11/P01--P04 均为本地签名通过，但 S11 整体复审和阶段上传尚未开始；P04 的本地 PASS 不代表整个 S11、远程 CI 或发布可用。
+- S11/P01--P04 和 S11 整体复审均为本地签名通过，但 GitHub 阶段上传尚未开始；本地复审 PASS 不代表远程 CI、发布、OVH、Cloudflare 或生产可用。
 - 一次 S8 legacy 单测仍因 P02 之外的既有 S03/P04 缺失 `paid_dependency_scan.txt` 期望哈希而失败关闭；该旧阶段缺口未在 P02 中放宽或伪造通过，需在相应 S03/S08 复审范围内单独处理。
 - 真实市场、真实账户、TAB/Gmail 证据归档、OVH、Cloudflare 与生产上线均未验证、未部署且不应据此推断完成。
 
 ## 下一步
 
-保留当前本地 worktree/branch 作为 S11/P04 已签名检查点；下一次 run 只能进行冻结 Task Pack 的整个 S11 独立复审。复审发现必须在其对应范围内闭合；复审通过后才具备 GitHub 上传前置，不得在本 run 上传。保持零新增现金、无真实时间 soak、无全量测试/完整回归。不得把本地结果外推为真实市场、账户、OVH、Cloudflare 或生产上线完成。
+保留当前本地 worktree/branch 作为 S11 整体复审已签名检查点；下一次 run 只能进行 `S11/GITHUB_STAGE_UPLOAD_READY` 所允许的 GitHub 阶段上传，并先独立核验远程权限、分支、CI 与发布条件。不得在上传 run 中推断部署、OVH、Cloudflare、真实市场、账户或生产上线完成；保持零新增现金、无真实时间 soak、无全量测试/完整回归。
