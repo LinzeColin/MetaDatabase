@@ -1,0 +1,1 @@
+"""JobHuntBot Online application package."""

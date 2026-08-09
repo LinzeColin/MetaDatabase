@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/app.css?v={{ app_version }}">
+</head>
+<body class="{% if user %}app-body{% else %}guest-body{% endif %}">
+{% if user %}
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="主导航">
+      <a class="brand" href="/" aria-label="返回首页">
+        <span class="brand-mark" aria-hidden="true">J</span>
+        <span>
+          <strong>JobHuntBot</strong>
+          <small>你的求职操作系统</small>
+        </span>
+      </a>
+      <nav class="nav-list">
+        <a href="/" class="nav-item {% if request.url.path == '/' %}active{% endif %}">
+          <span class="nav-icon">⌂</span><span>总览</span>
+        </a>
+        <a href="/jobs/new" class="nav-item {% if request.url.path == '/jobs/new' %}active{% endif %}">
+          <span class="nav-icon">＋</span><span>分析新岗位</span>
+        </a>
+        <a href="/jobs" class="nav-item {% if request.url.path == '/jobs' or (request.url.path.startswith('/jobs/') and request.url.path != '/jobs/new') %}active{% endif %}">
+          <span class="nav-icon">▦</span><span>岗位与进度</span>
+        </a>
+        <a href="/resumes" class="nav-item {% if request.url.path.startswith('/resumes') %}active{% endif %}">
+          <span class="nav-icon">▤</span><span>简历与经历</span>
+        </a>
+        <a href="/profile" class="nav-item {% if request.url.path in ['/profile', '/onboarding'] %}active{% endif %}">
+          <span class="nav-icon">◎</span><span>候选人资料</span>
+        </a>
+        <a href="/settings" class="nav-item {% if request.url.path.startswith('/settings') %}active{% endif %}">
+          <span class="nav-icon">⚙</span><span>数据与安全</span>
+        </a>
+      </nav>
+      <div class="sidebar-note">
+        <span class="safety-dot"></span>
+        <div><strong>路径一 · 安全模式</strong><small>不登录第三方、不自动提交</small></div>
+      </div>
+      <form action="/logout" method="post" class="logout-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="nav-item nav-button" type="submit"><span class="nav-icon">↪</span><span>退出登录</span></button>
+      </form>
+    </aside>
+
+    <div class="app-main">
+      <header class="topbar">
+        <button class="mobile-menu" type="button" data-sidebar-toggle aria-label="打开导航" aria-expanded="false">☰</button>
+        <div>
+          <div class="topbar-kicker">私有单用户工作区</div>
+          <div class="topbar-title">{% block topbar_title %}求职指挥舱{% endblock %}</div>
+        </div>
+        <div class="topbar-user">
+          <span class="avatar" aria-hidden="true">{{ (user.display_name or user.email)[0]|upper }}</span>
+          <span class="topbar-user-text"><strong>{{ user.display_name or 'Owner' }}</strong><small>{{ user.email }}</small></span>
+        </div>
+      </header>
+
+      <main id="main-content" class="content-wrap">
+        {% if flashes %}
+          <div class="flash-stack" aria-live="polite">
+          {% for item in flashes %}
+            <div class="flash flash-{{ item.category }}">
+              <span>{{ item.message }}</span>
+              <button type="button" class="flash-close" data-dismiss aria-label="关闭通知">×</button>
+            </div>
+          {% endfor %}
+          </div>
+        {% endif %}
+        {% if error %}
+          <div class="alert alert-danger" role="alert"><strong>未完成：</strong>{{ error }}</div>
+        {% endif %}
+        {% if warning %}
+          <div class="alert alert-warning" role="status"><strong>需要注意：</strong>{{ warning }}</div>
+        {% endif %}
+        {% block content %}{% endblock %}
+      </main>
+      <footer class="app-footer">
+        <span>{{ app_name }} v{{ app_version }}</span>
+        <span>只辅助决策；敏感事实和最终提交由你确认</span>
+      </footer>
+    </div>
+  </div>
+{% else %}
+  <main>{% block guest_content %}{% endblock %}</main>
+{% endif %}
+<script src="/static/js/app.js?v={{ app_version }}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

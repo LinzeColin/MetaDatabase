@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }} · {{ app_name }}{% endblock %}
+{% block topbar_title %}岗位决策详情{% endblock %}
+{% block content %}
+<nav class="breadcrumb" aria-label="面包屑"><a href="/jobs">岗位与进度</a><span>›</span><span>{{ job.company }}</span></nav>
+<section class="job-hero card">
+  <div class="job-hero-main"><span class="company-monogram xlarge">{{ job.company[0]|upper }}</span><div><div class="badge-row"><span class="badge badge-{{ job.status|status_class }}">{{ job.status }}</span><span class="badge badge-neutral">{{ job.source }}</span>{% if ai_enhancement and ai_enhancement.status in ['success', 'stale'] %}<span class="badge badge-info">DeepSeek {{ ai_enhancement.mode }}</span>{% endif %}</div><h1>{{ job.title }}</h1><p>{{ job.company }}{% if job.location %} · {{ job.location }}{% endif %}{% if job.posted_date %} · 发布 {{ job.posted_date }}{% endif %}</p></div></div>
+  <div class="job-hero-actions">
+    {% if job.url %}<a class="button button-primary" href="{{ job.url }}" target="_blank" rel="noopener noreferrer">打开官方申请页 ↗</a>{% endif %}
+    <div class="ai-action-forms">
+      <form action="/jobs/{{ job.id }}/reanalyze" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="mode" value="fast"><button class="button button-secondary">重新分析</button></form>
+      {% if ai_provider.ready %}<form action="/jobs/{{ job.id }}/reanalyze" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="mode" value="precision"><button class="button button-ghost">DeepSeek 精细分析</button></form>{% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="decision-board">
+  <div class="decision-primary decision-{{ job.recommendation|status_class }}"><span class="eyebrow">RULE RECOMMENDATION</span><strong>{{ job.recommendation }}</strong><p>{{ job.next_action }}</p></div>
+  <div class="decision-metric"><small>岗位匹配</small><strong>{{ job.fit_label }}</strong><span class="badge badge-{{ job.fit_label|status_class }}">{{ job.fit_label }}</span></div>
+  <div class="decision-metric"><small>资格判断</small><strong>{{ job.eligibility_status }}</strong><span class="badge badge-{{ job.eligibility_status|status_class }}">{{ job.eligibility_status }}</span></div>
+  <div class="decision-metric"><small>发布时间</small><strong>{{ job.freshness_status }}</strong><span class="badge badge-{{ job.freshness_status|status_class }}">{{ job.freshness_status }}</span></div>
+  <div class="decision-metric"><small>申请投入</small><strong>{{ job.application_effort }}</strong><span class="badge badge-neutral">{{ job.application_effort }}</span></div>
+</section>
+
+<div class="detail-grid">
+  <div class="detail-main">
+    <section class="card analysis-card">
+      <div class="card-header"><div><span class="eyebrow eyebrow-dark">DETERMINISTIC RULES</span><h2>可解释规则核验</h2><p>这部分控制工作权利、Sponsorship、级别、经验与毕业年份等硬性结论。</p></div></div>
+      <div class="analysis-columns">
+        <div class="analysis-list positive"><h3><span>✓</span>支持申请的证据</h3>{% if job.reasons %}<ul>{% for item in job.reasons %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p class="muted">暂无明确支持证据。</p>{% endif %}</div>
+        <div class="analysis-list risk"><h3><span>!</span>风险与缺口</h3>{% if job.risks %}<ul>{% for item in job.risks %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p class="muted">没有发现明确阻断。</p>{% endif %}</div>
+      </div>
+      {% if job.unknowns %}<div class="unknown-panel"><h3>需要你确认</h3><ul>{% for item in job.unknowns %}<li>{{ item }}</li>{% endfor %}</ul></div>{% endif %}
+      <div class="skill-compare"><div><small>已匹配能力</small><div class="tag-row">{% for item in job.matched_skills %}<span class="tag tag-positive">{{ item }}</span>{% else %}<span class="muted">未提取到</span>{% endfor %}</div></div><div><small>明确要求但简历未找到</small><div class="tag-row">{% for item in job.missing_skills %}<span class="tag tag-risk">{{ item }}</span>{% else %}<span class="muted">没有明确缺项</span>{% endfor %}</div></div></div>
+    </section>
+
+    <section class="card ai-enhancement-card" id="deepseek-analysis">
+      <div class="card-header ai-enhancement-head"><div><span class="eyebrow eyebrow-dark">DEEPSEEK ENHANCEMENT</span><h2>AI 语义增强</h2><p>用于解释、措辞和材料聚焦；不能推翻上方硬规则。</p></div>{% if not ai_provider.configured %}<a class="button button-secondary" href="/settings#deepseek">设置 DeepSeek</a>{% endif %}</div>
+      {% if ai_enhancement and ai_enhancement.status in ['success', 'stale'] %}
+        {% set ai = ai_enhancement.content %}
+        {% if ai_enhancement.status == 'stale' %}<div class="ai-failure-note"><strong>本次刷新未完成：</strong>{{ ai_enhancement.error_message }}。以下为上一次成功结果。</div>{% endif %}
+        <div class="ai-meta-grid"><div><small>模型</small><strong>{{ ai_enhancement.model }}</strong></div><div><small>模式</small><strong>{{ ai_enhancement.mode }}</strong></div><div><small>置信度</small><strong>{{ ai.confidence or 'medium' }}</strong></div><div><small>建议动作</small><strong>{{ ai.suggested_action or 'Review' }}</strong></div></div>
+        <p class="ai-summary">{{ ai.summary_zh }}</p>
+        <div class="analysis-columns">
+          <div class="analysis-list positive"><h3><span>✓</span>语义层支持理由</h3>{% if ai.reasons_zh %}<ul>{% for item in ai.reasons_zh %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p class="muted">没有新增理由。</p>{% endif %}</div>
+          <div class="analysis-list risk"><h3><span>!</span>语义层风险</h3>{% if ai.risks_zh %}<ul>{% for item in ai.risks_zh %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p class="muted">没有新增风险。</p>{% endif %}</div>
+        </div>
+        {% if ai.questions_for_user_zh %}<div class="unknown-panel"><h3>AI 识别出的待确认问题</h3><ul>{% for item in ai.questions_for_user_zh %}<li>{{ item }}</li>{% endfor %}</ul></div>{% endif %}
+        <div class="ai-rule-boundary">最终资格与是否跳过仍以规则结论 <strong>{{ job.recommendation }} / {{ job.eligibility_status }}</strong> 为准；AI 只生成辅助说明和申请文字。</div>
+      {% elif ai_enhancement and ai_enhancement.status == 'failed' %}
+        <div class="ai-failure-note"><strong>DeepSeek 本次未完成：</strong>{{ ai_enhancement.error_message }}。规则结论和原申请包均已保留。</div>
+      {% elif ai_provider.configured and not ai_provider.ready %}
+        <div class="ai-failure-note">DeepSeek 已配置但当前未启用或尚未通过验证。前往“数据、AI 与安全”重新验证即可；规则分析不受影响。</div>
+      {% else %}
+        <div class="empty-state compact"><p>当前使用可解释规则分析。设置 DeepSeek 后，新岗位会自动生成更完整的语义说明和申请草稿。</p></div>
+      {% endif %}
+    </section>
+
+    <section class="card" id="application-pack">
+      <div class="card-header"><div><span class="eyebrow eyebrow-dark">APPLICATION PACK</span><h2>申请准备包</h2><p>这是草稿和核对清单，不代表已经提交。</p></div><a class="button button-secondary" href="/jobs/{{ job.id }}/application-pack.md">下载 Markdown</a></div>
+      {% if pack %}
+      <div class="selected-materials"><div><small>建议简历</small><strong>{{ resume.label if resume else '尚未选择' }}</strong></div><div><small>建议重点经历</small><strong>{{ experiences|length }} 条</strong></div></div>
+      {% if experiences %}<div class="experience-selection">{% for item in experiences %}<article><span>{{ loop.index }}</span><div><strong>{{ item.title }}</strong><small>{{ item.organization }}{% if item.date_range %} · {{ item.date_range }}{% endif %}</small><p>{{ item.description[:240] }}{% if item.description|length > 240 %}…{% endif %}</p></div></article>{% endfor %}</div>{% endif %}
+      <form action="/jobs/{{ job.id }}/pack" method="post" class="form-stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label class="field"><span>Why this role? 草稿</span><textarea name="why_role_draft" rows="5">{{ pack.why_role_draft }}</textarea><small>请对照官方页面和真实经历后再使用。</small></label>
+        <label class="field"><span>Why this company? 草稿</span><textarea name="why_company_draft" rows="5">{{ pack.why_company_draft }}</textarea></label>
+        <div class="field-grid cols-2"><label class="field"><span>工作权利回答</span><textarea name="work_authorization_answer" rows="4">{{ pack.work_authorization_answer }}</textarea></label><label class="field"><span>Sponsorship 回答</span><textarea name="sponsorship_answer" rows="4">{{ pack.sponsorship_answer }}</textarea></label></div>
+        <label class="field"><span>薪资回答</span><textarea name="salary_answer" rows="3">{{ pack.salary_answer }}</textarea></label>
+        <label class="check-row review-check"><input type="checkbox" name="user_reviewed" value="yes" {% if pack.user_reviewed %}checked{% endif %}><span><strong>我已核对草稿中的事实</strong><small>勾选不等于提交，只表示这份申请包已经人工复核；之后 AI 不会覆盖你的已审文字。</small></span></label>
+        <button class="button button-primary" type="submit">保存申请包</button>
+      </form>
+      <div class="checklist-panel"><h3>手动提交前清单</h3><ol>{% for item in pack.checklist %}<li>{{ item }}</li>{% endfor %}</ol></div>
+      {% else %}<div class="empty-state compact"><p>申请包尚未生成，请重新分析。</p></div>{% endif %}
+    </section>
+
+    <section class="card jd-card"><details><summary><span><strong>查看保存的职位正文</strong><small>用于之后面试准备，即使原岗位下架仍可读回</small></span><span>＋</span></summary><pre>{{ job.description }}</pre></details></section>
+  </div>
+
+  <aside class="detail-side">
+    <section class="card progress-card" id="progress">
+      <div class="card-header"><div><span class="eyebrow eyebrow-dark">REAL PROGRESS</span><h2>记录真实进度</h2></div></div>
+      <form action="/jobs/{{ job.id }}/status" method="post" class="form-stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label class="field"><span>当前状态</span><select name="status">{% for item in allowed_statuses %}<option value="{{ item }}" {% if job.status==item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></label>
+        <label class="field"><span>当前阶段</span><input name="current_stage" value="{{ job.current_stage }}" placeholder="例如：一轮面试"></label>
+        <label class="field"><span>下一动作</span><textarea name="next_action" rows="3">{{ job.next_action }}</textarea></label>
+        <label class="field"><span>日期</span><input type="date" name="next_action_date" value="{{ job.next_action_date }}"></label>
+        <label class="field critical-field"><span>提交 / 结果证据</span><textarea name="evidence_note" rows="3" placeholder="例如：Thank you 页面、申请编号、邮件确认文字"></textarea><small>标记 Applied 时必须填写。</small></label>
+        <label class="field"><span>私有备注</span><textarea name="notes" rows="4">{{ job.notes }}</textarea></label>
+        <button class="button button-primary full-width" type="submit">保存进度</button>
+      </form>
+    </section>
+
+    <section class="card timeline-card"><div class="card-header"><div><span class="eyebrow eyebrow-dark">TIMELINE</span><h2>事件记录</h2></div></div>{% if events %}<div class="timeline">{% for event in events %}<div class="timeline-item"><i></i><div><strong>{{ event.event_type }}</strong><time>{{ event.occurred_at|datetime }}</time><p>{{ event.note }}</p></div></div>{% endfor %}</div>{% else %}<p class="muted">暂无事件。</p>{% endif %}</section>
+
+    <section class="card danger-zone"><h3>删除岗位</h3><p>会删除该岗位、申请包、AI 增强和进度记录。</p><form action="/jobs/{{ job.id }}/delete" method="post" data-confirm="确定永久删除这个岗位及其全部记录吗？"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="button button-danger full-width" type="submit">删除岗位</button></form></section>
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{% if onboarding %}首次设置{% else %}候选人资料{% endif %} · {{ app_name }}{% endblock %}
+{% block topbar_title %}{% if onboarding %}首次设置{% else %}候选人资料{% endif %}{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <span class="eyebrow eyebrow-dark">CANDIDATE TRUTH LAYER</span>
+    <h1>{% if onboarding %}先建立你的真实求职边界{% else %}管理候选人事实与规则{% endif %}</h1>
+    <p>{% if onboarding %}只填写会影响岗位判断的最少信息。之后可以随时修改。{% else %}这里是系统判断资格、选择简历和生成答案的唯一事实来源。{% endif %}</p>
+  </div>
+  {% if not onboarding %}<a class="button button-secondary" href="/">返回总览</a>{% endif %}
+</section>
+
+{% if onboarding %}
+<div class="setup-path" aria-label="首次设置进度">
+  <div class="setup-step active"><span>1</span><p><strong>确认求职边界</strong><small>约 3 分钟</small></p></div>
+  <div class="setup-line"></div>
+  <div class="setup-step"><span>2</span><p><strong>上传简历</strong><small>系统自动读取</small></p></div>
+  <div class="setup-line"></div>
+  <div class="setup-step"><span>3</span><p><strong>分析第一个岗位</strong><small>立即得到结果</small></p></div>
+</div>
+{% endif %}
+
+<form action="/profile" method="post" class="profile-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <input type="hidden" name="next_url" value="{% if onboarding %}/resumes{% else %}/profile{% endif %}">
+
+  <section class="card form-section">
+    <div class="section-heading"><span class="section-number">01</span><div><h2>基本信息</h2><p>仅用于准备申请材料，不会公开展示。</p></div></div>
+    <div class="field-grid cols-2">
+      <label class="field required"><span>常用姓名</span><input name="preferred_name" value="{{ profile.preferred_name }}" required autocomplete="name" placeholder="例如：Linze Zhang"></label>
+      <label class="field"><span>Legal name（按需）</span><input name="legal_name" value="{{ profile.legal_name }}" placeholder="只有真实表单要求时才使用"></label>
+      <label class="field required"><span>申请邮箱</span><input type="email" name="email" value="{{ profile.email }}" required autocomplete="email"></label>
+      <label class="field"><span>联系电话</span><input name="phone" value="{{ profile.phone }}" autocomplete="tel" placeholder="含国家区号"></label>
+      <label class="field required"><span>当前位置</span><input name="current_location" value="{{ profile.current_location }}" required placeholder="例如：Sydney, NSW"></label>
+      <label class="field"><span>当前状态</span><input name="current_status" value="{{ profile.current_status }}" placeholder="例如：UNSW 在读，预计 2027 毕业"></label>
+      <label class="field span-2"><span>学历摘要</span><input name="degree_summary" value="{{ profile.degree_summary }}" placeholder="例如：Master of Commerce, UNSW"></label>
+      <label class="field"><span>毕业年份</span><input name="graduation_year" value="{{ profile.graduation_year }}" inputmode="numeric" placeholder="例如：2027"></label>
+      <label class="field"><span>可核验的全职相关经验年数</span><input type="number" min="0" max="60" name="professional_experience_years" value="{{ '' if profile.professional_experience_years is none else profile.professional_experience_years }}" placeholder="不确定可留空"></label>
+      <label class="field"><span>LinkedIn</span><input type="url" name="linkedin_url" value="{{ profile.linkedin_url }}" placeholder="https://..."></label>
+      <label class="field"><span>GitHub</span><input type="url" name="github_url" value="{{ profile.github_url }}" placeholder="https://..."></label>
+      <label class="field span-2"><span>作品集</span><input type="url" name="portfolio_url" value="{{ profile.portfolio_url }}" placeholder="https://..."></label>
+    </div>
+  </section>
+
+  <section class="card form-section critical-section">
+    <div class="section-heading"><span class="section-number">02</span><div><h2>工作权利与 Sponsorship</h2><p>这是高影响事实。系统不会猜，也不会替你改写。</p></div><span class="critical-badge">必须确认</span></div>
+    <div class="field-grid cols-2">
+      <label class="field required"><span>适用国家</span><input name="work_authorization_country" value="{{ profile.work_authorization_country }}" required></label>
+      <label class="field span-2 required"><span>你的工作权利原文</span><textarea name="work_authorization_text" rows="4" required placeholder="按真实情况描述，例如签证类别、是否有工时限制、有效期。不要上传证件原件。">{{ profile.work_authorization_text }}</textarea><small>系统只使用你确认的文字判断岗位资格。</small></label>
+      <label class="field required"><span>现在需要雇主 Sponsorship 吗？</span><select name="sponsorship_now" required><option value="unknown" {% if profile.sponsorship_now is none %}selected{% endif %}>尚未确认</option><option value="yes" {% if profile.sponsorship_now is sameas true %}selected{% endif %}>需要</option><option value="no" {% if profile.sponsorship_now is sameas false %}selected{% endif %}>不需要</option></select></label>
+      <label class="field required"><span>未来需要雇主 Sponsorship 吗？</span><select name="sponsorship_future" required><option value="unknown" {% if profile.sponsorship_future is none %}selected{% endif %}>尚未确认</option><option value="yes" {% if profile.sponsorship_future is sameas true %}selected{% endif %}>需要</option><option value="no" {% if profile.sponsorship_future is sameas false %}selected{% endif %}>不需要</option></select></label>
+    </div>
+  </section>
+
+  <section class="card form-section">
+    <div class="section-heading"><span class="section-number">03</span><div><h2>目标与跳过规则</h2><p>用逗号或换行分隔。越明确，岗位判断越可靠。</p></div></div>
+    <div class="field-grid cols-2">
+      <label class="field span-2 required"><span>主要目标岗位</span><textarea name="target_roles" rows="3" required placeholder="Financial Analyst, Data Analyst, Business Analyst">{{ profile.target_roles|join(', ') }}</textarea></label>
+      <label class="field span-2"><span>次要岗位</span><textarea name="secondary_roles" rows="2" placeholder="Operations, Risk, Consulting">{{ profile.secondary_roles|join(', ') }}</textarea></label>
+      <label class="field"><span>必须跳过的岗位</span><textarea name="roles_to_avoid" rows="3" placeholder="纯销售, 无薪实习, Senior roles">{{ profile.roles_to_avoid|join(', ') }}</textarea></label>
+      <label class="field"><span>必须跳过的行业</span><textarea name="industries_to_avoid" rows="3" placeholder="不接受的行业，可留空">{{ profile.industries_to_avoid|join(', ') }}</textarea></label>
+      <label class="field span-2 required"><span>目标地点</span><textarea name="target_locations" rows="2" required placeholder="Sydney, Melbourne, Remote Australia">{{ profile.target_locations|join(', ') }}</textarea></label>
+      <label class="field"><span>工作模式偏好</span><select name="work_mode"><option {% if profile.work_mode == 'Hybrid / Onsite / Remote' %}selected{% endif %}>Hybrid / Onsite / Remote</option><option {% if profile.work_mode == 'Hybrid / Onsite' %}selected{% endif %}>Hybrid / Onsite</option><option {% if profile.work_mode == 'Remote' %}selected{% endif %}>Remote</option><option {% if profile.work_mode == 'Onsite' %}selected{% endif %}>Onsite</option></select></label>
+      <label class="field"><span>目标级别</span><select name="target_level"><option {% if profile.target_level == 'Graduate / Entry level' %}selected{% endif %}>Graduate / Entry level</option><option {% if profile.target_level == 'Internship' %}selected{% endif %}>Internship</option><option {% if profile.target_level == 'Mid level' %}selected{% endif %}>Mid level</option><option {% if profile.target_level == 'Senior' %}selected{% endif %}>Senior</option></select></label>
+      <label class="field span-2"><span>搬迁政策</span><input name="relocation_policy" value="{{ profile.relocation_policy }}" placeholder="例如：暂不搬迁；只接受 NSW；可协商"></label>
+    </div>
+  </section>
+
+  <section class="card form-section">
+    <div class="section-heading"><span class="section-number">04</span><div><h2>申请回答策略</h2><p>没有确认的高影响问题，系统会明确标记“需要你决定”。</p></div></div>
+    <div class="field-grid cols-2">
+      <label class="field"><span>最早入职时间</span><input name="available_start_date" value="{{ profile.available_start_date }}" placeholder="例如：2027-02 或 4 weeks notice"></label>
+      <label class="field"><span>确认的薪资区间</span><input name="salary_range" value="{{ profile.salary_range }}" placeholder="可留空"></label>
+      <label class="field span-2"><span>薪资回答策略</span><input name="salary_strategy" value="{{ profile.salary_strategy }}"></label>
+      <label class="field span-2"><span>自愿身份申报策略</span><select name="self_identification_strategy"><option value="prefer_not_to_say" {% if profile.self_identification_strategy == 'prefer_not_to_say' %}selected{% endif %}>Prefer not to say / 留空</option><option value="manual_only" {% if profile.self_identification_strategy == 'manual_only' %}selected{% endif %}>每次由我手动决定</option></select><small>系统不会猜测性别、族裔、残障或退伍军人身份。</small></label>
+    </div>
+  </section>
+
+  <div class="sticky-actions">
+    <div><strong>{% if onboarding %}保存后进入第 2 步：上传简历{% else %}修改会影响之后的岗位分析{% endif %}</strong><small>现有岗位可在详情页点击“重新分析”。</small></div>
+    <button class="button button-primary button-large" type="submit">保存并继续 <span aria-hidden="true">→</span></button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,20 @@
+JobHuntBot Online 0.2.0
+
+This package is an independently implemented online adaptation inspired by the
+workflow and safety boundaries of DanielPan12/JobHuntBot, which states that it
+is adapted from Yvonne He's ApplyPilot. Their MIT notices are retained in
+LICENSE.
+
+Upstream reference:
+https://github.com/DanielPan12/JobHuntBot
+
+DeepSeek is an optional external AI provider integrated through its official
+API. DeepSeek is not bundled, redistributed, or represented as part of this
+software. Users supply and control their own API credential. Current official
+integration endpoints and model identifiers are documented in taskpack/
+DEPENDENCIES.md.
+
+This package is not an official release of JobHuntBot, ApplyPilot, DeepSeek,
+SEEK, LinkedIn, Indeed, or any applicant tracking system. It does not include,
+request, or authorize access to third-party account passwords, cookies,
+verification codes, or protected job-board data.

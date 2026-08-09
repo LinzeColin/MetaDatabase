@@ -1,0 +1,189 @@
+{
+  "version": "0.2.0",
+  "tasks": [
+    {
+      "id": "T01",
+      "name": "Observe current target truth",
+      "dependencies": [],
+      "outputs": [
+        "target repository/path",
+        "runtime node",
+        "domain/proxy facts",
+        "data/sync bindings",
+        "first broken link"
+      ],
+      "acceptance": [
+        "Environment facts are observed without exposing secrets",
+        "No repository or public resource is created without Owner authorization"
+      ],
+      "rollback": "read-only task"
+    },
+    {
+      "id": "T02",
+      "name": "Place and adapt the frozen candidate",
+      "dependencies": [
+        "T01"
+      ],
+      "outputs": [
+        "candidate source in target repository",
+        "C0/C1 compatibility changes",
+        "taskpack validation result"
+      ],
+      "acceptance": [
+        "L0/L1 scope is unchanged",
+        "python and shell sources are valid",
+        "existing better target implementation is preserved"
+      ],
+      "rollback": "restore pre-change target worktree or revert the candidate-only change"
+    },
+    {
+      "id": "T03",
+      "name": "Provision production configuration and ingress",
+      "dependencies": [
+        "T02"
+      ],
+      "outputs": [
+        "private .env",
+        "Owner login handoff file",
+        "persistent data directory",
+        "DNS/HTTPS route"
+      ],
+      "acceptance": [
+        "secrets are generated and not committed",
+        "DeepSeek key remains absent from the package and deployment logs",
+        "domain resolves to the intended target",
+        "80/443 conflict is resolved through the existing proxy or package Caddy"
+      ],
+      "rollback": "remove only the new route/config and retain data"
+    },
+    {
+      "id": "T04",
+      "name": "Deploy application and reverse proxy",
+      "dependencies": [
+        "T03"
+      ],
+      "outputs": [
+        "healthy app container",
+        "migrated and verified sensitive storage",
+        "HTTPS entry",
+        "previous image rollback tag",
+        "pre-deploy data recovery point"
+      ],
+      "acceptance": [
+        "container doctor is ready",
+        "legacy sensitive fields are encrypted and upload object names are opaque",
+        "readyz is healthy",
+        "app is not directly exposed to the public network"
+      ],
+      "rollback": "deploy/rollback.sh; data remains current"
+    },
+    {
+      "id": "T05",
+      "name": "Execute isolated full golden transaction and AI fault matrix",
+      "dependencies": [
+        "T02"
+      ],
+      "outputs": [
+        "exact dependency and runtime verification",
+        "deterministic test result",
+        "mocked DeepSeek success/failure/privacy result",
+        "HTTP golden evidence",
+        "browser golden evidence",
+        "restart/readback evidence",
+        "backup/restore evidence"
+      ],
+      "acceptance": [
+        "all tests pass",
+        "direct identifiers are absent from DeepSeek-bound content",
+        "AI cannot override deterministic eligibility",
+        "401/402/429/500/503 paths do not break the core workflow",
+        "restart retains application evidence",
+        "encrypted recovery artifact exists"
+      ],
+      "rollback": "isolated test data is discarded"
+    },
+    {
+      "id": "T06",
+      "name": "Execute full live HTTPS transaction, restart readback and cleanup",
+      "dependencies": [
+        "T04",
+        "T05"
+      ],
+      "outputs": [
+        "live health responses",
+        "isolated acceptance-user login evidence",
+        "production write transaction evidence",
+        "application-container restart/readback evidence",
+        "acceptance-user cleanup evidence",
+        "browser console result"
+      ],
+      "acceptance": [
+        "real HTTPS login is reachable",
+        "an isolated temporary identity completes onboarding, resume upload, job analysis, application pack and progress recording",
+        "the same business result is readable after application-container restart",
+        "temporary credentials never enter evidence and the acceptance identity/data/files are removed",
+        "no material browser console errors"
+      ],
+      "rollback": "temporary user cleanup is mandatory; restore previous image or remove new ingress route if the live transaction fails"
+    },
+    {
+      "id": "T07",
+      "name": "Prepare Owner web activation and verify DeepSeek when the key is available",
+      "dependencies": [
+        "T06"
+      ],
+      "outputs": [
+        "encrypted provider configuration",
+        "successful official API connection record",
+        "ready status without key disclosure"
+      ],
+      "acceptance": [
+        "Owner pastes the key only in the authenticated settings page",
+        "the full key is never echoed, logged, exported or committed",
+        "official V4 Flash and V4 Pro identifiers are used",
+        "a failed or absent verification keeps AI unavailable while the rule workflow remains usable and the release remains explicitly conditional"
+      ],
+      "rollback": "use the web revoke action; rules-only operation remains available"
+    },
+    {
+      "id": "T08",
+      "name": "Bind existing long-term sync and status integrations",
+      "dependencies": [
+        "T04"
+      ],
+      "outputs": [
+        "structured sync state",
+        "encrypted object backup state",
+        "status projection state"
+      ],
+      "acceptance": [
+        "available authorized integrations are connected",
+        "missing integrations remain explicitly not_configured",
+        "provider keys and credentials are excluded from canonical export",
+        "no false synced state"
+      ],
+      "rollback": "disable timers/adapters; core app remains usable"
+    },
+    {
+      "id": "T09",
+      "name": "Freeze evidence, release, commit and hand off",
+      "dependencies": [
+        "T07",
+        "T08"
+      ],
+      "outputs": [
+        "ACCEPTANCE_RESULT.json",
+        "deployment report",
+        "accepted repository change",
+        "Owner URL and credentials handoff"
+      ],
+      "acceptance": [
+        "no unresolved P0/P1",
+        "core_result is PASS",
+        "overall PASS requires DeepSeek ready and authorized long-term sync ready",
+        "Owner receives no technical setup work beyond the one-time key paste"
+      ],
+      "rollback": "revert repository change and invoke code rollback; preserve recovery data"
+    }
+  ]
+}

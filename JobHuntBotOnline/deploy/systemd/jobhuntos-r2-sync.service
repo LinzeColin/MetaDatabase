@@ -1,0 +1,13 @@
+[Unit]
+Description=JobHuntBot Online encrypted object sync
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=__RUN_USER__
+Group=__RUN_GROUP__
+Environment=HOME=__RUN_HOME__
+WorkingDirectory=__PROJECT_DIR__
+ExecStart=__PROJECT_DIR__/ops/sync_r2.sh
+Nice=10

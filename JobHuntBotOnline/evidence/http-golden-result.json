@@ -1,0 +1,9 @@
+{
+  "process_start": "pass",
+  "golden_transaction": "pass",
+  "restart_readback": "pass",
+  "encrypted_backup": "pass",
+  "database_exists": true,
+  "encrypted_upload_exists": true,
+  "canonical_export_exists": true
+}

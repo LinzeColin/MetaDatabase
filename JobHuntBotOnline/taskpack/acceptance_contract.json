@@ -1,0 +1,193 @@
+{
+  "product": "JobHuntBot Online",
+  "product_version": "0.2.0",
+  "taskpack_version": "0.2.0",
+  "requirements": [
+    {
+      "id": "A-01",
+      "title": "Owner private access",
+      "tasks": [
+        "T03",
+        "T04",
+        "T06"
+      ],
+      "tests": [
+        "tests/test_routes.py",
+        "tests/test_security_and_health.py",
+        "tests/e2e_live_readonly.py",
+        "tests/e2e_live_golden.py"
+      ],
+      "oracle": "Unauthenticated users cannot access private pages; the Owner and an isolated acceptance identity can authenticate over real HTTPS without exposing credentials in evidence."
+    },
+    {
+      "id": "A-02",
+      "title": "Candidate truth layer",
+      "tasks": [
+        "T02",
+        "T05"
+      ],
+      "tests": [
+        "tests/test_routes.py",
+        "tests/e2e_golden.py"
+      ],
+      "oracle": "High-impact facts originate from Owner input and survive refresh/restart without invented values."
+    },
+    {
+      "id": "A-03",
+      "title": "Encrypted candidate data, resume and experience bank",
+      "tasks": [
+        "T02",
+        "T05"
+      ],
+      "tests": [
+        "tests/test_resume_parser.py",
+        "tests/test_routes.py",
+        "tests/test_security_and_health.py",
+        "tests/test_data_migration.py",
+        "tests/test_backup_and_export.py"
+      ],
+      "oracle": "Supported resumes are parsed; persistent originals and high-impact candidate fields are encrypted; upload object names are opaque; legacy plaintext is migrated; structured experiences remain user-correctable."
+    },
+    {
+      "id": "A-04",
+      "title": "Safe job import",
+      "tasks": [
+        "T02",
+        "T05"
+      ],
+      "tests": [
+        "tests/test_job_fetcher.py",
+        "tests/test_routes.py"
+      ],
+      "oracle": "Only reviewed public ATS hosts may be read within limits; restricted and arbitrary targets use the manual-JD fallback without becoming a general-purpose fetcher."
+    },
+    {
+      "id": "A-05",
+      "title": "Explainable eligibility and fit",
+      "tasks": [
+        "T02",
+        "T05"
+      ],
+      "tests": [
+        "tests/test_analyzer.py",
+        "tests/e2e_golden.py",
+        "tests/test_ai_provider.py"
+      ],
+      "oracle": "The deterministic result exposes reasons, risks and unknowns; material eligibility conflicts cannot produce Apply; AI output cannot override this state."
+    },
+    {
+      "id": "A-06",
+      "title": "Application pack with manual-submit boundary",
+      "tasks": [
+        "T02",
+        "T05"
+      ],
+      "tests": [
+        "tests/test_routes.py",
+        "tests/http_golden.py",
+        "tests/e2e_golden.py",
+        "tests/test_ai_provider.py"
+      ],
+      "oracle": "The user receives a reviewable pack; AI may improve unreviewed prose only; no third-party login or submit action exists; Applied requires evidence."
+    },
+    {
+      "id": "A-07",
+      "title": "Progress persistence and readback",
+      "tasks": [
+        "T04",
+        "T05",
+        "T06"
+      ],
+      "tests": [
+        "tests/http_golden.py",
+        "tests/e2e_golden.py",
+        "tests/e2e_live_golden.py"
+      ],
+      "oracle": "Application status and evidence survive reload, re-login, process restart and application-container restart on the real HTTPS deployment."
+    },
+    {
+      "id": "A-08",
+      "title": "Export, encrypted backup and recovery",
+      "tasks": [
+        "T05",
+        "T08"
+      ],
+      "tests": [
+        "tests/test_backup_and_export.py",
+        "tests/test_data_migration.py",
+        "tests/http_golden.py"
+      ],
+      "oracle": "Canonical JSON contains no candidate private plaintext or provider key; an authenticated Owner can download a readable copy; encrypted recovery packs recreate state in isolation; sync state is honest."
+    },
+    {
+      "id": "A-09",
+      "title": "Web security, operations and rollback",
+      "tasks": [
+        "T03",
+        "T04",
+        "T05",
+        "T06"
+      ],
+      "tests": [
+        "tests/test_security_and_health.py",
+        "tests/test_deploy_tools.py",
+        "tests/e2e_live_golden.py",
+        "tools/verify_runtime.py",
+        "deploy/acceptance.sh"
+      ],
+      "oracle": "Security controls, exact runtime dependencies, protected storage verification, container restrictions, health/readiness, full live HTTPS write/read/restart transaction, temporary-probe cleanup, rollback and data recovery are executable."
+    },
+    {
+      "id": "A-10",
+      "title": "Zero technical burden",
+      "tasks": [
+        "T05",
+        "T06",
+        "T07",
+        "T09"
+      ],
+      "tests": [
+        "tests/e2e_golden.py",
+        "tests/e2e_live_golden.py",
+        "tests/test_ai_provider.py"
+      ],
+      "oracle": "A normal user completes the product path in the web UI; the only AI setup action is a one-time key paste and checkbox confirmation."
+    },
+    {
+      "id": "A-11",
+      "title": "DeepSeek secure BYOK configuration",
+      "tasks": [
+        "T03",
+        "T05",
+        "T07"
+      ],
+      "tests": [
+        "tests/test_ai_provider.py",
+        "app/services/ai_provider.py"
+      ],
+      "oracle": "The key is encrypted at rest, never echoed, excluded from canonical export and logs, and can be tested, disabled and revoked without shell access."
+    },
+    {
+      "id": "A-12",
+      "title": "AI privacy, budget and degraded operation",
+      "tasks": [
+        "T05",
+        "T07",
+        "T08"
+      ],
+      "tests": [
+        "tests/test_ai_provider.py",
+        "app/services/ai_provider.py",
+        "app/routers/health.py"
+      ],
+      "oracle": "Direct identifiers are removed before provider calls; request/token budgets and a circuit breaker are enforced; provider failures preserve deterministic analysis and previously reviewed content."
+    }
+  ],
+  "verdicts": {
+    "PASS": "All applicable core requirements pass on the exact deployment, DeepSeek is ready through a real official API verification, authorized long-term sync is ready, and no P0/P1 remains.",
+    "CONDITIONAL_PASS": "Core product, safety, data and rollback pass; DeepSeek activation or an authorized optional external sync remains explicitly pending.",
+    "FAIL": "The candidate violates an acceptance oracle.",
+    "BLOCKED": "A required domain, production authority or Owner-only governance decision is unavailable."
+  },
+  "data_schema_version": "3"
+}

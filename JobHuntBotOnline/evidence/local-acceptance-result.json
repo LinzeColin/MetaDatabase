@@ -1,0 +1,41 @@
+{
+  "preparation_result": "PASS",
+  "production_verdict": "NOT_ISSUED",
+  "generated_at": "2026-08-09T03:14:56Z",
+  "candidate": "JobHuntBot Online 0.2.0",
+  "data_schema_version": "3",
+  "checks": {
+    "deterministic_tests": {
+      "result": "PASS",
+      "count": 55
+    },
+    "deepseek_contract_tests": {
+      "result": "PASS",
+      "count": 12,
+      "network": "mock_transport"
+    },
+    "http_golden_transaction": {
+      "process_start": "pass",
+      "golden_transaction": "pass",
+      "restart_readback": "pass",
+      "encrypted_backup": "pass",
+      "database_exists": true,
+      "encrypted_upload_exists": true,
+      "canonical_export_exists": true
+    },
+    "sensitive_fields_upload_names_and_provider_key": "PASS",
+    "direct_identifier_redaction": "PASS",
+    "legacy_sensitive_data_migration": "PASS",
+    "protected_canonical_and_owner_readable_export": "PASS",
+    "production_configuration_diagnostic": "PASS",
+    "source_and_taskpack_validation": "PASS",
+    "isolated_browser_golden": "BLOCKED_BY_MANAGED_BROWSER_POLICY",
+    "docker_compose_caddy_https": "NOT_RUN_DOCKER_UNAVAILABLE",
+    "real_deepseek_connection": "NOT_RUN_OWNER_KEY_REQUIRED_IN_WEB_UI",
+    "private_database_sync": "TARGET_EXECUTION_REQUIRED",
+    "r2_sync": "TARGET_EXECUTION_REQUIRED",
+    "cold_extraction_acceptance": "PASS_CANDIDATE_ARCHIVE"
+  },
+  "release_boundary": "Only deploy/acceptance.sh on the exact target may issue a production PASS or CONDITIONAL_PASS.",
+  "cold_extraction_note": "The release candidate archive was extracted into a new directory and passed taskpack validation, 55 deterministic tests, 12 DeepSeek contract tests, the HTTP golden transaction, shell syntax, executable-bit checks, and forbidden-file checks. The exact final archive is verified again after packaging."
+}

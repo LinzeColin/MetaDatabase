@@ -1,0 +1,7 @@
+Graduate Data Analyst
+
+About the role
+We are seeking a graduate data analyst in Sydney. Responsibilities include analysing business data, building Power BI dashboards, writing SQL queries, working with Excel, and presenting insights to stakeholders.
+
+Requirements
+Bachelor or master degree, graduating in 2027. Python, SQL, Excel, Power BI and communication skills are required. Applicants must have Australian work rights. This is a hybrid role based in Sydney.
