@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "task_id": "S5-T3",
-  "status": "NOT_SAVED_REMOTE_SOURCE_REF_UNAVAILABLE",
+  "status": "HISTORICAL_SOURCE_TRANSPORT_FAILURE_RECOVERED_BY_ISOLATED_PROJECTION",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
   "observed_at": "2026-08-10",
   "candidate": {
@@ -33,7 +33,7 @@
     "allowed_user_count": 1,
     "allowed_group_count": 0,
     "external_visitor_count": 0,
-    "current_saved_version_number": 16,
+    "version_at_initial_attempt": 16,
     "current_site_title": "个人日程"
   },
   "source_transport": {
@@ -41,8 +41,10 @@
     "configured_source_branch": "main",
     "source_branch_ref_readback": "NO_ADVERTISED_MAIN_REF",
     "source_push_attempt": "FAILED_REMOTE_UPLOAD_PACK_NOT_OUR_REF",
-    "version_17_saved": false,
-    "version_17_deployed": false
+    "version_17_saved_at_initial_attempt": false,
+    "version_17_deployed_at_initial_attempt": false,
+    "recovery": "TREE_IDENTICAL_ISOLATED_FULL_OBJECT_PROJECTION_PUSH_SUCCEEDED_AND_PRIVATE_VERSION_17_DEPLOYED",
+    "recovery_evidence_file": "13_evidence/private_version_17_signin_guidance_deployment.json"
   },
   "change_boundary": {
     "runtime_settings_changed": false,
@@ -54,7 +56,6 @@
   },
   "sensitive_values_recorded": false,
   "not_proven": [
-    "A private Version 17 deployment",
     "A successful authenticated ordinary-browser mutation",
     "Physical second-device history readback",
     "Direct D1/R2 reconciliation",

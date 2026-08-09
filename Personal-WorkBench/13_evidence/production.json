@@ -5,17 +5,19 @@
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
   "observed_at": "2026-08-10",
   "candidate": {
-    "local_source_commit": "08651a75ecc65fe10de8017dcbf685647fd9dc39",
-    "local_project_tree": "79aaa643b8034c62a071e2387d3a800fa21be4b6",
-    "sites_source_commit": "148a3b1f4bdb01429ec8901b30abb06f49ccfdaf",
-    "source_projection_parent": "f9eb0e89e9ac1295c01ff0f0d47518f1d4684d81",
-    "saved_version_number": 16,
-    "source_projection_matches_version_16_project_tree": true,
+    "local_source_commit": "5ed8013e386849a1026c0d24cb586d2c36197d3d",
+    "functional_code_commit": "f87679ef17781b6f76ad289ee0ece6366ac24d11",
+    "local_project_tree": "104934e73b8711437a5c7fca4d7d7a5943401f7a",
+    "sites_source_commit": "04b554e251ceeda6e080ab312df8ca08220b8951",
+    "source_projection_parent": null,
+    "previous_source_main_commit": "06f552dbe17d3611c8b0656b86c5380e5b36a9bc",
+    "saved_version_number": 17,
+    "source_projection_matches_version_17_project_tree": true,
     "source_projection_matches_current_project_tree": false,
-    "current_project_tree_delta": "Version 16 deployment evidence and handoff updates after the private deployment; no deployed runtime source, environment, or access-policy change.",
-    "source_projection_archive_sha256": "a6d31915a88f74f168dc2b9565e1e6c0747f95b7e09f3805f1c80ace486b4a36",
-    "deployment_archive_sha256": "a6d31915a88f74f168dc2b9565e1e6c0747f95b7e09f3805f1c80ace486b4a36",
-    "provider_archive_sha256": "sha256:f565a3dc97e0dbc63d14fa49e71db287adc6a1b595044c3b0525780e08fe188d",
+    "current_project_tree_delta": "Version 17 deployment evidence and handoff updates after the private deployment; no deployed runtime source, environment, or access-policy change.",
+    "source_projection_archive_sha256": "b18e8c66324414daab944775aaa461b5a8214c409352e3fe450c472673813122",
+    "deployment_archive_sha256": "b18e8c66324414daab944775aaa461b5a8214c409352e3fe450c472673813122",
+    "provider_archive_sha256": "sha256:0406ae97907b3b9f451d4887acad866ae4f0ccd4a73f4cfa38976a5442d0c5fa",
     "environment_revision": 8
   },
   "private_access": {
@@ -31,7 +33,8 @@
   },
   "controlled_deployment_and_recovery": {
     "version_16_private_deploy": "SUCCEEDED",
-    "version_17_sign_in_guidance_source_transport": "NOT_SAVED_REMOTE_SOURCE_REF_UNAVAILABLE",
+    "version_17_private_deploy": "SUCCEEDED",
+    "version_17_sign_in_guidance_source_transport": "RECOVERED_TREE_IDENTICAL_ISOLATED_PROJECTION_PUSH_AND_PRIVATE_DEPLOY_SUCCEEDED",
     "version_15_private_deploy": "SUCCEEDED",
     "version_16_to_15_private_rollback": "SUCCEEDED",
     "version_15_to_16_private_restore": "SUCCEEDED",
@@ -43,8 +46,9 @@
     "prior_version_9_private_deploy": "SUCCEEDED",
     "prior_version_6_private_rollback": "SUCCEEDED",
     "prior_version_7_private_restore": "SUCCEEDED",
-    "live_version_matches_version_16": true,
+    "live_version_matches_version_16": false,
     "live_version_matches_version_16_after_rehearsal": true,
+    "live_version_matches_version_17": true,
     "current_deployment_environment_revision": 8
   },
   "observed_interface": {
@@ -60,6 +64,7 @@
     "canonical_domain_has_explicit_login_or_account_entry": true,
     "homepage_mixed_auth_network_feedback": "PASS_LOCAL_REGRESSION_AND_V13_SOURCE_PROVENANCE",
     "homepage_habit_failed_save_feedback": "PASS_PRIVATE_VERSION_15_DEPLOY_AND_LOCAL_OPERATION_AUDIT",
+    "network_interruption_signin_guidance": "PASS_PRIVATE_VERSION_17_DEPLOY_AND_LOCAL_RENDERED_REPLAY",
     "homepage_login_or_account_entry_visible_in_live_v13": true,
     "reset_password_missing_token_feedback": "PASS_LOCAL_PRE_REQUEST_PREFLIGHT_AND_PRIVATE_VERSION_14_DEPLOY",
     "version_14_cross_surface_habit_mutation_replay": "INCONCLUSIVE_AGENT_TRANSPORT_BOUNDARY_NO_VISIBLE_STATE_CHANGE",
@@ -121,6 +126,7 @@
     "13_evidence/private_version_16_canonical_brand_metadata_deployment.json",
     "13_evidence/private_version_16_rollback_restore_rehearsal.json",
     "13_evidence/version_17_signin_guidance_source_transport_boundary.json",
+    "13_evidence/private_version_17_signin_guidance_deployment.json",
     "13_evidence/version_16_storage_binding_reconciliation.json",
     "13_evidence/version_14_controlled_browser_replay.json"
   ],
@@ -132,5 +138,5 @@
     "physical second-device history readback and direct D1/R2 reconciliation",
     "negative provider and recovery-path replay"
   ],
-  "notes": "This record contains only private control-plane and rendered-UI facts. The Version 17 local sign-in-guidance repair passed source, type, lint, module, e2e, build, and rendered network-interruption checks. It does not change reference visual markup, authentication rules, API contracts, tenant/storage models, runtime settings, access policy, D1/R2, user data, or public audience. A fresh Sites source write credential was provisioned, but the configured source branch did not advertise main and the project-root source projection push failed at the remote upload-pack layer with a missing existing ref. Therefore Version 17 was neither saved nor deployed; Version 16 remains the current saved private runtime. This is a source-transport boundary, not evidence of a product mutation failure or final acceptance. A current owner-only recovery rehearsal first privately deployed saved Version 15 and then immediately restored saved Version 16; both deployment status reads succeeded. Before and after, the site was active/owner/custom with one allowed user, zero groups, zero external visitors, and the same access-policy revision. The final restore targeted the Version 16 release carrying the personal schedule branding; no runtime setting, access policy, D1/R2 resource, business record, public audience, URL, or sensitive value was read or changed. This recovery rehearsal is not a public rollback, authenticated ordinary-browser mutation, physical second-device history, direct D1/R2 reconciliation, or product acceptance. Version 15 privately deploys the smallest repair for the remaining five desktop habit controls: a failed protected save now has an immediate, truthful pending or failure message, while the completed message remains reserved for a successful server response. The local audit covered 16 pages and 140 visible controls with no no-visible-effect control; it did not create accounts, submit business records, or trigger external providers. A current Version 14 nonempty invalid reset-token replay rendered the neutral invalid-or-expired-link result, not password-updated or service-unavailable; the deployed preflight only intercepts a missing token, so this is a narrow server-rejection path observation. The temporary token and test password were cleared before the tab closed. A current Version 14 negative password-reset replay submitted one fresh controlled mailbox alias, rendered the same generic next-steps response, and found no matching message before, immediately after, or 28 seconds after submission. It proves only a bounded non-enumeration observation; it does not diagnose provider behavior for an existing account. A fresh ordinary Safari tab on Version 14 correctly stopped at private Sites access and the standard ChatGPT login page; no controlled authenticated desktop session was available, so no credential, account choice, business mutation, or historical readback was attempted. This proves the private access boundary, not an authenticated ordinary-browser replay or a product write failure. A new read-only Sites control-plane audit on Version 14 reconfirmed logical DB/FILES bindings and version provenance, but exposed no physical D1 identifier or R2 bucket name; it recorded only environment key classifications and counts, and did not read environment contents, credentials, D1 records, or R2 objects. Together with the earlier authorized Cloudflare catalog discovery, this preserves direct D1/R2 reconciliation as pending rather than inferring a physical resource from logical names or local development placeholders. Version 14 privately deploys the smallest reset-link UX repair: when the reset page has no token, it shows the existing neutral invalid-or-expired-link feedback before attempting a request; a nonempty token still reaches the server, which remains authoritative. A fresh controlled email identity also completed rendered registration, mailbox verification, credential login, and workbench navigation on Version 14; one non-sensitive habit click in each available agent-controlled browser surface remained visibly unchanged, produced the same generic client network state, and had no matching mutation event in the bounded Worker window. That paired result does not prove an end-user browser, session, Worker, or D1 defect, so no production API, security, or visual change was made solely to bypass it. The exact Version 14 source projection and deployment archive were independently matched before private deployment, while auth, type, lint, build, and render-smoke regressions passed locally. This does not replace physical-device, direct D1/R2, ordinary-browser mutation, or final independent acceptance. Version 13 privately deployed the smallest repair for the observed mixed resource state: when either home resource authoritatively requires sign-in, the visible next step is sign-in and verification rather than a generic network diagnosis. A later read-only Cloudflare control-plane discovery validated two protected token scopes but found no safely identifiable personal-schedule D1 physical binding; it did not issue D1 SQL or an R2 operation and does not replace direct reconciliation. A separate ordinary Chrome sign-in replay rendered the current form but returned one neutral authentication failure, so it was stopped before any retry, recovery action, Google selection, or business mutation; it does not diagnose the rejected credential or replace a successful browser replay. Version 11 briefly used a server redirect that did not retain the legacy route query in this runtime; Version 12 supersedes it with a client-side canonical-domain redirect. Test-only authentication identities exercised email authentication, recovery, a non-sensitive A/B habit-checkin isolation replay, and a separate-session history readback; temporary records were deleted. No real-user record, raw cookie, credential, account identifier, mail content, or URL was recorded."
+  "notes": "This record contains private control-plane and rendered-UI facts only. Version 17 privately deploys the shared workbench data-client repair that gives an actionable sign-in path when browser request transport is uncertain, without claiming that a record was saved. Its source was restored through a tree-identical isolated full-object projection after a historical partial-projection transport failure; source, archive and saved-version provenance were read back. The site remains active/owner/custom with one allowed user, zero groups, zero external visitors and environment revision 8. No runtime setting, access policy, D1/R2 resource, user record or public audience changed. Historical Version 9 email, A/B tenant isolation and separate-session history evidence remains scoped to its controlled test records and cleanup; Version 14 browser observations remain an agent-transport boundary; Version 15 and Version 16 retain their own deployment and rollback evidence. None of these private facts proves an ordinary-browser authenticated mutation, physical second-device history, direct D1/R2 reconciliation, public launch eligibility or final product acceptance."
 }

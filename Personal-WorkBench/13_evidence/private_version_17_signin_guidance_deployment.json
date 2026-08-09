@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PASS_PRIVATE_VERSION_17_SIGNIN_GUIDANCE_DEPLOYMENT",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "local_source_commit": "5ed8013e386849a1026c0d24cb586d2c36197d3d",
+    "functional_code_commit": "f87679ef17781b6f76ad289ee0ece6366ac24d11",
+    "local_root_tree": "d768c7d82aac0b6684302cecb78ee7334acce887",
+    "local_project_tree": "104934e73b8711437a5c7fca4d7d7a5943401f7a",
+    "isolated_source_projection_commit": "04b554e251ceeda6e080ab312df8ca08220b8951",
+    "previous_source_main_commit": "06f552dbe17d3611c8b0656b86c5380e5b36a9bc",
+    "source_projection_matches_candidate_project_tree": true,
+    "source_main_readback_matches_projection": true,
+    "source_projection_archive_sha256": "b18e8c66324414daab944775aaa461b5a8214c409352e3fe450c472673813122",
+    "provider_archive_sha256": "sha256:0406ae97907b3b9f451d4887acad866ae4f0ccd4a73f4cfa38976a5442d0c5fa",
+    "archive_file_count": 91
+  },
+  "source_transport_recovery": {
+    "prior_partial_projection_attempt": "FAILED_REMOTE_UPLOAD_PACK_NOT_OUR_REF",
+    "recovery_method": "TREE_IDENTICAL_ISOLATED_FULL_OBJECT_PROJECTION",
+    "configured_source_branch": "main",
+    "recovery_push_succeeded": true
+  },
+  "local_verification": {
+    "workbench_persistence_ui": "PASS_5_OF_5",
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "module_regression": "PASS_1_OF_1",
+    "e2e_smoke": "PASS_4_OF_4",
+    "build": "PASS",
+    "rendered_network_interruption_replay": "PASS_ACTIONABLE_SIGN_IN_GUIDANCE_WITHOUT_GENERIC_NETWORK_ONLY_MESSAGE"
+  },
+  "private_deployment": {
+    "saved_version_number": 17,
+    "deployment_status": "SUCCEEDED",
+    "environment_revision": 8,
+    "private_deploy_verified_owner_only_access": true,
+    "public_audience_changed": false,
+    "access_policy_changed": false,
+    "raw_url_recorded": false
+  },
+  "post_deployment_control_plane": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "access_policy_revision": 1,
+    "latest_saved_version_number": 17,
+    "site_title": "个人日程"
+  },
+  "change_boundary": {
+    "reference_visual_markup_changed": false,
+    "authentication_rules_changed": false,
+    "api_contract_changed": false,
+    "runtime_settings_changed": false,
+    "access_policy_changed": false,
+    "d1_r2_changed": false,
+    "business_data_read_or_written": false,
+    "public_audience_changed": false
+  },
+  "sensitive_values_recorded": false,
+  "not_proven": [
+    "A successful authenticated ordinary-browser mutation",
+    "Physical second-device history readback",
+    "Direct D1/R2 reconciliation",
+    "Final product acceptance"
+  ]
+}
