@@ -30,7 +30,7 @@ async function record(userId: string, eventType: string, outcome: "success" | "r
 
 async function contextFor(request: Request, context: Context, mutation = false) {
   const identity = mutation
-    ? await requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN)
+    ? await requireVerifiedMutationSession(createAuth(env), request, env)
     : await requireVerifiedSession(createAuth(env), request.headers);
   const { resource: resourceName, id: rawId } = await context.params;
   const resource = getTenantResource(resourceName);

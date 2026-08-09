@@ -27,7 +27,7 @@ test("all custom mutation routes use the shared same-origin session boundary", a
 
   const deletion = await readFile("app/api/account/delete/route.ts", "utf8");
   assert.ok(deletion.includes("requireFreshVerifiedSession"));
-  assert.ok(deletion.includes("assertSameOriginMutation(request, env.APP_ORIGIN)"));
+  assert.ok(deletion.includes("assertConfiguredSameOriginMutation(request, env)"));
 });
 
 test("account UI presents the full sensitive cross-device privacy disclosure before enable", async () => {

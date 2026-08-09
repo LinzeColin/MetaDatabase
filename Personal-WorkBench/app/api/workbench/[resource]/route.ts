@@ -48,7 +48,7 @@ export async function POST(request: Request, context: Context): Promise<Response
   let eventType = "workbench.create";
   try {
     // Session and verified identity are intentionally established before parsing input.
-    const identity = await requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN);
+    const identity = await requireVerifiedMutationSession(createAuth(env), request, env);
     userId = identity.userId;
     const { resource: resourceName } = await context.params;
     const resource = getTenantResource(resourceName);

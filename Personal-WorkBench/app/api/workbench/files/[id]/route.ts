@@ -51,7 +51,7 @@ export async function GET(request: Request, context: Context): Promise<Response>
 export async function PUT(request: Request, context: Context): Promise<Response> {
   let userId: string | null = null;
   try {
-    const identity = await requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN);
+    const identity = await requireVerifiedMutationSession(createAuth(env), request, env);
     userId = identity.userId;
     const { id: rawId } = await context.params;
     const id = safeId(rawId);
@@ -87,7 +87,7 @@ export async function PUT(request: Request, context: Context): Promise<Response>
 export async function DELETE(request: Request, context: Context): Promise<Response> {
   let userId: string | null = null;
   try {
-    const identity = await requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN);
+    const identity = await requireVerifiedMutationSession(createAuth(env), request, env);
     userId = identity.userId;
     const { id: rawId } = await context.params;
     const id = safeId(rawId);

@@ -4,6 +4,7 @@ import {
   type SessionIdentity,
 } from "@/server/security/tenant";
 import { assertSameOriginMutation } from "@/server/security/mutation-origin";
+import { readAuthRuntimeConfig, type AuthRuntimeEnv } from "@/server/auth/runtime";
 
 type SessionReader = {
   api: {
@@ -27,12 +28,16 @@ export async function requireFreshVerifiedSession(
   return requireFreshVerifiedIdentity(session);
 }
 
+export function assertConfiguredSameOriginMutation(request: Request, env: AuthRuntimeEnv): void {
+  assertSameOriginMutation(request, readAuthRuntimeConfig(env)?.trustedOrigins);
+}
+
 export async function requireVerifiedMutationSession(
   auth: SessionReader,
   request: Request,
-  expectedAppOrigin: string | undefined,
+  env: AuthRuntimeEnv,
 ): Promise<SessionIdentity> {
   const identity = await requireVerifiedSession(auth, request.headers);
-  assertSameOriginMutation(request, expectedAppOrigin);
+  assertConfiguredSameOriginMutation(request, env);
   return identity;
 }

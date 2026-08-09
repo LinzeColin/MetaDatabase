@@ -21,7 +21,7 @@ async function record(userId: string, outcome: "success" | "rejected" | "failed"
 export async function POST(request: Request): Promise<Response> {
   let userId: string | null = null;
   try {
-    const identity = await requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN);
+    const identity = await requireVerifiedMutationSession(createAuth(env), request, env);
     userId = identity.userId;
     const upload = await readPrivateFileForm(request);
     await requireSensitiveCloudConsent(env.DB, userId, upload.module);

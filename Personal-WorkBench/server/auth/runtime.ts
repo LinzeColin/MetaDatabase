@@ -4,6 +4,7 @@ export type AuthRuntimeEnv = {
   DB?: D1Database;
   BETTER_AUTH_SECRET?: string;
   APP_ORIGIN?: string;
+  APP_TRUSTED_ORIGINS?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   RESEND_API_KEY?: string;
@@ -20,6 +21,7 @@ export type AuthRuntimeEnv = {
 export type AuthRuntimeConfig = {
   db: D1Database;
   appOrigin: string;
+  trustedOrigins: string[];
   authSecret: string;
   googleClientId: string;
   googleClientSecret: string;
@@ -80,6 +82,33 @@ function canonicalOrigin(value: string | undefined): string | null {
   }
 }
 
+/**
+ * APP_ORIGIN is the primary canonical URL used for new callbacks and mail.
+ * APP_TRUSTED_ORIGINS is an optional, comma-separated allowlist for a bounded
+ * dual-domain migration. It never widens to arbitrary request hosts: every
+ * entry must itself be a canonical first-party Origin.
+ */
+function resolveTrustedOrigins(appOrigin: string | null, value: string | undefined): string[] | null {
+  if (!appOrigin) return null;
+
+  const configured = nonEmpty(value);
+  if (!configured) return [appOrigin];
+
+  const extras = configured
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  if (extras.length === 0) return null;
+
+  const origins = [appOrigin];
+  for (const entry of extras) {
+    const origin = canonicalOrigin(entry);
+    if (!origin) return null;
+    origins.push(origin);
+  }
+  return [...new Set(origins)];
+}
+
 function publicContactEmail(value: string | undefined): string | null {
   const normalized = nonEmpty(value);
   if (!normalized || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) return null;
@@ -119,6 +148,8 @@ export function getAuthRuntimeMissingCategories(
   env: AuthRuntimeEnv,
 ): AuthRuntimeMissingCategory[] {
   const categories: AuthRuntimeMissingCategory[] = [];
+  const appOrigin = canonicalOrigin(env.APP_ORIGIN);
+  const trustedOrigins = resolveTrustedOrigins(appOrigin, env.APP_TRUSTED_ORIGINS);
   const authSecret = nonEmpty(env.BETTER_AUTH_SECRET);
   const authFromEmail = nonEmpty(env.AUTH_FROM_EMAIL);
   const mailFrom = nonEmpty(env.MAIL_FROM);
@@ -127,7 +158,7 @@ export function getAuthRuntimeMissingCategories(
   );
 
   if (!env.DB) categories.push("d1_binding");
-  if (!canonicalOrigin(env.APP_ORIGIN)) categories.push("app_origin");
+  if (!appOrigin || !trustedOrigins) categories.push("app_origin");
   if (!authSecret || authSecret.length < 32) {
     categories.push("auth_secret");
   }
@@ -149,6 +180,7 @@ export function getAuthRuntimeMissingCategories(
  */
 export function readAuthRuntimeConfig(env: AuthRuntimeEnv): AuthRuntimeConfig | null {
   const appOrigin = canonicalOrigin(env.APP_ORIGIN);
+  const trustedOrigins = resolveTrustedOrigins(appOrigin, env.APP_TRUSTED_ORIGINS);
   const authSecret = nonEmpty(env.BETTER_AUTH_SECRET);
   const googleClientId = nonEmpty(env.GOOGLE_CLIENT_ID);
   const googleClientSecret = nonEmpty(env.GOOGLE_CLIENT_SECRET);
@@ -167,6 +199,7 @@ export function readAuthRuntimeConfig(env: AuthRuntimeEnv): AuthRuntimeConfig | 
     getAuthRuntimeMissingCategories(env).length > 0 ||
     !env.DB ||
     !appOrigin ||
+    !trustedOrigins ||
     !authSecret ||
     authSecret.length < 32 ||
     !googleClientId ||
@@ -182,6 +215,7 @@ export function readAuthRuntimeConfig(env: AuthRuntimeEnv): AuthRuntimeConfig | 
   return {
     db: env.DB,
     appOrigin,
+    trustedOrigins,
     authSecret,
     googleClientId,
     googleClientSecret,

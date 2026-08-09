@@ -69,7 +69,7 @@ export async function GET(request: Request): Promise<Response> {
 export async function PUT(request: Request): Promise<Response> {
   let userId: string | null = null;
   try {
-    const identity = await requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN);
+    const identity = await requireVerifiedMutationSession(createAuth(env), request, env);
     userId = identity.userId;
     const values = parseProfile(await readJson(request));
     const endpoint = "PUT:/api/workbench/profile";

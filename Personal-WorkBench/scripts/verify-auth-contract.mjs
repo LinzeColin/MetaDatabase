@@ -44,6 +44,9 @@ export async function verifyAuthContract() {
     "httpOnly: true",
     "sameSite: \"lax\"",
     "cf-connecting-ip",
+    "allowedHosts: config.trustedOrigins.map",
+    "fallback: config.appOrigin",
+    "trustedOrigins: config.trustedOrigins",
   ];
   for (const fragment of requiredFragments) assert.ok(auth.includes(fragment), `missing auth contract: ${fragment}`);
   assert.ok(runtime.includes('code = "AUTH_RUNTIME_NOT_READY"'));
@@ -73,6 +76,7 @@ export async function verifyAuthContract() {
       passwordResetSessionRevocation: true,
       googleExplicitLinkingOnly: true,
       turnstileAndRateLimit: true,
+      boundedDualOriginMigration: true,
       enumerationSafeRuntimeReadiness: true,
       noSecretSerialization: true,
     },

@@ -15,7 +15,7 @@ export async function POST(request: Request): Promise<Response> {
   let userId: string | null = null;
   const endpoint = "POST:/api/workbench/legacy-import/apply";
   try {
-    const identity = await requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN);
+    const identity = await requireVerifiedMutationSession(createAuth(env), request, env);
     userId = identity.userId;
 
     const body = await readJson(request);

@@ -1,9 +1,12 @@
 import { env } from "cloudflare:workers";
 import { createAuth } from "@/server/auth";
-import { requireFreshVerifiedSession, requireVerifiedSession } from "@/server/auth/session";
+import {
+  assertConfiguredSameOriginMutation,
+  requireFreshVerifiedSession,
+  requireVerifiedSession,
+} from "@/server/auth/session";
 import { getDeletionState, processDeleteRequest } from "@/server/data/account-lifecycle";
 import { apiErrorResponse, readJson } from "@/server/http/api";
-import { assertSameOriginMutation } from "@/server/security/mutation-origin";
 
 export const runtime = "edge";
 
@@ -30,7 +33,7 @@ export async function POST(request: Request): Promise<Response> {
     const identity = await requireFreshVerifiedSession(createAuth(env), request.headers);
     // Deletion is high impact: require both a fresh Better Auth session and
     // the shared custom-route same-origin mutation boundary.
-    assertSameOriginMutation(request, env.APP_ORIGIN);
+    assertConfiguredSameOriginMutation(request, env);
     const result = await processDeleteRequest(env.DB, env, identity.userId, await readJson(request));
     return Response.json(result, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {

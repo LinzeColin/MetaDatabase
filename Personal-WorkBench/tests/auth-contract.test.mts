@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   buildAuthRequest,
@@ -37,12 +38,28 @@ const validRuntime = {
 test("runtime readiness is all-or-nothing and does not expose field names", () => {
   assert.equal(readAuthRuntimeConfig(validRuntime)?.appOrigin, "https://workbench.example.test");
   assert.equal(readAuthRuntimeConfig(validRuntime)?.mailProvider, "resend");
+  assert.deepEqual(
+    readAuthRuntimeConfig({
+      ...validRuntime,
+      APP_TRUSTED_ORIGINS: "https://legacy.example.test, https://workbench.example.test",
+    })?.trustedOrigins,
+    ["https://workbench.example.test", "https://legacy.example.test"],
+  );
   assert.equal(readAuthRuntimeConfig({ ...validRuntime, BETTER_AUTH_SECRET: "short" }), null);
   assert.deepEqual(
     getAuthRuntimeMissingCategories({ ...validRuntime, BETTER_AUTH_SECRET: "short" }),
     ["auth_secret"],
   );
   assert.equal(readAuthRuntimeConfig({ ...validRuntime, APP_ORIGIN: "http://example.test" }), null);
+  assert.equal(readAuthRuntimeConfig({ ...validRuntime, APP_TRUSTED_ORIGINS: "https://legacy.example.test/not-an-origin" }), null);
+});
+
+test("Better Auth binds its dynamic host allowlist to the parsed trusted origins", async () => {
+  const source = await readFile(new URL("../server/auth/index.ts", import.meta.url), "utf8");
+  assert.ok(source.includes("allowedHosts: config.trustedOrigins.map"));
+  assert.ok(source.includes("fallback: config.appOrigin"));
+  assert.ok(source.includes("trustedOrigins: config.trustedOrigins"));
+  assert.ok(source.includes("allowedHostnames: [...new Set(config.trustedOrigins.map"));
 });
 
 test("Better Auth rate-limit timestamp remains an epoch-millisecond number", () => {
@@ -120,23 +137,31 @@ test("account deletion requires a recent verified session", () => {
   assert.throws(() => requireFreshVerifiedIdentity({ user: identity.user }, 10 * 60 * 1000, now), ReauthenticationRequiredError);
 });
 
-test("custom mutations reject absent, cross-site, and mismatched origins", () => {
+test("custom mutations accept only configured first-party origins", () => {
   const expected = "https://workbench.example.test";
+  const legacy = "https://legacy.example.test";
   assert.doesNotThrow(() => assertSameOriginMutation(
     new Request(`${expected}/api/workbench/profile`, {
       method: "PUT",
       headers: { origin: expected, "sec-fetch-site": "same-origin" },
     }),
-    expected,
+    [expected, legacy],
+  ));
+  assert.doesNotThrow(() => assertSameOriginMutation(
+    new Request(`${legacy}/api/workbench/profile`, {
+      method: "PUT",
+      headers: { origin: legacy, "sec-fetch-site": "same-origin" },
+    }),
+    [expected, legacy],
   ));
   assert.throws(
-    () => assertSameOriginMutation(new Request(`${expected}/api/workbench/profile`, { method: "PUT" }), expected),
+    () => assertSameOriginMutation(new Request(`${expected}/api/workbench/profile`, { method: "PUT" }), [expected, legacy]),
     SameOriginRequiredError,
   );
   assert.throws(
     () => assertSameOriginMutation(
       new Request(`${expected}/api/workbench/profile`, { method: "PUT", headers: { origin: "https://evil.example.test" } }),
-      expected,
+      [expected, legacy],
     ),
     SameOriginRequiredError,
   );

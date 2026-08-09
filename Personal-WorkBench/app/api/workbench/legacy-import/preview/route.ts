@@ -12,7 +12,7 @@ export const runtime = "edge";
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    const identity = await requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN);
+    const identity = await requireVerifiedMutationSession(createAuth(env), request, env);
     const body = await readJson(request);
     const envelope = validateLegacyEnvelope(body);
     await requireLegacyImportConsent(env.DB, identity.userId, envelope);

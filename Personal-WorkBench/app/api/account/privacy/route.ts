@@ -44,7 +44,7 @@ export async function GET(request: Request): Promise<Response> {
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    const identity = await requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN);
+    const identity = await requireVerifiedMutationSession(createAuth(env), request, env);
     const parsed = parsePrivacyInput(await readJson(request));
     if (parsed.policyVersion !== currentPolicyVersion() || parsed.noticeSha256 !== currentNoticeSha256()) {
       return Response.json(

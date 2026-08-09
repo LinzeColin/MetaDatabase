@@ -41,9 +41,12 @@ export function createAuth(env: AuthRuntimeEnv) {
       transaction: false,
     }),
     secret: config.authSecret,
-    baseURL: config.appOrigin,
+    baseURL: {
+      allowedHosts: config.trustedOrigins.map((origin) => new URL(origin).host),
+      fallback: config.appOrigin,
+    },
     basePath: "/api/auth",
-    trustedOrigins: [config.appOrigin],
+    trustedOrigins: config.trustedOrigins,
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: true,
@@ -122,7 +125,7 @@ export function createAuth(env: AuthRuntimeEnv) {
           "/request-password-reset",
         ],
         expectedAction: "workbench_auth",
-        allowedHostnames: [new URL(config.appOrigin).hostname],
+        allowedHostnames: [...new Set(config.trustedOrigins.map((origin) => new URL(origin).hostname))],
       }),
     ],
   });
