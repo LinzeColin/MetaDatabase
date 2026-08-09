@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PARTIAL_PRIVATE_EMAIL_SIGNUP_REPLAY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-09",
+  "source_commit": "366d1641744ce2b1cc1f890dcbc0332a73c3145a",
+  "current_private_version": {
+    "sites_version_number": 9,
+    "environment_revision": 8,
+    "canonical_origin": "https://mydairy.linzezhang.com"
+  },
+  "replay": {
+    "controlled_test_auth_account_created": true,
+    "turnstile_response_present_at_submission": true,
+    "standard_email_signup_endpoint_http_status": 200,
+    "worker_route_observed": true,
+    "application_provider_failure_observed": false,
+    "verification_message_delivery": "NOT_CONFIRMED",
+    "verification_link_opened": false,
+    "email_password_session_established": false
+  },
+  "bounded_follow_up": {
+    "target_inbox_selected_in_controlled_gmail_session": false,
+    "archived_provider_secret_can_read_current_message_ledger": false,
+    "archived_provider_secret_read_endpoint_http_status": 403,
+    "provider_ledger_not_treated_as_current_runtime_evidence": true
+  },
+  "interpretation": {
+    "proven": "The current private version accepted one standards-path email registration with a present Turnstile response and did not return an application-visible provider failure.",
+    "not_proven": [
+      "Provider acceptance or inbox delivery of the verification message",
+      "Verification-link completion",
+      "Email/password sign-in",
+      "A/B tenant isolation, cross-device history, or D1/R2 reconciliation"
+    ],
+    "decision": "No retry storm, authentication relaxation, runtime-secret replacement, provider-key substitution, public-access change, or business-record write was made after the bounded replay."
+  },
+  "sensitive_values_recorded": false,
+  "raw_mail_or_account_data_read": false,
+  "business_user_data_read_or_written": false
+}
