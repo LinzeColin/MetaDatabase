@@ -180,8 +180,7 @@ function readWranglerConfigState() {
     path: evidencePath,
     has_token: Boolean(tokenMatch?.[1]),
     has_refresh_token: Boolean(refreshMatch?.[1]),
-    expiration_raw: expirationRaw || null,
-    expiration_at: expirationRaw || null,
+    expiration_present: Boolean(expirationRaw),
     expired: isExpired,
   };
 }
@@ -262,8 +261,9 @@ async function main() {
     generated_at: runAt,
     environment: {
       taskpack_available: Boolean(taskpackRoot),
-      production_origin: process.env.APP_ORIGIN || null,
-      runtime_origin: process.env.APP_ORIGIN || null,
+      configuration_source: "local_environment_presence_only",
+      app_origin_present: isNonEmptyString(process.env.APP_ORIGIN),
+      app_origin_valid_https: isValidOrigin(process.env.APP_ORIGIN),
     },
     command_results: [],
     checks: {
@@ -284,12 +284,14 @@ async function main() {
       sites_shape: null,
       sites_bindings_contract: null,
       release_verifier: null,
+      saved_version: null,
     },
     evidence: {
       owner_approval: readEvidence(taskpackRoot ? join(taskpackRoot, "OWNER_APPROVAL.json") : "OWNER_APPROVAL.json"),
       sites_bindings_contract: readEvidence(taskpackRoot ? join(taskpackRoot, "10_deployment", "SITES_BINDINGS_CONTRACT.json") : "NOT_FOUND"),
       asset_manifest: readEvidence(join(ROOT, "13_evidence", "asset_manifest.json")),
       release_verifier: readEvidence(join(ROOT, "13_evidence", "verifier.json")),
+      saved_version: readEvidence(join(ROOT, "13_evidence", "saved_version.json")),
       env_privacy_constants: getPrivacyConstants(),
     },
     risks: [],
@@ -311,10 +313,7 @@ async function main() {
       ` ${wranglerConfig.path}`,
     );
   } else if (wranglerConfig.expired === true && !hasCloudflareApiToken) {
-    summary.risks.push(
-      `wrangler 本地 token 已过期（expiration_time=${wranglerConfig.expiration_raw || "UNKNOWN"}），请执行 ` +
-      "`npx wrangler logout` 后 `npx wrangler login` 重新登录并重试。",
-    );
+    summary.risks.push("wrangler 本地 token 已过期；请执行 `npx wrangler logout` 后 `npx wrangler login` 重新登录并重试。");
   } else if (wranglerConfig.expired === null && !hasCloudflareApiToken) {
     summary.risks.push("无法解析 wrangler default.toml 中的 expiration_time，建议执行 `npx wrangler login` 后重试。");
   }
@@ -347,25 +346,21 @@ async function main() {
   }
   summary.checks.required_secrets.MAIL_FROM_FROM_RUNTIME = requiredMailSource;
 
-  if (process.env.APP_ORIGIN && isValidOrigin(process.env.APP_ORIGIN)) {
-    const expectedCallback = new URL(process.env.APP_ORIGIN);
-    expectedCallback.pathname = "/api/auth/callback/google";
-    const hasAuthRoute = existsSync(join(ROOT, "app", "api", "auth", "[...all]", "route.ts"));
-    summary.checks.callbacks = {
-      expected_callback: expectedCallback.toString(),
-      auth_callback_route_present: hasAuthRoute,
-      callback_platform_register_verification: "NOT_VERIFIED_LOCALLY",
-    };
-    if (!hasAuthRoute) {
-      summary.risks.push("未检测到 app/api/auth/[...all]/route.ts；无法确认 Google callback 路由可达。");
-    }
-  } else {
+  const originIsValid = isValidOrigin(process.env.APP_ORIGIN);
+  const hasAuthRoute = existsSync(join(ROOT, "app", "api", "auth", "[...all]", "route.ts"));
+  summary.checks.callbacks = {
+    app_origin_present: isNonEmptyString(process.env.APP_ORIGIN),
+    app_origin_valid_https: originIsValid,
+    expected_callback_path: "/api/auth/callback/google",
+    expected_callback_constructed: originIsValid,
+    auth_callback_route_present: hasAuthRoute,
+    callback_platform_register_verification: "NOT_VERIFIED_LOCALLY",
+  };
+  if (!originIsValid) {
     summary.risks.push("APP_ORIGIN 无效：必须是 HTTPS origin（生产环境）");
-    summary.checks.callbacks = {
-      expected_callback: process.env.APP_ORIGIN ? `${process.env.APP_ORIGIN}/api/auth/callback/google` : null,
-      auth_callback_route_present: existsSync(join(ROOT, "app", "api", "auth", "[...all]", "route.ts")),
-      callback_platform_register_verification: "NOT_VERIFIED_LOCALLY",
-    };
+  }
+  if (!hasAuthRoute) {
+    summary.risks.push("未检测到 app/api/auth/[...all]/route.ts；无法确认 Google callback 路由可达。");
   }
 
   const hostingPath = join(ROOT, ".openai", "hosting.json");
@@ -489,6 +484,46 @@ async function main() {
     summary.risks.push("未生成 13_evidence/verifier.json；缺少本地 release 冻结准备证据。");
   } else if (releaseVerifier.raw?.status !== "PASS_BUILD_LAST_MILE_READINESS") {
     summary.risks.push(`13_evidence/verifier.json 当前状态为 ${releaseVerifier.status}，未达到 PASS_BUILD_LAST_MILE_READINESS。`);
+  }
+
+  const savedVersion = summary.evidence.saved_version;
+  const savedVersionRaw = savedVersion.raw || {};
+  const savedVersionReadback = savedVersionRaw.post_save_readback || {};
+  const savedVersionIdentity = savedVersionRaw.sites_saved_version || {};
+  const savedVersionPrivate =
+    savedVersionReadback.access_mode === "custom" &&
+    savedVersionReadback.allowed_users_count === 1 &&
+    savedVersionReadback.allowed_groups_count === 0 &&
+    savedVersionReadback.external_visitor_count === 0;
+  const savedVersionNotDeployed =
+    savedVersionReadback.deployed === false &&
+    savedVersionReadback.live_url_present === false &&
+    savedVersionReadback.preview_url_present === false;
+  const savedVersionIdentityPresent =
+    typeof savedVersionIdentity.source_commit === "string" &&
+    savedVersionIdentity.source_commit.length === 40 &&
+    Number.isInteger(savedVersionIdentity.version_number) &&
+    savedVersionIdentity.version_number > 0;
+  const savedVersionProjectMatchesHosting =
+    typeof savedVersionIdentity.project_id === "string" &&
+    savedVersionIdentity.project_id === summary.checks.sites_shape?.project_id;
+  summary.checks.saved_version = {
+    exists: savedVersion.exists,
+    status: savedVersion.status,
+    source_identity_present: savedVersionIdentityPresent,
+    project_id_matches_hosting: savedVersionProjectMatchesHosting,
+    private_access_readback: savedVersionPrivate,
+    no_deployment_readback: savedVersionNotDeployed,
+  };
+  const savedVersionOk =
+    savedVersion.exists &&
+    savedVersion.status === "PASS_PRIVATE_SAVED_VERSION_CANDIDATE" &&
+    savedVersionIdentityPresent &&
+    savedVersionProjectMatchesHosting &&
+    savedVersionPrivate &&
+    savedVersionNotDeployed;
+  if (!savedVersionOk) {
+    summary.risks.push("缺少可验证的私有 Saved Version：需先完成 source/version 绑定、私有访问与无部署回读。");
   }
 
   const privacyPolicyEnv = process.env.PRIVACY_POLICY_VERSION;
@@ -725,7 +760,7 @@ async function main() {
     summary.checks.asset_rights?.current_state === "APPROVED";
 
   const callbackOk =
-    originChecked && callbacksReady && summary.checks.callbacks?.expected_callback && process.env.APP_ORIGIN ? true : false;
+    originChecked && callbacksReady && summary.checks.callbacks?.expected_callback_constructed === true;
 
   const wranglerOk = summary.checks.wrangler.auth_mode === "LOCAL_TOKEN"
     ? summary.checks.wrangler.whoami.ok
@@ -747,7 +782,8 @@ async function main() {
     privacyGateOk &&
     requiredMailSource.source !== "missing" &&
     bindingContractOk &&
-    releaseVerifierOk
+    releaseVerifierOk &&
+    savedVersionOk
   ) {
     summary.status = "PASS_LOCAL_OWNER_ACTIVATION_PRECHECK";
     summary.next_steps = [
@@ -783,6 +819,7 @@ async function main() {
     ),
     asset_manifest: evidenceReference(summary.evidence.asset_manifest, "13_evidence/asset_manifest.json"),
     release_verifier: evidenceReference(summary.evidence.release_verifier, "13_evidence/verifier.json"),
+    saved_version: evidenceReference(summary.evidence.saved_version, "13_evidence/saved_version.json"),
     env_privacy_constants: {
       policy_version_present: isNonEmptyString(summary.evidence.env_privacy_constants?.policyVersion),
       notice_hash_present: isNonEmptyString(summary.evidence.env_privacy_constants?.noticeHash),

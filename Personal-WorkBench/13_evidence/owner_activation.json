@@ -3,12 +3,13 @@
   "subject_phase": "S5-T2",
   "status": "BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK",
   "verdict": "NOT_ISSUED_PRE_VERIFIER",
-  "runAt": "2026-08-08T21:04:27.068Z",
-  "generated_at": "2026-08-08T21:04:27.068Z",
+  "runAt": "2026-08-09T00:53:22.264Z",
+  "generated_at": "2026-08-09T00:53:22.264Z",
   "environment": {
     "taskpack_available": true,
-    "production_origin": null,
-    "runtime_origin": null
+    "configuration_source": "local_environment_presence_only",
+    "app_origin_present": false,
+    "app_origin_valid_https": false
   },
   "command_results": [],
   "checks": {
@@ -86,7 +87,10 @@
       "owner_declaration_present": true
     },
     "callbacks": {
-      "expected_callback": null,
+      "app_origin_present": false,
+      "app_origin_valid_https": false,
+      "expected_callback_path": "/api/auth/callback/google",
+      "expected_callback_constructed": false,
       "auth_callback_route_present": true,
       "callback_platform_register_verification": "NOT_VERIFIED_LOCALLY"
     },
@@ -134,6 +138,14 @@
       "exists": true,
       "status": "PASS_BUILD_LAST_MILE_READINESS",
       "phase": "S4-T3"
+    },
+    "saved_version": {
+      "exists": true,
+      "status": "PASS_PRIVATE_SAVED_VERSION_CANDIDATE",
+      "source_identity_present": true,
+      "project_id_matches_hosting": true,
+      "private_access_readback": true,
+      "no_deployment_readback": true
     }
   },
   "evidence": {
@@ -156,6 +168,11 @@
       "source": "13_evidence/verifier.json",
       "exists": true,
       "status": "PASS_BUILD_LAST_MILE_READINESS"
+    },
+    "saved_version": {
+      "source": "13_evidence/saved_version.json",
+      "exists": true,
+      "status": "PASS_PRIVATE_SAVED_VERSION_CANDIDATE"
     },
     "env_privacy_constants": {
       "policy_version_present": true,

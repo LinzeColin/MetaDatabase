@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -49,9 +49,14 @@ test("owner activation report records presence only for supplied configuration",
     "sentinel-auth@example.test",
     "SENTINEL_PRIVACY_VERSION",
     "SENTINEL_PRIVACY_HASH",
+    "owner-activation.example.test",
+    "SENTINEL_WRANGLER_EXPIRATION",
   ];
 
   try {
+    const wranglerConfig = join(temporaryRoot, "Library", "Preferences", ".wrangler", "config", "default.toml");
+    await mkdir(dirname(wranglerConfig), { recursive: true });
+    await writeFile(wranglerConfig, 'expiration_time = "SENTINEL_WRANGLER_EXPIRATION"\n', "utf8");
     const run = spawnSync(process.execPath, ["scripts/verify-owner-activation.mjs"], {
       cwd: ROOT,
       encoding: "utf8",
@@ -88,6 +93,13 @@ test("owner activation report records presence only for supplied configuration",
       source: "AUTH_FROM_EMAIL",
       present: { MAIL_FROM: true, AUTH_FROM_EMAIL: true },
     });
+    assert.equal(report.environment.app_origin_present, true);
+    assert.equal(report.environment.app_origin_valid_https, true);
+    assert.equal(report.checks.callbacks.expected_callback_path, "/api/auth/callback/google");
+    assert.equal(report.checks.saved_version.exists, true);
+    assert.equal(report.checks.saved_version.status, "PASS_PRIVATE_SAVED_VERSION_CANDIDATE");
+    assert.equal(report.checks.wrangler.config.expiration_present, true);
+    assert.equal("expiration_raw" in report.checks.wrangler.config, false);
     assert.equal("raw" in report.evidence.owner_approval, false);
     assert.equal("values" in report.checks.required_secrets.MAIL_FROM_FROM_RUNTIME, false);
   } finally {
