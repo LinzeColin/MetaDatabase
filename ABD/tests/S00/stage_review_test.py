@@ -415,6 +415,20 @@ def test_secret_or_local_path_in_stage_artifact_fails_scan(tmp_path: Path, mutat
     _failed(evaluate_contract(project, False), "REVIEW-SECRET-AND-LOCAL-PATH-SCAN")
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        "gh" + "p_" + "b" * 36,
+        "/" + "Users/example/private.json",
+    ],
+)
+def test_synthetic_security_marker_allowances_remain_exact(tmp_path: Path, payload: str) -> None:
+    project = _clone_repo(tmp_path)
+    path = project / "machine/evidence/S14/P02/pytest.xml"
+    path.write_text(path.read_text(encoding="utf-8") + "\n" + payload, encoding="utf-8")
+    _failed(evaluate_contract(project, False), "REVIEW-SECRET-AND-LOCAL-PATH-SCAN")
+
+
 def test_s01_evidence_cannot_exist_before_stage_upload(tmp_path: Path) -> None:
     project = _clone_repo(tmp_path)
     (project / "machine/evidence/S00/STAGE_REVIEW/github_delivery_receipt.json").unlink()

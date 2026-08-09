@@ -634,6 +634,48 @@ def _iter_text_files(root: Path) -> Iterable[Path]:
         yield path
 
 
+_PORTABLE_PATH_POLICY_FILES = {
+    "abd_acceptance/artifact_provenance.py",
+    "abd_acceptance/component_governance.py",
+    "abd_acceptance/security_analysis.py",
+    "abd_acceptance/stage14_review.py",
+    "abd_acceptance/stage15_review.py",
+}
+_SYNTHETIC_SECURITY_MARKERS = {
+    ("tests/S14/P02_test.py", "private_key"): {"BEGIN " + "PRIVATE KEY"},
+    ("machine/evidence/S14/P02/pytest.xml", "private_key"): {"BEGIN " + "PRIVATE KEY"},
+    ("machine/evidence/S14/P02/pytest.xml", "github_classic"): {"gh" + "p_" + "a" * 36},
+}
+
+
+def _is_expected_synthetic_security_match(relative: str, pattern_name: str, text: str, match: re.Match[str]) -> bool:
+    """Allow only documented scanner literals and normalized synthetic test labels.
+
+    The Stage 0 scan remains fail-closed for every other file and marker.  The
+    five portability validators contain the literal they are designed to reject,
+    while the S14 fixture and its normalized JUnit receipt intentionally carry
+    two exact synthetic values that prove the S14 detector discriminates.
+    """
+
+    if pattern_name == "absolute_user_path" and relative in _PORTABLE_PATH_POLICY_FILES:
+        line_start = text.rfind("\n", 0, match.start()) + 1
+        line_end = text.find("\n", match.end())
+        if line_end < 0:
+            line_end = len(text)
+        line = text[line_start:line_end]
+        offset_start = match.start() - line_start
+        offset_end = match.end() - line_start
+        prefix = line[:offset_start].rstrip()
+        suffix = line[offset_end:].lstrip()
+        if not prefix.endswith(("'", '"')) or not suffix.startswith(("'", '"')):
+            return False
+        operator = suffix[1:].lstrip()
+        return operator.startswith("in normalized") or operator.startswith("not in normalized")
+
+    allowed = _SYNTHETIC_SECURITY_MARKERS.get((relative, pattern_name), set())
+    return match.group(0) in allowed
+
+
 def _check_security_budget_and_progression(
     root: Path,
     canonical: Mapping[str, Any],
@@ -679,9 +721,11 @@ def _check_security_budget_and_progression(
             text = path.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
             continue
+        relative = path.relative_to(root).as_posix()
         for name, pattern in sensitive_patterns.items():
-            if pattern.search(text):
-                matches.append({"path": path.relative_to(root).as_posix(), "pattern": name})
+            for match in pattern.finditer(text):
+                if not _is_expected_synthetic_security_match(relative, name, text, match):
+                    matches.append({"path": relative, "pattern": name})
     _add(checks, "REVIEW-SECRET-AND-LOCAL-PATH-SCAN", not matches, matches or "none")
 
     try:
