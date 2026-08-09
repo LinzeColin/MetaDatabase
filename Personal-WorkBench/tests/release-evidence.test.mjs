@@ -113,6 +113,28 @@ test("Version 17 ordinary desktop boundary evidence retains no login material", 
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 17 storage-binding evidence retains no physical resource material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/version_17_storage_binding_reconciliation.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.current_private_version.sites_version_number, 17);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.site_control_plane.site_metadata_exposes_physical_d1_mapping, false);
+  assert.equal(evidence.site_control_plane.site_metadata_exposes_physical_r2_mapping, false);
+  assert.equal(evidence.result.d1_sql_executed, false);
+  assert.equal(evidence.result.r2_objects_listed, false);
+  assert.equal(serialized.includes("database_id"), false);
+  assert.equal(serialized.includes("bucket_name"), false);
+  assert.equal(serialized.includes("Bearer "), false);
+  assert.equal(serialized.includes("@"), false);
+});
+
 test("Version 17 Chrome transport evidence retains no controlled-account material", async () => {
   const evidence = JSON.parse(
     await readFile(new URL("../13_evidence/version_17_agent_controlled_chrome_workbench_post_replay.json", import.meta.url), "utf8"),

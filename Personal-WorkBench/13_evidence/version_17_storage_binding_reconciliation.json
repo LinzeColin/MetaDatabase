@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "INCONCLUSIVE_READ_ONLY_VERSION_17_STORAGE_BINDING_RECONCILIATION",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "scope": "Current private Version 17 Sites site, environment, and saved-version control-plane metadata plus the previously recorded authorized Workers-directory boundary. Environment values, resource names, identifiers, credentials, records, objects, and source credentials were neither retained nor printed.",
+  "current_private_version": {
+    "sites_version_number": 17,
+    "environment_revision": 8,
+    "source_provenance_present": true,
+    "archive_provenance_present": true,
+    "archive_file_count": 91
+  },
+  "site_control_plane": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "access_policy_revision": 1,
+    "logical_d1_binding": "DB",
+    "logical_r2_binding": "FILES",
+    "site_metadata_exposes_physical_d1_mapping": false,
+    "site_metadata_exposes_physical_r2_mapping": false,
+    "saved_version_metadata_exposes_physical_d1_mapping": false,
+    "saved_version_metadata_exposes_physical_r2_mapping": false
+  },
+  "environment_control_plane": {
+    "entry_count": 15,
+    "secret_entry_count": 11,
+    "non_secret_entry_count": 4,
+    "physical_binding_key_present": false,
+    "environment_values_read_or_retained": false
+  },
+  "prior_authorized_workers_directory_boundary": {
+    "evidence_file": "13_evidence/version_16_storage_binding_reconciliation.json",
+    "workers_directory_refreshed_this_run": false,
+    "previous_sites_target_worker_in_directory": false,
+    "previous_target_worker_settings_http_status": 404,
+    "interpretation": "The prior authorized Workers directory remains the only direct Worker-catalogue observation. This run does not promote that historical result to a current physical-resource mapping."
+  },
+  "result": {
+    "safe_sites_to_physical_d1_mapping": false,
+    "safe_sites_to_physical_r2_mapping": false,
+    "d1_sql_executed": false,
+    "d1_records_read": false,
+    "r2_objects_listed": false,
+    "r2_objects_read": false,
+    "runtime_or_access_changed": false,
+    "direct_d1_r2_reconciliation": "NOT_RUN_CURRENT_VERSION_17_SITES_CONTROL_PLANE_DOES_NOT_EXPOSE_PHYSICAL_BINDING_MAPPING"
+  },
+  "interpretation": {
+    "proven": "The active private Version 17 has logical DB and FILES bindings in the checked-in hosting manifest, but the current Sites site, environment, and saved-version metadata did not expose a physical D1 or R2 binding. The prior authorized Workers directory did not expose the Sites target either.",
+    "not_proven": [
+      "The physical D1 resource behind DB",
+      "The physical R2 resource behind FILES",
+      "D1 schema or record reconciliation",
+      "R2 object reconciliation",
+      "Physical second-device synchronization"
+    ],
+    "decision": "Do not infer a physical resource from logical binding names, environment counts, archive provenance, or arbitrary catalogue entries. Direct storage reconciliation remains pending an authorized read-only Sites-to-physical-binding mapping surface."
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
