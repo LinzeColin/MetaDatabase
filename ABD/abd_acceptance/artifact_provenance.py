@@ -38,7 +38,6 @@ PROVENANCE_PATH = Path("provenance.json")
 SIGNING_PATH = Path("artifact_signing.md")
 ROLLBACK_POLICY_PATH = Path("security_rollback.md")
 ORACLE_PATH = Path("abd_acceptance/artifact_provenance.py")
-DISPATCHER_PATH = Path("abd_acceptance/__main__.py")
 TEST_PATH = Path("tests/S14/P04_test.py")
 FIXTURE_PATH = Path("machine/tests/fixtures/S14_P04.json")
 EVIDENCE_PATH = Path("machine/evidence/EVD-S14-P04.json")
@@ -75,7 +74,6 @@ SOURCE_INPUT_PATHS = (
     "component_governance.json",
     "patch_sla.json",
     ORACLE_PATH.as_posix(),
-    DISPATCHER_PATH.as_posix(),
     TEST_PATH.as_posix(),
     FIXTURE_PATH.as_posix(),
 )
@@ -221,6 +219,9 @@ def _expected_build_environment() -> Dict[str, Any]:
 
 
 def _source_input_hashes(root: Path) -> Dict[str, str]:
+    # The shared CLI dispatcher is owned by stage orchestration.  It is
+    # deliberately outside P04's phase-owned provenance closure so a later
+    # stage-review entrypoint cannot silently invalidate this signed Phase.
     return {relative: sha256_file(root / relative) for relative in SOURCE_INPUT_PATHS}
 
 
@@ -743,7 +744,7 @@ def perform_rollback_drill(root: Path) -> Dict[str, Any]:
 def _input_hashes(root: Path, *, require_test_reports: bool) -> Dict[str, str]:
     paths = {
         PROVENANCE_PATH.as_posix(), SIGNING_PATH.as_posix(), ROLLBACK_POLICY_PATH.as_posix(),
-        ORACLE_PATH.as_posix(), DISPATCHER_PATH.as_posix(), TEST_PATH.as_posix(), FIXTURE_PATH.as_posix(),
+        ORACLE_PATH.as_posix(), TEST_PATH.as_posix(), FIXTURE_PATH.as_posix(),
         P03_EVIDENCE_PATH.as_posix(), P03_ROLLBACK_PATH.as_posix(),
     }
     paths.update(SOURCE_INPUT_PATHS)

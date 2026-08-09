@@ -53,7 +53,7 @@ def test_frozen_taskpack_contract_is_exact() -> None:
 def test_candidate_preflight_passes() -> None:
     result = validate_candidate_preflight(ROOT)
     assert result["summary"]["failed"] == 0
-    assert result["analysis"]["source_input_count"] == 16
+    assert result["analysis"]["source_input_count"] == 15
 
 
 def test_p03_predecessor_is_current() -> None:
@@ -64,7 +64,7 @@ def test_p03_predecessor_is_current() -> None:
 
 def test_provenance_validates() -> None:
     summary = validate_provenance(_provenance(), ROOT)
-    assert summary["source_input_count"] == 16
+    assert summary["source_input_count"] == 15
     assert summary["dependency_lock_count"] == 3
     assert summary["attestation_is_keyed_signature"] is False
 

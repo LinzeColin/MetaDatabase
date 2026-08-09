@@ -1,11 +1,11 @@
 {
   "artifacts": {
     "abd_acceptance/artifact_provenance.py": {
-      "sha256": "134df4e2c720a37d314333739edbac5c32da504f55f8a9040eb90982b1356220",
+      "sha256": "f62a854c400d6fc4415dc27bcf4032249f41f911e0c6ca515dd46288243f0c9a",
       "status": "PASS"
     },
     "artifact_signing.md": {
-      "sha256": "97a77ba52653268e7a6cc06599b8b4dc1e846b886c706b91fea123e8be86918d",
+      "sha256": "0a704b5027102bc1bff059f95ebc3ca0feb3969e8144802211b1a0c8686aef3a",
       "status": "PASS"
     },
     "machine/evidence/EVD-S14-P03.json": {
@@ -21,7 +21,7 @@
       "status": "PASS"
     },
     "provenance.json": {
-      "sha256": "a6c3ec77c4f37b4ee8765c43dee830cbb1c21c3176c11acabc53b9d551ed8992",
+      "sha256": "ea15398557448c8631962f8044ae71cb45e96e1eac7b3ea829038a42e2ee47d9",
       "status": "PASS"
     },
     "security_rollback.md": {
@@ -29,7 +29,7 @@
       "status": "PASS"
     },
     "tests/S14/P04_test.py": {
-      "sha256": "3461a8992c5c397cead05311802550444a8878c493aae3c382c15f964ffaa73a",
+      "sha256": "7cc23082133d66bb591b9c2cd4c53b6aaa71bace41ef684d1f863cbd0c7f9913",
       "status": "PASS"
     }
   },

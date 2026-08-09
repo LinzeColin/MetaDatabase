@@ -21,8 +21,7 @@
     "../LICENSE": "aac7f387d4714b270cc91576fdb4e96bb92e14cec27c104c0107bad4ebf6f7df",
     "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
     "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
-    "abd_acceptance/__main__.py": "ec8ea4261bd28c94a6d2502608c6ac3f983caedf61b5b207ac46182441e08e56",
-    "abd_acceptance/artifact_provenance.py": "134df4e2c720a37d314333739edbac5c32da504f55f8a9040eb90982b1356220",
+    "abd_acceptance/artifact_provenance.py": "f62a854c400d6fc4415dc27bcf4032249f41f911e0c6ca515dd46288243f0c9a",
     "component_governance.json": "717241b508c80527ee3d667a350d45d3ee38d3015f4ef6f9094d06bc6daf2066",
     "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
     "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
@@ -33,7 +32,7 @@
     "machine/tests/fixtures/S14_P04.json": "082c164d0c3ed6424acf08cac94e8df5da49b594a0d57b280c40a1049da996e5",
     "patch_sla.json": "efd03538bd1d8566db07070a9f003aa048f30e1cecb09dc9588318f51d094859",
     "sbom.json": "c0648815a4453ed5b203d7c3778f1306141b972251c8a1c511c6ff6a2abb961e",
-    "tests/S14/P04_test.py": "3461a8992c5c397cead05311802550444a8878c493aae3c382c15f964ffaa73a"
+    "tests/S14/P04_test.py": "7cc23082133d66bb591b9c2cd4c53b6aaa71bace41ef684d1f863cbd0c7f9913"
   },
   "dependency_provenance": {
     "runtime_direct_dependencies": [],
@@ -79,10 +78,10 @@
     "scope": "CANONICAL_PROVENANCE_EXCLUDING_ATTESTATION_VALUE_LOCAL_REPLAY_ONLY",
     "keyed_or_identity_signature": false,
     "verification": "LOCAL_CANONICAL_JSON_REPLAY_ONLY_NOT_A_RELEASE_SIGNATURE",
-    "value": "0ab231c383ed34f2f2720433126161f9fe75e75ace67f24970ae57958901ccc3"
+    "value": "faf8257505f58a79e738ab373a153cc739f04aa493d5c7538611ebb150fc8e30"
   },
   "artifact_hashes": {
-    "artifact_signing.md": "97a77ba52653268e7a6cc06599b8b4dc1e846b886c706b91fea123e8be86918d",
+    "artifact_signing.md": "0a704b5027102bc1bff059f95ebc3ca0feb3969e8144802211b1a0c8686aef3a",
     "security_rollback.md": "25a109c3ab719fceec877c5957058b017b4d7f96743e16e864e733370cb7a396"
   },
   "predecessor": {

@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S14-WHOLE-STAGE-REVIEW",
+  "stage_id": "S14",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "findings": [
+    {
+      "id": "F-S14-001-SHARED-DISPATCHER-PROVENANCE",
+      "severity": "MEDIUM",
+      "status": "RESOLVED",
+      "affected_phase": "P04",
+      "impact": "共享 CLI 编排入口若被计入 P04 phase-owned 哈希，后续复审入口变更会错误地使已签名 P04 收据失效。",
+      "root_cause": "P04 初始来源闭包把 abd_acceptance/__main__.py 误归属为 phase-owned 输入。",
+      "remediation": "从 P04 phase-owned source_inputs 与 receipt input hashes 中剥离共享 dispatcher；保留 P04 自身判定器、夹具、测试、依赖和制品哈希，并重签 P04。",
+      "verification": "P04 定向测试 42 passed；AC-S14-P04 重签后 receipt 与本复审均重新验证。",
+      "external_state_changed": false
+    }
+  ],
+  "summary": {"total": 1, "open": 0, "resolved": 1, "blocked": 0},
+  "explicit_limitations": [
+    {
+      "id": "S14-LOCAL-EVIDENCE-BOUNDARY",
+      "status": "UNVERIFIED_OUT_OF_SCOPE",
+      "statement": "S14 复审只证明冻结本地安全、组件和制品来源证据链；不证明真实渗透测试、实时漏洞、签名密钥、制品注册表、OVH、Cloudflare、TAB/Gmail、账户、订单、部署、上线或实际收益。"
+    }
+  ],
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "github_upload_performed": false,
+    "production_deployed_or_activated": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

@@ -1,12 +1,12 @@
 {
   "contract_id": "AC-S14-P04",
   "decision": "LOCAL_PRE_RELEASE_PROVENANCE_COMPLETE_STAGE_REVIEW_REQUIRED",
-  "decision_sha256": "19edc2386301025712d602aacd6bfd918496308473be65597f7d808c77576e0e",
+  "decision_sha256": "5a3497a1342cb0581d6c72905ad267ca0aecf137673b94ffcba490289e3a3c8d",
   "deterministic_replay": {
     "external_network_accessed": false,
     "real_time_wait_performed": false,
     "snapshot_case_count": 13,
-    "source_input_count": 16
+    "source_input_count": 15
   },
   "evidence_id": "EVD-S14-P04",
   "external_effect_boundary": {
@@ -23,14 +23,13 @@
   "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
   "fixed_clock": "2026-08-09T00:00:00+10:00",
   "hashes": {
-    "code": "134df4e2c720a37d314333739edbac5c32da504f55f8a9040eb90982b1356220",
+    "code": "f62a854c400d6fc4415dc27bcf4032249f41f911e0c6ca515dd46288243f0c9a",
     "inputs": {
       "../LICENSE": "aac7f387d4714b270cc91576fdb4e96bb92e14cec27c104c0107bad4ebf6f7df",
       "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
       "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
-      "abd_acceptance/__main__.py": "ec8ea4261bd28c94a6d2502608c6ac3f983caedf61b5b207ac46182441e08e56",
-      "abd_acceptance/artifact_provenance.py": "134df4e2c720a37d314333739edbac5c32da504f55f8a9040eb90982b1356220",
-      "artifact_signing.md": "97a77ba52653268e7a6cc06599b8b4dc1e846b886c706b91fea123e8be86918d",
+      "abd_acceptance/artifact_provenance.py": "f62a854c400d6fc4415dc27bcf4032249f41f911e0c6ca515dd46288243f0c9a",
+      "artifact_signing.md": "0a704b5027102bc1bff059f95ebc3ca0feb3969e8144802211b1a0c8686aef3a",
       "component_governance.json": "717241b508c80527ee3d667a350d45d3ee38d3015f4ef6f9094d06bc6daf2066",
       "machine/evidence/EVD-S14-P03.json": "5d0644b143115c6cdd99eb8774b8f8cbc68a618ba86b82772ff6797e7293708c",
       "machine/evidence/EVD-S14-P03_rollback.json": "39437e5a68e6cb86bc6a4122bcda763b501be4196d2973a64c0d2a2b2c8d64b2",
@@ -46,15 +45,15 @@
       "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
       "machine/tests/fixtures/S14_P04.json": "082c164d0c3ed6424acf08cac94e8df5da49b594a0d57b280c40a1049da996e5",
       "patch_sla.json": "efd03538bd1d8566db07070a9f003aa048f30e1cecb09dc9588318f51d094859",
-      "provenance.json": "a6c3ec77c4f37b4ee8765c43dee830cbb1c21c3176c11acabc53b9d551ed8992",
+      "provenance.json": "ea15398557448c8631962f8044ae71cb45e96e1eac7b3ea829038a42e2ee47d9",
       "pyproject.toml": "ed30542952d445085e1f7724872bda1b697898f90576bf9bd65fd3191719bb72",
       "sbom.json": "c0648815a4453ed5b203d7c3778f1306141b972251c8a1c511c6ff6a2abb961e",
       "security_rollback.md": "25a109c3ab719fceec877c5957058b017b4d7f96743e16e864e733370cb7a396",
-      "tests/S14/P04_test.py": "3461a8992c5c397cead05311802550444a8878c493aae3c382c15f964ffaa73a",
+      "tests/S14/P04_test.py": "7cc23082133d66bb591b9c2cd4c53b6aaa71bace41ef684d1f863cbd0c7f9913",
       "uv.lock": "982a3044aabd62584d76cddcbd9dfcfe761482a5e60248ad5e299c18fd2ad9cf"
     },
-    "local_attestation": "0ab231c383ed34f2f2720433126161f9fe75e75ace67f24970ae57958901ccc3",
-    "rollback_evidence": "a607c48d6067dcda1902d018c4e7ff648483238af3d466b3afa90d863f6e03ee"
+    "local_attestation": "faf8257505f58a79e738ab373a153cc739f04aa493d5c7538611ebb150fc8e30",
+    "rollback_evidence": "0b3bfaa1bccf0dccb77afea4f6c44b3eab670d5e0af5d07bc5a1ff73aaef68b5"
   },
   "local_attestation_boundary": {
     "actual_release_signature_created": false,
@@ -100,7 +99,7 @@
       "external_network_used": false,
       "local_attestation_is_keyed_signature": false,
       "production_artifact_or_host_verified": false,
-      "source_input_count": 16,
+      "source_input_count": 15,
       "source_trace_current": true
     },
     "checks": [
@@ -174,7 +173,7 @@
           "artifact_document_count": 2,
           "attestation_is_keyed_signature": false,
           "dependency_lock_count": 3,
-          "source_input_count": 16
+          "source_input_count": 15
         },
         "id": "S14P04-PROVENANCE-EXACT",
         "passed": true
@@ -182,7 +181,7 @@
       {
         "detail": {
           "actual_release_signature_created": false,
-          "sha256": "97a77ba52653268e7a6cc06599b8b4dc1e846b886c706b91fea123e8be86918d"
+          "sha256": "0a704b5027102bc1bff059f95ebc3ca0feb3969e8144802211b1a0c8686aef3a"
         },
         "id": "S14P04-SIGNING-POLICY-EXACT",
         "passed": true
@@ -777,9 +776,8 @@
       "../LICENSE": "aac7f387d4714b270cc91576fdb4e96bb92e14cec27c104c0107bad4ebf6f7df",
       "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
       "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
-      "abd_acceptance/__main__.py": "ec8ea4261bd28c94a6d2502608c6ac3f983caedf61b5b207ac46182441e08e56",
-      "abd_acceptance/artifact_provenance.py": "134df4e2c720a37d314333739edbac5c32da504f55f8a9040eb90982b1356220",
-      "artifact_signing.md": "97a77ba52653268e7a6cc06599b8b4dc1e846b886c706b91fea123e8be86918d",
+      "abd_acceptance/artifact_provenance.py": "f62a854c400d6fc4415dc27bcf4032249f41f911e0c6ca515dd46288243f0c9a",
+      "artifact_signing.md": "0a704b5027102bc1bff059f95ebc3ca0feb3969e8144802211b1a0c8686aef3a",
       "component_governance.json": "717241b508c80527ee3d667a350d45d3ee38d3015f4ef6f9094d06bc6daf2066",
       "machine/evidence/EVD-S14-P03.json": "5d0644b143115c6cdd99eb8774b8f8cbc68a618ba86b82772ff6797e7293708c",
       "machine/evidence/EVD-S14-P03_rollback.json": "39437e5a68e6cb86bc6a4122bcda763b501be4196d2973a64c0d2a2b2c8d64b2",
@@ -793,7 +791,7 @@
       "patch_sla.json": "efd03538bd1d8566db07070a9f003aa048f30e1cecb09dc9588318f51d094859",
       "sbom.json": "c0648815a4453ed5b203d7c3778f1306141b972251c8a1c511c6ff6a2abb961e",
       "security_rollback.md": "25a109c3ab719fceec877c5957058b017b4d7f96743e16e864e733370cb7a396",
-      "tests/S14/P04_test.py": "3461a8992c5c397cead05311802550444a8878c493aae3c382c15f964ffaa73a"
+      "tests/S14/P04_test.py": "7cc23082133d66bb591b9c2cd4c53b6aaa71bace41ef684d1f863cbd0c7f9913"
     },
     "next": "S14/STAGE_REVIEW_READY_NOT_STARTED",
     "phase_id": "P04",
