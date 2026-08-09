@@ -18,6 +18,7 @@ if str(RUNTIME) not in sys.path:
 from abd_runtime.server import (
     OBSERVATION_MODE,
     SAFE_DECISION,
+    SHADOW_READ_ONLY_MODE,
     RuntimeConfigurationError,
     RuntimeHTTPServer,
     build_runtime_state,
@@ -45,6 +46,26 @@ def test_runtime_state_is_observation_only(tmp_path: Path) -> None:
     assert state["order_submission_enabled"] is False
 
 
+def test_runtime_state_allows_only_the_contractual_shadow_mode(tmp_path: Path) -> None:
+    config = tmp_path / "config.json"
+    config.write_text(json.dumps(_config()), encoding="utf-8")
+
+    state = build_runtime_state(
+        config,
+        {
+            "ABD_ORDER_SUBMISSION_ENABLED": "false",
+            "ABD_RUNTIME_MODE": SHADOW_READ_ONLY_MODE,
+        },
+    )
+
+    assert state["mode"] == SHADOW_READ_ONLY_MODE
+    assert state["decision"] == SAFE_DECISION
+    assert state["recommendation_enabled"] is False
+    assert state["order_submission_enabled"] is False
+    assert state["market_or_account_connected"] is False
+    assert state["gmail_or_tab_connected"] is False
+
+
 @pytest.mark.parametrize(
     "configuration,environment",
     [
@@ -53,6 +74,7 @@ def test_runtime_state_is_observation_only(tmp_path: Path) -> None:
         ({**_config(), "network": {"public_business_inbound_enabled": True}}, {"ABD_ORDER_SUBMISSION_ENABLED": "false"}),
         (_config(), {"ABD_ORDER_SUBMISSION_ENABLED": "true"}),
         (_config(), {"ABD_ORDER_SUBMISSION_ENABLED": "false", "ABD_RUNTIME_MODE": "ACTIVE"}),
+        (_config(), {"ABD_ORDER_SUBMISSION_ENABLED": "false", "ABD_RUNTIME_MODE": "SHADOW_READ_ONLY_TAMPERED"}),
     ],
 )
 def test_runtime_rejects_any_activation_or_order_boundary_violation(

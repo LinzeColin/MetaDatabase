@@ -14,6 +14,8 @@ from typing import Any, Mapping
 
 VERSION = "0.0.0.1"
 OBSERVATION_MODE = "OBSERVATION_ONLY"
+SHADOW_READ_ONLY_MODE = "SHADOW_READ_ONLY"
+ALLOWED_RUNTIME_MODES = frozenset({OBSERVATION_MODE, SHADOW_READ_ONLY_MODE})
 SAFE_DECISION = "NO_RECOMMENDATION_NO_ORDER"
 
 
@@ -33,8 +35,9 @@ def build_runtime_state(config_path: Path, environment: Mapping[str, str] | None
     values = os.environ if environment is None else environment
     if values.get("ABD_ORDER_SUBMISSION_ENABLED", "false") != "false":
         raise RuntimeConfigurationError("order submission must remain disabled")
-    if values.get("ABD_RUNTIME_MODE", OBSERVATION_MODE) != OBSERVATION_MODE:
-        raise RuntimeConfigurationError("runtime mode must be observation-only")
+    runtime_mode = values.get("ABD_RUNTIME_MODE", OBSERVATION_MODE)
+    if runtime_mode not in ALLOWED_RUNTIME_MODES:
+        raise RuntimeConfigurationError("runtime mode must be observation-only or shadow-read-only")
     try:
         payload = json.loads(config_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -55,7 +58,7 @@ def build_runtime_state(config_path: Path, environment: Mapping[str, str] | None
     return {
         "service": "ABD",
         "version": VERSION,
-        "mode": OBSERVATION_MODE,
+        "mode": runtime_mode,
         "decision": SAFE_DECISION,
         "ready": True,
         "recommendation_enabled": False,
