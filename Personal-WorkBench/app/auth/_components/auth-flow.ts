@@ -45,6 +45,20 @@ export function safeAuthFailureMessage(status: number, mode: AuthMode): string {
   return "链接无效或已过期，请重新发起操作。";
 }
 
+export function readResetToken(search: string): string {
+  return new URLSearchParams(search).get("token")?.trim() ?? "";
+}
+
+/**
+ * Avoid a misleading network submission when a reset page was opened without
+ * the one-time token that the server requires. A non-empty token still goes to
+ * the server, which remains the sole authority for expiry and validity.
+ */
+export function authSubmissionPreflight(mode: AuthMode, resetToken: string): string | null {
+  if (mode === "reset-password" && !resetToken) return safeAuthFailureMessage(400, mode);
+  return null;
+}
+
 function captchaHeaders(response: string): Record<string, string> | undefined {
   const token = response.trim();
   return token ? { "x-captcha-response": token } : undefined;

@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
+  authSubmissionPreflight,
   buildAuthRequest,
+  readResetToken,
   resolveCaptchaResponse,
   safeAuthFailureMessage,
   SIGN_UP_VERIFICATION_PATH,
@@ -154,6 +156,12 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
 
   async function submitForm(event: React.FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
+    const resetToken = readResetToken(window.location.search);
+    const preflightMessage = authSubmissionPreflight(mode, resetToken);
+    if (preflightMessage) {
+      setMessage(preflightMessage);
+      return;
+    }
     const renderedTurnstileToken = usesTurnstile
       ? document.querySelector<HTMLInputElement>('input[name="cf-turnstile-response"]')?.value ?? ""
       : "";
@@ -172,7 +180,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
       password,
       name,
       captchaResponse,
-      resetToken: new URLSearchParams(window.location.search).get("token") ?? "",
+      resetToken,
     });
 
     setSubmitting(true);

@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
+  authSubmissionPreflight,
   buildAuthRequest,
+  readResetToken,
   resolveCaptchaResponse,
   safeAuthFailureMessage,
   SIGN_UP_VERIFICATION_PATH,
@@ -80,6 +82,14 @@ test("rate limits show a neutral retry message without claiming email delivery",
     safeAuthFailureMessage(400, "forgot-password"),
     "如果该邮箱可以接收重设邮件，我们已发送下一步说明。",
   );
+});
+
+test("reset-password refuses a missing token before an API request is built", () => {
+  assert.equal(readResetToken("?token=%20reset-token%20"), "reset-token");
+  assert.equal(readResetToken("?view=home"), "");
+  assert.equal(authSubmissionPreflight("reset-password", ""), "链接无效或已过期，请重新发起操作。");
+  assert.equal(authSubmissionPreflight("reset-password", "reset-token"), null);
+  assert.equal(authSubmissionPreflight("sign-in", ""), null);
 });
 
 test("NitroSend is a fail-closed alternate MailPort while Resend remains default", () => {
