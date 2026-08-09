@@ -5,19 +5,20 @@
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
   "observed_at": "2026-08-10",
   "candidate": {
-    "local_source_commit": "5ed8013e386849a1026c0d24cb586d2c36197d3d",
-    "functional_code_commit": "f87679ef17781b6f76ad289ee0ece6366ac24d11",
-    "local_project_tree": "104934e73b8711437a5c7fca4d7d7a5943401f7a",
-    "sites_source_commit": "04b554e251ceeda6e080ab312df8ca08220b8951",
-    "source_projection_parent": null,
-    "previous_source_main_commit": "06f552dbe17d3611c8b0656b86c5380e5b36a9bc",
-    "saved_version_number": 17,
-    "source_projection_matches_version_17_project_tree": true,
-    "source_projection_matches_current_project_tree": false,
-    "current_project_tree_delta": "Version 17 deployment evidence and handoff updates after the private deployment; no deployed runtime source, environment, or access-policy change.",
-    "source_projection_archive_sha256": "b18e8c66324414daab944775aaa461b5a8214c409352e3fe450c472673813122",
-    "deployment_archive_sha256": "b18e8c66324414daab944775aaa461b5a8214c409352e3fe450c472673813122",
-    "provider_archive_sha256": "sha256:0406ae97907b3b9f451d4887acad866ae4f0ccd4a73f4cfa38976a5442d0c5fa",
+    "local_source_commit": "9b5cc3b21998c0001315a6124ec504e20f5143d7",
+    "functional_code_commit": "9b5cc3b21998c0001315a6124ec504e20f5143d7",
+    "local_root_tree": "9466f12536c61942dad13166b813df003d0eab1f",
+    "local_project_tree": "f8fdd5ed3c2ee9300f150fd42843c818346a85b2",
+    "sites_source_commit": "09f5aaf1eae96f5073fb75f025a281d429ac2570",
+    "source_projection_parent": "04b554e251ceeda6e080ab312df8ca08220b8951",
+    "previous_source_main_commit": "04b554e251ceeda6e080ab312df8ca08220b8951",
+    "saved_version_number": 18,
+    "source_projection_matches_version_18_project_tree": true,
+    "source_projection_matches_current_project_tree": true,
+    "current_project_tree_delta": "NONE",
+    "source_projection_archive_sha256": "9b8a9529351ac6b896962f497a776873c08a3b8daacbaa292801fd7d6023ec33",
+    "deployment_archive_sha256": "9b8a9529351ac6b896962f497a776873c08a3b8daacbaa292801fd7d6023ec33",
+    "provider_archive_sha256": "sha256:9a977695558cf7cfb821ab67b93e4c94dba9ea4be51b63b144a64009299ada89",
     "environment_revision": 8
   },
   "private_access": {
@@ -32,6 +33,7 @@
     "raw_url_recorded": false
   },
   "controlled_deployment_and_recovery": {
+    "version_18_private_deploy": "SUCCEEDED",
     "version_16_private_deploy": "SUCCEEDED",
     "version_17_private_deploy": "SUCCEEDED",
     "version_17_sign_in_guidance_source_transport": "RECOVERED_TREE_IDENTICAL_ISOLATED_PROJECTION_PUSH_AND_PRIVATE_DEPLOY_SUCCEEDED",
@@ -48,7 +50,8 @@
     "prior_version_7_private_restore": "SUCCEEDED",
     "live_version_matches_version_16": false,
     "live_version_matches_version_16_after_rehearsal": true,
-    "live_version_matches_version_17": true,
+    "live_version_matches_version_17": false,
+    "live_version_matches_version_18": true,
     "current_deployment_environment_revision": 8
   },
   "observed_interface": {
@@ -62,6 +65,9 @@
     "legacy_platform_url_to_canonical_domain": "CURRENT_READ_ONLY_PROBE_REACHED_CANONICAL_ORIGIN_AND_PERSONAL_SCHEDULE_TITLE; VIEW_QUERY_NOT_RETAINED",
     "canonical_domain_metadata": "PASS_PRIVATE_VERSION_16_DEPLOYED",
     "canonical_domain_has_explicit_login_or_account_entry": true,
+    "current_live_account_entry_routes_to_account_management": "PASS_PRIVATE_VERSION_18_NO_WRITE",
+    "current_live_home_menu_count": 9,
+    "current_live_sensitive_sync_enablement": "ACCOUNT_DISCLOSURE_VISIBLE_BUT_CURRENT_CONTACT_CONFIGURATION_IS_NOT_READY",
     "homepage_mixed_auth_network_feedback": "PASS_LOCAL_REGRESSION_AND_V13_SOURCE_PROVENANCE",
     "homepage_habit_failed_save_feedback": "PASS_PRIVATE_VERSION_15_DEPLOY_AND_LOCAL_OPERATION_AUDIT",
     "network_interruption_signin_guidance": "PASS_PRIVATE_VERSION_17_DEPLOY_AND_LOCAL_RENDERED_REPLAY",
@@ -99,7 +105,7 @@
   },
   "tenant_and_history": {
     "local_server_session_tenant_contract": "PASS_LOCAL_CONTRACT",
-    "authenticated_habits_and_habit_checkins_read_routes": "PASS_WORKER_HTTP_200",
+    "authenticated_habits_and_habit_checkins_read_routes": "PASS_PRIVATE_VERSION_18_HTTP_200_NO_RESPONSE_BODY_READ",
     "real_a_b_tenant_isolation": "PASS_PRIVATE_CURRENT_VERSION_TEST_RECORDS_CLEANED",
     "separate_authenticated_session_history_readback": "PASS_PRIVATE_CURRENT_VERSION_TEST_RECORDS_CLEANED",
     "real_cross_device_history": "NOT_RUN_PHYSICAL_SECOND_DEVICE",
@@ -130,6 +136,7 @@
     "13_evidence/private_version_16_rollback_restore_rehearsal.json",
     "13_evidence/version_17_signin_guidance_source_transport_boundary.json",
     "13_evidence/private_version_17_signin_guidance_deployment.json",
+    "13_evidence/private_version_18_account_entry_deployment.json",
     "13_evidence/version_16_storage_binding_reconciliation.json",
     "13_evidence/version_14_controlled_browser_replay.json",
     "13_evidence/version_17_agent_controlled_chrome_workbench_post_replay.json",
@@ -144,5 +151,6 @@
     "successful authenticated ordinary-browser mutation replay outside the agent-browser request guard",
     "physical second-device history readback and direct D1/R2 reconciliation"
   ],
+  "current_version_18_note": "Version 18 is the current owner-only private deployment. It changes only the visible login-or-account entry so an authenticated user reaches /account and an unauthenticated user still receives the existing login path; it does not change authentication, user data, consent rules, runtime values, access policy, D1/R2, or public audience. The current account page visibly reports that sensitive-sync contact configuration is not ready, while the Sites control plane exposes key presence only and no runtime values were read.",
   "notes": "This record contains private control-plane and rendered-UI facts only. Version 17 privately deploys the shared workbench data-client repair that gives an actionable sign-in path when browser request transport is uncertain, without claiming that a record was saved. Its source was restored through a tree-identical isolated full-object projection after a historical partial-projection transport failure; source, archive and saved-version provenance were read back. The site remains active/owner/custom with one allowed user, zero groups, zero external visitors and environment revision 8. A Version 17 rendered nonempty-invalid-token replay reached the neutral invalid-or-expired recovery result without claiming password update or service unavailability; its temporary input was cleared before tab closure. A separate Version 17 unknown-alias reset replay returned the same neutral next-steps response, with zero exact-alias mailbox matches before submission, immediately after, and after one bounded 30-second readback; that is only a current-version non-enumeration and negative-delivery observation, not proof of a later non-delivery, existing-account reset failure, or provider outage. A fresh ordinary Safari tab separately reached the current Version 17 private Sites gate and then the standard ChatGPT login page, but had no controlled authenticated session; it proves the unauthenticated gate, not a normal-browser workbench write or failure. Current Version 17 Sites site, environment, and saved-version metadata likewise exposes only logical DB/FILES bindings and provenance, not physical D1/R2 mappings; the prior authorized Workers directory also did not expose the Sites target, so no direct storage reconciliation is claimed. A separate Version 17 Chrome extension-controlled replay completed fresh email auth, verified-session account reads and test-account deletion, while two workbench habit POST attempts still fell into the browser fetch-exception UI without a visible record; this is a constrained agent-browser transport observation, not an ordinary end-user, Worker, D1/R2, or Better Auth verdict. No runtime setting, access policy, D1/R2 resource, user record or public audience changed. Historical Version 9 email, A/B tenant isolation and separate-session history evidence remains scoped to its controlled test records and cleanup; Version 14 browser observations remain an agent-transport boundary; Version 15 and Version 16 retain their own deployment and rollback evidence. None of these private facts proves an ordinary-browser authenticated mutation, physical second-device history, direct D1/R2 reconciliation, public launch eligibility or final product acceptance."
 }

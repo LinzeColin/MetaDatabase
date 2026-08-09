@@ -151,3 +151,18 @@ test("Version 17 Chrome transport evidence retains no controlled-account materia
   assert.equal(serialized.includes("Bearer "), false);
   assert.equal(serialized.includes("Pwb!"), false);
 });
+
+test("Version 18 account-entry deployment evidence retains no account or runtime values", async () => {
+  const evidence = JSON.parse(
+    await readFile(new URL("../13_evidence/private_version_18_account_entry_deployment.json", import.meta.url), "utf8"),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.private_deployment.sites_version_number, 18);
+  assert.equal(evidence.private_deployment.public_audience_changed, false);
+  assert.equal(evidence.no_user_records_read_or_written, true);
+  assert.equal(evidence.no_runtime_values_read, true);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("Bearer "), false);
+  assert.equal(serialized.includes("token="), false);
+});

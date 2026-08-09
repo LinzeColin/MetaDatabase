@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PASS_PRIVATE_VERSION_18_ACCOUNT_ENTRY_DEPLOYMENT",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "local_source_commit": "9b5cc3b21998c0001315a6124ec504e20f5143d7",
+    "local_root_tree": "9466f12536c61942dad13166b813df003d0eab1f",
+    "local_project_tree": "f8fdd5ed3c2ee9300f150fd42843c818346a85b2",
+    "tracked_file_count": 334,
+    "sites_source_commit": "09f5aaf1eae96f5073fb75f025a281d429ac2570",
+    "sites_source_parent": "04b554e251ceeda6e080ab312df8ca08220b8951",
+    "sites_source_tree_matches_local_project_tree": true,
+    "local_archive_sha256": "9b8a9529351ac6b896962f497a776873c08a3b8daacbaa292801fd7d6023ec33",
+    "provider_archive_sha256": "sha256:9a977695558cf7cfb821ab67b93e4c94dba9ea4be51b63b144a64009299ada89",
+    "provider_archive_file_count": 102
+  },
+  "private_deployment": {
+    "sites_version_number": 18,
+    "status": "SUCCEEDED",
+    "environment_revision": 8,
+    "site_title": "个人日程",
+    "canonical_origin": "https://mydairy.linzezhang.com",
+    "access_mode": "custom",
+    "current_user_role": "owner",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_allowed_user_count": 0,
+    "access_policy_revision": 1,
+    "public_audience_changed": false,
+    "access_policy_changed": false,
+    "runtime_values_changed": false
+  },
+  "account_entry_fix": {
+    "normal_workbench_entry_target": "/account",
+    "welcome_entry_target": "/account",
+    "unauthenticated_account_page_retains_existing_login_path": true,
+    "authenticated_account_page_exposes_privacy_and_recovery_settings": true,
+    "current_live_browser_title": "个人日程",
+    "current_live_primary_menu_count": 9,
+    "current_live_account_entry_target": "/account",
+    "browser_check_was_read_only": true
+  },
+  "observed_runtime_boundary": {
+    "authenticated_habits_read_status": 200,
+    "authenticated_habit_checkins_read_status": 200,
+    "response_cache_or_service_worker_used": false,
+    "response_bodies_read": false,
+    "sensitive_cross_device_enable_control_visible": true,
+    "sensitive_cross_device_enable_control_disabled_for_current_disclosure_configuration": true,
+    "sites_environment_key_presence_checked_only": true,
+    "runtime_values_inspected": false
+  },
+  "local_regressions": {
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "workbench_persistence_ui": "PASS_5_OF_5",
+    "module_matrix": "PASS_1_OF_1",
+    "build": "PASS",
+    "e2e_smoke": "PASS_4_OF_4",
+    "ui_structure": "PASS_2_OF_2",
+    "canonical_domain": "PASS_2_OF_2",
+    "release_evidence_before_record": "PASS_10_OF_10"
+  },
+  "no_user_records_read_or_written": true,
+  "no_runtime_values_read": true,
+  "sensitive_values_recorded": false,
+  "not_proven": [
+    "A successful ordinary-browser authenticated mutation outside the agent-browser request guard",
+    "Physical second-device history readback",
+    "Direct D1/R2 reconciliation",
+    "Sensitive cross-device saving until the operator/privacy contact configuration becomes ready",
+    "Public multi-user audience or final product acceptance"
+  ]
+}
