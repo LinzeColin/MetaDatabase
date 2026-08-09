@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   buildAuthRequest,
   resolveCaptchaResponse,
+  safeAuthFailureMessage,
   SIGN_UP_VERIFICATION_PATH,
   VERIFIED_LOGIN_PATH,
 } from "../app/auth/_components/auth-flow.ts";
@@ -52,6 +53,16 @@ test("managed Turnstile retains a rendered response during callback timing", () 
   assert.equal(resolveCaptchaResponse("callback-token", "rendered-token"), "callback-token");
   assert.equal(resolveCaptchaResponse("", "rendered-token"), "rendered-token");
   assert.equal(resolveCaptchaResponse("  ", "  "), "");
+});
+
+test("rate limits show a neutral retry message without claiming email delivery", () => {
+  for (const mode of ["sign-in", "sign-up", "forgot-password", "verify-email"] as const) {
+    assert.equal(safeAuthFailureMessage(429, mode), "操作次数较多，请稍后再试。");
+  }
+  assert.equal(
+    safeAuthFailureMessage(400, "forgot-password"),
+    "如果该邮箱可以接收重设邮件，我们已发送下一步说明。",
+  );
 });
 
 test("NitroSend is a fail-closed alternate MailPort while Resend remains default", () => {

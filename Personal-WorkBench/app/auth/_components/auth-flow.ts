@@ -30,6 +30,21 @@ export function resolveCaptchaResponse(callbackToken: string, renderedToken: str
   return callbackToken.trim() || renderedToken.trim();
 }
 
+/**
+ * Keeps authentication errors useful without exposing whether an account or
+ * message exists. A rate-limit response must not masquerade as either invalid
+ * credentials or a successfully sent email.
+ */
+export function safeAuthFailureMessage(status: number, mode: AuthMode): string {
+  if (status === 429) return "操作次数较多，请稍后再试。";
+  if (status === 503 || status >= 500) return "服务暂时不可用，请稍后再试。";
+  if (mode === "forgot-password") return "如果该邮箱可以接收重设邮件，我们已发送下一步说明。";
+  if (mode === "verify-email") return "如果该邮箱可以接收验证邮件，我们已发送下一步说明。";
+  if (mode === "sign-up") return "请检查填写内容；若账户已存在，请直接登录或完成邮箱验证。";
+  if (mode === "sign-in") return "账号或密码不正确，或邮箱尚未完成验证。";
+  return "链接无效或已过期，请重新发起操作。";
+}
+
 function captchaHeaders(response: string): Record<string, string> | undefined {
   const token = response.trim();
   return token ? { "x-captcha-response": token } : undefined;

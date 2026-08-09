@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import {
   buildAuthRequest,
   resolveCaptchaResponse,
+  safeAuthFailureMessage,
   SIGN_UP_VERIFICATION_PATH,
   type AuthMode,
   usesTurnstileFor,
@@ -58,15 +59,6 @@ function linkFor(mode: AuthMode): { href: string; label: string } {
   if (mode === "sign-in") return { href: "/auth/sign-up", label: "还没有账户？去注册" };
   if (mode === "sign-up") return { href: "/auth/sign-in", label: "已有账户？去登录" };
   return { href: "/auth/sign-in", label: "返回登录" };
-}
-
-function safeMessage(response: Response, mode: AuthMode): string {
-  if (response.status === 503 || response.status >= 500) return "服务暂时不可用，请稍后再试。";
-  if (mode === "forgot-password") return "如果该邮箱可以接收重设邮件，我们已发送下一步说明。";
-  if (mode === "verify-email") return "如果该邮箱可以接收验证邮件，我们已发送下一步说明。";
-  if (mode === "sign-up") return "请检查填写内容；若账户已存在，请直接登录或完成邮箱验证。";
-  if (mode === "sign-in") return "账号或密码不正确，或邮箱尚未完成验证。";
-  return "链接无效或已过期，请重新发起操作。";
 }
 
 export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
@@ -152,7 +144,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
         window.location.assign(payload.url);
         return;
       }
-      setMessage(safeMessage(response, "sign-in"));
+      setMessage(safeAuthFailureMessage(response.status, "sign-in"));
     } catch {
       setMessage("服务暂时不可用，请稍后再试。");
     } finally {
@@ -193,7 +185,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
         body: JSON.stringify(request.body),
       });
       if (!response.ok) {
-        setMessage(safeMessage(response, mode));
+        setMessage(safeAuthFailureMessage(response.status, mode));
         return;
       }
       if (mode === "sign-in") {
