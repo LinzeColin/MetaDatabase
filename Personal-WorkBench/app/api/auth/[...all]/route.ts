@@ -20,8 +20,28 @@ type UnexpectedAuthFailureCategory =
   | "runtime"
   | "unknown";
 
+type DatabaseFailureReason =
+  | "missing_table"
+  | "missing_column"
+  | "binding_or_transport"
+  | "query_or_constraint"
+  | "other";
+
+function messageForClassification(error: unknown): string {
+  // Read the native Error own-property only to reduce it to a fixed telemetry
+  // enum below. The message itself must never be written to a response or log.
+  const value = error instanceof Error
+    ? Object.getOwnPropertyDescriptor(error, "message")?.value
+    : null;
+  return typeof value === "string" ? value.toLowerCase() : "";
+}
+
 function classifyUnexpectedAuthFailure(error: unknown): UnexpectedAuthFailureCategory {
-  const signal = `${safeErrorName(error) ?? ""} ${safeErrorCode(error) ?? ""}`.toLowerCase();
+  // Stack text is inspected only to select one of the fixed categories below.
+  // It is never emitted or returned, because it may include implementation
+  // detail that is not appropriate for an unauthenticated response or log.
+  const stack = error instanceof Error ? error.stack ?? "" : "";
+  const signal = `${safeErrorName(error) ?? ""} ${safeErrorCode(error) ?? ""} ${stack}`.toLowerCase();
   if (/d1|sqlite|sql|drizzle|database/.test(signal)) return "database";
   if (/better.?auth|session|account/.test(signal)) return "authentication_library";
   if (/oauth|google|turnstile|captcha|mail|resend|nitrosend/.test(signal)) return "provider";
@@ -40,6 +60,15 @@ function safeErrorCode(error: unknown): string | null {
   return typeof code === "string" && /^[A-Z][A-Z0-9_]{0,63}$/.test(code) ? code : null;
 }
 
+function classifyDatabaseFailure(error: unknown): DatabaseFailureReason {
+  const message = messageForClassification(error);
+  if (/no such table|table .* does not exist|missing table/.test(message)) return "missing_table";
+  if (/no such column|column .* does not exist|missing column/.test(message)) return "missing_column";
+  if (/binding|unavailable|network|transport|connection/.test(message)) return "binding_or_transport";
+  if (/constraint|syntax|query|prepare/.test(message)) return "query_or_constraint";
+  return "other";
+}
+
 async function handle(request: Request): Promise<Response> {
   try {
     return await createAuth(env).handler(request);
@@ -56,10 +85,12 @@ async function handle(request: Request): Promise<Response> {
 
     // Classify only within the worker and never serialize the exception,
     // message, request, user data, Origin, or any configuration value.
+    const category = classifyUnexpectedAuthFailure(error);
     console.error("auth_handler_unexpected_error", {
-      category: classifyUnexpectedAuthFailure(error),
+      category,
       error_name: safeErrorName(error) ?? typeof error,
       error_code: safeErrorCode(error),
+      database_reason: category === "database" ? classifyDatabaseFailure(error) : null,
     });
 
     // Deliberately avoid serializing unexpected provider/database failures.

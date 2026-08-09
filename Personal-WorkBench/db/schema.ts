@@ -64,7 +64,10 @@ export const rateLimit = sqliteTable("rateLimit", {
   id: text("id").primaryKey(),
   key: text("key").notNull().unique(),
   count: integer("count").notNull(),
-  lastRequest: integer("lastRequest", { mode: "timestamp_ms" }).notNull(),
+  // Better Auth persists this field as an epoch-millisecond number, not a
+  // Date instance. Declaring timestamp_ms makes Drizzle call getTime() on
+  // that number during social sign-in and fails before OAuth can begin.
+  lastRequest: integer("lastRequest").notNull(),
 });
 
 export const authSchema = { user, session, account, verification, rateLimit };

@@ -10,6 +10,7 @@ import {
   getPublicAuthPageConfig,
   readAuthRuntimeConfig,
 } from "../server/auth/runtime.ts";
+import { rateLimit } from "../db/schema.ts";
 import {
   ReauthenticationRequiredError,
   requireFreshVerifiedIdentity,
@@ -40,6 +41,10 @@ test("runtime readiness is all-or-nothing and does not expose field names", () =
     ["auth_secret"],
   );
   assert.equal(readAuthRuntimeConfig({ ...validRuntime, APP_ORIGIN: "http://example.test" }), null);
+});
+
+test("Better Auth rate-limit timestamp remains an epoch-millisecond number", () => {
+  assert.equal(rateLimit.lastRequest.mapToDriverValue(1_234_567_890), 1_234_567_890);
 });
 
 test("NitroSend is a fail-closed alternate MailPort while Resend remains default", () => {
