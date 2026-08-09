@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "task_id": "S5-T3",
-  "status": "PASS_PRIVATE_BRAND_RENAME",
+  "status": "PASS_PRIVATE_DUAL_ORIGIN_BRAND_CUTOVER",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
   "observed_at": "2026-08-09",
   "product": {
@@ -9,17 +9,16 @@
     "technical_slug": "mydairy"
   },
   "source": {
-    "local_commit": "4703a8b1f2c05c8b4d12fa523812e801f8f7d9d5",
-    "sites_source_commit": "a5336e7a50e7d30858e4e5c91ae48bb4cd113d35",
-    "sites_source_parent": "b792154129538aecbc03ff443ba5253cd4161c01",
-    "project_tree": "7205afacde2179d49bc3a0dceefe96d905ecdb4a",
+    "local_commit": "366d1641744ce2b1cc1f890dcbc0332a73c3145a",
+    "sites_source_commit": "10578878b0fb8cbfcf6bb0f85e8c97c6045c6e14",
+    "project_tree": "0e82abd9d3f0bf7eca4dc6fbdfda29beebfca85d",
     "source_tree_matches_local_project_tree": true
   },
   "sites": {
     "title": "个人日程",
-    "saved_version_number": 8,
+    "saved_version_number": 9,
     "private_deployment_status": "SUCCEEDED",
-    "environment_revision": 7,
+    "environment_revision": 8,
     "access_mode": "custom",
     "allowed_user_count": 1,
     "allowed_group_count": 0,
@@ -30,13 +29,34 @@
     "status": "ACTIVE",
     "provider_status": "ACTIVE",
     "ssl_status": "ACTIVE",
-    "canonical_app_origin_switched": false,
-    "reason": "Google OAuth redirect URI、Turnstile allowed hostname 与 APP_ORIGIN 必须在同一受控变更中验证后才能切换，以避免认证或写入路由回归。"
+    "canonical_app_origin_switched": true,
+    "canonical_origin": "https://mydairy.linzezhang.com",
+    "reason": "Google OAuth 新 origin/callback、Turnstile 新 hostname 与 APP_ORIGIN 已在同一私有受控变更中完成；旧平台 origin 仅保留为有界兼容入口。"
+  },
+  "authentication_cutover": {
+    "google_oauth": {
+      "legacy_origin_preserved": true,
+      "canonical_origin_registered": true,
+      "legacy_callback_preserved": true,
+      "canonical_callback_registered": true,
+      "canonical_prompt_select_account_probe_passed": true,
+      "account_selected_during_probe": false
+    },
+    "turnstile": {
+      "legacy_hostname_preserved": true,
+      "canonical_hostname_registered": true
+    },
+    "runtime": {
+      "canonical_app_origin_configured": true,
+      "legacy_origin_limited_to_trusted_origins": true,
+      "environment_revision": 8
+    }
   },
   "intentional_compatibility_exceptions": [
     "封存任务包路径与历史证据保留原始命名，避免倒改冻结事实。",
     "旧 outbox storage key 只作为一次性迁移读源；写入新队列后会删除旧 key。",
-    "既有 Better Auth cookie prefix 保留，待双 cookie 迁移实测后再更换，以避免当前会话中断。"
+    "既有 Better Auth cookie prefix 保留，待双 cookie 迁移实测后再更换，以避免当前会话中断。",
+    "旧平台 origin 不再是 canonical APP_ORIGIN，只在 APP_TRUSTED_ORIGINS 中保留为受限迁移兼容入口。"
   ],
   "final_acceptance_claimed": false,
   "sensitive_values_recorded": false

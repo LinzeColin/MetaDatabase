@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0.0",
+  "subject": "personal-schedule-mydairy-private-domain-cutover",
+  "status": "PASS_PRIVATE_DUAL_ORIGIN_CUTOVER",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-09",
+  "product": {
+    "display_name": "个人日程",
+    "technical_slug": "mydairy",
+    "canonical_origin": "https://mydairy.linzezhang.com"
+  },
+  "sites": {
+    "title": "个人日程",
+    "version_number": 9,
+    "source_commit": "10578878b0fb8cbfcf6bb0f85e8c97c6045c6e14",
+    "private_deployment_status": "SUCCEEDED",
+    "environment_revision": 8,
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0
+  },
+  "domain": {
+    "hostname": "mydairy.linzezhang.com",
+    "status": "ACTIVE",
+    "provider_status": "ACTIVE",
+    "ssl_status": "ACTIVE"
+  },
+  "provider_configuration": {
+    "google_oauth": {
+      "canonical_origin_registered": true,
+      "canonical_callback_registered": true,
+      "legacy_entries_preserved": true,
+      "prompt_select_account_probe": {
+        "authorization_host_verified": true,
+        "callback_host": "mydairy.linzezhang.com",
+        "callback_path": "/api/auth/callback/google",
+        "account_selected": false
+      }
+    },
+    "turnstile": {
+      "canonical_hostname_registered": true,
+      "legacy_hostname_preserved": true
+    }
+  },
+  "runtime_configuration": {
+    "canonical_app_origin_configured": true,
+    "legacy_origin_limited_to_trusted_origins": true,
+    "values_recorded": false
+  },
+  "scope_limitations": [
+    "本证据仅证明私有品牌、域名、认证入口和受控部署切换；不证明真实双账户写入、历史读回或最终产品验收。",
+    "未选择 Google 账号，未读取或写入任何用户业务数据。",
+    "旧平台 origin 仍作为短期兼容入口，待会话迁移和真实账户验收完成后另行退役。"
+  ],
+  "sensitive_values_recorded": false
+}
