@@ -49,6 +49,8 @@ from .stage14_review import verify_existing_stage_review_evidence as verify_exis
 from .stage14_review import write_stage_review_evidence as write_stage14_review_evidence
 from .stage15_review import verify_existing_stage_review_evidence as verify_existing_stage15_review_evidence
 from .stage15_review import write_stage_review_evidence as write_stage15_review_evidence
+from .stage16_review import verify_existing_stage_review_evidence as verify_existing_stage16_review_evidence
+from .stage16_review import write_stage_review_evidence as write_stage16_review_evidence
 from .gmail_authorization import write_phase_evidence as write_gmail_authorization_phase_evidence
 from .mail_preservation import write_phase_evidence as write_mail_preservation_phase_evidence
 from .attachment_security import write_phase_evidence as write_attachment_security_phase_evidence
@@ -122,6 +124,14 @@ from .e2e_multi_environment import verify_existing_phase_evidence as verify_e2e_
 from .e2e_multi_environment import write_phase_evidence as write_e2e_multi_environment_phase_evidence
 from .traceability_proxy import verify_existing_phase_evidence as verify_traceability_phase_evidence
 from .traceability_proxy import write_phase_evidence as write_traceability_phase_evidence
+from .model_challenge import verify_existing_phase_evidence as verify_model_challenge_phase_evidence
+from .model_challenge import write_phase_evidence as write_model_challenge_phase_evidence
+from .model_eval import verify_existing_phase_evidence as verify_model_eval_phase_evidence
+from .model_eval import write_phase_evidence as write_model_eval_phase_evidence
+from .model_redteam import verify_existing_phase_evidence as verify_model_redteam_phase_evidence
+from .model_redteam import write_phase_evidence as write_model_redteam_phase_evidence
+from .model_release_gate import verify_existing_phase_evidence as verify_model_release_gate_phase_evidence
+from .model_release_gate import write_phase_evidence as write_model_release_gate_phase_evidence
 
 
 def main() -> int:
@@ -182,11 +192,16 @@ def main() -> int:
             "AC-S15-P02": verify_source_contract_integration_phase_evidence,
             "AC-S15-P03": verify_e2e_multi_environment_phase_evidence,
             "AC-S15-P04": verify_traceability_phase_evidence,
+            "AC-S16-P01": verify_model_challenge_phase_evidence,
+            "AC-S16-P02": verify_model_eval_phase_evidence,
+            "AC-S16-P03": verify_model_redteam_phase_evidence,
+            "AC-S16-P04": verify_model_release_gate_phase_evidence,
             "STAGE-REVIEW-S11": verify_existing_stage_review_evidence,
             "STAGE-REVIEW-S12": verify_existing_stage12_review_evidence,
             "STAGE-REVIEW-S13": verify_existing_stage13_review_evidence,
             "STAGE-REVIEW-S14": verify_existing_stage14_review_evidence,
             "STAGE-REVIEW-S15": verify_existing_stage15_review_evidence,
+            "STAGE-REVIEW-S16": verify_existing_stage16_review_evidence,
         }
         if args.verify_existing not in existing_verifiers:
             parser.error("existing evidence verifier is not implemented: %s" % args.verify_existing)
@@ -278,11 +293,16 @@ def main() -> int:
         "AC-S15-P02": write_source_contract_integration_phase_evidence,
         "AC-S15-P03": write_e2e_multi_environment_phase_evidence,
         "AC-S15-P04": write_traceability_phase_evidence,
+        "AC-S16-P01": write_model_challenge_phase_evidence,
+        "AC-S16-P02": write_model_eval_phase_evidence,
+        "AC-S16-P03": write_model_redteam_phase_evidence,
+        "AC-S16-P04": write_model_release_gate_phase_evidence,
         "STAGE-REVIEW-S11": write_stage11_review_evidence,
         "STAGE-REVIEW-S12": write_stage12_review_evidence,
         "STAGE-REVIEW-S13": write_stage13_review_evidence,
         "STAGE-REVIEW-S14": write_stage14_review_evidence,
         "STAGE-REVIEW-S15": write_stage15_review_evidence,
+        "STAGE-REVIEW-S16": write_stage16_review_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)

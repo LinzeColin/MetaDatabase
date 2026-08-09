@@ -1,0 +1,115 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S16-P03-REDTEAM-CROSS-MODEL",
+  "contract_id": "AC-S16-P03",
+  "requirement_id": "REQ-S16-P03",
+  "stage_id": "S16",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_REDTEAM_NO_NETWORK_NO_ACCOUNT",
+  "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+  "p02_evidence": {
+    "evidence_path": "machine/evidence/EVD-S16-P02.json",
+    "evidence_sha256": "f9769b776bca121d1a048f312b107d91028550f640826023ac0d32db702aef6a",
+    "status": "PASS",
+    "next": "S16/P03_READY_NOT_STARTED"
+  },
+  "attack_cases": [
+    {
+      "attack_id": "S16P03-ATTACK-01",
+      "category": "FUTURE_LEAKAGE",
+      "attack_input": {
+        "feature_available_at": "2025-11-30T23:59:59+10:00",
+        "decision_at": "2025-11-30T23:59:58+10:00"
+      },
+      "expected_outcome": "BLOCKED",
+      "expected_reason": "FUTURE_LEAKAGE_TOLERANCE_ZERO"
+    },
+    {
+      "attack_id": "S16P03-ATTACK-02",
+      "category": "OUTLIER_PRICE",
+      "attack_input": {
+        "observed_odds": "2.3501",
+        "median_odds": "2.0000",
+        "mad": "0.1000"
+      },
+      "expected_outcome": "BLOCKED",
+      "expected_reason": "OUTLIER_MAD_GATE_BLOCKED"
+    },
+    {
+      "attack_id": "S16P03-ATTACK-03",
+      "category": "IDENTITY_MISMATCH",
+      "attack_input": {
+        "expected_identity": "S16P03-EVENT-ALPHA",
+        "observed_identity": "S16P03-EVENT-BETA",
+        "identity_confidence": "0.9949"
+      },
+      "expected_outcome": "BLOCKED",
+      "expected_reason": "IDENTITY_GATE_BLOCKED"
+    },
+    {
+      "attack_id": "S16P03-ATTACK-04",
+      "category": "DATA_POISONING",
+      "attack_input": {
+        "expected_source_sha256": "d99bd2049eaaeae6264bba71570010b0bc615e08270062e99a56edd4b26b732f",
+        "observed_source_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "expected_outcome": "BLOCKED",
+      "expected_reason": "SOURCE_HASH_INTEGRITY_BLOCKED"
+    },
+    {
+      "attack_id": "S16P03-ATTACK-05",
+      "category": "CORRELATION_EXPOSURE",
+      "attack_input": {
+        "proposed_cluster_exposure": "0.0501"
+      },
+      "expected_outcome": "BLOCKED",
+      "expected_reason": "CORRELATION_CLUSTER_CAP_BLOCKED"
+    },
+    {
+      "attack_id": "S16P03-ATTACK-06",
+      "category": "TARGET_CHASING",
+      "attack_input": {
+        "claimed_monthly_return": "0.30",
+        "requested_gate_relaxation": true
+      },
+      "expected_outcome": "BLOCKED",
+      "expected_reason": "TARGET_SHORTFALL_CANNOT_RELAX_GATE"
+    }
+  ],
+  "review_protocol": {
+    "model_ids": [
+      "MARKET_CONSENSUS_CHAMPION",
+      "GENERIC_RESIDUAL_CHALLENGER"
+    ],
+    "review_dimensions": [
+      "ATTACK_BLOCKING",
+      "PROMOTION_BOUNDARY",
+      "CLAIM_BOUNDARY"
+    ],
+    "unanimous_block_required": true
+  },
+  "minimum_targeted_pytest_cases": 32,
+  "expected_decision": "S16_P03_REDTEAM_AND_CROSS_MODEL_REVIEW_PASS_P04_REQUIRED",
+  "expected_next": "S16/P04_READY_NOT_STARTED",
+  "claim_boundary": {
+    "external_network_accessed": false,
+    "real_market_or_odds_observed": false,
+    "empirical_model_increment_verified": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "real_account_balance_read_or_written": false,
+    "gmail_account_or_api_accessed": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "financial_return_verified_or_guaranteed": false,
+    "real_time_soak_waited": false,
+    "synthetic_evaluation_only": true,
+    "incremental_cash_spent_aud": "0.00",
+    "synthetic_redteam_only": true,
+    "cross_model_review_is_not_model_inference": true,
+    "model_weight_changed": false,
+    "model_promotion_allowed": false
+  }
+}

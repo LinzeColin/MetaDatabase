@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="26" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S16.P02_test" name="test_candidate_preflight_replays_the_exact_frozen_s16_p02_contract" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_artifacts_replay_byte_for_value_from_the_frozen_fixture" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_artifact_identity_and_source_contracts_are_exact" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_every_95_percent_lower_confidence_bound_is_positive[brier_skill_95pct_lower_bound]" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_every_95_percent_lower_confidence_bound_is_positive[logloss_skill_95pct_lower_bound]" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_every_95_percent_lower_confidence_bound_is_positive[closing_price_advantage_95pct_lower_bound]" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_every_95_percent_lower_confidence_bound_is_positive[net_log_growth_95pct_lower_bound]" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_every_calibration_gate_is_strictly_bound_to_the_frozen_threshold[calibration_slope-[0.90,1.10]]" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_every_calibration_gate_is_strictly_bound_to_the_frozen_threshold[calibration_intercept_absolute-&lt;=0.02]" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_every_calibration_gate_is_strictly_bound_to_the_frozen_threshold[calibration_error_main_market-&lt;=0.025]" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_every_calibration_gate_is_strictly_bound_to_the_frozen_threshold[calibration_error_niche_market-&lt;=0.04]" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_synthetic_scope_has_eight_folds_and_exactly_two_thousand_observations" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_p01_market_champion_and_all_challenger_weights_remain_unchanged" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_metric_gate_failures_are_reported_without_relaxing_the_contract[market_equals_candidate]" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_metric_gate_failures_are_reported_without_relaxing_the_contract[negative_closing_line]" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_metric_gate_failures_are_reported_without_relaxing_the_contract[negative_log_growth]" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_metric_gate_failures_are_reported_without_relaxing_the_contract[intercept_outside_gate]" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_contract_boundary_mutations_fail_closed[bad_iteration_count]" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_contract_boundary_mutations_fail_closed[empirical_classification]" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_contract_boundary_mutations_fail_closed[bad_p01_hash]" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_contract_boundary_mutations_fail_closed[bad_outcome_delta]" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_taskpack_contract_and_evidence_index_are_checked_by_the_independent_oracle" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_core_and_oracle_have_no_network_process_sleep_or_order_capability" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_rollback_is_local_only_and_preserves_the_p01_safe_surface" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_execution_policy_excludes_full_regression_real_time_soak_and_external_runtime" time="0.000" />
+    <testcase classname="tests.S16.P02_test" name="test_claim_boundary_never_converts_a_synthetic_fixture_to_empirical_or_financial_evidence" time="0.000" />
+  </testsuite>
+</testsuites>

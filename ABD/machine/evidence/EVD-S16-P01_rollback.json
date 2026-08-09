@@ -1,0 +1,49 @@
+{
+  "artifacts": {
+    "abd_acceptance/model_challenge.py": {
+      "sha256": "88ee7d5953a354c2d1da86ea072173bed63c7792f951a9d0dd66ec28ce8e647b",
+      "status": "PASS"
+    },
+    "abd_acceptance/model_challenge_engine.py": {
+      "sha256": "d12d71d40b6e9272b54605ac31081984422766a4b1af7afb6b01414cc69c08c0",
+      "status": "PASS"
+    },
+    "baseline_report.json": {
+      "sha256": "060d12d4b311fe334815632c9e343b990c0b392bf79bd8421162430f337d4b68",
+      "status": "PASS"
+    },
+    "challenger_report.json": {
+      "sha256": "86c1c49b1e20149847430c08f06249bef9bc93063a1e6ab2954db31633153145",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S16_P01.json": {
+      "sha256": "bb628677d97d22e45af9b8c07fac8d8da49031fab3e6d1d383dd6fb044073ce8",
+      "status": "PASS"
+    },
+    "model_challenge.py": {
+      "sha256": "b51530bf226676927ee4408721f219a7ca8485c50f5cd8bb33f900383bc737f2",
+      "status": "PASS"
+    },
+    "model_registry.json": {
+      "sha256": "e4414fe73050ac6a389fa395f82badb0ff7882db81af87870add3219329060a5",
+      "status": "PASS"
+    },
+    "tests/S16/P01_test.py": {
+      "sha256": "08404c1a15febef5eaf9df0e8d09fb4477f4e34ee8b8d285714bb7e6e665a10b",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S16-P01",
+  "evidence_id": "EVD-S16-P01-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "model:s16_market_champion_challenger",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_S16_P01_CHALLENGERS_KEEP_MARKET_CHAMPION_AND_SIGNED_PREDECESSORS",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_account_balance_read_or_written": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

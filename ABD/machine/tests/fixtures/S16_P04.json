@@ -1,0 +1,162 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S16-P04-MODEL-SYSTEM-CARD-DUAL-GATE",
+  "contract_id": "AC-S16-P04",
+  "requirement_id": "REQ-S16-P04",
+  "stage_id": "S16",
+  "phase_id": "P04",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "input_mode": "FROZEN_LOCAL_GATE_CONTROL_NO_NETWORK_NO_ACCOUNT",
+  "canonical_facts_sha256": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+  "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+  "p03_evidence": {
+    "evidence_path": "machine/evidence/EVD-S16-P03.json",
+    "evidence_sha256": "d86c3a811022a14afa76457051dcf575e91c330bd7171c052d7cf1b849b5739d",
+    "contract_id": "AC-S16-P03",
+    "status": "PASS"
+  },
+  "software_evidence": {
+    "evidence_path": "machine/evidence/EVD-S15-P04.json",
+    "evidence_sha256": "3fd288e66d3c473881dc92257992eb41b85422a5c0aaa92f1ff00e202a15feda",
+    "contract_id": "AC-S15-P04",
+    "status": "PASS"
+  },
+  "software_stage_review": {
+    "evidence_path": "machine/evidence/EVD-S15-STAGE-REVIEW.json",
+    "evidence_sha256": "1422ca3d52f66d30cb39c7431d928486a0b5d3d0750d45327b7896d03695b9c7",
+    "contract_id": "STAGE-REVIEW-S15",
+    "status": "PASS"
+  },
+  "lifecycle_profiles": [
+    {
+      "stage": "ALPHA",
+      "configured_kelly_fraction": "0.00",
+      "configured_single_ticket_cap": "0.00",
+      "residual_weight_cap": "0.35",
+      "current_status": "LOCAL_SYNTHETIC_CONTROL_ONLY_NOT_MODEL_ACTIVATION",
+      "required_before_any_operational_transition": "independent empirical-model gate and a separately authorized release path"
+    },
+    {
+      "stage": "BETA",
+      "configured_kelly_fraction": "0.20",
+      "configured_single_ticket_cap": "0.015",
+      "residual_weight_cap": "0.35",
+      "current_status": "BLOCKED_PENDING_INDEPENDENT_EMPIRICAL_MODEL_GATE",
+      "required_before_any_operational_transition": "E3 evidence tier, independent empirical model increment, and a separately authorized release path"
+    },
+    {
+      "stage": "GA",
+      "configured_kelly_fraction": "0.25",
+      "configured_single_ticket_cap": "0.020",
+      "residual_weight_cap": "0.50",
+      "current_status": "BLOCKED_PENDING_INDEPENDENT_EMPIRICAL_MODEL_GATE",
+      "required_before_any_operational_transition": "GA-required evidence tiers, independent empirical model increment, and a separately authorized release path"
+    }
+  ],
+  "gate_cases": [
+    {
+      "case_id": "S16P04-GATE-01",
+      "software_gate_passed": true,
+      "model_empirical_increment_verified": false,
+      "stage_review_passed": true,
+      "model_stage": "ALPHA",
+      "market_prior_weight": "0.5000",
+      "residual_weight": "0.0000",
+      "adverse_probability_delta": "-0.0001",
+      "expected_reason": "MODEL_GATE_NOT_PASSED"
+    },
+    {
+      "case_id": "S16P04-GATE-02",
+      "software_gate_passed": false,
+      "model_empirical_increment_verified": true,
+      "stage_review_passed": true,
+      "model_stage": "BETA",
+      "market_prior_weight": "0.5000",
+      "residual_weight": "0.35",
+      "adverse_probability_delta": "0.0000",
+      "expected_reason": "SOFTWARE_GATE_NOT_PASSED"
+    },
+    {
+      "case_id": "S16P04-GATE-03",
+      "software_gate_passed": true,
+      "model_empirical_increment_verified": true,
+      "stage_review_passed": false,
+      "model_stage": "GA",
+      "market_prior_weight": "0.5000",
+      "residual_weight": "0.50",
+      "adverse_probability_delta": "0.0000",
+      "expected_reason": "STAGE_REVIEW_NOT_PASSED"
+    },
+    {
+      "case_id": "S16P04-GATE-04",
+      "software_gate_passed": true,
+      "model_empirical_increment_verified": true,
+      "stage_review_passed": true,
+      "model_stage": "GA",
+      "market_prior_weight": "0.5000",
+      "residual_weight": "0.50",
+      "adverse_probability_delta": "0.0000",
+      "expected_reason": "P04_PHASE_NOT_A_DEPLOYMENT_AUTHORIZATION"
+    },
+    {
+      "case_id": "S16P04-GATE-05",
+      "software_gate_passed": true,
+      "model_empirical_increment_verified": false,
+      "stage_review_passed": true,
+      "model_stage": "BETA",
+      "market_prior_weight": "0.5000",
+      "residual_weight": "0.35",
+      "adverse_probability_delta": "-0.0001",
+      "expected_reason": "MODEL_GATE_NOT_PASSED"
+    },
+    {
+      "case_id": "S16P04-GATE-06",
+      "software_gate_passed": true,
+      "model_empirical_increment_verified": false,
+      "stage_review_passed": true,
+      "model_stage": "BETA",
+      "market_prior_weight": "0.4999",
+      "residual_weight": "0.35",
+      "adverse_probability_delta": "0.0000",
+      "expected_reason": "MARKET_PRIOR_WEIGHT_BELOW_MIN"
+    },
+    {
+      "case_id": "S16P04-GATE-07",
+      "software_gate_passed": true,
+      "model_empirical_increment_verified": false,
+      "stage_review_passed": true,
+      "model_stage": "BETA",
+      "market_prior_weight": "0.5000",
+      "residual_weight": "0.3501",
+      "adverse_probability_delta": "0.0000",
+      "expected_reason": "RESIDUAL_WEIGHT_ABOVE_STAGE_CAP"
+    }
+  ],
+  "minimum_targeted_pytest_cases": 30,
+  "expected_decision": "S16_P04_DUAL_GATE_CONTROL_PASS_STAGE_REVIEW_REQUIRED_NOT_DEPLOYMENT",
+  "expected_next": "S16/STAGE_REVIEW_READY_NOT_STARTED",
+  "claim_boundary": {
+    "external_network_accessed": false,
+    "real_market_or_odds_observed": false,
+    "empirical_model_increment_verified": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "real_account_balance_read_or_written": false,
+    "gmail_account_or_api_accessed": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "financial_return_verified_or_guaranteed": false,
+    "real_time_soak_waited": false,
+    "synthetic_evaluation_only": true,
+    "incremental_cash_spent_aud": "0.00",
+    "synthetic_redteam_only": true,
+    "cross_model_review_is_not_model_inference": true,
+    "model_weight_changed": false,
+    "model_promotion_allowed": false,
+    "model_system_card_is_not_model_activation": true,
+    "software_gate_is_not_model_gate": true,
+    "model_gate_is_not_deployment_authorization": true,
+    "model_activation_enabled": false
+  }
+}

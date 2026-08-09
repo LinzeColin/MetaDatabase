@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="32" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S16.P01_test" name="test_candidate_preflight_replays_the_exact_local_champion_challenger_contract" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_artifacts_replay_byte_for_value_from_the_frozen_fixture" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_market_consensus_is_the_only_active_champion_before_s16_p02" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_every_challenger_without_significant_increment_has_exact_zero_weight[GENERIC_RESIDUAL_CHALLENGER]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_every_challenger_without_significant_increment_has_exact_zero_weight[TENNIS_CHALLENGER]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_every_challenger_without_significant_increment_has_exact_zero_weight[COMBAT_CHALLENGER]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_every_challenger_without_significant_increment_has_exact_zero_weight[FOOTBALL_SCORE_CHALLENGER]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_every_challenger_without_significant_increment_has_exact_zero_weight[RACING_FALLBACK_CHALLENGER]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_every_challenger_without_significant_increment_has_exact_zero_weight[MULTI_SPORT_FALLBACK_CHALLENGER]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_every_time_window_is_explicitly_frozen_synthetic_and_nonempirical[S16-P01-FW-01]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_every_time_window_is_explicitly_frozen_synthetic_and_nonempirical[S16-P01-FW-02]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_every_time_window_is_explicitly_frozen_synthetic_and_nonempirical[S16-P01-FW-03]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_artifacts_have_exact_task_pack_artifact_identity[artifact0-ART-S16-P01-01]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_artifacts_have_exact_task_pack_artifact_identity[artifact1-ART-S16-P01-02]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_artifacts_have_exact_task_pack_artifact_identity[artifact2-ART-S16-P01-03]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_artifact_hash_links_are_closed_and_deterministic" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_invalid_increment_or_window_mutations_fail_closed[NONZERO_WINDOW_WEIGHT]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_invalid_increment_or_window_mutations_fail_closed[UNVERIFIED_SIGNIFICANT_INCREMENT]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_invalid_increment_or_window_mutations_fail_closed[LIVE_WINDOW]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_invalid_increment_or_window_mutations_fail_closed[EMPIRICAL_OUTCOME_CLAIM]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_invalid_increment_or_window_mutations_fail_closed[NONZERO_AGGREGATE_WEIGHT]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_invalid_increment_or_window_mutations_fail_closed[MISSING_SIGNED_PREDECESSOR]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_parameter_hash_drift_fails_before_any_artifact_is_rebuilt" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_signed_stage_predecessor_metadata_is_preserved_in_the_registry[AC-S08-P04]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_signed_stage_predecessor_metadata_is_preserved_in_the_registry[AC-S09-P04]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_signed_stage_predecessor_metadata_is_preserved_in_the_registry[AC-S10-P04]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_signed_stage_predecessor_metadata_is_preserved_in_the_registry[AC-S11-P04]" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_reports_do_not_convert_a_synthetic_comparison_into_empirical_or_production_claims" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_rollback_is_local_only_and_keeps_the_market_champion_surface" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_execution_policy_blocks_full_regression_soak_and_external_runtime" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_core_and_oracle_have_no_network_process_sleep_or_order_capability" time="0.000" />
+    <testcase classname="tests.S16.P01_test" name="test_candidate_preflight_error_type_is_reserved_for_failed_signed_surface" time="0.000" />
+  </testsuite>
+</testsuites>

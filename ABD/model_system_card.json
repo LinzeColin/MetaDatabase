@@ -1,0 +1,206 @@
+{
+  "artifact_id": "ART-S16-P04-01",
+  "authority_order": [
+    "官方结果和不可变证据",
+    "确定性规则和风险引擎",
+    "校准后的统计模型",
+    "大语言模型解释与互审"
+  ],
+  "claim_boundary": {
+    "cross_model_review_is_not_model_inference": true,
+    "empirical_model_increment_verified": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_activation_enabled": false,
+    "model_gate_is_not_deployment_authorization": true,
+    "model_promotion_allowed": false,
+    "model_system_card_is_not_model_activation": true,
+    "model_weight_changed": false,
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "software_gate_is_not_model_gate": true,
+    "synthetic_evaluation_only": true,
+    "synthetic_redteam_only": true
+  },
+  "configured_risk_limits": {
+    "conservative_probability_percentile": 10,
+    "correlation_cluster_cap": "0.050",
+    "edge_haircut_fraction": "0.25",
+    "event_cap": "0.050",
+    "future_leakage_tolerance": 0,
+    "market_prior_weight_min": "0.50",
+    "remove_top_profit_fraction_for_robustness": "0.01",
+    "total_open_exposure_cap": "0.150"
+  },
+  "contract_id": "AC-S16-P04",
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "input_mode": "FROZEN_LOCAL_GATE_CONTROL_NO_NETWORK_NO_ACCOUNT",
+  "intended_use": "分析可观察市场，生成中文BET/NO_BET建议、最低赔率和保守仓位；用户自行完成最终下单。",
+  "known_failure_controls": [
+    {
+      "control": "目标可行性、证伪和12月实际验证；不得追损或降低门",
+      "kill": "证据充分后95%上界仍低于30%",
+      "risk": "30%月复利无法由随机市场保证",
+      "risk_id": "R-001"
+    },
+    {
+      "control": "99.5%身份门、规则哈希、负向夹具",
+      "kill": "任何真实错配",
+      "risk": "赛事、盘口或结算身份错配",
+      "risk_id": "R-004"
+    },
+    {
+      "control": "事件时间血缘、时间折、泄漏判定器",
+      "kill": "泄漏容忍度0",
+      "risk": "未来数据泄漏制造虚假优势",
+      "risk_id": "R-005"
+    },
+    {
+      "control": "3.5倍中位绝对偏差、来源独立、删除最高盈利1%、25%优势削减",
+      "kill": "鲁棒复测后优势消失",
+      "risk": "离群赔率制造虚假利润",
+      "risk_id": "R-006"
+    },
+    {
+      "control": "十进制定点、双实现、±0.0001及不利跳动门",
+      "kill": "动作不稳定即不建议",
+      "risk": "万分之一或赔率跳动改变动作",
+      "risk_id": "R-007"
+    },
+    {
+      "control": "两阶段保存、读回、哈希、垃圾箱而非永久删除",
+      "kill": "任何误删或不可恢复",
+      "risk": "邮件误删或附件未保存",
+      "risk_id": "R-008"
+    },
+    {
+      "control": "内容零指令信任、沙箱、净化元数据、权限隔离",
+      "kill": "发现权限或事实被内容篡改",
+      "risk": "恶意邮件/网页提示注入控制Agent",
+      "risk_id": "R-009"
+    },
+    {
+      "control": "自动重启、双环境、检查点、恢复演练、过期建议作废",
+      "kill": "恢复门持续失败",
+      "risk": "单VPS故障",
+      "risk_id": "R-010"
+    },
+    {
+      "control": "多源、索引优先、动态提频、用户页面即时校验",
+      "kill": "容量与时效无法满足目标",
+      "risk": "无付费接口导致时效和覆盖不足",
+      "risk_id": "R-011"
+    },
+    {
+      "control": "两套账本、真实执行证据门、对账",
+      "kill": "真实账本差异不为0",
+      "risk": "建议账本被误当真实资金收益",
+      "risk_id": "R-012"
+    }
+  ],
+  "known_limitations": [
+    "公开来源可能变化、限速或失效",
+    "单VPS不能保证物理零中断",
+    "概率估计的统计误差远大于纯计算舍入误差",
+    "30%月复利不能被保证",
+    "没有可验证成交证据时只能评估建议表现",
+    "S16/P01-P03均为冻结本地合成控制，未验证独立经验模型增量。",
+    "S16/P04的逻辑控制通过不构成模型通过、模型激活、部署或收益验证。"
+  ],
+  "lifecycle_profiles": [
+    {
+      "configured_kelly_fraction": "0.00",
+      "configured_single_ticket_cap": "0.00",
+      "current_status": "LOCAL_SYNTHETIC_CONTROL_ONLY_NOT_MODEL_ACTIVATION",
+      "required_before_any_operational_transition": "independent empirical-model gate and a separately authorized release path",
+      "residual_weight_cap": "0.35",
+      "stage": "ALPHA"
+    },
+    {
+      "configured_kelly_fraction": "0.20",
+      "configured_single_ticket_cap": "0.015",
+      "current_status": "BLOCKED_PENDING_INDEPENDENT_EMPIRICAL_MODEL_GATE",
+      "required_before_any_operational_transition": "E3 evidence tier, independent empirical model increment, and a separately authorized release path",
+      "residual_weight_cap": "0.35",
+      "stage": "BETA"
+    },
+    {
+      "configured_kelly_fraction": "0.25",
+      "configured_single_ticket_cap": "0.020",
+      "current_status": "BLOCKED_PENDING_INDEPENDENT_EMPIRICAL_MODEL_GATE",
+      "required_before_any_operational_transition": "GA-required evidence tiers, independent empirical model increment, and a separately authorized release path",
+      "residual_weight_cap": "0.50",
+      "stage": "GA"
+    }
+  ],
+  "monitoring": [
+    "校准斜率/截距和概率校准误差",
+    "Brier和对数损失技能分",
+    "相对收盘价优势",
+    "净对数增长置信下界",
+    "数据与模型漂移",
+    "来源时效、静默缺口和容量",
+    "风险、回撤和证据完整性"
+  ],
+  "operational_boundary": {
+    "actual_return_requires_verified_execution_evidence": true,
+    "normal_owner_action": "FINAL_ORDER_ONLY",
+    "order_submission_module_present": false,
+    "paid_data_api_required": false,
+    "product_role": "ANALYSIS_AND_ADVICE_ONLY",
+    "single_host_zero_downtime_guaranteed": false
+  },
+  "phase_id": "P04",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "prohibited_use": [
+    "自动提交、确认或重试真实订单",
+    "承诺确定收益",
+    "因目标落后追损或降低门槛",
+    "使用未来信息",
+    "把未经验证的网页、邮件或模型输出当权威事实"
+  ],
+  "purpose": "在可观察市场上提供受证据、数值、风险、安全和来源合同约束的中文分析与建议；正常路径只由用户完成最终下单。",
+  "requirement_id": "REQ-S16-P04",
+  "rollback": {
+    "action": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "automatic_model_or_order_action": false,
+    "external_state_changed": false,
+    "feature_flag_id": "model:s16_system_card_dual_release_gate"
+  },
+  "safety_measures": [
+    "市场权重至少50%",
+    "保守概率第10百分位",
+    "25%优势削减",
+    "删除最高盈利1%复测",
+    "万分之一和赔率跳动不利扰动",
+    "证据层和受限凯利",
+    "NO_BET优先",
+    "市场先验权重至少0.50，未证实增量时残差权重为0.00。",
+    "禁止目标落后放宽门或追损；软件证据与模型证据不得互相替代。"
+  ],
+  "schema_version": "1.0.0",
+  "source_hashes": {
+    "cross_model_review.json": "01c0bd21f3ca6ec93ca4e2d07929e3ec685ef4faead4982cbe6bd6ea455267d9",
+    "machine/evidence/EVD-S15-P04.json": "3fd288e66d3c473881dc92257992eb41b85422a5c0aaa92f1ff00e202a15feda",
+    "machine/evidence/EVD-S15-STAGE-REVIEW.json": "1422ca3d52f66d30cb39c7431d928486a0b5d3d0750d45327b7896d03695b9c7",
+    "machine/evidence/EVD-S16-P03.json": "d86c3a811022a14afa76457051dcf575e91c330bd7171c052d7cf1b849b5739d",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+    "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+    "machine/tests/fixtures/S16_P03.json": "325f88501a8a97f0c85dc594959754aa4becce505f60cf3d40f0ca80487e7f49",
+    "model_redteam.json": "1eb8c20a1465606d513d5f6b076f3396a45112ed0e5c0ef3a3b5fcc3037a3a9e"
+  },
+  "stage_id": "S16",
+  "system_name": "ABD 市场锚定残差决策系统"
+}

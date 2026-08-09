@@ -1,0 +1,145 @@
+{
+  "artifact_id": "ART-S16-P03-01",
+  "attack_results": [
+    {
+      "attack_blocked": true,
+      "attack_id": "S16P03-ATTACK-01",
+      "category": "FUTURE_LEAKAGE",
+      "detail": {
+        "future_rows": 1,
+        "tolerance": 0
+      },
+      "expected_outcome": "BLOCKED",
+      "observed_outcome": "BLOCKED",
+      "reason_code": "FUTURE_LEAKAGE_TOLERANCE_ZERO",
+      "safe_action": "NO_RECOMMENDATION_NO_ORDER"
+    },
+    {
+      "attack_blocked": true,
+      "attack_id": "S16P03-ATTACK-02",
+      "category": "OUTLIER_PRICE",
+      "detail": {
+        "mad_multiplier_limit": "3.5",
+        "mad_score": "3.501"
+      },
+      "expected_outcome": "BLOCKED",
+      "observed_outcome": "BLOCKED",
+      "reason_code": "OUTLIER_MAD_GATE_BLOCKED",
+      "safe_action": "NO_RECOMMENDATION_NO_ORDER"
+    },
+    {
+      "attack_blocked": true,
+      "attack_id": "S16P03-ATTACK-03",
+      "category": "IDENTITY_MISMATCH",
+      "detail": {
+        "confidence": "0.9949",
+        "identity_equal": false,
+        "minimum": "0.995"
+      },
+      "expected_outcome": "BLOCKED",
+      "observed_outcome": "BLOCKED",
+      "reason_code": "IDENTITY_GATE_BLOCKED",
+      "safe_action": "NO_RECOMMENDATION_NO_ORDER"
+    },
+    {
+      "attack_blocked": true,
+      "attack_id": "S16P03-ATTACK-04",
+      "category": "DATA_POISONING",
+      "detail": {
+        "source_hash_matches": false
+      },
+      "expected_outcome": "BLOCKED",
+      "observed_outcome": "BLOCKED",
+      "reason_code": "SOURCE_HASH_INTEGRITY_BLOCKED",
+      "safe_action": "NO_RECOMMENDATION_NO_ORDER"
+    },
+    {
+      "attack_blocked": true,
+      "attack_id": "S16P03-ATTACK-05",
+      "category": "CORRELATION_EXPOSURE",
+      "detail": {
+        "cluster_cap": "0.050",
+        "proposed_cluster_exposure": "0.0501"
+      },
+      "expected_outcome": "BLOCKED",
+      "observed_outcome": "BLOCKED",
+      "reason_code": "CORRELATION_CLUSTER_CAP_BLOCKED",
+      "safe_action": "NO_RECOMMENDATION_NO_ORDER"
+    },
+    {
+      "attack_blocked": true,
+      "attack_id": "S16P03-ATTACK-06",
+      "category": "TARGET_CHASING",
+      "detail": {
+        "monthly_return": "0.30",
+        "requested_gate_relaxation": true,
+        "target_shortfall_may_relax_gate": false
+      },
+      "expected_outcome": "BLOCKED",
+      "observed_outcome": "BLOCKED",
+      "reason_code": "TARGET_SHORTFALL_CANNOT_RELAX_GATE",
+      "safe_action": "NO_RECOMMENDATION_NO_ORDER"
+    }
+  ],
+  "attack_scope": "FROZEN_SYNTHETIC_ADVERSARIAL_INPUTS_NOT_EMPIRICAL_OR_LIVE",
+  "claim_boundary": {
+    "cross_model_review_is_not_model_inference": true,
+    "empirical_model_increment_verified": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_promotion_allowed": false,
+    "model_weight_changed": false,
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "synthetic_evaluation_only": true,
+    "synthetic_redteam_only": true
+  },
+  "contract_id": "AC-S16-P03",
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_REDTEAM_NO_NETWORK_NO_ACCOUNT",
+  "p02_predecessor": {
+    "evidence_path": "machine/evidence/EVD-S16-P02.json",
+    "evidence_sha256": "f9769b776bca121d1a048f312b107d91028550f640826023ac0d32db702aef6a",
+    "next": "S16/P03_READY_NOT_STARTED",
+    "status": "PASS"
+  },
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "required_attack_categories": [
+    "FUTURE_LEAKAGE",
+    "OUTLIER_PRICE",
+    "IDENTITY_MISMATCH",
+    "DATA_POISONING",
+    "CORRELATION_EXPOSURE",
+    "TARGET_CHASING"
+  ],
+  "requirement_id": "REQ-S16-P03",
+  "schema_version": "1.0.0",
+  "source_hashes": {
+    "eval_catalog.json": "031b34ab561eedb7b6d298282ba66f826f1d5996fa0c525a012be2d5af8a73cb",
+    "eval_report.json": "d99bd2049eaaeae6264bba71570010b0bc615e08270062e99a56edd4b26b732f",
+    "machine/evidence/EVD-S16-P02.json": "f9769b776bca121d1a048f312b107d91028550f640826023ac0d32db702aef6a",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+    "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+    "machine/tests/fixtures/S16_P02.json": "834c192a664687098956854fd8e2b29c6112a7a6337d0c4bdcf2ac65db5e142d",
+    "model_registry.json": "e4414fe73050ac6a389fa395f82badb0ff7882db81af87870add3219329060a5"
+  },
+  "stage_id": "S16",
+  "summary": {
+    "all_attack_paths_blocked": true,
+    "any_bypass_is_blocking_defect": true,
+    "attack_count": 6,
+    "blocked_count": 6,
+    "bypass_count": 0
+  }
+}
