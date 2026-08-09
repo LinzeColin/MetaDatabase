@@ -1,0 +1,334 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S13/P01/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S13/P01_test.py --junitxml=machine/evidence/S13/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S13/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S13-P01 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S13-P01",
+  "decision": "CHINESE_WORKBENCH_AND_LOCAL_PUSH_CONTRACT_READY_PLATFORM_VALIDATION_AND_POST_ADVICE_EVIDENCE_REQUIRED",
+  "decision_sha256": "7886782475bcfe41e7e976e7441eb112c5c277984dcef8760885eb5667fa7163",
+  "deterministic_replay": {
+    "real_time_wait_performed": false,
+    "view_count": 3
+  },
+  "evidence_id": "EVD-S13-P01",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "external_push_sent": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_account_accessed": false,
+    "real_time_soak_waited": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "hashes": {
+    "code": "fa54cdd61a873d7b4ba01e191813969b1fe77ccec0819b21148fc76184c87e79",
+    "inputs": {
+      "abd_acceptance/chinese_workbench.py": "fa54cdd61a873d7b4ba01e191813969b1fe77ccec0819b21148fc76184c87e79",
+      "forbidden_ui_terms.json": "c2dc156b31b7e333fe316343c09d6cab47339b18d3f7572b11e7c1fbf2590c7f",
+      "glossary_zh.json": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097",
+      "machine/evidence/EVD-S03-P04.json": "525bbf2003898755ad1d724681420b8d04eda25bb13e8cd26a41abfae9c81a0d",
+      "machine/evidence/EVD-S11-P04.json": "d9bc525ce3902cdda3ca6ad6253cc77ab69cddb4641b3d4d7e2c207f59c49ed2",
+      "machine/evidence/EVD-S12-P04.json": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+      "machine/evidence/S13/P01/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S13/P01/pytest.xml": "15a7b298c2b287c47e75c4dc9064fa61e42296e0762df902ece41906bc9e45e5",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S13_P01.json": "844a8d7a72c6042ad994beae369bc1279133fa601df075067e80cca81151fc83",
+      "push_service.py": "2e3649aa5bf223ff176a7a1c0e02e1ad9e0db0b9f6ba0b32204bfcdcef522d42",
+      "tests/S13/P01_test.py": "f5cdb05bab39f1a3a6c4b15af65a5b10573a411f3fb3c800955dbc4a9323666a",
+      "ui_fixtures.json": "e863084b475d90a023abcced571a8c2b6e813796e530f316fa469dc54c0559f8",
+      "webapp/app.css": "8a49a1149fa3c74b95a6d3f343c14c9f5cd35f27d8824ebcd573b2016cdbda65",
+      "webapp/index.html": "46f6ae484a9c6f29737eccf6e710397e2fc0d247a8c7d02acae6e94298cae77d"
+    },
+    "rollback_evidence": "504ef71bbaba64179ba54b7e8a6be64b9aecca64c2e9db0db27fd65569c175c1"
+  },
+  "next": "S13/P02_READY_NOT_STARTED",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S13_P01_LOCAL_EVIDENCE_ONLY_REMAINING_PHASES_AND_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S13-P01",
+  "rollback": {
+    "artifacts": {
+      "push_service.py": {
+        "sha256": "2e3649aa5bf223ff176a7a1c0e02e1ad9e0db0b9f6ba0b32204bfcdcef522d42",
+        "status": "PASS"
+      },
+      "ui_fixtures.json": {
+        "sha256": "e863084b475d90a023abcced571a8c2b6e813796e530f316fa469dc54c0559f8",
+        "status": "PASS"
+      },
+      "webapp/app.css": {
+        "sha256": "8a49a1149fa3c74b95a6d3f343c14c9f5cd35f27d8824ebcd573b2016cdbda65",
+        "status": "PASS"
+      },
+      "webapp/index.html": {
+        "sha256": "46f6ae484a9c6f29737eccf6e710397e2fc0d247a8c7d02acae6e94298cae77d",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S13-P01",
+    "evidence_id": "EVD-S13-P01-ROLLBACK",
+    "external_state_changed": false,
+    "feature_flag_id": "ui:chinese_workbench_local_push",
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_CHINESE_WORKBENCH_AND_LOCAL_PUSH_RESTORE_SIGNED_S03_S11_S12_PREDECESSORS_KEEP_ALL_EVIDENCE",
+    "order_submission_enabled": false,
+    "production_state_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S13",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S13P01-REQUIREMENTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S13P01-CONTRACTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S13P01-TASK-GRAPH-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S13P01-TRACEABILITY-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/roadmap.json",
+        "id": "S13P01-ROADMAP-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "pass_gate": "手机/电脑任意地点可访问，界面中文。",
+          "scope": [
+            "webapp",
+            "push_service.py",
+            "ui_fixtures.json"
+          ]
+        },
+        "id": "S13P01-TASKPACK-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "outputs": [
+            "machine/evidence/EVD-S13-P01.json",
+            "machine/evidence/EVD-S13-P01_rollback.json",
+            "machine/tests/fixtures/S13_P01.json",
+            "push_service.py",
+            "tests/S13/P01_test.py",
+            "ui_fixtures.json",
+            "webapp"
+          ],
+          "tasks": [
+            "T-S13-P01-01",
+            "T-S13-P01-02",
+            "T-S13-P01-03"
+          ]
+        },
+        "id": "S13P01-TRACE-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S03-P04.json",
+        "id": "S13P01-PREDECESSOR-AC-S03-P04-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S13P01-PREDECESSOR-AC-S03-P04-SIGNED",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S11-P04.json",
+        "id": "S13P01-PREDECESSOR-AC-S11-P04-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S13P01-PREDECESSOR-AC-S11-P04-SIGNED",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S12-P04.json",
+        "id": "S13P01-PREDECESSOR-AC-S12-P04-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S13P01-PREDECESSOR-AC-S12-P04-SIGNED",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S13_P01.json",
+        "id": "S13P01-FIXTURE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "ui_fixtures.json",
+        "id": "S13P01-UI-FIXTURE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "default": "S13-P01-NO-RECOMMENDATION",
+          "view_ids": [
+            "S13-P01-NO-RECOMMENDATION",
+            "S13-P01-SYNTHETIC-PREVIEW",
+            "S13-P01-DEGRADED"
+          ]
+        },
+        "id": "S13P01-FROZEN-UI-AND-PUSH-REPLAY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "glossary_zh.json",
+        "id": "S13P01-GLOSSARY-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "forbidden_ui_terms.json",
+        "id": "S13P01-FORBIDDEN-TERMS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": [],
+        "id": "S13P01-ALL-VISIBLE-FIXTURE-TEXT-PASSES-CHINESE-GATE",
+        "passed": true
+      },
+      {
+        "detail": "webapp/index.html",
+        "id": "S13P01-STATIC-CHINESE-WORKBENCH-SEMANTICS",
+        "passed": true
+      },
+      {
+        "detail": "webapp/app.css",
+        "id": "S13P01-MOBILE-DESKTOP-LOCAL-LAYOUT-CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "body_zh": "当前没有可执行建议；系统将保持证据和风险门，不要求你操作。",
+          "delivery_mode": "LOCAL_RENDER_ONLY_NO_EXTERNAL_PUSH",
+          "delivery_state_zh": "外部推送未启用",
+          "external_delivery_performed": false,
+          "order_submission_enabled": false,
+          "primary_action_enabled": false,
+          "schema_version": "1.0.0",
+          "synthetic_test_only": true,
+          "title_zh": "全天候投注决策辅助系统当前状态：不建议",
+          "view_id": "S13-P01-NO-RECOMMENDATION"
+        },
+        "id": "S13P01-LOCAL-PUSH-PAYLOAD-ONLY-NO-EXTERNAL-DELIVERY",
+        "passed": true
+      },
+      {
+        "detail": "static boundary intact",
+        "id": "S13P01-STATIC-NO-NETWORK-SOAK-ORDER-OR-EXTERNAL-PUSH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 10,
+          "dependency_manifests": 2,
+          "failed": 0,
+          "failed_check_ids": [],
+          "locked_registry_packages": 12,
+          "paid_or_unknown_dependencies": 0,
+          "passed": 10,
+          "providers": 5,
+          "runtime_direct_dependencies": 0
+        },
+        "id": "S13P01-ZERO-INCREMENTAL-CASH-AND-DEPENDENCY-GATE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 15
+        },
+        "id": "S13P01-TARGETED-JUNIT-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S13/P01/paid_dependency_scan.txt",
+        "id": "S13P01-PAID-DEPENDENCY-REPORT-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/validation_report.json",
+        "id": "S13P01-TASKPACK-REPORT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S13P01-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S13-P01",
+    "decision": "CHINESE_WORKBENCH_AND_LOCAL_PUSH_CONTRACT_READY_PLATFORM_VALIDATION_AND_POST_ADVICE_EVIDENCE_REQUIRED",
+    "external_effect_boundary": {
+      "external_network_accessed": false,
+      "external_push_sent": false,
+      "financial_return_verified_or_guaranteed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submission_enabled": false,
+      "production_deployed_or_activated": false,
+      "real_account_accessed": false,
+      "real_time_soak_waited": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "hashes": {
+      "abd_acceptance/chinese_workbench.py": "fa54cdd61a873d7b4ba01e191813969b1fe77ccec0819b21148fc76184c87e79",
+      "machine/evidence/EVD-S03-P04.json": "525bbf2003898755ad1d724681420b8d04eda25bb13e8cd26a41abfae9c81a0d",
+      "machine/evidence/EVD-S11-P04.json": "d9bc525ce3902cdda3ca6ad6253cc77ab69cddb4641b3d4d7e2c207f59c49ed2",
+      "machine/evidence/EVD-S12-P04.json": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+      "machine/tests/fixtures/S13_P01.json": "844a8d7a72c6042ad994beae369bc1279133fa601df075067e80cca81151fc83",
+      "push_service.py": "2e3649aa5bf223ff176a7a1c0e02e1ad9e0db0b9f6ba0b32204bfcdcef522d42",
+      "tests/S13/P01_test.py": "f5cdb05bab39f1a3a6c4b15af65a5b10573a411f3fb3c800955dbc4a9323666a",
+      "ui_fixtures.json": "e863084b475d90a023abcced571a8c2b6e813796e530f316fa469dc54c0559f8",
+      "webapp/app.css": "8a49a1149fa3c74b95a6d3f343c14c9f5cd35f27d8824ebcd573b2016cdbda65",
+      "webapp/index.html": "46f6ae484a9c6f29737eccf6e710397e2fc0d247a8c7d02acae6e94298cae77d"
+    },
+    "next": "S13/P02_READY_NOT_STARTED",
+    "phase_id": "P01",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "stage_id": "S13",
+    "status": "PASS",
+    "summary": {
+      "checks": 28,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 28
+    }
+  }
+}

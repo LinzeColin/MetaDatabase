@@ -92,6 +92,8 @@ from .economics_sensitivity import verify_existing_phase_evidence as verify_econ
 from .economics_sensitivity import write_phase_evidence as write_economics_sensitivity_phase_evidence
 from .target_falsification_gate import verify_existing_phase_evidence as verify_target_falsification_phase_evidence
 from .target_falsification_gate import write_phase_evidence as write_target_falsification_phase_evidence
+from .chinese_workbench import verify_existing_phase_evidence as verify_chinese_workbench_phase_evidence
+from .chinese_workbench import write_phase_evidence as write_chinese_workbench_phase_evidence
 
 
 def main() -> int:
@@ -140,6 +142,7 @@ def main() -> int:
             "AC-S12-P02": verify_capacity_correlation_phase_evidence,
             "AC-S12-P03": verify_economics_sensitivity_phase_evidence,
             "AC-S12-P04": verify_target_falsification_phase_evidence,
+            "AC-S13-P01": verify_chinese_workbench_phase_evidence,
             "STAGE-REVIEW-S11": verify_existing_stage_review_evidence,
             "STAGE-REVIEW-S12": verify_existing_stage12_review_evidence,
         }
@@ -221,6 +224,7 @@ def main() -> int:
         "AC-S12-P02": write_capacity_correlation_phase_evidence,
         "AC-S12-P03": write_economics_sensitivity_phase_evidence,
         "AC-S12-P04": write_target_falsification_phase_evidence,
+        "AC-S13-P01": write_chinese_workbench_phase_evidence,
         "STAGE-REVIEW-S11": write_stage11_review_evidence,
         "STAGE-REVIEW-S12": write_stage12_review_evidence,
     }

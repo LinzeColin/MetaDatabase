@@ -1,0 +1,29 @@
+{
+  "expected_default_push_payload": {
+    "delivery_mode": "LOCAL_RENDER_ONLY_NO_EXTERNAL_PUSH",
+    "delivery_state_zh": "外部推送未启用",
+    "external_delivery_performed": false,
+    "order_submission_enabled": false,
+    "primary_action_enabled": false,
+    "schema_version": "1.0.0",
+    "synthetic_test_only": true,
+    "title_zh": "全天候投注决策辅助系统当前状态：不建议",
+    "body_zh": "当前没有可执行建议；系统将保持证据和风险门，不要求你操作。",
+    "view_id": "S13-P01-NO-RECOMMENDATION"
+  },
+  "expected_default_view_id": "S13-P01-NO-RECOMMENDATION",
+  "expected_panel_order": [
+    "覆盖",
+    "风险",
+    "目标",
+    "系统健康"
+  ],
+  "expected_view_ids": [
+    "S13-P01-NO-RECOMMENDATION",
+    "S13-P01-SYNTHETIC-PREVIEW",
+    "S13-P01-DEGRADED"
+  ],
+  "fixture_id": "FIX-S13-P01-WORKBENCH",
+  "schema_version": "1.0.0",
+  "ui_fixture_path": "ui_fixtures.json"
+}
