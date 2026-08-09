@@ -1,7 +1,7 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "task_id": "S5-T3",
-  "status": "PARTIAL_PRIVATE_EMAIL_SIGNUP_REPLAY",
+  "status": "PASS_PRIVATE_EMAIL_AUTH_AND_RECOVERY_REPLAY",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
   "observed_at": "2026-08-09",
   "source_commit": "366d1641744ce2b1cc1f890dcbc0332a73c3145a",
@@ -12,31 +12,41 @@
   },
   "replay": {
     "controlled_test_auth_account_created": true,
+    "controlled_test_mailbox_accessible": true,
     "turnstile_response_present_at_submission": true,
     "standard_email_signup_endpoint_http_status": 200,
     "worker_route_observed": true,
     "application_provider_failure_observed": false,
-    "verification_message_delivery": "NOT_CONFIRMED",
-    "verification_link_opened": false,
-    "email_password_session_established": false
+    "verification_message_rendered_in_controlled_mailbox": true,
+    "verification_link_http_status": 200,
+    "verification_link_final_path": "/auth/sign-in",
+    "standard_email_signin_endpoint_http_status": 200,
+    "email_password_credentials_accepted": true,
+    "password_reset_request_http_status": 200,
+    "password_reset_message_rendered_in_controlled_mailbox": true,
+    "password_reset_link_http_status": 200,
+    "password_reset_link_final_path": "/auth/reset-password",
+    "standard_password_reset_endpoint_http_status": 200,
+    "new_password_signin_endpoint_http_status": 200,
+    "new_password_credentials_accepted": true,
+    "browser_session_cookie_inspected": false
   },
-  "bounded_follow_up": {
-    "target_inbox_selected_in_controlled_gmail_session": false,
-    "archived_provider_secret_can_read_current_message_ledger": false,
-    "archived_provider_secret_read_endpoint_http_status": 403,
-    "provider_ledger_not_treated_as_current_runtime_evidence": true
+  "worker_log_statuses": {
+    "signup": [200],
+    "signin": [200, 200],
+    "password_reset_request": [200],
+    "password_reset": [200]
   },
   "interpretation": {
-    "proven": "The current private version accepted one standards-path email registration with a present Turnstile response and did not return an application-visible provider failure.",
+    "proven": "The current private version completed one standards-path email registration, verification-message receipt, verification-link return to sign-in, email/password credential acceptance, password-reset-message receipt, reset-link return to the reset screen, password update, and new-password credential acceptance. Each relevant Worker route recorded HTTP 200 in the bounded log window.",
     "not_proven": [
-      "Provider acceptance or inbox delivery of the verification message",
-      "Verification-link completion",
-      "Email/password sign-in",
+      "An ordinary end-user browser's persisted session cookie, because no cookie was inspected or exported",
       "A/B tenant isolation, cross-device history, or D1/R2 reconciliation"
     ],
-    "decision": "No retry storm, authentication relaxation, runtime-secret replacement, provider-key substitution, public-access change, or business-record write was made after the bounded replay."
+    "decision": "The replay used only the standard endpoints and naturally produced Turnstile responses. No authentication relaxation, runtime-secret replacement, provider-key substitution, public-access change, session-cookie inspection, or business-record write was made."
   },
   "sensitive_values_recorded": false,
-  "raw_mail_or_account_data_read": false,
+  "mail_content_handled": "ONLY_REQUIRED_SUBJECT_AND_LINK_IN_MEMORY",
+  "raw_mail_or_account_data_exported_or_recorded": false,
   "business_user_data_read_or_written": false
 }

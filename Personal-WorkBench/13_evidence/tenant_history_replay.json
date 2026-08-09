@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PASS_PRIVATE_TWO_TENANT_AND_SEPARATE_SESSION_HISTORY_REPLAY",
+  "verdict": "NOT_FINAL_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-09",
+  "source_commit": "366d1641744ce2b1cc1f890dcbc0332a73c3145a",
+  "current_private_version": {
+    "sites_version_number": 9,
+    "environment_revision": 8,
+    "canonical_origin": "https://mydairy.linzezhang.com"
+  },
+  "test_boundary": {
+    "test_only_verified_identities": 2,
+    "resource_class": "non_sensitive habit definition and habit check-in",
+    "raw_identity_or_cookie_value_recorded": false,
+    "browser_cookie_or_profile_inspected": false,
+    "temporary_records_cleaned": true
+  },
+  "two_tenant_isolation": {
+    "tenant_a_create_habit_http_status": 200,
+    "tenant_a_create_checkin_http_status": 200,
+    "tenant_a_history_read_http_status": 200,
+    "tenant_a_reads_its_own_checkin": true,
+    "tenant_b_history_read_http_status": 200,
+    "tenant_b_history_contains_tenant_a_checkin": false,
+    "tenant_b_direct_read_of_tenant_a_checkin_http_status": 404,
+    "tenant_a_cleanup_checkin_http_status": 200,
+    "tenant_a_cleanup_habit_http_status": 200
+  },
+  "separate_authenticated_session_history": {
+    "fresh_tenant_a_signin_http_status": 200,
+    "tenant_a_create_habit_http_status": 200,
+    "tenant_a_create_checkin_http_status": 200,
+    "new_authenticated_session_history_read_http_status": 200,
+    "new_authenticated_session_reads_checkin": true,
+    "cleanup_checkin_http_status": 200,
+    "cleanup_habit_http_status": 200
+  },
+  "worker_log_statuses": {
+    "post_habits": [200, 200],
+    "post_habit_checkins": [200, 200],
+    "get_habit_checkins": [200, 200, 200],
+    "cross_tenant_get_habit_checkin": [404],
+    "delete_habit_checkins": [200, 200],
+    "delete_habits": [200, 200]
+  },
+  "interpretation": {
+    "proven": "Two independently authenticated test identities exercised the current private version's tenant-first habit APIs: the creator read its own check-in, the other tenant neither listed it nor fetched it by identifier, and all temporary records were deleted. A separately established fresh session for the creator also read a newly created check-in before cleanup.",
+    "not_proven": [
+      "A physical second-device readback",
+      "Direct D1/R2 reconciliation or file-object behavior",
+      "Sensitive-resource synchronization",
+      "An ordinary end-user browser mutation outside the agent-browser request guard"
+    ],
+    "decision": "The bounded replay did not use user identifiers in request bodies, did not write financial, health, period, diary, file, or schedule content, and did not retain test records after verification."
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}

@@ -35,26 +35,31 @@
     "ledger_history_section_present": true,
     "period_record_action_exposes_sensitive_cross_device_consent_boundary": true,
     "raw_user_records_read": false,
-    "test_user_data_written": false
+    "test_user_data_written_then_cleaned": true,
+    "test_user_data_remaining": false
   },
   "authentication": {
     "email_login_form_rendered": true,
     "google_authorization_reached_account_selection": true,
     "google_callback_after_account_selection": "PASS_PRIVATE_CURRENT_VERSION",
     "account_identifier_recorded": false,
-    "email_registration_verification_replay": "PARTIAL_SIGN_UP_ACCEPTED_VERIFICATION_LINK_NOT_CONFIRMED",
+    "email_registration_verification_replay": "PASS_PRIVATE_CURRENT_VERSION",
     "controlled_test_auth_account_created": true,
     "email_signup_application_http_status": 200,
-    "email_verification_delivery": "NOT_CONFIRMED",
-    "email_password_session_for_current_version": "NOT_RUN_PENDING_VERIFICATION_LINK",
-    "password_reset_replay_for_current_version": "NOT_RUN_PENDING_VERIFIED_CONTROLLED_ACCOUNT"
+    "email_verification_delivery": "PASS_CONTROLLED_MAILBOX_RENDERED",
+    "email_verification_link": "PASS_PRIVATE_CURRENT_VERSION",
+    "email_password_credentials_for_current_version": "PASS_PRIVATE_CURRENT_VERSION",
+    "password_reset_replay_for_current_version": "PASS_PRIVATE_CURRENT_VERSION",
+    "post_reset_email_password_credentials_for_current_version": "PASS_PRIVATE_CURRENT_VERSION",
+    "browser_session_cookie_inspected": false
   },
   "tenant_and_history": {
     "local_server_session_tenant_contract": "PASS_LOCAL_CONTRACT",
     "authenticated_habits_and_habit_checkins_read_routes": "PASS_WORKER_HTTP_200",
-    "real_a_b_tenant_isolation": "NOT_RUN_PENDING_VERIFIED_SECOND_CONTROLLED_ACCOUNT",
-    "real_cross_device_history": "NOT_RUN_PENDING_VERIFIED_CONTROLLED_ACCOUNT",
-    "real_d1_r2_reconciliation": "NOT_RUN_PENDING_VERIFIED_CONTROLLED_ACCOUNT"
+    "real_a_b_tenant_isolation": "PASS_PRIVATE_CURRENT_VERSION_TEST_RECORDS_CLEANED",
+    "separate_authenticated_session_history_readback": "PASS_PRIVATE_CURRENT_VERSION_TEST_RECORDS_CLEANED",
+    "real_cross_device_history": "NOT_RUN_PHYSICAL_SECOND_DEVICE",
+    "real_d1_r2_reconciliation": "NOT_RUN_DIRECT_RECONCILIATION"
   },
   "raw_unauthenticated_smoke": {
     "evidence_file": "13_evidence/production-smoke-run.json",
@@ -66,16 +71,16 @@
     "13_evidence/owner_activation.json",
     "13_evidence/tenant_matrix.json",
     "13_evidence/production-smoke-run.json",
-    "13_evidence/email_signup_replay.json"
+    "13_evidence/email_signup_replay.json",
+    "13_evidence/tenant_history_replay.json"
   ],
   "product_pass_claimed": false,
   "final_acceptance_claimed": false,
   "public_deploy_eligible": false,
   "remaining_required_s5_t3_evidence": [
-    "controlled-account completion of verification-link and email/password sign-in journeys",
-    "A/B tenant write and isolation replay in a runtime not subject to the agent-browser mutation guard",
-    "cross-device history readback and D1/R2 reconciliation",
+    "ordinary end-user-browser mutation replay outside the agent-browser request guard",
+    "physical second-device history readback and direct D1/R2 reconciliation",
     "negative provider and recovery-path replay"
   ],
-  "notes": "This record contains only private control-plane and rendered-UI facts. One test-only authentication account was created through the standard registration endpoint, but no business record was written; the record neither captures URLs, credentials, account identifiers, mail content, nor user content, and it does not replace final independent acceptance."
+  "notes": "This record contains only private control-plane and rendered-UI facts. Test-only authentication identities exercised email authentication, recovery, a non-sensitive A/B habit-checkin isolation replay, and a separate-session history readback. Temporary habit/check-in records were deleted; no real-user record, raw cookie, credential, account identifier, mail content, or URL was recorded. This does not replace physical-device, direct D1/R2, ordinary-browser, or final independent acceptance."
 }
