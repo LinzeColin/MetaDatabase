@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_28_GOOGLE_OAUTH_BROWSER_POLICY_BOUNDARY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "deployed_product_source_commit": "9585b448940fb4fd87b7ee7e07ce62a6ccb515b0",
+    "sites_source_commit": "43d9a697fd974e5a728470bf72b034b19b883187",
+    "sites_version_number": 28,
+    "site_title": "个人日程",
+    "canonical_product_domain_active": true,
+    "private_access_remained_owner_custom": true,
+    "public_audience_changed": false
+  },
+  "control_plane_presence_only": {
+    "environment_revision": 8,
+    "environment_entry_count": 15,
+    "google_client_id_key_present": true,
+    "google_client_secret_key_present": true,
+    "app_origin_key_present": true,
+    "trusted_origins_key_present": true,
+    "runtime_values_recorded": false,
+    "control_plane_interpretation": "The active Version 28 target retains the expected Google and origin key names at the existing private runtime revision. Key presence does not prove that the provider callback or application session succeeds."
+  },
+  "controlled_browser_replay": {
+    "target_navigation_attempted": true,
+    "target_page_rendered": false,
+    "google_entry_visible": false,
+    "google_account_selected": false,
+    "google_callback_observed": false,
+    "application_session_established": false,
+    "result": "NOT_PROVEN_ADMIN_POLICY_UNAVAILABLE",
+    "interpretation": "The browser security policy could not be verified before the canonical sign-in page loaded. The replay therefore stopped without selecting an account or interacting with the provider, and it cannot establish a Google OAuth pass or failure."
+  },
+  "scope_and_cleanup": {
+    "browser_cookie_or_storage_inspected": false,
+    "provider_or_application_account_data_read": false,
+    "credential_or_runtime_value_recorded": false,
+    "blank_browser_tab_finalized": true,
+    "product_code_or_runtime_values_changed": false,
+    "d1_r2_changed": false,
+    "github_uploaded": false
+  },
+  "sensitive_values_recorded": false,
+  "not_proven": [
+    "A successful current Version 28 Google OAuth callback and application session",
+    "Google provider configuration failure or success attribution",
+    "Physical second-device history readback",
+    "Direct D1 or R2 physical mapping or record-object reconciliation",
+    "Public multi-user release or final product acceptance"
+  ]
+}

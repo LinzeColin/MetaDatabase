@@ -449,3 +449,30 @@ test("Version 28 email-password recovery replay retains no temporary credentials
   assert.equal(serialized.includes("token="), false);
   assert.equal(serialized.includes("Bearer "), false);
 });
+
+test("Version 28 Google replay policy boundary retains no provider or browser material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_28_google_oauth_browser_policy_boundary.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 28);
+  assert.equal(evidence.candidate.canonical_product_domain_active, true);
+  assert.equal(evidence.candidate.public_audience_changed, false);
+  assert.equal(evidence.control_plane_presence_only.google_client_id_key_present, true);
+  assert.equal(evidence.control_plane_presence_only.google_client_secret_key_present, true);
+  assert.equal(evidence.control_plane_presence_only.runtime_values_recorded, false);
+  assert.equal(evidence.controlled_browser_replay.target_page_rendered, false);
+  assert.equal(evidence.controlled_browser_replay.google_account_selected, false);
+  assert.equal(evidence.controlled_browser_replay.google_callback_observed, false);
+  assert.equal(evidence.controlled_browser_replay.application_session_established, false);
+  assert.equal(evidence.scope_and_cleanup.browser_cookie_or_storage_inspected, false);
+  assert.equal(evidence.scope_and_cleanup.blank_browser_tab_finalized, true);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
