@@ -783,11 +783,35 @@
     if (select.value !== current) state.filters.collection = "all";
   }
 
+  /** 主题筛选。**和收藏夹同一条规矩：分不出两堆东西就藏起来。**（2026-08-10）
+   *
+   * 2026-08-10 去他生产库里数：`content_classification` 190 条，
+   * `topic` **全部是「未分类」**。于是这个框有两项——「全部主题」和「未分类」——
+   * 而两项选出来是同一批 190 条。**一个选项分不出两堆东西。**
+   *
+   * 这一栏此前已经骗过他一次：index.html 里写死过五个主题
+   * （AI与技术/商业与投资/机械制造/学习研究/生活方式），各返回 0 条，
+   * 而真实唯一的「未分类」不在名单里。
+   *
+   * **选项照旧照数据重建**，即使那一栏此刻是藏着的——藏起来的原因是
+   * 「分不出东西」，不是「不知道有什么」，而判据要看得见它到底有什么
+   * （只在显示时才填选项的话，判据就永远只看得到一个 all）。
+   *
+   * 藏起来的同时把 `state.filters.topic` 拨回 "all"——
+   * 否则一个看不见的筛选会继续悄悄限制结果。
+   */
   function renderTopicOptions() {
     const select = $("topicFilter");
+    const field = $("topicField");
     const current = state.filters.topic;
     const topics = (state.facets.topics || []).map(item => item.topic).filter(Boolean);
     select.innerHTML = `<option value="all">全部主题</option>${topics.map(topic => `<option value="${escapeHtml(topic)}">${escapeHtml(topic)}</option>`).join("")}`;
+    if (field) field.hidden = topics.length < 2;
+    if (topics.length < 2) {
+      state.filters.topic = "all";
+      select.value = "all";
+      return;
+    }
     select.value = topics.includes(current) ? current : "all";
     if (select.value !== current) state.filters.topic = "all";
   }

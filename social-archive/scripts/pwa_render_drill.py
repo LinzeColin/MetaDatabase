@@ -241,6 +241,9 @@ READ_DOM = r"""
   serviceBadge: (document.getElementById("serviceBadge") || {}).textContent || "",
   serviceBadgeClass: (document.getElementById("serviceBadge") || {}).className || "",
   collectionFieldHidden: Boolean(document.getElementById("collectionField")?.hidden),
+  // 主题那一栏（2026-08-10）。夹具里 topics 只有「未分类」一个——
+  // **那正是他生产库里的形状**（190 条 topic 全是它）。一个选项分不出两堆东西。
+  topicFieldHidden: Boolean(document.getElementById("topicField")?.hidden),
   collectionOptions: [...(document.getElementById("collectionFilter")?.options || [])]
     .map(o => ({ value: o.value, text: o.textContent })),
     relationOptions: [...(document.getElementById("relationFilter")?.options || [])]
@@ -406,8 +409,19 @@ async def run(chrome: str) -> int:
         problems.append(f"**关系筛选没有照数据重建**：{relations}——夹具里最大的一组是 history")
     if any("观看历史" not in r for r in relations if r.startswith("history=")):
         problems.append("关系筛选里 history 没有显示成中文")
+    # **这条 2026-08-10 加了前提，而不是删掉。**
+    #
+    # 它原来要求「主题下拉必须含有夹具里那个主题」，防的是 index.html 里写死
+    # 五个各返回 0 条的假主题。那件事仍然要防。
+    # 但夹具（＝生产的形状）里只有「未分类」一个主题，而**一个选项分不出两堆
+    # 东西**——那一栏现在整个藏起来，下拉里就只剩 'all'。
+    # 两条规矩不冲突：**有两个以上主题时照数据重建；不足两个时整栏藏起来。**
+    # 差点把这条老判据直接删掉——它挡的是另一件事，删了那件事就没人管了。
     topics = list(measured.get("topicOptions") or [])
-    if topics and "未分类" not in topics:
+    hidden = measured.get("topicFieldHidden")
+    if hidden is None:
+        problems.append("**没量到主题那一栏藏没藏**——这不是通过，是这一段没跑到")
+    elif not hidden and topics and "未分类" not in topics:
         problems.append(f"**主题下拉没有照数据重建**：{topics}——夹具里只有「未分类」")
     stale = [x for x in topics if x in ("AI与技术", "商业与投资", "机械制造", "学习研究", "生活方式")]
     if stale:
@@ -420,6 +434,23 @@ async def run(chrome: str) -> int:
                         "——他点同步、任务排队、什么都不发生，而界面说一切正常")
     if "后台没在跑" not in badge:
         problems.append(f"徽章没说后台没在跑：{badge!r}")
+
+    # 主题筛选（2026-08-10）。夹具里只有「未分类」一个主题——**生产就是这个形状**，
+    # 190 条 topic 全是它。那一栏必须藏起来：两项选出来是同一批东西，
+    # 摆在那儿就是一个点了没用的下拉框（和收藏夹同一条规矩）。
+    #
+    # **条件里要带上"到底有几个主题"。** 第一版写成「不是 hidden 就报」，
+    # 于是我拿两个主题的夹具去验反例时，它照样喊「只有一个主题」——
+    # 一条不看数量的规则，把该显示的那种情况也判死了。反例把它逼出来了。
+    real_topics = [t for t in (measured.get("topicOptions") or []) if t != "all"]
+    if measured.get("topicFieldHidden") is False and len(real_topics) < 2:
+        problems.append(
+            f"**分不出两堆东西，那个下拉框还摆在那儿**：{measured.get('topicOptions')}——"
+            "「全部主题」和唯一那一项选出来是同一批，他点哪一项都一样")
+    if measured.get("topicFieldHidden") is True and len(real_topics) >= 2:
+        problems.append(
+            f"**有 {len(real_topics)} 个主题却把那一栏藏了**：{real_topics}——"
+            "该藏的是分不出东西的那种，不是所有情况")
 
     # 收藏夹筛选（v0.0.0.10）。夹具里有两个收藏夹，那一栏就该露出来并照数据重建。
     if measured.get("collectionFieldHidden"):
@@ -508,6 +539,9 @@ async def run(chrome: str) -> int:
         "relation_options": measured.get("relationOptions"),
         "service_badge": measured.get("serviceBadge"),
         "collection_filter_hidden": measured.get("collectionFieldHidden"),
+        # **两个数一起印**：藏没藏，和下拉里到底有什么。只印结论的话，
+        # 「藏起来了」会盖住「其实它该显示却没数据」这种情况。
+        "topic_filter_hidden": measured.get("topicFieldHidden"),
         "collection_options": measured.get("collectionOptions"),
         # **失败时必须说清页面当时在干什么。** 只报一句「0 张卡」而不说
         # 页面报了什么错，下一个人还得把这一段重新查一遍。

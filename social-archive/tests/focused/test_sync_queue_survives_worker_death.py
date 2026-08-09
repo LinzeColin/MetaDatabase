@@ -81,7 +81,11 @@ function makeChrome(storage, alarms, hooks) {
     },
     runtime: { onInstalled: evt(), onStartup: evt(), onMessage: evt(), onConnect: evt(),
                getURL: p => p, id: 'test', lastError: null, getManifest: () => ({ version: '0.0.0.7' }) },
+    // `update` 是真 Chrome 有的（连接流程会用它把平台页翻到前台）。
+    // 缺它的时候，判据看到的是 'chrome.tabs.update is not a function'——
+    // 一个夹具的洞，长得像产品的 bug。
     tabs: { onUpdated: evt(), onRemoved: evt(), query: async () => [], create: async () => ({ id: 1 }),
+            update: async () => ({ id: 1 }),
             sendMessage: async () => ({}), get: async () => ({ id: 1, url: '' }) },
     // **这个假 chrome 扮的是 service worker，就得像 service worker 一样抛。**
     //

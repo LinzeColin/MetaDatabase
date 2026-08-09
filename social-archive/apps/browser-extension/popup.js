@@ -274,7 +274,9 @@
       window.close();
       return true;
     } catch (error) {
-      showStatus(`打不开同步进度：${error?.message || "未知原因"}`, "error");
+      // **说清下一步**，别只把浏览器那句英文丢给他。
+      showStatus("打不开同步进度。可以在浏览器右上角的侧边栏图标里手动打开"
+                 + `（浏览器说：${error?.message || "未知原因"}）`, "error");
       return false;
     }
   }

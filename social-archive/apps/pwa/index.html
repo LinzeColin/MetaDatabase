@@ -121,7 +121,8 @@
      「稍后再看」1 条，而**最大的那一组「观看历史」71 条（193 条里的 37%）
      根本不在名单上**——Owner 筛不出自己最大的那一堆。 -->
 <select id="relationFilter"><option value="all">全部关系</option></select></div>
-<div class="filter-field"><label for="topicFilter">主题分类</label><!-- 这里只放「全部主题」。**其余选项由 renderTopicOptions() 照真实数据重建**，写死的会骗人：2026-08-06 对着生产量过，原先写死的五个（AI与技术/商业与投资/机械制造/学习研究/生活方式）**各返回 0 条**，而真实数据里唯一的「未分类」有 193 条、却不在那份名单里。 -->
+<div class="filter-field" id="topicField" hidden><label for="topicFilter">主题分类</label><!-- 这里只放「全部主题」。**其余选项由 renderTopicOptions() 照真实数据重建**，写死的会骗人：2026-08-06 对着生产量过，原先写死的五个（AI与技术/商业与投资/机械制造/学习研究/生活方式）**各返回 0 条**，而真实数据里唯一的「未分类」有 193 条、却不在那份名单里。
+     **默认藏着**（2026-08-10）：他库里 190 条的 topic 全是「未分类」，两项选出来是同一批东西——和收藏夹同一条规矩，少于两个可选值就不摆这个框。 -->
 <select id="topicFilter"><option value="all">全部主题</option></select></div>
 <!-- 收藏夹（v0.0.0.10）。**默认藏着，有收藏夹才由 renderCollectionOptions() 显示。**
      绝大多数平台没有收藏夹这个概念，常驻一个只有「全部收藏夹」的下拉框

@@ -266,8 +266,20 @@
     //
     // 2026-08-06 由 G3 的端到端演练撞出来（它在 service worker 里跑整条链，
     // 同样没有手势——**和定时同步是同一个形状**）。
-    if (await chrome.permissions.contains({ origins }).catch(() => false)) return true;
-    return chrome.permissions.request({ origins });
+    // **2026-08-10：交给 ensurePermission，它会把异常收住。**
+    //
+    // 这个帮手原来自己做 contains-then-request，最后那一句 request **仍然会抛**。
+    // 三个调用方里只有两个接了 `.catch(() => false)`：
+    //
+    //     background.js:314   installNetObserverForTab   .catch  ✓
+    //     background.js:1383  bilibili 注入前             .catch  ✓
+    //     background.js:997   **connectBrowserPlatform**  没有    ✗
+    //
+    // 而漏掉的那一条正是 bilibili / 小红书 / 抖音 / 快手 / Reddit / Instagram
+    // **重新连接**走的路。授权真没拿到时，他看到的会是
+    // "This function must be called during a user gesture"，而不是
+    // 「未获得B站页面读取权限」。**在一处接住，好过在三处各接一次。**
+    return ensurePermission({ origins });
   }
 
   async function removePlatformPermission(platformId) {

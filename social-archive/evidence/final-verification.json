@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 779 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 780 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -277,7 +277,7 @@
         "scripts/check_git_calls_cannot_be_hijacked_by_hooks.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 332 份 .py，其中 8 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
+      "stdout": "扫了 334 份 .py，其中 8 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
       "stderr": ""
     },
     {
