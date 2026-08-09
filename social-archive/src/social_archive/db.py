@@ -1133,7 +1133,25 @@ class RuntimeStore:
         base = f"""WITH relation_rows AS (
             SELECT c.id,c.platform,c.external_content_id,c.canonical_url,c.title,c.author_name,c.published_at,
                    c.summary,c.language,c.media_count,c.last_synced_at,c.last_observed_at,
-                   r.id AS relation_id,r.relation_type AS primary_relation,r.collection_key AS primary_collection,
+                   r.id AS relation_id,r.relation_type AS primary_relation,
+                   -- **这一格是他真的会读的那一格，而它一直端的是原始 key。**（2026-08-10）
+                   --
+                   -- 下面 `collection_names` 那一列 2026-08-07 已经改成"只取查得到
+                   -- 名字的"，注释里连反例都点了名。**而 app.js 读的是这一个**：
+                   --     collection: item.primary_collection || collections.join("、") || "未分组"
+                   -- `primary_collection` 排在最前面，所以那次只修好了没人看的那一半。
+                   --
+                   -- 2026-08-10 去生产库里数：194 条关系里 **100 条这一格是内部值**
+                   -- （70 条是一百字的页面文案「综合视频直播专栏 更多筛选 清空历史…」，
+                   -- 30 条是 'bilibili:/3493091105311656/favlist' 这样一条路径）。
+                   --
+                   -- 筛选不受影响：过滤走的是 `r.collection_key`，分面给的 key 是
+                   -- 原始值、label 才是名字。这里改的只是**显示**。
+                   (SELECT pc.name FROM platform_collection pc
+                     WHERE pc.source_account_id = r.source_account_id
+                       AND pc.relation_type = r.relation_type
+                       AND pc.external_collection_id = r.collection_key
+                     LIMIT 1) AS primary_collection,
                    COALESCE(r.relation_observed_at,r.first_observed_at) AS relation_time,
                    COALESCE(sa.display_name,sa.external_account_id,'') AS account_name,
                    COALESCE(cc.topic,'未分类') AS topic,COALESCE(cc.keywords_json,'[]') AS keywords_json,

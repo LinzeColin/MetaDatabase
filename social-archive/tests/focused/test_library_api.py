@@ -103,10 +103,17 @@ def test_library_filters_literal_full_text_collection_and_observed_date(tmp_path
     assert [item['id'] for item in client.get('/v1/library?q=中文正文').json()['items']] == [content_id]
     assert [item['id'] for item in client.get('/v1/library?q=中文检索needle').json()['items']] == [content_id]
     filtered = client.get('/v1/library?platform=generic-web&relation=bookmark&collection=research').json()['items']
-    # 同上：relation_type → primary_relation，collection_key → primary_collection。
-    # 行为一直是对的，卡的是字段名。
-    assert [(item['id'], item['primary_relation'], item['primary_collection'])
-            for item in filtered] == [(content_id, 'bookmark', 'research')]
+    # 同上：relation_type → primary_relation。行为一直是对的，卡的是字段名。
+    assert [(item['id'], item['primary_relation']) for item in filtered] == [(content_id, 'bookmark')]
+    # **筛选按原始 key 走，显示按名字走**（2026-08-10）。
+    #
+    # `collection=research` 依旧命中——过滤用的是 `r.collection_key`。
+    # 而 `primary_collection` 现在只端**查得到名字的**（platform_collection
+    # 里登记过的）。这条 research 没登记过，所以它交白卷，由界面写「未分组」。
+    # 原来它原样输出 key，于是他生产库里 194 条关系有 100 条那一格是内部值
+    # （70 条是一百字的页面文案，30 条是 'bilibili:/…/favlist' 这样一条路径）。
+    assert filtered[0]['primary_collection'] in (None, ''), (
+        f"「收藏夹」这一格又端出了原始 key：{filtered[0]['primary_collection']!r}")
     assert [item['id'] for item in client.get('/v1/library?q=research').json()['items']] == [content_id]
 
     observed_day = filtered[0]['last_observed_at'][:10]
