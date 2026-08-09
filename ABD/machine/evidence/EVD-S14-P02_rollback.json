@@ -1,0 +1,39 @@
+{
+  "artifacts": {
+    "abd_acceptance/security_analysis.py": {
+      "sha256": "5d4328df3fb8ce9cb456ddb1e8d065f6bd1515df2db2dbb20e93399abf1cba92",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S14_P02.json": {
+      "sha256": "6b0a29fb3fa105cd06c1d544c7b3d5938e5d3484c3667dad3accd4bbddc9058b",
+      "status": "PASS"
+    },
+    "sast_policy.json": {
+      "sha256": "683c204a17ebb1b4526b16af4a2d825aaa59cd1fc72f829f56c7ea44c54bff9f",
+      "status": "PASS"
+    },
+    "secret_policy.json": {
+      "sha256": "65d28e5e65e61b0420b9b70cb9115cb5f0b57447920e2ad119b92d55cdc3ae6e",
+      "status": "PASS"
+    },
+    "security_pipeline.yml": {
+      "sha256": "5f55c92a9bb640caf27aa331ed9ecfbc63f8f503d5d4228c1b7aed9d301314b3",
+      "status": "PASS"
+    },
+    "tests/S14/P02_test.py": {
+      "sha256": "0acc968b9e159f7e464699b18e227e270fcd5cd61b59e9deeb36b1965cc3fb4c",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S14-P02",
+  "evidence_id": "EVD-S14-P02-ROLLBACK",
+  "external_state_changed": false,
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_S14_P02_LOCAL_SECURITY_PIPELINE_PRESERVE_P01_AND_SIGNED_EVIDENCE_NO_EXTERNAL_MUTATION",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

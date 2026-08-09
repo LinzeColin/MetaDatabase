@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0.0",
+  "policy_id": "S14-P02-SAST-POLICY",
+  "contract_id": "AC-S14-P02",
+  "requirement_id": "REQ-S14-P02",
+  "stage_id": "S14",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "execution_mode": "FROZEN_LOCAL_DETERMINISTIC_NO_NETWORK",
+  "source_targets": [
+    "abd_acceptance/threat_model.py",
+    "abd_acceptance/security_analysis.py",
+    "security_pipeline.yml",
+    "sast_policy.json",
+    "secret_policy.json"
+  ],
+  "analysis_rules": [
+    {
+      "id": "SAST-IMPORT-CAPABILITY",
+      "severity": "HIGH",
+      "mode": "AST_IMPORT_DENYLIST"
+    },
+    {
+      "id": "SAST-CALL-CAPABILITY",
+      "severity": "HIGH",
+      "mode": "AST_CALL_DENYLIST"
+    },
+    {
+      "id": "SAST-ORDER-CAPABILITY",
+      "severity": "CRITICAL",
+      "mode": "AST_ORDER_ACTION_DENYLIST"
+    },
+    {
+      "id": "SAST-FLOAT-NUMERIC-SAFETY",
+      "severity": "HIGH",
+      "mode": "AST_FLOAT_LITERAL_DENYLIST"
+    },
+    {
+      "id": "SAST-PIPELINE-LOCAL-ONLY",
+      "severity": "HIGH",
+      "mode": "DECLARATIVE_COMMAND_DENYLIST"
+    }
+  ],
+  "finding_gate": {
+    "unresolved_critical": 0,
+    "unresolved_high": 0,
+    "automatic_waiver_allowed": false
+  },
+  "waiver_policy": {
+    "high_or_critical_waiver_allowed": false,
+    "waiver_count": 0,
+    "waiver_evidence_required": true
+  },
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "real_account_balance_read_or_written": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "not_production_evidence": true
+}

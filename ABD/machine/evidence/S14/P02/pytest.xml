@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="40" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S14.P02_test" name="test_candidate_preflight_passes_without_generated_test_reports" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_frozen_pipeline_and_policies_bind_exact_rule_sets" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_each_pipeline_stage_is_local_and_fail_closed[CONFIG_TYPE_CHECK]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_each_pipeline_stage_is_local_and_fail_closed[STATIC_APPLICATION_ANALYSIS]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_each_pipeline_stage_is_local_and_fail_closed[DEPENDENCY_LOCK_ANALYSIS]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_each_pipeline_stage_is_local_and_fail_closed[SECRET_REFERENCE_ANALYSIS]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_each_pipeline_stage_is_local_and_fail_closed[CONTAINER_INFRASTRUCTURE_ANALYSIS]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_frozen_single_pass_security_snapshots_replay_exactly[POSITIVE_EXACT_LOCAL_SECURITY_CONTRACT]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_frozen_single_pass_security_snapshots_replay_exactly[P01_RECEIPT_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_frozen_single_pass_security_snapshots_replay_exactly[PIPELINE_CONFIG_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_frozen_single_pass_security_snapshots_replay_exactly[SAST_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_frozen_single_pass_security_snapshots_replay_exactly[DEPENDENCY_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_frozen_single_pass_security_snapshots_replay_exactly[SECRET_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_frozen_single_pass_security_snapshots_replay_exactly[CONTAINER_INFRA_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_frozen_single_pass_security_snapshots_replay_exactly[EXTERNAL_BOUNDARY_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_frozen_single_pass_security_snapshots_replay_exactly[CRITICAL_FINDING_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_frozen_single_pass_security_snapshots_replay_exactly[HIGH_FINDING_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_frozen_single_pass_security_snapshots_replay_exactly[POINT_0001_COVERAGE_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_frozen_single_pass_security_snapshots_replay_exactly[POINT_0001_COVERAGE_OVERFAIL_AND_FOREIGN_ODDS]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_malformed_security_snapshots_fail_closed[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_malformed_security_snapshots_fail_closed[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_malformed_security_snapshots_fail_closed[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_literal_secret_patterns_become_unresolved_findings[sample = 'AKIAAAAAAAAAAAAAAAAA'-SECRET-AWS-ACCESS-KEY]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_literal_secret_patterns_become_unresolved_findings[sample = '-----BEGIN PRIVATE KEY-----'-SECRET-PRIVATE-KEY]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_literal_secret_patterns_become_unresolved_findings[sample = 'ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'-SECRET-GITHUB-PERSONAL-TOKEN]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_literal_secret_patterns_become_unresolved_findings[api_key = 'abcdefghijklmnop'-SECRET-GENERIC-INLINE-ASSIGNMENT]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_unsafe_source_patterns_become_unresolved_findings[import socket\n-SAST-IMPORT-CAPABILITY-HIGH]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_unsafe_source_patterns_become_unresolved_findings[def action():\n    sleep(1)\n-SAST-CALL-CAPABILITY-HIGH]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_unsafe_source_patterns_become_unresolved_findings[def action():\n    submit_order()\n-SAST-ORDER-CAPABILITY-CRITICAL]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_unsafe_source_patterns_become_unresolved_findings[value = 0.1\n-SAST-FLOAT-NUMERIC-SAFETY-HIGH]" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_pipeline_tampering_fails_closed" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_sast_policy_tampering_fails_closed" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_secret_policy_tampering_fails_closed" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_actual_local_analysis_has_zero_unresolved_critical_or_high_findings" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_receipt_binds_every_control_plane_target_hash" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_oracle_has_no_network_process_or_order_capability" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_execution_boundaries_remain_exactly_local_only" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_rollback_drill_is_local_and_preserves_external_state" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_writer_rejects_a_noncanonical_evidence_directory_before_mutation" time="0.000" />
+    <testcase classname="tests.S14.P02_test" name="test_acceptance_cli_is_wired_and_unsigned_evidence_cannot_verify" time="0.000" />
+  </testsuite>
+</testsuites>
