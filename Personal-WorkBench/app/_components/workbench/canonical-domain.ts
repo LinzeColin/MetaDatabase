@@ -1,22 +1,26 @@
-export const LEGACY_PLATFORM_HOST = "huchuliang-workbench.linzezhang35.chatgpt.site";
-export const CANONICAL_WORKBENCH_ORIGIN = "https://mydairy.linzezhang.com";
+/**
+ * Compatibility-only hostname from the retired product identity. It remains
+ * here solely to send existing saved links to the canonical mydairy domain.
+ */
+export const RETIRED_COMPATIBILITY_HOST = "huchuliang-workbench.linzezhang35.chatgpt.site";
+export const CANONICAL_MYDAIRY_ORIGIN = "https://mydairy.linzezhang.com";
 
-export function isLegacyPlatformHost(host: string | null | undefined): boolean {
+export function isRetiredCompatibilityHost(host: string | null | undefined): boolean {
   const normalized = host?.trim().toLowerCase();
-  return normalized === LEGACY_PLATFORM_HOST || normalized === `${LEGACY_PLATFORM_HOST}:443`;
+  return normalized === RETIRED_COMPATIBILITY_HOST || normalized === `${RETIRED_COMPATIBILITY_HOST}:443`;
 }
 
-export function canonicalLegacyHostUrl(host: string | null | undefined, search = ""): string | null {
-  if (!isLegacyPlatformHost(host)) return null;
-  const destination = new URL(CANONICAL_WORKBENCH_ORIGIN);
+export function canonicalRetiredHostUrl(host: string | null | undefined, search = ""): string | null {
+  if (!isRetiredCompatibilityHost(host)) return null;
+  const destination = new URL(CANONICAL_MYDAIRY_ORIGIN);
   destination.search = search.startsWith("?") ? search.slice(1) : search;
   return destination.toString();
 }
 
-export function canonicalLegacyUrl(currentUrl: string): string | null {
+export function canonicalRetiredUrl(currentUrl: string): string | null {
   try {
     const url = new URL(currentUrl);
-    return canonicalLegacyHostUrl(url.host, url.search);
+    return canonicalRetiredHostUrl(url.host, url.search);
   } catch {
     return null;
   }

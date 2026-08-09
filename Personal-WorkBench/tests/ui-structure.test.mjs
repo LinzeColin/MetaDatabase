@@ -44,7 +44,12 @@ test("normal routes retain a separate account entry and resolve without referenc
   assert.match(homeHtml, /class="account-entry normal-only"/);
   assert.match(homeHtml, /登录 \/ 账户/);
   assert.match(homeHtml, /href="\/account"/);
+  assert.match(homeHtml, /aria-label="个人日程导航"/);
+  assert.doesNotMatch(homeHtml, /返回工作台/);
   assert.match(homeHtml, /data-reference-mode="false"/);
   assert.equal(auth.status, 200);
-  assert.match(await auth.text(), /欢迎回来/);
+  const authHtml = await auth.text();
+  assert.match(authHtml, /欢迎回来/);
+  assert.match(authHtml, /aria-label="返回个人日程"/);
+  assert.doesNotMatch(authHtml, /返回工作台/);
 });

@@ -12,7 +12,7 @@ import {
   PeriodClient,
 } from "./_components/workbench/lifestyle-pages-client";
 import TodoPageClient from "./_components/workbench/todo-page-client";
-import { canonicalLegacyHostUrl } from "./_components/workbench/canonical-domain";
+import { canonicalRetiredHostUrl } from "./_components/workbench/canonical-domain";
 import { LegacyDomainRedirect } from "./_components/workbench/legacy-domain-redirect";
 
 const PRIVATE_ASSET_ROOT = "/private-reference-assets";
@@ -253,7 +253,7 @@ function GenericPage({ reference, route }: { reference: boolean; route: string }
 
   const label =
     ({ todo: "待办事项", schedule: "日程安排", anniversary: "纪念日", diary: "日记", savings: "存钱计划" } as Record<string, string>)[route] ??
-    "工作台";
+    "个人日程";
   return (
     <Shell pageClass="generic-page" reference={reference} route={route}>
       <PageHead icon="nav_desktop.png" title={label} />
@@ -268,7 +268,7 @@ function GenericPage({ reference, route }: { reference: boolean; route: string }
 
 export default async function HomePage({ searchParams }: PageProps) {
   const [params, requestHeaders] = await Promise.all([searchParams, headers()]);
-  const canonicalDestination = canonicalLegacyHostUrl(requestHeaders.get("host"), queryFromSearchParams(params));
+  const canonicalDestination = canonicalRetiredHostUrl(requestHeaders.get("host"), queryFromSearchParams(params));
   if (canonicalDestination) redirect(canonicalDestination);
   const reference = typeof params.reference === "string" && referenceRoutes.has(params.reference);
   const requestedRoute = reference ? params.reference! : params.view;

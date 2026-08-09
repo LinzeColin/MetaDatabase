@@ -1,35 +1,35 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  CANONICAL_WORKBENCH_ORIGIN,
-  canonicalLegacyHostUrl,
-  canonicalLegacyUrl,
-  isLegacyPlatformHost,
+  CANONICAL_MYDAIRY_ORIGIN,
+  canonicalRetiredHostUrl,
+  canonicalRetiredUrl,
+  isRetiredCompatibilityHost,
 } from "../app/_components/workbench/canonical-domain.ts";
 
-test("legacy browser URLs preserve the active page query on the canonical domain", () => {
+test("retired browser URLs preserve the active page query on the canonical domain", () => {
   assert.equal(
-    canonicalLegacyUrl("https://huchuliang-workbench.linzezhang35.chatgpt.site/?view=period"),
-    `${CANONICAL_WORKBENCH_ORIGIN}/?view=period`,
+    canonicalRetiredUrl("https://huchuliang-workbench.linzezhang35.chatgpt.site/?view=period"),
+    `${CANONICAL_MYDAIRY_ORIGIN}/?view=period`,
   );
   assert.equal(
-    canonicalLegacyUrl("https://huchuliang-workbench.linzezhang35.chatgpt.site/?reference=home"),
-    `${CANONICAL_WORKBENCH_ORIGIN}/?reference=home`,
+    canonicalRetiredUrl("https://huchuliang-workbench.linzezhang35.chatgpt.site/?reference=home"),
+    `${CANONICAL_MYDAIRY_ORIGIN}/?reference=home`,
   );
-  assert.equal(canonicalLegacyUrl("https://mydairy.linzezhang.com/?view=period"), null);
+  assert.equal(canonicalRetiredUrl("https://mydairy.linzezhang.com/?view=period"), null);
 });
 
-test("only the immutable legacy Sites host is normalized", () => {
-  assert.equal(isLegacyPlatformHost("huchuliang-workbench.linzezhang35.chatgpt.site"), true);
-  assert.equal(isLegacyPlatformHost("huchuliang-workbench.linzezhang35.chatgpt.site:443"), true);
-  assert.equal(isLegacyPlatformHost("mydairy.linzezhang.com"), false);
-  assert.equal(isLegacyPlatformHost(null), false);
+test("only the retired Sites host is normalized", () => {
+  assert.equal(isRetiredCompatibilityHost("huchuliang-workbench.linzezhang35.chatgpt.site"), true);
+  assert.equal(isRetiredCompatibilityHost("huchuliang-workbench.linzezhang35.chatgpt.site:443"), true);
+  assert.equal(isRetiredCompatibilityHost("mydairy.linzezhang.com"), false);
+  assert.equal(isRetiredCompatibilityHost(null), false);
 });
 
 test("server-side host normalization preserves incoming query parameters", () => {
   assert.equal(
-    canonicalLegacyHostUrl("huchuliang-workbench.linzezhang35.chatgpt.site", "view=period&tag=one&tag=two"),
-    `${CANONICAL_WORKBENCH_ORIGIN}/?view=period&tag=one&tag=two`,
+    canonicalRetiredHostUrl("huchuliang-workbench.linzezhang35.chatgpt.site", "view=period&tag=one&tag=two"),
+    `${CANONICAL_MYDAIRY_ORIGIN}/?view=period&tag=one&tag=two`,
   );
-  assert.equal(canonicalLegacyHostUrl("mydairy.linzezhang.com", "view=period"), null);
+  assert.equal(canonicalRetiredHostUrl("mydairy.linzezhang.com", "view=period"), null);
 });

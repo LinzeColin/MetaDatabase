@@ -3,7 +3,7 @@ import test from "node:test";
 
 import {
   appendOutbox,
-  LEGACY_OUTBOX_STORAGE_KEYS,
+  RETIRED_COMPATIBILITY_OUTBOX_STORAGE_KEYS,
   OUTBOX_STORAGE_KEY,
   parseOutbox,
   replayOutboxQueue,
@@ -83,14 +83,14 @@ test("read/write/append outbox operations are stable with local storage", () => 
   assert.equal(readOutbox(storage).at(-1)?.idempotencyKey, "b");
 });
 
-test("legacy workbench outbox migrates into mydairy without losing queued work", () => {
+test("retired-brand outbox migrates into mydairy without losing queued work", () => {
   const storage = createMemoryStorage();
-  storage.setItem(LEGACY_OUTBOX_STORAGE_KEYS[0], JSON.stringify([actionA]));
+  storage.setItem(RETIRED_COMPATIBILITY_OUTBOX_STORAGE_KEYS[0], JSON.stringify([actionA]));
 
   assert.deepEqual(readOutbox(storage).map((item) => item.idempotencyKey), ["a"]);
   writeOutbox(storage, [actionA, actionB]);
 
-  assert.equal(storage.getItem(LEGACY_OUTBOX_STORAGE_KEYS[0]), null);
+  assert.equal(storage.getItem(RETIRED_COMPATIBILITY_OUTBOX_STORAGE_KEYS[0]), null);
   assert.deepEqual(parseOutbox(storage.getItem(OUTBOX_STORAGE_KEY)).map((item) => item.idempotencyKey), ["a", "b"]);
 });
 

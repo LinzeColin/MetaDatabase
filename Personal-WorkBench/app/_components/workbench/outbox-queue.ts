@@ -1,5 +1,9 @@
 export const OUTBOX_STORAGE_KEY = "mydairy.outbox.v1";
-export const LEGACY_OUTBOX_STORAGE_KEYS = ["huchuliang.workbench.outbox.v1"] as const;
+/**
+ * Read-once migration keys from the retired product identity. New queue data
+ * is always written under OUTBOX_STORAGE_KEY, then these keys are removed.
+ */
+export const RETIRED_COMPATIBILITY_OUTBOX_STORAGE_KEYS = ["huchuliang.workbench.outbox.v1"] as const;
 
 export type OutboxMethod = "POST";
 
@@ -64,7 +68,7 @@ export function readOutbox(storage: OutboxStorageLike | null): OutboxAction[] {
   if (!storage) return [];
   const seen = new Set<string>();
   const result: OutboxAction[] = [];
-  const keys = [OUTBOX_STORAGE_KEY, ...LEGACY_OUTBOX_STORAGE_KEYS];
+  const keys = [OUTBOX_STORAGE_KEY, ...RETIRED_COMPATIBILITY_OUTBOX_STORAGE_KEYS];
 
   for (const key of keys) {
     for (const action of parseOutbox(storage.getItem(key))) {
@@ -81,7 +85,7 @@ export function writeOutbox(storage: OutboxStorageLike | null, items: OutboxActi
   if (!storage) return;
   try {
     storage.setItem(OUTBOX_STORAGE_KEY, JSON.stringify(items));
-    for (const key of LEGACY_OUTBOX_STORAGE_KEYS) storage.removeItem?.(key);
+    for (const key of RETIRED_COMPATIBILITY_OUTBOX_STORAGE_KEYS) storage.removeItem?.(key);
   } catch {
     // Ignore storage failures; queue state is best-effort persisted.
   }
