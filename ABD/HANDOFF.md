@@ -2,44 +2,51 @@
 
 ## 当前目标
 
-在隔离 worktree `codex/abd-v0001-s10-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1` 的 S10。S10/P01「时间交叉验证与校准」已完成本地签名证据；下一轮只能推进 S10/P02，不能开始 S10/P03、S10/P04、S10 整体复审或 GitHub 阶段上传。
+在隔离 worktree `codex/abd-v0001-s10-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1` 的 S10。S10/P01 与 S10/P02 均已完成本地签名证据；下一轮只能推进 S10/P03，不能开始 S10/P04、S10 整体复审或 GitHub 阶段上传。
 
 ## 当前状态
 
-- S09 已完成整体复审并合并到远端 `main`（合并提交 `c94064260f2f70d18971a7d5a9c65e7c81e1a74d`）。S10 worktree 从该远端基线建立；主工作树有无关改动，保持只读且未触碰。
-- S10/P01 已签名通过：`machine/evidence/EVD-S10-P01.json`，验证合同 `AC-S10-P01`，下一状态 `S10/P02_READY_NOT_STARTED`。
-- 实现包含至少 8 个冻结时间折叠的 isotonic、logistic 与多分类温度校准；三种方法均满足冻结合同斜率 `0.90–1.10`、截距绝对值不大于 `0.02` 与校准误差不大于 `0.025`。选择 logistic（二分类）和 temperature（多分类）仅表示可继续进入下游不确定性门，不构成推荐、下注、订单或收益承诺。
-- 报告 `calibration_report.json` 的冻结重放 SHA-256 为 `acf155d7e1db64f4a342ee0c46e682bcfb616fcf60b4a349726feafae0a9eb3a`。它只使用冻结合成输入，且明确记录未访问网络、真实市场、账户、Gmail、OVH 或 Cloudflare。
-- 为使新增任务包要求的根模块接受现有零付费依赖扫描，`abd_acceptance/budget.py` 仅将 `calibration` 与 `temporal_cv` 归类为本地源码；扫描仍对未分类第三方导入失败关闭。S08/P03、P04 的既有共享运行时合同已将该扫描器排除出历史 receipt 输入哈希；本轮未重跑任何历史全量 stage 回归。
-- `financial_target_status` 仍为 `UNVERIFIED_NOT_GUARANTEED`；没有真实资金、账户、订单、生产部署或激活。
+- S09 已完成整体复审并合并；当前 S10 worktree 保持隔离，主工作树及其他项目 worktree 均未触碰。
+- S10/P01 已签名通过：`machine/evidence/EVD-S10-P01.json`，下一状态为 `S10/P02_READY_NOT_STARTED`。其时间交叉验证只使用冻结合成输入，校准结论不构成推荐、下注、订单或收益承诺。
+- S10/P02 已签名通过：`machine/evidence/EVD-S10-P02.json`（SHA-256 `1481efc71fcc185c57a06ddee11d3e0015e534b2084cd90b43dda8ef55fcaa69`），下一状态为 `S10/P03_READY_NOT_STARTED`。
+- `uncertainty.py` 以完整时间 block 作为重采样单元，用固定 LCG 的高位映射避免低位取模产生固定置换。运行时精确执行 1,000 次、评测精确执行 2,000 次分块重采样，并按第 10 百分位得到保守概率；结果绝不高于未校正基准概率，且固定 probe 上单调不减。
+- 冻结 fixture 的运行时保守概率为 `0.615`、评测保守概率为 `0.615625`；这只是合成 fixture 的可复现输出，不是市场概率、投资/博彩建议或收益预测。
+- P02 的 `bootstrap_manifest.json` SHA-256 为 `7db203809f881696db69ff9a0857157e6e87b46d035c0ae1177cbc172584591c`。它绑定 P01 已签名 receipt、冻结 seeds、block digest 与每次重采样分布摘要。
+- `abd_acceptance/budget.py` 仅将 `uncertainty` 加入任务包根级本地源码白名单；未知第三方导入仍失败关闭。P01 现有证据已在该共享扫描器变更后复核 PASS。
+- `financial_target_status` 仍为 `UNVERIFIED_NOT_GUARANTEED`；没有真实资金、账户、订单、TAB/Gmail、OVH、Cloudflare 或生产部署/激活。
 
 ## 已验证
 
-- 任务包基线文件与原始 Task Pack 逐一比对一致；Task Pack 静态校验 `49/49 PASS`。
-- `tests/S10/P01_test.py` 定向测试：`18 passed`。其为本地 CPU 校验，无网络、无账户、无真实时间等待；未执行全量测试、完整回归或 real-time soak。
-- `machine/tools/scan_paid_dependencies.py`：PASS，未发现付费或未知依赖。
-- `AC-S10-P01` 候选预检：`30/30 PASS`；写入签名证据后的带报告验证：`34/34 PASS`；`--verify-existing AC-S10-P01`：PASS。
+- 冻结 Task Pack 核心事实文件与原始包逐一一致；Task Pack 静态校验 `49/49 PASS`。
+- `tests/S10/P02_test.py` 定向测试：`22 passed`。覆盖固定重放、非退化 block 分布、1,000/2,000 次数、10% 分位、保守不抬升、单调性、±0.0001 边界、输入/manifest/P01 receipt/evidence-index 篡改、回滚与无外部能力边界。
+- 付费/未知依赖扫描 PASS；无外部访问或账单操作。
+- `AC-S10-P02` 候选预检：`30/30 PASS`；写入签名证据后的带报告验证：`34/34 PASS`；`--verify-existing AC-S10-P02`：PASS，且严格要求 evidence index 的 artifact SHA 与 receipt 一致。
+- 未执行全量测试、完整回归或真实时间 soak；上述 1,000/2,000 次是 Task Pack 所要求的本地 CPU 分块重采样，不依赖真实时间或外部服务。
 
 ## 关键文件
 
 - `calibration.py`
 - `temporal_cv.py`
 - `calibration_report.json`
+- `uncertainty.py`
+- `bootstrap_manifest.json`
 - `abd_acceptance/temporal_calibration.py`
+- `abd_acceptance/uncertainty.py`
 - `abd_acceptance/__main__.py`
 - `abd_acceptance/budget.py`
 - `machine/tests/fixtures/S10_P01.json`
+- `machine/tests/fixtures/S10_P02.json`
 - `tests/S10/P01_test.py`
-- `machine/evidence/S10/P01/pytest.xml`
-- `machine/evidence/S10/P01/paid_dependency_scan.txt`
+- `tests/S10/P02_test.py`
 - `machine/evidence/EVD-S10-P01.json`
-- `machine/evidence/EVD-S10-P01_rollback.json`
+- `machine/evidence/EVD-S10-P02.json`
+- `machine/evidence/EVD-S10-P02_rollback.json`
 
 ## 未解决风险
 
-- S10/P02--P04、S10 整体复审及 GitHub 阶段上传尚未开始，不能被本 phase 的 PASS 替代。
+- S10/P03、S10/P04、S10 整体复审及 GitHub 阶段上传尚未开始，不能被 P01/P02 的 PASS 替代。
 - 真实市场、真实账户、TAB/Gmail 证据归档、OVH、Cloudflare 与生产上线均未验证、未部署且不应据此推断完成。
 
 ## 下一步
 
-下一次 run 严格只处理 S10/P02 的任务包输出、定向验收和连续证据。保持零新增现金、无真实时间 soak、无全量测试/完整回归；在四个 S10 phase 全部完成前不得上传 GitHub 或宣称上线。
+下一次 run 严格只处理 S10/P03「十进制定点权威计算」的任务包输出、定向验收和连续证据。保持零新增现金、无真实时间 soak、无全量测试/完整回归；在四个 S10 phase 全部完成并通过整体复审前不得上传 GitHub 或宣称上线。
