@@ -258,3 +258,27 @@ test("Version 21 partial auth recovery replay retains no provider or reset mater
   assert.equal(serialized.includes("token="), false);
   assert.equal(serialized.includes("Bearer "), false);
 });
+
+test("Version 21 rollback and restore rehearsal retains no deployment or access identity material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_21_rollback_restore_rehearsal.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 21);
+  assert.equal(evidence.rollback.target_version_number, 18);
+  assert.equal(evidence.rollback.deployment_status, "SUCCEEDED");
+  assert.equal(evidence.restore.target_version_number, 21);
+  assert.equal(evidence.restore.deployment_status, "SUCCEEDED");
+  assert.equal(evidence.restore.final_live_version_matches_restore_target, true);
+  assert.equal(evidence.change_boundary.access_policy_changed, false);
+  assert.equal(evidence.change_boundary.public_audience_changed, false);
+  assert.equal(evidence.change_boundary.deployment_or_version_ids_recorded, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});

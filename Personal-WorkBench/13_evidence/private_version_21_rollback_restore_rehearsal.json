@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PASS_PRIVATE_VERSION_21_ROLLBACK_RESTORE_REHEARSAL",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "sites_version_number": 21,
+    "sites_source_commit": "91037c9cd02cd2dfca42124243cb212af049d0c4",
+    "deployment_environment_revision": 8,
+    "site_title": "个人日程"
+  },
+  "preconditions": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "access_policy_revision_before": 1,
+    "rollback_target_version_number": 18,
+    "rollback_target_source_commit": "09f5aaf1eae96f5073fb75f025a281d429ac2570",
+    "restore_target_version_number": 21,
+    "restore_target_source_commit": "91037c9cd02cd2dfca42124243cb212af049d0c4",
+    "saved_version_archives_read_back": true
+  },
+  "rollback": {
+    "target_version_number": 18,
+    "deployment_status": "SUCCEEDED",
+    "environment_revision": 8,
+    "post_rollback_private_access_invariant": true
+  },
+  "restore": {
+    "target_version_number": 21,
+    "deployment_status": "SUCCEEDED",
+    "environment_revision": 8,
+    "final_live_version_matches_restore_target": true
+  },
+  "post_restore_control_plane": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "access_policy_revision_after": 1,
+    "latest_saved_version_number": 21,
+    "site_title": "个人日程"
+  },
+  "change_boundary": {
+    "source_repository_changed": false,
+    "runtime_settings_changed": false,
+    "access_policy_changed": false,
+    "d1_r2_changed": false,
+    "business_data_read_or_written": false,
+    "public_audience_changed": false,
+    "raw_deployment_url_recorded": false,
+    "deployment_or_version_ids_recorded": false
+  },
+  "sensitive_values_recorded": false,
+  "not_proven": [
+    "Application-data continuity across the temporary rollback and restore",
+    "A successful current Version 21 Google OAuth callback and session",
+    "Final password update and new-password sign-in",
+    "Physical second-device history readback",
+    "Direct D1 or R2 reconciliation",
+    "Final product acceptance or public release"
+  ]
+}

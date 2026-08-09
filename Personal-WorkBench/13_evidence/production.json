@@ -33,6 +33,8 @@
   "controlled_deployment_and_recovery": {
     "version_21_private_deploy": "SUCCEEDED",
     "version_18_private_deploy": "SUCCEEDED",
+    "version_21_to_18_private_rollback": "SUCCEEDED",
+    "version_18_to_21_private_restore": "SUCCEEDED",
     "version_16_private_deploy": "SUCCEEDED",
     "version_17_private_deploy": "SUCCEEDED",
     "version_17_sign_in_guidance_source_transport": "RECOVERED_TREE_IDENTICAL_ISOLATED_PROJECTION_PUSH_AND_PRIVATE_DEPLOY_SUCCEEDED",
@@ -52,6 +54,7 @@
     "live_version_matches_version_17": false,
     "live_version_matches_version_18": false,
     "live_version_matches_version_21": true,
+    "live_version_matches_version_21_after_rehearsal": true,
     "current_deployment_environment_revision": 8
   },
   "observed_interface": {
@@ -81,13 +84,13 @@
     "version_18_agent_controlled_chrome_auth_and_workbench_post_replay": "INCONCLUSIVE_EMAIL_AUTH_PASS_WORKBENCH_POST_TRANSPORT_BOUNDARY_TEST_ACCOUNT_AND_MAILBOX_DELETED",
     "ordinary_desktop_browser_private_access_gate": "PASS_PRIVATE_VERSION_17_CHATGPT_AUTHENTICATION_REQUIRED_NO_CONTROLLED_SITE_SESSION",
     "raw_user_records_read": false,
-    "test_user_data_written_then_cleaned": true,
-    "test_user_data_remaining": false
+    "test_user_data_written_then_cleaned": false,
+    "test_user_data_remaining": true
   },
   "authentication": {
     "email_login_form_rendered": true,
     "google_authorization_reached_account_selection": true,
-    "google_callback_after_account_selection": "PASS_PRIVATE_CURRENT_VERSION",
+    "google_callback_after_account_selection": "INCONCLUSIVE_PRIVATE_VERSION_21_AGENT_CONTROLLED_CHROME_STATE_OR_CSRF_GUARD_AFTER_ACCOUNT_SELECTION",
     "account_identifier_recorded": false,
     "email_registration_verification_replay": "PASS_PRIVATE_CURRENT_VERSION",
     "controlled_test_auth_account_created": true,
@@ -95,8 +98,8 @@
     "email_verification_delivery": "PASS_CONTROLLED_MAILBOX_RENDERED",
     "email_verification_link": "PASS_PRIVATE_CURRENT_VERSION",
     "email_password_credentials_for_current_version": "PASS_PRIVATE_CURRENT_VERSION",
-    "password_reset_replay_for_current_version": "PASS_PRIVATE_CURRENT_VERSION",
-    "post_reset_email_password_credentials_for_current_version": "PASS_PRIVATE_CURRENT_VERSION",
+    "password_reset_replay_for_current_version": "PASS_PRIVATE_VERSION_21_DELIVERY_AND_CANONICAL_RESET_PAGE_FINAL_SUBMIT_NOT_PERFORMED",
+    "post_reset_email_password_credentials_for_current_version": "NOT_PROVEN_PRIVATE_VERSION_21_FINAL_PASSWORD_CHANGE_NOT_SUBMITTED",
     "reset_password_missing_token_does_not_issue_request": "PASS_LOCAL_AUTH_CONTRACT",
     "ordinary_chrome_email_login_replay": "PASS_PRIVATE_VERSION_17_AGENT_CONTROLLED_CHROME_EMAIL_SIGNUP_VERIFY_SIGNIN_NOT_ORDINARY_BROWSER_EVIDENCE",
     "agent_controlled_chrome_workbench_post_replay": "INCONCLUSIVE_PRIVATE_VERSION_17_TWO_NON_SENSITIVE_ATTEMPTS_NO_VISIBLE_RECORD_TEST_ACCOUNT_DELETED",
@@ -155,6 +158,7 @@
     "13_evidence/private_version_21_ordinary_chrome_persistence_replay.json",
     "13_evidence/private_version_21_ab_tenant_history_replay.json",
     "13_evidence/private_version_21_auth_recovery_partial_replay.json",
+    "13_evidence/private_version_21_rollback_restore_rehearsal.json",
     "13_evidence/version_18_agent_controlled_in_app_workbench_post_replay.json",
     "13_evidence/version_18_agent_controlled_chrome_auth_and_workbench_post_replay.json",
     "13_evidence/version_16_storage_binding_reconciliation.json",
@@ -168,10 +172,12 @@
   "final_acceptance_claimed": false,
   "public_deploy_eligible": false,
   "remaining_required_s5_t3_evidence": [
-    "a second independently authenticated live tenant replay on Version 21",
-    "physical second-device history readback and direct D1/R2 reconciliation"
+    "a successful current Version 21 Google OAuth callback and session",
+    "a final password update, new-password sign-in, sign-out and session-recovery replay",
+    "physical second-device history readback",
+    "direct D1/R2 reconciliation"
   ],
-  "current_version_21_note": "Version 21 is the current owner-only private deployment. It replaces localized built-in habit idempotency tokens with stable URL-safe identifiers and retains the same verified-session, same-origin, tenant, privacy-consent, runtime and access-policy boundaries. In a controlled Chrome session for temporary verified test accounts, all five habit cards, one consent-gated ledger record and one schedule record completed visible write-plus-reload readback. A current sequential A/B replay then verified two distinct email accounts through registration, verification and sign-in; A wrote a non-sensitive schedule, B could not see it, and A could read it after reauthentication. A further current-version recovery replay delivered a reset message and reached the canonical reset page; it did not submit the final password change. A Google account-selection attempt returned through the state/CSRF guard in an agent-controlled Chrome surface, so it is retained as inconclusive rather than attributed to provider configuration or ordinary-user behavior. The local unauthenticated control audit separately found 0 no-visible-effect controls of 140. This does not prove a physical second device, direct D1/R2 reconciliation, current Google callback, final reset sign-in, public audience or final product acceptance.",
+  "current_version_21_note": "Version 21 is the current owner-only private deployment. It replaces localized built-in habit idempotency tokens with stable URL-safe identifiers and retains the same verified-session, same-origin, tenant, privacy-consent, runtime and access-policy boundaries. In a controlled Chrome session for temporary verified test accounts, all five habit cards, one consent-gated ledger record and one schedule record completed visible write-plus-reload readback. A current sequential A/B replay then verified two distinct email accounts through registration, verification and sign-in; A wrote a non-sensitive schedule, B could not see it, and A could read it after reauthentication. A further current-version recovery replay delivered a reset message and reached the canonical reset page; it did not submit the final password change. A Google account-selection attempt returned through the state/CSRF guard in an agent-controlled Chrome surface, so it is retained as inconclusive rather than attributed to provider configuration or ordinary-user behavior. A Version 21 to Version 18 private rollback followed by a Version 18 to Version 21 private restore succeeded with environment revision 8 and the owner-only access invariant unchanged. The local unauthenticated control audit separately found 0 no-visible-effect controls of 140. This does not prove application-data continuity through the temporary rollback, a physical second device, direct D1/R2 reconciliation, current Google callback, final reset sign-in, public audience or final product acceptance.",
   "version_18_note": "Historical Version 18 privately deployed the visible login-or-account entry so an authenticated user reaches /account and an unauthenticated user receives the existing login path. Its bounded agent-controlled workbench mutation observations remain historical transport-boundary evidence and do not override the ordinary Chrome Version 21 replay.",
   "notes": "This record contains private control-plane and rendered-UI facts only. Version 17 privately deploys the shared workbench data-client repair that gives an actionable sign-in path when browser request transport is uncertain, without claiming that a record was saved. Its source was restored through a tree-identical isolated full-object projection after a historical partial-projection transport failure; source, archive and saved-version provenance were read back. The site remains active/owner/custom with one allowed user, zero groups, zero external visitors and environment revision 8. A Version 17 rendered nonempty-invalid-token replay reached the neutral invalid-or-expired recovery result without claiming password update or service unavailability; its temporary input was cleared before tab closure. A separate Version 17 unknown-alias reset replay returned the same neutral next-steps response, with zero exact-alias mailbox matches before submission, immediately after, and after one bounded 30-second readback; that is only a current-version non-enumeration and negative-delivery observation, not proof of a later non-delivery, existing-account reset failure, or provider outage. A fresh ordinary Safari tab separately reached the current Version 17 private Sites gate and then the standard ChatGPT login page, but had no controlled authenticated session; it proves the unauthenticated gate, not a normal-browser workbench write or failure. Current Version 17 Sites site, environment, and saved-version metadata likewise exposes only logical DB/FILES bindings and provenance, not physical D1/R2 mappings; the prior authorized Workers directory also did not expose the Sites target, so no direct storage reconciliation is claimed. A separate Version 17 Chrome extension-controlled replay completed fresh email auth, verified-session account reads and test-account deletion, while two workbench habit POST attempts still fell into the browser fetch-exception UI without a visible record; this is a constrained agent-browser transport observation, not an ordinary end-user, Worker, D1/R2, or Better Auth verdict. No runtime setting, access policy, D1/R2 resource, user record or public audience changed. Historical Version 9 email, A/B tenant isolation and separate-session history evidence remains scoped to its controlled test records and cleanup; Version 14 browser observations remain an agent-transport boundary; Version 15 and Version 16 retain their own deployment and rollback evidence. None of these private facts proves an ordinary-browser authenticated mutation, physical second-device history, direct D1/R2 reconciliation, public launch eligibility or final product acceptance."
 }
