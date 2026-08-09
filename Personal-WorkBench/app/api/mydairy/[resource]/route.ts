@@ -11,7 +11,7 @@ import {
   getTenantRecord,
   listTenantRecords,
 } from "@/server/data/tenant-store";
-import { apiErrorResponse, notFoundResponse, readJson } from "@/server/http/api";
+import { apiErrorResponse, notFoundResponse, readIdempotencyKey, readJson } from "@/server/http/api";
 import { writeRedactedSecurityEvent } from "@/server/security/audit";
 import { requireSensitiveCloudConsent } from "@/server/security/privacy-consent";
 
@@ -59,13 +59,14 @@ export async function POST(request: Request, context: Context): Promise<Response
     const body = await readJson(request);
     const values = normalizeResourceInput(resource, body, "create");
     const endpoint = `POST:/api/mydairy/${resourceName}`;
+    const idempotencyKey = readIdempotencyKey(request);
     const lease = await beginIdempotentWrite(env.DB, {
       userId,
       endpoint,
-      idempotencyKey: request.headers.get("idempotency-key"),
+      idempotencyKey,
       payload: values,
     });
-    const id = await stableRecordId(userId, endpoint, request.headers.get("idempotency-key") ?? "");
+    const id = await stableRecordId(userId, endpoint, idempotencyKey ?? "");
 
     try {
       if (!lease.replayed && !(await getTenantRecord(env.DB, resource, userId, id))) {

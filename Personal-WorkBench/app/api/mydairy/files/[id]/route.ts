@@ -9,7 +9,7 @@ import {
   requirePrivateFileCloudConsent,
   replacePrivateFile,
 } from "@/server/files/private-files";
-import { apiErrorResponse, notFoundResponse } from "@/server/http/api";
+import { apiErrorResponse, notFoundResponse, readIdempotencyKey } from "@/server/http/api";
 import { writeRedactedSecurityEvent } from "@/server/security/audit";
 
 export const runtime = "edge";
@@ -59,10 +59,11 @@ export async function PUT(request: Request, context: Context): Promise<Response>
     await requirePrivateFileCloudConsent(env, userId, id);
     const upload = await readPrivateFileForm(request);
     const endpoint = `PUT:/api/mydairy/files/${id}`;
+    const idempotencyKey = readIdempotencyKey(request);
     const lease = await beginIdempotentWrite(env.DB, {
       userId,
       endpoint,
-      idempotencyKey: request.headers.get("idempotency-key"),
+      idempotencyKey,
       payload: {
         contentType: upload.validated.contentType,
         byteSize: upload.validated.byteSize,
@@ -94,10 +95,11 @@ export async function DELETE(request: Request, context: Context): Promise<Respon
     if (!id) return notFoundResponse();
     // Deleting a caller-owned object remains available after withdrawal.
     const endpoint = `DELETE:/api/mydairy/files/${id}`;
+    const idempotencyKey = readIdempotencyKey(request);
     const lease = await beginIdempotentWrite(env.DB, {
       userId,
       endpoint,
-      idempotencyKey: request.headers.get("idempotency-key"),
+      idempotencyKey,
       payload: { id },
     });
     try {

@@ -23,6 +23,7 @@ import {
   rejectClientTenantFields,
 } from "../server/security/tenant.ts";
 import { SameOriginRequiredError, assertSameOriginMutation } from "../server/security/mutation-origin.ts";
+import { readIdempotencyKey } from "../server/http/request-id.ts";
 
 const fakeDatabase = {} as D1Database;
 const validRuntime = {
@@ -174,6 +175,19 @@ test("custom mutations accept only configured first-party origins", () => {
       [expected, legacy],
     ),
     SameOriginRequiredError,
+  );
+});
+
+test("browser mutations carry the idempotency token in the same-origin URL while older headers remain retry-compatible", () => {
+  assert.equal(
+    readIdempotencyKey(new Request("https://workbench.example.test/api/mydairy/habits?request_id=request-123456789")),
+    "request-123456789",
+  );
+  assert.equal(
+    readIdempotencyKey(new Request("https://workbench.example.test/api/mydairy/habits?request_id=query-token", {
+      headers: { "idempotency-key": "header-token" },
+    })),
+    "header-token",
   );
 });
 

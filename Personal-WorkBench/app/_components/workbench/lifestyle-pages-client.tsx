@@ -11,6 +11,7 @@ import {
   TenantRecord,
   todayIsoDate,
   useTenantResource,
+  withRequestId,
   yuanToCents,
 } from "./tenant-resource-client";
 
@@ -468,10 +469,9 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
     form.set("module", "food");
     form.set("file", photoFile);
     try {
-      const response = await fetch("/api/mydairy/files", {
+      const response = await fetch(withRequestId("/api/mydairy/files", crypto.randomUUID()), {
         body: form,
         credentials: "same-origin",
-        headers: { "idempotency-key": crypto.randomUUID() },
         method: "POST",
       });
       if (!response.ok) {
@@ -492,9 +492,8 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
 
   async function discardUploadedPhoto(id?: string) {
     if (!id) return;
-    await fetch(`/api/mydairy/files/${encodeURIComponent(id)}`, {
+    await fetch(withRequestId(`/api/mydairy/files/${encodeURIComponent(id)}`, crypto.randomUUID()), {
       credentials: "same-origin",
-      headers: { "idempotency-key": crypto.randomUUID() },
       method: "DELETE",
     }).catch(() => undefined);
   }

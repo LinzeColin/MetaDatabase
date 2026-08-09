@@ -25,6 +25,19 @@ test("all custom mutation routes use the shared same-origin session boundary", a
     assert.ok(source.includes("requireVerifiedMutationSession"));
   }
 
+  const idempotencyRoutes = [
+    "app/api/mydairy/[resource]/route.ts",
+    "app/api/mydairy/[resource]/[id]/route.ts",
+    "app/api/mydairy/files/route.ts",
+    "app/api/mydairy/files/[id]/route.ts",
+    "app/api/mydairy/legacy-import/apply/route.ts",
+    "app/api/mydairy/profile/route.ts",
+  ];
+  const idempotencySources = await Promise.all(idempotencyRoutes.map((path) => readFile(path, "utf8")));
+  for (const source of idempotencySources) {
+    assert.ok(source.includes("readIdempotencyKey(request)"));
+  }
+
   const deletion = await readFile("app/api/account/delete/route.ts", "utf8");
   assert.ok(deletion.includes("requireFreshVerifiedSession"));
   assert.ok(deletion.includes("assertConfiguredSameOriginMutation(request, env)"));

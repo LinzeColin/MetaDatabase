@@ -67,7 +67,8 @@ test("tenant resource client uses verified-session endpoints without client tena
   assert.match(source, /fetch\(`\/api\/mydairy\/\$\{resource\}`/);
   assert.doesNotMatch(source, /\/api\/workbench\//);
   assert.match(source, /credentials: \"same-origin\"/);
-  assert.match(source, /idempotency-key/);
+  assert.match(source, /request_id/);
+  assert.doesNotMatch(source, /idempotency-key/);
   assert.match(source, /encodeURIComponent\(id\)/);
   assert.doesNotMatch(source, /userId\s*:/);
   assert.doesNotMatch(source, /ownerId\s*:/);

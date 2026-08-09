@@ -35,6 +35,11 @@ function newIdempotencyKey(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+export function withRequestId(path: string, idempotencyKey: string): string {
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}request_id=${encodeURIComponent(idempotencyKey)}`;
+}
+
 function isRecord(value: unknown): value is TenantRecord {
   return Boolean(value) && typeof value === "object" && typeof (value as { id?: unknown }).id === "string";
 }
@@ -179,12 +184,12 @@ export function useTenantResource<T extends TenantRecord>(
     setError("");
     setLoginSuggested(false);
     try {
-      const response = await fetch(`/api/mydairy/${resource}`, {
+      const requestId = idempotencyKey ?? newIdempotencyKey(resource);
+      const response = await fetch(withRequestId(`/api/mydairy/${resource}`, requestId), {
         method: "POST",
         credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
-          "idempotency-key": idempotencyKey ?? newIdempotencyKey(resource),
         },
         body: JSON.stringify(payload),
       });
@@ -217,10 +222,10 @@ export function useTenantResource<T extends TenantRecord>(
     setError("");
     setLoginSuggested(false);
     try {
-      const response = await fetch(`/api/mydairy/${resource}/${encodeURIComponent(id)}`, {
+      const requestId = idempotencyKey ?? newIdempotencyKey(`${resource}-delete`);
+      const response = await fetch(withRequestId(`/api/mydairy/${resource}/${encodeURIComponent(id)}`, requestId), {
         method: "DELETE",
         credentials: "same-origin",
-        headers: { "idempotency-key": idempotencyKey ?? newIdempotencyKey(`${resource}-delete`) },
       });
       if (!response.ok) {
         applyFailure(response.status);

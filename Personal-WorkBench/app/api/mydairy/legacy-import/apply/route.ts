@@ -7,7 +7,7 @@ import {
   requireLegacyImportConsent,
   validateLegacyEnvelope,
 } from "@/server/data/legacy-import";
-import { apiErrorResponse, readJson } from "@/server/http/api";
+import { apiErrorResponse, readIdempotencyKey, readJson } from "@/server/http/api";
 
 export const runtime = "edge";
 
@@ -21,10 +21,11 @@ export async function POST(request: Request): Promise<Response> {
     const body = await readJson(request);
     const envelope = validateLegacyEnvelope(body);
     await requireLegacyImportConsent(env.DB, userId, envelope);
+    const idempotencyKey = readIdempotencyKey(request);
     const lease = await beginIdempotentWrite(env.DB, {
       userId,
       endpoint,
-      idempotencyKey: request.headers.get("idempotency-key"),
+      idempotencyKey,
       payload: envelope,
     });
 

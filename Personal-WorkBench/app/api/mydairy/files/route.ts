@@ -4,7 +4,7 @@ import { requireVerifiedMutationSession } from "@/server/auth/session";
 import { beginIdempotentWrite, stableRecordId } from "@/server/data/idempotency";
 import { readPrivateFileForm } from "@/server/files/form";
 import { createPrivateFile, privateFileExists } from "@/server/files/private-files";
-import { apiErrorResponse } from "@/server/http/api";
+import { apiErrorResponse, readIdempotencyKey } from "@/server/http/api";
 import { writeRedactedSecurityEvent } from "@/server/security/audit";
 import { requireSensitiveCloudConsent } from "@/server/security/privacy-consent";
 
@@ -26,7 +26,7 @@ export async function POST(request: Request): Promise<Response> {
     const upload = await readPrivateFileForm(request);
     await requireSensitiveCloudConsent(env.DB, userId, upload.module);
     const endpoint = "POST:/api/mydairy/files";
-    const idempotencyKey = request.headers.get("idempotency-key");
+    const idempotencyKey = readIdempotencyKey(request);
     const lease = await beginIdempotentWrite(env.DB, {
       userId,
       endpoint,

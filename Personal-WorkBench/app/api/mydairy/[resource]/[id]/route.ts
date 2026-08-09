@@ -8,7 +8,7 @@ import {
   getTenantRecord,
   updateTenantRecord,
 } from "@/server/data/tenant-store";
-import { apiErrorResponse, notFoundResponse, readJson } from "@/server/http/api";
+import { apiErrorResponse, notFoundResponse, readIdempotencyKey, readJson } from "@/server/http/api";
 import { writeRedactedSecurityEvent } from "@/server/security/audit";
 import { requireSensitiveCloudConsent } from "@/server/security/privacy-consent";
 
@@ -65,10 +65,11 @@ export async function PATCH(request: Request, context: Context): Promise<Respons
     const body = await readJson(request);
     const values = normalizeResourceInput(current.resource, body, "update");
     const endpoint = `PATCH:/api/mydairy/${current.resourceName}/${current.id}`;
+    const idempotencyKey = readIdempotencyKey(request);
     const lease = await beginIdempotentWrite(env.DB, {
       userId,
       endpoint,
-      idempotencyKey: request.headers.get("idempotency-key"),
+      idempotencyKey,
       payload: values,
     });
     try {
@@ -101,10 +102,11 @@ export async function DELETE(request: Request, context: Context): Promise<Respon
     // and never returns or creates new sensitive cloud content.
     eventType = `workbench.${current.resourceName}.delete`;
     const endpoint = `DELETE:/api/mydairy/${current.resourceName}/${current.id}`;
+    const idempotencyKey = readIdempotencyKey(request);
     const lease = await beginIdempotentWrite(env.DB, {
       userId,
       endpoint,
-      idempotencyKey: request.headers.get("idempotency-key"),
+      idempotencyKey,
       payload: { id: current.id },
     });
     try {

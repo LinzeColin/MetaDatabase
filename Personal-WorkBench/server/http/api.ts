@@ -13,6 +13,7 @@ import { AccountDeleteStateError, AccountInputError, AccountNotFoundError } from
 import { LegacyImportConflictError } from "@/server/data/legacy-import";
 import { SensitiveCloudConsentRequiredError } from "@/server/security/privacy-consent";
 import { SameOriginRequiredError } from "@/server/security/mutation-origin";
+export { readIdempotencyKey } from "./request-id";
 
 export function notFoundResponse(): Response {
   return Response.json({ message: "未找到内容。" }, { status: 404, headers: { "Cache-Control": "no-store" } });

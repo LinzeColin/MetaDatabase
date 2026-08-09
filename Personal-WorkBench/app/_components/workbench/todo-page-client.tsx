@@ -10,6 +10,7 @@ import {
   replayOutboxQueue,
   writeOutbox,
 } from "./outbox-queue";
+import { withRequestId } from "./tenant-resource-client";
 
 
 type TodoRecord = {
@@ -94,12 +95,11 @@ export default function TodoPageClient() {
     action: OutboxAction,
     options: { quiet?: boolean } = {},
   ): Promise<OutboxMutationResult> => {
-    const response = await fetch(action.endpoint, {
+    const response = await fetch(withRequestId(action.endpoint, action.idempotencyKey), {
       method: action.method,
       credentials: "same-origin",
       headers: {
         "Content-Type": "application/json",
-        "idempotency-key": action.idempotencyKey,
       },
       body: JSON.stringify(action.payload),
     });

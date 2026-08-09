@@ -3,7 +3,7 @@ import { createAuth } from "@/server/auth";
 import { requireVerifiedMutationSession, requireVerifiedSession } from "@/server/auth/session";
 import { beginIdempotentWrite } from "@/server/data/idempotency";
 import { ResourceInputError } from "@/server/data/resources";
-import { apiErrorResponse, readJson } from "@/server/http/api";
+import { apiErrorResponse, readIdempotencyKey, readJson } from "@/server/http/api";
 import { writeRedactedSecurityEvent } from "@/server/security/audit";
 import { rejectClientTenantFields } from "@/server/security/tenant";
 
@@ -73,10 +73,11 @@ export async function PUT(request: Request): Promise<Response> {
     userId = identity.userId;
     const values = parseProfile(await readJson(request));
     const endpoint = "PUT:/api/mydairy/profile";
+    const idempotencyKey = readIdempotencyKey(request);
     const lease = await beginIdempotentWrite(env.DB, {
       userId,
       endpoint,
-      idempotencyKey: request.headers.get("idempotency-key"),
+      idempotencyKey,
       payload: values,
     });
     try {
