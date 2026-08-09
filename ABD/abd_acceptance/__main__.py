@@ -82,6 +82,8 @@ from .platform_router import verify_existing_phase_evidence as verify_platform_r
 from .platform_router import write_phase_evidence as write_platform_router_phase_evidence
 from .risk_engine import verify_existing_phase_evidence as verify_risk_engine_phase_evidence
 from .risk_engine import write_phase_evidence as write_risk_engine_phase_evidence
+from .target_curve import verify_existing_phase_evidence as verify_target_curve_phase_evidence
+from .target_curve import write_phase_evidence as write_target_curve_phase_evidence
 
 
 def main() -> int:
@@ -126,6 +128,7 @@ def main() -> int:
             "AC-S11-P02": verify_decision_gate_phase_evidence,
             "AC-S11-P03": verify_platform_router_phase_evidence,
             "AC-S11-P04": verify_risk_engine_phase_evidence,
+            "AC-S12-P01": verify_target_curve_phase_evidence,
             "STAGE-REVIEW-S11": verify_existing_stage_review_evidence,
         }
         if args.verify_existing not in existing_verifiers:
@@ -202,6 +205,7 @@ def main() -> int:
         "AC-S11-P02": write_decision_gate_phase_evidence,
         "AC-S11-P03": write_platform_router_phase_evidence,
         "AC-S11-P04": write_risk_engine_phase_evidence,
+        "AC-S12-P01": write_target_curve_phase_evidence,
         "STAGE-REVIEW-S11": write_stage11_review_evidence,
     }
     if args.contract not in writers:

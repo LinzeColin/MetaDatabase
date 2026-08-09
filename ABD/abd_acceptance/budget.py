@@ -515,6 +515,8 @@ def _audit_imports(
         "decision_gate",
         "platform_router",
         "risk_engine",
+        "target_engine",
+        "cashflow_adjustment",
     }
     stdlib = set(sys.stdlib_module_names)
     for path in paths:
