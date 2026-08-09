@@ -30,11 +30,28 @@ export type AuthRuntimeConfig = {
   turnstileSiteKey: string;
 };
 
+/**
+ * Deliberately coarse, value-free readiness categories. These may be emitted
+ * to protected worker logs while diagnosing an unavailable authentication
+ * runtime; they never contain a setting name, a secret, an Origin, or a user
+ * identifier.
+ */
+export type AuthRuntimeMissingCategory =
+  | "d1_binding"
+  | "app_origin"
+  | "auth_secret"
+  | "google_oauth"
+  | "transactional_mail"
+  | "mail_from"
+  | "turnstile";
+
 export class AuthRuntimeNotReadyError extends Error {
   code = "AUTH_RUNTIME_NOT_READY";
+  readonly missingCategories: readonly AuthRuntimeMissingCategory[];
 
-  constructor() {
+  constructor(missingCategories: readonly AuthRuntimeMissingCategory[] = []) {
     super("Authentication runtime is not ready.");
+    this.missingCategories = [...new Set(missingCategories)];
   }
 }
 
@@ -94,6 +111,39 @@ function resolveMailProvider(env: AuthRuntimeEnv): {
 }
 
 /**
+ * Return only stable operational categories so protected worker logs can
+ * distinguish a missing binding from a provider configuration issue without
+ * retaining settings, secrets, Origins, or account data.
+ */
+export function getAuthRuntimeMissingCategories(
+  env: AuthRuntimeEnv,
+): AuthRuntimeMissingCategory[] {
+  const categories: AuthRuntimeMissingCategory[] = [];
+  const authSecret = nonEmpty(env.BETTER_AUTH_SECRET);
+  const authFromEmail = nonEmpty(env.AUTH_FROM_EMAIL);
+  const mailFrom = nonEmpty(env.MAIL_FROM);
+  const aliasesConflict = Boolean(
+    authFromEmail && mailFrom && authFromEmail.toLowerCase() !== mailFrom.toLowerCase(),
+  );
+
+  if (!env.DB) categories.push("d1_binding");
+  if (!canonicalOrigin(env.APP_ORIGIN)) categories.push("app_origin");
+  if (!authSecret || authSecret.length < 32) {
+    categories.push("auth_secret");
+  }
+  if (!nonEmpty(env.GOOGLE_CLIENT_ID) || !nonEmpty(env.GOOGLE_CLIENT_SECRET)) {
+    categories.push("google_oauth");
+  }
+  if (!resolveMailProvider(env)) categories.push("transactional_mail");
+  if ((!authFromEmail && !mailFrom) || aliasesConflict) categories.push("mail_from");
+  if (!nonEmpty(env.TURNSTILE_SECRET_KEY) || !nonEmpty(env.TURNSTILE_SITE_KEY)) {
+    categories.push("turnstile");
+  }
+
+  return categories;
+}
+
+/**
  * This intentionally returns a single generic readiness state. Neither route
  * responses nor browser pages enumerate unavailable settings or secret names.
  */
@@ -114,6 +164,7 @@ export function readAuthRuntimeConfig(env: AuthRuntimeEnv): AuthRuntimeConfig | 
   const turnstileSiteKey = nonEmpty(env.TURNSTILE_SITE_KEY);
 
   if (
+    getAuthRuntimeMissingCategories(env).length > 0 ||
     !env.DB ||
     !appOrigin ||
     !authSecret ||

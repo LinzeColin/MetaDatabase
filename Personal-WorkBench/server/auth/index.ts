@@ -10,6 +10,7 @@ import {
 } from "./mail";
 import {
   AuthRuntimeNotReadyError,
+  getAuthRuntimeMissingCategories,
   readAuthRuntimeConfig,
   type AuthRuntimeEnv,
 } from "./runtime";
@@ -23,7 +24,7 @@ export type { AuthRuntimeEnv } from "./runtime";
  */
 export function createAuth(env: AuthRuntimeEnv) {
   const config = readAuthRuntimeConfig(env);
-  if (!config) throw new AuthRuntimeNotReadyError();
+  if (!config) throw new AuthRuntimeNotReadyError(getAuthRuntimeMissingCategories(env));
 
   const db = drizzle(config.db, { schema: authSchema });
   const mail = createMailPort({

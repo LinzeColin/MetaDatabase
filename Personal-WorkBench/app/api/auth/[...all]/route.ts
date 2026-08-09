@@ -17,7 +17,15 @@ async function handle(request: Request): Promise<Response> {
   try {
     return await createAuth(env).handler(request);
   } catch (error) {
-    if (error instanceof AuthRuntimeNotReadyError) return unavailableResponse();
+    if (error instanceof AuthRuntimeNotReadyError) {
+      // This is intentionally value-free operational telemetry. It is never
+      // returned to the browser, and must not be expanded with env values,
+      // Origins, account data, request headers, or the caught error object.
+      console.error("auth_runtime_not_ready", {
+        missing_categories: error.missingCategories,
+      });
+      return unavailableResponse();
+    }
 
     // Deliberately avoid serializing unexpected provider/database failures.
     return Response.json(

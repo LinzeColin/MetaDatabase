@@ -5,7 +5,11 @@ import {
   SIGN_UP_VERIFICATION_PATH,
   VERIFIED_LOGIN_PATH,
 } from "../app/auth/_components/auth-flow.ts";
-import { getPublicAuthPageConfig, readAuthRuntimeConfig } from "../server/auth/runtime.ts";
+import {
+  getAuthRuntimeMissingCategories,
+  getPublicAuthPageConfig,
+  readAuthRuntimeConfig,
+} from "../server/auth/runtime.ts";
 import {
   ReauthenticationRequiredError,
   requireFreshVerifiedIdentity,
@@ -31,6 +35,10 @@ test("runtime readiness is all-or-nothing and does not expose field names", () =
   assert.equal(readAuthRuntimeConfig(validRuntime)?.appOrigin, "https://workbench.example.test");
   assert.equal(readAuthRuntimeConfig(validRuntime)?.mailProvider, "resend");
   assert.equal(readAuthRuntimeConfig({ ...validRuntime, BETTER_AUTH_SECRET: "short" }), null);
+  assert.deepEqual(
+    getAuthRuntimeMissingCategories({ ...validRuntime, BETTER_AUTH_SECRET: "short" }),
+    ["auth_secret"],
+  );
   assert.equal(readAuthRuntimeConfig({ ...validRuntime, APP_ORIGIN: "http://example.test" }), null);
 });
 
