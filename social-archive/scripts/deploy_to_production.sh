@@ -77,6 +77,25 @@ MIN_FREE_GB="${SOCIAL_ARCHIVE_DEPLOY_MIN_FREE_GB:-5}"
 fail() { printf '\n部署中止：%s\n' "$1" >&2; exit 1; }
 step() { printf '\n=== %s ===\n' "$1"; }
 
+# **本地 venv 要在开工前就确认，不能等某一步用到它才发现没有**（2026-08-10）。
+#
+# 这一天 `.venv` 在这棵工作树里**消失了两次**（树本身还在、git 干净、
+# `dist/` 和 egg-info 也在，只有 `.venv` 没了；不是 `git clean`）。
+# 两次都不是在开头炸的，因为脚本各处零散地写着相对路径 `.venv/bin/python`：
+#
+#   第一次  第 143 行（演练跑完之后的镜像输入清单）→ 中止，**生产没被动过**
+#   第二次  第 618 行（第 8.2 步比包与 HEAD）→ **镜像已经建好上线了，
+#           而验证那一步没跑成**。这是最坏的落点：生产变了，验证没做。
+#
+# 所以在这里一次性确认。**不许悄悄退回 `python3`**：系统那个是 3.9，
+# 而这个项目要 >=3.12，退回去只会在更远的地方以更难懂的方式炸
+# （这个仓在「没测过的兜底分支只在别人机器上发作」上栽过）。
+[ -x "$ROOT/.venv/bin/python" ] || fail "本地 venv 不在（$ROOT/.venv/bin/python）。
+  这棵树上 2026-08-10 见过它凭空消失两次。重建：
+      cd '$ROOT' && uv venv --python 3.13 .venv && uv pip install --python .venv/bin/python -e '.[test]'"
+"$ROOT/.venv/bin/python" -c 'import sys; assert sys.version_info >= (3, 12), sys.version' \
+  || fail "本地 venv 的 Python 低于 3.12——发布门和判据都会以看不懂的方式失败。按上面那条命令重建。"
+
 # 容器挂进 /run/secrets/ 的密钥。属组必须是 10001（socialarchive-secrets），
 # 否则 Core（uid 10001）读不到——见文件头。
 MOUNTED_SECRETS=(

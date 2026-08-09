@@ -314,7 +314,26 @@ class AccountSyncCoordinator:
         # 所以：这个平台已经有一个同样连接方式的账号时，沿用它的外部 id。
         # 沿用而不是改写，是因为 `user_relation.source_account_id` 是从
         # 外部 id 推出来的——改写它等于把已有条目和账号的关系割断。
-        if external_account_id == UNIDENTIFIED_BROWSER_ACCOUNT:
+        # **2026-08-10：条件比上面那条规则窄了一档，而差的那一档正好是 B 站。**
+        #
+        # 规则写的是「这个平台已经有一个同样连接方式的账号时，沿用它的外部 id」，
+        # 而代码只在外部 id 恰好是哨兵值 `"browser-session"` 时才执行。
+        # 小红书 / 抖音 / 快手按形状读，认不出用户是谁，报的就是哨兵值——它们没事。
+        # **B 站不是**：它走 B 站自己的接口，认得出用户，报的是 mid
+        # （background.js `external_account_id: String(who.mid)`）。
+        #
+        # 对着他生产库量出来的两个值：
+        #     库里那一行  acct_dd40c2f3… ← 'https://space.bilibili.com/3493091105311656'
+        #     重连会报的                   '3493091105311656'
+        # 不相等、也不是哨兵值 → 认领整个跳过 → 另算出一个账号 id →
+        # 多一行 B 站账号、卡片写着 0 条，而他那 **103 条内容和 3 行收藏夹**
+        # 留在旧账号名下。**这发生在他照着说明做那唯一一件事的那一刻。**
+        #
+        # 所以改成按**连接方式**认领。Chrome 书签走 `chrome_bookmarks`，不受影响；
+        # 哨兵值那条继续留着，免得将来别的连接方式也用它。
+        # 取数不受影响：B 站的 mid 是同步时从 nav 接口现拿的
+        # （bilibili-reader.js `whoAmI()`），从来不读这个字段。
+        if auth_method == "browser_session" or external_account_id == UNIDENTIFIED_BROWSER_ACCOUNT:
             existing = self.store.find_source_account_by_platform(
                 platform=platform, auth_method=auth_method)
             if existing and existing.get("external_account_id"):
