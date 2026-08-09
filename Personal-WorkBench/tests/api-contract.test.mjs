@@ -128,3 +128,19 @@ test("sensitive cloud paths gate storage before normal API persistence", async (
       < legacyApply.lastIndexOf("beginIdempotentWrite"),
   );
 });
+
+test("storage health probe is verified-session-only and data-free", async () => {
+  const [route, helper] = await Promise.all([
+    readFile("app/api/mydairy/storage-health/route.ts", "utf8"),
+    readFile("server/storage/binding-health.ts", "utf8"),
+  ]);
+  const handler = route.slice(route.indexOf("export async function GET"));
+
+  assert.ok(handler.indexOf("requireVerifiedSession") < handler.indexOf("probeStorageBindings"));
+  assert.ok(route.includes('"Cache-Control": "no-store"'));
+  assert.ok(helper.includes('env.DB.prepare("SELECT 1 AS storage_binding_probe").first()'));
+  assert.ok(helper.includes("env.FILES.head"));
+  for (const forbiddenOperation of ["env.FILES.get", "env.FILES.list", "env.FILES.put", "env.FILES.delete"]) {
+    assert.equal(helper.includes(forbiddenOperation), false, `forbidden probe operation: ${forbiddenOperation}`);
+  }
+});
