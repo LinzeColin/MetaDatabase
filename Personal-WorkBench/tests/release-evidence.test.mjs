@@ -282,3 +282,27 @@ test("Version 21 rollback and restore rehearsal retains no deployment or access 
   assert.equal(serialized.includes("token="), false);
   assert.equal(serialized.includes("Bearer "), false);
 });
+
+test("Version 22 sign-out replay retains no temporary identity or session material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_22_signout_session_recovery_partial_replay.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 22);
+  assert.equal(evidence.local_validation.auth_contract, "PASS_19_OF_19");
+  assert.equal(evidence.private_deployment.deployment_status, "SUCCEEDED");
+  assert.equal(evidence.controlled_browser_replay.account_sign_out_control_visible_on_version_22, true);
+  assert.equal(evidence.controlled_browser_replay.temporary_identity_confirmed_before_mutation, false);
+  assert.equal(evidence.controlled_browser_replay.sign_out_click_performed, false);
+  assert.equal(evidence.scope_and_cleanup.temporary_mailbox_deleted, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_browser_tabs_finalized, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_credentials_cleared_from_test_runtime, true);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});

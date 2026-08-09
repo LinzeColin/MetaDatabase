@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PARTIAL_PRIVATE_VERSION_22_SIGNOUT_SESSION_RECOVERY_REPLAY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "local_source_commit": "03b3e13fef5b24bb9420ba4a25fa50ae5d9de306",
+    "sites_source_commit": "b53e56b62d365e3bf3f57206faeb8fd82cbb4746",
+    "sites_version_number": 22,
+    "deployment_environment_revision": 8,
+    "site_title": "个人日程"
+  },
+  "local_validation": {
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "auth_contract": "PASS_19_OF_19",
+    "build": "PASS",
+    "rendered_route_smoke": "PASS_4_OF_4"
+  },
+  "private_deployment": {
+    "saved_version_source_matches_projection": true,
+    "provider_archive_recorded": true,
+    "deployment_status": "SUCCEEDED",
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "access_policy_revision": 1,
+    "public_audience_changed": false
+  },
+  "controlled_browser_replay": {
+    "independent_sign_in_form_rendered": true,
+    "temporary_credential_submission_reached_workspace_path": true,
+    "account_sign_out_control_visible_on_version_22": true,
+    "temporary_identity_confirmed_before_mutation": false,
+    "sign_out_click_performed": false,
+    "new_login_session_recovery_performed": false,
+    "interpretation": "The browser account surface resolved a non-test authenticated identity after temporary credential submission. The agent did not click sign out or continue any account action, so this is a browser-session safety boundary rather than a product sign-out verdict."
+  },
+  "scope_and_cleanup": {
+    "browser_cookie_or_storage_inspected": false,
+    "real_user_business_data_read_or_written": false,
+    "temporary_mailbox_deleted": true,
+    "temporary_browser_tabs_finalized": true,
+    "temporary_credentials_cleared_from_test_runtime": true,
+    "temporary_application_account_deletion_attempted": false,
+    "temporary_application_account_remains_isolated_pending_non_destructive_cleanup": true,
+    "runtime_values_or_access_policy_changed": false,
+    "d1_r2_changed": false
+  },
+  "sensitive_values_recorded": false,
+  "not_proven": [
+    "A Version 22 sign-out click executed against the temporary identity",
+    "A Version 22 re-login and session-recovery readback after sign-out",
+    "Current Version 22 successful Google OAuth callback and session",
+    "Final password update and new-password sign-in",
+    "Physical second-device history readback",
+    "Direct D1 or R2 reconciliation",
+    "Final product acceptance or public release"
+  ]
+}
