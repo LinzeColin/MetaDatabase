@@ -41,6 +41,15 @@ test("home prioritizes the actionable sign-in prerequisite over a parallel resou
   assert.match(source, /authRequired=\{authRequired\}/);
 });
 
+test("habit controls always acknowledge a failed save without claiming a completed check-in", async () => {
+  const source = await readFile(lifecycleSource, "utf8");
+
+  assert.match(source, /setFeedback\(`正在处理\$\{card\.label\}打卡…`\);/);
+  assert.match(source, /未完成\$\{card\.label\}打卡：请先登录并完成邮箱验证，或检查网络后重试。/);
+  assert.match(source, /未能取消\$\{card\.label\}打卡，请检查后重试。/);
+  assert.match(source, /已完成\$\{card\.label\}打卡，历史记录已同步。/);
+});
+
 test("tenant resource client uses verified-session endpoints without client tenant fields", async () => {
   const source = await readFile(resourceSource, "utf8");
 

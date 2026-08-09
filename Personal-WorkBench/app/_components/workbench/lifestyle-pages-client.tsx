@@ -177,17 +177,24 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
 
   async function toggleHabit(card: HabitCard, index: number) {
     if (reference) return;
-    setFeedback("");
+    setFeedback(`正在处理${card.label}打卡…`);
     const habit = await ensureHabit(card, index);
-    if (!habit) return;
+    if (!habit) {
+      setFeedback(`未完成${card.label}打卡：请先登录并完成邮箱验证，或检查网络后重试。`);
+      return;
+    }
     const existing = completedByHabitId.get(habit.id);
     if (existing) {
       const removed = await checkins.destroy(existing.id);
-      if (removed) setFeedback(`已取消${card.label}打卡。`);
+      setFeedback(removed ? `已取消${card.label}打卡。` : `未能取消${card.label}打卡，请检查后重试。`);
       return;
     }
     const saved = await checkins.create({ habitId: habit.id, localDate: today });
-    if (saved) setFeedback(`已完成${card.label}打卡，历史记录已同步。`);
+    setFeedback(
+      saved
+        ? `已完成${card.label}打卡，历史记录已同步。`
+        : `未完成${card.label}打卡：请先登录并完成邮箱验证，或检查网络后重试。`,
+    );
   }
 
   // Both reads are independent. If one returns the authoritative 401 while
