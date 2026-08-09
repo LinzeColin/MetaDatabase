@@ -1,0 +1,90 @@
+{
+  "claim_boundary": {
+    "actual_market_or_odds_observed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "network_accessed": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false,
+    "recommendation_generated": false
+  },
+  "contract_id": "AC-S11-P04",
+  "expected_baseline_actions": [
+    "RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE",
+    "RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE",
+    "NO_RECOMMENDATION",
+    "RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE",
+    "RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE",
+    "RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE",
+    "RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE"
+  ],
+  "expected_candidate_vector_ids": [
+    "K01-GA-P03-ROUTE-STABLE",
+    "K02-BETA-SINGLE-TICKET-CAP",
+    "K04-EVENT-CAP-REMAINING-CAPACITY",
+    "K05-CLUSTER-CAP-REMAINING-CAPACITY",
+    "K06-OPEN-CAP-REMAINING-CAPACITY",
+    "K12-TARGET-SHORTFALL-DIAGNOSTIC-ONLY"
+  ],
+  "expected_correlation_graph_sha256": "a2e4e0adc3af1424956b5a90237210f95819a04a0e58eb74f29576c94293de29",
+  "expected_final_actions": [
+    "RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE",
+    "RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE",
+    "NO_RECOMMENDATION",
+    "RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE",
+    "RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE",
+    "RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE"
+  ],
+  "expected_final_stakes_cents": [
+    600,
+    450,
+    0,
+    100,
+    100,
+    100,
+    0,
+    0,
+    0,
+    0,
+    0,
+    600
+  ],
+  "expected_hard_stop_reason_codes": [
+    "STAGE_COEFFICIENT_ZERO",
+    "STAKE_BELOW_PROVIDER_MINIMUM",
+    "DAILY_LOSS_SOFT_STOP",
+    "STRATEGY_SLICE_DRAWDOWN_KILL",
+    "LEDGER_DIFFERENCE_HARD_STOP"
+  ],
+  "expected_report_sha256": "9bc3d6f31f4a449ad6b881dc1d0ae0fbe1853878637fc81d4416bb3283bfe94f",
+  "expected_unstable_vector_ids": [
+    "K11-RISK-THRESHOLD-POINT-0001-FLIP"
+  ],
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "fixture_id": "FIX-S11-P04-CONSTRAINED-KELLY-CORRELATED-PORTFOLIO",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "p03_route_binding": {
+    "conservative_probability": "0.6",
+    "minimum_stake_cents": 100,
+    "odds": "2.000000",
+    "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+    "route_action": "ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES",
+    "route_vector_id": "R01-UNIQUE-STABLE-SYNTHETIC-PLATFORM",
+    "stake_increment_cents": 5
+  },
+  "phase_id": "P04",
+  "product_version": "0.0.0.1",
+  "requirement_id": "REQ-S11-P04",
+  "schema_version": "1.0.0",
+  "stage_id": "S11"
+}

@@ -79,6 +79,8 @@ from .decision_gate import verify_existing_phase_evidence as verify_decision_gat
 from .decision_gate import write_phase_evidence as write_decision_gate_phase_evidence
 from .platform_router import verify_existing_phase_evidence as verify_platform_router_phase_evidence
 from .platform_router import write_phase_evidence as write_platform_router_phase_evidence
+from .risk_engine import verify_existing_phase_evidence as verify_risk_engine_phase_evidence
+from .risk_engine import write_phase_evidence as write_risk_engine_phase_evidence
 
 
 def main() -> int:
@@ -122,6 +124,7 @@ def main() -> int:
             "AC-S11-P01": verify_friction_phase_evidence,
             "AC-S11-P02": verify_decision_gate_phase_evidence,
             "AC-S11-P03": verify_platform_router_phase_evidence,
+            "AC-S11-P04": verify_risk_engine_phase_evidence,
         }
         if args.verify_existing not in existing_verifiers:
             parser.error("existing evidence verifier is not implemented: %s" % args.verify_existing)
@@ -196,6 +199,7 @@ def main() -> int:
         "AC-S11-P01": write_friction_phase_evidence,
         "AC-S11-P02": write_decision_gate_phase_evidence,
         "AC-S11-P03": write_platform_router_phase_evidence,
+        "AC-S11-P04": write_risk_engine_phase_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)
