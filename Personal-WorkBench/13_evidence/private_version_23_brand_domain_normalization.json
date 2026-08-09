@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_23_BRAND_DOMAIN_NORMALIZATION_DEPLOYED",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "local_source_commit": "d79d83cd",
+    "local_root_tree": "562c1b78e53dd2714f93d7e2ac7f9b441f5bd320",
+    "local_project_tree": "390ec483a6f6af217fc45cf70e663fd1b69bd8d5",
+    "sites_source_commit": "c5635c66de27ab7a35e473057ee64a32a80e9419",
+    "sites_version_number": 23,
+    "deployment_archive_sha256": "fc7958959a37a767874cc02b8390434dd51082a2521a97ceba72af58377c0dcd"
+  },
+  "local_validation": {
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "canonical_domain_contract": "PASS_3_OF_3",
+    "rendered_route_smoke": "PASS_4_OF_4",
+    "build": "PASS"
+  },
+  "brand_and_domain": {
+    "display_name": "个人日程",
+    "technical_slug": "mydairy",
+    "canonical_origin": "https://mydairy.linzezhang.com",
+    "custom_domain_status": "ACTIVE",
+    "custom_domain_provider_status": "ACTIVE",
+    "custom_domain_ssl_status": "ACTIVE",
+    "server_side_legacy_host_normalization": "IMPLEMENTED_AND_LOCAL_CONTRACT_TESTED",
+    "legacy_platform_host_retained_only_for_redirect_compatibility": true
+  },
+  "private_deployment": {
+    "deployment_status": "SUCCEEDED",
+    "environment_revision": 8,
+    "site_status": "active",
+    "site_title": "个人日程",
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "access_policy_revision": 1,
+    "source_matches_saved_version": true,
+    "provider_archive_recorded": true,
+    "public_audience_changed": false
+  },
+  "change_boundary": {
+    "authentication_logic_changed": false,
+    "runtime_environment_changed": false,
+    "d1_or_r2_binding_changed": false,
+    "business_data_read_or_written": false,
+    "github_uploaded": false,
+    "temporary_deployment_archive_removed": true
+  },
+  "not_proven_by_this_increment": [
+    "an authenticated browser replay of the legacy-host redirect",
+    "final password update and new-password sign-in",
+    "sign-out and session-recovery replay",
+    "physical second-device history readback",
+    "direct D1/R2 reconciliation",
+    "public product acceptance"
+  ],
+  "sensitive_values_recorded": false
+}

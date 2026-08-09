@@ -306,3 +306,26 @@ test("Version 22 sign-out replay retains no temporary identity or session materi
   assert.equal(serialized.includes("token="), false);
   assert.equal(serialized.includes("Bearer "), false);
 });
+
+test("Version 23 brand-domain deployment retains no sensitive deployment material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_23_brand_domain_normalization.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 23);
+  assert.equal(evidence.local_validation.canonical_domain_contract, "PASS_3_OF_3");
+  assert.equal(evidence.brand_and_domain.display_name, "个人日程");
+  assert.equal(evidence.brand_and_domain.technical_slug, "mydairy");
+  assert.equal(evidence.brand_and_domain.custom_domain_status, "ACTIVE");
+  assert.equal(evidence.private_deployment.deployment_status, "SUCCEEDED");
+  assert.equal(evidence.private_deployment.public_audience_changed, false);
+  assert.equal(evidence.change_boundary.temporary_deployment_archive_removed, true);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
