@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0.0",
+  "pipeline_id": "S18-P01-SAFE-RELEASE-PIPELINE",
+  "product_version": "0.0.0.1",
+  "contract_id": "AC-S18-P01",
+  "requirement_id": "REQ-S18-P01",
+  "stage_id": "S18",
+  "phase_id": "P01",
+  "execution_mode": "OFFLINE_DETERMINISTIC_CONTRACT_ONLY",
+  "candidate_slots": ["blue", "green"],
+  "entry_conditions": {
+    "signed_s04_capacity_required": true,
+    "signed_s14_provenance_required": true,
+    "signed_s17_recovery_required": true,
+    "live_recommendation_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "stages": [
+    {
+      "id": "VERIFY_SIGNED_CANDIDATE",
+      "logical_mode": "CHECK_PREVIOUS_SIGNED_RELEASE_AND_CANDIDATE_MANIFEST",
+      "writes_shared_ledger": false,
+      "on_failure": "AUTO_ROLL_BACK_TO_PREVIOUS_SLOT_KEEP_ADVICE_DISABLED"
+    },
+    {
+      "id": "START_CANDIDATE_SHADOW",
+      "logical_mode": "READ_ONLY_CANDIDATE_SHADOW",
+      "writes_shared_ledger": false,
+      "on_failure": "AUTO_ROLL_BACK_TO_PREVIOUS_SLOT_KEEP_ADVICE_DISABLED"
+    },
+    {
+      "id": "REPLAY_FROZEN_INPUT",
+      "logical_mode": "DETERMINISTIC_ACTION_COMPARISON",
+      "writes_shared_ledger": false,
+      "on_failure": "AUTO_ROLL_BACK_TO_PREVIOUS_SLOT_KEEP_ADVICE_DISABLED"
+    },
+    {
+      "id": "RUN_CANARY_SCOPES",
+      "logical_mode": "FEATURE_FLAGGED_LOCAL_CANARY_PROJECTION",
+      "writes_shared_ledger": false,
+      "on_failure": "AUTO_ROLL_BACK_TO_PREVIOUS_SLOT_KEEP_ADVICE_DISABLED"
+    },
+    {
+      "id": "CHECKPOINT_AND_INVALIDATE_ADVICE",
+      "logical_mode": "LOGICAL_SINGLE_WRITER_CUTOVER_PRECONDITION",
+      "writes_shared_ledger": true,
+      "on_failure": "AUTO_ROLL_BACK_TO_PREVIOUS_SLOT_KEEP_ADVICE_DISABLED"
+    },
+    {
+      "id": "SWITCH_CURRENT_RELEASE",
+      "logical_mode": "LOGICAL_ATOMIC_SLOT_SWITCH_ONLY",
+      "writes_shared_ledger": false,
+      "on_failure": "AUTO_ROLL_BACK_TO_PREVIOUS_SLOT_KEEP_ADVICE_DISABLED"
+    },
+    {
+      "id": "RUN_POST_RELEASE_PROBES",
+      "logical_mode": "LOCAL_STRUCTURED_PROBE_REPLAY",
+      "writes_shared_ledger": false,
+      "on_failure": "AUTO_ROLL_BACK_TO_PREVIOUS_SLOT_KEEP_ADVICE_DISABLED"
+    },
+    {
+      "id": "PROMOTE_OR_ROLL_BACK",
+      "logical_mode": "FAIL_CLOSED_LOGICAL_DECISION",
+      "writes_shared_ledger": false,
+      "on_failure": "AUTO_ROLL_BACK_TO_PREVIOUS_SLOT_KEEP_ADVICE_DISABLED"
+    }
+  ],
+  "rollback_policy": {
+    "on_any_probe_failure": true,
+    "previous_slot_source": "LAST_VERIFIED_CONTROL_STATE_ONLY",
+    "unknown_or_malformed_probe_action": "AUTO_ROLL_BACK_TO_PREVIOUS_SLOT_KEEP_ADVICE_DISABLED",
+    "rollback_deadline_seconds": 900,
+    "advice_remains_disabled": true
+  },
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "cloudflare_account_dns_or_tunnel_accessed": false,
+    "docker_or_systemd_invoked": false,
+    "real_traffic_switched": false,
+    "production_deployed_or_activated": false,
+    "shared_production_ledger_read_or_written": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}
