@@ -1,0 +1,391 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S19-P03-GA-RECONCILIATION",
+  "contract_id": "AC-S19-P03",
+  "requirement_id": "REQ-S19-P03",
+  "stage_id": "S19",
+  "phase_id": "P03",
+  "fixed_clock": "2026-08-10T08:00:00+10:00",
+  "expected_next": "S19/P04_READY_NOT_STARTED",
+  "predecessor_evidence_sha256": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+  "source_evidence_sha256": {
+    "machine/evidence/EVD-S19-P02.json": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+    "shadow_report.json": "c482bd9a3006687ec72f498abb84e9f53393a6a2868ba5686ab91da1f1ee9236",
+    "model_beta_gate.json": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+    "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76",
+    "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+    "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720"
+  },
+  "safe_ga_config": {
+    "stage_schema": "GA",
+    "kelly_fraction": "0.25",
+    "residual_weight_cap": "0.50",
+    "target_shortfall_may_relax_gate": false,
+    "owner_final_order_only": true,
+    "order_submission_module_present": false
+  },
+  "scenarios": [
+    {
+      "scenario_id": "GOLDEN_ZERO_ROW_CONTROL_GA_BLOCKED",
+      "ga_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T08:00:00+10:00",
+        "evaluation_id": "S19-P03-GOLDEN",
+        "evidence_mode": "FROZEN_LOCAL_ZERO_ROW_CONTROL",
+        "local_reconciliation_control": {
+          "local_ledger_row_count": 0,
+          "local_reconciliation_difference_cents": 0,
+          "evidence_artifact_complete": true,
+          "stop_conditions_triggered": false,
+          "probability_delta": "0",
+          "odds_tick_delta": 0
+        },
+        "actual_execution_evidence": {
+          "evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+          "actual_record_count": 0,
+          "verified_days": 0,
+          "signed_execution_receipt_present": false,
+          "evidence_complete": false,
+          "reconciliation_difference_cents": null
+        },
+        "model_gate": {
+          "model_beta_status": "BLOCKED_NO_EMPIRICAL_REALTIME_SHADOW_EVIDENCE",
+          "model_activation_allowed": false,
+          "recommendation_generation_allowed": false,
+          "order_submission_allowed": false,
+          "production_equivalent_config_schema": {
+            "stage_schema": "GA",
+            "kelly_fraction": "0.25",
+            "residual_weight_cap": "0.50",
+            "target_shortfall_may_relax_gate": false,
+            "owner_final_order_only": true,
+            "order_submission_module_present": false
+          }
+        },
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "PASS_LOCAL_GA_RECONCILIATION_CONTROL",
+        "decision": "LOCAL_ZERO_ROW_RECONCILIATION_CONTROL_PASS_ACTUAL_GA_BLOCKED",
+        "action": "NO_RECOMMENDATION",
+        "ga_status": "BLOCKED_NO_EMPIRICAL_EXECUTION_OR_MODEL_EVIDENCE",
+        "failure_codes": []
+      }
+    },
+    {
+      "scenario_id": "ADVERSE_ONE_IN_TEN_THOUSAND_ZERO_ROW_CONTROL_STABLE",
+      "ga_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T08:00:00+10:00",
+        "evaluation_id": "S19-P03-ADVERSE-ONE-IN-TEN-THOUSAND",
+        "evidence_mode": "FROZEN_LOCAL_ZERO_ROW_CONTROL",
+        "local_reconciliation_control": {
+          "local_ledger_row_count": 0,
+          "local_reconciliation_difference_cents": 0,
+          "evidence_artifact_complete": true,
+          "stop_conditions_triggered": false,
+          "probability_delta": "-0.0001",
+          "odds_tick_delta": -1
+        },
+        "actual_execution_evidence": {
+          "evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+          "actual_record_count": 0,
+          "verified_days": 0,
+          "signed_execution_receipt_present": false,
+          "evidence_complete": false,
+          "reconciliation_difference_cents": null
+        },
+        "model_gate": {
+          "model_beta_status": "BLOCKED_NO_EMPIRICAL_REALTIME_SHADOW_EVIDENCE",
+          "model_activation_allowed": false,
+          "recommendation_generation_allowed": false,
+          "order_submission_allowed": false,
+          "production_equivalent_config_schema": {
+            "stage_schema": "GA",
+            "kelly_fraction": "0.25",
+            "residual_weight_cap": "0.50",
+            "target_shortfall_may_relax_gate": false,
+            "owner_final_order_only": true,
+            "order_submission_module_present": false
+          }
+        },
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "PASS_LOCAL_GA_RECONCILIATION_CONTROL",
+        "action": "NO_RECOMMENDATION",
+        "ga_status": "BLOCKED_NO_EMPIRICAL_EXECUTION_OR_MODEL_EVIDENCE",
+        "failure_codes": []
+      }
+    },
+    {
+      "scenario_id": "NONZERO_LOCAL_DIFFERENCE_FAILS_CLOSED",
+      "ga_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T08:00:00+10:00",
+        "evaluation_id": "S19-P03-NONZERO-DIFFERENCE",
+        "evidence_mode": "FROZEN_LOCAL_ZERO_ROW_CONTROL",
+        "local_reconciliation_control": {
+          "local_ledger_row_count": 0,
+          "local_reconciliation_difference_cents": 1,
+          "evidence_artifact_complete": true,
+          "stop_conditions_triggered": false,
+          "probability_delta": "0.0001",
+          "odds_tick_delta": -1
+        },
+        "actual_execution_evidence": {
+          "evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+          "actual_record_count": 0,
+          "verified_days": 0,
+          "signed_execution_receipt_present": false,
+          "evidence_complete": false,
+          "reconciliation_difference_cents": null
+        },
+        "model_gate": {
+          "model_beta_status": "BLOCKED_NO_EMPIRICAL_REALTIME_SHADOW_EVIDENCE",
+          "model_activation_allowed": false,
+          "recommendation_generation_allowed": false,
+          "order_submission_allowed": false,
+          "production_equivalent_config_schema": {
+            "stage_schema": "GA",
+            "kelly_fraction": "0.25",
+            "residual_weight_cap": "0.50",
+            "target_shortfall_may_relax_gate": false,
+            "owner_final_order_only": true,
+            "order_submission_module_present": false
+          }
+        },
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "FAIL_CLOSED",
+        "action": "NO_RECOMMENDATION",
+        "ga_status": "FAIL_CLOSED_LOCAL_RECONCILIATION_OR_STOP_GATE",
+        "failure_codes": ["LOCAL_RECONCILIATION_DIFFERENCE_NONZERO"]
+      }
+    },
+    {
+      "scenario_id": "EMPIRICAL_EXECUTION_CLAIM_FAILS_CLOSED",
+      "ga_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T08:00:00+10:00",
+        "evaluation_id": "S19-P03-EMPIRICAL-CLAIM",
+        "evidence_mode": "CLAIMS_EMPIRICAL_EXECUTION",
+        "local_reconciliation_control": {
+          "local_ledger_row_count": 0,
+          "local_reconciliation_difference_cents": 0,
+          "evidence_artifact_complete": true,
+          "stop_conditions_triggered": false,
+          "probability_delta": "0",
+          "odds_tick_delta": 0
+        },
+        "actual_execution_evidence": {
+          "evidence_status": "CLAIMS_EMPIRICAL_EXECUTION",
+          "actual_record_count": 200,
+          "verified_days": 90,
+          "signed_execution_receipt_present": true,
+          "evidence_complete": true,
+          "reconciliation_difference_cents": 0
+        },
+        "model_gate": {
+          "model_beta_status": "BLOCKED_NO_EMPIRICAL_REALTIME_SHADOW_EVIDENCE",
+          "model_activation_allowed": false,
+          "recommendation_generation_allowed": false,
+          "order_submission_allowed": false,
+          "production_equivalent_config_schema": {
+            "stage_schema": "GA",
+            "kelly_fraction": "0.25",
+            "residual_weight_cap": "0.50",
+            "target_shortfall_may_relax_gate": false,
+            "owner_final_order_only": true,
+            "order_submission_module_present": false
+          }
+        },
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "FAIL_CLOSED",
+        "action": "NO_RECOMMENDATION",
+        "ga_status": "BLOCKED_EMPIRICAL_EXECUTION_NOT_VERIFIABLE_IN_LOCAL_FIXTURE",
+        "failure_codes": ["EMPIRICAL_EXECUTION_CLAIM_NOT_VERIFIABLE_IN_FROZEN_LOCAL_EVALUATOR"]
+      }
+    },
+    {
+      "scenario_id": "STOP_CONDITION_FAILS_CLOSED",
+      "ga_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T08:00:00+10:00",
+        "evaluation_id": "S19-P03-STOP-CONDITION",
+        "evidence_mode": "FROZEN_LOCAL_ZERO_ROW_CONTROL",
+        "local_reconciliation_control": {
+          "local_ledger_row_count": 0,
+          "local_reconciliation_difference_cents": 0,
+          "evidence_artifact_complete": true,
+          "stop_conditions_triggered": true,
+          "probability_delta": "0",
+          "odds_tick_delta": 0
+        },
+        "actual_execution_evidence": {
+          "evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+          "actual_record_count": 0,
+          "verified_days": 0,
+          "signed_execution_receipt_present": false,
+          "evidence_complete": false,
+          "reconciliation_difference_cents": null
+        },
+        "model_gate": {
+          "model_beta_status": "BLOCKED_NO_EMPIRICAL_REALTIME_SHADOW_EVIDENCE",
+          "model_activation_allowed": false,
+          "recommendation_generation_allowed": false,
+          "order_submission_allowed": false,
+          "production_equivalent_config_schema": {
+            "stage_schema": "GA",
+            "kelly_fraction": "0.25",
+            "residual_weight_cap": "0.50",
+            "target_shortfall_may_relax_gate": false,
+            "owner_final_order_only": true,
+            "order_submission_module_present": false
+          }
+        },
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "FAIL_CLOSED",
+        "action": "NO_RECOMMENDATION",
+        "ga_status": "FAIL_CLOSED_LOCAL_RECONCILIATION_OR_STOP_GATE",
+        "failure_codes": ["STOP_CONDITION_TRIGGERED"]
+      }
+    },
+    {
+      "scenario_id": "UNSAFE_RUNTIME_REQUESTS_FAIL_CLOSED",
+      "ga_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T08:00:00+10:00",
+        "evaluation_id": "S19-P03-UNSAFE-RUNTIME",
+        "evidence_mode": "FROZEN_LOCAL_ZERO_ROW_CONTROL",
+        "local_reconciliation_control": {
+          "local_ledger_row_count": 0,
+          "local_reconciliation_difference_cents": 0,
+          "evidence_artifact_complete": true,
+          "stop_conditions_triggered": false,
+          "probability_delta": "0",
+          "odds_tick_delta": 0
+        },
+        "actual_execution_evidence": {
+          "evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+          "actual_record_count": 0,
+          "verified_days": 0,
+          "signed_execution_receipt_present": false,
+          "evidence_complete": false,
+          "reconciliation_difference_cents": null
+        },
+        "model_gate": {
+          "model_beta_status": "BLOCKED_NO_EMPIRICAL_REALTIME_SHADOW_EVIDENCE",
+          "model_activation_allowed": false,
+          "recommendation_generation_allowed": false,
+          "order_submission_allowed": false,
+          "production_equivalent_config_schema": {
+            "stage_schema": "GA",
+            "kelly_fraction": "0.25",
+            "residual_weight_cap": "0.50",
+            "target_shortfall_may_relax_gate": false,
+            "owner_final_order_only": true,
+            "order_submission_module_present": false
+          }
+        },
+        "requested_external_execution": true,
+        "requested_actual_order": true,
+        "requested_real_fund_mutation": true,
+        "requested_real_mail_send": true,
+        "requested_production_deploy": true
+      },
+      "expected": {
+        "status": "FAIL_CLOSED",
+        "action": "NO_RECOMMENDATION",
+        "ga_status": "FAIL_CLOSED_UNSAFE_RUNTIME_REQUEST",
+        "failure_codes": [
+          "EXTERNAL_RUNTIME_REQUESTED",
+          "ACTUAL_ORDER_REQUESTED",
+          "REAL_FUND_MUTATION_REQUESTED",
+          "REAL_MAIL_SEND_REQUESTED",
+          "PRODUCTION_DEPLOY_REQUESTED"
+        ]
+      }
+    },
+    {
+      "scenario_id": "MODEL_GATE_UNBLOCK_ATTEMPT_FAILS_CLOSED",
+      "ga_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T08:00:00+10:00",
+        "evaluation_id": "S19-P03-MODEL-UNBLOCK",
+        "evidence_mode": "FROZEN_LOCAL_ZERO_ROW_CONTROL",
+        "local_reconciliation_control": {
+          "local_ledger_row_count": 0,
+          "local_reconciliation_difference_cents": 0,
+          "evidence_artifact_complete": true,
+          "stop_conditions_triggered": false,
+          "probability_delta": "0",
+          "odds_tick_delta": 0
+        },
+        "actual_execution_evidence": {
+          "evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+          "actual_record_count": 0,
+          "verified_days": 0,
+          "signed_execution_receipt_present": false,
+          "evidence_complete": false,
+          "reconciliation_difference_cents": null
+        },
+        "model_gate": {
+          "model_beta_status": "MODEL_GA_APPROVED_UNTRUSTED",
+          "model_activation_allowed": true,
+          "recommendation_generation_allowed": true,
+          "order_submission_allowed": true,
+          "production_equivalent_config_schema": {
+            "stage_schema": "GA",
+            "kelly_fraction": "0.25",
+            "residual_weight_cap": "0.50",
+            "target_shortfall_may_relax_gate": false,
+            "owner_final_order_only": true,
+            "order_submission_module_present": false
+          }
+        },
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "FAIL_CLOSED",
+        "action": "NO_RECOMMENDATION",
+        "ga_status": "FAIL_CLOSED_LOCAL_RECONCILIATION_OR_STOP_GATE",
+        "failure_codes": ["MODEL_GATE_NOT_SAFELY_BLOCKED"]
+      }
+    }
+  ],
+  "malformed_inputs": [
+    {"case_id": "FLOAT_LOCAL_DIFFERENCE", "mutation": "float_local_difference"},
+    {"case_id": "UNKNOWN_EVIDENCE_MODE", "mutation": "unknown_evidence_mode"},
+    {"case_id": "RELAXED_GA_CONFIG", "mutation": "relaxed_ga_config"}
+  ]
+}

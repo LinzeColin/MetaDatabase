@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="23" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S19.P03_test" name="test_fixture_is_exact_s19_p03_contract" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_each_frozen_scenario_has_its_pinned_no_recommendation_result[GOLDEN_ZERO_ROW_CONTROL_GA_BLOCKED]" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_each_frozen_scenario_has_its_pinned_no_recommendation_result[ADVERSE_ONE_IN_TEN_THOUSAND_ZERO_ROW_CONTROL_STABLE]" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_each_frozen_scenario_has_its_pinned_no_recommendation_result[NONZERO_LOCAL_DIFFERENCE_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_each_frozen_scenario_has_its_pinned_no_recommendation_result[EMPIRICAL_EXECUTION_CLAIM_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_each_frozen_scenario_has_its_pinned_no_recommendation_result[STOP_CONDITION_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_each_frozen_scenario_has_its_pinned_no_recommendation_result[UNSAFE_RUNTIME_REQUESTS_FAIL_CLOSED]" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_each_frozen_scenario_has_its_pinned_no_recommendation_result[MODEL_GATE_UNBLOCK_ATTEMPT_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_golden_zero_row_control_passes_locally_but_actual_ga_remains_blocked" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_one_in_ten_thousand_adverse_vector_remains_stable_and_no_recommendation" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_nonzero_difference_empirical_claim_stop_and_unsafe_requests_fail_closed" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_malformed_or_relaxed_inputs_are_rejected[FLOAT_LOCAL_DIFFERENCE]" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_malformed_or_relaxed_inputs_are_rejected[UNKNOWN_EVIDENCE_MODE]" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_malformed_or_relaxed_inputs_are_rejected[RELAXED_GA_CONFIG]" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_artifacts_are_deterministic_and_do_not_claim_actual_reconciliation" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_core_has_no_runtime_network_process_mail_or_sleep_capability" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_candidate_preflight_passes_but_marks_actual_ga_as_blocked" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_generated_artifact_paths_are_stable_before_and_after_signing" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_evidence_build_is_deterministic_before_signing" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_cli_and_legacy_successor_chain_are_exact" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_rollback_drill_is_local_and_preserves_s19_p02_receipt" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_existing_evidence_verifier_fails_closed_when_no_signed_evidence_exists" time="0.000" />
+    <testcase classname="tests.S19.P03_test" name="test_oracle_reports_all_local_preflight_checks_before_signing" time="0.000" />
+  </testsuite>
+</testsuites>

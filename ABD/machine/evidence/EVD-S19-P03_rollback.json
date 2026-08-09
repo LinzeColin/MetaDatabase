@@ -1,0 +1,68 @@
+{
+  "actual_ga_activation_enabled": false,
+  "artifacts": {
+    "abd_acceptance/ga_reconciliation.py": {
+      "sha256": "70bc7e734f530f34b0d48b0a9362470fe76afc79b988917aafafe58b1ea57f21",
+      "status": "PASS"
+    },
+    "abd_acceptance/ga_reconciliation_acceptance.py": {
+      "sha256": "94eea59cd3e20814430ebd5ac85d42bd3d96dec2093ccd6bed6a471e8cf116eb",
+      "status": "PASS"
+    },
+    "actual_reconciliation.json": {
+      "sha256": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b",
+      "status": "PASS"
+    },
+    "ga_report.json": {
+      "sha256": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S19-P02.json": {
+      "sha256": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+      "status": "PASS"
+    },
+    "machine/facts/release_policy.json": {
+      "sha256": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S19_P03.json": {
+      "sha256": "d8cd4b3efdb19e0461ee8dc1263af6d5cf2bf0658ae6f494ab0fb53902396b69",
+      "status": "PASS"
+    },
+    "model_beta_gate.json": {
+      "sha256": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+      "status": "PASS"
+    },
+    "model_release_gate.json": {
+      "sha256": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+      "status": "PASS"
+    },
+    "shadow_report.json": {
+      "sha256": "c482bd9a3006687ec72f498abb84e9f53393a6a2868ba5686ab91da1f1ee9236",
+      "status": "PASS"
+    },
+    "target_acceptance.json": {
+      "sha256": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76",
+      "status": "PASS"
+    },
+    "tests/S19/P03_test.py": {
+      "sha256": "cc86e472d23d7772d1ed72cb49c3bdc853a268184bdc36d2e69f10c258ee4965",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S19-P03",
+  "evidence_id": "EVD-S19-P03-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "model:s19_p03_ga_reconciliation_control_local_only",
+  "immutable_evidence_and_replay_preserved": true,
+  "incremental_cash_spent_aud": "0.00",
+  "mail_sent": false,
+  "mode": "DISABLE_S19_P03_LOCAL_GA_CONTROL_RESTORE_SIGNED_S19_P02_EVIDENCE_KEEP_ACTUAL_GA_BLOCKED",
+  "order_submission_enabled": false,
+  "previous_signed_artifact": "machine/evidence/EVD-S19-P02.json",
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

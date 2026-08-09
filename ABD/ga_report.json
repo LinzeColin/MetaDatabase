@@ -1,0 +1,81 @@
+{
+  "actual_execution_observation": {
+    "actual_execution_evidence_complete": false,
+    "actual_reconciliation_difference_cents": null,
+    "actual_reconciliation_status": "NOT_EVALUABLE_NO_ACTUAL_EXECUTION_EVIDENCE",
+    "actual_record_count": 0,
+    "evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+    "synthetic_or_local_control_may_substitute_for_actual": false,
+    "unresolved_reconciliation_differences": 0,
+    "verified_days": 0
+  },
+  "artifact_id": "ART-S19-P03-01",
+  "contract_id": "AC-S19-P03",
+  "external_effect_boundary": {
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "gmail_message_sent": false,
+    "incremental_cash_spent_aud": "0.00",
+    "market_or_provider_runtime_accessed": false,
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "owner_final_order_only": true,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_fund_fact_or_ledger_mutated": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "synthetic_evidence_promoted_to_empirical": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-10T08:00:00+10:00",
+  "fixture_sha256": "d8cd4b3efdb19e0461ee8dc1263af6d5cf2bf0658ae6f494ab0fb53902396b69",
+  "ga_report_sha256": "b473188930859153cca8fb918f5711281186c353ec683fd5d9fead0b0df7d338",
+  "ga_status": "BLOCKED_NO_EMPIRICAL_EXECUTION_OR_MODEL_EVIDENCE",
+  "local_control": {
+    "adverse_odds_tick_delta": 0,
+    "adverse_probability_delta": "0",
+    "local_evidence_artifact_complete": true,
+    "local_ledger_row_count": 0,
+    "local_reconciliation_difference_cents": 0,
+    "scope": "FROZEN_ZERO_ROW_SCHEMA_AND_RECONCILIATION_CONTROL_ONLY",
+    "stop_conditions_triggered": false
+  },
+  "model_gate": {
+    "model_activation_allowed": false,
+    "model_beta_status": "BLOCKED_NO_EMPIRICAL_REALTIME_SHADOW_EVIDENCE",
+    "order_submission_allowed": false,
+    "production_equivalent_config_schema": {
+      "kelly_fraction": "0.25",
+      "order_submission_module_present": false,
+      "owner_final_order_only": true,
+      "residual_weight_cap": "0.50",
+      "stage_schema": "GA",
+      "target_shortfall_may_relax_gate": false
+    },
+    "recommendation_generation_allowed": false
+  },
+  "predecessor_evidence_sha256": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "required_before_actual_ga": {
+    "actual_reconciliation_difference_cents_required": 0,
+    "actual_record_count": 200,
+    "independent_qualified_signals": 1000,
+    "model_gate_must_be_independently_eligible": true,
+    "signed_execution_evidence_required": true,
+    "verified_days": 90
+  },
+  "requirement_id": "REQ-S19-P03",
+  "schema_version": "1.0.0",
+  "scope": "FROZEN_ZERO_ROW_LOCAL_CONTROL_NOT_AN_ACTUAL_GA_RELEASE",
+  "source_evidence_sha256": {
+    "machine/evidence/EVD-S19-P02.json": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+    "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+    "model_beta_gate.json": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+    "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+    "shadow_report.json": "c482bd9a3006687ec72f498abb84e9f53393a6a2868ba5686ab91da1f1ee9236",
+    "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76"
+  },
+  "status": "PASS_LOCAL_GA_RECONCILIATION_CONTROL_ACTUAL_GA_BLOCKED"
+}
