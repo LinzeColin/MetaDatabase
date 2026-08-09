@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PASS_PRIVATE_INVALID_RESET_TOKEN_SERVER_REJECTION",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-09",
+  "scope": "One current private Version 14 reset-password submission with a newly generated nonempty invalid token and a temporary test password. The token and password were used only in transient browser state, then cleared before the tab was closed. No email, account selection, cookie, browser storage, mail content, user record, or identifier was read or retained.",
+  "current_private_version": {
+    "sites_version_number": 14,
+    "environment_revision": 8,
+    "canonical_origin": "https://mydairy.linzezhang.com"
+  },
+  "replay": {
+    "reset_password_form_rendered": true,
+    "nonempty_invalid_token_used": true,
+    "submit_attempt_count": 1,
+    "rendered_result": "INVALID_OR_EXPIRED_LINK",
+    "success_message_rendered": false,
+    "service_unavailable_message_rendered": false,
+    "email_or_account_selection_attempted": false,
+    "browser_cookie_or_storage_inspected": false,
+    "business_record_read_or_written": false,
+    "temporary_password_cleared": true,
+    "temporary_browser_tab_closed": true
+  },
+  "source_to_runtime_interpretation": {
+    "checked_in_preflight_rule": "Only a missing token is rejected before an API request; a nonempty token is sent to the server for validity and expiry determination.",
+    "rendered_result_binding": "For reset-password, a non-OK server response renders the neutral invalid-or-expired-link message, while a network exception renders the distinct service-unavailable message and a successful response renders a distinct password-updated message.",
+    "conclusion": "The nonempty-token replay reached the server-rejection user path rather than the missing-token preflight, network-exception fallback, or success state."
+  },
+  "interpretation": {
+    "proven": "Current private Version 14 renders a neutral invalid-or-expired-link result for one nonempty invalid reset token and does not claim that a password was updated.",
+    "not_proven": [
+      "A real reset token's expiry timing or one-time-use behavior",
+      "An existing-account password-reset delivery failure",
+      "A successful authenticated ordinary-browser mutation or history readback",
+      "Physical second-device synchronization"
+    ],
+    "decision": "Keep the server authoritative for nonempty reset tokens. Do not disclose token validity detail, weaken reset protections, or infer provider behavior from this negative-token replay."
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
