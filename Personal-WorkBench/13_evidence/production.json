@@ -5,17 +5,17 @@
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
   "observed_at": "2026-08-10",
   "candidate": {
-    "local_source_commit": "8e27d3066e0cfb9bb7d9924c502112fe156125ef",
-    "local_project_tree": "08095b8d5d83cc8895d4c2b74582599e60534f77",
-    "sites_source_commit": "f9eb0e89e9ac1295c01ff0f0d47518f1d4684d81",
-    "source_projection_parent": "0df65653f67ce98c3a8ee157095e4e52c5c0ca2b",
-    "saved_version_number": 15,
-    "source_projection_matches_version_15_project_tree": true,
+    "local_source_commit": "08651a75ecc65fe10de8017dcbf685647fd9dc39",
+    "local_project_tree": "79aaa643b8034c62a071e2387d3a800fa21be4b6",
+    "sites_source_commit": "148a3b1f4bdb01429ec8901b30abb06f49ccfdaf",
+    "source_projection_parent": "f9eb0e89e9ac1295c01ff0f0d47518f1d4684d81",
+    "saved_version_number": 16,
+    "source_projection_matches_version_16_project_tree": true,
     "source_projection_matches_current_project_tree": false,
-    "current_project_tree_delta": "Version 15 deployment evidence and handoff updates after the private deployment; no deployed runtime source, environment, or access-policy change.",
-    "source_projection_archive_sha256": "12af2b7d1a7d97dee06237247de5e1ec1470171739b282a33c200daabb33f793",
-    "deployment_archive_sha256": "12af2b7d1a7d97dee06237247de5e1ec1470171739b282a33c200daabb33f793",
-    "provider_archive_sha256": "sha256:a381a18106f744f21861f12ed5a73de8274624a1181fd27d8bc43f0453e297d5",
+    "current_project_tree_delta": "Version 16 deployment evidence and handoff updates after the private deployment; no deployed runtime source, environment, or access-policy change.",
+    "source_projection_archive_sha256": "a6d31915a88f74f168dc2b9565e1e6c0747f95b7e09f3805f1c80ace486b4a36",
+    "deployment_archive_sha256": "a6d31915a88f74f168dc2b9565e1e6c0747f95b7e09f3805f1c80ace486b4a36",
+    "provider_archive_sha256": "sha256:f565a3dc97e0dbc63d14fa49e71db287adc6a1b595044c3b0525780e08fe188d",
     "environment_revision": 8
   },
   "private_access": {
@@ -30,6 +30,7 @@
     "raw_url_recorded": false
   },
   "controlled_deployment_and_recovery": {
+    "version_16_private_deploy": "SUCCEEDED",
     "version_15_private_deploy": "SUCCEEDED",
     "version_14_private_deploy": "SUCCEEDED_SUPERSEDED_BY_V15_HABIT_FAILURE_FEEDBACK",
     "version_13_private_deploy": "SUCCEEDED_SUPERSEDED_BY_V14_RESET_LINK_PREFLIGHT",
@@ -39,7 +40,7 @@
     "prior_version_9_private_deploy": "SUCCEEDED",
     "prior_version_6_private_rollback": "SUCCEEDED",
     "prior_version_7_private_restore": "SUCCEEDED",
-    "live_version_matches_version_15": true,
+    "live_version_matches_version_16": true,
     "current_deployment_environment_revision": 8
   },
   "observed_interface": {
@@ -50,7 +51,8 @@
     "local_unauthenticated_interaction_audit": "PASS_NO_VISIBLE_EFFECT_CONTROLS_0_OF_140",
     "food_photo_picker_explains_supported_formats_before_native_chooser": true,
     "period_record_action_explains_auth_or_sensitive_consent_precondition": true,
-    "legacy_platform_url_to_canonical_domain_preserves_path_and_query": "PASS_PRIVATE_BROWSER_NO_WRITE",
+    "legacy_platform_url_to_canonical_domain": "CURRENT_READ_ONLY_PROBE_REACHED_CANONICAL_ORIGIN_AND_PERSONAL_SCHEDULE_TITLE; VIEW_QUERY_NOT_RETAINED",
+    "canonical_domain_metadata": "PASS_PRIVATE_VERSION_16_DEPLOYED",
     "canonical_domain_has_explicit_login_or_account_entry": true,
     "homepage_mixed_auth_network_feedback": "PASS_LOCAL_REGRESSION_AND_V13_SOURCE_PROVENANCE",
     "homepage_habit_failed_save_feedback": "PASS_PRIVATE_VERSION_15_DEPLOY_AND_LOCAL_OPERATION_AUDIT",
@@ -112,6 +114,7 @@
     "13_evidence/invalid_reset_token_server_rejection_replay.json",
     "13_evidence/private_version_14_reset_link_preflight.json",
     "13_evidence/private_version_15_habit_feedback_deployment.json",
+    "13_evidence/private_version_16_canonical_brand_metadata_deployment.json",
     "13_evidence/version_14_controlled_browser_replay.json"
   ],
   "product_pass_claimed": false,

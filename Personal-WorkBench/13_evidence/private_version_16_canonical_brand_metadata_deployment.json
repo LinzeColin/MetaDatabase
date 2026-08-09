@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PASS_PRIVATE_VERSION_16_CANONICAL_BRAND_METADATA",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "local_source_commit": "08651a75ecc65fe10de8017dcbf685647fd9dc39",
+    "local_root_tree": "f612837255b80a32c13493f4f2f18d84fda409e3",
+    "local_project_tree": "79aaa643b8034c62a071e2387d3a800fa21be4b6",
+    "sites_source_commit": "148a3b1f4bdb01429ec8901b30abb06f49ccfdaf",
+    "source_projection_parent": "f9eb0e89e9ac1295c01ff0f0d47518f1d4684d81",
+    "source_projection_matches_candidate_tree": true,
+    "saved_version_number": 16,
+    "source_projection_archive_sha256": "a6d31915a88f74f168dc2b9565e1e6c0747f95b7e09f3805f1c80ace486b4a36",
+    "provider_archive_sha256": "sha256:f565a3dc97e0dbc63d14fa49e71db287adc6a1b595044c3b0525780e08fe188d"
+  },
+  "private_deployment": {
+    "status": "SUCCEEDED",
+    "environment_revision": 8,
+    "private_deploy_verified_owner_only_access": true,
+    "public_audience_changed": false,
+    "access_policy_changed": false,
+    "raw_url_recorded": false
+  },
+  "brand_and_domain": {
+    "display_name": "个人日程",
+    "technical_slug": "mydairy",
+    "canonical_origin": "https://mydairy.linzezhang.com",
+    "site_title": "个人日程",
+    "metadata_base_is_canonical_origin": true,
+    "canonical_link_and_share_metadata": true,
+    "custom_domain_dns_provider_ssl": "ACTIVE"
+  },
+  "read_only_browser_probes": {
+    "canonical_period_url": "PASS_TITLE_PERSONAL_SCHEDULE_AND_VIEW_QUERY_RETAINED",
+    "legacy_platform_url": "REACHED_CANONICAL_ORIGIN_AND_PERSONAL_SCHEDULE_TITLE; VIEW_QUERY_NOT_RETAINED_IN_CURRENT_PROBE",
+    "credentials_or_user_data_entered": false
+  },
+  "change_boundary": {
+    "layout_metadata_only": [
+      "metadataBase",
+      "applicationName",
+      "canonical alternates",
+      "Open Graph metadata",
+      "Twitter metadata"
+    ],
+    "visual_markup_changed": false,
+    "authentication_rules_changed": false,
+    "runtime_settings_changed": false,
+    "data_store_changed": false,
+    "access_policy_changed": false
+  },
+  "local_regressions": {
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "canonical_domain_compatibility": "PASS_2_OF_2",
+    "workbench_persistence_ui": "PASS_4_OF_4",
+    "e2e_smoke": "PASS_4_OF_4",
+    "build": "PASS"
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false,
+  "not_proven": [
+    "Legacy platform redirect query preservation at the hosting edge",
+    "A successful ordinary-browser authenticated mutation",
+    "Physical second-device history readback",
+    "Direct D1/R2 reconciliation",
+    "Final product acceptance"
+  ]
+}
