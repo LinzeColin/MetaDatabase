@@ -90,6 +90,29 @@ test("Version 17 negative reset replay retains no mailbox identity", async () =>
   assert.equal(serialized.includes("Pwb!"), false);
 });
 
+test("Version 17 ordinary desktop boundary evidence retains no login material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/version_17_ordinary_desktop_browser_access_boundary.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.current_private_version.sites_version_number, 17);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.observations.email_or_password_entered, false);
+  assert.equal(evidence.observations.account_selection_attempted, false);
+  assert.equal(evidence.observations.browser_cookie_or_storage_inspected, false);
+  assert.equal(evidence.observations.temporary_desktop_tab_closed, true);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("code_challenge"), false);
+  assert.equal(serialized.includes("nonce="), false);
+  assert.equal(serialized.includes("state="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 17 Chrome transport evidence retains no controlled-account material", async () => {
   const evidence = JSON.parse(
     await readFile(new URL("../13_evidence/version_17_agent_controlled_chrome_workbench_post_replay.json", import.meta.url), "utf8"),
