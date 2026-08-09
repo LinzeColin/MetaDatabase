@@ -66,6 +66,30 @@ test("invalid reset replay evidence does not retain temporary reset material", a
   assert.equal(serialized.includes("Pwb!"), false);
 });
 
+test("Version 17 negative reset replay retains no mailbox identity", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/version_17_negative_password_reset_non_enumeration_replay.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.current_private_version.sites_version_number, 17);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.replay.controlled_alias_mailbox_baseline_count, 0);
+  assert.equal(evidence.replay.controlled_alias_mailbox_immediate_count, 0);
+  assert.equal(evidence.replay.controlled_alias_mailbox_delayed_count, 0);
+  assert.equal(evidence.replay.bounded_mailbox_readback_wait_seconds, 30);
+  assert.equal(evidence.replay.test_input_cleared, true);
+  assert.equal(evidence.replay.temporary_browser_tab_closed, true);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+  assert.equal(serialized.includes("Pwb!"), false);
+});
+
 test("Version 17 Chrome transport evidence retains no controlled-account material", async () => {
   const evidence = JSON.parse(
     await readFile(new URL("../13_evidence/version_17_agent_controlled_chrome_workbench_post_replay.json", import.meta.url), "utf8"),
