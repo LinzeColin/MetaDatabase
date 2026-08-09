@@ -43,6 +43,12 @@ S6-T2 才可确认公开 audience
 
 `S4-T3A` 的结果只能是 `READINESS_PASS` 或 `BLOCKED`，不是 S4 的 15/15 产品 PASS。它只允许下一阶段创建一个私有、可丢弃的采证 Candidate。`S5-T3` 仍在受控私有访问下执行；任何公开 audience 变更都必须等到 `S6-T1` 的独立最终 PASS 之后。
 
+## S5-T2 的私有 Origin 引导例外
+
+当前 Sites 平台只在部署后分配稳定 Site URL，而冻结任务包将 Sites production Origin 作为默认 Origin。若私有 Candidate 尚无 URL，`S5-T2-ORIGIN-BOOTSTRAP-001` 允许**仅一次受控私有部署**现有 Saved Version，以获得该 Origin 并继续完成 `APP_ORIGIN` 与 hostname-bound 配置。
+
+它不是 `S5-T3`：必须先即时复核 owner/custom、无外部访客/群组、无 URL 和既有 Saved Version；不得增加受众、域名、用户数据或真实认证/邮件回放；证据只记录 Version 身份、访问事实、URL 存在性或不可逆摘要与 Settings 键级 revision。完成后仍回到 `S5-T2`，直到其正常配置证据完整，才允许真正进入 `S5-T3`。
+
 ## 15 项需求的证据采集与裁决
 
 | Requirement | 最早真实 Candidate 采证 | 最终裁决 |

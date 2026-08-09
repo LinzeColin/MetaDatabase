@@ -7,6 +7,12 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_ADDENDUM = join(ROOT, "ACCEPTANCE_SEQUENCE_ADDENDUM.json");
 const REQUIRED_SEQUENCE = ["S4-T3A", "S5-T1", "S5-T2", "S5-T3", "S5-T4", "S6-T1", "S6-T2"];
 const CYCLE_REQUIREMENTS = ["R-003", "R-009", "R-012", "R-014", "R-015"];
+const ORIGIN_BOOTSTRAP_FORBIDDEN_CLAIMS = [
+  "public release or public audience",
+  "S5-T3 completion or real-auth evidence",
+  "rollback completion",
+  "final independent acceptance",
+];
 
 function invariant(condition, message) {
   if (!condition) throw new Error(message);
@@ -68,7 +74,7 @@ function taskById(taskDag, id) {
 }
 
 export function validateAddendumShape(addendum) {
-  invariant(addendum?.schema_version === "1.0.0", "Unsupported addendum schema_version");
+  invariant(addendum?.schema_version === "1.1.0", "Unsupported addendum schema_version");
   invariant(addendum.addendum_id === "PWB-S4-S5-SEQUENCE-001", "Unexpected addendum_id");
   invariant(addendum.status === "OWNER_AUTHORIZED_EXECUTION_ORDER", "Addendum is not an active execution-order record");
   invariant(typeof addendum.purpose === "string" && addendum.purpose.length > 0, "Addendum purpose is missing");
@@ -100,6 +106,19 @@ export function validateAddendumShape(addendum) {
   invariant(sameStrings(sequence.get("S6-T1")?.deps, ["S5-T4"]), "S6-T1 must follow all real-evidence phases");
   invariant(sameStrings(sequence.get("S6-T2")?.deps, ["S6-T1"]), "Public release must follow final acceptance");
   invariant(sequence.get("S6-T2")?.audience === "public", "Only S6-T2 may expose a public audience");
+
+  const originBootstrap = addendum.origin_bootstrap;
+  invariant(originBootstrap?.id === "S5-T2-ORIGIN-BOOTSTRAP-001", "Origin bootstrap identity is missing");
+  invariant(originBootstrap?.phase === "S5-T2", "Origin bootstrap must stay in S5-T2");
+  invariant(originBootstrap?.status === "OWNER_AUTHORIZED_PRIVATE_ORIGIN_ALLOCATION", "Origin bootstrap is not owner-authorized");
+  invariant(originBootstrap?.audience === "controlled_private", "Origin bootstrap must remain controlled-private");
+  invariant(Array.isArray(originBootstrap?.preconditions) && originBootstrap.preconditions.length >= 5, "Origin bootstrap preconditions are incomplete");
+  invariant(Array.isArray(originBootstrap?.after_allocation) && originBootstrap.after_allocation.some((entry) => entry.includes("S5-T3 remains unavailable")), "Origin bootstrap must return to S5-T2");
+  invariant(
+    Array.isArray(originBootstrap?.must_not_claim) &&
+      ORIGIN_BOOTSTRAP_FORBIDDEN_CLAIMS.every((claim) => originBootstrap.must_not_claim.includes(claim)),
+    "Origin bootstrap weakened a final-release boundary",
+  );
 }
 
 export async function validateAcceptanceSequence({ taskpackRoot, addendumPath = DEFAULT_ADDENDUM }) {

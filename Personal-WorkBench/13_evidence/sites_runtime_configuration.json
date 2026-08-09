@@ -3,17 +3,20 @@
   "subject_phase": "S5-T2",
   "status": "PARTIAL_PRIVATE_RUNTIME_CONFIGURATION",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
-  "generated_at": "2026-08-09T01:48:20Z",
+  "generated_at": "2026-08-09T02:14:53Z",
   "source": {
     "kind": "ChatGPT Sites control-plane key-level readback",
     "values_recorded": false,
     "private_access_preserved": true,
-    "deployment_created": false
+    "deployment_created": true,
+    "live_origin_value_recorded": false,
+    "origin_bootstrap_evidence": "13_evidence/origin_bootstrap.json"
   },
   "settings": {
-    "revision": 1,
-    "entry_count": 8,
+    "revision": 2,
+    "entry_count": 9,
     "entries": [
+      {"key": "APP_ORIGIN", "is_secret": true},
       {"key": "BETTER_AUTH_SECRET", "is_secret": true},
       {"key": "GOOGLE_CLIENT_ID", "is_secret": true},
       {"key": "GOOGLE_CLIENT_SECRET", "is_secret": true},
@@ -32,11 +35,10 @@
     "provider_values_or_sender_identity_recorded": false
   },
   "remaining_required_configuration": [
-    "APP_ORIGIN",
     "TURNSTILE_SITE_KEY",
     "TURNSTILE_SECRET_KEY",
     "LEGAL_OPERATOR_NAME",
     "PRIVACY_CONTACT_EMAIL"
   ],
-  "next_gate": "S5-T2 remains incomplete until remaining configuration and platform-side callback/hostname checks are evidenced; no S5-T3 deployment is implied."
+  "next_gate": "S5-T2 remains incomplete until Turnstile, legal-contact and platform-side callback checks are evidenced. Settings revision 2 requires a later controlled private deployment to become runtime-active; the bootstrap deployment only allocated a private Origin and is not S5-T3."
 }

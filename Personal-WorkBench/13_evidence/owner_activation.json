@@ -3,13 +3,13 @@
   "subject_phase": "S5-T2",
   "status": "BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK",
   "verdict": "NOT_ISSUED_PRE_VERIFIER",
-  "runAt": "2026-08-09T01:46:01.218Z",
-  "generated_at": "2026-08-09T01:46:01.218Z",
+  "runAt": "2026-08-09T02:14:16.641Z",
+  "generated_at": "2026-08-09T02:14:16.641Z",
   "environment": {
     "taskpack_available": true,
     "configuration_source": "local_environment_presence_only",
-    "app_origin_present": false,
-    "app_origin_valid_https": false
+    "app_origin_present": true,
+    "app_origin_valid_https": true
   },
   "command_results": [
     {
@@ -35,7 +35,7 @@
         "present": true
       },
       "APP_ORIGIN": {
-        "present": false
+        "present": true
       },
       "GOOGLE_CLIENT_ID": {
         "present": true
@@ -120,10 +120,10 @@
       "attestation_complete": true
     },
     "callbacks": {
-      "app_origin_present": false,
-      "app_origin_valid_https": false,
+      "app_origin_present": true,
+      "app_origin_valid_https": true,
       "expected_callback_path": "/api/auth/callback/google",
-      "expected_callback_constructed": false,
+      "expected_callback_constructed": true,
       "auth_callback_route_present": true,
       "callback_platform_register_verification": "NOT_VERIFIED_LOCALLY"
     },
@@ -161,6 +161,7 @@
       ],
       "present_secret_keys": [
         "BETTER_AUTH_SECRET",
+        "APP_ORIGIN",
         "GOOGLE_CLIENT_ID",
         "GOOGLE_CLIENT_SECRET",
         "MAIL_FROM"
@@ -224,13 +225,11 @@
     }
   },
   "risks": [
-    "缺少环境值：APP_ORIGIN",
     "缺少环境值：TURNSTILE_SITE_KEY",
     "缺少环境值：TURNSTILE_SECRET_KEY",
     "缺少环境值：LEGAL_OPERATOR_NAME",
     "缺少环境值：PRIVACY_CONTACT_EMAIL",
-    "APP_ORIGIN 无效：必须是 HTTPS origin（生产环境）",
-    "SITES_BINDINGS_CONTRACT 约定密钥未完整配置到环境：APP_ORIGIN, TURNSTILE_SITE_KEY, TURNSTILE_SECRET_KEY",
+    "SITES_BINDINGS_CONTRACT 约定密钥未完整配置到环境：TURNSTILE_SITE_KEY, TURNSTILE_SECRET_KEY",
     "缺少运营者名称（LEGAL_OPERATOR_NAME）。",
     "缺少隐私联系邮箱（PRIVACY_CONTACT_EMAIL）。"
   ],

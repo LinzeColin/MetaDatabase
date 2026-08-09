@@ -18,14 +18,33 @@ test("private Sites runtime configuration evidence is key-only", async () => {
   const record = JSON.parse(await readFile(join(ROOT, "13_evidence", "sites_runtime_configuration.json"), "utf8"));
   assert.equal(record.status, "PARTIAL_PRIVATE_RUNTIME_CONFIGURATION");
   assert.equal(record.source.values_recorded, false);
-  assert.equal(record.source.deployment_created, false);
-  assert.equal(record.settings.revision, 1);
+  assert.equal(record.source.deployment_created, true);
+  assert.equal(record.source.live_origin_value_recorded, false);
+  assert.equal(record.settings.revision, 2);
   assert.equal(record.settings.entry_count, record.settings.entries.length);
+  assert.ok(record.settings.entries.some((entry) => entry.key === "APP_ORIGIN" && entry.is_secret === true));
   for (const entry of record.settings.entries) {
     assert.deepEqual(Object.keys(entry).sort(), ["is_secret", "key"]);
   }
   const serialized = JSON.stringify(record);
   assert.equal(/"(?:value|values|sender|email)"\s*:/i.test(serialized), false);
+});
+
+test("private Origin bootstrap evidence never stores a URL, credential, or public-release claim", async () => {
+  const record = JSON.parse(await readFile(join(ROOT, "13_evidence", "origin_bootstrap.json"), "utf8"));
+  assert.equal(record.status, "PASS_PRIVATE_ORIGIN_BOOTSTRAP");
+  assert.equal(record.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(record.action.private_deployment_status, "succeeded");
+  assert.equal(record.action.site_url_recorded, false);
+  assert.equal(record.action.currently_deployed_environment_revision, 1);
+  assert.equal(record.postconditions.public_audience_changed, false);
+  assert.equal(record.postconditions.settings_apply_pending_later_controlled_private_deployment, true);
+  assert.equal(record.turnstile.widget_created, false);
+  assert.equal(record.turnstile.settings_written, false);
+  assert.ok(record.must_not_claim.includes("S5-T3 completion or real-auth evidence"));
+  const serialized = JSON.stringify(record);
+  assert.equal(serialized.includes("https://"), false);
+  assert.equal(/"(?:value|secret|url|credential|hostname)"\s*:/i.test(serialized), false);
 });
 
 test("owner activation command evidence never retains raw output", () => {

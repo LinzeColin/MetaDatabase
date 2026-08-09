@@ -1,17 +1,18 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "addendum_id": "PWB-S4-S5-SEQUENCE-001",
   "status": "OWNER_AUTHORIZED_EXECUTION_ORDER",
   "created_at": "2026-08-09T00:00:00+10:00",
   "purpose": "Resolve the frozen S4/S5 evidence-order cycle without changing any product requirement, Oracle, threshold, visual truth, architecture, or public-release gate.",
   "owner_authorization": {
     "source": "Direct owner instruction in this Codex task: 全部授权 不允许任何block",
-    "scope": "Authorize this explicit execution-order reconciliation only.",
+    "scope": "Authorize this explicit execution-order reconciliation and, under the later direct Owner authorization, private-candidate runtime configuration plus the narrowly bounded S5-T2 Origin bootstrap below.",
     "does_not_authorize": [
       "Waiving any frozen requirement, Oracle, threshold, or evidence item",
       "Treating local checks, UNKNOWN, NOT_RUN, or WAIVED as product acceptance",
       "Changing the frozen taskpack source files",
-      "Changing Sites audience, deploying publicly, configuring secrets, or using unlicensed assets"
+      "Changing Sites audience or deploying publicly",
+      "Using unlicensed assets"
     ]
   },
   "source_taskpack": {
@@ -61,6 +62,39 @@
       "R-015 requires configured privacy and operational evidence through S5-T2 and S5-T4."
     ],
     "resolution": "Split the original S4-T3 into a non-final independent readiness gate and a post-evidence final independent acceptance; preserve all original requirements for the latter."
+  },
+  "origin_bootstrap": {
+    "id": "S5-T2-ORIGIN-BOOTSTRAP-001",
+    "phase": "S5-T2",
+    "status": "OWNER_AUTHORIZED_PRIVATE_ORIGIN_ALLOCATION",
+    "audience": "controlled_private",
+    "reason": "The frozen target defaults to a Sites production Origin, while current Sites behavior allocates a Site URL only when a Version is deployed. The Origin-dependent configuration cannot be truthfully completed before that allocation.",
+    "preconditions": [
+      "S5-T1 saved-version evidence is PASS_PRIVATE_SAVED_VERSION_CANDIDATE.",
+      "The Site has no current live or preview URL.",
+      "The current caller is owner and the Site access policy is custom with no external visitors or groups.",
+      "The exact existing Saved Version identity is re-read immediately before the action.",
+      "Frozen OWNER_APPROVAL.production_side_effect_authorization and the direct Owner authorization remain true."
+    ],
+    "allowed_action": "Deploy the existing Saved Version only through the private-deployment control, solely to allocate the platform Origin for the private candidate.",
+    "after_allocation": [
+      "Keep the Site custom/private and do not add users, groups, domains, or public audience.",
+      "Use the allocated Origin only inside Sites Settings for APP_ORIGIN and hostname-bound controls; record no raw URL or value in the repository.",
+      "Return to S5-T2 to complete configuration evidence. S5-T3 remains unavailable until S5-T2 has its normal complete evidence."
+    ],
+    "must_record": [
+      "pre/post access facts and Saved Version identity",
+      "deployment result status and URL-presence-only or non-reversible URL digest",
+      "post-allocation Settings revision and key-level proof only",
+      "no user-data write, real-auth journey, provider send, or public audience change"
+    ],
+    "must_not_claim": [
+      "public release or public audience",
+      "S5-T3 completion or real-auth evidence",
+      "rollback completion",
+      "final independent acceptance"
+    ],
+    "rollback": "On any failed allocation or unintended access drift, restrict the candidate to the pre-existing private policy, preserve the redacted evidence, and do not continue to S5-T3."
   },
   "sequence": [
     {

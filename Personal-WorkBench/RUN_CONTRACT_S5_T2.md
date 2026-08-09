@@ -16,7 +16,7 @@
 ## 明确不在本 phase 范围（本 run）
 
 - 除非有本线程 Owner 的直接、明确授权，不在本 run 执行 Sites Settings 配置。获授权的私有配置只允许使用已核验的受控来源，并且只记录键名、Secret 属性和配置 revision；不记录或提交值，也不改变访问策略、创建公开 URL 或 Deploy。事务邮件默认仍为 Resend；兼容后端只能经同一 MailPort、显式 `MAIL_PROVIDER` 选择及对应 Sites Secret 启用。
-- 不执行 OAuth callback 注册、Google 邮箱域验证或真实 Deploy。
+- 不执行 OAuth callback 注册、Google 邮箱域验证或一般真实 Deploy。若同时满足 `ACCEPTANCE_SEQUENCE_ADDENDUM.json` 的 `origin_bootstrap` 全部前置，且当前 Owner 直接授权仍有效，则只允许对已有 Saved Version 使用私有部署控制分配 Sites Origin；它只服务于 `APP_ORIGIN`/hostname-bound 配置，不是 S5-T3、公开发布或真实认证回放。
 - 不执行生产 rollback 演练（留给 S5-T3）。
 - 不提交或推送 GitHub；不更改现网配置。
 
@@ -66,6 +66,7 @@
 - `13_evidence/asset_manifest.json`
 - `13_evidence/verifier.json`
 - `13_evidence/sites_runtime_configuration.json`（如已在 Owner 授权下写入私有 Settings）
+- `13_evidence/origin_bootstrap.json`（如执行 `S5-T2-ORIGIN-BOOTSTRAP-001`）
 - `13_evidence/owner_activation.json` 的 `risks` 长度与 `next_steps`
 
 ## 本 run 结论（2026-08-06T10:38:00.000Z）

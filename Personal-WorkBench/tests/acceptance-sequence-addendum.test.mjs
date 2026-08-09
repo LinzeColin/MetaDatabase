@@ -17,6 +17,8 @@ test("acceptance sequence addendum retains a complete strict final gate", () => 
   assert.ok(addendum.nonnegotiable_invariants.some((entry) => entry.includes("UNKNOWN, NOT_RUN, and WAIVED")));
   assert.ok(addendum.sequence.find((entry) => entry.id === "S5-T1")?.must_not_claim.includes("public deployment"));
   assert.ok(addendum.sequence.find((entry) => entry.id === "S6-T2")?.must_not_claim.includes("GitHub upload before the overall taskpack is complete"));
+  assert.equal(addendum.origin_bootstrap?.phase, "S5-T2");
+  assert.ok(addendum.origin_bootstrap?.must_not_claim.includes("public release or public audience"));
 });
 
 test("addendum shape rejects an attempt to remove a frozen requirement mapping", () => {
@@ -29,4 +31,12 @@ test("addendum shape rejects an early public-audience transition", () => {
   const invalid = structuredClone(addendum);
   invalid.sequence.find((entry) => entry.id === "S5-T3").audience = "public";
   assert.throws(() => validateAddendumShape(invalid), /S5-T3 must not expose a public audience/);
+});
+
+test("addendum shape rejects an Origin bootstrap that claims a real deployment phase", () => {
+  const invalid = structuredClone(addendum);
+  invalid.origin_bootstrap.must_not_claim = invalid.origin_bootstrap.must_not_claim.filter(
+    (claim) => claim !== "S5-T3 completion or real-auth evidence",
+  );
+  assert.throws(() => validateAddendumShape(invalid), /Origin bootstrap weakened a final-release boundary/);
 });

@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0.0",
+  "subject_phase": "S5-T2",
+  "contract_id": "S5-T2-ORIGIN-BOOTSTRAP-001",
+  "status": "PASS_PRIVATE_ORIGIN_BOOTSTRAP",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "generated_at": "2026-08-09T02:14:53Z",
+  "purpose": "Allocate a Sites Origin for the existing private Saved Candidate so that Origin-bound S5-T2 configuration can be completed without guessing a hostname.",
+  "preconditions": {
+    "saved_version_number": 1,
+    "saved_source_matches_candidate_evidence": true,
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "external_visitor_count": 0,
+    "allowed_group_count": 0,
+    "live_url_previously_present": false,
+    "preview_url_previously_present": false
+  },
+  "action": {
+    "private_deployment_status": "succeeded",
+    "deployment_type": "publish",
+    "site_url_recorded": false,
+    "site_origin_sha256": "5c66de7d047779f66ad116ad0a651d5ecee9f41944b6b64380d7dbd9cf28f438",
+    "environment_revision_at_deploy": 1,
+    "currently_deployed_environment_revision": 1
+  },
+  "postconditions": {
+    "access_mode": "custom",
+    "current_user_role": "owner",
+    "allowed_user_count": 1,
+    "external_visitor_count": 0,
+    "allowed_group_count": 0,
+    "live_url_present": true,
+    "preview_url_present": false,
+    "settings_revision": 2,
+    "app_origin_present_as_secret": true,
+    "settings_apply_pending_later_controlled_private_deployment": true,
+    "user_data_accessed": false,
+    "real_auth_journey_run": false,
+    "provider_send_run": false,
+    "public_audience_changed": false
+  },
+  "turnstile": {
+    "status": "NOT_CONFIGURED_NO_SAME_ACCOUNT_WRITE_CAPABILITY",
+    "candidate_token_count": 7,
+    "same_account_create_attempt_count": 3,
+    "creation_error_http_status": 403,
+    "creation_error_code": 10000,
+    "widget_created": false,
+    "settings_written": false,
+    "credential_or_hostname_recorded": false
+  },
+  "remaining_s5_t2_work": [
+    "Configure a hostname-bound Turnstile Widget with a same-account token that has Turnstile Sites Write, then store its pair only in Sites Settings.",
+    "Provide verified legal operator name and privacy contact before they are represented to public users.",
+    "Register and verify the Google OAuth callback on the allocated Origin without recording its raw value here.",
+    "Re-read all private Settings and rerun the S5-T2 owner-activation precheck before any full S5-T3 candidate deployment."
+  ],
+  "must_not_claim": [
+    "public release or public audience",
+    "S5-T3 completion or real-auth evidence",
+    "rollback completion",
+    "final independent acceptance"
+  ]
+}
