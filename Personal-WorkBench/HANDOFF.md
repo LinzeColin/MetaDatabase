@@ -2,10 +2,11 @@
 
 ## 当前目标
 
-优先完成 S3-T2 的真实业务记录持久化修复，再恢复 S5-T3 的私有真实认证与回滚采证；当前非商业素材权利已由精确哈希的 Owner attestation 覆盖，但在全量 S5/S6 门通过前仍不得公开部署或上传 GitHub。
+继续完成 S5-T3 的受控私有真实认证、A/B 租户写入/历史及恢复采证；当前非商业素材权利已由精确哈希的 Owner attestation 覆盖，但在全量 S5/S6 门通过前仍不得公开发布或上传 GitHub。
 
 ## 当前状态
 
+- 2026-08-09（最新）：S5-T3 已在不改变 audience 的前提下完成 Version #7 私有部署、Version #6 私有回滚和 Version #7 私有恢复，最终 live 仍为 Version #7；控制面保持 active/owner/custom、1 名允许用户、0 群组、0 外部访客、环境 revision `7`。浏览器实测 9 个主菜单内容不同、记账空金额有可见反馈、历史区块已渲染；经期记录在未获敏感跨设备保存同意时显示明确同意门而非静默失效。Google OAuth 已到达账户选择页，但未选取个人账户；没有读取或写入用户内容。由于当前没有可核验的受控双账户/跨设备凭据，真实邮箱/Google 回调、A/B 写入隔离、历史读回、D1/R2 对账和负向恢复路径均保留 `NOT_RUN`，不得以本轮 UI 或裸探针替代。裸 HTTPS 请求受到 Sites 私有访问门并返回 401，这不证明应用路由异常。精确证据见 `13_evidence/production.json`；本阶段仍为私有运行时验收中，非公开发布或最终验收。
 - 2026-08-09（最新）：S5-T2 的私有运行时存在性证据已由 Sites 控制面刷新为 revision `7`、14 项（11 Secret、3 非 Secret）；只记录键名、Secret 分类、计数、私有访问形态及 Version #7 未部署状态，未读取或写入任何值。当前站点保持 active/owner/custom、1 名允许用户、0 群组、0 外部访客；已保存的 Version #7 明确未部署，因此现有 live 站点必为 Version #7 之前的运行实例。对 live 站点做无数据写入的 UI 复现：菜单实际会切换页面，但未登录时“＋记录经期”和“＋记一笔”的空提交没有可见反馈，符合 Owner 报告的 demo 式失效表现。当前交互终端未继承运行时 Secret，故一次临时预检正确返回本地缺项且未覆盖既有正式脱敏证据；它不能反证 Sites 键级配置。该证据不把 key presence、旧站点页面或本地候选冒充为真实多账户数据写入；下一阶段 S5-T3 只能在保持 custom/private audience 下部署 Version #7，并完成已登录的隔离账户写入、历史、认证和回滚采证。
 - 2026-08-09（最新）：S5-T1 已为精确候选 65b3f2be 保存私有 Sites Version #7。该 Candidate 从 root tree 8df64a08 的 Personal-WorkBench subtree 6c9d2ee3 构建，并以同树 project-root projection b7921541 非强制快进写入现有 Sites source main；归档、构建、check 与 verify:release 均通过。保存前后都为 active/owner/custom、1 名允许用户、0 群组、0 外部访客，访问 revision 未变化；运行时仅做存在性回读（revision 7、14 项、11 Secret、3 非 Secret），未读取任何值。Version #7 的 source 和 provider archive 已由列表与详情双重回读，未发起部署、未改变 audience、未访问用户数据、未上传 GitHub。真实证据以 13_evidence/saved_version.json 为准；它只解锁后续 S5-T2 私有配置与权利/隐私门，绝非运行时/公开/15 项最终通过。
 - 2026-08-09（最新）：针对 Owner 报告的“全部菜单像 demo、打卡/记账/历史均无效”，已完成一个本地 S3-T2 交互持久化修复候选。桌面习惯及打卡、记账、饮食/运动/体重、日程、纪念日、日记、存钱计划/存入、经期均改为调用既有 session-first、tenant-first、幂等写 API；客户端不发送 `userId`、`ownerId` 或 `tenantId`，历史列表从同一用户资源读取，删除仍受本人记录约束。账单、体重、日记、经期保留既有明确敏感跨设备保存同意门，未以“修功能”为由绕过隐私/认证。冻结 `?reference=` 页面不发数据请求且视觉结构回归仍为 PASS。新增 `test:workbench-data` 与 9 个主菜单差异回归；本地浏览器已实点验证菜单分别进入各自页面、记账类型/空金额反馈、日程空标题反馈、减脂三标签切换和食物照片入口可用。`npm run typecheck`、`lint`、`test:regression`（module 1/1、data 2/2、e2e 4/4）、`build`、`test:ui-structure`（2/2）、`test:visual`、`test:api`（6/6）、`test:privacy`（3/3）、`test:tenant`（2/2，15 resources）均通过。此结论只证明本地候选和会话/租户契约；尚未把它冒充为已部署版本或真实双账户云端写入回放。
@@ -217,8 +218,8 @@
 
 ### 最新优先
 
-1. 等待一次性续跑在服务端限流窗口结束后完成新邮箱注册、验证邮件、验证链接与登录会话的真实回放；不得以重复请求或配置修改规避保护。
-2. 在该回放成功后，继续剩余的私有 S5 真实验收并形成与当前私有版本绑定的脱敏证据；公开部署与 GitHub 上传仍然禁止。
+1. 使用可核验的受控测试账号，在现有私有 Version #7 仅做一次邮箱注册/验证/登录、Google callback、A/B 隔离写入与跨设备历史读回；不得选择个人账户、绕过认证/隐私门或反复撞击限流。
+2. 将 D1/R2 对账、负向 provider/recovery 路径与上述回放绑定到当前私有版本；公开发布、S5-T4/S6 和 GitHub 上传仍然禁止。
 
 ### 历史记录（部分事项已完成；以上述最新优先项为准）
 

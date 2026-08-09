@@ -1,32 +1,74 @@
 {
+  "schema_version": "1.1.0",
   "task_id": "S5-T3",
   "status": "IN_PROGRESS_PRIVATE_RUNTIME_ACCEPTANCE",
-  "candidate_commit": null,
-  "environment": {
-    "origin_configured": true,
-    "origin_kind": "PRIVATE_SITES_HTTPS",
-    "checked_at": "2026-08-09T06:10:03.187Z",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-09",
+  "candidate": {
+    "frozen_source_commit": "65b3f2be519ea96bb7d8808db45b40a3343f2d25",
+    "sites_source_projection_commit": "b792154129538aecbc03ff443ba5253cd4161c01",
+    "saved_version_number": 7,
+    "source_projection_matches_saved_candidate": true,
+    "environment_revision": 7
+  },
+  "private_access": {
+    "site_active": true,
+    "current_user_role": "owner",
     "access_mode": "custom",
     "allowed_user_count": 1,
     "allowed_group_count": 0,
     "external_visitor_count": 0,
-    "current_live_present": true,
-    "latest_saved_version_number": 6,
-    "environment_revision": 7,
-    "environment_entry_counts": {
-      "total": 14,
-      "secret": 11,
-      "non_secret": 3
-    }
+    "access_policy_revision": 1,
+    "public_audience_changed": false,
+    "raw_url_recorded": false
+  },
+  "controlled_deployment_and_recovery": {
+    "version_7_private_deploy": "SUCCEEDED",
+    "version_6_private_rollback": "SUCCEEDED",
+    "version_7_private_restore": "SUCCEEDED",
+    "live_version_matches_restored_version": true,
+    "all_observed_deployments_environment_revision": 7
+  },
+  "observed_interface": {
+    "nine_primary_views_render_distinct_content": true,
+    "ledger_empty_amount_has_visible_feedback": true,
+    "ledger_history_section_present": true,
+    "period_record_action_exposes_sensitive_cross_device_consent_boundary": true,
+    "raw_user_records_read": false,
+    "test_user_data_written": false
+  },
+  "authentication": {
+    "email_login_form_rendered": true,
+    "google_authorization_reached_account_selection": true,
+    "google_callback_after_account_selection": "NOT_RUN_NO_CONTROLLED_TEST_ACCOUNT",
+    "email_registration_verification_replay": "NOT_RUN_NO_CONTROLLED_TEST_ACCOUNT",
+    "password_reset_replay_for_current_version": "NOT_RUN_NO_CONTROLLED_TEST_ACCOUNT"
+  },
+  "tenant_and_history": {
+    "local_server_session_tenant_contract": "PASS_LOCAL_CONTRACT",
+    "real_a_b_tenant_isolation": "NOT_RUN_NO_CONTROLLED_TEST_ACCOUNT",
+    "real_cross_device_history": "NOT_RUN_NO_CONTROLLED_TEST_ACCOUNT",
+    "real_d1_r2_reconciliation": "NOT_RUN_NO_CONTROLLED_TEST_ACCOUNT"
+  },
+  "raw_unauthenticated_smoke": {
+    "evidence_file": "13_evidence/production-smoke-run.json",
+    "status": "BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK",
+    "interpretation": "The raw HTTPS requests received the Sites private access gate. Their 401 responses do not establish an application-route failure."
   },
   "evidence_files": [
-    "13_evidence/auth-saved.json",
-    "13_evidence/owner_activation.json",
-    "13_evidence/asset_manifest.json",
     "13_evidence/saved_version.json",
+    "13_evidence/owner_activation.json",
+    "13_evidence/tenant_matrix.json",
     "13_evidence/production-smoke-run.json"
   ],
-  "notes": "当前记录为 Sites 私有控制面快照，仅证明访问边界、已保存版本与运行时配置存在性；不包含任何地址、密钥、令牌、邮箱或用户内容，也不替代正式独立验收。",
-  "phase": "PRIVATE_RUNTIME_ACCEPTANCE_IN_PROGRESS",
-  "reason": "Google、找回与回滚已有私有实际回放记录；新邮箱注册验证仍在服务端限流冷却窗口内。一次受控旧测试别名的验证重发仅得到通用页面响应、邮件服务未出现投递记录，未计入验证成功；第二设备、A/B 隔离与数据持久化尚未形成当前轮真实证据。"
+  "product_pass_claimed": false,
+  "final_acceptance_claimed": false,
+  "public_deploy_eligible": false,
+  "remaining_required_s5_t3_evidence": [
+    "controlled-account completion of email and Google authentication journeys",
+    "A/B tenant write and isolation replay",
+    "cross-device history readback and D1/R2 reconciliation",
+    "negative provider and recovery-path replay"
+  ],
+  "notes": "This record contains only private control-plane and rendered-UI facts. It neither records URLs, credentials, account identifiers, nor user content, and it does not replace final independent acceptance."
 }

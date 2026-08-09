@@ -1,5 +1,17 @@
 # Run Contract — S5-T3 生产 Deploy 与回滚演练预检
 
+## 2026-08-09 执行模式增补（当前真源）
+
+`ACCEPTANCE_SEQUENCE_ADDENDUM.json` 已将当前 S5-T3 定义为：在 S5-T2 后进行的
+`controlled_private_deploy`，受众始终为 `controlled_private`。本增补优先解释下方历史预检
+范围，不修改冻结任务包、不授予公开 audience，也不替代 S6-T1 的独立最终验收。
+
+- 本轮仅部署已保存的私有 Version #7；访问控制保持 owner/custom、1 名允许用户、0 群组、0 外部访客。
+- 已实测 Version #7 私有部署成功、Version #6 私有回滚成功，并立即恢复 Version #7；未改变公开受众。
+- 已验证九个主菜单渲染不同内容、记账空金额有可见反馈、经期记录明确暴露敏感内容跨设备保存同意门；没有读取或写入任何用户内容。
+- Google 授权已到达账户选择页；未选择个人账户。真实邮箱/Google 回调、A/B 隔离、跨设备历史、D1/R2 对账及负向 provider/recovery 回放仍需受控测试账号，当前均为 `NOT_RUN`。
+- 对私有 Origin 的裸 HTTP 探针得到 401，原因是 Sites 私有访问门；它不能被解释为应用路由异常，原始结果保留在 `13_evidence/production-smoke-run.json`。
+
 ## 目标
 
 在不触发实际生产变更的前提下，建立 `S5-T3` 的可复现预检链路：

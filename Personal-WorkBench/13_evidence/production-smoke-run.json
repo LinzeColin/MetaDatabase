@@ -3,24 +3,69 @@
   "subject_phase": "S5-T3",
   "status": "BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK",
   "verdict": "NOT_ISSUED_PRE_VERIFIER",
-  "generated_at": "2026-08-08T21:47:09.580Z",
+  "generated_at": "2026-08-09T07:43:26.058Z",
   "environment": {
-    "production_origin_configured": false,
-    "production_origin_kind": "NOT_CONFIGURED",
+    "production_origin_configured": true,
+    "production_origin_kind": "HTTPS",
     "can_resolve_origin": false
   },
   "checks": {
     "routes": {
-      "root": null,
-      "sign_in": null,
-      "sign_up": null,
-      "forgot_password": null,
-      "verify_email": null,
-      "public_config": null,
-      "profile_probe": null
+      "root": {
+        "route": "/",
+        "ok": false,
+        "status": 401,
+        "reason": "HTTP_REACHABLE",
+        "duration_ms": 1540
+      },
+      "sign_in": {
+        "route": "/auth/sign-in",
+        "ok": false,
+        "status": 401,
+        "reason": "HTTP_REACHABLE",
+        "duration_ms": 60
+      },
+      "sign_up": {
+        "route": "/auth/sign-up",
+        "ok": false,
+        "status": 401,
+        "reason": "HTTP_REACHABLE",
+        "duration_ms": 50
+      },
+      "forgot_password": {
+        "route": "/auth/forgot-password",
+        "ok": false,
+        "status": 401,
+        "reason": "HTTP_REACHABLE",
+        "duration_ms": 57
+      },
+      "verify_email": {
+        "route": "/auth/verify-email",
+        "ok": false,
+        "status": 401,
+        "reason": "HTTP_REACHABLE",
+        "duration_ms": 46
+      },
+      "public_config": {
+        "route": "/api/auth/public-config",
+        "ok": false,
+        "status": 401,
+        "reason": "HTTP_REACHABLE",
+        "duration_ms": 51
+      },
+      "profile_probe": {
+        "route": "/api/workbench/profile",
+        "ok": false,
+        "status": 401,
+        "reason": "HTTP_REACHABLE",
+        "duration_ms": 64
+      }
     },
     "production_assets": {
-      "candidate_version_probe": null
+      "candidate_version_probe": {
+        "candidate_hint": "PRODUCTION_SMOKE does not auto-deploy; capture version externally",
+        "status": "NOT_EXECUTED"
+      }
     },
     "credentials": {
       "has_google_live_account": false,
@@ -30,7 +75,7 @@
     "evidence_links": {
       "owner_activation": {
         "exists": true,
-        "status": "BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK",
+        "status": "PASS_LOCAL_OWNER_ACTIVATION_PRECHECK",
         "phase": "S5-T2"
       },
       "auth_saved": {
@@ -40,13 +85,65 @@
       }
     }
   },
-  "command_results": [],
+  "command_results": [
+    {
+      "probe": "GET",
+      "route": "/",
+      "status": 401,
+      "ok": false,
+      "elapsed_ms": 1540
+    },
+    {
+      "probe": "GET",
+      "route": "/auth/sign-in",
+      "status": 401,
+      "ok": false,
+      "elapsed_ms": 60
+    },
+    {
+      "probe": "GET",
+      "route": "/auth/sign-up",
+      "status": 401,
+      "ok": false,
+      "elapsed_ms": 50
+    },
+    {
+      "probe": "GET",
+      "route": "/auth/forgot-password",
+      "status": 401,
+      "ok": false,
+      "elapsed_ms": 57
+    },
+    {
+      "probe": "GET",
+      "route": "/auth/verify-email",
+      "status": 401,
+      "ok": false,
+      "elapsed_ms": 46
+    },
+    {
+      "probe": "GET",
+      "route": "/api/auth/public-config",
+      "status": 401,
+      "ok": false,
+      "elapsed_ms": 51
+    },
+    {
+      "probe": "GET",
+      "route": "/api/workbench/profile",
+      "status": 401,
+      "ok": false,
+      "elapsed_ms": 64
+    }
+  ],
   "risks": [
-    "未设置生产 Origin（需配置 SITES_PRODUCTION_ORIGIN 或 PRODUCTION_SMOKE_ORIGIN）。"
+    "/api/auth/public-config 返回 401，客户端配置接口异常。",
+    "尚未注入生产真实账号验证流水线所需凭据（SITES_SMOKE_EMAIL / SITES_SMOKE_PASSWORD）。",
+    "尚未注入 Google 实时回放用账户（SITES_SMOKE_GOOGLE_EMAIL）。"
   ],
   "next_steps": [
-    "先设置生产环境地址（推荐 SITES_PRODUCTION_ORIGIN=https://xxx.pages.dev 或正式域名）。",
-    "完成 Sites Saved Candidate 部署并发布可访问 URL 后再执行本脚本。",
-    "生产 Origin 可达后执行 `npm run verify:owner-activation` 与 `npm run verify:public-launch` 复核环境门槛。"
+    "按阻断项补齐生产 Origin、真实账户凭据与回调环境。",
+    "优先完成 OAuth callback、邮件发送域、Turnstile 与生产 Side-effect 授权后重跑。",
+    "生产真实链路通过后，将 `SITES_SMOKE_EMAIL`、`SITES_SMOKE_PASSWORD` 与 Google 测试账户用于真实回放。"
   ]
 }
