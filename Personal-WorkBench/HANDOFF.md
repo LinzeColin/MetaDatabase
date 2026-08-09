@@ -2,10 +2,11 @@
 
 ## 当前目标
 
-完成真实外部 Owner 前置后重跑 S5-T2 激活预检；在此之前保持私有 Candidate，不得公开部署。
+完成真实运行时配置与 Cloudflare Owner 前置后重跑 S5-T2 激活预检；当前非商业素材权利已由精确哈希的 Owner attestation 覆盖，但在全量 S5/S6 门通过前仍不得公开部署。
 
 ## 当前状态
 
+- 2026-08-09：Owner 明确确认当前 Hello Kitty 素材可作非商业任意使用。已将该声明绑定到当前 37 个实际运行素材的确定性集合哈希 `092d33323db54d140abca6db940965ea25880487c86fe03fee010744f301384b`，而非虚构为外部原档或第一方代码。`13_evidence/owner_asset_rights_attestation.json` 记录非商业公开范围、现有容器路径约束、来源说明和 `NOT_PERFORMED` 的独立法律验证状态；`verify:assets` 只有在精确 hash、非商业范围、同容器路径和 Owner approval 都匹配时才产生 `PASS_FINAL_AUTHORIZED_ASSETS` / `APPROVED`。`verify:assets -- --public-deploy` 仅验证素材门并已通过，未触发任何部署。`verify:owner-activation` 已重跑，素材风险为 0，剩余 `BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK (16)` 全部为 1 项 Wrangler 身份、13 项运行时配置与 2 项运营者/隐私信息。未注入 Secret、未改 Sites 设置/访问、未部署、未访问用户数据、未上传 GitHub；任何商业化、素材字节变化或授权撤回均需新权利记录并重新生成 manifest。
 - 当前推进阶段：`S5_T2_OWNER_ACTIVATION_BLOCKED_EXTERNAL_PREREQUISITES`
 - 2026-08-09：S5-T2 当前预检已刷新，结果为 `BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK (17)`。已保存的 Version #1 链路全部通过：source identity 存在、project_id 与 hosting 一致、私有访问回读与无部署回读均为 true。Sites 控制面复核仍为 active/owner/custom、1 名允许用户、0 外部访客、Version #1、无 live/preview URL；运行时环境 entry count=0，未读取或记录任何值。`verify:assets -- --record` 以任务包输入通过（42 项素材、5 个 mask），但正确保留 `PRIVATE_CANDIDATE_PASS_PUBLIC_DEPLOY_BLOCKED` / `BLOCKED_ASSET_RIGHTS`。预检脚本现仅记录 APP_ORIGIN、回调和 Wrangler 到期的存在性/布尔状态，并已加入 Saved Candidate 一致性检查；Owner activation 与 release-evidence 脱敏回归、lint、typecheck 均通过。未配置 Secret、未改 Sites 设置/访问、未部署、未访问用户数据、未上传 GitHub。
 - 2026-08-09：S5-T1 已真实保存为 Sites 私有 Version #1。Sites source `main` 轻量回读为精确冻结 MetaDatabase commit `cf7b156e76376f9e7783b1b1d68f5e8b1f09eb85`；没有强制推送或覆盖远端。归档从该 commit 的 `Personal-WorkBench` tree `b831d4564fc01352edfa3f5f26020965f3825df4` 构建，local SHA-256 为 `dd61f9b1bfbefd610276b84121daffcf93a00fb8e805916fd18a91d76bf6976d`，且 `dist/server/index.js` 与 `dist/.openai/hosting.json` 已验证。PWB-S5-SOURCE-PROJECTION-001 的 `3eaf351c` 仅作为 tree-identical 独立审计身份，不替代实际 Sites source commit。保存前后均为 owner/custom、1 名允许用户、0 外部访客、0→1 个 Version、无 live/preview URL；运行时配置 entry count=0，未读取或记录任何值。真实证据见 `13_evidence/saved_version.json`；未部署、未改访问、未配置 Secret、未访问用户数据、未上传 GitHub。
@@ -201,5 +202,5 @@
 ## 下一步
 
 1. Owner 在对话外完成真实 Sites runtime 配置、Cloudflare/Wrangler 登录、Google callback、邮件发送域、Turnstile 与运营者/隐私信息；不得在仓库或对话中提供 Secret。
-2. 在公开 Deploy 前原位注入最终获授权 Hello Kitty 原始素材，并保存来源、权利和 hash 记录；当前参考截图、裁切素材及角色衍生素材不得作为第一方公开许可。
-3. 完成后在独立 run 重跑 [RUN_CONTRACT_S5_T2.md](/Users/linzezhang/.codex/worktrees/ef81/MetaDatabase/Personal-WorkBench/RUN_CONTRACT_S5_T2.md) 的预检；仅 risks 清零后才能推进 S5-T3 的受控私有部署、真实 OAuth/邮箱/Turnstile 与回滚采证。S5-T4、S6-T1 和 S6-T2 仍在其后；GitHub 上传继续保持全部任务包完成后。
+2. 保持当前 37 个素材的精确字节、容器路径和非商业范围；任何商业化、素材替换或授权撤回都必须先更新 `owner_asset_rights_attestation.json` 并重跑 `verify:assets -- --record`。
+3. 完成运行时前置后在独立 run 重跑 [RUN_CONTRACT_S5_T2.md](/Users/linzezhang/.codex/worktrees/ef81/MetaDatabase/Personal-WorkBench/RUN_CONTRACT_S5_T2.md) 的预检；仅 risks 清零后才能推进 S5-T3 的受控私有部署、真实 OAuth/邮箱/Turnstile 与回滚采证。S5-T4、S6-T1 和 S6-T2 仍在其后；GitHub 上传继续保持全部任务包完成后。

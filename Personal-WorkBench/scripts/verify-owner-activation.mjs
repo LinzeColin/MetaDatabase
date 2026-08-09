@@ -556,6 +556,16 @@ async function main() {
   }
 
   const assetStatus = summary.evidence.asset_manifest;
+  const authorizedAssetRecord = assetStatus.raw?.authorized_public_assets;
+  const attestationComplete =
+    assetStatus.status === "PASS_FINAL_AUTHORIZED_ASSETS" &&
+    assetStatus.raw?.public_release_policy?.current_state === "APPROVED" &&
+    assetStatus.raw?.public_release_policy?.authorization_scope === "NONCOMMERCIAL_PUBLIC_WEBSITE_ONLY" &&
+    isNonEmptyString(authorizedAssetRecord?.authorization_record) &&
+    authorizedAssetRecord?.asset_count === 37 &&
+    /^[a-f0-9]{64}$/.test(authorizedAssetRecord?.asset_set_sha256 ?? "") &&
+    authorizedAssetRecord?.same_container_paths_verified === true &&
+    authorizedAssetRecord?.independent_legal_verification === "NOT_PERFORMED";
   if (!assetStatus.exists) {
     summary.risks.push("未生成资产清单，无法确认公开素材权利是否已通过。");
   } else if (assetStatus.status === "PRIVATE_CANDIDATE_PASS_PUBLIC_DEPLOY_BLOCKED") {
@@ -564,11 +574,20 @@ async function main() {
     );
   } else if (assetStatus.raw?.public_release_policy?.current_state !== "APPROVED") {
     summary.risks.push(`资产公开状态不是 APPROVED：${assetStatus.raw?.public_release_policy?.current_state || "UNKNOWN"}。`);
+  } else if (!attestationComplete) {
+    summary.risks.push("资产公开状态虽为 APPROVED，但缺少非商业授权记录、精确素材哈希或同容器绑定，不能视为可验证的公开素材证据。");
   }
   summary.checks.asset_rights = {
     status: assetStatus.status,
     current_state: assetStatus.raw?.public_release_policy?.current_state ?? null,
     owner_declaration_present: isNonEmptyString(assetStatus.raw?.public_release_policy?.owner_declaration),
+    authorization_scope: assetStatus.raw?.public_release_policy?.authorization_scope ?? null,
+    attestation_record_present: isNonEmptyString(authorizedAssetRecord?.authorization_record),
+    attested_asset_count: authorizedAssetRecord?.asset_count ?? null,
+    attested_asset_set_hash_present: /^[a-f0-9]{64}$/.test(authorizedAssetRecord?.asset_set_sha256 ?? ""),
+    same_container_paths_verified: authorizedAssetRecord?.same_container_paths_verified === true,
+    independent_legal_verification: authorizedAssetRecord?.independent_legal_verification ?? null,
+    attestation_complete: attestationComplete,
   };
 
   const canRunWranglerWhoami =
@@ -756,8 +775,9 @@ async function main() {
   const ownerOk =
     summary.checks.owner_approval.owner_decision === "APPROVED" &&
     summary.checks.owner_approval.production_side_effect_authorization === true;
-  const assetOk = summary.checks.asset_rights?.status !== "PRIVATE_CANDIDATE_PASS_PUBLIC_DEPLOY_BLOCKED" &&
-    summary.checks.asset_rights?.current_state === "APPROVED";
+  const assetOk = summary.checks.asset_rights?.status === "PASS_FINAL_AUTHORIZED_ASSETS" &&
+    summary.checks.asset_rights?.current_state === "APPROVED" &&
+    summary.checks.asset_rights?.attestation_complete === true;
 
   const callbackOk =
     originChecked && callbacksReady && summary.checks.callbacks?.expected_callback_constructed === true;

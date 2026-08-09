@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "record_type": "OWNER_NONCOMMERCIAL_HELLO_KITTY_ASSET_RIGHTS_ATTESTATION",
+  "record_id": "PWB-OWNER-ASSET-RIGHTS-2026-08-09-NONCOMMERCIAL",
+  "project": "Personal-WorkBench",
+  "owner_decision": "APPROVED",
+  "rights_statement": "Owner 声明其持有使 Personal-WorkBench 在非商业公开网站中使用本记录所绑定 Hello Kitty 素材的有效授权。",
+  "source_record": "Owner 提供并纳入任务包的 Hello Kitty 视觉素材集合；本记录仅覆盖下列精确字节，不将参考截图或角色素材重新声明为第一方代码。",
+  "scope": {
+    "target": "Personal-WorkBench",
+    "non_commercial_public_use": true,
+    "commercial_use": "NOT_AUTHORIZED",
+    "public_distribution_of_exact_assets": true,
+    "exact_asset_bytes_only": true
+  },
+  "authorized_asset_set": {
+    "asset_count": 37,
+    "sha256": "092d33323db54d140abca6db940965ea25880487c86fe03fee010744f301384b",
+    "container_paths_unchanged": true
+  },
+  "first_party_license_included": false,
+  "independent_legal_verification": "NOT_PERFORMED",
+  "supersession_rule": "若改为商业使用、素材字节改变或 Owner 撤回授权，必须新建权利记录并重新生成 asset_manifest。",
+  "evidence_origin": "Owner 在 2026-08-09 的活跃交付对话中作出的非商业使用授权声明。"
+}

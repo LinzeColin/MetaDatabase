@@ -29,6 +29,7 @@
     "test:auth-saved": "node scripts/verify-saved-auth.mjs",
     "test:auth-runtime": "node --import ./tests/register-cloudflare-workers-loader.mjs --experimental-strip-types scripts/probe-local-auth-runtime.mjs",
     "test:owner-activation": "node --test tests/owner-activation-evidence.test.mjs",
+    "test:asset-rights": "node --test tests/asset-rights.test.mjs",
     "test:public-launch-preflight": "node --test tests/public-launch-preflight.test.mjs",
     "test:release-evidence": "node --test tests/release-evidence.test.mjs tests/preflight-evidence.test.mjs",
     "test:acceptance-sequence": "node --test tests/acceptance-sequence-addendum.test.mjs",

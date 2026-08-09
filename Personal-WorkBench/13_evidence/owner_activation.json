@@ -3,8 +3,8 @@
   "subject_phase": "S5-T2",
   "status": "BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK",
   "verdict": "NOT_ISSUED_PRE_VERIFIER",
-  "runAt": "2026-08-09T00:53:22.264Z",
-  "generated_at": "2026-08-09T00:53:22.264Z",
+  "runAt": "2026-08-09T01:14:01.870Z",
+  "generated_at": "2026-08-09T01:14:01.870Z",
   "environment": {
     "taskpack_available": true,
     "configuration_source": "local_environment_presence_only",
@@ -82,9 +82,16 @@
       "production_side_effect_authorization": true
     },
     "asset_rights": {
-      "status": "PRIVATE_CANDIDATE_PASS_PUBLIC_DEPLOY_BLOCKED",
-      "current_state": "BLOCKED_ASSET_RIGHTS",
-      "owner_declaration_present": true
+      "status": "PASS_FINAL_AUTHORIZED_ASSETS",
+      "current_state": "APPROVED",
+      "owner_declaration_present": true,
+      "authorization_scope": "NONCOMMERCIAL_PUBLIC_WEBSITE_ONLY",
+      "attestation_record_present": true,
+      "attested_asset_count": 37,
+      "attested_asset_set_hash_present": true,
+      "same_container_paths_verified": true,
+      "independent_legal_verification": "NOT_PERFORMED",
+      "attestation_complete": true
     },
     "callbacks": {
       "app_origin_present": false,
@@ -162,7 +169,7 @@
     "asset_manifest": {
       "source": "13_evidence/asset_manifest.json",
       "exists": true,
-      "status": "PRIVATE_CANDIDATE_PASS_PUBLIC_DEPLOY_BLOCKED"
+      "status": "PASS_FINAL_AUTHORIZED_ASSETS"
     },
     "release_verifier": {
       "source": "13_evidence/verifier.json",
@@ -195,8 +202,7 @@
     "SITES_BINDINGS_CONTRACT 约定密钥未完整配置到环境：BETTER_AUTH_SECRET, APP_ORIGIN, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, RESEND_API_KEY, MAIL_FROM, TURNSTILE_SITE_KEY, TURNSTILE_SECRET_KEY",
     "缺少运营者名称（LEGAL_OPERATOR_NAME）。",
     "缺少隐私联系邮箱（PRIVACY_CONTACT_EMAIL）。",
-    "缺少隐私声明环境值：PRIVACY_POLICY_VERSION 或 PRIVACY_NOTICE_SHA256。",
-    "asset_manifest 当前状态为 PUBLIC_DEPLOY_BLOCKED：公开授权素材权利和最终素材替换尚未提交。必须阻断本地预检通过。"
+    "缺少隐私声明环境值：PRIVACY_POLICY_VERSION 或 PRIVACY_NOTICE_SHA256。"
   ],
   "next_steps": [
     "按 RUN_CONTRACT_S5_T2.md 逐项推进：先完成本地身份与证据口径齐套，再进入生产副作用授权。",

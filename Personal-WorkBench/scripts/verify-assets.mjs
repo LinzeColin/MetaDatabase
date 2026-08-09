@@ -1,10 +1,13 @@
 import { createHash } from "node:crypto";
 import { access, readFile, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
-const evidencePath = join(root, "13_evidence", "asset_manifest.json");
+const evidencePath = process.env.ASSET_MANIFEST_FILE || join(root, "13_evidence", "asset_manifest.json");
+const rightsAttestationPath =
+  process.env.ASSET_RIGHTS_ATTESTATION_FILE ||
+  join(root, "13_evidence", "owner_asset_rights_attestation.json");
 const taskpackRoot = process.env.TASKPACK_ROOT;
 const record = process.argv.includes("--record");
 const publicDeploy = process.argv.includes("--public-deploy");
@@ -76,7 +79,7 @@ async function sha256(path) {
   return createHash("sha256").update(await readFile(path)).digest("hex");
 }
 
-function localEntries() {
+export function localEntries({ publicAuthorized = false } = {}) {
   const crops = Object.entries(privateCrops).map(([name, sha256]) => ({
     path: `public/private-reference-assets/${name}`,
     source: `02_visual/private_reference_assets/${name}`,
@@ -92,18 +95,83 @@ function localEntries() {
   return [...crops, ...runtime].map((entry) => ({
     ...entry,
     source_description: "用户提供视觉真值或其受控衍生素材",
-    rights_status: "OWNER_DECLARED_PRIVATE_VALIDATION_ALLOWED",
-    allowed_use: "private Saved Candidate, layout calibration and visual diff only",
-    public_deploy: "REQUIRES_FINAL_AUTHORIZED_ASSET_RECORD",
+    rights_status: publicAuthorized
+      ? "OWNER_ATTESTED_NONCOMMERCIAL_PUBLIC_USE_ALLOWED"
+      : "OWNER_DECLARED_PRIVATE_VALIDATION_ALLOWED",
+    allowed_use: publicAuthorized
+      ? "noncommercial public website use for this exact file, preserving current container paths and visual truth anchors"
+      : "private Saved Candidate, layout calibration and visual diff only",
+    public_deploy: publicAuthorized
+      ? "ALLOWED_WITHIN_OWNER_NONCOMMERCIAL_EXACT_ASSET_SCOPE"
+      : "REQUIRES_FINAL_AUTHORIZED_ASSET_RECORD",
     first_party_license_included: false,
   }));
 }
 
-function report() {
+function isNonEmptyString(value) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+export function assetSetSha256(entries) {
+  const canonical = entries
+    .map(({ path, sha256 }) => ({ path, sha256 }))
+    .sort((left, right) => left.path.localeCompare(right.path));
+  return createHash("sha256").update(JSON.stringify(canonical)).digest("hex");
+}
+
+export function evaluateOwnerAssetRightsAttestation(attestation, entries = localEntries()) {
+  const assetSetHash = assetSetSha256(entries);
+  const reasons = [];
+  const scope = attestation?.scope;
+  const assetSet = attestation?.authorized_asset_set;
+
+  if (attestation?.schema_version !== "1.0.0") reasons.push("schema_version");
+  if (attestation?.record_type !== "OWNER_NONCOMMERCIAL_HELLO_KITTY_ASSET_RIGHTS_ATTESTATION") {
+    reasons.push("record_type");
+  }
+  if (!isNonEmptyString(attestation?.record_id)) reasons.push("record_id");
+  if (attestation?.project !== "Personal-WorkBench") reasons.push("project");
+  if (attestation?.owner_decision !== "APPROVED") reasons.push("owner_decision");
+  if (!isNonEmptyString(attestation?.rights_statement)) reasons.push("rights_statement");
+  if (!isNonEmptyString(attestation?.source_record)) reasons.push("source_record");
+  if (!isNonEmptyString(attestation?.evidence_origin)) reasons.push("evidence_origin");
+  if (scope?.target !== "Personal-WorkBench") reasons.push("scope.target");
+  if (scope?.non_commercial_public_use !== true) reasons.push("scope.non_commercial_public_use");
+  if (scope?.commercial_use !== "NOT_AUTHORIZED") reasons.push("scope.commercial_use");
+  if (scope?.public_distribution_of_exact_assets !== true) reasons.push("scope.public_distribution_of_exact_assets");
+  if (scope?.exact_asset_bytes_only !== true) reasons.push("scope.exact_asset_bytes_only");
+  if (assetSet?.asset_count !== entries.length) reasons.push("authorized_asset_set.asset_count");
+  if (assetSet?.sha256 !== assetSetHash) reasons.push("authorized_asset_set.sha256");
+  if (assetSet?.container_paths_unchanged !== true) reasons.push("authorized_asset_set.container_paths_unchanged");
+  if (attestation?.first_party_license_included !== false) reasons.push("first_party_license_included");
+  if (attestation?.independent_legal_verification !== "NOT_PERFORMED") {
+    reasons.push("independent_legal_verification");
+  }
+
   return {
-    schema_version: "3.0.0",
+    approved: reasons.length === 0,
+    asset_count: entries.length,
+    asset_set_sha256: assetSetHash,
+    record_id: isNonEmptyString(attestation?.record_id) ? attestation.record_id : null,
+    reasons,
+  };
+}
+
+async function readOwnerAssetRightsAttestation() {
+  try {
+    return JSON.parse(await readFile(rightsAttestationPath, "utf8"));
+  } catch (error) {
+    if (error?.code === "ENOENT") return null;
+    throw new Error("owner asset-rights attestation is unreadable");
+  }
+}
+
+function report(rightsDecision) {
+  const publicAuthorized = rightsDecision.approved;
+  return {
+    schema_version: "3.1.0",
     task_id: "S1-T1",
-    status: "PRIVATE_CANDIDATE_PASS_PUBLIC_DEPLOY_BLOCKED",
+    status: publicAuthorized ? "PASS_FINAL_AUTHORIZED_ASSETS" : "PRIVATE_CANDIDATE_PASS_PUBLIC_DEPLOY_BLOCKED",
     generated_at: new Date().toISOString(),
     asset_count: 42,
     visual_truth_inputs: visualTruth.map(([path, sha256]) => ({
@@ -114,13 +182,32 @@ function report() {
       allowed_use: "private Saved Candidate, visual truth and diff",
     })),
     visual_masks: masks.map(([path, sha256]) => ({ path, sha256, compare_rule: "white=ignore, black=compare" })),
-    private_candidate_assets: localEntries(),
+    private_candidate_assets: localEntries({ publicAuthorized }),
+    authorized_public_assets: publicAuthorized
+      ? {
+          authorization_record: "13_evidence/owner_asset_rights_attestation.json",
+          authorization_basis: "OWNER_ATTESTATION_NONCOMMERCIAL_EXACT_SHA256",
+          asset_count: rightsDecision.asset_count,
+          asset_set_sha256: rightsDecision.asset_set_sha256,
+          scope: "NONCOMMERCIAL_PUBLIC_WEBSITE_ONLY",
+          source_record: "owner-supplied taskpack visual asset set; exact files remain classified by their original provenance",
+          same_container_paths_verified: true,
+          independent_legal_verification: "NOT_PERFORMED",
+        }
+      : null,
     public_release_policy: {
-      owner_declaration: "OWNER_APPROVAL.json",
-      current_state: "BLOCKED_ASSET_RIGHTS",
-      required_before_public_deploy: "final authorized original assets + rights record + same-container replacement",
+      owner_declaration: publicAuthorized
+        ? "OWNER_APPROVAL.json + 13_evidence/owner_asset_rights_attestation.json"
+        : "OWNER_APPROVAL.json",
+      current_state: publicAuthorized ? "APPROVED" : "BLOCKED_ASSET_RIGHTS",
+      required_before_public_deploy: publicAuthorized
+        ? "exact owner-attested noncommercial asset set must remain hash-identical and in the same container paths"
+        : "final authorized original assets + rights record + same-container replacement",
       replacement_rule: "不得改变容器、裁切框、尺寸、位置、页面结构或 reference anchors",
       first_party_license_scope: "不包含 Hello Kitty、参考截图或衍生角色素材",
+      authorization_scope: publicAuthorized ? "NONCOMMERCIAL_PUBLIC_WEBSITE_ONLY" : "PRIVATE_SAVED_CANDIDATE_ONLY",
+      attestation_record_id: publicAuthorized ? rightsDecision.record_id : null,
+      attested_asset_set_sha256: publicAuthorized ? rightsDecision.asset_set_sha256 : null,
     },
   };
 }
@@ -142,29 +229,45 @@ async function main() {
   }
 
   const taskpackInputsVerified = await verifyTaskpackInputs();
-  const nextReport = report();
+  const ownerAttestation = await readOwnerAssetRightsAttestation();
+  const rightsDecision = evaluateOwnerAssetRightsAttestation(ownerAttestation, expected);
+  const nextReport = report(rightsDecision);
   if (record) await writeFile(evidencePath, `${JSON.stringify(nextReport, null, 2)}\n`, "utf8");
 
-  let manifest = nextReport;
+  let manifest;
   try {
     manifest = JSON.parse(await readFile(evidencePath, "utf8"));
   } catch {
-    if (!record) throw new Error("asset manifest missing; run npm run verify:assets -- --record after S1 asset intake");
+    throw new Error("asset manifest missing; run npm run verify:assets -- --record after S1 asset intake");
   }
-  assert(manifest.status === "PRIVATE_CANDIDATE_PASS_PUBLIC_DEPLOY_BLOCKED", "asset manifest must preserve the public asset-rights block");
+  assert(manifest.status === nextReport.status, "asset manifest is stale; rerun npm run verify:assets -- --record");
+  assert(
+    manifest.public_release_policy?.current_state === nextReport.public_release_policy.current_state,
+    "asset manifest public release policy is stale; rerun npm run verify:assets -- --record"
+  );
   assert(manifest.private_candidate_assets?.length === 37, "asset manifest must account for all 37 private candidate assets");
+  if (rightsDecision.approved) {
+    assert(
+      manifest.authorized_public_assets?.asset_set_sha256 === rightsDecision.asset_set_sha256,
+      "approved asset manifest is missing its attested asset-set hash"
+    );
+  }
 
-  if (publicDeploy) {
+  if (publicDeploy && !rightsDecision.approved) {
     throw new Error("BLOCKED_ASSET_RIGHTS: final authorized Hello Kitty originals and a rights record are absent; public Deploy is forbidden");
   }
 
   console.log(JSON.stringify({
-    status: "PASS_PRIVATE_CANDIDATE_PUBLIC_DEPLOY_BLOCKED",
+    status: rightsDecision.approved ? "PASS_FINAL_AUTHORIZED_ASSETS" : "PASS_PRIVATE_CANDIDATE_PUBLIC_DEPLOY_BLOCKED",
     asset_count: expected.length + visualTruth.length,
     masks_verified: masks.length,
     taskpack_inputs_verified: taskpackInputsVerified,
+    public_deploy_asset_gate: rightsDecision.approved ? "APPROVED_NONCOMMERCIAL_OWNER_ATTESTATION" : "BLOCKED_ASSET_RIGHTS",
+    asset_rights_record_id: rightsDecision.record_id,
     evidence: "13_evidence/asset_manifest.json",
   }));
 }
 
-await main();
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  await main();
+}
