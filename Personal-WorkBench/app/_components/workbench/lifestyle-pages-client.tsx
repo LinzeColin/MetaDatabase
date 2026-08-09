@@ -14,9 +14,14 @@ import {
   withRequestId,
   yuanToCents,
 } from "./tenant-resource-client";
+import { isDeviceLocalRecord } from "./local-record-cache";
 
 const PRIVATE_ASSET_ROOT = "/private-reference-assets";
 const RUNTIME_ASSET_ROOT = `${PRIVATE_ASSET_ROOT}/runtime`;
+
+function saveFeedback(saved: TenantRecord, synced: string, local: string): string {
+  return isDeviceLocalRecord(saved) ? local : synced;
+}
 
 type HabitCard = {
   icon: string;
@@ -202,19 +207,21 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
     const saved = await checkins.create({ habitId: habit.id, localDate: today });
     setFeedback(
       saved
-        ? `已完成${card.label}打卡，历史记录已同步。`
+        ? saveFeedback(
+          saved,
+          `已完成${card.label}打卡，历史记录已同步。`,
+          `已完成${card.label}打卡，记录已保存在当前设备。`,
+        )
         : `未完成${card.label}打卡：请先登录并完成邮箱验证，或检查网络后重试。`,
     );
   }
 
   // Both reads are independent. If one returns the authoritative 401 while
-  // the other is interrupted, the next actionable step is still sign-in—not
-  // a misleading generic network diagnosis.
+  // the other is interrupted, the local-save state stays visible and the
+  // sign-in link remains the next actionable step.
   const authRequired = habits.authRequired || checkins.authRequired;
   const loginSuggested = habits.loginSuggested || checkins.loginSuggested;
-  const statusError = authRequired
-    ? "请先登录并完成邮箱验证，再保存和查看你的历史记录。"
-    : habits.error || checkins.error;
+  const statusError = habits.error || checkins.error;
 
   return (
     <>
@@ -322,7 +329,7 @@ export function LedgerClient({ fixtureDate, reference }: { fixtureDate: string; 
     if (!saved) return;
     setAmount("");
     setNote("");
-    setFeedback("已保存，历史账单已更新。");
+    setFeedback(saveFeedback(saved, "已保存，历史账单已更新。", "账单已保存在当前设备。"));
   }
 
   return (
@@ -472,7 +479,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
     setUploadFeedback("照片已选好，保存饮食记录时会一起写入你的私有空间。");
   }
 
-  async function uploadFoodPhoto(): Promise<{ id?: string; ok: boolean }> {
+  async function uploadFoodPhoto(): Promise<{ id?: string; localOnly?: boolean; ok: boolean }> {
     if (!photoFile) return { ok: true };
     const form = new FormData();
     form.set("module", "food");
@@ -484,18 +491,20 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
         method: "POST",
       });
       if (!response.ok) {
-        setUploadFeedback(response.status === 401 ? "请先登录后再上传照片。" : "照片暂时无法保存，请检查后重试。");
-        return { ok: false };
+        setUploadFeedback(response.status === 401
+          ? "照片未上传；饮食文字记录仍会保存在当前设备。"
+          : "照片暂时无法保存；饮食文字记录仍会保存在当前设备。");
+        return { localOnly: true, ok: true };
       }
       const value = (await response.json().catch(() => null)) as { data?: { id?: unknown } } | null;
       if (typeof value?.data?.id !== "string") {
-        setUploadFeedback("照片保存结果不完整，请重试。");
-        return { ok: false };
+        setUploadFeedback("照片保存结果不完整；饮食文字记录仍会保存在当前设备。");
+        return { localOnly: true, ok: true };
       }
       return { id: value.data.id, ok: true };
     } catch {
-      setUploadFeedback("当前网络不可用，照片尚未保存。");
-      return { ok: false };
+      setUploadFeedback("当前网络不可用，照片未上传；饮食文字记录仍会保存在当前设备。");
+      return { localOnly: true, ok: true };
     }
   }
 
@@ -538,13 +547,18 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
       await discardUploadedPhoto(upload.id);
       return;
     }
+    let photoNotice = upload.localOnly ? "照片未上传；本条饮食文字记录已保存在当前设备。" : "";
+    if (isDeviceLocalRecord(saved) && upload.id) {
+      await discardUploadedPhoto(upload.id);
+      photoNotice = "照片未随本机记录保存；饮食文字记录已保存在当前设备。";
+    }
     setFood("");
     setCalories("0");
     setNote("");
     setPhotoFile(null);
     setPhotoName("");
-    setUploadFeedback("");
-    setModuleFeedback("饮食记录已保存，历史记录已更新。");
+    setUploadFeedback(photoNotice);
+    setModuleFeedback(saveFeedback(saved, "饮食记录已保存，历史记录已更新。", "饮食记录已保存在当前设备。"));
   }
 
   async function addExerciseRecord() {
@@ -575,7 +589,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
     setDurationMinutes("");
     setCaloriesBurned("");
     setNote("");
-    setModuleFeedback("运动记录已保存，历史记录已更新。");
+    setModuleFeedback(saveFeedback(saved, "运动记录已保存，历史记录已更新。", "运动记录已保存在当前设备。"));
   }
 
   async function addWeightRecord() {
@@ -590,7 +604,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
     if (!saved) return;
     setWeightKg("");
     setNote("");
-    setModuleFeedback("体重记录已保存，历史记录已更新。");
+    setModuleFeedback(saveFeedback(saved, "体重记录已保存，历史记录已更新。", "体重记录已保存在当前设备。"));
   }
 
   return (
@@ -681,14 +695,6 @@ export function PeriodClient({ reference }: { reference: boolean }) {
 
   async function addPeriodRecord() {
     if (reference) return;
-    if (periods.authRequired) {
-      setFeedback("请先登录并完成邮箱验证，再保存经期记录和查看同步历史。");
-      return;
-    }
-    if (periods.consentRequired) {
-      setFeedback("请先在账户页开启敏感内容跨设备保存，再记录经期。");
-      return;
-    }
     const start = startDate.trim();
     const end = endDate.trim() || start;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end)) {
@@ -708,7 +714,7 @@ export function PeriodClient({ reference }: { reference: boolean }) {
     setStartDate(todayIsoDate());
     setEndDate(todayIsoDate());
     setNote("");
-    setFeedback("经期记录已保存，历史记录已更新。");
+    setFeedback(saveFeedback(saved, "经期记录已保存，历史记录已更新。", "经期记录已保存在当前设备。"));
   }
 
   return (
@@ -808,7 +814,7 @@ export function GenericPageClient({
     if (!saved) return;
     setTitle("");
     setNote("");
-    setFeedback("日程已保存，历史列表已更新。");
+    setFeedback(saveFeedback(saved, "日程已保存，历史列表已更新。", "日程已保存在当前设备。"));
   }
 
   async function submitAnniversary() {
@@ -824,7 +830,7 @@ export function GenericPageClient({
     if (!saved) return;
     setTitle("");
     setNote("");
-    setFeedback("纪念日已保存，历史列表已更新。");
+    setFeedback(saveFeedback(saved, "纪念日已保存，历史列表已更新。", "纪念日已保存在当前设备。"));
   }
 
   async function submitDiary() {
@@ -841,7 +847,7 @@ export function GenericPageClient({
     setTitle("");
     setMood("");
     setBody("");
-    setFeedback("日记已保存，历史列表已更新。");
+    setFeedback(saveFeedback(saved, "日记已保存，历史列表已更新。", "日记已保存在当前设备。"));
   }
 
   async function submitSavingsGoal() {
@@ -864,7 +870,7 @@ export function GenericPageClient({
     setTargetAmount("");
     setTargetDate("");
     setGoalId(saved.id);
-    setFeedback("存钱计划已保存，可以继续记录存入金额。");
+    setFeedback(saveFeedback(saved, "存钱计划已保存，可以继续记录存入金额。", "存钱计划已保存在当前设备，可以继续记录存入金额。"));
   }
 
   async function submitSavingsTransaction() {
@@ -882,7 +888,7 @@ export function GenericPageClient({
     if (!saved) return;
     setTransactionAmount("");
     setNote("");
-    setFeedback("存入记录已保存，历史列表已更新。");
+    setFeedback(saveFeedback(saved, "存入记录已保存，历史列表已更新。", "存入记录已保存在当前设备。"));
   }
 
   const action = route === "schedule"
