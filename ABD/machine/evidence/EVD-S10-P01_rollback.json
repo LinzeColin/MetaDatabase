@@ -1,0 +1,40 @@
+{
+  "artifacts": {
+    "abd_acceptance/temporal_calibration.py": {
+      "sha256": "9ef5606c3f34bd05229d1cc9dcb9925f8cb81710b16479c279cb8f47a3609e72",
+      "status": "PASS"
+    },
+    "calibration.py": {
+      "sha256": "45cb5b4e6faff615e8ea1df099db49954d33608d19a98cc39f6d094bade416d9",
+      "status": "PASS"
+    },
+    "calibration_report.json": {
+      "sha256": "acf155d7e1db64f4a342ee0c46e682bcfb616fcf60b4a349726feafae0a9eb3a",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S10_P01.json": {
+      "sha256": "92bc4b27ae3e77d07cabba904a5be75559c536d6f7a3214fa00f43f744bafad0",
+      "status": "PASS"
+    },
+    "temporal_cv.py": {
+      "sha256": "7b49a6ecca7decaead682a8400b9b3189838c64ddfb77a7d846731e27549ae72",
+      "status": "PASS"
+    },
+    "tests/S10/P01_test.py": {
+      "sha256": "e9f23aa81c859da5868042ccbd26f3f1e4143b1f86f38263409bb3598f256b70",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S10-P01",
+  "evidence_id": "EVD-S10-P01-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "model:temporal_calibration",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_TEMPORAL_CALIBRATION_SCOPED_FLAG_RESTORE_SIGNED_S09_PREDECESSORS_KEEP_ALL_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

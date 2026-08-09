@@ -505,6 +505,8 @@ def _audit_imports(
         "baseball_model",
         "outlier_detector",
         "line_movement",
+        "calibration",
+        "temporal_cv",
     }
     stdlib = set(sys.stdlib_module_names)
     for path in paths:

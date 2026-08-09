@@ -1,0 +1,433 @@
+{
+  "contract_id": "AC-S10-P01",
+  "decision": "TEMPORAL_CALIBRATION_READY_DOWNSTREAM_UNCERTAINTY_GATES_REQUIRED",
+  "external_effect_boundary": {
+    "actual_market_or_odds_observed": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "folds": [
+    {
+      "binary_training_count": 72,
+      "binary_validation_count": 30,
+      "fold_id": "F01",
+      "isotonic_model": [
+        {
+          "total": "6",
+          "upper": "0.25",
+          "value": "0.25",
+          "weight": "24"
+        },
+        {
+          "total": "12",
+          "upper": "0.5",
+          "value": "0.5",
+          "weight": "24"
+        },
+        {
+          "total": "18",
+          "upper": "0.75",
+          "value": "0.75",
+          "weight": "24"
+        }
+      ],
+      "logistic_model": {
+        "intercept": "-0.000000000000000000000000000000000000000000000000015989340439706862091938707528314457028647568287812",
+        "iterations": "48",
+        "slope": "1"
+      },
+      "multiclass_training_count": 30,
+      "multiclass_validation_count": 10,
+      "multiclass_validation_probability_sum": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "temperature": "1"
+    },
+    {
+      "binary_training_count": 102,
+      "binary_validation_count": 30,
+      "fold_id": "F02",
+      "isotonic_model": [
+        {
+          "total": "8",
+          "upper": "0.25",
+          "value": "0.2352941176470588235294117647",
+          "weight": "34"
+        },
+        {
+          "total": "17",
+          "upper": "0.5",
+          "value": "0.5",
+          "weight": "34"
+        },
+        {
+          "total": "25",
+          "upper": "0.75",
+          "value": "0.7352941176470588235294117647",
+          "weight": "34"
+        }
+      ],
+      "logistic_model": {
+        "intercept": "-0.047049259392109420895820166909212986580892527654201",
+        "iterations": "48",
+        "slope": "1.0005034297793275740077498099805609317829831324788"
+      },
+      "multiclass_training_count": 40,
+      "multiclass_validation_count": 10,
+      "multiclass_validation_probability_sum": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "temperature": "1"
+    },
+    {
+      "binary_training_count": 132,
+      "binary_validation_count": 30,
+      "fold_id": "F03",
+      "isotonic_model": [
+        {
+          "total": "10",
+          "upper": "0.25",
+          "value": "0.2272727272727272727272727273",
+          "weight": "44"
+        },
+        {
+          "total": "22",
+          "upper": "0.5",
+          "value": "0.5",
+          "weight": "44"
+        },
+        {
+          "total": "32",
+          "upper": "0.75",
+          "value": "0.7272727272727272727272727273",
+          "weight": "44"
+        }
+      ],
+      "logistic_model": {
+        "intercept": "-0.072747297895173059039055566442619904297858403560103",
+        "iterations": "48",
+        "slope": "1.0012038123805851264874828965017869369092786439533"
+      },
+      "multiclass_training_count": 50,
+      "multiclass_validation_count": 10,
+      "multiclass_validation_probability_sum": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "temperature": "1"
+    },
+    {
+      "binary_training_count": 162,
+      "binary_validation_count": 30,
+      "fold_id": "F04",
+      "isotonic_model": [
+        {
+          "total": "12",
+          "upper": "0.25",
+          "value": "0.2222222222222222222222222222",
+          "weight": "54"
+        },
+        {
+          "total": "27",
+          "upper": "0.5",
+          "value": "0.5",
+          "weight": "54"
+        },
+        {
+          "total": "39",
+          "upper": "0.75",
+          "value": "0.7222222222222222222222222222",
+          "weight": "54"
+        }
+      ],
+      "logistic_model": {
+        "intercept": "-0.088947473043242276747325764659645035112871401475642",
+        "iterations": "48",
+        "slope": "1.0017999322730608146264202449121977247672678713723"
+      },
+      "multiclass_training_count": 60,
+      "multiclass_validation_count": 10,
+      "multiclass_validation_probability_sum": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "temperature": "1"
+    },
+    {
+      "binary_training_count": 192,
+      "binary_validation_count": 30,
+      "fold_id": "F05",
+      "isotonic_model": [
+        {
+          "total": "14",
+          "upper": "0.25",
+          "value": "0.21875",
+          "weight": "64"
+        },
+        {
+          "total": "32",
+          "upper": "0.5",
+          "value": "0.5",
+          "weight": "64"
+        },
+        {
+          "total": "46",
+          "upper": "0.75",
+          "value": "0.71875",
+          "weight": "64"
+        }
+      ],
+      "logistic_model": {
+        "intercept": "-0.10009600093864801823174239860598762601270267239987",
+        "iterations": "48",
+        "slope": "1.0022796544511349991687741017569481565937856123595"
+      },
+      "multiclass_training_count": 70,
+      "multiclass_validation_count": 10,
+      "multiclass_validation_probability_sum": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "temperature": "1"
+    },
+    {
+      "binary_training_count": 222,
+      "binary_validation_count": 30,
+      "fold_id": "F06",
+      "isotonic_model": [
+        {
+          "total": "17",
+          "upper": "0.25",
+          "value": "0.2297297297297297297297297297",
+          "weight": "74"
+        },
+        {
+          "total": "37",
+          "upper": "0.5",
+          "value": "0.5",
+          "weight": "74"
+        },
+        {
+          "total": "54",
+          "upper": "0.75",
+          "value": "0.7297297297297297297297297297",
+          "weight": "74"
+        }
+      ],
+      "logistic_model": {
+        "intercept": "-0.064883821081058765942992911619415704311624412085901",
+        "iterations": "48",
+        "slope": "1.0009578040108407978609118429196753477053401344062"
+      },
+      "multiclass_training_count": 80,
+      "multiclass_validation_count": 10,
+      "multiclass_validation_probability_sum": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "temperature": "1"
+    },
+    {
+      "binary_training_count": 252,
+      "binary_validation_count": 30,
+      "fold_id": "F07",
+      "isotonic_model": [
+        {
+          "total": "20",
+          "upper": "0.25",
+          "value": "0.2380952380952380952380952381",
+          "weight": "84"
+        },
+        {
+          "total": "42",
+          "upper": "0.5",
+          "value": "0.5",
+          "weight": "84"
+        },
+        {
+          "total": "62",
+          "upper": "0.75",
+          "value": "0.7380952380952380952380952381",
+          "weight": "84"
+        }
+      ],
+      "logistic_model": {
+        "intercept": "-0.03809465987454132630887016684357609713172139811557",
+        "iterations": "48",
+        "slope": "1.0003301586120719810230751013814325919496873229608"
+      },
+      "multiclass_training_count": 90,
+      "multiclass_validation_count": 10,
+      "multiclass_validation_probability_sum": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "temperature": "1"
+    },
+    {
+      "binary_training_count": 282,
+      "binary_validation_count": 30,
+      "fold_id": "F08",
+      "isotonic_model": [
+        {
+          "total": "23",
+          "upper": "0.25",
+          "value": "0.2446808510638297872340425532",
+          "weight": "94"
+        },
+        {
+          "total": "47",
+          "upper": "0.5",
+          "value": "0.5",
+          "weight": "94"
+        },
+        {
+          "total": "70",
+          "upper": "0.75",
+          "value": "0.7446808510638297872340425532",
+          "weight": "94"
+        }
+      ],
+      "logistic_model": {
+        "intercept": "-0.017018975287701443603806029774264088724220306586649",
+        "iterations": "48",
+        "slope": "1.0000658965866291453030760678689180551286578089207"
+      },
+      "multiclass_training_count": 100,
+      "multiclass_validation_count": 10,
+      "multiclass_validation_probability_sum": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "temperature": "1"
+    }
+  ],
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "method_comparison": [
+    {
+      "family": "BINARY",
+      "method_id": "ISOTONIC_BINARY",
+      "metrics": {
+        "eligible": true,
+        "intercept": "0.01286187628861760770021169723809828688739352686027",
+        "mean_absolute_error": "0.011162926164099505776602147066666666666666666666667",
+        "slope": "0.99652450639394746744046563136693584394918695070277"
+      }
+    },
+    {
+      "family": "BINARY",
+      "method_id": "LOGISTIC_BINARY",
+      "metrics": {
+        "eligible": true,
+        "intercept": "0.01183602541829443884518301071105804148773455926515",
+        "mean_absolute_error": "0.011159692958247470470851216545223387001804674777663",
+        "slope": "0.99861645520980085244970582121130890141587647056712"
+      }
+    },
+    {
+      "family": "MULTICLASS",
+      "method_id": "TEMPERATURE_MULTICLASS",
+      "metrics": {
+        "eligible": true,
+        "intercept": "0.00000000000000000000000000000000000000000000000049",
+        "mean_absolute_error": "0",
+        "slope": "0.99999999999999999999999999999999999999999999999853"
+      }
+    }
+  ],
+  "next": "S10/P02_READY_NOT_STARTED",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "report_id": "RPT-S10-P01-TEMPORAL-CALIBRATION",
+  "requirement_id": "REQ-S10-P01",
+  "schema_version": "1.0.0",
+  "selected_methods": {
+    "binary": "LOGISTIC_BINARY",
+    "multiclass": "TEMPERATURE_MULTICLASS"
+  },
+  "stage_id": "S10",
+  "summary": {
+    "all_methods_eligible": true,
+    "binary_validation_count": 240,
+    "multiclass_validation_count": 80,
+    "pass_gate": "斜率0.90–1.10、截距绝对值≤0.02。"
+  },
+  "temporal_folds": 8
+}
