@@ -74,17 +74,21 @@ test("e2e smoke: every primary menu route renders its own normal-mode content", 
   }
 });
 
-test("e2e smoke: email verification recovery and post-verification sign-in guidance render", async () => {
-  const [verification, verifiedSignIn] = await Promise.all([
+test("e2e smoke: email verification recovery and sign-in status guidance render", async () => {
+  const [verification, verifiedSignIn, signedOutSignIn] = await Promise.all([
     render("/auth/verify-email"),
     render("/auth/sign-in?verified=1"),
+    render("/auth/sign-in?signed_out=1"),
   ]);
   assert.equal(verification.status, 200);
   assert.equal(verifiedSignIn.status, 200);
+  assert.equal(signedOutSignIn.status, 200);
 
   const verificationHtml = await verification.text();
   const verifiedSignInHtml = await verifiedSignIn.text();
+  const signedOutSignInHtml = await signedOutSignIn.text();
   assert.match(verificationHtml, /验证邮箱/);
   assert.match(verificationHtml, /重新发送验证邮件/);
   assert.match(verifiedSignInHtml, /邮箱已验证，请登录。/);
+  assert.match(signedOutSignInHtml, /已退出登录。/);
 });

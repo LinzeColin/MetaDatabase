@@ -245,3 +245,22 @@ test("email sign-up and password reset keep the documented callback contracts", 
     body: { newPassword: "correct-horse-battery-staple", token: "reset-token" },
   });
 });
+
+test("account sign-out uses the Better Auth same-origin endpoint and returns to a neutral login message", async () => {
+  const [accountPage, authForm] = await Promise.all([
+    readFile(new URL("../app/account/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8"),
+  ]);
+  const signOutSection = accountPage.slice(
+    accountPage.indexOf("async function signOut"),
+    accountPage.indexOf("async function setConsent"),
+  );
+
+  assert.match(signOutSection, /fetch\("\/api\/auth\/sign-out"/);
+  assert.match(signOutSection, /method: "POST"/);
+  assert.match(signOutSection, /credentials: "same-origin"/);
+  assert.match(accountPage, /window\.location\.assign\("\/auth\/sign-in\?signed_out=1"\)/);
+  assert.match(accountPage, />退出登录</);
+  assert.match(authForm, /searchParams\.get\("signed_out"\) === "1"/);
+  assert.match(authForm, /已退出登录。/);
+});

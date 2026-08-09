@@ -73,7 +73,12 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
   const searchParams = useSearchParams();
   const usesTurnstile = usesTurnstileFor(mode);
   const showVerifiedSignInMessage = mode === "sign-in" && searchParams.get("verified") === "1" && message === initialMessages["sign-in"];
-  const displayedMessage = showVerifiedSignInMessage ? "邮箱已验证，请登录。" : message;
+  const showSignedOutMessage = mode === "sign-in" && searchParams.get("signed_out") === "1" && message === initialMessages["sign-in"];
+  const displayedMessage = showVerifiedSignInMessage
+    ? "邮箱已验证，请登录。"
+    : showSignedOutMessage
+      ? "已退出登录。"
+      : message;
 
   useEffect(() => {
     if (turnstileSiteKey) return;

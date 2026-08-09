@@ -140,6 +140,29 @@ useEffect(() => {
     }
   }
 
+  async function signOut() {
+    if (isBusy) return;
+    setMessage("");
+    setIsBusy(true);
+    try {
+      const response = await fetch("/api/auth/sign-out", {
+        method: "POST",
+        credentials: "same-origin",
+      });
+      if (!response.ok) {
+        setMessage("退出登录失败，请稍后再试。");
+        return;
+      }
+      setSession(null);
+      setAccounts([]);
+      window.location.assign("/auth/sign-in?signed_out=1");
+    } catch {
+      setMessage("服务暂时不可用，请稍后再试。");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
   async function setConsent(decision: "accepted" | "revoked") {
     if (!session || isBusy) return;
     setMessage("");
@@ -317,6 +340,7 @@ useEffect(() => {
                 {accounts.length ? accounts.map((account) => <span key={account.id}>{account.providerId === "credential" ? "邮箱和密码" : "Google"}</span>) : <span>邮箱和密码</span>}
               </div>
               <button type="button" className="auth-google" onClick={linkGoogle} disabled={isBusy}>连接 Google</button>
+              <button type="button" className="auth-google" onClick={() => void signOut()} disabled={isBusy}>退出登录</button>
               <p className="account-note">Google 只会在你主动点击连接后绑定。至少会保留一种可用登录方式。</p>
             </section>
 
