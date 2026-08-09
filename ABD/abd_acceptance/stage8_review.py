@@ -97,12 +97,12 @@ PINNED_BASELINE_HASHES: Dict[str, str] = {
     "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
 }
 PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {
-    CONTRACT_PATH.as_posix(): "42b427eef108c9e3cc8f59616b811f1def9e6b604f3572f15c76f8919b21b7de",
+    CONTRACT_PATH.as_posix(): "8ecb5034576786ce7ffe6e921ff33218cb23024de0d6b0e8451505dcd9131d5c",
     FINDINGS_PATH.as_posix(): "f97754d251cdeb41df3cf901dae519e8a5af000ab8f55802c3a9f6cfaf7c6811",
-    FIXTURE_PATH.as_posix(): "e001a72cee1c4213df21dfedfcbdb8fd009f3b386ed3399b76057e2469e559ce",
+    FIXTURE_PATH.as_posix(): "08bf03ccffe3ea924bc25f00ecb357c8d0d59e1857dec200daed8dc71fd95b11",
     TEST_PATH.as_posix(): "a343f5cdb4ceb015292f8f8d55ef5c816dcec7aaf37937b7b2d8f17bbe511f51",
-    LEGACY_COMPATIBILITY_PATH.as_posix(): "1b013e2b6bb888fd9a75d97073a81a56f0654fb7e97b50ecb60b74ba26e17376",
-    LEGACY_COMPATIBILITY_HELPER_PATH.as_posix(): "000afbf9254884beeaab23934933e7288d46add01af7e0cceae8dacd9b198d25",
+    LEGACY_COMPATIBILITY_PATH.as_posix(): "2895557bf3818bc145d65d82d2109a60adea870bc34b94063170fbfcdff3e992",
+    LEGACY_COMPATIBILITY_HELPER_PATH.as_posix(): "d1bbb609903e96c8b0328f4be7f18e6929847fc5a39a4f5cd9e34a846f686ebd",
 }
 REPOSITORY_CI_CONTRACT = {
     "fast_workflow_path": REPOSITORY_FAST_WORKFLOW_PATH.as_posix(),

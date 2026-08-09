@@ -1,0 +1,111 @@
+{
+  "artifact_id": "ART-S19-P04-01",
+  "contract_id": "AC-S19-P04",
+  "decision": "LOCAL_FINAL_ACCEPTANCE_PASS_STAGE_REVIEW_REQUIRED_RUNTIME_AND_RETURN_UNVERIFIED",
+  "evaluation": {
+    "action": "NO_RECOMMENDATION",
+    "actual_runtime_observation": {
+      "actual_execution_evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+      "actual_record_count": 0,
+      "deployment_status": "NOT_DEPLOYED_OR_ACTIVATED",
+      "model_ga_status": "BLOCKED_NO_EMPIRICAL_EXECUTION_OR_MODEL_EVIDENCE",
+      "return_status": "UNVERIFIED_NOT_GUARANTEED",
+      "verified_days": 0
+    },
+    "adverse_odds_tick_delta": 0,
+    "adverse_probability_delta": "0",
+    "decision": "LOCAL_FINAL_ACCEPTANCE_PASS_STAGE_REVIEW_REQUIRED_RUNTIME_AND_RETURN_UNVERIFIED",
+    "evaluation_id": "S19-P04-GOLDEN",
+    "failure_codes": [],
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "order_submission_allowed": false,
+    "production_deployment_allowed": false,
+    "recommendation_generation_allowed": false,
+    "release_config": {
+      "delivery_mode": "LOCAL_FINAL_ACCEPTANCE_AND_NON_SECRET_HANDOFF_ONLY",
+      "order_submission_module_present": false,
+      "owner_final_order_only": true,
+      "production_equivalent_config_schema": true,
+      "target_shortfall_may_relax_gate": false
+    },
+    "schema_version": "1.0.0",
+    "source_hashes": {
+      "actual_reconciliation.json": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b",
+      "ga_report.json": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d",
+      "machine/evidence/EVD-S19-P01.json": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+      "machine/evidence/EVD-S19-P02.json": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+      "machine/evidence/EVD-S19-P03.json": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+      "machine/evidence/EVD-S19-P03_rollback.json": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+      "model_beta_gate.json": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+      "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+      "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76"
+    },
+    "stage_review_required": true,
+    "status": "PASS_LOCAL_FINAL_DELIVERY_GATE",
+    "version": "0.0.0.1"
+  },
+  "external_effect_boundary": {
+    "database_or_market_runtime_accessed": false,
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_network_accessed": false,
+    "gmail_or_tab_account_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "owner_final_order_only": true,
+    "production_deployed_or_activated": false,
+    "real_account_or_fund_mutated": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "synthetic_evidence_promoted_to_empirical": false
+  },
+  "final_acceptance_sha256": "2369f47b10e4d25f8c6500fc3a17e79cf161714ba7692bc6bd8f058c6c9da25b",
+  "financial": {
+    "incremental_cash_budget_aud": "0.00",
+    "initial_bankroll_aud": "300.00",
+    "monthly_target": "30%",
+    "target_formula": "B_n=300*1.3^n",
+    "target_status": "UNVERIFIED_NOT_GUARANTEED"
+  },
+  "fixed_clock": "2026-08-10T09:00:00+10:00",
+  "fixture_sha256": "58aa014979e01ff2c9d2906f52ed4ca032f5b42874400208ddaa3b8add6749ba",
+  "next": "S19/STAGE_REVIEW_READY_NOT_STARTED",
+  "pass_gate": "所有验收通过，版本和哈希无歧义无冲突。",
+  "phase_id": "P04",
+  "predecessor": {
+    "contract_id": "AC-S19-P03",
+    "evidence_path": "machine/evidence/EVD-S19-P03.json",
+    "evidence_sha256": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+    "status": "PASS_LOCAL_GA_RECONCILIATION_CONTROL_ACTUAL_GA_BLOCKED"
+  },
+  "product": "ABD",
+  "requirement_id": "REQ-S19-P04",
+  "runtime_and_return_boundary": {
+    "actual_ga_status": "BLOCKED_NO_EMPIRICAL_EXECUTION_OR_MODEL_EVIDENCE",
+    "actual_reconciliation_status": "NOT_EVALUABLE_NO_ACTUAL_EXECUTION_EVIDENCE",
+    "deployment_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "external_runtime_verified": false,
+    "return_or_roi_verified": false,
+    "synthetic_or_local_control_promoted_to_empirical": false
+  },
+  "schema_version": "1.0.0",
+  "scope": "FROZEN_OFFLINE_FINAL_DELIVERY_CONTRACT_ONLY",
+  "source_artifact_sha256": {
+    "actual_reconciliation.json": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b",
+    "ga_report.json": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d",
+    "machine/evidence/EVD-S19-P01.json": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+    "machine/evidence/EVD-S19-P02.json": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+    "machine/evidence/EVD-S19-P03.json": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+    "machine/evidence/EVD-S19-P03_rollback.json": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+    "model_beta_gate.json": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+    "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+    "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76"
+  },
+  "stage_id": "S19",
+  "status": "PASS_LOCAL_FINAL_ACCEPTANCE_STAGE_REVIEW_REQUIRED",
+  "version": "0.0.0.1"
+}

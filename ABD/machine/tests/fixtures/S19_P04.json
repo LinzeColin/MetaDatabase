@@ -1,0 +1,467 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S19-P04-FINAL-DELIVERY",
+  "contract_id": "AC-S19-P04",
+  "requirement_id": "REQ-S19-P04",
+  "stage_id": "S19",
+  "phase_id": "P04",
+  "fixed_clock": "2026-08-10T09:00:00+10:00",
+  "expected_next": "S19/STAGE_REVIEW_READY_NOT_STARTED",
+  "predecessor_evidence_sha256": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+  "source_artifact_sha256": {
+    "actual_reconciliation.json": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b",
+    "ga_report.json": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d",
+    "machine/evidence/EVD-S19-P01.json": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+    "machine/evidence/EVD-S19-P02.json": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+    "machine/evidence/EVD-S19-P03.json": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+    "machine/evidence/EVD-S19-P03_rollback.json": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+    "model_beta_gate.json": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+    "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+    "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76"
+  },
+  "safe_final_config": {
+    "delivery_mode": "LOCAL_FINAL_ACCEPTANCE_AND_NON_SECRET_HANDOFF_ONLY",
+    "owner_final_order_only": true,
+    "order_submission_module_present": false,
+    "production_equivalent_config_schema": true,
+    "target_shortfall_may_relax_gate": false
+  },
+  "safe_runtime_observation": {
+    "actual_execution_evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+    "actual_record_count": 0,
+    "deployment_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "model_ga_status": "BLOCKED_NO_EMPIRICAL_EXECUTION_OR_MODEL_EVIDENCE",
+    "return_status": "UNVERIFIED_NOT_GUARANTEED",
+    "verified_days": 0
+  },
+  "expected_bundle_members": [
+    "final_acceptance.json",
+    "release_manifest.json",
+    "machine/evidence/EVD-S19-P01.json",
+    "machine/evidence/EVD-S19-P02.json",
+    "machine/evidence/EVD-S19-P03.json",
+    "machine/evidence/EVD-S19-P03_rollback.json",
+    "ga_report.json",
+    "actual_reconciliation.json",
+    "target_acceptance.json"
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "GOLDEN_LOCAL_FINAL_DELIVERY_STAGE_REVIEW_REQUIRED",
+      "final_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T09:00:00+10:00",
+        "evaluation_id": "S19-P04-GOLDEN",
+        "product_version": "0.0.0.1",
+        "release_config": {
+          "delivery_mode": "LOCAL_FINAL_ACCEPTANCE_AND_NON_SECRET_HANDOFF_ONLY",
+          "owner_final_order_only": true,
+          "order_submission_module_present": false,
+          "production_equivalent_config_schema": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "artifact_hashes": {
+          "actual_reconciliation.json": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b",
+          "ga_report.json": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d",
+          "machine/evidence/EVD-S19-P01.json": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+          "machine/evidence/EVD-S19-P02.json": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+          "machine/evidence/EVD-S19-P03.json": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+          "machine/evidence/EVD-S19-P03_rollback.json": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef",
+          "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+          "model_beta_gate.json": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+          "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+          "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76"
+        },
+        "actual_runtime_observation": {
+          "actual_execution_evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+          "actual_record_count": 0,
+          "deployment_status": "NOT_DEPLOYED_OR_ACTIVATED",
+          "model_ga_status": "BLOCKED_NO_EMPIRICAL_EXECUTION_OR_MODEL_EVIDENCE",
+          "return_status": "UNVERIFIED_NOT_GUARANTEED",
+          "verified_days": 0
+        },
+        "probability_delta": "0",
+        "odds_tick_delta": 0,
+        "stop_conditions_triggered": false,
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "PASS_LOCAL_FINAL_DELIVERY_GATE",
+        "decision": "LOCAL_FINAL_ACCEPTANCE_PASS_STAGE_REVIEW_REQUIRED_RUNTIME_AND_RETURN_UNVERIFIED",
+        "action": "NO_RECOMMENDATION",
+        "failure_codes": []
+      }
+    },
+    {
+      "scenario_id": "ADVERSE_ONE_IN_TEN_THOUSAND_STABLE",
+      "final_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T09:00:00+10:00",
+        "evaluation_id": "S19-P04-ADVERSE-ONE-IN-TEN-THOUSAND",
+        "product_version": "0.0.0.1",
+        "release_config": {
+          "delivery_mode": "LOCAL_FINAL_ACCEPTANCE_AND_NON_SECRET_HANDOFF_ONLY",
+          "owner_final_order_only": true,
+          "order_submission_module_present": false,
+          "production_equivalent_config_schema": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "artifact_hashes": {
+          "actual_reconciliation.json": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b",
+          "ga_report.json": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d",
+          "machine/evidence/EVD-S19-P01.json": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+          "machine/evidence/EVD-S19-P02.json": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+          "machine/evidence/EVD-S19-P03.json": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+          "machine/evidence/EVD-S19-P03_rollback.json": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef",
+          "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+          "model_beta_gate.json": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+          "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+          "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76"
+        },
+        "actual_runtime_observation": {
+          "actual_execution_evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+          "actual_record_count": 0,
+          "deployment_status": "NOT_DEPLOYED_OR_ACTIVATED",
+          "model_ga_status": "BLOCKED_NO_EMPIRICAL_EXECUTION_OR_MODEL_EVIDENCE",
+          "return_status": "UNVERIFIED_NOT_GUARANTEED",
+          "verified_days": 0
+        },
+        "probability_delta": "-0.0001",
+        "odds_tick_delta": -1,
+        "stop_conditions_triggered": false,
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "PASS_LOCAL_FINAL_DELIVERY_GATE",
+        "action": "NO_RECOMMENDATION",
+        "failure_codes": []
+      }
+    },
+    {
+      "scenario_id": "VERSION_CONFLICT_FAILS_CLOSED",
+      "final_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T09:00:00+10:00",
+        "evaluation_id": "S19-P04-VERSION-CONFLICT",
+        "product_version": "0.0.0.2",
+        "release_config": {
+          "delivery_mode": "LOCAL_FINAL_ACCEPTANCE_AND_NON_SECRET_HANDOFF_ONLY",
+          "owner_final_order_only": true,
+          "order_submission_module_present": false,
+          "production_equivalent_config_schema": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "artifact_hashes": {
+          "actual_reconciliation.json": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b",
+          "ga_report.json": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d",
+          "machine/evidence/EVD-S19-P01.json": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+          "machine/evidence/EVD-S19-P02.json": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+          "machine/evidence/EVD-S19-P03.json": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+          "machine/evidence/EVD-S19-P03_rollback.json": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef",
+          "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+          "model_beta_gate.json": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+          "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+          "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76"
+        },
+        "actual_runtime_observation": {
+          "actual_execution_evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+          "actual_record_count": 0,
+          "deployment_status": "NOT_DEPLOYED_OR_ACTIVATED",
+          "model_ga_status": "BLOCKED_NO_EMPIRICAL_EXECUTION_OR_MODEL_EVIDENCE",
+          "return_status": "UNVERIFIED_NOT_GUARANTEED",
+          "verified_days": 0
+        },
+        "probability_delta": "0.0001",
+        "odds_tick_delta": -1,
+        "stop_conditions_triggered": false,
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "FAIL_CLOSED",
+        "action": "NO_RECOMMENDATION",
+        "failure_codes": ["VERSION_CONFLICT"]
+      }
+    },
+    {
+      "scenario_id": "SOURCE_HASH_CONFLICT_FAILS_CLOSED",
+      "final_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T09:00:00+10:00",
+        "evaluation_id": "S19-P04-SOURCE-HASH-CONFLICT",
+        "product_version": "0.0.0.1",
+        "release_config": {
+          "delivery_mode": "LOCAL_FINAL_ACCEPTANCE_AND_NON_SECRET_HANDOFF_ONLY",
+          "owner_final_order_only": true,
+          "order_submission_module_present": false,
+          "production_equivalent_config_schema": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "artifact_hashes": {
+          "actual_reconciliation.json": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b",
+          "ga_report.json": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d",
+          "machine/evidence/EVD-S19-P01.json": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+          "machine/evidence/EVD-S19-P02.json": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+          "machine/evidence/EVD-S19-P03.json": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+          "machine/evidence/EVD-S19-P03_rollback.json": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef",
+          "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+          "model_beta_gate.json": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+          "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+          "target_acceptance.json": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "actual_runtime_observation": {
+          "actual_execution_evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+          "actual_record_count": 0,
+          "deployment_status": "NOT_DEPLOYED_OR_ACTIVATED",
+          "model_ga_status": "BLOCKED_NO_EMPIRICAL_EXECUTION_OR_MODEL_EVIDENCE",
+          "return_status": "UNVERIFIED_NOT_GUARANTEED",
+          "verified_days": 0
+        },
+        "probability_delta": "0",
+        "odds_tick_delta": 0,
+        "stop_conditions_triggered": false,
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "FAIL_CLOSED",
+        "action": "NO_RECOMMENDATION",
+        "failure_codes": ["SOURCE_HASH_CONFLICT"]
+      }
+    },
+    {
+      "scenario_id": "EMPIRICAL_RUNTIME_CLAIM_FAILS_CLOSED",
+      "final_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T09:00:00+10:00",
+        "evaluation_id": "S19-P04-EMPIRICAL-RUNTIME-CLAIM",
+        "product_version": "0.0.0.1",
+        "release_config": {
+          "delivery_mode": "LOCAL_FINAL_ACCEPTANCE_AND_NON_SECRET_HANDOFF_ONLY",
+          "owner_final_order_only": true,
+          "order_submission_module_present": false,
+          "production_equivalent_config_schema": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "artifact_hashes": {
+          "actual_reconciliation.json": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b",
+          "ga_report.json": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d",
+          "machine/evidence/EVD-S19-P01.json": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+          "machine/evidence/EVD-S19-P02.json": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+          "machine/evidence/EVD-S19-P03.json": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+          "machine/evidence/EVD-S19-P03_rollback.json": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef",
+          "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+          "model_beta_gate.json": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+          "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+          "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76"
+        },
+        "actual_runtime_observation": {
+          "actual_execution_evidence_status": "CLAIMS_EMPIRICAL_EXECUTION",
+          "actual_record_count": 200,
+          "deployment_status": "CLAIMS_DEPLOYED",
+          "model_ga_status": "CLAIMS_GA",
+          "return_status": "CLAIMS_VERIFIED_RETURN",
+          "verified_days": 90
+        },
+        "probability_delta": "0",
+        "odds_tick_delta": 0,
+        "stop_conditions_triggered": false,
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "FAIL_CLOSED",
+        "action": "NO_RECOMMENDATION",
+        "failure_codes": ["EMPIRICAL_OR_RUNTIME_CLAIM_NOT_VERIFIABLE_IN_FROZEN_LOCAL_EVALUATOR"]
+      }
+    },
+    {
+      "scenario_id": "STOP_CONDITION_FAILS_CLOSED",
+      "final_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T09:00:00+10:00",
+        "evaluation_id": "S19-P04-STOP-CONDITION",
+        "product_version": "0.0.0.1",
+        "release_config": {
+          "delivery_mode": "LOCAL_FINAL_ACCEPTANCE_AND_NON_SECRET_HANDOFF_ONLY",
+          "owner_final_order_only": true,
+          "order_submission_module_present": false,
+          "production_equivalent_config_schema": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "artifact_hashes": {
+          "actual_reconciliation.json": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b",
+          "ga_report.json": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d",
+          "machine/evidence/EVD-S19-P01.json": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+          "machine/evidence/EVD-S19-P02.json": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+          "machine/evidence/EVD-S19-P03.json": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+          "machine/evidence/EVD-S19-P03_rollback.json": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef",
+          "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+          "model_beta_gate.json": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+          "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+          "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76"
+        },
+        "actual_runtime_observation": {
+          "actual_execution_evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+          "actual_record_count": 0,
+          "deployment_status": "NOT_DEPLOYED_OR_ACTIVATED",
+          "model_ga_status": "BLOCKED_NO_EMPIRICAL_EXECUTION_OR_MODEL_EVIDENCE",
+          "return_status": "UNVERIFIED_NOT_GUARANTEED",
+          "verified_days": 0
+        },
+        "probability_delta": "0",
+        "odds_tick_delta": 0,
+        "stop_conditions_triggered": true,
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "FAIL_CLOSED",
+        "action": "NO_RECOMMENDATION",
+        "failure_codes": ["STOP_CONDITION_TRIGGERED"]
+      }
+    },
+    {
+      "scenario_id": "UNSAFE_RUNTIME_REQUESTS_FAIL_CLOSED",
+      "final_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T09:00:00+10:00",
+        "evaluation_id": "S19-P04-UNSAFE-RUNTIME",
+        "product_version": "0.0.0.1",
+        "release_config": {
+          "delivery_mode": "LOCAL_FINAL_ACCEPTANCE_AND_NON_SECRET_HANDOFF_ONLY",
+          "owner_final_order_only": true,
+          "order_submission_module_present": false,
+          "production_equivalent_config_schema": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "artifact_hashes": {
+          "actual_reconciliation.json": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b",
+          "ga_report.json": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d",
+          "machine/evidence/EVD-S19-P01.json": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+          "machine/evidence/EVD-S19-P02.json": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+          "machine/evidence/EVD-S19-P03.json": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+          "machine/evidence/EVD-S19-P03_rollback.json": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef",
+          "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+          "model_beta_gate.json": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+          "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+          "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76"
+        },
+        "actual_runtime_observation": {
+          "actual_execution_evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+          "actual_record_count": 0,
+          "deployment_status": "NOT_DEPLOYED_OR_ACTIVATED",
+          "model_ga_status": "BLOCKED_NO_EMPIRICAL_EXECUTION_OR_MODEL_EVIDENCE",
+          "return_status": "UNVERIFIED_NOT_GUARANTEED",
+          "verified_days": 0
+        },
+        "probability_delta": "0",
+        "odds_tick_delta": 0,
+        "stop_conditions_triggered": false,
+        "requested_external_execution": true,
+        "requested_actual_order": true,
+        "requested_real_fund_mutation": true,
+        "requested_real_mail_send": true,
+        "requested_production_deploy": true
+      },
+      "expected": {
+        "status": "FAIL_CLOSED",
+        "action": "NO_RECOMMENDATION",
+        "failure_codes": [
+          "EXTERNAL_RUNTIME_REQUESTED",
+          "ACTUAL_ORDER_REQUESTED",
+          "REAL_FUND_MUTATION_REQUESTED",
+          "REAL_MAIL_SEND_REQUESTED",
+          "PRODUCTION_DEPLOY_REQUESTED"
+        ]
+      }
+    },
+    {
+      "scenario_id": "RISK_RELAXATION_ATTEMPT_FAILS_CLOSED",
+      "final_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T09:00:00+10:00",
+        "evaluation_id": "S19-P04-RISK-RELAXATION",
+        "product_version": "0.0.0.1",
+        "release_config": {
+          "delivery_mode": "LOCAL_FINAL_ACCEPTANCE_AND_NON_SECRET_HANDOFF_ONLY",
+          "owner_final_order_only": true,
+          "order_submission_module_present": false,
+          "production_equivalent_config_schema": true,
+          "target_shortfall_may_relax_gate": true
+        },
+        "artifact_hashes": {
+          "actual_reconciliation.json": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b",
+          "ga_report.json": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d",
+          "machine/evidence/EVD-S19-P01.json": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+          "machine/evidence/EVD-S19-P02.json": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+          "machine/evidence/EVD-S19-P03.json": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+          "machine/evidence/EVD-S19-P03_rollback.json": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef",
+          "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+          "model_beta_gate.json": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+          "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+          "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76"
+        },
+        "actual_runtime_observation": {
+          "actual_execution_evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+          "actual_record_count": 0,
+          "deployment_status": "NOT_DEPLOYED_OR_ACTIVATED",
+          "model_ga_status": "BLOCKED_NO_EMPIRICAL_EXECUTION_OR_MODEL_EVIDENCE",
+          "return_status": "UNVERIFIED_NOT_GUARANTEED",
+          "verified_days": 0
+        },
+        "probability_delta": "0.0001",
+        "odds_tick_delta": -1,
+        "stop_conditions_triggered": false,
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "FAIL_CLOSED",
+        "action": "NO_RECOMMENDATION",
+        "failure_codes": ["RISK_GATE_RELAXATION_ATTEMPT", "PRODUCTION_EQUIVALENT_CONFIG_CONFLICT"]
+      }
+    }
+  ],
+  "malformed_inputs": [
+    {"case_id": "FLOAT_PROBABILITY_DELTA", "mutation": "float_probability_delta"},
+    {"case_id": "UNKNOWN_ARTIFACT_HASH", "mutation": "unknown_artifact_hash"},
+    {"case_id": "BOOLEAN_ODDS_TICK", "mutation": "boolean_odds_tick"},
+    {"case_id": "MISSING_RUNTIME_FIELD", "mutation": "missing_runtime_field"},
+    {"case_id": "NON_BOOLEAN_CONFIG", "mutation": "non_boolean_config"},
+    {"case_id": "UNKNOWN_DELTA", "mutation": "unknown_delta"}
+  ]
+}

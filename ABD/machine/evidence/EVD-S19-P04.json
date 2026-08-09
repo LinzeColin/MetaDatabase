@@ -1,0 +1,618 @@
+{
+  "actual_ga_status": "BLOCKED_NO_EMPIRICAL_EXECUTION_OR_MODEL_EVIDENCE",
+  "artifact_id": "ART-S19-P04-03",
+  "cli_wiring": {
+    "path": "abd_acceptance/__main__.py",
+    "sha256_at_signing": "a9cc8c1eb11619d70ef02084f336dbb7db1e95af85938feaa0bdb55314800256"
+  },
+  "contract_id": "AC-S19-P04",
+  "decision": "S19_P04_LOCAL_FINAL_DELIVERY_PASS_STAGE_REVIEW_REQUIRED",
+  "decision_sha256": "f0797fd801c01ea7601c1d9d6970b263f2eab53b2db6d49bc0133e7f7608cafd",
+  "deterministic_replay": {
+    "actual_return_verified": false,
+    "adverse_one_in_ten_thousand_vector_count": 2,
+    "production_deployed": false,
+    "real_time_wait_performed": false,
+    "scenario_count": 8,
+    "synthetic_or_local_control_promoted_to_empirical": false
+  },
+  "evidence_id": "EVD-S19-P04",
+  "execution_policy": {
+    "external_runtime_access_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "offline_deterministic_only": true,
+    "phase_test_only": true,
+    "production_equivalent_config_schema_only": true,
+    "synthetic_or_local_control_may_count_as_empirical": false
+  },
+  "external_effect_boundary": {
+    "database_or_market_runtime_accessed": false,
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_network_accessed": false,
+    "gmail_or_tab_account_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "owner_final_order_only": true,
+    "production_deployed_or_activated": false,
+    "real_account_or_fund_mutated": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "synthetic_evidence_promoted_to_empirical": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-10T09:00:00+10:00",
+  "handoff_status": "NON_SECRET_LOCAL_HANDOFF_BUNDLE_ONLY",
+  "hashes": {
+    "code": "8806ebb1c5df101d1c3647891257c3b7cf94e70659065b19a6f320a7dab30a3d",
+    "inputs": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/final_delivery_acceptance.py": "8806ebb1c5df101d1c3647891257c3b7cf94e70659065b19a6f320a7dab30a3d",
+      "actual_reconciliation.json": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b",
+      "final_acceptance.json": "54f6741bca209941b75098bc5e1d51880758dec4fedc755c9b83198b227ac3bd",
+      "ga_report.json": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d",
+      "handoff_bundle.zip": "2239122d417b953137d4cc5ca74f8c82da21865bcccfd8ecaea4e1d5dc845183",
+      "machine/evidence/EVD-S19-P01.json": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+      "machine/evidence/EVD-S19-P02.json": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+      "machine/evidence/EVD-S19-P03.json": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+      "machine/evidence/EVD-S19-P03_rollback.json": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef",
+      "machine/evidence/S19/P04/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S19/P04/pytest.xml": "81d4bd270f72e2f4123e4fa90d28d338055af8efc20e4a2d8b42b67e2828dd94",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S19_P04.json": "58aa014979e01ff2c9d2906f52ed4ca032f5b42874400208ddaa3b8add6749ba",
+      "model_beta_gate.json": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+      "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+      "release_manifest.json": "2d896943e9db492551adafda265d720c201c939519d3eeca060d5bdc41f819cf",
+      "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76",
+      "tests/S19/P04_test.py": "11b6cb32ef52de5df33f310e1c2d0dfc70663612a8cc9ca0423d6bb23cfafe8b"
+    },
+    "rollback_evidence": "6e036dbe4a35fae1cdffdeaf98b0aa232b2a84d1a0d1ab1bfaeef51322d4bb96"
+  },
+  "next": "S19/STAGE_REVIEW_READY_NOT_STARTED",
+  "phase_id": "P04",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S19_P04_LOCAL_FINAL_DELIVERY_COMPLETE_STAGE_REVIEW_REQUIRED_RUNTIME_NOT_DEPLOYED",
+  "requirement_id": "REQ-S19-P04",
+  "rollback": {
+    "actual_ga_activation_enabled": false,
+    "artifacts": {
+      "abd_acceptance/final_delivery_acceptance.py": {
+        "sha256": "8806ebb1c5df101d1c3647891257c3b7cf94e70659065b19a6f320a7dab30a3d",
+        "status": "PASS"
+      },
+      "actual_reconciliation.json": {
+        "sha256": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b",
+        "status": "PASS"
+      },
+      "ga_report.json": {
+        "sha256": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S19-P01.json": {
+        "sha256": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S19-P02.json": {
+        "sha256": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S19-P03.json": {
+        "sha256": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S19-P03_rollback.json": {
+        "sha256": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef",
+        "status": "PASS"
+      },
+      "machine/facts/canonical_facts.json": {
+        "sha256": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+        "status": "PASS"
+      },
+      "machine/facts/release_policy.json": {
+        "sha256": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S19_P04.json": {
+        "sha256": "58aa014979e01ff2c9d2906f52ed4ca032f5b42874400208ddaa3b8add6749ba",
+        "status": "PASS"
+      },
+      "model_beta_gate.json": {
+        "sha256": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+        "status": "PASS"
+      },
+      "model_release_gate.json": {
+        "sha256": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+        "status": "PASS"
+      },
+      "target_acceptance.json": {
+        "sha256": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76",
+        "status": "PASS"
+      },
+      "tests/S19/P04_test.py": {
+        "sha256": "11b6cb32ef52de5df33f310e1c2d0dfc70663612a8cc9ca0423d6bb23cfafe8b",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S19-P04",
+    "evidence_id": "EVD-S19-P04-ROLLBACK",
+    "external_state_changed": false,
+    "feature_flag_id": "release:s19_p04_local_final_delivery_gate",
+    "immutable_evidence_and_replay_preserved": true,
+    "incremental_cash_spent_aud": "0.00",
+    "mail_sent": false,
+    "mode": "DISABLE_S19_P04_LOCAL_DELIVERY_GATE_RESTORE_SIGNED_S19_P03_EVIDENCE_KEEP_RUNTIME_UNVERIFIED",
+    "order_submission_enabled": false,
+    "previous_signed_artifact": "machine/evidence/EVD-S19-P03.json",
+    "production_state_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S19",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S19P04-BASELINE-PURSUE_GOAL_PROMPT.txt",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S19P04-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S19P04-BASELINE-machine-facts-canonical_facts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S19P04-BASELINE-machine-facts-parameters.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S19P04-BASELINE-machine-facts-costs.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S19P04-BASELINE-machine-facts-roadmap.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S19P04-BASELINE-machine-facts-requirements.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S19P04-BASELINE-machine-facts-acceptance_contracts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S19P04-BASELINE-machine-facts-task_graph.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S19P04-BASELINE-machine-facts-traceability_matrix.json",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S19P04-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S19P04-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S19P04-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S19P04-TRACEABILITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S19-P04-01",
+          "T-S19-P04-02",
+          "T-S19-P04-03"
+        ],
+        "id": "S19P04-TASKPACK-SCOPE-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contract_id": "AC-S19-P04",
+          "expected_artifact": "machine/evidence/EVD-S19-P04.json",
+          "id": "INDEX-AC-S19-P04",
+          "kind": "ACCEPTANCE_EVIDENCE",
+          "pass_gate": "所有验收通过，版本和哈希无歧义无冲突。",
+          "requirement_id": "REQ-S19-P04",
+          "status": "PLANNED"
+        },
+        "id": "S19P04-EVIDENCE-INDEX-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+          "expected": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+          "next": "S19/P04_READY_NOT_STARTED"
+        },
+        "id": "S19P04-PREDECESSOR-AC-S19-P03-CURRENT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b",
+          "expected": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b"
+        },
+        "id": "S19P04-SOURCE-PIN-actual_reconciliation.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d",
+          "expected": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d"
+        },
+        "id": "S19P04-SOURCE-PIN-ga_report.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+          "expected": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219"
+        },
+        "id": "S19P04-SOURCE-PIN-machine-evidence-EVD-S19-P01.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+          "expected": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177"
+        },
+        "id": "S19P04-SOURCE-PIN-machine-evidence-EVD-S19-P02.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+          "expected": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b"
+        },
+        "id": "S19P04-SOURCE-PIN-machine-evidence-EVD-S19-P03.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef",
+          "expected": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef"
+        },
+        "id": "S19P04-SOURCE-PIN-machine-evidence-EVD-S19-P03_rollback.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S19P04-SOURCE-PIN-machine-facts-canonical_facts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+          "expected": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b"
+        },
+        "id": "S19P04-SOURCE-PIN-machine-facts-release_policy.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+          "expected": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac"
+        },
+        "id": "S19P04-SOURCE-PIN-model_beta_gate.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+          "expected": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720"
+        },
+        "id": "S19P04-SOURCE-PIN-model_release_gate.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76",
+          "expected": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76"
+        },
+        "id": "S19P04-SOURCE-PIN-target_acceptance.json",
+        "passed": true
+      },
+      {
+        "detail": "local delivery cannot substitute for empirical runtime, GA, or return evidence",
+        "id": "S19P04-EMPIRICAL-RUNTIME-AND-RETURN-TRUTH-BOUNDARY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "failure_codes": [],
+            "passed": true,
+            "scenario_id": "GOLDEN_LOCAL_FINAL_DELIVERY_STAGE_REVIEW_REQUIRED"
+          },
+          {
+            "failure_codes": [],
+            "passed": true,
+            "scenario_id": "ADVERSE_ONE_IN_TEN_THOUSAND_STABLE"
+          },
+          {
+            "failure_codes": [
+              "VERSION_CONFLICT"
+            ],
+            "passed": true,
+            "scenario_id": "VERSION_CONFLICT_FAILS_CLOSED"
+          },
+          {
+            "failure_codes": [
+              "SOURCE_HASH_CONFLICT"
+            ],
+            "passed": true,
+            "scenario_id": "SOURCE_HASH_CONFLICT_FAILS_CLOSED"
+          },
+          {
+            "failure_codes": [
+              "EMPIRICAL_OR_RUNTIME_CLAIM_NOT_VERIFIABLE_IN_FROZEN_LOCAL_EVALUATOR"
+            ],
+            "passed": true,
+            "scenario_id": "EMPIRICAL_RUNTIME_CLAIM_FAILS_CLOSED"
+          },
+          {
+            "failure_codes": [
+              "STOP_CONDITION_TRIGGERED"
+            ],
+            "passed": true,
+            "scenario_id": "STOP_CONDITION_FAILS_CLOSED"
+          },
+          {
+            "failure_codes": [
+              "EXTERNAL_RUNTIME_REQUESTED",
+              "ACTUAL_ORDER_REQUESTED",
+              "REAL_FUND_MUTATION_REQUESTED",
+              "REAL_MAIL_SEND_REQUESTED",
+              "PRODUCTION_DEPLOY_REQUESTED"
+            ],
+            "passed": true,
+            "scenario_id": "UNSAFE_RUNTIME_REQUESTS_FAIL_CLOSED"
+          },
+          {
+            "failure_codes": [
+              "RISK_GATE_RELAXATION_ATTEMPT",
+              "PRODUCTION_EQUIVALENT_CONFIG_CONFLICT"
+            ],
+            "passed": true,
+            "scenario_id": "RISK_RELAXATION_ATTEMPT_FAILS_CLOSED"
+          }
+        ],
+        "id": "S19P04-FROZEN-SCENARIOS-REPLAY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "final": "2369f47b10e4d25f8c6500fc3a17e79cf161714ba7692bc6bd8f058c6c9da25b",
+          "manifest": "851fadb816efb2b5e6798e91f1a02e2004f9646952b349ac20be5bc00abaaa41"
+        },
+        "id": "S19P04-FINAL-ARTIFACT-BUILD-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [],
+        "id": "S19P04-CORE-NO-EXTERNAL-RUNTIME-CAPABILITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "bundle": "2239122d417b953137d4cc5ca74f8c82da21865bcccfd8ecaea4e1d5dc845183",
+          "final": "54f6741bca209941b75098bc5e1d51880758dec4fedc755c9b83198b227ac3bd",
+          "manifest": "2d896943e9db492551adafda265d720c201c939519d3eeca060d5bdc41f819cf"
+        },
+        "id": "S19P04-GENERATED-ARTIFACTS-REPLAY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "final_acceptance.json",
+          "release_manifest.json",
+          "machine/evidence/EVD-S19-P01.json",
+          "machine/evidence/EVD-S19-P02.json",
+          "machine/evidence/EVD-S19-P03.json",
+          "machine/evidence/EVD-S19-P03_rollback.json",
+          "ga_report.json",
+          "actual_reconciliation.json",
+          "target_acceptance.json"
+        ],
+        "id": "S19P04-NON_SECRET-HANDOFF-BUNDLE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "LOCAL_DELIVERY_MANIFEST_NOT_A_PRODUCTION_RELEASE",
+        "id": "S19P04-FINAL-DELIVERY-DOES-NOT-CLAIM-DEPLOYMENT-OR-RETURNS",
+        "passed": true
+      },
+      {
+        "detail": "abd_acceptance/__main__.py",
+        "id": "S19P04-CLI-WRITER-AND-VERIFIER-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "approved": "a9cc8c1eb11619d70ef02084f336dbb7db1e95af85938feaa0bdb55314800256",
+          "current": "a9cc8c1eb11619d70ef02084f336dbb7db1e95af85938feaa0bdb55314800256"
+        },
+        "id": "S19P04-S08-LEGACY-SUCCESSOR-PIN-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 18
+        },
+        "id": "S19P04-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S19/P04/paid_dependency_scan.txt",
+        "id": "S19P04-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/validation_report.json",
+        "id": "S19P04-TASKPACK-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S19P04-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "database_or_market_runtime_accessed": false,
+          "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+          "external_network_accessed": false,
+          "gmail_or_tab_account_accessed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submitted_confirmed_or_retried": false,
+          "ovh_or_cloudflare_runtime_accessed": false,
+          "owner_final_order_only": true,
+          "production_deployed_or_activated": false,
+          "real_account_or_fund_mutated": false,
+          "real_time_soak_waited": false,
+          "recommendation_generated_or_enabled": false,
+          "synthetic_evidence_promoted_to_empirical": false
+        },
+        "id": "S19P04-EXTERNAL-EFFECT-BOUNDARY-EXACT",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S19-P04",
+    "decision": "S19_P04_LOCAL_FINAL_DELIVERY_PASS_STAGE_REVIEW_REQUIRED",
+    "execution_policy": {
+      "external_runtime_access_allowed": false,
+      "full_regression_or_real_time_soak_allowed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "offline_deterministic_only": true,
+      "phase_test_only": true,
+      "production_equivalent_config_schema_only": true,
+      "synthetic_or_local_control_may_count_as_empirical": false
+    },
+    "external_effect_boundary": {
+      "database_or_market_runtime_accessed": false,
+      "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+      "external_network_accessed": false,
+      "gmail_or_tab_account_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submitted_confirmed_or_retried": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "owner_final_order_only": true,
+      "production_deployed_or_activated": false,
+      "real_account_or_fund_mutated": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false,
+      "synthetic_evidence_promoted_to_empirical": false
+    },
+    "failed_checks": [],
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "hashes": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/final_delivery_acceptance.py": "8806ebb1c5df101d1c3647891257c3b7cf94e70659065b19a6f320a7dab30a3d",
+      "actual_reconciliation.json": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b",
+      "final_acceptance.json": "54f6741bca209941b75098bc5e1d51880758dec4fedc755c9b83198b227ac3bd",
+      "ga_report.json": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d",
+      "handoff_bundle.zip": "2239122d417b953137d4cc5ca74f8c82da21865bcccfd8ecaea4e1d5dc845183",
+      "machine/evidence/EVD-S19-P01.json": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+      "machine/evidence/EVD-S19-P02.json": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+      "machine/evidence/EVD-S19-P03.json": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+      "machine/evidence/EVD-S19-P03_rollback.json": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef",
+      "machine/evidence/S19/P04/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S19/P04/pytest.xml": "81d4bd270f72e2f4123e4fa90d28d338055af8efc20e4a2d8b42b67e2828dd94",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S19_P04.json": "58aa014979e01ff2c9d2906f52ed4ca032f5b42874400208ddaa3b8add6749ba",
+      "model_beta_gate.json": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+      "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+      "release_manifest.json": "2d896943e9db492551adafda265d720c201c939519d3eeca060d5bdc41f819cf",
+      "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76"
+    },
+    "next": "S19/STAGE_REVIEW_READY_NOT_STARTED",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "status": "PASS"
+  }
+}
