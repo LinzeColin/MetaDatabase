@@ -2,10 +2,11 @@
 
 ## 当前目标
 
-在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11/P01--P04、整个 S11 的本地独立复审和 GitHub 阶段上传均已完成；S12/P01--P04、整个 S12 的本地独立复审及 GitHub 阶段上传亦已完成、签名并复现；S13/P01--P04、整个 S13 的本地独立复审和 GitHub 阶段上传均已完成；S14/P01--P04、整体本地复审及 GitHub 阶段上传均已完成；S15/P01--P03 已本地签名并复现。下一独立 run 只能启动 S15/P04；其先决阶段收据须再次独立核验，且任何本地通过不得等同于远端 CI、合并、部署或生产激活。Canonical Task Graph 显示 S15/P04 只依赖 S15/P03 的已签名本地收据，不依赖 PR #174 的异步远端 CI。PR #174 的远端检查须与本地结果独立看待，且无论状态如何均不得外推为部署或生产激活。
+在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11/P01--P04、整个 S11 的本地独立复审和 GitHub 阶段上传均已完成；S12/P01--P04、整个 S12 的本地独立复审及 GitHub 阶段上传亦已完成、签名并复现；S13/P01--P04、整个 S13 的本地独立复审和 GitHub 阶段上传均已完成；S14/P01--P04、整体本地复审及 GitHub 阶段上传均已完成；S15/P01--P04 已本地签名并复现。下一独立 run 只能启动 S15 整体复审；复审通过并闭合 findings 后，才可执行本 Stage 的 GitHub 上传。任何本地通过均不得等同于远端 CI、合并、部署或生产激活。Canonical Task Graph 的 S15 阶段门不依赖 PR #174 的异步远端 CI；PR #174 的远端检查须与本地结果独立看待，且无论状态如何均不得外推为部署或生产激活。
 
 ## 当前状态
 
+- S15/P04 已本地签名并只读复验：`machine/evidence/EVD-S15-P04.json`（SHA-256 `3fd288e66d3c473881dc92257992eb41b85422a5c0aaa92f1ff00e202a15feda`）的 `AC-S15-P04` 为 `38/38 PASS`，下一状态为 `S15/STAGE_REVIEW_READY_NOT_STARTED`。根级 `traceability_validator.py` 与 `software_gate.json` 将 S15 的需求→合同→任务→测试→证据→制品闭合为失败关闭门，检查无孤儿、全任务 DAG 无循环、P01--P03 已签名索引、P03 收据/回滚哈希和 P03 `+/-0.0001` 冻结案例；`abd_acceptance/traceability_proxy.py` 仅提供受控本地 CLI 入口，不引入新包或外部能力。19 个定向 pytest 测试、零预算依赖扫描和 Task Pack 静态校验 `49/49 PASS`；回滚只关闭本地追踪门并保留 P03 签名证据。无网络、数据库、TAB/Gmail、账户、OVH/Cloudflare、订单、部署、真实时间 soak 或收益断言，新增现金为 A$0；P04 完成不触发 GitHub 上传，必须先做 S15 整体复审。
 - S15/P01 已本地签名并只读复验：`machine/evidence/EVD-S15-P01.json`（SHA-256 `5ea76d98f26bb3225844a0e9ab62c58041647ca5e3337c4c722d7d842ddfc98a`）的 `AC-S15-P01` 为 `43/43 PASS`，下一状态为 `S15/P02_READY_NOT_STARTED`。`software_correctness.py` 与 `unit_tests.json`、`property_tests.json`、`schema_tests.json` 只复放 7 个固定合成向量，覆盖声明的资金/阈值、局部状态和闭合 Schema 的 17 个决策分支；该口径明确不声称全仓或生产运行时覆盖。`-0.0001` 不利扰动仍失败关闭，资金/阈值属性 4/4 通过，22 个定向 pytest 测试、零预算依赖扫描与 Task Pack 静态校验均通过。S07/P04 连续证据判定器同步精确接受 S13/S14 两份已签名 stage-review 行，并经 S08 的 legacy successor 钉住重放；未修改冻结任务包、历史收据或风险/来源/安全门。无网络、TAB/Gmail、账户、OVH/Cloudflare、订单、部署、真实时间 soak 或收益断言，新增现金为 A$0；不作 GitHub 中间上传，待 S15 全 Stage 复审后才上传。
 - S15/P02 已本地签名并只读复验：`machine/evidence/EVD-S15-P02.json`（SHA-256 `b3e8c7f5eb604d19029ff23eb0f4c382ac194634a9fdc4fe8f44e998dde22521`）的 `AC-S15-P02` 为 `38/38 PASS`，下一状态为 `S15/P03_READY_NOT_STARTED`。`source_contract_integration.py`、`contract_tests.json`、`integration_tests.json` 与 `fixtures_manifest.json` 只闭合并复放 4 份本地合成页面/归档邮件/赔率/结果夹具和 7 个固定多服务协同用例；基线与 `SIMULATED_NETWORK_UNAVAILABLE` 的决策投影精确相同，且明确不执行网络探测、真实网络故障、TAB/Gmail 或真实订单。`-0.0001` 赔率不利扰动、页面赛事不匹配、邮件未归档和结果 ticket 不匹配均失败关闭；19 个定向 pytest 测试、零预算依赖扫描与 Task Pack 静态校验 `49/49 PASS`。为保持既有 S08 收据重放，只刷新已明确可演进的共享 dispatcher 精确 SHA-256 及其 manifest/helper/review pins，未扩展 allow-list、修改冻结任务包或降低任何证据、数值、风险、安全或来源门。无真实网络、账户、OVH/Cloudflare、部署、真实时间 soak 或收益断言，新增现金为 A$0；不作 GitHub 中间上传，待 S15 全 Stage 复审后才上传。
 - S15/P03 已本地签名并只读复验：`machine/evidence/EVD-S15-P03.json`（SHA-256 `c669a73781f28bb8fd1a5521f284c24f47bbe9595ad12f95ad9c47c27c809c29`）的 `AC-S15-P03` 为 `43/43 PASS`，下一状态为 `S15/P04_READY_NOT_STARTED`。`e2e_multi_environment.py`、`e2e_tests.json`、`environment_matrix.json` 与 `e2e_evidence.json` 精确绑定 6 个本地表面：OVH 配置 Schema、Cloudflare edge Schema、中文桌面/移动静态界面、最小权限浏览器组件和恢复路径。6 个冻结场景覆盖 Golden 基线与 `+0.0001`、Black `-0.0001` 与 ticket 不匹配、模拟 edge Schema 不可用的 Degraded 以及 Recovery 重放，全部维持无推荐、无订单、A$0。19 个定向 pytest 测试、零预算依赖扫描与 Task Pack 静态校验 `49/49 PASS`；P02 已签名收据仍独立复验 PASS。该结果只验证本地配置/静态制品的确定性合同：未实际访问或运行 OVH、Cloudflare、网络、桌面/移动浏览器、浏览器组件、TAB/Gmail、账户或部署，也未执行真实时间 soak 或收益断言。S08 兼容性只刷新已允许演进的 shared dispatcher 精确 SHA-256 及现有 pins，未扩展 allow-list 或降低门；不作 GitHub 中间上传，待 S15 全 Stage 复审后才上传。
@@ -90,6 +91,15 @@
 
 ## 关键文件
 
+- `traceability_validator.py`
+- `software_gate.json`
+- `abd_acceptance/traceability_proxy.py`
+- `tests/S15/P04_test.py`
+- `machine/tests/fixtures/S15_P04.json`
+- `machine/evidence/S15/P04/pytest.xml`
+- `machine/evidence/S15/P04/paid_dependency_scan.txt`
+- `machine/evidence/EVD-S15-P04.json`
+- `machine/evidence/EVD-S15-P04_rollback.json`
 - `e2e_tests.json`
 - `environment_matrix.json`
 - `e2e_evidence.json`
@@ -314,9 +324,10 @@
 - S14 GitHub 上传只证明远端接收分支提交；Draft PR、即时 head SHA 或未来检查状态均不能外推为 CI 通过、合并、真实服务、OVH、Cloudflare、TAB/Gmail、账户、订单、部署、上线或实际收益完成。
 - S15/P02 仅证明 4 份冻结本地合成来源夹具及其 7 个本地协同用例可确定性复放；`SIMULATED_NETWORK_UNAVAILABLE` 不是实际网络故障，不能外推为真实页面、TAB/Gmail 归档、赔率、赛果、市场、账户、订单、OVH/Cloudflare、部署、上线或实际收益验证。
 - S15/P03 仅证明 6 个冻结本地配置/静态客户端/恢复制品可协同确定性复放；Golden/Black/Degraded/Recovery 的本地 PASS 不是实际 OVH 主机、Cloudflare edge、浏览器组件安装、桌面/移动设备、真实网络故障、TAB/Gmail、账户、订单、部署、上线或实际收益验证。
+- S15/P04 仅证明 S15 的冻结本地需求追踪、DAG、签名收据和万分之一边界制品可重放；它不构成 S15 整体复审、GitHub 上传、远端 CI、真实数据库、OVH、Cloudflare、TAB/Gmail、账户、订单、部署、上线或实际收益验证。
 - S08 legacy receipt compatibility 的一条定向重放已 `1 passed`；它只证明既有明确 allow-list 中的当前哈希与四份旧 receipt 可重放，不代表 S08/S12 新的远端 CI、发布或生产状态。
 - 真实市场、真实账户、TAB/Gmail 证据归档、OVH、Cloudflare 与生产上线均未验证、未部署且不应据此推断完成。
 
 ## 下一步
 
-保持 PR #174 的远端 CI 状态与本地结果彼此独立；不得把 pending、远端检查、Draft PR 或本地复审结果外推为 CI、合并、部署、OVH、Cloudflare、真实市场、账户或生产上线完成。下一次独立 run 只可启动 S15/P04：先重验 T-S15-P03-03 的已签名证据，再只推进该 Phase。保持零新增现金、无真实时间 soak、无全量测试/完整回归。
+保持 PR #174 的远端 CI 状态与本地结果彼此独立；不得把 pending、远端检查、Draft PR 或本地复审结果外推为 CI、合并、部署、OVH、Cloudflare、真实市场、账户或生产上线完成。下一次独立 run 只可启动 S15 整体复审：先独立读取 P01--P04 收据、执行冻结 Stage Review 合同、修复其暴露的问题；仅在复审为 PASS、findings 闭合后才上传本 Stage。保持零新增现金、无真实时间 soak、无全量测试/完整回归。

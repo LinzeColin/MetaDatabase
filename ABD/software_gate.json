@@ -1,0 +1,139 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S15-P04-02",
+  "gate_id": "S15-P04-TRACEABILITY-SOFTWARE-GATE",
+  "contract_id": "AC-S15-P04",
+  "requirement_id": "REQ-S15-P04",
+  "stage_id": "S15",
+  "phase_id": "P04",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "scope": {
+    "stage_id": "S15",
+    "critical_phase_ids": ["P01", "P02", "P03", "P04"],
+    "next_gate": "STAGE-REVIEW-S15",
+    "future_stage_status": "NOT_EVALUATED_BY_S15_P04"
+  },
+  "critical_chain": [
+    {
+      "phase_id": "P01",
+      "requirement_id": "REQ-S15-P01",
+      "contract_id": "AC-S15-P01",
+      "evidence_id": "EVD-S15-P01",
+      "evidence_index_id": "INDEX-AC-S15-P01",
+      "evidence_path": "machine/evidence/EVD-S15-P01.json",
+      "next": "S15/P02_READY_NOT_STARTED",
+      "signed_required": true
+    },
+    {
+      "phase_id": "P02",
+      "requirement_id": "REQ-S15-P02",
+      "contract_id": "AC-S15-P02",
+      "evidence_id": "EVD-S15-P02",
+      "evidence_index_id": "INDEX-AC-S15-P02",
+      "evidence_path": "machine/evidence/EVD-S15-P02.json",
+      "next": "S15/P03_READY_NOT_STARTED",
+      "signed_required": true
+    },
+    {
+      "phase_id": "P03",
+      "requirement_id": "REQ-S15-P03",
+      "contract_id": "AC-S15-P03",
+      "evidence_id": "EVD-S15-P03",
+      "evidence_index_id": "INDEX-AC-S15-P03",
+      "evidence_path": "machine/evidence/EVD-S15-P03.json",
+      "next": "S15/P04_READY_NOT_STARTED",
+      "signed_required": true
+    },
+    {
+      "phase_id": "P04",
+      "requirement_id": "REQ-S15-P04",
+      "contract_id": "AC-S15-P04",
+      "evidence_id": "EVD-S15-P04",
+      "evidence_index_id": "INDEX-AC-S15-P04",
+      "evidence_path": "machine/evidence/EVD-S15-P04.json",
+      "next": "S15/STAGE_REVIEW_READY_NOT_STARTED",
+      "signed_required": false
+    }
+  ],
+  "gate_definitions": [
+    {
+      "id": "GATE-S15-P04-CANONICAL-FACTS",
+      "rule": "冻结机器事实哈希必须精确匹配。",
+      "failure_action": "BLOCK_STAGE_REVIEW"
+    },
+    {
+      "id": "GATE-S15-P04-CHAIN-COMPLETE",
+      "rule": "每个S15关键阶段必须有需求、合同、任务、测试、证据和制品链接。",
+      "failure_action": "BLOCK_STAGE_REVIEW"
+    },
+    {
+      "id": "GATE-S15-P04-NO-ORPHANS",
+      "rule": "S15关键节点不得孤儿、重复或脱离其合同。",
+      "failure_action": "BLOCK_STAGE_REVIEW"
+    },
+    {
+      "id": "GATE-S15-P04-DAG-ACYCLIC",
+      "rule": "全任务图依赖必须存在且无循环。",
+      "failure_action": "BLOCK_STAGE_REVIEW"
+    },
+    {
+      "id": "GATE-S15-P04-PREDECESSOR-SIGNED",
+      "rule": "P03必须是哈希固定且未声明外部生产动作的已签名前置证据。",
+      "failure_action": "BLOCK_STAGE_REVIEW"
+    },
+    {
+      "id": "GATE-S15-P04-BOUNDARY-ONE-IN-TEN-THOUSAND",
+      "rule": "P03的有利与不利万分之一冻结案例必须分别保持允许和拒绝动作。",
+      "failure_action": "BLOCK_STAGE_REVIEW"
+    },
+    {
+      "id": "GATE-S15-P04-LOCAL-ONLY",
+      "rule": "本门只接受无外部副作用的确定性本地重放。",
+      "failure_action": "BLOCK_STAGE_REVIEW"
+    }
+  ],
+  "boundary": {
+    "delta": "0.0001",
+    "favourable_case_id": "S15-P03-GOLDEN-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND",
+    "favourable_source_case_id": "S15-P02-ODDS-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND",
+    "favourable_status": "E2E_GOLDEN_LOCAL_PASS_NO_EXTERNAL_ACTION",
+    "adverse_case_id": "S15-P03-BLACK-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND",
+    "adverse_source_case_id": "S15-P02-ODDS-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND",
+    "adverse_status": "E2E_BLACK_REVOKED_NO_ORDER",
+    "adverse_must_fail_closed": true
+  },
+  "baseline_hashes": {
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+    "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+    "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+  },
+  "execution_policy": {
+    "offline_deterministic_only": true,
+    "production_equivalent_config_schema_only": true,
+    "full_regression_or_real_time_soak_allowed": false,
+    "external_runtime_access_allowed": false,
+    "phase_test_only": true,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "cloudflare_account_dns_or_tunnel_accessed": false,
+    "database_connection_opened": false,
+    "desktop_or_mobile_browser_exercised": false,
+    "browser_component_installed_or_run": false,
+    "tab_or_provider_runtime_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "real_account_balance_read_or_written": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

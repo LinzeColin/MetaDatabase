@@ -132,9 +132,9 @@
   },
   "legacy_receipt_compatibility": {
     "manifest_path": "machine/facts/s08_legacy_receipt_compatibility.json",
-    "manifest_sha256": "780b18bc91240d95da353ba3e50d364ebd9d1e4a03b041490a821f4cf450afbf",
+    "manifest_sha256": "4c7ed5ead0d69a39f3b66d2918cbfaa14e2c1f86bd5441b11913ba154861678d",
     "helper_path": "abd_acceptance/legacy_receipt_compatibility.py",
-    "helper_sha256": "5d31627258527be35f69e6636bd439ccb3191890e63c5278f7c06dc08cb1c54f",
+    "helper_sha256": "aef0752c3cac96d4bf87e55a7b8ccbf7a7fe01e0f951993e3a2ca2839af3cee5",
     "legacy_receipt_contract_ids": ["AC-S03-P04", "AC-S04-P04", "AC-S05-P04", "AC-S07-P04"],
     "constraint": "Only a path already listed by a legacy oracle as SUCCESSOR_EVOLVABLE_SIGNED_INPUTS may use a manifest-listed exact current SHA-256; all other signed inputs remain byte-exact."
   },

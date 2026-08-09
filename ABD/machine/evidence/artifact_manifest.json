@@ -1,5 +1,5 @@
 {
-  "file_count": 859,
+  "file_count": 868,
   "files": [
     {
       "bytes": 105,
@@ -12,9 +12,9 @@
       "sha256": "a1b6d13afea6f383061d2d3405efe2f2d8f4867fbb08a5edf0e53415c16a239a"
     },
     {
-      "bytes": 52628,
+      "bytes": 54336,
       "path": "HANDOFF.md",
-      "sha256": "eb1601665e9dea13858a1ae93222238112cb36b251a46df99bec9c5044fe2044"
+      "sha256": "cf5334b0aedf052afcb3a8f529079840e3277615638794d01057e6dbf97dce8f"
     },
     {
       "bytes": 643,
@@ -37,9 +37,9 @@
       "sha256": "73c938eca7294d2dc03d604344d85031d4164aef5a02990dd0d884af3e8f44d1"
     },
     {
-      "bytes": 20221,
+      "bytes": 20531,
       "path": "abd_acceptance/__main__.py",
-      "sha256": "8aeb975676b3f3baf675c50cb41766362d0cfebfa8c443fd3e6b8385f255551b"
+      "sha256": "3dfcd0fcff6ea68c17573028a16ce13850f4b0876a1cf6e4352221b1e078a762"
     },
     {
       "bytes": 83338,
@@ -194,7 +194,7 @@
     {
       "bytes": 2194,
       "path": "abd_acceptance/legacy_receipt_compatibility.py",
-      "sha256": "5d31627258527be35f69e6636bd439ccb3191890e63c5278f7c06dc08cb1c54f"
+      "sha256": "aef0752c3cac96d4bf87e55a7b8ccbf7a7fe01e0f951993e3a2ca2839af3cee5"
     },
     {
       "bytes": 53233,
@@ -414,7 +414,7 @@
     {
       "bytes": 59538,
       "path": "abd_acceptance/stage8_review.py",
-      "sha256": "06e36f08b609a57cfded1da9c245bccfa8d0adea4ccf0b02cd4c41b8d62b8ead"
+      "sha256": "c47c54fdf6770587b94e78f8acabf2317fa4872829ffbf3097e94b8937fa9503"
     },
     {
       "bytes": 48494,
@@ -460,6 +460,11 @@
       "bytes": 56724,
       "path": "abd_acceptance/threat_model.py",
       "sha256": "c7a1619814f05e036d9ca5415e889ddc73c568248de1e7c1d62308c3139190b2"
+    },
+    {
+      "bytes": 1510,
+      "path": "abd_acceptance/traceability_proxy.py",
+      "sha256": "0962daec70f055d76fec4e7753b2b1aa9e057f9310ac58207342cf2d422ef755"
     },
     {
       "bytes": 30917,
@@ -1672,6 +1677,16 @@
       "sha256": "6761c0afe059c562d2147c0d1c731e3b9dc52f1d5dd6c71da08195554c99e258"
     },
     {
+      "bytes": 17635,
+      "path": "machine/evidence/EVD-S15-P04.json",
+      "sha256": "3fd288e66d3c473881dc92257992eb41b85422a5c0aaa92f1ff00e202a15feda"
+    },
+    {
+      "bytes": 1695,
+      "path": "machine/evidence/EVD-S15-P04_rollback.json",
+      "sha256": "3d44192dc0724a4414608e4f2bd5363f5082ee041bb0d3e5c43ea835b36e5a13"
+    },
+    {
       "bytes": 1981,
       "path": "machine/evidence/S00/P01/pytest.xml",
       "sha256": "b5ab105f1c61e7f60dc8c7c6b247b2c2d58204e721e188cb1ad3fe416e9d55e3"
@@ -2637,9 +2652,19 @@
       "sha256": "4834af5b76285d9cc29df53bc20c3b9b5b07f75b20270c32f247d301b7355998"
     },
     {
-      "bytes": 37337,
+      "bytes": 1719,
+      "path": "machine/evidence/S15/P04/paid_dependency_scan.txt",
+      "sha256": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1"
+    },
+    {
+      "bytes": 2862,
+      "path": "machine/evidence/S15/P04/pytest.xml",
+      "sha256": "d2431201ddca91334de3c31f10649225b162511a4d22b1f70b4f29f80b12e771"
+    },
+    {
+      "bytes": 37444,
       "path": "machine/evidence/evidence_index.jsonl",
-      "sha256": "f0a382a470d7e677d416e0f36ee411d36ee384511b1972499a88511e112d5fd7"
+      "sha256": "cebb25613c88e5ad62cdf9116aa9875ee0688a4a83e764404543212c395b4a78"
     },
     {
       "bytes": 1120,
@@ -2784,7 +2809,7 @@
     {
       "bytes": 2602,
       "path": "machine/facts/s08_legacy_receipt_compatibility.json",
-      "sha256": "780b18bc91240d95da353ba3e50d364ebd9d1e4a03b041490a821f4cf450afbf"
+      "sha256": "4c7ed5ead0d69a39f3b66d2918cbfaa14e2c1f86bd5441b11913ba154861678d"
     },
     {
       "bytes": 1067,
@@ -2869,7 +2894,7 @@
     {
       "bytes": 9981,
       "path": "machine/facts/stage8_review_contract.json",
-      "sha256": "1c94d939d18b2162e1a826b1341bf3129c4a24e950191ceb5a7a506ffed3e048"
+      "sha256": "4fd2f658e58394cce782592e308fae5bbef89b94c3c21538bf29152d95e39359"
     },
     {
       "bytes": 5861,
@@ -3154,7 +3179,7 @@
     {
       "bytes": 6343,
       "path": "machine/tests/fixtures/S08_STAGE_REVIEW.json",
-      "sha256": "7e5c10e01cd0d2a21b3d1b4ea39405bccacf1d49a79c1268e173361fb82e5d7d"
+      "sha256": "b15b5fe30209378caa5b492ee59885edf5e9d9aa3ad2eec930b1451a5d62e924"
     },
     {
       "bytes": 3052,
@@ -3340,6 +3365,11 @@
       "bytes": 2099,
       "path": "machine/tests/fixtures/S15_P03.json",
       "sha256": "22f95e81ead56255c3e97c00aa75b926455a093bb1b3db5f22f8296e61fe2022"
+    },
+    {
+      "bytes": 1829,
+      "path": "machine/tests/fixtures/S15_P04.json",
+      "sha256": "68e0393e80d6846a7a2302e0e90ae9e1c91d6c4d6cb21ec3aea4877833c95605"
     },
     {
       "bytes": 1705,
@@ -3695,6 +3725,11 @@
       "bytes": 6979,
       "path": "skill/Product-Design-Taskpack-Skill.md",
       "sha256": "2026602cfbc7abe0c06e00a0b18c975703cb3f9804037142525891fc7c8f86f3"
+    },
+    {
+      "bytes": 5458,
+      "path": "software_gate.json",
+      "sha256": "2a610b254e32b773f6ea7299151d584549550868757a352bd6b94517f0beaf8e"
     },
     {
       "bytes": 13580,
@@ -4202,6 +4237,11 @@
       "sha256": "42c60c0cc620f2c4c86265cecb51d54dbc0d536d02859ca4d641791474e614cc"
     },
     {
+      "bytes": 9703,
+      "path": "tests/S15/P04_test.py",
+      "sha256": "a25e89fe09dc597cdf38751587a20710ce48a62735d31c2737c3b566da4fc5f9"
+    },
+    {
       "bytes": 35,
       "path": "tests/__init__.py",
       "sha256": "214896f19f61ef6e1e73500ce53894866f9524c972db91d32f92a62d9818d316"
@@ -4220,6 +4260,11 @@
       "bytes": 2844,
       "path": "token_storage.md",
       "sha256": "4a7a86035e30bd27072b89ce49b746f5f3de218101b55d7ef9443aee72c07fa0"
+    },
+    {
+      "bytes": 53629,
+      "path": "traceability_validator.py",
+      "sha256": "84e523af17592a70bba09388a3de3a1c84e024130fb617ad070d2b8ffe531c69"
     },
     {
       "bytes": 4602,
