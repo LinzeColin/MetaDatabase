@@ -5,7 +5,7 @@
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
   "observed_at": "2026-08-09",
   "source_commit": "366d1641744ce2b1cc1f890dcbc0332a73c3145a",
-  "scope": "User-authorized current-private-version Google callback, authenticated resource-read and one non-sensitive habit-click replay in the agent-controlled browser.",
+  "scope": "User-authorized current-private-version Google and email authentication, authenticated resource reads, and non-sensitive habit-click replays in the agent-controlled Chrome and in-app browser surfaces.",
   "current_private_version": {
     "sites_version_number": 9,
     "environment_revision": 8,
@@ -24,19 +24,24 @@
     ],
     "authenticated_resource_gets_observed_in_sites_worker_logs": true,
     "authenticated_resource_get_status": 200,
-    "habit_mutation_observed_in_sites_worker_logs": false
+    "habit_mutation_observed_in_sites_worker_logs": false,
+    "in_app_standard_email_signin_page_completed": true,
+    "in_app_authenticated_resource_gets_observed_in_sites_worker_logs": true,
+    "in_app_authenticated_resource_get_status": 200,
+    "in_app_habit_click_client_result": "FETCH_REJECTED_GENERIC_NETWORK_STATE",
+    "in_app_habit_mutation_observed_in_sites_worker_logs": false
   },
   "interpretation": {
-    "proven": "The current private version completes the Google callback and its authenticated resource-read routes reach the Worker with HTTP 200. The agent-controlled Browser Use surface rejects direct API navigation and the user-interface mutation request before a matching Worker mutation event is observed.",
+    "proven": "The current private version completes the Google callback and a standard email-signin page flow, and its authenticated resource-read routes reach the Worker with HTTP 200. In both agent-controlled browser surfaces, a non-sensitive UI habit mutation ends in a generic client network state before a matching Worker mutation event is observed.",
     "not_proven": [
       "A Worker read-route failure",
       "A D1 persistence failure",
       "A Better Auth session failure",
-      "A defect in an ordinary end-user browser"
-    ],
-    "decision": "No production API rename, proxy, duplicate route, security relaxation, or visual change was made solely to bypass the test-surface guard."
+    "A defect in an ordinary end-user browser"
+  ],
+    "decision": "No production API rename, proxy, duplicate route, security relaxation, or visual change was made solely to bypass the agent-browser mutation guard."
   },
-  "next_required_evidence": "Run one bounded A/B write-and-history replay in a controlled user runtime not subject to the agent browser API-request guard, then bind it to the currently deployed private version.",
+  "next_required_evidence": "Run one bounded ordinary-browser write-and-history replay, outside the agent-browser mutation guard, then bind it to the currently deployed private version.",
   "sensitive_values_recorded": false,
   "business_user_data_read_or_written": false,
   "account_session_created": true

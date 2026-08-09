@@ -63,8 +63,8 @@
   },
   "raw_unauthenticated_smoke": {
     "evidence_file": "13_evidence/production-smoke-run.json",
-    "status": "AGENT_BROWSER_API_TRANSPORT_GUARD",
-    "interpretation": "The agent-controlled browser blocks direct API navigation with ERR_BLOCKED_BY_CLIENT. The same controlled Google session reached the application and the Worker logs contain HTTP 200 authenticated resource-read events; neither observation proves a normal end-user mutation failure."
+    "status": "AGENT_BROWSER_MUTATION_TRANSPORT_GUARD",
+    "interpretation": "The agent-controlled Chrome and in-app browser surfaces both reduce a UI habit mutation to a generic client network state without a matching Worker mutation event. The same current version completed standard email-signin UI and recorded HTTP 200 authenticated resource reads; neither observation proves a normal end-user mutation failure."
   },
   "evidence_files": [
     "13_evidence/saved_version.json",
@@ -72,7 +72,8 @@
     "13_evidence/tenant_matrix.json",
     "13_evidence/production-smoke-run.json",
     "13_evidence/email_signup_replay.json",
-    "13_evidence/tenant_history_replay.json"
+    "13_evidence/tenant_history_replay.json",
+    "13_evidence/browser_transport_boundary.json"
   ],
   "product_pass_claimed": false,
   "final_acceptance_claimed": false,
