@@ -405,6 +405,8 @@ img { display: block; max-width: 100%; }
 .habit-icon { width: 53px; height: 53px; margin-bottom: 5px; border-radius: 14px; object-fit: cover; }
 .habit-card strong { font-size: 16px; font-weight: 800; line-height: 22px; }
 .habit-card small { margin-top: 3px; color: #c3aab3; font-size: 12px; line-height: 17px; }
+.habit-card[aria-pressed="true"] { border-color: var(--pink-400); background: #fff5f8; box-shadow: 0 8px 18px rgba(205, 99, 138, 0.16); }
+.habit-card[aria-pressed="true"] small { color: var(--pink-600); font-weight: 800; }
 
 .overview-card { min-height: 151px; margin-top: 17px; padding: 20px 16px 16px; }
 .overview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 14px; }
@@ -545,7 +547,8 @@ img { display: block; max-width: 100%; }
 
 .food-card { min-height: 616px; margin-top: 16px; padding: 17px 16px 15px; }
 .food-card > .section-title { margin-bottom: 20px; }
-.upload-zone { display: flex; width: 100%; height: 130px; flex-direction: column; align-items: center; justify-content: center; gap: 8px; overflow: hidden; border: 1px dashed var(--pink-300); border-radius: 12px; color: var(--text-muted); background: #fffafb; font-size: 11px; }
+.upload-zone { display: flex; width: 100%; height: 130px; flex-direction: column; align-items: center; justify-content: center; gap: 8px; overflow: hidden; padding: 0; border: 1px dashed var(--pink-300); border-radius: 12px; color: var(--text-muted); background: #fffafb; cursor: pointer; font: inherit; font-size: 11px; text-align: center; }
+.upload-zone:focus-visible { outline: 0; border-color: var(--pink-500); box-shadow: var(--focus-ring); }
 .upload-zone > img { width: 46px; height: 36px; object-fit: contain; }
 .food-card .form-grid { margin-top: 13px; gap: 10px 11px; }
 .food-card .input,
@@ -572,6 +575,9 @@ img { display: block; max-width: 100%; }
 .generic-page .page-head { height: 84px; }
 .generic-card { padding: 20px 17px; }
 .muted { margin: 0 0 16px; color: var(--text-muted); font-size: 12px; }
+.interaction-note { margin: 11px 0 0; color: var(--text-secondary); font-size: 11px; line-height: 17px; }
+.record-items + .interaction-note { margin-top: 12px; }
+.module-empty { min-height: 248px; }
 
 .auth-shell { display: grid; min-height: 100vh; place-items: center; padding: 24px; background: var(--surface-app); }
 .auth-card { width: min(100%, 390px); padding: 26px 22px; text-align: center; }
