@@ -2,12 +2,14 @@
 
 ## 当前目标
 
-完成真实运行时配置与 Cloudflare Owner 前置后重跑 S5-T2 激活预检；当前非商业素材权利已由精确哈希的 Owner attestation 覆盖，但在全量 S5/S6 门通过前仍不得公开部署。
+完成 S5-T3 的私有真实认证与回滚采证；当前非商业素材权利已由精确哈希的 Owner attestation 覆盖，但在全量 S5/S6 门通过前仍不得公开部署或上传 GitHub。
 
 ## 当前状态
 
+- 2026-08-09（最新）：私有运行时邮件已切换至已验证的专用发送域，Sites 环境为 revision `7`；所有值仍仅以 Secret 形式保存、未写入仓库。真实找回链路已经完整回放：请求触发邮件投递、验证重设链接、修改密码并以新密码建立会话均成功；此前实际 Google OAuth 回跳也已成功。随后对已保存的私有 Version #5 进行了回滚部署和页面可用性检查，再恢复 Version #6；两次部署均成功且应用仍为 custom、1 名允许用户、0 个允许群组。配置过程留下的 3 条精确重复 DNS 记录已在逐条匹配后删除，并复核发送域仍为 verified。未公开部署、未上传 GitHub。
+- 2026-08-09（最新）：新邮箱注册→验证邮件这条独立回放目前只受服务端 `429` 的真实限流窗口约束；未调整或绕过限流、Turnstile、认证策略或访问控制。已创建一次性本线程续跑，待冷却窗口结束后仅重试一次，并继续完成验证链接、登录会话与余下私有验收。
 - 2026-08-09：主线程已按 `docs/operation-atlas/MAIN_THREAD_FIX_REQUEST.md` 修复 18 个此前点击无可见效果的桌面、记账、减脂、日程、纪念日、日记、存钱与经期控件。新增客户端交互层将习惯、筛选与提交反馈变为可见状态变化；未登录提交仅产生明确的本次会话记录/提示，不伪造云端持久化。以新本地开发实例运行完整点击采集后，`docs/operation-atlas/button-audit.json` 为 132 个控件、`no_visible_effect=0`、18 个目标均为 `state_changed`；已重建对应 Draw.io 图。`npm run typecheck`、`npm run lint`、`npm run build`、`npm run test:ui-structure`（2/2）与 `npm run test:e2e`（3/3）均通过。
-- 2026-08-09：S5-T3 私有认证链路已推进到实际 Google OAuth 回跳成功。最新私有部署保持 owner/custom、仅一名允许用户；邮箱注册能进入验证页，但当前 NitroSend 账户在直接发送时返回 provider 级 `account_silenced`，不是应用代码或凭据格式错误。受控的替代邮件凭据已在本机临时安全保存、尚未写入 Sites；下一步是在不公开站点的前提下切换并回放邮箱验证、找回和回滚。
+- 2026-08-09（较早快照，已由上两条替代）：S5-T3 私有认证链路已推进到实际 Google OAuth 回跳成功。最新私有部署保持 owner/custom、仅一名允许用户；邮箱注册能进入验证页，但当前 NitroSend 账户在直接发送时返回 provider 级 `account_silenced`，不是应用代码或凭据格式错误。受控的替代邮件凭据已在本机临时安全保存、尚未写入 Sites；下一步是在不公开站点的前提下切换并回放邮箱验证、找回和回滚。
 - 2026-08-09：按 `S5-T2-ORIGIN-BOOTSTRAP-001` 成功对既有私有 Version #1 执行一次 owner-only 私有部署，以取得平台分配的 Origin；部署前后都为 owner/custom、1 名允许用户、0 外部访客/群组，未变更公开 audience、未访问用户数据、未运行真实认证/邮件。URL 只以不可逆 SHA-256 记录。随后仅把 `APP_ORIGIN` 作为 Secret 写入 Sites Settings，revision `1→2`、键级条目 `8→9`；当前已部署实例仍绑定 revision `1`，故 revision `2` 必须在完成余下 S5-T2 配置后以受控私有部署应用，不能冒充已运行。Turnstile 写入未假装完成：7 个受控 token 候选中只有 3 个可见同账户，但三个创建请求均为 HTTP `403` / code `10000`，没有 Widget 或键被创建/写入。`13_evidence/origin_bootstrap.json` 与 `13_evidence/sites_runtime_configuration.json` 是当前真源；本地 owner precheck 从 9 项风险收敛到 7 项，仍非 S5-T2 PASS 或 S5-T3。
 - 2026-08-09（Origin 引导前的历史快照）：在最新 Owner 直接授权下，私有 Sites Settings 已真实写入并做键级回读：revision `1`、共 8 项，`BETTER_AUTH_SECRET`、Google OAuth、`NITROSEND_API_KEY` 与 `MAIL_FROM` 均标为 Secret；`MAIL_PROVIDER` 和两项隐私常量为非 Secret。该写入来自受控资料/本机生成的稳定认证 secret，未输出、写入或提交任何值；Sites 当时仍无 live/preview URL、访问为 private/custom，未部署。认证运行时保留 Resend 默认，并在显式 `MAIL_PROVIDER=nitrosend` 时经同一 MailPort 支持已验证的 NitroSend REST 后端；回归覆盖 Resend 请求不变、NitroSend 负载形状与失败泛化。以受控来源做的本地存在性预检当时为 9 项风险；该结果不冒充 Sites 完整可运行或 S5-T2 PASS。
 - 2026-08-09（本节首条直接授权前的历史只读快照）：继续核验受控邮件与 Turnstile 前置。NitroSend 的 `NITROSEND_SECRET_KEY` 已在子进程中通过其账户读取端点认证，且连接器报告已有验证发送域/默认发件人；但账户当前提供商状态不是 Resend。冻结任务包的第三方依赖决策锁定 Resend HTTPS API（仅以 MailPort 隔离供应商），因此当时未改变默认 Resend 配置、未发送测试邮件。Cloudflare token 可读取唯一可见账户的 Turnstile Widgets，尚无 Personal-WorkBench Widget；官方 API 要求新 Widget 在创建时至少绑定一个允许 hostname，而 taskpack 默认将首个 hostname 设为下游 Sites production Origin，故未创建空 hostname Widget。两项只读事实均不暴露 credential、账号 ID、域名或邮件地址，并确认后续真实 Secret、Origin 与 callback 仍必须在受控 S5-T2/S5-T3 路径中逐项采证。
@@ -206,6 +208,13 @@
 - 本轮 `production-smoke` 风险收敛为 `1` 项（真实回放未执行），`ops-projection` 风险收敛为 `1` 项（S5-T3 阻断），说明本地可复现预检已进入外部门槛阶段。
 
 ## 下一步
+
+### 最新优先
+
+1. 等待一次性续跑在服务端限流窗口结束后完成新邮箱注册、验证邮件、验证链接与登录会话的真实回放；不得以重复请求或配置修改规避保护。
+2. 在该回放成功后，继续剩余的私有 S5 真实验收并形成与当前私有版本绑定的脱敏证据；公开部署与 GitHub 上传仍然禁止。
+
+### 历史记录（部分事项已完成；以上述最新优先项为准）
 
 1. Owner 在对话外完成真实 Sites runtime 配置、Cloudflare/Wrangler 登录、Google callback、邮件发送域、Turnstile 与运营者/隐私信息；不得在仓库或对话中提供 Secret。
 2. 保持当前 37 个素材的精确字节、容器路径和非商业范围；任何商业化、素材替换或授权撤回都必须先更新 `owner_asset_rights_attestation.json` 并重跑 `verify:assets -- --record`。
