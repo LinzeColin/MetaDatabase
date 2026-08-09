@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PASS_PRIVATE_VERSION_21_ORDINARY_CHROME_PERSISTENCE_REPLAY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "local_source_commit": "518723e2efddd25e5fac95951483254cd84ee157",
+    "local_root_tree": "e77801e3641fb0fc3cd16df8dbc5c9bf82bc6b78",
+    "local_project_tree": "62845dddf1852626ba15d56af6e674b7e51d8b2e",
+    "sites_source_commit": "91037c9cd02cd2dfca42124243cb212af049d0c4",
+    "sites_source_tree_matches_published_local_project_tree": true,
+    "tracked_file_count": 338,
+    "local_archive_sha256": "de945e2a7f12107b825247fb3d86f7002e72852e6e656c8b1ca04a2d88b4dec3",
+    "sites_version_number": 21,
+    "deployment_environment_revision": 8
+  },
+  "private_deployment": {
+    "status": "SUCCEEDED",
+    "owner_only_private_deployment": true,
+    "public_audience_changed": false,
+    "runtime_values_changed": false,
+    "canonical_origin": "https://mydairy.linzezhang.com",
+    "site_title": "个人日程"
+  },
+  "ordinary_chrome_replay": {
+    "identity": "temporary_email_verified_test_session_only",
+    "real_user_identity_or_credentials_recorded": false,
+    "all_five_builtin_habits_visible_as_checked_after_reload": true,
+    "all_five_builtin_habits_summary_visible_after_reload": true,
+    "habit_failure_feedback_visible": false,
+    "ledger_explicit_sensitive_cross_device_consent_preserved": true,
+    "ledger_record_saved_and_visible_after_reload": true,
+    "schedule_record_saved_and_visible_after_reload": true,
+    "test_record_values_recorded": false
+  },
+  "local_unauthenticated_control_audit": {
+    "page_count": 16,
+    "control_count": 140,
+    "no_visible_effect_count": 0,
+    "state_changed_count": 18,
+    "file_picker_opened_count": 1,
+    "explicit_precondition_count": 8
+  },
+  "current_regressions": {
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "workbench_persistence_ui": "PASS_6_OF_6",
+    "auth_contract": "PASS_18_OF_18",
+    "api_contract": "PASS_6_OF_6",
+    "tenant_contract": "PASS_2_OF_2",
+    "privacy_contract": "PASS_3_OF_3",
+    "module_matrix": "PASS_1_OF_1",
+    "e2e_smoke": "PASS_4_OF_4",
+    "build": "PASS",
+    "release_evidence": "PASS_13_OF_13"
+  },
+  "data_and_cleanup_boundary": {
+    "real_user_business_data_read_or_written": false,
+    "browser_cookie_or_storage_inspected": false,
+    "temporary_test_account_and_generated_records_remain_isolated": true,
+    "temporary_credentials_or_mail_references_retained_in_evidence": false
+  },
+  "not_proven": [
+    "A second independently authenticated live tenant replay on Version 21",
+    "Physical second-device history readback",
+    "Direct D1 or R2 reconciliation",
+    "Public multi-user audience or final product acceptance"
+  ]
+}
