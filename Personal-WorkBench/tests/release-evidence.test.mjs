@@ -390,3 +390,33 @@ test("Version 27 storage-binding health replay retains no account or storage mat
   assert.equal(serialized.includes("token="), false);
   assert.equal(serialized.includes("Bearer "), false);
 });
+
+test("Version 28 brand-identity deployment retains no source credential or user data", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_28_brand_identity_reconciliation.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 28);
+  assert.equal(evidence.candidate.source_projection_tree_matches_local_project_tree, true);
+  assert.equal(evidence.local_validation.canonical_domain_contract, "PASS_3_OF_3");
+  assert.equal(evidence.local_validation.outbox_migration_contract, "PASS_7_OF_7");
+  assert.equal(evidence.brand_and_domain.display_name, "个人日程");
+  assert.equal(evidence.brand_and_domain.technical_slug, "mydairy");
+  assert.equal(evidence.brand_and_domain.custom_domain_status, "ACTIVE");
+  assert.equal(evidence.private_deployment.deployment_status, "SUCCEEDED");
+  assert.equal(evidence.private_deployment.public_audience_changed, false);
+  assert.equal(evidence.change_boundary.authentication_logic_changed, false);
+  assert.equal(evidence.change_boundary.tenant_or_persistence_logic_changed, false);
+  assert.equal(evidence.change_boundary.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.change_boundary.temporary_deployment_archive_removed, true);
+  assert.equal(evidence.change_boundary.temporary_source_credentials_cleared_from_agent_runtime, true);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});

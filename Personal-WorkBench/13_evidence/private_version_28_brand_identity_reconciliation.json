@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_28_ACTIVE_BRAND_IDENTITY_RECONCILIATION_DEPLOYED",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "local_source_commit": "9585b448940fb4fd87b7ee7e07ce62a6ccb515b0",
+    "local_root_tree": "e911d6b0f3ed39fb22a65c0c857263b06401e153",
+    "local_project_tree": "96818839afbe314f745f45fe2f04d94aaf4b2383",
+    "replaced_incomplete_source_commit": "c71b7959d75c2603aa9e816c236376629b3ccc5d",
+    "sites_source_commit": "43d9a697fd974e5a728470bf72b034b19b883187",
+    "sites_version_number": 28,
+    "source_projection_tree_matches_local_project_tree": true,
+    "deployment_archive_sha256": "cfa57cd19c5cee057f359897da7000e1facd5faf81bfc591aca496e7fcd6665b",
+    "provider_archive_recorded": true
+  },
+  "local_validation": {
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "canonical_domain_contract": "PASS_3_OF_3",
+    "outbox_migration_contract": "PASS_7_OF_7",
+    "rendered_ui_structure": "PASS_2_OF_2",
+    "e2e_smoke": "PASS_4_OF_4",
+    "build": "PASS",
+    "diff_check": "PASS"
+  },
+  "brand_and_domain": {
+    "display_name": "个人日程",
+    "technical_slug": "mydairy",
+    "canonical_origin": "https://mydairy.linzezhang.com",
+    "site_title": "个人日程",
+    "custom_domain_status": "ACTIVE",
+    "custom_domain_provider_status": "ACTIVE",
+    "custom_domain_ssl_status": "ACTIVE",
+    "active_user_facing_generic_workbench_copy_removed": true,
+    "retired_platform_hostname_retained_only_for_saved_link_compatibility": true,
+    "retired_outbox_key_read_once_then_removed_to_preserve_pending_actions": true
+  },
+  "source_transport_recovery": {
+    "pre_recovery_source_history_readable": false,
+    "recovery_method": "LEASE_PROTECTED_TREE_IDENTICAL_ROOT_PROJECTION",
+    "remote_source_readback_matches_projection": true,
+    "remote_history_replaced_only_if_expected_pre_recovery_commit_matched": true,
+    "github_uploaded": false
+  },
+  "private_deployment": {
+    "deployment_status": "SUCCEEDED",
+    "environment_revision": 8,
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "access_policy_revision": 1,
+    "public_audience_changed": false
+  },
+  "change_boundary": {
+    "visible_brand_copy_changed": true,
+    "canonical_domain_changed": false,
+    "authentication_logic_changed": false,
+    "tenant_or_persistence_logic_changed": false,
+    "runtime_environment_changed": false,
+    "d1_or_r2_binding_changed": false,
+    "access_policy_changed": false,
+    "real_user_business_data_read_or_written": false,
+    "temporary_deployment_archive_removed": true,
+    "temporary_source_credentials_cleared_from_agent_runtime": true
+  },
+  "not_proven_by_this_increment": [
+    "an authenticated browser replay of the retired platform-host redirect",
+    "Google OAuth callback and session",
+    "final password update and new-password sign-in",
+    "physical second-device history readback",
+    "direct D1 or R2 physical mapping or record-object reconciliation",
+    "public product acceptance"
+  ],
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
