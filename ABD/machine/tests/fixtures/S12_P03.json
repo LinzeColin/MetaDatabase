@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "S12-P03-ECONOMICS-SENSITIVITY-FROZEN",
+  "contract_id": "AC-S12-P03",
+  "requirement_id": "REQ-S12-P03",
+  "stage_id": "S12",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "p01_evidence_sha256": "9462cfab12b28218bf84419d45bf0c4d512aa406d5547de108f0dfbb09d4214a",
+  "p02_evidence_sha256": "dba62cb8d87a6a33fb7e4ea90615a7a892233e908fd48973000afc43576395f0",
+  "capacity_report_sha256": "0dfa4b67eb93f75e101adce94bb534fd8d9fbe7e7f139e5bd60ffa48fd81c11b",
+  "bankroll_cents": 30000,
+  "target_increment_cents": 9000,
+  "incremental_cash_budget_cents": 0,
+  "return_band_scenarios": [
+    {
+      "scenario_id": "S12-P03-BASELINE-SYNTHETIC",
+      "executed_capacity_fraction": "1.0000",
+      "return_rate_low": "-0.1000",
+      "return_rate_central": "0.0250",
+      "return_rate_high": "0.2000",
+      "confidence": "0.2000",
+      "failure_probability": "0.8000",
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    },
+    {
+      "scenario_id": "S12-P03-ADVERSE-ONE-IN-TEN-THOUSAND",
+      "executed_capacity_fraction": "0.9999",
+      "return_rate_low": "-0.1001",
+      "return_rate_central": "0.0249",
+      "return_rate_high": "0.1999",
+      "confidence": "0.1999",
+      "failure_probability": "0.8001",
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    },
+    {
+      "scenario_id": "S12-P03-NO-EXECUTION-SYNTHETIC",
+      "executed_capacity_fraction": "0.0000",
+      "return_rate_low": "-0.2000",
+      "return_rate_central": "0.0000",
+      "return_rate_high": "0.0000",
+      "confidence": "0.0000",
+      "failure_probability": "1.0000",
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY"
+    }
+  ],
+  "illustrative_hourly_value_aud": [
+    "30.00",
+    "50.00",
+    "100.00",
+    "150.00"
+  ],
+  "expected_sensitivity_grid_sha256": "ffe270dbe1abd3c6fa7352572005d11e5c9290291cf1341ec06771c3bea049cd",
+  "expected_opportunity_cost_sha256": "eb16677de35f5178cd87027469f4cbe057e4a8e2ee7258f7d3c7fa82b5f9d230"
+}
