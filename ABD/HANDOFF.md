@@ -2,11 +2,13 @@
 
 ## 当前目标
 
-在隔离 worktree `codex/abd-v0001-s10-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1` 的 S10。S10/P01–P04 均已完成本地签名证据；下一轮只能推进 S10 整体复审，复审通过前不能 GitHub 阶段上传。
+在隔离 worktree `codex/abd-v0001-s10-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1` 的 S10。S10 整体复审已本地通过；下一轮只能处理 S10 GitHub 阶段上传合同，上传前不得部署或激活生产。
 
 ## 当前状态
 
 - S09 已完成整体复审并合并；当前 S10 worktree 保持隔离，主工作树及其他项目 worktree 均未触碰。
+- S10 整体复审已本地签名通过：`machine/evidence/EVD-S10-STAGE-REVIEW.json`（SHA-256 `9713f67a639ff6b7a491c3ed656e5e1abf56f673163af4a85e7c603e98d2f5de`）。`STAGE-REVIEW-S10` 对 P01--P04 receipt/rollback、冻结 Task Pack、时间校准、保守概率、Decimal 双实现、万分之一不利扰动、可移植证据与外部行为边界执行离线确定性复审，结论为 `S10_WHOLE_STAGE_REVIEW_PASS`，下一状态为 `S10/GITHUB_STAGE_UPLOAD_READY`。
+- 复审发现的唯一过程缺口（四个已签名 Phase 未预置整体复审合同）已以独立合同、冻结 fixture、离线判定器和回滚 receipt 闭合；`findings.json` 为 `1 resolved / 0 open`。该闭合不修改任何冻结 Phase 基线或放宽证据、数值、风险、安全和来源门。
 - S10/P01 已签名通过：`machine/evidence/EVD-S10-P01.json`，下一状态为 `S10/P02_READY_NOT_STARTED`。其时间交叉验证只使用冻结合成输入，校准结论不构成推荐、下注、订单或收益承诺。
 - S10/P02 已签名通过：`machine/evidence/EVD-S10-P02.json`（SHA-256 `1481efc71fcc185c57a06ddee11d3e0015e534b2084cd90b43dda8ef55fcaa69`），下一状态为 `S10/P03_READY_NOT_STARTED`。
 - S10/P03 已签名通过：`machine/evidence/EVD-S10-P03.json`（SHA-256 `7b848a4e885b5f1b9b31752b88c8b136e1b66f734ed0cdf30926b325bbc0f55c`），下一状态为 `S10/P04_READY_NOT_STARTED`。
@@ -29,6 +31,8 @@
 - `tests/S10/P04_test.py` 定向测试：`28 passed`。覆盖 12 个冻结重放、每一不利维度、组合翻转、边界稳定、基线不建议不可被有利诊断启用、输入/报告/P03 receipt/evidence-index 篡改、回滚与无外部能力边界。
 - `AC-S10-P04` 带报告验收：`30/30 PASS`；`--verify-existing AC-S10-P04`：PASS，且严格要求 evidence index 的 artifact SHA 与 receipt 一致。P03 复验仍 PASS。
 - 未执行全量测试、完整回归或真实时间 soak；上述 1,000/2,000 次是 Task Pack 所要求的本地 CPU 分块重采样，P03 则是六个冻结向量的本地确定性计算，均不依赖真实时间或外部服务。
+- `tests/S10/stage_review_test.py` 定向复审：`44 passed`；写入证据的带报告复审：`87/87 PASS`。报告包含 `49/49` Task Pack 静态校验、付费/未知依赖扫描 PASS、100 次确定性重放及 10,000 次不利快照重放；这些是有限本地 CPU 重放，不是实时 soak。
+- S10 复审回滚 receipt 为 `machine/evidence/EVD-S10-STAGE-REVIEW_rollback.json`；其动作只关闭复审候选并保留 P01--P04 已签名证据，未改变外部或生产状态。
 
 ## 关键文件
 
@@ -47,16 +51,20 @@
 - `abd_acceptance/uncertainty.py`
 - `abd_acceptance/decimal_math.py`
 - `abd_acceptance/robustness_gate.py`
+- `abd_acceptance/stage10_review.py`
 - `abd_acceptance/__main__.py`
 - `abd_acceptance/budget.py`
 - `machine/tests/fixtures/S10_P01.json`
 - `machine/tests/fixtures/S10_P02.json`
 - `machine/tests/fixtures/S10_P03.json`
 - `machine/tests/fixtures/S10_P04.json`
+- `machine/facts/stage10_review_contract.json`
+- `machine/tests/fixtures/S10_STAGE_REVIEW.json`
 - `tests/S10/P01_test.py`
 - `tests/S10/P02_test.py`
 - `tests/S10/P03_test.py`
 - `tests/S10/P04_test.py`
+- `tests/S10/stage_review_test.py`
 - `machine/evidence/EVD-S10-P01.json`
 - `machine/evidence/EVD-S10-P02.json`
 - `machine/evidence/EVD-S10-P02_rollback.json`
@@ -64,12 +72,16 @@
 - `machine/evidence/EVD-S10-P03_rollback.json`
 - `machine/evidence/EVD-S10-P04.json`
 - `machine/evidence/EVD-S10-P04_rollback.json`
+- `machine/evidence/EVD-S10-STAGE-REVIEW.json`
+- `machine/evidence/EVD-S10-STAGE-REVIEW_rollback.json`
+- `machine/evidence/S10/STAGE_REVIEW/findings.json`
+- `machine/evidence/S10/STAGE_REVIEW/pytest.xml`
 
 ## 未解决风险
 
-- S10 整体复审及 GitHub 阶段上传尚未开始，不能被 P01–P04 的 PASS 替代。
+- S10 GitHub 阶段上传尚未执行；本地复审 PASS 不代表远程仓库、远程 CI 或发布可用。
 - 真实市场、真实账户、TAB/Gmail 证据归档、OVH、Cloudflare 与生产上线均未验证、未部署且不应据此推断完成。
 
 ## 下一步
 
-下一次 run 严格只处理 S10 整体复审：复核 P01–P04 的冻结事实、依赖收据、边界、回滚和阶段关闭条件；保持零新增现金、无真实时间 soak、无全量测试/完整回归。仅在整体复审通过并修复其暴露问题后，才可进入 S10 GitHub 阶段上传，不得据此宣称真实市场或生产上线完成。
+下一次 run 严格只处理 S10 GitHub 阶段上传合同：先核验上传前置条件、上传范围和远程回执边界；保持零新增现金、无真实时间 soak、无全量测试/完整回归。不得把本地复审结果外推为远程 CI、真实市场、账户、OVH、Cloudflare 或生产上线完成。
