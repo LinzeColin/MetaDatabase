@@ -3,8 +3,8 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("all resource writes establish a session before body parsing", async () => {
-  const collection = await readFile("app/api/workbench/[resource]/route.ts", "utf8");
-  const record = await readFile("app/api/workbench/[resource]/[id]/route.ts", "utf8");
+  const collection = await readFile("app/api/mydairy/[resource]/route.ts", "utf8");
+  const record = await readFile("app/api/mydairy/[resource]/[id]/route.ts", "utf8");
   assert.ok(collection.indexOf("requireVerifiedSession") < collection.indexOf("readJson(request)"));
   assert.ok(record.indexOf("requireVerifiedSession") < record.indexOf("readJson(request)"));
 });
@@ -12,13 +12,13 @@ test("all resource writes establish a session before body parsing", async () => 
 test("all custom mutation routes use the shared same-origin session boundary", async () => {
   const mutationRoutes = [
     "app/api/account/privacy/route.ts",
-    "app/api/workbench/[resource]/route.ts",
-    "app/api/workbench/[resource]/[id]/route.ts",
-    "app/api/workbench/files/route.ts",
-    "app/api/workbench/files/[id]/route.ts",
-    "app/api/workbench/legacy-import/apply/route.ts",
-    "app/api/workbench/legacy-import/preview/route.ts",
-    "app/api/workbench/profile/route.ts",
+    "app/api/mydairy/[resource]/route.ts",
+    "app/api/mydairy/[resource]/[id]/route.ts",
+    "app/api/mydairy/files/route.ts",
+    "app/api/mydairy/files/[id]/route.ts",
+    "app/api/mydairy/legacy-import/apply/route.ts",
+    "app/api/mydairy/legacy-import/preview/route.ts",
+    "app/api/mydairy/profile/route.ts",
   ];
   const sources = await Promise.all(mutationRoutes.map((path) => readFile(path, "utf8")));
   for (const source of sources) {
@@ -69,13 +69,13 @@ test("worker CSP permits only the Turnstile third-party surface", async () => {
 
 test("sensitive cloud paths gate storage before normal API persistence", async () => {
   const [collection, record, files, fileRecord, privateFiles, legacyPreview, legacyApply] = await Promise.all([
-    readFile("app/api/workbench/[resource]/route.ts", "utf8"),
-    readFile("app/api/workbench/[resource]/[id]/route.ts", "utf8"),
-    readFile("app/api/workbench/files/route.ts", "utf8"),
-    readFile("app/api/workbench/files/[id]/route.ts", "utf8"),
+    readFile("app/api/mydairy/[resource]/route.ts", "utf8"),
+    readFile("app/api/mydairy/[resource]/[id]/route.ts", "utf8"),
+    readFile("app/api/mydairy/files/route.ts", "utf8"),
+    readFile("app/api/mydairy/files/[id]/route.ts", "utf8"),
     readFile("server/files/private-files.ts", "utf8"),
-    readFile("app/api/workbench/legacy-import/preview/route.ts", "utf8"),
-    readFile("app/api/workbench/legacy-import/apply/route.ts", "utf8"),
+    readFile("app/api/mydairy/legacy-import/preview/route.ts", "utf8"),
+    readFile("app/api/mydairy/legacy-import/apply/route.ts", "utf8"),
   ]);
 
   const collectionGate = "await requireSensitiveCloudConsent(env.DB, userId, resourceName);";

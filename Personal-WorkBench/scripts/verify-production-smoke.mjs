@@ -197,7 +197,7 @@ async function main() {
         { key: "forgot_password", route: "/auth/forgot-password" },
         { key: "verify_email", route: "/auth/verify-email" },
         { key: "public_config", route: "/api/auth/public-config" },
-        { key: "profile_probe", route: "/api/workbench/profile" },
+        { key: "profile_probe", route: "/api/mydairy/profile" },
       ];
 
       for (const item of checks) {
@@ -221,7 +221,7 @@ async function main() {
       }
 
       if (summary.checks.routes.profile_probe?.status !== 401 && summary.checks.routes.profile_probe?.status !== 403) {
-        summary.risks.push("未认证访问 /api/workbench/profile 未返回 401/403，鉴权边界不满足预期。");
+        summary.risks.push("未认证访问 /api/mydairy/profile 未返回 401/403，鉴权边界不满足预期。");
       }
 
       if (summary.checks.routes.sign_in?.status >= 500) {

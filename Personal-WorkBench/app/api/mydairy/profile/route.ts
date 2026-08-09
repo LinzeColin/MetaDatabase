@@ -72,7 +72,7 @@ export async function PUT(request: Request): Promise<Response> {
     const identity = await requireVerifiedMutationSession(createAuth(env), request, env);
     userId = identity.userId;
     const values = parseProfile(await readJson(request));
-    const endpoint = "PUT:/api/workbench/profile";
+    const endpoint = "PUT:/api/mydairy/profile";
     const lease = await beginIdempotentWrite(env.DB, {
       userId,
       endpoint,

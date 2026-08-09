@@ -147,7 +147,7 @@ export function useTenantResource<T extends TenantRecord>(
     if (!enabled) return;
     setLoading(true);
     try {
-      const response = await fetch(`/api/workbench/${resource}`, { credentials: "same-origin" });
+      const response = await fetch(`/api/mydairy/${resource}`, { credentials: "same-origin" });
       if (!response.ok) {
         setRecords([]);
         applyFailure(response.status);
@@ -179,7 +179,7 @@ export function useTenantResource<T extends TenantRecord>(
     setError("");
     setLoginSuggested(false);
     try {
-      const response = await fetch(`/api/workbench/${resource}`, {
+      const response = await fetch(`/api/mydairy/${resource}`, {
         method: "POST",
         credentials: "same-origin",
         headers: {
@@ -217,7 +217,7 @@ export function useTenantResource<T extends TenantRecord>(
     setError("");
     setLoginSuggested(false);
     try {
-      const response = await fetch(`/api/workbench/${resource}/${encodeURIComponent(id)}`, {
+      const response = await fetch(`/api/mydairy/${resource}/${encodeURIComponent(id)}`, {
         method: "DELETE",
         credentials: "same-origin",
         headers: { "idempotency-key": idempotencyKey ?? newIdempotencyKey(`${resource}-delete`) },

@@ -58,7 +58,7 @@ export async function POST(request: Request, context: Context): Promise<Response
 
     const body = await readJson(request);
     const values = normalizeResourceInput(resource, body, "create");
-    const endpoint = `POST:/api/workbench/${resourceName}`;
+    const endpoint = `POST:/api/mydairy/${resourceName}`;
     const lease = await beginIdempotentWrite(env.DB, {
       userId,
       endpoint,

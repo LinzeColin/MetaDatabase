@@ -6,8 +6,8 @@ import { pathToFileURL } from "node:url";
 export async function verifyR2Contract() {
   const [files, uploadRoute, objectRoute] = await Promise.all([
     readFile("server/files/private-files.ts", "utf8"),
-    readFile("app/api/workbench/files/route.ts", "utf8"),
-    readFile("app/api/workbench/files/[id]/route.ts", "utf8"),
+    readFile("app/api/mydairy/files/route.ts", "utf8"),
+    readFile("app/api/mydairy/files/[id]/route.ts", "utf8"),
   ]);
   assert.ok(files.includes("users/${userId}/${module}/${objectId}"));
   assert.ok(files.includes("detectImageMime"));

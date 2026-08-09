@@ -4,9 +4,9 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const files = {
-  collection: "app/api/workbench/[resource]/route.ts",
-  record: "app/api/workbench/[resource]/[id]/route.ts",
-  profile: "app/api/workbench/profile/route.ts",
+  collection: "app/api/mydairy/[resource]/route.ts",
+  record: "app/api/mydairy/[resource]/[id]/route.ts",
+  profile: "app/api/mydairy/profile/route.ts",
   store: "server/data/tenant-store.ts",
   resources: "server/data/resources.ts",
   tenant: "server/security/tenant.ts",

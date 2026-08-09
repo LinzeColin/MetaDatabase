@@ -13,7 +13,7 @@ export const runtime = "edge";
 
 export async function POST(request: Request): Promise<Response> {
   let userId: string | null = null;
-  const endpoint = "POST:/api/workbench/legacy-import/apply";
+  const endpoint = "POST:/api/mydairy/legacy-import/apply";
   try {
     const identity = await requireVerifiedMutationSession(createAuth(env), request, env);
     userId = identity.userId;

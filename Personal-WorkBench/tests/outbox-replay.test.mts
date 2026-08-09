@@ -37,7 +37,7 @@ function createMemoryStorage(): MemoryStorage & {
 }
 
 const actionA: OutboxAction = {
-  endpoint: "/api/workbench/todos",
+  endpoint: "/api/mydairy/todos",
   method: "POST",
   idempotencyKey: "a",
   createdAt: 1,
@@ -46,7 +46,7 @@ const actionA: OutboxAction = {
 };
 
 const actionB: OutboxAction = {
-  endpoint: "/api/workbench/todos",
+  endpoint: "/api/mydairy/todos",
   method: "POST",
   idempotencyKey: "b",
   createdAt: 2,
@@ -55,7 +55,7 @@ const actionB: OutboxAction = {
 };
 
 const actionC: OutboxAction = {
-  endpoint: "/api/workbench/todos",
+  endpoint: "/api/mydairy/todos",
   method: "POST",
   idempotencyKey: "c",
   createdAt: 3,

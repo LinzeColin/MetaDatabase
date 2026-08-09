@@ -55,7 +55,7 @@ export default function TodoPageClient() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/workbench/todos", {
+      const response = await fetch("/api/mydairy/todos", {
         credentials: "same-origin",
       });
       if (!response.ok) {
@@ -205,7 +205,7 @@ export default function TodoPageClient() {
     setError("");
     setMessage("");
     const action: OutboxAction = {
-      endpoint: "/api/workbench/todos",
+      endpoint: "/api/mydairy/todos",
       method: "POST",
       idempotencyKey: crypto.randomUUID(),
       createdAt: Date.now(),

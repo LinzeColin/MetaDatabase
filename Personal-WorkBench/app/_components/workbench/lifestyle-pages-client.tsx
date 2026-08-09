@@ -468,7 +468,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
     form.set("module", "food");
     form.set("file", photoFile);
     try {
-      const response = await fetch("/api/workbench/files", {
+      const response = await fetch("/api/mydairy/files", {
         body: form,
         credentials: "same-origin",
         headers: { "idempotency-key": crypto.randomUUID() },
@@ -492,7 +492,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
 
   async function discardUploadedPhoto(id?: string) {
     if (!id) return;
-    await fetch(`/api/workbench/files/${encodeURIComponent(id)}`, {
+    await fetch(`/api/mydairy/files/${encodeURIComponent(id)}`, {
       credentials: "same-origin",
       headers: { "idempotency-key": crypto.randomUUID() },
       method: "DELETE",

@@ -64,7 +64,7 @@ export async function PATCH(request: Request, context: Context): Promise<Respons
 
     const body = await readJson(request);
     const values = normalizeResourceInput(current.resource, body, "update");
-    const endpoint = `PATCH:/api/workbench/${current.resourceName}/${current.id}`;
+    const endpoint = `PATCH:/api/mydairy/${current.resourceName}/${current.id}`;
     const lease = await beginIdempotentWrite(env.DB, {
       userId,
       endpoint,
@@ -100,7 +100,7 @@ export async function DELETE(request: Request, context: Context): Promise<Respon
     // Erasure remains available after withdrawal: it removes the caller's own data
     // and never returns or creates new sensitive cloud content.
     eventType = `workbench.${current.resourceName}.delete`;
-    const endpoint = `DELETE:/api/workbench/${current.resourceName}/${current.id}`;
+    const endpoint = `DELETE:/api/mydairy/${current.resourceName}/${current.id}`;
     const lease = await beginIdempotentWrite(env.DB, {
       userId,
       endpoint,

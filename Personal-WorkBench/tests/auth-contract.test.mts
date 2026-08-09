@@ -151,26 +151,26 @@ test("custom mutations accept only configured first-party origins", () => {
   const expected = "https://workbench.example.test";
   const legacy = "https://legacy.example.test";
   assert.doesNotThrow(() => assertSameOriginMutation(
-    new Request(`${expected}/api/workbench/profile`, {
+    new Request(`${expected}/api/mydairy/profile`, {
       method: "PUT",
       headers: { origin: expected, "sec-fetch-site": "same-origin" },
     }),
     [expected, legacy],
   ));
   assert.doesNotThrow(() => assertSameOriginMutation(
-    new Request(`${legacy}/api/workbench/profile`, {
+    new Request(`${legacy}/api/mydairy/profile`, {
       method: "PUT",
       headers: { origin: legacy, "sec-fetch-site": "same-origin" },
     }),
     [expected, legacy],
   ));
   assert.throws(
-    () => assertSameOriginMutation(new Request(`${expected}/api/workbench/profile`, { method: "PUT" }), [expected, legacy]),
+    () => assertSameOriginMutation(new Request(`${expected}/api/mydairy/profile`, { method: "PUT" }), [expected, legacy]),
     SameOriginRequiredError,
   );
   assert.throws(
     () => assertSameOriginMutation(
-      new Request(`${expected}/api/workbench/profile`, { method: "PUT", headers: { origin: "https://evil.example.test" } }),
+      new Request(`${expected}/api/mydairy/profile`, { method: "PUT", headers: { origin: "https://evil.example.test" } }),
       [expected, legacy],
     ),
     SameOriginRequiredError,

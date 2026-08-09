@@ -64,7 +64,8 @@ test("habit controls always acknowledge a failed save without claiming a complet
 test("tenant resource client uses verified-session endpoints without client tenant fields", async () => {
   const source = await readFile(resourceSource, "utf8");
 
-  assert.match(source, /fetch\(`\/api\/workbench\/\$\{resource\}`/);
+  assert.match(source, /fetch\(`\/api\/mydairy\/\$\{resource\}`/);
+  assert.doesNotMatch(source, /\/api\/workbench\//);
   assert.match(source, /credentials: \"same-origin\"/);
   assert.match(source, /idempotency-key/);
   assert.match(source, /encodeURIComponent\(id\)/);

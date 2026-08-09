@@ -25,7 +25,7 @@ export async function POST(request: Request): Promise<Response> {
     userId = identity.userId;
     const upload = await readPrivateFileForm(request);
     await requireSensitiveCloudConsent(env.DB, userId, upload.module);
-    const endpoint = "POST:/api/workbench/files";
+    const endpoint = "POST:/api/mydairy/files";
     const idempotencyKey = request.headers.get("idempotency-key");
     const lease = await beginIdempotentWrite(env.DB, {
       userId,
