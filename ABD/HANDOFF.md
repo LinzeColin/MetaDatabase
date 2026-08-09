@@ -2,7 +2,7 @@
 
 ## 当前目标
 
-在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11/P01--P04、整个 S11 的本地独立复审和 GitHub 阶段上传均已完成；S12/P01--P04、整个 S12 的本地独立复审及 GitHub 阶段上传亦已完成、签名并复现；S13/P01--P03 已完成本地签名验收。Canonical Task Graph 显示 S13/P03 只依赖 S13/P02 的已签名本地收据，不依赖 PR #174 的异步远端 CI。PR #174 的 S12 远端检查仍须与本地结果独立看待，且无论状态如何均不得外推为部署或生产激活。
+在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11/P01--P04、整个 S11 的本地独立复审和 GitHub 阶段上传均已完成；S12/P01--P04、整个 S12 的本地独立复审及 GitHub 阶段上传亦已完成、签名并复现；S13/P01--P04 已完成本地签名验收，下一独立 run 只能进行 S13 整体复审。Canonical Task Graph 显示 S13/P04 只依赖 S13/P03 的已签名本地收据，不依赖 PR #174 的异步远端 CI。PR #174 的 S12 远端检查仍须与本地结果独立看待，且无论状态如何均不得外推为部署或生产激活。
 
 ## 当前状态
 
@@ -17,6 +17,7 @@
 - S13/P01 已本地签名通过：`machine/evidence/EVD-S13-P01.json` 的 `AC-S13-P01` 为 `28/28 PASS`，下一状态为 `S13/P02_READY_NOT_STARTED`。`chinese_workbench.py` 只重放三个冻结合成视图（无推荐、合成预览、降级），每个动作均禁用；`webapp/` 只提供中文静态页面及本地响应式 CSS 合同；`push_service.py` 只构造本地 push payload，绝不发送外部推送。没有访问真实账户、下单、外部推送、部署、激活或新增现金；A$300 × 1.3^n 目标仍为 `UNVERIFIED_NOT_GUARANTEED`。本地静态 CSS 合同不代表真实浏览器、移动设备、Cloudflare、OVH 或生产可用性。
 - S13/P02 已本地签名通过：`machine/evidence/EVD-S13-P02.json` 的 `AC-S13-P02` 为 `30/30 PASS`，下一状态为 `S13/P03_READY_NOT_STARTED`。`quote_check.py` 以 50 位 Decimal 对冻结 ticket 与仅可见页面字段进行赛事、盘口、选择、赔率、过期和风险开关的失败关闭比较；参数与平台合同 SHA-256 显式绑定到 ticket。`browser_companion/` 是最小权限、无 host permission 的扩展制品，只读显式可见字段，只有本地 session ticket 时才可输出绿色；没有 ticket、字段不全、任一身份不符、赔率低于最低值、过期或风险开关关闭都红色撤销。它仅生成复制指令，不生成未验证深链，不自动打开平台、点击或提交订单。全部为冻结合成测试；扩展安装、真实浏览器、真实平台、账户、网络、部署与生产可用性均未验证。
 - S13/P03 已本地签名通过：`machine/evidence/EVD-S13-P03.json`（SHA-256 `7ebe8b2b59bce33b34e1c7bab01bf96a7d2225414725bddebada481443fc197a`）的 `AC-S13-P03` 为 `21/21 PASS`，下一状态为 `S13/P04_READY_NOT_STARTED`。`post_advice_worker.py` 只记录冻结建议与可选的明确用户确认；无确认时固定为建议账本，不断言真实执行或真实收益。`result_settler.py` 仅重放已确认后的合成胜/负/作废结算与相对收盘赔率观察，`performance_report.py` 明确将合成收益与实际资金分开并保留 `UNVERIFIED_NOT_GUARANTEED`。`±0.0001` 收盘赔率边界仍不会产生真实收益断言；没有真实账户、订单、TAB/Gmail、外部网络、部署或真实时间 soak。
+- S13/P04 已本地签名通过：`machine/evidence/EVD-S13-P04.json`（SHA-256 `1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e`）的 `AC-S13-P04` 为 `22/22 PASS`，下一状态为 `S13/STAGE_REVIEW_READY_NOT_STARTED`。`journey_tests.json` 和 `recovery_actions.json` 闭合 Walking Skeleton、Golden、Black、Abuse、Degraded、Recovery 六条冻结合成路径；每条均含输入、连续状态、输出、证据、中文用户动作和本地恢复，Black 在可见赔率低于最低值 `0.0001` 时固定红色撤销且不下单。所有路径保留 `UNVERIFIED_NOT_GUARANTEED`：无真实市场/网络/账户/TAB/Gmail、订单提交或确认、部署/激活、真实时间 soak 或实际收益断言。
 - S11/P01 已本地签名通过：`machine/evidence/EVD-S11-P01.json`（SHA-256 `4bf25a1a68e3078f512a7cbf0992285e2890d62b5284de24eefd750390b7e2f8`），下一状态为 `S11/P02_READY_NOT_STARTED`。`friction.py` 只重放冻结合成的价格恶化、拒绝、结算和操作摩擦；滚动 P95 使用保守 upper-nearest-rank，`effective_friction = max(default, rolling_observed_p95)`。正的合成净期望仍只输出 `NO_ORDER_RESEARCH_ONLY`，不生成建议或订单。
 - S11/P02 已本地签名通过：`machine/evidence/EVD-S11-P02.json`（SHA-256 `59e814b20d237eff982ff763bb3573ba8c129e6817c4c1cf61e273c366bab065`），下一状态为 `S11/P03_READY_NOT_STARTED`。`decision_gate.py` 以 50 位 `Decimal` 固化 E4/E3/E2/E1/E0 证据分层、共同硬门、`o_min=(1+r_min+c_effective)/p_L` 和向上赔率舍入；4 个稳定候选仍仅为 `CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES`，其余 8 个为 `NO_RECOMMENDATION`，不生成推荐、订单或收益保证。
 - S11/P03 已本地签名通过：`machine/evidence/EVD-S11-P03.json`（SHA-256 `c3d0c61870a37e6c8ee3e71650008fdcf23d4bc2da4d1ec9e83e8e846a4b12d4`），下一状态为 `S11/P04_READY_NOT_STARTED`。`platform_router.py` 只对冻结合成 provider ID 以 50 位 `Decimal` 重放 `S_platform = r_L − P_stale − P_settlement − P_minimum_stake − P_action_friction`；仅唯一最高分且全部门通过者才是 `ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES`，并列、来源/结算/动作通道、最低金额、过期、最低赔率和任一不利扰动均失败关闭为 `NO_RECOMMENDATION`。它不生成真实平台、建议、订单或收益保证。
@@ -40,6 +41,7 @@
 ## 已验证
 
 - 冻结 Task Pack 核心事实文件与原始包逐一一致；Task Pack 静态校验 `49/49 PASS`。
+- `tests/S13/P04_test.py` 定向测试：`18 passed`；覆盖六条完整冻结路径、输入/状态/输出/证据/恢复闭合、`0.0001` 不利赔率红色撤销、无网络/订单/soak 能力、P03 收据与索引篡改失败关闭、确定性重放、回滚以及签名仅替换 P04 JSONL 索引行。JUnit 已规范化；付费/未知依赖扫描 PASS。`AC-S13-P04` 带报告签名验收为 `22/22 PASS`，`--verify-existing AC-S13-P04`：PASS。只运行 P04 定向测试、静态校验和依赖扫描；未运行全量测试、完整回归或真实时间 soak。
 - `tests/S12/P01_test.py` 定向测试：`19 passed`；覆盖 A$300 × 1.3^n 的保守分位、月初/月末现金流调整、目标短缺仅报告、篡改失败关闭、无网络/订单/真实时间能力、回滚，以及签名时仅替换 S12/P01 的 JSONL 索引行后可复现。
 - `AC-S12-P01` 带 JUnit、依赖扫描与 Task Pack 报告的签名验收为 `29/29 PASS`；`--verify-existing AC-S12-P01`：PASS。连续证据复核 `49/49 PASS`，S08 旧收据兼容性精确重放 `1 passed`。仅执行 P01 定向测试、静态校验、依赖扫描与一条 S08 兼容性测试；未运行全量测试、完整回归或真实时间 soak。
 - `tests/S12/P02_test.py` 定向测试：`17 passed`；覆盖同簇重复不计、跨簇共享平台总额、万分之一可执行比例扰动、P01/相关图/报告篡改失败关闭、回滚及无外部能力边界。`AC-S12-P02` 带 JUnit、依赖扫描与 Task Pack 报告的签名验收为 `25/25 PASS`；`--verify-existing AC-S12-P02`：PASS，连续证据 `49/49 PASS`，S08 旧收据兼容性精确重放 `1 passed`。未运行全量测试、完整回归或真实时间 soak。
@@ -121,6 +123,9 @@
 - `post_advice_worker.py`
 - `result_settler.py`
 - `performance_report.py`
+- `journey_tests.json`
+- `recovery_actions.json`
+- `abd_acceptance/journey_paths.py`
 - `abd_acceptance/economics_sensitivity.py`
 - `abd_acceptance/target_falsification_gate.py`
 - `abd_acceptance/post_advice_settlement.py`
@@ -134,6 +139,7 @@
 - `machine/tests/fixtures/S12_P03.json`
 - `machine/tests/fixtures/S12_P04.json`
 - `machine/tests/fixtures/S13_P03.json`
+- `machine/tests/fixtures/S13_P04.json`
 - `machine/tests/fixtures/S11_P02.json`
 - `machine/tests/fixtures/S11_P03.json`
 - `machine/tests/fixtures/S11_P04.json`
@@ -153,6 +159,7 @@
 - `tests/S12/P03_test.py`
 - `tests/S12/P04_test.py`
 - `tests/S13/P03_test.py`
+- `tests/S13/P04_test.py`
 - `tests/S11/P02_test.py`
 - `tests/S11/P03_test.py`
 - `tests/S11/P04_test.py`
@@ -190,6 +197,9 @@
 - `machine/evidence/EVD-S12-STAGE-REVIEW_rollback.json`
 - `machine/evidence/EVD-S13-P03.json`
 - `machine/evidence/EVD-S13-P03_rollback.json`
+- `machine/evidence/EVD-S13-P04.json`
+- `machine/evidence/EVD-S13-P04_rollback.json`
+- `machine/evidence/S13/P04/pytest.xml`
 - `machine/evidence/S11/P04/pytest.xml`
 - `machine/evidence/S11/P03/pytest.xml`
 - `machine/evidence/S11/P01/pytest.xml`
@@ -205,9 +215,10 @@
 - S13/P01 只有本地冻结合成证据与静态 UI/CSS 合同；它不构成真实浏览器或移动设备验证，也不构成外部推送、Cloudflare、OVH、真实市场、TAB/Gmail、真实账户、订单、部署或上线证明。
 - S13/P02 只有冻结合成 ticket、页面快照和静态扩展源码证据；真实平台字段映射、来源合同的运行时重验、扩展安装、真实浏览器/移动设备、外部网络、账户、订单、Cloudflare、OVH、部署与上线均未验证。复制指令不是已验证深链或自动平台打开能力。
 - S13/P03 只有冻结建议、可选确认和合成结算的本地证据；即使记录了明确用户确认或合成胜负，也不构成实际成交、官方赛果、账户账单、真实资金收益或对账完成。真实平台/账户/TAB/Gmail、外部网络、Cloudflare、OVH、部署与上线均未验证。
+- S13/P04 只有六条冻结合成路径及本地恢复证据；路径完整性不构成真实浏览器、平台、市场、账户、TAB/Gmail 归档、订单、外部网络、Cloudflare、OVH、部署、上线、实际收益或复利目标验证。
 - S08 legacy receipt compatibility 的一条定向重放已 `1 passed`；它只证明既有明确 allow-list 中的当前哈希与四份旧 receipt 可重放，不代表 S08/S12 新的远端 CI、发布或生产状态。
 - 真实市场、真实账户、TAB/Gmail 证据归档、OVH、Cloudflare 与生产上线均未验证、未部署且不应据此推断完成。
 
 ## 下一步
 
-保持 PR #174 的远端 CI 状态与 S12 本地结果彼此独立；不得把 pending、远端检查或本地复审结果外推为 CI、合并、部署、OVH、Cloudflare、真实市场、账户或生产上线完成。下一次独立 run 只可启动 S13/P04，绝不在本 run 开始它；中间 Phase 不上传 GitHub。S13/P04 完成后才可进行 S13 整体复审，复审问题闭合后才可进行 S13 GitHub 阶段上传。保持零新增现金、无真实时间 soak、无全量测试/完整回归。
+保持 PR #174 的远端 CI 状态与 S12 本地结果彼此独立；不得把 pending、远端检查或本地复审结果外推为 CI、合并、部署、OVH、Cloudflare、真实市场、账户或生产上线完成。下一次独立 run 只可启动 S13 整体复审；复审问题闭合后才可进行 S13 GitHub 阶段上传，中间不得上传。保持零新增现金、无真实时间 soak、无全量测试/完整回归。
