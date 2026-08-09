@@ -1,21 +1,22 @@
 {
   "schema_version": "1.2.0",
   "task_id": "S5-T3",
-  "status": "IN_PROGRESS_PRIVATE_RUNTIME_ACCEPTANCE",
+  "status": "PRIVATE_VERSION_27_RUNTIME_STORAGE_BINDING_HEALTH_REPLAY",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
   "observed_at": "2026-08-10",
   "candidate": {
-    "local_source_commit": "0419151b4acdea741d4d42e1a3e4923e1c692c3b",
-    "functional_code_commit": "0419151b4acdea741d4d42e1a3e4923e1c692c3b",
-    "local_root_tree": "e86a16bc552e5ce522373bc37c80095df00c1840",
-    "local_project_tree": "91ea888f2fc19258b261fec38b09865d8a1ede64",
-    "sites_source_commit": "9125299553669f9be39154a63ae3ae38539992f7",
-    "saved_version_number": 24,
+    "local_source_commit": "327e201403af65fc0ac8dd0ee170c41b710aa472",
+    "functional_code_commit": "327e201403af65fc0ac8dd0ee170c41b710aa472",
+    "storage_binding_probe_introduced_by_commit": "5887e869f8113f37159d42672ba44fa09cc71e56",
+    "local_root_tree": "1aec3b429ce7fdb8cf753092fda591446e1c90cb",
+    "local_project_tree": "d5ac4d0ab33815706c97dc3706875f9ec2516dfe",
+    "sites_source_commit": "c71b7959d75c2603aa9e816c236376629b3ccc5d",
+    "saved_version_number": 27,
     "source_projection_matches_published_project_tree": true,
     "source_projection_matches_current_project_tree": false,
-    "current_project_tree_delta": "Version 24 deployment evidence and HANDOFF are committed after the private source push; no deployed product code, runtime configuration, access policy or data-store change is included in that documentation delta.",
-    "source_projection_archive_sha256": "d8e16cbb248306279d6201aa084f06607fa3eea1a919fc8594cbe7d25825d640",
-    "deployment_archive_sha256": "d8e16cbb248306279d6201aa084f06607fa3eea1a919fc8594cbe7d25825d640",
+    "current_project_tree_delta": "Version 27 deployment evidence, production ledger, release test and HANDOFF are committed after the private source push; no deployed product code, runtime configuration, access policy or storage-binding logic is included in that documentation delta.",
+    "source_projection_archive_sha256": "b3660d5881248a7c9095cd5cb7e260bd07df52d73f8b40ee87f413e18ea41d2a",
+    "deployment_archive_sha256": "b3660d5881248a7c9095cd5cb7e260bd07df52d73f8b40ee87f413e18ea41d2a",
     "provider_archive_recorded": true,
     "environment_revision": 8
   },
@@ -31,6 +32,9 @@
     "raw_url_recorded": false
   },
   "controlled_deployment_and_recovery": {
+    "version_27_private_deploy": "SUCCEEDED",
+    "version_26_private_deploy": "SUCCEEDED_SUPERSEDED_BY_V27_STORAGE_CHECK_PAGE_REPRESENTATION",
+    "version_25_private_deploy": "SUCCEEDED_SUPERSEDED_BY_V26_STORAGE_CHECK_PATH_REPRESENTATION",
     "version_24_private_deploy": "SUCCEEDED",
     "version_23_private_deploy": "SUCCEEDED",
     "version_22_private_deploy": "SUCCEEDED",
@@ -59,7 +63,10 @@
     "live_version_matches_version_21": false,
     "live_version_matches_version_22": false,
     "live_version_matches_version_23": false,
-    "live_version_matches_version_24": true,
+    "live_version_matches_version_24": false,
+    "live_version_matches_version_25": false,
+    "live_version_matches_version_26": false,
+    "live_version_matches_version_27": true,
     "live_version_matches_version_21_after_rehearsal": true,
     "current_deployment_environment_revision": 8
   },
@@ -78,6 +85,7 @@
     "current_live_home_menu_count": 9,
     "version_23_brand_domain_normalization": "PASS_LOCAL_CONTRACT_PRIVATE_VERSION_23_DEPLOYED_AUTHENTICATED_BROWSER_REDIRECT_NOT_REPLAYED",
     "version_24_signout_415_fix_and_session_recovery": "PASS_PRIVATE_VERSION_24_CONFIRMED_TEMPORARY_IDENTITY_SIGN_OUT_RELOGIN_ACCOUNT_RESTORED",
+    "version_27_authenticated_storage_binding_health": "PASS_PRIVATE_VERSION_27_D1_CONSTANT_QUERY_AND_R2_RANDOM_KEY_HEAD_WITHOUT_PRODUCT_DATA_READ_OR_WRITE",
     "version_21_ordinary_chrome_persistence_replay": "PASS_PRIVATE_VERSION_21_ALL_FIVE_HABITS_LEDGER_AND_SCHEDULE_RELOAD_READBACK",
     "version_22_account_sign_out_control": "OBSERVED_PRIVATE_VERSION_22_ACCOUNT_CONTROL_NO_SAFE_CLICK_WITHOUT_TEMPORARY_IDENTITY_CONFIRMATION",
     "version_21_local_unauthenticated_control_audit": "PASS_NO_VISIBLE_EFFECT_CONTROLS_0_OF_140",
@@ -138,7 +146,7 @@
     "separate_authenticated_session_history_readback": "PASS_PRIVATE_VERSION_21_CONTROLLED_CHROME_ACCOUNT_A_REAUTH_RECORD_READBACK",
     "version_21_second_independently_authenticated_tenant_replay": "PASS_PRIVATE_VERSION_21_CONTROLLED_CHROME_SEQUENTIAL_EMAIL_A_B",
     "real_cross_device_history": "NOT_RUN_PHYSICAL_SECOND_DEVICE",
-    "real_d1_r2_reconciliation": "NOT_RUN_CURRENT_VERSION_17_SITES_CONTROL_PLANE_NO_PHYSICAL_BINDING_MAPPING"
+    "real_d1_r2_reconciliation": "PARTIAL_PRIVATE_VERSION_27_LOGICAL_BINDING_HEALTH_ONLY_NO_PHYSICAL_MAPPING_OR_RECORD_OBJECT_RECONCILIATION"
   },
   "raw_unauthenticated_smoke": {
     "evidence_file": "13_evidence/production-smoke-run.json",
@@ -173,6 +181,7 @@
     "13_evidence/private_version_22_signout_session_recovery_partial_replay.json",
     "13_evidence/private_version_23_brand_domain_normalization.json",
     "13_evidence/private_version_24_signout_session_recovery_replay.json",
+    "13_evidence/private_version_27_storage_binding_health_replay.json",
     "13_evidence/version_18_agent_controlled_in_app_workbench_post_replay.json",
     "13_evidence/version_18_agent_controlled_chrome_auth_and_workbench_post_replay.json",
     "13_evidence/version_16_storage_binding_reconciliation.json",
@@ -186,15 +195,16 @@
   "final_acceptance_claimed": false,
   "public_deploy_eligible": false,
   "remaining_required_s5_t3_evidence": [
-    "a successful current Version 24 Google OAuth callback and session",
+    "a successful current Version 27 Google OAuth callback and session",
     "a final password update and new-password sign-in",
     "physical second-device history readback",
-    "direct D1/R2 reconciliation"
+    "direct D1/R2 physical mapping or record/object reconciliation beyond the Version 27 data-free binding health probe"
   ],
   "current_version_21_note": "Version 21 was an owner-only private deployment. It replaces localized built-in habit idempotency tokens with stable URL-safe identifiers and retains the same verified-session, same-origin, tenant, privacy-consent, runtime and access-policy boundaries. In a controlled Chrome session for temporary verified test accounts, all five habit cards, one consent-gated ledger record and one schedule record completed visible write-plus-reload readback. A current sequential A/B replay then verified two distinct email accounts through registration, verification and sign-in; A wrote a non-sensitive schedule, B could not see it, and A could read it after reauthentication. A further current-version recovery replay delivered a reset message and reached the canonical reset page; it did not submit the final password change. A Google account-selection attempt returned through the state/CSRF guard in an agent-controlled Chrome surface, so it is retained as inconclusive rather than attributed to provider configuration or ordinary-user behavior. A Version 21 to Version 18 private rollback followed by a Version 18 to Version 21 private restore succeeded with environment revision 8 and the owner-only access invariant unchanged. The local unauthenticated control audit separately found 0 no-visible-effect controls of 140. This does not prove application-data continuity through the temporary rollback, a physical second device, direct D1/R2 reconciliation, current Google callback, final reset sign-in, public audience or final product acceptance.",
   "current_version_22_note": "Version 22 was the prior owner-only private deployment. It adds an explicit same-origin account sign-out control that redirects only after the Better Auth sign-out endpoint succeeds, plus a neutral sign-in confirmation. Typecheck, lint, auth contract, build and rendered route smoke all passed before the private deployment. A controlled browser reached the Version 22 account sign-out control, but the account surface could not be confirmed as the temporary identity, so the agent did not click sign out or claim re-login/session recovery. This is an intentional safety boundary, not a product sign-out pass or failure.",
   "current_version_23_note": "Version 23 was the prior owner-only private deployment. It keeps the existing authentication, tenant, privacy and data boundaries while moving the remaining visible generic entry copy to the personal-schedule brand and adding server-side normalization from the immutable legacy platform host to the active mydairy custom domain. The canonical-domain contract, lint, typecheck, rendered route smoke and build passed before private deployment. The custom domain, provider and SSL all remained active, with the site title set to 个人日程 and the owner/custom/one-user access invariant unchanged. This increment did not run an authenticated browser redirect replay. Its sign-out endpoint response was later diagnosed and repaired in Version 24.",
-  "current_version_24_note": "Version 24 is the current owner-only private deployment. It fixes the account sign-out request to send the JSON request shape required by the authentication endpoint after the preceding Version 23 response was observed as 415. Local lint, typecheck, auth contract, rendered route smoke and build passed before private deployment. A controlled temporary email identity then completed registration, verification, sign-in, confirmed sign-out, re-login and account identity restoration. The site remains active with custom access, active mydairy custom-domain provider and SSL status, title 个人日程 and environment revision 8; public audience, runtime values, access policy, D1/R2 and real user business data were not changed. This does not prove a Google provider callback, final password-reset submission and new-password sign-in, physical second-device history, direct storage reconciliation, public audience or final product acceptance.",
+  "current_version_24_note": "Version 24 was a prior owner-only private deployment. It fixes the account sign-out request to send the JSON request shape required by the authentication endpoint after the preceding Version 23 response was observed as 415. Local lint, typecheck, auth contract, rendered route smoke and build passed before private deployment. A controlled temporary email identity then completed registration, verification, sign-in, confirmed sign-out, re-login and account identity restoration. The site remained custom/private; this evidence does not prove a Google provider callback, final password-reset submission and new-password sign-in, physical second-device history, direct storage reconciliation, public audience or final product acceptance.",
+  "current_version_27_note": "Version 27 is the current owner-only private deployment. It adds an unlinked, verified-session-only storage-check page used solely for controlled support replay. The route performs a constant D1 query and an R2 HEAD against a fresh randomized internal key, then renders only fixed availability state; it does not select product tables, read an object body, list objects, write or delete data. Local API-contract, storage-probe unit, R2-contract, typecheck, lint, build and rendered-route smoke checks passed. A controlled already-verified temporary email session reached the page and observed both logical bindings as available; the temporary mailbox was deleted, credentials cleared and browser tabs finalized. The site remains active/owner/custom with one allowed user, zero groups, zero external visitors and environment revision 8; no public audience, runtime value, access policy, physical D1/R2 mapping, real-user business data or GitHub state changed. This proves only live logical binding health, not physical D1/R2 reconciliation, normal-device native upload, physical second-device history, Google callback, final password-reset sign-in, public audience or final product acceptance.",
   "version_18_note": "Historical Version 18 privately deployed the visible login-or-account entry so an authenticated user reaches /account and an unauthenticated user receives the existing login path. Its bounded agent-controlled workbench mutation observations remain historical transport-boundary evidence and do not override the ordinary Chrome Version 21 replay.",
   "notes": "This record contains private control-plane and rendered-UI facts only. Version 17 privately deploys the shared workbench data-client repair that gives an actionable sign-in path when browser request transport is uncertain, without claiming that a record was saved. Its source was restored through a tree-identical isolated full-object projection after a historical partial-projection transport failure; source, archive and saved-version provenance were read back. The site remains active/owner/custom with one allowed user, zero groups, zero external visitors and environment revision 8. A Version 17 rendered nonempty-invalid-token replay reached the neutral invalid-or-expired recovery result without claiming password update or service unavailability; its temporary input was cleared before tab closure. A separate Version 17 unknown-alias reset replay returned the same neutral next-steps response, with zero exact-alias mailbox matches before submission, immediately after, and after one bounded 30-second readback; that is only a current-version non-enumeration and negative-delivery observation, not proof of a later non-delivery, existing-account reset failure, or provider outage. A fresh ordinary Safari tab separately reached the current Version 17 private Sites gate and then the standard ChatGPT login page, but had no controlled authenticated session; it proves the unauthenticated gate, not a normal-browser workbench write or failure. Current Version 17 Sites site, environment, and saved-version metadata likewise exposes only logical DB/FILES bindings and provenance, not physical D1/R2 mappings; the prior authorized Workers directory also did not expose the Sites target, so no direct storage reconciliation is claimed. A separate Version 17 Chrome extension-controlled replay completed fresh email auth, verified-session account reads and test-account deletion, while two workbench habit POST attempts still fell into the browser fetch-exception UI without a visible record; this is a constrained agent-browser transport observation, not an ordinary end-user, Worker, D1/R2, or Better Auth verdict. No runtime setting, access policy, D1/R2 resource, user record or public audience changed. Historical Version 9 email, A/B tenant isolation and separate-session history evidence remains scoped to its controlled test records and cleanup; Version 14 browser observations remain an agent-transport boundary; Version 15 and Version 16 retain their own deployment and rollback evidence. None of these private facts proves an ordinary-browser authenticated mutation, physical second-device history, direct D1/R2 reconciliation, public launch eligibility or final product acceptance."
 }

@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_27_RUNTIME_STORAGE_BINDING_HEALTH_REPLAY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "local_source_commit": "327e201403af65fc0ac8dd0ee170c41b710aa472",
+    "storage_binding_probe_introduced_by_commit": "5887e869f8113f37159d42672ba44fa09cc71e56",
+    "local_root_tree": "1aec3b429ce7fdb8cf753092fda591446e1c90cb",
+    "local_project_tree": "d5ac4d0ab33815706c97dc3706875f9ec2516dfe",
+    "sites_source_commit": "c71b7959d75c2603aa9e816c236376629b3ccc5d",
+    "sites_version_number": 27,
+    "local_deployment_archive_sha256": "b3660d5881248a7c9095cd5cb7e260bd07df52d73f8b40ee87f413e18ea41d2a",
+    "provider_archive_hash_recorded": true,
+    "source_projection_matches_published_project_tree": true
+  },
+  "private_access": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "access_policy_revision": 1,
+    "public_audience_changed": false,
+    "raw_url_recorded": false
+  },
+  "private_deployment": {
+    "deployment_status": "SUCCEEDED",
+    "environment_revision": 8,
+    "title": "个人日程",
+    "deployment_or_version_ids_recorded": false,
+    "runtime_values_read": false
+  },
+  "local_validation": {
+    "api_contract": "PASS_7_OF_7",
+    "storage_binding_probe_unit": "PASS_2_OF_2",
+    "r2_contract": "PASS_4_OF_4",
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "rendered_route_smoke": "PASS_4_OF_4",
+    "diff_check": "PASS"
+  },
+  "probe_scope": {
+    "route_is_unlinked": true,
+    "route_requires_verified_session": true,
+    "response_is_no_store_and_noindex": true,
+    "d1_operation": "CONSTANT_SELECT_1_NO_PRODUCT_TABLE",
+    "r2_operation": "HEAD_FRESH_RANDOM_INTERNAL_KEY",
+    "product_tables_read": false,
+    "r2_object_body_read": false,
+    "r2_object_listed": false,
+    "r2_object_written": false,
+    "r2_object_deleted": false,
+    "physical_d1_mapping_observed": false,
+    "physical_r2_mapping_observed": false
+  },
+  "controlled_browser_replay": {
+    "temporary_email_registration_verification_and_signin_completed_before_storage_replay": true,
+    "verified_session_required_by_runtime_route": true,
+    "storage_check_rendered_in_authenticated_session": true,
+    "d1_available": true,
+    "r2_available": true,
+    "only_fixed_storage_health_page_elements_observed": true,
+    "browser_cookie_or_storage_inspected": false,
+    "native_file_upload_attempted": false
+  },
+  "scope_and_cleanup": {
+    "temporary_mailbox_deleted": true,
+    "temporary_credentials_cleared_from_test_runtime": true,
+    "temporary_browser_tabs_finalized": true,
+    "temporary_deployment_archives_removed": true,
+    "temporary_application_account_deletion_attempted": false,
+    "temporary_application_account_remains_isolated": true,
+    "real_user_business_data_read_or_written": false,
+    "d1_or_r2_resource_configuration_changed": false,
+    "access_policy_changed": false,
+    "public_audience_changed": false,
+    "github_upload_performed": false
+  },
+  "result": {
+    "live_d1_constant_query_succeeded": true,
+    "live_r2_random_key_head_succeeded": true,
+    "logical_storage_binding_health_proven": true,
+    "direct_physical_d1_r2_reconciliation_proven": false,
+    "normal_device_file_upload_proven": false,
+    "physical_second_device_history_proven": false
+  },
+  "not_proven": [
+    "physical D1 resource mapping",
+    "physical R2 resource mapping",
+    "record or object reconciliation",
+    "normal-device native photo upload",
+    "physical second-device history readback",
+    "current Google OAuth callback and session",
+    "final password update and new-password sign-in",
+    "public audience or final product acceptance"
+  ],
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}

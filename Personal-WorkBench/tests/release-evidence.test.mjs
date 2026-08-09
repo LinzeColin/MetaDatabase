@@ -357,3 +357,36 @@ test("Version 24 sign-out and session-recovery replay retains no temporary ident
   assert.equal(serialized.includes("token="), false);
   assert.equal(serialized.includes("Bearer "), false);
 });
+
+test("Version 27 storage-binding health replay retains no account or storage material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_27_storage_binding_health_replay.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 27);
+  assert.equal(evidence.private_deployment.deployment_status, "SUCCEEDED");
+  assert.equal(evidence.local_validation.api_contract, "PASS_7_OF_7");
+  assert.equal(evidence.local_validation.storage_binding_probe_unit, "PASS_2_OF_2");
+  assert.equal(evidence.local_validation.r2_contract, "PASS_4_OF_4");
+  assert.equal(evidence.probe_scope.product_tables_read, false);
+  assert.equal(evidence.probe_scope.r2_object_body_read, false);
+  assert.equal(evidence.probe_scope.r2_object_listed, false);
+  assert.equal(evidence.probe_scope.r2_object_written, false);
+  assert.equal(evidence.probe_scope.r2_object_deleted, false);
+  assert.equal(evidence.controlled_browser_replay.d1_available, true);
+  assert.equal(evidence.controlled_browser_replay.r2_available, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_mailbox_deleted, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_credentials_cleared_from_test_runtime, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_browser_tabs_finalized, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_deployment_archives_removed, true);
+  assert.equal(evidence.result.direct_physical_d1_r2_reconciliation_proven, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
