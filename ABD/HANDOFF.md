@@ -2,10 +2,11 @@
 
 ## 当前目标
 
-在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11/P01--P04、整个 S11 的本地独立复审和 GitHub 阶段上传均已完成；S12/P01--P04、整个 S12 的本地独立复审及 GitHub 阶段上传亦已完成、签名并复现；S13/P01--P04、整个 S13 的本地独立复审和 GitHub 阶段上传均已完成；S14/P01--P04、整体本地复审及 GitHub 阶段上传均已完成。下一独立 run 只能启动 S15/P01；其先决阶段收据须再次独立核验，且任何本地通过不得等同于远端 CI、合并、部署或生产激活。Canonical Task Graph 显示 S13/P04 只依赖 S13/P03 的已签名本地收据，不依赖 PR #174 的异步远端 CI。PR #174 的远端检查须与本地结果独立看待，且无论状态如何均不得外推为部署或生产激活。
+在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11/P01--P04、整个 S11 的本地独立复审和 GitHub 阶段上传均已完成；S12/P01--P04、整个 S12 的本地独立复审及 GitHub 阶段上传亦已完成、签名并复现；S13/P01--P04、整个 S13 的本地独立复审和 GitHub 阶段上传均已完成；S14/P01--P04、整体本地复审及 GitHub 阶段上传均已完成；S15/P01 已本地签名并复现。下一独立 run 只能启动 S15/P02；其先决阶段收据须再次独立核验，且任何本地通过不得等同于远端 CI、合并、部署或生产激活。Canonical Task Graph 显示 S13/P04 只依赖 S13/P03 的已签名本地收据，不依赖 PR #174 的异步远端 CI。PR #174 的远端检查须与本地结果独立看待，且无论状态如何均不得外推为部署或生产激活。
 
 ## 当前状态
 
+- S15/P01 已本地签名并只读复验：`machine/evidence/EVD-S15-P01.json`（SHA-256 `5ea76d98f26bb3225844a0e9ab62c58041647ca5e3337c4c722d7d842ddfc98a`）的 `AC-S15-P01` 为 `43/43 PASS`，下一状态为 `S15/P02_READY_NOT_STARTED`。`software_correctness.py` 与 `unit_tests.json`、`property_tests.json`、`schema_tests.json` 只复放 7 个固定合成向量，覆盖声明的资金/阈值、局部状态和闭合 Schema 的 17 个决策分支；该口径明确不声称全仓或生产运行时覆盖。`-0.0001` 不利扰动仍失败关闭，资金/阈值属性 4/4 通过，22 个定向 pytest 测试、零预算依赖扫描与 Task Pack 静态校验均通过。S07/P04 连续证据判定器同步精确接受 S13/S14 两份已签名 stage-review 行，并经 S08 的 legacy successor 钉住重放；未修改冻结任务包、历史收据或风险/来源/安全门。无网络、TAB/Gmail、账户、OVH/Cloudflare、订单、部署、真实时间 soak 或收益断言，新增现金为 A$0；不作 GitHub 中间上传，待 S15 全 Stage 复审后才上传。
 - S10 的整体复审已通过并经 [PR #173](https://github.com/LinzeColin/MetaDatabase/pull/173) 合并；当前 worktree 从 `origin/main` 的合并提交 `05baf72f29973d04c8d115170c7aef3f95454008` 创建，主工作树及其他项目 worktree 均未触碰。
 - S10 整体复审证据为 `machine/evidence/EVD-S10-STAGE-REVIEW.json`（SHA-256 `d0d00ece08b45943715e300a5cc4cc1818041477b575d074049cbc3ba88c0ce5`）。
 - S12/P01 已本地签名通过：`machine/evidence/EVD-S12-P01.json`，下一状态为 `S12/P02_READY_NOT_STARTED`。`target_engine.py` 与 `cashflow_adjustment.py` 只重放固定时钟下四条冻结合成月度记录：以 A$300 × 1.3^n 的保守向上分位目标计算，并只按月初/月底已审计合成现金流调整。目标短缺只报告，不放宽任何证据、风险、来源或动作门；不读取真实账户、不生成推荐或订单，也不承诺收益。

@@ -1,0 +1,276 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S15-P01-OFFLINE-CORRECTNESS",
+  "contract_id": "AC-S15-P01",
+  "requirement_id": "REQ-S15-P01",
+  "stage_id": "S15",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+  "predecessors": {
+    "AC-S05-P04": {
+      "evidence_path": "machine/evidence/EVD-S05-P04.json",
+      "evidence_sha256": "986d52d8ca695b99f5dbbbea7e273cc5dafdfc7e81892ebd0b272be848ea9249",
+      "rollback_path": "machine/evidence/EVD-S05-P04_rollback.json",
+      "rollback_sha256": "3a8825f0c7b8b9daf2c7d95646db79ad5e224c637eed31f5736e683a67a41c28",
+      "next": "S05/STAGE_REVIEW_READY_NOT_STARTED"
+    },
+    "AC-S07-P04": {
+      "evidence_path": "machine/evidence/EVD-S07-P04.json",
+      "evidence_sha256": "a2fa2f72c069050ed7045f7e7c3cbe5928664bee4e91d1307169b19d466a6fa6",
+      "rollback_path": "machine/evidence/EVD-S07-P04_rollback.json",
+      "rollback_sha256": "ad483c1e873985c14e5c70d67fb18c2801d9033bf8ed435ca9b149e8bb82054a",
+      "next": "S07/STAGE_REVIEW_READY_NOT_STARTED"
+    },
+    "AC-S13-P04": {
+      "evidence_path": "machine/evidence/EVD-S13-P04.json",
+      "evidence_sha256": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e",
+      "rollback_path": "machine/evidence/EVD-S13-P04_rollback.json",
+      "rollback_sha256": "8cea40846c7d60b5ee8adaecee741e97be17a46e6045728e71cfb08131dc0856",
+      "next": "S13/STAGE_REVIEW_READY_NOT_STARTED"
+    },
+    "AC-S14-P04": {
+      "evidence_path": "machine/evidence/EVD-S14-P04.json",
+      "evidence_sha256": "820f5a1c13f788386c54af8d18551bd6bd40d7816d659c6ffd43a657c25ddf4b",
+      "rollback_path": "machine/evidence/EVD-S14-P04_rollback.json",
+      "rollback_sha256": "0b3bfaa1bccf0dccb77afea4f6c44b3eab670d5e0af5d07bc5a1ff73aaef68b5",
+      "next": "S14/STAGE_REVIEW_READY_NOT_STARTED"
+    }
+  },
+  "execution_policy": {
+    "offline_deterministic_only": true,
+    "full_regression_or_real_time_soak_allowed": false,
+    "external_runtime_access_allowed": false,
+    "phase_test_only": true,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "minimum_targeted_pytest_cases": 18,
+  "expected_case_ids": [
+    "S15-P01-EXACT-THRESHOLD",
+    "S15-P01-BELOW-THRESHOLD",
+    "S15-P01-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND",
+    "S15-P01-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND",
+    "S15-P01-ZERO-FUNDS",
+    "S15-P01-BLOCKED-STATE",
+    "S15-P01-NEGATIVE-FUNDS-REJECTED"
+  ],
+  "expected_branch_ids": [
+    "SCHEMA-CLOSED",
+    "SERIALIZATION-CANONICAL",
+    "FUNDS-POSITIVE",
+    "FUNDS-ZERO",
+    "FUNDS-NEGATIVE-REJECT",
+    "ADVERSE-DELTA-NEUTRAL",
+    "ADVERSE-DELTA-NEGATIVE-ONE-IN-TEN-THOUSAND",
+    "ADVERSE-DELTA-POSITIVE-ONE-IN-TEN-THOUSAND",
+    "THRESHOLD-BELOW",
+    "THRESHOLD-EXACT",
+    "THRESHOLD-ABOVE",
+    "STATE-LOCAL-TEST-ONLY",
+    "STATE-BLOCKED",
+    "NO-ACTION-THRESHOLD",
+    "NO-ACTION-ZERO-FUNDS",
+    "NO-ACTION-STATE-BLOCKED",
+    "LOCAL-TEST-PASS-NO-ACTION"
+  ],
+  "expected_branch_coverage": "1.0000",
+  "expected_property_ids": [
+    "PROP-S15-P01-NO-INCREMENTAL-CASH",
+    "PROP-S15-P01-THRESHOLD-FAILS-CLOSED",
+    "PROP-S15-P01-ZERO-AND-NEGATIVE-FUNDS-SAFE",
+    "PROP-S15-P01-LOCAL-STATE-NEVER-ORDERS"
+  ],
+  "expected_negative_mutation_ids": [
+    "MUT-S15-P01-UNKNOWN-FIELD",
+    "MUT-S15-P01-FLOAT-NUMERIC",
+    "MUT-S15-P01-NONCANONICAL-DECIMAL",
+    "MUT-S15-P01-NONSYNTHETIC-INPUT"
+  ],
+  "expected_decision": "S15_P01_CORRECTNESS_TEST_SURFACE_READY_P02_REQUIRED",
+  "expected_next": "S15/P02_READY_NOT_STARTED",
+  "snapshot_cases": [
+    {
+      "case_id": "S15-P01-EXACT-THRESHOLD",
+      "snapshot": {
+        "case_id": "S15-P01-EXACT-THRESHOLD",
+        "funds_aud": "300.0000",
+        "incremental_cash_spent_aud": "0.00",
+        "score": "0.9500",
+        "threshold": "0.9500",
+        "adverse_delta": "0.0000",
+        "state": "LOCAL_TEST_ONLY",
+        "serialization": "CANONICAL_JSON_V1",
+        "synthetic_test_only": true
+      },
+      "expected": {
+        "case_id": "S15-P01-EXACT-THRESHOLD",
+        "status": "LOCAL_TEST_PASS_NO_ACTION",
+        "effective_score": "0.9500",
+        "threshold_pass": true,
+        "branch_ids": ["SCHEMA-CLOSED", "SERIALIZATION-CANONICAL", "FUNDS-POSITIVE", "ADVERSE-DELTA-NEUTRAL", "THRESHOLD-EXACT", "STATE-LOCAL-TEST-ONLY", "LOCAL-TEST-PASS-NO-ACTION"],
+        "recommendation_generated": false,
+        "order_submission_enabled": false,
+        "external_state_changed": false,
+        "real_time_soak_waited": false,
+        "incremental_cash_spent_aud": "0.00"
+      }
+    },
+    {
+      "case_id": "S15-P01-BELOW-THRESHOLD",
+      "snapshot": {
+        "case_id": "S15-P01-BELOW-THRESHOLD",
+        "funds_aud": "300.0000",
+        "incremental_cash_spent_aud": "0.00",
+        "score": "0.9499",
+        "threshold": "0.9500",
+        "adverse_delta": "0.0000",
+        "state": "LOCAL_TEST_ONLY",
+        "serialization": "CANONICAL_JSON_V1",
+        "synthetic_test_only": true
+      },
+      "expected": {
+        "case_id": "S15-P01-BELOW-THRESHOLD",
+        "status": "NO_ACTION_THRESHOLD_NOT_MET",
+        "effective_score": "0.9499",
+        "threshold_pass": false,
+        "branch_ids": ["SCHEMA-CLOSED", "SERIALIZATION-CANONICAL", "FUNDS-POSITIVE", "ADVERSE-DELTA-NEUTRAL", "THRESHOLD-BELOW", "STATE-LOCAL-TEST-ONLY", "NO-ACTION-THRESHOLD"],
+        "recommendation_generated": false,
+        "order_submission_enabled": false,
+        "external_state_changed": false,
+        "real_time_soak_waited": false,
+        "incremental_cash_spent_aud": "0.00"
+      }
+    },
+    {
+      "case_id": "S15-P01-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND",
+      "snapshot": {
+        "case_id": "S15-P01-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND",
+        "funds_aud": "300.0000",
+        "incremental_cash_spent_aud": "0.00",
+        "score": "0.9500",
+        "threshold": "0.9500",
+        "adverse_delta": "-0.0001",
+        "state": "LOCAL_TEST_ONLY",
+        "serialization": "CANONICAL_JSON_V1",
+        "synthetic_test_only": true
+      },
+      "expected": {
+        "case_id": "S15-P01-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND",
+        "status": "NO_ACTION_THRESHOLD_NOT_MET",
+        "effective_score": "0.9499",
+        "threshold_pass": false,
+        "branch_ids": ["SCHEMA-CLOSED", "SERIALIZATION-CANONICAL", "FUNDS-POSITIVE", "ADVERSE-DELTA-NEGATIVE-ONE-IN-TEN-THOUSAND", "THRESHOLD-BELOW", "STATE-LOCAL-TEST-ONLY", "NO-ACTION-THRESHOLD"],
+        "recommendation_generated": false,
+        "order_submission_enabled": false,
+        "external_state_changed": false,
+        "real_time_soak_waited": false,
+        "incremental_cash_spent_aud": "0.00"
+      }
+    },
+    {
+      "case_id": "S15-P01-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND",
+      "snapshot": {
+        "case_id": "S15-P01-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND",
+        "funds_aud": "300.0000",
+        "incremental_cash_spent_aud": "0.00",
+        "score": "0.9500",
+        "threshold": "0.9500",
+        "adverse_delta": "0.0001",
+        "state": "LOCAL_TEST_ONLY",
+        "serialization": "CANONICAL_JSON_V1",
+        "synthetic_test_only": true
+      },
+      "expected": {
+        "case_id": "S15-P01-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND",
+        "status": "LOCAL_TEST_PASS_NO_ACTION",
+        "effective_score": "0.9501",
+        "threshold_pass": true,
+        "branch_ids": ["SCHEMA-CLOSED", "SERIALIZATION-CANONICAL", "FUNDS-POSITIVE", "ADVERSE-DELTA-POSITIVE-ONE-IN-TEN-THOUSAND", "THRESHOLD-ABOVE", "STATE-LOCAL-TEST-ONLY", "LOCAL-TEST-PASS-NO-ACTION"],
+        "recommendation_generated": false,
+        "order_submission_enabled": false,
+        "external_state_changed": false,
+        "real_time_soak_waited": false,
+        "incremental_cash_spent_aud": "0.00"
+      }
+    },
+    {
+      "case_id": "S15-P01-ZERO-FUNDS",
+      "snapshot": {
+        "case_id": "S15-P01-ZERO-FUNDS",
+        "funds_aud": "0.0000",
+        "incremental_cash_spent_aud": "0.00",
+        "score": "0.9501",
+        "threshold": "0.9500",
+        "adverse_delta": "0.0000",
+        "state": "LOCAL_TEST_ONLY",
+        "serialization": "CANONICAL_JSON_V1",
+        "synthetic_test_only": true
+      },
+      "expected": {
+        "case_id": "S15-P01-ZERO-FUNDS",
+        "status": "NO_ACTION_ZERO_FUNDS",
+        "effective_score": "0.9501",
+        "threshold_pass": true,
+        "branch_ids": ["SCHEMA-CLOSED", "SERIALIZATION-CANONICAL", "FUNDS-ZERO", "ADVERSE-DELTA-NEUTRAL", "THRESHOLD-ABOVE", "STATE-LOCAL-TEST-ONLY", "NO-ACTION-ZERO-FUNDS"],
+        "recommendation_generated": false,
+        "order_submission_enabled": false,
+        "external_state_changed": false,
+        "real_time_soak_waited": false,
+        "incremental_cash_spent_aud": "0.00"
+      }
+    },
+    {
+      "case_id": "S15-P01-BLOCKED-STATE",
+      "snapshot": {
+        "case_id": "S15-P01-BLOCKED-STATE",
+        "funds_aud": "300.0000",
+        "incremental_cash_spent_aud": "0.00",
+        "score": "0.9501",
+        "threshold": "0.9500",
+        "adverse_delta": "0.0000",
+        "state": "BLOCKED",
+        "serialization": "CANONICAL_JSON_V1",
+        "synthetic_test_only": true
+      },
+      "expected": {
+        "case_id": "S15-P01-BLOCKED-STATE",
+        "status": "NO_ACTION_STATE_BLOCKED",
+        "effective_score": "0.9501",
+        "threshold_pass": true,
+        "branch_ids": ["SCHEMA-CLOSED", "SERIALIZATION-CANONICAL", "FUNDS-POSITIVE", "ADVERSE-DELTA-NEUTRAL", "THRESHOLD-ABOVE", "STATE-BLOCKED", "NO-ACTION-STATE-BLOCKED"],
+        "recommendation_generated": false,
+        "order_submission_enabled": false,
+        "external_state_changed": false,
+        "real_time_soak_waited": false,
+        "incremental_cash_spent_aud": "0.00"
+      }
+    },
+    {
+      "case_id": "S15-P01-NEGATIVE-FUNDS-REJECTED",
+      "snapshot": {
+        "case_id": "S15-P01-NEGATIVE-FUNDS-REJECTED",
+        "funds_aud": "-0.0001",
+        "incremental_cash_spent_aud": "0.00",
+        "score": "0.9501",
+        "threshold": "0.9500",
+        "adverse_delta": "0.0000",
+        "state": "LOCAL_TEST_ONLY",
+        "serialization": "CANONICAL_JSON_V1",
+        "synthetic_test_only": true
+      },
+      "expected": {
+        "case_id": "S15-P01-NEGATIVE-FUNDS-REJECTED",
+        "status": "INVALID_FUNDS_REJECTED_NO_ACTION",
+        "effective_score": null,
+        "threshold_pass": false,
+        "branch_ids": ["SCHEMA-CLOSED", "SERIALIZATION-CANONICAL", "FUNDS-NEGATIVE-REJECT"],
+        "recommendation_generated": false,
+        "order_submission_enabled": false,
+        "external_state_changed": false,
+        "real_time_soak_waited": false,
+        "incremental_cash_spent_aud": "0.00"
+      }
+    }
+  ]
+}

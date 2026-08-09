@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S15-P01-02",
+  "contract_id": "AC-S15-P01",
+  "requirement_id": "REQ-S15-P01",
+  "stage_id": "S15",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "properties": [
+    {
+      "id": "PROP-S15-P01-NO-INCREMENTAL-CASH",
+      "case_ids": [
+        "S15-P01-EXACT-THRESHOLD",
+        "S15-P01-BELOW-THRESHOLD",
+        "S15-P01-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND",
+        "S15-P01-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND",
+        "S15-P01-ZERO-FUNDS",
+        "S15-P01-BLOCKED-STATE",
+        "S15-P01-NEGATIVE-FUNDS-REJECTED"
+      ],
+      "rule": "Every frozen case records A$0 incremental cash and no external action."
+    },
+    {
+      "id": "PROP-S15-P01-THRESHOLD-FAILS-CLOSED",
+      "case_ids": [
+        "S15-P01-BELOW-THRESHOLD",
+        "S15-P01-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND"
+      ],
+      "rule": "A below-threshold result, including a -0.0001 adverse delta, cannot enable an action."
+    },
+    {
+      "id": "PROP-S15-P01-ZERO-AND-NEGATIVE-FUNDS-SAFE",
+      "case_ids": [
+        "S15-P01-ZERO-FUNDS",
+        "S15-P01-NEGATIVE-FUNDS-REJECTED"
+      ],
+      "rule": "Zero funds remains no-action and negative funds is rejected without an external effect."
+    },
+    {
+      "id": "PROP-S15-P01-LOCAL-STATE-NEVER-ORDERS",
+      "case_ids": [
+        "S15-P01-EXACT-THRESHOLD",
+        "S15-P01-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND",
+        "S15-P01-BLOCKED-STATE"
+      ],
+      "rule": "Even a local test pass remains evidence-only and never submits an order."
+    }
+  ],
+  "property_pass_threshold": "1.0000",
+  "required_adverse_delta": "-0.0001",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "real_account_balance_read_or_written": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}
