@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="28" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S18.P02_test" name="test_fixture_is_exact_s18_p02_contract" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_each_frozen_vector_has_its_pinned_fail_closed_result[GOLDEN_ALL_SIGNALS_HEALTHY]" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_each_frozen_vector_has_its_pinned_fail_closed_result[LIVE_ADVICE_FRESHNESS_EXCEEDED]" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_each_frozen_vector_has_its_pinned_fail_closed_result[SILENT_COVERAGE_GAP_ONE]" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_each_frozen_vector_has_its_pinned_fail_closed_result[MODEL_PSI_EXACT_STOP]" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_each_frozen_vector_has_its_pinned_fail_closed_result[MODEL_PSI_MINUS_ONE_IN_TEN_THOUSAND_STABLE]" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_each_frozen_vector_has_its_pinned_fail_closed_result[MODEL_PSI_PLUS_ONE_IN_TEN_THOUSAND_STOPS]" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_each_frozen_vector_has_its_pinned_fail_closed_result[RESOURCE_ENVELOPE_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_each_frozen_vector_has_its_pinned_fail_closed_result[EMAIL_VERIFICATION_FAILED]" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_each_frozen_vector_has_its_pinned_fail_closed_result[EVIDENCE_INTEGRITY_FAILED]" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_each_frozen_vector_has_its_pinned_fail_closed_result[MULTIPLE_HIGH_PRIORITY_ALERTS_REMAIN_UNIQUE]" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_each_frozen_vector_has_its_pinned_fail_closed_result[MALFORMED_PROBABILITY_DELTA_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_all_high_priority_alerts_have_one_unique_configured_action" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_live_advice_boundary_is_exactly_eight_seconds" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_population_stability_stop_boundary_and_one_in_ten_thousand_vectors_are_exact" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_multiple_alerts_preserve_one_action_per_alert" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_malformed_probability_delta_and_float_payload_both_fail_closed" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_unknown_signal_field_fails_closed_without_order_enablement" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_duplicate_configured_action_is_rejected_before_evaluation" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_diagnostic_replay_hash_is_deterministic" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_runner_has_no_runtime_network_or_process_dependencies" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_cli_has_exact_s18_p02_writer_and_verifier_mappings" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_legacy_successor_chain_allows_only_the_current_dispatcher_hash" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_candidate_preflight_covers_current_taskpack_and_signed_p01_dependency" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_preflight_has_no_external_effects" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_evidence_build_is_deterministic_before_signing" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_fixture_rejects_wrong_predecessor_hash_and_reordered_scenarios" time="0.000" />
+    <testcase classname="tests.S18.P02_test" name="test_rollback_drill_only_disables_local_observability_control" time="0.000" />
+  </testsuite>
+</testsuites>

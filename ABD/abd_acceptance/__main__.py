@@ -144,6 +144,8 @@ from .recovery import verify_existing_phase_evidence as verify_recovery_phase_ev
 from .recovery import write_phase_evidence as write_recovery_phase_evidence
 from .safe_release import verify_existing_phase_evidence as verify_safe_release_phase_evidence
 from .safe_release import write_phase_evidence as write_safe_release_phase_evidence
+from .observability_alerts import verify_existing_phase_evidence as verify_observability_phase_evidence
+from .observability_alerts import write_phase_evidence as write_observability_phase_evidence
 
 
 def main() -> int:
@@ -213,6 +215,7 @@ def main() -> int:
             "AC-S17-P03": verify_chaos_phase_evidence,
             "AC-S17-P04": verify_recovery_phase_evidence,
             "AC-S18-P01": verify_safe_release_phase_evidence,
+            "AC-S18-P02": verify_observability_phase_evidence,
             "STAGE-REVIEW-S11": verify_existing_stage_review_evidence,
             "STAGE-REVIEW-S12": verify_existing_stage12_review_evidence,
             "STAGE-REVIEW-S13": verify_existing_stage13_review_evidence,
@@ -320,6 +323,7 @@ def main() -> int:
         "AC-S17-P03": write_chaos_phase_evidence,
         "AC-S17-P04": write_recovery_phase_evidence,
         "AC-S18-P01": write_safe_release_phase_evidence,
+        "AC-S18-P02": write_observability_phase_evidence,
         "STAGE-REVIEW-S11": write_stage11_review_evidence,
         "STAGE-REVIEW-S12": write_stage12_review_evidence,
         "STAGE-REVIEW-S13": write_stage13_review_evidence,
