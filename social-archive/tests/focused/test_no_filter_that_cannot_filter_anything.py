@@ -63,6 +63,23 @@ def test_the_topic_field_has_something_to_hide() -> None:
         "index.html 里没有 topicField 这个容器——app.js 藏的是一个不存在的东西")
 
 
+def test_the_boundary_is_stated_not_quietly_widened() -> None:
+    """**说清这条规矩现在管到哪儿。**
+
+    只管「主题」和「收藏夹」两栏，因为它们是**量出来的**：
+    生产上 topic 190 条全是「未分类」，collections 分面是空的。
+
+    关系／归档状态／时间范围三栏**没有纳入**：他库里关系有 6 种、归档状态有
+    2 种，都真的分得出东西；时间范围是固定档位。把规矩顺手推广到它们身上，
+    就是拿一个没量过的假设去改他天天在用的导航——这个仓在「样例撑不起全称
+    判断」上栽过。哪天真出现「只剩一种关系」，再拿那时的数据来说话。
+    """
+    body = _fn("renderRelationOptions")
+    assert "relationField" not in body, (
+        "关系那一栏也被纳入了这条规矩——那需要先量：他库里到底有几种关系。"
+        "现在是 6 种，规矩用不上；要改就先拿数据说话")
+
+
 def test_one_option_is_not_a_filter() -> None:
     """判据要认的是「少于两个」，不是「一个都没有」。
 
