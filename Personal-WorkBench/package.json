@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit --project tsconfig.json",
     "check": "npm run lint && npm run typecheck && node scripts/check-project.mjs && npm run verify:assets",
     "verify:assets": "node scripts/verify-assets.mjs",
-    "test:ui-structure": "npm run build && node --import ./tests/register-cloudflare-workers-loader.mjs --test tests/ui-structure.test.mjs && node --import ./tests/register-cloudflare-workers-loader.mjs scripts/record-ui-structure.mjs",
+    "test:ui-structure": "npm run build && node --import ./tests/register-cloudflare-workers-loader.mjs --test tests/ui-structure.test.mjs && node --experimental-strip-types --test tests/canonical-domain.test.mts && node --import ./tests/register-cloudflare-workers-loader.mjs scripts/record-ui-structure.mjs",
     "test:visual": "node scripts/test-visual.mjs",
     "test:legacy-import": "node --import ./tests/register-cloudflare-workers-loader.mjs --experimental-strip-types --test tests/legacy-import.test.mts",
     "test:modules": "node --test tests/module-matrix.test.mjs",

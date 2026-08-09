@@ -1,6 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { permanentRedirect } from "next/navigation";
 import type { ReactNode } from "react";
 import {
   FatlossClient,
@@ -10,6 +12,10 @@ import {
   PeriodClient,
 } from "./_components/workbench/lifestyle-pages-client";
 import TodoPageClient from "./_components/workbench/todo-page-client";
+import {
+  canonicalWorkbenchUrl,
+  isLegacyPlatformHost,
+} from "@/server/http/canonical-workbench-url";
 
 const PRIVATE_ASSET_ROOT = "/private-reference-assets";
 const RUNTIME_ASSET_ROOT = `${PRIVATE_ASSET_ROOT}/runtime`;
@@ -116,8 +122,8 @@ function Shell({
         <Sidebar reference={reference} route={route} />
         <main className="main">
           {!reference ? (
-            <a className="account-entry normal-only" href="/auth/sign-in">
-              账户
+            <a aria-label="登录或管理账户" className="account-entry normal-only" href="/auth/sign-in">
+              登录 / 账户
             </a>
           ) : null}
           {children}
@@ -155,8 +161,8 @@ function Welcome({ reference }: { reference: boolean }) {
       data-reference-page={reference ? "welcome" : undefined}
     >
       {!reference ? (
-        <a className="welcome-account-link normal-only" href="/auth/sign-in">
-          账户
+        <a aria-label="登录或管理账户" className="welcome-account-link normal-only" href="/auth/sign-in">
+          登录 / 账户
         </a>
       ) : null}
       <section className="welcome-page">
@@ -255,6 +261,8 @@ function GenericPage({ reference, route }: { reference: boolean; route: string }
 
 export default async function HomePage({ searchParams }: PageProps) {
   const params = await searchParams;
+  const requestHost = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
+  if (isLegacyPlatformHost(requestHost)) permanentRedirect(canonicalWorkbenchUrl(params));
   const reference = typeof params.reference === "string" && referenceRoutes.has(params.reference);
   const requestedRoute = reference ? params.reference! : params.view;
   const route = typeof requestedRoute === "string" && navigableRoutes.has(requestedRoute) ? requestedRoute : "welcome";
