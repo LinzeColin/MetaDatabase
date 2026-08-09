@@ -1,0 +1,199 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S09-P02-TENNIS-COMBAT-TIME-SAFE",
+  "contract_id": "AC-S09-P02",
+  "requirement_id": "REQ-S09-P02",
+  "stage_id": "S09",
+  "phase_id": "P02",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "expected_next": "S09/P03_READY_NOT_STARTED",
+  "replay_count": 100,
+  "adverse_replay_count": 10000,
+  "claim_boundary": {
+    "network_accessed": false,
+    "actual_market_or_odds_observed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "cases": [
+    {
+      "case_id": "TENNIS_POSITIVE",
+      "model": "tennis",
+      "input": {
+        "id": "TENNIS_POSITIVE",
+        "decision_at": "2026-08-15T10:00:00+10:00",
+        "event_at": "2026-08-15T18:00:00+10:00",
+        "competitors": ["PLAYER_A", "PLAYER_B"],
+        "market_probabilities": {"PLAYER_A": "0.55", "PLAYER_B": "0.45"},
+        "requested_residual_weight": "0.35",
+        "players": {
+          "PLAYER_A": {
+            "surface_dynamic_rating": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "1700"}],
+            "serve_points_won": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "0.65"}],
+            "return_points_won": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "0.42"}],
+            "rest_hours": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "72"}],
+            "travel_km": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "100"}],
+            "participation_status": [{"known_at": "2026-08-15T09:00:00+10:00", "value": "CONFIRMED"}]
+          },
+          "PLAYER_B": {
+            "surface_dynamic_rating": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "1600"}],
+            "serve_points_won": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "0.60"}],
+            "return_points_won": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "0.38"}],
+            "rest_hours": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "48"}],
+            "travel_km": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "600"}],
+            "participation_status": [{"known_at": "2026-08-15T09:00:00+10:00", "value": "CONFIRMED"}]
+          }
+        }
+      },
+      "expected": {
+        "temporal_safe": true,
+        "residual_weight": "0.35",
+        "market_prior_weight": "0.65",
+        "decision": "MARKET_ANCHORED_VERIFIED_RESIDUAL"
+      }
+    },
+    {
+      "case_id": "TENNIS_BOUNDARY_AT_DECISION",
+      "model": "tennis",
+      "input": {
+        "id": "TENNIS_BOUNDARY_AT_DECISION",
+        "decision_at": "2026-08-15T10:00:00+10:00",
+        "event_at": "2026-08-15T18:00:00+10:00",
+        "competitors": ["PLAYER_A", "PLAYER_B"],
+        "market_probabilities": {"PLAYER_A": "0.50", "PLAYER_B": "0.50"},
+        "requested_residual_weight": "0.35",
+        "players": {
+          "PLAYER_A": {
+            "surface_dynamic_rating": [{"known_at": "2026-08-15T10:00:00+10:00", "value": "1650"}],
+            "serve_points_won": [{"known_at": "2026-08-15T10:00:00+10:00", "value": "0.62"}],
+            "return_points_won": [{"known_at": "2026-08-15T10:00:00+10:00", "value": "0.40"}],
+            "rest_hours": [{"known_at": "2026-08-15T10:00:00+10:00", "value": "48"}],
+            "travel_km": [{"known_at": "2026-08-15T10:00:00+10:00", "value": "250"}],
+            "participation_status": [{"known_at": "2026-08-15T10:00:00+10:00", "value": "CONFIRMED"}]
+          },
+          "PLAYER_B": {
+            "surface_dynamic_rating": [{"known_at": "2026-08-15T10:00:00+10:00", "value": "1650"}],
+            "serve_points_won": [{"known_at": "2026-08-15T10:00:00+10:00", "value": "0.62"}],
+            "return_points_won": [{"known_at": "2026-08-15T10:00:00+10:00", "value": "0.40"}],
+            "rest_hours": [{"known_at": "2026-08-15T10:00:00+10:00", "value": "48"}],
+            "travel_km": [{"known_at": "2026-08-15T10:00:00+10:00", "value": "250"}],
+            "participation_status": [{"known_at": "2026-08-15T10:00:00+10:00", "value": "CONFIRMED"}]
+          }
+        }
+      },
+      "expected": {
+        "temporal_safe": true,
+        "residual_weight": "0.35",
+        "market_prior_weight": "0.65",
+        "decision": "MARKET_ANCHORED_VERIFIED_RESIDUAL"
+      }
+    },
+    {
+      "case_id": "TENNIS_UNCONFIRMED",
+      "model": "tennis",
+      "input": {
+        "id": "TENNIS_UNCONFIRMED",
+        "decision_at": "2026-08-15T10:00:00+10:00",
+        "event_at": "2026-08-15T18:00:00+10:00",
+        "competitors": ["PLAYER_A", "PLAYER_B"],
+        "market_probabilities": {"PLAYER_A": "0.55", "PLAYER_B": "0.45"},
+        "requested_residual_weight": "0.35",
+        "players": {
+          "PLAYER_A": {
+            "surface_dynamic_rating": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "1700"}],
+            "serve_points_won": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "0.65"}],
+            "return_points_won": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "0.42"}],
+            "rest_hours": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "72"}],
+            "travel_km": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "100"}],
+            "participation_status": [{"known_at": "2026-08-15T09:00:00+10:00", "value": "PROBABLE"}]
+          },
+          "PLAYER_B": {
+            "surface_dynamic_rating": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "1600"}],
+            "serve_points_won": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "0.60"}],
+            "return_points_won": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "0.38"}],
+            "rest_hours": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "48"}],
+            "travel_km": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "600"}],
+            "participation_status": [{"known_at": "2026-08-15T09:00:00+10:00", "value": "CONFIRMED"}]
+          }
+        }
+      },
+      "expected": {
+        "temporal_safe": false,
+        "residual_weight": "0",
+        "market_prior_weight": "1",
+        "decision": "MARKET_ONLY_NO_DOMAIN_INCREMENT"
+      }
+    },
+    {
+      "case_id": "COMBAT_POSITIVE",
+      "model": "combat",
+      "input": {
+        "id": "COMBAT_POSITIVE",
+        "decision_at": "2026-08-15T10:00:00+10:00",
+        "event_at": "2026-08-15T20:00:00+10:00",
+        "competitors": ["FIGHTER_A", "FIGHTER_B"],
+        "market_probabilities": {"FIGHTER_A": "0.53", "FIGHTER_B": "0.47"},
+        "requested_residual_weight": "0.35",
+        "fighters": {
+          "FIGHTER_A": {
+            "dynamic_rating": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "1650"}],
+            "strike_defense_index": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "0.65"}],
+            "rest_hours": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "72"}],
+            "travel_km": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "100"}],
+            "participation_status": [{"known_at": "2026-08-15T09:00:00+10:00", "value": "CONFIRMED"}]
+          },
+          "FIGHTER_B": {
+            "dynamic_rating": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "1550"}],
+            "strike_defense_index": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "0.55"}],
+            "rest_hours": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "48"}],
+            "travel_km": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "800"}],
+            "participation_status": [{"known_at": "2026-08-15T09:00:00+10:00", "value": "CONFIRMED"}]
+          }
+        }
+      },
+      "expected": {
+        "temporal_safe": true,
+        "residual_weight": "0.35",
+        "market_prior_weight": "0.65",
+        "decision": "MARKET_ANCHORED_VERIFIED_RESIDUAL"
+      }
+    },
+    {
+      "case_id": "COMBAT_FUTURE_REQUIRED_FEATURE",
+      "model": "combat",
+      "input": {
+        "id": "COMBAT_FUTURE_REQUIRED_FEATURE",
+        "decision_at": "2026-08-15T10:00:00+10:00",
+        "event_at": "2026-08-15T20:00:00+10:00",
+        "competitors": ["FIGHTER_A", "FIGHTER_B"],
+        "market_probabilities": {"FIGHTER_A": "0.53", "FIGHTER_B": "0.47"},
+        "requested_residual_weight": "0.35",
+        "fighters": {
+          "FIGHTER_A": {
+            "dynamic_rating": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "1650"}],
+            "strike_defense_index": [{"known_at": "2026-08-15T10:00:00.0001+10:00", "value": "0.99"}],
+            "rest_hours": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "72"}],
+            "travel_km": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "100"}],
+            "participation_status": [{"known_at": "2026-08-15T09:00:00+10:00", "value": "CONFIRMED"}]
+          },
+          "FIGHTER_B": {
+            "dynamic_rating": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "1550"}],
+            "strike_defense_index": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "0.55"}],
+            "rest_hours": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "48"}],
+            "travel_km": [{"known_at": "2026-08-14T12:00:00+10:00", "value": "800"}],
+            "participation_status": [{"known_at": "2026-08-15T09:00:00+10:00", "value": "CONFIRMED"}]
+          }
+        }
+      },
+      "expected": {
+        "temporal_safe": false,
+        "residual_weight": "0",
+        "market_prior_weight": "1",
+        "decision": "MARKET_ONLY_NO_DOMAIN_INCREMENT"
+      }
+    }
+  ],
+  "expected_report_sha256": "294261f7538ed4297a0aa3e3d08d222812a0943cb9e5462a06d6b663926cb88a"
+}

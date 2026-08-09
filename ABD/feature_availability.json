@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "policy": {
+    "future_information_tolerance": 0,
+    "timezone_required": true,
+    "selection_rule": "LATEST_KNOWN_AT_OR_BEFORE_DECISION",
+    "missing_required_feature_action": "MARKET_ONLY_ZERO_RESIDUAL",
+    "unconfirmed_participation_action": "MARKET_ONLY_ZERO_RESIDUAL",
+    "external_network_accessed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false
+  },
+  "models": [
+    {
+      "id": "tennis",
+      "model_id": "TENNIS_SURFACE_SERVE_RETURN_RESIDUAL",
+      "market_family": "binary",
+      "required_feature_ids": [
+        "surface_dynamic_rating",
+        "serve_points_won",
+        "return_points_won",
+        "rest_hours",
+        "travel_km",
+        "participation_status"
+      ],
+      "residual_weight_cap_parameter": "residual_weight_alpha_beta_max",
+      "unavailable_action": "MARKET_ONLY_ZERO_RESIDUAL"
+    },
+    {
+      "id": "combat",
+      "model_id": "COMBAT_RATING_STYLE_READINESS_RESIDUAL",
+      "market_family": "binary",
+      "required_feature_ids": [
+        "dynamic_rating",
+        "strike_defense_index",
+        "rest_hours",
+        "travel_km",
+        "participation_status"
+      ],
+      "residual_weight_cap_parameter": "residual_weight_alpha_beta_max",
+      "unavailable_action": "MARKET_ONLY_ZERO_RESIDUAL"
+    }
+  ]
+}

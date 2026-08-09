@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "registry_id": "NICHES-S09-P04-MARKET-ONLY",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "policy": {
+    "future_information_tolerance": 0,
+    "timezone_required": true,
+    "unproven_domain_model_action": "MARKET_ONLY_OR_NO_ADVICE",
+    "unavailable_domain_model_action": "MARKET_ONLY_OR_NO_ADVICE",
+    "niche_default_action": "MARKET_ONLY_OR_NO_ADVICE",
+    "external_network_accessed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false
+  },
+  "models": [
+    {
+      "id": "racing",
+      "model_id": "RACING_PLACKETT_LUCE_HARVILLE_RESIDUAL",
+      "market_family": "futures",
+      "required_snapshot_keys": ["runner_strengths", "participation_status"],
+      "unproven_action": "MARKET_ONLY_OR_NO_ADVICE"
+    },
+    {
+      "id": "basketball",
+      "model_id": "BASKETBALL_PACE_EFFICIENCY_RESIDUAL",
+      "market_family": "binary",
+      "required_snapshot_keys": ["home_pace", "away_pace", "home_offensive_rating", "home_defensive_rating", "away_offensive_rating", "away_defensive_rating", "home_advantage_points", "participation_status"],
+      "unproven_action": "MARKET_ONLY_OR_NO_ADVICE"
+    },
+    {
+      "id": "baseball",
+      "model_id": "BASEBALL_PITCHER_BULLPEN_RESIDUAL",
+      "market_family": "binary",
+      "required_snapshot_keys": ["home_offense_index", "away_offense_index", "home_starter_ra", "away_starter_ra", "home_bullpen_ra", "away_bullpen_ra", "park_factor", "participation_status"],
+      "unproven_action": "MARKET_ONLY_OR_NO_ADVICE"
+    }
+  ],
+  "niche_market_only": {
+    "default_action": "MARKET_ONLY_OR_NO_ADVICE",
+    "unknown_domain_action": "MARKET_ONLY_OR_NO_ADVICE",
+    "prohibited_actions": ["MODEL_ONLY", "RECOMMENDATION", "ORDER_SUBMISSION"],
+    "examples": ["RUGBY", "CRICKET", "ESPORTS", "OTHER"]
+  }
+}

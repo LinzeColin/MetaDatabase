@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="31" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S09.P02_test" name="test_candidate_preflight_passes_without_generated_phase_reports" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_report_is_an_exact_deterministic_replay_of_the_frozen_fixture" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_each_frozen_case_matches_its_time_and_market_contract[TENNIS_POSITIVE]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_each_frozen_case_matches_its_time_and_market_contract[TENNIS_BOUNDARY_AT_DECISION]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_each_frozen_case_matches_its_time_and_market_contract[TENNIS_UNCONFIRMED]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_each_frozen_case_matches_its_time_and_market_contract[COMBAT_POSITIVE]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_each_frozen_case_matches_its_time_and_market_contract[COMBAT_FUTURE_REQUIRED_FEATURE]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_future_observation_is_excluded_from_asof_selection[TENNIS_POSITIVE-players-surface_dynamic_rating]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_future_observation_is_excluded_from_asof_selection[COMBAT_POSITIVE-fighters-dynamic_rating]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_exact_decision_time_is_allowed_and_plus_point_zero_zero_zero_one_falls_back" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_unavailable_or_unconfirmed_feature_keeps_the_market_untouched[TENNIS_UNCONFIRMED]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_unavailable_or_unconfirmed_feature_keeps_the_market_untouched[COMBAT_FUTURE_REQUIRED_FEATURE]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_event_must_be_strictly_after_the_frozen_decision_time[TENNIS_POSITIVE-TennisModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_event_must_be_strictly_after_the_frozen_decision_time[COMBAT_POSITIVE-CombatModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_float_probabilities_are_rejected[TENNIS_POSITIVE-TennisModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_float_probabilities_are_rejected[COMBAT_POSITIVE-CombatModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_ambiguous_same_timestamp_feature_history_fails_closed[TENNIS_POSITIVE-players-serve_points_won-TennisModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_ambiguous_same_timestamp_feature_history_fails_closed[COMBAT_POSITIVE-fighters-strike_defense_index-CombatModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_timezone_is_required_for_the_decision_clock[TENNIS_POSITIVE-TennisModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_timezone_is_required_for_the_decision_clock[COMBAT_POSITIVE-CombatModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_one_hundred_replays_have_one_hash_without_waiting[TENNIS_POSITIVE]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_one_hundred_replays_have_one_hash_without_waiting[COMBAT_POSITIVE]" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_ten_thousand_deterministic_adverse_perturbations_do_not_require_real_time_soak" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_feature_registry_policy_drift_is_rejected_by_both_models" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_core_sources_have_no_network_process_soak_float_or_order_capability" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_rollback_drill_is_hash_only_and_changes_no_external_state" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_candidate_fails_closed_when_feature_registry_is_tampered" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_candidate_fails_closed_when_p01_signed_predecessor_is_tampered" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_phase_receipt_is_absent_before_delivery_and_cannot_be_claimed" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_cli_is_wired_to_the_exact_contract_and_preserves_no_order_boundary" time="0.000" />
+    <testcase classname="tests.S09.P02_test" name="test_fixture_and_report_keep_financial_and_runtime_claims_unverified" time="0.000" />
+  </testsuite>
+</testsuites>

@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "registry_id": "DIST-S09-P03-SCORE-MODELS",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "policy": {
+    "decimal_precision": 50,
+    "probability_tolerance": "0.000000000001",
+    "series_termination": "1E-45",
+    "max_goal_rate": "3",
+    "max_goals": 18,
+    "max_goal_difference": 18,
+    "max_negative_binomial_count": 40,
+    "tail_tolerance": "0.000000000001",
+    "dixon_coles_rho_min": "-0.10",
+    "dixon_coles_rho_max": "0.10",
+    "unavailable_action": "MARKET_ONLY_ZERO_RESIDUAL",
+    "external_network_accessed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false
+  },
+  "required_distributions": [
+    "POISSON",
+    "DIXON_COLES",
+    "SKELLAM",
+    "NEGATIVE_BINOMIAL",
+    "HIERARCHICAL_RESIDUAL"
+  ],
+  "required_market_mappings": [
+    "ONE_X_TWO",
+    "TOTALS_2_5",
+    "BOTH_TEAMS_TO_SCORE"
+  ]
+}
