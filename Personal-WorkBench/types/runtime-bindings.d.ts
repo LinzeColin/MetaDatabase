@@ -11,6 +11,8 @@ declare namespace Cloudflare {
     GOOGLE_CLIENT_ID?: string;
     GOOGLE_CLIENT_SECRET?: string;
     RESEND_API_KEY?: string;
+    NITROSEND_API_KEY?: string;
+    MAIL_PROVIDER?: string;
     AUTH_FROM_EMAIL?: string;
     MAIL_FROM?: string;
     TURNSTILE_SECRET_KEY?: string;

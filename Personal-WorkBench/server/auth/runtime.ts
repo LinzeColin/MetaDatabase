@@ -1,3 +1,5 @@
+import type { MailProvider } from "./mail";
+
 export type AuthRuntimeEnv = {
   DB?: D1Database;
   BETTER_AUTH_SECRET?: string;
@@ -5,6 +7,8 @@ export type AuthRuntimeEnv = {
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   RESEND_API_KEY?: string;
+  NITROSEND_API_KEY?: string;
+  MAIL_PROVIDER?: string;
   AUTH_FROM_EMAIL?: string;
   MAIL_FROM?: string;
   TURNSTILE_SECRET_KEY?: string;
@@ -19,7 +23,8 @@ export type AuthRuntimeConfig = {
   authSecret: string;
   googleClientId: string;
   googleClientSecret: string;
-  resendApiKey: string;
+  mailProvider: MailProvider;
+  mailApiKey: string;
   fromEmail: string;
   turnstileSecretKey: string;
   turnstileSiteKey: string;
@@ -64,6 +69,30 @@ function publicContactEmail(value: string | undefined): string | null {
   return normalized;
 }
 
+function resolveMailProvider(env: AuthRuntimeEnv): {
+  provider: MailProvider;
+  apiKey: string;
+} | null {
+  const resendApiKey = nonEmpty(env.RESEND_API_KEY);
+  const nitrosendApiKey = nonEmpty(env.NITROSEND_API_KEY);
+  const requestedProvider = nonEmpty(env.MAIL_PROVIDER)?.toLowerCase();
+
+  if (requestedProvider && requestedProvider !== "resend" && requestedProvider !== "nitrosend") {
+    return null;
+  }
+  if (requestedProvider === "resend") {
+    return resendApiKey ? { provider: "resend", apiKey: resendApiKey } : null;
+  }
+  if (requestedProvider === "nitrosend") {
+    return nitrosendApiKey ? { provider: "nitrosend", apiKey: nitrosendApiKey } : null;
+  }
+
+  // Without an explicit selector, only the frozen Resend default is allowed.
+  // NitroSend is a controlled alternate and must never be inferred from a key.
+  if (resendApiKey) return { provider: "resend", apiKey: resendApiKey };
+  return null;
+}
+
 /**
  * This intentionally returns a single generic readiness state. Neither route
  * responses nor browser pages enumerate unavailable settings or secret names.
@@ -73,7 +102,7 @@ export function readAuthRuntimeConfig(env: AuthRuntimeEnv): AuthRuntimeConfig | 
   const authSecret = nonEmpty(env.BETTER_AUTH_SECRET);
   const googleClientId = nonEmpty(env.GOOGLE_CLIENT_ID);
   const googleClientSecret = nonEmpty(env.GOOGLE_CLIENT_SECRET);
-  const resendApiKey = nonEmpty(env.RESEND_API_KEY);
+  const mailProvider = resolveMailProvider(env);
   const authFromEmail = nonEmpty(env.AUTH_FROM_EMAIL);
   const mailFrom = nonEmpty(env.MAIL_FROM);
   // MAIL_FROM is the frozen Sites binding name. AUTH_FROM_EMAIL is the
@@ -91,7 +120,7 @@ export function readAuthRuntimeConfig(env: AuthRuntimeEnv): AuthRuntimeConfig | 
     authSecret.length < 32 ||
     !googleClientId ||
     !googleClientSecret ||
-    !resendApiKey ||
+    !mailProvider ||
     !fromEmail ||
     !turnstileSecretKey ||
     !turnstileSiteKey
@@ -105,7 +134,8 @@ export function readAuthRuntimeConfig(env: AuthRuntimeEnv): AuthRuntimeConfig | 
     authSecret,
     googleClientId,
     googleClientSecret,
-    resendApiKey,
+    mailProvider: mailProvider.provider,
+    mailApiKey: mailProvider.apiKey,
     fromEmail,
     turnstileSecretKey,
     turnstileSiteKey,

@@ -23,12 +23,13 @@ const REQUIRED_ENV_KEYS = [
   "APP_ORIGIN",
   "GOOGLE_CLIENT_ID",
   "GOOGLE_CLIENT_SECRET",
-  "RESEND_API_KEY",
   "TURNSTILE_SITE_KEY",
   "TURNSTILE_SECRET_KEY",
   "LEGAL_OPERATOR_NAME",
   "PRIVACY_CONTACT_EMAIL",
 ];
+
+const MAIL_PROVIDER_KEYS = ["RESEND_API_KEY", "NITROSEND_API_KEY"];
 
 function resolveTaskpackRoot() {
   const envRoot = process.env.TASKPACK_ROOT;
@@ -114,6 +115,68 @@ function isValidOrigin(value) {
 
 function isLikelyEmail(value) {
   return isNonEmptyString(value) && /@/.test(value) && value.includes(".");
+}
+
+/**
+ * Resend remains the taskpack default. NitroSend is only accepted when it is
+ * explicitly selected and the runtime's narrow MailPort can receive its API
+ * key. This summary is presence-only by design.
+ */
+export function resolveMailProvider(env = process.env) {
+  const resendPresent = isNonEmptyString(env.RESEND_API_KEY);
+  const nitrosendPresent = isNonEmptyString(env.NITROSEND_API_KEY);
+  const requestedRaw = env.MAIL_PROVIDER?.trim().toLowerCase();
+  const requested = requestedRaw || "default";
+
+  if (requestedRaw && requestedRaw !== "resend" && requestedRaw !== "nitrosend") {
+    return {
+      requested: "invalid",
+      selected: "missing",
+      present: false,
+      key_name: null,
+      keys: {
+        RESEND_API_KEY: resendPresent,
+        NITROSEND_API_KEY: nitrosendPresent,
+      },
+    };
+  }
+
+  if (requestedRaw === "nitrosend") {
+    return {
+      requested,
+      selected: nitrosendPresent ? "nitrosend" : "missing",
+      present: nitrosendPresent,
+      key_name: nitrosendPresent ? "NITROSEND_API_KEY" : null,
+      keys: {
+        RESEND_API_KEY: resendPresent,
+        NITROSEND_API_KEY: nitrosendPresent,
+      },
+    };
+  }
+
+  if (requestedRaw === "resend") {
+    return {
+      requested,
+      selected: resendPresent ? "resend" : "missing",
+      present: resendPresent,
+      key_name: resendPresent ? "RESEND_API_KEY" : null,
+      keys: {
+        RESEND_API_KEY: resendPresent,
+        NITROSEND_API_KEY: nitrosendPresent,
+      },
+    };
+  }
+
+  return {
+    requested,
+    selected: resendPresent ? "resend" : "missing",
+    present: resendPresent,
+    key_name: resendPresent ? "RESEND_API_KEY" : null,
+    keys: {
+      RESEND_API_KEY: resendPresent,
+      NITROSEND_API_KEY: nitrosendPresent,
+    },
+  };
 }
 
 /**
@@ -320,6 +383,7 @@ async function main() {
 
   const mailFrom = process.env.MAIL_FROM ?? "";
   const authFromEmail = process.env.AUTH_FROM_EMAIL ?? "";
+  const mailProvider = resolveMailProvider();
   const requiredMailSource = {
     source: "missing",
     present: {
@@ -334,6 +398,13 @@ async function main() {
     if (!item.present) {
       summary.risks.push(`缺少环境值：${key}`);
     }
+  }
+  for (const key of MAIL_PROVIDER_KEYS) {
+    summary.checks.required_secrets[key] = presenceOnly(process.env[key] ?? "");
+  }
+  summary.checks.required_secrets.TRANSACTIONAL_MAIL_PROVIDER = mailProvider;
+  if (!mailProvider.present) {
+    summary.risks.push("缺少事务邮件凭据：需要 RESEND_API_KEY，或显式选择 NitroSend 后提供 NITROSEND_API_KEY。");
   }
 
   if (!requiredMailSource.present.MAIL_FROM && !requiredMailSource.present.AUTH_FROM_EMAIL) {
@@ -398,6 +469,7 @@ async function main() {
     const hasMailSender = requiredMailSource.source !== "missing";
     const presentSecretKeys = expectedSecretKeys.filter((key) => {
       if (key === "MAIL_FROM") return hasMailSender;
+      if (key === "RESEND_API_KEY") return mailProvider.keys.RESEND_API_KEY;
       return isNonEmptyString(process.env[key]);
     });
 
@@ -411,6 +483,12 @@ async function main() {
       project_id_note: null,
       expected_secret_keys: expectedSecretKeys,
       present_secret_keys: presentSecretKeys,
+      mail_provider_binding: {
+        taskpack_default_key: expectedSecretKeys.includes("RESEND_API_KEY") ? "RESEND_API_KEY" : null,
+        selected_provider: mailProvider.selected,
+        active_runtime_key: mailProvider.key_name,
+        compatible_mailport_present: mailProvider.present,
+      },
       hosting_json_after_provision: raw.hosting_json_after_provision || null,
       project_id_contract: raw.hosting_json_after_provision?.project_id || null,
     };
@@ -448,6 +526,7 @@ async function main() {
     if (expectedSecretKeys.length > 0) {
       const missingContractSecrets = expectedSecretKeys.filter((key) => {
         if (key === "MAIL_FROM") return !hasMailSender;
+        if (key === "RESEND_API_KEY") return !mailProvider.present;
         return !isNonEmptyString(process.env[key]);
       });
       if (missingContractSecrets.length > 0) {
@@ -762,7 +841,7 @@ async function main() {
     if (key === "PRIVACY_NOTICE_SHA256" || key === "PRIVACY_POLICY_VERSION") return true;
     if (key === "MAIL_FROM") return requiredMail;
     return summary.checks.required_secrets[key]?.present;
-  });
+  }) && mailProvider.present;
 
   const privacyGateOk =
     summary.checks.privacy_gate?.legal_operator_name_present &&
@@ -823,7 +902,7 @@ async function main() {
       "按 RUN_CONTRACT_S5_T2.md 逐项推进：先完成本地身份与证据口径齐套，再进入生产副作用授权。",
       wranglerRecoveryHint ??
         "执行 wrangler 登录与项目可见性校验：`npx wrangler whoami`、`npx wrangler pages project list --json`。",
-      "将必需 Secrets（APP_ORIGIN、BETTER_AUTH_SECRET、GOOGLE_CLIENT_ID/SECRET、RESEND_API_KEY、TURNSTILE_SITE_KEY/SECRET_KEY、LEGAL_OPERATOR_NAME、PRIVACY_CONTACT_EMAIL、MAIL_FROM 或 AUTH_FROM_EMAIL）逐项补齐到 Sites Settings。",
+      "将必需 Secrets（APP_ORIGIN、BETTER_AUTH_SECRET、GOOGLE_CLIENT_ID/SECRET、默认 RESEND_API_KEY 或显式 MAIL_PROVIDER=nitrosend + NITROSEND_API_KEY、TURNSTILE_SITE_KEY/SECRET_KEY、LEGAL_OPERATOR_NAME、PRIVACY_CONTACT_EMAIL、MAIL_FROM 或 AUTH_FROM_EMAIL）逐项补齐到 Sites Settings。",
       "完成 Google callback 验证、邮件发送域、Turnstile、隐私信息（运营者名/联系邮箱/版本哈希）与资产授权，确认 OWNER_APPROVAL.production_side_effect_authorization 为 true。",
       "确认 `.openai/hosting.json` 的 project_id 与 SITES_BINDINGS_CONTRACT.json 占位 `generated_by_sites_and_never_hand_invented` 差异在正式 provision 后核对一致。",
       "同步任务包《胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包》最新 OWNER_APPROVAL 与资产清单，补齐后重新运行 `npm run verify:owner-activation`。",

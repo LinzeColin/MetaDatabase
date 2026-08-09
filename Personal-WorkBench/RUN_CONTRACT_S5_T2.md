@@ -15,7 +15,8 @@
 
 ## 明确不在本 phase 范围（本 run）
 
-- 不在本 run 执行 Sites Settings secrets 注入、OAuth callback 注册、Google 邮箱域验证或真实 Deploy。
+- 除非有本线程 Owner 的直接、明确授权，不在本 run 执行 Sites Settings 配置。获授权的私有配置只允许使用已核验的受控来源，并且只记录键名、Secret 属性和配置 revision；不记录或提交值，也不改变访问策略、创建公开 URL 或 Deploy。事务邮件默认仍为 Resend；兼容后端只能经同一 MailPort、显式 `MAIL_PROVIDER` 选择及对应 Sites Secret 启用。
+- 不执行 OAuth callback 注册、Google 邮箱域验证或真实 Deploy。
 - 不执行生产 rollback 演练（留给 S5-T3）。
 - 不提交或推送 GitHub；不更改现网配置。
 
@@ -47,7 +48,7 @@
    - `APP_ORIGIN`
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_CLIENT_SECRET`
-   - `RESEND_API_KEY`
+   - 默认 `RESEND_API_KEY`，或显式 `MAIL_PROVIDER=nitrosend` 与 `NITROSEND_API_KEY`（受控兼容选择）
    - `TURNSTILE_SITE_KEY`
    - `TURNSTILE_SECRET_KEY`
    - `LEGAL_OPERATOR_NAME`
@@ -64,6 +65,7 @@
 - `13_evidence/owner_activation.json`
 - `13_evidence/asset_manifest.json`
 - `13_evidence/verifier.json`
+- `13_evidence/sites_runtime_configuration.json`（如已在 Owner 授权下写入私有 Settings）
 - `13_evidence/owner_activation.json` 的 `risks` 长度与 `next_steps`
 
 ## 本 run 结论（2026-08-06T10:38:00.000Z）

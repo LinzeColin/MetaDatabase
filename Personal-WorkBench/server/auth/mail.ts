@@ -9,10 +9,16 @@ export type MailPort = {
   send(message: TransactionalMail): Promise<void>;
 };
 
-type ResendMailOptions = {
+export type MailProvider = "resend" | "nitrosend";
+
+type ProviderMailOptions = {
   apiKey: string;
   from: string;
   fetcher?: typeof fetch;
+};
+
+export type MailPortOptions = ProviderMailOptions & {
+  provider: MailProvider;
 };
 
 /**
@@ -23,7 +29,7 @@ export function createResendMailPort({
   apiKey,
   from,
   fetcher = fetch,
-}: ResendMailOptions): MailPort {
+}: ProviderMailOptions): MailPort {
   return {
     async send(message) {
       const response = await fetcher("https://api.resend.com/emails", {
@@ -46,6 +52,54 @@ export function createResendMailPort({
       }
     },
   };
+}
+
+/**
+ * NitroSend remains behind the same narrow MailPort as the frozen Resend
+ * default. It is selected only by the runtime configuration; no provider SDK,
+ * credential, recipient, or delivery metadata is retained or logged here.
+ */
+export function createNitroSendMailPort({
+  apiKey,
+  from,
+  fetcher = fetch,
+}: ProviderMailOptions): MailPort {
+  return {
+    async send(message) {
+      const response = await fetcher("https://api.nitrosend.com/v1/my/messages", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          channel: "email",
+          from,
+          to: message.to,
+          subject: message.subject,
+          body: message.text,
+          html: message.html,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Transactional mail service unavailable.");
+      }
+    },
+  };
+}
+
+export function createMailPort({
+  provider,
+  apiKey,
+  from,
+  fetcher,
+}: MailPortOptions): MailPort {
+  if (provider === "nitrosend") {
+    return createNitroSendMailPort({ apiKey, from, fetcher });
+  }
+
+  return createResendMailPort({ apiKey, from, fetcher });
 }
 
 function emailMarkup(title: string, body: string, url: string): string {

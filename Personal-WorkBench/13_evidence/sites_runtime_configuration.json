@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "subject_phase": "S5-T2",
+  "status": "PARTIAL_PRIVATE_RUNTIME_CONFIGURATION",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "generated_at": "2026-08-09T01:48:20Z",
+  "source": {
+    "kind": "ChatGPT Sites control-plane key-level readback",
+    "values_recorded": false,
+    "private_access_preserved": true,
+    "deployment_created": false
+  },
+  "settings": {
+    "revision": 1,
+    "entry_count": 8,
+    "entries": [
+      {"key": "BETTER_AUTH_SECRET", "is_secret": true},
+      {"key": "GOOGLE_CLIENT_ID", "is_secret": true},
+      {"key": "GOOGLE_CLIENT_SECRET", "is_secret": true},
+      {"key": "MAIL_FROM", "is_secret": true},
+      {"key": "MAIL_PROVIDER", "is_secret": false},
+      {"key": "NITROSEND_API_KEY", "is_secret": true},
+      {"key": "PRIVACY_NOTICE_SHA256", "is_secret": false},
+      {"key": "PRIVACY_POLICY_VERSION", "is_secret": false}
+    ]
+  },
+  "provider_contract": {
+    "resend_remains_default": true,
+    "selected_compatible_provider": "nitrosend",
+    "selection_requires": ["MAIL_PROVIDER=nitrosend", "NITROSEND_API_KEY"],
+    "mailport_boundary_preserved": true,
+    "provider_values_or_sender_identity_recorded": false
+  },
+  "remaining_required_configuration": [
+    "APP_ORIGIN",
+    "TURNSTILE_SITE_KEY",
+    "TURNSTILE_SECRET_KEY",
+    "LEGAL_OPERATOR_NAME",
+    "PRIVACY_CONTACT_EMAIL"
+  ],
+  "next_gate": "S5-T2 remains incomplete until remaining configuration and platform-side callback/hostname checks are evidenced; no S5-T3 deployment is implied."
+}

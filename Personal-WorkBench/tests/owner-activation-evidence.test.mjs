@@ -9,9 +9,24 @@ import {
   presenceOnly,
   redactCommandCheck,
   redactCommandResult,
+  resolveMailProvider,
 } from "../scripts/verify-owner-activation.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+
+test("private Sites runtime configuration evidence is key-only", async () => {
+  const record = JSON.parse(await readFile(join(ROOT, "13_evidence", "sites_runtime_configuration.json"), "utf8"));
+  assert.equal(record.status, "PARTIAL_PRIVATE_RUNTIME_CONFIGURATION");
+  assert.equal(record.source.values_recorded, false);
+  assert.equal(record.source.deployment_created, false);
+  assert.equal(record.settings.revision, 1);
+  assert.equal(record.settings.entry_count, record.settings.entries.length);
+  for (const entry of record.settings.entries) {
+    assert.deepEqual(Object.keys(entry).sort(), ["is_secret", "key"]);
+  }
+  const serialized = JSON.stringify(record);
+  assert.equal(/"(?:value|values|sender|email)"\s*:/i.test(serialized), false);
+});
 
 test("owner activation command evidence never retains raw output", () => {
   const raw = {
@@ -31,6 +46,19 @@ test("owner activation command evidence never retains raw output", () => {
   assert.equal(JSON.stringify(checkEvidence).includes("SENTINEL_"), false);
   assert.deepEqual(presenceOnly("configured"), { present: true });
   assert.deepEqual(presenceOnly(""), { present: false });
+  assert.deepEqual(resolveMailProvider({ RESEND_API_KEY: "configured" }), {
+    requested: "default",
+    selected: "resend",
+    present: true,
+    key_name: "RESEND_API_KEY",
+    keys: { RESEND_API_KEY: true, NITROSEND_API_KEY: false },
+  });
+  assert.equal(
+    resolveMailProvider({ MAIL_PROVIDER: "nitrosend", NITROSEND_API_KEY: "configured" }).selected,
+    "nitrosend",
+  );
+  assert.equal(resolveMailProvider({ NITROSEND_API_KEY: "configured" }).present, false);
+  assert.equal(resolveMailProvider({ MAIL_PROVIDER: "invalid" }).present, false);
 });
 
 test("owner activation report records presence only for supplied configuration", async () => {
@@ -41,6 +69,7 @@ test("owner activation report records presence only for supplied configuration",
     "SENTINEL_GOOGLE_CLIENT_ID",
     "SENTINEL_GOOGLE_SECRET",
     "SENTINEL_RESEND_KEY",
+    "SENTINEL_NITROSEND_KEY",
     "SENTINEL_TURNSTILE_SITE_KEY",
     "SENTINEL_TURNSTILE_SECRET",
     "SENTINEL_OPERATOR_NAME",
@@ -71,6 +100,8 @@ test("owner activation report records presence only for supplied configuration",
         GOOGLE_CLIENT_ID: "SENTINEL_GOOGLE_CLIENT_ID",
         GOOGLE_CLIENT_SECRET: "SENTINEL_GOOGLE_SECRET",
         RESEND_API_KEY: "SENTINEL_RESEND_KEY",
+        NITROSEND_API_KEY: "SENTINEL_NITROSEND_KEY",
+        MAIL_PROVIDER: "nitrosend",
         TURNSTILE_SITE_KEY: "SENTINEL_TURNSTILE_SITE_KEY",
         TURNSTILE_SECRET_KEY: "SENTINEL_TURNSTILE_SECRET",
         LEGAL_OPERATOR_NAME: "SENTINEL_OPERATOR_NAME",
@@ -89,6 +120,13 @@ test("owner activation report records presence only for supplied configuration",
       assert.equal(serialized.includes(sentinel), false, `leaked ${sentinel}`);
     }
     assert.deepEqual(report.checks.required_secrets.BETTER_AUTH_SECRET, { present: true });
+    assert.deepEqual(report.checks.required_secrets.TRANSACTIONAL_MAIL_PROVIDER, {
+      requested: "nitrosend",
+      selected: "nitrosend",
+      present: true,
+      key_name: "NITROSEND_API_KEY",
+      keys: { RESEND_API_KEY: true, NITROSEND_API_KEY: true },
+    });
     assert.deepEqual(report.checks.required_secrets.MAIL_FROM_FROM_RUNTIME, {
       source: "AUTH_FROM_EMAIL",
       present: { MAIL_FROM: true, AUTH_FROM_EMAIL: true },

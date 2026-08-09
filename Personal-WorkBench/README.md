@@ -27,6 +27,18 @@ This starter does not use `wrangler.jsonc`.
 - `examples/d1/` contains an optional D1 example surface
 - `drizzle.config.ts` supports local migration generation when needed
 
+## Transactional email runtime
+
+Resend remains the default transactional-mail provider through the narrow
+server-side `MailPort`. A controlled NitroSend REST-compatible alternative is
+available only when `MAIL_PROVIDER=nitrosend` and a Sites secret named
+`NITROSEND_API_KEY` are both present; no provider SDK is added and no credential
+belongs in source, local `.env`, build artifacts, or repository evidence.
+
+`MAIL_FROM` remains the canonical Sites sender binding. The sender must already
+be verified by the selected provider before a private candidate can perform
+verification or password-reset delivery.
+
 ## Workspace Auth Headers
 
 Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.

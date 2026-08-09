@@ -18,7 +18,9 @@ export async function verifyR2Contract() {
   assert.ok(replaceSource.indexOf("const row = await ownedFile") < replaceSource.indexOf("await env.FILES.put"));
   assert.ok(files.includes("pending_delete"));
   assert.ok(!files.includes("r2.dev"));
-  assert.ok(uploadRoute.includes("requireVerifiedSession"));
+  const authGate = "requireVerifiedMutationSession(createAuth(env), request, env.APP_ORIGIN)";
+  assert.ok(uploadRoute.includes(authGate));
+  assert.ok(uploadRoute.indexOf(authGate) < uploadRoute.indexOf("await readPrivateFileForm(request)"));
   assert.ok(uploadRoute.includes("beginIdempotentWrite"));
   assert.ok(objectRoute.includes("replacePrivateFile"));
   assert.ok(objectRoute.includes("deletePrivateFile"));

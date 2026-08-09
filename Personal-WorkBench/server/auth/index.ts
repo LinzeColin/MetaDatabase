@@ -4,7 +4,7 @@ import { betterAuth } from "better-auth";
 import { captcha } from "better-auth/plugins";
 import { authSchema } from "@/db/schema";
 import {
-  createResendMailPort,
+  createMailPort,
   passwordResetMail,
   verificationMail,
 } from "./mail";
@@ -26,8 +26,9 @@ export function createAuth(env: AuthRuntimeEnv) {
   if (!config) throw new AuthRuntimeNotReadyError();
 
   const db = drizzle(config.db, { schema: authSchema });
-  const mail = createResendMailPort({
-    apiKey: config.resendApiKey,
+  const mail = createMailPort({
+    provider: config.mailProvider,
+    apiKey: config.mailApiKey,
     from: config.fromEmail,
   });
 

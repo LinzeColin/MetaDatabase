@@ -29,8 +29,23 @@ const validRuntime = {
 
 test("runtime readiness is all-or-nothing and does not expose field names", () => {
   assert.equal(readAuthRuntimeConfig(validRuntime)?.appOrigin, "https://workbench.example.test");
+  assert.equal(readAuthRuntimeConfig(validRuntime)?.mailProvider, "resend");
   assert.equal(readAuthRuntimeConfig({ ...validRuntime, BETTER_AUTH_SECRET: "short" }), null);
   assert.equal(readAuthRuntimeConfig({ ...validRuntime, APP_ORIGIN: "http://example.test" }), null);
+});
+
+test("NitroSend is a fail-closed alternate MailPort while Resend remains default", () => {
+  const nitrosendRuntime = {
+    ...validRuntime,
+    RESEND_API_KEY: undefined,
+    NITROSEND_API_KEY: "nitro-key",
+    MAIL_PROVIDER: "nitrosend",
+  };
+  assert.equal(readAuthRuntimeConfig(nitrosendRuntime)?.mailProvider, "nitrosend");
+  assert.equal(readAuthRuntimeConfig({ ...nitrosendRuntime, NITROSEND_API_KEY: undefined }), null);
+  assert.equal(readAuthRuntimeConfig({ ...nitrosendRuntime, MAIL_PROVIDER: undefined }), null);
+  assert.equal(readAuthRuntimeConfig({ ...validRuntime, MAIL_PROVIDER: "unsupported" }), null);
+  assert.equal(readAuthRuntimeConfig({ ...validRuntime, MAIL_PROVIDER: "nitrosend", NITROSEND_API_KEY: undefined }), null);
 });
 
 test("mail sender accepts the frozen binding name and rejects conflicting aliases", () => {

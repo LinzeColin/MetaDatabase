@@ -25,7 +25,7 @@
     "db:verify": "node scripts/verify-schema.mjs",
     "test:schema": "node --test tests/schema.test.mjs",
     "test:unit": "npm run db:verify && npm run test:schema && npm run test:auth && npm run test:tenant && npm run test:api && npm run test:r2",
-    "test:auth": "node scripts/verify-auth-contract.mjs && node --experimental-strip-types --test tests/auth-contract.test.mts",
+    "test:auth": "node scripts/verify-auth-contract.mjs && node --experimental-strip-types --test tests/auth-contract.test.mts tests/mail-port.test.mts",
     "test:auth-saved": "node scripts/verify-saved-auth.mjs",
     "test:auth-runtime": "node --import ./tests/register-cloudflare-workers-loader.mjs --experimental-strip-types scripts/probe-local-auth-runtime.mjs",
     "test:owner-activation": "node --test tests/owner-activation-evidence.test.mjs",
