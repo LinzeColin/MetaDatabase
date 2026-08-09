@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "NOT_SAVED_REMOTE_SOURCE_REF_UNAVAILABLE",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "local_source_commit": "f87679ef17781b6f76ad289ee0ece6366ac24d11",
+    "local_project_tree": "73642e88b18d8b8f917309f848c6977aa01cd656",
+    "source_projection_commit": "06f552dbe17d3611c8b0656b86c5380e5b36a9bc",
+    "source_projection_matches_candidate_project_tree": true
+  },
+  "local_fix": {
+    "scope": "When the browser cannot complete a workbench request, the shared resource UI now says to sign in and verify email, or check the network if already signed in; it provides a sign-in link without claiming a saved record.",
+    "reference_visual_markup_changed": false,
+    "authentication_rules_changed": false,
+    "api_contract_changed": false,
+    "tenant_or_storage_model_changed": false
+  },
+  "local_verification": {
+    "workbench_persistence_ui": "PASS_5_OF_5",
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "module_regression": "PASS_1_OF_1",
+    "e2e_smoke": "PASS_4_OF_4",
+    "build": "PASS",
+    "rendered_network_interruption_replay": "PASS_ACTIONABLE_SIGN_IN_GUIDANCE_WITHOUT_GENERIC_NETWORK_ONLY_MESSAGE"
+  },
+  "private_preconditions": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "current_saved_version_number": 16,
+    "current_site_title": "个人日程"
+  },
+  "source_transport": {
+    "fresh_write_credential_provisioned": true,
+    "configured_source_branch": "main",
+    "source_branch_ref_readback": "NO_ADVERTISED_MAIN_REF",
+    "source_push_attempt": "FAILED_REMOTE_UPLOAD_PACK_NOT_OUR_REF",
+    "version_17_saved": false,
+    "version_17_deployed": false
+  },
+  "change_boundary": {
+    "runtime_settings_changed": false,
+    "access_policy_changed": false,
+    "d1_r2_changed": false,
+    "business_data_read_or_written": false,
+    "public_audience_changed": false,
+    "raw_url_or_credential_recorded": false
+  },
+  "sensitive_values_recorded": false,
+  "not_proven": [
+    "A private Version 17 deployment",
+    "A successful authenticated ordinary-browser mutation",
+    "Physical second-device history readback",
+    "Direct D1/R2 reconciliation",
+    "Final product acceptance"
+  ]
+}
