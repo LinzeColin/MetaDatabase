@@ -510,6 +510,7 @@ def _audit_imports(
         "uncertainty",
         "decimal_math",
         "cross_impl_check",
+        "robustness_gate",
     }
     stdlib = set(sys.stdlib_module_names)
     for path in paths:
