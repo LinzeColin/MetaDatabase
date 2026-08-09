@@ -40,7 +40,7 @@
   "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
   "fixed_clock": "2026-07-30T00:00:00+10:00",
   "hashes": {
-    "code": "6d1fe9ef9b0fd0c0b7b1e8a3318c27919461d3f8989197e95a899fa9c62af8d0",
+    "code": "5dc08ad69032da10125d12a6c8ba38c35e631167fe2cb7bf49cb2b5f0573e28a",
     "inputs": {
       "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
       "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
@@ -48,7 +48,7 @@
       "abd_acceptance/friction.py": "df4e261d7227cac7fb968e6db922419d0231e6cfdee12d4f16ada495bf2fa128",
       "abd_acceptance/platform_router.py": "084c38fc9d23f994320eee740522f7149df1e9f7d42d611cdc7e5c015a555dae",
       "abd_acceptance/risk_engine.py": "0ea98225ac8c0a0570cdd19bae6b863d7a114c98e4fedc4aaebbfad7cbc2d26d",
-      "abd_acceptance/stage11_review.py": "6d1fe9ef9b0fd0c0b7b1e8a3318c27919461d3f8989197e95a899fa9c62af8d0",
+      "abd_acceptance/stage11_review.py": "5dc08ad69032da10125d12a6c8ba38c35e631167fe2cb7bf49cb2b5f0573e28a",
       "correlation_graph.json": "3824d91006252f503c060f971a63d4d7e5fc5f2a44d44750bd0603b81e85b89a",
       "decision_gate.py": "21db092b3142ba9d5b4bc3f5b17b20de7b0d0e8fc5f28891abb006c42da3c46b",
       "evidence_tiers.json": "aba3d54e107c1975ed6af1c1f52df612440e0d47efed857ecba95629bf7ecc8d",
@@ -85,7 +85,7 @@
       "tests/S11/stage_review_test.py": "98786c3d426836f6d73078187265403cf8dc1ad8b9d2ca5ef0976cf13e361049",
       "threshold_vectors.json": "747226adb4989a46594421c6f55122cf1a2b85b5fa55b8e83ae0abf8286db963"
     },
-    "rollback_evidence": "6e9ac139cd66fb136d6ad4d71b389b70c11e095cc7ccb836126a3364dedc4f48"
+    "rollback_evidence": "85afbe37d2cad09be9924a0514ce434c6563c6004c01d7dd8162448e57c21ae9"
   },
   "next": "S11/GITHUB_STAGE_UPLOAD_READY",
   "phase_receipts": {
@@ -121,7 +121,7 @@
   "rollback": {
     "artifacts": {
       "abd_acceptance/stage11_review.py": {
-        "sha256": "6d1fe9ef9b0fd0c0b7b1e8a3318c27919461d3f8989197e95a899fa9c62af8d0",
+        "sha256": "5dc08ad69032da10125d12a6c8ba38c35e631167fe2cb7bf49cb2b5f0573e28a",
         "status": "PASS"
       },
       "machine/evidence/EVD-S11-P01.json": {

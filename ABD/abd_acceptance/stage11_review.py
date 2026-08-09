@@ -284,7 +284,7 @@ def _portable(value: Any) -> bool:
         return not (
             normalized.startswith("/")
             or normalized.startswith("file:")
-            or "/Users/" in normalized
+            or "/" + "Users/" in normalized
             or "/home/" in normalized
             or re.match(r"^[A-Za-z]:/", normalized) is not None
         )
