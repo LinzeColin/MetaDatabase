@@ -522,6 +522,9 @@ def _audit_imports(
         "economics",
         "target_falsification",
         "quote_check",
+        "post_advice_worker",
+        "result_settler",
+        "performance_report",
     }
     stdlib = set(sys.stdlib_module_names)
     for path in paths:

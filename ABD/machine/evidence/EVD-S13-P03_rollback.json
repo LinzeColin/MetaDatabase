@@ -1,0 +1,41 @@
+{
+  "actual_return_claimed": false,
+  "artifacts": {
+    "abd_acceptance/post_advice_settlement.py": {
+      "sha256": "2423a4b4429e0e5c002709f046328cbf7dfc87d9af9ab37974078dcbcb8326f9",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S13_P03.json": {
+      "sha256": "f8aef9dc1c419082f0573a5f9edf19fed26b809d38f2b3e12bf650ce529a1da5",
+      "status": "PASS"
+    },
+    "performance_report.py": {
+      "sha256": "fb60922d52a6dd3854c0d8713749d3632d2f095cc5e99def3da53d56bd9e3ef1",
+      "status": "PASS"
+    },
+    "post_advice_worker.py": {
+      "sha256": "bfef51a8e2542ce42cbb55af52a6d9c00ec87e1bd62cafc8f9d5faeb3e909b29",
+      "status": "PASS"
+    },
+    "result_settler.py": {
+      "sha256": "a7b05e61cab1b15c6cb8c74e6ffd055c7185012259ceb0e67b73f032092148d6",
+      "status": "PASS"
+    },
+    "tests/S13/P03_test.py": {
+      "sha256": "1a97cec04540dad6be48a53801e2f2921733753a3b48cf1f75b69b4fc1860b25",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S13-P03",
+  "evidence_id": "EVD-S13-P03-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "evidence:post_advice_settlement_fail_closed",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_POST_ADVICE_SETTLEMENT_RESTORE_SIGNED_S13_P02_KEEP_ALL_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

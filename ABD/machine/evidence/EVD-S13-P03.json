@@ -1,0 +1,431 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S13/P03_test.py --junitxml=machine/evidence/S13/P03/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S13/P03/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S13/P03/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S13-P03 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S13-P03",
+  "decision": "POST_ADVICE_EVIDENCE_AND_SYNTHETIC_SETTLEMENT_READY_REAL_RETURN_REQUIRES_SEPARATE_EVIDENCE",
+  "decision_sha256": "efa6d3800d3c0ea0311b7e69531a955fb01be841c87cfbfd88fa0a0d265f36f3",
+  "deterministic_replay": {
+    "adverse_scenario_count": 2,
+    "case_count": 5,
+    "real_time_wait_performed": false
+  },
+  "evidence_id": "EVD-S13-P03",
+  "external_effect_boundary": {
+    "actual_market_or_odds_observed": false,
+    "actual_order_execution_claimed": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_account_accessed": false,
+    "real_time_soak_waited": false,
+    "system_order_confirmation_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "hashes": {
+    "code": "2423a4b4429e0e5c002709f046328cbf7dfc87d9af9ab37974078dcbcb8326f9",
+    "inputs": {
+      "abd_acceptance/post_advice_settlement.py": "2423a4b4429e0e5c002709f046328cbf7dfc87d9af9ab37974078dcbcb8326f9",
+      "machine/evidence/EVD-S13-P02.json": "42be48209052f1056d16dd002322ca710cafbe1023be7c9a20a16d158abbbe89",
+      "machine/evidence/S13/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S13/P03/pytest.xml": "b2b2ff9bf197e620d2653901cf36ca81d6793ab24c73968b09be93fc5a47206e",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S13_P03.json": "f8aef9dc1c419082f0573a5f9edf19fed26b809d38f2b3e12bf650ce529a1da5",
+      "performance_report.py": "fb60922d52a6dd3854c0d8713749d3632d2f095cc5e99def3da53d56bd9e3ef1",
+      "post_advice_worker.py": "bfef51a8e2542ce42cbb55af52a6d9c00ec87e1bd62cafc8f9d5faeb3e909b29",
+      "result_settler.py": "a7b05e61cab1b15c6cb8c74e6ffd055c7185012259ceb0e67b73f032092148d6",
+      "tests/S13/P03_test.py": "1a97cec04540dad6be48a53801e2f2921733753a3b48cf1f75b69b4fc1860b25"
+    },
+    "rollback_evidence": "38da833ecfc4199cc842f6725f77b9d4c740f117734e546f8b31f9de37b7b9a6"
+  },
+  "next": "S13/P04_READY_NOT_STARTED",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S13_P03_LOCAL_EVIDENCE_ONLY_REMAINING_PHASES_AND_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S13-P03",
+  "rollback": {
+    "actual_return_claimed": false,
+    "artifacts": {
+      "abd_acceptance/post_advice_settlement.py": {
+        "sha256": "2423a4b4429e0e5c002709f046328cbf7dfc87d9af9ab37974078dcbcb8326f9",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S13_P03.json": {
+        "sha256": "f8aef9dc1c419082f0573a5f9edf19fed26b809d38f2b3e12bf650ce529a1da5",
+        "status": "PASS"
+      },
+      "performance_report.py": {
+        "sha256": "fb60922d52a6dd3854c0d8713749d3632d2f095cc5e99def3da53d56bd9e3ef1",
+        "status": "PASS"
+      },
+      "post_advice_worker.py": {
+        "sha256": "bfef51a8e2542ce42cbb55af52a6d9c00ec87e1bd62cafc8f9d5faeb3e909b29",
+        "status": "PASS"
+      },
+      "result_settler.py": {
+        "sha256": "a7b05e61cab1b15c6cb8c74e6ffd055c7185012259ceb0e67b73f032092148d6",
+        "status": "PASS"
+      },
+      "tests/S13/P03_test.py": {
+        "sha256": "1a97cec04540dad6be48a53801e2f2921733753a3b48cf1f75b69b4fc1860b25",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S13-P03",
+    "evidence_id": "EVD-S13-P03-ROLLBACK",
+    "external_state_changed": false,
+    "feature_flag_id": "evidence:post_advice_settlement_fail_closed",
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_POST_ADVICE_SETTLEMENT_RESTORE_SIGNED_S13_P02_KEEP_ALL_EVIDENCE",
+    "order_submission_enabled": false,
+    "production_state_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S13",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S13P03-REQUIREMENTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S13P03-CONTRACTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S13P03-TASK-GRAPH-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S13P03-TRACEABILITY-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "scope": [
+            "post_advice_worker.py",
+            "result_settler.py",
+            "performance_report.py"
+          ],
+          "target": "没有确认时不伪造真实收益。"
+        },
+        "id": "S13P03-TASKPACK-SCOPE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "tasks": [
+            "T-S13-P03-01",
+            "T-S13-P03-02",
+            "T-S13-P03-03"
+          ],
+          "trace": {
+            "acceptance_criteria_id": "AC-S13-P03",
+            "artifact_ids": [
+              "ART-S13-P03-01",
+              "ART-S13-P03-02",
+              "ART-S13-P03-03"
+            ],
+            "evidence_id": "EVD-S13-P03",
+            "phase_id": "P03",
+            "requirement_id": "REQ-S13-P03",
+            "stage_id": "S13",
+            "task_ids": [
+              "T-S13-P03-01",
+              "T-S13-P03-02",
+              "T-S13-P03-03"
+            ],
+            "test_ids": [
+              "TEST-S13-P03",
+              "TEST-S13-P03-BOUNDARY",
+              "TEST-S13-P03-REPLAY"
+            ]
+          }
+        },
+        "id": "S13P03-TASKPACK-TRACE-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S13_P03.json",
+        "id": "S13P03-FIXTURE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "fields": [
+            "cases",
+            "claim_boundary",
+            "expected_case_count",
+            "expected_mean_relative_closing_line_advantage",
+            "expected_next",
+            "expected_preflight_minimum",
+            "expected_replay_sha256",
+            "expected_synthetic_pnl_cents",
+            "fixed_clock",
+            "fixture_id",
+            "parameters_sha256",
+            "predecessor",
+            "schema_version"
+          ],
+          "fixture_id": "FIX-S13-P03-POST-ADVICE-SETTLEMENT"
+        },
+        "id": "S13P03-FIXTURE-CONTRACT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "fixture": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S13P03-PARAMETERS-HASH-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "advice_status": "ADVICE_RECORDED_OWNER_CONFIRMATION_PENDING",
+            "case_id": "A01-UNCONFIRMED-ADVICE-ONLY",
+            "relative_closing_line_advantage": null,
+            "result_status": "UNCONFIRMED_DO_NOT_SETTLE_OR_CLAIM_ACTUAL_RETURN",
+            "synthetic_pnl_cents": null
+          },
+          {
+            "advice_status": "ADVICE_RECORDED_OWNER_CONFIRMED_PENDING_RECONCILIATION",
+            "case_id": "A02-CONFIRMED-AWAITING-SETTLEMENT",
+            "relative_closing_line_advantage": null,
+            "result_status": "OWNER_CONFIRMED_AWAITING_SETTLEMENT_EVIDENCE",
+            "synthetic_pnl_cents": null
+          },
+          {
+            "advice_status": "ADVICE_RECORDED_OWNER_CONFIRMED_PENDING_RECONCILIATION",
+            "case_id": "A03-CONFIRMED-SYNTHETIC-WIN",
+            "relative_closing_line_advantage": "0.047619047619",
+            "result_status": "SYNTHETIC_SETTLED_NOT_ACTUAL_RETURN",
+            "synthetic_pnl_cents": 270
+          },
+          {
+            "advice_status": "ADVICE_RECORDED_OWNER_CONFIRMED_PENDING_RECONCILIATION",
+            "case_id": "A04-CONFIRMED-ADVERSE-POINT-0001-LOSS",
+            "relative_closing_line_advantage": "-0.000045452479",
+            "result_status": "SYNTHETIC_SETTLED_NOT_ACTUAL_RETURN",
+            "synthetic_pnl_cents": -225
+          },
+          {
+            "advice_status": "ADVICE_RECORDED_OWNER_CONFIRMED_PENDING_RECONCILIATION",
+            "case_id": "A05-CONFIRMED-FAVOURABLE-POINT-0001-VOID",
+            "relative_closing_line_advantage": "0.000045456611",
+            "result_status": "SYNTHETIC_SETTLED_NOT_ACTUAL_RETURN",
+            "synthetic_pnl_cents": 0
+          }
+        ],
+        "id": "S13P03-FROZEN-CASE-RESULTS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_return_cents": null,
+          "actual_return_claimed": false,
+          "actual_return_status": "DO_NOT_CLAIM_ACTUAL_RETURN_UNCONFIRMED_ADVICE",
+          "advice_count": 5,
+          "claim_boundary": {
+            "actual_market_or_odds_observed": false,
+            "actual_order_execution_claimed": false,
+            "external_network_accessed": false,
+            "financial_return_verified_or_guaranteed": false,
+            "incremental_cash_spent_aud": "0.00",
+            "order_submission_enabled": false,
+            "production_deployed_or_activated": false,
+            "real_account_accessed": false,
+            "real_time_soak_waited": false,
+            "system_order_confirmation_enabled": false
+          },
+          "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+          "mean_relative_closing_line_advantage": "0.015873017250",
+          "owner_confirmed_count": 4,
+          "relative_closing_line_observation_count": 3,
+          "report_id": "S13-P03-FROZEN-PERFORMANCE-REPORT",
+          "report_sha256": "49c93eed7b50d7f9e3fc21db624a47f7d2129c4f6bf98dbc9cd7c694aec054e5",
+          "review_status": "ADVICE_AND_SYNTHETIC_EVIDENCE_ONLY_REAL_FUNDS_REQUIRE_SEPARATE_VERIFIABLE_EVIDENCE",
+          "schema_version": "1.0.0",
+          "synthetic_pnl_cents": 45,
+          "synthetic_settled_count": 3,
+          "synthetic_test_only": true,
+          "unconfirmed_advice_count": 1
+        },
+        "id": "S13P03-REPORT-DOES-NOT-CLAIM-ACTUAL-RETURN",
+        "passed": true
+      },
+      {
+        "detail": "c5d2dbb3335ebc906d63aceb840eb101c84c04747e8c8bd044ad3c43edb1fcf5",
+        "id": "S13P03-DETERMINISTIC-REPLAY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "A03-CONFIRMED-SYNTHETIC-WIN": {
+            "advice_status": "ADVICE_RECORDED_OWNER_CONFIRMED_PENDING_RECONCILIATION",
+            "case_id": "A03-CONFIRMED-SYNTHETIC-WIN",
+            "relative_closing_line_advantage": "0.047619047619",
+            "result_status": "SYNTHETIC_SETTLED_NOT_ACTUAL_RETURN",
+            "synthetic_pnl_cents": 270
+          },
+          "A04-CONFIRMED-ADVERSE-POINT-0001-LOSS": {
+            "advice_status": "ADVICE_RECORDED_OWNER_CONFIRMED_PENDING_RECONCILIATION",
+            "case_id": "A04-CONFIRMED-ADVERSE-POINT-0001-LOSS",
+            "relative_closing_line_advantage": "-0.000045452479",
+            "result_status": "SYNTHETIC_SETTLED_NOT_ACTUAL_RETURN",
+            "synthetic_pnl_cents": -225
+          },
+          "A05-CONFIRMED-FAVOURABLE-POINT-0001-VOID": {
+            "advice_status": "ADVICE_RECORDED_OWNER_CONFIRMED_PENDING_RECONCILIATION",
+            "case_id": "A05-CONFIRMED-FAVOURABLE-POINT-0001-VOID",
+            "relative_closing_line_advantage": "0.000045456611",
+            "result_status": "SYNTHETIC_SETTLED_NOT_ACTUAL_RETURN",
+            "synthetic_pnl_cents": 0
+          }
+        },
+        "id": "S13P03-POINT-0001-ADVERSE-ODDS-BOUNDARY-DOES-NOT-CREATE-ACTUAL-CLAIM",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_status": "ADVICE_RECORDED_OWNER_CONFIRMATION_PENDING",
+          "case_id": "A01-UNCONFIRMED-ADVICE-ONLY",
+          "relative_closing_line_advantage": null,
+          "result_status": "UNCONFIRMED_DO_NOT_SETTLE_OR_CLAIM_ACTUAL_RETURN",
+          "synthetic_pnl_cents": null
+        },
+        "id": "S13P03-NO-CONFIRMATION-NEVER-CLAIMS-ACTUAL-RETURN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "index": {
+            "actual_artifact": "machine/evidence/EVD-S13-P02.json",
+            "artifact_sha256": "42be48209052f1056d16dd002322ca710cafbe1023be7c9a20a16d158abbbe89",
+            "contract_id": "AC-S13-P02",
+            "id": "INDEX-AC-S13-P02",
+            "kind": "PHASE_EVIDENCE",
+            "next": "S13/P03_READY_NOT_STARTED",
+            "requirement_id": "REQ-S13-P02",
+            "stage_id": "S13",
+            "status": "PASS",
+            "verified_at": "2026-08-09T00:00:00+10:00"
+          },
+          "predecessor": {
+            "contract_id": "AC-S13-P02",
+            "evidence_path": "machine/evidence/EVD-S13-P02.json",
+            "evidence_sha256": "42be48209052f1056d16dd002322ca710cafbe1023be7c9a20a16d158abbbe89",
+            "next": "S13/P03_READY_NOT_STARTED",
+            "status": "PASS"
+          }
+        },
+        "id": "S13P03-P02-PREDECESSOR-SIGNED-AND-INDEXED",
+        "passed": true
+      },
+      {
+        "detail": "static boundary intact",
+        "id": "S13P03-STATIC-NO-NETWORK-SOAK-OR-ORDER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 10,
+          "dependency_manifests": 2,
+          "failed": 0,
+          "failed_check_ids": [],
+          "locked_registry_packages": 12,
+          "paid_or_unknown_dependencies": 0,
+          "passed": 10,
+          "providers": 5,
+          "runtime_direct_dependencies": 0
+        },
+        "id": "S13P03-ZERO-INCREMENTAL-CASH-AND-DEPENDENCY-GATE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 19
+        },
+        "id": "S13P03-TARGETED-JUNIT-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S13/P03/paid_dependency_scan.txt",
+        "id": "S13P03-PAID-DEPENDENCY-REPORT-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/validation_report.json",
+        "id": "S13P03-TASKPACK-REPORT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S13P03-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S13-P03",
+    "decision": "POST_ADVICE_EVIDENCE_AND_SYNTHETIC_SETTLEMENT_READY_REAL_RETURN_REQUIRES_SEPARATE_EVIDENCE",
+    "external_effect_boundary": {
+      "actual_market_or_odds_observed": false,
+      "actual_order_execution_claimed": false,
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submission_enabled": false,
+      "production_deployed_or_activated": false,
+      "real_account_accessed": false,
+      "real_time_soak_waited": false,
+      "system_order_confirmation_enabled": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "hashes": {
+      "machine/evidence/EVD-S13-P02.json": "42be48209052f1056d16dd002322ca710cafbe1023be7c9a20a16d158abbbe89",
+      "machine/tests/fixtures/S13_P03.json": "f8aef9dc1c419082f0573a5f9edf19fed26b809d38f2b3e12bf650ce529a1da5",
+      "performance_report.py": "fb60922d52a6dd3854c0d8713749d3632d2f095cc5e99def3da53d56bd9e3ef1",
+      "post_advice_worker.py": "bfef51a8e2542ce42cbb55af52a6d9c00ec87e1bd62cafc8f9d5faeb3e909b29",
+      "result_settler.py": "a7b05e61cab1b15c6cb8c74e6ffd055c7185012259ceb0e67b73f032092148d6"
+    },
+    "next": "S13/P04_READY_NOT_STARTED",
+    "phase_id": "P03",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "stage_id": "S13",
+    "status": "PASS",
+    "summary": {
+      "checks": 21,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 21
+    }
+  }
+}
