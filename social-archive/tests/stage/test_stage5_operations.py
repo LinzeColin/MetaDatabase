@@ -4,7 +4,12 @@ from pathlib import Path
 def test_stage5_deployment_contract_keeps_core_private_and_status_runtime_only():
     root = Path(__file__).resolve().parents[2]
     systemd = root / "deploy" / "systemd"
-    text = "\n".join(path.read_text(encoding="utf-8") for path in systemd.iterdir())
+    # **rglob 而不是 iterdir**（2026-08-10）：`deploy/systemd/` 下现在有
+    # `<unit>.d/` 这样的 drop-in 目录（`social-archive-backup.service.d/`），
+    # iterdir 会把目录当文件读，直接 IsADirectoryError。
+    # 而 drop-in 里恰恰写着 `ExecStart`——这段合同该看的正是它。
+    text = "\n".join(path.read_text(encoding="utf-8")
+                     for path in sorted(systemd.rglob("*")) if path.is_file())
     compose = (root / "compose.yaml").read_text(encoding="utf-8")
     status_service = (systemd / "social-archive-status.service").read_text(encoding="utf-8")
     status_web_service = (systemd / "social-archive-status-web.service").read_text(encoding="utf-8")

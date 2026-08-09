@@ -124,8 +124,19 @@ step "0) 本地闸门：工作树干净 + 发布门全绿"
 # 上面那道「工作树干净」的门外**。2026-08-05 实测：第二次部署当场就被自己
 # 上一次挡住了。一个自己会把自己挡住的门，用不了几次就会有人绕过去，
 # 那时它连真的脏改动也挡不住。
-.venv/bin/python scripts/final_verify.py --report "$(mktemp -t sa-gate)" >/dev/null \
-  || fail '发布门未通过。'
+# **`--full` 才会跑那 1300 条测试**（2026-08-10）。
+#
+# 不带 `--full` 时 `final_verify.py` 是 `suite_mode: structural`、
+# `application_suite_rerun: false`——**只跑 32 道结构门，一条单元测试都不跑**。
+# 那本来不要紧，因为 pre-commit 钩子每次提交都跑；
+# 而今天机器侧的 `tools/install-guards.sh` 把 `.git/hooks/pre-commit`
+# 换成了铁律 2 的主树守卫，**跑测试那个钩子没了**，于是那 1300 条测试
+# 一度只剩「我记得跑」这一条保障——正是我今天一整天在别处拆掉的那种。
+#
+# 钩子是机器侧的东西，不该由我覆盖回去；**测试该待的地方本来就是通往生产的这条路**。
+# 代价是每次部署多两分钟。
+.venv/bin/python scripts/final_verify.py --full --report "$(mktemp -t sa-gate)" >/dev/null \
+  || fail '发布门未通过（含全量测试）。'
 .venv/bin/python scripts/build_extension_package.py >/dev/null || fail '扩展包没打出来——用户下载到的会是旧版本。'
 # **打完就在真 Chrome 里装一次这个包。**
 #
@@ -302,10 +313,33 @@ step "3.5) systemd 单元有没有漂"
 #
 # **只报，不自动装。** unit 以 root 跑，自动安装的爆炸半径太大；
 # 这里给出那一行 cp，由人来敲。
+# **drop-in 也要比**（2026-08-10）。
+#
+# 这一步原来只 glob `*.service` 和 `*.timer`，而 systemd 还认
+# `<unit>.d/*.conf`——**drop-in 能改 ExecStart**，也就是能改这个服务到底跑什么。
+#
+# 今天在他生产上撞见的就是这个：
+#     /etc/systemd/system/social-archive-backup.service.d/20-prune-r2-replicas.conf
+# 一个**任何仓里都没有**的文件，往备份服务里挂了一条
+# `prune_r2_backup_replicas.py --apply`——**对他 R2 备份做真删除**，
+# 三天里跑过 6 次。而这一步照报「所有 systemd 单元与仓里一致」。
+#
+# 那个删除本身是对的（Owner 2026-08-10 定的 R2 只留 3 天，脚本先核 OCI 同 key
+# 同大小才删、最新一批永不删、不碰 primary-objects）。**问题不是它做了什么，
+# 是它从版本控制之外做的**：主机一旦重建，这条就无声消失。
+# 现在 .conf 已收进 deploy/systemd/<unit>.d/，并且这里会盯着它。
 DRIFT=""
-for unit in deploy/systemd/*.service deploy/systemd/*.timer; do
+for unit in deploy/systemd/*.service deploy/systemd/*.timer deploy/systemd/*.d/*.conf; do
   [[ -e "$unit" ]] || continue
-  name="$(basename "$unit")"
+  case "$unit" in
+    # drop-in 的目标路径要连它的 .d 目录一起，basename 不够。
+    # **第一版这里写成 `*/deploy/systemd/*.d/*`，配不上**——`$unit` 是相对路径
+    # （`deploy/systemd/…`），开头那个 `*/` 让它整条不匹配，于是掉进 basename，
+    # 目标算成了 `/etc/systemd/system/20-prune-r2-replicas.conf`。
+    # 把 glob 打印出来看一眼就露了；不看就是一道永远比对不存在文件的门。
+    deploy/systemd/*.d/*) name="$(basename "$(dirname "$unit")")/$(basename "$unit")" ;;
+    *) name="$(basename "$unit")" ;;
+  esac
   if ! ssh -o ConnectTimeout=20 "$HOST" "sudo diff -q /etc/systemd/system/${name} ${REMOTE_DIR}/${unit} >/dev/null 2>&1"; then
     DRIFT="${DRIFT}  ${name}\n"
   fi

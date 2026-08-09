@@ -56,6 +56,25 @@ def _s3_client(config: dict[str, str]):
     )
 
 
+def _upload_args(config: dict[str, str], metadata: dict[str, str], *,
+                 content_type: str | None = None) -> dict[str, Any]:
+    """上传参数只造一处（2026-08-10，移植自 origin/main 的 a0e201baa）。
+
+    铁律 7：禁止 InfrequentAccess——R2 免费额度只覆盖 Standard，IA 从第 1 次
+    操作起计费且按整单位向上取整。R2 走的是默认的 `aws` 兼容模式
+    （生产上只有 OCI 显式设了 `oci`），所以这颗钉子作用在 R2 的写入上；
+    OCI 不认这个名字，钉了会被拒，所以只在 `aws` 这一档钉。
+
+    **两个上传点共用这一个函数**，不各写各的——漏掉的那个不会有人发现。
+    """
+    args: dict[str, Any] = {"Metadata": metadata}
+    if content_type:
+        args["ContentType"] = content_type
+    if config.get("s3_compatibility", "aws") == "aws":
+        args["StorageClass"] = "STANDARD"
+    return args
+
+
 def _upload_and_verify(
     config: dict[str, str],
     ciphertext: Path,
@@ -72,7 +91,7 @@ def _upload_and_verify(
         "cipher-sha256": encrypted.cipher_sha256,
         "encryption": encrypted.algorithm,
     }
-    client.upload_file(str(ciphertext), config["bucket"], key, ExtraArgs={"Metadata": metadata})
+    client.upload_file(str(ciphertext), config["bucket"], key, ExtraArgs=_upload_args(config, metadata))
     head = client.head_object(Bucket=config["bucket"], Key=key)
     remote = head.get("Metadata") or {}
     if any(remote.get(name) != value for name, value in metadata.items()):
@@ -112,8 +131,10 @@ def _upload_recovery_descriptor_and_verify(
     client = _s3_client(config)
     metadata = {"descriptor-sha256": digest, "kind": "social-archive-recovery-descriptor"}
     client.put_object(
-        Bucket=config["bucket"], Key=key, Body=body,
-        ContentType="application/json", Metadata=metadata,
+        Bucket=config["bucket"],
+        Key=key,
+        Body=body,
+        **_upload_args(config, metadata, content_type="application/json"),
     )
     head = client.head_object(Bucket=config["bucket"], Key=key)
     if (head.get("Metadata") or {}) != metadata:

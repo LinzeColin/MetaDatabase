@@ -1,7 +1,7 @@
 {
   "status": "PASS",
-  "suite_mode": "structural",
-  "application_suite_rerun": false,
+  "suite_mode": "explicit_full",
+  "application_suite_rerun": true,
   "partial_checks": [
     {
       "argv": [
@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 781 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 783 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -277,7 +277,7 @@
         "scripts/check_git_calls_cannot_be_hijacked_by_hooks.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 335 份 .py，其中 8 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
+      "stdout": "扫了 338 份 .py，其中 8 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
       "stderr": ""
     },
     {
@@ -315,6 +315,17 @@
       ],
       "exit_code": 0,
       "stdout": "{\"status\": \"PASS\", \"scope\": \"local_deployment_contract\", \"checks\": [{\"name\": \"isolated_loopback_ports_declared\", \"status\": \"PASS\"}, {\"name\": \"core_api_loopback_only\", \"status\": \"PASS\"}, {\"name\": \"core_api_read_only\", \"status\": \"PASS\"}, {\"name\": \"tunnel_library_loopback\", \"status\": \"PASS\"}, {\"name\": \"tunnel_api_loopback\", \"status\": \"PASS\"}, {\"name\": \"tunnel_status_projection_loopback\", \"status\": \"PASS\"}, {\"name\": \"tunnel_status_existing_site_passthrough\", \"status\": \"PASS\"}, {\"name\": \"tunnel_default_404\", \"status\": \"PASS\"}, {\"name\": \"library_access_policy\", \"status\": \"PASS\"}, {\"name\": \"separate_api_host\", \"status\": \"PASS\"}, {\"name\": \"public_health\", \"status\": \"PASS\"}, {\"name\": \"edge_rate_limit_not_relaxed\", \"status\": \"PASS\"}, {\"name\": \"extension_token_is_revocable\", \"status\": \"PASS\"}, {\"name\": \"real_rule_evidence_not_source\", \"status\": \"PASS\"}, {\"name\": \"api_host_has_no_public_pairing_path\", \"status\": \"PASS\"}, {\"name\": \"library_url_declared\", \"status\": \"PASS\"}, {\"name\": \"api_url_declared\", \"status\": \"PASS\"}, {\"name\": \"status_under_data_root\", \"status\": \"PASS\"}, {\"name\": \"status_not_project_runtime\", \"status\": \"PASS\"}, {\"name\": \"status_server_loopback_only\", \"status\": \"PASS\"}, {\"name\": \"status_server_shared_health_path\", \"status\": \"PASS\"}, {\"name\": \"status_server_readonly_methods\", \"status\": \"PASS\"}, {\"name\": \"status_web_no_write_path\", \"status\": \"PASS\"}, {\"name\": \"status_web_reads_projection_only\", \"status\": \"PASS\"}, {\"name\": \"status_web_port_from_environment_file\", \"status\": \"PASS\"}]}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q"
+      ],
+      "exit_code": 0,
+      "stdout": "........................................................................ [  5%]\n........................................................................ [ 11%]\n........................................................................ [ 16%]\n........................................................................ [ 22%]\n........................................................................ [ 27%]\n........................................................................ [ 33%]\n........................................................................ [ 38%]\n........................................................................ [ 44%]\n........................................................................ [ 49%]\n........................................................................ [ 55%]\n........................................................................ [ 60%]\n........................................................................ [ 66%]\n........................................................................ [ 71%]\n........................................................................ [ 77%]\n........................................................................ [ 82%]\n........................................................................ [ 88%]\n........................................................................ [ 93%]\n........................................................................ [ 99%]\n.........                                                                [100%]\n=============================== warnings summary ===============================\n.venv/lib/python3.13/site-packages/fastapi/testclient.py:1\n  /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n    from starlette.testclient import TestClient as TestClient  # noqa\n\ntests/focused/test_credential_http_roundtrip.py: 17 warnings\n  /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/lib/python3.13/site-packages/starlette/testclient.py:455: DeprecationWarning: Setting per-request cookies=<...> is being deprecated, because the expected behaviour on cookie persistence is ambiguous. Set cookies directly on the client instance instead.\n    return super().request(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1305 passed, 18 warnings in 129.04s (0:02:09)\n",
       "stderr": ""
     }
   ]
