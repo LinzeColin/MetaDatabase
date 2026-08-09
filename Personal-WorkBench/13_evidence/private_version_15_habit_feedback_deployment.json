@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PASS_PRIVATE_VERSION_15_HABIT_FAILURE_FEEDBACK",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "local_source_commit": "8e27d3066e0cfb9bb7d9924c502112fe156125ef",
+    "local_project_tree": "08095b8d5d83cc8895d4c2b74582599e60534f77",
+    "sites_source_commit": "f9eb0e89e9ac1295c01ff0f0d47518f1d4684d81",
+    "source_projection_parent": "0df65653f67ce98c3a8ee157095e4e52c5c0ca2b",
+    "source_projection_matches_candidate_tree": true,
+    "saved_version_number": 15,
+    "source_projection_archive_sha256": "12af2b7d1a7d97dee06237247de5e1ec1470171739b282a33c200daabb33f793",
+    "provider_archive_sha256": "sha256:a381a18106f744f21861f12ed5a73de8274624a1181fd27d8bc43f0453e297d5"
+  },
+  "private_deployment": {
+    "status": "SUCCEEDED",
+    "environment_revision": 8,
+    "private_deploy_verified_owner_only_access": true,
+    "public_audience_changed": false,
+    "raw_url_recorded": false
+  },
+  "change_boundary": {
+    "affected_controls": ["早起", "阅读", "运动", "喝水", "早睡"],
+    "failure_feedback": "A protected habit creation, check-in creation, or check-in cancellation now renders an explicit pending or failed state instead of appearing inert.",
+    "success_feedback": "A completed check-in message remains reserved for a successful server response.",
+    "authentication_rules_changed": false,
+    "runtime_settings_changed": false,
+    "data_store_changed": false,
+    "access_policy_changed": false
+  },
+  "local_regressions": {
+    "operation_audit": "PASS_16_PAGES_140_CONTROLS_NO_VISIBLE_EFFECT_0",
+    "workbench_persistence_ui": "PASS_4_OF_4",
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "module_and_e2e_regression": "PASS_9_OF_9",
+    "build": "PASS",
+    "canonical_domain_compatibility": "PASS_2_OF_2"
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false,
+  "not_proven": [
+    "A successful ordinary-browser authenticated mutation",
+    "Physical second-device history readback",
+    "Direct D1/R2 reconciliation",
+    "Final product acceptance"
+  ]
+}
