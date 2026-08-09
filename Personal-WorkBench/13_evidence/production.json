@@ -5,14 +5,15 @@
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
   "observed_at": "2026-08-09",
   "candidate": {
-    "local_source_commit": "688a4e8d72c6722051d8aac5ea2e84a923e950de",
-    "local_project_tree": "091473eb3c9b87d774272905652c53bfe87cf540",
-    "sites_source_commit": "5d5e78e32cd0d33c33fa2e383ef4d21a90557b79",
-    "source_projection_parent": "e9210c57dee48261819bdc3a68ac904aa00dfddb",
-    "saved_version_number": 12,
+    "local_source_commit": "29c730796e4b341c8665ba052bc8f55f4ddddc4b",
+    "local_project_tree": "b0502fe79a49c8ee1432969d85279ac268e5f083",
+    "sites_source_commit": "877c13d5c487399147790e5bb218e9e02d56f8be",
+    "source_projection_parent": "5d5e78e32cd0d33c33fa2e383ef4d21a90557b79",
+    "saved_version_number": 13,
     "source_projection_matches_current_project_tree": true,
-    "source_projection_archive_sha256": "ecb67c5d64b0198573ad5f0faa5623d5bbe4d8476a1a7ad5110911f96278f2c7",
-    "deployment_archive_sha256": "efdc3788766d3a773403b62568e37c9d280b59560db294f8cb9ee809d7825ca9",
+    "source_projection_archive_sha256": "6be69c7eccbba39340851bae51bb4ec037cd902757e4f0d54a160219fd38bc72",
+    "deployment_archive_sha256": "6be69c7eccbba39340851bae51bb4ec037cd902757e4f0d54a160219fd38bc72",
+    "provider_archive_sha256": "sha256:11e23f6917dfa37bf4650fa3f5f8fe898e4a1903c526b50d14a2482295f30206",
     "environment_revision": 8
   },
   "private_access": {
@@ -27,13 +28,14 @@
     "raw_url_recorded": false
   },
   "controlled_deployment_and_recovery": {
-    "version_12_private_deploy": "SUCCEEDED",
+    "version_13_private_deploy": "SUCCEEDED",
+    "version_12_private_deploy": "SUCCEEDED_SUPERSEDED_BY_V13_SIGN_IN_GUIDANCE",
     "version_11_private_deploy": "SUCCEEDED_SUPERSEDED_BY_V12_ROUTE_QUERY_FIX",
     "version_10_private_deploy": "SUCCEEDED",
     "prior_version_9_private_deploy": "SUCCEEDED",
     "prior_version_6_private_rollback": "SUCCEEDED",
     "prior_version_7_private_restore": "SUCCEEDED",
-    "live_version_matches_version_12": true,
+    "live_version_matches_version_13": true,
     "current_deployment_environment_revision": 8
   },
   "observed_interface": {
@@ -46,6 +48,8 @@
     "period_record_action_explains_auth_or_sensitive_consent_precondition": true,
     "legacy_platform_url_to_canonical_domain_preserves_path_and_query": "PASS_PRIVATE_BROWSER_NO_WRITE",
     "canonical_domain_has_explicit_login_or_account_entry": true,
+    "homepage_mixed_auth_network_feedback": "PASS_LOCAL_REGRESSION_AND_V13_SOURCE_PROVENANCE",
+    "homepage_login_or_account_entry_visible_in_live_v13": true,
     "raw_user_records_read": false,
     "test_user_data_written_then_cleaned": true,
     "test_user_data_remaining": false
@@ -95,5 +99,5 @@
     "physical second-device history readback and direct D1/R2 reconciliation",
     "negative provider and recovery-path replay"
   ],
-  "notes": "This record contains only private control-plane and rendered-UI facts. Version 11 briefly used a server redirect that did not retain the legacy route query in this runtime; Version 12 supersedes it with a client-side canonical-domain redirect, and a new legacy URL reached the canonical period page with its page query intact. The Version 10 UX update was locally audited without account or business-data submission; it adds visible guidance before native food-photo selection and when an unauthenticated or non-consented period action cannot be saved. Test-only authentication identities exercised email authentication, recovery, a non-sensitive A/B habit-checkin isolation replay, and a separate-session history readback. Temporary habit/check-in records were deleted; no real-user record, raw cookie, credential, account identifier, mail content, or URL was recorded. This does not replace physical-device, direct D1/R2, ordinary-browser, or final independent acceptance."
+  "notes": "This record contains only private control-plane and rendered-UI facts. Version 13 privately deploys the smallest repair for the observed mixed resource state: when either home resource authoritatively requires sign-in, the visible next step is sign-in and verification rather than a generic network diagnosis. Local type, lint, build, persistence-UI and render-smoke regressions passed; the deployed V13 canonical page visibly retains the login/account entry. This does not replace physical-device, direct D1/R2, ordinary-browser mutation, or final independent acceptance. Version 11 briefly used a server redirect that did not retain the legacy route query in this runtime; Version 12 supersedes it with a client-side canonical-domain redirect. Test-only authentication identities exercised email authentication, recovery, a non-sensitive A/B habit-checkin isolation replay, and a separate-session history readback; temporary records were deleted. No real-user record, raw cookie, credential, account identifier, mail content, or URL was recorded."
 }

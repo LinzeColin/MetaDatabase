@@ -46,6 +46,18 @@
     "canonical_domain_browser_probe": "PASS_PRIVATE_NO_WRITE",
     "access_mode_remained_custom": true
   },
+  "post_cutover_login_guidance": {
+    "local_commit": "29c730796e4b341c8665ba052bc8f55f4ddddc4b",
+    "sites_source_commit": "877c13d5c487399147790e5bb218e9e02d56f8be",
+    "project_tree": "b0502fe79a49c8ee1432969d85279ac268e5f083",
+    "source_tree_matches_local_project_tree": true,
+    "saved_version_number": 13,
+    "private_deployment_status": "SUCCEEDED",
+    "environment_revision": 8,
+    "canonical_home_login_entry_visible": true,
+    "mixed_auth_network_state": "SIGN_IN_GUIDANCE_PRIORITIZED",
+    "access_mode_remained_custom": true
+  },
   "custom_domain": {
     "hostname": "mydairy.linzezhang.com",
     "status": "ACTIVE",
