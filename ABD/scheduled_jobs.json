@@ -1,0 +1,124 @@
+{
+  "schema_version": "1.0.0",
+  "schedule_id": "S18-P04-OFFLINE-OPERATIONS-SCHEDULE",
+  "product_version": "0.0.0.1",
+  "contract_id": "AC-S18-P04",
+  "requirement_id": "REQ-S18-P04",
+  "stage_id": "S18",
+  "phase_id": "P04",
+  "fixed_clock": "2026-08-10T04:00:00+10:00",
+  "execution_mode": "OFFLINE_DETERMINISTIC_CONTRACT_ONLY",
+  "normal_operation": {
+    "owner_maintenance_required": false,
+    "decision": "CONTINUE_AUTONOMOUS_OFFLINE_CONTROL_PLANE",
+    "action": "NO_OWNER_MAINTENANCE_REQUIRED",
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false
+  },
+  "exception_policy": {
+    "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+    "action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+    "pause_contract": true,
+    "outbox_delivery_mode": "LOCAL_STRUCTURED_OUTBOX_PROJECTION_ONLY",
+    "external_delivery_enabled": false,
+    "automatic_real_runtime_recovery_enabled": false
+  },
+  "predecessor": {
+    "contract_id": "AC-S18-P03",
+    "evidence_sha256": "99ade2e845cd72af99713e4c0d5d07e2aea3a1e49e6895f5b9bcdeca2a9afe1f"
+  },
+  "immutable_fund_facts": {
+    "money_storage": "INTEGER_CENTS",
+    "frozen_bankroll_reference_aud": "300.00",
+    "actual_fund_fact_mutation_allowed": false,
+    "actual_ledger_mutation_allowed": false
+  },
+  "immutable_risk_gate": {
+    "kelly_fraction_alpha": "0.00",
+    "kelly_fraction_beta": "0.20",
+    "kelly_fraction_ga": "0.25",
+    "total_open_exposure_cap": "0.150",
+    "target_shortfall_may_relax_gate": false,
+    "unstable_action": "NO_RECOMMENDATION"
+  },
+  "jobs": [
+    {
+      "job_id": "DAILY_SIGNED_CONTROL_REPLAY",
+      "cadence": "DAILY",
+      "logical_mode": "REPLAY_SIGNED_CONTROL_EVIDENCE_ONLY",
+      "required_contract_ids": ["AC-S18-P01", "AC-S18-P02", "AC-S18-P03"],
+      "normal_status": "PASS",
+      "failure_action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+      "derived_state_only": true,
+      "external_effects_permitted": false
+    },
+    {
+      "job_id": "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+      "cadence": "DAILY",
+      "logical_mode": "AUDIT_LOCAL_MAIL_EVIDENCE_PROJECTION_ONLY",
+      "required_contract_ids": ["AC-S18-P02"],
+      "normal_status": "PASS",
+      "failure_action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+      "derived_state_only": true,
+      "external_effects_permitted": false
+    },
+    {
+      "job_id": "WEEKLY_PATCH_READINESS_GATE",
+      "cadence": "WEEKLY",
+      "logical_mode": "REVIEW_PATCH_READINESS_PROJECTION_ONLY",
+      "required_contract_ids": ["AC-S18-P01"],
+      "normal_status": "PASS",
+      "failure_action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+      "derived_state_only": true,
+      "external_effects_permitted": false
+    },
+    {
+      "job_id": "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+      "cadence": "WEEKLY",
+      "logical_mode": "REPLAY_DERIVED_BACKUP_INTEGRITY_ONLY",
+      "required_contract_ids": ["AC-S18-P03"],
+      "normal_status": "PASS",
+      "failure_action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+      "derived_state_only": true,
+      "external_effects_permitted": false
+    },
+    {
+      "job_id": "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+      "cadence": "MONTHLY",
+      "logical_mode": "REPLAY_LOCAL_DISASTER_RECOVERY_PROJECTION_ONLY",
+      "required_contract_ids": ["AC-S18-P01", "AC-S18-P03"],
+      "normal_status": "PASS",
+      "failure_action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+      "derived_state_only": true,
+      "external_effects_permitted": false
+    },
+    {
+      "job_id": "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW",
+      "cadence": "MONTHLY",
+      "logical_mode": "REVIEW_LOCAL_EVIDENCE_RETENTION_PROJECTION_ONLY",
+      "required_contract_ids": ["AC-S18-P02", "AC-S18-P03"],
+      "normal_status": "PASS",
+      "failure_action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+      "derived_state_only": true,
+      "external_effects_permitted": false
+    }
+  ],
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "cloudflare_account_dns_or_tunnel_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "actual_scheduler_or_cron_installed": false,
+    "actual_process_or_service_restarted": false,
+    "actual_patch_or_backup_performed": false,
+    "actual_disaster_recovery_executed": false,
+    "actual_fund_facts_read_or_written": false,
+    "actual_ledger_read_or_written": false,
+    "risk_gate_relaxed": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

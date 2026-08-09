@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0.0",
+  "calendar_id": "S18-P04-OFFLINE-MAINTENANCE-CALENDAR",
+  "product_version": "0.0.0.1",
+  "contract_id": "AC-S18-P04",
+  "requirement_id": "REQ-S18-P04",
+  "stage_id": "S18",
+  "phase_id": "P04",
+  "fixed_clock": "2026-08-10T04:00:00+10:00",
+  "execution_mode": "OFFLINE_DETERMINISTIC_CONTRACT_ONLY",
+  "normal_owner_maintenance_required": false,
+  "maintenance_windows": [
+    {
+      "window_id": "CAL-DAILY-SIGNED-CONTROL",
+      "cadence": "DAILY",
+      "job_id": "DAILY_SIGNED_CONTROL_REPLAY",
+      "maintenance_mode": "LOGICAL_CONTROL_WINDOW_ONLY",
+      "requires_owner_maintenance_normal": false
+    },
+    {
+      "window_id": "CAL-DAILY-MAIL-EVIDENCE",
+      "cadence": "DAILY",
+      "job_id": "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+      "maintenance_mode": "LOGICAL_CONTROL_WINDOW_ONLY",
+      "requires_owner_maintenance_normal": false
+    },
+    {
+      "window_id": "CAL-WEEKLY-PATCH",
+      "cadence": "WEEKLY",
+      "job_id": "WEEKLY_PATCH_READINESS_GATE",
+      "maintenance_mode": "LOGICAL_CONTROL_WINDOW_ONLY",
+      "requires_owner_maintenance_normal": false
+    },
+    {
+      "window_id": "CAL-WEEKLY-BACKUP",
+      "cadence": "WEEKLY",
+      "job_id": "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+      "maintenance_mode": "LOGICAL_CONTROL_WINDOW_ONLY",
+      "requires_owner_maintenance_normal": false
+    },
+    {
+      "window_id": "CAL-MONTHLY-DR",
+      "cadence": "MONTHLY",
+      "job_id": "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+      "maintenance_mode": "LOGICAL_CONTROL_WINDOW_ONLY",
+      "requires_owner_maintenance_normal": false
+    },
+    {
+      "window_id": "CAL-MONTHLY-RETENTION",
+      "cadence": "MONTHLY",
+      "job_id": "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW",
+      "maintenance_mode": "LOGICAL_CONTROL_WINDOW_ONLY",
+      "requires_owner_maintenance_normal": false
+    }
+  ],
+  "exception_escalation": {
+    "pause_contract": true,
+    "escalation_destination": "LOCAL_OWNER_OUTBOX_PROJECTION_ONLY",
+    "external_delivery_enabled": false,
+    "automatic_real_runtime_recovery_enabled": false,
+    "owner_order_action": "FINAL_ORDER_ONLY"
+  },
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "cloudflare_account_dns_or_tunnel_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "actual_scheduler_or_cron_installed": false,
+    "actual_process_or_service_restarted": false,
+    "actual_patch_or_backup_performed": false,
+    "actual_disaster_recovery_executed": false,
+    "actual_fund_facts_read_or_written": false,
+    "actual_ledger_read_or_written": false,
+    "risk_gate_relaxed": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

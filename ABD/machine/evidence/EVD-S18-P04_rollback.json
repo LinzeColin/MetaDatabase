@@ -1,0 +1,47 @@
+{
+  "artifacts": {
+    "abd_acceptance/operations_automation.py": {
+      "sha256": "04f9be7e8b33347a96f474a1a3d60911f8b30bdb0c25862bc08358cf6417b6d5",
+      "status": "PASS"
+    },
+    "abd_acceptance/operations_automation_acceptance.py": {
+      "sha256": "1d73df3ecbd182a681ced4c1bb9b29e43afb784978f40ba82e8f28e5c6dd4f48",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S18-P03.json": {
+      "sha256": "99ade2e845cd72af99713e4c0d5d07e2aea3a1e49e6895f5b9bcdeca2a9afe1f",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S18_P04.json": {
+      "sha256": "541ccadb4044df7291b03460e53b390c93c6bd8d18d1cb18fa2f3ff4a694d4ef",
+      "status": "PASS"
+    },
+    "maintenance_calendar.json": {
+      "sha256": "9919f5ca9a50dc267342651494a0746dfeaaca24c99ea565fdfe06e6d9de0a77",
+      "status": "PASS"
+    },
+    "operations_runbook.md": {
+      "sha256": "aadd01fe17b5c9424b02e3486383446e0f895b9c46fdcf8c0bcef3f8445b1dab",
+      "status": "PASS"
+    },
+    "scheduled_jobs.json": {
+      "sha256": "d4d364eba4859d3dbda6d50902b5220f7312427463c59b9581d7830f5110d73b",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S18-P04",
+  "evidence_id": "EVD-S18-P04-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "operations_automation:s18_p04_offline_pause_contract",
+  "immutable_fund_and_risk_verified": true,
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_LOCAL_OPERATIONS_AUTOMATION_KEEP_S18_P03_SIGNED_CONTROL",
+  "order_submission_enabled": false,
+  "outbox_sent": false,
+  "pause_contract_preserved": true,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated_or_enabled": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

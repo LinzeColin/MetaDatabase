@@ -47,9 +47,9 @@
   },
   "legacy_receipt_compatibility": {
     "manifest_path": "machine/facts/s08_legacy_receipt_compatibility.json",
-    "manifest_sha256": "4efd40eccc1c0426815f7eba2c34b57566083a1bfd75f0efacd544eb86916395",
+    "manifest_sha256": "aad2c30e1593dee30d97a9c6d56f629172acfbe44bd92e7ac7e6a5dc6be3fa7f",
     "helper_path": "abd_acceptance/legacy_receipt_compatibility.py",
-    "helper_sha256": "4f183a8463cfca654a261789fda30d7efed4457a984b750652839252676ccb6a",
+    "helper_sha256": "4c8bf819ff59709b275e78e5b0db1b28aaebede569785d229a0ed01be0643e03",
     "contract_ids": ["AC-S03-P04", "AC-S04-P04", "AC-S05-P04", "AC-S07-P04"]
   },
   "cases": [
