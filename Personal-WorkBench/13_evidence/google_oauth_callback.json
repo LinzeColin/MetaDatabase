@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "subject_phase": "S5-T2",
+  "status": "PASS_GOOGLE_OAUTH_CALLBACK",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "generated_at": "2026-08-09T03:31:00Z",
+  "source": {
+    "kind": "Google OAuth authorization endpoint callback-registration probe",
+    "interactive_login_submitted": false,
+    "account_selection_submitted": false,
+    "values_recorded": false
+  },
+  "origin_sha256": "5c66de7d047779f66ad116ad0a651d5ecee9f41944b6b64380d7dbd9cf28f438",
+  "callback_path": "/api/auth/callback/google",
+  "platform_callback_registered": true,
+  "account_selection_reached": true,
+  "authorization_code_issued": false,
+  "next_action": "Deploy the controlled private Candidate against the current Settings revision, then continue S5-T3 real authentication and rollback evidence."
+}

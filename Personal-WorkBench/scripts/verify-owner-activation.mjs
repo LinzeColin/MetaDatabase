@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -115,6 +116,43 @@ function isValidOrigin(value) {
 
 function isLikelyEmail(value) {
   return isNonEmptyString(value) && /@/.test(value) && value.includes(".");
+}
+
+function sha256(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+/**
+ * A local route check only proves that this repository can construct the
+ * callback. Production readiness additionally requires evidence that the
+ * exact Origin was registered with Google. Keep this evidence value-free: the
+ * Origin is matched by SHA-256 and the report records only status/booleans.
+ */
+function readGoogleCallbackVerification(appOrigin) {
+  const source = join(EVIDENCE_ROOT, "google_oauth_callback.json");
+  const evidence = readEvidence(source);
+  const raw = evidence.raw || {};
+  const originHash = raw.origin_sha256;
+  const originHashPresent = typeof originHash === "string" && /^[a-f0-9]{64}$/.test(originHash);
+  const originHashMatches = Boolean(appOrigin) && originHashPresent && originHash === sha256(appOrigin);
+  const verified =
+    evidence.exists &&
+    raw.status === "PASS_GOOGLE_OAUTH_CALLBACK" &&
+    originHashMatches &&
+    raw.platform_callback_registered === true;
+
+  return {
+    evidence,
+    check: {
+      source: "13_evidence/google_oauth_callback.json",
+      exists: evidence.exists,
+      status: evidence.status,
+      origin_hash_present: originHashPresent,
+      origin_hash_matches: originHashMatches,
+      platform_callback_registered: raw.platform_callback_registered === true,
+      verified,
+    },
+  };
 }
 
 /**
@@ -355,6 +393,7 @@ async function main() {
       asset_manifest: readEvidence(join(ROOT, "13_evidence", "asset_manifest.json")),
       release_verifier: readEvidence(join(ROOT, "13_evidence", "verifier.json")),
       saved_version: readEvidence(join(ROOT, "13_evidence", "saved_version.json")),
+      google_oauth_callback: null,
       env_privacy_constants: getPrivacyConstants(),
     },
     risks: [],
@@ -419,19 +458,31 @@ async function main() {
 
   const originIsValid = isValidOrigin(process.env.APP_ORIGIN);
   const hasAuthRoute = existsSync(join(ROOT, "app", "api", "auth", "[...all]", "route.ts"));
+  const googleCallbackVerification = readGoogleCallbackVerification(process.env.APP_ORIGIN ?? "");
+  summary.evidence.google_oauth_callback = googleCallbackVerification.evidence;
   summary.checks.callbacks = {
     app_origin_present: isNonEmptyString(process.env.APP_ORIGIN),
     app_origin_valid_https: originIsValid,
     expected_callback_path: "/api/auth/callback/google",
     expected_callback_constructed: originIsValid,
     auth_callback_route_present: hasAuthRoute,
-    callback_platform_register_verification: "NOT_VERIFIED_LOCALLY",
+    callback_platform_register_verification: googleCallbackVerification.check.verified
+      ? "VERIFIED"
+      : googleCallbackVerification.check.status === "FAIL_GOOGLE_OAUTH_CALLBACK_REDIRECT_MISMATCH"
+        ? "MISMATCH"
+        : "NOT_VERIFIED_LOCALLY",
+    platform_registration_evidence: googleCallbackVerification.check,
   };
   if (!originIsValid) {
     summary.risks.push("APP_ORIGIN 无效：必须是 HTTPS origin（生产环境）");
   }
   if (!hasAuthRoute) {
     summary.risks.push("未检测到 app/api/auth/[...all]/route.ts；无法确认 Google callback 路由可达。");
+  }
+  if (!googleCallbackVerification.check.verified) {
+    summary.risks.push(
+      "Google OAuth callback 尚未以匹配当前 Origin 的平台侧证据验证；不得把本地路由存在性当作已注册回调。",
+    );
   }
 
   const hostingPath = join(ROOT, ".openai", "hosting.json");
@@ -859,7 +910,10 @@ async function main() {
     summary.checks.asset_rights?.attestation_complete === true;
 
   const callbackOk =
-    originChecked && callbacksReady && summary.checks.callbacks?.expected_callback_constructed === true;
+    originChecked &&
+    callbacksReady &&
+    summary.checks.callbacks?.expected_callback_constructed === true &&
+    summary.checks.callbacks?.platform_registration_evidence?.verified === true;
 
   const wranglerOk = summary.checks.wrangler.auth_mode === "LOCAL_TOKEN"
     ? summary.checks.wrangler.whoami.ok
@@ -919,6 +973,10 @@ async function main() {
     asset_manifest: evidenceReference(summary.evidence.asset_manifest, "13_evidence/asset_manifest.json"),
     release_verifier: evidenceReference(summary.evidence.release_verifier, "13_evidence/verifier.json"),
     saved_version: evidenceReference(summary.evidence.saved_version, "13_evidence/saved_version.json"),
+    google_oauth_callback: evidenceReference(
+      summary.evidence.google_oauth_callback,
+      "13_evidence/google_oauth_callback.json",
+    ),
     env_privacy_constants: {
       policy_version_present: isNonEmptyString(summary.evidence.env_privacy_constants?.policyVersion),
       notice_hash_present: isNonEmptyString(summary.evidence.env_privacy_constants?.noticeHash),

@@ -3,7 +3,7 @@
   "subject_phase": "S5-T2",
   "status": "PARTIAL_PRIVATE_RUNTIME_CONFIGURATION",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
-  "generated_at": "2026-08-09T02:14:53Z",
+  "generated_at": "2026-08-09T03:31:00Z",
   "source": {
     "kind": "ChatGPT Sites control-plane key-level readback",
     "values_recorded": false,
@@ -13,18 +13,22 @@
     "origin_bootstrap_evidence": "13_evidence/origin_bootstrap.json"
   },
   "settings": {
-    "revision": 2,
-    "entry_count": 9,
+    "revision": 5,
+    "entry_count": 13,
     "entries": [
       {"key": "APP_ORIGIN", "is_secret": true},
       {"key": "BETTER_AUTH_SECRET", "is_secret": true},
       {"key": "GOOGLE_CLIENT_ID", "is_secret": true},
       {"key": "GOOGLE_CLIENT_SECRET", "is_secret": true},
+      {"key": "LEGAL_OPERATOR_NAME", "is_secret": true},
       {"key": "MAIL_FROM", "is_secret": true},
       {"key": "MAIL_PROVIDER", "is_secret": false},
       {"key": "NITROSEND_API_KEY", "is_secret": true},
+      {"key": "PRIVACY_CONTACT_EMAIL", "is_secret": true},
       {"key": "PRIVACY_NOTICE_SHA256", "is_secret": false},
-      {"key": "PRIVACY_POLICY_VERSION", "is_secret": false}
+      {"key": "PRIVACY_POLICY_VERSION", "is_secret": false},
+      {"key": "TURNSTILE_SECRET_KEY", "is_secret": true},
+      {"key": "TURNSTILE_SITE_KEY", "is_secret": true}
     ]
   },
   "provider_contract": {
@@ -34,11 +38,26 @@
     "mailport_boundary_preserved": true,
     "provider_values_or_sender_identity_recorded": false
   },
-  "remaining_required_configuration": [
-    "TURNSTILE_SITE_KEY",
-    "TURNSTILE_SECRET_KEY",
-    "LEGAL_OPERATOR_NAME",
-    "PRIVACY_CONTACT_EMAIL"
-  ],
-  "next_gate": "S5-T2 remains incomplete until Turnstile, legal-contact and platform-side callback checks are evidenced. Settings revision 2 requires a later controlled private deployment to become runtime-active; the bootstrap deployment only allocated a private Origin and is not S5-T3."
+  "operator_and_contact": {
+    "source": "owner-controlled verified mail brand",
+    "owner_scope_confirmed": true,
+    "values_recorded": false
+  },
+  "turnstile": {
+    "widget_created": true,
+    "hostname_bound_to_current_origin": true,
+    "mode": "managed",
+    "preclearance_enabled": false,
+    "key_pair_written_as_sites_secrets": true,
+    "values_recorded": false
+  },
+  "google_oauth": {
+    "client_replaced_after_redirect_mismatch": true,
+    "exact_callback_registered": true,
+    "non_submitting_probe_reached_account_selection": true,
+    "authorization_code_issued": false,
+    "values_recorded": false
+  },
+  "remaining_required_configuration": [],
+  "next_gate": "All S5-T2 configuration items are present, but Settings revision 5 requires a later controlled private deployment to become runtime-active. The bootstrap deployment only allocated a private Origin and is not S5-T3."
 }

@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0.0",
   "subject_phase": "S5-T2",
-  "status": "BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK",
+  "status": "PASS_LOCAL_OWNER_ACTIVATION_PRECHECK",
   "verdict": "NOT_ISSUED_PRE_VERIFIER",
-  "runAt": "2026-08-09T02:14:16.641Z",
-  "generated_at": "2026-08-09T02:14:16.641Z",
+  "runAt": "2026-08-09T03:17:02.194Z",
+  "generated_at": "2026-08-09T03:17:02.194Z",
   "environment": {
     "taskpack_available": true,
     "configuration_source": "local_environment_presence_only",
@@ -44,16 +44,16 @@
         "present": true
       },
       "TURNSTILE_SITE_KEY": {
-        "present": false
+        "present": true
       },
       "TURNSTILE_SECRET_KEY": {
-        "present": false
+        "present": true
       },
       "LEGAL_OPERATOR_NAME": {
-        "present": false
+        "present": true
       },
       "PRIVACY_CONTACT_EMAIL": {
-        "present": false
+        "present": true
       },
       "RESEND_API_KEY": {
         "present": false
@@ -125,15 +125,24 @@
       "expected_callback_path": "/api/auth/callback/google",
       "expected_callback_constructed": true,
       "auth_callback_route_present": true,
-      "callback_platform_register_verification": "NOT_VERIFIED_LOCALLY"
+      "callback_platform_register_verification": "VERIFIED",
+      "platform_registration_evidence": {
+        "source": "13_evidence/google_oauth_callback.json",
+        "exists": true,
+        "status": "PASS_GOOGLE_OAUTH_CALLBACK",
+        "origin_hash_present": true,
+        "origin_hash_matches": true,
+        "platform_callback_registered": true,
+        "verified": true
+      }
     },
     "privacy_gate": {
       "privacy_policy_version_present": true,
       "privacy_notice_hash_present": true,
       "privacy_policy_version_match": true,
       "privacy_notice_hash_match": true,
-      "legal_operator_name_present": false,
-      "privacy_contact_email_present": false
+      "legal_operator_name_present": true,
+      "privacy_contact_email_present": true
     },
     "sites_shape": {
       "project_id": "appgprj_6a70366303988191b2ca996238860c9f",
@@ -164,7 +173,9 @@
         "APP_ORIGIN",
         "GOOGLE_CLIENT_ID",
         "GOOGLE_CLIENT_SECRET",
-        "MAIL_FROM"
+        "MAIL_FROM",
+        "TURNSTILE_SITE_KEY",
+        "TURNSTILE_SECRET_KEY"
       ],
       "mail_provider_binding": {
         "taskpack_default_key": "RESEND_API_KEY",
@@ -219,27 +230,23 @@
       "exists": true,
       "status": "PASS_PRIVATE_SAVED_VERSION_CANDIDATE"
     },
+    "google_oauth_callback": {
+      "source": "13_evidence/google_oauth_callback.json",
+      "exists": true,
+      "status": "PASS_GOOGLE_OAUTH_CALLBACK"
+    },
     "env_privacy_constants": {
       "policy_version_present": true,
       "notice_hash_present": true
     }
   },
-  "risks": [
-    "缺少环境值：TURNSTILE_SITE_KEY",
-    "缺少环境值：TURNSTILE_SECRET_KEY",
-    "缺少环境值：LEGAL_OPERATOR_NAME",
-    "缺少环境值：PRIVACY_CONTACT_EMAIL",
-    "SITES_BINDINGS_CONTRACT 约定密钥未完整配置到环境：TURNSTILE_SITE_KEY, TURNSTILE_SECRET_KEY",
-    "缺少运营者名称（LEGAL_OPERATOR_NAME）。",
-    "缺少隐私联系邮箱（PRIVACY_CONTACT_EMAIL）。"
-  ],
+  "risks": [],
   "next_steps": [
-    "按 RUN_CONTRACT_S5_T2.md 逐项推进：先完成本地身份与证据口径齐套，再进入生产副作用授权。",
-    "执行 wrangler 登录与项目可见性校验：`npx wrangler whoami`、`npx wrangler pages project list --json`。",
-    "将必需 Secrets（APP_ORIGIN、BETTER_AUTH_SECRET、GOOGLE_CLIENT_ID/SECRET、默认 RESEND_API_KEY 或显式 MAIL_PROVIDER=nitrosend + NITROSEND_API_KEY、TURNSTILE_SITE_KEY/SECRET_KEY、LEGAL_OPERATOR_NAME、PRIVACY_CONTACT_EMAIL、MAIL_FROM 或 AUTH_FROM_EMAIL）逐项补齐到 Sites Settings。",
-    "完成 Google callback 验证、邮件发送域、Turnstile、隐私信息（运营者名/联系邮箱/版本哈希）与资产授权，确认 OWNER_APPROVAL.production_side_effect_authorization 为 true。",
-    "确认 `.openai/hosting.json` 的 project_id 与 SITES_BINDINGS_CONTRACT.json 占位 `generated_by_sites_and_never_hand_invented` 差异在正式 provision 后核对一致。",
-    "同步任务包《胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包》最新 OWNER_APPROVAL 与资产清单，补齐后重新运行 `npm run verify:owner-activation`。",
-    "完成上述后只在 risks 清空且 next_steps 无阻断项时，方可进入 S5-T3。"
+    "已通过 Owner 激活本地预检：请在生产平台执行 Google/邮件/Turnstile 回调和发送域核验，随后执行 production smoke 与回滚演练。",
+    "确认已上传最终获授权的公开素材后继续 S5-T2 实际发布门槛。",
+    "执行 S5-T3 前更新 13_evidence/owner_activation.json 并重新确认 risks 全清。",
+    "本次仅是本地预检；S5-T3 仍需独立 production evidence 与回滚验证。",
+    "若 Owner 未继续授权，请按当前 risks 再次推进。",
+    "建议在运行 OAuth 回调联调后记录平台凭证截图或平台审计 ID 以便后续可追溯。"
   ]
 }

@@ -20,7 +20,7 @@ test("private Sites runtime configuration evidence is key-only", async () => {
   assert.equal(record.source.values_recorded, false);
   assert.equal(record.source.deployment_created, true);
   assert.equal(record.source.live_origin_value_recorded, false);
-  assert.equal(record.settings.revision, 2);
+  assert.equal(record.settings.revision, 5);
   assert.equal(record.settings.entry_count, record.settings.entries.length);
   assert.ok(record.settings.entries.some((entry) => entry.key === "APP_ORIGIN" && entry.is_secret === true));
   for (const entry of record.settings.entries) {
@@ -153,6 +153,8 @@ test("owner activation report records presence only for supplied configuration",
     assert.equal(report.environment.app_origin_present, true);
     assert.equal(report.environment.app_origin_valid_https, true);
     assert.equal(report.checks.callbacks.expected_callback_path, "/api/auth/callback/google");
+    assert.notEqual(report.checks.callbacks.callback_platform_register_verification, "VERIFIED");
+    assert.equal(report.checks.callbacks.platform_registration_evidence.verified, false);
     assert.equal(report.checks.saved_version.exists, true);
     assert.equal(report.checks.saved_version.status, "PASS_PRIVATE_SAVED_VERSION_CANDIDATE");
     assert.equal(report.checks.asset_rights.authorization_scope, "NONCOMMERCIAL_PUBLIC_WEBSITE_ONLY");
