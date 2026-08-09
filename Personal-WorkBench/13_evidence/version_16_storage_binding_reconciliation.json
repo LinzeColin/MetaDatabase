@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "INCONCLUSIVE_READ_ONLY_VERSION_16_STORAGE_BINDING_RECONCILIATION",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "scope": "Current private Version 16 Sites logical bindings plus authorized Cloudflare Worker and storage catalog metadata. Resource names, identifiers, credentials, records and objects were neither retained nor printed.",
+  "sites": {
+    "current_private_version": 16,
+    "logical_d1_binding": "DB",
+    "logical_r2_binding": "FILES",
+    "canonical_domain_record_active": true,
+    "worker_binding_target_available": true
+  },
+  "authorized_workers_metadata": {
+    "workers_deploy_token_verified": true,
+    "account_directory_access": true,
+    "visible_account_count": 1,
+    "script_directory_access": true,
+    "visible_script_count": 5,
+    "sites_target_worker_in_directory": false,
+    "target_worker_settings_http_status": 404,
+    "d1_binding_metadata_read": false,
+    "r2_binding_metadata_read": false
+  },
+  "authorized_storage_catalogue": {
+    "storage_token_verified": true,
+    "account_directory_access": true,
+    "visible_account_count": 1,
+    "same_authorized_account_as_workers_token": true,
+    "d1_directory_access": true,
+    "r2_directory_access": true,
+    "visible_d1_database_count": 4,
+    "visible_r2_bucket_count": 10
+  },
+  "result": {
+    "safe_sites_to_physical_d1_mapping": false,
+    "safe_sites_to_physical_r2_mapping": false,
+    "reason": "The current Sites target is absent from the authorized account's visible Workers Scripts directory, and its settings endpoint returned 404. Logical DB/FILES names and unrelated storage-catalogue entries therefore cannot establish a physical binding.",
+    "d1_sql_executed": false,
+    "d1_records_read": false,
+    "r2_objects_listed": false,
+    "r2_objects_read": false,
+    "runtime_or_access_changed": false,
+    "direct_d1_r2_reconciliation": "NOT_RUN_SITES_TARGET_NOT_DISCOVERABLE_IN_AUTHORIZED_WORKERS_SCRIPTS_DIRECTORY"
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
