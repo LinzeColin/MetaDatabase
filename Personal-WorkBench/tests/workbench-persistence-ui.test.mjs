@@ -30,6 +30,17 @@ test("workbench pages bind every visible lifecycle module to the tenant resource
   assert.match(source, /DeleteRecordButton/);
 });
 
+test("home prioritizes the actionable sign-in prerequisite over a parallel resource failure", async () => {
+  const source = await readFile(lifecycleSource, "utf8");
+
+  assert.match(source, /const authRequired = habits\.authRequired \|\| checkins\.authRequired;/);
+  assert.match(
+    source,
+    /const statusError = authRequired\s*\? "请先登录并完成邮箱验证，再保存和查看你的历史记录。"/,
+  );
+  assert.match(source, /authRequired=\{authRequired\}/);
+});
+
 test("tenant resource client uses verified-session endpoints without client tenant fields", async () => {
   const source = await readFile(resourceSource, "utf8");
 

@@ -190,7 +190,13 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
     if (saved) setFeedback(`已完成${card.label}打卡，历史记录已同步。`);
   }
 
-  const statusError = habits.error || checkins.error;
+  // Both reads are independent. If one returns the authoritative 401 while
+  // the other is interrupted, the next actionable step is still sign-in—not
+  // a misleading generic network diagnosis.
+  const authRequired = habits.authRequired || checkins.authRequired;
+  const statusError = authRequired
+    ? "请先登录并完成邮箱验证，再保存和查看你的历史记录。"
+    : habits.error || checkins.error;
 
   return (
     <>
@@ -226,7 +232,7 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
       </div>
       {!reference ? (
         <ResourceStatus
-          authRequired={habits.authRequired || checkins.authRequired}
+          authRequired={authRequired}
           consentRequired={false}
           error={statusError}
           loading={habits.loading || checkins.loading}
