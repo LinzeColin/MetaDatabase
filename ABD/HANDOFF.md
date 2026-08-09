@@ -2,10 +2,11 @@
 
 ## 当前目标
 
-在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11--S16 均已完成其四个 Phase、本地独立整阶段复审和 GitHub 阶段上传；S17/P01--P04 与 S17 整阶段复审均已本地签名并只读复验。下一独立 run 只能执行 S17 GitHub 阶段上传；不得在同一 run 进入部署、运行时、远端 CI 等待或任何真实市场/账户动作。任何本地通过或远端 ref 接收均不得等同于远端 CI、PR 合并、部署或生产激活；PR #174 的异步远端检查须与本地结果独立看待，且无论状态如何均不得外推为部署、上线或实际收益。
+在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11--S17 均已完成其四个 Phase、本地独立整阶段复审和 GitHub 阶段上传。下一独立 run 只能启动 S18/P01，先读取其冻结合同、Task Graph、已签名依赖和当前控制制品，再按其确定性失败关闭门完成一个 Phase；不得跳过合同门，不得把任一历史本地通过、远端 ref 接收或 PR 状态外推为远端 CI、PR 合并、部署、生产激活或实际收益。PR #174 的异步远端检查须与本地结果独立看待，且无论状态如何均不得外推为部署、上线或实际收益。
 
 ## 当前状态
 
+- S17 GitHub 阶段上传回执：交付提交 `0756db5e6f276be4e6beb60163008fd347b24191` 已推送到 `origin/codex/abd-v0001-s11-p01`，随后 `git ls-remote` 返回同一 SHA。既有 Draft [PR #174](https://github.com/LinzeColin/MetaDatabase/pull/174) 保持 open/draft、head 为该分支、base 为 `main`，标题和正文已准确更新为 S11--S17 的本地证据范围。上传仅证明 GitHub 接收该分支提交与 PR 元数据同步；本 run 未等待或读取远端 CI，未声称 CI 通过、合并、部署、上线、OVH/Cloudflare/数据库、真实市场/账户/TAB/Gmail、订单、生产可用性或实际收益完成。
 - S17 独立整阶段复审已本地签名并只读复验：`machine/evidence/EVD-S17-STAGE-REVIEW.json`（SHA-256 `2d8c95b0a26ce5e1a5acc0f6d2274f1f6233d01227b4c4a87e832d9758cdb921`）的 `STAGE-REVIEW-S17` 为 `48/48 PASS`，下一状态为 `S17/GITHUB_STAGE_UPLOAD_READY`；三项 findings 均为 `RESOLVED_IN_STAGE_REVIEW`（`3 total / 0 open / 3 resolved`）。复审严格重放 P01--P04 的已签名 receipt/rollback、冻结基线、12 个任务链与当前控制制品：P01 保持 1,200/12,000 条本地计数守恒与零静默丢失；P02 保持重复建议/账本事件均为 `0`；P03 的 8 类逻辑错误均拒绝陈旧数据并自动降级；P04 的 60 秒 RPO/900 秒 RTO 逻辑门与 61 秒/901 秒失败关闭向量均保持 `NO_RECOMMENDATION_NO_ORDER`。只执行 `tests/S17/stage_review_test.py` 的 28 个定向用例、JUnit 规范化、Task Pack 静态校验 `49/49 PASS` 与本地零预算依赖扫描；未重跑四个 Phase 套件、完整回归或真实时间 soak。新增共享 dispatcher 的 S17 review 映射后，只刷新既有 S08 legacy successor compatibility 已允许路径 `abd_acceptance/__main__.py` 的精确 SHA-256 与既有 manifest/helper/review pins，未扩展 allow-list、改写旧 receipt 或降低证据、数值、风险、安全或来源门。工件清单已更新为 `982` 文件与 `983` 条 checksum；无真实 VPS/数据库/市场/TAB/Gmail/账户访问、真实故障或恢复、订单、部署或收益断言，新增现金 A$0。本地复审不构成 GitHub 上传、远端 CI、部署、上线、真实容量/恢复或收益证明；既有 S07/S08 连续性回放的独立限制仍明确为本次范围外且未被掩盖。
 - S17/P04 已本地签名并只读复验：`machine/evidence/EVD-S17-P04.json`（SHA-256 `08e1d389d3b0d80d6c729d9835dc27343018985cd8cc1796a9528b5ed7d6e708`）的 `AC-S17-P04` 为 `25/25 PASS`，下一状态为 `S17/STAGE_REVIEW_READY_NOT_STARTED`。`recovery_test.py`、`disaster_drill.md` 和 `recovery_report.json` 只重放 7 条冻结逻辑演练向量：进程重启、账本重放、备份恢复、双环境回滚与过期票据清理都不触发真实运行时副作用；5 条合格向量的逻辑账本恢复点最大为 60 秒、建议服务恢复最大为 900 秒，61 秒 RPO 与 901 秒 RTO 向量均降级失败关闭，所有动作保持 `NO_RECOMMENDATION_NO_ORDER`。39 个 P04 定向测试、JUnit 规范化、零增量现金依赖扫描和 Task Pack 静态校验（`49/49 PASS`）均通过；P01--P04 receipt 均在最终 dispatcher 映射下只读复验 PASS。无真实时间 soak、VPS/数据库/市场/TAB/Gmail/账户访问、真实重启/恢复/删除、订单、部署或收益断言，新增现金 A$0。
 - P04 增加共享 dispatcher 的受控本地入口后，只刷新既有 S08 legacy successor compatibility 已允许路径 `abd_acceptance/__main__.py` 的精确 SHA-256 与既有 manifest/helper/review pins；未扩展 allow-list、改写旧 receipt 或降低证据、数值、风险、安全或来源门。P04 定向测试直接复核这条精确 pin 链。S08 整体 compatibility 单测仍受 S07 successor 计数只覆盖至 S15 的独立限制影响，本 run 未重跑、掩盖或改变该非 P04 问题。
@@ -460,4 +461,4 @@
 
 ## 下一步
 
-保持 PR #174 的远端 CI 状态与本地结果彼此独立；不得把 pending、远端检查、Draft PR 或本地验收结果外推为 CI、合并、部署、OVH、Cloudflare、真实市场、账户或生产上线完成。下一次独立 run 只可启动 S17 整体复审：先读取冻结 S17/P01--P04 合同、Task Graph、四份 receipt/rollback、当前控制制品与已知 S07/S08 legacy continuity 限制，再只完成整阶段复审和必要的本地 finding 修复。不得在复审 run 中进入 GitHub 上传。保持零新增现金、无真实时间 soak、无全量测试/完整回归。
+保持 PR #174 的远端 CI 状态与本地结果彼此独立；不得把 pending、远端检查、Draft PR 或本地验收结果外推为 CI、合并、部署、OVH、Cloudflare、真实市场、账户或生产上线完成。下一次独立 run 只可启动 S18/P01：先读取冻结 `REQ-S18-P01`、`AC-S18-P01`、Task Graph 的三项 P01 任务、S04/S14/S17 已签名依赖和当前控制制品，再只完成该 Phase 的实现、定向验证及证据门；其“新版本探针失败自动回旧版”必须保持确定性失败关闭。不得在该 run 进入 S18/P02、S18 整阶段复审或 GitHub 上传。保持零新增现金、无真实时间 soak、无全量测试/完整回归。
