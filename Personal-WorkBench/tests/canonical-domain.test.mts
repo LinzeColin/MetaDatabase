@@ -2,19 +2,20 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   CANONICAL_WORKBENCH_ORIGIN,
-  canonicalWorkbenchUrl,
+  canonicalLegacyUrl,
   isLegacyPlatformHost,
-} from "../server/http/canonical-workbench-url.ts";
+} from "../app/_components/workbench/canonical-domain.ts";
 
-test("canonical workbench URL preserves the active page query", () => {
+test("legacy browser URLs preserve the active page query on the canonical domain", () => {
   assert.equal(
-    canonicalWorkbenchUrl({ view: "period" }),
+    canonicalLegacyUrl("https://huchuliang-workbench.linzezhang35.chatgpt.site/?view=period"),
     `${CANONICAL_WORKBENCH_ORIGIN}/?view=period`,
   );
   assert.equal(
-    canonicalWorkbenchUrl({ reference: "home" }),
+    canonicalLegacyUrl("https://huchuliang-workbench.linzezhang35.chatgpt.site/?reference=home"),
     `${CANONICAL_WORKBENCH_ORIGIN}/?reference=home`,
   );
+  assert.equal(canonicalLegacyUrl("https://mydairy.linzezhang.com/?view=period"), null);
 });
 
 test("only the immutable legacy Sites host is normalized", () => {

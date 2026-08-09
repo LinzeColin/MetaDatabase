@@ -1,8 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 
 import type { Metadata } from "next";
-import { headers } from "next/headers";
-import { permanentRedirect } from "next/navigation";
 import type { ReactNode } from "react";
 import {
   FatlossClient,
@@ -12,10 +10,7 @@ import {
   PeriodClient,
 } from "./_components/workbench/lifestyle-pages-client";
 import TodoPageClient from "./_components/workbench/todo-page-client";
-import {
-  canonicalWorkbenchUrl,
-  isLegacyPlatformHost,
-} from "@/server/http/canonical-workbench-url";
+import { LegacyDomainRedirect } from "./_components/workbench/legacy-domain-redirect";
 
 const PRIVATE_ASSET_ROOT = "/private-reference-assets";
 const RUNTIME_ASSET_ROOT = `${PRIVATE_ASSET_ROOT}/runtime`;
@@ -261,24 +256,35 @@ function GenericPage({ reference, route }: { reference: boolean; route: string }
 
 export default async function HomePage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const requestHost = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
-  if (isLegacyPlatformHost(requestHost)) permanentRedirect(canonicalWorkbenchUrl(params));
   const reference = typeof params.reference === "string" && referenceRoutes.has(params.reference);
   const requestedRoute = reference ? params.reference! : params.view;
   const route = typeof requestedRoute === "string" && navigableRoutes.has(requestedRoute) ? requestedRoute : "welcome";
 
+  let page: ReactNode;
   switch (route) {
     case "home":
-      return <Home reference={reference} />;
+      page = <Home reference={reference} />;
+      break;
     case "ledger":
-      return <Ledger reference={reference} />;
+      page = <Ledger reference={reference} />;
+      break;
     case "fatloss-food":
-      return <Fatloss reference={reference} />;
+      page = <Fatloss reference={reference} />;
+      break;
     case "period":
-      return <Period reference={reference} />;
+      page = <Period reference={reference} />;
+      break;
     case "welcome":
-      return <Welcome reference={reference} />;
+      page = <Welcome reference={reference} />;
+      break;
     default:
-      return <GenericPage reference={reference} route={route} />;
+      page = <GenericPage reference={reference} route={route} />;
   }
+
+  return (
+    <>
+      <LegacyDomainRedirect />
+      {page}
+    </>
+  );
 }

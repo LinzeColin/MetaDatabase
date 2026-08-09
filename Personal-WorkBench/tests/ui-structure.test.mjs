@@ -1,13 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-async function render(path, origin = "http://localhost") {
+async function render(path) {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}-${Math.random()}`);
   const { default: worker } = await import(workerUrl.href);
-  const host = new URL(origin).host;
   return worker.fetch(
-    new Request(`${origin}${path}`, { headers: { accept: "text/html", host } }),
+    new Request(`http://localhost${path}`, { headers: { accept: "text/html" } }),
     {
       ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) },
     },
@@ -47,12 +46,4 @@ test("normal routes retain a separate account entry and resolve without referenc
   assert.match(homeHtml, /data-reference-mode="false"/);
   assert.equal(auth.status, 200);
   assert.match(await auth.text(), /欢迎回来/);
-});
-
-test("legacy platform pages redirect to the canonical mydairy domain without touching API callbacks", async () => {
-  const legacyOrigin = "https://huchuliang-workbench.linzezhang35.chatgpt.site";
-  const response = await render("/?view=period", legacyOrigin);
-
-  assert.equal(response.status, 308);
-  assert.equal(new URL(response.headers.get("location")).origin, "https://mydairy.linzezhang.com");
 });
