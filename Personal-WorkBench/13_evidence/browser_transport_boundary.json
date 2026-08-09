@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "OBSERVED_AGENT_BROWSER_TRANSPORT_BOUNDARY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-09",
+  "source_commit": "a3d4f756f77f0028cc4ea16624f56e20c4cae318",
+  "scope": "Read-only browser-automation transport diagnosis plus one user-authorized habit-click replay.",
+  "observations": {
+    "page_loaded": true,
+    "habit_click_client_result": "FETCH_REJECTED_GENERIC_NETWORK_STATE",
+    "direct_read_only_api_navigation_result": "ERR_BLOCKED_BY_CLIENT",
+    "tested_route_classes": [
+      "/api/workbench/*",
+      "/api/auth/*"
+    ],
+    "sites_worker_log_query_returned_matching_events": false
+  },
+  "interpretation": {
+    "proven": "The agent-controlled Browser Use surface blocks API transport before the application can observe the request.",
+    "not_proven": [
+      "A Worker route failure",
+      "A D1 persistence failure",
+      "A Better Auth session failure",
+      "A defect in an ordinary end-user browser"
+    ],
+    "decision": "No production API rename, proxy, duplicate route, security relaxation, or visual change was made solely to bypass the test-surface guard."
+  },
+  "next_required_evidence": "Run one bounded A/B write-and-history replay in a controlled user runtime not subject to the agent browser API-request guard, then bind it to the currently deployed private version.",
+  "sensitive_values_recorded": false,
+  "user_data_read_or_written": false
+}
