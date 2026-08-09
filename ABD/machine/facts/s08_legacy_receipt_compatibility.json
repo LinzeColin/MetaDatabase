@@ -7,7 +7,7 @@
   "approved_successor_hashes": {
     ".github/workflows/abd-stage0-validation.yml": "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
     "abd_acceptance/__init__.py": "73c938eca7294d2dc03d604344d85031d4164aef5a02990dd0d884af3e8f44d1",
-    "abd_acceptance/__main__.py": "b5f2e65693bad4aad2909200c11e2a42dde06dfdff747dc416de354b419a7adc",
+    "abd_acceptance/__main__.py": "f6e63d2a2564d026f24726eff7a8a10537190b9bf77d552f135242ae664710a0",
     "abd_acceptance/advice_card.py": "dee206dd764d61dc21397282b6872d26c29be7eaf5d6e050e6a51085b2581b7a",
     "abd_acceptance/capacity_governance.py": "b0467d5ae675c6c39d808ba89a86a9733701384c7fab557c0a2541b7ae06608a",
     "abd_acceptance/cloudflare_edge.py": "87478c65637ecc88622150b95e6d4eba3c954852f8b2ee0d481faca90e798cfa",

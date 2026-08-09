@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="27" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S18.P03_test" name="test_fixture_is_exact_s18_p03_contract" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_each_frozen_vector_has_its_pinned_immutable_result[HEALTHY_NO_FAULT_KEEP_GATES]" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_each_frozen_vector_has_its_pinned_immutable_result[CANDIDATE_PROCESS_UNHEALTHY_LOGICAL_RESTART_ONLY]" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_each_frozen_vector_has_its_pinned_immutable_result[FROZEN_REPLAY_MISMATCH_RETRY_ONLY]" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_each_frozen_vector_has_its_pinned_immutable_result[SILENT_COVERAGE_GAP_REPLAY_DERIVED_STATE_ONLY]" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_each_frozen_vector_has_its_pinned_immutable_result[SOURCE_FRESHNESS_FAILED_SWITCH_SIGNED_SNAPSHOT_ONLY]" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_each_frozen_vector_has_its_pinned_immutable_result[MODEL_PSI_STOP_ROLLBACK_SIGNED_CANDIDATE_ONLY]" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_each_frozen_vector_has_its_pinned_immutable_result[EVIDENCE_DERIVED_STATE_CORRUPT_REBUILD_ONLY]" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_each_frozen_vector_has_its_pinned_immutable_result[UNSAFE_FUND_MUTATION_REQUEST_ESCALATES]" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_each_frozen_vector_has_its_pinned_immutable_result[RISK_GATE_RELAXATION_ATTEMPT_ESCALATES]" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_each_frozen_vector_has_its_pinned_immutable_result[ADVERSE_MINUS_ONE_IN_TEN_THOUSAND_PRESERVES_RISK_GATE]" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_each_frozen_vector_has_its_pinned_immutable_result[MALFORMED_PROBABILITY_DELTA_ESCALATES]" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_policy_has_exactly_the_seven_bounded_logical_operations" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_healthy_input_performs_no_self_heal_action" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_unsafe_fund_risk_and_float_inputs_fail_closed_without_changing_gates" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_tampered_policy_cannot_leak_changed_fund_or_risk_values_into_fallback" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_tampered_watchdog_operation_plan_only_creates_a_local_unsent_fallback" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_adverse_one_in_ten_thousand_vector_keeps_the_risk_gate" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_watchdog_and_outbox_replays_are_deterministic" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_runner_has_no_runtime_network_process_or_mail_dependencies" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_cli_has_exact_s18_p03_writer_and_verifier_mappings" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_legacy_successor_chain_allows_only_the_current_dispatcher_hash" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_candidate_preflight_covers_current_taskpack_and_signed_p02_dependency" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_preflight_has_no_external_effects_or_production_claim" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_evidence_build_is_deterministic_before_signing" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_fixture_rejects_wrong_predecessor_hash_and_reordered_scenarios" time="0.000" />
+    <testcase classname="tests.S18.P03_test" name="test_rollback_drill_only_disables_the_local_self_heal_policy" time="0.000" />
+  </testsuite>
+</testsuites>

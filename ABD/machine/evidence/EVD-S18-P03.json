@@ -1,0 +1,909 @@
+{
+  "cli_wiring": {
+    "path": "abd_acceptance/__main__.py",
+    "sha256_at_signing": "f6e63d2a2564d026f24726eff7a8a10537190b9bf77d552f135242ae664710a0"
+  },
+  "contract_id": "AC-S18-P03",
+  "decision": "S18_P03_LIMITED_SELF_HEAL_CONTROL_PASS_P04_REQUIRED",
+  "decision_sha256": "be5812ec282bcf6b184ccca1bb00cb1707cfaa401acbef8073e5e8ba99692427",
+  "deterministic_replay": {
+    "adverse_one_in_ten_thousand_vector_count": 1,
+    "bounded_operation_count": 7,
+    "external_runtime_accessed": false,
+    "immutable_fund_and_risk_scenario_count": 11,
+    "real_time_wait_performed": false,
+    "scenario_count": 11,
+    "unsafe_or_malformed_escalation_count": 3
+  },
+  "evidence_id": "EVD-S18-P03",
+  "execution_policy": {
+    "external_runtime_access_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "offline_deterministic_only": true,
+    "phase_test_only": true,
+    "production_equivalent_config_schema_only": true
+  },
+  "external_effect_boundary": {
+    "actual_fund_facts_read_or_written": false,
+    "actual_ledger_read_or_written": false,
+    "cloudflare_account_dns_or_tunnel_accessed": false,
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_activated_or_rolled_back": false,
+    "order_submission_enabled": false,
+    "ovh_account_or_host_accessed": false,
+    "process_or_service_restarted": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "risk_gate_relaxed": false,
+    "source_switched": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-10T03:00:00+10:00",
+  "hashes": {
+    "code": "7c3a74b84142c65e044b4af5bce05539044b85336154b4c03a23b0b4129f2130",
+    "inputs": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/limited_self_heal.py": "7db05ecae2d0d8e80a2773759fb3049d152ebdbc0625837b44c643002e4dd4dd",
+      "abd_acceptance/limited_self_heal_acceptance.py": "7c3a74b84142c65e044b4af5bce05539044b85336154b4c03a23b0b4129f2130",
+      "machine/evidence/EVD-S18-P02.json": "ce54a29f06d7dae07c1e559eebf360c7e41221851290d78496fdf51dd3b957c2",
+      "machine/evidence/S18/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S18/P03/pytest.xml": "be7cc0019a9a0f23ef16b25255bc05ca22610a157ef61f93bf1550977bda71a8",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S18_P03.json": "b58d699213a343edb2bc8c6a6c15010900124d9e6c8d73be30400bdcf6efa0e1",
+      "outbox_worker.py": "77617298cc6e4e7b8e9e6adc325404c1bd176121bab56ff0c51aa83194e8318f",
+      "self_heal_policy.json": "f93e39aad9bacbd0fd6311bb6b8c937dadb7e55199169af8acabd5dc4bfcd8dd",
+      "tests/S18/P03_test.py": "c5605c71566d36ecda16f938db422cfd7c023edb161200b33bd900d126bab989",
+      "watchdog.py": "f30fa93556be1b02db99f90cfe84ef42070ff5a3e4b2196c21c9c7af39287b4c"
+    },
+    "rollback_evidence": "43922654ea06dc674986a9502da55daf1f128b5df42eb1a69fc103ec0ab4949f"
+  },
+  "next": "S18/P04_READY_NOT_STARTED",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S18_P03_LOCAL_LIMITED_SELF_HEAL_CONTROL_ONLY_P04_REQUIRED",
+  "requirement_id": "REQ-S18-P03",
+  "rollback": {
+    "artifacts": {
+      "abd_acceptance/limited_self_heal.py": {
+        "sha256": "7db05ecae2d0d8e80a2773759fb3049d152ebdbc0625837b44c643002e4dd4dd",
+        "status": "PASS"
+      },
+      "abd_acceptance/limited_self_heal_acceptance.py": {
+        "sha256": "7c3a74b84142c65e044b4af5bce05539044b85336154b4c03a23b0b4129f2130",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S18-P02.json": {
+        "sha256": "ce54a29f06d7dae07c1e559eebf360c7e41221851290d78496fdf51dd3b957c2",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S18_P03.json": {
+        "sha256": "b58d699213a343edb2bc8c6a6c15010900124d9e6c8d73be30400bdcf6efa0e1",
+        "status": "PASS"
+      },
+      "outbox_worker.py": {
+        "sha256": "77617298cc6e4e7b8e9e6adc325404c1bd176121bab56ff0c51aa83194e8318f",
+        "status": "PASS"
+      },
+      "self_heal_policy.json": {
+        "sha256": "f93e39aad9bacbd0fd6311bb6b8c937dadb7e55199169af8acabd5dc4bfcd8dd",
+        "status": "PASS"
+      },
+      "watchdog.py": {
+        "sha256": "f30fa93556be1b02db99f90cfe84ef42070ff5a3e4b2196c21c9c7af39287b4c",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S18-P03",
+    "evidence_id": "EVD-S18-P03-ROLLBACK",
+    "external_state_changed": false,
+    "feature_flag_id": "self_heal:s18_p03_offline_bounded_operations",
+    "immutable_fund_and_risk_verified": true,
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_LOCAL_LIMITED_SELF_HEAL_POLICY_KEEP_S18_P02_SIGNED_CONTROL",
+    "order_submission_enabled": false,
+    "outbox_sent": false,
+    "production_state_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S18",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S18P03-BASELINE-PURSUE_GOAL_PROMPT.txt",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S18P03-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S18P03-BASELINE-machine-facts-canonical_facts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S18P03-BASELINE-machine-facts-parameters.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S18P03-BASELINE-machine-facts-costs.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S18P03-BASELINE-machine-facts-roadmap.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S18P03-BASELINE-machine-facts-requirements.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S18P03-BASELINE-machine-facts-acceptance_contracts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S18P03-BASELINE-machine-facts-task_graph.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S18P03-BASELINE-machine-facts-traceability_matrix.json",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S18P03-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S18P03-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S18P03-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S18P03-TRACEABILITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S18-P03",
+          "requirement": "REQ-S18-P03",
+          "tasks": [
+            "T-S18-P03-01",
+            "T-S18-P03-02",
+            "T-S18-P03-03"
+          ]
+        },
+        "id": "S18P03-REQUIREMENT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S18-P03",
+          "requirement": "REQ-S18-P03",
+          "tasks": [
+            "T-S18-P03-01",
+            "T-S18-P03-02",
+            "T-S18-P03-03"
+          ]
+        },
+        "id": "S18P03-ACCEPTANCE-CONTRACT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S18-P03",
+          "requirement": "REQ-S18-P03",
+          "tasks": [
+            "T-S18-P03-01",
+            "T-S18-P03-02",
+            "T-S18-P03-03"
+          ]
+        },
+        "id": "S18P03-TASK-GRAPH-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S18-P03",
+          "requirement": "REQ-S18-P03",
+          "tasks": [
+            "T-S18-P03-01",
+            "T-S18-P03-02",
+            "T-S18-P03-03"
+          ]
+        },
+        "id": "S18P03-TRACEABILITY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contract_id": "AC-S18-P03",
+          "expected_artifact": "machine/evidence/EVD-S18-P03.json",
+          "id": "INDEX-AC-S18-P03",
+          "kind": "ACCEPTANCE_EVIDENCE",
+          "pass_gate": "自愈不能修改资金事实或放宽风险门。",
+          "requirement_id": "REQ-S18-P03",
+          "status": "PLANNED"
+        },
+        "id": "S18P03-EVIDENCE-INDEX-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "AC-S18-P02",
+          "evidence_path": "machine/evidence/EVD-S18-P02.json",
+          "evidence_sha256": "ce54a29f06d7dae07c1e559eebf360c7e41221851290d78496fdf51dd3b957c2",
+          "next": "S18/P03_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "S18P03-S18P02-SIGNED-DEPENDENCY",
+        "passed": true
+      },
+      {
+        "detail": "self_heal_policy.json",
+        "id": "S18P03-POLICY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/parameters.json",
+        "id": "S18P03-PARAMETERS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/canonical_facts.json",
+        "id": "S18P03-CANONICAL-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "fund_mutation_allowed": false,
+          "operation_pairs": [
+            [
+              "CANDIDATE_PROCESS_UNHEALTHY",
+              "LOGICAL_RESTART_CANDIDATE_ONLY"
+            ],
+            [
+              "FROZEN_REPLAY_MISMATCH",
+              "LOGICAL_RETRY_FROZEN_REPLAY_ONLY"
+            ],
+            [
+              "SILENT_COVERAGE_GAP_DETECTED",
+              "LOGICAL_REPLAY_DERIVED_STATE_ONLY"
+            ],
+            [
+              "SOURCE_FRESHNESS_FAILED",
+              "LOGICAL_SWITCH_TO_PREVIOUS_SIGNED_SOURCE_SNAPSHOT"
+            ],
+            [
+              "MODEL_PSI_STOP",
+              "LOGICAL_ROLLBACK_TO_PREVIOUS_SIGNED_MODEL_CANDIDATE"
+            ],
+            [
+              "EVIDENCE_DERIVED_STATE_CORRUPT",
+              "LOGICAL_REBUILD_DERIVED_STATE_ONLY"
+            ],
+            [
+              "UNSAFE_MUTATION_OR_MALFORMED_INPUT",
+              "LOGICAL_ESCALATE_OWNER_OUTBOX_ONLY"
+            ]
+          ],
+          "risk_relaxation_allowed": false
+        },
+        "id": "S18P03-IMMUTABLE-FUND-AND-RISK-POLICY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "fund_mutation_allowed": false,
+          "operation_pairs": [
+            [
+              "CANDIDATE_PROCESS_UNHEALTHY",
+              "LOGICAL_RESTART_CANDIDATE_ONLY"
+            ],
+            [
+              "FROZEN_REPLAY_MISMATCH",
+              "LOGICAL_RETRY_FROZEN_REPLAY_ONLY"
+            ],
+            [
+              "SILENT_COVERAGE_GAP_DETECTED",
+              "LOGICAL_REPLAY_DERIVED_STATE_ONLY"
+            ],
+            [
+              "SOURCE_FRESHNESS_FAILED",
+              "LOGICAL_SWITCH_TO_PREVIOUS_SIGNED_SOURCE_SNAPSHOT"
+            ],
+            [
+              "MODEL_PSI_STOP",
+              "LOGICAL_ROLLBACK_TO_PREVIOUS_SIGNED_MODEL_CANDIDATE"
+            ],
+            [
+              "EVIDENCE_DERIVED_STATE_CORRUPT",
+              "LOGICAL_REBUILD_DERIVED_STATE_ONLY"
+            ],
+            [
+              "UNSAFE_MUTATION_OR_MALFORMED_INPUT",
+              "LOGICAL_ESCALATE_OWNER_OUTBOX_ONLY"
+            ]
+          ],
+          "risk_relaxation_allowed": false
+        },
+        "id": "S18P03-BOUNDED-SELF-HEAL-OPERATIONS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S18_P03.json",
+        "id": "S18P03-FIXTURE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "parsed",
+        "id": "S18P03-WATCHDOG-OUTBOX-LOCAL-ONLY-STATIC",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "decision": "SELF_HEAL_NO_ACTION_KEEP_GATES",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "HEALTHY_NO_FAULT_KEEP_GATES"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "CANDIDATE_PROCESS_UNHEALTHY_LOGICAL_RESTART_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "FROZEN_REPLAY_MISMATCH_RETRY_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "SILENT_COVERAGE_GAP_REPLAY_DERIVED_STATE_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "SOURCE_FRESHNESS_FAILED_SWITCH_SIGNED_SNAPSHOT_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "MODEL_PSI_STOP_ROLLBACK_SIGNED_CANDIDATE_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "EVIDENCE_DERIVED_STATE_CORRUPT_REBUILD_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "UNSAFE_FUND_MUTATION_REQUEST_ESCALATES"
+          },
+          {
+            "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "RISK_GATE_RELAXATION_ATTEMPT_ESCALATES"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "ADVERSE_MINUS_ONE_IN_TEN_THOUSAND_PRESERVES_RISK_GATE"
+          },
+          {
+            "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "MALFORMED_PROBABILITY_DELTA_ESCALATES"
+          }
+        ],
+        "id": "S18P03-SELF-HEAL-PRESERVES-FUND-FACTS-AND-RISK-GATES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "expected": [
+            "LOGICAL_REBUILD_DERIVED_STATE_ONLY",
+            "LOGICAL_REPLAY_DERIVED_STATE_ONLY",
+            "LOGICAL_RESTART_CANDIDATE_ONLY",
+            "LOGICAL_RETRY_FROZEN_REPLAY_ONLY",
+            "LOGICAL_ROLLBACK_TO_PREVIOUS_SIGNED_MODEL_CANDIDATE",
+            "LOGICAL_SWITCH_TO_PREVIOUS_SIGNED_SOURCE_SNAPSHOT"
+          ],
+          "observed": [
+            "LOGICAL_ESCALATE_OWNER_OUTBOX_ONLY",
+            "LOGICAL_REBUILD_DERIVED_STATE_ONLY",
+            "LOGICAL_REPLAY_DERIVED_STATE_ONLY",
+            "LOGICAL_RESTART_CANDIDATE_ONLY",
+            "LOGICAL_RETRY_FROZEN_REPLAY_ONLY",
+            "LOGICAL_ROLLBACK_TO_PREVIOUS_SIGNED_MODEL_CANDIDATE",
+            "LOGICAL_SWITCH_TO_PREVIOUS_SIGNED_SOURCE_SNAPSHOT"
+          ]
+        },
+        "id": "S18P03-ALL-BOUNDED-OPERATIONS-REPLAYED-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "decision": "SELF_HEAL_NO_ACTION_KEEP_GATES",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "HEALTHY_NO_FAULT_KEEP_GATES"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "CANDIDATE_PROCESS_UNHEALTHY_LOGICAL_RESTART_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "FROZEN_REPLAY_MISMATCH_RETRY_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "SILENT_COVERAGE_GAP_REPLAY_DERIVED_STATE_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "SOURCE_FRESHNESS_FAILED_SWITCH_SIGNED_SNAPSHOT_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "MODEL_PSI_STOP_ROLLBACK_SIGNED_CANDIDATE_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "EVIDENCE_DERIVED_STATE_CORRUPT_REBUILD_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "UNSAFE_FUND_MUTATION_REQUEST_ESCALATES"
+          },
+          {
+            "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "RISK_GATE_RELAXATION_ATTEMPT_ESCALATES"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "ADVERSE_MINUS_ONE_IN_TEN_THOUSAND_PRESERVES_RISK_GATE"
+          },
+          {
+            "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "MALFORMED_PROBABILITY_DELTA_ESCALATES"
+          }
+        ],
+        "id": "S18P03-OUTBOX-LOCAL-ONLY-NOT-SENT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "decision": "SELF_HEAL_NO_ACTION_KEEP_GATES",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "HEALTHY_NO_FAULT_KEEP_GATES"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "CANDIDATE_PROCESS_UNHEALTHY_LOGICAL_RESTART_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "FROZEN_REPLAY_MISMATCH_RETRY_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "SILENT_COVERAGE_GAP_REPLAY_DERIVED_STATE_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "SOURCE_FRESHNESS_FAILED_SWITCH_SIGNED_SNAPSHOT_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "MODEL_PSI_STOP_ROLLBACK_SIGNED_CANDIDATE_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "EVIDENCE_DERIVED_STATE_CORRUPT_REBUILD_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "UNSAFE_FUND_MUTATION_REQUEST_ESCALATES"
+          },
+          {
+            "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "RISK_GATE_RELAXATION_ATTEMPT_ESCALATES"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "ADVERSE_MINUS_ONE_IN_TEN_THOUSAND_PRESERVES_RISK_GATE"
+          },
+          {
+            "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "MALFORMED_PROBABILITY_DELTA_ESCALATES"
+          }
+        ],
+        "id": "S18P03-UNSAFE-MUTATION-AND-MALFORMED-INPUT-ESCALATE",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "decision": "SELF_HEAL_NO_ACTION_KEEP_GATES",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "HEALTHY_NO_FAULT_KEEP_GATES"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "CANDIDATE_PROCESS_UNHEALTHY_LOGICAL_RESTART_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "FROZEN_REPLAY_MISMATCH_RETRY_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "SILENT_COVERAGE_GAP_REPLAY_DERIVED_STATE_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "SOURCE_FRESHNESS_FAILED_SWITCH_SIGNED_SNAPSHOT_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "MODEL_PSI_STOP_ROLLBACK_SIGNED_CANDIDATE_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "EVIDENCE_DERIVED_STATE_CORRUPT_REBUILD_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "UNSAFE_FUND_MUTATION_REQUEST_ESCALATES"
+          },
+          {
+            "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "RISK_GATE_RELAXATION_ATTEMPT_ESCALATES"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "ADVERSE_MINUS_ONE_IN_TEN_THOUSAND_PRESERVES_RISK_GATE"
+          },
+          {
+            "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "MALFORMED_PROBABILITY_DELTA_ESCALATES"
+          }
+        ],
+        "id": "S18P03-ADVERSE-ONE-IN-TEN-THOUSAND-PRESERVES-RISK-GATE",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "decision": "SELF_HEAL_NO_ACTION_KEEP_GATES",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "HEALTHY_NO_FAULT_KEEP_GATES"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "CANDIDATE_PROCESS_UNHEALTHY_LOGICAL_RESTART_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "FROZEN_REPLAY_MISMATCH_RETRY_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "SILENT_COVERAGE_GAP_REPLAY_DERIVED_STATE_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "SOURCE_FRESHNESS_FAILED_SWITCH_SIGNED_SNAPSHOT_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "MODEL_PSI_STOP_ROLLBACK_SIGNED_CANDIDATE_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "EVIDENCE_DERIVED_STATE_CORRUPT_REBUILD_ONLY"
+          },
+          {
+            "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "UNSAFE_FUND_MUTATION_REQUEST_ESCALATES"
+          },
+          {
+            "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "RISK_GATE_RELAXATION_ATTEMPT_ESCALATES"
+          },
+          {
+            "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "ADVERSE_MINUS_ONE_IN_TEN_THOUSAND_PRESERVES_RISK_GATE"
+          },
+          {
+            "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+            "outbox": "LOCAL_OUTBOX_NOT_SENT",
+            "passed": true,
+            "scenario_id": "MALFORMED_PROBABILITY_DELTA_ESCALATES"
+          }
+        ],
+        "id": "S18P03-DETERMINISTIC-REPLAY-HASH-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "abd_acceptance/__main__.py",
+        "id": "S18P03-CLI-WRITER-AND-VERIFIER-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "approved": "f6e63d2a2564d026f24726eff7a8a10537190b9bf77d552f135242ae664710a0",
+          "current": "f6e63d2a2564d026f24726eff7a8a10537190b9bf77d552f135242ae664710a0"
+        },
+        "id": "S18P03-S08-LEGACY-SUCCESSOR-PIN-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 27
+        },
+        "id": "S18P03-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S18/P03/paid_dependency_scan.txt",
+        "id": "S18P03-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/validation_report.json",
+        "id": "S18P03-TASKPACK-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S18P03-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_fund_facts_read_or_written": false,
+          "actual_ledger_read_or_written": false,
+          "cloudflare_account_dns_or_tunnel_accessed": false,
+          "external_network_accessed": false,
+          "gmail_account_or_api_accessed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "model_activated_or_rolled_back": false,
+          "order_submission_enabled": false,
+          "ovh_account_or_host_accessed": false,
+          "process_or_service_restarted": false,
+          "production_deployed_or_activated": false,
+          "real_time_soak_waited": false,
+          "recommendation_generated_or_enabled": false,
+          "risk_gate_relaxed": false,
+          "source_switched": false
+        },
+        "id": "S18P03-EXTERNAL-EFFECT-BOUNDARY-EXACT",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S18-P03",
+    "decision": "S18_P03_LIMITED_SELF_HEAL_CONTROL_PASS_P04_REQUIRED",
+    "execution_policy": {
+      "external_runtime_access_allowed": false,
+      "full_regression_or_real_time_soak_allowed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "offline_deterministic_only": true,
+      "phase_test_only": true,
+      "production_equivalent_config_schema_only": true
+    },
+    "external_effect_boundary": {
+      "actual_fund_facts_read_or_written": false,
+      "actual_ledger_read_or_written": false,
+      "cloudflare_account_dns_or_tunnel_accessed": false,
+      "external_network_accessed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "model_activated_or_rolled_back": false,
+      "order_submission_enabled": false,
+      "ovh_account_or_host_accessed": false,
+      "process_or_service_restarted": false,
+      "production_deployed_or_activated": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false,
+      "risk_gate_relaxed": false,
+      "source_switched": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "hashes": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/limited_self_heal.py": "7db05ecae2d0d8e80a2773759fb3049d152ebdbc0625837b44c643002e4dd4dd",
+      "machine/evidence/EVD-S18-P02.json": "ce54a29f06d7dae07c1e559eebf360c7e41221851290d78496fdf51dd3b957c2",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S18_P03.json": "b58d699213a343edb2bc8c6a6c15010900124d9e6c8d73be30400bdcf6efa0e1",
+      "outbox_worker.py": "77617298cc6e4e7b8e9e6adc325404c1bd176121bab56ff0c51aa83194e8318f",
+      "self_heal_policy.json": "f93e39aad9bacbd0fd6311bb6b8c937dadb7e55199169af8acabd5dc4bfcd8dd",
+      "watchdog.py": "f30fa93556be1b02db99f90cfe84ef42070ff5a3e4b2196c21c9c7af39287b4c"
+    },
+    "next": "S18/P04_READY_NOT_STARTED",
+    "phase_id": "P03",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "requirement_id": "REQ-S18-P03",
+    "stage_id": "S18",
+    "status": "PASS",
+    "summary": {
+      "checks": 40,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 40
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "schema_version": "1.0.0",
+  "policy_id": "S18-P03-LIMITED-SELF-HEAL-POLICY",
+  "product_version": "0.0.0.1",
+  "contract_id": "AC-S18-P03",
+  "requirement_id": "REQ-S18-P03",
+  "stage_id": "S18",
+  "phase_id": "P03",
+  "fixed_clock": "2026-08-10T03:00:00+10:00",
+  "execution_mode": "OFFLINE_DETERMINISTIC_CONTRACT_ONLY",
+  "allowed_operations": [
+    {
+      "fault_id": "CANDIDATE_PROCESS_UNHEALTHY",
+      "operation_id": "LOGICAL_RESTART_CANDIDATE_ONLY",
+      "mode": "AUTOMATIC_LOGICAL",
+      "allowed_target": "CANDIDATE_SLOT_ONLY",
+      "derived_state_only": true,
+      "writes_shared_ledger": false
+    },
+    {
+      "fault_id": "FROZEN_REPLAY_MISMATCH",
+      "operation_id": "LOGICAL_RETRY_FROZEN_REPLAY_ONLY",
+      "mode": "MANUAL_LOGICAL",
+      "allowed_target": "FROZEN_INPUT_AND_SIGNED_ARTIFACT_ONLY",
+      "derived_state_only": true,
+      "writes_shared_ledger": false
+    },
+    {
+      "fault_id": "SILENT_COVERAGE_GAP_DETECTED",
+      "operation_id": "LOGICAL_REPLAY_DERIVED_STATE_ONLY",
+      "mode": "AUTOMATIC_LOGICAL",
+      "allowed_target": "DERIVED_COVERAGE_PROJECTION_ONLY",
+      "derived_state_only": true,
+      "writes_shared_ledger": false
+    },
+    {
+      "fault_id": "SOURCE_FRESHNESS_FAILED",
+      "operation_id": "LOGICAL_SWITCH_TO_PREVIOUS_SIGNED_SOURCE_SNAPSHOT",
+      "mode": "MANUAL_LOGICAL",
+      "allowed_target": "PREVIOUS_SIGNED_SOURCE_SNAPSHOT_ONLY",
+      "derived_state_only": true,
+      "writes_shared_ledger": false
+    },
+    {
+      "fault_id": "MODEL_PSI_STOP",
+      "operation_id": "LOGICAL_ROLLBACK_TO_PREVIOUS_SIGNED_MODEL_CANDIDATE",
+      "mode": "MANUAL_LOGICAL",
+      "allowed_target": "PREVIOUS_SIGNED_MODEL_CANDIDATE_ONLY",
+      "derived_state_only": true,
+      "writes_shared_ledger": false
+    },
+    {
+      "fault_id": "EVIDENCE_DERIVED_STATE_CORRUPT",
+      "operation_id": "LOGICAL_REBUILD_DERIVED_STATE_ONLY",
+      "mode": "AUTOMATIC_LOGICAL",
+      "allowed_target": "DERIVED_EVIDENCE_PROJECTION_ONLY",
+      "derived_state_only": true,
+      "writes_shared_ledger": false
+    },
+    {
+      "fault_id": "UNSAFE_MUTATION_OR_MALFORMED_INPUT",
+      "operation_id": "LOGICAL_ESCALATE_OWNER_OUTBOX_ONLY",
+      "mode": "MANUAL_LOGICAL",
+      "allowed_target": "LOCAL_OWNER_OUTBOX_PROJECTION_ONLY",
+      "derived_state_only": true,
+      "writes_shared_ledger": false
+    }
+  ],
+  "immutable_fund_facts": {
+    "money_storage": "INTEGER_CENTS",
+    "frozen_bankroll_reference_aud": "300.00",
+    "actual_fund_fact_mutation_allowed": false,
+    "actual_ledger_mutation_allowed": false
+  },
+  "immutable_risk_gate": {
+    "kelly_fraction_alpha": "0.00",
+    "kelly_fraction_beta": "0.20",
+    "kelly_fraction_ga": "0.25",
+    "total_open_exposure_cap": "0.150",
+    "target_shortfall_may_relax_gate": false,
+    "unstable_action": "NO_RECOMMENDATION"
+  },
+  "outbox_policy": {
+    "delivery_mode": "LOCAL_STRUCTURED_OUTBOX_PROJECTION_ONLY",
+    "external_delivery_enabled": false,
+    "retry_external_delivery": false,
+    "owner_action": "FINAL_ORDER_ONLY"
+  },
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "cloudflare_account_dns_or_tunnel_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "process_or_service_restarted": false,
+    "source_switched": false,
+    "model_activated_or_rolled_back": false,
+    "actual_fund_facts_read_or_written": false,
+    "actual_ledger_read_or_written": false,
+    "risk_gate_relaxed": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}
