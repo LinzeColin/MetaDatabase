@@ -188,7 +188,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
     try {
       const response = await fetch(request.endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...request.headers },
         credentials: "same-origin",
         body: JSON.stringify(request.body),
       });

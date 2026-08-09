@@ -14,6 +14,7 @@ export type AuthFormValues = {
 export type AuthRequest = {
   endpoint: string;
   body: Record<string, string>;
+  headers?: Record<string, string>;
 };
 
 export function usesTurnstileFor(mode: AuthMode): boolean {
@@ -29,6 +30,11 @@ export function resolveCaptchaResponse(callbackToken: string, renderedToken: str
   return callbackToken.trim() || renderedToken.trim();
 }
 
+function captchaHeaders(response: string): Record<string, string> | undefined {
+  const token = response.trim();
+  return token ? { "x-captcha-response": token } : undefined;
+}
+
 /**
  * Keeps every browser-auth request on an explicit, same-origin Better Auth
  * endpoint. Callback paths are constants so an untrusted query cannot become
@@ -39,31 +45,31 @@ export function buildAuthRequest(mode: AuthMode, values: AuthFormValues): AuthRe
     case "sign-in":
       return {
         endpoint: "/api/auth/sign-in/email",
+        headers: captchaHeaders(values.captchaResponse),
         body: {
           email: values.email,
           password: values.password,
           callbackURL: "/",
-          captchaResponse: values.captchaResponse,
         },
       };
     case "sign-up":
       return {
         endpoint: "/api/auth/sign-up/email",
+        headers: captchaHeaders(values.captchaResponse),
         body: {
           name: values.name,
           email: values.email,
           password: values.password,
           callbackURL: VERIFIED_LOGIN_PATH,
-          captchaResponse: values.captchaResponse,
         },
       };
     case "forgot-password":
       return {
         endpoint: "/api/auth/request-password-reset",
+        headers: captchaHeaders(values.captchaResponse),
         body: {
           email: values.email,
           redirectTo: "/auth/reset-password",
-          captchaResponse: values.captchaResponse,
         },
       };
     case "reset-password":

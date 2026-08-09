@@ -166,13 +166,19 @@ test("email sign-up and password reset keep the documented callback contracts", 
 
   assert.deepEqual(buildAuthRequest("sign-up", base), {
     endpoint: "/api/auth/sign-up/email",
+    headers: { "x-captcha-response": "captcha-token" },
     body: {
       name: "Member",
       email: "member@example.test",
       password: "correct-horse-battery-staple",
       callbackURL: VERIFIED_LOGIN_PATH,
-      captchaResponse: "captcha-token",
     },
+  });
+  assert.deepEqual(buildAuthRequest("sign-in", base).headers, {
+    "x-captcha-response": "captcha-token",
+  });
+  assert.deepEqual(buildAuthRequest("forgot-password", base).headers, {
+    "x-captcha-response": "captcha-token",
   });
   assert.deepEqual(buildAuthRequest("reset-password", base), {
     endpoint: "/api/auth/reset-password",
