@@ -420,3 +420,32 @@ test("Version 28 brand-identity deployment retains no source credential or user 
   assert.equal(serialized.includes("token="), false);
   assert.equal(serialized.includes("Bearer "), false);
 });
+
+test("Version 28 email-password recovery replay retains no temporary credentials", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_28_email_password_reset_completion_replay.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 28);
+  assert.equal(evidence.candidate.canonical_product_domain_used, true);
+  assert.equal(evidence.candidate.public_audience_changed, false);
+  assert.equal(evidence.controlled_email_password_replay.verification_message_received, true);
+  assert.equal(evidence.controlled_email_password_replay.new_password_submission_completed, true);
+  assert.equal(evidence.controlled_email_password_replay.new_password_signin_reached_workspace, true);
+  assert.equal(evidence.scope_and_cleanup.browser_cookie_or_storage_inspected, false);
+  assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.scope_and_cleanup.temporary_mailbox_deleted, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_credentials_cleared_from_test_runtime, true);
+  assert.equal(
+    evidence.scope_and_cleanup.temporary_browser_tabs_finalized,
+    "NOT_CONFIRMED_ADMIN_POLICY_UNAVAILABLE",
+  );
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
