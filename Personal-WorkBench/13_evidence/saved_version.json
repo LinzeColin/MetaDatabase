@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "task_id": "S5-T1",
   "phase": "S5_T1_PRIVATE_SAVED_VERSION",
   "status": "PASS_PRIVATE_SAVED_VERSION_CANDIDATE",
@@ -15,37 +15,42 @@
   },
   "frozen_source": {
     "repository": "MetaDatabase",
-    "commit": "cf7b156e76376f9e7783b1b1d68f5e8b1f09eb85",
-    "root_tree": "2733e8de41616ea442701da41a7ac35e13d3b978",
+    "commit": "65b3f2be519ea96bb7d8808db45b40a3343f2d25",
+    "root_tree": "8df64a084c2259afdd2b852c7e777e147410ef6a",
     "project_path": "Personal-WorkBench",
-    "project_tree": "b831d4564fc01352edfa3f5f26020965f3825df4",
-    "tracked_file_count": 293
+    "project_tree": "6c9d2ee3760ae46c0873f8b362d2e7babf7b0c6c",
+    "tracked_file_count": 308,
+    "s4_t3a_readiness": "READINESS_PASS"
   },
   "source_projection_audit": {
     "contract_id": "PWB-S5-SOURCE-PROJECTION-001",
-    "validator_status": "PASS_SOURCE_PROJECTION_CONTRACT",
-    "projection_commit": "3eaf351c2381c98b5fc49a3ed1c78d4c38e581b7",
-    "projection_tree": "b831d4564fc01352edfa3f5f26020965f3825df4",
-    "relationship": "仅用于证明归档项目根与冻结项目子树 tree-identical；实际 Sites source branch 已回读为冻结 MetaDatabase commit。"
+    "transport_mode": "tree-identical project-root projection on the existing Sites source branch",
+    "base_remote_source_commit": "2a964b762178d35e2513641f76a45772d9d92709",
+    "projection_commit": "b792154129538aecbc03ff443ba5253cd4161c01",
+    "projection_tree": "6c9d2ee3760ae46c0873f8b362d2e7babf7b0c6c",
+    "projection_parent": "2a964b762178d35e2513641f76a45772d9d92709",
+    "projection_tree_matches_frozen_project_tree": true,
+    "mapping_check": "PASS_CURRENT_SOURCE_TREE_EQUIVALENCE",
+    "relationship": "实际 Sites source commit 是可运输的项目根 projection；它不替代冻结 MetaDatabase commit，二者均由本证据记录。"
   },
   "source_branch_readback": {
     "branch": "main",
-    "head_commit": "cf7b156e76376f9e7783b1b1d68f5e8b1f09eb85",
-    "matches_frozen_source": true,
-    "non_force_projection_push_result": "REJECTED_FETCH_FIRST_NO_REMOTE_CHANGE",
-    "resolution": "未覆盖远端；使用已在 Sites source main 上的精确冻结 commit 保存 Candidate。"
+    "head_commit": "b792154129538aecbc03ff443ba5253cd4161c01",
+    "matches_source_projection": true,
+    "push_mode": "NON_FORCE_FAST_FORWARD",
+    "remote_source_write_only": true
   },
   "build_archive": {
     "status": "PASS_EXACT_SOURCE_BUILD_AND_PACKAGE",
-    "built_from_source_commit": "cf7b156e76376f9e7783b1b1d68f5e8b1f09eb85",
-    "built_from_project_tree": "b831d4564fc01352edfa3f5f26020965f3825df4",
-    "local_sha256": "dd61f9b1bfbefd610276b84121daffcf93a00fb8e805916fd18a91d76bf6976d",
-    "local_size_bytes": 1893416,
+    "built_from_source_commit": "65b3f2be519ea96bb7d8808db45b40a3343f2d25",
+    "built_from_project_tree": "6c9d2ee3760ae46c0873f8b362d2e7babf7b0c6c",
+    "local_sha256": "c72c0cfddbc68aac89095612c6811215c5174960d27b0f9aff16b9be085643d5",
+    "local_size_bytes": 1915122,
     "required_entries": [
       "dist/server/index.js",
       "dist/.openai/hosting.json"
     ],
-    "source_and_dist_hosting_config_sha256": "7e5aaf79ca8203f0c623ab4caa8bbde5e704884671b50b1a0b48ee45ec8b62b2",
+    "source_and_dist_hosting_config_sha256": "7e5aaf79ca8203c0f623ab4caa8bbde5e704884671b50b1a0b48ee45ec8b62b2",
     "local_checks": {
       "npm_run_check": "PASS",
       "npm_run_build": "PASS",
@@ -60,43 +65,54 @@
     "allowed_users_count": 1,
     "allowed_groups_count": 0,
     "external_visitor_count": 0,
-    "saved_version_count_before": 0,
-    "live_url_present_before": false,
+    "saved_version_count_before": 6,
+    "live_url_present_before": true,
     "preview_url_present_before": false,
-    "runtime_environment_entry_count": 0,
-    "runtime_values_read_or_logged": false,
-    "secret_missing_negative_check": "PASS_NO_CONFIGURED_RUNTIME_ENTRIES"
+    "runtime_environment_revision_before": 7,
+    "runtime_environment_entry_count_before": 14,
+    "runtime_secret_entry_count_before": 11,
+    "runtime_non_secret_entry_count_before": 3,
+    "runtime_values_read_or_logged": false
   },
   "sites_saved_version": {
     "project_id": "appgprj_6a70366303988191b2ca996238860c9f",
-    "version_id": "appgprj_6a70366303988191b2ca996238860c9f~appgver_2b31be3b85b0819185420187ea2c79b9",
-    "version_number": 1,
-    "source_commit": "cf7b156e76376f9e7783b1b1d68f5e8b1f09eb85",
+    "version_id": "appgprj_6a70366303988191b2ca996238860c9f~appgver_2b465dcf3e1481918646f0cc13885867",
+    "version_number": 7,
+    "source_commit": "b792154129538aecbc03ff443ba5253cd4161c01",
     "provider_archive": {
       "archive_format": "tar",
-      "content_hash": "sha256:5c73d914ff560a0e85b6de12faa8ac55444f4723ec891821c77f9db77dbb7646",
-      "file_count": 87,
-      "size_bytes": 4597760,
+      "content_hash": "sha256:c5e2530b2a5c022433ccaf21782c5ad5afe368776667037e9777293f4d316853",
+      "file_count": 89,
+      "size_bytes": 4761600,
       "note": "Provider content identity is separate from the local tar SHA-256 and is not asserted equal to it."
     }
   },
   "post_save_readback": {
-    "saved_version_count": 1,
+    "saved_version_count": 7,
     "listed_version_matches_saved_id": true,
-    "listed_version_source_matches_frozen_commit": true,
-    "detail_source_matches_frozen_commit": true,
+    "listed_version_matches_saved_number": true,
+    "listed_version_source_matches_projection": true,
+    "detail_source_matches_projection": true,
     "access_mode": "custom",
     "allowed_users_count": 1,
     "allowed_groups_count": 0,
     "external_visitor_count": 0,
+    "access_policy_revision_unchanged": true,
+    "runtime_environment_revision": 7,
+    "runtime_environment_entry_count": 14,
+    "runtime_secret_entry_count": 11,
+    "runtime_non_secret_entry_count": 3,
+    "runtime_environment_unchanged": true,
     "live_url_present": false,
+    "site_live_url_present": true,
     "preview_url_present": false,
     "deployed": false,
     "deployment_action_called": false
   },
   "limits_and_follow_up": [
     "该证据只完成 S5-T1 私有 Candidate 保存，不构成 S4-T3、S6-T1 或 15/15 产品通过。",
-    "Google、邮箱验证/找回、Turnstile、真实 D1/R2、跨设备同步、私有部署和回滚演练仍为 NOT_RUN，下游由 S5-T2 至 S6-T2 采证。",
-    "本 Version 没有部署 URL；公开 audience 和 GitHub 上传仍未执行。"
+    "Google、邮箱验证/找回、Turnstile、真实 D1/R2、跨设备同步、私有部署和回滚演练仍由 S5-T2 至 S6-T2 采证。",
+    "本次没有发起部署；任何现有 live URL 不被视为本 Candidate 的运行时通过证据。",
+    "公开 audience 和 GitHub 上传仍未执行。"
   ]
 }
