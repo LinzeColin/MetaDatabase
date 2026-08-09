@@ -39,6 +39,17 @@ test("home prioritizes the actionable sign-in prerequisite over a parallel resou
     /const statusError = authRequired\s*\? "请先登录并完成邮箱验证，再保存和查看你的历史记录。"/,
   );
   assert.match(source, /authRequired=\{authRequired\}/);
+  assert.match(source, /loginSuggested=\{loginSuggested\}/);
+});
+
+test("network-level resource uncertainty still offers a truthful sign-in next step", async () => {
+  const source = await readFile(resourceSource, "utf8");
+
+  assert.match(source, /const \[loginSuggested, setLoginSuggested\] = useState\(false\);/);
+  assert.match(source, /暂时无法读取你的历史记录。请先登录并完成邮箱验证；若已登录，请检查网络后重试。/);
+  assert.match(source, /暂时无法保存这条记录。请先登录并完成邮箱验证；若已登录，请检查网络后重试。/);
+  assert.match(source, /暂时无法删除这条记录。请先登录并完成邮箱验证；若已登录，请检查网络后重试。/);
+  assert.match(source, /authRequired \|\| loginSuggested \? <a className="data-link" href="\/auth\/sign-in">去登录<\/a> : null/);
 });
 
 test("habit controls always acknowledge a failed save without claiming a completed check-in", async () => {

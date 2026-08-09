@@ -201,6 +201,7 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
   // the other is interrupted, the next actionable step is still sign-in—not
   // a misleading generic network diagnosis.
   const authRequired = habits.authRequired || checkins.authRequired;
+  const loginSuggested = habits.loginSuggested || checkins.loginSuggested;
   const statusError = authRequired
     ? "请先登录并完成邮箱验证，再保存和查看你的历史记录。"
     : habits.error || checkins.error;
@@ -242,6 +243,7 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
           authRequired={authRequired}
           consentRequired={false}
           error={statusError}
+          loginSuggested={loginSuggested}
           loading={habits.loading || checkins.loading}
         />
       ) : null}

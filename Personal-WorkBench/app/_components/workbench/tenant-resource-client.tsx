@@ -13,6 +13,7 @@ type ApiEnvelope<T extends TenantRecord> = {
 export type ResourceState<T extends TenantRecord> = {
   authRequired: boolean;
   consentRequired: boolean;
+  loginSuggested: boolean;
   create: (payload: Record<string, unknown>, idempotencyKey?: string) => Promise<T | null>;
   destroy: (id: string, idempotencyKey?: string) => Promise<boolean>;
   error: string;
@@ -132,12 +133,14 @@ export function useTenantResource<T extends TenantRecord>(
   const [error, setError] = useState("");
   const [authRequired, setAuthRequired] = useState(false);
   const [consentRequired, setConsentRequired] = useState(false);
+  const [loginSuggested, setLoginSuggested] = useState(false);
 
   const applyFailure = useCallback((status: number) => {
     const failure = failureMessage(status, sensitive);
     setError(failure.message);
     setAuthRequired(failure.authRequired);
     setConsentRequired(failure.consentRequired);
+    setLoginSuggested(failure.authRequired);
   }, [sensitive]);
 
   const reload = useCallback(async () => {
@@ -155,8 +158,10 @@ export function useTenantResource<T extends TenantRecord>(
       setError("");
       setAuthRequired(false);
       setConsentRequired(false);
+      setLoginSuggested(false);
     } catch {
-      setError("当前网络不可用，请检查连接后重试。");
+      setError("暂时无法读取你的历史记录。请先登录并完成邮箱验证；若已登录，请检查网络后重试。");
+      setLoginSuggested(true);
     } finally {
       setLoading(false);
     }
@@ -172,6 +177,7 @@ export function useTenantResource<T extends TenantRecord>(
     if (!enabled) return null;
     setSaving(true);
     setError("");
+    setLoginSuggested(false);
     try {
       const response = await fetch(`/api/workbench/${resource}`, {
         method: "POST",
@@ -194,9 +200,11 @@ export function useTenantResource<T extends TenantRecord>(
       setRecords((current) => [data, ...current.filter((record) => record.id !== data.id)]);
       setAuthRequired(false);
       setConsentRequired(false);
+      setLoginSuggested(false);
       return data;
     } catch {
-      setError("当前网络不可用，请检查连接后重试。");
+      setError("暂时无法保存这条记录。请先登录并完成邮箱验证；若已登录，请检查网络后重试。");
+      setLoginSuggested(true);
       return null;
     } finally {
       setSaving(false);
@@ -207,6 +215,7 @@ export function useTenantResource<T extends TenantRecord>(
     if (!enabled || !id) return false;
     setSaving(true);
     setError("");
+    setLoginSuggested(false);
     try {
       const response = await fetch(`/api/workbench/${resource}/${encodeURIComponent(id)}`, {
         method: "DELETE",
@@ -218,30 +227,33 @@ export function useTenantResource<T extends TenantRecord>(
         return false;
       }
       setRecords((current) => current.filter((record) => record.id !== id));
+      setLoginSuggested(false);
       return true;
     } catch {
-      setError("当前网络不可用，请检查连接后重试。");
+      setError("暂时无法删除这条记录。请先登录并完成邮箱验证；若已登录，请检查网络后重试。");
+      setLoginSuggested(true);
       return false;
     } finally {
       setSaving(false);
     }
   }, [applyFailure, enabled, resource]);
 
-  return { authRequired, consentRequired, create, destroy, error, loading, records, reload, saving };
+  return { authRequired, consentRequired, create, destroy, error, loading, loginSuggested, records, reload, saving };
 }
 
 export function ResourceStatus({
   authRequired,
   consentRequired,
   error,
+  loginSuggested,
   loading,
-}: Pick<ResourceState<TenantRecord>, "authRequired" | "consentRequired" | "error" | "loading">) {
+}: Pick<ResourceState<TenantRecord>, "authRequired" | "consentRequired" | "error" | "loading" | "loginSuggested">) {
   if (loading) return <p className="interaction-note" role="status">正在读取你的历史记录…</p>;
   if (!error) return null;
   return (
     <p className="interaction-note" role="status">
       {error}{" "}
-      {authRequired ? <a className="data-link" href="/auth/sign-in">去登录</a> : null}
+      {authRequired || loginSuggested ? <a className="data-link" href="/auth/sign-in">去登录</a> : null}
       {consentRequired ? <a className="data-link" href="/account">前往账户设置</a> : null}
     </p>
   );
