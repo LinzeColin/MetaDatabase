@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PASS_PRIVATE_VERSION_16_ROLLBACK_RESTORE_REHEARSAL",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "preconditions": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "access_policy_revision_before": 1,
+    "rollback_target_version_number": 15,
+    "restore_target_version_number": 16
+  },
+  "rollback": {
+    "target_version_number": 15,
+    "deployment_status": "SUCCEEDED",
+    "environment_revision": 8
+  },
+  "restore": {
+    "target_version_number": 16,
+    "deployment_status": "SUCCEEDED",
+    "environment_revision": 8,
+    "final_live_version_matches_restore_target": true
+  },
+  "post_restore_control_plane": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "access_policy_revision_after": 1,
+    "latest_saved_version_number": 16,
+    "site_title": "个人日程"
+  },
+  "change_boundary": {
+    "runtime_settings_changed": false,
+    "access_policy_changed": false,
+    "d1_r2_changed": false,
+    "business_data_read_or_written": false,
+    "public_audience_changed": false,
+    "raw_url_recorded": false
+  },
+  "sensitive_values_recorded": false,
+  "not_proven": [
+    "A public-audience rollback",
+    "A successful authenticated ordinary-browser mutation",
+    "Physical second-device history readback",
+    "Direct D1/R2 reconciliation",
+    "Final product acceptance"
+  ]
+}
