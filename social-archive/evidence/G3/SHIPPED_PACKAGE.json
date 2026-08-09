@@ -1,7 +1,7 @@
 {
   "status": "PASS",
   "package": "dist/social-archive-extension.zip",
-  "package_sha256_prefix": "8dbdff85ab4c79a5",
+  "package_sha256_prefix": "067c3b528e6a9b80",
   "manifest": {
     "version": "0.0.0.22",
     "host": [
@@ -27,6 +27,11 @@
   "connect_said": {
     "threw": "This function must be called during a user gesture"
   },
+  "connect_bookmarks_said": {
+    "ok": false,
+    "state": "unauthorized",
+    "error": "还没有获得读取 Chrome 书签的授权。请在连接面板上再点一次「连接账号」，并在浏览器弹出的框里选「允许」。"
+  },
   "permission_request_from_extension_page": {
     "prompted": true
   },
@@ -39,7 +44,7 @@
       "tried": true,
       "badge": "私人档案馆已连接 · v0.0.0.22 · 插件 v0.0.0.22",
       "panelOpen": true,
-      "frameSrc": "chrome-extension://ealejbnienajdejbkofof",
+      "frameSrc": "chrome-extension://obmnahokacpfdclmgaalk",
       "contentReloads": 2,
       "syncStillOpen": false
     },

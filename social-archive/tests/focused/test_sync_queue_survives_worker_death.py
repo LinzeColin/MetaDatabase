@@ -83,7 +83,21 @@ function makeChrome(storage, alarms, hooks) {
                getURL: p => p, id: 'test', lastError: null, getManifest: () => ({ version: '0.0.0.7' }) },
     tabs: { onUpdated: evt(), onRemoved: evt(), query: async () => [], create: async () => ({ id: 1 }),
             sendMessage: async () => ({}), get: async () => ({ id: 1, url: '' }) },
-    permissions: { onAdded: evt(), contains: async () => true, request: async () => true },
+    // **这个假 chrome 扮的是 service worker，就得像 service worker 一样抛。**
+    //
+    // 原来是 `request: async () => true`——夹具把用户必须自己挣的那一下
+    // 直接给了。真 Chrome 的 service worker 里没有用户手势，
+    // `chrome.permissions.request` **一定**抛这句话，即使权限刚被授予过
+    // （evidence/G3/SHIPPED_PACKAGE.json 的
+    // permission_request_from_service_worker 三项全是它）。
+    //
+    // 代价很具体：`connectChromeBookmarks` 里那行裸 request 在真浏览器里
+    // 让「连接 Chrome 书签」整条抛出去，而**1266 条测试全绿**，
+    // 因为它们看到的是这个 `() => true`。
+    permissions: {
+      onAdded: evt(), contains: async () => true,
+      request: async () => { throw new Error('This function must be called during a user gesture'); },
+    },
     bookmarks: null, commands: { onCommand: evt() },
     contextMenus: { onClicked: evt(), removeAll: (cb) => cb && cb(), create: noop },
     sidePanel: { setPanelBehavior: async () => {} },

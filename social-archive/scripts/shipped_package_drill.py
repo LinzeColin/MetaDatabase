@@ -106,6 +106,17 @@ PROBE = r"""
   }
   try { out.connect = await connectPlatform("xiaohongshu"); }
   catch (error) { out.connect = { threw: String(error && error.message || error) }; }
+  // **他真正会点的那一颗：Chrome 书签的「连接账号」。**（2026-08-10）
+  //
+  // 上面那三次 `chrome.permissions.request` 已经量到 service worker 里
+  // 一定抛「必须在用户手势期间调用」。但那是**机制**；这一行量的是
+  // **产品**：走一次他会走的那条路，看它说得出话，还是把那句英文甩给他。
+  //
+  // 原来这条路是裸的 `chrome.permissions.request`——面板在页面里把
+  // bookmarks 要到手之后再发消息过来，这一行照样抛，面板把英文原样显示。
+  // 判据抓不到，因为单元测试的假 chrome 把 request 桩成了永远返回 true。
+  try { out.connect_bookmarks = await connectPlatform("generic-web"); }
+  catch (error) { out.connect_bookmarks = { threw: String(error && error.message || error) }; }
   for (const origin of ["https://*.xiaohongshu.com/*"]) {
     out.permissions[`${origin} (连接之后)`] =
       await chrome.permissions.contains({ origins: [origin] }).catch(() => "查不了");
@@ -537,6 +548,24 @@ async def run(chrome: str) -> int:
         problems.append(
             f"**没量到扩展页面里的权限申请到底会怎样**：{json.dumps(measured_page, ensure_ascii=False)}"
             "——这不是通过，是这一段没跑成。修法有没有效仍然不知道")
+    # **Chrome 书签那颗按钮，在 service worker 里到底说什么**（2026-08-10）。
+    #
+    # 机制那三行已经量到「service worker 里 request 一定抛」。这一条量的是
+    # 产品：`connectPlatform("generic-web")` 走的就是他在面板上点的那条路。
+    # 它可以失败（这里没有权限、假档案馆也不认这个账号），
+    # **但不许用一句英文的 gesture 报错失败**——那句话会被面板原样显示给他，
+    # 而他看不懂，也不知道下一步做什么。
+    bookmarks_said = measured.get("connect_bookmarks")
+    if bookmarks_said is None:
+        problems.append(
+            "**没量到 Chrome 书签那颗按钮会说什么**——这不是通过，是这一段没跑成。"
+            "而它正是「一个都同步不动」时产品推荐他去连的那一个")
+    elif "gesture" in json.dumps(bookmarks_said, ensure_ascii=False).lower():
+        problems.append(
+            f"**连接 Chrome 书签在 service worker 里抛了手势错误**：{bookmarks_said}——"
+            "这正是 2026-08-04 那次停摆的形状。面板会把这句英文原样显示给他。"
+            "申请要走 `SA.ensurePermission`（先 contains），不能是裸的 request")
+
     # **不跳页那条路必须被证明**，而且"没量到"不算通过。
     if not measured_frame.get("embedded"):
         problems.append(
@@ -653,6 +682,9 @@ async def run(chrome: str) -> int:
         # 是个必须量、不能推的问题。量不到就会变成：他点了「连接账号」，
         # 什么框都没弹，然后每次同步都失败。
         "connect_said": measured.get("connect"),
+        # **他真正会点的那一颗**：Chrome 书签。它可以失败，但不许用一句
+        # 英文的 gesture 报错失败——那句话会被面板原样显示给他。
+        "connect_bookmarks_said": measured.get("connect_bookmarks"),
         # 在 service worker 里直接申请权限会怎样——三种权限各量一次
         # 同一个 API 在扩展页面里调——**这是修法的证据**
         "permission_request_from_extension_page": measured_page,

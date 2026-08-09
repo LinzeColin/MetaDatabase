@@ -936,8 +936,16 @@ async function syncChromeBookmarks({ accountId = null, syncRunId = null, trigger
 }
 
 async function connectChromeBookmarks() {
-  const granted = await chrome.permissions.request({ permissions: ["bookmarks"] });
-  if (!granted) return { ok: false, state: "unauthorized", error: "你没有授权读取 Chrome 书签" };
+  // **这里必须是 ensurePermission，不能是裸的 request**（2026-08-10）。
+  // service worker 里没有用户手势，`chrome.permissions.request` 一定抛——
+  // 即使面板刚刚在页面里把 bookmarks 要到手。原来这一行是裸的 request 且
+  // 没有 catch：他点「连接账号」，面板把那句英文 gesture 报错原样显示给他。
+  const granted = await SA.ensurePermission({ permissions: ["bookmarks"] });
+  if (!granted) return {
+    ok: false, state: "unauthorized",
+    error: "还没有获得读取 Chrome 书签的授权。请在连接面板上再点一次「连接账号」，"
+         + "并在浏览器弹出的框里选「允许」。"
+  };
   const existing = (await listAccounts()).find(item => item.platform === "generic-web" && item.external_account_id === "chrome-bookmarks");
   // **这条捷径只对「本来就连着」的账号成立**（2026-08-07）。
   //
@@ -1093,8 +1101,10 @@ function mediaSessionPlatforms() {
 async function connectPlatformSessionByCookies(platform) {
   const spec = globalThis.SACookieExport.ALLOWED_PLATFORMS[platform];
   const origins = spec.domains.flatMap(d => [`https://*.${d}/*`, `https://${d}/*`]);
-  const granted = await chrome.permissions.request({ permissions: ["cookies"], origins })
-    .catch(() => false);
+  // 同一条规矩（2026-08-10）。原来这一行是裸的 request：它有 catch，所以不抛，
+  // **但在 service worker 里必然回 false**——于是他明明点过「允许」，
+  // 产品还是对他说「没有获得授权」，把责任推回给他。
+  const granted = await SA.ensurePermission({ permissions: ["cookies"], origins });
   if (!granted) {
     return { ok: false, state: "unauthorized", platform,
              failureCode: "PLATFORM_PERMISSION_DENIED",

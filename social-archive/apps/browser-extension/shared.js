@@ -213,6 +213,42 @@
     return { authorized, origins };
   }
 
+  /** 要一次权限，**先问有没有**——任何权限，不只是主机权限（2026-08-10）。
+   *
+   * ## 为什么补这一个
+   *
+   * `requestPlatformPermission` 2026-08-06 已经按「先 contains 再 request」
+   * 改过，但它只管**主机权限**：`patternsForPlatform` 为空就直接 return true。
+   * 于是 background 里另外两处一直是裸的 `chrome.permissions.request`：
+   *
+   *     connectChromeBookmarks          bookmarks（Chrome 书签）
+   *     connectPlatformSessionByCookies cookies（登录状态托管）
+   *
+   * 而 MV3 的 service worker 里**永远没有用户手势**，`request` 在那儿
+   * 一定抛 "This function must be called during a user gesture"——
+   * **即使这个权限刚刚在面板里被授予过**。这不是推断：
+   * `evidence/G3/SHIPPED_PACKAGE.json` 的
+   * `permission_request_from_service_worker` 三项全是这句话。
+   *
+   * 后果是具体的：他在资料库面板上点「连接账号」→ 面板在页面里把
+   * bookmarks 要到手（那一步是对的）→ 消息发给 background →
+   * `connectChromeBookmarks` 第一行就抛，面板把那句**英文**原样显示给他。
+   * 这正是 8/4 那次停摆的同一个形状，只是换了个平台。
+   *
+   * 2026-08-07 那次修复把授权挪进了页面，注释里写的理由是
+   * 「background 那边的 requestPlatformPermission 会先 contains 再 request」——
+   * 那句话只对三条路里的一条成立，而它恰好写在处理另外两条的函数上。
+   */
+  async function ensurePermission(request) {
+    const wanted = request || {};
+    if (!wanted.permissions?.length && !wanted.origins?.length) return true;
+    if (await chrome.permissions.contains(wanted).catch(() => false)) return true;
+    // 到这儿才是真没授予。在 service worker 里 request 仍旧会抛，
+    // **而抛出来那句英文和「连接账号」看不出关系**，所以在这里收成 false，
+    // 由调用方说一句他能照着做的中文。
+    return chrome.permissions.request(wanted).catch(() => false);
+  }
+
   async function requestPlatformPermission(platformId) {
     const origins = patternsForPlatform(platformId);
     if (!origins.length) return true;
@@ -274,7 +310,7 @@
   globalThis.SA = Object.freeze({
     DEFAULT_CONFIG, PLATFORM_RULES, DESTINATION_NAMES, loadManagedConfig, getConfig, setConfig,
     api, apiText, activeTab, platformFromUrl, patternsForPlatform, permissionState,
-    requestPlatformPermission, removePlatformPermission, destinationLabel, jobLabel,
+    ensurePermission, requestPlatformPermission, removePlatformPermission, destinationLabel, jobLabel,
     normalizeJobState, statusCopy, escapeHtml
   });
 })();
