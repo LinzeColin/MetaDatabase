@@ -16,7 +16,7 @@ from .canonical_facts import sha256_file, strict_json_load
 
 MANIFEST_PATH = Path("machine/facts/s08_legacy_receipt_compatibility.json")
 COMPATIBILITY_ID = "ABD-S08-LEGACY-RECEIPT-COMPATIBILITY"
-PINNED_MANIFEST_SHA256 = "45fff256dc0f754325830b3a2dca44dfbdfb1503d12bfdcc018c0ede9cbc3192"
+PINNED_MANIFEST_SHA256 = "43f5be946c0e512514ce613f5227d323e52165f16eb166ae33518ca75784c896"
 
 
 def approved_successor_sha256(root: Path, relative: str) -> Optional[str]:

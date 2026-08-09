@@ -2,10 +2,11 @@
 
 ## 当前目标
 
-在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11--S18 均已完成其四个 Phase、本地独立整阶段复审和 GitHub 阶段上传；S19/P01 已完成本地签名和只读复验，但 S19 尚未完成整阶段复审或上传。下一独立 run 最多只能启动 S19/P02；先重读 Task Pack、`REQ-S19-P02`/`AC-S19-P02`、Task Graph、S19/P01 signed evidence 与当前控制制品，再完成一个 Phase。任何本地/远端检查均不构成部署、生产激活、真实市场/账户/TAB/Gmail/OVH/Cloudflare/数据库验证或实际收益证明。
+在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11--S18 均已完成其四个 Phase、本地独立整阶段复审和 GitHub 阶段上传；S19/P01--P02 已完成本地签名和只读复验，但 S19 尚未完成整阶段复审或上传。下一独立 run 最多只能启动 S19/P03；先重读 Task Pack、`REQ-S19-P03`/`AC-S19-P03`、Task Graph、S19/P02 signed evidence 与当前控制制品，再完成一个 Phase。任何本地/远端检查均不构成部署、生产激活、真实市场/账户/TAB/Gmail/OVH/Cloudflare/数据库验证或实际收益证明。
 
 ## 当前状态
 
+- S19/P02 影子运行与模型 Beta 控制已本地签名并只读复验：`machine/evidence/EVD-S19-P02.json`（SHA-256 `6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177`）的 `AC-S19-P02` 为 `40/40 PASS`，下一状态严格为 `S19/P03_READY_NOT_STARTED`。`shadow_report.json` 只重放 8 条冻结合成质量门向量；Golden 向量在校准、净增长、时效、容量、漂移门均通过，但明确标记为 `SYNTHETIC_TEST_ONLY_NOT_EMPIRICAL`。`model_beta_gate.json` 因当前无可验证实时影子证据仍为 `BLOCKED_NO_EMPIRICAL_REALTIME_SHADOW_EVIDENCE`，且实时观测严格为 `0` 天/`0` 合格信号；Model Beta 激活、建议、订单及部署均为 false。定向 `tests/S19/P02_test.py` 为 24 passed，JUnit 已规范化，零新增现金依赖扫描与 Task Pack 静态校验均为 PASS，签名后只读复验 PASS；未执行全量测试、完整回归或真实时间 soak，未访问 OVH、Cloudflare、数据库、市场、账户、TAB/Gmail 或任何生产运行时。回滚只关闭本地 feature flag、恢复 S19/P01 signed evidence 并保留不可变证据/派生状态；新增现金 A$0，30% 月目标仍为 `UNVERIFIED_NOT_GUARANTEED`。
 - S19/P01 Walking Skeleton 与软件 Alpha 已本地签名并只读复验：`machine/evidence/EVD-S19-P01.json`（SHA-256 `183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219`）的 `AC-S19-P01` 为 `36/36 PASS`，下一状态严格为 `S19/P02_READY_NOT_STARTED`。`walking_skeleton_evidence.json` 只闭合一个冻结合成市场的 discovery→advice→invalidation→synthetic result→replay→local mail evidence→recovery 投影，所有动作均为 `NO_RECOMMENDATION`；`software_alpha_gate.json` 明确为 `SOFTWARE_ALPHA_LOCAL_ONLY_NOT_DEPLOYED`。六类真实外部/订单/资金/邮件/部署请求及风险门放宽向量均失败关闭，`-0.0001` 不利扰动仍不放宽任何门。仅运行 `tests/S19/P01_test.py` 的 23 个定向用例、JUnit 规范化、零新增现金依赖扫描、Task Pack 静态校验 `49/49 PASS` 和证据复验；未执行全量回归或真实时间 soak，未访问 OVH、Cloudflare、数据库、市场、账户、TAB/Gmail 或任何生产运行时。回滚只关闭本地 feature flag、保留 S18/P04 已签名 evidence 和派生状态；新增现金 A$0，30% 月目标仍是 `UNVERIFIED_NOT_GUARANTEED`。
 - S18 GitHub 阶段上传回执：本地交付范围 `ea615d4a..022e66bc`（P01--P04 与 S18 whole-stage review）已通过非强制 fast-forward 推送到 `origin/codex/abd-v0001-s11-p01`；随后 `git ls-remote` 返回同一 `022e66bca2171fde750e39595b23c139d34b08b4`。既有 Draft [PR #174](https://github.com/LinzeColin/MetaDatabase/pull/174) 保持 `OPEN`/Draft、base 为 `main`、head 为同一分支和 SHA，标题与正文已准确更新为 S11--S18 的本地证据范围。上传仅证明 GitHub 接收分支提交与 PR 元数据同步；本 run 未读取或等待远端 CI，未声称 CI 通过、合并、部署、上线、OVH/Cloudflare/数据库/市场/账户/TAB/Gmail/调度器/备份/容灾、订单、生产可用性或实际收益完成。
 - S18 独立整阶段复审已本地签名并只读复验：`machine/evidence/EVD-S18-STAGE-REVIEW.json`（SHA-256 `2ee27f33e5eb65c0b3c6b46a6c02f65b1e0b4bb8a199803b1148505471f7e118`）的 `STAGE-REVIEW-S18` 为 `48/48 PASS`，下一状态为 `S18/GITHUB_STAGE_UPLOAD_READY`；三项 findings 均为 `RESOLVED_IN_STAGE_REVIEW`（`3 total / 0 open / 3 resolved`）。复审只重放 P01--P04 的已签名 receipt/rollback、冻结基线、12 个任务链、当前控制制品与 CLI 映射：P01 保持离线 blue/green/canary 的未知或失败探针回退且建议禁用；P02 保持每个高优先级告警的唯一 `NO_RECOMMENDATION_NO_ORDER` 逻辑动作；P03 保持资金事实、实际账本和风险门不可变且 outbox 未发送；P04 保持 6 个离线值守窗口的“正常无需用户维护、异常暂停合同升级”边界。只执行 `tests/S18/stage_review_test.py` 的 28 个定向用例、JUnit 确定性规范化、Task Pack 静态校验 `49/49 PASS` 与本地零预算依赖扫描；未重跑 Phase 套件、完整回归或真实时间 soak。为保持既有 legacy receipt 连续性，仅刷新已允许的 `abd_acceptance/__main__.py` successor 精确 SHA 及既有 manifest/helper/review pins，未扩展 allow-list、改写历史 receipt 或声称 S08 全量复审。此复审为 `LOCAL_STAGE_REVIEW_CONTRACT_NOT_A_FROZEN_TASK_PACK_FACT`，不构成 GitHub 上传、远端 CI、真实 OVH/Cloudflare/数据库/TAB/Gmail/市场/账户/调度器/备份/容灾验证、部署、上线、订单或实际收益证明；新增现金 A$0，30% 月度目标仍为 `UNVERIFIED_NOT_GUARANTEED`。
@@ -81,6 +82,7 @@
 
 ## 已验证
 
+- S19/P02：`uv run --frozen --python 3.12 python -m pytest -q tests/S19/P02_test.py --junitxml=machine/evidence/S19/P02/pytest.xml` 为 `24 passed`；JUnit 已规范化，`scan_paid_dependencies.py` PASS，`validate_pack.py` 为 `49/49 PASS`。`python -m abd_acceptance --contract AC-S19-P02 --evidence machine/evidence` 与最终 `--verify-existing AC-S19-P02` 均 PASS，receipt SHA-256 为 `6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177`。只运行该 Phase 的定向测试、静态校验、依赖扫描、签名与只读复验；未执行全量测试、完整回归或真实时间 soak，也没有外部访问、生产激活、实际订单或收益断言。
 - S19/P01：`uv run --frozen --python 3.12 python -m pytest -q tests/S19/P01_test.py --junitxml=machine/evidence/S19/P01/pytest.xml` 为 `23 passed in 51.88s`；JUnit 已规范化，`scan_paid_dependencies.py` PASS，`validate_pack.py` 为 `49/49 PASS`。`python -m abd_acceptance --contract AC-S19-P01 --evidence machine/evidence` 和最终 `--verify-existing AC-S19-P01` 均为 PASS。只运行该 Phase 的定向测试、静态校验、依赖扫描、签名与只读复验；未执行全量测试、完整回归或真实时间 soak，也没有外部访问或真实资金、订单、邮件发送、部署动作。
 - S17/P04：`uv run --frozen --python 3.12 python -m pytest -q tests/S17/P04_test.py --junitxml=machine/evidence/S17/P04/pytest.xml` 为 `39 passed in 0.57s`；JUnit 已规范化，`scan_paid_dependencies.py` PASS，`validate_pack.py` 为 `49/49 PASS`。`python -m abd_acceptance --verify-existing AC-S17-P01`、`--verify-existing AC-S17-P02`、`--verify-existing AC-S17-P03`、`python -m abd_acceptance --contract AC-S17-P04 --evidence machine/evidence` 和最终 `--verify-existing AC-S17-P04` 均为 PASS，receipt SHA-256 为 `08e1d389d3b0d80d6c729d9835dc27343018985cd8cc1796a9528b5ed7d6e708`。只运行该 Phase 的定向测试、静态校验、依赖扫描、签名与只读复验；未运行全量测试、完整回归或真实时间 soak，也没有外部访问、真实重启或恢复操作。
 - S17/P03：`uv run --frozen --python 3.12 python -m pytest -q tests/S17/P03_test.py --junitxml=machine/evidence/S17/P03/pytest.xml` 为 `38 passed in 0.54s`；JUnit 已规范化，`scan_paid_dependencies.py` PASS，`validate_pack.py` 为 `49/49 PASS`。`python -m abd_acceptance --verify-existing AC-S17-P01`、`--verify-existing AC-S17-P02`、`python -m abd_acceptance --contract AC-S17-P03 --evidence machine/evidence` 和最终 `--verify-existing AC-S17-P03` 均为 PASS，receipt SHA-256 为 `2f40bd1eed62a0b1ed14347507d497fa54cc63db56c4f31112c631fe48beef97`。只运行该 Phase 的定向测试、静态校验、依赖扫描、签名与只读复验；未运行全量测试、完整回归或真实时间 soak，也没有外部访问或真实故障注入。
@@ -140,6 +142,16 @@
 - `machine/evidence/EVD-S19-P01_rollback.json`
 - `machine/evidence/S19/P01/pytest.xml`
 - `machine/evidence/S19/P01/paid_dependency_scan.txt`
+- `abd_acceptance/shadow_beta.py`
+- `abd_acceptance/shadow_beta_acceptance.py`
+- `machine/tests/fixtures/S19_P02.json`
+- `tests/S19/P02_test.py`
+- `shadow_report.json`
+- `model_beta_gate.json`
+- `machine/evidence/EVD-S19-P02.json`
+- `machine/evidence/EVD-S19-P02_rollback.json`
+- `machine/evidence/S19/P02/pytest.xml`
+- `machine/evidence/S19/P02/paid_dependency_scan.txt`
 - `abd_acceptance/stage17_review.py`
 - `machine/facts/stage17_review_contract.json`
 - `machine/tests/fixtures/S17_STAGE_REVIEW.json`
@@ -478,8 +490,9 @@
 - S18/P03 仅证明离线、确定性的有限自愈计划和未发送 owner outbox 投影；它不启动真实进程、不重试真实发送、不切换真实来源/模型、不读写资金事实或账本，也不证明 OVH、Cloudflare、数据库、市场、TAB/Gmail、账户、部署、上线、订单或实际收益。
 - S18/P04 仅证明 6 个离线逻辑维护窗口与暂停合同可确定性重放；它不安装真实 scheduler、不读取或发送 Gmail、不执行真实补丁/备份/容灾、不访问 OVH、Cloudflare、数据库、市场或账户，也不证明部署、上线、订单或实际收益。
 - S19/P01 仅证明一个冻结合成市场的本地 walking skeleton 与软件 Alpha 入口可确定性重放；它不构成真实市场发现、建议、失效、赛果、邮件归档、恢复、资金、账户、TAB/Gmail、OVH、Cloudflare、数据库、部署、上线、订单、收益或 30% 目标验证。
+- S19/P02 仅证明 8 条冻结合成指标向量的本地校准、净增长、时效、容量与漂移门可确定性重放；尽管 Golden 向量通过全部质量门，它明确不是实时影子证据。当前实时观测仍为 0 天/0 合格信号，`model_beta_gate.json` 保持 `BLOCKED_NO_EMPIRICAL_REALTIME_SHADOW_EVIDENCE`，不得外推为 Model Beta、真实市场/容量、建议、订单、资金、TAB/Gmail、OVH、Cloudflare、数据库、部署、上线、收益或 30% 目标验证。
 - 真实市场、真实账户、TAB/Gmail 证据归档、OVH、Cloudflare 与生产上线均未验证、未部署且不应据此推断完成。
 
 ## 下一步
 
-保持 PR #174 的远端 CI 状态与本地结果彼此独立；不得把 pending、远端检查、Draft PR 或本地验收结果外推为 CI、合并、部署、OVH、Cloudflare、真实市场、账户或生产上线完成。下一次独立 run 最多启动 S19/P02：先复验 S19/P01 signed receipt、S19/P02 冻结合同与 Task Graph，再实现、定向验证、签名和本地复验一个 Phase；不得在该 run 启动 S19/P03、进行 S19 整阶段复审/上传、等待远端 CI、部署或运行真实时间 soak。保持零新增现金、无全量测试/完整回归。
+保持 PR #174 的远端 CI 状态与本地结果彼此独立；不得把 pending、远端检查、Draft PR 或本地验收结果外推为 CI、合并、部署、OVH、Cloudflare、真实市场、账户或生产上线完成。下一次独立 run 最多启动 S19/P03：先复验 S19/P02 signed receipt、`REQ-S19-P03`/`AC-S19-P03` 冻结合同与 Task Graph，再实现、定向验证、签名和本地复验一个 Phase；不得在该 run 启动 S19/P04、进行 S19 整阶段复审/上传、等待远端 CI、部署或运行真实时间 soak。保持零新增现金、无全量测试/完整回归。
