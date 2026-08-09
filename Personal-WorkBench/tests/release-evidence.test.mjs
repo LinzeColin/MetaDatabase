@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { evidenceReference, redactCommandResult } from "../scripts/verify-release.mjs";
 
@@ -36,4 +37,16 @@ test("release evidence references do not retain nested raw evidence", () => {
   assert.equal(serialized.includes("SENTINEL_"), false);
   assert.equal("raw" in reference, false);
   assert.equal(reference.source, "13_evidence/quality.json");
+});
+
+test("controlled browser replay evidence does not retain test credentials", async () => {
+  const evidence = JSON.parse(
+    await readFile(new URL("../13_evidence/ordinary_chrome_auth_replay.json", import.meta.url), "utf8"),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("Bearer "), false);
 });
