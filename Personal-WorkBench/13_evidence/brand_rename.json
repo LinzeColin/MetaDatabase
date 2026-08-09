@@ -34,6 +34,18 @@
     "source_tree_matches_local_project_tree": true,
     "access_mode_remained_custom": true
   },
+  "post_cutover_route_normalization": {
+    "local_commit": "688a4e8d72c6722051d8aac5ea2e84a923e950de",
+    "sites_source_commit": "5d5e78e32cd0d33c33fa2e383ef4d21a90557b79",
+    "project_tree": "091473eb3c9b87d774272905652c53bfe87cf540",
+    "source_tree_matches_local_project_tree": true,
+    "saved_version_number": 12,
+    "private_deployment_status": "SUCCEEDED",
+    "environment_revision": 8,
+    "legacy_platform_navigation": "CLIENT_REDIRECT_TO_CANONICAL_DOMAIN_PRESERVES_PATH_AND_QUERY",
+    "canonical_domain_browser_probe": "PASS_PRIVATE_NO_WRITE",
+    "access_mode_remained_custom": true
+  },
   "custom_domain": {
     "hostname": "mydairy.linzezhang.com",
     "status": "ACTIVE",
@@ -66,7 +78,7 @@
     "封存任务包路径与历史证据保留原始命名，避免倒改冻结事实。",
     "旧 outbox storage key 只作为一次性迁移读源；写入新队列后会删除旧 key。",
     "既有 Better Auth cookie prefix 保留，待双 cookie 迁移实测后再更换，以避免当前会话中断。",
-    "旧平台 origin 不再是 canonical APP_ORIGIN，只在 APP_TRUSTED_ORIGINS 中保留为受限迁移兼容入口。"
+    "旧平台 origin 不再是 canonical APP_ORIGIN，只在 APP_TRUSTED_ORIGINS 中保留为受限迁移兼容入口；人机工作台导航会转到 canonical domain 并保留页面查询参数。"
   ],
   "final_acceptance_claimed": false,
   "sensitive_values_recorded": false
