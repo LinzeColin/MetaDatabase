@@ -11,6 +11,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME = ROOT / "runtime"
+BASE_IMAGE = "docker.io/library/python:3.12-alpine@sha256:aa679aa4eed6eb56c1dc6ad3f1b98b7d2d788fd961596779d188fdedad97fb38"
 if str(RUNTIME) not in sys.path:
     sys.path.insert(0, str(RUNTIME))
 
@@ -90,3 +91,15 @@ def test_http_surface_is_status_only(tmp_path: Path) -> None:
         server.shutdown()
         server.server_close()
         worker.join(timeout=1)
+
+
+def test_runtime_build_sources_pin_the_reviewed_amd64_base_image() -> None:
+    dockerfile = (RUNTIME / "Dockerfile").read_text(encoding="utf-8")
+    script = (RUNTIME / "build_oci.sh").read_text(encoding="utf-8")
+    contract = json.loads((RUNTIME / "release_contract.json").read_text(encoding="utf-8"))
+
+    assert dockerfile.splitlines()[0] == "FROM " + BASE_IMAGE
+    assert "ABD_BASE_IMAGE cannot override the reviewed base image digest" in script
+    assert "--pull=false" in script
+    assert "--network=none" in script
+    assert contract["base_image"]["resolved_reference"] == BASE_IMAGE

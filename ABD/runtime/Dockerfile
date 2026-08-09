@@ -1,5 +1,4 @@
-ARG BASE_IMAGE
-FROM ${BASE_IMAGE}
+FROM docker.io/library/python:3.12-alpine@sha256:aa679aa4eed6eb56c1dc6ad3f1b98b7d2d788fd961596779d188fdedad97fb38
 
 LABEL org.opencontainers.image.title="ABD observation runtime"
 LABEL org.opencontainers.image.version="0.0.0.1"
