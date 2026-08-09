@@ -1,7 +1,8 @@
 export const OUTBOX_STORAGE_KEY = "mydairy.outbox.v1";
 /**
- * Read-once migration keys from the retired product identity. New queue data
- * is always written under OUTBOX_STORAGE_KEY, then these keys are removed.
+ * Legacy localStorage migration keys. Active workbench queues live in the
+ * account-scoped IndexedDB cache; these keys are read once into the guest
+ * partition and then removed without assigning them to a signed-in account.
  */
 export const RETIRED_COMPATIBILITY_OUTBOX_STORAGE_KEYS = ["huchuliang.workbench.outbox.v1"] as const;
 
@@ -12,6 +13,8 @@ export type OutboxAction = {
   method: OutboxMethod;
   payload: Record<string, unknown>;
   idempotencyKey: string;
+  /** Local-only row replaced after this idempotent mutation succeeds. */
+  localRecordId?: string;
   createdAt: number;
   queuedAt: number;
 };
@@ -48,6 +51,7 @@ function isOutboxAction(value: unknown): value is OutboxAction {
     value.method === "POST" &&
     isObject(value.payload) &&
     typeof value.idempotencyKey === "string" &&
+    (value.localRecordId === undefined || typeof value.localRecordId === "string") &&
     Number.isFinite(value.createdAt) &&
     Number.isFinite(value.queuedAt)
   );

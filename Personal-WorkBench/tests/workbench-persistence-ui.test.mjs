@@ -71,12 +71,21 @@ test("period record control immediately acknowledges pending and failed saves", 
   assert.doesNotMatch(source, /if \(periods\.consentRequired\)/);
 });
 
-test("todo date placeholder is stable across server and browser rendering", async () => {
+test("todo uses a browser-valid date pattern and account-scoped IndexedDB persistence", async () => {
   const source = await readFile(todoSource, "utf8");
+  const cacheSource = await readFile("app/_components/workbench/local-record-cache.ts", "utf8");
 
   assert.match(source, /placeholder="YYYY-MM-DD"/);
+  assert.match(source, /pattern="\[0-9\]\{4\}-\[0-9\]\{2\}-\[0-9\]\{2\}"/);
   assert.doesNotMatch(source, /placeholder=\{toChineseDate\(""\)\}/);
   assert.match(source, /dueDate: safeString\(dueDate, toChineseDate\(""\)\)/);
+  assert.match(source, /createDeviceLocalRecord/);
+  assert.match(source, /writeDeviceLocalRecord/);
+  assert.match(source, /readDeviceOutbox/);
+  assert.match(source, /writeDeviceOutbox/);
+  assert.match(source, /scope === "guest"/);
+  assert.match(cacheSource, /const OUTBOX_STORE = "outbox"/);
+  assert.match(cacheSource, /const DATABASE_VERSION = 2/);
 });
 
 test("built-in habit requests use a stable ASCII idempotency key", async () => {

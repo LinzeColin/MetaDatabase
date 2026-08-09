@@ -63,6 +63,12 @@ const actionC: OutboxAction = {
   payload: { title: "c" },
 };
 
+const localAction: OutboxAction = {
+  ...actionA,
+  idempotencyKey: "local",
+  localRecordId: "local_todo_01",
+};
+
 test("parseOutbox filters invalid entries and keeps partial queue", () => {
   assert.deepEqual(parseOutbox(null), []);
   assert.deepEqual(parseOutbox("[]"), []);
@@ -81,6 +87,13 @@ test("read/write/append outbox operations are stable with local storage", () => 
   appendOutbox(storage, actionB);
   assert.equal(readOutbox(storage).length, 3);
   assert.equal(readOutbox(storage).at(-1)?.idempotencyKey, "b");
+});
+
+test("outbox preserves the local row linkage required for reconciliation", () => {
+  const parsed = parseOutbox(JSON.stringify([localAction]));
+
+  assert.equal(parsed.length, 1);
+  assert.equal(parsed[0].localRecordId, "local_todo_01");
 });
 
 test("retired-brand outbox migrates into mydairy without losing queued work", () => {

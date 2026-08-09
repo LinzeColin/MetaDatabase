@@ -10,6 +10,16 @@ export type DeviceLocalRecord = Record<string, unknown> & {
   updated_at: number;
 };
 
+export type DeviceOutboxAction = {
+  createdAt: number;
+  endpoint: string;
+  idempotencyKey: string;
+  localRecordId?: string;
+  method: "POST";
+  payload: Record<string, unknown>;
+  queuedAt: number;
+};
+
 type CachedRecordRow = {
   id: string;
   key: string;
@@ -19,10 +29,19 @@ type CachedRecordRow = {
   updatedAt: number;
 };
 
+type CachedOutboxRow = {
+  action: DeviceOutboxAction;
+  key: string;
+  queuedAt: number;
+  scope: string;
+};
+
 const DATABASE_NAME = "mydairy-device-records-v1";
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
 const RECORD_STORE = "records";
 const SCOPE_RESOURCE_INDEX = "by_scope_resource";
+const OUTBOX_STORE = "outbox";
+const OUTBOX_SCOPE_INDEX = "by_scope";
 const LOCAL_MARKER = "__mydairy_device_local_v1";
 const tenantFieldNames = new Set(["userId", "user_id", "ownerId", "owner_id", "tenantId", "tenant_id"]);
 
@@ -54,11 +73,17 @@ function openRecordDatabase(): Promise<IDBDatabase> {
     const request = window.indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
     request.onupgradeneeded = () => {
       const database = request.result;
-      const store = database.objectStoreNames.contains(RECORD_STORE)
+      const recordStore = database.objectStoreNames.contains(RECORD_STORE)
         ? request.transaction?.objectStore(RECORD_STORE)
         : database.createObjectStore(RECORD_STORE, { keyPath: "key" });
-      if (store && !store.indexNames.contains(SCOPE_RESOURCE_INDEX)) {
-        store.createIndex(SCOPE_RESOURCE_INDEX, ["scope", "resource"], { unique: false });
+      if (recordStore && !recordStore.indexNames.contains(SCOPE_RESOURCE_INDEX)) {
+        recordStore.createIndex(SCOPE_RESOURCE_INDEX, ["scope", "resource"], { unique: false });
+      }
+      const outboxStore = database.objectStoreNames.contains(OUTBOX_STORE)
+        ? request.transaction?.objectStore(OUTBOX_STORE)
+        : database.createObjectStore(OUTBOX_STORE, { keyPath: "key" });
+      if (outboxStore && !outboxStore.indexNames.contains(OUTBOX_SCOPE_INDEX)) {
+        outboxStore.createIndex(OUTBOX_SCOPE_INDEX, "scope", { unique: false });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -68,6 +93,10 @@ function openRecordDatabase(): Promise<IDBDatabase> {
 
 function cacheKey(scope: string, resource: string, id: string): string {
   return `${scope}\u0000${resource}\u0000${id}`;
+}
+
+function outboxKey(scope: string, idempotencyKey: string): string {
+  return `${scope}\u0000${idempotencyKey}`;
 }
 
 function toSnakeCase(value: string): string {
@@ -152,6 +181,26 @@ export function isDeviceLocalRecord(value: unknown): value is DeviceLocalRecord 
   return isRecord(value) && value[LOCAL_MARKER] === true && typeof value.id === "string";
 }
 
+function isDeviceOutboxAction(value: unknown): value is DeviceOutboxAction {
+  return isRecord(value)
+    && typeof value.endpoint === "string"
+    && value.endpoint.startsWith("/api/mydairy/")
+    && value.method === "POST"
+    && isRecord(value.payload)
+    && typeof value.idempotencyKey === "string"
+    && Number.isFinite(value.createdAt)
+    && Number.isFinite(value.queuedAt)
+    && (value.localRecordId === undefined || typeof value.localRecordId === "string");
+}
+
+function sanitizeOutboxAction(action: DeviceOutboxAction): DeviceOutboxAction {
+  const payload: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(action.payload)) {
+    if (!tenantFieldNames.has(key)) payload[key] = value;
+  }
+  return { ...action, payload };
+}
+
 export function mergeWithDeviceLocalRecords<T extends { id: string }>(remote: T[], local: T[]): T[] {
   const remoteIds = new Set(remote.map((record) => record.id));
   return [...local.filter((record) => !remoteIds.has(record.id)), ...remote];
@@ -203,4 +252,62 @@ export async function removeDeviceLocalRecord(scope: string, resource: string, i
   } finally {
     database.close();
   }
+}
+
+/**
+ * Outbox actions follow the same opaque account scope as local records. They
+ * are deliberately separate from legacy localStorage so an action from an
+ * unknown shared-browser account can never be replayed as the next account.
+ */
+export async function readDeviceOutbox(scope: string): Promise<DeviceOutboxAction[]> {
+  if (!canUseIndexedDb()) return [];
+  const database = await openRecordDatabase();
+  try {
+    const transaction = database.transaction(OUTBOX_STORE, "readonly");
+    const index = transaction.objectStore(OUTBOX_STORE).index(OUTBOX_SCOPE_INDEX);
+    const rows = await requestValue(index.getAll(IDBKeyRange.only(scope))) as CachedOutboxRow[];
+    await transactionDone(transaction);
+    return rows
+      .map((row) => row.action)
+      .filter(isDeviceOutboxAction)
+      .sort((left, right) => left.queuedAt - right.queuedAt);
+  } finally {
+    database.close();
+  }
+}
+
+export async function writeDeviceOutbox(scope: string, actions: DeviceOutboxAction[]): Promise<void> {
+  if (!canUseIndexedDb()) throw new Error("IndexedDB is unavailable.");
+  const database = await openRecordDatabase();
+  try {
+    const transaction = database.transaction(OUTBOX_STORE, "readwrite");
+    const store = transaction.objectStore(OUTBOX_STORE);
+    const index = store.index(OUTBOX_SCOPE_INDEX);
+    const existingKeys = await requestValue(index.getAllKeys(IDBKeyRange.only(scope)));
+    for (const key of existingKeys) store.delete(key);
+    const seen = new Set<string>();
+    for (const source of actions) {
+      if (!isDeviceOutboxAction(source) || seen.has(source.idempotencyKey)) continue;
+      seen.add(source.idempotencyKey);
+      const action = sanitizeOutboxAction(source);
+      store.put({
+        action,
+        key: outboxKey(scope, action.idempotencyKey),
+        queuedAt: action.queuedAt,
+        scope,
+      } satisfies CachedOutboxRow);
+    }
+    await transactionDone(transaction);
+  } finally {
+    database.close();
+  }
+}
+
+export async function appendDeviceOutbox(scope: string, action: DeviceOutboxAction): Promise<DeviceOutboxAction[]> {
+  const current = await readDeviceOutbox(scope);
+  const next = current.some((item) => item.idempotencyKey === action.idempotencyKey)
+    ? current
+    : [...current, action];
+  await writeDeviceOutbox(scope, next);
+  return next;
 }
