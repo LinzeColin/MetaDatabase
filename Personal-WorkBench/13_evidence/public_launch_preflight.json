@@ -5,7 +5,7 @@
   "canonical_task_completion": "NOT_GRANTED_BY_THIS_LOCAL_PRECHECK",
   "status": "PASS_LOCAL_PUBLIC_LAUNCH_PRECHECK",
   "verdict": "LOCAL_PRECHECK_ONLY",
-  "runAt": "2026-08-08T21:19:16.830Z",
+  "runAt": "2026-08-09T16:45:29.043Z",
   "environment": {
     "taskpack_available": true,
     "auth_runtime_mode": "IN_PROCESS_NO_SECRET_ROUTE_HARNESS",
@@ -69,13 +69,13 @@
     "asset_manifest": {
       "source": "13_evidence/asset_manifest.json",
       "exists": true,
-      "status": "PRIVATE_CANDIDATE_PASS_PUBLIC_DEPLOY_BLOCKED",
+      "status": "PASS_FINAL_AUTHORIZED_ASSETS",
       "saved_candidate": null
     },
     "owner_activation": {
       "source": "13_evidence/owner_activation.json",
       "exists": true,
-      "status": "BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK",
+      "status": "PASS_LOCAL_OWNER_ACTIVATION_PRECHECK",
       "saved_candidate": null
     }
   },
@@ -87,14 +87,14 @@
     "external_gates": [
       {
         "id": "authorized_public_assets",
-        "satisfied": false,
-        "observed_status": "PRIVATE_CANDIDATE_PASS_PUBLIC_DEPLOY_BLOCKED",
+        "satisfied": true,
+        "observed_status": "PASS_FINAL_AUTHORIZED_ASSETS",
         "reason": "最终获授权 Hello Kitty 素材与权利记录必须在公开部署前通过。"
       },
       {
         "id": "owner_activation",
-        "satisfied": false,
-        "observed_status": "BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK",
+        "satisfied": true,
+        "observed_status": "PASS_LOCAL_OWNER_ACTIVATION_PRECHECK",
         "reason": "Sites 运行时配置、隐私门与 Owner 激活预检必须通过。"
       },
       {
@@ -112,8 +112,6 @@
     ]
   },
   "risks": [
-    "authorized_public_assets 未满足：最终获授权 Hello Kitty 素材与权利记录必须在公开部署前通过。（当前=PRIVATE_CANDIDATE_PASS_PUBLIC_DEPLOY_BLOCKED）",
-    "owner_activation 未满足：Sites 运行时配置、隐私门与 Owner 激活预检必须通过。（当前=BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK）",
     "saved_candidate_identity 未满足：真实 Google、邮箱、Turnstile 与回调链路必须在候选环境验证。（当前=NOT_RUN）",
     "second_device_sync 未满足：跨设备读取与隔离必须有独立真实回放证据。（当前=not_run）"
   ],
