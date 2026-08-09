@@ -28,7 +28,7 @@
     "extension_update_in_place_drill.py": "每次发布",
     "list_shape_end_to_end_drill.py": "改到那条路时",
     "bilibili_end_to_end_drill.py": "改到那条路时",
-    "bilibili_acquisition_drill.py": "改到那条路时",
+    "bilibili_acquisition_drill.py": "**每次发布**（run_all_drills）",
     "extension_capture_drill.py": "改到那条路时",
     "extension_capture_buffer_drill.py": "改到那条路时",
     "extension_save_page_drill.py": "改到那条路时",
@@ -42,6 +42,7 @@
     "restore_runtime_db_drill.py": "定期"
   },
   "run_by_deploy": [
+    "bilibili_acquisition_drill.py",
     "bilibili_end_to_end_drill.py",
     "disaster_recovery_drill.py",
     "extension_bridge_boundary_drill.py",

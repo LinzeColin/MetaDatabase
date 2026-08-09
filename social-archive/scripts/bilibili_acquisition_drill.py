@@ -218,6 +218,11 @@ function medias(n, start = 0) {
 """
 
 
+def _utcnow() -> str:
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="验 B 站收藏夹取数路真的读得到")
     parser.add_argument("--no-live", action="store_true",
@@ -284,6 +289,10 @@ def main() -> int:
         "task": "G1",
         "what_this_is": "B 站收藏夹取数路的实测记录。SYNCABLE_NOW 收 bilibili 的依据就是这份。",
         "live_probe_ran": not args.no_live,
+        # **这份证据是哪天的。**（2026-08-07）
+        # `SYNCABLE_NOW` 收 bilibili 的依据就是这份文件，而文件本身不会过期——
+        # B 站改了接口它还是 PASS。写上时间，至少让「这是哪天的事实」看得见。
+        "probed_at": _utcnow(),
         "live": live,
         "fixture": fixture,
         "problems": problems,

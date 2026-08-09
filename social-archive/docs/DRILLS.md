@@ -92,7 +92,7 @@ python scripts/<演练名>.py
 | `extension_update_in_place_drill.py` | 每次发布 | 在原文件夹里覆盖再重载：ID 变不变、版本更不更新、已配对的凭据还在不在 |
 | `list_shape_end_to_end_drill.py` | 改到那条路时 | 不知道接口地址，能不能从页面自己发的响应里认出收藏列表（`--platform` 逐个平台跑） |
 | `bilibili_end_to_end_drill.py` | 改到那条路时 | 从连接账号到档案馆里真的出现条目，真 Chrome 里整条通不通 |
-| `bilibili_acquisition_drill.py` | 改到那条路时 | B 站收藏夹取数路真的读得到吗（打真接口） |
+| `bilibili_acquisition_drill.py` | **每次发布**（run_all_drills） | B 站收藏夹取数路真的读得到吗（打真接口） |
 | `extension_capture_drill.py` | 改到那条路时 | 「拦截 → 读懂」整条链 |
 | `extension_capture_buffer_drill.py` | 改到那条路时 | 诊断按钮之后，两件最容易骗人的事 |
 | `extension_save_page_drill.py` | 改到那条路时 | 「保存当前页面」那一下真的送到档案馆了吗 |

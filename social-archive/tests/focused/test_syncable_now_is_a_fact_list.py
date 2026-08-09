@@ -176,3 +176,31 @@ def test_the_onboarding_sentence_is_not_a_second_capability_list() -> None:
     assert "state.platformSupport" in step, "那句话不是从能力声明现算的——它会再漂一次"
     for hardcoded in ("X / Instagram", "小红书、抖音、B站、快手"):
         assert hardcoded not in step, f"那句话里又硬编码了平台名单：{hardcoded}"
+
+
+def test_the_only_real_api_drill_has_an_automatic_caller() -> None:
+    """**唯一打真平台接口的那条演练，不能靠人记得去跑。**（2026-08-07）
+
+    `SYNCABLE_NOW` 收 bilibili 的**全部依据**就是
+    `evidence/G1/BILIBILI_ACQUISITION.json`。而生成它的演练此前归在
+    DRILLS.md 的「改到那条路时」——靠人判断。后果是特定的：B 站哪天改了接口，
+    那份文件仍旧是 PASS，产品继续对他说「B站能自动同步」，而他重连之后
+    一条都进不来——**没有任何判据会红**，因为其余演练跑的全是我们自己写的假站。
+    """
+    runner = (ROOT / "scripts/run_all_drills.py").read_text(encoding="utf-8")
+    assert "bilibili_acquisition_drill.py" in runner, (
+        "唯一打真接口的演练没有自动调用方——它的证据可以放几周不动，"
+        "而那份证据正是「bilibili 能自动同步」这句话的全部依据")
+
+
+def test_the_real_api_evidence_says_when_it_was_taken() -> None:
+    """**证据不会过期，所以至少要能看出它是哪天的。**"""
+    import json as _json
+
+    data = _json.loads((ROOT / "evidence/G1/BILIBILI_ACQUISITION.json").read_text(encoding="utf-8"))
+    assert data.get("live_probe_ran") is True, "这份证据不是真打过接口那一次"
+    stamp = str(data.get("probed_at") or "")
+    assert stamp.endswith("Z") and len(stamp) == 20, (
+        f"证据里没有可读的采集时间：{stamp!r}——"
+        "B 站改了接口这份文件还是 PASS，没有时间就看不出它有多旧")
+

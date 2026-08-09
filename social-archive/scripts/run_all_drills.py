@@ -43,6 +43,19 @@ ZERO_ARG = [
     # 他点插件图标看到的第一屏：三种状态各说各的话（2026-08-07）
     "popup_states_drill.py",
     "bilibili_end_to_end_drill.py",
+    # **唯一打真平台接口的那一条**（2026-08-07 补上调用方）。
+    #
+    # 它此前归在 DRILLS.md 的「改到那条路时」——靠人判断，而这个仓已经
+    # 记过这一档不可靠。后果是特定的：`SYNCABLE_NOW` 收 bilibili 的**全部
+    # 依据**就是它生成的那份 evidence/G1/BILIBILI_ACQUISITION.json。
+    # B 站哪天改了接口，那份文件仍旧是 PASS，产品继续对他说「B站能自动同步」，
+    # 而他重连之后一条都进不来——**没有任何判据会红**，因为其余演练跑的
+    # 全是我们自己写的假站。
+    #
+    # 代价可控：公开 REST、无签名、无 API key、不带 Cookie（L0 零费用）。
+    # 打不通它会明确报出来（`live` 那段有 `_error` 就直接算 problem），
+    # 不会静默成 PASS。
+    "bilibili_acquisition_drill.py",
 ]
 
 # 要参数、但参数是固定的那几个（一次验一个平台）。
