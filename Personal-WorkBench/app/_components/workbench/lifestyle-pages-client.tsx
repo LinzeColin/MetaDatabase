@@ -435,6 +435,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
 
   function openPhotoPicker() {
     if (reference) return;
+    setUploadFeedback("请选择 JPEG、PNG 或 WebP 格式的食物照片。");
     photoInputRef.current?.click();
   }
 
@@ -657,6 +658,14 @@ export function PeriodClient({ reference }: { reference: boolean }) {
 
   async function addPeriodRecord() {
     if (reference) return;
+    if (periods.authRequired) {
+      setFeedback("请先登录并完成邮箱验证，再保存经期记录和查看同步历史。");
+      return;
+    }
+    if (periods.consentRequired) {
+      setFeedback("请先在账户页开启敏感内容跨设备保存，再记录经期。");
+      return;
+    }
     const start = startDate.trim();
     const end = endDate.trim() || start;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end)) {
