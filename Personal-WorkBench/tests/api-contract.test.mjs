@@ -138,6 +138,9 @@ test("storage check is verified-session-only and data-free", async () => {
 
   assert.ok(handler.indexOf("requireVerifiedSession") < handler.indexOf("probeStorageBindings"));
   assert.ok(route.includes('"Cache-Control": "no-store"'));
+  assert.ok(route.includes('"Content-Type": "text/html; charset=utf-8"'));
+  assert.ok(route.includes('"X-Robots-Tag": "noindex, nofollow"'));
+  assert.equal(route.includes("Response.json"), false);
   assert.ok(helper.includes('env.DB.prepare("SELECT 1 AS storage_binding_probe").first()'));
   assert.ok(helper.includes("env.FILES.head"));
   for (const forbiddenOperation of ["env.FILES.get", "env.FILES.list", "env.FILES.put", "env.FILES.delete"]) {
