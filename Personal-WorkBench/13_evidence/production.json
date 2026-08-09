@@ -1,18 +1,32 @@
 {
   "task_id": "S5-T3",
-  "status": "BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK",
+  "status": "IN_PROGRESS_PRIVATE_RUNTIME_ACCEPTANCE",
   "candidate_commit": null,
   "environment": {
-    "origin_configured": false,
-    "origin_kind": "NOT_CONFIGURED",
-    "checked_at": "2026-08-08T21:47:09.580Z"
+    "origin_configured": true,
+    "origin_kind": "PRIVATE_SITES_HTTPS",
+    "checked_at": "2026-08-09T06:10:03.187Z",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "current_live_present": true,
+    "latest_saved_version_number": 6,
+    "environment_revision": 7,
+    "environment_entry_counts": {
+      "total": 14,
+      "secret": 11,
+      "non_secret": 3
+    }
   },
   "evidence_files": [
     "13_evidence/auth-saved.json",
     "13_evidence/owner_activation.json",
-    "13_evidence/asset_manifest.json"
+    "13_evidence/asset_manifest.json",
+    "13_evidence/saved_version.json",
+    "13_evidence/production-smoke-run.json"
   ],
-  "notes": "生产链路验证脚本先输出可复现的预检阻断信息，真实 OAuth/邮箱/回归脚本需在生产域名下另行执行。",
-  "phase": "BLOCKED",
-  "reason": "未设置生产 Origin（需配置 SITES_PRODUCTION_ORIGIN 或 PRODUCTION_SMOKE_ORIGIN）。"
+  "notes": "当前记录为 Sites 私有控制面快照，仅证明访问边界、已保存版本与运行时配置存在性；不包含任何地址、密钥、令牌、邮箱或用户内容，也不替代正式独立验收。",
+  "phase": "PRIVATE_RUNTIME_ACCEPTANCE_IN_PROGRESS",
+  "reason": "Google、找回与回滚已有私有实际回放记录；新邮箱注册验证仍在服务端限流冷却窗口内，第二设备、A/B 隔离与数据持久化尚未形成当前轮真实证据。"
 }
