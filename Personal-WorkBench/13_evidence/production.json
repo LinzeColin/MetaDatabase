@@ -5,9 +5,9 @@
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
   "observed_at": "2026-08-09",
   "candidate": {
-    "local_source_commit": "366d1641744ce2b1cc1f890dcbc0332a73c3145a",
-    "sites_source_commit": "10578878b0fb8cbfcf6bb0f85e8c97c6045c6e14",
-    "saved_version_number": 9,
+    "local_source_commit": "a9f1c728db32dac6d485791fd71ee36531dbf6b8",
+    "sites_source_commit": "0fffd599830d06fceabc681537ec79662dcfdae0",
+    "saved_version_number": 10,
     "source_projection_matches_current_project_tree": true,
     "environment_revision": 8
   },
@@ -23,10 +23,11 @@
     "raw_url_recorded": false
   },
   "controlled_deployment_and_recovery": {
-    "version_9_private_deploy": "SUCCEEDED",
+    "version_10_private_deploy": "SUCCEEDED",
+    "prior_version_9_private_deploy": "SUCCEEDED",
     "prior_version_6_private_rollback": "SUCCEEDED",
     "prior_version_7_private_restore": "SUCCEEDED",
-    "live_version_matches_version_9": true,
+    "live_version_matches_version_10": true,
     "current_deployment_environment_revision": 8
   },
   "observed_interface": {
@@ -34,6 +35,9 @@
     "ledger_empty_amount_has_visible_feedback": true,
     "ledger_history_section_present": true,
     "period_record_action_exposes_sensitive_cross_device_consent_boundary": true,
+    "local_unauthenticated_interaction_audit": "PASS_NO_VISIBLE_EFFECT_CONTROLS_0_OF_140",
+    "food_photo_picker_explains_supported_formats_before_native_chooser": true,
+    "period_record_action_explains_auth_or_sensitive_consent_precondition": true,
     "raw_user_records_read": false,
     "test_user_data_written_then_cleaned": true,
     "test_user_data_remaining": false
@@ -83,5 +87,5 @@
     "physical second-device history readback and direct D1/R2 reconciliation",
     "negative provider and recovery-path replay"
   ],
-  "notes": "This record contains only private control-plane and rendered-UI facts. Test-only authentication identities exercised email authentication, recovery, a non-sensitive A/B habit-checkin isolation replay, and a separate-session history readback. Temporary habit/check-in records were deleted; no real-user record, raw cookie, credential, account identifier, mail content, or URL was recorded. This does not replace physical-device, direct D1/R2, ordinary-browser, or final independent acceptance."
+  "notes": "This record contains only private control-plane and rendered-UI facts. The Version 10 UX update was locally audited without account or business-data submission; it adds visible guidance before native food-photo selection and when an unauthenticated or non-consented period action cannot be saved. Test-only authentication identities exercised email authentication, recovery, a non-sensitive A/B habit-checkin isolation replay, and a separate-session history readback. Temporary habit/check-in records were deleted; no real-user record, raw cookie, credential, account identifier, mail content, or URL was recorded. This does not replace physical-device, direct D1/R2, ordinary-browser, or final independent acceptance."
 }

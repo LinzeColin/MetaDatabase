@@ -24,6 +24,16 @@
     "allowed_group_count": 0,
     "public_release_claimed": false
   },
+  "post_cutover_private_update": {
+    "local_commit": "a9f1c728db32dac6d485791fd71ee36531dbf6b8",
+    "sites_source_commit": "0fffd599830d06fceabc681537ec79662dcfdae0",
+    "project_tree": "319239518204a5673043554d91c4cd990120847f",
+    "saved_version_number": 10,
+    "private_deployment_status": "SUCCEEDED",
+    "environment_revision": 8,
+    "source_tree_matches_local_project_tree": true,
+    "access_mode_remained_custom": true
+  },
   "custom_domain": {
     "hostname": "mydairy.linzezhang.com",
     "status": "ACTIVE",
