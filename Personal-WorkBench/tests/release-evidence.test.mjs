@@ -186,3 +186,27 @@ test("Version 18 in-app mutation replay retains no session or record material", 
   assert.equal(serialized.includes("Bearer "), false);
   assert.equal(serialized.includes("token="), false);
 });
+
+test("Version 18 Chrome auth and workbench replay retains no controlled-account material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/version_18_agent_controlled_chrome_auth_and_workbench_post_replay.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.current_private_version.sites_version_number, 18);
+  assert.equal(evidence.controlled_identity_and_authentication.verification_message_received, true);
+  assert.equal(evidence.workbench_replay.visible_business_record_creation_confirmed, false);
+  assert.equal(evidence.cleanup.test_account_deletion_confirmed, true);
+  assert.equal(evidence.cleanup.temporary_mailbox_deleted, true);
+  assert.equal(evidence.cleanup.temporary_credentials_and_mail_references_cleared, true);
+  assert.equal(evidence.cleanup.temporary_browser_tabs_finalized, true);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+  assert.equal(serialized.includes("PwB!"), false);
+});
