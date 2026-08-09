@@ -520,6 +520,7 @@ def _audit_imports(
         "capacity_model",
         "equivalent_signal",
         "economics",
+        "target_falsification",
     }
     stdlib = set(sys.stdlib_module_names)
     for path in paths:

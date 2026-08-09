@@ -88,6 +88,8 @@ from .capacity_correlation import verify_existing_phase_evidence as verify_capac
 from .capacity_correlation import write_phase_evidence as write_capacity_correlation_phase_evidence
 from .economics_sensitivity import verify_existing_phase_evidence as verify_economics_sensitivity_phase_evidence
 from .economics_sensitivity import write_phase_evidence as write_economics_sensitivity_phase_evidence
+from .target_falsification_gate import verify_existing_phase_evidence as verify_target_falsification_phase_evidence
+from .target_falsification_gate import write_phase_evidence as write_target_falsification_phase_evidence
 
 
 def main() -> int:
@@ -135,6 +137,7 @@ def main() -> int:
             "AC-S12-P01": verify_target_curve_phase_evidence,
             "AC-S12-P02": verify_capacity_correlation_phase_evidence,
             "AC-S12-P03": verify_economics_sensitivity_phase_evidence,
+            "AC-S12-P04": verify_target_falsification_phase_evidence,
             "STAGE-REVIEW-S11": verify_existing_stage_review_evidence,
         }
         if args.verify_existing not in existing_verifiers:
@@ -214,6 +217,7 @@ def main() -> int:
         "AC-S12-P01": write_target_curve_phase_evidence,
         "AC-S12-P02": write_capacity_correlation_phase_evidence,
         "AC-S12-P03": write_economics_sensitivity_phase_evidence,
+        "AC-S12-P04": write_target_falsification_phase_evidence,
         "STAGE-REVIEW-S11": write_stage11_review_evidence,
     }
     if args.contract not in writers:
