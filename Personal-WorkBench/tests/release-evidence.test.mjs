@@ -329,3 +329,31 @@ test("Version 23 brand-domain deployment retains no sensitive deployment materia
   assert.equal(serialized.includes("token="), false);
   assert.equal(serialized.includes("Bearer "), false);
 });
+
+test("Version 24 sign-out and session-recovery replay retains no temporary identity material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_24_signout_session_recovery_replay.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 24);
+  assert.equal(evidence.root_cause_and_fix.prior_version_23_signout_response_status, 415);
+  assert.equal(evidence.root_cause_and_fix.fixed_request_contract.content_type, "application/json");
+  assert.equal(evidence.local_validation.auth_contract, "PASS_19_OF_19");
+  assert.equal(evidence.private_deployment.deployment_status, "SUCCEEDED");
+  assert.equal(evidence.controlled_browser_replay.temporary_identity_confirmed_before_v24_signout, true);
+  assert.equal(evidence.controlled_browser_replay.v24_signout_redirected_to_neutral_confirmation, true);
+  assert.equal(evidence.controlled_browser_replay.v24_relogin_reached_workspace, true);
+  assert.equal(evidence.controlled_browser_replay.v24_session_recovery_account_identity_restored, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_mailbox_deleted, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_credentials_cleared_from_test_runtime, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_deployment_archive_removed, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_application_account_deletion_attempted, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});

@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_24_SIGNOUT_SESSION_RECOVERY_REPLAY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "local_source_commit": "0419151b4acdea741d4d42e1a3e4923e1c692c3b",
+    "local_root_tree": "e86a16bc552e5ce522373bc37c80095df00c1840",
+    "local_project_tree": "91ea888f2fc19258b261fec38b09865d8a1ede64",
+    "sites_source_commit": "9125299553669f9be39154a63ae3ae38539992f7",
+    "sites_version_number": 24,
+    "deployment_archive_sha256": "d8e16cbb248306279d6201aa084f06607fa3eea1a919fc8594cbe7d25825d640"
+  },
+  "root_cause_and_fix": {
+    "prior_version_23_signout_response_status": 415,
+    "interpreted_cause": "The client sign-out request omitted the application/json content type and JSON object body expected by the authentication endpoint.",
+    "fixed_request_contract": {
+      "method": "POST",
+      "same_origin": true,
+      "content_type": "application/json",
+      "json_object_body": true
+    }
+  },
+  "local_validation": {
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "auth_contract": "PASS_19_OF_19",
+    "rendered_route_smoke": "PASS_4_OF_4",
+    "build": "PASS"
+  },
+  "private_deployment": {
+    "saved_version_source_matches_projection": true,
+    "provider_archive_recorded": true,
+    "provider_archive_file_count": 104,
+    "deployment_status": "SUCCEEDED",
+    "site_active": true,
+    "site_title": "个人日程",
+    "access_mode": "custom",
+    "access_policy_revision": 1,
+    "custom_domain_status": "ACTIVE",
+    "environment_revision": 8,
+    "public_audience_changed": false
+  },
+  "controlled_browser_replay": {
+    "temporary_email_registration_reached_verification_page": true,
+    "verification_mail_received": true,
+    "verification_link_resolved_to_canonical_domain": true,
+    "verified_email_password_signin_reached_workspace": true,
+    "temporary_identity_confirmed_before_v24_signout": true,
+    "v24_signout_redirected_to_neutral_confirmation": true,
+    "v24_relogin_reached_workspace": true,
+    "v24_session_recovery_account_identity_restored": true,
+    "interpretation": "The controlled temporary email identity completed registration, verification, sign-in, confirmed sign-out, re-login and account-identity readback on Version 24. This confirms the fixed sign-out and session-recovery path for that isolated identity only."
+  },
+  "scope_and_cleanup": {
+    "browser_cookie_or_storage_inspected": false,
+    "real_user_business_data_read_or_written": false,
+    "temporary_mailbox_deleted": true,
+    "temporary_credentials_cleared_from_test_runtime": true,
+    "temporary_deployment_archive_removed": true,
+    "temporary_browser_tabs_finalization": "ATTEMPTED_RESULT_TRUNCATED_NO_FURTHER_BROWSER_ACTION",
+    "temporary_application_account_deletion_attempted": false,
+    "temporary_application_account_remains_isolated_pending_non_destructive_cleanup": true,
+    "runtime_values_or_access_policy_changed": false,
+    "d1_r2_changed": false,
+    "public_audience_changed": false,
+    "github_uploaded": false
+  },
+  "sensitive_values_recorded": false,
+  "not_proven": [
+    "A successful current Version 24 Google OAuth callback and session",
+    "A final password update and new-password sign-in",
+    "Physical second-device history readback",
+    "Direct D1 or R2 reconciliation",
+    "Final product acceptance or public release"
+  ]
+}
