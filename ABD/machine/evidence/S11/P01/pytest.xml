@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="19" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S11.P01_test" name="test_candidate_preflight_passes_without_generated_test_reports" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_model_and_backtest_are_exact_frozen_replays" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_effective_friction_is_maximum_of_default_and_rolling_p95" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_observed_p95_includes_every_friction_component" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_net_expectation_adverse_boundaries_reduce_every_candidate" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_positive_research_net_expectation_does_not_enable_a_recommendation_or_order" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_malformed_or_unsafe_fixture_fails_closed[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_malformed_or_unsafe_fixture_fails_closed[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_malformed_or_unsafe_fixture_fails_closed[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_malformed_or_unsafe_fixture_fails_closed[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_malformed_or_unsafe_fixture_fails_closed[&lt;lambda&gt;4]" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_unknown_time_band_and_non_decimal_input_fail_closed" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_deterministic_replay_hash_is_identical_without_waiting" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_core_source_has_no_network_process_soak_or_order_capability" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_candidate_fails_closed_when_frozen_model_artifact_is_tampered" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_candidate_fails_closed_when_expected_replay_hash_is_tampered" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_candidate_fails_closed_when_friction_rule_is_weakened" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_rollback_drill_is_local_and_has_no_external_side_effect" time="0.000" />
+    <testcase classname="tests.S11.P01_test" name="test_cli_is_wired_to_exact_contract_and_phase_boundaries" time="0.000" />
+  </testsuite>
+</testsuites>

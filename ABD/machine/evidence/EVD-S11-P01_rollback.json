@@ -1,0 +1,40 @@
+{
+  "artifacts": {
+    "abd_acceptance/friction.py": {
+      "sha256": "df4e261d7227cac7fb968e6db922419d0231e6cfdee12d4f16ada495bf2fa128",
+      "status": "PASS"
+    },
+    "friction.py": {
+      "sha256": "faf18e82e619b71f04b49c63bcc80ac378e76f36263c8b0a468faa106986d201",
+      "status": "PASS"
+    },
+    "friction_backtest.json": {
+      "sha256": "48bfc623fbff74b07b2fb84b77304b846c6dd25a8329cad526dd0cdfcfb2b1db",
+      "status": "PASS"
+    },
+    "friction_model.json": {
+      "sha256": "9e659a8788eeda8ebe3a38783022b6ba4c0ca4b0125fb56c41ff9641ca12e444",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S11_P01.json": {
+      "sha256": "fcce641361d5b7ff3b981da2c0c96ed69758d348e8617b5c323a2b9312baa9d0",
+      "status": "PASS"
+    },
+    "tests/S11/P01_test.py": {
+      "sha256": "9a17961be94b09667c73537491709a4bf782400226867780be45e963774c18a8",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S11-P01",
+  "evidence_id": "EVD-S11-P01-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "model:friction_executable_net_expectation",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_FRICTION_MODEL_SCOPED_FLAG_RESTORE_SIGNED_S10_PREDECESSORS_KEEP_ALL_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

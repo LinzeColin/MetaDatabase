@@ -1,5 +1,5 @@
 {
-  "file_count": 625,
+  "file_count": 635,
   "files": [
     {
       "bytes": 105,
@@ -12,9 +12,9 @@
       "sha256": "a1b6d13afea6f383061d2d3405efe2f2d8f4867fbb08a5edf0e53415c16a239a"
     },
     {
-      "bytes": 8892,
+      "bytes": 10079,
       "path": "HANDOFF.md",
-      "sha256": "44ddd21281172a300558f1bd20815c22c0af398132b41c4c08a6ee22635b8a12"
+      "sha256": "4c5ac4eb610ba9dc3df1d6338750a8ee9d9b5e595dfbe653fae5f016683fa9b2"
     },
     {
       "bytes": 643,
@@ -37,9 +37,9 @@
       "sha256": "73c938eca7294d2dc03d604344d85031d4164aef5a02990dd0d884af3e8f44d1"
     },
     {
-      "bytes": 12701,
+      "bytes": 12975,
       "path": "abd_acceptance/__main__.py",
-      "sha256": "5f9dc3f5307da4760deeb94ee901364ca2c5e71c474766245e997d9deba11e26"
+      "sha256": "9d2cd12ba8d2c709a23fdd2a3d5ac0e4fec54e42ebddf9fb81063a53a33703bf"
     },
     {
       "bytes": 83338,
@@ -57,9 +57,9 @@
       "sha256": "7762779fdb9be6b3b351e05a97dd68b64fc771e5692388fdb9c37194427e2249"
     },
     {
-      "bytes": 52103,
+      "bytes": 52123,
       "path": "abd_acceptance/budget.py",
-      "sha256": "b4dde1ec001b82c00d28fd9c4fe1213b09e3deab78b2d36f573bd3b9390477ba"
+      "sha256": "8e8e49d086d4bbcd73416465c6a9c0333bc8ad7a95c2b49c0dbfadf56eeb7928"
     },
     {
       "bytes": 23188,
@@ -117,6 +117,11 @@
       "sha256": "8f7de8ec78b945b7eda0f968a39cd495345f9c9bdda38aaffa5e3875839c06a4"
     },
     {
+      "bytes": 28771,
+      "path": "abd_acceptance/friction.py",
+      "sha256": "df4e261d7227cac7fb968e6db922419d0231e6cfdee12d4f16ada495bf2fa128"
+    },
+    {
       "bytes": 29674,
       "path": "abd_acceptance/generic_residual.py",
       "sha256": "925dfa4288d222179b3150cb834aebc54a9a9c367950ed8be4ac47f429eea968"
@@ -149,7 +154,7 @@
     {
       "bytes": 2194,
       "path": "abd_acceptance/legacy_receipt_compatibility.py",
-      "sha256": "9ff80adaf09b2576b800dedcc3af6f76bd39ea649126ec14b2622e8b952858c1"
+      "sha256": "748100a447fea68ace91d17c6b4dde0f208e6269dc6cc7dce0919795c658fae0"
     },
     {
       "bytes": 53233,
@@ -314,7 +319,7 @@
     {
       "bytes": 59538,
       "path": "abd_acceptance/stage8_review.py",
-      "sha256": "b586c8b5326c54b0ee59e6cd65aab3d2adf546dc650501d2a3652cdfd5042f1f"
+      "sha256": "e8bca5f600a8f2693e6e42e02c579440ae264beea6b0e6974d2beb93ff748cd2"
     },
     {
       "bytes": 48494,
@@ -550,6 +555,21 @@
       "bytes": 7362,
       "path": "forbidden_ui_terms.json",
       "sha256": "c2dc156b31b7e333fe316343c09d6cab47339b18d3f7572b11e7c1fbf2590c7f"
+    },
+    {
+      "bytes": 18587,
+      "path": "friction.py",
+      "sha256": "faf18e82e619b71f04b49c63bcc80ac378e76f36263c8b0a468faa106986d201"
+    },
+    {
+      "bytes": 2435,
+      "path": "friction_backtest.json",
+      "sha256": "48bfc623fbff74b07b2fb84b77304b846c6dd25a8329cad526dd0cdfcfb2b1db"
+    },
+    {
+      "bytes": 2516,
+      "path": "friction_model.json",
+      "sha256": "9e659a8788eeda8ebe3a38783022b6ba4c0ca4b0125fb56c41ff9641ca12e444"
     },
     {
       "bytes": 16749,
@@ -1195,6 +1215,16 @@
       "bytes": 2178,
       "path": "machine/evidence/EVD-S10-STAGE-REVIEW_rollback.json",
       "sha256": "261838e175c6a81411da1f34d0ab470e2ebd611db5a452d2a8013b16557d5c1f"
+    },
+    {
+      "bytes": 9575,
+      "path": "machine/evidence/EVD-S11-P01.json",
+      "sha256": "4bf25a1a68e3078f512a7cbf0992285e2890d62b5284de24eefd750390b7e2f8"
+    },
+    {
+      "bytes": 1407,
+      "path": "machine/evidence/EVD-S11-P01_rollback.json",
+      "sha256": "24b22dbf26bd39184a5d84be3c55d8797464d40cb8616ce7a750763e33f7ca39"
     },
     {
       "bytes": 1981,
@@ -1912,9 +1942,19 @@
       "sha256": "3b20c13a91e3adc5d3be27e75fd8411c576f94272c900cc4331f59907685e21f"
     },
     {
-      "bytes": 33988,
+      "bytes": 1719,
+      "path": "machine/evidence/S11/P01/paid_dependency_scan.txt",
+      "sha256": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1"
+    },
+    {
+      "bytes": 2696,
+      "path": "machine/evidence/S11/P01/pytest.xml",
+      "sha256": "ec8845e7114b752ebab44fe9e27d900e72d74358851a38a759127b9866ec730b"
+    },
+    {
+      "bytes": 34087,
       "path": "machine/evidence/evidence_index.jsonl",
-      "sha256": "244d716b4543af333a5640292d8bd24087cd9cf9bbc3cfa9940e72c89a0131b8"
+      "sha256": "196378e92c7ae175441c4aaa0c52290025bc8bf4a93acc0716503d273ede1831"
     },
     {
       "bytes": 1120,
@@ -2059,7 +2099,7 @@
     {
       "bytes": 2500,
       "path": "machine/facts/s08_legacy_receipt_compatibility.json",
-      "sha256": "31c550a5c4e48b036b44e732d93994f71e6f291ef880356d2d4fad224a6d5e4a"
+      "sha256": "021d01aea74dd628befb279cfc4610b9941a458fa52776f85e1ef3da617d73dd"
     },
     {
       "bytes": 1067,
@@ -2124,7 +2164,7 @@
     {
       "bytes": 9981,
       "path": "machine/facts/stage8_review_contract.json",
-      "sha256": "0b97e053f212c7c051354d14e723ac37b5650b971655a86fb06da4db777e82f7"
+      "sha256": "c6360c8b4a248f518fca9155fd373faf74d96f4f48dfa76c67924730f0058bb7"
     },
     {
       "bytes": 5861,
@@ -2409,7 +2449,7 @@
     {
       "bytes": 6343,
       "path": "machine/tests/fixtures/S08_STAGE_REVIEW.json",
-      "sha256": "e911ee90cfe2a779c7de5093945ec3e0e9b2673be768556ae07b8b0eaa60adeb"
+      "sha256": "54b6f67453fd6b019e3b816190dd3cd79f3a677408129b4d9990c53becf4d7cf"
     },
     {
       "bytes": 3052,
@@ -2460,6 +2500,11 @@
       "bytes": 6298,
       "path": "machine/tests/fixtures/S10_STAGE_REVIEW.json",
       "sha256": "46c678a8eba0e0918c6726020b0c3016de86b6c9c01a2f19d6725589d3cffd49"
+    },
+    {
+      "bytes": 4216,
+      "path": "machine/tests/fixtures/S11_P01.json",
+      "sha256": "fcce641361d5b7ff3b981da2c0c96ed69758d348e8617b5c323a2b9312baa9d0"
     },
     {
       "bytes": 1705,
@@ -3065,6 +3110,11 @@
       "bytes": 11161,
       "path": "tests/S10/stage_review_test.py",
       "sha256": "9e5151723cca05b35aac1bec98421b7ee27b12a442470bf5e549e71855a9769f"
+    },
+    {
+      "bytes": 8858,
+      "path": "tests/S11/P01_test.py",
+      "sha256": "9a17961be94b09667c73537491709a4bf782400226867780be45e963774c18a8"
     },
     {
       "bytes": 35,
