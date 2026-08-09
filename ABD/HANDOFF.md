@@ -2,7 +2,7 @@
 
 ## 当前目标
 
-在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11/P01--P04、整个 S11 的本地独立复审和 GitHub 阶段上传均已完成；S12/P01--P04、整个 S12 的本地独立复审及 GitHub 阶段上传亦已完成、签名并复现；S13/P01--P04、整个 S13 的本地独立复审和 GitHub 阶段上传均已完成；S14/P01--P02 已完成本地签名。下一独立 run 只能启动 S14/P03；它仍必须遵循冻结 Task Pack 的单 Phase 增量与本地验收边界。Canonical Task Graph 显示 S13/P04 只依赖 S13/P03 的已签名本地收据，不依赖 PR #174 的异步远端 CI。PR #174 的远端检查须与本地结果独立看待，且无论状态如何均不得外推为部署或生产激活。
+在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11/P01--P04、整个 S11 的本地独立复审和 GitHub 阶段上传均已完成；S12/P01--P04、整个 S12 的本地独立复审及 GitHub 阶段上传亦已完成、签名并复现；S13/P01--P04、整个 S13 的本地独立复审和 GitHub 阶段上传均已完成；S14/P01--P03 已完成本地签名。下一独立 run 只能启动 S14/P04；它仍必须遵循冻结 Task Pack 的单 Phase 增量与本地验收边界。Canonical Task Graph 显示 S13/P04 只依赖 S13/P03 的已签名本地收据，不依赖 PR #174 的异步远端 CI。PR #174 的远端检查须与本地结果独立看待，且无论状态如何均不得外推为部署或生产激活。
 
 ## 当前状态
 
@@ -22,6 +22,7 @@
 - S13 GitHub 阶段上传已完成：`codex/abd-v0001-s11-p01` 的 S13 五个已签名本地提交（`bc1ea79e`、`b9c85d24`、`4d2e14b4`、`9f82adc6`、`bf7f8de0`）已推送到 `origin`，并同步更新既有 Draft [PR #174](https://github.com/LinzeColin/MetaDatabase/pull/174)（base 为 `main`）。上传只证明远端已接收提交；远端 CI、PR 合并、OVH、Cloudflare、真实浏览器/市场/账户/TAB/Gmail、部署、订单和实际收益均须独立验证，且本 run 不等待这些外部状态。
 - S14/P01 已本地签名通过：`machine/evidence/EVD-S14-P01.json`（SHA-256 `91d353c7e3f850119cbc755936c4023537c6870ec3f1a384346bc1875aa90a8c`）的 `AC-S14-P01` 为 `53/53 PASS`，下一状态为 `S14/P02_READY_NOT_STARTED`。`threat_model.json`、`trust_boundaries.json` 与 `abuse_cases.json` 精确闭合 7 个高风险威胁及其预防、检测、响应、恢复控制和信任边界；全部是冻结合成本地控制合同，明确不证明生产安全。定向测试为 `37 passed`，付费/未知依赖扫描与 Task Pack 静态校验均通过；未访问网络、TAB/Gmail、账户、OVH、Cloudflare、部署端或真实订单，未进行真实时间 soak，新增现金为 A$0。验收结论仍要求在生产前完成后续安全整改，且不构成收益、上线或真实安全保证。
 - S14/P02 已本地签名通过：`machine/evidence/EVD-S14-P02.json`（SHA-256 `ef081da80f4b8d690dcc396cf762d5998d761136a95bd04dd5ece0c942d4fee9`）的 `AC-S14-P02` 为 `45/45 PASS`，下一状态为 `S14/P03_READY_NOT_STARTED`。`security_pipeline.yml`、`sast_policy.json` 与 `secret_policy.json` 固化配置类型、AST 静态分析、锁文件、秘密文字、容器与基础设施的 5 段本地失败关闭扫描；当前声明的 13 个控制面目标在该离线扫描范围内为 `0 critical / 0 high` 未处置发现，并全部写入 receipt 输入哈希。它不查询实时 CVE 数据库、不运行外部 CI、也不证明生产安全、部署、OVH/Cloudflare、TAB/Gmail、账户、订单或收益；P03 仍负责组件来源、许可证、版本与补丁治理。
+- S14/P03 已本地签名通过：`machine/evidence/EVD-S14-P03.json`（SHA-256 `5d0644b143115c6cdd99eb8774b8f8cbc68a618ba86b82772ff6797e7293708c`）的 `AC-S14-P03` 为 `45/45 PASS`，下一状态为 `S14/P04_READY_NOT_STARTED`。`sbom.json` 精确声明 1 个本地应用生产组件（来源、版本、许可证和治理负责人齐全）、12 个仅开发依赖，以及 3 个尚未准入的部署前提；容器镜像、cloudflared 与 OVH/Cloudflare 配置均明确为阻断状态，未被冒充为已部署组件。`patch_sla.json` 固化严重 24 小时、高危 7 天、中危 30 天及维护节奏，但不伪称已完成真实补丁时限或查询实时 CVE。定向测试为 `35 passed`，付费/未知依赖扫描与 Task Pack 静态校验 `49/49 PASS`，回滚记录 SHA-256 为 `39437e5a68e6cb86bc6a4122bcda763b501be4196d2973a64c0d2a2b2c8d64b2`；无网络、账户、OVH/Cloudflare、部署、订单或真实时间 soak，新增现金为 A$0。
 - S11/P01 已本地签名通过：`machine/evidence/EVD-S11-P01.json`（SHA-256 `4bf25a1a68e3078f512a7cbf0992285e2890d62b5284de24eefd750390b7e2f8`），下一状态为 `S11/P02_READY_NOT_STARTED`。`friction.py` 只重放冻结合成的价格恶化、拒绝、结算和操作摩擦；滚动 P95 使用保守 upper-nearest-rank，`effective_friction = max(default, rolling_observed_p95)`。正的合成净期望仍只输出 `NO_ORDER_RESEARCH_ONLY`，不生成建议或订单。
 - S11/P02 已本地签名通过：`machine/evidence/EVD-S11-P02.json`（SHA-256 `59e814b20d237eff982ff763bb3573ba8c129e6817c4c1cf61e273c366bab065`），下一状态为 `S11/P03_READY_NOT_STARTED`。`decision_gate.py` 以 50 位 `Decimal` 固化 E4/E3/E2/E1/E0 证据分层、共同硬门、`o_min=(1+r_min+c_effective)/p_L` 和向上赔率舍入；4 个稳定候选仍仅为 `CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES`，其余 8 个为 `NO_RECOMMENDATION`，不生成推荐、订单或收益保证。
 - S11/P03 已本地签名通过：`machine/evidence/EVD-S11-P03.json`（SHA-256 `c3d0c61870a37e6c8ee3e71650008fdcf23d4bc2da4d1ec9e83e8e846a4b12d4`），下一状态为 `S11/P04_READY_NOT_STARTED`。`platform_router.py` 只对冻结合成 provider ID 以 50 位 `Decimal` 重放 `S_platform = r_L − P_stale − P_settlement − P_minimum_stake − P_action_friction`；仅唯一最高分且全部门通过者才是 `ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES`，并列、来源/结算/动作通道、最低金额、过期、最低赔率和任一不利扰动均失败关闭为 `NO_RECOMMENDATION`。它不生成真实平台、建议、订单或收益保证。
@@ -44,6 +45,7 @@
 
 ## 已验证
 
+- `tests/S14/P03_test.py` 定向测试：`35 passed`；覆盖 1 个生产组件的来源/版本/许可证/负责人齐全、12 个仅开发依赖、3 个未准入运行前提、缺字段/非精确版本钉住/错误准入失败关闭、`0.9999/1.0001` 组件覆盖边界、外来赔率输入拒绝、确定性重放、P02 收据依赖与本地回滚。JUnit 已规范化；付费/未知依赖扫描 PASS，Task Pack 静态校验 `49/49 PASS`。`AC-S14-P03` 带报告签名验收为 `45/45 PASS`，`--verify-existing AC-S14-P03`：PASS；只运行该 Phase 的定向测试、静态校验和依赖扫描，未运行全量测试、完整回归或真实时间 soak。
 - `tests/S14/P02_test.py` 定向测试：`40 passed`；覆盖 5 段本地管道、12 条冻结正向/边界/负向快照、关键/高危未处置计数、`0.9999/1.0001` 覆盖边界、AST 不安全能力、4 类合成秘密模式、制品篡改、回滚、13 个控制面输入哈希绑定及无外部能力。JUnit 已规范化；付费/未知依赖扫描 PASS，Task Pack 静态校验 `49/49 PASS`。`AC-S14-P02` 带报告签名验收为 `45/45 PASS`，本地扫描分析为 `0 critical / 0 high` 未处置发现，下一状态为 `S14/P03_READY_NOT_STARTED`。只运行该 Phase 的定向测试、静态校验和依赖扫描；未运行全量测试、完整回归或真实时间 soak。
 - `tests/S14/P01_test.py` 定向测试：`37 passed`；覆盖 7 个高风险威胁的四组控制、7 条信任边界和滥用案例绑定、10 条冻结安全快照、`0.9999/1.0001` 覆盖边界、失败关闭、无网络/进程/订单/soak 能力与本地回滚。JUnit 已规范化；付费/未知依赖扫描 PASS，Task Pack 静态校验 `49/49 PASS`。`AC-S14-P01` 带报告签名验收为 `53/53 PASS`，下一状态为 `S14/P02_READY_NOT_STARTED`。只运行该 Phase 的定向测试、静态校验和依赖扫描；未运行全量测试、完整回归或真实时间 soak。
 - 冻结 Task Pack 核心事实文件与原始包逐一一致；Task Pack 静态校验 `49/49 PASS`。
@@ -79,6 +81,14 @@
 
 ## 关键文件
 
+- `sbom.json`
+- `component_governance.json`
+- `patch_sla.json`
+- `abd_acceptance/component_governance.py`
+- `tests/S14/P03_test.py`
+- `machine/tests/fixtures/S14_P03.json`
+- `machine/evidence/EVD-S14-P03.json`
+- `machine/evidence/EVD-S14-P03_rollback.json`
 - `calibration.py`
 - `temporal_cv.py`
 - `calibration_report.json`
@@ -253,9 +263,10 @@
 - S13 GitHub 上传只证明 commit 被远端接收；最终远端 CI、合并、部署、OVH、Cloudflare、真实服务、账户、TAB/Gmail、订单和实际收益仍是未验证的独立外部状态，不能因 Draft PR 或即时检查状态而推断完成。
 - S14/P01 仅证明 7 个高风险威胁的本地冻结控制合同、依赖收据和定向重放可复验；它不构成渗透测试、真实安全执行、TAB/Gmail 归档、OVH/Cloudflare 配置、生产部署、订单控制、上线或实际收益证明。验收结论明确保留生产前安全整改要求。
 - S14/P02 仅证明当前 13 个声明控制面目标的离线静态分析、锁文件、秘密文字和基础设施合同范围内没有未处置的 critical/high 发现；它没有查询实时 CVE、供应商公告或外部 CI，不能外推为完整仓库扫描、渗透测试、真实秘密轮换、真实运行时安全、生产部署、OVH/Cloudflare、TAB/Gmail、账户、订单、上线或实际收益证明。
+- S14/P03 仅证明本地声明的生产源码组件元数据完整、开发依赖锁定可追溯及未配置运行前提被阻断；它不证明真实容器镜像、cloudflared 二进制、OVH 主机、Cloudflare 账户、实时漏洞状态、补丁时限履约、部署、上线、TAB/Gmail、账户、订单或实际收益。
 - S08 legacy receipt compatibility 的一条定向重放已 `1 passed`；它只证明既有明确 allow-list 中的当前哈希与四份旧 receipt 可重放，不代表 S08/S12 新的远端 CI、发布或生产状态。
 - 真实市场、真实账户、TAB/Gmail 证据归档、OVH、Cloudflare 与生产上线均未验证、未部署且不应据此推断完成。
 
 ## 下一步
 
-保持 PR #174 的远端 CI 状态与本地结果彼此独立；不得把 pending、远端检查或本地复审结果外推为 CI、合并、部署、OVH、Cloudflare、真实市场、账户或生产上线完成。下一次独立 run 只可启动 S14/P03，且只可完成该单一冻结 Phase；S14 完整后再做整个 Stage 复审和阶段上传。保持零新增现金、无真实时间 soak、无全量测试/完整回归。
+保持 PR #174 的远端 CI 状态与本地结果彼此独立；不得把 pending、远端检查或本地复审结果外推为 CI、合并、部署、OVH、Cloudflare、真实市场、账户或生产上线完成。下一次独立 run 只可启动 S14/P04，且只可完成该单一冻结 Phase；S14/P04 完成后再做整个 Stage 复审和阶段上传。保持零新增现金、无真实时间 soak、无全量测试/完整回归。
