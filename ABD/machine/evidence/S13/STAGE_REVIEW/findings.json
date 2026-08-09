@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S13-WHOLE-STAGE-REVIEW",
+  "stage_id": "S13",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "findings": [],
+  "summary": {"total": 0, "open": 0, "resolved": 0, "blocked": 0},
+  "explicit_limitations": [
+    {
+      "id": "S13-LOCAL-EVIDENCE-BOUNDARY",
+      "status": "UNVERIFIED_OUT_OF_SCOPE",
+      "statement": "S13 复审只证明冻结合成制品与本地证据链；不证明真实浏览器、移动设备、市场、账户、TAB/Gmail、OVH、Cloudflare、部署、上线、订单或实际收益。"
+    }
+  ],
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "github_upload_performed": false,
+    "production_deployed_or_activated": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}
