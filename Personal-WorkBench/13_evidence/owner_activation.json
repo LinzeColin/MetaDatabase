@@ -3,15 +3,32 @@
   "subject_phase": "S5-T2",
   "status": "BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK",
   "verdict": "NOT_ISSUED_PRE_VERIFIER",
-  "runAt": "2026-08-09T01:14:01.870Z",
-  "generated_at": "2026-08-09T01:14:01.870Z",
+  "runAt": "2026-08-09T01:24:03.178Z",
+  "generated_at": "2026-08-09T01:24:03.178Z",
   "environment": {
     "taskpack_available": true,
     "configuration_source": "local_environment_presence_only",
     "app_origin_present": false,
     "app_origin_valid_https": false
   },
-  "command_results": [],
+  "command_results": [
+    {
+      "name": "wrangler whoami",
+      "command": "npx wrangler whoami --json",
+      "status": 0,
+      "signal": null,
+      "ok": true,
+      "output_redacted": true
+    },
+    {
+      "name": "wrangler pages project list",
+      "command": "npx wrangler pages project list --json",
+      "status": 0,
+      "signal": null,
+      "ok": true,
+      "output_redacted": true
+    }
+  ],
   "checks": {
     "required_secrets": {
       "BETTER_AUTH_SECRET": {
@@ -51,23 +68,19 @@
     },
     "wrangler": {
       "whoami": {
-        "status": null,
-        "ok": false,
-        "skipped": true,
-        "reason": "wrangler 配置缺失/异常，请先完成 wrangler 登录与 token 检查",
-        "output_redacted": false,
-        "auth_recovery_hint": "检测到 wrangler 配置不满足认证要求：建议执行 `npx wrangler logout && npx wrangler login`，或在非交互场景设置 CLOUDFLARE_API_TOKEN"
+        "status": 0,
+        "ok": true,
+        "output_redacted": true,
+        "auth_recovery_hint": null
       },
       "pages_project_list": {
-        "status": null,
-        "ok": false,
-        "skipped": true,
-        "reason": "已跳过 wrangler pages project list：认证条件未满足",
-        "output_redacted": false
+        "status": 0,
+        "ok": true,
+        "output_redacted": true
       },
-      "auth_channel": "NONE",
-      "auth_mode": "SKIP",
-      "auth_recovery_hint": "检测到 wrangler 配置不满足认证要求：建议执行 `npx wrangler logout && npx wrangler login`，或在非交互场景设置 CLOUDFLARE_API_TOKEN",
+      "auth_channel": "CLOUDFLARE_API_TOKEN",
+      "auth_mode": "CLOUDFLARE_API_TOKEN",
+      "auth_recovery_hint": null,
       "config": {
         "exists": false,
         "path": "~/.wrangler/config/default.toml",
@@ -187,7 +200,6 @@
     }
   },
   "risks": [
-    "未检测到 wrangler oauth_token：请执行 `npx wrangler logout` 后再 `npx wrangler login` 重新完成授权，当前配置路径： ~/.wrangler/config/default.toml",
     "缺少环境值：BETTER_AUTH_SECRET",
     "缺少环境值：APP_ORIGIN",
     "缺少环境值：GOOGLE_CLIENT_ID",
@@ -206,7 +218,7 @@
   ],
   "next_steps": [
     "按 RUN_CONTRACT_S5_T2.md 逐项推进：先完成本地身份与证据口径齐套，再进入生产副作用授权。",
-    "检测到 wrangler 配置不满足认证要求：建议执行 `npx wrangler logout && npx wrangler login`，或在非交互场景设置 CLOUDFLARE_API_TOKEN",
+    "执行 wrangler 登录与项目可见性校验：`npx wrangler whoami`、`npx wrangler pages project list --json`。",
     "将必需 Secrets（APP_ORIGIN、BETTER_AUTH_SECRET、GOOGLE_CLIENT_ID/SECRET、RESEND_API_KEY、TURNSTILE_SITE_KEY/SECRET_KEY、LEGAL_OPERATOR_NAME、PRIVACY_CONTACT_EMAIL、MAIL_FROM 或 AUTH_FROM_EMAIL）逐项补齐到 Sites Settings。",
     "完成 Google callback 验证、邮件发送域、Turnstile、隐私信息（运营者名/联系邮箱/版本哈希）与资产授权，确认 OWNER_APPROVAL.production_side_effect_authorization 为 true。",
     "确认 `.openai/hosting.json` 的 project_id 与 SITES_BINDINGS_CONTRACT.json 占位 `generated_by_sites_and_never_hand_invented` 差异在正式 provision 后核对一致。",
