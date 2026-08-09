@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S15-P02-01",
+  "contract_id": "AC-S15-P02",
+  "requirement_id": "REQ-S15-P02",
+  "stage_id": "S15",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "source_contracts": [
+    {
+      "id": "SRC-S15-P02-PAGE",
+      "fixture_path": "machine/tests/fixtures/S15_P02/page_fixture.json",
+      "source_type": "FROZEN_VISIBLE_PAGE",
+      "payload_fields": ["event_id", "market_id", "selection_id", "ticket_id", "page_status", "locale", "visible_odds"]
+    },
+    {
+      "id": "SRC-S15-P02-MAIL",
+      "fixture_path": "machine/tests/fixtures/S15_P02/mail_fixture.json",
+      "source_type": "FROZEN_ARCHIVED_MAIL",
+      "payload_fields": ["event_id", "selection_id", "ticket_id", "archive_status", "evidence_status"]
+    },
+    {
+      "id": "SRC-S15-P02-ODDS",
+      "fixture_path": "machine/tests/fixtures/S15_P02/odds_fixture.json",
+      "source_type": "FROZEN_ODDS_SNAPSHOT",
+      "payload_fields": ["event_id", "market_id", "selection_id", "ticket_id", "quoted_odds", "minimum_odds", "odds_status"]
+    },
+    {
+      "id": "SRC-S15-P02-RESULT",
+      "fixture_path": "machine/tests/fixtures/S15_P02/result_fixture.json",
+      "source_type": "FROZEN_RESULT_RECORD",
+      "payload_fields": ["event_id", "selection_id", "ticket_id", "settlement_status", "actual_return_claimed"]
+    }
+  ],
+  "required_linkage_fields": ["event_id", "selection_id", "ticket_id"],
+  "odds_boundary_deltas": ["-0.0001", "0.0000", "0.0001"],
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "tab_or_provider_runtime_accessed": false,
+    "real_account_balance_read_or_written": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}
