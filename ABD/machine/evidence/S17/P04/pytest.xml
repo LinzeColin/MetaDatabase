@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="39" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S17.P04_test" name="test_fixture_is_exact_s17_p04_contract" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_recovery_policy_keeps_the_two_fixed_gates_and_actions_disabled" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_each_frozen_recovery_vector_replays_to_its_pinned_result[PROCESS_RESTART_WITHIN_GATE]" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_each_frozen_recovery_vector_replays_to_its_pinned_result[LEDGER_REPLAY_RPO_BOUNDARY]" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_each_frozen_recovery_vector_replays_to_its_pinned_result[BACKUP_RESTORE_RTO_BOUNDARY]" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_each_frozen_recovery_vector_replays_to_its_pinned_result[DUAL_ENVIRONMENT_ROLLBACK_WITHIN_GATE]" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_each_frozen_recovery_vector_replays_to_its_pinned_result[EXPIRED_TICKET_CLEANUP_WITHIN_GATE]" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_each_frozen_recovery_vector_replays_to_its_pinned_result[LEDGER_REPLAY_RPO_61_FAIL_CLOSED]" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_each_frozen_recovery_vector_replays_to_its_pinned_result[DUAL_ENVIRONMENT_ROLLBACK_RTO_901_FAIL_CLOSED]" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_all_required_recovery_operations_are_covered" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_positive_boundary_vectors_meet_fixed_rpo_and_rto_limits" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_one_second_over_each_limit_degrades_fail_closed" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_expired_ticket_cleanup_is_only_a_frozen_projection" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_plus_minus_one_in_ten_thousand_and_adverse_tick_stay_non_actioning" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_report_aggregate_and_gate_are_exact" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_structured_failure_log_contains_only_local_non_actions" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_disaster_drill_document_states_the_local_only_boundary" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_artifacts_are_deterministic_across_two_builds" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_current_generated_artifacts_replay_exactly" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_generator_source_hash_is_bound_into_report" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_current_report_is_machine_readable" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_invalid_product_version_fixture_fails_closed" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_missing_scenario_fixture_fails_closed" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_wrong_recovery_policy_fixture_fails_closed" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_wrong_predecessor_hash_fixture_fails_closed" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_mutated_boundary_vector_cannot_replay" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_out_of_range_probability_vector_fails_closed" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_all_records_keep_recommendation_and_order_disabled" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_claim_boundary_excludes_live_restore_and_soak" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_execution_policy_excludes_actual_restore_and_real_time_soak" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_p03_predecessor_is_bound_in_report" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_p01_signed_receipt_remains_verifiable_after_shared_dispatcher_growth" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_p02_signed_receipt_remains_verifiable_after_shared_dispatcher_growth" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_p03_signed_receipt_remains_verifiable_after_shared_dispatcher_growth" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_candidate_preflight_passes_before_signing" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_full_acceptance_preflight_has_expected_number_of_checks" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_cli_has_the_exact_p04_writer_and_verifier_mapping" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_legacy_successor_chain_stays_exact_without_allow_list_expansion" time="0.000" />
+    <testcase classname="tests.S17.P04_test" name="test_rollback_drill_is_local_and_preserves_predecessor" time="0.000" />
+  </testsuite>
+</testsuites>

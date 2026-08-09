@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="28" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S17.stage_review_test" name="test_targeted_stage_review_preflight_passes" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_each_signed_phase_receipt_remains_current[P01]" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_each_signed_phase_receipt_remains_current[P02]" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_each_signed_phase_receipt_remains_current[P03]" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_each_signed_phase_receipt_remains_current[P04]" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_review_contract_keeps_the_frozen_baseline_and_gates_exact" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_review_findings_are_closed_without_claiming_runtime_validation" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_fixture_is_a_small_single_pass_review_set" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_fixture_hashes_are_pinned_to_each_phase_receipt_and_rollback" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_static_taskpack_report_uses_its_actual_summary_schema" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_rollback_drill_only_preserves_local_evidence" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_positive_stage_snapshot_is_always_no_action" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_each_negative_snapshot_fails_closed_without_action[PHASE_RECEIPT_FAIL]" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_each_negative_snapshot_fails_closed_without_action[TASKPACK_TRACE_FAIL]" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_each_negative_snapshot_fails_closed_without_action[LOAD_GATE_FAIL]" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_each_negative_snapshot_fails_closed_without_action[IDEMPOTENCY_GATE_FAIL]" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_each_negative_snapshot_fails_closed_without_action[CHAOS_GATE_FAIL]" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_each_negative_snapshot_fails_closed_without_action[RECOVERY_GATE_FAIL]" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_each_negative_snapshot_fails_closed_without_action[EXTERNAL_BOUNDARY_FAIL]" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_each_negative_snapshot_fails_closed_without_action[PORTABILITY_FAIL]" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_each_negative_snapshot_fails_closed_without_action[OPEN_FINDING_FAIL]" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_malformed_snapshot_is_rejected[snapshot0]" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_malformed_snapshot_is_rejected[snapshot1]" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_oracle_has_no_network_process_wait_or_order_capability" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_local_review_external_boundary_remains_exact" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_all_s17_controls_remain_local_and_no_action" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_acceptance_cli_is_wired_to_the_exact_stage_review_contract" time="0.000" />
+    <testcase classname="tests.S17.stage_review_test" name="test_writer_refuses_noncanonical_evidence_directory_without_writing" time="0.000" />
+  </testsuite>
+</testsuites>

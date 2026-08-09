@@ -1,0 +1,57 @@
+{
+  "artifacts": {
+    "abd_acceptance/__main__.py": {
+      "sha256": "c346e9ccf167f3b400df7fe91eb9410dfd1779ba7babda6249d05a264ec36804",
+      "status": "PASS"
+    },
+    "abd_acceptance/load_test.py": {
+      "sha256": "922ccd92b9c473169c6e6c6b00dcf767f8bc8c0bd551e8851cc4cc3014be0392",
+      "status": "PASS"
+    },
+    "abd_acceptance/load_test_engine.py": {
+      "sha256": "b156652d90b128906f9c65784efa1dcccf80ffc670a85216831ed95a80edb2e9",
+      "status": "PASS"
+    },
+    "capacity_evidence.json": {
+      "sha256": "b794e4414647aa49123548c17107f79e1911240c28c098e8038aa223ba224b18",
+      "status": "PASS"
+    },
+    "load_profile.json": {
+      "sha256": "4bf9f38c50cb9a57a0a897bd87060761ef56fb8e23973c633500ff8984583501",
+      "status": "PASS"
+    },
+    "load_test.py": {
+      "sha256": "d512a6b7777ff1bc3e8ba429a69ed7c4752f88f35612556a3bc52c2622e80db6",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S15-P04.json": {
+      "sha256": "3fd288e66d3c473881dc92257992eb41b85422a5c0aaa92f1ff00e202a15feda",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S16-P04.json": {
+      "sha256": "5543c7963bb6d8de97cd1e5c1872e2576fddde3dc98805fce48d763633f6ae45",
+      "status": "PASS"
+    },
+    "machine/facts/costs.json": {
+      "sha256": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S17_P01.json": {
+      "sha256": "42bac3d3565c5dbd12b62c1f038b7146ad390516e578e481526c980b2a42949b",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S17-P01",
+  "evidence_id": "EVD-S17-P01-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "load:s17_frozen_full_history_10x",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_LOCAL_LOAD_REPLAY_KEEP_RUNTIME_DEPLOYMENT_BLOCKED",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "real_vps_resource_observed_or_measured": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

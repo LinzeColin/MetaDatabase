@@ -2,10 +2,19 @@
 
 ## 当前目标
 
-在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11--S16 均已完成其四个 Phase、本地独立整阶段复审和 GitHub 阶段上传。下一独立 run 只能启动 S17/P01；不得在同一 run 进入 S17/P02、部署、运行时、远端 CI 等待或任何真实市场/账户动作。任何本地通过或远端 ref 接收均不得等同于远端 CI、PR 合并、部署或生产激活；PR #174 的异步远端检查须与本地结果独立看待，且无论状态如何均不得外推为部署、上线或实际收益。
+在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11--S16 均已完成其四个 Phase、本地独立整阶段复审和 GitHub 阶段上传；S17/P01--P04 与 S17 整阶段复审均已本地签名并只读复验。下一独立 run 只能执行 S17 GitHub 阶段上传；不得在同一 run 进入部署、运行时、远端 CI 等待或任何真实市场/账户动作。任何本地通过或远端 ref 接收均不得等同于远端 CI、PR 合并、部署或生产激活；PR #174 的异步远端检查须与本地结果独立看待，且无论状态如何均不得外推为部署、上线或实际收益。
 
 ## 当前状态
 
+- S17 独立整阶段复审已本地签名并只读复验：`machine/evidence/EVD-S17-STAGE-REVIEW.json`（SHA-256 `2d8c95b0a26ce5e1a5acc0f6d2274f1f6233d01227b4c4a87e832d9758cdb921`）的 `STAGE-REVIEW-S17` 为 `48/48 PASS`，下一状态为 `S17/GITHUB_STAGE_UPLOAD_READY`；三项 findings 均为 `RESOLVED_IN_STAGE_REVIEW`（`3 total / 0 open / 3 resolved`）。复审严格重放 P01--P04 的已签名 receipt/rollback、冻结基线、12 个任务链与当前控制制品：P01 保持 1,200/12,000 条本地计数守恒与零静默丢失；P02 保持重复建议/账本事件均为 `0`；P03 的 8 类逻辑错误均拒绝陈旧数据并自动降级；P04 的 60 秒 RPO/900 秒 RTO 逻辑门与 61 秒/901 秒失败关闭向量均保持 `NO_RECOMMENDATION_NO_ORDER`。只执行 `tests/S17/stage_review_test.py` 的 28 个定向用例、JUnit 规范化、Task Pack 静态校验 `49/49 PASS` 与本地零预算依赖扫描；未重跑四个 Phase 套件、完整回归或真实时间 soak。新增共享 dispatcher 的 S17 review 映射后，只刷新既有 S08 legacy successor compatibility 已允许路径 `abd_acceptance/__main__.py` 的精确 SHA-256 与既有 manifest/helper/review pins，未扩展 allow-list、改写旧 receipt 或降低证据、数值、风险、安全或来源门。工件清单已更新为 `982` 文件与 `983` 条 checksum；无真实 VPS/数据库/市场/TAB/Gmail/账户访问、真实故障或恢复、订单、部署或收益断言，新增现金 A$0。本地复审不构成 GitHub 上传、远端 CI、部署、上线、真实容量/恢复或收益证明；既有 S07/S08 连续性回放的独立限制仍明确为本次范围外且未被掩盖。
+- S17/P04 已本地签名并只读复验：`machine/evidence/EVD-S17-P04.json`（SHA-256 `08e1d389d3b0d80d6c729d9835dc27343018985cd8cc1796a9528b5ed7d6e708`）的 `AC-S17-P04` 为 `25/25 PASS`，下一状态为 `S17/STAGE_REVIEW_READY_NOT_STARTED`。`recovery_test.py`、`disaster_drill.md` 和 `recovery_report.json` 只重放 7 条冻结逻辑演练向量：进程重启、账本重放、备份恢复、双环境回滚与过期票据清理都不触发真实运行时副作用；5 条合格向量的逻辑账本恢复点最大为 60 秒、建议服务恢复最大为 900 秒，61 秒 RPO 与 901 秒 RTO 向量均降级失败关闭，所有动作保持 `NO_RECOMMENDATION_NO_ORDER`。39 个 P04 定向测试、JUnit 规范化、零增量现金依赖扫描和 Task Pack 静态校验（`49/49 PASS`）均通过；P01--P04 receipt 均在最终 dispatcher 映射下只读复验 PASS。无真实时间 soak、VPS/数据库/市场/TAB/Gmail/账户访问、真实重启/恢复/删除、订单、部署或收益断言，新增现金 A$0。
+- P04 增加共享 dispatcher 的受控本地入口后，只刷新既有 S08 legacy successor compatibility 已允许路径 `abd_acceptance/__main__.py` 的精确 SHA-256 与既有 manifest/helper/review pins；未扩展 allow-list、改写旧 receipt 或降低证据、数值、风险、安全或来源门。P04 定向测试直接复核这条精确 pin 链。S08 整体 compatibility 单测仍受 S07 successor 计数只覆盖至 S15 的独立限制影响，本 run 未重跑、掩盖或改变该非 P04 问题。
+- S17/P03 已本地签名并只读复验：`machine/evidence/EVD-S17-P03.json`（SHA-256 `2f40bd1eed62a0b1ed14347507d497fa54cc63db56c4f31112c631fe48beef97`）的 `AC-S17-P03` 为 `25/25 PASS`，下一状态为 `S17/P04_READY_NOT_STARTED`。`chaos_runner.py` 与 `chaos_scenarios.json` 仅重放 9 条冻结逻辑向量：进程退出、DNS、网络、页面 Schema、磁盘、内存、时钟和模型制品损坏均不注入真实故障，而是在每条错误向量中拒绝陈旧快照并自动降级为 `NO_RECOMMENDATION_NO_ORDER`；8/8 错误向量拒绝陈旧数据且降级，陈旧数据使用数为 `0`。`±0.0001` 与一档不利赔率向量同样保持无建议、无订单。38 个 P03 定向测试、JUnit 规范化、零增量现金依赖扫描和 Task Pack 静态校验（`49/49 PASS`）均通过；P01、P02 与 P03 receipt 均在最终 dispatcher 映射下只读复验 PASS。无真实时间 soak、VPS/数据库/市场/TAB/Gmail/账户访问、真实故障注入、订单、部署或收益断言，新增现金 A$0。
+- P03 增加共享 dispatcher 的受控本地入口后，只刷新既有 S08 legacy successor compatibility 已允许路径 `abd_acceptance/__main__.py` 的精确 SHA-256 与既有 manifest/helper/review pins；未扩展 allow-list、改写旧 receipt 或降低证据、数值、风险、安全或来源门。P03 定向测试直接复核这条精确 pin 链。S08 整体 compatibility 单测仍受 S07 successor 计数只覆盖至 S15 的独立限制影响，本 run 未重跑、掩盖或改变该非 P03 问题。
+- S17/P02 已本地签名并只读复验：`machine/evidence/EVD-S17-P02.json`（SHA-256 `c417d9eb732c24969d11db52bd501438572a57e2b3eeef8791085e746aae2711`）的 `AC-S17-P02` 为 `25/25 PASS`，下一状态为 `S17/P03_READY_NOT_STARTED`。`concurrency_test.py` 与 `idempotency_report.json` 只重放 19 条冻结逻辑 lane 输入，不启动线程、进程或真实网络；8 个本地合成投影唯一，9 个重复尝试被抑制、1 个超时为无状态变化、1 个相同 key 的 payload 冲突隔离。重复建议和重复账本投影均为 `0`，全部动作保持 `NO_RECOMMENDATION_NO_ORDER`。39 个 P02 定向测试、JUnit 规范化、零增量现金依赖扫描和 Task Pack 静态校验（`49/49 PASS`）均通过；无真实时间 soak、VPS/数据库/市场/TAB/Gmail/账户访问、订单、部署或收益断言，新增现金 A$0。
+- P02 增加共享 dispatcher 受控入口后，P01 的既有签名 receipt 仍由最小 self-pinned successor 规则复验：除了 P01 oracle、共享 dispatcher 和已重新生成且 PASS 的静态包报告外，其余已签名输入 SHA-256 仍须逐项一致；P01 mapping 也必须精确保留。该规则不重签、改写或放宽 P01 证据、数值、风险、安全或来源门，P01 `--verify-existing` 已在 P02 签名前再次 PASS。S08 legacy compatibility 仍只刷新既有允许路径 `abd_acceptance/__main__.py` 的精确 hash 与既有 manifest/helper/review pins，未扩展 allow-list；P02 定向测试直接复核该四段 pin 链。已知 S08 整体 compatibility 单测仍受 S07 successor 计数只覆盖至 S15 的独立限制影响，本 run 未重跑或掩盖该失败。
+- S17/P01 已本地签名并只读复验：`machine/evidence/EVD-S17-P01.json`（SHA-256 `2f8cc9265cea7eec0e28d6ae0608ba6548a75378d28b850e639509465bff2fa9`）的 `AC-S17-P01` 为 `26/26 PASS`，下一状态为 `S17/P02_READY_NOT_STARTED`。`load_test.py`、`load_profile.json` 和 `capacity_evidence.json` 只重放冻结合成全历史索引（1,200）及 10×（12,000）负载、四个确定性场景和 `0.0001` 不利扰动；无静默丢失（0）、一个追踪 quarantine。`RES-OVH-EXISTING-VPS1` 仍只为 owner-declared、未测量资源：本地 envelope 为 PASS，但真实 VPS 容量、运行时部署和激活均明确为 false/blocked。28 个 P01 定向测试、JUnit 规范化、零增量现金依赖扫描和 Task Pack 静态校验（`49/49 PASS`）均通过；无真实时间 soak、网络、OVH/Cloudflare、数据库、市场、TAB/Gmail、账户、订单、部署或收益断言，新增现金 A$0。
+- 为共享验收 dispatcher 增加 P01 受控入口后，只刷新既有 S08 legacy successor compatibility 已允许路径 `abd_acceptance/__main__.py` 的精确 SHA-256 与既有 manifest/helper/review pins，未扩展 allow-list、来源、风险豁免或旧 receipt 内容。单条 S08 compatibility 重放目前因 S07/P04 的固定 successor 计数只覆盖至 S15、但现有索引已含 S16 Stage Review 而返回 `S07P04-ALL-LINK-COLLECTIONS-COVERED`；P01 不依赖该旧 S07 oracle，且其自身签名/只读复验仍 PASS。此跨阶段 legacy continuity 限制保留为后续独立 review 修复项，本 run 不修改已上传 S16/S07 的范围或历史收据。
 - S16 GitHub 阶段上传回执：交付提交 `7c0f180f36fa928b848d9d85976428881a28bad4` 已推送到 `origin/codex/abd-v0001-s11-p01`，随后 `git ls-remote` 返回同一 SHA；既有 Draft [PR #174](https://github.com/LinzeColin/MetaDatabase/pull/174) 保持 open/draft、head 为该分支、base 为 `main`，其标题和正文仅更新为准确覆盖 S11--S16 的本地证据范围。上传只证明远端已接收该阶段提交与 PR 元数据同步；本 run 未等待或读取远端 CI，未声称 CI 通过、合并、部署、上线、真实市场验证、模型经验增量或收益。
 - S16 独立整阶段复审已本地签名：`machine/evidence/EVD-S16-STAGE-REVIEW.json`（SHA-256 `03fed224e7379bdc5312f7e13f39d9d25cce9a2bfe999963fe785da79a031090`）的 `STAGE-REVIEW-S16` 为 `47/47 PASS`，下一状态为 `S16/GITHUB_STAGE_UPLOAD_READY`；三项 findings 均为 `RESOLVED_IN_STAGE_REVIEW`（`3 total / 0 open / 3 resolved`）。复审严格重放 P01--P04 的已签名 receipt/rollback、冻结基线、12 个任务链、当前控制制品与 CLI 映射：市场 champion 保持 `1.00`、六个 challenger `0.00`；P02 仍只为合成评测且不允许 promotion；P03 六类冻结攻击均阻断且跨模型审查不允许 promotion；P04 软件门与模型门独立，模型门仍为 `BLOCKED_NO_EMPIRICAL_MODEL_INCREMENT`，全部 release 保持 blocked。只执行 `tests/S16/stage_review_test.py` 的 28 个定向用例、Task Pack 静态校验 `49/49 PASS` 与本地零预算依赖扫描；未重跑 Phase 套件、完整回归或真实时间 soak。冻结 Task Pack SHA-256 `fd2b86044accbe08cf30e6834e1ebe4523ba310f59170fe2e4cc302d0634ad7f`，7 个核心 facts 与压缩包逐字节一致。为使新增共享 dispatcher 映射仍能被 S08 历史收据重放，只刷新既有 allow-list 中 `abd_acceptance/__main__.py` 的精确 SHA-256 及其既有 manifest/helper/review pins，未扩展 allow-list；仅执行一条 S08 compatibility 定向用例且成功。此复审是 `LOCAL_STAGE_REVIEW_CONTRACT_NOT_A_FROZEN_TASK_PACK_FACT`，不构成 GitHub 上传、远端 CI、部署、模型激活、市场/账户/TAB/Gmail/OVH/Cloudflare 访问、订单、实际收益或 30% 目标验证，新增现金仍为 A$0。
 - S16/P04 已本地签名并只读复验：`machine/evidence/EVD-S16-P04.json`（SHA-256 `5543c7963bb6d8de97cd1e5c1872e2576fddde3dc98805fce48d763633f6ae45`）的 `AC-S16-P04` 为 `31/31 PASS`，下一状态为 `S16/STAGE_REVIEW_READY_NOT_STARTED`。`model_system_card.json` 和 `model_release_gate.json` 生成用途、限制、已知失败、安全措施、监控、Alpha/Beta/GA 与本地回滚；发布门明确 `software_gate=PASS_LOCAL_SOFTWARE_EVIDENCE_ONLY`、`model_gate=BLOCKED_NO_EMPIRICAL_MODEL_INCREMENT`，两条门不可互相替代。P04 控制通过不构成模型通过、模型激活、部署、订单或收益验证；7 个冻结逻辑案例（含 `-0.0001` 不利扰动及 `0.4999/0.3501` 配置边界）全部保持 release blocked。回滚只关闭 P04 说明卡/门并保持模型与生产未激活；无网络、市场、TAB/Gmail、账户、订单、数据库、OVH/Cloudflare、部署或真实时间 soak，新增现金为 A$0。
@@ -64,6 +73,10 @@
 
 ## 已验证
 
+- S17/P04：`uv run --frozen --python 3.12 python -m pytest -q tests/S17/P04_test.py --junitxml=machine/evidence/S17/P04/pytest.xml` 为 `39 passed in 0.57s`；JUnit 已规范化，`scan_paid_dependencies.py` PASS，`validate_pack.py` 为 `49/49 PASS`。`python -m abd_acceptance --verify-existing AC-S17-P01`、`--verify-existing AC-S17-P02`、`--verify-existing AC-S17-P03`、`python -m abd_acceptance --contract AC-S17-P04 --evidence machine/evidence` 和最终 `--verify-existing AC-S17-P04` 均为 PASS，receipt SHA-256 为 `08e1d389d3b0d80d6c729d9835dc27343018985cd8cc1796a9528b5ed7d6e708`。只运行该 Phase 的定向测试、静态校验、依赖扫描、签名与只读复验；未运行全量测试、完整回归或真实时间 soak，也没有外部访问、真实重启或恢复操作。
+- S17/P03：`uv run --frozen --python 3.12 python -m pytest -q tests/S17/P03_test.py --junitxml=machine/evidence/S17/P03/pytest.xml` 为 `38 passed in 0.54s`；JUnit 已规范化，`scan_paid_dependencies.py` PASS，`validate_pack.py` 为 `49/49 PASS`。`python -m abd_acceptance --verify-existing AC-S17-P01`、`--verify-existing AC-S17-P02`、`python -m abd_acceptance --contract AC-S17-P03 --evidence machine/evidence` 和最终 `--verify-existing AC-S17-P03` 均为 PASS，receipt SHA-256 为 `2f40bd1eed62a0b1ed14347507d497fa54cc63db56c4f31112c631fe48beef97`。只运行该 Phase 的定向测试、静态校验、依赖扫描、签名与只读复验；未运行全量测试、完整回归或真实时间 soak，也没有外部访问或真实故障注入。
+- S17/P02：`uv run --frozen --python 3.12 python -m pytest -q tests/S17/P02_test.py --junitxml=machine/evidence/S17/P02/pytest.xml` 为 `39 passed in 0.52s`；JUnit 已规范化，`scan_paid_dependencies.py` PASS，`validate_pack.py` 为 `49/49 PASS`。`python -m abd_acceptance --verify-existing AC-S17-P01`、`python -m abd_acceptance --contract AC-S17-P02 --evidence machine/evidence` 和最终 `--verify-existing AC-S17-P02` 均为 PASS。只运行 P02 定向测试、静态校验、依赖扫描、签名与只读复验；未运行全量测试、完整回归或真实时间 soak，也没有外部访问。
+- S17/P01：`uv run --frozen --python 3.12 python -m pytest -q tests/S17/P01_test.py --junitxml=machine/evidence/S17/P01/pytest.xml` 为 `28 passed in 0.44s`；JUnit 已规范化，`scan_paid_dependencies.py` PASS，`validate_pack.py` 为 `49/49 PASS`。`python -m abd_acceptance --contract AC-S17-P01 --evidence machine/evidence` 和最终 `--verify-existing AC-S17-P01` 均 PASS，receipt SHA-256 为 `2f8cc9265cea7eec0e28d6ae0608ba6548a75378d28b850e639509465bff2fa9`；只运行该 Phase 的定向测试、静态校验、依赖扫描、签名和只读复验。没有运行全量测试、完整回归或真实时间 soak，也没有外部访问。
 - S16/P04：`uv run --frozen --python 3.12 python -m pytest -q tests/S16/P04_test.py --junitxml=machine/evidence/S16/P04/pytest.xml` 为 `39 passed in 1.22s`；JUnit 已规范化，`scan_paid_dependencies.py` PASS，`validate_pack.py` 为 `49/49 PASS`。`python -m abd_acceptance --contract AC-S16-P04 --evidence machine/evidence` 与最终 `--verify-existing AC-S16-P04` 均 PASS，receipt SHA-256 为 `5543c7963bb6d8de97cd1e5c1872e2576fddde3dc98805fce48d763633f6ae45`；工件清单最终为 `922` 文件与 `923` 条 checksum。只运行该 Phase 的定向测试、静态包校验、依赖扫描、签名、只读复验与一条历史兼容性测试；未运行全量测试、完整回归或真实时间 soak，也未访问外部系统。
 - S16/P03：`uv run --frozen --python 3.12 python -m pytest -q tests/S16/P03_test.py --junitxml=machine/evidence/S16/P03/pytest.xml` 为 `38 passed in 0.80s`；JUnit 已规范化，`scan_paid_dependencies.py` PASS，`validate_pack.py` 为 `49/49 PASS`。`python -m abd_acceptance --contract AC-S16-P03 --evidence machine/evidence` 与最终 `--verify-existing AC-S16-P03` 均 PASS，receipt SHA-256 为 `d86c3a811022a14afa76457051dcf575e91c330bd7171c052d7cf1b849b5739d`；工件清单最终为 `911` 文件与 `912` 条 checksum。只运行该 Phase 的定向测试、静态包校验、依赖扫描、签名与一条历史兼容性测试；未运行全量测试、完整回归或真实时间 soak，也未访问外部系统。
 - S16/P02：`uv run --frozen --python 3.12 python -m pytest -q tests/S16/P02_test.py --junitxml=machine/evidence/S16/P02/pytest.xml` 为 `26 passed in 0.55s`；JUnit 已规范化，`scan_paid_dependencies.py` PASS，`validate_pack.py` 为 `49/49 PASS`。`python -m abd_acceptance --contract AC-S16-P02 --evidence machine/evidence` 与最终 `--verify-existing AC-S16-P02` 均 PASS，receipt SHA-256 为 `f9769b776bca121d1a048f312b107d91028550f640826023ac0d32db702aef6a`；工件清单最终为 `900` 文件与 `901` 条 checksum。为复核共享 dispatcher successor 链，仅执行一条 S08 兼容性定向重放，结果 `1 passed in 78.99s`。仅运行该 Phase 的定向测试、静态包校验、依赖扫描、签名与一条历史兼容性测试；未运行全量测试、完整回归或真实时间 soak，也未访问外部系统。
@@ -108,6 +121,57 @@
 
 ## 关键文件
 
+- `abd_acceptance/stage17_review.py`
+- `machine/facts/stage17_review_contract.json`
+- `machine/tests/fixtures/S17_STAGE_REVIEW.json`
+- `tests/S17/stage_review_test.py`
+- `machine/evidence/S17/STAGE_REVIEW/findings.json`
+- `machine/evidence/S17/STAGE_REVIEW/pytest.xml`
+- `machine/evidence/S17/STAGE_REVIEW/paid_dependency_scan.txt`
+- `machine/evidence/EVD-S17-STAGE-REVIEW.json`
+- `machine/evidence/EVD-S17-STAGE-REVIEW_rollback.json`
+- `recovery_test.py`
+- `abd_acceptance/recovery_engine.py`
+- `abd_acceptance/recovery.py`
+- `disaster_drill.md`
+- `recovery_report.json`
+- `tests/S17/P04_test.py`
+- `machine/tests/fixtures/S17_P04.json`
+- `machine/evidence/S17/P04/pytest.xml`
+- `machine/evidence/S17/P04/paid_dependency_scan.txt`
+- `machine/evidence/EVD-S17-P04.json`
+- `machine/evidence/EVD-S17-P04_rollback.json`
+- `chaos_runner.py`
+- `abd_acceptance/chaos_engine.py`
+- `abd_acceptance/chaos.py`
+- `chaos_scenarios.json`
+- `tests/S17/P03_test.py`
+- `machine/tests/fixtures/S17_P03.json`
+- `machine/evidence/S17/P03/pytest.xml`
+- `machine/evidence/S17/P03/paid_dependency_scan.txt`
+- `machine/evidence/EVD-S17-P03.json`
+- `machine/evidence/EVD-S17-P03_rollback.json`
+- `concurrency_test.py`
+- `abd_acceptance/concurrency_idempotency_engine.py`
+- `abd_acceptance/concurrency_idempotency.py`
+- `idempotency_report.json`
+- `tests/S17/P02_test.py`
+- `machine/tests/fixtures/S17_P02.json`
+- `machine/evidence/S17/P02/pytest.xml`
+- `machine/evidence/S17/P02/paid_dependency_scan.txt`
+- `machine/evidence/EVD-S17-P02.json`
+- `machine/evidence/EVD-S17-P02_rollback.json`
+- `load_test.py`
+- `abd_acceptance/load_test_engine.py`
+- `abd_acceptance/load_test.py`
+- `load_profile.json`
+- `capacity_evidence.json`
+- `tests/S17/P01_test.py`
+- `machine/tests/fixtures/S17_P01.json`
+- `machine/evidence/S17/P01/pytest.xml`
+- `machine/evidence/S17/P01/paid_dependency_scan.txt`
+- `machine/evidence/EVD-S17-P01.json`
+- `machine/evidence/EVD-S17-P01_rollback.json`
 - `model_release_gate.py`
 - `abd_acceptance/model_release_engine.py`
 - `abd_acceptance/model_release_gate.py`
@@ -388,9 +452,12 @@
 - S15/P03 仅证明 6 个冻结本地配置/静态客户端/恢复制品可协同确定性复放；Golden/Black/Degraded/Recovery 的本地 PASS 不是实际 OVH 主机、Cloudflare edge、浏览器组件安装、桌面/移动设备、真实网络故障、TAB/Gmail、账户、订单、部署、上线或实际收益验证。
 - S15/P04 仅证明 S15 的冻结本地需求追踪、DAG、签名收据和万分之一边界制品可重放；它不构成 S15 整体复审、GitHub 上传、远端 CI、真实数据库、OVH、Cloudflare、TAB/Gmail、账户、订单、部署、上线或实际收益验证。
 - S16/P01--P04 仅证明冻结本地 model challenger、合成评测、红队/互审和双门控制可重放；P02 的合成指标通过、P03 的攻击阻断、P04 的软件门通过均不能代替独立经验模型增量证据。当前 `model_gate=BLOCKED_NO_EMPIRICAL_MODEL_INCREMENT`，模型、部署、订单、真实市场/账户/TAB/Gmail、OVH/Cloudflare 与实际收益仍未验证、未启用。
-- S08 legacy receipt compatibility 的一条定向重放已 `1 passed`；它只证明既有明确 allow-list 中的当前哈希与四份旧 receipt 可重放，不代表 S08/S12 新的远端 CI、发布或生产状态。
+- S17/P01 仅证明冻结合成 1,200/12,000 负载画像与本地计数守恒；它不证明真实 VPS 容量、OVH 主机、Cloudflare、数据库、市场、账户、TAB/Gmail、订单、部署、上线或实际收益。S08 的一条 legacy compatibility 重放目前失败于 S07/P04 仅覆盖至 S15 的 successor 计数；该发现不被伪装为 P01 通过，也不通过放宽旧收据门消除。
+- S17/P02 仅证明冻结逻辑 lane 的本地幂等投影和失败关闭状态；`0` 重复建议/账本投影不证明真实线程、队列、超时、数据库账本、VPS、OVH、Cloudflare、市场、账户、TAB/Gmail、订单、部署、上线或实际收益。S08 compatibility 的既有整测限制仍为独立 review finding，不能因 P02 的精确 pin 复核而宣称已解决。
+- S17/P03 仅证明 8 类冻结逻辑故障向量会拒绝陈旧数据并自动降级；它不注入真实进程、DNS、网络、页面、磁盘、内存、时钟或模型损坏，不能外推为真实 VPS、数据库、OVH、Cloudflare、市场、账户、TAB/Gmail、订单、部署、上线或实际收益验证。S08 compatibility 的既有整测限制仍是独立 review finding，不能因 P03 的精确 pin 复核而宣称已解决。
+- S17/P04 仅证明冻结逻辑向量内 5 条合格恢复投影满足 RPO≤60 秒、RTO≤900 秒，且 61 秒/901 秒向量失败关闭；它不重启真实进程、不重放真实账本、不恢复真实备份、不回滚真实环境或删除真实票据，不能外推为真实 VPS、数据库、OVH、Cloudflare、市场、账户、TAB/Gmail、订单、部署、上线或实际收益验证。S08 compatibility 的既有整测限制仍是独立 review finding，不能因 P04 的精确 pin 复核而宣称已解决。
 - 真实市场、真实账户、TAB/Gmail 证据归档、OVH、Cloudflare 与生产上线均未验证、未部署且不应据此推断完成。
 
 ## 下一步
 
-保持 PR #174 的远端 CI 状态与本地结果彼此独立；不得把 pending、远端检查、Draft PR 或本地验收结果外推为 CI、合并、部署、OVH、Cloudflare、真实市场、账户或生产上线完成。下一次独立 run 只可启动 S16 整阶段复审：先独立读取冻结 Stage Review Contract、Task Graph、P01--P04 receipt/rollback、P04 双门边界和本地 finding 范围，再只完成该一个独立复审；发现问题必须在复审内闭合后才可进入上传 run。不得在 S16 Stage Review run 中上传 GitHub；仅在复审 PASS 且 findings 闭合后，在后续独立上传 run 执行该 Stage 上传。保持零新增现金、无真实时间 soak、无全量测试/完整回归。
+保持 PR #174 的远端 CI 状态与本地结果彼此独立；不得把 pending、远端检查、Draft PR 或本地验收结果外推为 CI、合并、部署、OVH、Cloudflare、真实市场、账户或生产上线完成。下一次独立 run 只可启动 S17 整体复审：先读取冻结 S17/P01--P04 合同、Task Graph、四份 receipt/rollback、当前控制制品与已知 S07/S08 legacy continuity 限制，再只完成整阶段复审和必要的本地 finding 修复。不得在复审 run 中进入 GitHub 上传。保持零新增现金、无真实时间 soak、无全量测试/完整回归。

@@ -1,0 +1,380 @@
+{
+  "action": "NO_RECOMMENDATION_NO_ORDER",
+  "aggregate": {
+    "degraded_count": 8,
+    "error_scenario_count": 8,
+    "no_recommendation_no_order_count": 9,
+    "rejected_stale_data_count": 8,
+    "scenario_count": 9,
+    "stale_data_used_count": 0
+  },
+  "artifact_id": "ART-S17-P03-02",
+  "baseline_hashes": {
+    "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+    "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+    "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+    "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+    "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+  },
+  "chaos_policy": {
+    "adverse_odds_tick_delta_min": -1,
+    "adverse_probability_deltas": [
+      "-0.0001",
+      "0.0000",
+      "0.0001"
+    ],
+    "degradation_policy": "AUTO_DEGRADE_NO_RECOMMENDATION_NO_ORDER",
+    "injection_mode": "FROZEN_LOGICAL_FAULT_PROJECTION_NOT_ACTUAL_SYSTEM_FAULT",
+    "order_submission_enabled": false,
+    "recommendation_enabled": false,
+    "recovery_policy": "RESTORE_PREVIOUS_SIGNED_ARTIFACTS_LOCAL_ONLY",
+    "stale_data_policy": "REJECT_STALE_DATA_ON_ANY_ERROR"
+  },
+  "claim_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_dns_or_network_fault_injected": false,
+    "real_market_or_odds_observed": false,
+    "real_page_disk_memory_clock_or_model_mutated": false,
+    "real_process_exit_injected": false,
+    "real_runtime_or_ledger_read_or_written": false,
+    "real_time_soak_waited": false,
+    "real_vps_resource_observed_or_measured": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "contract_id": "AC-S17-P03",
+  "decision": "S17_P03_CHAOS_STALE_DATA_GATE_PASS_P04_REQUIRED",
+  "execution_policy": {
+    "actual_fault_injection_allowed": false,
+    "external_runtime_access_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "offline_deterministic_only": true,
+    "phase_test_only": true
+  },
+  "fault_injection_mode": "FROZEN_LOGICAL_FAULT_PROJECTION_NOT_ACTUAL_SYSTEM_FAULT",
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-10T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_CHAOS_FAULT_INJECTION_NOT_LIVE_RUNTIME",
+  "next": "S17/P04_READY_NOT_STARTED",
+  "phase_id": "P03",
+  "predecessor": {
+    "contract_id": "AC-S17-P02",
+    "evidence_path": "machine/evidence/EVD-S17-P02.json",
+    "evidence_sha256": "c417d9eb732c24969d11db52bd501438572a57e2b3eeef8791085e746aae2711",
+    "next": "S17/P03_READY_NOT_STARTED",
+    "status": "PASS"
+  },
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "requirement_id": "REQ-S17-P03",
+  "scenarios": [
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "current_snapshot": {
+        "availability": "CURRENT",
+        "odds_tick_delta": 0,
+        "probability_delta": "0.0000",
+        "snapshot_id": "CURRENT-S17P03-001"
+      },
+      "degraded": false,
+      "fault": "NONE",
+      "fault_injection_mode": "FROZEN_LOGICAL_FAULT_PROJECTION_NOT_ACTUAL_SYSTEM_FAULT",
+      "real_fault_injected": false,
+      "recovery_projection": "NOT_REQUIRED",
+      "scenario_id": "BASELINE_HEALTHY_CURRENT",
+      "selected_data": "CURRENT_FROZEN_SNAPSHOT",
+      "stale_data_disposition": "NOT_SELECTED",
+      "stale_data_used": false,
+      "stale_snapshot": {
+        "availability": "STALE",
+        "odds_tick_delta": 0,
+        "probability_delta": "0.0000",
+        "snapshot_id": "STALE-S17P03-001"
+      }
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "current_snapshot": {
+        "availability": "UNAVAILABLE",
+        "odds_tick_delta": 0,
+        "probability_delta": "0.0000",
+        "snapshot_id": "CURRENT-S17P03-002"
+      },
+      "degraded": true,
+      "fault": "PROCESS_EXIT",
+      "fault_injection_mode": "FROZEN_LOGICAL_FAULT_PROJECTION_NOT_ACTUAL_SYSTEM_FAULT",
+      "real_fault_injected": false,
+      "recovery_projection": "RESTORE_PREVIOUS_SIGNED_ARTIFACTS_LOCAL_ONLY",
+      "scenario_id": "PROCESS_EXIT_FAIL_CLOSED",
+      "selected_data": "NONE",
+      "stale_data_disposition": "REJECTED_STALE_DATA",
+      "stale_data_used": false,
+      "stale_snapshot": {
+        "availability": "STALE",
+        "odds_tick_delta": 0,
+        "probability_delta": "0.0000",
+        "snapshot_id": "STALE-S17P03-002"
+      }
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "current_snapshot": {
+        "availability": "UNAVAILABLE",
+        "odds_tick_delta": 0,
+        "probability_delta": "0.0000",
+        "snapshot_id": "CURRENT-S17P03-003"
+      },
+      "degraded": true,
+      "fault": "DNS_FAILURE",
+      "fault_injection_mode": "FROZEN_LOGICAL_FAULT_PROJECTION_NOT_ACTUAL_SYSTEM_FAULT",
+      "real_fault_injected": false,
+      "recovery_projection": "RESTORE_PREVIOUS_SIGNED_ARTIFACTS_LOCAL_ONLY",
+      "scenario_id": "DNS_FAILURE_FAIL_CLOSED",
+      "selected_data": "NONE",
+      "stale_data_disposition": "REJECTED_STALE_DATA",
+      "stale_data_used": false,
+      "stale_snapshot": {
+        "availability": "STALE",
+        "odds_tick_delta": 0,
+        "probability_delta": "0.0000",
+        "snapshot_id": "STALE-S17P03-003"
+      }
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "current_snapshot": {
+        "availability": "UNAVAILABLE",
+        "odds_tick_delta": 0,
+        "probability_delta": "0.0000",
+        "snapshot_id": "CURRENT-S17P03-004"
+      },
+      "degraded": true,
+      "fault": "NETWORK_FAILURE",
+      "fault_injection_mode": "FROZEN_LOGICAL_FAULT_PROJECTION_NOT_ACTUAL_SYSTEM_FAULT",
+      "real_fault_injected": false,
+      "recovery_projection": "RESTORE_PREVIOUS_SIGNED_ARTIFACTS_LOCAL_ONLY",
+      "scenario_id": "NETWORK_FAILURE_FAIL_CLOSED",
+      "selected_data": "NONE",
+      "stale_data_disposition": "REJECTED_STALE_DATA",
+      "stale_data_used": false,
+      "stale_snapshot": {
+        "availability": "STALE",
+        "odds_tick_delta": 0,
+        "probability_delta": "0.0000",
+        "snapshot_id": "STALE-S17P03-004"
+      }
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "current_snapshot": {
+        "availability": "INVALID_SCHEMA",
+        "odds_tick_delta": 0,
+        "probability_delta": "0.0000",
+        "snapshot_id": "CURRENT-S17P03-005"
+      },
+      "degraded": true,
+      "fault": "PAGE_SCHEMA_CHANGE",
+      "fault_injection_mode": "FROZEN_LOGICAL_FAULT_PROJECTION_NOT_ACTUAL_SYSTEM_FAULT",
+      "real_fault_injected": false,
+      "recovery_projection": "RESTORE_PREVIOUS_SIGNED_ARTIFACTS_LOCAL_ONLY",
+      "scenario_id": "PAGE_SCHEMA_CHANGE_FAIL_CLOSED",
+      "selected_data": "NONE",
+      "stale_data_disposition": "REJECTED_STALE_DATA",
+      "stale_data_used": false,
+      "stale_snapshot": {
+        "availability": "STALE",
+        "odds_tick_delta": 0,
+        "probability_delta": "0.0000",
+        "snapshot_id": "STALE-S17P03-005"
+      }
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "current_snapshot": {
+        "availability": "UNAVAILABLE",
+        "odds_tick_delta": 0,
+        "probability_delta": "0.0000",
+        "snapshot_id": "CURRENT-S17P03-006"
+      },
+      "degraded": true,
+      "fault": "DISK_PRESSURE",
+      "fault_injection_mode": "FROZEN_LOGICAL_FAULT_PROJECTION_NOT_ACTUAL_SYSTEM_FAULT",
+      "real_fault_injected": false,
+      "recovery_projection": "RESTORE_PREVIOUS_SIGNED_ARTIFACTS_LOCAL_ONLY",
+      "scenario_id": "DISK_PRESSURE_FAIL_CLOSED",
+      "selected_data": "NONE",
+      "stale_data_disposition": "REJECTED_STALE_DATA",
+      "stale_data_used": false,
+      "stale_snapshot": {
+        "availability": "STALE",
+        "odds_tick_delta": 0,
+        "probability_delta": "0.0000",
+        "snapshot_id": "STALE-S17P03-006"
+      }
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "current_snapshot": {
+        "availability": "UNAVAILABLE",
+        "odds_tick_delta": 0,
+        "probability_delta": "0.0000",
+        "snapshot_id": "CURRENT-S17P03-007"
+      },
+      "degraded": true,
+      "fault": "MEMORY_PRESSURE",
+      "fault_injection_mode": "FROZEN_LOGICAL_FAULT_PROJECTION_NOT_ACTUAL_SYSTEM_FAULT",
+      "real_fault_injected": false,
+      "recovery_projection": "RESTORE_PREVIOUS_SIGNED_ARTIFACTS_LOCAL_ONLY",
+      "scenario_id": "MEMORY_PRESSURE_FAIL_CLOSED",
+      "selected_data": "NONE",
+      "stale_data_disposition": "REJECTED_STALE_DATA",
+      "stale_data_used": false,
+      "stale_snapshot": {
+        "availability": "STALE",
+        "odds_tick_delta": 0,
+        "probability_delta": "0.0000",
+        "snapshot_id": "STALE-S17P03-007"
+      }
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "current_snapshot": {
+        "availability": "INVALID_CLOCK",
+        "odds_tick_delta": -1,
+        "probability_delta": "-0.0001",
+        "snapshot_id": "CURRENT-S17P03-008"
+      },
+      "degraded": true,
+      "fault": "CLOCK_SKEW",
+      "fault_injection_mode": "FROZEN_LOGICAL_FAULT_PROJECTION_NOT_ACTUAL_SYSTEM_FAULT",
+      "real_fault_injected": false,
+      "recovery_projection": "RESTORE_PREVIOUS_SIGNED_ARTIFACTS_LOCAL_ONLY",
+      "scenario_id": "CLOCK_SKEW_FAIL_CLOSED",
+      "selected_data": "NONE",
+      "stale_data_disposition": "REJECTED_STALE_DATA",
+      "stale_data_used": false,
+      "stale_snapshot": {
+        "availability": "STALE",
+        "odds_tick_delta": -1,
+        "probability_delta": "-0.0001",
+        "snapshot_id": "STALE-S17P03-008"
+      }
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "current_snapshot": {
+        "availability": "INVALID_MODEL_ARTIFACT",
+        "odds_tick_delta": -1,
+        "probability_delta": "0.0001",
+        "snapshot_id": "CURRENT-S17P03-009"
+      },
+      "degraded": true,
+      "fault": "MODEL_ARTIFACT_CORRUPTION",
+      "fault_injection_mode": "FROZEN_LOGICAL_FAULT_PROJECTION_NOT_ACTUAL_SYSTEM_FAULT",
+      "real_fault_injected": false,
+      "recovery_projection": "RESTORE_PREVIOUS_SIGNED_ARTIFACTS_LOCAL_ONLY",
+      "scenario_id": "MODEL_ARTIFACT_CORRUPTION_FAIL_CLOSED",
+      "selected_data": "NONE",
+      "stale_data_disposition": "REJECTED_STALE_DATA",
+      "stale_data_used": false,
+      "stale_snapshot": {
+        "availability": "STALE",
+        "odds_tick_delta": -1,
+        "probability_delta": "0.0001",
+        "snapshot_id": "STALE-S17P03-009"
+      }
+    }
+  ],
+  "schema_version": "1.0.0",
+  "source_generator": {
+    "artifact_id": "ART-S17-P03-01",
+    "path": "chaos_runner.py",
+    "sha256": "bc88c738473903647b12a6bcc2a6d84a96792ff4168374d71196262762dee968"
+  },
+  "stage_id": "S17",
+  "stale_data_gate": {
+    "auto_degraded_count": 8,
+    "error_scenario_count": 8,
+    "passed": true,
+    "rejected_stale_data_count": 8,
+    "stale_data_used_count": 0
+  },
+  "structured_fault_log": [
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "degraded": true,
+      "fault": "PROCESS_EXIT",
+      "real_fault_injected": false,
+      "scenario_id": "PROCESS_EXIT_FAIL_CLOSED",
+      "stale_data_disposition": "REJECTED_STALE_DATA"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "degraded": true,
+      "fault": "DNS_FAILURE",
+      "real_fault_injected": false,
+      "scenario_id": "DNS_FAILURE_FAIL_CLOSED",
+      "stale_data_disposition": "REJECTED_STALE_DATA"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "degraded": true,
+      "fault": "NETWORK_FAILURE",
+      "real_fault_injected": false,
+      "scenario_id": "NETWORK_FAILURE_FAIL_CLOSED",
+      "stale_data_disposition": "REJECTED_STALE_DATA"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "degraded": true,
+      "fault": "PAGE_SCHEMA_CHANGE",
+      "real_fault_injected": false,
+      "scenario_id": "PAGE_SCHEMA_CHANGE_FAIL_CLOSED",
+      "stale_data_disposition": "REJECTED_STALE_DATA"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "degraded": true,
+      "fault": "DISK_PRESSURE",
+      "real_fault_injected": false,
+      "scenario_id": "DISK_PRESSURE_FAIL_CLOSED",
+      "stale_data_disposition": "REJECTED_STALE_DATA"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "degraded": true,
+      "fault": "MEMORY_PRESSURE",
+      "real_fault_injected": false,
+      "scenario_id": "MEMORY_PRESSURE_FAIL_CLOSED",
+      "stale_data_disposition": "REJECTED_STALE_DATA"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "degraded": true,
+      "fault": "CLOCK_SKEW",
+      "real_fault_injected": false,
+      "scenario_id": "CLOCK_SKEW_FAIL_CLOSED",
+      "stale_data_disposition": "REJECTED_STALE_DATA"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "degraded": true,
+      "fault": "MODEL_ARTIFACT_CORRUPTION",
+      "real_fault_injected": false,
+      "scenario_id": "MODEL_ARTIFACT_CORRUPTION_FAIL_CLOSED",
+      "stale_data_disposition": "REJECTED_STALE_DATA"
+    }
+  ]
+}

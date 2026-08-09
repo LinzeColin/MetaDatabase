@@ -51,6 +51,8 @@ from .stage15_review import verify_existing_stage_review_evidence as verify_exis
 from .stage15_review import write_stage_review_evidence as write_stage15_review_evidence
 from .stage16_review import verify_existing_stage_review_evidence as verify_existing_stage16_review_evidence
 from .stage16_review import write_stage_review_evidence as write_stage16_review_evidence
+from .stage17_review import verify_existing_stage_review_evidence as verify_existing_stage17_review_evidence
+from .stage17_review import write_stage_review_evidence as write_stage17_review_evidence
 from .gmail_authorization import write_phase_evidence as write_gmail_authorization_phase_evidence
 from .mail_preservation import write_phase_evidence as write_mail_preservation_phase_evidence
 from .attachment_security import write_phase_evidence as write_attachment_security_phase_evidence
@@ -132,6 +134,14 @@ from .model_redteam import verify_existing_phase_evidence as verify_model_redtea
 from .model_redteam import write_phase_evidence as write_model_redteam_phase_evidence
 from .model_release_gate import verify_existing_phase_evidence as verify_model_release_gate_phase_evidence
 from .model_release_gate import write_phase_evidence as write_model_release_gate_phase_evidence
+from .load_test import verify_existing_phase_evidence as verify_load_test_phase_evidence
+from .load_test import write_phase_evidence as write_load_test_phase_evidence
+from .concurrency_idempotency import verify_existing_phase_evidence as verify_concurrency_idempotency_phase_evidence
+from .concurrency_idempotency import write_phase_evidence as write_concurrency_idempotency_phase_evidence
+from .chaos import verify_existing_phase_evidence as verify_chaos_phase_evidence
+from .chaos import write_phase_evidence as write_chaos_phase_evidence
+from .recovery import verify_existing_phase_evidence as verify_recovery_phase_evidence
+from .recovery import write_phase_evidence as write_recovery_phase_evidence
 
 
 def main() -> int:
@@ -196,12 +206,17 @@ def main() -> int:
             "AC-S16-P02": verify_model_eval_phase_evidence,
             "AC-S16-P03": verify_model_redteam_phase_evidence,
             "AC-S16-P04": verify_model_release_gate_phase_evidence,
+            "AC-S17-P01": verify_load_test_phase_evidence,
+            "AC-S17-P02": verify_concurrency_idempotency_phase_evidence,
+            "AC-S17-P03": verify_chaos_phase_evidence,
+            "AC-S17-P04": verify_recovery_phase_evidence,
             "STAGE-REVIEW-S11": verify_existing_stage_review_evidence,
             "STAGE-REVIEW-S12": verify_existing_stage12_review_evidence,
             "STAGE-REVIEW-S13": verify_existing_stage13_review_evidence,
             "STAGE-REVIEW-S14": verify_existing_stage14_review_evidence,
             "STAGE-REVIEW-S15": verify_existing_stage15_review_evidence,
             "STAGE-REVIEW-S16": verify_existing_stage16_review_evidence,
+            "STAGE-REVIEW-S17": verify_existing_stage17_review_evidence,
         }
         if args.verify_existing not in existing_verifiers:
             parser.error("existing evidence verifier is not implemented: %s" % args.verify_existing)
@@ -297,12 +312,17 @@ def main() -> int:
         "AC-S16-P02": write_model_eval_phase_evidence,
         "AC-S16-P03": write_model_redteam_phase_evidence,
         "AC-S16-P04": write_model_release_gate_phase_evidence,
+        "AC-S17-P01": write_load_test_phase_evidence,
+        "AC-S17-P02": write_concurrency_idempotency_phase_evidence,
+        "AC-S17-P03": write_chaos_phase_evidence,
+        "AC-S17-P04": write_recovery_phase_evidence,
         "STAGE-REVIEW-S11": write_stage11_review_evidence,
         "STAGE-REVIEW-S12": write_stage12_review_evidence,
         "STAGE-REVIEW-S13": write_stage13_review_evidence,
         "STAGE-REVIEW-S14": write_stage14_review_evidence,
         "STAGE-REVIEW-S15": write_stage15_review_evidence,
         "STAGE-REVIEW-S16": write_stage16_review_evidence,
+        "STAGE-REVIEW-S17": write_stage17_review_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)

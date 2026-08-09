@@ -1,0 +1,132 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "STAGE-REVIEW-S17",
+  "review_id": "ABD-S17-WHOLE-STAGE-REVIEW",
+  "stage_id": "S17",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-10T00:00:00+10:00",
+  "stage_review_addendum": "LOCAL_STAGE_REVIEW_CONTRACT_NOT_A_FROZEN_TASK_PACK_FACT",
+  "review_scope": {
+    "phase_ids": ["P01", "P02", "P03", "P04"],
+    "requirement_ids": ["REQ-S17-P01", "REQ-S17-P02", "REQ-S17-P03", "REQ-S17-P04"],
+    "acceptance_contract_ids": ["AC-S17-P01", "AC-S17-P02", "AC-S17-P03", "AC-S17-P04"],
+    "task_ids": [
+      "T-S17-P01-01", "T-S17-P01-02", "T-S17-P01-03",
+      "T-S17-P02-01", "T-S17-P02-02", "T-S17-P02-03",
+      "T-S17-P03-01", "T-S17-P03-02", "T-S17-P03-03",
+      "T-S17-P04-01", "T-S17-P04-02", "T-S17-P04-03"
+    ]
+  },
+  "phase_records": [
+    {
+      "phase_id": "P01",
+      "requirement_id": "REQ-S17-P01",
+      "acceptance_contract_id": "AC-S17-P01",
+      "target": "VPS-1资源门内且无静默丢数据。",
+      "outputs": ["load_test.py", "load_profile.json", "capacity_evidence.json"],
+      "evidence_path": "machine/evidence/EVD-S17-P01.json",
+      "evidence_sha256": "2f8cc9265cea7eec0e28d6ae0608ba6548a75378d28b850e639509465bff2fa9",
+      "rollback_path": "machine/evidence/EVD-S17-P01_rollback.json",
+      "rollback_sha256": "daaf5ca4b5f3b4c5089aa9a75d7ec0837bda8447943a32842ac502a11d401b88",
+      "expected_decision": "S17_P01_FROZEN_FULL_HISTORY_10X_LOAD_PASS_P02_REQUIRED",
+      "expected_next": "S17/P02_READY_NOT_STARTED",
+      "required_checks": [
+        "S17P01-FROZEN-10X-LOAD-PROFILE-EXACT",
+        "S17P01-VPS-ENVELOPE-AND-NO-SILENT-DROP-EXACT",
+        "S17P01-EXTERNAL-EFFECT-BOUNDARY-EXACT"
+      ]
+    },
+    {
+      "phase_id": "P02",
+      "requirement_id": "REQ-S17-P02",
+      "acceptance_contract_id": "AC-S17-P02",
+      "target": "重复建议/账本事件为0。",
+      "outputs": ["concurrency_test.py", "idempotency_report.json"],
+      "evidence_path": "machine/evidence/EVD-S17-P02.json",
+      "evidence_sha256": "c417d9eb732c24969d11db52bd501438572a57e2b3eeef8791085e746aae2711",
+      "rollback_path": "machine/evidence/EVD-S17-P02_rollback.json",
+      "rollback_sha256": "8d496ff9548c7b71dd1777c4067e91b7c8148d3337efde160a14b57150fa5a3c",
+      "expected_decision": "S17_P02_IDEMPOTENCY_PASS_P03_REQUIRED",
+      "expected_next": "S17/P03_READY_NOT_STARTED",
+      "required_checks": [
+        "S17P02-IDEMPOTENCY-ARTIFACT-REPLAY-EXACT",
+        "S17P02-ZERO-DUPLICATE-SUGGESTION-AND-LEDGER-EXACT",
+        "S17P02-EXTERNAL-EFFECT-BOUNDARY-EXACT"
+      ]
+    },
+    {
+      "phase_id": "P03",
+      "requirement_id": "REQ-S17-P03",
+      "acceptance_contract_id": "AC-S17-P03",
+      "target": "错误时不使用陈旧数据且自动降级。",
+      "outputs": ["chaos_scenarios.json", "chaos_runner.py"],
+      "evidence_path": "machine/evidence/EVD-S17-P03.json",
+      "evidence_sha256": "2f40bd1eed62a0b1ed14347507d497fa54cc63db56c4f31112c631fe48beef97",
+      "rollback_path": "machine/evidence/EVD-S17-P03_rollback.json",
+      "rollback_sha256": "73de0722f20bf34a76c461e87a36bd6b8748168d1bd8dbfb8b60d9df8d7364b4",
+      "expected_decision": "S17_P03_CHAOS_STALE_DATA_GATE_PASS_P04_REQUIRED",
+      "expected_next": "S17/P04_READY_NOT_STARTED",
+      "required_checks": [
+        "S17P03-CHAOS-ARTIFACT-REPLAY-EXACT",
+        "S17P03-STALE-DATA-REJECTED-AND-DEGRADED-EXACT",
+        "S17P03-EXTERNAL-EFFECT-BOUNDARY-EXACT"
+      ]
+    },
+    {
+      "phase_id": "P04",
+      "requirement_id": "REQ-S17-P04",
+      "acceptance_contract_id": "AC-S17-P04",
+      "target": "账本恢复点≤60秒，建议服务恢复≤15分钟。",
+      "outputs": ["recovery_test.py", "disaster_drill.md", "recovery_report.json"],
+      "evidence_path": "machine/evidence/EVD-S17-P04.json",
+      "evidence_sha256": "08e1d389d3b0d80d6c729d9835dc27343018985cd8cc1796a9528b5ed7d6e708",
+      "rollback_path": "machine/evidence/EVD-S17-P04_rollback.json",
+      "rollback_sha256": "6d268bbbec86958f790f78da7ef4194b2a542c4231d8b0ebc8fb5143f25c0622",
+      "expected_decision": "S17_P04_RECOVERY_DRILL_PASS_STAGE_REVIEW_REQUIRED",
+      "expected_next": "S17/STAGE_REVIEW_READY_NOT_STARTED",
+      "required_checks": [
+        "S17P04-RECOVERY-ARTIFACT-REPLAY-EXACT",
+        "S17P04-RPO_RTO_GATE_AND_FAIL_CLOSED-EXACT",
+        "S17P04-EXTERNAL-EFFECT-BOUNDARY-EXACT"
+      ]
+    }
+  ],
+  "baseline_hashes": {
+    "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+    "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+    "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+    "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+  },
+  "review_gates": [
+    "PHASE_RECEIPTS_CURRENT_AND_PORTABLE",
+    "REQUIREMENT_ACCEPTANCE_TASK_TRACE_CLOSED",
+    "FROZEN_LOAD_ENVELOPE_COUNT_CONSERVING_NO_SILENT_DROP_PRESERVED",
+    "IDEMPOTENCY_NO_DUPLICATE_SUGGESTION_OR_LEDGER_PRESERVED",
+    "CHAOS_STALE_DATA_REJECTED_AND_AUTO_DEGRADED_PRESERVED",
+    "RECOVERY_RPO_RTO_FAIL_CLOSED_LOGICAL_GATE_PRESERVED",
+    "NO_NETWORK_RUNTIME_ACCOUNT_DATABASE_ORDER_DEPLOY_OR_REAL_TIME_SOAK_EXECUTED",
+    "ALL_S17_REVIEW_FINDINGS_RESOLVED",
+    "NO_FULL_REGRESSION_EXECUTED"
+  ],
+  "execution_policy": {
+    "offline_deterministic_only": true,
+    "phase_test_rerun_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "single_pass_fixture_cases_only": true,
+    "signed_phase_receipt_verification_mode": "PINNED_RECEIPT_HASH_INDEX_AND_CURRENT_CONTROL_ARTIFACTS",
+    "github_upload_performed_by_local_review": false,
+    "production_deployed_or_activated": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "targeted_test_command": "pytest -q tests/S17/stage_review_test.py",
+  "release_status_on_pass": "S17_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "next_on_pass": "S17/GITHUB_STAGE_UPLOAD_READY",
+  "next_on_fail": "S17/STAGE_REVIEW_REMEDIATION_REQUIRED",
+  "rollback": "关闭 S17 复审候选，保留 P01--P04 已签名证据并按对应 Phase 回滚合同重放；不修改冻结 Phase 基线或任何外部状态。"
+}
