@@ -61,6 +61,15 @@ test("habit controls always acknowledge a failed save without claiming a complet
   assert.match(source, /已完成\$\{card\.label\}打卡，历史记录已同步。/);
 });
 
+test("built-in habit requests use a stable ASCII idempotency key", async () => {
+  const source = await readFile(lifecycleSource, "utf8");
+
+  assert.match(source, /function builtinHabitIdempotencyKey\(index: number\): string/);
+  assert.match(source, /builtin-habit-\$\{String\(index \+ 1\)\.padStart\(2, "0"\)\}-v1/);
+  assert.match(source, /builtinHabitIdempotencyKey\(index\)/);
+  assert.doesNotMatch(source, /builtin-habit-\$\{card\.label\}/);
+});
+
 test("tenant resource client uses verified-session endpoints without client tenant fields", async () => {
   const source = await readFile(resourceSource, "utf8");
 

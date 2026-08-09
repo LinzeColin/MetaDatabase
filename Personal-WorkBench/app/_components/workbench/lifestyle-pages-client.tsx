@@ -130,6 +130,15 @@ function mealLabel(value: unknown): string {
   return "早餐";
 }
 
+/**
+ * The server deliberately accepts only URL-safe ASCII idempotency tokens.
+ * Keep the built-in habit identity stable across reloads without deriving the
+ * token from the user-facing (and potentially localized) label.
+ */
+function builtinHabitIdempotencyKey(index: number): string {
+  return `builtin-habit-${String(index + 1).padStart(2, "0")}-v1`;
+}
+
 function DeleteRecordButton({
   disabled,
   onDelete,
@@ -172,7 +181,7 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
     if (existing) return existing;
     return habits.create(
       { active: true, iconKey: card.icon, sortOrder: index, title: card.label },
-      `builtin-habit-${card.label}`,
+      builtinHabitIdempotencyKey(index),
     );
   }
 
