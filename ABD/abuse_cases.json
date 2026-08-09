@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0.0",
+  "abuse_case_catalog_id": "S14-P01-ABUSE-CASES",
+  "contract_id": "AC-S14-P01",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "execution_mode": "FROZEN_SYNTHETIC_LOCAL_CONTRACT_ONLY",
+  "cases": [
+    {
+      "case_id": "ABUSE-S14-P01-01",
+      "threat_id": "THR-PROMPT-INJECTION",
+      "boundary_id": "BND-UNTRUSTED-CONTENT",
+      "synthetic_input_id": "FIX-PROMPT-INJECTION",
+      "expected_outcome": "REVOKE_AND_PRESERVE_EVIDENCE_NO_ACTION",
+      "prevention_control_id": "CTRL-PROMPT-TREAT-CONTENT-AS-DATA",
+      "detection_control_id": "CTRL-PROMPT-RECORD-UNTRUSTED-PROVENANCE",
+      "response_control_id": "CTRL-PROMPT-REVOKE-ACTION",
+      "recovery_control_id": "CTRL-PROMPT-PRESERVE-EVIDENCE-REPLAY"
+    },
+    {
+      "case_id": "ABUSE-S14-P01-02",
+      "threat_id": "THR-MALICIOUS-ATTACHMENT",
+      "boundary_id": "BND-ATTACHMENT-QUARANTINE",
+      "synthetic_input_id": "FIX-MALICIOUS-ATTACHMENT",
+      "expected_outcome": "KEEP_AND_ALERT_NO_EXECUTION",
+      "prevention_control_id": "CTRL-ATTACHMENT-QUARANTINE-NO-EXECUTION",
+      "detection_control_id": "CTRL-ATTACHMENT-MALWARE-AND-PARSER-RESULT",
+      "response_control_id": "CTRL-ATTACHMENT-KEEP-AND-ALERT",
+      "recovery_control_id": "CTRL-ATTACHMENT-RESTORE-FROM-ARCHIVE"
+    },
+    {
+      "case_id": "ABUSE-S14-P01-03",
+      "threat_id": "THR-CREDENTIAL-EXPOSURE",
+      "boundary_id": "BND-CREDENTIAL-MATERIAL",
+      "synthetic_input_id": "FIX-CREDENTIAL-EXPOSURE",
+      "expected_outcome": "DISABLE_EXPOSED_CAPABILITY_NO_SECRET_READ",
+      "prevention_control_id": "CTRL-SECRET-NO-PLAINTEXT-IN-ARTIFACTS",
+      "detection_control_id": "CTRL-SECRET-STATIC-PATTERN-REJECTION",
+      "response_control_id": "CTRL-SECRET-DISABLE-EXPOSED-CAPABILITY",
+      "recovery_control_id": "CTRL-SECRET-ROTATE-OUTSIDE-LOCAL-CONTRACT"
+    },
+    {
+      "case_id": "ABUSE-S14-P01-04",
+      "threat_id": "THR-DATA-POISONING",
+      "boundary_id": "BND-SOURCE-INTEGRITY",
+      "synthetic_input_id": "FIX-DATA-POISONING",
+      "expected_outcome": "REVOKE_UNVERIFIED_INPUT_NO_ACTION",
+      "prevention_control_id": "CTRL-SOURCE-CANONICAL-PRECEDENCE",
+      "detection_control_id": "CTRL-SOURCE-HASH-AND-IDENTITY-CHECK",
+      "response_control_id": "CTRL-SOURCE-REVOKE-UNVERIFIED-INPUT",
+      "recovery_control_id": "CTRL-SOURCE-RESTORE-SIGNED-STATE"
+    },
+    {
+      "case_id": "ABUSE-S14-P01-05",
+      "threat_id": "THR-IDENTITY-MISMATCH",
+      "boundary_id": "BND-IDENTITY-BINDING",
+      "synthetic_input_id": "FIX-IDENTITY-MISMATCH",
+      "expected_outcome": "RED_REVOKE_NO_ACTION",
+      "prevention_control_id": "CTRL-IDENTITY-REQUIRE-EXACT-BINDING",
+      "detection_control_id": "CTRL-IDENTITY-MISMATCH-RED-REVOKE",
+      "response_control_id": "CTRL-IDENTITY-NO-ACTION-ON-MISMATCH",
+      "recovery_control_id": "CTRL-IDENTITY-REPLAY-SIGNED-REGISTRY"
+    },
+    {
+      "case_id": "ABUSE-S14-P01-06",
+      "threat_id": "THR-FALSE-EVIDENCE",
+      "boundary_id": "BND-EVIDENCE-CHAIN",
+      "synthetic_input_id": "FIX-FALSE-EVIDENCE",
+      "expected_outcome": "REJECT_CLAIM_AND_PRESERVE_RECORD",
+      "prevention_control_id": "CTRL-EVIDENCE-IMMUTABLE-HASH-PIN",
+      "detection_control_id": "CTRL-EVIDENCE-INDEX-ARTIFACT-CROSSCHECK",
+      "response_control_id": "CTRL-EVIDENCE-REJECT-UNVERIFIABLE-CLAIM",
+      "recovery_control_id": "CTRL-EVIDENCE-PRESERVE-AND-REPLAY"
+    },
+    {
+      "case_id": "ABUSE-S14-P01-07",
+      "threat_id": "THR-UNAUTHORIZED-EXTERNAL-ACTION",
+      "boundary_id": "BND-OWNER-EXTERNAL-ACTION",
+      "synthetic_input_id": "FIX-UNAUTHORIZED-EXTERNAL-ACTION",
+      "expected_outcome": "DISABLE_AND_PRESERVE_EVIDENCE_NO_ACTION",
+      "prevention_control_id": "CTRL-ACTION-OWNER-FINAL-ORDER-ONLY",
+      "detection_control_id": "CTRL-ACTION-STATIC-NO-EXTERNAL-CAPABILITY",
+      "response_control_id": "CTRL-ACTION-DISABLE-AND-NO-RETRY",
+      "recovery_control_id": "CTRL-ACTION-LOCAL-ROLLBACK-PRESERVE-EVIDENCE"
+    }
+  ]
+}

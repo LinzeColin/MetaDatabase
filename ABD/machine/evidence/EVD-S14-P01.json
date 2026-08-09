@@ -1,0 +1,674 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S14/P01_test.py --junitxml=machine/evidence/S14/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S14/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S14/P01/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S14-P01 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S14-P01",
+  "decision": "THREAT_MODEL_AND_TRUST_BOUNDARIES_READY_SECURITY_REMEDIATION_REQUIRED_BEFORE_PRODUCTION",
+  "decision_sha256": "32a7a6ce82f02e1c293da095c892a0fca1621f88e05f5cd1b52b7c2a8a959c00",
+  "deterministic_replay": {
+    "real_time_wait_performed": false,
+    "single_pass_snapshot_count": 10,
+    "threat_count": 7
+  },
+  "evidence_id": "EVD-S14-P01",
+  "execution_policy": {
+    "external_runtime_access_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "offline_deterministic_only": true,
+    "phase_test_only": true
+  },
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "hashes": {
+    "code": "c7a1619814f05e036d9ca5415e889ddc73c568248de1e7c1d62308c3139190b2",
+    "inputs": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/threat_model.py": "c7a1619814f05e036d9ca5415e889ddc73c568248de1e7c1d62308c3139190b2",
+      "abuse_cases.json": "cbedeb6b97b0a61862a8e3fba0bcaf371d462c42a58bb7df8aa1c7855ade5b65",
+      "machine/evidence/EVD-S04-P04.json": "cc5c845238614bdb7c1fb3ad5706363453ec84880c6cf44430ffef3f9d23bb69",
+      "machine/evidence/EVD-S04-P04_rollback.json": "a60e512777101405ee60e21de0bce4c20eccd24035ec71995084802c68d7ebbf",
+      "machine/evidence/EVD-S06-P04.json": "2530864a43e7b4d2a2a55ccdbbe4a218a77a11b52438ab49ea9c2664f1f60aea",
+      "machine/evidence/EVD-S06-P04_rollback.json": "a54bfe27ffac5efad8fab4683a4a389239939e8fdbdf43fc75fef489c04fc579",
+      "machine/evidence/EVD-S07-P04.json": "a2fa2f72c069050ed7045f7e7c3cbe5928664bee4e91d1307169b19d466a6fa6",
+      "machine/evidence/EVD-S07-P04_rollback.json": "ad483c1e873985c14e5c70d67fb18c2801d9033bf8ed435ca9b149e8bb82054a",
+      "machine/evidence/S14/P01/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S14/P01/pytest.xml": "5c45428482ff857081b35760d1b997d0a83c1975a9925a2a8802d6e367e5d16c",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S14_P01.json": "71618d6d96a06e6af935e7aa05d674c09a6b05732bc7f40c6610938c8eb0d71f",
+      "tests/S14/P01_test.py": "7df8366b69a75ef21014996a15030adf8ba7e6365a2b9d7093be2d726312b117",
+      "threat_model.json": "22ebb7e08b2b59b4fa01f3f311c4fd970839c63fb1ef2797f802f7d11d1157f5",
+      "trust_boundaries.json": "800748b98a1d32f6c2009dd8e02e877b2beb0c10906a91032a649e7457021737"
+    },
+    "rollback_evidence": "feba53995af01741678c252fb0f2a2d58af4a3a37f5b558f70a94549354463c0"
+  },
+  "next": "S14/P02_READY_NOT_STARTED",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S14_P01_LOCAL_EVIDENCE_ONLY_REMAINING_PHASES_AND_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S14-P01",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S14-P01_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S14",
+  "stage_snapshot_summary": {
+    "reason_codes": [],
+    "status": "S14P01_THREAT_MODEL_VERIFIED_NO_ACTION"
+  },
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": "threat_model.json",
+        "id": "S14P01-THREAT-MODEL-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "trust_boundaries.json",
+        "id": "S14P01-TRUST-BOUNDARIES-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "abuse_cases.json",
+        "id": "S14P01-ABUSE-CASES-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S14_P01.json",
+        "id": "S14P01-FIXTURE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S14P01-BASELINE-PURSUE_GOAL_PROMPT-TXT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S14P01-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S14P01-BASELINE-CANONICAL_FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S14P01-BASELINE-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S14P01-BASELINE-ROADMAP-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S14P01-BASELINE-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S14P01-BASELINE-ACCEPTANCE_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S14P01-BASELINE-TASK_GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S14P01-BASELINE-TRACEABILITY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S14P01-REQUIREMENTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S14P01-CONTRACTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S14P01-TASK-GRAPH-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S14P01-TRACEABILITY-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/evidence_index.jsonl",
+        "id": "S14P01-EVIDENCE-INDEX-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "index_status": "PLANNED",
+          "task_ids": [
+            "T-S14-P01-01",
+            "T-S14-P01-02",
+            "T-S14-P01-03"
+          ]
+        },
+        "id": "S14P01-REQUIREMENT-ACCEPTANCE-TASK-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S04-P04.json",
+        "id": "S14P01-S04P04-EVIDENCE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S04-P04_rollback.json",
+        "id": "S14P01-S04P04-ROLLBACK-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contract_id": "AC-S04-P04",
+          "actual_artifact": "machine/evidence/EVD-S04-P04.json",
+          "artifact_sha256": "cc5c845238614bdb7c1fb3ad5706363453ec84880c6cf44430ffef3f9d23bb69",
+          "expected_artifact": "machine/evidence/EVD-S04-P04.json",
+          "id": "INDEX-AC-S04-P04",
+          "kind": "ACCEPTANCE_EVIDENCE",
+          "next": "S04/STAGE_REVIEW_READY_NOT_STARTED",
+          "pass_gate": "VPS-1在10倍预期负载下不触发失控交换或磁盘耗尽。",
+          "requirement_id": "REQ-S04-P04",
+          "status": "PASS",
+          "verified_at": "2026-07-22T23:30:00+10:00"
+        },
+        "id": "S14P01-S04P04-SIGNED-DEPENDENCY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S06-P04.json",
+        "id": "S14P01-S06P04-EVIDENCE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S06-P04_rollback.json",
+        "id": "S14P01-S06P04-ROLLBACK-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_artifact": "machine/evidence/EVD-S06-P04.json",
+          "artifact_sha256": "2530864a43e7b4d2a2a55ccdbbe4a218a77a11b52438ab49ea9c2664f1f60aea",
+          "contract_id": "AC-S06-P04",
+          "id": "INDEX-AC-S06-P04",
+          "kind": "PHASE_EVIDENCE",
+          "next": "S06/STAGE_REVIEW_READY_NOT_STARTED",
+          "stage_id": "S06",
+          "status": "PASS",
+          "verified_at": "2026-07-29T00:00:00+10:00"
+        },
+        "id": "S14P01-S06P04-SIGNED-DEPENDENCY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S07-P04.json",
+        "id": "S14P01-S07P04-EVIDENCE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S07-P04_rollback.json",
+        "id": "S14P01-S07P04-ROLLBACK-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_artifact": "machine/evidence/EVD-S07-P04.json",
+          "artifact_sha256": "a2fa2f72c069050ed7045f7e7c3cbe5928664bee4e91d1307169b19d466a6fa6",
+          "contract_id": "AC-S07-P04",
+          "id": "INDEX-AC-S07-P04",
+          "kind": "PHASE_EVIDENCE",
+          "next": "S07/STAGE_REVIEW_READY_NOT_STARTED",
+          "stage_id": "S07",
+          "status": "PASS",
+          "verified_at": "2026-07-30T00:00:00+10:00"
+        },
+        "id": "S14P01-S07P04-SIGNED-DEPENDENCY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "S04/P04": true,
+          "S06/P04": true,
+          "S07/P04": true
+        },
+        "id": "S14P01-PREDECESSOR-RECEIPTS-CURRENT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "THR-PROMPT-INJECTION",
+          "THR-MALICIOUS-ATTACHMENT",
+          "THR-CREDENTIAL-EXPOSURE",
+          "THR-DATA-POISONING",
+          "THR-IDENTITY-MISMATCH",
+          "THR-FALSE-EVIDENCE",
+          "THR-UNAUTHORIZED-EXTERNAL-ACTION"
+        ],
+        "id": "S14P01-HIGH-THREAT-MODEL-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "BND-UNTRUSTED-CONTENT",
+          "BND-ATTACHMENT-QUARANTINE",
+          "BND-CREDENTIAL-MATERIAL",
+          "BND-SOURCE-INTEGRITY",
+          "BND-IDENTITY-BINDING",
+          "BND-EVIDENCE-CHAIN",
+          "BND-OWNER-EXTERNAL-ACTION"
+        ],
+        "id": "S14P01-TRUST-BOUNDARIES-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "ABUSE-S14-P01-01",
+          "ABUSE-S14-P01-02",
+          "ABUSE-S14-P01-03",
+          "ABUSE-S14-P01-04",
+          "ABUSE-S14-P01-05",
+          "ABUSE-S14-P01-06",
+          "ABUSE-S14-P01-07"
+        ],
+        "id": "S14P01-ABUSE-CASES-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "case_count": 7,
+          "threat_count": 7
+        },
+        "id": "S14P01-EVERY-HIGH-THREAT-HAS-PREVENT-DETECT-RESPOND-RECOVER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cases": true,
+          "header": true
+        },
+        "id": "S14P01-FIXTURE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_runtime_access_allowed": false,
+          "full_regression_or_real_time_soak_allowed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "offline_deterministic_only": true,
+          "phase_test_only": true
+        },
+        "id": "S14P01-NO-NETWORK-ACCOUNT-ORDER-DEPLOY-OR-SOAK-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": "portable",
+        "id": "S14P01-ARTIFACTS-PORTABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "3907a9cbb93b3295a85841c1f61579b2bd171e783444cd1b9eb1b595a5603e09",
+          "real_time_soak_waited": false,
+          "reason_codes": [],
+          "recommendation_generated": false,
+          "status": "S14P01_THREAT_MODEL_VERIFIED_NO_ACTION"
+        },
+        "id": "S14P01-LIVE-SNAPSHOT-NO-ACTION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "3907a9cbb93b3295a85841c1f61579b2bd171e783444cd1b9eb1b595a5603e09",
+          "real_time_soak_waited": false,
+          "reason_codes": [],
+          "recommendation_generated": false,
+          "status": "S14P01_THREAT_MODEL_VERIFIED_NO_ACTION"
+        },
+        "id": "S14P01-CASE-POSITIVE_EXACT_LOCAL_CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "fcb7ac8a17483aa4e128b9e8b55692849726c96daf15cd062bafd50783de243f",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "DEPENDENCY_RECEIPTS_NOT_CURRENT"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION"
+        },
+        "id": "S14P01-CASE-DEPENDENCY_RECEIPT_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "738b525be6c05ea5a6144cb233599028bd60741c46123fa1e571a3288410898c",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "HIGH_RISK_THREAT_CONTROL_GAP"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION"
+        },
+        "id": "S14P01-CASE-THREAT_CONTROL_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "1fa83f45b5b281b865e73bd473b938e94e10767e974abacbb39e8bdfef043318",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "TRUST_BOUNDARY_NOT_CLOSED"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION"
+        },
+        "id": "S14P01-CASE-BOUNDARY_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "ee0931173bf63a4ebcdf565eec5d030e6136da612d3915c1dd0711ed163eea8a",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "ABUSE_CASE_COVERAGE_GAP"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION"
+        },
+        "id": "S14P01-CASE-ABUSE_CASE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "948cf5403d282885da13bdbfa9bcc2a159bb242ef7bb6754455fbad7f875a829",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "EXTERNAL_ACTION_BOUNDARY_RELAXED"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION"
+        },
+        "id": "S14P01-CASE-EXTERNAL_BOUNDARY_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "10fbe0ddfe3e228290fccea6532992ae44a0e22c5f23ca5df3dbfe02cf11fe04",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "CONTROL_COVERAGE_NOT_EXACT"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION"
+        },
+        "id": "S14P01-CASE-POINT_0001_COVERAGE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "10fbe0ddfe3e228290fccea6532992ae44a0e22c5f23ca5df3dbfe02cf11fe04",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "CONTROL_COVERAGE_NOT_EXACT"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION"
+        },
+        "id": "S14P01-CASE-POINT_0001_COVERAGE_OVERFAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "f757759582494ae1cd9790166080eb6f3c6a4f2e9b2eff3105ef73e520483f3b",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "OPEN_SECURITY_FINDINGS"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION"
+        },
+        "id": "S14P01-CASE-OPEN_FINDING_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "3ea90d47e89f50c03ff8b3d1f94c7d988ca14e4d1c0b629fa760f499ad3cd811",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "FOREIGN_ODDS_INPUT_REJECTED"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION"
+        },
+        "id": "S14P01-CASE-FOREIGN_ODDS_INPUT_REJECTED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "denied": [],
+          "imports": [
+            "__future__",
+            "ast",
+            "canonical_facts",
+            "decimal",
+            "hashlib",
+            "json",
+            "pathlib",
+            "re",
+            "typing",
+            "xml"
+          ],
+          "tokens": []
+        },
+        "id": "S14P01-STATIC-NO-NETWORK-PROCESS-SOAK-OR-ORDER-CAPABILITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 37
+        },
+        "id": "S14P01-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S14/P01/paid_dependency_scan.txt",
+        "id": "S14P01-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S14P01-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      },
+      {
+        "detail": "required",
+        "id": "S14P01-REPORTS-REQUIRED-WHEN-SIGNING",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_runtime_access_allowed": false,
+          "full_regression_or_real_time_soak_allowed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "offline_deterministic_only": true,
+          "phase_test_only": true
+        },
+        "id": "S14P01-PHASE-ONLY-NO-FULL-REGRESSION",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S14-P01",
+    "decision": "THREAT_MODEL_AND_TRUST_BOUNDARIES_READY_SECURITY_REMEDIATION_REQUIRED_BEFORE_PRODUCTION",
+    "external_effect_boundary": {
+      "external_network_accessed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submitted_confirmed_or_retried": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "hashes": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "machine/evidence/EVD-S04-P04.json": "cc5c845238614bdb7c1fb3ad5706363453ec84880c6cf44430ffef3f9d23bb69",
+      "machine/evidence/EVD-S04-P04_rollback.json": "a60e512777101405ee60e21de0bce4c20eccd24035ec71995084802c68d7ebbf",
+      "machine/evidence/EVD-S06-P04.json": "2530864a43e7b4d2a2a55ccdbbe4a218a77a11b52438ab49ea9c2664f1f60aea",
+      "machine/evidence/EVD-S06-P04_rollback.json": "a54bfe27ffac5efad8fab4683a4a389239939e8fdbdf43fc75fef489c04fc579",
+      "machine/evidence/EVD-S07-P04.json": "a2fa2f72c069050ed7045f7e7c3cbe5928664bee4e91d1307169b19d466a6fa6",
+      "machine/evidence/EVD-S07-P04_rollback.json": "ad483c1e873985c14e5c70d67fb18c2801d9033bf8ed435ca9b149e8bb82054a",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+    },
+    "next": "S14/P02_READY_NOT_STARTED",
+    "phase_id": "P01",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "requirement_id": "REQ-S14-P01",
+    "snapshot": {
+      "abuse_cases_closed": true,
+      "all_high_threats_controlled": true,
+      "coverage_score": "1.0000",
+      "dependency_receipts_current": true,
+      "external_effect_boundary_preserved": true,
+      "findings_open": 0,
+      "foreign_odds_input_present": false,
+      "trust_boundaries_closed": true
+    },
+    "stage_id": "S14",
+    "status": "PASS",
+    "summary": {
+      "checks": 53,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 53
+    }
+  }
+}
