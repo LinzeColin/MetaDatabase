@@ -1,6 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import {
   FatlossClient,
@@ -10,6 +12,7 @@ import {
   PeriodClient,
 } from "./_components/workbench/lifestyle-pages-client";
 import TodoPageClient from "./_components/workbench/todo-page-client";
+import { canonicalLegacyHostUrl } from "./_components/workbench/canonical-domain";
 import { LegacyDomainRedirect } from "./_components/workbench/legacy-domain-redirect";
 
 const PRIVATE_ASSET_ROOT = "/private-reference-assets";
@@ -61,8 +64,17 @@ export const metadata: Metadata = {
 };
 
 type PageProps = {
-  searchParams: Promise<{ reference?: string; view?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
+
+function queryFromSearchParams(searchParams: Record<string, string | string[] | undefined>): string {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (typeof value === "string") query.append(key, value);
+    else if (Array.isArray(value)) value.forEach((item) => query.append(key, item));
+  }
+  return query.toString();
+}
 
 function asset(name: string) {
   return `${RUNTIME_ASSET_ROOT}/${name}`;
@@ -78,7 +90,7 @@ function hrefFor(route: string, reference: boolean) {
 
 function Sidebar({ route, reference }: { route: string; reference: boolean }) {
   return (
-    <aside className="sidebar" aria-label="工作台导航">
+    <aside className="sidebar" aria-label="个人日程导航">
       <nav className="nav-list">
         {navItems.map(([key, label, icon]) => (
           <a
@@ -178,7 +190,7 @@ function Welcome({ reference }: { reference: boolean }) {
             慢慢来，一切都在变好<span aria-hidden="true" className="welcome-spark" />
           </p>
           <a className="welcome-enter" href={hrefFor("home", reference)}>
-            进入工作台&nbsp; →
+            进入个人日程&nbsp; →
           </a>
           {!reference ? <p className="welcome-auth-note">登录后，换设备也能接着用</p> : null}
         </div>
@@ -255,7 +267,9 @@ function GenericPage({ reference, route }: { reference: boolean; route: string }
 }
 
 export default async function HomePage({ searchParams }: PageProps) {
-  const params = await searchParams;
+  const [params, requestHeaders] = await Promise.all([searchParams, headers()]);
+  const canonicalDestination = canonicalLegacyHostUrl(requestHeaders.get("host"), queryFromSearchParams(params));
+  if (canonicalDestination) redirect(canonicalDestination);
   const reference = typeof params.reference === "string" && referenceRoutes.has(params.reference);
   const requestedRoute = reference ? params.reference! : params.view;
   const route = typeof requestedRoute === "string" && navigableRoutes.has(requestedRoute) ? requestedRoute : "welcome";
