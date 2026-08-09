@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PASS_PRIVATE_VERSION_21_CONTROLLED_CHROME_AB_TENANT_HISTORY_REPLAY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "local_source_commit": "518723e2efddd25e5fac95951483254cd84ee157",
+    "sites_source_commit": "91037c9cd02cd2dfca42124243cb212af049d0c4",
+    "sites_version_number": 21,
+    "deployment_environment_revision": 8,
+    "canonical_origin": "https://mydairy.linzezhang.com",
+    "site_title": "个人日程"
+  },
+  "execution_surface": {
+    "kind": "agent_controlled_chrome_extension_session",
+    "two_distinct_temporary_email_accounts": true,
+    "sequential_reauthentication_used": true,
+    "browser_cookie_or_storage_inspected": false,
+    "real_user_identity_or_credentials_recorded": false
+  },
+  "email_authentication": {
+    "account_a_registration_verification_and_sign_in": "PASS",
+    "account_b_registration_verification_and_sign_in": "PASS",
+    "verification_mail_delivery_observed_for_each_account": true,
+    "verification_link_callback_returned_to_sign_in": true,
+    "managed_turnstile_completed_without_manual_bypass": true
+  },
+  "tenant_and_history": {
+    "account_a_non_sensitive_schedule_write_visible": true,
+    "account_b_authenticated_schedule_history_loaded": true,
+    "account_b_cannot_see_account_a_generated_record": true,
+    "account_b_empty_history_visible": true,
+    "account_a_reauthenticated_after_account_b": true,
+    "account_a_generated_record_visible_after_reauthentication": true,
+    "generated_record_value_recorded": false
+  },
+  "scope_and_cleanup": {
+    "private_owner_only_deployment_unchanged": true,
+    "public_audience_or_runtime_values_changed": false,
+    "real_user_business_data_read_or_written": false,
+    "temporary_credentials_or_mail_references_retained_in_evidence": false,
+    "temporary_mailboxes_deleted": true,
+    "temporary_browser_tabs_finalized": true,
+    "temporary_credentials_cleared_from_test_runtime": true,
+    "generated_test_accounts_and_non_sensitive_record_remain_isolated": true,
+    "destructive_account_or_record_deletion_not_performed": true
+  },
+  "not_proven": [
+    "Physical second-device history readback",
+    "Direct D1 or R2 reconciliation",
+    "Current Version 21 Google OAuth and password-reset replay",
+    "Public multi-user audience or final product acceptance"
+  ]
+}

@@ -210,3 +210,27 @@ test("Version 18 Chrome auth and workbench replay retains no controlled-account 
   assert.equal(serialized.includes("Bearer "), false);
   assert.equal(serialized.includes("PwB!"), false);
 });
+
+test("Version 21 A/B tenant replay retains no test-account material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_21_ab_tenant_history_replay.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 21);
+  assert.equal(evidence.execution_surface.two_distinct_temporary_email_accounts, true);
+  assert.equal(evidence.execution_surface.browser_cookie_or_storage_inspected, false);
+  assert.equal(evidence.tenant_and_history.account_b_cannot_see_account_a_generated_record, true);
+  assert.equal(evidence.tenant_and_history.account_a_generated_record_visible_after_reauthentication, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_credentials_or_mail_references_retained_in_evidence, false);
+  assert.equal(evidence.scope_and_cleanup.temporary_mailboxes_deleted, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_browser_tabs_finalized, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_credentials_cleared_from_test_runtime, true);
+  assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
