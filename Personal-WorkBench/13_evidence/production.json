@@ -10,7 +10,9 @@
     "sites_source_commit": "877c13d5c487399147790e5bb218e9e02d56f8be",
     "source_projection_parent": "5d5e78e32cd0d33c33fa2e383ef4d21a90557b79",
     "saved_version_number": 13,
-    "source_projection_matches_current_project_tree": true,
+    "source_projection_matches_version_13_project_tree": true,
+    "source_projection_matches_current_project_tree": false,
+    "current_project_tree_delta": "S5-T3 evidence and handoff updates after Version 13; no deployed runtime source, environment, or access-policy change.",
     "source_projection_archive_sha256": "6be69c7eccbba39340851bae51bb4ec037cd902757e4f0d54a160219fd38bc72",
     "deployment_archive_sha256": "6be69c7eccbba39340851bae51bb4ec037cd902757e4f0d54a160219fd38bc72",
     "provider_archive_sha256": "sha256:11e23f6917dfa37bf4650fa3f5f8fe898e4a1903c526b50d14a2482295f30206",
@@ -75,7 +77,7 @@
     "real_a_b_tenant_isolation": "PASS_PRIVATE_CURRENT_VERSION_TEST_RECORDS_CLEANED",
     "separate_authenticated_session_history_readback": "PASS_PRIVATE_CURRENT_VERSION_TEST_RECORDS_CLEANED",
     "real_cross_device_history": "NOT_RUN_PHYSICAL_SECOND_DEVICE",
-    "real_d1_r2_reconciliation": "NOT_RUN_DIRECT_RECONCILIATION"
+    "real_d1_r2_reconciliation": "NOT_RUN_NO_DISCOVERABLE_PERSONAL_SCHEDULE_PHYSICAL_BINDING_READ_ONLY"
   },
   "raw_unauthenticated_smoke": {
     "evidence_file": "13_evidence/production-smoke-run.json",
@@ -89,7 +91,8 @@
     "13_evidence/production-smoke-run.json",
     "13_evidence/email_signup_replay.json",
     "13_evidence/tenant_history_replay.json",
-    "13_evidence/browser_transport_boundary.json"
+    "13_evidence/browser_transport_boundary.json",
+    "13_evidence/cloudflare_d1_binding_discovery.json"
   ],
   "product_pass_claimed": false,
   "final_acceptance_claimed": false,
@@ -99,5 +102,5 @@
     "physical second-device history readback and direct D1/R2 reconciliation",
     "negative provider and recovery-path replay"
   ],
-  "notes": "This record contains only private control-plane and rendered-UI facts. Version 13 privately deploys the smallest repair for the observed mixed resource state: when either home resource authoritatively requires sign-in, the visible next step is sign-in and verification rather than a generic network diagnosis. Local type, lint, build, persistence-UI and render-smoke regressions passed; the deployed V13 canonical page visibly retains the login/account entry. This does not replace physical-device, direct D1/R2, ordinary-browser mutation, or final independent acceptance. Version 11 briefly used a server redirect that did not retain the legacy route query in this runtime; Version 12 supersedes it with a client-side canonical-domain redirect. Test-only authentication identities exercised email authentication, recovery, a non-sensitive A/B habit-checkin isolation replay, and a separate-session history readback; temporary records were deleted. No real-user record, raw cookie, credential, account identifier, mail content, or URL was recorded."
+  "notes": "This record contains only private control-plane and rendered-UI facts. Version 13 privately deploys the smallest repair for the observed mixed resource state: when either home resource authoritatively requires sign-in, the visible next step is sign-in and verification rather than a generic network diagnosis. Local type, lint, build, persistence-UI and render-smoke regressions passed; the deployed V13 canonical page visibly retains the login/account entry. This does not replace physical-device, direct D1/R2, ordinary-browser mutation, or final independent acceptance. A later read-only Cloudflare control-plane discovery validated two protected token scopes but found no safely identifiable personal-schedule D1 physical binding; it did not issue D1 SQL or an R2 operation and does not replace direct reconciliation. Version 11 briefly used a server redirect that did not retain the legacy route query in this runtime; Version 12 supersedes it with a client-side canonical-domain redirect. Test-only authentication identities exercised email authentication, recovery, a non-sensitive A/B habit-checkin isolation replay, and a separate-session history readback; temporary records were deleted. No real-user record, raw cookie, credential, account identifier, mail content, or URL was recorded."
 }

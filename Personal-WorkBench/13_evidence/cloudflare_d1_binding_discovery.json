@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "INCONCLUSIVE_READ_ONLY_D1_BINDING_DISCOVERY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-09",
+  "scope": "Cloudflare control-plane token validation, account catalog lookup, and D1 database catalog lookup only. No D1 SQL, D1 record read, R2 operation, runtime-setting change, Sites access change, or user-data operation was performed.",
+  "logical_sites_bindings": {
+    "d1": "DB",
+    "r2": "FILES"
+  },
+  "read_only_token_visibility": {
+    "primary_token": {
+      "token_verify_http_status": 200,
+      "token_verify_success": true,
+      "account_catalog_http_status": 200,
+      "account_catalog_success": true,
+      "visible_account_count": 0,
+      "d1_catalogs_queried": 0
+    },
+    "storage_scoped_token": {
+      "token_verify_http_status": 200,
+      "token_verify_success": true,
+      "account_catalog_http_status": 200,
+      "account_catalog_success": true,
+      "visible_account_count": 1,
+      "d1_catalogs_queried": 1,
+      "visible_d1_database_count": 4,
+      "personal_schedule_name_matched_candidate_count": 0
+    }
+  },
+  "result": {
+    "discoverable_personal_schedule_d1_binding": false,
+    "d1_sql_executed": false,
+    "d1_records_read": false,
+    "r2_operations_executed": 0,
+    "direct_d1_r2_reconciliation": "NOT_RUN_NO_DISCOVERABLE_PERSONAL_SCHEDULE_PHYSICAL_BINDING"
+  },
+  "interpretation": {
+    "proven": "The available protected read-only control-plane credentials were valid for their stated catalog scope. They did not expose a D1 database that could be safely and unambiguously linked to the Sites logical DB binding by the personal-schedule product identifier.",
+    "not_proven": [
+      "The physical D1 identifier behind the current Sites DB binding",
+      "D1 schema or test-record reconciliation",
+      "R2 object reconciliation",
+      "Cross-device synchronization"
+    ],
+    "decision": "Do not enumerate arbitrary database schemas or R2 objects. Direct D1/R2 reconciliation remains required only after a Sites-to-physical-binding mapping is made available through an authorized read-only control-plane surface."
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
