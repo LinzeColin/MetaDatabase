@@ -513,6 +513,7 @@ def _audit_imports(
         "robustness_gate",
         "friction",
         "decision_gate",
+        "platform_router",
     }
     stdlib = set(sys.stdlib_module_names)
     for path in paths:
