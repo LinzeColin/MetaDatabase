@@ -508,6 +508,8 @@ def _audit_imports(
         "calibration",
         "temporal_cv",
         "uncertainty",
+        "decimal_math",
+        "cross_impl_check",
     }
     stdlib = set(sys.stdlib_module_names)
     for path in paths:

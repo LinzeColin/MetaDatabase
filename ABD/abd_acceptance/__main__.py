@@ -69,6 +69,8 @@ from .temporal_calibration import verify_existing_phase_evidence as verify_tempo
 from .temporal_calibration import write_phase_evidence as write_temporal_calibration_phase_evidence
 from .uncertainty import verify_existing_phase_evidence as verify_uncertainty_phase_evidence
 from .uncertainty import write_phase_evidence as write_uncertainty_phase_evidence
+from .decimal_math import verify_existing_phase_evidence as verify_decimal_math_phase_evidence
+from .decimal_math import write_phase_evidence as write_decimal_math_phase_evidence
 
 
 def main() -> int:
@@ -107,6 +109,7 @@ def main() -> int:
             "AC-S09-P04": verify_multi_sport_fallback_phase_evidence,
             "AC-S10-P01": verify_temporal_calibration_phase_evidence,
             "AC-S10-P02": verify_uncertainty_phase_evidence,
+            "AC-S10-P03": verify_decimal_math_phase_evidence,
         }
         if args.verify_existing not in existing_verifiers:
             parser.error("existing evidence verifier is not implemented: %s" % args.verify_existing)
@@ -176,6 +179,7 @@ def main() -> int:
         "AC-S09-P04": write_multi_sport_fallback_phase_evidence,
         "AC-S10-P01": write_temporal_calibration_phase_evidence,
         "AC-S10-P02": write_uncertainty_phase_evidence,
+        "AC-S10-P03": write_decimal_math_phase_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)
