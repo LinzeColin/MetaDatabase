@@ -43,6 +43,7 @@ test("normal routes retain a separate account entry and resolve without referenc
   const homeHtml = await home.text();
   assert.match(homeHtml, /class="account-entry normal-only"/);
   assert.match(homeHtml, /登录 \/ 账户/);
+  assert.match(homeHtml, /href="\/account"/);
   assert.match(homeHtml, /data-reference-mode="false"/);
   assert.equal(auth.status, 200);
   assert.match(await auth.text(), /欢迎回来/);
