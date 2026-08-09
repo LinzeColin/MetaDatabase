@@ -115,6 +115,114 @@ def _ui_text(path) -> str:
         kept.append(line)
     return "\n".join(kept)
 
+COPIES_EVIDENCE = ROOT / "evidence/G5/THREE_COPIES_TODAY.json"
+
+
+def _copies_confirmed_today() -> int | None:
+    """最近一次真去核对时，几家云端**够得着**（`None` = 没数到）。
+
+    这份证据由 `check_the_three_copies_are_really_there.py` 在每次部署的
+    第 8.9 步写下。**读不到就返回 None，不返回 0**——0 会被下面那条规则
+    读成「一份都没有」，而真相是「没数到」。这个仓栽在
+    「空默认值吞掉不知道」上不止一次。
+    """
+    try:
+        data = json.loads(COPIES_EVIDENCE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    value = (data.get("measured") or {}).get("copies_confirmed_today")
+    return value if isinstance(value, int) else None
+
+
+def judge_prose(text: str, periods: set[int], copies_confirmed: int | None) -> list[str]:
+    """说明书正文里那几条**纯文本**规则——单独拿出来，好喂它坏句子证明它会红。
+
+    ⑤⑥⑦⑧ 全是「说明书替产品／替他的数据说话」这一类。它们原先埋在
+    `main()` 里、直接从磁盘读那一份文件，于是**没有任何办法喂一句坏话给它**：
+    ⑥ 从 2026-08-07 建起来到今天，一次都没有被打红过。
+    这个仓的教训写得很清楚——判据没有调用方、或者只有一个永远是绿的调用方，
+    就不算做完。
+
+    参数都从外面传进来（闹钟周期、实测到的副本份数），是为了同一个理由：
+    判据要能在测试里被喂任意状态。
+    """
+    problems: list[str] = []
+
+    # ⑤ **说明里的时间间隔，必须和代码里那个闹钟一致**（2026-08-07）。
+    #
+    # 「之后每 6 小时自己跑一次」出现在正文和那张图里各一次。改一次
+    # `periodInMinutes`，这两句就开始骗人——而前面四条规则一个都碰不到它们：
+    # 它们查的是按钮名、平台表、路由、禁用词。
+    stated = {int(h) for h in re.findall(r"每\s*(\d+)\s*小时", text)}
+    if not periods:
+        problems.append("读不出扩展里那个自动同步闹钟的周期——**这不是通过，是没数到**")
+    elif stated and {p // 60 for p in periods} != stated:
+        problems.append(
+            f"说明写「每 {sorted(stated)} 小时」，而扩展里的闹钟是 {sorted(periods)} 分钟"
+            f"（{sorted(p // 60 for p in periods)} 小时）——他会按错的节奏等")
+
+    # ⑥ **不许把他库里的实数写死在散文里**（2026-08-07）。
+    #
+    # 原来写着「实测你库里 193 条有 33 条是这样」。写的当天是真的，
+    # 而他一同步就成了假的——**说明书开始对他的数据说错话，而他没有别的办法
+    # 发现**。这个仓栽过同形的一次：判据盯着 JSON，漏了用户真正读的那段散文。
+    # 数量该由资料库现算着显示，散文只说「有这类条目」。
+    frozen = re.findall(r"(?:你)?库里[^。\n]{0,12}?(\d+)\s*条", text)
+    if frozen:
+        problems.append(
+            f"说明里写死了他库里的条数：{frozen}——**同步一次就成假话**。"
+            "改成「看资料库那一列的实数」，别在散文里冻一个会过期的数字")
+
+    # ⑦ **不许断言「他库里没有 X」**（2026-08-10）。
+    #
+    # ⑥ 只挡住了写死的**数**。同一天漏掉的是没有数字的那一半：平台表里
+    # Chrome 书签那行写着「你库里目前没有这个来源的账号」。
+    # 这一句比 ⑥ 挡的那种更糟——**让它变成假话的，正是他照着这份说明
+    # 走完第 3 步那一刻**：说明书自己教他做的事，把说明书自己变成了假的。
+    # 而它当时已经跟着 guide.html 上了生产，他随时能读到。
+    #
+    # 方向是不对称的，所以这条规则只挡一边：这个产品只往库里加
+    # （断开也不清空内容——db.py `disconnect_source_account`「只断连接，不删内容」），
+    # 所以「有」是稳的，「没有」自带过期时间。
+    #
+    # 只认「库里 + 否定」这一种形状，不去泛化：像
+    # 「（还没有任何内容时，中间那颗按钮也是它）」那种**条件句**说的是界面行为，
+    # 不是对他数据的断言，误伤它会逼人把判据关掉。
+    denied = re.findall(r"(?:你)?库里[^。\n]{0,10}?(?:没有|还没|尚未)[^。\n]{0,24}", text)
+    if denied:
+        problems.append(
+            f"说明里断言他库里**没有**某样东西：{denied}——这个产品只往库里加，"
+            "「没有」自带过期时间，而让它过期的往往正是他照着说明做成了那一刻。"
+            "改成只说证据来自哪里，别替他的库此刻是什么样下结论")
+
+    # ⑧ **说明书写的副本份数，必须等于实测确认到的份数**（2026-08-10）。
+    #
+    # 原来写的是「你自己的服务器上，加密存三份」。而 8.9 那道播报从建起来
+    # 那天起，每一次都报 **2/3**（github 那份够不着），并且自己就写着
+    # 「在把这一句改掉、或者把够不着的那份修好之前，那句话是超售的」——
+    # **没有任何东西逼那句话跟着改**，于是它超售了好几天。
+    #
+    # 两个方向都算错：多说了他会以为自己更安全；少说了他会以为保护更弱。
+    # 数不到不是通过。
+    claimed = [int(m) for m in re.findall(r"能确认拿得回来的是\s*(\d+)\s*处", text)]
+    if not claimed:
+        problems.append(
+            "说明里读不出「今天能确认拿得回来的是 N 处」这句话——**这不是通过，是没数到**。"
+            "备份份数是他最没办法自己核实的一句，必须以这个句式写，好让判据能盯住它")
+    elif copies_confirmed is None:
+        problems.append(
+            f"说明里写着能拿回 {claimed} 处，而 {COPIES_EVIDENCE.name} 里读不出实测份数"
+            "——**这不是通过，是没数到**。跑一次部署第 8.9 步把它刷新出来")
+    elif set(claimed) != {copies_confirmed}:
+        direction = "超售" if max(claimed) > copies_confirmed else "少说了"
+        problems.append(
+            f"说明写能拿回 {claimed} 处，而最近一次真去核对确认到的是 "
+            f"{copies_confirmed} 处——**{direction}**。"
+            "备份是他唯一没办法自己核实的一件事，这一句只能等于实测数")
+
+    return problems
+
+
 def main() -> int:
     from social_archive.account_sync import NOT_SYNCABLE_YET, PLATFORM_LABELS, SYNCABLE_NOW
 
@@ -326,39 +434,23 @@ def main() -> int:
             problems.append(f"说明里出现了「{word}」——这份文档只写现在能做什么，"
                             "写计划会让它开始骗人")
 
-    # ⑤ **说明里的时间间隔，必须和代码里那个闹钟一致**（2026-08-07）。
-    #
-    # 「之后每 6 小时自己跑一次」出现在正文和那张图里各一次。改一次
-    # `periodInMinutes`，这两句就开始骗人——而前面四条规则一个都碰不到它们：
-    # 它们查的是按钮名、平台表、路由、禁用词。
     background = (ROOT / "apps/browser-extension/background.js").read_text(encoding="utf-8")
     periods = {int(m) for m in re.findall(
         r'"sa-account-sync",\s*\{\s*periodInMinutes:\s*(\d+)', background)}
     stated = {int(h) for h in re.findall(r"每\s*(\d+)\s*小时", text)}
-    if not periods:
-        problems.append("读不出扩展里那个自动同步闹钟的周期——**这不是通过，是没数到**")
-    elif stated and {p // 60 for p in periods} != stated:
-        problems.append(
-            f"说明写「每 {sorted(stated)} 小时」，而扩展里的闹钟是 {sorted(periods)} 分钟"
-            f"（{sorted(p // 60 for p in periods)} 小时）——他会按错的节奏等")
-
-    # ⑥ **不许把他库里的实数写死在散文里**（2026-08-07）。
-    #
-    # 原来写着「实测你库里 193 条有 33 条是这样」。写的当天是真的，
-    # 而他一同步就成了假的——**说明书开始对他的数据说错话，而他没有别的办法
-    # 发现**。这个仓栽过同形的一次：判据盯着 JSON，漏了用户真正读的那段散文。
-    # 数量该由资料库现算着显示，散文只说「有这类条目」。
-    frozen = re.findall(r"(?:你)?库里[^。\n]{0,12}?(\d+)\s*条", text)
-    if frozen:
-        problems.append(
-            f"说明里写死了他库里的条数：{frozen}——**同步一次就成假话**。"
-            "改成「看资料库那一列的实数」，别在散文里冻一个会过期的数字")
+    copies_confirmed = _copies_confirmed_today()
+    problems.extend(judge_prose(text, periods, copies_confirmed))
 
     report = {
         "status": "PASS" if not problems else "FAIL",
         "task": "G4",
         "sync_period_minutes": sorted(periods),
         "sync_hours_stated_in_guide": sorted(stated),
+        # **两个数都印出来**，别只印结论。只印「一致」的话，
+        # 哪天两边一起漂到同一个错数上，报告仍然是一句「一致」。
+        "backup_copies_confirmed_today": copies_confirmed,
+        "backup_copies_stated_in_guide": [
+            int(m) for m in re.findall(r"能确认拿得回来的是\s*(\d+)\s*处", text)],
         "guide": str(GUIDE.relative_to(ROOT)),
         "buttons_checked": checked_buttons,
         "claimed_auto": sorted(auto_ids),

@@ -134,10 +134,18 @@ def main() -> int:
         "not_run": NEEDS_REAL_INPUT,
         "message_zh": (f"{len(results)} 个演练全绿。" if not bad
                        else f"{len(bad)}/{len(results)} 个演练没过。"),
+        # **这一句 2026-08-10 改过一次，因为它开始说得比实际少。**
+        # 原话是「也不证明真平台的响应长什么样」——在把 bilibili_acquisition_drill
+        # 收进来之后，这句话不再成立：那一条打的就是 B 站的真接口。
+        # 往小里说自己的覆盖，和往大里说一样是错的：读的人会照着这句去补一件
+        # 已经有人做了的事，或者反过来，以为某个缺口还有人盯着。
         "what_this_does_not_prove": (
-            "不跑恢复类那三个（要真实备份），也不证明真平台的响应长什么样"
-            "（那要 Owner 的登录态）。它回答的是：**这一版的每条链，"
-            "在真 Chrome 里还走得通吗。**"),
+            "不跑恢复类那三个（要真实备份）。**只有 bilibili_acquisition_drill 打的是"
+            "真平台接口**（B 站的公开收藏夹，不带登录态）；其余每一条跑的都是仓里"
+            "自己写的假站，所以它们答不了「那个平台今天改没改接口」。"
+            "要登录态才看得见的响应（小红书／抖音／快手／Reddit／Instagram）"
+            "一条都没验过——那只能发生在 Owner 自己的浏览器里。"
+            "它回答的是：**这一版的每条链，在真 Chrome 里还走得通吗。**"),
     }
     out = ROOT / "evidence/G3/ALL_DRILLS.json"
     out.parent.mkdir(parents=True, exist_ok=True)

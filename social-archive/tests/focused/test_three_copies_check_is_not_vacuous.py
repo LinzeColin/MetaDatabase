@@ -41,7 +41,7 @@ def test_todays_real_shape_is_a_failure() -> None:
     })
     assert measured["copies_confirmed_today"] == 2
     assert any("github" in p for p in problems), problems
-    assert any("说明书写的是三份" in p for p in problems), problems
+    assert any("只确认了 2 份，目标是 3 份" in p for p in problems), problems
 
 
 def test_a_store_that_was_never_queried_is_not_a_pass() -> None:
@@ -60,10 +60,21 @@ def test_a_partial_loss_inside_one_store_is_reported() -> None:
     assert any("只有 1 个在" in p for p in problems), problems
 
 
-def test_the_guide_sentence_this_guards_still_exists() -> None:
-    """守的是说明书那句话，那句话得还在。"""
+def test_the_guide_quotes_this_measurement_instead_of_a_promise() -> None:
+    """守的那句话变了形，判据跟着变（2026-08-10）。
+
+    原来说明书写死「加密存三份」，而本文件从建起来那天起每次都量到 2/3——
+    **没有任何东西逼那句话跟着改**，于是它超售了好几天。
+    现在说明书写的是实测数，并且 `check_the_guide_matches_the_product.py`
+    的规则 ⑧ 逼那个数等于这里的 `copies_confirmed_today`。
+
+    所以这条测试要钉的不再是「那句承诺还在」，而是**说明书引的是量出来的数**。
+    """
     guide = (ROOT / "docs/使用说明.md").read_text(encoding="utf-8")
-    assert "加密存三份" in guide, "说明书那句承诺被改了——这条判据也要跟着改"
+    assert "加密存三份" not in guide, (
+        "说明书又写死了「三份」——那个数没人量，而实测一直是 2 份")
+    assert "能确认拿得回来的是" in guide, (
+        "说明书里那句引实测数的话不见了——规则 ⑧ 就没有东西可盯了")
 
 def test_unreachable_is_not_reported_as_lost() -> None:
     """**「够不着」和「没了」要分开说。**（2026-08-07）

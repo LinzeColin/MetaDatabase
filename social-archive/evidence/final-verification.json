@@ -277,7 +277,7 @@
         "scripts/check_git_calls_cannot_be_hijacked_by_hooks.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 327 份 .py，其中 8 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
+      "stdout": "扫了 328 份 .py，其中 8 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
       "stderr": ""
     },
     {
@@ -286,7 +286,7 @@
         "scripts/check_the_guide_matches_the_product.py"
       ],
       "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"task\": \"G4\",\n  \"sync_period_minutes\": [\n    360\n  ],\n  \"sync_hours_stated_in_guide\": [\n    6\n  ],\n  \"guide\": \"docs/使用说明.md\",\n  \"buttons_checked\": 16,\n  \"claimed_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"product_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"claimed_manual\": [\n    \"x\",\n    \"youtube\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"使用说明里写的每一步，产品里都真的有。\",\n  \"what_this_does_not_prove\": \"不检查步骤顺不顺、语气好不好，只保证说的每件事都存在。\"\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"task\": \"G4\",\n  \"sync_period_minutes\": [\n    360\n  ],\n  \"sync_hours_stated_in_guide\": [\n    6\n  ],\n  \"backup_copies_confirmed_today\": 2,\n  \"backup_copies_stated_in_guide\": [\n    2\n  ],\n  \"guide\": \"docs/使用说明.md\",\n  \"buttons_checked\": 16,\n  \"claimed_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"product_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"claimed_manual\": [\n    \"x\",\n    \"youtube\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"使用说明里写的每一步，产品里都真的有。\",\n  \"what_this_does_not_prove\": \"不检查步骤顺不顺、语气好不好，只保证说的每件事都存在。\"\n}\n",
       "stderr": ""
     },
     {

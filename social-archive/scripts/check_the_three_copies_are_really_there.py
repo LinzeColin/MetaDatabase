@@ -3,7 +3,14 @@
 
 ## 为什么要有它
 
-`docs/使用说明.md` 对 Owner 说：**「数据存在哪？你自己的服务器上，加密存三份。」**
+`docs/使用说明.md` 原来对 Owner 说：**「数据存在哪？你自己的服务器上，加密存三份。」**
+
+2026-08-10 那句话改了：现在写的是**实测确认到的份数**，并且
+`check_the_guide_matches_the_product.py` 的规则 ⑧ 逼说明书里那个数
+必须等于本文件量出来的 `copies_confirmed_today`——
+**说明书不会再超售了。但少一份仍旧是少一份**：这条判据答的是
+「服务器没了的那天，真能拿回数据的地方有几处」，
+那件事不因为改了一句话而变好。
 
 库里 `object_replica` 那三行 `verified` 是**写入当时**的记录，不是今天的事实。
 2026-08-07 拿新加的 `restore_object.py --presence-only` 在他生产机上真问了一遍：
@@ -66,12 +73,11 @@ def summarise(per_store: dict[str, list[dict]]) -> tuple[list[str], dict]:
                 problems.append(
                     f"**{store}：{len(rows)} 个抽样一个都**够不着**（{blocked}）——"
                     "**这不等于副本没了**，是这台机器上的凭据／配置到不了它。"
-                    "在修好之前，说明书那句「加密存三份」在这台机器上验不出第三份")
+                    "在修好之前，这一份在灾难那天也一样拿不回来")
             else:
                 problems.append(
                     f"**{store}：{len(rows)} 个抽样一个都不在**"
-                    f"（{measured[store]['codes']}）——"
-                    "说明书对他说「加密存三份」，而这一份**真的找不到了**")
+                    f"（{measured[store]['codes']}）——这一份**真的找不到了**")
         elif len(ok) < len(rows):
             problems.append(
                 f"**{store}：{len(rows)} 个抽样里只有 {len(ok)} 个在**"
@@ -79,9 +85,14 @@ def summarise(per_store: dict[str, list[dict]]) -> tuple[list[str], dict]:
     confirmed = sum(1 for store in STORES if measured[store]["present"] > 0)
     measured["copies_confirmed_today"] = confirmed
     if confirmed < 3:
+        # **说明书已经不超售了**（2026-08-10 改成写实测数，规则 ⑧ 逼两边相等），
+        # 所以这一条不再是「话说大了」，而是**能力本身还差一份**：
+        # 服务器没了的那天，能拿回数据的地方只有 {confirmed} 处。
+        # 这两件事要分开说——把它们混成一句，改一句话就会显得问题解决了。
         problems.append(
-            f"**今天只确认了 {confirmed} 份，而说明书写的是三份。**"
-            "在把这一句改掉、或者把够不着的那份修好之前，那句话是超售的。")
+            f"**今天只确认了 {confirmed} 份，目标是 3 份。**"
+            "说明书写的就是这个实测数，所以他读到的不假；"
+            f"但服务器没了的那天，真能拿回数据的地方只有 {confirmed} 处。")
     return problems, measured
 
 
