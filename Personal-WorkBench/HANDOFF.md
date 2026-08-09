@@ -2,11 +2,12 @@
 
 ## 当前目标
 
-按 PWB-S5-SOURCE-PROJECTION-001 将冻结候选 cf7b156e 的 tree-identical project-root projection 保存为一个私有、可丢弃的 S5-T1 Saved Version；不得公开部署。
+在已保存的私有 S5-T1 Candidate 基础上推进 S5-T2 Owner 生产环境激活前置；仍不得公开部署。
 
 ## 当前状态
 
-- 当前推进阶段：`S5_T1_SOURCE_PROJECTION_READY_PENDING_PRIVATE_SAVE`
+- 当前推进阶段：`S5_T1_PRIVATE_SAVED_VERSION_COMPLETE_PENDING_S5_T2`
+- 2026-08-09：S5-T1 已真实保存为 Sites 私有 Version #1。Sites source `main` 轻量回读为精确冻结 MetaDatabase commit `cf7b156e76376f9e7783b1b1d68f5e8b1f09eb85`；没有强制推送或覆盖远端。归档从该 commit 的 `Personal-WorkBench` tree `b831d4564fc01352edfa3f5f26020965f3825df4` 构建，local SHA-256 为 `dd61f9b1bfbefd610276b84121daffcf93a00fb8e805916fd18a91d76bf6976d`，且 `dist/server/index.js` 与 `dist/.openai/hosting.json` 已验证。PWB-S5-SOURCE-PROJECTION-001 的 `3eaf351c` 仅作为 tree-identical 独立审计身份，不替代实际 Sites source commit。保存前后均为 owner/custom、1 名允许用户、0 外部访客、0→1 个 Version、无 live/preview URL；运行时配置 entry count=0，未读取或记录任何值。真实证据见 `13_evidence/saved_version.json`；未部署、未改访问、未配置 Secret、未访问用户数据、未上传 GitHub。
 - 2026-08-09：独立 S4-T3A 已对精确 `cf7b156e76376f9e7783b1b1d68f5e8b1f09eb85` / tree `2733e8de41616ea442701da41a7ac35e13d3b978` 给出 `READINESS_PASS`（仅解锁私有 S5-T1，非 15/15、非 release candidate、非公开授权）。其 SHA-256 封存包为 `3620486f83814e1d178b7936da3b687bf417702eefc4ea31265b30a419ff758a`；该结论未修改产品、任务包或 Sites。
 - 2026-08-09：S5-T1 已从同一精确 commit 的 `Personal-WorkBench` 子树在临时副本通过 `npm run check`、`npm run build` 与 `verify:release`，并生成 archive SHA-256 `bb96d8698d93a23d45ba1b9e9a116e450749ebcd4b3c63ecda188040071a57d3`。Sites 控制面复核为 active/owner/custom、1 名允许用户、0 名外部访问者、0 个 Version、无 live/preview URL。向空的专用源码库 `main` 非强制推送该精确 commit 的两次标准传输和一次仅 HTTP buffering 调整的传输均收到 `HTTP 500`；最终远端 heads=0，未保存 Version、未改访问、未部署、未配置 Secret、未访问用户数据、未上传 GitHub。不得以不同 Git commit 的 project-only source projection 静默替代冻结 commit 绑定。
 - 2026-08-09：为保留冻结项目树而非静默降级，新增 `PWB-S5-SOURCE-PROJECTION-001`。它将 MetaDatabase commit `cf7b156e` / root tree `2733e8de` 的 Personal-WorkBench subtree tree `b831d456` 投影为无父 Sites source commit `3eaf351c`；验证脚本双次复现同一 commit、同一 tree 和 293 个受控文件，输出 `PASS_SOURCE_PROJECTION_CONTRACT`，且不做远程动作。该合同只恢复后续私有 S5-T1 的 source transport 路径，不代表产品 PASS 或公开授权。
@@ -162,7 +163,7 @@
 - `PWB-S4-S5-SEQUENCE-001` 已将 S4/S5 的验收顺序环以 Owner 授权的项目内增补固定并由 SHA 校验；它尚未替代任何真实 Candidate、provider、D1/R2、回滚或 15/15 最终证据。冻结任务包原件保持不变。
 - 通用 Verifier 的任务包导入器未识别该任务包的 canonical manifest 布局；不可伪造导入成功或正向报告，需使用兼容适配器/人工任务包追溯证据完成正式裁决。
 
-- S5-T1 直接母仓传输仍为已知阻断：Sites 专用源码库对精确 MetaDatabase commit 的非强制 Git receive 持续返回 `RPC failed; HTTP 500`，且远端 `main` 保持为空。已由 PWB-S5-SOURCE-PROJECTION-001 提供 tree-identical、双身份可审计的私有候选路径；每次使用前都必须重新通过 `npm run verify:source-projection`。在真实 Version/两段身份/私有访问回读前，不得写 `saved_version.json`。
+- S5-T1 source linkage 已由真实 ref 回读解决：本 run 的非强制 projection 推送因远端已有提交被拒绝，随后只读确认 Sites `main` 已指向精确 `cf7b156e`，故没有覆盖远端，直接保存该精确 source 的私有 Version #1。PWB-S5-SOURCE-PROJECTION-001 继续保留为可审计的 tree-identical build/archive 身份；`saved_version.json` 已同时记录冻结 source、projection audit 与 provider Version。此结果不证明任何运行时 Secret、真实认证、D1/R2、跨设备或公开部署要求。
 
 - 未登录 wrangler（`wrangler whoami` 失败）：仅影响 CLI 侧的 Pages 核验；Sites 控制面已独立复核当前身份为 owner，但这不替代运行时环境、素材授权或真实认证链路验收。
 - 当前机本地未落盘可用 wrangler token（默认路径 `~/Library/Preferences/.wrangler/config/default.toml` 目前不存在可用 `oauth_token`）
@@ -196,6 +197,6 @@
 
 ## 下一步
 
-1. 在独立 S5-T1 run 先重新执行 `npm run verify:source-projection`，再将合同中的 `3eaf351c…` 推送到仍为空的 Sites source `main`；必须回读 projection commit，且记录其到 `cf7b156e` / project tree 的映射。
-2. 仅在 projection source commit、archive 和私有访问均被 Sites 回读后，保存一个 custom 私有、可丢弃的 Candidate，并记录真实 `saved_version.json`；仍不得 Deploy。
-3. 依增补完成 S5-T2 至 S5-T4 的真实采证，再由独立 `S6-T1` 对 15/15 进行最终裁决；公开 audience 与 GitHub 上传继续保持下游。
+1. 在独立 S5-T2 run 按 [RUN_CONTRACT_S5_T2.md](/Users/linzezhang/.codex/worktrees/ef81/MetaDatabase/Personal-WorkBench/RUN_CONTRACT_S5_T2.md) 完成 Owner 配置、角色权利、隐私与公开素材授权前置；不得 Deploy。
+2. 随后独立推进 S5-T3 的受控私有部署、真实 OAuth/邮箱/Turnstile 与回滚采证；任何失败保持 private 并回到已保存 Version。
+3. 依增补完成 S5-T4 和独立 S6-T1 15/15 裁决后，才可进行 S6-T2 公开 audience；GitHub 上传继续保持全部任务包完成后。

@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T1",
+  "phase": "S5_T1_PRIVATE_SAVED_VERSION",
+  "status": "PASS_PRIVATE_SAVED_VERSION_CANDIDATE",
+  "product_pass_claimed": false,
+  "final_acceptance_claimed": false,
+  "public_deploy_eligible": false,
+  "run_scope": {
+    "purpose": "保存可丢弃的私有 Sites Candidate，并绑定冻结源码、构建归档和 Sites Version 身份。",
+    "deployment_action_called": false,
+    "access_policy_changed": false,
+    "runtime_secret_values_read_or_logged": false,
+    "user_data_accessed": false
+  },
+  "frozen_source": {
+    "repository": "MetaDatabase",
+    "commit": "cf7b156e76376f9e7783b1b1d68f5e8b1f09eb85",
+    "root_tree": "2733e8de41616ea442701da41a7ac35e13d3b978",
+    "project_path": "Personal-WorkBench",
+    "project_tree": "b831d4564fc01352edfa3f5f26020965f3825df4",
+    "tracked_file_count": 293
+  },
+  "source_projection_audit": {
+    "contract_id": "PWB-S5-SOURCE-PROJECTION-001",
+    "validator_status": "PASS_SOURCE_PROJECTION_CONTRACT",
+    "projection_commit": "3eaf351c2381c98b5fc49a3ed1c78d4c38e581b7",
+    "projection_tree": "b831d4564fc01352edfa3f5f26020965f3825df4",
+    "relationship": "仅用于证明归档项目根与冻结项目子树 tree-identical；实际 Sites source branch 已回读为冻结 MetaDatabase commit。"
+  },
+  "source_branch_readback": {
+    "branch": "main",
+    "head_commit": "cf7b156e76376f9e7783b1b1d68f5e8b1f09eb85",
+    "matches_frozen_source": true,
+    "non_force_projection_push_result": "REJECTED_FETCH_FIRST_NO_REMOTE_CHANGE",
+    "resolution": "未覆盖远端；使用已在 Sites source main 上的精确冻结 commit 保存 Candidate。"
+  },
+  "build_archive": {
+    "status": "PASS_EXACT_SOURCE_BUILD_AND_PACKAGE",
+    "built_from_source_commit": "cf7b156e76376f9e7783b1b1d68f5e8b1f09eb85",
+    "built_from_project_tree": "b831d4564fc01352edfa3f5f26020965f3825df4",
+    "local_sha256": "dd61f9b1bfbefd610276b84121daffcf93a00fb8e805916fd18a91d76bf6976d",
+    "local_size_bytes": 1893416,
+    "required_entries": [
+      "dist/server/index.js",
+      "dist/.openai/hosting.json"
+    ],
+    "source_and_dist_hosting_config_sha256": "7e5aaf79ca8203f0c623ab4caa8bbde5e704884671b50b1a0b48ee45ec8b62b2",
+    "local_checks": {
+      "npm_run_check": "PASS",
+      "npm_run_build": "PASS",
+      "npm_run_verify_release": "PASS_BUILD_LAST_MILE_READINESS",
+      "verify_release_limit": "NOT_ISSUED_PRE_VERIFIER"
+    }
+  },
+  "private_precondition": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_users_count": 1,
+    "allowed_groups_count": 0,
+    "external_visitor_count": 0,
+    "saved_version_count_before": 0,
+    "live_url_present_before": false,
+    "preview_url_present_before": false,
+    "runtime_environment_entry_count": 0,
+    "runtime_values_read_or_logged": false,
+    "secret_missing_negative_check": "PASS_NO_CONFIGURED_RUNTIME_ENTRIES"
+  },
+  "sites_saved_version": {
+    "project_id": "appgprj_6a70366303988191b2ca996238860c9f",
+    "version_id": "appgprj_6a70366303988191b2ca996238860c9f~appgver_2b31be3b85b0819185420187ea2c79b9",
+    "version_number": 1,
+    "source_commit": "cf7b156e76376f9e7783b1b1d68f5e8b1f09eb85",
+    "provider_archive": {
+      "archive_format": "tar",
+      "content_hash": "sha256:5c73d914ff560a0e85b6de12faa8ac55444f4723ec891821c77f9db77dbb7646",
+      "file_count": 87,
+      "size_bytes": 4597760,
+      "note": "Provider content identity is separate from the local tar SHA-256 and is not asserted equal to it."
+    }
+  },
+  "post_save_readback": {
+    "saved_version_count": 1,
+    "listed_version_matches_saved_id": true,
+    "listed_version_source_matches_frozen_commit": true,
+    "detail_source_matches_frozen_commit": true,
+    "access_mode": "custom",
+    "allowed_users_count": 1,
+    "allowed_groups_count": 0,
+    "external_visitor_count": 0,
+    "live_url_present": false,
+    "preview_url_present": false,
+    "deployed": false,
+    "deployment_action_called": false
+  },
+  "limits_and_follow_up": [
+    "该证据只完成 S5-T1 私有 Candidate 保存，不构成 S4-T3、S6-T1 或 15/15 产品通过。",
+    "Google、邮箱验证/找回、Turnstile、真实 D1/R2、跨设备同步、私有部署和回滚演练仍为 NOT_RUN，下游由 S5-T2 至 S6-T2 采证。",
+    "本 Version 没有部署 URL；公开 audience 和 GitHub 上传仍未执行。"
+  ]
+}
