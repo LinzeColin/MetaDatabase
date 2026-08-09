@@ -1,4 +1,5 @@
-export const OUTBOX_STORAGE_KEY = "huchuliang.workbench.outbox.v1";
+export const OUTBOX_STORAGE_KEY = "mydairy.outbox.v1";
+export const LEGACY_OUTBOX_STORAGE_KEYS = ["huchuliang.workbench.outbox.v1"] as const;
 
 export type OutboxMethod = "POST";
 
@@ -26,6 +27,7 @@ export type OutboxReplayResult = {
 export type OutboxStorageLike = {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
+  removeItem?: (key: string) => void;
 };
 
 type UnknownObject = Record<string, unknown>;
@@ -60,13 +62,26 @@ export function parseOutbox(raw: string | null): OutboxAction[] {
 
 export function readOutbox(storage: OutboxStorageLike | null): OutboxAction[] {
   if (!storage) return [];
-  return parseOutbox(storage.getItem(OUTBOX_STORAGE_KEY));
+  const seen = new Set<string>();
+  const result: OutboxAction[] = [];
+  const keys = [OUTBOX_STORAGE_KEY, ...LEGACY_OUTBOX_STORAGE_KEYS];
+
+  for (const key of keys) {
+    for (const action of parseOutbox(storage.getItem(key))) {
+      if (seen.has(action.idempotencyKey)) continue;
+      seen.add(action.idempotencyKey);
+      result.push(action);
+    }
+  }
+
+  return result;
 }
 
 export function writeOutbox(storage: OutboxStorageLike | null, items: OutboxAction[]): void {
   if (!storage) return;
   try {
     storage.setItem(OUTBOX_STORAGE_KEY, JSON.stringify(items));
+    for (const key of LEGACY_OUTBOX_STORAGE_KEYS) storage.removeItem?.(key);
   } catch {
     // Ignore storage failures; queue state is best-effort persisted.
   }

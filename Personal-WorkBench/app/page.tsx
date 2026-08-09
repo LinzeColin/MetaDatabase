@@ -55,7 +55,7 @@ const fixture = {
 };
 
 export const metadata: Metadata = {
-  title: "胡楚靓工作台",
+  title: "个人日程",
   description: "把生活里的小事，温柔地放在一起。",
 };
 

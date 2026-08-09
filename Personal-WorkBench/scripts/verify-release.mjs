@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const TASKPACK_VERSION = "v0.0.0.8";
-const TARGET_PROJECT = "胡楚靓工作台";
+const TARGET_PROJECT = "个人日程";
 const TASKPACK_DEFAULT_PATH = resolve(
   process.env.HOME ?? "/tmp",
   "Downloads",

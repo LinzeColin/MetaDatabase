@@ -3,6 +3,8 @@ import test from "node:test";
 
 import {
   appendOutbox,
+  LEGACY_OUTBOX_STORAGE_KEYS,
+  OUTBOX_STORAGE_KEY,
   parseOutbox,
   replayOutboxQueue,
   readOutbox,
@@ -17,6 +19,7 @@ type MemoryStorage = {
 function createMemoryStorage(): MemoryStorage & {
   getItem: (key: string) => string | null;
   setItem: (key: string, value: string) => void;
+  removeItem: (key: string) => void;
 } {
   const set = new Map<string, string>();
   return {
@@ -26,6 +29,9 @@ function createMemoryStorage(): MemoryStorage & {
     },
     setItem(key: string, value: string) {
       set.set(key, value);
+    },
+    removeItem(key: string) {
+      set.delete(key);
     },
   };
 }
@@ -75,6 +81,17 @@ test("read/write/append outbox operations are stable with local storage", () => 
   appendOutbox(storage, actionB);
   assert.equal(readOutbox(storage).length, 3);
   assert.equal(readOutbox(storage).at(-1)?.idempotencyKey, "b");
+});
+
+test("legacy workbench outbox migrates into mydairy without losing queued work", () => {
+  const storage = createMemoryStorage();
+  storage.setItem(LEGACY_OUTBOX_STORAGE_KEYS[0], JSON.stringify([actionA]));
+
+  assert.deepEqual(readOutbox(storage).map((item) => item.idempotencyKey), ["a"]);
+  writeOutbox(storage, [actionA, actionB]);
+
+  assert.equal(storage.getItem(LEGACY_OUTBOX_STORAGE_KEYS[0]), null);
+  assert.deepEqual(parseOutbox(storage.getItem(OUTBOX_STORAGE_KEY)).map((item) => item.idempotencyKey), ["a", "b"]);
 });
 
 test("replayOutboxQueue replays all queue when all operations succeed", async () => {

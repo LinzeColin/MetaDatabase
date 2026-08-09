@@ -34,7 +34,7 @@ export function createAuth(env: AuthRuntimeEnv) {
   });
 
   return betterAuth({
-    appName: "胡楚靓工作台",
+    appName: "个人日程",
     database: drizzleAdapter(db, {
       provider: "sqlite",
       schema: authSchema,
