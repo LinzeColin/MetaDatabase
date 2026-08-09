@@ -1,0 +1,40 @@
+{
+  "artifacts": {
+    "abd_acceptance/robustness_gate.py": {
+      "sha256": "8bf85d5a7d7001d3dd1833d827cc5b37c141996913946307b2001f1d00ed1379",
+      "status": "PASS"
+    },
+    "boundary_vectors.json": {
+      "sha256": "3f807a51f9c4126a46c5de84b9e7a33cdc8ad1098e1a90fad72102cae022dbc2",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S10_P04.json": {
+      "sha256": "ac3fa6c682563db357441459acf49d450d4ca5b2cf8ca4a76bda166f506c195a",
+      "status": "PASS"
+    },
+    "robustness_gate.py": {
+      "sha256": "9020b2127de293ed15495caff8fc33f38caba19165b8e17bc915f2912f0056e9",
+      "status": "PASS"
+    },
+    "robustness_report.json": {
+      "sha256": "8d9e187767439b1468604acef924b697febba83a22cd339d35df4d9a047a9fa7",
+      "status": "PASS"
+    },
+    "tests/S10/P04_test.py": {
+      "sha256": "844aa6bce63f68258760f1576378397f3773f674e97cf91c501e4230990173ce",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S10-P04",
+  "evidence_id": "EVD-S10-P04-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "model:adverse_perturbation_gate",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_ADVERSE_PERTURBATION_GATE_RESTORE_SIGNED_S10_P03_KEEP_ALL_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

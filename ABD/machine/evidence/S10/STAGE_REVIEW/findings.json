@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S10-WHOLE-STAGE-REVIEW",
+  "stage_id": "S10",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "findings": [
+    {
+      "id": "S10-REVIEW-001",
+      "category": "REVIEW_CONTRACT_GAP",
+      "severity": "P1",
+      "status": "RESOLVED_IN_STAGE_REVIEW",
+      "title": "S10 四个 Phase 已签名，但任务包未预置整体复审合同",
+      "evidence": [
+        "machine/facts/task_graph.json",
+        "machine/evidence/evidence_index.jsonl",
+        "machine/evidence/EVD-S10-P04.json"
+      ],
+      "resolution": "新增离线 S10 整体复审合同，绑定 P01--P04 现有证据和回滚哈希，复验时间校准、保守重采样、十进制定点双实现、万分之一不利扰动与无外部副作用；不修改冻结 Phase 基线。",
+      "residual_risk": "复审通过只表示本地冻结证据链和门当前可重放；GitHub 上传、远程 CI、OVH、Cloudflare、账户、真实市场与收益均未验证。"
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "open": 0,
+    "resolved": 1,
+    "blocked": 0
+  },
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "github_upload_performed": false,
+    "production_deployed_or_activated": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

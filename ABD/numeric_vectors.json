@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0.0",
+  "vectors_id": "VEC-S10-P03-FIXED-POINT",
+  "contract_id": "AC-S10-P03",
+  "requirement_id": "REQ-S10-P03",
+  "stage_id": "S10",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "numeric_contract": {
+    "authoritative_decimal_precision_digits": 50,
+    "binary_float_for_authoritative_decision": false,
+    "money_storage": "INTEGER_CENTS",
+    "probability_storage_scale": "1e-9",
+    "odds_storage_scale": "1e-6",
+    "probability_rounding": "DOWN",
+    "odds_rounding": "DOWN",
+    "friction_rounding": "UP",
+    "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+    "independent_implementation_absolute_tolerance": "1e-12",
+    "action_must_match_across_implementations": true
+  },
+  "vectors": [
+    {
+      "vector_id": "V01-POSITIVE-CAPPED",
+      "conservative_probability": "0.6150000004",
+      "odds": "1.9000009",
+      "friction": "0.0150000001",
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.0200000000",
+      "stake_increment_cents": 10
+    },
+    {
+      "vector_id": "V02-NONPOSITIVE-ROUND-UP-FRICTION",
+      "conservative_probability": "0.5000000009",
+      "odds": "2.0000009",
+      "friction": "0.0000000001",
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.0200000000",
+      "stake_increment_cents": 10
+    },
+    {
+      "vector_id": "V03-PROBABILITY-ODDS-SCALE-DOWN",
+      "conservative_probability": "0.3333333339",
+      "odds": "3.0000009",
+      "friction": "0.0100000001",
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.0200000000",
+      "stake_increment_cents": 10
+    },
+    {
+      "vector_id": "V04-POSITIVE-INCREMENT-ROUND-DOWN",
+      "conservative_probability": "0.7000000009",
+      "odds": "1.8000009",
+      "friction": "0.0200000001",
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.0150000000",
+      "stake_increment_cents": 25
+    },
+    {
+      "vector_id": "V05-BOUNDARY-MINUS-ONE-IN-TEN-THOUSAND",
+      "conservative_probability": "0.5999000000",
+      "odds": "1.6666670",
+      "friction": "0.0000000000",
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.0100000000",
+      "stake_increment_cents": 5
+    },
+    {
+      "vector_id": "V06-BOUNDARY-PLUS-ONE-IN-TEN-THOUSAND",
+      "conservative_probability": "0.6001000000",
+      "odds": "1.6666670",
+      "friction": "0.0000000000",
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.0100000000",
+      "stake_increment_cents": 5
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="18" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S10.P01_test" name="test_candidate_preflight_passes_without_generated_test_reports" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_report_is_exact_frozen_replay_with_three_eligible_calibrators" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_eight_temporal_folds_are_expanding_and_not_real_time_waits" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_isotonic_pooled_adjacent_violators_is_monotone" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_isotonic_pools_equal_prediction_values_before_adjacent_merges" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_logistic_calibration_is_decimal_deterministic" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_multiclass_temperature_preserves_all_outcomes_and_total" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_malformed_or_unsafe_fixture_fails_closed[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_malformed_or_unsafe_fixture_fails_closed[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_malformed_or_unsafe_fixture_fails_closed[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_malformed_or_unsafe_fixture_fails_closed[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_binary_metrics_reject_zero_variance" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_frozen_replay_hash_is_identical_without_waiting" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_core_sources_have_no_network_process_soak_or_order_capability" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_candidate_fails_closed_when_expected_report_hash_is_tampered" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_candidate_fails_closed_when_report_is_tampered" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_rollback_drill_is_local_and_has_no_external_side_effect" time="0.000" />
+    <testcase classname="tests.S10.P01_test" name="test_cli_is_wired_to_exact_contract_and_phase_boundaries" time="0.000" />
+  </testsuite>
+</testsuites>

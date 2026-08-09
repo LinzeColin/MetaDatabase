@@ -1,0 +1,36 @@
+{
+  "artifacts": {
+    "abd_acceptance/uncertainty.py": {
+      "sha256": "ca34c2b55018eae1ace0329f37633c95b69d4fc16f77f07bd3e249423f65ca03",
+      "status": "PASS"
+    },
+    "bootstrap_manifest.json": {
+      "sha256": "7db203809f881696db69ff9a0857157e6e87b46d035c0ae1177cbc172584591c",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S10_P02.json": {
+      "sha256": "67f84c814de8cc2def4333d04cde3575e8a286218bb892e0ef9270a1412ada46",
+      "status": "PASS"
+    },
+    "tests/S10/P02_test.py": {
+      "sha256": "eab5f9713e17b82b16e78b5ca0f98708ed76fdef70531a57e9df1357353e5541",
+      "status": "PASS"
+    },
+    "uncertainty.py": {
+      "sha256": "8707346325e5026415046a48f9d19ddcecbce332122ba58e188e18ed47aa6fbf",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S10-P02",
+  "evidence_id": "EVD-S10-P02-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "model:block_bootstrap_conservative_probability",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_BLOCK_BOOTSTRAP_CONSERVATIVE_PROBABILITY_RESTORE_SIGNED_S10_P01_KEEP_ALL_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

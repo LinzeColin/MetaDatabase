@@ -1,0 +1,77 @@
+{
+  "base_probability": "0.62",
+  "block_count": 8,
+  "block_sha256": "a896119ee3437df50e020e3e769f1b8055197e1e1c99c25ec8f1ce72a2017b0d",
+  "conservative_probability": "0.615",
+  "conservative_probability_monotonic": true,
+  "contract_id": "AC-S10-P02",
+  "decision": "CONSERVATIVE_PROBABILITY_READY_DOWNSTREAM_DECIMAL_GATE_REQUIRED",
+  "evaluation": {
+    "conservative_probability": "0.615625",
+    "iterations": 2000,
+    "maximum_probability": "0.6275",
+    "minimum_probability": "0.609375",
+    "percentile": 10,
+    "sample_sha256": "a45c66c868d7a3a59864c34fb3dddd04e78b97728a1aef2618cc3483547e0614",
+    "seed": 2718
+  },
+  "external_effect_boundary": {
+    "actual_market_or_odds_observed": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "fixture_id": "FIX-S10-P02-BLOCK-BOOTSTRAP",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "manifest_id": "MAN-S10-P02-BLOCK-BOOTSTRAP",
+  "model": "BLOCK_BOOTSTRAP_RESIDUAL_PERCENTILE",
+  "monotonic_probe": [
+    {
+      "conservative_probability": "0.145",
+      "input_probability": "0.15"
+    },
+    {
+      "conservative_probability": "0.495",
+      "input_probability": "0.5"
+    },
+    {
+      "conservative_probability": "0.845",
+      "input_probability": "0.85"
+    }
+  ],
+  "next": "S10/P03_READY_NOT_STARTED",
+  "parameters": {
+    "conservative_probability_percentile": 10,
+    "evaluation_block_bootstrap_iterations": 2000,
+    "runtime_block_bootstrap_iterations": 1000
+  },
+  "phase_id": "P02",
+  "predecessor": {
+    "contract_id": "AC-S10-P01",
+    "evidence_path": "machine/evidence/EVD-S10-P01.json",
+    "sha256": "851e86a0e1deb0166fc07a1b0c726e31cb68c12e0809df0237ca0a2b1225c6f2"
+  },
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "requirement_id": "REQ-S10-P02",
+  "runtime": {
+    "conservative_probability": "0.615",
+    "iterations": 1000,
+    "maximum_probability": "0.628125",
+    "minimum_probability": "0.61",
+    "percentile": 10,
+    "sample_sha256": "b54ba371581c5f247a9c92eae66f6aef95fec3d0a6efcffba39a1f555f23e45f",
+    "seed": 1729
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S10"
+}

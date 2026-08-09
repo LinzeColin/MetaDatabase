@@ -1,0 +1,286 @@
+{
+  "schema_version": "1.0.0",
+  "vectors_id": "VEC-S10-P04-ADVERSE-ROBUSTNESS",
+  "contract_id": "AC-S10-P04",
+  "requirement_id": "REQ-S10-P04",
+  "stage_id": "S10",
+  "phase_id": "P04",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "numeric_determinism": {
+    "authoritative_decimal_precision_digits": 50,
+    "money_storage": "INTEGER_CENTS",
+    "probability_storage_scale": "1e-9",
+    "odds_storage_scale": "1e-6",
+    "binary_float_for_authoritative_decision": false,
+    "probability_rounding": "DOWN",
+    "odds_rounding": "DOWN",
+    "friction_rounding": "UP",
+    "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+    "independent_implementation_absolute_tolerance": "1e-12",
+    "action_must_match_across_implementations": true,
+    "boundary_perturbation_absolute_probability": "0.0001",
+    "boundary_perturbation_absolute_threshold": "0.0001",
+    "boundary_perturbation_friction_up": "0.0001",
+    "boundary_perturbation_time_adverse_seconds": 2,
+    "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+    "unstable_action": "NO_RECOMMENDATION"
+  },
+  "vectors": [
+    {
+      "vector_id": "V01-ROBUST-ALL-MARGINS",
+      "conservative_probability": "0.700000000",
+      "model_parameter_worst_probability": "0.699800000",
+      "odds": "2.000000",
+      "friction": "0.020000000",
+      "minimum_net_edge": "0.200000000",
+      "minimum_acceptable_odds": "1.900000",
+      "elapsed_seconds": 10,
+      "maximum_elapsed_seconds": 20,
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.020000000000",
+      "stake_increment_cents": 10,
+      "expected": {
+        "base_action": "NO_ORDER_NUMERIC_CANDIDATE",
+        "gate_action": "NO_ORDER_NUMERIC_CANDIDATE",
+        "adverse_flip_dimensions": []
+      }
+    },
+    {
+      "vector_id": "V02-PROBABILITY-MINUS-FLIPS",
+      "conservative_probability": "0.600000000",
+      "model_parameter_worst_probability": "0.599800000",
+      "odds": "2.000000",
+      "friction": "0.010000000",
+      "minimum_net_edge": "0.189850000",
+      "minimum_acceptable_odds": "1.900000",
+      "elapsed_seconds": 1,
+      "maximum_elapsed_seconds": 10,
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.020000000000",
+      "stake_increment_cents": 10,
+      "expected": {
+        "base_action": "NO_ORDER_NUMERIC_CANDIDATE",
+        "gate_action": "NO_RECOMMENDATION",
+        "adverse_flip_dimensions": [
+          "probability_minus",
+          "parameter_worst_case",
+          "all_adverse"
+        ]
+      }
+    },
+    {
+      "vector_id": "V03-PROBABILITY-MINUS-BOUNDARY-STABLE",
+      "conservative_probability": "0.600000000",
+      "model_parameter_worst_probability": "0.599900000",
+      "odds": "2.000000",
+      "friction": "0.010000000",
+      "minimum_net_edge": "0.189800000",
+      "minimum_acceptable_odds": "1.900000",
+      "elapsed_seconds": 1,
+      "maximum_elapsed_seconds": 10,
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.020000000000",
+      "stake_increment_cents": 10,
+      "expected": {
+        "base_action": "NO_ORDER_NUMERIC_CANDIDATE",
+        "gate_action": "NO_RECOMMENDATION",
+        "adverse_flip_dimensions": [
+          "all_adverse"
+        ]
+      }
+    },
+    {
+      "vector_id": "V04-THRESHOLD-PLUS-FLIPS",
+      "conservative_probability": "0.600000000",
+      "model_parameter_worst_probability": "0.599900000",
+      "odds": "2.000000",
+      "friction": "0.010000000",
+      "minimum_net_edge": "0.189950000",
+      "minimum_acceptable_odds": "1.900000",
+      "elapsed_seconds": 1,
+      "maximum_elapsed_seconds": 10,
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.020000000000",
+      "stake_increment_cents": 10,
+      "expected": {
+        "base_action": "NO_ORDER_NUMERIC_CANDIDATE",
+        "gate_action": "NO_RECOMMENDATION",
+        "adverse_flip_dimensions": [
+          "probability_minus",
+          "threshold_plus",
+          "friction_plus",
+          "parameter_worst_case",
+          "all_adverse"
+        ]
+      }
+    },
+    {
+      "vector_id": "V05-FRICTION-PLUS-FLIPS",
+      "conservative_probability": "0.600000000",
+      "model_parameter_worst_probability": "0.599900000",
+      "odds": "2.000000",
+      "friction": "0.010000000",
+      "minimum_net_edge": "0.189950000",
+      "minimum_acceptable_odds": "1.900000",
+      "elapsed_seconds": 1,
+      "maximum_elapsed_seconds": 10,
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.020000000000",
+      "stake_increment_cents": 10,
+      "expected": {
+        "base_action": "NO_ORDER_NUMERIC_CANDIDATE",
+        "gate_action": "NO_RECOMMENDATION",
+        "adverse_flip_dimensions": [
+          "probability_minus",
+          "threshold_plus",
+          "friction_plus",
+          "parameter_worst_case",
+          "all_adverse"
+        ]
+      }
+    },
+    {
+      "vector_id": "V06-TIME-PLUS-FLIPS",
+      "conservative_probability": "0.700000000",
+      "model_parameter_worst_probability": "0.699900000",
+      "odds": "2.000000",
+      "friction": "0.020000000",
+      "minimum_net_edge": "0.200000000",
+      "minimum_acceptable_odds": "1.900000",
+      "elapsed_seconds": 9,
+      "maximum_elapsed_seconds": 10,
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.020000000000",
+      "stake_increment_cents": 10,
+      "expected": {
+        "base_action": "NO_ORDER_NUMERIC_CANDIDATE",
+        "gate_action": "NO_RECOMMENDATION",
+        "adverse_flip_dimensions": [
+          "time_plus",
+          "all_adverse"
+        ]
+      }
+    },
+    {
+      "vector_id": "V07-TIME-PLUS-BOUNDARY-STABLE",
+      "conservative_probability": "0.700000000",
+      "model_parameter_worst_probability": "0.699900000",
+      "odds": "2.000000",
+      "friction": "0.020000000",
+      "minimum_net_edge": "0.200000000",
+      "minimum_acceptable_odds": "1.900000",
+      "elapsed_seconds": 8,
+      "maximum_elapsed_seconds": 10,
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.020000000000",
+      "stake_increment_cents": 10,
+      "expected": {
+        "base_action": "NO_ORDER_NUMERIC_CANDIDATE",
+        "gate_action": "NO_ORDER_NUMERIC_CANDIDATE",
+        "adverse_flip_dimensions": []
+      }
+    },
+    {
+      "vector_id": "V08-ODDS-TICK-FLIPS",
+      "conservative_probability": "0.700000000",
+      "model_parameter_worst_probability": "0.699900000",
+      "odds": "2.000000",
+      "friction": "0.020000000",
+      "minimum_net_edge": "0.200000000",
+      "minimum_acceptable_odds": "2.000000",
+      "elapsed_seconds": 1,
+      "maximum_elapsed_seconds": 10,
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.020000000000",
+      "stake_increment_cents": 10,
+      "expected": {
+        "base_action": "NO_ORDER_NUMERIC_CANDIDATE",
+        "gate_action": "NO_RECOMMENDATION",
+        "adverse_flip_dimensions": [
+          "odds_adverse",
+          "all_adverse"
+        ]
+      }
+    },
+    {
+      "vector_id": "V09-ODDS-TICK-BOUNDARY-STABLE",
+      "conservative_probability": "0.700000000",
+      "model_parameter_worst_probability": "0.699900000",
+      "odds": "2.000000",
+      "friction": "0.020000000",
+      "minimum_net_edge": "0.200000000",
+      "minimum_acceptable_odds": "1.999999",
+      "elapsed_seconds": 1,
+      "maximum_elapsed_seconds": 10,
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.020000000000",
+      "stake_increment_cents": 10,
+      "expected": {
+        "base_action": "NO_ORDER_NUMERIC_CANDIDATE",
+        "gate_action": "NO_ORDER_NUMERIC_CANDIDATE",
+        "adverse_flip_dimensions": []
+      }
+    },
+    {
+      "vector_id": "V10-BASE-NO-RECOMMENDATION",
+      "conservative_probability": "0.400000000",
+      "model_parameter_worst_probability": "0.399900000",
+      "odds": "1.500000",
+      "friction": "0.010000000",
+      "minimum_net_edge": "0.010000000",
+      "minimum_acceptable_odds": "1.400000",
+      "elapsed_seconds": 1,
+      "maximum_elapsed_seconds": 10,
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.020000000000",
+      "stake_increment_cents": 10,
+      "expected": {
+        "base_action": "NO_RECOMMENDATION",
+        "gate_action": "NO_RECOMMENDATION",
+        "adverse_flip_dimensions": []
+      }
+    },
+    {
+      "vector_id": "V11-COMBINED-ONLY-FLIPS",
+      "conservative_probability": "0.600000000",
+      "model_parameter_worst_probability": "0.599900000",
+      "odds": "2.000000",
+      "friction": "0.010000000",
+      "minimum_net_edge": "0.189750000",
+      "minimum_acceptable_odds": "1.900000",
+      "elapsed_seconds": 1,
+      "maximum_elapsed_seconds": 10,
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.020000000000",
+      "stake_increment_cents": 10,
+      "expected": {
+        "base_action": "NO_ORDER_NUMERIC_CANDIDATE",
+        "gate_action": "NO_RECOMMENDATION",
+        "adverse_flip_dimensions": [
+          "all_adverse"
+        ]
+      }
+    },
+    {
+      "vector_id": "V12-FAVOURABLE-DIAGNOSTIC-NEVER-ENABLES",
+      "conservative_probability": "0.600000000",
+      "model_parameter_worst_probability": "0.599900000",
+      "odds": "2.000000",
+      "friction": "0.010000000",
+      "minimum_net_edge": "0.190050000",
+      "minimum_acceptable_odds": "1.900000",
+      "elapsed_seconds": 1,
+      "maximum_elapsed_seconds": 10,
+      "bankroll_cents": 30000,
+      "risk_fraction_cap": "0.020000000000",
+      "stake_increment_cents": 10,
+      "expected": {
+        "base_action": "NO_RECOMMENDATION",
+        "gate_action": "NO_RECOMMENDATION",
+        "adverse_flip_dimensions": []
+      }
+    }
+  ]
+}

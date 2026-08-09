@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="22" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S10.P02_test" name="test_candidate_preflight_passes_without_generated_test_reports" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_frozen_manifest_is_exact_replay_with_required_counts" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_block_bootstrap_distribution_is_non_degenerate_and_fixed_seed_replayable" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_runtime_and_evaluation_use_distinct_seeded_distributions" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_conservative_probability_is_monotonic_for_frozen_residual_blocks" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_one_in_ten_thousand_base_probability_boundary_preserves_conservative_monotonicity" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_conservative_probability_never_increases_base_when_all_residuals_are_positive" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_percentile_uses_deterministic_nearest_rank" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_malformed_or_unsafe_fixture_fails_closed[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_malformed_or_unsafe_fixture_fails_closed[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_malformed_or_unsafe_fixture_fails_closed[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_malformed_or_unsafe_fixture_fails_closed[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_malformed_or_unsafe_fixture_fails_closed[&lt;lambda&gt;4]" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_invalid_bootstrap_inputs_fail_closed" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_core_source_has_no_network_process_soak_float_or_order_capability" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_candidate_fails_closed_when_expected_manifest_hash_is_tampered" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_candidate_fails_closed_when_manifest_is_tampered" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_candidate_fails_closed_when_frozen_residual_block_is_tampered" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_candidate_fails_closed_when_p01_predecessor_is_changed" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_existing_evidence_fails_closed_when_index_binding_is_tampered" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_rollback_drill_is_local_and_has_no_external_side_effect" time="0.000" />
+    <testcase classname="tests.S10.P02_test" name="test_cli_is_wired_to_exact_contract_and_phase_boundaries" time="0.000" />
+  </testsuite>
+</testsuites>
