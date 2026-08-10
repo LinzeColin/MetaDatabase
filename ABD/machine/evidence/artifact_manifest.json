@@ -1,5 +1,5 @@
 {
-  "file_count": 1117,
+  "file_count": 1120,
   "files": [
     {
       "bytes": 25,
@@ -17,9 +17,9 @@
       "sha256": "a1b6d13afea6f383061d2d3405efe2f2d8f4867fbb08a5edf0e53415c16a239a"
     },
     {
-      "bytes": 146041,
+      "bytes": 147902,
       "path": "HANDOFF.md",
-      "sha256": "c7a7f22a57c063095e1960d729dc176704efe4a499a71ad39dcae51a8cc799af"
+      "sha256": "e0f2707df87ba6bc398d8d16a0fe941ba0d025b79f141e238abb975a02849087"
     },
     {
       "bytes": 643,
@@ -4707,6 +4707,16 @@
       "sha256": "c7d22cac8facd371b2b111f0ff258877d037e6c4f0a9dbd2bd81d450a1085d1e"
     },
     {
+      "bytes": 38272,
+      "path": "runtime/shadow_release_control_plane_recovery.py",
+      "sha256": "c0f58af541c2bb12d86345385ab952c8827285fa14cea3852f4d7d81e8c0ab71"
+    },
+    {
+      "bytes": 2862,
+      "path": "runtime/shadow_release_control_plane_recovery_contract.json",
+      "sha256": "742a307f9a318405dc143a48b7d323d35aaa598e0a057d3f43b8441f72f38fb3"
+    },
+    {
       "bytes": 9011,
       "path": "runtime/shadow_runtime_attestation.py",
       "sha256": "0e858e7b69d18f13efa33e15a139a72443bd4f10ab75f931fca0e4382af45f4d"
@@ -4760,6 +4770,11 @@
       "bytes": 7449,
       "path": "runtime_tests/test_runtime_server.py",
       "sha256": "00e7ac1df4c3e6837d0a22bb26199474c824ec627ca5794fdcb9701ec2a49af0"
+    },
+    {
+      "bytes": 6022,
+      "path": "runtime_tests/test_shadow_release_control_plane_recovery.py",
+      "sha256": "4d0260435b88f4d519fe3b43899de696fc244c22b07a063721f6cb2b9cc5a7fe"
     },
     {
       "bytes": 6348,

@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-SHADOW-CANONICAL-CONTROL-PLANE-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_HOST_LOOPBACK_CANONICAL_CONTROL_PLANE_RECOVERY_ONLY",
+  "expected_image_reference": "local/abd-runtime@sha256:6d51e3e01c2fb7a02460ac9c9eeaf20b8f41f144c4dc795eaae5335b15737ec8",
+  "expected_image_id": "sha256:6d51e3e01c2fb7a02460ac9c9eeaf20b8f41f144c4dc795eaae5335b15737ec8",
+  "expected_compose_sha256": "babed827948b77e28d395b0d36d2142605b8144f7e778302d6c384930aa54808",
+  "source_boundary": {
+    "live_shadow_docker_metadata_read": true,
+    "nonsecret_runtime_config_read": true,
+    "runtime_secret_content_read": false,
+    "external_network_accessed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "canonical_layout": {
+    "release_root": "/opt/abd/releases",
+    "slots": [
+      {
+        "id": "blue",
+        "release_path": "/opt/abd/releases/blue",
+        "runtime_env_path": "/etc/abd/slots/blue.env",
+        "log_path": "/var/log/abd/blue",
+        "bind_port": 8081,
+        "project_name": "abd-shadow-blue"
+      },
+      {
+        "id": "green",
+        "release_path": "/opt/abd/releases/green",
+        "runtime_env_path": "/etc/abd/slots/green.env",
+        "log_path": "/var/log/abd/green",
+        "bind_port": 8082,
+        "project_name": "abd-shadow-green"
+      }
+    ],
+    "current_release_symlink": "/opt/abd/current",
+    "active_slot": "blue",
+    "atomic_switch_method": "CREATE_SIBLING_SYMLINK_THEN_RENAME",
+    "canonical_config_path": "/etc/abd/config.json",
+    "canonical_state_path": "/var/lib/abd"
+  },
+  "required_running_shadow": {
+    "shadow_label": "com.linze.abd.runtime-role=candidate-shadow",
+    "core_label": "com.linze.abd.phase=S04-P01",
+    "shadow_container_count": 1,
+    "core_container_count": 0,
+    "user": "10001:10001",
+    "entrypoint": [
+      "python3",
+      "-m",
+      "abd_runtime.server"
+    ],
+    "working_dir": "/app",
+    "memory_limit_bytes": 536870912,
+    "memory_swap_limit_bytes": 536870912,
+    "cpu_nano_cpus": 250000000,
+    "pids_limit": 128,
+    "loopback_port": "127.0.0.1:8081",
+    "safe_status": {
+      "service": "ABD",
+      "version": "0.0.0.1",
+      "mode": "SHADOW_READ_ONLY",
+      "decision": "NO_RECOMMENDATION_NO_ORDER",
+      "ready": true,
+      "recommendation_enabled": false,
+      "order_submission_enabled": false,
+      "market_or_account_connected": false,
+      "gmail_or_tab_connected": false
+    }
+  },
+  "rollback": {
+    "preserve_original_shadow_until_all_checks_pass": true,
+    "restore_original_current_symlink_on_failure": true,
+    "remove_only_resources_created_by_this_run_on_failure": true,
+    "old_shadow_removal_after_success_only": true
+  }
+}
