@@ -80,7 +80,28 @@ def test_the_double_click_wrapper_exists_and_is_runnable() -> None:
         "没有双击就能跑的那个文件——Owner 说过他没有技术基础，"
         "让他去终端里敲命令不算「操作简单」")
     text = wrapper.read_text(encoding="utf-8")
-    assert "pull_markdown_to_obsidian.sh" in text
+    # **必须自包含。**（2026-08-10）
+    # 上一版它指向 `_scratch/…` 里的脚本，而 `_scratch/` 按规矩就是放临时产物的
+    # ——今天已经有另一棵 worktree 在半路整个消失过。
+    # 他唯一能用的工具不该挂在一个随时会被回收的目录上。
+    # **注释里提到 `_scratch` 是在解释为什么不能依赖它**——剔掉注释行再看。
+    # 第一版没剔，被自己那句说明打红了（判据切错位置，当天第八次）。
+    code_only = "\n".join(line for line in text.splitlines()
+                          if not line.lstrip().startswith("#"))
+    assert "_scratch" not in code_only, (
+        "双击那个文件依赖 _scratch/ 里的脚本——那个目录随时可能被回收，"
+        "他的按钮会突然失灵")
+    assert "ssh" in text and "rsync" in text, "它不再自己完成同步了"
+    # 合并进库之前要先修标题，否则重跑会和已经修好的那份撞成两个文件
+    merge_at = text.index("rsync -a")
+    assert "clean" in text[:merge_at] or "修好" in text[:merge_at], (
+        "没有在合并进库之前修标题——重跑会把库弄成两份")
     # **失败时要说清楚**，不能双击完一闪而过什么都看不到。
-    assert "退出码" in text and "read -n 1" in text, (
-        "双击那个文件失败时没有把原因留在屏幕上——窗口一闪就没了")
+    # 钉的是意图不是字面：上一版断言里有「退出码」三个字，
+    # 而新版改成直接说具体原因（更好），字面就对不上了。
+    assert "read -n 1" in text, (
+        "双击那个文件跑完不挡窗口——一闪就没，他什么都看不到")
+    failure_paths = re.findall(r"finish\s+\"[^\"]+\"\s+[1-9]", text)
+    assert len(failure_paths) >= 3, (
+        f"失败分支只有 {len(failure_paths)} 条带说明的——"
+        "连不上服务器、取回失败、写库失败这些都该当场告诉他是哪一种")
