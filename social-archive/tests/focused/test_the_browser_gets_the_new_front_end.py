@@ -109,14 +109,17 @@ def test_the_deploy_really_calls_the_real_chrome_drill() -> None:
     不能只打印一行然后继续。
     """
     deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
-    assert "forget_button_render_drill.py" in deploy, (
-        "部署脚本没有调用真 Chrome 那道前端演练——它就成了没人跑的摆设")
-    step = deploy[deploy.index("forget_button_render_drill.py"):]
-    step = step[:step.index('step "9)')]
-    assert "fail " in step, "演练红了不中止部署，等于没验"
-    assert "| tail" not in step and "| head" not in step, (
-        "别把成败接进管道——`fail` 会读到管道尾巴那条命令的退出码")
-    assert (ROOT / "scripts/forget_button_render_drill.py").is_file()
+    for drill, why in (
+        ("forget_button_render_drill.py", "真 Chrome 里验这次发的界面到不到得了他手上"),
+        ("from_zero_drill.py", "在刚部署的镜像上把「从零到能用」这条链真走一遍"),
+    ):
+        assert drill in deploy, f"部署脚本没有调用 {drill}——{why}，它就成了没人跑的摆设"
+        step = deploy[deploy.index(drill):]
+        step = step[:step.index('step "9)')]
+        assert "fail " in step, f"{drill} 红了不中止部署，等于没验"
+        assert "| tail" not in step and "| head" not in step, (
+            f"{drill} 的成败别接进管道——`fail` 会读到管道尾巴那条命令的退出码")
+        assert (ROOT / "scripts" / drill).is_file()
 
 
 def test_the_bump_tool_actually_moves_every_stamp() -> None:

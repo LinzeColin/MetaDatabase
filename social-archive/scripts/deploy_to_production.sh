@@ -1000,6 +1000,33 @@ else
   printf '  跳过：这台机器上没有 Chrome（前端是否真到得了他手上，本轮没验）。\n'
 fi
 
+step "8.68) 从零到能用，在**刚部署的这个镜像**上真走一遍"
+# 上一步验的是界面到不到得了他手上。这一步验的是**按下去之后那条链**：
+# 空库 → 连账号 → 同步 → 看得见（标题/作者都对）→ 删除并清空 → 又空了
+# → 重连 → 再同步 → 内容回来了。
+#
+# **碰不到他的数据**：起一个一次性容器，数据根是容器内的 tmpfs，跑完就删。
+# 他那份 /opt/social-archive/runtime/data 一个字节都不动。
+if ! .venv/bin/python scripts/from_zero_drill.py --host "$HOST" --version "$VERSION" \
+      > /tmp/sa_zero.$$ 2>&1; then
+  python3 -c "
+import json
+try:
+    d=json.load(open('/tmp/sa_zero.$$'))
+except Exception:
+    print(open('/tmp/sa_zero.$$').read()[-800:]); raise SystemExit
+for s in d.get('steps', []):
+    if not s['ok']: print('  ✗', s['step'], '→', str(s['measured'])[:160])
+if d.get('detail'): print('  ✗', d['detail'][:400])"
+  rm -f /tmp/sa_zero.$$
+  fail '刚部署的这个镜像上，「从零到能用」这条链走不通。'
+fi
+python3 -c "
+import json
+d=json.load(open('/tmp/sa_zero.$$'))
+print(f\"  {len(d['steps'])} 步全过：从空库连账号、同步、看得见、删除并清空、重连再同步。\")"
+rm -f /tmp/sa_zero.$$
+
 step "9) 验收：仓、主机、**镜像里那一份**，三份是不是同一份代码"
 # 第 8 步只核了**扩展包**那一个文件。其余一百多个源文件，在这一步之前
 # 从来没有任何东西核过——而 /opt/social-archive **不是 git 检出**，

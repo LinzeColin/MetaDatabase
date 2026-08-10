@@ -13,6 +13,7 @@
     "extension_save_page_drill.py",
     "extension_update_in_place_drill.py",
     "forget_button_render_drill.py",
+    "from_zero_drill.py",
     "list_shape_end_to_end_drill.py",
     "popup_states_drill.py",
     "production_reachability_drill.py",
@@ -41,6 +42,7 @@
     "extension_install_page_drill.py": "改到那条路时",
     "pwa_render_drill.py": "改到那条路时",
     "forget_button_render_drill.py": "**每次发布**（deploy 第 8.65 步）",
+    "from_zero_drill.py": "**每次发布**（deploy 第 8.68 步）",
     "disaster_recovery_drill.py": "定期",
     "restore_private_database_drill.py": "定期",
     "restore_runtime_db_drill.py": "定期"
@@ -58,6 +60,7 @@
     "extension_save_page_drill.py",
     "extension_update_in_place_drill.py",
     "forget_button_render_drill.py",
+    "from_zero_drill.py",
     "list_shape_end_to_end_drill.py",
     "popup_states_drill.py",
     "production_reachability_drill.py",
