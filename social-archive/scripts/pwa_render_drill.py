@@ -474,11 +474,17 @@ async def run(chrome: str) -> int:
             got = await rpc("Runtime.evaluate", {"expression": r"""(() => {
                 const row = document.querySelector("#tableBody tr[data-row-id]");
                 if (!row) return JSON.stringify({ opened: false, why: "表里一行都没有" });
+                // **列表那一格先读，再点开抽屉。** 他先看到的是列表；
+                // 两处调同一个 archiveLabel()，但"同一个函数"不等于两处都渲染对——
+                // 这个仓今天反复栽在"由构造保证"上。
+                const cell = row.querySelector(".col-archive");
+                const listArchive = cell ? cell.textContent.trim() : "";
                 row.click();
                 const pick = id => (document.getElementById(id) || {}).textContent || "";
                 const backdrop = document.getElementById("drawerBackdrop");
                 return JSON.stringify({
                   opened: !!backdrop && backdrop.classList.contains("open"),
+                  listArchive,
                   title: pick("drawerHeaderTitle"),
                   meta: pick("drawerHeaderMeta"),
                   body: pick("drawerContent").replace(/\s+/g, " ").slice(0, 300),
@@ -741,6 +747,12 @@ async def run(chrome: str) -> int:
         if "视频没存下" not in body:
             problems.append(
                 f"抽屉没把归档状态照实说出来：{body[:160]!r}")
+        # **列表那一格也要说同一句话**——他先看到的是它，点开才是抽屉。
+        listing = drawer_reading.get("listArchive", "")
+        if listing != "视频没存下":
+            problems.append(
+                f"列表那一格写的是 {listing!r}，而服务端说的是「视频没存下」——"
+                "说明书答应的也是后者（「资料库那一列会写『视频没存下』」）")
 
     # 使用说明那一页
     if guide_reading is None:
