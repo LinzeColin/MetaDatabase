@@ -17,6 +17,7 @@ rsync 进来——同一条内容于是有了两个文件（干净的 + 脏的�
 
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -123,3 +124,52 @@ def test_it_converges_and_stays_there(tmp_path) -> None:
         _run(tmp_path)
         counts.append(len(list(folder.glob("*.md"))))
     assert counts == [2, 2, 2], counts
+
+
+def test_a_number_only_title_never_becomes_an_empty_heading(tmp_path) -> None:
+    """**清完是空时要用链接兜底，绝不写一个空的 `# `。**（2026-08-10）
+
+    这个兜底原来只存在于 `同步到 Obsidian.command` 的内联实现里，
+    这个脚本没有。我拿它去修**生产**的导出目录，纯数字标题（`646`/`6.6万`/
+    `4.4万`/`186`）被清成空串，脚本照写了空标题——**我在生产上写坏了 4 个文件**。
+
+    「同一件事两个实现、口径不同」——这个仓当天为这个形状修过五回，这是第六回。
+    """
+    folder = tmp_path / "douyin"
+    folder.mkdir(parents=True)
+    path = folder / "646-81ae07ff.md"
+    path.write_text(
+        '---\nplatform: "douyin"\n'
+        'url: "https://www.douyin.com/video/7669773688804784986"\n---\n\n# 646\n',
+        encoding="utf-8")
+    _run(tmp_path)
+    left = list(folder.glob("*.md"))
+    assert len(left) == 1, [p.name for p in left]
+    body = left[0].read_text(encoding="utf-8")
+    heading = re.search(r"^# (.*)$", body, re.M)
+    assert heading and heading.group(1).strip(), f"标题被写成空的了：{body!r}"
+    assert "douyin.com" in heading.group(1), heading.group(1)
+
+
+def test_it_matches_the_launcher_on_the_same_input(tmp_path) -> None:
+    """**两个实现必须给同一个答案。** 不然一边修完另一边再改回去。"""
+    import subprocess as _sp
+    launcher = (ROOT / "scripts/同步到 Obsidian.command").read_text(encoding="utf-8")
+    blocks = re.findall(r"<<'PYEOF'\n(.*?)\nPYEOF", launcher, re.S)
+    assert len(blocks) == 2, "内联 Python 段落数变了，这条判据取错了段"
+    note = ('---\nplatform: "douyin"\n'
+            'url: "https://www.douyin.com/video/7669773688804784986"\n---\n\n# 646\n')
+    for name, runner in (("脚本", None), ("双击文件", blocks[1])):
+        root = tmp_path / name
+        (root / "douyin").mkdir(parents=True)
+        (root / "douyin/646-81ae07ff.md").write_text(note, encoding="utf-8")
+        if runner is None:
+            _run(root)
+        else:
+            done = _sp.run([sys.executable, "-", str(root)], input=runner,
+                           capture_output=True, text=True, check=False)
+            assert done.returncode == 0, done.stdout + done.stderr
+    left = {name: sorted(p.name for p in (tmp_path / name / "douyin").glob("*.md"))
+            for name in ("脚本", "双击文件")}
+    assert left["脚本"] == left["双击文件"], (
+        f"两个实现给了不同答案：{left}——一边修完另一边会再改回去")

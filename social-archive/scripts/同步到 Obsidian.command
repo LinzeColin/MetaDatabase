@@ -197,16 +197,28 @@ removed = 0
 for _, files in groups.items():
     if len(files) < 2:
         continue
-    scored = []
-    for f in files:
+    # **同一条内容只留一个文件。**（2026-08-10 第三次踩这个坑）
+    #
+    # 前两次的判据是「保留标题已经干净的那份」。而我在**服务器**上也跑了一次
+    # 修复、改了 48 个文件名之后，rsync 把新名字带进来，库里出现了
+    # **两份标题都干净、只是文件名不同**的情况——那条规则分不出该删谁，
+    # 于是 193 变 198。
+    #
+    # 改成看**文件名是不是它自己标题该有的样子**（规范名），留规范的那份。
+    # 都不规范就留第一个——总之只留一个。
+    def canonical(f):
         h = HEAD.search(f.read_text(encoding="utf-8"))
-        title = h.group(1).strip() if h else ""
-        scored.append(((clean(title) or "") == title, f))
-    good = [f for ok, f in scored if ok]
-    if not good:
-        continue
-    for ok, f in scored:
-        if not ok:
+        title = (h.group(1).strip() if h else "")
+        want = UNSAFE.sub("", clean(title) or url_label(f.read_text(encoding="utf-8")) or title).strip()
+        keep = 240 - len(f".md".encode()) - 9
+        while len(want.encode()) > keep and want:
+            want = want[:-1]
+        m = TAIL.search(f.name)
+        return bool(m) and f.name == f"{want}-{m.group(1)}.md"
+    scored = [(canonical(f), f) for f in files]
+    good = [f for ok, f in scored if ok] or [files[0]]
+    for f in files:
+        if f != good[0]:
             f.unlink(); removed += 1
 
 total_removed = removed + removed_dupes

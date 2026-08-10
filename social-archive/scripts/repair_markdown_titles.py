@@ -35,11 +35,39 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from social_archive.utils import clean_display_author, clean_display_title  # noqa: E402
 
-HEADING = re.compile(r"^# (.+)$", re.M)
+# **空标题也要匹配得上。**（2026-08-10）
+# 原来写的是 `^# (.+)$`——至少一个字符。而我自己在生产上写坏的那 4 行正是
+# `# `（井号加空格，后面什么都没有），于是它**匹配不上、被直接跳过**，
+# 修复脚本报「已修 0 个」而坏文件原样留着。
+# 要修的东西恰好是判据看不见的那一档——这个仓的老毛病。
+HEADING = re.compile(r"^#[ \t]?(.*)$", re.M)
 HASH_TAIL = re.compile(r"-([0-9a-f]{8})\.md$")
 # 文件名里不能出现的字符（`#` 在 Obsidian 里是标签，`[]` 是链接）
 UNSAFE = re.compile(r"[\\/:*?\"<>|#\[\]^]")
 
+
+
+
+def _url_label(text: str) -> str:
+    """标题清完是空时的兜底：拿链接尾巴当标题。
+
+    2026-08-10 的教训：**这个兜底原来只存在于 `同步到 Obsidian.command` 里**，
+    这个脚本没有。于是我拿它去修生产的导出目录时，纯数字标题（`646`/`6.6万`）
+    被 `clean_display_title` 清成空串，脚本**照写了一个空的 `# `**——
+    我在生产上写坏了 4 个文件。
+
+    「同一件事两个实现、口径不同」——这个仓当天已经为这个形状修过五回，
+    这次是我自己制造的第六回。
+    """
+    found = re.search(r'^url:\s*"?([^"\n]+)"?', text, re.M)
+    if not found:
+        return ""
+    parts = re.match(r"https?://([^/]+)(/.*)?$", found.group(1).strip())
+    if not parts:
+        return ""
+    host = parts.group(1).replace("www.", "")
+    tail = "/".join([piece for piece in (parts.group(2) or "").split("/") if piece][-2:])
+    return f"{host}/{tail}" if tail else host
 
 
 def _fit_filename(stem: str, tail: str) -> str:
@@ -89,8 +117,9 @@ def repair(root: Path, apply: bool) -> dict[str, int]:
         if not found:
             continue
         old_title = found.group(1).strip()
-        new_title = clean_display_title(old_title)
-        if new_title == old_title:
+        # 清完是空（纯数字那一档）就用链接尾巴兜底——**绝不写一个空标题**
+        new_title = clean_display_title(old_title) or _url_label(text)
+        if new_title == old_title or not new_title:
             continue
         changed += 1
         if apply:

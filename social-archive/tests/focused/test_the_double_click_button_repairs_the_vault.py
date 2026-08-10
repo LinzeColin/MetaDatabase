@@ -132,3 +132,39 @@ def test_a_number_only_title_falls_back_to_the_link(tmp_path: Path) -> None:
     assert heading.group(1).strip() != "646", "点赞数还当着标题"
     assert "douyin.com" in heading.group(1), heading.group(1)
     assert note  # 名字可能已经换掉，这里只保证上面那一个文件在
+
+
+def test_two_clean_copies_of_the_same_item_still_collapse_to_one(tmp_path: Path) -> None:
+    """**两份标题都干净、只是文件名不同**——也只能留一个。（2026-08-10 第三次踩）
+
+    前两次的规则是「保留标题已经干净的那份」。而我在**服务器**上也跑了一次修复、
+    改了 48 个文件名之后，rsync 把新名字带进来，库里出现了两份都干净的：
+
+        douyin/646-81ae07ff.md                              ← 旧名（服务器修完的）
+        douyin/douyin.comvideo7669773688804784986-81ae07ff.md ← 库里那份的规范名
+
+    那条规则分不出该删谁，于是他库里 193 变 198。
+    改成看**文件名是不是它自己标题该有的样子**，留规范的那份。
+    """
+    folder = tmp_path / "douyin"
+    url = "https://www.douyin.com/video/7669773688804784986"
+    _note(folder, "646-81ae07ff.md", title="douyin.com/video/7669773688804784986",
+          author=None, url=url)
+    _note(folder, "douyin.comvideo7669773688804784986-81ae07ff.md",
+          title="douyin.com/video/7669773688804784986", author=None, url=url)
+    assert len(list(folder.glob("*.md"))) == 2
+    _run(tmp_path)
+    left = [p.name for p in folder.glob("*.md")]
+    assert left == ["douyin.comvideo7669773688804784986-81ae07ff.md"], left
+
+
+def test_an_empty_heading_is_never_left_behind(tmp_path: Path) -> None:
+    """标题被清成空时要用链接兜底——**我在生产上写出过 4 个空的 `# `**。"""
+    folder = tmp_path / "douyin"
+    _note(folder, "646-81ae07ff.md", title="646", author=None)
+    _run(tmp_path)
+    left = list(folder.glob("*.md"))
+    assert len(left) == 1, [p.name for p in left]
+    body = left[0].read_text(encoding="utf-8")
+    heading = re.search(r"^# (.*)$", body, re.M)
+    assert heading and heading.group(1).strip(), f"留下了一个空标题：{body!r}"
