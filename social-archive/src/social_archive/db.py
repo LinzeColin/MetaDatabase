@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, Iterator
 
 from .models import CaptureRequest
-from .utils import clean_display_title, canonicalize_url, json_bytes, sha256_bytes, stable_id, utcnow
+from .utils import clean_display_author, clean_display_title, canonicalize_url, json_bytes, sha256_bytes, stable_id, utcnow
 
 
 _CJK_HAN_RE = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
@@ -1279,6 +1279,13 @@ class RuntimeStore:
             # 修过三回了。存下来的数据不动，只在显示时修。
             if row.get("title"):
                 row["title"] = clean_display_title(row["title"])
+            # **作者字段同理，而且我第一次只接了标题、把它漏了。**（2026-08-10）
+            # 真制品上走一遍才看见：库里标题已经是「真正的一次性她来了」，
+            # 而同一行的作者还是 `26.6万`——**他在页面上看到的就是点赞数当作者**。
+            # 导出的 Markdown 那一侧当天就修了，这一侧漏了：同一件事两处各修各的，
+            # 漏一处就等于没修（这个仓今天为这个形状修过四回）。
+            if row.get("author_name"):
+                row["author_name"] = clean_display_author(row["author_name"]) or None
             try:
                 row["keywords"] = json.loads(row.pop("keywords_json") or "[]")
             except (TypeError, ValueError):
