@@ -1080,7 +1080,19 @@
 
   function renderDetailContent(row) {
     const artifacts = row.detail?.artifacts || [];
-    const receipts = row.detail?.destination_receipts || [];
+    // **服务端发的键叫 `export_receipts`，不是 `destination_receipts`。**（2026-08-10）
+    //
+    // `GET /v1/library/{id}` 直接返回 `store.get_content(...)`，而那个方法写的是
+    // `result["export_receipts"] = receipts`（db.py）。生产实测那条路由的顶层键里
+    // **没有 `destination_receipts`**——`destination_receipts` 是另一条路由
+    // （`/v1/status` 的全局 30 条）的键，两处同名不同物。
+    //
+    // 后果：这一行恒取到 `[]`，于是**回执列表从来没渲染过、「重试」那颗按钮
+    // 从来没出现过**，抽屉永远写「尚无已完成回执」——而他库里 github 193 条、
+    // markdown 193 条都是 done。又一次「建好了没接上」。
+    //
+    // 兼容那个名字是留给别处可能复用这段渲染的负载，不是给这条路由的。
+    const receipts = row.detail?.export_receipts || row.detail?.destination_receipts || [];
     $("drawerContent").innerHTML = `
       <h2 class="drawer-title">${escapeHtml(row.title)}</h2>
       <div class="drawer-badges"><span class="relation-badge ${relationClass(row.relation)}">${escapeHtml(row.relation)}</span><span class="topic-badge">${escapeHtml(row.topic)}</span>${row.keywords.map(keyword => `<span class="keyword">${escapeHtml(keyword)}</span>`).join("")}</div>
@@ -1096,7 +1108,7 @@
         <div class="meta-item"><span>最近同步</span><strong>${escapeHtml(formatDate(row.syncedAt, true))}</strong></div>
       </div></div>
       <div class="drawer-section"><h3>归档文件 · ${artifacts.length || row.media} 项</h3><div class="media-grid">${(artifacts.length || row.media) ? Array.from({ length: Math.min(artifacts.length || row.media, 3) }, (_, index) => `<div class="media-thumb" data-label="${escapeHtml(artifacts[index]?.artifact_type || (index === 0 ? "封面" : `媒体 ${index + 1}`))}"></div>`).join("") : '<div style="color:var(--text-3)">该条内容当前只有结构化信息与原始链接。</div>'}</div></div>
-      <div class="drawer-section"><h3>自动导出</h3><div class="export-dots">${["M", "N", "O", "G"].map(mark => `<span class="export-dot ${row.export.includes(mark) ? "done" : ""}">${mark}</span>`).join("")}<span style="margin-left:6px;color:var(--text-3);font-size:12px">${receipts.length ? `${receipts.length} 个真实回执` : "尚无已完成回执"}</span></div>${renderReceiptList(receipts)}</div>`;
+      <div class="drawer-section"><h3>自动导出</h3><div class="export-dots">${["M", "N", "O", "G"].map(mark => `<span class="export-dot ${row.export.includes(mark) ? "done" : ""}">${mark}</span>`).join("")}<span style="margin-left:6px;color:var(--text-3);font-size:12px">${latestReceipts(receipts).length ? `${latestReceipts(receipts).length} 个目的地有回执` : "尚无已完成回执"}</span></div>${renderReceiptList(receipts)}</div>`;
     document.querySelectorAll("[data-retry-receipt]").forEach(button => button.addEventListener("click", () => retryReceipt(button.dataset.retryReceipt, button)));
   }
 
@@ -1110,9 +1122,34 @@
    * 冻结词典里那句「[ 重试 ]」指的就是这类动作。文案许诺了一个动作，
    * 界面上却没有对应的按钮，这条承诺就是假的。
    */
+  /** 每个目的地只留最新那一条。服务端已按 finished_at 倒序，取首次出现即可。 */
+  function latestReceipts(receipts) {
+    const seen = new Set();
+    return (receipts || []).filter(receipt => {
+      const key = String(receipt.destination_id || "");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
   function renderReceiptList(receipts) {
     if (!receipts.length) return "";
-    const rows = receipts.map(receipt => {
+    // **每个目的地只说现在怎么样，不把历史一条条摆出来。**（2026-08-10）
+    //
+    // 服务端发的是这条内容的**全部**回执
+    // （db.py：`SELECT * FROM destination_receipt WHERE content_id=? ORDER BY finished_at DESC`），
+    // 而上一版一条不漏地全画。后果在他生产库里是具体的：
+    // markdown 有 4 条 failed，**这 4 条内容同时都有 done**
+    // （DESTINATION_PROBE_REQUIRED ×3、OSERROR ×1，后来都成功了）。
+    // 于是那 4 条的抽屉里并排出现
+    //     Markdown · 已写入
+    //     Markdown · 写入失败 …  ［重试］
+    // **一条早就不成立的失败，还带着一颗按钮催他点。**
+    //
+    // 服务端已经按 finished_at 倒序排好，所以每个目的地第一次出现的就是最新的。
+    // 仍然失败的目的地照样是失败、照样给重试——变的只是"不再拿旧账当现状"。
+    const rows = latestReceipts(receipts).map(receipt => {
       const status = String(receipt.status || "");
       const name = destinationNames[receipt.destination_id] || receipt.destination_id;
       const label = { done: "已写入", noop: "无需写入", failed: "写入失败" }[status] || status;

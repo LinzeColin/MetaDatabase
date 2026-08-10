@@ -166,6 +166,24 @@ class _Handler(BaseHTTPRequestHandler):
         path = self.path.split("?")[0]
         if path.startswith("/v1/"):
             asked.append(path)
+        # **单条内容详情**：抽屉调的是 `/v1/library/<id>`，而上面那条前缀匹配
+        # 会把列表负载回给它——于是 export_receipts 永远是空的，
+        # 「回执列表」那一段在演练里从来没被画出来过。
+        # 这里按 Owner 生产库里那 4 条的真实形状给：**同一个目的地
+        # 先失败、后成功**（markdown 有 4 条 failed，而这 4 条内容都另有 done）。
+        if path.startswith("/v1/library/") and not path.endswith("/export"):
+            self._send(200, json.dumps({
+                "id": "cnt_no_title", "platform": "douyin", "title": "",
+                "export_receipts": [
+                    {"id": "rcpt_done", "destination_id": "markdown", "status": "done",
+                     "finished_at": "2026-08-03T08:51:24Z", "message_zh": ""},
+                    {"id": "rcpt_failed", "destination_id": "markdown", "status": "failed",
+                     "finished_at": "2026-08-03T06:35:00Z",
+                     "message_zh": "目的地还没探测过，先在设置页点一次「检查连接」。"},
+                ],
+                "destination_bindings": [], "object_replicas": [],
+            }, ensure_ascii=False).encode(), "application/json; charset=utf-8")
+            return
         for prefix, payload in FAKE.items():
             if path == prefix or path.startswith(prefix + "/"):
                 self._send(200, json.dumps(payload, ensure_ascii=False).encode(),
@@ -471,25 +489,31 @@ async def run(chrome: str) -> int:
             #
             # 夹具那一条是**没有标题**的（Owner 库里 193 条有 6 条这样）：
             # 表格那一侧用链接尾巴兜底，抽屉这一侧要跟着，不能是一片空白。
-            got = await rpc("Runtime.evaluate", {"expression": r"""(() => {
+            # **抽屉是先开、再异步取详情的**，所以点完要等一下再读，
+            # 否则回执列表那一段永远是空的（第一版就是这么"通过"的）。
+            await rpc("Runtime.evaluate", {"expression": r"""(() => {
                 const row = document.querySelector("#tableBody tr[data-row-id]");
-                if (!row) return JSON.stringify({ opened: false, why: "表里一行都没有" });
-                // **列表那一格先读，再点开抽屉。** 他先看到的是列表；
-                // 两处调同一个 archiveLabel()，但"同一个函数"不等于两处都渲染对——
-                // 这个仓今天反复栽在"由构造保证"上。
+                if (!row) return "no-row";
+                // 列表那一格先记下来：他先看到的是列表，点开才是抽屉。
                 const cell = row.querySelector(".col-archive");
-                const listArchive = cell ? cell.textContent.trim() : "";
+                window.__saListArchive = cell ? cell.textContent.trim() : "";
                 row.click();
+                return "clicked";
+            })()""", "returnByValue": True, "userGesture": True})
+            await asyncio.sleep(2)
+            got = await rpc("Runtime.evaluate", {"expression": r"""(() => {
                 const pick = id => (document.getElementById(id) || {}).textContent || "";
                 const backdrop = document.getElementById("drawerBackdrop");
                 return JSON.stringify({
                   opened: !!backdrop && backdrop.classList.contains("open"),
-                  listArchive,
+                  listArchive: window.__saListArchive || "",
                   title: pick("drawerHeaderTitle"),
                   meta: pick("drawerHeaderMeta"),
                   body: pick("drawerContent").replace(/\s+/g, " ").slice(0, 300),
+                  receiptRows: [...document.querySelectorAll(".receipt-row")]
+                                 .map(node => node.textContent.replace(/\s+/g, " ").trim()),
                 });
-            })()""", "returnByValue": True, "userGesture": True})
+            })()""", "returnByValue": True})
             drawer_payload = got.get("result", {})
             drawer_reading = ({"error": str(drawer_payload["exceptionDetails"])[:200]}
                               if drawer_payload.get("exceptionDetails")
@@ -747,6 +771,27 @@ async def run(chrome: str) -> int:
         if "视频没存下" not in body:
             problems.append(
                 f"抽屉没把归档状态照实说出来：{body[:160]!r}")
+        # **回执列表得真的画出来。**（2026-08-10）
+        #
+        # 服务端那条详情路由发的键叫 `export_receipts`，而界面读的是
+        # `destination_receipts`（那是 `/v1/status` 的键，同名不同物）。
+        # 生产实测：详情顶层键里**没有** destination_receipts，
+        # 于是这一段恒取到 []——**回执列表从没渲染过、「重试」从没出现过**，
+        # 抽屉永远写「尚无已完成回执」，而他库里 github/markdown 各 193 条 done。
+        rows_seen = drawer_reading.get("receiptRows") or []
+        if not rows_seen:
+            problems.append(
+                "**回执列表一行都没画出来**——夹具里这条内容有 2 条回执。"
+                "界面读的键和服务端发的键对不上时就是这个样子（恒空且不报错）")
+        # **旧账不许当现状。** 夹具那两条是他生产里那 4 条的形状：
+        # 同一个目的地先失败、后成功。只该显示最新那条。
+        if any("写入失败" in row for row in rows_seen):
+            problems.append(
+                f"把一条早就不成立的失败摆了出来（还带重试按钮）：{rows_seen}——"
+                "同一个目的地后来已经写成功了")
+        if not any("已写入" in row for row in rows_seen):
+            problems.append(f"回执里没说写成功过：{rows_seen}")
+
         # **列表那一格也要说同一句话**——他先看到的是它，点开才是抽屉。
         listing = drawer_reading.get("listArchive", "")
         if listing != "视频没存下":
