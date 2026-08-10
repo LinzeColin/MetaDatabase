@@ -115,9 +115,15 @@ def url_label(body):
     tail = "/".join([p for p in (m2.group(2) or "").split("/") if p][-2:])
     return f"{host}/{tail}" if tail else host
 
-fixed = removed_dupes = 0
+fixed = removed_dupes = authors = 0
 for md in sorted(vault.rglob("*.md")):
     body = md.read_text(encoding="utf-8")
+    # 作者字段里装着点赞数的（抖音 86 条里 31 条），清成 null
+    au = re.search(r'^author:\s*"([^"]*)"\s*$', body, re.M)
+    if au and DIGITS.match(au.group(1).strip()):
+        body = body[:au.start()] + "author: null" + body[au.end():]
+        md.write_text(body, encoding="utf-8")
+        authors += 1
     found = HEAD.search(body)
     if not found:
         continue
@@ -165,7 +171,7 @@ for _, files in groups.items():
             f.unlink(); removed += 1
 
 total_removed = removed + removed_dupes
-print(f"  库里修好 {fixed} 个标题" + (f"，清掉 {total_removed} 个重复文件" if total_removed else ""))
+print(f"  库里修好 {fixed} 个标题" + (f"、{authors} 处作者字段" if authors else "") + (f"，清掉 {total_removed} 个重复文件" if total_removed else ""))
 PYEOF
 AFTER="$(find "$TARGET" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"
 

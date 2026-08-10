@@ -14,7 +14,7 @@ import httpx
 
 from .config import Settings
 from .db import RuntimeStore
-from .utils import clean_display_title, atomic_write, read_secret, safe_slug, sha256_bytes, utcnow
+from .utils import clean_display_author, clean_display_title, atomic_write, read_secret, safe_slug, sha256_bytes, utcnow
 
 
 PRIVATE_DATABASE_REPOSITORY = "LinzeColin/Private-Database"
@@ -112,7 +112,8 @@ def _markdown(content: dict[str, Any]) -> str:
         "social_archive_id": content["id"],
         "platform": content.get("platform"),
         "url": content.get("canonical_url"),
-        "author": content.get("author_name"),
+        # 作者字段里装着点赞数的，显示时清掉（抖音 86 条里 31 条如此）
+        "author": clean_display_author(content.get("author_name")) or None,
         "published_at": content.get("published_at"),
         "relation_types": sorted({r.get("relation_type") for r in content.get("relations", []) if r.get("relation_type")}),
         "collections": sorted({r.get("collection_key") for r in content.get("relations", []) if r.get("collection_key")}),

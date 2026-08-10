@@ -33,7 +33,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from social_archive.utils import clean_display_title      # noqa: E402
+from social_archive.utils import clean_display_author, clean_display_title  # noqa: E402
 
 HEADING = re.compile(r"^# (.+)$", re.M)
 HASH_TAIL = re.compile(r"-([0-9a-f]{8})\.md$")
@@ -42,9 +42,18 @@ UNSAFE = re.compile(r"[\\/:*?\"<>|#\[\]^]")
 
 
 def repair(root: Path, apply: bool) -> dict[str, int]:
-    changed = renamed = dropped = 0
+    changed = renamed = dropped = authors_cleaned = 0
     for path in sorted(root.rglob("*.md")):
         text = path.read_text(encoding="utf-8")
+        # **作者字段里装着点赞数的，一并清掉。**（2026-08-10）
+        # 他那条抖音的 frontmatter 写着 `author: "26.6万"`——那是点赞数。
+        # 生产实测：抖音 86 条里 31 条（36%）如此。
+        author = re.search(r'^author:\s*"([^"]*)"\s*$', text, re.M)
+        if author and clean_display_author(author.group(1)) != author.group(1):
+            authors_cleaned += 1
+            if apply:
+                text = text[:author.start()] + "author: null" + text[author.end():]
+                path.write_text(text, encoding="utf-8")
         found = HEADING.search(text)
         if not found:
             continue
@@ -79,7 +88,7 @@ def repair(root: Path, apply: bool) -> dict[str, int]:
         if apply:
             path.rename(target)
     return {"titles_repaired": changed, "files_renamed": renamed,
-            "duplicates_dropped": dropped}
+            "duplicates_dropped": dropped, "authors_cleaned": authors_cleaned}
 
 
 def main() -> int:
@@ -96,7 +105,9 @@ def main() -> int:
     print(f"  {verb} {counts['titles_repaired']} 个标题，"
           f"{counts['files_renamed']} 个文件名"
           + (f"，清掉 {counts['duplicates_dropped']} 个重复文件"
-             if counts['duplicates_dropped'] else ""))
+             if counts['duplicates_dropped'] else "")
+          + (f"，{counts['authors_cleaned']} 处作者字段里的点赞数"
+             if counts['authors_cleaned'] else ""))
     return 0
 
 

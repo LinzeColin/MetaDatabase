@@ -285,3 +285,24 @@ def clean_display_title(title: str | None) -> str:
         if half >= 3 and rest[:half] == rest[half:]:
             return rest[:half].strip()
     return text
+
+def clean_display_author(author: str | None) -> str:
+    r"""作者字段里装着互动数的，显示时清掉。（2026-08-10）
+
+    Owner 打开 Obsidian，一条抖音的 frontmatter 是这样：
+
+        author: "26.6万"
+
+    那是**点赞数**，不是作者。生产实测：**抖音 86 条里 31 条（36%）如此**；
+    B 站 0 条。抓取那条路把页面上的一个数字当成了作者名。
+
+    只清「整个字段就是一个数」这一档——真作者名（思维实验室 / 小清新 / 雪瑜）
+    一个不碰。另有 2 条装的是页面文字（B 站一条写着「收藏」、抖音一条「我的」），
+    **不动**：和真人名（比如「收藏家」）没法机械区分，猜就会误伤。
+
+    和标题那条一样：**不动存下来的数据**，只在显示时修。
+    """
+    text = str(author or "").strip()
+    if text and _DOUYIN_COUNT_PREFIX.match(text):
+        return ""
+    return text

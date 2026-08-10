@@ -101,3 +101,25 @@ def test_a_title_that_is_only_a_count_becomes_empty(raw: str) -> None:
 def test_a_title_that_starts_with_a_count_but_has_text_is_kept() -> None:
     """**只有数字**才算没标题；数字后面还有字的不许当成空。"""
     assert clean_display_title("2.2万厂二代卖掉父亲的公司") == "2.2万厂二代卖掉父亲的公司"
+
+
+@pytest.mark.parametrize("raw", ["26.6万", "1029", "2.0万", " 646 "])
+def test_a_like_count_is_not_an_author(raw: str) -> None:
+    """**作者字段里装着点赞数。**
+
+    Owner 那条抖音的 frontmatter 写着 `author: "26.6万"`——那是点赞数。
+    生产实测：抖音 86 条里 **31 条（36%）** 如此，B 站 0 条。
+    """
+    from social_archive.utils import clean_display_author
+    assert clean_display_author(raw) == ""
+
+
+@pytest.mark.parametrize("raw", ["思维实验室", "小清新", "雪瑜", "收藏", "我的"])
+def test_a_real_looking_name_is_kept(raw: str) -> None:
+    """真作者名一个不碰。
+
+    「收藏」「我的」这两条其实也是页面文字、不是作者，但**不动**：
+    和真人名（比如「收藏家」）没法机械区分，猜就会误伤。
+    """
+    from social_archive.utils import clean_display_author
+    assert clean_display_author(raw) == raw
