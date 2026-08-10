@@ -683,6 +683,8 @@ class AccountSyncCoordinator:
         completeness: str,
         failure_code: str | None,
         errors: list[dict[str, Any]],
+        discovered_delta: int = 0,
+        imported_delta: int = 0,
     ) -> tuple[str, int]:
         """Close one relation only after an explicit relation-final marker.
 
@@ -768,6 +770,8 @@ class AccountSyncCoordinator:
             collection_key="__relation__",
             status=scope_status,
             completeness=effective_completeness,
+            discovered_delta=discovered_delta,
+            imported_delta=imported_delta,
             failed_delta=len(errors),
         )
         self.store.upsert_sync_checkpoint(
@@ -997,6 +1001,19 @@ class AccountSyncCoordinator:
             )
             next_status = "scanning"
         else:
+            # **关系批次也要记数。**（2026-08-10）
+            #
+            # 之前只有 `scope_type == "collection"` 那一支加 discovered/imported，
+            # 而**抖音/小红书/快手没有收藏夹分组，扩展送的就是 relation 批次**——
+            # 于是那条路上计数一次都不加。真制品上实测：库里进了 1 条，
+            # 而 run 报 `discovered 0 / imported 0 / duplicate 0 / failed 0`，
+            # 他看到的是「同步完成，已导入 0 条」。**产品对他自己的数据说了假话。**
+            self.store.update_sync_run(
+                sync_run_id,
+                discovered_delta=len(batch.items),
+                imported_delta=len(responses),
+                failed_delta=len(errors),
+            )
             next_status, closed_candidates = self._finalize_relation_scope(
                 sync_run_id=sync_run_id,
                 run=run,
@@ -1005,6 +1022,8 @@ class AccountSyncCoordinator:
                 completeness=batch.completeness,
                 failure_code=batch.failure_code,
                 errors=errors,
+                discovered_delta=len(batch.items),
+                imported_delta=len(responses),
             )
 
         return {

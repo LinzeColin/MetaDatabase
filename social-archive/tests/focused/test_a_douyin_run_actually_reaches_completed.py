@@ -102,3 +102,29 @@ def test_the_old_scope_would_never_have_finished(settings, store, service, monke
     run = store.get_sync_run(started["sync_run_id"])
     assert run["status"] != "completed", (
         "修复前的范围竟然也能收敛？那说明上面那条判据钉错了东西")
+
+
+def test_the_counts_it_shows_him_match_what_really_landed(settings, store, service) -> None:
+    """**「已导入 0 条」而库里多了一条，就是产品对他的数据说假话。**（2026-08-10）
+
+    真制品上实测出来的：走真 HTTP 送一批收藏的终批，
+    batch 回执写着 `accepted: 1`、库里 `total = 1`，而这次 run 报
+
+        discovered_count 0 / imported_count 0 / duplicate_count 0 / failed_count 0
+
+    根因：计数只在 `scope_type == "collection"` 那一支加，
+    而**抖音/小红书/快手没有收藏夹分组，扩展送的就是 relation 批次**——
+    那条路上一次都不加。他连的两个平台里，抖音正好走这条。
+    """
+    coordinator = AccountSyncCoordinator(settings, store, service, registry=None)  # type: ignore[arg-type]
+    started = coordinator.start_sync(
+        _account(store),
+        AccountSyncRequest(mode="first_full", trigger_type="first_connect"))
+    coordinator.ingest_batch(started["sync_run_id"], _favourite_terminal_batch())
+    run = store.get_sync_run(started["sync_run_id"])
+    landed = store.list_library_table(platform="douyin")["total"]
+    assert landed == 1, f"这一批根本没进库（{landed} 条），下面的断言就没意义"
+    assert run["imported_count"] == landed, (
+        f"界面会告诉他「已导入 {run['imported_count']} 条」，而库里实际进了 {landed} 条")
+    assert run["discovered_count"] == 1, (
+        f"发现数是 {run['discovered_count']}，而这一批送来了 1 条")
