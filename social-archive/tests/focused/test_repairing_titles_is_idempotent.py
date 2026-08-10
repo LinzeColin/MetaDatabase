@@ -78,6 +78,48 @@ def test_the_pull_script_repairs_before_merging(tmp_path) -> None:
         "同步脚本没有在合并进库之前修标题——"
         "服务器上那批是修复之前生成的，拉下来还是脏的，"
         "而他库里已经有修好的那份：两边一撞就是重复文件")
+    # **真正算数的是合并之后那一次。**（2026-08-10）
+    # 上一版断言「修必须排在合并之前」——那个模型是错的：只修下载的那份，
+    # 库里还留着上一轮的旧文件名，rsync 只加不删，两份并存。
+    # 修库才自愈。所以这里要的是：合并之后**还有**一次修。
     merge_at = shell.index("rsync -a")
-    repair_at = shell.index("repair_markdown_titles.py")
-    assert repair_at < merge_at, "修标题排在了合并之后——那就来不及了"
+    assert "repair_markdown_titles.py" in shell[merge_at:], (
+        "合并进库之后没有再修一次——库里上一轮留下的旧文件名不会被清掉，"
+        "同一条内容会留两份（他库里因此从 193 涨到 241、又从 198 涨到 246）")
+
+
+def test_the_old_dirty_copy_is_dropped_when_the_clean_one_exists(tmp_path) -> None:
+    """**同一条内容不许留两份。**（2026-08-10 我为此弄乱他的库两次）
+
+    第一次：手工修好标题后又跑了一次同步，服务器上的旧文件名被 rsync 带回来
+    ——他库里 193 变 241。
+    第二次：我"修好"之后只在下载的那份上处理，库里旧名字还在，198 变 246，
+    **而且稳定在错的状态**——那比一次性弄乱更坏，因为看起来「跑完了」。
+
+    根因是我一直在处理**搬运过程**，而正确的做法是处理**库本身**：
+    改完标题发现正确命名的那份已经在了，这一份就是重复的，删掉。
+    """
+    folder = tmp_path / "douyin"
+    _write(folder, "找卖萌办校园卡不后悔校园卡-ac1720b2.md", "找卖萌办校园卡不后悔#校园卡")
+    _write(folder, "1029找卖萌办校园卡不后悔校园卡找卖萌办校园卡不后悔校园卡-ac1720b2.md",
+           "1029找卖萌办校园卡不后悔#校园卡找卖萌办校园卡不后悔#校园卡")
+    assert len(list(folder.glob("*.md"))) == 2
+    _run(tmp_path)
+    left = list(folder.glob("*.md"))
+    assert len(left) == 1, [p.name for p in left]
+    assert left[0].name == "找卖萌办校园卡不后悔校园卡-ac1720b2.md", left[0].name
+
+
+def test_it_converges_and_stays_there(tmp_path) -> None:
+    """**跑几次都一样。** 他那次「稳定在错的状态」就是收敛到了错的地方，
+    所以光验「跑两次不变」不够——还要验它收敛到**对**的那个数。"""
+    folder = tmp_path / "douyin"
+    _write(folder, "真正的一次性她来了-aaaa1111.md", "真正的一次性她来了")
+    _write(folder, "2.0万真正的一次性她来了真正的一次性她来了-aaaa1111.md",
+           "2.0万真正的一次性她来了真正的一次性她来了")
+    _write(folder, "一条正常的-bbbb2222.md", "一条正常的")
+    counts = []
+    for _ in range(3):
+        _run(tmp_path)
+        counts.append(len(list(folder.glob("*.md"))))
+    assert counts == [2, 2, 2], counts

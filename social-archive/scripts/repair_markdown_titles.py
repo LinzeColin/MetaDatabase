@@ -42,7 +42,7 @@ UNSAFE = re.compile(r"[\\/:*?\"<>|#\[\]^]")
 
 
 def repair(root: Path, apply: bool) -> dict[str, int]:
-    changed = renamed = 0
+    changed = renamed = dropped = 0
     for path in sorted(root.rglob("*.md")):
         text = path.read_text(encoding="utf-8")
         found = HEADING.search(text)
@@ -63,12 +63,23 @@ def repair(root: Path, apply: bool) -> dict[str, int]:
         if not slug:
             continue
         target = path.with_name(f"{slug}-{tail.group(1)}.md")
-        if target.name == path.name or target.exists():
+        if target.name == path.name:
+            continue
+        if target.exists():
+            # **正确命名的那一份已经在了 —— 这一份是重复的。**（2026-08-10）
+            # 不删的话：每次同步都把服务器上的旧名字带回来，改完标题却因为
+            # 「目标已存在」跳过重命名，两份并存且标题都干净，去重也分不出该删谁。
+            # Owner 库里因此从 193 涨到 246、52 个重复，**而且稳定在错的状态**——
+            # 那比一次性弄乱更坏，因为看起来「跑完了」。
+            dropped += 1
+            if apply:
+                path.unlink()
             continue
         renamed += 1
         if apply:
             path.rename(target)
-    return {"titles_repaired": changed, "files_renamed": renamed}
+    return {"titles_repaired": changed, "files_renamed": renamed,
+            "duplicates_dropped": dropped}
 
 
 def main() -> int:
@@ -83,7 +94,9 @@ def main() -> int:
     counts = repair(root, args.apply)
     verb = "已修" if args.apply else "将修"
     print(f"  {verb} {counts['titles_repaired']} 个标题，"
-          f"{counts['files_renamed']} 个文件名")
+          f"{counts['files_renamed']} 个文件名"
+          + (f"，清掉 {counts['duplicates_dropped']} 个重复文件"
+             if counts['duplicates_dropped'] else ""))
     return 0
 
 

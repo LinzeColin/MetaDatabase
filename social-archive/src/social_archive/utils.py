@@ -267,12 +267,21 @@ def clean_display_title(title: str | None) -> str:
 
     **不动存下来的数据**，只在显示时修：改坏正文这个仓栽过两次。
     """
-    text = str(title or "")
+    text = str(title or "").strip()
+    # **整个标题就是一个互动数——那说明文案根本没抓到。**（2026-08-10）
+    # 他库里有 4 条这样的：646 / 186 / 6.6万 / 4.4万。
+    # 返回空字符串，让调用方落到已有的那条兜底上（用链接尾巴认人：
+    # `douyin.com/video/7669771030182253002`）——比给他看一个 646 强。
+    if text and _DOUYIN_COUNT_PREFIX.match(text):
+        return ""
     for index in range(0, min(len(text), 8) + 1):
         prefix, rest = text[:index], text[index:]
         if prefix and not _DOUYIN_COUNT_PREFIX.match(prefix):
             continue
         half = len(rest) // 2
-        if half > 3 and rest[:half] == rest[half:]:
+        # **门槛是 3 不是 4。** 原来写 `half > 3`，于是 `503小黑丝小黑丝`
+        # 这种六字的重复漏掉了。全库量过：放到 >= 3 只多修这一条，不误伤别的
+        # （叠词都在 2 字以内：哈哈 / 加油加油 / 好好，half <= 2 碰不到）。
+        if half >= 3 and rest[:half] == rest[half:]:
             return rest[:half].strip()
     return text

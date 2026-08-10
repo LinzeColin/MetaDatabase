@@ -55,22 +55,7 @@ rm -f "$TGZ"
 python3 - "$STAGE" "$ONLY" <<'PYEOF'
 import re, sys, pathlib
 stage, only = pathlib.Path(sys.argv[1]), (sys.argv[2] if len(sys.argv) > 2 else "")
-DIGITS = re.compile(r"^\d+(?:\.\d+)?(?:万|w)?$")
-HEAD = re.compile(r"^# (.+)$", re.M)
-TAIL = re.compile(r"-([0-9a-f]{8})\.md$")
-UNSAFE = re.compile(r"[\\/:*?\"<>|#\[\]^]")
-
-def clean(text):
-    for i in range(0, min(len(text), 8) + 1):
-        prefix, rest = text[:i], text[i:]
-        if prefix and not DIGITS.match(prefix):
-            continue
-        half = len(rest) // 2
-        if half > 3 and rest[:half] == rest[half:]:
-            return rest[:half].strip()
-    return text
-
-kept = dropped = fixed = 0
+dropped = 0
 counts = {}
 for md in sorted(stage.rglob("*.md")):
     body = md.read_text(encoding="utf-8")
@@ -79,24 +64,9 @@ for md in sorted(stage.rglob("*.md")):
     for name in names:
         counts[name] = counts.get(name, 0) + 1
     if only and only not in names:
-        md.unlink(); dropped += 1; continue
-    kept += 1
-    found = HEAD.search(body)
-    if not found:
-        continue
-    new = clean(found.group(1).strip())
-    if new == found.group(1).strip():
-        continue
-    fixed += 1
-    md.write_text(body[:found.start(1)] + new + body[found.end(1):], encoding="utf-8")
-    tail = TAIL.search(md.name)
-    slug = UNSAFE.sub("", new).strip()[:80] if tail else ""
-    if slug:
-        target = md.with_name(f"{slug}-{tail.group(1)}.md")
-        if not target.exists():
-            md.rename(target)
-
-print(f"  修好 {fixed} 个标题" + (f"，按「{only}」筛掉 {dropped} 条" if only else ""))
+        md.unlink(); dropped += 1
+if only:
+    print(f"  按「{only}」筛掉 {dropped} 条")
 print("\n按关系类型（读 frontmatter 数出来的）：")
 for name in sorted(counts, key=lambda k: -counts[k]):
     print(f"  {name:<14} {counts[name]}")
@@ -106,6 +76,97 @@ PYEOF
 BEFORE="$(find "$TARGET" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"
 rsync -a "$STAGE"/ "$TARGET"/ || finish "写进 Obsidian 库时失败了。" 5
 rm -rf "$STAGE"
+
+# **修标题 + 去重，做在库上而不是下载的那份上。**（2026-08-10 第二次踩同一个坑）
+#
+# 第一版只修从服务器下来的那份，而库里还留着上一轮同步的旧文件名——
+# rsync 只加不删，于是新旧名字并存，他库里 193 变 198、5 个重复。
+# **同一个错我犯了两次。** 做在库上就自愈：不管文件从哪来、上一轮留了什么，
+# 跑完都收敛到同一个状态。
+python3 - "$TARGET" <<'PYEOF'
+import re, sys, pathlib, collections
+vault = pathlib.Path(sys.argv[1])
+DIGITS = re.compile(r"^\d+(?:\.\d+)?(?:万|w)?$")
+HEAD = re.compile(r"^# (.+)$", re.M)
+TAIL = re.compile(r"-([0-9a-f]{8})\.md$")
+UNSAFE = re.compile(r"[\\/:*?\"<>|#\[\]^]")
+
+def clean(text):
+    text = text.strip()
+    if text and DIGITS.match(text):
+        return ""
+    for i in range(0, min(len(text), 8) + 1):
+        prefix, rest = text[:i], text[i:]
+        if prefix and not DIGITS.match(prefix):
+            continue
+        half = len(rest) // 2
+        if half >= 3 and rest[:half] == rest[half:]:
+            return rest[:half].strip()
+    return text
+
+def url_label(body):
+    m = re.search(r'^url:\s*"?([^"\n]+)"?', body, re.M)
+    if not m:
+        return ""
+    m2 = re.match(r"https?://([^/]+)(/.*)?$", m.group(1).strip())
+    if not m2:
+        return ""
+    host = m2.group(1).replace("www.", "")
+    tail = "/".join([p for p in (m2.group(2) or "").split("/") if p][-2:])
+    return f"{host}/{tail}" if tail else host
+
+fixed = removed_dupes = 0
+for md in sorted(vault.rglob("*.md")):
+    body = md.read_text(encoding="utf-8")
+    found = HEAD.search(body)
+    if not found:
+        continue
+    old = found.group(1).strip()
+    new = clean(old) or url_label(body)
+    if not new or new == old:
+        continue
+    fixed += 1
+    md.write_text(body[:found.start(1)] + new + body[found.end(1):], encoding="utf-8")
+    tail = TAIL.search(md.name)
+    slug = UNSAFE.sub("", new).strip()[:80] if tail else ""
+    if slug:
+        target = md.with_name(f"{slug}-{tail.group(1)}.md")
+        if target == md:
+            pass
+        elif target.exists():
+            # **正确命名的那一份已经在了 —— 这一份是重复的，删掉。**
+            # 不删的话：服务器每次都把旧名字带回来，改完标题却因为
+            # 「目标已存在」跳过重命名，两份并存且标题都干净，去重也分不出该删谁。
+            # 他库里因此从 193 涨到 246、52 个重复，而且**稳定在错的状态**。
+            md.unlink(); removed_dupes += 1; continue
+        else:
+            md.rename(target)
+
+# 同一条内容留一个文件：按那 8 位哈希分组，保留标题已经干净的那份
+groups = collections.defaultdict(list)
+for md in vault.rglob("*.md"):
+    m = TAIL.search(md.name)
+    if m:
+        groups[m.group(1)].append(md)
+removed = 0
+for _, files in groups.items():
+    if len(files) < 2:
+        continue
+    scored = []
+    for f in files:
+        h = HEAD.search(f.read_text(encoding="utf-8"))
+        title = h.group(1).strip() if h else ""
+        scored.append(((clean(title) or "") == title, f))
+    good = [f for ok, f in scored if ok]
+    if not good:
+        continue
+    for ok, f in scored:
+        if not ok:
+            f.unlink(); removed += 1
+
+total_removed = removed + removed_dupes
+print(f"  库里修好 {fixed} 个标题" + (f"，清掉 {total_removed} 个重复文件" if total_removed else ""))
+PYEOF
 AFTER="$(find "$TARGET" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"
 
 echo

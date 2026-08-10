@@ -76,10 +76,16 @@ fi
 # **是我把他的库弄乱的。** 修法不是「记得别重跑」，是在这里先修。
 PY_BIN="$(dirname "$0")/../.venv/bin/python"
 [[ -x "$PY_BIN" ]] || PY_BIN="python3"
+# **修在库上，不是修在下载的那份上。**（2026-08-10 我为此弄乱他的库两次）
+# 只修 STAGE 的话，库里还留着上一轮的旧文件名，rsync 只加不删 → 两份并存。
+# 修库则自愈：不管文件从哪来、上一轮留了什么，跑完都收敛到同一个状态。
+# 这一行留在这里只是先把下载的那份也理一遍（省一次改名），真正算数的是下面那次。
 "$PY_BIN" "$(dirname "$0")/repair_markdown_titles.py" "$STAGE" --apply
 
 BEFORE="$(find "$TARGET" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"
 rsync -a "$STAGE"/ "$TARGET"/
+# **合并之后再修一次库**——这一次才是收敛的那一步。
+"$PY_BIN" "$(dirname "$0")/repair_markdown_titles.py" "$TARGET" --apply
 
 # **把成分如实报出来。** 他要的是收藏夹；不说清楚的话，
 # 一堆点赞混在里面而他不知道——那和「没做」差不多。

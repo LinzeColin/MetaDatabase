@@ -54,6 +54,9 @@ from social_archive.utils import clean_display_title  # noqa: E402
      "26岁 感谢命运 感谢爱 #狮子座"),
     # 没有前缀、只有重复
     ("真正的一次性她来了真正的一次性她来了", "真正的一次性她来了"),
+    # ★ 六个字的重复：门槛原来写 `half > 3`，把它漏了。
+    #   全库量过：放到 >= 3 只多修这一条，不误伤别的。
+    ("503小黑丝小黑丝", "小黑丝"),
 ])
 def test_a_doubled_title_is_repaired(raw: str, want: str) -> None:
     assert clean_display_title(raw) == want
@@ -82,3 +85,19 @@ def test_both_surfaces_use_the_same_function() -> None:
         text = (ROOT / name).read_text(encoding="utf-8")
         assert "clean_display_title" in text, (
             f"{name} 没有用那个共用函数——Markdown 与资料库会给出不同的标题")
+
+
+@pytest.mark.parametrize("raw", ["646", "186", "6.6万", "4.4万", " 2.0万 "])
+def test_a_title_that_is_only_a_count_becomes_empty(raw: str) -> None:
+    """**整个标题就是一个互动数 = 文案根本没抓到。**
+
+    他库里有 4 条这样的（646 / 186 / 6.6万 / 4.4万）。返回空字符串，
+    让调用方落到已有的兜底上——用链接尾巴认人
+    （`douyin.com/video/7669771030182253002`），比给他看一个 646 强。
+    """
+    assert clean_display_title(raw) == ""
+
+
+def test_a_title_that_starts_with_a_count_but_has_text_is_kept() -> None:
+    """**只有数字**才算没标题；数字后面还有字的不许当成空。"""
+    assert clean_display_title("2.2万厂二代卖掉父亲的公司") == "2.2万厂二代卖掉父亲的公司"
