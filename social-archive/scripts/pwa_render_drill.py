@@ -78,7 +78,7 @@ SYNC_HEADER_MUST_NAME = "B站"
 SYNC_HEADER_MUST_NOT_SAY = ("只有 Chrome 书签", "其余平台的自动读取还没接上")
 
 COVERAGE = "已送到这里 1 / 193 条。"
-GAP = "**还有 192 条从来没送到这里。**"
+GAP = "还有 192 条从来没送到这里。"
 PRIVACY = "开锁用的令牌只存在你的服务器上，插件拿不到。"
 
 FAKE: dict[str, object] = {
@@ -339,6 +339,7 @@ async def run(chrome: str) -> int:
             drawer_reading = None
             disk_reading = None
             classify_reading = None
+            centre_reading = None
             payload = result.get("result", {})
             if payload.get("exceptionDetails"):
                 measured = {"error": str(payload["exceptionDetails"])[:300]}
@@ -548,6 +549,38 @@ async def run(chrome: str) -> int:
                               if drawer_payload.get("exceptionDetails")
                               else json.loads(drawer_payload["result"]["value"]))
 
+            # **账号同步中心与导出目的地这两屏——此前只被「查存不存在」，从没打开读过。**（2026-08-10）
+            #
+            # `grep -rn syncModalBackdrop scripts/*_drill.py` 只有一条断言
+            # 「点完它还开着吗」（一个布尔）；`destinationsModal` 只查了
+            # body 元素在不在、innerHTML 多长。**里面的字一次都没被读过。**
+            #
+            # 而同步中心正在他的路上：「重新连接」那几行、失败原因（runSentence）
+            # 都在那里；导出那一屏有覆盖差额那句话（他的 obsidian 是 1/193）。
+            await rpc("Runtime.evaluate", {"expression": r"""(() => {
+                document.querySelectorAll(".modal-backdrop").forEach(n => n.classList.remove("open"));
+                document.getElementById("openSyncCentre")?.click();
+                document.getElementById("syncCentreBtn")?.click();
+                document.querySelector("[data-open-sync]")?.click();
+                return "clicked";
+            })()""", "returnByValue": True, "userGesture": True})
+            await asyncio.sleep(1.5)
+            got = await rpc("Runtime.evaluate", {"expression": r"""(() => {
+                const pick = id => {
+                  const n = document.getElementById(id);
+                  return n ? n.innerText.replace(/\s+/g, " ").trim().slice(0, 320) : null;
+                };
+                return JSON.stringify({
+                  syncRows: [...document.querySelectorAll("#syncTableBody tr")]
+                              .map(n => n.innerText.replace(/\s+/g, " ").trim()).slice(0, 4),
+                  destinationsBody: pick("destinationsModalBody"),
+                });
+            })()""", "returnByValue": True})
+            centre_payload = got.get("result", {})
+            centre_reading = ({"error": str(centre_payload["exceptionDetails"])[:200]}
+                              if centre_payload.get("exceptionDetails")
+                              else json.loads(centre_payload["result"]["value"]))
+
             # **批量分类那一屏——`grep -rn classificationModal scripts/*_drill.py` 是 0。**（2026-08-10）
             #
             # 从没有任何演练打开过它，而 Owner 库里 190 条内容**全是「未分类」**
@@ -756,6 +789,21 @@ async def run(chrome: str) -> int:
                 f"顶部没用服务端算好的那句话：{strip!r}——"
                 "本地词典少了他真撞到过的三个码，绕过 runSentence 就会漏")
 
+    # 账号同步中心 + 导出目的地这两屏（2026-08-10 第一次被打开读）
+    if not centre_reading or centre_reading.get("error"):
+        problems.append(f"**同步中心/导出那两屏没量到**：{centre_reading}")
+    else:
+        rows = centre_reading.get("syncRows") or []
+        body = centre_reading.get("destinationsBody") or ""
+        if not rows:
+            problems.append("同步中心一行都没画出来——那是「重新连接」和失败原因所在的地方")
+        if "**" in body or any("**" in row for row in rows):
+            problems.append(
+                f"**界面上出现了原样的 Markdown 星号**：{body[:120]!r}——"
+                "这两个字段是 escapeHtml 之后当纯文本画的，服务端不该在句子里写记号")
+        if body and "还有" not in body:
+            problems.append(f"导出那一屏没说清差额：{body[:120]!r}")
+
     # 批量分类那一屏（2026-08-10 第一次被任何演练打开）
     if not classify_reading or classify_reading.get("error"):
         problems.append(f"**批量分类那一屏没量到**：{classify_reading}")
@@ -929,6 +977,7 @@ async def run(chrome: str) -> int:
         "never_completed": never_completed_reading,
         "detail_drawer": drawer_reading,
         "bulk_classify": classify_reading,
+        "sync_centre_and_destinations": centre_reading,
         "while_syncing": running_reading,
         "after_sync_finished": finished_reading,
         "rendered_text": text[:400],

@@ -1113,7 +1113,7 @@ def backfill_destination(destination_id: str) -> dict[str, Any]:
     return {
         "destination_id": destination_id,
         "enqueued": len(missing),
-        "message_zh": (f"已排队 {len(missing)} 条。**排队不等于送到**——"
+        "message_zh": (f"已排队 {len(missing)} 条。排队不等于送到——"
                        "它们会一条条送过去，过一会儿回来看这里的「已送到」数字。")
         if missing else "这里已经是齐的，没有需要补的。",
     }

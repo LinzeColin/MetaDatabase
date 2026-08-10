@@ -263,7 +263,7 @@ def read_export_archive(payload: bytes, *, limit: int = 10000,
                     "items": []}
         return {"ok": True,
                 "files": [{"name": name, "found": len(found), "new": len(items),
-                           "note": f"{note}（**按单个文件读的**，不是压缩包）"}],
+                           "note": f"{note}（按单个文件读的，不是压缩包）"}],
                 "items": items, "counted": len(items), "file_count": 1}
 
     files: list[dict] = []
@@ -293,7 +293,7 @@ def read_export_archive(payload: bytes, *, limit: int = 10000,
                       "new": fresh, "note": note})
         if len(items) >= limit:
             files.append({"name": "(已达上限)", "found": 0, "new": 0,
-                          "note": f"到 {limit} 条上限就停了——**没读完**，剩下的没看"})
+                          "note": f"到 {limit} 条上限就停了——没读完，剩下的没看"})
             break
 
     if not items:
