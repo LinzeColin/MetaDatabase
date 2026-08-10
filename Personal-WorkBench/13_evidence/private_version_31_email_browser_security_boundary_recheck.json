@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_31_EMAIL_BROWSER_SECURITY_BOUNDARY_RECHECK",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "sites_version_number": 31,
+    "candidate_identity_inherited_from_prior_v31_gate_audit": true,
+    "access_policy_or_public_audience_changed_in_this_increment": false
+  },
+  "controlled_browser_attempt": {
+    "fresh_agent_test_tab_created": true,
+    "existing_user_tab_claimed": false,
+    "target_route": "/auth/sign-up",
+    "navigation_completed": false,
+    "signup_page_rendered": false,
+    "static_visible_dom_checked": false,
+    "navigation_security_boundary_observed": true,
+    "navigation_failure_cause_determined": false,
+    "retry_or_browser_switch_used_to_bypass_boundary": false,
+    "bypass_token_generated_or_used": false,
+    "account_or_email_entered": false,
+    "credential_entered": false,
+    "raw_navigation_error_recorded": false
+  },
+  "scope_and_cleanup": {
+    "gmail_connector_used": false,
+    "mailbox_content_or_identity_recorded": false,
+    "mailbox_search_or_read_in_this_increment": false,
+    "browser_cookie_or_storage_inspected": false,
+    "existing_user_tab_or_session_inspected": false,
+    "temporary_test_tab_finalized": true,
+    "temporary_application_account_created": false,
+    "runtime_values_read_or_changed": false,
+    "d1_or_r2_resource_configuration_changed": false,
+    "access_policy_or_public_audience_changed": false,
+    "real_user_business_data_read_or_written": false,
+    "github_uploaded": false
+  },
+  "result": {
+    "current_v31_email_registration_verification_reset_signin_proven": false,
+    "repeated_navigation_boundary_observed": true,
+    "interpretation": "A separate fresh isolated browser test tab again encountered a navigation security boundary before the Version 31 email sign-up page rendered. No failure cause is attributed because raw navigation material was not retained. The result cannot establish an email authentication pass or failure and does not replace the frozen current-version browser replay."
+  },
+  "local_validation": {
+    "lint": "PASS",
+    "release_evidence": "PASS_49_OF_49",
+    "release_verifier": "PASS_BUILD_LAST_MILE_READINESS",
+    "diff_check": "PASS"
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
