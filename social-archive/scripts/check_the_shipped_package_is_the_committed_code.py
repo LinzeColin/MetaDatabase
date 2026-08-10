@@ -110,6 +110,30 @@ def _prefix() -> str:
     return (f"{inside}/" if inside != "." else "") + "apps/browser-extension/"
 
 
+
+def _which_origin_am_i_talking_to() -> list[str]:
+    """红了之后加问一句：我打到的这台，和部署上去的是同一台吗？
+
+    用 `/health` 里的 `disk.free_bytes` 当指纹——两台机器的剩余空间不会恰好相同。
+    读不到就说读不到，**不要因为读不到而暗示「那就是同一台」**。
+    """
+    base = URL.split("/downloads/")[0]
+    try:
+        with urllib.request.urlopen(
+                urllib.request.Request(base + "/health", headers=BROWSER_UA), timeout=30) as response:
+            health = json.loads(response.read())
+    except Exception as error:                                    # noqa: BLE001
+        return [f"（顺带：读不到 {base}/health，判不了是不是同一个源：{error}）"]
+    disk = health.get("disk") or {}
+    free = disk.get("free_bytes")
+    return [
+        "**先分清是哪一种失败**：我这台机器打到的公开域名回的是 "
+        f"version={health.get('version')}"
+        + (f"、数据盘可用 {free / 2**30:.2f}G" if isinstance(free, (int, float)) else "")
+        + "。把这两个数和你刚部署的那台核一下——"
+        "**同一个域名挂两个源**时，部署会成功、验收会绿，而他打开的还是旧的那台。"
+    ]
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="生产下发的包 vs HEAD（只读）")
     parser.add_argument("--brief", action="store_true")
@@ -133,6 +157,18 @@ def main() -> int:
         package = {(n.split("/", 1)[1] if strip else n): archive.read(n) for n in names}
 
     problems, measured = compare(package, _head_reader(_prefix()))
+    if problems:
+        # **失败时先分清是哪一种失败。**（2026-08-10）
+        #
+        # 第一次红的时候，这条判据说的是「生产上摆着一份没有对应提交的代码」，
+        # 而真因完全不同：**同一个域名有两个源**。
+        #   从这台机器打  → 0.0.0.25，数据盘可用 7.60G
+        #   从生产主机打  → 0.0.0.27，数据盘可用 1.13G   ← 才是 linze-ovh
+        # 也就是说部署上去的东西根本到不了他（他的浏览器就在这台机器上）。
+        #
+        # 说错了原因比不说更费人：我照着「代码没提交」查了半天，
+        # 而该看的是「我打到的到底是不是我部署的那台」。
+        problems.extend(_which_origin_am_i_talking_to())
     report = {
         "status": "PASS" if not problems else "FAIL",
         "downloaded_from": URL,
