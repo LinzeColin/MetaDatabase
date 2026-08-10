@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_31_ACCOUNT_SCOPE_REFRESH_DEPLOYED",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "deployed_product_source_commit": "d95d2394734b3a1af6236443528e08eca2d98655",
+    "functional_code_commit": "d43f953bbc9ed5315272249ef8ddcd85aee1c93f",
+    "local_root_tree": "c1bb5cf0eb40c206d918cea44c275ac02c79922d",
+    "local_project_tree": "b2f3548b8884be9fa5124b951eb6b0e0c41fa549",
+    "previous_sites_source_commit": "b736fcf5c90a0fcbcf80ad5cb3aecd909a32d895",
+    "sites_source_commit": "42d342ac40829d901f123ac2019c7301ae239878",
+    "sites_version_number": 31,
+    "source_projection_tree_matches_local_project_tree": true,
+    "source_push_mode": "NON_FORCE_FAST_FORWARD",
+    "deployment_archive_sha256": "619d59c751595d923d028536388a78f982e9911ef441da7ea032bc7e71141ec9",
+    "provider_archive_recorded": true
+  },
+  "local_validation": {
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "local_record_cache_contract": "PASS_3_OF_3",
+    "workbench_persistence_ui": "PASS_11_OF_11",
+    "privacy_contract": "PASS_3_OF_3",
+    "tenant_contract": "PASS_2_OF_2",
+    "resilience": "PASS_LOCAL_RETRY_RESILIENCE",
+    "module_matrix": "PASS_1_OF_1",
+    "e2e_smoke": "PASS_4_OF_4",
+    "visual": "PASS_5_ROUTES_3_ROUNDS",
+    "build": "PASS",
+    "release_verifier": "PASS_BUILD_LAST_MILE_READINESS",
+    "release_evidence_postdeployment": "PASS_41_OF_41",
+    "diff_check": "PASS"
+  },
+  "private_deployment": {
+    "deployment_status": "SUCCEEDED",
+    "environment_revision": 8,
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "public_audience_changed": false,
+    "saved_version_source_readback_matches_pushed_projection": true,
+    "post_success_open_requested": true
+  },
+  "change_boundary": {
+    "account_scope_rechecked_before_remote_read_create_delete_and_replay": true,
+    "scope_drift_discards_stale_remote_projection": true,
+    "focus_and_visible_refresh_rechecks_scope": true,
+    "authentication_logic_changed": false,
+    "server_tenant_derivation_changed": false,
+    "runtime_environment_changed": false,
+    "d1_or_r2_binding_changed": false,
+    "access_policy_changed": false,
+    "real_user_business_data_read_or_written": false,
+    "temporary_source_credentials_cleared_from_agent_runtime": true,
+    "temporary_deployment_archive_removed": true,
+    "github_uploaded": false
+  },
+  "not_proven_by_this_increment": [
+    "A successful current Version 31 email registration, verification, reset, and sign-in browser replay",
+    "A successful current Version 31 Google OAuth callback and session",
+    "Current Version 31 physical A/B tenant isolation and second-device history readback",
+    "Direct D1 or R2 physical mapping or record-object reconciliation",
+    "A current Version 31 rollback and restore rehearsal",
+    "Public product acceptance"
+  ],
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}

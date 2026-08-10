@@ -484,6 +484,44 @@ test("Version 30 generic outbox deployment retains privacy and current-version b
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 31 account-scope refresh deployment retains private and current-version boundaries", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_31_account_scope_refresh_deployment.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 31);
+  assert.equal(evidence.candidate.source_projection_tree_matches_local_project_tree, true);
+  assert.equal(evidence.candidate.source_push_mode, "NON_FORCE_FAST_FORWARD");
+  assert.equal(evidence.local_validation.local_record_cache_contract, "PASS_3_OF_3");
+  assert.equal(evidence.local_validation.workbench_persistence_ui, "PASS_11_OF_11");
+  assert.equal(evidence.local_validation.privacy_contract, "PASS_3_OF_3");
+  assert.equal(evidence.local_validation.tenant_contract, "PASS_2_OF_2");
+  assert.equal(evidence.local_validation.release_evidence_postdeployment, "PASS_41_OF_41");
+  assert.equal(evidence.private_deployment.deployment_status, "SUCCEEDED");
+  assert.equal(evidence.private_deployment.public_audience_changed, false);
+  assert.equal(evidence.private_deployment.saved_version_source_readback_matches_pushed_projection, true);
+  assert.equal(evidence.change_boundary.account_scope_rechecked_before_remote_read_create_delete_and_replay, true);
+  assert.equal(evidence.change_boundary.scope_drift_discards_stale_remote_projection, true);
+  assert.equal(evidence.change_boundary.focus_and_visible_refresh_rechecks_scope, true);
+  assert.equal(evidence.change_boundary.authentication_logic_changed, false);
+  assert.equal(evidence.change_boundary.server_tenant_derivation_changed, false);
+  assert.equal(evidence.change_boundary.runtime_environment_changed, false);
+  assert.equal(evidence.change_boundary.d1_or_r2_binding_changed, false);
+  assert.equal(evidence.change_boundary.access_policy_changed, false);
+  assert.equal(evidence.change_boundary.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.change_boundary.temporary_source_credentials_cleared_from_agent_runtime, true);
+  assert.equal(evidence.change_boundary.temporary_deployment_archive_removed, true);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 30 email browser boundary retains no mailbox, account, or navigation material", async () => {
   const evidence = JSON.parse(
     await readFile(

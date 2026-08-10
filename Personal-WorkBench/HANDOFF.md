@@ -6,6 +6,7 @@
 
 ## 当前状态
 
+- 2026-08-10（最新）：账户作用域刷新修补已保存并 private deploy 为 owner-only Sites Version #31；下方所有 V30 条目均为历史证据。读取、创建、删除及非敏感 Outbox 重放都会重新解析 opaque account scope；scope 变化会先清除旧账户的内存投影，再装载下一分区，前后发生 scope 漂移的远端响应不会被合并或重放。窗口重新获得焦点或页面重新可见时也会安全刷新。保存、部署、保存版本来源与控制面回读均一致，仍为 active/owner/custom、1 名允许用户、0 群组和 0 外部访客；未公开发布、未上传 GitHub、未读写真实业务数据，也未改认证、服务端 tenant 推导、D1/R2、runtime、访问策略或视觉树。typecheck、lint、workbench data（11/11）、privacy（3/3）、tenant（2/2）、resilience、regression（1/1、11/11、4/4）、build、visual（5 routes、3 rounds）与 release verifier 均通过。该 private deploy 不替代当前 V31 邮箱／Google E2E、A/B、第二设备、D1/R2 物理对账、回滚恢复或产品验收；事实见 13_evidence/private_version_31_account_scope_refresh_deployment.json 与更新后的 13_evidence/production.json。
 - 2026-08-10（最新）：通用工作台记录客户端的账户作用域 IndexedDB Outbox 已保存并 private deploy 为 owner-only Sites Version #30。非敏感记录在已知账户 scope 下遇到 401/403/5xx 或网络中断时，会保留本机历史并进入同账户幂等队列；成功读取云端或浏览器恢复 online 时按资源逐条重放，服务确认后才移除本机行与对应 queue item。guest 分区从不自动同步；敏感账单、体重、日记、经期在任何异常路径都不进入该队列。Outbox 精确 key 清理避免一个模块的回放覆盖另一个模块待发记录；页面视觉树、认证、服务端 tenant 推导、D1/R2 schema、runtime 与访问策略均未改。保存、部署、source readback 与控制面 readback 一致，仍为 active/owner/custom、1 名允许用户、0 群组和 0 外部访客，未公开发布、未上传 GitHub、未读写真实业务数据。预部署 `typecheck`、`lint`、workbench data（10/10）、privacy（3/3）、tenant（2/2）、resilience、regression（1/1、10/10、4/4）、release evidence（32/32）、build、UI structure（2/2）、canonical domain（3/3）、visual 与 release verifier 均通过；部署后 release evidence（33/33）再次通过。本次 private deploy 不替代当前 V30 浏览器 E2E、A/B、第二设备、D1/R2 物理对账或产品验收。事实见 `13_evidence/private_version_30_generic_outbox_deployment.json` 与更新后的 `13_evidence/production.json`。
 - 2026-08-10（最新，本地候选未部署）：已修复同一标签或跨标签会话变化后，资源客户端只保留初始账户 scope 而可能把旧账户 IndexedDB 行与新会话远端历史混合的风险。通用记录客户端现在在读取、创建、删除与 Outbox 重放前后重新解析 opaque account scope；scope 变化时先清空旧分区的内存投影、再装载新分区，本机待发记录始终保留在原账户分区而不会以新会话发送。窗口重新获得焦点或页面重新可见时也会触发安全刷新；服务端 tenant 推导、认证、敏感内容 opt-in、D1/R2 schema、视觉树和访问策略均未改。`typecheck`、`lint`、workbench data（11/11）、privacy（3/3）、tenant（2/2）、resilience、regression（1/1、11/11、4/4）、build 与 visual（5 routes、3 rounds）均通过。未保存或部署至 Sites、未读写真实用户数据、未改 runtime/D1/R2/access/public audience/GitHub；该本地候选仍不替代当前 V30 的真实 A/B／第二设备／认证生产回放。
 - 2026-08-10（最新）：在已复核的 V30 active/owner/custom 私有版本上，以全新 agent test tab 仅尝试 canonical `/auth/sign-up`。浏览器在任何页面渲染、账号/邮箱/密码输入、Cookie/存储或邮箱读取之前发生安全导航边界；临时页已 finalise，且未重试、切换浏览器、生成/使用 bypass token、改运行时、D1/R2、访问策略、公开 audience 或 GitHub。该结果不归因为产品、邮件服务、账号或策略失败，只说明 V30 当前真实邮箱 E2E 仍未证明；脱敏证据见 `13_evidence/private_version_30_email_browser_navigation_boundary.json`。
@@ -283,8 +284,8 @@
 
 ### 最新优先
 
-1. 在现有 owner-only private Version #30，待浏览器管理策略可用后，以可核验的受控测试账号分别完成一次邮箱注册/验证/找回/新密码登录与 Google callback/session；不得选择个人账户、绕过认证/隐私门或反复撞击限流。
-2. 在独立 run 绑定当前 V30 的 A/B 隔离写入、物理第二设备历史读回、D1/R2 对账与 V30→V29→V30 回滚恢复；公开发布、S5-T4/S6 和 GitHub 上传仍然禁止。
+1. 在现有 owner-only private Version #31，待浏览器管理策略可用后，以可核验的受控测试账号分别完成一次邮箱注册/验证/找回/新密码登录与 Google callback/session；不得选择个人账户、绕过认证/隐私门或反复撞击限流。
+2. 在独立 run 绑定当前 V31 的 A/B 隔离写入、物理第二设备历史读回、D1/R2 对账与 V31→V30→V31 回滚恢复；公开发布、S5-T4/S6 和 GitHub 上传仍然禁止。
 
 ### 历史记录（部分事项已完成；以上述最新优先项为准）
 
