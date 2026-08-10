@@ -257,6 +257,8 @@ READ_DOM = r"""
     _errors: (window.__drillErrors || []).slice(0, 4),
     // **先打开同步中心再读**：那段话是打开时现算的（paintSyncModalCopy）。
     // 不打开就读，读到的是 index.html 里那个占位句——而判据会以为它没渲染。
+    importButton: (document.getElementById("openImport") || {}).textContent
+                    ? document.getElementById("openImport").textContent.replace(/\s+/g, " ").trim() : "",
     syncHeader: (() => {
       try { document.getElementById("emptyConnectAccount")?.click(); } catch (_) {}
       return (document.getElementById("syncModalCopy")?.innerText
@@ -789,6 +791,25 @@ async def run(chrome: str) -> int:
                 f"顶部没用服务端算好的那句话：{strip!r}——"
                 "本地词典少了他真撞到过的三个码，绕过 runSentence 就会漏")
 
+    # 导入那颗按钮：名字不许比它能做的事窄（2026-08-10）
+    #
+    # 弹窗里有**两个**来源：Social Archiver / Markdown 包，以及
+    # 「平台官方的『下载我的数据』包」（v0.0.0.21 加的，是 X / Instagram 的主路径）。
+    # 而按钮原来只写了第一个——拿着 X 官方导出包的人认不出它，
+    # 那个能力等于被名字藏起来了。
+    #
+    # **说明书那边不动**：官方导出这条路只对通用形状（JSON/HTML/CSV/YAML）
+    # 验过，从没对着真的 Instagram / X 包验过，不该在说明书里向他承诺。
+    label = str(measured.get("importButton") or "")
+    # **取不到就硬失败，不许静默跳过。** 第一版写的是 `if label and …`，
+    # 读不到那颗按钮时它一声不吭地过去了——空默认值把「不知道」吞成「没问题」。
+    if not label:
+        problems.append("**没读到导入那颗按钮**（#openImport）——这不是通过，是没量到")
+    elif "官方" not in label:
+        problems.append(
+            f"导入那颗按钮只写了一个来源：{label!r}——"
+            "弹窗里支持两个，另一个是平台官方导出包（X / Instagram 的主路径）")
+
     # 账号同步中心 + 导出目的地这两屏（2026-08-10 第一次被打开读）
     if not centre_reading or centre_reading.get("error"):
         problems.append(f"**同步中心/导出那两屏没量到**：{centre_reading}")
@@ -983,6 +1004,7 @@ async def run(chrome: str) -> int:
         "rendered_text": text[:400],
         # 同步中心那句限定语，**照原样印出来**：它是这次要亲眼看见的东西之一。
         "sync_centre_header": str(measured.get("syncHeader") or "").replace("\n", " ")[:200],
+        "import_button": measured.get("importButton"),
         "topic_options": measured.get("topicOptions"),
         "relation_options": measured.get("relationOptions"),
         "service_badge": measured.get("serviceBadge"),
