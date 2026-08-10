@@ -555,6 +555,29 @@ test("Version 29 rollback and restore rehearsal retains no deployment or user ma
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 29 post-restore error check retains no worker log material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_29_post_restore_error_log_check.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 29);
+  assert.equal(evidence.read_only_query.errors_only, true);
+  assert.equal(evidence.read_only_query.since_minutes, 10);
+  assert.equal(evidence.read_only_query.worker_error_event_count, 0);
+  assert.equal(evidence.read_only_query.raw_log_messages_recorded, false);
+  assert.equal(evidence.result.post_restore_narrow_error_only_window_has_visible_p0, false);
+  assert.equal(evidence.result.current_v29_production_p0_absence_fully_proven, false);
+  assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 29 storage-mapping boundary retains no physical resource or provider material", async () => {
   const evidence = JSON.parse(
     await readFile(

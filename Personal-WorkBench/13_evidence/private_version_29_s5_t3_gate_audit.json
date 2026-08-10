@@ -54,8 +54,9 @@
       "conclusion": "No physical second-device authenticated history readback exists for V29."
     },
     "production_p0_observation": {
-      "status": "NOT_PROVEN",
-      "conclusion": "Current V29 production E2E coverage is incomplete, so the no-P0 threshold is not attestable."
+      "status": "PARTIAL",
+      "post_restore_error_only_window": "PASS_10_MINUTES_0_EVENTS",
+      "conclusion": "The narrow post-restore error-only window contains no visible errors, but current V29 production E2E coverage remains incomplete and the full no-P0 threshold is not attestable."
     }
   },
   "result": {
