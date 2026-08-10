@@ -1,5 +1,5 @@
 {
-  "file_count": 1109,
+  "file_count": 1112,
   "files": [
     {
       "bytes": 25,
@@ -17,9 +17,9 @@
       "sha256": "a1b6d13afea6f383061d2d3405efe2f2d8f4867fbb08a5edf0e53415c16a239a"
     },
     {
-      "bytes": 138314,
+      "bytes": 140286,
       "path": "HANDOFF.md",
-      "sha256": "17b8e5cb9e6d4c8f451c8c03f31dddf7e19e1752c899cb128e78304b7a829acc"
+      "sha256": "0b6415d910312a8f59ed6e7adfc02179666082edf5fe5ab3645a07023db42fcd"
     },
     {
       "bytes": 643,
@@ -4702,6 +4702,16 @@
       "sha256": "0e858e7b69d18f13efa33e15a139a72443bd4f10ab75f931fca0e4382af45f4d"
     },
     {
+      "bytes": 17328,
+      "path": "runtime/static_calibration_residual.py",
+      "sha256": "cce1cb46f8a3dcfb155b19759e70f8b168fb552767efeaf99b4c60386058b613"
+    },
+    {
+      "bytes": 2393,
+      "path": "runtime/static_calibration_residual_contract.json",
+      "sha256": "7668dc29ba32f32e40f1cd4aee60e4a7acbf2f4396e1e11bbbcf4b5dcd66b662"
+    },
+    {
       "bytes": 64,
       "path": "runtime/systemd/10-host-capacity-gate.conf",
       "sha256": "bbb89523453251b389e044b4043802237860f2300941e47e16fcc07b27bed83a"
@@ -4735,6 +4745,11 @@
       "bytes": 6348,
       "path": "runtime_tests/test_shadow_runtime_attestation.py",
       "sha256": "d5343a751671f5b0fc81d78974651d2350dd37e3dc3d87c0b2155f644713aebf"
+    },
+    {
+      "bytes": 5994,
+      "path": "runtime_tests/test_static_calibration_residual.py",
+      "sha256": "0659d82c20aabd0d095ec2f0dd8917dd9c73d92372b5ece3e28efdf0d730c59f"
     },
     {
       "bytes": 1852,
