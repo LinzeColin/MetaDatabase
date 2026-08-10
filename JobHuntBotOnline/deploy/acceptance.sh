@@ -19,6 +19,15 @@ for name in [
     path = Path("evidence") / name
     if path.is_file():
         path.unlink()
+
+# The root result is the production-completion authority.  Remove only this
+# exact regular file before a new run so a failed run cannot leave an old PASS
+# beside fresh partial evidence.
+result = Path("ACCEPTANCE_RESULT.json")
+if result.exists():
+    if not result.is_file() or result.is_symlink():
+        raise SystemExit("ACCEPTANCE_RESULT.json must be a regular file")
+    result.unlink()
 PY
 [[ "${DISCOVERY_REFRESH_HOURS:-}" == "6" ]] || { echo "DISCOVERY_REFRESH_HOURS must be 6" >&2; exit 1; }
 [[ "${BASE_URL:-}" == https://* ]] || { echo "BASE_URL must be real HTTPS" >&2; exit 1; }

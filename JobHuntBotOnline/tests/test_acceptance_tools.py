@@ -170,6 +170,35 @@ def test_ops_probe_does_not_claim_production_when_optional_evidence_is_blocked(t
     assert result["production_claimed"] is False
 
 
+def test_ops_probe_requires_pass_verdict_inside_configured_evidence(tmp_path):
+    output = tmp_path / "target-ops.json"
+    status = tmp_path / "status.json"
+    private_db = tmp_path / "private-db.json"
+    r2 = tmp_path / "r2.json"
+    status.write_text('{"verdict":"PASS"}\n', encoding="utf-8")
+    private_db.write_text('{"verdict":"PASS"}\n', encoding="utf-8")
+    r2.write_text('{"verdict":"NOT_CONFIGURED","reason":"no authorized project bucket"}\n', encoding="utf-8")
+    env = {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "STATUS_REGISTRATION_EVIDENCE": str(status),
+        "PRIVATE_DATABASE_SYNC_EVIDENCE": str(private_db),
+        "R2_SYNC_EVIDENCE": str(r2),
+    }
+    completed = subprocess.run(
+        [sys.executable, str(ROOT / "tools/ops_probe.py"), "--output", str(output)],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    assert completed.returncode == 0, completed.stderr
+    result = json.loads(output.read_text(encoding="utf-8"))
+    r2_check = next(check for check in result["checks"] if check["name"] == "R2_SYNC_EVIDENCE")
+    assert r2_check["status"] == "BLOCKED"
+    assert r2_check["evidence_verdict"] == "NOT_CONFIGURED"
+    assert result["production_claimed"] is False
+
+
 def test_production_state_probe_checks_exact_six_hours(tmp_path):
     db_path = tmp_path / "state.db"
     engine = make_engine(f"sqlite+pysqlite:///{db_path}")

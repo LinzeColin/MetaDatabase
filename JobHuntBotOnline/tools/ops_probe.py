@@ -13,8 +13,32 @@ def evidence_state(name: str) -> dict:
     if not value:
         return {"name": name, "status": "BLOCKED", "reason": "evidence path not configured"}
     path = Path(value)
-    if not path.is_absolute(): path = ROOT / path
-    return {"name": name, "status": "PASS" if path.is_file() and path.stat().st_size > 0 else "FAIL", "path": str(path)}
+    if not path.is_absolute():
+        path = ROOT / path
+    if not path.is_file() or path.stat().st_size == 0:
+        return {"name": name, "status": "FAIL", "path": str(path), "reason": "evidence file is missing or empty"}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {"name": name, "status": "FAIL", "path": str(path), "reason": "evidence is not valid JSON"}
+    verdict = payload.get("verdict")
+    if verdict == "PASS":
+        return {"name": name, "status": "PASS", "path": str(path), "evidence_verdict": verdict}
+    if verdict in {"BLOCKED", "NOT_CONFIGURED", "NOT_APPLICABLE", "EMAIL_ONLY_BLOCKED"}:
+        return {
+            "name": name,
+            "status": "BLOCKED",
+            "path": str(path),
+            "evidence_verdict": verdict,
+            "reason": payload.get("reason", "integration evidence is not a PASS"),
+        }
+    return {
+        "name": name,
+        "status": "FAIL",
+        "path": str(path),
+        "evidence_verdict": verdict,
+        "reason": "evidence has no recognized PASS verdict",
+    }
 
 def main() -> int:
     parser=argparse.ArgumentParser(); parser.add_argument('--output',default='evidence/target-ops.json'); args=parser.parse_args()
