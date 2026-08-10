@@ -183,6 +183,19 @@ def scan_text(name: str, text: str) -> list[dict]:
         # 指向文件的配置不是密钥本身：`..._TOKEN_FILE=/run/secrets/x` 要放过。
         if "/" in value or value.endswith("_FILE"):
             continue
+        # **函数调用不是字面量。**（2026-08-11）
+        #
+        #     TOKEN = secrets.token_urlsafe(24)
+        #
+        # `secrets.token_urlsafe` 正好 21 个字符、只由字母点下划线组成——
+        # 形状上和一条令牌一模一样，于是被判成明文凭据。而它恰恰是
+        # **「不要把令牌写死在仓里」的正确写法**，判据把它打红等于逼人绕开自己。
+        #
+        # 只放过这一种，放得尽量窄：值**没有引号**，且紧跟着一个左括号。
+        # 真泄漏出去的令牌不会后面跟着 `(`。
+        quoted = text[match.start(1) - 1: match.start(1)] in ('"', "'")
+        if not quoted and text[match.end(1): match.end(1) + 1] == "(":
+            continue
         hits.append({"file": name, "kind": "secret_shaped_assignment",
                      "line_no": text[:match.start()].count("\n") + 1,
                      "value_len": len(value)})

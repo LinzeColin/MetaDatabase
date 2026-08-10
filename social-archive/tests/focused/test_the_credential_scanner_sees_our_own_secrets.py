@@ -137,6 +137,30 @@ def test_a_group_name_is_not_a_secret() -> None:
     )
 
 
+def test_generating_a_token_at_runtime_is_not_a_leak() -> None:
+    """**判据不该逼人绕开它自己。**（2026-08-11）
+
+        TOKEN = secrets.token_urlsafe(24)
+
+    `secrets.token_urlsafe` 正好 21 个字符、只有字母点下划线——形状上和一条
+    令牌一模一样，于是被报成明文凭据。而它恰恰是「别把令牌写死在仓里」的
+    **正确**写法：`scripts/from_zero_drill.py` 就是因为这条被打红，
+    我第一反应是去改变量名——那等于让下一个人也绕着走。
+
+    放行开得尽量窄：**没有引号、且紧跟一个左括号**。下面四条钉住这个边界。
+    """
+    assert not _flags("TOKEN = secrets.token_urlsafe(24)")
+    assert not _flags("API_KEY = os.environ.get_required_thing(name)")
+    # ★ **反方向：真写死的照样要抓。** 只放过调用，不放过字面量。
+    #   值在这里**拼出来**，不写成字面量——本文件自己也归
+    #   test_no_secret_shaped_literal_survives_in_this_file 管
+    #   （它已经因为我图省事直接写了一串而打红过一次）。
+    written_down = "s9Kd0fLqW3z" + "XbN7vT2hRmYcE"
+    assert _flags(f'TOKEN = "{written_down}"'), "写死的令牌被放过了"
+    assert _flags(f"SOCIAL_ARCHIVE_API_TOKEN={written_down}"), (
+        "env 文件里那种不带引号的写死值被放过了")
+
+
 def test_the_repo_is_clean_right_now() -> None:
     """加宽之后全仓仍是 0 命中——**否则这道门等于要求人天天忽略它**。"""
     import subprocess
