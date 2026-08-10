@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import os
 import shutil
 import subprocess
@@ -104,6 +105,23 @@ class _Api(BaseHTTPRequestHandler):
         if path == "/v1/accounts":
             return self._json(200, {"items": _state["accounts"],
                                     "supported_platforms": SUPPORT})
+        # **同步记录照他生产库里的形状给。**（2026-08-10）
+        #
+        # 原来这里一律回 `{"items": []}`，于是侧边栏的 `everRan = runs.length > 0`
+        # 永远是 false——**那一支从来没被走到过**，我给它写的自洽断言
+        # 用反例一试就露馅：把 `everRan` 改成恒 false，输出一个字都不变。
+        #
+        # 他生产库里 20 次同步：partial 16 / failed 3 / cancelled 1，
+        # **completed 是 0**。所以这里给一条 partial：有记录、但没有一次"完成"。
+        # 侧边栏该说的是「现在没有正在跑的同步」，不是「还没有同步过」。
+        if path == "/v1/sync-runs":
+            return self._json(200, {"items": [{
+                "id": "sync_partial", "source_account_id": "acct_bili",
+                "platform": "bilibili", "status": "partial",
+                "imported_count": 30, "discovered_count": 30,
+                "updated_at": "2026-08-10T02:30:00Z",
+                "message_zh": "", "action_zh": "", "outcome": "incomplete",
+            }]})
         return self._json(200, {"items": []})
 
 
@@ -238,10 +256,29 @@ async def run(chrome: str) -> int:
                                 "expression": 'document.getElementById("taskCenter")?.click()',
                                 "userGesture": True, "returnByValue": True, "timeout": 8000})
                         await asyncio.sleep(2.5)
-                        opened = [t.get("url") for t in json.loads(
+                        targets = json.loads(
                             urllib.request.urlopen(base + "/json", timeout=5).read())
-                            if "sidepanel.html" in (t.get("url") or "")]
-                        measured["同步进度按钮"] = {"sidepanel_targets": opened}
+                        panels = [t for t in targets if "sidepanel.html" in (t.get("url") or "")]
+                        opened = [t.get("url") for t in panels]
+                        # **开出来说了什么，和开没开一样重要。**（2026-08-10）
+                        #
+                        # 此前只确认「sidepanel.html 这个 target 出没出现」——
+                        # 而这一屏是他点插件图标里的「同步进度」看到的东西，
+                        # **里面的字一次都没被读过**。同一天在资料库那边，
+                        # 「一屏从没被渲染过」这条线索连出了四处缺陷。
+                        panel_text = ""
+                        if panels:
+                            async with websockets.connect(panels[0]["webSocketDebuggerUrl"],
+                                                          max_size=None) as pws:
+                                prpc = await _rpc_factory(pws)
+                                await prpc("Runtime.enable")
+                                got = await prpc("Runtime.evaluate", {
+                                    "expression": "document.body.innerText.replace(/\\s+/g,' ').trim().slice(0,300)",
+                                    "returnByValue": True, "timeout": 8000})
+                                panel_text = str(got.get("result", {})
+                                                 .get("result", {}).get("value") or "")
+                        measured["同步进度按钮"] = {"sidepanel_targets": opened,
+                                                   "panel_text": panel_text}
                     for target in json.loads(
                             urllib.request.urlopen(base + "/json", timeout=5).read()):
                         if target.get("id") == pages[0]["id"]:
@@ -311,6 +348,18 @@ async def run(chrome: str) -> int:
         panel = measured.get("同步进度按钮")
         if panel is None:
             problems.append("**没量到「同步进度」那颗按钮会怎样**——这不是通过，是没跑到")
+        elif panel.get("panel_text") is None or panel.get("panel_text") == "":
+            problems.append(
+                "**侧边栏开出来了，却读不到里面的字**——这不是通过，是没量到")
+        elif "还没有同步过" in (panel.get("panel_text") or ""):
+            # **自洽**：说「还没有同步过」的同时，三个计数必须都是 0。
+            # 这一屏 2026-08-06 栽过一次同形的：上面写着「1 已完成」，
+            # 下面还在教他去连接账号。当时修了文案，而**没有人读过这一屏**
+            # ——2026-08-10 才第一次把它的正文读回来。
+            problems.append(
+                "侧边栏说「还没有同步过」，而夹具里明明有一次同步记录（partial）："
+                f"{panel.get('panel_text')[:120]!r}——他生产库里 20 次同步、"
+                "completed 是 0，这一支正是他会走到的那一支")
         elif not panel.get("sidepanel_targets"):
             problems.append(
                 "**点「同步进度」没打开侧边栏**——`chrome.sidePanel.open()` 要用户手势，"
