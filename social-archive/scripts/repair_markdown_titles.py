@@ -41,10 +41,41 @@ HASH_TAIL = re.compile(r"-([0-9a-f]{8})\.md$")
 UNSAFE = re.compile(r"[\\/:*?\"<>|#\[\]^]")
 
 
+
+def _fit_filename(stem: str, tail: str) -> str:
+    """把文件名截到文件系统吃得下的长度——**按字节，不是按字符**。
+
+    2026-08-10 在生产的导出目录上真跑时崩了：
+
+        OSError: [Errno 36] File name too long:
+          '…/咕咕嘎嘎😜咕咕嘎嘎🤪…-af61d356.md'
+
+    原来写的是 `[:80]`（80 个**字符**），而 ext4/APFS 限的是 **255 字节**，
+    中文 3 字节、emoji 4 字节——80 个字符能到 320 字节。
+    他库里就有一个 268 字节的文件名，所以这不是理论问题。
+
+    截的时候不能把一个多字节字符切成两半（那会写出坏文件名），
+    所以按 UTF-8 编码逐步退。
+    """
+    limit = 240 - len(tail.encode("utf-8"))          # 留一点余量给 ext4 的 255
+    data = stem.encode("utf-8")
+    while len(data) > limit and stem:
+        stem = stem[:-1]
+        data = stem.encode("utf-8")
+    return stem
+
+
 def repair(root: Path, apply: bool) -> dict[str, int]:
     changed = renamed = dropped = authors_cleaned = 0
     for path in sorted(root.rglob("*.md")):
-        text = path.read_text(encoding="utf-8")
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError as error:                       # 名字太长、权限、坏链……
+            # **一个文件坏了不许打死整轮。**（2026-08-10）
+            # 生产上就是这样：一个 268 字节的文件名让整个修复崩在第一个文件上，
+            # 其余 192 条一条都没修到。
+            print(f"  跳过（{error.strerror}）：{path.name[:40]}…")
+            continue
         # **作者字段里装着点赞数的，一并清掉。**（2026-08-10）
         # 他那条抖音的 frontmatter 写着 `author: "26.6万"`——那是点赞数。
         # 生产实测：抖音 86 条里 31 条（36%）如此。
@@ -68,7 +99,7 @@ def repair(root: Path, apply: bool) -> dict[str, int]:
         tail = HASH_TAIL.search(path.name)
         if not tail:
             continue
-        slug = UNSAFE.sub("", new_title).strip()[:80]
+        slug = _fit_filename(UNSAFE.sub("", new_title).strip(), f"-{tail.group(1)}.md")
         if not slug:
             continue
         target = path.with_name(f"{slug}-{tail.group(1)}.md")

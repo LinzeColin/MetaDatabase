@@ -164,7 +164,16 @@ for md in sorted(vault.rglob("*.md")):
     fixed += 1
     md.write_text(body[:found.start(1)] + new + body[found.end(1):], encoding="utf-8")
     tail = TAIL.search(md.name)
-    slug = UNSAFE.sub("", new).strip()[:80] if tail else ""
+    # **按字节截，不是按字符。**（2026-08-10 在生产导出目录上真崩过）
+    #   OSError: [Errno 36] File name too long: '…咕咕嘎嘎😜咕咕嘎嘎🤪…-af61d356.md'
+    # ext4/APFS 限 255 字节，中文 3 字节、emoji 4 字节——80 个字符能到 320 字节。
+    # 他库里就有一个 268 字节的文件名，所以这不是理论问题。
+    slug = ""
+    if tail:
+        slug = UNSAFE.sub("", new).strip()
+        keep = 240 - len(f"-{tail.group(1)}.md".encode())
+        while len(slug.encode()) > keep and slug:
+            slug = slug[:-1]
     if slug:
         target = md.with_name(f"{slug}-{tail.group(1)}.md")
         if target == md:
