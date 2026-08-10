@@ -504,6 +504,26 @@ if [[ -n "$FREE_KB" && "$FREE_KB" -lt "$MIN_FREE_KB" ]]; then
   printf '    悬空镜像（含别的项目的，**不自动删**）：\n'
   DANGLING="$(ssh -o ConnectTimeout=20 "$HOST" 'sudo docker images -f "dangling=true" --format "      {{.ID}}  {{.Size}}  {{.CreatedSince}}"' || true)"
   printf '%s\n' "$DANGLING"
+  # **`df` 那个 RECLAIMABLE 会骗人。**（2026-08-10）
+  #
+  # 它把「没有容器在用」的镜像全算进去，**包括还带着 tag 的**；
+  # 而 `docker image prune -f` 只删**没有 tag** 的那些。
+  # 那天实测：df 报 RECLAIMABLE 4.314GB，真正悬空的只有 2 个共 148MB，
+  # 剩下 4.1G 全在一个带 tag 的镜像上（`jobhuntbot-online-acceptance:0.3.0` 3.97GB，
+  # 没有任何容器在用）。
+  #
+  # **我照着那个 4.3GB 连着三次向 Owner 推荐 `docker image prune -f`——它收不到那些。**
+  # 指错方向的建议比不给建议更费人：他照做、没效果、再回来问。
+  # 所以这里把「大而闲」的镜像点名列出来，并给出可以直接跑的那条命令。
+  printf '    没有容器在用、但还带着 tag 的大镜像（**prune -f 收不到它们**，要点名删）：\n'
+  ssh -o ConnectTimeout=25 "$HOST" 'sudo docker images --format "{{.Repository}}:{{.Tag}}|{{.ID}}|{{.Size}}" 2>/dev/null \
+     | sort -t"|" -k3 -rh | head -8 \
+     | while IFS="|" read -r name id size; do
+         users=$(sudo docker ps -a --filter "ancestor=$id" --format "{{.Names}}" 2>/dev/null | tr "\n" " ")
+         if [ -z "$users" ] && [ "${name#social-archive/}" = "$name" ]; then
+           printf "      %-46s %-8s  sudo docker rmi %s\n" "$name" "$size" "$name"
+         fi
+       done' 2>/dev/null || true
   # **建议要读那张表，不许猜。**
   #
   # 2026-08-07 实测：这段原来写着「一个都没有就多半是 Build Cache 占着，
