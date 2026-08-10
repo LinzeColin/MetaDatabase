@@ -421,6 +421,34 @@ test("Version 28 brand-identity deployment retains no source credential or user 
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 29 local-first deployment retains no source credential or user data", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_29_local_first_persistence_deployment.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 29);
+  assert.equal(evidence.candidate.source_projection_tree_matches_local_project_tree, true);
+  assert.equal(evidence.candidate.source_push_mode, "NON_FORCE_FAST_FORWARD");
+  assert.equal(evidence.local_validation.workbench_data_contract, "PASS_12_OF_12");
+  assert.equal(evidence.private_deployment.deployment_status, "SUCCEEDED");
+  assert.equal(evidence.private_deployment.public_audience_changed, false);
+  assert.equal(evidence.change_boundary.authentication_logic_changed, false);
+  assert.equal(evidence.change_boundary.tenant_or_persistence_logic_changed, true);
+  assert.equal(evidence.change_boundary.runtime_environment_changed, false);
+  assert.equal(evidence.change_boundary.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.change_boundary.temporary_deployment_archive_removed, true);
+  assert.equal(evidence.change_boundary.temporary_source_credentials_cleared_from_agent_runtime, true);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 28 email-password recovery replay retains no temporary credentials", async () => {
   const evidence = JSON.parse(
     await readFile(

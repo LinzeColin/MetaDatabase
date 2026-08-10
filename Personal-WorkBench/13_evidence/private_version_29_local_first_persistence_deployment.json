@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_29_LOCAL_FIRST_WORKBENCH_AND_TODO_DEPLOYED",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "deployed_product_source_commit": "996a75ce2e02e3275cdf34b9847ef7153f43cf4e",
+    "local_root_tree": "b9c19b0127f5036848cd24563127dd314a0fa0c4",
+    "local_project_tree": "884723bc308ebb9748c02f91cf45c43bac3fdd2d",
+    "previous_sites_source_commit": "43d9a697fd974e5a728470bf72b034b19b883187",
+    "sites_source_commit": "3a73f4a9b342ba3d6fe56f3a2539250e91980e67",
+    "sites_version_number": 29,
+    "source_projection_tree_matches_local_project_tree": true,
+    "source_push_mode": "NON_FORCE_FAST_FORWARD",
+    "deployment_archive_sha256": "d44072d25db586a64333a248caba711c94fbdc2ca6b444283dc7d4e7edf5fa7b",
+    "provider_archive_recorded": true
+  },
+  "local_validation": {
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "local_record_cache_contract": "PASS_3_OF_3",
+    "workbench_persistence_ui": "PASS_9_OF_9",
+    "workbench_data_contract": "PASS_12_OF_12",
+    "module_matrix": "PASS_1_OF_1",
+    "e2e_smoke": "PASS_4_OF_4",
+    "release_evidence": "PASS_23_OF_23",
+    "build": "PASS",
+    "diff_check": "PASS"
+  },
+  "private_deployment": {
+    "deployment_status": "SUCCEEDED",
+    "environment_revision": 8,
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "access_policy_revision": 1,
+    "public_audience_changed": false,
+    "post_success_open_requested": true
+  },
+  "change_boundary": {
+    "visible_interaction_and_local_history_logic_changed": true,
+    "authentication_logic_changed": false,
+    "tenant_or_persistence_logic_changed": true,
+    "tenant_or_persistence_change_scope": "Account-scoped device-local records and outbox only; server tenant derivation and cloud resource contracts are unchanged.",
+    "runtime_environment_changed": false,
+    "d1_or_r2_binding_changed": false,
+    "access_policy_changed": false,
+    "real_user_business_data_read_or_written": false,
+    "temporary_deployment_archive_removed": true,
+    "temporary_source_credentials_cleared_from_agent_runtime": true,
+    "github_uploaded": false
+  },
+  "not_proven_by_this_increment": [
+    "A successful current Version 29 Google OAuth callback and session",
+    "Current Version 29 email registration, verification, reset, and sign-in browser replay",
+    "Physical second-device history readback",
+    "Direct D1 or R2 physical mapping or record-object reconciliation",
+    "Public product acceptance"
+  ],
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
