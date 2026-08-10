@@ -132,6 +132,11 @@ def test_host_bundle_contract_and_candidate_unit_do_not_activate_runtime() -> No
     script = (RUNTIME / "provision_host_bundle.sh").read_text(encoding="utf-8")
 
     assert contract["capacity_gate"]["declared_target_status"] == "DECLARED_TARGET_NOT_ACCOUNT_VERIFIED"
+    assert contract["capacity_gate"]["core_activation_requires_verified_host_capacity_and_swap_boundary"] is True
+    assert contract["capacity_gate"]["shadow_observation_start_is_not_core_capacity_verification"] is True
+    assert contract["host_paths"]["config_directory_owner_group"] == "root:10001"
+    assert contract["host_paths"]["config_file_owner_group"] == "root:10001"
+    assert contract["host_paths"]["config_file_mode"] == "0640"
     assert "true value means the named effect is forbidden" in contract["forbidden_effects"]["boolean_semantics"]
     assert contract["inputs"]["canonical_service_definition"] == "infra/systemd/abd.service"
     assert contract["forbidden_effects"]["reload_or_start_systemd_service"] is True
@@ -139,3 +144,5 @@ def test_host_bundle_contract_and_candidate_unit_do_not_activate_runtime() -> No
     assert "/opt/abd/current" not in script
     assert "cloudflared" not in script
     assert "abd-runtime.service" not in script
+    assert "install -d -o root -g 10001 -m 0750 /etc/abd" in script
+    assert "install -m 0640 -o root -g 10001" in script

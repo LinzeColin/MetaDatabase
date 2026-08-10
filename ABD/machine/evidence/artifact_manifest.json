@@ -17,9 +17,9 @@
       "sha256": "a1b6d13afea6f383061d2d3405efe2f2d8f4867fbb08a5edf0e53415c16a239a"
     },
     {
-      "bytes": 125509,
+      "bytes": 126727,
       "path": "HANDOFF.md",
-      "sha256": "e0c60110c46094942759fbdf0f4097552e4785237345f8f05d234eb0c985feaf"
+      "sha256": "04af7e2b3657bf5b054a78cfe1c351913b9031b455cbf91836038dc4e424883c"
     },
     {
       "bytes": 643,
@@ -4637,9 +4637,9 @@
       "sha256": "749569f373742b5ee02aec7b3ce4307d14c9e2359651817e82755e42f17f3a0f"
     },
     {
-      "bytes": 2179,
+      "bytes": 2542,
       "path": "runtime/host_bundle_contract.json",
-      "sha256": "1ddc1833cbba09bb46dd8382996c530bc0658c0d573c03a559c39d7073d3d7d7"
+      "sha256": "a4757faa8357f43bbb3060505db5683acd77c2b62a4dd55dbd1a0c369d55c0f0"
     },
     {
       "bytes": 5643,
@@ -4652,9 +4652,9 @@
       "sha256": "5fadc7fe3e0d50bba3682c237f30c4066b29ab402e7cb9c6836087050c59224d"
     },
     {
-      "bytes": 1941,
+      "bytes": 1994,
       "path": "runtime/provision_host_bundle.sh",
-      "sha256": "06d9a4c03654de83c19851827816968caa0ba6e916ac3d7e472ac6c9cc9bf043"
+      "sha256": "5149a474db5b7feae39bcb17e77369ee4d5e6e0b93fc4abb8c104f5cb762d6f8"
     },
     {
       "bytes": 1506,
@@ -4672,9 +4672,9 @@
       "sha256": "49c18edc05071726ee9574a1d537fe3ed6e341784666e24e0712b3ba3e4a383f"
     },
     {
-      "bytes": 5506,
+      "bytes": 6074,
       "path": "runtime_tests/test_runtime_server.py",
-      "sha256": "1007ef0cc59aea3bff19306fb7feedb14b88730c34d0244fd53020e57234fb2d"
+      "sha256": "61e3616de5b46162001b9c74539096e2940619148bc0441f65cb4dc72249c5d0"
     },
     {
       "bytes": 1852,

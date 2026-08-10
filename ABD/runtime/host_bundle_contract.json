@@ -15,6 +15,9 @@
   },
   "host_paths": {
     "config": "/etc/abd",
+    "config_directory_owner_group": "root:10001",
+    "config_file_owner_group": "root:10001",
+    "config_file_mode": "0640",
     "state": "/var/lib/abd",
     "logs": "/var/log/abd",
     "secrets": "/etc/abd/secrets",
@@ -23,7 +26,8 @@
   "capacity_gate": {
     "actual_host_capacity_must_not_be_represented_as_verified_without_direct_evidence": true,
     "declared_target_status": "DECLARED_TARGET_NOT_ACCOUNT_VERIFIED",
-    "activation_requires_verified_host_capacity_and_swap_boundary": true
+    "core_activation_requires_verified_host_capacity_and_swap_boundary": true,
+    "shadow_observation_start_is_not_core_capacity_verification": true
   },
   "post_freeze_activation_guard": {
     "script": "runtime/host_capacity_gate.py",
@@ -47,5 +51,5 @@
     "order_submission_enabled": true,
     "incremental_cash_spent_aud": "0.00"
   },
-  "next_gate": "A later independent phase must independently re-check capacity and swap, prepare an exact canonical release, create the required runtime secret file, install the frozen service definition, and run a bounded startup probe before any Cloudflare configuration."
+  "next_gate": "A later independent phase may start only the frozen shadow profile after its container resource/no-swap, non-secret configuration and local-loopback boundaries are independently checked; this is not core activation or host-capacity verification. Core activation still requires verified host capacity and swap boundary, then the frozen service definition and bounded startup probe before any Cloudflare configuration."
 }

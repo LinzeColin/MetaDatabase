@@ -66,9 +66,10 @@ if [ -e "$release_dir" ]; then
   exit 72
 fi
 
-install -d -m 0750 /etc/abd /etc/abd/secrets /opt/abd/releases "$release_dir" "$release_dir/infra"
+install -d -o root -g 10001 -m 0750 /etc/abd
+install -d -m 0750 /etc/abd/secrets /opt/abd/releases "$release_dir" "$release_dir/infra"
 install -d -o 10001 -g 10001 -m 0750 /var/lib/abd /var/log/abd
-install -m 0640 "$config" /etc/abd/config.json
+install -m 0640 -o root -g 10001 "$config" /etc/abd/config.json
 install -m 0600 "$runtime_env" /etc/abd/runtime.env
 install -m 0644 "$compose" "$release_dir/infra/compose.yml"
 
