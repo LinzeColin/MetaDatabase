@@ -516,6 +516,33 @@ test("Version 30 email browser boundary retains no mailbox, account, or navigati
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 30 rollback and restore rehearsal retains no deployment or user material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_30_rollback_restore_rehearsal.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.approved_sites_version_number, 30);
+  assert.equal(evidence.candidate.previous_saved_sites_version_number, 29);
+  assert.equal(evidence.execution.private_deploy_previous_version_succeeded, true);
+  assert.equal(evidence.execution.private_restore_approved_version_succeeded, true);
+  assert.equal(evidence.post_restore_control_plane.latest_saved_version_number, 30);
+  assert.equal(evidence.post_restore_control_plane.approved_version_source_matches_expected, true);
+  assert.equal(evidence.post_restore_control_plane.environment_revision, 8);
+  assert.equal(evidence.post_restore_control_plane.external_visitor_count, 0);
+  assert.equal(evidence.result.current_v30_rollback_then_restore_proven, true);
+  assert.equal(evidence.execution.deployment_identifiers_recorded, false);
+  assert.equal(evidence.scope_and_cleanup.runtime_values_read, false);
+  assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 29 Google browser boundary retains no account or browser material", async () => {
   const evidence = JSON.parse(
     await readFile(

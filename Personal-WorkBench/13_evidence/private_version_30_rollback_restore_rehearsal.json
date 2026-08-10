@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_30_ROLLBACK_RESTORE_REHEARSAL",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "approved_sites_version_number": 30,
+    "approved_sites_source_commit": "b736fcf5c90a0fcbcf80ad5cb3aecd909a32d895",
+    "previous_saved_sites_version_number": 29,
+    "previous_saved_sites_source_commit": "3a73f4a9b342ba3d6fe56f3a2539250e91980e67",
+    "approved_archive_recorded": true,
+    "previous_archive_recorded": true
+  },
+  "private_access_precondition": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "public_audience_changed": false
+  },
+  "execution": {
+    "private_deploy_previous_version_number": 29,
+    "private_deploy_previous_version_succeeded": true,
+    "private_restore_approved_version_number": 30,
+    "private_restore_approved_version_succeeded": true,
+    "deployment_identifiers_recorded": false,
+    "deployment_urls_recorded": false,
+    "failure_messages_recorded": false
+  },
+  "post_restore_control_plane": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "latest_saved_version_number": 30,
+    "approved_version_source_matches_expected": true,
+    "environment_revision": 8,
+    "public_audience_changed": false
+  },
+  "result": {
+    "current_v30_rollback_then_restore_proven": true,
+    "r009_saved_version_rollback_restore_current_v30": "PASS_PRIVATE_VERSION_30_TO_29_TO_30_OWNER_ONLY",
+    "product_pass_claimed": false,
+    "final_acceptance_claimed": false,
+    "public_deploy_eligible": false
+  },
+  "scope_and_cleanup": {
+    "runtime_values_read": false,
+    "real_user_business_data_read_or_written": false,
+    "d1_or_r2_resource_configuration_changed": false,
+    "access_policy_changed": false,
+    "github_uploaded": false
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false,
+  "not_proven": [
+    "A successful current Version 30 email registration, verification, reset, and sign-in browser replay",
+    "A successful current Version 30 Google OAuth callback and session",
+    "Current Version 30 A/B tenant replay",
+    "Physical second-device history readback",
+    "Direct D1/R2 physical mapping or record-object reconciliation",
+    "Current Version 30 production fault recovery and no-P0 observation",
+    "Public product acceptance"
+  ]
+}

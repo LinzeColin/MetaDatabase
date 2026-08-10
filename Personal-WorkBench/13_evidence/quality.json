@@ -3,7 +3,7 @@
   "stage": "S4",
   "phase": "S4-T1",
   "status": "PASS_LOCAL_QUALITY",
-  "runAt": "2026-08-10T01:37:41.058Z",
+  "runAt": "2026-08-10T01:51:55.026Z",
   "environment": {
     "runtime_mode": "NO_SECRET_LOCAL_VITE",
     "port": 4174,
@@ -116,8 +116,8 @@
       "media471Found": true
     },
     "performance": {
-      "routeP95Ms": 18.640542000000096,
-      "saveP95Ms": 6.226542000000336,
+      "routeP95Ms": 20.483250000000226,
+      "saveP95Ms": 6.163582999999562,
       "routeThresholdMs": 350,
       "saveThresholdMs": 1200
     }
