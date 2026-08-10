@@ -1,5 +1,5 @@
 {
-  "status": "FAIL",
+  "status": "PASS",
   "suite_mode": "structural",
   "application_suite_rerun": false,
   "partial_checks": [
@@ -87,7 +87,7 @@
         "scripts/preflight_extension.py"
       ],
       "exit_code": 0,
-      "stdout": "可以装载。manifest v3、version 0.0.0.27、17 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
+      "stdout": "可以装载。manifest v3、version 0.0.0.30、17 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
       "stderr": ""
     },
     {
@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 820 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 830 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -115,7 +115,7 @@
         "scripts/check_docs_point_at_things_that_exist.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了全仓 31 份文档，81 处 scripts/ 引用、1 处代码块里被 .gitignore 挡着的路径\n文档让人跑的每一个脚本都在；写着「已删」的也确实不在了。\n",
+      "stdout": "扫了全仓 31 份文档，82 处 scripts/ 引用、1 处代码块里被 .gitignore 挡着的路径\n文档让人跑的每一个脚本都在；写着「已删」的也确实不在了。\n",
       "stderr": ""
     },
     {
@@ -124,7 +124,7 @@
         "scripts/check_the_stated_version_is_the_real_one.py"
       ],
       "exit_code": 0,
-      "stdout": "真源 pyproject.toml 说版本是 0.0.0.27；核了 11 处\n每一处声明的版本都和真源一样，CHANGELOG 里也有这一版。\n",
+      "stdout": "真源 pyproject.toml 说版本是 0.0.0.30；核了 11 处\n每一处声明的版本都和真源一样，CHANGELOG 里也有这一版。\n",
       "stderr": ""
     },
     {
@@ -133,7 +133,7 @@
         "scripts/check_every_platform_table_is_complete.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 apps/src/scripts 下 36 处平台表；已登记的有意子集 18 张；允许自带平台中文名的地方 4 处\n每一张平台表都提到了所有可托管平台。\n",
+      "stdout": "扫了 apps/src/scripts 下 39 处平台表；已登记的有意子集 18 张；允许自带平台中文名的地方 4 处\n每一张平台表都提到了所有可托管平台。\n",
       "stderr": ""
     },
     {
@@ -169,7 +169,7 @@
         "scripts/find_endpoints_no_client_calls.py"
       ],
       "exit_code": 0,
-      "stdout": "api.py 里的 /v1 路由 53 个；客户端目录 apps, scripts\n每个接口都至少有一处界面调用。\n",
+      "stdout": "api.py 里的 /v1 路由 54 个；客户端目录 apps, scripts\n每个接口都至少有一处界面调用。\n",
       "stderr": ""
     },
     {
@@ -178,7 +178,7 @@
         "scripts/find_client_calls_to_routes_that_do_not_exist.py"
       ],
       "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"routes_found\": 55,\n  \"distinct_client_calls\": 23,\n  \"calls_to_nothing\": [],\n  \"message_zh\": \"界面调的每一个地址，服务端都有。\",\n  \"what_this_does_not_prove\": \"只看字面量、不查方法；POST 打一条只有 GET 的路由，这道门看不出来。\"\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"routes_found\": 56,\n  \"distinct_client_calls\": 23,\n  \"calls_to_nothing\": [],\n  \"message_zh\": \"界面调的每一个地址，服务端都有。\",\n  \"what_this_does_not_prove\": \"只看字面量、不查方法；POST 打一条只有 GET 的路由，这道门看不出来。\"\n}\n",
       "stderr": ""
     },
     {
@@ -187,7 +187,7 @@
         "scripts/check_docs_match_the_ui.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 docs/ 里 51 处界面词引用\n每一处都在界面上找得到。\n",
+      "stdout": "扫了 docs/ 里 55 处界面词引用\n每一处都在界面上找得到。\n",
       "stderr": ""
     },
     {
@@ -268,7 +268,7 @@
         "scripts/check_every_drill_has_a_caller.py"
       ],
       "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"drills_found\": [\n    \"bilibili_acquisition_drill.py\",\n    \"bilibili_end_to_end_drill.py\",\n    \"disaster_recovery_drill.py\",\n    \"extension_bridge_boundary_drill.py\",\n    \"extension_capture_buffer_drill.py\",\n    \"extension_capture_drill.py\",\n    \"extension_install_page_drill.py\",\n    \"extension_platform_wiring_drill.py\",\n    \"extension_routing_drill.py\",\n    \"extension_save_page_drill.py\",\n    \"extension_update_in_place_drill.py\",\n    \"list_shape_end_to_end_drill.py\",\n    \"popup_states_drill.py\",\n    \"production_reachability_drill.py\",\n    \"pwa_render_drill.py\",\n    \"restore_private_database_drill.py\",\n    \"restore_runtime_db_drill.py\",\n    \"shipped_package_drill.py\",\n    \"stale_extension_is_blocked_drill.py\"\n  ],\n  \"registry\": \"docs/DRILLS.md\",\n  \"cadences\": {\n    \"shipped_package_drill.py\": \"每次发布\",\n    \"popup_states_drill.py\": \"每次发布\",\n    \"production_reachability_drill.py\": \"每次发布\",\n    \"extension_update_in_place_drill.py\": \"每次发布\",\n    \"stale_extension_is_blocked_drill.py\": \"每次发布\",\n    \"list_shape_end_to_end_drill.py\": \"改到那条路时\",\n    \"bilibili_end_to_end_drill.py\": \"改到那条路时\",\n    \"bilibili_acquisition_drill.py\": \"**每次发布**（run_all_drills）\",\n    \"extension_capture_drill.py\": \"改到那条路时\",\n    \"extension_capture_buffer_drill.py\": \"改到那条路时\",\n    \"extension_save_page_drill.py\": \"改到那条路时\",\n    \"extension_routing_drill.py\": \"改到那条路时\",\n    \"extension_platform_wiring_drill.py\": \"改到那条路时\",\n    \"extension_bridge_boundary_drill.py\": \"改到那条路时\",\n    \"extension_install_page_drill.py\": \"改到那条路时\",\n    \"pwa_render_drill.py\": \"改到那条路时\",\n    \"disaster_recovery_drill.py\": \"定期\",\n    \"restore_private_database_drill.py\": \"定期\",\n    \"restore_runtime_db_drill.py\": \"定期\"\n  },\n  \"run_by_deploy\": [\n    \"bilibili_acquisition_drill.py\",\n    \"bilibili_end_to_end_drill.py\",\n    \"disaster_recovery_drill.py\",\n    \"extension_bridge_boundary_drill.py\",\n    \"extension_capture_buffer_drill.py\",\n    \"extension_capture_drill.py\",\n    \"extension_install_page_drill.py\",\n    \"extension_platform_wiring_drill.py\",\n    \"extension_routing_drill.py\",\n    \"extension_save_page_drill.py\",\n    \"extension_update_in_place_drill.py\",\n    \"list_shape_end_to_end_drill.py\",\n    \"popup_states_drill.py\",\n    \"production_reachability_drill.py\",\n    \"pwa_render_drill.py\",\n    \"restore_private_database_drill.py\",\n    \"restore_runtime_db_drill.py\",\n    \"shipped_package_drill.py\",\n    \"stale_extension_is_blocked_drill.py\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"每个演练都有一条会触发它的路，或至少写清了什么时候跑。\",\n  \"what_this_does_not_prove\": \"不保证演练写得对，也不保证它最近跑过。只保证有一条路会触发它。\"\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"drills_found\": [\n    \"bilibili_acquisition_drill.py\",\n    \"bilibili_end_to_end_drill.py\",\n    \"disaster_recovery_drill.py\",\n    \"extension_bridge_boundary_drill.py\",\n    \"extension_capture_buffer_drill.py\",\n    \"extension_capture_drill.py\",\n    \"extension_install_page_drill.py\",\n    \"extension_platform_wiring_drill.py\",\n    \"extension_routing_drill.py\",\n    \"extension_save_page_drill.py\",\n    \"extension_update_in_place_drill.py\",\n    \"forget_button_render_drill.py\",\n    \"list_shape_end_to_end_drill.py\",\n    \"popup_states_drill.py\",\n    \"production_reachability_drill.py\",\n    \"pwa_render_drill.py\",\n    \"restore_private_database_drill.py\",\n    \"restore_runtime_db_drill.py\",\n    \"shipped_package_drill.py\",\n    \"stale_extension_is_blocked_drill.py\"\n  ],\n  \"registry\": \"docs/DRILLS.md\",\n  \"cadences\": {\n    \"shipped_package_drill.py\": \"每次发布\",\n    \"popup_states_drill.py\": \"每次发布\",\n    \"production_reachability_drill.py\": \"每次发布\",\n    \"extension_update_in_place_drill.py\": \"每次发布\",\n    \"stale_extension_is_blocked_drill.py\": \"每次发布\",\n    \"list_shape_end_to_end_drill.py\": \"改到那条路时\",\n    \"bilibili_end_to_end_drill.py\": \"改到那条路时\",\n    \"bilibili_acquisition_drill.py\": \"**每次发布**（run_all_drills）\",\n    \"extension_capture_drill.py\": \"改到那条路时\",\n    \"extension_capture_buffer_drill.py\": \"改到那条路时\",\n    \"extension_save_page_drill.py\": \"改到那条路时\",\n    \"extension_routing_drill.py\": \"改到那条路时\",\n    \"extension_platform_wiring_drill.py\": \"改到那条路时\",\n    \"extension_bridge_boundary_drill.py\": \"改到那条路时\",\n    \"extension_install_page_drill.py\": \"改到那条路时\",\n    \"pwa_render_drill.py\": \"改到那条路时\",\n    \"forget_button_render_drill.py\": \"**每次发布**（deploy 第 8.65 步）\",\n    \"disaster_recovery_drill.py\": \"定期\",\n    \"restore_private_database_drill.py\": \"定期\",\n    \"restore_runtime_db_drill.py\": \"定期\"\n  },\n  \"run_by_deploy\": [\n    \"bilibili_acquisition_drill.py\",\n    \"bilibili_end_to_end_drill.py\",\n    \"disaster_recovery_drill.py\",\n    \"extension_bridge_boundary_drill.py\",\n    \"extension_capture_buffer_drill.py\",\n    \"extension_capture_drill.py\",\n    \"extension_install_page_drill.py\",\n    \"extension_platform_wiring_drill.py\",\n    \"extension_routing_drill.py\",\n    \"extension_save_page_drill.py\",\n    \"extension_update_in_place_drill.py\",\n    \"forget_button_render_drill.py\",\n    \"list_shape_end_to_end_drill.py\",\n    \"popup_states_drill.py\",\n    \"production_reachability_drill.py\",\n    \"pwa_render_drill.py\",\n    \"restore_private_database_drill.py\",\n    \"restore_runtime_db_drill.py\",\n    \"shipped_package_drill.py\",\n    \"stale_extension_is_blocked_drill.py\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"每个演练都有一条会触发它的路，或至少写清了什么时候跑。\",\n  \"what_this_does_not_prove\": \"不保证演练写得对，也不保证它最近跑过。只保证有一条路会触发它。\"\n}\n",
       "stderr": ""
     },
     {
@@ -277,7 +277,7 @@
         "scripts/check_git_calls_cannot_be_hijacked_by_hooks.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 370 份 .py，其中 12 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
+      "stdout": "扫了 380 份 .py，其中 12 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
       "stderr": ""
     },
     {
@@ -285,8 +285,8 @@
         "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_the_guide_matches_the_product.py"
       ],
-      "exit_code": 4,
-      "stdout": "{\n  \"status\": \"FAIL\",\n  \"task\": \"G4\",\n  \"sync_period_minutes\": [\n    360\n  ],\n  \"sync_hours_stated_in_guide\": [\n    6\n  ],\n  \"backup_copies_confirmed_today\": 2,\n  \"backup_copies_stated_in_guide\": [\n    2\n  ],\n  \"guide\": \"docs/使用说明.md\",\n  \"buttons_checked\": 26,\n  \"claimed_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"product_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"claimed_manual\": [\n    \"x\",\n    \"youtube\"\n  ],\n  \"problems\": [\n    \"说明里让他点「只**补**收藏」，而**九个界面文件里一个都没有这个字样**——他会在界面上找不到它。要么改说明，要么这确实不是我们的界面文案，那就写进 NOT_OUR_UI 并说清它是谁的\",\n    \"说明里让他点「只留收藏」，而**九个界面文件里一个都没有这个字样**——他会在界面上找不到它。要么改说明，要么这确实不是我们的界面文案，那就写进 NOT_OUR_UI 并说清它是谁的\",\n    \"说明里让他点「只补收藏到 Obsidian.command」，而**九个界面文件里一个都没有这个字样**——他会在界面上找不到它。要么改说明，要么这确实不是我们的界面文案，那就写进 NOT_OUR_UI 并说清它是谁的\"\n  ],\n  \"message_zh\": \"**使用说明和产品对不上**——照着做会卡住，而他没有别的办法发现。\",\n  \"what_this_does_not_prove\": \"不检查步骤顺不顺、语气好不好，只保证说的每件事都存在。\"\n}\n",
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"task\": \"G4\",\n  \"sync_period_minutes\": [\n    360\n  ],\n  \"sync_hours_stated_in_guide\": [\n    6\n  ],\n  \"backup_copies_confirmed_today\": 2,\n  \"backup_copies_stated_in_guide\": [\n    2\n  ],\n  \"guide\": \"docs/使用说明.md\",\n  \"buttons_checked\": 24,\n  \"claimed_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"product_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"claimed_manual\": [\n    \"x\",\n    \"youtube\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"使用说明里写的每一步，产品里都真的有。\",\n  \"what_this_does_not_prove\": \"不检查步骤顺不顺、语气好不好，只保证说的每件事都存在。\"\n}\n",
       "stderr": ""
     },
     {

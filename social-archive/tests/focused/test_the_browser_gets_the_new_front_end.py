@@ -100,6 +100,25 @@ def test_the_service_worker_precaches_the_urls_the_page_asks_for() -> None:
     assert f'social-archive-ui-{version}"' in sw, "SW 缓存名没跟着版本换代"
 
 
+def test_the_deploy_really_calls_the_real_chrome_drill() -> None:
+    """**没有调用方的判据不算判据。**（[[a-checker-nothing-calls-is-not-a-checker]]）
+
+    源码层三道门都绿的那天，公网仍在下发没有这颗按钮的旧 `app.js`。
+    真正能戳穿它的只有「从公开域名取前端 → 喂真 Chrome → 读 DOM」，
+    所以部署脚本必须每次都跑它，且它红了要**中止部署**——
+    不能只打印一行然后继续。
+    """
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    assert "forget_button_render_drill.py" in deploy, (
+        "部署脚本没有调用真 Chrome 那道前端演练——它就成了没人跑的摆设")
+    step = deploy[deploy.index("forget_button_render_drill.py"):]
+    step = step[:step.index('step "9)')]
+    assert "fail " in step, "演练红了不中止部署，等于没验"
+    assert "| tail" not in step and "| head" not in step, (
+        "别把成败接进管道——`fail` 会读到管道尾巴那条命令的退出码")
+    assert (ROOT / "scripts/forget_button_render_drill.py").is_file()
+
+
 def test_the_bump_tool_actually_moves_every_stamp() -> None:
     """**真跑那些规则。** 不是「文件在清单里」，是它们换得动。
 

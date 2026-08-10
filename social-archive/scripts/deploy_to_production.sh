@@ -965,6 +965,41 @@ fi
 sed -n 's/.*"message_zh": "\(.*\)".*/  \1/p' /tmp/sa_public_ver.$$ | head -1
 rm -f /tmp/sa_public_ver.$$
 
+step "8.65) 他打得到的那份前端，真 Chrome 里画不画得出这次发的东西"
+# **第 8.6 步只核了 /health 报的版本号。** 那是后端。
+# 前端是另一条路，而它有自己的一层缓存：
+#
+#   2026-08-11 实测——0.0.0.29 明明部署成功、/health 也报 0.0.0.29，
+#   而从这台 Mac 上按普通方式取 /assets/app.js 拿到的是 137559 字节的旧文件
+#   （容器里 140335、cf-cache-status: HIT、age: 3794、max-age=14400）。
+#   那份旧文件里**一颗「删除并清空」都没有**。他刷新四小时都看不到这次的改动。
+#
+# 所以这一步：按浏览器的走法从公开域名取前端（先首页、再按首页里那几个 ?v= 键
+# 逐个取），喂给真 Chrome，把 DOM 读回来。**验的是他真会拿到的那些字节。**
+# 接口是假的——这里不证明服务端对，只证明界面到得了他手上、按得下去。
+if [ -x "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]; then
+  if ! .venv/bin/python scripts/forget_button_render_drill.py > /tmp/sa_front.$$ 2>&1; then
+    python3 -c "
+import json,sys
+try:
+    d=json.load(open('/tmp/sa_front.$$'))
+except Exception:
+    print(open('/tmp/sa_front.$$').read()[-600:]); raise SystemExit
+for p in d.get('problems') or [d.get('error_code','')]: print('  ✗', p)"
+    rm -f /tmp/sa_front.$$
+    fail '公开域名下发的前端，在真 Chrome 里跑不出这次发的界面——他那边等于没发。'
+  fi
+  python3 -c "
+import json
+d=json.load(open('/tmp/sa_front.$$'))
+a=[x for x in d['supply_from_production']['assets'] if 'app.js' in x['url']][0]
+b=d['measured']['rendered']['forgetButtons']
+print(f\"  公网那份 app.js {a['bytes']} 字节（{a['url']}）；真 Chrome 画出 {len(b)} 颗「删除并清空」，点了会发 POST …/forget。\")"
+  rm -f /tmp/sa_front.$$
+else
+  printf '  跳过：这台机器上没有 Chrome（前端是否真到得了他手上，本轮没验）。\n'
+fi
+
 step "9) 验收：仓、主机、**镜像里那一份**，三份是不是同一份代码"
 # 第 8 步只核了**扩展包**那一个文件。其余一百多个源文件，在这一步之前
 # 从来没有任何东西核过——而 /opt/social-archive **不是 git 检出**，

@@ -102,6 +102,7 @@ python scripts/<演练名>.py
 | `extension_bridge_boundary_drill.py` | 改到那条路时 | 档案馆页面能给令牌，但不能改它往哪儿发 |
 | `extension_install_page_drill.py` | 改到那条路时 | 装着旧插件的人能不能靠那一页更新掉 |
 | `pwa_render_drill.py` | 改到那条路时 | 页面上那两段话真的显示出来了吗 |
+| `forget_button_render_drill.py` | **每次发布**（deploy 第 8.65 步） | **从公开域名取回来的那份前端**，在真 Chrome 里画不画得出这次发的界面（0.0.0.29 实测：/health 报新版，而 CDN 给的 app.js 还是旧的、少了「删除并清空」） |
 | `disaster_recovery_drill.py` | 定期 | 只用远端三份副本，能不能把档案馆重建出来 |
 | `restore_private_database_drill.py` | 定期 | Private-Database 的 fact 包取得回来吗，哈希逐条对得上吗 |
 | `restore_runtime_db_drill.py` | 定期 | 运行库快照取回来之后，真的打得开吗 |
