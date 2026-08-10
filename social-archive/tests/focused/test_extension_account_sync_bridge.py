@@ -26,7 +26,14 @@ def test_pwa_pings_the_bridge_and_rejects_unpaired_or_wrong_version_extensions()
     assert f'const PRODUCT_VERSION = "{expected_version}"' in pwa, (
         f"PWA 自报的版本与 VERSION（{expected_version}）不一致——界面会显示错的版本号"
     )
-    assert 'postToExtension("SA_PING", {}, 1500)' in pwa
+    # **钉的是「它去探了」，不是那一行长什么样**（2026-08-10 放宽）。
+    #
+    # 原来钉死 `postToExtension("SA_PING", {}, 1500)`。而探测改成了
+    # `pingExtensions()`——**收齐一小段时间内的所有应答**，因为装了两份插件时
+    # 老写法只看得见先答的那一份（说明书专门警告过这种装法）。
+    # 行为没变弱，反而更强；钉死字面量只会拦住这种改进。
+    assert 'type: "SA_PING"' in pwa and "function pingExtensions(" in pwa, (
+        "PWA 不再探测插件了——那这一页永远不知道插件在不在、是哪一版")
     assert 'data.type !== "SA_BRIDGE_READY"' in pwa
     # v0.0.0.7 / T03：不再把用户丢去设置页手抄配对码；未连接时就地取凭据接上。
     assert 'await postToExtension("SA_ADOPT_TOKEN"' in pwa

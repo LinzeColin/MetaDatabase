@@ -1340,11 +1340,55 @@
     };
   }
 
+  /** 探一次插件——**收齐一小段时间内的所有应答，不是第一个**（2026-08-10）。
+   *
+   * `postToExtension` 拿到第一个应答就摘掉监听器。装了**两份**插件时
+   * （说明书专门警告过：换个文件夹装，Chrome 会给它一个新的插件 ID），
+   * 只有先答的那一份被看见，另一份完全隐形。
+   *
+   * 后果不是抽象的：他更新完之后，如果旧的那份先答，这一页会**一直**说
+   * 「请更新插件」——他更新完还是那个数，正是升版工具文件头写的
+   * 「无限来回弹」。而连接账号会落到哪一份上是不确定的。
+   *
+   * 两份能分得开：`connectFrameUrl` 是 `chrome-extension://<插件ID>/…`，
+   * 两份 ID 不同。
+   */
+  function pingExtensions(collectMs = 400) {
+    const requestId = crypto.randomUUID();
+    return new Promise(resolve => {
+      const replies = [];
+      const timer = setTimeout(() => {
+        window.removeEventListener("message", onMessage);
+        resolve(replies);
+      }, collectMs);
+      function onMessage(event) {
+        const data = event.data || {};
+        if (event.source !== window || data.source !== "social-archive-extension"
+            || data.requestId !== requestId) return;
+        replies.push(data);
+      }
+      window.addEventListener("message", onMessage);
+      window.postMessage({ source: "social-archive-web", type: "SA_PING", requestId }, location.origin);
+      // 一个都没答时不必等满：超时那条路由 catch 处理，这里只管收齐。
+      void timer;
+    });
+  }
+
   async function refreshExtensionStatus() {
     try {
-      state.extension = extensionStatus(await postToExtension("SA_PING", {}, 1500));
+      const replies = await pingExtensions();
+      if (!replies.length) throw new Error("没有检测到 Social Archive 浏览器插件");
+      // **装了两份时，报最新那一份的版本，但把重复本身说出来。**
+      // 只报最新会让他以为一切正常，而连接落到哪一份是不确定的。
+      const sorted = [...replies].sort(
+        (a, b) => compareVersions(String(b.version || ""), String(a.version || "")));
+      const ids = [...new Set(replies
+        .map(item => String(item.connectFrameUrl || "").split("/")[2])
+        .filter(Boolean))];
+      state.extension = { ...extensionStatus(sorted[0]), duplicateExtensionIds: ids.length > 1 ? ids : [] };
     } catch (_) {
-      state.extension = { detected: false, paired: false, compatible: false, version: "", refreshedAt: Date.now() };
+      state.extension = { detected: false, paired: false, compatible: false, version: "",
+                          duplicateExtensionIds: [], refreshedAt: Date.now() };
     }
     return state.extension;
   }
@@ -1483,6 +1527,20 @@
     if (button) { button.disabled = true; button.textContent = "正在打开…"; }
     try {
       if (!await ensureExtensionReady()) return;
+      // **装了两份插件时，先别连**（2026-08-10）。
+      //
+      // 说明书专门警告过这件事：换个文件夹装，Chrome 会给它一个新的插件 ID，
+      // 等于同时装了两份，而已经连好的账号留在旧的那一份上。
+      // 两份都会应答这一页，而**哪一份接住「连接账号」是不确定的**——
+      // 连到旧的那一份上，他会再撞一次今天刚修掉的那堵墙，
+      // 而界面这边看起来一切正常。说清楚，让他先删掉一份。
+      const dupes = state.extension.duplicateExtensionIds || [];
+      if (dupes.length > 1) {
+        showToast(`浏览器里装了 ${dupes.length} 份 Social Archive 插件——`
+                  + "连接账号会落到哪一份上是不确定的。请去 chrome://extensions 只留最新那一份"
+                  + "（已存下的内容一条都不会少），然后回来再点。", "needs");
+        return;
+      }
       // **先试着就地开面板**——他人不动，授权框在这一页上弹。
       if (openConnectPanel()) {
         showToast("在这一页上点「连接账号」就行，不用跳走。");
