@@ -125,8 +125,21 @@
       const everConnected = accounts.length > 0;
       $("summaryTitle").textContent = everConnected
         ? `${accounts.length} 个账号已断开` : "还没有连接平台账号";
+      // **这个数只数得到挂在账号名下的那些，所以话要收到那个范围。**（2026-08-10）
+      //
+      // `total` 是下面那几行的和（服务端的 content_count 数的是该账号名下
+      // status='active' 的关系）。2026-08-10 量生产：101 + 85 + 0 = 186，
+      // **而资料库那一页显示 193**——差的 7 条是手存的网页和几条没挂账号的 saved。
+      //
+      // 原话是「已经存下的 186 条内容一条都没少」，读起来是"你存的全部"，
+      // 于是他在两屏之间看到 186 和 193 两个数。而这句话存在的**全部理由**
+      // 就是让他别以为东西丢了——它自己却像丢了 7 条。
+      //
+      // 资料库那一侧早就绕开了这个坑：它说的是「已存下的内容一条都没少」，
+      // **不带数字**。这里保留数字（下面三行加起来正好是它，自洽），
+      // 但把范围说出来。
       $("summaryCopy").textContent = everConnected
-        ? `已经存下的 ${total.toLocaleString("zh-CN")} 条内容一条都没少。重新连接一次就会继续同步。`
+        ? `这些账号存下的 ${total.toLocaleString("zh-CN")} 条内容一条都没少。重新连接一次就会继续同步。`
         : "连接一次账号后自动全量导入，不需要逐条点击。";
       $("primarySyncLabel").textContent = everConnected
         ? "重新连接账号" : "连接第一个账号";

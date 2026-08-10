@@ -1,5 +1,5 @@
 {
-  "status": "PASS",
+  "status": "FAIL",
   "measured_in_real_chrome": {
     "从没连过": {
       "title": "还没有连接平台账号",
@@ -21,10 +21,12 @@
     },
     "同步进度按钮": {
       "sidepanel_targets": [
-        "chrome-extension://kpomcjdmekdckglojhcbfppmnokaaihg/sidepanel.html"
+        "chrome-extension://fielbleimkjehdgkeemdndmmohpihhff/sidepanel.html"
       ]
     }
   },
-  "problems": [],
+  "problems": [
+    "那句话说成了「你存的全部」：'已经存下的 190 条内容一条都没少。重新连接一次就会继续同步。'——它加的只是各账号名下的条数（手存的网页、没挂账号的都不算），和资料库那一页的总数对不上"
+  ],
   "why_zh": "弹窗是他点插件图标看到的第一屏。三种状态各说各的话，**只验一种的话，一个把所有状态都写成同一句的实现也能过**。"
 }
