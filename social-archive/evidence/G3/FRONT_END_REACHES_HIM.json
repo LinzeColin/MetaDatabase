@@ -7,31 +7,31 @@
     "index_bytes": 20645,
     "index_cf_cache_status": "DYNAMIC",
     "stamps_in_index": [
-      "0.0.0.32"
+      "0.0.0.33"
     ],
     "assets": [
       {
-        "url": "/assets/styles.css?v=0.0.0.32",
+        "url": "/assets/styles.css?v=0.0.0.33",
         "bytes": 39548,
-        "cf_cache_status": "HIT",
+        "cf_cache_status": "MISS",
         "age": ""
       },
       {
-        "url": "/assets/manifest.webmanifest?v=0.0.0.32",
+        "url": "/assets/manifest.webmanifest?v=0.0.0.33",
         "bytes": 282,
         "cf_cache_status": "DYNAMIC",
         "age": ""
       },
       {
-        "url": "/assets/favicon.svg?v=0.0.0.32",
+        "url": "/assets/favicon.svg?v=0.0.0.33",
         "bytes": 182,
-        "cf_cache_status": "HIT",
+        "cf_cache_status": "MISS",
         "age": ""
       },
       {
-        "url": "/assets/app.js?v=0.0.0.32",
-        "bytes": 141710,
-        "cf_cache_status": "HIT",
+        "url": "/assets/app.js?v=0.0.0.33",
+        "bytes": 143009,
+        "cf_cache_status": "MISS",
         "age": ""
       }
     ]
@@ -43,7 +43,7 @@
         "小 | 小红书 | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
         "抖 | 抖音 | 抖音 | 已连接 | 86 | 条 | 首次同步尚未开始 | — | 立即同步 | 断开 | 删除并清空",
         "快 | 快手 | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
-        "B | B站 | B站 | 未连接 | 103 | 条 | 首次同步尚未开始 | — | 连接账号 | 删除并清空",
+        "B | B站 | B站 | 未连接 | 103 | 条 | 首次同步尚未开始 | 账号已断开——点这一行的「连接账号」重新授权一次就会继续同步；已存下的 | 103 | 条一条不会少。 | — | 连接账号 | 删除并清空",
         "X | X | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
         "R | Reddit | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
         "In | Instagram | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
