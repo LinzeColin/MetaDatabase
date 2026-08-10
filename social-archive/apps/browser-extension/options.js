@@ -148,7 +148,14 @@
                 // 他点「连接账号」时以为四样都会同步。目录里没登记的平台
                 // （取数路还没做的那些）仍然用 relationCopy，行为不变。
                 : (globalThis.SAPlatformCatalog?.SCANNABLE_RELATIONS?.[platform]
-                    ? globalThis.SAPlatformCatalog.scannableSummary(platform)
+                  // **登记成「空」的平台要说话，不能留一片空白。**（2026-08-10）
+                  // 今天把 youtube 登记成 `Object.freeze([])`（取数路没做，不登记的话
+                  // 服务端会下发一个扫不动的范围，那次 run 永远不收敛）。于是
+                  // scannableSummary 返回空串，这张卡片就**空着**——真机上读出来是
+                  //「YouTube / 未连接 / 未连接 /（空）/ 连接账号」。
+                  // 空白读起来像加载失败，不是「这一版读不了」。
+                    ? (globalThis.SAPlatformCatalog.scannableSummary(platform)
+                          || "本版还不能自动读，只能在页面上点插件手动保存")
                     : relationCopy[platform]));
       // 「随时可以一键撤销」是连接成功时**当着用户面许下的原话**（background.js）。
       // 此前撤销只存在于两处代码里：服务端 DELETE /v1/credentials/{platform}，
