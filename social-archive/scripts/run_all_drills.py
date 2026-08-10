@@ -13,7 +13,7 @@ DRILLS.md 里那一档「改到那条路时」是这张表**最弱的一格**—
 
 不跑要参数的那几个：
   · `extension_platform_wiring_drill` 一次验一个平台，要 --platform
-  · 恢复类三个要真实的备份清单
+  · 恢复类三个要远端凭据（**本机没有**；它们真跑在部署第 8.95 步，生产机上）
 它们的参数是它们的题目本身，塞不进"全跑一遍"。这一点在下面的输出里明说，
 **不让人以为这一条覆盖了全部**。
 """
@@ -77,10 +77,26 @@ PARAMETRISED = [
 ]
 
 # 跑不了的，**要说出来**——不说就会被当成"全跑过了"。
+#
+# **这几条理由 2026-08-10 之前是错的。** 原来写的是「要真实的备份清单与远端存储」，
+# 而清单一直都在（`/var/lib/social-archive/backups/runtime-db/…/manifest.json`，
+# 每 15 分钟一份）。真正跑不起来的原因是代码：`backup._s3_config` 少了凭据回退，
+# `.env` 里的 `/run/secrets/…` 在 systemd unit 之外不存在，于是它报「r2 未配置」。
+#
+# 那个错理由的代价很实在：**"他的东西真能拿回来"这件事从来没被证明过，
+# 而所有人（包括我）都以为那是环境不具备，不是缺陷。**
+#
+# 修好之后当天在他生产机上真跑通了（r2 与 oci 各一次，还原出的库
+# content 193 / user_relation 194 / artifact 552，与线上逐项相同）。
+# 这里仍然标成 not_run，因为**本机没有远端凭据**——那是真的；
+# 会跑它的是部署脚本第 8.95 步，在生产机上跑。
 NEEDS_REAL_INPUT = {
-    "disaster_recovery_drill.py": "要真实的备份清单与远端存储",
-    "restore_private_database_drill.py": "同上",
-    "restore_runtime_db_drill.py": "同上",
+    "disaster_recovery_drill.py":
+        "本机没有远端凭据；真跑在部署第 8.95 步（生产机上）",
+    "restore_private_database_drill.py":
+        "同上——注意这不是「没有备份」，备份清单每 15 分钟就有一份新的",
+    "restore_runtime_db_drill.py":
+        "同上；2026-08-10 之前它跑不起来的真因是 backup._s3_config 缺凭据回退，不是缺条件",
 }
 
 
@@ -148,7 +164,7 @@ def main() -> int:
         # 往小里说自己的覆盖，和往大里说一样是错的：读的人会照着这句去补一件
         # 已经有人做了的事，或者反过来，以为某个缺口还有人盯着。
         "what_this_does_not_prove": (
-            "不跑恢复类那三个（要真实备份）。**只有 bilibili_acquisition_drill 打的是"
+            "不跑恢复类那三个——**本机没有远端凭据**（不是没有备份：清单每 15 分钟一份）；它们真跑在部署第 8.95 步。**只有 bilibili_acquisition_drill 打的是"
             "真平台接口**（B 站的公开收藏夹，不带登录态）；其余每一条跑的都是仓里"
             "自己写的假站，所以它们答不了「那个平台今天改没改接口」。"
             "要登录态才看得见的响应（小红书／抖音／快手／Reddit／Instagram）"
@@ -158,7 +174,8 @@ def main() -> int:
     out = ROOT / "evidence/G3/ALL_DRILLS.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"\n{report['message_zh']}  没跑：{', '.join(NEEDS_REAL_INPUT)}（要真实备份）")
+    print(f"\n{report['message_zh']}  没跑：{', '.join(NEEDS_REAL_INPUT)}"
+          "（本机没有远端凭据；它们跑在部署第 8.95 步）")
     return 0 if not bad else 4
 
 

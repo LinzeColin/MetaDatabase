@@ -1,6 +1,8 @@
 
 from __future__ import annotations
 
+import io
+import zipfile
 import json
 import ipaddress
 import os
@@ -15,7 +17,7 @@ from urllib.parse import urlparse
 
 import uvicorn
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -1318,6 +1320,64 @@ def library(
 @app.get("/v1/search", dependencies=[Depends(require_token)])
 def search(q: str = Query(min_length=1), limit: int = Query(100, ge=1, le=500)) -> dict[str, Any]:
     return {"items": store.list_library(q=q, limit=limit)}
+
+
+# **这条必须排在 `/v1/library/{content_id}` 前面。**（2026-08-10）
+# FastAPI 按注册顺序匹配：放在后面时 `markdown.zip` 会被当成一个 content_id，
+# 那颗按钮点下去是 404。**判据先跑出来的，不是读代码看出来的。**
+@app.get("/v1/library/markdown.zip", dependencies=[Depends(require_token)])
+def download_all_markdown() -> Response:
+    """把已经导出的 Markdown 打成一个包给他。（2026-08-10）
+
+    ## 为什么加这个
+
+    Owner 的原话：「zzybrim/douyin-obsidian 别人已经开发成功了，
+    你跑了十天了，还没有结果」。**他说得对。**
+
+    去看他的实况：`markdown` 目的地 **193/193**——他那 193 条
+    （含 86 条抖音）**早在 8 月 3 号就全部生成成 Markdown 了**，
+    带 frontmatter、原始链接、正文，一直躺在服务器的 exports/markdown 下。
+
+    而 `obsidian` 是 **1/193**，并且那个「Obsidian 库」是**服务器上的一个目录**
+    （`SOCIAL_ARCHIVE_OBSIDIAN_REST_URL` 是空的）——**没有任何一条路通到他电脑上
+    的 Obsidian**。所以界面上「Obsidian 已连接」是假的，那颗「把没送过去的 192 条
+    补上」按钮就算点了，也只是在一台他从不打开的目录里多 192 个文件。
+
+    对比那个项目赢在哪：**它写进用户自己的库**。
+
+    浏览器写不了任意本地路径，服务器也够不着他的电脑——**能走通的那条路是
+    「让他下载，自己拖进库里」**。这个接口就是那条路：一次点击拿到全部，
+    解压后整个文件夹拖进 Obsidian 即可，不用装任何东西。
+
+    ## 边界
+
+    · 打的是**已经导出的那些**（markdown 目的地的产物），不是现算。
+      所以包里有多少条，取决于那个目的地送到了多少——数字随包一起给出，
+      不让他以为「下载了就是全部」。
+    · 只读 exports/markdown，不写任何东西。
+    """
+    root = settings.export_root / "markdown"
+    if not root.is_dir():
+        raise HTTPException(status_code=503,
+                            detail="还没有生成过 Markdown——先让「Markdown」那个导出目的地跑一次")
+    files = sorted(path for path in root.rglob("*.md") if path.is_file())
+    if not files:
+        raise HTTPException(status_code=503,
+                            detail="Markdown 目录是空的——先让「Markdown」那个导出目的地跑一次")
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+        for path in files:
+            archive.write(path, arcname=str(path.relative_to(root)))
+    payload = buffer.getvalue()
+    return Response(
+        content=payload,
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": 'attachment; filename="social-archive-markdown.zip"',
+            # **把条数说出来**：他要知道这一包是不是全部。
+            "X-Markdown-File-Count": str(len(files)),
+        },
+    )
 
 
 @app.get("/v1/library/{content_id}", dependencies=[Depends(require_token)])
