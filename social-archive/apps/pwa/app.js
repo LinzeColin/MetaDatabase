@@ -637,8 +637,21 @@
 
   function renderSyncSummary() {
     const connected = state.accounts.filter(item => ["connected", "degraded"].includes(item.connection_state)).length;
-    const active = state.syncRuns.filter(item => ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(item.status));
-    const failures = state.syncRuns.filter(item => ["failed", "blocked_environment"].includes(item.status));
+    // **这一条说的是「现在怎么样」，所以只许看每个账号最近的那一次。**（2026-08-10）
+    //
+    // 原来两行都是 `state.syncRuns.filter(...)`，而 `/v1/sync-runs?limit=200`
+    // 返回的是**全量历史**。Owner 库里躺着 8 月 3–4 号那三次 `status=failed`。
+    //
+    // 后果卡在最难堪的位置上：这一整段只在**有账号连着**时才走到
+    // （下面 `!connected` 那一支提前 return）。也就是说他**重新连上账号的那一刻**，
+    // 顶部立刻拿六天前那批 run 说话——他刚点成功，先被告知出事了。
+    //
+    // 正确的口径这一页本来就有：`latestRunFor(accountId)`（按 updated_at 倒序取第一条），
+    // 账号表用的就是它。**一页之内两个口径**，而这个仓在「同一件事两处给相反答案」
+    // 上栽过。跑着的那一次天然就是最近的，所以 active 一并收进同一个口径。
+    const latestRuns = state.accounts.map(item => latestRunFor(item.id)).filter(Boolean);
+    const active = latestRuns.filter(item => ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(item.status));
+    const failures = latestRuns.filter(item => ["failed", "blocked_environment"].includes(item.status));
     // **「已连接」不等于「同步得动」。**
     //
     // Owner 有三个已连接账号（小红书/抖音/B站），顶部却写着「3 个账号已连接」，
@@ -696,9 +709,27 @@
       // 不只说"有几个失败了"，把**为什么**说出来（T14 / INV-NO-SILENT-ZERO）。
       const worst = failures.find(run => run.last_error_code) || failures[0];
       const label = platformMeta[serverToUiPlatform[worst?.platform]]?.label || "";
-      const sentence = failureSentence(worst?.last_error_code, label, worst?.imported_count);
+      // **服务端已经把这句话算好发过来了，别再自己查一遍词典。**（2026-08-10）
+      //
+      // 这里原来直接调 `failureSentence()`，也就是查 PWA 自己那张表
+      // （`failureCopy` 11 条 + `failureAliases` 45 条）。而 Owner 真撞到过的
+      // 五个码里**有三个两张表都没有**：`RELATION_SCOPE_UNCONFIRMED`（8 次）、
+      // `SYNC_RUN_ABANDONED`（3 次）、`STABLE_END_WITHOUT_PROOF`（2 次）——
+      // 他 20 次同步里的 13 次。查不到就落到兜底那句：
+      //
+      //     「这次没有取到任何内容，而且我们没能记录下原因。」
+      //
+      // **两句都假。** 那批 run 入过库（其中一次入了 35 条）；原因白纸黑字记在
+      // `last_error_code` 里，服务端 `_explain_sync_run` 还算好了正确的一句
+      // 一起下发：「这次同步卡住了，没有正常结束。你已经取到的内容都还在。」
+      //
+      // `runSentence()` 第一行就是 `if (run.message_zh) return run.message_zh;`，
+      // 账号表一直走的是它——**同一页对同一次同步给了两个答案**。
+      // 补三条进本地表治不了本：真源在服务端（failure_copy.py 的注释自己写着
+      // 「在这里算一次，两边都拿得到，且词典只有一处真源」），下次再加码还会漏。
+      const sentence = runSentence(worst, label);
       $("syncSummaryText").textContent = sentence
-        ? ` · ${sentence.text}${failures.length > 1 ? `（另有 ${failures.length - 1} 个账号也需要处理，其他不受影响）` : ""}`
+        ? ` · ${sentence}${failures.length > 1 ? `（另有 ${failures.length - 1} 个账号也需要处理，其他不受影响）` : ""}`
         : ` · ${failures.length} 个账号需要重新连接，其他账号不受影响`;
     } else {
       const lastSync = state.accounts.map(item => item.last_sync_at).filter(Boolean).sort().at(-1);

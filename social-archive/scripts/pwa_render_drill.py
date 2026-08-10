@@ -307,6 +307,7 @@ async def run(chrome: str) -> int:
             result = await rpc("Runtime.evaluate", {"expression": READ_DOM, "returnByValue": True})
             guide_reading = None
             disconnected_reading = None
+            reconnected_reading = None
             payload = result.get("result", {})
             if payload.get("exceptionDetails"):
                 measured = {"error": str(payload["exceptionDetails"])[:300]}
@@ -339,6 +340,46 @@ async def run(chrome: str) -> int:
                 summary: (document.getElementById("syncSummaryText")||{}).textContent||"",
               })""", "returnByValue": True})
             disconnected_reading = json.loads(got["result"]["result"]["value"])
+
+            # **他重新连上账号的那一刻，顶部那一条会说什么。**（2026-08-10）
+            #
+            # 那一整段只在「有账号连着」时才走到，所以他一连成功就会撞上它。
+            # 而它挑的是全量历史里的失败 run——Owner 库里躺着 8 月 3–4 号那三次
+            # `status=failed`，错误码 `SYNC_RUN_ABANDONED` 在 PWA 本地词典里
+            # **查不到**，于是落到兜底那句「没有取到任何内容…没能记录下原因」。
+            # 两句都假：那批 run 入过库，原因也记着，服务端还把正确的一句
+            # （message_zh）一起下发了。
+            #
+            # 判据在源码层已经有一道（test_the_top_line_uses_the_sentence_the_server_computed），
+            # 但**源码层通过不算数**——这里要看那一行真渲染成什么。
+            FAKE["/v1/accounts"] = {                      # PWA_RENDER_FIXTURE
+                "items": [{"id": "acct_bili", "platform": "bilibili",
+                           "display_name": "B站", "connection_state": "connected",
+                           "auto_sync_enabled": True, "last_sync_at": "",
+                           "content_count": 103}],
+                "supported_platforms": FAKE["/v1/accounts"]["supported_platforms"],
+            }
+            FAKE["/v1/sync-runs"] = {"items": [{
+                "id": "sync_old", "source_account_id": "acct_bili",
+                "platform": "bilibili", "status": "failed",
+                "last_error_code": "SYNC_RUN_ABANDONED",
+                "imported_count": 35, "discovered_count": 35,
+                "updated_at": "2026-08-04T08:06:00Z",
+                # 服务端算好的那一句，照 failure_copy.py 的原话。
+                "message_zh": "这次同步卡住了，没有正常结束。你已经取到的内容都还在。",
+                "action_zh": "重试", "outcome": "incomplete",
+            }]}
+            await rpc("Page.navigate", {"url": f"http://127.0.0.1:{PORT}/"})
+            await asyncio.sleep(3)
+            got = await rpc("Runtime.evaluate", {"expression": r"""
+              JSON.stringify({
+                strip: (document.getElementById("syncSummaryText") || {}).textContent || "",
+                head: (document.getElementById("connectedAccountCount") || {}).textContent || "",
+              })""", "returnByValue": True})
+            reconnect_payload = got.get("result", {})
+            reconnected_reading = ({"error": str(reconnect_payload["exceptionDetails"])[:200]}
+                                   if reconnect_payload.get("exceptionDetails")
+                                   else json.loads(reconnect_payload["result"]["value"]))
 
             # **顺路把使用说明那一页也打开看一眼。**
             #
@@ -501,6 +542,23 @@ async def run(chrome: str) -> int:
                 f"首行还是「{count_line}」——真话，但对他没用："
                 "他有三个账号躺在那儿，这一行该说的是那件事")
 
+    # 他重新连上之后那一屏（2026-08-10）
+    if not reconnected_reading:
+        problems.append("**「刚重新连上」那一屏没量到**——这不是通过。")
+    elif reconnected_reading.get("error"):
+        problems.append(f"「刚重新连上」那一屏读失败：{reconnected_reading['error']}")
+    else:
+        strip = reconnected_reading.get("strip", "")
+        if "没能记录下原因" in strip or "没有取到任何内容" in strip:
+            problems.append(
+                f"**他刚连成功，顶部就对他说了两句假话**：{strip!r}——"
+                "那批 run 入过库（35 条），原因也记在 last_error_code 里，"
+                "服务端还把正确的一句（message_zh）一起发过来了，是这一页自己丢掉的")
+        if "这次同步卡住了" not in strip:
+            problems.append(
+                f"顶部没用服务端算好的那句话：{strip!r}——"
+                "本地词典少了他真撞到过的三个码，绕过 runSentence 就会漏")
+
     # 使用说明那一页
     if guide_reading is None:
         problems.append("**使用说明那一页没量到**——这不是通过。")
@@ -532,6 +590,7 @@ async def run(chrome: str) -> int:
         # 我自己就先按一个不存在的键去读，读出 null 还以为是没量到。
         "guide_page": guide_reading,
         "all_accounts_disconnected": disconnected_reading,
+        "just_reconnected": reconnected_reading,
         "rendered_text": text[:400],
         # 同步中心那句限定语，**照原样印出来**：它是这次要亲眼看见的东西之一。
         "sync_centre_header": str(measured.get("syncHeader") or "").replace("\n", " ")[:200],
