@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_31_BROWSERLESS_AUTH_PREFLIGHT",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "sites_version_number": 31,
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "public_audience_changed": false
+  },
+  "browserless_entry_probe": {
+    "request_method": "GET",
+    "requests_sent_without_credentials": true,
+    "browser_or_sites_bypass_used": false,
+    "cookie_or_storage_used": false,
+    "sign_up_route_status": 401,
+    "sign_in_route_status": 401,
+    "forgot_password_route_status": 401,
+    "public_config_route_status": 401,
+    "unauthenticated_profile_route_status": 401,
+    "public_config_json_readable": false,
+    "turnstile_site_key_observed_from_current_live_public_config": false,
+    "turnstile_site_key_unobserved_reason": "PRIVATE_SITE_ACCESS_GATE",
+    "response_bodies_headers_or_redirect_targets_recorded": false
+  },
+  "local_auth_contract": {
+    "email_sign_up_sign_in_and_reset_request_require_natural_turnstile_response": true,
+    "browserless_captcha_response_forged_or_reused": false
+  },
+  "controlled_mailbox_preflight": {
+    "gmail_connector_readable": true,
+    "gmail_profile_values_retained_in_evidence": false,
+    "mailbox_content_search_or_read_performed": false,
+    "mailbox_write_performed": false
+  },
+  "result": {
+    "safe_browserless_email_auth_submission_available": false,
+    "current_v31_email_registration_verification_reset_signin_proven": false,
+    "current_v31_google_callback_and_session_proven": false,
+    "interpretation": "The current private access gate returned an unauthenticated response for every tested entry route, including public configuration. The controlled mailbox connector is available, but a browserless probe has neither an authorized Sites session nor a naturally rendered Turnstile response. No account creation or authentication submission was attempted. This establishes an access prerequisite, not an application authentication failure or a product-acceptance pass."
+  },
+  "scope_and_cleanup": {
+    "temporary_application_account_created": false,
+    "browser_cookie_or_storage_inspected": false,
+    "runtime_values_read_or_changed": false,
+    "d1_or_r2_resource_configuration_changed": false,
+    "access_policy_or_public_audience_changed": false,
+    "real_user_business_data_read_or_written": false,
+    "github_uploaded": false
+  },
+  "local_validation": {
+    "lint": "PASS",
+    "release_evidence": "PASS_47_OF_47",
+    "release_verifier": "PASS_BUILD_LAST_MILE_READINESS",
+    "diff_check": "PASS"
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}

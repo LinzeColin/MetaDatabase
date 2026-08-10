@@ -681,6 +681,49 @@ test("Version 31 email browser boundary retains no mailbox, account, or navigati
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 31 browserless auth preflight retains no access, mailbox, or captcha material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_31_browserless_auth_preflight.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 31);
+  assert.equal(evidence.candidate.site_active, true);
+  assert.equal(evidence.candidate.current_user_role, "owner");
+  assert.equal(evidence.candidate.access_mode, "custom");
+  assert.equal(evidence.candidate.allowed_user_count, 1);
+  assert.equal(evidence.candidate.allowed_group_count, 0);
+  assert.equal(evidence.candidate.external_visitor_count, 0);
+  assert.equal(evidence.browserless_entry_probe.requests_sent_without_credentials, true);
+  assert.equal(evidence.browserless_entry_probe.browser_or_sites_bypass_used, false);
+  assert.equal(evidence.browserless_entry_probe.cookie_or_storage_used, false);
+  assert.equal(evidence.browserless_entry_probe.sign_up_route_status, 401);
+  assert.equal(evidence.browserless_entry_probe.sign_in_route_status, 401);
+  assert.equal(evidence.browserless_entry_probe.forgot_password_route_status, 401);
+  assert.equal(evidence.browserless_entry_probe.public_config_route_status, 401);
+  assert.equal(evidence.browserless_entry_probe.unauthenticated_profile_route_status, 401);
+  assert.equal(evidence.browserless_entry_probe.public_config_json_readable, false);
+  assert.equal(evidence.browserless_entry_probe.turnstile_site_key_observed_from_current_live_public_config, false);
+  assert.equal(evidence.local_auth_contract.email_sign_up_sign_in_and_reset_request_require_natural_turnstile_response, true);
+  assert.equal(evidence.local_auth_contract.browserless_captcha_response_forged_or_reused, false);
+  assert.equal(evidence.controlled_mailbox_preflight.gmail_connector_readable, true);
+  assert.equal(evidence.controlled_mailbox_preflight.gmail_profile_values_retained_in_evidence, false);
+  assert.equal(evidence.controlled_mailbox_preflight.mailbox_content_search_or_read_performed, false);
+  assert.equal(evidence.controlled_mailbox_preflight.mailbox_write_performed, false);
+  assert.equal(evidence.result.safe_browserless_email_auth_submission_available, false);
+  assert.equal(evidence.result.current_v31_email_registration_verification_reset_signin_proven, false);
+  assert.equal(evidence.scope_and_cleanup.temporary_application_account_created, false);
+  assert.equal(evidence.scope_and_cleanup.browser_cookie_or_storage_inspected, false);
+  assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 31 Google browser boundary retains no account, session, or navigation material", async () => {
   const evidence = JSON.parse(
     await readFile(
