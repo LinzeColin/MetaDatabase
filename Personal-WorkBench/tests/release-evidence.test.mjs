@@ -484,6 +484,38 @@ test("Version 30 generic outbox deployment retains privacy and current-version b
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 30 email browser boundary retains no mailbox, account, or navigation material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_30_email_browser_navigation_boundary.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 30);
+  assert.equal(evidence.controlled_browser_attempt.fresh_agent_test_tab_created, true);
+  assert.equal(evidence.controlled_browser_attempt.target_route, "/auth/sign-up");
+  assert.equal(evidence.controlled_browser_attempt.navigation_completed, false);
+  assert.equal(evidence.controlled_browser_attempt.signup_page_rendered, false);
+  assert.equal(evidence.controlled_browser_attempt.navigation_security_boundary_observed, true);
+  assert.equal(evidence.controlled_browser_attempt.navigation_failure_cause_determined, false);
+  assert.equal(evidence.controlled_browser_attempt.retry_or_browser_switch_used_to_bypass_boundary, false);
+  assert.equal(evidence.controlled_browser_attempt.bypass_token_generated_or_used, false);
+  assert.equal(evidence.controlled_browser_attempt.account_or_email_entered, false);
+  assert.equal(evidence.controlled_browser_attempt.credential_entered, false);
+  assert.equal(evidence.scope_and_cleanup.mailbox_content_or_identity_recorded, false);
+  assert.equal(evidence.scope_and_cleanup.mailbox_search_or_read_in_this_increment, false);
+  assert.equal(evidence.scope_and_cleanup.browser_cookie_or_storage_inspected, false);
+  assert.equal(evidence.scope_and_cleanup.temporary_test_tab_finalized, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_application_account_created, false);
+  assert.equal(evidence.result.current_v30_email_registration_verification_reset_signin_proven, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 29 Google browser boundary retains no account or browser material", async () => {
   const evidence = JSON.parse(
     await readFile(
