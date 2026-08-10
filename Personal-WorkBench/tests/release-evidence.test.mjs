@@ -474,6 +474,33 @@ test("Version 29 Google browser boundary retains no account or browser material"
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 29 storage-mapping boundary retains no physical resource or provider material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_29_storage_mapping_read_only_boundary.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 29);
+  assert.equal(evidence.sites_control_plane.logical_d1_binding_name_present, true);
+  assert.equal(evidence.sites_control_plane.logical_r2_binding_name_present, true);
+  assert.equal(evidence.sites_control_plane.physical_d1_identifier_exposed, false);
+  assert.equal(evidence.sites_control_plane.physical_r2_identifier_exposed, false);
+  assert.equal(evidence.catalogue_probe.wrangler_identity_authenticated, true);
+  assert.equal(evidence.catalogue_probe.d1_catalogue_accessible, false);
+  assert.equal(evidence.catalogue_probe.r2_catalogue_accessible, false);
+  assert.equal(evidence.catalogue_probe.physical_identifiers_recorded, false);
+  assert.equal(evidence.result.direct_d1_r2_reconciliation_proven, false);
+  assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("database_id"), false);
+  assert.equal(serialized.includes("bucket_name"), false);
+  assert.equal(serialized.includes("Bearer "), false);
+  assert.equal(serialized.includes("@"), false);
+});
+
 test("Version 28 email-password recovery replay retains no temporary credentials", async () => {
   const evidence = JSON.parse(
     await readFile(

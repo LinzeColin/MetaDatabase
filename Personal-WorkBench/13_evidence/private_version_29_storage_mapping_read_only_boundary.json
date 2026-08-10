@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_29_STORAGE_MAPPING_READ_ONLY_BOUNDARY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "deployed_product_source_commit": "996a75ce2e02e3275cdf34b9847ef7153f43cf4e",
+    "sites_source_commit": "3a73f4a9b342ba3d6fe56f3a2539250e91980e67",
+    "sites_version_number": 29,
+    "private_access_remained_owner_custom": true,
+    "public_audience_changed": false
+  },
+  "sites_control_plane": {
+    "logical_d1_binding_name_present": true,
+    "logical_r2_binding_name_present": true,
+    "physical_d1_identifier_exposed": false,
+    "physical_r2_identifier_exposed": false,
+    "runtime_values_read": false
+  },
+  "runtime_probe_context": {
+    "version_27_data_free_binding_health_exists": true,
+    "d1_constant_query_proved_logical_availability": true,
+    "r2_random_key_head_proved_logical_availability": true,
+    "this_read_only_mapping_check_did_not_run_sql": true,
+    "this_read_only_mapping_check_did_not_list_or_read_r2_objects": true
+  },
+  "catalogue_probe": {
+    "wrangler_available": true,
+    "wrangler_identity_authenticated": true,
+    "d1_catalogue_read_attempted": true,
+    "r2_catalogue_read_attempted": true,
+    "d1_catalogue_accessible": false,
+    "r2_catalogue_accessible": false,
+    "catalogue_entry_counts_recorded": false,
+    "provider_error_output_recorded": false,
+    "physical_identifiers_recorded": false
+  },
+  "result": {
+    "safe_sites_to_physical_d1_mapping": false,
+    "safe_sites_to_physical_r2_mapping": false,
+    "direct_d1_r2_reconciliation_proven": false,
+    "reason": "The current Sites control plane exposes logical binding names only, while the current authenticated CLI catalogue calls were not accessible. Without a provider-issued binding-to-resource mapping, selecting an unrelated physical resource would be an unsafe inference."
+  },
+  "scope_and_cleanup": {
+    "real_user_business_data_read_or_written": false,
+    "runtime_or_access_policy_changed": false,
+    "d1_or_r2_resource_configuration_changed": false,
+    "r2_objects_written_or_deleted": false,
+    "public_audience_changed": false,
+    "github_uploaded": false
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false,
+  "not_proven": [
+    "Physical D1 resource mapping",
+    "Physical R2 resource mapping",
+    "Record or object reconciliation",
+    "Physical second-device history readback",
+    "A successful current Version 29 Google OAuth callback and session",
+    "Public product acceptance"
+  ]
+}
