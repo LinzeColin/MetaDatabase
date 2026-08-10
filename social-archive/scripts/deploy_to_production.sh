@@ -354,6 +354,26 @@ if [[ -n "$DRIFT" ]]; then
 fi
 printf '  所有 systemd 单元与仓里一致。\n'
 
+step "3.6) 我要部署的这台，是不是他打得到的那台"
+# **2026-08-10 之前没有这一步，代价是一天三次部署一次都没到他手上。**
+#
+#     从 Owner 的 Mac 打公开域名 → 0.0.0.25，disk.total 95.82G
+#     ssh 到这里打回环           → 0.0.0.27，disk.total 38.00G
+#
+# 同一个域名两台机器。而第 7 / 8 / 8.5 步那些「验收生产」**全站在这台机器上**，
+# 打的是它自己的回环——对「域名指到别处」结构上就是瞎的。
+#
+# 这一步必须在**本机**跑（不是 ssh 过去跑）：它要的就是「他所在的位置」那个视角。
+# 排在构建之前——建完一个镜像才发现部署错机器，那一趟全白跑。
+if ! .venv/bin/python scripts/check_i_am_deploying_to_the_machine_he_reaches.py \
+      --host "$HOST" > /tmp/sa_same_machine.$$ 2>&1; then
+  cat /tmp/sa_same_machine.$$ | sed 's/^/  /'
+  rm -f /tmp/sa_same_machine.$$
+  fail '部署目标和他真正连到的那台对不上（或判不了）——先把这件事弄清楚再部署。'
+fi
+sed -n 's/.*"message_zh": "\(.*\)".*/  \1/p' /tmp/sa_same_machine.$$ | head -1
+rm -f /tmp/sa_same_machine.$$
+
 step "3.7) 这次到底要不要重建镜像"
 # 2026-08-07：我连着两次改的只有文档、判据和演练（容器从来不跑它们），
 # 而部署照旧走到第 4 步「构建前先看磁盘」，被 4.38G < 5G 拦下中止——
