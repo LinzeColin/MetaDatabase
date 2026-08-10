@@ -225,7 +225,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
-  const PRODUCT_VERSION = "0.0.0.31";
+  const PRODUCT_VERSION = "0.0.0.32";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -1316,7 +1316,25 @@
         const status = run?.status || account.connection_state;
         const stateClass = ["connected", "completed"].includes(status) ? "connected" : ["failed", "blocked_environment"].includes(status) ? "error" : "scanning";
         let action = "";
-        if (run && ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(status)) {
+        // **断开的账号只有一件事做得成：连回来。**（2026-08-11）
+        //
+        // 这一条要摆在整条链最前面。原来它一条都没有，于是断开的账号落到最后
+        // 那个 else，画出一颗「立即同步」——而在真镜像上实测：
+        //
+        //     已连接   POST /v1/accounts/{id}/sync → 202，同步真的开始
+        //     已断开   POST /v1/accounts/{id}/sync → 422 {"detail":"账号尚未连接，请先完成授权"}
+        //
+        // Owner 现在正是这个状态：三个账号全 disconnected，抖音 86 条、
+        // B站 103 条那两行都画着「立即同步」。他点下去必然失败。
+        // 而同一屏顶部那句话写的是「重新连接一次就会继续同步」——
+        // **界面自己和自己打架，按钮指的还是错的那条路。**
+        //
+        // 上面 syncAllAccounts 早就按 connection_state 过滤了，只是行内这条链
+        // 从来没跟上；这就是「注释写对了规则、条件写窄了一档」的同一个形状。
+        // 断开状态下 pause/resume/retry 同样依赖一条活着的连接，所以整条链让位。
+        if (account.connection_state === "disconnected") {
+          action = `<button class="btn small" data-connect-platform="${server}">连接账号</button>`;
+        } else if (run && ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"].includes(status)) {
           action = `<button class="btn small" data-control-run="${escapeHtml(run.id)}" data-account-id="${escapeHtml(account.id)}" data-control-action="pause">暂停</button><button class="btn small subtle-danger" data-control-run="${escapeHtml(run.id)}" data-account-id="${escapeHtml(account.id)}" data-control-action="cancel">取消</button>`;
         } else if (run && status === "paused") {
           action = `<button class="btn small" data-control-run="${escapeHtml(run.id)}" data-account-id="${escapeHtml(account.id)}" data-control-action="resume">继续</button><button class="btn small subtle-danger" data-control-run="${escapeHtml(run.id)}" data-account-id="${escapeHtml(account.id)}" data-control-action="cancel">取消</button>`;
@@ -2229,7 +2247,7 @@
     }
     await loadLibrary();
     renderNextStep();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=0.0.0.31").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=0.0.0.32").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {
