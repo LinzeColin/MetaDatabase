@@ -675,12 +675,27 @@ if [[ -n "${SOCIAL_ARCHIVE_DEPLOY_BUILD_LOCALLY:-}" ]]; then
   tail -2 "$LOAD_LOG" | sed 's/^/    /'
   rm -f "$LOAD_LOG"
   rm -f "$IMAGE_TAR"
-  # **回读：主机上那份必须和本机这份是同一个镜像。**
-  LOCAL_ID="$(docker image inspect -f '{{.Id}}' "$IMAGE")"
-  REMOTE_ID="$(ssh -o ConnectTimeout=20 "$HOST" "docker image inspect -f '{{.Id}}' '$IMAGE'")"
-  [[ "$LOCAL_ID" == "$REMOTE_ID" ]] \
-    || fail "主机上那个镜像不是本机送过去的这份（本机 ${LOCAL_ID}，主机 ${REMOTE_ID}）。"
-  printf '  已核对：主机上的镜像 = 本机构建的那个（%s）。\n' "${LOCAL_ID#sha256:}" | cut -c1-64
+  # **回读：主机上那份必须和本机这份装着同样的东西。**
+  #
+  # 第一版比的是 `docker image inspect -f '{{.Id}}'`——**那个不能跨镜像库比**。
+  # 本机 Docker Desktop 用 containerd 镜像库、主机用经典 daemon，
+  # 同一份内容 load 完两边报的摘要就是不一样的：
+  #
+  #     本机 sha256:3e44f2cd…  主机 sha256:bc751892…
+  #
+  # 于是部署在「镜像已经送到、Loaded image 打出来了」之后被自己的判据拦下。
+  # **不是内容不对，是我拿两把不同的尺子在比。**
+  #
+  # 改成比内容：两边各在镜像里算一次 /app 的哈希。
+  # `-print0`/`sort -z`/`xargs -0` 是必须的——`scripts/同步到 Obsidian.command`
+  # 文件名里有空格，用普通 xargs 会把它拆成两段、两边一起静默跳过，
+  # **比出来仍然相等，但那是巧合式的相等**（第一次手工核对就撞上了这个）。
+  APP_DIGEST_CMD='find /app -type f -not -path "*/__pycache__/*" -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1'
+  LOCAL_APP="$(docker run --rm --platform "linux/${HOST_ARCH}" "$IMAGE" sh -c "$APP_DIGEST_CMD")"
+  REMOTE_APP="$(ssh -o ConnectTimeout=60 "$HOST" "sudo docker run --rm '$IMAGE' sh -c '$APP_DIGEST_CMD'")"
+  [[ -n "$LOCAL_APP" && "$LOCAL_APP" == "$REMOTE_APP" ]] \
+    || fail "主机上那个镜像装的东西和本机这份不一样（本机 ${LOCAL_APP}，主机 ${REMOTE_APP}）。"
+  printf '  已核对：主机镜像里的 /app 与本机构建的逐字节相同（%s）。\n' "${LOCAL_APP:0:16}"
   # **cli-tools 那个镜像不重造，但 compose 里的 tag 跟着版本号变了。**
   #
   # core-worker `depends_on: cli-tools`，所以 `up -d core-api core-worker`
