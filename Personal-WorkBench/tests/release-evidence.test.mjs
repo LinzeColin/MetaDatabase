@@ -614,6 +614,39 @@ test("Version 31 rollback and restore rehearsal retains no deployment or user ma
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 31 post-restore error check retains no worker log material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_31_post_restore_error_log_check.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 31);
+  assert.equal(evidence.candidate.rollback_restore_rehearsal_succeeded, true);
+  assert.equal(evidence.read_only_query.errors_only, true);
+  assert.equal(evidence.read_only_query.since_minutes, 10);
+  assert.equal(evidence.read_only_query.limit, 20);
+  assert.equal(evidence.read_only_query.worker_error_event_count, 0);
+  assert.equal(evidence.read_only_query.raw_log_messages_recorded, false);
+  assert.equal(evidence.read_only_query.request_identifiers_recorded, false);
+  assert.equal(evidence.read_only_query.route_or_user_data_recorded, false);
+  assert.equal(evidence.post_restore_control_plane.latest_saved_version_number, 31);
+  assert.equal(evidence.post_restore_control_plane.approved_version_source_matches_expected, true);
+  assert.equal(evidence.local_validation.lint, "PASS");
+  assert.equal(evidence.local_validation.release_evidence, "PASS_46_OF_46");
+  assert.equal(evidence.local_validation.release_verifier, "PASS_BUILD_LAST_MILE_READINESS");
+  assert.equal(evidence.local_validation.diff_check, "PASS");
+  assert.equal(evidence.result.post_restore_narrow_error_only_window_has_visible_p0, false);
+  assert.equal(evidence.result.current_v31_production_p0_absence_fully_proven, false);
+  assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 31 email browser boundary retains no mailbox, account, or navigation material", async () => {
   const evidence = JSON.parse(
     await readFile(
