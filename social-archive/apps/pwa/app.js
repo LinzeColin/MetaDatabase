@@ -225,7 +225,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
-  const PRODUCT_VERSION = "0.0.0.32";
+  const PRODUCT_VERSION = "0.0.0.33";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -1373,7 +1373,27 @@
           if (!["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting", "paused"].includes(status)) {
             action += `<button class="btn small danger" data-forget-account="${escapeHtml(account.id)}">删除并清空</button>`;
           }
-        rows.push(`<tr><td><div class="platform-cell">${platformLogo(key)}<div><div>${escapeHtml(account.display_name || account.external_account_id || platformMeta[key].label)}</div><span class="muted">${escapeHtml(platformMeta[key].label)}</span></div></div></td><td><div class="connection-status ${stateClass}"><span class="dot"></span>${escapeHtml(connectionLabels[status] || "状态未知" || "未知")}</div></td><td><strong style="color:var(--text)">${Number(account.content_count || 0).toLocaleString("zh-CN")}</strong> 条</td><td><div class="sync-progress"><div style="font-size:11px;color:var(--text-3)">${run ? `${imported}/${discovered || "…"} · ${connectionLabels[run.status] || "状态未知"}` : "首次同步尚未开始"}</div>${run && (run.last_error_code || run.outcome === "stalled") ? `<div class="muted" style="font-size:11px;margin-top:2px" data-failure-reason>${escapeHtml(runSentence(run, platformMeta[key].label))}</div>` : ""}<div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div></div></td><td>${escapeHtml(formatDate(account.last_sync_at, true))}</td><td><div class="sync-action-stack">${action}</div></td></tr>`);
+        // **说明和按钮必须指同一个地方。**（2026-08-11）
+        //
+        // 断开的账号这一格原来照旧渲染上一次失败的原因，而那句话里带着动作提示：
+        //
+        //     抖音  …  在你的浏览器里读 抖音 的页面时没能完成……然后点 [ 重试 ]。
+        //                                                        ↑ 这一行已经没有「重试」了
+        //
+        // 那颗按钮是这一版刚拿掉的（断开状态下点它服务端回 422）。留着这句话，
+        // 就成了「错误提示指向一个不存在的出口」——他会去找一颗找不到的按钮。
+        //
+        // 而且那个原因本来也过期了：他是 8/4 断开的，现在第一步就是重新授权，
+        // 不是去修当时那次扫描。所以断开时直接说这一件事，并且只说这一件。
+        const reason = account.connection_state === "disconnected"
+          ? `账号已断开——点这一行的「连接账号」重新授权一次就会继续同步；`
+            + `已存下的 ${Number(account.content_count || 0).toLocaleString("zh-CN")} 条一条不会少。`
+          : ((run && (run.last_error_code || run.outcome === "stalled"))
+              ? runSentence(run, platformMeta[key].label) : "");
+        const reasonCell = reason
+          ? `<div class="muted" style="font-size:11px;margin-top:2px" data-failure-reason>${escapeHtml(reason)}</div>`
+          : "";
+        rows.push(`<tr><td><div class="platform-cell">${platformLogo(key)}<div><div>${escapeHtml(account.display_name || account.external_account_id || platformMeta[key].label)}</div><span class="muted">${escapeHtml(platformMeta[key].label)}</span></div></div></td><td><div class="connection-status ${stateClass}"><span class="dot"></span>${escapeHtml(connectionLabels[status] || "状态未知" || "未知")}</div></td><td><strong style="color:var(--text)">${Number(account.content_count || 0).toLocaleString("zh-CN")}</strong> 条</td><td><div class="sync-progress"><div style="font-size:11px;color:var(--text-3)">${run ? `${imported}/${discovered || "…"} · ${connectionLabels[run.status] || "状态未知"}` : "首次同步尚未开始"}</div>${reasonCell}<div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div></div></td><td>${escapeHtml(formatDate(account.last_sync_at, true))}</td><td><div class="sync-action-stack">${action}</div></td></tr>`);
       }
     }
     $("syncTableBody").innerHTML = rows.join("");
@@ -2247,7 +2267,7 @@
     }
     await loadLibrary();
     renderNextStep();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=0.0.0.32").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=0.0.0.33").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {

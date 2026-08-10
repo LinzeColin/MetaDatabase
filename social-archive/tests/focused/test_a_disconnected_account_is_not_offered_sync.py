@@ -145,3 +145,31 @@ def test_the_delete_button_survives_this_change() -> None:
     """断开时那颗「删除并清空」还得在——他要靠它从零重来。"""
     html = _render([_account("disconnected")])
     assert "data-forget-account=" in html and "删除并清空" in html, html[:500]
+
+
+def test_the_reason_line_points_at_the_button_that_exists() -> None:
+    """**错误提示不许指向一个不存在的出口。**（2026-08-11）
+
+    上一版拿掉「立即同步/重试」之后，这一格还在照旧渲染上次失败的原因，
+    而那句话自己带着动作提示：
+
+        抖音 … 在你的浏览器里读 抖音 的页面时没能完成……然后点 [ 重试 ]。
+                                                       ↑ 这一行已经没有这颗按钮了
+
+    是从生产回读那一屏时看见的——**我自己上一版改出来的**。
+    """
+    html = _render([_account("disconnected")],
+                   [{"id": "run_1", "source_account_id": "acct_1", "status": "partial",
+                     "last_error_code": "BROWSER_SCAN_FAILED"}])
+    reason = html[html.index("data-failure-reason"):][:300]
+    assert "重试" not in reason, f"断开的账号还在让他去点一颗不存在的「重试」：{reason}"
+    assert "连接账号" in reason, f"没告诉他现在该点哪儿：{reason}"
+    assert "一条不会少" in reason, f"没说清内容还在，他会怕点了就没了：{reason}"
+
+
+def test_a_live_account_still_shows_why_it_failed() -> None:
+    """**反方向。** 连着的账号失败了，原因照旧要说出来——别为了上面那条把它抹掉。"""
+    html = _render([_account("connected")],
+                   [{"id": "run_1", "source_account_id": "acct_1", "status": "partial",
+                     "last_error_code": "BROWSER_SCAN_FAILED"}])
+    assert "data-failure-reason" in html, f"连着的账号失败了却不说原因：{html[:400]}"

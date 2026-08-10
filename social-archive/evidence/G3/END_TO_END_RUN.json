@@ -19,28 +19,28 @@
     },
     "tabs_before": [
       {
-        "id": 1472795452,
+        "id": 624313849,
         "active": false
       },
       {
-        "id": 1472795453,
+        "id": 624313850,
         "active": false
       },
       {
-        "id": 1472795456,
+        "id": 624313853,
         "active": true
       }
     ],
-    "my_tab_id": 1472795456,
+    "my_tab_id": 624313853,
     "queue_before": [
       {
         "accountId": "acct-1",
-        "enqueuedAt": 1786399553374,
+        "enqueuedAt": 1786401947222,
         "profileUrl": "",
         "syncRunId": "run-1",
         "tabId": null,
         "triggerType": "first_connect",
-        "updatedAt": 1786399553374
+        "updatedAt": 1786401947222
       }
     ],
     "alarm_scheduled": true,
@@ -58,15 +58,15 @@
     "queue_after": [],
     "tabs_after": [
       {
-        "id": 1472795452,
+        "id": 624313849,
         "active": false
       },
       {
-        "id": 1472795453,
+        "id": 624313850,
         "active": false
       },
       {
-        "id": 1472795456,
+        "id": 624313853,
         "active": true
       }
     ],
@@ -116,7 +116,7 @@
     "metadata": {
       "auth_method": "browser_session",
       "verified_by": "bilibili_nav_api",
-      "extension_version": "0.0.0.31",
+      "extension_version": "0.0.0.32",
       "auto_sync_enabled": true,
       "sync_interval_minutes": 360
     }

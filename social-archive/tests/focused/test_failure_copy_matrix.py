@@ -671,6 +671,22 @@ def test_the_library_prefers_the_servers_sentence_over_its_own_dictionary() -> N
     assert body.index("run.message_zh") < body.index("failureSentence"), (
         "本地词典排在服务端前面——它会盖掉服务端刚写对的那句话"
     )
-    # 账号表那一行必须走这个入口，不能自己再拼一次
-    row = code.split("data-failure-reason", 1)[1][:200]
-    assert "runSentence(" in row, f"账号表那一行绕开了统一入口：{row[:120]}"
+    # 账号表那一行必须走这个入口，不能自己再查一遍词典。
+    #
+    # 2026-08-11 这条判据的**查法**改了一次（守的东西没改）。原来它按文本相邻
+    # 去查：`data-failure-reason` 后面 200 个字符里必须出现 `runSentence(`。
+    # 而那一格现在先算一个 `reason` 变量再插进去，`runSentence(` 挪到了上面几行——
+    # 判据打红，产品其实是对的。
+    #
+    # 挪它的理由本身也是一条判据（test_a_disconnected_account_is_not_offered_sync）：
+    # 断开的账号那一行现在不给「重试」了，而上一次失败的那句话里写着「点 [ 重试 ]」,
+    # 留着就是指向一个不存在的出口。所以断开时**故意**不用 runSentence 那句。
+    #
+    # 现在按「谁在算这一格」去查，不按相邻位置：
+    #   · 算 reason 的地方必须调 runSentence(（非断开那一支）
+    #   · 整个 renderSyncTable 里不许直接调 failureSentence(（那才是绕开入口）
+    table = code.split("function renderSyncTable", 1)[1].split("\n  function ", 1)[0]
+    assert "data-failure-reason" in table, "账号表不再渲染失败原因了——判据射程失效"
+    assert "runSentence(" in table, f"账号表那一行绕开了统一入口：{table[:200]}"
+    assert "failureSentence(" not in table, (
+        "账号表直接查了本地词典——服务端那句话会被盖掉")

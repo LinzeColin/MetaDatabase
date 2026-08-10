@@ -68,6 +68,13 @@ ACCOUNTS = {
 }
 
 FAKE: dict[str, dict] = {
+    # **`/health` 不能少。** 它不在 /v1/ 下，假服务端会 404 它，
+    # 于是 `loadHealth()` 抛错、右上角徽章变成「私人档案馆暂时不可用」——
+    # 那是**夹具的毛病**，而它看起来和一个真缺陷一模一样
+    # （2026-08-11 我照着它查了一轮才发现是自己少喂了一个路由）。
+    "/health": {"status": "ok", "version": "0.0.0.0", "minimum_extension_version": "0.0.0.0",
+                "worker": {"ever_seen": True, "alive": True}},
+    "/v1/storage/status": {"status": "ok", "replicas": []},
     "/v1/auth/me": {"id": "user_1", "email": "owner@example.com", "display_name": "Owner"},
     "/v1/accounts": ACCOUNTS,
     "/v1/sync-runs": {"items": []},
