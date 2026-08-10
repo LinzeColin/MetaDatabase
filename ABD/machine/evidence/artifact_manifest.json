@@ -1,5 +1,5 @@
 {
-  "file_count": 1097,
+  "file_count": 1100,
   "files": [
     {
       "bytes": 25,
@@ -4637,9 +4637,9 @@
       "sha256": "749569f373742b5ee02aec7b3ce4307d14c9e2359651817e82755e42f17f3a0f"
     },
     {
-      "bytes": 2542,
+      "bytes": 2940,
       "path": "runtime/host_bundle_contract.json",
-      "sha256": "a4757faa8357f43bbb3060505db5683acd77c2b62a4dd55dbd1a0c369d55c0f0"
+      "sha256": "0f5c82fb7a27cf2121c9fef21a78649d278726d81d79d9cd1c27d3988c06c50c"
     },
     {
       "bytes": 5643,
@@ -4652,6 +4652,11 @@
       "sha256": "5fadc7fe3e0d50bba3682c237f30c4066b29ab402e7cb9c6836087050c59224d"
     },
     {
+      "bytes": 702,
+      "path": "runtime/install_shadow_runtime_attestation.sh",
+      "sha256": "e1a833b364f29c32116a1abfb5004591bca7a55d749dc0fcb737d55c22d91a35"
+    },
+    {
       "bytes": 1994,
       "path": "runtime/provision_host_bundle.sh",
       "sha256": "5149a474db5b7feae39bcb17e77369ee4d5e6e0b93fc4abb8c104f5cb762d6f8"
@@ -4660,6 +4665,11 @@
       "bytes": 1506,
       "path": "runtime/release_contract.json",
       "sha256": "c7d22cac8facd371b2b111f0ff258877d037e6c4f0a9dbd2bd81d450a1085d1e"
+    },
+    {
+      "bytes": 8989,
+      "path": "runtime/shadow_runtime_attestation.py",
+      "sha256": "d164b4aa57517113117ac4fb7c72dea2a8f6b4dec3363681c02d4245b32f1475"
     },
     {
       "bytes": 64,
@@ -4675,6 +4685,11 @@
       "bytes": 6074,
       "path": "runtime_tests/test_runtime_server.py",
       "sha256": "61e3616de5b46162001b9c74539096e2940619148bc0441f65cb4dc72249c5d0"
+    },
+    {
+      "bytes": 6136,
+      "path": "runtime_tests/test_shadow_runtime_attestation.py",
+      "sha256": "9dc7eaedc1c3389a972b680a132aca48f366a226f8dd7035803f304922c2c9d2"
     },
     {
       "bytes": 1852,

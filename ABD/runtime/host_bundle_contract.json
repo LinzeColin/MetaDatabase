@@ -39,6 +39,16 @@
     "required_swap_entries": 0,
     "failure_mode": "FAIL_CLOSED_NO_SERVICE_START"
   },
+  "post_freeze_shadow_attestation": {
+    "script": "runtime/shadow_runtime_attestation.py",
+    "installer": "runtime/install_shadow_runtime_attestation.sh",
+    "execution": "ONE_SHOT_FIXED_LOOPBACK_ONLY",
+    "secret_values_read": false,
+    "config_or_secret_file_read": false,
+    "external_network_accessed": false,
+    "runtime_state_changed": false,
+    "real_time_soak_waited": false
+  },
   "forbidden_effects": {
     "boolean_semantics": "A true value means the named effect is forbidden in this phase, not that it was performed.",
     "create_runtime_secret_file": true,
