@@ -159,3 +159,21 @@ def test_the_badge_shows_which_extension_version_is_installed() -> None:
     blank = _paint({"health": {"version": "9.9.9.9", "worker": ALIVE},
                     "extension": {"detected": False, "compatible": False, "version": ""}})
     assert "插件 v" not in blank["text"], f"没装插件却显示了版本：{blank}"
+
+
+def test_a_modern_but_unpaired_extension_is_not_told_it_cannot_connect() -> None:
+    """**别用 `connectFrameUrl` 当「连不连得上」的判据。**（2026-08-10）
+
+    「下一步」卡片判的是 `!state.extension.connectFrameUrl`（有没有连接框），
+    那在它那个上下文里是对的。但徽章不能照抄：**新插件在还没配对时
+    这个字段同样是空的**，照抄会对连得上的人说「连不上」。
+
+    所以徽章判的是版本（`< 0.0.0.22` 才是真连不上那一档）。
+    这条判据钉住那个区别——照抄的话它会红。
+    """
+    out = _paint({"health": {"version": "9.9.9.9", "worker": ALIVE},
+                  "extension": {"detected": True, "compatible": True, "outdated": True,
+                                "version": "0.0.0.25", "connectFrameUrl": ""}})
+    for lie in ("连不上账号", "连不上", "无法连接"):
+        assert lie not in out["text"], (
+            f"新插件只是还没配对，却被说成「{lie}」：{out}")
