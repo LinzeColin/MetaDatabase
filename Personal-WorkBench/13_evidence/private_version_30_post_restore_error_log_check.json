@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_30_POST_RESTORE_ERROR_LOG_CHECK",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "sites_version_number": 30,
+    "sites_source_commit": "b736fcf5c90a0fcbcf80ad5cb3aecd909a32d895",
+    "rollback_restore_rehearsal_succeeded": true,
+    "private_access_remained_owner_custom": true,
+    "public_audience_changed": false
+  },
+  "read_only_query": {
+    "errors_only": true,
+    "since_minutes": 10,
+    "limit": 20,
+    "worker_error_event_count": 0,
+    "raw_log_messages_recorded": false,
+    "request_identifiers_recorded": false,
+    "route_or_user_data_recorded": false
+  },
+  "result": {
+    "post_restore_narrow_error_only_window_has_visible_p0": false,
+    "current_v30_production_p0_absence_fully_proven": false,
+    "interpretation": "The bounded post-restore error-only query returned no events. It supports a narrow no-visible-error observation only and does not replace full production E2E, a longer error-rate window, a fault-recovery replay, or the remaining S5-T3 core chains."
+  },
+  "scope_and_cleanup": {
+    "runtime_values_read": false,
+    "real_user_business_data_read_or_written": false,
+    "d1_or_r2_resource_configuration_changed": false,
+    "access_policy_or_public_audience_changed": false,
+    "github_uploaded": false
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
