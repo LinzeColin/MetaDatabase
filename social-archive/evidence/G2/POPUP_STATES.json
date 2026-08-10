@@ -1,5 +1,5 @@
 {
-  "status": "FAIL",
+  "status": "PASS",
   "measured_in_real_chrome": {
     "从没连过": {
       "title": "还没有连接平台账号",
@@ -9,7 +9,7 @@
     },
     "连过后来断了": {
       "title": "3 个账号已断开",
-      "copy": "已经存下的 190 条内容一条都没少。重新连接一次就会继续同步。",
+      "copy": "这些账号存下的 190 条内容一条都没少。重新连接一次就会继续同步。",
       "button": "重新连接账号",
       "accounts": "小 我 1 条 · 同步时间没有记录 未连接 抖 我的 86 条 · 同步时间没有记录 未连接 B B站账号 103 条 · 同步时间没有记录 未连接"
     },
@@ -21,12 +21,10 @@
     },
     "同步进度按钮": {
       "sidepanel_targets": [
-        "chrome-extension://fielbleimkjehdgkeemdndmmohpihhff/sidepanel.html"
+        "chrome-extension://dgokcninmmbpiipnihpcfbkgonbkjmbm/sidepanel.html"
       ]
     }
   },
-  "problems": [
-    "那句话说成了「你存的全部」：'已经存下的 190 条内容一条都没少。重新连接一次就会继续同步。'——它加的只是各账号名下的条数（手存的网页、没挂账号的都不算），和资料库那一页的总数对不上"
-  ],
+  "problems": [],
   "why_zh": "弹窗是他点插件图标看到的第一屏。三种状态各说各的话，**只验一种的话，一个把所有状态都写成同一句的实现也能过**。"
 }
