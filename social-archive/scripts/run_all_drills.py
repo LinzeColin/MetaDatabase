@@ -33,6 +33,14 @@ ROOT = Path(__file__).resolve().parents[1]
 ZERO_ARG = [
     "shipped_package_drill.py",
     "extension_update_in_place_drill.py",
+    # **他更新之前点「连接账号」会怎样**（2026-08-10）。
+    #
+    # 更新这件事上面那条已经验了；这一条验的是**他还没更新的时候**——
+    # 旧插件的权限申请在 service worker 里，那里任何权限都要不到，
+    # 点下去授权框根本不会弹。拦截是 2026-08-10 加的，而
+    # `grep -l outdated scripts/*_drill.py` 当时是空的：十六个演练没有一个走过它。
+    # 旧插件不是我捏的，是 git 里 v0.0.0.22 那份真实构建。
+    "stale_extension_is_blocked_drill.py",
     "extension_install_page_drill.py",
     "extension_save_page_drill.py",
     "extension_routing_drill.py",

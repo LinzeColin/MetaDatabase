@@ -33,7 +33,7 @@
     "metadata": {
       "auth_method": "browser_session",
       "verified_by": "list_shape_recognised",
-      "extension_version": "0.0.0.23",
+      "extension_version": "0.0.0.24",
       "auto_sync_enabled": true,
       "sync_interval_minutes": 360
     }
@@ -56,8 +56,8 @@
     "https://www.xiaohongshu.com/api/log",
     "https://www.xiaohongshu.com/api/config",
     "https://www.xiaohongshu.com/api/user",
-    "https://www.xiaohongshu.com/api/homefeed",
-    "https://www.xiaohongshu.com/api/collect/page"
+    "https://www.xiaohongshu.com/api/collect/page",
+    "https://www.xiaohongshu.com/api/homefeed"
   ],
   "recognised": "https://www.xiaohongshu.com/api/collect/page",
   "matched_path": "data.notes",

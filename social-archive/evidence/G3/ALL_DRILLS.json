@@ -18,19 +18,19 @@
     {
       "drill": "extension_install_page_drill.py",
       "status": "PASS",
-      "seconds": 38.6,
+      "seconds": 38.4,
       "problems": []
     },
     {
       "drill": "extension_save_page_drill.py",
       "status": "PASS",
-      "seconds": 6.1,
+      "seconds": 6.2,
       "problems": []
     },
     {
       "drill": "extension_routing_drill.py",
       "status": "PASS",
-      "seconds": 4.1,
+      "seconds": 4.2,
       "problems": []
     },
     {
@@ -42,7 +42,7 @@
     {
       "drill": "extension_capture_buffer_drill.py",
       "status": "PASS",
-      "seconds": 4.7,
+      "seconds": 4.8,
       "problems": []
     },
     {
@@ -54,7 +54,7 @@
     {
       "drill": "pwa_render_drill.py",
       "status": "PASS",
-      "seconds": 15.2,
+      "seconds": 15.1,
       "problems": []
     },
     {
@@ -66,19 +66,19 @@
     {
       "drill": "bilibili_end_to_end_drill.py",
       "status": "PASS",
-      "seconds": 24.7,
+      "seconds": 24.8,
       "problems": []
     },
     {
       "drill": "bilibili_acquisition_drill.py",
       "status": "PASS",
-      "seconds": 2.8,
+      "seconds": 1.7,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform xiaohongshu",
       "status": "PASS",
-      "seconds": 41.1,
+      "seconds": 41.0,
       "problems": []
     },
     {
@@ -90,7 +90,7 @@
     {
       "drill": "list_shape_end_to_end_drill.py --platform instagram",
       "status": "PASS",
-      "seconds": 41.4,
+      "seconds": 41.2,
       "problems": []
     },
     {

@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "old_build_commit": "043088a7b",
+  "old": {
+    "case": "old",
+    "extension_version": "0.0.0.22",
+    "toasts": [
+      "你装的是旧版插件，连接账号在旧版上不会成功——先更新插件（正在为你打开更新说明），更新后回到这里再点一次。"
+    ],
+    "install_tab_opened": true,
+    "connect_panel_open": false,
+    "dialog": "",
+    "error": ""
+  },
+  "new": {
+    "case": "new",
+    "extension_version": "0.0.0.24",
+    "toasts": [
+      "在这一页上点「连接账号」就行，不用跳走。"
+    ],
+    "install_tab_opened": false,
+    "connect_panel_open": true,
+    "dialog": "",
+    "error": ""
+  },
+  "problems": [],
+  "message_zh": "旧插件点「连接账号」会被当场拦住并送去更新说明；发布包不被拦，连接面板就地打开。",
+  "what_this_does_not_prove": "不是打生产：生产那一页在 Cloudflare Access 后面（实测 302），无头 Chrome 拿不到他的身份，也不该去绕。这里送的是 apps/pwa/ 里那几个真文件，而部署第 9 步已逐字节证明「仓 = 主机 = 镜像」。也不证明他点完之后连接**成功**——那要他自己在浏览器里选「允许」。"
+}

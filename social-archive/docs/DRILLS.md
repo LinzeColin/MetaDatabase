@@ -90,6 +90,7 @@ python scripts/<演练名>.py
 | `popup_states_drill.py` | 每次发布 | **弹窗那一屏在三种状态下各说什么**（从没连过 / 连过后来断了 / 连着）——他点插件图标看到的第一屏 |
 | `production_reachability_drill.py` | 每次发布 | **装上发布包的真 Chrome，够不够得着刚部署的那台生产**（唯一一个不做域名映射的演练；跑在部署之后） |
 | `extension_update_in_place_drill.py` | 每次发布 | 在原文件夹里覆盖再重载：ID 变不变、版本更不更新、已配对的凭据还在不在 |
+| `stale_extension_is_blocked_drill.py` | 每次发布 | **他更新之前**点「连接账号」拦不拦得住（旧插件用 git 里 v0.0.0.22 那份真实构建；正反两个方向都跑） |
 | `list_shape_end_to_end_drill.py` | 改到那条路时 | 不知道接口地址，能不能从页面自己发的响应里认出收藏列表（`--platform` 逐个平台跑） |
 | `bilibili_end_to_end_drill.py` | 改到那条路时 | 从连接账号到档案馆里真的出现条目，真 Chrome 里整条通不通 |
 | `bilibili_acquisition_drill.py` | **每次发布**（run_all_drills） | B 站收藏夹取数路真的读得到吗（打真接口） |

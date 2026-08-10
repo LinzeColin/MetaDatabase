@@ -18,7 +18,8 @@
     "pwa_render_drill.py",
     "restore_private_database_drill.py",
     "restore_runtime_db_drill.py",
-    "shipped_package_drill.py"
+    "shipped_package_drill.py",
+    "stale_extension_is_blocked_drill.py"
   ],
   "registry": "docs/DRILLS.md",
   "cadences": {
@@ -26,6 +27,7 @@
     "popup_states_drill.py": "每次发布",
     "production_reachability_drill.py": "每次发布",
     "extension_update_in_place_drill.py": "每次发布",
+    "stale_extension_is_blocked_drill.py": "每次发布",
     "list_shape_end_to_end_drill.py": "改到那条路时",
     "bilibili_end_to_end_drill.py": "改到那条路时",
     "bilibili_acquisition_drill.py": "**每次发布**（run_all_drills）",
@@ -59,7 +61,8 @@
     "pwa_render_drill.py",
     "restore_private_database_drill.py",
     "restore_runtime_db_drill.py",
-    "shipped_package_drill.py"
+    "shipped_package_drill.py",
+    "stale_extension_is_blocked_drill.py"
   ],
   "problems": [],
   "message_zh": "每个演练都有一条会触发它的路，或至少写清了什么时候跑。",
