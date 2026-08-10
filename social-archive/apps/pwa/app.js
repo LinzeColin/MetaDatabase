@@ -578,6 +578,33 @@
         run: async () => { if (await connectExtension()) { showToast("插件已连接。"); await refreshEverything(); } },
       },
       {
+        // **他手上那份连不了账号，而这张卡的全部作用就是说出第一件没做完的事。**（2026-08-10）
+        //
+        // 上一版这一档直接落到下面「连接一个能同步的来源」，那颗按钮是
+        // `openConnectPanel() || openSyncModal()`——旧插件拿不到面板，于是他被送进
+        // 同步中心，还得再点一次「重新连接」，才被 connectAccount 告知「你装的是旧版」。
+        // **卡片指的不是他的下一步**，而它存在的全部理由就是指出那一件事。
+        //
+        // 判的是**能力**不是版本号：`connectFrameUrl` 是旧插件握手回复里没有的字段
+        // （v0.0.0.22 的 manifest 里 web_accessible_resources 是 null，压根没有那一页）。
+        // connectAccount 那道拦截也是看面板拿不拿得到——两处同一个依据，不会漂。
+        //
+        // 已经连着能同步账号的人不打扰：旧插件照样同步得动，坏的只是"连账号"。
+        need: () => state.extension.detected && state.extension.compatible
+          && !state.extension.connectFrameUrl
+          && !state.accounts.some(item =>
+            ["connected", "degraded"].includes(item.connection_state)
+            && state.platformSupport[item.platform]?.sync_supported !== false),
+        title: "第 1 步：更新浏览器插件",
+        // **不许说「至少需要 v<下限>」。** 他装的是 v0.0.0.22、下限 v0.0.0.9——
+        // 22 比 9 大，那句话等于告诉他不用动。安装页上同一句话今天刚修过
+        // （`paintUpdate` 对两个调用方说同一句），这是同一种病的另一处。
+        why: `装着的是 v${state.extension.version || "未知"}，最新是 v${PRODUCT_VERSION}。`
+          + "现在也能保存和查看，但连接账号要更新之后才成。",
+        action: "去更新",
+        run: () => { location.href = "/extension-install"; },
+      },
+      {
         need: () => !state.accounts.some(item =>
           ["connected", "degraded"].includes(item.connection_state)
           && state.platformSupport[item.platform]?.sync_supported !== false),

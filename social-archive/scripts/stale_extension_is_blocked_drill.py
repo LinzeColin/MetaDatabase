@@ -228,6 +228,7 @@ async def _one_case(chrome: str, folder: Path, label: str, debug_port: int) -> d
     base = f"http://127.0.0.1:{debug_port}"
     result: dict = {"case": label, "extension_version": "", "toasts": [],
                     "install_tab_opened": False, "install_page_text": "",
+                    "next_step": {},
                     "connect_panel_open": False, "dialog": "", "error": ""}
     try:
         for _ in range(40):
@@ -294,6 +295,19 @@ async def _one_case(chrome: str, folder: Path, label: str, debug_port: int) -> d
                 if int(probe.get("result", {}).get("result", {}).get("value") or 0) > 0:
                     break
                 await asyncio.sleep(0.5)
+
+            # **那张「下一步」卡片对他说的是哪一件事。**（2026-08-10）
+            # 它的规则是「按顺序找出第一个没做完的事，只显示它」。
+            # 装着旧插件的人，第一件没做完的事是**更新**，不是连账号——
+            # 而上一版把他指去「连接一个能同步的来源」，那颗按钮在他那儿打不开面板。
+            card = await prpc("Runtime.evaluate", {"expression": '''(() => {
+                const pick = id => (document.getElementById(id) || {}).textContent || "";
+                return JSON.stringify({ title: pick("nextStepTitle"),
+                                        why: pick("nextStepWhy"),
+                                        action: pick("nextStepAction") });
+            })()''', "returnByValue": True})
+            result["next_step"] = json.loads(
+                card.get("result", {}).get("result", {}).get("value") or "{}")
 
             # **真的点下去**，带用户手势——权限申请那条路只在有手势时才成立。
             click = await prpc("Runtime.evaluate", {"expression": '''(() => {
@@ -417,6 +431,16 @@ async def run(chrome: str) -> int:
                 problems.append(
                     "那一页没说清**为什么**要更新（不是版本太低，是连接账号要最新的）——"
                     f"他读到的理由对不上他的处境：{page[:160]}")
+        card = stale.get("next_step") or {}
+        if "更新" not in str(card.get("title", "")):
+            problems.append(
+                f"**「下一步」那张卡没指出他真正的下一步**：{card}——"
+                "他装的是连不了账号的那一版，卡片却指他去连账号；"
+                "那颗按钮在他那儿打不开面板，他还得再撞一次才知道要更新")
+        if "至少需要" in str(card.get("why", "")):
+            problems.append(
+                f"卡片对高于下限的人说「至少需要 v…」：{card.get('why')}——"
+                "他装的是 v0.0.0.22、下限 v0.0.0.9，那句话等于告诉他不用动")
         if stale.get("dialog"):
             problems.append(
                 f"旧版这一侧弹了对话框「{stale['dialog']}」——那说明走的是"
@@ -438,6 +462,12 @@ async def run(chrome: str) -> int:
                 "「就地连接」这件事没成立，他还是得跳走")
         if fresh.get("install_tab_opened"):
             problems.append("新版也被送去了更新说明——它就是最新的那一版")
+        # **正例要给出不同的值。** 两边都报「去更新」的话，上面那条断言
+        # 什么也没在区分——这条演练自己就栽过一次恒真的可见性判据。
+        fresh_card = fresh.get("next_step") or {}
+        if "更新" in str(fresh_card.get("title", "")):
+            problems.append(
+                f"发布包自己也被卡片指去更新：{fresh_card}——那他更新完还是原地打转")
 
     report = {
         "status": "PASS" if not problems else "FAIL",
