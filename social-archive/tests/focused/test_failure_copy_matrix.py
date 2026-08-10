@@ -350,13 +350,28 @@ def test_pwa_asset_version_is_not_stale() -> None:
 
     实测踩到过：本地验 T14 时页面一直显示旧文案，就是 index.html 里
     `app.js?v=006-r1` 与 sw.js 的缓存名都还停在 v006。
-    发布后老用户会完全看不到 v0.0.0.7 的界面改动。
+
+    ## 2026-08-11：这条判据自己在替那个 bug 站岗
+
+    它原来写的是 `assert "social-archive-ui-v007" in sw`——
+    **要求缓存名永远停在 v007。** 于是从 v0.0.0.7 到 v0.0.0.29 这二十二版里，
+    谁真去升这个缓存名，这道门就打红谁；不升，它一直是绿的。
+    一道**只有保持不变才能通过**的「防止不变」判据。
+
+    实际后果：`0.0.0.29` 的「删除并清空」发上生产后，公网那份 `app.js`
+    仍是 137559 字节的旧文件（容器里 140335、`cf-cache-status: HIT`、`age: 3794`）。
+
+    改成跟着 `VERSION` 走——**它现在每一版都必须变，也每一版都能变绿。**
+    形制细节由 test_the_browser_gets_the_new_front_end.py 守。
     """
+    version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     for relative in ("apps/pwa/index.html", "apps/pwa/sw.js", "apps/pwa/app.js"):
         text = (ROOT / relative).read_text(encoding="utf-8")
-        assert "v=006" not in text, f"{relative} 的资源版本号还停在 v006"
+        stale = re.findall(r"\?v=(?!" + re.escape(version) + r")([^\"'\s>]+)", text)
+        assert not stale, f"{relative} 里还有不跟着版本走的资源戳：{sorted(set(stale))}"
     sw = (ROOT / "apps/pwa/sw.js").read_text(encoding="utf-8")
-    assert "social-archive-ui-v007" in sw, "service worker 缓存名还没升到 v007"
+    assert f"social-archive-ui-{version}" in sw, (
+        f"service worker 缓存名没跟到 {version}——不换代，老用户那份缓存就永远不换")
 
 
 # ── 词典必须被生产代码真的用上 ────────────────────────────────────

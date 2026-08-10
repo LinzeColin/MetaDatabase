@@ -51,7 +51,10 @@ def test_pwa_unified_library_has_feed_grid_detail_and_responsive_contract():
     # 筛选：至少要有关系/主题/日期这几维
     for control in ('relationFilter', 'topicFilter', 'dateFilter'):
         assert f'id="{control}"' in html, f'资料库缺少筛选控件 {control}'
-    assert 'href="/assets/favicon.svg"' in html
+    # 2026-08-11：favicon 也带上了 `?v=<版本>` 的缓存戳，所以这里只钉「有这个图标」。
+    # 戳本身由 test_the_browser_gets_the_new_front_end.py 单独守着
+    # （每个 /assets 引用都必须带、且等于当前版本）——那条才是防「发了到不了他浏览器」的。
+    assert 'href="/assets/favicon.svg' in html
 
     # 数据来源与详情入口
     assert '/v1/library?' in app and 'openDetail' in app

@@ -37,42 +37,46 @@ def test_pwa_routes_uninstalled_users_through_the_chinese_install_guide():
 
 
 def test_service_worker_replaces_the_stale_ui_cache_with_current_assets_immediately():
-    """v0.0.0.7：版本号从 006 移到 007。**守的原则没变**——
+    """缓存名与资源戳必须一起升，且 skipWaiting + clients.claim 让新版立刻接管，
+    否则回访用户拿到的还是旧 `app.js`。
 
-    缓存名与资源版本号必须随界面改动一起升，且 skipWaiting + clients.claim
-    要让新版立刻接管，否则回访用户拿到的还是旧 app.js。
+    实测踩过两次：
+    - v0.0.0.7 验 T14 时页面一直显示旧文案，就是这两处还停在 v006；
+    - **2026-08-11**：戳的形制是手写的 `v007-r2`，从建站起一次没动过。
+      于是 `0.0.0.29` 的「删除并清空」发上生产后，公网那份 `app.js` 仍是
+      137559 字节的旧文件（容器里 140335、`cf-cache-status: HIT`、`age: 3794`）。
+      **手写的版本，迟早停在某一版。** 现在它等于 `VERSION`，
+      由 `scripts/bump_version.py` 每次升版推动。
 
-    本轮实测踩到过：验 T14 时页面一直显示旧文案，就是这两处还停在 v006。
-    发布后老用户会完全看不到 v0.0.0.7 的界面改动——这是发布级问题，不是小事。
+    这条判据的形制随之改了，**守的东西一个没少**：
+    缓存名带版本、三个文件里的戳唯一且一致、SW 立刻接管、没有旧戳残留。
+    额外多守一条：戳必须等于当前 `VERSION`——不然「三处一致」可以三处一起旧。
     """
+    import re as _re
+
     index_html = (ROOT / "apps/pwa/index.html").read_text(encoding="utf-8")
     app_js = (ROOT / "apps/pwa/app.js").read_text(encoding="utf-8")
     service_worker = (ROOT / "apps/pwa/sw.js").read_text(encoding="utf-8")
-    # **不逐字钉死版本号。** 这个值本来就必须随每次界面改动而变，
-    # 钉死它只能证明「没人动过它」——而「没人动它」正是这条判据要防的那个 bug。
-    # （实测：补登录闸时把 r1 顶成 r2，这条判据反而报红。）
-    # 改成断言四处**互相一致**：缓存名、三处 ?v= 查询串必须是同一个版本。
-    import re as _re
+    version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 
-    cache_match = _re.search(r'const CACHE = "social-archive-ui-(v\d+-r\d+)";', service_worker)
+    cache_match = _re.search(r'const CACHE = "social-archive-ui-([^"]+)";', service_worker)
     assert cache_match, "sw.js 里找不到带版本的缓存名"
-    tag = cache_match.group(1).split("-", 1)[1]  # v007-r2 → r2
-    version = cache_match.group(1).replace("v0", "0").replace("-", "-")  # 仅用于报错信息
+    assert cache_match.group(1) == version, (
+        f"SW 缓存名是 {cache_match.group(1)}，而当前版本是 {version}——"
+        "名字不换代，老用户那份缓存就永远不换")
     assert "self.skipWaiting()" in service_worker
     assert "self.clients.claim()" in service_worker
     for text, name in ((index_html, "index.html"), (app_js, "app.js"), (service_worker, "sw.js")):
-        stamps = set(_re.findall(r"\?v=(00\d-r\d+)", text))
+        stamps = set(_re.findall(r"""\?v=([^"'\s>]+)""", text))
         assert stamps, f"{name} 里没有任何带版本的资源引用"
-        assert len(stamps) == 1, f"{name} 里混着多个版本戳 {sorted(stamps)}——总有一个资源不会刷新"
-        assert stamps.pop().endswith(tag), (
-            f"{name} 的资源版本戳与 sw.js 的缓存名（{cache_match.group(1)}）不一致，"
-            "会出现「缓存换了、资源没换」或反过来"
-        )
+        assert stamps == {version}, (
+            f"{name} 的资源戳是 {sorted(stamps)}，当前版本 {version}——"
+            "对不上就会出现「缓存换了、资源没换」或反过来")
     assert '"/home"' not in service_worker
     assert "/assets/app.js?v=" in service_worker
-    # 旧版本号不许残留在任何一处——留一处就等于那一个资源永远不刷新
+    # 旧形制的戳不许残留——留一处就等于那一个资源永远不刷新
     for text in (index_html, app_js, service_worker):
-        assert "v=006" not in text and "v005" not in text
+        assert not _re.search(r"\?v=00\d-r\d+", text), "还留着手写的 `00X-rN` 戳"
 
 
 def test_core_image_includes_only_the_fixed_extension_package():
