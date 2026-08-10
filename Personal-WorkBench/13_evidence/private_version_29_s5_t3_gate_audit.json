@@ -38,10 +38,10 @@
       "conclusion": "Logical binding availability cannot be promoted to physical mapping or record-object reconciliation."
     },
     "r009_saved_version_rollback_restore": {
-      "status": "PARTIAL",
+      "status": "PASS",
       "current_v29_private_deploy": "PASS",
-      "current_v29_rollback_then_restore": "NOT_RUN",
-      "conclusion": "Prior-version rollback drills do not prove the required V29 rollback and restore pair."
+      "current_v29_rollback_then_restore": "PASS_PRIVATE_VERSION_29_TO_28_TO_29_OWNER_ONLY",
+      "conclusion": "The current V29 rollback and restore pair is proven; the remaining frozen S5-T3 gates are still incomplete."
     },
     "r014_production_recovery": {
       "status": "PARTIAL",

@@ -516,10 +516,38 @@ test("Version 29 S5-T3 gate audit keeps current production proof distinct from h
   assert.equal(evidence.gate_assessment.r003_real_authentication.status, "PARTIAL");
   assert.equal(evidence.gate_assessment.r004_a_b_isolation.current_v29_physical_a_b_replay, "NOT_RUN");
   assert.equal(evidence.gate_assessment.r005_d1_r2_persistence.current_v29_physical_mapping_or_record_object_reconciliation, "NOT_PROVEN");
+  assert.equal(evidence.gate_assessment.r009_saved_version_rollback_restore.status, "PASS");
+  assert.equal(evidence.gate_assessment.r009_saved_version_rollback_restore.current_v29_rollback_then_restore, "PASS_PRIVATE_VERSION_29_TO_28_TO_29_OWNER_ONLY");
   assert.equal(evidence.gate_assessment.physical_second_device_history.status, "NOT_RUN");
   assert.equal(evidence.result.s5_t3_core_chains_all_pass, false);
   assert.equal(evidence.result.s5_t3_threshold_met, false);
   assert.equal(evidence.scope_and_cleanup.taskpack_source_modified, false);
+  assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
+test("Version 29 rollback and restore rehearsal retains no deployment or user material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_29_rollback_restore_rehearsal.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.approved_sites_version_number, 29);
+  assert.equal(evidence.candidate.previous_saved_sites_version_number, 28);
+  assert.equal(evidence.execution.private_deploy_previous_version_succeeded, true);
+  assert.equal(evidence.execution.private_restore_approved_version_succeeded, true);
+  assert.equal(evidence.post_restore_control_plane.latest_saved_version_number, 29);
+  assert.equal(evidence.post_restore_control_plane.approved_version_source_matches_expected, true);
+  assert.equal(evidence.post_restore_control_plane.external_visitor_count, 0);
+  assert.equal(evidence.result.current_v29_rollback_then_restore_proven, true);
+  assert.equal(evidence.execution.deployment_identifiers_recorded, false);
+  assert.equal(evidence.scope_and_cleanup.runtime_values_read, false);
   assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
   assert.equal(evidence.sensitive_values_recorded, false);
   assert.equal(serialized.includes("@"), false);
