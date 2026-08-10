@@ -1374,7 +1374,7 @@ def download_all_markdown() -> Response:
     root = settings.export_root / "markdown"
     if not root.is_dir():
         raise HTTPException(status_code=503,
-                            detail="还没有生成过 Markdown。到「自动导出」那一栏，把「Markdown」那个目的地打开并跑一次，再回来点这颗按钮就有了。")
+                            detail="还没有生成过 Markdown。到左边「自动导出」那一栏，找到 Markdown 那张卡片，先点「检查连接」；连上之后卡片上会出现「把没送过去的 N 条补上」，点它，再回来点这颗按钮就有了。")
     files = sorted(path for path in root.rglob("*.md") if path.is_file())
     if not files:
         raise HTTPException(status_code=503,
