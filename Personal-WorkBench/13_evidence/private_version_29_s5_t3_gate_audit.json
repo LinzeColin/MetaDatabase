@@ -23,8 +23,9 @@
       "status": "PARTIAL",
       "current_v29_google_callback_and_session": "NOT_PROVEN_ADMINISTRATIVE_POLICY_VERIFICATION_UNAVAILABLE_BEFORE_SIGNIN_RENDER",
       "email_registration_recovery_evidence": "PASS_PRIVATE_VERSION_28_NOT_RERUN_ON_V29",
+      "current_v29_email_browser_replay": "NOT_PROVEN_FRESH_AGENT_TEST_TAB_NAVIGATION_FAILED_BEFORE_SIGNUP_RENDER",
       "v28_to_v29_auth_surface_continuity": "PASS_SUPPORT_ONLY",
-      "conclusion": "The unchanged declared auth surface and local contract support V28 email-path continuity, but cannot satisfy the frozen current Saved Version real email and Google browser requirements."
+      "conclusion": "The unchanged declared auth surface and local contract support V28 email-path continuity. A current V29 email sign-up navigation attempt did not render a page and is unclassified, so it cannot satisfy the frozen current Saved Version real email or Google browser requirements."
     },
     "r004_a_b_isolation": {
       "status": "PARTIAL",

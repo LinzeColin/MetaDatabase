@@ -518,6 +518,10 @@ test("Version 29 S5-T3 gate audit keeps current production proof distinct from h
     evidence.gate_assessment.r003_real_authentication.v28_to_v29_auth_surface_continuity,
     "PASS_SUPPORT_ONLY",
   );
+  assert.equal(
+    evidence.gate_assessment.r003_real_authentication.current_v29_email_browser_replay,
+    "NOT_PROVEN_FRESH_AGENT_TEST_TAB_NAVIGATION_FAILED_BEFORE_SIGNUP_RENDER",
+  );
   assert.equal(evidence.gate_assessment.r004_a_b_isolation.current_v29_physical_a_b_replay, "NOT_RUN");
   assert.equal(evidence.gate_assessment.r005_d1_r2_persistence.current_v29_physical_mapping_or_record_object_reconciliation, "NOT_PROVEN");
   assert.equal(evidence.gate_assessment.r009_saved_version_rollback_restore.status, "PASS");
@@ -697,6 +701,37 @@ test("Version 29 auth-surface continuity keeps source support distinct from curr
   assert.equal(evidence.result.s5_t3_authentication_gate_satisfied, false);
   assert.equal(evidence.scope_and_cleanup.browser_or_mailbox_used_in_this_increment, false);
   assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
+test("Version 29 email browser boundary retains no mailbox, account, or navigation material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_29_email_browser_navigation_boundary.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 29);
+  assert.equal(evidence.controlled_browser_attempt.fresh_agent_test_tab_created, true);
+  assert.equal(evidence.controlled_browser_attempt.target_route, "/auth/sign-up");
+  assert.equal(evidence.controlled_browser_attempt.navigation_completed, false);
+  assert.equal(evidence.controlled_browser_attempt.signup_page_rendered, false);
+  assert.equal(evidence.controlled_browser_attempt.navigation_failure_cause_determined, false);
+  assert.equal(evidence.controlled_browser_attempt.retry_or_browser_switch_used_to_bypass_boundary, false);
+  assert.equal(evidence.controlled_browser_attempt.bypass_token_generated_or_used, false);
+  assert.equal(evidence.controlled_browser_attempt.account_or_email_entered, false);
+  assert.equal(evidence.controlled_browser_attempt.credential_entered, false);
+  assert.equal(evidence.scope_and_cleanup.mailbox_content_or_identity_recorded, false);
+  assert.equal(evidence.scope_and_cleanup.mailbox_search_or_read_in_this_increment, false);
+  assert.equal(evidence.scope_and_cleanup.browser_cookie_or_storage_inspected, false);
+  assert.equal(evidence.scope_and_cleanup.temporary_test_tab_finalized, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_application_account_created, false);
+  assert.equal(evidence.result.current_v29_email_registration_verification_reset_signin_proven, false);
   assert.equal(evidence.sensitive_values_recorded, false);
   assert.equal(serialized.includes("@"), false);
   assert.equal(serialized.includes("token="), false);

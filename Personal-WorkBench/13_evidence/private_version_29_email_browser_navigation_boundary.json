@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_29_EMAIL_BROWSER_NAVIGATION_BOUNDARY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "deployed_product_source_commit": "996a75ce2e02e3275cdf34b9847ef7153f43cf4e",
+    "sites_source_commit": "3a73f4a9b342ba3d6fe56f3a2539250e91980e67",
+    "sites_version_number": 29,
+    "private_access_remained_owner_custom": true,
+    "public_audience_changed": false
+  },
+  "controlled_browser_attempt": {
+    "fresh_agent_test_tab_created": true,
+    "target_route": "/auth/sign-up",
+    "navigation_completed": false,
+    "signup_page_rendered": false,
+    "page_content_inspected": false,
+    "navigation_failure_cause_determined": false,
+    "retry_or_browser_switch_used_to_bypass_boundary": false,
+    "bypass_token_generated_or_used": false,
+    "account_or_email_entered": false,
+    "credential_entered": false,
+    "raw_navigation_error_recorded": false
+  },
+  "scope_and_cleanup": {
+    "gmail_connector_availability_checked": true,
+    "mailbox_content_or_identity_recorded": false,
+    "mailbox_search_or_read_in_this_increment": false,
+    "browser_cookie_or_storage_inspected": false,
+    "temporary_test_tab_finalized": true,
+    "temporary_application_account_created": false,
+    "runtime_values_read_or_changed": false,
+    "d1_or_r2_resource_configuration_changed": false,
+    "access_policy_or_public_audience_changed": false,
+    "real_user_business_data_read_or_written": false,
+    "github_uploaded": false
+  },
+  "result": {
+    "current_v29_email_registration_verification_reset_signin_proven": false,
+    "interpretation": "A fresh isolated browser test tab did not reach the V29 email sign-up page. No cause is attributed because the raw navigation failure was not retained. This boundary cannot establish an email authentication pass or failure, and it does not replace the frozen current-version browser replay."
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
