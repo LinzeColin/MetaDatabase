@@ -514,6 +514,10 @@ test("Version 29 S5-T3 gate audit keeps current production proof distinct from h
   assert.equal(evidence.frozen_taskpack_binding.task_dag_sha256.length, 64);
   assert.equal(evidence.frozen_taskpack_binding.traceability_matrix_sha256.length, 64);
   assert.equal(evidence.gate_assessment.r003_real_authentication.status, "PARTIAL");
+  assert.equal(
+    evidence.gate_assessment.r003_real_authentication.v28_to_v29_auth_surface_continuity,
+    "PASS_SUPPORT_ONLY",
+  );
   assert.equal(evidence.gate_assessment.r004_a_b_isolation.current_v29_physical_a_b_replay, "NOT_RUN");
   assert.equal(evidence.gate_assessment.r005_d1_r2_persistence.current_v29_physical_mapping_or_record_object_reconciliation, "NOT_PROVEN");
   assert.equal(evidence.gate_assessment.r009_saved_version_rollback_restore.status, "PASS");
@@ -655,6 +659,44 @@ test("Version 28 Google replay policy boundary retains no provider or browser ma
   assert.equal(evidence.controlled_browser_replay.application_session_established, false);
   assert.equal(evidence.scope_and_cleanup.browser_cookie_or_storage_inspected, false);
   assert.equal(evidence.scope_and_cleanup.blank_browser_tab_finalized, true);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
+test("Version 29 auth-surface continuity keeps source support distinct from current browser E2E", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_29_auth_surface_continuity.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.current_sites_version_number, 29);
+  assert.equal(evidence.source_continuity.auth_surface_identical_within_declared_scope, true);
+  assert.deepEqual(evidence.source_continuity.auth_surface_changed_paths, []);
+  assert.equal(evidence.source_continuity.package_dependencies_identical, true);
+  assert.equal(evidence.source_continuity.package_dev_dependencies_identical, true);
+  assert.equal(evidence.current_local_auth_contract.status, "PASS_LOCAL_CONTRACT");
+  assert.equal(evidence.current_local_auth_contract.test_count, 19);
+  assert.equal(evidence.current_local_auth_contract.passed, 19);
+  assert.equal(evidence.controlled_prior_browser_e2e.version, 28);
+  assert.equal(
+    evidence.controlled_prior_browser_e2e.forgot_password_reset_delivery_new_password_signin_completed,
+    true,
+  );
+  assert.equal(evidence.current_v29_browser_e2e.email_registration_verification_reset_signin_replayed, "NOT_RUN");
+  assert.equal(
+    evidence.current_v29_browser_e2e.google_callback_and_session,
+    "NOT_PROVEN_ADMINISTRATIVE_POLICY_VERIFICATION_UNAVAILABLE_BEFORE_SIGNIN_RENDER",
+  );
+  assert.equal(evidence.result.current_v29_real_email_browser_e2e_proven, false);
+  assert.equal(evidence.result.current_v29_google_callback_and_session_proven, false);
+  assert.equal(evidence.result.s5_t3_authentication_gate_satisfied, false);
+  assert.equal(evidence.scope_and_cleanup.browser_or_mailbox_used_in_this_increment, false);
+  assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
   assert.equal(evidence.sensitive_values_recorded, false);
   assert.equal(serialized.includes("@"), false);
   assert.equal(serialized.includes("token="), false);

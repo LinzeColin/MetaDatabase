@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_29_AUTH_SURFACE_CONTINUITY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "previous_product_source_commit": "9585b448940fb4fd87b7ee7e07ce62a6ccb515b0",
+    "current_product_source_commit": "996a75ce2e02e3275cdf34b9847ef7153f43cf4e",
+    "previous_sites_source_commit": "43d9a697fd974e5a728470bf72b034b19b883187",
+    "current_sites_source_commit": "3a73f4a9b342ba3d6fe56f3a2539250e91980e67",
+    "current_sites_version_number": 29,
+    "private_access_remained_owner_custom": true,
+    "public_audience_changed": false
+  },
+  "source_continuity": {
+    "comparison_scope": "Declared authentication surface: app/auth, app/api/auth, app/account, server/auth, server/http, server/security, types/runtime-bindings.d.ts, and middleware.ts.",
+    "auth_surface_changed_paths": [],
+    "auth_surface_identical_within_declared_scope": true,
+    "package_dependencies_identical": true,
+    "package_dev_dependencies_identical": true,
+    "changed_package_scripts": [
+      "test:workbench-data"
+    ],
+    "current_increment_scope": "Account-scoped device-local records, outbox behavior, workbench feedback, and todo date pattern only."
+  },
+  "current_local_auth_contract": {
+    "status": "PASS_LOCAL_CONTRACT",
+    "better_auth_version": "1.6.25",
+    "test_count": 19,
+    "passed": 19,
+    "failed": 0,
+    "coverage_summary": "Email sign-up and reset callbacks, verified tenant guard, same-origin mutation and sign-out, trusted origins, rate-limit neutrality, and MailPort fail-closed behavior."
+  },
+  "controlled_prior_browser_e2e": {
+    "version": 28,
+    "email_registration_verification_initial_signin_completed": true,
+    "forgot_password_reset_delivery_new_password_signin_completed": true,
+    "interpretation": "The prior controlled temporary-email path is real browser evidence for Version 28 only."
+  },
+  "current_v29_browser_e2e": {
+    "email_registration_verification_reset_signin_replayed": "NOT_RUN",
+    "google_callback_and_session": "NOT_PROVEN_ADMINISTRATIVE_POLICY_VERIFICATION_UNAVAILABLE_BEFORE_SIGNIN_RENDER",
+    "interpretation": "Static continuity and the local contract support, but do not replace, a current Version 29 browser replay."
+  },
+  "scope_and_cleanup": {
+    "browser_or_mailbox_used_in_this_increment": false,
+    "browser_cookie_or_storage_inspected": false,
+    "runtime_values_read_or_changed": false,
+    "d1_or_r2_resource_configuration_changed": false,
+    "access_policy_or_public_audience_changed": false,
+    "real_user_business_data_read_or_written": false,
+    "github_uploaded": false
+  },
+  "result": {
+    "v28_email_e2e_has_source_continuity_to_v29": true,
+    "current_v29_real_email_browser_e2e_proven": false,
+    "current_v29_google_callback_and_session_proven": false,
+    "s5_t3_authentication_gate_satisfied": false,
+    "interpretation": "This is source and local-contract support only. The frozen gate still requires real current Saved Version registration, Google, recovery, and the remaining S5-T3 production evidence."
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}

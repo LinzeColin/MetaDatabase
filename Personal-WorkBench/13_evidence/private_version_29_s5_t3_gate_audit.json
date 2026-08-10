@@ -23,7 +23,8 @@
       "status": "PARTIAL",
       "current_v29_google_callback_and_session": "NOT_PROVEN_ADMINISTRATIVE_POLICY_VERIFICATION_UNAVAILABLE_BEFORE_SIGNIN_RENDER",
       "email_registration_recovery_evidence": "PASS_PRIVATE_VERSION_28_NOT_RERUN_ON_V29",
-      "conclusion": "Historical or preceding-version evidence cannot satisfy the frozen current Saved Version Google requirement."
+      "v28_to_v29_auth_surface_continuity": "PASS_SUPPORT_ONLY",
+      "conclusion": "The unchanged declared auth surface and local contract support V28 email-path continuity, but cannot satisfy the frozen current Saved Version real email and Google browser requirements."
     },
     "r004_a_b_isolation": {
       "status": "PARTIAL",
