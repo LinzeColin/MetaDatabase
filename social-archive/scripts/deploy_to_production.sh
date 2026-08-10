@@ -946,6 +946,21 @@ step "8.9) 读一眼：「加密存三份」今天真的确认了几份"
 .venv/bin/python scripts/check_the_three_copies_are_really_there.py --sample 2 --brief 2>/dev/null \
   || printf '  ↳ 上面这行不是绿的：目标是三份，今天没确认满三份。说明书写的是**实测数**\n     （发布门那条规则逼两边相等），所以他读到的不假——差的是能力本身。\n'
 
+step "8.6) 从他所在的位置回读：公开域名跑的是不是刚部署的这一版"
+# **在这之前，所有「回读生产」都是 ssh 到目标机器上打它自己的回环。**
+# 那证明不了他打开产品时看到的是新版——2026-08-10 的代价是三次部署零次到达
+# （同一个域名背后两台机器，他连的是另一台）。
+#
+# 这一步在**本机**跑，打的是他会打的那个地址，要的就是他那个视角。
+if ! .venv/bin/python scripts/check_i_am_deploying_to_the_machine_he_reaches.py \
+      --host "$HOST" --expect-version "$VERSION" > /tmp/sa_public_ver.$$ 2>&1; then
+  cat /tmp/sa_public_ver.$$ | sed 's/^/  /'
+  rm -f /tmp/sa_public_ver.$$
+  fail '公开域名上跑的不是刚部署的这一版——在他那边这次部署等于没发生。'
+fi
+sed -n 's/.*"message_zh": "\(.*\)".*/  \1/p' /tmp/sa_public_ver.$$ | head -1
+rm -f /tmp/sa_public_ver.$$
+
 step "9) 验收：仓、主机、**镜像里那一份**，三份是不是同一份代码"
 # 第 8 步只核了**扩展包**那一个文件。其余一百多个源文件，在这一步之前
 # 从来没有任何东西核过——而 /opt/social-archive **不是 git 检出**，

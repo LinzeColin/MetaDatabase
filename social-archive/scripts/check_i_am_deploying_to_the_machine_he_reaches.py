@@ -68,6 +68,8 @@ def main() -> int:
     parser.add_argument("--public", default="https://social-archive-api.linzezhang.com")
     parser.add_argument("--host", default="linze-ovh")
     parser.add_argument("--port", type=int, default=18765)
+    parser.add_argument("--expect-version", default="",
+                        help="部署之后用：公开域名必须已经在跑这个版本（从这台机器看）")
     args = parser.parse_args()
 
     report: dict[str, object] = {
@@ -121,6 +123,27 @@ def main() -> int:
         }
         print(json.dumps(report, ensure_ascii=False, indent=2))
         return 1
+    if args.expect_version:
+        # **上线之后，从他所在的位置回读一次。**（2026-08-10）
+        #
+        # 在这之前，「回读生产」全是 ssh 到目标机器上打回环——
+        # 那证明不了他打开产品时看到的是新版。今天的代价：三次部署零次到达。
+        if out_version != args.expect_version:
+            report |= {
+                "status": "FAIL",
+                "error_code": "PUBLIC_STILL_ON_OLD_VERSION",
+                "message_zh": (
+                    f"部署报告成功，但**从这台机器打公开域名拿到的还是 {out_version}**"
+                    f"（期望 {args.expect_version}）。他打开产品看到的就是这个数——"
+                    "在他那边这次部署等于没发生。"),
+            }
+            print(json.dumps(report, ensure_ascii=False, indent=2))
+            return 1
+        report |= {"status": "PASS",
+                   "message_zh": f"公开域名已经在跑 {out_version}（从这台机器实测），"
+                                 f"同一台（disk_total {in_total}G）。"}
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+        return 0
     report |= {"status": "PASS",
                "message_zh": f"同一台（disk_total {in_total}G）——部署上去他就能看到。"}
     print(json.dumps(report, ensure_ascii=False, indent=2))

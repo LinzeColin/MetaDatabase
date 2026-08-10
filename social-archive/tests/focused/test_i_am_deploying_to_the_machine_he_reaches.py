@@ -101,3 +101,42 @@ def test_the_deploy_actually_calls_it() -> None:
     called_at = deploy.index("check_i_am_deploying_to_the_machine_he_reaches.py")
     build_at = deploy.index('step "5) 构建并上线"')
     assert called_at < build_at, "这条判据排在构建之后了——白建一次镜像才发现部署错了机器"
+
+def _run_expect(monkeypatch, capsys, outside, inside, expect: str) -> tuple[int, dict]:
+    module = _module()
+    monkeypatch.setattr(module, "_public_health", lambda base: outside)
+    monkeypatch.setattr(module, "_target_health", lambda host, port: inside)
+    monkeypatch.setattr(sys, "argv", ["check", "--expect-version", expect])
+    code = module.main()
+    return code, json.loads(capsys.readouterr().out)
+
+
+def test_public_still_on_the_old_version_is_a_fail(monkeypatch, capsys) -> None:
+    """**部署报告成功，而他打开看到的还是旧的** —— 这一条要红。
+
+    今天真发生过：容器换成了 0.0.0.27，从 Owner 的 Mac 打公开域名还是 0.0.0.25。
+    """
+    code, report = _run_expect(monkeypatch, capsys,
+                               _health(38.0, "0.0.0.25"), _health(38.0, "0.0.0.27"),
+                               "0.0.0.27")
+    assert code == 1, report
+    assert report["error_code"] == "PUBLIC_STILL_ON_OLD_VERSION", report
+    assert "0.0.0.25" in report["message_zh"], report
+
+
+def test_public_on_the_new_version_passes(monkeypatch, capsys) -> None:
+    code, report = _run_expect(monkeypatch, capsys,
+                               _health(38.0, "0.0.0.27"), _health(38.0, "0.0.0.27"),
+                               "0.0.0.27")
+    assert code == 0 and report["status"] == "PASS", report
+
+
+def test_the_deploy_reads_back_from_outside_after_deploying() -> None:
+    """**上线并回读**这一条，必须站在他那一侧读，且排在上线之后。"""
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    assert "--expect-version" in deploy, (
+        "部署没有从本机回读公开域名的版本——"
+        "所有回读都在目标机器上打回环时，「域名指到别处」是看不见的")
+    at = deploy.index("--expect-version")
+    up_at = deploy.index("docker compose up -d core-api core-worker")
+    assert at > up_at, "回读排在上线之前了——那读到的必然还是旧版本"
