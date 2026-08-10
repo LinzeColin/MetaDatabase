@@ -6,7 +6,7 @@
     {
       "drill": "shipped_package_drill.py",
       "status": "PASS",
-      "seconds": 29.8,
+      "seconds": 29.9,
       "problems": []
     },
     {
@@ -18,37 +18,37 @@
     {
       "drill": "stale_extension_is_blocked_drill.py",
       "status": "PASS",
-      "seconds": 29.4,
+      "seconds": 29.0,
       "problems": []
     },
     {
       "drill": "extension_install_page_drill.py",
       "status": "PASS",
-      "seconds": 38.8,
+      "seconds": 38.4,
       "problems": []
     },
     {
       "drill": "extension_save_page_drill.py",
       "status": "PASS",
-      "seconds": 6.3,
+      "seconds": 6.1,
       "problems": []
     },
     {
       "drill": "extension_routing_drill.py",
       "status": "PASS",
-      "seconds": 4.3,
+      "seconds": 4.1,
       "problems": []
     },
     {
       "drill": "extension_capture_drill.py",
       "status": "PASS",
-      "seconds": 16.3,
+      "seconds": 16.1,
       "problems": []
     },
     {
       "drill": "extension_capture_buffer_drill.py",
       "status": "PASS",
-      "seconds": 4.8,
+      "seconds": 4.7,
       "problems": []
     },
     {
@@ -72,31 +72,31 @@
     {
       "drill": "bilibili_end_to_end_drill.py",
       "status": "PASS",
-      "seconds": 24.9,
+      "seconds": 24.7,
       "problems": []
     },
     {
       "drill": "bilibili_acquisition_drill.py",
       "status": "PASS",
-      "seconds": 2.2,
+      "seconds": 1.8,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform xiaohongshu",
       "status": "PASS",
-      "seconds": 41.2,
+      "seconds": 41.0,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform reddit",
       "status": "PASS",
-      "seconds": 41.2,
+      "seconds": 41.1,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform instagram",
       "status": "PASS",
-      "seconds": 41.2,
+      "seconds": 41.1,
       "problems": []
     },
     {
