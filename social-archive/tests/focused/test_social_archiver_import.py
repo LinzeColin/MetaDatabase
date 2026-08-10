@@ -82,7 +82,22 @@ def test_pwa_exposes_zero_tech_social_archiver_import():
     root = Path(__file__).parents[2] / "apps/pwa"
     html = (root / "index.html").read_text(encoding="utf-8")
     js = (root / "app.js").read_text(encoding="utf-8")
-    assert "导入 Social Archiver / Markdown ZIP" in html
+    # **钉的是意图，不是那句字面。**（2026-08-10）
+    #
+    # 原来断言的是「导入 Social Archiver / Markdown ZIP」这句原话。
+    # 而弹窗里从 v0.0.0.21 起就有**两个**来源，第二个是「平台官方的
+    # 『下载我的数据』包」——那是 X / Instagram 的主路径。按钮只写第一个，
+    # 等于把那个能力藏在一个别的工具的名字后面：拿着 X 官方导出包的人认不出它。
+    #
+    # 改名之后这条断言红了——**它红得对**（字面确实变了），但它守的东西没变。
+    # 所以改成钉「按钮上两个来源都点了名」，比原来更强。
+    import re as _re
+    button = _re.search(r'id="openImport"[^>]*>(.*?)</button>', html, _re.S)
+    assert button, "找不到 #openImport 那颗按钮——零技术门槛的导入入口没了"
+    label = _re.sub(r"<[^>]+>", " ", button.group(1))
+    assert "导入" in label and "官方" in label, (
+        f"导入按钮只写了一个来源：{label.strip()!r}——"
+        "弹窗里支持两个，另一个是平台官方导出包（X / Instagram 的主路径）")
     assert "openImport" in html and "archiveFile" in html
     assert "/v1/import/social-archiver" in js
     # v0.0.0.22：文件类型放开了——bilibili-cli 那类工具导出的是一个裸的
