@@ -126,7 +126,12 @@ def judge(measured: dict, platform: str, decoy_url: str, expect_custody: str) ->
                             "国内平台留的，别用它表达「还没做」")
     card = measured.get("connectCard")
     if card is not None:
-        if card.get("error"):
+        if card.get("error") == "NO_CARDS_RENDERED_IN_15S":
+            # **这是演练自己的问题，不是产品的。** 说清楚，别让下一个人
+            # 去查一个不存在的「小红书卡片丢了」。
+            problems.append("设置页 15 秒内一张卡都没渲染出来——**这是演练/时序问题，"
+                            "不是「这个平台没有卡」**。重跑一次；老是这样就把等待放宽。")
+        elif card.get("error"):
             problems.append(f"设置页那一步没做成：{card['error']}")
         elif not card.get("found"):
             problems.append(
@@ -265,11 +270,31 @@ async def run(chrome: str, ext_dir: str, platform: str, sample_url: str,
                     rpc = await _rpc_factory(ws)
                     await rpc("Runtime.enable")
                     card_probe = CARD_PROBE % json.dumps({"label": measured.get("label")})
-                    result = await rpc("Runtime.evaluate",
-                                       {"expression": card_probe, "returnByValue": True})
-                    value = result.get("result", {}).get("result", {}).get("value")
-                    measured["connectCard"] = json.loads(value) if value else {
-                        "error": "CARD_PROBE_RETURNED_NOTHING"}
+                    # **等卡片渲染出来再读。**（2026-08-11）
+                    #
+                    # 原来是 sleep(3) 之后读一次。那些卡是异步画的，机器忙的时候
+                    # 三秒不够——0.0.0.33 部署时这里读到 `total: 0`，报出来的却是
+                    # 「设置页里没有 '小红书' 这张卡……现有的是：[]」，
+                    # **于是整次部署被一个时序问题中止了**（同一条命令单独重跑立刻 9 张卡全在）。
+                    #
+                    # 「页面还没画完」和「这个平台真的没有卡」是两个完全不同的诊断，
+                    # 长得却一模一样——这个仓在 pwa_render_drill 上吃过同一口
+                    # （APP_SCRIPT_NEVER_SERVED 那个单独出口就是为此加的）。
+                    card: dict = {}
+                    for _ in range(15):
+                        result = await rpc("Runtime.evaluate",
+                                           {"expression": card_probe, "returnByValue": True})
+                        value = result.get("result", {}).get("result", {}).get("value")
+                        card = json.loads(value) if value else {}
+                        if card.get("total"):
+                            break
+                        await asyncio.sleep(1)
+                    if not card:
+                        card = {"error": "CARD_PROBE_RETURNED_NOTHING"}
+                    elif not card.get("total"):
+                        # 一张都没有 = 夹具/时序，不是产品缺陷。**分开报。**
+                        card = {"error": "NO_CARDS_RENDERED_IN_15S"}
+                    measured["connectCard"] = card
     finally:
         process.terminate()
         try:
