@@ -38,6 +38,11 @@
 
 from __future__ import annotations
 
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from production_host import deploy_host  # noqa: E402
+
 import argparse
 import json
 import subprocess
@@ -146,7 +151,7 @@ def _presence(artifact_id: str, store: str, host: str) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="三份副本今天还在不在（只读、抽样）")
-    parser.add_argument("--host", default="linze-ovh")
+    parser.add_argument("--host", default=deploy_host())
     parser.add_argument("--sample", type=int, default=2)
     parser.add_argument("--brief", action="store_true")
     args = parser.parse_args()

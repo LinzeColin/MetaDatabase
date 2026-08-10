@@ -30,6 +30,11 @@
 
 from __future__ import annotations
 
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from production_host import deploy_host  # noqa: E402
+
 import argparse
 import json
 import re
@@ -176,7 +181,7 @@ def audit(library: dict, accounts: dict, status: dict,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="拿生产真数据对产品说的话（只读）")
-    parser.add_argument("--host", default="linze-ovh")
+    parser.add_argument("--host", default=deploy_host())
     # **给人看的那几行由脚本自己打。**
     # 今天已经在第 8.7 步踩过一次：把格式化写成部署脚本里嵌的一段 Python，
     # `\"` 落进单引号里当场 SyntaxError，而外层 `||` 把它兜成一句

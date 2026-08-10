@@ -38,6 +38,11 @@
 
 from __future__ import annotations
 
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from production_host import deploy_host  # noqa: E402
+
 import argparse
 import json
 import subprocess
@@ -82,7 +87,7 @@ def _restore(host: str, manifest: str, store: str) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="把运行库快照真的还原一次并数行")
-    parser.add_argument("--host", default="linze-ovh")
+    parser.add_argument("--host", default=deploy_host())
     parser.add_argument("--brief", action="store_true")
     args = parser.parse_args()
 

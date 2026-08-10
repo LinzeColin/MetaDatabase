@@ -37,6 +37,11 @@ Owner 真正拿到的那一份。
 
 from __future__ import annotations
 
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from production_host import deploy_host  # noqa: E402
+
 import argparse
 import json
 import subprocess
@@ -124,7 +129,7 @@ rm -f /tmp/sa_health.json /tmp/sa_accounts.json /tmp/sa_ext.zip /tmp/sa_install.
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="部署后去生产回读")
-    parser.add_argument("--host", default="linze-ovh")
+    parser.add_argument("--host", default=deploy_host())
     parser.add_argument("--out", default="evidence/G5/DEPLOYED_AND_READ_BACK.json")
     args = parser.parse_args()
 

@@ -28,6 +28,11 @@ service worker 里结构上不可能成功」那个缺陷。他从那天起就�
 
 from __future__ import annotations
 
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from production_host import deploy_host  # noqa: E402
+
 import argparse
 import json
 import subprocess
@@ -63,7 +68,7 @@ print(json.dumps(out, ensure_ascii=False))
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="读生产的同步历史（只读）")
-    parser.add_argument("--host", default="linze-ovh")
+    parser.add_argument("--host", default=deploy_host())
     # **给人看的那几行由脚本自己打。**
     # 第一版把格式化写成部署脚本里嵌的一段 Python，转义当场崩了
     # （`\"` 落进单引号里）。散文放进模板会踩元字符，这个仓已经踩过三次。

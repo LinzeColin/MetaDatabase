@@ -37,6 +37,11 @@ r"""部署之前先证明：我要部署的这台，就是他打得到的那台�
 
 from __future__ import annotations
 
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from production_host import deploy_host  # noqa: E402
+
 import argparse
 import json
 import subprocess
@@ -66,7 +71,7 @@ def _target_health(host: str, port: int) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--public", default="https://social-archive-api.linzezhang.com")
-    parser.add_argument("--host", default="linze-ovh")
+    parser.add_argument("--host", default=deploy_host())
     parser.add_argument("--port", type=int, default=18765)
     parser.add_argument("--expect-version", default="",
                         help="部署之后用：公开域名必须已经在跑这个版本（从这台机器看）")

@@ -48,6 +48,11 @@
 
 from __future__ import annotations
 
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from production_host import deploy_host  # noqa: E402
+
 import argparse
 import json
 import subprocess
@@ -226,7 +231,7 @@ def classify(local: dict[str, str], remote: dict[str, str]) -> dict[str, list[st
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="核对生产上跑的是不是仓里这一份")
-    parser.add_argument("--host", default="linze-ovh")
+    parser.add_argument("--host", default=deploy_host())
     parser.add_argument("--remote-dir", default="/opt/social-archive")
     parser.add_argument("--container", default="social-archive-core-api-1",
                         help="顺带核一下**容器里那份**（服务真正执行的）；给空串跳过")

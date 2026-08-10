@@ -34,6 +34,11 @@ api 域名，根本不是那一个。**我量的是一个他那边不存在的�
 
 from __future__ import annotations
 
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from production_host import deploy_host  # noqa: E402
+
 import asyncio
 import hashlib
 import importlib.util
@@ -567,7 +572,7 @@ def main() -> int:
                           "message_zh": f"找不到 Chrome：{chrome}"}, ensure_ascii=False))
         return 2
     # 令牌从生产主机现取，不落盘。
-    host = os.environ.get("SOCIAL_ARCHIVE_DEPLOY_HOST", "linze-ovh")
+    host = deploy_host()
     done = subprocess.run(
         ["ssh", "-o", "ConnectTimeout=20", host,
          "sudo cat /opt/social-archive/runtime/secrets/social_archive_api_token"],

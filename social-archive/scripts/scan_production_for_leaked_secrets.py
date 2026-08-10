@@ -32,6 +32,11 @@ Notion secret_、Obsidian REST、R2/OCI 私密访问密钥，以及 **age 私钥
 
 from __future__ import annotations
 
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from production_host import deploy_host  # noqa: E402
+
 import argparse
 import json
 import subprocess
@@ -95,7 +100,7 @@ print(json.dumps({
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="查生产上有没有明文密钥落进日志或运行数据")
-    parser.add_argument("--host", default="linze-ovh")
+    parser.add_argument("--host", default=deploy_host())
     parser.add_argument("--days", type=int, default=14, help="日志回看多少天")
     args = parser.parse_args()
 

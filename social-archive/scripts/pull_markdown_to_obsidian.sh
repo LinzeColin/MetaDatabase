@@ -21,7 +21,11 @@
 # （rsync 不带 --delete，所以你在那个文件夹里加的笔记不会被清掉）。
 set -euo pipefail
 
-HOST="${SOCIAL_ARCHIVE_HOST:-linze-ovh}"
+# **生产是哪台，只有一个真源**：deploy/PRODUCTION_HOST。
+# 2026-08-10：这个名字曾写死在 16 个文件 21 处，换机器会漏掉几处、
+# 而漏掉的那几处静默指向旧机器，没有任何东西会报错。
+HOST="${SOCIAL_ARCHIVE_HOST:-$(cat "$(dirname "$0")/../deploy/PRODUCTION_HOST" 2>/dev/null || echo "")}"
+[[ -n "$HOST" ]] || { echo "读不到 deploy/PRODUCTION_HOST——生产是哪台没有真源了，不许猜。"; exit 2; }
 VAULT="${1:-$HOME/Documents/Obsidian}"
 SUBDIR="${SOCIAL_ARCHIVE_OBSIDIAN_SUBDIR:-Social Archive}"
 REMOTE_EXPORT="/var/lib/social-archive/exports/markdown"

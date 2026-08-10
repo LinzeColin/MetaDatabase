@@ -60,6 +60,11 @@ base image（python:3.12-slim）有没有更新、apt 包有没有新版本—�
 
 from __future__ import annotations
 
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from production_host import deploy_host  # noqa: E402
+
 import argparse
 import hashlib
 import importlib.util
@@ -178,7 +183,7 @@ def decide(local: dict[str, str], inside: dict[str, str]) -> dict[str, list[str]
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="这次部署要不要重建镜像")
-    parser.add_argument("--host", default="linze-ovh")
+    parser.add_argument("--host", default=deploy_host())
     parser.add_argument("--container", default="social-archive-core-api-1")
     # **谁进镜像，这里说了算——别处别再抄一份。**
     # 部署脚本要在演练跑完之后再查一次「进镜像的那些文件有没有被改过」，

@@ -9,6 +9,9 @@
 # 需要的东西：ssh 能连上 linze-ovh（已经配好），以及 python3（macOS 自带）。
 set -uo pipefail
 
+# **生产是哪台，只有一个真源**（仓里的 deploy/PRODUCTION_HOST）。
+# 这个文件是给他双击的、必须自包含，所以这里写的是那一刻的值；
+# 换机器时由 scripts/refresh_desktop_launcher.py 一起刷新。
 HOST="${SOCIAL_ARCHIVE_HOST:-linze-ovh}"
 VAULT="${1:-$HOME/Documents/Obsidian}"
 SUBDIR="${SOCIAL_ARCHIVE_OBSIDIAN_SUBDIR:-Social Archive}"
