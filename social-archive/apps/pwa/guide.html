@@ -78,6 +78,23 @@
 <p>你在<strong>不能自动同步的平台</strong>上点插件图标时（X、YouTube 这些），</p>
 <p>那块保存面板会<strong>自己展开</strong> —— 那是你在那儿唯一能用的按钮，不该还收着。</p>
 <p>在 B 站或书签页上它仍然收着，因为那时自动同步才是主路。</p>
+<h3>把东西拿进 Obsidian（或者随便拿走）</h3>
+<p>你存下来的每一条，服务器上都同时写了一份 <strong>Markdown</strong>（带原始链接、平台、</p>
+<p>关系类型这些信息）。有两条路把它们拿到手上：</p>
+<p><strong>路一：双击桌面上的「同步到 Obsidian.command」</strong></p>
+<p>跑完它会把全部内容放进你 Obsidian 库里的「Social Archive」文件夹，按平台分好。</p>
+<p><strong>可以反复双击</strong> —— 同名的覆盖，你自己在那个文件夹里写的东西不会被删。</p>
+<p>每次跑完它会告诉你这一批的成分，比如</p>
+<p>「favorite 46 · like 69 · history 70 · saved 5 · watch_later 1 · manual_save 2」。</p>
+<p><strong>这一行值得看一眼。</strong> 「favorite」才是你的收藏夹；「like」是点赞、</p>
+<p>「history」是 B 站观看历史 —— 早期版本把这些也抓了进来。</p>
+<p>只要收藏夹的话，把那个文件里的命令换成带 <code>SOCIAL_ARCHIVE_ONLY_RELATION=favorite</code></p>
+<p>的版本（或者直接跟我说一声）。</p>
+<p><strong>路二：资料库右上角「下载全部 Markdown」</strong></p>
+<p>拿到一个压缩包，解压之后整个文件夹拖进 Obsidian 就行，不用装任何东西。</p>
+<blockquote><strong>说清楚一件事</strong>：设置页上那个「Obsidian」目的地写着「已连接」，</blockquote>
+<blockquote>但它现在写的是<strong>服务器上的一个目录</strong>，不是你电脑上的那个库</blockquote>
+<blockquote>—— 服务器够不着你的电脑。上面这两条路才是真的能把东西送到你手上的。</blockquote>
 <h3>按收藏夹看</h3>
 <p>B 站连上之后，资料库上方会多出一个<strong>「收藏夹」筛选</strong>，</p>
 <p>里面是你自己给收藏夹起的那些名字，不是一串数字。</p>
