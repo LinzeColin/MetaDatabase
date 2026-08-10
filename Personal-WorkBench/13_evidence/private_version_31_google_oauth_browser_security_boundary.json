@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_31_GOOGLE_OAUTH_BROWSER_SECURITY_BOUNDARY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "deployed_product_source_commit": "d95d2394734b3a1af6236443528e08eca2d98655",
+    "sites_source_commit": "42d342ac40829d901f123ac2019c7301ae239878",
+    "sites_version_number": 31,
+    "private_access_remained_owner_custom": true,
+    "public_audience_changed": false
+  },
+  "controlled_browser_attempt": {
+    "fresh_agent_test_tab_created": true,
+    "existing_user_tab_claimed": false,
+    "target_route": "/auth/sign-in",
+    "navigation_completed": false,
+    "signin_page_rendered": false,
+    "page_content_inspected": false,
+    "navigation_security_boundary_observed": true,
+    "navigation_failure_cause_determined": false,
+    "retry_or_browser_switch_used_to_bypass_boundary": false,
+    "bypass_token_generated_or_used": false,
+    "google_account_selection_attempted": false,
+    "credential_entered": false,
+    "raw_navigation_error_recorded": false
+  },
+  "google_oauth": {
+    "account_selection_attempted": false,
+    "google_callback_observed": false,
+    "application_session_established": false
+  },
+  "scope_and_cleanup": {
+    "browser_cookie_or_storage_inspected": false,
+    "temporary_test_tab_finalized": true,
+    "runtime_values_read_or_changed": false,
+    "d1_or_r2_resource_configuration_changed": false,
+    "access_policy_or_public_audience_changed": false,
+    "real_user_business_data_read_or_written": false,
+    "github_uploaded": false
+  },
+  "result": {
+    "current_v31_google_callback_and_session_proven": false,
+    "interpretation": "A fresh isolated browser test tab encountered a navigation security boundary before the Version 31 sign-in page rendered. No cause is attributed because raw navigation failure material was not retained. The result cannot establish a Google OAuth pass or failure and does not replace the frozen current-version callback and session replay."
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
