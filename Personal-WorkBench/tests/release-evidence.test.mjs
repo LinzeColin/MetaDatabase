@@ -591,6 +591,55 @@ test("Version 30 Google browser boundary retains no account, session, or navigat
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 30 S5-T3 gate audit keeps current production proof distinct from historical support", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_30_s5_t3_gate_audit.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 30);
+  assert.equal(evidence.frozen_taskpack_binding.task_dag_sha256.length, 64);
+  assert.equal(evidence.frozen_taskpack_binding.acceptance_contract_sha256.length, 64);
+  assert.equal(evidence.frozen_taskpack_binding.oracles_sha256.length, 64);
+  assert.equal(evidence.frozen_taskpack_binding.traceability_matrix_sha256.length, 64);
+  assert.equal(evidence.frozen_taskpack_binding.owner_approval_sha256.length, 64);
+  assert.equal(evidence.frozen_taskpack_binding.sequence_addendum_validation, "PASS_SEQUENCE_ADDENDUM_INTEGRITY_ONLY");
+  assert.equal(evidence.frozen_taskpack_binding.requirement_count, 15);
+  assert.equal(evidence.current_control_plane.latest_saved_version_number, 30);
+  assert.equal(evidence.current_control_plane.latest_saved_version_source_matches_expected, true);
+  assert.equal(evidence.gate_assessment.r003_real_authentication.status, "PARTIAL");
+  assert.equal(
+    evidence.gate_assessment.r003_real_authentication.current_v30_google_callback_and_session,
+    "NOT_PROVEN_FRESH_AGENT_TEST_TAB_SECURITY_BOUNDARY_BEFORE_SIGNIN_RENDER",
+  );
+  assert.equal(evidence.gate_assessment.r004_a_b_isolation.current_v30_physical_a_b_replay, "NOT_RUN");
+  assert.equal(
+    evidence.gate_assessment.r005_d1_r2_persistence.current_v30_physical_mapping_or_record_object_reconciliation,
+    "NOT_PROVEN",
+  );
+  assert.equal(evidence.gate_assessment.r009_saved_version_rollback_restore.status, "PASS");
+  assert.equal(
+    evidence.gate_assessment.r009_saved_version_rollback_restore.current_v30_rollback_then_restore,
+    "PASS_PRIVATE_VERSION_30_TO_29_TO_30_OWNER_ONLY",
+  );
+  assert.equal(evidence.gate_assessment.r011_cross_device_crud_and_history.current_v30_physical_cross_device_history, "NOT_RUN");
+  assert.equal(evidence.gate_assessment.r014_production_recovery.status, "PARTIAL");
+  assert.equal(evidence.gate_assessment.physical_second_device_history.status, "NOT_RUN");
+  assert.equal(evidence.result.s5_t3_core_chains_all_pass, false);
+  assert.equal(evidence.result.s5_t3_threshold_met, false);
+  assert.equal(evidence.result.public_deploy_eligible, false);
+  assert.equal(evidence.scope_and_cleanup.taskpack_source_modified, false);
+  assert.equal(evidence.scope_and_cleanup.sites_control_plane_read_only, true);
+  assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 30 rollback and restore rehearsal retains no deployment or user material", async () => {
   const evidence = JSON.parse(
     await readFile(

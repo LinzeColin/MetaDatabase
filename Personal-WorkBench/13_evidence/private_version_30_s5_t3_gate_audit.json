@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_30_S5_T3_GATE_AUDIT_NOT_READY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "frozen_taskpack_binding": {
+    "task_dag_sha256": "a608630c553628111933804097ed8c25b68ac8331f834402ab53c7ae6b016386",
+    "acceptance_contract_sha256": "16ebeebbc2b3aa95469c2ef5b74a4953d0cff8bb67be92eb087c98cb49b91d0a",
+    "oracles_sha256": "79078d6bb5c876f0dc384256a53d57e8394ba5ae1ab341ce63edb48ad6fe482c",
+    "traceability_matrix_sha256": "537c0adce1efb0c2438c749b9b6945980ef6491b0c7da879d5920cbda88e3b6d",
+    "owner_approval_sha256": "d236d598548f07f9e124533d36a6a55f6413bb1f4f2bcfd14698f7d6be2750c8",
+    "sequence_addendum_validation": "PASS_SEQUENCE_ADDENDUM_INTEGRITY_ONLY",
+    "requirement_count": 15,
+    "required_acceptance": "real registration, Google, recovery, second device, and A/B isolation pass; rollback to the previous version succeeds",
+    "required_threshold": "all core chains pass, cross-tenant success is zero, rollback and restore each succeed once, and production has no P0"
+  },
+  "candidate": {
+    "deployed_product_source_commit": "0550a821dc5d429e925635b72cfc9c84a4fc1e5a",
+    "sites_source_commit": "b736fcf5c90a0fcbcf80ad5cb3aecd909a32d895",
+    "sites_version_number": 30,
+    "private_access_remained_owner_custom": true,
+    "public_audience_changed": false
+  },
+  "current_control_plane": {
+    "site_active": true,
+    "current_user_role_owner": true,
+    "access_mode_custom": true,
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "latest_saved_version_number": 30,
+    "latest_saved_version_source_matches_expected": true
+  },
+  "gate_assessment": {
+    "r003_real_authentication": {
+      "status": "PARTIAL",
+      "current_v30_email_browser_replay": "NOT_PROVEN_FRESH_AGENT_TEST_TAB_SECURITY_BOUNDARY_BEFORE_SIGNUP_RENDER",
+      "current_v30_google_callback_and_session": "NOT_PROVEN_FRESH_AGENT_TEST_TAB_SECURITY_BOUNDARY_BEFORE_SIGNIN_RENDER",
+      "historical_email_recovery_evidence": "SUPPORT_ONLY_PRIOR_SAVED_VERSION",
+      "conclusion": "The current Version 30 browser attempts did not render their entry pages, so neither real email authentication nor Google callback/session can satisfy the frozen current-Saved-Version requirement."
+    },
+    "r004_a_b_isolation": {
+      "status": "PARTIAL",
+      "local_server_tenant_contract": "PASS_LOCAL_CONTRACT",
+      "historical_controlled_a_b_replay": "SUPPORT_ONLY_PRIOR_SAVED_VERSION",
+      "current_v30_physical_a_b_replay": "NOT_RUN",
+      "conclusion": "The local tenant predicates and historical replay do not replace the frozen current Version 30 physical A/B read, write, delete, and enumeration checks."
+    },
+    "r005_d1_r2_persistence": {
+      "status": "PARTIAL",
+      "current_logical_binding_health": "SUPPORT_ONLY_DATA_FREE_LOGICAL_BINDINGS",
+      "current_v30_physical_mapping_or_record_object_reconciliation": "NOT_PROVEN",
+      "conclusion": "Logical bindings cannot be promoted to direct D1/R2 mapping or record-object reconciliation."
+    },
+    "r009_saved_version_rollback_restore": {
+      "status": "PASS",
+      "current_v30_private_deploy": "PASS_PRIVATE_VERSION_30",
+      "current_v30_rollback_then_restore": "PASS_PRIVATE_VERSION_30_TO_29_TO_30_OWNER_ONLY",
+      "conclusion": "The current Version 30 private rollback-and-restore pair is proven without changing its private audience."
+    },
+    "r011_cross_device_crud_and_history": {
+      "status": "PARTIAL",
+      "current_v30_same_account_non_sensitive_outbox": "PASS_LOCAL_CONTRACT_ONLY",
+      "current_v30_physical_cross_device_history": "NOT_RUN",
+      "conclusion": "The local account-scoped outbox contract does not establish a physical second-device history readback."
+    },
+    "r014_production_recovery": {
+      "status": "PARTIAL",
+      "local_resilience_contract": "PASS_LOCAL_RETRY_RESILIENCE",
+      "current_v30_post_restore_narrow_error_window": "PASS_10_MINUTES_0_EVENTS",
+      "current_v30_production_fault_recovery": "NOT_RUN",
+      "conclusion": "The local retry contract and narrow post-restore observation do not replace a current production fault-recovery replay or the full no-P0 threshold."
+    },
+    "physical_second_device_history": {
+      "status": "NOT_RUN",
+      "conclusion": "No current Version 30 physical second-device authenticated history readback exists."
+    },
+    "production_p0_observation": {
+      "status": "PARTIAL",
+      "current_narrow_post_restore_window": "PASS_10_MINUTES_0_EVENTS",
+      "conclusion": "The bounded error-only observation cannot attest to the full production no-P0 threshold while core current-version E2E remains incomplete."
+    }
+  },
+  "result": {
+    "s5_t3_core_chains_all_pass": false,
+    "s5_t3_threshold_met": false,
+    "public_deploy_eligible": false,
+    "next_real_evidence_sequence": "After a permitted controlled browser context and separate controlled test identities are available, run the current Version 30 email and Google journeys, current physical A/B isolation, a physical second-device history readback, direct D1/R2 reconciliation, and a production fault-recovery observation before S6-T1."
+  },
+  "scope_and_cleanup": {
+    "taskpack_source_modified": false,
+    "sites_control_plane_read_only": true,
+    "runtime_values_read_or_changed": false,
+    "real_user_business_data_read_or_written": false,
+    "d1_or_r2_resource_configuration_changed": false,
+    "access_policy_or_public_audience_changed": false,
+    "github_uploaded": false
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}

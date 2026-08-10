@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "task_id": "S5-T3",
-  "status": "PRIVATE_VERSION_30_GOOGLE_OAUTH_BROWSER_SECURITY_BOUNDARY",
+  "status": "PRIVATE_VERSION_30_S5_T3_GATE_AUDIT_NOT_READY",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
   "observed_at": "2026-08-10",
   "candidate": {
@@ -113,6 +113,7 @@
     "version_30_generic_non_sensitive_outbox_replay": "PASS_LOCAL_SAME_ACCOUNT_NON_SENSITIVE_REPLAY_ON_AUTHORIZATION_SERVER_OR_NETWORK_FAILURE; NO_PRODUCTION_USER_DATA_REPLAY",
     "version_30_email_browser_navigation": "NOT_PROVEN_RECHECK_FRESH_AGENT_TEST_TAB_SECURITY_BOUNDARY_BEFORE_SIGNUP_RENDER",
     "version_30_google_oauth_browser_navigation": "NOT_PROVEN_FRESH_AGENT_TEST_TAB_SECURITY_BOUNDARY_BEFORE_SIGNIN_RENDER",
+    "version_30_s5_t3_gate_audit": "NOT_READY_CURRENT_FROZEN_PRODUCTION_E2E_GATES_REMAIN_UNSATISFIED",
     "version_30_rollback_restore_rehearsal": "PASS_PRIVATE_VERSION_30_TO_29_TO_30_OWNER_ONLY",
     "version_30_post_restore_error_log_check": "PASS_NARROW_10_MINUTE_ERROR_ONLY_WINDOW_0_EVENTS_NOT_FULL_PRODUCTION_P0_ATTESTATION",
     "version_30_storage_mapping_read_only_boundary": "NOT_PROVEN_CURRENT_SITES_MANIFEST_EXPOSES_LOGICAL_BINDINGS_ONLY_AND_CURRENT_CLI_CATALOGUE_IS_NOT_ACCESSIBLE",
@@ -183,6 +184,8 @@
     "separate_authenticated_session_history_readback": "PASS_PRIVATE_VERSION_21_CONTROLLED_CHROME_ACCOUNT_A_REAUTH_RECORD_READBACK",
     "version_21_second_independently_authenticated_tenant_replay": "PASS_PRIVATE_VERSION_21_CONTROLLED_CHROME_SEQUENTIAL_EMAIL_A_B",
     "version_30_same_account_non_sensitive_outbox_replay": "PASS_LOCAL_CONTRACT_ONLY",
+    "version_30_current_physical_a_b_replay": "NOT_RUN",
+    "version_30_physical_second_device_history": "NOT_RUN",
     "real_cross_device_history": "NOT_RUN_PHYSICAL_SECOND_DEVICE",
     "real_d1_r2_reconciliation": "NOT_PROVEN_CURRENT_VERSION_30_LOGICAL_BINDINGS_ONLY_AND_CURRENT_CLI_CATALOGUE_NOT_ACCESSIBLE"
   },
@@ -236,6 +239,7 @@
     "13_evidence/private_version_30_email_browser_navigation_boundary.json",
     "13_evidence/private_version_30_email_browser_security_boundary_recheck.json",
     "13_evidence/private_version_30_google_oauth_browser_security_boundary.json",
+    "13_evidence/private_version_30_s5_t3_gate_audit.json",
     "13_evidence/private_version_30_rollback_restore_rehearsal.json",
     "13_evidence/private_version_30_post_restore_error_log_check.json",
     "13_evidence/private_version_30_storage_mapping_read_only_boundary.json",
@@ -269,6 +273,7 @@
   "current_version_30_email_browser_navigation_boundary_note": "A fresh isolated V30 agent test tab attempted the canonical email sign-up route. Navigation encountered a browser security boundary before page rendering; no email, account, password, cookie, storage, mailbox content, runtime value, business record, or raw navigation error was retained, and the temporary test tab was finalized. The test did not retry, switch browsers, or generate or use a Sites bypass token. This is an unclassified browser-control boundary rather than evidence of a site, email-provider, account, or policy failure. It leaves the current V30 email browser replay unproven.",
   "current_version_30_email_browser_navigation_recheck_note": "A separate fresh V30 agent test tab rechecked the canonical email sign-up route after the current private control-plane precondition was reconfirmed. Navigation again hit a browser security boundary before page render. No email, account, password, Cookie, storage, mailbox content, runtime value, business record, or raw navigation error was retained; the temporary tab was finalized. The test did not retry, switch browsers, or generate or use a Sites bypass token. This is a repeated browser-control boundary, not evidence of a Sites, email-provider, application, account, or policy failure, and it leaves the current V30 email E2E unproven.",
   "current_version_30_google_oauth_browser_navigation_boundary_note": "After the current V30 private control-plane precondition was reconfirmed, a fresh isolated agent test tab attempted the canonical Google sign-in entry route. Navigation hit a browser security boundary before page render. No Google account selection, credential, Cookie, storage, callback, application session, runtime value, business record, or raw navigation error was retained; the temporary tab was finalized. The test did not retry, switch browsers, or generate or use a Sites bypass token. This is an unclassified browser-control boundary, not evidence of a Google, Sites, application, credential, account, or policy failure, and it leaves the current V30 Google callback/session replay unproven.",
+  "current_version_30_s5_t3_gate_audit_note": "The current V30 S5-T3 audit verifies the frozen taskpack hashes and the accepted sequence addendum, then binds the exact active owner/custom Version 30 to its current evidence. Only private rollback-and-restore is fully proven. Current email and Google browser E2E, physical A/B isolation, physical second-device history, direct D1/R2 reconciliation, and production fault recovery remain unproven or not run; the narrow post-restore zero-event window is not a full production no-P0 claim. The audit changes no taskpack, runtime value, data, storage resource, access policy, public audience, or GitHub state and keeps public deployment ineligible.",
   "current_version_30_rollback_restore_note": "A current owner-only private rollback rehearsal deployed the exact prior saved Version 29, reached a succeeded deployment status, then restored the exact approved Version 30 and reached a succeeded deployment status. Post-restore control-plane readback remained active/owner/custom with one allowed user, zero groups, zero external visitors, latest saved version 30, expected Version 30 source identity, and environment revision 8. Deployment IDs, URLs, failure messages, runtime values, user records and object data were not retained. This completes the current V30 R009 rollback-and-restore evidence only; it does not prove the remaining email, Google, physical-device, A/B, physical storage, production-recovery/P0, public-audience or product-acceptance requirements.",
   "current_version_30_post_restore_error_log_note": "Immediately after the successful owner-only V30 rollback-and-restore rehearsal, an error-only Worker log query covering the preceding 10 minutes and capped at 20 events returned zero events. The query retained no raw message, request identifier, route, account or business data. It is a narrow post-restore no-visible-error observation, not a claim that no production P0 exists outside that window or that the outstanding V30 email, Google, physical-device, A/B, storage and production-recovery evidence has passed.",
   "current_version_30_storage_mapping_boundary_note": "A current Version 30 read-only mapping recheck confirmed that the Sites manifest and source expose only logical DB and FILES bindings, while local Vite resource entries remain development placeholders. The current Wrangler CLI is v4 and its identity is authenticated, but both D1 and R2 catalogue calls are unavailable; no raw error output, resource name, identifier, runtime value, SQL result, record, object listing or object body was retained. The result does not attribute the catalogue boundary to the application or provider, and it does not turn any unrelated resource into the physical mapping. Version 27 remains evidence of data-free logical binding health only; direct physical mapping or record-object reconciliation is still unproven.",
