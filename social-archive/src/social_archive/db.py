@@ -1806,6 +1806,80 @@ class RuntimeStore:
             )
         return cur.rowcount == 1
 
+    def forget_source_account(self, account_id: str) -> dict[str, Any]:
+        """把一个账号连同它带进来的内容一起删掉——**不可逆**。（2026-08-10）
+
+        ## 为什么和「断开」分开
+
+        `disconnect_source_account` 是「别再替我去取了」，内容一条都不动，
+        那是对的默认。但他要的是另一件事：**清干净、从零再走一遍**，
+        用来确认这套东西到底能不能用。断开做不到——重连之后旧数据还在，
+        分不清「同步真的跑了」还是「本来就有」。
+
+        ## 只删「只属于它」的内容
+
+        `content` 是共享的（同一条内容可以同时被两个账号收藏），账号关系挂在
+        `user_relation` 上。所以：删掉这个账号的关系之后，**再删那些一条关系
+        都不剩的内容**。别的账号还留着的，一条都不碰。
+
+        ## 如实报数
+
+        删了几个关系、几条内容、几次同步记录，逐项报出来。
+        这个仓的老毛病是「报个总数让人以为全清了」——这里每一项分开给。
+        """
+        with self.connection() as con:
+            row = con.execute(
+                "SELECT platform FROM source_account WHERE id=?", (account_id,)).fetchone()
+            if row is None:
+                return {"found": False}
+            platform = str(row["platform"])
+            content_ids = [str(r["content_id"]) for r in con.execute(
+                "SELECT DISTINCT content_id FROM user_relation WHERE source_account_id=?",
+                (account_id,))]
+            relations = con.execute(
+                "DELETE FROM user_relation WHERE source_account_id=?", (account_id,)).rowcount
+            orphans = [cid for cid in content_ids if not con.execute(
+                "SELECT 1 FROM user_relation WHERE content_id=? LIMIT 1", (cid,)).fetchone()]
+            removed_paths: list[str] = []
+            # **引用 content(id) 的表是数出来的，不是想出来的。**（2026-08-10）
+            # 第一版只列了六张我记得的，跑起来直接
+            # `sqlite3.IntegrityError: FOREIGN KEY constraint failed`——
+            # 外键把我拦住了，那是它该做的。这里按 schema 里真实的 FK 列全：
+            #   user_relation / observation / artifact / destination_binding
+            #   / destination_receipt / content_classification
+            # 另外 object_replica 挂的是 artifact，要在 artifact 之前清。
+            for cid in orphans:
+                for artifact_id in [str(r["id"]) for r in con.execute(
+                        "SELECT id FROM artifact WHERE content_id=?", (cid,))]:
+                    con.execute("DELETE FROM object_replica WHERE artifact_id=?", (artifact_id,))
+                for table in ("observation", "artifact", "destination_binding",
+                              "destination_receipt", "content_classification"):
+                    con.execute(f"DELETE FROM {table} WHERE content_id=?", (cid,))
+                con.execute("DELETE FROM content WHERE id=?", (cid,))
+            runs = [str(r["id"]) for r in con.execute(
+                "SELECT id FROM sync_run WHERE source_account_id=?", (account_id,))]
+            for run_id in runs:
+                con.execute("DELETE FROM sync_run_scope WHERE sync_run_id=?", (run_id,))
+                con.execute("DELETE FROM sync_run_event WHERE sync_run_id=?", (run_id,))
+                # **第三张挂在 sync_run 上的表**：第一版漏了它，外键又把我拦住一次。
+                # 教训不是「再多想一张」，是**照着 schema 里的 REFERENCES 数**：
+                #   sync_run_event / sync_seen_relation / sync_run_scope
+                con.execute("DELETE FROM sync_seen_relation WHERE sync_run_id=?", (run_id,))
+            con.execute("DELETE FROM sync_run WHERE source_account_id=?", (account_id,))
+            con.execute("DELETE FROM sync_checkpoint WHERE source_account_id=?", (account_id,))
+            con.execute("DELETE FROM scan_receipt WHERE source_account_id=?", (account_id,))
+            con.execute("DELETE FROM platform_collection WHERE source_account_id=?", (account_id,))
+            con.execute("DELETE FROM source_account WHERE id=?", (account_id,))
+        return {
+            "found": True,
+            "platform": platform,
+            "removed_relations": int(relations),
+            "removed_content": len(orphans),
+            "kept_content_shared_with_other_accounts": len(content_ids) - len(orphans),
+            "removed_sync_runs": len(runs),
+            "removed_export_files": removed_paths,
+        }
+
     def disconnect_source_account(self, account_id: str) -> dict[str, Any]:
         """断开一个已连接的账号（v0.0.0.7 / INV-REVERSIBLE）。
 

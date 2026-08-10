@@ -1345,6 +1345,16 @@
             && !["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting", "paused"].includes(status)) {
           action += `<button class="btn small subtle-danger" data-disconnect-account="${escapeHtml(account.id)}">断开</button>`;
         }
+          // **删除并清空**（2026-08-10，Owner：「账号内存删除，增加删除按钮，从零测试能不能用」）
+          //
+          // 「断开」是「别再替我去取了」，内容一条不动——那是对的默认。
+          // 但要确认这套东西到底能不能用，就得**清干净、从零再走一遍**：
+          // 不然重连之后分不清「同步真的跑了」还是「本来就有」。
+          //
+          // 只在没有任务在跑时给（和「断开」同一个理由）。**不可逆**，要二次确认。
+          if (!["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting", "paused"].includes(status)) {
+            action += `<button class="btn small danger" data-forget-account="${escapeHtml(account.id)}">删除并清空</button>`;
+          }
         rows.push(`<tr><td><div class="platform-cell">${platformLogo(key)}<div><div>${escapeHtml(account.display_name || account.external_account_id || platformMeta[key].label)}</div><span class="muted">${escapeHtml(platformMeta[key].label)}</span></div></div></td><td><div class="connection-status ${stateClass}"><span class="dot"></span>${escapeHtml(connectionLabels[status] || "状态未知" || "未知")}</div></td><td><strong style="color:var(--text)">${Number(account.content_count || 0).toLocaleString("zh-CN")}</strong> 条</td><td><div class="sync-progress"><div style="font-size:11px;color:var(--text-3)">${run ? `${imported}/${discovered || "…"} · ${connectionLabels[run.status] || "状态未知"}` : "首次同步尚未开始"}</div>${run && (run.last_error_code || run.outcome === "stalled") ? `<div class="muted" style="font-size:11px;margin-top:2px" data-failure-reason>${escapeHtml(runSentence(run, platformMeta[key].label))}</div>` : ""}<div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div></div></td><td>${escapeHtml(formatDate(account.last_sync_at, true))}</td><td><div class="sync-action-stack">${action}</div></td></tr>`);
       }
     }
@@ -1352,6 +1362,7 @@
     document.querySelectorAll("[data-connect-platform]").forEach(button => button.addEventListener("click", () => connectAccount(button.dataset.connectPlatform, button)));
     document.querySelectorAll("[data-sync-account]").forEach(button => button.addEventListener("click", () => syncAccount(button.dataset.syncAccount, button)));
     document.querySelectorAll("[data-disconnect-account]").forEach(button => button.addEventListener("click", () => disconnectAccount(button.dataset.disconnectAccount, button)));
+      document.querySelectorAll("[data-forget-account]").forEach(button => button.addEventListener("click", () => forgetAccount(button.dataset.forgetAccount, button)));
     document.querySelectorAll("[data-control-run]").forEach(button => button.addEventListener("click", () => controlSyncRun(
       button.dataset.controlRun,
       button.dataset.accountId,
@@ -1742,6 +1753,41 @@
    * 要清的那份队列在扩展里，由扩展自己那颗按钮负责。两边都能断，
    * 各自清各自那一半。
    */
+  /** 删除账号，连同它带进来的内容。**不可逆**，所以让他把平台名打一遍。
+   *
+   * 不用 `confirm("确定吗？")`：那种框点「确定」是肌肉记忆，挡不住误删。
+   * 打一遍名字是为了确保他知道自己在删哪一个。
+   */
+  async function forgetAccount(accountId, button) {
+    const account = state.accounts.find(item => item.id === accountId);
+    if (!account) return;
+    const label = account.display_name
+      || platformMeta[serverToUiPlatform[account.platform]]?.label || account.platform;
+    const count = Number(account.content_count || 0).toLocaleString("zh-CN");
+    const typed = prompt(
+      `删除「${label}」，连同它带进来的 ${count} 条内容和全部同步记录。\n\n`
+      + `这一步不可逆：要再有这些内容，得重新连接并同步一次。\n`
+      + `同一条内容如果别的账号也存过，那一份会留着。\n\n`
+      + `确认的话，把平台名字打一遍：${label}`);
+    if (typed === null) return;
+    if (String(typed).trim() !== label) {
+      showToast(`没有删除——你打的是「${typed}」，要打的是「${label}」。`);
+      return;
+    }
+    if (button) { button.disabled = true; button.textContent = "正在删除…"; }
+    try {
+      const result = await api(`/v1/accounts/${encodeURIComponent(accountId)}/forget`,
+                               { method: "POST" });
+      showToast(result?.message_zh || "已删除。");
+      await loadAccountsAndDestinations();
+      await loadLibrary();
+      renderSyncTable();
+    } catch (error) {
+      showToast(`删除没成功：${error.message}`);
+      if (button) { button.disabled = false; button.textContent = "删除并清空"; }
+    }
+  }
+
   async function disconnectAccount(accountId, button) {
     const account = state.accounts.find(item => item.id === accountId);
     if (!account) return;

@@ -556,6 +556,39 @@ def start_account_sync(account_id: str, request: AccountSyncRequest) -> dict[str
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
+@app.post("/v1/accounts/{account_id}/forget", dependencies=[Depends(require_token)])
+def forget_account(account_id: str) -> dict[str, Any]:
+    """把这个账号连同它带进来的内容一起删掉——**不可逆**。（2026-08-10）
+
+    Owner 的原话：「账号内存删除，增加删除按钮，从零测试能不能用」。
+    他要的是**清干净、从零再走一遍**，用来确认这套东西到底能不能用。
+
+    `DELETE /v1/accounts/{id}`（断开）做不到这件事：内容全留着，重连之后
+    分不清「同步真的跑了」还是「本来就有」。
+
+    **只删只属于它的内容**：同一条内容可能同时被两个账号收藏，
+    别的账号还留着的一条都不碰，并把「留下几条是因为别人也存了」如实报出来。
+    """
+    result = store.forget_source_account(account_id)
+    if not result.get("found"):
+        raise HTTPException(status_code=404, detail="账号不存在")
+    shared = int(result["kept_content_shared_with_other_accounts"])
+    return {
+        "account_id": account_id,
+        "platform": result["platform"],
+        "removed_relations": result["removed_relations"],
+        "removed_content": result["removed_content"],
+        "removed_sync_runs": result["removed_sync_runs"],
+        "kept_content_shared_with_other_accounts": shared,
+        "message_zh": (
+            f"已删除这个账号，连同它带进来的 {result['removed_content']} 条内容"
+            f"和 {result['removed_sync_runs']} 次同步记录。"
+            + (f"另有 {shared} 条因为别的账号也存过而留着。" if shared else "")
+            + "这一步不可逆——要再有这些内容，得重新连接并同步一次。"
+        ),
+    }
+
+
 @app.delete("/v1/accounts/{account_id}", dependencies=[Depends(require_token)])
 def disconnect_account(account_id: str) -> dict[str, Any]:
     """断开一个已连接的账号。**只断连接，不删内容。**
