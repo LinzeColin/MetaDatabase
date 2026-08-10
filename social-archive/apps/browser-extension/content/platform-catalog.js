@@ -162,6 +162,22 @@
     // 所以能直接导过去。upvoted 那条没验过，不列——不列就等于不承诺。
     reddit: Object.freeze(["saved"]),
     instagram: Object.freeze(["saved"]),
+    // **YouTube 一条都读不了，所以登记成空。**（2026-08-10）
+    //
+    // 它在连接页上有卡片（服务端支持的平台都必须有卡，见
+    // test_no_platform_is_supported_where_he_cannot_click），卡上写着
+    // 「稍后观看、播放列表」——**而扩展里根本没有 YouTube 的取数路**
+    // （INTERCEPT_PREFIXES 只有 bilibili / xiaohongshu / douyin）。
+    //
+    // 不登记的后果不是「少一个平台」，是**多一个按了会转到死的按钮**：
+    // 服务端照旧下发 ['watch_later','playlist']，扩展一条都不会去扫，
+    // 那两档永远等不到终批 —— 和 Owner 抖音那二十次一模一样。
+    // 「同步范围只收窄登记过的平台」那次修复，恰恰漏掉了没登记的它。
+    //
+    // 登记成空之后：`start_sync` 走现成的那条拒绝路径当场报出来，
+    // 连接页也照实说「本版还不能自动读」。
+    // **空不是占位符，是一句准话：这一版读不到。** 取数路做出来再往里填。
+    youtube: Object.freeze([]),
   });
 
   /** 取数是**调平台自己的接口**，而不是读页面（v0.0.0.8）。

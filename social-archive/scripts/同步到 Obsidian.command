@@ -172,6 +172,23 @@ for _, files in groups.items():
 
 total_removed = removed + removed_dupes
 print(f"  库里修好 {fixed} 个标题" + (f"、{authors} 处作者字段" if authors else "") + (f"，清掉 {total_removed} 个重复文件" if total_removed else ""))
+
+# **把库里现在的成分打出来。**（2026-08-10）
+# 用「只补收藏」跑完，屏幕上是「按 favorite 筛掉 147 条 / 这次之前 193 个，现在 193 个」
+# ——**看起来像什么都没发生**。真相是那些非收藏的早就在库里了（上几轮全量同步放进去的），
+# 这个按钮只管少放新的进来、不删旧的。屏幕得把这件事说清楚。
+kinds = collections.Counter()
+for md in vault.rglob("*.md"):
+    m = re.search(r'^relation_types:\s*\[(.*?)\]', md.read_text(encoding="utf-8"), re.M)
+    for name in (re.findall(r'"([a-z_]+)"', m.group(1)) if m else []):
+        kinds[name] += 1
+if kinds:
+    zh = {"favorite": "收藏", "like": "点赞", "history": "观看历史", "saved": "已保存",
+          "watch_later": "稍后再看", "manual_save": "手动存的", "bookmark": "书签"}
+    print("  你库里现在：" + " · ".join(f"{zh.get(k, k)} {v}" for k, v in kinds.most_common()))
+    others = sum(v for k, v in kinds.items() if k != "favorite")
+    if kinds.get("favorite") and others:
+        print(f"  （收藏之外那 {others} 条是早期版本抓进来的；这两个按钮都不删你库里已有的东西）")
 PYEOF
 AFTER="$(find "$TARGET" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"
 

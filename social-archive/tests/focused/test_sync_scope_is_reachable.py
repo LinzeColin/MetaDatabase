@@ -24,7 +24,9 @@ import pytest
 
 from social_archive.account_sync import (
     NON_SCANNABLE_RELATIONS,
+    NOT_SYNCABLE_YET,
     PLATFORM_RELATIONS,
+    SYNCABLE_NOW,
     AccountSyncCoordinator,
 )
 
@@ -52,7 +54,34 @@ def test_every_platform_default_scope_is_reachable(platform: str) -> None:
         f"{platform} 的默认同步范围里有枚举不出来的关系 {leaked}——"
         "那一路永远等不到终批，这次 run 会永远停在 scanning"
     )
-    assert scope, f"{platform} 的同步范围被清空了"
+    # **「空」对同步不了的平台是正确答案，不是缺陷。**（2026-08-10 改）
+    #
+    # 上一版是无条件 `assert scope`。而 YouTube 的取数路本版没有做，
+    # 它在 SCANNABLE_RELATIONS 里登记成空正是为了让 start_sync 当场拒绝
+    # ——不登记的话服务端会下发 ['watch_later','playlist']，
+    # 扩展一条都不会扫，那次 run 永远等不到终批。
+    #
+    # 所以这里要分两档：能同步的不许被清空；不能同步的必须是空，
+    # **而且必须已经在 NOT_SYNCABLE_YET 里有一句给人看的原因**
+    # ——空而没有原因，界面上就是一片什么都不说的空白。
+    # **X 是第三种，不能和 YouTube 用同一把尺子。**
+    # 两个都不在 SYNCABLE_NOW 里，但失败形态不同：
+    #   · YouTube 走扩展，而扩展没有它的取数路 → 会**永远转**（等不到终批）
+    #   · X 走服务端连接器，点下去**当场报**「零费用门未确认」（铁律 7）
+    # 快速失败带一句原因是可以接受的；永远转不行。
+    # 所以 X 的范围保持非空，由连接器自己收敛。
+    if platform in SYNCABLE_NOW:
+        assert scope, f"{platform} 在「现在就能同步」表里，同步范围却被清空了"
+    elif platform == "x":
+        assert scope, "X 走服务端连接器那条路，范围不该是空的（它会当场报错，不是永远转）"
+        assert NOT_SYNCABLE_YET.get(platform), "X 不能同步，却没有一句给人看的原因"
+    else:
+        assert not scope, (
+            f"{platform} 界面上不给同步，服务端却仍下发 {scope}——"
+            "扩展不会去扫，那次 run 永远不收敛（他抖音那二十次就是这个）")
+        assert NOT_SYNCABLE_YET.get(platform), (
+            f"{platform} 同步范围是空的，却没有一句话说明为什么——"
+            "他看到的会是一片空白，那看起来像加载失败")
 
 
 def test_explicitly_requesting_a_non_scannable_relation_does_not_stick() -> None:

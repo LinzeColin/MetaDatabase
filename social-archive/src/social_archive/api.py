@@ -522,14 +522,29 @@ def account_connect_complete(platform: str, request: AccountConnectCompleteReque
             metadata=metadata,
             verified=request.verified,
         )
-        first = account_sync.start_sync(account_id, AccountSyncRequest(mode="first_full", trigger_type="first_connect"))
+        # **同步不了的平台照样连得上——只是不起同步。**（2026-08-10）
+        #
+        # YouTube 落在这一档：`NOT_SYNCABLE_YET` 那句话自己就写着
+        # 「可以点这张卡片上的『连接账号』，把登录状态交给你自己的服务器保管」。
+        # 而这里原本无条件起一次首同步，于是我给 start_sync 加上「扫不动就拒绝」
+        # 之后，**整个连接当场 422**——把一件他本来做得成的事弄坏了。
+        # （是全量判据抓到的，不是我读代码看出来的。）
+        scannable = account_sync._scannable_relations(platform.strip().lower())
+        first = None
+        if scannable:
+            first = account_sync.start_sync(
+                account_id, AccountSyncRequest(mode="first_full", trigger_type="first_connect"))
     except (TypeError, ValueError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return {
         "account_id": account_id,
         "state": "connected",
         "first_sync": first,
-        "next_action_zh": "账号已连接，首次全量同步已经开始。",
+        # 不起同步时不许还说「同步已经开始」——那正是这个仓反复出的那种假话。
+        "next_action_zh": (
+            "账号已连接，首次全量同步已经开始。" if first
+            else NOT_SYNCABLE_YET.get(platform.strip().lower())
+                 or "账号已连接。本版还不能自动读这个平台，你可以在页面上用扩展手动保存单条。"),
     }
 
 

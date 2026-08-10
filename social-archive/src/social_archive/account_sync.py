@@ -417,7 +417,22 @@ class AccountSyncCoordinator:
             raise ValueError("账号尚未连接，请先完成授权")
         relations = self._scannable_relations(account["platform"], request.relation_types)
         if not relations:
-            raise ValueError("该平台没有可同步的关系类型")
+            # **界面不发的请求，服务端也不该接受。**（2026-08-10）
+            #
+            # YouTube 落在这一档：它的取数路没做，界面早就照 SYNCABLE_NOW
+            # 把「立即同步」按钮收起来了。但服务端这一侧原本仍会按
+            # PLATFORM_RELATIONS 下发 ['watch_later','playlist']——
+            # 扩展一条都不会去扫，那次 run 就永远等不到终批
+            # （他抖音那二十次「点了同步，圈一直转」正是这个形状）。
+            # **不能靠界面替服务端守不变量。**
+            #
+            # 话用 NOT_SYNCABLE_YET 里那一句，不另编一句：同一件事两处措辞
+            # 必然漂开，这个仓当天已经因为「两份词典」修过四处。
+            platform = account["platform"]
+            label = PLATFORM_LABELS.get(platform, platform)
+            raise ValueError(
+                NOT_SYNCABLE_YET.get(platform)
+                or f"本版还不能自动读 {label}——它的取数路还没做。")
         mode = request.mode
         if mode == "incremental" and not account.get("last_sync_at"):
             mode = "first_full"
