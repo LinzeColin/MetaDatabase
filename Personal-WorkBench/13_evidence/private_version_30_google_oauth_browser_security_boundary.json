@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_30_GOOGLE_OAUTH_BROWSER_SECURITY_BOUNDARY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "deployed_product_source_commit": "0550a821dc5d429e925635b72cfc9c84a4fc1e5a",
+    "sites_source_commit": "b736fcf5c90a0fcbcf80ad5cb3aecd909a32d895",
+    "sites_version_number": 30,
+    "private_access_remained_owner_custom": true,
+    "public_audience_changed": false
+  },
+  "control_plane_precondition": {
+    "site_active": true,
+    "current_user_role_owner": true,
+    "access_mode_custom": true,
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "latest_saved_version_number": 30,
+    "latest_saved_version_source_matches_expected": true
+  },
+  "controlled_browser_attempt": {
+    "fresh_agent_test_tab_created": true,
+    "target_route": "/auth/sign-in",
+    "navigation_completed": false,
+    "signin_page_rendered": false,
+    "page_content_inspected": false,
+    "navigation_security_boundary_observed": true,
+    "navigation_failure_cause_determined": false,
+    "google_authorization_entry_attempted": false,
+    "google_account_selection_observed": false,
+    "google_callback_observed": false,
+    "application_session_observed": false,
+    "retry_or_browser_switch_used_to_bypass_boundary": false,
+    "bypass_token_generated_or_used": false,
+    "personal_google_account_or_credential_used": false,
+    "raw_navigation_error_recorded": false
+  },
+  "scope_and_cleanup": {
+    "browser_cookie_or_storage_inspected": false,
+    "temporary_test_tab_finalized": true,
+    "temporary_application_account_created": false,
+    "runtime_values_read_or_changed": false,
+    "d1_or_r2_resource_configuration_changed": false,
+    "access_policy_or_public_audience_changed": false,
+    "real_user_business_data_read_or_written": false,
+    "github_uploaded": false
+  },
+  "result": {
+    "current_v30_google_oauth_callback_or_session_proven": false,
+    "interpretation": "After the current Version 30 private control-plane precondition was verified, a fresh isolated browser test tab encountered a navigation security boundary before the canonical sign-in page rendered. No raw navigation failure was retained and no cause is attributed. No Google account selection, provider callback, or application session was observed. This boundary cannot establish a Google OAuth pass or failure and does not replace the frozen current-version callback replay."
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}

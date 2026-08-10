@@ -548,6 +548,49 @@ test("Version 30 email browser boundary recheck retains no mailbox, account, or 
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 30 Google browser boundary retains no account, session, or navigation material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_30_google_oauth_browser_security_boundary.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 30);
+  assert.equal(evidence.control_plane_precondition.site_active, true);
+  assert.equal(evidence.control_plane_precondition.current_user_role_owner, true);
+  assert.equal(evidence.control_plane_precondition.access_mode_custom, true);
+  assert.equal(evidence.control_plane_precondition.allowed_user_count, 1);
+  assert.equal(evidence.control_plane_precondition.allowed_group_count, 0);
+  assert.equal(evidence.control_plane_precondition.external_visitor_count, 0);
+  assert.equal(evidence.control_plane_precondition.latest_saved_version_number, 30);
+  assert.equal(evidence.control_plane_precondition.latest_saved_version_source_matches_expected, true);
+  assert.equal(evidence.controlled_browser_attempt.fresh_agent_test_tab_created, true);
+  assert.equal(evidence.controlled_browser_attempt.target_route, "/auth/sign-in");
+  assert.equal(evidence.controlled_browser_attempt.navigation_completed, false);
+  assert.equal(evidence.controlled_browser_attempt.signin_page_rendered, false);
+  assert.equal(evidence.controlled_browser_attempt.page_content_inspected, false);
+  assert.equal(evidence.controlled_browser_attempt.navigation_security_boundary_observed, true);
+  assert.equal(evidence.controlled_browser_attempt.navigation_failure_cause_determined, false);
+  assert.equal(evidence.controlled_browser_attempt.google_authorization_entry_attempted, false);
+  assert.equal(evidence.controlled_browser_attempt.google_account_selection_observed, false);
+  assert.equal(evidence.controlled_browser_attempt.google_callback_observed, false);
+  assert.equal(evidence.controlled_browser_attempt.application_session_observed, false);
+  assert.equal(evidence.controlled_browser_attempt.retry_or_browser_switch_used_to_bypass_boundary, false);
+  assert.equal(evidence.controlled_browser_attempt.bypass_token_generated_or_used, false);
+  assert.equal(evidence.controlled_browser_attempt.personal_google_account_or_credential_used, false);
+  assert.equal(evidence.controlled_browser_attempt.raw_navigation_error_recorded, false);
+  assert.equal(evidence.scope_and_cleanup.browser_cookie_or_storage_inspected, false);
+  assert.equal(evidence.scope_and_cleanup.temporary_test_tab_finalized, true);
+  assert.equal(evidence.scope_and_cleanup.temporary_application_account_created, false);
+  assert.equal(evidence.result.current_v30_google_oauth_callback_or_session_proven, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 30 rollback and restore rehearsal retains no deployment or user material", async () => {
   const evidence = JSON.parse(
     await readFile(
