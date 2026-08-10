@@ -124,6 +124,20 @@ test("tenant resource client writes an opaque device-local fallback before a clo
   assert.match(cacheSource, /tenantFieldNames/);
 });
 
+test("sensitive record saves preflight the read-only consent state before falling back to this device", async () => {
+  const source = await readFile(resourceSource, "utf8");
+  const createStart = source.indexOf("const create = useCallback");
+  const preflight = source.indexOf('if (sensitive && cloudAvailabilityRef.current === "unknown")', createStart);
+  const localWrite = source.indexOf("await writeDeviceLocalRecord", createStart);
+
+  assert.ok(createStart >= 0);
+  assert.ok(preflight > createStart);
+  assert.ok(localWrite > preflight);
+  assert.match(source.slice(preflight, localWrite), /await reload\(\);/);
+  assert.match(source.slice(preflight, localWrite), /const preflightScope = await refreshCurrentScope\(\);/);
+  assert.match(source, /server still rejects any non-consented cloud path before body parsing/);
+});
+
 test("tenant resource client refreshes an account scope before merging or mutating cross-device history", async () => {
   const source = await readFile(resourceSource, "utf8");
 

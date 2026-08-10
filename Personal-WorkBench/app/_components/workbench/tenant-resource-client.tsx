@@ -485,6 +485,21 @@ export function useTenantResource<T extends TenantRecord>(
     setSaving(true);
     setError("");
     setLoginSuggested(false);
+
+    // A signed-in user can submit before the initial resource GET settles.
+    // For sensitive modules, resolve the existing read-only consent gate first
+    // instead of prematurely classifying that window as device-only. The
+    // server still rejects any non-consented cloud path before body parsing.
+    if (sensitive && cloudAvailabilityRef.current === "unknown") {
+      await reload();
+      const preflightScope = await refreshCurrentScope();
+      if (preflightScope !== scope) {
+        acknowledgeScopeChange(preflightScope);
+        setSaving(false);
+        return null;
+      }
+    }
+
     const requestId = idempotencyKey ?? newIdempotencyKey(resource);
     const deviceLocalRecord = createDeviceLocalRecord(payload);
     const localRecord = deviceLocalRecord as T;
@@ -603,7 +618,7 @@ export function useTenantResource<T extends TenantRecord>(
     } finally {
       setSaving(false);
     }
-  }, [acknowledgeLocalSave, acknowledgeScopeChange, applyFailure, commitLocalRecords, commitRecords, enabled, queueDeviceMutation, refreshCurrentScope, resource, sensitive]);
+  }, [acknowledgeLocalSave, acknowledgeScopeChange, applyFailure, commitLocalRecords, commitRecords, enabled, queueDeviceMutation, refreshCurrentScope, reload, resource, sensitive]);
 
   const destroy = useCallback(async (id: string, idempotencyKey?: string): Promise<boolean> => {
     if (!enabled || !id) return false;
