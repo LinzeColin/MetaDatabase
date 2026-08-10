@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Social Archive",
   "short_name": "Social Archive",
-  "version": "0.0.0.28",
+  "version": "0.0.0.29",
   "minimum_chrome_version": "116",
   "description": "连接一次账号，自动同步多平台收藏、点赞、书签与收藏夹，并导出到 Notion、Obsidian、GitHub 和 Markdown。",
   "permissions": [
