@@ -5,7 +5,7 @@
   "subject_phase": "S4-T3",
   "status": "PASS_BUILD_LAST_MILE_READINESS",
   "verdict": "NOT_ISSUED_PRE_VERIFIER",
-  "runAt": "2026-08-10T02:04:13.276Z",
+  "runAt": "2026-08-10T02:10:17.463Z",
   "command_results": [
     {
       "name": "npm run test:quality",
@@ -52,7 +52,7 @@
       "exists": true,
       "status": "PASS_LOCAL_QUALITY",
       "phase": "S4-T1",
-      "run_at": "2026-08-10T02:04:13.475Z"
+      "run_at": "2026-08-10T02:10:17.696Z"
     },
     "visual": {
       "source": "13_evidence/visual/manifest.json",
@@ -66,7 +66,7 @@
       "exists": true,
       "status": "PASS_LOCAL_RETRY_RESILIENCE",
       "phase": "S4-T2",
-      "run_at": "2026-08-10T02:04:26.488Z"
+      "run_at": "2026-08-10T02:10:30.774Z"
     }
   },
   "risks": [
