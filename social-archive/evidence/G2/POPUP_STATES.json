@@ -21,7 +21,7 @@
     },
     "同步进度按钮": {
       "sidepanel_targets": [
-        "chrome-extension://dabbhlcciekmmejnnanbckippimnpcgc/sidepanel.html"
+        "chrome-extension://kpomcjdmekdckglojhcbfppmnokaaihg/sidepanel.html"
       ]
     }
   },

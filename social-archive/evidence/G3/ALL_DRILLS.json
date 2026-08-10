@@ -18,13 +18,13 @@
     {
       "drill": "stale_extension_is_blocked_drill.py",
       "status": "PASS",
-      "seconds": 29.8,
+      "seconds": 29.5,
       "problems": []
     },
     {
       "drill": "extension_install_page_drill.py",
       "status": "PASS",
-      "seconds": 39.1,
+      "seconds": 38.9,
       "problems": []
     },
     {
@@ -36,19 +36,19 @@
     {
       "drill": "extension_routing_drill.py",
       "status": "PASS",
-      "seconds": 4.3,
+      "seconds": 4.2,
       "problems": []
     },
     {
       "drill": "extension_capture_drill.py",
       "status": "PASS",
-      "seconds": 16.2,
+      "seconds": 16.3,
       "problems": []
     },
     {
       "drill": "extension_capture_buffer_drill.py",
       "status": "PASS",
-      "seconds": 5.3,
+      "seconds": 5.4,
       "problems": []
     },
     {
@@ -66,13 +66,13 @@
     {
       "drill": "popup_states_drill.py",
       "status": "PASS",
-      "seconds": 18.8,
+      "seconds": 18.9,
       "problems": []
     },
     {
       "drill": "bilibili_end_to_end_drill.py",
       "status": "PASS",
-      "seconds": 24.9,
+      "seconds": 24.8,
       "problems": []
     },
     {
@@ -84,7 +84,7 @@
     {
       "drill": "list_shape_end_to_end_drill.py --platform xiaohongshu",
       "status": "PASS",
-      "seconds": 41.2,
+      "seconds": 41.3,
       "problems": []
     },
     {
