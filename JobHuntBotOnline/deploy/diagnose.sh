@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-
-echo "== containers =="
+set -a; source .env; set +a
+printf '%s\n' '=== compose services ==='
 docker compose ps
-echo "== application diagnostics =="
-docker compose exec -T app python -m app.cli doctor || true
-echo "== application logs =="
-docker compose logs --tail=160 app
-echo "== proxy logs =="
-proxy_container="${TRAEFIK_PROXY_CONTAINER:-coolify-proxy}"
-docker inspect "$proxy_container" --format '{{.State.Status}} {{.Config.Image}}' || true
+printf '%s\n' '=== HTTPS health ==='
+curl -fsS "${BASE_URL%/}/healthz" || true
+printf '\n%s\n' '=== HTTPS ready ==='
+curl -fsS "${BASE_URL%/}/readyz" || true
+printf '\n%s\n' '=== Alembic ==='
+docker compose exec -T web alembic current || true
+printf '%s\n' '=== Web logs ==='
+docker compose logs --tail=80 web || true
+printf '%s\n' '=== Scheduler logs ==='
+docker compose logs --tail=80 scheduler || true
+printf '%s\n' '=== Worker logs ==='
+docker compose logs --tail=80 worker || true

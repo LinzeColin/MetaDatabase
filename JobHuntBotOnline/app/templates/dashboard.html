@@ -1,67 +1,40 @@
 {% extends "base.html" %}
-{% block title %}总览 · {{ app_name }}{% endblock %}
-{% block topbar_title %}求职总览{% endblock %}
+{% block title %}首页｜JobHuntBot{% endblock %}
 {% block content %}
-<section class="hero-panel">
-  <div class="hero-copy">
-    <span class="eyebrow">GOOD MORNING, {{ profile.preferred_name|upper }}</span>
-    <h1>今天只做最值得做的申请。</h1>
-    <p>先核验资格，再投入材料；所有结果都回到同一条求职记忆里。</p>
-    <div class="hero-actions"><a href="/jobs/new" class="button button-light button-large">分析一个新岗位 <span>→</span></a><a href="/jobs" class="button button-ghost-light">查看全部进度</a></div>
-  </div>
-  <div class="hero-orbit" aria-hidden="true"><div class="orbit-ring orbit-one"></div><div class="orbit-ring orbit-two"></div><div class="hero-score"><strong>{{ counts.get('Ready', 0) }}</strong><span>待申请</span></div></div>
+<section class="page-head">
+  <div><span class="eyebrow">你的求职控制台</span><h1>今天从最值得的岗位开始</h1><p>系统每 {{ refresh_hours }} 小时刷新一次新鲜岗位。你不需要反复搜索和粘贴链接。</p></div>
+  <a class="button" href="/recommendations" data-testid="dashboard-view-recommendations">查看推荐岗位</a>
 </section>
-
-<section class="metric-grid" aria-label="求职指标">
-  <a class="metric-card" href="/jobs?status=Ready"><span class="metric-icon tone-purple">↗</span><div><small>值得申请</small><strong>{{ counts.get('Ready', 0) }}</strong><p>资格与材料已准备</p></div></a>
-  <a class="metric-card" href="/jobs?status=Applied"><span class="metric-icon tone-blue">✓</span><div><small>已确认提交</small><strong>{{ counts.get('Applied', 0) }}</strong><p>只统计有成功证据的申请</p></div></a>
-  <a class="metric-card" href="/jobs?status=Interview"><span class="metric-icon tone-green">◫</span><div><small>进行中的面试</small><strong>{{ counts.get('Interview', 0) }}</strong><p>下一动作集中管理</p></div></a>
-  <a class="metric-card" href="/jobs?status=Needs%20user"><span class="metric-icon tone-amber">!</span><div><small>需要你确认</small><strong>{{ counts.get('Needs user', 0) }}</strong><p>工作权利等高影响事实</p></div></a>
+<section class="metric-grid">
+  <article class="metric"><span>推荐岗位</span><strong>{{ counts.recommendations }}</strong><small>自动发现并完成三层判断</small></article>
+  <article class="metric"><span>已收藏</span><strong>{{ counts.saved }}</strong><small>准备认真处理的机会</small></article>
+  <article class="metric"><span>已提交</span><strong>{{ counts.applied }}</strong><small>只统计有确认依据的申请</small></article>
 </section>
-
-<div class="dashboard-grid">
-  <section class="card dashboard-main-card">
-    <div class="card-header"><div><span class="eyebrow eyebrow-dark">NEXT BEST ACTION</span><h2>下一步处理</h2></div><a href="/jobs" class="text-link">查看全部 →</a></div>
-    {% if action_jobs %}
-      <div class="job-action-list">
-      {% for job in action_jobs %}
-        <a class="job-action-row" href="/jobs/{{ job.id }}">
-          <span class="company-monogram">{{ job.company[0]|upper }}</span>
-          <div class="job-action-copy"><strong>{{ job.title }}</strong><small>{{ job.company }}{% if job.location %} · {{ job.location }}{% endif %}</small><p>{{ job.next_action }}</p></div>
-          <div class="job-action-meta"><span class="badge badge-{{ job.status|status_class }}">{{ job.status }}</span><span class="chevron">›</span></div>
-        </a>
-      {% endfor %}
-      </div>
-    {% else %}
-      <div class="empty-state compact"><span class="empty-icon">◎</span><h3>没有积压动作</h3><p>添加一个岗位，系统会告诉你最值得做的下一步。</p><a href="/jobs/new" class="button button-primary">分析第一个岗位</a></div>
-    {% endif %}
-  </section>
-
-  <aside class="dashboard-side">
-    <section class="card readiness-card">
-      <div class="card-header"><div><span class="eyebrow eyebrow-dark">SYSTEM READINESS</span><h2>准备程度</h2></div></div>
-      <div class="readiness-item"><div><span>候选人事实</span><strong>已确认</strong></div><div class="progress"><i class="w-100"></i></div></div>
-      <div class="readiness-item"><div><span>简历版本</span><strong>{{ resume_count }} 份</strong></div><div class="progress"><i class="{% if resume_count %}w-100{% else %}w-10{% endif %}"></i></div></div>
-      <div class="readiness-item"><div><span>经历事实库</span><strong>{{ experience_count }} 条</strong></div><div class="progress"><i class="{% if experience_count >= 4 %}w-100{% elif experience_count %}w-55{% else %}w-10{% endif %}"></i></div></div>
-      <a href="/resumes" class="button button-secondary full-width">完善简历与经历</a>
-    </section>
-    <section class="card sync-card">
-      <div class="sync-head"><span class="sync-orb {% if ai_provider.ready %}sync-synced{% elif ai_provider.configured %}sync-warning{% else %}sync-not-configured{% endif %}"></span><div><strong>DeepSeek 增强</strong><small>{% if ai_provider.ready %}已连接；规则仍拥有硬性资格裁决权{% elif ai_provider.configured %}已保存但需要重新验证{% else %}尚未设置；规则分析仍可直接使用{% endif %}</small></div></div>
-      <a href="/settings#deepseek" class="text-link">{% if ai_provider.ready %}查看模型与预算{% else %}粘贴一次 API Key并验证{% endif %} →</a>
-    </section>
-    <section class="card sync-card">
-      <div class="sync-head"><span class="sync-orb sync-{{ sync_status.state|status_class }}"></span><div><strong>长期保存状态</strong><small>{{ sync_status.message }}</small></div></div>
-      <a href="/settings#data" class="text-link">查看数据与备份 →</a>
-    </section>
-  </aside>
-</div>
-
-<section class="card recent-card">
-  <div class="card-header"><div><span class="eyebrow eyebrow-dark">RECENT ACTIVITY</span><h2>最近岗位</h2></div></div>
-  {% if recent_jobs %}
-  <div class="responsive-table"><table><thead><tr><th>岗位</th><th>判断</th><th>资格</th><th>状态</th><th>下一步</th></tr></thead><tbody>
-  {% for job in recent_jobs %}<tr><td><a href="/jobs/{{ job.id }}"><strong>{{ job.title }}</strong><small>{{ job.company }}{% if job.location %} · {{ job.location }}{% endif %}</small></a></td><td><span class="badge badge-{{ job.fit_label|status_class }}">{{ job.fit_label }}</span></td><td><span class="badge badge-{{ job.eligibility_status|status_class }}">{{ job.eligibility_status }}</span></td><td><span class="badge badge-{{ job.status|status_class }}">{{ job.status }}</span></td><td class="cell-note">{{ job.next_action }}</td></tr>{% endfor %}
-  </tbody></table></div>
-  {% else %}<div class="empty-state compact"><p>尚未导入岗位。</p></div>{% endif %}
+<section class="two-column">
+  <article class="panel">
+    <div class="panel-head"><div><h2>自动刷新状态</h2><p>下一次会自动运行，不需要保持浏览器打开。</p></div><span class="status-pill {% if latest_run and latest_run.status == 'completed' %}ok{% endif %}">{{ latest_run.status if latest_run else '等待首次运行' }}</span></div>
+    {% if latest_run %}
+    <dl class="summary-list">
+      <div><dt>最近运行</dt><dd>{{ latest_run.completed_at or latest_run.created_at }}</dd></div>
+      <div><dt>发现岗位</dt><dd>{{ latest_run.jobs_seen }}</dd></div>
+      <div><dt>新增岗位</dt><dd>{{ latest_run.jobs_new }}</dd></div>
+      <div><dt>更新推荐</dt><dd>{{ latest_run.recommendations_updated }}</dd></div>
+    </dl>
+    {% else %}<p class="empty">完成简历确认后会立即启动第一次发现。</p>{% endif %}
+  </article>
+  <article class="panel">
+    <h2>推荐工作方式</h2>
+    <ol class="clean-list">
+      <li><b>先筛选</b><span>查看资格通过且相关性高的岗位。</span></li>
+      <li><b>再准备</b><span>生成申请包并核对工作权利等重要事实。</span></li>
+      <li><b>最后提交</b><span>在雇主官网完成提交，并保存确认依据。</span></li>
+    </ol>
+  </article>
+</section>
+<section class="quick-grid">
+  <a class="quick-card" href="/recommendations" data-testid="dashboard-recommendations-card"><b>推荐岗位</b><span>筛选最新、高相关机会 →</span></a>
+  <a class="quick-card" href="/applications" data-testid="dashboard-applications-card"><b>申请进度</b><span>记录面试、拒绝与 Offer →</span></a>
+  <a class="quick-card" href="/jobs/manual" data-testid="dashboard-manual-card"><b>手工导入</b><span>补充系统没有覆盖的岗位 →</span></a>
+  <a class="quick-card" href="/settings/profile" data-testid="dashboard-settings-card"><b>求职偏好</b><span>调整城市、岗位和边界 →</span></a>
 </section>
 {% endblock %}

@@ -1,117 +1,132 @@
+#!/usr/bin/env python3
+"""Generate the non-interactive production configuration and one-time Owner login.
+
+The script never asks for or writes the DeepSeek, SMTP, IMAP, GitHub, R2, or
+Cloudflare credential values. Delivery injects those through the existing server
+Secret manager or edits the mode-0600 .env in the target environment.
+"""
 from __future__ import annotations
 
 import argparse
-import base64
 import os
 import secrets
-import shlex
 from pathlib import Path
+from urllib.parse import quote
+
+from cryptography.fernet import Fernet
 
 
-
-def password() -> str:
-    groups = [
-        "ABCDEFGHJKLMNPQRSTUVWXYZ",
-        "abcdefghijkmnopqrstuvwxyz",
-        "23456789",
-        "_-.@",
-    ]
-    chars = [secrets.choice(group) for group in groups]
-    alphabet = "".join(groups)
-    chars.extend(secrets.choice(alphabet) for _ in range(20))
-    secrets.SystemRandom().shuffle(chars)
-    return "".join(chars)
+def q(value: str) -> str:
+    return "'" + value.replace("'", "'\"'\"'") + "'"
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Generate JobHuntBot Online production environment")
+def main() -> None:
+    parser = argparse.ArgumentParser()
     parser.add_argument("--domain", required=True)
     parser.add_argument("--admin-email", required=True)
-    parser.add_argument("--data-path", default="./runtime-data")
+    parser.add_argument("--smtp-host", required=True)
+    parser.add_argument("--smtp-from", required=True)
+    parser.add_argument("--edge-network", default="coolify")
+    parser.add_argument("--compose-project-name", default="jobhuntbot-online")
     parser.add_argument("--output", default=".env")
-    parser.add_argument("--force", action="store_true")
-    return parser.parse_args()
+    args = parser.parse_args()
 
-
-def main() -> int:
-    args = parse_args()
-    output = Path(args.output).resolve()
-    if output.exists() and not args.force:
-        raise SystemExit(f"Refusing to overwrite existing {output}. Use --force only for a deliberate credential rotation.")
-    domain = args.domain.strip().lower().removeprefix("https://").removeprefix("http://").rstrip("/")
-    if not domain or "/" in domain or " " in domain:
-        raise SystemExit("Invalid domain")
-    admin_email = args.admin_email.strip().lower()
-    if "@" not in admin_email:
-        raise SystemExit("Invalid admin email")
-    data_path = args.data_path.strip()
-    if not data_path:
-        raise SystemExit("Invalid data path")
-
-    admin_password = password()
-    data_recovery_key = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("ascii")
-    values = {
+    admin_password = secrets.token_urlsafe(20) + "Aa1"
+    postgres_password = secrets.token_urlsafe(32)
+    database_password = quote(postgres_password, safe="")
+    lines = {
+        "COMPOSE_PROJECT_NAME": args.compose_project_name,
+        "APP_IMAGE": "jobhuntbot-online:0.3.0",
+        "ACCEPTANCE_IMAGE": "jobhuntbot-online-acceptance:0.3.0",
         "APP_ENV": "production",
         "APP_NAME": "JobHuntBot Online",
-        "APP_VERSION": "0.2.0",
+        "APP_VERSION": "0.3.0",
+        "BASE_URL": f"https://{args.domain}",
+        "DOMAIN": args.domain,
         "APP_TIMEZONE": "Australia/Sydney",
-        "DOMAIN": domain,
-        "BASE_URL": f"https://{domain}",
-        "ADMIN_EMAIL": admin_email,
-        "ADMIN_PASSWORD": admin_password,
+        "DATABASE_URL": f"postgresql+psycopg://jobhunt:{database_password}@postgres:5432/jobhunt",
         "SESSION_SECRET": secrets.token_urlsafe(48),
-        "DATA_ENCRYPTION_KEY": data_recovery_key,
+        "DATA_ENCRYPTION_KEY": Fernet.generate_key().decode(),
+        "EMAIL_LOOKUP_SECRET": secrets.token_urlsafe(48),
         "COOKIE_SECURE": "true",
         "SESSION_MAX_AGE_SECONDS": "604800",
-        "MAX_UPLOAD_BYTES": "10485760",
-        "JOB_FETCH_TIMEOUT_SECONDS": "12",
-        "JOB_FETCH_MAX_BYTES": "2097152",
-        "AUTOMATIC_BACKUP_HOURS": "24",
-        "BACKUP_RETENTION_DAYS": "14",
-        "STORE_ORIGINAL_FILES": "true",
-        "MAINTENANCE_ENABLED": "true",
-        "DATA_PATH": data_path,
-        "HOST_DATA_GID": str(os.getgid()),
-        "TRAEFIK_PROXY_CONTAINER": "coolify-proxy",
+        "ADMIN_EMAIL": args.admin_email,
+        "ADMIN_PASSWORD": admin_password,
+        "ALLOW_REGISTRATION": "true",
+        "SMTP_HOST": args.smtp_host,
+        "SMTP_PORT": "587",
+        "SMTP_USERNAME": "",
+        "SMTP_PASSWORD": "",
+        "SMTP_FROM": args.smtp_from,
+        "SMTP_STARTTLS": "true",
         "DEEPSEEK_API_KEY": "",
-        "DEEPSEEK_API_KEY_FILE": "",
         "DEEPSEEK_BASE_URL": "https://api.deepseek.com",
-        "DEEPSEEK_FAST_MODEL": "deepseek-v4-flash",
-        "DEEPSEEK_PRECISION_MODEL": "deepseek-v4-pro",
-        "DEEPSEEK_DEFAULT_MODE": "fast",
-        "DEEPSEEK_DAILY_REQUEST_LIMIT": "60",
-        "DEEPSEEK_DAILY_TOKEN_LIMIT": "600000",
-        "DEEPSEEK_MAX_INPUT_CHARACTERS": "60000",
-        "DEEPSEEK_MAX_OUTPUT_TOKENS": "3000",
-        "DEEPSEEK_REQUEST_TIMEOUT_SECONDS": "75",
+        "DEEPSEEK_MODEL": "deepseek-chat",
+        "DEEPSEEK_DAILY_PLATFORM_REQUEST_LIMIT": "1000",
+        "DEEPSEEK_DAILY_PLATFORM_TOKEN_LIMIT": "5000000",
+        "DEEPSEEK_DEFAULT_USER_REQUEST_LIMIT": "60",
+        "DEEPSEEK_REQUEST_TIMEOUT_SECONDS": "60",
         "DEEPSEEK_CIRCUIT_BREAKER_FAILURES": "3",
         "DEEPSEEK_CIRCUIT_BREAKER_MINUTES": "15",
-        "PRIVATE_DATABASE_CLIENT_PATH": "tools/private_db_client.py",
-        "PRIVATE_DATABASE_AREA": "Private-MetaDatabase",
-        "PRIVATE_DATABASE_TARGET_PATH": "products/jobhuntos-online/current.json",
-        "R2_SYNC_ENABLED": "false",
-        "RCLONE_R2_REMOTE": "",
+        "DISCOVERY_REFRESH_HOURS": "6",
+        "DISCOVERY_SOURCE_TIMEOUT_SECONDS": "15",
+        "DISCOVERY_MAX_JOBS_PER_SOURCE": "120",
+        "DISCOVERY_FIXTURE_PATH": "",
+        "ENABLE_REMOTIVE": "true",
+        "ENABLE_ARBEITNOW": "true",
+        "ENABLE_JOBICY": "true",
+        "ADZUNA_APP_ID": "",
+        "ADZUNA_APP_KEY": "",
+        "GREENHOUSE_BOARDS": "",
+        "LEVER_COMPANIES": "",
+        "ASHBY_BOARDS": "",
+        "FREEHIRE_BASE_URL": "",
+        "UPLOAD_ROOT": "/data/uploads",
+        "BACKUP_ROOT": "/data/backups",
+        "MAX_UPLOAD_BYTES": "10485760",
+        "BACKUP_ENCRYPTION_PASSPHRASE": secrets.token_urlsafe(48),
+        "EDGE_NETWORK": args.edge_network,
+        "V02_SQLITE_PATH": "",
+        "V02_DATA_ROOT": "",
+        "OLD_DATA_ENCRYPTION_KEY": "",
+        "V02_PLATFORM_KEY_OUTPUT": "",
+        "ACCEPTANCE_EMAIL": "",
+        "ACCEPTANCE_EMAIL_A": "",
+        "ACCEPTANCE_EMAIL_B": "",
+        "ACCEPTANCE_EMAIL_PLUS_ALIAS": "true",
+        "ACCEPTANCE_ACCOUNT_PASSWORD": "",
+        "ACCEPTANCE_IMAP_HOST": "",
+        "ACCEPTANCE_IMAP_PORT": "993",
+        "ACCEPTANCE_IMAP_USERNAME": "",
+        "ACCEPTANCE_IMAP_PASSWORD": "",
+        "ACCEPTANCE_IMAP_FOLDER": "INBOX",
+        "ACCEPTANCE_IMAP_SSL": "true",
+        "ACCEPTANCE_IMAP_STARTTLS": "false",
+        "ACCEPTANCE_MAIL_TIMEOUT_SECONDS": "240",
+        "ACCEPTANCE_DISCOVERY_TIMEOUT_SECONDS": "300",
+        "PLAYWRIGHT_CHROMIUM_EXECUTABLE": "",
+        "STATUS_URL": "https://status.linzezhang.com",
+        "STATUS_REGISTRATION_EVIDENCE": "",
+        "PRIVATE_DATABASE_SYNC_EVIDENCE": "",
+        "R2_SYNC_EVIDENCE": "",
     }
-    output.write_text(
-        "\n".join(f"{key}={shlex.quote(value)}" for key, value in values.items()) + "\n",
+    out = Path(args.output)
+    out.write_text("\n".join(f"{key}={q(value)}" for key, value in lines.items()) + "\n", encoding="utf-8")
+    os.chmod(out, 0o600)
+    secret_dir = Path("secrets")
+    secret_dir.mkdir(exist_ok=True)
+    postgres_file = secret_dir / "postgres_password.txt"
+    postgres_file.write_text(postgres_password, encoding="utf-8")
+    os.chmod(postgres_file, 0o600)
+    login = Path("OWNER_LOGIN.txt")
+    login.write_text(
+        f"URL=https://{args.domain}\nEMAIL={args.admin_email}\nPASSWORD={admin_password}\n",
         encoding="utf-8",
     )
-    output.chmod(0o600)
-
-    login_file = output.parent / "OWNER_LOGIN.txt"
-    login_file.write_text(
-        f"JobHuntBot Online\n网址：https://{domain}\n登录邮箱：{admin_email}\n"
-        f"一次性初始密码：{admin_password}\n数据恢复密钥：{data_recovery_key}\n\n"
-        "首次登录后，请在“数据、AI 与安全”中修改初始密码；DeepSeek API Key 也在该页面粘贴一次并验证。请把数据恢复密钥保存到私人密码管理器；"
-        "服务器完全丢失后，解密简历和恢复包必须使用该密钥。Owner 安全保存上述信息后，"
-        "请从服务器删除本文件。不得提交到 Git、Issue 或聊天。\n",
-        encoding="utf-8",
-    )
-    login_file.chmod(0o600)
-    print(f"created: {output}")
-    print(f"owner_login: {login_file}")
-    return 0
+    os.chmod(login, 0o600)
+    print(f"created {out}, secrets/postgres_password.txt and OWNER_LOGIN.txt")
+    print("next: inject SMTP/DeepSeek/acceptance mailbox Secrets without printing them")
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

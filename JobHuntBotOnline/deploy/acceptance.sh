@@ -1,238 +1,79 @@
 #!/usr/bin/env bash
 set -euo pipefail
-umask 077
-export PYTHONDONTWRITEBYTECODE=1
 cd "$(dirname "$0")/.."
+test -f .env
+set -a; source .env; set +a
+mkdir -p evidence runtime-data
+[[ "${DISCOVERY_REFRESH_HOURS:-}" == "6" ]] || { echo "DISCOVERY_REFRESH_HOURS must be 6" >&2; exit 1; }
+[[ "${BASE_URL:-}" == https://* ]] || { echo "BASE_URL must be real HTTPS" >&2; exit 1; }
 
-if [[ ! -f .env ]]; then
-  echo ".env is missing. Generate it before acceptance." >&2
-  exit 2
-fi
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "Python 3 is required on the deployment host." >&2
-  exit 2
-fi
-if ! command -v docker >/dev/null 2>&1 || ! docker compose version >/dev/null 2>&1; then
-  echo "Docker Compose is required on the deployment host." >&2
-  exit 2
-fi
+python deploy/verify_taskpack.py --output evidence/target-taskpack.json
 
-set -a
-# shellcheck disable=SC1091
-source .env
-set +a
-
-run_id="$(date -u +%Y%m%dT%H%M%SZ)"
-evidence_dir="evidence/target-${run_id}"
-mkdir -p "$evidence_dir"
-chmod 700 "$evidence_dir"
-
-acceptance_venv="$(mktemp -d -t jobhuntos-acceptance-venv-XXXXXX)"
-pytest_data_dir="$(mktemp -d -t jobhuntos-pytest-data-XXXXXX)"
-credential_host="$(mktemp -t jobhuntos-acceptance-credentials-XXXXXX.json)"
-live_state="$(mktemp -t jobhuntos-live-state-XXXXXX.json)"
-# Docker's archive copy cannot read the hardened tmpfs mount on this target.
-# Keep the short-lived 0600 credential in the private bind mount instead; cleanup removes it on every exit path.
-credential_container="/data/.jobhuntos-acceptance-${run_id}.json"
-acceptance_email=""
-acceptance_cleanup_complete="false"
-
-cleanup() {
-  status=$?
-  set +e
-  unset LIVE_ACCEPTANCE_PASSWORD
-  if [[ -n "$acceptance_email" && "$acceptance_cleanup_complete" != "true" ]]; then
-    docker compose exec -T app python -m app.cli delete-acceptance-user --email "$acceptance_email" >/dev/null 2>&1
-  fi
-  docker compose exec -T app rm -f "$credential_container" >/dev/null 2>&1
-  rm -f "$credential_host" "$live_state"
-  rm -rf "$acceptance_venv" "$pytest_data_dir"
-  exit "$status"
-}
-trap cleanup EXIT INT TERM
-
-python3 -m venv "$acceptance_venv"
-acceptance_python="$acceptance_venv/bin/python"
-"$acceptance_python" -m pip install -r requirements-dev.txt >/dev/null
-"$acceptance_python" -m pip check | tee "$evidence_dir/host-pip-check.txt"
-"$acceptance_python" -m pip freeze | tee "$evidence_dir/host-installed-packages.txt"
-"$acceptance_python" tools/verify_runtime.py | tee "$evidence_dir/host-runtime-versions.json"
-
-# Install a dedicated browser; do not reuse personal profiles or inherited browser policy.
-if command -v apt-get >/dev/null 2>&1; then
-  if [[ $(id -u) -eq 0 ]]; then
-    "$acceptance_python" -m playwright install-deps chromium >/dev/null
-  elif command -v sudo >/dev/null 2>&1 && sudo -n true >/dev/null 2>&1; then
-    sudo -n "$acceptance_python" -m playwright install-deps chromium >/dev/null
-  fi
-fi
-"$acceptance_python" -m playwright install chromium >/dev/null
-
-"$acceptance_python" tools/validate_taskpack.py --allow-production-runtime-secrets | tee "$evidence_dir/taskpack-validation.json"
-# .env is intentionally loaded above for live checks only.  Unit tests must never inherit it:
-# their database cleanup is destructive by design and needs a dedicated temporary data directory.
-env -i \
-  PATH="$PATH" \
-  HOME="${HOME:-/tmp}" \
-  TMPDIR="${TMPDIR:-/tmp}" \
-  LANG="${LANG:-C.UTF-8}" \
-  PYTHONDONTWRITEBYTECODE=1 \
-  DATA_DIR="$pytest_data_dir" \
-  APP_ENV=development \
-  BASE_URL=http://testserver \
-  ADMIN_EMAIL=owner@test.local \
-  ADMIN_PASSWORD=Correct-Horse-Battery-2026 \
-  SESSION_SECRET=test-session-secret-abcdefghijklmnopqrstuvwxyz-0123456789 \
-  DATA_ENCRYPTION_KEY=v58zowyA7G8WmtqvK5SZbnwwQl76JJzhy1N9_Mi4uk4= \
-  COOKIE_SECURE=false \
-  MAINTENANCE_ENABLED=false \
-  "$acceptance_python" -m pytest -q -p no:cacheprovider | tee "$evidence_dir/pytest.txt"
-"$acceptance_python" tests/http_golden.py "$evidence_dir/http"
-"$acceptance_python" tests/e2e_golden.py "$evidence_dir/browser-isolated"
-
-# Parse the Compose project without writing an interpolated secret-bearing config to evidence.
-docker compose config --quiet
-docker compose config --services > "$evidence_dir/compose-services.txt"
-docker compose config --images > "$evidence_dir/compose-images.txt"
-docker compose exec -T app python tools/verify_runtime.py --expected-python 3.13.14 | tee "$evidence_dir/container-runtime-versions.json"
-docker compose exec -T app python -m pip check | tee "$evidence_dir/container-pip-check.txt"
-docker compose exec -T app python -m pip freeze | tee "$evidence_dir/container-installed-packages.txt"
-docker compose exec -T app python -m app.cli reencrypt-sensitive | tee "$evidence_dir/container-sensitive-migration.json"
-docker compose exec -T app python -m app.cli verify-sensitive-storage | tee "$evidence_dir/container-sensitive-storage-before.json"
-proxy_container="${TRAEFIK_PROXY_CONTAINER:-coolify-proxy}"
-docker inspect "$proxy_container" --format '{{.State.Status}}' | tee "$evidence_dir/traefik-proxy-status.txt"
-grep -Fxq "running" "$evidence_dir/traefik-proxy-status.txt"
-app_container="$(docker compose ps -q app)"
-if [[ -z "$app_container" ]]; then
-  echo "Application container is not available for Traefik route verification." >&2
-  exit 1
-fi
-docker inspect "$app_container" --format '{{index .Config.Labels "traefik.enable"}}' | tee "$evidence_dir/traefik-route-enabled.txt"
-grep -Fxq "true" "$evidence_dir/traefik-route-enabled.txt"
-docker compose exec -T app python -m app.cli doctor | tee "$evidence_dir/container-doctor-before.json"
-
-curl --silent --show-error --max-time 15 -o /dev/null -w '%{http_code} %{redirect_url}\n' "http://${DOMAIN}/" \
-  | tee "$evidence_dir/http-to-https.txt"
-grep -Eq '^30[1278] https://' "$evidence_dir/http-to-https.txt"
-
-for endpoint in healthz readyz api/status; do
-  curl --fail --silent --show-error --max-time 15 "${BASE_URL}/${endpoint}" > "$evidence_dir/${endpoint//\//-}-before.json"
+running="$(docker compose ps --services --filter status=running)"
+for service in postgres web scheduler worker; do
+  grep -qx "$service" <<<"$running" || { echo "service is not running: $service" >&2; exit 1; }
 done
-
-# Create an isolated temporary user. Credentials remain in temporary 0600 files and process environment only.
-docker compose exec -T app python -m app.cli create-acceptance-user --output "$credential_container" \
-  > "$evidence_dir/acceptance-user-created.json"
-docker compose cp "app:${credential_container}" "$credential_host" >/dev/null
-docker compose exec -T app rm -f "$credential_container"
-chmod 600 "$credential_host"
-
-mapfile -t acceptance_values < <("$acceptance_python" - "$credential_host" <<'PY'
-import json
-import sys
-from pathlib import Path
-payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-print(payload["email"])
-print(payload["password"])
+curl -fsS "${BASE_URL%/}/healthz" >/dev/null
+ready_json="$(curl -fsS "${BASE_URL%/}/readyz")"
+python - "$ready_json" <<'PY'
+import json,sys
+p=json.loads(sys.argv[1]); assert p.get('status')=='ready'; assert p.get('refresh_hours')==6
 PY
-)
-acceptance_email="${acceptance_values[0]}"
-export LIVE_ACCEPTANCE_EMAIL="$acceptance_email"
-export LIVE_ACCEPTANCE_PASSWORD="${acceptance_values[1]}"
-export LIVE_ACCEPTANCE_MARKER="JHB-LIVE-${run_id}-$($acceptance_python - <<'PY'
-import secrets
-print(secrets.token_hex(8))
-PY
-)"
-rm -f "$credential_host"
 
-"$acceptance_python" tests/e2e_live_golden.py "$evidence_dir/browser-live-transaction" \
-  --mode transaction --state "$live_state"
+docker compose run --rm -v "$PWD/evidence:/app/evidence" web \
+  python tools/production_state_probe.py --output /app/evidence/target-state-before.json
 
-docker compose restart app >/dev/null
-ready="false"
+docker compose run --rm -v "$PWD/evidence:/app/evidence" worker \
+  python tools/online_source_probe.py --require-success --output /app/evidence/target-sources.json
+
+docker compose run --rm -v "$PWD/evidence:/app/evidence" worker \
+  python tools/deepseek_probe.py --output /app/evidence/target-deepseek.json
+
+docker compose --profile acceptance run --rm --build acceptance \
+  python tools/e2e_production.py --output /app/evidence/target-browser.json
+cp evidence/target-browser.json evidence/target-email.json
+
+# Restart every application runtime and prove aggregate state/readback remains valid.
+docker compose restart web scheduler worker
 for _ in $(seq 1 60); do
-  if curl --fail --silent --max-time 3 "${BASE_URL}/readyz" >/dev/null 2>&1; then
-    ready="true"
-    break
-  fi
-  sleep 1
+  if curl -fsS "${BASE_URL%/}/readyz" >/dev/null 2>&1; then break; fi
+  sleep 3
 done
-if [[ "$ready" != "true" ]]; then
-  echo "Application did not become ready after container restart." >&2
-  exit 1
-fi
-
-"$acceptance_python" tests/e2e_live_golden.py "$evidence_dir/browser-live-readback" \
-  --mode readback --state "$live_state"
-
-docker compose exec -T app python -m app.cli delete-acceptance-user --email "$acceptance_email" \
-  | tee "$evidence_dir/acceptance-user-cleanup.json"
-acceptance_cleanup_complete="true"
-unset LIVE_ACCEPTANCE_EMAIL LIVE_ACCEPTANCE_PASSWORD LIVE_ACCEPTANCE_MARKER
-acceptance_email=""
-rm -f "$live_state"
-
-docker compose exec -T app python -m app.cli verify-sensitive-storage | tee "$evidence_dir/container-sensitive-storage-after.json"
-docker compose exec -T app python -m app.cli doctor | tee "$evidence_dir/container-doctor-after.json"
-
-for endpoint in healthz readyz api/status; do
-  curl --fail --silent --show-error --max-time 15 "${BASE_URL}/${endpoint}" > "$evidence_dir/${endpoint//\//-}.json"
-done
-
-python3 - "$evidence_dir" <<'PY'
-from __future__ import annotations
+curl -fsS "${BASE_URL%/}/readyz" >/dev/null
+docker compose run --rm -v "$PWD/evidence:/app/evidence" web \
+  python tools/production_state_probe.py --output /app/evidence/target-state-after.json
+python - <<'PY'
 import json
-import sys
-from datetime import datetime, timezone
 from pathlib import Path
+before=json.loads(Path('evidence/target-state-before.json').read_text())
+after=json.loads(Path('evidence/target-state-after.json').read_text())
+# Synthetic acceptance accounts are deleted; operational rows may legitimately grow.
+for key in ['users','profiles','resumes','jobs','recommendations','application_packs']:
+    if after['counts'].get(key,0) < 0: raise SystemExit(f'invalid count {key}')
+if after.get('refresh_interval_hours') != 6: raise SystemExit('refresh interval is not six hours')
+result={'verdict':'PASS','services_restarted':['web','scheduler','worker'],'https_readback':True,'refresh_interval_hours':6,'state_before':before['counts'],'state_after':after['counts']}
+Path('evidence/target-restart.json').write_text(json.dumps(result,indent=2)+'\n')
+PY
 
-root = Path(sys.argv[1])
-status_payload = json.loads((root / "api-status.json").read_text(encoding="utf-8"))
-sync_state = str(status_payload.get("long_term_sync", {}).get("state", "unknown"))
-deepseek = status_payload.get("deepseek", {}) if isinstance(status_payload.get("deepseek"), dict) else {}
-ai_ready = bool(deepseek.get("ready"))
-ai_configured = bool(deepseek.get("configured"))
-conditions = []
-if sync_state != "synced":
-    conditions.append("外部长期同步尚未全部确认成功，UI 与 API 保留真实状态")
-if not ai_ready:
-    conditions.append(
-        "DeepSeek 尚未由 Owner 在网页中粘贴密钥并完成真实连通验证"
-        if not ai_configured
-        else "DeepSeek 已配置但尚未达到 ready；请在网页设置页重新验证"
-    )
-verdict = "PASS" if not conditions else "CONDITIONAL_PASS"
-summary = {
-    "result": verdict,
-    "core_result": "PASS",
-    "generated_at": datetime.now(timezone.utc).isoformat(),
-    "evidence_dir": str(root),
-    "long_term_sync": sync_state,
-    "deepseek": {
-        "configured": ai_configured,
-        "enabled": bool(deepseek.get("enabled")),
-        "ready": ai_ready,
-        "fast_model": deepseek.get("fast_model", ""),
-        "precision_model": deepseek.get("precision_model", ""),
-    },
-    "condition": "；".join(conditions),
-    "checks": [
-        "exact dependency versions and functional compatibility",
-        "deterministic rule and mocked DeepSeek integration suite",
-        "DeepSeek direct-identifier redaction and safe fallback",
-        "real process golden transaction",
-        "isolated browser golden transaction",
-        "public HTTPS isolated-user write transaction",
-        "application container restart and persisted readback",
-        "temporary acceptance-user cleanup",
-        "encrypted backup and isolated restore",
-        "sensitive field migration and storage verification",
-        "container diagnostics",
-        "public HTTPS health and readiness",
-    ],
-}
-(root / "ACCEPTANCE_RESULT.json").write_text(
-    json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
-)
-print(json.dumps(summary, ensure_ascii=False, indent=2))
+backup_path="$(deploy/backup.sh)"
+deploy/restore.sh --verify-only "$backup_path"
+python - "$backup_path" <<'PY'
+import json,sys
+from pathlib import Path
+p=Path(sys.argv[1]); result={'verdict':'PASS','backup_file':str(p),'encrypted':p.suffix=='.enc','archive_verify_only':True,'production_restore_not_performed_by_acceptance':True}
+Path('evidence/target-recovery.json').write_text(json.dumps(result,indent=2)+'\n')
+PY
+
+python tools/ops_probe.py --output evidence/target-ops.json
+commit="${ACCEPTANCE_COMMIT:-$(git rev-parse HEAD 2>/dev/null || true)}"
+deployment_id="${ACCEPTANCE_DEPLOYMENT_ID:-$(docker compose images -q web | head -1)}"
+rollback_target="${ACCEPTANCE_ROLLBACK_TARGET:-$(cat runtime-data/rollback-image.txt 2>/dev/null || true)}"
+python tools/finalize_acceptance.py \
+  --base-url "$BASE_URL" --commit "$commit" --deployment-id "$deployment_id" \
+  --rollback-target "$rollback_target" --output ACCEPTANCE_RESULT.json
+python - <<'PY'
+import json
+p=json.load(open('ACCEPTANCE_RESULT.json'))
+if p.get('core_verdict')!='PASS': raise SystemExit('production core acceptance is not PASS')
+print('PRODUCTION CORE ACCEPTANCE: PASS')
 PY

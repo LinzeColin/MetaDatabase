@@ -1,63 +1,42 @@
 from __future__ import annotations
 
-from contextlib import contextmanager
-from typing import Generator
+from collections.abc import Generator
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
-
-from app.config import get_settings
+from sqlalchemy.pool import StaticPool
 
 
 class Base(DeclarativeBase):
     pass
 
 
-settings = get_settings()
-connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
-engine = create_engine(
-    settings.database_url,
-    connect_args=connect_args,
-    pool_pre_ping=True,
-    future=True,
-)
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
+def make_engine(database_url: str) -> Engine:
+    kwargs: dict = {"pool_pre_ping": True}
+    if database_url.startswith("sqlite"):
+        kwargs["connect_args"] = {"check_same_thread": False}
+        if database_url.endswith(":memory:"):
+            kwargs["poolclass"] = StaticPool
+    engine = create_engine(database_url, **kwargs)
+    if database_url.startswith("sqlite"):
+        @event.listens_for(engine, "connect")
+        def _sqlite_fk(dbapi_connection, _record) -> None:
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.close()
+    return engine
 
 
-@event.listens_for(Engine, "connect")
-def _set_sqlite_pragmas(dbapi_connection, connection_record) -> None:  # type: ignore[no-untyped-def]
-    if settings.database_url.startswith("sqlite"):
-        cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.execute("PRAGMA journal_mode=WAL")
-        cursor.execute("PRAGMA synchronous=NORMAL")
-        cursor.execute("PRAGMA busy_timeout=5000")
-        cursor.close()
+def make_session_factory(engine: Engine) -> sessionmaker[Session]:
+    return sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 
-def init_db() -> None:
-    from app import models  # noqa: F401
-
-    Base.metadata.create_all(bind=engine)
-
-
-def get_db() -> Generator[Session, None, None]:
-    session = SessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-
-
-@contextmanager
-def session_scope() -> Generator[Session, None, None]:
-    session = SessionLocal()
-    try:
-        yield session
-        session.commit()
-    except Exception:
-        session.rollback()
-        raise
-    finally:
-        session.close()
+def session_dependency(factory: sessionmaker[Session]):
+    def _get() -> Generator[Session, None, None]:
+        db = factory()
+        try:
+            yield db
+        finally:
+            db.close()
+    return _get

@@ -1,34 +1,30 @@
-FROM python:3.13.14-slim-trixie
+FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PIP_NO_CACHE_DIR=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /app
-
-RUN DEBIAN_FRONTEND=noninteractive apt-get update \
+RUN apt-get update \
     && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends tzdata ca-certificates \
+    && apt-get install -y --no-install-recommends ca-certificates curl postgresql-client openssl tar \
     && rm -rf /var/lib/apt/lists/*
 
-RUN groupadd --gid 10001 jobhuntos \
-    && useradd --uid 10001 --gid 10001 --home-dir /app --shell /usr/sbin/nologin jobhuntos
-
 COPY requirements.txt ./
-RUN python -m pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
-COPY tools/verify_runtime.py ./tools/verify_runtime.py
-COPY LICENSE NOTICE README.md ./
+COPY tools ./tools
+COPY tests/fixtures ./tests/fixtures
+COPY alembic ./alembic
+COPY alembic.ini pyproject.toml ./
+RUN useradd --uid 10001 --create-home --shell /usr/sbin/nologin jobhunt \
+    && mkdir -p /data/uploads /data/backups /app/evidence \
+    && chown -R jobhunt:jobhunt /app /data
 
-RUN mkdir -p /data/uploads /data/backups /data/canonical \
-    && chown -R jobhuntos:jobhuntos /app /data
-
-USER 10001:10001
+USER 10001
 EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD curl -fsS http://127.0.0.1:8000/readyz || exit 1
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/readyz', timeout=3).read()"
-
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--proxy-headers", "--forwarded-allow-ips=*"]
+CMD ["sh","-c","alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2 --proxy-headers --forwarded-allow-ips='*'"]

@@ -1,7 +1,0 @@
-{
-  "result": "BLOCKED",
-  "browser": "system_chromium",
-  "reason": "ERR_BLOCKED_BY_ADMINISTRATOR",
-  "claim": "No browser PASS is claimed in the preparation environment.",
-  "required_next_execution": "deploy/acceptance.sh installs a dedicated Playwright Chromium on the target Linux host and executes both isolated and live HTTPS browser transactions."
-}

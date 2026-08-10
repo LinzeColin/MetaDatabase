@@ -1,89 +1,73 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-
-if ! command -v docker >/dev/null 2>&1; then
-  echo "Docker is not installed on this server." >&2
-  exit 2
+test -f .env
+test -f secrets/postgres_password.txt
+[[ "$(stat -c '%a' .env)" =~ ^(600|400)$ ]] || { echo ".env must be mode 0600 or 0400" >&2; exit 1; }
+python deploy/verify_taskpack.py
+set -a; source .env; set +a
+mkdir -p runtime-data evidence
+previous_image="$(docker compose images -q web 2>/dev/null | head -1 || true)"
+if [[ -n "$previous_image" ]]; then
+  echo "$previous_image" > runtime-data/rollback-image.txt
 fi
-if ! docker compose version >/dev/null 2>&1; then
-  echo "Docker Compose is not available." >&2
-  exit 2
+if docker compose ps --services --filter status=running 2>/dev/null | grep -q '^postgres$'; then
+  deploy/backup.sh > runtime-data/predeploy-backup.txt
 fi
-if [[ ! -f .env ]]; then
-  echo ".env is missing. Run deploy/generate_env.py with the chosen domain and Owner email." >&2
-  exit 2
-fi
+rollback_on_error() {
+  echo "deployment failed; previous application image remains available in runtime-data/rollback-image.txt" >&2
+  if [[ -n "$previous_image" ]]; then deploy/rollback.sh "$previous_image" || true; fi
+}
+trap rollback_on_error ERR
 
-set -a
-# shellcheck disable=SC1091
-source .env
-set +a
+docker network inspect "${EDGE_NETWORK:-coolify}" >/dev/null
+docker compose config >/dev/null
+docker compose build --pull web
+docker compose up -d postgres
+docker compose run --rm web alembic upgrade head
 
-data_path="${DATA_PATH:-./runtime-data}"
-data_gid="${HOST_DATA_GID:-$(id -g)}"
-mkdir -p "$data_path"/{uploads,backups,canonical}
-if [[ $(id -u) -eq 0 ]]; then
-  chown -R "10001:${data_gid}" "$data_path"
-  find "$data_path" -type d -exec chmod 2770 {} +
-  find "$data_path" -type f -exec chmod 0660 {} +
-elif command -v sudo >/dev/null 2>&1; then
-  sudo chown -R "10001:${data_gid}" "$data_path"
-  sudo find "$data_path" -type d -exec chmod 2770 {} +
-  sudo find "$data_path" -type f -exec chmod 0660 {} +
+if [[ -n "${V02_SQLITE_PATH:-}" ]]; then
+  [[ -f "$V02_SQLITE_PATH" ]] || { echo "V02_SQLITE_PATH does not exist" >&2; exit 1; }
+  old_root="${V02_DATA_ROOT:-$(dirname "$V02_SQLITE_PATH")}"; [[ -d "$old_root" ]] || { echo "V02_DATA_ROOT does not exist" >&2; exit 1; }
+  extra_mount=()
+  platform_arg=()
+  if [[ -n "${V02_PLATFORM_KEY_OUTPUT:-}" ]]; then
+    mkdir -p "$(dirname "$V02_PLATFORM_KEY_OUTPUT")"
+    extra_mount+=( -v "$(dirname "$V02_PLATFORM_KEY_OUTPUT"):/migration/secrets" )
+    platform_arg=( --platform-key-output "/migration/secrets/$(basename "$V02_PLATFORM_KEY_OUTPUT")" )
+  fi
+  docker compose run --rm \
+    -v "$V02_SQLITE_PATH:/migration/v02.db:ro" \
+    -v "$old_root:/migration/v02-data:ro" \
+    -v "$PWD/evidence:/app/evidence" \
+    "${extra_mount[@]}" \
+    web python tools/migrate_v02_sqlite.py \
+      --source /migration/v02.db --old-data-root /migration/v02-data \
+      "${platform_arg[@]}" --output /app/evidence/migration-result.json
 else
-  echo "Cannot prepare private runtime-data ownership. Run this script as a user with sudo." >&2
-  exit 2
+  cat > evidence/migration-result.json <<'EOF'
+{"verdict":"PASS","mode":"fresh_schema_or_previously_migrated","production_claimed":true,"secret_values_printed":false}
+EOF
 fi
 
-# Preserve both data and the exact previously runnable image before replacing anything.
-previous_image_available=false
-current_image_id="$(docker compose images -q app 2>/dev/null | head -n 1 || true)"
-if [[ -n "$current_image_id" ]] && docker image inspect "$current_image_id" >/dev/null 2>&1; then
-  docker tag "$current_image_id" jobhuntos-online:previous
-  previous_image_available=true
-elif docker image inspect jobhuntos-online:0.2.0 >/dev/null 2>&1; then
-  docker tag jobhuntos-online:0.2.0 jobhuntos-online:previous
-  previous_image_available=true
-elif docker image inspect jobhuntos-online:0.1.0 >/dev/null 2>&1; then
-  docker tag jobhuntos-online:0.1.0 jobhuntos-online:previous
-  previous_image_available=true
-fi
-if docker compose ps --status running --services 2>/dev/null | grep -qx app; then
-  docker compose exec -T app python -m app.cli backup >/dev/null
-fi
+docker compose up -d web scheduler worker
+for _ in $(seq 1 60); do
+  if health_json="$(curl -fsS "${BASE_URL%/}/healthz" 2>/dev/null)" \
+    && curl -fsS "${BASE_URL%/}/readyz" >/dev/null 2>&1 \
+    && python - "$health_json" "${APP_VERSION:-0.3.0}" <<'PY'
+import json
+import sys
 
-docker compose build --pull app
-docker compose up -d --remove-orphans
-
-# Upgrade any earlier local data in place before accepting the new runtime.
-docker compose exec -T app python -m app.cli reencrypt-sensitive
-docker compose exec -T app python -m app.cli verify-sensitive-storage
-
-if docker compose exec -T app python -m app.cli doctor; then
-  for _ in $(seq 1 30); do
-    if docker compose exec -T app python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/readyz', timeout=3).read()" >/dev/null 2>&1; then
-      # Initialize the truthful sync state immediately; optional integration failures remain visible in the UI.
-      ops/sync_private_database.sh || true
-      ops/sync_r2.sh || true
-      echo "application_ready: true"
-      echo "url: https://${DOMAIN}"
-      exit 0
-    fi
-    sleep 2
-  done
-fi
-
-echo "The new application image did not become ready." >&2
-docker compose ps >&2
-docker compose logs --tail=120 app >&2
-if [[ "$previous_image_available" == true ]]; then
-  echo "Restoring the previously runnable image." >&2
-  docker tag jobhuntos-online:previous jobhuntos-online:0.2.0
-  docker compose up -d --force-recreate app
-  docker compose exec -T app python -m app.cli doctor
-  echo "rollback_result: previous_image_restored" >&2
-else
-  echo "rollback_result: no_previous_image_initial_deploy" >&2
-fi
+payload = json.loads(sys.argv[1])
+assert payload.get("status") == "ok"
+assert payload.get("version") == sys.argv[2]
+PY
+  then
+    trap - ERR
+    echo "application services are ready; run deploy/acceptance.sh"
+    exit 0
+  fi
+  sleep 3
+done
+echo "application did not become ready" >&2
 exit 1

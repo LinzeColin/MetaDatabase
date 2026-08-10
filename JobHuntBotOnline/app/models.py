@@ -1,376 +1,234 @@
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
-from typing import Any
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import (
+    Boolean, DateTime, ForeignKey, Index, Integer, LargeBinary, String, Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.db import Base
-from app.db_types import EncryptedBoolean, EncryptedInteger, EncryptedText
+from .db import Base
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
-
-
-def json_dumps(value: Any) -> str:
-    return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
-
-
-def json_loads(value: str | None, default: Any) -> Any:
-    if not value:
-        return default
-    try:
-        return json.loads(value)
-    except (TypeError, json.JSONDecodeError):
-        return default
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class User(Base):
     __tablename__ = "users"
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    email: Mapped[str] = mapped_column(String(320), unique=True, nullable=False, index=True)
-    password_hash: Mapped[str] = mapped_column(String(512), nullable=False)
-    display_name: Mapped[str] = mapped_column(String(120), default="Owner", nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    session_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    email_lookup: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    email_encrypted: Mapped[bytes] = mapped_column(LargeBinary)
+    display_name_encrypted: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    auth_version: Mapped[int] = mapped_column(Integer, default=1)
+    daily_ai_request_limit: Mapped[int] = mapped_column(Integer, default=60)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class UserSession(Base):
+    __tablename__ = "user_sessions"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    csrf_token: Mapped[str] = mapped_column(String(64))
+    auth_version: Mapped[int] = mapped_column(Integer)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class EmailToken(Base):
+    __tablename__ = "email_tokens"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    purpose: Mapped[str] = mapped_column(String(32), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class EmailDelivery(Base):
+    __tablename__ = "email_deliveries"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    kind: Mapped[str] = mapped_column(String(32))
+    recipient_masked: Mapped[str] = mapped_column(String(255))
+    status: Mapped[str] = mapped_column(String(24))
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class RateLimitBucket(Base):
+    __tablename__ = "rate_limit_buckets"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    bucket_key: Mapped[str] = mapped_column(String(160), unique=True, index=True)
+    window_started_at: Mapped[datetime] = mapped_column(DateTime)
+    count: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class CandidateProfile(Base):
     __tablename__ = "candidate_profiles"
-    __table_args__ = (UniqueConstraint("user_id", name="uq_candidate_profile_user"),)
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    preferred_name: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    legal_name: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    email: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    phone: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    current_location: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    linkedin_url: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    github_url: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    portfolio_url: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    current_status: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    work_authorization_country: Mapped[str] = mapped_column(EncryptedText(), default="Australia", nullable=False)
-    work_authorization_text: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    sponsorship_now: Mapped[bool | None] = mapped_column(EncryptedBoolean(), nullable=True)
-    sponsorship_future: Mapped[bool | None] = mapped_column(EncryptedBoolean(), nullable=True)
-    target_roles_json: Mapped[str] = mapped_column(EncryptedText(), default="[]", nullable=False)
-    secondary_roles_json: Mapped[str] = mapped_column(EncryptedText(), default="[]", nullable=False)
-    roles_to_avoid_json: Mapped[str] = mapped_column(EncryptedText(), default="[]", nullable=False)
-    industries_to_avoid_json: Mapped[str] = mapped_column(EncryptedText(), default="[]", nullable=False)
-    target_locations_json: Mapped[str] = mapped_column(EncryptedText(), default="[]", nullable=False)
-    work_mode: Mapped[str] = mapped_column(EncryptedText(), default="Hybrid / Onsite / Remote", nullable=False)
-    relocation_policy: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    target_level: Mapped[str] = mapped_column(EncryptedText(), default="Graduate / Entry level", nullable=False)
-    graduation_year: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    professional_experience_years: Mapped[int | None] = mapped_column(EncryptedInteger(), nullable=True)
-    degree_summary: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    available_start_date: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    salary_strategy: Mapped[str] = mapped_column(
-        EncryptedText(), default="Prefer not to state; use confirmed range only when required.", nullable=False
-    )
-    salary_range: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    self_identification_strategy: Mapped[str] = mapped_column(
-        EncryptedText(), default="prefer_not_to_say", nullable=False
-    )
-    onboarding_completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
-    )
-
-    @property
-    def target_roles(self) -> list[str]:
-        return json_loads(self.target_roles_json, [])
-
-    @property
-    def secondary_roles(self) -> list[str]:
-        return json_loads(self.secondary_roles_json, [])
-
-    @property
-    def roles_to_avoid(self) -> list[str]:
-        return json_loads(self.roles_to_avoid_json, [])
-
-    @property
-    def industries_to_avoid(self) -> list[str]:
-        return json_loads(self.industries_to_avoid_json, [])
-
-    @property
-    def target_locations(self) -> list[str]:
-        return json_loads(self.target_locations_json, [])
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True, index=True)
+    payload_encrypted: Mapped[bytes] = mapped_column(LargeBinary)
+    onboarding_state: Mapped[str] = mapped_column(String(32), default="needs_resume", index=True)
+    discovery_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    next_discovery_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
+    last_discovery_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
 
 
 class Resume(Base):
     __tablename__ = "resumes"
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    label: Mapped[str] = mapped_column(EncryptedText(), nullable=False)
-    role_family: Mapped[str] = mapped_column(EncryptedText(), default="General", nullable=False)
-    source_filename: Mapped[str] = mapped_column(EncryptedText(), nullable=False)
-    file_type: Mapped[str] = mapped_column(String(40), nullable=False)
-    encrypted_file_path: Mapped[str] = mapped_column(String(500), default="", nullable=False)
-    extracted_text: Mapped[str] = mapped_column(EncryptedText(), nullable=False)
-    skills_json: Mapped[str] = mapped_column(EncryptedText(), default="[]", nullable=False)
-    is_default: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
-    )
-
-    @property
-    def skills(self) -> list[str]:
-        return json_loads(self.skills_json, [])
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    original_name_encrypted: Mapped[bytes] = mapped_column(LargeBinary)
+    storage_name: Mapped[str] = mapped_column(String(80), unique=True)
+    text_encrypted: Mapped[bytes] = mapped_column(LargeBinary)
+    parsed_encrypted: Mapped[bytes] = mapped_column(LargeBinary)
+    content_type: Mapped[str] = mapped_column(String(120))
+    size_bytes: Mapped[int] = mapped_column(Integer)
+    is_primary: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
 class Experience(Base):
     __tablename__ = "experiences"
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    resume_id: Mapped[int | None] = mapped_column(
-        ForeignKey("resumes.id", ondelete="SET NULL"), nullable=True, index=True
-    )
-    category: Mapped[str] = mapped_column(String(40), default="experience", nullable=False)
-    title: Mapped[str] = mapped_column(EncryptedText(), nullable=False)
-    organization: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    date_range: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    description: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    tags_json: Mapped[str] = mapped_column(EncryptedText(), default="[]", nullable=False)
-    source_ref: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
-    )
-
-    @property
-    def tags(self) -> list[str]:
-        return json_loads(self.tags_json, [])
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    title_encrypted: Mapped[bytes] = mapped_column(LargeBinary)
+    detail_encrypted: Mapped[bytes] = mapped_column(LargeBinary)
+    kind: Mapped[str] = mapped_column(String(32), default="experience")
+    strength: Mapped[str] = mapped_column(String(16), default="medium")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
 class Job(Base):
     __tablename__ = "jobs"
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    url: Mapped[str] = mapped_column(String(2000), default="", nullable=False)
-    source: Mapped[str] = mapped_column(String(160), default="Manual", nullable=False)
-    company: Mapped[str] = mapped_column(String(240), default="Unknown company", nullable=False)
-    title: Mapped[str] = mapped_column(String(300), default="Unknown role", nullable=False)
-    location: Mapped[str] = mapped_column(String(240), default="", nullable=False)
-    posted_date: Mapped[str] = mapped_column(String(80), default="", nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
-    snapshot_text: Mapped[str] = mapped_column(Text, default="", nullable=False)
-    status: Mapped[str] = mapped_column(String(60), default="Needs review", nullable=False, index=True)
-    recommendation: Mapped[str] = mapped_column(String(60), default="Review", nullable=False)
-    fit_label: Mapped[str] = mapped_column(String(60), default="Unknown", nullable=False)
-    eligibility_status: Mapped[str] = mapped_column(String(60), default="Unknown", nullable=False)
-    freshness_status: Mapped[str] = mapped_column(String(60), default="Unknown", nullable=False)
-    application_effort: Mapped[str] = mapped_column(String(60), default="Unknown", nullable=False)
-    reasons_json: Mapped[str] = mapped_column(EncryptedText(), default="[]", nullable=False)
-    risks_json: Mapped[str] = mapped_column(EncryptedText(), default="[]", nullable=False)
-    unknowns_json: Mapped[str] = mapped_column(EncryptedText(), default="[]", nullable=False)
-    matched_skills_json: Mapped[str] = mapped_column(EncryptedText(), default="[]", nullable=False)
-    missing_skills_json: Mapped[str] = mapped_column(EncryptedText(), default="[]", nullable=False)
-    selected_resume_id: Mapped[int | None] = mapped_column(
-        ForeignKey("resumes.id", ondelete="SET NULL"), nullable=True, index=True
-    )
-    next_action: Mapped[str] = mapped_column(EncryptedText(), default="Review recommendation", nullable=False)
-    next_action_date: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    current_stage: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    notes: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    applied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
+    owner_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
+    source: Mapped[str] = mapped_column(String(48), index=True)
+    external_id: Mapped[str] = mapped_column(String(255))
+    canonical_key: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    url: Mapped[str] = mapped_column(Text)
+    title: Mapped[str] = mapped_column(String(255), index=True)
+    company: Mapped[str] = mapped_column(String(255), index=True)
+    location: Mapped[str] = mapped_column(String(255), default="")
+    city: Mapped[str] = mapped_column(String(120), default="", index=True)
+    country: Mapped[str] = mapped_column(String(8), default="", index=True)
+    work_mode: Mapped[str] = mapped_column(String(24), default="", index=True)
+    role_family: Mapped[str] = mapped_column(String(80), default="", index=True)
+    industry: Mapped[str] = mapped_column(String(80), default="", index=True)
+    skills_text: Mapped[str] = mapped_column(Text, default="")
+    keywords_text: Mapped[str] = mapped_column(Text, default="")
+    description: Mapped[str] = mapped_column(Text, default="")
+    posted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
+    discovered_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    __table_args__ = (
+        UniqueConstraint("source", "external_id", name="uq_jobs_source_external"),
+        Index("ix_jobs_open_recent", "closed_at", "posted_at"),
     )
 
-    @property
-    def reasons(self) -> list[str]:
-        return json_loads(self.reasons_json, [])
 
-    @property
-    def risks(self) -> list[str]:
-        return json_loads(self.risks_json, [])
+class Recommendation(Base):
+    __tablename__ = "recommendations"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), index=True)
+    qualification: Mapped[str] = mapped_column(String(16), index=True)
+    relevance: Mapped[str] = mapped_column(String(16), index=True)
+    opportunity: Mapped[str] = mapped_column(String(16), index=True)
+    rank_score: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    reasons_encrypted: Mapped[bytes] = mapped_column(LargeBinary)
+    user_status: Mapped[str] = mapped_column(String(24), default="new", index=True)
+    first_recommended_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    last_scored_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    __table_args__ = (UniqueConstraint("user_id", "job_id", name="uq_recommendation_user_job"),)
 
-    @property
-    def unknowns(self) -> list[str]:
-        return json_loads(self.unknowns_json, [])
 
-    @property
-    def matched_skills(self) -> list[str]:
-        return json_loads(self.matched_skills_json, [])
+class DiscoveryRun(Base):
+    __tablename__ = "discovery_runs"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    status: Mapped[str] = mapped_column(String(24), default="queued", index=True)
+    trigger: Mapped[str] = mapped_column(String(24), default="scheduled")
+    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    source_count: Mapped[int] = mapped_column(Integer, default=0)
+    jobs_seen: Mapped[int] = mapped_column(Integer, default=0)
+    jobs_new: Mapped[int] = mapped_column(Integer, default=0)
+    recommendations_updated: Mapped[int] = mapped_column(Integer, default=0)
+    error_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
 
-    @property
-    def missing_skills(self) -> list[str]:
-        return json_loads(self.missing_skills_json, [])
+
+class DiscoverySourceStatus(Base):
+    __tablename__ = "discovery_source_status"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    run_id: Mapped[int] = mapped_column(ForeignKey("discovery_runs.id", ondelete="CASCADE"), index=True)
+    source: Mapped[str] = mapped_column(String(48), index=True)
+    status: Mapped[str] = mapped_column(String(24))
+    jobs_seen: Mapped[int] = mapped_column(Integer, default=0)
+    detail: Mapped[str | None] = mapped_column(Text, nullable=True)
+    checked_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
 class ApplicationPack(Base):
     __tablename__ = "application_packs"
-    __table_args__ = (UniqueConstraint("job_id", name="uq_application_pack_job"),)
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True)
-    resume_id: Mapped[int | None] = mapped_column(
-        ForeignKey("resumes.id", ondelete="SET NULL"), nullable=True
-    )
-    experience_ids_json: Mapped[str] = mapped_column(Text, default="[]", nullable=False)
-    fit_summary: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    why_role_draft: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    why_company_draft: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    work_authorization_answer: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    sponsorship_answer: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    salary_answer: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    checklist_json: Mapped[str] = mapped_column(Text, default="[]", nullable=False)
-    user_reviewed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
-    )
-
-    @property
-    def experience_ids(self) -> list[int]:
-        return json_loads(self.experience_ids_json, [])
-
-    @property
-    def checklist(self) -> list[str]:
-        return json_loads(self.checklist_json, [])
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), index=True)
+    content_encrypted: Mapped[bytes] = mapped_column(LargeBinary)
+    resume_id: Mapped[int | None] = mapped_column(ForeignKey("resumes.id", ondelete="SET NULL"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
-class AIProviderConfig(Base):
-    __tablename__ = "ai_provider_configs"
-    __table_args__ = (UniqueConstraint("user_id", name="uq_ai_provider_config_user"),)
-
+class ApplicationEvent(Base):
+    __tablename__ = "application_events"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    provider: Mapped[str] = mapped_column(String(40), default="deepseek", nullable=False)
-    api_key: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    base_url: Mapped[str] = mapped_column(String(300), default="https://api.deepseek.com", nullable=False)
-    fast_model: Mapped[str] = mapped_column(String(100), default="deepseek-v4-flash", nullable=False)
-    precision_model: Mapped[str] = mapped_column(String(100), default="deepseek-v4-pro", nullable=False)
-    default_mode: Mapped[str] = mapped_column(String(20), default="fast", nullable=False)
-    enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    consent_to_external_processing: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    daily_request_limit: Mapped[int] = mapped_column(Integer, default=60, nullable=False)
-    daily_token_limit: Mapped[int] = mapped_column(Integer, default=600000, nullable=False)
-    max_input_characters: Mapped[int] = mapped_column(Integer, default=60000, nullable=False)
-    request_timeout_seconds: Mapped[int] = mapped_column(Integer, default=75, nullable=False)
-    consecutive_failures: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    circuit_open_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    last_tested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    last_success_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    last_error: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
-    )
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), index=True)
+    status: Mapped[str] = mapped_column(String(24), index=True)
+    evidence_encrypted: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    notes_encrypted: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
 
 
-class AIApplicationEnhancement(Base):
-    __tablename__ = "ai_application_enhancements"
-    __table_args__ = (UniqueConstraint("job_id", name="uq_ai_enhancement_job"),)
-
+class AIUsage(Base):
+    __tablename__ = "ai_usage"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True)
-    provider: Mapped[str] = mapped_column(String(40), default="deepseek", nullable=False)
-    model: Mapped[str] = mapped_column(String(100), default="", nullable=False)
-    mode: Mapped[str] = mapped_column(String(20), default="fast", nullable=False)
-    status: Mapped[str] = mapped_column(String(40), default="not_run", nullable=False)
-    prompt_version: Mapped[str] = mapped_column(String(40), default="job-analysis-v2", nullable=False)
-    content_json: Mapped[str] = mapped_column(EncryptedText(), default="{}", nullable=False)
-    usage_json: Mapped[str] = mapped_column(EncryptedText(), default="{}", nullable=False)
-    error_message: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-
-    @property
-    def content(self) -> dict[str, Any]:
-        return json_loads(self.content_json, {})
-
-    @property
-    def usage(self) -> dict[str, Any]:
-        return json_loads(self.usage_json, {})
+    scope_key: Mapped[str] = mapped_column(String(80), index=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    day_key: Mapped[str] = mapped_column(String(10), index=True)
+    requests: Mapped[int] = mapped_column(Integer, default=0)
+    tokens: Mapped[int] = mapped_column(Integer, default=0)
+    __table_args__ = (UniqueConstraint("scope_key", "day_key", name="uq_ai_usage_scope_day"),)
 
 
-class AIUsageRecord(Base):
-    __tablename__ = "ai_usage_records"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    job_id: Mapped[int | None] = mapped_column(ForeignKey("jobs.id", ondelete="SET NULL"), nullable=True, index=True)
-    operation: Mapped[str] = mapped_column(String(80), nullable=False)
-    provider: Mapped[str] = mapped_column(String(40), default="deepseek", nullable=False)
-    model: Mapped[str] = mapped_column(String(100), default="", nullable=False)
-    mode: Mapped[str] = mapped_column(String(20), default="fast", nullable=False)
-    status: Mapped[str] = mapped_column(String(40), nullable=False)
-    prompt_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    completion_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    total_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    duration_ms: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    error_code: Mapped[str] = mapped_column(String(80), default="", nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False, index=True)
-
-
-class JobEvent(Base):
-    __tablename__ = "job_events"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True)
-    event_type: Mapped[str] = mapped_column(String(100), nullable=False)
-    note: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+class PlatformState(Base):
+    __tablename__ = "platform_state"
+    key: Mapped[str] = mapped_column(String(80), primary_key=True)
+    value: Mapped[str] = mapped_column(Text, default="")
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
 
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
-    )
-    action: Mapped[str] = mapped_column(String(120), nullable=False)
-    object_type: Mapped[str] = mapped_column(String(80), default="", nullable=False)
-    object_id: Mapped[str] = mapped_column(String(80), default="", nullable=False)
-    details_json: Mapped[str] = mapped_column(EncryptedText(), default="{}", nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-
-
-class OutboxEvent(Base):
-    __tablename__ = "outbox_events"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    topic: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
-    payload_json: Mapped[str] = mapped_column(EncryptedText(), default="{}", nullable=False)
-    attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    last_error: Mapped[str] = mapped_column(Text, default="", nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-
-
-class BackupRecord(Base):
-    __tablename__ = "backup_records"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    filename: Mapped[str] = mapped_column(String(255), nullable=False)
-    status: Mapped[str] = mapped_column(String(40), default="created", nullable=False)
-    note: Mapped[str] = mapped_column(EncryptedText(), default="", nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-
-
-class SystemState(Base):
-    __tablename__ = "system_state"
-
-    key: Mapped[str] = mapped_column(String(120), primary_key=True)
-    value: Mapped[str] = mapped_column(Text, default="", nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
-    )
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    action: Mapped[str] = mapped_column(String(80), index=True)
+    detail: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)

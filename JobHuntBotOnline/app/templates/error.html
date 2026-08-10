@@ -1,8 +1,10 @@
 {% extends "base.html" %}
-{% macro error_panel() %}
-<section class="card error-page"><div class="empty-icon danger-icon">!</div><h1>{{ error_title }}</h1><p>{{ error_message }}</p><div class="form-actions center"><button class="button button-secondary" type="button" data-history-back>返回上一页</button><a class="button button-primary" href="/">回到总览</a></div></section>
-{% endmacro %}
-{% block title %}操作未完成 · {{ app_name }}{% endblock %}
-{% block topbar_title %}操作未完成{% endblock %}
-{% block content %}{{ error_panel() }}{% endblock %}
-{% block guest_content %}<div class="login-panel guest-error-wrap">{{ error_panel() }}</div>{% endblock %}
+{% block title %}出现问题｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="center-card">
+  <span class="status-code">{{ status }}</span>
+  <h1>这一步没有完成</h1>
+  <p>{{ detail }}</p>
+  <a class="button" href="/" data-testid="error-home">返回安全入口</a>
+</section>
+{% endblock %}

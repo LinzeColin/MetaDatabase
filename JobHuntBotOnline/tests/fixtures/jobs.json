@@ -1,0 +1,141 @@
+[
+  {
+    "source": "fixture",
+    "external_id": "fin-1",
+    "url": "https://example.com/jobs/fin-1",
+    "title": "Graduate Financial Analyst",
+    "company": "Harbour Finance",
+    "location": "Sydney, Australia",
+    "description": "Graduate analyst role using Excel, valuation and financial modeling. Full Australian working rights required.",
+    "posted_at": "NOW-0D",
+    "city": "Sydney",
+    "country": "AU",
+    "work_mode": "hybrid",
+    "role_family": "Finance",
+    "industry": "Banking",
+    "skills": [
+      "excel",
+      "valuation",
+      "financial modeling"
+    ],
+    "keywords": [
+      "graduate",
+      "analyst"
+    ]
+  },
+  {
+    "source": "fixture",
+    "external_id": "data-1",
+    "url": "https://example.com/jobs/data-1",
+    "title": "Junior Data Analyst",
+    "company": "Blue Koala",
+    "location": "Melbourne, Australia",
+    "description": "Use SQL, Python and Power BI to produce business insights. Early career candidates welcome.",
+    "posted_at": "NOW-1D",
+    "city": "Melbourne",
+    "country": "AU",
+    "work_mode": "hybrid",
+    "role_family": "Data",
+    "industry": "Technology",
+    "skills": [
+      "sql",
+      "python",
+      "power bi"
+    ],
+    "keywords": [
+      "junior",
+      "analytics"
+    ]
+  },
+  {
+    "source": "fixture",
+    "external_id": "ba-1",
+    "url": "https://example.com/jobs/ba-1",
+    "title": "Graduate Business Analyst",
+    "company": "Southern Consulting",
+    "location": "Sydney, Australia",
+    "description": "Requirements gathering, process mapping and stakeholder engagement for graduate consultants.",
+    "posted_at": "NOW-2D",
+    "city": "Sydney",
+    "country": "AU",
+    "work_mode": "onsite",
+    "role_family": "Business Analysis",
+    "industry": "Consulting",
+    "skills": [
+      "business analysis",
+      "stakeholder"
+    ],
+    "keywords": [
+      "graduate",
+      "process"
+    ]
+  },
+  {
+    "source": "fixture",
+    "external_id": "risk-1",
+    "url": "https://example.com/jobs/risk-1",
+    "title": "Risk Analyst",
+    "company": "Capital Mutual",
+    "location": "Remote Australia",
+    "description": "Risk controls, Excel and compliance reporting. Australian work rights required.",
+    "posted_at": "NOW-3D",
+    "city": "",
+    "country": "AU",
+    "work_mode": "remote",
+    "role_family": "Risk",
+    "industry": "Insurance",
+    "skills": [
+      "risk",
+      "excel"
+    ],
+    "keywords": [
+      "controls",
+      "compliance"
+    ]
+  },
+  {
+    "source": "fixture",
+    "external_id": "ops-1",
+    "url": "https://example.com/jobs/ops-1",
+    "title": "Operations Coordinator",
+    "company": "Pacific Logistics",
+    "location": "Sydney, Australia",
+    "description": "Coordinate operational processes, reporting and project work. Excel preferred.",
+    "posted_at": "NOW-5D",
+    "city": "Sydney",
+    "country": "AU",
+    "work_mode": "onsite",
+    "role_family": "Operations",
+    "industry": "Logistics",
+    "skills": [
+      "excel",
+      "project management"
+    ],
+    "keywords": [
+      "operations",
+      "coordinator"
+    ]
+  },
+  {
+    "source": "fixture",
+    "external_id": "senior-1",
+    "url": "https://example.com/jobs/senior-1",
+    "title": "Senior Finance Director",
+    "company": "Overlevel Corp",
+    "location": "Sydney, Australia",
+    "description": "Requires 15 years leadership experience and executive management. No sponsorship available.",
+    "posted_at": "NOW-1D",
+    "city": "Sydney",
+    "country": "AU",
+    "work_mode": "onsite",
+    "role_family": "Finance",
+    "industry": "Technology",
+    "skills": [
+      "finance"
+    ],
+    "keywords": [
+      "director",
+      "senior"
+    ]
+  }
+]

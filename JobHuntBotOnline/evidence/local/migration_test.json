@@ -1,0 +1,9 @@
+{
+  "verdict": "PASS",
+  "command": "migration and URL safety tests",
+  "tests_passed": 2,
+  "return_code": 0,
+  "duration_seconds": 2.574,
+  "output_tail": "..                                                                       [100%]",
+  "production_claimed": false
+}

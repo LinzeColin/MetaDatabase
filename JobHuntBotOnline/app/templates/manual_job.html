@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}手工导入岗位｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="page-head"><div><span class="eyebrow">覆盖缺口兜底</span><h1>导入一个系统尚未覆盖的岗位</h1><p>自动推荐仍是默认路径。这里用于补充公司官网、朋友转发或其他合法来源。</p></div></section>
+<form method="post" action="/jobs/manual" class="form-card" data-testid="manual-job-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="form-grid">
+    <label class="wide">官方岗位链接<input type="url" name="url" required placeholder="https://company.com/jobs/..." data-testid="manual-url"></label>
+    <label>职位名称<input name="title" required data-testid="manual-title"></label>
+    <label>公司<input name="company" required data-testid="manual-company"></label>
+    <label class="wide">地点<input name="location" placeholder="Sydney / Remote Australia" data-testid="manual-location"></label>
+    <label class="wide">完整 JD<textarea name="description" rows="14" required data-testid="manual-description"></textarea><small>请粘贴职责和要求。不要粘贴账号密码、验证码或私人通讯。</small></label>
+  </div>
+  <div class="form-actions"><a class="button ghost" href="/recommendations" data-testid="manual-cancel">取消</a><button class="button" type="submit" data-testid="manual-submit">导入并分析</button></div>
+</form>
+{% endblock %}

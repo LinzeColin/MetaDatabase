@@ -1,42 +1,21 @@
 {% extends "base.html" %}
-{% block title %}登录 · {{ app_name }}{% endblock %}
-{% block guest_content %}
-<div class="login-shell">
-  <section class="login-story" aria-label="产品说明">
-    <div class="story-inner">
-      <div class="brand brand-on-dark">
-        <span class="brand-mark" aria-hidden="true">J</span>
-        <span><strong>JobHuntBot Online</strong><small>候选人侧 AI 求职操作系统</small></span>
-      </div>
-      <div class="story-copy">
-        <span class="eyebrow">PRIVATE · ONLINE · CONTROLLED</span>
-        <h1>把每一次申请，变成一条清楚、真实、可追踪的决策。</h1>
-        <p>上传简历，粘贴岗位，系统帮你核验资格、选择材料并生成申请包。你仍然在官方页面亲自提交。</p>
-      </div>
-      <div class="story-steps">
-        <div><span>01</span><p><strong>资格先行</strong><small>工作权利、担保、地点和级别不靠猜</small></p></div>
-        <div><span>02</span><p><strong>材料路由</strong><small>自动选择简历与最相关的真实经历</small></p></div>
-        <div><span>03</span><p><strong>结果闭环</strong><small>申请、面试、拒绝与 Offer 全程可读回</small></p></div>
-      </div>
-      <p class="story-footnote">不保存招聘平台密码 · 不绕过验证码 · 不自动点击最终提交</p>
+{% block title %}登录｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="auth-shell">
+  <div class="auth-card">
+    <span class="eyebrow">欢迎回来</span>
+    <h1>继续你的求职进度</h1>
+    <form method="post" action="/login" class="form-stack" data-testid="login-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label>邮箱<input type="email" name="email" autocomplete="email" required data-testid="login-email"></label>
+      <label>密码<input type="password" name="password" autocomplete="current-password" required data-testid="login-password"></label>
+      <button class="button full" type="submit" data-testid="login-submit">登录</button>
+    </form>
+    <div class="auth-links">
+      <a href="/forgot-password" data-testid="forgot-password-link">忘记密码</a>
+      <a href="/resend-verification" data-testid="resend-link">重新发送验证邮件</a>
     </div>
-  </section>
-  <section class="login-panel">
-    <div class="login-card">
-      <div class="mobile-login-brand"><span class="brand-mark">J</span><strong>JobHuntBot</strong></div>
-      <span class="eyebrow eyebrow-dark">OWNER ACCESS</span>
-      <h2>登录你的私人工作区</h2>
-      <p class="muted">使用部署时生成的 Owner 邮箱和密码。</p>
-      {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
-      <form method="post" action="/login" class="form-stack">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <input type="hidden" name="next_url" value="{{ next_url }}">
-        <label class="field"><span>登录邮箱</span><input type="email" name="email" autocomplete="username" required autofocus placeholder="owner@example.com"></label>
-        <label class="field"><span>密码</span><input type="password" name="password" autocomplete="current-password" required placeholder="••••••••••••••"></label>
-        <button class="button button-primary button-large full-width" type="submit">进入工作区 <span aria-hidden="true">→</span></button>
-      </form>
-      <div class="privacy-strip"><span aria-hidden="true">◉</span><p><strong>单用户私有入口</strong><small>没有公开注册，也不会自动连接第三方招聘账户。</small></p></div>
-    </div>
-  </section>
-</div>
+    <p class="auth-switch">还没有账户？<a href="/register" data-testid="login-register-link">免费注册</a></p>
+  </div>
+</section>
 {% endblock %}

@@ -1,134 +1,115 @@
 from __future__ import annotations
 
 import os
-import tempfile
+import re
+from dataclasses import replace
 from pathlib import Path
-
-os.environ.setdefault("DATA_DIR", tempfile.mkdtemp(prefix="jobhuntos-tests-"))
-os.environ.setdefault("APP_ENV", "development")
-os.environ.setdefault("BASE_URL", "http://testserver")
-os.environ.setdefault("ADMIN_EMAIL", "owner@test.local")
-os.environ.setdefault("ADMIN_PASSWORD", "Correct-Horse-Battery-2026")
-os.environ.setdefault("SESSION_SECRET", "test-session-secret-abcdefghijklmnopqrstuvwxyz-0123456789")
-os.environ.setdefault("DATA_ENCRYPTION_KEY", "v58zowyA7G8WmtqvK5SZbnwwQl76JJzhy1N9_Mi4uk4=")
-os.environ.setdefault("MAINTENANCE_ENABLED", "false")
+from urllib.parse import urlparse
 
 import pytest
 from bs4 import BeautifulSoup
 from fastapi.testclient import TestClient
 
-from app.db import Base, engine
-from app.main import app
+os.environ.update({
+    "APP_ENV": "test",
+    "DATABASE_URL": "sqlite+pysqlite:///:memory:",
+    "BASE_URL": "http://testserver",
+    "SESSION_SECRET": "test-session-secret",
+    "DATA_ENCRYPTION_KEY": "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
+    "EMAIL_LOOKUP_SECRET": "test-email-secret",
+    "COOKIE_SECURE": "false",
+    "ADMIN_EMAIL": "owner@example.com",
+    "ADMIN_PASSWORD": "AdminPass!2026",
+    "DISCOVERY_REFRESH_HOURS": "6",
+    "ENABLE_REMOTIVE": "false",
+    "ENABLE_ARBEITNOW": "false",
+    "ENABLE_JOBICY": "false",
+})
+
+from app.config import get_settings
+from app.main import create_app
 
 
-@pytest.fixture(autouse=True)
-def clean_database():
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    data_dir = Path(os.environ["DATA_DIR"])
-    for folder in (data_dir / "uploads", data_dir / "backups", data_dir / "canonical"):
-        folder.mkdir(parents=True, exist_ok=True)
-        for path in folder.iterdir():
-            if path.is_file():
-                path.unlink()
-    yield
+def csrf(html: str) -> str:
+    soup = BeautifulSoup(html, "html.parser")
+    node = soup.select_one('input[name="csrf_token"]')
+    assert node and node.get("value")
+    return str(node["value"])
 
 
-@pytest.fixture
-def client():
-    with TestClient(app) as test_client:
-        yield test_client
+def latest_link(client: TestClient, kind: str) -> str:
+    outbox = client.get("/_test/outbox").json()
+    rows = [row for row in outbox if row["kind"] == kind]
+    assert rows, f"missing {kind} email"
+    match = re.search(r"https?://\S+", rows[-1]["body"])
+    assert match
+    return match.group(0)
 
 
-def csrf_from(response) -> str:
-    soup = BeautifulSoup(response.text, "html.parser")
-    field = soup.select_one('input[name="csrf_token"]')
-    assert field is not None
-    return str(field["value"])
+def register_verify(client: TestClient, email: str, password: str = "ValidPass123") -> None:
+    page = client.get("/register")
+    response = client.post("/register", data={
+        "csrf_token": csrf(page.text),
+        "email": email,
+        "display_name": "Test User",
+        "password": password,
+        "password_confirm": password,
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    link = latest_link(client, "verify")
+    path = urlparse(link).path + "?" + urlparse(link).query
+    response = client.get(path, follow_redirects=True)
+    assert response.status_code == 200
+    assert "上传简历" in response.text
 
 
-@pytest.fixture
-def login(client):
-    response = client.get("/login")
-    token = csrf_from(response)
+def complete_onboarding(client: TestClient) -> None:
+    page = client.get("/onboarding/upload")
+    resume_path = Path(__file__).parent / "fixtures" / "resume.txt"
     response = client.post(
-        "/login",
-        data={
-            "email": "owner@test.local",
-            "password": "Correct-Horse-Battery-2026",
-            "csrf_token": token,
-            "next_url": "/",
-        },
-        follow_redirects=False,
+        "/onboarding/upload",
+        data={"csrf_token": csrf(page.text)},
+        files={"resume": ("resume.txt", resume_path.read_bytes(), "text/plain")},
+        follow_redirects=True,
     )
-    assert response.status_code == 303
-    return client
-
-
-@pytest.fixture
-def completed_profile(login):
-    client = login
-    response = client.get("/onboarding")
-    token = csrf_from(response)
+    assert response.status_code == 200
+    assert "只确认会影响推荐结果" in response.text
     response = client.post(
-        "/profile",
+        "/onboarding/confirm",
         data={
-            "csrf_token": token,
-            "preferred_name": "Linze",
-            "legal_name": "",
-            "email": "linze@example.com",
-            "phone": "+61 400 000 000",
-            "current_location": "Sydney, NSW",
-            "linkedin_url": "",
-            "github_url": "",
-            "portfolio_url": "",
-            "current_status": "UNSW student",
-            "degree_summary": "Master of Commerce, UNSW",
-            "graduation_year": "2027",
-            "professional_experience_years": "1",
-            "work_authorization_country": "Australia",
-            "work_authorization_text": "Australian work rights confirmed; review exact form wording before submission.",
+            "csrf_token": csrf(response.text),
+            "primary_roles": "Finance, Data, Business Analysis",
+            "target_locations": "Sydney, Melbourne, Remote Australia",
+            "work_authorization": "Australian full working rights",
             "sponsorship_now": "no",
             "sponsorship_future": "no",
-            "target_roles": "Data Analyst, Financial Analyst",
-            "secondary_roles": "Business Analyst",
-            "roles_to_avoid": "Senior Director, pure sales",
-            "industries_to_avoid": "",
-            "target_locations": "Sydney, Remote Australia",
-            "work_mode": "Hybrid / Onsite / Remote",
-            "relocation_policy": "NSW only",
-            "target_level": "Graduate / Entry level",
-            "available_start_date": "2027-02",
-            "salary_strategy": "Prefer not to state unless required.",
-            "salary_range": "",
-            "self_identification_strategy": "prefer_not_to_say",
-            "next_url": "/resumes",
+            "work_modes": ["hybrid", "onsite", "remote"],
+            "relocation": "no",
+            "available_start": "2026-11",
+            "avoid_roles": "Sales",
+            "avoid_industries": "Gambling",
         },
-        follow_redirects=False,
+        follow_redirects=True,
     )
-    assert response.status_code == 303
-    assert response.headers["location"] == "/resumes"
-    return client
+    assert response.status_code == 200
+    assert "岗位推荐" in response.text
 
 
 @pytest.fixture
-def ready_workspace(completed_profile):
-    client = completed_profile
-    response = client.get("/resumes")
-    token = csrf_from(response)
-    resume_path = Path(__file__).parents[1] / "fixtures" / "sample_resume.txt"
-    with resume_path.open("rb") as handle:
-        response = client.post(
-            "/resumes/upload",
-            data={
-                "csrf_token": token,
-                "label": "Data Analyst v1",
-                "role_family": "Data Analyst",
-                "is_default": "yes",
-                "auto_import_experiences": "yes",
-            },
-            files={"file": ("sample_resume.txt", handle, "text/plain")},
-            follow_redirects=False,
-        )
-    assert response.status_code == 303
-    return client
+def settings(tmp_path):
+    base = get_settings()
+    return replace(
+        base,
+        database_url=f"sqlite+pysqlite:///{tmp_path / 'test.db'}",
+        base_url="http://testserver",
+        upload_root=tmp_path / "uploads",
+        backup_root=tmp_path / "backups",
+        discovery_fixture_path=str(Path(__file__).parent / "fixtures" / "jobs.json"),
+    )
+
+
+@pytest.fixture
+def client(settings):
+    app = create_app(settings)
+    with TestClient(app) as test_client:
+        yield test_client

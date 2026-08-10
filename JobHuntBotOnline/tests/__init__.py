@@ -1,1 +1,0 @@
-"""JobHuntBot Online test suite."""

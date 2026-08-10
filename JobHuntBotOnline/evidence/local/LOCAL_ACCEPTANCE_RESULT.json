@@ -1,0 +1,45 @@
+{
+  "verdict": "PASS",
+  "scope": "exact source Candidate in isolated local runtime; real Uvicorn and Chromium; synthetic accounts and fixture jobs",
+  "production_claimed": false,
+  "tests_passed": 18,
+  "browser_steps": 34,
+  "ui_totals": {
+    "templates": 22,
+    "forms": 20,
+    "buttons": 22,
+    "inputs": 82,
+    "links": 46,
+    "testids": 131
+  },
+  "restart_readback": {
+    "verdict": "PASS",
+    "synthetic_data_only": true,
+    "application_instances": 2,
+    "recommendations_before": 6,
+    "recommendations_after": 6,
+    "refresh_interval_hours": 6,
+    "production_claimed": false
+  },
+  "migration_test": {
+    "verdict": "PASS",
+    "command": "migration and URL safety tests",
+    "tests_passed": 2,
+    "return_code": 0,
+    "duration_seconds": 2.574,
+    "output_tail": "..                                                                       [100%]",
+    "production_claimed": false
+  },
+  "external_source_probe": "BLOCKED_NETWORK",
+  "external_source_note": "Local container DNS was unavailable; production acceptance requires a real target-runtime source PASS.",
+  "refresh_interval_hours": 6,
+  "production_gates_remaining": [
+    "real HTTPS",
+    "real SMTP/IMAP",
+    "platform DeepSeek Secret",
+    "PostgreSQL target migration",
+    "authorized external sources",
+    "backup verify",
+    "deployment identity and rollback target"
+  ]
+}

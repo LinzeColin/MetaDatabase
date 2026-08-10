@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}注册｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="auth-shell">
+  <div class="auth-card">
+    <span class="eyebrow">创建账户</span>
+    <h1>从一份简历开始</h1>
+    <p class="muted">注册后验证邮箱。你不需要配置 DeepSeek，也不需要懂任何技术。</p>
+    <form method="post" action="/register" class="form-stack" data-testid="register-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label>称呼（可选）<input name="display_name" autocomplete="name" placeholder="例如：Alex" data-testid="register-name"></label>
+      <label>邮箱<input type="email" name="email" autocomplete="email" required placeholder="name@example.com" data-testid="register-email"></label>
+      <label>密码<input type="password" name="password" autocomplete="new-password" required minlength="10" data-testid="register-password"><small>至少 10 位，包含大写字母、小写字母和数字。</small></label>
+      <label>确认密码<input type="password" name="password_confirm" autocomplete="new-password" required data-testid="register-password-confirm"></label>
+      <button class="button full" type="submit" data-testid="register-submit">创建账户</button>
+    </form>
+    <p class="auth-switch">已有账户？<a href="/login" data-testid="register-login-link">直接登录</a></p>
+  </div>
+</section>
+{% endblock %}
