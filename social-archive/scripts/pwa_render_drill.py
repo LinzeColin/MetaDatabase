@@ -338,6 +338,7 @@ async def run(chrome: str) -> int:
             never_completed_reading = None
             drawer_reading = None
             disk_reading = None
+            classify_reading = None
             payload = result.get("result", {})
             if payload.get("exceptionDetails"):
                 measured = {"error": str(payload["exceptionDetails"])[:300]}
@@ -547,6 +548,36 @@ async def run(chrome: str) -> int:
                               if drawer_payload.get("exceptionDetails")
                               else json.loads(drawer_payload["result"]["value"]))
 
+            # **批量分类那一屏——`grep -rn classificationModal scripts/*_drill.py` 是 0。**（2026-08-10）
+            #
+            # 从没有任何演练打开过它，而 Owner 库里 190 条内容**全是「未分类」**
+            # （content_classification 190 条，topic 一个都不是别的），
+            # 所以这一屏他真会用到。当天的判别式：一个从没被渲染过的界面，
+            # 上面每一句话都是未经检验的——判据再多也不算，它们看的是 JSON。
+            await rpc("Runtime.evaluate", {"expression": r"""(() => {
+                document.getElementById("drawerBackdrop")?.classList.remove("open");
+                const row = document.querySelector("#tableBody tr[data-row-id]");
+                const box = row && row.querySelector("input[type=checkbox]");
+                if (box) { box.checked = true; box.dispatchEvent(new Event("change", {bubbles: true})); }
+                document.getElementById("bulkCategory")?.click();
+                return "clicked";
+            })()""", "returnByValue": True, "userGesture": True})
+            await asyncio.sleep(1.5)
+            got = await rpc("Runtime.evaluate", {"expression": r"""(() => {
+                const back = document.getElementById("classificationModalBackdrop");
+                const body = document.getElementById("classificationModalBody");
+                return JSON.stringify({
+                  opened: !!back && back.classList.contains("open"),
+                  text: (back ? back.innerText : "").replace(/\s+/g, " ").slice(0, 260),
+                  submitLabel: (body?.querySelector("button[type=submit]") || {}).textContent || "",
+                  placeholders: [...(body?.querySelectorAll("input") || [])].map(n => n.placeholder),
+                });
+            })()""", "returnByValue": True})
+            classify_payload = got.get("result", {})
+            classify_reading = ({"error": str(classify_payload["exceptionDetails"])[:200]}
+                                if classify_payload.get("exceptionDetails")
+                                else json.loads(classify_payload["result"]["value"]))
+
             # **顺路把使用说明那一页也打开看一眼。**
             #
             # 2026-08-07 之前那份说明躺在 git 工作树里，他打不开——每次要装、
@@ -725,6 +756,25 @@ async def run(chrome: str) -> int:
                 f"顶部没用服务端算好的那句话：{strip!r}——"
                 "本地词典少了他真撞到过的三个码，绕过 runSentence 就会漏")
 
+    # 批量分类那一屏（2026-08-10 第一次被任何演练打开）
+    if not classify_reading or classify_reading.get("error"):
+        problems.append(f"**批量分类那一屏没量到**：{classify_reading}")
+    elif not classify_reading.get("opened"):
+        problems.append(f"点了「批量修改分类」，弹窗没开：{classify_reading}")
+    else:
+        text = classify_reading.get("text", "")
+        for must in ("主题分类", "关键词", "取消"):
+            if must not in text:
+                problems.append(f"批量分类那一屏少了「{must}」：{text[:120]!r}")
+        # **这条断言是弱的，如实说**：夹具只有 1 行内容，所以它分不出
+        # 「保存到 1 条」是真数还是写死的 1。它守住的是"那句话里有条数、
+        # 且弹窗真的画出来了"——这一屏此前**从没有任何演练打开过**，
+        # 而 Owner 库里 190 条全是「未分类」，他真会用到它。
+        if "条内容" not in classify_reading.get("submitLabel", ""):
+            problems.append(
+                f"提交按钮不说要改多少条：{classify_reading.get('submitLabel')!r}——"
+                "批量操作不报数目，他不知道自己会改到什么")
+
     # 盘快满了那一屏（2026-08-10）
     if not disk_reading or disk_reading.get("error"):
         problems.append(f"**「盘快满了」那一屏没量到**：{disk_reading}——这不是通过。")
@@ -878,6 +928,7 @@ async def run(chrome: str) -> int:
         "disk_tight_badge": disk_reading,
         "never_completed": never_completed_reading,
         "detail_drawer": drawer_reading,
+        "bulk_classify": classify_reading,
         "while_syncing": running_reading,
         "after_sync_finished": finished_reading,
         "rendered_text": text[:400],
