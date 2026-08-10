@@ -6,10 +6,10 @@
       "完整": 160,
       "视频没存下": 33
     },
-    "items_without_title": 6,
+    "items_without_title": 10,
     "items_with_nothing_to_identify_them": 0,
     "fields_present": {
-      "title": 187,
+      "title": 183,
       "author_name": 36,
       "published_at": 2,
       "summary": 185,
