@@ -409,7 +409,16 @@ MIN_FREE_KB=$(( MIN_FREE_GB * 1048576 ))
 if (( NEEDS_REBUILD == 0 )); then
   printf '  跳过：这次不构建，不会新增镜像。\n'
 fi
-if (( NEEDS_REBUILD == 1 )); then
+if (( NEEDS_REBUILD == 1 )) && [[ -n "${SOCIAL_ARCHIVE_DEPLOY_BUILD_LOCALLY:-}" ]]; then
+  # **本机构建这条路不在主机上产生构建缓存**，主机只多出一个镜像。
+  # 所以这里不用那道「至少 5G」的门——它量的是「主机构建」的开销
+  # （实测一次部署吃掉 2.12G：层 + 构建缓存）。
+  # **门没有拆，是挪到了知道确切数字的地方**：第 5 步 docker save 出来之后
+  # 按 tar 的实际大小算 `可用 > 镜像 × 3 + 512M`，再决定放不放行。
+  printf '  本机构建：主机不构建、不产生构建缓存，只多一个镜像。\n'
+  printf '  磁盘门挪到第 5 步（按 docker save 出来的实际大小算，那时才有确切数字）。\n'
+  printf '  当前可用 %sG。\n' "$(show_gb "$(free_kb)")"
+elif (( NEEDS_REBUILD == 1 )); then
 # **每次部署都会造一个 1GB 的镜像，旧的那个变成孤儿。** 我一天里部署了十几次，
 # 生产盘从 8.3G 可用掉到 3.0G（93%）。紧接着 /v1/accounts 报过一次
 # `sqlite3.OperationalError: unable to open database file`——SQLite 建不出
@@ -582,7 +591,130 @@ if [[ -n "$IMAGE_BEFORE" ]]; then
     || fail '钉不住当前镜像，无法保证回滚点——先查 docker 再部署。'
   printf '  已用 %s 钉住部署前那个镜像，构建不会把它收走。\n' "$ROLLBACK_CANDIDATE"
 fi
-ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && docker compose build core-api 2>&1 | tail -3" || fail '构建失败，什么都没换，回滚点原样保留。'
+if [[ -n "${SOCIAL_ARCHIVE_DEPLOY_BUILD_LOCALLY:-}" ]]; then
+  # **在本机构建，把镜像整个送过去。**（2026-08-10）
+  #
+  # 为什么要有这条路：主机 38G 的盘 97% 满，剩下的大头是**别的项目**的镜像
+  # （jobhuntbot-online-acceptance:0.3.0，3.97GB，没有容器在用）。
+  # 我不动别人的东西，而我自己全部占用加起来才 437M——**清干净也到不了 5G**。
+  # 于是所有服务端修复（包括「20 次同步 0 次 completed」那个根因）全推不上去。
+  #
+  # 本机构建对主机的开销只有「多一个镜像」：没有构建上下文、没有中间层、
+  # 没有构建缓存。代价是本机得跨架构（本机 arm64 / 主机 amd64），走模拟。
+  LOCAL_ARCH="$(docker version --format '{{.Server.Arch}}' 2>/dev/null || echo unknown)"
+  HOST_ARCH="$(ssh -o ConnectTimeout=20 "$HOST" "docker version --format '{{.Server.Arch}}'" || echo unknown)"
+  printf '  本机 %s，主机 %s；按 linux/%s 构建。\n' "$LOCAL_ARCH" "$HOST_ARCH" "$HOST_ARCH"
+  [[ "$HOST_ARCH" == "unknown" ]] && fail '读不出主机架构——构建出来的镜像可能跑不了，不赌。'
+  # **成败不接管道。**（这个仓栽过两次：`| tail` 之后 `||` 看的是 tail 的退出码，
+  # 一次让我提交了一个红的判据，一次让通知报 exit 0 而部署已中止。）
+  BUILD_LOG="$(mktemp -t sa-build).log"
+  if ! docker buildx build --platform "linux/${HOST_ARCH}" -t "$IMAGE" --load . >"$BUILD_LOG" 2>&1; then
+    tail -12 "$BUILD_LOG" | sed 's/^/    /'
+    rm -f "$BUILD_LOG"
+    fail '本机构建失败，什么都没换，回滚点原样保留。'
+  fi
+  tail -2 "$BUILD_LOG" | sed 's/^/    /'
+  rm -f "$BUILD_LOG"
+  # **先在本机起一次，起不来就别送。**（2026-08-10 抓到过一次 import 就死的）
+  BOOT="sa-preflight-$$"
+  docker rm -f "$BOOT" >/dev/null 2>&1 || true
+  docker run -d --name "$BOOT" --platform "linux/${HOST_ARCH}" \
+    -e SOCIAL_ARCHIVE_DATA_ROOT=/tmp/sadata -e SOCIAL_ARCHIVE_API_TOKEN=preflight \
+    "$IMAGE" social-archive-api >/dev/null 2>&1 || fail '新镜像连容器都起不来，不送。'
+  BOOT_OK=""
+  for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do
+    if docker exec "$BOOT" curl -fsS http://127.0.0.1:8765/health >/dev/null 2>&1; then BOOT_OK=1; break; fi
+    sleep 3
+  done
+  if [[ -z "$BOOT_OK" ]]; then
+    printf '  新镜像起不来，日志尾：\n'; docker logs "$BOOT" 2>&1 | tail -6 | sed 's/^/    /'
+    docker rm -f "$BOOT" >/dev/null 2>&1 || true
+    fail '新镜像在本机就起不来（/health 不通）——绝不送上生产。'
+  fi
+  docker rm -f "$BOOT" >/dev/null 2>&1 || true
+  printf '  本机预检：容器起得来、/health 通。\n'
+  # 送之前按**实际大小**核磁盘——第 4 步那道门就是挪到这里的
+  IMAGE_TAR="$(mktemp -t sa-image).tar"
+  docker save --platform "linux/${HOST_ARCH}" "$IMAGE" -o "$IMAGE_TAR" || fail '导出镜像失败。'
+  TAR_KB=$(( $(wc -c < "$IMAGE_TAR") / 1024 ))
+  FREE_KB="$(free_kb)"
+  # **门槛用同一个名字（MIN_FREE_KB），演练才抬得动它。**
+  # 这条路的门槛是**量出来的**（镜像实际多大就要多大 + 余量），不是写死的 5G
+  # ——5G 量的是「主机构建」的开销（层 + 构建缓存，实测一次 2.12G），
+  # 而本机构建在主机上只多一个镜像。但如果有人显式设了更高的门槛
+  # （SOCIAL_ARCHIVE_DEPLOY_MIN_FREE_GB，演练就是靠它把「磁盘不够 → 中止」
+  # 那条路真的走一遍），取高的那个——**开关只能往更严那一侧拨。**
+  DERIVED_KB=$(( TAR_KB * 3 + 524288 ))
+  if (( MIN_FREE_KB > DERIVED_KB )); then
+    printf '  门槛按人为设定的 %sG 算（比按镜像算出来的 %sG 高）。\n' \
+      "$MIN_FREE_GB" "$(show_gb "$DERIVED_KB")"
+  else
+    MIN_FREE_KB=$DERIVED_KB
+  fi
+  printf '  镜像 %sG，主机可用 %sG，门槛 %sG（镜像×3 + 512M 余量）\n' \
+    "$(show_gb "$TAR_KB")" "$(show_gb "$FREE_KB")" "$(show_gb "$MIN_FREE_KB")"
+  if [[ -n "$FREE_KB" && "$FREE_KB" -lt "$MIN_FREE_KB" ]]; then
+    rm -f "$IMAGE_TAR"
+    fail "主机放不下这个镜像（可用 $(show_gb "$FREE_KB")G < 门槛 $(show_gb "$MIN_FREE_KB")G）。什么都没换。"
+  fi
+  printf '  送过去并 load…\n'
+  # 同上：**不接管道判成败**。gzip/ssh 的状态用 PIPESTATUS 单独看（这是 bash）。
+  LOAD_LOG="$(mktemp -t sa-load).log"
+  gzip -1 -c "$IMAGE_TAR" | ssh -o ConnectTimeout=60 "$HOST" 'gunzip | sudo docker load' >"$LOAD_LOG" 2>&1
+  LOAD_STATUS=("${PIPESTATUS[@]}")
+  if [[ "${LOAD_STATUS[0]}" != "0" || "${LOAD_STATUS[1]}" != "0" ]]; then
+    tail -8 "$LOAD_LOG" | sed 's/^/    /'
+    rm -f "$IMAGE_TAR" "$LOAD_LOG"
+    fail "送过去 load 失败（gzip=${LOAD_STATUS[0]} ssh=${LOAD_STATUS[1]}），什么都没换，回滚点原样保留。"
+  fi
+  tail -2 "$LOAD_LOG" | sed 's/^/    /'
+  rm -f "$LOAD_LOG"
+  rm -f "$IMAGE_TAR"
+  # **回读：主机上那份必须和本机这份是同一个镜像。**
+  LOCAL_ID="$(docker image inspect -f '{{.Id}}' "$IMAGE")"
+  REMOTE_ID="$(ssh -o ConnectTimeout=20 "$HOST" "docker image inspect -f '{{.Id}}' '$IMAGE'")"
+  [[ "$LOCAL_ID" == "$REMOTE_ID" ]] \
+    || fail "主机上那个镜像不是本机送过去的这份（本机 ${LOCAL_ID}，主机 ${REMOTE_ID}）。"
+  printf '  已核对：主机上的镜像 = 本机构建的那个（%s）。\n' "${LOCAL_ID#sha256:}" | cut -c1-64
+  # **cli-tools 那个镜像不重造，但 compose 里的 tag 跟着版本号变了。**
+  #
+  # core-worker `depends_on: cli-tools`，所以 `up -d core-api core-worker`
+  # 会把 cli-tools 一起带上；compose 看到 image 从 :0.0.0.25 变成 :0.0.0.26
+  # 就要去建——那正是这条路要绕开的（主机盘不够，而它是个 994MB 的镜像）。
+  #
+  # 内容没变的话，给**同一个镜像**加一个新标签就够了：零字节、零构建，
+  # 而且不是糊弄——第 5.5 步比的就是内容哈希，它照跑。
+  # **哈希不同就当场停**：那种情况必须真重建，这条路覆盖不了，
+  # 不许悄悄用旧内容顶着一个新版本号。
+  SIDE_LOCAL="$(cat sidecars/cli-tools/server.py sidecars/cli-tools/Dockerfile | shasum -a 256 | cut -d' ' -f1)"
+  SIDE_REMOTE="$(ssh -o ConnectTimeout=20 "$HOST" "sudo docker exec social-archive-cli-tools-1 sh -c 'cat /worker/server.py /worker/Dockerfile.built 2>/dev/null | sha256sum' 2>/dev/null | cut -d' ' -f1" || true)"
+  SIDE_IMAGE="social-archive/cli-tools:${VERSION}"
+  if ssh -o ConnectTimeout=20 "$HOST" "docker image inspect '$SIDE_IMAGE' >/dev/null 2>&1"; then
+    printf '  %s 已经在主机上。\n' "$SIDE_IMAGE"
+  elif [[ -n "$SIDE_REMOTE" && "$SIDE_LOCAL" == "$SIDE_REMOTE" ]]; then
+    RUNNING_SIDE="$(ssh -o ConnectTimeout=20 "$HOST" "docker inspect social-archive-cli-tools-1 --format '{{.Image}}'")"
+    ssh -o ConnectTimeout=20 "$HOST" "docker tag '$RUNNING_SIDE' '$SIDE_IMAGE'" \
+      || fail "给 cli-tools 打新版本标签失败。"
+    printf '  cli-tools 内容与仓一致（%s），给在跑的那个镜像加上 %s 标签（零字节，不重建）。\n' \
+      "${SIDE_LOCAL:0:12}" "$SIDE_IMAGE"
+  else
+    fail "cli-tools 的内容和仓里不一样（容器 ${SIDE_REMOTE:0:12}，仓里 ${SIDE_LOCAL:0:12}），而本机构建这条路只送 core。它得真重建（约 994MB），主机盘现在放不下。要么先腾出空间走主机构建，要么单独把 cli-tools 也在本机构建后送过去。"
+  fi
+else
+# **管道写在 ssh 的引号里，ssh 的退出码就是 `tail` 的。**（2026-08-10 修）
+# 也就是说主机构建失败时这一行照样 exit 0，`|| fail` 永不触发，
+# 部署接着往下走、用**旧镜像** `up -d`，最后报「成功」。
+# 这个仓已经栽过两次同形状的（提交了一个红判据；通知报 exit 0 而部署已中止）。
+HOST_BUILD_LOG="$(mktemp -t sa-hostbuild).log"
+if ! ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && docker compose build core-api" \
+     >"$HOST_BUILD_LOG" 2>&1; then
+  tail -12 "$HOST_BUILD_LOG" | sed 's/^/    /'
+  rm -f "$HOST_BUILD_LOG"
+  fail '构建失败，什么都没换，回滚点原样保留。'
+fi
+tail -3 "$HOST_BUILD_LOG" | sed 's/^/    /'
+rm -f "$HOST_BUILD_LOG"
+fi
 # 构建成了，这才把回滚点从临时标签转正——**在 up 之前**，那一刻跑的还是旧的。
 # 用临时标签而不是 ID：ID 可能已经被这次构建收走了（见第 3 步那段注释）。
 if [[ -n "$IMAGE_BEFORE" ]]; then

@@ -25,12 +25,19 @@ SCANNABLE_RELATIONS 限定扫描范围」——**服务端从来没读过那个�
 
 ## 修法
 
-服务端**直接读扩展那一份**（`_load_scannable_relations`），不再抄第二份：
-这个仓当天已经因为「两份词典必然漂开」修过三处（失败文案、归档状态、回执键名）。
+服务端那份由扩展那份**生成**（`scripts/generate_scannable_relations.py`），
+不再手抄第二份：这个仓当天已经因为「两份词典必然漂开」修过三处
+（失败文案、归档状态、回执键名）。
+
+**第一版是 import 时去读那个 .js，它会让镜像里的 API 起不来**
+（`parents[2]` 在仓里是仓根，在 site-packages 里是 `/usr/local/lib/python3.12`）。
+所以改成生成物；漂开由下面 `test_the_generated_module_is_in_sync` 打红。
 """
 
 from __future__ import annotations
 
+import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -71,9 +78,37 @@ def test_a_platform_outside_the_catalog_keeps_its_allowed_list() -> None:
     assert AccountSyncCoordinator._scannable_relations("x") == ["bookmark", "like"]
 
 
-def test_the_comment_that_claimed_this_is_now_true() -> None:
-    """那句注释说「由 platform-catalog.js 限定」——现在它得真的读那个文件。"""
-    source = (ROOT / "src/social_archive/account_sync.py").read_text(encoding="utf-8")
-    assert "platform-catalog.js" in source
-    assert "_load_scannable_relations" in source, (
-        "服务端又不读扩展那份清单了——注释会重新变成一句假话")
+def test_the_server_list_matches_the_extension_catalog() -> None:
+    """**钉的是「两边一致」，不是某个函数叫什么名字。**（2026-08-10 改）
+
+    上一版断言 `"_load_scannable_relations" in source`——钉的是实现的名字。
+    真源改成生成式之后（那个函数没了，因为 import 时读仓相对路径会让
+    镜像里的 API 起不来），这条就红了，而**功能一点没坏**。
+    这个仓栽在「陈旧的字面断言」上不止一次。
+
+    现在直接比行为：服务端手上那份，必须逐字等于扩展那份解析出来的。
+    """
+    text = (ROOT / "apps/browser-extension/content/platform-catalog.js").read_text(encoding="utf-8")
+    block = re.search(r"const SCANNABLE_RELATIONS = Object\.freeze\(\{(.*?)\n  \}\);", text, re.S)
+    assert block, "platform-catalog.js 里找不到 SCANNABLE_RELATIONS 块——判据在空扫"
+    from_js = {platform: tuple(re.findall(r'"([a-z_]+)"', items))
+               for platform, items in re.findall(
+                   r"(\w+):\s*Object\.freeze\(\[(.*?)\]\)", block.group(1), re.S)}
+    assert from_js, "解析出 0 个平台——这不是「没有」，是解析坏了"
+    assert dict(SCANNABLE_RELATIONS) == from_js, (
+        "服务端那份和扩展那份漂开了——服务端会把扩展不扫的关系列进同步范围，"
+        "那一路永远等不到终批，整次 run 不收敛（他生产上 20 次同步 0 次 completed 就是这个）。\n"
+        "跑 `python3 scripts/generate_scannable_relations.py --apply` 重新生成。")
+
+
+def test_the_generated_module_is_in_sync() -> None:
+    """生成物落后于真源时，那条重新生成的命令要**当场给出来**。
+
+    这个仓有过「错误提示指向一个不存在的出口」——所以这里连命令一起验。
+    """
+    done = subprocess.run(
+        [sys.executable, str(ROOT / "scripts/generate_scannable_relations.py")],
+        capture_output=True, text=True, check=False)
+    assert done.returncode == 0, (
+        "scannable_relations.py 和 platform-catalog.js 漂开了：\n"
+        + done.stdout + done.stderr)

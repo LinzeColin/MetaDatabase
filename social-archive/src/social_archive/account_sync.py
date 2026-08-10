@@ -45,8 +45,8 @@ PLATFORM_RELATIONS: dict[str, list[str]] = {
 NON_SCANNABLE_RELATIONS: frozenset[str] = frozenset({"manual_save"})
 
 
-def _load_scannable_relations() -> dict[str, tuple[str, ...]]:
-    """扩展真正会去枚举的关系——**直接读扩展那一份，不在这里再抄一遍**。（2026-08-10）
+def _scannable_relations_doc() -> None:
+    """扩展真正会去枚举的关系——**真源是扩展那一份，不在这里再抄一遍**。（2026-08-10）
 
     ## 它修的是什么
 
@@ -72,29 +72,26 @@ def _load_scannable_relations() -> dict[str, tuple[str, ...]]:
     这个仓当天已经因为「同一件事两份词典必然漂开」修过三处
     （失败文案、归档状态、回执键名）。抄第四份只是把问题推后。
 
-    ## 读不到就硬失败
+    ## 第一版是 import 时去读那个 .js —— **它让 API 起不来**
 
-    读不到时**不许退回旧行为**（把「允许」的全列进去）——那正是这个 bug。
-    宁可让同步起不来、当场报出来，也不要再产出一批永远不收敛的 run。
+    `Path(__file__).resolve().parents[2] / "apps/browser-extension/..."`
+    在仓里正好是仓根，跑得好好的；**装进镜像之后 `parents[2]` 是
+    `/usr/local/lib/python3.12/`**，文件不存在，而我又特意写了「读不到就抛」：
+
+        FileNotFoundError: '/usr/local/lib/python3.12/apps/browser-extension/
+                            content/platform-catalog.js'
+
+    入口点 `social-archive-api` 当场死在 import 上。那一刻 1402 条判据全绿——
+    **因为判据全跑在仓里**。抓到它的是把镜像真起一次，不是读代码。
+
+    所以改成**生成**：`.js` 仍是唯一真源，
+    `scripts/generate_scannable_relations.py` 把它编译成
+    `social_archive/scannable_relations.py`（纯字面量，跟着包装，无相对路径）。
+    两边漂开由判据当场打红，并在错误里给出重新生成的命令。
     """
-    source = Path(__file__).resolve().parents[2] / "apps/browser-extension/content/platform-catalog.js"
-    text = source.read_text(encoding="utf-8")
-    block = re.search(r"const SCANNABLE_RELATIONS = Object\.freeze\(\{(.*?)\n  \}\);",
-                      text, re.S)
-    if not block:
-        raise RuntimeError(
-            "读不到 platform-catalog.js 的 SCANNABLE_RELATIONS——"
-            "同步范围没有真源了。不许退回「把允许的全列进去」，那会让每次同步都不收敛。")
-    found: dict[str, tuple[str, ...]] = {}
-    for platform, items in re.findall(
-            r"(\w+):\s*Object\.freeze\(\[(.*?)\]\)", block.group(1), re.S):
-        found[platform] = tuple(re.findall(r'"([a-z_]+)"', items))
-    if not found:
-        raise RuntimeError("SCANNABLE_RELATIONS 解析出 0 个平台——这不是「没有」，是解析坏了")
-    return found
 
 
-SCANNABLE_RELATIONS: dict[str, tuple[str, ...]] = _load_scannable_relations()
+from .scannable_relations import SCANNABLE_RELATIONS
 
 PLATFORM_LABELS = {
     "xiaohongshu": "小红书",
