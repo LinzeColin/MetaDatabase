@@ -22,7 +22,13 @@
         "GITHUB_VAULT_NOT_VISIBLE_TO_THIS_TOKEN"
       ]
     },
-    "copies_confirmed_today": 2
+    "copies_confirmed_today": 2,
+    "restore_probe_artifact": "art_00ca5e8cef67db2334329dcf088e15c0",
+    "restore_verified": [
+      "r2",
+      "oci"
+    ],
+    "copies_really_restorable_today": 2
   },
   "problems": [
     "**github：2 个抽样一个都**够不着**（['GITHUB_VAULT_NOT_VISIBLE_TO_THIS_TOKEN']）——**这不等于副本没了**，是这台机器上的凭据／配置到不了它。在修好之前，这一份在灾难那天也一样拿不回来",

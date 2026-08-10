@@ -96,6 +96,35 @@ def summarise(per_store: dict[str, list[dict]]) -> tuple[list[str], dict]:
     return problems, measured
 
 
+def _really_restores(artifact_id: str, store: str, host: str) -> dict:
+    """**真取回来一次**：下载 → 解密 → 明文哈希对上。
+
+    2026-08-10 才第一次做这件事。在这之前这条判据只跑 `--presence-only`
+    （HeadObject），而说明书那句写的是「今天能确认**拿得回来**的是 N 处」——
+    **「在那儿」不等于「拿得回来」**：密文可能坏、密钥可能对不上、
+    取回路可能根本没通（这个仓栽过：三份副本全登记 verified，
+    而 GitHub 那条取回路跑不通）。
+
+    用 `--verify-only`：完整走一路但不落盘，不碰生产任何路径。
+    铁律 7 的账：1 个对象 × 3 家 × 每天几次部署 × 31 天 ≈ 几百次 Class B，
+    免费额度是 1000 万——而且这正是那条规矩说的「逐字节复核按天/周跑」，
+    不是它禁止的「整包下载来判断存在」。
+    """
+    command = (
+        "cd /opt/social-archive && set -a && . ./.env && set +a && "
+        f"timeout 180 .venv/bin/python scripts/restore_object.py "
+        f"--artifact-id {artifact_id} --from-store {store} --verify-only"
+    )
+    done = subprocess.run(["ssh", "-o", "ConnectTimeout=25", host, "sudo bash -lc " + json.dumps(command)],
+                          capture_output=True, text=True, check=False)
+    for raw in reversed((done.stdout or done.stderr or "").strip().splitlines()):
+        try:
+            return json.loads(raw)
+        except ValueError:
+            continue
+    return {"status": "FAIL", "error_code": "NO_JSON_FROM_RESTORE"}
+
+
 def _presence(artifact_id: str, store: str, host: str) -> dict:
     """在生产机上跑一次 presence。**env 要从 .env 加载**——三家的凭据路径都在那儿。"""
     command = (
@@ -143,7 +172,32 @@ def main() -> int:
         for store in STORES:
             per_store[store].append(_presence(artifact_id, store, args.host))
 
+    # **抽样只问「在不在」；再挑一个真取回来一次。**（2026-08-10）
+    #
+    # 说明书那句写的是「今天能确认**拿得回来**的是 N 处」，
+    # 而在这之前这条判据只跑 HeadObject。**「在那儿」不等于「拿得回来」**——
+    # 密文可能坏、密钥可能对不上、取回路可能根本没通（这个仓栽过：
+    # 三份副本全登记 verified，而 GitHub 那条取回路跑不通）。
+    #
+    # 只取第一个产物、每家一次：铁律 7 的账是每天几百次 Class B，
+    # 免费额度一千万；而且这正是那条规矩说的「逐字节复核按天/周跑」。
+    restored: dict[str, dict] = {}
+    if artifacts:
+        for store in STORES:
+            restored[store] = _really_restores(artifacts[0], store, args.host)
+
     problems, measured = summarise(per_store)
+    measured["restore_probe_artifact"] = artifacts[0] if artifacts else None
+    really = [store for store in STORES if (restored.get(store) or {}).get("status") == "PASS"]
+    measured["restore_verified"] = really
+    measured["copies_really_restorable_today"] = len(really)
+    for store in STORES:
+        row = restored.get(store) or {}
+        if measured.get(store, {}).get("present", 0) > 0 and row.get("status") != "PASS":
+            problems.append(
+                f"**{store}：抽样说它在，而真取回来失败了**"
+                f"（{row.get('error_code') or row.get('status')}）——"
+                "「在那儿」不等于「拿得回来」，说明书那句写的是后者")
     report = {
         "status": "PASS" if not problems else "FAIL",
         "sampled_artifacts": artifacts,
