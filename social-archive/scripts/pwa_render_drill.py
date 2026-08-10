@@ -125,7 +125,7 @@ FAKE: dict[str, object] = {
     "/v1/library": {"items": [
         {"id": "cnt_no_title", "platform": "douyin", "title": "",
          "canonical_url": "https://www.douyin.com/video/7584040037701733683?source=Baidu",
-         "archive_status": "完整", "primary_relation": "favorite",
+         "archive_status": "视频没存下", "primary_relation": "favorite",
          "relations": ["favorite"], "collections": [], "export_destinations": [],
          "media_count": 0, "artifact_count": 0},
     ], "total": 1,
@@ -311,6 +311,7 @@ async def run(chrome: str) -> int:
             running_reading = None
             finished_reading = None
             never_completed_reading = None
+            drawer_reading = None
             payload = result.get("result", {})
             if payload.get("exceptionDetails"):
                 measured = {"error": str(payload["exceptionDetails"])[:300]}
@@ -461,6 +462,32 @@ async def run(chrome: str) -> int:
             finished_reading = ({"error": str(done_payload["exceptionDetails"])[:200]}
                                 if done_payload.get("exceptionDetails")
                                 else json.loads(done_payload["result"]["value"]))
+
+            # **他点开一条内容来读的那一屏。**（2026-08-10）
+            #
+            # `grep -rn drawer scripts/*_drill.py` 当时是空的——**看见条目之后
+            # 最可能做的那一下，从没在真浏览器里被打开过**。而今天五处缺陷
+            # 全出在"没人读渲染出来的字"这一类上。
+            #
+            # 夹具那一条是**没有标题**的（Owner 库里 193 条有 6 条这样）：
+            # 表格那一侧用链接尾巴兜底，抽屉这一侧要跟着，不能是一片空白。
+            got = await rpc("Runtime.evaluate", {"expression": r"""(() => {
+                const row = document.querySelector("#tableBody tr[data-row-id]");
+                if (!row) return JSON.stringify({ opened: false, why: "表里一行都没有" });
+                row.click();
+                const pick = id => (document.getElementById(id) || {}).textContent || "";
+                const backdrop = document.getElementById("drawerBackdrop");
+                return JSON.stringify({
+                  opened: !!backdrop && backdrop.classList.contains("open"),
+                  title: pick("drawerHeaderTitle"),
+                  meta: pick("drawerHeaderMeta"),
+                  body: pick("drawerContent").replace(/\s+/g, " ").slice(0, 300),
+                });
+            })()""", "returnByValue": True, "userGesture": True})
+            drawer_payload = got.get("result", {})
+            drawer_reading = ({"error": str(drawer_payload["exceptionDetails"])[:200]}
+                              if drawer_payload.get("exceptionDetails")
+                              else json.loads(drawer_payload["result"]["value"]))
 
             # **顺路把使用说明那一页也打开看一眼。**
             #
@@ -689,6 +716,32 @@ async def run(chrome: str) -> int:
                 f"跑完了却不说什么时候跑的：{strip!r}——"
                 "「上一次是什么时候」是他判断「要不要再点一次」的唯一依据")
 
+    # 他点开一条来读的那一屏（2026-08-10）
+    if not drawer_reading or drawer_reading.get("error"):
+        problems.append(f"**抽屉那一屏没量到**：{drawer_reading}——这不是通过。")
+    elif not drawer_reading.get("opened"):
+        problems.append(f"点了一行，抽屉没打开：{drawer_reading}")
+    else:
+        title = drawer_reading.get("title", "")
+        body = drawer_reading.get("body", "")
+        if not title.strip():
+            problems.append(
+                "**没有标题的那条，抽屉标题是空的**——表格那一侧用链接尾巴兜底了，"
+                "抽屉这一侧要跟着；他库里 193 条有 6 条没有标题")
+        # **服务端说「视频没存下」，界面不许改口说「需要处理」。**
+        #
+        # 夹具这一条就是他那 33 条的状态（生产实测：193 条里 33 条是它）。
+        # 上一版 archiveLabel 只认三个值，其余落到「需要处理」——一句听起来
+        # 「你该去做点什么」的话，而平台挡了下载，他做不了任何事。
+        # 说明书里还写着「资料库那一列会写『视频没存下』」。
+        if "需要处理" in body:
+            problems.append(
+                f"**服务端说「视频没存下」，抽屉改口说「需要处理」**：{body[:160]!r}——"
+                "他做不了任何事，而这句话在催他做事；说明书承诺的也是前一个词")
+        if "视频没存下" not in body:
+            problems.append(
+                f"抽屉没把归档状态照实说出来：{body[:160]!r}")
+
     # 使用说明那一页
     if guide_reading is None:
         problems.append("**使用说明那一页没量到**——这不是通过。")
@@ -722,6 +775,7 @@ async def run(chrome: str) -> int:
         "all_accounts_disconnected": disconnected_reading,
         "just_reconnected": reconnected_reading,
         "never_completed": never_completed_reading,
+        "detail_drawer": drawer_reading,
         "while_syncing": running_reading,
         "after_sync_finished": finished_reading,
         "rendered_text": text[:400],

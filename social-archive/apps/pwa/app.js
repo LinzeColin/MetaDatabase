@@ -315,7 +315,25 @@
   }
   function relationClass(value) { return value === "收藏" ? "saved" : value === "点赞" ? "liked" : value === "书签" ? "bookmark" : "watch"; }
   function archiveClass(value) { return value === "完整" ? "ok" : value === "处理中" ? "pending" : "issue"; }
-  function archiveLabel(value) { return value === "完整" ? "L0/L1/L3 完整" : value === "处理中" ? "媒体处理中" : value === "仅元数据" ? "L0/L1 已保存" : "需要处理"; }
+  // **服务端那几个值本来就是给人看的中文，别把它翻译成一句更糟的话。**（2026-08-10）
+  //
+  // 上一版只认三个值，其余一律落到「需要处理」。而服务端今天新增了第四个：
+  // 「视频没存下」（B 站/抖音把下载挡了，正文在、视频没有——生产实测 33 条，
+  // 占他 193 条的 17%）。它落进 else，于是**列表和抽屉都对他说「需要处理」**——
+  // 一句听起来"你该去做点什么"的话，而他做不了任何事。
+  //
+  // 说明书里还白纸黑字写着「资料库那一列会写『视频没存下』」——**承诺的那个词
+  // 产品根本不显示**。而这一处的病根和 failureSentence 是同一个：
+  // 前端自己养一张词典，服务端加一个值它就漏一个。
+  //
+  // 所以：三个要装饰的显式列出，**其余原样透传**（服务端的措辞已经是终稿），
+  // 只有真的空值才退回「需要处理」。
+  function archiveLabel(value) {
+    if (value === "完整") return "L0/L1/L3 完整";
+    if (value === "处理中") return "媒体处理中";
+    if (value === "仅元数据") return "L0/L1 已保存";
+    return value || "需要处理";
+  }
   function normalizeRow(item) {
     const platform = serverToUiPlatform[item.platform] || "web";
     const relations = Array.isArray(item.relations) && item.relations.length ? item.relations : [item.primary_relation].filter(Boolean);
