@@ -1,5 +1,5 @@
 {
-  "file_count": 1120,
+  "file_count": 1123,
   "files": [
     {
       "bytes": 25,
@@ -17,9 +17,9 @@
       "sha256": "a1b6d13afea6f383061d2d3405efe2f2d8f4867fbb08a5edf0e53415c16a239a"
     },
     {
-      "bytes": 147902,
+      "bytes": 150197,
       "path": "HANDOFF.md",
-      "sha256": "e0f2707df87ba6bc398d8d16a0fe941ba0d025b79f141e238abb975a02849087"
+      "sha256": "636f54f0368cc4fa6d4ac9516c837d62567ec29ba7e289c8577a1bcec7c5437a"
     },
     {
       "bytes": 643,
@@ -4732,6 +4732,16 @@
       "sha256": "85a2e27fac5b15516392e99362e9a10ce8f86634dcc7d2e8624f37c405b6bb0a"
     },
     {
+      "bytes": 22475,
+      "path": "runtime/shadow_runtime_provenance.py",
+      "sha256": "888c9b7bd2e7aea06761167f322efa817df5e67af7a54ecdff8e516b22c8ec1c"
+    },
+    {
+      "bytes": 3064,
+      "path": "runtime/shadow_runtime_provenance_contract.json",
+      "sha256": "0d89ba9c09a26f608b0e57ffb0fec44f2f68b21d6148e22baf154062ec2c54a8"
+    },
+    {
       "bytes": 17328,
       "path": "runtime/static_calibration_residual.py",
       "sha256": "cce1cb46f8a3dcfb155b19759e70f8b168fb552767efeaf99b4c60386058b613"
@@ -4785,6 +4795,11 @@
       "bytes": 7564,
       "path": "runtime_tests/test_shadow_runtime_image_identity_attestation.py",
       "sha256": "a9fd0994b3dc8c9388bc1a62e0eb08f040cde5ed0b382afe8b77990b2c2591cd"
+    },
+    {
+      "bytes": 8236,
+      "path": "runtime_tests/test_shadow_runtime_provenance.py",
+      "sha256": "e744b7b26d5053351aee292c68bea12b7d051a4c30c3db5aff1bfcd2df0bb669"
     },
     {
       "bytes": 5994,
