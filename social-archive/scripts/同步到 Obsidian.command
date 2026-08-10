@@ -41,15 +41,42 @@ STAMP="$(date +%Y%m%dT%H%M%S)"
 TGZ="$(mktemp -t sa-md).tgz"
 STAGE="$(mktemp -d -t sa-md-stage)"
 
-echo "从 $HOST 取…"
-if ! ssh -o ConnectTimeout=25 "$HOST" \
-      "sudo tar -C /var/lib/social-archive/exports -czf /tmp/sa-md-$STAMP.tgz markdown \
-       && sudo chmod 644 /tmp/sa-md-$STAMP.tgz"; then
-  finish "连不上服务器，或者服务器上还没有导出的 Markdown。把这段截给我就行。" 3
+# **两条取法：浏览器下载的 zip，或者 ssh 拉。**
+#
+# 新生产机（OVH VPS-3，2026-08-10 起）**对公网只开 80/443**，ssh 不对外——
+# 也就是说「ssh + tar」这条路在新机器上不是暂时连不上，是**根本走不通**。
+# 所以默认先看下载文件夹：资料库页面右上角那个「下载全部 Markdown」点一下，
+# 拿到的 zip 放着不用管，双击这个文件就会把它展开进库。
+# ssh 那条留着，能连上时照旧能用（本机/旧机/以后开了 ssh 的机器）。
+ZIP="${SOCIAL_ARCHIVE_MARKDOWN_ZIP:-}"
+if [[ -z "$ZIP" ]]; then
+  # 最近 3 天内、下载文件夹里最新的那个 Markdown 压缩包
+  ZIP="$(find "$HOME/Downloads" -maxdepth 1 -type f \( -name 'markdown*.zip' -o -name '*social-archive*markdown*.zip' \) -mtime -3 2>/dev/null \
+        | xargs -I{} stat -f '%m %N' {} 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)"
 fi
-scp -q -o ConnectTimeout=25 "$HOST:/tmp/sa-md-$STAMP.tgz" "$TGZ" || finish "取回失败。" 3
-ssh -o ConnectTimeout=20 "$HOST" "sudo rm -f /tmp/sa-md-$STAMP.tgz" >/dev/null 2>&1
-tar -xzf "$TGZ" -C "$STAGE" --strip-components=1 || finish "压缩包解不开。" 3
+
+if [[ -n "$ZIP" && -f "$ZIP" ]]; then
+  echo "用下载好的压缩包：$(basename "$ZIP")"
+  if ! unzip -q -o "$ZIP" -d "$STAGE"; then
+    finish "这个压缩包解不开：$ZIP" 3
+  fi
+  # 包里可能带一层顶层目录，也可能不带——现看，别假设
+  if [[ ! -d "$STAGE/douyin" && ! -d "$STAGE/bilibili" ]]; then
+    inner="$(find "$STAGE" -maxdepth 2 -type d \( -name douyin -o -name bilibili -o -name xiaohongshu \) | head -1)"
+    [[ -n "$inner" ]] && STAGE="$(dirname "$inner")"
+  fi
+else
+  echo "从 $HOST 取…"
+  if ! ssh -o ConnectTimeout=25 "$HOST" \
+        "sudo tar -C /var/lib/social-archive/exports -czf /tmp/sa-md-$STAMP.tgz markdown \
+         && sudo chmod 644 /tmp/sa-md-$STAMP.tgz"; then
+    finish "连不上服务器（新生产机对公网不开 ssh），下载文件夹里也没有 Markdown 压缩包。
+  换个做法：打开资料库页面 → 右上角「下载全部 Markdown」→ 再双击这个文件。" 3
+  fi
+  scp -q -o ConnectTimeout=25 "$HOST:/tmp/sa-md-$STAMP.tgz" "$TGZ" || finish "取回失败。" 3
+  ssh -o ConnectTimeout=20 "$HOST" "sudo rm -f /tmp/sa-md-$STAMP.tgz" >/dev/null 2>&1
+  tar -xzf "$TGZ" -C "$STAGE" --strip-components=1 || finish "压缩包解不开。" 3
+fi
 rm -f "$TGZ"
 
 # **合并进库之前先修标题。** 抖音那条取数路把「互动数 + 文案 + 文案」拼成了标题，
