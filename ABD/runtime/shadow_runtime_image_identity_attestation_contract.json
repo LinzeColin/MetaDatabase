@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-SHADOW-IMAGE-IDENTITY-005",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_HOST_LOOPBACK_IMAGE_IDENTITY_ATTESTATION_ONLY",
+  "observation_scope": "HOST_LOCAL_DOCKER_METADATA_AND_FIXED_LOOPBACK_HTTP_STATUS_ONLY",
+  "expected": {
+    "shadow_label": "com.linze.abd.runtime-role=candidate-shadow",
+    "core_label": "com.linze.abd.phase=S04-P01",
+    "shadow_container_count": 1,
+    "core_container_count": 0,
+    "image_reference": "local/abd-runtime@sha256:65d7c51567db6ea9e5d2665418025bf77ecce27ffabe800c5ef355a504043da4",
+    "image_id": "sha256:65d7c51567db6ea9e5d2665418025bf77ecce27ffabe800c5ef355a504043da4",
+    "labels": {
+      "product_version": "0.0.0.1",
+      "runtime_role": "candidate-shadow",
+      "order_submission": "disabled"
+    },
+    "memory_limit_bytes": 536870912,
+    "memory_swap_limit_bytes": 536870912,
+    "port_mapping": "127.0.0.1:8081",
+    "status_payload": {
+      "service": "ABD",
+      "version": "0.0.0.1",
+      "mode": "SHADOW_READ_ONLY",
+      "decision": "NO_RECOMMENDATION_NO_ORDER",
+      "ready": true,
+      "recommendation_enabled": false,
+      "order_submission_enabled": false,
+      "market_or_account_connected": false,
+      "gmail_or_tab_connected": false
+    }
+  },
+  "runtime_boundary": {
+    "runtime_config_or_secret_read": false,
+    "external_network_accessed": false,
+    "runtime_state_changed": false,
+    "continuous_monitoring_created": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "source_claim": "RUNNING_IMAGE_IDENTITY_ONLY_NOT_SOURCE_COMMIT_OR_OCI_ARCHIVE_PROVENANCE",
+  "rollback": {
+    "action": "REMOVE_ATTESTER_ONLY_KEEP_SHADOW_RUNTIME_UNCHANGED",
+    "runtime_or_image_rollback_performed": false,
+    "prior_private_evidence_deleted_automatically": false
+  }
+}

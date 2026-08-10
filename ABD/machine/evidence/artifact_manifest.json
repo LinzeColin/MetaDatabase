@@ -1,5 +1,5 @@
 {
-  "file_count": 1112,
+  "file_count": 1116,
   "files": [
     {
       "bytes": 25,
@@ -17,9 +17,9 @@
       "sha256": "a1b6d13afea6f383061d2d3405efe2f2d8f4867fbb08a5edf0e53415c16a239a"
     },
     {
-      "bytes": 140286,
+      "bytes": 141936,
       "path": "HANDOFF.md",
-      "sha256": "0b6415d910312a8f59ed6e7adfc02179666082edf5fe5ab3645a07023db42fcd"
+      "sha256": "fd7f36ad05e9be417aefb58040c3ee3a0fb3a9ffb63941674285c8ca263d9eaa"
     },
     {
       "bytes": 643,
@@ -4677,6 +4677,11 @@
       "sha256": "e1a833b364f29c32116a1abfb5004591bca7a55d749dc0fcb737d55c22d91a35"
     },
     {
+      "bytes": 1105,
+      "path": "runtime/install_shadow_runtime_image_identity_attestation.sh",
+      "sha256": "5b75d59eb1b81ce48f191209ad0601ad375ce503050f015ebc16ab07d6364b6e"
+    },
+    {
       "bytes": 10867,
       "path": "runtime/openfootball_static_source.py",
       "sha256": "2bff9dc8e0f43ea69ee08d815bed14b2f417f8b4a408335e86a3548b89be224d"
@@ -4700,6 +4705,16 @@
       "bytes": 9011,
       "path": "runtime/shadow_runtime_attestation.py",
       "sha256": "0e858e7b69d18f13efa33e15a139a72443bd4f10ab75f931fca0e4382af45f4d"
+    },
+    {
+      "bytes": 20201,
+      "path": "runtime/shadow_runtime_image_identity_attestation.py",
+      "sha256": "e0c8313766120d1c5308e273a3753cc410a433b576da1eef7d0378a244c769d3"
+    },
+    {
+      "bytes": 1944,
+      "path": "runtime/shadow_runtime_image_identity_attestation_contract.json",
+      "sha256": "1717d800da4644b3bde58d788aca8cdd75fd76727bc53791348a95a85e958c9b"
     },
     {
       "bytes": 17328,
@@ -4745,6 +4760,11 @@
       "bytes": 6348,
       "path": "runtime_tests/test_shadow_runtime_attestation.py",
       "sha256": "d5343a751671f5b0fc81d78974651d2350dd37e3dc3d87c0b2155f644713aebf"
+    },
+    {
+      "bytes": 7252,
+      "path": "runtime_tests/test_shadow_runtime_image_identity_attestation.py",
+      "sha256": "4fbe1add94f00c8110296f7b071fc72e1d682e1b0f903361f53158e7bbc9c481"
     },
     {
       "bytes": 5994,
