@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-HISTORICAL-RESULT-CROSSCHECK-003",
+  "product_version": "0.0.0.1",
+  "status": "PRIVATE_STATIC_SOURCE_CROSSCHECK_ONLY",
+  "sources": {
+    "football_data": {
+      "source_id": "FOOTBALL_DATA_E0_2025_26",
+      "raw_sha256": "3e3a8352f9ada6789c508d6ca184424421fed56a30400904a4a327c583407e62",
+      "source_contract_sha256": "eb5625defa442629e5c59d2a52ff2ea2761d85f2301ab1ce37b500150ee55a7b",
+      "expected_fixture_count": 380,
+      "team_aliases": {
+        "Arsenal": "Arsenal",
+        "Aston Villa": "Aston Villa",
+        "Bournemouth": "Bournemouth",
+        "Brentford": "Brentford",
+        "Brighton": "Brighton & Hove Albion",
+        "Burnley": "Burnley",
+        "Chelsea": "Chelsea",
+        "Crystal Palace": "Crystal Palace",
+        "Everton": "Everton",
+        "Fulham": "Fulham",
+        "Leeds": "Leeds United",
+        "Liverpool": "Liverpool",
+        "Man City": "Manchester City",
+        "Man United": "Manchester United",
+        "Newcastle": "Newcastle United",
+        "Nott'm Forest": "Nottingham Forest",
+        "Sunderland": "Sunderland",
+        "Tottenham": "Tottenham Hotspur",
+        "West Ham": "West Ham United",
+        "Wolves": "Wolverhampton Wanderers"
+      }
+    },
+    "openfootball": {
+      "source_id": "OPENFOOTBALL_ENGLAND_PREMIER_LEAGUE_2025_26_RESULTS",
+      "raw_sha256": "38c1de56c9e9b6662c7efc1420b7e1fe00dddbb502fe72d8f759e773ba3c093b",
+      "source_contract_sha256": "8e10319193f870b6aa855b70173015106883b11d2757ed47eb3cb806b17aa2f9",
+      "expected_fixture_count": 380,
+      "team_aliases": {
+        "Arsenal": "Arsenal",
+        "Aston Villa": "Aston Villa",
+        "Bournemouth": "Bournemouth",
+        "Brentford": "Brentford",
+        "Brighton & Hove Albion": "Brighton & Hove Albion",
+        "Burnley": "Burnley",
+        "Chelsea FC": "Chelsea",
+        "Crystal Palace": "Crystal Palace",
+        "Everton": "Everton",
+        "Fulham": "Fulham",
+        "Leeds United": "Leeds United",
+        "Liverpool": "Liverpool",
+        "Manchester City": "Manchester City",
+        "Manchester United": "Manchester United",
+        "Newcastle United": "Newcastle United",
+        "Nottingham Forest": "Nottingham Forest",
+        "Sunderland": "Sunderland",
+        "Tottenham Hotspur": "Tottenham Hotspur",
+        "West Ham United": "West Ham United",
+        "Wolverhampton Wanderers": "Wolverhampton Wanderers"
+      }
+    }
+  },
+  "schema": {
+    "division": "E0",
+    "competition_header": "= England | Premier League 2025/26",
+    "season_start": "2025-08-15",
+    "season_end": "2026-05-24",
+    "expected_team_count": 20,
+    "expected_fixture_count": 380,
+    "identity_key": "MATCH_DATE_PLUS_CANONICAL_HOME_PLUS_CANONICAL_AWAY",
+    "comparison_scope": "FINAL_SCORE_ONLY"
+  },
+  "runtime_boundary": {
+    "network_collection_enabled": false,
+    "external_market_or_account_accessed": false,
+    "odds_or_price_truth_claimed": false,
+    "model_parameter_or_calibration_update_enabled": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "rollback": {
+    "action": "QUARANTINE_CROSSCHECK_RECEIPT_AND_DISABLE_THIS_DERIVED_INPUT",
+    "immutable_source_raw_evidence_deleted_automatically": false,
+    "affected_capabilities": [
+      "HISTORICAL_RESULT_CROSSCHECK_ONLY"
+    ]
+  }
+}

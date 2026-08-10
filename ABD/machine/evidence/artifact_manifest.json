@@ -1,5 +1,5 @@
 {
-  "file_count": 1106,
+  "file_count": 1109,
   "files": [
     {
       "bytes": 25,
@@ -17,9 +17,9 @@
       "sha256": "a1b6d13afea6f383061d2d3405efe2f2d8f4867fbb08a5edf0e53415c16a239a"
     },
     {
-      "bytes": 136793,
+      "bytes": 138314,
       "path": "HANDOFF.md",
-      "sha256": "70b62e5d1bedc4f9f241201dd228ab58779fe6eacefd0864b8a7278486db4a66"
+      "sha256": "17b8e5cb9e6d4c8f451c8c03f31dddf7e19e1752c899cb128e78304b7a829acc"
     },
     {
       "bytes": 643,
@@ -4647,6 +4647,16 @@
       "sha256": "eb5625defa442629e5c59d2a52ff2ea2761d85f2301ab1ce37b500150ee55a7b"
     },
     {
+      "bytes": 16964,
+      "path": "runtime/historical_result_crosscheck.py",
+      "sha256": "55a018a64f732b646d934211e4adfe658136f28f9d119d3d53d1e0119a8a5137"
+    },
+    {
+      "bytes": 3420,
+      "path": "runtime/historical_result_crosscheck_contract.json",
+      "sha256": "2821153d33c2d42e365951a15935ad8dfbeb98a3e05ceec25549c296307dff03"
+    },
+    {
       "bytes": 2940,
       "path": "runtime/host_bundle_contract.json",
       "sha256": "0f5c82fb7a27cf2121c9fef21a78649d278726d81d79d9cd1c27d3988c06c50c"
@@ -4700,6 +4710,11 @@
       "bytes": 4389,
       "path": "runtime_tests/test_football_data_static_source.py",
       "sha256": "029a6c35e8de41efe0857868d3a17b36abd05da15098f45cae8689221b8ae3fe"
+    },
+    {
+      "bytes": 6318,
+      "path": "runtime_tests/test_historical_result_crosscheck.py",
+      "sha256": "56c220052d3b78b0f9386682677ee09451e5dfd6799ae330331c0b36ba1f56da"
     },
     {
       "bytes": 3973,
