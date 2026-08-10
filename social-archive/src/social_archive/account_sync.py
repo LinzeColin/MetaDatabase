@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import re
+from pathlib import Path
+
 import secrets
 from dataclasses import dataclass
 from typing import Any
@@ -40,6 +43,58 @@ PLATFORM_RELATIONS: dict[str, list[str]] = {
 # ['bookmark', 'manual_save'] 而扩展只送 bookmark 的终批。
 # 界面上就是「点了同步，东西都进来了，圈还一直在转」。
 NON_SCANNABLE_RELATIONS: frozenset[str] = frozenset({"manual_save"})
+
+
+def _load_scannable_relations() -> dict[str, tuple[str, ...]]:
+    """扩展真正会去枚举的关系——**直接读扩展那一份，不在这里再抄一遍**。（2026-08-10）
+
+    ## 它修的是什么
+
+    `_scannable_relations` 原来 = 「这个平台允许出现的关系」减去 `manual_save`。
+    而 `_relations` 自己的文档串就写着：**「用于校验批次，不是同步范围。」**
+
+    扩展只扫 `SCANNABLE_RELATIONS`（抖音/小红书/快手/B站都只有 `favorite`），
+    服务端却把「允许」的全列进 scope。于是 scope 里那些扩展不会扫的关系
+    **永远等不到终批**——而这个文件自己的注释早就写过那种后果：
+    「点了同步，条目都进来了，圈还一直在转」，这次 run 永远不收敛。
+
+    Owner 的生产数据正是这个形状：**20 次同步、0 次 completed**
+    （partial 16 / failed 3 / cancelled 1），最常见的错误码是
+    `RELATION_SCOPE_UNCONFIRMED`（8 次）。逐条查 sync_run_scope：
+    抖音每次都声明 `favorite` + `like`，B 站声明 `favorite` + `watch_later` + …，
+    **没有一条 scope 的 completeness 是 complete**。
+
+    account_sync.py 里那句注释写着「由 platform-catalog.js 的
+    SCANNABLE_RELATIONS 限定扫描范围」——**而服务端从来没读过那个文件。**
+
+    ## 为什么读文件而不是再抄一份
+
+    这个仓当天已经因为「同一件事两份词典必然漂开」修过三处
+    （失败文案、归档状态、回执键名）。抄第四份只是把问题推后。
+
+    ## 读不到就硬失败
+
+    读不到时**不许退回旧行为**（把「允许」的全列进去）——那正是这个 bug。
+    宁可让同步起不来、当场报出来，也不要再产出一批永远不收敛的 run。
+    """
+    source = Path(__file__).resolve().parents[2] / "apps/browser-extension/content/platform-catalog.js"
+    text = source.read_text(encoding="utf-8")
+    block = re.search(r"const SCANNABLE_RELATIONS = Object\.freeze\(\{(.*?)\n  \}\);",
+                      text, re.S)
+    if not block:
+        raise RuntimeError(
+            "读不到 platform-catalog.js 的 SCANNABLE_RELATIONS——"
+            "同步范围没有真源了。不许退回「把允许的全列进去」，那会让每次同步都不收敛。")
+    found: dict[str, tuple[str, ...]] = {}
+    for platform, items in re.findall(
+            r"(\w+):\s*Object\.freeze\(\[(.*?)\]\)", block.group(1), re.S):
+        found[platform] = tuple(re.findall(r'"([a-z_]+)"', items))
+    if not found:
+        raise RuntimeError("SCANNABLE_RELATIONS 解析出 0 个平台——这不是「没有」，是解析坏了")
+    return found
+
+
+SCANNABLE_RELATIONS: dict[str, tuple[str, ...]] = _load_scannable_relations()
 
 PLATFORM_LABELS = {
     "xiaohongshu": "小红书",
@@ -249,9 +304,15 @@ class AccountSyncCoordinator:
         界面上就是：**点了同步，62 条都进来了，圈还一直在转。**
         这正是这一版要消灭的那种「说不清楚发生了什么」。
         """
+        # **范围 = 扩展真会扫的 ∩ 这个平台允许的**。（2026-08-10）
+        # 原来只减掉 manual_save，于是把「允许」当成了「会扫」——
+        # scope 里那些扩展不扫的关系永远等不到终批，run 永远不收敛。
+        # 平台不在那张表里时退回旧行为：它本来就没有「按形状读」这条路。
+        scannable = SCANNABLE_RELATIONS.get(platform)
         return [
             item for item in AccountSyncCoordinator._relations(platform, requested)
             if item not in NON_SCANNABLE_RELATIONS
+            and (scannable is None or item in scannable)
         ]
 
     def connect_start(self, request: AccountConnectRequest) -> ConnectStartResult:

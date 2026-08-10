@@ -108,7 +108,15 @@ def test_chunked_collection_waits_for_relation_final_and_keeps_all_pages(setting
         "他在平台上取消的收藏会永远留在档案馆里")
 
 
-def test_multi_relation_run_does_not_finish_after_first_relation(settings, store, service):
+def test_multi_relation_run_does_not_finish_after_first_relation(settings, store, service, monkeypatch):
+    # **不变量是协议层面的**：多关系的 run 不许在第一个关系完成后就结束。
+    # 2026-08-10 起同步范围改成读扩展的 SCANNABLE_RELATIONS（抖音/B站/小红书
+    # 现在都只有 favorite），于是这个场景本身不再是「多关系」。
+    # 把范围显式声明出来，让这条不变量不绑死在目录当下支持什么上。
+    from social_archive import account_sync as _sync
+    monkeypatch.setitem(_sync.SCANNABLE_RELATIONS, "xiaohongshu", ("favorite", "like"))
+    monkeypatch.setitem(_sync.SCANNABLE_RELATIONS, "douyin", ("favorite", "like"))
+    monkeypatch.setitem(_sync.SCANNABLE_RELATIONS, "bilibili", ("favorite", "like"))
     coordinator, account_id = _connected(settings, store, service)
     run_id = coordinator.start_sync(account_id, AccountSyncRequest(
         mode="first_full", relation_types=["favorite", "like"], trigger_type="first_connect"

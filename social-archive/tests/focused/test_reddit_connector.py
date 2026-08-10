@@ -142,7 +142,13 @@ def test_reddit_rate_limit_is_retryable_unknown_and_preserves_page_cursor(monkey
     assert seen["params"] == {"limit": 5, "raw_json": 1, "after": "t3_resume"}
 
 
-def test_reddit_account_sync_follows_pages_and_closes_only_after_full_relation(settings, store, service, server_owned_reddit):
+def test_reddit_account_sync_follows_pages_and_closes_only_after_full_relation(settings, store, service, server_owned_reddit, monkeypatch):
+    # **不变量是协议层面的**：一次 run 要等到它声明的每个关系都收敛才算完。
+    # 2026-08-10 起同步范围改成读扩展的 SCANNABLE_RELATIONS（reddit 只有 saved），
+    # 于是这个「saved + upvoted」的场景不再是多关系。把范围显式声明出来，
+    # 让这条不变量不绑死在目录当下支持什么上。
+    from social_archive import account_sync as _sync
+    monkeypatch.setitem(_sync.SCANNABLE_RELATIONS, "reddit", ("saved", "upvoted"))
     account_id = store.upsert_source_account(
         platform="reddit",
         external_account_id="owner",
