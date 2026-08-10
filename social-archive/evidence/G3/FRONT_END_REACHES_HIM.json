@@ -1,0 +1,91 @@
+{
+  "status": "PASS",
+  "what_this_proves": "他打得到的那个域名下发的那份前端，在真 Chrome 里画出了「删除并清空」，误点拦得住，打对名字会真发 POST …/forget",
+  "what_this_does_not_prove": "接口是假的——服务端删干净没有由从零那一轮在真镜像上验",
+  "supply_from_production": {
+    "origin": "https://social-archive-api.linzezhang.com",
+    "index_bytes": 20645,
+    "index_cf_cache_status": "DYNAMIC",
+    "stamps_in_index": [
+      "0.0.0.31"
+    ],
+    "assets": [
+      {
+        "url": "/assets/styles.css?v=0.0.0.31",
+        "bytes": 39548,
+        "cf_cache_status": "HIT",
+        "age": ""
+      },
+      {
+        "url": "/assets/manifest.webmanifest?v=0.0.0.31",
+        "bytes": 282,
+        "cf_cache_status": "DYNAMIC",
+        "age": ""
+      },
+      {
+        "url": "/assets/favicon.svg?v=0.0.0.31",
+        "bytes": 182,
+        "cf_cache_status": "HIT",
+        "age": ""
+      },
+      {
+        "url": "/assets/app.js?v=0.0.0.31",
+        "bytes": 140337,
+        "cf_cache_status": "HIT",
+        "age": ""
+      }
+    ]
+  },
+  "measured": {
+    "rendered": {
+      "rowCount": 8,
+      "rowsText": [
+        "小 | 小红书 | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
+        "抖 | 抖音 | 抖音 | 已连接 | 86 | 条 | 首次同步尚未开始 | — | 立即同步 | 断开 | 删除并清空",
+        "快 | 快手 | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
+        "B | B站 | B站 | 未连接 | 103 | 条 | 首次同步尚未开始 | — | 立即同步 | 删除并清空",
+        "X | X | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
+        "R | Reddit | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
+        "In | Instagram | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
+        "书 | Chrome书签/网页 | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号"
+      ],
+      "forgetButtons": [
+        {
+          "label": "删除并清空",
+          "accountId": "acct_douyin"
+        },
+        {
+          "label": "删除并清空",
+          "accountId": "acct_bili"
+        }
+      ],
+      "errors": []
+    },
+    "wrong_name": {
+      "clicked": true,
+      "toasts": [
+        "没有删除——你打的是「打错了」，要打的是「抖音」。",
+        "没有删除——你打的是「打错了」，要打的是「抖音」。"
+      ],
+      "buttonLabel": "删除并清空"
+    },
+    "wrong_name_requests": [],
+    "right_name": {
+      "clicked": true,
+      "toasts": [
+        "没有删除——你打的是「打错了」，要打的是「抖音」。",
+        "没有删除——你打的是「打错了」，要打的是「抖音」。",
+        "已删除「抖音」，连同它带进来的 86 条内容。",
+        "已删除「抖音」，连同它带进来的 86 条内容。"
+      ],
+      "buttonLabel": "正在删除…"
+    },
+    "right_name_requests": [
+      {
+        "path": "/v1/accounts/acct_douyin/forget",
+        "body": ""
+      }
+    ]
+  },
+  "problems": []
+}

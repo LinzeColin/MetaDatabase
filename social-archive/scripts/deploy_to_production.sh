@@ -978,24 +978,22 @@ step "8.65) 他打得到的那份前端，真 Chrome 里画不画得出这次发
 # 逐个取），喂给真 Chrome，把 DOM 读回来。**验的是他真会拿到的那些字节。**
 # 接口是假的——这里不证明服务端对，只证明界面到得了他手上、按得下去。
 if [ -x "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]; then
-  if ! .venv/bin/python scripts/forget_button_render_drill.py > /tmp/sa_front.$$ 2>&1; then
+  if ! .venv/bin/python scripts/forget_button_render_drill.py > evidence/G3/FRONT_END_REACHES_HIM.json 2>&1; then
     python3 -c "
 import json,sys
 try:
-    d=json.load(open('/tmp/sa_front.$$'))
+    d=json.load(open('evidence/G3/FRONT_END_REACHES_HIM.json'))
 except Exception:
-    print(open('/tmp/sa_front.$$').read()[-600:]); raise SystemExit
+    print(open('evidence/G3/FRONT_END_REACHES_HIM.json').read()[-600:]); raise SystemExit
 for p in d.get('problems') or [d.get('error_code','')]: print('  ✗', p)"
-    rm -f /tmp/sa_front.$$
-    fail '公开域名下发的前端，在真 Chrome 里跑不出这次发的界面——他那边等于没发。'
+      fail '公开域名下发的前端，在真 Chrome 里跑不出这次发的界面——他那边等于没发。'
   fi
   python3 -c "
 import json
-d=json.load(open('/tmp/sa_front.$$'))
+d=json.load(open('evidence/G3/FRONT_END_REACHES_HIM.json'))
 a=[x for x in d['supply_from_production']['assets'] if 'app.js' in x['url']][0]
 b=d['measured']['rendered']['forgetButtons']
 print(f\"  公网那份 app.js {a['bytes']} 字节（{a['url']}）；真 Chrome 画出 {len(b)} 颗「删除并清空」，点了会发 POST …/forget。\")"
-  rm -f /tmp/sa_front.$$
 else
   printf '  跳过：这台机器上没有 Chrome（前端是否真到得了他手上，本轮没验）。\n'
 fi
@@ -1008,24 +1006,22 @@ step "8.68) 从零到能用，在**刚部署的这个镜像**上真走一遍"
 # **碰不到他的数据**：起一个一次性容器，数据根是容器内的 tmpfs，跑完就删。
 # 他那份 /opt/social-archive/runtime/data 一个字节都不动。
 if ! .venv/bin/python scripts/from_zero_drill.py --host "$HOST" --version "$VERSION" \
-      > /tmp/sa_zero.$$ 2>&1; then
+      > evidence/G3/FROM_ZERO.json 2>&1; then
   python3 -c "
 import json
 try:
-    d=json.load(open('/tmp/sa_zero.$$'))
+    d=json.load(open('evidence/G3/FROM_ZERO.json'))
 except Exception:
-    print(open('/tmp/sa_zero.$$').read()[-800:]); raise SystemExit
+    print(open('evidence/G3/FROM_ZERO.json').read()[-800:]); raise SystemExit
 for s in d.get('steps', []):
     if not s['ok']: print('  ✗', s['step'], '→', str(s['measured'])[:160])
 if d.get('detail'): print('  ✗', d['detail'][:400])"
-  rm -f /tmp/sa_zero.$$
   fail '刚部署的这个镜像上，「从零到能用」这条链走不通。'
 fi
 python3 -c "
 import json
-d=json.load(open('/tmp/sa_zero.$$'))
+d=json.load(open('evidence/G3/FROM_ZERO.json'))
 print(f\"  {len(d['steps'])} 步全过：从空库连账号、同步、看得见、删除并清空、重连再同步。\")"
-rm -f /tmp/sa_zero.$$
 
 step "9) 验收：仓、主机、**镜像里那一份**，三份是不是同一份代码"
 # 第 8 步只核了**扩展包**那一个文件。其余一百多个源文件，在这一步之前
