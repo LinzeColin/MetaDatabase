@@ -47,8 +47,13 @@ def _function(source: str, name: str) -> str:
 def _paint(state: dict) -> dict:
     source = APP_JS.read_text(encoding="utf-8")
     body = _function(source, "paintServiceBadge")
+    # **它用到的 helper 也从源码里抠，不在这里造一个假的。**（2026-08-10）
+    # 造假的话，helper 的行为和真的漂开了这条判据也发现不了——
+    # 而 `paintServiceBadge` 现在正是靠 compareVersions 分「连不连得上」那两档。
+    helper = _function(source, "compareVersions")
     script = f"""
     const PRODUCT_VERSION = "9.9.9.9";
+    {helper}
     let painted = {{ cls: "", text: "" }};
     function setServiceBadge(cls, text) {{ painted = {{ cls, text }}; }}
     const state = {json.dumps(state)};
@@ -74,28 +79,40 @@ def test_a_dead_worker_wins_over_everything_else() -> None:
     assert out["cls"] == "needs"
 
 
-def test_an_outdated_but_usable_extension_is_mentioned_not_blocked() -> None:
-    """**这一支就是那个没人读的字段。** 说一句，但不拦。"""
+def test_an_old_extension_that_really_cannot_connect_says_so() -> None:
+    """**「旧版连不上账号」是真的——但只对 v0.0.0.22 之前的。**
+
+    权限申请原来写在 service worker 里，那里拿不到用户手势，
+    `chrome.permissions.request` 三种写法全抛——他点「连接账号」不会有任何反应。
+    修复把它挪进 connect-frame（132d6038d，当时 VERSION = 0.0.0.22）。
+    """
     out = _paint({"health": {"version": "9.9.9.9", "worker": ALIVE},
-                  "extension": {"detected": True, "compatible": True, "outdated": True}})
-    assert "更新插件" in out["text"], f"「该更新了」那半边还是没说：{out}"
-    # **两件事都要说，少一件都会误导** —— 而"哪两件"随事实变过两次：
-    #
-    #   v0.0.0.21 之前：「插件可更新（不影响使用）」。当时是对的。
-    #   v0.0.0.22 加平台后：不更新就没有新平台，「不影响使用」开始误导。
-    #   同一版量到权限那件事后：**旧插件根本连不上账号**——权限申请在
-    #     service worker 里，那里任何权限都要不到（实测三种全抛 user gesture）。
-    #     于是「现在能用」这四个字也不成立了：他点「连接账号」不会有任何反应。
-    #
-    # 所以现在要说的是：**哪块坏了**（连不上账号）+ **哪块还好**（已存的内容）。
-    assert "连不上账号" in out["text"], (
-        "没说清旧插件连不上账号——他会一直去点那颗不会成功的按钮"
-    )
-    assert "已存的内容不受影响" in out["text"], (
-        "没说清已存的内容还在，他会以为数据出了问题"
-    )
-    assert "更新" in out["text"], "没说该做什么"
-    assert out["cls"] == "connected", "只是有新版本，不该画成告警"
+                  "extension": {"detected": True, "compatible": True,
+                                "outdated": True, "version": "0.0.0.21"}})
+    assert "连不上账号" in out["text"], f"真连不上的那一档没说清：{out}"
+    assert "已存的内容不受影响" in out["text"], f"没说清数据还在：{out}"
+    assert out["cls"] == "connected", "只是插件旧，不该把整条画成告警"
+
+
+def test_a_usable_but_outdated_extension_is_not_told_it_cannot_connect() -> None:
+    """**他装的就是这一档（0.0.0.25）。**（2026-08-10）
+
+    那句话原来挂在 `outdated` 上：只要不是最新版就说「连不上账号」。
+    而他这天要做的正是「重新连一次抖音/B站」——这句话会让他以为必须先换插件，
+    不换就以为坏了。**产品在他动手那一刻说了假话。**
+    """
+    out = _paint({"health": {"version": "9.9.9.9", "worker": ALIVE},
+                  "extension": {"detected": True, "compatible": True,
+                                "outdated": True, "version": "0.0.0.25"}})
+    for lie in ("连不上账号", "连不上", "无法连接"):
+        assert lie not in out["text"], (
+            f"0.0.0.25 连得上，却告诉他「{lie}」：{out}")
+    assert "新版" in out["text"], f"该更新那半边没说：{out}"
+    assert "0.0.0.25" in out["text"] and "9.9.9.9" in out["text"], (
+        f"两个版本号要都摆出来，他不用猜自己在哪一版：{out}")
+    assert "新平台" in out["text"] or "新修复" in out["text"], (
+        f"只说有新版、没说不更新会缺什么，他没有理由去更新：{out}")
+    assert out["cls"] == "connected"
 
 
 def test_a_current_extension_says_nothing_extra() -> None:

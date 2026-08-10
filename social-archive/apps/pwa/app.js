@@ -435,8 +435,28 @@
     // Reddit / Instagram 这两个平台的取数路在插件里，**不更新插件就没有它们**，
     // 而资料库这边一切正常，他没有任何理由去点更新。
     // 「不影响使用」会让他以为不用管，然后一直看不到新平台却不知道为什么。
-    const spare = state.extension.detected && state.extension.compatible
-      && state.extension.outdated ? " · 请更新插件：旧版连不上账号（已存的内容不受影响）" : "";
+      // **「旧版连不上账号」是真的——但只对 v0.0.0.22 之前的插件。**（2026-08-10）
+      //
+      // 那句话有来历，不是吓唬人：权限申请原来写在 service worker 里，而那里
+      // 拿不到用户手势，`chrome.permissions.request` 三种写法全抛——他点
+      //「连接账号」不会有任何反应。修复是把它挪进 connect-frame（132d6038d，
+      // 当时 VERSION = 0.0.0.22）。
+      //
+      // 但它原来挂在 `outdated` 上：**只要不是最新版就说连不上**。
+      // 他装的是 0.0.0.25（在修复之后，连得上），而他这天要做的正是
+      //「重新连一次抖音/B站」——这句话会让他以为必须先换插件，不换就以为坏了。
+      //
+      // 按版本分档：真连不上的照旧那么说，连得上的说实话。
+      const CONNECT_WORKS_FROM = "0.0.0.22";   // 权限申请挪出 service worker 的那一版
+      const cannotConnect = !!state.extension.version
+        && compareVersions(state.extension.version, CONNECT_WORKS_FROM) < 0;
+      const spare = !(state.extension.detected && state.extension.compatible
+        && state.extension.outdated)
+        ? ""
+        : cannotConnect
+          ? " · 请更新插件：旧版连不上账号（已存的内容不受影响）"
+          : ` · 插件有新版（你装的 ${state.extension.version || "未知"}，最新 ${PRODUCT_VERSION}）：`
+            + "现在这版照样连得上、已存的内容不受影响；新平台和新修复要更新后才有";
     // **插件版本一直显示出来。**
     //
     // 2026-08-07 我去生产库里查「他装的是哪一版」——查不到：账号 metadata、
