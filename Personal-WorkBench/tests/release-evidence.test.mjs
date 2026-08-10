@@ -501,6 +501,32 @@ test("Version 29 Google admin-policy boundary retains no account or browser mate
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 29 S5-T3 gate audit keeps current production proof distinct from historical support", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_29_s5_t3_gate_audit.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 29);
+  assert.equal(evidence.frozen_taskpack_binding.task_dag_sha256.length, 64);
+  assert.equal(evidence.frozen_taskpack_binding.traceability_matrix_sha256.length, 64);
+  assert.equal(evidence.gate_assessment.r003_real_authentication.status, "PARTIAL");
+  assert.equal(evidence.gate_assessment.r004_a_b_isolation.current_v29_physical_a_b_replay, "NOT_RUN");
+  assert.equal(evidence.gate_assessment.r005_d1_r2_persistence.current_v29_physical_mapping_or_record_object_reconciliation, "NOT_PROVEN");
+  assert.equal(evidence.gate_assessment.physical_second_device_history.status, "NOT_RUN");
+  assert.equal(evidence.result.s5_t3_core_chains_all_pass, false);
+  assert.equal(evidence.result.s5_t3_threshold_met, false);
+  assert.equal(evidence.scope_and_cleanup.taskpack_source_modified, false);
+  assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 29 storage-mapping boundary retains no physical resource or provider material", async () => {
   const evidence = JSON.parse(
     await readFile(

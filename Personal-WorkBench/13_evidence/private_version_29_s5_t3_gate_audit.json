@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_29_S5_T3_GATE_AUDIT_NOT_READY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "frozen_taskpack_binding": {
+    "task_dag_sha256": "a608630c553628111933804097ed8c25b68ac8331f834402ab53c7ae6b016386",
+    "traceability_matrix_sha256": "537c0adce1efb0c2438c749b9b6945980ef6491b0c7da879d5920cbda88e3b6d",
+    "production_runbook_sha256": "750c1579c07db2c8ea75aa797ad0d957d7de53b4c432c0eac66d1ca4b99c2d66",
+    "required_acceptance": "real registration, Google, recovery, second device, and A/B isolation pass; rollback to the previous version succeeds",
+    "required_threshold": "all core chains pass, cross-tenant success is zero, rollback and restore each succeed once, and production has no P0"
+  },
+  "candidate": {
+    "deployed_product_source_commit": "996a75ce2e02e3275cdf34b9847ef7153f43cf4e",
+    "sites_source_commit": "3a73f4a9b342ba3d6fe56f3a2539250e91980e67",
+    "sites_version_number": 29,
+    "private_access_remained_owner_custom": true,
+    "public_audience_changed": false
+  },
+  "gate_assessment": {
+    "r003_real_authentication": {
+      "status": "PARTIAL",
+      "current_v29_google_callback_and_session": "NOT_PROVEN_ADMINISTRATIVE_POLICY_VERIFICATION_UNAVAILABLE_BEFORE_SIGNIN_RENDER",
+      "email_registration_recovery_evidence": "PASS_PRIVATE_VERSION_28_NOT_RERUN_ON_V29",
+      "conclusion": "Historical or preceding-version evidence cannot satisfy the frozen current Saved Version Google requirement."
+    },
+    "r004_a_b_isolation": {
+      "status": "PARTIAL",
+      "historical_controlled_a_b_replay": "PASS_PRIVATE_VERSION_21",
+      "current_v29_physical_a_b_replay": "NOT_RUN",
+      "conclusion": "The current V29 server tenant contract remains locally covered, but the frozen production E2E requirement needs a current physical A/B replay."
+    },
+    "r005_d1_r2_persistence": {
+      "status": "PARTIAL",
+      "current_logical_binding_health": "PASS_PRIVATE_VERSION_27_DATA_FREE",
+      "current_v29_physical_mapping_or_record_object_reconciliation": "NOT_PROVEN",
+      "conclusion": "Logical binding availability cannot be promoted to physical mapping or record-object reconciliation."
+    },
+    "r009_saved_version_rollback_restore": {
+      "status": "PARTIAL",
+      "current_v29_private_deploy": "PASS",
+      "current_v29_rollback_then_restore": "NOT_RUN",
+      "conclusion": "Prior-version rollback drills do not prove the required V29 rollback and restore pair."
+    },
+    "r014_production_recovery": {
+      "status": "PARTIAL",
+      "local_resilience_contract": "PASS",
+      "current_v29_production_fault_recovery": "NOT_RUN",
+      "conclusion": "Local fault contracts do not replace the frozen Saved Version recovery exercise."
+    },
+    "physical_second_device_history": {
+      "status": "NOT_RUN",
+      "conclusion": "No physical second-device authenticated history readback exists for V29."
+    },
+    "production_p0_observation": {
+      "status": "NOT_PROVEN",
+      "conclusion": "Current V29 production E2E coverage is incomplete, so the no-P0 threshold is not attestable."
+    }
+  },
+  "result": {
+    "s5_t3_core_chains_all_pass": false,
+    "s5_t3_threshold_met": false,
+    "public_deploy_eligible": false,
+    "safe_next_real_replay": "When the browser administrative policy permits canonical navigation, run one isolated current-V29 sequence that covers Google callback/session, a separate authenticated device history readback, A/B isolation, D1/R2 reconciliation, then rollback and restore."
+  },
+  "scope_and_cleanup": {
+    "taskpack_source_modified": false,
+    "runtime_values_read": false,
+    "real_user_business_data_read_or_written": false,
+    "d1_or_r2_resource_configuration_changed": false,
+    "access_policy_or_public_audience_changed": false,
+    "github_uploaded": false
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
