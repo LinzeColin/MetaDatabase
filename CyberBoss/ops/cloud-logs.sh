@@ -7,7 +7,7 @@
 #   ops/cloud-logs.sh          实时跟
 #   ops/cloud-logs.sh 100      看最近 100 行就退出
 set -euo pipefail
-HOST="${CB_DEPLOY_HOST:-139.99.61.6}"
+HOST="${CB_DEPLOY_HOST:-15.235.141.201}"
 USER_NAME="${CB_DEPLOY_USER:-ubuntu}"
 KEY="${CB_DEPLOY_KEY:-$HOME/Documents/Codex/GithubProject/_protected/alpha_deploy_private/linze_ovh_production_ed25519}"
 chmod 600 "$KEY" 2>/dev/null || true

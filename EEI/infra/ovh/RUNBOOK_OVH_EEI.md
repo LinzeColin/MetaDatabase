@@ -1,9 +1,14 @@
 # RUNBOOK — deploy EEI refresh app to the shared governance box
 
+> **主机变更(2026-08-10):** 生产已从 OVH VPS-1(`139.99.61.6`)迁到 VPS-3
+> (`15.235.141.201`,主机名 `vps-bab7f9dc`)。VPS-1 已退役。本文档 IP 已更新;
+> 别处若见旧 IP 不要照着连 —— 退役机可能还能登进去,而"连上了但改的不是生产"最难发现。
+
+
 **Audience:** the admin/owner who performs the live deploy. A worker prepared and
 tested these artifacts; **the worker does not run any live step below.**
 
-**Target:** `ubuntu@139.99.61.6` (owner's central governance box; Coolify).
+**Target:** `ubuntu@15.235.141.201` (owner's central governance box; Coolify).
 EEI deploys as a **separate Coolify project** and must never touch, link to, or
 share a network/volume with any co-tenant (Keycloak, Coolify, KMFA, the
 trading gateway/API, etc.).
@@ -40,7 +45,7 @@ npx wrangler secret put EEI_PUBLISH_TOKEN   # paste the same value
 
 ```bash
 KEY=/Users/linzezhang/Documents/Codex/GithubProject/_protected/alpha_deploy_private/linze_ovh_production_ed25519
-ssh -i "$KEY" ubuntu@139.99.61.6
+ssh -i "$KEY" ubuntu@15.235.141.201
 ```
 
 ---
@@ -84,7 +89,7 @@ start on an empty DB** (exit 2); (b) you seed it first, here.
 cd ~/Documents/Codex/GithubProject/MetaDatabase/EEI
 set -a; source .env; set +a          # DATABASE_URL for the local eei DB
 pg_dump --no-owner --no-privileges --format=custom "$DATABASE_URL" -f /tmp/eei_sor.dump
-scp -i "$KEY" /tmp/eei_sor.dump ubuntu@139.99.61.6:/tmp/eei_sor.dump
+scp -i "$KEY" /tmp/eei_sor.dump ubuntu@15.235.141.201:/tmp/eei_sor.dump
 ```
 
 Bring up **only the DB** first (via Coolify, or compose), then restore into it:
