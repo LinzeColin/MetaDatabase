@@ -2,14 +2,19 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  appendDeviceOutbox,
   createDeviceLocalRecord,
+  DeviceOutboxAction,
   isDeviceLocalRecord,
   mergeWithDeviceLocalRecords,
   readDeviceLocalRecords,
+  readDeviceOutbox,
+  removeDeviceOutboxActions,
   removeDeviceLocalRecord,
   resolveBrowserRecordScope,
   writeDeviceLocalRecord,
 } from "./local-record-cache";
+import { replayOutboxQueue, type OutboxMutationResult } from "./outbox-queue";
 
 export type TenantRecord = Record<string, unknown> & {
   id: string;
@@ -38,6 +43,15 @@ type ResourceOptions = {
 };
 
 type CloudAvailability = "available" | "consent_required" | "unavailable" | "unknown" | "unauthorized";
+
+function actionTargetsResource(action: DeviceOutboxAction, resource: string): boolean {
+  return action.method === "POST" && action.endpoint === `/api/mydairy/${resource}`;
+}
+
+function shouldQueueForReplay(status: number, sensitive: boolean): boolean {
+  if (sensitive) return false;
+  return status === 401 || status === 403 || status >= 500;
+}
 
 function newIdempotencyKey(prefix: string): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -88,7 +102,13 @@ function cloudAvailabilityFor(status: number, sensitive: boolean): CloudAvailabi
   return "unavailable";
 }
 
-function localSaveMessage(availability: CloudAvailability, sensitive: boolean): string {
+function localSaveMessage(availability: CloudAvailability, sensitive: boolean, queuedForReplay = false): string {
+  if (queuedForReplay && availability === "unauthorized") {
+    return "已保存在当前设备。完成登录和邮箱验证后会自动同步。";
+  }
+  if (queuedForReplay) {
+    return "已保存在当前设备。连接恢复后会自动同步。";
+  }
   if (availability === "unauthorized") {
     return "已保存在当前设备。登录并完成邮箱验证后，后续记录可跨设备同步。";
   }
@@ -194,8 +214,8 @@ export function useTenantResource<T extends TenantRecord>(
     setLoginSuggested(failure.authRequired);
   }, [sensitive]);
 
-  const acknowledgeLocalSave = useCallback((availability: CloudAvailability) => {
-    setError(localSaveMessage(availability, sensitive));
+  const acknowledgeLocalSave = useCallback((availability: CloudAvailability, queuedForReplay = false) => {
+    setError(localSaveMessage(availability, sensitive, queuedForReplay));
     setAuthRequired(availability === "unauthorized");
     setConsentRequired(availability === "consent_required");
     setLoginSuggested(availability === "unauthorized");
@@ -239,6 +259,84 @@ export function useTenantResource<T extends TenantRecord>(
     };
   }, [commitLocalRecords, commitRecords, enabled, resource]);
 
+  const queueDeviceMutation = useCallback(async (action: DeviceOutboxAction): Promise<boolean> => {
+    const scope = scopeRef.current;
+    // A guest browser has no verified owner. Its local records intentionally
+    // stay device-only rather than being replayed under a later account.
+    if (!scope || scope === "guest") return false;
+    try {
+      await appendDeviceOutbox(scope, action);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const flushDeviceOutbox = useCallback(async (remote: T[]): Promise<T[]> => {
+    const scope = scopeRef.current;
+    // Sensitive records require a current explicit consent path; this generic
+    // replay never treats a previously local sensitive row as consented.
+    if (!scope || scope === "guest" || sensitive) return remote;
+    let actions: DeviceOutboxAction[];
+    try {
+      actions = (await readDeviceOutbox(scope)).filter((action) => actionTargetsResource(action, resource));
+    } catch {
+      return remote;
+    }
+    if (!actions.length) return remote;
+
+    let reconciled = remote;
+    const replayResult = await replayOutboxQueue(actions, async (action): Promise<OutboxMutationResult> => {
+      try {
+        const response = await fetch(withRequestId(action.endpoint, action.idempotencyKey), {
+          method: action.method,
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(action.payload),
+        });
+        if (!response.ok) {
+          if (response.status === 409) return { type: "conflict", message: failureMessage(response.status, false).message };
+          if (response.status >= 500) return { type: "unavailable", message: "服务暂时不可用，请稍后再试。" };
+          return { type: "error", message: failureMessage(response.status, false).message };
+        }
+        const data = (await readEnvelope<T>(response)).data;
+        if (!isRecord(data)) return { type: "error", message: "保存结果不完整，请刷新后确认历史记录。" };
+
+        if (action.localRecordId) {
+          try {
+            await removeDeviceLocalRecord(scope, resource, action.localRecordId);
+          } catch {
+            // Preserve the idempotent action until the local row can be
+            // reconciled. Retrying cannot cross the account boundary.
+            return { type: "unavailable", message: "本机记录暂时无法完成同步。" };
+          }
+        }
+        const nextLocal = action.localRecordId
+          ? localRecordsRef.current.filter((record) => record.id !== action.localRecordId)
+          : localRecordsRef.current;
+        commitLocalRecords(nextLocal);
+        reconciled = [data, ...reconciled.filter((record) => record.id !== data.id && record.id !== action.localRecordId)];
+        return { type: "ok" };
+      } catch {
+        return { type: "unavailable", message: "网络异常，记录仍保存在当前设备。" };
+      }
+    });
+
+    const remaining = new Set(replayResult.remaining.map((action) => action.idempotencyKey));
+    const acknowledged = actions
+      .filter((action) => !remaining.has(action.idempotencyKey))
+      .map((action) => action.idempotencyKey);
+    if (acknowledged.length) {
+      try {
+        await removeDeviceOutboxActions(scope, acknowledged);
+      } catch {
+        // Retain safe idempotent retries if browser storage cannot acknowledge
+        // the queue cleanup in this pass.
+      }
+    }
+    return reconciled;
+  }, [commitLocalRecords, resource, sensitive]);
+
   const reload = useCallback(async () => {
     if (!enabled || !scopeRef.current) return;
     setLoading(true);
@@ -253,7 +351,8 @@ export function useTenantResource<T extends TenantRecord>(
       const payload = await readEnvelope<T>(response);
       const remote = Array.isArray(payload.data) ? payload.data.filter(isRecord) : [];
       cloudAvailabilityRef.current = "available";
-      commitRecords(mergeWithDeviceLocalRecords(remote, localRecordsRef.current));
+      const reconciled = await flushDeviceOutbox(remote);
+      commitRecords(mergeWithDeviceLocalRecords(reconciled, localRecordsRef.current));
       setError("");
       setAuthRequired(false);
       setConsentRequired(false);
@@ -266,7 +365,7 @@ export function useTenantResource<T extends TenantRecord>(
     } finally {
       setLoading(false);
     }
-  }, [applyFailure, commitRecords, enabled, resource, sensitive]);
+  }, [applyFailure, commitRecords, enabled, flushDeviceOutbox, resource, sensitive]);
 
   useEffect(() => {
     if (!scopeReady) return;
@@ -274,19 +373,36 @@ export function useTenantResource<T extends TenantRecord>(
     void reload();
   }, [reload, scopeReady]);
 
+  useEffect(() => {
+    if (!enabled || !scopeReady || typeof window === "undefined") return;
+    const replayWhenOnline = () => void reload();
+    window.addEventListener("online", replayWhenOnline);
+    return () => window.removeEventListener("online", replayWhenOnline);
+  }, [enabled, reload, scopeReady]);
+
   const create = useCallback(async (payload: Record<string, unknown>, idempotencyKey?: string): Promise<T | null> => {
     if (!enabled) return null;
     if (!scopeRef.current && scopeInitializationRef.current) await scopeInitializationRef.current;
-    if (!scopeRef.current) return null;
+    const scope = scopeRef.current;
+    if (!scope) return null;
     setSaving(true);
     setError("");
     setLoginSuggested(false);
     const requestId = idempotencyKey ?? newIdempotencyKey(resource);
     const deviceLocalRecord = createDeviceLocalRecord(payload);
     const localRecord = deviceLocalRecord as T;
+    const deviceOutboxAction: DeviceOutboxAction = {
+      createdAt: deviceLocalRecord.created_at,
+      endpoint: `/api/mydairy/${resource}`,
+      idempotencyKey: requestId,
+      localRecordId: deviceLocalRecord.id,
+      method: "POST",
+      payload,
+      queuedAt: deviceLocalRecord.created_at,
+    };
     let localPersisted = false;
     try {
-      await writeDeviceLocalRecord(scopeRef.current, resource, deviceLocalRecord);
+      await writeDeviceLocalRecord(scope, resource, deviceLocalRecord);
       localPersisted = true;
       const nextLocal = [localRecord, ...localRecordsRef.current.filter((record) => record.id !== localRecord.id)];
       commitLocalRecords(nextLocal);
@@ -309,18 +425,21 @@ export function useTenantResource<T extends TenantRecord>(
     }
 
     try {
-      const response = await fetch(withRequestId(`/api/mydairy/${resource}`, requestId), {
-        method: "POST",
+      const response = await fetch(withRequestId(deviceOutboxAction.endpoint, requestId), {
+        method: deviceOutboxAction.method,
         credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(deviceOutboxAction.payload),
       });
       if (!response.ok) {
         cloudAvailabilityRef.current = cloudAvailabilityFor(response.status, sensitive);
         if (localPersisted) {
-          acknowledgeLocalSave(cloudAvailabilityRef.current);
+          const queuedForReplay = shouldQueueForReplay(response.status, sensitive)
+            ? await queueDeviceMutation(deviceOutboxAction)
+            : false;
+          acknowledgeLocalSave(cloudAvailabilityRef.current, queuedForReplay);
           return localRecord;
         }
         applyFailure(response.status);
@@ -337,12 +456,18 @@ export function useTenantResource<T extends TenantRecord>(
         return null;
       }
       cloudAvailabilityRef.current = "available";
-      if (localPersisted && scopeRef.current) {
+      if (localPersisted) {
         try {
-          await removeDeviceLocalRecord(scopeRef.current, resource, localRecord.id);
+          await removeDeviceLocalRecord(scope, resource, localRecord.id);
         } catch {
           // A stale local duplicate stays private to this device and can be removed later.
         }
+      }
+      try {
+        await removeDeviceOutboxActions(scope, [requestId]);
+      } catch {
+        // A stale idempotent retry remains account-scoped and is safe to
+        // reconcile on the next successful resource read.
       }
       const nextLocal = localRecordsRef.current.filter((record) => record.id !== localRecord.id);
       commitLocalRecords(nextLocal);
@@ -354,7 +479,8 @@ export function useTenantResource<T extends TenantRecord>(
     } catch {
       cloudAvailabilityRef.current = "unavailable";
       if (localPersisted) {
-        acknowledgeLocalSave("unavailable");
+        const queuedForReplay = sensitive ? false : await queueDeviceMutation(deviceOutboxAction);
+        acknowledgeLocalSave("unavailable", queuedForReplay);
         return localRecord;
       }
       setError("暂时无法保存这条记录。请先登录并完成邮箱验证；若已登录，请检查网络后重试。");
@@ -363,7 +489,7 @@ export function useTenantResource<T extends TenantRecord>(
     } finally {
       setSaving(false);
     }
-  }, [acknowledgeLocalSave, applyFailure, commitLocalRecords, commitRecords, enabled, resource, sensitive]);
+  }, [acknowledgeLocalSave, applyFailure, commitLocalRecords, commitRecords, enabled, queueDeviceMutation, resource, sensitive]);
 
   const destroy = useCallback(async (id: string, idempotencyKey?: string): Promise<boolean> => {
     if (!enabled || !id) return false;

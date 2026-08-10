@@ -303,11 +303,47 @@ export async function writeDeviceOutbox(scope: string, actions: DeviceOutboxActi
   }
 }
 
+/**
+ * Removes only acknowledged actions for one opaque account scope. This avoids
+ * a resource-specific replay overwriting queued work owned by a different
+ * workbench module in the same browser.
+ */
+export async function removeDeviceOutboxActions(scope: string, idempotencyKeys: string[]): Promise<void> {
+  if (!canUseIndexedDb()) return;
+  const keys = [...new Set(idempotencyKeys.filter((value) => typeof value === "string" && value.length > 0))];
+  if (!keys.length) return;
+  const database = await openRecordDatabase();
+  try {
+    const transaction = database.transaction(OUTBOX_STORE, "readwrite");
+    const store = transaction.objectStore(OUTBOX_STORE);
+    for (const idempotencyKey of keys) store.delete(outboxKey(scope, idempotencyKey));
+    await transactionDone(transaction);
+  } finally {
+    database.close();
+  }
+}
+
 export async function appendDeviceOutbox(scope: string, action: DeviceOutboxAction): Promise<DeviceOutboxAction[]> {
-  const current = await readDeviceOutbox(scope);
-  const next = current.some((item) => item.idempotencyKey === action.idempotencyKey)
-    ? current
-    : [...current, action];
-  await writeDeviceOutbox(scope, next);
-  return next;
+  if (!canUseIndexedDb()) throw new Error("IndexedDB is unavailable.");
+  if (!isDeviceOutboxAction(action)) throw new Error("Invalid device outbox action.");
+  const database = await openRecordDatabase();
+  try {
+    const transaction = database.transaction(OUTBOX_STORE, "readwrite");
+    const store = transaction.objectStore(OUTBOX_STORE);
+    const key = outboxKey(scope, action.idempotencyKey);
+    const existing = await requestValue(store.get(key));
+    if (!existing) {
+      const sanitized = sanitizeOutboxAction(action);
+      store.put({
+        action: sanitized,
+        key,
+        queuedAt: sanitized.queuedAt,
+        scope,
+      } satisfies CachedOutboxRow);
+    }
+    await transactionDone(transaction);
+  } finally {
+    database.close();
+  }
+  return readDeviceOutbox(scope);
 }

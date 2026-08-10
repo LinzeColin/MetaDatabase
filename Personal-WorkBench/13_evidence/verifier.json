@@ -1,11 +1,11 @@
 {
   "schema_version": "3.0",
-  "target_project": "胡楚靓工作台",
+  "target_project": "个人日程",
   "product_version": "v0.0.0.8",
   "subject_phase": "S4-T3",
   "status": "PASS_BUILD_LAST_MILE_READINESS",
   "verdict": "NOT_ISSUED_PRE_VERIFIER",
-  "runAt": "2026-08-08T22:25:17.886Z",
+  "runAt": "2026-08-10T01:08:47.374Z",
   "command_results": [
     {
       "name": "npm run test:quality",
@@ -52,7 +52,7 @@
       "exists": true,
       "status": "PASS_LOCAL_QUALITY",
       "phase": "S4-T1",
-      "run_at": "2026-08-08T22:25:18.081Z"
+      "run_at": "2026-08-10T01:08:47.564Z"
     },
     "visual": {
       "source": "13_evidence/visual/manifest.json",
@@ -66,7 +66,7 @@
       "exists": true,
       "status": "PASS_LOCAL_RETRY_RESILIENCE",
       "phase": "S4-T2",
-      "run_at": "2026-08-08T22:25:29.844Z"
+      "run_at": "2026-08-10T01:08:59.401Z"
     }
   },
   "risks": [

@@ -123,3 +123,22 @@ test("tenant resource client writes an opaque device-local fallback before a clo
   assert.match(cacheSource, /Guest records[\s\S]*never auto-synced/);
   assert.match(cacheSource, /tenantFieldNames/);
 });
+
+test("tenant resource retries only same-account non-sensitive local records after connectivity returns", async () => {
+  const source = await readFile(resourceSource, "utf8");
+  const cacheSource = await readFile("app/_components/workbench/local-record-cache.ts", "utf8");
+
+  assert.match(source, /appendDeviceOutbox/);
+  assert.match(source, /readDeviceOutbox/);
+  assert.match(source, /removeDeviceOutboxActions/);
+  assert.match(source, /replayOutboxQueue/);
+  assert.match(source, /scope === "guest"/);
+  assert.match(source, /if \(sensitive\) return false;/);
+  assert.match(source, /if \(!scope \|\| scope === "guest" \|\| sensitive\) return remote;/);
+  assert.match(source, /const queuedForReplay = sensitive \? false : await queueDeviceMutation\(deviceOutboxAction\);/);
+  assert.match(source, /window\.addEventListener\("online", replayWhenOnline\)/);
+  assert.match(source, /已保存在当前设备。连接恢复后会自动同步。/);
+  assert.match(source, /完成登录和邮箱验证后会自动同步。/);
+  assert.match(cacheSource, /export async function removeDeviceOutboxActions/);
+  assert.match(cacheSource, /const existing = await requestValue\(store\.get\(key\)\);/);
+});
