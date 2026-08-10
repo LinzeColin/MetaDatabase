@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_31_ROLLBACK_RESTORE_REHEARSAL",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "approved_sites_version_number": 31,
+    "approved_sites_source_commit": "42d342ac40829d901f123ac2019c7301ae239878",
+    "previous_saved_sites_version_number": 30,
+    "previous_saved_sites_source_commit": "b736fcf5c90a0fcbcf80ad5cb3aecd909a32d895",
+    "approved_archive_recorded": true,
+    "previous_archive_recorded": true
+  },
+  "private_access_precondition": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "latest_saved_version_number": 31,
+    "public_audience_changed": false
+  },
+  "execution": {
+    "private_deploy_previous_version_number": 30,
+    "private_deploy_previous_version_succeeded": true,
+    "private_deploy_previous_version_open_in_codex_requested": true,
+    "private_restore_approved_version_number": 31,
+    "private_restore_approved_version_succeeded": true,
+    "private_restore_approved_version_open_in_codex_requested": true,
+    "deployment_identifiers_recorded": false,
+    "deployment_urls_recorded": false,
+    "failure_messages_recorded": false
+  },
+  "post_restore_control_plane": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "latest_saved_version_number": 31,
+    "approved_version_source_matches_expected": true,
+    "public_audience_changed": false
+  },
+  "local_validation": {
+    "lint": "PASS",
+    "release_evidence": "PASS_45_OF_45",
+    "release_verifier": "PASS_BUILD_LAST_MILE_READINESS",
+    "diff_check": "PASS"
+  },
+  "result": {
+    "current_v31_rollback_then_restore_proven": true,
+    "r009_saved_version_rollback_restore_current_v31": "PASS_PRIVATE_VERSION_31_TO_30_TO_31_OWNER_ONLY",
+    "product_pass_claimed": false,
+    "final_acceptance_claimed": false,
+    "public_deploy_eligible": false
+  },
+  "scope_and_cleanup": {
+    "runtime_values_read": false,
+    "browser_cookie_or_storage_inspected": false,
+    "real_user_business_data_read_or_written": false,
+    "d1_or_r2_resource_configuration_changed": false,
+    "access_policy_changed": false,
+    "github_uploaded": false
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false,
+  "not_proven": [
+    "A successful current Version 31 email registration, verification, reset, and sign-in browser replay",
+    "A successful current Version 31 Google OAuth callback and session",
+    "Current Version 31 A/B tenant isolation and physical second-device history readback",
+    "Direct D1/R2 physical mapping or record-object reconciliation",
+    "Current Version 31 production fault recovery and no-P0 observation",
+    "Public product acceptance"
+  ]
+}
