@@ -22,6 +22,8 @@
   let accounts = [];
   let platformSupport = {};
   let workerState = null;
+  // 服务端自报的版本（/health 的 `version`）。**用来判断他装的这份是不是旧的。**
+  let serverVersion = "";
   let runs = [];
   let bootstrap = null;
 
@@ -60,6 +62,33 @@
       await renderAuthorization();
       showStatus("当前站点已授权。单条保存现在可用。");
     });
+  }
+
+  /** 「你装的是旧版」——**这一屏此前一个字都没提**（2026-08-10）。
+   *
+   * 资料库那一页早就会拦（`outdated` → 拦住连接并打开更新说明），
+   * 而弹窗是他更可能先点的入口，却完全不提。
+   *
+   * **只说，不拦。** 资料库那边拦的是「连接账号」——那一条在旧版上结构上
+   * 不可能成功，拦是对的。而弹窗里「保存当前页面」这类在旧版上照样能用，
+   * 顺手拦掉只会把能用的也堵死。所以这里给一句话和一个去处。
+   */
+  function renderUpdateNotice() {
+    const notice = $("updateNotice");
+    if (!notice) return;
+    const mine = chrome.runtime.getManifest().version;
+    const stale = Boolean(serverVersion) && serverVersion !== mine;
+    notice.classList.toggle("hidden", !stale);
+    if (!stale) return;
+    notice.textContent = `你装的是旧版插件（v${mine}，档案馆已经是 v${serverVersion}）——`
+      + "连接账号在旧版上不会成功。点这里看怎么更新（已存下的内容一条都不会少）。";
+    // **地址从配置里现取**（和「打开资料库」那颗按钮同一个来源）。
+    // 第一版我写了个 `SA_LIBRARY_ORIGIN` 常量——它根本不存在，点下去会是
+    // ReferenceError，而弹窗里没有任何地方会把这个错显示出来。
+    notice.onclick = async () => {
+      const base = String((await SA.getConfig()).libraryUrl || "").replace(/\/$/, "");
+      chrome.tabs.create({ url: `${base}/extension-install` });
+    };
   }
 
   function renderSummary(serviceConnected) {
@@ -229,8 +258,18 @@
       platformSupport = Object.fromEntries(
         (accountData.supported_platforms || []).map(item => [item.platform, item]));
       // /health 不需要鉴权，单独取一次；读不到就当没这回事（保持原样）
-      workerState = await SA.api("/health", { timeoutMs: 5000 })
-        .then(payload => payload.worker || null).catch(() => null);
+      //
+      // **别再把版本丢掉**（2026-08-10）。这一行原来是
+      // `.then(payload => payload.worker || null)`——应答里带着 `version`，
+      // 只留了 `worker`。于是点插件图标那一屏（他最可能先点的入口）
+      // **完全不提「你装的是旧版」**，他会直接去点「立即同步全部账号」
+      // 或「连接与管理账号」，撞上旧包里那几条已经修掉的死路。
+      //
+      // 这个仓在安装页那段注释里写过同一句病历：「应答里是带版本号的，
+      // 而这一页原来只看有没有回应，把版本整个丢掉了」——换个界面又犯一次。
+      const health = await SA.api("/health", { timeoutMs: 5000 }).catch(() => null);
+      workerState = health?.worker || null;
+      serverVersion = String(health?.version || "");
       const pending = runs.filter(run => ["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting", "failed", "blocked_environment"].includes(run.status)).length;
       $("taskCount").textContent = String(pending);
       $("taskCount").classList.toggle("hidden", pending === 0);
@@ -241,6 +280,7 @@
       bootstrap = null;
     }
     renderPlatformCopy();
+    renderUpdateNotice();
     renderSummary(serviceConnected);
     renderAccounts();
     renderDestinations();
