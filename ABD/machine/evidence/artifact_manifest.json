@@ -4667,9 +4667,9 @@
       "sha256": "c7d22cac8facd371b2b111f0ff258877d037e6c4f0a9dbd2bd81d450a1085d1e"
     },
     {
-      "bytes": 8989,
+      "bytes": 9011,
       "path": "runtime/shadow_runtime_attestation.py",
-      "sha256": "d164b4aa57517113117ac4fb7c72dea2a8f6b4dec3363681c02d4245b32f1475"
+      "sha256": "0e858e7b69d18f13efa33e15a139a72443bd4f10ab75f931fca0e4382af45f4d"
     },
     {
       "bytes": 64,
@@ -4687,9 +4687,9 @@
       "sha256": "61e3616de5b46162001b9c74539096e2940619148bc0441f65cb4dc72249c5d0"
     },
     {
-      "bytes": 6136,
+      "bytes": 6348,
       "path": "runtime_tests/test_shadow_runtime_attestation.py",
-      "sha256": "9dc7eaedc1c3389a972b680a132aca48f366a226f8dd7035803f304922c2c9d2"
+      "sha256": "d5343a751671f5b0fc81d78974651d2350dd37e3dc3d87c0b2155f644713aebf"
     },
     {
       "bytes": 1852,

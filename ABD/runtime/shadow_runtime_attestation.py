@@ -93,8 +93,8 @@ def collect_shadow_runtime_facts(
 ) -> dict[str, Any]:
     """Observe only Docker metadata and the fixed local status endpoint."""
 
-    shadow_ids = _line_values(run(("docker", "ps", "-q", "--filter", SHADOW_LABEL)))
-    core_ids = _line_values(run(("docker", "ps", "-q", "--filter", CORE_LABEL)))
+    shadow_ids = _line_values(run(("docker", "ps", "-q", "--filter", "label=" + SHADOW_LABEL)))
+    core_ids = _line_values(run(("docker", "ps", "-q", "--filter", "label=" + CORE_LABEL)))
     facts: dict[str, Any] = {
         "shadow_container_count": len(shadow_ids),
         "core_container_count": len(core_ids),

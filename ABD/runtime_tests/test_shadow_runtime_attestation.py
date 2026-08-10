@@ -88,8 +88,8 @@ def test_collection_uses_only_docker_metadata_and_fixed_loopback_status() -> Non
     def run(arguments: tuple[str, ...]) -> str:
         calls.append(arguments)
         responses = {
-            ("docker", "ps", "-q", "--filter", SHADOW_LABEL): container + "\n",
-            ("docker", "ps", "-q", "--filter", CORE_LABEL): "",
+            ("docker", "ps", "-q", "--filter", "label=" + SHADOW_LABEL): container + "\n",
+            ("docker", "ps", "-q", "--filter", "label=" + CORE_LABEL): "",
             ("docker", "inspect", "--format", "{{.State.Running}}", container): "true\n",
             (
                 "docker",
@@ -112,15 +112,19 @@ def test_collection_uses_only_docker_metadata_and_fixed_loopback_status() -> Non
 
     assert facts == _facts()
     assert probe_calls == [("127.0.0.1", 8081)]
+    assert calls[:2] == [
+        ("docker", "ps", "-q", "--filter", "label=" + SHADOW_LABEL),
+        ("docker", "ps", "-q", "--filter", "label=" + CORE_LABEL),
+    ]
     assert all(command[0] == "docker" for command in calls)
     assert all("exec" not in command and "compose" not in command for command in calls)
 
 
 def test_collection_does_not_probe_when_shadow_count_is_not_exactly_one() -> None:
     def run(arguments: tuple[str, ...]) -> str:
-        if arguments == ("docker", "ps", "-q", "--filter", SHADOW_LABEL):
+        if arguments == ("docker", "ps", "-q", "--filter", "label=" + SHADOW_LABEL):
             return "one\ntwo\n"
-        if arguments == ("docker", "ps", "-q", "--filter", CORE_LABEL):
+        if arguments == ("docker", "ps", "-q", "--filter", "label=" + CORE_LABEL):
             return ""
         raise AssertionError("unexpected command: %r" % (arguments,))
 
