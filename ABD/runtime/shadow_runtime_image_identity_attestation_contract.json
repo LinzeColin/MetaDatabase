@@ -9,8 +9,8 @@
     "core_label": "com.linze.abd.phase=S04-P01",
     "shadow_container_count": 1,
     "core_container_count": 0,
-    "image_reference": "local/abd-runtime@sha256:6d51e3e01c2fb7a02460ac9c9eeaf20b8f41f144c4dc795eaae5335b15737ec8",
-    "image_id": "sha256:6d51e3e01c2fb7a02460ac9c9eeaf20b8f41f144c4dc795eaae5335b15737ec8",
+    "image_reference": "local/abd-runtime@sha256:a79c1109c85beb9bc495372daf6f7e8f620e6006244ac7d2b32b8481355257b2",
+    "image_id": "sha256:a79c1109c85beb9bc495372daf6f7e8f620e6006244ac7d2b32b8481355257b2",
     "labels": {
       "product_version": "0.0.0.1",
       "runtime_role": "candidate-shadow",

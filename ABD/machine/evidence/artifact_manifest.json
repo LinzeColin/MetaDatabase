@@ -1,5 +1,5 @@
 {
-  "file_count": 1123,
+  "file_count": 1126,
   "files": [
     {
       "bytes": 25,
@@ -17,9 +17,9 @@
       "sha256": "a1b6d13afea6f383061d2d3405efe2f2d8f4867fbb08a5edf0e53415c16a239a"
     },
     {
-      "bytes": 150197,
+      "bytes": 151863,
       "path": "HANDOFF.md",
-      "sha256": "636f54f0368cc4fa6d4ac9516c837d62567ec29ba7e289c8577a1bcec7c5437a"
+      "sha256": "58bd4326469292c4757f494d16ba018ff2bdac5d00187456fb6e788fec8698e4"
     },
     {
       "bytes": 643,
@@ -4714,7 +4714,7 @@
     {
       "bytes": 2862,
       "path": "runtime/shadow_release_control_plane_recovery_contract.json",
-      "sha256": "742a307f9a318405dc143a48b7d323d35aaa598e0a057d3f43b8441f72f38fb3"
+      "sha256": "57677c4497bd0077e8f6358e8105951a1146e5f51a2f6b300ac244049f299952"
     },
     {
       "bytes": 9011,
@@ -4729,7 +4729,7 @@
     {
       "bytes": 2749,
       "path": "runtime/shadow_runtime_image_identity_attestation_contract.json",
-      "sha256": "85a2e27fac5b15516392e99362e9a10ce8f86634dcc7d2e8624f37c405b6bb0a"
+      "sha256": "f41980e9351b77bd248a2edd296434174f2c1e2a98bcaefe43b94d35b80a1a1a"
     },
     {
       "bytes": 22475,
@@ -4740,6 +4740,16 @@
       "bytes": 3064,
       "path": "runtime/shadow_runtime_provenance_contract.json",
       "sha256": "0d89ba9c09a26f608b0e57ffb0fec44f2f68b21d6148e22baf154062ec2c54a8"
+    },
+    {
+      "bytes": 45567,
+      "path": "runtime/shadow_runtime_source_provenance_promotion.py",
+      "sha256": "6d41cfcc1386a99011c5a3ad0df9d646df4472146169702425dbcfba2896391b"
+    },
+    {
+      "bytes": 2734,
+      "path": "runtime/shadow_runtime_source_provenance_promotion_contract.json",
+      "sha256": "84b83ddb676bf62311d5ae81387ea33caa52880b4767ff079863aab44f0b1ab4"
     },
     {
       "bytes": 17328,
@@ -4784,7 +4794,7 @@
     {
       "bytes": 6022,
       "path": "runtime_tests/test_shadow_release_control_plane_recovery.py",
-      "sha256": "4d0260435b88f4d519fe3b43899de696fc244c22b07a063721f6cb2b9cc5a7fe"
+      "sha256": "46d3c2c46df8e269ceb4f504e65d99cd8ac60d703a5708c738e68fe87fecabc6"
     },
     {
       "bytes": 6348,
@@ -4800,6 +4810,11 @@
       "bytes": 8236,
       "path": "runtime_tests/test_shadow_runtime_provenance.py",
       "sha256": "e744b7b26d5053351aee292c68bea12b7d051a4c30c3db5aff1bfcd2df0bb669"
+    },
+    {
+      "bytes": 5794,
+      "path": "runtime_tests/test_shadow_runtime_source_provenance_promotion.py",
+      "sha256": "ab7c361bb1c5dc979a97642aec3ae7da8a1e98baf807be591dde5a23e60d31a3"
     },
     {
       "bytes": 5994,

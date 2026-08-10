@@ -50,7 +50,7 @@ def test_contract_is_exact_and_slot_environment_is_nonsecret_and_deterministic()
     green = render_slot_env(contract, "green", "/etc/abd/secrets/runtime-shadow")
 
     assert blue.decode("utf-8") == (
-        "ABD_IMAGE=local/abd-runtime@sha256:6d51e3e01c2fb7a02460ac9c9eeaf20b8f41f144c4dc795eaae5335b15737ec8\n"
+        "ABD_IMAGE=local/abd-runtime@sha256:a79c1109c85beb9bc495372daf6f7e8f620e6006244ac7d2b32b8481355257b2\n"
         "ABD_RUNTIME_UID_GID=10001:10001\n"
         "ABD_CONFIG_FILE=/etc/abd/config.json\n"
         "ABD_STATE_DIR=/var/lib/abd\n"
@@ -89,8 +89,8 @@ def test_release_manifests_bind_each_slot_without_secret_content() -> None:
         "receipt_type": "ABD_SHADOW_CANONICAL_SLOT_MANIFEST",
         "release_id": "blue",
         "product_version": "0.0.0.1",
-        "image_reference": "local/abd-runtime@sha256:6d51e3e01c2fb7a02460ac9c9eeaf20b8f41f144c4dc795eaae5335b15737ec8",
-        "image_id": "sha256:6d51e3e01c2fb7a02460ac9c9eeaf20b8f41f144c4dc795eaae5335b15737ec8",
+        "image_reference": "local/abd-runtime@sha256:a79c1109c85beb9bc495372daf6f7e8f620e6006244ac7d2b32b8481355257b2",
+        "image_id": "sha256:a79c1109c85beb9bc495372daf6f7e8f620e6006244ac7d2b32b8481355257b2",
         "compose_sha256": "babed827948b77e28d395b0d36d2142605b8144f7e778302d6c384930aa54808",
         "config_sha256": "a" * 64,
         "slot_env_sha256": "b" * 64,
