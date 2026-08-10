@@ -1,5 +1,5 @@
 {
-  "file_count": 1100,
+  "file_count": 1103,
   "files": [
     {
       "bytes": 25,
@@ -17,9 +17,9 @@
       "sha256": "a1b6d13afea6f383061d2d3405efe2f2d8f4867fbb08a5edf0e53415c16a239a"
     },
     {
-      "bytes": 131804,
+      "bytes": 133808,
       "path": "HANDOFF.md",
-      "sha256": "50ca86737bffbc1f750980dff58e039cf02adcf70aadb40a4d03e220d6fb77b4"
+      "sha256": "8271b997a0631c69340da33c4fe8f1ac989140f10a2b4c1f53816c153eb6e2c1"
     },
     {
       "bytes": 643,
@@ -4637,6 +4637,16 @@
       "sha256": "749569f373742b5ee02aec7b3ce4307d14c9e2359651817e82755e42f17f3a0f"
     },
     {
+      "bytes": 11058,
+      "path": "runtime/football_data_static_source.py",
+      "sha256": "4e16e0adceb3e9e553c82847f3a966b3fb00ff39c9cf9138b3909661bd51c0d0"
+    },
+    {
+      "bytes": 2267,
+      "path": "runtime/football_data_static_source_contract.json",
+      "sha256": "eb5625defa442629e5c59d2a52ff2ea2761d85f2301ab1ce37b500150ee55a7b"
+    },
+    {
       "bytes": 2940,
       "path": "runtime/host_bundle_contract.json",
       "sha256": "0f5c82fb7a27cf2121c9fef21a78649d278726d81d79d9cd1c27d3988c06c50c"
@@ -4675,6 +4685,11 @@
       "bytes": 64,
       "path": "runtime/systemd/10-host-capacity-gate.conf",
       "sha256": "bbb89523453251b389e044b4043802237860f2300941e47e16fcc07b27bed83a"
+    },
+    {
+      "bytes": 4389,
+      "path": "runtime_tests/test_football_data_static_source.py",
+      "sha256": "029a6c35e8de41efe0857868d3a17b36abd05da15098f45cae8689221b8ae3fe"
     },
     {
       "bytes": 3973,
