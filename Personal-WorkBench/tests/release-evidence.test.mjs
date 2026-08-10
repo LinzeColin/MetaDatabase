@@ -720,6 +720,42 @@ test("Version 31 email browser boundary recheck retains no mailbox, account, ses
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("current S4-T3A readiness evidence only permits a private saved-version next step", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/s4_t3a_current_candidate_readiness.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.task_id, "S4-T3A");
+  assert.equal(evidence.status, "READINESS_PASS");
+  assert.equal(evidence.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(evidence.subject.source_commit.length, 40);
+  assert.equal(evidence.subject.source_tree.length, 40);
+  assert.equal(evidence.subject.working_tree_clean_after_review, true);
+  assert.equal(evidence.frozen_sequence.five_frozen_file_bindings_match, true);
+  assert.equal(evidence.frozen_sequence.sequence_validator, "PASS_SEQUENCE_ADDENDUM_INTEGRITY_ONLY");
+  assert.equal(evidence.frozen_sequence.sequence_tests, "PASS_4_OF_4");
+  assert.equal(evidence.independent_review.separate_context, true);
+  assert.equal(evidence.independent_review.sensitive_first_write.server_identity_and_consent_before_body, true);
+  assert.equal(evidence.independent_review.sensitive_first_write.client_tenant_fields_absent, true);
+  assert.equal(evidence.scope_and_limits.private_s5_t1_saved_version_allowed_next, true);
+  assert.equal(evidence.scope_and_limits.saved_version_created_in_this_phase, false);
+  assert.equal(evidence.scope_and_limits.deployment_action_called, false);
+  assert.equal(evidence.scope_and_limits.sites_or_access_policy_changed, false);
+  assert.equal(evidence.scope_and_limits.public_audience_change_allowed, false);
+  assert.equal(evidence.scope_and_limits.browser_or_visual_runtime_equivalence, "NOT_RUN");
+  assert.equal(evidence.scope_and_limits.product_pass_claimed, false);
+  assert.equal(evidence.scope_and_limits.final_acceptance_claimed, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 31 browserless auth preflight retains no access, mailbox, or captcha material", async () => {
   const evidence = JSON.parse(
     await readFile(
