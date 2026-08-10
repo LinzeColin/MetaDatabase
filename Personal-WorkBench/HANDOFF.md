@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-- 2026-08-10（本地私有候选，待本轮部署）：通用工作台记录客户端已补齐账户作用域 IndexedDB Outbox：非敏感记录在已知账户 scope 下遇到 401/403/5xx 或网络中断时，会先保留本机历史并进入同账户幂等队列；成功读取云端或浏览器恢复 online 时按资源逐条重放，服务确认后才移除本机行与对应 queue item。guest 分区从不自动同步；敏感账单、体重、日记、经期在任何异常路径都不进入该队列，仍须经现有明确同意门。Outbox 清理由精确 key 事务完成，避免一个模块的回放覆盖另一个模块待发记录；页面视觉树、认证、服务端 tenant 推导、D1/R2 schema 和访问策略均未改。`typecheck`、workbench data（10/10）、privacy（3/3）、tenant（2/2）、resilience、regression（1/1、10/10、4/4）、release evidence（32/32）、build、UI structure（2/2）、canonical domain（3/3）、visual 与 release verifier 均通过。本条仅为本地候选，不作 Sites Version、浏览器 E2E、第二设备或产品验收主张。
+- 2026-08-10（最新）：通用工作台记录客户端的账户作用域 IndexedDB Outbox 已保存并 private deploy 为 owner-only Sites Version #30。非敏感记录在已知账户 scope 下遇到 401/403/5xx 或网络中断时，会保留本机历史并进入同账户幂等队列；成功读取云端或浏览器恢复 online 时按资源逐条重放，服务确认后才移除本机行与对应 queue item。guest 分区从不自动同步；敏感账单、体重、日记、经期在任何异常路径都不进入该队列。Outbox 精确 key 清理避免一个模块的回放覆盖另一个模块待发记录；页面视觉树、认证、服务端 tenant 推导、D1/R2 schema、runtime 与访问策略均未改。保存、部署、source readback 与控制面 readback 一致，仍为 active/owner/custom、1 名允许用户、0 群组和 0 外部访客，未公开发布、未上传 GitHub、未读写真实业务数据。预部署 `typecheck`、`lint`、workbench data（10/10）、privacy（3/3）、tenant（2/2）、resilience、regression（1/1、10/10、4/4）、release evidence（32/32）、build、UI structure（2/2）、canonical domain（3/3）、visual 与 release verifier 均通过；部署后 release evidence（33/33）再次通过。本次 private deploy 不替代当前 V30 浏览器 E2E、A/B、第二设备、D1/R2 物理对账或产品验收。事实见 `13_evidence/private_version_30_generic_outbox_deployment.json` 与更新后的 `13_evidence/production.json`。
 - 2026-08-10（最新）：V29 当前邮箱认证回放前提已最小化核验：Sites 仍为 active/owner/custom、latest Version 29、1 名允许用户、0 群组和 0 外部访客，受控 Gmail 连接可用但未读邮箱内容。一个新建 agent test tab 仅尝试 canonical `/auth/sign-up`，在页面渲染前导航失败；没有输入邮箱或凭据、创建账户、读取 Cookie/存储/邮箱或保留原始错误，且临时标签已 finalise。未重试、切换浏览器、生成/使用 bypass token 或改任何线上配置。结果只能记为未归因的浏览器控制边界，不能判定产品、邮件、账户或策略失败，V29 当前邮箱真实 E2E 仍未证明；`test:release-evidence` 为 32/32。事实见 `13_evidence/private_version_29_email_browser_navigation_boundary.json`、`13_evidence/private_version_29_s5_t3_gate_audit.json` 与更新后的 `13_evidence/production.json`。
 - 2026-08-10（最新）：已恢复合规 `_scratch` worktree 后完成 V28→V29 认证表面连续性审计：受控临时邮箱的真实注册、验证、找回与新密码登录仍精确属于 V28；声明的认证路径与 package dependencies 在 V29 未变，当前 V29 `test:auth` 本地合同为 19/19，`test:release-evidence` 为 31/31。该结论只支持连续性，绝不替代 V29 当前浏览器邮箱回放或 Google callback/session；冻结 S5-T3 认证门仍为 PARTIAL，私有 audience、runtime、D1/R2、访问策略、业务数据与 GitHub 均未改。事实见 `13_evidence/private_version_29_auth_surface_continuity.json`、`13_evidence/private_version_29_s5_t3_gate_audit.json` 与更新后的 `13_evidence/production.json`。
 - 2026-08-10（最新）：V29 回滚→恢复成功后，仅查询最近 10 分钟、最多 20 条的 error-only Worker 日志，返回 0 条事件。未读取/记录日志正文、请求 ID、路由、用户或业务数据，未改 runtime、D1/R2、访问、公开 audience 或 GitHub。它只支持“恢复后窄窗口无可见 P0”的部分观察，不能替代完整生产 E2E 或宣称全期无 P0；新增脱敏断言后 `test:release-evidence`（30/30）通过。事实见 `13_evidence/private_version_29_post_restore_error_log_check.json` 与更新后的 `13_evidence/production.json`。
@@ -275,8 +275,8 @@
 
 ### 最新优先
 
-1. 使用可核验的受控测试账号，在现有私有 Version #7 仅做一次邮箱注册/验证/登录、Google callback、A/B 隔离写入与跨设备历史读回；不得选择个人账户、绕过认证/隐私门或反复撞击限流。
-2. 将 D1/R2 对账、负向 provider/recovery 路径与上述回放绑定到当前私有版本；公开发布、S5-T4/S6 和 GitHub 上传仍然禁止。
+1. 在现有 owner-only private Version #30，待浏览器管理策略可用后，以可核验的受控测试账号分别完成一次邮箱注册/验证/找回/新密码登录与 Google callback/session；不得选择个人账户、绕过认证/隐私门或反复撞击限流。
+2. 在独立 run 绑定当前 V30 的 A/B 隔离写入、物理第二设备历史读回、D1/R2 对账与 V30→V29→V30 回滚恢复；公开发布、S5-T4/S6 和 GitHub 上传仍然禁止。
 
 ### 历史记录（部分事项已完成；以上述最新优先项为准）
 

@@ -449,6 +449,41 @@ test("Version 29 local-first deployment retains no source credential or user dat
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 30 generic outbox deployment retains privacy and current-version boundaries", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_30_generic_outbox_deployment.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 30);
+  assert.equal(evidence.candidate.source_projection_tree_matches_local_project_tree, true);
+  assert.equal(evidence.candidate.source_push_mode, "NON_FORCE_FAST_FORWARD");
+  assert.equal(evidence.local_validation.workbench_persistence_ui, "PASS_10_OF_10");
+  assert.equal(evidence.local_validation.privacy_contract, "PASS_3_OF_3");
+  assert.equal(evidence.local_validation.tenant_contract, "PASS_2_OF_2");
+  assert.equal(evidence.private_deployment.deployment_status, "SUCCEEDED");
+  assert.equal(evidence.private_deployment.environment_revision, 8);
+  assert.equal(evidence.private_deployment.public_audience_changed, false);
+  assert.equal(evidence.change_boundary.generic_non_sensitive_outbox_replay_enabled, true);
+  assert.equal(evidence.change_boundary.generic_replay_is_scoped_to_the_same_known_account, true);
+  assert.equal(evidence.change_boundary.guest_partition_auto_replay_enabled, false);
+  assert.equal(evidence.change_boundary.sensitive_record_auto_replay_enabled, false);
+  assert.equal(evidence.change_boundary.authentication_logic_changed, false);
+  assert.equal(evidence.change_boundary.server_tenant_derivation_changed, false);
+  assert.equal(evidence.change_boundary.runtime_environment_changed, false);
+  assert.equal(evidence.change_boundary.d1_or_r2_binding_changed, false);
+  assert.equal(evidence.change_boundary.access_policy_changed, false);
+  assert.equal(evidence.change_boundary.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 29 Google browser boundary retains no account or browser material", async () => {
   const evidence = JSON.parse(
     await readFile(
