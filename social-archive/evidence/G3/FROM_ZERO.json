@@ -2,7 +2,7 @@
   "status": "PASS",
   "host": "linze-vps3",
   "image": "social-archive/core:0.0.0.31",
-  "container_id": "bdf5f9f713e3",
+  "container_id": "f5a188bf0f83",
   "what_this_proves": "刚部署的那个镜像里，从空库到连接、同步、看得见、删除并清空、再从头来一遍，整条链在 HTTP 上真的走得通",
   "what_this_does_not_prove": "不碰他自己的库（这一轮跑在容器内 tmpfs 上），所以不证明他那份数据的状态",
   "steps": [
@@ -20,7 +20,7 @@
     },
     {
       "step": "能开始连一个抖音",
-      "measured": "conn_EbY1q2mjWqjHKm-znzXi0UGTkdLiOt_K",
+      "measured": "conn_mweV1s6HOZjw7MS8Bp_dny556BczTfQp",
       "expected": "一个 connection_ref",
       "ok": true
     },
@@ -28,7 +28,7 @@
       "step": "连接完成，拿到账号和一次首同步",
       "measured": {
         "account_id": "acct_42b9c0d4fe4b9b4d5f6e4d5dcdc46a7b",
-        "sync_run_id": "sync_8d68d34ab3a45f6194518fe4e2b9490e"
+        "sync_run_id": "sync_ee3be53fe06b9b5e6702399ce3bb4b57"
       },
       "expected": "两个都非空",
       "ok": true
@@ -58,6 +58,34 @@
       "ok": true
     },
     {
+      "step": "连上之后它自己会跑（auto_sync 开着）",
+      "measured": {
+        "state": "connected",
+        "auto_sync": true
+      },
+      "expected": "connected 且 auto_sync=True",
+      "ok": true
+    },
+    {
+      "step": "断开只是不再自己跑，**内容一条不少**",
+      "measured": {
+        "state": "disconnected",
+        "auto_sync": false,
+        "库里还有": 1
+      },
+      "expected": "disconnected + auto_sync 关 + 内容还在",
+      "ok": true
+    },
+    {
+      "step": "重连之后自动同步真的恢复了（说明书就是这么写的）",
+      "measured": {
+        "state": "connected",
+        "auto_sync": true
+      },
+      "expected": "connected 且 auto_sync=True",
+      "ok": true
+    },
+    {
       "step": "删除并清空真的删了",
       "measured": 1,
       "expected": "1 条",
@@ -83,7 +111,7 @@
     },
     {
       "step": "删完还能从头再连一次",
-      "measured": "sync_668c1e616e9f3064616aae5b946796a0",
+      "measured": "sync_34ccdf730f1a702d4c6703ceac63084f",
       "expected": "一个非空 sync_run id",
       "ok": true
     },

@@ -22,17 +22,25 @@ Owner：「账号内存删除，增加删除按钮，从零测试能不能用，
     他的库    /opt/social-archive/runtime/data   ← 一个字节都不碰
     这一轮    容器内 tmpfs，容器一删就没了
 
-## 走的这条链
+## 走的这条链（18 步）
 
-    GET  /health                             这个容器起来了吗、报的哪一版
-    GET  /v1/library                         空库（从零）
-    POST /v1/accounts/connect/start          连一个抖音
-    POST /v1/accounts/connect/douyin/complete
-    POST /v1/sync-runs/{id}/batches          灌两条
-    GET  /v1/library                         看得见这两条
-    POST /v1/accounts/{id}/forget            删掉
-    GET  /v1/library                         又空了
-    （再连一次、再同步一次，确认删完还能从头来）
+    GET    /health                              这个容器起来了吗、报的哪一版
+    GET    /v1/library                          空库（从零）
+    POST   /v1/accounts/connect/start           连一个抖音
+    POST   /v1/accounts/connect/douyin/complete
+    POST   /v1/sync-runs/{id}/batches           送一条终批 → run 要到 completed
+    GET    /v1/library                          看得见它，且标题/作者都是清干净的
+    GET    /v1/accounts                         连上之后 auto_sync 得是开着的
+    DELETE /v1/accounts/{id}                    断开——**内容一条不许少**
+    POST   …/connect/douyin/complete            重连 → auto_sync 跟着恢复
+    POST   /v1/accounts/{id}/forget             删除并清空
+    GET    /v1/library、/v1/accounts            都空了
+    （再连一次、再同步一次，确认删完还能从头来，内容回得来）
+
+中间那三步（连上会自己跑 / 断开不删东西 / 重连恢复自动同步）是**他今天真正
+卡着的那一段**：生产实况是三个账号全 disconnected、auto_sync 关，
+最后一次同步 2026-08-04 报 PLATFORM_PERMISSION_MISSING。
+使用说明写着「连上之后自动同步会跟着恢复」——那句话得在真镜像上验过。
 
 ★ 第一版我把完成连接的地址写成 `/v1/accounts/douyin/complete`（少了 `connect/`），
 整段静默走空还报成功——所以每一步的断言都盯**它该产生的那个变化**，不盯 200。
@@ -184,6 +192,48 @@ def run(host: str, version: str) -> int:
              bool(items) and items[0].get("title") == "真正的一次性她来了")
         note("点赞数没被当成作者", items[0].get("author_name") if items else "（没有条目）",
              "空", bool(items) and not items[0].get("author_name"))
+
+        # ── 他今天真正卡在的那一段：断开之后能不能连回来、连回来会不会自己跑 ──
+        #
+        # 生产实况（2026-08-11 读的）：三个账号全是 disconnected、auto_sync=关，
+        # 最后一次同步 2026-08-04 报 PLATFORM_PERMISSION_MISSING。
+        # 所以「重连之后自动同步会跟着恢复」这句话（使用说明里写着）
+        # **必须在真镜像上验过**，不能只在源码里看到默认值是 True。
+        listed = curl(host, "GET", "/v1/accounts")
+        mine = [a for a in listed.get("items", []) if a.get("id") == account_id]
+        note("连上之后它自己会跑（auto_sync 开着）",
+             {"state": mine[0].get("connection_state") if mine else None,
+              "auto_sync": mine[0].get("auto_sync_enabled") if mine else None},
+             "connected 且 auto_sync=True",
+             bool(mine) and mine[0].get("connection_state") == "connected"
+             and mine[0].get("auto_sync_enabled") is True)
+
+        curl(host, "DELETE", f"/v1/accounts/{account_id}")
+        after_disconnect = curl(host, "GET", "/v1/accounts")
+        dropped = [a for a in after_disconnect.get("items", []) if a.get("id") == account_id]
+        kept = curl(host, "GET", "/v1/library")
+        note("断开只是不再自己跑，**内容一条不少**",
+             {"state": dropped[0].get("connection_state") if dropped else None,
+              "auto_sync": dropped[0].get("auto_sync_enabled") if dropped else None,
+              "库里还有": kept.get("total")},
+             "disconnected + auto_sync 关 + 内容还在",
+             bool(dropped) and dropped[0].get("connection_state") == "disconnected"
+             and dropped[0].get("auto_sync_enabled") is False and kept.get("total") == 1)
+
+        back = curl(host, "POST", "/v1/accounts/connect/start",
+                    {"platform": "douyin", "auth_method": "browser_session"})
+        curl(host, "POST", "/v1/accounts/connect/douyin/complete", {
+            "connection_ref": back.get("connection_ref"), "external_account_id": "owner",
+            "display_name": "抖音", "verified": True,
+            "metadata": {"auth_method": "browser_session"}})
+        revived = [a for a in curl(host, "GET", "/v1/accounts").get("items", [])
+                   if a.get("id") == account_id]
+        note("重连之后自动同步真的恢复了（说明书就是这么写的）",
+             {"state": revived[0].get("connection_state") if revived else None,
+              "auto_sync": revived[0].get("auto_sync_enabled") if revived else None},
+             "connected 且 auto_sync=True",
+             bool(revived) and revived[0].get("connection_state") == "connected"
+             and revived[0].get("auto_sync_enabled") is True)
 
         forgotten = curl(host, "POST", f"/v1/accounts/{account_id}/forget")
         note("删除并清空真的删了", forgotten.get("removed_content"), "1 条",
