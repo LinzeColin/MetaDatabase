@@ -1,7 +1,7 @@
 {
-  "status": "PASS",
-  "suite_mode": "explicit_full",
-  "application_suite_rerun": true,
+  "status": "FAIL",
+  "suite_mode": "structural",
+  "application_suite_rerun": false,
   "partial_checks": [
     {
       "argv": [
@@ -87,7 +87,7 @@
         "scripts/preflight_extension.py"
       ],
       "exit_code": 0,
-      "stdout": "可以装载。manifest v3、version 0.0.0.24、17 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
+      "stdout": "可以装载。manifest v3、version 0.0.0.27、17 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
       "stderr": ""
     },
     {
@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 791 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 820 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -124,7 +124,7 @@
         "scripts/check_the_stated_version_is_the_real_one.py"
       ],
       "exit_code": 0,
-      "stdout": "真源 pyproject.toml 说版本是 0.0.0.24；核了 11 处\n每一处声明的版本都和真源一样，CHANGELOG 里也有这一版。\n",
+      "stdout": "真源 pyproject.toml 说版本是 0.0.0.27；核了 11 处\n每一处声明的版本都和真源一样，CHANGELOG 里也有这一版。\n",
       "stderr": ""
     },
     {
@@ -142,7 +142,7 @@
         "scripts/check_every_destination_table_is_complete.py"
       ],
       "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"destinations\": [\n    \"social_archive\",\n    \"markdown\",\n    \"obsidian\",\n    \"notion\",\n    \"github\",\n    \"karakeep\",\n    \"linkwarden\",\n    \"archivebox\"\n  ],\n  \"tables_checked\": {\n    \"服务端·隐私说明\": 941,\n    \"资料库·名字\": 550,\n    \"扩展·共用名字\": 274,\n    \"设置页·名字\": 207,\n    \"设置页·顺序\": 107\n  },\n  \"problems\": [],\n  \"message_zh\": \"8 个目的地，5 张表都齐。\",\n  \"what_this_does_not_prove\": \"只查在不在，不查写得对不对；名字拼错了它照样绿。\"\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"destinations\": [\n    \"social_archive\",\n    \"markdown\",\n    \"obsidian\",\n    \"notion\",\n    \"github\",\n    \"karakeep\",\n    \"linkwarden\",\n    \"archivebox\"\n  ],\n  \"tables_checked\": {\n    \"服务端·隐私说明\": 1640,\n    \"资料库·名字\": 550,\n    \"扩展·共用名字\": 274,\n    \"设置页·名字\": 207,\n    \"设置页·顺序\": 107\n  },\n  \"problems\": [],\n  \"message_zh\": \"8 个目的地，5 张表都齐。\",\n  \"what_this_does_not_prove\": \"只查在不在，不查写得对不对；名字拼错了它照样绿。\"\n}\n",
       "stderr": ""
     },
     {
@@ -169,7 +169,7 @@
         "scripts/find_endpoints_no_client_calls.py"
       ],
       "exit_code": 0,
-      "stdout": "api.py 里的 /v1 路由 52 个；客户端目录 apps, scripts\n每个接口都至少有一处界面调用。\n",
+      "stdout": "api.py 里的 /v1 路由 53 个；客户端目录 apps, scripts\n每个接口都至少有一处界面调用。\n",
       "stderr": ""
     },
     {
@@ -178,7 +178,7 @@
         "scripts/find_client_calls_to_routes_that_do_not_exist.py"
       ],
       "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"routes_found\": 54,\n  \"distinct_client_calls\": 22,\n  \"calls_to_nothing\": [],\n  \"message_zh\": \"界面调的每一个地址，服务端都有。\",\n  \"what_this_does_not_prove\": \"只看字面量、不查方法；POST 打一条只有 GET 的路由，这道门看不出来。\"\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"routes_found\": 55,\n  \"distinct_client_calls\": 23,\n  \"calls_to_nothing\": [],\n  \"message_zh\": \"界面调的每一个地址，服务端都有。\",\n  \"what_this_does_not_prove\": \"只看字面量、不查方法；POST 打一条只有 GET 的路由，这道门看不出来。\"\n}\n",
       "stderr": ""
     },
     {
@@ -187,7 +187,7 @@
         "scripts/check_docs_match_the_ui.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 docs/ 里 49 处界面词引用\n每一处都在界面上找得到。\n",
+      "stdout": "扫了 docs/ 里 51 处界面词引用\n每一处都在界面上找得到。\n",
       "stderr": ""
     },
     {
@@ -250,7 +250,7 @@
         "scripts/check_sync_promises_match_reality.py"
       ],
       "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"platforms_checked\": 9,\n  \"syncable_now\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"scannable_relations\": {\n    \"bilibili\": [\n      \"favorite\"\n    ],\n    \"xiaohongshu\": [\n      \"favorite\"\n    ],\n    \"douyin\": [\n      \"favorite\"\n    ],\n    \"kuaishou\": [\n      \"favorite\"\n    ],\n    \"reddit\": [\n      \"saved\"\n    ],\n    \"instagram\": [\n      \"saved\"\n    ]\n  },\n  \"server_handled\": [\n    \"x\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"界面承诺的和代码里有的，逐个平台对上了。\",\n  \"what_this_does_not_prove\": \"只对四张静态表。「那条取数路真的读得回东西」由 bilibili_acquisition_drill.py（打真接口）与 bilibili_end_to_end_drill.py（真 Chrome 跑整条链）去证。\"\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"platforms_checked\": 9,\n  \"syncable_now\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"scannable_relations\": {\n    \"bilibili\": [\n      \"favorite\"\n    ],\n    \"xiaohongshu\": [\n      \"favorite\"\n    ],\n    \"douyin\": [\n      \"favorite\"\n    ],\n    \"kuaishou\": [\n      \"favorite\"\n    ],\n    \"reddit\": [\n      \"saved\"\n    ],\n    \"instagram\": [\n      \"saved\"\n    ],\n    \"youtube\": []\n  },\n  \"server_handled\": [\n    \"x\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"界面承诺的和代码里有的，逐个平台对上了。\",\n  \"what_this_does_not_prove\": \"只对四张静态表。「那条取数路真的读得回东西」由 bilibili_acquisition_drill.py（打真接口）与 bilibili_end_to_end_drill.py（真 Chrome 跑整条链）去证。\"\n}\n",
       "stderr": ""
     },
     {
@@ -277,7 +277,7 @@
         "scripts/check_git_calls_cannot_be_hijacked_by_hooks.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 342 份 .py，其中 12 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
+      "stdout": "扫了 370 份 .py，其中 12 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
       "stderr": ""
     },
     {
@@ -285,8 +285,8 @@
         "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_the_guide_matches_the_product.py"
       ],
-      "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"task\": \"G4\",\n  \"sync_period_minutes\": [\n    360\n  ],\n  \"sync_hours_stated_in_guide\": [\n    6\n  ],\n  \"backup_copies_confirmed_today\": 2,\n  \"backup_copies_stated_in_guide\": [\n    2\n  ],\n  \"guide\": \"docs/使用说明.md\",\n  \"buttons_checked\": 16,\n  \"claimed_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"product_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"claimed_manual\": [\n    \"x\",\n    \"youtube\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"使用说明里写的每一步，产品里都真的有。\",\n  \"what_this_does_not_prove\": \"不检查步骤顺不顺、语气好不好，只保证说的每件事都存在。\"\n}\n",
+      "exit_code": 4,
+      "stdout": "{\n  \"status\": \"FAIL\",\n  \"task\": \"G4\",\n  \"sync_period_minutes\": [\n    360\n  ],\n  \"sync_hours_stated_in_guide\": [\n    6\n  ],\n  \"backup_copies_confirmed_today\": 2,\n  \"backup_copies_stated_in_guide\": [\n    2\n  ],\n  \"guide\": \"docs/使用说明.md\",\n  \"buttons_checked\": 26,\n  \"claimed_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"product_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"claimed_manual\": [\n    \"x\",\n    \"youtube\"\n  ],\n  \"problems\": [\n    \"说明里让他点「只**补**收藏」，而**九个界面文件里一个都没有这个字样**——他会在界面上找不到它。要么改说明，要么这确实不是我们的界面文案，那就写进 NOT_OUR_UI 并说清它是谁的\",\n    \"说明里让他点「只留收藏」，而**九个界面文件里一个都没有这个字样**——他会在界面上找不到它。要么改说明，要么这确实不是我们的界面文案，那就写进 NOT_OUR_UI 并说清它是谁的\",\n    \"说明里让他点「只补收藏到 Obsidian.command」，而**九个界面文件里一个都没有这个字样**——他会在界面上找不到它。要么改说明，要么这确实不是我们的界面文案，那就写进 NOT_OUR_UI 并说清它是谁的\"\n  ],\n  \"message_zh\": \"**使用说明和产品对不上**——照着做会卡住，而他没有别的办法发现。\",\n  \"what_this_does_not_prove\": \"不检查步骤顺不顺、语气好不好，只保证说的每件事都存在。\"\n}\n",
       "stderr": ""
     },
     {
@@ -315,17 +315,6 @@
       ],
       "exit_code": 0,
       "stdout": "{\"status\": \"PASS\", \"scope\": \"local_deployment_contract\", \"checks\": [{\"name\": \"isolated_loopback_ports_declared\", \"status\": \"PASS\"}, {\"name\": \"core_api_loopback_only\", \"status\": \"PASS\"}, {\"name\": \"core_api_read_only\", \"status\": \"PASS\"}, {\"name\": \"tunnel_library_loopback\", \"status\": \"PASS\"}, {\"name\": \"tunnel_api_loopback\", \"status\": \"PASS\"}, {\"name\": \"tunnel_status_projection_loopback\", \"status\": \"PASS\"}, {\"name\": \"tunnel_status_existing_site_passthrough\", \"status\": \"PASS\"}, {\"name\": \"tunnel_default_404\", \"status\": \"PASS\"}, {\"name\": \"library_access_policy\", \"status\": \"PASS\"}, {\"name\": \"separate_api_host\", \"status\": \"PASS\"}, {\"name\": \"public_health\", \"status\": \"PASS\"}, {\"name\": \"edge_rate_limit_not_relaxed\", \"status\": \"PASS\"}, {\"name\": \"extension_token_is_revocable\", \"status\": \"PASS\"}, {\"name\": \"real_rule_evidence_not_source\", \"status\": \"PASS\"}, {\"name\": \"api_host_has_no_public_pairing_path\", \"status\": \"PASS\"}, {\"name\": \"library_url_declared\", \"status\": \"PASS\"}, {\"name\": \"api_url_declared\", \"status\": \"PASS\"}, {\"name\": \"status_under_data_root\", \"status\": \"PASS\"}, {\"name\": \"status_not_project_runtime\", \"status\": \"PASS\"}, {\"name\": \"status_server_loopback_only\", \"status\": \"PASS\"}, {\"name\": \"status_server_shared_health_path\", \"status\": \"PASS\"}, {\"name\": \"status_server_readonly_methods\", \"status\": \"PASS\"}, {\"name\": \"status_web_no_write_path\", \"status\": \"PASS\"}, {\"name\": \"status_web_reads_projection_only\", \"status\": \"PASS\"}, {\"name\": \"status_web_port_from_environment_file\", \"status\": \"PASS\"}]}\n",
-      "stderr": ""
-    },
-    {
-      "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
-        "-m",
-        "pytest",
-        "-q"
-      ],
-      "exit_code": 0,
-      "stdout": "........................................................................ [  5%]\n........................................................................ [ 10%]\n........................................................................ [ 16%]\n........................................................................ [ 21%]\n........................................................................ [ 27%]\n........................................................................ [ 32%]\n........................................................................ [ 38%]\n........................................................................ [ 43%]\n........................................................................ [ 49%]\n........................................................................ [ 54%]\n........................................................................ [ 60%]\n........................................................................ [ 65%]\n........................................................................ [ 71%]\n........................................................................ [ 76%]\n........................................................................ [ 82%]\n........................................................................ [ 87%]\n........................................................................ [ 93%]\n........................................................................ [ 98%]\n...................                                                      [100%]\n=============================== warnings summary ===============================\n.venv/lib/python3.13/site-packages/fastapi/testclient.py:1\n  /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n    from starlette.testclient import TestClient as TestClient  # noqa\n\ntests/focused/test_credential_http_roundtrip.py: 17 warnings\n  /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/lib/python3.13/site-packages/starlette/testclient.py:455: DeprecationWarning: Setting per-request cookies=<...> is being deprecated, because the expected behaviour on cookie persistence is ambiguous. Set cookies directly on the client instance instead.\n    return super().request(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1315 passed, 18 warnings in 129.15s (0:02:09)\n",
       "stderr": ""
     }
   ]
