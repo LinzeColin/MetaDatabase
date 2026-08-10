@@ -242,3 +242,37 @@ def read_secret(path_value: str | None) -> str | None:
             f"Docker secret 不得可被组/其他用户写入：{path}"
         )
     return path.read_text(encoding="utf-8").strip()
+
+_DOUYIN_COUNT_PREFIX = re.compile(r"^\d+(?:\.\d+)?(?:万|w)?$")
+
+
+def clean_display_title(title: str | None) -> str:
+    r"""抖音那条取数路把「互动数 + 文案 + 文案」拼成了标题——显示前修掉。（2026-08-10）
+
+    Owner 打开 Obsidian 看到的是这样：
+
+        1029找卖萌办校园卡不后悔#校园卡找卖萌办校园卡不后悔#校园卡
+
+    生产实测 86 条抖音：**54 条带互动数前缀，47 条文案整段重复两遍**。
+
+    **只在能自证的那一档动手**：去掉纯数字前缀之后，剩下的部分左右两半
+    完全相同——这既修了重复，也证明了那个数字是独立的一段。
+    其余 39 条一个字都不碰。
+
+    ★ **前缀不能用贪婪正则去猜。** 第一版写 `^\d+(?:\.\d+)?(?:万|w)?`，
+    在 `9326岁 感谢命运…9326岁 感谢命运…` 上把 `9326` 一起吃了
+    （真前缀是 `93`，文案以 `26岁` 开头），于是那一条漏掉。
+    改成**先找重复点、再验前缀是不是纯数字**。
+    这个 bug 是「先出提案后落盘」看出来的——提案里那条躺在「不改」那一列。
+
+    **不动存下来的数据**，只在显示时修：改坏正文这个仓栽过两次。
+    """
+    text = str(title or "")
+    for index in range(0, min(len(text), 8) + 1):
+        prefix, rest = text[:index], text[index:]
+        if prefix and not _DOUYIN_COUNT_PREFIX.match(prefix):
+            continue
+        half = len(rest) // 2
+        if half > 3 and rest[:half] == rest[half:]:
+            return rest[:half].strip()
+    return text

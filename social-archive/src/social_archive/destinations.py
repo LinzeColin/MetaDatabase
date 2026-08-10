@@ -14,7 +14,7 @@ import httpx
 
 from .config import Settings
 from .db import RuntimeStore
-from .utils import atomic_write, read_secret, safe_slug, sha256_bytes, utcnow
+from .utils import clean_display_title, atomic_write, read_secret, safe_slug, sha256_bytes, utcnow
 
 
 PRIVATE_DATABASE_REPOSITORY = "LinzeColin/Private-Database"
@@ -102,7 +102,12 @@ def retry_after_seconds_from_error(exc: Exception) -> int | None:
 
 
 def _markdown(content: dict[str, Any]) -> str:
-    title = str(content.get("title") or content.get("canonical_url") or content["id"])
+    # **标题在显示前要修**（2026-08-10）：抖音那条取数路把
+    # 「互动数 + 文案 + 文案」拼在了一起，Owner 打开 Obsidian 看到的是
+    # 「1029找卖萌办校园卡不后悔#校园卡找卖萌办校园卡不后悔#校园卡」。
+    # 只修能自证的那一档，存下来的数据一个字不动。
+    title = clean_display_title(content.get("title")) or str(
+        content.get("canonical_url") or content["id"])
     metadata = {
         "social_archive_id": content["id"],
         "platform": content.get("platform"),

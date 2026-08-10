@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, Iterator
 
 from .models import CaptureRequest
-from .utils import canonicalize_url, json_bytes, sha256_bytes, stable_id, utcnow
+from .utils import clean_display_title, canonicalize_url, json_bytes, sha256_bytes, stable_id, utcnow
 
 
 _CJK_HAN_RE = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
@@ -1273,6 +1273,12 @@ class RuntimeStore:
                 args,
             ).fetchall()
         for row in rows:
+            # **和导出的 Markdown 用同一个函数修标题。**（2026-08-10）
+            # 抖音那条取数路把「互动数 + 文案 + 文案」拼成了标题；
+            # 两处各修各的必然漂开，这个仓今天已经因为「同一件事两处不同答案」
+            # 修过三回了。存下来的数据不动，只在显示时修。
+            if row.get("title"):
+                row["title"] = clean_display_title(row["title"])
             try:
                 row["keywords"] = json.loads(row.pop("keywords_json") or "[]")
             except (TypeError, ValueError):
