@@ -449,6 +449,31 @@ test("Version 29 local-first deployment retains no source credential or user dat
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 29 Google browser boundary retains no account or browser material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_29_google_oauth_browser_navigation_boundary.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 29);
+  assert.equal(evidence.in_app_browser.signin_page_rendered, false);
+  assert.equal(evidence.chrome_browser.extension_transport_responded, true);
+  assert.equal(evidence.chrome_browser.signin_page_rendered, false);
+  assert.equal(evidence.google_oauth.account_selection_attempted, false);
+  assert.equal(evidence.google_oauth.google_callback_observed, false);
+  assert.equal(evidence.google_oauth.application_session_established, false);
+  assert.equal(evidence.scope_and_cleanup.browser_cookie_or_storage_inspected, false);
+  assert.equal(evidence.scope_and_cleanup.temporary_browser_tabs_finalized, true);
+  assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 28 email-password recovery replay retains no temporary credentials", async () => {
   const evidence = JSON.parse(
     await readFile(
