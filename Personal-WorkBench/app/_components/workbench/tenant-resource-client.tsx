@@ -195,6 +195,7 @@ export function useTenantResource<T extends TenantRecord>(
   const localRecordsRef = useRef<T[]>([]);
   const scopeRef = useRef<string | null>(null);
   const scopeInitializationRef = useRef<Promise<void> | null>(null);
+  const scopeRefreshRef = useRef<Promise<string | null> | null>(null);
   const cloudAvailabilityRef = useRef<CloudAvailability>("unknown");
 
   const commitRecords = useCallback((next: T[]) => {
@@ -213,6 +214,58 @@ export function useTenantResource<T extends TenantRecord>(
     setConsentRequired(failure.consentRequired);
     setLoginSuggested(failure.authRequired);
   }, [sensitive]);
+
+  /**
+   * A session may change in another tab while this view remains mounted. Never
+   * merge an old account's device-only rows with the newly authenticated
+   * account's remote history: reload the opaque partition before each remote
+   * operation instead.
+   */
+  const refreshCurrentScope = useCallback(async (): Promise<string | null> => {
+    if (!enabled) return null;
+    if (scopeRefreshRef.current) return scopeRefreshRef.current;
+    const refresh = (async () => {
+      let nextScope = "guest";
+      try {
+        nextScope = await resolveBrowserRecordScope();
+      } catch {
+        // Treat an unavailable session lookup as the isolated guest partition.
+      }
+      if (nextScope === scopeRef.current) return nextScope;
+
+      scopeRef.current = null;
+      cloudAvailabilityRef.current = "unknown";
+      commitRecords([]);
+      commitLocalRecords([]);
+      let local: T[] = [];
+      try {
+        local = (await readDeviceLocalRecords(nextScope, resource)) as T[];
+      } catch {
+        // The remote path remains available if browser storage is unavailable.
+      }
+      scopeRef.current = nextScope;
+      commitLocalRecords(local);
+      commitRecords(local);
+      return nextScope;
+    })();
+    scopeRefreshRef.current = refresh;
+    try {
+      return await refresh;
+    } finally {
+      if (scopeRefreshRef.current === refresh) scopeRefreshRef.current = null;
+    }
+  }, [commitLocalRecords, commitRecords, enabled, resource]);
+
+  const acknowledgeScopeChange = useCallback((scope: string | null) => {
+    const signedOut = scope === "guest";
+    setError(signedOut
+      ? "登录状态已改变。原账户的本机记录已隔离，请登录后刷新历史记录。"
+      : "账户已切换。原账户的本机记录已隔离，请刷新后继续。",
+    );
+    setAuthRequired(signedOut);
+    setConsentRequired(false);
+    setLoginSuggested(signedOut);
+  }, []);
 
   const acknowledgeLocalSave = useCallback((availability: CloudAvailability, queuedForReplay = false) => {
     setError(localSaveMessage(availability, sensitive, queuedForReplay));
@@ -272,11 +325,11 @@ export function useTenantResource<T extends TenantRecord>(
     }
   }, []);
 
-  const flushDeviceOutbox = useCallback(async (remote: T[]): Promise<T[]> => {
+  const flushDeviceOutbox = useCallback(async (remote: T[], expectedScope: string): Promise<T[]> => {
     const scope = scopeRef.current;
     // Sensitive records require a current explicit consent path; this generic
     // replay never treats a previously local sensitive row as consented.
-    if (!scope || scope === "guest" || sensitive) return remote;
+    if (!scope || scope !== expectedScope || scope === "guest" || sensitive) return remote;
     let actions: DeviceOutboxAction[];
     try {
       actions = (await readDeviceOutbox(scope)).filter((action) => actionTargetsResource(action, resource));
@@ -288,12 +341,20 @@ export function useTenantResource<T extends TenantRecord>(
     let reconciled = remote;
     const replayResult = await replayOutboxQueue(actions, async (action): Promise<OutboxMutationResult> => {
       try {
+        const scopeBeforeReplay = await refreshCurrentScope();
+        if (scopeBeforeReplay !== expectedScope) {
+          return { type: "error", message: "账户已切换，本机待发记录仍保留在原账户分区。" };
+        }
         const response = await fetch(withRequestId(action.endpoint, action.idempotencyKey), {
           method: action.method,
           credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(action.payload),
         });
+        const scopeAfterReplay = await refreshCurrentScope();
+        if (scopeAfterReplay !== expectedScope) {
+          return { type: "error", message: "账户已切换，本机待发记录仍保留在原账户分区。" };
+        }
         if (!response.ok) {
           if (response.status === 409) return { type: "conflict", message: failureMessage(response.status, false).message };
           if (response.status >= 500) return { type: "unavailable", message: "服务暂时不可用，请稍后再试。" };
@@ -335,13 +396,21 @@ export function useTenantResource<T extends TenantRecord>(
       }
     }
     return reconciled;
-  }, [commitLocalRecords, resource, sensitive]);
+  }, [commitLocalRecords, refreshCurrentScope, resource, sensitive]);
 
   const reload = useCallback(async () => {
-    if (!enabled || !scopeRef.current) return;
+    if (!enabled) return;
     setLoading(true);
+    let requestScope: string | null = null;
     try {
+      requestScope = await refreshCurrentScope();
+      if (!requestScope) return;
       const response = await fetch(`/api/mydairy/${resource}`, { credentials: "same-origin" });
+      const responseScope = await refreshCurrentScope();
+      if (responseScope !== requestScope) {
+        acknowledgeScopeChange(responseScope);
+        return;
+      }
       if (!response.ok) {
         cloudAvailabilityRef.current = cloudAvailabilityFor(response.status, sensitive);
         commitRecords(localRecordsRef.current);
@@ -351,13 +420,23 @@ export function useTenantResource<T extends TenantRecord>(
       const payload = await readEnvelope<T>(response);
       const remote = Array.isArray(payload.data) ? payload.data.filter(isRecord) : [];
       cloudAvailabilityRef.current = "available";
-      const reconciled = await flushDeviceOutbox(remote);
+      const reconciled = await flushDeviceOutbox(remote, requestScope);
+      const reconciledScope = await refreshCurrentScope();
+      if (reconciledScope !== requestScope) {
+        acknowledgeScopeChange(reconciledScope);
+        return;
+      }
       commitRecords(mergeWithDeviceLocalRecords(reconciled, localRecordsRef.current));
       setError("");
       setAuthRequired(false);
       setConsentRequired(false);
       setLoginSuggested(false);
     } catch {
+      const failureScope = await refreshCurrentScope();
+      if (requestScope && failureScope !== requestScope) {
+        acknowledgeScopeChange(failureScope);
+        return;
+      }
       cloudAvailabilityRef.current = "unavailable";
       commitRecords(localRecordsRef.current);
       setError("暂时无法读取你的历史记录。请先登录并完成邮箱验证；若已登录，请检查网络后重试。");
@@ -365,25 +444,43 @@ export function useTenantResource<T extends TenantRecord>(
     } finally {
       setLoading(false);
     }
-  }, [applyFailure, commitRecords, enabled, flushDeviceOutbox, resource, sensitive]);
+  }, [acknowledgeScopeChange, applyFailure, commitRecords, enabled, flushDeviceOutbox, refreshCurrentScope, resource, sensitive]);
 
   useEffect(() => {
     if (!scopeReady) return;
-    // The initial request is the external-system synchronization for this resource.
-    void reload();
+    let cancelled = false;
+    // Schedule the initial external-system synchronization after this render so
+    // an account-scope refresh cannot cascade another synchronous effect render.
+    const timer = window.setTimeout(() => {
+      if (!cancelled) void reload();
+    }, 0);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [reload, scopeReady]);
 
   useEffect(() => {
     if (!enabled || !scopeReady || typeof window === "undefined") return;
     const replayWhenOnline = () => void reload();
+    const refreshWhenVisible = () => void reload();
+    const refreshWhenDocumentVisible = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") void reload();
+    };
     window.addEventListener("online", replayWhenOnline);
-    return () => window.removeEventListener("online", replayWhenOnline);
+    window.addEventListener("focus", refreshWhenVisible);
+    if (typeof document !== "undefined") document.addEventListener("visibilitychange", refreshWhenDocumentVisible);
+    return () => {
+      window.removeEventListener("online", replayWhenOnline);
+      window.removeEventListener("focus", refreshWhenVisible);
+      if (typeof document !== "undefined") document.removeEventListener("visibilitychange", refreshWhenDocumentVisible);
+    };
   }, [enabled, reload, scopeReady]);
 
   const create = useCallback(async (payload: Record<string, unknown>, idempotencyKey?: string): Promise<T | null> => {
     if (!enabled) return null;
     if (!scopeRef.current && scopeInitializationRef.current) await scopeInitializationRef.current;
-    const scope = scopeRef.current;
+    const scope = await refreshCurrentScope();
     if (!scope) return null;
     setSaving(true);
     setError("");
@@ -411,6 +508,13 @@ export function useTenantResource<T extends TenantRecord>(
       // Do not report a local save when the device cannot actually retain it.
     }
 
+    const scopeBeforeRequest = await refreshCurrentScope();
+    if (scopeBeforeRequest !== scope) {
+      acknowledgeScopeChange(scopeBeforeRequest);
+      setSaving(false);
+      return null;
+    }
+
     // Sensitive records must stay on-device until the verified session has
     // positively confirmed the user's cross-device consent.
     if (sensitive && cloudAvailabilityRef.current !== "available") {
@@ -433,6 +537,11 @@ export function useTenantResource<T extends TenantRecord>(
         },
         body: JSON.stringify(deviceOutboxAction.payload),
       });
+      const responseScope = await refreshCurrentScope();
+      if (responseScope !== scope) {
+        acknowledgeScopeChange(responseScope);
+        return null;
+      }
       if (!response.ok) {
         cloudAvailabilityRef.current = cloudAvailabilityFor(response.status, sensitive);
         if (localPersisted) {
@@ -477,6 +586,11 @@ export function useTenantResource<T extends TenantRecord>(
       setLoginSuggested(false);
       return data;
     } catch {
+      const failureScope = await refreshCurrentScope();
+      if (failureScope !== scope) {
+        acknowledgeScopeChange(failureScope);
+        return null;
+      }
       cloudAvailabilityRef.current = "unavailable";
       if (localPersisted) {
         const queuedForReplay = sensitive ? false : await queueDeviceMutation(deviceOutboxAction);
@@ -489,19 +603,20 @@ export function useTenantResource<T extends TenantRecord>(
     } finally {
       setSaving(false);
     }
-  }, [acknowledgeLocalSave, applyFailure, commitLocalRecords, commitRecords, enabled, queueDeviceMutation, resource, sensitive]);
+  }, [acknowledgeLocalSave, acknowledgeScopeChange, applyFailure, commitLocalRecords, commitRecords, enabled, queueDeviceMutation, refreshCurrentScope, resource, sensitive]);
 
   const destroy = useCallback(async (id: string, idempotencyKey?: string): Promise<boolean> => {
     if (!enabled || !id) return false;
     if (!scopeRef.current && scopeInitializationRef.current) await scopeInitializationRef.current;
-    if (!scopeRef.current) return false;
+    const scope = await refreshCurrentScope();
+    if (!scope) return false;
     setSaving(true);
     setError("");
     setLoginSuggested(false);
     const local = localRecordsRef.current.find((record) => record.id === id);
     if (local && isDeviceLocalRecord(local)) {
       try {
-        await removeDeviceLocalRecord(scopeRef.current, resource, id);
+        await removeDeviceLocalRecord(scope, resource, id);
         const nextLocal = localRecordsRef.current.filter((record) => record.id !== id);
         commitLocalRecords(nextLocal);
         commitRecords(recordsRef.current.filter((record) => record.id !== id));
@@ -519,6 +634,11 @@ export function useTenantResource<T extends TenantRecord>(
         method: "DELETE",
         credentials: "same-origin",
       });
+      const responseScope = await refreshCurrentScope();
+      if (responseScope !== scope) {
+        acknowledgeScopeChange(responseScope);
+        return false;
+      }
       if (!response.ok) {
         applyFailure(response.status);
         return false;
@@ -527,13 +647,18 @@ export function useTenantResource<T extends TenantRecord>(
       setLoginSuggested(false);
       return true;
     } catch {
+      const failureScope = await refreshCurrentScope();
+      if (failureScope !== scope) {
+        acknowledgeScopeChange(failureScope);
+        return false;
+      }
       setError("暂时无法删除这条记录。请先登录并完成邮箱验证；若已登录，请检查网络后重试。");
       setLoginSuggested(true);
       return false;
     } finally {
       setSaving(false);
     }
-  }, [applyFailure, commitLocalRecords, commitRecords, enabled, resource]);
+  }, [acknowledgeScopeChange, applyFailure, commitLocalRecords, commitRecords, enabled, refreshCurrentScope, resource]);
 
   return { authRequired, consentRequired, create, destroy, error, loading, loginSuggested, records, reload, saving };
 }

@@ -124,6 +124,28 @@ test("tenant resource client writes an opaque device-local fallback before a clo
   assert.match(cacheSource, /tenantFieldNames/);
 });
 
+test("tenant resource client refreshes an account scope before merging or mutating cross-device history", async () => {
+  const source = await readFile(resourceSource, "utf8");
+
+  assert.match(source, /const scopeRefreshRef = useRef<Promise<string \| null> \| null>\(null\);/);
+  assert.match(source, /const refreshCurrentScope = useCallback\(async \(\): Promise<string \| null> => \{/);
+  assert.match(source, /if \(nextScope === scopeRef\.current\) return nextScope;/);
+  assert.match(source, /commitRecords\(\[\]\);/);
+  assert.match(source, /local = \(await readDeviceLocalRecords\(nextScope, resource\)\) as T\[\];/);
+  assert.match(source, /const responseScope = await refreshCurrentScope\(\);/);
+  assert.match(source, /if \(responseScope !== requestScope\) \{/);
+  assert.match(source, /const reconciledScope = await refreshCurrentScope\(\);/);
+  assert.match(source, /if \(reconciledScope !== requestScope\) \{/);
+  assert.match(source, /async \(remote: T\[\], expectedScope: string\): Promise<T\[]>/);
+  assert.match(source, /if \(!scope \|\| scope !== expectedScope \|\| scope === "guest" \|\| sensitive\) return remote;/);
+  assert.match(source, /const scopeBeforeReplay = await refreshCurrentScope\(\);/);
+  assert.match(source, /const scopeAfterReplay = await refreshCurrentScope\(\);/);
+  assert.match(source, /const scopeBeforeRequest = await refreshCurrentScope\(\);/);
+  assert.match(source, /if \(scopeBeforeRequest !== scope\) \{/);
+  assert.match(source, /window\.addEventListener\("focus", refreshWhenVisible\);/);
+  assert.match(source, /document\.addEventListener\("visibilitychange", refreshWhenDocumentVisible\);/);
+});
+
 test("tenant resource retries only same-account non-sensitive local records after connectivity returns", async () => {
   const source = await readFile(resourceSource, "utf8");
   const cacheSource = await readFile("app/_components/workbench/local-record-cache.ts", "utf8");
@@ -134,7 +156,7 @@ test("tenant resource retries only same-account non-sensitive local records afte
   assert.match(source, /replayOutboxQueue/);
   assert.match(source, /scope === "guest"/);
   assert.match(source, /if \(sensitive\) return false;/);
-  assert.match(source, /if \(!scope \|\| scope === "guest" \|\| sensitive\) return remote;/);
+  assert.match(source, /if \(!scope \|\| scope !== expectedScope \|\| scope === "guest" \|\| sensitive\) return remote;/);
   assert.match(source, /const queuedForReplay = sensitive \? false : await queueDeviceMutation\(deviceOutboxAction\);/);
   assert.match(source, /window\.addEventListener\("online", replayWhenOnline\)/);
   assert.match(source, /已保存在当前设备。连接恢复后会自动同步。/);
