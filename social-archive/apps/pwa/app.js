@@ -511,6 +511,21 @@
       renderTable();
       renderPagination();
       updateEmptyState(state.total ? "ready" : "empty");
+      // **顶部那一条也读 state.total，所以总数一到就得重画它。**（2026-08-10）
+      //
+      // 它是 `loadAccountsAndDestinations()` 画的，而 `init()` 里的顺序是
+      //     await Promise.allSettled([loadHealth(), loadAccountsAndDestinations(), …]);
+      //     await loadLibrary();          // ← state.total 到这里才对
+      // 于是**每一次首屏加载**那一条都是拿 `state.total = 0` 画出来的，
+      // 而在这之前没有任何地方重画它（下面 renderNextStep() 就排在
+      // loadLibrary() 之后——当初有人想到过顺序，只是漏了这一条）。
+      //
+      // 后果落在他重连之后那一屏上：他从来没有过一次 completed，
+      // 所以 `last_sync_at` 一直是空的，那一条会走到
+      //     state.total ? 「已存下的内容都在…」 : 「首次同步尚未开始」
+      // 的后一支，说「首次同步尚未开始」——**而正下方那张表列着 193 条**。
+      // 这正是那句话上面注释里记着的病：当时修的是句子，没修顺序。
+      renderSyncSummary();
     } catch (error) {
       state.rows = [];
       state.total = 0;

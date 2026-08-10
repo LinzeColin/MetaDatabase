@@ -308,6 +308,9 @@ async def run(chrome: str) -> int:
             guide_reading = None
             disconnected_reading = None
             reconnected_reading = None
+            running_reading = None
+            finished_reading = None
+            never_completed_reading = None
             payload = result.get("result", {})
             if payload.get("exceptionDetails"):
                 measured = {"error": str(payload["exceptionDetails"])[:300]}
@@ -380,6 +383,84 @@ async def run(chrome: str) -> int:
             reconnected_reading = ({"error": str(reconnect_payload["exceptionDetails"])[:200]}
                                    if reconnect_payload.get("exceptionDetails")
                                    else json.loads(reconnect_payload["result"]["value"]))
+
+            # **他重连之后、第一次完整同步之前那一屏。**（2026-08-10）
+            #
+            # 他从来没有过一次 completed（生产 20 次同步：partial 16 / failed 3 /
+            # cancelled 1），而 `last_sync_at` 只在完整跑完时才写——所以那个字段
+            # 对他永远是空的。这一支于是落到
+            #     state.total ? 「已存下的内容都在…」 : 「首次同步尚未开始」
+            # 而 `state.total` 是 loadLibrary 设的，顶部那一条却是
+            # loadAccountsAndDestinations 画的，**画的时候它还是 0**。
+            FAKE["/v1/accounts"]["items"][0]["connection_state"] = "connected"
+            FAKE["/v1/accounts"]["items"][0]["last_sync_at"] = ""
+            FAKE["/v1/sync-runs"] = {"items": [{
+                "id": "sync_partial", "source_account_id": "acct_bili",
+                "platform": "bilibili", "status": "partial",
+                "last_error_code": "", "imported_count": 30, "discovered_count": 30,
+                "updated_at": "2026-08-10T02:30:00Z",
+                "message_zh": "", "action_zh": "", "outcome": "incomplete",
+            }]}
+            await rpc("Page.navigate", {"url": f"http://127.0.0.1:{PORT}/"})
+            await asyncio.sleep(3)
+            got = await rpc("Runtime.evaluate", {"expression": r"""
+              JSON.stringify({
+                strip: (document.getElementById("syncSummaryText") || {}).textContent || "",
+                rows: document.querySelectorAll("#tableBody tr").length,
+              })""", "returnByValue": True})
+            never_completed_payload = got.get("result", {})
+            never_completed_reading = (
+                {"error": str(never_completed_payload["exceptionDetails"])[:200]}
+                if never_completed_payload.get("exceptionDetails")
+                else json.loads(never_completed_payload["result"]["value"]))
+
+            # **同步跑起来的那一刻、和跑完之后，这一条说什么。**（2026-08-10）
+            #
+            # 整条 B 站链有演练（bilibili_end_to_end_drill），但它验的是**数据**：
+            # mid 是不是真的、条目落没落库、终批 complete、没多开标签页。
+            # 而资料库这一页在同步进行中/完成后说的那句话，**从没被渲染出来读过**——
+            # 今天四处缺陷全出在"没人读渲染出来的字"这一类上。
+            FAKE["/v1/sync-runs"] = {"items": [{
+                "id": "sync_live", "source_account_id": "acct_bili",
+                "platform": "bilibili", "status": "scanning",
+                "imported_count": 12, "discovered_count": 30,
+                "updated_at": "2026-08-10T02:40:00Z",
+                "message_zh": "", "action_zh": "", "outcome": "running",
+            }]}
+            await rpc("Page.navigate", {"url": f"http://127.0.0.1:{PORT}/"})
+            await asyncio.sleep(3)
+            got = await rpc("Runtime.evaluate", {"expression": r"""
+              JSON.stringify({
+                strip: (document.getElementById("syncSummaryText") || {}).textContent || "",
+                head: (document.getElementById("connectedAccountCount") || {}).textContent || "",
+              })""", "returnByValue": True})
+            running_payload = got.get("result", {})
+            running_reading = ({"error": str(running_payload["exceptionDetails"])[:200]}
+                               if running_payload.get("exceptionDetails")
+                               else json.loads(running_payload["result"]["value"]))
+
+            # 跑完之后：**完整跑完才会写 last_sync_at**（account_sync.py 里那两处
+            # UPDATE 都挂在 final_status == "completed" 上）。这里给它一个，
+            # 看那一条会不会改口说「最近同步 …」。
+            FAKE["/v1/accounts"]["items"][0]["last_sync_at"] = "2026-08-10T02:45:00Z"
+            FAKE["/v1/sync-runs"] = {"items": [{
+                "id": "sync_done", "source_account_id": "acct_bili",
+                "platform": "bilibili", "status": "completed",
+                "imported_count": 30, "discovered_count": 30,
+                "updated_at": "2026-08-10T02:45:00Z",
+                "message_zh": "新增 30 条。", "action_zh": "", "outcome": "ok",
+            }]}
+            await rpc("Page.navigate", {"url": f"http://127.0.0.1:{PORT}/"})
+            await asyncio.sleep(3)
+            got = await rpc("Runtime.evaluate", {"expression": r"""
+              JSON.stringify({
+                strip: (document.getElementById("syncSummaryText") || {}).textContent || "",
+                head: (document.getElementById("connectedAccountCount") || {}).textContent || "",
+              })""", "returnByValue": True})
+            done_payload = got.get("result", {})
+            finished_reading = ({"error": str(done_payload["exceptionDetails"])[:200]}
+                                if done_payload.get("exceptionDetails")
+                                else json.loads(done_payload["result"]["value"]))
 
             # **顺路把使用说明那一页也打开看一眼。**
             #
@@ -559,6 +640,55 @@ async def run(chrome: str) -> int:
                 f"顶部没用服务端算好的那句话：{strip!r}——"
                 "本地词典少了他真撞到过的三个码，绕过 runSentence 就会漏")
 
+    # 重连之后、第一次完整同步之前（2026-08-10）
+    if not never_completed_reading or never_completed_reading.get("error"):
+        problems.append(f"**「重连后还没完整同步过」那一屏没量到**：{never_completed_reading}")
+    else:
+        strip = never_completed_reading.get("strip", "")
+        rows = never_completed_reading.get("rows", 0)
+        if "首次同步尚未开始" in strip:
+            problems.append(
+                f"**表里有 {rows} 行，顶部却说「首次同步尚未开始」**：{strip!r}——"
+                "他从来没有过一次 completed，last_sync_at 对他永远是空的；"
+                "这一条读的 state.total 是 loadLibrary 设的，而画它的时候还没设")
+        if "已存下的内容都在" not in strip:
+            problems.append(
+                f"没说清东西还在：{strip!r}——"
+                "他刚重连、还没跑完一次完整同步，这一屏该说的就是这件事")
+
+    # 同步跑起来的那一刻（2026-08-10）
+    if not running_reading or running_reading.get("error"):
+        problems.append(f"**「同步进行中」那一屏没量到**：{running_reading}——这不是通过。")
+    else:
+        strip = running_reading.get("strip", "")
+        if "正在运行" not in strip or "已导入" not in strip:
+            problems.append(
+                f"同步跑起来了，顶部却不说进度：{strip!r}——"
+                "他点完「连接」最想知道的就是「它动没动」")
+        if "12/30" not in strip:
+            problems.append(
+                f"进度不是接口给的那个数：{strip!r}（喂进去的是 imported=12 / discovered=30）——"
+                "写死或算错的进度比没有进度更坏")
+
+    # 跑完之后（2026-08-10）
+    if not finished_reading or finished_reading.get("error"):
+        problems.append(f"**「同步完成后」那一屏没量到**：{finished_reading}——这不是通过。")
+    else:
+        strip = finished_reading.get("strip", "")
+        # **这一条是有来历的**：`last_sync_at` 只在完整跑完时才写，
+        # 而实际发生过的是"跑完了、导进来 102 条、结局却是 partial"，
+        # 于是那个字段永远是空的，这一句就永远说「首次同步尚未开始」——
+        # **Owner 库里 193 条，它还这么说。** 现在给了 last_sync_at，
+        # 它必须改口。
+        if "首次同步尚未开始" in strip:
+            problems.append(
+                f"同步完整跑完了，顶部还在说「首次同步尚未开始」：{strip!r}——"
+                "这直接和他的数据矛盾")
+        if "最近同步" not in strip:
+            problems.append(
+                f"跑完了却不说什么时候跑的：{strip!r}——"
+                "「上一次是什么时候」是他判断「要不要再点一次」的唯一依据")
+
     # 使用说明那一页
     if guide_reading is None:
         problems.append("**使用说明那一页没量到**——这不是通过。")
@@ -591,6 +721,9 @@ async def run(chrome: str) -> int:
         "guide_page": guide_reading,
         "all_accounts_disconnected": disconnected_reading,
         "just_reconnected": reconnected_reading,
+        "never_completed": never_completed_reading,
+        "while_syncing": running_reading,
+        "after_sync_finished": finished_reading,
         "rendered_text": text[:400],
         # 同步中心那句限定语，**照原样印出来**：它是这次要亲眼看见的东西之一。
         "sync_centre_header": str(measured.get("syncHeader") or "").replace("\n", " ")[:200],
