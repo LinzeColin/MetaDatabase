@@ -522,6 +522,59 @@ test("Version 31 account-scope refresh deployment retains private and current-ve
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 31 storage-mapping boundary retains no physical resource or provider material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_31_storage_mapping_read_only_boundary.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 31);
+  assert.equal(evidence.candidate.current_saved_version_source_matches_v31_deployment_evidence, true);
+  assert.equal(evidence.candidate.public_audience_changed, false);
+  assert.equal(evidence.current_control_plane.site_active, true);
+  assert.equal(evidence.current_control_plane.current_user_role, "owner");
+  assert.equal(evidence.current_control_plane.access_mode, "custom");
+  assert.equal(evidence.current_control_plane.allowed_user_count, 1);
+  assert.equal(evidence.current_control_plane.allowed_group_count, 0);
+  assert.equal(evidence.current_control_plane.external_visitor_count, 0);
+  assert.equal(evidence.current_control_plane.latest_saved_version_number, 31);
+  assert.equal(evidence.current_control_plane.runtime_values_read, false);
+  assert.equal(evidence.current_control_plane.source_credentials_read_or_used, false);
+  assert.equal(evidence.current_control_plane.bypass_token_generated_or_used, false);
+  assert.equal(evidence.sites_and_source_binding_surface.logical_d1_binding_name_present, true);
+  assert.equal(evidence.sites_and_source_binding_surface.logical_r2_binding_name_present, true);
+  assert.equal(evidence.sites_and_source_binding_surface.local_vite_d1_identifier_is_development_placeholder_only, true);
+  assert.equal(evidence.sites_and_source_binding_surface.local_vite_r2_name_is_development_placeholder_only, true);
+  assert.equal(evidence.sites_and_source_binding_surface.physical_d1_identifier_exposed_by_safe_surface, false);
+  assert.equal(evidence.sites_and_source_binding_surface.physical_r2_identifier_exposed_by_safe_surface, false);
+  assert.equal(evidence.catalogue_probe.wrangler_v4_or_newer, true);
+  assert.equal(evidence.catalogue_probe.wrangler_identity_authenticated, true);
+  assert.equal(evidence.catalogue_probe.d1_catalogue_accessible, false);
+  assert.equal(evidence.catalogue_probe.r2_catalogue_accessible, false);
+  assert.equal(evidence.catalogue_probe.physical_identifiers_recorded, false);
+  assert.equal(evidence.catalogue_probe.raw_cli_output_recorded, false);
+  assert.equal(evidence.catalogue_probe.provider_error_text_recorded, false);
+  assert.equal(evidence.catalogue_probe.temporary_output_cleanup_verified, true);
+  assert.equal(evidence.local_validation.lint, "PASS");
+  assert.equal(evidence.local_validation.release_evidence, "PASS_44_OF_44");
+  assert.equal(evidence.local_validation.release_verifier, "PASS_BUILD_LAST_MILE_READINESS");
+  assert.equal(evidence.local_validation.diff_check, "PASS");
+  assert.equal(evidence.result.direct_d1_r2_reconciliation_proven, false);
+  assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.scope_and_cleanup.d1_sql_or_r2_object_operation_executed, false);
+  assert.equal(evidence.scope_and_cleanup.d1_or_r2_resource_configuration_changed, false);
+  assert.equal(evidence.scope_and_cleanup.access_policy_or_public_audience_changed, false);
+  assert.equal(evidence.scope_and_cleanup.temporary_raw_cli_output_destroyed, true);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("database_id"), false);
+  assert.equal(serialized.includes("bucket_name"), false);
+  assert.equal(serialized.includes("Bearer "), false);
+  assert.equal(serialized.includes("@"), false);
+});
+
 test("Version 31 email browser boundary retains no mailbox, account, or navigation material", async () => {
   const evidence = JSON.parse(
     await readFile(

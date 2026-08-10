@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "task_id": "S5-T3",
-  "status": "PRIVATE_VERSION_31_ACCOUNT_SCOPE_REFRESH_DEPLOYED_NOT_PRODUCT_ACCEPTANCE",
+  "status": "PRIVATE_VERSION_31_STORAGE_MAPPING_BOUNDARY_RECORDED_NOT_PRODUCT_ACCEPTANCE",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
   "observed_at": "2026-08-10",
   "candidate": {
@@ -122,6 +122,7 @@
     "version_31_account_scope_refresh": "PASS_LOCAL_SCOPE_DRIFT_GUARD_AND_PRIVATE_DEPLOY; CURRENT_PRODUCTION_AUTH_A_B_AND_SECOND_DEVICE_REPLAYS_NOT_RUN",
     "version_31_email_browser_navigation": "NOT_PROVEN_FRESH_AGENT_TEST_TAB_SECURITY_BOUNDARY_BEFORE_SIGNUP_RENDER",
     "version_31_google_oauth_browser_navigation": "NOT_PROVEN_FRESH_AGENT_TEST_TAB_SECURITY_BOUNDARY_BEFORE_SIGNIN_RENDER",
+    "version_31_storage_mapping_read_only_boundary": "NOT_PROVEN_CURRENT_SITES_MANIFEST_EXPOSES_LOGICAL_BINDINGS_ONLY_AND_CURRENT_CLI_CATALOGUE_IS_NOT_ACCESSIBLE",
     "version_21_ordinary_chrome_persistence_replay": "PASS_PRIVATE_VERSION_21_ALL_FIVE_HABITS_LEDGER_AND_SCHEDULE_RELOAD_READBACK",
     "version_22_account_sign_out_control": "OBSERVED_PRIVATE_VERSION_22_ACCOUNT_CONTROL_NO_SAFE_CLICK_WITHOUT_TEMPORARY_IDENTITY_CONFIRMATION",
     "version_21_local_unauthenticated_control_audit": "PASS_NO_VISIBLE_EFFECT_CONTROLS_0_OF_140",
@@ -256,6 +257,7 @@
     "13_evidence/private_version_31_account_scope_refresh_deployment.json",
     "13_evidence/private_version_31_email_browser_security_boundary.json",
     "13_evidence/private_version_31_google_oauth_browser_security_boundary.json",
+    "13_evidence/private_version_31_storage_mapping_read_only_boundary.json",
     "13_evidence/version_18_agent_controlled_in_app_workbench_post_replay.json",
     "13_evidence/version_18_agent_controlled_chrome_auth_and_workbench_post_replay.json",
     "13_evidence/version_16_storage_binding_reconciliation.json",
