@@ -566,6 +566,34 @@ test("Version 30 post-restore error check retains no worker log material", async
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 30 storage-mapping boundary retains no physical resource or provider material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_30_storage_mapping_read_only_boundary.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 30);
+  assert.equal(evidence.sites_and_source_binding_surface.logical_d1_binding_name_present, true);
+  assert.equal(evidence.sites_and_source_binding_surface.logical_r2_binding_name_present, true);
+  assert.equal(evidence.sites_and_source_binding_surface.physical_d1_identifier_exposed_by_safe_surface, false);
+  assert.equal(evidence.sites_and_source_binding_surface.physical_r2_identifier_exposed_by_safe_surface, false);
+  assert.equal(evidence.catalogue_probe.wrangler_v4_or_newer, true);
+  assert.equal(evidence.catalogue_probe.wrangler_identity_authenticated, true);
+  assert.equal(evidence.catalogue_probe.d1_catalogue_accessible, false);
+  assert.equal(evidence.catalogue_probe.r2_catalogue_accessible, false);
+  assert.equal(evidence.catalogue_probe.physical_identifiers_recorded, false);
+  assert.equal(evidence.result.direct_d1_r2_reconciliation_proven, false);
+  assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("database_id"), false);
+  assert.equal(serialized.includes("bucket_name"), false);
+  assert.equal(serialized.includes("Bearer "), false);
+  assert.equal(serialized.includes("@"), false);
+});
+
 test("Version 29 Google browser boundary retains no account or browser material", async () => {
   const evidence = JSON.parse(
     await readFile(
