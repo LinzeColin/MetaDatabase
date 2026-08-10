@@ -85,8 +85,17 @@ rsync -a "$STAGE"/ "$TARGET"/
 # 一堆点赞混在里面而他不知道——那和「没做」差不多。
 printf '\n按关系类型（读 frontmatter 数出来的）：\n'
 for rel in favorite like history saved watch_later manual_save bookmark; do
-  n="$(grep -rl "\"$rel\"" "$STAGE" --include='*.md' 2>/dev/null | wc -l | tr -d ' ')"
-  [[ "$n" != "0" ]] && printf '  %-14s %s\n' "$rel" "$n"
+  # **grep 找不到匹配时退出码是 1**，而这个脚本开着 `set -o pipefail`：
+  # 整条管道于是返回 1，赋值失败，`set -e` 当场把脚本打死——
+  # 同步其实成功了，双击那个 .command 却报「没跑成（退出码 1）」。
+  # 追这个 bug 时我先改错了地方（把 `[[ ]] && printf` 改成 if/fi），
+  # 是 `bash -x` 追出来的，不是读出来的。
+  n="$( { grep -rl "\"$rel\"" "$STAGE" --include='*.md' 2>/dev/null || true; } | wc -l | tr -d ' ')"
+  # **不许写成 `[[ … ]] && printf`。**（2026-08-10）
+  # 最后一项计数为 0 时那条 `&&` 返回 1，配上 `set -e` 直接把脚本打死在收尾之前——
+  # 同步其实成功了，而双击那个 .command 报「没跑成（退出码 1）」。
+  # 我先前几次手跑也是这么退出的，只因为数据已经同步完了才没注意。
+  if [[ "$n" != "0" ]]; then printf '  %-14s %s\n' "$rel" "$n"; fi
 done
 
 rm -rf "$STAGE"
@@ -96,6 +105,6 @@ printf '\n放进来了：%s\n' "$TARGET"
 printf '  这次之前 %s 个 md，现在 %s 个\n' "$BEFORE" "$AFTER"
 for platform in douyin bilibili xiaohongshu x generic-web; do
   count="$(find "$TARGET/$platform" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"
-  [[ "$count" != "0" ]] && printf '  %-14s %s\n' "$platform" "$count"
+  if [[ "$count" != "0" ]]; then printf '  %-14s %s\n' "$platform" "$count"; fi
 done
 printf '\n打开 Obsidian，左边就会多一个「%s」文件夹。\n' "$SUBDIR"
