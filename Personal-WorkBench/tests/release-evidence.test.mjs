@@ -474,6 +474,33 @@ test("Version 29 Google browser boundary retains no account or browser material"
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 29 Google admin-policy boundary retains no account or browser material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_29_google_oauth_admin_policy_boundary.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.candidate.sites_version_number, 29);
+  assert.equal(evidence.in_app_browser_attempt.new_agent_test_tab_created, true);
+  assert.equal(evidence.in_app_browser_attempt.existing_user_tab_claimed, false);
+  assert.equal(evidence.in_app_browser_attempt.administrative_policy_verification_available, false);
+  assert.equal(evidence.in_app_browser_attempt.signin_page_rendered, false);
+  assert.equal(evidence.in_app_browser_attempt.retry_or_browser_switch_used_to_bypass_policy, false);
+  assert.equal(evidence.google_oauth.account_selection_attempted, false);
+  assert.equal(evidence.google_oauth.google_callback_observed, false);
+  assert.equal(evidence.google_oauth.application_session_established, false);
+  assert.equal(evidence.scope_and_cleanup.browser_cookie_or_storage_inspected, false);
+  assert.equal(evidence.scope_and_cleanup.temporary_browser_tabs_finalized, true);
+  assert.equal(evidence.scope_and_cleanup.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 29 storage-mapping boundary retains no physical resource or provider material", async () => {
   const evidence = JSON.parse(
     await readFile(

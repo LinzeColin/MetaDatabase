@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "PRIVATE_VERSION_29_GOOGLE_OAUTH_ADMIN_POLICY_BOUNDARY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-10",
+  "candidate": {
+    "deployed_product_source_commit": "996a75ce2e02e3275cdf34b9847ef7153f43cf4e",
+    "sites_source_commit": "3a73f4a9b342ba3d6fe56f3a2539250e91980e67",
+    "sites_version_number": 29,
+    "private_access_remained_owner_custom": true,
+    "public_audience_changed": false
+  },
+  "in_app_browser_attempt": {
+    "new_agent_test_tab_created": true,
+    "existing_user_tab_claimed": false,
+    "canonical_signin_navigation_attempted": true,
+    "administrative_policy_verification_available": false,
+    "signin_page_rendered": false,
+    "visible_dom_available": false,
+    "retry_or_browser_switch_used_to_bypass_policy": false
+  },
+  "google_oauth": {
+    "account_selection_attempted": false,
+    "account_selection_page_rendered": false,
+    "google_callback_observed": false,
+    "application_session_established": false,
+    "interpretation": "The browser control plane refused canonical sign-in navigation before page access because administrative policy verification was unavailable. This does not establish a Sites, Google, application, user-account, or credential failure."
+  },
+  "scope_and_cleanup": {
+    "browser_cookie_or_storage_inspected": false,
+    "credentials_or_account_identity_entered": false,
+    "real_user_business_data_read_or_written": false,
+    "runtime_values_or_access_policy_changed": false,
+    "d1_r2_changed": false,
+    "github_uploaded": false,
+    "temporary_browser_tabs_finalized": true
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false,
+  "not_proven": [
+    "A successful current Version 29 Google OAuth callback and session",
+    "A current Version 29 email authentication browser replay",
+    "Physical second-device history readback",
+    "Direct D1 or R2 physical mapping or record-object reconciliation",
+    "Public product acceptance"
+  ]
+}
