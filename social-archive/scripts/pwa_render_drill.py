@@ -87,7 +87,14 @@ FAKE: dict[str, object] = {
     # /health 夹具（v0.0.0.18）。**worker 故意设成挂了**——
     # 这一栏存在的全部意义就是那种情况下界面说什么。
     # 设成活着的话，这条断言永远走不到它要验的那一支。
+    # **磁盘那一段照 2026-08-10 他主机的真实读数**：95.8%、只剩 1.59G。
+    # 服务端从 v0.0.0.18 起就报这几个数，而在这之前**没有任何界面读过它**。
+    # 判断与句子都在服务端（界面的规矩是「不另造句子」），这里照抄那个形状。
     "/health": {"status": "ok", "project": "Social Archive", "version": "9.9.9.9",
+                "disk": {"measured": True, "free_gb": 1.59, "total_gb": 37.7,
+                         "used_percent": 95.8, "tight": True,
+                         "message_zh": "服务器磁盘只剩 1.59 G（已用 95.8%）。"
+                                       "文字和链接照常保存；再满下去，新的视频文件可能存不下来。"},
                 "worker": {"ever_seen": True, "alive": False,
                            "last_seen_at": "2026-08-06T00:00:00Z",
                            "seconds_since": 9999.0,
@@ -330,6 +337,7 @@ async def run(chrome: str) -> int:
             finished_reading = None
             never_completed_reading = None
             drawer_reading = None
+            disk_reading = None
             payload = result.get("result", {})
             if payload.get("exceptionDetails"):
                 measured = {"error": str(payload["exceptionDetails"])[:300]}
@@ -402,6 +410,26 @@ async def run(chrome: str) -> int:
             reconnected_reading = ({"error": str(reconnect_payload["exceptionDetails"])[:200]}
                                    if reconnect_payload.get("exceptionDetails")
                                    else json.loads(reconnect_payload["result"]["value"]))
+
+            # **worker 活着、而盘快满了那一屏。**（2026-08-10）
+            #
+            # 上面那份夹具里 worker 是死的，于是徽章走「后台没在跑」那一支
+            # ——**那是对的**（后台没跑比盘紧更急），但磁盘那一支就验不到。
+            # 把 worker 设成活的再画一次：服务端量到的那句话必须真的出现在徽章上。
+            FAKE["/health"] = json.loads(json.dumps(FAKE["/health"]))
+            FAKE["/health"]["worker"] = {"ever_seen": True, "alive": True,
+                                         "last_seen_at": "2026-08-10T04:00:00Z",
+                                         "seconds_since": 2.0, "note": ""}
+            await rpc("Page.navigate", {"url": f"http://127.0.0.1:{PORT}/"})
+            await asyncio.sleep(3)
+            got = await rpc("Runtime.evaluate", {"expression": r"""
+              JSON.stringify({
+                badge: (document.getElementById("serviceBadge") || {}).textContent || "",
+              })""", "returnByValue": True})
+            disk_payload = got.get("result", {})
+            disk_reading = ({"error": str(disk_payload["exceptionDetails"])[:200]}
+                            if disk_payload.get("exceptionDetails")
+                            else json.loads(disk_payload["result"]["value"]))
 
             # **他重连之后、第一次完整同步之前那一屏。**（2026-08-10）
             #
@@ -697,6 +725,22 @@ async def run(chrome: str) -> int:
                 f"顶部没用服务端算好的那句话：{strip!r}——"
                 "本地词典少了他真撞到过的三个码，绕过 runSentence 就会漏")
 
+    # 盘快满了那一屏（2026-08-10）
+    if not disk_reading or disk_reading.get("error"):
+        problems.append(f"**「盘快满了」那一屏没量到**：{disk_reading}——这不是通过。")
+    else:
+        badge = disk_reading.get("badge", "")
+        if "磁盘" not in badge:
+            problems.append(
+                f"服务端量到只剩 1.59G（95.8%），而这一屏一个字都没说：{badge!r}——"
+                "那几个数从 v0.0.0.18 起就在 /health 里，一直没有界面读它；"
+                "盘满之后媒体下不下来，而归档那一列会写「视频没存下」，"
+                "他会以为是平台挡的")
+        if "1.59" not in badge:
+            problems.append(
+                f"说了「磁盘」却不是服务端量到的那个数：{badge!r}——"
+                "句子该由服务端给（接口自带 message_zh，界面不另造）")
+
     # 重连之后、第一次完整同步之前（2026-08-10）
     if not never_completed_reading or never_completed_reading.get("error"):
         problems.append(f"**「重连后还没完整同步过」那一屏没量到**：{never_completed_reading}")
@@ -831,6 +875,7 @@ async def run(chrome: str) -> int:
         "guide_page": guide_reading,
         "all_accounts_disconnected": disconnected_reading,
         "just_reconnected": reconnected_reading,
+        "disk_tight_badge": disk_reading,
         "never_completed": never_completed_reading,
         "detail_drawer": drawer_reading,
         "while_syncing": running_reading,

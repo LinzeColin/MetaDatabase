@@ -299,15 +299,41 @@ def _free_disk() -> dict[str, Any]:
                 usage = shutil.disk_usage(candidate)
             except OSError as error:                      # noqa: PERF203
                 return {"measured": False, "why_zh": f"量不出来：{error}"}
-            return {
+            # **量了不说等于没量。**（2026-08-10）
+            #
+            # 这几个数从 v0.0.0.18 起就在 /health 里，而**没有任何界面读过它们**
+            # （`grep -n "health.disk" apps/pwa/app.js apps/browser-extension/popup.js`
+            # 是空的）。同一天实测：主机跑到 95.8%、只剩 1.59G，
+            # 而资料库那一屏一个字都没提；`/v1/storage/status` 说「配额正常」——
+            # 它说的是**我们自己的 R2/OCI 字节预算**，和主机磁盘是两件事。
+            #
+            # 后果是具体的：盘真满了以后媒体下不下来，而界面会一直说「配额正常」，
+            # 他会以为是平台挡的（那一列正好写着「视频没存下」）。
+            #
+            # **判断和句子都放在这里**，因为界面那一侧的规矩是
+            # 「接口自带 message_zh，我们不另造句子」（造句子等于绕过冻结词典）。
+            #
+            # 阈值取 2 GiB：这个产品会下载媒体（L3），单个视频几十到几百 MB，
+            # 低于 2G 就是"下一个大文件可能落不下来"。它只用来**提醒**，
+            # 不拦任何东西——真正的暂停由配额那条路负责。
+            free_bytes = usage.free
+            tight = free_bytes < 2 * 1024 ** 3
+            payload = {
                 "measured": True,
                 "measured_at": str(candidate),
-                "free_bytes": usage.free,
-                "free_gb": round(usage.free / 1024 ** 3, 2),
+                "free_bytes": free_bytes,
+                "free_gb": round(free_bytes / 1024 ** 3, 2),
                 "total_gb": round(usage.total / 1024 ** 3, 2),
                 "used_percent": round(100 * (usage.total - usage.free) / usage.total, 1)
                 if usage.total else None,
+                "tight": tight,
             }
+            if tight:
+                payload["message_zh"] = (
+                    f"服务器磁盘只剩 {payload['free_gb']} G（已用 {payload['used_percent']}%）。"
+                    "文字和链接照常保存；再满下去，新的视频文件可能存不下来。"
+                )
+            return payload
     return {"measured": False, "why_zh": "数据库路径的每一层都不存在，量不到盘"}
 
 

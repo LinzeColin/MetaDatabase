@@ -409,6 +409,26 @@
       setServiceBadge("needs", "后台没在跑 · 新的同步会排队等着");
       return;
     }
+    // **服务器盘快满了要当场说。**（2026-08-10）
+    //
+    // 这几个数从 v0.0.0.18 起就在 /health 里，而**没有任何界面读过**
+    // （`grep -n "health.disk"` 当时是空的）。同一天实测：主机 95.8%、
+    // 只剩 1.59G，而这一屏一个字都没提；`/v1/storage/status` 还说「配额正常」
+    // ——那说的是我们自己的 R2/OCI 字节预算，不是主机磁盘，两件事。
+    //
+    // 盘真满了以后媒体下不下来，而归档那一列正好会写「视频没存下」，
+    // 他会以为是平台挡的。
+    //
+    // **必须写在这个函数里。** 第一版我加在 refreshServiceState 的分支上，
+    // 真 Chrome 里一读：徽章还是「私人档案馆已连接」——`init()` 在最后
+    // 又调了一次 paintServiceBadge()，把它整个覆盖掉了。**渲染出来才看见的。**
+    //
+    // 句子由服务端给（规矩：接口自带 message_zh，我们不另造句子）；
+    // 排在 worker 之后：后台没在跑比盘紧更急。
+    if (health.disk && health.disk.tight && health.disk.message_zh) {
+      setServiceBadge("degraded", health.disk.message_zh);
+      return;
+    }
     // **原来这句写的是「插件可更新（不影响使用）」。**
     //
     // 那句话在只改文案的版本上是对的，在 v0.0.0.22 上就成了误导：
