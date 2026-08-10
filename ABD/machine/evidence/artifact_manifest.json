@@ -1,5 +1,5 @@
 {
-  "file_count": 1103,
+  "file_count": 1106,
   "files": [
     {
       "bytes": 25,
@@ -17,9 +17,9 @@
       "sha256": "a1b6d13afea6f383061d2d3405efe2f2d8f4867fbb08a5edf0e53415c16a239a"
     },
     {
-      "bytes": 133808,
+      "bytes": 135626,
       "path": "HANDOFF.md",
-      "sha256": "8271b997a0631c69340da33c4fe8f1ac989140f10a2b4c1f53816c153eb6e2c1"
+      "sha256": "69e0ce57202b68d0caba7474706da03dca8c1a77860de82d2302f3749901617d"
     },
     {
       "bytes": 643,
@@ -4667,6 +4667,16 @@
       "sha256": "e1a833b364f29c32116a1abfb5004591bca7a55d749dc0fcb737d55c22d91a35"
     },
     {
+      "bytes": 10867,
+      "path": "runtime/openfootball_static_source.py",
+      "sha256": "2bff9dc8e0f43ea69ee08d815bed14b2f417f8b4a408335e86a3548b89be224d"
+    },
+    {
+      "bytes": 2785,
+      "path": "runtime/openfootball_static_source_contract.json",
+      "sha256": "8e10319193f870b6aa855b70173015106883b11d2757ed47eb3cb806b17aa2f9"
+    },
+    {
       "bytes": 1994,
       "path": "runtime/provision_host_bundle.sh",
       "sha256": "5149a474db5b7feae39bcb17e77369ee4d5e6e0b93fc4abb8c104f5cb762d6f8"
@@ -4695,6 +4705,11 @@
       "bytes": 3973,
       "path": "runtime_tests/test_host_capacity_gate.py",
       "sha256": "49c18edc05071726ee9574a1d537fe3ed6e341784666e24e0712b3ba3e4a383f"
+    },
+    {
+      "bytes": 4664,
+      "path": "runtime_tests/test_openfootball_static_source.py",
+      "sha256": "e791814f3c687797ad9a31e5357edb2b064f14e4b3d2054988aa8594c1fbdb5e"
     },
     {
       "bytes": 6074,
