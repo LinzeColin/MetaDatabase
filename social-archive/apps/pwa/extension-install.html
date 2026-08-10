@@ -161,12 +161,23 @@
         document.getElementById("eyebrow").textContent = "Social Archive · 免费安装";
         show("updateBlock", false); show("installSteps", true);
       }
-      function paintUpdate(installed) {
+      // **理由由调用方给，不许写死。**（2026-08-10）
+      //
+      // 这个函数有两个调用方，而它原来对两边说同一句话：
+      // 「你装着 vX，而资料库至少需要 vY」。
+      //
+      // 对「低于下限」那一支是对的。对**另一支**——高于下限、只是不是最新——
+      // 那句话是**反话**：Owner 装的是 v0.0.0.22，下限是 v0.0.0.9。
+      // 22 比 9 大，于是这一页在标题上说「你装的是旧版」，紧接着第一段就
+      // 告诉他他已经够格了。他要么以为这页坏了，要么以为不用动。
+      //
+      // 真 Chrome 里把那一页整段读回来才看见的：两句话都在，第一句排在最前面。
+      // 判据只盯 JSON、漏掉用户真正会读的散文——这个仓栽过。
+      function paintUpdate(installed, why) {
         document.getElementById("eyebrow").textContent = "Social Archive · 更新已装的插件";
         document.getElementById("headline").textContent = "你装的是旧版，换掉文件就好。";
         document.getElementById("lead").innerHTML =
-          "你这台电脑上装着 <strong>v" + (installed || "未知") + "</strong>，" +
-          "而资料库至少需要 <strong>v" + (minimumVersion || requiredVersion || "更新的版本") + "</strong>。" +
+          "你这台电脑上装着 <strong>v" + (installed || "未知") + "</strong>，" + why +
           "<strong>不用重装、也不用重新连接</strong>——按下面几步把文件换掉即可。";
         show("updateBlock", true); show("installSteps", false);
       }
@@ -189,7 +200,9 @@
             ? compareVersions(installed, minimumVersion) < 0
             : Boolean(requiredVersion && installed !== requiredVersion);
           if (installed && tooOld) {
-            paintUpdate(installed);
+            paintUpdate(installed,
+              "而资料库<strong>至少</strong>需要 <strong>v"
+              + (minimumVersion || requiredVersion || "更新的版本") + "</strong>。");
             dot.classList.remove("ready");
             text.textContent = "检测到 v" + installed + "，至少需要 v" + (minimumVersion || requiredVersion) +
               "——按下面几步换掉文件，换好这里会自动变绿。";
@@ -211,7 +224,11 @@
           const behind = requiredVersion
             && compareVersions(installed || "0", requiredVersion) < 0;
           if (installed && behind) {
-            paintUpdate(installed);
+            // **不许说「至少需要 vY」**——他这一档本来就高于下限，
+            // 那句话等于告诉他不用动。真正的原因是「连接账号要最新的」。
+            paintUpdate(installed,
+              "最新是 <strong>v" + requiredVersion + "</strong>。"
+              + "现在也能保存和查看，<strong>但连接账号要更新之后才成</strong>。");
             dot.classList.remove("ready");
             text.textContent = "检测到 v" + installed + "，最新是 v" + requiredVersion +
               "——现在也能保存和查看，但连接账号需要更新后才成。" +

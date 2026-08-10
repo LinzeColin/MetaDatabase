@@ -69,6 +69,14 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import list_shape_end_to_end_drill as shape          # noqa: E402  复用 rpc 工厂
 
+# **不洗环境的话 `cwd=ROOT` 是没有用的**——git 钩子塞的 GIT_DIR 压过 cwd，
+# 子进程会去问**那个**仓。这条演练靠 git 取那份真实旧构建，被劫持就等于
+# 从别的仓里取了一份"旧插件"出来验，而它照样会绿。
+# 唯一出处在 social_archive.git_env，全仓由
+# check_git_calls_cannot_be_hijacked_by_hooks.py 拦着——它就是这么抓到我的。
+sys.path.insert(0, str(ROOT / "src"))
+from social_archive.git_env import clean_git_env      # noqa: E402
+
 PWA = ROOT / "apps/pwa"
 ZIP = ROOT / "dist" / "social-archive-extension.zip"
 PORT = 8765                     # **两版 manifest 本来就注入这个口，旧构建因此一个字节都不用动**
@@ -143,10 +151,15 @@ class _Handler(BaseHTTPRequestHandler):
         if path.startswith("/v1/"):
             self._send(200, b'{"items": []}', "application/json")
             return
-        # **他点完会开一个 /extension-install。** 这台服务器要认得它，
-        # 否则那个标签页 404——判据照样能看见它开出来了，但排查的人会以为是别的毛病。
+        # **他点完会开一个 /extension-install，送的必须是那一页本尊。**
+        #
+        # 第一版这里回的是一句自己编的 `<h1>更新说明</h1>`，于是演练只证明了
+        # "开出来一个标签页"——**而把人送到一页叫他重新安装（而不是覆盖原文件夹）
+        # 的说明上，害处和不送一样大**：换个地方装，Chrome 给新 ID，
+        # 他就同时装了两份，已连好的账号留在旧的那一份上。
         if path == "/extension-install":
-            self._send(200, "<h1>更新说明</h1>".encode(), "text/html; charset=utf-8")
+            page = PWA / "extension-install.html"
+            self._send(200, page.read_bytes(), "text/html; charset=utf-8")
             return
         name = "index.html" if path in ("/", "") else path.lstrip("/")
         if name == "guide":
@@ -170,17 +183,20 @@ def _materialize_old(workspace: Path) -> Path:
     folder.mkdir(parents=True)
     listing = subprocess.run(
         ["git", "ls-tree", "--name-only", OLD_COMMIT, "apps/browser-extension/"],
-        cwd=ROOT, capture_output=True, text=True, check=True).stdout.split()
+        cwd=ROOT, env=clean_git_env(), capture_output=True,
+        text=True, check=True).stdout.split()
     for entry in listing:
         # content/ 是目录，单独展开
         blobs = [entry]
         if not Path(entry).suffix:
             blobs = subprocess.run(
                 ["git", "ls-tree", "-r", "--name-only", OLD_COMMIT, entry + "/"],
-                cwd=ROOT, capture_output=True, text=True, check=True).stdout.split()
+                cwd=ROOT, env=clean_git_env(),
+                capture_output=True, text=True, check=True).stdout.split()
         for blob in blobs:
             data = subprocess.run(["git", "show", f"{OLD_COMMIT}:./{blob}"],
-                                  cwd=ROOT, capture_output=True, check=True).stdout
+                                  cwd=ROOT, env=clean_git_env(),
+                                  capture_output=True, check=True).stdout
             out = folder / Path(blob).relative_to("apps/browser-extension")
             out.parent.mkdir(parents=True, exist_ok=True)
             out.write_bytes(data)
@@ -211,8 +227,8 @@ async def _one_case(chrome: str, folder: Path, label: str, debug_port: int) -> d
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     base = f"http://127.0.0.1:{debug_port}"
     result: dict = {"case": label, "extension_version": "", "toasts": [],
-                    "install_tab_opened": False, "connect_panel_open": False,
-                    "dialog": "", "error": ""}
+                    "install_tab_opened": False, "install_page_text": "",
+                    "connect_panel_open": False, "dialog": "", "error": ""}
     try:
         for _ in range(40):
             try:
@@ -310,8 +326,21 @@ async def _one_case(chrome: str, folder: Path, label: str, debug_port: int) -> d
             result["dialog"] = str(dialogs[0])[:120] if dialogs else ""
 
         targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
-        result["install_tab_opened"] = any("/extension-install" in t.get("url", "")
-                                           for t in targets)
+        install = [t for t in targets if "/extension-install" in t.get("url", "")]
+        result["install_tab_opened"] = bool(install)
+        # **开出来说了什么，和开没开一样重要。** 送他去一页叫他"重新安装"
+        # 而不是"覆盖原文件夹"，后果是他同时装两份、已连的账号留在旧的那一份上。
+        if install:
+            await asyncio.sleep(2)                    # 那一页要跑一下自检才换标题
+            async with websockets.connect(install[0]["webSocketDebuggerUrl"],
+                                          max_size=None) as tab:
+                trpc = await shape._rpc_factory(tab)  # noqa: SLF001
+                await trpc("Runtime.enable")
+                text = await trpc("Runtime.evaluate", {
+                    "expression": "document.body.innerText",
+                    "returnByValue": True, "timeout": 10000})
+                result["install_page_text"] = str(
+                    text.get("result", {}).get("result", {}).get("value") or "")
     finally:
         process.terminate()
         try:
@@ -355,6 +384,39 @@ async def run(chrome: str) -> int:
             problems.append(
                 "**没有把更新说明打开**——只说「你装的是旧版」而不给去处，"
                 "等于让他自己去找；`window.open(\"/extension-install\")` 那一行没生效")
+        else:
+            # **那一页得叫他「覆盖原文件夹」，不能叫他重新装一个。**
+            # 换个地方装 → Chrome 给新 ID → 他同时装两份 → 已连好的账号
+            # 留在旧的那一份上，而界面看起来一切正常。
+            page = stale.get("install_page_text") or ""
+            if "覆盖进你原来那个插件文件夹" not in page:
+                problems.append(
+                    "更新说明开出来了，**但没告诉他要覆盖进原来那个文件夹**："
+                    f"{page[:160] or '（读不到那一页的正文）'}——"
+                    "他会新建一个文件夹装，于是同时装两份，已连的账号留在旧的那份上")
+            if "你装的是旧版" not in page:
+                problems.append(
+                    "更新说明没认出他装的是旧版（标题没换）——"
+                    f"他看到的是一页教人从头安装的说明：{page[:120]}")
+            # **不许在同一页上说反话。**（2026-08-10 真 Chrome 里读回整页才看见的）
+            #
+            # 他装的是 v0.0.0.22，下限是 v0.0.0.9。标题说「你装的是旧版」，
+            # 而紧接着第一段原来写的是「资料库至少需要 v0.0.0.9」——
+            # 22 比 9 大，那句话等于告诉他不用动。他要么以为这页坏了，要么就不动。
+            #
+            # 根因是 `paintUpdate()` 对两个调用方说同一句话，而只有
+            # 「低于下限」那一支该那么说。判据只盯 JSON、漏掉用户读的散文，这个仓栽过。
+            minimum = FAKE["/health"]["minimum_extension_version"]       # 0.0.0.9
+            if f"至少需要 v{minimum}" in page or f"至少</strong>需要 <strong>v{minimum}" in page:
+                problems.append(
+                    f"**那一页同时说了两句相反的话**：标题「你装的是旧版」，"
+                    f"正文却说「至少需要 v{minimum}」——而他装的是 "
+                    f"v{stale.get('extension_version')}，比它大。"
+                    "算术摆在他眼前，他会以为这页坏了或者不用动")
+            if "连接账号要更新之后才成" not in page:
+                problems.append(
+                    "那一页没说清**为什么**要更新（不是版本太低，是连接账号要最新的）——"
+                    f"他读到的理由对不上他的处境：{page[:160]}")
         if stale.get("dialog"):
             problems.append(
                 f"旧版这一侧弹了对话框「{stale['dialog']}」——那说明走的是"
