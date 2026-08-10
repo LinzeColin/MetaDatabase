@@ -17,14 +17,28 @@ from social_archive.encryption import AgeEncryptor, EncryptedObject
 from social_archive.private_facts import delivered_completed_content_facts, fact_bytes, fact_sha256
 from social_archive.storage import StoredObject, create_s3_client
 from social_archive.utils import atomic_write, json_bytes, read_secret, sha256_bytes, sha256_file, utcnow
+from social_archive.recovery import resolve_secret_path
 
 
 def _s3_config(store_id: str) -> dict[str, str] | None:
     prefix = f"SOCIAL_ARCHIVE_{store_id.upper()}"
     endpoint = os.getenv(f"{prefix}_ENDPOINT", "").strip()
     bucket = os.getenv(f"{prefix}_BUCKET", "").strip()
-    access = read_secret(os.getenv(f"{prefix}_ACCESS_KEY_ID_FILE"))
-    secret = read_secret(os.getenv(f"{prefix}_SECRET_ACCESS_KEY_FILE"))
+    # **凭据路径要回退。**（2026-08-10）
+    #
+    # `.env` 里写的是 `/run/secrets/…`——那是 systemd 的凭据目录，
+    # **只在那个 unit 跑起来时才存在**。在 unit 之外（比如手工跑恢复演练）
+    # 这两个文件读不到，`_s3_config` 就返回 None，上层报「r2 未配置」。
+    #
+    # 后果不是"少个功能"：`restore_runtime_db_drill.py` 从 backup 导入这个函数，
+    # 于是**唯一能证明"他的数据库拿得回来"的那个演练，结构上跑不起来**——
+    # 它在 ALL_DRILLS 里一直挂在 not_run，理由写的是「要真实的备份清单与远端存储」，
+    # 而真实原因是这里。2026-08-10 在生产机上跑它才撞出来。
+    #
+    # `restore_object.py` 早就有这个回退（`resolve_secret_path`，
+    # 回到 runtime/secrets/ 找同名文件），它因此一直能跑。同一个真源，用它。
+    access = read_secret(resolve_secret_path(os.getenv(f"{prefix}_ACCESS_KEY_ID_FILE")))
+    secret = read_secret(resolve_secret_path(os.getenv(f"{prefix}_SECRET_ACCESS_KEY_FILE")))
     region_name = os.getenv(f"{prefix}_REGION", "auto").strip() or "auto"
     addressing_style = os.getenv(f"{prefix}_ADDRESSING_STYLE", "path").strip() or "path"
     s3_compatibility = os.getenv(f"{prefix}_S3_COMPATIBILITY", "aws").strip().lower() or "aws"
