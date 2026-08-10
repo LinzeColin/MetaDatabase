@@ -23,6 +23,7 @@ from abd_runtime.server import (
     RuntimeHTTPServer,
     build_runtime_state,
 )
+from abd_runtime.observation_evidence import ObservationEvidenceError, build_observation_evidence
 
 
 def _config() -> dict[str, object]:
@@ -66,6 +67,16 @@ def test_runtime_state_allows_only_the_contractual_shadow_mode(tmp_path: Path) -
     assert state["gmail_or_tab_connected"] is False
 
 
+def test_observation_evidence_rejects_a_weakened_runtime_state(tmp_path: Path) -> None:
+    config = tmp_path / "config.json"
+    config.write_text(json.dumps(_config()), encoding="utf-8")
+    state = build_runtime_state(config, {"ABD_ORDER_SUBMISSION_ENABLED": "false"})
+    state["market_or_account_connected"] = True
+
+    with pytest.raises(ObservationEvidenceError):
+        build_observation_evidence(state)
+
+
 @pytest.mark.parametrize(
     "configuration,environment",
     [
@@ -87,7 +98,7 @@ def test_runtime_rejects_any_activation_or_order_boundary_violation(
         build_runtime_state(config, environment)
 
 
-def test_http_surface_is_status_only(tmp_path: Path) -> None:
+def test_http_surface_is_observation_only(tmp_path: Path) -> None:
     config = tmp_path / "config.json"
     config.write_text(json.dumps(_config()), encoding="utf-8")
     state = build_runtime_state(config, {"ABD_ORDER_SUBMISSION_ENABLED": "false"})
@@ -102,6 +113,23 @@ def test_http_surface_is_status_only(tmp_path: Path) -> None:
         body = json.loads(response.read())
         assert response.status == 200
         assert body["decision"] == SAFE_DECISION
+
+        connection.request("GET", "/evidence")
+        response = connection.getresponse()
+        evidence = json.loads(response.read())
+        assert response.status == 200
+        assert evidence["surface"] == "STATIC_OBSERVATION_EVIDENCE_ONLY"
+        assert evidence["static_calibration"]["evidence_status"] == "STATIC_SINGLE_SEASON_DESCRIPTION_NOT_ELIGIBLE_FOR_MODEL_UPDATE"
+        assert evidence["static_calibration"]["model_update_eligible"] is False
+        assert evidence["capability_boundary"]["order_submission_enabled"] is False
+
+        connection.request("GET", "/")
+        response = connection.getresponse()
+        home = response.read().decode("utf-8")
+        assert response.status == 200
+        assert "静态校准证据" in home
+        assert "尚未通过 Cloudflare 公开发布" in home
+        assert "<form" not in home
 
         connection.request("POST", "/orders")
         response = connection.getresponse()

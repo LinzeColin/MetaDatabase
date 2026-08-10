@@ -30,7 +30,7 @@ class ShadowImageIdentityAttestationError(ValueError):
 
 
 CommandRunner = Callable[[Sequence[str]], str]
-StatusProbe = Callable[[str, int], Mapping[str, Any]]
+JsonProbe = Callable[[str, int, str], Mapping[str, Any]]
 
 
 def _sha256(data: bytes) -> str:
@@ -92,17 +92,19 @@ def _run_command(arguments: Sequence[str]) -> str:
     return completed.stdout.strip()
 
 
-def _probe_loopback_status(host: str = PROBE_HOST, port: int = PROBE_PORT) -> Mapping[str, Any]:
+def _probe_loopback_json(host: str = PROBE_HOST, port: int = PROBE_PORT, path: str = "/status") -> Mapping[str, Any]:
+    if path not in {"/status", "/evidence"}:
+        raise ShadowImageIdentityAttestationError("attestation path is not accepted")
     connection = HTTPConnection(host, port, timeout=2)
     try:
-        connection.request("GET", "/status", headers={"Connection": "close"})
+        connection.request("GET", path, headers={"Connection": "close"})
         response = connection.getresponse()
         if response.status != 200:
-            raise ShadowImageIdentityAttestationError("shadow status did not return HTTP 200")
+            raise ShadowImageIdentityAttestationError("shadow attestation endpoint did not return HTTP 200")
         payload = json.loads(response.read())
     finally:
         connection.close()
-    return _object(payload, "shadow status payload")
+    return _object(payload, "shadow attestation payload")
 
 
 def load_contract(path: Path) -> Mapping[str, Any]:
@@ -135,7 +137,7 @@ def validate_contract(contract: Mapping[str, Any]) -> None:
         raise ShadowImageIdentityAttestationError("unexpected attestation product version")
     if contract.get("status") != "ONE_SHOT_HOST_LOOPBACK_IMAGE_IDENTITY_ATTESTATION_ONLY":
         raise ShadowImageIdentityAttestationError("attestation must remain one-shot and host-loopback-only")
-    if contract.get("observation_scope") != "HOST_LOCAL_DOCKER_METADATA_AND_FIXED_LOOPBACK_HTTP_STATUS_ONLY":
+    if contract.get("observation_scope") != "HOST_LOCAL_DOCKER_METADATA_AND_FIXED_LOOPBACK_HTTP_STATUS_AND_EVIDENCE_ONLY":
         raise ShadowImageIdentityAttestationError("attestation observation scope is not exact")
     if contract.get("source_claim") != "RUNNING_IMAGE_IDENTITY_ONLY_NOT_SOURCE_COMMIT_OR_OCI_ARCHIVE_PROVENANCE":
         raise ShadowImageIdentityAttestationError("attestation source claim is not exact")
@@ -153,6 +155,7 @@ def validate_contract(contract: Mapping[str, Any]) -> None:
         "memory_swap_limit_bytes",
         "port_mapping",
         "status_payload",
+        "observation_evidence_payload",
     }
     if set(expected) != expected_keys:
         raise ShadowImageIdentityAttestationError("attestation expected field set is not exact")
@@ -190,6 +193,28 @@ def validate_contract(contract: Mapping[str, Any]) -> None:
         "gmail_or_tab_connected": False,
     }:
         raise ShadowImageIdentityAttestationError("attestation status payload is not exact")
+    if expected.get("observation_evidence_payload") != {
+        "service": "ABD",
+        "version": "0.0.0.1",
+        "mode": "SHADOW_READ_ONLY",
+        "surface": "STATIC_OBSERVATION_EVIDENCE_ONLY",
+        "static_calibration": {
+            "scope": "E0_2025_26_HISTORICAL_SINGLE_SEASON",
+            "fixture_count": 380,
+            "outcome_rows": 1140,
+            "evidence_status": "STATIC_SINGLE_SEASON_DESCRIPTION_NOT_ELIGIBLE_FOR_MODEL_UPDATE",
+            "model_update_eligible": False,
+        },
+        "capability_boundary": {
+            "market_or_account_connected": False,
+            "gmail_or_tab_connected": False,
+            "recommendation_enabled": False,
+            "order_submission_enabled": False,
+            "public_business_inbound_enabled": False,
+        },
+        "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    }:
+        raise ShadowImageIdentityAttestationError("attestation observation evidence payload is not exact")
 
     expected_boundary = {
         "runtime_config_or_secret_read": False,
@@ -213,9 +238,9 @@ def validate_contract(contract: Mapping[str, Any]) -> None:
 
 
 def collect_shadow_image_identity_facts(
-    contract: Mapping[str, Any], *, run: CommandRunner = _run_command, probe: StatusProbe = _probe_loopback_status
+    contract: Mapping[str, Any], *, run: CommandRunner = _run_command, probe: JsonProbe = _probe_loopback_json
 ) -> dict[str, Any]:
-    """Read only Docker metadata plus the fixed host-loopback status endpoint."""
+    """Read only Docker metadata plus fixed host-loopback status and evidence endpoints."""
 
     validate_contract(contract)
     expected = _object(contract["expected"], "attestation expected")
@@ -232,6 +257,7 @@ def collect_shadow_image_identity_facts(
         "memory_swap_limit_bytes": None,
         "port_mapping": None,
         "status_payload": None,
+        "observation_evidence_payload": None,
     }
     if len(shadow_ids) != 1:
         return facts
@@ -258,7 +284,8 @@ def collect_shadow_image_identity_facts(
     facts["memory_limit_bytes"] = memory_limit
     facts["memory_swap_limit_bytes"] = memory_swap_limit
     facts["port_mapping"] = run(("docker", "port", container, "8080/tcp")).strip()
-    facts["status_payload"] = dict(probe(PROBE_HOST, PROBE_PORT))
+    facts["status_payload"] = dict(probe(PROBE_HOST, PROBE_PORT, "/status"))
+    facts["observation_evidence_payload"] = dict(probe(PROBE_HOST, PROBE_PORT, "/evidence"))
     return facts
 
 
@@ -277,6 +304,7 @@ def evaluate_shadow_image_identity_facts(contract: Mapping[str, Any], facts: Map
         "memory_swap_limit_bytes",
         "port_mapping",
         "status_payload",
+        "observation_evidence_payload",
     }
     if set(facts) != required:
         raise ShadowImageIdentityAttestationError("attestation facts have an unexpected shape")
@@ -308,6 +336,9 @@ def evaluate_shadow_image_identity_facts(contract: Mapping[str, Any], facts: Map
     status_payload = facts["status_payload"]
     if status_payload is not None and not isinstance(status_payload, Mapping):
         raise ShadowImageIdentityAttestationError("status_payload must be an object or null")
+    observation_evidence_payload = facts["observation_evidence_payload"]
+    if observation_evidence_payload is not None and not isinstance(observation_evidence_payload, Mapping):
+        raise ShadowImageIdentityAttestationError("observation_evidence_payload must be an object or null")
 
     checks = [
         {"id": "EXACTLY_ONE_SHADOW_CONTAINER", "passed": shadow_count == expected["shadow_container_count"]},
@@ -320,6 +351,12 @@ def evaluate_shadow_image_identity_facts(contract: Mapping[str, Any], facts: Map
         {"id": "SHADOW_NO_ADDITIONAL_SWAP", "passed": memory_swap_limit == expected["memory_swap_limit_bytes"] == memory_limit},
         {"id": "LOOPBACK_PORT_MAPPING_EXACT", "passed": port_mapping == expected["port_mapping"]},
         {"id": "SAFE_STATUS_PAYLOAD_EXACT", "passed": dict(status_payload) == expected["status_payload"] if status_payload is not None else False},
+        {
+            "id": "STATIC_OBSERVATION_EVIDENCE_PAYLOAD_EXACT",
+            "passed": dict(observation_evidence_payload) == expected["observation_evidence_payload"]
+            if observation_evidence_payload is not None
+            else False,
+        },
     ]
     failure_codes = [str(check["id"]) for check in checks if not check["passed"]]
     passed = not failure_codes
@@ -340,6 +377,9 @@ def evaluate_shadow_image_identity_facts(contract: Mapping[str, Any], facts: Map
             "no_additional_container_swap": memory_swap_limit == expected["memory_swap_limit_bytes"] == memory_limit,
             "host_loopback_port_exact": port_mapping == expected["port_mapping"],
             "status_payload_exact": dict(status_payload) == expected["status_payload"] if status_payload is not None else False,
+            "observation_evidence_payload_exact": dict(observation_evidence_payload) == expected["observation_evidence_payload"]
+            if observation_evidence_payload is not None
+            else False,
         },
         "runtime_config_or_secret_read": False,
         "external_network_accessed": False,

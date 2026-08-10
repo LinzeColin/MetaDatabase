@@ -11,6 +11,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Mapping
 
+from .observation_evidence import ObservationEvidenceError, build_observation_evidence
+
 
 VERSION = "0.0.0.1"
 OBSERVATION_MODE = "OBSERVATION_ONLY"
@@ -77,8 +79,10 @@ def _home_page() -> bytes:
         "<!doctype html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\">"
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
         "<title>ABD 运行状态</title></head><body><main><h1>ABD 0.0.0.1</h1>"
-        "<p>运行控制面已启动，当前仅观察。</p>"
-        "<p>系统不生成建议、不连接真实市场或账户、不执行订单。</p>"
+        "<p>运行控制面已启动，当前为只读观察。</p>"
+        "<p>静态校准证据仅覆盖 2025/26 E0 单赛季描述，不能用于模型参数更新。</p>"
+        "<p>系统不生成建议、不连接真实市场、账户、TAB 或 Gmail，也不执行订单。</p>"
+        "<p>此页面尚未通过 Cloudflare 公开发布。</p>"
         "<p>月度 30% 目标尚未验证且不保证。</p>"
         "</main></body></html>"
     ).encode("utf-8")
@@ -90,6 +94,7 @@ class RuntimeHTTPServer(ThreadingHTTPServer):
 
     def __init__(self, address: tuple[str, int], state: Mapping[str, Any]) -> None:
         self.runtime_state = dict(state)
+        self.observation_evidence = build_observation_evidence(self.runtime_state)
         super().__init__(address, RuntimeRequestHandler)
 
 
@@ -116,6 +121,14 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             return
         if path in {"/healthz", "/readyz", "/status"}:
             self._send(HTTPStatus.OK, "application/json; charset=utf-8", _json_bytes(self.server.runtime_state), head_only=head_only)
+            return
+        if path == "/evidence":
+            self._send(
+                HTTPStatus.OK,
+                "application/json; charset=utf-8",
+                _json_bytes(self.server.observation_evidence),
+                head_only=head_only,
+            )
             return
         self._send(
             HTTPStatus.NOT_FOUND,
@@ -161,7 +174,7 @@ def main(argv: list[str] | None = None) -> int:
         port = int(args.port)
         state = build_runtime_state(Path(args.config))
         server = create_server(args.host, port, state)
-    except (TypeError, ValueError, RuntimeConfigurationError) as exc:
+    except (TypeError, ValueError, RuntimeConfigurationError, ObservationEvidenceError) as exc:
         print("ABD runtime configuration rejected: %s" % exc, file=sys.stderr)
         return 2
     try:

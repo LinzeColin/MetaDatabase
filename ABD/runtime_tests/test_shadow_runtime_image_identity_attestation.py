@@ -47,6 +47,7 @@ def _facts(**overrides: object) -> dict[str, object]:
         "memory_swap_limit_bytes": expected["memory_swap_limit_bytes"],
         "port_mapping": expected["port_mapping"],
         "status_payload": expected["status_payload"],
+        "observation_evidence_payload": expected["observation_evidence_payload"],
     }
     facts.update(overrides)
     return facts
@@ -91,6 +92,7 @@ def test_exact_shadow_image_identity_snapshot_passes_and_is_redacted() -> None:
         ({"labels": {"product_version": "0.0.0.1", "runtime_role": "candidate-shadow", "order_submission": "enabled"}}, "SHADOW_IMAGE_LABELS_EXACT"),
         ({"memory_swap_limit_bytes": 0}, "SHADOW_NO_ADDITIONAL_SWAP"),
         ({"status_payload": {}}, "SAFE_STATUS_PAYLOAD_EXACT"),
+        ({"observation_evidence_payload": {}}, "STATIC_OBSERVATION_EVIDENCE_PAYLOAD_EXACT"),
     ],
 )
 def test_each_image_or_runtime_boundary_divergence_fails_closed(overrides: dict[str, object], failure_code: str) -> None:
@@ -112,7 +114,7 @@ def test_invalid_contract_or_fact_shape_is_rejected() -> None:
         evaluate_shadow_image_identity_facts(contract, {"shadow_container_count": 1})
 
 
-def test_collection_reads_only_docker_metadata_and_fixed_loopback_status() -> None:
+def test_collection_reads_only_docker_metadata_and_fixed_loopback_endpoints() -> None:
     contract = _contract()
     expected = contract["expected"]
     calls: list[tuple[str, ...]] = []
@@ -141,16 +143,16 @@ def test_collection_reads_only_docker_metadata_and_fixed_loopback_status() -> No
             return expected["port_mapping"]
         raise AssertionError("unexpected command: %r" % (arguments,))
 
-    probes: list[tuple[str, int]] = []
+    probes: list[tuple[str, int, str]] = []
 
-    def probe(host: str, port: int) -> dict[str, object]:
-        probes.append((host, port))
-        return dict(expected["status_payload"])
+    def probe(host: str, port: int, path: str) -> dict[str, object]:
+        probes.append((host, port, path))
+        return dict(expected["status_payload"] if path == "/status" else expected["observation_evidence_payload"])
 
     facts = collect_shadow_image_identity_facts(contract, run=run, probe=probe)
 
     assert facts == _facts()
-    assert probes == [("127.0.0.1", 8081)]
+    assert probes == [("127.0.0.1", 8081, "/status"), ("127.0.0.1", 8081, "/evidence")]
     assert all(call[0] == "docker" for call in calls)
     assert all("/etc/abd" not in value for call in calls for value in call)
 

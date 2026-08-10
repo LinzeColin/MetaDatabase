@@ -6,6 +6,7 @@
 
 ## 当前状态
 
+- 后冻结 shadow 中文观察证据回环切换（单一独立增量）已完成：新增 `/evidence` 的固定聚合静态证据面和中文根页声明；页面与 JSON 都明确为 `SHADOW_READ_ONLY`、2025/26 E0 单赛季 380 场/1,140 个结果事件的描述性静态校准、不允许参数更新、不连接真实市场/账户/TAB/Gmail、不生成建议或订单、尚未经 Cloudflare 公开发布，月度 30% 目标未验证且不保证。运行 image identity attester 扩展为精确核验 `/status` 与 `/evidence`；其本次 source claim 仍严格只是运行 image identity，不是 source commit 或 OCI archive provenance。受控主机先以既有 `runtime/build_oci.sh` 的 `linux/amd64`、`--pull=false`、`--network=none` 边界重建并加载新 image；切换前发现预期 canonical release/config 控制路径已不存在、旧 digest 亦不能再由 Docker image store 解析，故未盲目 `compose force-recreate`，而是只在现有 running shadow 的全部冻结 user/env/mount/resource/loopback/network 前置逐项一致后，建立一个新 image 的精确单容器替换并保留自动回滚。首次即时探测发生本地 `ConnectionResetError` 后已自动恢复旧容器；最终仅用最多两秒、三次固定 loopback readiness 尝试（不是真实时间 soak）通过双端点 attestation，随后删除旧回滚容器和本次远端暂存目录。最终证明为 1 个 running shadow、0 个 core、512 MiB memory/memory-swap、精确 `127.0.0.1:8081`，`/status` 与 `/evidence` 全量精确，既有 shadow runtime compatibility 和中文根页 probe 也均 PASS。三份脱敏回执 SHA-256 分别为 `1ccb2440fe88772b7137f246ae5a8620230c352f5c844be87f773942d35421e9`、`47e1e7cfabf1b88661ed6935ad4a28894405a20dd1f01239d2a44dd41a458238`、`0a6ed25981488260f11a6f826a213a36fea36d47e470a90bbc85ec40f8a7ad2f`，已写入并单次字节级读回确认：`Private-MetaDatabase/objects/1c/1ccb2440fe88772b7137f246ae5a8620230c352f5c844be87f773942d35421e9_abd-shadow-observation-evidence-receipt-20260810.json`、`Private-MetaDatabase/objects/47/47e1e7cfabf1b88661ed6935ad4a28894405a20dd1f01239d2a44dd41a458238_abd-shadow-runtime-current-receipt-20260810.json`、`Private-MetaDatabase/objects/0a/0a6ed25981488260f11a6f826a213a36fea36d47e470a90bbc85ec40f8a7ad2f_abd-shadow-chinese-root-probe-20260810.json`。本地只运行新增 runtime/attester 的 `24 passed` 定向测试、`py_compile`、installer shell syntax 与 diff check；未运行全量测试、完整回归或真实时间 soak，新增现金 A$0。该增量只证明当前 host-loopback shadow 的静态中文观察面，不构成 canonical release 恢复、core production、Cloudflare 公开/全球或中国大陆可达、7×24、真实市场/账户/TAB/Gmail、建议/订单或收益证明。
 - 后冻结 Football-Data 历史静态来源绑定与私有归档（单一独立增量）已完成：当前官方数据页明确说明其 CSV 数据免费提供、用途限定为 league match prediction；正式再分发许可未在该页声明，因此新增 `runtime/football_data_static_source_contract.json` 只允许内部联赛比赛预测研究、绝不重发布、绝不把数据写进源码仓。`runtime/football_data_static_source.py` 只从本地输入文件做 CSV/schema/日期/比分结果一致性/decimal-odds 校验，完全没有网络客户端或调度依赖；合同只允许一次 schema preflight 与一次完整静态下载，禁用自动 retry/scheduler、动态平台采集、实时价格、TAB/Gmail/账户、建议和订单。该两次上限内成功验证并私有归档一个已完成赛季的 E0 CSV：380 行，必要比赛与 `B365H/B365D/B365A` 字段齐全，原始 SHA-256 为 `3e3a8352f9ada6789c508d6ca184424421fed56a30400904a4a327c583407e62`；当前回执同时绑定 source contract 与 validator 的 SHA-256，原始文件和当前来源回执分别为 `Private-MetaDatabase/objects/3e/3e3a8352f9ada6789c508d6ca184424421fed56a30400904a4a327c583407e62_abd-football-data-e0-2526-20260810.csv` 与 `Private-MetaDatabase/objects/69/693500c05b37405c0a64d0d75ccabee7993f5fdb33fdeb44bad4bc43088b88dc_abd-football-data-e0-2526-20260810-receipt.json`，均已单次读回确认。新增定向测试 `10 passed`，未执行全量测试、完整回归或真实时间 soak，新增现金 A$0。它只提供一个受限的历史、静态、内部研究输入；不构成实时市场、来源全覆盖、动态授权、模型 Beta/GA、公开端点、Cloudflare 全球/中国大陆可达、core production、TAB/Gmail、建议/订单或收益证明。
 - 后冻结 OpenFootball CC0 历史赛果来源绑定与私有归档（单一独立增量）已完成：官方 OpenFootball 英格兰仓的 GitHub license endpoint 明确返回 `CC0-1.0` / Creative Commons Zero v1.0 Universal，并绑定该 license 内容 Git SHA-1；新增 `runtime/openfootball_static_source_contract.json` 仅允许内部历史赛果校准研究、绝不把原始数据写进源码仓或由 ABD 重发布。`runtime/openfootball_static_source.py` 只从本地 Football.TXT 输入校验精确赛季 header、20 队/380 场、最终比分、半场比分不可能性和重复主客场，完全没有网络客户端或调度依赖；合同严格记录一次 license metadata 读取、一次有界 schema preflight 和一次完整静态下载，禁用自动 retry/scheduler、动态平台采集、实时价格、TAB/Gmail/账户、建议和订单。该三次上限内成功验证并私有归档 2025/26 Premier League 完整赛季：380 场、20 队，原始 SHA-256 为 `38c1de56c9e9b6662c7efc1420b7e1fe00dddbb502fe72d8f759e773ba3c093b`；原始文件和当前来源回执分别为 `Private-MetaDatabase/objects/38/38c1de56c9e9b6662c7efc1420b7e1fe00dddbb502fe72d8f759e773ba3c093b_openfootball-england-premierleague-2025-26.txt` 与 `Private-MetaDatabase/objects/0e/0e2a9973688fe20a51d2e8ebfedb8b8822d9810f7989e789b0df73e306d6dd76_openfootball-england-premierleague-2025-26-receipt.json`，均已单次字节级读回确认。新增定向测试 `10 passed`，未执行全量测试、完整回归或真实时间 soak，新增现金 A$0。它只提供一个受限的历史赛果校准输入，不构成官方赛果等价、赔率/实时市场、来源全覆盖、动态授权、模型 Beta/GA、公开端点、Cloudflare 全球/中国大陆可达、core production、TAB/Gmail、建议/订单或收益证明。
 - 后冻结历史赛果交叉一致性（单一独立增量）已完成：新增 `runtime/historical_result_crosscheck_contract.json` 和 `runtime/historical_result_crosscheck.py`，只允许从已经私有归档的 Football-Data 与 OpenFootball 静态输入读取，逐一以 `日期 + canonical 主队 + canonical 客队` 身份键比较 2025/26 英超最终比分。合同精确绑定两份原始 SHA-256、两份来源合同 SHA-256、20 个显式别名和 380 场/20 队预期；未知别名、日期/赛季越界、重复 fixture、来源哈希不符、缺失身份或任一最终比分差异均失败关闭。真实私有输入的本地重放为 380 个已匹配身份、`0` 个互相缺失、`0` 个最终比分差异；聚合回执绑定本合同与验证器 SHA-256，已写入并单次字节级读回确认：`Private-MetaDatabase/objects/db/dbed09bfa6502be1a643fdeb2087b6027569c56ecd2f90ae084198f61be31dec_historical-result-crosscheck-receipt.json`。定向测试 `8 passed`，未执行全量测试、完整回归或真实时间 soak，新增现金 A$0。交叉回执不含赛果行、球队列表、赔率或模型输出；它只证明该两份静态历史来源在受限身份/最终比分范围内的一致性，不构成来源全覆盖、实时赔率真值、官方赛果等价、校准参数更新、模型 Beta/GA、建议/订单、公开端点、Cloudflare、core production 或收益证明。
@@ -159,11 +160,16 @@
 - 远端 CI 同款 S00/S08 定向门：`67 passed`；S08 候选预检 `67/67 PASS`，S07 legacy receipt 回放 `7/7 PASS`。JUnit 已规范化，工件清单与 `SHA256SUMS` 已重建。
 - S10 复审回滚 receipt 为 `machine/evidence/EVD-S10-STAGE-REVIEW_rollback.json`；其动作只关闭复审候选并保留 P01--P04 已签名证据，未改变外部或生产状态。
 
+- 提交前定向复验增加了一个证据面弱化拒绝用例；最终本 phase suite 为 `25 passed`，并再次通过 `py_compile` 与 installer shell syntax。该补充仍不是全量测试、完整回归或真实时间 soak。
+
 ## 关键文件
 
+- `runtime/abd_runtime/observation_evidence.py`
+- `runtime/abd_runtime/server.py`
 - `runtime/shadow_runtime_image_identity_attestation.py`
 - `runtime/shadow_runtime_image_identity_attestation_contract.json`
 - `runtime/install_shadow_runtime_image_identity_attestation.sh`
+- `runtime_tests/test_runtime_server.py`
 - `runtime_tests/test_shadow_runtime_image_identity_attestation.py`
 - `abd_acceptance/walking_skeleton.py`
 - `abd_acceptance/walking_skeleton_acceptance.py`
@@ -498,6 +504,7 @@
 
 ## 未解决风险
 
+- 当前 shadow 的新 image 与双端点/根页证据均为 host-loopback 当前态，但受控主机的预期 canonical release/config 控制路径在本 phase 的受限读取中不存在，旧 digest 也不能由当前 Docker image store 解析。此次只以现有容器的严格冻结配置做单容器替换，未恢复、假设或声称 canonical release；如需长期可重建性，必须另开一个只恢复非秘密 release bundle 与精确 provenance 的 phase，并先独立证明其输入与当前运行边界一致。
 - S11/P01--P04、整体复审和 GitHub 阶段上传均已完成；其修复后的远端检查曾在较早提交上显示成功，但不能替代或外推至更新后的 S12 提交。
 - S12/P01--P04、整体复审和 GitHub 上传均已完成；S12 的新远端检查在即时快照中仍为 `QUEUED` 或 `IN_PROGRESS`，因此不代表远端 CI、合并、发布、OVH、Cloudflare、真实市场、真实账户、TAB/Gmail 归档或生产上线完成。
 - S13/P01 只有本地冻结合成证据与静态 UI/CSS 合同；它不构成真实浏览器或移动设备验证，也不构成外部推送、Cloudflare、OVH、真实市场、TAB/Gmail、真实账户、订单、部署或上线证明。
@@ -527,5 +534,7 @@
 - 真实市场、真实账户、TAB/Gmail 证据归档、Cloudflare 与核心生产上线均未验证、未部署且不应据此推断完成；现有 OVH 证据仅覆盖 host-loopback `abd-shadow`，不外推为核心容量合格、全球访问、7×24 或生产上线。
 
 ## 下一步
+
+在任何新的 host phase 前，先单独恢复并验证非秘密 canonical release/config control plane 与 image provenance；不得把本次由现有容器严格克隆得到的 loopback shadow 替代物称为 canonical release 或可持续重建部署。该工作仍不得读取/导出 runtime secret 或扩大到 core、Cloudflare/DNS/Access、真实市场、账户、TAB/Gmail、建议或订单。
 
 保持 PR #174 的远端 CI 状态与本地结果彼此独立；不得把 pending、远端检查、Draft PR、本地验收、当前 loopback shadow、一次性 attestation、无 hostname connector、两项历史来源、静态残差描述、主机可达性或 OCI 制品外推为 CI、合并、公开 endpoint、core deployment、Cloudflare 全球访问、真实市场、账户或生产上线完成。静态残差回执明确不是模型增量或参数更新依据；未来若做新的静态证据 phase，必须继续保持单独、不可激活且不改变 `model_beta_gate` 的边界。当前 Cloudflare MFA 重验为 `Inactive`，所以受保护 shadow hostname/DNS phase 只能在唯一账户持有人在仓库外完成 MFA 且其状态可独立复验后再选作一个新的明确 phase；不得输入/复用账号密码、OTP 或创建 Access/DNS 绕过。core service 仍须以冻结的 2560m resource limit、现时 host memory 和原有严格 swap/capacity 合同另行裁决，不能把当前 connector、容器 no-additional-swap、两项静态历史数据、静态残差描述或用户对 host-wide swap 的纠正误用为 core 通过。保持零新增现金与既有证据、数值、风险、安全和来源门不降级。

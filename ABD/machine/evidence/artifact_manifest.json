@@ -1,5 +1,5 @@
 {
-  "file_count": 1116,
+  "file_count": 1117,
   "files": [
     {
       "bytes": 25,
@@ -17,9 +17,9 @@
       "sha256": "a1b6d13afea6f383061d2d3405efe2f2d8f4867fbb08a5edf0e53415c16a239a"
     },
     {
-      "bytes": 141936,
+      "bytes": 146041,
       "path": "HANDOFF.md",
-      "sha256": "fd7f36ad05e9be417aefb58040c3ee3a0fb3a9ffb63941674285c8ca263d9eaa"
+      "sha256": "c7a7f22a57c063095e1960d729dc176704efe4a499a71ad39dcae51a8cc799af"
     },
     {
       "bytes": 643,
@@ -4627,9 +4627,14 @@
       "sha256": "c51bef940aa5d988af7d7ab25377eaaa53250f1713708b4e302be4ad608c2155"
     },
     {
-      "bytes": 6980,
+      "bytes": 2181,
+      "path": "runtime/abd_runtime/observation_evidence.py",
+      "sha256": "095035ab3f8e38da84cf253e634a9e98d3852413b2b8f8f558fe60b0ff09d317"
+    },
+    {
+      "bytes": 7647,
       "path": "runtime/abd_runtime/server.py",
-      "sha256": "47ed0ff07f19ce6f55de598de33ade6e2da4462fba059b2251135b49cf2eba5d"
+      "sha256": "38e8afc40650a1eee8cd7596dd8575ed0221114058620ec75b98ba0dcf184d73"
     },
     {
       "bytes": 1271,
@@ -4707,14 +4712,14 @@
       "sha256": "0e858e7b69d18f13efa33e15a139a72443bd4f10ab75f931fca0e4382af45f4d"
     },
     {
-      "bytes": 20201,
+      "bytes": 22360,
       "path": "runtime/shadow_runtime_image_identity_attestation.py",
-      "sha256": "e0c8313766120d1c5308e273a3753cc410a433b576da1eef7d0378a244c769d3"
+      "sha256": "fe30c73454b40879066f3c0c469faf7815440d58710737a4f95892e23ec7fff0"
     },
     {
-      "bytes": 1944,
+      "bytes": 2749,
       "path": "runtime/shadow_runtime_image_identity_attestation_contract.json",
-      "sha256": "1717d800da4644b3bde58d788aca8cdd75fd76727bc53791348a95a85e958c9b"
+      "sha256": "85a2e27fac5b15516392e99362e9a10ce8f86634dcc7d2e8624f37c405b6bb0a"
     },
     {
       "bytes": 17328,
@@ -4752,9 +4757,9 @@
       "sha256": "e791814f3c687797ad9a31e5357edb2b064f14e4b3d2054988aa8594c1fbdb5e"
     },
     {
-      "bytes": 6074,
+      "bytes": 7449,
       "path": "runtime_tests/test_runtime_server.py",
-      "sha256": "61e3616de5b46162001b9c74539096e2940619148bc0441f65cb4dc72249c5d0"
+      "sha256": "00e7ac1df4c3e6837d0a22bb26199474c824ec627ca5794fdcb9701ec2a49af0"
     },
     {
       "bytes": 6348,
@@ -4762,9 +4767,9 @@
       "sha256": "d5343a751671f5b0fc81d78974651d2350dd37e3dc3d87c0b2155f644713aebf"
     },
     {
-      "bytes": 7252,
+      "bytes": 7564,
       "path": "runtime_tests/test_shadow_runtime_image_identity_attestation.py",
-      "sha256": "4fbe1add94f00c8110296f7b071fc72e1d682e1b0f903361f53158e7bbc9c481"
+      "sha256": "a9fd0994b3dc8c9388bc1a62e0eb08f040cde5ed0b382afe8b77990b2c2591cd"
     },
     {
       "bytes": 5994,
