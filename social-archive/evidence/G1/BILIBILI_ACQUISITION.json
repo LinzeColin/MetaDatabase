@@ -3,7 +3,7 @@
   "task": "G1",
   "what_this_is": "B 站收藏夹取数路的实测记录。SYNCABLE_NOW 收 bilibili 的依据就是这份。",
   "live_probe_ran": true,
-  "probed_at": "2026-08-10T08:24:13Z",
+  "probed_at": "2026-08-10T08:36:10Z",
   "live": {
     "live_folder": {
       "ok": true,

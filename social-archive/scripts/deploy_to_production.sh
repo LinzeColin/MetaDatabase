@@ -645,7 +645,12 @@ if [[ -n "${SOCIAL_ARCHIVE_DEPLOY_BUILD_LOCALLY:-}" ]]; then
   # （SOCIAL_ARCHIVE_DEPLOY_MIN_FREE_GB，演练就是靠它把「磁盘不够 → 中止」
   # 那条路真的走一遍），取高的那个——**开关只能往更严那一侧拨。**
   DERIVED_KB=$(( TAR_KB * 3 + 524288 ))
-  if (( MIN_FREE_KB > DERIVED_KB )); then
+  # **只认「显式设过」的那个门槛，不认默认值。**（2026-08-10 当场栽了一次）
+  # 上一版写的是 `if (( MIN_FREE_KB > DERIVED_KB ))`——而 MIN_FREE_GB 默认就是 5，
+  # 于是「取高的那个」永远取到 5G，按镜像算出来的 0.82G 一次都用不上：
+  # **这条本机构建的路从第一次跑起就是恒中止的**，而它存在的全部理由
+  # 就是绕开那个 5G。这就是「阈值高过天花板 → 恒红」，这个仓记过一次。
+  if [[ -n "${SOCIAL_ARCHIVE_DEPLOY_MIN_FREE_GB:-}" ]] && (( MIN_FREE_KB > DERIVED_KB )); then
     printf '  门槛按人为设定的 %sG 算（比按镜像算出来的 %sG 高）。\n' \
       "$MIN_FREE_GB" "$(show_gb "$DERIVED_KB")"
   else
