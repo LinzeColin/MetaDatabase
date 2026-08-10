@@ -3,7 +3,8 @@
 from __future__ import annotations
 import argparse, json, os
 from pathlib import Path
-import httpx
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -21,12 +22,16 @@ def main() -> int:
     status_url=os.getenv('STATUS_URL','').strip()
     if status_url:
         try:
-            r=httpx.get(status_url,timeout=10,follow_redirects=True)
-            checks.append({"name":"STATUS_URL","status":"PASS" if r.status_code < 500 else "FAIL","http_status":r.status_code})
-        except Exception as exc:
+            request = Request(status_url, headers={"User-Agent": "jobhuntbot-ops-probe/0.3"})
+            with urlopen(request, timeout=10) as response:
+                status_code = response.status
+            checks.append({"name":"STATUS_URL","status":"PASS" if status_code < 500 else "FAIL","http_status":status_code})
+        except HTTPError as exc:
+            checks.append({"name":"STATUS_URL","status":"FAIL","http_status":exc.code})
+        except (OSError, URLError) as exc:
             checks.append({"name":"STATUS_URL","status":"FAIL","error_type":type(exc).__name__})
     verdict='PASS' if checks and all(x['status']=='PASS' for x in checks) else 'BLOCKED'
-    result={"verdict":verdict,"critical":False,"checks":checks,"secret_values_read":False,"production_claimed":True}
+    result={"verdict":verdict,"critical":False,"checks":checks,"secret_values_read":False,"production_claimed":verdict == "PASS"}
     out=Path(args.output); out=out if out.is_absolute() else ROOT/out; out.parent.mkdir(parents=True,exist_ok=True); out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     print(json.dumps(result,ensure_ascii=False,indent=2)); return 0
 if __name__=='__main__': raise SystemExit(main())

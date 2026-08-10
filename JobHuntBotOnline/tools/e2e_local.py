@@ -500,17 +500,19 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
             tail = "\n".join(log_path.read_text(encoding="utf-8", errors="replace").splitlines()[-40:])
         except Exception:
             pass
+        blocked_by_policy = "ERR_BLOCKED_BY_ADMINISTRATOR" in str(exc)
         return {
-            "verdict": "FAIL",
+            "verdict": "BLOCKED" if blocked_by_policy else "FAIL",
             "scope": "real Uvicorn + Chromium local acceptance",
             "production_claimed": False,
+            "blocker": "chromium_managed_url_blocklist" if blocked_by_policy else "",
             "error_type": type(exc).__name__,
             "error": str(exc),
             "steps_completed": steps,
             "console_errors": console_errors[-20:],
             "page_errors": page_errors[-20:],
             "server_log_tail": tail,
-        }, 1
+        }, 2 if blocked_by_policy else 1
     finally:
         if process is not None:
             process.terminate()

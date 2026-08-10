@@ -1,9 +1,8 @@
 {
   "verdict": "PASS",
-  "command": "python -m pytest -q",
-  "tests_passed": 18,
+  "command": "project test environment: python -m pytest -p no:cacheprovider tests -q",
+  "tests_passed": 27,
   "return_code": 0,
-  "duration_seconds": 12.658,
-  "output_tail": "..................                                                       [100%]",
+  "output_tail": "...........................                                              [100%]",
   "production_claimed": false
 }

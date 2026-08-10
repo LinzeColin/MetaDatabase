@@ -6,7 +6,7 @@
 |---|---|
 | Product | JobHuntBot Online |
 | Product version | 0.3.0 |
-| Taskpack version | 0.3.0-r1 |
+| Taskpack version | 0.3.0-r2 |
 | Schema baseline | Alembic `0001_saas_baseline` |
 | Target repository | `LinzeColin/MetaDatabase` |
 | Observed remote baseline | branch `codex/jobhuntbot-online-v020-deployment`, commit `cf820c7a5841242a4727eb6c40c35079eb9bb152` |
@@ -26,6 +26,7 @@
 - `INV-PLATFORM-007`：不绕过第三方平台限制，不自动最终提交申请。
 - `INV-RECOVERY-008`：发布前可备份，失败可回滚；迁移后可读回和恢复。
 - `INV-EVIDENCE-009`：未运行、阻断和未知不得写成 PASS。
+- `INV-MAIL-010`：NitroSend 不属于产品依赖。邮件层只使用供应商无关的标准 SMTP；SMTP 未就绪只隔离阻断邮件生命周期，不得停止其他安全可逆工作。
 
 ## 3. 当前版本范围
 
@@ -84,7 +85,7 @@
 
 1. `deploy/acceptance.sh` 生成根目录 `ACCEPTANCE_RESULT.json`；
 2. `core_verdict=PASS`；
-3. 真实 HTTPS、SMTP、DeepSeek、PostgreSQL、Scheduler、Worker 均有本轮证据；
+3. 真实 HTTPS、标准 SMTP、DeepSeek、PostgreSQL、Scheduler、Worker 均有本轮证据；NitroSend 不得作为依赖；
 4. 两个独立测试账户完成正向事务与跨租户负向事务；
 5. 应用重启后读回成功；
 6. 备份可读且恢复步骤在隔离范围验证；
@@ -93,7 +94,7 @@
 
 ## 7. Owner Gate
 
-只有域名/邮箱/Secret 权限、成本增加、数据权威变化、公开发布、法律或不可逆操作可以阻断并询问 Owner。普通技术适配由 Delivery Agent 自主决定。
+只有域名/通用 SMTP 凭据/Secret 权限、成本增加、数据权威变化、公开发布、法律或不可逆操作可以成为对应动作的 Owner Gate。NitroSend 不可用不构成 Gate；缺少 SMTP 只阻断邮箱验收和最终 PASS，其他安全可逆任务继续。普通技术适配由 Delivery Agent 自主决定。
 
 ## 8. 冲突优先级
 

@@ -1,16 +1,206 @@
 {
-  "version": "0.3.0-r1",
+  "version": "0.3.0-r2",
   "tasks": [
-    {"id":"T00","stage":"OBSERVE_CURRENT_TRUTH","title":"观察最新仓库和真实部署","depends_on":[],"outputs":["evidence/target-current-truth.json"],"acceptance":["AC-PACK-00"],"rollback":"只读，无副作用","stop_condition":"目标项目、域名或权限身份无法唯一确定"},
-    {"id":"T01","stage":"PROTECT_CURRENT_STATE","title":"建立部署前备份与回滚点","depends_on":["T00"],"outputs":["runtime-data/predeploy-backup.txt","runtime-data/rollback-image.txt"],"acceptance":["AC-RECOVERY-09"],"rollback":"不改变当前运行版本","stop_condition":"备份不可读或无恢复权限"},
-    {"id":"T02","stage":"ADAPT_SOURCE","title":"把 v0.3 Candidate 适配到最新仓库","depends_on":["T00","T01"],"outputs":["目标仓 v0.3 源码 Candidate"],"acceptance":["AC-PACK-00","AC-TENANT-02"],"rollback":"保留独立工作树或可逆提交","stop_condition":"与 Owner L0/L1 冲突"},
-    {"id":"T03","stage":"CONFIGURE_SECRETS","title":"生成生产配置并安全注入 Secret","depends_on":["T02"],"outputs":[".env","secrets/postgres_password.txt","安全登录交付"],"acceptance":["AC-AI-03","AC-PROD-10"],"rollback":"删除未生效配置，不影响旧服务","stop_condition":"缺失真实域名、SMTP 或 Secret 权限"},
-    {"id":"T04","stage":"MIGRATE_DATA","title":"部署 PostgreSQL Schema 并迁移 v0.2 数据","depends_on":["T01","T03"],"outputs":["Alembic head","migration-result.json"],"acceptance":["AC-DATA-08"],"rollback":"恢复部署前备份并回到旧应用","stop_condition":"迁移数量或读回不一致"},
-    {"id":"T05","stage":"DEPLOY_RUNTIME","title":"部署 Web、Scheduler、Worker","depends_on":["T03","T04"],"outputs":["真实 deployment identity"],"acceptance":["AC-DISCOVERY-04","AC-REFRESH-05","AC-UX-06","AC-APPLICATION-07","AC-SOURCE-11"],"rollback":"切回 rollback image，数据库保持兼容","stop_condition":"健康检查或任务队列失败"},
-    {"id":"T06","stage":"VERIFY_EMAIL","title":"验证真实 SMTP 注册和密码重置","depends_on":["T05"],"outputs":["evidence/target-email.json"],"acceptance":["AC-AUTH-01","AC-PROD-10"],"rollback":"停用注册或切回旧版本","stop_condition":"邮件无法投递或 Token 规则失败"},
-    {"id":"T07","stage":"VERIFY_DEEPSEEK","title":"验证平台 DeepSeek 和降级","depends_on":["T05"],"outputs":["evidence/target-deepseek.json"],"acceptance":["AC-AI-03"],"rollback":"清除 Key，核心规则继续","stop_condition":"Key、额度或供应商不可用"},
-    {"id":"T08","stage":"PRODUCTION_ACCEPTANCE","title":"执行真实 HTTPS 全链验收","depends_on":["T05","T06","T07"],"outputs":["ACCEPTANCE_RESULT.json"],"acceptance":["AC-AUTH-01","AC-TENANT-02","AC-AI-03","AC-DISCOVERY-04","AC-REFRESH-05","AC-UX-06","AC-APPLICATION-07","AC-DATA-08","AC-RECOVERY-09","AC-PROD-10","AC-SOURCE-11"],"rollback":"任何 P0/P1 失败立即切回回滚镜像/备份","stop_condition":"core verdict 非 PASS"},
-    {"id":"T09","stage":"INTEGRATE_OPERATIONS","title":"接入 status、Private-Database 和授权 R2","depends_on":["T08"],"outputs":["evidence/target-ops.json"],"acceptance":["AC-OPS-12"],"rollback":"移除新增只读投影/定时器","stop_condition":"会产生未授权费用或第二事实源"},
-    {"id":"T10","stage":"RELEASE","title":"提交、推送并记录部署与回滚身份","depends_on":["T08","T09"],"outputs":["commit/branch/deployment/rollback references"],"acceptance":["AC-OPS-12"],"rollback":"按目标仓规则 revert 或部署上一制品","stop_condition":"生产 Acceptance 漂移或仓库门失败"}
+    {
+      "id": "T00",
+      "stage": "OBSERVE_CURRENT_TRUTH",
+      "title": "观察最新仓库和真实部署",
+      "depends_on": [],
+      "outputs": [
+        "evidence/target-current-truth.json"
+      ],
+      "acceptance": [
+        "AC-PACK-00"
+      ],
+      "rollback": "只读，无副作用",
+      "stop_condition": "目标项目、域名或权限身份无法唯一确定"
+    },
+    {
+      "id": "T01",
+      "stage": "PROTECT_CURRENT_STATE",
+      "title": "建立部署前备份与回滚点",
+      "depends_on": [
+        "T00"
+      ],
+      "outputs": [
+        "runtime-data/predeploy-backup.txt",
+        "runtime-data/rollback-image.txt"
+      ],
+      "acceptance": [
+        "AC-RECOVERY-09"
+      ],
+      "rollback": "不改变当前运行版本",
+      "stop_condition": "备份不可读或无恢复权限"
+    },
+    {
+      "id": "T02",
+      "stage": "ADAPT_SOURCE",
+      "title": "把 v0.3 Candidate 适配到最新仓库",
+      "depends_on": [
+        "T00",
+        "T01"
+      ],
+      "outputs": [
+        "目标仓 v0.3 源码 Candidate"
+      ],
+      "acceptance": [
+        "AC-PACK-00",
+        "AC-TENANT-02"
+      ],
+      "rollback": "保留独立工作树或可逆提交",
+      "stop_condition": "与 Owner L0/L1 冲突"
+    },
+    {
+      "id": "T03",
+      "stage": "CONFIGURE_SECRETS",
+      "title": "生成生产配置并安全注入非邮件 Secret；邮件可延后",
+      "depends_on": [
+        "T02"
+      ],
+      "outputs": [
+        ".env",
+        "secrets/postgres_password.txt",
+        "安全登录交付"
+      ],
+      "acceptance": [
+        "AC-AI-03",
+        "AC-PROD-10"
+      ],
+      "rollback": "删除未生效配置，不影响旧服务",
+      "stop_condition": "缺失真实域名、数据库或核心 Secret 权限；NitroSend/SMTP 缺失不得阻断本任务"
+    },
+    {
+      "id": "T04",
+      "stage": "MIGRATE_DATA",
+      "title": "部署 PostgreSQL Schema 并迁移 v0.2 数据",
+      "depends_on": [
+        "T01",
+        "T03"
+      ],
+      "outputs": [
+        "Alembic head",
+        "migration-result.json"
+      ],
+      "acceptance": [
+        "AC-DATA-08"
+      ],
+      "rollback": "恢复部署前备份并回到旧应用",
+      "stop_condition": "迁移数量或读回不一致"
+    },
+    {
+      "id": "T05",
+      "stage": "DEPLOY_RUNTIME",
+      "title": "部署 Web、Scheduler、Worker（邮件未就绪也继续）",
+      "depends_on": [
+        "T03",
+        "T04"
+      ],
+      "outputs": [
+        "真实 deployment identity"
+      ],
+      "acceptance": [
+        "AC-DISCOVERY-04",
+        "AC-REFRESH-05",
+        "AC-UX-06",
+        "AC-APPLICATION-07",
+        "AC-SOURCE-11"
+      ],
+      "rollback": "切回 rollback image，数据库保持兼容",
+      "stop_condition": "健康检查或任务队列失败"
+    },
+    {
+      "id": "T06",
+      "stage": "VERIFY_EMAIL",
+      "title": "验证任意标准 SMTP 注册和密码重置",
+      "depends_on": [
+        "T05"
+      ],
+      "outputs": [
+        "evidence/target-email.json"
+      ],
+      "acceptance": [
+        "AC-AUTH-01",
+        "AC-PROD-10"
+      ],
+      "rollback": "停用注册或切回旧版本",
+      "stop_condition": "标准 SMTP 凭据不可用时仅阻断 T06/T08；记录 EMAIL_ONLY_BLOCKED，其他任务继续"
+    },
+    {
+      "id": "T07",
+      "stage": "VERIFY_DEEPSEEK",
+      "title": "验证平台 DeepSeek 和降级",
+      "depends_on": [
+        "T05"
+      ],
+      "outputs": [
+        "evidence/target-deepseek.json"
+      ],
+      "acceptance": [
+        "AC-AI-03"
+      ],
+      "rollback": "清除 Key，核心规则继续",
+      "stop_condition": "Key、额度或供应商不可用"
+    },
+    {
+      "id": "T08",
+      "stage": "PRODUCTION_ACCEPTANCE",
+      "title": "执行真实 HTTPS 全链验收",
+      "depends_on": [
+        "T05",
+        "T06",
+        "T07"
+      ],
+      "outputs": [
+        "ACCEPTANCE_RESULT.json"
+      ],
+      "acceptance": [
+        "AC-AUTH-01",
+        "AC-TENANT-02",
+        "AC-AI-03",
+        "AC-DISCOVERY-04",
+        "AC-REFRESH-05",
+        "AC-UX-06",
+        "AC-APPLICATION-07",
+        "AC-DATA-08",
+        "AC-RECOVERY-09",
+        "AC-PROD-10",
+        "AC-SOURCE-11"
+      ],
+      "rollback": "任何 P0/P1 失败立即切回回滚镜像/备份",
+      "stop_condition": "core verdict 非 PASS"
+    },
+    {
+      "id": "T09",
+      "stage": "INTEGRATE_OPERATIONS",
+      "title": "接入 status、Private-Database 和授权 R2",
+      "depends_on": [
+        "T05"
+      ],
+      "outputs": [
+        "evidence/target-ops.json"
+      ],
+      "acceptance": [
+        "AC-OPS-12"
+      ],
+      "rollback": "移除新增只读投影/定时器",
+      "stop_condition": "会产生未授权费用或第二事实源"
+    },
+    {
+      "id": "T10",
+      "stage": "RELEASE",
+      "title": "提交、推送并记录部署与回滚身份",
+      "depends_on": [
+        "T08",
+        "T09"
+      ],
+      "outputs": [
+        "commit/branch/deployment/rollback references"
+      ],
+      "acceptance": [
+        "AC-OPS-12"
+      ],
+      "rollback": "按目标仓规则 revert 或部署上一制品",
+      "stop_condition": "生产 Acceptance 漂移或仓库门失败"
+    }
   ]
 }

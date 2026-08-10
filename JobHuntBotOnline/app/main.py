@@ -96,7 +96,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; "
+            "default-src 'self'; img-src 'self' data:; style-src 'self'; "
+            "script-src 'self' https://static.cloudflareinsights.com; connect-src 'self'; "
             "form-action 'self'; frame-ancestors 'none'; base-uri 'self'"
         )
         if not request.cookies.get(CSRF_COOKIE):
@@ -142,6 +143,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "app_version": settings.app_version,
             "user": request.state.user,
             "csrf_token": _csrf(request),
+            "registration_open": settings.allow_registration,
+            "email_delivery_ready": settings.testing or settings.app_env != "production" or bool(settings.smtp_host),
             "message": request.query_params.get("message", ""),
             "error": request.query_params.get("error", ""),
         })
@@ -247,6 +250,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/resend-verification", response_class=HTMLResponse)
     def resend_page(request: Request):
+        if settings.app_env == "production" and not settings.smtp_host:
+            raise HTTPException(503, "邮件服务正在配置中，请稍后再试。")
         return _render(request, "resend_verification.html")
 
     @app.post("/resend-verification")
@@ -257,6 +262,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         db: Session = Depends(get_db),
     ):
         _require_csrf(request, csrf_token)
+        if settings.app_env == "production" and not settings.smtp_host:
+            raise HTTPException(503, "邮件服务正在配置中，请稍后再试。")
         ip = request.client.host if request.client else "unknown"
         if not rate_limit(db, key=f"resend:{ip}", limit=5, window_seconds=3600):
             return _redirect("/resend-verification", error="请求过于频繁，请稍后再试。")
@@ -316,6 +323,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/forgot-password", response_class=HTMLResponse)
     def forgot_page(request: Request):
+        if settings.app_env == "production" and not settings.smtp_host:
+            raise HTTPException(503, "邮件找回正在配置中，请稍后再试。")
         return _render(request, "forgot_password.html")
 
     @app.post("/forgot-password")
@@ -326,6 +335,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         db: Session = Depends(get_db),
     ):
         _require_csrf(request, csrf_token)
+        if settings.app_env == "production" and not settings.smtp_host:
+            raise HTTPException(503, "邮件找回正在配置中，请稍后再试。")
         ip = request.client.host if request.client else "unknown"
         if not rate_limit(db, key=f"forgot:{ip}", limit=6, window_seconds=3600):
             return _redirect("/forgot-password", error="请求过于频繁，请稍后再试。")

@@ -8,12 +8,14 @@
 
 ## 当前事实
 
-- 产品版本：`0.3.0`；任务包修订：`0.3.0-r1`。
+- 产品版本：`0.3.0`；任务包修订：`0.3.0-r2`。
 - 已核实远程基线：`LinzeColin/MetaDatabase` 分支 `codex/jobhuntbot-online-v020-deployment`，提交 `cf820c7a5841242a4727eb6c40c35079eb9bb152`，属于 v0.2.0。
 - v0.3.0 完整 Candidate 源码在本 ZIP；远程尚无可核验 v0.3.0 提交。Delivery Agent 观察最新仓库后按既有治理规则落库。
 - 默认岗位刷新周期严格固定为 **6 小时**；任何其他值都会被配置校验拒绝。
-- `evidence/local/` 只证明冷启动源码 Candidate 在隔离环境中的测试、浏览器事务、重启读回和任务包完整性；它不证明 OVH 生产完成。
-- 当前本地执行环境可能无法访问外部岗位 API；真实来源、SMTP、DeepSeek 和 HTTPS 必须在目标环境重跑。
+- `evidence/local/` 只证明冷启动源码 Candidate 的确定性测试、HTTP/DOM 契约、重启读回和任务包完整性；当前容器 Chromium 受管理员 URLBlocklist 阻断，未把本地浏览器 NOT_RUN 写成 PASS。真实生产 Playwright 仍是硬门。
+- NitroSend 已从执行路径中移除，既不是依赖也不是阻断项；不得等待、安装或调用它。
+- 邮件使用任意标准 SMTP。SMTP 暂未就绪时，先以 `ALLOW_REGISTRATION=false` 完成其余部署；不得因此停止源码适配、数据库、运行时、DeepSeek、岗位发现和运维接入。
+- 当前本地执行环境可能无法访问外部岗位 API；真实来源、标准 SMTP、DeepSeek 和 HTTPS 必须在目标环境重跑。
 
 ## 冻结范围
 
@@ -30,7 +32,7 @@
 - 先备份，后迁移，再部署。
 - Secret 只进入服务器 Secret 管理或权限为 `0600` 的部署配置；不展示值。
 - 部署 PostgreSQL、Web、Scheduler、Worker。
-- 真实验证 SMTP、两账户邮箱生命周期、平台 DeepSeek、外部岗位来源和 6 小时调度。
+- 真实验证任意标准 SMTP、两账户邮箱生命周期、平台 DeepSeek、外部岗位来源和 6 小时调度；NitroSend 不得进入方案。
 - 执行 `deploy/acceptance.sh`；失败只修第一处断点，然后重跑完整验收。
 - 只有根目录 `ACCEPTANCE_RESULT.json` 的 `core_verdict` 为 `PASS` 且无 P0/P1，才可报告生产完成。
 - 完成 commit、push、部署身份、回滚目标和 status 登记。

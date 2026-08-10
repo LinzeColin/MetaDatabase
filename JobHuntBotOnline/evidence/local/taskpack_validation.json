@@ -3,5 +3,7 @@
   "scope": "taskpack structure, DAG, source/config syntax, script executability, secret boundary and local evidence",
   "production_claimed": false,
   "errors": [],
-  "warnings": []
+  "warnings": [
+    "local Chromium is blocked by a managed URLBlocklist; no browser PASS is claimed; production Playwright remains mandatory"
+  ]
 }

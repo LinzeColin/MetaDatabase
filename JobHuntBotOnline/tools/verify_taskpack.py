@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import re
+import stat
 import subprocess
 from pathlib import Path
 
@@ -22,7 +23,7 @@ REQUIRED = [
     "deploy/generate_env.py", "deploy/verify_taskpack.py",
     "tools/verify_taskpack.py", "tools/e2e_local.py", "tools/ui_contract.py",
     "tools/restart_readback.py", "tools/online_source_probe.py",
-    "tools/deepseek_probe.py", "tools/e2e_production.py",
+    "tools/deepseek_probe.py", "tools/e2e_production.py", "tools/mail_transport_probe.py",
     "tools/migrate_v02_sqlite.py", "tools/production_state_probe.py",
     "tools/finalize_acceptance.py", "tools/ops_probe.py", "alembic.ini",
     "alembic/versions/0001_saas_baseline.py", "secrets/README.md",
@@ -30,6 +31,30 @@ REQUIRED = [
 FORBIDDEN_NAMES = {".env", "OWNER_LOGIN.txt", "postgres_password.txt"}
 FORBIDDEN_PARTS = {"__pycache__", ".pytest_cache", ".venv", "playwright-report", "test-results"}
 FAILURE_MARKERS = {"PYTEST_FAIL", "TASKPACK_FAIL", "LOCAL_ACCEPTANCE_FAIL"}
+RUNTIME_SECRET_PATHS = {".env", "OWNER_LOGIN.txt", "secrets/postgres_password.txt"}
+RUNTIME_GENERATED_EVIDENCE = {
+    "evidence/predeploy-taskpack.json",
+    "evidence/migration-result.json",
+}
+
+
+def runtime_artifact(rel: Path, *, deployment_runtime: bool) -> bool:
+    value = rel.as_posix()
+    if value == "evidence/predeploy-taskpack.json":
+        return True
+    if not deployment_runtime:
+        return False
+    return (
+        value in RUNTIME_SECRET_PATHS
+        or value in RUNTIME_GENERATED_EVIDENCE
+        or value == "ACCEPTANCE_RESULT.json"
+        or value.startswith("evidence/target-")
+        or (value.startswith("runtime-data/") and value != "runtime-data/.gitkeep")
+    )
+
+
+def secure_runtime_secret(path: Path) -> bool:
+    return stat.S_IMODE(path.stat().st_mode) in {0o400, 0o600}
 
 
 def read_json(path: Path):
@@ -71,6 +96,11 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default="")
     parser.add_argument("--allow-missing-local-evidence", action="store_true")
+    parser.add_argument(
+        "--deployment-runtime",
+        action="store_true",
+        help="Allow only documented runtime secrets and generated evidence after deployment configuration exists.",
+    )
     args = parser.parse_args()
     errors: list[str] = []
     warnings: list[str] = []
@@ -81,8 +111,12 @@ def main() -> int:
 
     for path in ROOT.rglob("*"):
         rel = path.relative_to(ROOT)
+        rel_value = rel.as_posix()
         if path.name in FORBIDDEN_NAMES:
-            errors.append(f"forbidden secret-bearing filename: {rel}")
+            if not (args.deployment_runtime and rel_value in RUNTIME_SECRET_PATHS):
+                errors.append(f"forbidden secret-bearing filename: {rel}")
+            elif not secure_runtime_secret(path):
+                errors.append(f"runtime secret must be mode 0600 or 0400: {rel}")
         if path.name in FAILURE_MARKERS:
             errors.append(f"failure marker is present: {rel}")
         if any(part in FORBIDDEN_PARTS for part in rel.parts):
@@ -112,6 +146,18 @@ def main() -> int:
     env_example = (ROOT / ".env.example").read_text(encoding="utf-8") if (ROOT / ".env.example").exists() else ""
     if not re.search(r"(?m)^DISCOVERY_REFRESH_HOURS=6$", env_example):
         errors.append(".env.example does not freeze DISCOVERY_REFRESH_HOURS=6")
+    if re.search(r"(?mi)^NITROSEND_|https?://[^\s]*nitrosend", env_example):
+        errors.append("NitroSend-specific configuration is present")
+    if re.search(r"(?m)^SMTP_HOST=$", env_example) and not re.search(r"(?m)^ALLOW_REGISTRATION=false$", env_example):
+        errors.append("blank SMTP example must keep public registration closed")
+    if not re.search(r"(?m)^DOMAIN=", env_example):
+        errors.append(".env.example does not define DOMAIN for HTTPS routing")
+    compose_text = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
+    if "traefik.enable:" not in compose_text or "Host(`${DOMAIN}`)" not in compose_text:
+        errors.append("docker compose does not define the HTTPS reverse-proxy route")
+    generator_text = (ROOT / "deploy/generate_env.py").read_text(encoding="utf-8")
+    if '"DOMAIN": args.domain' not in generator_text:
+        errors.append("production env generator does not write DOMAIN")
     config_text = (ROOT / "app/config.py").read_text(encoding="utf-8")
     discovery_text = (ROOT / "app/discovery.py").read_text(encoding="utf-8")
     if "discovery_refresh_hours != 6" not in config_text:
@@ -145,6 +191,9 @@ def main() -> int:
     for path in ROOT.rglob("*"):
         if not path.is_file() or path.suffix.lower() in {".png", ".jpg", ".jpeg", ".zip", ".db", ".enc"}:
             continue
+        rel = path.relative_to(ROOT)
+        if runtime_artifact(rel, deployment_runtime=args.deployment_runtime):
+            continue
         try:
             text = path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
@@ -156,9 +205,9 @@ def main() -> int:
     local_evidence = {
         "pytest": ROOT / "evidence/local/pytest_result.json",
         "ui_contract": ROOT / "evidence/local/ui_contract.json",
-        "browser": ROOT / "evidence/local/browser-local/result.json",
         "restart": ROOT / "evidence/local/restart_readback.json",
         "migration": ROOT / "evidence/local/migration_test.json",
+        "mail_transport": ROOT / "evidence/local/mail_transport_result.json",
     }
     if not args.allow_missing_local_evidence:
         for name, path in local_evidence.items():
@@ -173,6 +222,21 @@ def main() -> int:
             if result.get("verdict") != "PASS":
                 errors.append(f"local evidence is not PASS: {name}")
 
+        browser_path = ROOT / "evidence/local/browser-local/result.json"
+        if not browser_path.is_file():
+            errors.append(f"missing local evidence: {browser_path.relative_to(ROOT)}")
+        else:
+            try:
+                browser_result = read_json(browser_path)
+                if browser_result.get("verdict") == "PASS":
+                    pass
+                elif browser_result.get("verdict") == "BLOCKED" and browser_result.get("blocker") == "chromium_managed_url_blocklist":
+                    warnings.append("local Chromium is blocked by a managed URLBlocklist; no browser PASS is claimed; production Playwright remains mandatory")
+                else:
+                    errors.append("local browser evidence is neither PASS nor an accepted environment block")
+            except Exception as exc:
+                errors.append(f"invalid local evidence browser: {exc}")
+
     manifest_path = ROOT / "taskpack/MANIFEST.json"
     if manifest_path.is_file():
         try:
@@ -181,7 +245,10 @@ def main() -> int:
             actual = {
                 str(path.relative_to(ROOT))
                 for path in ROOT.rglob("*")
-                if path.is_file() and path != manifest_path and not any(part in FORBIDDEN_PARTS for part in path.relative_to(ROOT).parts)
+                if path.is_file()
+                and path != manifest_path
+                and not any(part in FORBIDDEN_PARTS for part in path.relative_to(ROOT).parts)
+                and not runtime_artifact(path.relative_to(ROOT), deployment_runtime=args.deployment_runtime)
             }
             if listed != actual:
                 missing = sorted(actual - listed)[:20]
@@ -193,6 +260,7 @@ def main() -> int:
     result = {
         "verdict": "PASS" if not errors else "FAIL",
         "scope": "taskpack structure, DAG, source/config syntax, script executability, secret boundary and local evidence",
+        "deployment_runtime": args.deployment_runtime,
         "production_claimed": False,
         "errors": errors,
         "warnings": warnings,

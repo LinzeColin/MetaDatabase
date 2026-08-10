@@ -2,7 +2,7 @@
 
 | Requirement | Invariant | Acceptance | Main implementation | Evidence |
 |---|---|---|---|---|
-| Email SaaS lifecycle | INV-REAL-001 | AC-AUTH-01 | `app/main.py`, `app/email_service.py`, `app/security.py` | local/target browser |
+| Provider-neutral email SaaS lifecycle | INV-REAL-001 / INV-MAIL-010 | AC-AUTH-01 | `app/main.py`, `app/email_service.py`, `app/security.py` | local/target browser |
 | Tenant isolation | INV-TENANT-003 | AC-TENANT-02 | all `user_id` predicates, owner-scoped manual jobs | tests + two-user browser |
 | Platform DeepSeek | INV-AI-005 | AC-AI-03 | `app/ai.py`, `app/config.py` | provider probe + fallback tests |
 | Resume-first automation | INV-ZERO-TECH-002 | AC-DISCOVERY-04 | `app/resume.py`, `app/services.py`, `app/discovery.py` | browser golden |

@@ -10,7 +10,7 @@ flowchart LR
   K[Discovery Worker] --> P
   K --> A[Authorized job APIs]
   W --> D[Platform DeepSeek API]
-  W --> M[SMTP]
+  W --> M[Provider-neutral SMTP]
   P --> B[Encrypted backup]
   O --> B
 ```
@@ -22,4 +22,5 @@ flowchart LR
 - Candidate PII and application content are encrypted at the application layer. Passwords use Argon2; sessions are server-side and versioned.
 - Public jobs may deduplicate globally. Manually imported jobs include tenant identity in their canonical key and remain owner-scoped.
 - DeepSeek is a bounded enhancement layer. Qualification hard rules remain deterministic.
+- NitroSend is not part of the architecture. Public email uses a replaceable standards-compatible SMTP relay; without one, registration stays closed while the rest of the runtime remains deployable.
 - v0.2 SQLite is read-only during migration. The importer decrypts with the former key and re-encrypts with the v0.3 key; the old per-user DeepSeek key is never written to the business database.

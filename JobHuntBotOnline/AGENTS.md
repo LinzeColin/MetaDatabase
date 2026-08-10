@@ -9,6 +9,12 @@
 - HTTP 200、容器存活、截图、测试绿灯或 Agent 自述不能代替真实用户事务。
 - 保护仓库中更新且更好的实现；先分类 `satisfied / apply / adapt / equivalent / conflict / blocked / obsolete`。
 
+## 邮件传输决策
+
+- NitroSend 已删除，不是依赖、候选方案或阻断项；不得等待其恢复，也不得重新加入配置。
+- 邮箱生命周期只依赖标准 SMTP 接口，不绑定具体供应商。缺少 SMTP 时允许先部署核心运行时，但必须保持 `ALLOW_REGISTRATION=false`，不能伪称公开注册已完成。
+- 缺少邮件凭据只阻断邮箱验收和最终生产 PASS，不得阻断数据库迁移、Web、Scheduler、Worker、DeepSeek、岗位发现、备份和运维接入。
+
 ## Secret 与隐私
 
 - 不把 `.env`、Owner 密码、SMTP 密码、DeepSeek Key、Cookie、验证码、恢复口令或私人简历提交到 Git。
@@ -32,6 +38,6 @@
 ## 验收
 
 - 本地：`python -m pytest -q`、`python tools/ui_contract.py`、`python tools/restart_readback.py`、`python tools/e2e_local.py`。
-- 生产：`deploy/acceptance.sh`，覆盖 HTTPS、真实 SMTP、平台 DeepSeek、两账户隔离、上传简历、自动推荐、关键筛选、持久化、重启读回和备份验证。
+- 生产：`deploy/acceptance.sh`，覆盖 HTTPS、真实标准 SMTP、平台 DeepSeek、两账户隔离、上传简历、自动推荐、关键筛选、持久化、重启读回和备份验证。
 - `NOT_RUN / BLOCKED / UNKNOWN` 永远不能折算为 PASS。
 - 同一修复两次仍失败，回滚并定位根因，不降低 Acceptance。

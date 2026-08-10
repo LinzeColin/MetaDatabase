@@ -2,6 +2,22 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 set -a; source .env; set +a
+if [[ -n "${LEGACY_COMPOSE_FILE:-}" ]]; then
+  [[ -f "$LEGACY_COMPOSE_FILE" ]] || { echo "LEGACY_COMPOSE_FILE does not exist" >&2; exit 2; }
+  legacy_project_dir="$(cd "$(dirname "$LEGACY_COMPOSE_FILE")" && pwd)"
+  legacy_service="${LEGACY_SERVICE:-app}"
+  docker compose stop web scheduler worker >/dev/null 2>&1 || true
+  docker compose --project-directory "$legacy_project_dir" -f "$LEGACY_COMPOSE_FILE" up -d "$legacy_service"
+  for _ in $(seq 1 60); do
+    if curl -fsS "${BASE_URL%/}/readyz" >/dev/null 2>&1; then
+      echo "legacy application rollback completed; PostgreSQL was not reverted"
+      exit 0
+    fi
+    sleep 3
+  done
+  echo "legacy application rollback started but HTTPS readiness failed" >&2
+  exit 1
+fi
 target="${1:-}"
 if [[ -z "$target" && -f runtime-data/rollback-image.txt ]]; then
   target="$(cat runtime-data/rollback-image.txt)"

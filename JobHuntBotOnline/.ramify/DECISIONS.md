@@ -9,3 +9,4 @@
 - D-007: No unauthorized SEEK/LinkedIn/Indeed scraping, verification bypass or automatic final submission.
 - D-008: Existing manual import, application pack, tracking, encryption, backup and recovery paths remain regression-protected.
 - D-009: Local Candidate PASS is not production PASS; only the exact HTTPS deployment can earn the latter.
+- D-010: NitroSend is removed. Email transport is vendor-neutral SMTP; missing SMTP keeps public registration closed but does not stop non-email delivery work.

@@ -17,7 +17,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 15
-    networks: [internal]
+    networks:
+      internal:
+        # `web` also joins the shared edge network, where another project may
+        # legitimately use the generic `postgres` name. Keep the application
+        # database address unique to this Compose project's private network.
+        aliases:
+          - jobhuntbot-db
 
   web:
     image: ${APP_IMAGE:-jobhuntbot-online:0.3.0}
@@ -65,6 +71,11 @@ services:
     volumes:
       - jobhunt_uploads:/data/uploads
       - jobhunt_backups:/data/backups
+    # The image's HTTP healthcheck only applies to the Uvicorn web process.
+    # Scheduler is a non-HTTP loop and must not be marked unhealthy for not
+    # serving /readyz.
+    healthcheck:
+      disable: true
     networks: [internal]
 
   worker:
@@ -81,11 +92,18 @@ services:
     volumes:
       - jobhunt_uploads:/data/uploads
       - jobhunt_backups:/data/backups
+    # Worker is likewise a non-HTTP loop; liveness is its running process and
+    # job/state probes, not the web endpoint inherited from the image.
+    healthcheck:
+      disable: true
     networks: [internal, edge]
 
   acceptance:
     profiles: ["acceptance"]
     image: ${ACCEPTANCE_IMAGE:-jobhuntbot-online-acceptance:0.3.0}
+    # Keep generated evidence host-writable so a later fresh acceptance run
+    # cannot be blocked by artifacts owned by the container's default root user.
+    user: "${ACCEPTANCE_UID:-1000}:${ACCEPTANCE_GID:-1000}"
     build:
       context: .
       dockerfile: Dockerfile.acceptance

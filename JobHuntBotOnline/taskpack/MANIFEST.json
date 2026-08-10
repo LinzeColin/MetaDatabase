@@ -1,7 +1,7 @@
 {
   "product": "JobHuntBot Online",
   "product_version": "0.3.0",
-  "taskpack_version": "0.3.0-r1-complete",
+  "taskpack_version": "0.3.0-r2-complete",
   "production_verified": false,
   "files": [
     ".env.example",
@@ -74,6 +74,7 @@
     "evidence/local/LOCAL_ACCEPTANCE_RESULT.json",
     "evidence/local/PACKAGING_RESULT.json",
     "evidence/local/browser-local/result.json",
+    "evidence/local/mail_transport_result.json",
     "evidence/local/migration_test.json",
     "evidence/local/online_source_probe.json",
     "evidence/local/pytest_result.json",
@@ -106,6 +107,7 @@
     "tools/e2e_local.py",
     "tools/e2e_production.py",
     "tools/finalize_acceptance.py",
+    "tools/mail_transport_probe.py",
     "tools/migrate_v02_sqlite.py",
     "tools/online_source_probe.py",
     "tools/ops_probe.py",

@@ -4,7 +4,9 @@
 This script uses two synthetic acceptance accounts, the real SMTP/IMAP path, the
 real background Worker, and a real Chromium browser. It deletes the synthetic
 accounts at the end. It never prints mailbox passwords, application passwords,
-DeepSeek credentials, cookies, verification tokens, or resume contents.
+DeepSeek credentials, cookies, verification tokens, or resume contents. When
+the email lifecycle prerequisites are deliberately unavailable, it reports
+EMAIL_ONLY_BLOCKED before creating an account or sending email.
 """
 from __future__ import annotations
 
@@ -35,6 +37,50 @@ def env_required(name: str) -> str:
 
 def bool_env(name: str, default: bool) -> bool:
     return os.getenv(name, str(default)).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def email_lifecycle_preflight() -> dict[str, object] | None:
+    """Return a truthful email-only block before the browser transaction starts."""
+    registration_enabled = bool_env("ALLOW_REGISTRATION", False)
+    standard_smtp_configured = bool(os.getenv("SMTP_HOST", "").strip())
+    explicit_a = os.getenv("ACCEPTANCE_EMAIL_A", "").strip()
+    explicit_b = os.getenv("ACCEPTANCE_EMAIL_B", "").strip()
+    acceptance_recipient_configured = bool(
+        (explicit_a and explicit_b) or os.getenv("ACCEPTANCE_EMAIL", "").strip()
+    )
+    acceptance_imap_configured = all(
+        os.getenv(name, "").strip()
+        for name in ("ACCEPTANCE_IMAP_HOST", "ACCEPTANCE_IMAP_USERNAME", "ACCEPTANCE_IMAP_PASSWORD")
+    )
+    missing: list[str] = []
+    if not registration_enabled:
+        missing.append("ALLOW_REGISTRATION=true")
+    if not standard_smtp_configured:
+        missing.append("standard SMTP_HOST")
+    if not acceptance_recipient_configured:
+        missing.append("acceptance recipient")
+    if not acceptance_imap_configured:
+        missing.append("acceptance IMAP mailbox")
+    if not missing:
+        return None
+    return {
+        "verdict": "BLOCKED",
+        "blocker": "EMAIL_ONLY_BLOCKED",
+        "scope": "real HTTPS email lifecycle preflight",
+        "reason": "email lifecycle prerequisites are not configured",
+        "missing_prerequisites": missing,
+        "registration_enabled": registration_enabled,
+        "standard_smtp_configured": standard_smtp_configured,
+        "acceptance_recipient_configured": acceptance_recipient_configured,
+        "acceptance_imap_configured": acceptance_imap_configured,
+        "smtp_contract": "standards-compatible SMTP",
+        "nitrosend_dependency": False,
+        "email_delivery_sent": False,
+        "synthetic_accounts_created": False,
+        "full_production_pass_still_requires_real_email_lifecycle": True,
+        "production_claimed": False,
+        "secret_values_exposed": False,
+    }
 
 
 def derived_emails() -> tuple[str, str]:
@@ -275,7 +321,10 @@ def logout(page: Page, base_url: str) -> None:
 
 def delete_account(page: Page, base_url: str, password: str) -> None:
     page.goto(f"{base_url}/settings/data", wait_until="domcontentloaded")
-    page.on("dialog", lambda dialog: dialog.accept())
+    # This helper is used twice in one browser context. Registering a persistent
+    # listener would make the second confirmation attempt accept the same dialog
+    # twice and leak a harness error into otherwise clean production evidence.
+    page.once("dialog", lambda dialog: dialog.accept())
     page.get_by_test_id("delete-password").fill(password)
     page.get_by_test_id("delete-confirmation").fill("删除我的账户")
     click_wait(page, '[data-testid="delete-account-submit"]')
@@ -286,6 +335,9 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
     base_url = env_required("BASE_URL").rstrip("/")
     if not base_url.startswith("https://"):
         return {"verdict": "BLOCKED", "reason": "BASE_URL is not HTTPS", "production_claimed": False}, 2
+    preflight = email_lifecycle_preflight()
+    if preflight:
+        return preflight, 2
     email_a, email_b = derived_emails()
     password = os.getenv("ACCEPTANCE_ACCOUNT_PASSWORD", "ProdAcceptPass123").strip()
     steps: list[str] = []

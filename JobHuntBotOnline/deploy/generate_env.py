@@ -2,8 +2,9 @@
 """Generate the non-interactive production configuration and one-time Owner login.
 
 The script never asks for or writes the DeepSeek, SMTP, IMAP, GitHub, R2, or
-Cloudflare credential values. Delivery injects those through the existing server
-Secret manager or edits the mode-0600 .env in the target environment.
+Cloudflare credential values. NitroSend is not used or required. Delivery may
+generate a deployable configuration before mail is ready; registration stays
+closed until any standards-compatible SMTP relay is injected securely.
 """
 from __future__ import annotations
 
@@ -24,8 +25,8 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--domain", required=True)
     parser.add_argument("--admin-email", required=True)
-    parser.add_argument("--smtp-host", required=True)
-    parser.add_argument("--smtp-from", required=True)
+    parser.add_argument("--smtp-host", default="")
+    parser.add_argument("--smtp-from", default="JobHuntBot <no-reply@example.com>")
     parser.add_argument("--edge-network", default="coolify")
     parser.add_argument("--compose-project-name", default="jobhuntbot-online")
     parser.add_argument("--output", default=".env")
@@ -44,7 +45,7 @@ def main() -> None:
         "BASE_URL": f"https://{args.domain}",
         "DOMAIN": args.domain,
         "APP_TIMEZONE": "Australia/Sydney",
-        "DATABASE_URL": f"postgresql+psycopg://jobhunt:{database_password}@postgres:5432/jobhunt",
+        "DATABASE_URL": f"postgresql+psycopg://jobhunt:{database_password}@jobhuntbot-db:5432/jobhunt",
         "SESSION_SECRET": secrets.token_urlsafe(48),
         "DATA_ENCRYPTION_KEY": Fernet.generate_key().decode(),
         "EMAIL_LOOKUP_SECRET": secrets.token_urlsafe(48),
@@ -52,7 +53,7 @@ def main() -> None:
         "SESSION_MAX_AGE_SECONDS": "604800",
         "ADMIN_EMAIL": args.admin_email,
         "ADMIN_PASSWORD": admin_password,
-        "ALLOW_REGISTRATION": "true",
+        "ALLOW_REGISTRATION": "true" if args.smtp_host else "false",
         "SMTP_HOST": args.smtp_host,
         "SMTP_PORT": "587",
         "SMTP_USERNAME": "",
@@ -90,6 +91,8 @@ def main() -> None:
         "V02_DATA_ROOT": "",
         "OLD_DATA_ENCRYPTION_KEY": "",
         "V02_PLATFORM_KEY_OUTPUT": "",
+        "LEGACY_COMPOSE_FILE": "",
+        "LEGACY_SERVICE": "app",
         "ACCEPTANCE_EMAIL": "",
         "ACCEPTANCE_EMAIL_A": "",
         "ACCEPTANCE_EMAIL_B": "",
@@ -110,22 +113,27 @@ def main() -> None:
         "PRIVATE_DATABASE_SYNC_EVIDENCE": "",
         "R2_SYNC_EVIDENCE": "",
     }
-    out = Path(args.output)
+    out = Path(args.output).expanduser().resolve()
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("\n".join(f"{key}={q(value)}" for key, value in lines.items()) + "\n", encoding="utf-8")
     os.chmod(out, 0o600)
-    secret_dir = Path("secrets")
+    secret_dir = out.parent / "secrets"
     secret_dir.mkdir(exist_ok=True)
     postgres_file = secret_dir / "postgres_password.txt"
     postgres_file.write_text(postgres_password, encoding="utf-8")
     os.chmod(postgres_file, 0o600)
-    login = Path("OWNER_LOGIN.txt")
+    login = out.parent / "OWNER_LOGIN.txt"
     login.write_text(
         f"URL=https://{args.domain}\nEMAIL={args.admin_email}\nPASSWORD={admin_password}\n",
         encoding="utf-8",
     )
     os.chmod(login, 0o600)
     print(f"created {out}, secrets/postgres_password.txt and OWNER_LOGIN.txt")
-    print("next: inject SMTP/DeepSeek/acceptance mailbox Secrets without printing them")
+    if args.smtp_host:
+        print("next: inject standard SMTP credentials, DeepSeek and acceptance mailbox Secrets without printing them")
+    else:
+        print("mail deferred: core deployment may continue with ALLOW_REGISTRATION=false; do not wait for NitroSend")
+        print("before full production PASS, inject any standard SMTP relay and set ALLOW_REGISTRATION=true")
 
 
 if __name__ == "__main__":

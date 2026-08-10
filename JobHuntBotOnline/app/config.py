@@ -166,5 +166,9 @@ def validate_settings(s: Settings) -> None:
             raise RuntimeError("生产配置缺失：" + ", ".join(missing))
         if not s.cookie_secure:
             raise RuntimeError("生产环境 COOKIE_SECURE 必须为 true")
-        if not s.smtp_host:
-            raise RuntimeError("公开注册 SaaS 必须配置 SMTP_HOST")
+        # Email delivery is provider-neutral. NitroSend is not a dependency.
+        # The application may be deployed safely with registration closed while
+        # a standard SMTP relay is being configured; public registration cannot
+        # be enabled until SMTP is actually available.
+        if s.allow_registration and not s.smtp_host:
+            raise RuntimeError("ALLOW_REGISTRATION=true 时必须配置标准 SMTP_HOST")

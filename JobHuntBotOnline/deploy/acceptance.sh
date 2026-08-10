@@ -4,10 +4,28 @@ cd "$(dirname "$0")/.."
 test -f .env
 set -a; source .env; set +a
 mkdir -p evidence runtime-data
+python3 - <<'PY'
+from pathlib import Path
+
+# Container probes may run as a different UID. Remove only the named, regenerated
+# acceptance outputs so every run creates fresh evidence without stale ownership
+# preventing a later host-side write.
+for name in [
+    "target-taskpack.json", "target-state-before.json", "target-sources.json",
+    "target-deepseek.json", "target-browser.json", "target-email.json",
+    "target-state-after.json", "target-restart.json", "target-recovery.json",
+    "target-ops.json",
+]:
+    path = Path("evidence") / name
+    if path.is_file():
+        path.unlink()
+PY
 [[ "${DISCOVERY_REFRESH_HOURS:-}" == "6" ]] || { echo "DISCOVERY_REFRESH_HOURS must be 6" >&2; exit 1; }
 [[ "${BASE_URL:-}" == https://* ]] || { echo "BASE_URL must be real HTTPS" >&2; exit 1; }
+[[ "${ALLOW_REGISTRATION:-false}" == "true" ]] || { echo "full production acceptance requires ALLOW_REGISTRATION=true" >&2; exit 1; }
+[[ -n "${SMTP_HOST:-}" ]] || { echo "full production acceptance requires a standard SMTP_HOST; NitroSend is not required" >&2; exit 1; }
 
-python deploy/verify_taskpack.py --output evidence/target-taskpack.json
+python3 deploy/verify_taskpack.py --deployment-runtime --output evidence/target-taskpack.json
 
 running="$(docker compose ps --services --filter status=running)"
 for service in postgres web scheduler worker; do
@@ -15,7 +33,7 @@ for service in postgres web scheduler worker; do
 done
 curl -fsS "${BASE_URL%/}/healthz" >/dev/null
 ready_json="$(curl -fsS "${BASE_URL%/}/readyz")"
-python - "$ready_json" <<'PY'
+python3 - "$ready_json" <<'PY'
 import json,sys
 p=json.loads(sys.argv[1]); assert p.get('status')=='ready'; assert p.get('refresh_hours')==6
 PY
@@ -29,7 +47,12 @@ docker compose run --rm -v "$PWD/evidence:/app/evidence" worker \
 docker compose run --rm -v "$PWD/evidence:/app/evidence" worker \
   python tools/deepseek_probe.py --output /app/evidence/target-deepseek.json
 
-docker compose --profile acceptance run --rm --build acceptance \
+# The target runtime is already subject to the deployment-runtime verifier above.
+# Rebuilding every Compose service here can deadlock while exporting unrelated
+# web/worker images; run the configured acceptance harness instead. Bind the
+# audited runner source so the harness stays exact even when its image is reused.
+docker compose --profile acceptance run --rm \
+  -v "$PWD/tools/e2e_production.py:/app/tools/e2e_production.py:ro" acceptance \
   python tools/e2e_production.py --output /app/evidence/target-browser.json
 cp evidence/target-browser.json evidence/target-email.json
 
@@ -42,7 +65,7 @@ done
 curl -fsS "${BASE_URL%/}/readyz" >/dev/null
 docker compose run --rm -v "$PWD/evidence:/app/evidence" web \
   python tools/production_state_probe.py --output /app/evidence/target-state-after.json
-python - <<'PY'
+python3 - <<'PY'
 import json
 from pathlib import Path
 before=json.loads(Path('evidence/target-state-before.json').read_text())
@@ -57,21 +80,21 @@ PY
 
 backup_path="$(deploy/backup.sh)"
 deploy/restore.sh --verify-only "$backup_path"
-python - "$backup_path" <<'PY'
+python3 - "$backup_path" <<'PY'
 import json,sys
 from pathlib import Path
 p=Path(sys.argv[1]); result={'verdict':'PASS','backup_file':str(p),'encrypted':p.suffix=='.enc','archive_verify_only':True,'production_restore_not_performed_by_acceptance':True}
 Path('evidence/target-recovery.json').write_text(json.dumps(result,indent=2)+'\n')
 PY
 
-python tools/ops_probe.py --output evidence/target-ops.json
+python3 tools/ops_probe.py --output evidence/target-ops.json
 commit="${ACCEPTANCE_COMMIT:-$(git rev-parse HEAD 2>/dev/null || true)}"
 deployment_id="${ACCEPTANCE_DEPLOYMENT_ID:-$(docker compose images -q web | head -1)}"
 rollback_target="${ACCEPTANCE_ROLLBACK_TARGET:-$(cat runtime-data/rollback-image.txt 2>/dev/null || true)}"
-python tools/finalize_acceptance.py \
+python3 tools/finalize_acceptance.py \
   --base-url "$BASE_URL" --commit "$commit" --deployment-id "$deployment_id" \
   --rollback-target "$rollback_target" --output ACCEPTANCE_RESULT.json
-python - <<'PY'
+python3 - <<'PY'
 import json
 p=json.load(open('ACCEPTANCE_RESULT.json'))
 if p.get('core_verdict')!='PASS': raise SystemExit('production core acceptance is not PASS')

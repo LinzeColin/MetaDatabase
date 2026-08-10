@@ -80,3 +80,22 @@ def test_duplicate_registration_does_not_create_second_account(client):
         "password_confirm": "ValidPass123",
     }, follow_redirects=True)
     assert "已注册" in response.text
+
+
+def test_registration_links_are_hidden_when_mail_is_deferred(settings):
+    from dataclasses import replace
+    from fastapi.testclient import TestClient
+    from app.main import create_app
+
+    deferred = replace(settings, app_env="production", cookie_secure=True, allow_registration=False, smtp_host="")
+    app = create_app(deferred)
+    from app.db import Base
+    Base.metadata.create_all(app.state.engine)
+    with TestClient(app, base_url="https://testserver") as deferred_client:
+        landing = deferred_client.get("/")
+        assert 'data-testid="hero-register"' not in landing.text
+        login = deferred_client.get("/login")
+        assert 'data-testid="login-register-link"' not in login.text
+        assert 'data-testid="forgot-password-link"' not in login.text
+        assert deferred_client.get("/register").status_code == 403
+        assert deferred_client.get("/forgot-password").status_code == 503

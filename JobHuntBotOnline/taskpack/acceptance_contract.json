@@ -1,19 +1,166 @@
 {
-  "version": "0.3.0-r1",
+  "version": "0.3.0-r2",
   "core_verdict_rule": "All critical acceptance items PASS on the exact target deployment and no open P0/P1.",
   "items": [
-    {"id":"AC-PACK-00","critical":true,"oracle":"Required control files exist; DAG is acyclic; source/config syntax and local evidence are valid.","tests":["python tools/verify_taskpack.py"],"evidence":["evidence/local/taskpack_validation.json"]},
-    {"id":"AC-AUTH-01","critical":true,"oracle":"A new user registers, receives and consumes verification mail, logs in, requests and consumes one-time password reset; expired/reused token fails.","tests":["pytest auth lifecycle","production browser + IMAP"],"evidence":["evidence/local/browser-local/result.json","evidence/target-email.json"]},
-    {"id":"AC-TENANT-02","critical":true,"oracle":"User B cannot read User A recommendation, pack, export, resume, profile or events; attempts return non-disclosing 404/denial.","tests":["pytest tenant isolation","production two-user negative controls"],"evidence":["evidence/local/browser-local/result.json","ACCEPTANCE_RESULT.json"]},
-    {"id":"AC-AI-03","critical":true,"oracle":"Platform Secret is configured server-side, hidden from users/exports, bounded by per-user/platform budget, and deterministic fallback remains usable on failure.","tests":["pytest AI/security","tools/deepseek_probe.py"],"evidence":["evidence/target-deepseek.json"]},
-    {"id":"AC-DISCOVERY-04","critical":true,"oracle":"After resume upload and one confirmation page, recommendations appear without manually pasting a job URL.","tests":["pytest onboarding","browser golden"],"evidence":["evidence/local/browser-local/result.json","ACCEPTANCE_RESULT.json"]},
-    {"id":"AC-REFRESH-05","critical":true,"oracle":"Configured refresh is exactly 6 hours and each completed run sets next_discovery_at to completed_at + 6 hours.","tests":["pytest refresh contract","production DB read"],"evidence":["evidence/local/restart_readback.json","ACCEPTANCE_RESULT.json"]},
-    {"id":"AC-UX-06","critical":true,"oracle":"All forms, buttons, inputs and links are wired; city/role/skill/source/freshness/qualification/relevance/opportunity/status filters compose; mobile has no horizontal overflow.","tests":["tools/ui_contract.py","Playwright browser golden"],"evidence":["evidence/local/ui_contract.json","evidence/local/browser-local/result.json"]},
-    {"id":"AC-APPLICATION-07","critical":true,"oracle":"Save/ignore, application pack, official link, manual import and result tracking work; submitted status requires evidence.","tests":["pytest application","browser golden"],"evidence":["evidence/local/browser-local/result.json"]},
-    {"id":"AC-DATA-08","critical":true,"oracle":"PostgreSQL is at Alembic head; v0.2 data counts and Owner records are preserved and readable after migration.","tests":["alembic current","migrate_v02_sqlite.py"],"evidence":["migration-result.json"]},
-    {"id":"AC-RECOVERY-09","critical":true,"oracle":"Encrypted backup is structurally readable; application restart preserves data; an explicit rollback image exists.","tests":["restart_readback.py","backup verify-only","isolated restore or approved recovery rehearsal"],"evidence":["evidence/local/restart_readback.json","ACCEPTANCE_RESULT.json"]},
-    {"id":"AC-PROD-10","critical":true,"oracle":"Real HTTPS has valid login/registration and no mixed-content or browser console/page errors; SMTP links use BASE_URL.","tests":["production browser acceptance"],"evidence":["ACCEPTANCE_RESULT.json"]},
-    {"id":"AC-SOURCE-11","critical":true,"oracle":"At least one authorized external source succeeds; each source status is visible; one failed source does not erase successful results.","tests":["online_source_probe.py --require-success","degraded path"],"evidence":["evidence/target-sources.json"]},
-    {"id":"AC-OPS-12","critical":false,"oracle":"Deployment is registered in status and authorized long-term sync reports a real state without creating a second authority.","tests":["status and sync probes"],"evidence":["evidence/target-ops.json"]}
+    {
+      "id": "AC-PACK-00",
+      "critical": true,
+      "oracle": "Required control files exist; DAG is acyclic; source/config syntax and local evidence are valid.",
+      "tests": [
+        "python3 tools/verify_taskpack.py"
+      ],
+      "evidence": [
+        "evidence/local/taskpack_validation.json"
+      ]
+    },
+    {
+      "id": "AC-AUTH-01",
+      "critical": true,
+      "oracle": "A new user registers through a provider-neutral standard SMTP path, receives and consumes verification mail, logs in, requests and consumes one-time password reset; expired/reused token fails. NitroSend is neither required nor accepted.",
+      "tests": [
+        "pytest auth lifecycle",
+        "production browser + IMAP"
+      ],
+      "evidence": [
+        "evidence/local/browser-local/result.json",
+        "evidence/target-email.json"
+      ]
+    },
+    {
+      "id": "AC-TENANT-02",
+      "critical": true,
+      "oracle": "User B cannot read User A recommendation, pack, export, resume, profile or events; attempts return non-disclosing 404/denial.",
+      "tests": [
+        "pytest tenant isolation",
+        "production two-user negative controls"
+      ],
+      "evidence": [
+        "evidence/local/browser-local/result.json",
+        "ACCEPTANCE_RESULT.json"
+      ]
+    },
+    {
+      "id": "AC-AI-03",
+      "critical": true,
+      "oracle": "Platform Secret is configured server-side, hidden from users/exports, bounded by per-user/platform budget, and deterministic fallback remains usable on failure.",
+      "tests": [
+        "pytest AI/security",
+        "tools/deepseek_probe.py"
+      ],
+      "evidence": [
+        "evidence/target-deepseek.json"
+      ]
+    },
+    {
+      "id": "AC-DISCOVERY-04",
+      "critical": true,
+      "oracle": "After resume upload and one confirmation page, recommendations appear without manually pasting a job URL.",
+      "tests": [
+        "pytest onboarding",
+        "browser golden"
+      ],
+      "evidence": [
+        "evidence/local/browser-local/result.json",
+        "ACCEPTANCE_RESULT.json"
+      ]
+    },
+    {
+      "id": "AC-REFRESH-05",
+      "critical": true,
+      "oracle": "Configured refresh is exactly 6 hours and each completed run sets next_discovery_at to completed_at + 6 hours.",
+      "tests": [
+        "pytest refresh contract",
+        "production DB read"
+      ],
+      "evidence": [
+        "evidence/local/restart_readback.json",
+        "ACCEPTANCE_RESULT.json"
+      ]
+    },
+    {
+      "id": "AC-UX-06",
+      "critical": true,
+      "oracle": "All forms, buttons, inputs and links are wired; city/role/skill/source/freshness/qualification/relevance/opportunity/status filters compose; mobile has no horizontal overflow.",
+      "tests": [
+        "tools/ui_contract.py",
+        "Playwright browser golden"
+      ],
+      "evidence": [
+        "evidence/local/ui_contract.json",
+        "evidence/local/browser-local/result.json"
+      ]
+    },
+    {
+      "id": "AC-APPLICATION-07",
+      "critical": true,
+      "oracle": "Save/ignore, application pack, official link, manual import and result tracking work; submitted status requires evidence.",
+      "tests": [
+        "pytest application",
+        "browser golden"
+      ],
+      "evidence": [
+        "evidence/local/browser-local/result.json"
+      ]
+    },
+    {
+      "id": "AC-DATA-08",
+      "critical": true,
+      "oracle": "PostgreSQL is at Alembic head; v0.2 data counts and Owner records are preserved and readable after migration.",
+      "tests": [
+        "alembic current",
+        "migrate_v02_sqlite.py"
+      ],
+      "evidence": [
+        "migration-result.json"
+      ]
+    },
+    {
+      "id": "AC-RECOVERY-09",
+      "critical": true,
+      "oracle": "Encrypted backup is structurally readable; application restart preserves data; an explicit rollback image exists.",
+      "tests": [
+        "restart_readback.py",
+        "backup verify-only",
+        "isolated restore or approved recovery rehearsal"
+      ],
+      "evidence": [
+        "evidence/local/restart_readback.json",
+        "ACCEPTANCE_RESULT.json"
+      ]
+    },
+    {
+      "id": "AC-PROD-10",
+      "critical": true,
+      "oracle": "Real HTTPS has valid login/registration and no mixed-content or browser console/page errors; standard SMTP links use BASE_URL; no NitroSend-specific configuration exists.",
+      "tests": [
+        "production browser acceptance"
+      ],
+      "evidence": [
+        "ACCEPTANCE_RESULT.json"
+      ]
+    },
+    {
+      "id": "AC-SOURCE-11",
+      "critical": true,
+      "oracle": "At least one authorized external source succeeds; each source status is visible; one failed source does not erase successful results.",
+      "tests": [
+        "online_source_probe.py --require-success",
+        "degraded path"
+      ],
+      "evidence": [
+        "evidence/target-sources.json"
+      ]
+    },
+    {
+      "id": "AC-OPS-12",
+      "critical": false,
+      "oracle": "Deployment is registered in status and authorized long-term sync reports a real state without creating a second authority.",
+      "tests": [
+        "status and sync probes"
+      ],
+      "evidence": [
+        "evidence/target-ops.json"
+      ]
+    }
   ]
 }

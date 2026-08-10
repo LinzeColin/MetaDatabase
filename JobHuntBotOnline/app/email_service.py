@@ -83,7 +83,7 @@ class Mailer:
         db.commit()
         db.refresh(delivery)
         try:
-            if self.settings.testing or not self.settings.smtp_host:
+            if self.settings.testing or (self.settings.app_env != "production" and not self.settings.smtp_host):
                 self.outbox_path.parent.mkdir(parents=True, exist_ok=True)
                 rows = []
                 if self.outbox_path.exists():
@@ -95,6 +95,8 @@ class Mailer:
                     "body": body,
                 })
                 self.outbox_path.write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
+            elif not self.settings.smtp_host:
+                raise RuntimeError("邮件发送尚未配置；请先接入任意标准 SMTP，再开放注册或密码找回。")
             else:
                 msg = EmailMessage()
                 msg["From"] = self.settings.smtp_from

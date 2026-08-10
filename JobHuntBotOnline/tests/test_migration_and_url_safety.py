@@ -6,13 +6,14 @@ import sqlite3
 from argparse import Namespace
 from pathlib import Path
 
+import pytest
 from cryptography.fernet import Fernet
 from sqlalchemy import func, select
 
 from app.db import make_engine, make_session_factory
 from app.discovery import safe_http_url
 from app.models import ApplicationPack, CandidateProfile, Job, Recommendation, Resume, User
-from tools.migrate_v02_sqlite import PREFIX, migrate
+from tools.migrate_v02_sqlite import PREFIX, connect_source, migrate
 
 
 def seal(cipher: Fernet, value: str) -> str:
@@ -53,6 +54,9 @@ def build_v02(path: Path, key: str, data_root: Path) -> None:
 def test_v02_migration_reencrypts_and_preserves_counts(tmp_path, monkeypatch):
     old_key = Fernet.generate_key().decode(); new_key = Fernet.generate_key().decode()
     source = tmp_path / "old.db"; old_root = tmp_path / "old-data"; build_v02(source, old_key, old_root)
+    raw = sqlite3.connect(source)
+    raw.execute("UPDATE resumes SET encrypted_file_path = ?", ("/data/uploads/legacy.bin",))
+    raw.commit(); raw.close()
     target = tmp_path / "new.db"; upload_root = tmp_path / "new-uploads"
     monkeypatch.setenv("APP_ENV", "test")
     monkeypatch.setenv("DATABASE_URL", f"sqlite+pysqlite:///{target}")
@@ -71,11 +75,27 @@ def test_v02_migration_reencrypts_and_preserves_counts(tmp_path, monkeypatch):
         assert db.scalar(select(func.count(Job.id))) == 1
         assert db.scalar(select(func.count(Recommendation.id))) == 1
         assert db.scalar(select(func.count(ApplicationPack.id))) == 1
+        resume = db.scalar(select(Resume))
+        assert resume is not None and resume.size_bytes == len(b"legacy resume bytes")
     raw = sqlite3.connect(target)
     columns = {row[1] for row in raw.execute("PRAGMA table_info(users)")}
     assert "email_encrypted" in columns and "api_key" not in columns
     assert b"owner@example.com" not in target.read_bytes()
     assert b"legacy-secret-key" not in target.read_bytes()
+
+
+def test_v02_source_connection_is_immutable_and_read_only(tmp_path):
+    source = tmp_path / "isolated-v02.db"
+    writable = sqlite3.connect(source)
+    writable.execute("CREATE TABLE source_check(value TEXT)")
+    writable.execute("INSERT INTO source_check VALUES('ok')")
+    writable.commit(); writable.close()
+
+    readonly = connect_source(source)
+    assert readonly.execute("SELECT value FROM source_check").fetchone()[0] == "ok"
+    with pytest.raises(sqlite3.OperationalError):
+        readonly.execute("CREATE TABLE must_not_persist(value TEXT)")
+    readonly.close()
 
 
 def test_safe_http_url_rejects_private_and_malformed_ports():
