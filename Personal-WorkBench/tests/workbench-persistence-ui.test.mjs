@@ -85,7 +85,8 @@ test("todo uses a browser-valid date pattern and account-scoped IndexedDB persis
   assert.match(source, /writeDeviceOutbox/);
   assert.match(source, /scope === "guest"/);
   assert.match(cacheSource, /const OUTBOX_STORE = "outbox"/);
-  assert.match(cacheSource, /const DATABASE_VERSION = 2/);
+  assert.match(cacheSource, /const DATABASE_VERSION = 3/);
+  assert.match(cacheSource, /const RECORD_ALIAS_STORE = "record-aliases"/);
 });
 
 test("built-in habit requests use a stable ASCII idempotency key", async () => {
@@ -165,6 +166,9 @@ test("tenant resource retries only same-account non-sensitive local records afte
   const cacheSource = await readFile("app/_components/workbench/local-record-cache.ts", "utf8");
 
   assert.match(source, /appendDeviceOutbox/);
+  assert.match(source, /deriveDeviceOutboxParentReferences/);
+  assert.match(source, /resolveDeviceOutboxAction/);
+  assert.match(source, /rememberDeviceOutboxRecordAlias/);
   assert.match(source, /readDeviceOutbox/);
   assert.match(source, /removeDeviceOutboxActions/);
   assert.match(source, /replayOutboxQueue/);
@@ -176,5 +180,16 @@ test("tenant resource retries only same-account non-sensitive local records afte
   assert.match(source, /已保存在当前设备。连接恢复后会自动同步。/);
   assert.match(source, /完成登录和邮箱验证后会自动同步。/);
   assert.match(cacheSource, /export async function removeDeviceOutboxActions/);
+  assert.match(cacheSource, /export async function resolveDeviceOutboxAction/);
+  assert.match(cacheSource, /export async function rememberDeviceOutboxRecordAlias/);
   assert.match(cacheSource, /const existing = await requestValue\(store\.get\(key\)\);/);
+});
+
+test("todo replay leaves other module queues to their owning resource client", async () => {
+  const source = await readFile(todoSource, "utf8");
+
+  assert.match(source, /function actionTargetsTodo\(action: DeviceOutboxAction\)/);
+  assert.match(source, /const queue = allActions\.filter\(actionTargetsTodo\);/);
+  assert.match(source, /removeDeviceOutboxActions\(scope, acknowledged\)/);
+  assert.doesNotMatch(source, /writeDeviceOutbox\(scope, replayResult\.remaining\)/);
 });

@@ -6,6 +6,7 @@
 
 ## 当前状态
 
+- 2026-08-11（S4-T3B 本地候选，未保存/未部署）：已修复离线关联记录的跨设备恢复边界。若习惯打卡或存钱记录引用的父记录仍仅在当前设备，队列会在同一不透明账户分区内保存父子关联；父记录被云端接受后才把云端编号用于子记录重放，未就绪时保留本机记录等待，而不提交失效的临时编号。待办页现在只处理待办自身的待发项，不再错误发送或覆盖其他模块的队列。IndexedDB 数据库升级仅新增同账户的关联映射存储；不发送 tenant/user 标识，不改认证、服务端租户推导、敏感记录同意门、视觉树、D1/R2、运行时、访问策略、公开 audience、VPS3 或 GitHub。候选构建完成，但尚未进入独立就绪审查、Sites 保存或部署；V32 仍是当前私有运行版本。下一步须先完成该候选的独立 S4-T3A 就绪审查，再决定是否创建新的私有 Saved Version。
 - 2026-08-11（最新，S5-T3 受控私有部署）：已将 V32 的已保存、归档候选成功部署为仅 Owner 可访问的运行版本。部署前后站点保持 active/owner/custom、1 名允许用户、0 群组、0 外部访客；来源回读和归档状态与候选一致，且部署后最近 10 分钟 error-only 观察为 0 条。已在 agent-owned Codex 面板请求打开私有站点，但没有读取个人浏览器会话、Cookie、存储、运行时值或业务数据。未改 D1/R2、访问策略、公开 audience、VPS3 站点承载或 GitHub。当前这只证明私有运行候选可用，不替代 V32 的邮箱/Google、A/B 隔离、第二设备历史、物理存储对账、完整恢复/P0 或最终验收。事实见 `13_evidence/private_version_32_s5_t3_controlled_private_deployment.json` 与更新后的 `13_evidence/production.json`。
 - 2026-08-11（S5-T2 私有配置，部署前快照）：对 V32 私有候选完成 Sites 配置存在性读取。15 项配置中含 11 项私密项与 4 项非私密项，认证、邮件、隐私、滥用防护与 Origin 所需配置类型均已存在；没有读取、记录或覆盖任何配置值。该时点站点为 active/owner/custom、1 名允许用户、0 群组、0 外部访客，且候选尚未部署；既有素材授权、Owner 本地前置与私有 Origin 前置均继续可用。事实见 `13_evidence/sites_runtime_configuration.json`。
 - 2026-08-11（S5-T1 私有保存，部署前快照）：已将 S4-T3A 通过的修复候选保存为 Sites 私有 Version #32。保存前后站点保持 active/owner/custom、1 名允许用户、0 群组、0 外部访客；来源通过 Sites 专用源码通道写入，未上传 GitHub。候选归档已由 Sites 保存，保存时没有部署、未改 runtime/D1/R2/访问策略/公开 audience、未访问真实用户数据。VPS3 保留为后续运维适配主机，不替换任务包规定的 ChatGPT Sites 承载。脱敏事实见 `13_evidence/private_version_32_s5_t1_saved_candidate.json` 与 `13_evidence/saved_version.json`。

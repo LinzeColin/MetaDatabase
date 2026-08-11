@@ -4,13 +4,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   appendDeviceOutbox,
   createDeviceLocalRecord,
+  deriveDeviceOutboxParentReferences,
   DeviceOutboxAction,
   isDeviceLocalRecord,
   mergeWithDeviceLocalRecords,
+  rememberDeviceOutboxRecordAlias,
   readDeviceLocalRecords,
   readDeviceOutbox,
   removeDeviceOutboxActions,
   removeDeviceLocalRecord,
+  resolveDeviceOutboxAction,
   resolveBrowserRecordScope,
   writeDeviceLocalRecord,
 } from "./local-record-cache";
@@ -341,15 +344,19 @@ export function useTenantResource<T extends TenantRecord>(
     let reconciled = remote;
     const replayResult = await replayOutboxQueue(actions, async (action): Promise<OutboxMutationResult> => {
       try {
+        const resolvedAction = await resolveDeviceOutboxAction(scope, action);
+        if (!resolvedAction) {
+          return { type: "unavailable", message: "正在等待关联记录同步，本机记录仍会保留。" };
+        }
         const scopeBeforeReplay = await refreshCurrentScope();
         if (scopeBeforeReplay !== expectedScope) {
           return { type: "error", message: "账户已切换，本机待发记录仍保留在原账户分区。" };
         }
-        const response = await fetch(withRequestId(action.endpoint, action.idempotencyKey), {
-          method: action.method,
+        const response = await fetch(withRequestId(resolvedAction.endpoint, resolvedAction.idempotencyKey), {
+          method: resolvedAction.method,
           credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(action.payload),
+          body: JSON.stringify(resolvedAction.payload),
         });
         const scopeAfterReplay = await refreshCurrentScope();
         if (scopeAfterReplay !== expectedScope) {
@@ -362,6 +369,8 @@ export function useTenantResource<T extends TenantRecord>(
         }
         const data = (await readEnvelope<T>(response)).data;
         if (!isRecord(data)) return { type: "error", message: "保存结果不完整，请刷新后确认历史记录。" };
+
+        await rememberDeviceOutboxRecordAlias(scope, action, data.id);
 
         if (action.localRecordId) {
           try {
@@ -467,12 +476,15 @@ export function useTenantResource<T extends TenantRecord>(
     const refreshWhenDocumentVisible = () => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") void reload();
     };
+    const replayWhenParentSynchronizes = () => void reload();
     window.addEventListener("online", replayWhenOnline);
     window.addEventListener("focus", refreshWhenVisible);
+    window.addEventListener("mydairy:outbox-alias-resolved", replayWhenParentSynchronizes);
     if (typeof document !== "undefined") document.addEventListener("visibilitychange", refreshWhenDocumentVisible);
     return () => {
       window.removeEventListener("online", replayWhenOnline);
       window.removeEventListener("focus", refreshWhenVisible);
+      window.removeEventListener("mydairy:outbox-alias-resolved", replayWhenParentSynchronizes);
       if (typeof document !== "undefined") document.removeEventListener("visibilitychange", refreshWhenDocumentVisible);
     };
   }, [enabled, reload, scopeReady]);
@@ -503,15 +515,6 @@ export function useTenantResource<T extends TenantRecord>(
     const requestId = idempotencyKey ?? newIdempotencyKey(resource);
     const deviceLocalRecord = createDeviceLocalRecord(payload);
     const localRecord = deviceLocalRecord as T;
-    const deviceOutboxAction: DeviceOutboxAction = {
-      createdAt: deviceLocalRecord.created_at,
-      endpoint: `/api/mydairy/${resource}`,
-      idempotencyKey: requestId,
-      localRecordId: deviceLocalRecord.id,
-      method: "POST",
-      payload,
-      queuedAt: deviceLocalRecord.created_at,
-    };
     let localPersisted = false;
     try {
       await writeDeviceLocalRecord(scope, resource, deviceLocalRecord);
@@ -522,6 +525,19 @@ export function useTenantResource<T extends TenantRecord>(
     } catch {
       // Do not report a local save when the device cannot actually retain it.
     }
+    const parentReferences = localPersisted
+      ? await deriveDeviceOutboxParentReferences(scope, resource, payload).catch(() => [])
+      : [];
+    const deviceOutboxAction: DeviceOutboxAction = {
+      createdAt: deviceLocalRecord.created_at,
+      endpoint: `/api/mydairy/${resource}`,
+      idempotencyKey: requestId,
+      localRecordId: deviceLocalRecord.id,
+      method: "POST",
+      ...(parentReferences.length ? { parentReferences } : {}),
+      payload,
+      queuedAt: deviceLocalRecord.created_at,
+    };
 
     const scopeBeforeRequest = await refreshCurrentScope();
     if (scopeBeforeRequest !== scope) {
@@ -580,6 +596,7 @@ export function useTenantResource<T extends TenantRecord>(
         return null;
       }
       cloudAvailabilityRef.current = "available";
+      await rememberDeviceOutboxRecordAlias(scope, deviceOutboxAction, data.id);
       if (localPersisted) {
         try {
           await removeDeviceLocalRecord(scope, resource, localRecord.id);

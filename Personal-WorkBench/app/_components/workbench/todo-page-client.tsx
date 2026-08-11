@@ -10,6 +10,7 @@ import {
   mergeWithDeviceLocalRecords,
   readDeviceLocalRecords,
   readDeviceOutbox,
+  removeDeviceOutboxActions,
   removeDeviceLocalRecord,
   resolveBrowserRecordScope,
   writeDeviceLocalRecord,
@@ -44,6 +45,10 @@ type TodoMutationResult = {
 };
 
 const TODO_RESOURCE = "todos";
+
+function actionTargetsTodo(action: DeviceOutboxAction): boolean {
+  return action.method === "POST" && action.endpoint === "/api/mydairy/todos";
+}
 
 function toChineseDate(fallback = ""): string {
   if (/^\d{4}-\d{2}-\d{2}$/.test(fallback)) return fallback;
@@ -235,14 +240,15 @@ export default function TodoPageClient() {
   const flushOutbox = useCallback(async () => {
     const scope = scopeRef.current;
     if (!scope || !scopeReady || (typeof navigator !== "undefined" && !navigator.onLine)) return;
-    let queue: DeviceOutboxAction[];
+    let allActions: DeviceOutboxAction[];
     try {
-      queue = await readDeviceOutbox(scope);
+      allActions = await readDeviceOutbox(scope);
     } catch {
       return;
     }
+    const queue = allActions.filter(actionTargetsTodo);
     if (!queue.length) {
-      setOutboxCount(0);
+      setOutboxCount(allActions.length);
       return;
     }
     const replayResult = await replayOutboxQueue(queue, async (action) => {
@@ -251,8 +257,12 @@ export default function TodoPageClient() {
       return result;
     });
     try {
-      await writeDeviceOutbox(scope, replayResult.remaining);
-      setOutboxCount(replayResult.remaining.length);
+      const remaining = new Set(replayResult.remaining.map((action) => action.idempotencyKey));
+      const acknowledged = queue
+        .filter((action) => !remaining.has(action.idempotencyKey))
+        .map((action) => action.idempotencyKey);
+      if (acknowledged.length) await removeDeviceOutboxActions(scope, acknowledged);
+      setOutboxCount((await readDeviceOutbox(scope)).length);
     } catch {
       setError("本机待发队列暂时无法更新；待办历史仍保留在当前设备。");
       return;

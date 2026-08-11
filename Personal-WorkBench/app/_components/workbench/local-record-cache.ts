@@ -16,8 +16,15 @@ export type DeviceOutboxAction = {
   idempotencyKey: string;
   localRecordId?: string;
   method: "POST";
+  parentReferences?: DeviceOutboxParentReference[];
   payload: Record<string, unknown>;
   queuedAt: number;
+};
+
+export type DeviceOutboxParentReference = {
+  field: "habitId" | "goalId";
+  localRecordId: string;
+  resource: "habits" | "savings-goals";
 };
 
 type CachedRecordRow = {
@@ -36,12 +43,21 @@ type CachedOutboxRow = {
   scope: string;
 };
 
+type CachedRecordAliasRow = {
+  key: string;
+  localRecordId: string;
+  remoteRecordId: string;
+  resource: string;
+  scope: string;
+};
+
 const DATABASE_NAME = "mydairy-device-records-v1";
-const DATABASE_VERSION = 2;
+const DATABASE_VERSION = 3;
 const RECORD_STORE = "records";
 const SCOPE_RESOURCE_INDEX = "by_scope_resource";
 const OUTBOX_STORE = "outbox";
 const OUTBOX_SCOPE_INDEX = "by_scope";
+const RECORD_ALIAS_STORE = "record-aliases";
 const LOCAL_MARKER = "__mydairy_device_local_v1";
 const tenantFieldNames = new Set(["userId", "user_id", "ownerId", "owner_id", "tenantId", "tenant_id"]);
 
@@ -85,6 +101,9 @@ function openRecordDatabase(): Promise<IDBDatabase> {
       if (outboxStore && !outboxStore.indexNames.contains(OUTBOX_SCOPE_INDEX)) {
         outboxStore.createIndex(OUTBOX_SCOPE_INDEX, "scope", { unique: false });
       }
+      if (!database.objectStoreNames.contains(RECORD_ALIAS_STORE)) {
+        database.createObjectStore(RECORD_ALIAS_STORE, { keyPath: "key" });
+      }
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error ?? new Error("Unable to open device record cache."));
@@ -97,6 +116,10 @@ function cacheKey(scope: string, resource: string, id: string): string {
 
 function outboxKey(scope: string, idempotencyKey: string): string {
   return `${scope}\u0000${idempotencyKey}`;
+}
+
+function recordAliasKey(scope: string, resource: string, localRecordId: string): string {
+  return `${scope}\u0000${resource}\u0000${localRecordId}`;
 }
 
 function toSnakeCase(value: string): string {
@@ -190,7 +213,17 @@ function isDeviceOutboxAction(value: unknown): value is DeviceOutboxAction {
     && typeof value.idempotencyKey === "string"
     && Number.isFinite(value.createdAt)
     && Number.isFinite(value.queuedAt)
-    && (value.localRecordId === undefined || typeof value.localRecordId === "string");
+    && (value.localRecordId === undefined || typeof value.localRecordId === "string")
+    && (value.parentReferences === undefined
+      || (Array.isArray(value.parentReferences) && value.parentReferences.every(isDeviceOutboxParentReference)));
+}
+
+function isDeviceOutboxParentReference(value: unknown): value is DeviceOutboxParentReference {
+  return isRecord(value)
+    && (value.field === "habitId" || value.field === "goalId")
+    && (value.resource === "habits" || value.resource === "savings-goals")
+    && typeof value.localRecordId === "string"
+    && value.localRecordId.length > 0;
 }
 
 function sanitizeOutboxAction(action: DeviceOutboxAction): DeviceOutboxAction {
@@ -198,7 +231,20 @@ function sanitizeOutboxAction(action: DeviceOutboxAction): DeviceOutboxAction {
   for (const [key, value] of Object.entries(action.payload)) {
     if (!tenantFieldNames.has(key)) payload[key] = value;
   }
-  return { ...action, payload };
+  const parentReferences = action.parentReferences
+    ?.filter(isDeviceOutboxParentReference)
+    .map((reference) => ({ ...reference }));
+  return parentReferences?.length ? { ...action, parentReferences, payload } : { ...action, payload };
+}
+
+const childResourceDependencies = {
+  "habit-checkins": { field: "habitId", resource: "habits" },
+  "savings-transactions": { field: "goalId", resource: "savings-goals" },
+} as const satisfies Record<string, Pick<DeviceOutboxParentReference, "field" | "resource">>;
+
+function resourceFromOutboxAction(action: DeviceOutboxAction): string | null {
+  const match = /^\/api\/mydairy\/([a-z-]+)$/.exec(action.endpoint);
+  return match?.[1] ?? null;
 }
 
 export function mergeWithDeviceLocalRecords<T extends { id: string }>(remote: T[], local: T[]): T[] {
@@ -252,6 +298,99 @@ export async function removeDeviceLocalRecord(scope: string, resource: string, i
   } finally {
     database.close();
   }
+}
+
+/**
+ * A locally-created child may refer to a locally-created parent. Persist just
+ * that relation, inside the same opaque account partition, so a later replay
+ * never sends the parent's device-only identifier to the cloud database.
+ */
+export async function deriveDeviceOutboxParentReferences(
+  scope: string,
+  resource: string,
+  payload: Record<string, unknown>,
+): Promise<DeviceOutboxParentReference[]> {
+  const dependency = childResourceDependencies[resource];
+  if (!dependency) return [];
+  const localRecordId = payload[dependency.field];
+  if (typeof localRecordId !== "string" || !localRecordId) return [];
+  const parents = await readDeviceLocalRecords(scope, dependency.resource);
+  if (!parents.some((record) => record.id === localRecordId)) return [];
+  return [{ field: dependency.field, localRecordId, resource: dependency.resource }];
+}
+
+async function readDeviceRecordAlias(
+  scope: string,
+  resource: string,
+  localRecordId: string,
+): Promise<string | null> {
+  if (!canUseIndexedDb()) return null;
+  const database = await openRecordDatabase();
+  try {
+    const transaction = database.transaction(RECORD_ALIAS_STORE, "readonly");
+    const row = await requestValue(
+      transaction.objectStore(RECORD_ALIAS_STORE).get(recordAliasKey(scope, resource, localRecordId)),
+    ) as CachedRecordAliasRow | undefined;
+    await transactionDone(transaction);
+    return row && typeof row.remoteRecordId === "string" && row.remoteRecordId.length > 0
+      ? row.remoteRecordId
+      : null;
+  } finally {
+    database.close();
+  }
+}
+
+/**
+ * Replays use cloud parent identifiers only after the originating parent was
+ * accepted for this same opaque account. A missing alias is a harmless wait,
+ * never a malformed child mutation.
+ */
+export async function resolveDeviceOutboxAction(
+  scope: string,
+  action: DeviceOutboxAction,
+): Promise<DeviceOutboxAction | null> {
+  if (!action.parentReferences?.length) return action;
+  const payload = { ...action.payload };
+  for (const reference of action.parentReferences) {
+    const remoteRecordId = await readDeviceRecordAlias(scope, reference.resource, reference.localRecordId);
+    if (!remoteRecordId) return null;
+    payload[reference.field] = remoteRecordId;
+  }
+  return { ...action, payload };
+}
+
+/**
+ * Once a local parent is accepted by the server, retain the opaque local-to-
+ * cloud correspondence in the same account partition and wake its queued
+ * children for a fresh replay attempt.
+ */
+export async function rememberDeviceOutboxRecordAlias(
+  scope: string,
+  action: DeviceOutboxAction,
+  remoteRecordId: string,
+): Promise<void> {
+  const resource = resourceFromOutboxAction(action);
+  if (
+    (resource !== "habits" && resource !== "savings-goals")
+    || !action.localRecordId
+    || !remoteRecordId
+    || !canUseIndexedDb()
+  ) return;
+  const database = await openRecordDatabase();
+  try {
+    const transaction = database.transaction(RECORD_ALIAS_STORE, "readwrite");
+    transaction.objectStore(RECORD_ALIAS_STORE).put({
+      key: recordAliasKey(scope, resource, action.localRecordId),
+      localRecordId: action.localRecordId,
+      remoteRecordId,
+      resource,
+      scope,
+    } satisfies CachedRecordAliasRow);
+    await transactionDone(transaction);
+  } finally {
+    database.close();
+  }
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("mydairy:outbox-alias-resolved"));
 }
 
 /**
