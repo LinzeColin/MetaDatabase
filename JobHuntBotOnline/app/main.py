@@ -45,6 +45,59 @@ def _csv_list(value: str) -> list[str]:
     return [x.strip() for x in value.replace("，", ",").split(",") if x.strip()]
 
 
+SPONSORSHIP_VALUES = {"yes", "no", "uncertain"}
+WORK_MODE_VALUES = {"remote", "hybrid", "onsite"}
+
+
+def _confirmed_profile_fields(
+    *,
+    primary_roles: str,
+    target_locations: str,
+    work_authorization: str,
+    sponsorship_now: str,
+    sponsorship_future: str,
+    work_modes: list[str],
+    relocation: str,
+    available_start: str,
+    avoid_roles: str,
+    avoid_industries: str,
+) -> tuple[dict[str, Any] | None, str | None]:
+    """Accept only facts that the user has explicitly confirmed in this form."""
+    roles = _csv_list(primary_roles)
+    locations = _csv_list(target_locations)
+    authorization = work_authorization.strip()
+    now = sponsorship_now.strip().casefold()
+    future = sponsorship_future.strip().casefold()
+    modes = list(dict.fromkeys(value.strip().casefold() for value in work_modes if value.strip()))
+    relocation_value = relocation.strip().casefold()
+    if not roles:
+        return None, "请明确至少一个目标岗位族。"
+    if not locations:
+        return None, "请明确至少一个目标城市或地区。"
+    if not authorization:
+        return None, "请填写当前工作权利；如不确定请明确填写“不确定”。"
+    if now not in SPONSORSHIP_VALUES or future not in SPONSORSHIP_VALUES:
+        return None, "请明确现在和未来是否需要 Sponsorship。"
+    if not modes:
+        return None, "请至少选择一种可接受的工作模式。"
+    if any(value not in WORK_MODE_VALUES for value in modes):
+        return None, "工作模式包含无效值。"
+    if relocation_value not in {"", "yes", "no"}:
+        return None, "搬迁偏好无效。"
+    return {
+        "primary_role_families": roles,
+        "target_locations": locations,
+        "work_authorization": authorization,
+        "sponsorship_now": now,
+        "sponsorship_future": future,
+        "work_mode": modes,
+        "relocation": relocation_value,
+        "available_start": available_start.strip(),
+        "avoid_roles": _csv_list(avoid_roles),
+        "avoid_industries": _csv_list(avoid_industries),
+    }, None
+
+
 def _query_url(path: str, **params: str) -> str:
     filtered = {k: v for k, v in params.items() if v}
     if not filtered:
@@ -456,19 +509,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     ):
         _require_csrf(request, csrf_token)
         user = _require_user(request)
+        confirmed, error = _confirmed_profile_fields(
+            primary_roles=primary_roles,
+            target_locations=target_locations,
+            work_authorization=work_authorization,
+            sponsorship_now=sponsorship_now,
+            sponsorship_future=sponsorship_future,
+            work_modes=work_modes,
+            relocation=relocation,
+            available_start=available_start,
+            avoid_roles=avoid_roles,
+            avoid_industries=avoid_industries,
+        )
+        if error or confirmed is None:
+            return _redirect("/onboarding/confirm", error=error or "关键事实尚未确认。")
         profile = get_profile(db, crypto, user.id)
-        profile.update({
-            "primary_role_families": _csv_list(primary_roles),
-            "target_locations": _csv_list(target_locations),
-            "work_authorization": work_authorization.strip(),
-            "sponsorship_now": sponsorship_now,
-            "sponsorship_future": sponsorship_future,
-            "work_mode": work_modes or ["hybrid", "onsite", "remote"],
-            "relocation": relocation,
-            "available_start": available_start.strip(),
-            "avoid_roles": _csv_list(avoid_roles),
-            "avoid_industries": _csv_list(avoid_industries),
-        })
+        profile.update(confirmed)
         row = save_profile(db, crypto, user.id, profile, onboarding_state="complete", discovery_enabled=True)
         row.next_discovery_at = utcnow()
         db.commit()
@@ -732,19 +788,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     ):
         _require_csrf(request, csrf_token)
         user = _require_user(request)
+        confirmed, error = _confirmed_profile_fields(
+            primary_roles=primary_roles,
+            target_locations=target_locations,
+            work_authorization=work_authorization,
+            sponsorship_now=sponsorship_now,
+            sponsorship_future=sponsorship_future,
+            work_modes=work_modes,
+            relocation=relocation,
+            available_start=available_start,
+            avoid_roles=avoid_roles,
+            avoid_industries=avoid_industries,
+        )
+        if error or confirmed is None:
+            return _redirect("/settings/profile", error=error or "关键事实尚未确认。")
         profile = get_profile(db, crypto, user.id)
-        profile.update({
-            "primary_role_families": _csv_list(primary_roles),
-            "target_locations": _csv_list(target_locations),
-            "work_authorization": work_authorization.strip(),
-            "sponsorship_now": sponsorship_now,
-            "sponsorship_future": sponsorship_future,
-            "work_mode": work_modes,
-            "relocation": relocation,
-            "available_start": available_start.strip(),
-            "avoid_roles": _csv_list(avoid_roles),
-            "avoid_industries": _csv_list(avoid_industries),
-        })
+        profile.update(confirmed)
         row = save_profile(db, crypto, user.id, profile, onboarding_state="complete", discovery_enabled=True)
         row.next_discovery_at = utcnow()
         db.commit()

@@ -68,8 +68,6 @@ def parse_resume(text: str) -> dict[str, Any]:
         for role, terms in ROLE_RULES.items()
     }
     role_families = [r for r, score in sorted(role_scores.items(), key=lambda x: (-x[1], x[0])) if score > 0][:4]
-    if not role_families:
-        role_families = ["Business Analysis"]
 
     education = []
     for line in _sentences(text):
@@ -97,12 +95,12 @@ def parse_resume(text: str) -> dict[str, Any]:
 
 
 def profile_draft(parsed: dict[str, Any]) -> dict[str, Any]:
-    locations = parsed.get("locations") or ["Sydney", "Melbourne", "Remote Australia"]
+    locations = parsed.get("locations") or []
     return {
         "primary_role_families": parsed.get("role_families", [])[:3],
         "secondary_role_families": parsed.get("role_families", [])[3:],
         "target_locations": locations,
-        "work_mode": ["hybrid", "onsite", "remote"],
+        "work_mode": [],
         "skills": parsed.get("skills", []),
         "keywords": parsed.get("keywords", [])[:40],
         "work_authorization": "",

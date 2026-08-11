@@ -7,6 +7,9 @@ from typing import Any
 
 LEVEL_POINTS = {"high": 3, "medium": 2, "low": 1}
 QUAL_POINTS = {"pass": 3, "pending": 2, "fail": 0}
+NO_SPONSORSHIP_NEEDED = {"no", "false", "不需要", "否"}
+SPONSORSHIP_NEEDED = {"yes", "true", "需要", "是"}
+UNCONFIRMED_FACT_VALUES = {"uncertain", "unknown", "unsure", "not sure", "不确定", "待确认"}
 
 
 def _tokens(value: str | list[str]) -> set[str]:
@@ -38,15 +41,21 @@ def score_job(profile: dict[str, Any], job: dict[str, Any], now: datetime | None
         else:
             pending.append("地点是否可接受需要确认")
 
-    sponsorship_now = str(profile.get("sponsorship_now", "")).casefold()
-    sponsorship_future = str(profile.get("sponsorship_future", "")).casefold()
+    sponsorship_now = str(profile.get("sponsorship_now", "")).strip().casefold()
+    sponsorship_future = str(profile.get("sponsorship_future", "")).strip().casefold()
     if "no sponsorship" in description or "not sponsor" in description:
-        if sponsorship_now in {"yes", "true", "需要", "是"} or sponsorship_future in {"yes", "true", "需要", "是"}:
+        if sponsorship_now in SPONSORSHIP_NEEDED or sponsorship_future in SPONSORSHIP_NEEDED:
             hard_fail.append("岗位明确不提供 Sponsorship")
-        elif not sponsorship_now or not sponsorship_future:
+        elif sponsorship_now not in NO_SPONSORSHIP_NEEDED or sponsorship_future not in NO_SPONSORSHIP_NEEDED:
             pending.append("Sponsorship 情况尚未确认")
-    if not profile.get("work_authorization"):
+    authorization = str(profile.get("work_authorization", "")).strip().casefold()
+    if not authorization or authorization in UNCONFIRMED_FACT_VALUES:
         pending.append("工作权利尚未确认")
+
+    accepted_modes = {str(mode).strip().casefold() for mode in profile.get("work_mode", []) if str(mode).strip()}
+    job_mode = str(job.get("work_mode", "")).strip().casefold()
+    if accepted_modes and job_mode and job_mode not in accepted_modes:
+        pending.append("工作模式不符合已确认偏好")
 
     qualification = "fail" if hard_fail else ("pending" if pending else "pass")
 

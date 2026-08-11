@@ -28,6 +28,7 @@
         <label><input type="checkbox" name="work_modes" value="hybrid" {% if 'hybrid' in profile.work_mode %}checked{% endif %}>混合</label>
         <label><input type="checkbox" name="work_modes" value="onsite" {% if 'onsite' in profile.work_mode %}checked{% endif %}>现场</label>
       </div>
+      <small>至少选择一项；如无偏好，请主动选择全部可接受模式。</small>
     </fieldset>
     <label>是否接受搬迁<select name="relocation" data-testid="confirm-relocation"><option value="">视岗位而定</option><option value="yes">可以</option><option value="no">不可以</option></select></label>
     <label>可入职时间<input name="available_start" value="{{ profile.available_start }}" placeholder="例如：2026-11 或 4 weeks notice" data-testid="confirm-available-start"></label>

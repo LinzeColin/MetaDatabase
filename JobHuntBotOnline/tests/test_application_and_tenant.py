@@ -87,22 +87,61 @@ def test_manual_job_import_remains_available(client):
 def test_tenant_isolation_blocks_cross_user_recommendation_and_pack(client):
     register_verify(client, "tenant-a@example.com")
     complete_onboarding(client)
-    rec_a = first_recommendation_id(client)
-    detail = client.get(f"/recommendations/{rec_a}")
-    client.post(f"/recommendations/{rec_a}/pack", data={"csrf_token": csrf(detail.text)}, follow_redirects=True)
+    manual = client.get("/jobs/manual")
+    detail = client.post("/jobs/manual", data={
+        "csrf_token": csrf(manual.text),
+        "url": "https://company.example/jobs/tenant-a-only",
+        "title": "Tenant A Private Role",
+        "company": "Tenant A Company",
+        "location": "Sydney, Australia",
+        "description": "Private tenant test role using Excel and financial analysis.",
+    }, follow_redirects=True)
     with client.app.state.session_factory() as db:
-        pack_a = db.scalar(select(ApplicationPack))
+        rec_a = db.scalar(
+            select(Recommendation).join(User, User.id == Recommendation.user_id).where(
+                User.email_lookup == email_lookup("tenant-a@example.com", client.app.state.settings.email_lookup_secret)
+            ).order_by(Recommendation.id.desc())
+        )
+        assert rec_a is not None
+        job_id_a = rec_a.job_id
+    client.post(f"/recommendations/{rec_a.id}/pack", data={"csrf_token": csrf(detail.text)}, follow_redirects=True)
+    with client.app.state.session_factory() as db:
+        pack_a = db.scalar(select(ApplicationPack).where(ApplicationPack.user_id == rec_a.user_id))
         assert pack_a
+    applications = client.get("/applications")
+    recorded = client.post("/applications", data={
+        "csrf_token": csrf(applications.text),
+        "job_id": job_id_a,
+        "status": "submitted",
+        "evidence": "Tenant A confirmation evidence",
+        "notes": "Tenant A private note",
+    }, follow_redirects=True)
+    assert "申请进度已保存" in recorded.text
 
     page = client.get("/recommendations")
     client.post("/logout", data={"csrf_token": csrf(page.text)}, follow_redirects=True)
     register_verify(client, "tenant-b@example.com")
     complete_onboarding(client)
 
-    response = client.get(f"/recommendations/{rec_a}", follow_redirects=False)
+    response = client.get(f"/recommendations/{rec_a.id}", follow_redirects=False)
     assert response.status_code == 404
     response = client.get(f"/application-packs/{pack_a.id}", follow_redirects=False)
     assert response.status_code == 404
+    applications_b = client.get("/applications")
+    assert "Tenant A Private Role" not in applications_b.text
+    assert "Tenant A confirmation evidence" not in applications_b.text
+    forbidden_event = client.post("/applications", data={
+        "csrf_token": csrf(applications_b.text),
+        "job_id": job_id_a,
+        "status": "pending",
+        "evidence": "",
+        "notes": "",
+    }, follow_redirects=False)
+    assert forbidden_event.status_code == 404
+    exported = client.get("/settings/data/export")
+    assert exported.status_code == 200
+    assert "Tenant A Private Role" not in json.dumps(exported.json())
+    assert "Tenant A private note" not in json.dumps(exported.json())
 
 
 def test_export_contains_user_data_but_not_platform_key(client):

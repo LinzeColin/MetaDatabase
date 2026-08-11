@@ -24,7 +24,7 @@ DEFAULT_PROFILE = {
     "primary_role_families": [],
     "secondary_role_families": [],
     "target_locations": [],
-    "work_mode": ["hybrid", "onsite", "remote"],
+    "work_mode": [],
     "skills": [],
     "keywords": [],
     "work_authorization": "",
