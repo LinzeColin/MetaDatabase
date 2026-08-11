@@ -1518,7 +1518,9 @@ function cloudPlaceholderRenderNode(label?: string): GraphRenderNode {
     label: label ?? "等待云端图谱",
     shortLabel: label ?? "…",
     stage: "已发布面",
-    role: "云端图谱载入中或不可用",
+    // 「载入中或不可用」把两种完全不同的处境糊成一句：一种是还在路上，
+    // 一种是拿到了、而这个主体一条已发布关系都没有。后者才是常态。
+    role: "该主体尚无已发布关系",
     x: 0,
     y: 0,
     zone: "focus",
@@ -2342,6 +2344,19 @@ export default function Home() {
     as_of?: string | null;
     published_at?: string | null;
   };
+  // ★空值不等于「还在加载」★：云发布面本来就不带 snapshot，as_of 恒为 null，
+  // 而每一处都写成 `(as_of ?? "").slice(0,10) || "载入中"` —— 于是「数据版本」永远转圈，
+  // 看的人只能理解成「网还没通」。响应已经回来时，有 published_at 就显示它，
+  // 两个都没有就显示「不确定」，绝不显示成还在路上。
+  const publishedDataVersion = (() => {
+    const asOfDay = (publishedContextMeta.as_of ?? "").slice(0, 10);
+    if (asOfDay) return asOfDay;
+    if (productionGraphStatus === "loading-production-graph" || productionGraphStatus === "local-fixture") {
+      return "载入中";
+    }
+    const publishedDay = (publishedContextMeta.published_at ?? "").slice(0, 10);
+    return publishedDay || "不确定";
+  })();
   const productionCoverage = productionGraph?.coverage;
   const productionCandidateCoverage = productionCoverage?.relationship_fact_candidates;
   const productionCandidateSummary = productionContext?.candidate_fact_summary;
@@ -3502,11 +3517,17 @@ export default function Home() {
                 : scenario.subtitle}
             </p>
           </div>
+          {/* ★「未接入」和「接入了但一条都还没发布」是两件事★
+              采集器是活的（SEC EDGAR 58 万份文件、心跳几十秒一次），断的是发布这一步：
+              云发布面只带 Owner 签核过的事实，而签核队列留在本机、线上没有入口。
+              写成「云端数据未接入」会让人去查网络和部署，查错方向。 */}
           <span className="snapshotTag" data-testid="data-mode-tag">
             {CLOUD_MODE
               ? isServerGraphRendered
                 ? "已发布数据"
-                : "云端数据未接入"
+                : productionGraphStatus === "server-error"
+                  ? "云端数据取不到"
+                  : "尚无已发布事实"
               : "样例数据"}
           </span>
         </div>
@@ -3514,7 +3535,9 @@ export default function Home() {
             「本图 6 家实体·8 条关系」——那是当前视图的取景框大小，不是库有
             多大，于是 14,000+ 实体、18 万+ 事件的库看上去像个玩具，Owner 判
             「数据根本没有更新」。真实规模现在是一等公民，取景框降为次要行。 */}
-        {CLOUD_MODE ? <PulseStrip /> : null}
+        {CLOUD_MODE ? (
+          <PulseStrip publishedRelationships={productionPublishedRelationships?.total ?? null} />
+        ) : null}
         <dl className="subjectStats" data-testid="home-model-status">
           <div>
             <dt>当前视图</dt>
@@ -3526,7 +3549,7 @@ export default function Home() {
             <dt>数据版本</dt>
             <dd>
               {CLOUD_MODE
-                ? (publishedContextMeta.as_of ?? "").slice(0, 10) || "载入中"
+                ? publishedDataVersion
                 : asOf}
             </dd>
           </div>
@@ -4339,7 +4362,7 @@ export default function Home() {
                   </p>
                   <p>
                     上次数据更新：
-                    {(publishedContextMeta.as_of ?? "").slice(0, 10) || "载入中"}
+                    {publishedDataVersion}
                     。有新数据核实后会在这里提示。
                   </p>
                 </div>
@@ -4559,7 +4582,7 @@ export default function Home() {
                 {productionPublishedRelationships?.total?.toLocaleString() ?? "载入中"}
               </span>
               <span data-testid="kpi-asof">
-                数据版本 {(publishedContextMeta.as_of ?? "").slice(0, 10) || "载入中"}
+                数据版本 {publishedDataVersion}
               </span>
               <span className="kpiHint">点击查看数据来源</span>
             </button>
@@ -4583,7 +4606,11 @@ export default function Home() {
             >
               供应链覆盖{" "}
               {supplyCoverage === null
-                ? "未知（未连接数据服务）"
+                ? CLOUD_MODE
+                  ? // 数据服务连着呢（心跳几十秒一次），空的是「已发布」这一层。
+                    // 说成「未连接数据服务」会让人去查网络，查错方向。
+                    "未知（尚无已发布的供应链关系）"
+                  : "未知（未连接数据服务）"
                 : `${supplyCoverage.covered}/${supplyCoverage.total} 环节`}
             </p>
           </aside>
@@ -4660,10 +4687,15 @@ export default function Home() {
               data-timeline-mode="published-snapshot"
             >
               <strong>
-                数据版本 · {(publishedContextMeta.as_of ?? "").slice(0, 10) || "载入中"}
+                数据版本 · {publishedDataVersion}
               </strong>
               <span>
-                更新于 {(publishedContextMeta.published_at ?? "").slice(0, 10) || "载入中"}
+                更新于{" "}
+                {(publishedContextMeta.published_at ?? "").slice(0, 10) ||
+                  (productionGraphStatus === "loading-production-graph" ||
+                  productionGraphStatus === "local-fixture"
+                    ? "载入中"
+                    : "不确定")}
               </span>
               <small>一次更新一个完整数据版本。</small>
             </div>
