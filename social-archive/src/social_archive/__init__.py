@@ -1,2 +1,2 @@
 """Social Archive core package."""
-__version__ = "0.0.0.44"
+__version__ = "0.0.0.45"

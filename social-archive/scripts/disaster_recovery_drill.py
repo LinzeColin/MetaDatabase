@@ -47,6 +47,19 @@ from social_archive.utils import utcnow  # noqa: E402
 HERE = Path(__file__).resolve().parent
 
 
+def _window_label(window: tuple[int, int], total: int) -> str:
+    """窗口绕回时要写成两段，否则标签自己会骗人。
+
+    v0.0.0.44 那次实测：起点 548、取 25 个、总数 552，标签印出来是
+    **「窗口 548–573」——而总数只有 552**。这一行的全部作用就是防止
+    「25/25 全过」被读成全量，结果它自己成了最容易被误读的一句。
+    """
+    start, end = window
+    if end <= total:
+        return f"{start}–{end}"
+    return f"{start}–{total} + 0–{end - total}"
+
+
 def select_window(ids: list[str], limit: int, offset: int) -> tuple[list[str], tuple[int, int]]:
     """抽样要挪窗口，否则永远只验最前面那几个。
 
@@ -143,7 +156,7 @@ def main() -> int:
         "target": str(target),
         "coverage_zh": (
             f"这次验的是索引里 {total_artifacts} 个制品中的 {len(artifact_ids)} 个"
-            f"（窗口 {window[0]}–{window[1]}）——**不是全量**。"
+            f"（窗口 {_window_label(window, total_artifacts)}）——**不是全量**。"
             "起点每次部署挪一格，连着发几十版才走完一圈。"
             if args.limit else f"全量：索引里 {total_artifacts} 个制品全验了。"),
         "note": "restore_object.py 自己就会比对哈希；这里数的是它判 PASS 的个数。",

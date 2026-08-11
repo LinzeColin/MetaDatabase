@@ -178,6 +178,25 @@ def test_full_scope_is_still_full_scope() -> None:
     assert picked == ids and window == (0, 7)
 
 
+def test_a_wrapped_window_is_not_labelled_past_the_total() -> None:
+    """**标签自己不许骗人。**（2026-08-11 实测，v0.0.0.44 那次部署印出来的）
+
+        这次验的是索引里 552 个制品中的 25 个（窗口 548–573）
+
+    起点 548 取 25 个、总数 552——右端 573 比总数还大。这一行的全部作用
+    就是防止「25/25 全过」被读成全量，结果它成了这份报告里最容易被误读的一句。
+    绕回时要写成两段。
+    """
+    spec = importlib.util.spec_from_file_location(
+        "dr_label", ROOT / "scripts/disaster_recovery_drill.py")
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    label = module._window_label
+    assert label((548, 573), 552) == "548–552 + 0–21", label((548, 573), 552)
+    assert label((498, 523), 552) == "498–523", "没绕回的照旧，别顺手改坏"
+
+
 def test_the_sampled_report_states_its_denominator() -> None:
     """抽样报告必须自己说出分母，否则读起来就是「全过了」。"""
     source = (ROOT / "scripts/disaster_recovery_drill.py").read_text(encoding="utf-8")

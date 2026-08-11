@@ -87,7 +87,7 @@
         "scripts/preflight_extension.py"
       ],
       "exit_code": 0,
-      "stdout": "可以装载。manifest v3、version 0.0.0.44、17 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
+      "stdout": "可以装载。manifest v3、version 0.0.0.45、17 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
       "stderr": ""
     },
     {
@@ -124,7 +124,7 @@
         "scripts/check_the_stated_version_is_the_real_one.py"
       ],
       "exit_code": 0,
-      "stdout": "真源 pyproject.toml 说版本是 0.0.0.44；核了 11 处\n每一处声明的版本都和真源一样，CHANGELOG 里也有这一版。\n",
+      "stdout": "真源 pyproject.toml 说版本是 0.0.0.45；核了 11 处\n每一处声明的版本都和真源一样，CHANGELOG 里也有这一版。\n",
       "stderr": ""
     },
     {
@@ -133,7 +133,7 @@
         "scripts/check_one_version_means_one_package.py"
       ],
       "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"version\": \"0.0.0.44\",\n  \"version_set_by\": \"5e2f561629687a4bb0205337b45e119263c6dac4 08-11 23:42\",\n  \"watched\": [\n    \"apps/browser-extension\"\n  ],\n  \"tracked_files\": 27,\n  \"changed_since_bump\": [\n    \"social-archive/apps/browser-extension/manifest.json\",\n    \"social-archive/apps/browser-extension/runtime-config.json\"\n  ],\n  \"version_being_bumped_right_now\": true,\n  \"problems\": [],\n  \"what_this_does_not_prove\": \"不保证插件是对的，只保证**它变了的时候版本号跟着变**。它也不拦同一版重复部署——改服务端而不动插件时那是正常的。\"\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"version\": \"0.0.0.45\",\n  \"version_set_by\": \"4849036870e34579cab8962f25406c8c3a0c0045 08-12 00:29\",\n  \"watched\": [\n    \"apps/browser-extension\"\n  ],\n  \"tracked_files\": 27,\n  \"changed_since_bump\": [\n    \"social-archive/apps/browser-extension/manifest.json\",\n    \"social-archive/apps/browser-extension/runtime-config.json\"\n  ],\n  \"version_being_bumped_right_now\": true,\n  \"problems\": [],\n  \"what_this_does_not_prove\": \"不保证插件是对的，只保证**它变了的时候版本号跟着变**。它也不拦同一版重复部署——改服务端而不动插件时那是正常的。\"\n}\n",
       "stderr": ""
     },
     {
