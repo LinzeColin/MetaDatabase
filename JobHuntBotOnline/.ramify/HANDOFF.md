@@ -1,81 +1,78 @@
 # Handoff to Codex Delivery Agent
 
-Read `START_HERE.md` first. The source Candidate, frozen contract, DAG, deployment scripts and local evidence are in this package. The prior invalid v0.3 ZIP is superseded and must not be used.
+Read `START_HERE.md` first. The source candidate, frozen contract, DAG,
+deployment scripts, and local evidence are in this package. The prior invalid
+v0.3 ZIP is superseded and must not be used.
 
-Do not repeat product research. NitroSend is removed: do not wait for it, connect it, or restore it. Observe latest repository and infrastructure, then execute the first unsatisfied task. Preserve current data and a rollback point. If standard SMTP is not yet available, keep public registration closed and continue every non-email task. Secrets stay outside Git and evidence. Do not run `deploy/acceptance.sh`, browser E2E, or any other real-email action unless the Owner grants a new one-time authorization and explicitly sets `RUN_REAL_EMAIL_ACCEPTANCE=true`; the script fails closed without that flag.
+Do not repeat product research. NitroSend is removed: do not wait for it,
+connect it, or restore it. Observe the latest repository and infrastructure,
+then execute the first unsatisfied task. Preserve current data and a rollback
+point. Secrets stay outside Git and evidence.
 
-## 2026-08-11 VPS3 operational checkpoint — controlled email safety
+## 2026-08-11 VPS3 checkpoint — email safety hold
 
 - The live target is VPS3 (`vps-bab7f9dc`) at
-  `https://jobhunt.linzezhang.com`. PostgreSQL, Web, Scheduler and Worker are
-  running; `/readyz` reports `refresh_hours=6`.
-- The Owner permits real mail only when it is controlled, and explicitly
-  rejected the prior burst of three messages in ten minutes.
-  `ALLOW_REGISTRATION=false` and `RUN_REAL_EMAIL_ACCEPTANCE=false` remain live
-  and the public `/register` route is closed. This candidate adds a
-  recipient-level 30-minute cooldown, a 24-hour cap of three delivery
-  attempts, two distinct dedicated acceptance addresses, a one-use run ID,
-  a 30-minute acceptance gap, and a persistent 24-hour acceptance cooldown.
-  No new real-email action was run while introducing those controls.
-- A prior root `ACCEPTANCE_RESULT.json` was invalidated and removed after the
-  safety pause. There is currently no fresh target root production PASS, so
-  T10 must not be marked complete and no full-production claim is allowed.
-- All verified non-email functions remain available: PostgreSQL migration,
-  restart readback, encrypted-backup verification, platform DeepSeek probe
-  without key exposure, authorized job discovery, and the strict six-hour
-  refresh are recorded by target evidence. NitroSend is absent and remains
-  prohibited.
-- Current VPS3 database aggregates confirm one discovery-enabled profile, four
-  completed scheduled runs, and all three observed adjacent intervals within
-  6:00:36–6:01:04; there is no overdue discovery schedule. These aggregates
-  contain no user identifier, email, resume, or candidate fact.
-- The complete local source test suite passed 31/31 in a disposable VPS3
-  container with a read-only source mount and `--network none`; this exercised
-  authentication, tenant isolation, resume/onboarding, discovery, application
-  preparation, migration, recovery tooling, and the email-closed path without
-  sending mail or contacting any external service.
-- T09 was re-established with non-authoritative operational evidence only:
-  `https://status.linzezhang.com/data/snapshot.json` now registers JobHuntBot
-  Online on VPS3 and states the email pause; Private-Database
-  `Private-MetaDatabase/JobHuntBotOnline/operations/v0.3.0/latest.json` was
-  read back with no business data, PII, or Secrets. PostgreSQL remains the
-  sole business-data authority.
+  `https://jobhunt.linzezhang.com`. PostgreSQL, Web, Scheduler, and Worker are
+  healthy; HTTPS `/readyz` reports `status=ready` and `refresh_hours=6`.
+- The Owner permits controlled email but rejected the earlier burst of three
+  messages in ten minutes. Treat that as a hard safety boundary: never
+  auto-retry a real email acceptance run and never send at a shorter cadence.
+- One controlled real acceptance attempt was made after SMTP/IMAP preflight.
+  It sent exactly one genuine verification message to the dedicated synthetic
+  A recipient, then completed verification, onboarding, recommendations, and
+  application preparation for that synthetic account. The process was stopped
+  before any second request after it did not finish promptly. Database
+  aggregate evidence confirms exactly one new `EmailDelivery` with `sent`
+  status; no second or third delivery was made.
+- The exact synthetic A account was deleted by its dedicated recipient lookup;
+  a follow-up count is zero. Delivery audit rows remain intentionally. No B
+  account was created. Do not delete any wider user set or erase delivery
+  audit records.
+- Live `.env` has `ALLOW_REGISTRATION=true` because standard SMTP exists, but
+  `RUN_REAL_EMAIL_ACCEPTANCE=false`. The application enforces a 30-minute
+  per-recipient interval and a maximum of three deliveries per 24 hours.
+  The persisted real-email guard has consumed the prior run ID and holds a
+  24-hour cooldown; it must not be cleared or bypassed.
+- Commit `6e8404f3b` deployed the application-level anti-burst controls.
+  Commit `b0cc17d81` deployed bounded IMAP connection/retry behavior. Commit
+  `70c728835` is synchronized into the VPS3 release copy and requires every
+  future acceptance request to wait 30 minutes plus a non-removable 30-second
+  boundary buffer (configurable only up to 300 seconds). This avoids a
+  millisecond collision with the application limiter. These updates do not
+  send email and do not require a service restart.
+- A disposable VPS3 container ran all 40 source tests with a read-only source
+  mount and `--network none`; all passed. The target taskpack verifier also
+  passes in deployment-runtime mode. No SMTP connection, browser acceptance,
+  or public registration action occurred in those checks.
+- There is no root `ACCEPTANCE_RESULT.json`. The prior partial mail run is not
+  a production receipt: T10 remains incomplete and a full-production PASS
+  must not be claimed.
+
+## Verified non-email state
+
+- PostgreSQL migration, restart readback, encrypted-backup verification,
+  platform DeepSeek probe without key exposure, authorized job discovery, and
+  strict six-hour scheduling have target evidence. NitroSend is absent and
+  prohibited, not a blocker.
+- T09 remains non-authoritative operational evidence only. The Status source
+  has a VPS3 registration on draft PR #86
+  (`codex/jobhuntbot-status-registration`); do not replace it with a stale
+  VPS1 collector. Private-Database has a read-back operational record without
+  business data, PII, or Secrets; PostgreSQL is the sole business-data
+  authority.
 - R2 is deliberately `NOT_CONFIGURED`. No JobHuntBot-specific bucket or
   credential is authorized, and no R2 operation, InfrequentAccess setting,
   recurring task, or cross-project credential reuse was performed. The target
-  `evidence/target-ops.json` is therefore noncritical `BLOCKED` with Status
-  and Private-Database checks PASS and `production_claimed=false`.
-- Status-source correction is on draft PR #86
-  (`codex/jobhuntbot-status-registration`); it contains only the VPS3 and
-  email-pause registration. Do not replace the VPS3 collector with a stale
-  VPS1 version.
-- The JobHuntBot source and email fail-closed guard are on draft PR #176
-  (`codex/jobhuntbot-online-v030-r2`). The target's historical
-  `ACCEPTANCE_COMMIT` value must not be used as a completion receipt because
-  its associated root acceptance result is absent.
-
-## 2026-08-11 anti-burst deployment receipt
-
-- Commit `6e8404f3b` is deployed to the VPS3 release directory. The release
-  directory is intentionally a deployment copy rather than a Git checkout;
-  the exact committed files were staged there before the normal backup,
-  build, Alembic, Web, Scheduler and Worker deployment sequence.
-- A disposable VPS3 container ran the deployed source with a read-only mount
-  and `--network none`: all 36 tests passed. No SMTP connection, real mailbox,
-  browser acceptance, or public registration action occurred in that run.
-- Runtime readback reports `email_min_interval_seconds=1800`,
-  `email_max_per_user_per_24h=3`, and `allow_registration=false`.
-  HTTPS `/readyz` is healthy with `refresh_hours=6`, public `/register`
-  remains HTTP 403, and encrypted-backup verification passed.
-- `deploy/acceptance.sh` was invoked only with the live default opt-out. It
-  exited 2 before evidence cleanup or browser startup, reporting that no email
-  had been sent. The root `ACCEPTANCE_RESULT.json` remains absent.
+  ops evidence is noncritical `BLOCKED` with `production_claimed=false`.
+- The JobHuntBot source and all email safeguards are on draft PR #176
+  (`codex/jobhuntbot-online-v030-r2`). Do not mark it ready, merge it, or use
+  an old `ACCEPTANCE_COMMIT` value as a completion receipt.
 
 ## Next authorized action
 
-The anti-burst controls are deployed and public registration stays closed. A
-future real-email production acceptance requires two dedicated acceptance
-inboxes, `ALLOW_REGISTRATION=true`,
-`RUN_REAL_EMAIL_ACCEPTANCE=true`, and a fresh
-`REAL_EMAIL_ACCEPTANCE_RUN_ID`; only then may T06/T08 be rerun and a new root
-`ACCEPTANCE_RESULT.json` be considered for T10.
+Do not send another email automatically. After the stored cooldown has
+expired, obtain a deliberate go-ahead, generate a fresh run ID and fresh
+dedicated synthetic A/B recipients, preflight again, and run one paced
+acceptance attempt only. If it does not reach a real root
+`ACCEPTANCE_RESULT.json` with `core_verdict=PASS` and no open P0/P1, leave the
+result as `EMAIL_ONLY_BLOCKED`/non-final rather than claiming completion.
