@@ -123,6 +123,12 @@ point. Secrets stay outside Git and evidence.
   ops probe records Private-Database `PASS`, Status `BLOCKED`, and R2
   `NOT_CONFIGURED`; its overall result is noncritical `BLOCKED` with
   `production_claimed=false`.
+- The Docker orphan warning refers to `jobhuntbot-online-app-1`, an exited
+  v0.2 image (`jobhuntos-online:0.2.0`) from the separate
+  `/srv/linze/apps/jobhuntos-online` working directory. It has no published
+  ports and no running process, but retains a writable legacy data bind mount.
+  Leave it untouched unless an explicit cleanup/rollback-retention decision is
+  made; it is not part of the v0.3 runtime or an active mail path.
 - The JobHuntBot source and all email safeguards are on draft PR #176
   (`codex/jobhuntbot-online-v030-r2`). Do not mark it ready, merge it, or use
   an old `ACCEPTANCE_COMMIT` value as a completion receipt.
