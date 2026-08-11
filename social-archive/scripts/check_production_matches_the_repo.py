@@ -140,17 +140,57 @@ def container_note_for(stale: list[str], file_count: int) -> str:
 
 
 def _local_hashes() -> dict[str, str]:
+    """**「仓」这一侧读的是 HEAD，不是工作树。**（2026-08-12 改）
+
+    第 8.2 步早就把这个道理写清楚了：
+
+        比的是「服务器上的 zip」对「我这台机器上的 zip」——
+        两个一样坏的东西比起来是一致的。要比的必须是一个**它证不了自己**的东西。
+
+    **而那一课当时只落在了扩展包上。** 这一步（仓／主机／镜像三份一致）
+    原来读的是 `ROOT.rglob()` + `read_bytes()`，也就是工作树。于是：
+
+        部署第 0 步查完「工作树干净」→ 还要跑 7–8 分钟（1767 条测试 + 14 个演练）
+        才走到第 2 步 rsync。这中间任何一次编辑都会被 rsync 送上生产，
+        而这一步两边读的都是我改过的那份 —— **一致，放行。**
+
+    2026-08-12 我自己就在这个窗口里改过文件（那次是 .md，不在比较范围里，
+    但同样的编辑落在 .py 上就是上面这条路）。改成读 HEAD 之后，
+    「部署期间别动工作树」从一条要人记得的规矩，变成一件**做不到而不被发现的事**。
+
+    scripts/ src/ apps/ 里当时**没有任何未被跟踪的代码文件**（实测 0 个），
+    所以改成读 HEAD 不会凭空冒出 only_on_production。
+    """
     import hashlib
+    import subprocess
+    import sys as _s
+    # **在函数里 import。** 这个脚本模块级只把 scripts/ 放进 sys.path，没有 src/；
+    # 而 `clean_git_env` 在 src/social_archive 下。放模块级会撞上 ROOT 还没定义，
+    # 放这里最稳。（不用它不行：仓里有一道门要求所有 git 调用都洗环境——
+    # 钩子塞的 GIT_DIR 会压过 cwd，这个仓为此栽过。）
+    _s.path.insert(0, str(ROOT / "src"))
+    from social_archive.git_env import clean_git_env
+
+    wanted = {f"{directory}/" for directory in COMPARED}
+    listing = subprocess.run(
+        ["git", "ls-tree", "-r", "--name-only", "HEAD"],
+        cwd=ROOT, env=clean_git_env(), capture_output=True, text=True, check=False)
     found: dict[str, str] = {}
-    for directory in COMPARED:
-        base = ROOT / directory
-        if not base.is_dir():
+    for name in (listing.stdout or "").splitlines():
+        name = name.strip()
+        if not name or not any(name.startswith(w) for w in wanted):
             continue
-        for pattern in SUFFIXES:
-            for path in base.rglob(pattern):
-                if path.is_file():
-                    found[str(path.relative_to(ROOT))] = hashlib.sha256(
-                        path.read_bytes()).hexdigest()
+        if not any(name.endswith(suffix.lstrip("*")) for suffix in SUFFIXES):
+            continue
+        # **必须是 `HEAD:./<path>`。** `git ls-tree` 打出来的是**相对 cwd** 的路径，
+        # 而 `git show HEAD:<path>` 按**仓根**解析——两者不是一套坐标。
+        # 直接拼 `HEAD:{name}` 会全部 fatal，`_local_hashes()` 返回空字典，
+        # 于是这一步把整个代码库报成 only_on_production：**每次部署都红**。
+        # （试了一下原语才发现，没试就上会很难查。）
+        blob = subprocess.run(["git", "show", f"HEAD:./{name}"], cwd=ROOT,
+                              env=clean_git_env(), capture_output=True, check=False)
+        if blob.returncode == 0:
+            found[name] = hashlib.sha256(blob.stdout).hexdigest()
     return found
 
 
