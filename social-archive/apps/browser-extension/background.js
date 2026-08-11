@@ -189,15 +189,19 @@ async function injectFabIfAuthorized(tabId, url) {
 const PENDING_CONNECTIONS_KEY = "saPendingAccountConnections";
 const SYNC_QUEUE_KEY = "saAccountSyncQueue";
 const SYNC_QUEUE_LOCK_KEY = "saAccountSyncQueueLock";
-// A live sync refreshes its lock on every batch, so anything older than this
-// belongs to a worker MV3 has already terminated.
-const SYNC_QUEUE_LOCK_STALE_MS = 3 * 60 * 1000;
-
-async function refreshSyncQueueLock() {
-  const stored = await chrome.storage.local.get({ [SYNC_QUEUE_LOCK_KEY]: null });
-  const lock = stored[SYNC_QUEUE_LOCK_KEY];
-  if (lock) await chrome.storage.local.set({ [SYNC_QUEUE_LOCK_KEY]: { ...lock, heartbeatAt: Date.now() } });
-}
+// **这里原来有 main 的心跳机制，2026-08-12 合并时删掉了——它只剩下一半。**
+//
+// main 用「心跳 + 超时」判锁死没死：`refreshSyncQueueLock()` 每批写一次
+// `heartbeatAt`，取锁那边比 `heldFor < SYNC_QUEUE_LOCK_STALE_MS`。
+// 这个分支换成了另一种解法（锁记 workerId，只有本 worker 自己持的算在跑，
+// 别人留下的由 reclaimAbandonedSyncWork 回收），于是合并时**读的那一半按
+// 「取我这边」解掉了，而写的那一半在别处自动合了进来**：
+//
+//     SYNC_QUEUE_LOCK_STALE_MS   定义了，全文件再没有第二处引用
+//     heartbeatAt                每批写一次，没有任何人读
+//
+// 也就是说它每同步一批就多做一次 storage 写，换不来任何东西。
+// 删掉写的那一半，别留一个「写进去没人读」的键。
 
 // A lock can only be held by the running worker. If this file is evaluating,
 // any lock in storage was left by a worker that is already gone.
@@ -884,9 +888,6 @@ async function findExistingPlatformTab(platform, preferredTabId = null) {
 }
 
 async function sendSyncBatch(syncRunId, body) {
-  // Every batch proves the worker is still alive, which is what keeps a long
-  // scan from having its own lock treated as abandoned.
-  await refreshSyncQueueLock();
   return SA.api(`/v1/sync-runs/${encodeURIComponent(syncRunId)}/batches`, {
     method: "POST",
     body: JSON.stringify(body),
@@ -1150,6 +1151,23 @@ async function connectPlatformSessionByCookies(platform) {
  * （它不做符号解析），单元测试也碰不到，只有用户点到那颗按钮的一刻才会炸。
  * 抓到它的是 `find_calls_to_functions_that_do_not_exist.py`。
  */
+
+/** 把任何抛出物变成一句**能读**、且**不带值**的话。
+ *
+ * 三条规矩：有 message 就用 message；字符串原样；
+ * 别的只报形状（构造器名 + 键名），绝不报值——值可能是他的私人数据。
+ */
+function describeThrown(error) {
+  if (error && typeof error.message === "string" && error.message) return error.message;
+  if (typeof error === "string") return error;
+  if (error && typeof error === "object") {
+    const kind = error.constructor?.name || "Object";
+    const keys = Object.keys(error).slice(0, 8).join(",");
+    return keys ? `${kind}{${keys}}` : kind;
+  }
+  return String(error);
+}
+
 function sameOriginUrl(candidate, reference) {
   try {
     const a = new URL(candidate);
@@ -1672,7 +1690,15 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
         // 我从生产直接读得到，不用他做任何事。
         // 只留 URL 和淘汰理由，**不留响应内容**（那可能是他的私人数据）。
         cursor: {
-          error: String(error?.message || error).slice(0, 300),
+          // **不能只写 `String(error?.message || error)`**（2026-08-12 实测）。
+          // 抛出物是个没有 message 的普通对象时，它写出来的是 `[object Object]`——
+          // 而这个字段是跟着同步落进服务端回执、我从生产直接读的那一个，
+          // 读到 `[object Object]` 等于什么都没读到。
+          //
+          // 也**不能** JSON.stringify 整个对象：上面那条注释写着「不留响应内容
+          // （那可能是他的私人数据）」，而一个 502 的错误对象往往就带着响应体。
+          // 所以只取**形状**——构造器名 + 键名，不取任何值。
+          error: describeThrown(error).slice(0, 300),
           ...(error?.detail ? { diagnosis: error.detail } : {}),
         },
         has_more: false
