@@ -54,6 +54,7 @@ BY_DESIGN: dict[str, str] = {
     "write_object_reference": "同上",
     "open_tab_async": "scripts/cdp_extension_harness.py 是给人手动驱动浏览器用的开发工具，不是生产路径",
     "ev": "同上",
+    "redirect_request": "urllib 的框架回调：check_the_guide_warns_about_the_access_gate.py 覆写它来**不跟随跳转**（要看的正是 302 跳去哪儿）。仓内没人显式调它，调用方是 urllib 自己",
 }
 
 # **确实没接上，而且我知道**。列在这里是为了让「知道」这件事可查，

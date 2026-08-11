@@ -1023,6 +1023,32 @@ fi
 sed -n 's/.*"message_zh": "\(.*\)".*/  \1/p' /tmp/sa_public_ver.$$ | head -1
 rm -f /tmp/sa_public_ver.$$
 
+step "8.56) 说明书第一步让他打开的那个地址，会不会先弹一屏它没提过的验证"
+# 另一道门（check_the_guide_matches_the_product.py）查的是**正方向**：
+# 说明里写的东西真的存在。它查不到反方向——**真实存在、而说明里没有**。
+# 两个方向漏一个，说明书就可以靠「少说」永远绿。
+#
+# 2026-08-12 实测就漏在第一步：说明让他打开 social-archive.linzezhang.com，
+# 而没有会话时它先 302 到 Cloudflare Access 的登录页，说明书一个字没提。
+# 他自己的浏览器有会话看不见，换台机器第一步就卡在一个没写过的页面上。
+if ! .venv/bin/python scripts/check_the_guide_warns_about_the_access_gate.py \
+      > evidence/G4/GUIDE_WARNS_ABOUT_THE_GATE.json 2>&1; then
+  python3 -c "
+import json
+try:
+    d=json.load(open('evidence/G4/GUIDE_WARNS_ABOUT_THE_GATE.json'))
+except Exception:
+    print(open('evidence/G4/GUIDE_WARNS_ABOUT_THE_GATE.json').read()[-400:]); raise SystemExit
+for p in d.get('problems', []): print('  ✗', p[:220])"
+  fail '说明书第一步和他真会撞到的那一屏对不上——**少说也是说错**。'
+fi
+python3 -c "
+import json
+d=json.load(open('evidence/G4/GUIDE_WARNS_ABOUT_THE_GATE.json'))
+print(f\"  说明书第一步那个地址：{d['guide_first_url']}；\"
+      + ('挡在 Access 后面，说明书也确实提了那一屏。' if d['guide_mentions_the_gate']
+         else '没挡，说明书也没写多余的提醒。'))"
+
 step "8.65) 他打得到的那份前端，真 Chrome 里画不画得出这次发的东西"
 # **第 8.6 步只核了 /health 报的版本号。** 那是后端。
 # 前端是另一条路，而它有自己的一层缓存：
