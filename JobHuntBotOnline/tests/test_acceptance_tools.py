@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import email
 import importlib.util
 import json
 import os
@@ -7,7 +8,9 @@ import shutil
 import stat
 import subprocess
 import sys
-from datetime import timedelta
+import time
+from datetime import datetime, timedelta, timezone
+from email.message import EmailMessage
 from pathlib import Path
 
 from sqlalchemy import text
@@ -354,6 +357,45 @@ def test_mail_wait_retries_a_bounded_imap_timeout_without_resending(monkeypatch)
     with pytest.raises(RuntimeError, match="timed out waiting for verify email"):
         module.wait_mail_link("acceptance@example.test", "verify", "https://jobhunt.example.test", 0.0)
     assert attempts["count"] == 1
+
+
+def test_mail_wait_matches_a_distinct_plus_alias_in_a_shared_imap_inbox(monkeypatch):
+    spec = importlib.util.spec_from_file_location("jobhunt_e2e_imap_alias", ROOT / "tools/e2e_production.py")
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    message = EmailMessage()
+    message["Date"] = email.utils.format_datetime(datetime.now(timezone.utc))
+    message["To"] = "owner+acceptance-a@example.test"
+    message.set_content(
+        "确认链接：https://jobhunt.example.test/verify-email?token=synthetic-verification-token"
+    )
+
+    class FakeImapClient:
+        def select(self, _folder, readonly):
+            assert readonly is True
+            return "OK", []
+
+        def search(self, *_args):
+            return "OK", [b"101"]
+
+        def fetch(self, _message_id, _query):
+            return "OK", [(b"101 (RFC822)", message.as_bytes())]
+
+        def logout(self):
+            return "BYE", []
+
+    monkeypatch.setattr(module, "imap_connection", FakeImapClient)
+    monkeypatch.setenv("ACCEPTANCE_MAIL_TIMEOUT_SECONDS", "240")
+
+    link = module.wait_mail_link(
+        "owner+acceptance-a@example.test",
+        "verify",
+        "https://jobhunt.example.test",
+        time.time(),
+    )
+    assert link == "https://jobhunt.example.test/verify-email?token=synthetic-verification-token"
 
 
 def test_email_pacer_adds_a_rate_limit_boundary_buffer(monkeypatch):
