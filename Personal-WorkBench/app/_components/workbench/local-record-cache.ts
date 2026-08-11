@@ -314,9 +314,21 @@ export async function deriveDeviceOutboxParentReferences(
   if (!dependency) return [];
   const localRecordId = payload[dependency.field];
   if (typeof localRecordId !== "string" || !localRecordId) return [];
+  if (!localRecordId.startsWith("local_")) return [];
+  const reference = { field: dependency.field, localRecordId, resource: dependency.resource } as DeviceOutboxParentReference;
   const parents = await readDeviceLocalRecords(scope, dependency.resource);
-  if (!parents.some((record) => record.id === localRecordId)) return [];
-  return [{ field: dependency.field, localRecordId, resource: dependency.resource }];
+  if (parents.some((record) => record.id === localRecordId)) return [reference];
+
+  // The parent can settle while this child is being created. In that narrow
+  // window the device row has been removed, but its same-account alias is
+  // already durable; keep the dependency so the immediate mutation resolves
+  // to the server identifier rather than sending a local_ identifier.
+  if (await readDeviceRecordAlias(scope, dependency.resource, localRecordId)) return [reference];
+
+  // A local_ identifier is never a server identifier. Preserve the reference
+  // even when neither local row nor alias is readable yet so the caller waits
+  // safely instead of submitting an invalid parent reference to the API.
+  return [reference];
 }
 
 async function readDeviceRecordAlias(

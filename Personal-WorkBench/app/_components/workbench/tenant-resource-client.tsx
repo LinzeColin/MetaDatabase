@@ -560,13 +560,34 @@ export function useTenantResource<T extends TenantRecord>(
     }
 
     try {
-      const response = await fetch(withRequestId(deviceOutboxAction.endpoint, requestId), {
-        method: deviceOutboxAction.method,
+      const resolvedAction = await resolveDeviceOutboxAction(scope, deviceOutboxAction);
+      if (!resolvedAction) {
+        if (localPersisted) {
+          const queuedForReplay = sensitive ? false : await queueDeviceMutation(deviceOutboxAction);
+          setError(queuedForReplay
+            ? "已保存在当前设备。正在等待关联记录同步，完成后会自动同步。"
+            : "已保存在当前设备。关联记录正在同步，请稍后刷新后再试。",
+          );
+          setAuthRequired(false);
+          setConsentRequired(false);
+          setLoginSuggested(false);
+          return localRecord;
+        }
+        setError("关联记录正在同步，请稍后刷新后再试。");
+        return null;
+      }
+      const resolvedScope = await refreshCurrentScope();
+      if (resolvedScope !== scope) {
+        acknowledgeScopeChange(resolvedScope);
+        return null;
+      }
+      const response = await fetch(withRequestId(resolvedAction.endpoint, requestId), {
+        method: resolvedAction.method,
         credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(deviceOutboxAction.payload),
+        body: JSON.stringify(resolvedAction.payload),
       });
       const responseScope = await refreshCurrentScope();
       if (responseScope !== scope) {
