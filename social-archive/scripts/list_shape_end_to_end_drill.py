@@ -66,6 +66,29 @@ def _flat(prefix: str, n: int, base: int) -> list[dict]:
             for i in range(1, n + 1)]
 
 
+
+def _douyin(prefix: str, n: int, base: int) -> dict:
+    """抖音的形状：条目在 `aweme_list` 里，id 叫 `aweme_id`，标题在 `desc`。
+
+    **为什么现在才补这两家**（2026-08-11）：
+    `SHAPE_READ_PLATFORMS`（background.js）里有 5 个平台——
+    小红书 / **抖音** / **快手** / Reddit / Instagram，
+    而这个演练的 `PLATFORMS` 只有 3 个：小红书 / Reddit / Instagram。
+    **抖音和快手走的就是这条路，却一直没有任何演练走过。**
+    他生产库里最大的那个账号正是抖音（86 条），8/4 那次同步的错误码是
+    `BROWSER_SCAN_FAILED`——恰好就是这条路上的失败。
+
+    形状按公开可见的响应结构写（`aweme_list[].aweme_id/desc/author.nickname/
+    create_time`）。这个演练的边界一直写着「不证明真站的响应长这样」——
+    补这两家不改变那条边界，改变的是「这条链对这两家通不通」有没有被走过。
+    """
+    return {"status_code": 0, "has_more": 0, "aweme_list": [
+        {"aweme_id": f"{prefix}{i}", "desc": f"{prefix} 第 {i} 条",
+         "author": {"nickname": f"作者{i}"}, "create_time": base + i,
+         "video": {"cover": {"url_list": [f"https://img.example/{prefix}{i}.webp"]}}}
+        for i in range(1, n + 1)]}
+
+
 def _reddit(prefix: str, n: int, base: int) -> dict:
     """Reddit 的形状：**id 藏在 `children[].data` 里**，条目自带相对 permalink。"""
     return {"kind": "Listing", "data": {"after": None, "children": [
@@ -111,6 +134,26 @@ PLATFORMS: dict[str, dict] = {
         "list": {"data": {"notes": _flat("n", ITEM_COUNT, 1700000000)}},
         "url_prefix": "https://www.xiaohongshu.com/explore/", "derived_by": "id_template",
     },
+    "douyin": {
+        "domain": "douyin.com", "favourite_path": "/user/self",
+        "feed_route": "/aweme/v1/web/tab/feed/", "list_route": "/aweme/v1/web/aweme/listcollection/",
+        "feed": _douyin("rec", 6, 1800000000), "list": _douyin("n", ITEM_COUNT, 1700000000),
+        "url_prefix": "https://www.douyin.com/video/", "derived_by": "id_template",
+    },
+    # **快手没有夹具，这是有意的。**（2026-08-11）
+    #
+    # 我写过一份（`feeds[].photoId/caption/userName`），跑出来 7 条里 3 条
+    # 丢了作者——因为 `userName` 不在 list-shape.js 的 `AUTHOR_KEYS` 里
+    # （那张表里是 `user_name`）。
+    #
+    # 停在这里的理由：**我没有能力核实快手真实的字段名**（要他的登录态）。
+    # 顺着那个"失败"改产品，就是拿一份我自己编的夹具去改生产代码——
+    # 而 AUTHOR_KEYS 上面白纸黑字写着「这张表是按真实平台的字段名列的，
+    # 不是我编的同义词」。编的夹具只会给出假绿或假红，两种都比没有更坏。
+    #
+    # 这个缺口现在是**记录在案**的，不是隐形的：
+    # check_shape_read_platforms_have_drills.py 会逐个平台对，
+    # 快手在那里有一条写明理由的豁免。
     "reddit": {
         "domain": "reddit.com", "favourite_path": "/user/me/saved",
         "feed_route": "/svc/best", "list_route": "/svc/saved",
@@ -127,7 +170,8 @@ PLATFORMS: dict[str, dict] = {
 }
 
 # 关系名各家不同：国内三家是「收藏」，Reddit / Instagram 都叫 saved。
-RELATIONS = {"xiaohongshu": "favorite", "reddit": "saved", "instagram": "saved"}
+RELATIONS = {"xiaohongshu": "favorite", "douyin": "favorite",
+             "reddit": "saved", "instagram": "saved"}
 
 PLATFORM = "xiaohongshu"
 RELATION = RELATIONS[PLATFORM]

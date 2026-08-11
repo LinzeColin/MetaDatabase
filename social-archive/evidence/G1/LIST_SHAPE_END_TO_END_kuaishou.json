@@ -1,14 +1,14 @@
 {
-  "status": "PASS",
-  "platform": "reddit",
-  "bytes_sent_to_archive": 5021,
+  "status": "FAIL",
+  "platform": "kuaishou",
+  "bytes_sent_to_archive": 5013,
   "chrome_cookies_calls": [],
   "cookies_api_was_available": true,
   "domestic_cookie_stayed_in_browser": true,
-  "relation": "saved",
-  "response_shape": "relative_link",
+  "relation": "favorite",
+  "response_shape": "id_template",
   "url_derived_by": [
-    "relative_link"
+    "id_template"
   ],
   "connect": {
     "ok": true,
@@ -16,8 +16,8 @@
     "accountId": "acct-1",
     "syncRunId": "run-1",
     "queuedCount": 1,
-    "message": "已在你的Reddit收藏页上认出 6 条，正在存进档案馆。",
-    "platform": "reddit"
+    "message": "已在你的快手收藏页上认出 7 条，正在存进档案馆。",
+    "platform": "kuaishou"
   },
   "verify": {
     "ok": false,
@@ -26,10 +26,10 @@
   },
   "account_created": {
     "id": "acct-1",
-    "platform": "reddit",
+    "platform": "kuaishou",
     "connection_state": "connected",
     "external_account_id": "browser-session",
-    "display_name": "Reddit账号",
+    "display_name": "快手账号",
     "metadata": {
       "auth_method": "browser_session",
       "verified_by": "list_shape_recognised",
@@ -42,7 +42,7 @@
   "install": {
     "ok": true,
     "state": "observing",
-    "platform": "reddit",
+    "platform": "kuaishou",
     "prefixCount": 1,
     "observerSelfReport": {
       "installed": true,
@@ -53,22 +53,24 @@
   "captured_right_after_install": 5,
   "captured_responses": 5,
   "captured_urls": [
-    "https://www.reddit.com/api/log",
-    "https://www.reddit.com/api/config",
-    "https://www.reddit.com/api/user",
-    "https://www.reddit.com/svc/best",
-    "https://www.reddit.com/svc/saved"
+    "https://www.kuaishou.com/api/log",
+    "https://www.kuaishou.com/api/config",
+    "https://www.kuaishou.com/api/user",
+    "https://www.kuaishou.com/graphql/feed",
+    "https://www.kuaishou.com/graphql/collect"
   ],
-  "recognised": "https://www.reddit.com/svc/saved",
-  "matched_path": "data.children",
+  "recognised": "https://www.kuaishou.com/graphql/collect",
+  "matched_path": "feeds",
   "items": 7,
   "sample_urls": [
-    "https://www.reddit.com/r/sub/comments/n1/t/",
-    "https://www.reddit.com/r/sub/comments/n2/t/",
-    "https://www.reddit.com/r/sub/comments/n3/t/"
+    "https://www.kuaishou.com/short-video/n1",
+    "https://www.kuaishou.com/short-video/n2",
+    "https://www.kuaishou.com/short-video/n3"
   ],
   "completeness": "partial",
   "failure_code": "PARTIAL_BY_PAGE_SCROLL",
-  "problems": [],
+  "problems": [
+    "有条目丢了标题或作者（会静默存成 null）：['https://www.kuaishou.com/short-video/n1', 'https://www.kuaishou.com/short-video/n2', 'https://www.kuaishou.com/short-video/n3']"
+  ],
   "what_this_does_not_prove": "**不证明真小红书的响应长这样**——那要 Owner 自己的登录态，只能发生在他的浏览器里。这里证明的是：不知道接口地址也能装上观察器、能收到页面自己的响应、能从噪声里认出列表、能变成可入库的条目，而且不会把推荐流认成收藏。"
 }

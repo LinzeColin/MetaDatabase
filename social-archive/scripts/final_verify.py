@@ -128,6 +128,11 @@ def structural_commands() -> list[list[str]]:
         # 「界面画的按钮服务端认不认」，这一道问的是
         # 「服务端认了的，扩展里真的有实现吗」——**两个方向**。
         [python, "scripts/check_sync_promises_match_reality.py"],
+        # 「按形状读」那条路上的平台，有没有演练真走过（2026-08-11）。
+        # 抖音 / 快手在生产上走它，而演练一次都没走过——两张表在两个文件里，
+        # 此前没有任何东西把它们对过。上一道问「说的和写的一不一致」，
+        # 这一道问「真的有人走过吗」。
+        [python, "scripts/check_shape_read_platforms_have_drills.py"],
         # **建好了，但没有任何东西调得到它**（v0.0.0.22 / G2）。
         # 这一类已经栽过五次，最近一次是 Instagram 的连接按钮被 Cookie 托管吃掉：
         # 今天能跑通的那条路从界面上够不着。写测试防不住——要防的恰恰是

@@ -7,29 +7,29 @@
     "index_bytes": 20645,
     "index_cf_cache_status": "DYNAMIC",
     "stamps_in_index": [
-      "e8616323"
+      "5d1d66c6"
     ],
     "assets": [
       {
-        "url": "/assets/styles.css?v=e8616323",
+        "url": "/assets/styles.css?v=5d1d66c6",
         "bytes": 39548,
         "cf_cache_status": "MISS",
         "age": ""
       },
       {
-        "url": "/assets/manifest.webmanifest?v=e8616323",
+        "url": "/assets/manifest.webmanifest?v=5d1d66c6",
         "bytes": 282,
         "cf_cache_status": "DYNAMIC",
         "age": ""
       },
       {
-        "url": "/assets/favicon.svg?v=e8616323",
+        "url": "/assets/favicon.svg?v=5d1d66c6",
         "bytes": 182,
         "cf_cache_status": "MISS",
         "age": ""
       },
       {
-        "url": "/assets/app.js?v=e8616323",
+        "url": "/assets/app.js?v=5d1d66c6",
         "bytes": 143009,
         "cf_cache_status": "MISS",
         "age": ""

@@ -69,6 +69,11 @@ ZERO_ARG = [
 # 要参数、但参数是固定的那几个（一次验一个平台）。
 PARAMETRISED = [
     ["list_shape_end_to_end_drill.py", "--platform", "xiaohongshu"],
+    # **抖音**（2026-08-11 补）：他生产库里最大的那个账号（86 条），
+    # 8/4 那次同步的错误码正是 BROWSER_SCAN_FAILED——就是这条路上的失败。
+    # 而在此之前**这条路对抖音一次都没有被走过**：
+    # background.js 的 SHAPE_READ_PLATFORMS 里有它，演练的 PLATFORMS 里没有。
+    ["list_shape_end_to_end_drill.py", "--platform", "douyin"],
     ["list_shape_end_to_end_drill.py", "--platform", "reddit"],
     ["list_shape_end_to_end_drill.py", "--platform", "instagram"],
     ["extension_platform_wiring_drill.py", "--platform", "xiaohongshu",
