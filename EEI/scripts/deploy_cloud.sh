@@ -14,8 +14,15 @@ CF_DIR="$REPO_ROOT/apps/cloudflare-public"
 BASE_URL="${EEI_CLOUD_API_BASE:-https://eei.linzezhang.com}"
 EVIDENCE_DIR="${EEI_DEPLOY_EVIDENCE_DIR:-$HOME/Documents/Codex/GithubProject/_protected/EEI_runtime_evidence/deploys}"
 
-if [ -n "$(git -C "$REPO_ROOT" status --porcelain -- "$REPO_ROOT" 2>/dev/null)" ]; then
+# apps/web/next-env.d.ts 由 Next 自己生成，dev/typegen 写 ".next/dev/types/routes.d.ts"
+# 而 next build 写 ".next/types/routes.d.ts" —— 文件头一行就写着 "should not be edited"。
+# 本脚本自己的构建步骤会把它翻过去，于是**每个干净 checkout 只能跑一次部署**，
+# 第二次必被自己的脏树门挡住（2026-08-11 实测）。只豁免这一个生成文件，
+# 其余任何未提交改动照旧拒绝部署（EEI-F07 要保的是「别部署没提交的源码」）。
+DIRTY="$(git -C "$REPO_ROOT" status --porcelain -- "$REPO_ROOT" 2>/dev/null | grep -v '/apps/web/next-env\.d\.ts$' || true)"
+if [ -n "$DIRTY" ]; then
   echo "[deploy] refusing to deploy a dirty tree (EEI-F07 requires a clean commit)" >&2
+  echo "$DIRTY" >&2
   exit 1
 fi
 
