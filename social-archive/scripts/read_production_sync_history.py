@@ -35,6 +35,7 @@ from production_host import deploy_host  # noqa: E402
 
 import argparse
 import json
+from datetime import datetime, timezone
 import subprocess
 import sys
 from pathlib import Path
@@ -64,6 +65,16 @@ out = {
 }
 print(json.dumps(out, ensure_ascii=False))
 ''' % DB
+
+
+def _days_since_sentence(started_at: str) -> str:
+    """距今多少天——**读的人不该自己去减日期**。"""
+    try:
+        when = datetime.fromisoformat(str(started_at).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return ""
+    days = (datetime.now(timezone.utc) - when).days
+    return "（就在今天）" if days < 1 else f"——**距今 {days} 天，这期间一条都没有再进来**"
 
 
 def main() -> int:
@@ -106,6 +117,11 @@ def main() -> int:
         "why_it_stopped_zh": (
             f"最后一次同步（{latest['platform']} {latest['started_at']}）"
             f"进了 {latest['imported_count']} 条，错误码 {latest['last_error_code']}"
+            # **一个日期读不出「多久没动了」。**（2026-08-12）
+            # 2026-08-11 查生产：20 次同步全在 8/3–8/4 之间，此后一条没再进来——
+            # 而这一行只写着 "2026-08-04"，天数要读的人自己去减，**而没人会去减**。
+            # 他的档案馆冻了一周这件事，就这样躺在每一次部署日志里没人看见。
+            + _days_since_sentence(latest["started_at"])
             if latest else "没有任何同步记录"),
         "accounts_now": measured["accounts"],
         "all_runs": runs,

@@ -117,3 +117,26 @@ def test_a_blocked_download_is_not_called_a_lost_content() -> None:
         f"这是有意的边界，不是待修的缺陷；说成「我们的问题」会让他等一个不会来的修复：{text}")
     assert "已经存下来了" in text and "不受影响" in text, (
         f"没说清他手上还有什么：{text}")
+
+
+def test_the_last_sync_line_says_how_long_ago() -> None:
+    """**一个日期读不出「多久没动了」。**（2026-08-12）
+
+    2026-08-11 查生产：20 次同步全落在 8/3–8/4 之间，此后一条没再进来——
+    而 8.7 那一行只写着 "2026-08-04"。天数要读的人自己去减，**而没人会去减**。
+    他的档案馆冻了一周这件事，就这样躺在每一次部署日志里没人看见。
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "sync_history", ROOT / "scripts/read_production_sync_history.py")
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+
+    say = module._days_since_sentence
+    assert "距今" in say("2026-08-04T05:23:45.358136Z"), "不再报距今多少天了"
+    # **坏输入不许把这一步炸掉**——8.7 是播报不是门，它抛异常等于让一次
+    # 每项都通过的部署死在最后一句话上（同一天在 8.69 那段已经踩过一次）。
+    assert say(None) == ""
+    assert say("看起来不像时间") == ""

@@ -6,7 +6,7 @@
 
 - 产品：Social Archive
 - 目录：`social-archive/`
-- 版本：`v0.0.0.47`
+- 版本：`v0.0.0.48`
 - Python 包：`social_archive`
 - 环境变量前缀：`SOCIAL_ARCHIVE_`
 - 私有域名：`social-archive.linzezhang.com`
