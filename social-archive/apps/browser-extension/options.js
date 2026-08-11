@@ -186,6 +186,23 @@
               : "")
         : pending
         ? `<button class="card-button primary" data-verify-platform="${platform}">我已登录，继续</button><button class="card-button" data-connect-platform="${platform}">重新打开</button>`
+        // **断开的账号只有一件事做得成：连回来。**（2026-08-11）
+        //
+        // 这一支原来只问「有没有 account」，从不问它连着没有。而真镜像上实测：
+        //   已连接  POST /v1/accounts/{id}/sync → 202
+        //   已断开  POST /v1/accounts/{id}/sync → 422「账号尚未连接，请先完成授权」
+        // Owner 三个账号现在全是 disconnected，这里于是给他三颗必然失败的「立即同步」。
+        //
+        // ★ 同一天我在 apps/pwa/app.js 修过一模一样的一处，**而这一处漏了**——
+        // 正是这道门的文件头写着的那句：「两个界面各有一份。第一轮只修了网页那侧，
+        // 扩展设置页原样留着同样的假话。」我又犯了一次。
+        //
+        // ★ 这里**不放**「删除并清空」。我第一版顺手加了一颗，而这个页面里
+        // 根本没有它的点击处理——就是这个仓栽过六次的「建好了没接上」。
+        // 那颗按钮的家在资料库（PWA）那一侧，已经在真 Chrome 里验过点得动、
+        // 真发 POST …/forget。这里只给他现在唯一走得通的那一条路。
+        : account && account.connection_state === "disconnected"
+          ? `<button class="card-button primary" data-connect-platform="${platform}">连接账号</button>${revoke}`
         : account
           ? `<button class="card-button primary" data-sync-account="${SA.escapeHtml(account.id)}">立即同步</button>${["blocked_environment","failed"].includes(status)?`<button class="card-button" data-connect-platform="${platform}">重新连接</button>`:""}<button class="card-button danger" data-disconnect-account="${SA.escapeHtml(account.id)}">断开连接</button>${revoke}`
           : custody

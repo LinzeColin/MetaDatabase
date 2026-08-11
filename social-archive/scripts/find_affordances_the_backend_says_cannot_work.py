@@ -79,7 +79,38 @@ SURFACES = (
         "file": "apps/pwa/app.js",
         "function": "renderSyncTable",
         # 网页那侧直接在分支条件里判
-        "guards": ("sync_supported === false",),
+        "guards": (
+            # **钉住完整表达式，一条渲染路径一条。**（2026-08-11）
+            #
+            # 原来写的是子串 `sync_supported === false`，而它在这个函数里出现
+            # **两次**（第 9 行「这个平台没有账号」那条路、第 43 行账号行那条路）。
+            # 于是把第 43 行那个守卫改成常量 `false`，这道门照样是绿的——
+            # 文件头里写着的那次假通过，用同一个机制又发生了一遍。
+            # 抓到它的是「逐条真去改坏」，不是读代码。
+            "support?.sync_supported === false",
+            "state.platformSupport[account.platform]?.sync_supported === false",
+            # **第二个前提：账号得连着。**（2026-08-11）
+            #
+            # 这道门原来只守「这个平台现在同步得动吗」（能力），
+            # 漏了「这个账号现在连着吗」（状态）。两个前提都不满足就点不动，
+            # 而它只查了一个——于是 Owner 三个 disconnected 账号那几行上
+            # 各摆着一颗「立即同步」。真镜像上实测：
+            #     已连接  POST /v1/accounts/{id}/sync → 202
+            #     已断开  同一条 → 422「账号尚未连接，请先完成授权」
+            'account.connection_state === "disconnected"',
+        ),
+        # **每条守卫管哪几颗按钮**（2026-08-11 补）。
+        # 原来一律要求「所有守卫都排在所有按钮之前」，而
+        # `connection_state === "disconnected"` 那一支画出来的正是
+        # `data-connect-platform`（「连接账号」）——它是**补救**，不是假承诺。
+        # 一刀切会把正确的写法判红。所以按标记分开。
+        "guard_scope": {
+            "support?.sync_supported === false": (
+                "data-sync-account", "data-connect-platform"),
+            "state.platformSupport[account.platform]?.sync_supported === false": (
+                "data-sync-account",),
+            'account.connection_state === "disconnected"': ("data-sync-account",),
+        },
     },
     {
         "file": "apps/browser-extension/options.js",
@@ -88,7 +119,18 @@ SURFACES = (
         "guards": (
             "platformSupport[platform]?.sync_supported !== false",
             "!syncable",
+            # **同一个第二前提。** 这个文件头自己写着「两个界面各有一份，
+            # 第一轮只修了网页那侧」——2026-08-11 我又原样犯了一次：
+            # PWA 那侧修完就以为完了，扩展设置页这一支只问「有没有 account」，
+            # 从不问它连着没有。
+            'account.connection_state === "disconnected"',
         ),
+        "guard_scope": {
+            "platformSupport[platform]?.sync_supported !== false": (
+                "data-sync-account", "data-connect-platform"),
+            "!syncable": ("data-sync-account", "data-connect-platform"),
+            'account.connection_state === "disconnected"': ("data-sync-account",),
+        },
     },
 )
 # 承诺「点了会同步/会连上」的按钮标记。
@@ -147,12 +189,20 @@ def main() -> int:
                 " —— 要么服务端说做不到的事界面照样给按钮，要么写法变了、判据要跟着重写"
             )
             continue
-        # 顺序也要对：守卫必须在按钮之前，否则按钮已经画出去了
-        guard_at = max(block.index(g) for g in guards)
+        # 顺序也要对：守卫必须在**它管的那颗按钮**之前，否则按钮已经画出去了。
+        #
+        # 按标记分别算，不再一刀切——`connection_state === "disconnected"`
+        # 那一支画的就是「连接账号」，把它算成"假承诺"会把正确写法判红。
+        scope = surface.get("guard_scope") or {g: PROMISING_MARKERS for g in guards}
         for marker in used:
+            relevant = [g for g in guards if marker in scope.get(g, PROMISING_MARKERS)]
+            if not relevant:
+                continue
+            guard_at = max(block.index(g) for g in relevant)
             if block.index(marker) < guard_at:
                 problems.append(
-                    f"  {rel} 的 {function}()：{marker} 出现在守卫之前——"
+                    f"  {rel} 的 {function}()：{marker} 出现在守卫"
+                    f"{[g for g in relevant if block.index(g) > block.index(marker)]}之前——"
                     "那颗按钮还是会被画出来"
                 )
 
