@@ -176,6 +176,12 @@ def _source_deadline(seconds: int):
 
 
 def enrich(job: NormalizedJob) -> NormalizedJob:
+    # A few public feeds model industry as several tags.  Persist one readable
+    # label instead of letting a list leak into the string-backed Job record.
+    if isinstance(job.industry, list):
+        job.industry = " ".join(str(value) for value in job.industry if value)
+    else:
+        job.industry = str(job.industry or "")
     text = f"{job.title} {job.description}".casefold()
     if not job.role_family:
         scores = {role: sum(term in text for term in terms) for role, terms in ROLE_RULES.items()}

@@ -200,6 +200,20 @@ def test_jobicy_uses_one_documented_legal_tag_and_caps_count():
     assert client.params == {"count": 100, "tag": "legal"}
 
 
+def test_feed_industry_tags_are_normalized_before_persistence():
+    job = discovery.enrich(discovery.NormalizedJob(
+        source="provider",
+        external_id="1",
+        url="https://example.com/job/1",
+        title="Legal Counsel",
+        company="Example",
+        location="Sydney",
+        description="Commercial contracts.",
+        industry=["Professional Services", "Legal"],
+    ))
+    assert job.industry == "Professional Services Legal"
+
+
 def test_stale_discovery_run_is_closed_for_a_later_refresh(client):
     register_verify(client, "stale-run@example.com")
     with client.app.state.session_factory() as db:
