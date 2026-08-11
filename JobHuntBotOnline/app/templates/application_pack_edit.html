@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}编辑申请材料｜{{ job.title }}{% endblock %}
+{% block content %}
+<section class="detail-head"><a class="back-link" href="/application-packs/{{ pack.id }}">← 返回申请准备</a><div><span class="eyebrow">派生申请材料</span><h1>编辑岗位适配 CV 与回答</h1><p class="muted">只编辑这份岗位申请草稿；不会覆盖或改写原始简历。</p></div></section>
+<form method="post" action="/application-packs/{{ pack.id }}/edit" class="form-card application-workspace-form" data-testid="application-pack-edit-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="form-grid">
+    <label class="wide">Why me<textarea name="why_me_summary" rows="5" required data-testid="why-me-summary">{{ content.materials.why_me.summary }}</textarea><small>请只保留可回到简历、作品或本人经历核对的内容。</small></label>
+    <label>CV 标题<input name="cv_headline" value="{{ content.materials.tailored_cv.headline }}" required data-testid="tailored-cv-headline"></label>
+    <label class="wide">CV 概要<textarea name="cv_summary" rows="4" required data-testid="tailored-cv-summary">{{ content.materials.tailored_cv.summary }}</textarea></label>
+    <label class="wide">CV 要点（每行一条）<textarea name="cv_bullets" rows="7" data-testid="tailored-cv-bullets">{{ content.materials.tailored_cv.bullets|join('\n') }}</textarea></label>
+    {% for answer in content.materials.interview_answers %}
+    <label class="wide">{{ answer.title }}<textarea name="answer_{{ answer.key }}" rows="5" required data-testid="interview-answer-{{ answer.key }}">{{ answer.answer }}</textarea></label>
+    {% endfor %}
+  </div>
+  <div class="form-actions"><a class="button ghost" href="/application-packs/{{ pack.id }}">取消</a><button class="button" type="submit" data-testid="save-application-pack">保存岗位适配材料</button></div>
+</form>
+{% endblock %}

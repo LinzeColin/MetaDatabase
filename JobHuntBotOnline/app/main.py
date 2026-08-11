@@ -32,9 +32,12 @@ from .security import (
     validate_password, verify_password,
 )
 from .services import (
-    audit, build_application_pack, delete_user_account, get_profile, get_profile_row,
-    list_experiences, list_resumes, manual_job, recommendation_for_user, save_profile,
-    store_resume, user_export,
+    application_progress_error, application_progress_for_user, audit, build_application_materials,
+    build_application_pack, consult_application_materials, create_application_progress,
+    delete_user_account, ensure_application_materials, get_profile, get_profile_row,
+    list_application_progresses, list_experiences, list_resumes, manual_job,
+    recommendation_for_user, save_profile, store_resume, update_application_materials,
+    update_application_progress, user_export,
 )
 
 SESSION_COOKIE = "jobhunt_session"
@@ -48,6 +51,14 @@ def _csv_list(value: str) -> list[str]:
 
 SPONSORSHIP_VALUES = {"yes", "no", "uncertain"}
 WORK_MODE_VALUES = {"remote", "hybrid", "onsite"}
+APPLICATION_STATUS_LABELS = {
+    "pending": "待处理",
+    "submitted": "已提交",
+    "interview": "面试／笔试",
+    "rejected": "已拒绝",
+    "offer": "Offer",
+    "withdrawn": "已撤回",
+}
 
 
 def _confirmed_profile_fields(
@@ -623,23 +634,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return _redirect("/recommendations", message="岗位已刷新。")
         return _redirect("/recommendations", message="刷新任务已进入队列，稍后自动更新。")
 
-    @app.get("/recommendations", response_class=HTMLResponse)
-    def recommendations(
+    def _recommendation_context(
         request: Request,
-        q: str = "",
-        city: str = "",
-        role: str = "",
-        skill: str = "",
-        source: str = "",
-        freshness: str = "",
-        qualification: str = "",
-        relevance: str = "",
-        opportunity: str = "",
-        status: str = "",
-        db: Session = Depends(get_db),
-    ):
-        user = _require_user(request)
-        active_filters = dict(request.query_params)
+        db: Session,
+        user: User,
+        *,
+        q: str,
+        city: str,
+        role: str,
+        skill: str,
+        source: str,
+        freshness: str,
+        qualification: str,
+        relevance: str,
+        opportunity: str,
+        status: str,
+    ) -> dict[str, Any]:
+        active_filters = {key: value for key, value in request.query_params.items() if key != "partial"}
         # The default feed is deliberately high relevance only. An explicit
         # `relevance=` from the "全部" option remains available for users who
         # want to inspect the broader queue.
@@ -655,6 +666,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             )
             .order_by(Recommendation.rank_score.desc(), Job.posted_at.desc())
         ).all()
+        try:
+            freshness_days = int(freshness) if freshness else None
+        except ValueError:
+            freshness_days = None
         now = utcnow()
         filtered = []
         for rec, job in rows:
@@ -675,7 +690,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 continue
             if source and source != job.source:
                 continue
-            if freshness and age > int(freshness):
+            if freshness_days is not None and age > freshness_days:
                 continue
             if qualification and qualification != rec.qualification:
                 continue
@@ -702,11 +717,38 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         source_rows = []
         if latest_run:
             source_rows = db.scalars(select(DiscoverySourceStatus).where(DiscoverySourceStatus.run_id == latest_run.id)).all()
-        return _render(request, "recommendations.html", {
+        return {
             "items": filtered, "facets": facets, "filters": active_filters,
             "latest_run": latest_run, "source_rows": source_rows,
             "refresh_hours": settings.discovery_refresh_hours,
-        })
+        }
+
+    @app.get("/recommendations", response_class=HTMLResponse)
+    def recommendations(
+        request: Request,
+        q: str = "",
+        city: str = "",
+        role: str = "",
+        skill: str = "",
+        source: str = "",
+        freshness: str = "",
+        qualification: str = "",
+        relevance: str = "",
+        opportunity: str = "",
+        status: str = "",
+        partial: bool = False,
+        db: Session = Depends(get_db),
+    ):
+        user = _require_user(request)
+        context = _recommendation_context(
+            request, db, user,
+            q=q, city=city, role=role, skill=skill, source=source,
+            freshness=freshness, qualification=qualification, relevance=relevance,
+            opportunity=opportunity, status=status,
+        )
+        if partial:
+            return _render(request, "recommendation_results.html", context)
+        return _render(request, "recommendations.html", context)
 
     @app.get("/recommendations/{rec_id}", response_class=HTMLResponse)
     def recommendation_detail(request: Request, rec_id: int, db: Session = Depends(get_db)):
@@ -759,16 +801,191 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         pack, note = build_application_pack(db, crypto, settings, user, rec, job)
         return _redirect(f"/application-packs/{pack.id}", message=note or "申请包已生成。")
 
-    @app.get("/application-packs/{pack_id}", response_class=HTMLResponse)
-    def pack_detail(request: Request, pack_id: int, db: Session = Depends(get_db)):
-        user = _require_user(request)
+    def _owned_pack_context(db: Session, user: User, pack_id: int) -> tuple[ApplicationPack, Job, dict[str, Any]]:
         pack = db.scalar(select(ApplicationPack).where(ApplicationPack.id == pack_id, ApplicationPack.user_id == user.id))
         if not pack:
             raise HTTPException(404, "申请包不存在。")
         job = db.get(Job, pack.job_id)
-        return _render(request, "application_pack.html", {
-            "pack": pack, "job": job, "content": crypto.decrypt_json(pack.content_encrypted, {}),
+        if not job:
+            raise HTTPException(404, "岗位不存在。")
+        content = ensure_application_materials(
+            crypto.decrypt_json(pack.content_encrypted, {}),
+            profile=get_profile(db, crypto, user.id),
+            experiences=list_experiences(db, crypto, user.id),
+            job=job,
+        )
+        return pack, job, content
+
+    def _render_ai_consultation(
+        request: Request,
+        *,
+        job: Job,
+        materials: dict[str, Any],
+        form_action: str,
+        back_url: str,
+        question: str = "",
+        answer: str | None = None,
+        note: str | None = None,
+        error: str | None = None,
+    ):
+        return _render(request, "ai_consult.html", {
+            "job": job,
+            "materials": materials,
+            "form_action": form_action,
+            "back_url": back_url,
+            "question": question,
+            "answer": answer,
+            "ai_note": note,
+            "error": error or "",
         })
+
+    @app.get("/recommendations/{rec_id}/ai", response_class=HTMLResponse)
+    def recommendation_ai_page(request: Request, rec_id: int, db: Session = Depends(get_db)):
+        user = _require_user(request)
+        result = recommendation_for_user(db, user.id, rec_id)
+        if not result:
+            raise HTTPException(404, "岗位不存在。")
+        _rec, job = result
+        materials = build_application_materials(
+            get_profile(db, crypto, user.id),
+            list_experiences(db, crypto, user.id),
+            job,
+        )
+        return _render_ai_consultation(
+            request,
+            job=job,
+            materials=materials,
+            form_action=f"/recommendations/{rec_id}/ai",
+            back_url=f"/recommendations/{rec_id}",
+        )
+
+    @app.post("/recommendations/{rec_id}/ai", response_class=HTMLResponse)
+    def recommendation_ai_post(
+        request: Request,
+        rec_id: int,
+        question: str = Form(...),
+        csrf_token: str = Form(...),
+        db: Session = Depends(get_db),
+    ):
+        _require_csrf(request, csrf_token)
+        user = _require_user(request)
+        result = recommendation_for_user(db, user.id, rec_id)
+        if not result:
+            raise HTTPException(404, "岗位不存在。")
+        _rec, job = result
+        materials = build_application_materials(
+            get_profile(db, crypto, user.id),
+            list_experiences(db, crypto, user.id),
+            job,
+        )
+        if not question.strip():
+            return _render_ai_consultation(
+                request, job=job, materials=materials,
+                form_action=f"/recommendations/{rec_id}/ai", back_url=f"/recommendations/{rec_id}",
+                error="请输入希望咨询的问题。",
+            )
+        answer, note = consult_application_materials(
+            db, settings, user, job=job, materials=materials, question=question,
+        )
+        audit(db, "recommendation_ai_consulted", user.id, f"rec={rec_id}")
+        return _render_ai_consultation(
+            request, job=job, materials=materials,
+            form_action=f"/recommendations/{rec_id}/ai", back_url=f"/recommendations/{rec_id}",
+            question=question, answer=answer, note=note,
+        )
+
+    @app.get("/application-packs/{pack_id}", response_class=HTMLResponse)
+    def pack_detail(request: Request, pack_id: int, db: Session = Depends(get_db)):
+        user = _require_user(request)
+        pack, job, content = _owned_pack_context(db, user, pack_id)
+        return _render(request, "application_pack.html", {
+            "pack": pack, "job": job, "content": content,
+        })
+
+    @app.get("/application-packs/{pack_id}/edit", response_class=HTMLResponse)
+    def pack_edit_page(request: Request, pack_id: int, db: Session = Depends(get_db)):
+        user = _require_user(request)
+        pack, job, content = _owned_pack_context(db, user, pack_id)
+        return _render(request, "application_pack_edit.html", {
+            "pack": pack, "job": job, "content": content,
+        })
+
+    @app.post("/application-packs/{pack_id}/edit")
+    def pack_edit_post(
+        request: Request,
+        pack_id: int,
+        why_me_summary: str = Form(...),
+        cv_headline: str = Form(...),
+        cv_summary: str = Form(...),
+        cv_bullets: str = Form(""),
+        answer_why_role: str = Form(...),
+        answer_why_me: str = Form(...),
+        answer_role_example: str = Form(...),
+        csrf_token: str = Form(...),
+        db: Session = Depends(get_db),
+    ):
+        _require_csrf(request, csrf_token)
+        user = _require_user(request)
+        pack, _job, content = _owned_pack_context(db, user, pack_id)
+        required = [why_me_summary, cv_headline, cv_summary, answer_why_role, answer_why_me, answer_role_example]
+        if any(not value.strip() for value in required):
+            return _redirect(f"/application-packs/{pack_id}/edit", error="请保留 Why me、简历概要与三道回答；它们都可以如实改写。")
+        update_application_materials(
+            db,
+            crypto,
+            pack,
+            content=content,
+            why_me_summary=why_me_summary,
+            cv_headline=cv_headline,
+            cv_summary=cv_summary,
+            cv_bullets=cv_bullets,
+            interview_answers={
+                "why_role": answer_why_role,
+                "why_me": answer_why_me,
+                "role_example": answer_role_example,
+            },
+        )
+        audit(db, "application_pack_edited", user.id, f"pack={pack_id};version={pack.version}")
+        return _redirect(f"/application-packs/{pack_id}", message="岗位适配 CV 与回答已更新；原始简历未被修改。")
+
+    @app.get("/application-packs/{pack_id}/ai", response_class=HTMLResponse)
+    def pack_ai_page(request: Request, pack_id: int, db: Session = Depends(get_db)):
+        user = _require_user(request)
+        _pack, job, content = _owned_pack_context(db, user, pack_id)
+        return _render_ai_consultation(
+            request,
+            job=job,
+            materials=content["materials"],
+            form_action=f"/application-packs/{pack_id}/ai",
+            back_url=f"/application-packs/{pack_id}",
+        )
+
+    @app.post("/application-packs/{pack_id}/ai", response_class=HTMLResponse)
+    def pack_ai_post(
+        request: Request,
+        pack_id: int,
+        question: str = Form(...),
+        csrf_token: str = Form(...),
+        db: Session = Depends(get_db),
+    ):
+        _require_csrf(request, csrf_token)
+        user = _require_user(request)
+        _pack, job, content = _owned_pack_context(db, user, pack_id)
+        if not question.strip():
+            return _render_ai_consultation(
+                request, job=job, materials=content["materials"],
+                form_action=f"/application-packs/{pack_id}/ai", back_url=f"/application-packs/{pack_id}",
+                error="请输入希望咨询的问题。",
+            )
+        answer, note = consult_application_materials(
+            db, settings, user, job=job, materials=content["materials"], question=question,
+        )
+        audit(db, "application_pack_ai_consulted", user.id, f"pack={pack_id}")
+        return _render_ai_consultation(
+            request, job=job, materials=content["materials"],
+            form_action=f"/application-packs/{pack_id}/ai", back_url=f"/application-packs/{pack_id}",
+            question=question, answer=answer, note=note,
+        )
 
     @app.get("/jobs/manual", response_class=HTMLResponse)
     def manual_page(request: Request):
@@ -799,21 +1016,33 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return _redirect(f"/recommendations/{rec.id}", message="岗位已导入并分析。")
 
     @app.get("/applications", response_class=HTMLResponse)
-    def applications_page(request: Request, db: Session = Depends(get_db)):
+    def applications_page(request: Request, job_id: int | None = None, db: Session = Depends(get_db)):
         user = _require_user(request)
         events = db.execute(
             select(ApplicationEvent, Job)
             .join(Job, Job.id == ApplicationEvent.job_id)
-            .where(ApplicationEvent.user_id == user.id)
+            .where(ApplicationEvent.user_id == user.id, (Job.owner_user_id.is_(None)) | (Job.owner_user_id == user.id))
             .order_by(ApplicationEvent.created_at.desc())
         ).all()
         recommendations = db.execute(
             select(Recommendation, Job)
             .join(Job, Job.id == Recommendation.job_id)
-            .where(Recommendation.user_id == user.id)
+            .where(Recommendation.user_id == user.id, (Job.owner_user_id.is_(None)) | (Job.owner_user_id == user.id))
             .order_by(Job.company, Job.title)
         ).all()
-        return _render(request, "applications.html", {"events": events, "recommendations": recommendations})
+        history = [{
+            "event": event,
+            "job": job,
+            "evidence": crypto.decrypt_text(event.evidence_encrypted, ""),
+            "notes": crypto.decrypt_text(event.notes_encrypted, ""),
+        } for event, job in events]
+        return _render(request, "applications.html", {
+            "events": history,
+            "progresses": list_application_progresses(db, crypto, user.id),
+            "recommendations": recommendations,
+            "selected_job_id": job_id,
+            "status_labels": APPLICATION_STATUS_LABELS,
+        })
 
     @app.post("/applications")
     def applications_post(
@@ -827,27 +1056,75 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     ):
         _require_csrf(request, csrf_token)
         user = _require_user(request)
-        rec = db.scalar(select(Recommendation).where(Recommendation.user_id == user.id, Recommendation.job_id == job_id))
+        rec = db.scalar(
+            select(Recommendation)
+            .join(Job, Job.id == Recommendation.job_id)
+            .where(Recommendation.user_id == user.id, Recommendation.job_id == job_id, (Job.owner_user_id.is_(None)) | (Job.owner_user_id == user.id))
+        )
         if not rec:
             raise HTTPException(404, "岗位不存在。")
-        allowed = {"pending", "submitted", "interview", "rejected", "offer", "withdrawn"}
-        if status not in allowed:
-            raise HTTPException(400, "无效申请状态。")
-        if status == "submitted" and len(evidence.strip()) < 5:
-            return _redirect("/applications", error="只有看到确认页面、确认文字或申请编号后，才能记录为已提交。")
-        event = ApplicationEvent(
-            user_id=user.id,
-            job_id=job_id,
-            status=status,
-            evidence_encrypted=crypto.encrypt_text(evidence.strip()) if evidence.strip() else None,
-            notes_encrypted=crypto.encrypt_text(notes.strip()) if notes.strip() else None,
+        error = application_progress_error(status, evidence)
+        if error:
+            return _redirect("/applications", error=error)
+        progress, created = create_application_progress(
+            db, crypto, user_id=user.id, job_id=job_id, status=status, evidence=evidence, notes=notes,
         )
-        db.add(event)
+        if not created:
+            return _redirect(f"/applications/{progress.id}/edit", message="这个岗位已有申请进度，请编辑当前记录。")
         if status == "submitted":
             rec.user_status = "applied"
         db.commit()
-        audit(db, "application_event_recorded", user.id, status)
+        audit(db, "application_progress_created", user.id, status)
         return _redirect("/applications", message="申请进度已保存。")
+
+    @app.get("/applications/{progress_id}/edit", response_class=HTMLResponse)
+    def application_edit_page(request: Request, progress_id: int, db: Session = Depends(get_db)):
+        user = _require_user(request)
+        progress = application_progress_for_user(db, user.id, progress_id)
+        if not progress:
+            raise HTTPException(404, "申请进度不存在。")
+        job = db.get(Job, progress.job_id)
+        if not job or (job.owner_user_id is not None and job.owner_user_id != user.id):
+            raise HTTPException(404, "申请进度不存在。")
+        return _render(request, "application_edit.html", {
+            "progress": progress,
+            "job": job,
+            "evidence": crypto.decrypt_text(progress.evidence_encrypted, ""),
+            "notes": crypto.decrypt_text(progress.notes_encrypted, ""),
+            "status_labels": APPLICATION_STATUS_LABELS,
+        })
+
+    @app.post("/applications/{progress_id}/edit")
+    def application_edit_post(
+        request: Request,
+        progress_id: int,
+        status: str = Form(...),
+        evidence: str = Form(""),
+        notes: str = Form(""),
+        csrf_token: str = Form(...),
+        db: Session = Depends(get_db),
+    ):
+        _require_csrf(request, csrf_token)
+        user = _require_user(request)
+        progress = application_progress_for_user(db, user.id, progress_id)
+        if not progress:
+            raise HTTPException(404, "申请进度不存在。")
+        error = application_progress_error(status, evidence)
+        if error:
+            return _redirect(f"/applications/{progress_id}/edit", error=error)
+        rec = db.scalar(
+            select(Recommendation).where(Recommendation.user_id == user.id, Recommendation.job_id == progress.job_id)
+        )
+        if not rec:
+            raise HTTPException(404, "岗位不存在。")
+        update_application_progress(db, crypto, progress, status=status, evidence=evidence, notes=notes)
+        if status == "submitted":
+            rec.user_status = "applied"
+        elif rec.user_status == "applied":
+            rec.user_status = "preparing"
+        db.commit()
+        audit(db, "application_progress_edited", user.id, f"status={status};version={progress.version}")
+        return _redirect("/applications", message="申请进度已更新，并保留了修订记录。")
 
     @app.get("/settings/profile", response_class=HTMLResponse)
     def settings_profile(request: Request, db: Session = Depends(get_db)):

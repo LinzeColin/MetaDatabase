@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}编辑申请进度｜{{ job.title }}{% endblock %}
+{% block content %}
+<section class="detail-head"><a class="back-link" href="/applications">← 返回申请进度</a><div><span class="eyebrow">可编辑当前状态</span><h1>{{ job.company }} · {{ job.title }}</h1><p class="muted">每次保存都会生成一条不可变修订记录。只有有确认依据时才能标记为“已提交”。</p></div></section>
+<form method="post" action="/applications/{{ progress.id }}/edit" class="form-card compact" data-testid="application-progress-edit-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>状态<select name="status" required data-testid="application-edit-status">{% for value, label in status_labels.items() %}<option value="{{ value }}" {% if progress.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+  <label>确认依据<input name="evidence" value="{{ evidence }}" placeholder="例如：Thank you 页面、申请编号、确认邮件" data-testid="application-edit-evidence"><small>记录“已提交”时必填；请填写可核对的确认页面、文字或编号。</small></label>
+  <label>备注<textarea name="notes" rows="6" data-testid="application-edit-notes">{{ notes }}</textarea></label>
+  <div class="form-actions"><a class="button ghost" href="/applications">取消</a><button class="button" type="submit" data-testid="save-application-progress">保存并保留修订记录</button></div>
+</form>
+{% endblock %}

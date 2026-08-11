@@ -350,6 +350,22 @@ def test_resume_first_flow_creates_profile_and_recommendations(client):
     assert "每 6 小时刷新" in feed.text
 
 
+def test_recommendation_filter_partial_is_server_rendered_for_live_updates(client):
+    register_verify(client, "live-filters@example.com")
+    complete_onboarding(client)
+
+    full = client.get("/recommendations")
+    assert full.status_code == 200
+    assert 'data-live-filters' in full.text
+    assert 'id="recommendation-results"' in full.text
+
+    partial = client.get("/recommendations", params={"q": "Graduate", "partial": "true"})
+    assert partial.status_code == 200
+    assert "data-result-count" in partial.text
+    assert "filter-panel" not in partial.text
+    assert "Graduate" in partial.text
+
+
 def test_filters_are_composable(client):
     register_verify(client, "filters@example.com")
     complete_onboarding(client)

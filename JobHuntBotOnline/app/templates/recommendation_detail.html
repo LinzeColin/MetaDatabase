@@ -32,6 +32,7 @@
     <article class="panel action-stack">
       <form method="post" action="/recommendations/{{ rec.id }}/status"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="status" value="saved"><button class="button full" type="submit" data-testid="save-job">收藏岗位</button></form>
       <form method="post" action="/recommendations/{{ rec.id }}/pack"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="button full" type="submit" data-testid="create-pack">生成申请包</button></form>
+      <a class="button ghost full" href="/recommendations/{{ rec.id }}/ai" data-testid="ask-ai">问 AI</a>
       <form method="post" action="/recommendations/{{ rec.id }}/status"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="status" value="ignored"><button class="button ghost full" type="submit" data-testid="ignore-job">暂不考虑</button></form>
     </article>
   </aside>

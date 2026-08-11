@@ -131,12 +131,18 @@ def test_delivery_lookup_migration_backfills_current_user_without_email_plaintex
 
     raw = sqlite3.connect(database)
     columns = {row[1] for row in raw.execute("PRAGMA table_info(email_deliveries)")}
+    progress_columns = {row[1] for row in raw.execute("PRAGMA table_info(application_progresses)")}
+    pack_columns = {row[1] for row in raw.execute("PRAGMA table_info(application_packs)")}
+    event_columns = {row[1] for row in raw.execute("PRAGMA table_info(application_events)")}
     stored_lookup = raw.execute("SELECT recipient_lookup FROM email_deliveries WHERE id=1").fetchone()[0]
     revision = raw.execute("SELECT version_num FROM alembic_version").fetchone()[0]
     raw.close()
     assert "recipient_lookup" in columns
     assert stored_lookup == "recipient-hmac-only"
-    assert revision == "0002_delivery_lookup"
+    assert {"user_id", "job_id", "status", "version", "updated_at"}.issubset(progress_columns)
+    assert {"updated_at", "version"}.issubset(pack_columns)
+    assert {"action", "revision"}.issubset(event_columns)
+    assert revision == "0003_application_workspace"
 
 
 def test_safe_http_url_rejects_private_and_malformed_ports():

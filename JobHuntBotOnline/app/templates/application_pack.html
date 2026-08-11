@@ -1,26 +1,42 @@
 {% extends "base.html" %}
 {% block title %}申请包｜{{ job.title }}{% endblock %}
 {% block content %}
-<section class="page-head"><div><span class="eyebrow">申请准备</span><h1>{{ content.job_title }}</h1><p>{{ content.company }} · 使用简历：{{ content.resume }}</p></div><a class="button" href="{{ content.job_url }}" target="_blank" rel="noopener" data-testid="pack-open-job">打开官方申请页 ↗</a></section>
-{% if content.ai_enhancement %}<div class="alert info"><b>平台 AI 增强</b><p>{{ content.ai_enhancement }}</p></div>{% endif %}
-<section class="two-column">
+<section class="page-head"><div><span class="eyebrow">申请准备</span><h1>{{ content.job_title }}</h1><p>{{ content.company }} · 使用简历：{{ content.resume }} · 派生材料可编辑，原始简历保持不变。</p></div><div class="button-row"><a class="button ghost" href="/application-packs/{{ pack.id }}/ai" data-testid="pack-ask-ai">问 AI</a><a class="button" href="{{ content.job_url }}" target="_blank" rel="noopener" data-testid="pack-open-job">打开官方申请页 ↗</a></div></section>
+{% if content.ai_enhancement %}<div class="alert info"><b>平台 AI 复核建议</b><p>{{ content.ai_enhancement }}</p><small>仅供核对与编辑，不会把未知信息写成事实。</small></div>{% endif %}
+<section class="workspace-grid">
+  <article class="panel workspace-primary">
+    <div class="panel-head"><div><span class="eyebrow">Why me</span><h2>我为什么适合</h2></div><a class="button ghost small" href="/application-packs/{{ pack.id }}/edit" data-testid="edit-application-pack">编辑申请材料</a></div>
+    <p class="workspace-copy">{{ content.materials.why_me.summary }}</p>
+    <h3>岗位要求与事实来源</h3>
+    <ul class="evidence-list">
+      {% for item in content.materials.why_me.evidence %}
+      <li class="{{ item.state }}"><b>{{ item.requirement }}</b><span>{{ item.evidence }}</span></li>
+      {% else %}<li class="needs_confirmation"><b>资料不足</b><span>请先补充真实经历或技能。</span></li>{% endfor %}
+    </ul>
+  </article>
   <article class="panel">
-    <h2>建议回答</h2>
-    <div class="answer-block"><h3>Why this role?</h3><p>{{ content.answers.why_role }}</p><button class="button ghost small copy-button" data-copy="{{ content.answers.why_role }}" data-testid="copy-why-role">复制</button></div>
-    <div class="answer-block"><h3>Why this company?</h3><p>{{ content.answers.why_company }}</p><button class="button ghost small copy-button" data-copy="{{ content.answers.why_company }}" data-testid="copy-why-company">复制</button></div>
+    <span class="eyebrow">Tailored CV / Resume</span><h2>{{ content.materials.tailored_cv.headline }}</h2>
+    <p class="workspace-copy">{{ content.materials.tailored_cv.summary }}</p>
+    <ul class="draft-bullets">{% for bullet in content.materials.tailored_cv.bullets %}<li>{{ bullet }}</li>{% else %}<li>暂未找到可直接复述的经历，请添加真实事实后再投递。</li>{% endfor %}</ul>
+    {% if content.materials.tailored_cv.matched_terms %}<p class="tag-row"><span>已匹配</span>{% for term in content.materials.tailored_cv.matched_terms %}<span>{{ term }}</span>{% endfor %}</p>{% endif %}
+    {% if content.materials.tailored_cv.gaps %}<p class="gap-note"><b>待确认：</b>{{ content.materials.tailored_cv.gaps|join('、') }}</p>{% endif %}
+  </article>
+  <article class="panel workspace-primary">
+    <div class="panel-head"><div><span class="eyebrow">Interview prep</span><h2>三道常见问题</h2></div><span class="muted">可编辑、可复制</span></div>
+    {% for answer in content.materials.interview_answers %}
+    <div class="answer-block"><h3>{{ answer.title }}</h3><p>{{ answer.answer }}</p><button class="button ghost small copy-button" type="button" data-copy="{{ answer.answer }}" {% if answer.key == 'why_role' %}data-testid="copy-why-role"{% elif answer.key == 'why_me' %}data-testid="copy-why-company"{% endif %}>复制</button></div>
+    {% endfor %}
+  </article>
+  <article class="panel">
+    <h2>提交前核对</h2>
+    <ul class="check-list">{% for item in content.review_required %}<li>□ {{ item }}</li>{% endfor %}</ul>
     <dl class="summary-list">
       <div><dt>工作权利</dt><dd>{{ content.answers.work_authorization }}</dd></div>
       <div><dt>现在需要 Sponsorship</dt><dd>{{ content.answers.sponsorship_now }}</dd></div>
       <div><dt>未来需要 Sponsorship</dt><dd>{{ content.answers.sponsorship_future }}</dd></div>
       <div><dt>可入职时间</dt><dd>{{ content.answers.available_start }}</dd></div>
     </dl>
-  </article>
-  <article class="panel">
-    <h2>本次强调的经历</h2>
-    {% for exp in content.selected_experiences %}<div class="experience-card"><b>{{ exp.title }}</b><p>{{ exp.detail }}</p></div>{% else %}<p>简历中暂未提取到可用经历，请返回上传可选择文字的简历。</p>{% endfor %}
-    <h2>提交前核对</h2>
-    <ul class="check-list">{% for item in content.review_required %}<li>□ {{ item }}</li>{% endfor %}</ul>
-    <a class="button full" href="/applications" data-testid="pack-record-progress">提交后记录进度</a>
+    <a class="button full" href="/applications?job_id={{ job.id }}" data-testid="pack-record-progress">提交后记录进度</a>
   </article>
 </section>
 {% endblock %}

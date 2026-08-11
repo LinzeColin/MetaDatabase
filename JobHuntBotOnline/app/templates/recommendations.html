@@ -20,7 +20,7 @@
   {% else %}<span>岗位发现正在准备中。</span>{% endif %}
 </section>
 
-<form method="get" action="/recommendations" class="filter-panel" data-testid="recommendation-filters">
+<form method="get" action="/recommendations" class="filter-panel" data-testid="recommendation-filters" data-live-filters>
   <label class="search-field">搜索<input name="q" value="{{ filters.get('q','') }}" placeholder="公司、岗位、技能或关键词" data-testid="filter-q"></label>
   <label>城市<select name="city" data-testid="filter-city"><option value="">全部</option>{% for x in facets.cities %}<option {% if filters.get('city')==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></label>
   <label>岗位族<select name="role" data-testid="filter-role"><option value="">全部</option>{% for x in facets.roles %}<option {% if filters.get('role')==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></label>
@@ -33,26 +33,9 @@
   <label>我的状态<select name="status" data-testid="filter-status"><option value="">全部</option><option value="new" {% if filters.get('status')=='new' %}selected{% endif %}>新发现</option><option value="saved" {% if filters.get('status')=='saved' %}selected{% endif %}>已收藏</option><option value="ignored" {% if filters.get('status')=='ignored' %}selected{% endif %}>已忽略</option><option value="preparing" {% if filters.get('status')=='preparing' %}selected{% endif %}>准备申请</option><option value="applied" {% if filters.get('status')=='applied' %}selected{% endif %}>已申请</option></select></label>
   <div class="filter-actions"><button class="button" type="submit" data-testid="filter-submit">应用筛选</button><a class="button ghost" href="/recommendations" data-testid="filter-clear">清除</a></div>
 </form>
+<p id="filter-live-status" class="filter-live-status" role="status" aria-live="polite">筛选条件变更后会自动更新结果。</p>
 
-<section class="results-head"><h2>{{ items|length }} 个结果</h2><span>“机会潜力”不是录用概率，而是基于新鲜度、匹配和申请摩擦的可解释等级。</span></section>
-<section class="job-list" data-testid="recommendation-list">
-  {% for item in items %}
-  <article class="job-card" data-testid="job-card">
-    <div class="job-main">
-      <div class="job-top"><span class="source-label">{{ item.job.source }}</span><span>{{ item.age_days }} 天前</span></div>
-      <h3><a href="/recommendations/{{ item.rec.id }}" data-testid="job-detail-link">{{ item.job.title }}</a></h3>
-      <p class="company">{{ item.job.company }} · {{ item.job.location or '地点未说明' }}</p>
-      <div class="tag-row"><span>{{ item.job.role_family }}</span>{% for skill in item.skills[:5] %}<span>{{ skill }}</span>{% endfor %}</div>
-      <p class="reason">{{ item.reasons[0] if item.reasons else '打开详情查看推荐依据' }}</p>
-    </div>
-    <div class="score-stack">
-      <span class="score {{ item.rec.qualification }}">资格 <b>{{ {'pass':'通过','pending':'待确认','fail':'不符合'}[item.rec.qualification] }}</b></span>
-      <span class="score {{ item.rec.relevance }}">相关性 <b>{{ {'high':'高','medium':'中','low':'低'}[item.rec.relevance] }}</b></span>
-      <span class="score {{ item.rec.opportunity }}">机会潜力 <b>{{ {'high':'高','medium':'中','low':'低'}[item.rec.opportunity] }}</b></span>
-    </div>
-  </article>
-  {% else %}
-  <div class="empty-state"><span>⌕</span><h3>当前筛选下没有岗位</h3><p>清除筛选，或查看上方来源状态，确认是没有结果还是某个来源暂时失败。</p><a class="button ghost" href="/recommendations">清除全部筛选</a></div>
-  {% endfor %}
-</section>
+<div id="recommendation-results" data-testid="recommendation-results">
+  {% include "recommendation_results.html" %}
+</div>
 {% endblock %}
