@@ -32,6 +32,10 @@
 <blockquote>这份说明里写的每一句——按钮上的字、页面地址、能同步的平台清单——</blockquote>
 <blockquote>都由 <code>scripts/check_the_guide_matches_the_product.py</code> 逐条去代码里核对过。</blockquote>
 <blockquote>说明和产品对不上时，那道门会红。</blockquote>
+<blockquote>那道门查的是<strong>正方向</strong>：写了的东西真的存在。还有一道查<strong>反方向</strong>的</blockquote>
+<blockquote>（<code>check_the_guide_warns_about_the_access_gate.py</code>）：<strong>你会撞到、而这里没写</strong>。</blockquote>
+<blockquote>2026-08-12 补的第一步那一屏 Cloudflare 验证页，就是它查出来的——</blockquote>
+<blockquote><strong>少说也是说错</strong>，而只有正方向那一道时，少说可以一直是绿的。</blockquote>
 <hr>
 <h2>一、第一次用（三步，大约五分钟）</h2>
 <h3>第 1 步：装插件</h3>
@@ -148,9 +152,13 @@
 <p>「账号已断开——点这一行的『连接账号』重新授权一次就会继续同步；</p>
 <p>已存下的 N 条一条不会少。」</p>
 <p><strong>库里好多条写着未知作者、发布时间是空的</strong></p>
-<p>这是老版本取数时没取到，不是显示出了问题——<strong>重新同步会把它们补上</strong>。</p>
-<p>早期那几次同步的取数路还没带作者和发布时间，现在带了。</p>
-<p>具体有多少条是这样，看资料库那两列的实数，这里不写死一个会过期的数字。</p>
+<p>这是老版本取数时没取到，不是显示出了问题——<strong>重新同步会去补它们</strong>。</p>
+<p>早期那几次同步的取数路还没带作者和发布时间，现在带了。<strong>补得回多少分两种情况</strong>：</p>
+<ul>
+<li><strong>B 站</strong>：它的接口每条都带作者和发布时间（实测），所以那边缺的那些补得上；</li>
+<li><strong>小红书 / 抖音 / 快手 / Reddit / Instagram</strong>：这几家是从<strong>页面自己发的响应</strong>里读的， 页面给了就补得上，没给就还是空的——<strong>这一条我没法替你打包票</strong>， 因为要看你登录之后那些页面返回什么，而我这边看不到。</li>
+</ul>
+<p>跑完看资料库那两列的实数，这里不写死一个会过期的数字。</p>
 <p><strong>做法就是重新连接一次</strong>，让它跑一遍完整同步——同一条内容会被补齐，</p>
 <p>不会变成两条。<strong>不需要「删除并清空」</strong>（那颗按钮是给从零重来一遍用的）。</p>
 <p>两件事顺带说清：</p>
