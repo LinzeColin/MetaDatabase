@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
+import pytest
 from sqlalchemy import select
 
+from app import ai
 from app.models import User
 from app.security import email_lookup
 from .conftest import complete_onboarding, csrf, register_verify
@@ -68,3 +72,47 @@ def test_user_can_delete_own_account(client, settings):
     with client.app.state.session_factory() as db:
         user = db.scalar(select(User).where(User.email_lookup == email_lookup("delete@example.com", settings.email_lookup_secret)))
         assert user is None
+
+
+def test_zero_user_ai_quota_blocks_before_provider_client_is_created(client, settings, monkeypatch):
+    provider_calls: list[object] = []
+
+    class ForbiddenClient:
+        def __init__(self, *args, **kwargs):
+            provider_calls.append((args, kwargs))
+            raise AssertionError("zero quota must not create a provider client")
+
+    monkeypatch.setattr(ai.httpx, "Client", ForbiddenClient)
+    enabled_ai_settings = replace(settings, deepseek_api_key="test-only-deepseek-key")
+
+    with client.app.state.session_factory() as db:
+        user = User(
+            email_lookup="quota-zero-user",
+            email_encrypted=b"test-only-ciphertext",
+            password_hash="test-only-password-hash",
+            daily_ai_request_limit=0,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        with pytest.raises(ai.AIUnavailable, match="额度已用完"):
+            ai.generate(
+                db,
+                enabled_ai_settings,
+                user,
+                system_prompt="test system prompt",
+                user_prompt="test user prompt",
+            )
+
+    assert provider_calls == []
+
+
+def test_platform_status_reports_configuration_without_deepseek_secret(client, settings):
+    enabled_ai_settings = replace(settings, deepseek_api_key="test-only-deepseek-key")
+    with client.app.state.session_factory() as db:
+        status = ai.platform_status(db, enabled_ai_settings)
+
+    assert status["configured"] is True
+    assert "deepseek_api_key" not in status
+    assert "test-only-deepseek-key" not in repr(status)

@@ -73,7 +73,14 @@ def generate(
 
     user_usage = _usage(db, user.id)
     platform_usage = _usage(db, None)
-    user_limit = user.daily_ai_request_limit or settings.deepseek_default_user_request_limit
+    # Zero is an intentional administrator setting: it disables AI enhancement
+    # for this user.  Do not use ``or`` here, because it would silently replace
+    # that explicit zero with the platform default allowance.
+    user_limit = (
+        settings.deepseek_default_user_request_limit
+        if user.daily_ai_request_limit is None
+        else user.daily_ai_request_limit
+    )
     if user_usage.requests >= user_limit:
         raise AIUnavailable("你今天的 AI 增强额度已用完，核心功能仍可使用。")
     if platform_usage.requests >= settings.deepseek_daily_platform_request_limit:
