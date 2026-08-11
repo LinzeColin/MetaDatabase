@@ -574,6 +574,46 @@ def delete_account(page: Page, base_url: str, password: str) -> None:
     expect_path(page, "/")
 
 
+def cleanup_verified_synthetic_accounts(base_url: str, accounts: dict[str, str]) -> list[str]:
+    """Best-effort cleanup after a browser-flow failure, without sending email.
+
+    Accounts enter ``accounts`` only after their verification flow completed, so
+    a fresh browser can authenticate and use the normal self-service deletion
+    path.  The returned diagnostics contain exception classes only: neither
+    address nor password may enter acceptance evidence.
+    """
+    errors: list[str] = []
+    if not accounts:
+        return errors
+    try:
+        with sync_playwright() as playwright:
+            browser: Browser = playwright.chromium.launch(
+                headless=True,
+                executable_path=os.getenv("PLAYWRIGHT_CHROMIUM_EXECUTABLE") or None,
+                args=["--no-sandbox", "--disable-dev-shm-usage"],
+            )
+            context = browser.new_context(viewport={"width": 1440, "height": 1100}, ignore_https_errors=False)
+            page = context.new_page()
+            page.set_default_timeout(20000)
+            page.set_default_navigation_timeout(30000)
+            for address, password in reversed(list(accounts.items())):
+                try:
+                    page.goto(f"{base_url}/login", wait_until="domcontentloaded")
+                    page.get_by_test_id("login-email").fill(address)
+                    page.get_by_test_id("login-password").fill(password)
+                    click_wait(page, '[data-testid="login-submit"]')
+                    expect_path(page, "/dashboard")
+                    delete_account(page, base_url, password)
+                    accounts.pop(address, None)
+                except Exception as exc:
+                    errors.append(type(exc).__name__)
+            context.close()
+            browser.close()
+    except Exception as exc:
+        errors.append(type(exc).__name__)
+    return errors
+
+
 def run(args: argparse.Namespace) -> tuple[dict, int]:
     base_url = env_required("BASE_URL").rstrip("/")
     if not base_url.startswith("https://"):
@@ -611,6 +651,7 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
     console_errors: list[str] = []
     page_errors: list[str] = []
     cleanup: dict[str, str] = {}
+    cleanup_errors: list[str] = []
     try:
         with sync_playwright() as playwright:
             browser: Browser = playwright.chromium.launch(
@@ -629,6 +670,7 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
             if urlparse(page.url).scheme != "https":
                 raise AssertionError("browser did not remain on HTTPS")
             register_verify(page, base_url, email_a, password, steps, pacer)
+            cleanup[email_a] = password
             onboard_and_wait(page, base_url, steps)
             detail_url, pack_url = candidate_actions(page, steps)
             password_a = reset_password(page, base_url, email_a, password, steps, pacer)
@@ -636,8 +678,8 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
 
             logout(page, base_url)
             register_verify(page, base_url, email_b, password, steps, pacer)
-            onboard_and_wait(page, base_url, steps)
             cleanup[email_b] = password
+            onboard_and_wait(page, base_url, steps)
             for target in [detail_url, pack_url]:
                 response = page.request.get(target)
                 if response.status != 404:
@@ -692,6 +734,7 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
             "secret_values_exposed": False,
         }, 0
     except Exception as exc:
+        cleanup_errors = cleanup_verified_synthetic_accounts(base_url, cleanup)
         return {
             "verdict": "FAIL",
             "scope": "real production browser acceptance",
@@ -700,6 +743,8 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
             "error": str(exc),
             "steps_completed": steps,
             "synthetic_accounts_requiring_cleanup": len(cleanup),
+            "synthetic_accounts_deleted_on_failure": not cleanup,
+            "synthetic_account_cleanup_errors": cleanup_errors,
             "console_errors": console_errors[-20:],
             "page_errors": page_errors[-20:],
             "secret_values_exposed": False,

@@ -424,6 +424,90 @@ def test_email_pacer_adds_a_rate_limit_boundary_buffer(monkeypatch):
     assert sleeps == [30.0]
 
 
+def test_e2e_failure_cleanup_deletes_verified_synthetic_accounts_without_mail(monkeypatch):
+    spec = importlib.util.spec_from_file_location("jobhunt_e2e_cleanup", ROOT / "tools/e2e_production.py")
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    base_url = "https://jobhunt.example.test"
+    visited: list[str] = []
+    clicks: list[str] = []
+
+    class Node:
+        def fill(self, _value):
+            return None
+
+    class Page:
+        url = ""
+
+        def set_default_timeout(self, _value):
+            return None
+
+        def set_default_navigation_timeout(self, _value):
+            return None
+
+        def goto(self, url, **_kwargs):
+            visited.append(url)
+            self.url = url
+
+        def get_by_test_id(self, _name):
+            return Node()
+
+        def once(self, _event, _callback):
+            return None
+
+    page = Page()
+
+    class Context:
+        def new_page(self):
+            return page
+
+        def close(self):
+            return None
+
+    class Browser:
+        def new_context(self, **_kwargs):
+            return Context()
+
+        def close(self):
+            return None
+
+    class Playwright:
+        class Chromium:
+            @staticmethod
+            def launch(**_kwargs):
+                return Browser()
+
+        chromium = Chromium()
+
+    class PlaywrightContext:
+        def __enter__(self):
+            return Playwright()
+
+        def __exit__(self, *_args):
+            return False
+
+    def fake_click(target, selector):
+        clicks.append(selector)
+        if selector == '[data-testid="login-submit"]':
+            target.url = f"{base_url}/dashboard"
+        elif selector == '[data-testid="delete-account-submit"]':
+            target.url = f"{base_url}/"
+
+    monkeypatch.setattr(module, "sync_playwright", lambda: PlaywrightContext())
+    monkeypatch.setattr(module, "click_wait", fake_click)
+
+    accounts = {
+        "acceptance-a@example.test": "synthetic-a",
+        "acceptance-b@example.test": "synthetic-b",
+    }
+    assert module.cleanup_verified_synthetic_accounts(base_url, accounts) == []
+    assert accounts == {}
+    assert clicks.count('[data-testid="delete-account-submit"]') == 2
+    assert all("/login" in url or "/settings/data" in url for url in visited)
+
+
 def test_email_pacer_rejects_removing_the_rate_limit_boundary_buffer(monkeypatch):
     spec = importlib.util.spec_from_file_location("jobhunt_e2e_pacer_config", ROOT / "tools/e2e_production.py")
     assert spec and spec.loader
