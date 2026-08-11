@@ -7,6 +7,7 @@ const sourceFiles = [
   "server/auth/index.ts",
   "server/auth/runtime.ts",
   "server/auth/mail.ts",
+  "server/auth/turnstile.ts",
   "app/api/auth/[...all]/route.ts",
   "app/auth/_components/auth-form.tsx",
   "app/auth/_components/auth-flow.ts",
@@ -24,11 +25,12 @@ export async function verifyAuthContract() {
 
   const auth = sources[0];
   const runtime = sources[1];
-  const route = sources[3];
-  const form = sources[4];
-  const flow = sources[5];
-  const account = sources[6];
-  const publicConfig = sources[7];
+  const turnstile = sources[3];
+  const route = sources[4];
+  const form = sources[5];
+  const flow = sources[6];
+  const account = sources[7];
+  const publicConfig = sources[8];
   const requiredFragments = [
     "requireEmailVerification: true",
     "minPasswordLength: 12",
@@ -39,7 +41,8 @@ export async function verifyAuthContract() {
     "allowUnlinkingAll: false",
     'storage: "database"',
     "cloudflare-turnstile",
-    'expectedAction: "workbench_auth"',
+    "expectedAction: expectedTurnstileAction(config.turnstileSecretKey, config.trustedOrigins)",
+    "allowedHostnames: allowedTurnstileHostnames(config.turnstileSecretKey, config.trustedOrigins)",
     "useSecureCookies: true",
     "httpOnly: true",
     "sameSite: \"lax\"",
@@ -49,6 +52,10 @@ export async function verifyAuthContract() {
     "trustedOrigins: config.trustedOrigins",
   ];
   for (const fragment of requiredFragments) assert.ok(auth.includes(fragment), `missing auth contract: ${fragment}`);
+  assert.ok(turnstile.includes('"workbench_auth"'));
+  assert.ok(turnstile.includes("isLocalDevelopmentOrigin"));
+  assert.ok(turnstile.includes("usesLocalTurnstileTestKey"));
+  assert.ok(turnstile.includes("return undefined"));
   assert.ok(runtime.includes('code = "AUTH_RUNTIME_NOT_READY"'));
   assert.ok(!runtime.includes("console."));
   assert.ok(!route.includes("error.message"));

@@ -14,6 +14,7 @@ import {
   readAuthRuntimeConfig,
   type AuthRuntimeEnv,
 } from "./runtime";
+import { allowedTurnstileHostnames, expectedTurnstileAction } from "./turnstile";
 
 export { AuthRuntimeNotReadyError, getPublicAuthPageConfig } from "./runtime";
 export type { AuthRuntimeEnv } from "./runtime";
@@ -124,8 +125,8 @@ export function createAuth(env: AuthRuntimeEnv) {
           "/sign-in/email",
           "/request-password-reset",
         ],
-        expectedAction: "workbench_auth",
-        allowedHostnames: [...new Set(config.trustedOrigins.map((origin) => new URL(origin).hostname))],
+        expectedAction: expectedTurnstileAction(config.turnstileSecretKey, config.trustedOrigins),
+        allowedHostnames: allowedTurnstileHostnames(config.turnstileSecretKey, config.trustedOrigins),
       }),
     ],
   });

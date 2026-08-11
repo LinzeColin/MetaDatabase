@@ -3,6 +3,7 @@ export type CaptchaReadiness = "loading" | "ready" | "unavailable";
 
 export const SIGN_UP_VERIFICATION_PATH = "/auth/verify-email";
 export const VERIFIED_LOGIN_PATH = "/auth/sign-in?verified=1";
+export const AUTHENTICATED_HOME_PATH = "/?view=home";
 
 export type AuthFormValues = {
   email: string;
@@ -97,7 +98,7 @@ export function buildAuthRequest(mode: AuthMode, values: AuthFormValues): AuthRe
         body: {
           email: values.email,
           password: values.password,
-          callbackURL: "/",
+          callbackURL: AUTHENTICATED_HOME_PATH,
         },
       };
     case "sign-up":

@@ -14,6 +14,9 @@ const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 // The fixture moves Wrangler's dev-variable lookup away from the project root.
 const isNoSecretLocalRuntime = process.env.WORKBENCH_NO_SECRET_RUNTIME === "1";
 const noSecretRuntimeConfigPath = "./tests/fixtures/no-secret-wrangler.json";
+// Opt in to an isolated local Miniflare state directory for browser harnesses.
+// The default developer state and every deployed environment remain unchanged.
+const localPersistStatePath = process.env.WORKBENCH_LOCAL_PERSIST_STATE;
 
 const localBindingConfig = {
   main: isNoSecretLocalRuntime ? "../../worker/index.ts" : "./worker/index.ts",
@@ -58,6 +61,7 @@ export default defineConfig(async () => {
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
         configPath: isNoSecretLocalRuntime ? noSecretRuntimeConfigPath : undefined,
         config: localBindingConfig,
+        persistState: localPersistStatePath ? { path: localPersistStatePath } : undefined,
       }),
     ],
   };

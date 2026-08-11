@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
+  AUTHENTICATED_HOME_PATH,
   authSubmissionPreflight,
   buildAuthRequest,
   captchaSubmissionPreflight,
@@ -17,6 +18,7 @@ import {
   readAuthRuntimeConfig,
 } from "../server/auth/runtime.ts";
 import { rateLimit } from "../db/schema.ts";
+import { allowedTurnstileHostnames, expectedTurnstileAction } from "../server/auth/turnstile.ts";
 import {
   ReauthenticationRequiredError,
   requireFreshVerifiedIdentity,
@@ -63,11 +65,38 @@ test("Better Auth binds its dynamic host allowlist to the parsed trusted origins
   assert.ok(source.includes("allowedHosts: config.trustedOrigins.map"));
   assert.ok(source.includes("fallback: config.appOrigin"));
   assert.ok(source.includes("trustedOrigins: config.trustedOrigins"));
-  assert.ok(source.includes("allowedHostnames: [...new Set(config.trustedOrigins.map"));
+  assert.ok(source.includes("allowedHostnames: allowedTurnstileHostnames(config.turnstileSecretKey, config.trustedOrigins)"));
 });
 
 test("Better Auth rate-limit timestamp remains an epoch-millisecond number", () => {
   assert.equal(rateLimit.lastRequest.mapToDriverValue(1_234_567_890), 1_234_567_890);
+});
+
+test("official Turnstile test secret uses its documented fixed action only", () => {
+  assert.equal(
+    expectedTurnstileAction("1x0000000000000000000000000000000AA", ["http://127.0.0.1:4175"]),
+    undefined,
+  );
+  assert.equal(
+    expectedTurnstileAction("1x0000000000000000000000000000000AA", ["http://0.0.0.0:4175"]),
+    undefined,
+  );
+  assert.equal(
+    expectedTurnstileAction("1x0000000000000000000000000000000AA", ["https://mydairy.example"]),
+    "workbench_auth",
+  );
+  assert.equal(
+    expectedTurnstileAction("production-secret-placeholder", ["http://127.0.0.1:4175"]),
+    "workbench_auth",
+  );
+  assert.deepEqual(
+    allowedTurnstileHostnames("1x0000000000000000000000000000000AA", ["http://127.0.0.1:4175"]),
+    undefined,
+  );
+  assert.deepEqual(
+    allowedTurnstileHostnames("production-secret-placeholder", ["https://mydairy.example"]),
+    ["mydairy.example"],
+  );
 });
 
 test("managed Turnstile retains a rendered response during callback timing", () => {
@@ -246,6 +275,8 @@ test("email sign-up and password reset keep the documented callback contracts", 
   assert.deepEqual(buildAuthRequest("sign-in", base).headers, {
     "x-captcha-response": "captcha-token",
   });
+  assert.equal(buildAuthRequest("sign-in", base).body.callbackURL, AUTHENTICATED_HOME_PATH);
+  assert.equal(AUTHENTICATED_HOME_PATH, "/?view=home");
   assert.deepEqual(buildAuthRequest("forgot-password", base).headers, {
     "x-captcha-response": "captcha-token",
   });
@@ -253,6 +284,12 @@ test("email sign-up and password reset keep the documented callback contracts", 
     endpoint: "/api/auth/reset-password",
     body: { newPassword: "correct-horse-battery-staple", token: "reset-token" },
   });
+});
+
+test("successful email and Google login both return to the authenticated desktop", async () => {
+  const authForm = await readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8");
+  assert.match(authForm, /callbackURL: AUTHENTICATED_HOME_PATH/);
+  assert.match(authForm, /window\.location\.assign\(AUTHENTICATED_HOME_PATH\)/);
 });
 
 test("account sign-out uses the Better Auth same-origin endpoint and returns to a neutral login message", async () => {

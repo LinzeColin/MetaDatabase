@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
+  AUTHENTICATED_HOME_PATH,
   authSubmissionPreflight,
   buildAuthRequest,
   captchaSubmissionPreflight,
@@ -160,7 +161,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ provider: "google", callbackURL: "/" }),
+        body: JSON.stringify({ provider: "google", callbackURL: AUTHENTICATED_HOME_PATH }),
       });
       const payload = (await response.json().catch(() => null)) as { url?: unknown } | null;
       if (response.ok && typeof payload?.url === "string") {
@@ -219,7 +220,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
         return;
       }
       if (mode === "sign-in") {
-        window.location.assign("/");
+        window.location.assign(AUTHENTICATED_HOME_PATH);
         return;
       }
       if (mode === "sign-up") {
