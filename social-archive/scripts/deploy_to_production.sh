@@ -1078,8 +1078,10 @@ import json
 d = json.load(open('evidence/G3/PRODUCTION_MATCHES_REPO.json'))
 dev = d.get('dev_only_differs') or []
 if dev:
-    print(f'  服务那一份三份一致。另有 {len(dev)} 个判据/演练文件与仓不一致'
-          f'（容器不跑它们，下次发布会带上）：{dev[:3]}')
+    print(f'  服务那一份三份一致（仓 = 主机 = 镜像）。'
+          f'另有 {len(dev)} 个判据/演练文件**镜像里那份是旧的**——'
+          f'第 3.7 步认定改它们不改变镜像的行为，于是跳过了重建；'
+          f'主机上那份已经是仓里这一份。下次真重建时会一起带上：{dev[:3]}')
 else:
     print('  三份一致：仓 = 主机 = 镜像。')
 "
