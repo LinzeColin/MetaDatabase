@@ -126,6 +126,7 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     assert "REAL_EMAIL_ACCEPTANCE_RUN_ID" in acceptance
     assert "ACCEPTANCE_MIN_EMAIL_GAP_SECONDS" in acceptance
     assert "ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS" in acceptance
+    assert "ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS" in acceptance
     assert 'evidence_runner_user=(--user "${ACCEPTANCE_UID:-$(id -u)}:${ACCEPTANCE_GID:-$(id -g)}")' in acceptance
     assert acceptance.count('"${evidence_runner_user[@]}"') == 4
     assert "acceptance outputs so every run creates fresh evidence" in acceptance
@@ -137,6 +138,7 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     assert 'user: "${ACCEPTANCE_UID:-1000}:${ACCEPTANCE_GID:-1000}"' in compose
     assert "./runtime-data:/app/runtime-data" in compose
     assert 'page.once("dialog"' in production_e2e
+    assert "DEFAULT_IMAP_CONNECT_TIMEOUT_SECONDS" in production_e2e
     assert "import httpx" not in ops_probe
     assert 'docker compose ps --services --filter status=running' in backup
     assert 'docker run --rm --network "$internal_network" -e DATABASE_URL' in backup

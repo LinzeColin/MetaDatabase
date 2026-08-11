@@ -30,6 +30,8 @@ ROOT = Path(__file__).resolve().parents[1]
 MIN_ACCEPTANCE_EMAIL_GAP_SECONDS = 1800
 MIN_REAL_EMAIL_COOLDOWN_HOURS = 24
 MAX_REAL_EMAIL_MESSAGES = 3
+DEFAULT_IMAP_CONNECT_TIMEOUT_SECONDS = 20
+MAX_IMAP_CONNECT_TIMEOUT_SECONDS = 60
 RUN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{7,79}$")
 
 
@@ -66,6 +68,19 @@ def acceptance_real_email_cooldown_hours() -> int:
     if value < MIN_REAL_EMAIL_COOLDOWN_HOURS:
         raise RuntimeError(
             f"ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS must be at least {MIN_REAL_EMAIL_COOLDOWN_HOURS}"
+        )
+    return value
+
+
+def imap_connect_timeout_seconds() -> int:
+    raw = os.getenv("ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS", str(DEFAULT_IMAP_CONNECT_TIMEOUT_SECONDS)).strip()
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise RuntimeError("ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS must be an integer") from exc
+    if not 1 <= value <= MAX_IMAP_CONNECT_TIMEOUT_SECONDS:
+        raise RuntimeError(
+            f"ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS must be between 1 and {MAX_IMAP_CONNECT_TIMEOUT_SECONDS}"
         )
     return value
 
@@ -165,11 +180,16 @@ def email_lifecycle_preflight() -> dict[str, object] | None:
     real_email_opt_in = bool_env("RUN_REAL_EMAIL_ACCEPTANCE", False)
     real_email_run_id_configured = bool(RUN_ID_RE.fullmatch(os.getenv("REAL_EMAIL_ACCEPTANCE_RUN_ID", "").strip()))
     pacing_configured = True
+    imap_timeout_configured = True
     try:
         acceptance_minimum_email_gap_seconds()
         acceptance_real_email_cooldown_hours()
     except RuntimeError:
         pacing_configured = False
+    try:
+        imap_connect_timeout_seconds()
+    except RuntimeError:
+        imap_timeout_configured = False
     missing: list[str] = []
     if not registration_enabled:
         missing.append("ALLOW_REGISTRATION=true")
@@ -185,6 +205,8 @@ def email_lifecycle_preflight() -> dict[str, object] | None:
         missing.append("valid REAL_EMAIL_ACCEPTANCE_RUN_ID")
     if not pacing_configured:
         missing.append("email pacing safety configuration")
+    if not imap_timeout_configured:
+        missing.append("IMAP connection timeout safety configuration")
     if not missing:
         return None
     return {
@@ -200,6 +222,7 @@ def email_lifecycle_preflight() -> dict[str, object] | None:
         "real_email_opt_in": real_email_opt_in,
         "real_email_run_id_configured": real_email_run_id_configured,
         "pacing_configured": pacing_configured,
+        "imap_timeout_configured": imap_timeout_configured,
         "smtp_contract": "standards-compatible SMTP",
         "nitrosend_dependency": False,
         "email_delivery_sent": False,
@@ -240,11 +263,12 @@ def message_text(msg: Message) -> str:
 def imap_connection():
     host = env_required("ACCEPTANCE_IMAP_HOST")
     port = int(os.getenv("ACCEPTANCE_IMAP_PORT", "993"))
+    connect_timeout = imap_connect_timeout_seconds()
     use_ssl = bool_env("ACCEPTANCE_IMAP_SSL", True)
     if use_ssl:
-        client = imaplib.IMAP4_SSL(host, port)
+        client = imaplib.IMAP4_SSL(host, port, timeout=connect_timeout)
     else:
-        client = imaplib.IMAP4(host, port)
+        client = imaplib.IMAP4(host, port, timeout=connect_timeout)
         if bool_env("ACCEPTANCE_IMAP_STARTTLS", True):
             client.starttls()
     client.login(env_required("ACCEPTANCE_IMAP_USERNAME"), env_required("ACCEPTANCE_IMAP_PASSWORD"))
@@ -258,8 +282,9 @@ def wait_mail_link(recipient: str, kind: str, base_url: str, not_before: float) 
     deadline = time.time() + timeout
     last_seen = ""
     while time.time() < deadline:
-        client = imap_connection()
+        client = None
         try:
+            client = imap_connection()
             status, _ = client.select(folder, readonly=True)
             if status != "OK":
                 raise RuntimeError(f"cannot select IMAP folder {folder}")
@@ -294,11 +319,17 @@ def wait_mail_link(recipient: str, kind: str, base_url: str, not_before: float) 
                     if candidate.startswith(base_url) and parsed.path == required_path:
                         return candidate
                 last_seen = f"matching recipient found but no {kind} link"
+        except (OSError, imaplib.IMAP4.error):
+            # A bounded socket timeout or transient IMAP failure must consume
+            # only this polling attempt.  It never triggers a second SMTP
+            # request; the browser keeps waiting until the overall deadline.
+            last_seen = "IMAP connection or request unavailable"
         finally:
-            try:
-                client.logout()
-            except Exception:
-                pass
+            if client is not None:
+                try:
+                    client.logout()
+                except Exception:
+                    pass
         time.sleep(4)
     raise RuntimeError(f"timed out waiting for {kind} email ({last_seen or 'no matching mail'})")
 
@@ -478,6 +509,7 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
         email_a, email_b = derived_emails()
         minimum_email_gap_seconds = acceptance_minimum_email_gap_seconds()
         cooldown_hours = acceptance_real_email_cooldown_hours()
+        imap_connect_timeout = imap_connect_timeout_seconds()
         reserve_real_email_acceptance(
             state_path=real_email_guard_path(),
             run_id=acceptance_run_id(),
@@ -570,6 +602,7 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
             "email_safety": {
                 "minimum_gap_seconds": minimum_email_gap_seconds,
                 "cooldown_hours": cooldown_hours,
+                "imap_connect_timeout_seconds": imap_connect_timeout,
                 "maximum_real_messages": MAX_REAL_EMAIL_MESSAGES,
             },
             "console_errors": [],

@@ -29,6 +29,13 @@ esac
   echo "ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS must be at least 24; no email has been sent" >&2
   exit 2
 }
+case "${ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS:-20}" in
+  ''|*[!0-9]*) echo "ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS must be an integer; no email has been sent" >&2; exit 2 ;;
+esac
+(( ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS >= 1 && ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS <= 60 )) || {
+  echo "ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS must be between 1 and 60; no email has been sent" >&2
+  exit 2
+}
 evidence_runner_user=(--user "${ACCEPTANCE_UID:-$(id -u)}:${ACCEPTANCE_GID:-$(id -g)}")
 mkdir -p evidence runtime-data
 python3 - <<'PY'

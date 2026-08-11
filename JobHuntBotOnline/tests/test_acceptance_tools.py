@@ -218,6 +218,56 @@ def test_real_email_guard_consumes_each_run_id_and_enforces_cooldown(tmp_path):
         )
 
 
+def test_imap_connection_has_a_bounded_socket_timeout(monkeypatch):
+    spec = importlib.util.spec_from_file_location("jobhunt_e2e_imap_timeout", ROOT / "tools/e2e_production.py")
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    observed: dict[str, int] = {}
+
+    class FakeImapClient:
+        def login(self, _username, _password):
+            return "OK", []
+
+    def fake_imap_ssl(_host, _port, *, timeout):
+        observed["timeout"] = timeout
+        return FakeImapClient()
+
+    monkeypatch.setenv("ACCEPTANCE_IMAP_HOST", "imap.example.test")
+    monkeypatch.setenv("ACCEPTANCE_IMAP_USERNAME", "acceptance@example.test")
+    monkeypatch.setenv("ACCEPTANCE_IMAP_PASSWORD", "synthetic-password")
+    monkeypatch.setenv("ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS", "20")
+    monkeypatch.setattr(module.imaplib, "IMAP4_SSL", fake_imap_ssl)
+
+    assert isinstance(module.imap_connection(), FakeImapClient)
+    assert observed["timeout"] == 20
+    monkeypatch.setenv("ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS", "0")
+    with pytest.raises(RuntimeError, match="between 1 and 60"):
+        module.imap_connection()
+
+
+def test_mail_wait_retries_a_bounded_imap_timeout_without_resending(monkeypatch):
+    spec = importlib.util.spec_from_file_location("jobhunt_e2e_imap_retry", ROOT / "tools/e2e_production.py")
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    attempts = {"count": 0}
+    times = iter([0.0, 0.0, 241.0])
+
+    def timed_out_connection():
+        attempts["count"] += 1
+        raise TimeoutError("synthetic timeout")
+
+    monkeypatch.setattr(module, "imap_connection", timed_out_connection)
+    monkeypatch.setattr(module.time, "time", lambda: next(times))
+    monkeypatch.setattr(module.time, "sleep", lambda _seconds: None)
+    monkeypatch.setenv("ACCEPTANCE_MAIL_TIMEOUT_SECONDS", "240")
+
+    with pytest.raises(RuntimeError, match="timed out waiting for verify email"):
+        module.wait_mail_link("acceptance@example.test", "verify", "https://jobhunt.example.test", 0.0)
+    assert attempts["count"] == 1
+
+
 def test_mail_transport_probe_ignores_generated_evidence(tmp_path):
     pack = tmp_path / "pack"
     copy_taskpack_source(pack)
