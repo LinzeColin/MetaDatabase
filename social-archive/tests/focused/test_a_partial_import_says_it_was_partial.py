@@ -114,5 +114,33 @@ def test_zero_import_still_uses_the_stalled_sentence() -> None:
     assert "卡住" in said and "都还在" in said
 
 
+def _all_known_codes() -> list[str]:
+    # 四个集合全在函数里 import：这条判据不该依赖模块级导入了哪几个名字，
+    # 否则换个文件抄过去就 NameError（我试打时正好撞到）。
+    from social_archive.failure_copy import (COPY_BY_CODE, INCOMPLETE_RUN_CODES,
+                                             SCROLL_PARTIAL_CODES, _ALIASES)
+    return sorted(set(COPY_BY_CODE) | set(_ALIASES)
+                  | set(INCOMPLETE_RUN_CODES) | set(SCROLL_PARTIAL_CODES))
+
+
+@pytest.mark.parametrize("code", _all_known_codes())
+def test_no_code_breaks_when_something_was_actually_imported(code: str) -> None:
+    """**每个码都要用 `imported>0` 扫一遍。**
+
+    `test_failure_copy_matrix.py` 有一条把所有码用 `imported=0` 扫一遍的判据，
+    而 `describe_sync_outcome` 第一条分支就是 `if imported > 0`——
+    也就是说**「有新增」那一整档从来没有被任何一条判据扫过**。
+    2026-08-12 的缺陷正落在那里，而且是靠人读生产数据发现的，不是门。
+
+    这条是那条 `imported=0` 扫描的对称面：不判措辞，只判三件硬的——
+    说得出话、数还在、不泄漏内部码。措辞由上面那几条按类判。
+    """
+    said = _say(7, code)
+    assert said.strip(), f"{code} 在有新增时说不出话——他会看到一片空白"
+    assert "7" in said, f"{code} 把「新增 7 条」弄丢了：{said}"
+    assert not (any(ch.isupper() for ch in said) and "_" in said), (
+        f"{code} 的句子里疑似有内部码：{said}")
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))

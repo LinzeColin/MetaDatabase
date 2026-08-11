@@ -65,7 +65,8 @@ def _get(path: str, token: str) -> dict:
 
 
 def audit(library: dict, accounts: dict, status: dict,
-          runs_codes: set[str] | None = None) -> tuple[list[str], dict]:
+          runs_codes: set[str] | None = None,
+          runs: list[dict] | None = None) -> tuple[list[str], dict]:
     """**判断逻辑与取数分开。**
 
     分开是为了能用「修之前那些真实形状」喂它，证明它真的会红——
@@ -76,6 +77,7 @@ def audit(library: dict, accounts: dict, status: dict,
 
     items = library["items"]
     runs_codes = runs_codes or set()
+    runs = runs or []
     problems: list[str] = []
     # ── 1. 界面上的字里不许出现内部码 ────────────────────────────────
     # 十处里有两处是这个：状态页印 `HEALTH_PROBE_FAILED`、
@@ -131,6 +133,37 @@ def audit(library: dict, accounts: dict, status: dict,
     # 的码**（v0.0.0.6 留下的三个），光读代码列不全。所以反过来：
     # 把生产**真出现过**的码逐个渲染一遍，看它说得出话、且不泄漏内部码。
     # 这样将来冒出一个谁都没想到的新码，这里会当场发现。
+    # ── 6. 用**每次同步真实的导入数**再渲染一遍 ─────────────────────
+    #
+    # 上面第 5 条固定传 `imported=0`，而 `describe_sync_outcome` 第一条分支
+    # 就是 `if imported > 0`——也就是说**「导进了东西」那一整档从没被审计看过**。
+    # 2026-08-12 查出来的缺陷正好落在那里：他 4 次导入全是「有新增 + 没跑完」，
+    # 产品只说了「新增 N 条。」，没跑完一个字没提。审计全程绿着。
+    #
+    # 这道审计的名字是「产品对他**那份数据**说的话对不对」，那就得拿他那份
+    # 数据的形状去喂它——`imported` 这一维不能写死成 0。
+    from social_archive.failure_copy import INCOMPLETE_RUN_CODES, SCROLL_PARTIAL_CODES
+    must_disclose = set(INCOMPLETE_RUN_CODES) - set(SCROLL_PARTIAL_CODES)
+    for run in runs:
+        code = str(run.get("last_error_code") or "")
+        count = int(run.get("imported_count") or 0)
+        if count <= 0 or code not in must_disclose:
+            continue
+        try:
+            said = str(describe_sync_outcome(
+                imported=count, failure_code=code,
+                platform_label=str(run.get("platform") or "某平台"),
+                status=str(run.get("status") or "partial")).get("message_zh") or "")
+        except Exception as error:                        # noqa: BLE001
+            problems.append(f"**{code} 带着 imported={count} 渲染时抛异常**：{str(error)[:80]}")
+            continue
+        if str(count) not in said:
+            problems.append(f"**{code} 的句子把「新增 {count} 条」弄丢了**：{said[:60]}")
+        if "没跑完" not in said:
+            problems.append(
+                f"**他那次同步导进了 {count} 条却没跑完，而产品只说「{said[:24]}」**"
+                "——没跑完这件事被吞掉了，他会以为已经取全")
+
     for code in sorted(runs_codes):
         try:
             rendered = describe_sync_outcome(
@@ -202,11 +235,13 @@ def main() -> int:
     # 生产里**真出现过**的失败码——不是我从代码里列的那些。
     history = ROOT / "evidence/G1/PRODUCTION_AGGREGATION_REALLY_HAPPENED.json"
     runs_codes: set[str] = set()
+    all_runs: list[dict] = []
     if history.is_file():
-        runs_codes = {run["last_error_code"] for run
-                      in json.loads(history.read_text(encoding="utf-8"))["all_runs"]
+        all_runs = json.loads(history.read_text(encoding="utf-8"))["all_runs"]
+        runs_codes = {run["last_error_code"] for run in all_runs
                       if run.get("last_error_code")}
-    problems, measured = audit(library, accounts, status, runs_codes)
+    # **整份 runs 一起传**：光有码列表，`imported` 那一维就永远是 0。
+    problems, measured = audit(library, accounts, status, runs_codes, all_runs)
 
     report = {
         "status": "PASS" if not problems else "FAIL",

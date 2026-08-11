@@ -352,17 +352,50 @@ def click_with_prompt(answer: str) -> str:
     )
 
 
+# 一次 CDP 调用最多等多久。`Runtime.evaluate` 里跑的是页面上的 JS，
+# 页面自己卡住时它**不会**回错，只是永远不回——所以超时得由这一侧给。
+RPC_TIMEOUT_SECONDS = 90
+
+
+class RpcTimeout(RuntimeError):
+    """CDP 调用超时。**这是一条明确的失败，不是「还在跑」。**"""
+
+
 async def _rpc_factory(ws):
     counter = {"n": 0}
 
     async def rpc(method, params=None):
+        """**每一次调用都必须有超时**（2026-08-12）。
+
+        原来这里是裸的 `while True: await ws.recv()`——没有任何时限。
+        本文件开头第 30 行自己就写着这种挂法（「那个 await 不返回，
+        `Runtime.evaluate` 就一直等，整个脚本挂住」），**而代码里没有防它的东西**。
+
+        2026-08-12 部署 0.0.0.57 时真挂了：这一步停在
+        `options.html?onboarding=1` 上 **15 分钟不动**，日志一个字不再写，
+        部署既不前进也不失败。我是靠比对日志 mtime 和 Chrome 进程存活时间
+        才看出来它挂了——**一个永远不结束的步骤比一个红的步骤更糟**，
+        红的至少会告诉你。
+
+        超时了就抛，让上层把它记成失败并把浏览器收掉。
+        """
         counter["n"] += 1
         ident = counter["n"]
         await ws.send(json.dumps({"id": ident, "method": method, "params": params or {}}))
-        while True:
-            message = json.loads(await ws.recv())
-            if message.get("id") == ident:
-                return message
+
+        async def _await_reply():
+            while True:
+                message = json.loads(await ws.recv())
+                if message.get("id") == ident:
+                    return message
+
+        try:
+            return await asyncio.wait_for(_await_reply(), timeout=RPC_TIMEOUT_SECONDS)
+        except asyncio.TimeoutError as error:
+            raise RpcTimeout(
+                f"CDP {method} 等了 {RPC_TIMEOUT_SECONDS} 秒没回应——"
+                "多半是页面上的那段 JS 卡住了（await 不返回）。"
+            ) from error
 
     return rpc
 

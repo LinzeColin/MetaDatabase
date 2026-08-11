@@ -143,3 +143,63 @@ def test_the_codes_his_production_really_emitted_all_have_sentences() -> None:
     assert len(codes) >= 4, f"只有 {len(codes)} 个码，这份夹具太薄"
     problems, _ = audit(_library(), _accounts(), _status(HEALTHY), codes)
     assert problems == [], problems
+
+
+# ── 2026-08-12：审计一直用 imported=0 渲染，于是「有新增」那一整档从没被看过 ──
+
+# 他生产库里真实那 4 次（照抄，不是编的）：全部「导进了东西 + 没跑完」。
+HIS_PARTIAL_IMPORTS = [
+    {"platform": "bilibili", "status": "partial", "imported_count": 102,
+     "discovered_count": 102, "last_error_code": "RELATION_SCOPE_UNCONFIRMED"},
+    {"platform": "douyin", "status": "partial", "imported_count": 35,
+     "discovered_count": 35, "last_error_code": "STABLE_END_WITHOUT_PROOF"},
+    {"platform": "bilibili", "status": "partial", "imported_count": 67,
+     "discovered_count": 67, "last_error_code": "RELATION_SCOPE_UNCONFIRMED"},
+    {"platform": "douyin", "status": "partial", "imported_count": 56,
+     "discovered_count": 56, "last_error_code": "STABLE_END_WITHOUT_PROOF"},
+]
+
+
+def test_a_partial_import_that_hides_it_is_caught() -> None:
+    """**这一档以前审计根本看不见。**
+
+    第 5 条检查固定传 `imported=0`，而 `describe_sync_outcome` 第一条分支就是
+    `if imported > 0`——传 0 意味着「有新增」那一整档永远走不到。
+    今天的缺陷正落在那里：他 4 次导入全是「有新增 + 没跑完」，
+    产品只说「新增 N 条。」，而审计全程绿着。
+
+    这里用**产品当前的真实实现**跑他那 4 个形状：现在必须一条问题都没有。
+    反方向由 `test_it_would_have_caught_the_swallowed_incompleteness` 守着。
+    """
+    codes = {r["last_error_code"] for r in HIS_PARTIAL_IMPORTS}
+    problems, _ = audit(_library(), _accounts(), _status(HEALTHY),
+                        codes, HIS_PARTIAL_IMPORTS)
+    swallowed = [p for p in problems if "没跑完这件事被吞掉了" in p]
+    assert not swallowed, swallowed
+
+
+def test_it_would_have_caught_the_swallowed_incompleteness(monkeypatch) -> None:
+    """把产品改回「只报数」，审计必须把 4 次全部报出来。
+
+    **不改产物、只改判据是测不出这个的**——所以这里真的把
+    `describe_sync_outcome` 换成修复前那种行为，再看审计红不红。
+    """
+    from social_archive import failure_copy
+
+    def only_the_count(*, imported, failure_code=None, platform_label="",
+                       status="", updated_at=None, **_kw):
+        # 修复前的形状：有新增就只报数，别的一概不说。
+        if imported > 0:
+            return {"outcome": "imported", "imported": imported,
+                    "message_zh": f"新增 {imported} 条。",
+                    "failure_code": failure_code, "action_zh": None}
+        return {"outcome": "stalled", "imported": 0,
+                "message_zh": "这次同步卡住了，没有正常结束。你已经取到的内容都还在。",
+                "failure_code": failure_code, "action_zh": None}
+
+    monkeypatch.setattr(failure_copy, "describe_sync_outcome", only_the_count)
+    codes = {r["last_error_code"] for r in HIS_PARTIAL_IMPORTS}
+    problems, _ = audit(_library(), _accounts(), _status(HEALTHY),
+                        codes, HIS_PARTIAL_IMPORTS)
+    swallowed = [p for p in problems if "没跑完这件事被吞掉了" in p]
+    assert len(swallowed) == 4, f"只报出 {len(swallowed)} 条，应为 4：{problems}"
