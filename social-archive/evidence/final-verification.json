@@ -87,7 +87,7 @@
         "scripts/preflight_extension.py"
       ],
       "exit_code": 0,
-      "stdout": "可以装载。manifest v3、version 0.0.0.41、17 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
+      "stdout": "可以装载。manifest v3、version 0.0.0.42、17 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
       "stderr": ""
     },
     {
@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 851 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 853 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -124,7 +124,7 @@
         "scripts/check_the_stated_version_is_the_real_one.py"
       ],
       "exit_code": 0,
-      "stdout": "真源 pyproject.toml 说版本是 0.0.0.41；核了 11 处\n每一处声明的版本都和真源一样，CHANGELOG 里也有这一版。\n",
+      "stdout": "真源 pyproject.toml 说版本是 0.0.0.42；核了 11 处\n每一处声明的版本都和真源一样，CHANGELOG 里也有这一版。\n",
       "stderr": ""
     },
     {
@@ -277,7 +277,7 @@
         "scripts/check_every_drill_has_a_caller.py"
       ],
       "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"drills_found\": [\n    \"bilibili_acquisition_drill.py\",\n    \"bilibili_end_to_end_drill.py\",\n    \"disaster_recovery_drill.py\",\n    \"extension_bridge_boundary_drill.py\",\n    \"extension_capture_buffer_drill.py\",\n    \"extension_capture_drill.py\",\n    \"extension_install_page_drill.py\",\n    \"extension_platform_wiring_drill.py\",\n    \"extension_routing_drill.py\",\n    \"extension_save_page_drill.py\",\n    \"extension_update_in_place_drill.py\",\n    \"forget_button_render_drill.py\",\n    \"from_zero_drill.py\",\n    \"list_shape_end_to_end_drill.py\",\n    \"popup_states_drill.py\",\n    \"production_reachability_drill.py\",\n    \"pwa_render_drill.py\",\n    \"restore_private_database_drill.py\",\n    \"restore_runtime_db_drill.py\",\n    \"shipped_package_drill.py\",\n    \"stale_extension_is_blocked_drill.py\"\n  ],\n  \"registry\": \"docs/DRILLS.md\",\n  \"cadences\": {\n    \"shipped_package_drill.py\": \"每次发布\",\n    \"popup_states_drill.py\": \"每次发布\",\n    \"production_reachability_drill.py\": \"每次发布\",\n    \"extension_update_in_place_drill.py\": \"每次发布\",\n    \"stale_extension_is_blocked_drill.py\": \"每次发布\",\n    \"list_shape_end_to_end_drill.py\": \"改到那条路时\",\n    \"bilibili_end_to_end_drill.py\": \"改到那条路时\",\n    \"bilibili_acquisition_drill.py\": \"**每次发布**（run_all_drills）\",\n    \"extension_capture_drill.py\": \"改到那条路时\",\n    \"extension_capture_buffer_drill.py\": \"改到那条路时\",\n    \"extension_save_page_drill.py\": \"改到那条路时\",\n    \"extension_routing_drill.py\": \"改到那条路时\",\n    \"extension_platform_wiring_drill.py\": \"改到那条路时\",\n    \"extension_bridge_boundary_drill.py\": \"改到那条路时\",\n    \"extension_install_page_drill.py\": \"改到那条路时\",\n    \"pwa_render_drill.py\": \"改到那条路时\",\n    \"forget_button_render_drill.py\": \"**每次发布**（deploy 第 8.65 步）\",\n    \"from_zero_drill.py\": \"**每次发布**（deploy 第 8.68 步）\",\n    \"disaster_recovery_drill.py\": \"**定期（没有任何脚本会自动跑它——靠人记得）**\",\n    \"restore_private_database_drill.py\": \"**定期（同上，无自动调用方）**\",\n    \"restore_runtime_db_drill.py\": \"**定期（同上，无自动调用方）**\"\n  },\n  \"run_by_deploy\": [\n    \"bilibili_acquisition_drill.py\",\n    \"bilibili_end_to_end_drill.py\",\n    \"disaster_recovery_drill.py\",\n    \"extension_bridge_boundary_drill.py\",\n    \"extension_capture_buffer_drill.py\",\n    \"extension_capture_drill.py\",\n    \"extension_install_page_drill.py\",\n    \"extension_platform_wiring_drill.py\",\n    \"extension_routing_drill.py\",\n    \"extension_save_page_drill.py\",\n    \"extension_update_in_place_drill.py\",\n    \"forget_button_render_drill.py\",\n    \"from_zero_drill.py\",\n    \"list_shape_end_to_end_drill.py\",\n    \"popup_states_drill.py\",\n    \"production_reachability_drill.py\",\n    \"pwa_render_drill.py\",\n    \"restore_private_database_drill.py\",\n    \"restore_runtime_db_drill.py\",\n    \"shipped_package_drill.py\",\n    \"stale_extension_is_blocked_drill.py\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"每个演练都有一条会触发它的路，或至少写清了什么时候跑。\",\n  \"what_this_does_not_prove\": \"不保证演练写得对，也不保证它最近跑过。只保证有一条路会触发它。\"\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"drills_found\": [\n    \"bilibili_acquisition_drill.py\",\n    \"bilibili_end_to_end_drill.py\",\n    \"disaster_recovery_drill.py\",\n    \"extension_bridge_boundary_drill.py\",\n    \"extension_capture_buffer_drill.py\",\n    \"extension_capture_drill.py\",\n    \"extension_install_page_drill.py\",\n    \"extension_platform_wiring_drill.py\",\n    \"extension_routing_drill.py\",\n    \"extension_save_page_drill.py\",\n    \"extension_update_in_place_drill.py\",\n    \"forget_button_render_drill.py\",\n    \"from_zero_drill.py\",\n    \"list_shape_end_to_end_drill.py\",\n    \"popup_states_drill.py\",\n    \"production_reachability_drill.py\",\n    \"pwa_render_drill.py\",\n    \"restore_private_database_drill.py\",\n    \"restore_runtime_db_drill.py\",\n    \"shipped_package_drill.py\",\n    \"stale_extension_is_blocked_drill.py\"\n  ],\n  \"registry\": \"docs/DRILLS.md\",\n  \"cadences\": {\n    \"shipped_package_drill.py\": \"每次发布\",\n    \"popup_states_drill.py\": \"每次发布\",\n    \"production_reachability_drill.py\": \"每次发布\",\n    \"extension_update_in_place_drill.py\": \"每次发布\",\n    \"stale_extension_is_blocked_drill.py\": \"每次发布\",\n    \"list_shape_end_to_end_drill.py\": \"改到那条路时\",\n    \"bilibili_end_to_end_drill.py\": \"改到那条路时\",\n    \"bilibili_acquisition_drill.py\": \"**每次发布**（run_all_drills）\",\n    \"extension_capture_drill.py\": \"改到那条路时\",\n    \"extension_capture_buffer_drill.py\": \"改到那条路时\",\n    \"extension_save_page_drill.py\": \"改到那条路时\",\n    \"extension_routing_drill.py\": \"改到那条路时\",\n    \"extension_platform_wiring_drill.py\": \"改到那条路时\",\n    \"extension_bridge_boundary_drill.py\": \"改到那条路时\",\n    \"extension_install_page_drill.py\": \"改到那条路时\",\n    \"pwa_render_drill.py\": \"改到那条路时\",\n    \"forget_button_render_drill.py\": \"**每次发布**（deploy 第 8.65 步）\",\n    \"from_zero_drill.py\": \"**每次发布**（deploy 第 8.68 步）\",\n    \"disaster_recovery_drill.py\": \"**定期（没有任何脚本会自动跑它——靠人记得）**\",\n    \"restore_private_database_drill.py\": \"**定期（同上，无自动调用方）**\",\n    \"restore_runtime_db_drill.py\": \"**每次发布**（deploy 第 8.69 步，经 `check_the_backup_can_actually_be_restored.py`）\"\n  },\n  \"run_by_deploy\": [\n    \"bilibili_acquisition_drill.py\",\n    \"bilibili_end_to_end_drill.py\",\n    \"extension_bridge_boundary_drill.py\",\n    \"extension_capture_buffer_drill.py\",\n    \"extension_capture_drill.py\",\n    \"extension_install_page_drill.py\",\n    \"extension_platform_wiring_drill.py\",\n    \"extension_routing_drill.py\",\n    \"extension_save_page_drill.py\",\n    \"extension_update_in_place_drill.py\",\n    \"forget_button_render_drill.py\",\n    \"from_zero_drill.py\",\n    \"list_shape_end_to_end_drill.py\",\n    \"popup_states_drill.py\",\n    \"production_reachability_drill.py\",\n    \"pwa_render_drill.py\",\n    \"restore_runtime_db_drill.py\",\n    \"shipped_package_drill.py\",\n    \"stale_extension_is_blocked_drill.py\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"每个演练都有一条会触发它的路，或至少写清了什么时候跑。\",\n  \"what_this_does_not_prove\": \"不保证演练写得对，也不保证它最近跑过。只保证有一条路会触发它。\"\n}\n",
       "stderr": ""
     },
     {
@@ -286,7 +286,7 @@
         "scripts/check_git_calls_cannot_be_hijacked_by_hooks.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 392 份 .py，其中 14 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
+      "stdout": "扫了 394 份 .py，其中 14 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
       "stderr": ""
     },
     {

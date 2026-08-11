@@ -36,6 +36,7 @@
 
 from __future__ import annotations
 
+import ast
 import json
 import re
 import sys
@@ -45,6 +46,36 @@ ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "docs" / "DRILLS.md"
 DEPLOY = ROOT / "scripts" / "deploy_to_production.sh"
 RELEASE_CADENCE = "每次发布"
+
+
+def _declared_not_run(source: str) -> list[str]:
+    """一个脚本自己声明「这些我不跑」的那些名字。
+
+    认的是**赋给 NEEDS_REAL_INPUT / SKIPPED 之类名字的字典或集合字面量**里的
+    字符串键。用 ast 而不是正则：正则会连注释和散文一起吃掉，
+    而这里要的恰恰是「结构上属于那张表」这件事。
+    """
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return []
+    names: list[str] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assign):
+            continue
+        labels = [t.id for t in node.targets if isinstance(t, ast.Name)]
+        if not any(("NOT_RUN" in label or "NEEDS_REAL_INPUT" in label or "SKIP" in label)
+                   for label in labels):
+            continue
+        keys: list[ast.expr] = []
+        if isinstance(node.value, ast.Dict):
+            keys = [k for k in node.value.keys if k is not None]
+        elif isinstance(node.value, (ast.Set, ast.List, ast.Tuple)):
+            keys = list(node.value.elts)
+        for key in keys:
+            if isinstance(key, ast.Constant) and isinstance(key.value, str):
+                names.append(key.value)
+    return names
 
 
 def main() -> int:
@@ -70,11 +101,24 @@ def main() -> int:
     #
     # 只跟一层：再深就等于在这里写一个调用图分析器，而那种东西自己会长出 bug，
     # 到时候没人知道该信它还是信产品。
+    #
+    # **写着「我不跑它」的那张表，不算调用方。**（2026-08-11 实测出来的假绿）
+    #
+    # `run_all_drills.py` 里有一张 `NEEDS_REAL_INPUT`，登记的是**它明确跳过**的演练，
+    # 值是一句「这里跑不了」的说明。而这道门原来只做子串命中——
+    # 于是三个恢复演练靠着「我不跑它」这句话，满足了「有人调它」。
+    #
+    # 代价是实打实的：**东西还在不在、拿不拿得回来**这件事一格空着，而这道门一直是绿的。
+    # 验它的方法不是读代码：把部署里那一步删掉，门居然照样绿——才看见。
     import re as _re
     for referenced in sorted(set(_re.findall(r"scripts/([a-z0-9_]+\.py)", deploy))):
         helper = ROOT / "scripts" / referenced
-        if helper.is_file() and helper != DEPLOY:
-            deploy += "\n" + helper.read_text(encoding="utf-8")
+        if not helper.is_file() or helper == DEPLOY:
+            continue
+        source = helper.read_text(encoding="utf-8")
+        for declared in _declared_not_run(source):
+            source = source.replace(declared, "〔这张表写着「我不跑它」，不算调用方〕")
+        deploy += "\n" + source
 
     rows: dict[str, str] = {}
     for line in registry.splitlines():

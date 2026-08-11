@@ -11,7 +11,19 @@ backup_runtime_db.py 证明的是「快照做出来了、传上去了、密文�
   · 三份副本全登记 verified，而 GitHub 那条取回路根本跑不通
   · 恢复报 `target_written: true`，而目标目录是空的（PrivateTmp）
 
-所以这里做完整的一路：**下载 → 解密 → 解压 → 打开 → 数表**。
+所以这里做完整的一路：**下载 → 解密 → 解压 → 打开 → 数表 → 判它是不是他的数据**。
+
+## 2026-08-11：前四道都真，最后一道原来是空的
+
+第一次真跑（生产机上，从 R2 取）当场量出两个自己的毛病：
+
+  · **远端那份不见了的时候，它抛 botocore 回溯**——部署日志里读到的是 Python 栈，
+    没有结构化结果。而「manifest 说在、远端拿不到」恰恰是这个演练最要紧的一条红。
+  · **只要解密出来是个合法 SQLite 就报 PASS**：缺表会被 `_counts` 悄悄省掉键，
+    空库会得到 `content: 0` 而没人看它。同一天我在生产上刚留下过一个 0 字节的
+    同名运行库——备份对着那个路径拍一张，这里就会绿着说「取回来了」。
+
+两个都已修，并且各自有反例：注入非法哈希 / 不存在的对象名 / 把判据改反，都真的变红。
 
 ## 边界
 
@@ -57,17 +69,55 @@ def _fail(code: str, message: str, **extra: Any) -> int:
     return 4
 
 
-def _counts(database: Path) -> dict[str, int]:
+def _counts(database: Path) -> dict[str, int | None]:
+    """每张表都给一个格子；**表不在就写 null，不许把它从字典里省掉**。
+
+    2026-08-11 之前这里写的是 `for table in ... if table in present`——
+    表没了就悄悄少一个键，而下游只是把这个字典打印出来。
+    也就是说一份丢了四张表的快照会照样报 PASS。
+    （`empty-default-swallows-unknown`：`[]`/缺键都会被读成「没问题」。）
+    """
     connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True)
     try:
         present = {row[0] for row in connection.execute(
             "SELECT name FROM sqlite_master WHERE type='table'")}
         return {
-            table: int(connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
-            for table in COMPARED_TABLES if table in present
+            table: (int(connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
+                    if table in present else None)
+            for table in COMPARED_TABLES
         }
     finally:
         connection.close()
+
+
+def judge(restored: dict[str, int | None], live: dict[str, int | None]) -> list[str]:
+    """取回来的这份，**是不是他的数据**——不只是「打得开」。
+
+    这个演练原来的绿只说明「解密出来是一个合法的 SQLite」。
+    一个**空的**合法 SQLite 完全过得去——而这不是假想：
+    2026-08-11 我自己就在生产上留下过一个 0 字节的同名运行库
+    （见 `check_no_decoy_runtime_db_on_production.py`）。备份哪天对着那个路径
+    拍一张，这里就会取回一个能打开、一条内容都没有的库，然后报 PASS。
+    """
+    problems: list[str] = []
+    absent = [table for table, rows in restored.items() if rows is None]
+    if absent:
+        problems.append(
+            f"取回来的库里没有这几张表：{'、'.join(absent)}——"
+            "**能打开不等于是他的数据**；缺表意味着这份快照重建不出档案馆。")
+    if restored.get("content") == 0:
+        problems.append(
+            "取回来的库打得开，但**一条内容都没有**——"
+            "这正是「对着一个空库拍了快照」的样子（生产上出现过同名空库）。")
+    for table, rows in restored.items():
+        here = live.get(table)
+        if rows is None or here is None or rows >= here:
+            continue  # 快照比线上少几行是正常的（它是那一刻的样子）
+        if rows * 2 < here:
+            problems.append(
+                f"{table}：线上 {here} 行，快照里只有 {rows} 行——"
+                "**少了一半以上**，不像「这十几分钟写进去的」，像快照本身缺了东西。")
+    return problems
 
 
 def main() -> int:
@@ -136,7 +186,23 @@ def main() -> int:
             shutil.copyfile(fetched, ciphertext)
         else:
             client = _s3_client(config)
-            client.download_file(config["bucket"], manifest["object_key"], str(ciphertext))
+            try:
+                client.download_file(config["bucket"], manifest["object_key"], str(ciphertext))
+            except Exception as exc:  # noqa: BLE001 —— 远端取不到有一百种异常，都是同一个结论
+                # **这是这个演练能报出的最要紧的一条红。** 2026-08-11 实测：
+                # 把 object_key 改成一个不存在的键，它原来是抛一个 botocore 的
+                # 长回溯出来（部署日志里读到的是 Python 栈，不是「那份副本不见了」），
+                # 而且 stdout 上没有任何结构化结果，上游没法判读。
+                code = ""
+                response = getattr(exc, "response", None)
+                if isinstance(response, dict):
+                    code = str((response.get("Error") or {}).get("Code") or "")
+                return _fail(
+                    "SNAPSHOT_MISSING_FROM_STORE",
+                    f"manifest 说这份快照在 {args.from_store} 上，而**远端拿不到它**——"
+                    "这正是这个演练存在的理由：登记成功和取得回来是两件事。",
+                    object_key=manifest["object_key"],
+                    error_type=exc.__class__.__name__, error_code_from_store=code)
         if sha256_file(ciphertext) != manifest["cipher_sha256"]:
             return _fail("CIPHER_SHA256_MISMATCH", "远端密文回读哈希与 manifest 不一致")
 
@@ -162,8 +228,9 @@ def main() -> int:
                      error_type=exc.__class__.__name__)
 
     live_counts = _counts(settings.runtime_db) if settings.runtime_db.is_file() else {}
-    print(json.dumps({
-        "status": "PASS",
+    problems = judge(restored_counts, live_counts)
+    payload = {
+        "status": "FAIL" if problems else "PASS",
         "generated_at": utcnow(),
         "source_store": args.from_store,
         "object_key": manifest["object_key"],
@@ -171,9 +238,13 @@ def main() -> int:
         "restored_byte_size": restored.stat().st_size,
         "restored_counts": restored_counts,
         "live_counts_now": live_counts,
+        "problems": problems,
         "note": "快照是取快照那一刻的样子；此后写入的行自然不在里面，所以两边计数可以不同。",
-    }, ensure_ascii=False))
-    return 0
+    }
+    if problems:
+        payload["error_code"] = "RESTORED_DB_IS_NOT_HIS_DATA"
+    print(json.dumps(payload, ensure_ascii=False))
+    return 4 if problems else 0
 
 
 if __name__ == "__main__":

@@ -1155,6 +1155,37 @@ import json
 d=json.load(open('evidence/G3/FROM_ZERO.json'))
 print(f\"  {len(d['steps'])} 步全过：从空库连账号、同步、看得见、删除并清空、重连再同步。\")"
 
+step "8.69) 出事的时候，他的东西真的拿得回来吗"
+# 前面每一步验的都是**功能对不对**。这一步验的是**东西还在不在、拿不拿得回来**——
+# 到今天为止这一格是空的：三个恢复演练在 docs/DRILLS.md 里写着「定期」，
+# 而「定期」没有闹钟（部署脚本里那三个脚本名出现 0 次）。
+#
+# 现在每次部署都对**最新那批快照**真跑一遍：下载 → 解密 → 解压 → 打开 →
+# 数表 → 判它是不是他的数据。实测 12 秒；按铁律 7 算过，量级上看不见。
+#
+# 第三份（GitHub）不在这里试：那把恢复令牌看不见 LinzeColin/Private-Database，
+# **只有 Owner 能授权**。第 8.9 步已经在盯这件事。
+if ! .venv/bin/python scripts/check_the_backup_can_actually_be_restored.py \
+      > evidence/G3/RESTORE_FROM_BACKUP.json 2>&1; then
+  python3 -c "
+import json
+try:
+    d=json.load(open('evidence/G3/RESTORE_FROM_BACKUP.json'))
+except Exception:
+    print(open('evidence/G3/RESTORE_FROM_BACKUP.json').read()[-600:]); raise SystemExit
+for p in d.get('problems', []): print('  ✗', p)"
+  fail '备份取不回来——**这条红的意思是出事的时候东西回不来**，比任何功能缺陷都要紧。'
+fi
+python3 -c "
+import json
+d=json.load(open('evidence/G3/RESTORE_FROM_BACKUP.json'))
+rows=d['content_rows_per_copy']
+batch={a['store']: a.get('snapshot_batch') for a in d['attempts']}
+print(f\"  {d['restorable_copies']} 份副本真的取回来了（不是登记，是下载+解密+打开）：\"
+      + '、'.join(f'{k} {v} 条' for k, v in rows.items())
+      + f\"；用的是 {sorted(set(batch.values()))[-1]} 那批快照。\")
+print('  第三份：那把令牌看不见那个仓，**取不回，不算通过**——只有 Owner 能授权。')"
+
 step "9) 验收：仓、主机、**镜像里那一份**，三份是不是同一份代码"
 # 第 8 步只核了**扩展包**那一个文件。其余一百多个源文件，在这一步之前
 # 从来没有任何东西核过——而 /opt/social-archive **不是 git 检出**，
