@@ -54,6 +54,7 @@ def main() -> None:
         "ADMIN_EMAIL": args.admin_email,
         "ADMIN_PASSWORD": admin_password,
         "ALLOW_REGISTRATION": "true" if args.smtp_host else "false",
+        "OWNER_ENTRY_ENABLED": "true",
         "SMTP_HOST": args.smtp_host,
         "SMTP_PORT": "587",
         "SMTP_USERNAME": "",
@@ -130,7 +131,7 @@ def main() -> None:
     os.chmod(postgres_file, 0o600)
     login = out.parent / "OWNER_LOGIN.txt"
     login.write_text(
-        f"URL=https://{args.domain}\nEMAIL={args.admin_email}\nPASSWORD={admin_password}\n",
+        f"URL=https://{args.domain}\nOWNER_ENTRY_URL=https://{args.domain}/owner-entry\nEMAIL={args.admin_email}\nPASSWORD={admin_password}\n",
         encoding="utf-8",
     )
     os.chmod(login, 0o600)

@@ -38,6 +38,7 @@ class Settings:
     admin_email: str
     admin_password: str
     allow_registration: bool
+    owner_entry_enabled: bool
 
     smtp_host: str
     smtp_port: int
@@ -102,6 +103,7 @@ def get_settings() -> Settings:
         admin_email=os.getenv("ADMIN_EMAIL", "owner@example.com"),
         admin_password=os.getenv("ADMIN_PASSWORD", "AdminPass!2026" if local else ""),
         allow_registration=_bool("ALLOW_REGISTRATION", True),
+        owner_entry_enabled=_bool("OWNER_ENTRY_ENABLED", False),
 
         smtp_host=os.getenv("SMTP_HOST", ""),
         smtp_port=_int("SMTP_PORT", 587),

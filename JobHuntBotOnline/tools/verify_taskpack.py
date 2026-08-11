@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = [
-    "START_HERE.md", "PURSUING_GOAL.txt", "PURSING_GOAL.txt", "AGENTS.md",
+    "START_HERE.md", "OWNER_WALKTHROUGH_20260811.md", "PURSUING_GOAL.txt", "PURSING_GOAL.txt", "AGENTS.md",
     "README.md", "LICENSE", "NOTICE", "Dockerfile", "Dockerfile.acceptance", "docker-compose.yml",
     "taskpack/CANONICAL_CONTRACT.md", "taskpack/task_dag.json",
     "taskpack/acceptance_contract.json", "taskpack/TRACEABILITY.md",

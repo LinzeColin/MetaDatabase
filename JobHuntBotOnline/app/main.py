@@ -232,6 +232,48 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return _redirect("/dashboard")
         return _render(request, "landing.html", {"registration_open": settings.allow_registration})
 
+    @app.get("/owner-entry", response_class=HTMLResponse, include_in_schema=False)
+    def owner_entry_page(request: Request):
+        if not settings.owner_entry_enabled:
+            raise HTTPException(404, "资源不存在。")
+        if request.state.user and request.state.user.is_admin and request.state.user.is_verified:
+            return _redirect("/dashboard")
+        return _render(request, "owner_entry.html")
+
+    @app.post("/owner-entry", include_in_schema=False)
+    def owner_entry(
+        request: Request,
+        password: str = Form(...),
+        csrf_token: str = Form(...),
+        db: Session = Depends(get_db),
+    ):
+        if not settings.owner_entry_enabled:
+            raise HTTPException(404, "资源不存在。")
+        _require_csrf(request, csrf_token)
+        ip = request.client.host if request.client else "unknown"
+        if not rate_limit(db, key=f"owner-entry:{ip}", limit=5, window_seconds=900):
+            return _redirect("/owner-entry", error="尝试次数过多，请 15 分钟后再试。")
+        owner = db.scalar(select(User).where(
+            User.email_lookup == email_lookup(settings.admin_email, settings.email_lookup_secret),
+        ))
+        if not owner or not owner.is_active or not owner.is_admin or not verify_password(owner.password_hash, password):
+            return _redirect("/owner-entry", error="Owner 入口密码不正确或当前不可用。")
+        # This is deliberately limited to the pre-provisioned platform Owner.
+        # It creates an ordinary authenticated session but never registers a
+        # user, changes verification state, or invokes SMTP.
+        raw, _session = create_session(db, owner, settings)
+        owner.last_login_at = utcnow()
+        db.commit()
+        audit(db, "owner_entry_login", owner.id)
+        profile = get_profile_row(db, owner.id)
+        target = "/dashboard" if profile and profile.onboarding_state == "complete" else "/onboarding/upload"
+        response = _redirect(target, message="Owner 入口已打开；无需邮箱验证。")
+        response.set_cookie(
+            SESSION_COOKIE, raw, httponly=True, secure=settings.cookie_secure,
+            samesite="lax", max_age=settings.session_max_age_seconds,
+        )
+        return response
+
     @app.get("/register", response_class=HTMLResponse)
     def register_page(request: Request):
         if not settings.allow_registration:

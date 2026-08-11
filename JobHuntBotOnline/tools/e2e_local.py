@@ -117,6 +117,17 @@ def register_verify(page: Page, base_url: str, email: str, password: str, steps:
     steps.extend(["register", "resend_verification", "verify_email"])
 
 
+def owner_entry(page: Page, base_url: str, password: str, steps: list[str]) -> None:
+    """Enter the pre-provisioned Owner account without registration or mail."""
+    page.goto(f"{base_url}/owner-entry", wait_until="domcontentloaded")
+    page.get_by_test_id("owner-entry-password").fill(password)
+    click_and_wait(page, '[data-testid="owner-entry-submit"]')
+    expect_url(page, "/onboarding/upload")
+    if httpx.get(f"{base_url}/_test/outbox", timeout=5).json():
+        raise AssertionError("Owner entry unexpectedly sent email")
+    steps.append("owner_entry_without_email")
+
+
 def onboard(page: Page, root: Path, steps: list[str]) -> None:
     page.get_by_test_id("resume-file").set_input_files(str(root / "tests/fixtures/resume.txt"))
     page.get_by_test_id("resume-upload-submit").click()
@@ -414,6 +425,7 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
         "COOKIE_SECURE": "false",
         "ADMIN_EMAIL": "owner@example.com",
         "ADMIN_PASSWORD": "AdminPass!2026",
+        "OWNER_ENTRY_ENABLED": "true",
         "ALLOW_REGISTRATION": "true",
         # This disposable, no-SMTP browser test exercises resend and reset in
         # one short synthetic session. Production keeps its persisted 30-minute
@@ -452,34 +464,47 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
             page.on("console", lambda msg: console_errors.append(msg.text) if msg.type == "error" else None)
             page.on("pageerror", lambda exc: page_errors.append(str(exc)))
 
-            page.goto(base_url, wait_until="domcontentloaded")
-            page.get_by_test_id("hero-register").click()
-            page.wait_for_load_state("domcontentloaded")
             email = "candidate-a@example.com"
             initial_password = "ValidPass123"
-            register_verify(page, base_url, email, initial_password, steps)
-            mark_progress("user1 verified")
+            if args.owner_entry_only:
+                owner_entry(page, base_url, env["ADMIN_PASSWORD"], steps)
+                mark_progress("owner entered without email")
+            else:
+                page.goto(base_url, wait_until="domcontentloaded")
+                page.get_by_test_id("hero-register").click()
+                page.wait_for_load_state("domcontentloaded")
+                register_verify(page, base_url, email, initial_password, steps)
+                mark_progress("user1 verified")
             onboard(page, ROOT, steps)
-            mark_progress("user1 onboarded")
+            mark_progress("owner or user1 onboarded")
 
-            # Exercise all primary navigation and dashboard cards without losing state.
-            page.get_by_test_id("nav-dashboard").click(); page.wait_for_load_state("domcontentloaded")
-            page.get_by_test_id("dashboard-view-recommendations").click(); page.wait_for_load_state("domcontentloaded")
-            detail_url, pack_url = exercise_candidate_flow(page, base_url, steps)
-            mark_progress("candidate flow complete")
-            manual_job(page, steps)
-            mark_progress("manual flow complete")
-            final_password = settings_and_password(page, base_url, email, initial_password, steps)
-            mark_progress("settings/password complete")
-            second_user_isolation(page, base_url, ROOT, detail_url, pack_url, steps)
-            mark_progress("tenant isolation complete")
-            admin_flow(page, base_url, env["ADMIN_EMAIL"], env["ADMIN_PASSWORD"], steps)
-            mark_progress("admin flow complete")
-            mobile_check(page, base_url, email, final_password, steps)
-            mark_progress("mobile flow complete")
-            if not args.force_exit_after_result:
+            if args.owner_entry_only:
+                page.goto(f"{base_url}/dashboard", wait_until="domcontentloaded")
+                page.get_by_test_id("dashboard-view-recommendations").click()
+                page.wait_for_load_state("domcontentloaded")
+                page.get_by_test_id("job-card").first.wait_for()
+                steps.append("owner_recommendations_visible")
                 context.close()
                 browser.close()
+            else:
+                # Exercise all primary navigation and dashboard cards without losing state.
+                page.get_by_test_id("nav-dashboard").click(); page.wait_for_load_state("domcontentloaded")
+                page.get_by_test_id("dashboard-view-recommendations").click(); page.wait_for_load_state("domcontentloaded")
+                detail_url, pack_url = exercise_candidate_flow(page, base_url, steps)
+                mark_progress("candidate flow complete")
+                manual_job(page, steps)
+                mark_progress("manual flow complete")
+                final_password = settings_and_password(page, base_url, email, initial_password, steps)
+                mark_progress("settings/password complete")
+                second_user_isolation(page, base_url, ROOT, detail_url, pack_url, steps)
+                mark_progress("tenant isolation complete")
+                admin_flow(page, base_url, env["ADMIN_EMAIL"], env["ADMIN_PASSWORD"], steps)
+                mark_progress("admin flow complete")
+                mobile_check(page, base_url, email, final_password, steps)
+                mark_progress("mobile flow complete")
+                if not args.force_exit_after_result:
+                    context.close()
+                    browser.close()
 
         # Browser errors caused by intentional 404 negative controls are HTTP-side and do not emit JS errors.
         unexpected_console = [x for x in console_errors if "favicon" not in x.casefold()]
@@ -488,11 +513,18 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
         if page_errors:
             raise AssertionError("browser page errors: " + " | ".join(page_errors[:5]))
 
+        owner_scope = args.owner_entry_only
         result = {
             "verdict": "PASS",
-            "scope": "real Uvicorn + Chromium, synthetic accounts/data, all critical controls and negative paths",
+            "scope": (
+                "real Uvicorn + Chromium, synthetic pre-provisioned Owner entry through upload and recommendations"
+                if owner_scope
+                else "real Uvicorn + Chromium, synthetic accounts/data, all critical controls and negative paths"
+            ),
             "base_url": base_url,
             "synthetic_data_only": True,
+            "owner_entry_only": owner_scope,
+            "email_sent": False if owner_scope else None,
             "production_claimed": False,
             "refresh_interval_hours": 6,
             "steps": steps,
@@ -538,6 +570,7 @@ def main() -> int:
     parser.add_argument("--browser-executable", default="")
     parser.add_argument("--keep-temp", action="store_true")
     parser.add_argument("--skip-screenshots", action="store_true", help="compatibility flag; screenshots are not required")
+    parser.add_argument("--owner-entry-only", action="store_true", help="exercise the no-email Owner entry through upload and recommendations")
     parser.add_argument("--force-exit-after-result", action="store_true", help="compatibility flag for constrained browser environments")
     args = parser.parse_args()
     result, code = run(args)

@@ -104,6 +104,7 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     rollback = (ROOT / "deploy/rollback.sh").read_text(encoding="utf-8")
 
     assert "DOMAIN=" in env_example
+    assert "OWNER_ENTRY_ENABLED=false" in env_example
     assert "LEGACY_COMPOSE_FILE=" in env_example
     assert "@jobhuntbot-db:5432/jobhunt" in env_example
     assert "traefik.enable:" in compose
@@ -112,6 +113,8 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     assert "- jobhuntbot-db" in compose
     assert compose.count("disable: true") >= 2
     assert '"DOMAIN": args.domain' in generator
+    assert '"OWNER_ENTRY_ENABLED": "true"' in generator
+    assert "OWNER_ENTRY_URL=" in generator
     assert "@jobhuntbot-db:5432/jobhunt" in generator
     assert "COPY deploy ./deploy" in dockerfile
     assert "LEGACY_COMPOSE_FILE" in deploy

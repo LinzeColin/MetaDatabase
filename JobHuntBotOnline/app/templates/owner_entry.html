@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Owner 入口｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="auth-shell">
+  <div class="auth-card">
+    <span class="eyebrow">Owner 走查入口</span>
+    <h1>无需邮箱验证进入核心流程</h1>
+    <p>此入口只适用于服务器预配置的平台 Owner。它不会创建账户、发送邮件或改变候选人验证状态。</p>
+    <form method="post" action="/owner-entry" class="form-stack" data-testid="owner-entry-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label>Owner 密码<input type="password" name="password" autocomplete="current-password" required data-testid="owner-entry-password"></label>
+      <button class="button full" type="submit" data-testid="owner-entry-submit">进入上传简历</button>
+    </form>
+  </div>
+</section>
+{% endblock %}
