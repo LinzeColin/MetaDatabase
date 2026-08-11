@@ -9,7 +9,7 @@ from sqlalchemy import select
 
 from app.main import _confirmed_profile_fields
 from app import discovery
-from app.models import CandidateProfile, DiscoveryRun, Recommendation, Resume, User, utcnow
+from app.models import CandidateProfile, DiscoveryRun, Job, Recommendation, Resume, User, utcnow
 from app.resume import extract_text, parse_resume, profile_draft
 from app.scoring import score_job, search_matches
 from .conftest import complete_onboarding, csrf, register_verify
@@ -296,6 +296,47 @@ def test_filters_are_composable(client):
 
     response = client.get("/recommendations", params={"qualification": "fail"})
     assert response.status_code == 200
+
+
+def test_chinese_role_search_matches_english_legal_job(client):
+    register_verify(client, "legal-search@example.com")
+    complete_onboarding(client)
+    with client.app.state.session_factory() as db:
+        user = db.scalar(select(User).where(User.is_admin.is_(False)))
+        assert user is not None
+        job = Job(
+            source="test",
+            external_id="legal-search-1",
+            canonical_key="legal-search-1",
+            url="https://example.com/legal-search-1",
+            title="Legal Counsel",
+            company="Example Legal",
+            location="Sydney",
+            city="Sydney",
+            country="AU",
+            work_mode="hybrid",
+            role_family="Legal",
+            industry="Legal",
+            skills_text='["contracts"]',
+            keywords_text='["legal"]',
+            description="Commercial contracts and legal advisory work.",
+        )
+        db.add(job)
+        db.flush()
+        db.add(Recommendation(
+            user_id=user.id,
+            job_id=job.id,
+            qualification="pass",
+            relevance="high",
+            opportunity="high",
+            rank_score=999,
+            reasons_encrypted=client.app.state.crypto.encrypt_json(["岗位族与目标方向一致：Legal"]),
+        ))
+        db.commit()
+
+    response = client.get("/recommendations", params={"q": "法律"})
+    assert response.status_code == 200
+    assert "Legal Counsel" in response.text
 
 
 def test_manual_refresh_respects_six_hour_schedule(client):
