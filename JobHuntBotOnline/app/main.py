@@ -256,7 +256,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         owner = db.scalar(select(User).where(
             User.email_lookup == email_lookup(settings.admin_email, settings.email_lookup_secret),
         ))
-        if not owner or not owner.is_active or not owner.is_admin or not verify_password(owner.password_hash, password):
+        if (
+            not owner
+            or not owner.is_active
+            or not owner.is_admin
+            or not settings.owner_entry_password
+            or not secrets.compare_digest(settings.owner_entry_password, password)
+        ):
             return _redirect("/owner-entry", error="Owner 入口密码不正确或当前不可用。")
         # This is deliberately limited to the pre-provisioned platform Owner.
         # It creates an ordinary authenticated session but never registers a

@@ -426,6 +426,7 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
         "ADMIN_EMAIL": "owner@example.com",
         "ADMIN_PASSWORD": "AdminPass!2026",
         "OWNER_ENTRY_ENABLED": "true",
+        "OWNER_ENTRY_PASSWORD": "OwnerEntryPass123",
         "ALLOW_REGISTRATION": "true",
         # This disposable, no-SMTP browser test exercises resend and reset in
         # one short synthetic session. Production keeps its persisted 30-minute
@@ -467,7 +468,7 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
             email = "candidate-a@example.com"
             initial_password = "ValidPass123"
             if args.owner_entry_only:
-                owner_entry(page, base_url, env["ADMIN_PASSWORD"], steps)
+                owner_entry(page, base_url, env["OWNER_ENTRY_PASSWORD"], steps)
                 mark_progress("owner entered without email")
             else:
                 page.goto(base_url, wait_until="domcontentloaded")

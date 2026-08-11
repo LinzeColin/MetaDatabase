@@ -39,6 +39,7 @@ class Settings:
     admin_password: str
     allow_registration: bool
     owner_entry_enabled: bool
+    owner_entry_password: str
 
     smtp_host: str
     smtp_port: int
@@ -106,6 +107,7 @@ def get_settings() -> Settings:
         # create a new public email-delivery path.
         allow_registration=_bool("ALLOW_REGISTRATION", False),
         owner_entry_enabled=_bool("OWNER_ENTRY_ENABLED", False),
+        owner_entry_password=os.getenv("OWNER_ENTRY_PASSWORD", ""),
 
         smtp_host=os.getenv("SMTP_HOST", ""),
         smtp_port=_int("SMTP_PORT", 587),
@@ -163,6 +165,8 @@ def validate_settings(s: Settings) -> None:
         raise RuntimeError("EMAIL_MIN_INTERVAL_SECONDS 不能为负数")
     if s.email_max_per_user_per_24h < 1:
         raise RuntimeError("EMAIL_MAX_PER_USER_PER_24H 至少为 1")
+    if s.owner_entry_enabled and not s.owner_entry_password:
+        raise RuntimeError("OWNER_ENTRY_ENABLED=true 时必须配置 OWNER_ENTRY_PASSWORD")
     try:
         Fernet(s.data_encryption_key.encode())
     except Exception as exc:

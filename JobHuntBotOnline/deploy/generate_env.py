@@ -33,6 +33,7 @@ def main() -> None:
     args = parser.parse_args()
 
     admin_password = secrets.token_urlsafe(20) + "Aa1"
+    owner_entry_password = secrets.token_urlsafe(20) + "Aa1"
     postgres_password = secrets.token_urlsafe(32)
     database_password = quote(postgres_password, safe="")
     lines = {
@@ -55,6 +56,7 @@ def main() -> None:
         "ADMIN_PASSWORD": admin_password,
         "ALLOW_REGISTRATION": "true" if args.smtp_host else "false",
         "OWNER_ENTRY_ENABLED": "true",
+        "OWNER_ENTRY_PASSWORD": owner_entry_password,
         "SMTP_HOST": args.smtp_host,
         "SMTP_PORT": "587",
         "SMTP_USERNAME": "",
@@ -131,7 +133,9 @@ def main() -> None:
     os.chmod(postgres_file, 0o600)
     login = out.parent / "OWNER_LOGIN.txt"
     login.write_text(
-        f"URL=https://{args.domain}\nOWNER_ENTRY_URL=https://{args.domain}/owner-entry\nEMAIL={args.admin_email}\nPASSWORD={admin_password}\n",
+        f"URL=https://{args.domain}\nOWNER_ENTRY_URL=https://{args.domain}/owner-entry\n"
+        f"EMAIL={args.admin_email}\nADMIN_INITIAL_PASSWORD={admin_password}\n"
+        f"OWNER_ENTRY_PASSWORD={owner_entry_password}\n",
         encoding="utf-8",
     )
     os.chmod(login, 0o600)

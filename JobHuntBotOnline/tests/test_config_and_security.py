@@ -28,6 +28,11 @@ def test_registration_is_closed_when_the_deployment_variable_is_missing(monkeypa
     assert get_settings().allow_registration is False
 
 
+def test_enabled_owner_entry_requires_a_dedicated_secret(settings):
+    with pytest.raises(RuntimeError, match="OWNER_ENTRY_PASSWORD"):
+        validate_settings(replace(settings, owner_entry_enabled=True, owner_entry_password=""))
+
+
 def test_password_contract():
     assert validate_password("short") is not None
     assert validate_password("alllowercase123") is not None
@@ -111,6 +116,7 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
 
     assert "DOMAIN=" in env_example
     assert "OWNER_ENTRY_ENABLED=false" in env_example
+    assert "OWNER_ENTRY_PASSWORD=" in env_example
     assert "LEGACY_COMPOSE_FILE=" in env_example
     assert "@jobhuntbot-db:5432/jobhunt" in env_example
     assert "traefik.enable:" in compose
@@ -123,6 +129,7 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     assert compose.count("disable: true") >= 2
     assert '"DOMAIN": args.domain' in generator
     assert '"OWNER_ENTRY_ENABLED": "true"' in generator
+    assert '"OWNER_ENTRY_PASSWORD": owner_entry_password' in generator
     assert "OWNER_ENTRY_URL=" in generator
     assert "@jobhuntbot-db:5432/jobhunt" in generator
     assert "COPY deploy ./deploy" in dockerfile
@@ -194,8 +201,11 @@ def test_env_generator_keeps_runtime_secrets_beside_requested_output(tmp_path):
     rendered = output.read_text(encoding="utf-8")
     assert "DOMAIN='jobhunt.example.test'" in rendered
     assert "ALLOW_REGISTRATION='false'" in rendered
+    assert "OWNER_ENTRY_PASSWORD='" in rendered
     for path in [output, release_dir / "OWNER_LOGIN.txt", release_dir / "secrets/postgres_password.txt"]:
         assert path.is_file()
         assert stat.S_IMODE(path.stat().st_mode) == 0o600
     assert not (unrelated_cwd / "OWNER_LOGIN.txt").exists()
     assert not (unrelated_cwd / "secrets/postgres_password.txt").exists()
+    login = (release_dir / "OWNER_LOGIN.txt").read_text(encoding="utf-8")
+    assert "OWNER_ENTRY_PASSWORD=" in login

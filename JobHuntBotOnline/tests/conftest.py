@@ -22,6 +22,7 @@ os.environ.update({
     "ADMIN_PASSWORD": "AdminPass!2026",
     "ALLOW_REGISTRATION": "true",
     "OWNER_ENTRY_ENABLED": "true",
+    "OWNER_ENTRY_PASSWORD": "OwnerEntryPass123",
     "DISCOVERY_REFRESH_HOURS": "6",
     "ENABLE_REMOTIVE": "false",
     "ENABLE_ARBEITNOW": "false",

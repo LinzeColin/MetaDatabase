@@ -41,13 +41,21 @@ def test_owner_entry_is_server_gated_and_starts_a_session_without_mail(client, s
     assert "密码不正确" in rejected.text
 
     page = client.get("/owner-entry")
-    accepted = client.post("/owner-entry", data={
+    regular_admin_password = client.post("/owner-entry", data={
         "csrf_token": csrf(page.text),
         "password": settings.admin_password,
+    }, follow_redirects=True)
+    assert "密码不正确" in regular_admin_password.text
+
+    page = client.get("/owner-entry")
+    accepted = client.post("/owner-entry", data={
+        "csrf_token": csrf(page.text),
+        "password": settings.owner_entry_password,
     }, follow_redirects=True)
     assert accepted.status_code == 200
     assert "上传简历" in accepted.text
     assert client.get("/_test/outbox").json() == before
+    assert settings.owner_entry_password != settings.admin_password
     with client.app.state.session_factory() as db:
         owner = db.scalar(select(User).where(User.email_lookup == email_lookup(settings.admin_email, settings.email_lookup_secret)))
         assert owner and owner.is_admin and owner.is_verified
