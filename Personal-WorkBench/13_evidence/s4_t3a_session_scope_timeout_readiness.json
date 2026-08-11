@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S4-T3A",
+  "phase": "S4_T3A_INDEPENDENT_CANDIDATE_READINESS",
+  "status": "READINESS_PASS",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-11",
+  "subject": {
+    "project_path": "Personal-WorkBench",
+    "source_commit": "3776229832ef5d715658d2207bd224d7c32b2802",
+    "source_tree": "fa5f7e1d8c2f20d193afc8aa0461b284f1cfd3da",
+    "working_tree_clean_after_review": true,
+    "diff_check": "PASS",
+    "changed_scope": [
+      "bounded browser session-scope lookup",
+      "stalled-session guest fallback regression",
+      "handoff documentation"
+    ]
+  },
+  "frozen_sequence": {
+    "addendum_id": "PWB-S4-S5-SEQUENCE-001",
+    "five_frozen_file_bindings_match": true,
+    "sequence_validator": "PASS_SEQUENCE_ADDENDUM_INTEGRITY_ONLY",
+    "sequence_verdict": "NOT_PRODUCT_ACCEPTANCE",
+    "final_acceptance_phase": "S6-T1",
+    "public_release_phase": "S6-T2"
+  },
+  "independent_review": {
+    "fresh_read_only_post_commit_review": true,
+    "builder_observations_not_used_as_verdict": true,
+    "local_checks": {
+      "sequence_addendum": "PASS_SEQUENCE_ADDENDUM_INTEGRITY_ONLY",
+      "lint": "PASS",
+      "typecheck": "PASS",
+      "workbench_data": "PASS_20_OF_20",
+      "tenant_store_integration": "PASS_4_OF_4",
+      "auth_and_mail_contract": "PASS_19_OF_19",
+      "privacy": "PASS_3_OF_3",
+      "api_and_storage_contract": "PASS_9_OF_9",
+      "module_workbench_and_route_regression": "PASS",
+      "build": "PASS"
+    },
+    "session_scope_recovery": {
+      "stalled_session_request_is_aborted": true,
+      "stalled_session_request_reaches_isolated_guest_partition": true,
+      "successful_session_scope_is_re_evaluated_after_account_switch": true,
+      "guest_records_are_not_replayed_under_a_later_account": true,
+      "session_scope_timeout_does_not_change_server_derived_tenant_identity": true
+    },
+    "interactive_history_paths": {
+      "user_reported_home_habit_controls_have_state_or_record_paths": true,
+      "ledger_expense_income_and_add_record_have_record_paths": true,
+      "fat_loss_tabs_photo_and_food_record_controls_have_paths": true,
+      "schedule_anniversary_diary_and_savings_add_record_controls_have_paths": true,
+      "period_record_control_has_pending_and_failure_acknowledgement": true,
+      "normal_menu_routes_do_not_enter_reference_only_mode": true
+    },
+    "tenant_and_sync_boundaries": {
+      "account_a_records_are_invisible_and_immutable_to_account_b": true,
+      "cross_account_habit_and_savings_parent_references_are_rejected": true,
+      "same_account_child_record_creation_succeeds": true,
+      "immediate_and_replay_requests_resolve_local_parent_alias_before_fetch": true,
+      "unresolved_local_parent_alias_waits_in_its_same_account_outbox": true
+    },
+    "unchanged_boundaries": {
+      "authentication_flow": true,
+      "server_derived_tenant_scope": true,
+      "sensitive_cloud_consent": true,
+      "visual_truth": true,
+      "runtime_and_access_policy": true,
+      "d1_r2_bindings": true
+    }
+  },
+  "scope_and_limits": {
+    "private_s5_t1_saved_version_allowed_next": true,
+    "saved_version_created_in_this_phase": false,
+    "deployment_action_called": false,
+    "sites_or_access_policy_changed": false,
+    "public_audience_change_allowed": false,
+    "browser_or_visual_runtime_equivalence": "NOT_RUN",
+    "s5_real_evidence": "NOT_RUN",
+    "product_pass_claimed": false,
+    "final_acceptance_claimed": false,
+    "github_uploaded": false
+  },
+  "remaining_s5_requirements": [
+    "S5-T1 private Saved Version",
+    "S5-T2 private configuration and rights/privacy gate",
+    "S5-T3 controlled-private real journey and rollback evidence",
+    "S5-T4 redacted operations projection",
+    "S6-T1 independent final 15-of-15 acceptance"
+  ],
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
