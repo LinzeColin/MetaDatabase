@@ -293,13 +293,23 @@ test("Version 35 S5-T3 private deployment and rollback evidence does not overcla
   assert.equal(serialized.includes("Bearer "), false);
 });
 
-test("production ledger identifies Version 35 as the current public-entry partial evidence", async () => {
+test("production ledger identifies Version 36 as the current public-entry partial evidence", async () => {
   const ledger = JSON.parse(
     await readFile(new URL("../13_evidence/production.json", import.meta.url), "utf8"),
   );
 
-  assert.equal(ledger.status, "PUBLIC_ENTRY_VERSION_35_S5_T3_PARTIAL");
+  assert.equal(ledger.status, "PUBLIC_ENTRY_VERSION_36_S5_T3_PARTIAL");
   assert.equal(ledger.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(ledger.current_public_candidate.saved_version_number, 36);
+  assert.equal(ledger.current_public_candidate.source_readback_matches_saved_candidate, true);
+  assert.equal(ledger.current_public_candidate.public_deployment, "SUCCEEDED");
+  assert.equal(ledger.current_public_candidate.rollback_target_saved_version_number, 35);
+  assert.equal(ledger.current_public_candidate.legacy_server_redirect_removed, true);
+  assert.equal(ledger.current_public_candidate.legacy_server_preserves_view_query_before_client_redirect, true);
+  assert.equal(ledger.current_public_candidate.legacy_period_content_rendered, true);
+  assert.equal(ledger.current_public_candidate.canonical_period_content_rendered, true);
+  assert.equal(ledger.current_public_candidate.browser_client_redirect_live_replayed, false);
+  assert.equal(ledger.current_public_candidate.authenticated_product_flow_current_version, "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR");
   assert.equal(ledger.current_private_candidate.saved_version_number, 35);
   assert.equal(ledger.current_private_candidate.source_readback_matches_saved_candidate, true);
   assert.equal(ledger.current_private_candidate.archive_stored_by_sites, true);
@@ -331,6 +341,8 @@ test("production ledger identifies Version 35 as the current public-entry partia
   assert.equal(ledger.controlled_deployment_and_recovery.version_35_to_34_private_rollback, "SUCCEEDED");
   assert.equal(ledger.controlled_deployment_and_recovery.version_34_to_35_private_restore, "SUCCEEDED");
   assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_35, true);
+  assert.equal(ledger.controlled_deployment_and_recovery.version_36_public_deploy, "SUCCEEDED");
+  assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_36, true);
   assert.equal(
     ledger.evidence_files.includes("13_evidence/private_version_35_s5_t3_controlled_private_deployment_and_rollback.json"),
     true,

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.3.0",
   "task_id": "S5-T3",
-  "status": "PUBLIC_ENTRY_VERSION_35_S5_T3_PARTIAL",
+  "status": "PUBLIC_ENTRY_VERSION_36_S5_T3_PARTIAL",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
   "observed_at": "2026-08-11",
   "current_private_candidate": {
@@ -14,6 +14,18 @@
     "storage_binding_reconciliation": "NOT_PROVEN_SITES_TARGET_NOT_RESOLVED_THROUGH_AUTHORIZED_WORKERS_CATALOGUE",
     "public_audience_changed": false,
     "browser_e2e_current_version": "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR"
+  },
+  "current_public_candidate": {
+    "saved_version_number": 36,
+    "source_readback_matches_saved_candidate": true,
+    "public_deployment": "SUCCEEDED",
+    "rollback_target_saved_version_number": 35,
+    "legacy_server_redirect_removed": true,
+    "legacy_server_preserves_view_query_before_client_redirect": true,
+    "legacy_period_content_rendered": true,
+    "canonical_period_content_rendered": true,
+    "browser_client_redirect_live_replayed": false,
+    "authenticated_product_flow_current_version": "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR"
   },
   "candidate": {
     "local_source_commit": "d95d2394734b3a1af6236443528e08eca2d98655",
@@ -33,6 +45,7 @@
     "environment_revision": 8
   },
   "controlled_deployment_and_recovery": {
+    "version_36_public_deploy": "SUCCEEDED",
     "version_35_private_deploy": "SUCCEEDED",
     "version_35_to_34_private_rollback": "SUCCEEDED",
     "version_34_to_35_private_restore": "SUCCEEDED",
@@ -92,6 +105,7 @@
     "live_version_matches_version_31": false,
     "live_version_matches_version_32": false,
     "live_version_matches_version_35": true,
+    "live_version_matches_version_36": true,
     "live_version_matches_version_31_after_rehearsal": true,
     "live_version_matches_version_30_after_rehearsal": true,
     "live_version_matches_version_29_after_rehearsal": true,
@@ -133,6 +147,7 @@
     "version_30_post_restore_error_log_check": "PASS_NARROW_10_MINUTE_ERROR_ONLY_WINDOW_0_EVENTS_NOT_FULL_PRODUCTION_P0_ATTESTATION",
     "version_30_storage_mapping_read_only_boundary": "NOT_PROVEN_CURRENT_SITES_MANIFEST_EXPOSES_LOGICAL_BINDINGS_ONLY_AND_CURRENT_CLI_CATALOGUE_IS_NOT_ACCESSIBLE",
     "version_31_account_scope_refresh": "PASS_LOCAL_SCOPE_DRIFT_GUARD_AND_PRIVATE_DEPLOY; CURRENT_PRODUCTION_AUTH_A_B_AND_SECOND_DEVICE_REPLAYS_NOT_RUN",
+    "version_36_legacy_deep_link": "PASS_PUBLIC_DEPLOYED_SERVER_RENDER_PRESERVES_VIEW_QUERY_BEFORE_CLIENT_REDIRECT; CLIENT_REDIRECT_NOT_BROWSER_REPLAYED",
     "version_31_email_browser_navigation": "NOT_PROVEN_FRESH_AGENT_TEST_TAB_SECURITY_BOUNDARY_BEFORE_SIGNUP_RENDER",
     "version_31_email_browser_navigation_recheck": "NOT_PROVEN_RECHECK_FRESH_AGENT_TEST_TAB_SECURITY_BOUNDARY_BEFORE_SIGNUP_RENDER",
     "version_31_google_oauth_browser_navigation": "NOT_PROVEN_FRESH_AGENT_TEST_TAB_SECURITY_BOUNDARY_BEFORE_SIGNIN_RENDER",
@@ -398,5 +413,6 @@
     "raw_url_recorded": false,
     "authenticated_user_or_business_data_read_or_written": false
   },
-  "current_public_entry_note": "With direct owner authorization for the public multi-account SaaS objective, the outer Sites access policy was changed from the historical custom allowlist to public on 2026-08-11. Anonymous probes reached the homepage, all email-auth entry routes and the public configuration endpoint with HTTP 200, while the current mydairy profile endpoint returned HTTP 401 without an application session. A single no-follow social sign-in request also returned a Google authorization URL; no account was selected and no callback or application session was attempted. No raw URL, credential, user identity, business record, runtime value, D1/R2 record or object was read or written. This proves public entry, public auth configuration, Google initiation and the unauthenticated API boundary; it does not replace current-version email verification, Google callback, A/B isolation, second-device, storage reconciliation or recovery evidence."
+  "current_version_36_public_deploy_note": "Version 36 is the current public deployment. It removes the retired-host server redirect that discarded a saved view query before the browser client redirect could preserve it. Anonymous, no-cookie probes now receive HTTP 200 without a Location header from both the retired deep link and the canonical period route, and both server-render the period label; the retired page includes the client redirect marker. Sites source readback matched the saved candidate and public deployment succeeded. This confirms public server-side deep-link preservation, not a browser replay of the client redirect or an authenticated product flow.",
+  "current_public_entry_note": "With direct owner authorization for the public multi-account SaaS objective, the outer Sites access policy was changed from the historical custom allowlist to public on 2026-08-11. Version 36 is publicly deployed and its no-cookie probes reached the homepage, all email-auth entry routes and the public configuration endpoint with HTTP 200, while the current mydairy profile endpoint returned HTTP 401 without an application session. A single no-follow social sign-in request also returned a Google authorization URL; no account was selected and no callback or application session was attempted. The retired deep-link server response now preserves its view query and renders the requested period content before the browser-only compatibility redirect. No raw URL, credential, user identity, business record, runtime value, D1/R2 record or object was read or written. This proves public entry, public auth configuration, Google initiation, unauthenticated API boundary and server-level deep-link preservation; it does not replace current-version email verification, Google callback, A/B isolation, second-device, storage reconciliation or recovery evidence."
 }
