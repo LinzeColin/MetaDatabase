@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <header class="topbar">
+    <a class="brand" href="/" data-testid="brand-link">
+      <span class="brand-mark">J</span>
+      <span><strong>JobHuntBot</strong><small>候选人求职操作系统</small></span>
+    </a>
+    {% if user and user.is_verified %}
+    <nav class="nav" aria-label="主导航">
+      <a href="/dashboard" data-testid="nav-dashboard">首页</a>
+      <a href="/recommendations" data-testid="nav-recommendations">岗位推荐</a>
+      <a href="/applications" data-testid="nav-applications">申请进度</a>
+      <a href="/jobs/manual" data-testid="nav-manual-job">手工导入</a>
+      <a href="/settings/profile" data-testid="nav-settings">设置</a>
+      {% if user.is_admin %}
+      <a href="/admin/users" data-testid="nav-admin">平台管理</a>
+      {% endif %}
+      <form method="post" action="/logout" class="inline-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="button ghost small" type="submit" data-testid="logout-button">退出</button>
+      </form>
+    </nav>
+    {% else %}
+    <nav class="nav" aria-label="账户导航">
+      <a href="/login" data-testid="nav-login">登录</a>
+      <a class="button small" href="/register" data-testid="nav-register">免费注册</a>
+    </nav>
+    {% endif %}
+  </header>
+
+  <main id="main" class="page">
+    {% if message %}<div class="alert success" role="status" data-testid="success-message">{{ message }}</div>{% endif %}
+    {% if error %}<div class="alert error" role="alert" data-testid="error-message">{{ error }}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <span>JobHuntBot Online {{ app_version }}</span>
+    <span>不猜测工作权利，不自动最终提交，不保存招聘平台密码。</span>
+  </footer>
+</body>
+</html>

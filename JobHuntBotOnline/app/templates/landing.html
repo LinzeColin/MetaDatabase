@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}JobHuntBot｜上传简历，自动发现适合你的岗位{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-copy">
+    <span class="eyebrow">候选人一侧的 AI 求职系统</span>
+    <h1>上传一份简历，<br>让岗位主动来找你。</h1>
+    <p>系统自动整理你的技能与经历，每 6 小时刷新一次新鲜岗位，并从资格、相关性和机会潜力三个维度解释推荐理由。</p>
+    <div class="actions">
+      {% if registration_open %}
+      <a class="button large" href="/register" data-testid="hero-register">开始使用</a>
+      {% endif %}
+      <a class="button ghost large" href="/login" data-testid="hero-login">已有账户</a>
+    </div>
+    <div class="trust-row">
+      <span>✓ 邮箱验证与找回密码</span>
+      <span>✓ 每个账户独立数据</span>
+      <span>✓ 平台统一 AI，无需配置 Key</span>
+    </div>
+  </div>
+  <div class="hero-panel" aria-label="产品流程">
+    <div class="flow-step active"><b>1</b><span>上传简历<small>PDF / DOCX / TXT</small></span></div>
+    <div class="flow-line"></div>
+    <div class="flow-step"><b>2</b><span>确认关键事实<small>只问系统不能可靠判断的内容</small></span></div>
+    <div class="flow-line"></div>
+    <div class="flow-step"><b>3</b><span>自动推荐岗位<small>每 6 小时刷新并持续去重</small></span></div>
+    <div class="flow-line"></div>
+    <div class="flow-step"><b>4</b><span>准备申请<small>最终提交仍由你确认</small></span></div>
+  </div>
+</section>
+<section class="feature-grid">
+  <article class="feature-card"><span>01</span><h2>先判断能不能投</h2><p>工作权利、Sponsorship、地点和级别先通过，再谈匹配度。</p></article>
+  <article class="feature-card"><span>02</span><h2>不是盲目海投</h2><p>将资格、相关性和机会潜力分开解释，不用虚假的录用概率制造精确感。</p></article>
+  <article class="feature-card"><span>03</span><h2>所有结果可追踪</h2><p>收藏、忽略、申请、面试、拒绝和 Offer 都属于你自己的求职记忆。</p></article>
+</section>
+{% endblock %}

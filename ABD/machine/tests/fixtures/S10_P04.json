@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S10-P04-ADVERSE-ROBUSTNESS",
+  "contract_id": "AC-S10-P04",
+  "requirement_id": "REQ-S10-P04",
+  "stage_id": "S10",
+  "phase_id": "P04",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "vectors_path": "boundary_vectors.json",
+  "parameters_path": "machine/facts/parameters.json",
+  "report_path": "robustness_report.json",
+  "predecessor": {
+    "contract_id": "AC-S10-P03",
+    "evidence_path": "machine/evidence/EVD-S10-P03.json",
+    "sha256": "7b848a4e885b5f1b9b31752b88c8b136e1b66f734ed0cdf30926b325bbc0f55c"
+  },
+  "claim_boundary": {
+    "network_accessed": false,
+    "actual_market_or_odds_observed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "expected_report_sha256": "2acc10ff3fa55bb63f7739f179a6d702998d5a4d9d3aa35dd1c78b5a07ab8c30"
+}

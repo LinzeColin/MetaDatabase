@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="28" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S10.P04_test" name="test_candidate_preflight_passes_without_generated_test_reports" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_frozen_robustness_report_is_exact_replay" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_all_frozen_hard_boundary_cases_match_their_expected_result" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_each_required_adverse_dimension_forces_no_recommendation[V02-PROBABILITY-MINUS-FLIPS-probability_minus]" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_each_required_adverse_dimension_forces_no_recommendation[V04-THRESHOLD-PLUS-FLIPS-threshold_plus]" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_each_required_adverse_dimension_forces_no_recommendation[V05-FRICTION-PLUS-FLIPS-friction_plus]" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_each_required_adverse_dimension_forces_no_recommendation[V06-TIME-PLUS-FLIPS-time_plus]" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_each_required_adverse_dimension_forces_no_recommendation[V08-ODDS-TICK-FLIPS-odds_adverse]" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_stable_boundary_cases_remain_candidates_when_no_adverse_action_flips[V01-ROBUST-ALL-MARGINS]" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_stable_boundary_cases_remain_candidates_when_no_adverse_action_flips[V07-TIME-PLUS-BOUNDARY-STABLE]" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_stable_boundary_cases_remain_candidates_when_no_adverse_action_flips[V09-ODDS-TICK-BOUNDARY-STABLE]" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_combined_adverse_scenario_catches_joint_boundary_failure" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_favourable_diagnostics_never_enable_a_baseline_no_recommendation" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_fixed_input_replay_is_identical" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_malformed_or_drifted_registry_or_parameters_fail_closed[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_malformed_or_drifted_registry_or_parameters_fail_closed[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_malformed_or_drifted_registry_or_parameters_fail_closed[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_malformed_or_drifted_registry_or_parameters_fail_closed[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_malformed_or_drifted_registry_or_parameters_fail_closed[&lt;lambda&gt;4]" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_invalid_adverse_domain_fails_closed" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_report_hash_detects_any_result_tampering" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_core_source_has_no_network_process_soak_float_or_order_capability" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_candidate_fails_closed_when_expected_report_hash_is_tampered" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_candidate_fails_closed_when_frozen_vector_is_tampered" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_candidate_fails_closed_when_p03_predecessor_is_changed" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_existing_evidence_fails_closed_when_index_binding_is_tampered" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_rollback_drill_is_local_and_has_no_external_side_effect" time="0.000" />
+    <testcase classname="tests.S10.P04_test" name="test_cli_is_wired_to_exact_contract_and_phase_boundaries" time="0.000" />
+  </testsuite>
+</testsuites>

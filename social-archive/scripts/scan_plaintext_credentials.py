@@ -88,7 +88,26 @@ TOKEN_SHAPES = (
 SECRET_ENV_NAMES = re.compile(
     r"\b(?:SOCIAL_ARCHIVE_)?[A-Z0-9_]*"
     r"(?:TOKEN|SECRET|ACCESS_KEY|API_KEY|PASSWORD|IDENTITY)"
-    r"\s*[=:]\s*[\"']?([A-Za-z0-9_\-+/%.]{20,})",
+    # **`\s*` 会跨行，于是「空值」把下一行当成自己的值**（2026-08-12）。
+    #
+    #     ACCEPTANCE_IMAP_PASSWORD=
+    #     ACCEPTANCE_IMAP_FOLDER=收件箱
+    #
+    # 上面这两行会被读成「密码的值是下一行那个变量名」——一条**空**的密码行
+    # 被报成明文凭据。任何空的 `X_PASSWORD=` 后面跟一行 20 个字符以上的名字
+    # 都会中招，而那恰恰是 .env.example 最常见的样子。
+    #
+    # （**这段注释本身踩过一次这个坑**：第一版把那个误判结果照原样写成
+    # `名字 = "值"` 的样子，于是注释自己就匹配上了，扫描器把说明它的文字
+    # 也报成了一处泄漏。所以这里只描述，不摆出那个形状。）
+    # 值必须和名字在同一行：`[ \t]*`，不是 `\s*`。
+    #
+    # **已知缺口（原有的，不是这次改出来的）**：值的字符集不含 `&!@#$^*` 这类
+    # 标点，所以 `ADMIN_PASSWORD=Tr0ub4dor&3xKcd9` 这种带符号的口令抓不到——
+    # `&` 一出现就断在 9 个字符，够不到 20 的下限。这道门实际盯的是**令牌形状**
+    # （字母数字下划线连字符），不是人类口令。加宽字符集会把误报重新拉回来，
+    # 所以没动；写在这里是为了别让下一个人以为它覆盖了口令。
+    r"[ \t]*[=:][ \t]*[\"']?([A-Za-z0-9_\-+/%.]{20,})",
 )
 
 # 已知高危 cookie 名 + 像值的东西。名字后面允许 = : " 空格 tab 等分隔。
@@ -126,7 +145,11 @@ SELF = {
 # 现在分成两类：**重复字符类必须整串匹配**（那才叫占位符），
 # 词类仍按前缀（REDACTED_xxx、fixture-abc 都是占位）。
 PLACEHOLDER_WORDS = re.compile(
-    r"^(?:REDACTED|EXAMPLE|PLACEHOLDER|FAKE|TEST|DUMMY|"
+    # `GENERATE…` / `CHANGE…` 是 .env.example 里「这里要你自己填」的标准写法：
+    # `SESSION_SECRET=GENERATE_AT_DEPLOYMENT`、`ADMIN_PASSWORD=CHANGE_ME`。
+    # 2026-08-12 合并另外两个项目的 env 样例时，这类占位符被报成 4 处明文凭据。
+    # **放得窄**：只认这两个开头，真令牌不会以它们起头。
+    r"^(?:REDACTED|EXAMPLE|PLACEHOLDER|FAKE|TEST|DUMMY|GENERATE|CHANGE|"
     r"fixture[-_a-z0-9]*|sa-[a-z0-9-]*fixture[a-z0-9-]*|[a-z-]*fixture[a-z0-9-]*)",
     re.IGNORECASE,
 )

@@ -4,6 +4,7 @@ import json
 import re
 import secrets
 import sqlite3
+import time
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from importlib.resources import files
@@ -2276,7 +2277,34 @@ class RuntimeStore:
             result["events"].append(item)
         return result
 
+    # A browser-driven scan is owned by the extension's service worker, which
+    # MV3 can terminate at any moment. When that happens nothing ever moves the
+    # run out of its active state, so it sat in "scanning" forever and the UI
+    # kept advertising "syncing" for work that had already died -- a failure a
+    # non-technical Owner cannot distinguish from slow progress. "paused" is
+    # deliberate and is never reaped.
+    STALE_SYNC_RUN_STATES = ("queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting")
+    STALE_SYNC_RUN_AFTER_SECONDS = 15 * 60
+
+    def reap_stale_sync_runs(self, *, now: float | None = None) -> int:
+        cutoff = datetime.fromtimestamp((now if now is not None else time.time()) - self.STALE_SYNC_RUN_AFTER_SECONDS, UTC)
+        placeholders = ",".join("?" for _ in self.STALE_SYNC_RUN_STATES)
+        with self.connection() as con:
+            rows = con.execute(
+                f"SELECT id FROM sync_run WHERE status IN ({placeholders}) AND updated_at < ?",
+                (*self.STALE_SYNC_RUN_STATES, cutoff.isoformat().replace("+00:00", "Z")),
+            ).fetchall()
+        for row in rows:
+            self.update_sync_run(
+                row["id"],
+                status="failed",
+                error_code="SYNC_RUN_ABANDONED",
+                error_message="浏览器同步进程已结束，这次同步没有完成。可以直接再点一次同步。",
+            )
+        return len(rows)
+
     def list_sync_runs(self, *, source_account_id: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
+        self.reap_stale_sync_runs()
         sql = "SELECT * FROM sync_run"
         args: list[Any] = []
         if source_account_id:

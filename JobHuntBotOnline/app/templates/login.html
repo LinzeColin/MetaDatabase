@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}登录｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="auth-shell">
+  <div class="auth-card">
+    <span class="eyebrow">欢迎回来</span>
+    <h1>继续你的求职进度</h1>
+    <form method="post" action="/login" class="form-stack" data-testid="login-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label>邮箱<input type="email" name="email" autocomplete="email" required data-testid="login-email"></label>
+      <label>密码<input type="password" name="password" autocomplete="current-password" required data-testid="login-password"></label>
+      <button class="button full" type="submit" data-testid="login-submit">登录</button>
+    </form>
+    <div class="auth-links">
+      <a href="/forgot-password" data-testid="forgot-password-link">忘记密码</a>
+      <a href="/resend-verification" data-testid="resend-link">重新发送验证邮件</a>
+    </div>
+    <p class="auth-switch">还没有账户？<a href="/register" data-testid="login-register-link">免费注册</a></p>
+  </div>
+</section>
+{% endblock %}

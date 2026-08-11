@@ -6,6 +6,50 @@
 > **这里不补写**：隔了两版再靠回忆重建变更记录，写出来的东西看着像记录，
 > 其实是推测，比空着更容易被人当真。
 
+## v0.0.0.55 — 把 main 合回来：25 处冲突，逐个判「谁取代了谁」
+
+这个分支从 2026-08-03 起就没跟 main 合过。main 那边有 44 个提交碰过
+social-archive，其中大部分是我这条线后来推翻的架构（一次性配对码、DOM 抓取器），
+**但不是全部**——所以不能一把 `-X ours`。
+
+### main 有而这边**真的没有**的，全部保下来了
+
+- **`reap_stale_sync_runs`**（`db.py`）。MV3 随时杀 service worker，被杀时
+  没人把 run 移出活动状态，于是它永远停在 `scanning`，界面一直说「同步中」——
+  对一个非技术用户来说，这和「跑得慢」分不出来。这边只有
+  `SYNC_RUN_ABANDONED` 的失败文案（标着「v0.0.0.6 遗留」）却**从不产生它**。
+- **`ExportRequest` 的 `extra="forbid"`**（`api.py`）。少了它，把
+  `destination_ids` 拼成 `destinations` 会拿到 202、一条都没导出，
+  而 `skipped_destination_ids` 也是空的——调用方分不出成功和空转。
+- main 的 PWA 表壳断言与 stage3 断言（实测那 7 个标记在这边全都还在，是白捡的覆盖）。
+
+### 这边取代了 main 的，按「哪个对用户更好」判，不是按谁新
+
+- **配对**：main 是 `/v1/pairing/issue` + `SA_CONFIGURE`，失败还回退到手抄一次性码；
+  这边是 `/v1/auth/extension-token` + `SA_ADOPT_TOKEN`——**只认同源会话 Cookie、
+  不收 Bearer**，库里只存哈希，另有 DELETE 可撤销，而且**不下发 endpoint**
+  （页面替扩展决定服务地址会绕过托管配置）。两条发令牌的路比一条更糟，只留一条。
+- **队列锁**：main 用 heartbeat 超时；这边用 workerId + `reclaimAbandonedSyncWork`，
+  且队列项不 shift（跑完才移除），被杀的任务能被下一个 worker 接手。
+  行为测试在 `test_sync_queue_survives_worker_death.py`。
+- **DOM 抓取器**（`account-mirror*.js`）与**配对码脚本**：2026-08-04 两次重构故意删的，
+  `preflight_extension.py` 里有判据钉着它们不许回来。
+
+删掉了 main 的两条**钉实现而不是钉意图**的测试，各自留了字条说明意图由谁接管——
+留着它们就是两条永远变不绿的红。
+
+### 合并过程里当场发现并修掉的三个真问题
+
+1. **凭据扫描器把占位符报成明文凭据**：`SESSION_SECRET=GENERATE_AT_DEPLOYMENT`
+   这类 `.env.example` 写法被判成泄漏（另外两个项目的样例文件一进来就 5 处）。
+2. **同一个正则会跨行取值**：`\s*` 匹配换行，于是 `ACCEPTANCE_IMAP_PASSWORD=`
+   这条**空值**行把下一行的 `ACCEPTANCE_IMAP_FOLDER` 当成了自己的密码。
+   改成 `[ \t]*`，值必须和名字同一行。两条都配了正/反对照：
+   真令牌照样抓得到，占位符和空值不再误报。
+3. **同一个文件里两条判据互相矛盾**：`test_deployment_contract.py` 一条钉
+   `HOST_DATA_GID` 兜底 980、另一条钉 10001。生产 `.env` 实测是
+   `DATA=980 / SECRETS=10001`——错的那条是 main 留下的旧值。
+
 ## v0.0.0.54 — 每次部署都告诉他「进了 260 条」，而他库里一共 193 条
 
 `sync_run.imported_count` 是「这次导入了几条」。同一条被两次同步各导一次，
@@ -1790,6 +1834,19 @@ Owner 2026-08-06 的验收原话：「我希望最后我来验收能给到我的
   看起来像「全过了」。）
 - 本版反复栽在同一类错上，各自都落成了判据：**判据钉在注释上**（4 次）、
   **门绿了但指着另一个文件**（8 次）、**反例根本没走到那条路上**（4 次）。
+## v0.0.0.6 — 生产切换与真实回执（DEGRADED，未发布）
+
+- 生产此前从未运行 v0.0.0.6。此前证据把 Cloudflare Tunnel 源判为开发机上的容器，该结论已撤回：公网端点与开发机回环在同一时刻报告不同版本，开发机上根本没有 cloudflared，而只部署 OVH 主机就让公网端点翻版。真实源是 OVH `vps-83b882b4` 的 `/opt/social-archive`。当前候选已切换上线：`social-archive/core:0.0.0.6`、公网 API 报告 `0.0.0.6`、PWA 提供 `assets/app.js?v=006-r1`，三个容器健康。
+- 修复配对码轮换永远到不了运行中 Core 的缺陷。Compose 把每个 Secret 以**单文件** bind mount 发布，容器跟的是 inode，而轮换用的是临时文件加 `os.replace`，于是 Core 永远读到轮换前的记录。这正是生产长期停在 `one_time_code_available=false, attempts_remaining=0`、任何扩展都无法配对的原因，此前被记为无法解释的环境阻塞。现改为在 `flock` 下原地写入，读取侧取共享锁；线上实测轮换后无需重启即可生效。
+- 修复 C/POSIX locale 下会中止脚本的引用缺陷。`start_readers.sh` 与 `prepare_systemd_host.sh` 在全角标点前直接插值裸变量，systemd 与 `docker exec` 的默认 locale 会把首个续接字节并进标识符，`set -u` 随即中止。四处已加花括号并有全仓回归。
+- 修复 `doctor.sh --self-test` 在生产机上以不指明文件的 `UnicodeDecodeError` 崩溃：部署树里残留九个 macOS AppleDouble 伴随文件，其中两个紧邻 `api.py` 与 `db.py`。已清除，自检现在会指名报错。
+- 修复第三密文副本的身份错误。归档仓原配置指向 `Private-Database`，会把对象字节面并进结构化事实面；已改指专用 Vault。该 Vault 实际并不存在（此前有运行记录声称已创建），已重建为 private。
+- 修复冷备两存储的串行耦合：R2 失败会把 OCI 标为 `blocked_prerequisite` 而根本不尝试，使异地副本在最需要的时候从两份直接掉到零份。冻结任务包本就是独立遍历两个存储，此处恢复该行为。
+- `ExportRequest` 与 `PairingRequest` 此前接受未知字段，写错字段名会返回 202 却什么都没导出。两者现在拒绝多余字段。
+- 完成 SA-002 遗漏的身份迁移：五个 `machine/*.json` 契约仍标 `v0.0.0.5`。
+- 真实回执：17 个 artifact 全部复制到 R2 与 OCI（各 17/17）；GitHub 私有 Markdown、本地 Markdown、Obsidian Vault 与 JSONL 具有相同 `projection_sha256`，GitHub 副本经开发机独立取回后本地重算校验；Private-Database 免 clone 事实投递且复跑为 `NO_CHANGE`；冷备两份已校验远端副本，R2 与 OCI 均可恢复到同一明文哈希。Obsidian 本不需要 Token —— 该目的地优先直写文件系统 Vault。
+- 完整应用回归 310 passed；结构验证 PASS；干净解压的封存任务包自检 PASS（0 失败、395 条清单哈希、97 个候选测试）。
+- **本版本未发布**：32 项中 9 项为 `BLOCKED_ENVIRONMENT`，归结为四个只能由 Owner 在对应服务界面解除的根因——扩展未安装、缺 Vault 细粒度 token、缺 Notion Integration token、宿主机磁盘容量。未推送、未打 tag、未发布 Release、未启用任何 timer。完整清单见 `evidence/v0.0.0.6/VALIDATION_REPORT.md` 与 `RELEASE_CHECKLIST_STATUS.md`。
 
 ## v0.0.0.4 — Final Task Pack closure
 

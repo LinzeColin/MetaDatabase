@@ -53,6 +53,7 @@ def test_s3_replica_uploads_only_ciphertext_and_verifies_metadata(tmp_path: Path
             assert Path(filename) == cipher
             assert key.endswith(f"{original_sha}.age")
             self.metadata = ExtraArgs["Metadata"]
+            self.storage_class = ExtraArgs["StorageClass"]
         def head_object(self, Bucket, Key):
             return {"Metadata": self.metadata, "ETag": '"etag"'}
 
@@ -72,6 +73,7 @@ def test_s3_replica_uploads_only_ciphertext_and_verifies_metadata(tmp_path: Path
     key, etag = store.put_encrypted(obj)
     assert key.endswith(".age")
     assert etag == "etag"
+    assert store.client.storage_class == "STANDARD"
 
 
 def test_s3_replica_readback_verifies_cipher_sha256(tmp_path: Path):

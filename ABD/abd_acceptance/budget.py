@@ -495,8 +495,22 @@ def _audit_imports(
         "devig",
         "source_independence",
         "market_consensus",
+        "generic_residual",
+        "tennis_model",
+        "combat_model",
+        "score_models",
+        "football_model",
+        "racing_model",
+        "basketball_model",
+        "baseball_model",
         "outlier_detector",
         "line_movement",
+        "calibration",
+        "temporal_cv",
+        "uncertainty",
+        "decimal_math",
+        "cross_impl_check",
+        "robustness_gate",
     }
     stdlib = set(sys.stdlib_module_names)
     for path in paths:

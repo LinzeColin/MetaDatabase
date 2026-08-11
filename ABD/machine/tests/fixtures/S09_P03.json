@@ -1,0 +1,206 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S09-P03-SCORE-FOOTBALL-DISTRIBUTIONS",
+  "contract_id": "AC-S09-P03",
+  "requirement_id": "REQ-S09-P03",
+  "stage_id": "S09",
+  "phase_id": "P03",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "expected_next": "S09/P04_READY_NOT_STARTED",
+  "replay_count": 100,
+  "adverse_replay_count": 10000,
+  "claim_boundary": {
+    "network_accessed": false,
+    "actual_market_or_odds_observed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "distribution_vectors": [
+    {
+      "vector_id": "POISSON_REFERENCE",
+      "distribution": "POISSON",
+      "mean": "1.4",
+      "maximum_goal": 18
+    },
+    {
+      "vector_id": "DIXON_COLES_REFERENCE",
+      "distribution": "DIXON_COLES",
+      "home_mean": "1.4",
+      "away_mean": "1.0",
+      "rho": "-0.04",
+      "maximum_goal": 18
+    },
+    {
+      "vector_id": "SKELLAM_REFERENCE",
+      "distribution": "SKELLAM",
+      "home_mean": "1.4",
+      "away_mean": "1.0",
+      "maximum_difference": 18
+    },
+    {
+      "vector_id": "NEGATIVE_BINOMIAL_REFERENCE",
+      "distribution": "NEGATIVE_BINOMIAL",
+      "mean": "2.4",
+      "dispersion": "8",
+      "maximum_goals": 40
+    },
+    {
+      "vector_id": "SCORE_PROJECTION_REFERENCE",
+      "distribution": "SCORE_PROJECTION",
+      "home_mean": "1.4",
+      "away_mean": "1.0",
+      "rho": "-0.04",
+      "dispersion": "8"
+    }
+  ],
+  "football_cases": [
+    {
+      "case_id": "FOOTBALL_POSITIVE",
+      "input": {
+        "id": "FOOTBALL_POSITIVE",
+        "decision_at": "2026-08-16T10:00:00+10:00",
+        "event_at": "2026-08-16T18:00:00+10:00",
+        "competitors": ["HOME", "DRAW", "AWAY"],
+        "market_probabilities": {"HOME": "0.48", "DRAW": "0.27", "AWAY": "0.25"},
+        "requested_residual_weight": "0.35",
+        "features": {
+          "league_home_goal_rate": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "1.4"}],
+          "league_away_goal_rate": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "1.0"}],
+          "home_attack_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "0.08"}],
+          "home_defense_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "-0.02"}],
+          "away_attack_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "-0.05"}],
+          "away_defense_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "0.04"}],
+          "home_advantage_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "0.06"}],
+          "dixon_coles_rho": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "-0.04"}],
+          "goal_dispersion": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "8"}],
+          "participation_status": [{"known_at": "2026-08-16T09:00:00+10:00", "value": "CONFIRMED"}]
+        }
+      },
+      "expected": {
+        "temporal_safe": true,
+        "residual_weight": "0.35",
+        "market_prior_weight": "0.65",
+        "decision": "MARKET_ANCHORED_VERIFIED_RESIDUAL"
+      }
+    },
+    {
+      "case_id": "FOOTBALL_BOUNDARY_AT_DECISION",
+      "input": {
+        "id": "FOOTBALL_BOUNDARY_AT_DECISION",
+        "decision_at": "2026-08-16T10:00:00+10:00",
+        "event_at": "2026-08-16T18:00:00+10:00",
+        "competitors": ["HOME", "DRAW", "AWAY"],
+        "market_probabilities": {"HOME": "0.45", "DRAW": "0.30", "AWAY": "0.25"},
+        "requested_residual_weight": "0.35",
+        "features": {
+          "league_home_goal_rate": [{"known_at": "2026-08-16T10:00:00+10:00", "value": "1.3"}],
+          "league_away_goal_rate": [{"known_at": "2026-08-16T10:00:00+10:00", "value": "1.1"}],
+          "home_attack_effect": [{"known_at": "2026-08-16T10:00:00+10:00", "value": "0.02"}],
+          "home_defense_effect": [{"known_at": "2026-08-16T10:00:00+10:00", "value": "0.01"}],
+          "away_attack_effect": [{"known_at": "2026-08-16T10:00:00+10:00", "value": "-0.02"}],
+          "away_defense_effect": [{"known_at": "2026-08-16T10:00:00+10:00", "value": "0.03"}],
+          "home_advantage_effect": [{"known_at": "2026-08-16T10:00:00+10:00", "value": "0.04"}],
+          "dixon_coles_rho": [{"known_at": "2026-08-16T10:00:00+10:00", "value": "0"}],
+          "goal_dispersion": [{"known_at": "2026-08-16T10:00:00+10:00", "value": "10"}],
+          "participation_status": [{"known_at": "2026-08-16T10:00:00+10:00", "value": "CONFIRMED"}]
+        }
+      },
+      "expected": {
+        "temporal_safe": true,
+        "residual_weight": "0.35",
+        "market_prior_weight": "0.65",
+        "decision": "MARKET_ANCHORED_VERIFIED_RESIDUAL"
+      }
+    },
+    {
+      "case_id": "FOOTBALL_FUTURE_REQUIRED_FEATURE",
+      "input": {
+        "id": "FOOTBALL_FUTURE_REQUIRED_FEATURE",
+        "decision_at": "2026-08-16T10:00:00+10:00",
+        "event_at": "2026-08-16T18:00:00+10:00",
+        "competitors": ["HOME", "DRAW", "AWAY"],
+        "market_probabilities": {"HOME": "0.48", "DRAW": "0.27", "AWAY": "0.25"},
+        "requested_residual_weight": "0.35",
+        "features": {
+          "league_home_goal_rate": [{"known_at": "2026-08-16T10:00:00.0001+10:00", "value": "1.4"}],
+          "league_away_goal_rate": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "1.0"}],
+          "home_attack_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "0.08"}],
+          "home_defense_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "-0.02"}],
+          "away_attack_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "-0.05"}],
+          "away_defense_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "0.04"}],
+          "home_advantage_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "0.06"}],
+          "dixon_coles_rho": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "-0.04"}],
+          "goal_dispersion": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "8"}],
+          "participation_status": [{"known_at": "2026-08-16T09:00:00+10:00", "value": "CONFIRMED"}]
+        }
+      },
+      "expected": {
+        "temporal_safe": false,
+        "residual_weight": "0",
+        "market_prior_weight": "1",
+        "decision": "MARKET_ONLY_NO_DOMAIN_INCREMENT"
+      }
+    },
+    {
+      "case_id": "FOOTBALL_UNCONFIRMED",
+      "input": {
+        "id": "FOOTBALL_UNCONFIRMED",
+        "decision_at": "2026-08-16T10:00:00+10:00",
+        "event_at": "2026-08-16T18:00:00+10:00",
+        "competitors": ["HOME", "DRAW", "AWAY"],
+        "market_probabilities": {"HOME": "0.48", "DRAW": "0.27", "AWAY": "0.25"},
+        "requested_residual_weight": "0.35",
+        "features": {
+          "league_home_goal_rate": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "1.4"}],
+          "league_away_goal_rate": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "1.0"}],
+          "home_attack_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "0.08"}],
+          "home_defense_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "-0.02"}],
+          "away_attack_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "-0.05"}],
+          "away_defense_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "0.04"}],
+          "home_advantage_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "0.06"}],
+          "dixon_coles_rho": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "-0.04"}],
+          "goal_dispersion": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "8"}],
+          "participation_status": [{"known_at": "2026-08-16T09:00:00+10:00", "value": "PROBABLE"}]
+        }
+      },
+      "expected": {
+        "temporal_safe": false,
+        "residual_weight": "0",
+        "market_prior_weight": "1",
+        "decision": "MARKET_ONLY_NO_DOMAIN_INCREMENT"
+      }
+    },
+    {
+      "case_id": "FOOTBALL_TAIL_FALLBACK",
+      "input": {
+        "id": "FOOTBALL_TAIL_FALLBACK",
+        "decision_at": "2026-08-16T10:00:00+10:00",
+        "event_at": "2026-08-16T18:00:00+10:00",
+        "competitors": ["HOME", "DRAW", "AWAY"],
+        "market_probabilities": {"HOME": "0.45", "DRAW": "0.20", "AWAY": "0.35"},
+        "requested_residual_weight": "0.35",
+        "features": {
+          "league_home_goal_rate": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "3"}],
+          "league_away_goal_rate": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "3"}],
+          "home_attack_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "0"}],
+          "home_defense_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "0"}],
+          "away_attack_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "0"}],
+          "away_defense_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "0"}],
+          "home_advantage_effect": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "0"}],
+          "dixon_coles_rho": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "0"}],
+          "goal_dispersion": [{"known_at": "2026-08-15T12:00:00+10:00", "value": "8"}],
+          "participation_status": [{"known_at": "2026-08-16T09:00:00+10:00", "value": "CONFIRMED"}]
+        }
+      },
+      "expected": {
+        "temporal_safe": true,
+        "residual_weight": "0",
+        "market_prior_weight": "1",
+        "decision": "MARKET_ONLY_NO_DOMAIN_INCREMENT"
+      }
+    }
+  ],
+  "expected_report_sha256": "7e24d6229694ad6e863fbd8e79aacd62a8c06b9c35c49d72e8db6647afe72015"
+}

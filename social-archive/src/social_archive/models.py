@@ -14,6 +14,13 @@ class CaptureRequest(BaseModel):
     external_content_id: str | None = Field(default=None, max_length=512)
     relation_type: RelationType = "manual_save"
     collection_key: str = Field(default="", max_length=512)
+    # The browser account mirror labels every scanned item with the collection
+    # it came from. CaptureRequest forbids unknown fields, so an undeclared
+    # collection_name made the server reject the whole batch with 422 and the
+    # mirror imported nothing at all -- items were found and sent, then thrown
+    # away at the door. Collection registration still happens once per batch in
+    # account_sync; this field only has to be accepted, not re-processed.
+    collection_name: str | None = Field(default=None, max_length=512)
     title: str | None = Field(default=None, max_length=2048)
     author_name: str | None = Field(default=None, max_length=1024)
     text: str | None = Field(default=None, max_length=2_000_000)

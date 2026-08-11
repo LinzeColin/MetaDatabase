@@ -162,3 +162,13 @@ def test_connection_reuses_an_existing_platform_tab_before_opening_a_new_page():
 def test_generic_web_label_is_user_facing_chrome_bookmarks_and_web():
     pwa = PWA.read_text(encoding="utf-8")
     assert 'label: "Chrome书签/网页"' in pwa
+
+
+# 这里原有 main 的 test_sync_queue_lock_cannot_strand_clicks_after_a_worker_is_killed。
+# 它的**意图是对的**（MV3 随时杀 worker，锁不能把后续点击全堵成 busy），
+# 但它钉的是 main 的实现：heartbeatAt + SYNC_QUEUE_LOCK_STALE_MS 超时。
+# 这个分支换成了另一种解法——锁记 workerId，只有本 worker 自己持的锁才算在跑，
+# 别人留下的由 reclaimAbandonedSyncWork 回收；队列项也不再 shift，跑完才移除。
+# 同一个意图有自己的行为测试：tests/focused/test_sync_queue_survives_worker_death.py
+# （真的模拟 worker 被杀，再断言任务能被下一个 worker 接手）。
+

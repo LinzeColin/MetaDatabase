@@ -1,148 +1,56 @@
 {
-  "schema_version": "3.0",
+  "schema_version": "1.0",
   "task_id": "SA-506",
-  "recorded_at": "2026-08-02T02:49:58Z",
-  "status": "PASS",
+  "taskpack_version": "v0.0.0.6",
+  "implementation_commit": "5341745f546ec113117b34784a89d2e7e2e4dd28",
+  "implementation_tree": "90d510987be571039d729aed15f53a3c8a38b814",
+  "record_context": "v0.0.0.6 stage re-verification against the live OVH production deployment. Secret values were never printed; Bearer tokens and GitHub tokens are shown redacted.",
   "commands": [
     {
-      "sequence": 1,
-      "category": "latest-main",
-      "command": "git fetch origin main; git merge --ff-only origin/main",
+      "command": ".venv/bin/python scripts/backup.py --dry-run",
+      "command_sha256": "db5fea43045a290ab3853f54469db39c39d3052be029f75b6fcf50cc6d5e2b29",
+      "executed": true,
       "exit_code": 0,
       "status": "PASS",
-      "output_summary": "Execution worktree fast-forwarded from c72c78f to 7b3b4d7546a66332444594fca824c3ad9a67e2a6; intervening paths were CyberBoss-only."
+      "summary": "READY，1 条事实。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
     },
     {
-      "sequence": 2,
-      "category": "frozen-command-attempt",
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage5_recovery.py tests/stage/test_stage5_operations.py",
+      "command": ".venv/bin/python scripts/backup.py",
+      "command_sha256": "9060c1acc9da259ef2cf6e17cc8711c152d447608bbc26761f123e634ccc3cbd",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "2 份已校验远端副本、2 份已校验恢复描述符。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
+    },
+    {
+      "command": ".venv/bin/python scripts/restore.py --latest --from-store r2|oci --verify-only",
+      "command_sha256": "2bdcb9f25b0cf78300348796c80e01d131b8ac0ef0f21efcb1263485766df9fc",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "两存储 verify-only 均 PASS 且明文哈希一致。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
+    },
+    {
+      "command": ".venv/bin/python scripts/restore.py --latest --from-store r2|oci --target <isolated tmp>",
+      "command_sha256": "58e1335e39cb5e77869e1452bc206e7cc5b0419ae7958846011b079ce09c545c",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "两存储真实恢复各写出 2 个文件，明文哈希一致；目标已删除。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
+    },
+    {
+      "command": ".venv/bin/python scripts/restore_object.py --artifact-id art_c9bebcf6… --from-store r2|oci|github",
+      "command_sha256": "366777f1c286728b11fdd23cf693df1e6d7a4a8ad1f82d902d1f50f88c02a94c",
+      "executed": true,
       "exit_code": 1,
-      "status": "ENVIRONMENT_FAILURE",
-      "output_summary": "TARGET_REPOSITORY was unset in the independent shell; cd /social-archive failed before pytest started."
-    },
-    {
-      "sequence": 3,
-      "category": "frozen-command-attempt",
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/restore.py --latest --verify-only",
-      "exit_code": 1,
-      "status": "ENVIRONMENT_FAILURE",
-      "output_summary": "TARGET_REPOSITORY was unset in the independent shell; cd /social-archive failed before restore started."
-    },
-    {
-      "sequence": 4,
-      "category": "frozen-command-attempt",
-      "command": "TARGET_REPOSITORY=$PWD; export TARGET_REPOSITORY; cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage5_recovery.py tests/stage/test_stage5_operations.py",
-      "exit_code": 4,
-      "status": "ENVIRONMENT_FAILURE",
-      "output_summary": "System python3 lacked pydantic; pytest stopped while importing conftest."
-    },
-    {
-      "sequence": 5,
-      "category": "frozen-command-attempt",
-      "command": "TARGET_REPOSITORY=$PWD; export TARGET_REPOSITORY; cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/restore.py --latest --verify-only",
-      "exit_code": 1,
-      "status": "ENVIRONMENT_FAILURE",
-      "output_summary": "System python3 did not have the target src directory on its import path."
-    },
-    {
-      "sequence": 6,
-      "category": "frozen-command",
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage5_recovery.py tests/stage/test_stage5_operations.py",
-      "exit_code": 0,
-      "status": "PASS",
-      "output_summary": "5 passed in 1.11s using an existing project virtualenv and the target worktree PYTHONPATH."
-    },
-    {
-      "sequence": 7,
-      "category": "frozen-command-local-probe",
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/restore.py --latest --verify-only",
-      "exit_code": 3,
-      "status": "BLOCKED_ENVIRONMENT",
-      "output_summary": "Execution worktree has no production backup manifest; no target was created."
-    },
-    {
-      "sequence": 8,
-      "category": "connection-attempt",
-      "command": "ssh -o BatchMode=yes vps-83b882b4 ...",
-      "exit_code": 255,
-      "status": "ENVIRONMENT_FAILURE",
-      "output_summary": "Host identity label was not resolvable as an SSH endpoint; no connection was established."
-    },
-    {
-      "sequence": 9,
-      "category": "frozen-command-production",
-      "command": "ssh linze-ovh sudo -n bash -c '<load root-only production env>; cd /opt/social-archive && python3 scripts/restore.py --latest --verify-only'",
-      "exit_code": 0,
-      "status": "PASS",
-      "output_summary": "Verified manifest /var/lib/social-archive/backups/private-database/20260802T015554Z/manifest.json, original SHA b3a8cec092729045c19447f2f8efa0358d2a91b87aea92b5da737a0abca8d6b2, and fact_count=1."
-    },
-    {
-      "sequence": 10,
-      "category": "cli-contract",
-      "command": "python3 scripts/rebuild_runtime.py --help",
-      "exit_code": 0,
-      "status": "PASS",
-      "output_summary": "Confirmed recovery_root positional argument, mandatory new --target path, and --verify-only option."
-    },
-    {
-      "sequence": 11,
-      "category": "real-isolated-recovery",
-      "command": "restore.py --latest --target <temporary>/recovered; rebuild_runtime.py <temporary>/recovered --target <temporary>/rebuilt.sqlite3; verify SQLite/FTS; cleanup",
-      "exit_code": 0,
-      "status": "PASS",
-      "output_summary": "Real restore and rebuild passed with content=1, relation=1, artifact=1, replica=3, integrity_check=ok, FTS present, plaintext cleanup=true; live DB hash/stat and service health remained unchanged."
-    },
-    {
-      "sequence": 12,
-      "category": "rollback-entry-discovery",
-      "command": "sed -n '1,260p' social-archive/scripts/rollback.sh",
-      "exit_code": 1,
-      "status": "PATH_NOT_PRESENT",
-      "output_summary": "No repository rollback.sh exists; no command was invented from this path."
-    },
-    {
-      "sequence": 13,
-      "category": "rollback-entry-discovery",
-      "command": "find social-archive -maxdepth 4 -type f -iname '*rollback*' -o -iname '*upgrade*'",
-      "exit_code": 0,
-      "status": "PASS",
-      "output_summary": "No repository executable rollback entry exists; deployment receipt assets and the proven directory-swap procedure are authoritative."
-    },
-    {
-      "sequence": 14,
-      "category": "degradation-attempt",
-      "command": "restore real bundle; remove generic github replica; attempt rebuild",
-      "exit_code": 1,
-      "status": "SAFE_ADAPT_REQUIRED",
-      "output_summary": "The first mutator did not recognize store_id, stopped before rebuild, removed no replica, cleaned plaintext, and retained its receipt as missing-replica-degradation.attempt1.json."
-    },
-    {
-      "sequence": 15,
-      "category": "recovery-structure",
-      "command": "restore real bundle; emit only provider-related structural paths; cleanup",
-      "exit_code": 0,
-      "status": "PASS",
-      "output_summary": "Identified fact[0].object_replicas[*].store_id values github, oci, and r2 without outputting fact content."
-    },
-    {
-      "sequence": 16,
-      "category": "missing-replica-degradation",
-      "command": "restore real bundle; remove object_replicas item store_id=github; attempt rebuild into a new target; cleanup",
-      "exit_code": 0,
-      "status": "PASS",
-      "output_summary": "Rebuild exited 1 with RUNTIME_REBUILD_REJECTED and missing-three-receipts message; no target SQLite was created; plaintext cleanup=true."
-    },
-    {
-      "sequence": 17,
-      "category": "version-rollback-drill",
-      "command": "validate real v0.0.0.4 rollback assets/images/doctor/predeploy DB; simulate deployment directory swap in a temporary directory; cleanup",
-      "exit_code": 0,
-      "status": "PASS",
-      "output_summary": "Simulated target became v0.0.0.4, failed release remained v0.0.0.5, restored DB integrity_check=ok, live v0.0.0.5 DB hash unchanged, rollback command prepared but not executed."
+      "status": "PARTIAL",
+      "summary": "R2/OCI 均 PASS 且密文与明文哈希一致；GitHub 以 GITHUB_RECEIPT_REPOSITORY_MISMATCH 正确 fail-closed（历史收据属于已删除的旧 Vault）。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
     }
   ],
-  "production_evidence_directory": "/var/lib/social-archive/evidence/SA-506/20260802T024958Z",
-  "unique_rollback_command": "sudo -n bash /var/lib/social-archive/evidence/SA-506/20260802T024958Z/rollback-v004.sh",
-  "git_commit_created": false,
-  "github_upload_performed": false
+  "generated_at": "2026-08-03T07:40:00Z"
 }

@@ -1,0 +1,32 @@
+# JobHuntBot Online v0.3.0
+
+面向求职者的多账户、多用户 SaaS。用户通过邮箱注册并上传一份简历，系统自动整理候选人资料、发现和排序岗位，并每 6 小时刷新推荐 Feed。平台统一管理 DeepSeek API，普通用户无需购买、填写或维护 API Key。
+
+## 用户流程
+
+```text
+邮箱注册 → 验证邮箱 → 上传简历 → 集中确认高影响事实
+→ 自动岗位发现 → 推荐 Feed 与多维筛选
+→ 保存／忽略 → 申请包 → 手动去官方页面提交 → 记录结果
+```
+
+## 已实现
+
+- 注册、邮箱验证、登录、忘记密码、密码重置、Session 失效；
+- 多租户隔离、账户删除、管理员用户与额度管理；
+- 平台统一 DeepSeek Gateway、用户/平台额度、熔断与规则降级；
+- 简历解析、资料草稿、经历库；
+- Scheduler + Worker 自动发现，严格每 6 小时刷新；
+- Remotive、Arbeitnow、Jobicy、Adzuna、Greenhouse、Lever、Ashby、FreeHire Adapter；
+- 标准化、去重、资格/相关性/机会潜力排序；
+- 城市、岗位族、技能、来源、新鲜度、三层判断和状态筛选；
+- 手工岗位导入、申请包、进度和证据追踪；
+- PostgreSQL、Alembic、Docker Compose、备份、恢复和代码回滚。
+
+## 安全边界
+
+不保存第三方招聘平台密码/Cookie，不绕过验证码或平台限制，不自动最终提交申请。模型输出不能覆盖工作权利、Sponsorship 等硬事实。
+
+## 部署入口
+
+普通使用者不需要运行命令。Delivery Agent 从 `START_HERE.md` 开始，完成真实基础设施最后一公里。

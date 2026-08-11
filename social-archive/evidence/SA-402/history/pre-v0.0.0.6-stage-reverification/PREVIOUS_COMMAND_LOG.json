@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-402",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "commands": [
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_destinations.py",
+      "command_sha256": "96b8f74a574d0fe444fc3f888b579ceedab24d59eeee5839a0fd234addbfc073",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "5 destination tests passed."
+    }
+  ],
+  "record_sha256": "330f0dd51fcdd88586efeaa2454e8ebb8e4eacd8bd0941272dd873b641ddfbfe"
+}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}用户管理｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="page-head"><div><span class="eyebrow">平台管理</span><h1>用户与额度</h1><p>管理员只管理账户状态和额度，不浏览用户的简历内容或申请材料。</p></div><a class="button ghost" href="/admin/platform" data-testid="admin-platform-link">平台状态</a></section>
+<div class="table-wrap">
+<table data-testid="admin-users-table"><thead><tr><th>用户</th><th>验证</th><th>状态</th><th>AI 日额度</th><th>创建时间</th><th>操作</th></tr></thead><tbody>
+{% for item in users %}
+<tr><td>{{ item.email }}{% if item.admin %}<span class="tag">管理员</span>{% endif %}</td><td>{{ '已验证' if item.verified else '待验证' }}</td><td>{{ '正常' if item.active else '已停用' }}</td><td>
+<form method="post" action="/admin/users/{{ item.id }}/quota" class="inline-form"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input class="quota-input" type="number" min="0" max="1000" name="quota" value="{{ item.quota }}" data-testid="admin-quota-{{ item.id }}"><button class="button ghost small" type="submit" data-testid="admin-quota-submit-{{ item.id }}">保存</button></form>
+</td><td>{{ item.created_at }}</td><td>{% if not item.admin %}<form method="post" action="/admin/users/{{ item.id }}/toggle" class="inline-form"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="button {% if item.active %}danger ghost{% else %}ghost{% endif %} small" type="submit" data-testid="admin-toggle-{{ item.id }}">{{ '停用' if item.active else '恢复' }}</button></form>{% endif %}</td></tr>
+{% endfor %}
+</tbody></table>
+</div>
+{% endblock %}

@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-502",
-  "taskpack_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.6",
   "stage": "S5",
   "title": "绑定 OCI 异地密文副本",
   "status": "PASS",
   "implementation_status": "PASS",
   "live_environment_status": "PASS",
-  "product_runtime_verdict": "PASS",
-  "semantic_disposition": "equivalent",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
   "acceptance_ids": [
     "AC-SA-502"
   ],
@@ -17,54 +17,18 @@
   ],
   "oracle": "OCI 回读密文 SHA 与 R2 完全相同；未验证 R2 时 OCI 队列不前进。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "Production v0.0.0.5 reused one cached age ciphertext, replicated R2 first and OCI second, then independently downloaded both replicas and verified the same cipher SHA-256.",
-  "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "source_main": "9d13085159653f9df7df7e2cde051eb585bdfd2e",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
-  },
-  "blocking_assertions": {
-    "oci_encrypted_canary": "PASS",
-    "oci_canary_delete_verified": "PASS",
-    "r2_prerequisite_verified": "PASS",
-    "r2_readback": "PASS",
-    "oci_readback": "PASS",
-    "same_cipher_sha256": "PASS",
-    "remote_metadata": "PASS",
-    "plaintext_remote_write": false,
-    "private_key_used": false,
-    "paid_api_allowed": false
-  },
-  "live_receipt": {
-    "generated_at": "2026-08-02T01:13:47.702205Z",
-    "production_version": "0.0.0.5",
-    "credential_custody": "systemd_transient_LoadCredential",
-    "evidence_path": "/var/lib/social-archive/evidence/SA-502/20260802T011156Z/RESULT.json",
-    "evidence_sha256": "95c22039df61ce28a002fe0b20acac5c8c0a84329c3122dd96dd0404c1e29430",
-    "artifact_id": "art_bb14eeeebda6d460b190081f167a6244",
-    "original_sha256": "bc0bc88b3bfc3bd3721c7fe113dfdc478d4a339f8b2596b0775a6b10ca4c2ba9",
-    "cipher_sha256": "8c9e7a0af73fd9bf6286c1d509477fa2d0d41e55155ae512e087512dca06a2d8",
-    "ciphertext_path": "/var/lib/social-archive/staging/encrypted/sha256/bc/0b/bc0bc88b3bfc3bd3721c7fe113dfdc478d4a339f8b2596b0775a6b10ca4c2ba9.age",
-    "ciphertext_retained_for_sa503": true,
-    "object_key": "primary-objects/sha256/bc/0b/bc0bc88b3bfc3bd3721c7fe113dfdc478d4a339f8b2596b0775a6b10ca4c2ba9.age",
-    "etag": "b6c29d00acebba78579e865831fda6a7",
-    "r2_readback": "PASS",
-    "oci_readback": "PASS",
-    "same_ciphertext": true,
-    "oci_canary_delete_readback": "NOT_FOUND"
-  },
-  "completion_after_sa502": {
-    "required_replicas": 3,
-    "total_artifacts": 4,
-    "all_three_verified": 1,
-    "pending": 3
-  },
-  "known_limitations": [
-    "The new artifact has fresh R2 and OCI receipts but no fresh GitHub Private receipt; SA-503 must reuse the retained ciphertext before three-replica completion can be asserted.",
-    "Only the single bounded artifact required by this SA-502 phase was advanced."
+  "result_summary": "OCI 异地密文副本已绑定：与 R2 同一密文 SHA-256，canary 与 17/17 真实 artifact 均通过写入与回读校验。",
+  "evidence": [
+    "evidence/SA-501/V006_ENCRYPTED_OBJECT_CANARY_20260803.json",
+    "evidence/SA-503/V006_THIRD_COPY_STATUS_20260803.json"
   ],
-  "generated_at": "2026-08-02T01:13:47.702205Z",
-  "record_sha256": "e20d1afa72b9c595d9954ef4b7631b15a6ad25e2d4ce8c36fedd203f79607670"
+  "blocking_reason": null,
+  "evidence_binding": {
+    "implementation_commit": "812d7a02d303df22c8845b437c36a52f471e3195",
+    "full_application_regression": "310 passed",
+    "taskpack_verify": "PASS, 395 manifest entries, 0 failures"
+  },
+  "predecessor_evidence": "evidence/SA-502/history/pre-v0.0.0.6-stage-reverification/PREVIOUS_RESULT.json",
+  "supersedes": "该任务此前的 RESULT.json 记录为 v0.0.0.5 的 PASS。在 v0.0.0.6 下沿用那个 PASS 会把未真正运行的环境门伪装成已通过，故按实测结果重写。",
+  "generated_at": "2026-08-03T07:35:00Z"
 }

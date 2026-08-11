@@ -1,0 +1,148 @@
+{
+  "schema_version": "3.0",
+  "task_id": "SA-506",
+  "recorded_at": "2026-08-02T02:49:58Z",
+  "status": "PASS",
+  "commands": [
+    {
+      "sequence": 1,
+      "category": "latest-main",
+      "command": "git fetch origin main; git merge --ff-only origin/main",
+      "exit_code": 0,
+      "status": "PASS",
+      "output_summary": "Execution worktree fast-forwarded from c72c78f to 7b3b4d7546a66332444594fca824c3ad9a67e2a6; intervening paths were CyberBoss-only."
+    },
+    {
+      "sequence": 2,
+      "category": "frozen-command-attempt",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage5_recovery.py tests/stage/test_stage5_operations.py",
+      "exit_code": 1,
+      "status": "ENVIRONMENT_FAILURE",
+      "output_summary": "TARGET_REPOSITORY was unset in the independent shell; cd /social-archive failed before pytest started."
+    },
+    {
+      "sequence": 3,
+      "category": "frozen-command-attempt",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/restore.py --latest --verify-only",
+      "exit_code": 1,
+      "status": "ENVIRONMENT_FAILURE",
+      "output_summary": "TARGET_REPOSITORY was unset in the independent shell; cd /social-archive failed before restore started."
+    },
+    {
+      "sequence": 4,
+      "category": "frozen-command-attempt",
+      "command": "TARGET_REPOSITORY=$PWD; export TARGET_REPOSITORY; cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage5_recovery.py tests/stage/test_stage5_operations.py",
+      "exit_code": 4,
+      "status": "ENVIRONMENT_FAILURE",
+      "output_summary": "System python3 lacked pydantic; pytest stopped while importing conftest."
+    },
+    {
+      "sequence": 5,
+      "category": "frozen-command-attempt",
+      "command": "TARGET_REPOSITORY=$PWD; export TARGET_REPOSITORY; cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/restore.py --latest --verify-only",
+      "exit_code": 1,
+      "status": "ENVIRONMENT_FAILURE",
+      "output_summary": "System python3 did not have the target src directory on its import path."
+    },
+    {
+      "sequence": 6,
+      "category": "frozen-command",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage5_recovery.py tests/stage/test_stage5_operations.py",
+      "exit_code": 0,
+      "status": "PASS",
+      "output_summary": "5 passed in 1.11s using an existing project virtualenv and the target worktree PYTHONPATH."
+    },
+    {
+      "sequence": 7,
+      "category": "frozen-command-local-probe",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/restore.py --latest --verify-only",
+      "exit_code": 3,
+      "status": "BLOCKED_ENVIRONMENT",
+      "output_summary": "Execution worktree has no production backup manifest; no target was created."
+    },
+    {
+      "sequence": 8,
+      "category": "connection-attempt",
+      "command": "ssh -o BatchMode=yes vps-83b882b4 ...",
+      "exit_code": 255,
+      "status": "ENVIRONMENT_FAILURE",
+      "output_summary": "Host identity label was not resolvable as an SSH endpoint; no connection was established."
+    },
+    {
+      "sequence": 9,
+      "category": "frozen-command-production",
+      "command": "ssh linze-ovh sudo -n bash -c '<load root-only production env>; cd /opt/social-archive && python3 scripts/restore.py --latest --verify-only'",
+      "exit_code": 0,
+      "status": "PASS",
+      "output_summary": "Verified manifest /var/lib/social-archive/backups/private-database/20260802T015554Z/manifest.json, original SHA b3a8cec092729045c19447f2f8efa0358d2a91b87aea92b5da737a0abca8d6b2, and fact_count=1."
+    },
+    {
+      "sequence": 10,
+      "category": "cli-contract",
+      "command": "python3 scripts/rebuild_runtime.py --help",
+      "exit_code": 0,
+      "status": "PASS",
+      "output_summary": "Confirmed recovery_root positional argument, mandatory new --target path, and --verify-only option."
+    },
+    {
+      "sequence": 11,
+      "category": "real-isolated-recovery",
+      "command": "restore.py --latest --target <temporary>/recovered; rebuild_runtime.py <temporary>/recovered --target <temporary>/rebuilt.sqlite3; verify SQLite/FTS; cleanup",
+      "exit_code": 0,
+      "status": "PASS",
+      "output_summary": "Real restore and rebuild passed with content=1, relation=1, artifact=1, replica=3, integrity_check=ok, FTS present, plaintext cleanup=true; live DB hash/stat and service health remained unchanged."
+    },
+    {
+      "sequence": 12,
+      "category": "rollback-entry-discovery",
+      "command": "sed -n '1,260p' social-archive/scripts/rollback.sh",
+      "exit_code": 1,
+      "status": "PATH_NOT_PRESENT",
+      "output_summary": "No repository rollback.sh exists; no command was invented from this path."
+    },
+    {
+      "sequence": 13,
+      "category": "rollback-entry-discovery",
+      "command": "find social-archive -maxdepth 4 -type f -iname '*rollback*' -o -iname '*upgrade*'",
+      "exit_code": 0,
+      "status": "PASS",
+      "output_summary": "No repository executable rollback entry exists; deployment receipt assets and the proven directory-swap procedure are authoritative."
+    },
+    {
+      "sequence": 14,
+      "category": "degradation-attempt",
+      "command": "restore real bundle; remove generic github replica; attempt rebuild",
+      "exit_code": 1,
+      "status": "SAFE_ADAPT_REQUIRED",
+      "output_summary": "The first mutator did not recognize store_id, stopped before rebuild, removed no replica, cleaned plaintext, and retained its receipt as missing-replica-degradation.attempt1.json."
+    },
+    {
+      "sequence": 15,
+      "category": "recovery-structure",
+      "command": "restore real bundle; emit only provider-related structural paths; cleanup",
+      "exit_code": 0,
+      "status": "PASS",
+      "output_summary": "Identified fact[0].object_replicas[*].store_id values github, oci, and r2 without outputting fact content."
+    },
+    {
+      "sequence": 16,
+      "category": "missing-replica-degradation",
+      "command": "restore real bundle; remove object_replicas item store_id=github; attempt rebuild into a new target; cleanup",
+      "exit_code": 0,
+      "status": "PASS",
+      "output_summary": "Rebuild exited 1 with RUNTIME_REBUILD_REJECTED and missing-three-receipts message; no target SQLite was created; plaintext cleanup=true."
+    },
+    {
+      "sequence": 17,
+      "category": "version-rollback-drill",
+      "command": "validate real v0.0.0.4 rollback assets/images/doctor/predeploy DB; simulate deployment directory swap in a temporary directory; cleanup",
+      "exit_code": 0,
+      "status": "PASS",
+      "output_summary": "Simulated target became v0.0.0.4, failed release remained v0.0.0.5, restored DB integrity_check=ok, live v0.0.0.5 DB hash unchanged, rollback command prepared but not executed."
+    }
+  ],
+  "production_evidence_directory": "/var/lib/social-archive/evidence/SA-506/20260802T024958Z",
+  "unique_rollback_command": "sudo -n bash /var/lib/social-archive/evidence/SA-506/20260802T024958Z/rollback-v004.sh",
+  "git_commit_created": false,
+  "github_upload_performed": false
+}

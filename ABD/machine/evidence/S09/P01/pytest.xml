@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="24" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S09.P01_test" name="test_candidate_preflight_and_contract_pass_without_generated_reports" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_report_is_an_exact_deterministic_replay_of_frozen_vectors" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_no_domain_increment_forces_an_untouched_market_vector[BINARY_NO_INCREMENT]" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_no_domain_increment_forces_an_untouched_market_vector[MULTINOMIAL_NO_INCREMENT]" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_no_domain_increment_forces_an_untouched_market_vector[SPREAD_NO_INCREMENT]" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_no_domain_increment_forces_an_untouched_market_vector[TOTAL_NO_INCREMENT]" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_no_domain_increment_forces_an_untouched_market_vector[FUTURES_NO_INCREMENT]" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_verified_residual_is_capped_and_market_anchored" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_unproven_candidate_is_ignored_even_when_it_is_present" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_malformed_or_unproven_inputs_fail_closed[UNKNOWN_MARKET_FAMILY-&lt;lambda&gt;]" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_malformed_or_unproven_inputs_fail_closed[SPREAD_MISSING_SETTLEMENT_LINE-&lt;lambda&gt;]" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_malformed_or_unproven_inputs_fail_closed[VERIFIED_INCREMENT_WITHOUT_HASH-&lt;lambda&gt;]" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_malformed_or_unproven_inputs_fail_closed[INCOMPLETE_MARKET_VECTOR-&lt;lambda&gt;]" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_binary_float_probability_is_rejected" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_one_hundred_replays_are_hash_identical_without_waiting" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_ten_thousand_adverse_decimal_perturbations_remain_safe_without_soak" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_registry_rejects_distribution_or_fallback_drift" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_core_source_has_no_network_process_soak_or_order_capability" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_rollback_drill_is_hash_only_and_changes_no_external_state" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_candidate_fails_closed_when_registry_is_tampered" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_candidate_fails_closed_when_signed_predecessor_is_tampered" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_phase_receipt_is_absent_before_delivery_and_cannot_be_claimed" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_cli_is_wired_to_exact_contract_and_preserves_no_order_boundary" time="0.000" />
+    <testcase classname="tests.S09.P01_test" name="test_fixture_and_report_keep_financial_and_runtime_claims_unverified" time="0.000" />
+  </testsuite>
+</testsuites>

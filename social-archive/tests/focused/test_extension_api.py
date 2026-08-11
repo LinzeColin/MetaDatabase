@@ -202,3 +202,12 @@ def test_local_obsidian_bridge_receipts_are_safe_and_separate_from_server_obsidi
     assert {key: after[key] for key in ("id", "canonical_url", "title", "metadata_json")} == {
         key: detail[key] for key in ("id", "canonical_url", "title", "metadata_json")
     }
+
+
+# 这里原有 main 的 test_options_never_hides_the_pairing_input_when_no_code_is_available。
+# 它钉的是一次性配对码的设置页 UI，而那条链路在 2026-08-04 的 T03(b) 里整条删掉了
+# （改成资料库页面用自己的会话换令牌，经 SA_ADOPT_TOKEN 交给扩展，用户不输入任何字符）。
+# 留着它就是一条**永远变不绿的红**：它要求的那个输入框按设计不该存在。
+# 「不许把人堵死」这个意图由 test_extension_account_sync_bridge.py 接管——
+# 那里反过来断言 pairing_required / one_time_code_available 不许再出现。
+

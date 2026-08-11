@@ -7,6 +7,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { loadConfig } from "../../service/platform/config.mjs";
+import { R2ObjectStore } from "../../service/platform/object-store.mjs";
 import { testPlatform, testConfig } from "./helpers.mjs";
 
 const execFile = promisify(execFileCallback);
@@ -50,6 +51,23 @@ test("R2 主对象与 Private-Database 冷备使用隔离命名空间", () => {
   assert.equal(config.primaryObjectPrefix, "primary-objects");
   assert.equal(config.privateDatabaseBackupPrefix, "backups/private-database");
   assert.throws(() => loadConfig(productionEnv({ WRP_PRIVATE_DATABASE_BACKUP_PREFIX: "primary-objects" })), /命名空间必须隔离/);
+});
+
+test("R2 写入请求显式锁定 Standard 存储类", async () => {
+  let request;
+  const store = new R2ObjectStore({
+    endpoint: "https://fixture.r2.cloudflarestorage.com",
+    bucket: "weread-port-test",
+    accessKeyId: "fixture-access",
+    secretAccessKey: "fixture-secret",
+    attempts: 1,
+    fetchImpl: async (_url, init) => {
+      request = init;
+      return new Response(null, { status: 200 });
+    },
+  });
+  await store.put("objects/fixture", Buffer.from("fixture"));
+  assert.equal(request.headers["x-amz-storage-class"], "STANDARD");
 });
 
 test("单一公开入口使用 host-only 会话 Cookie，半配置管理域 fail-closed", () => {

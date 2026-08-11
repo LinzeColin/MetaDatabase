@@ -1,0 +1,116 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S09-P01-GENERIC-RESIDUAL",
+  "contract_id": "AC-S09-P01",
+  "requirement_id": "REQ-S09-P01",
+  "stage_id": "S09",
+  "phase_id": "P01",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "expected_next": "S09/P02_READY_NOT_STARTED",
+  "replay_count": 100,
+  "adverse_replay_count": 10000,
+  "claim_boundary": {
+    "network_accessed": false,
+    "actual_market_or_odds_observed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "cases": [
+    {
+      "id": "BINARY_NO_INCREMENT",
+      "market_family": "binary",
+      "market_probabilities": {
+        "HOME": "0.55",
+        "AWAY": "0.45"
+      },
+      "candidate_residual_probabilities": {
+        "HOME": "0.01",
+        "AWAY": "0.99"
+      },
+      "requested_residual_weight": "0.35",
+      "domain_increment": {
+        "status": "NONE",
+        "reproducible": false
+      }
+    },
+    {
+      "id": "MULTINOMIAL_NO_INCREMENT",
+      "market_family": "multinomial",
+      "market_probabilities": {
+        "HOME": "0.50",
+        "DRAW": "0.25",
+        "AWAY": "0.25"
+      },
+      "requested_residual_weight": "0.35",
+      "domain_increment": {
+        "status": "UNAVAILABLE",
+        "reproducible": false
+      }
+    },
+    {
+      "id": "SPREAD_NO_INCREMENT",
+      "market_family": "spread",
+      "settlement_line": "-3.5",
+      "market_probabilities": {
+        "FAVOURITE": "0.52",
+        "UNDERDOG": "0.48"
+      },
+      "requested_residual_weight": "0.35",
+      "domain_increment": {
+        "status": "UNVERIFIED",
+        "reproducible": false
+      }
+    },
+    {
+      "id": "TOTAL_NO_INCREMENT",
+      "market_family": "total",
+      "settlement_line": "2.5",
+      "market_probabilities": {
+        "OVER": "0.49",
+        "UNDER": "0.51"
+      },
+      "requested_residual_weight": "0.35",
+      "domain_increment": {
+        "status": "NONE",
+        "reproducible": false
+      }
+    },
+    {
+      "id": "FUTURES_NO_INCREMENT",
+      "market_family": "futures",
+      "market_probabilities": {
+        "A": "0.40",
+        "B": "0.30",
+        "C": "0.20",
+        "D": "0.10"
+      },
+      "requested_residual_weight": "0.35",
+      "domain_increment": {
+        "status": "NONE",
+        "reproducible": false
+      }
+    },
+    {
+      "id": "BINARY_VERIFIED_CAPPED",
+      "market_family": "binary",
+      "market_probabilities": {
+        "HOME": "0.60",
+        "AWAY": "0.40"
+      },
+      "candidate_residual_probabilities": {
+        "HOME": "0.70",
+        "AWAY": "0.30"
+      },
+      "requested_residual_weight": "0.60",
+      "domain_increment": {
+        "status": "VERIFIED",
+        "reproducible": true,
+        "evidence_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "frozen_window_id": "WINDOW_S09_P01"
+      }
+    }
+  ],
+  "expected_report_sha256": "10902945bda5c5129bdab7ec6ce1c1435ddfea0f44b33042fd078c9df288a03e"
+}

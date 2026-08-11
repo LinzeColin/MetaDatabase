@@ -1,0 +1,40 @@
+# JobHuntBot Online v0.3.0 SaaS｜Codex 最后一公里入口
+
+## 先做什么
+
+1. 读取 `PURSUING_GOAL.txt`、`AGENTS.md`、`taskpack/CANONICAL_CONTRACT.md`、`taskpack/task_dag.json` 和 `taskpack/acceptance_contract.json`。
+2. 只读观察 `LinzeColin/MetaDatabase` 最新 `main`、分支 `codex/jobhuntbot-online-v020-deployment`、真实 OVH/Coolify、域名、PostgreSQL、SMTP、DeepSeek Secret、Private-Database、R2 和 status。
+3. 从第一处真实断点执行 Task DAG；不要重新研究产品方向，也不要用整包覆盖仓库中更新且更好的实现。
+
+## 当前事实
+
+- 产品版本：`0.3.0`；任务包修订：`0.3.0-r1`。
+- 已核实远程基线：`LinzeColin/MetaDatabase` 分支 `codex/jobhuntbot-online-v020-deployment`，提交 `cf820c7a5841242a4727eb6c40c35079eb9bb152`，属于 v0.2.0。
+- v0.3.0 完整 Candidate 源码在本 ZIP；远程尚无可核验 v0.3.0 提交。Delivery Agent 观察最新仓库后按既有治理规则落库。
+- 默认岗位刷新周期严格固定为 **6 小时**；任何其他值都会被配置校验拒绝。
+- `evidence/local/` 只证明冷启动源码 Candidate 在隔离环境中的测试、浏览器事务、重启读回和任务包完整性；它不证明 OVH 生产完成。
+- 当前本地执行环境可能无法访问外部岗位 API；真实来源、SMTP、DeepSeek 和 HTTPS 必须在目标环境重跑。
+
+## 冻结范围
+
+- 邮箱注册、验证、登录、忘记密码和密码重置。
+- 多账户、多用户，私人资料与全部业务动作按 `user_id` 隔离。
+- 上传简历后自动形成资料草稿并启动岗位发现。
+- 推荐 Feed 支持关键词、城市、岗位族、技能、来源、新鲜度、资格、相关性、机会潜力和状态筛选。
+- 普通用户默认使用平台 DeepSeek Secret；用户看不到、填写不了、导出不了 API Key。
+- DeepSeek 不得推翻工作权利、Sponsorship 等确定性硬规则；失败时基础流程继续。
+- 不抓取未经授权的 SEEK、LinkedIn、Indeed；不绕过 CAPTCHA、Cloudflare、登录或 2FA；不自动最终提交申请。
+
+## Codex 最后一公里
+
+- 先备份，后迁移，再部署。
+- Secret 只进入服务器 Secret 管理或权限为 `0600` 的部署配置；不展示值。
+- 部署 PostgreSQL、Web、Scheduler、Worker。
+- 真实验证 SMTP、两账户邮箱生命周期、平台 DeepSeek、外部岗位来源和 6 小时调度。
+- 执行 `deploy/acceptance.sh`；失败只修第一处断点，然后重跑完整验收。
+- 只有根目录 `ACCEPTANCE_RESULT.json` 的 `core_verdict` 为 `PASS` 且无 P0/P1，才可报告生产完成。
+- 完成 commit、push、部署身份、回滚目标和 status 登记。
+
+## Owner 不需要做的事
+
+Owner 不运行终端、不编辑配置、不判断日志。只有真实邮箱/域名/Secret 权限、费用、法律或不可逆事项缺失时，才提出一个最小封闭动作。

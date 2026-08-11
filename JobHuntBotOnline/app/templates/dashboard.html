@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}首页｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div><span class="eyebrow">你的求职控制台</span><h1>今天从最值得的岗位开始</h1><p>系统每 {{ refresh_hours }} 小时刷新一次新鲜岗位。你不需要反复搜索和粘贴链接。</p></div>
+  <a class="button" href="/recommendations" data-testid="dashboard-view-recommendations">查看推荐岗位</a>
+</section>
+<section class="metric-grid">
+  <article class="metric"><span>推荐岗位</span><strong>{{ counts.recommendations }}</strong><small>自动发现并完成三层判断</small></article>
+  <article class="metric"><span>已收藏</span><strong>{{ counts.saved }}</strong><small>准备认真处理的机会</small></article>
+  <article class="metric"><span>已提交</span><strong>{{ counts.applied }}</strong><small>只统计有确认依据的申请</small></article>
+</section>
+<section class="two-column">
+  <article class="panel">
+    <div class="panel-head"><div><h2>自动刷新状态</h2><p>下一次会自动运行，不需要保持浏览器打开。</p></div><span class="status-pill {% if latest_run and latest_run.status == 'completed' %}ok{% endif %}">{{ latest_run.status if latest_run else '等待首次运行' }}</span></div>
+    {% if latest_run %}
+    <dl class="summary-list">
+      <div><dt>最近运行</dt><dd>{{ latest_run.completed_at or latest_run.created_at }}</dd></div>
+      <div><dt>发现岗位</dt><dd>{{ latest_run.jobs_seen }}</dd></div>
+      <div><dt>新增岗位</dt><dd>{{ latest_run.jobs_new }}</dd></div>
+      <div><dt>更新推荐</dt><dd>{{ latest_run.recommendations_updated }}</dd></div>
+    </dl>
+    {% else %}<p class="empty">完成简历确认后会立即启动第一次发现。</p>{% endif %}
+  </article>
+  <article class="panel">
+    <h2>推荐工作方式</h2>
+    <ol class="clean-list">
+      <li><b>先筛选</b><span>查看资格通过且相关性高的岗位。</span></li>
+      <li><b>再准备</b><span>生成申请包并核对工作权利等重要事实。</span></li>
+      <li><b>最后提交</b><span>在雇主官网完成提交，并保存确认依据。</span></li>
+    </ol>
+  </article>
+</section>
+<section class="quick-grid">
+  <a class="quick-card" href="/recommendations" data-testid="dashboard-recommendations-card"><b>推荐岗位</b><span>筛选最新、高相关机会 →</span></a>
+  <a class="quick-card" href="/applications" data-testid="dashboard-applications-card"><b>申请进度</b><span>记录面试、拒绝与 Offer →</span></a>
+  <a class="quick-card" href="/jobs/manual" data-testid="dashboard-manual-card"><b>手工导入</b><span>补充系统没有覆盖的岗位 →</span></a>
+  <a class="quick-card" href="/settings/profile" data-testid="dashboard-settings-card"><b>求职偏好</b><span>调整城市、岗位和边界 →</span></a>
+</section>
+{% endblock %}

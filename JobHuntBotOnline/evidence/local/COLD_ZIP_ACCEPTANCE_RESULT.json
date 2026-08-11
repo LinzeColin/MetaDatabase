@@ -1,0 +1,12 @@
+{
+  "verdict": "PASS",
+  "scope": "cold-extracted preverified ZIP in a separate directory",
+  "production_claimed": false,
+  "pytest_tests_passed": 18,
+  "browser_steps": 34,
+  "taskpack_validation": "PASS",
+  "ui_contract": "PASS",
+  "restart_readback": "PASS",
+  "refresh_interval_hours": 6,
+  "executable_deploy_scripts": true
+}

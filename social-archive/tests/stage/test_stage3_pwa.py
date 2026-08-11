@@ -61,6 +61,14 @@ def test_pwa_shell_is_self_contained_and_mobile_ready():
     html = (PWA_ROOT / "index.html").read_text(encoding="utf-8")
     app = (PWA_ROOT / "app.js").read_text(encoding="utf-8")
     styles = (PWA_ROOT / "styles.css").read_text(encoding="utf-8")
+    assert 'name="viewport"' in html
+    # The Owner-approved table shell replaced the v0.0.0.5 three-step onboarding
+    # copy and its modal detail dialog with a persistent detail drawer, and it
+    # dropped the .library.feed/.library.grid views at the 900/600px
+    # breakpoints.  Bind what the current shell actually ships.
+    assert 'id="detailDrawer"' in html
+    assert all(token in app for token in ("/v1/library?", "openDetail", "next_action_zh"))
+    assert all(token in styles for token in ("@media (max-width: 1180px)", "@media (max-width: 760px)"))
 
     assert 'name="viewport"' in html, "窄屏不可用：没有 viewport"
     assert 'id="detailDrawer"' in html, "没有详情载体"

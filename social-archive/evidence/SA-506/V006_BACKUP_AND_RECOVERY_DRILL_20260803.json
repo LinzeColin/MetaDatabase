@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-506",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T07:00:00Z",
+  "status": "PARTIAL",
+  "scope": "real_cold_backup_cold_restore_and_object_level_multi_target_recovery",
+  "executed_on": "OVH vps-83b882b4, /opt/social-archive",
+  "cold_backup": {
+    "status": "PASS",
+    "dry_run_status": "READY",
+    "manifest": "/var/lib/social-archive/backups/private-database/20260803T065819Z/manifest.json",
+    "fact_count": 1,
+    "verified_remote_copies": 2,
+    "verified_recovery_descriptors": 2,
+    "cipher_sha256": "43bb99ca3a156fff8dd7ea795eb8aafb14a75e6cadeb3eaef7d5eae802a885a2",
+    "local_checkout": false
+  },
+  "cold_restore": {
+    "verify_only": {
+      "r2": {"status": "PASS", "original_sha256": "c1634b375dec0ba33ad5e9eb4c90776fd519e4c2676621f5082cb34e895af9f4"},
+      "oci": {"status": "PASS", "original_sha256": "c1634b375dec0ba33ad5e9eb4c90776fd519e4c2676621f5082cb34e895af9f4"}
+    },
+    "real_restore_to_isolated_targets": {
+      "r2": {"status": "PASS", "files_restored": 2, "original_sha256": "c1634b375dec0ba33ad5e9eb4c90776fd519e4c2676621f5082cb34e895af9f4"},
+      "oci": {"status": "PASS", "files_restored": 2, "original_sha256": "c1634b375dec0ba33ad5e9eb4c90776fd519e4c2676621f5082cb34e895af9f4"}
+    },
+    "identical_plaintext_across_stores": true,
+    "targets_removed_after_drill": true
+  },
+  "object_level_recovery": {
+    "artifact_id": "art_c9bebcf6c08fc9d5684cfe0f7a83720f",
+    "artifact_state": "complete, with r2, oci and github replicas all recorded verified",
+    "r2": {"status": "PASS", "target_written": true, "bytes": 4096, "original_sha256": "701a8b97e9c5566d12663f3a4e9757d49942ea42e9611bea24227faffe5bd9a0", "cipher_sha256": "57467f8d618bf0c8d914fd560f39f6832022a5d04f31ab2afb861685c7a998fe"},
+    "oci": {"status": "PASS", "target_written": true, "bytes": 4096, "original_sha256": "701a8b97e9c5566d12663f3a4e9757d49942ea42e9611bea24227faffe5bd9a0", "cipher_sha256": "57467f8d618bf0c8d914fd560f39f6832022a5d04f31ab2afb861685c7a998fe"},
+    "github": {"status": "FAIL", "error_code": "GITHUB_RECEIPT_REPOSITORY_MISMATCH", "message": "GitHub 副本收据不属于配置的 Vault"},
+    "github_failure_assessment": {
+      "is_a_product_defect": false,
+      "explanation": "The stored GitHub receipt was written against the previous vault repository, which no longer exists. SOCIAL_ARCHIVE_GITHUB_ARCHIVE_REPOSITORY now points at the freshly created LinzeColin/Social-Archive-Vault, so the receipt no longer belongs to the configured vault and restore_object.py refuses it. This is the fail-closed guard behaving correctly; a recovery must never trust a receipt from an unconfigured repository.",
+      "consequence": "The third ciphertext copy must be re-established under the new vault before a true three-target recovery can be claimed. That is blocked by the same single root cause as SA-503."
+    }
+  },
+  "degrade_boundary_observed": {
+    "what": "restore_object.py refused artifact art_13c9f07eb26b6fbbd678cfd597fe0f36 with RECOVERY_RECEIPT_INVALID, 恢复对象不是完成态.",
+    "assessment": "Correct. That artifact is status=staged, and recovery is defined only over completed-state artifacts with verified receipts."
+  },
+  "what_this_proves": [
+    "The Private-Database cold backup writes two verified remote copies and two verified recovery descriptors, and both are independently restorable to the same plaintext hash.",
+    "Object-level recovery works for real from two of the three targets, producing byte-identical ciphertext and plaintext.",
+    "The recovery path fails closed rather than silently accepting a receipt from an unconfigured repository or a non-completed artifact."
+  ],
+  "what_this_does_not_prove": [
+    "SA-506 closure. A true three-target recovery is not demonstrated, because the GitHub third copy is unavailable.",
+    "The rollback rehearsal half of SA-506.",
+    "Any degrade drill involving a deliberately failed destination."
+  ],
+  "non_actions": [
+    "No production runtime, SQLite, CAS, secret or user content was modified. All restores wrote to isolated temporary targets that were removed afterwards.",
+    "No secret value was printed to terminal, transcript, evidence or Git.",
+    "No timer was enabled, no tag or release created, nothing pushed to origin."
+  ]
+}

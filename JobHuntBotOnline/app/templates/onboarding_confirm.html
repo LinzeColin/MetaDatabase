@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}确认关键事实｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="onboarding-head">
+  <span class="step-chip">第 2 步，共 2 步</span>
+  <h1>只确认会影响推荐结果的内容</h1>
+  <p>技能和经历已经从简历中整理。下面这些高影响事实不能让系统猜测。</p>
+</section>
+<form method="post" action="/onboarding/confirm" class="form-card" data-testid="onboarding-confirm-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="form-grid">
+    <label class="wide">目标岗位族<input name="primary_roles" required value="{{ profile.primary_role_families|join(', ') }}" placeholder="Finance, Data, Business Analysis" data-testid="confirm-roles"><small>用逗号分隔，系统会同时搜索常见同义岗位。</small></label>
+    <label class="wide">目标城市或地区<input name="target_locations" required value="{{ profile.target_locations|join(', ') }}" placeholder="Sydney, Melbourne, Remote Australia" data-testid="confirm-locations"></label>
+    <label>当前工作权利<input name="work_authorization" required value="{{ profile.work_authorization }}" placeholder="例如：Australia full working rights" data-testid="confirm-work-authorization"></label>
+    <label>现在需要 Sponsorship
+      <select name="sponsorship_now" required data-testid="confirm-sponsorship-now">
+        <option value="">请选择</option><option value="no" {% if profile.sponsorship_now == 'no' %}selected{% endif %}>不需要</option><option value="yes" {% if profile.sponsorship_now == 'yes' %}selected{% endif %}>需要</option><option value="uncertain" {% if profile.sponsorship_now == 'uncertain' %}selected{% endif %}>不确定</option>
+      </select>
+    </label>
+    <label>未来需要 Sponsorship
+      <select name="sponsorship_future" required data-testid="confirm-sponsorship-future">
+        <option value="">请选择</option><option value="no" {% if profile.sponsorship_future == 'no' %}selected{% endif %}>不需要</option><option value="yes" {% if profile.sponsorship_future == 'yes' %}selected{% endif %}>需要</option><option value="uncertain" {% if profile.sponsorship_future == 'uncertain' %}selected{% endif %}>不确定</option>
+      </select>
+    </label>
+    <fieldset class="wide"><legend>可接受工作模式</legend>
+      <div class="check-row">
+        <label><input type="checkbox" name="work_modes" value="remote" {% if 'remote' in profile.work_mode %}checked{% endif %}>远程</label>
+        <label><input type="checkbox" name="work_modes" value="hybrid" {% if 'hybrid' in profile.work_mode %}checked{% endif %}>混合</label>
+        <label><input type="checkbox" name="work_modes" value="onsite" {% if 'onsite' in profile.work_mode %}checked{% endif %}>现场</label>
+      </div>
+    </fieldset>
+    <label>是否接受搬迁<select name="relocation" data-testid="confirm-relocation"><option value="">视岗位而定</option><option value="yes">可以</option><option value="no">不可以</option></select></label>
+    <label>可入职时间<input name="available_start" value="{{ profile.available_start }}" placeholder="例如：2026-11 或 4 weeks notice" data-testid="confirm-available-start"></label>
+    <label>不接受的岗位<input name="avoid_roles" value="{{ profile.avoid_roles|join(', ') }}" placeholder="Sales, unpaid internship" data-testid="confirm-avoid-roles"></label>
+    <label>不接受的行业<input name="avoid_industries" value="{{ profile.avoid_industries|join(', ') }}" placeholder="例如：Gambling" data-testid="confirm-avoid-industries"></label>
+  </div>
+  <div class="form-actions"><a class="button ghost" href="/onboarding/upload" data-testid="confirm-back">返回换简历</a><button class="button large" type="submit" data-testid="confirm-submit">保存并自动寻找岗位</button></div>
+</form>
+{% endblock %}

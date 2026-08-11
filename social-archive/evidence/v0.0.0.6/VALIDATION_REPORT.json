@@ -1,0 +1,410 @@
+{
+  "status": "DEGRADED",
+  "version": "v0.0.0.6",
+  "commit": "488601d91cad287a37bf670285ee17ba623aedda",
+  "summary": {
+    "tasks_total": 32,
+    "tasks_pass": 23,
+    "tasks_not_pass": 9,
+    "product_runtime_verdict": "NOT_RUN",
+    "note": "DEGRADED, not PASS. 9 tasks are BLOCKED_ENVIRONMENT behind four root causes, each of which requires an Owner action at a provider UI."
+  },
+  "tasks": [
+    {
+      "task_id": "SA-000",
+      "stage": "S0",
+      "status": "PASS",
+      "semantic_disposition": "satisfied",
+      "result": "evidence/SA-000/RESULT.json",
+      "command_log": "evidence/SA-000/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-001",
+      "stage": "S0",
+      "status": "PASS",
+      "semantic_disposition": "REUSE_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+      "result": "evidence/SA-001/RESULT.json",
+      "command_log": "evidence/SA-001/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-002",
+      "stage": "S0",
+      "status": "PASS",
+      "semantic_disposition": "equivalent_after_owner_version_correction",
+      "result": "evidence/SA-002/RESULT.json",
+      "command_log": "evidence/SA-002/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-003",
+      "stage": "S0",
+      "status": "PASS",
+      "semantic_disposition": "equivalent_after_overlay_apply",
+      "result": "evidence/SA-003/RESULT.json",
+      "command_log": "evidence/SA-003/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-004",
+      "stage": "S0",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-004/RESULT.json",
+      "command_log": "evidence/SA-004/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-005",
+      "stage": "S0",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-005/RESULT.json",
+      "command_log": "evidence/SA-005/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-101",
+      "stage": "S1",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-101/RESULT.json",
+      "command_log": "evidence/SA-101/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-102",
+      "stage": "S1",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-102/RESULT.json",
+      "command_log": "evidence/SA-102/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-103",
+      "stage": "S1",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-103/RESULT.json",
+      "command_log": "evidence/SA-103/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-104",
+      "stage": "S1",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-104/RESULT.json",
+      "command_log": "evidence/SA-104/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-105",
+      "stage": "S1",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-105/RESULT.json",
+      "command_log": "evidence/SA-105/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-201",
+      "stage": "S2",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-201/RESULT.json",
+      "command_log": "evidence/SA-201/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-202",
+      "stage": "S2",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-202/RESULT.json",
+      "command_log": "evidence/SA-202/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-203",
+      "stage": "S2",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-203/RESULT.json",
+      "command_log": "evidence/SA-203/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-204",
+      "stage": "S2",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-204/RESULT.json",
+      "command_log": "evidence/SA-204/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-205",
+      "stage": "S2",
+      "status": "BLOCKED_ENVIRONMENT",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-205/RESULT.json",
+      "command_log": "evidence/SA-205/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-301",
+      "stage": "S3",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-301/RESULT.json",
+      "command_log": "evidence/SA-301/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-302",
+      "stage": "S3",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-302/RESULT.json",
+      "command_log": "evidence/SA-302/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-303",
+      "stage": "S3",
+      "status": "BLOCKED_ENVIRONMENT",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-303/RESULT.json",
+      "command_log": "evidence/SA-303/COMMAND_LOG.json",
+      "blocking_reason": "SA-205 未完成：扩展未安装，无法连接任何账号。"
+    },
+    {
+      "task_id": "SA-304",
+      "stage": "S3",
+      "status": "BLOCKED_ENVIRONMENT",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-304/RESULT.json",
+      "command_log": "evidence/SA-304/COMMAND_LOG.json",
+      "blocking_reason": "宿主机磁盘容量：38G 根分区 90% 已用，承载约八个无关项目。"
+    },
+    {
+      "task_id": "SA-305",
+      "stage": "S3",
+      "status": "BLOCKED_ENVIRONMENT",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-305/RESULT.json",
+      "command_log": "evidence/SA-305/COMMAND_LOG.json",
+      "blocking_reason": "依赖 SA-303 与 SA-304。"
+    },
+    {
+      "task_id": "SA-401",
+      "stage": "S4",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-401/RESULT.json",
+      "command_log": "evidence/SA-401/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-402",
+      "stage": "S4",
+      "status": "BLOCKED_ENVIRONMENT",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-402/RESULT.json",
+      "command_log": "evidence/SA-402/COMMAND_LOG.json",
+      "blocking_reason": "需要 Owner 在 Notion 创建免费 Integration 并共享目标数据源。"
+    },
+    {
+      "task_id": "SA-403",
+      "stage": "S4",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-403/RESULT.json",
+      "command_log": "evidence/SA-403/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-404",
+      "stage": "S4",
+      "status": "BLOCKED_ENVIRONMENT",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-404/RESULT.json",
+      "command_log": "evidence/SA-404/COMMAND_LOG.json",
+      "blocking_reason": "依赖 SA-402；且重试/对账路径未演练。"
+    },
+    {
+      "task_id": "SA-501",
+      "stage": "S5",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-501/RESULT.json",
+      "command_log": "evidence/SA-501/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-502",
+      "stage": "S5",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-502/RESULT.json",
+      "command_log": "evidence/SA-502/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-503",
+      "stage": "S5",
+      "status": "BLOCKED_ENVIRONMENT",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-503/RESULT.json",
+      "command_log": "evidence/SA-503/COMMAND_LOG.json",
+      "blocking_reason": "细粒度 token 按仓库 ID 选择，重建同名仓无法重新挂上，且无任何 API 可扩大其范围；需 Owner 在 GitHub 界面新建仅含 LinzeColin/Social-Archive-Vault、Contents 读写的 token。"
+    },
+    {
+      "task_id": "SA-504",
+      "stage": "S5",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-504/RESULT.json",
+      "command_log": "evidence/SA-504/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-505",
+      "stage": "S5",
+      "status": "PASS",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-505/RESULT.json",
+      "command_log": "evidence/SA-505/COMMAND_LOG.json",
+      "blocking_reason": null
+    },
+    {
+      "task_id": "SA-506",
+      "stage": "S5",
+      "status": "BLOCKED_ENVIRONMENT",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-506/RESULT.json",
+      "command_log": "evidence/SA-506/COMMAND_LOG.json",
+      "blocking_reason": "依赖 SA-503：无第三密文副本即无法演示三目标恢复。"
+    },
+    {
+      "task_id": "SA-507",
+      "stage": "S5",
+      "status": "BLOCKED_ENVIRONMENT",
+      "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+      "result": "evidence/SA-507/RESULT.json",
+      "command_log": "evidence/SA-507/COMMAND_LOG.json",
+      "blocking_reason": "9 项非 PASS：SA-205/SA-303/SA-305（扩展未安装）、SA-304（宿主机磁盘）、SA-402（Notion Integration Token）、SA-404（依赖 SA-402）、SA-503/SA-506（Vault 细粒度 token）。四个根因全部需要 Owner 在对应服务界面操作，无 API 可代劳。"
+    }
+  ],
+  "tests": {
+    "full_application_regression": "310 passed, 1 pre-existing non-failing Starlette deprecation warning",
+    "structural_verify": "scripts/final_verify.py PASS, application_suite_rerun=false",
+    "sealed_taskpack_verify": "START_HERE.py verify PASS on a clean extraction: 0 failures, 395 manifest entries verified, 97 candidate tests passed"
+  },
+  "deployment": {
+    "host": "OVH vps-83b882b4",
+    "project_dir": "/opt/social-archive",
+    "public_api_version": "0.0.0.6",
+    "pwa_asset": "assets/app.js?v=006-r1",
+    "images": [
+      "social-archive/core:0.0.0.6",
+      "social-archive/cli-tools:0.0.0.6"
+    ],
+    "containers": "core-api, core-worker, cli-tools all healthy",
+    "correction": "Earlier evidence claimed the tunnel origin was a container on the developer Mac. Retracted in evidence/SA-205/PRODUCTION_ORIGIN_CORRECTION_20260803.json."
+  },
+  "canaries": {
+    "platform_owner_canary": "NOT_RUN — extension not installed in the Owner's browser",
+    "storage_encrypted_canary": "PASS on R2 and OCI, identical cipher SHA-256, probe deleted after"
+  },
+  "storage": {
+    "r2": "PASS — 17/17 real artifacts replicated",
+    "oci": "PASS — 17/17 real artifacts replicated",
+    "github_third_copy": "BLOCKED_ENVIRONMENT — vault repo recreated and config repointed, but the fine-grained token resolves no vault repository",
+    "private_database": "PASS — no-clone fact delivered, idempotent re-run NO_CHANGE"
+  },
+  "restore": {
+    "cold_backup": "PASS — 2 verified remote copies, 2 verified recovery descriptors",
+    "cold_restore": "PASS from both R2 and OCI, identical plaintext hash, verify-only and real restore",
+    "object_recovery": "PARTIAL — PASS from R2 and OCI; GitHub fails closed with GITHUB_RECEIPT_REPOSITORY_MISMATCH because the historical receipt belongs to the deleted vault",
+    "three_target_recovery": "NOT_ESTABLISHED — depends on SA-503"
+  },
+  "destinations": {
+    "github_markdown": "PASS — real write, independently re-fetched and re-hashed",
+    "markdown": "PASS",
+    "obsidian": "PASS — filesystem vault, no token required",
+    "jsonl": "PASS",
+    "notion": "BLOCKED_ENVIRONMENT — needs an Integration token and a shared data_source_id"
+  },
+  "defects_found_and_fixed": [
+    "Pairing-code rotation could never reach a running Core: Compose bind-mounts each secret as a single file, so the container follows the inode, and rotation used temp-file plus os.replace. Fixed with an in-place write under flock; verified live.",
+    "start_readers.sh and prepare_systemd_host.sh interpolated bare variables immediately before full-width punctuation, which aborts under a C/POSIX locale. All four braced, with a repo-wide regression.",
+    "doctor.sh --self-test died on an opaque UnicodeDecodeError caused by nine macOS AppleDouble sidecars in the deploy tree. Removed; the self-test now names them.",
+    "SOCIAL_ARCHIVE_GITHUB_ARCHIVE_REPOSITORY pointed at Private-Database, collapsing the object-bytes plane into the structured-facts plane. Repointed; the dedicated vault did not exist and was recreated.",
+    "backup.py chained the two cold-backup stores, so an R2 failure took the offsite copy from two copies to zero. The frozen pack already iterated them independently; restored.",
+    "ExportRequest and PairingRequest accepted unknown fields, so a wrong field name returned 202 having exported nothing. Both now reject extras.",
+    "Five test files still asserted the v0.0.0.5 shell and one asserted the completion contract in the extension instead of the server. Reconciled against the frozen pack and the Owner-approved prototype."
+  ],
+  "known_degradations": [
+    {
+      "root_cause": "Extension not installed in the Owner's logged-in Chrome",
+      "tasks": [
+        "SA-205",
+        "SA-303",
+        "SA-305"
+      ],
+      "why_owner_only": "No browser is connected to the agent session, so the profile is unreachable.",
+      "entry_point_ready": "https://social-archive.linzezhang.com/extension-install returns 200; package verified 0.0.0.6 with bridge.js"
+    },
+    {
+      "root_cause": "No fine-grained token scoped to LinzeColin/Social-Archive-Vault",
+      "tasks": [
+        "SA-503",
+        "SA-506"
+      ],
+      "why_owner_only": "Fine-grained tokens select repositories by ID, so recreating the name cannot re-attach the orphaned token, and no GitHub API can widen one. Using the broad local OAuth credential on the host, or retargeting the third copy at Private-Database, were both rejected as boundary violations."
+    },
+    {
+      "root_cause": "No Notion Integration token or shared data_source_id",
+      "tasks": [
+        "SA-402",
+        "SA-404"
+      ],
+      "why_owner_only": "Notion Integration tokens can only be created in Notion's own UI.",
+      "partial_mitigation": "export_all.py emits notion-import.csv as a zero-credential manual route"
+    },
+    {
+      "root_cause": "Host disk capacity",
+      "tasks": [
+        "SA-304"
+      ],
+      "why_owner_only": "Karakeep and Linkwarden need several GB; the 38 GB root is at 90 percent serving about eight unrelated projects. Pruning another project's images or volumes is not a build-agent decision."
+    }
+  ],
+  "release_actions_performed": {
+    "git_push": false,
+    "tag": false,
+    "release": false,
+    "image_publish": false,
+    "timer_enabled": false,
+    "note": "Per the standing instruction, nothing is pushed until the whole task pack is complete."
+  },
+  "branch_pr_state": {
+    "branch": "claude/social-archive-v0-0-0-6-eaad48",
+    "pushed": false,
+    "pr": null
+  },
+  "evidence_root": "social-archive/evidence",
+  "rollback": {
+    "source_tarball": "/opt/social-archive-rollback/opt-social-archive-source-20260803T055259Z.tar.gz",
+    "drilled": true,
+    "drill_result": "tar intact, 6351 members, VERSION 0.0.0.5, compose pinned to :0.0.0.5, Dockerfile and 28 src modules present; extracted to an isolated dir and removed, production untouched",
+    "prebuilt_0_0_0_5_images": "ABSENT — removed during the cleanup after the failed Karakeep pull. An earlier draft of this report claimed they were retained; that was asserted, not verified.",
+    "single_command": "sudo tar -xzf /opt/social-archive-rollback/opt-social-archive-source-20260803T055259Z.tar.gz -C /opt && cd /opt/social-archive && sudo cp /opt/social-archive-rollback/env-20260803T055259Z.bak .env && sudo docker compose build core-api core-worker cli-tools && sudo docker compose up -d",
+    "cost": "about five minutes and roughly 1 GB of disk, because the images must be rebuilt",
+    "data_plane_safety": "runtime/, secrets and the SQLite data plane are outside the tarball and are not touched"
+  }
+}

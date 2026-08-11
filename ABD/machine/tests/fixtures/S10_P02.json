@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S10-P02-BLOCK-BOOTSTRAP",
+  "contract_id": "AC-S10-P02",
+  "requirement_id": "REQ-S10-P02",
+  "stage_id": "S10",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "base_probability": "0.620000000",
+  "blocks": [
+    {"block_id": "B01", "residuals": ["-0.030", "-0.020", "-0.010", "0.000"]},
+    {"block_id": "B02", "residuals": ["-0.020", "-0.010", "0.000", "0.010"]},
+    {"block_id": "B03", "residuals": ["-0.010", "0.000", "0.010", "0.020"]},
+    {"block_id": "B04", "residuals": ["-0.025", "-0.015", "-0.005", "0.005"]},
+    {"block_id": "B05", "residuals": ["-0.015", "-0.005", "0.005", "0.015"]},
+    {"block_id": "B06", "residuals": ["-0.005", "0.005", "0.015", "0.025"]},
+    {"block_id": "B07", "residuals": ["-0.020", "-0.010", "0.010", "0.020"]},
+    {"block_id": "B08", "residuals": ["-0.010", "0.000", "0.020", "0.030"]}
+  ],
+  "runtime_seed": 1729,
+  "evaluation_seed": 2718,
+  "monotonic_probe_probabilities": ["0.150000000", "0.500000000", "0.850000000"],
+  "claim_boundary": {
+    "network_accessed": false,
+    "actual_market_or_odds_observed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "predecessor": {
+    "contract_id": "AC-S10-P01",
+    "evidence_path": "machine/evidence/EVD-S10-P01.json",
+    "sha256": "851e86a0e1deb0166fc07a1b0c726e31cb68c12e0809df0237ca0a2b1225c6f2"
+  },
+  "expected_manifest_sha256": "7db203809f881696db69ff9a0857157e6e87b46d035c0ae1177cbc172584591c"
+}

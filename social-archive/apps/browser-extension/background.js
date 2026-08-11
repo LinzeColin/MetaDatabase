@@ -189,6 +189,19 @@ async function injectFabIfAuthorized(tabId, url) {
 const PENDING_CONNECTIONS_KEY = "saPendingAccountConnections";
 const SYNC_QUEUE_KEY = "saAccountSyncQueue";
 const SYNC_QUEUE_LOCK_KEY = "saAccountSyncQueueLock";
+// A live sync refreshes its lock on every batch, so anything older than this
+// belongs to a worker MV3 has already terminated.
+const SYNC_QUEUE_LOCK_STALE_MS = 3 * 60 * 1000;
+
+async function refreshSyncQueueLock() {
+  const stored = await chrome.storage.local.get({ [SYNC_QUEUE_LOCK_KEY]: null });
+  const lock = stored[SYNC_QUEUE_LOCK_KEY];
+  if (lock) await chrome.storage.local.set({ [SYNC_QUEUE_LOCK_KEY]: { ...lock, heartbeatAt: Date.now() } });
+}
+
+// A lock can only be held by the running worker. If this file is evaluating,
+// any lock in storage was left by a worker that is already gone.
+chrome.storage.local.remove(SYNC_QUEUE_LOCK_KEY).catch(() => {});
 const SYNC_QUEUE_LAST_RESULT_KEY = "saAccountSyncQueueLastResult";
 const SYNC_CONTROL_KEY = "saSyncRunControls";
 const SYNC_QUEUE_ALARM = "sa-account-sync-queue";
@@ -871,6 +884,9 @@ async function findExistingPlatformTab(platform, preferredTabId = null) {
 }
 
 async function sendSyncBatch(syncRunId, body) {
+  // Every batch proves the worker is still alive, which is what keeps a long
+  // scan from having its own lock treated as abandoned.
+  await refreshSyncQueueLock();
   return SA.api(`/v1/sync-runs/${encodeURIComponent(syncRunId)}/batches`, {
     method: "POST",
     body: JSON.stringify(body),
@@ -1125,9 +1141,35 @@ async function connectPlatformSessionByCookies(platform) {
   }
 }
 
+/** 两个网址是不是同一个站（含子域）。
+ *
+ * 2026-08-12 合并 main 时补回来的：`resolveRelationUrl` 里那句
+ * 「优先用连接时存下的真实主页地址」是 main 的修复，整段自动合了进来，
+ * **而它依赖的这个函数落在我按「取我这边」解掉的那个冲突块里**——
+ * 于是 background.js 调了一个不存在的函数。`node --check` 查不出来
+ * （它不做符号解析），单元测试也碰不到，只有用户点到那颗按钮的一刻才会炸。
+ * 抓到它的是 `find_calls_to_functions_that_do_not_exist.py`。
+ */
+function sameOriginUrl(candidate, reference) {
+  try {
+    const a = new URL(candidate);
+    const b = new URL(reference);
+    return a.hostname === b.hostname || a.hostname.endsWith(`.${b.hostname}`) || b.hostname.endsWith(`.${a.hostname}`);
+  } catch (_) {
+    return false;
+  }
+}
+
 function resolveRelationUrl(platform, relation, profileUrl = "") {
   const spec = platformSpec(platform);
   let url = spec?.relationUrls?.[relation] || spec?.home;
+  // Favorites and likes live as tabs on the owner's own profile for
+  // Xiaohongshu, Douyin and Kuaishou, but the spec placeholder carries no user
+  // id -- https://www.xiaohongshu.com/user/profile is not anybody's profile.
+  // Navigating there lands on a page with no relation tabs at all, so the scan
+  // reported RELATION_TAB_NOT_FOUND and imported nothing on every run. The
+  // connect flow already stored the real profile URL; prefer it.
+  if (profileUrl && spec?.relationUrls?.[relation] && sameOriginUrl(profileUrl, url)) url = profileUrl;
   if (platform === "x" && relation === "like" && /https:\/\/x\.com\/[^/]+/i.test(profileUrl)) url = `${profileUrl.replace(/\/$/, "")}/likes`;
   if (platform === "bilibili" && /space\.bilibili\.com\/\d+/i.test(profileUrl)) {
     const base = profileUrl.match(/https:\/\/space\.bilibili\.com\/\d+/i)?.[0];
@@ -1885,9 +1927,21 @@ async function syncAccountById(accountId, options = {}) {
     account,
     syncRunId: options.syncRunId || null,
     tabId: options.tabId || null,
-    profileUrl: options.profileUrl || "",
+    // Take the profile URL from the account itself rather than trusting the
+    // caller to thread it through. enqueueAllAccounts -- the "sync everything"
+    // button, which is the primary path -- never passed one, so the scan fell
+    // back to the userless placeholder and found no relation tabs at all.
+    profileUrl: options.profileUrl || accountProfileUrl(account),
     triggerType: options.triggerType || "manual"
   });
+}
+
+function accountProfileUrl(account) {
+  const candidates = [account?.metadata?.profile_url, account?.profile_url, account?.external_account_id];
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && /^https?:\/\//i.test(candidate)) return candidate;
+  }
+  return "";
 }
 
 async function syncAllAccounts(triggerType = "manual") {

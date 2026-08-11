@@ -43,7 +43,10 @@ export class R2ObjectStore {
   }
   async put(key, bytes, metadata = {}) {
     const body = Buffer.from(bytes);
-    const headers = Object.fromEntries(Object.entries(metadata).map(([name, value]) => [`x-amz-meta-${safeHeader(name)}`, String(value)]));
+    const headers = {
+      "x-amz-storage-class": "STANDARD",
+      ...Object.fromEntries(Object.entries(metadata).map(([name, value]) => [`x-amz-meta-${safeHeader(name)}`, String(value)])),
+    };
     const response = await this.request("PUT", key, body, headers);
     if (!response.ok) throw Object.assign(new Error(`R2 写入失败：HTTP ${response.status}`), { code: "R2_WRITE", status: response.status });
     return { key, size: body.length };

@@ -1,0 +1,179 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S09/P02/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S09/P02_test.py --junitxml=machine/evidence/S09/P02/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S09/P02/pytest.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S09-P02 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S09-P02",
+  "decision": "TIME_SAFE_TENNIS_COMBAT_RESIDUALS_READY_DOWNSTREAM_GATES_REQUIRED",
+  "decision_sha256": "9d89c733dab17b26b53df2790d078d43b229ad37671ae6e7ac995fa680266f8c",
+  "deterministic_replay": {
+    "adverse_perturbation_iterations": 10000,
+    "real_time_wait_performed": false,
+    "replay_iterations": 100
+  },
+  "evidence_id": "EVD-S09-P02",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "hashes": {
+    "code": "d7e495e37c00c2c11259c6d58f553fc1d13a6865cd156b826a02ee8b3745483a",
+    "inputs": {
+      "abd_acceptance/tennis_combat_models.py": "d7e495e37c00c2c11259c6d58f553fc1d13a6865cd156b826a02ee8b3745483a",
+      "combat_model.py": "20509f6daf3c6d1c2827fb5d9f749a30b2959bfabb5140a6fdcd2075839d3a62",
+      "feature_availability.json": "654beca9b448ca1d5d375d3981e631e3630f24eea7b6cb7e86308d8d3588de6b",
+      "machine/evidence/EVD-S09-P01.json": "46883601e3117534fa91ba8f1574c7e0e57188dccd371d0b8581f2707f4a6b6f",
+      "machine/evidence/S09/P02/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S09/P02/pytest.xml": "244ee86d47eb874f60d89b7cbbd1466e04a80735cb3ac5a2759622a18084c506",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S09_P02.json": "81e367bdfce2ab5c4e07a87cea46d0ee5dc7f5cfb19877f3c6ca737b3b6d11f0",
+      "market_family_registry.json": "b61486138f221ec8ef54f30359867cc9f84049df33cf21548f5988519cd58930",
+      "tennis_model.py": "e25e5b161fc0b80fd1faced3984b73841ac6c75ff94a8f04d0f6f6ae186a34c7",
+      "tests/S09/P02_test.py": "da3ddacf6f2a6f4597be2baf5dfa86518d5919b6b8da000c6480caaf82b1b80a"
+    },
+    "rollback_evidence": "5f9cd9fb5b6327c954ca8e499f4cda6df32b0bb9b82fb17d5d8f3289368d4852"
+  },
+  "next": "S09/P03_READY_NOT_STARTED",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S09_P02_LOCAL_EVIDENCE_ONLY_STAGE_REVIEW_REQUIRED_BEFORE_UPLOAD",
+  "requirement_id": "REQ-S09-P02",
+  "rollback": {
+    "artifacts": {
+      "abd_acceptance/__init__.py": {
+        "sha256": "fdf8e44005284720c097e01ff5d992f8e19b42afeb28a996e8bba3e78b0f46d7",
+        "status": "PASS"
+      },
+      "abd_acceptance/__main__.py": {
+        "sha256": "f9fe847914c75054e3087075e6df1b0fb420f3d89c2b2085f7a0ab5fb256734d",
+        "status": "PASS"
+      },
+      "abd_acceptance/tennis_combat_models.py": {
+        "sha256": "d7e495e37c00c2c11259c6d58f553fc1d13a6865cd156b826a02ee8b3745483a",
+        "status": "PASS"
+      },
+      "combat_model.py": {
+        "sha256": "20509f6daf3c6d1c2827fb5d9f749a30b2959bfabb5140a6fdcd2075839d3a62",
+        "status": "PASS"
+      },
+      "feature_availability.json": {
+        "sha256": "654beca9b448ca1d5d375d3981e631e3630f24eea7b6cb7e86308d8d3588de6b",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S09_P02.json": {
+        "sha256": "81e367bdfce2ab5c4e07a87cea46d0ee5dc7f5cfb19877f3c6ca737b3b6d11f0",
+        "status": "PASS"
+      },
+      "tennis_model.py": {
+        "sha256": "e25e5b161fc0b80fd1faced3984b73841ac6c75ff94a8f04d0f6f6ae186a34c7",
+        "status": "PASS"
+      },
+      "tests/S09/P02_test.py": {
+        "sha256": "da3ddacf6f2a6f4597be2baf5dfa86518d5919b6b8da000c6480caaf82b1b80a",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S09-P02",
+    "evidence_id": "EVD-S09-P02-ROLLBACK",
+    "external_state_changed": false,
+    "feature_flags": [
+      "model:tennis_surface_serve_return",
+      "model:combat_rating_style_readiness"
+    ],
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_TENNIS_AND_COMBAT_SCOPED_MODEL_FLAGS_RESTORE_P01_RECEIPT_KEEP_ALL_EVIDENCE",
+    "order_submission_enabled": false,
+    "production_state_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "shared_runtime_contract": {
+    "current_validation": "evaluate_contract",
+    "paths_excluded_from_receipt_input_hashes": [
+      "abd_acceptance/__main__.py",
+      "abd_acceptance/__init__.py"
+    ],
+    "reason": "downstream dispatcher or bootstrap evolution must not invalidate phase-owned evidence"
+  },
+  "stage_id": "S09",
+  "status": "PASS",
+  "validation": {
+    "contract_id": "AC-S09-P02",
+    "decision": "TIME_SAFE_TENNIS_COMBAT_RESIDUALS_READY_DOWNSTREAM_GATES_REQUIRED",
+    "external_effect_boundary": {
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submission_enabled": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_market_or_odds_observed": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-30T00:00:00+10:00",
+    "hashes": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/tennis_combat_models.py": "d7e495e37c00c2c11259c6d58f553fc1d13a6865cd156b826a02ee8b3745483a",
+      "combat_model.py": "20509f6daf3c6d1c2827fb5d9f749a30b2959bfabb5140a6fdcd2075839d3a62",
+      "feature_availability.json": "654beca9b448ca1d5d375d3981e631e3630f24eea7b6cb7e86308d8d3588de6b",
+      "machine/evidence/EVD-S09-P01.json": "46883601e3117534fa91ba8f1574c7e0e57188dccd371d0b8581f2707f4a6b6f",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S09_P02.json": "81e367bdfce2ab5c4e07a87cea46d0ee5dc7f5cfb19877f3c6ca737b3b6d11f0",
+      "tennis_model.py": "e25e5b161fc0b80fd1faced3984b73841ac6c75ff94a8f04d0f6f6ae186a34c7",
+      "tests/S09/P02_test.py": "da3ddacf6f2a6f4597be2baf5dfa86518d5919b6b8da000c6480caaf82b1b80a"
+    },
+    "next": "S09/P03_READY_NOT_STARTED",
+    "phase_id": "P02",
+    "product_version": "0.0.0.1",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "requirement_id": "REQ-S09-P02",
+    "schema_version": "1.0.0",
+    "stage_id": "S09",
+    "status": "PASS",
+    "summary": {
+      "checks": 39,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 39
+    }
+  }
+}

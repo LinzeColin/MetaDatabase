@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}出现问题｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="center-card">
+  <span class="status-code">{{ status }}</span>
+  <h1>这一步没有完成</h1>
+  <p>{{ detail }}</p>
+  <a class="button" href="/" data-testid="error-home">返回安全入口</a>
+</section>
+{% endblock %}

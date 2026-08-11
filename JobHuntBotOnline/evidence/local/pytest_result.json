@@ -1,0 +1,9 @@
+{
+  "verdict": "PASS",
+  "command": "python -m pytest -q",
+  "tests_passed": 18,
+  "return_code": 0,
+  "duration_seconds": 12.658,
+  "output_tail": "..................                                                       [100%]",
+  "production_claimed": false
+}

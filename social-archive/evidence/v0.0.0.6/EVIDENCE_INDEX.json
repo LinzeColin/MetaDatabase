@@ -1,0 +1,334 @@
+{
+  "schema_version": "1.0",
+  "version": "v0.0.0.6",
+  "status": "DEGRADED",
+  "validation_report": "evidence/v0.0.0.6/VALIDATION_REPORT.json",
+  "validation_report_md": "evidence/v0.0.0.6/VALIDATION_REPORT.md",
+  "tasks": {
+    "SA-000": {
+      "status": "PASS",
+      "stage": "S0",
+      "evidence_files": [
+        "evidence/SA-000/COMMAND_LOG.json",
+        "evidence/SA-000/RESULT.json",
+        "evidence/SA-000/V006_TASKPACK_REVERIFICATION_20260803.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-001": {
+      "status": "PASS",
+      "stage": "S0",
+      "evidence_files": [
+        "evidence/SA-001/COMMAND_LOG.json",
+        "evidence/SA-001/RESULT.json",
+        "evidence/SA-001/SEMANTIC_RECONCILE.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-002": {
+      "status": "PASS",
+      "stage": "S0",
+      "evidence_files": [
+        "evidence/SA-002/COMMAND_LOG.json",
+        "evidence/SA-002/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-003": {
+      "status": "PASS",
+      "stage": "S0",
+      "evidence_files": [
+        "evidence/SA-003/ASSET_ADOPTION_REPORT.json",
+        "evidence/SA-003/COMMAND_LOG.json",
+        "evidence/SA-003/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-004": {
+      "status": "PASS",
+      "stage": "S0",
+      "evidence_files": [
+        "evidence/SA-004/COMMAND_LOG.json",
+        "evidence/SA-004/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-005": {
+      "status": "PASS",
+      "stage": "S0",
+      "evidence_files": [
+        "evidence/SA-005/COMMAND_LOG.json",
+        "evidence/SA-005/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-101": {
+      "status": "PASS",
+      "stage": "S1",
+      "evidence_files": [
+        "evidence/SA-101/COMMAND_LOG.json",
+        "evidence/SA-101/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-102": {
+      "status": "PASS",
+      "stage": "S1",
+      "evidence_files": [
+        "evidence/SA-102/COMMAND_LOG.json",
+        "evidence/SA-102/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-103": {
+      "status": "PASS",
+      "stage": "S1",
+      "evidence_files": [
+        "evidence/SA-103/COMMAND_LOG.json",
+        "evidence/SA-103/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-104": {
+      "status": "PASS",
+      "stage": "S1",
+      "evidence_files": [
+        "evidence/SA-104/COMMAND_LOG.json",
+        "evidence/SA-104/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-105": {
+      "status": "PASS",
+      "stage": "S1",
+      "evidence_files": [
+        "evidence/SA-105/COMMAND_LOG.json",
+        "evidence/SA-105/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-201": {
+      "status": "PASS",
+      "stage": "S2",
+      "evidence_files": [
+        "evidence/SA-201/COMMAND_LOG.json",
+        "evidence/SA-201/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-202": {
+      "status": "PASS",
+      "stage": "S2",
+      "evidence_files": [
+        "evidence/SA-202/COMMAND_LOG.json",
+        "evidence/SA-202/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-203": {
+      "status": "PASS",
+      "stage": "S2",
+      "evidence_files": [
+        "evidence/SA-203/COMMAND_LOG.json",
+        "evidence/SA-203/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-204": {
+      "status": "PASS",
+      "stage": "S2",
+      "evidence_files": [
+        "evidence/SA-204/COMMAND_LOG.json",
+        "evidence/SA-204/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-205": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "stage": "S2",
+      "evidence_files": [
+        "evidence/SA-205/ACCESS_BOUNDARY_PREFLIGHT_20260803.json",
+        "evidence/SA-205/BROWSER_EXTENSION_LOAD_CAPABILITY_20260803.json",
+        "evidence/SA-205/COMMAND_LOG.json",
+        "evidence/SA-205/CONTAINER_PAIRING_RUNTIME_SMOKE.json",
+        "evidence/SA-205/CURRENT_HEAD_CANARY_PREFLIGHT_20260803.json",
+        "evidence/SA-205/LOOPBACK_PAIRING_SMOKE.json",
+        "evidence/SA-205/OWNER_CANARY_BROWSER_READINESS_20260803.json",
+        "evidence/SA-205/PAIRING_EXCHANGE_SMOKE.json",
+        "evidence/SA-205/PRODUCTION_BRIDGE_PAIRING_DIAGNOSTIC_20260803.json",
+        "evidence/SA-205/PRODUCTION_IDENTITY_PRECONDITION.json",
+        "evidence/SA-205/PRODUCTION_ORIGIN_CORRECTION_20260803.json",
+        "evidence/SA-205/PRODUCTION_ORIGIN_READBACK.json",
+        "evidence/SA-205/RESULT.json",
+        "evidence/SA-205/SENDER_TAB_CAPTURE_RECONCILIATION_20260803.json",
+        "evidence/SA-205/V006_CONTRACT_PORTABILITY_20260803.json",
+        "evidence/SA-205/V006_EXTENSION_INSTALL_ENTRY_POINT_20260803.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-301": {
+      "status": "PASS",
+      "stage": "S3",
+      "evidence_files": [
+        "evidence/SA-301/COMMAND_LOG.json",
+        "evidence/SA-301/RESULT.json",
+        "evidence/SA-301/V006_PRODUCTION_TABLE_CONTRACT_20260803.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-302": {
+      "status": "PASS",
+      "stage": "S3",
+      "evidence_files": [
+        "evidence/SA-302/COMMAND_LOG.json",
+        "evidence/SA-302/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-303": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "stage": "S3",
+      "evidence_files": [
+        "evidence/SA-303/COMMAND_LOG.json",
+        "evidence/SA-303/RESULT.json",
+        "evidence/SA-303/V006_ACCOUNT_SYNC_CENTRE_20260803.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-304": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "stage": "S3",
+      "evidence_files": [
+        "evidence/SA-304/COMMAND_LOG.json",
+        "evidence/SA-304/RESULT.json",
+        "evidence/SA-304/V006_OPTIONAL_READERS_20260803.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-305": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "stage": "S3",
+      "evidence_files": [
+        "evidence/SA-305/COMMAND_LOG.json",
+        "evidence/SA-305/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-401": {
+      "status": "PASS",
+      "stage": "S4",
+      "evidence_files": [
+        "evidence/SA-401/COMMAND_LOG.json",
+        "evidence/SA-401/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-402": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "stage": "S4",
+      "evidence_files": [
+        "evidence/SA-402/COMMAND_LOG.json",
+        "evidence/SA-402/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-403": {
+      "status": "PASS",
+      "stage": "S4",
+      "evidence_files": [
+        "evidence/SA-403/COMMAND_LOG.json",
+        "evidence/SA-403/RESULT.json",
+        "evidence/SA-403/V006_OBSIDIAN_VAULT_DESTINATION_20260803.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-404": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "stage": "S4",
+      "evidence_files": [
+        "evidence/SA-404/COMMAND_LOG.json",
+        "evidence/SA-404/RESULT.json",
+        "evidence/SA-404/V006_MULTI_DESTINATION_RECEIPTS_20260803.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-501": {
+      "status": "PASS",
+      "stage": "S5",
+      "evidence_files": [
+        "evidence/SA-501/COMMAND_LOG.json",
+        "evidence/SA-501/RESULT.json",
+        "evidence/SA-501/V006_ENCRYPTED_OBJECT_CANARY_20260803.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-502": {
+      "status": "PASS",
+      "stage": "S5",
+      "evidence_files": [
+        "evidence/SA-502/COMMAND_LOG.json",
+        "evidence/SA-502/RESULT.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-503": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "stage": "S5",
+      "evidence_files": [
+        "evidence/SA-503/COMMAND_LOG.json",
+        "evidence/SA-503/RESULT.json",
+        "evidence/SA-503/V006_THIRD_COPY_STATUS_20260803.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-504": {
+      "status": "PASS",
+      "stage": "S5",
+      "evidence_files": [
+        "evidence/SA-504/COMMAND_LOG.json",
+        "evidence/SA-504/RESULT.json",
+        "evidence/SA-504/V006_PRIVATE_DATABASE_FACTS_20260803.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-505": {
+      "status": "PASS",
+      "stage": "S5",
+      "evidence_files": [
+        "evidence/SA-505/COMMAND_LOG.json",
+        "evidence/SA-505/RESULT.json",
+        "evidence/SA-505/V006_DEPLOYMENT_AND_EDGE_20260803.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-506": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "stage": "S5",
+      "evidence_files": [
+        "evidence/SA-506/COMMAND_LOG.json",
+        "evidence/SA-506/RESULT.json",
+        "evidence/SA-506/V006_BACKUP_AND_RECOVERY_DRILL_20260803.json"
+      ],
+      "history_preserved": true
+    },
+    "SA-507": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "stage": "S5",
+      "evidence_files": [
+        "evidence/SA-507/COMMAND_LOG.json",
+        "evidence/SA-507/OWNER_STOP_AND_UPLOAD_20260802.json",
+        "evidence/SA-507/PHASE_A_PRODUCTION_20260731.json",
+        "evidence/SA-507/PHASE_B_PRIVATE_DATABASE_FACTS_20260801.json",
+        "evidence/SA-507/PHASE_B_PRIVATE_DATABASE_FACTS_PRECHECK_20260801.json",
+        "evidence/SA-507/PHASE_C_THREE_TARGET_OBJECT_RECOVERY_20260801.json",
+        "evidence/SA-507/PHASE_D_PRODUCTION_RELEASE_DEPLOY_SMOKE_20260801.json",
+        "evidence/SA-507/PHASE_E_FINAL_CONSOLIDATION_20260801.json",
+        "evidence/SA-507/RELEASE_REPORT.json",
+        "evidence/SA-507/RESULT.json",
+        "evidence/SA-507/STAGE0_SEMANTIC_RECONCILE_20260802.json",
+        "evidence/SA-507/V005_FINAL_EXECUTION_20260802.json"
+      ],
+      "history_preserved": true
+    }
+  }
+}

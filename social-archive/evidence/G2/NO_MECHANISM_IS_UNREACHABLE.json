@@ -1,6 +1,6 @@
 {
   "status": "PASS",
-  "functions_checked": 83,
+  "functions_checked": 86,
   "senders_scanned": [
     "apps/browser-extension/bridge.js",
     "apps/browser-extension/connect-frame.html",

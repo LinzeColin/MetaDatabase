@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}求职偏好｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="settings-layout">
+  <aside class="settings-nav"><h2>设置</h2><a class="active" href="/settings/profile">求职偏好</a><a href="/settings/security">账户安全</a><a href="/settings/data">数据与隐私</a></aside>
+  <form method="post" action="/settings/profile" class="form-card" data-testid="settings-profile-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <h1>求职偏好</h1><p>修改后会自动重新评估推荐；下一次计划刷新仍保持每 6 小时一次。</p>
+    <div class="form-grid">
+      <label class="wide">目标岗位族<input name="primary_roles" required value="{{ profile.primary_role_families|join(', ') }}" data-testid="settings-roles"></label>
+      <label class="wide">目标城市或地区<input name="target_locations" required value="{{ profile.target_locations|join(', ') }}" data-testid="settings-locations"></label>
+      <label>当前工作权利<input name="work_authorization" required value="{{ profile.work_authorization }}" data-testid="settings-work-authorization"></label>
+      <label>现在需要 Sponsorship<select name="sponsorship_now" required data-testid="settings-sponsorship-now"><option value="no" {% if profile.sponsorship_now=='no' %}selected{% endif %}>不需要</option><option value="yes" {% if profile.sponsorship_now=='yes' %}selected{% endif %}>需要</option><option value="uncertain" {% if profile.sponsorship_now=='uncertain' %}selected{% endif %}>不确定</option></select></label>
+      <label>未来需要 Sponsorship<select name="sponsorship_future" required data-testid="settings-sponsorship-future"><option value="no" {% if profile.sponsorship_future=='no' %}selected{% endif %}>不需要</option><option value="yes" {% if profile.sponsorship_future=='yes' %}selected{% endif %}>需要</option><option value="uncertain" {% if profile.sponsorship_future=='uncertain' %}selected{% endif %}>不确定</option></select></label>
+      <fieldset class="wide"><legend>工作模式</legend><div class="check-row"><label><input type="checkbox" name="work_modes" value="remote" {% if 'remote' in profile.work_mode %}checked{% endif %}>远程</label><label><input type="checkbox" name="work_modes" value="hybrid" {% if 'hybrid' in profile.work_mode %}checked{% endif %}>混合</label><label><input type="checkbox" name="work_modes" value="onsite" {% if 'onsite' in profile.work_mode %}checked{% endif %}>现场</label></div></fieldset>
+      <label>是否接受搬迁<select name="relocation" data-testid="settings-relocation"><option value="">视岗位而定</option><option value="yes" {% if profile.relocation=='yes' %}selected{% endif %}>可以</option><option value="no" {% if profile.relocation=='no' %}selected{% endif %}>不可以</option></select></label>
+      <label>可入职时间<input name="available_start" value="{{ profile.available_start }}" data-testid="settings-start"></label>
+      <label>不接受的岗位<input name="avoid_roles" value="{{ profile.avoid_roles|join(', ') }}" data-testid="settings-avoid-roles"></label>
+      <label>不接受的行业<input name="avoid_industries" value="{{ profile.avoid_industries|join(', ') }}" data-testid="settings-avoid-industries"></label>
+    </div>
+    <div class="form-actions"><button class="button" type="submit" data-testid="settings-profile-submit">保存偏好</button></div>
+  </form>
+</section>
+{% endblock %}

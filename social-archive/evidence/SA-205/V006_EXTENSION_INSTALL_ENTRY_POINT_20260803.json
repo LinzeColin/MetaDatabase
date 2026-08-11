@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T07:16:00Z",
+  "status": "READY_FOR_OWNER",
+  "scope": "verified_extension_install_entry_point_on_the_v0006_production_deployment",
+  "requirement": "BUILD_AGENT_RUNBOOK Stage 1: the Owner must be given an explicit extension install entry point, not merely told the source exists.",
+  "verified_routes": {
+    "install_page": {
+      "path": "/extension-install",
+      "code": 200
+    },
+    "package_download": {
+      "path": "/downloads/social-archive-extension.zip",
+      "code": 200,
+      "bytes": 52670
+    }
+  },
+  "package_identity": {
+    "sha256": "ee02e99922b62c6a410aedb1a5a000c2ac1953a37f2a8e9dca984471bd240d74",
+    "members": 20,
+    "manifest_name": "Social Archive",
+    "manifest_version": "0.0.0.6",
+    "has_bridge_js": true,
+    "note": "Built inside the image from apps/browser-extension, so a clean deploy cannot inherit a stale host ZIP."
+  },
+  "owner_steps_to_unblock_sa205": [
+    "Open https://social-archive.linzezhang.com/extension-install through the existing Cloudflare Access session and download the package.",
+    "Unzip it, then load it in the Chrome profile that is already signed in to Xiaohongshu, Douyin, Kuaishou and Bilibili: chrome://extensions, enable Developer mode, Load unpacked, select the unzipped folder.",
+    "Say when the extension is loaded. A one-time pairing code will be minted then, because it expires in 10 minutes; the supply path is already verified working against the live service.",
+    "The real four-platform Owner Canary can then run. No password, Cookie or token will ever be requested or handled."
+  ],
+  "why_the_agent_cannot_do_this": "No Chrome is connected to the agent session, so the Owner's logged-in profile is unreachable. Prior runs additionally established that neither the Extensions manager controls nor the DevTools Extensions.loadUnpacked command are available through the controlled browser surface.",
+  "does_not_establish": [
+    "SA-205 PASS. No extension is installed, no pairing exchange has occurred against production, and no platform account has been connected or mirrored."
+  ],
+  "stale_supplementary_acceptance_script_found": {
+    "file": "scripts/extension_ui_acceptance.py",
+    "problem": "It still drives the v0.0.0.5 popup: it asserts a '保存到我的档案馆 默认归档 L0＋L1＋L3' button and a '读取当前列表' button as the primary actions, and reads #connectionSummary and #scanList. The shipped v0.0.0.6 popup no longer has #connectionSummary or #scanList, and its primary action is the account-mirror block #primarySync / #primarySyncLabel / #primarySyncHint with #manageAccounts and #accountList. Single-page save correctly survives only as the documented fallback.",
+    "why_it_matters": "Per-item capture as the Golden Path is explicitly superseded in CANONICAL_STATE, so an acceptance script asserting it would both fail on removed ids and, worse, verify the wrong Golden Path.",
+    "why_it_was_not_edited": "No task in TASK_GRAPH.json, the acceptance matrix or BUILD_AGENT_RUNBOOK runs this script; it appears only in MANIFEST.sha256, the pack verifier's file check and a remediation log. It also needs Playwright and /usr/bin/chromium, neither of which exists on this machine, so any edit would be unvalidated. Changing a script that no gate exercises and that cannot be run here would be unjustified risk.",
+    "what_to_do_in_the_canary_environment": "If this script is ever run, update it first against the shipped popup: assert #primarySync visible with #primarySyncLabel '同步全部已连接账号' and #primarySyncHint '新增内容会自动进入资料库', #manageAccounts containing '连接与管理账号', and #accountList, keeping the single-save path as fallback only.",
+    "note_on_the_frozen_copy": "The frozen pack's own copy of this script expects '立即同步全部账号' and '无需逐条打开帖子', which contradicts the frozen tests/focused/test_ui_contract.py that asserts '同步全部已连接账号' and passes against the shipped extension. The shipped wording is the one corroborated by a passing frozen contract test."
+  }
+}

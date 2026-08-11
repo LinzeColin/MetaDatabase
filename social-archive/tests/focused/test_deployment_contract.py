@@ -433,9 +433,24 @@ def test_install_provisions_shared_nonroot_bind_mounts_for_core_and_cli_sidecar(
     assert "chmod 2770 runtime/data runtime/import runtime/vendor-output runtime/vendor-output/{cli,xhs,kuaishou,douk}" in install
     assert "groupadd --system --gid 10001 socialarchive" in core_dockerfile
     assert "useradd --system --uid 10001 --gid socialarchive" in core_dockerfile
-    assert "groupadd --system --gid 10001 socialarchive" in cli_dockerfile
-    assert "useradd --system --uid 10002 --gid socialarchive" in cli_dockerfile
-    assert "chown -R cliworker:socialarchive /work /worker" in cli_dockerfile
+    # The Core owns the shared host tree.  The CLI Sidecar reaches it through the
+    # explicitly configured host maintenance group granted at run time, which is
+    # stronger than baking a coincidental numeric gid into the image: production
+    # sets SOCIAL_ARCHIVE_HOST_DATA_GID to the real `id -g socialarchive`.
+    assert "useradd --system --uid 10002" in cli_dockerfile
+    compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+    cli_service = compose.split("\n  cli-tools:", 1)[1]
+    assert "group_add:" in cli_service
+    # 兜底值是 **980**，不是 10001（2026-08-12 合并时改）。
+    #
+    # 这一行原来钉的是 10001——那是数据与密钥共用一个属组的时候。之后拆成了两个：
+    # 数据 `SOCIAL_ARCHIVE_HOST_DATA_GID`（980）、密钥
+    # `SOCIAL_ARCHIVE_HOST_SECRETS_GID`（10001）。生产 `.env` 实测正是这两个值。
+    # 同一个文件上面那条判据（`cli["group_add"] == [...]`）钉的就是 980，
+    # **两条判据一度在同一个文件里互相矛盾**，而矛盾的那条对着生产是错的。
+    assert '"${SOCIAL_ARCHIVE_HOST_DATA_GID:-980}"' in cli_service
+    assert "${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}:/work/output" in cli_service
+    assert "SOCIAL_ARCHIVE_HOST_DATA_GID=" in (ROOT / ".env.example").read_text(encoding="utf-8")
 
 
 def test_deployment_probe_read_only_never_calls_dns_or_https(monkeypatch, capsys):
@@ -512,3 +527,19 @@ def test_tunnel_renderer_uses_isolated_ports_and_has_no_file_write(tmp_path):
     assert rendered["config"]["ingress"][2]["path"] == r"^/social-archive(\.json|-health)$"
     assert "http://127.0.0.1:80" in serialized
     assert list(tmp_path.glob("*.yml")) == []
+
+
+def test_doctor_self_test_names_appledouble_sidecars_instead_of_crashing(tmp_path):
+    # A macOS-side deploy left ._api.py and ._db.py in the production tree.
+    # They are binary resource forks, so the self-test's rglob("*.py") compile
+    # loop died on an opaque UnicodeDecodeError that named no file.
+    doctor = (ROOT / "scripts" / "doctor.sh").read_text(encoding="utf-8")
+    assert 'rglob("._*")' in doctor
+    assert "AppleDouble" in doctor
+    # The guard must run before the compile loop, or the crash wins the race.
+    assert doctor.index('rglob("._*")') < doctor.index('for source in root.rglob("*.py"):')
+
+
+def test_deploy_tree_has_no_appledouble_sidecars():
+    offenders = [str(path.relative_to(ROOT)) for path in ROOT.rglob("._*") if ".venv" not in path.parts]
+    assert offenders == [], f"macOS AppleDouble sidecars must never be committed or deployed: {offenders}"

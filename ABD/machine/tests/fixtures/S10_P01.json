@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S10-P01-TEMPORAL-CALIBRATION",
+  "contract_id": "AC-S10-P01",
+  "requirement_id": "REQ-S10-P01",
+  "stage_id": "S10",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "temporal_folds": 8,
+  "binary": {
+    "warmup_groups": [
+      {"probability": "0.25", "outcomes": "100010001000100010001000"},
+      {"probability": "0.50", "outcomes": "101010101010101010101010"},
+      {"probability": "0.75", "outcomes": "111011101110111011101110"}
+    ],
+    "folds": [
+      {"fold_id": "F01", "groups": [{"probability": "0.25", "outcomes": "1000100000"}, {"probability": "0.50", "outcomes": "1010101010"}, {"probability": "0.75", "outcomes": "1110111001"}]},
+      {"fold_id": "F02", "groups": [{"probability": "0.25", "outcomes": "1000100000"}, {"probability": "0.50", "outcomes": "1010101010"}, {"probability": "0.75", "outcomes": "1110111001"}]},
+      {"fold_id": "F03", "groups": [{"probability": "0.25", "outcomes": "1000100000"}, {"probability": "0.50", "outcomes": "1010101010"}, {"probability": "0.75", "outcomes": "1110111001"}]},
+      {"fold_id": "F04", "groups": [{"probability": "0.25", "outcomes": "1000100000"}, {"probability": "0.50", "outcomes": "1010101010"}, {"probability": "0.75", "outcomes": "1110111001"}]},
+      {"fold_id": "F05", "groups": [{"probability": "0.25", "outcomes": "1000100010"}, {"probability": "0.50", "outcomes": "1010101010"}, {"probability": "0.75", "outcomes": "1110111011"}]},
+      {"fold_id": "F06", "groups": [{"probability": "0.25", "outcomes": "1000100010"}, {"probability": "0.50", "outcomes": "1010101010"}, {"probability": "0.75", "outcomes": "1110111011"}]},
+      {"fold_id": "F07", "groups": [{"probability": "0.25", "outcomes": "1000100010"}, {"probability": "0.50", "outcomes": "1010101010"}, {"probability": "0.75", "outcomes": "1110111011"}]},
+      {"fold_id": "F08", "groups": [{"probability": "0.25", "outcomes": "1000100010"}, {"probability": "0.50", "outcomes": "1010101010"}, {"probability": "0.75", "outcomes": "1110111011"}]}
+    ]
+  },
+  "multiclass": {
+    "warmup_groups": [
+      {"probabilities": {"A": "0.20", "B": "0.30", "C": "0.50"}, "outcomes": "AAAAAABBBBBBBBBCCCCCCCCCCCCCCC"}
+    ],
+    "folds": [
+      {"fold_id": "F01", "groups": [{"probabilities": {"A": "0.20", "B": "0.30", "C": "0.50"}, "outcomes": "AABBBCCCCC"}]},
+      {"fold_id": "F02", "groups": [{"probabilities": {"A": "0.20", "B": "0.30", "C": "0.50"}, "outcomes": "AABBBCCCCC"}]},
+      {"fold_id": "F03", "groups": [{"probabilities": {"A": "0.20", "B": "0.30", "C": "0.50"}, "outcomes": "AABBBCCCCC"}]},
+      {"fold_id": "F04", "groups": [{"probabilities": {"A": "0.20", "B": "0.30", "C": "0.50"}, "outcomes": "AABBBCCCCC"}]},
+      {"fold_id": "F05", "groups": [{"probabilities": {"A": "0.20", "B": "0.30", "C": "0.50"}, "outcomes": "AABBBCCCCC"}]},
+      {"fold_id": "F06", "groups": [{"probabilities": {"A": "0.20", "B": "0.30", "C": "0.50"}, "outcomes": "AABBBCCCCC"}]},
+      {"fold_id": "F07", "groups": [{"probabilities": {"A": "0.20", "B": "0.30", "C": "0.50"}, "outcomes": "AABBBCCCCC"}]},
+      {"fold_id": "F08", "groups": [{"probabilities": {"A": "0.20", "B": "0.30", "C": "0.50"}, "outcomes": "AABBBCCCCC"}]}
+    ]
+  },
+  "claim_boundary": {
+    "network_accessed": false,
+    "actual_market_or_odds_observed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "expected_report_sha256": "acf155d7e1db64f4a342ee0c46e682bcfb616fcf60b4a349726feafae0a9eb3a"
+}

@@ -1,19 +1,38 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-403",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "taskpack_version": "v0.0.0.6",
+  "implementation_commit": "5341745f546ec113117b34784a89d2e7e2e4dd28",
+  "implementation_tree": "90d510987be571039d729aed15f53a3c8a38b814",
+  "record_context": "v0.0.0.6 stage re-verification against the live OVH production deployment. Secret values were never printed; Bearer tokens and GitHub tokens are shown redacted.",
   "commands": [
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_destinations.py tests/focused/test_exports.py",
-      "command_sha256": "f7ed6eb069865edaadb212ee9b6566c92d931a13c028b3e1fbdd03b0dd492818",
+      "command": "curl -X POST .../v1/destinations/obsidian/probe",
+      "command_sha256": "923fdb71468573e8d35736c71f9c8b17fc1ff5668a15760767317ce45b7bed99",
       "executed": true,
-      "status": "PASS",
       "exit_code": 0,
-      "summary": "7 destination/export tests passed."
+      "status": "PASS",
+      "summary": "state=connected, mode=vault, write/readback=true。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
+    },
+    {
+      "command": "curl -X POST .../v1/library/<cid>/export -d '{\"destination_ids\":[\"obsidian\"]}'",
+      "command_sha256": "1530ada5592e5f3ba54fdbe4f1f0bb1018b51e89a963a3766a09421c85762d29",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "真实写入 Vault Markdown，收据 status=done、idempotent_binding=true。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
+    },
+    {
+      "command": ".venv/bin/python scripts/export_all.py",
+      "command_sha256": "16c7d22aaf3404ef241cf9bde99afe603ed87e8135bd99081670d13e0dcc3891",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "3 项内容、9 个变更文件，产出 library.jsonl、markdown/、obsidian-vault/、EXPORT_MANIFEST.json 等。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
     }
   ],
-  "record_sha256": "59edf7aa25eef9b71447e004c195f9ff8d5f198703ce4eaae366824b71e32546"
+  "generated_at": "2026-08-03T07:40:00Z"
 }

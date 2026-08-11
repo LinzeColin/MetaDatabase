@@ -98,6 +98,8 @@ class ClassifyRequest(BaseModel):
 
 
 class ExportRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     destination_ids: list[str] = Field(default_factory=list, max_length=8)
 
 

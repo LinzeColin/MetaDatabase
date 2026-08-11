@@ -1,0 +1,8 @@
+{
+  "verdict": "PASS",
+  "artifact_name": "JobHuntBotOnline_v0.3.0_SaaS_Deployment_TaskPack_R1.zip",
+  "required_control_files_present": true,
+  "cold_extract_verified": true,
+  "production_claimed": false,
+  "supersedes": "JobHuntBotOnline_v0.3.0_SaaS_Codex_Final_Deployment_TaskPack.zip (invalid; do not use)"
+}
