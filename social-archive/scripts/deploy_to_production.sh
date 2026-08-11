@@ -1163,8 +1163,10 @@ step "8.69) 出事的时候，他的东西真的拿得回来吗"
 # 现在每次部署都对**最新那批快照**真跑一遍：下载 → 解密 → 解压 → 打开 →
 # 数表 → 判它是不是他的数据。实测 12 秒；按铁律 7 算过，量级上看不见。
 #
-# 第三份（GitHub）不在这里试：那把恢复令牌看不见 LinzeColin/Private-Database，
-# **只有 Owner 能授权**。第 8.9 步已经在盯这件事。
+# 第三份（GitHub）**也在这里试**。它此前一直报「取不回、只有 Owner 能授权」，
+# 2026-08-11 查清是两个自己的毛病：比的是一批没有它收据的快照（三份写齐只在每天
+# 03:28 那次备份里，而这里取的是 15 分钟一份的最新那批），用的是一把看不见那个仓的
+# 令牌（`.env` 指的是容器内路径，回退按文件名落到了另一把）。**都跟权限无关。**
 if ! .venv/bin/python scripts/check_the_backup_can_actually_be_restored.py \
       > evidence/G3/RESTORE_FROM_BACKUP.json 2>&1; then
   python3 -c "
@@ -1191,7 +1193,7 @@ for t in d['targets']:
         print(f\"    {t['coverage_zh']}\")
 batch=[a.get('snapshot_batch') for t in d['targets'] for a in t['attempts'] if a.get('snapshot_batch')]
 print(f\"  用的是 {sorted(batch)[-1]} 那批快照。\" if batch else \"  （这次没记下是哪批快照）\")
-print('  第三份：那把令牌看不见那个仓，**取不回，不算通过**——只有 Owner 能授权。')"
+print('  三份都是真取回来的（下载→解密→打开→判），不是读登记表。')"
 
 step "9) 验收：仓、主机、**镜像里那一份**，三份是不是同一份代码"
 # 第 8 步只核了**扩展包**那一个文件。其余一百多个源文件，在这一步之前

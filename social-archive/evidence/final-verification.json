@@ -87,7 +87,7 @@
         "scripts/preflight_extension.py"
       ],
       "exit_code": 0,
-      "stdout": "可以装载。manifest v3、version 0.0.0.43、17 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
+      "stdout": "可以装载。manifest v3、version 0.0.0.44、17 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
       "stderr": ""
     },
     {
@@ -124,7 +124,7 @@
         "scripts/check_the_stated_version_is_the_real_one.py"
       ],
       "exit_code": 0,
-      "stdout": "真源 pyproject.toml 说版本是 0.0.0.43；核了 11 处\n每一处声明的版本都和真源一样，CHANGELOG 里也有这一版。\n",
+      "stdout": "真源 pyproject.toml 说版本是 0.0.0.44；核了 11 处\n每一处声明的版本都和真源一样，CHANGELOG 里也有这一版。\n",
       "stderr": ""
     },
     {
@@ -133,7 +133,7 @@
         "scripts/check_one_version_means_one_package.py"
       ],
       "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"version\": \"0.0.0.43\",\n  \"version_set_by\": \"02cc36fdb0e0cffe0f443cc02b1191152ad38944 08-11 22:55\",\n  \"watched\": [\n    \"apps/browser-extension\"\n  ],\n  \"tracked_files\": 27,\n  \"changed_since_bump\": [\n    \"social-archive/apps/browser-extension/manifest.json\",\n    \"social-archive/apps/browser-extension/runtime-config.json\"\n  ],\n  \"version_being_bumped_right_now\": true,\n  \"problems\": [],\n  \"what_this_does_not_prove\": \"不保证插件是对的，只保证**它变了的时候版本号跟着变**。它也不拦同一版重复部署——改服务端而不动插件时那是正常的。\"\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"version\": \"0.0.0.44\",\n  \"version_set_by\": \"5e2f561629687a4bb0205337b45e119263c6dac4 08-11 23:42\",\n  \"watched\": [\n    \"apps/browser-extension\"\n  ],\n  \"tracked_files\": 27,\n  \"changed_since_bump\": [\n    \"social-archive/apps/browser-extension/manifest.json\",\n    \"social-archive/apps/browser-extension/runtime-config.json\"\n  ],\n  \"version_being_bumped_right_now\": true,\n  \"problems\": [],\n  \"what_this_does_not_prove\": \"不保证插件是对的，只保证**它变了的时候版本号跟着变**。它也不拦同一版重复部署——改服务端而不动插件时那是正常的。\"\n}\n",
       "stderr": ""
     },
     {
@@ -304,7 +304,7 @@
         "scripts/check_the_guide_matches_the_product.py"
       ],
       "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"task\": \"G4\",\n  \"sync_period_minutes\": [\n    360\n  ],\n  \"sync_hours_stated_in_guide\": [\n    6\n  ],\n  \"backup_copies_confirmed_today\": 2,\n  \"backup_copies_stated_in_guide\": [\n    2\n  ],\n  \"guide\": \"docs/使用说明.md\",\n  \"buttons_checked\": 25,\n  \"claimed_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"product_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"claimed_manual\": [\n    \"x\",\n    \"youtube\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"使用说明里写的每一步，产品里都真的有。\",\n  \"what_this_does_not_prove\": \"不检查步骤顺不顺、语气好不好，只保证说的每件事都存在。\"\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"task\": \"G4\",\n  \"sync_period_minutes\": [\n    360\n  ],\n  \"sync_hours_stated_in_guide\": [\n    6\n  ],\n  \"backup_copies_confirmed_today\": 3,\n  \"backup_copies_stated_in_guide\": [\n    3\n  ],\n  \"guide\": \"docs/使用说明.md\",\n  \"buttons_checked\": 25,\n  \"claimed_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"product_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"claimed_manual\": [\n    \"x\",\n    \"youtube\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"使用说明里写的每一步，产品里都真的有。\",\n  \"what_this_does_not_prove\": \"不检查步骤顺不顺、语气好不好，只保证说的每件事都存在。\"\n}\n",
       "stderr": ""
     },
     {

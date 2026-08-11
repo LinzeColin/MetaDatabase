@@ -101,14 +101,42 @@ def test_the_checker_never_handles_key_material() -> None:
         assert leak not in source, f"它在读密钥文件本身：{leak}"
 
 
-def test_the_third_copy_is_reported_as_unreachable_not_as_green() -> None:
-    """GitHub 那份至今取不回（令牌看不见那个仓，只有 Owner 能授权）。
+def test_all_three_copies_are_actually_attempted() -> None:
+    """**第三份也要真去取一次。**（2026-08-11 改）
 
-    **跳过不许伪装成绿**——这个仓的规矩。
+    这条测试原来钉的是反面：「第三份取不回，只有 Owner 能授权，别把跳过说成绿」。
+    那天查清楚了——**那句话本身是错的**，两个原因都在我们这边：
+
+        比错了对照物  三份写齐只在每天 03:28 那次备份里，而判据取的是 15 分钟一份的最新那批
+        拿错了令牌    .env 指的是容器内路径；按文件名回退落到另一把看不见那个仓的令牌
+
+    同一台机器上另有一把对那个仓是 ADMIN 的，备份服务自己就在用它。
+    改完实测三份全部真取回来，各 193 条。所以这条测试跟着掉头：
+    **盯住「三份都在名单里、都要求过」，别让谁哪天又把它悄悄降回两份。**
     """
     source = CHECK.read_text(encoding="utf-8")
-    assert "不算通过" in source or "不是「通过」" in source, (
-        "第三份取不回来，而文案没说清它不算通过")
+    assert '"stores": ("r2", "oci", "github")' in source, "第三份被从名单里拿掉了"
+    assert '"require": 3' in source, "要求降回两份了——那等于把一份副本从判据里注销"
+
+
+def test_the_github_token_is_taken_from_the_backup_unit() -> None:
+    """**别再猜哪把令牌。** 这台机器上有两把，只有一把看得见那个仓。
+
+    真源是备份服务单元里那行 `LoadCredential=github_token:<路径>`；
+    读不到就明说，不许静默退回去用另一把。
+    """
+    source = CHECK.read_text(encoding="utf-8")
+    assert "LoadCredential=github_token:" in source, "不再照抄单元的映射了——又要开始猜了"
+    assert "GITHUB_CREDENTIAL_MAPPING_NOT_FOUND" in source, (
+        "读不到映射时没有明确的红——那会退回成静默用错令牌")
+
+
+def test_each_store_gets_a_snapshot_that_actually_has_its_receipt() -> None:
+    """一律取最新那批 = 让 github 永远比一批没有它收据的快照（恒红且骗人）。"""
+    source = CHECK.read_text(encoding="utf-8")
+    assert "PICK_LATEST" in source and "receipts" in source, (
+        "又变回一律取最新了——第三份会重新变成一条永远变不绿的红")
+    assert "NO_MANIFEST_WITH_THIS_RECEIPT" in source, "找不到对应快照时必须明说，不能静默"
 
 
 def _select_window():

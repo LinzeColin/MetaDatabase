@@ -7,9 +7,9 @@
   "sync_hours_stated_in_guide": [
     6
   ],
-  "backup_copies_confirmed_today": 2,
+  "backup_copies_confirmed_today": 3,
   "backup_copies_stated_in_guide": [
-    2
+    3
   ],
   "guide": "docs/使用说明.md",
   "buttons_checked": 25,

@@ -1,5 +1,5 @@
 {
-  "status": "FAIL",
+  "status": "PASS",
   "sampled_artifacts": [
     "art_00ca5e8cef67db2334329dcf088e15c0",
     "art_00fbeb6793d229abee9ced0b9ec1cb68"
@@ -17,23 +17,19 @@
     },
     "github": {
       "checked": 2,
-      "present": 0,
-      "codes": [
-        "GITHUB_VAULT_NOT_VISIBLE_TO_THIS_TOKEN"
-      ]
+      "present": 2,
+      "codes": []
     },
-    "copies_confirmed_today": 2,
+    "copies_confirmed_today": 3,
     "restore_probe_artifact": "art_00ca5e8cef67db2334329dcf088e15c0",
     "restore_verified": [
       "r2",
-      "oci"
+      "oci",
+      "github"
     ],
-    "copies_really_restorable_today": 2
+    "copies_really_restorable_today": 3
   },
-  "problems": [
-    "**github：2 个抽样一个都**够不着**（['GITHUB_VAULT_NOT_VISIBLE_TO_THIS_TOKEN']）——**这不等于副本没了**，是这台机器上的凭据／配置到不了它。在修好之前，这一份在灾难那天也一样拿不回来",
-    "**今天只确认了 2 份，目标是 3 份。**说明书写的就是这个实测数，所以他读到的不假；但服务器没了的那天，真能拿回数据的地方只有 2 处。"
-  ],
+  "problems": [],
   "what_this_does_not_prove_zh": "抽样只答「这家存储今天够不够得着」，**答不了「每一个对象都还在」**；也不证明能还原出原文——那要 --verify-only（需要 age 私钥）。",
   "boundary_zh": "只读；每家一次 HEAD / 一次列附件；不下载、不解密。"
 }

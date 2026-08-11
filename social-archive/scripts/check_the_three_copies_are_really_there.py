@@ -117,7 +117,14 @@ def _really_restores(artifact_id: str, store: str, host: str) -> dict:
     """
     command = (
         "cd /opt/social-archive && set -a && . ./.env && set +a && "
-        f"timeout 180 .venv/bin/python scripts/restore_object.py "
+        # **github 那一路要换一把令牌。**（2026-08-11 实测）
+        # `.env` 指的 `/run/secrets/github_token` 是**容器内**路径，宿主机上没有；
+        # 按文件名回退又正好落到 runtime/secrets/github_token——**那把看不见 Vault 仓**。
+        # 于是这一路恒报 GITHUB_VAULT_NOT_VISIBLE_TO_THIS_TOKEN，读起来像权限没给，
+        # 实际是同一台机器上另有一把 ADMIN 的（github_markdown_token）。
+        # 映射的真源是备份单元那行 LoadCredential，这里照抄它，取不到就明说。
+        + (_github_token_override(host) if store == "github" else "")
+        +         f"timeout 180 .venv/bin/python scripts/restore_object.py "
         f"--artifact-id {artifact_id} --from-store {store} --verify-only"
     )
     done = subprocess.run(["ssh", "-o", "ConnectTimeout=25", host, "sudo bash -lc " + json.dumps(command)],
@@ -130,11 +137,52 @@ def _really_restores(artifact_id: str, store: str, host: str) -> dict:
     return {"status": "FAIL", "error_code": "NO_JSON_FROM_RESTORE"}
 
 
+
+def _backup_unit_github_secret(host: str) -> str | None:
+    """备份服务把哪个文件当 github_token 用——真源是那个单元，不是这里。"""
+    done = subprocess.run(
+        ["ssh", "-o", "ConnectTimeout=20", host,
+         "sudo systemctl cat social-archive-backup.service"],
+        capture_output=True, text=True, check=False)
+    for line in (done.stdout or "").splitlines():
+        line = line.strip()
+        if line.startswith("LoadCredential=github_token:"):
+            return line.split(":", 1)[1].strip()
+    return None
+
+
+def _github_token_override(host: str) -> str:
+    """让宿主机这一侧用上备份服务真正在用的那把令牌。
+
+    `.env` 指的 `/run/secrets/github_token` 是**容器内**路径，宿主机上没有；
+    按文件名回退又正好落到 `runtime/secrets/github_token`——**那把看不见 Vault 仓**。
+    于是这一路恒报 `GITHUB_VAULT_NOT_VISIBLE_TO_THIS_TOKEN`，读起来像权限没给，
+    而同一台机器上的 `github_markdown_token` 对那个仓是 ADMIN。
+
+    **路径在 Python 里算好、以字面量拼进命令**，不用 shell 变量：
+    前一版写成 `GH=$(...)` 再 `[ -n "$GH" ]`，而 ssh 是把整串交给**远端登录 shell**的，
+    那一层会先把 `$GH` 展开成空——覆盖于是静默失效，github 照旧飘红。
+    （查它花的两次功夫都用在自己的调试命令上：本机 shell 也会提前吃掉 `$GH`。）
+
+    读不到映射就返回空串：那样它会像以前一样报「看不见仓」，
+    而不是被我悄悄换成另一把可能也不对的。
+    """
+    path = _backup_unit_github_secret(host)
+    return f"export SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE={path} && " if path else ""
+
+
 def _presence(artifact_id: str, store: str, host: str) -> dict:
     """在生产机上跑一次 presence。**env 要从 .env 加载**——三家的凭据路径都在那儿。"""
     command = (
         "cd /opt/social-archive && set -a && . ./.env && set +a && "
-        f"timeout 120 .venv/bin/python scripts/restore_object.py "
+        # **github 那一路要换一把令牌。**（2026-08-11 实测）
+        # `.env` 指的 `/run/secrets/github_token` 是**容器内**路径，宿主机上没有；
+        # 按文件名回退又正好落到 runtime/secrets/github_token——**那把看不见 Vault 仓**。
+        # 于是这一路恒报 GITHUB_VAULT_NOT_VISIBLE_TO_THIS_TOKEN，读起来像权限没给，
+        # 实际是同一台机器上另有一把 ADMIN 的（github_markdown_token）。
+        # 映射的真源是备份单元那行 LoadCredential，这里照抄它，取不到就明说。
+        + (_github_token_override(host) if store == "github" else "")
+        +         f"timeout 120 .venv/bin/python scripts/restore_object.py "
         f"--artifact-id {artifact_id} --from-store {store} --presence-only"
     )
     done = subprocess.run(["ssh", "-o", "ConnectTimeout=25", host, "sudo bash -lc " + json.dumps(command)],

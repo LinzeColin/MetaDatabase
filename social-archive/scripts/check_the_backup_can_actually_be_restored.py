@@ -15,7 +15,7 @@ r"""他的东西真的拿得回来吗——每次部署都真取一次（2026-08
 
 ## 它做什么
 
-在生产机上，对**最新那批快照**，逐个可用的对象仓真跑一遍
+在生产机上，**给每个对象仓各挑一批它自己有收据的最新快照**，逐个真跑一遍
 `restore_runtime_db_drill.py`：下载 → 解密 → 解压 → 打开 → 数表 → 判是不是他的数据。
 
 凭据全程由 systemd 发（`LoadCredential`），和备份服务自己拿的是同一套；
@@ -23,14 +23,26 @@ r"""他的东西真的拿得回来吗——每次部署都真取一次（2026-08
 
 ## 判据
 
-**至少两份副本真的取得回来**，否则红。
-第三份（GitHub）目前取不回——那把恢复令牌看不见 `LinzeColin/Private-Database`，
-只有 Owner 能授权。取不回就如实写「取不回」，**不算通过、也不假装通过**。
+**三份副本都要真的取得回来**，否则红。
+
+第三份（GitHub）此前一直报「取不回，只有 Owner 能授权」——**那句话是错的**，
+2026-08-11 查清楚了，两个原因叠在一起，没有一个跟权限有关：
+
+1. **比错了对照物**：这里一律取最新那批快照，而三份写齐只发生在每天 03:28
+   那一次备份服务里；r2/oci 每 15 分钟一份。于是 github 永远落在一批
+   根本没有它收据的快照上。现在每个 store 各挑自己最新的那一批。
+2. **拿错了令牌**：`.env` 指的 `/run/secrets/github_token` 是容器内路径，
+   宿主机上不存在；按文件名回退正好落到另一把**看不见那个仓**的令牌上。
+   而同一台机器上的 `github_markdown_token` 对那个仓是 ADMIN——
+   备份服务自己就是靠 `LoadCredential` 映射到它才写得成功的。
+
+改完实测：三份全部真取回来（下载 → 解密 → 打开 → 判），各 193 条。
 """
 
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import subprocess
 import sys
@@ -49,8 +61,8 @@ TARGETS = (
     {
         "key": "runtime-db",
         "drill": "restore_runtime_db_drill.py",
-        "stores": ("r2", "oci"),
-        "require": 2,
+        "stores": ("r2", "oci", "github"),
+        "require": 3,
         "zh": "他的档案馆运行库（那 193 条内容就在这里面）",
     },
     {
@@ -86,17 +98,76 @@ CREDENTIALS = {
 }
 
 
-def _remote_script(target: dict, store: str) -> str:
+# 给某个 store 挑「最新的、带这个 store 收据的那一批快照」。
+#
+# **一律取最新是错的**（2026-08-11 实测）：r2/oci 每 15 分钟写一份，
+# 而三份写齐只发生在每天 03:28 那一次备份服务里。取最新那批 →
+# github 永远落在一批根本没有它收据的快照上 → 判据恒红，
+# 而且红得会骗人：报出来是「第三份取不回」，读起来像副本没了或权限不够，
+# 实际是**拿错了对照物**。
+PICK_LATEST = """
+import json, os, sys
+root, store = sys.argv[1], sys.argv[2]
+for name in sorted(os.listdir(root), reverse=True):
+    try:
+        manifest = json.load(open(os.path.join(root, name, "manifest.json")))
+    except Exception:
+        continue
+    if (manifest.get("receipts") or {}).get(store):
+        print(name)
+        break
+"""
+
+
+def _b64(text: str) -> str:
+    """把脚本编码后再上命令行——中间隔着两层 shell，别赌它们怎么解释转义。"""
+    return base64.b64encode(text.encode("utf-8")).decode("ascii")
+
+
+def github_secret_from_unit(host: str) -> str | None:
+    """备份服务把**哪一个文件**当 github_token 用——真源是那个单元，不是这里。
+
+    这台机器上有两把 GitHub 令牌，而它们能看见的东西不一样（实测）：
+
+        runtime/secrets/github_token           看不见 Vault 仓
+        runtime/secrets/github_markdown_token  ADMIN
+
+    `.env` 里写的是 `/run/secrets/github_token`——**那是容器内的路径**，
+    宿主机上不存在；按文件名回退又正好落到上面那把看不见仓的。
+    备份服务自己是靠 `LoadCredential=github_token:<markdown 那把>` 绕过去的，
+    所以这里照抄它的映射，而不是再猜一次。取不到就明说，不静默用一把可能是错的。
+    """
+    done = subprocess.run(
+        ["ssh", "-o", "ConnectTimeout=20", host,
+         "sudo systemctl cat social-archive-backup.service"],
+        capture_output=True, text=True, check=False)
+    for line in (done.stdout or "").splitlines():
+        line = line.strip()
+        if line.startswith("LoadCredential=github_token:"):
+            return line.split(":", 1)[1].strip()
+    return None
+
+
+def _remote_script(target: dict, store: str, github_secret: str | None) -> str:
     """在生产机上跑一次恢复演练。凭据由 systemd 发，命令行里只有路径。"""
     properties = [
         "--property=WorkingDirectory=/opt/social-archive",
         "--property=EnvironmentFile=/etc/social-archive/social-archive.env",
     ]
+    exports = []
     for filename, variable in CREDENTIALS[store]:
         credential = filename if store != "github" else "github_token"
-        properties.append(f"--property=LoadCredential={credential}:{SECRETS}/{filename}")
-        properties.append(
-            f"--property=Environment=SOCIAL_ARCHIVE_{variable}_FILE=%d/{credential}")
+        source = github_secret if store == "github" else f"{SECRETS}/{filename}"
+        properties.append(f"--property=LoadCredential={credential}:{source}")
+        # **不能用 `Environment=...=%d/xxx`。**（2026-08-11 实测）
+        # `%d` 只有写在单元文件里才展开；经 `systemd-run --property=Environment=`
+        # 传进去时它是**字面量**，程序拿到的就是字符串 "%d/github_token"。
+        # r2/oci 侥幸没事，是因为 `_s3_config` 有一条按文件名回退的路；
+        # github 没有那条路，于是报「缺少 gh 或 GitHub 令牌」——一句指向错方向的话。
+        # 反斜杠是给**外层** shell 看的：`sh -c "..."` 那层不许展开
+        # `$CREDENTIALS_DIRECTORY`，要留给 systemd 起的那个内层 shell 自己展开。
+        exports.append(
+            rf'export SOCIAL_ARCHIVE_{variable}_FILE=\"\$CREDENTIALS_DIRECTORY/{credential}\";')
     snapshots = f"{BACKUPS}/{target.get('snapshots_from', target['key'])}"
     sample = ""
     if target.get("sample"):
@@ -105,20 +176,39 @@ def _remote_script(target: dict, store: str) -> str:
         tail = (ROOT / "VERSION").read_text(encoding="utf-8").strip().split(".")[-1]
         offset = (int(tail) if tail.isdigit() else 0) * target["sample"]
         sample = f" --limit {target['sample']} --offset {offset}"
+    inner = (" ".join(exports)
+             + f' exec /opt/social-archive/.venv/bin/python scripts/{target["drill"]}'
+               f' --manifest {snapshots}/$LAST/manifest.json --from-store {store}'
+               f' --target $T{sample}')
     return (
-        f'set -u; LAST=$(sudo ls -1 {snapshots} | tail -1); '
+        # **脚本要 base64 送过去。**（2026-08-11 实测）
+        # 先前用 `json.dumps(...)` 直接塞进命令行：JSON 把换行写成 `\n`，
+        # 而远端 shell 在双引号里**不解释**这个转义——脚本被压成一行带字面 `\n` 的东西，
+        # python 报 SyntaxError，取回来是空串。于是每一棵树、每一个 store 都判成
+        # 「没有任何一批带这个收据的快照」——**一个我自己造出来的、全线飘红的假象**。
+        f'set -u; LAST=$(sudo python3 -c "import base64;exec(base64.b64decode(\'{_b64(PICK_LATEST)}\'))"'
+        f' {snapshots} {store}); '
+        f'if [ -z "$LAST" ]; then '
+        f'echo {json.dumps(json.dumps({"status": "FAIL", "error_code": "NO_MANIFEST_WITH_THIS_RECEIPT", "message": f"{snapshots} 底下没有任何一批带 {store} 收据的快照"}, ensure_ascii=False))}; '
+        f'exit 4; fi; '
         f'T=$(sudo mktemp -d /var/tmp/restore-check-XXXX); '
         f'sudo systemd-run --pipe --wait --collect --quiet {" ".join(properties)} '
-        f'/opt/social-archive/.venv/bin/python scripts/{target["drill"]} '
-        f'--manifest {snapshots}/$LAST/manifest.json --from-store {store} --target $T{sample}; '
+        f'/bin/sh -c "{inner}"; '
         # **成败要留住。** `sudo rm` 的退出码不能盖掉演练的（`pipe-to-tail-hides-the-exit-code`）。
         f'RC=$?; sudo rm -rf $T; echo "SNAPSHOT_BATCH=$LAST"; exit $RC'
     )
 
 
-def restore_from(host: str, target: dict, store: str) -> dict:
+def restore_from(host: str, target: dict, store: str, github_secret: str | None = None) -> dict:
+    if store == "github" and not github_secret:
+        # **取不到映射就明说**，不要退回去用一把可能看不见那个仓的令牌——
+        # 那正是这次要修掉的假红。
+        return {"target": target["key"], "store": store, "exit_code": 0,
+                "drill": {"status": "FAIL", "error_code": "GITHUB_CREDENTIAL_MAPPING_NOT_FOUND",
+                          "message": "备份单元里读不到 LoadCredential=github_token:<路径>，"
+                                     "**这不是通过**：不知道该用哪把令牌就不许猜"}}
     done = subprocess.run(
-        ["ssh", "-o", "ConnectTimeout=20", host, _remote_script(target, store)],
+        ["ssh", "-o", "ConnectTimeout=20", host, _remote_script(target, store, github_secret)],
         capture_output=True, text=True, check=False)
     result: dict = {"target": target["key"], "store": store, "exit_code": done.returncode}
     for line in reversed((done.stdout or "").strip().splitlines()):
@@ -146,6 +236,7 @@ def main() -> int:
     args = parser.parse_args()
     host = args.host or (ROOT / "deploy/PRODUCTION_HOST").read_text(encoding="utf-8").strip()
 
+    github_secret = github_secret_from_unit(host)
     targets = [t for t in TARGETS if not args.only or t["key"] == args.only]
     if not targets:
         print(json.dumps({"status": "FAIL", "error_code": "NO_SUCH_TARGET",
@@ -157,7 +248,8 @@ def main() -> int:
     problems: list[str] = []
     results: list[dict] = []
     for target in targets:
-        attempts = [restore_from(host, target, store) for store in target["stores"]]
+        attempts = [restore_from(host, target, store, github_secret)
+                    for store in target["stores"]]
         good = [a for a in attempts if a["drill"].get("status") == "PASS"]
         for attempt in attempts:
             drill = attempt["drill"]
@@ -188,9 +280,9 @@ def main() -> int:
         "targets": results,
         "problems": problems,
         "third_copy_zh":
-            "第三份（GitHub）没在这里试——那把恢复令牌看不见 "
-            "LinzeColin/Private-Database，**只有 Owner 能授权**。"
-            "在他授权之前，这是「取不回」，不是「通过」。",
+            "第三份（GitHub）现在**也真取一次**。它此前报「取不回、只有 Owner 能授权」"
+            "是两个自己的毛病叠出来的：比的是一批没有它收据的快照，用的是一把看不见"
+            "那个仓的令牌——**都跟权限无关**。",
         "boundary_zh":
             "只读：远端副本只下载不改，落地在一次性目录、跑完就删；"
             "密钥由 systemd 发，这个脚本只经手路径、不读内容。",

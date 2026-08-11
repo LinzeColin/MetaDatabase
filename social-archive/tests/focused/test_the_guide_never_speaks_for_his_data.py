@@ -28,6 +28,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import sys
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -111,17 +112,30 @@ def test_a_conditional_sentence_about_the_ui_is_not_a_violation() -> None:
 
 # ---------------------------------------------- ⑧ 副本份数必须等于实测
 
+def _stated_copies() -> int:
+    """说明书此刻写的是几处——**从原文现读，不写死**。
+
+    2026-08-11 这两条反例因为写死了「2 处」而集体失效：那天实测从 2 变成 3
+    （github 那一路修好了），锚点句不再存在，`bad != TEXT` 当场断言失败。
+    测试要守的是「多说少说都会被抓」，不是某一个具体的数——
+    数字写死一次，就得跟着现实改一次，而改的人未必知道为什么。
+    """
+    found = re.search(r"能确认拿得回来的是\s*(\d+)\s*处", TEXT)
+    assert found, "说明书里那句「能确认拿得回来的是 N 处」不见了——反例失去了锚点"
+    return int(found.group(1))
+
+
 def test_overselling_the_backup_count_is_caught() -> None:
-    """原话「加密存三份」，而 8.9 那道播报每次都报 2/3。"""
-    bad = TEXT.replace("能确认拿得回来的是 2 处", "能确认拿得回来的是 3 处")
-    assert bad != TEXT, "锚点句被改过了——这条反例失效了，要重写"
-    problems = judge_prose(bad, PERIODS, 2)
+    """说得比实测多：他会以为自己更安全。"""
+    stated = _stated_copies()
+    problems = judge_prose(TEXT, PERIODS, stated - 1)
     assert any("超售" in p for p in problems), problems
 
 
 def test_underselling_the_backup_count_is_also_caught() -> None:
     """少说也是说错：他会以为保护比实际更弱。"""
-    problems = judge_prose(TEXT, PERIODS, 3)
+    stated = _stated_copies()
+    problems = judge_prose(TEXT, PERIODS, stated + 1)
     assert any("少说了" in p for p in problems), problems
 
 
@@ -153,7 +167,7 @@ def test_the_published_page_carries_the_same_sentences() -> None:
     这里把那件事钉住：这几条规则守的每一句，网页上必须也是这一句。
     """
     page = (ROOT / "apps/pwa/guide.html").read_text(encoding="utf-8")
-    for sentence in ("能确认拿得回来的是 2 处",
+    for sentence in (f"能确认拿得回来的是 {_stated_copies()} 处",
                      "但演练里读的是 62 条假书签，不是你的"):
         assert sentence in page, (
             f"网页上没有这一句：{sentence!r}——"
