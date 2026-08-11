@@ -116,17 +116,14 @@ test("Version 34 S5-T1 saved candidate preserves reviewed-source and private bou
   assert.equal(serialized.includes("Bearer "), false);
 });
 
-test("Version 35 S5-T1 saved candidate preserves the reviewed session-scope recovery source", async () => {
+test("Version 35 S5-T1 archival evidence preserves the reviewed session-scope recovery source", async () => {
   const evidence = JSON.parse(
     await readFile(
       new URL("../13_evidence/private_version_35_s5_t1_saved_candidate.json", import.meta.url),
       "utf8",
     ),
   );
-  const current = JSON.parse(
-    await readFile(new URL("../13_evidence/saved_version.json", import.meta.url), "utf8"),
-  );
-  const serialized = JSON.stringify({ evidence, current });
+  const serialized = JSON.stringify(evidence);
 
   assert.equal(evidence.task_id, "S5-T1");
   assert.equal(evidence.phase, "S5_T1_PRIVATE_SAVED_VERSION");
@@ -159,17 +156,55 @@ test("Version 35 S5-T1 saved candidate preserves the reviewed session-scope reco
   assert.equal(evidence.scope_and_limits.runtime_values_read_or_changed, false);
   assert.equal(evidence.scope_and_limits.public_audience_changed, false);
   assert.equal(evidence.scope_and_limits.github_uploaded, false);
-  assert.equal(current.current_private_candidate.saved_version_number, 35);
-  assert.equal(current.sites_saved_version.version_number, 35);
-  assert.equal(current.post_save_readback.deployed, false);
-  assert.equal(current.post_save_readback.live_url_present, false);
-  assert.equal(current.post_save_readback.preview_url_present, false);
-  assert.equal(current.post_save_readback.access_mode, "custom");
-  assert.equal(current.post_save_readback.allowed_users_count, 1);
-  assert.equal(current.post_save_readback.allowed_groups_count, 0);
-  assert.equal(current.post_save_readback.external_visitor_count, 0);
   assert.equal(evidence.sensitive_values_recorded, false);
   assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
+test("Version 37 S5-T1 current saved candidate is source-bound and not deployed", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_37_s5_t1_saved_candidate.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const current = JSON.parse(
+    await readFile(new URL("../13_evidence/saved_version.json", import.meta.url), "utf8"),
+  );
+  const serialized = JSON.stringify({ evidence, current });
+
+  assert.equal(evidence.task_id, "S5-T1");
+  assert.equal(evidence.status, "PASS_PRIVATE_SAVED_VERSION_CANDIDATE");
+  assert.equal(evidence.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(evidence.candidate.saved_version_number, 37);
+  assert.equal(evidence.candidate.source_pushed_to_sites_dedicated_channel, true);
+  assert.equal(evidence.candidate.source_readback_matches_pushed_candidate, true);
+  assert.equal(evidence.source_identity.current_local_candidate_commit_bound, true);
+  assert.equal(evidence.source_identity.project_tree_matches_sites_source_channel, true);
+  assert.equal(evidence.source_identity.sites_source_branch_readback_matches_candidate, true);
+  assert.equal(evidence.source_identity.push_mode, "NON_FORCE_FAST_FORWARD");
+  assert.equal(evidence.source_identity.raw_commit_identifiers_recorded, false);
+  assert.equal(evidence.build_archive.status, "PASS_EXACT_SOURCE_BUILD_AND_PACKAGE");
+  assert.equal(evidence.build_archive.required_entries_present.server_entry, true);
+  assert.equal(evidence.build_archive.required_entries_present.hosting_metadata, true);
+  assert.equal(evidence.build_archive.required_entries_present.database_migrations, true);
+  assert.equal(evidence.site_access_snapshot.access_mode, "public");
+  assert.equal(evidence.site_access_snapshot.access_policy_changed, false);
+  assert.equal(evidence.site_access_snapshot.public_audience_changed, false);
+  assert.equal(evidence.sites_saved_version.new_candidate_deployed, false);
+  assert.equal(evidence.post_save_readback.candidate_deployed, false);
+  assert.equal(evidence.post_save_readback.deployment_action_called, false);
+  assert.equal(current.sites_saved_version.version_number, 37);
+  assert.equal(current.sites_saved_version.source_readback_matches_pushed_candidate, true);
+  assert.equal(current.post_save_readback.candidate_deployed, false);
+  assert.equal(current.post_save_readback.access_mode, "public");
+  assert.equal(current.post_save_readback.access_policy_changed, false);
+  assert.equal(current.candidate_exposure_boundary.saved_candidate_is_undeployed, true);
+  assert.equal(current.candidate_exposure_boundary.existing_live_url_is_not_runtime_evidence_for_version_37, true);
+  assert.equal(current.sensitive_values_recorded, false);
+  assert.equal(current.real_user_business_data_read_or_written, false);
   assert.equal(serialized.includes("@"), false);
   assert.equal(serialized.includes("token="), false);
   assert.equal(serialized.includes("Bearer "), false);
