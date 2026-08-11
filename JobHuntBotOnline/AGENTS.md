@@ -1,5 +1,13 @@
 # JobHuntBot Online Delivery Rules
 
+## ★ 开工先读 `OWNER_WALKTHROUGH_20260811.md`
+
+2026-08-11 对线上 https://jobhunt.linzezhang.com 做了一次独立走查，走到**第 1 步就停了**：
+核心链路整个在注册 ＋ 邮箱验证之后，而仓里自己的证据写着真实邮件生命周期**从没在生产验过**。
+那份文件里有当天的实测数据和**唯一该做的第一件事**（给 Owner 一条不用邮箱的入口）。
+它优先于 `taskpack/task_dag.json` 的排序 —— `START_HERE.md` 说「从第一处真实断点执行」，
+**那就是那个断点。**
+
 本文件适用于整个任务包。目标仓存在更严格安全或部署规则时同时遵守；冲突按 `taskpack/CANONICAL_CONTRACT.md` 裁决。
 
 ## 事实与责任

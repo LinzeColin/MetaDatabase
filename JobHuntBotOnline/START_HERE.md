@@ -2,6 +2,8 @@
 
 ## 先做什么
 
+0. **先读 `OWNER_WALKTHROUGH_20260811.md`** —— 2026-08-11 线上独立走查的实测结果，
+   里面写明了第 3 条说的「第一处真实断点」到底在哪，以及今天只该做的那一件事。
 1. 读取 `PURSUING_GOAL.txt`、`AGENTS.md`、`taskpack/CANONICAL_CONTRACT.md`、`taskpack/task_dag.json` 和 `taskpack/acceptance_contract.json`。
 2. 只读观察 `LinzeColin/MetaDatabase` 最新 `main`、分支 `codex/jobhuntbot-online-v020-deployment`、真实 OVH/Coolify、域名、PostgreSQL、SMTP、DeepSeek Secret、Private-Database、R2 和 status。
 3. 从第一处真实断点执行 Task DAG；不要重新研究产品方向，也不要用整包覆盖仓库中更新且更好的实现。
