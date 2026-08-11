@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const EVIDENCE_ROOT = resolve(process.env.PRODUCTION_SMOKE_EVIDENCE_DIR || join(ROOT, "13_evidence"));
-const EVIDENCE_FILE = join(EVIDENCE_ROOT, "production.json");
+const STATUS_FILE = join(EVIDENCE_ROOT, "production-smoke-status.json");
 
 function readEvidence(path) {
   if (!existsSync(path)) return { exists: false, status: "MISSING", phase: null };
@@ -305,7 +305,7 @@ async function main() {
   };
 
   await mkdir(EVIDENCE_ROOT, { recursive: true });
-  await writeFile(EVIDENCE_FILE, `${JSON.stringify(statusFile, null, 2)}\n`, "utf8");
+  await writeFile(STATUS_FILE, `${JSON.stringify(statusFile, null, 2)}\n`, "utf8");
   await writeFile(
     join(EVIDENCE_ROOT, "production-smoke-run.json"),
     `${JSON.stringify(summary, null, 2)}\n`,

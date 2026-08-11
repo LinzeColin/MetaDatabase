@@ -62,7 +62,7 @@ test("production-smoke preflight evidence redacts configured secret-like inputs"
     assert.equal(run.status, 1, run.stderr);
 
     const [status, runReport] = await Promise.all([
-      readFile(join(evidenceRoot, "production.json"), "utf8").then(JSON.parse),
+      readFile(join(evidenceRoot, "production-smoke-status.json"), "utf8").then(JSON.parse),
       readFile(join(evidenceRoot, "production-smoke-run.json"), "utf8").then(JSON.parse),
     ]);
     assertSanitized(status, sentinels);

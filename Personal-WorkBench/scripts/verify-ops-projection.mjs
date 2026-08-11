@@ -171,7 +171,7 @@ async function main() {
       static_projection_guards: staticGuards,
       adapters: {},
       evidence_links: {
-        production_smoke: readEvidence(join(ROOT, "13_evidence/production.json")),
+        production_smoke: readEvidence(join(ROOT, "13_evidence/production-smoke-status.json")),
         owner_activation: readEvidence(join(ROOT, "13_evidence/owner_activation.json")),
         verifier: readEvidence(join(ROOT, "13_evidence/verifier.json")),
       },
@@ -282,7 +282,7 @@ async function main() {
       origin_kind: originKind(origin),
     },
     evidence_files: [
-      "13_evidence/production.json",
+      "13_evidence/production-smoke-status.json",
       "13_evidence/owner_activation.json",
       "13_evidence/r2.json",
       "13_evidence/tenant_matrix.json",

@@ -1,0 +1,18 @@
+{
+  "task_id": "S5-T3",
+  "status": "BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK",
+  "candidate_commit": null,
+  "environment": {
+    "origin_configured": true,
+    "origin_kind": "HTTPS",
+    "checked_at": "2026-08-11T07:09:13.827Z"
+  },
+  "evidence_files": [
+    "13_evidence/auth-saved.json",
+    "13_evidence/owner_activation.json",
+    "13_evidence/asset_manifest.json"
+  ],
+  "notes": "生产链路验证脚本先输出可复现的预检阻断信息，真实 OAuth/邮箱/回归脚本需在生产域名下另行执行。",
+  "phase": "BLOCKED",
+  "reason": "尚未注入生产真实账号验证流水线所需凭据（SITES_SMOKE_EMAIL / SITES_SMOKE_PASSWORD）。; 尚未注入 Google 实时回放用账户（SITES_SMOKE_GOOGLE_EMAIL）。"
+}

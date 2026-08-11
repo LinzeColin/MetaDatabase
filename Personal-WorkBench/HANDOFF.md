@@ -2,10 +2,11 @@
 
 ## 当前目标
 
-完成“个人日程 / mydairy”的受控私有品牌迁移；V34 已完成仅所有者私有部署及 V34→V33→V34 可逆恢复子门。当前 S5-T3 仍需在受控浏览器可用时采集真实认证、A/B 租户写入/历史、D1/R2 对账及负向恢复证据；在全量 S5/S6 门通过前仍不得公开发布或上传 GitHub。
+完成“个人日程 / mydairy”的公开多账户 SaaS 迁移。2026-08-11 已按 Owner 的明确公开运营目标将最外层 Sites 入口切换为 public；当前 S5-T3 仍需采集真实认证、A/B 租户写入/历史、D1/R2 对账及负向恢复证据。公开入口不等同于最终产品验收，所有任务包完成前仍不得上传 GitHub。
 
 ## 当前状态
 
+- 2026-08-11（S5-T3 公开入口与证据账本分离）：按 Owner 的多账户 SaaS 目标，Sites 控制面已从历史 custom allowlist 切换为 public。匿名探针到首页、注册、登录、找回密码、验证邮箱和公开配置端点均为 HTTP 200；未登录的当前 `/api/mydairy/profile` 返回 HTTP 401，证明请求已进入应用且仍受会话保护。未读取或写入账户、业务记录、运行时值、D1/R2 内容；未改产品代码、视觉或 GitHub。生产烟雾脚本现在写入 `production-smoke-status.json`，不再覆盖 V35 部署账本 `production.json`；脱敏、公开前置和 lint 回归均通过。本次只证明公开入口和未登录边界，真实邮箱/Google、A/B、第二设备、物理存储对账和恢复仍待执行。
 - 2026-08-11（S5-T3 本地认证到租户链路回归）：新增隔离的内存 SQLite/D1 端到端服务端回归，并纳入 `test:auth`。该回归实际经过 Better Auth 邮箱注册、未验证拒绝、验证、两账户会话、敏感跨设备同意、记账写入/读取、同账户第二会话历史、跨账户不可见、找回密码和旧会话撤销；邮件与 Turnstile 只由本机拦截器模拟，任何其他出站调用都会失败，未触及真实 provider、Sites、D1/R2 或用户数据。`test:auth`（20/20）、`test:tenant`（4/4）、`typecheck`、`lint` 与差异检查通过。这补强本地真实服务链，不替代托管环境的真实邮件、Google OAuth、浏览器 A/B、第二设备或物理资源对账。
 - 2026-08-11（S5-T3 V35 存储映射只读边界）：在不读取数据库表/记录、R2 对象/元数据、配置值或资源名称的前提下，已用受控子进程验证 Wrangler v4 与已授权账户，读取 D1 目录（4 项）、R2 桶目录（10 项）及 Workers 脚本目录（4 项）。Sites 控制面可给出一个托管 Worker 标识，但该标识不在已授权 Workers 目录中，其 settings 读取返回 404，因而不能把逻辑 `DB`／`FILES` 绑定与物理 D1/R2 资源匹配。没有 R2 写操作，也没有从目录响应推断 storage class 或计费状态。该事实更新 V35 的物理映射证据为 `NOT_PROVEN_SITES_TARGET_NOT_RESOLVED_THROUGH_AUTHORIZED_WORKERS_CATALOGUE`，不影响已完成的 V35 私有部署/恢复子门；真实认证、A/B、第二设备、物理对账及恢复回放仍继续属于同一 S5-T3。脱敏事实见 `13_evidence/private_version_35_s5_t3_storage_mapping_boundary.json`。
 - 2026-08-11（S5-T3 受控私有部署与恢复，V35 候选）：V35 已在 fresh active/owner/custom、1 名允许用户、0 群组、0 外部访客的条件下完成仅 Owner 私有部署；随后 V35→V34→V35 回滚恢复均成功，最终恢复到 V35，私有访问范围保持不变。恢复后仅查询最近 10 分钟、最多 20 条 error-only Worker 日志，返回 0 条，未保留日志正文。应用内浏览器面板已请求打开 V35，但当前执行面没有受控浏览器执行器；没有读取 Cookie/存储、生成或使用 bypass、创建账户、触发认证或写入业务数据，邮件、Google、A/B、第二设备、D1/R2 物理对账及负向 provider/recovery 回放均明确未运行。本地认证/邮件 19/19、租户 4/4、工作台 20/20 和隐私 3/3 合同通过，不能代替 V35 真实浏览器回放。未改 runtime/D1/R2/访问策略/公开 audience、未上传 GitHub，VPS3 未作为站点承载。此记录只完成 V35 的 S5-T3 私有部署和可逆恢复子门，不构成产品或最终验收；同一 S5-T3 尚待可控浏览器采集真实认证、租户、跨设备与恢复证据。脱敏事实见 `13_evidence/private_version_35_s5_t3_controlled_private_deployment_and_rollback.json`。
@@ -319,8 +320,8 @@
 
 ### 最新优先
 
-1. 在现有 owner-only private Version #34，待受控浏览器执行器可用后，以可核验的临时测试账号分别完成一次邮箱注册/验证/找回/新密码登录与 Google callback/session；不得选择个人账户、绕过认证/隐私门或反复撞击限流。
-2. 在同一 S5-T3 绑定 V34 的 A/B 隔离写入、物理第二设备历史读回、D1/R2 对账及负向 provider/recovery；公开发布、S5-T4/S6 和 GitHub 上传仍然禁止。
+1. 在当前 public 入口的 V35 候选，以可核验的临时测试账号分别完成一次邮箱注册/验证/找回/新密码登录与 Google callback/session；不得选择个人账户、绕过认证/隐私门或反复撞击限流。
+2. 在同一 S5-T3 绑定 V35 的 A/B 隔离写入、物理第二设备历史读回、D1/R2 对账及负向 provider/recovery；入口已公开，但 S5-T4/S6 与 GitHub 上传仍须按证据顺序推进。
 
 ### 历史记录（部分事项已完成；以上述最新优先项为准）
 

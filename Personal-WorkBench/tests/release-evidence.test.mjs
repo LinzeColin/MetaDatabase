@@ -293,12 +293,12 @@ test("Version 35 S5-T3 private deployment and rollback evidence does not overcla
   assert.equal(serialized.includes("Bearer "), false);
 });
 
-test("production ledger identifies Version 35 as the current private partial evidence", async () => {
+test("production ledger identifies Version 35 as the current public-entry partial evidence", async () => {
   const ledger = JSON.parse(
     await readFile(new URL("../13_evidence/production.json", import.meta.url), "utf8"),
   );
 
-  assert.equal(ledger.status, "PRIVATE_VERSION_35_S5_T3_PARTIAL");
+  assert.equal(ledger.status, "PUBLIC_ENTRY_VERSION_35_S5_T3_PARTIAL");
   assert.equal(ledger.verdict, "NOT_PRODUCT_ACCEPTANCE");
   assert.equal(ledger.current_private_candidate.saved_version_number, 35);
   assert.equal(ledger.current_private_candidate.source_readback_matches_saved_candidate, true);
@@ -311,6 +311,11 @@ test("production ledger identifies Version 35 as the current private partial evi
   );
   assert.equal(ledger.current_private_candidate.public_audience_changed, false);
   assert.equal(ledger.current_private_candidate.browser_e2e_current_version, "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR");
+  assert.equal(ledger.private_deployment_access_snapshot.access_mode, "custom");
+  assert.equal(ledger.current_public_access.access_mode, "public");
+  assert.equal(ledger.current_public_access.anonymous_entry_probe.root, "HTTP_200");
+  assert.equal(ledger.current_public_access.anonymous_entry_probe.sign_up, "HTTP_200");
+  assert.equal(ledger.current_public_access.anonymous_entry_probe.unauthenticated_profile, "HTTP_401");
   assert.equal(ledger.controlled_deployment_and_recovery.version_35_private_deploy, "SUCCEEDED");
   assert.equal(ledger.controlled_deployment_and_recovery.version_35_to_34_private_rollback, "SUCCEEDED");
   assert.equal(ledger.controlled_deployment_and_recovery.version_34_to_35_private_restore, "SUCCEEDED");
