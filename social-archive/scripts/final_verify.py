@@ -59,6 +59,13 @@ def structural_commands() -> list[list[str]]:
         # CHANGELOG 最新一节停在 v0.0.0.4，v5/v6/v7 三版一条都没有。
         # 改版本时代码里那几处会因为跑不起来被发现，文档里这几处不会。
         [python, "scripts/check_the_stated_version_is_the_real_one.py"],
+        # 上一道管的是「各处写的版本号一不一致」。**这一道管的是「版本号配不配得上那份插件」**：
+        # 2026-08-11 查账发现 VERSION 停在 0.0.0.41 期间真部署了 11 次。
+        # 这次侥幸没出事（那段时间 apps/browser-extension/ 零提交），而出事的样子这个仓记过：
+        # 一天发 6 个不同的扩展包全标 v0.0.0.22。真因就在 extension-install.html 里——
+        # `compareVersions(installed, requiredVersion) < 0`，**只比版本号字符串**：
+        # 字节变了而字符串没变，那一页就对他说「✓ 已是最新」并把他送回去。
+        [python, "scripts/check_one_version_means_one_package.py"],
         # 同一个平台散在十几张表里，而「我以为查全了又冒出一张」在 youtube 一个
         # 平台上就发生了四次——最狠的一次是 options.js 的 platformOrder 没有它，
         # **设置页不出卡片，交接里让 Owner 点的那个按钮根本不存在**。

@@ -24,7 +24,8 @@
 ## 边界
 
 · 不重建服务、不写回生产、不动任何生产文件。
-· 默认全量；`--limit N` 抽样跑，用于快速回归。
+· 默认全量；`--limit N` 抽样跑。**抽样时起点由 `--offset` 决定并环形绕回**——
+  否则永远只验最前面那 N 个，而报告写着「N/N 全过」。报告里会把窗口和总数一起打出来。
 · 演练目录跑完不自动删——留给人看。
 """
 
@@ -46,6 +47,24 @@ from social_archive.utils import utcnow  # noqa: E402
 HERE = Path(__file__).resolve().parent
 
 
+def select_window(ids: list[str], limit: int, offset: int) -> tuple[list[str], tuple[int, int]]:
+    """抽样要挪窗口，否则永远只验最前面那几个。
+
+    原来是 `ids[: limit]`——**确定性地取头 N 个**。把它接进每次部署时这一点就致命了：
+    552 个制品里永远只有同样的 25 个被验过，另外 527 个一次也不会被碰到，
+    而日志上写着「25/25 全过」。这个仓记过同一形状：**样例撑不起全称判断**。
+
+    起点由 offset 决定（部署按版本号取，每发一版挪一格），环形绕回。
+    返回 (这批 id, 窗口)，窗口连着总数一起进报告。
+    """
+    if not limit or not ids:
+        return ids, (0, len(ids))
+    start = offset % len(ids)
+    rotated = ids[start:] + ids[:start]
+    picked = rotated[:limit]
+    return picked, (start, start + len(picked))
+
+
 def _fail(code: str, message: str, **extra: Any) -> int:
     print(json.dumps({"status": "FAIL", "error_code": code, "message": message,
                       "generated_at": utcnow(), **extra}, ensure_ascii=False))
@@ -58,6 +77,8 @@ def main() -> int:
     parser.add_argument("--from-store", required=True, choices=("r2", "oci", "github"))
     parser.add_argument("--target", required=True, help="一个全新的隔离目录")
     parser.add_argument("--limit", type=int, default=0, help="只抽这么多个制品（0 = 全量）")
+    parser.add_argument("--offset", type=int, default=0,
+                        help="抽样起点（环形）。每次部署挪一格，几十版就把全量走完")
     args = parser.parse_args()
 
     settings = Settings.from_env()
@@ -87,8 +108,8 @@ def main() -> int:
         artifact_ids = [row[0] for row in connection.execute("SELECT id FROM artifact ORDER BY id")]
     finally:
         connection.close()
-    if args.limit:
-        artifact_ids = artifact_ids[: args.limit]
+    total_artifacts = len(artifact_ids)
+    artifact_ids, window = select_window(artifact_ids, args.limit, args.offset)
 
     objects_dir = target / "objects"
     recovered = 0
@@ -111,11 +132,20 @@ def main() -> int:
         "status": "PASS" if recovered == len(artifact_ids) else "FAIL",
         "generated_at": utcnow(),
         "source_store": args.from_store,
-        "index_says_artifacts": len(artifact_ids),
+        # **抽样必须把分母和窗口一起说出来。** 原来这里只打一个
+        # `index_says_artifacts`，而抽样之后它等于样本数——报告于是长得像全量过了。
+        "artifacts_in_index": total_artifacts,
+        "checked_this_run": len(artifact_ids),
+        "window": {"from": window[0], "to": window[1], "offset_given": args.offset},
         "recovered_and_hash_verified": recovered,
         "failed": len(artifact_ids) - recovered,
         "failure_samples": failures,
         "target": str(target),
+        "coverage_zh": (
+            f"这次验的是索引里 {total_artifacts} 个制品中的 {len(artifact_ids)} 个"
+            f"（窗口 {window[0]}–{window[1]}）——**不是全量**。"
+            "起点每次部署挪一格，连着发几十版才走完一圈。"
+            if args.limit else f"全量：索引里 {total_artifacts} 个制品全验了。"),
         "note": "restore_object.py 自己就会比对哈希；这里数的是它判 PASS 的个数。",
     }, ensure_ascii=False))
     return 0 if recovered == len(artifact_ids) else 4

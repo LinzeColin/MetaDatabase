@@ -1,0 +1,72 @@
+{
+  "status": "PASS",
+  "host": "linze-vps3",
+  "restorable_copies": 2,
+  "content_rows_per_copy": {
+    "r2": 193,
+    "oci": 193
+  },
+  "attempts": [
+    {
+      "store": "r2",
+      "exit_code": 0,
+      "snapshot_batch": "20260811T125859Z",
+      "drill": {
+        "status": "PASS",
+        "generated_at": "2026-08-11T13:12:31.040612Z",
+        "source_store": "r2",
+        "object_key": "backups/runtime-db/20260811T125859Z/62ff9613fb5df56e94c1f23db71cb08af9498b925d9534f9ce189a73f684ccfd.sqlite3.gz.age",
+        "restored_to": "/var/tmp/restore-check-wFXg/restored-runtime.sqlite3",
+        "restored_byte_size": 4825088,
+        "restored_counts": {
+          "content": 193,
+          "user_relation": 194,
+          "artifact": 552,
+          "object_replica": 1656,
+          "destination_receipt": 391
+        },
+        "live_counts_now": {
+          "content": 193,
+          "user_relation": 194,
+          "artifact": 552,
+          "object_replica": 1656,
+          "destination_receipt": 391
+        },
+        "problems": [],
+        "note": "快照是取快照那一刻的样子；此后写入的行自然不在里面，所以两边计数可以不同。"
+      }
+    },
+    {
+      "store": "oci",
+      "exit_code": 0,
+      "snapshot_batch": "20260811T125859Z",
+      "drill": {
+        "status": "PASS",
+        "generated_at": "2026-08-11T13:12:36.427662Z",
+        "source_store": "oci",
+        "object_key": "backups/runtime-db/20260811T125859Z/62ff9613fb5df56e94c1f23db71cb08af9498b925d9534f9ce189a73f684ccfd.sqlite3.gz.age",
+        "restored_to": "/var/tmp/restore-check-ZfME/restored-runtime.sqlite3",
+        "restored_byte_size": 4825088,
+        "restored_counts": {
+          "content": 193,
+          "user_relation": 194,
+          "artifact": 552,
+          "object_replica": 1656,
+          "destination_receipt": 391
+        },
+        "live_counts_now": {
+          "content": 193,
+          "user_relation": 194,
+          "artifact": 552,
+          "object_replica": 1656,
+          "destination_receipt": 391
+        },
+        "problems": [],
+        "note": "快照是取快照那一刻的样子；此后写入的行自然不在里面，所以两边计数可以不同。"
+      }
+    }
+  ],
+  "problems": [],
+  "third_copy_zh": "第三份（GitHub）没在这里试——那把恢复令牌看不见 LinzeColin/Private-Database，**只有 Owner 能授权**。在他授权之前，这是「取不回」，不是「通过」。",
+  "boundary_zh": "只读：远端副本只下载不改，落地在一次性目录、跑完就删；密钥由 systemd 发，这个脚本只经手路径、不读内容。"
+}

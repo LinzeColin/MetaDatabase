@@ -1179,11 +1179,18 @@ fi
 python3 -c "
 import json
 d=json.load(open('evidence/G3/RESTORE_FROM_BACKUP.json'))
-rows=d['content_rows_per_copy']
-batch={a['store']: a.get('snapshot_batch') for a in d['attempts']}
-print(f\"  {d['restorable_copies']} 份副本真的取回来了（不是登记，是下载+解密+打开）：\"
-      + '、'.join(f'{k} {v} 条' for k, v in rows.items())
-      + f\"；用的是 {sorted(set(batch.values()))[-1]} 那批快照。\")
+# **播报块自己不许把部署带红。** 上面每一道验收都过了才走到这里，
+# 而 sorted() 撞上一个 None 就抛 TypeError——那会变成一次\"检查全绿却失败\"的部署。
+# 这个形状是跑出来的，不是读出来的：拿一份缺 snapshot_batch 的结果喂它，当场 TypeError。
+for t in d['targets']:
+    rows = t.get('content_rows_per_copy') or {}
+    detail = '、'.join(f'{k} {v} 条' for k, v in rows.items())
+    print(f\"  {t['key']}：{t['restorable_copies']}/{t['required']} 份真取回来了\"
+          + (f\"（{detail}）\" if detail else '') + f\"——{t['zh']}\")
+    if t.get('coverage_zh'):
+        print(f\"    {t['coverage_zh']}\")
+batch=[a.get('snapshot_batch') for t in d['targets'] for a in t['attempts'] if a.get('snapshot_batch')]
+print(f\"  用的是 {sorted(batch)[-1]} 那批快照。\" if batch else \"  （这次没记下是哪批快照）\")
 print('  第三份：那把令牌看不见那个仓，**取不回，不算通过**——只有 Owner 能授权。')"
 
 step "9) 验收：仓、主机、**镜像里那一份**，三份是不是同一份代码"

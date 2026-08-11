@@ -111,6 +111,53 @@ def test_the_third_copy_is_reported_as_unreachable_not_as_green() -> None:
         "第三份取不回来，而文案没说清它不算通过")
 
 
+def _select_window():
+    spec = importlib.util.spec_from_file_location(
+        "disaster_recovery_drill", ROOT / "scripts/disaster_recovery_drill.py")
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module.select_window
+
+
+def test_the_sample_moves_every_version() -> None:
+    """**抽样不挪窗口就是永远只验最前面那几个。**（2026-08-11）
+
+    接进每次部署那一刻这件事才变致命：552 个制品里永远同样的 25 个被验过，
+    另外 527 个一次也不会被碰到，而日志上写着「25/25 全过」。
+    """
+    ids = [f"a{i:03d}" for i in range(552)]
+    select = _select_window()
+    first, w1 = select(ids, 25, 42 * 25)
+    second, w2 = select(ids, 25, 43 * 25)
+    assert w1 != w2, "换了一版，验的还是同一批——那 527 个永远轮不到"
+    assert not set(first) & set(second), "两版的窗口重叠了，覆盖推进得比看上去慢"
+    assert len(first) == 25
+
+
+def test_the_window_wraps_instead_of_running_off_the_end() -> None:
+    """绕回来，别在末尾变成空样本（空样本会让 `recovered == len(ids)` 恒真）。"""
+    ids = [f"a{i}" for i in range(10)]
+    picked, window = _select_window()(ids, 4, 8)
+    assert picked == ["a8", "a9", "a0", "a1"], picked
+    assert window == (8, 12)
+
+
+def test_full_scope_is_still_full_scope() -> None:
+    """`--limit 0` 是全量，别被这次改动顺手削成抽样。"""
+    ids = [f"a{i}" for i in range(7)]
+    picked, window = _select_window()(ids, 0, 99)
+    assert picked == ids and window == (0, 7)
+
+
+def test_the_sampled_report_states_its_denominator() -> None:
+    """抽样报告必须自己说出分母，否则读起来就是「全过了」。"""
+    source = (ROOT / "scripts/disaster_recovery_drill.py").read_text(encoding="utf-8")
+    assert '"artifacts_in_index"' in source and '"checked_this_run"' in source, (
+        "报告里没有分母——`samples-cannot-support-universal-claims` 那条教训又回来了")
+    assert "不是全量" in source
+
+
 def _caller_gate():
     spec = importlib.util.spec_from_file_location(
         "drill_caller_gate", ROOT / "scripts/check_every_drill_has_a_caller.py")
