@@ -48,6 +48,14 @@
     "google_oauth_callback_and_session": "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR",
     "a_b_tenant_isolation_and_second_device_history": "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR"
   },
+  "current_local_contract_revalidation": {
+    "authentication_and_mail_contract": "PASS_LOCAL_CONTRACT",
+    "tenant_isolation_contract": "PASS_LOCAL_CONTRACT",
+    "privacy_consent_contract": "PASS_LOCAL_CONTRACT",
+    "api_and_storage_binding_contract": "PASS_LOCAL_CONTRACT",
+    "primary_menu_and_workbench_regression": "PASS_LOCAL_CONTRACT",
+    "current_production_browser_e2e": "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR"
+  },
   "not_proven_by_this_increment": [
     "current Version 33 email registration, verification, reset, and sign-in browser replay",
     "current Version 33 Google OAuth callback and session",
