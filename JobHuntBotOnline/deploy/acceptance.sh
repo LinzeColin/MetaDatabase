@@ -3,6 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 test -f .env
 set -a; source .env; set +a
+evidence_runner_user=(--user "${ACCEPTANCE_UID:-$(id -u)}:${ACCEPTANCE_GID:-$(id -g)}")
 mkdir -p evidence runtime-data
 python3 - <<'PY'
 from pathlib import Path
@@ -47,13 +48,13 @@ import json,sys
 p=json.loads(sys.argv[1]); assert p.get('status')=='ready'; assert p.get('refresh_hours')==6
 PY
 
-docker compose run --rm -v "$PWD/evidence:/app/evidence" web \
+docker compose run --rm "${evidence_runner_user[@]}" -v "$PWD/evidence:/app/evidence" web \
   python tools/production_state_probe.py --output /app/evidence/target-state-before.json
 
-docker compose run --rm -v "$PWD/evidence:/app/evidence" worker \
+docker compose run --rm "${evidence_runner_user[@]}" -v "$PWD/evidence:/app/evidence" worker \
   python tools/online_source_probe.py --require-success --output /app/evidence/target-sources.json
 
-docker compose run --rm -v "$PWD/evidence:/app/evidence" worker \
+docker compose run --rm "${evidence_runner_user[@]}" -v "$PWD/evidence:/app/evidence" worker \
   python tools/deepseek_probe.py --output /app/evidence/target-deepseek.json
 
 # The target runtime is already subject to the deployment-runtime verifier above.
@@ -72,7 +73,7 @@ for _ in $(seq 1 60); do
   sleep 3
 done
 curl -fsS "${BASE_URL%/}/readyz" >/dev/null
-docker compose run --rm -v "$PWD/evidence:/app/evidence" web \
+docker compose run --rm "${evidence_runner_user[@]}" -v "$PWD/evidence:/app/evidence" web \
   python tools/production_state_probe.py --output /app/evidence/target-state-after.json
 python3 - <<'PY'
 import json
