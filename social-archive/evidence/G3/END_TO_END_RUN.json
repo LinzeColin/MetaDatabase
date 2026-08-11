@@ -19,28 +19,28 @@
     },
     "tabs_before": [
       {
-        "id": 1619500811,
+        "id": 2040562337,
         "active": false
       },
       {
-        "id": 1619500812,
+        "id": 2040562338,
         "active": false
       },
       {
-        "id": 1619500815,
+        "id": 2040562341,
         "active": true
       }
     ],
-    "my_tab_id": 1619500815,
+    "my_tab_id": 2040562341,
     "queue_before": [
       {
         "accountId": "acct-1",
-        "enqueuedAt": 1786422807613,
+        "enqueuedAt": 1786424246175,
         "profileUrl": "",
         "syncRunId": "run-1",
         "tabId": null,
         "triggerType": "first_connect",
-        "updatedAt": 1786422807613
+        "updatedAt": 1786424246175
       }
     ],
     "alarm_scheduled": true,
@@ -58,15 +58,15 @@
     "queue_after": [],
     "tabs_after": [
       {
-        "id": 1619500811,
+        "id": 2040562337,
         "active": false
       },
       {
-        "id": 1619500812,
+        "id": 2040562338,
         "active": false
       },
       {
-        "id": 1619500815,
+        "id": 2040562341,
         "active": true
       }
     ],

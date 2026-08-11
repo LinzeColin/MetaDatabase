@@ -13,7 +13,7 @@
       {
         "url": "/assets/styles.css?v=cfef9d76",
         "bytes": 39548,
-        "cf_cache_status": "MISS",
+        "cf_cache_status": "HIT",
         "age": ""
       },
       {
@@ -25,13 +25,13 @@
       {
         "url": "/assets/favicon.svg?v=cfef9d76",
         "bytes": 182,
-        "cf_cache_status": "MISS",
+        "cf_cache_status": "HIT",
         "age": ""
       },
       {
         "url": "/assets/app.js?v=cfef9d76",
         "bytes": 143009,
-        "cf_cache_status": "MISS",
+        "cf_cache_status": "HIT",
         "age": ""
       }
     ]
