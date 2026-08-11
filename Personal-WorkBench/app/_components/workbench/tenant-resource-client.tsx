@@ -18,7 +18,13 @@ import {
   resolveBrowserRecordScope,
   writeDeviceLocalRecord,
 } from "./local-record-cache";
-import { replayOutboxQueue, type OutboxMutationResult } from "./outbox-queue";
+import {
+  getBrowserOutboxStorage,
+  readOutbox,
+  replayOutboxQueue,
+  type OutboxMutationResult,
+  writeOutbox,
+} from "./outbox-queue";
 
 export type TenantRecord = Record<string, unknown> & {
   id: string;
@@ -342,6 +348,23 @@ export function useTenantResource<T extends TenantRecord>(
       let local: T[] = [];
       try {
         local = (await readDeviceLocalRecords(scope, resource)) as T[];
+        // Before account-scoped IndexedDB existed, pending writes were kept in
+        // one browser-wide key. Migrate that legacy queue only to the guest
+        // partition, never to whichever account happens to sign in later.
+        if (scope === "guest") {
+          const storage = getBrowserOutboxStorage();
+          const legacyActions = readOutbox(storage) as DeviceOutboxAction[];
+          let migrated = true;
+          for (const action of legacyActions) {
+            try {
+              await appendDeviceOutbox(scope, action);
+            } catch {
+              migrated = false;
+              break;
+            }
+          }
+          if (legacyActions.length && migrated) writeOutbox(storage, []);
+        }
       } catch {
         // The server path remains available if a browser disables IndexedDB.
       }

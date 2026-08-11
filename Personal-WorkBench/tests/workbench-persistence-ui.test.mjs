@@ -77,7 +77,7 @@ test("history empty states never replace an unreadable history with a false zero
   assert.match(lifecycle, /canShowEmptyHistory\(activeResource, reference\)/);
   assert.match(lifecycle, /canShowEmptyHistory\(periods, reference\)/);
   assert.match(lifecycle, /canShowEmptyHistory\(current, reference\)/);
-  assert.match(todo, /!loading && !error && todos\.length === 0/);
+  assert.match(todo, /!todos\.loading && !todos\.error && todos\.records\.length === 0/);
 });
 
 test("account distinguishes signed-out visitors from signed-in unverified accounts", async () => {
@@ -204,19 +204,18 @@ test("period record control immediately acknowledges pending and failed saves", 
   assert.doesNotMatch(source, /if \(periods\.consentRequired\)/);
 });
 
-test("todo uses a browser-valid date pattern and account-scoped IndexedDB persistence", async () => {
+test("todo uses a browser-valid date pattern and the shared account-scoped persistence client", async () => {
   const source = await readFile(todoSource, "utf8");
   const cacheSource = await readFile("app/_components/workbench/local-record-cache.ts", "utf8");
 
   assert.match(source, /placeholder="YYYY-MM-DD"/);
   assert.match(source, /pattern="\[0-9\]\{4\}-\[0-9\]\{2\}-\[0-9\]\{2\}"/);
-  assert.doesNotMatch(source, /placeholder=\{toChineseDate\(""\)\}/);
-  assert.match(source, /dueDate: safeString\(dueDate, toChineseDate\(""\)\)/);
-  assert.match(source, /createDeviceLocalRecord/);
-  assert.match(source, /writeDeviceLocalRecord/);
-  assert.match(source, /readDeviceOutbox/);
-  assert.match(source, /writeDeviceOutbox/);
-  assert.match(source, /scope === "guest"/);
+  assert.match(source, /useTenantResource<TodoRecord>\("todos"\)/);
+  assert.match(source, /await todos\.update\(editingId, payload\)/);
+  assert.match(source, /async function toggleTodo\(todo: TodoRecord\)/);
+  assert.match(source, /await todos\.destroy\(todo\.id\)/);
+  assert.match(source, /isDeviceLocalRecord/);
+  assert.match(source, /ResourceStatus/);
   assert.match(cacheSource, /const OUTBOX_STORE = "outbox"/);
   assert.match(cacheSource, /const DATABASE_VERSION = 3/);
   assert.match(cacheSource, /const RECORD_ALIAS_STORE = "record-aliases"/);
@@ -311,6 +310,9 @@ test("tenant resource retries only same-account non-sensitive local records afte
   const cacheSource = await readFile("app/_components/workbench/local-record-cache.ts", "utf8");
 
   assert.match(source, /appendDeviceOutbox/);
+  assert.match(source, /Before account-scoped IndexedDB existed/);
+  assert.match(source, /if \(scope === "guest"\)/);
+  assert.match(source, /const legacyActions = readOutbox\(storage\) as DeviceOutboxAction\[\];/);
   assert.match(source, /deriveDeviceOutboxParentReferences/);
   assert.match(source, /resolveDeviceOutboxAction/);
   assert.match(source, /rememberDeviceOutboxRecordAlias/);
@@ -351,11 +353,15 @@ test("dependent local mutations resolve a same-account parent alias before an im
   assert.match(source, /正在等待关联记录同步，完成后会自动同步。/);
 });
 
-test("todo replay leaves other module queues to their owning resource client", async () => {
-  const source = await readFile(todoSource, "utf8");
+test("todo replay is isolated by the shared resource client", async () => {
+  const [todo, resource] = await Promise.all([
+    readFile(todoSource, "utf8"),
+    readFile(resourceSource, "utf8"),
+  ]);
 
-  assert.match(source, /function actionTargetsTodo\(action: DeviceOutboxAction\)/);
-  assert.match(source, /const queue = allActions\.filter\(actionTargetsTodo\);/);
-  assert.match(source, /removeDeviceOutboxActions\(scope, acknowledged\)/);
-  assert.doesNotMatch(source, /writeDeviceOutbox\(scope, replayResult\.remaining\)/);
+  assert.match(todo, /useTenantResource<TodoRecord>\("todos"\)/);
+  assert.match(resource, /function actionTargetsResource\(action: DeviceOutboxAction, resource: string\)/);
+  assert.match(resource, /\.filter\(\(action\) => actionTargetsResource\(action, resource\)\)/);
+  assert.match(resource, /removeDeviceOutboxActions\(scope, acknowledged\)/);
+  assert.doesNotMatch(todo, /writeDeviceOutbox\(scope, replayResult\.remaining\)/);
 });
