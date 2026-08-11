@@ -369,7 +369,7 @@ def test_production_state_probe_checks_exact_six_hours(tmp_path):
     Base.metadata.create_all(engine)
     with engine.begin() as conn:
         conn.execute(text("CREATE TABLE alembic_version(version_num VARCHAR(64) NOT NULL)"))
-        conn.execute(text("INSERT INTO alembic_version(version_num) VALUES ('0001_saas_baseline')"))
+        conn.execute(text("INSERT INTO alembic_version(version_num) VALUES ('0002_delivery_lookup')"))
     factory = make_session_factory(engine)
     completed = utcnow()
     with factory() as db:

@@ -58,10 +58,11 @@ class Mailer:
         flood the same recipient, and the database record makes this bound
         consistent across web workers and client IPs.
         """
+        recipient_lookup = user.email_lookup
         if self.settings.email_min_interval_seconds > 0:
             latest = db.scalar(
                 select(EmailDelivery.created_at)
-                .where(EmailDelivery.user_id == user.id)
+                .where(EmailDelivery.recipient_lookup == recipient_lookup)
                 .order_by(EmailDelivery.created_at.desc())
                 .limit(1)
             )
@@ -70,7 +71,7 @@ class Mailer:
 
         attempts = db.scalar(
             select(func.count(EmailDelivery.id)).where(
-                EmailDelivery.user_id == user.id,
+                EmailDelivery.recipient_lookup == recipient_lookup,
                 EmailDelivery.created_at >= now - timedelta(hours=24),
             )
         )
@@ -96,6 +97,7 @@ class Mailer:
         recipient = self.crypto.decrypt_text(managed_user.email_encrypted)
         delivery = EmailDelivery(
             user_id=managed_user.id,
+            recipient_lookup=managed_user.email_lookup,
             kind=kind,
             recipient_masked=mask_email(recipient),
             status="pending",

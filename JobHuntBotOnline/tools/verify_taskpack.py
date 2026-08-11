@@ -26,7 +26,8 @@ REQUIRED = [
     "tools/deepseek_probe.py", "tools/e2e_production.py", "tools/mail_transport_probe.py",
     "tools/migrate_v02_sqlite.py", "tools/production_state_probe.py",
     "tools/finalize_acceptance.py", "tools/ops_probe.py", "alembic.ini",
-    "alembic/versions/0001_saas_baseline.py", "secrets/README.md",
+    "alembic/versions/0001_saas_baseline.py", "alembic/versions/0002_email_delivery_recipient_lookup.py",
+    "secrets/README.md",
 ]
 FORBIDDEN_NAMES = {".env", "OWNER_LOGIN.txt", "postgres_password.txt"}
 FORBIDDEN_PARTS = {"__pycache__", ".pytest_cache", ".venv", "playwright-report", "test-results"}

@@ -37,7 +37,7 @@ from app.models import (
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default="")
-    parser.add_argument("--require-alembic-head", default="0001_saas_baseline")
+    parser.add_argument("--require-alembic-head", default="0002_delivery_lookup")
     args = parser.parse_args()
 
     errors: list[str] = []

@@ -4,7 +4,10 @@ from dataclasses import replace
 from urllib.parse import urlparse
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
+from app.models import EmailDelivery, User
+from app.security import email_lookup
 from .conftest import csrf, latest_link, register_verify
 
 
@@ -142,6 +145,54 @@ def test_daily_delivery_cap_does_not_claim_a_reset_was_sent(settings):
         assert "系统会在允许发送时处理请求" in response.text
         outbox = guarded_client.get("/_test/outbox").json()
         assert [item["kind"] for item in outbox] == ["verify"]
+
+
+def test_deleted_account_cannot_bypass_recipient_delivery_limit(settings):
+    from app.main import create_app
+
+    guarded = replace(settings, email_min_interval_seconds=1800, email_max_per_user_per_24h=3)
+    app = create_app(guarded)
+    with TestClient(app) as guarded_client:
+        register = guarded_client.get("/register")
+        guarded_client.post("/register", data={
+            "csrf_token": csrf(register.text),
+            "email": "recreate@example.com",
+            "display_name": "Recreate User",
+            "password": "ValidPass123",
+            "password_confirm": "ValidPass123",
+        }, follow_redirects=True)
+        verify_link = latest_link(guarded_client, "verify")
+        parsed = urlparse(verify_link)
+        guarded_client.get(parsed.path + "?" + parsed.query, follow_redirects=True)
+
+        delete_page = guarded_client.get("/settings/data")
+        deleted = guarded_client.post("/settings/data/delete", data={
+            "csrf_token": csrf(delete_page.text),
+            "password": "ValidPass123",
+            "confirmation": "删除我的账户",
+        }, follow_redirects=True)
+        assert "账户和个人数据已删除" in deleted.text
+
+        re_register = guarded_client.get("/register")
+        deferred = guarded_client.post("/register", data={
+            "csrf_token": csrf(re_register.text),
+            "email": "recreate@example.com",
+            "display_name": "Recreate User",
+            "password": "ValidPass123",
+            "password_confirm": "ValidPass123",
+        }, follow_redirects=True)
+        assert "验证邮件受发送保护，暂未发出" in deferred.text
+        assert [item["kind"] for item in guarded_client.get("/_test/outbox").json()] == ["verify"]
+
+        lookup = email_lookup("recreate@example.com", guarded.email_lookup_secret)
+        with guarded_client.app.state.session_factory() as db:
+            deliveries = db.scalars(
+                select(EmailDelivery).where(EmailDelivery.recipient_lookup == lookup)
+            ).all()
+            replacement = db.scalar(select(User).where(User.email_lookup == lookup))
+        assert len(deliveries) == 1
+        assert deliveries[0].user_id is None
+        assert replacement is not None and replacement.is_verified is False
 
 
 def test_registration_links_are_hidden_when_mail_is_deferred(settings):

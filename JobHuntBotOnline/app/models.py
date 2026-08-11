@@ -58,8 +58,19 @@ class EmailToken(Base):
 
 class EmailDelivery(Base):
     __tablename__ = "email_deliveries"
+    __table_args__ = (
+        Index(
+            "ix_email_deliveries_recipient_lookup_created_at",
+            "recipient_lookup",
+            "created_at",
+        ),
+    )
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    # This is the existing HMAC lookup, never an email address.  It keeps the
+    # recipient delivery limit enforceable after a user deletes their account.
+    recipient_lookup: Mapped[str | None] = mapped_column(String(64), nullable=True)
     kind: Mapped[str] = mapped_column(String(32))
     recipient_masked: Mapped[str] = mapped_column(String(255))
     status: Mapped[str] = mapped_column(String(24))

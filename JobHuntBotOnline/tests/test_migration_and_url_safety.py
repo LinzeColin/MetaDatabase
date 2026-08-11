@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
+import subprocess
+import sys
 from argparse import Namespace
 from pathlib import Path
 
@@ -96,6 +98,45 @@ def test_v02_source_connection_is_immutable_and_read_only(tmp_path):
     with pytest.raises(sqlite3.OperationalError):
         readonly.execute("CREATE TABLE must_not_persist(value TEXT)")
     readonly.close()
+
+
+def test_delivery_lookup_migration_backfills_current_user_without_email_plaintext(tmp_path):
+    database = tmp_path / "legacy-email-delivery.db"
+    raw = sqlite3.connect(database)
+    raw.executescript("""
+    CREATE TABLE users(id INTEGER PRIMARY KEY, email_lookup TEXT NOT NULL);
+    CREATE TABLE email_deliveries(
+        id INTEGER PRIMARY KEY,
+        user_id INTEGER,
+        kind TEXT NOT NULL,
+        recipient_masked TEXT NOT NULL,
+        status TEXT NOT NULL,
+        error TEXT,
+        created_at TEXT NOT NULL
+    );
+    INSERT INTO users(id, email_lookup) VALUES(1, 'recipient-hmac-only');
+    INSERT INTO email_deliveries(id, user_id, kind, recipient_masked, status, created_at)
+    VALUES(1, 1, 'verify', 'r***@example.com', 'sent', '2026-08-01T00:00:00');
+    """)
+    raw.commit()
+    raw.close()
+
+    env = os.environ.copy()
+    env.update({"DATABASE_URL": f"sqlite+pysqlite:///{database}", "PYTHONDONTWRITEBYTECODE": "1"})
+    completed = subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", "head"],
+        cwd=Path(__file__).resolve().parents[1], env=env, capture_output=True, text=True,
+    )
+    assert completed.returncode == 0, completed.stderr
+
+    raw = sqlite3.connect(database)
+    columns = {row[1] for row in raw.execute("PRAGMA table_info(email_deliveries)")}
+    stored_lookup = raw.execute("SELECT recipient_lookup FROM email_deliveries WHERE id=1").fetchone()[0]
+    revision = raw.execute("SELECT version_num FROM alembic_version").fetchone()[0]
+    raw.close()
+    assert "recipient_lookup" in columns
+    assert stored_lookup == "recipient-hmac-only"
+    assert revision == "0002_delivery_lookup"
 
 
 def test_safe_http_url_rejects_private_and_malformed_ports():

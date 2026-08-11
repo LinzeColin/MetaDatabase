@@ -23,6 +23,7 @@
     "alembic/env.py",
     "alembic/script.py.mako",
     "alembic/versions/0001_saas_baseline.py",
+    "alembic/versions/0002_email_delivery_recipient_lookup.py",
     "app/__init__.py",
     "app/ai.py",
     "app/config.py",
