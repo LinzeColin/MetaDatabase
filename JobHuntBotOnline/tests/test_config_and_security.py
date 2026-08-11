@@ -125,6 +125,7 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     assert 'RUN_REAL_EMAIL_ACCEPTANCE:-false' in acceptance
     assert "REAL_EMAIL_ACCEPTANCE_RUN_ID" in acceptance
     assert "ACCEPTANCE_MIN_EMAIL_GAP_SECONDS" in acceptance
+    assert "ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS" in acceptance
     assert "ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS" in acceptance
     assert "ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS" in acceptance
     assert 'evidence_runner_user=(--user "${ACCEPTANCE_UID:-$(id -u)}:${ACCEPTANCE_GID:-$(id -g)}")' in acceptance

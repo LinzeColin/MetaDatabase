@@ -268,6 +268,34 @@ def test_mail_wait_retries_a_bounded_imap_timeout_without_resending(monkeypatch)
     assert attempts["count"] == 1
 
 
+def test_email_pacer_adds_a_rate_limit_boundary_buffer(monkeypatch):
+    spec = importlib.util.spec_from_file_location("jobhunt_e2e_pacer", ROOT / "tools/e2e_production.py")
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    monotonic_values = iter([0.0, 1800.0, 1800.0])
+    sleeps: list[float] = []
+    monkeypatch.setattr(module.time, "monotonic", lambda: next(monotonic_values))
+    monkeypatch.setattr(module.time, "sleep", lambda seconds: sleeps.append(seconds))
+
+    pacer = module.EmailPacer(1800, 30)
+    pacer.wait_before_request()
+    pacer.wait_before_request()
+
+    assert sleeps == [30.0]
+
+
+def test_email_pacer_rejects_removing_the_rate_limit_boundary_buffer(monkeypatch):
+    spec = importlib.util.spec_from_file_location("jobhunt_e2e_pacer_config", ROOT / "tools/e2e_production.py")
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    monkeypatch.setenv("ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS", "0")
+
+    with pytest.raises(RuntimeError, match="between 30 and 300"):
+        module.acceptance_email_request_safety_seconds()
+
+
 def test_mail_transport_probe_ignores_generated_evidence(tmp_path):
     pack = tmp_path / "pack"
     copy_taskpack_source(pack)

@@ -40,9 +40,9 @@ The target `.env` uses provider-neutral SMTP; NitroSend is not accepted or requi
 - `ACCEPTANCE_EMAIL_A`, `ACCEPTANCE_EMAIL_B`, `ACCEPTANCE_ACCOUNT_PASSWORD`
 - `ACCEPTANCE_IMAP_HOST`, `ACCEPTANCE_IMAP_PORT`, `ACCEPTANCE_IMAP_USERNAME`, `ACCEPTANCE_IMAP_PASSWORD`
 - `ACCEPTANCE_IMAP_FOLDER`, `ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS=20`, `RUN_REAL_EMAIL_ACCEPTANCE=true`, fresh `REAL_EMAIL_ACCEPTANCE_RUN_ID`
-- `ACCEPTANCE_MIN_EMAIL_GAP_SECONDS>=1800`, `ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS>=24`
+- `ACCEPTANCE_MIN_EMAIL_GAP_SECONDS>=1800`, `ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS=30`, `ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS>=24`
 
-The harness reserves at most three real messages, waits at least 30 minutes between requests, bounds every IMAP connection to 20 seconds, and persists a 24-hour cooldown before it opens Chromium. These are test credentials, not candidate data. They are never copied into evidence.
+The harness reserves at most three real messages, waits at least 30 minutes plus a 30-second application-rate-limit buffer between requests, bounds every IMAP connection to 20 seconds, and persists a 24-hour cooldown before it opens Chromium. These are test credentials, not candidate data. They are never copied into evidence.
 
 ## Verdict
 

@@ -22,6 +22,13 @@ esac
   echo "ACCEPTANCE_MIN_EMAIL_GAP_SECONDS must be at least 1800; no email has been sent" >&2
   exit 2
 }
+case "${ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS:-30}" in
+  ''|*[!0-9]*) echo "ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS must be an integer; no email has been sent" >&2; exit 2 ;;
+esac
+(( ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS >= 30 && ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS <= 300 )) || {
+  echo "ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS must be between 30 and 300; no email has been sent" >&2
+  exit 2
+}
 case "${ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS:-24}" in
   ''|*[!0-9]*) echo "ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS must be an integer; no email has been sent" >&2; exit 2 ;;
 esac

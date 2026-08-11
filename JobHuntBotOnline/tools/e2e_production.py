@@ -32,6 +32,8 @@ MIN_REAL_EMAIL_COOLDOWN_HOURS = 24
 MAX_REAL_EMAIL_MESSAGES = 3
 DEFAULT_IMAP_CONNECT_TIMEOUT_SECONDS = 20
 MAX_IMAP_CONNECT_TIMEOUT_SECONDS = 60
+DEFAULT_ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS = 30
+MAX_ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS = 300
 RUN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{7,79}$")
 
 
@@ -81,6 +83,24 @@ def imap_connect_timeout_seconds() -> int:
     if not 1 <= value <= MAX_IMAP_CONNECT_TIMEOUT_SECONDS:
         raise RuntimeError(
             f"ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS must be between 1 and {MAX_IMAP_CONNECT_TIMEOUT_SECONDS}"
+        )
+    return value
+
+
+def acceptance_email_request_safety_seconds() -> int:
+    raw = os.getenv(
+        "ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS",
+        str(DEFAULT_ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS),
+    ).strip()
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise RuntimeError("ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS must be an integer") from exc
+    if not DEFAULT_ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS <= value <= MAX_ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS:
+        raise RuntimeError(
+            "ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS must be between "
+            f"{DEFAULT_ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS} and "
+            f"{MAX_ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS}"
         )
     return value
 
@@ -156,13 +176,15 @@ def reserve_real_email_acceptance(
 
 
 class EmailPacer:
-    def __init__(self, minimum_gap_seconds: int):
+    def __init__(self, minimum_gap_seconds: int, request_safety_seconds: int):
         self.minimum_gap_seconds = minimum_gap_seconds
+        self.request_safety_seconds = request_safety_seconds
         self._last_request_at: float | None = None
 
     def wait_before_request(self) -> None:
         if self._last_request_at is not None:
-            remaining = self.minimum_gap_seconds - (time.monotonic() - self._last_request_at)
+            required_gap = self.minimum_gap_seconds + self.request_safety_seconds
+            remaining = required_gap - (time.monotonic() - self._last_request_at)
             if remaining > 0:
                 time.sleep(remaining)
         self._last_request_at = time.monotonic()
@@ -184,6 +206,7 @@ def email_lifecycle_preflight() -> dict[str, object] | None:
     try:
         acceptance_minimum_email_gap_seconds()
         acceptance_real_email_cooldown_hours()
+        acceptance_email_request_safety_seconds()
     except RuntimeError:
         pacing_configured = False
     try:
@@ -510,6 +533,7 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
         minimum_email_gap_seconds = acceptance_minimum_email_gap_seconds()
         cooldown_hours = acceptance_real_email_cooldown_hours()
         imap_connect_timeout = imap_connect_timeout_seconds()
+        email_request_safety_seconds = acceptance_email_request_safety_seconds()
         reserve_real_email_acceptance(
             state_path=real_email_guard_path(),
             run_id=acceptance_run_id(),
@@ -528,7 +552,7 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
             "production_claimed": False,
             "secret_values_exposed": False,
         }, 2
-    pacer = EmailPacer(minimum_email_gap_seconds)
+    pacer = EmailPacer(minimum_email_gap_seconds, email_request_safety_seconds)
     password = os.getenv("ACCEPTANCE_ACCOUNT_PASSWORD", "ProdAcceptPass123").strip()
     steps: list[str] = []
     console_errors: list[str] = []
@@ -601,6 +625,7 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
             "synthetic_accounts_deleted": True,
             "email_safety": {
                 "minimum_gap_seconds": minimum_email_gap_seconds,
+                "request_safety_seconds": email_request_safety_seconds,
                 "cooldown_hours": cooldown_hours,
                 "imap_connect_timeout_seconds": imap_connect_timeout,
                 "maximum_real_messages": MAX_REAL_EMAIL_MESSAGES,
