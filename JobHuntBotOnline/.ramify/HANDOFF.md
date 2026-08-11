@@ -65,6 +65,19 @@ point. Secrets stay outside Git and evidence.
   Tenant negative coverage now also proves private manual jobs, application
   evidence/notes, and exports do not cross accounts. The isolated,
   network-disabled source suite and post-deploy state/backup readbacks passed.
+- Commit `9b983a2d0` is deployed through the same backup/build/restart path.
+  An administrator-set user AI quota of `0` now blocks DeepSeek before a
+  provider client can be created; it no longer falls through to the platform
+  default quota. The platform status assertion confirms that it reports only
+  configuration state and limits, never a DeepSeek Secret. The full isolated,
+  network-disabled source suite, HTTPS ready readback, state probe, and fresh
+  encrypted-backup verify-only readback passed. This deployment does not send
+  email.
+- A read-only, recipient-free delivery audit found 28 historical `sent` rows in
+  the 48-hour window ending `2026-08-11T02:36:00Z`, including a maximum of six
+  messages in one ten-minute bucket. That prior burst is unacceptable. It is
+  historical evidence only: the post-deployment count is zero, the persisted
+  cooldown remains active, and no automatic retry is permitted.
 - A disposable VPS3 container ran all 42 source tests with a read-only source
   mount and `--network none`; all passed. The target taskpack verifier also
   passes in deployment-runtime mode. A disposable PostgreSQL 0001-to-0002
@@ -89,10 +102,10 @@ point. Secrets stay outside Git and evidence.
   finds only historical JobHuntBot ledger-event references, not a deployed
   runtime registration. Do not treat the draft as deployed evidence or replace
   it with a stale VPS1 collector.
-- Private-Database readback is current at `2026-08-11T04:30:18Z` under
+- Private-Database readback is current at `2026-08-11T05:07:46Z` under
   `Private-MetaDatabase/JobHuntBotOnline/operations/v0.3.0/latest.json` with
   schema `jobhuntbot-ops-projection-v2`, `EMAIL_ONLY_BLOCKED`,
-  `production_claimed=false`, deployed code commit `8ee2e3690`, verified
+  `production_claimed=false`, deployed code commit `9b983a2d0`, verified
   predeploy backup, and no business data, PII, or Secrets. PostgreSQL remains
   the sole business-data authority.
 - R2 is deliberately `NOT_CONFIGURED`. No JobHuntBot-specific bucket or
