@@ -1061,11 +1061,28 @@ step "9) 验收：仓、主机、**镜像里那一份**，三份是不是同一�
 # 放在最后一步，是因为它要的正是「构建完、容器起来之后」的状态。
 .venv/bin/python scripts/check_production_matches_the_repo.py \
     --host "$HOST" --remote-dir "$REMOTE_DIR" --explain-differences \
-  || fail "仓／主机／镜像三份对不上。**别把这一步当噪音**：
+    > evidence/G3/PRODUCTION_MATCHES_REPO.json \
+  || { cat evidence/G3/PRODUCTION_MATCHES_REPO.json; fail "仓／主机／镜像三份对不上。**别把这一步当噪音**：
   · only_on_production            —— 生产上有来路不明的代码正在跑
   · container_is_running_older_code —— 服务执行的不是你以为的那一版，要重建镜像
-  两者的下一步完全不同，报告里已分开列。"
-printf '  三份一致：仓 = 主机 = 镜像。\n'
+  两者的下一步完全不同，报告里已分开列。"; }
+# **这句话要照报告说，不能照心情说。**（2026-08-11）
+#
+# 报告里的 `dev_only_differs`（判据/演练与仓不一致，容器不跑它们）不算失败——
+# 那个分类是对的。但那时仍印一句「三份一致」就是假话：
+# 我在一次部署跑到一半时修了个演练，这一步照样印「三份一致」，
+# 而 JSON 里明明白白列着那个文件。**JSON 对、印给人看的那句错**
+# —— `gates-cover-json-not-the-prose-users-read` 的同一个形状。
+python3 -c "
+import json
+d = json.load(open('evidence/G3/PRODUCTION_MATCHES_REPO.json'))
+dev = d.get('dev_only_differs') or []
+if dev:
+    print(f'  服务那一份三份一致。另有 {len(dev)} 个判据/演练文件与仓不一致'
+          f'（容器不跑它们，下次发布会带上）：{dev[:3]}')
+else:
+    print('  三份一致：仓 = 主机 = 镜像。')
+"
 
 step "10) 收掉自己上一次留下的那个镜像"
 # **谁开的谁收。** 每成功部署一次，就有一个 1GB 的旧镜像变成悬空——

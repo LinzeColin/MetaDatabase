@@ -7,29 +7,29 @@
     "index_bytes": 20645,
     "index_cf_cache_status": "DYNAMIC",
     "stamps_in_index": [
-      "32f35432"
+      "cfef9d76"
     ],
     "assets": [
       {
-        "url": "/assets/styles.css?v=32f35432",
+        "url": "/assets/styles.css?v=cfef9d76",
         "bytes": 39548,
         "cf_cache_status": "MISS",
         "age": ""
       },
       {
-        "url": "/assets/manifest.webmanifest?v=32f35432",
+        "url": "/assets/manifest.webmanifest?v=cfef9d76",
         "bytes": 282,
         "cf_cache_status": "DYNAMIC",
         "age": ""
       },
       {
-        "url": "/assets/favicon.svg?v=32f35432",
+        "url": "/assets/favicon.svg?v=cfef9d76",
         "bytes": 182,
         "cf_cache_status": "MISS",
         "age": ""
       },
       {
-        "url": "/assets/app.js?v=32f35432",
+        "url": "/assets/app.js?v=cfef9d76",
         "bytes": 143009,
         "cf_cache_status": "MISS",
         "age": ""
@@ -44,7 +44,7 @@
         "抖 | 抖音 | 抖音 | 已连接 | 86 | 条 | 首次同步尚未开始 | — | 立即同步 | 断开 | 删除并清空",
         "快 | 快手 | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
         "B | B站 | B站 | 未连接 | 103 | 条 | 首次同步尚未开始 | 账号已断开——点这一行的「连接账号」重新授权一次就会继续同步；已存下的 | 103 | 条一条不会少。 | — | 连接账号 | 删除并清空",
-        "X | X | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
+        "X | X | 本版本暂不支持自动同步 | 未连接 | — | 本版本还不能自动同步这个平台。 | 连接之后，保存单条内容时服务器会用你的登录状态去尝试下载原文件。 | — | 连接账号",
         "R | Reddit | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
         "In | Instagram | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
         "书 | Chrome书签/网页 | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号"
@@ -59,7 +59,8 @@
           "accountId": "acct_bili"
         }
       ],
-      "errors": []
+      "errors": [],
+      "nextStep": "第 4 步：同步一次 把已连接来源里的收藏拉进档案馆。之后它会按周期自己跑。 立即同步全部"
     },
     "wrong_name": {
       "clicked": true,
@@ -85,7 +86,32 @@
         "path": "/v1/accounts/acct_douyin/forget",
         "body": ""
       }
-    ]
+    ],
+    "all_disconnected": {
+      "rowCount": 8,
+      "rowsText": [
+        "小 | 小红书 | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
+        "抖 | 抖音 | 抖音 | 未连接 | 86 | 条 | 首次同步尚未开始 | 账号已断开——点这一行的「连接账号」重新授权一次就会继续同步；已存下的 | 86 | 条一条不会少。 | — | 连接账号 | 删除并清空",
+        "快 | 快手 | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
+        "B | B站 | B站 | 未连接 | 103 | 条 | 首次同步尚未开始 | 账号已断开——点这一行的「连接账号」重新授权一次就会继续同步；已存下的 | 103 | 条一条不会少。 | — | 连接账号 | 删除并清空",
+        "X | X | 本版本暂不支持自动同步 | 未连接 | — | 本版本还不能自动同步这个平台。 | 连接之后，保存单条内容时服务器会用你的登录状态去尝试下载原文件。 | — | 连接账号",
+        "R | Reddit | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
+        "In | Instagram | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
+        "书 | Chrome书签/网页 | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号"
+      ],
+      "forgetButtons": [
+        {
+          "label": "删除并清空",
+          "accountId": "acct_douyin"
+        },
+        {
+          "label": "删除并清空",
+          "accountId": "acct_bili"
+        }
+      ],
+      "errors": [],
+      "nextStep": "第 3 步：连接一个能同步的来源 本版本能自动同步的是：B站、抖音、快手、小红书、Chrome书签/网页、Instagram、Reddit。其余平台可以用插件一条条保存。 去连接"
+    }
   },
   "problems": []
 }

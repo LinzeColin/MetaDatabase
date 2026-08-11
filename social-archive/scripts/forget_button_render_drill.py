@@ -59,6 +59,14 @@ from pathlib import Path
 import websockets
 
 ROOT = Path(__file__).resolve().parents[1]
+# 装的是**发布包**（跑前按当前源码重打一次），不是源码目录。
+#
+# ★ 这一行被我自己的一次「按两个锚点切掉整段」的替换误删过，
+#   演练当场 NameError，而我是从**部署日志**发现的。
+#   补回来时又踩第二下：`.replace()` 的锚点已经不存在了，
+#   替换成了空操作而脚本照样打印「放回去了」——
+#   **无声的 no-op 和成功长得一模一样**。现在改完必须 assert 落地。
+EXTENSION_ZIP = ROOT / "dist/social-archive-extension.zip"
 # **必须是 8765。**（2026-08-11）
 # 扩展的 host_permissions 里只有 `http://127.0.0.1:8765/*` 这一个本机源，
 # 换个端口内容脚本就注不进去、页面永远认不出插件——
@@ -100,6 +108,21 @@ ACCOUNTS = {
         {"platform": "youtube", "sync_supported": False, "connect_supported": True,
          "not_syncable_reason": "本版本还不能自动同步这个平台。"},
     ],
+}
+
+FAKE: dict[str, dict] = {
+    # **`/health` 不能少。** 它不在 /v1/ 下，假服务端会 404 它，
+    # 于是 `loadHealth()` 抛错、右上角徽章变成「私人档案馆暂时不可用」——
+    # 那是**夹具的毛病**，而它看起来和一个真缺陷一模一样。
+    "/health": {"status": "ok", "version": "0.0.0.0", "minimum_extension_version": "0.0.0.0",
+                "worker": {"ever_seen": True, "alive": True}},
+    "/v1/storage/status": {"status": "ok", "replicas": []},
+    "/v1/auth/me": {"id": "user_1", "email": "owner@example.com", "display_name": "Owner"},
+    "/v1/accounts": ACCOUNTS,
+    "/v1/sync-runs": {"items": []},
+    "/v1/status": {"connectors": [], "destinations": []},
+    "/v1/library": {"items": [], "total": 0, "facets": {}},
+    "/v1/extension/bootstrap": {"status": "ok", "paired": True},
 }
 
 # 页面真发出去的写请求。**「按钮点了没反应」和「按钮根本没画出来」长得一样**，
