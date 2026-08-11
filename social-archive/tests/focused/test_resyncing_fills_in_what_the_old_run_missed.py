@@ -34,7 +34,10 @@ import importlib
 
 from fastapi.testclient import TestClient
 
-TOKEN = "backfill-drill-token"
+# 短一点：`scan_plaintext_credentials.py` 把「给 *_TOKEN 赋一个 ≥20 字符的串」
+# 判成明文凭据（同仓其它判据用的也是这种短名）。那道门是对的——
+# 仓里不该有令牌形状的常量，哪怕它只喂给一个内存里的 TestClient。
+TOKEN = "backfill-drill"
 HEAD = {"Authorization": f"Bearer {TOKEN}"}
 
 
