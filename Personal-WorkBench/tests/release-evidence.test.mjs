@@ -920,6 +920,48 @@ test("dependent local-sync S4-T3A readiness remains a private-candidate gate", a
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("tenant-storage S4-T3A readiness remains a private-candidate gate", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/s4_t3a_tenant_storage_readiness.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.task_id, "S4-T3A");
+  assert.equal(evidence.status, "READINESS_PASS");
+  assert.equal(evidence.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(evidence.subject.source_commit.length, 40);
+  assert.equal(evidence.subject.source_tree.length, 40);
+  assert.equal(evidence.subject.working_tree_clean_after_review, true);
+  assert.equal(evidence.frozen_sequence.five_frozen_file_bindings_match, true);
+  assert.equal(evidence.frozen_sequence.sequence_validator, "PASS_SEQUENCE_ADDENDUM_INTEGRITY_ONLY");
+  assert.equal(evidence.independent_review.separate_context, true);
+  assert.equal(evidence.independent_review.local_checks.lint, "PASS");
+  assert.equal(evidence.independent_review.local_checks.typecheck, "PASS");
+  assert.equal(evidence.independent_review.local_checks.tenant_store_integration, "PASS");
+  assert.equal(evidence.independent_review.tenant_storage.account_a_records_not_visible_to_account_b, true);
+  assert.equal(evidence.independent_review.tenant_storage.foreign_account_record_mutation_rejected, true);
+  assert.equal(evidence.independent_review.tenant_storage.cross_account_habit_checkin_parent_reference_rejected, true);
+  assert.equal(evidence.independent_review.tenant_storage.cross_account_savings_transaction_parent_reference_rejected, true);
+  assert.equal(evidence.independent_review.dependent_local_sync.unrecognized_resource_returns_no_dependency, true);
+  assert.equal(evidence.independent_review.dependent_local_sync.immediate_and_replay_requests_resolve_local_parent_reference_before_fetch, true);
+  assert.equal(evidence.scope_and_limits.private_s5_t1_saved_version_allowed_next, true);
+  assert.equal(evidence.scope_and_limits.saved_version_created_in_this_phase, false);
+  assert.equal(evidence.scope_and_limits.deployment_action_called, false);
+  assert.equal(evidence.scope_and_limits.sites_or_access_policy_changed, false);
+  assert.equal(evidence.scope_and_limits.public_audience_change_allowed, false);
+  assert.equal(evidence.scope_and_limits.s5_real_evidence, "NOT_RUN");
+  assert.equal(evidence.scope_and_limits.product_pass_claimed, false);
+  assert.equal(evidence.scope_and_limits.final_acceptance_claimed, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 31 browserless auth preflight retains no access, mailbox, or captcha material", async () => {
   const evidence = JSON.parse(
     await readFile(
