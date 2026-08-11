@@ -124,7 +124,22 @@ FAKE: dict[str, dict] = {
     "/v1/accounts": ACCOUNTS,
     "/v1/sync-runs": {"items": []},
     "/v1/status": {"connectors": [], "destinations": []},
-    "/v1/library": {"items": [], "total": 0, "facets": {}},
+    # **「装插件 → 连账号 → 看见条目」的第三步。**（2026-08-11）
+    # 此前只有 pwa_render_drill 让表里长出过条目，而那个演练喂的是**磁盘上的**
+    # apps/pwa/——它证明不了「他从公开域名收到的那份前端」也画得出来。
+    # 形状照他库里的真实条目（抖音那条的标题和归档状态就是他库里的样子）。
+    "/v1/library": {"items": [
+        {"id": "cnt_1", "platform": "douyin", "title": "真正的一次性她来了",
+         "canonical_url": "https://www.douyin.com/video/7669728491277851091",
+         "archive_status": "视频没存下", "primary_relation": "favorite",
+         "relations": ["favorite"], "collections": [], "export_destinations": [],
+         "author_name": None, "created_at": "2026-08-03T08:51:24Z"},
+        {"id": "cnt_2", "platform": "bilibili", "title": "一条正常的",
+         "canonical_url": "https://www.bilibili.com/video/BV1",
+         "archive_status": "完整", "primary_relation": "favorite",
+         "relations": ["favorite"], "collections": [], "export_destinations": [],
+         "author_name": "雪瑜", "created_at": "2026-08-03T09:00:00Z"},
+    ], "total": 2, "facets": {}},
     "/v1/extension/bootstrap": {"status": "ok", "paired": True},
 }
 
@@ -228,6 +243,12 @@ READ_BUTTON = r"""
     // 说明插件没被认出来，那这条断言就是空转，不许当通过。
     nextStep: ((document.getElementById("nextStep") || {}).innerText || "")
       .replace(/\s+/g, " ").slice(0, 260),
+    // 「看见条目」：资料库那张表里真的长出他的内容了吗。
+    // **数「条目行」，不是数 tr。** 那张表按平台分组，每组多一行组头——
+    // 我第一版按 tr 数，2 条内容读出 4 行，判据自己报了红。
+    libraryRows: [...document.querySelectorAll("#tableBody tr[data-row-id]")]
+      .map(r => (r.innerText || "").replace(/\s+/g, " ").slice(0, 120)),
+    libraryAllRows: document.querySelectorAll("#tableBody tr").length,
   });
 })()
 """
@@ -476,6 +497,18 @@ async def run(chrome: str, origin: str) -> int:
     if "undefined" in disconnected_step or "[object" in disconnected_step:
         problems.append(f"那张卡上出现了 undefined/[object：{disconnected_step[:140]!r}"
                         "——他会在屏幕上读到这个词")
+    rows = rendered.get("libraryRows") or []
+    if len(rows) != 2:
+        problems.append(
+            f"资料库那张表里应该有 2 条，实际 {len(rows)} 行：{rows[:2]}"
+            "——「装插件 → 连账号 → **看见条目**」的第三步就断在这儿")
+    else:
+        joined = " ".join(rows)
+        for expected in ("真正的一次性她来了", "一条正常的"):
+            if expected not in joined:
+                problems.append(f"表里看不到「{expected}」这条：{rows}")
+        if "视频没存下" not in joined:
+            problems.append(f"归档状态那一列没画出来：{rows}")
     click = measured.get("connect_click") or {}
     if not click.get("found"):
         problems.append("全断开那一屏上找不到「连接账号」——他没有任何一条出路")
