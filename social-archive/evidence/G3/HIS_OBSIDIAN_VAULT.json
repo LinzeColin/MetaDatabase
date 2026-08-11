@@ -1,7 +1,7 @@
 {
   "status": "PASS",
   "notes_to_read_zh": [
-    "56 篇标题是播放进度（如 34:04/42:37）——**那是 B 站播放器上的时间，不是标题**。全部来自 history 那条路；修它要改取数侧，而验证要 Owner 登录后的页面。**这一条不拦发布**：它是已经存在的数据，不是这次弄坏的。"
+    "1 篇标题仍是播放进度（如 34:04/42:37）。2026-08-12 已用 B 站公开接口把 55 篇修回真标题（原标题存在 metadata_json.title_before_repair，可回滚）；**剩下的是稿件已不可见（code=62002）那种，修不回来**。新进来的由 CaptureRequest 那道校验器挡着（播放进度形状一律置空）——但**取数侧仍然会挑错元素**，那个要等 Owner 登录后的历史页才能定位。"
   ],
   "vault": "/Users/linzezhang/Documents/Obsidian/Social Archive",
   "measured": {
@@ -16,7 +16,7 @@
     "empty_heading": 0,
     "title_is_a_doubled_caption": 0,
     "author_is_a_like_count": 0,
-    "title_is_a_playback_timestamp": 56,
+    "title_is_a_playback_timestamp": 1,
     "same_item_twice": 0
   },
   "problems": [],

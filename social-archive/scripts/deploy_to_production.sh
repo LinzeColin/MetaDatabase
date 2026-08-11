@@ -296,11 +296,44 @@ step "2) 同步源码"
 #   · **不带 --delete**：远端有我自己留的 .env.pre-* 备份，删了就回不去。
 #   · **不同步 runtime/ 与 .env**：那是数据与密钥，本机的版本是空的。
 #   · **不做任何 chown**：写不进去就定点 sudo chown 那一个路径，不搞递归。
+# **从 HEAD 的快照同步，不是从工作树**（2026-08-12）。
+#
+# 第 0 步查完「工作树干净」之后，还要跑 1767 条测试（约 2.5 分钟）
+# ＋ 14 个演练（约 5 分钟）才走到这里——**每次部署都有 7–8 分钟的可写窗口**。
+# 2026-08-12 我在这个窗口里改了两次工作树（两次都是 `.md`），
+# 两次都是自己赶在 rsync 之前发现并挪走的：**靠的是记性，不是机制**。
+#
+# 早上给第 9 步加的「仓侧读 HEAD」挡不住这一类：它的 COMPARED 只看
+# scripts/src/apps 下的 .py .sh .js .css .html .json，**`.md` 不在里面**。
+# 一道防线挡不住立它的人当天犯的同一个错，就是没挡住。
+#
+# 从快照同步之后，「部署途中不许动工作树」就不再是一条要人记得的规矩，
+# 而是一件做不到的事。
+DEPLOY_SNAPSHOT="$(mktemp -d -t sa-deploy-snapshot)"
+trap 'rm -rf "$DEPLOY_SNAPSHOT"' EXIT
+# **必须从仓根跑，且子目录前缀要让 git 自己给。**
+#
+# 在 social-archive/ 里直接 `git archive HEAD:social-archive` 会报
+# `fatal: current working directory is untracked`（实测 exit=128、0 字节）；
+# 从仓根跑同一条命令取到 1118 个文件。今天第三次栽在「git 的路径有的按 cwd 算、
+# 有的按仓根算」上（前两次是 `ls-tree` 相对 cwd、`log -- <path>` 相对 cwd），
+# 所以这里两个都不写死。
+DEPLOY_REPO_ROOT="$(git rev-parse --show-toplevel)" || fail '不在 git 仓里。'
+DEPLOY_PREFIX="$(git rev-parse --show-prefix)"       # 形如 social-archive/
+git -C "$DEPLOY_REPO_ROOT" archive "HEAD:${DEPLOY_PREFIX%/}" | tar -x -C "$DEPLOY_SNAPSHOT" \
+  || fail '取 HEAD 快照失败。'
+# `dist/` 被 gitignore，`git archive` 不会带它——而这一步末尾正好要比对
+# 那个 zip 的 sha256。漏了它部署会当场红（红得对，但要先想到）。
+mkdir -p "$DEPLOY_SNAPSHOT/dist"
+cp dist/social-archive-extension.zip "$DEPLOY_SNAPSHOT/dist/" \
+  || fail '快照里放不进扩展包。'
+# 演练在第 0 步会**合法地**重写 evidence/**，那份要用工作树里的最新结果。
+rsync -a --omit-dir-times evidence/ "$DEPLOY_SNAPSHOT/evidence/" 2>/dev/null || true
 rsync -az --omit-dir-times \
   --exclude '.git' --exclude '.venv' --exclude 'node_modules' \
   --exclude 'runtime/' --exclude '.env' --exclude '__pycache__' \
   --exclude '.pytest_cache' --exclude '*.pyc' --exclude '.DS_Store' \
-  ./ "$HOST:$REMOTE_DIR/" || fail 'rsync 失败。'
+  "$DEPLOY_SNAPSHOT/" "$HOST:$REMOTE_DIR/" || fail 'rsync 失败。'
 LOCAL_ZIP="$(shasum -a 256 dist/social-archive-extension.zip | cut -d' ' -f1)"
 REMOTE_ZIP="$(ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && sha256sum dist/social-archive-extension.zip | cut -d' ' -f1")"
 [[ "$LOCAL_ZIP" == "$REMOTE_ZIP" ]] || fail "扩展包没同步过去（本地 ${LOCAL_ZIP}，远端 ${REMOTE_ZIP}）。"
