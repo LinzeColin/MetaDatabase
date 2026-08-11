@@ -56,6 +56,15 @@ point. Secrets stay outside Git and evidence.
   production. An isolated, network-disabled source suite passed before deploy;
   the post-deploy state probe is `PASS` with `production_claimed=false`.
   The fresh predeploy encrypted backup is structurally readable.
+- Commit `32c14ced2` is deployed through the same backup/build/restart path.
+  Resume parsing now leaves unknown role families, locations, and work modes
+  empty instead of supplying defaults. Both onboarding and settings enforce
+  explicit server-side confirmation of work authorization, current/future
+  Sponsorship, location, role, and work mode; explicit `uncertain`
+  Sponsorship remains a pending qualification when a job provides none.
+  Tenant negative coverage now also proves private manual jobs, application
+  evidence/notes, and exports do not cross accounts. The isolated,
+  network-disabled source suite and post-deploy state/backup readbacks passed.
 - A disposable VPS3 container ran all 42 source tests with a read-only source
   mount and `--network none`; all passed. The target taskpack verifier also
   passes in deployment-runtime mode. A disposable PostgreSQL 0001-to-0002
