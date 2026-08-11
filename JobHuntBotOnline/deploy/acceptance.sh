@@ -108,6 +108,8 @@ running="$(docker compose ps --services --filter status=running)"
 for service in postgres web scheduler worker; do
   grep -qx "$service" <<<"$running" || { echo "service is not running: $service" >&2; exit 1; }
 done
+docker compose --profile canary ps --services --filter status=running | grep -qx 'web-canary' \
+  || { echo "hot web canary is not running" >&2; exit 1; }
 curl -fsS "${BASE_URL%/}/healthz" >/dev/null
 ready_json="$(curl -fsS "${BASE_URL%/}/readyz")"
 python3 - "$ready_json" <<'PY'
@@ -135,6 +137,16 @@ cp evidence/target-browser.json evidence/target-email.json
 
 # Restart every application runtime and prove aggregate state/readback remains valid.
 docker compose restart web scheduler worker
+cold_nonce="$(date +%s)"
+for attempt in $(seq 1 20); do
+  cold_status="$(curl --connect-timeout 3 --max-time 8 --silent --output /dev/null --write-out '%{http_code}' \
+    "${BASE_URL%/}/openapi.json?cold-route=${cold_nonce}-${attempt}" || true)"
+  [[ "$cold_status" == "200" ]] || {
+    echo "cold route probe failed on attempt ${attempt}: HTTP ${cold_status:-000}" >&2
+    exit 1
+  }
+  sleep 1
+done
 for _ in $(seq 1 60); do
   if curl -fsS "${BASE_URL%/}/readyz" >/dev/null 2>&1; then break; fi
   sleep 3

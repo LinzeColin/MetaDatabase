@@ -15,6 +15,9 @@ fi
 legacy_active=0
 legacy_service="${LEGACY_SERVICE:-app}"
 legacy_compose=()
+canary_was_active=0
+primary_replaced=0
+canary_updated=0
 if [[ "$initial_v03_deploy" == "1" && -n "${LEGACY_COMPOSE_FILE:-}" ]]; then
   [[ -f "$LEGACY_COMPOSE_FILE" ]] || { echo "LEGACY_COMPOSE_FILE does not exist" >&2; exit 1; }
   legacy_project_dir="$(cd "$(dirname "$LEGACY_COMPOSE_FILE")" && pwd)"
@@ -32,16 +35,28 @@ if [[ "$legacy_active" == "1" ]]; then
 elif [[ -n "$previous_image" ]]; then
   echo "$previous_image" > runtime-data/rollback-image.txt
 fi
+if docker compose --profile canary ps --services --filter status=running 2>/dev/null | grep -qx 'web-canary'; then
+  canary_was_active=1
+fi
 if docker compose ps --services --filter status=running 2>/dev/null | grep -q '^postgres$'; then
   deploy/backup.sh > runtime-data/predeploy-backup.txt
 fi
 rollback_on_error() {
   echo "deployment failed; previous application image remains available in runtime-data/rollback-image.txt" >&2
-  docker compose stop web scheduler worker >/dev/null 2>&1 || true
-  if [[ "$legacy_active" == "1" ]]; then
-    "${legacy_compose[@]}" up -d "$legacy_service" || true
-  elif [[ -n "$previous_image" ]]; then
-    deploy/rollback.sh "$previous_image" || true
+  if [[ "$primary_replaced" == "1" ]]; then
+    docker compose stop web scheduler worker >/dev/null 2>&1 || true
+    if [[ "$legacy_active" == "1" ]]; then
+      docker compose --profile canary stop web-canary >/dev/null 2>&1 || true
+      "${legacy_compose[@]}" up -d "$legacy_service" || true
+    elif [[ -n "$previous_image" ]]; then
+      deploy/rollback.sh "$previous_image" || true
+    fi
+  elif [[ "$canary_updated" == "1" ]]; then
+    if [[ "$canary_was_active" == "1" && -n "$previous_image" ]]; then
+      APP_IMAGE="$previous_image" docker compose --profile canary up -d --no-deps --force-recreate web-canary || true
+    else
+      docker compose --profile canary stop web-canary >/dev/null 2>&1 || true
+    fi
   fi
 }
 trap rollback_on_error ERR
@@ -79,10 +94,24 @@ else
 EOF
 fi
 
+canary_updated=1
+# Bring the new hot instance to readiness while the current primary still
+# serves traffic.  The canary remains running after deployment so subsequent
+# ordinary restarts have no public routing gap.
+docker compose --profile canary up -d --no-deps --force-recreate --wait --wait-timeout 90 web-canary
+
 if [[ "$legacy_active" == "1" ]]; then
   "${legacy_compose[@]}" stop "$legacy_service"
 fi
-docker compose up -d web scheduler worker
+primary_replaced=1
+docker compose up -d --no-deps --force-recreate web scheduler worker
+for _ in $(seq 1 60); do
+  if docker compose exec -T web curl -fsS http://127.0.0.1:8000/readyz >/dev/null 2>&1; then
+    break
+  fi
+  sleep 3
+done
+docker compose exec -T web curl -fsS http://127.0.0.1:8000/readyz >/dev/null
 for _ in $(seq 1 60); do
   if curl -fsS "${BASE_URL%/}/readyz" >/dev/null 2>&1; then
     trap - ERR

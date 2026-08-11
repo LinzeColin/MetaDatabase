@@ -107,12 +107,16 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     ops_probe = (ROOT / "tools/ops_probe.py").read_text(encoding="utf-8")
     backup = (ROOT / "deploy/backup.sh").read_text(encoding="utf-8")
     rollback = (ROOT / "deploy/rollback.sh").read_text(encoding="utf-8")
+    restore = (ROOT / "deploy/restore.sh").read_text(encoding="utf-8")
 
     assert "DOMAIN=" in env_example
     assert "OWNER_ENTRY_ENABLED=false" in env_example
     assert "LEGACY_COMPOSE_FILE=" in env_example
     assert "@jobhuntbot-db:5432/jobhunt" in env_example
     assert "traefik.enable:" in compose
+    assert "web-canary:" in compose
+    assert 'profiles: ["canary"]' in compose
+    assert "loadbalancer.healthcheck.path" in compose
     assert "Host(`${DOMAIN}`)" in compose
     assert "aliases:" in compose
     assert "- jobhuntbot-db" in compose
@@ -131,6 +135,8 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     assert 'if [[ "$initial_v03_deploy" == "1" && -n "${V02_SQLITE_PATH:-}" ]]; then' in deploy
     assert 'if [[ "$legacy_active" == "1" ]]; then' in deploy
     assert "python3 deploy/verify_taskpack.py" in deploy
+    assert "web-canary" in deploy
+    assert "--wait-timeout 90" in deploy
     assert '--user "${ACCEPTANCE_UID:-$(id -u)}:${ACCEPTANCE_GID:-$(id -g)}"' in deploy
     assert "python3 deploy/verify_taskpack.py" in acceptance
     assert 'RUN_REAL_EMAIL_ACCEPTANCE:-false' in acceptance
@@ -146,6 +152,7 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     assert "root result is the production-completion authority" in acceptance
     assert '"target-email.json"' in acceptance
     assert "docker compose --profile acceptance run --rm" in acceptance
+    assert "cold route probe failed" in acceptance
     assert 'e2e_production.py:/app/tools/e2e_production.py:ro' in acceptance
     assert "run the configured acceptance harness" in acceptance
     assert 'user: "${ACCEPTANCE_UID:-1000}:${ACCEPTANCE_GID:-1000}"' in compose
@@ -155,6 +162,8 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     assert "import httpx" not in ops_probe
     assert 'docker compose ps --services --filter status=running' in backup
     assert 'docker run --rm --network "$internal_network" -e DATABASE_URL' in backup
+    assert "web-canary" in rollback
+    assert "web-canary" in restore
 
 
 def test_security_header_allows_only_cloudflare_automatic_analytics_script():

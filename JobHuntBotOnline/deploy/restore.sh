@@ -32,13 +32,13 @@ fi
 [[ "$confirm" == "RESTORE_JOBHUNT" ]] || { echo "apply mode requires --confirm RESTORE_JOBHUNT" >&2; exit 2; }
 pre_restore="$(deploy/backup.sh)"
 echo "$pre_restore" > runtime-data/pre-restore-backup.txt
-docker compose stop web scheduler worker
+docker compose --profile canary stop web web-canary scheduler worker
 docker compose exec -T postgres dropdb -U jobhunt --if-exists jobhunt
 docker compose exec -T postgres createdb -U jobhunt jobhunt
 docker compose exec -T postgres pg_restore -U jobhunt -d jobhunt --clean --if-exists --no-owner < "$tmp/database.dump"
 docker compose run --rm -T web sh -c 'rm -rf /data/uploads/* && tar -C /data/uploads -xzf -' < "$tmp/uploads.tar.gz"
 docker compose run --rm web alembic upgrade head
-docker compose up -d web scheduler worker
+docker compose --profile canary up -d web web-canary scheduler worker
 for _ in $(seq 1 60); do
   if curl -fsS "${BASE_URL%/}/readyz" >/dev/null 2>&1; then
     echo "restore completed and HTTPS readback is ready"
