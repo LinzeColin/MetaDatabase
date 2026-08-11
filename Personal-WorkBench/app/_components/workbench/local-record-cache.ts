@@ -59,6 +59,7 @@ const OUTBOX_STORE = "outbox";
 const OUTBOX_SCOPE_INDEX = "by_scope";
 const RECORD_ALIAS_STORE = "record-aliases";
 const LOCAL_MARKER = "__mydairy_device_local_v1";
+const LOCAL_RECORD_FALLBACK_PREFIX = "mydairy.device-records.fallback.v1";
 const BROWSER_SCOPE_REQUEST_TIMEOUT_MS = 2_500;
 const tenantFieldNames = new Set(["userId", "user_id", "ownerId", "owner_id", "tenantId", "tenant_id"]);
 
@@ -113,6 +114,77 @@ function openRecordDatabase(): Promise<IDBDatabase> {
 
 function cacheKey(scope: string, resource: string, id: string): string {
   return `${scope}\u0000${resource}\u0000${id}`;
+}
+
+function localRecordFallbackKey(scope: string, resource: string): string {
+  return `${LOCAL_RECORD_FALLBACK_PREFIX}\u0000${scope}\u0000${resource}`;
+}
+
+function browserLocalStorage(): Storage | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function sortDeviceLocalRecords(records: DeviceLocalRecord[]): DeviceLocalRecord[] {
+  return [...records].sort((left, right) => right.updated_at - left.updated_at);
+}
+
+/**
+ * IndexedDB is the primary device cache. Some embedded browsers expose it but
+ * reject opening a database; this small same-origin fallback keeps a record
+ * visible on the current device instead of turning a temporary cache failure
+ * into an apparently ignored click. The key contains only the opaque account
+ * scope, never a tenant or user identifier.
+ */
+function readLocalRecordFallback(scope: string, resource: string): DeviceLocalRecord[] {
+  const storage = browserLocalStorage();
+  if (!storage) return [];
+  try {
+    const value = JSON.parse(storage.getItem(localRecordFallbackKey(scope, resource)) ?? "null") as unknown;
+    return Array.isArray(value) ? sortDeviceLocalRecords(value.filter(isDeviceLocalRecord)) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalRecordFallback(scope: string, resource: string, record: DeviceLocalRecord): boolean {
+  const storage = browserLocalStorage();
+  if (!storage) return false;
+  try {
+    const next = sortDeviceLocalRecords([
+      record,
+      ...readLocalRecordFallback(scope, resource).filter((current) => current.id !== record.id),
+    ]);
+    storage.setItem(localRecordFallbackKey(scope, resource), JSON.stringify(next));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function removeLocalRecordFallback(scope: string, resource: string, id: string): boolean {
+  const storage = browserLocalStorage();
+  if (!storage) return false;
+  try {
+    const key = localRecordFallbackKey(scope, resource);
+    const next = readLocalRecordFallback(scope, resource).filter((record) => record.id !== id);
+    if (next.length) storage.setItem(key, JSON.stringify(next));
+    else storage.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function mergeLocalRecordCaches(primary: DeviceLocalRecord[], fallback: DeviceLocalRecord[]): DeviceLocalRecord[] {
+  const byId = new Map<string, DeviceLocalRecord>();
+  for (const record of fallback) byId.set(record.id, record);
+  for (const record of primary) byId.set(record.id, record);
+  return sortDeviceLocalRecords([...byId.values()]);
 }
 
 function outboxKey(scope: string, idempotencyKey: string): string {
@@ -274,51 +346,73 @@ export function mergeWithDeviceLocalRecords<T extends { id: string }>(remote: T[
 }
 
 export async function readDeviceLocalRecords(scope: string, resource: string): Promise<DeviceLocalRecord[]> {
-  if (!canUseIndexedDb()) return [];
-  const database = await openRecordDatabase();
+  const fallback = readLocalRecordFallback(scope, resource);
+  if (!canUseIndexedDb()) return fallback;
   try {
-    const transaction = database.transaction(RECORD_STORE, "readonly");
-    const index = transaction.objectStore(RECORD_STORE).index(SCOPE_RESOURCE_INDEX);
-    const rows = await requestValue(index.getAll(IDBKeyRange.only([scope, resource]))) as CachedRecordRow[];
-    await transactionDone(transaction);
-    return rows
-      .map((row) => row.record)
-      .filter(isDeviceLocalRecord)
-      .sort((left, right) => right.updated_at - left.updated_at);
-  } finally {
-    database.close();
+    const database = await openRecordDatabase();
+    try {
+      const transaction = database.transaction(RECORD_STORE, "readonly");
+      const index = transaction.objectStore(RECORD_STORE).index(SCOPE_RESOURCE_INDEX);
+      const rows = await requestValue(index.getAll(IDBKeyRange.only([scope, resource]))) as CachedRecordRow[];
+      await transactionDone(transaction);
+      return mergeLocalRecordCaches(rows.map((row) => row.record).filter(isDeviceLocalRecord), fallback);
+    } finally {
+      database.close();
+    }
+  } catch {
+    return fallback;
   }
 }
 
 export async function writeDeviceLocalRecord(scope: string, resource: string, record: DeviceLocalRecord): Promise<void> {
-  if (!canUseIndexedDb()) throw new Error("IndexedDB is unavailable.");
-  const database = await openRecordDatabase();
+  if (!canUseIndexedDb()) {
+    if (writeLocalRecordFallback(scope, resource, record)) return;
+    throw new Error("Device storage is unavailable.");
+  }
   try {
-    const transaction = database.transaction(RECORD_STORE, "readwrite");
-    transaction.objectStore(RECORD_STORE).put({
-      id: record.id,
-      key: cacheKey(scope, resource, record.id),
-      record,
-      resource,
-      scope,
-      updatedAt: record.updated_at,
-    } satisfies CachedRecordRow);
-    await transactionDone(transaction);
-  } finally {
-    database.close();
+    const database = await openRecordDatabase();
+    try {
+      const transaction = database.transaction(RECORD_STORE, "readwrite");
+      transaction.objectStore(RECORD_STORE).put({
+        id: record.id,
+        key: cacheKey(scope, resource, record.id),
+        record,
+        resource,
+        scope,
+        updatedAt: record.updated_at,
+      } satisfies CachedRecordRow);
+      await transactionDone(transaction);
+    } finally {
+      database.close();
+    }
+    // Remove a stale fallback copy only after the primary cache committed.
+    removeLocalRecordFallback(scope, resource, record.id);
+  } catch (error) {
+    if (writeLocalRecordFallback(scope, resource, record)) return;
+    throw error;
   }
 }
 
 export async function removeDeviceLocalRecord(scope: string, resource: string, id: string): Promise<void> {
-  if (!canUseIndexedDb()) return;
-  const database = await openRecordDatabase();
-  try {
-    const transaction = database.transaction(RECORD_STORE, "readwrite");
-    transaction.objectStore(RECORD_STORE).delete(cacheKey(scope, resource, id));
-    await transactionDone(transaction);
-  } finally {
-    database.close();
+  if (!canUseIndexedDb()) {
+    removeLocalRecordFallback(scope, resource, id);
+    return;
   }
+  let indexedDbError: unknown = null;
+  try {
+    const database = await openRecordDatabase();
+    try {
+      const transaction = database.transaction(RECORD_STORE, "readwrite");
+      transaction.objectStore(RECORD_STORE).delete(cacheKey(scope, resource, id));
+      await transactionDone(transaction);
+    } finally {
+      database.close();
+    }
+  } catch (error) {
+    indexedDbError = error;
+  }
+  const removedFallback = removeLocalRecordFallback(scope, resource, id);
+  if (indexedDbError && !removedFallback) throw indexedDbError;
 }
 
 /**

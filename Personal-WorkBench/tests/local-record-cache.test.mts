@@ -6,8 +6,11 @@ import {
   deriveDeviceOutboxParentReferences,
   isDeviceLocalRecord,
   mergeWithDeviceLocalRecords,
+  readDeviceLocalRecords,
+  removeDeviceLocalRecord,
   resolveBrowserRecordScope,
   resolveDeviceOutboxActionWithAliases,
+  writeDeviceLocalRecord,
   type DeviceOutboxAction,
 } from "../app/_components/workbench/local-record-cache.ts";
 
@@ -104,6 +107,47 @@ test("session scope falls back to the guest partition when the session request s
     assert.equal(requestWasAborted, true);
   } finally {
     globalThis.fetch = originalFetch;
+    if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
+    else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });
+  }
+});
+
+test("device-local history falls back to an opaque same-origin partition when IndexedDB rejects opening", async () => {
+  const runtime = globalThis as typeof globalThis & { window?: unknown };
+  const originalWindow = runtime.window;
+  const entries = new Map<string, string>();
+  const storage = {
+    getItem(key: string) {
+      return entries.get(key) ?? null;
+    },
+    removeItem(key: string) {
+      entries.delete(key);
+    },
+    setItem(key: string, value: string) {
+      entries.set(key, value);
+    },
+  };
+  Object.defineProperty(runtime, "window", {
+    configurable: true,
+    value: {
+      indexedDB: { open() { throw new Error("embedded browser cache unavailable"); } },
+      localStorage: storage,
+    },
+  });
+
+  try {
+    const alpha = createDeviceLocalRecord({ title: "alpha" }, 20, "local_alpha");
+    const beta = createDeviceLocalRecord({ title: "beta" }, 30, "local_beta");
+    await writeDeviceLocalRecord("account:alpha", "schedule", alpha);
+    await writeDeviceLocalRecord("account:beta", "schedule", beta);
+
+    assert.deepEqual((await readDeviceLocalRecords("account:alpha", "schedule")).map((record) => record.id), ["local_alpha"]);
+    assert.deepEqual((await readDeviceLocalRecords("account:beta", "schedule")).map((record) => record.id), ["local_beta"]);
+
+    await removeDeviceLocalRecord("account:alpha", "schedule", alpha.id);
+    assert.deepEqual(await readDeviceLocalRecords("account:alpha", "schedule"), []);
+    assert.deepEqual((await readDeviceLocalRecords("account:beta", "schedule")).map((record) => record.id), ["local_beta"]);
+  } finally {
     if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
     else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });
   }
