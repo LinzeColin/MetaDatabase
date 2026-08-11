@@ -115,6 +115,19 @@ test("network-level resource uncertainty gives Google users a truthful sign-in n
   assert.match(source, /consentRequired \? <a className="data-link" href="\/account">开启敏感跨设备保存<\/a> : null/);
 });
 
+test("persistence UI distinguishes an explicit sensitive-consent denial from an account-verification denial", async () => {
+  const source = await readFile(resourceSource, "utf8");
+
+  assert.match(source, /type ApiFailureCode = "EMAIL_VERIFICATION_REQUIRED" \| "SENSITIVE_CLOUD_CONSENT_REQUIRED";/);
+  assert.match(source, /code === "SENSITIVE_CLOUD_CONSENT_REQUIRED"/);
+  assert.match(source, /code === "EMAIL_VERIFICATION_REQUIRED"/);
+  assert.match(source, /function cloudAvailabilityFor\(status: number, code: ApiFailureCode \| null\)/);
+  assert.match(source, /if \(code === "SENSITIVE_CLOUD_CONSENT_REQUIRED"\) return "consent_required";/);
+  assert.match(source, /if \(code === "EMAIL_VERIFICATION_REQUIRED"\) return "verification_required";/);
+  assert.match(source, /若刚使用 Google 登录，请退出后重新登录；邮箱账号请完成验证邮件。/);
+  assert.match(source, /完成登录后会自动同步；使用 Google 登录无需额外验证邮箱。/);
+});
+
 test("habit controls distinguish an on-device check-in from a cloud-synced check-in", async () => {
   const source = await readFile(lifecycleSource, "utf8");
 

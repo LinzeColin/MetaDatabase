@@ -35,7 +35,10 @@ export function apiErrorResponse(error: unknown): Response {
     return Response.json({ message: "请先登录。" }, { status: 401, headers: { "Cache-Control": "no-store" } });
   }
   if (error instanceof VerificationRequiredError) {
-    return Response.json({ message: "请先完成邮箱验证。" }, { status: 403, headers: { "Cache-Control": "no-store" } });
+    return Response.json(
+      { code: error.code, message: "请先完成邮箱验证。" },
+      { status: 403, headers: { "Cache-Control": "no-store" } },
+    );
   }
   if (error instanceof SameOriginRequiredError) {
     return Response.json({ message: "请求来源无效，请刷新后重试。" }, { status: 403, headers: { "Cache-Control": "no-store" } });
@@ -45,7 +48,7 @@ export function apiErrorResponse(error: unknown): Response {
   }
   if (error instanceof SensitiveCloudConsentRequiredError) {
     return Response.json(
-      { message: "请先在账户中心开启敏感内容跨设备保存。" },
+      { code: error.code, message: "请先在账户中心开启敏感内容跨设备保存。" },
       { status: 403, headers: { "Cache-Control": "no-store" } },
     );
   }

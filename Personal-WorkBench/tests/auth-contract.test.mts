@@ -24,9 +24,12 @@ import {
   requireFreshVerifiedIdentity,
   requireVerifiedIdentity,
   rejectClientTenantFields,
+  VerificationRequiredError,
 } from "../server/security/tenant.ts";
 import { SameOriginRequiredError, assertSameOriginMutation } from "../server/security/mutation-origin.ts";
 import { readIdempotencyKey } from "../server/http/request-id.ts";
+import { apiErrorResponse } from "../server/http/api.ts";
+import { SensitiveCloudConsentRequiredError } from "../server/security/privacy-consent.ts";
 
 const fakeDatabase = {} as D1Database;
 const validRuntime = {
@@ -170,6 +173,22 @@ test("only verified identities can enter tenant data handlers", () => {
   );
   assert.throws(() => requireVerifiedIdentity({ user: { id: "user_a", email: "a@example.test", emailVerified: false } }));
   assert.throws(() => requireVerifiedIdentity(null));
+});
+
+test("workbench API distinguishes account verification from sensitive cross-device consent", async () => {
+  const verification = apiErrorResponse(new VerificationRequiredError());
+  assert.equal(verification.status, 403);
+  assert.deepEqual(await verification.json(), {
+    code: "EMAIL_VERIFICATION_REQUIRED",
+    message: "请先完成邮箱验证。",
+  });
+
+  const consent = apiErrorResponse(new SensitiveCloudConsentRequiredError());
+  assert.equal(consent.status, 403);
+  assert.deepEqual(await consent.json(), {
+    code: "SENSITIVE_CLOUD_CONSENT_REQUIRED",
+    message: "请先在账户中心开启敏感内容跨设备保存。",
+  });
 });
 
 test("account deletion requires a recent verified session", () => {

@@ -45,7 +45,14 @@ type ResourceOptions = {
   sensitive?: boolean;
 };
 
-type CloudAvailability = "available" | "consent_required" | "unavailable" | "unknown" | "unauthorized";
+type ApiFailureCode = "EMAIL_VERIFICATION_REQUIRED" | "SENSITIVE_CLOUD_CONSENT_REQUIRED";
+type CloudAvailability =
+  | "available"
+  | "consent_required"
+  | "unavailable"
+  | "unknown"
+  | "unauthorized"
+  | "verification_required";
 
 function actionTargetsResource(action: DeviceOutboxAction, resource: string): boolean {
   return action.method === "POST" && action.endpoint === `/api/mydairy/${resource}`;
@@ -72,11 +79,25 @@ function isRecord(value: unknown): value is TenantRecord {
   return Boolean(value) && typeof value === "object" && typeof (value as { id?: unknown }).id === "string";
 }
 
-function failureMessage(status: number, sensitive: boolean): {
+function failureMessage(status: number, sensitive: boolean, code: ApiFailureCode | null = null): {
   authRequired: boolean;
   consentRequired: boolean;
   message: string;
 } {
+  if (code === "SENSITIVE_CLOUD_CONSENT_REQUIRED") {
+    return {
+      authRequired: false,
+      consentRequired: true,
+      message: "这类记录需要你先在账户页明确开启敏感内容跨设备保存。",
+    };
+  }
+  if (code === "EMAIL_VERIFICATION_REQUIRED") {
+    return {
+      authRequired: true,
+      consentRequired: false,
+      message: "当前账号尚未完成保存验证。若刚使用 Google 登录，请退出后重新登录；邮箱账号请完成验证邮件。",
+    };
+  }
   if (status === 401) {
     return {
       authRequired: true,
@@ -84,18 +105,13 @@ function failureMessage(status: number, sensitive: boolean): {
       message: "请先登录后再保存和查看你的历史记录。使用 Google 登录无需额外验证邮箱。",
     };
   }
-  if (status === 403 && sensitive) {
-    return {
-      authRequired: false,
-      consentRequired: true,
-      message: "这类记录需要你先在账户页明确开启敏感内容跨设备保存。",
-    };
-  }
   if (status === 403) {
     return {
       authRequired: true,
       consentRequired: false,
-      message: "请完成账户验证后继续。使用 Google 登录通常无需额外验证邮箱。",
+      message: sensitive
+        ? "当前会话尚未满足敏感记录保存条件。请刷新后确认登录状态和跨设备保存设置。"
+        : "当前会话尚未满足保存条件。请刷新后重新登录再试。",
     };
   }
   if (status === 409) {
@@ -107,15 +123,21 @@ function failureMessage(status: number, sensitive: boolean): {
   return { authRequired: false, consentRequired: false, message: "保存失败，请检查填写内容后重试。" };
 }
 
-function cloudAvailabilityFor(status: number, sensitive: boolean): CloudAvailability {
+function cloudAvailabilityFor(status: number, code: ApiFailureCode | null): CloudAvailability {
   if (status === 401) return "unauthorized";
-  if (status === 403 && sensitive) return "consent_required";
+  if (code === "SENSITIVE_CLOUD_CONSENT_REQUIRED") return "consent_required";
+  if (code === "EMAIL_VERIFICATION_REQUIRED") return "verification_required";
   return "unavailable";
 }
 
 function localSaveMessage(availability: CloudAvailability, sensitive: boolean, queuedForReplay = false): string {
+  if (availability === "verification_required") {
+    return queuedForReplay
+      ? "已保存在当前设备。当前账号尚未完成保存验证；验证状态更新后会继续同步。"
+      : "已保存在当前设备。当前账号尚未完成保存验证；若刚使用 Google 登录，请退出后重新登录，邮箱账号请完成验证邮件。";
+  }
   if (queuedForReplay && availability === "unauthorized") {
-    return "已保存在当前设备。完成登录和邮箱验证后会自动同步。";
+    return "已保存在当前设备。完成登录后会自动同步；使用 Google 登录无需额外验证邮箱。";
   }
   if (queuedForReplay) {
     return "已保存在当前设备。连接恢复后会自动同步。";
@@ -127,7 +149,7 @@ function localSaveMessage(availability: CloudAvailability, sensitive: boolean, q
     return "已保存在当前设备。本条未上传；如需后续敏感记录跨设备同步，请在账户页明确开启。";
   }
   if (sensitive) {
-    return "已保存在当前设备。本条未上传；待登录并确认跨设备保存后，可继续同步新的敏感记录。";
+    return "已保存在当前设备。本条暂未上传；请刷新后确认登录状态和跨设备保存设置。";
   }
   return "已保存在当前设备。服务恢复后可重新保存以同步到其他设备。";
 }
@@ -139,6 +161,18 @@ async function readEnvelope<T extends TenantRecord>(response: Response): Promise
   } catch {
     return {};
   }
+}
+
+async function readFailureCode(response: Response): Promise<ApiFailureCode | null> {
+  try {
+    const value = await response.json() as { code?: unknown };
+    if (value.code === "EMAIL_VERIFICATION_REQUIRED" || value.code === "SENSITIVE_CLOUD_CONSENT_REQUIRED") {
+      return value.code;
+    }
+  } catch {
+    // A malformed failure payload must not change the conservative fallback.
+  }
+  return null;
 }
 
 export function todayIsoDate(): string {
@@ -218,8 +252,8 @@ export function useTenantResource<T extends TenantRecord>(
     localRecordsRef.current = next;
   }, []);
 
-  const applyFailure = useCallback((status: number) => {
-    const failure = failureMessage(status, sensitive);
+  const applyFailure = useCallback((status: number, code: ApiFailureCode | null = null) => {
+    const failure = failureMessage(status, sensitive, code);
     setError(failure.message);
     setAuthRequired(failure.authRequired);
     setConsentRequired(failure.consentRequired);
@@ -279,10 +313,11 @@ export function useTenantResource<T extends TenantRecord>(
   }, []);
 
   const acknowledgeLocalSave = useCallback((availability: CloudAvailability, queuedForReplay = false) => {
+    const needsSignIn = availability === "unauthorized" || availability === "verification_required";
     setError(localSaveMessage(availability, sensitive, queuedForReplay));
-    setAuthRequired(availability === "unauthorized");
+    setAuthRequired(needsSignIn);
     setConsentRequired(availability === "consent_required");
-    setLoginSuggested(availability === "unauthorized");
+    setLoginSuggested(needsSignIn);
   }, [sensitive]);
 
   useEffect(() => {
@@ -371,9 +406,10 @@ export function useTenantResource<T extends TenantRecord>(
           return { type: "error", message: "账户已切换，本机待发记录仍保留在原账户分区。" };
         }
         if (!response.ok) {
+          const code = await readFailureCode(response);
           if (response.status === 409) return { type: "conflict", message: failureMessage(response.status, false).message };
           if (response.status >= 500) return { type: "unavailable", message: "服务暂时不可用，请稍后再试。" };
-          return { type: "error", message: failureMessage(response.status, false).message };
+          return { type: "error", message: failureMessage(response.status, false, code).message };
         }
         const data = (await readEnvelope<T>(response)).data;
         if (!isRecord(data)) return { type: "error", message: "保存结果不完整，请刷新后确认历史记录。" };
@@ -429,9 +465,10 @@ export function useTenantResource<T extends TenantRecord>(
         return;
       }
       if (!response.ok) {
-        cloudAvailabilityRef.current = cloudAvailabilityFor(response.status, sensitive);
+        const code = await readFailureCode(response);
+        cloudAvailabilityRef.current = cloudAvailabilityFor(response.status, code);
         commitRecords(localRecordsRef.current);
-        applyFailure(response.status);
+        applyFailure(response.status, code);
         return;
       }
       const payload = await readEnvelope<T>(response);
@@ -601,7 +638,8 @@ export function useTenantResource<T extends TenantRecord>(
         return null;
       }
       if (!response.ok) {
-        cloudAvailabilityRef.current = cloudAvailabilityFor(response.status, sensitive);
+        const code = await readFailureCode(response);
+        cloudAvailabilityRef.current = cloudAvailabilityFor(response.status, code);
         if (localPersisted) {
           const queuedForReplay = shouldQueueForReplay(response.status, sensitive)
             ? await queueDeviceMutation(deviceOutboxAction)
@@ -609,7 +647,7 @@ export function useTenantResource<T extends TenantRecord>(
           acknowledgeLocalSave(cloudAvailabilityRef.current, queuedForReplay);
           return localRecord;
         }
-        applyFailure(response.status);
+        applyFailure(response.status, code);
         return null;
       }
       const data = (await readEnvelope<T>(response)).data;
@@ -699,7 +737,7 @@ export function useTenantResource<T extends TenantRecord>(
         return false;
       }
       if (!response.ok) {
-        applyFailure(response.status);
+        applyFailure(response.status, await readFailureCode(response));
         return false;
       }
       commitRecords(recordsRef.current.filter((record) => record.id !== id));
