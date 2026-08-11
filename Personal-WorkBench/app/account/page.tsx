@@ -65,7 +65,11 @@ export default function AccountPage() {
 
   async function loadAccount() {
     try {
-      const sessionResponse = await fetch("/api/auth/get-session", { credentials: "same-origin" });
+      // A Google callback may upgrade the database user immediately while an
+      // older browser session snapshot still says emailVerified=false. Account
+      // settings decide whether sensitive records may sync, so they must read
+      // the current server-side session rather than that stale snapshot.
+      const sessionResponse = await fetch("/api/auth/get-session?disableCookieCache=true", { credentials: "same-origin" });
       if (!sessionResponse.ok) {
         setMessage("请先登录后再管理账户。");
         return;

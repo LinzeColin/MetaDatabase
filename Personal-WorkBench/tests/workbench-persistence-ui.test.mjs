@@ -83,6 +83,7 @@ test("history empty states never replace an unreadable history with a false zero
 test("account distinguishes signed-out visitors from signed-in unverified accounts", async () => {
   const account = await readFile(accountSource, "utf8");
 
+  assert.match(account, /fetch\("\/api\/auth\/get-session\?disableCookieCache=true", \{ credentials: "same-origin" \}\)/);
   assert.match(account, /if \(!nextSession\?\.user\) \{\s+setMessage\("请先登录后再管理账户。"\);/);
   assert.match(account, /if \(!nextSession\.user\.emailVerified\) \{\s+setMessage\("请先完成邮箱验证。"\);/);
 });
