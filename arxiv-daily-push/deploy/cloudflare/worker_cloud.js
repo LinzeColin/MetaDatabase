@@ -9,7 +9,7 @@
 // Build identity (ADP-S1-P01-T010): read-only /build.json + footer build id. No secret.
 // build_id/source_sha256 are a self-excluding hash: reset both values back to their
 // zero-placeholders ('0'*12 and '0'*64) and sha256 the file to reproduce source_sha256.
-const BUILD = { build_id: 'c2ccc1fd01ec', source_sha256: 'c2ccc1fd01ecbbfc846241a7a4380de182c4a20cd8215903ba3e65b2b1e0de15', schema_version: 'cn_v0_3', built_at: '2026-07-20' };
+const BUILD = { build_id: 'fc3067354a84', source_sha256: 'fc3067354a84a36b4b45f11c838aac03aed1684b68009de3a54b62841ee8dbb6', schema_version: 'cn_v0_3', built_at: '2026-08-11' };
 
 // ── S3-P03-T040 Board 3 官方视图 A0 canary 切换（Owner S3 Exit 已批准 A0 晋级）──
 // 默认关 = 部署即基线（生产 Board 3 与六主题不变）。开=Board 3 只把 A0 官方原文作默认证据、媒体降为 discovery。
