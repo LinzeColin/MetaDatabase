@@ -86,6 +86,7 @@ type FoodRecord = TenantRecord & {
   local_date?: string;
   meal?: string;
   note?: string;
+  photo_object_id?: string | null;
 };
 
 type ExerciseRecord = TenantRecord & {
@@ -192,6 +193,20 @@ function DeleteRecordButton({
   return (
     <button className="record-remove" disabled={disabled} onClick={onDelete} type="button">
       删除
+    </button>
+  );
+}
+
+function EditRecordButton({
+  disabled,
+  onEdit,
+}: {
+  disabled?: boolean;
+  onEdit: () => void;
+}) {
+  return (
+    <button className="record-remove" disabled={disabled} onClick={onEdit} type="button">
+      编辑
     </button>
   );
 }
@@ -360,6 +375,7 @@ export function LedgerClient({ fixtureDate, reference }: { fixtureDate: string; 
   const [date, setDate] = useState(() => inputDate(fixtureDate, reference));
   const [note, setNote] = useState("");
   const [feedback, setFeedback] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const income = ledger.records
     .filter((record) => asText(record.kind) === "income")
@@ -373,6 +389,17 @@ export function LedgerClient({ fixtureDate, reference }: { fixtureDate: string; 
     setFeedback(`当前正在记录${nextType === "expense" ? "支出" : "收入"}。`);
   }
 
+  function startEditing(record: LedgerRecord) {
+    const cents = asNumber(record.amount_cents);
+    setEditingId(record.id);
+    setType(asText(record.kind) === "income" ? "income" : "expense");
+    setAmount(cents > 0 ? (cents / 100).toFixed(2) : "");
+    setCategory(asText(record.category, "餐饮"));
+    setDate(asText(record.local_date, todayIsoDate()));
+    setNote(asText(record.note));
+    setFeedback("正在编辑这条账单；修改后点击保存修改。");
+  }
+
   async function addRecord() {
     if (reference) return;
     const amountCents = yuanToCents(amount);
@@ -384,18 +411,25 @@ export function LedgerClient({ fixtureDate, reference }: { fixtureDate: string; 
       setFeedback("请按 YYYY-MM-DD 填写日期。");
       return;
     }
-    const saved = await ledger.create({
+    const payload = {
       amountCents,
       category,
       currency: "CNY",
       kind: type,
       localDate: date,
       note: note.trim(),
-    });
+    };
+    const wasEditing = Boolean(editingId);
+    const saved = editingId ? await ledger.update(editingId, payload) : await ledger.create(payload);
     if (!saved) return;
     setAmount("");
     setNote("");
-    setFeedback(saveFeedback(saved, "已保存，历史账单已更新。", "账单已保存在当前设备。"));
+    setEditingId(null);
+    setFeedback(saveFeedback(
+      saved,
+      wasEditing ? "账单已修改，历史账单已更新。" : "已保存，历史账单已更新。",
+      wasEditing ? "账单已在当前设备修改。" : "账单已保存在当前设备。",
+    ));
   }
 
   return (
@@ -469,7 +503,7 @@ export function LedgerClient({ fixtureDate, reference }: { fixtureDate: string; 
           </label>
         </div>
         <button className="primary full" disabled={ledger.saving} onClick={() => void addRecord()} type="button">
-          {ledger.saving ? "保存中…" : "＋ 记一笔"}
+          {ledger.saving ? "保存中…" : editingId ? "保存修改" : "＋ 记一笔"}
         </button>
       </form>
       <article className="card record-list-card" aria-live="polite">
@@ -492,6 +526,7 @@ export function LedgerClient({ fixtureDate, reference }: { fixtureDate: string; 
               <div className="record-meta">
                 <small>{asText(record.category)}</small>
                 <small>{asText(record.local_date, "未设置日期")}</small>
+                {!reference ? <EditRecordButton disabled={ledger.saving} onEdit={() => startEditing(record)} /> : null}
                 {!reference ? <DeleteRecordButton disabled={ledger.saving} onDelete={() => void ledger.destroy(record.id)} /> : null}
               </div>
             </li>
@@ -521,14 +556,60 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
   const [photoName, setPhotoName] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const [editing, setEditing] = useState<{
+    id: string;
+    module: FatlossModule;
+    photoObjectId?: string | null;
+  } | null>(null);
 
   const totalCalories = foodRecords.records.reduce((sum, record) => sum + asNumber(record.calories), 0);
   const activeResource = activeModule === "food" ? foodRecords : activeModule === "exercise" ? exerciseRecords : weightRecords;
 
   function selectModule(nextModule: FatlossModule) {
+    if (editing?.module !== nextModule) setEditing(null);
     setActiveModule(nextModule);
     const label = nextModule === "exercise" ? "运动" : nextModule === "weight" ? "体重" : "饮食";
     setModuleFeedback(`已切换到${label}记录。`);
+  }
+
+  function startEditingFood(record: FoodRecord) {
+    setEditing({ id: record.id, module: "food", photoObjectId: typeof record.photo_object_id === "string" ? record.photo_object_id : null });
+    setActiveModule("food");
+    setFood(asText(record.food_name));
+    setCalories(String(asNumber(record.calories)));
+    setMeal(mealLabel(record.meal));
+    setDate(asText(record.local_date, todayIsoDate()));
+    setNote(asText(record.note));
+    setPhotoFile(null);
+    setPhotoName(record.photo_object_id ? "已保留原照片（可重新选择）" : "");
+    setModuleFeedback("正在编辑这条饮食记录；修改后点击保存修改。");
+  }
+
+  function startEditingExercise(record: ExerciseRecord) {
+    setEditing({ id: record.id, module: "exercise" });
+    setActiveModule("exercise");
+    setActivity(asText(record.activity));
+    setDurationMinutes(String(asNumber(record.duration_minutes)));
+    setCaloriesBurned(record.calories_burned == null ? "" : String(asNumber(record.calories_burned)));
+    setDate(asText(record.local_date, todayIsoDate()));
+    setNote(asText(record.note));
+    setModuleFeedback("正在编辑这条运动记录；修改后点击保存修改。");
+  }
+
+  function startEditingWeight(record: WeightRecord) {
+    setEditing({ id: record.id, module: "weight" });
+    setActiveModule("weight");
+    setWeightKg((asNumber(record.weight_grams) / 1000).toFixed(1));
+    setDate(asText(record.local_date, todayIsoDate()));
+    setNote(asText(record.note));
+    setModuleFeedback("正在编辑这条体重记录；修改后点击保存修改。");
+  }
+
+  function cancelEditing() {
+    setEditing(null);
+    setPhotoFile(null);
+    setPhotoName("");
+    setModuleFeedback("已取消修改，可以继续新增记录。");
   }
 
   function openPhotoPicker() {
@@ -600,15 +681,17 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
     }
     const upload = await uploadFoodPhoto();
     if (!upload.ok) return;
-    const saved = await foodRecords.create({
+    const foodEditing = editing?.module === "food" ? editing : null;
+    const payload = {
       calories: parsedCalories,
       foodName: normalizedFood,
       localDate: date,
       meal: mealApiValue(meal),
       note: note.trim(),
-      photoObjectId: upload.id ?? null,
+      photoObjectId: upload.id ?? foodEditing?.photoObjectId ?? null,
       source: "manual",
-    });
+    };
+    const saved = foodEditing ? await foodRecords.update(foodEditing.id, payload) : await foodRecords.create(payload);
     if (!saved) {
       await discardUploadedPhoto(upload.id);
       return;
@@ -623,8 +706,13 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
     setNote("");
     setPhotoFile(null);
     setPhotoName("");
+    setEditing(null);
     setUploadFeedback(photoNotice);
-    setModuleFeedback(saveFeedback(saved, "饮食记录已保存，历史记录已更新。", "饮食记录已保存在当前设备。"));
+    setModuleFeedback(saveFeedback(
+      saved,
+      foodEditing ? "饮食记录已修改，历史记录已更新。" : "饮食记录已保存，历史记录已更新。",
+      foodEditing ? "饮食记录已在当前设备修改。" : "饮食记录已保存在当前设备。",
+    ));
   }
 
   async function addExerciseRecord() {
@@ -643,19 +731,28 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
       setModuleFeedback("请填写有效的消耗热量，或留空。");
       return;
     }
-    const saved = await exerciseRecords.create({
+    const exerciseEditing = editing?.module === "exercise" ? editing : null;
+    const payload = {
       activity: activity.trim(),
       caloriesBurned: burned,
       durationMinutes: duration,
       localDate: date,
       note: note.trim(),
-    });
+    };
+    const saved = exerciseEditing
+      ? await exerciseRecords.update(exerciseEditing.id, payload)
+      : await exerciseRecords.create(payload);
     if (!saved) return;
     setActivity("");
     setDurationMinutes("");
     setCaloriesBurned("");
     setNote("");
-    setModuleFeedback(saveFeedback(saved, "运动记录已保存，历史记录已更新。", "运动记录已保存在当前设备。"));
+    setEditing(null);
+    setModuleFeedback(saveFeedback(
+      saved,
+      exerciseEditing ? "运动记录已修改，历史记录已更新。" : "运动记录已保存，历史记录已更新。",
+      exerciseEditing ? "运动记录已在当前设备修改。" : "运动记录已保存在当前设备。",
+    ));
   }
 
   async function addWeightRecord() {
@@ -666,11 +763,18 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
       setModuleFeedback("请填写 10 到 500 千克之间的体重。");
       return;
     }
-    const saved = await weightRecords.create({ localDate: date, note: note.trim(), weightGrams });
+    const weightEditing = editing?.module === "weight" ? editing : null;
+    const payload = { localDate: date, note: note.trim(), weightGrams };
+    const saved = weightEditing ? await weightRecords.update(weightEditing.id, payload) : await weightRecords.create(payload);
     if (!saved) return;
     setWeightKg("");
     setNote("");
-    setModuleFeedback(saveFeedback(saved, "体重记录已保存，历史记录已更新。", "体重记录已保存在当前设备。"));
+    setEditing(null);
+    setModuleFeedback(saveFeedback(
+      saved,
+      weightEditing ? "体重记录已修改，历史记录已更新。" : "体重记录已保存，历史记录已更新。",
+      weightEditing ? "体重记录已在当前设备修改。" : "体重记录已保存在当前设备。",
+    ));
   }
 
   return (
@@ -710,7 +814,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
               <label className="field"><span>日期</span><input className="input" onChange={(event) => setDate(event.currentTarget.value)} readOnly={reference} value={date} /></label>
               <label className="field"><span>备注</span><input className="input" onChange={(event) => setNote(event.currentTarget.value)} placeholder="可选" value={note} /></label>
             </div>
-            <button className="primary full" disabled={foodRecords.saving} onClick={() => void addFoodRecord()} type="button">{foodRecords.saving ? "保存中…" : "＋ 记录饮食"}</button>
+            <button className="primary full" disabled={foodRecords.saving} onClick={() => void addFoodRecord()} type="button">{foodRecords.saving ? "保存中…" : editing?.module === "food" ? "保存修改" : "＋ 记录饮食"}</button>
           </>
         ) : activeModule === "exercise" ? (
           <div className="form-grid">
@@ -719,16 +823,17 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
             <label className="field"><span>消耗热量（可选）</span><input className="input" inputMode="numeric" onChange={(event) => setCaloriesBurned(event.currentTarget.value)} value={caloriesBurned} /></label>
             <label className="field"><span>日期</span><input className="input" onChange={(event) => setDate(event.currentTarget.value)} readOnly={reference} value={date} /></label>
             <label className="field wide"><span>备注</span><input className="input" onChange={(event) => setNote(event.currentTarget.value)} placeholder="可选" value={note} /></label>
-            <button className="primary full" disabled={exerciseRecords.saving} onClick={() => void addExerciseRecord()} type="button">{exerciseRecords.saving ? "保存中…" : "＋ 记录运动"}</button>
+            <button className="primary full" disabled={exerciseRecords.saving} onClick={() => void addExerciseRecord()} type="button">{exerciseRecords.saving ? "保存中…" : editing?.module === "exercise" ? "保存修改" : "＋ 记录运动"}</button>
           </div>
         ) : (
           <div className="form-grid">
             <label className="field"><span>体重（千克）</span><input className="input" inputMode="decimal" onChange={(event) => setWeightKg(event.currentTarget.value)} placeholder="例如：52.3" value={weightKg} /></label>
             <label className="field"><span>日期</span><input className="input" onChange={(event) => setDate(event.currentTarget.value)} readOnly={reference} value={date} /></label>
             <label className="field wide"><span>备注</span><input className="input" onChange={(event) => setNote(event.currentTarget.value)} placeholder="可选" value={note} /></label>
-            <button className="primary full" disabled={weightRecords.saving} onClick={() => void addWeightRecord()} type="button">{weightRecords.saving ? "保存中…" : "＋ 记录体重"}</button>
+            <button className="primary full" disabled={weightRecords.saving} onClick={() => void addWeightRecord()} type="button">{weightRecords.saving ? "保存中…" : editing?.module === "weight" ? "保存修改" : "＋ 记录体重"}</button>
           </div>
         )}
+        {editing?.module === activeModule ? <button className="auth-secondary-link" onClick={cancelEditing} type="button">取消修改</button> : null}
         {moduleFeedback ? <p className="interaction-note" role="status">{moduleFeedback}</p> : null}
       </form>
       <article className="total-card" aria-live="polite"><span>今日摄入总热量</span><b>{totalCalories}</b><span>千卡</span></article>
@@ -738,13 +843,13 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
         {canShowEmptyHistory(activeResource, reference) ? <div className="empty"><p>还没有历史记录</p></div> : null}
         <ul className="record-items">
           {activeModule === "food" ? foodRecords.records.map((record) => (
-            <li className="record-item" key={record.id}><div><strong>{asText(record.food_name)}</strong><p>{mealLabel(record.meal)} · {asNumber(record.calories)} 千卡</p></div><div className="record-meta"><small>{asText(record.local_date)}</small>{!reference ? <DeleteRecordButton disabled={foodRecords.saving} onDelete={() => void foodRecords.destroy(record.id)} /> : null}</div></li>
+            <li className="record-item" key={record.id}><div><strong>{asText(record.food_name)}</strong><p>{mealLabel(record.meal)} · {asNumber(record.calories)} 千卡</p></div><div className="record-meta"><small>{asText(record.local_date)}</small>{!reference ? <EditRecordButton disabled={foodRecords.saving} onEdit={() => startEditingFood(record)} /> : null}{!reference ? <DeleteRecordButton disabled={foodRecords.saving} onDelete={() => void foodRecords.destroy(record.id)} /> : null}</div></li>
           )) : null}
           {activeModule === "exercise" ? exerciseRecords.records.map((record) => (
-            <li className="record-item" key={record.id}><div><strong>{asText(record.activity)}</strong><p>{asNumber(record.duration_minutes)} 分钟{record.calories_burned == null ? "" : ` · ${asNumber(record.calories_burned)} 千卡`}</p></div><div className="record-meta"><small>{asText(record.local_date)}</small>{!reference ? <DeleteRecordButton disabled={exerciseRecords.saving} onDelete={() => void exerciseRecords.destroy(record.id)} /> : null}</div></li>
+            <li className="record-item" key={record.id}><div><strong>{asText(record.activity)}</strong><p>{asNumber(record.duration_minutes)} 分钟{record.calories_burned == null ? "" : ` · ${asNumber(record.calories_burned)} 千卡`}</p></div><div className="record-meta"><small>{asText(record.local_date)}</small>{!reference ? <EditRecordButton disabled={exerciseRecords.saving} onEdit={() => startEditingExercise(record)} /> : null}{!reference ? <DeleteRecordButton disabled={exerciseRecords.saving} onDelete={() => void exerciseRecords.destroy(record.id)} /> : null}</div></li>
           )) : null}
           {activeModule === "weight" ? weightRecords.records.map((record) => (
-            <li className="record-item" key={record.id}><div><strong>{(asNumber(record.weight_grams) / 1000).toFixed(1)} 千克</strong><p>{asText(record.note, "（无备注）")}</p></div><div className="record-meta"><small>{asText(record.local_date)}</small>{!reference ? <DeleteRecordButton disabled={weightRecords.saving} onDelete={() => void weightRecords.destroy(record.id)} /> : null}</div></li>
+            <li className="record-item" key={record.id}><div><strong>{(asNumber(record.weight_grams) / 1000).toFixed(1)} 千克</strong><p>{asText(record.note, "（无备注）")}</p></div><div className="record-meta"><small>{asText(record.local_date)}</small>{!reference ? <EditRecordButton disabled={weightRecords.saving} onEdit={() => startEditingWeight(record)} /> : null}{!reference ? <DeleteRecordButton disabled={weightRecords.saving} onDelete={() => void weightRecords.destroy(record.id)} /> : null}</div></li>
           )) : null}
         </ul>
       </section>
@@ -758,6 +863,15 @@ export function PeriodClient({ reference }: { reference: boolean }) {
   const [endDate, setEndDate] = useState(() => (reference ? "" : todayIsoDate()));
   const [note, setNote] = useState("");
   const [feedback, setFeedback] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  function startEditing(record: PeriodRecord) {
+    setEditingId(record.id);
+    setStartDate(asText(record.start_date, todayIsoDate()));
+    setEndDate(asText(record.end_date, todayIsoDate()));
+    setNote(asText(record.note));
+    setFeedback("正在编辑这条经期记录；修改后点击保存修改。");
+  }
 
   async function addPeriodRecord() {
     if (reference) return;
@@ -772,7 +886,9 @@ export function PeriodClient({ reference }: { reference: boolean }) {
       return;
     }
     setFeedback("正在保存经期记录…");
-    const saved = await periods.create({ endDate: end, note: note.trim(), startDate: start });
+    const payload = { endDate: end, note: note.trim(), startDate: start };
+    const wasEditing = Boolean(editingId);
+    const saved = editingId ? await periods.update(editingId, payload) : await periods.create(payload);
     if (!saved) {
       setFeedback("未能保存经期记录，请查看上方状态提示后重试。");
       return;
@@ -780,7 +896,12 @@ export function PeriodClient({ reference }: { reference: boolean }) {
     setStartDate(todayIsoDate());
     setEndDate(todayIsoDate());
     setNote("");
-    setFeedback(saveFeedback(saved, "经期记录已保存，历史记录已更新。", "经期记录已保存在当前设备。"));
+    setEditingId(null);
+    setFeedback(saveFeedback(
+      saved,
+      wasEditing ? "经期记录已修改，历史记录已更新。" : "经期记录已保存，历史记录已更新。",
+      wasEditing ? "经期记录已在当前设备修改。" : "经期记录已保存在当前设备。",
+    ));
   }
 
   return (
@@ -790,7 +911,7 @@ export function PeriodClient({ reference }: { reference: boolean }) {
           <label className="field"><span>开始日期</span><input className="input" onChange={(event) => setStartDate(event.currentTarget.value)} readOnly={reference} value={startDate} /></label>
           <label className="field"><span>结束日期</span><input className="input" onChange={(event) => setEndDate(event.currentTarget.value)} readOnly={reference} value={endDate} /></label>
         </div>
-        <button className="primary full" disabled={periods.saving} onClick={() => void addPeriodRecord()} type="button">{periods.saving ? "保存中…" : "＋ 记录经期"}</button>
+        <button className="primary full" disabled={periods.saving} onClick={() => void addPeriodRecord()} type="button">{periods.saving ? "保存中…" : editingId ? "保存修改" : "＋ 记录经期"}</button>
       </form>
       <article className="card period-overview">
         <h2 className="section-title"><img alt="" src={asset("period_title.png")} />周期概览</h2>
@@ -803,7 +924,7 @@ export function PeriodClient({ reference }: { reference: boolean }) {
         {canShowEmptyHistory(periods, reference) ? <div className="empty"><p>还没有经期记录</p></div> : null}
         <ul className="record-items">
           {periods.records.map((record) => (
-            <li className="record-item" key={record.id}><div><strong>{asText(record.start_date)} 至 {asText(record.end_date)}</strong><p>{asText(record.note, "（无备注）")}</p></div><div className="record-meta">{!reference ? <DeleteRecordButton disabled={periods.saving} onDelete={() => void periods.destroy(record.id)} /> : null}</div></li>
+            <li className="record-item" key={record.id}><div><strong>{asText(record.start_date)} 至 {asText(record.end_date)}</strong><p>{asText(record.note, "（无备注）")}</p></div><div className="record-meta">{!reference ? <EditRecordButton disabled={periods.saving} onEdit={() => startEditing(record)} /> : null}{!reference ? <DeleteRecordButton disabled={periods.saving} onDelete={() => void periods.destroy(record.id)} /> : null}</div></li>
           ))}
         </ul>
       </article>
@@ -857,6 +978,8 @@ export function GenericPageClient({
   const [goalId, setGoalId] = useState("");
   const [transactionAmount, setTransactionAmount] = useState("");
   const [feedback, setFeedback] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingKind, setEditingKind] = useState<"primary" | "transaction" | null>(null);
 
   const current = route === "schedule"
     ? schedule
@@ -864,7 +987,64 @@ export function GenericPageClient({
       ? anniversaries
       : route === "diary"
         ? diary
-        : savingsGoals;
+      : savingsGoals;
+
+  const primaryEditing = editingKind === "primary" && Boolean(editingId);
+  const transactionEditing = editingKind === "transaction" && Boolean(editingId);
+
+  function clearPrimaryFields() {
+    setTitle("");
+    setNote("");
+    setMood("");
+    setBody("");
+    setTargetAmount("");
+    setTargetDate("");
+  }
+
+  function startEditingPrimary(record: TenantRecord) {
+    setEditingId(record.id);
+    setEditingKind("primary");
+    if (route === "schedule") {
+      setTitle(asText(record.title));
+      setNote(asText(record.note));
+      setStartsAt(asDateTimeInput(record.starts_at) || startsAt);
+    } else if (route === "anniversary") {
+      setTitle(asText(record.title));
+      setDate(asText(record.local_date, todayIsoDate()));
+      setRepeatYearly(asBoolean(record.repeat_yearly, true));
+      setNote(asText(record.note));
+    } else if (route === "diary") {
+      setTitle(asText(record.title));
+      setDate(asText(record.local_date, todayIsoDate()));
+      setMood(asText(record.mood));
+      setBody(asText(record.body));
+    } else {
+      const cents = asNumber(record.target_cents);
+      setTitle(asText(record.title));
+      setTargetAmount(cents > 0 ? (cents / 100).toFixed(2) : "");
+      setTargetDate(asText(record.target_date));
+    }
+    setFeedback("正在编辑这条记录；修改后点击保存修改。");
+  }
+
+  function startEditingTransaction(record: SavingsTransactionRecord) {
+    const cents = asNumber(record.amount_cents);
+    setEditingId(record.id);
+    setEditingKind("transaction");
+    setGoalId(asText(record.goal_id));
+    setTransactionAmount(cents !== 0 ? (cents / 100).toFixed(2) : "");
+    setDate(asText(record.local_date, todayIsoDate()));
+    setNote(asText(record.note));
+    setFeedback("正在编辑这条存入记录；修改后点击保存修改。");
+  }
+
+  function cancelEditing() {
+    setEditingId(null);
+    setEditingKind(null);
+    clearPrimaryFields();
+    setTransactionAmount("");
+    setFeedback("已取消修改，可以继续新增记录。");
+  }
 
   async function submitSchedule() {
     const timestamp = fromDateTimeInput(startsAt);
@@ -876,11 +1056,19 @@ export function GenericPageClient({
       setFeedback("请填写有效的开始时间。");
       return;
     }
-    const saved = await schedule.create({ allDay: false, note: note.trim(), startsAt: timestamp, title: title.trim() });
+    const payload = { allDay: false, note: note.trim(), startsAt: timestamp, title: title.trim() };
+    const editingRecordId = editingKind === "primary" ? editingId : null;
+    const saved = editingRecordId ? await schedule.update(editingRecordId, payload) : await schedule.create(payload);
     if (!saved) return;
-    setTitle("");
-    setNote("");
-    setFeedback(saveFeedback(saved, "日程已保存，历史列表已更新。", "日程已保存在当前设备。"));
+    const wasEditing = Boolean(editingRecordId);
+    setEditingId(null);
+    setEditingKind(null);
+    clearPrimaryFields();
+    setFeedback(saveFeedback(
+      saved,
+      wasEditing ? "日程已修改，历史列表已更新。" : "日程已保存，历史列表已更新。",
+      wasEditing ? "日程已在当前设备修改。" : "日程已保存在当前设备。",
+    ));
   }
 
   async function submitAnniversary() {
@@ -892,11 +1080,19 @@ export function GenericPageClient({
       setFeedback("请按 YYYY-MM-DD 填写日期。");
       return;
     }
-    const saved = await anniversaries.create({ localDate: date, note: note.trim(), repeatYearly, title: title.trim() });
+    const payload = { localDate: date, note: note.trim(), repeatYearly, title: title.trim() };
+    const editingRecordId = editingKind === "primary" ? editingId : null;
+    const saved = editingRecordId ? await anniversaries.update(editingRecordId, payload) : await anniversaries.create(payload);
     if (!saved) return;
-    setTitle("");
-    setNote("");
-    setFeedback(saveFeedback(saved, "纪念日已保存，历史列表已更新。", "纪念日已保存在当前设备。"));
+    const wasEditing = Boolean(editingRecordId);
+    setEditingId(null);
+    setEditingKind(null);
+    clearPrimaryFields();
+    setFeedback(saveFeedback(
+      saved,
+      wasEditing ? "纪念日已修改，历史列表已更新。" : "纪念日已保存，历史列表已更新。",
+      wasEditing ? "纪念日已在当前设备修改。" : "纪念日已保存在当前设备。",
+    ));
   }
 
   async function submitDiary() {
@@ -908,12 +1104,19 @@ export function GenericPageClient({
       setFeedback("请按 YYYY-MM-DD 填写日期。");
       return;
     }
-    const saved = await diary.create({ body: body.trim(), localDate: date, mood: mood.trim(), title: title.trim() });
+    const payload = { body: body.trim(), localDate: date, mood: mood.trim(), title: title.trim() };
+    const editingRecordId = editingKind === "primary" ? editingId : null;
+    const saved = editingRecordId ? await diary.update(editingRecordId, payload) : await diary.create(payload);
     if (!saved) return;
-    setTitle("");
-    setMood("");
-    setBody("");
-    setFeedback(saveFeedback(saved, "日记已保存，历史列表已更新。", "日记已保存在当前设备。"));
+    const wasEditing = Boolean(editingRecordId);
+    setEditingId(null);
+    setEditingKind(null);
+    clearPrimaryFields();
+    setFeedback(saveFeedback(
+      saved,
+      wasEditing ? "日记已修改，历史列表已更新。" : "日记已保存，历史列表已更新。",
+      wasEditing ? "日记已在当前设备修改。" : "日记已保存在当前设备。",
+    ));
   }
 
   async function submitSavingsGoal() {
@@ -930,13 +1133,20 @@ export function GenericPageClient({
       setFeedback("请按 YYYY-MM-DD 填写目标日期，或留空。");
       return;
     }
-    const saved = await savingsGoals.create({ archived: false, currency: "CNY", targetCents, targetDate: targetDate || null, title: title.trim() });
+    const payload = { archived: false, currency: "CNY", targetCents, targetDate: targetDate || null, title: title.trim() };
+    const editingRecordId = editingKind === "primary" ? editingId : null;
+    const saved = editingRecordId ? await savingsGoals.update(editingRecordId, payload) : await savingsGoals.create(payload);
     if (!saved) return;
-    setTitle("");
-    setTargetAmount("");
-    setTargetDate("");
+    const wasEditing = Boolean(editingRecordId);
+    setEditingId(null);
+    setEditingKind(null);
+    clearPrimaryFields();
     setGoalId(saved.id);
-    setFeedback(saveFeedback(saved, "存钱计划已保存，可以继续记录存入金额。", "存钱计划已保存在当前设备，可以继续记录存入金额。"));
+    setFeedback(saveFeedback(
+      saved,
+      wasEditing ? "存钱计划已修改，可以继续记录存入金额。" : "存钱计划已保存，可以继续记录存入金额。",
+      wasEditing ? "存钱计划已在当前设备修改。" : "存钱计划已保存在当前设备，可以继续记录存入金额。",
+    ));
   }
 
   async function submitSavingsTransaction() {
@@ -950,11 +1160,22 @@ export function GenericPageClient({
       setFeedback("请填写大于 0 的存入金额。");
       return;
     }
-    const saved = await savingsTransactions.create({ amountCents, goalId: selectedGoalId, localDate: date, note: note.trim() });
+    const payload = { amountCents, goalId: selectedGoalId, localDate: date, note: note.trim() };
+    const editingRecordId = editingKind === "transaction" ? editingId : null;
+    const saved = editingRecordId
+      ? await savingsTransactions.update(editingRecordId, payload)
+      : await savingsTransactions.create(payload);
     if (!saved) return;
+    const wasEditing = Boolean(editingRecordId);
+    setEditingId(null);
+    setEditingKind(null);
     setTransactionAmount("");
     setNote("");
-    setFeedback(saveFeedback(saved, "存入记录已保存，历史列表已更新。", "存入记录已保存在当前设备。"));
+    setFeedback(saveFeedback(
+      saved,
+      wasEditing ? "存入记录已修改，历史列表已更新。" : "存入记录已保存，历史列表已更新。",
+      wasEditing ? "存入记录已在当前设备修改。" : "存入记录已保存在当前设备。",
+    ));
   }
 
   const action = route === "schedule"
@@ -1008,8 +1229,9 @@ export function GenericPageClient({
           </div>
         ) : null}
         <button className="primary full" disabled={reference || current.saving} onClick={() => void action()} type="button">
-          {current.saving ? "保存中…" : route === "savings" ? "＋ 新增存钱计划" : "＋ 新增记录"}
+          {current.saving ? "保存中…" : primaryEditing ? "保存修改" : route === "savings" ? "＋ 新增存钱计划" : "＋ 新增记录"}
         </button>
+        {primaryEditing ? <button className="auth-secondary-link" onClick={cancelEditing} type="button">取消修改</button> : null}
         {!reference ? <ResourceStatus {...current} /> : null}
         {feedback ? <p className="interaction-note" role="status">{feedback}</p> : null}
       </article>
@@ -1023,7 +1245,8 @@ export function GenericPageClient({
             <label className="field"><span>日期</span><input className="input" onChange={(event) => setDate(event.currentTarget.value)} value={date} /></label>
             <label className="field wide"><span>备注</span><input className="input" maxLength={1000} onChange={(event) => setNote(event.currentTarget.value)} value={note} /></label>
           </div></div>
-          <button className="primary full" disabled={reference || savingsTransactions.saving} onClick={() => void submitSavingsTransaction()} type="button">{savingsTransactions.saving ? "保存中…" : "＋ 记录存入"}</button>
+          <button className="primary full" disabled={reference || savingsTransactions.saving} onClick={() => void submitSavingsTransaction()} type="button">{savingsTransactions.saving ? "保存中…" : transactionEditing ? "保存修改" : "＋ 记录存入"}</button>
+          {transactionEditing ? <button className="auth-secondary-link" onClick={cancelEditing} type="button">取消修改</button> : null}
           {!reference ? <ResourceStatus {...savingsTransactions} /> : null}
         </article>
       ) : null}
@@ -1032,14 +1255,14 @@ export function GenericPageClient({
         <h2 className="section-title"><span aria-hidden="true" className="section-glyph">≡</span>{label}历史记录</h2>
         {canShowEmptyHistory(current, reference) ? <div className="empty"><p>还没有历史记录，新增一条吧～</p></div> : null}
         <ul className="record-items">
-          {route === "schedule" ? schedule.records.map((record) => <li className="record-item" key={record.id}><div><strong>{genericRecordTitle(record)}</strong><p>{asText(record.note, "（无备注）")}</p></div><div className="record-meta"><small>{asDateTimeInput(record.starts_at).replace("T", " ")}</small>{!reference ? <DeleteRecordButton disabled={schedule.saving} onDelete={() => void schedule.destroy(record.id)} /> : null}</div></li>) : null}
-          {route === "anniversary" ? anniversaries.records.map((record) => <li className="record-item" key={record.id}><div><strong>{genericRecordTitle(record)}</strong><p>{asText(record.note, "（无备注）")}</p></div><div className="record-meta"><small>{asText(record.local_date)}{record.repeat_yearly ? " · 每年" : ""}</small>{!reference ? <DeleteRecordButton disabled={anniversaries.saving} onDelete={() => void anniversaries.destroy(record.id)} /> : null}</div></li>) : null}
-          {route === "diary" ? diary.records.map((record) => <li className="record-item" key={record.id}><div><strong>{genericRecordTitle(record)}</strong><p>{asText(record.body)}</p></div><div className="record-meta"><small>{asText(record.local_date)}{asText(record.mood) ? ` · ${asText(record.mood)}` : ""}</small>{!reference ? <DeleteRecordButton disabled={diary.saving} onDelete={() => void diary.destroy(record.id)} /> : null}</div></li>) : null}
+          {route === "schedule" ? schedule.records.map((record) => <li className="record-item" key={record.id}><div><strong>{genericRecordTitle(record)}</strong><p>{asText(record.note, "（无备注）")}</p></div><div className="record-meta"><small>{asDateTimeInput(record.starts_at).replace("T", " ")}</small>{!reference ? <EditRecordButton disabled={schedule.saving} onEdit={() => startEditingPrimary(record)} /> : null}{!reference ? <DeleteRecordButton disabled={schedule.saving} onDelete={() => void schedule.destroy(record.id)} /> : null}</div></li>) : null}
+          {route === "anniversary" ? anniversaries.records.map((record) => <li className="record-item" key={record.id}><div><strong>{genericRecordTitle(record)}</strong><p>{asText(record.note, "（无备注）")}</p></div><div className="record-meta"><small>{asText(record.local_date)}{record.repeat_yearly ? " · 每年" : ""}</small>{!reference ? <EditRecordButton disabled={anniversaries.saving} onEdit={() => startEditingPrimary(record)} /> : null}{!reference ? <DeleteRecordButton disabled={anniversaries.saving} onDelete={() => void anniversaries.destroy(record.id)} /> : null}</div></li>) : null}
+          {route === "diary" ? diary.records.map((record) => <li className="record-item" key={record.id}><div><strong>{genericRecordTitle(record)}</strong><p>{asText(record.body)}</p></div><div className="record-meta"><small>{asText(record.local_date)}{asText(record.mood) ? ` · ${asText(record.mood)}` : ""}</small>{!reference ? <EditRecordButton disabled={diary.saving} onEdit={() => startEditingPrimary(record)} /> : null}{!reference ? <DeleteRecordButton disabled={diary.saving} onDelete={() => void diary.destroy(record.id)} /> : null}</div></li>) : null}
           {route === "savings" ? savingsGoals.records.map((record) => {
             const saved = savingsTransactions.records.filter((entry) => asText(entry.goal_id) === record.id).reduce((sum, entry) => sum + asNumber(entry.amount_cents), 0);
-            return <li className="record-item" key={record.id}><div><strong>{asText(record.title)}</strong><p>已存 {centsToYuan(saved)} / 目标 {centsToYuan(record.target_cents)}</p></div><div className="record-meta"><small>{asText(record.target_date, "未设置日期")}</small>{!reference ? <DeleteRecordButton disabled={savingsGoals.saving} onDelete={() => void savingsGoals.destroy(record.id)} /> : null}</div></li>;
+            return <li className="record-item" key={record.id}><div><strong>{asText(record.title)}</strong><p>已存 {centsToYuan(saved)} / 目标 {centsToYuan(record.target_cents)}</p></div><div className="record-meta"><small>{asText(record.target_date, "未设置日期")}</small>{!reference ? <EditRecordButton disabled={savingsGoals.saving} onEdit={() => startEditingPrimary(record)} /> : null}{!reference ? <DeleteRecordButton disabled={savingsGoals.saving} onDelete={() => void savingsGoals.destroy(record.id)} /> : null}</div></li>;
           }) : null}
-          {route === "savings" ? savingsTransactions.records.map((record) => <li className="record-item" key={record.id}><div><strong>存入 {centsToYuan(record.amount_cents)}</strong><p>{asText(record.note, "（无备注）")}</p></div><div className="record-meta"><small>{asText(record.local_date)}</small>{!reference ? <DeleteRecordButton disabled={savingsTransactions.saving} onDelete={() => void savingsTransactions.destroy(record.id)} /> : null}</div></li>) : null}
+          {route === "savings" ? savingsTransactions.records.map((record) => <li className="record-item" key={record.id}><div><strong>存入 {centsToYuan(record.amount_cents)}</strong><p>{asText(record.note, "（无备注）")}</p></div><div className="record-meta"><small>{asText(record.local_date)}</small>{!reference ? <EditRecordButton disabled={savingsTransactions.saving} onEdit={() => startEditingTransaction(record)} /> : null}{!reference ? <DeleteRecordButton disabled={savingsTransactions.saving} onDelete={() => void savingsTransactions.destroy(record.id)} /> : null}</div></li>) : null}
         </ul>
       </article>
     </>

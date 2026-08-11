@@ -158,7 +158,9 @@ test("normal menu routes keep every user-audited lifecycle control bound to a st
   assert.match(source, /onClick=\{\(\) => chooseType\("expense"\)\}/);
   assert.match(source, /onClick=\{\(\) => chooseType\("income"\)\}/);
   assert.match(source, /onClick=\{\(\) => void addRecord\(\)\}/);
-  assert.match(source, /const saved = await ledger\.create\(\{/);
+  assert.match(source, /const saved = editingId \? await ledger\.update\(editingId, payload\) : await ledger\.create\(payload\);/);
+  assert.match(source, /function startEditing\(record: LedgerRecord\)/);
+  assert.match(source, /<EditRecordButton disabled=\{ledger\.saving\} onEdit=\{\(\) => startEditing\(record\)\} \/>/);
 
   for (const resourceModule of ["exercise", "weight", "food"]) {
     assert.match(source, new RegExp(`onClick=\\{\\(\\) => selectModule\\("${resourceModule}"\\)\\}`), resourceModule);
@@ -166,23 +168,29 @@ test("normal menu routes keep every user-audited lifecycle control bound to a st
   assert.match(source, /onClick=\{openPhotoPicker\}/);
   assert.match(source, /photoInputRef\.current\?\.click\(\);/);
   assert.match(source, /onClick=\{\(\) => void addFoodRecord\(\)\}/);
-  assert.match(source, /const saved = await foodRecords\.create\(\{/);
+  assert.match(source, /const saved = foodEditing \? await foodRecords\.update\(foodEditing\.id, payload\) : await foodRecords\.create\(payload\);/);
+  assert.match(source, /function startEditingFood\(record: FoodRecord\)/);
   assert.match(source, /onClick=\{\(\) => void addExerciseRecord\(\)\}/);
-  assert.match(source, /const saved = await exerciseRecords\.create\(\{/);
+  assert.match(source, /\? await exerciseRecords\.update\(exerciseEditing\.id, payload\)\s+: await exerciseRecords\.create\(payload\);/);
+  assert.match(source, /function startEditingExercise\(record: ExerciseRecord\)/);
   assert.match(source, /onClick=\{\(\) => void addWeightRecord\(\)\}/);
-  assert.match(source, /const saved = await weightRecords\.create\(\{/);
+  assert.match(source, /const saved = weightEditing \? await weightRecords\.update\(weightEditing\.id, payload\) : await weightRecords\.create\(payload\);/);
+  assert.match(source, /function startEditingWeight\(record: WeightRecord\)/);
 
   assert.match(source, /onClick=\{\(\) => void addPeriodRecord\(\)\}/);
-  assert.match(source, /const saved = await periods\.create\(/);
+  assert.match(source, /const saved = editingId \? await periods\.update\(editingId, payload\) : await periods\.create\(payload\);/);
+  assert.match(source, /<EditRecordButton disabled=\{periods\.saving\} onEdit=\{\(\) => startEditing\(record\)\} \/>/);
 
   assert.match(source, /onClick=\{\(\) => void action\(\)\}/);
   assert.match(source, /const action = route === "schedule"/);
-  assert.match(source, /const saved = await schedule\.create\(\{/);
-  assert.match(source, /const saved = await anniversaries\.create\(\{/);
-  assert.match(source, /const saved = await diary\.create\(\{/);
-  assert.match(source, /const saved = await savingsGoals\.create\(\{/);
+  assert.match(source, /const saved = editingRecordId \? await schedule\.update\(editingRecordId, payload\) : await schedule\.create\(payload\);/);
+  assert.match(source, /const saved = editingRecordId \? await anniversaries\.update\(editingRecordId, payload\) : await anniversaries\.create\(payload\);/);
+  assert.match(source, /const saved = editingRecordId \? await diary\.update\(editingRecordId, payload\) : await diary\.create\(payload\);/);
+  assert.match(source, /const saved = editingRecordId \? await savingsGoals\.update\(editingRecordId, payload\) : await savingsGoals\.create\(payload\);/);
+  assert.match(source, /function startEditingPrimary\(record: TenantRecord\)/);
   assert.match(source, /onClick=\{\(\) => void submitSavingsTransaction\(\)\}/);
-  assert.match(source, /const saved = await savingsTransactions\.create\(\{/);
+  assert.match(source, /\? await savingsTransactions\.update\(editingRecordId, payload\)\s+: await savingsTransactions\.create\(payload\);/);
+  assert.match(source, /function startEditingTransaction\(record: SavingsTransactionRecord\)/);
 });
 
 test("period record control immediately acknowledges pending and failed saves", async () => {
@@ -190,7 +198,8 @@ test("period record control immediately acknowledges pending and failed saves", 
 
   assert.match(source, /setFeedback\("正在保存经期记录…"\);/);
   assert.match(source, /setFeedback\("未能保存经期记录，请查看上方状态提示后重试。"\);/);
-  assert.match(source, /saveFeedback\(saved, "经期记录已保存，历史记录已更新。", "经期记录已保存在当前设备。"\)/);
+  assert.match(source, /经期记录已保存，历史记录已更新。/);
+  assert.match(source, /经期记录已修改，历史记录已更新。/);
   assert.doesNotMatch(source, /if \(periods\.authRequired\)/);
   assert.doesNotMatch(source, /if \(periods\.consentRequired\)/);
 });
@@ -247,6 +256,18 @@ test("tenant resource client writes an opaque device-local fallback before a clo
   assert.match(cacheSource, /account:\$\{suffix\}/);
   assert.match(cacheSource, /Guest records[\s\S]*never auto-synced/);
   assert.match(cacheSource, /tenantFieldNames/);
+});
+
+test("tenant resource client updates only the current account's local row or verified cloud row", async () => {
+  const source = await readFile(resourceSource, "utf8");
+
+  assert.match(source, /update: \(id: string, payload: Record<string, unknown>, idempotencyKey\?: string\) => Promise<T \| null>;/);
+  assert.match(source, /const local = localRecordsRef\.current\.find\(\(record\) => record\.id === id\);/);
+  assert.match(source, /if \(local && isDeviceLocalRecord\(local\)\)/);
+  assert.match(source, /await writeDeviceLocalRecord\(scope, resource, updatedLocal\);/);
+  assert.match(source, /method: "PATCH"/);
+  assert.match(source, /`\/api\/mydairy\/\$\{resource\}\/\$\{encodeURIComponent\(id\)\}`/);
+  assert.match(source, /A missing consent never sends a PATCH body to the server/);
 });
 
 test("sensitive record saves preflight the read-only consent state before falling back to this device", async () => {

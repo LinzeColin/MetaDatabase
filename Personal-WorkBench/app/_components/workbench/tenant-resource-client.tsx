@@ -5,6 +5,7 @@ import {
   appendDeviceOutbox,
   createDeviceLocalRecord,
   deriveDeviceOutboxParentReferences,
+  type DeviceLocalRecord,
   DeviceOutboxAction,
   isDeviceLocalRecord,
   mergeWithDeviceLocalRecords,
@@ -38,6 +39,7 @@ export type ResourceState<T extends TenantRecord> = {
   records: T[];
   reload: () => Promise<void>;
   saving: boolean;
+  update: (id: string, payload: Record<string, unknown>, idempotencyKey?: string) => Promise<T | null>;
 };
 
 type ResourceOptions = {
@@ -702,6 +704,110 @@ export function useTenantResource<T extends TenantRecord>(
     }
   }, [acknowledgeLocalSave, acknowledgeScopeChange, applyFailure, commitLocalRecords, commitRecords, enabled, queueDeviceMutation, refreshCurrentScope, reload, resource, sensitive]);
 
+  /**
+   * Update keeps the same two-plane rule as create: a device-local row may be
+   * corrected immediately on this device, while an existing cloud row is
+   * patched only through the verified session-derived tenant route. Local
+   * corrections are intentionally not replayed as a new account's mutation.
+   */
+  const update = useCallback(async (id: string, payload: Record<string, unknown>, idempotencyKey?: string): Promise<T | null> => {
+    if (!enabled || !id) return null;
+    if (!scopeRef.current && scopeInitializationRef.current) await scopeInitializationRef.current;
+    const scope = await refreshCurrentScope();
+    if (!scope) return null;
+    setSaving(true);
+    setError("");
+    setLoginSuggested(false);
+
+    const local = localRecordsRef.current.find((record) => record.id === id);
+    if (local && isDeviceLocalRecord(local)) {
+      const patch = createDeviceLocalRecord(payload, Date.now(), id);
+      const updatedLocal = {
+        ...local,
+        ...patch,
+        created_at: typeof local.created_at === "number" ? local.created_at : patch.created_at,
+      } as T & DeviceLocalRecord;
+      try {
+        await writeDeviceLocalRecord(scope, resource, updatedLocal);
+        const nextLocal = localRecordsRef.current.map((record) => record.id === id ? updatedLocal : record);
+        commitLocalRecords(nextLocal);
+        commitRecords(recordsRef.current.map((record) => record.id === id ? updatedLocal : record));
+        return updatedLocal;
+      } catch {
+        setError("当前设备无法更新这条本机记录，请检查浏览器存储权限后重试。");
+        return null;
+      } finally {
+        setSaving(false);
+      }
+    }
+
+    // For a sensitive cloud record, confirm the existing read-only consent
+    // state first. A missing consent never sends a PATCH body to the server.
+    if (sensitive && cloudAvailabilityRef.current === "unknown") {
+      await reload();
+      const preflightScope = await refreshCurrentScope();
+      if (preflightScope !== scope) {
+        acknowledgeScopeChange(preflightScope);
+        setSaving(false);
+        return null;
+      }
+    }
+    if (sensitive && cloudAvailabilityRef.current !== "available") {
+      if (cloudAvailabilityRef.current === "consent_required") {
+        setError("这类记录需要你先在账户页明确开启敏感内容跨设备保存。");
+        setConsentRequired(true);
+      } else {
+        setError("暂时无法确认当前账号的跨设备保存状态，请刷新后再试。");
+        setLoginSuggested(true);
+      }
+      setSaving(false);
+      return null;
+    }
+
+    try {
+      const requestId = idempotencyKey ?? newIdempotencyKey(`${resource}-update`);
+      const response = await fetch(withRequestId(`/api/mydairy/${resource}/${encodeURIComponent(id)}`, requestId), {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const responseScope = await refreshCurrentScope();
+      if (responseScope !== scope) {
+        acknowledgeScopeChange(responseScope);
+        return null;
+      }
+      if (!response.ok) {
+        const code = await readFailureCode(response);
+        cloudAvailabilityRef.current = cloudAvailabilityFor(response.status, code);
+        applyFailure(response.status, code);
+        return null;
+      }
+      const data = (await readEnvelope<T>(response)).data;
+      if (!isRecord(data)) {
+        setError("保存结果不完整，请刷新后确认历史记录。");
+        return null;
+      }
+      cloudAvailabilityRef.current = "available";
+      commitRecords(recordsRef.current.map((record) => record.id === id ? data : record));
+      setAuthRequired(false);
+      setConsentRequired(false);
+      setLoginSuggested(false);
+      return data;
+    } catch {
+      const failureScope = await refreshCurrentScope();
+      if (failureScope !== scope) {
+        acknowledgeScopeChange(failureScope);
+        return null;
+      }
+      setError("暂时无法更新这条记录。请先确认已登录；使用 Google 登录无需额外验证邮箱。若已登录，请检查网络后重试。");
+      setLoginSuggested(true);
+      return null;
+    } finally {
+      setSaving(false);
+    }
+  }, [acknowledgeScopeChange, applyFailure, commitLocalRecords, commitRecords, enabled, refreshCurrentScope, reload, resource, sensitive]);
+
   const destroy = useCallback(async (id: string, idempotencyKey?: string): Promise<boolean> => {
     if (!enabled || !id) return false;
     if (!scopeRef.current && scopeInitializationRef.current) await scopeInitializationRef.current;
@@ -757,7 +863,7 @@ export function useTenantResource<T extends TenantRecord>(
     }
   }, [acknowledgeScopeChange, applyFailure, commitLocalRecords, commitRecords, enabled, refreshCurrentScope, resource]);
 
-  return { authRequired, consentRequired, create, destroy, error, loading, loginSuggested, records, reload, saving };
+  return { authRequired, consentRequired, create, destroy, error, loading, loginSuggested, records, reload, saving, update };
 }
 
 export function ResourceStatus({
