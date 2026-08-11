@@ -114,6 +114,7 @@
     "tests/test_onboarding_discovery.py",
     "tools/deepseek_probe.py",
     "tools/e2e_local.py",
+    "tools/e2e_feature_workbench.py",
     "tools/e2e_production.py",
     "tools/finalize_acceptance.py",
     "tools/mail_transport_probe.py",
