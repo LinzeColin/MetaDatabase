@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 from sqlalchemy import select
 
-from app.models import ApplicationEvent, ApplicationPack, Recommendation, User
+from app.models import ApplicationEvent, ApplicationPack, Job, Recommendation, User
 from app.security import email_lookup
 from .conftest import complete_onboarding, csrf, register_verify
 
@@ -15,6 +15,32 @@ def first_recommendation_id(client) -> int:
         row = db.scalar(select(Recommendation).order_by(Recommendation.rank_score.desc()))
         assert row
         return row.id
+
+
+def test_recommendation_detail_sanitizes_existing_escaped_provider_markup(client):
+    register_verify(client, "escaped-description@example.com")
+    complete_onboarding(client)
+    rec_id = first_recommendation_id(client)
+    with client.app.state.session_factory() as db:
+        rec = db.get(Recommendation, rec_id)
+        assert rec is not None
+        job = db.get(Job, rec.job_id)
+        assert job is not None
+        job.description = (
+            "&lt;div class=&quot;content-intro&quot;&gt;&lt;p&gt;Readable job description&lt;/p&gt;"
+            "&lt;span data-ccp-props=&quot;{}&quot;&gt;extra detail&lt;/span&gt;"
+            "&lt;script&gt;should-not-render()&lt;/script&gt;&lt;/div&gt;"
+        )
+        db.commit()
+
+    response = client.get(f"/recommendations/{rec_id}")
+    assert response.status_code == 200
+    assert 'data-testid="job-description"' in response.text
+    assert "Readable job description" in response.text
+    assert "extra detail" in response.text
+    assert "data-ccp-props" not in response.text
+    assert "should-not-render" not in response.text
+    assert "&lt;div" not in response.text
 
 
 def test_recommendation_actions_application_pack_and_progress(client):

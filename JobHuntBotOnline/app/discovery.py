@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+from html import unescape
 import json
 import re
 import signal
@@ -46,9 +47,21 @@ class NormalizedJob:
 
 
 def clean_html(value: str) -> str:
-    if not value:
+    text = str(value or "")
+    if not text:
         return ""
-    return BeautifulSoup(value, "html.parser").get_text("\n", strip=True)
+    # Some providers return their rich-text payload HTML-escaped more than once.
+    # Decode it before parsing, then keep only text so provider content is never
+    # treated as executable page markup.
+    for _ in range(3):
+        decoded = unescape(text)
+        if decoded == text:
+            break
+        text = decoded
+    soup = BeautifulSoup(text, "html.parser")
+    for node in soup(["script", "style", "noscript", "template"]):
+        node.decompose()
+    return soup.get_text("\n", strip=True)
 
 
 def parse_date(value) -> datetime | None:

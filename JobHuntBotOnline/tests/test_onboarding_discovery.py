@@ -15,6 +15,18 @@ from app.scoring import role_search_tag, score_job, search_matches
 from .conftest import complete_onboarding, csrf, register_verify
 
 
+def test_clean_html_decodes_escaped_provider_markup_without_executable_content():
+    description = discovery.clean_html(
+        "&lt;div class=&quot;content-intro&quot;&gt;&lt;p&gt;Readable&amp;nbsp;job description&lt;/p&gt;"
+        "&lt;script&gt;should-not-render()&lt;/script&gt;&lt;/div&gt;"
+    )
+
+    assert "Readable" in description
+    assert "job description" in description
+    assert "<div" not in description
+    assert "should-not-render" not in description
+
+
 def test_resume_draft_preserves_unknown_high_impact_preferences():
     parsed = parse_resume("Woven amber clouds drift quietly over hills while lanterns glow beside calm rivers. " * 3)
     draft = profile_draft(parsed)

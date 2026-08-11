@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from . import ai
 from .config import Settings, get_settings
 from .db import Base, make_engine, make_session_factory, session_dependency
-from .discovery import claim_run, enqueue_discovery, process_run, rescore_existing_recommendations, safe_http_url
+from .discovery import clean_html, claim_run, enqueue_discovery, process_run, rescore_existing_recommendations, safe_http_url
 from .email_service import MailRateLimited, Mailer
 from .models import (
     ApplicationEvent, ApplicationPack, CandidateProfile, DiscoveryRun, DiscoverySourceStatus,
@@ -717,6 +717,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         rec, job = result
         return _render(request, "recommendation_detail.html", {
             "rec": rec, "job": job,
+            "job_description": clean_html(job.description),
             "skills": json.loads(job.skills_text or "[]"),
             "keywords": json.loads(job.keywords_text or "[]"),
             "reasons": crypto.decrypt_json(rec.reasons_encrypted, []),
