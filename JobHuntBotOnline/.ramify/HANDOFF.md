@@ -97,11 +97,12 @@ point. Secrets stay outside Git and evidence.
   passed at `0002_delivery_lookup` with the exact six-hour invariant. NitroSend
   is absent and prohibited, not a blocker.
 - T09 remains non-authoritative operational evidence only. The corrected VPS3
-  Status registration is on draft LinzeHomeHub PR #86 at `a38b973`
-  (`codex/jobhuntbot-status-registration`). A current public snapshot readback
-  finds only historical JobHuntBot ledger-event references, not a deployed
-  runtime registration. Do not treat the draft as deployed evidence or replace
-  it with a stale VPS1 collector.
+  Status registration is on draft LinzeHomeHub PR #86 at `484aedc`
+  (`codex/jobhuntbot-status-registration`); its current `dual-plane`,
+  `deterministic`, and `browser` GitHub checks all passed. A current public
+  snapshot readback returns `registered=false` for JobHuntBot Online, so it is
+  still not deployed. No public Status deployment was executed. Do not treat
+  the draft as deployed evidence or replace it with a stale VPS1 collector.
 - Private-Database readback is current at `2026-08-11T05:07:46Z` under
   `Private-MetaDatabase/JobHuntBotOnline/operations/v0.3.0/latest.json` with
   schema `jobhuntbot-ops-projection-v2`, `EMAIL_ONLY_BLOCKED`,
