@@ -39,6 +39,38 @@ test("release evidence references do not retain nested raw evidence", () => {
   assert.equal(reference.source, "13_evidence/quality.json");
 });
 
+test("Version 33 S5-T1 saved candidate evidence preserves the private boundary", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_33_s5_t1_saved_candidate.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.task_id, "S5-T1");
+  assert.equal(evidence.phase, "S5_T1_PRIVATE_SAVED_VERSION");
+  assert.equal(evidence.status, "PASS_PRIVATE_SAVED_VERSION_CANDIDATE");
+  assert.equal(evidence.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(evidence.candidate.saved_version_number, 33);
+  assert.equal(evidence.candidate.source_readback_matches_pushed_candidate, true);
+  assert.equal(evidence.candidate.archive_stored_by_sites, true);
+  assert.equal(evidence.private_access.site_active, true);
+  assert.equal(evidence.private_access.current_user_role, "owner");
+  assert.equal(evidence.private_access.access_mode, "custom");
+  assert.equal(evidence.private_access.allowed_user_count, 1);
+  assert.equal(evidence.private_access.allowed_group_count, 0);
+  assert.equal(evidence.private_access.external_visitor_count, 0);
+  assert.equal(evidence.scope_and_limits.deployment_action_called, false);
+  assert.equal(evidence.scope_and_limits.public_audience_changed, false);
+  assert.equal(evidence.scope_and_limits.github_uploaded, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("controlled browser replay evidence does not retain test credentials", async () => {
   const evidence = JSON.parse(
     await readFile(new URL("../13_evidence/ordinary_chrome_auth_replay.json", import.meta.url), "utf8"),
