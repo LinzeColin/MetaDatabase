@@ -11,6 +11,7 @@ from typing import Any
 import httpx
 
 from .base import ConnectorError, ConnectorResult
+from .. import gallerydl_runner
 from ..utils import assert_public_http_url, read_secret, redact
 
 
@@ -61,7 +62,27 @@ class CommandArtifactConnector:
                     "observations": [],
                     "artifacts": [],
                 }
-            raise ConnectorError("CLI_WORKER_FAILED", f"CLI Sidecar 调用失败：HTTP {status_code}", retryable=True) from exc
+            # **Sidecar 已经把原因写在响应体里了，别把它扔掉。**
+            #
+            # sidecars/cli-tools/server.py 第 286 行返回的是
+            # `{"status":"failed","error":"<异常类名>","message":"<真实原因>", …}`，
+            # 而 raise_for_status() 先抛，于是这里原样丢掉那段，换成一句
+            # 「CLI Sidecar 调用失败：HTTP 422」。
+            #
+            # 实测（2026-08-04 生产）：跑一次 instagram 连接器，用户拿到的
+            # 就是 `{"detail":"CLI Sidecar 调用失败：HTTP 422"}` —— 没有失败码、
+            # 没有中文下一步，连它到底缺什么都看不出来。**原因一直都在，
+            # 只是被我们扔了。** 这和「读不懂就报没有」是同一种毛病的镜像：
+            # 读到了原因，然后丢掉。
+            upstream = ""
+            try:
+                body = exc.response.json() if exc.response is not None else None
+                if isinstance(body, dict):
+                    upstream = str(body.get("message") or body.get("error") or "").strip()
+            except (ValueError, AttributeError):
+                upstream = ""
+            detail = f"：{upstream}" if upstream else f"：HTTP {status_code}"
+            raise ConnectorError("CLI_WORKER_FAILED", f"下载工具没能完成这次读取{detail}", retryable=True) from exc
         except (httpx.HTTPError, ValueError) as exc:
             raise ConnectorError("CLI_WORKER_FAILED", f"CLI Sidecar 调用失败：{exc.__class__.__name__}", retryable=True) from exc
         if not isinstance(data, dict):
@@ -90,7 +111,8 @@ class CommandArtifactConnector:
                     data = response.json()
                 return {"state": "healthy", "mode": "isolated_http_sidecar", "tools": data.get("tools", {})}
             except (httpx.HTTPError, ValueError) as exc:
-                return {"state": "degraded", "mode": "isolated_http_sidecar", "error_code": exc.__class__.__name__}
+                return {"state": "degraded", "mode": "isolated_http_sidecar",
+                        "error_code": "HEALTH_PROBE_FAILED", "detail": exc.__class__.__name__}
         binaries = {name: bool(shutil.which(name)) for name in sorted(self.ALLOWED)}
         return {"state": "healthy" if any(binaries.values()) else "blocked_environment", "mode": "local_dev_fallback", "binaries": binaries}
 
@@ -105,12 +127,39 @@ class CommandArtifactConnector:
         except subprocess.TimeoutExpired as exc:
             raise ConnectorError("COMMAND_TIMEOUT", f"{binary} 超时", retryable=True) from exc
 
-    def capture_url(self, url: str, tool: str = "yt-dlp") -> ConnectorResult:
+    def capture_url(self, url: str, tool: str = "yt-dlp", *, cookies_path: str | None = None) -> ConnectorResult:
+        """抓一个页面。
+
+        `cookies_path` 指向一份**临时**的 cookies.txt（由 CredentialStore.materialize
+        解密落盘，0600，用完即删）。不给就按未登录抓——那样只拿得到公开内容。
+
+        这个参数是 T06 的落点：在它存在之前，托管的平台会话**存进去了却从来
+        没有交给过工具**，capture_url 的 argv 里根本没有 --cookies。
+        """
         clean = assert_public_http_url(url)
         if tool not in {"gallery-dl", "yt-dlp"}:
             raise ConnectorError("TOOL_NOT_ALLOWED", f"不支持的工具：{tool}")
         if self.worker_url:
-            data = self._remote("/v1/capture-url", {"url": clean, "tool": tool})
+            # **把托管的登录状态一起送过去（v0.0.0.7 / T07）。**
+            #
+            # 在此之前这一行只发 url 和 tool：Core 这侧把会话解密好了，
+            # 走到 sidecar 分支却没有传它的通道——而**生产走的正是这一支**。
+            # 结果就是「凭据存进去了、从来没被用过」。
+            #
+            # Owner 2026-08-04 裁定「Cookie 可以进 OVH」之后才接通。
+            # 传的是内容而不是路径：两个容器不共享文件系统，路径过去也打不开。
+            # sidecar 那侧写进 tmpfs（内存盘）、0600、用完即删。
+            body: dict[str, Any] = {"url": clean, "tool": tool}
+            if cookies_path:
+                try:
+                    body["cookies_txt"] = Path(cookies_path).read_text(encoding="utf-8")
+                except OSError as exc:
+                    # 读不到就按未登录抓，但**说出来**——静默降级正是本版要消灭的。
+                    raise ConnectorError(
+                        "CREDENTIAL_UNREADABLE",
+                        f"托管的登录状态读不出来（{exc.__class__.__name__}），没有把它交给下载器。",
+                    ) from exc
+            data = self._remote("/v1/capture-url", body)
             status = str(data.get("status") or "failed")
             artifacts = self._remote_artifacts(data.get("artifacts") or [])
             errors = [] if status == "success" else [{"code": "CLI_WORKER_COMMAND_FAILED", "message": redact(str(data.get("stderr") or "Sidecar 未产生文件")), "retryable": status != "blocked_environment"}]
@@ -119,13 +168,51 @@ class CommandArtifactConnector:
         run_id = str(uuid.uuid4())
         run_dir = self.staging_root / "runs" / run_id
         run_dir.mkdir(parents=True, exist_ok=False)
-        argv = ["gallery-dl", "--dest", str(run_dir), "--write-metadata", "--write-info-json", clean] if tool == "gallery-dl" else ["yt-dlp", "--no-playlist", "--restrict-filenames", "--write-info-json", "--write-subs", "--write-auto-subs", "--no-progress", "--paths", str(run_dir), clean]
+        if tool == "gallery-dl":
+            argv = ["gallery-dl", "--dest", str(run_dir), "--write-metadata", "--write-info-json"]
+        else:
+            argv = ["yt-dlp", "--no-playlist", "--restrict-filenames", "--write-info-json",
+                    "--write-subs", "--write-auto-subs", "--no-progress", "--paths", str(run_dir)]
+        if cookies_path:
+            # 两个工具的 --cookies 都只收**路径**，不收管道（见 credentials.py 的说明）。
+            argv += ["--cookies", str(cookies_path)]
+        argv.append(clean)
         result = self._run(argv, run_dir)
         evidence = {"argv": argv, "exit_code": result.returncode, "stdout": redact(result.stdout[-4000:]), "stderr": redact(result.stderr[-4000:])}
         (run_dir / "command-result.json").write_text(json.dumps(evidence, ensure_ascii=False, indent=2), encoding="utf-8")
         files = [p for p in run_dir.rglob("*") if p.is_file() and p.name != "command-result.json" and "home" not in p.parts]
         status = "success" if result.returncode == 0 and files else "failed"
-        errors = [] if status == "success" else [{"code": "COMMAND_FAILED", "message": redact(result.stderr[-1000:] or "命令未产生文件"), "retryable": result.returncode not in {1, 2}}]
+        # 两个工具的退出码约定**不一样，不能共用一条规则**（实测自生产容器）：
+        #   yt-dlp      1=下载/抽取错误  2=用法错误  100/101=中止
+        #               （无效 URL → 1；错误参数 → 2）
+        #   gallery-dl  位掩码 1/4/8/16/32/64/128，见 gallerydl_runner
+        # 这里原来写的是 `result.returncode not in {1, 2}`——那是 **yt-dlp 的**约定，
+        # 套到 gallery-dl 上就成了：鉴权失败(16)、撞验证码(8)、URL 不支持(64)
+        # 统统判成「可重试」。而 db.finish_job 会把可重试的任务放回队列
+        # （status = "retry" if retryable else "failed"），于是一个永远不会好的
+        # 失败被反复重跑——正是 gallerydl_runner 模块文档里明令禁止的那种误判。
+        if status == "success":
+            errors = []
+        elif tool == "gallery-dl":
+            failure_code = gallerydl_runner.classify_exit_code(
+                result.returncode, url=clean, stderr=result.stderr
+            )
+            errors = [{
+                # 用定级后的码而不是笼统的 COMMAND_FAILED：后者在失败文案词典里
+                # 认不出来，界面会说「我们没能记录下原因」——而其实是知道的。
+                "code": failure_code or "COMMAND_FAILED",
+                "message": redact(result.stderr[-1000:] or "命令未产生文件"),
+                "retryable": gallerydl_runner.is_retryable_exit(
+                    result.returncode, url=clean, stderr=result.stderr
+                ),
+            }]
+        else:
+            # yt-dlp：1 和 2 重试都解决不了（2 是我们自己把参数传错了）。
+            errors = [{
+                "code": "URL_NOT_SUPPORTED" if result.returncode == 2 else "SERVER_UNREACHABLE",
+                "message": redact(result.stderr[-1000:] or "命令未产生文件"),
+                "retryable": False,
+            }]
         return ConnectorResult(self.connector_id, run_id, status, observations=[{"url": clean}], artifacts=[{"path": str(p), "type": "downloaded_file"} for p in files], scan_receipt={"completeness": "complete" if status == "success" else "failed", "item_count": len(files), "scope": "item", "execution_boundary": "local_dev_fallback"}, errors=errors)
 
     def instagram_saved(self, session_file: Path | None, username: str | None, limit: int = 20) -> ConnectorResult:
@@ -217,6 +304,43 @@ class CommandArtifactConnector:
                 parsed = json.loads(text)
                 observations = self._bilibili_observations(parsed)
             except json.JSONDecodeError:
-                return ConnectorResult(self.connector_id, run_id, "failed", scan_receipt={"completeness": "failed", "item_count": 0, "scope": "account_relation"}, errors=[{"code": "BILI_INVALID_RESPONSE", "message": "bilibili-cli 未返回结构化 JSON", "retryable": True}])
+                # 契约被破坏：它退出 0 却没给结构化输出。**重试拿到的还是同样的东西。**
+                return ConnectorResult(self.connector_id, run_id, "failed", scan_receipt={"completeness": "failed", "item_count": 0, "scope": "account_relation"}, errors=[{"code": "BILI_INVALID_RESPONSE", "message": "bilibili-cli 未返回结构化 JSON", "retryable": False}])
         status = "success" if result.returncode == 0 else "failed"
-        return ConnectorResult(self.connector_id, run_id, status, observations=observations, scan_receipt={"completeness": "partial" if status == "success" else "failed", "item_count": len(observations), "scope": "account_relation"}, errors=[] if status == "success" else [{"code": "BILI_COMMAND_FAILED", "message": redact(result.stderr[-1000:]), "retryable": True}])
+        if status == "success":
+            errors: list[dict[str, Any]] = []
+        else:
+            errors = [self._bilibili_failure(result)]
+        return ConnectorResult(self.connector_id, run_id, status, observations=observations, scan_receipt={"completeness": "partial" if status == "success" else "failed", "item_count": len(observations), "scope": "account_relation"}, errors=errors)
+
+    @staticmethod
+    def _bilibili_failure(result: subprocess.CompletedProcess[str]) -> dict[str, Any]:
+        """按 bilibili-cli **自己报的原因**定级，而不是一律「可重试」。
+
+        原来这里写死 `"retryable": True`：未登录也重试、参数传错也重试，
+        而这两种重试一万次也一样——正是 gallerydl_runner 模块文档里
+        明令禁止的那种误判，只是换了个工具。
+
+        退出码与输出形态实测自生产 cli-tools 容器里的 /usr/local/bin/bili：
+
+            bili nonexistent-subcommand  → exit 2   （用法错误）
+            bili                          → exit 2
+            bili favorites（未登录）      → exit 1，且**输出结构化原因**：
+                                              ok: false
+                                              error:
+                                                code: not_authenticated
+
+        也就是说这个工具会明说为什么失败，而我们此前一个字都没读。
+        """
+        blob = f"{result.stdout}\n{result.stderr}"
+        if result.returncode == 2:
+            # 我们把参数传错了，用户帮不上忙
+            return {"code": "TOOL_NOT_ALLOWED",
+                    "message": redact(blob[-1000:]) or "bilibili-cli 用法错误",
+                    "retryable": False}
+        if "not_authenticated" in blob or "not_logged_in" in blob:
+            return {"code": "CREDENTIAL_EXPIRED",
+                    "message": "B站登录状态不可用，需要重新连接账号。",
+                    "retryable": False}
+        return {"code": "BILI_COMMAND_FAILED", "message": redact(blob[-1000:]),
+                "retryable": True}

@@ -1,0 +1,74 @@
+{
+  "task": "T18",
+  "claim": "2026-08-05 又部署了一次；部署后生产与仓**逐文件一致（110/110，四类差异全为空）**，而且这次是有工具能这么说，不是靠临时拼命令。",
+  "measured_at": "2026-08-05T05:1Z",
+  "why_this_deploy_happened": [
+    "T13 那次实测抓到 youtube 的「下一步」是假的：说明写着「现在可以：连接 YouTube」，",
+    "下一步却说「本版本没有能打开这条路的设置项」——**否掉的正是交接里唯一让 Owner 做的那件事**。",
+    "改在仓里不算数：**Owner 看的是生产那一份。** 不发上去，他看到的还是那句假话。"
+  ],
+  "the_eight_gates_the_deploy_script_ran": {
+    "0_local": "工作树干净 + 发布门 21 道全绿 + 扩展包已重打",
+    "1_secrets_before": "12 个密钥 10001:10001 640，逐个量过",
+    "2_source_sync": "rsync；扩展包 sha256 本地与远端逐字节一致",
+    "2.5_host_venv": "主机 venv 0.0.0.7，与仓里一致（这一栏是 08-05 早些时候补的，那次它落后两个版本）",
+    "3_rollback_point": "钉在部署前的镜像 bb122f10821566，并用 rollback-candidate 标签防止被构建回收",
+    "3.5_systemd_drift": "所有 systemd 单元与仓里一致",
+    "4_disk": "根分区可用 4G < 门槛 5G → **只回收带 com.socialarchive.project 标签的悬空镜像**（1.06GB），回收后 5G",
+    "5_build_and_up": "core:0.0.0.7 构建完成；cli-tools / core-api Healthy，core-worker 重建后 Started",
+    "5.5_sidecar": "cli-tools 跑的也是仓里这一份",
+    "6_secrets_after": "与部署前**逐字节一致**",
+    "7_auth_route": "/health 200，**/v1/accounts 200**——鉴权链路通（不是只打 /health 就宣布成功）",
+    "8_download_route": "下载页真正下发的那个包，与刚部署的逐字节一致"
+  },
+  "verified_after_deploy": {
+    "the_thing_that_was_fixed": {
+      "youtube": "打开任意一个 YouTube 页面，点插件里的「连接」——登录状态只交给你自己的服务器保管。",
+      "x_and_bilibili_unchanged": "本版本没有能打开这条路的设置项；照上面那句话做就行。（对它们是真话）"
+    },
+    "how_it_was_checked": "部署后在生产容器里重新调一次 health_views，直接读 next_action_zh——**不是看部署脚本说成功**。"
+  },
+  "the_drift_check_closed_the_loop": {
+    "tool": "scripts/check_production_matches_the_repo.py（同日新建）",
+    "before_deploy": {
+      "only_on_production": 0,
+      "logic_differs": 2,
+      "comment_only": 1,
+      "not_deployed_yet": 3
+    },
+    "after_deploy": {
+      "only_on_production": 0,
+      "logic_differs": 0,
+      "comment_only": 0,
+      "not_deployed_yet": 0,
+      "file_count": "本地 110 / 生产 110"
+    },
+    "why_it_matters": "`/opt/social-archive` 不是 git 检出，那台机器上**没有 `git status` 可问**。在这个工具之前，「生产跑的是不是仓里这一份」只能临时拼四条命令去问，而部署脚本第 8 道门只核了**扩展包**那一个文件。"
+  },
+  "rollback": {
+    "one_line": "ssh linze-ovh \"cd /opt/social-archive && docker tag social-archive/core:rollback social-archive/core:0.0.0.7 && docker compose up -d core-api core-worker\"",
+    "point": "bb122f10821566（部署前正在跑的那个镜像）",
+    "drilled": "回滚演练此前已在生产做过一次：29 秒，三条路由全 200，内容 193 条未动，会话没被踢（见 ROLLBACK_DRILL_ON_PRODUCTION.json）"
+  },
+  "what_this_does_not_prove": [
+    "**不证明 youtube 能同步了。** 这次改的是文案不是能力——它依然读不到稍后观看。变的是它不再告诉 Owner「没有设置项」。",
+    "不证明跨版本回滚：回滚点只差这一次部署，**带迁移的跨版本回滚仍未验过**（且已无可用的跨版本镜像）。",
+    "一致性是**这一刻**的：任何人再往 /opt/social-archive 手工放一个文件，它立刻就不成立了——所以那个检查要当例行动作跑，不是一次性结论。",
+    "**「一致」这个词第一次写下时并不成立**——那时只比了三份中的两份。见 a_correction_to_this_file。一个结论的措辞比它的数字更容易骗人：110/110 是真的，「生产与仓一致」当时却不是。"
+  ],
+  "a_correction_to_this_file": {
+    "what_was_overstated": "本文件最初写「生产与仓逐文件一致（110/110）」，而当时那个工具**只比了两份**：仓 ←→ 主机。",
+    "what_was_missing": "容器里的 `/app` 是**烤进镜像的**，不是主机目录的绑定挂载（只有 /run/secrets/* 是）。**服务真正执行的是镜像里那一份。** 主机同步对了，服务完全可能还在跑上一版。",
+    "how_it_surfaced": "把修好的 golden_transaction_trace.py scp 到主机、在容器里跑，跑的还是旧的。",
+    "fixed": "check_production_matches_the_repo.py 现在比三份，并把「镜像比仓旧」单列成一类（下一步是重建镜像，与「还没同步」要做的完全相反）。",
+    "re_measured_after_the_second_deploy": {
+      "file_count": "本地 110 / 生产 110 / 镜像 110",
+      "only_on_production": 0,
+      "logic_differs": 0,
+      "comment_only": 0,
+      "not_deployed_yet": 0,
+      "container_is_running_older_code": 0,
+      "status": "PASS —— 这一次「一致」是三份都比过的"
+    }
+  }
+}

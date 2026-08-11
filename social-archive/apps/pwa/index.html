@@ -6,8 +6,22 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Social Archive · 多平台收藏资料库</title>
 
-<link href="/assets/styles.css?v=006-r1" rel="stylesheet"/><link href="/assets/manifest.webmanifest?v=006-r1" rel="manifest"/><link href="/assets/favicon.svg" rel="icon" type="image/svg+xml"/></head>
+<link href="/assets/styles.css?v=cc1e33a7" rel="stylesheet"/><link href="/assets/manifest.webmanifest?v=cc1e33a7" rel="manifest"/><link href="/assets/favicon.svg?v=cc1e33a7" rel="icon" type="image/svg+xml"/></head>
 <body>
+<!-- 登录闸（v0.0.0.7 / T02）。
+     此前**产品里根本没有登录入口**：auth.py 提供了 7 条路由，而全仓客户端
+     只调用其中一条（换扩展令牌）。Owner 打开页面、以为自己登录了，
+     而服务端 oauth_identity 与 session 都是 0 —— 因为没有任何东西可点。
+     未登录时这一层盖住整页；登录后由 app.js 移除。 -->
+<div class="login-gate hidden" id="loginGate">
+  <div class="login-card">
+    <div class="brand-mark">SA</div>
+    <h1>Social Archive</h1>
+    <p>你的私人档案馆。用下面任意一个账号登录即可，<strong>不需要输入任何密码</strong>。</p>
+    <div class="login-buttons" id="loginButtons"></div>
+    <p class="login-note" id="loginNote"></p>
+  </div>
+</div>
 <header class="app-header">
 <div aria-label="Social Archive" class="brand">
 <div class="brand-mark">SA</div>
@@ -33,11 +47,19 @@
 </nav>
 <div class="header-spacer"></div>
 <div class="service-badge checking" id="serviceBadge">正在连接私人档案馆…</div>
+<a class="icon-button" href="/guide" title="使用说明" aria-label="使用说明" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;font-size:13px;font-weight:600">怎么用</a>
 <button aria-label="切换深浅主题" class="icon-button" id="themeToggle" title="切换深浅主题">
 <svg class="icon" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.6 6.6 0 0 0 21 12.8Z"></path></svg>
 </button>
 </header>
 <main class="page">
+<!-- 下一步（v0.0.0.7 / INV-ZERO-BARRIER）。
+     **永远只显示一件事。** Owner 的原话：「我都不知道应该怎么操作」。
+     此前首页把状态、账号表、导出、设置一起摊开，没有任何东西说"现在该干嘛"。 -->
+<section class="next-step hidden" id="nextStep">
+  <div class="next-step-body"><strong id="nextStepTitle"></strong><span id="nextStepWhy"></span></div>
+  <button class="btn primary" id="nextStepAction"></button>
+</section>
 <section aria-label="同步状态" class="sync-strip"><span class="pulse" id="syncPulse"></span><span><strong id="connectedAccountCount">正在读取账号状态</strong><span id="syncSummaryText"> · 请稍候</span></span><span class="strip-spacer"></span><button class="text-button" data-open-sync="">查看同步详情</button></section>
 <section class="page-head">
 <div>
@@ -48,8 +70,19 @@
 <div class="head-actions">
 <button class="btn" id="openImport">
 <svg class="icon" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>
-          导入 Social Archiver / Markdown ZIP
+          导入数据包（Social Archiver / 平台官方导出）
         </button>
+<!-- **让他把东西拿走。**（2026-08-10）
+     Owner 的原话：「zzybrim/douyin-obsidian 别人已经开发成功了，你跑了十天了，还没有结果」。
+     去看他的实况：markdown 目的地 193/193——那 193 条（含 86 条抖音）早在 8 月 3 号
+     就全生成成 Markdown 了，一直躺在服务器上；而 obsidian 是 1/193，且那个「库」
+     是服务器上的一个目录，**没有任何一条路通到他电脑上的 Obsidian**。
+     浏览器写不了本地任意路径、服务器够不着他的电脑——**能走通的是「下载，自己拖进库」**。
+     用普通链接不用 JS：同源 cookie 就是鉴权，失败面最小。 -->
+<a class="btn" href="/v1/library/markdown.zip" download="social-archive-markdown.zip">
+<svg class="icon" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>
+          下载全部 Markdown（拖进 Obsidian 就能用）
+        </a>
 <button class="btn" data-open-sync="">
 <svg class="icon" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24"><path d="M20 7h-6V1"></path><path d="M20 7a9 9 0 1 0 2 8"></path><path d="M4 17h6v6"></path></svg>
           管理账号
@@ -94,10 +127,25 @@
 <span class="result-meta">显示 <strong id="visibleCount">0</strong> 条 · 总计 <strong id="totalCount">0</strong> 条</span>
 </div>
 <div class="filter-panel" id="filterPanel">
-<div class="filter-field"><label for="relationFilter">关系类型</label><select id="relationFilter"><option value="all">全部关系</option><option value="收藏">收藏</option><option value="点赞">点赞</option><option value="书签">书签</option><option value="稍后再看">稍后再看</option></select></div>
-<div class="filter-field"><label for="topicFilter">主题分类</label><select id="topicFilter"><option value="all">全部主题</option><option value="AI与技术">AI与技术</option><option value="商业与投资">商业与投资</option><option value="机械制造">机械制造</option><option value="学习研究">学习研究</option><option value="生活方式">生活方式</option></select></div>
+<div class="filter-field"><label for="relationFilter">关系类型</label><!-- 这里只放「全部关系」。**其余选项由 renderRelationOptions() 照真实数据重建**。
+     写死的会骗人：2026-08-06 对着生产量过，原先写死的四个里「书签」0 条、
+     「稍后再看」1 条，而**最大的那一组「观看历史」71 条（193 条里的 37%）
+     根本不在名单上**——Owner 筛不出自己最大的那一堆。 -->
+<select id="relationFilter"><option value="all">全部关系</option></select></div>
+<div class="filter-field" id="topicField" hidden><label for="topicFilter">主题分类</label><!-- 这里只放「全部主题」。**其余选项由 renderTopicOptions() 照真实数据重建**，写死的会骗人：2026-08-06 对着生产量过，原先写死的五个（AI与技术/商业与投资/机械制造/学习研究/生活方式）**各返回 0 条**，而真实数据里唯一的「未分类」有 193 条、却不在那份名单里。
+     **默认藏着**（2026-08-10）：他库里 190 条的 topic 全是「未分类」，两项选出来是同一批东西——和收藏夹同一条规矩，少于两个可选值就不摆这个框。 -->
+<select id="topicFilter"><option value="all">全部主题</option></select></div>
+<!-- 收藏夹（v0.0.0.10）。**默认藏着，有收藏夹才由 renderCollectionOptions() 显示。**
+     绝大多数平台没有收藏夹这个概念，常驻一个只有「全部收藏夹」的下拉框
+     等于在界面上摆一个点了没用的东西。-->
+<div class="filter-field" id="collectionField" hidden><label for="collectionFilter">收藏夹</label>
+<select id="collectionFilter"><option value="all">全部收藏夹</option></select></div>
 <div class="filter-field"><label for="dateFilter">时间范围</label><select id="dateFilter"><option value="all">全部时间</option><option value="7">最近 7 天</option><option value="30">最近 30 天</option><option value="90">最近 90 天</option></select></div>
-<div class="filter-field"><label for="archiveFilter">归档状态</label><select id="archiveFilter"><option value="all">全部状态</option><option value="完整">完整归档</option><option value="处理中">处理中</option><option value="需处理">需要处理</option></select></div>
+<div class="filter-field"><label for="archiveFilter">归档状态</label><!-- 这三个必须和 db.py 里那个 CASE 出的 archive_status 一字不差。
+     2026-08-06 之前是「完整 / 处理中 / 需处理」——而服务端出的是
+     「完整 / 处理中 / **仅元数据**」：`需处理` 服务端从来不产出（选了永远 0 条），
+     而真会出现的 `仅元数据` 反倒筛不出来。 -->
+<select id="archiveFilter"><option value="all">全部状态</option><option value="完整">完整归档</option><option value="处理中">处理中</option><option value="仅元数据">仅元数据</option><option value="视频没存下">视频没存下</option></select></div>
 </div>
 </section>
 <section aria-label="收藏内容表格" class="table-card">
@@ -138,7 +186,7 @@
 <div class="modal-backdrop" id="syncModalBackdrop">
 <section aria-labelledby="syncModalTitle" aria-modal="true" class="modal" role="dialog">
 <div class="modal-header">
-<div><h2 id="syncModalTitle">账号同步中心</h2><p>连接一次账号，自动全量导入收藏、点赞、书签和收藏夹；后续仅同步新增内容。</p></div>
+<div><h2 id="syncModalTitle">账号同步中心</h2><p id="syncModalCopy">连接一次账号，之后只同步新增内容。</p></div>
 <span class="header-spacer"></span>
 <button class="btn small" id="connectNewAccount">连接新账号</button><button class="btn primary small" id="modalSyncAll">同步全部账号</button>
 <button aria-label="关闭同步中心" class="icon-button" id="closeSyncModal"><svg class="icon" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"></path></svg></button>
@@ -153,17 +201,39 @@
 </div>
 </section>
 </div>
+<!-- 连接面板（v0.0.0.22）。里面是插件自己的页面，以 iframe 嵌进来——
+     授权框只能在扩展页面里弹，而这样他不用离开资料库。铁律第 4 条：不跳页。-->
+<div class="modal-backdrop" id="connectModalBackdrop">
+<section aria-labelledby="connectModalTitle" aria-modal="true" class="modal" role="dialog">
+<div class="modal-header">
+<div><h2 id="connectModalTitle">连接账号</h2><p>点一次就好，浏览器会弹一个授权框，选「允许」。</p></div>
+<span class="header-spacer"></span>
+<button aria-label="关闭" class="icon-button" data-close-modal="connectModalBackdrop">×</button>
+</div>
+<div class="modal-body">
+<iframe id="connectFrame" style="width:100%;height:320px;border:0;display:block" title="连接账号"></iframe>
+</div>
+</section>
+</div>
 <div class="modal-backdrop" id="importModalBackdrop">
 <section aria-describedby="importModalCopy" aria-labelledby="importModalTitle" aria-modal="true" class="modal" role="dialog">
 <div class="modal-header">
-<div><h2 id="importModalTitle">导入 Social Archiver / Markdown ZIP</h2><p id="importModalCopy">选择你本人从 Social Archiver 或其他本地 Markdown 工具导出的 ZIP。不会要求 Cookie、Token 或命令行。</p></div>
+<div><h2 id="importModalTitle">导入 ZIP 包</h2><p id="importModalCopy">选择你本人导出的 ZIP。不会要求 Cookie、Token 或命令行。</p></div>
 <span class="header-spacer"></span>
 <button aria-label="关闭导入" class="icon-button" data-close-modal="importModalBackdrop">×</button>
 </div>
 <div class="modal-body">
 <form class="form-grid" id="importForm">
-<label for="archiveFile">ZIP 导出包<input accept=".zip,application/zip,application/x-zip-compressed" id="archiveFile" name="archiveFile" required type="file"/></label>
-<p class="form-help">仅接受 ZIP，最大 200 MiB。重复导入同一包会复用已有内容，不创建重复关系。</p>
+<!-- 包的来源（v0.0.0.21）。**平台官方导出**这一项是新的：
+     Instagram 与 X 的主路径里就含「官方导出导入」——那是平台自己给的完整数据，
+     不会因为接口改版而坏，也不用逆向任何东西。-->
+<label for="importSource">这个包是哪来的<select id="importSource" name="importSource">
+<option value="social-archiver">Social Archiver / 本地 Markdown 工具导出的</option>
+<option value="data-export">平台官方的「下载我的数据」包，或 bilibili-cli 这类工具导出的清单</option>
+</select></label>
+<label for="importPlatform">算作哪个平台<input id="importPlatform" name="importPlatform" maxlength="64" placeholder="留空就记成「导入」" type="text"/></label>
+<label for="archiveFile">导出包或清单文件<input accept=".zip,.json,.yaml,.yml,.csv,.html,application/zip,application/x-zip-compressed" id="archiveFile" name="archiveFile" required type="file"/></label>
+<p class="form-help">ZIP 压缩包，或 bilibili-cli 这类工具导出的单个 JSON / YAML / CSV / HTML 清单。官方导出包最大 500 MiB，其余 200 MiB。重复导入同一包会复用已有内容，不创建重复关系。<strong>导入完会逐个文件告诉你读懂了几条、哪些没看懂</strong>——不会只报一个总数。</p>
 <div aria-live="polite" class="inline-error" id="importError"></div>
 <div class="form-actions"><button class="btn" data-close-modal="importModalBackdrop" type="button">取消</button><button class="btn primary" id="importSubmit" type="submit">开始导入</button></div>
 </form>
@@ -203,5 +273,5 @@
 </section>
 </div><div class="toast-stack" id="toastStack"></div>
 
-<script defer="True" src="/assets/app.js?v=006-r1"></script></body>
+<script defer="True" src="/assets/app.js?v=cc1e33a7"></script></body>
 </html>

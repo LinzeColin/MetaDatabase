@@ -1,0 +1,218 @@
+{
+  "schema_version": "1.0",
+  "task": "T03",
+  "slice": "S1",
+  "goal": "删除被证伪的采集路径与一次性配对码全链路；扩展全程无需用户输入任何字符",
+  "recorded_at": "2026-08-04T09:30Z",
+  "acceptance": {
+    "requirement": "全仓 grep 不到 DOM 抓取与配对码实现；扩展可用且全程无需用户输入任何字符",
+    "oracle_1_grep": {
+      "scan_surface": "449 个受 git 版本控制的文件（git ls-files，非递归 glob——本机吃过扫到 0 份却报绿的亏）",
+      "dom_scraping_symbols_checked": [
+        "extractCandidates",
+        "ensureRelationScope",
+        "discoverCollectionScopes",
+        "detectLoggedIn",
+        "relationTabIsActive",
+        "collectionFromElement",
+        "completionProof",
+        "PLATFORM_SPECS",
+        "relationTabMatchers",
+        "SAMirrorCore",
+        "contentPatterns",
+        "collectionText"
+      ],
+      "pairing_symbols_checked": [
+        "pairing_code",
+        "PAIRING_CODE",
+        "pairing/exchange",
+        "pairing/status",
+        "pairingPath",
+        "pairingCode",
+        "one_time_code_available",
+        "PairingRateLimiter",
+        "generate_pairing_code",
+        "/v1/pair"
+      ],
+      "result": "两组符号在实现文件里均零命中",
+      "remaining_hits_are": "守卫测试（反向断言）、证据文件、以及说明「为什么删」的文档段落——没有一处是实现",
+      "note_on_comments": "第一轮 grep 是红的：我在被改动的源码里写的注释直接引用了这些符号名。Acceptance 判据是 grep，就不能靠「那只是注释」来解释掉，所以把注释改写成描述性说法（如「三类 DOM 选择器」而非列出字段名）。信息一点没少，判据可以字面执行。"
+    },
+    "oracle_2_zero_typing": {
+      "checked_by": "tests/focused/test_superseded_paths_stay_removed.py::test_extension_setup_page_asks_for_no_typed_input",
+      "how": "正则扫 options.html 的 <input id>，断言集合 ⊆ {endpoint}",
+      "endpoint_exception": "服务地址输入框藏在 <details> 排障项里，正常路径不触及；这是唯一例外且已写进判据",
+      "self_check": "判据自带 `assert inputs` —— 正则匹配到 0 个 input 和『没问题』长得一样，这条把两者分开",
+      "result": "PASS",
+      "only_scanned_one_of_three_surfaces": {
+        "found_during": "上一处（T14 文案只验了 PWA、扩展那侧压根没词典）之后，回头问：**还有哪条验收我只验了一个面。**",
+        "what_was_wrong": "这条判据只扫 options.html。而扩展有三个界面：options / popup / sidepanel。",
+        "what_was_actually_there": "popup.html 里有一个 collectionKey 输入框。",
+        "is_it_a_violation": "**不是。** placeholder=\"可留空\"、没有 required——用户不填也能保存，是便利项不是门槛。T03 的 Oracle 说的是「连接流程键盘输入字符数 = 0」，这个框不在连接流程里。",
+        "but_the_guard_was_still_wrong": "只扫一个面意味着：将来谁在 popup 或 sidepanel 加一个**必填**输入，判据照样报绿。漏的不是今天的缺陷，是明天的。",
+        "fixed": "判据改为扫全部三个界面；每个输入控件都必须登记在 _ALLOWED_INPUTS 里并写明「为什么它不是门槛」，未登记即报红。",
+        "extra_guard": "登记在案不等于无害——另加一条断言 popup 那个**确实**可留空（有「可留空」提示、没有 required）。哪天有人给它加 required，登记表还写着「可留空」而实际已成门槛。",
+        "positive_control": "往 sidepanel.html 塞一个 required 的邀请码输入框，判据立刻报「出现了未登记的输入控件 #secretCode」；移除后复绿。"
+      }
+    },
+    "oracle_3_revoke_401": {
+      "requirement": "撤销令牌后扩展上行得 401 且界面显示中文提示",
+      "checked_by": "tests/stage/test_stage3_pwa.py::test_stage3_first_setup_save_find_failure_and_retry 与 tests/focused/test_auth_session.py",
+      "result": "PASS（撤销后 resolve_extension_token 返回 None；require_token 拒绝）",
+      "honesty_note": "这是在 TestClient 里验的，不是在真实浏览器里。真实浏览器端到端属于 T18 部署后的验收。",
+      "chinese_message_half_was_unverified": {
+        "found_during": "回头逐条核对已标 done 的任务（T14 的伪完成、T01 的审计面都是这么查出来的）",
+        "what_was_missing": "Oracle 原文是「撤销令牌后扩展上行得 401 **且界面显示中文提示**」。401 先前验过；「中文提示」这一半一直没有判据——而它才是用户看得见的部分。",
+        "now_verified": {
+          "server_side": "撤销后带原令牌请求 /v1/extension/bootstrap 得 401，detail 为中文，且不含 Traceback / Unauthorized / 401 / None",
+          "extension_side": "options.js 在连不上时显示「还没有连上私人档案馆…无需输入任何内容」；shared.js 用 data.detail 透出服务端的中文，而不是拿 HTTP 状态码盖掉",
+          "guard_against_the_false_positive": "判据里显式打开 SOCIAL_ARCHIVE_PAIRING_REQUIRED——不打开的话 require_token 第一行早退、什么都不校验，这条会在「零校验」的情况下报绿。本会话已经栽过一次同样的坑（见 HANDOFF 的 pairing_required 陷阱）。",
+          "positive_control": "先断言有效令牌能过（200），再撤销、再断言 401——否则「一直 401」也会让判据报绿"
+        }
+      }
+    }
+  },
+  "finding_previous_deletion_was_only_half": {
+    "what": "上一轮的提交信息写的是「删掉一次性配对码全链路」，实际只删了服务端（api.py 的路由与助手）。客户端整条链路原封不动。",
+    "still_present_before_this_task": [
+      "apps/browser-extension/options.html：用户手抄配对码的 <input id=pairingCode>",
+      "apps/browser-extension/options.js：读取该输入框并 POST /v1/pairing/exchange",
+      "apps/browser-extension/background.js：轮询 /v1/pairing/status + SA_WEB_BRIDGE_PAIR",
+      "apps/browser-extension/shared.js + runtime-config.json：pairing_path 配置",
+      "apps/pwa/app.js：pairingRequired / oneTimeCodeAvailable 分支",
+      "scripts/generate_pairing_code.py、install.sh、start.sh、compose.yaml、.env.example、prepare_systemd_host.sh",
+      "scripts/browser_acceptance.py、scripts/extension_ui_acceptance.py、tests/browser/extension_ui_mock_acceptance.py 的 mock"
+    ],
+    "why_it_was_worse_than_before": "服务端端点删了、客户端还在调，于是 options.js 拿到 404 → status 为 null → 走进 else 分支 `$(\"pairingArea\").classList.remove(\"hidden\")` → **把一个永远不可能成功的配对码输入框显示出来**。这比删之前更糟，且正是 T03 Acceptance 第二条要禁止的东西。",
+    "how_it_was_caught": "不是靠读代码，是靠**按 Acceptance 原文逐符号跑 grep**。当时 T03 在台账上记的是 in_progress、剩 DOM 抓取一块；如果只按台账推进就会漏掉整个客户端。",
+    "lesson": "『删干净了』要按 Acceptance 的判据去证，不能按自己上一条提交信息的说法去信。"
+  },
+  "part_a_dom_scraper": {
+    "deleted": [
+      "apps/browser-extension/content/account-mirror-core.js（340 行）",
+      "apps/browser-extension/content/account-mirror.js（188 行）"
+    ],
+    "why_not_a_plain_delete": "那 340 行里只有一半是抓取器。三分拆之后：DOM 选择器（删）／平台元数据（留，T08 要用）／通用工具（留，T04 要用）。整体删除会把 T04 脊柱的 Chrome 书签来源一起删掉，并逼 T08 把「B站收藏夹在哪个 URL」重新造一遍。",
+    "extracted_to": [
+      "apps/browser-extension/content/platform-catalog.js —— label / relations / home / relationUrls，七个平台",
+      "apps/browser-extension/content/extension-utils.js —— flattenBookmarksTree / chunk / canonicalUrl / externalId / relationFromUrl / cleanText / safeIso / preferExistingPlatformTab"
+    ],
+    "equivalence_proof": {
+      "checks": 188,
+      "failures": 0,
+      "covered": "七个平台×四个字段逐字段比对；10 个真实 URL × canonicalUrl/externalId/relationFromUrl；含嵌套文件夹与 javascript: 坏链的书签树；标签页挑选三种情形",
+      "safeIso_note": "safeIso 在旧文件里是模块私有（不在 exports 里），只被 flattenBookmarksTree 调用，所以它的等价性是经书签树的 dateAdded 两条路径（有值 / 为 0）间接验的，不是漏验。"
+    },
+    "orchestration_kept": {
+      "what": "持久队列、分块上传、暂停/取消、进度徽标、sync-run 生命周期",
+      "why": "它们与取数方式无关，T08 换成 API 拦截之后一样要用",
+      "seam": "acquireRelationItems() —— T08 只需要换这一个函数体；scanBrowserScope() 里上面换实现、下面的 sendBrowserScopeBatches 不动"
+    },
+    "no_silent_zero": {
+      "decision": "取数缝隙**抛错，不返回空列表**",
+      "why": "返回 { ok: true, items: [] } 会走完分块上传，在服务端留下 completeness=complete / item_count=0 的回执：界面显示同步成功、库里一条没有、没有任何地方说得出为什么。v0.0.0.6 生产上「永远是 0」就是这么来的（见 evidence/T00/CURRENT_TRUTH.json）。",
+      "failure_codes_introduced": [
+        "ACQUISITION_PATH_NOT_INSTALLED",
+        "LOGIN_PROOF_UNAVAILABLE"
+      ],
+      "login_state": "detectLoggedIn 删掉之后不退回「假定已登录」——猜错会拿未登录会话发起首次全量同步，平台返回空，又记一条「完成 0 条」"
+    },
+    "pause_cancel_still_works": {
+      "removed": "broadcastMirrorControl（向 content script 广播 SA_MIRROR_CONTROL）",
+      "why_removed": "接收方是抓取器，已无接收方；留着会让「暂停已下发」看着成立而实际没发生",
+      "live_path": "编排层每轮查 stopStateFor（本地 storage + 服务端 sync-run 两处）",
+      "verified_by": "tests/focused/test_sync_run_controls.py 前两个测试打在服务端 store 上，实测暂停/恢复/取消完整通过"
+    }
+  },
+  "part_b_pairing_chain": {
+    "replacement_flow": "已登录的档案馆页面用自己的会话 cookie 调 POST /v1/auth/extension-token 换长期可撤销令牌，经 bridge 直接递给扩展；用户点一下，不接触令牌文本",
+    "old_flow_and_why_dead": "服务端生成一次性码 → 用户去别处找到它 → 手抄进设置页 → 十分钟过期就重来。真实使用中连续失败三次；手抄字符本身就是 INV-ZERO-BARRIER 禁止的门槛（CONFLICT_ORDER 已废止）。",
+    "token_is_verified_not_just_stored": "扩展收到令牌后立刻用它调一次 /v1/extension/bootstrap；不通过就清掉并报错。否则「已连接」会在第一次同步时才被证伪。",
+    "endpoint_not_accepted_from_page": "SA_WEB_BRIDGE_ADOPT_TOKEN 只收令牌，服务地址取扩展自己的托管配置——页面能改端点就等于任何拿到桥的页面都能把上行改到别处去",
+    "script_that_did_two_jobs": {
+      "was": "scripts/generate_pairing_code.py",
+      "job_1": "生成一次性配对码 —— 已废止，删",
+      "job_2": "幂等创建长期 API 令牌 social_archive_api_token —— **还要**",
+      "risk_avoided": "整个脚本删掉的话，install.sh / start.sh 就再没有任何地方创建 API 令牌，Core 起来直接没有凭据",
+      "now": "scripts/ensure_api_token.py，只做第 2 件事；atomic_secret 的原子替换与属主保全逻辑原样保留（生产上 secret 属于非 root 的 10001:10001/0640，以 root 刷新时不 chown 回去会重建成 root-only，Core 再也读不到）",
+      "guard": "tests/focused/test_superseded_paths_stay_removed.py::test_pairing_code_generator_is_gone_but_token_provisioning_survived"
+    },
+    "edge_policy_not_relaxed": {
+      "what": "Cloudflare 上每 IP 1 次/10 秒的限流规则**保持不变**",
+      "why": "它原本为保护配对交换而设；端点没了，但这是一条已在生产验收过的边缘规则，收紧或放宽都要重走外部验收。现在它作为 API 域名的通用滥用防护继续生效。",
+      "not_touched": "没有改动任何 Cloudflare 线上配置，只改了本仓的策略文档与静态核对脚本"
+    },
+    "auth_switch_preserved": {
+      "field": "settings.pairing_required",
+      "trap": "名字里带 pairing，实际是**总鉴权开关**——require_token 第一行据此早退",
+      "consequence_if_deleted": "全站不再鉴权，且测试会「通过」（因为一切都返回 200）",
+      "guard": "tests/focused/test_superseded_paths_stay_removed.py::test_auth_switch_survived_the_deletion"
+    }
+  },
+  "tests": {
+    "total_before_T03": 337,
+    "total_after_T03": 339,
+    "disappeared": 18,
+    "added": 20,
+    "method": "pytest --collect-only 逐条比对用例 ID，不是比对数量——数量相等也可能是一进一出换掉了覆盖",
+    "accounting": {
+      "moved_same_name_new_file": 3,
+      "renamed_or_repointed": 6,
+      "inverted_to_stricter_guard": 1,
+      "genuinely_obsolete_removed": 9,
+      "new_guards_and_coverage": 11
+    },
+    "obsolete_removed_detail": "7 个抓取器测试（关系标签确认／收藏夹发现／滚动扫描／终态证明）+ 2 个配对码测试（码字母表／10 分钟上限）。它们不是「不合格的测试被删掉」，是被测对象已被实测证伪并移除；反向守卫接替了它们的位置。",
+    "stricter_not_weaker": "test_autoscroll_is_isolated_to_explicit_account_mirror_sync（只有镜像可以滚）→ test_extension_never_autoscrolls_any_page（谁都不许滚）",
+    "boundaries_deliberately_preserved": [
+      "不碰 tiktok.com、不申请 cookies 权限、书签走可选权限（L0 硬边界）",
+      "复用已有平台标签页而不是打开新登录页（INV-ZERO-BARRIER）",
+      "分块上传的 collection / relation 两级 scope 协议",
+      "「连不上档案馆」不得表现成「你需要重新登录平台账号」"
+    ],
+    "regression": {
+      "passed": 328,
+      "failed": 11,
+      "baseline_failed": 11,
+      "baseline_source": "origin/main@49bbe45c 实测，见 evidence/T00/CURRENT_TRUTH.json",
+      "failure_set_identical": true,
+      "note": "任务包明确把「pytest 全绿」列在不能当 PASS 的证据里。这里的意义只是：没有弄坏既有测试。"
+    }
+  },
+  "rollback": {
+    "how": "git revert 两个提交即可完整恢复抓取器与配对码链路",
+    "safe_point": "6b00d210（三分拆第一步）—— 新文件已就位、background.js 已切过去、抓取器仍在、测试与基线一致。断在这里树是完整可用的。",
+    "commits": [
+      "6b00d210 T03(a) 之一：拆出元数据与工具，抓取器暂不动",
+      "c5956795 T03(a) 之二：删抓取器，留取数缝隙",
+      "<本次> T03(b)：删配对码客户端与供给链路"
+    ],
+    "external_state_touched": "无。没有改动 Cloudflare、生产机或任何线上配置。",
+    "verified": "已实际执行，不是声明",
+    "rollback_check": {
+      "method": "git revert --no-commit 三个提交，实跑测试，再 abort 复原",
+      "conflicts": 0,
+      "files_restored": 43,
+      "scraper_file_back": true,
+      "pairing_generator_back": true,
+      "tests_after_revert": {
+        "passed": 326,
+        "failed": 11
+      },
+      "matches_pre_T03_state": true,
+      "restored_afterwards": "git revert --abort + git reset --hard；复原后 0 脏文件、328 passed / 11 failed",
+      "note": "回滚不是靠脚本，是靠三个提交本身可 revert。没有触碰任何外部状态（Cloudflare / 生产机 / secret），所以 revert 就是完整回滚。"
+    }
+  },
+  "known_gaps_not_hidden": {
+    "extension_cannot_sync_domestic_platforms_now": "取数通道被拆掉、替代品属于 T08，所以现在发起平台同步会明确失败（ACQUISITION_PATH_NOT_INSTALLED）。这是**有意的中间态**：报错优于静默归零。Chrome 书签（T04 脊柱）不受影响，走的是另一条路。",
+    "account_connect_blocked": "登录态无法确认（LOGIN_PROOF_UNAVAILABLE），因此平台账号连接在 T08 之前不可用。同样是显式失败而非假装成功。",
+    "end_to_end_in_real_browser": "本文件所有判据都在本机静态核对与 TestClient 内完成。真实浏览器端到端属于 T18 部署后的验收。",
+    "preexisting_baseline_failures": "11 条基线失败与本任务无关，其中 test_install_dry_run 因仓库缺 scripts/build_extension_package.py 而失败——那是 origin/main 上既有的缺陷，未在本任务中修复，也未被本任务加重。"
+  },
+  "what_this_does_not_prove": [
+    "证明的是「这些路径已删除且不会被悄悄加回」，**没有**证明替代路径（浏览器拦截）能取到数——那是 T08/T09/T10。",
+    "配对链路的客户端残留是这一轮才发现的（当时只删了服务端一半），说明「删干净了」这个判断本身需要反查引用，而不是看文件在不在。"
+  ],
+  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。"
+}

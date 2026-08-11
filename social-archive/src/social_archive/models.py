@@ -1,10 +1,17 @@
 from __future__ import annotations
 
+import re
+
 from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
 ArchiveLevel = Literal["L0", "L1", "L2", "L3"]
 RelationType = Literal["manual_save", "bookmark", "saved", "favorite", "like", "upvoted", "watch_later", "history", "collection"]
+
+
+# 播放进度长这样：`06:26` 或 `06:26/12:57`。**锚定全匹配**——
+# 「10万个冷知识」这种正当标题以数字开头，不能误伤（v0.0.0.41 那次的教训）。
+_PLAYBACK_TIMESTAMP = re.compile(r"\d{1,2}:\d{2}(?:/\d{1,2}:\d{2})?")
 
 
 class CaptureRequest(BaseModel):
@@ -34,6 +41,31 @@ class CaptureRequest(BaseModel):
     raw_metadata: dict[str, Any] = Field(default_factory=dict)
     requested_levels: list[ArchiveLevel] = Field(default_factory=lambda: ["L0", "L1", "L3"])
     destination_ids: list[str] = Field(default_factory=lambda: ["social_archive"], max_length=8)
+
+    @field_validator("title")
+    @classmethod
+    def a_playback_timestamp_is_not_a_title(cls, value: str | None) -> str | None:
+        """`06:26/12:57` 是播放器上的时间，不是标题——**置空，别存**。
+
+        2026-08-12 生产实测：他 193 条里有 56 条是这样，全部来自 B 站 history
+        那条路，占他 B 站条目的一半以上。打开 Obsidian 一眼望去认不出是什么。
+
+        **置空而不是拒绝整条**：拒绝的话那条内容根本进不来，他丢的是内容本身，
+        比标题错更糟。置空之后界面有兜底（`item.title || _urlLabel(...)`），
+        他看到的是链接尾巴——不好看，但至少是真的。
+
+        而且 `title=COALESCE(excluded.title, content.title)` 遇到 NULL 会**保住
+        库里已有的好标题**，所以这道门顺带让「把那 56 条修回真标题」修得住：
+        下一次 history 同步不会再把它冲回播放进度。
+
+        **这不代表取数侧修好了**：真标题在历史页的哪个元素上，仍然要等他
+        登录之后的那一页。这道门只保证「错的东西进不来」，不保证「对的东西进得来」。
+        """
+        if value is None:
+            return None
+        if _PLAYBACK_TIMESTAMP.fullmatch(value.strip()):
+            return None
+        return value
 
     @field_validator("requested_levels")
     @classmethod

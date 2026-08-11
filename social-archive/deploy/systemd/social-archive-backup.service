@@ -12,11 +12,35 @@ LoadCredential=r2_access_key_id:/opt/social-archive/runtime/secrets/r2_access_ke
 LoadCredential=r2_secret_access_key:/opt/social-archive/runtime/secrets/r2_secret_access_key
 LoadCredential=oci_access_key_id:/opt/social-archive/runtime/secrets/oci_access_key_id
 LoadCredential=oci_secret_access_key:/opt/social-archive/runtime/secrets/oci_secret_access_key
+# 索引的第三份副本放进 GitHub 私有仓的 Draft Release，所以这个单元也要那把令牌。
+# **必须是 github_markdown_token**：runtime/secrets/github_token 只看得见公开仓
+# （实测：GraphQL: Could not resolve to a Repository 'LinzeColin/Private-Database'）。
+# 与 social-archive-replication.service 加载的是同一个文件，凭据名也同样叫 github_token。
+LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_markdown_token
 Environment=SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE=%d/r2_access_key_id
 Environment=SOCIAL_ARCHIVE_R2_SECRET_ACCESS_KEY_FILE=%d/r2_secret_access_key
 Environment=SOCIAL_ARCHIVE_OCI_ACCESS_KEY_ID_FILE=%d/oci_access_key_id
 Environment=SOCIAL_ARCHIVE_OCI_SECRET_ACCESS_KEY_FILE=%d/oci_secret_access_key
+Environment=SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token
 ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/backup.py --once
+# **运行库本身也要走。** 2026-08-04 实测：制品 552 个各有三份已验证副本，
+# 而运行库 sqlite3（4.59 MB）**全世界只有一份**——就在那块盘上。
+# 盘没了的话，三个云上躺着 552 个加密块，而没有任何东西说得出它们是什么：
+# 标题、链接、关系、artifact→content 的对应，全在这个库里。
+# 制品还在，档案馆没了。
+# 每天这一次带上 --github，把第三份补齐（制品是三份，索引也该是三份）。
+# 15 分钟那一次（在 replication 单元里）**不带** --github：
+# Draft Release 每刻钟建一个会把仓刷爆，而且没必要——
+# 前两份已经跟上了节奏，第三份每天补一次即可。
+ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/backup_runtime_db.py --github
+# 清掉超过保留期的旧快照。**保留期 48 小时是 Owner 2026-08-06 定的**——
+# backup_runtime_db.py 一直故意不删，它的文件头写着「保留策略是运维决定」，
+# 等的就是这个决定。
+#
+# **挂在最后一条，是因为 Type=oneshot 的 ExecStart 按顺序执行、前一条失败就不往下走。**
+# 于是自然得到那条安全性质：**只有新快照真的做成了，才去清旧的**。
+# 脚本自己还有两道底线：最新那一份永远不删（哪怕它也超期）；名字认不出的一律不动。
+ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/prune_runtime_db_snapshots.py --apply
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict

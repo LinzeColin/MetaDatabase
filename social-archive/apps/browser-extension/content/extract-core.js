@@ -302,6 +302,7 @@
     tiktok: ['a[href*="/video/"]'],
     kuaishou: ['a[href*="/short-video/"]', 'a[href*="/photo/"]'],
     bilibili: ['a[href*="/video/"]'],
+    youtube: ['ytd-rich-item-renderer a#video-title-link', 'ytd-playlist-video-renderer a#video-title', 'a[href*="/watch?v="]'],
     "generic-web": ["article a[href]", "main a[href]", "[role='main'] a[href]", "a[href]"]
   });
 

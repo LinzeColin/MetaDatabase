@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Social Archive",
   "short_name": "Social Archive",
-  "version": "0.0.0.6",
+  "version": "0.0.0.60",
   "minimum_chrome_version": "116",
   "description": "连接一次账号，自动同步多平台收藏、点赞、书签与收藏夹，并导出到 Notion、Obsidian、GitHub 和 Markdown。",
   "permissions": [
@@ -39,7 +39,11 @@
     "https://kuaishou.cn/*",
     "https://*.kuaishou.cn/*",
     "https://b23.tv/*",
-    "https://redd.it/*"
+    "https://redd.it/*",
+    "https://*.youtube.com/*",
+    "https://youtube.com/*",
+    "https://*.google.com/*",
+    "https://www.instagram.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -78,27 +82,26 @@
         "bridge.js"
       ],
       "run_at": "document_start"
-    },
-    {
-      "matches": [
-        "https://*.xiaohongshu.com/*",
-        "https://*.douyin.com/*",
-        "https://*.kuaishou.com/*",
-        "https://*.bilibili.com/*",
-        "https://x.com/*",
-        "https://*.x.com/*",
-        "https://twitter.com/*",
-        "https://*.reddit.com/*",
-        "https://*.instagram.com/*"
-      ],
-      "js": [
-        "content/account-mirror-core.js",
-        "content/account-mirror.js"
-      ],
-      "run_at": "document_idle"
     }
   ],
   "optional_permissions": [
-    "bookmarks"
+    "bookmarks",
+    "cookies"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "connect-frame.html",
+        "connect-frame.js",
+        "shared.js",
+        "content/platform-catalog.js"
+      ],
+      "matches": [
+        "https://social-archive.linzezhang.com/*",
+        "https://social-archive-api.linzezhang.com/*",
+        "http://127.0.0.1:8765/*",
+        "http://localhost:8765/*"
+      ]
+    }
   ]
 }

@@ -1,0 +1,86 @@
+{
+  "status": "PASS",
+  "package": "dist/social-archive-extension.zip",
+  "package_sha256_prefix": "27212b0fa4a50609",
+  "manifest": {
+    "version": "0.0.0.59",
+    "host": [
+      "https://social-archive-api.linzezhang.com/*",
+      "https://social-archive.linzezhang.com/*",
+      "http://127.0.0.1:8765/*",
+      "http://localhost:8765/*"
+    ],
+    "optionalHost": 24
+  },
+  "modules_present": {
+    "listShape": true,
+    "catalog": true,
+    "cookies": true
+  },
+  "host_permission_granted_on_a_fresh_install": {
+    "https://*.xiaohongshu.com/*": false,
+    "https://*.reddit.com/*": false,
+    "https://*.instagram.com/*": false,
+    "https://*.bilibili.com/*": false,
+    "https://*.xiaohongshu.com/* (连接之后)": false
+  },
+  "connect_said": {
+    "ok": false,
+    "state": "unauthorized",
+    "error": "未获得小红书页面读取权限"
+  },
+  "connect_bookmarks_said": {
+    "ok": false,
+    "state": "unauthorized",
+    "error": "还没有获得读取 Chrome 书签的授权。请在连接面板上再点一次「连接账号」，并在浏览器弹出的框里选「允许」。"
+  },
+  "permission_request_from_extension_page": {
+    "prompted": true
+  },
+  "connect_panel_embedded_in_library": {
+    "embedded": true,
+    "api": "function",
+    "hasButton": true,
+    "text": "连接账号\n\n点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。\n\n小红书\n等你登录\n连接账号\n我已登录，继续\nX\n本版本还不能自动读取 X 的书签。现在可以：在浏览器里打开任意一条推文，点插件的「保存当前页面」。\n请先在平台",
+    "click": {
+      "tried": true,
+      "badge": "私人档案馆已连接 · v0.0.0.22 · 插件 v0.0.0.59",
+      "panelOpen": true,
+      "frameSrc": "chrome-extension://afoajmemdneijafnanfbc",
+      "contentReloads": 2,
+      "syncStillOpen": false
+    },
+    "hasBox": true,
+    "clicked": true,
+    "manualRow": "X本版本还不能自动读取 X 的书签。现在可以：在浏览器里打开任意一条推文，点插件的「保存当前页面」。",
+    "diagnosisShown": true,
+    "diagnosisText": "把下面这段整段发给我，我照着修：\n抓到 5 条响应，没有一条像收藏列表。\n· https://p.example.com/api/log —— 不是 JSON\n· https://p.example.com/api/feed —— 只有 20% 的元素在同一个位置带得出 id",
+    "verifyButton": "我已登录，继续"
+  },
+  "permission_request_from_service_worker": {
+    "bookmarks": {
+      "threw": "This function must be called during a user gesture"
+    },
+    "cookies": {
+      "threw": "This function must be called during a user gesture"
+    },
+    "host": {
+      "threw": "This function must be called during a user gesture"
+    }
+  },
+  "install_said": {
+    "ok": false,
+    "state": "needs_user_action",
+    "platform": "xiaohongshu",
+    "failureCode": "PLATFORM_PERMISSION_MISSING",
+    "error": "还没有获得读取小红书页面的授权。请回到插件的账号页，点一次「连接账号」并在浏览器弹出的框里选「允许」。"
+  },
+  "acquire_said": {
+    "threw": "还没有获得读取小红书页面的授权。请回到插件的账号页，点一次「连接账号」并在浏览器弹出的框里选「允许」。",
+    "failureCode": "PLATFORM_PERMISSION_MISSING"
+  },
+  "manifest_files_missing_from_package": [],
+  "problems": [],
+  "message_zh": "他下载的那个包和我一直在测的是同一个东西，而且权限不足时它说得出话。",
+  "what_this_does_not_prove": "不证明真平台的响应长什么样——那要 Owner 的登录态。这里只回答：他装上的那一份，和我一直在测的那一份，是不是同一个东西。"
+}

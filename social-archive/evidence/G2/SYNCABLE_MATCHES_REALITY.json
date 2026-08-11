@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "platforms_checked": 9,
+  "syncable_now": [
+    "bilibili",
+    "douyin",
+    "generic-web",
+    "instagram",
+    "kuaishou",
+    "reddit",
+    "xiaohongshu"
+  ],
+  "scannable_relations": {
+    "bilibili": [
+      "favorite"
+    ],
+    "xiaohongshu": [
+      "favorite"
+    ],
+    "douyin": [
+      "favorite"
+    ],
+    "kuaishou": [
+      "favorite"
+    ],
+    "reddit": [
+      "saved"
+    ],
+    "instagram": [
+      "saved"
+    ],
+    "youtube": []
+  },
+  "server_handled": [
+    "x"
+  ],
+  "problems": [],
+  "message_zh": "界面承诺的和代码里有的，逐个平台对上了。",
+  "what_this_does_not_prove": "只对四张静态表。「那条取数路真的读得回东西」由 bilibili_acquisition_drill.py（打真接口）与 bilibili_end_to_end_drill.py（真 Chrome 跑整条链）去证。"
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "measured_at": "2026-08-03",
+  "measured_by": "PRD/Preparation Agent，在本机真实执行，非推断",
+  "why_this_matters": "Cookie 文件格式写错不会报错，只会让登录静默失效。X 的 ct0（CSRF token）是会话 cookie，一旦被丢掉，抓取会返回空结果而不是错误 —— 看起来就像「这个账号没有收藏」。",
+
+  "subject": {
+    "format_a_recommended": "无 #HttpOnly_ 前缀；会话 cookie 的 expiry 字段写 0",
+    "format_b_curl_style": "httpOnly cookie 行以 #HttpOnly_ 前缀开头"
+  },
+
+  "results": [
+    {
+      "parser": "gallery-dl 1.32.9 · gallery_dl.util.cookiestxt_load",
+      "format_a": {"loaded": 2, "of": 2, "detail": "auth_token(expires=1786000000) 与会话 cookie ct0(expires=None) 都保住了"},
+      "format_b": {"loaded": 1, "of": 1, "detail": "识别前缀"},
+      "verdict": "两种都能读"
+    },
+    {
+      "parser": "yt-dlp 2026.7.4 · yt_dlp.cookies.YoutubeDLCookieJar",
+      "format_a": {"loaded": 2, "of": 2},
+      "format_b": {"loaded": 1, "of": 1},
+      "verdict": "两种都能读"
+    },
+    {
+      "parser": "Python 标准库 · http.cookiejar.MozillaCookieJar（默认参数 load()）",
+      "format_a": {"loaded": 1, "of": 2, "detail": "会话 cookie ct0 被当成已过期丢弃"},
+      "format_b": {"loaded": 0, "of": 1, "detail": "整行以 # 开头，被当成注释丢弃"},
+      "verdict": "两种都有损；这是最危险的一个，因为它不报错"
+    }
+  ],
+
+  "decision": "扩展一律输出 format_a（无前缀 + 会话 cookie expiry=0）。已验证 gallery-dl 与 yt-dlp 两个真实消费者都完整读取。",
+
+  "binding_rule_for_build_agent": [
+    "不要给 httpOnly cookie 加 #HttpOnly_ 前缀",
+    "会话 cookie 的 expiry 写 0，不要省略该列、不要写空",
+    "如果将来新增任何使用 http.cookiejar.MozillaCookieJar 的适配器（例如 Instaloader 路径），必须显式传 ignore_discard=True, ignore_expires=True，否则会静默丢掉登录态",
+    "任何「抓到 0 条但没有报错」的现象，第一个要排查的就是这里"
+  ],
+
+  "reproduce": [
+    "printf '# Netscape HTTP Cookie File\\n.x.com\\tTRUE\\t/\\tTRUE\\t1786000000\\tauth_token\\tV1\\nx.com\\tFALSE\\t/\\tTRUE\\t0\\tct0\\tV2\\n' > mine.txt",
+    "python -c \"from gallery_dl import util; print(len(list(util.cookiestxt_load(open('mine.txt')))))\"  # 期望 2",
+    "python -c \"from yt_dlp.cookies import YoutubeDLCookieJar as J; j=J('mine.txt'); j.load(); print(len(j))\"  # 期望 2",
+    "python -c \"import http.cookiejar as c; j=c.MozillaCookieJar('mine.txt'); j.load(); print(len(j))\"  # 会得到 1，这就是坑"
+  ]
+}

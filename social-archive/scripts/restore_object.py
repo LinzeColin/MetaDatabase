@@ -15,6 +15,7 @@ from urllib.parse import urlsplit
 
 from social_archive.config import Settings
 from social_archive.storage import create_s3_client
+from social_archive.recovery import SECRET_PATH_FALLBACKS, resolve_secret_path
 from social_archive.utils import read_secret, sha256_file
 
 
@@ -123,12 +124,14 @@ def load_runtime_descriptor(runtime_db: Path, artifact_id: str) -> dict[str, Any
     return _validated_descriptor(dict(artifact), [dict(row) for row in receipts])
 
 
+
+
 def _s3_config(store_id: str) -> dict[str, str]:
     prefix = f"SOCIAL_ARCHIVE_{store_id.upper()}"
     endpoint = os.getenv(f"{prefix}_ENDPOINT", "").strip()
     bucket = os.getenv(f"{prefix}_BUCKET", "").strip()
-    access_key_id = read_secret(os.getenv(f"{prefix}_ACCESS_KEY_ID_FILE"))
-    secret_access_key = read_secret(os.getenv(f"{prefix}_SECRET_ACCESS_KEY_FILE"))
+    access_key_id = read_secret(resolve_secret_path(os.getenv(f"{prefix}_ACCESS_KEY_ID_FILE")))
+    secret_access_key = read_secret(resolve_secret_path(os.getenv(f"{prefix}_SECRET_ACCESS_KEY_FILE")))
     region_name = os.getenv(f"{prefix}_REGION", "auto").strip() or "auto"
     addressing_style = os.getenv(f"{prefix}_ADDRESSING_STYLE", "path").strip() or "path"
     s3_compatibility = os.getenv(f"{prefix}_S3_COMPATIBILITY", "aws").strip().lower() or "aws"
@@ -151,6 +154,85 @@ def _canonical_s3_key(original_sha256: str) -> str:
     return f"primary-objects/sha256/{original_sha256[:2]}/{original_sha256[2:4]}/{original_sha256}.age"
 
 
+def _s3_head(descriptor: dict[str, Any], *, store_id: str, config: dict[str, str]):
+    """HEAD 一次并校验元数据。**不下载、不解密。**
+
+    抽出来是因为「东西还在不在」和「东西能不能还原」是两个问题，
+    而后者需要 age 私钥。2026-08-07 想在生产上确认「加密存三份」是否
+    仍然成立，发现**唯一的核对入口整条都被私钥挡着**——而
+    `object_replica` 里那三行 `verified` 是**写入当时**的记录，
+    不代表对象今天还在（这个仓已经因为「记录说 verified」栽过）。
+    """
+    receipt = descriptor["replicas"][store_id]
+    expected_key = _canonical_s3_key(descriptor["original_sha256"])
+    if receipt["object_key"] != expected_key:
+        raise RecoveryFailure("S3_RECEIPT_KEY_MISMATCH", f"{store_id.upper()} 对象键不符合内容寻址合同")
+    client = create_s3_client(
+        endpoint_url=config["endpoint"],
+        access_key_id=config["access_key_id"],
+        secret_access_key=config["secret_access_key"],
+        region_name=config["region_name"],
+        addressing_style=config["addressing_style"],
+        s3_compatibility=config["s3_compatibility"],
+    )
+    head = client.head_object(Bucket=config["bucket"], Key=expected_key)
+    metadata = {str(key).lower(): str(value) for key, value in (head.get("Metadata") or {}).items()}
+    if (
+        metadata.get("original-sha256", "").lower() != descriptor["original_sha256"]
+        or metadata.get("cipher-sha256", "").lower() != descriptor["cipher_sha256"]
+        or metadata.get("encryption") != "age-x25519"
+    ):
+        raise RecoveryFailure("S3_METADATA_MISMATCH", f"{store_id.upper()} 远端元数据与收据不一致")
+    return client, expected_key, head
+
+
+def presence_s3(descriptor: dict[str, Any], *, store_id: str, config: dict[str, str]) -> dict[str, Any]:
+    try:
+        _client, key, head = _s3_head(descriptor, store_id=store_id, config=config)
+    except RecoveryFailure:
+        raise
+    except Exception as exc:  # noqa: BLE001 - 不泄漏供应商诊断或凭据
+        raise RecoveryFailure("S3_OBJECT_MISSING", f"{store_id.upper()} 上找不到这个对象") from exc
+    return {"object_key": key, "byte_size": int(head.get("ContentLength") or 0),
+            "encryption": "age-x25519"}
+
+
+def presence_github(descriptor: dict[str, Any], *, settings: Settings) -> dict[str, Any]:
+    repository = str(settings.github_archive_repository or "").strip()
+    if not repository:
+        raise RecoveryBlocked("GITHUB_REPOSITORY_MISSING", "缺少 GitHub Vault 仓配置")
+    repository, tag, member = _github_receipt_location(descriptor, repository)
+    if not shutil.which("gh"):
+        raise RecoveryBlocked("GH_BINARY_MISSING", "缺少 gh CLI，无法读取 GitHub Vault")
+    environment = _github_environment(settings.github_token_file)
+    # **先问「这把 token 看不看得见这个仓」。**（2026-08-07）
+    #
+    # 原来直接 `gh release view`，仓看不见和 release 不在会落进同一个错误码，
+    # 报出来是「GitHub Private Draft Release 读取失败」——**读起来像副本没了**。
+    # 当天真实情况是：仓好好的（换一把 token 就看得见），是配的这把恢复 token
+    # 的仓授权清单里没有它。**够不着不等于没了，这两句话让人做的事完全不同。**
+    try:
+        _run_gh(["gh", "repo", "view", repository, "--json", "nameWithOwner"], env=environment)
+    except Exception as exc:  # noqa: BLE001 - 不泄漏供应商诊断或凭据
+        raise RecoveryBlocked(
+            "GITHUB_VAULT_NOT_VISIBLE_TO_THIS_TOKEN",
+            "配置的这把恢复 token 看不见 Vault 仓——**副本在不在无从判断，"
+            "这不等于副本没了**；要么给这把 token 加上该仓的权限，"
+            "要么把配置指到有权限的那一把") from exc
+    try:
+        release = json.loads(_run_gh(
+            ["gh", "release", "view", tag, "--repo", repository, "--json", "isDraft,assets"],
+            env=environment))
+    except (ValueError, json.JSONDecodeError) as exc:
+        raise RecoveryFailure("GITHUB_RELEASE_READ_FAILED", "GitHub Vault Draft 状态不可验证") from exc
+    if not isinstance(release, dict) or release.get("isDraft") is not True:
+        raise RecoveryFailure("GITHUB_RELEASE_NOT_DRAFT", "GitHub 恢复副本不是 Draft Release")
+    assets = [str(item.get("name") or "") for item in (release.get("assets") or [])]
+    if not assets:
+        raise RecoveryFailure("GITHUB_ASSET_MISSING", "这个 Draft Release 上一个附件都没有")
+    return {"release_tag": tag, "asset_count": len(assets), "member": member}
+
+
 def download_s3_ciphertext(
     descriptor: dict[str, Any],
     *,
@@ -158,27 +240,8 @@ def download_s3_ciphertext(
     config: dict[str, str],
     target: Path,
 ) -> None:
-    receipt = descriptor["replicas"][store_id]
-    expected_key = _canonical_s3_key(descriptor["original_sha256"])
-    if receipt["object_key"] != expected_key:
-        raise RecoveryFailure("S3_RECEIPT_KEY_MISMATCH", f"{store_id.upper()} 对象键不符合内容寻址合同")
     try:
-        client = create_s3_client(
-            endpoint_url=config["endpoint"],
-            access_key_id=config["access_key_id"],
-            secret_access_key=config["secret_access_key"],
-            region_name=config["region_name"],
-            addressing_style=config["addressing_style"],
-            s3_compatibility=config["s3_compatibility"],
-        )
-        head = client.head_object(Bucket=config["bucket"], Key=expected_key)
-        metadata = {str(key).lower(): str(value) for key, value in (head.get("Metadata") or {}).items()}
-        if (
-            metadata.get("original-sha256", "").lower() != descriptor["original_sha256"]
-            or metadata.get("cipher-sha256", "").lower() != descriptor["cipher_sha256"]
-            or metadata.get("encryption") != "age-x25519"
-        ):
-            raise RecoveryFailure("S3_METADATA_MISMATCH", f"{store_id.upper()} 远端元数据与收据不一致")
+        client, expected_key, head = _s3_head(descriptor, store_id=store_id, config=config)
         target.parent.mkdir(parents=True, exist_ok=True)
         temporary = target.with_name(f".{target.name}.download")
         try:
@@ -195,7 +258,17 @@ def download_s3_ciphertext(
 
 
 def _github_environment(token_file: str | None) -> dict[str, str]:
-    token = read_secret(token_file)
+    # **和 R2/OCI 走同一条路径解析。**（2026-08-07）
+    #
+    # 三家的 `*_FILE` 配的都是容器内路径 `/run/secrets/…`，在主机上都不存在；
+    # R2/OCI 靠 `resolve_secret_path` 回退到 runtime/secrets/ 找同名文件，
+    # **而这里直接 read_secret，不回退**。于是在生产机上真跑一次
+    # `--presence-only`：r2 PASS、oci PASS、**github 报「缺少 Vault 专用恢复
+    # token」**——三份副本里唯一读不到的，恰好是迁移之后的那份主备份。
+    #
+    # `resolve_secret_path` 会把用过的回退记进 SECRET_PATH_FALLBACKS 并打进
+    # 报告，所以这不是静默兜底：配置该修还是看得见。
+    token = read_secret(resolve_secret_path(token_file))
     if not token:
         raise RecoveryBlocked("GITHUB_TOKEN_MISSING", "缺少 GitHub Vault 专用恢复 token")
     environment = dict(os.environ)
@@ -308,11 +381,31 @@ def extract_verified_github_ciphertext(download_dir: Path, descriptor: dict[str,
             path = str(item.get("path") or "")
             original = _sha256(item.get("original_sha256"), field="github.object.original_sha256")
             expected_path = f"objects/{original}.age"
-            if path != expected_path or path in expected_members:
-                raise RecoveryFailure("GITHUB_PACK_INVALID", "GitHub Release 对象路径非法或重复")
+            if path != expected_path:
+                raise RecoveryFailure("GITHUB_PACK_INVALID", "GitHub Release 对象路径非法")
             if item.get("encryption") != "age-x25519":
                 raise RecoveryFailure("GITHUB_PACK_INVALID", "GitHub Release 对象加密算法错误")
-            _sha256(item.get("cipher_sha256"), field="github.object.cipher_sha256")
+            cipher = _sha256(item.get("cipher_sha256"), field="github.object.cipher_sha256")
+            # **同一条路径出现两次，不一定是坏的。**
+            #
+            # 对象是按内容寻址的（路径 = objects/{原文 sha256}.age），所以
+            # **两个制品只要字节相同，就必然指向同一条路径**。清单里保留两条
+            # 记录是对的：它记的是「哪个 artifact 对应哪个对象」，
+            # 而多对一是这套设计的正常结果。
+            #
+            # 原来这里一见重复就整包判废。2026-08-04 实测：
+            # 20260804T060736Z 那个包 500 个对象里有 **3 组**这样的重复，
+            # 于是**整包 500 个对象一个都恢复不了**——而三份副本在库里
+            # 全都登记着 verified。
+            #
+            # 真正该拦的是「同一条路径下挂着两份**不同**的内容」，那才是坏了。
+            previous = expected_members.get(path)
+            if previous is not None:
+                if previous.get("cipher_sha256") != cipher:
+                    raise RecoveryFailure(
+                        "GITHUB_PACK_INVALID", "GitHub Release 同一路径下有两份不同的密文"
+                    )
+                continue
             expected_members[path] = item
         with tarfile.open(assembled, "r") as archive:
             members = {member.name: member for member in archive.getmembers()}
@@ -429,6 +522,12 @@ def main() -> int:
     parser.add_argument("--target")
     parser.add_argument("--runtime-db")
     parser.add_argument("--verify-only", action="store_true")
+    # **「还在不在」不需要私钥。**（2026-08-07）
+    # verify-only 是「下载并解密还原一遍」，那当然要私钥；而灾难恢复的第一问
+    # 是「东西还在吗」，它该能在任何一台机器上问得出来。原先这条路整个被
+    # 私钥挡着，于是「加密存三份」这句承诺在生产上**没有任何办法当场核实**。
+    parser.add_argument("--presence-only", action="store_true",
+                        help="只确认副本还在（HEAD / 列附件），不下载、不解密、不需要 age 私钥")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     try:
@@ -436,9 +535,14 @@ def main() -> int:
         runtime_db = Path(args.runtime_db).expanduser().resolve() if args.runtime_db else settings.runtime_db
         descriptor = load_runtime_descriptor(runtime_db, args.artifact_id)
         target = _validated_target(args.target, settings) if args.target else None
-        if not args.verify_only and target is None:
+        # **只读的两档不需要恢复目标**：--verify-only 解密到临时目录再丢掉，
+        # --presence-only 连下载都不做。2026-08-07 加 presence 时漏在这里，
+        # 编译绿、单测绿（它们直接调 presence_s3，从没走过 main），
+        # 而工具在生产上第一次真跑就报「恢复写入必须指定新的空目录」。
+        if not (args.verify_only or args.presence_only) and target is None:
             raise RecoveryBlocked("RECOVERY_TARGET_MISSING", "恢复写入必须指定新的空目录")
-        identity = settings.age_identity_file or os.getenv("SOCIAL_ARCHIVE_AGE_IDENTITY_FILE")
+        identity = resolve_secret_path(
+            settings.age_identity_file or os.getenv("SOCIAL_ARCHIVE_AGE_IDENTITY_FILE"))
         if args.dry_run:
             if args.from_store in {"r2", "oci"}:
                 _s3_config(args.from_store)
@@ -451,6 +555,22 @@ def main() -> int:
                 "original_sha256": descriptor["original_sha256"],
                 "cipher_sha256": descriptor["cipher_sha256"],
                 "identity_configured": bool(identity and Path(identity).is_file()),
+            }, ensure_ascii=False))
+            return 0
+        if args.presence_only:
+            if args.from_store in {"r2", "oci"}:
+                found = presence_s3(descriptor, store_id=args.from_store,
+                                    config=_s3_config(args.from_store))
+            else:
+                found = presence_github(descriptor, settings=settings)
+            print(json.dumps({
+                "status": "PASS", "mode": "presence_only",
+                "source_store": args.from_store,
+                "artifact_id": descriptor["artifact_id"],
+                "found": found,
+                "what_this_does_not_prove_zh": (
+                    "只证明**副本还在、远端元数据对得上**。能不能真的还原出原文"
+                    "要 --verify-only（那一档需要 age 私钥）。"),
             }, ensure_ascii=False))
             return 0
         if not identity:
@@ -475,10 +595,15 @@ def main() -> int:
             "original_sha256": descriptor["original_sha256"],
             "cipher_sha256": descriptor["cipher_sha256"],
             "target_written": not args.verify_only,
+            # 兜底用过就说出来。**静默兜底比不兜底更坏**——它会让人以为
+            # 配置本来就是对的，下一台机器上照抄配置又撞同一堵墙。
+            "secret_path_fallbacks": list(SECRET_PATH_FALLBACKS),
         }, ensure_ascii=False))
         return 0
     except RecoveryBlocked as exc:
-        print(json.dumps({"status": "BLOCKED_ENVIRONMENT", "error_code": exc.code, "message": exc.message}, ensure_ascii=False))
+        print(json.dumps({"status": "BLOCKED_ENVIRONMENT", "error_code": exc.code,
+                          "message": exc.message,
+                          "secret_path_fallbacks": list(SECRET_PATH_FALLBACKS)}, ensure_ascii=False))
         return 3
     except RecoveryFailure as exc:
         print(json.dumps({"status": "FAIL", "error_code": exc.code, "message": exc.message}, ensure_ascii=False))

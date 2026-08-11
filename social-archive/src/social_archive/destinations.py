@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import errno
 import hashlib
 import json
 import time
@@ -13,7 +14,7 @@ import httpx
 
 from .config import Settings
 from .db import RuntimeStore
-from .utils import atomic_write, read_secret, safe_slug, sha256_bytes, utcnow
+from .utils import clean_display_author, clean_display_title, atomic_write, read_secret, safe_slug, sha256_bytes, utcnow
 
 
 PRIVATE_DATABASE_REPOSITORY = "LinzeColin/Private-Database"
@@ -51,6 +52,11 @@ class DestinationView:
     latency_ms: int | None = None
     capabilities: dict[str, Any] | None = None
     last_message_zh: str | None = None
+    # **收到了多少条**。「连上了」不等于「收到了」——2026-08-04 实测，
+    # github 与 obsidian 都是 connected +「最近一次自动导入成功。」，
+    # 而各自只有 1 条回执，库里有 193 条。
+    exported_count: int = 0
+    content_total: int = 0
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -60,6 +66,13 @@ class DestinationView:
             "enabled": self.enabled,
             "configured": self.configured,
             "authorized": self.authorized,
+            "exported_count": self.exported_count,
+            "content_total": self.content_total,
+            "coverage_zh": (
+                "这里是主保存链路，全部内容都在。" if self.destination_id == "social_archive"
+                else f"已送到这里 {self.exported_count} / {self.content_total} 条。"
+                if self.content_total else "库里还没有内容。"
+            ),
             "automatic": self.automatic,
             "next_action_zh": self.next_action_zh,
             "privacy_note_zh": self.privacy_note_zh,
@@ -89,12 +102,18 @@ def retry_after_seconds_from_error(exc: Exception) -> int | None:
 
 
 def _markdown(content: dict[str, Any]) -> str:
-    title = str(content.get("title") or content.get("canonical_url") or content["id"])
+    # **标题在显示前要修**（2026-08-10）：抖音那条取数路把
+    # 「互动数 + 文案 + 文案」拼在了一起，Owner 打开 Obsidian 看到的是
+    # 「1029找卖萌办校园卡不后悔#校园卡找卖萌办校园卡不后悔#校园卡」。
+    # 只修能自证的那一档，存下来的数据一个字不动。
+    title = clean_display_title(content.get("title")) or str(
+        content.get("canonical_url") or content["id"])
     metadata = {
         "social_archive_id": content["id"],
         "platform": content.get("platform"),
         "url": content.get("canonical_url"),
-        "author": content.get("author_name"),
+        # 作者字段里装着点赞数的，显示时清掉（抖音 86 条里 31 条如此）
+        "author": clean_display_author(content.get("author_name")) or None,
         "published_at": content.get("published_at"),
         "relation_types": sorted({r.get("relation_type") for r in content.get("relations", []) if r.get("relation_type")}),
         "collections": sorted({r.get("collection_key") for r in content.get("relations", []) if r.get("collection_key")}),
@@ -169,15 +188,40 @@ class DestinationRegistry:
         }.get(destination_id, destination_id)
 
     def _privacy_note(self, destination_id: str) -> str:
+        """一句话说清「东西去了哪、钥匙在谁手里」。
+
+        **这段话此前没有任何界面显示。** 2026-08-05 数了一遍服务端产出的
+        中文文案字段，六个里就它一个没人读——写了八条，一条都没露过面。
+
+        顺带重写了措辞。原来那八条是给工程师看的：「REST 令牌只从 0600 Secret
+        读取」「Integration Token 不返回扩展」「L3 对象走加密副本」。
+        Owner 说过他没有技术基础，**让他读这些词等于让他读我们的代码**——
+        而这偏偏是他最该看懂的一段：他的东西去了哪儿。
+        技术细节没有丢，只是搬到了 docs/ 与代码注释里，那才是它们该待的地方。
+        """
         return {
-            "social_archive": "所有内容先进入私人档案馆；这是唯一主保存链路。",
-            "markdown": f"自动写入 {self.settings.export_root / 'markdown'}，可随时迁移。",
-            "obsidian": "优先直写用户选择的 Vault；REST 令牌只从 0600 Secret 读取。",
-            "notion": "Integration Token 只从服务端 0600 Secret 读取，不返回扩展。",
-            "github": "只允许私有仓库；Git 树存 Markdown/清单，L3 对象走加密副本。",
-            "karakeep": "仅发送 URL 到独立 Karakeep；Social Archive 仍是唯一事实源。",
-            "linkwarden": "仅发送 URL 到独立 Linkwarden；投影可删除和重建。",
-            "archivebox": "只写入可重放 URL 队列；ArchiveBox 0.7.4 不作为权威数据库。",
+            "social_archive": "所有内容都先存进你自己的档案馆，这是唯一的主保存点。",
+            # **不许说「在你自己的机器上」。**（2026-08-10）
+            # 那个路径在**服务器**上，不是他的电脑。Owner 说「跑了十天还没有结果」，
+            # 而他那 193 条（含 86 条抖音）8 月 3 号就在这里了——只是他拿不到，
+            # 而这句话让他以为东西已经在他机器上。
+            "markdown": f"写成 Markdown 文件放在你服务器上的 {self.settings.export_root / 'markdown'}。要拿到本机：资料库右上角「下载全部 Markdown」，一个包全给你。",
+            # 这一句 2026-08-10 改过：原话是「直接写进你选的那个 Obsidian 库」。
+            # 没有配远端接口时，它写的其实是服务器上的一个目录，
+            # 和他电脑上的那个库之间没有任何通路。生产实测：已送 1/193，
+            # 而界面写着「已连接」——那颗「把没送过去的 192 条补上」点了，
+            # 也只是在一个他从不打开的目录里多 192 个文件。
+            "obsidian": ("直接写进你连好的那个 Obsidian 库。"
+                         "开锁用的令牌只存在你的服务器上，插件拿不到。"
+                         if self.settings.obsidian_rest_url else
+                         "现在写到的是你服务器上的一个目录，不是你电脑上的 Obsidian。"
+                         "要放进自己的库：资料库右上角「下载全部 Markdown」，"
+                         "解压后整个文件夹拖进去。"),
+            "notion": "开锁用的令牌只存在你的服务器上，插件拿不到。",
+            "github": "只往私有仓库写，别人看不到。大文件是加密之后才上传的。",
+            "karakeep": "只把网址发过去，内容本身不出你的档案馆。",
+            "linkwarden": "只把网址发过去，内容本身不出你的档案馆。",
+            "archivebox": "只把网址排进队列。它不是权威副本——真东西始终在你的档案馆里。",
         }.get(destination_id, "")
 
     def _default_next_action(self, destination_id: str, configured: bool, state: str) -> str:
@@ -201,6 +245,10 @@ class DestinationRegistry:
     @staticmethod
     def known_destination_ids() -> tuple[str, ...]:
         return DESTINATION_IDS
+
+    def known_ids(self) -> frozenset[str]:
+        """所有认得的目的地 id。接口层用它把「不存在」和「没授权」分开报。"""
+        return frozenset(DESTINATION_IDS)
 
     def is_export_authorized(self, destination_id: str, *, allow_recovery: bool = False) -> bool:
         """Return whether a destination passed a current active authorization gate.
@@ -257,6 +305,9 @@ class DestinationRegistry:
 
     def views(self) -> list[dict[str, Any]]:
         persisted = {row["destination_id"]: row for row in self.store.destination_states()}
+        # **「连上了」和「收到了多少」是两件事。** 见 db.destination_coverage 的说明。
+        coverage = self.store.destination_coverage()
+        total = self.store.content_total()
         result: list[dict[str, Any]] = []
         for destination_id in ("social_archive", "markdown", "notion", "obsidian", "github", "karakeep", "linkwarden", "archivebox"):
             configuration_error: str | None = None
@@ -273,6 +324,58 @@ class DestinationRegistry:
             authorized = self.is_export_authorized(destination_id)
             message = configuration_error or row.get("last_message_zh")
             next_action = str(message or self._default_next_action(destination_id, configured, state))
+            exported = total if destination_id == "social_archive" else coverage.get(destination_id, 0)
+            # **数字诚实了，下一步还在说「一切正常」。**
+            #
+            # 2026-08-04 那次修的是 coverage_zh，让它照实说「已送到 1 / 193 条」。
+            # 但 next_action 没动。2026-08-05 生产实测，Owner 看到的是：
+            #
+            #   Obsidian    已送到 1 / 193 条    下一步：最近一次自动导入成功。
+            #   ArchiveBox  已送到 0 / 193 条    下一步：连接检查通过，可以自动导入。
+            #
+            # 两句下一步单独看都是真的——最近那一次确实成功、连接确实通过——
+            # **而它们把「192 条从来没到过这里」说成了「一切正常」**。
+            # 他没有技术背景，读到「导入成功」就不会再往下想。
+            #
+            # 差额不是错误，是**投递只在新内容进来时发生**：他后来才连上的目的地，
+            # 先前入库的内容不会自己追上去。所以这里不改状态、不报错，
+            # 只把那个差额和它的成因摆到下一步里，并给出补投那条命令。
+            if authorized and total and exported < total and destination_id != "social_archive":
+                # **先说他点得到的那颗按钮，再说命令。**
+                #
+                # 第一版这里只给了 `docker compose exec …` 那条命令。而档案馆页面
+                # 上早就有一颗「把没送过去的 N 条补上」的按钮，出现条件和这段判断
+                # **一模一样**（missing > 0 且 connected），点下去还会先问一次。
+                # 对一个说自己没有技术基础的人，让他去 ssh 一台服务器，
+                # 而同一张卡片上就摆着那颗按钮——**那不是帮忙，是把他支开**。
+                # 命令留着，是给在服务器上收拾的人用的（扩展设置页没有那颗按钮）。
+                # **面向用户的句子里不许有 Markdown 记号。**（2026-08-10）
+                #
+                # 这两个字段直接进档案馆那张卡片，而界面是 `escapeHtml` 后当纯文本画的
+                # ——于是他看到的是一对原样的星号裹着最要紧的那句话。
+                # 生产实测：obsidian 与 archivebox（他这两个正好都是 connected）都带着它。
+                # 这个仓在说明书那一页专门有一条判据查这个（leftover_markdown），
+                # 而**没有人查过接口下发的文案**。
+                gap = (
+                    f"还有 {total - exported} 条从来没送到这里。"
+                    "自动投递只在新内容进来时发生，先前入库的不会自己追上去。"
+                    f"在档案馆页面这张卡片上点「把没送过去的 {total - exported} 条补上」就行，"
+                    "它会先问你一次。"
+                    "（在服务器上收拾的话：docker compose exec core-api python "
+                    f"/app/scripts/backfill_destination.py --destination {destination_id} --apply）"
+                )
+                # **两个字段都要写。**
+                #
+                # 第一版只改了 next_action_zh，而两个界面渲染的都是
+                #     item.last_message_zh || item.next_action_zh
+                # ——`last_message_zh` 在前，对已连接的目的地它总是有值
+                # （「最近一次自动导入成功。」），于是**永远轮不到 next_action_zh**。
+                # 也就是说那个修复写完就是隐形的：服务端说了实话，界面照旧报平安。
+                #
+                # 「建好了没接上」这次落在我自己二十分钟前的修复上。
+                # 改界面要改两处、而且下次多一个界面就又漏一处；写在源头只写一次。
+                next_action = f"{gap}（原本的状态：{next_action}）"
+                message = f"{gap}（最近一次的状态：{message}）" if message else gap
             result.append(
                 DestinationView(
                     destination_id=destination_id,
@@ -288,6 +391,8 @@ class DestinationRegistry:
                     latency_ms=row.get("latency_ms"),
                     capabilities=row.get("capabilities") or {},
                     last_message_zh=message,
+                    exported_count=exported,
+                    content_total=total,
                 ).as_dict()
             )
         return result
@@ -395,7 +500,33 @@ class DestinationRegistry:
             return "needs_user_action", "SECRET_OR_PATH_PERMISSION", str(exc)
         if isinstance(exc, ValueError):
             return "needs_user_action", "INVALID_CONFIGURATION", str(exc)
-        return "degraded", exc.__class__.__name__.upper(), f"连接失败：{exc}"
+        # **不要拿 Python 类名当失败码。** 它对用户没有意义、泄漏实现，
+        # 而且是个无限集合——文案词典永远追不上，于是界面只能说
+        # 「我们没能记录下原因」，而原因就在异常里。
+        # 生产实测：connector_state 里躺着 CONNECTORERROR，正是这么来的。
+        # 类名留在 message 里给日志看，码用稳定的那个。
+        return "degraded", "DESTINATION_PROBE_FAILED", f"连接失败（{exc.__class__.__name__}）：{exc}"
+
+    @staticmethod
+    def _is_item_scoped_failure(exc: Exception) -> bool:
+        """这条错说的是**这一条内容**，还是**这个目的地**？
+
+        2026-08-03T17:23 生产上：一条抖音长标题拼出的文件名超过了文件系统
+        255 字节的上限，抛 `OSError [Errno 36] File name too long`。
+
+        那条错走的是「目的地健康度」这条路，把整个 markdown 目的地降级；
+        之后每一条新内容都被授权闸门挡下。结果：**193 条内容里 79 条
+        再也没有导出过**，而界面给的原因是「请先点击『检查连接』」——
+        指错了方向，照着做也修不好（下一个长标题会再炸一次）。
+
+        目的地本身好得很：同一秒之前它刚成功写了 110 个文件。
+        坏的是这一条内容的名字。
+
+        **判据只放行 ENAMETOOLONG 这一种。** 其余的 OSError
+        （权限、磁盘满、只读文件系统、IO 错误）确实意味着目的地不健康，
+        必须继续降级——放宽这里等于把真正的故障藏起来。
+        """
+        return isinstance(exc, OSError) and exc.errno == errno.ENAMETOOLONG
 
     def _record_export_failure(
         self,
@@ -431,14 +562,16 @@ class DestinationRegistry:
             error_code=code,
             evidence=failure_evidence,
         )
-        self.store.upsert_destination_state(
-            destination_id,
-            state=state,
-            enabled=True,
-            error_code=code,
-            last_checked_at=utcnow(),
-            message_zh=message,
-        )
+        # **单条内容的问题不改目的地的健康度。** 见 _is_item_scoped_failure。
+        if not self._is_item_scoped_failure(exc):
+            self.store.upsert_destination_state(
+                destination_id,
+                state=state,
+                enabled=True,
+                error_code=code,
+                last_checked_at=utcnow(),
+                message_zh=message,
+            )
         return receipt_id
 
     def export(

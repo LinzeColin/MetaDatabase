@@ -1,0 +1,132 @@
+{
+  "status": "PASS",
+  "host": "linze-vps3",
+  "image": "social-archive/core:0.0.0.59",
+  "container_id": "78ce5a52a336",
+  "what_this_proves": "刚部署的那个镜像里，从空库到连接、同步、看得见、删除并清空、再从头来一遍，整条链在 HTTP 上真的走得通",
+  "what_this_does_not_prove": "不碰他自己的库（这一轮跑在容器内 tmpfs 上），所以不证明他那份数据的状态",
+  "steps": [
+    {
+      "step": "容器起来了、报的是刚部署那一版",
+      "measured": "0.0.0.59",
+      "expected": "= 0.0.0.59",
+      "ok": true
+    },
+    {
+      "step": "从零：库是空的",
+      "measured": 0,
+      "expected": "0 条",
+      "ok": true
+    },
+    {
+      "step": "能开始连一个抖音",
+      "measured": "conn_E0gag0YPL9pTTrUo6hvu71kui6WHN6Vh",
+      "expected": "一个 connection_ref",
+      "ok": true
+    },
+    {
+      "step": "连接完成，拿到账号和一次首同步",
+      "measured": {
+        "account_id": "acct_42b9c0d4fe4b9b4d5f6e4d5dcdc46a7b",
+        "sync_run_id": "sync_077ddca8c6a79722f59973c277bab309"
+      },
+      "expected": "两个都非空",
+      "ok": true
+    },
+    {
+      "step": "送完终批，那次同步跑到 completed",
+      "measured": "completed",
+      "expected": "completed",
+      "ok": true
+    },
+    {
+      "step": "库里看得见它",
+      "measured": 1,
+      "expected": "1 条",
+      "ok": true
+    },
+    {
+      "step": "标题清干净了",
+      "measured": "真正的一次性她来了",
+      "expected": "真正的一次性她来了",
+      "ok": true
+    },
+    {
+      "step": "点赞数没被当成作者",
+      "measured": null,
+      "expected": "空",
+      "ok": true
+    },
+    {
+      "step": "连上之后它自己会跑（auto_sync 开着）",
+      "measured": {
+        "state": "connected",
+        "auto_sync": true
+      },
+      "expected": "connected 且 auto_sync=True",
+      "ok": true
+    },
+    {
+      "step": "断开只是不再自己跑，**内容一条不少**",
+      "measured": {
+        "state": "disconnected",
+        "auto_sync": false,
+        "库里还有": 1
+      },
+      "expected": "disconnected + auto_sync 关 + 内容还在",
+      "ok": true
+    },
+    {
+      "step": "重连之后自动同步真的恢复了（说明书就是这么写的）",
+      "measured": {
+        "state": "connected",
+        "auto_sync": true
+      },
+      "expected": "connected 且 auto_sync=True",
+      "ok": true
+    },
+    {
+      "step": "删除并清空真的删了",
+      "measured": 1,
+      "expected": "1 条",
+      "ok": true
+    },
+    {
+      "step": "删完库空了",
+      "measured": {
+        "total": 0,
+        "刚才真建出来过": true
+      },
+      "expected": "0 条，且这一步有前提",
+      "ok": true
+    },
+    {
+      "step": "删完账号也不在了",
+      "measured": {
+        "账号": [],
+        "刚才真建出来过": true
+      },
+      "expected": "不含刚才那个账号",
+      "ok": true
+    },
+    {
+      "step": "删完还能从头再连一次",
+      "measured": "sync_f015a86829ee31d048f2a712a2e89a61",
+      "expected": "一个非空 sync_run id",
+      "ok": true
+    },
+    {
+      "step": "重连之后同步还是跑得完",
+      "measured": "completed",
+      "expected": "completed",
+      "ok": true
+    },
+    {
+      "step": "重新同步把内容带回来了",
+      "measured": 1,
+      "expected": "1 条",
+      "ok": true
+    }
+  ],
+  "problems": []
+}

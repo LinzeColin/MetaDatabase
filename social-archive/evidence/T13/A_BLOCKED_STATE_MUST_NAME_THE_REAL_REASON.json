@@ -1,0 +1,46 @@
+{
+  "task": "T13",
+  "claim": "交接表把 T13 写成「依赖 T10 证明拦截路」——**那是错的**。T13 是「被挡住的状态必须附上真实回执」，从来不依赖平台取数。顺着它把一处指错原因的 BLOCKED 修了。",
+  "measured_at": "2026-08-05",
+  "how_the_row_was_found_to_be_wrong": "交接表上 T13 说「依赖 T10 → 而 T10 要 Owner 的已登录国内平台页面」，同一行又写着 **Acceptance 原文不在仓内**。全仓搜 T13，在 evidence/T02/CREDENTIAL_BLOCKED_RECEIPT.json 里翻到任务包原话：**「沉默不算 BLOCKED」**。那是关于**阻塞状态要不要附回执**的，跟拦截路毫无关系。又一个被继承下来、没人复核过的「依赖」——今天第二个（第一个是 T10–T11 合成一行）。",
+  "the_defect_that_principle_exposed": {
+    "什么": "**指错原因的 BLOCKED 比沉默更坏**：它把人送去修一个不存在的东西。",
+    "生产实测（修之前）": {
+      "xiaohongshu": "blocked_environment / HEALTH_PROBE_FAILED",
+      "douyin": "blocked_environment / WORKER_PROBE_OR_CALL_FAILED",
+      "kuaishou": "blocked_environment / WORKER_PROBE_OR_CALL_FAILED",
+      "bilibili / reddit / instagram / tiktok": "blocked_environment / PLATFORM_NOT_SYNCABLE_YET"
+    },
+    "为什么那三个的码是错的": "它们的探针去连 xhs-worker:5556 / douk-worker:5555 / ks-worker:5557——**那三个 worker 早在 T03 就被实测证伪，连同 compose.workers.yaml 一起删掉了**。生产上那三个地址实测全部连不上（curl 返回 000）。也就是说失败码指着一个**故意移除**的组件；「探针挂了」读起来像「有东西宕了，重启一下」，而真相是「这条路本版本就没有」。"
+  },
+  "fix": "被能力声明判为「还不能」时，**只把「顺带撞上的传输/探针失败」换成真实原因**（INCIDENTAL_PROBE_FAILURES 这张表只放这一类）。真原因本身的码原样留着——x 的 X_ZERO_COST_NOT_CONFIRMED 比通用码有用得多：它说明那道门只有 Owner 能开，而且是笔花钱的判断。第一版把两种一起换了，被既有判据当场拦下。",
+  "verified_in_production_after_the_fix": {
+    "x": "X_ZERO_COST_NOT_CONFIRMED（真原因，保住了）",
+    "xiaohongshu": "PLATFORM_NOT_SYNCABLE_YET，detail=ConnectError；探针另报 HEALTH_PROBE_FAILED",
+    "douyin / kuaishou": "PLATFORM_NOT_SYNCABLE_YET，detail=探针另报 WORKER_PROBE_OR_CALL_FAILED",
+    "其余": "PLATFORM_NOT_SYNCABLE_YET",
+    "对外发布的那份": "按白名单裁掉 detail，内部探针码不会摆上公开页（已核）"
+  },
+  "one_of_my_own_wires_was_dangling_too": "我把被换掉的探针码挪进 detail 当排查线索——而视图行**根本不带 detail**，线索到不了任何人手里。判据当场红了，补上视图行那一项才真的通。这正是本项目一整天在抓的那种：写了，没接上。",
+  "what_this_does_not_prove": [
+    "**不证明 T13 做完了。** Acceptance 原文仍不在仓内，我只拿到一句被引用的原话（「沉默不算 BLOCKED」）。按那一句能验的都验了，验不了的部分仍是未知。",
+    "不证明那四条 next_action 在**照做之后**都能走通。只有 archivebox 那条真照做验过（当场解开）；另外三条只核到「它点名的前置条件确实没满足」——那句话本身对不对，要等真去配一次才知道。",
+    "不证明那三个 worker 地址该留在 .env 里。它们指向已删除的容器，现在只会让探针白撞一次——删不删是运维变更，没动。"
+  ],
+  "then_the_four_blocked_destinations_were_audited_too": {
+    "为什么": "上面那条「没证明什么」里自己写着：目的地那四条只看了 next_action 有没有话说，没核过那句话背后真试过。按 T13 的道理，**一句说不准的下一步和沉默同罪**。",
+    "做法": "逐个打它们自己的「检查连接」（probe），看**照着那句话做会不会真的解开**。",
+    "结果": {
+      "archivebox": "next_action 说「配置已保存；点击『检查连接』完成授权验证」——照做，**当场从 needs_user_action 变成 connected**。那句话是准的。",
+      "notion": "仍 needs_user_action，configured=false。它要的是「创建免费 Integration、共享数据源、填 Secret 与 data_source_id」——那几样确实没配，回执诚实。",
+      "karakeep / linkwarden": "同上，仍 needs_user_action、configured=false，要的是「启动服务并生成 API Key/Token」。都没配，回执诚实。"
+    },
+    "结论": "四条 next_action 都对得上现实；其中 archivebox 那条是**真照着做验过的**，不是看着合理。",
+    "a_side_effect_i_caused_and_am_declaring": {
+      "什么": "打那次 probe 把 archivebox 从 needs_user_action 翻成了 **connected / automatic=true**。这是我在审计时改动的生产状态，不是原本要做的事。",
+      "它现在会做什么": "把新内容的 canonical_url 追加进**本机一个文本文件** exports/readers/archivebox-urls.txt，去重。没有外部服务、没有账号、不走网络。",
+      "为什么没有回滚它": "probe 的结论是**真的**——那个队列确实可写。把它改回 needs_user_action 等于往状态里写一句假话，而这一整天都在修那种事。",
+      "没做的": "**没有给它补投 193 条。** 它现在 0/193；补不补是 Owner 的事——他未必在用 ArchiveBox，而卡片上已经有那颗按钮了。"
+    }
+  }
+}

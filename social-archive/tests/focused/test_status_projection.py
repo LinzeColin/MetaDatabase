@@ -12,8 +12,12 @@ from social_archive.registry import ConnectorRegistry
 
 def test_connector_registry_always_contains_all_platforms(settings, store):
     items = ConnectorRegistry(settings).health_views(store.connector_states())
-    assert len(items) == 9
-    assert {item["connector_id"] for item in items} >= {"x", "xiaohongshu", "bilibili", "generic-web"}
+    # 2026-08-05 由 9 变 10：Owner 裁定把 youtube 接上（它此前在服务端凭据表、
+    # Cookie 导出白名单、manifest 权限三处都有，唯独界面上没有入口）。
+    # **这个数字写死是有意的**——加平台是产品决定，不该悄悄发生。
+    assert len(items) == 10
+    assert {item["connector_id"] for item in items} >= {
+        "x", "xiaohongshu", "bilibili", "generic-web", "youtube"}
 
 
 def test_connector_status_uses_fresh_probe_metadata_and_fails_closed(settings, store, monkeypatch):
@@ -38,7 +42,24 @@ def test_connector_status_uses_fresh_probe_metadata_and_fails_closed(settings, s
     assert view["last_error_code"] == "FIXTURE_OFFLINE"
     assert view["last_checked_at"]
     assert isinstance(view["latency_ms"], int)
-    assert "状态代码：FIXTURE_OFFLINE" in view["last_message_zh"]
+    # **这一条原来断言正文里要出现「状态代码：FIXTURE_OFFLINE」。**
+    #
+    # 它的用意是证明「这次读的是新鲜探针，不是库里那条旧的成功状态」——
+    # 那个用意完全正确，保留（上面三条 last_error_code / last_checked_at /
+    # latency_ms 已经各自证明了新鲜度）。
+    #
+    # 但**把失败码摆进给用户看的正文**是另一回事。2026-08-05 生产上
+    # x 那一条显示的就是：
+    #     「状态代码：X_ZERO_COST_NOT_CONFIRMED。尚未配置真实账号或
+    #      Worker；先使用保存当前页面，再按向导配置。」
+    # 既让用户读我们的失败码，又叫他「按向导配置」——**而没有任何向导
+    # 能打开那道零费用门**（那是 Owner 的花钱判断）。
+    #
+    # 现在正文由 NOT_SYNCABLE_YET 逐平台给出真实原因（含「现在可以：…」）。
+    assert "FIXTURE_OFFLINE" not in view["last_message_zh"], "失败码又被摆到用户面前了"
+    assert "现在可以" in view["last_message_zh"], "只说做不到，没说现在能做什么"
+    # 新鲜度仍然要证明：库里那条「旧的成功状态」不许泄漏出来
+    assert "旧的成功状态" not in view["last_message_zh"]
 
 
 def _load_status_publish(root: Path):

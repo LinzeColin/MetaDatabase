@@ -1,10 +1,15 @@
-const CACHE = "social-archive-ui-v006-r1";
+// 缓存名必须随界面改动一起变，否则**回访用户拿到的还是旧 app.js**。
+// 实测踩到过两次：v0.0.0.7 本地验 T14 时页面一直显示旧文案，就是它；
+// 2026-08-11 发现这里和 index.html 的戳从建站起就是写死的 `007-r2`，
+// Cloudflare 于是拿旧的 app.js 回了 4 小时（实测 age 3794、差 2776 字节）。
+// **现在它跟着产品版本走**，由 scripts/bump_version.py 每次升版自动推动。
+const CACHE = "social-archive-ui-cc1e33a7";
 const ASSETS = [
   "/",
-  "/assets/styles.css?v=006-r1",
-  "/assets/app.js?v=006-r1",
-  "/assets/favicon.svg",
-  "/assets/manifest.webmanifest?v=006-r1"
+  "/assets/styles.css?v=cc1e33a7",
+  "/assets/app.js?v=cc1e33a7",
+  "/assets/favicon.svg?v=cc1e33a7",
+  "/assets/manifest.webmanifest?v=cc1e33a7"
 ];
 
 self.addEventListener("install", event => {

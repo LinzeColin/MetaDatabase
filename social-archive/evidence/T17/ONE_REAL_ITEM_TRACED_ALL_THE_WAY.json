@@ -1,0 +1,37 @@
+{
+  "task": "T17",
+  "claim": "把**一条真实内容**从入库到异地取回逐站追了一遍，全通。这不是完整的黄金事务——**取得那一站没覆盖**——但除它之外每一站都有凭据。",
+  "measured_at": "2026-08-05",
+  "why_this_was_done_at_all": "交接表上 T17 一直是 pending，理由写着「按定义需要一次真实平台取数」，而**同一行里又写着「Acceptance 原文不在仓内」**。那个「按定义」引用的是一份谁也读不到的定义。拿一个无法查证的前提挡住一整格，不如把能量的先量出来。",
+  "the_item": {
+    "content_id": "cnt_01388bf87a8399c14f9f6ab060a37da6",
+    "platform": "douyin",
+    "canonical_url": "https://www.douyin.com/video/7669627773354331401",
+    "first_observed_at": "2026-08-03T17:23:13.239744Z"
+  },
+  "stations": {
+    "1 观测": "obs_ab35219…，connector_id=capture:douyin，带 payload_sha256",
+    "2 制品": "两个。metadata_json / L1 / 731 字节；media / L3 / 40053 字节。都是 complete",
+    "3 三仓副本": "每个制品各 3 份，r2 / oci / github 全部 verified，encryption=age-x25519",
+    "4 哈希对得上": "每份副本登记的 original_sha256 = 制品自身的 sha256；且三个仓的 verified_sha256（密文哈希）**完全一致**——三处存的确实是同一份字节",
+    "5 投递": "markdown 目的地，status=done，落到 exports/markdown/douyin/…-60a37da6.md",
+    "6 从异地真取回来": "restore_object.py --from-store r2 → PASS，解密后 original_sha256 逐字节对上"
+  },
+  "the_last_station_is_the_only_one_that_is_not_self_report": "前五站读的都是数据库自己的记账。只有第 6 站是**真的把字节从 R2 拉回来、解开、重新算了一遍哈希**。",
+  "a_defect_this_found_and_fixed": {
+    "what": "**在主机上根本跑不起来恢复。**",
+    "detail": "`.env` 里那几个 *_FILE 指的是 /run/secrets/…——那是容器里的挂载点，主机上不存在。于是主机上跑恢复连撞两堵墙：OBJECT_STORE_CONFIG_MISSING（读不到 R2 的两个键）、AGE_IDENTITY_MISSING（读不到 age 私钥）。而这些密钥就在主机的 runtime/secrets/ 下，只是路径不同。",
+    "why_it_matters": "**恢复是出事那天才跑的东西。** 那一天再去现场发现「配置指着一个不存在的路径」，是最坏的时机。此前那次 552/552 全量演练能跑通，说明当时用了某种可行的调用方式——**而那个调用方式没有被记在任何地方**，等于每次都要重新试出来。",
+    "fix": "恢复路径上加一条边界卡死的兜底：配置指的路径不存在时，去 <部署目录>/runtime/secrets/<同名文件> 找一次。只找同名、只找这一个目录、两处都没有就照旧失败——**绝不猜别的名字**（拿一份错的凭据顶上，错误要到很久以后才显形）。用过就在输出里列出来，成功与失败两条路都列。",
+    "verified": "主机上不带任何手工 export，直接 `set -a; . ./.env; set +a` 再跑，追踪 status=PASS，输出里如实列出两处兜底：/run/secrets/r2_access_key_id → runtime/secrets/r2_access_key_id，以及 secret_access_key 那一处。"
+  },
+  "two_checks_of_mine_that_were_wrong_first": {
+    "拿错了哈希": "第一版用 verified_sha256 去比制品的 sha256，六条副本全报「对不上」——**而数据是好的**。verified_sha256 是密文哈希，original_sha256 才是明文哈希。改对之后顺手多守一条更强的：三个仓的密文哈希必须一致。",
+    "词表猜错了": "第一版按 status == 'delivered' 判投递成功，于是一条 done 的记录被报成失败。生产实测词表只有 done / failed 两个。"
+  },
+  "what_this_does_not_prove": [
+    "**不证明取得那一站。** 这条内容是既有入库数据，不是这一版现场从平台抓的。那正是 T17 剩下的一环，要等 Owner 那次诊断把平台接口地址固化下来。",
+    "不证明别的内容也这样。这次追的是一条；552 个制品的三副本齐全由另一份证据（全量演练 552/552）覆盖。",
+    "不证明在**一台全新机器**上能恢复。这次是在生产主机上跑的，那台机器上有 age 私钥和对象仓凭据。换一台机器就要先把这些搬过去——而 age 私钥全机只有一份，第二份放哪儿仍待 Owner 裁定。"
+  ]
+}

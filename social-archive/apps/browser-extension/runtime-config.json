@@ -2,8 +2,7 @@
   "schema_version": "1.0",
   "endpoint": "https://social-archive-api.linzezhang.com",
   "library_url": "https://social-archive.linzezhang.com",
-  "pairing_path": "/v1/pairing/exchange",
   "managed": true,
   "product": "Social Archive",
-  "version": "0.0.0.6"
+  "version": "0.0.0.60"
 }

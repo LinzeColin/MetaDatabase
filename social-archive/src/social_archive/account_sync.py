@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import re
+from pathlib import Path
+
 import secrets
 from dataclasses import dataclass
 from typing import Any
@@ -12,6 +15,10 @@ from .service import ArchiveService
 from .utils import utcnow
 
 
+# 按形状读那条路认不出他是谁（它只读收藏页，不去主页），所以完成连接时
+# 报这个固定值。它不是一个真的账号标识，**只是"这台浏览器里那个已登录的人"**。
+UNIDENTIFIED_BROWSER_ACCOUNT = "browser-session"
+
 PLATFORM_RELATIONS: dict[str, list[str]] = {
     "xiaohongshu": ["favorite", "like"],
     "douyin": ["favorite", "like"],
@@ -20,8 +27,71 @@ PLATFORM_RELATIONS: dict[str, list[str]] = {
     "x": ["bookmark", "like"],
     "reddit": ["saved", "upvoted"],
     "instagram": ["saved"],
+    # YouTube 的「稍后观看」与播放列表都要登录态才看得见，正是托管凭据的用武之地。
+    "youtube": ["watch_later", "playlist"],
     "generic-web": ["bookmark", "manual_save"],
 }
+
+# **允许**出现 ≠ **能去枚举**。
+#
+# 这些关系类型可以合法地存在于库里，但一次同步没法把它们"列出来"——
+# 没有任何平台页面能回答"我手动存过哪些"。把它们算进同步范围，
+# 那一路就永远等不到终批，整次 run 永远不收敛。
+#
+# 实测（本机真实 Chrome，首次连接 Chrome 书签）：62 条全部入库，
+# 运行状态却停在 scanning 不动，因为 relation_scope 是
+# ['bookmark', 'manual_save'] 而扩展只送 bookmark 的终批。
+# 界面上就是「点了同步，东西都进来了，圈还一直在转」。
+NON_SCANNABLE_RELATIONS: frozenset[str] = frozenset({"manual_save"})
+
+
+def _scannable_relations_doc() -> None:
+    """扩展真正会去枚举的关系——**真源是扩展那一份，不在这里再抄一遍**。（2026-08-10）
+
+    ## 它修的是什么
+
+    `_scannable_relations` 原来 = 「这个平台允许出现的关系」减去 `manual_save`。
+    而 `_relations` 自己的文档串就写着：**「用于校验批次，不是同步范围。」**
+
+    扩展只扫 `SCANNABLE_RELATIONS`（抖音/小红书/快手/B站都只有 `favorite`），
+    服务端却把「允许」的全列进 scope。于是 scope 里那些扩展不会扫的关系
+    **永远等不到终批**——而这个文件自己的注释早就写过那种后果：
+    「点了同步，条目都进来了，圈还一直在转」，这次 run 永远不收敛。
+
+    Owner 的生产数据正是这个形状：**20 次同步、0 次 completed**
+    （partial 16 / failed 3 / cancelled 1），最常见的错误码是
+    `RELATION_SCOPE_UNCONFIRMED`（8 次）。逐条查 sync_run_scope：
+    抖音每次都声明 `favorite` + `like`，B 站声明 `favorite` + `watch_later` + …，
+    **没有一条 scope 的 completeness 是 complete**。
+
+    account_sync.py 里那句注释写着「由 platform-catalog.js 的
+    SCANNABLE_RELATIONS 限定扫描范围」——**而服务端从来没读过那个文件。**
+
+    ## 为什么读文件而不是再抄一份
+
+    这个仓当天已经因为「同一件事两份词典必然漂开」修过三处
+    （失败文案、归档状态、回执键名）。抄第四份只是把问题推后。
+
+    ## 第一版是 import 时去读那个 .js —— **它让 API 起不来**
+
+    `Path(__file__).resolve().parents[2] / "apps/browser-extension/..."`
+    在仓里正好是仓根，跑得好好的；**装进镜像之后 `parents[2]` 是
+    `/usr/local/lib/python3.12/`**，文件不存在，而我又特意写了「读不到就抛」：
+
+        FileNotFoundError: '/usr/local/lib/python3.12/apps/browser-extension/
+                            content/platform-catalog.js'
+
+    入口点 `social-archive-api` 当场死在 import 上。那一刻 1402 条判据全绿——
+    **因为判据全跑在仓里**。抓到它的是把镜像真起一次，不是读代码。
+
+    所以改成**生成**：`.js` 仍是唯一真源，
+    `scripts/generate_scannable_relations.py` 把它编译成
+    `social_archive/scannable_relations.py`（纯字面量，跟着包装，无相对路径）。
+    两边漂开由判据当场打红，并在错误里给出重新生成的命令。
+    """
+
+
+from .scannable_relations import SCANNABLE_RELATIONS
 
 PLATFORM_LABELS = {
     "xiaohongshu": "小红书",
@@ -31,13 +101,155 @@ PLATFORM_LABELS = {
     "x": "X",
     "reddit": "Reddit",
     "instagram": "Instagram",
+    "youtube": "YouTube",
     "generic-web": "通用网页",
 }
 
 # These platforms can be attempted by the server-side prebuilt adapters. Other
 # platforms use the extension/isolated-worker batch protocol as the primary free
 # path; the product never asks the owner to paste cookies or headers.
-SERVER_ACCOUNT_CONNECTORS = {"x", "reddit", "instagram", "bilibili"}
+# v0.0.0.7 / G1：**bilibili 从这里移走。**
+#
+# 它留在这张表里是一处结构性矛盾，而不只是一个没做完的连接器：
+# 服务端那条路（CommandArtifactConnector → bilibili-cli sidecar）要拿到
+# Owner 的 B 站登录态才跑得动，而 `cookie-export.js` 的
+# `FORBIDDEN_PLATFORMS = {xiaohongshu, douyin, bilibili, kuaishou}`
+# 规定这四个平台的 Cookie **永远不出浏览器**（INV-DOMESTIC-COOKIE-STAYS）。
+# 也就是说服务端**永远拿不到**它需要的东西——这条路不是"还没做完"，是"不许做"。
+#
+# 后果不是抽象的：extension 的 runBrowserAccountSync 先看 canSync 再看
+# serverHandled，一旦 bilibili 进了 SYNCABLE_NOW，serverHandled=True 会把它
+# 从**能跑通的浏览器路**踢到**永远跑不通的服务端路**上去。
+# v0.0.0.22：reddit / instagram 移出去了。它们的主路径是**扩展读取**
+# （Owner 给的平台表里就是这么写的），而服务端这条 2026-08-04 打生产量出来
+# 两条都不通。留在这张表里的后果不是中性的：runBrowserAccountSync 见到
+# server_handled=true 就不参与，等于把它们钉死在那条不通的路上。
+SERVER_ACCOUNT_CONNECTORS = {"x"}
+
+# **本版本真的同步得动的平台。** 这不是「支持哪些平台」的愿景清单，
+# 是「现在点下去会成功」的事实清单。
+#
+# 为什么必须有它：小红书 / 抖音 / 快手 / B站 走浏览器拦截路，而那条路的
+# 取数缝隙 acquireRelationItems() 目前是显式 stub（T03 删掉 DOM 抓取器之后，
+# T08 的替代品还没缝上）。界面却照样给它们画「立即同步」按钮，点下去拿到的是
+# ACQUISITION_PATH_NOT_INSTALLED —— 而那个码被别名成 SERVER_UNREACHABLE，
+# 于是用户看到「暂时连不上服务器，[ 重试 ]」，**一遍遍重试一件永远不可能成功的事**。
+#
+# Owner 的原话：「非常不好用，而且你的流程逻辑非常混乱，我都不知道应该怎么操作。」
+# 直接原因就是这个：界面提供了一个结构上不可能成功的动作。
+#
+# 规则：**能不能同步是服务端说了算，界面照着画**。不要在两个前端各维护一份。
+# 2026-08-04 生产实测把这张表砍到只剩一个。三条都是**打到生产上量出来的**，
+# 不是读代码推的（POST /v1/connectors/{id}/run）：
+#
+#   x          blocked_environment  X_ZERO_COST_NOT_CONFIRMED
+#              官方 X API 被零费用门关着（默认 false，Owner 的 L0 硬边界是
+#              「0 新增必付费用」）。账号同步走的是同一条 registry.run，
+#              所以**本版本没有任何一条 x 取数路能成**。
+#              旁边原来那行注释写着「Cookie 托管 + gallery-dl（T06/T07）」
+#              ——那是意图，代码没有实现它。
+#   reddit     blocked_environment  REDDIT_AUTH_MISSING「缺少 Reddit OAuth token 或 username」
+#              配置项确实"设得上"（写进 /run/secrets/reddit_oauth_token），
+#              但那要有服务器访问权限、要会编辑文件。**Owner 说过「我没有技术基础」。**
+#              没有界面，没有 OAuth 授权入口。
+#   instagram  HTTP 422「CLI Sidecar 调用失败」——连结构化失败都不是。
+#
+# 三个平台的界面上都画着「立即同步」。点下去分别得到
+# 「零费用门未确认」「缺少 Reddit OAuth token 或 username」「HTTP 422」。
+# 这正是 Owner 那句「点击同步不就是自动刷新全部同步吗，怎么实际功能和
+# 显示文字还不一样」，只是他还没连上这三个所以没撞到。
+#
+# **这张表是事实清单，不是愿景清单。** 量不出来的就不许留在里面。
+SYNCABLE_NOW: frozenset[str] = frozenset({
+    # Chrome 书签。T04 量到 62 条全量入库——**但那是在演练里**，
+    # 而演练在加载扩展前把可选权限全提成了必给权限。2026-08-06 去生产上查：
+    # 他的库里**根本没有 generic-web 账号**。那 62 条只存在于演练里。
+    #
+    # 留在这张表里仍然是对的：机制是真的，权限申请挪到扩展页面之后
+    # （v0.0.0.22）那颗按钮才第一次真的能成。但**别再把它说成"他那边跑通过"**。
+    "generic-web",
+    # v0.0.0.7 / G1（2026-08-06）：B 站收藏夹。取数在 Owner 自己的浏览器里，
+    # 调 B 站自己的公开 REST 接口（apps/browser-extension/content/bilibili-reader.js）。
+    # 零费用、不要他粘任何东西、Cookie 不出浏览器。
+    #
+    # 进这张表的凭据是**打真实接口量出来的**，不是读文档推的：
+    #   GET /x/v3/fav/folder/created/list-all → 收藏夹清单（权威来源）
+    #   GET /x/v3/fav/resource/list           → 条目，翻页终点由接口自己的
+    #                                           has_more 决定，再和 info.media_count 对账
+    #   CORS：Origin 为 www/space.bilibili.com 时回 allow-credentials: true
+    # 实测一个 10 条的公开收藏夹：声明 10 / 读到 10 / 翻 3 页 / 跳过 0。
+    #
+    # **本版本只读「收藏夹」这一种关系。** 稍后再看/历史/点赞的取数路没做，
+    # 由 platform-catalog.js 的 SCANNABLE_RELATIONS 限定扫描范围——
+    # 不写进那张表就等于不承诺，界面也不会假装它们会被同步。
+    "bilibili",
+    # v0.0.0.21：小红书 / 抖音 / 快手。取数走「按形状认页面自己发的列表」
+    # （content/list-shape.js + net-observer 的无前缀模式）。
+    #
+    # **它和 B 站那条的证据强度不一样，这里说清楚：**
+    #   B 站    —— 打过真接口，声明 10 条读到 10 条
+    #   这三个  —— 机制在**真 Chrome + 假站**上跑通（抓到 5 条响应、
+    #              正确认出收藏列表而不是推荐流、7 条全部拿到可打开的网址），
+    #              但**没有验过真平台的响应长什么样**——那需要 Owner 的登录态。
+    #
+    # 那为什么还是打开：验收标准禁的是「结构上不可能成功的按钮」。
+    # 旧的那个 stub 是结构上不可能（抛 ACQUISITION_PATH_NOT_INSTALLED）；
+    # 这条路结构上是通的，剩下的是「这个平台的形状认不认得出」——
+    # **认不出时它会明确说出来**（LIST_SHAPE_NOT_RECOGNISED，
+    # 文案告诉他去收藏页并往下滚），不会静默、不会丢数据
+    # （只报 partial，不触发消失检测）。
+    "xiaohongshu",
+    "douyin",
+    "kuaishou",
+    # v0.0.0.22：Reddit / Instagram 换到同一条路上。
+    #
+    # 它们原先挂在服务端连接器上，而 2026-08-04 打生产量出来两条都不通
+    # （reddit 缺授权、instagram 的 Sidecar 调用回 422）。**服务端那条
+    # 从来就不是主路径**——Owner 给的平台表里，这两个写的是「扩展读取 / 导出导入」。
+    #
+    # 让它们走得通的是同一天修掉的那个缺陷：识别器原先只看元素**自己身上**的
+    # 字段，而这两家的 id 都藏在壳里（`children[].data.id`、`items[].media.pk`），
+    # 于是「0% 的元素带得出 id」，一条都认不出。
+    #
+    # **证据强度和上面三个同级**：机制在真 Chrome + 假站上跑通，
+    # 真平台的响应长什么样没验过——那要 Owner 的登录态。
+    # 认不出时它明确说得出来，不会静默也不会丢数据。
+    "reddit",
+    "instagram",
+})
+# 暂时同步不了的，每条写清**为什么**与**现在能做什么**。
+# 界面直接把这句话显示出来，而不是让用户点了才知道。
+NOT_SYNCABLE_YET: dict[str, str] = {
+    # 2026-08-05 由 Owner 裁定接上 youtube 的入口。**能连不等于能同步**：
+    # 凭据托管那条路是通的（服务端凭据表、Cookie 导出白名单一直都支持它），
+    # 而「把稍后观看/播放列表列出来」那条取数路一行都没写。
+    # 所以它进这张表，和别的「还不能」的平台一样，一句话说清现在能做什么。
+    # **「连接 YouTube」要说清点哪儿——而这句话就显示在那张卡片上。**
+    #
+    # 2026-08-05：我在 registry 的 CONNECT_IS_CLICKABLE_TODAY 里写了一句
+    # 很详细的「点插件图标 → 设置 → 找到 YouTube → 点连接账号」，
+    # 然后发现**没有任何界面读那个字段**（连接器卡片显示的是这里的
+    # not_syncable_reason）。那句话写完就是隐形的——同一天第二次踩这个坑。
+    #
+    # 而这句话恰恰显示在 YouTube 那张卡片的正文里，「连接账号」按钮就在
+    # 同一张卡的下沿。所以不必描述路径，直接指那颗按钮。
+    "youtube": (
+        "本版本还不能自动读取 YouTube 的稍后观看和播放列表。"
+        "现在可以：点这张卡片上的「连接账号」，把登录状态交给你自己的服务器保管；"
+        "以及在任意视频页点插件保存当前这一条。"
+    ),
+    # bilibili 已于 2026-08-06（G1）移出这张表 —— 它现在在 SYNCABLE_NOW 里。
+    # **这一行不要再加回来**：两张表同时提到同一个平台时，界面读的是
+    # sync_supported（来自 SYNCABLE_NOW），而 not_syncable_reason 会照样显示，
+    # 于是卡片上会出现「立即同步」按钮 + 「本版本还不能自动读取」两句自相矛盾的话。
+    # 下面三条的原因和上面四个不一样：上面四个是「取数路还没做出来」，
+    # 这三个是「路做了一半，而剩下那半不是你能补上的」。
+    # 文案里不出现「OAuth」「token」「sidecar」——Owner 说过他没有技术基础，
+    # 让他读这些词等于让他读我们的代码。
+    "x": "本版本还不能自动读取 X 的书签。原因是官方 X 接口可能收费，"
+         "而这个项目的硬规矩是绝不产生新的必付费用，所以那条路是主动关着的。"
+         "现在可以：在浏览器里打开任意一条推文，点插件的「保存当前页面」。",
+}
 
 
 @dataclass(frozen=True)
@@ -65,10 +277,40 @@ class AccountSyncCoordinator:
 
     @staticmethod
     def _relations(platform: str, requested: list[str] | None = None) -> list[str]:
+        """该平台**允许**出现的关系类型。用于校验批次，不是同步范围。"""
         allowed = PLATFORM_RELATIONS.get(platform, [])
         if not requested:
             return list(allowed)
         return [item for item in dict.fromkeys(requested) if item in allowed]
+
+    @staticmethod
+    def _scannable_relations(platform: str, requested: list[str] | None = None) -> list[str]:
+        """一次同步**能去枚举**的关系类型 —— 与「允许」不是一回事。
+
+        `manual_save` 是"用户自己手动存的这一条"（CaptureRequest 的默认值）。
+        它必须是**允许**的关系类型，否则手动收藏会被拒；
+        但它**不可枚举**：没有任何平台页面能列出"我手动存过哪些"。
+
+        把它放进同步范围的后果，实测于本机真实浏览器：
+
+            首次连接 Chrome 书签 → 62 条全部入库 → 运行状态却永远停在
+            `scanning`，因为 relation_scope 是 ['bookmark', 'manual_save']
+            而扩展只会送 bookmark 的终批，manual_save 那一路永远等不到，
+            于是这次 run 永远不收敛。
+
+        界面上就是：**点了同步，62 条都进来了，圈还一直在转。**
+        这正是这一版要消灭的那种「说不清楚发生了什么」。
+        """
+        # **范围 = 扩展真会扫的 ∩ 这个平台允许的**。（2026-08-10）
+        # 原来只减掉 manual_save，于是把「允许」当成了「会扫」——
+        # scope 里那些扩展不扫的关系永远等不到终批，run 永远不收敛。
+        # 平台不在那张表里时退回旧行为：它本来就没有「按形状读」这条路。
+        scannable = SCANNABLE_RELATIONS.get(platform)
+        return [
+            item for item in AccountSyncCoordinator._relations(platform, requested)
+            if item not in NON_SCANNABLE_RELATIONS
+            and (scannable is None or item in scannable)
+        ]
 
     def connect_start(self, request: AccountConnectRequest) -> ConnectStartResult:
         platform = request.platform.strip().lower()
@@ -114,6 +356,46 @@ class AccountSyncCoordinator:
             raise ValueError("连接凭据无效，请重新连接账号")
         if not 15 <= sync_interval_minutes <= 10080:
             raise ValueError("账号同步间隔必须在 15–10080 分钟")
+        # **同一个平台再连一次，认领已有的那个账号，别开第二个。**
+        #
+        # 2026-08-07 在 Owner 生产库里量到的形状：他三个账号的
+        # external_account_id 是**主页地址**（上一代取数路留下的）——
+        #     xiaohongshu  https://www.xiaohongshu.com/user/profile/68f8b613…
+        #     douyin       https://www.douyin.com/user/self?from_nav=1
+        #     bilibili     https://space.bilibili.com/3493091105311656
+        # 而按形状读那条路认不出他是谁（它只读收藏页，不去主页），
+        # 完成连接时报的是固定的 "browser-session"。
+        #
+        # 两者对不上，于是**重连会新建一行**：他的 85 条抖音、102 条 B 站
+        # 留在旧账号下面，新卡片上写着 0 条。数据没丢，但他看到的是"东西没了"。
+        #
+        # 所以：这个平台已经有一个同样连接方式的账号时，沿用它的外部 id。
+        # 沿用而不是改写，是因为 `user_relation.source_account_id` 是从
+        # 外部 id 推出来的——改写它等于把已有条目和账号的关系割断。
+        # **2026-08-10：条件比上面那条规则窄了一档，而差的那一档正好是 B 站。**
+        #
+        # 规则写的是「这个平台已经有一个同样连接方式的账号时，沿用它的外部 id」，
+        # 而代码只在外部 id 恰好是哨兵值 `"browser-session"` 时才执行。
+        # 小红书 / 抖音 / 快手按形状读，认不出用户是谁，报的就是哨兵值——它们没事。
+        # **B 站不是**：它走 B 站自己的接口，认得出用户，报的是 mid
+        # （background.js `external_account_id: String(who.mid)`）。
+        #
+        # 对着他生产库量出来的两个值：
+        #     库里那一行  acct_dd40c2f3… ← 'https://space.bilibili.com/3493091105311656'
+        #     重连会报的                   '3493091105311656'
+        # 不相等、也不是哨兵值 → 认领整个跳过 → 另算出一个账号 id →
+        # 多一行 B 站账号、卡片写着 0 条，而他那 **103 条内容和 3 行收藏夹**
+        # 留在旧账号名下。**这发生在他照着说明做那唯一一件事的那一刻。**
+        #
+        # 所以改成按**连接方式**认领。Chrome 书签走 `chrome_bookmarks`，不受影响；
+        # 哨兵值那条继续留着，免得将来别的连接方式也用它。
+        # 取数不受影响：B 站的 mid 是同步时从 nav 接口现拿的
+        # （bilibili-reader.js `whoAmI()`），从来不读这个字段。
+        if auth_method == "browser_session" or external_account_id == UNIDENTIFIED_BROWSER_ACCOUNT:
+            existing = self.store.find_source_account_by_platform(
+                platform=platform, auth_method=auth_method)
+            if existing and existing.get("external_account_id"):
+                external_account_id = str(existing["external_account_id"])
         account_id = self.store.upsert_source_account(
             platform=platform,
             external_account_id=external_account_id,
@@ -133,9 +415,24 @@ class AccountSyncCoordinator:
             raise ValueError("账号不存在")
         if account["connection_state"] not in {"connected", "degraded"}:
             raise ValueError("账号尚未连接，请先完成授权")
-        relations = self._relations(account["platform"], request.relation_types)
+        relations = self._scannable_relations(account["platform"], request.relation_types)
         if not relations:
-            raise ValueError("该平台没有可同步的关系类型")
+            # **界面不发的请求，服务端也不该接受。**（2026-08-10）
+            #
+            # YouTube 落在这一档：它的取数路没做，界面早就照 SYNCABLE_NOW
+            # 把「立即同步」按钮收起来了。但服务端这一侧原本仍会按
+            # PLATFORM_RELATIONS 下发 ['watch_later','playlist']——
+            # 扩展一条都不会去扫，那次 run 就永远等不到终批
+            # （他抖音那二十次「点了同步，圈一直转」正是这个形状）。
+            # **不能靠界面替服务端守不变量。**
+            #
+            # 话用 NOT_SYNCABLE_YET 里那一句，不另编一句：同一件事两处措辞
+            # 必然漂开，这个仓当天已经因为「两份词典」修过四处。
+            platform = account["platform"]
+            label = PLATFORM_LABELS.get(platform, platform)
+            raise ValueError(
+                NOT_SYNCABLE_YET.get(platform)
+                or f"本版还不能自动读 {label}——它的取数路还没做。")
         mode = request.mode
         if mode == "incremental" and not account.get("last_sync_at"):
             mode = "first_full"
@@ -167,7 +464,19 @@ class AccountSyncCoordinator:
         account = self.store.get_source_account(account_id, include_handle=True)
         if not run or not account:
             raise ValueError("同步运行或账号不存在")
-        if run["status"] in {"cancelled", "completed", "partial", "failed"}:
+        # **终态就是终态，别把它翻出来重跑。**
+        #
+        # 这一组原来少了 `blocked_environment`——而 db.py 那边把它算作终态
+        # （`completed = status in {..., "blocked_environment"}`，会写 completed_at）。
+        # 实测（2026-08-06）：把一个 run 打到 blocked_environment、账号此刻仍然连着，
+        # 再投一次同一个任务，**它真的往下跑到连接器去了**。也就是说一个已经
+        # 报给用户「被环境挡住了」、而且已经盖了完成时间的运行，会被悄悄重跑一遍。
+        #
+        # 从阻塞里出来的正当路子是**用户点重试**：db.py 的 retry 迁移
+        # （`{partial, failed, blocked_environment} → queued`）会把它重新排队，
+        # 那时 status 是 queued，这里自然就放行了。
+        if run["status"] in {"cancelled", "completed", "partial", "failed",
+                             "blocked_environment"}:
             return
         if account["connection_state"] not in {"connected", "degraded"}:
             self.store.update_sync_run(run_id, status="blocked_environment", completeness="unknown", error_code="ACCOUNT_REAUTH_REQUIRED", error_message="账号需要重新连接")
@@ -374,6 +683,8 @@ class AccountSyncCoordinator:
         completeness: str,
         failure_code: str | None,
         errors: list[dict[str, Any]],
+        discovered_delta: int = 0,
+        imported_delta: int = 0,
     ) -> tuple[str, int]:
         """Close one relation only after an explicit relation-final marker.
 
@@ -398,14 +709,48 @@ class AccountSyncCoordinator:
                 sync_run_id=sync_run_id,
                 relation_type=relation_type,
             )
+            # **只有平台确认存在过的收藏夹才可能"变空"。**
+            #
+            # 库里挂着某个 key 不等于那是一个收藏夹——它可能是**上一代取数路
+            # 留下的写法**。2026-08-06 在 Owner 生产库里量到：30 条 B 站收藏挂在
+            # `bilibili:/3493091105311656/favlist` 上（T03 删掉的 DOM 抓取器留的），
+            # 而现在这条路用媒体 id。不加这道交集的话，那个旧 key 会被当成
+            # 「一个变空了的收藏夹」，重连之后两次同步就把**他 30 条收藏销账**。
+            #
+            # 登记过（platform_collection 里有名字）的才算数：真被他删掉的收藏夹
+            # 一定登记过，所以「变空要关掉」那个本意一点没丢。
+            registered = self.store.list_registered_collections(
+                platform=account["platform"],
+                external_account_id=account["external_account_id"],
+                relation_type=relation_type,
+            )
             collections.update(self.store.list_existing_relation_collections(
                 platform=account["platform"],
                 external_account_id=account["external_account_id"],
                 relation_type=relation_type,
-            ))
+            ) & registered)
             if not collections:
                 collections.add("")
+            # **同一次同步里，一个收藏夹只许记一次缺席。**
+            #
+            # `apply_complete_scan` 有两个调用点：收藏夹级终批一个（下面 ingest 那段），
+            # 关系级终批这里一个。两边都跑的话，一次同步就给同一条关系记了**两次**缺席
+            # ——而"连续两次缺席才关闭"这个安全设计的全部意义，就是让**一次**读漏
+            # （网络抖动、翻页卡住）不至于销账。两次并作一次，那道保险等于没有。
+            #
+            # v0.0.0.9 之前这条路是死的（DOM 抓取器删掉后没人发收藏夹级终批），
+            # 所以一直没暴露。B 站改成按收藏夹分批之后它立刻活了：
+            # 判据 test_a_real_unfavourite_does_close_after_two_complete_scans
+            # 在 per_collection=True 那一档当场变红——**取消收藏后一次同步就销账**。
+            already_scanned = {
+                str(scope["collection_key"])
+                for scope in self.store.list_sync_run_scopes(sync_run_id)
+                if scope["collection_key"] not in {"__relation__", "__mixed__"}
+                and scope.get("completeness") == "complete"
+            }
             for collection_key in collections:
+                if collection_key in already_scanned:
+                    continue
                 observed = self.store.list_sync_seen_relation_ids(
                     sync_run_id=sync_run_id,
                     relation_type=relation_type,
@@ -425,6 +770,8 @@ class AccountSyncCoordinator:
             collection_key="__relation__",
             status=scope_status,
             completeness=effective_completeness,
+            discovered_delta=discovered_delta,
+            imported_delta=imported_delta,
             failed_delta=len(errors),
         )
         self.store.upsert_sync_checkpoint(
@@ -512,6 +859,22 @@ class AccountSyncCoordinator:
 
         self.store.update_sync_run(sync_run_id, status="normalizing")
         if batch.collection_name:
+            # **服务端不替客户端猜这个 id。**（2026-08-07）
+            #
+            # 一度想在这里加「没给就退回 collection_key」的兜底，理由是生产上
+            # `platform_collection` 三行的 `external_collection_id` 全是 NULL，
+            # 分面那条 JOIN（`pc.external_collection_id = r.collection_key`）
+            # 匹配 0 条，于是说明书答应的「收藏夹」筛选一直不出现。
+            #
+            # **量清楚之后没加**：那三行是 8/3–8/4 写的，而扩展在 v0.0.0.11
+            # （8f32ef76）就已经显式发 `external_collection_id: group.key` 了，
+            # 现在凡是发 collection_name 的批次都同时发它。兜底对真实客户端
+            # 是死代码，却有真代价——**登记过的收藏夹才可能被判成「变空」**
+            # （见 list_registered_collections），兜底会把登记范围放大，
+            # 而他那 30 条挂在旧 key 下的收藏正是靠「没登记过」活着的。
+            #
+            # 真正要守的不变量在客户端那一侧：发名字就必须一起发 id。
+            # 判据：test_the_collections_filter_can_actually_appear.py。
             self.store.upsert_platform_collection(
                 source_account_id=account["id"],
                 relation_type=batch.relation_type,
@@ -545,7 +908,9 @@ class AccountSyncCoordinator:
                 responses.append(response)
                 relation_ids_by_collection.setdefault(collection_key, set()).add(response.relation_id)
             except (ValueError, OSError) as exc:
-                errors.append({"index": index, "code": exc.__class__.__name__, "message": str(exc)[:500]})
+                # 条目级错误：码要稳定，具体异常留在 message 里
+                errors.append({"index": index, "code": "ITEM_INGEST_FAILED",
+                               "message": f"{exc.__class__.__name__}: {exc}"[:500]})
 
         if relation_ids_by_collection:
             self.store.record_sync_seen_relations(
@@ -636,6 +1001,19 @@ class AccountSyncCoordinator:
             )
             next_status = "scanning"
         else:
+            # **关系批次也要记数。**（2026-08-10）
+            #
+            # 之前只有 `scope_type == "collection"` 那一支加 discovered/imported，
+            # 而**抖音/小红书/快手没有收藏夹分组，扩展送的就是 relation 批次**——
+            # 于是那条路上计数一次都不加。真制品上实测：库里进了 1 条，
+            # 而 run 报 `discovered 0 / imported 0 / duplicate 0 / failed 0`，
+            # 他看到的是「同步完成，已导入 0 条」。**产品对他自己的数据说了假话。**
+            self.store.update_sync_run(
+                sync_run_id,
+                discovered_delta=len(batch.items),
+                imported_delta=len(responses),
+                failed_delta=len(errors),
+            )
             next_status, closed_candidates = self._finalize_relation_scope(
                 sync_run_id=sync_run_id,
                 run=run,
@@ -644,6 +1022,8 @@ class AccountSyncCoordinator:
                 completeness=batch.completeness,
                 failure_code=batch.failure_code,
                 errors=errors,
+                discovered_delta=len(batch.items),
+                imported_delta=len(responses),
             )
 
         return {

@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0",
+  "what": "origin/main 上就已存在的测试失败，逐条核对过原因",
+  "recorded_at": "2026-08-04T15:30Z",
+  "baseline_ref": "origin/main@49bbe45c",
+  "why_this_file_exists": "本分支一整轮都在报「N failed，与基线一致」，但那只比对了失败**名字**，没比对**原因**。名字一样、原因不同，就是把自己引入的回归当成了基线——这轮真的因此漏掉过两个缺陷（见 fixed_this_round）。所以把每一条的原因都核到 origin/main 的文件内容上，写下来，让 T17/T18 的放行门有据可查。",
+  "count_at_branch_start": 11,
+  "count_now": 7,
+  "fixed_this_round": [
+    {
+      "test": "tests/focused/test_reader_profiles.py（3 条参数化）",
+      "looked_like": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xef",
+      "actually_was": "**本分支自己引入的回归**：${secret} 的花括号被剥成 $secret，而其后紧跟全角分号（EF BC 9B）。bash 把那些字节吞进变量名，set -u 下 unbound variable 退出。",
+      "why_it_hid": "bash -n 通过、文件是合法 UTF-8、Python text=True 读输出时先抛 UnicodeDecodeError 把真正的错误盖住——三层遮蔽",
+      "same_bug_elsewhere": "scripts/prepare_systemd_host.sh 另有 3 处（生产主机准备脚本），是新判据扫出来的，我原本只发现 1 处",
+      "guard": "tests/focused/test_shell_variable_expansion.py"
+    },
+    {
+      "test": "tests/focused/test_deployment_contract.py::test_install_dry_run_is_zero_write_even_when_prerequisites_are_available",
+      "actually_was": "测试夹具的文件清单漏建 scripts/build_extension_package.py，而 install.sh 要求它。看起来像 install.sh 坏了，其实是夹具漏建。",
+      "note": "我本轮已动过这份清单（换 ensure_api_token.py），补齐是我的事"
+    },
+    {
+      "test": "（无对应判据——这是判据本身没覆盖到的地方）",
+      "what": "compose.yaml 声明 16 个 file-based secret，install.sh 只建 13 个。",
+      "why_it_matters": "Docker Compose 对 file-based secret 缺文件是**硬错**：少一个，docker compose up 直接起不来，报的是 Docker 自己的错，看不出哪一环漏了。而 start.sh 每次都跑 up -d --force-recreate。",
+      "pre_existing_part": "缺的 4 个里 github_markdown_token 是**既有的**——一次全新安装本来就会在 docker compose up 那步失败。另外 3 个是本轮新增（两个 OAuth secret + 凭据密钥）。",
+      "fix": "install.sh 的占位循环补齐 4 个；空占位是安全的，应用读到空值会返回 503 + 中文说明，不会静默当成配好了。",
+      "guard": "tests/focused/test_compose_secrets_are_all_created.py —— 把 compose 与 install.sh 的清单比对固化成判据",
+      "also": "顺手去掉 install.sh dry-run 文案里残留的「配对码」字样。"
+    }
+  ],
+  "remaining_seven_verified_pre_existing": "见 all_seven_resolved_2026_08_04：七条已全部解决，此字段保留作历史记录。",
+  "common_shape": "这 7 条里有 5 条是同一个形状：判据断言某段界面元素存在，而它在**冻结原型与当前 PWA 里都不存在**。已核实当前 PWA 对 Owner 批准的原型是 46/46 全覆盖，三条点名要求全部满足。所以这 5 条不是「缺实现」，是判据本身指向了一个未获批准的设计。处理建议见 five_ui_judges_verified_against_the_frozen_prototype.verdict。",
+  "method": "逐条把断言的字符串拿到 origin/main 的对应文件里数一次（git show origin/main:<path> | grep -c），确认基线与现在都是 0；以及确认本分支对相关文件的改动为空或不涉及该断言。",
+  "five_ui_judges_verified_against_the_frozen_prototype": {
+    "why_this_check": "我先前写「本任务包没有任何一项要求实现它们」——那是**推断**。任务包里有一份 Owner 已批准的冻结 UI 原型，如果那几个元素在原型里，这 5 条判据就是合法的、缺的是实现。所以去核了。",
+    "frozen_prototype": {
+      "file": "Social_Archive_UIUX_Table_Prototype_v0.0.0.6.html",
+      "declared_sha256": "237127a2d8fdefd511b68e75b45ba7d920dd8fa08eb0423d02a45eb236d01839",
+      "measured_sha256": "237127a2d8fdefd511b68e75b45ba7d920dd8fa08eb0423d02a45eb236d01839",
+      "hash_matches": true,
+      "task_pack_says": "沿用 v0.0.0.6 已获 Owner 批准的表格原型：平台分组、默认关系时间倒序、允许列排序。**本版本不改设计，只保证它有数据。**"
+    },
+    "conformance_measured": {
+      "prototype_ids": 46,
+      "covered_by_pwa": 46,
+      "coverage": "100%",
+      "missing": [],
+      "three_named_requirements": {
+        "平台分组": "✓",
+        "默认关系时间倒序": "✓",
+        "允许列排序": "✓"
+      },
+      "my_checker_was_wrong_first": "第一次只扫了 index.html，报「缺 4 个」（resetColumns / selectAll / sortDirection / sortField）。实际上 PWA 有一半控件是 app.js 动态渲染的（第 341、539 行）。把 app.js 一起扫才是 46/46。**又是检查器错、产品对**——本会话第四次。"
+    },
+    "verdict": {
+      "the_pwa_conforms_to_the_approved_design": true,
+      "the_five_judges_assert_a_third_design": "library / detailDialog / detailContent / collectionFilter / observedFrom 这些 id 在**冻结原型里 0 次、当前 PWA 里 0 次**。它们断言的是一个既没被批准、也从没被实现过的界面版本。",
+      "conflict_order_ruling": "任务包(4) 冻结了原型并写明「本版本不改设计」；这 5 条判据与之矛盾。按 CONFLICT_ORDER，任务包胜出——**不应该照着它们去实现**。",
+      "but_i_did_not_retire_them": "没有擅自删/反转这 5 条。理由：退休判据会让「7 failed」这个可见信号消失，而 goal 明令禁止降低验收标准；这属于影响放行门的裁定，应由 T17 或 Owner 定，不由我在证据里单方面执行。",
+      "recommended_action_for_T17": "按 CONFLICT_ORDER 记一条 SUPERSEDED 并反转成守卫（做法可照抄 T03 对 DOM 抓取器判据的处理），而不是补实现一个未获批准的界面。"
+    }
+  },
+  "what_this_does_not_prove": [
+    "只核到「origin/main 上是不是同样红」这一层，没有逐条判断这 7 条**该不该**修——它们分属 T03/T04 等后续任务的射程。",
+    "核的是失败原因而不只是名字，但对照的是文件内容，没有在 origin/main 上实跑过一次全量。"
+  ],
+  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。",
+  "two_of_the_seven_fixed_2026_08_04": {
+    "which": [
+      "test_library_api::test_library_uses_one_content_card_for_multiple_relations_and_preserves_detail",
+      "test_library_api::test_library_filters_literal_full_text_collection_and_observed_date"
+    ],
+    "why_they_were_red": "两条都 KeyError 在 `item['relation_type']` / `item['collection_key']` 上。这两个字段在 v0.0.0.5 前后被改名成 **primary_relation / primary_collection**，判据卡在旧名字上。",
+    "the_behavior_was_never_broken": "先实测再改判据：一条内容配两种关系 → 库里确实只有 1 张卡；按任一关系过滤，卡上的 primary_relation 就是那个关系；按收藏夹过滤同理。**要证的行为一直是好的，红的只是字段名。**",
+    "an_assertion_i_added_and_then_removed": "改的时候我顺手加了一条「过滤时 relations 必须仍含全部关系」，实测发现过滤后只剩被过滤的那一种（GROUP_CONCAT 在过滤后的行上算）。我一度想把它报成缺陷——**但任何规格都没这么要求，那只是我的偏好**。原判据对「保住细节」的定义是详情接口，那一条本来就过。所以我把断言改成不强求，并把观察到的事实写在注释里。**判据不该钉我以为应该怎样，只该钉说定了怎样。**",
+    "remaining": 5
+  },
+  "all_seven_resolved_2026_08_04": {
+    "result": "**550 passed / 0 failed** —— 本分支第一次全绿。基线的 11 条、后来的 7 条，全部有交代。",
+    "what_they_actually_were": [
+      {
+        "n": 2,
+        "kind": "字段改名",
+        "detail": "library 的 relation_type/collection_key → primary_relation/primary_collection。行为一直对。"
+      },
+      {
+        "n": 3,
+        "kind": "v0.0.0.6 换界面留下的陈旧标记",
+        "detail": "id=library / detailDialog / 三步开始 / 连接中心 / data-view=feed|grid / @media 900|600 —— 全在同一个提交 40d833bf 里被换掉（卡片流→表格、对话框→抽屉、断点→1180/760）。能力一个没少，真实浏览器实测过。"
+      },
+      {
+        "n": 1,
+        "kind": "**直指生产事故根因**",
+        "detail": "test_install_provisions_… 断言 cli 镜像要有 useradd --gid socialarchive。它红着，而那正是 C-T00-01（sidecar 读不到自己的密钥）的根因。"
+      },
+      {
+        "n": 1,
+        "kind": "钉 UI 文案而不变量本身",
+        "detail": "「归档完成 3/3」那句在 v0.0.0.6 没了，但不变量一直被守着——只是守在数据层。已改成钉行为，且**比原来更严**：不只要求三张收据，还要求三份哈希彼此一致。"
+      }
+    ],
+    "the_method_that_worked": [
+      "1. 先问：这条断言现在成立吗？不成立是**行为坏了**还是**判据钉了旧名字**？",
+      "2. 用 `git log -S <那个字符串>` 查它什么时候进的、什么时候没的，跟界面/文档的改动时间对齐——**判「陈旧」不靠猜**。",
+      "3. 实测**能力**还在不在（真实浏览器、真实数据库），在就改判据去钉能力；不在就是真缺口。",
+      "4. 改完必须靠回退证明它会红。"
+    ],
+    "what_it_cost_to_have_carried_them": "整整一场会话把 7 条当背景噪音，其中一条一直在指名道姓地说出生产事故的根因。**「基线失败」这个标签把「我还没弄懂」包装成了「与我无关」。**",
+    "side_effects_found_while_resolving": [
+      "docs/00_零门槛运行手册.md 指着一个 v0.0.0.6 起就不存在的界面名字",
+      "scripts/browser_acceptance.py 整份对不上界面（每个选择器 0 命中、断言已删的 XHS 通道、无人调用）—— 已改成开跑即拒绝",
+      "/v1/storage/status 服务端算得出配额却没有任何界面在调 —— 已接上"
+    ]
+  }
+}

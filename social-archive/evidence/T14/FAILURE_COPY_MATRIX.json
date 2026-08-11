@@ -1,0 +1,183 @@
+{
+  "schema_version": "1.0",
+  "task": "T14",
+  "slice": "S5",
+  "goal": "零不得沉默：任何一次同步为 0 条时，界面都说得出为什么",
+  "invariant": "INV-NO-SILENT-ZERO",
+  "recorded_at": "2026-08-04T12:45Z",
+  "acceptance": "人为注入四种失败（凭据过期 / 未登录 / 标签页关闭 / 服务端不可达），界面各给出对应中文句子",
+  "oracle": "四种场景各截一次界面文案并与词典逐字比对；数据库中 imported=0 且 failure_code 为空的行 = 0",
+  "four_injected_failures": [
+    {
+      "scenario": "凭据过期",
+      "failure_code": "CREDENTIAL_EXPIRED",
+      "platform_label": "X",
+      "rendered_zh": "X 的登录状态过期了。[ 重新连接 ]",
+      "outcome": "failed",
+      "action_zh": "重新连接",
+      "matches_frozen_dictionary": true
+    },
+    {
+      "scenario": "未登录",
+      "failure_code": "NOT_LOGGED_IN",
+      "platform_label": "X",
+      "rendered_zh": "没有在浏览器里找到 X 的登录状态。请先在浏览器里登录 X，然后点 [ 重试 ]",
+      "outcome": "failed",
+      "action_zh": "重试",
+      "matches_frozen_dictionary": true
+    },
+    {
+      "scenario": "标签页关闭",
+      "failure_code": "TAB_CLOSED",
+      "platform_label": "B站",
+      "rendered_zh": "B站 同步中断了，因为标签页被关掉。[ 继续 ]",
+      "outcome": "failed",
+      "action_zh": "继续",
+      "matches_frozen_dictionary": true
+    },
+    {
+      "scenario": "服务端不可达",
+      "failure_code": "SERVER_UNREACHABLE",
+      "platform_label": "(未指定)",
+      "rendered_zh": "暂时连不上服务器。你的数据没有丢，[ 重试 ]",
+      "outcome": "failed",
+      "action_zh": "重试",
+      "matches_frozen_dictionary": true
+    }
+  ],
+  "all_four_match_frozen_dictionary": true,
+  "how_the_comparison_was_done": {
+    "not_a_screenshot": "任务包写的是「各截一次界面文案」。这里做的是**逐字比对渲染结果**，比截图更严格也更可复现——截图要人眼看，比对是判据。真实界面截图属于 T17 的黄金事务。",
+    "three_way_check": [
+      "代码里的词典（src/social_archive/failure_copy.py）",
+      "判据里手抄的独立副本（tests/focused/test_failure_copy_matrix.py 的 FROZEN）",
+      "仓内的产品合同（docs/ZERO_BARRIER_UX.md，本次从任务包 01_PRODUCT 引入）"
+    ],
+    "why_three": "只对照一份的话，改代码时顺手把句子和判据一起改了就发现不了。第三份是产品合同，它不跟着代码走。"
+  },
+  "nothing_new_vs_failure": {
+    "requirement": "『没有新增』与『失败』必须是两种不同的显示",
+    "nothing_new": {
+      "message_zh": "已经是最新的，没有新增内容。",
+      "outcome": "nothing_new",
+      "action_zh": null
+    },
+    "why": "两者都是 0 条，但一个是好事（已经是最新的）、一个是坏事（没跑通）。混成一句话用户就永远分不清该不该重试。",
+    "nothing_new_has_no_retry_button": true
+  },
+  "unexplained_zero_is_named_not_hidden": {
+    "message_zh": "这次没有取到任何内容，而且我们没能记录下原因。这是产品的问题，请重试一次；如果还是这样，请联系我们。",
+    "failure_code": "UNEXPLAINED_ZERO",
+    "why": "0 条、没有失败码、也没跑完——这正是 v0.0.0.6 的形状。它必须显示成「这是产品的问题」，而不是含糊过去或伪装成成功。",
+    "unknown_codes_also_land_here": "没见过的失败码不会被当成成功，一律落到这条"
+  },
+  "database_audit": {
+    "method": "RuntimeStore.unexplained_zero_runs()",
+    "query": "status IN ('partial','failed','blocked_environment') AND imported_count = 0 AND (last_error_code IS NULL OR TRIM(last_error_code) = '')",
+    "why_completed_is_excluded": "completed + 0 条不是静默的零，是「已经是最新的」，界面上显示成另一句话",
+    "whitespace_counts_as_missing": "last_error_code 是空白字符串也算没有原因——TRIM 之后判空",
+    "positive_control": "先插两条（failed+NULL、partial+空白）确认审计抓得到，再插三条不该报的（completed+0、failed+有码、partial+有内容）确认不误报"
+  },
+  "no_english_leaks": "逐条渲染七句文案，断言里面不出现失败码本身，也不出现 Traceback / Error / Exception / None / null",
+  "placeholder_never_leaks": "没传平台名时不会把 <平台> / <N> 这两个占位符直接显示给用户",
+  "internal_codes_aliased": {
+    "why": "代码里的失败码比词典细（ACQUISITION_PATH_NOT_INSTALLED / LOGIN_PROOF_UNAVAILABLE / PERMISSION_DENIED / MIRROR_TAB_CLOSED 等），但界面上只许出现词典里的七句",
+    "verified": "每个内部码都解析到词典条目并渲染成词典原句"
+  },
+  "tests": {
+    "count": 20,
+    "file": "tests/focused/test_failure_copy_matrix.py"
+  },
+  "rollback": "任务包写的是「无」。本任务只新增模块与判据，未改动既有行为路径；如需回退 git revert 即可。",
+  "not_yet_wired_into_the_ui": {
+    "superseded": "已作废，见 acceptance_now_met_in_the_real_ui。留着这个键是为了让「我曾经用一个站不住的理由把它推后」这件事留在记录里。"
+  },
+  "acceptance_now_met_in_the_real_ui": {
+    "correction": "本文件先前写的 not_yet_wired_into_the_ui 是**不成立的托词**。当时的说法是「要等有真实失败同步可看」——其实注入一条带 failure_code 的 sync_run 就能验，本地实例与真实浏览器我都有。据此把 T14 标成 done 属于伪完成，现已补做。",
+    "what_was_actually_missing": "apps/pwa/app.js **一次都没读过 last_error_code**（grep 零命中）。同步失败时界面只显示状态标签「需要处理」，说不出为什么、也不给下一步。",
+    "fix": "把冻结词典搬进 app.js（failureCopy + failureAliases + failureSentence），页头与账号表格各接一处",
+    "verified_in_a_real_browser": {
+      "how": "本地实例装着 T04 那 62 条真实书签；逐个把 sync_run 的 last_error_code 改成四种，真实浏览器打开 PWA 读 DOM",
+      "results": [
+        {
+          "code": "CREDENTIAL_EXPIRED",
+          "rendered": "· Chrome书签/网页 的登录状态过期了。[ 重新连接 ]"
+        },
+        {
+          "code": "NOT_LOGGED_IN",
+          "rendered": "· 没有在浏览器里找到 Chrome书签/网页 的登录状态。请先在浏览器里登录 Chrome书签/网页，然后点 [ 重试 ]"
+        },
+        {
+          "code": "TAB_CLOSED",
+          "rendered": "· Chrome书签/网页 同步中断了，因为标签页被关掉。[ 继续 ]"
+        },
+        {
+          "code": "SERVER_UNREACHABLE",
+          "rendered": "· 暂时连不上服务器。你的数据没有丢，[ 重试 ]"
+        }
+      ],
+      "all_four_match_frozen_dictionary": true,
+      "no_english_code_visible_on_page": true,
+      "no_placeholder_leaked": true,
+      "result": "PASS —— 四种注入失败在**真实界面**上各给出对应中文句子"
+    },
+    "drift_guard": "词典现在有两处实现（failure_copy.py 与 app.js）。test_pwa_dictionary_matches_the_python_one 逐句比对，任一处被改动都会红。",
+    "regression_guard": "test_pwa_reads_the_failure_code_at_all —— v0.0.0.6 一次都没读过它，这条守着别退回去。"
+  },
+  "release_blocking_finding": {
+    "what": "PWA 的资源版本号与 service worker 缓存名都还停在 v006",
+    "how_found": "验 T14 时页面一直显示旧文案。以为是自己代码没生效，查下去才发现：index.html 加载的是 app.js?v=006-r1，浏览器按 URL 缓存，于是永远拿旧的；sw.js 的 CACHE 名也还是 social-archive-ui-v006-r1。",
+    "why_it_is_release_blocking": "v0.0.0.7 改了界面（T14 的失败文案、T03/T06 的连接流程）。版本号不升的话，**回访用户发布后拿到的仍是旧 app.js**，等于这些改动对老用户没发布。新用户看得到、老用户看不到，是最难排查的那种。",
+    "fix": "index.html / app.js / sw.js 三处的 v=006 全部升到 v=007，SW 缓存名升到 social-archive-ui-v007-r1",
+    "guard": "test_pwa_asset_version_is_not_stale 与 test_service_worker_replaces_the_stale_ui_cache_with_current_assets_immediately（后者是把原来钉 v006 的判据随版本移动，原则未变，并加了「旧版本号不许在任何一处残留」）",
+    "note": "这不是本地环境问题——它会原样发生在生产上。"
+  },
+  "dictionary_had_no_production_caller_at_all": {
+    "found_during": "反向扫「我加的模块有没有生产代码在调用」——上一轮扫的是被删文件还有谁引用，这轮扫它的镜像面。",
+    "what_was_wrong": "failure_copy.py 落地之后，全仓**没有一个生产模块**调用 describe_sync_outcome。它只活在判据里，以及 PWA 那份手抄副本里。",
+    "consequence": "扩展那一侧根本没有词典。同步失败时 options.js 只显示状态标签「需要处理」，说不出为什么。**T14 的验收是「界面说得出为什么」——那就得每个界面都能，不是只有 PWA。**",
+    "why_i_missed_it_the_first_time": "上一轮我在真实浏览器里验的是 PWA，四种失败都渲染正确，于是判定 T14 达成。但那只验了一个界面。扩展有它自己的账号卡片，走的是另一条渲染路径。",
+    "root_fix": {
+      "what": "把词典接在**服务端**：/v1/sync-runs、/v1/accounts/{id}/sync-runs、/v1/sync-runs/{id} 三个端点都经 _explain_sync_run 补上 message_zh / action_zh / outcome。",
+      "why_server_side": "PWA 与扩展是两个界面。各抄一份词典就有两处会漂，而更要命的是**漏抄**——扩展先前就是漏抄的那个。在服务端算一次，两边都拿得到，词典只有一处真源。",
+      "extension_now_shows_it": "options.js 的账号卡片在有 last_error_code 时优先显示 message_zh，而不是状态标签。"
+    },
+    "guards": [
+      "test_the_dictionary_is_actually_wired_into_the_api —— 写了词典却没有生产代码调用，等于没写",
+      "test_every_sync_run_endpoint_returns_a_human_sentence —— 三个端点都要过 _explain_sync_run，漏一个就有界面说不出话",
+      "test_extension_shows_the_reason_not_just_the_status_label"
+    ],
+    "pwa_mirror_kept": "PWA 那份本地词典保留——它在服务端没返回 message_zh 时仍能兜底，且已有逐句漂移守卫。两者一致性由 test_pwa_dictionary_matches_the_python_one 盯着。"
+  },
+  "third_surface_was_leaking_raw_upstream_text": {
+    "found_during": "「还有哪个界面我没看」问到第三遍。前两遍分别是：只验了 PWA（扩展没词典）、零输入判据只扫 options.html。",
+    "surface": "apps/browser-extension/sidepanel.js —— 任务中心，用户专门去看「哪些需要处理」的地方",
+    "what_it_did": "任务卡片的 .message 渲染的是 `run.last_error_message || <一句通用中文>`。",
+    "why_that_is_worse_than_no_message": "last_error_message 装的是**上游原样抛回来的文本**（account_sync.py 里取自 result.errors[0].message）。Reddit 未授权时 gallery-dl 塞回来的是**十万字节的 CSS**（真实样本在 evidence/fixtures/gallerydl/）。也就是说这个卡片有可能把一整坨样式表铺在用户眼前。",
+    "which_rule_it_broke": "T14 的硬规矩之二：界面上不得出现英文错误码或堆栈；给人看的永远是冻结词典里的中文句子。",
+    "fix": "改为优先 run.message_zh（服务端已按词典算好），并**彻底不再渲染** last_error_message。原始文本仍留在库里供日志与排查，只是不上界面。",
+    "guards": [
+      "test_no_surface_renders_raw_upstream_error_text —— 四个界面文件里都不许出现 last_error_message 的渲染（注释除外）",
+      "test_every_extension_surface_that_shows_runs_uses_message_zh —— 显示同步运行的界面必须能说出为什么"
+    ],
+    "pattern_note": "同一个错误连续三处：T14 只验 PWA、零输入只扫 options.html、失败文案只接了 options.js。**「验了一个面就当验完」是本会话最高频的失误形态**，比任何逻辑错误都多。"
+  },
+  "the_no_english_rule_applies_to_all_failures_not_just_sync": {
+    "found_during": "把「哪个界面漏了」推广成「哪条路径漏了」——sidepanel 那处是渲染 sync_run 的原始错误，那**别的失败**是怎么显示的？",
+    "what_was_wrong": "扩展与 PWA 的 api() 在服务端没给 detail 时，兜底成 `HTTP ${status}`；FastAPI 未处理异常的默认 detail 是英文 \"Internal Server Error\"。而这个字符串被**八处** toast(error.message) / showToast(error.message) 直接甩给用户。",
+    "rule_source": "冻结词典（docs/ZERO_BARRIER_UX.md）：「界面上出现的失败必须用下面这些话，不得出现英文错误码或堆栈」——说的是**所有**失败，不只是同步失败。",
+    "fix": "在两侧 api() 的抛出点加一个统一的中文兜底：服务端给了中文就原样用（至少含一个中文字符才算），否则按状态码给一句（401/403、404、429、5xx、其他）。**在源头兜住，八处 toast 一处都不用改。**",
+    "verified": "直接把两个兜底函数抠出来跑：中文 detail 原样透传；null / \"Internal Server Error\" / \"Traceback (most recent call last)\" 全部替换成中文。",
+    "a_guard_of_mine_broke_and_that_was_correct": {
+      "what": "我早先写的 test_extension_surfaces_a_chinese_message... 断言源码里有字面量 `data.detail ||`。这次把兜底改好之后，它反而红了。",
+      "why_it_was_a_bad_guard": "**它盯的是实现细节，不是性质。** 实现变好了它就报错，等于阻碍改进。",
+      "rewritten_to": "盯性质：存在统一的中文兜底、且源码里不出现 `HTTP ${response.status}` 这种拿状态码当提示语的写法。",
+      "lesson": "判据要钉住「必须成立的事」，不是「现在恰好是这么写的」。"
+    }
+  },
+  "what_this_does_not_prove": [
+    "四种注入场景覆盖的是**当时词典里的四条**。后来实测发现代码里还有 24 个失败码说不出人话、生产库里还有 3 个当前代码已删除的遗留码——都不在这份矩阵里。",
+    "「数据库中 imported=0 且 failure_code 为空的行 = 0」当时是手动查的；这条审计（unexplained_zero_runs）在写下本文件时**没有任何调用方**。"
+  ],
+  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。"
+}

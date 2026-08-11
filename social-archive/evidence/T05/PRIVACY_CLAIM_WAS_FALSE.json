@@ -1,0 +1,62 @@
+{
+  "task": "T05",
+  "claim": "产品对外说的隐私边界与它实际做的事相反；已改成如实说明并把三个写死的断言改成测量",
+  "invariants": ["INV-NO-PASSWORD", "INV-DOMESTIC-COOKIE-STAYS", "INV-HONEST-EVIDENCE"],
+  "how_it_was_found": {
+    "method": "清点每条不变量各有几个机器守卫。",
+    "table": {
+      "INV-NO-SILENT-ZERO": 10,
+      "INV-ZERO-BARRIER": 7,
+      "INV-DOMESTIC-COOKIE-STAYS": 3,
+      "INV-HONEST-EVIDENCE": 3,
+      "INV-REAL-USABLE": 2,
+      "INV-TRUTH-TRACEABLE": 2,
+      "INV-NO-PASSWORD": 1,
+      "INV-REVERSIBLE": 1
+    },
+    "why_that_pointed_here": "INV-NO-PASSWORD 是 L0 硬边界却只有一个守卫。顺着去看服务端怎么对外表述这条边界，就撞上了 /v1/extension/bootstrap 的 privacy 段。"
+  },
+  "what_was_wrong": {
+    "the_literal": {
+      "where": "src/social_archive/api.py，/v1/extension/bootstrap",
+      "code": "\"privacy\": {\"cookie_custody\": False, \"password_custody\": False, \"user_triggered_capture_only\": True}",
+      "problem": "三个写死的字面量。**cookie_custody: False 从 v0.0.0.7 的 T05/T06 起就是假的**——产品确实在托管 X / Instagram / YouTube 的登录状态：读该域 Cookie、转 Netscape 格式、加密上传。这正是 docs/ZERO_BARRIER_UX.md 里写明的设计。",
+      "third_one_also_not_true": "user_triggered_capture_only: True 也不成立——连接过的账号会按 sync_interval_minutes 周期自己跑。",
+      "the_worst_part": "test_extension_api.py 逐字断言了整个字典。**一句错的事实，由一盏绿灯守着。** 判据不是在守护正确性，是在防止有人把它改对。"
+    },
+    "the_sentence_users_actually_read": {
+      "where": "apps/pwa/extension-install.html",
+      "text": "「隐私边界：插件不会把密码、Cookie 或浏览器登录状态交给服务器。」",
+      "why_it_matters_most": "这是用户决定要不要装插件时读到的最后一句话。对国内四源它是真的，**对西方三源它是反的**。",
+      "second_defect_in_the_same_paragraph_area": "同一页第 6 步写着「按页面提示完成一次性配对」——配对码整条链路已在 T03 删除（Acceptance 原文要求用户一个字符都不输入）。照着做的人会去找一个不存在的输入框，然后以为是自己弄错了，**而没有任何东西会报错**。"
+    }
+  },
+  "fix": {
+    "copy": "改成把两组平台的区别如实说清楚：小红书/抖音/B站/快手的 Cookie 一步都不离开浏览器；X/Instagram/YouTube 在点「连接」那一刻读取登录状态、加密后存到自己的服务器，随时可一键撤销并从库中删除；两者都永远不碰密码。**这个区别本来就是这个产品的设计，不是需要含糊过去的东西。**",
+    "api": {
+      "cookie_custody": "由托管清单算出来，并附上两组平台各自的名单",
+      "password_custody": "改成扫 sqlite_master 里有没有 password 形状的列。**不是「我们不存密码」这句自称，是「库里现在没有这种列」这个测量。**能出示的出示，只能自述的别写成事实。",
+      "auto_sync_accounts": "取代 user_triggered_capture_only。给的是开着定时同步的账号数目，不是一句形容词。"
+    },
+    "new_store_method": "RuntimeStore.privacy_facts() —— 一次 sqlite_master 查询 + 一次计数。"
+  },
+  "guards": {
+    "file": "tests/focused/test_privacy_claims_match_reality.py",
+    "count": 5,
+    "what_they_守": "不是措辞，是**两组平台的区别有没有被如实说出来**：国内四源不出浏览器、西方三源加密托管且可撤销、两者都不碰密码。另钉住 T03 已删的「一次性配对」不许写回页面。",
+    "the_false_sentence_is_pinned_verbatim": "THE_SENTENCE_THAT_WAS_FALSE 常量逐字保留那句话，防止哪天被「顺手改回去」。",
+    "proved_by_reintroduction": "把那句假话放回安装页 → 2 条变红（「又说回了不会把 Cookie 交给服务器」「密码那一半被一起删掉了」）；还原后 5 条全绿。",
+    "a_mistake_in_the_first_version": "判据第一版用 platform.capitalize() 猜展示名，把 YouTube 猜成 Youtube，**报红的是判据自己，文案其实是对的**。改成显式写死展示名表。"
+  },
+  "measured_after": {
+    "suite": "579 passed / 0 failed",
+    "release_gate": "PASS（17 道）",
+    "docs_match_ui": "15 处界面词引用全部对得上"
+  },
+  "what_this_does_not_prove": [
+    "没有在真实浏览器里打开过安装页看排版——改的是一段 <p> 的文字，判据比对的是 HTML 源码里的字符串。",
+    "password_custody 的测量只覆盖 **runtime 库的表结构**。它不能证明密码没有以别的形态存在于别处（例如某个 JSON 字段的值里）；那一层由 scripts/scan_plaintext_credentials.py 覆盖，两者是不同的面。",
+    "auto_sync_accounts 只数 connected/degraded 的账号。它回答的是「有多少账号会自己跑」，不是「过去有没有在用户没要求时抓过东西」——后者需要审计历史 run，不在这次射程里。",
+    "docs/ZERO_BARRIER_UX.md 里的隐私表述没有改动（它本来就是对的，写明了「西方三源加密上传」）。安装页与它此前互相矛盾，现在一致了。"
+  ]
+}

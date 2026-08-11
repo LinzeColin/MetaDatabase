@@ -55,7 +55,9 @@ class Settings:
     public_base_url: str = "http://127.0.0.1:8765"
     public_library_url: str = "http://127.0.0.1:8765"
     api_token_file: str | None = None
-    pairing_code_file: str | None = None
+    # 注意：pairing_required 名字里带 pairing，但它是**总鉴权开关**——
+    # require_token 第一行据此早退。旧的一次性码链路已随 v0.0.0.7/T03 删除，
+    # 这个字段与那条链路无关，删掉等于全站不再鉴权。
     pairing_required: bool = False
     notion_token_file: str | None = None
     notion_database_id: str | None = None
@@ -71,6 +73,20 @@ class Settings:
     github_markdown_branch: str = "main"
     age_recipient: str | None = None
     age_identity_file: str | None = None
+    # 凭据用的是**另一对**密钥，不复用上面那对（v0.0.0.7 / T05+T06）。
+    #
+    # 上面那对是三副本备份通道的：日常只需要公钥加密，私钥「仅在明确的恢复演练
+    # 时读取」（encryption.py 的原话），因此它留在宿主机、不进容器。
+    #
+    # 而托管的平台 Cookie 必须能被 Core 解回来喂给 gallery-dl，也就是说
+    # 那把私钥得进容器、且常驻在一个 24 小时联网的进程里。
+    # 把备份私钥拿去干这件事，等于把「备份通道只有公钥」这条性质悄悄作废——
+    # 一旦 Core 被攻破，攻击者拿到的就不只是当前凭据，而是**全部历史备份**。
+    #
+    # 所以分成两对。T05 当时把 CredentialVault 与 AgeEncryptor 分了类，
+    # 却仍然共用同一个 identity 设置——那是分了一半，本次补齐。
+    credential_age_recipient: str | None = None
+    credential_age_identity_file: str | None = None
     karakeep_url: str | None = None
     karakeep_token_file: str | None = None
     linkwarden_url: str | None = None
@@ -78,6 +94,12 @@ class Settings:
     account_sync_default_interval_minutes: int = 360
     account_sync_page_size: int = 100
     account_sync_max_items_per_run: int = 100000
+    # 登录（v0.0.0.7 / T02）。client_id 不是密钥，走环境变量；
+    # client_secret 只从 systemd credential 文件读，不进仓、不进 .env。
+    google_client_id: str | None = None
+    google_client_secret_file: str | None = None
+    github_client_id: str | None = None
+    github_client_secret_file: str | None = None
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -117,7 +139,6 @@ class Settings:
             public_base_url=(os.getenv("SOCIAL_ARCHIVE_PUBLIC_BASE_URL", "").strip() or "http://127.0.0.1:8765").rstrip("/"),
             public_library_url=(os.getenv("SOCIAL_ARCHIVE_PUBLIC_LIBRARY_URL", "").strip() or os.getenv("SOCIAL_ARCHIVE_PUBLIC_BASE_URL", "").strip() or "http://127.0.0.1:8765").rstrip("/"),
             api_token_file=os.getenv("SOCIAL_ARCHIVE_API_TOKEN_FILE") or None,
-            pairing_code_file=os.getenv("SOCIAL_ARCHIVE_PAIRING_CODE_FILE") or None,
             pairing_required=_bool("SOCIAL_ARCHIVE_PAIRING_REQUIRED", False),
             notion_token_file=os.getenv("SOCIAL_ARCHIVE_NOTION_TOKEN_FILE") or None,
             notion_database_id=os.getenv("SOCIAL_ARCHIVE_NOTION_DATABASE_ID") or None,
@@ -133,10 +154,16 @@ class Settings:
             github_markdown_branch=os.getenv("SOCIAL_ARCHIVE_GITHUB_MARKDOWN_BRANCH", "main"),
             age_recipient=os.getenv("SOCIAL_ARCHIVE_AGE_RECIPIENT") or None,
             age_identity_file=os.getenv("SOCIAL_ARCHIVE_AGE_IDENTITY_FILE") or None,
+            credential_age_recipient=os.getenv("SOCIAL_ARCHIVE_CREDENTIAL_AGE_RECIPIENT") or None,
+            credential_age_identity_file=os.getenv("SOCIAL_ARCHIVE_CREDENTIAL_AGE_IDENTITY_FILE") or None,
             karakeep_url=(os.getenv("SOCIAL_ARCHIVE_KARAKEEP_URL") or "").rstrip("/") or None,
             karakeep_token_file=os.getenv("SOCIAL_ARCHIVE_KARAKEEP_TOKEN_FILE") or None,
             linkwarden_url=(os.getenv("SOCIAL_ARCHIVE_LINKWARDEN_URL") or "").rstrip("/") or None,
             linkwarden_token_file=os.getenv("SOCIAL_ARCHIVE_LINKWARDEN_TOKEN_FILE") or None,
+            google_client_id=os.getenv("SOCIAL_ARCHIVE_GOOGLE_CLIENT_ID") or None,
+            google_client_secret_file=os.getenv("SOCIAL_ARCHIVE_GOOGLE_CLIENT_SECRET_FILE") or None,
+            github_client_id=os.getenv("SOCIAL_ARCHIVE_GITHUB_CLIENT_ID") or None,
+            github_client_secret_file=os.getenv("SOCIAL_ARCHIVE_GITHUB_CLIENT_SECRET_FILE") or None,
             account_sync_default_interval_minutes=int(os.getenv("SOCIAL_ARCHIVE_ACCOUNT_SYNC_INTERVAL_MINUTES", "360")),
             account_sync_page_size=int(os.getenv("SOCIAL_ARCHIVE_ACCOUNT_SYNC_PAGE_SIZE", "100")),
             account_sync_max_items_per_run=int(os.getenv("SOCIAL_ARCHIVE_ACCOUNT_SYNC_MAX_ITEMS", "100000")),
@@ -162,7 +189,7 @@ class Settings:
         # units deliberately receive only their own least-privilege
         # credentials, so they must not be forced to carry the API token.
         if require_api_token and self.pairing_required and not self.api_token_file:
-            raise RuntimeError("启用配对保护时必须提供长期 API Token 文件；一次性配对码不能替代设备令牌")
+            raise RuntimeError("启用鉴权保护时必须提供长期 API Token 文件")
         if self.notion_api_version != "2026-03-11":
             raise RuntimeError("本版本只接受已验收的 Notion-Version 2026-03-11")
         if self.obsidian_rest_ca_file and not Path(self.obsidian_rest_ca_file).is_file():

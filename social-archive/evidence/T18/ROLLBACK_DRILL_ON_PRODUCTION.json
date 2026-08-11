@@ -1,0 +1,39 @@
+{
+  "task": "T18",
+  "claim": "在生产上真的回滚了一次再前滚回来。回滚耗时 29 秒，全程三条路由都是 200，数据一条没动。此前 T18 的记录里写着「**未做真实回滚演练**」——这一格现在补上了。",
+  "invariant": "INV-REVERSIBLE",
+  "measured_at": "2026-08-04",
+  "host": "linze-ovh · /opt/social-archive",
+
+  "the_command_under_test": "docker tag social-archive/core:rollback social-archive/core:0.0.0.7 && docker compose up -d core-api core-worker",
+  "why_that_exact_command": "它就是 scripts/deploy_to_production.sh 在成功结尾和失败中止时都会打出来的那一行。**演练的必须是文档里印的那条路，不是另外一条更顺手的。**",
+
+  "images": {
+    "before_and_after": "1b40681bcb1e（0.0.0.7 标签当前指向）",
+    "rollback_target": "2ca23c6764f7（:rollback 标签）",
+    "final_state_verified": "core-api 与 core-worker 两个容器实际运行的镜像都是 1b40681bcb1e；0.0.0.7 → 1b40681bcb1e，rollback → 2ca23c6764f7，标签没有错位。"
+  },
+
+  "measured": {
+    "before": {"/health": 200, "/v1/accounts": 200, "/v1/auth/me(真实会话)": 200, "content": 193},
+    "after_rollback": {"/health": 200, "/v1/accounts": 200, "/v1/auth/me(真实会话)": 200, "content": 193},
+    "after_roll_forward": {"/health": 200, "/v1/accounts": 200, "/v1/auth/me(真实会话)": 200, "content": 193},
+    "rollback_duration_seconds": 29
+  },
+
+  "what_it_actually_proves": [
+    "回滚这条**操作路径**是通的：重打标签 + compose up 能在 29 秒内把服务换成另一个镜像并恢复健康。",
+    "回滚**不动数据**：内容 193 条三次测量一致；数据根在 /var/lib/social-archive，是 bind 挂载，与镜像无关。",
+    "回滚**不踢掉登录**：Owner 的会话三次都能换到 200。会话在库里不在镜像里。",
+    "密钥挂载在换镜像后照常可读——三次 /v1/accounts 全 200（这正是几小时前被我打断过的那条链路）。"
+  ],
+
+  "what_this_does_not_prove": [
+    "**不证明跨版本回滚是安全的。** 这次的回滚目标（2ca23c）与当前（1b4068）只差一个提交，差异全在部署脚本和证据文件里——运行时行为完全一样。所以这次演练测的是**机制与可用性**，不是版本差异。",
+    "不证明带数据库迁移的回滚能成。真正危险的回滚是「新版本改过表结构，旧版本读不懂」，这次两版的 schema 相同，那条风险一次都没被触碰。",
+    "不证明 :rollback 标签一定指向一个**好**版本。它现在的语义是「上一次部署前正在跑的那个」，好不好取决于上一次部署前的状态；deploy_to_production.sh 在打这个标签时不做任何健康判断。",
+    "不证明镜像丢了还能回滚。:rollback 只是本机的一个标签，没有推到任何仓库；机器坏了这条路就没了（那属于 T16 的耐久性，走的是另一套证据）。"
+  ],
+
+  "residual_risk_named": "真实的跨版本回滚演练需要一个 schema 不同的旧镜像。0.0.0.6 那个已经在早先清磁盘时被我删了（见 T18/DEPLOYED_AND_VERIFIED.json 里更正过的那条）。现在没有可用的跨版本回滚目标——这是事实，不是待办：要造一个就得专门保留一份旧镜像，那要占约 1GB 磁盘，而生产盘只剩 6.9G。"
+}

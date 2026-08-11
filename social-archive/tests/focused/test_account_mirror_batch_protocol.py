@@ -92,9 +92,31 @@ def test_chunked_collection_waits_for_relation_final_and_keeps_all_pages(setting
     seen = store.list_sync_seen_relation_ids(sync_run_id=run_id, relation_type="favorite", collection_key="tech")
     assert len(seen) == 3
     assert store.get_sync_run(run_id)["status"] == "completed"
+    # **闭合读的是 completeness 那一列，不是 status。**
+    #
+    # 这两个可以不一致：批次里带了 errors 时 status 仍是 completed，而
+    # completeness 会被降级成 partial（account_sync.py 里
+    # `if errors and effective_completeness == "complete"` 那一段）。
+    # 而「取消收藏后要从档案馆里消失」这件事，走的是 completeness。
+    #
+    # 2026-08-07 查他生产库：20 次同步**没有一次 completeness=complete**，
+    # 于是缺席闭合从来没跑过。那些是 v0.0.0.6 的遗留记录，但当时没有任何
+    # 判据说得出「今天这版跑完一次会不会 complete」——只断言 status
+    # 的判据答不了这个问题。
+    assert store.get_sync_run(run_id)["completeness"] == "complete", (
+        "**跑完了却不算完整** —— 缺席闭合永远不会发生，"
+        "他在平台上取消的收藏会永远留在档案馆里")
 
 
-def test_multi_relation_run_does_not_finish_after_first_relation(settings, store, service):
+def test_multi_relation_run_does_not_finish_after_first_relation(settings, store, service, monkeypatch):
+    # **不变量是协议层面的**：多关系的 run 不许在第一个关系完成后就结束。
+    # 2026-08-10 起同步范围改成读扩展的 SCANNABLE_RELATIONS（抖音/B站/小红书
+    # 现在都只有 favorite），于是这个场景本身不再是「多关系」。
+    # 把范围显式声明出来，让这条不变量不绑死在目录当下支持什么上。
+    from social_archive import account_sync as _sync
+    monkeypatch.setitem(_sync.SCANNABLE_RELATIONS, "xiaohongshu", ("favorite", "like"))
+    monkeypatch.setitem(_sync.SCANNABLE_RELATIONS, "douyin", ("favorite", "like"))
+    monkeypatch.setitem(_sync.SCANNABLE_RELATIONS, "bilibili", ("favorite", "like"))
     coordinator, account_id = _connected(settings, store, service)
     run_id = coordinator.start_sync(account_id, AccountSyncRequest(
         mode="first_full", relation_types=["favorite", "like"], trigger_type="first_connect"

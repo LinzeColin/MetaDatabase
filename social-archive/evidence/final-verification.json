@@ -2,10 +2,26 @@
   "status": "PASS",
   "suite_mode": "structural",
   "application_suite_rerun": false,
+  "partial_checks": [
+    {
+      "argv": [
+        "scripts/validate_compose.py",
+        "compose.yaml"
+      ],
+      "why": "PASS：compose.yaml 结构有效；Owner 配置 .env 缺失，跳过 Docker Compose 渲染。"
+    },
+    {
+      "argv": [
+        "scripts/validate_compose.py",
+        "compose.readers.yaml"
+      ],
+      "why": "PASS：compose.readers.yaml 结构有效；Owner 配置 karakeep.env, linkwarden.env 缺失，跳过 Docker Compose 渲染。"
+    }
+  ],
   "results": [
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/MetaDatabase/infallible-kepler-bf304a/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "-B",
         "-m",
         "compileall",
@@ -19,7 +35,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/MetaDatabase/infallible-kepler-bf304a/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_brand.py"
       ],
       "exit_code": 0,
@@ -28,7 +44,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/MetaDatabase/infallible-kepler-bf304a/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/secret_scan.py",
         "."
       ],
@@ -38,7 +54,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/MetaDatabase/infallible-kepler-bf304a/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/validate_compose.py",
         "compose.yaml"
       ],
@@ -48,7 +64,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/MetaDatabase/infallible-kepler-bf304a/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/validate_compose.py",
         "compose.readers.yaml"
       ],
@@ -58,21 +74,265 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/MetaDatabase/infallible-kepler-bf304a/social-archive/.venv/bin/python",
-        "scripts/validate_compose.py",
-        "compose.workers.yaml"
-      ],
-      "exit_code": 0,
-      "stdout": "PASS：compose.workers.yaml 结构有效。\n",
-      "stderr": ""
-    },
-    {
-      "argv": [
-        "/Users/linzezhang/Documents/Codex/MetaDatabase/infallible-kepler-bf304a/social-archive/.venv/bin/python",
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/validate_systemd.py"
       ],
       "exit_code": 0,
       "stdout": "PASS：systemd 运行合同完整，状态与复制只可写入 /var/lib/social-archive。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/preflight_extension.py"
+      ],
+      "exit_code": 0,
+      "stdout": "可以装载。manifest v3、version 0.0.0.52、17 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/scan_plaintext_credentials.py",
+        "--all"
+      ],
+      "exit_code": 0,
+      "stdout": "干净：扫了 863 个文件 + 2 份 diff，0 处命中\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/find_unwired_code.py"
+      ],
+      "exit_code": 0,
+      "stdout": "已知没接上（3 个，非失败——但别让它悄悄变长）：\n  ConnectorStateView：连接器状态视图模型，当前接口直接回字典，没走这个模型\n  revoke_all：撤销某人全部平台凭据。代码是对的，但界面上没有「断开全部」这个动作——缺的是产品决策，不是代码\n  revoke_all_sessions：登出全部设备。同上，界面没有这个入口\n\n每个公开符号都至少有一处生产代码引用。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_docs_point_at_things_that_exist.py"
+      ],
+      "exit_code": 0,
+      "stdout": "扫了全仓 33 份文档，86 处 scripts/ 引用、1 处代码块里被 .gitignore 挡着的路径\n文档让人跑的每一个脚本都在；写着「已删」的也确实不在了。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_the_stated_version_is_the_real_one.py"
+      ],
+      "exit_code": 0,
+      "stdout": "真源 pyproject.toml 说版本是 0.0.0.52；核了 11 处\n每一处声明的版本都和真源一样，CHANGELOG 里也有这一版。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_one_version_means_one_package.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"version\": \"0.0.0.52\",\n  \"version_set_by\": \"22b8da6e53e2cb61408f9be17f55e372bf9a0d23 08-12 03:31\",\n  \"watched\": [\n    \"apps/browser-extension\"\n  ],\n  \"tracked_files\": 27,\n  \"changed_since_bump\": [\n    \"social-archive/apps/browser-extension/manifest.json\",\n    \"social-archive/apps/browser-extension/runtime-config.json\"\n  ],\n  \"version_being_bumped_right_now\": true,\n  \"problems\": [],\n  \"what_this_does_not_prove\": \"不保证插件是对的，只保证**它变了的时候版本号跟着变**。它也不拦同一版重复部署——改服务端而不动插件时那是正常的。\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_every_platform_table_is_complete.py"
+      ],
+      "exit_code": 0,
+      "stdout": "扫了 apps/src/scripts 下 37 处平台表；已登记的有意子集 18 张；允许自带平台中文名的地方 4 处\n每一张平台表都提到了所有可托管平台。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_every_destination_table_is_complete.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"destinations\": [\n    \"social_archive\",\n    \"markdown\",\n    \"obsidian\",\n    \"notion\",\n    \"github\",\n    \"karakeep\",\n    \"linkwarden\",\n    \"archivebox\"\n  ],\n  \"tables_checked\": {\n    \"服务端·隐私说明\": 1640,\n    \"资料库·名字\": 550,\n    \"扩展·共用名字\": 274,\n    \"设置页·名字\": 207,\n    \"设置页·顺序\": 107\n  },\n  \"problems\": [],\n  \"message_zh\": \"8 个目的地，5 张表都齐。\",\n  \"what_this_does_not_prove\": \"只查在不在，不查写得对不对；名字拼错了它照样绿。\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_every_failure_code_is_explainable.py"
+      ],
+      "exit_code": 0,
+      "stdout": "扫到失败码 69 个（src, apps）\n每一个都能落到一句中文。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_evidence_declares_its_limits.py"
+      ],
+      "exit_code": 0,
+      "stdout": "检查 v0.0.0.7 证据 112 份（其中自锁 6 份）\n每一份都写了局限；自锁的没有一份被改写成 PASS。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/find_endpoints_no_client_calls.py"
+      ],
+      "exit_code": 0,
+      "stdout": "api.py 里的 /v1 路由 54 个；客户端目录 apps, scripts\n每个接口都至少有一处界面调用。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/find_client_calls_to_routes_that_do_not_exist.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"routes_found\": 56,\n  \"distinct_client_calls\": 23,\n  \"calls_to_nothing\": [],\n  \"message_zh\": \"界面调的每一个地址，服务端都有。\",\n  \"what_this_does_not_prove\": \"只看字面量、不查方法；POST 打一条只有 GET 的路由，这道门看不出来。\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_docs_match_the_ui.py"
+      ],
+      "exit_code": 0,
+      "stdout": "扫了 docs/ 里 60 处界面词引用\n每一处都在界面上找得到。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/find_write_only_storage_keys.py"
+      ],
+      "exit_code": 0,
+      "stdout": "扫了扩展里 5 个 storage 键\n每个写进去的键都有人读。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/find_messages_with_only_one_end.py"
+      ],
+      "exit_code": 0,
+      "stdout": "扫了 apps/ 下 27 个文件，35 个 SA_ 消息类型；另有 0 条已登记的单头例外\n每条消息都既有发送方也有接收方。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/find_settings_with_no_way_to_set_them.py"
+      ],
+      "exit_code": 0,
+      "stdout": "src/ 读取 69 个 SOCIAL_ARCHIVE_* 配置项；另有 5 项已登记为无需可设\n每一项都至少有一处能设它的地方。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/find_extension_settings_with_no_way_to_set_them.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"keys_checked\": 11,\n  \"exempt\": [\n    \"endpoint\",\n    \"token\",\n    \"libraryUrl\"\n  ],\n  \"no_way_to_set\": [],\n  \"declared_gaps\": [\n    {\n      \"key\": \"obsidianLocalEnabled\",\n      \"read_in\": [\n        \"background.js\"\n      ],\n      \"declared_reason\": \"「把抓到的东西直接写进本机 Obsidian 仓库」整条还没接上：background.js 里 exportLocalObsidian() 有完整实现，**但它从不向 /v1/destinations/obsidian-local/receipts 回执**，服务端因此永远不知道写没写成。先补回执再谈开关——现在就给个开关，等于让人打开一个服务端看不见的目的地。见 evidence/T11/THE_LOCAL_OBSIDIAN_PATH_IS_BUILT_BUT_UNREACHABLE.json\"\n    },\n    {\n      \"key\": \"obsidianLocalUrl\",\n      \"read_in\": [\n        \"background.js\"\n      ],\n      \"declared_reason\": \"同上，随 obsidianLocalEnabled 一起接\"\n    },\n    {\n      \"key\": \"obsidianLocalToken\",\n      \"read_in\": [\n        \"background.js\"\n      ],\n      \"declared_reason\": \"同上；而且它是密钥，界面怎么收要单独想（不能明文躺在 storage 里给任何页面看）\"\n    }\n  ],\n  \"message_zh\": \"扩展 DEFAULT_CONFIG 里没有未登记的死配置项（另有 3 项**已登记为还没接上**，见 declared_gaps）。\",\n  \"what_this_does_not_prove\": \"「有人写」不等于「用户点得到」——写它的也可能是走不到的代码。\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/find_calls_to_functions_that_do_not_exist.py"
+      ],
+      "exit_code": 0,
+      "stdout": "扫了 apps/ 下 20 个脚本\n每一处函数调用都找得到定义。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/find_affordances_the_backend_says_cannot_work.py"
+      ],
+      "exit_code": 0,
+      "stdout": "检查了 3 处会承诺「这个平台能用」的地方（界面 + 服务端视图）\n每一处承诺型按钮都先问过服务端能不能做到。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_sync_promises_match_reality.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"platforms_checked\": 9,\n  \"syncable_now\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"scannable_relations\": {\n    \"bilibili\": [\n      \"favorite\"\n    ],\n    \"xiaohongshu\": [\n      \"favorite\"\n    ],\n    \"douyin\": [\n      \"favorite\"\n    ],\n    \"kuaishou\": [\n      \"favorite\"\n    ],\n    \"reddit\": [\n      \"saved\"\n    ],\n    \"instagram\": [\n      \"saved\"\n    ],\n    \"youtube\": []\n  },\n  \"server_handled\": [\n    \"x\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"界面承诺的和代码里有的，逐个平台对上了。\",\n  \"what_this_does_not_prove\": \"只对四张静态表。「那条取数路真的读得回东西」由 bilibili_acquisition_drill.py（打真接口）与 bilibili_end_to_end_drill.py（真 Chrome 跑整条链）去证。\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_shape_read_platforms_have_drills.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"shape_read_in_production\": [\n    \"douyin\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"syncable_now\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"evidence_for_other_paths\": {\n    \"bilibili\": \"bilibili_acquisition_drill.py（打真接口）+ bilibili_end_to_end_drill.py（真 Chrome 整条链）\"\n  },\n  \"covered_by_a_drill\": [\n    \"douyin\",\n    \"instagram\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"exempt_with_a_reason\": {\n    \"generic-web\": \"Chrome 书签：路由（extension_routing_drill，syncChromeBookmarks 被桩掉）和未授权时的文案（shipped_package_drill 的 connect_bookmarks_said）都验过了，**「授权之后书签真的读得进来」没有**——那一下要用户手势，演练点不了原生弹窗。要解掉它：Owner 在真 Chrome 里点一次「连接账号」并选「允许」。\",\n    \"kuaishou\": \"快手真实响应的字段名我核实不了（要 Owner 的登录态）。写过一份夹具（feeds[].photoId/caption/userName），跑出来 7 条里 3 条丢作者——因为 userName 不在 list-shape.js 的 AUTHOR_KEYS 里（那张表里是 user_name）。顺着那个『失败』改产品，就是拿我自己编的夹具去改生产代码。停在这里，缺口记录在案。**要解掉它，需要一份真实的快手收藏响应的字段名。**\"\n  },\n  \"problems\": [],\n  \"what_this_does_not_prove\": \"只保证「有演练走过这条路」。不保证真站的响应长成夹具那样——那句边界写在演练自己的文件头里，这道门不替它作保。\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_no_mechanism_is_unreachable.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"functions_checked\": 83,\n  \"senders_scanned\": [\n    \"apps/browser-extension/bridge.js\",\n    \"apps/browser-extension/connect-frame.html\",\n    \"apps/browser-extension/connect-frame.js\",\n    \"apps/browser-extension/content/bilibili-reader.js\",\n    \"apps/browser-extension/content/extension-utils.js\",\n    \"apps/browser-extension/content/extract-core.js\",\n    \"apps/browser-extension/content/extract.js\",\n    \"apps/browser-extension/content/fab.js\",\n    \"apps/browser-extension/content/list-shape.js\",\n    \"apps/browser-extension/content/net-relay.js\",\n    \"apps/browser-extension/content/platform-catalog.js\",\n    \"apps/browser-extension/cookie-export.js\",\n    \"apps/browser-extension/net-observer.js\",\n    \"apps/browser-extension/options.html\",\n    \"apps/browser-extension/options.js\",\n    \"apps/browser-extension/popup.html\",\n    \"apps/browser-extension/popup.js\",\n    \"apps/browser-extension/shared.js\",\n    \"apps/browser-extension/sidepanel.html\",\n    \"apps/browser-extension/sidepanel.js\",\n    \"apps/pwa/app.js\",\n    \"apps/pwa/extension-install.html\",\n    \"apps/pwa/guide.html\",\n    \"apps/pwa/index.html\",\n    \"apps/pwa/sw.js\"\n  ],\n  \"message_types_handled\": [\n    \"SA_ACCOUNT_CONNECT\",\n    \"SA_CAPTURE_ACTIVE\",\n    \"SA_CONNECT_PLATFORM_SESSION\",\n    \"SA_CONTROL_SYNC_RUN\",\n    \"SA_DISCONNECT_ACCOUNT\",\n    \"SA_GET_NET_CAPTURES\",\n    \"SA_GET_PENDING_CONNECTIONS\",\n    \"SA_INSTALL_NET_OBSERVER\",\n    \"SA_MEDIA_SESSION_PLATFORMS\",\n    \"SA_NET_CAPTURE\",\n    \"SA_NET_OBSERVER_STATE\",\n    \"SA_OPEN_ACCOUNT_CENTER\",\n    \"SA_OPEN_OPTIONS\",\n    \"SA_PARSE_NET_CAPTURES\",\n    \"SA_REVOKE_PLATFORM_SESSION\",\n    \"SA_SYNC_ACCOUNT\",\n    \"SA_SYNC_ALL_ACCOUNTS\",\n    \"SA_VERIFY_PLATFORM_SESSION\",\n    \"SA_WEB_BRIDGE_ADOPT_TOKEN\",\n    \"SA_WEB_BRIDGE_STATUS\"\n  ],\n  \"message_types_sent\": [\n    \"SA_ACCOUNT_CONNECT\",\n    \"SA_CAPTURE_ACTIVE\",\n    \"SA_CONNECT_PLATFORM_SESSION\",\n    \"SA_CONTROL_SYNC_RUN\",\n    \"SA_DISCONNECT_ACCOUNT\",\n    \"SA_GET_NET_CAPTURES\",\n    \"SA_GET_PENDING_CONNECTIONS\",\n    \"SA_INSTALL_NET_OBSERVER\",\n    \"SA_MEDIA_SESSION_PLATFORMS\",\n    \"SA_NET_CAPTURE\",\n    \"SA_NET_OBSERVER_STATE\",\n    \"SA_OBSERVER_CONFIGURE\",\n    \"SA_OBSERVER_INSTALLED\",\n    \"SA_OBSERVER_READY\",\n    \"SA_OPEN_ACCOUNT_CENTER\",\n    \"SA_OPEN_OPTIONS\",\n    \"SA_PARSE_NET_CAPTURES\",\n    \"SA_PING\",\n    \"SA_RAW_RESPONSE\",\n    \"SA_REVOKE_PLATFORM_SESSION\",\n    \"SA_SYNC_ACCOUNT\",\n    \"SA_SYNC_ALL_ACCOUNTS\",\n    \"SA_VERIFY_PLATFORM_SESSION\",\n    \"SA_WEB_BRIDGE_ADOPT_TOKEN\",\n    \"SA_WEB_BRIDGE_STATUS\"\n  ],\n  \"message_types_sent_to_background\": [\n    \"SA_ACCOUNT_CONNECT\",\n    \"SA_CAPTURE_ACTIVE\",\n    \"SA_CONNECT_PLATFORM_SESSION\",\n    \"SA_CONTROL_SYNC_RUN\",\n    \"SA_DISCONNECT_ACCOUNT\",\n    \"SA_GET_NET_CAPTURES\",\n    \"SA_GET_PENDING_CONNECTIONS\",\n    \"SA_INSTALL_NET_OBSERVER\",\n    \"SA_MEDIA_SESSION_PLATFORMS\",\n    \"SA_NET_CAPTURE\",\n    \"SA_NET_OBSERVER_STATE\",\n    \"SA_OPEN_ACCOUNT_CENTER\",\n    \"SA_OPEN_OPTIONS\",\n    \"SA_PARSE_NET_CAPTURES\",\n    \"SA_REVOKE_PLATFORM_SESSION\",\n    \"SA_SYNC_ACCOUNT\",\n    \"SA_SYNC_ALL_ACCOUNTS\",\n    \"SA_VERIFY_PLATFORM_SESSION\",\n    \"SA_WEB_BRIDGE_ADOPT_TOKEN\",\n    \"SA_WEB_BRIDGE_STATUS\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"每个机制都有调得到它的路。\",\n  \"what_this_does_not_prove\": \"只看名字有没有被提到，不看那条路真的跑得通——那是演练的事。这道门只防最便宜也最常犯的那种：根本没接线。\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_every_drill_has_a_caller.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"drills_found\": [\n    \"bilibili_acquisition_drill.py\",\n    \"bilibili_end_to_end_drill.py\",\n    \"disaster_recovery_drill.py\",\n    \"extension_bridge_boundary_drill.py\",\n    \"extension_capture_buffer_drill.py\",\n    \"extension_capture_drill.py\",\n    \"extension_install_page_drill.py\",\n    \"extension_platform_wiring_drill.py\",\n    \"extension_routing_drill.py\",\n    \"extension_save_page_drill.py\",\n    \"extension_update_in_place_drill.py\",\n    \"forget_button_render_drill.py\",\n    \"from_zero_drill.py\",\n    \"list_shape_end_to_end_drill.py\",\n    \"popup_states_drill.py\",\n    \"production_reachability_drill.py\",\n    \"pwa_render_drill.py\",\n    \"real_platform_into_archive_drill.py\",\n    \"restore_private_database_drill.py\",\n    \"restore_runtime_db_drill.py\",\n    \"shipped_package_drill.py\",\n    \"stale_extension_is_blocked_drill.py\"\n  ],\n  \"registry\": \"docs/DRILLS.md\",\n  \"cadences\": {\n    \"shipped_package_drill.py\": \"每次发布\",\n    \"popup_states_drill.py\": \"每次发布\",\n    \"production_reachability_drill.py\": \"每次发布\",\n    \"extension_update_in_place_drill.py\": \"每次发布\",\n    \"stale_extension_is_blocked_drill.py\": \"每次发布\",\n    \"list_shape_end_to_end_drill.py\": \"改到那条路时\",\n    \"bilibili_end_to_end_drill.py\": \"改到那条路时\",\n    \"bilibili_acquisition_drill.py\": \"**每次发布**（run_all_drills）\",\n    \"extension_capture_drill.py\": \"改到那条路时\",\n    \"extension_capture_buffer_drill.py\": \"改到那条路时\",\n    \"extension_save_page_drill.py\": \"改到那条路时\",\n    \"extension_routing_drill.py\": \"改到那条路时\",\n    \"extension_platform_wiring_drill.py\": \"改到那条路时\",\n    \"extension_bridge_boundary_drill.py\": \"改到那条路时\",\n    \"extension_install_page_drill.py\": \"改到那条路时\",\n    \"pwa_render_drill.py\": \"改到那条路时\",\n    \"forget_button_render_drill.py\": \"**每次发布**（deploy 第 8.65 步）\",\n    \"from_zero_drill.py\": \"**每次发布**（deploy 第 8.68 步）\",\n    \"real_platform_into_archive_drill.py\": \"**每次发布**（deploy 第 8.55 步）\",\n    \"disaster_recovery_drill.py\": \"**每次发布**（deploy 第 8.69 步，**抽样 25 个制品**，起点按版本号环形挪）\",\n    \"restore_private_database_drill.py\": \"**每次发布**（deploy 第 8.69 步，实测 2 秒）\",\n    \"restore_runtime_db_drill.py\": \"**每次发布**（deploy 第 8.69 步，经 `check_the_backup_can_actually_be_restored.py`）\"\n  },\n  \"run_by_deploy\": [\n    \"bilibili_acquisition_drill.py\",\n    \"bilibili_end_to_end_drill.py\",\n    \"disaster_recovery_drill.py\",\n    \"extension_bridge_boundary_drill.py\",\n    \"extension_capture_buffer_drill.py\",\n    \"extension_capture_drill.py\",\n    \"extension_install_page_drill.py\",\n    \"extension_platform_wiring_drill.py\",\n    \"extension_routing_drill.py\",\n    \"extension_save_page_drill.py\",\n    \"extension_update_in_place_drill.py\",\n    \"forget_button_render_drill.py\",\n    \"from_zero_drill.py\",\n    \"list_shape_end_to_end_drill.py\",\n    \"popup_states_drill.py\",\n    \"production_reachability_drill.py\",\n    \"pwa_render_drill.py\",\n    \"real_platform_into_archive_drill.py\",\n    \"restore_private_database_drill.py\",\n    \"restore_runtime_db_drill.py\",\n    \"shipped_package_drill.py\",\n    \"stale_extension_is_blocked_drill.py\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"每个演练都有一条会触发它的路，或至少写清了什么时候跑。\",\n  \"what_this_does_not_prove\": \"不保证演练写得对，也不保证它最近跑过。只保证有一条路会触发它。\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_git_calls_cannot_be_hijacked_by_hooks.py"
+      ],
+      "exit_code": 0,
+      "stdout": "扫了 400 份 .py，其中 15 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/check_the_guide_matches_the_product.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"task\": \"G4\",\n  \"sync_period_minutes\": [\n    360\n  ],\n  \"sync_hours_stated_in_guide\": [\n    6\n  ],\n  \"backup_copies_confirmed_today\": 3,\n  \"backup_copies_stated_in_guide\": [\n    3\n  ],\n  \"guide\": \"docs/使用说明.md\",\n  \"buttons_checked\": 25,\n  \"claimed_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"product_auto\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"claimed_manual\": [\n    \"x\",\n    \"youtube\"\n  ],\n  \"problems\": [],\n  \"message_zh\": \"使用说明里写的每一步，产品里都真的有。\",\n  \"what_this_does_not_prove\": \"不检查步骤顺不顺、语气好不好，只保证说的每件事都存在。\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/build_guide_page.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout": "PASS：apps/pwa/guide.html 与使用说明一致。\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/find_hardcoded_platform_claims.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"surfaces_scanned\": 10,\n  \"allowed\": {\n    \"docs/使用说明.md\": \"有 check_the_guide_matches_the_product.py 逐项核对\"\n  },\n  \"hardcoded_claims\": [],\n  \"message_zh\": \"界面上没有写死的「哪些平台能干什么」。\",\n  \"what_this_does_not_prove\": \"只抓一句话里点名三个以上平台的。点名一两个的漏得掉——三个这个下限是为了避开正常举例（「比如小红书」），一条把举例也报红的门会被直接关掉。\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "scripts/validate_deployment_contract.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"status\": \"PASS\", \"scope\": \"local_deployment_contract\", \"checks\": [{\"name\": \"isolated_loopback_ports_declared\", \"status\": \"PASS\"}, {\"name\": \"core_api_loopback_only\", \"status\": \"PASS\"}, {\"name\": \"core_api_read_only\", \"status\": \"PASS\"}, {\"name\": \"tunnel_library_loopback\", \"status\": \"PASS\"}, {\"name\": \"tunnel_api_loopback\", \"status\": \"PASS\"}, {\"name\": \"tunnel_status_projection_loopback\", \"status\": \"PASS\"}, {\"name\": \"tunnel_status_existing_site_passthrough\", \"status\": \"PASS\"}, {\"name\": \"tunnel_default_404\", \"status\": \"PASS\"}, {\"name\": \"library_access_policy\", \"status\": \"PASS\"}, {\"name\": \"separate_api_host\", \"status\": \"PASS\"}, {\"name\": \"public_health\", \"status\": \"PASS\"}, {\"name\": \"edge_rate_limit_not_relaxed\", \"status\": \"PASS\"}, {\"name\": \"extension_token_is_revocable\", \"status\": \"PASS\"}, {\"name\": \"real_rule_evidence_not_source\", \"status\": \"PASS\"}, {\"name\": \"api_host_has_no_public_pairing_path\", \"status\": \"PASS\"}, {\"name\": \"library_url_declared\", \"status\": \"PASS\"}, {\"name\": \"api_url_declared\", \"status\": \"PASS\"}, {\"name\": \"status_under_data_root\", \"status\": \"PASS\"}, {\"name\": \"status_not_project_runtime\", \"status\": \"PASS\"}, {\"name\": \"status_server_loopback_only\", \"status\": \"PASS\"}, {\"name\": \"status_server_shared_health_path\", \"status\": \"PASS\"}, {\"name\": \"status_server_readonly_methods\", \"status\": \"PASS\"}, {\"name\": \"status_web_no_write_path\", \"status\": \"PASS\"}, {\"name\": \"status_web_reads_projection_only\", \"status\": \"PASS\"}, {\"name\": \"status_web_port_from_environment_file\", \"status\": \"PASS\"}]}\n",
       "stderr": ""
     }
   ]

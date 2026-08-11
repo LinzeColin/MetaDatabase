@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "sampled_artifacts": [
+    "art_00ca5e8cef67db2334329dcf088e15c0",
+    "art_00fbeb6793d229abee9ced0b9ec1cb68"
+  ],
+  "measured": {
+    "r2": {
+      "checked": 2,
+      "present": 2,
+      "codes": []
+    },
+    "oci": {
+      "checked": 2,
+      "present": 2,
+      "codes": []
+    },
+    "github": {
+      "checked": 2,
+      "present": 2,
+      "codes": []
+    },
+    "copies_confirmed_today": 3,
+    "restore_probe_artifact": "art_00ca5e8cef67db2334329dcf088e15c0",
+    "restore_verified": [
+      "r2",
+      "oci",
+      "github"
+    ],
+    "copies_really_restorable_today": 3
+  },
+  "problems": [],
+  "what_this_does_not_prove_zh": "抽样只答「这家存储今天够不够得着」，**答不了「每一个对象都还在」**；也不证明能还原出原文——那要 --verify-only（需要 age 私钥）。",
+  "boundary_zh": "只读；每家一次 HEAD / 一次列附件；不下载、不解密。"
+}

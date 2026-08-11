@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "task": "T11",
+  "slice": "S1",
+  "recorded_at": "2026-08-05T16:20Z",
+  "status": "BLOCKED",
+  "must_not_be_rewritten_as_pass": true,
+  "claim": "「直接写进本机 Obsidian 仓库」三层都断着；而浮动按钮没有关闭开关那条，已修。",
+  "how_i_got_here": {
+    "线索": "顺着「报了数字、却没存东西」那条线往下扫——先扫面向用户的成功断言，再扫走不到的分支。",
+    "第一个落点": "`captureActive` 的 `mode === \"list\"` 分支：四个调用方全传 page，那条分支和 `/v1/captures/batch` 今天走不到（已单独记在 T08）。",
+    "顺着同一个问题问下去": "还有哪些代码是靠一个永远不会变的开关挡着的？"
+  },
+  "what_is_actually_broken_in_the_local_obsidian_path": {
+    "第一层：开关打不开": "`obsidianLocalEnabled` / `obsidianLocalUrl` / `obsidianLocalToken` 在 shared.js 的 DEFAULT_CONFIG 里有默认值，在 background.js 里被读了六处，**全仓没有任何一处写它们**。于是 `exportLocalObsidian()` 第一行就 `return { status: \"not_selected\" }`。",
+    "第二层：就算打开了，服务端也不知道": "`exportLocalObsidian()` 把 Markdown PUT 进本机 Obsidian 之后返回 `{status:\"done\", path}`，**从不向 `/v1/destinations/obsidian-local/receipts` 回执**。那个端点在 api.py 里、有三条判据，却没有任何客户端会调它。",
+    "第三层：门的豁免理由是错的": "`find_endpoints_no_client_calls.py` 把那个端点登记为「**由桥自己 POST，不在仓内客户端里**」。而桥就在仓内（background.js），它只是不 POST。**一个写错了理由的豁免，比没有豁免更难被发现**——它读起来像是有人查过了。"
+  },
+  "the_one_i_did_fix": {
+    "缺陷": "`showFloatingButton` 默认 true，**全仓没有任何一处写它**。那颗「保存到我的档案馆」出现在每个已授权的平台页面上，而用户没有任何办法关掉。",
+    "为什么它比上面三条要紧": "上面三条是「功能没生效」，用户看不见也不受打扰；这一条是**一个关不掉的注入元素**。对一个明说自己没有技术基础的 Owner，「怎么让这个按钮消失」在界面上没有答案。",
+    "改法": "设置页加一节「页面上那颗按钮」+ 一个复选框，落到 `SA.setConfig({showFloatingButton})`。并且照实说「已经开着的页面刷新一次才会消失」——那颗按钮是加载时注入的，改设置不会让它当场消失。",
+    "真浏览器里点过一次": {
+      "怎么验的": "一次性 profile 的真 Chrome 装上扩展，打开设置页，**真点那个复选框**（走 change 事件，不是直接改配置）。",
+      "量到的": {
+        "复选框在页面上看得见（offsetParent 非空）": true,
+        "点之前 showFloatingButton": true,
+        "点之后": false
+      },
+      "所以": "开关不只是画出来了，**它真的把配置改掉了**。"
+    }
+  },
+  "the_new_checker": {
+    "文件": "scripts/find_extension_settings_with_no_way_to_set_them.py",
+    "它补的是哪一格": "已有三道门查「建好了没接上」，三道都看不见这一种：`find_settings_with_no_way_to_set_them.py` 只管 src/ 的环境变量；`find_write_only_storage_keys.py` 只管 saXxx 形状的键、而且查的是**写了没人读**（这里正相反）；`find_endpoints_no_client_calls.py` 只看路径字符串在不在。",
+    "两张表分得很开": "`SET_BY_MACHINE_NOT_BY_PEOPLE` 是「本来就不该有界面」（endpoint / token / libraryUrl——零门槛的整个意义就是它们不该由人填）；`KNOWN_NOT_WIRED_YET` 是「功能还没接上」，**是待办不是决定**。",
+    "登记过的照样印出来": "第二张表里的键不会被静默跳过，它们仍然出现在报告的 `declared_gaps` 里。**一个被登记之后就再也看不见的缺口，等于没登记**——这一天里已经因为「装饰性白名单」返工过一次。"
+  },
+  "what_this_does_not_prove": [
+    "**没有修好本机 Obsidian 那条路。** 三层里一层都没接：开关仍然打不开、回执仍然不发、豁免理由已改但功能没变。这份收据的作用是把它从「看不见」变成「看得见」。",
+    "检查器只往前推一格：**「有人写」不等于「用户点得到」**——写它的也可能是另一段走不到的代码。",
+    "浮动按钮那个开关**验到「配置被改掉」为止**。没有验「关掉之后那颗按钮在真实平台页面上真的不再出现」——那要一个已授权的真实平台页面，而 injectFabIfAuthorized 只在授权过的站点上跑。"
+  ]
+}

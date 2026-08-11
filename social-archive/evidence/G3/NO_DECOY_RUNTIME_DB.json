@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "host": "linze-vps3",
+  "measured": {
+    "real": "/var/lib/social-archive/runtime/social-archive.sqlite3",
+    "real_bytes": 5173248,
+    "same_name_files": [
+      {
+        "path": "/var/lib/social-archive/runtime/social-archive.sqlite3",
+        "bytes": 5173248
+      }
+    ]
+  },
+  "problems": [],
+  "boundary_zh": "只读、只数数：不打开任何一个库、不读任何一行内容。"
+}

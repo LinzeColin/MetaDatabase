@@ -19,15 +19,14 @@ CORE_LOOPBACK_PORT="$(core_loopback_port)"
 CORE_LOOPBACK_URL="http://127.0.0.1:${CORE_LOOPBACK_PORT}"
 docker network inspect social-archive-readers >/dev/null 2>&1 || docker network create social-archive-readers >/dev/null
 mkdir -p runtime/secrets
-PAIRING_CODE="$(.venv/bin/python scripts/generate_pairing_code.py --code-file runtime/secrets/social_archive_pairing_code --token-file runtime/secrets/social_archive_api_token --ttl-seconds 600)"
-# Compose file-backed secrets are bind-mounted by inode.  The pairing generator
-# atomically replaces its file, so a normal `up -d` can retain an old mount and
-# make the newly printed code unusable.  Recreate both non-root Core services
-# after each code refresh to attach the current Secret inode.
+.venv/bin/python scripts/ensure_api_token.py --token-file runtime/secrets/social_archive_api_token
+# Compose 的 file-backed secret 按 inode 绑定。令牌是幂等的（已存在就不动），
+# 但首次生成会换掉 inode，所以仍然强制重建两个非 root 的 Core 服务，
+# 让它们挂到当前这个 Secret 上。
 docker compose up -d --force-recreate core-api core-worker
 for _ in $(seq 1 30); do
   if curl -fsS "${CORE_LOOPBACK_URL}/health" >/dev/null 2>&1; then
-    printf 'Social Archive 已启动：%s\n浏览器插件一次性配对码：%s（10 分钟有效，最多 5 次尝试）\n' "$CORE_LOOPBACK_URL" "$PAIRING_CODE"
+    printf 'Social Archive 已启动：%s\n打开档案馆页面登录后，浏览器插件会自动接上，无需输入任何内容。\n' "$CORE_LOOPBACK_URL"
     exit 0
   fi
   sleep 1

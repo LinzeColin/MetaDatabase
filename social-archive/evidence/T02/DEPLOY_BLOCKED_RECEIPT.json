@@ -1,0 +1,154 @@
+{
+  "schema_version": "1.0",
+  "task": "T02",
+  "slice": "S1",
+  "recorded_at": "2026-08-04T13:00Z",
+  "status": "BLOCKED",
+  "must_not_be_rewritten_as_pass": true,
+  "note_this_is_the_second_block_not_the_first": {
+    "first_block": "凭据缺失（evidence/T02/CREDENTIAL_BLOCKED_RECEIPT.json）——**已解除**，两个 OAuth 应用已建并接进生产，见 LOGIN_RECEIPTS.json",
+    "this_block": "制品已就位但线上跑的还是旧镜像，真实登录无处可做"
+  },
+  "what_is_blocked": "Acceptance：Owner 在真实浏览器用 Google 与 GitHub 各登录成功一次；登出后受保护接口返回 401",
+  "why": "生产运行的是 social-archive/core:0.0.0.6 镜像，里面没有 auth 路由。本分支的 auth.py 只存在于代码里，没有上线。真实登录必须等新镜像部署——那是 T18。",
+  "measured_facts": {
+    "artifact_closed": true,
+    "tests": "31 条（tests/focused/test_auth_session.py），全过",
+    "credentials_provisioned": "四个 secret 已在 OVH 生产机 /opt/social-archive/runtime/secrets/，权限 0640、属主 uid 10001，字节数与预期长度一致",
+    "rollback_ready": ".env 有精确副本 /opt/social-archive/.env.pre-oauth-20260803T195929Z；两个 OAuth 应用可在各自后台删除",
+    "acceptance_result": "NOT_RUN"
+  },
+  "why_this_cannot_be_unblocked_by_more_work_here": "这不是缺代码，是缺一次部署。DAG 把部署放在 T18，而 T02 在 S1——任务包自身的排序造成 T02 的验收晚于它的位置。不改任务包、不改验收标准，如实记为 BLOCKED。",
+  "what_would_unblock_it": [
+    "T18 部署新镜像后，在干净浏览器各登录一次",
+    "把两行真实 oauth_identity subject 与一次 401 回执补进 evidence/T02/LOGIN_RECEIPTS.json"
+  ],
+  "owner_action_required": false,
+  "deployment_required": true,
+  "release_blocker_found_and_fixed_before_deploy": {
+    "found_during": "系统性排查「硬编码清单会不会跟不上新增项」——租户审计、脱敏扫描面、回滚校验已经各栽过一次，这是第四处。",
+    "what_was_wrong": "T02 的 OAuth 与 T05 的凭据托管都读 /run/secrets 下的文件，.env 里也写了对应的 *_FILE 变量，**看起来配好了**；但 compose.yaml 的 core-api.secrets 一个都没加。",
+    "why_it_would_have_bitten_exactly_at_T18": "start.sh 每次都跑 docker compose up -d --force-recreate core-api。重建后容器里根本没有那些文件——登录 503、已托管 Cookie 解不开，而 .env 看着完全正常。上一轮那四个 secret 是用 ssh 手工放到宿主机的，宿主机上有、容器里没有。",
+    "fixed": {
+      "compose_yaml": "新增 google_oauth_client_secret / github_oauth_client_secret / credential_age_identity 三个 secret 定义，并挂进 core-api",
+      "env_example": "写明三个 *_FILE 路径，并注明 client_id 可留 .env、secret 只走文件",
+      "prepare_systemd_host": "三个文件加入必需 secret 列表，走同一套属主与权限"
+    },
+    "a_design_flaw_fixed_at_the_same_time": {
+      "what": "T05 的 CredentialVault 原本复用**备份用的** age 私钥（settings.age_identity_file）。",
+      "why_that_was_wrong": "encryption.py 明写备份私钥「仅在明确的恢复演练时读取」，因此它留在宿主机、不进容器。而凭据解密要求私钥常驻在一个 24 小时联网的 Core 里。用同一把，等于 Core 一旦被攻破，攻击者拿到的不只是当前凭据，而是**全部历史备份**。",
+      "my_own_comment_had_said_so": "T05 里我写过「刻意不复用 AgeEncryptor…混在一起会让『备份通道只有公钥』这条性质悄悄失效」——分了类，却仍共用同一个 identity 设置。分了一半。",
+      "now": "独立的 credential_age_recipient / credential_age_identity_file；**不回退**到备份那对（没配就是 503，不静默降级）。compose 只挂凭据那把，备份私钥仍不进容器。"
+    },
+    "guards": {
+      "file": "tests/focused/test_secret_provisioning_covers_what_the_app_reads.py（5 条）",
+      "what": "代码里每一个 *_FILE 设置都必须在 compose 的 core-api secrets 里有对应项，或在 EXEMPT 里写明豁免理由；另有判据禁止备份私钥被挂进 Core、禁止凭据金库回退到备份密钥。",
+      "positive_control": "把 google 那条从 compose 拿掉，判据立刻变红；放回即绿。",
+      "my_matcher_was_wrong_first": "第一版按子串比对，把 google_client_secret↔google_oauth_client_secret、karakeep_token↔karakeep_api_token 判成缺失（中间多了一个词）。改成按词包含。**本会话第五次「检查器错、产品对」。**"
+    },
+    "still_blocked": "本项修的是「部署时会缺东西」，不解除 T02 的阻塞——真实登录仍要等新镜像上线（T18）。但现在上线时不会再撞上这个 503。",
+    "owner_action_added": "T18 部署前，宿主机 runtime/secrets/ 下需要新增一个 credential_age_identity（age-keygen 生成的独立密钥对），并把公钥填进 SOCIAL_ARCHIVE_CREDENTIAL_AGE_RECIPIENT。两个 OAuth secret 上一轮已就位。"
+  },
+  "blocked_reason_verified_against_production": {
+    "measured_at": "2026-08-04T16:20Z",
+    "GET /v1/auth/providers on production": 404,
+    "running_image": "social-archive/core:0.0.0.6 (healthy, up 12h)",
+    "verdict": "BLOCKED 的理由已实测坐实，不是托词。见 evidence/PRODUCTION_STATE_VERIFIED.json"
+  },
+  "retested_locally_and_the_blocker_moved": {
+    "recorded_at": "2026-08-04T20:45Z",
+    "why_retested": "T04 打通了「扩展装进受控浏览器」这条路之后，T02 先前记的阻塞理由（要等新镜像上线）需要重核——本地实例其实就有 auth 路由。",
+    "what_now_works_locally": {
+      "providers 端点": "github configured=true（用 Owner 给的 client_id 与 secret，只在本机一次性实例里）",
+      "start 端点": "产出格式正确的授权 URL；state cookie 是 HttpOnly / Max-Age=600 / Path=/v1/auth / SameSite=lax —— CSRF 卫生齐备",
+      "会话→受保护接口": "带会话 /v1/auth/me 200（user=Owner, is_owner=true）、/v1/credentials 200",
+      "登出→401": "**Acceptance 的后半句在本地实测通过**：登出后两个端点都 401，提示是中文「请先登录你的档案馆。」"
+    },
+    "an_assumption_of_mine_was_wrong": {
+      "i_had_assumed": "OAuth 应用注册的回调是生产域名，本地 redirect_uri 对不上，所以本地登录走不通。",
+      "measured": "把授权 URL 在受控浏览器里打开，GitHub **没有拒绝**，而是显示「Sign in to GitHub to continue to **Social Archive**」——它认得这个应用，只是要求登录。",
+      "so": "阻塞点不是技术上的 redirect_uri 不匹配（至少在登录前这一步不是），而是**下一步需要 Owner 的 GitHub 密码**。"
+    },
+    "what_i_will_not_do": "不在任何密码框里输入内容。这是硬规矩，与能不能做无关。已离开该登录页，全程未与密码框交互。",
+    "the_remaining_step_is_now_precise": "Owner 在那个一次性 Chrome 窗口里用自己的 GitHub 账号登录一次。之后能不能走完还取决于 GitHub 在授权阶段对 redirect_uri 的校验——那一步没试过，不预判。",
+    "still_blocked_but_for_a_different_reason": "先前记的是「等 T18 部署」。现在更准确：**本地就能验的部分已经验完，剩下的那步需要 Owner 亲自输入凭据**。部署路径仍然可用，只是不再是唯一路径。",
+    "half_of_acceptance_is_now_measured": "「登出后受保护接口拒绝访问」——PASS（本地实服务端）。「用两个 provider 各登录成功一次」——仍 NOT_RUN。"
+  },
+  "the_disk_gate_was_measuring_with_a_rounding_bug": {
+    "measured_at": "2026-08-05",
+    "缺陷": "这道门用 `df -BG --output=avail` 取整数 G，而 **-BG 是向上取整**。生产真实可用 4.84G 时它读到 5G，于是「至少 5G」的门当场放行。最坏情况虚报接近 1G——4.01G 也会被报成 5G。",
+    "为什么这个方向特别糟": "虚报的方向恰好是不安全那一侧。这道门存在的理由是「盘紧的时候别再往上叠一个 1GB 的镜像」，而它偏偏在最紧的时候才开始说谎。",
+    "对着生产同时跑了两种量法": {
+      "真实可用": "4.84G",
+      "旧量法（df -BG）": "读到 5G → **放行**",
+      "新量法（df -k 精确比较）": "5,077,xxx KB < 5,242,880 KB → **拦下**"
+    },
+    "改法": "两处测点都改成用 KB 量、按 KB 比较，并把精确值印到两位小数。门槛仍是 5G，一个字没动——**这次修的是尺子，不是刻度**。",
+    "它对我自己不方便，而这正是它可信的地方": "我发现它的时候，正想用它放行一次部署（生产上的扩展缺少 libraryUrl 同源判定）。**修好之后那次部署当场被自己拦住了。** 一道只在对自己有利时才准的门不是门。"
+  },
+  "what_is_actually_still_blocking_the_security_fix": {
+    "缺陷": "生产上的 background.js 收下页面下发的 libraryUrl **不校验同源**，「打开档案馆」那颗按钮能被指到别处。本地已修（同源才收），未部署。",
+    "射程（实测 manifest，不是估计）": "桥只跑在 https://social-archive.linzezhang.com/*、http://127.0.0.1:8765/*、http://localhost:8765/*，且没有 externally_connectable。**任意网站打不到它**——要利用得先在档案馆那个源上执行脚本（XSS），或者在本机占住 8765 端口。",
+    "所以定级": "真缺陷、纵深防御那一层，**不是远程可利用**。不值得为它在半夜删掉别人项目的数据，也不值得靠一个取整缺陷放行。",
+    "为什么没随上一次部署上去": "没有神秘原因：主机上的 apps/browser-extension/background.js 时间戳是 2026-08-04 21:40，修复是 08-05 做的。四小时前那次构建带上去的是 08-04 的源码。镜像里的 ZIP 是构建时用镜像内源码现打的（Dockerfile `RUN build_extension_package.py`），所以源码没上去、ZIP 就是旧的。",
+    "证据": {
+      "生产下发的 ZIP": "sha256 9a4b30be0cee29fcea4f330383dddb88bc278a3c7446859ed8b8b88cbd1a2463",
+      "里面有没有同源判定": "没有（`new URL(offered).origin` 不在 background.js 里）",
+      "主机源码": "同样没有"
+    }
+  },
+  "it_was_unblocked_later_on_2026_08_05": {
+    "status_stays_blocked_on_purpose": "**这份收据的 status 仍然是 BLOCKED，自锁标记也没动。** 那天它确实被拦住了，后来解开不等于当时没被拦——把历史收据改写成 PASS，就再也看不出这道门拦过谁。",
+    "怎么解开的": "把实测摆给 Owner 让他定：我们自己的东西一点都不剩（两个镜像都在跑、数据 196M、Docker 报可回收 0B），剩下的大块全是同机别的项目的。他选了删过期的 trivy 扫描缓存。",
+    "删之前先看了目标": "/srv/linze/.trivycache 里只有 trivy 自己的漏洞库：trivy.db 1.19G、trivy-java.db 1.48G、fanal.db 8M，外加两个 metadata.json。**没有一个非缓存文件**，最后改动停在 2026-07-19。都是从上游下载的，下次扫描自己会补回来。",
+    "可用空间": "4.84G → 7.31G",
+    "然后部署一次通过": {
+      "九道门全绿": "含磁盘（7.30G）、密钥不变量前后逐字节一致、鉴权路由 200、下载页下发的包与刚部署的逐字节一致、仓=主机=镜像 145 个文件三份一致",
+      "回滚点": "重新钉住了 109de20b58c366——此前那个被我删掉之后一直空着",
+      "安全缺陷已上线修复": "生产下发的扩展从 9a4b30be… 变成 a0894d16…，background.js 里 `new URL(offered).origin === new URL(endpoint).origin` 在场。"
+    }
+  },
+  "the_real_cause_was_us_and_it_is_fixed_now": {
+    "真正的成因": "**每成功部署一次，就有一个 1GB 的旧镜像变成悬空。** `:rollback` 只留一层（设计如此），这一次的部署把上一次的回滚点顶掉，那个镜像随即没人认领。而回收原来只写在「磁盘不够」那条路上——**于是它一直攒到把门顶住为止**。",
+    "实测的攒法": "7.31G → 部署一次 → 5.19G。两次就顶到 5G 门槛。",
+    "所以那天那次「要不要删别人的缓存」": "是我们自己攒出来的。**该收的是我们每次留下的这一个**，不是同机别的项目的东西。",
+    "改法": "部署成功、三份一致核完之后加第 10 步：收掉带 com.socialarchive.project 标签且已悬空的镜像。只收我们自己的——这台机器还跑着 memory-atlas / gatus / coolify。",
+    "真跑过一次": {
+      "构建前": "6.53G",
+      "收完之后": "6.45G",
+      "回收了": "1 个",
+      "**一次部署的净开销从约 2G 降到 0.08G**": true,
+      "收完还剩几个我们的悬空镜像": 0
+    },
+    "顺带抓出的另一条": "新判据「凡是拿 dangling 列表去删的，同一条命令里必须有我们自己的标签」第一次跑就红了，红在**磁盘不足时打印给人看的那条建议**——它是 `for id in $(docker images -f dangling=true -q); do docker rmi $id; done`，**会把别人的悬空镜像一起删掉，而那对他们可能正是回滚点**。同一段话里还写着「任何情况下都不要用 docker system prune（这台机器还跑着别人的项目）」：知道风险，却把同一类伤害的命令递了出去。已改成逐个确认再单独 rmi，并且**故意不把那条一锅端的命令写出来**——报错信息里的命令是会被照抄的。",
+    "**「净开销 0.08G」那句话说早了**": {
+      "当时量的": "第一次跑第 10 步：6.53G → 6.45G，净 0.08G。",
+      "再跑一次是 0.62G": "6.49G → 5.87G。同样回收了 1 个镜像。",
+      "差在哪": "**构建缓存**。同一天里它从 2.886GB 涨到 3.817GB，其中 931MB 是可回收的。镜像那部分我修掉了（每次留下的那个孤儿现在自己收），**而构建缓存仍然每次都涨**。",
+      "为什么不顺手也收了": "`docker builder prune` 是全机共享的——它会拖慢同机别的项目（memory-atlas / gatus / coolify）的构建。部署脚本自己那段话就写着「**由人决定**」，我不改这条。",
+      "所以现在的准确说法": "**大头（每次一个 1GB 的孤儿镜像）已经不再攒了；构建缓存还在攒。**以每次几百 MB 计，离 5G 门槛还有很多次部署的余量，但它不是零，也不该被说成已经解决。",
+      "什么时候需要人来定": "构建缓存把可用空间压到接近门槛时——那时门会拦下部署并把这张表打出来。"
+    }
+  },
+  "2026_08_06_it_is_under_the_gate_again_and_this_time_it_is_not_us": {
+    "现在": "可用 4.89G，门槛 5G。**下一次部署会被拦。**（这一刻没有待部署的东西，所以不是当下的阻塞。）",
+    "我们自己的部分是干净的": {
+      "带我们标签的悬空镜像": "0 个——第 10 步那个自动回收在起作用，每次部署都收掉上一个",
+      "我们的容器": "`docker ps -a --size` 排前八名里**一个都没有**（前八名最小的那个才 106kB，我们连它都不到）",
+      "留着的": "core:0.0.0.7（在跑）、cli-tools:0.0.0.7（在跑）、:rollback（一层回滚点，设计如此）"
+    },
+    "现在占地方的是": {
+      "构建缓存 3.818GB": "其中 **931MB 可回收**。`docker builder prune` 是**全机共享**的，会拖慢同机别的项目的构建——部署脚本自己那段话写着「由人决定」。",
+      "别的项目一个容器 1.19GB": "`skills-gz5qao2k0zrx3polpbwgcg51-…` 的可写层，从早先的 362MB（全部容器合计）涨到现在 1.489GB。**不是我们的。**"
+    },
+    "和 08-05 那次的区别": "上一次是**我们自己攒的**（每次部署留一个 1GB 孤儿镜像），所以修法在我们这边、也确实修掉了。**这一次不是。** 我们这边已经没有可收的了。",
+    "所以下一次要部署时": "要么由 Owner 裁定清共享的构建缓存（931MB 可回收），要么他去看那个 1.19GB 的容器是怎么回事。**两条都不该我替他定。**",
+    "**几小时后它自己好了，我先前那句「下次部署会被拦」说早了**": {
+      "再量": "6.59G——**没人做任何事**，它自己回来了。",
+      "变的是什么": "别的项目那个容器的可写层从 1.19GB 掉回去了（容器合计 1.489GB → 305.7MB）；构建缓存 3.818GB → 2.886GB，可回收从 931MB 变成 0B。",
+      "所以那次的性质是": "**别的项目一次临时占用**，不是趋势。我当时报的数字是真的，但「下次部署会被拦」这个推论说早了——它假定了那个占用会留着。",
+      "教训": "**盘的读数是一个时刻的值，不是一条趋势。** 拿一次读数去预告下一次会怎样，就是把快照当成了走向。下次再报，要么多量几次，要么就只说此刻。",
+      "这次部署": "6.59G 进门、回收 1 个自己的悬空镜像、5.98G 出门，九道门全绿。"
+    }
+  }
+}

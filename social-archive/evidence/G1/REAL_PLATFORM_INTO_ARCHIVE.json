@@ -1,0 +1,67 @@
+{
+  "status": "PASS",
+  "platform": "bilibili",
+  "his_library_before": 193,
+  "his_library_after": 193,
+  "folder_title": "B站 × WAIC AI会客厅",
+  "items_read_from_the_real_platform": 5,
+  "steps": [
+    {
+      "step": "从 B 站**真接口**读到公开收藏夹",
+      "measured": {
+        "ok": true,
+        "declared": 10,
+        "read": 5,
+        "folder_title": "B站 × WAIC AI会客厅",
+        "error": null
+      },
+      "expected": "读到 ≥1 条（不带登录态）",
+      "ok": true
+    },
+    {
+      "step": "每条都是能在浏览器里打开的网址",
+      "measured": "5/5",
+      "expected": "全部是 https://www.bilibili.com/video/BV…",
+      "ok": true
+    },
+    {
+      "step": "一次性档案馆起来了，报的是刚部署那一版",
+      "measured": "0.0.0.59",
+      "expected": "= 0.0.0.59",
+      "ok": true
+    },
+    {
+      "step": "它一开始是空的",
+      "measured": 0,
+      "expected": "0 条",
+      "ok": true
+    },
+    {
+      "step": "真条目送进档案馆",
+      "measured": {
+        "saved": 5,
+        "errors": []
+      },
+      "expected": "5 条全进去",
+      "ok": true
+    },
+    {
+      "step": "库里读得回来，且标题就是 B 站上那几条",
+      "measured": {
+        "total": 5,
+        "missing_titles": []
+      },
+      "expected": "5 条、标题一条不缺",
+      "ok": true
+    },
+    {
+      "step": "作者也跟着进来了",
+      "measured": "5/5",
+      "expected": "每条都有作者（B 站那头给得出）",
+      "ok": true
+    }
+  ],
+  "problems": [],
+  "boundary_zh": "档案馆起在生产机上的一次性容器里（容器内 tmpfs，跑完就删）——**他的库一个字节没动**；读的是 B 站**公开**收藏夹，不带登录态、不粘 Cookie。",
+  "what_this_does_not_prove": "只证明 bilibili 这一个平台。其余平台的收藏夹要登录态才看得见，那只能发生在 Owner 自己的浏览器里——这个演练答不了那一维。"
+}

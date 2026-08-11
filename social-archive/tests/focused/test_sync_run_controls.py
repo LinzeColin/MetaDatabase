@@ -56,21 +56,31 @@ def test_retry_is_limited_to_retryable_terminal_states(settings, store, service)
 
 
 def test_extension_and_pwa_expose_cooperative_sync_controls():
+    """v0.0.0.7 / T03(a)：删掉了打在 content script 上的两条断言。
+
+    原先暂停有两条路同时生效：广播 SA_MIRROR_CONTROL 让抓取器中途停下，
+    以及编排层每一轮查 stopStateFor。抓取器删掉之后第一条没有接收方了，
+    broadcastMirrorControl 随之删除——**留着它会让"暂停已下发"看着成立而实际没发生**。
+
+    第二条才是真正生效的那条，而且它更可靠（不依赖页面里有没有活着的脚本）。
+    本文件前两个测试打在服务端 store 上，实测暂停/恢复/取消仍然完整。
+    """
     background = (EXT / "background.js").read_text(encoding="utf-8")
     bridge = (EXT / "bridge.js").read_text(encoding="utf-8")
-    content = (EXT / "content/account-mirror.js").read_text(encoding="utf-8")
     sidepanel = (EXT / "sidepanel.js").read_text(encoding="utf-8")
     sidepanel_html = (EXT / "sidepanel.html").read_text(encoding="utf-8")
     pwa = PWA.read_text(encoding="utf-8")
 
+    # SA_GET_SYNC_CONTROL_STATE 从这张表里去掉了：它是一条**没有任何发送方**的
+    # 消息（find_messages_with_only_one_end 抓到），已随其处理体一并删除。
+    # 这里断言的是暂停/取消真正生效的那条路——编排层每一轮自己查 stopStateFor()，
+    # 那条不依赖任何消息，也就不受影响。
     for token in (
         "SYNC_CONTROL_KEY", "controlSyncRun", "removeQueuedSync",
-        "broadcastMirrorControl", "SA_GET_SYNC_CONTROL_STATE",
+        "stopStateFor",
     ):
         assert token in background
     assert 'message.type === "SA_CONTROL_SYNC_RUN"' in bridge
-    assert 'message?.type === "SA_MIRROR_CONTROL"' in content
-    assert "readScanControl" in content
     assert 'postToExtension("SA_CONTROL_SYNC_RUN"' in pwa
     assert 'type: "SA_CONTROL_SYNC_RUN"' in sidepanel
     for css_class in ('class="pause"', 'class="resume"', 'class="cancel"'):
@@ -79,11 +89,13 @@ def test_extension_and_pwa_expose_cooperative_sync_controls():
 
 def test_pause_and_cancel_are_not_just_visual_labels():
     background = (EXT / "background.js").read_text(encoding="utf-8")
-    content = (EXT / "content/account-mirror.js").read_text(encoding="utf-8")
     assert 'await SA.api(`/v1/sync-runs/${encodeURIComponent(syncRunId)}/control`' in background
     assert 'await removeQueuedSync({ syncRunId, accountId: effectiveAccountId })' in background
-    assert 'return controlledResult(platform, relationType, control)' in content
     assert 'if (relationResult?.controlled) break' in background
+    # 抓取器那条广播删掉之后，编排层的轮询就是唯一生效路径——它必须真的在每一轮里被查。
+    assert "const control = await stopStateFor(syncRunId);" in background
+    assert 'if (run?.status === "paused") return "pause";' in background
+    assert 'if (run?.status === "cancelled") return "cancel";' in background
 
 
 def test_abandoned_browser_sync_runs_are_reaped_instead_of_showing_syncing_forever(store):
