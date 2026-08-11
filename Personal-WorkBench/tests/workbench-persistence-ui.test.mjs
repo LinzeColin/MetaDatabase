@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const lifecycleSource = "app/_components/workbench/lifestyle-pages-client.tsx";
+const pageSource = "app/page.tsx";
 const resourceSource = "app/_components/workbench/tenant-resource-client.tsx";
 const todoSource = "app/_components/workbench/todo-page-client.tsx";
 
@@ -59,6 +60,51 @@ test("habit controls distinguish an on-device check-in from a cloud-synced check
   assert.match(source, /已完成\$\{card\.label\}打卡，历史记录已同步。/);
   assert.match(source, /已完成\$\{card\.label\}打卡，记录已保存在当前设备。/);
   assert.match(source, /saveFeedback\(/);
+});
+
+test("normal menu routes keep every user-audited lifecycle control bound to a state change or record write", async () => {
+  const [source, page] = await Promise.all([
+    readFile(lifecycleSource, "utf8"),
+    readFile(pageSource, "utf8"),
+  ]);
+
+  assert.match(page, /const reference = typeof params\.reference === "string" && referenceRoutes\.has\(params\.reference\);/);
+  assert.match(page, /const requestedRoute = reference \? params\.reference! : params\.view;/);
+  for (const label of ["早起", "阅读", "运动", "喝水", "早睡"]) {
+    assert.match(page, new RegExp(`label: "${label}"`), label);
+  }
+
+  assert.match(source, /onClick=\{\(\) => void toggleHabit\(card, index\)\}/);
+  assert.match(source, /const saved = await checkins\.create\(\{ habitId: habit\.id, localDate: today \}\);/);
+
+  assert.match(source, /onClick=\{\(\) => chooseType\("expense"\)\}/);
+  assert.match(source, /onClick=\{\(\) => chooseType\("income"\)\}/);
+  assert.match(source, /onClick=\{\(\) => void addRecord\(\)\}/);
+  assert.match(source, /const saved = await ledger\.create\(\{/);
+
+  for (const module of ["exercise", "weight", "food"]) {
+    assert.match(source, new RegExp(`onClick=\\{\\(\\) => selectModule\\("${module}"\\)\\}`), module);
+  }
+  assert.match(source, /onClick=\{openPhotoPicker\}/);
+  assert.match(source, /photoInputRef\.current\?\.click\(\);/);
+  assert.match(source, /onClick=\{\(\) => void addFoodRecord\(\)\}/);
+  assert.match(source, /const saved = await foodRecords\.create\(\{/);
+  assert.match(source, /onClick=\{\(\) => void addExerciseRecord\(\)\}/);
+  assert.match(source, /const saved = await exerciseRecords\.create\(\{/);
+  assert.match(source, /onClick=\{\(\) => void addWeightRecord\(\)\}/);
+  assert.match(source, /const saved = await weightRecords\.create\(\{/);
+
+  assert.match(source, /onClick=\{\(\) => void addPeriodRecord\(\)\}/);
+  assert.match(source, /const saved = await periods\.create\(/);
+
+  assert.match(source, /onClick=\{\(\) => void action\(\)\}/);
+  assert.match(source, /const action = route === "schedule"/);
+  assert.match(source, /const saved = await schedule\.create\(\{/);
+  assert.match(source, /const saved = await anniversaries\.create\(\{/);
+  assert.match(source, /const saved = await diary\.create\(\{/);
+  assert.match(source, /const saved = await savingsGoals\.create\(\{/);
+  assert.match(source, /onClick=\{\(\) => void submitSavingsTransaction\(\)\}/);
+  assert.match(source, /const saved = await savingsTransactions\.create\(\{/);
 });
 
 test("period record control immediately acknowledges pending and failed saves", async () => {

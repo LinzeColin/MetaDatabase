@@ -150,6 +150,7 @@ test("Version 33 S5-T3 private deployment and rollback evidence does not overcla
   assert.equal(evidence.current_local_contract_revalidation.privacy_consent_contract, "PASS_LOCAL_CONTRACT");
   assert.equal(evidence.current_local_contract_revalidation.api_and_storage_binding_contract, "PASS_LOCAL_CONTRACT");
   assert.equal(evidence.current_local_contract_revalidation.primary_menu_and_workbench_regression, "PASS_LOCAL_CONTRACT");
+  assert.equal(evidence.current_local_contract_revalidation.user_audited_interaction_bindings, "PASS_LOCAL_UI_BINDING_CONTRACT");
   assert.equal(evidence.current_local_contract_revalidation.current_production_browser_e2e, "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR");
   assert.equal(evidence.change_boundary.public_audience_changed, false);
   assert.equal(evidence.change_boundary.github_uploaded, false);
