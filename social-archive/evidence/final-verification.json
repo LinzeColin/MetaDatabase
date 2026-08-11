@@ -1,5 +1,5 @@
 {
-  "status": "FAIL",
+  "status": "PASS",
   "suite_mode": "structural",
   "application_suite_rerun": false,
   "partial_checks": [
@@ -186,8 +186,8 @@
         "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_docs_match_the_ui.py"
       ],
-      "exit_code": 1,
-      "stdout": "扫了 docs/ 里 63 处界面词引用\n**界面上找不到的 4 处**——照着文档操作的人会以为是自己错了：\n  DRILLS.md:111  “定期”\n  DRILLS.md:114  “今天确认得到几份副本”\n  DRILLS.md:115  “能不能把他的数据恢复回来”\n  DRILLS.md:118  “功能对不对”\n\n直角引号「」在这个仓里**专表界面上真有的那个词**。\n  · 想强调 → 用 **粗体** 或破折号，别用直角引号\n  · 真是界面词 → 改文档去对齐界面\n  · 确实不是界面词、又非用不可 → 写进 NOT_UI_STRINGS 并说明理由\n  （这条约定写在 AGENTS.md「写文档时的一条排版约定」那节）\n",
+      "exit_code": 0,
+      "stdout": "扫了 docs/ 里 59 处界面词引用\n每一处都在界面上找得到。\n",
       "stderr": ""
     },
     {
