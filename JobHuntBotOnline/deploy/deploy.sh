@@ -71,7 +71,7 @@ if [[ -n "${V02_SQLITE_PATH:-}" ]]; then
       "${platform_arg[@]}" --output /app/evidence/migration-result.json
 else
   cat > evidence/migration-result.json <<'EOF'
-{"verdict":"PASS","mode":"fresh_schema_or_previously_migrated","production_claimed":true,"secret_values_printed":false}
+{"verdict":"PASS","mode":"fresh_schema_or_previously_migrated","production_claimed":false,"completion_authority":"root ACCEPTANCE_RESULT.json only","secret_values_printed":false}
 EOF
 fi
 

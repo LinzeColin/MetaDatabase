@@ -55,7 +55,7 @@ def main() -> int:
         except (OSError, URLError) as exc:
             checks.append({"name":"STATUS_URL","status":"FAIL","error_type":type(exc).__name__})
     verdict='PASS' if checks and all(x['status']=='PASS' for x in checks) else 'BLOCKED'
-    result={"verdict":verdict,"critical":False,"checks":checks,"secret_values_read":False,"production_claimed":verdict == "PASS"}
+    result={"verdict":verdict,"critical":False,"checks":checks,"secret_values_read":False,"production_claimed":False,"completion_authority":"root ACCEPTANCE_RESULT.json only"}
     out=Path(args.output); out=out if out.is_absolute() else ROOT/out; out.parent.mkdir(parents=True,exist_ok=True); out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     print(json.dumps(result,ensure_ascii=False,indent=2)); return 0
 if __name__=='__main__': raise SystemExit(main())

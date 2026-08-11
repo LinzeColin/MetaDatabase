@@ -126,7 +126,14 @@ def test_finalizer_requires_every_critical_evidence(tmp_path):
         "--deployment-id", "image-id", "--rollback-target", "previous-image",
     ]
     assert subprocess.run(cmd, cwd=ROOT).returncode == 0
-    assert json.loads(output.read_text())["core_verdict"] == "PASS"
+    result = json.loads(output.read_text())
+    assert result["core_verdict"] == "PASS"
+    assert result["production_claimed"] is False
+    assert result["completion_authority"] == "root ACCEPTANCE_RESULT.json on the production target only"
+    (evidence / "target-browser.json").write_text('{"verdict":"PASS","production_claimed":true}\n', encoding="utf-8")
+    assert subprocess.run(cmd, cwd=ROOT).returncode == 1
+    assert json.loads(output.read_text())["core_verdict"] == "BLOCKED"
+    (evidence / "target-browser.json").write_text('{"verdict":"PASS"}\n', encoding="utf-8")
     (evidence / "target-deepseek.json").unlink()
     assert subprocess.run(cmd, cwd=ROOT).returncode == 1
     assert json.loads(output.read_text())["core_verdict"] == "BLOCKED"
@@ -363,6 +370,33 @@ def test_ops_probe_requires_pass_verdict_inside_configured_evidence(tmp_path):
     assert result["production_claimed"] is False
 
 
+def test_ops_probe_all_pass_does_not_claim_production(tmp_path):
+    output = tmp_path / "target-ops.json"
+    evidence_paths = []
+    for name in ["status", "private-db", "r2"]:
+        path = tmp_path / f"{name}.json"
+        path.write_text('{"verdict":"PASS"}\n', encoding="utf-8")
+        evidence_paths.append(path)
+    env = {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "STATUS_REGISTRATION_EVIDENCE": str(evidence_paths[0]),
+        "PRIVATE_DATABASE_SYNC_EVIDENCE": str(evidence_paths[1]),
+        "R2_SYNC_EVIDENCE": str(evidence_paths[2]),
+    }
+    completed = subprocess.run(
+        [sys.executable, str(ROOT / "tools/ops_probe.py"), "--output", str(output)],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    assert completed.returncode == 0, completed.stderr
+    result = json.loads(output.read_text(encoding="utf-8"))
+    assert result["verdict"] == "PASS"
+    assert result["production_claimed"] is False
+    assert result["completion_authority"] == "root ACCEPTANCE_RESULT.json only"
+
+
 def test_production_state_probe_checks_exact_six_hours(tmp_path):
     db_path = tmp_path / "state.db"
     engine = make_engine(f"sqlite+pysqlite:///{db_path}")
@@ -402,7 +436,8 @@ def test_production_state_probe_checks_exact_six_hours(tmp_path):
     assert result.returncode == 0
     payload = json.loads(output.read_text())
     assert payload["verdict"] == "PASS"
-    assert payload["production_claimed"] is True
+    assert payload["production_claimed"] is False
+    assert payload["completion_authority"] == "root ACCEPTANCE_RESULT.json only"
     assert payload["completed_refresh_intervals_checked"] == 1
 
     failed_output = tmp_path / "probe-failed.json"

@@ -617,7 +617,11 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
         return {
             "verdict": "PASS",
             "scope": "real HTTPS, real SMTP/IMAP, real background discovery, two synthetic tenants and Chromium",
-            "production_claimed": True,
+            # This is a critical component of the acceptance, not the final
+            # production verdict.  finalize_acceptance.py alone may make that
+            # claim after it has checked every required evidence file.
+            "production_claimed": False,
+            "completion_authority": "root ACCEPTANCE_RESULT.json only",
             "base_url": base_url,
             "refresh_interval_hours": 6,
             "steps": steps,

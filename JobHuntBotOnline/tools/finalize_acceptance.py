@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +29,8 @@ def verdict_of(path: Path, *, accepted: set[str] | None = None) -> tuple[str, st
     payload = load(path)
     if payload is None:
         return "BLOCKED", "missing or invalid evidence"
+    if payload.get("production_claimed", False) is not False:
+        return "BLOCKED", "non-root evidence improperly claims production"
     value = str(payload.get("verdict") or payload.get("core_verdict") or "UNKNOWN").upper()
     if value in accepted:
         return "PASS", value
@@ -95,12 +98,23 @@ def main() -> int:
     overall = "PASS" if not critical_bad and ops["verdict"] == "PASS" else (
         "PASS_WITH_RISKS" if not critical_bad else "BLOCKED"
     )
+    output = Path(args.output)
+    if not output.is_absolute():
+        output = ROOT / output
+    is_root_result = output.resolve() == (ROOT / "ACCEPTANCE_RESULT.json").resolve()
+    is_production_environment = os.getenv("APP_ENV", "").strip().lower() == "production"
+    production_claimed = (
+        overall in {"PASS", "PASS_WITH_RISKS"}
+        and is_root_result
+        and is_production_environment
+    )
     result = {
         "product": "JobHuntBot Online",
         "product_version": "0.3.0",
         "core_verdict": "PASS" if not critical_bad else "BLOCKED",
         "verdict": overall,
-        "production_claimed": overall in {"PASS", "PASS_WITH_RISKS"},
+        "production_claimed": production_claimed,
+        "completion_authority": "root ACCEPTANCE_RESULT.json on the production target only",
         "base_url": base_url,
         "commit": args.commit.strip(),
         "deployment_id": args.deployment_id.strip(),
@@ -110,9 +124,6 @@ def main() -> int:
         "identity_errors": identity_errors,
         "rule": "Every critical item must PASS on the exact HTTPS deployment; noncritical operations may yield PASS_WITH_RISKS only after core PASS.",
     }
-    output = Path(args.output)
-    if not output.is_absolute():
-        output = ROOT / output
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(result, ensure_ascii=False, indent=2))
