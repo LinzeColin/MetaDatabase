@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "task_id": "S5-T3",
   "phase": "S5_T3_PUBLIC_CANDIDATE_DEPLOYMENT_AND_RECOVERY",
   "status": "PASS_PUBLIC_DEPLOY_AND_RECOVERY_PARTIAL",
@@ -56,6 +56,25 @@
     "personal_google_account_selected": false,
     "response_cookie_values_retained": false
   },
+  "continued_anonymous_auth_boundary": {
+    "site_active_and_public_reconfirmed": true,
+    "current_saved_version_number": 37,
+    "email_auth_views_checked_count": 4,
+    "email_auth_views_all_http_200": true,
+    "email_auth_views_expected_markers_present": true,
+    "sign_in_and_sign_up_csp_allows_turnstile_script": true,
+    "sign_in_and_sign_up_csp_allows_same_origin_connect": true,
+    "empty_noncredential_auth_requests_checked_count": 5,
+    "empty_noncredential_auth_requests_all_http_400": true,
+    "empty_noncredential_auth_requests_any_server_5xx": false,
+    "requests_contained_email_password_or_captcha": false,
+    "fresh_unauthenticated_profile_http_401": true,
+    "response_cookie_values_retained": false,
+    "error_only_log_window_minutes": 20,
+    "error_only_log_events_checked": 6,
+    "error_only_log_events_all_match_this_unauthenticated_probe": true,
+    "unexpected_runtime_error_observed": false
+  },
   "post_restore_observation": {
     "error_only_window_minutes": 10,
     "maximum_events_considered": 20,
@@ -91,6 +110,8 @@
     "runtime_values_read_or_changed": false,
     "d1_or_r2_configuration_changed": false,
     "real_user_business_data_read_or_written": false,
+    "real_email_or_password_submitted": false,
+    "captcha_token_submitted": false,
     "github_uploaded": false,
     "vps3_used_as_site_host": false,
     "public_audience_changed": false,

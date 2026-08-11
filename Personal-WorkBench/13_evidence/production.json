@@ -25,6 +25,9 @@
     "legacy_period_query_route_http_200_after_restore": true,
     "signed_out_truthfulness_source_bound": true,
     "public_auth_entry_routes_http_200": true,
+    "anonymous_auth_input_validation_current_version": "PASS_EMPTY_NONCREDENTIAL_REQUESTS_HTTP_400_NO_5XX",
+    "public_turnstile_csp_current_version": "PASS_SIGN_IN_AND_SIGN_UP_ALLOW_TURNSTILE_AND_SAME_ORIGIN_CONNECT",
+    "fresh_unauthenticated_profile_current_version": "HTTP_401_NO_APPLICATION_SESSION",
     "google_authorization_initiation_current_version": "HTTP_200_GOOGLE_AUTHORIZATION_URL_RETURNED",
     "authenticated_product_flow_current_version": "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR"
   },
