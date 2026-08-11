@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "phase": "S5_T3_PUBLIC_CANDIDATE_DEPLOYMENT_AND_RECOVERY",
+  "status": "PASS_PUBLIC_DEPLOY_AND_RECOVERY_PARTIAL",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-11",
+  "candidate": {
+    "saved_version_number": 37,
+    "source_readback_matches_saved_candidate": true,
+    "archive_stored_by_sites": true,
+    "prior_configuration_evidence": "13_evidence/version_37_s5_t2_runtime_configuration.json"
+  },
+  "public_access_snapshot": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "public",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "public_audience_changed_in_this_phase": false
+  },
+  "public_deployment": {
+    "deployed_version_number": 37,
+    "terminal_status": "succeeded",
+    "deployed_url_observed_but_not_recorded": true,
+    "agent_owned_panel_open_requested": true
+  },
+  "rollback_and_restore": {
+    "rollback_version_number": 36,
+    "rollback_terminal_status": "succeeded",
+    "restore_version_number": 37,
+    "restore_terminal_status": "succeeded",
+    "public_access_preserved_after_rollback_and_restore": true
+  },
+  "post_restore_public_smoke": {
+    "root_http_200": true,
+    "legacy_period_query_http_200": true,
+    "account_http_200": true,
+    "email_auth_entry_routes_http_200": true,
+    "public_config_http_200": true,
+    "unauthenticated_profile_http_401": true,
+    "public_config_turnstile_key_present": true,
+    "public_config_legal_operator_present": true,
+    "public_config_privacy_contact_present": true,
+    "primary_menu_checked_view_count": 9,
+    "primary_menu_all_http_200": true,
+    "primary_menu_distinct_render_count": 9,
+    "primary_menu_raw_html_retained": false,
+    "google_authorization_url_returned": true,
+    "google_authorization_host_is_google": true,
+    "google_callback_origin_matches_public_origin": true,
+    "google_callback_path_matches_expected": true,
+    "google_state_present": true,
+    "google_redirect_followed": false,
+    "personal_google_account_selected": false,
+    "response_cookie_values_retained": false
+  },
+  "post_restore_observation": {
+    "error_only_window_minutes": 10,
+    "maximum_events_considered": 20,
+    "error_event_count": 0,
+    "log_bodies_retained": false
+  },
+  "controlled_browser_e2e": {
+    "browser_control_runtime_available": false,
+    "browser_cookie_or_storage_inspected": false,
+    "sites_bypass_token_generated_or_used": false,
+    "email_registration_verification_reset_and_signin": "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR",
+    "google_oauth_callback_and_session": "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR",
+    "a_b_tenant_isolation_and_second_device_history": "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR",
+    "d1_r2_reconciliation": "NOT_PROVEN_SITES_TARGET_NOT_RESOLVED_THROUGH_AUTHORIZED_WORKERS_CATALOGUE",
+    "negative_provider_and_recovery_paths": "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR"
+  },
+  "local_contract_rechecks": {
+    "authentication_and_mail": "PASS_20_OF_20",
+    "tenant_isolation": "PASS_4_OF_4",
+    "workbench_persistence": "PASS_25_OF_25",
+    "api_and_storage_boundary": "PASS_9_OF_9",
+    "privacy": "PASS_3_OF_3"
+  },
+  "not_proven_by_this_increment": [
+    "current Version 37 email registration, verification, reset, and sign-in browser replay",
+    "current Version 37 Google OAuth callback and application session",
+    "current Version 37 A/B tenant isolation and physical second-device history readback",
+    "direct D1/R2 physical mapping or record/object reconciliation",
+    "current Version 37 negative provider and production recovery replay beyond version rollback",
+    "product or final acceptance"
+  ],
+  "scope_and_limits": {
+    "runtime_values_read_or_changed": false,
+    "d1_or_r2_configuration_changed": false,
+    "real_user_business_data_read_or_written": false,
+    "github_uploaded": false,
+    "vps3_used_as_site_host": false,
+    "public_audience_changed": false,
+    "product_pass_claimed": false,
+    "final_acceptance_claimed": false
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
