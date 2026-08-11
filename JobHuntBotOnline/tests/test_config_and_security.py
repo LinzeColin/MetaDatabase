@@ -156,6 +156,7 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     assert "ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS" in acceptance
     assert "ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS" in acceptance
     assert "ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS" in acceptance
+    assert 'ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS="${ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS:-20}"' in acceptance
     assert 'evidence_runner_user=(--user "${ACCEPTANCE_UID:-$(id -u)}:${ACCEPTANCE_GID:-$(id -g)}")' in acceptance
     assert acceptance.count('"${evidence_runner_user[@]}"') == 4
     assert "acceptance outputs so every run creates fresh evidence" in acceptance

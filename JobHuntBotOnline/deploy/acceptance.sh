@@ -53,7 +53,15 @@ if shares_delivery_identity and not allow_shared_imap_inbox:
         "no email has been sent"
     )
 PY
-case "${ACCEPTANCE_MIN_EMAIL_GAP_SECONDS:-1800}" in
+# Materialize defaults before validating or passing them into the harness.  With
+# `set -u`, using a default only inside `case` would still leave a later
+# arithmetic expansion of an omitted setting unbound.
+ACCEPTANCE_MIN_EMAIL_GAP_SECONDS="${ACCEPTANCE_MIN_EMAIL_GAP_SECONDS:-1800}"
+ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS="${ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS:-30}"
+ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS="${ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS:-24}"
+ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS="${ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS:-20}"
+
+case "$ACCEPTANCE_MIN_EMAIL_GAP_SECONDS" in
   ''|*[!0-9]*) echo "ACCEPTANCE_MIN_EMAIL_GAP_SECONDS must be an integer; no email has been sent" >&2; exit 2 ;;
 esac
 (( ACCEPTANCE_MIN_EMAIL_GAP_SECONDS >= 1800 )) || {
