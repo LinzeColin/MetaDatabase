@@ -32,6 +32,7 @@ import { readIdempotencyKey } from "../server/http/request-id.ts";
 import { apiErrorResponse } from "../server/http/api.ts";
 import { SensitiveCloudConsentRequiredError } from "../server/security/privacy-consent.ts";
 import { isVerifiedGoogleEmailClaim } from "../server/auth/index.ts";
+import { requireFreshVerifiedSession, requireVerifiedSession } from "../server/auth/session.ts";
 
 const fakeDatabase = {} as D1Database;
 const validRuntime = {
@@ -190,6 +191,34 @@ test("only verified identities can enter tenant data handlers", () => {
   );
   assert.throws(() => requireVerifiedIdentity({ user: { id: "user_a", email: "a@example.test", emailVerified: false } }));
   assert.throws(() => requireVerifiedIdentity(null));
+});
+
+test("tenant authorization reads bypass a stale browser session cache", async () => {
+  const queries: Array<{ disableCookieCache?: boolean } | undefined> = [];
+  const auth = {
+    api: {
+      async getSession(input: { headers: Headers; query?: { disableCookieCache?: boolean } }) {
+        queries.push(input.query);
+        return {
+          session: { createdAt: new Date() },
+          user: { id: "google-user", email: "google@example.test", emailVerified: true },
+        };
+      },
+    },
+  };
+
+  assert.deepEqual(await requireVerifiedSession(auth, new Headers()), {
+    userId: "google-user",
+    email: "google@example.test",
+  });
+  assert.deepEqual(await requireFreshVerifiedSession(auth, new Headers()), {
+    userId: "google-user",
+    email: "google@example.test",
+  });
+  assert.deepEqual(queries, [
+    { disableCookieCache: true },
+    { disableCookieCache: true },
+  ]);
 });
 
 test("Google verified-email claims map strictly into the tenant save gate", async () => {
