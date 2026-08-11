@@ -124,6 +124,29 @@ FAKE: dict[str, dict] = {
     "/v1/accounts": ACCOUNTS,
     "/v1/sync-runs": {"items": []},
     "/v1/status": {"connectors": [], "destinations": []},
+    # **详情抽屉里那份回执。**（2026-08-11）
+    # 他库里 markdown 有 4 条 failed，而**那 4 条内容后来都写成功了**
+    # （今天从生产读的：failed 4 / 后来 done 4，最后一条失败停在 8-03T17:23，
+    # 8-04 之后零失败）。抽屉只该显示最新那条「已写入」；把一条早就不成立的
+    # 失败摆出来（还带重试按钮）就是拿旧账当现状。
+    #
+    # 这条规则 pwa_render_drill 早就守着——**但它喂的是磁盘上的 apps/pwa/**。
+    # 而这个仓在生产上真栽过一次同族的：详情路由发的键叫 export_receipts、
+    # 界面读的是 destination_receipts，于是回执列表**恒空且不报错**。
+    "/v1/library/cnt_1": {
+        "id": "cnt_1", "platform": "douyin", "title": "真正的一次性她来了",
+        "canonical_url": "https://www.douyin.com/video/7669728491277851091",
+        "archive_status": "视频没存下", "primary_relation": "favorite",
+        "relations": ["favorite"], "collections": [], "author_name": None,
+        "export_receipts": [
+            {"id": "r_done", "destination_id": "markdown", "status": "done",
+             "finished_at": "2026-08-03T18:00:00Z", "message_zh": ""},
+            {"id": "r_failed", "destination_id": "markdown", "status": "failed",
+             "finished_at": "2026-08-03T17:23:03Z",
+             "message_zh": "目的地尚未完成主动连接检查或授权已失效；请先点击「检查连接」。"},
+        ],
+        "destination_bindings": [], "object_replicas": [],
+    },
     # **「装插件 → 连账号 → 看见条目」的第三步。**（2026-08-11）
     # 此前只有 pwa_render_drill 让表里长出过条目，而那个演练喂的是**磁盘上的**
     # apps/pwa/——它证明不了「他从公开域名收到的那份前端」也画得出来。
@@ -296,6 +319,20 @@ CLICK_CONNECT = r"""
 """
 
 
+# 详情抽屉：他点开一条内容看到的那一屏。
+READ_DRAWER = r"""
+(async () => {
+  const row = document.querySelector("#tableBody tr[data-row-id]");
+  if (!row) return JSON.stringify({opened: false, reason: "表里没有条目行"});
+  row.click();
+  await new Promise(r => setTimeout(r, 1500));
+  const box = document.getElementById("drawerContent");
+  const text = ((box && box.innerText) || "").replace(/\s+/g, " ");
+  return JSON.stringify({opened: !!(box && text), whole: text.slice(0, 400)});
+})()
+"""
+
+
 def click_with_prompt(answer: str) -> str:
     """点那颗按钮，并让 `prompt` 返回指定的答案。"""
     return (
@@ -457,6 +494,7 @@ async def run(chrome: str, origin: str) -> int:
             measured["all_disconnected"] = await evaluate(READ_BUTTON)
             # 全断开时那三行上只剩「连接账号」——点它，看流程往不往前走。
             measured["connect_click"] = await evaluate(CLICK_CONNECT)
+            measured["drawer"] = await evaluate(READ_DRAWER)
     finally:
         process.terminate()
         server.shutdown()
@@ -497,6 +535,20 @@ async def run(chrome: str, origin: str) -> int:
     if "undefined" in disconnected_step or "[object" in disconnected_step:
         problems.append(f"那张卡上出现了 undefined/[object：{disconnected_step[:140]!r}"
                         "——他会在屏幕上读到这个词")
+    drawer = measured.get("drawer") or {}
+    if not drawer.get("opened"):
+        problems.append(f"点开一条内容，详情抽屉没画出来：{drawer}")
+    else:
+        whole = drawer.get("whole", "")
+        if "已写入" not in whole:
+            problems.append(
+                f"抽屉里没说它已经写进去过——而这条内容有一条 done 回执：{whole[:160]!r}。"
+                "这个仓在生产上栽过一次：详情路由发 export_receipts、界面读 "
+                "destination_receipts，回执列表恒空且不报错")
+        if "写入失败" in whole:
+            problems.append(
+                f"把一条早就不成立的失败摆了出来：{whole[:160]!r}——"
+                "同一个目的地后来已经写成功了（他库里那 4 条正是这个形状）")
     rows = rendered.get("libraryRows") or []
     if len(rows) != 2:
         problems.append(
