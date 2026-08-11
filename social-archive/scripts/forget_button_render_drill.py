@@ -244,6 +244,37 @@ OPEN_CENTRE = r"""
 """
 
 
+# 他三行上现在唯一那颗按钮。**早上我试过一次，挂住了，并记成「射程之外」**——
+# 真因是端口（扩展只认 127.0.0.1:8765）。装了真扩展并配好对之后它走得动。
+# 授权那一下仍然点不了（Chrome 原生框），所以这里只问：
+# 点下去连接面板开没开、有没有报错。
+CLICK_CONNECT = r"""
+(async () => {
+  const before = (window.__drillErrors || []).length;
+  // **必须点「有账号但断开了」那一行**，不是表里第一颗。
+  // 第一版取的是 `#syncTableBody [data-connect-platform]` 的第一个——
+  // 那是「从没连过的平台」那一行（小红书），和这条断言要守的分支不是同一处代码。
+  // 反例（把断开分支那颗按钮拆成纯文字）因此没能打红它。
+  const row = [...document.querySelectorAll("#syncTableBody tr")]
+    .find(r => /抖音|B站/.test(r.innerText || "") && /条/.test(r.innerText || ""));
+  const button = row && row.querySelector("[data-connect-platform]");
+  if (!button) return JSON.stringify({found: false,
+    reason: "有账号的那一行上没有「连接账号」"});
+  button.click();
+  await new Promise(r => setTimeout(r, 4000));
+  const frame = document.querySelector(
+    "iframe[src*='connect'], #connectPanel iframe, #connectFrame");
+  return JSON.stringify({
+    found: true,
+    platform: button.dataset.connectPlatform,
+    panelOpened: !!frame,
+    panelSrc: frame ? String(frame.src).slice(0, 90) : "",
+    errorsAfterClick: (window.__drillErrors || []).slice(before, before + 3),
+  });
+})()
+"""
+
+
 def click_with_prompt(answer: str) -> str:
     """点那颗按钮，并让 `prompt` 返回指定的答案。"""
     return (
@@ -403,6 +434,8 @@ async def run(chrome: str, origin: str) -> int:
             await rpc("Page.reload", {"ignoreCache": True})
             await asyncio.sleep(4)
             measured["all_disconnected"] = await evaluate(READ_BUTTON)
+            # 全断开时那三行上只剩「连接账号」——点它，看流程往不往前走。
+            measured["connect_click"] = await evaluate(CLICK_CONNECT)
     finally:
         process.terminate()
         server.shutdown()
@@ -443,6 +476,15 @@ async def run(chrome: str, origin: str) -> int:
     if "undefined" in disconnected_step or "[object" in disconnected_step:
         problems.append(f"那张卡上出现了 undefined/[object：{disconnected_step[:140]!r}"
                         "——他会在屏幕上读到这个词")
+    click = measured.get("connect_click") or {}
+    if not click.get("found"):
+        problems.append("全断开那一屏上找不到「连接账号」——他没有任何一条出路")
+    elif not click.get("panelOpened"):
+        problems.append(
+            f"点了「连接账号」而连接面板没开：{click}"
+            "——那是他现在唯一走得通的一步")
+    elif click.get("errorsAfterClick"):
+        problems.append(f"点「连接账号」之后页面报错：{click['errorsAfterClick']}")
     if "第 3 步" not in disconnected_step or "去连接" not in disconnected_step:
         problems.append(
             f"一个账号都没连着时，他照说明书第 3 步该看到的那张卡不对："
