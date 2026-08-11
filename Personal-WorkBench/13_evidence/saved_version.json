@@ -1,61 +1,72 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "2.0.0",
   "task_id": "S5-T1",
   "phase": "S5_T1_PRIVATE_SAVED_VERSION",
   "status": "PASS_PRIVATE_SAVED_VERSION_CANDIDATE",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-11",
   "product_pass_claimed": false,
   "final_acceptance_claimed": false,
   "public_deploy_eligible": false,
   "run_scope": {
-    "purpose": "保存可丢弃的私有 Sites Candidate，并绑定冻结源码、构建归档和 Sites Version 身份。",
+    "purpose": "保存可丢弃的私有 Sites Candidate，并绑定经独立就绪审查的源码、构建归档和 Sites Version 身份。",
     "deployment_action_called": false,
     "access_policy_changed": false,
     "runtime_secret_values_read_or_logged": false,
-    "user_data_accessed": false
+    "user_data_accessed": false,
+    "github_uploaded": false
   },
   "frozen_source": {
     "repository": "MetaDatabase",
-    "commit": "65b3f2be519ea96bb7d8808db45b40a3343f2d25",
-    "root_tree": "8df64a084c2259afdd2b852c7e777e147410ef6a",
+    "commit": "3776229832ef5d715658d2207bd224d7c32b2802",
+    "root_tree": "c96a67cc724484734fe102754da5bcc68edde810",
     "project_path": "Personal-WorkBench",
-    "project_tree": "6c9d2ee3760ae46c0873f8b362d2e7babf7b0c6c",
-    "tracked_file_count": 308,
-    "s4_t3a_readiness": "READINESS_PASS"
+    "project_tree": "fa5f7e1d8c2f20d193afc8aa0461b284f1cfd3da",
+    "tracked_file_count": 394,
+    "s4_t3a_readiness": "READINESS_PASS",
+    "s4_t3a_readiness_evidence": "13_evidence/s4_t3a_session_scope_timeout_readiness.json"
   },
   "source_projection_audit": {
     "contract_id": "PWB-S5-SOURCE-PROJECTION-001",
-    "transport_mode": "tree-identical project-root projection on the existing Sites source branch",
-    "base_remote_source_commit": "2a964b762178d35e2513641f76a45772d9d92709",
-    "projection_commit": "b792154129538aecbc03ff443ba5253cd4161c01",
-    "projection_tree": "6c9d2ee3760ae46c0873f8b362d2e7babf7b0c6c",
-    "projection_parent": "2a964b762178d35e2513641f76a45772d9d92709",
-    "projection_tree_matches_frozen_project_tree": true,
-    "mapping_check": "PASS_CURRENT_SOURCE_TREE_EQUIVALENCE",
-    "relationship": "实际 Sites source commit 是可运输的项目根 projection；它不替代冻结 MetaDatabase commit，二者均由本证据记录。"
+    "content_projection_commit": "62287a8f30261c7451605d1ac065400f43cf9750",
+    "content_projection_tree": "fa5f7e1d8c2f20d193afc8aa0461b284f1cfd3da",
+    "content_projection_parent": null,
+    "base_remote_source_commit": "735e32647119318fdc567208e526f4ca00b1bfa6",
+    "source_channel_commit": "92e03356e5b4dca86ab29c34d2751e4da6d9cbf2",
+    "source_channel_tree": "fa5f7e1d8c2f20d193afc8aa0461b284f1cfd3da",
+    "source_channel_parent": "735e32647119318fdc567208e526f4ca00b1bfa6",
+    "projection_trees_match_frozen_project_tree": true,
+    "mapping_check": "PASS_SOURCE_PROJECTION_CONTRACT",
+    "relationship": "实际 Sites source commit 是从同树项目根内容生成的非强制后继提交；它不替代冻结 MetaDatabase commit，二者均由本证据记录。"
   },
   "source_branch_readback": {
     "branch": "main",
-    "head_commit": "b792154129538aecbc03ff443ba5253cd4161c01",
+    "head_commit": "92e03356e5b4dca86ab29c34d2751e4da6d9cbf2",
     "matches_source_projection": true,
     "push_mode": "NON_FORCE_FAST_FORWARD",
     "remote_source_write_only": true
   },
   "build_archive": {
     "status": "PASS_EXACT_SOURCE_BUILD_AND_PACKAGE",
-    "built_from_source_commit": "65b3f2be519ea96bb7d8808db45b40a3343f2d25",
-    "built_from_project_tree": "6c9d2ee3760ae46c0873f8b362d2e7babf7b0c6c",
-    "local_sha256": "c72c0cfddbc68aac89095612c6811215c5174960d27b0f9aff16b9be085643d5",
-    "local_size_bytes": 1915122,
+    "built_from_source_commit": "3776229832ef5d715658d2207bd224d7c32b2802",
+    "built_from_project_tree": "fa5f7e1d8c2f20d193afc8aa0461b284f1cfd3da",
+    "local_sha256": "c74a1f034e3dad6ea85f4b1fbf04f3d61eff28606bf4a7014362260cf5c5b7fa",
+    "local_size_bytes": 1935361,
     "required_entries": [
       "dist/server/index.js",
       "dist/.openai/hosting.json"
     ],
-    "source_and_dist_hosting_config_sha256": "7e5aaf79ca8203c0f623ab4caa8bbde5e704884671b50b1a0b48ee45ec8b62b2",
     "local_checks": {
       "npm_run_check": "PASS",
+      "npm_run_tenant": "PASS",
+      "npm_run_workbench_data": "PASS",
+      "npm_run_quality": "PASS_LOCAL_QUALITY",
+      "npm_run_visual": "PASS",
+      "npm_run_recovery": "PASS_LOCAL_RETRY_RESILIENCE",
       "npm_run_build": "PASS",
       "npm_run_verify_release": "PASS_BUILD_LAST_MILE_READINESS",
-      "verify_release_limit": "NOT_ISSUED_PRE_VERIFIER"
+      "npm_run_validate_acceptance_sequence": "PASS_SEQUENCE_ADDENDUM_INTEGRITY_ONLY",
+      "npm_run_verify_source_projection": "PASS_SOURCE_PROJECTION_CONTRACT"
     }
   },
   "private_precondition": {
@@ -65,31 +76,24 @@
     "allowed_users_count": 1,
     "allowed_groups_count": 0,
     "external_visitor_count": 0,
-    "saved_version_count_before": 6,
-    "live_url_present_before": true,
-    "preview_url_present_before": false,
-    "runtime_environment_revision_before": 7,
-    "runtime_environment_entry_count_before": 14,
-    "runtime_secret_entry_count_before": 11,
-    "runtime_non_secret_entry_count_before": 3,
+    "latest_saved_version_number_before": 34,
+    "site_live_url_present_before": true,
+    "site_preview_url_present_before": false,
     "runtime_values_read_or_logged": false
   },
   "sites_saved_version": {
     "project_id": "appgprj_6a70366303988191b2ca996238860c9f",
-    "version_id": "appgprj_6a70366303988191b2ca996238860c9f~appgver_2b465dcf3e1481918646f0cc13885867",
-    "version_number": 7,
-    "source_commit": "b792154129538aecbc03ff443ba5253cd4161c01",
+    "version_number": 35,
+    "source_commit": "92e03356e5b4dca86ab29c34d2751e4da6d9cbf2",
     "provider_archive": {
       "archive_format": "tar",
-      "content_hash": "sha256:c5e2530b2a5c022433ccaf21782c5ad5afe368776667037e9777293f4d316853",
-      "file_count": 89,
-      "size_bytes": 4761600,
+      "content_hash": "sha256:3c67949c57710cba5c5fb6b3f01faa8dd598b34e2cefcf709474310f2bd47b44",
+      "file_count": 93,
+      "size_bytes": 4874240,
       "note": "Provider content identity is separate from the local tar SHA-256 and is not asserted equal to it."
     }
   },
   "post_save_readback": {
-    "saved_version_count": 7,
-    "listed_version_matches_saved_id": true,
     "listed_version_matches_saved_number": true,
     "listed_version_source_matches_projection": true,
     "detail_source_matches_projection": true,
@@ -97,28 +101,21 @@
     "allowed_users_count": 1,
     "allowed_groups_count": 0,
     "external_visitor_count": 0,
-    "access_policy_revision_unchanged": true,
-    "runtime_environment_revision": 7,
-    "runtime_environment_entry_count": 14,
-    "runtime_secret_entry_count": 11,
-    "runtime_non_secret_entry_count": 3,
-    "runtime_environment_unchanged": true,
     "live_url_present": false,
-    "site_live_url_present": true,
     "preview_url_present": false,
     "deployed": false,
     "deployment_action_called": false
   },
   "limits_and_follow_up": [
-    "该证据只完成 S5-T1 私有 Candidate 保存，不构成 S4-T3、S6-T1 或 15/15 产品通过。",
-    "Google、邮箱验证/找回、Turnstile、真实 D1/R2、跨设备同步、私有部署和回滚演练仍由 S5-T2 至 S6-T2 采证。",
-    "本次没有发起部署；任何现有 live URL 不被视为本 Candidate 的运行时通过证据。",
-    "公开 audience 和 GitHub 上传仍未执行。"
+    "该证据只完成 S5-T1 私有 Candidate 保存，不构成 S6-T1 或 15/15 产品通过。",
+    "真实邮箱与 Google、A/B 隔离、第二设备历史、物理存储对账及回滚恢复仍由后续受控私有阶段采证。",
+    "本次没有发起部署；已有 live URL 属于先前私有版本，不被视为本 Candidate 的运行时通过证据。",
+    "公开 audience、运行时配置修改和 GitHub 上传均未执行。"
   ],
   "current_private_candidate": {
     "observed_at": "2026-08-11",
     "status": "PASS_PRIVATE_SAVED_VERSION_CANDIDATE",
-    "saved_version_number": 32,
+    "saved_version_number": 35,
     "source_pushed_from_s4_t3a_approved_candidate": true,
     "source_readback_matches_pushed_candidate": true,
     "archive_stored_by_sites": true,
@@ -126,6 +123,8 @@
     "deployment_action_called": false,
     "public_audience_changed": false,
     "github_uploaded": false,
-    "evidence": "13_evidence/private_version_32_s5_t1_saved_candidate.json"
-  }
+    "evidence": "13_evidence/private_version_35_s5_t1_saved_candidate.json"
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
 }

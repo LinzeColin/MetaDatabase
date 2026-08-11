@@ -18,28 +18,37 @@
   },
   "source": {
     "repository": "MetaDatabase",
-    "commit": "cf7b156e76376f9e7783b1b1d68f5e8b1f09eb85",
-    "root_tree": "2733e8de41616ea442701da41a7ac35e13d3b978",
+    "commit": "3776229832ef5d715658d2207bd224d7c32b2802",
+    "root_tree": "c96a67cc724484734fe102754da5bcc68edde810",
     "project_path": "Personal-WorkBench",
-    "project_tree": "b831d4564fc01352edfa3f5f26020965f3825df4",
-    "tracked_file_count": 293
+    "project_tree": "fa5f7e1d8c2f20d193afc8aa0461b284f1cfd3da",
+    "tracked_file_count": 394
   },
   "projection": {
     "branch": "main",
-    "parent": null,
-    "tree": "b831d4564fc01352edfa3f5f26020965f3825df4",
-    "commit": "3eaf351c2381c98b5fc49a3ed1c78d4c38e581b7",
-    "author_name": "Personal-WorkBench Source Projection",
-    "author_email": "noreply@local.invalid",
-    "timestamp_utc": "2026-08-09T00:00:00Z",
-    "commit_message_lines": [
-      "source-projection: Personal-WorkBench",
-      "",
-      "MetaDatabase-Commit: cf7b156e76376f9e7783b1b1d68f5e8b1f09eb85",
-      "MetaDatabase-Root-Tree: 2733e8de41616ea442701da41a7ac35e13d3b978",
-      "MetaDatabase-Project-Tree: b831d4564fc01352edfa3f5f26020965f3825df4",
-      "Projection-Schema: PWB-S5-SOURCE-PROJECTION-001"
-    ]
+    "content_projection": {
+      "parent": null,
+      "tree": "fa5f7e1d8c2f20d193afc8aa0461b284f1cfd3da",
+      "commit": "62287a8f30261c7451605d1ac065400f43cf9750",
+      "author_name": "Personal-WorkBench Source Projection",
+      "author_email": "noreply@local.invalid",
+      "timestamp_utc": "2026-08-11T00:00:00Z",
+      "commit_message_subject": "source-projection: Personal-WorkBench",
+      "commit_message_body_lines": [
+        "MetaDatabase-Commit: 3776229832ef5d715658d2207bd224d7c32b2802",
+        "MetaDatabase-Root-Tree: c96a67cc724484734fe102754da5bcc68edde810",
+        "MetaDatabase-Project-Tree: fa5f7e1d8c2f20d193afc8aa0461b284f1cfd3da",
+        "Projection-Schema: PWB-S5-SOURCE-PROJECTION-001"
+      ]
+    },
+    "source_channel": {
+      "parent": "735e32647119318fdc567208e526f4ca00b1bfa6",
+      "tree": "fa5f7e1d8c2f20d193afc8aa0461b284f1cfd3da",
+      "commit": "92e03356e5b4dca86ab29c34d2751e4da6d9cbf2",
+      "push_mode": "NON_FORCE_FAST_FORWARD",
+      "pre_push_parent_matches_current_private_saved_version_source": true,
+      "post_push_source_readback_required": true
+    }
   },
   "acceptance": {
     "validator_command": "npm run verify:source-projection",
@@ -47,17 +56,20 @@
       "source commit and root tree resolve exactly",
       "source project tree resolves exactly",
       "archive-to-project-root write-tree equals source.project_tree",
-      "deterministic projection commit equals projection.commit",
-      "projection commit tree equals source.project_tree",
-      "projection commit has no parent",
+      "deterministic content projection commit equals projection.content_projection.commit",
+      "content projection commit tree equals source.project_tree and has no parent",
+      "source-channel commit is a non-force descendant of the verified private source head and has the same project tree",
       "no remote Sites action occurs during validation"
     ],
     "future_saved_version_evidence_must_include": [
       "source.commit",
       "source.root_tree",
       "source.project_tree",
-      "projection.commit",
-      "projection.tree",
+      "projection.content_projection.commit",
+      "projection.content_projection.tree",
+      "projection.source_channel.commit",
+      "projection.source_channel.parent",
+      "projection.source_channel.tree",
       "archive SHA-256",
       "Sites Version identity",
       "private access readback",

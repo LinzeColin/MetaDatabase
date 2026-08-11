@@ -9,7 +9,7 @@
 - 冻结候选：当前 `Personal-WorkBench` 的受控源码、测试与无敏感信息的本地证据。
 - 本地 P0 复核：`npm run check`、`npm run build`、质量/视觉/恢复、`npm run verify:release`。
 - Sites 私有 Version：仅在上游 `S4-T3A` 独立 `READINESS_PASS` 和已关联的精确 source commit 均可证实时执行。
-- Source projection（仅兼容路径）：npm run verify:source-projection 已通过，且 future evidence 同时记录冻结 MetaDatabase commit/root tree/project tree 与实际 Sites projection commit/tree。
+- Source projection（仅兼容路径）：npm run verify:source-projection 已通过，且 future evidence 同时记录冻结 MetaDatabase commit/root tree/project tree、无父内容投影与实际 Sites 源码通道后继 commit/tree。
 - 交接记录：`HANDOFF.md` 与实际 `saved_version.json`（仅真实保存后写入）。
 
 ## 当前已验证的本地准备

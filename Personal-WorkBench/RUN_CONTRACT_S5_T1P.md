@@ -29,4 +29,4 @@
 
 ## 下一步
 
-PROJECTION_READY 只允许后续独立 S5-T1 run 将合同 projection commit 推送到 Sites 专用源码库，并保存私有、可丢弃的 Version。实际 saved_version.json 必须记录源与 projection 两段身份；无法映射或任一 hash 不一致时返回 BLOCKED。
+PROJECTION_READY 只允许后续独立 S5-T1 run 将合同中同树的源码通道后继提交以非强制方式推送到 Sites 专用源码库，并保存私有、可丢弃的 Version。实际 saved_version.json 必须记录源、内容投影和源码通道三段身份；无法映射或任一 hash 不一致时停止保存。

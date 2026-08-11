@@ -41,14 +41,24 @@ function trim(value) {
 async function main() {
   const contract = JSON.parse(await readFile(CONTRACT_PATH, "utf8"));
   const { source, projection } = contract;
+  const contentProjection = projection.content_projection;
+  const sourceChannel = projection.source_channel;
   assert.equal(contract.contract_id, "PWB-S5-SOURCE-PROJECTION-001");
   assert.equal(source.repository, "MetaDatabase");
   assert.equal(source.project_path, "Personal-WorkBench");
   assert.match(source.commit, /^[0-9a-f]{40}$/);
   assert.match(source.root_tree, /^[0-9a-f]{40}$/);
   assert.match(source.project_tree, /^[0-9a-f]{40}$/);
-  assert.match(projection.commit, /^[0-9a-f]{40}$/);
-  assert.equal(projection.parent, null);
+  assert.equal(contentProjection.parent, null);
+  assert.match(contentProjection.tree, /^[0-9a-f]{40}$/);
+  assert.match(contentProjection.commit, /^[0-9a-f]{40}$/);
+  assert.equal(typeof contentProjection.commit_message_subject, "string");
+  assert(Array.isArray(contentProjection.commit_message_body_lines));
+  assert.match(sourceChannel.parent, /^[0-9a-f]{40}$/);
+  assert.match(sourceChannel.tree, /^[0-9a-f]{40}$/);
+  assert.match(sourceChannel.commit, /^[0-9a-f]{40}$/);
+  assert.equal(sourceChannel.push_mode, "NON_FORCE_FAST_FORWARD");
+  assert.equal(sourceChannel.post_push_source_readback_required, true);
 
   const sourceCommit = trim(run("git", ["-C", REPOSITORY_ROOT, "rev-parse", source.commit + "^{commit}"]));
   const sourceRootTree = trim(run("git", ["-C", REPOSITORY_ROOT, "rev-parse", source.commit + "^{tree}"]));
@@ -75,29 +85,40 @@ async function main() {
     run("git", ["-C", projectRoot, "add", "-A"]);
     const projectionTree = trim(run("git", ["-C", projectRoot, "write-tree"]));
     assert.equal(projectionTree, source.project_tree);
-    assert.equal(projectionTree, projection.tree);
+    assert.equal(projectionTree, contentProjection.tree);
 
     const identityEnv = {
       ...process.env,
-      GIT_AUTHOR_NAME: projection.author_name,
-      GIT_AUTHOR_EMAIL: projection.author_email,
-      GIT_AUTHOR_DATE: projection.timestamp_utc,
-      GIT_COMMITTER_NAME: projection.author_name,
-      GIT_COMMITTER_EMAIL: projection.author_email,
-      GIT_COMMITTER_DATE: projection.timestamp_utc,
+      GIT_AUTHOR_NAME: contentProjection.author_name,
+      GIT_AUTHOR_EMAIL: contentProjection.author_email,
+      GIT_AUTHOR_DATE: contentProjection.timestamp_utc,
+      GIT_COMMITTER_NAME: contentProjection.author_name,
+      GIT_COMMITTER_EMAIL: contentProjection.author_email,
+      GIT_COMMITTER_DATE: contentProjection.timestamp_utc,
     };
-    const message = projection.commit_message_lines.join("\n") + "\n";
-    const projectionCommit = trim(
-      run("git", ["-C", projectRoot, "commit-tree", projectionTree], { env: identityEnv, input: message }),
-    );
+    const projectionCommit = trim(run(
+      "git",
+      [
+        "-C",
+        projectRoot,
+        "commit-tree",
+        projectionTree,
+        "-m",
+        contentProjection.commit_message_subject,
+        "-m",
+        contentProjection.commit_message_body_lines.join("\n"),
+      ],
+      { env: identityEnv },
+    ));
     const projectionTreeReadback = trim(run("git", ["-C", projectRoot, "rev-parse", projectionCommit + "^{tree}"]));
     const projectionFileCount = Number(trim(run("git", ["-C", projectRoot, "ls-files"])).split("\n").filter(Boolean).length);
     const parentProbe = spawnSync("git", ["-C", projectRoot, "rev-parse", projectionCommit + "^"], { encoding: "utf8" });
 
-    assert.equal(projectionCommit, projection.commit);
+    assert.equal(projectionCommit, contentProjection.commit);
     assert.equal(projectionTreeReadback, source.project_tree);
     assert.equal(projectionFileCount, source.tracked_file_count);
     assert.notEqual(parentProbe.status, 0, "projection commit must have no parent");
+    assert.equal(sourceChannel.tree, source.project_tree);
 
     console.log(
       JSON.stringify({
@@ -110,11 +131,18 @@ async function main() {
           project_tree: sourceProjectTree,
           tracked_file_count: sourceFileCount,
         },
-        projection: {
+        content_projection: {
           commit: projectionCommit,
           tree: projectionTreeReadback,
           tracked_file_count: projectionFileCount,
           parent: null,
+        },
+        source_channel: {
+          commit: sourceChannel.commit,
+          tree: sourceChannel.tree,
+          parent: sourceChannel.parent,
+          push_mode: sourceChannel.push_mode,
+          post_push_source_readback_required: sourceChannel.post_push_source_readback_required,
         },
       }),
     );
