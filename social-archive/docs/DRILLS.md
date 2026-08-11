@@ -104,6 +104,7 @@ python scripts/<演练名>.py
 | `pwa_render_drill.py` | 改到那条路时 | 页面上那两段话真的显示出来了吗 |
 | `forget_button_render_drill.py` | **每次发布**（deploy 第 8.65 步） | **从公开域名取回来的那份前端**，在真 Chrome 里画不画得出这次发的界面（0.0.0.29 实测：/health 报新版，而 CDN 给的 app.js 还是旧的、少了「删除并清空」） |
 | `from_zero_drill.py` | **每次发布**（deploy 第 8.68 步） | **在刚部署的那个镜像上**从空库走到能用：连账号 → 同步 → 看得见（标题/作者都对）→ 删除并清空 → 又空了 → 重连 → 再同步。跑在一次性容器的 tmpfs 上，**碰不到他的库** |
+| `real_platform_into_archive_drill.py` | **每次发布**（deploy 第 8.55 步） | **一个真平台的收藏，真的进到档案馆里**：B 站公开收藏夹（不带登录态）→ 插件自己的 `readFolder` → `POST /v1/captures/batch` → 从库里**按标题**读回来。跑在一次性容器的 tmpfs 上，**碰不到他的库**；只证明 bilibili 一个平台 |
 | `disaster_recovery_drill.py` | **每次发布**（deploy 第 8.69 步，**抽样 25 个制品**，起点按版本号环形挪） | 索引和制品还对不对得上：索引说有 552 个，那些是不是真取得回来、字节是不是那个哈希 |
 | `restore_private_database_drill.py` | **每次发布**（deploy 第 8.69 步，实测 2 秒） | Private-Database 的 fact 包取得回来吗，哈希逐条对得上吗 |
 | `restore_runtime_db_drill.py` | **每次发布**（deploy 第 8.69 步，经 `check_the_backup_can_actually_be_restored.py`） | 运行库快照取回来之后，真的打得开吗、里面是不是他的数据 |

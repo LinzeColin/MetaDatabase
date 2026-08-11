@@ -974,6 +974,40 @@ step "8.9) 读一眼：「加密存三份」今天真的确认了几份"
 .venv/bin/python scripts/check_the_three_copies_are_really_there.py --sample 2 --brief 2>/dev/null \
   || printf '  ↳ 上面这行不是绿的：目标是三份，今天没确认满。**先别当成能力问题**——2026-08-11 那次「差的是能力」查下来是判据自己测错了（拿错令牌＋比错快照）。先看 evidence/G5/THREE_COPIES_TODAY.json 里每一家的 error_code。说明书写的是**实测数**\n     （发布门那条规则逼两边相等），所以他读到的不假——差的是能力本身。\n'
 
+step "8.55) 一个**真平台**的收藏，真的进到档案馆里吗"
+# Owner 那句话的第一条是「至少一个真实平台的收藏能自动读进档案馆」。
+# 在这一步之前，仓里两个演练**各证一半、从来没接起来过**：
+#   bilibili_acquisition_drill  打 B 站真接口证明「读得到」——全文 0 次 POST
+#   from_zero_drill             整条链走通证明「进得去」——而它连的是自己写的假站
+# 两个都绿，合起来仍然答不了那句话。
+#
+# 这一步走完整条：B 站公开收藏夹（**不带登录态、不粘 Cookie**）→ 插件自己的
+# readFolder → POST /v1/captures/batch → 从库里**按标题**读回来。
+# 档案馆起在一次性容器的 tmpfs 上，**他那份库一个字节都不动**（跑完实测过 193 条没变）。
+# 按铁律 7：B 站是公开 REST、无签名、零费用；档案馆那头全在容器内，**月操作量 0**。
+if ! .venv/bin/python scripts/real_platform_into_archive_drill.py --version "$VERSION" \
+      > evidence/G1/REAL_PLATFORM_INTO_ARCHIVE.json 2>&1; then
+  python3 -c "
+import json
+try:
+    d=json.load(open('evidence/G1/REAL_PLATFORM_INTO_ARCHIVE.json'))
+except Exception:
+    print(open('evidence/G1/REAL_PLATFORM_INTO_ARCHIVE.json').read()[-600:]); raise SystemExit
+for s in d.get('steps', []):
+    if not s['ok']: print('  ✗', s['step'], '→', str(s['measured'])[:160])
+for p in d.get('problems', []): print('  ✗', p[:200])"
+  if grep -q NO_LIVE_ITEMS evidence/G1/REAL_PLATFORM_INTO_ARCHIVE.json 2>/dev/null; then
+    fail 'B 站那头没读到东西——先看这台机器到不到得了 api.bilibili.com，再怀疑产品。'
+  fi
+  fail '真平台的收藏进不了档案馆——**这正是他要的第一条**，比任何界面问题都要紧。'
+fi
+python3 -c "
+import json
+d=json.load(open('evidence/G1/REAL_PLATFORM_INTO_ARCHIVE.json'))
+print(f\"  从 B 站公开收藏夹「{d['folder_title']}」真读到 {d['items_read_from_the_real_platform']} 条，\"
+      f\"全部进了档案馆并按标题读回来了（不带登录态、他的库没动）。\")
+print('  边界：只证明 bilibili 一个平台——别的平台要登录态，只能发生在他自己的浏览器里。')"
+
 step "8.6) 从他所在的位置回读：公开域名跑的是不是刚部署的这一版"
 # **在这之前，所有「回读生产」都是 ssh 到目标机器上打它自己的回环。**
 # 那证明不了他打开产品时看到的是新版——2026-08-10 的代价是三次部署零次到达
