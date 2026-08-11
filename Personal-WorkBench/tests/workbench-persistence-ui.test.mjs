@@ -104,21 +104,22 @@ test("account exposes an explicit preview-before-apply legacy migration without 
   assert.doesNotMatch(panel, /deleteDatabase|indexedDB\.deleteDatabase|localStorage\.removeItem/);
 });
 
-test("network-level resource uncertainty still offers a truthful sign-in next step", async () => {
+test("network-level resource uncertainty gives Google users a truthful sign-in next step", async () => {
   const source = await readFile(resourceSource, "utf8");
 
   assert.match(source, /const \[loginSuggested, setLoginSuggested\] = useState\(false\);/);
-  assert.match(source, /暂时无法读取你的历史记录。请先登录并完成邮箱验证；若已登录，请检查网络后重试。/);
-  assert.match(source, /暂时无法保存这条记录。请先登录并完成邮箱验证；若已登录，请检查网络后重试。/);
-  assert.match(source, /暂时无法删除这条记录。请先登录并完成邮箱验证；若已登录，请检查网络后重试。/);
+  assert.match(source, /暂时无法读取你的历史记录。请先确认已登录；使用 Google 登录无需额外验证邮箱。若已登录，请检查网络后重试。/);
+  assert.match(source, /暂时无法保存这条记录。请先确认已登录；使用 Google 登录无需额外验证邮箱。若已登录，请检查网络后重试。/);
+  assert.match(source, /暂时无法删除这条记录。请先确认已登录；使用 Google 登录无需额外验证邮箱。若已登录，请检查网络后重试。/);
   assert.match(source, /authRequired \|\| loginSuggested \? <a className="data-link" href="\/auth\/sign-in">去登录<\/a> : null/);
+  assert.match(source, /consentRequired \? <a className="data-link" href="\/account">开启敏感跨设备保存<\/a> : null/);
 });
 
 test("habit controls distinguish an on-device check-in from a cloud-synced check-in", async () => {
   const source = await readFile(lifecycleSource, "utf8");
 
   assert.match(source, /setFeedback\(`正在处理\$\{card\.label\}打卡…`\);/);
-  assert.match(source, /未完成\$\{card\.label\}打卡：请先登录并完成邮箱验证，或检查网络后重试。/);
+  assert.match(source, /未完成\$\{card\.label\}打卡：请先登录；使用 Google 登录无需额外验证邮箱，或检查网络后重试。/);
   assert.match(source, /未能取消\$\{card\.label\}打卡，请检查后重试。/);
   assert.match(source, /已完成\$\{card\.label\}打卡，历史记录已同步。/);
   assert.match(source, /已完成\$\{card\.label\}打卡，记录已保存在当前设备。/);
@@ -287,7 +288,7 @@ test("tenant resource retries only same-account non-sensitive local records afte
   assert.match(source, /const queuedForReplay = sensitive \? false : await queueDeviceMutation\(deviceOutboxAction\);/);
   assert.match(source, /window\.addEventListener\("online", replayWhenOnline\)/);
   assert.match(source, /已保存在当前设备。连接恢复后会自动同步。/);
-  assert.match(source, /完成登录和邮箱验证后会自动同步。/);
+  assert.match(source, /使用 Google 登录无需额外验证邮箱。/);
   assert.match(cacheSource, /export async function removeDeviceOutboxActions/);
   assert.match(cacheSource, /export async function resolveDeviceOutboxAction/);
   assert.match(cacheSource, /export async function rememberDeviceOutboxRecordAlias/);

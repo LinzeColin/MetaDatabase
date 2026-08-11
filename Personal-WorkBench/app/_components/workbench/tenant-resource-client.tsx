@@ -78,7 +78,11 @@ function failureMessage(status: number, sensitive: boolean): {
   message: string;
 } {
   if (status === 401) {
-    return { authRequired: true, consentRequired: false, message: "请先登录并完成邮箱验证，再保存和查看你的历史记录。" };
+    return {
+      authRequired: true,
+      consentRequired: false,
+      message: "请先登录后再保存和查看你的历史记录。使用 Google 登录无需额外验证邮箱。",
+    };
   }
   if (status === 403 && sensitive) {
     return {
@@ -88,7 +92,11 @@ function failureMessage(status: number, sensitive: boolean): {
     };
   }
   if (status === 403) {
-    return { authRequired: true, consentRequired: false, message: "请先完成邮箱验证后继续。" };
+    return {
+      authRequired: true,
+      consentRequired: false,
+      message: "请完成账户验证后继续。使用 Google 登录通常无需额外验证邮箱。",
+    };
   }
   if (status === 409) {
     return { authRequired: false, consentRequired: false, message: "这条记录已发生变化，已保留现有数据，请刷新后再试。" };
@@ -113,7 +121,7 @@ function localSaveMessage(availability: CloudAvailability, sensitive: boolean, q
     return "已保存在当前设备。连接恢复后会自动同步。";
   }
   if (availability === "unauthorized") {
-    return "已保存在当前设备。登录并完成邮箱验证后，后续记录可跨设备同步。";
+    return "已保存在当前设备。登录后可跨设备同步；使用 Google 登录无需额外验证邮箱。";
   }
   if (availability === "consent_required") {
     return "已保存在当前设备。本条未上传；如需后续敏感记录跨设备同步，请在账户页明确开启。";
@@ -448,7 +456,7 @@ export function useTenantResource<T extends TenantRecord>(
       }
       cloudAvailabilityRef.current = "unavailable";
       commitRecords(localRecordsRef.current);
-      setError("暂时无法读取你的历史记录。请先登录并完成邮箱验证；若已登录，请检查网络后重试。");
+      setError("暂时无法读取你的历史记录。请先确认已登录；使用 Google 登录无需额外验证邮箱。若已登录，请检查网络后重试。");
       setLoginSuggested(true);
     } finally {
       setLoading(false);
@@ -648,7 +656,7 @@ export function useTenantResource<T extends TenantRecord>(
         acknowledgeLocalSave("unavailable", queuedForReplay);
         return localRecord;
       }
-      setError("暂时无法保存这条记录。请先登录并完成邮箱验证；若已登录，请检查网络后重试。");
+      setError("暂时无法保存这条记录。请先确认已登录；使用 Google 登录无需额外验证邮箱。若已登录，请检查网络后重试。");
       setLoginSuggested(true);
       return null;
     } finally {
@@ -703,7 +711,7 @@ export function useTenantResource<T extends TenantRecord>(
         acknowledgeScopeChange(failureScope);
         return false;
       }
-      setError("暂时无法删除这条记录。请先登录并完成邮箱验证；若已登录，请检查网络后重试。");
+      setError("暂时无法删除这条记录。请先确认已登录；使用 Google 登录无需额外验证邮箱。若已登录，请检查网络后重试。");
       setLoginSuggested(true);
       return false;
     } finally {
@@ -727,7 +735,7 @@ export function ResourceStatus({
     <p className="interaction-note" role="status">
       {error}{" "}
       {authRequired || loginSuggested ? <a className="data-link" href="/auth/sign-in">去登录</a> : null}
-      {consentRequired ? <a className="data-link" href="/account">前往账户设置</a> : null}
+      {consentRequired ? <a className="data-link" href="/account">开启敏感跨设备保存</a> : null}
     </p>
   );
 }

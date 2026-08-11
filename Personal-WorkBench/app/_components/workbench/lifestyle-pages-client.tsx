@@ -247,7 +247,7 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
     setFeedback(`正在处理${card.label}打卡…`);
     const habit = await ensureHabit(card, index);
     if (!habit) {
-      setFeedback(`未完成${card.label}打卡：请先登录并完成邮箱验证，或检查网络后重试。`);
+      setFeedback(`未完成${card.label}打卡：请先登录；使用 Google 登录无需额外验证邮箱，或检查网络后重试。`);
       return;
     }
     const existing = completedByHabitId.get(habit.id);
@@ -264,7 +264,7 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
           `已完成${card.label}打卡，历史记录已同步。`,
           `已完成${card.label}打卡，记录已保存在当前设备。`,
         )
-        : `未完成${card.label}打卡：请先登录并完成邮箱验证，或检查网络后重试。`,
+        : `未完成${card.label}打卡：请先登录；使用 Google 登录无需额外验证邮箱，或检查网络后重试。`,
     );
   }
 

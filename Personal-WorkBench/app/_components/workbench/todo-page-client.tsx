@@ -326,7 +326,7 @@ export default function TodoPageClient() {
         setError(result.message ?? "操作与历史写入不一致");
         return;
       }
-      setMessage("待办已保存在当前设备。登录并完成邮箱验证后，可继续同步到其他设备。");
+      setMessage("待办已保存在当前设备。登录后可继续同步到其他设备；使用 Google 登录无需额外验证邮箱。");
       setError(result.message ?? "云端暂未接受本条记录。");
     } catch {
       await queueAction(action, "网络异常，待办已保存在当前设备，恢复网络后会自动同步。");
