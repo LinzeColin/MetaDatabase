@@ -277,8 +277,12 @@ test("Version 35 S5-T3 private deployment and rollback evidence does not overcla
   );
   assert.equal(
     evidence.controlled_browser_e2e.d1_r2_reconciliation,
-    "NOT_RUN_NO_AUTHENTICATED_CLOUDFLARE_STORAGE_CATALOGUE",
+    "NOT_PROVEN_SITES_TARGET_NOT_RESOLVED_THROUGH_AUTHORIZED_WORKERS_CATALOGUE",
   );
+  assert.equal(evidence.cloudflare_storage_catalogue_boundary.authenticated, true);
+  assert.equal(evidence.cloudflare_storage_catalogue_boundary.configuration_values_read_or_logged, false);
+  assert.equal(evidence.cloudflare_storage_catalogue_boundary.resource_catalogues_read, true);
+  assert.equal(evidence.cloudflare_storage_catalogue_boundary.resource_names_or_identifiers_recorded, false);
   assert.equal(evidence.scope_and_limits.public_audience_changed, false);
   assert.equal(evidence.scope_and_limits.github_uploaded, false);
   assert.equal(evidence.scope_and_limits.product_pass_claimed, false);
@@ -301,6 +305,10 @@ test("production ledger identifies Version 35 as the current private partial evi
   assert.equal(ledger.current_private_candidate.archive_stored_by_sites, true);
   assert.equal(ledger.current_private_candidate.controlled_private_deployment, "SUCCEEDED");
   assert.equal(ledger.current_private_candidate.rollback_restore, "V35_TO_V34_TO_V35_SUCCEEDED");
+  assert.equal(
+    ledger.current_private_candidate.storage_binding_reconciliation,
+    "NOT_PROVEN_SITES_TARGET_NOT_RESOLVED_THROUGH_AUTHORIZED_WORKERS_CATALOGUE",
+  );
   assert.equal(ledger.current_private_candidate.public_audience_changed, false);
   assert.equal(ledger.current_private_candidate.browser_e2e_current_version, "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR");
   assert.equal(ledger.controlled_deployment_and_recovery.version_35_private_deploy, "SUCCEEDED");
@@ -312,6 +320,43 @@ test("production ledger identifies Version 35 as the current private partial evi
     true,
   );
   assert.equal(ledger.public_deploy_eligible, false);
+});
+
+test("Version 35 storage mapping boundary retains only read-only aggregate evidence", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_35_s5_t3_storage_mapping_boundary.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.task_id, "S5-T3");
+  assert.equal(
+    evidence.status,
+    "NOT_PROVEN_SITES_TARGET_NOT_RESOLVED_THROUGH_AUTHORIZED_WORKERS_CATALOGUE",
+  );
+  assert.equal(evidence.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(evidence.authorized_cloudflare_readback.account_identity_resolved, true);
+  assert.equal(evidence.authorized_cloudflare_readback.d1_catalogue_read, true);
+  assert.equal(evidence.authorized_cloudflare_readback.d1_catalogue_entry_count, 4);
+  assert.equal(evidence.authorized_cloudflare_readback.r2_bucket_catalogue_read, true);
+  assert.equal(evidence.authorized_cloudflare_readback.r2_bucket_catalogue_entry_count, 10);
+  assert.equal(evidence.authorized_cloudflare_readback.sites_worker_present_in_authorized_catalogue, false);
+  assert.deepEqual(evidence.authorized_cloudflare_readback.sites_worker_settings_http_statuses, [404]);
+  assert.equal(evidence.reconciliation.d1_binding_matches_authenticated_catalogue, false);
+  assert.equal(evidence.reconciliation.r2_binding_matches_authenticated_catalogue, false);
+  assert.equal(evidence.safety_boundary.runtime_values_read_or_logged, false);
+  assert.equal(evidence.safety_boundary.resource_names_or_identifiers_recorded, false);
+  assert.equal(evidence.safety_boundary.database_tables_or_records_read, false);
+  assert.equal(evidence.safety_boundary.r2_objects_or_object_metadata_read, false);
+  assert.equal(evidence.safety_boundary.r2_write_operations_called, false);
+  assert.equal(evidence.safety_boundary.storage_class_or_billing_status_inferred, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
 });
 
 test("Version 34 S5-T2 configuration evidence preserves value-free private continuity", async () => {

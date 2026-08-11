@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "phase": "S5_T3_READ_ONLY_STORAGE_MAPPING",
+  "status": "NOT_PROVEN_SITES_TARGET_NOT_RESOLVED_THROUGH_AUTHORIZED_WORKERS_CATALOGUE",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-11",
+  "sites_control_plane": {
+    "custom_domain_present": true,
+    "sites_worker_identifier_present": true,
+    "logical_db_binding_present_in_project_contract": true,
+    "logical_files_binding_present_in_project_contract": true
+  },
+  "authorized_cloudflare_readback": {
+    "credential_read_in_subprocess_only": true,
+    "wrangler_v4_available": true,
+    "account_identity_resolved": true,
+    "d1_catalogue_read": true,
+    "d1_catalogue_entry_count": 4,
+    "r2_bucket_catalogue_read": true,
+    "r2_bucket_catalogue_entry_count": 10,
+    "r2_storage_class_not_inferred_from_list_response": true,
+    "worker_script_catalogue_read": true,
+    "worker_script_catalogue_entry_count": 4,
+    "sites_worker_present_in_authorized_catalogue": false,
+    "sites_worker_settings_http_statuses": [404],
+    "sites_worker_settings_exposed_bindings": false
+  },
+  "reconciliation": {
+    "d1_binding_matches_authenticated_catalogue": false,
+    "r2_binding_matches_authenticated_catalogue": false,
+    "physical_binding_or_record_object_reconciliation": "NOT_PROVEN_SITES_TARGET_NOT_RESOLVED_THROUGH_AUTHORIZED_WORKERS_CATALOGUE"
+  },
+  "safety_boundary": {
+    "runtime_values_read_or_logged": false,
+    "resource_names_or_identifiers_recorded": false,
+    "database_tables_or_records_read": false,
+    "r2_objects_or_object_metadata_read": false,
+    "r2_write_operations_called": false,
+    "storage_class_or_billing_status_inferred": false,
+    "github_uploaded": false
+  },
+  "next_required_evidence": "Use an authorized Sites provider control plane that exposes the deployed Worker bindings, then perform a narrowly scoped current-version storage health and mapping readback without reading product records or object bodies.",
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}

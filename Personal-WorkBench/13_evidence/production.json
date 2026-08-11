@@ -11,6 +11,7 @@
     "controlled_private_deployment": "SUCCEEDED",
     "rollback_restore": "V35_TO_V34_TO_V35_SUCCEEDED",
     "post_restore_error_only_window": "ZERO_EVENTS_IN_10_MINUTES",
+    "storage_binding_reconciliation": "NOT_PROVEN_SITES_TARGET_NOT_RESOLVED_THROUGH_AUTHORIZED_WORKERS_CATALOGUE",
     "public_audience_changed": false,
     "browser_e2e_current_version": "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR"
   },
@@ -226,6 +227,7 @@
     "version_31_account_scope_refresh": "PASS_LOCAL_CONTRACT_AND_PRIVATE_DEPLOY_ONLY",
     "version_31_current_physical_a_b_replay": "NOT_RUN",
     "version_31_physical_second_device_history": "NOT_RUN",
+    "version_35_current_physical_d1_r2_reconciliation": "NOT_PROVEN_SITES_TARGET_NOT_RESOLVED_THROUGH_AUTHORIZED_WORKERS_CATALOGUE",
     "real_cross_device_history": "NOT_RUN_PHYSICAL_SECOND_DEVICE",
     "real_d1_r2_reconciliation": "NOT_PROVEN_CURRENT_VERSION_31_LOGICAL_BINDINGS_ONLY_AND_CURRENT_CLI_CATALOGUE_NOT_ACCESSIBLE"
   },
@@ -294,6 +296,7 @@
     "13_evidence/private_version_31_s5_t3_gate_audit.json",
     "13_evidence/private_version_32_s5_t3_controlled_private_deployment.json",
     "13_evidence/private_version_35_s5_t3_controlled_private_deployment_and_rollback.json",
+    "13_evidence/private_version_35_s5_t3_storage_mapping_boundary.json",
     "13_evidence/version_18_agent_controlled_in_app_workbench_post_replay.json",
     "13_evidence/version_18_agent_controlled_chrome_auth_and_workbench_post_replay.json",
     "13_evidence/version_16_storage_binding_reconciliation.json",
