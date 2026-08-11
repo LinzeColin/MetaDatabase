@@ -311,7 +311,7 @@ def derived_emails() -> tuple[str, str]:
         return explicit_a, explicit_b
     raise RuntimeError(
         "set two distinct ACCEPTANCE_EMAIL_A and ACCEPTANCE_EMAIL_B values "
-        "with independent delivery identities"
+        "and explicitly allow a shared IMAP inbox when the two addresses route together"
     )
 
 

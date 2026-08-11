@@ -18,6 +18,7 @@ import pytest
 
 from app.db import Base, make_engine, make_session_factory
 from app.models import CandidateProfile, User, utcnow
+from app.security import email_lookup
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -246,6 +247,14 @@ def test_production_e2e_accepts_explicit_shared_inbox_for_distinct_aliases(monke
     assert module.acceptance_recipient_identity_conflict() is False
     assert module.has_distinct_acceptance_recipients() is True
     assert module.email_lifecycle_preflight() is None
+
+
+def test_shared_inbox_aliases_remain_distinct_saas_account_identities():
+    secret = "synthetic-email-lookup-secret"
+    first = email_lookup("owner+acceptance-a@example.test", secret)
+    second = email_lookup("owner+acceptance-b@example.test", secret)
+
+    assert first != second
 
 
 def test_acceptance_shell_rejects_plus_alias_pair_before_creating_evidence(tmp_path):
