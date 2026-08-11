@@ -1067,6 +1067,27 @@ print(f\"  库里 {d['items_in_library']} 条 → zip 里 {d['files_in_zip']} �
       f\"空标题 {d['empty_heading']}、重复文案标题 {d['title_is_a_doubled_caption']}、\"
       f\"作者是点赞数 {d['author_is_a_like_count']}、读不出来的 {d['unreadable_files']}。\")"
 
+step "8.63) 生产上有没有第二个同名的运行库"
+# 2026-08-11 撞见的：`/var/lib/social-archive/social-archive.sqlite3` **0 字节**，
+# 而真库在 `…/runtime/social-archive.sqlite3`（4.7 MB / 193 条）。**同名，差一层目录。**
+# 我第一次查就猜了上面那个，拿到 `no such table: content`，差点当成「生产的库坏了」。
+#
+# 那个空壳是我自己用错路径 `sqlite3.connect()` 留下的（它会顺手把文件建出来）。
+# 已经收掉。这一步是不让它再长出来：**同名的空库躺在最好猜的位置上，
+# 谁指过去都会读到「0 条」——一个看起来完全合理的错答案。**
+if ! .venv/bin/python scripts/check_no_decoy_runtime_db_on_production.py --host "$HOST" \
+      > evidence/G3/NO_DECOY_RUNTIME_DB.json 2>&1; then
+  python3 -c "
+import json
+d=json.load(open('evidence/G3/NO_DECOY_RUNTIME_DB.json'))
+for p in d.get('problems', []): print('  ✗', p)"
+  fail '生产上出现了第二个同名运行库——先查清它是不是活的，再决定怎么处置。'
+fi
+python3 -c "
+import json
+m=json.load(open('evidence/G3/NO_DECOY_RUNTIME_DB.json'))['measured']
+print(f\"  只有一个运行库：{m['real']}（{m['real_bytes']:,} 字节）。\")"
+
 step "8.67) 东西真的在他 Obsidian 库里，而且是干净的"
 # 整条产品线的终点：他把内容读到眼睛里的地方是 Obsidian。
 # 前面每一段都有人验（库里几条、zip 几个、桌面那两个文件），
