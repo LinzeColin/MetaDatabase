@@ -525,9 +525,7 @@ export function useTenantResource<T extends TenantRecord>(
     } catch {
       // Do not report a local save when the device cannot actually retain it.
     }
-    const parentReferences = localPersisted
-      ? await deriveDeviceOutboxParentReferences(scope, resource, payload).catch(() => [])
-      : [];
+    const parentReferences = deriveDeviceOutboxParentReferences(resource, payload);
     const deviceOutboxAction: DeviceOutboxAction = {
       createdAt: deviceLocalRecord.created_at,
       endpoint: `/api/mydairy/${resource}`,

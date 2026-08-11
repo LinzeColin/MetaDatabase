@@ -301,33 +301,20 @@ export async function removeDeviceLocalRecord(scope: string, resource: string, i
 }
 
 /**
- * A locally-created child may refer to a locally-created parent. Persist just
- * that relation, inside the same opaque account partition, so a later replay
- * never sends the parent's device-only identifier to the cloud database.
+ * A local_ value is created only by this device cache; server record IDs use a
+ * different namespace. Mark it as a dependency before any storage operation
+ * so a failed child-cache write can never make the immediate request send that
+ * device-only parent value to the cloud database.
  */
-export async function deriveDeviceOutboxParentReferences(
-  scope: string,
+export function deriveDeviceOutboxParentReferences(
   resource: string,
   payload: Record<string, unknown>,
-): Promise<DeviceOutboxParentReference[]> {
+): DeviceOutboxParentReference[] {
   const dependency = childResourceDependencies[resource];
   if (!dependency) return [];
   const localRecordId = payload[dependency.field];
-  if (typeof localRecordId !== "string" || !localRecordId) return [];
-  if (!localRecordId.startsWith("local_")) return [];
+  if (typeof localRecordId !== "string" || !localRecordId.startsWith("local_")) return [];
   const reference = { field: dependency.field, localRecordId, resource: dependency.resource } as DeviceOutboxParentReference;
-  const parents = await readDeviceLocalRecords(scope, dependency.resource);
-  if (parents.some((record) => record.id === localRecordId)) return [reference];
-
-  // The parent can settle while this child is being created. In that narrow
-  // window the device row has been removed, but its same-account alias is
-  // already durable; keep the dependency so the immediate mutation resolves
-  // to the server identifier rather than sending a local_ identifier.
-  if (await readDeviceRecordAlias(scope, dependency.resource, localRecordId)) return [reference];
-
-  // A local_ identifier is never a server identifier. Preserve the reference
-  // even when neither local row nor alias is readable yet so the caller waits
-  // safely instead of submitting an invalid parent reference to the API.
   return [reference];
 }
 
@@ -357,18 +344,28 @@ async function readDeviceRecordAlias(
  * accepted for this same opaque account. A missing alias is a harmless wait,
  * never a malformed child mutation.
  */
-export async function resolveDeviceOutboxAction(
-  scope: string,
+export async function resolveDeviceOutboxActionWithAliases(
   action: DeviceOutboxAction,
+  resolveAlias: (reference: DeviceOutboxParentReference) => Promise<string | null>,
 ): Promise<DeviceOutboxAction | null> {
   if (!action.parentReferences?.length) return action;
   const payload = { ...action.payload };
   for (const reference of action.parentReferences) {
-    const remoteRecordId = await readDeviceRecordAlias(scope, reference.resource, reference.localRecordId);
+    const remoteRecordId = await resolveAlias(reference);
     if (!remoteRecordId) return null;
     payload[reference.field] = remoteRecordId;
   }
   return { ...action, payload };
+}
+
+export async function resolveDeviceOutboxAction(
+  scope: string,
+  action: DeviceOutboxAction,
+): Promise<DeviceOutboxAction | null> {
+  return resolveDeviceOutboxActionWithAliases(
+    action,
+    (reference) => readDeviceRecordAlias(scope, reference.resource, reference.localRecordId),
+  );
 }
 
 /**

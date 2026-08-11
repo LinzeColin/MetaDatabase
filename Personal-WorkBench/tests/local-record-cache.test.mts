@@ -3,9 +3,12 @@ import test from "node:test";
 
 import {
   createDeviceLocalRecord,
+  deriveDeviceOutboxParentReferences,
   isDeviceLocalRecord,
   mergeWithDeviceLocalRecords,
   resolveBrowserRecordScope,
+  resolveDeviceOutboxActionWithAliases,
+  type DeviceOutboxAction,
 } from "../app/_components/workbench/local-record-cache.ts";
 
 test("device-local records retain display fields while excluding client tenant identifiers", () => {
@@ -71,4 +74,35 @@ test("device-local account scope is re-evaluated after an account switch", async
     if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
     else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });
   }
+});
+
+test("local parent references wait for a same-account alias instead of sending a local identifier", async () => {
+  const habitReferences = deriveDeviceOutboxParentReferences("habit-checkins", { habitId: "local_habit" });
+  const savingsReferences = deriveDeviceOutboxParentReferences("savings-transactions", { goalId: "local_goal" });
+
+  assert.deepEqual(habitReferences, [{ field: "habitId", localRecordId: "local_habit", resource: "habits" }]);
+  assert.deepEqual(savingsReferences, [{ field: "goalId", localRecordId: "local_goal", resource: "savings-goals" }]);
+  assert.deepEqual(deriveDeviceOutboxParentReferences("habit-checkins", { habitId: "rec_habit" }), []);
+
+  const action: DeviceOutboxAction = {
+    createdAt: 1,
+    endpoint: "/api/mydairy/habit-checkins",
+    idempotencyKey: "habit-checkin-local-parent-v1",
+    localRecordId: "local_checkin",
+    method: "POST",
+    parentReferences: habitReferences,
+    payload: { habitId: "local_habit", completedAt: 1 },
+    queuedAt: 1,
+  };
+
+  const waiting = await resolveDeviceOutboxActionWithAliases(action, async () => null);
+  assert.equal(waiting, null);
+
+  const resolved = await resolveDeviceOutboxActionWithAliases(action, async (reference) => {
+    assert.deepEqual(reference, habitReferences[0]);
+    return "rec_habit";
+  });
+  assert.ok(resolved);
+  assert.equal(resolved.payload.habitId, "rec_habit");
+  assert.equal(action.payload.habitId, "local_habit");
 });

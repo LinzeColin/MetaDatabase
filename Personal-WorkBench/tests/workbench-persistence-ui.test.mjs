@@ -188,7 +188,7 @@ test("tenant resource retries only same-account non-sensitive local records afte
 test("dependent local mutations resolve a same-account parent alias before an immediate cloud request", async () => {
   const source = await readFile(resourceSource, "utf8");
   const cacheSource = await readFile("app/_components/workbench/local-record-cache.ts", "utf8");
-  const deriveStart = cacheSource.indexOf("export async function deriveDeviceOutboxParentReferences");
+  const deriveStart = cacheSource.indexOf("export function deriveDeviceOutboxParentReferences");
   const deriveEnd = cacheSource.indexOf("async function readDeviceRecordAlias", deriveStart);
   const createStart = source.indexOf("const create = useCallback");
   const resolveStart = source.indexOf("const resolvedAction = await resolveDeviceOutboxAction(scope, deviceOutboxAction);", createStart);
@@ -197,7 +197,8 @@ test("dependent local mutations resolve a same-account parent alias before an im
   assert.ok(deriveStart >= 0);
   assert.ok(deriveEnd > deriveStart);
   assert.match(cacheSource.slice(deriveStart, deriveEnd), /localRecordId\.startsWith\("local_"\)/);
-  assert.match(cacheSource.slice(deriveStart, deriveEnd), /readDeviceRecordAlias\(scope, dependency\.resource, localRecordId\)/);
+  assert.match(cacheSource.slice(deriveStart, deriveEnd), /return \[reference\];/);
+  assert.match(source, /const parentReferences = deriveDeviceOutboxParentReferences\(resource, payload\);/);
   assert.ok(resolveStart > createStart);
   assert.ok(fetchStart > resolveStart);
   assert.match(source.slice(resolveStart, fetchStart), /if \(!resolvedAction\)[\s\S]*queueDeviceMutation\(deviceOutboxAction\)/);
