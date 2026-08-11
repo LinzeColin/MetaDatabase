@@ -35,7 +35,7 @@ remains outside Git. Any other inventory drift still fails verification.
 
 ## Production acceptance inputs
 
-The target `.env` uses provider-neutral SMTP; NitroSend is not accepted or required. Full production acceptance must provide two distinct acceptance addresses explicitly. Automatic plus-alias fallback is disabled; an operator may configure aliases deliberately only under the same delivery pacing controls:
+The target `.env` uses provider-neutral SMTP; NitroSend is not accepted or required. Full production acceptance must provide two independent, dedicated acceptance inboxes explicitly. Automatic plus-alias fallback is disabled, and two addresses with the same local-part root (for example `owner+one@…` and `owner+two@…`) are rejected before any mail is sent. This conservatively prevents a single inbox from receiving the three lifecycle messages.
 
 - `ACCEPTANCE_EMAIL_A`, `ACCEPTANCE_EMAIL_B`, `ACCEPTANCE_ACCOUNT_PASSWORD`
 - `ACCEPTANCE_IMAP_HOST`, `ACCEPTANCE_IMAP_PORT`, `ACCEPTANCE_IMAP_USERNAME`, `ACCEPTANCE_IMAP_PASSWORD`

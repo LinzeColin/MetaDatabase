@@ -105,10 +105,47 @@ def acceptance_email_request_safety_seconds() -> int:
     return value
 
 
+def _delivery_identity(address: str) -> tuple[str, str] | None:
+    """Return a conservative mailbox identity without exposing an address.
+
+    Acceptance needs two genuinely independent recipients.  Treating
+    ``owner+first@example`` and ``owner+second@example`` as two recipients is
+    unsafe: on common mail systems they arrive in one inbox and turn the three
+    lifecycle messages into unwanted bursts.  This does not try to normalize
+    provider-specific dot rules; it only refuses the clear plus-alias case.
+    """
+    local, separator, domain = address.strip().casefold().partition("@")
+    if not separator or not local or not domain:
+        return None
+    return local.split("+", 1)[0], domain
+
+
+def acceptance_recipient_identity_conflict() -> bool:
+    first = os.getenv("ACCEPTANCE_EMAIL_A", "").strip()
+    second = os.getenv("ACCEPTANCE_EMAIL_B", "").strip()
+    if not first or not second:
+        return False
+    first_identity = _delivery_identity(first)
+    second_identity = _delivery_identity(second)
+    admin_identity = _delivery_identity(os.getenv("ADMIN_EMAIL", ""))
+    if not first_identity or not second_identity:
+        return True
+    return (
+        first.casefold() == second.casefold()
+        or first_identity == second_identity
+        or (admin_identity is not None and (first_identity == admin_identity or second_identity == admin_identity))
+    )
+
+
 def has_distinct_acceptance_recipients() -> bool:
     first = os.getenv("ACCEPTANCE_EMAIL_A", "").strip()
     second = os.getenv("ACCEPTANCE_EMAIL_B", "").strip()
-    return bool(first and second and first.casefold() != second.casefold())
+    return bool(
+        first
+        and second
+        and first.casefold() != second.casefold()
+        and not acceptance_recipient_identity_conflict()
+    )
 
 
 def acceptance_run_id() -> str:
@@ -195,6 +232,7 @@ def email_lifecycle_preflight() -> dict[str, object] | None:
     registration_enabled = bool_env("ALLOW_REGISTRATION", False)
     standard_smtp_configured = bool(os.getenv("SMTP_HOST", "").strip())
     acceptance_recipient_configured = has_distinct_acceptance_recipients()
+    recipient_identity_conflict = acceptance_recipient_identity_conflict()
     acceptance_imap_configured = all(
         os.getenv(name, "").strip()
         for name in ("ACCEPTANCE_IMAP_HOST", "ACCEPTANCE_IMAP_USERNAME", "ACCEPTANCE_IMAP_PASSWORD")
@@ -219,7 +257,7 @@ def email_lifecycle_preflight() -> dict[str, object] | None:
     if not standard_smtp_configured:
         missing.append("standard SMTP_HOST")
     if not acceptance_recipient_configured:
-        missing.append("two distinct dedicated acceptance recipients")
+        missing.append("two distinct acceptance recipients with independent delivery identities")
     if not acceptance_imap_configured:
         missing.append("acceptance IMAP mailbox")
     if not real_email_opt_in:
@@ -241,6 +279,7 @@ def email_lifecycle_preflight() -> dict[str, object] | None:
         "registration_enabled": registration_enabled,
         "standard_smtp_configured": standard_smtp_configured,
         "acceptance_recipient_configured": acceptance_recipient_configured,
+        "acceptance_recipient_identity_conflict": recipient_identity_conflict,
         "acceptance_imap_configured": acceptance_imap_configured,
         "real_email_opt_in": real_email_opt_in,
         "real_email_run_id_configured": real_email_run_id_configured,
@@ -259,9 +298,12 @@ def email_lifecycle_preflight() -> dict[str, object] | None:
 def derived_emails() -> tuple[str, str]:
     explicit_a = os.getenv("ACCEPTANCE_EMAIL_A", "").strip()
     explicit_b = os.getenv("ACCEPTANCE_EMAIL_B", "").strip()
-    if explicit_a and explicit_b and explicit_a.casefold() != explicit_b.casefold():
+    if has_distinct_acceptance_recipients():
         return explicit_a, explicit_b
-    raise RuntimeError("set two distinct dedicated ACCEPTANCE_EMAIL_A and ACCEPTANCE_EMAIL_B values")
+    raise RuntimeError(
+        "set two distinct ACCEPTANCE_EMAIL_A and ACCEPTANCE_EMAIL_B values "
+        "with independent delivery identities"
+    )
 
 
 def message_text(msg: Message) -> str:

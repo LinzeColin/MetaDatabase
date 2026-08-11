@@ -191,6 +191,64 @@ def test_production_e2e_rejects_alias_fallback_and_same_recipient(tmp_path):
     assert result["email_delivery_sent"] is False
 
 
+def test_production_e2e_rejects_two_plus_aliases_for_the_same_inbox(tmp_path):
+    output = tmp_path / "target-browser.json"
+    completed = subprocess.run(
+        [sys.executable, str(ROOT / "tools/e2e_production.py"), "--output", str(output)],
+        cwd=ROOT,
+        env={
+            "BASE_URL": "https://jobhunt.example.test",
+            "ALLOW_REGISTRATION": "true",
+            "SMTP_HOST": "smtp.example.test",
+            "ADMIN_EMAIL": "owner@example.test",
+            "ACCEPTANCE_EMAIL_A": "owner+acceptance-a@example.test",
+            "ACCEPTANCE_EMAIL_B": "owner+acceptance-b@example.test",
+            "ACCEPTANCE_IMAP_HOST": "imap.example.test",
+            "ACCEPTANCE_IMAP_USERNAME": "acceptance@example.test",
+            "ACCEPTANCE_IMAP_PASSWORD": "synthetic-password",
+            "RUN_REAL_EMAIL_ACCEPTANCE": "true",
+            "REAL_EMAIL_ACCEPTANCE_RUN_ID": "mail-safety-alias-run-20260811",
+            "PYTHONDONTWRITEBYTECODE": "1",
+        },
+        capture_output=True,
+        text=True,
+    )
+    assert completed.returncode == 2, completed.stderr
+    result = json.loads(output.read_text(encoding="utf-8"))
+    assert result["verdict"] == "BLOCKED"
+    assert result["blocker"] == "EMAIL_ONLY_BLOCKED"
+    assert result["acceptance_recipient_configured"] is False
+    assert result["acceptance_recipient_identity_conflict"] is True
+    assert result["email_delivery_sent"] is False
+
+
+def test_acceptance_shell_rejects_plus_alias_pair_before_creating_evidence(tmp_path):
+    pack = tmp_path / "pack"
+    copy_taskpack_source(pack)
+    (pack / ".env").write_text(
+        "\n".join([
+            "RUN_REAL_EMAIL_ACCEPTANCE=true",
+            "REAL_EMAIL_ACCEPTANCE_RUN_ID=mail-safety-shell-alias-run-20260811",
+            "ADMIN_EMAIL=owner@example.test",
+            "ACCEPTANCE_EMAIL_A=owner+acceptance-a@example.test",
+            "ACCEPTANCE_EMAIL_B=owner+acceptance-b@example.test",
+        ]) + "\n",
+        encoding="utf-8",
+    )
+
+    completed = subprocess.run(
+        ["bash", "deploy/acceptance.sh"],
+        cwd=pack,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode != 0
+    assert "independent delivery identities" in completed.stderr
+    assert "no email has been sent" in completed.stderr
+    assert not (pack / "ACCEPTANCE_RESULT.json").exists()
+
+
 def test_real_email_guard_consumes_each_run_id_and_enforces_cooldown(tmp_path):
     spec = importlib.util.spec_from_file_location("jobhunt_e2e_production", ROOT / "tools/e2e_production.py")
     assert spec and spec.loader

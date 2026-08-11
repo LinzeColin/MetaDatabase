@@ -15,6 +15,33 @@ set -a; source .env; set +a
   echo "real email acceptance requires two dedicated acceptance recipients; no email has been sent" >&2
   exit 2
 }
+python3 - <<'PY'
+import os
+
+def identity(address: str):
+    local, separator, domain = address.strip().casefold().partition("@")
+    if not separator or not local or not domain:
+        return None
+    return local.split("+", 1)[0], domain
+
+first = os.environ["ACCEPTANCE_EMAIL_A"]
+second = os.environ["ACCEPTANCE_EMAIL_B"]
+admin = os.getenv("ADMIN_EMAIL", "")
+first_identity = identity(first)
+second_identity = identity(second)
+admin_identity = identity(admin)
+if (
+    not first_identity
+    or not second_identity
+    or first.casefold() == second.casefold()
+    or first_identity == second_identity
+    or (admin_identity is not None and (first_identity == admin_identity or second_identity == admin_identity))
+):
+    raise SystemExit(
+        "real email acceptance requires two dedicated recipients with independent delivery identities; "
+        "no email has been sent"
+    )
+PY
 case "${ACCEPTANCE_MIN_EMAIL_GAP_SECONDS:-1800}" in
   ''|*[!0-9]*) echo "ACCEPTANCE_MIN_EMAIL_GAP_SECONDS must be an integer; no email has been sent" >&2; exit 2 ;;
 esac
