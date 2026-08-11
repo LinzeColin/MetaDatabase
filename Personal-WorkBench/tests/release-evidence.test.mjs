@@ -211,6 +211,16 @@ test("Version 34 S5-T3 private deployment and rollback evidence does not overcla
     evidence.controlled_browser_e2e.a_b_tenant_isolation_and_second_device_history,
     "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR",
   );
+  assert.equal(
+    evidence.controlled_browser_e2e.d1_r2_reconciliation,
+    "NOT_RUN_NO_AUTHENTICATED_CLOUDFLARE_STORAGE_CATALOGUE",
+  );
+  assert.equal(evidence.cloudflare_storage_catalogue_boundary.wrangler_v4_available, true);
+  assert.equal(evidence.cloudflare_storage_catalogue_boundary.authenticated, false);
+  assert.equal(
+    evidence.cloudflare_storage_catalogue_boundary.configuration_values_or_resource_catalogues_read,
+    false,
+  );
   assert.equal(evidence.scope_and_limits.public_audience_changed, false);
   assert.equal(evidence.scope_and_limits.github_uploaded, false);
   assert.equal(evidence.scope_and_limits.product_pass_claimed, false);
