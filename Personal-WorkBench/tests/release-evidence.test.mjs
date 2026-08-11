@@ -71,6 +71,51 @@ test("Version 33 S5-T1 saved candidate evidence preserves the private boundary",
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 34 S5-T1 saved candidate preserves reviewed-source and private boundaries", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_34_s5_t1_saved_candidate.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.task_id, "S5-T1");
+  assert.equal(evidence.phase, "S5_T1_PRIVATE_SAVED_VERSION");
+  assert.equal(evidence.status, "PASS_PRIVATE_SAVED_VERSION_CANDIDATE");
+  assert.equal(evidence.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(evidence.candidate.saved_version_number, 34);
+  assert.equal(evidence.candidate.source_readback_matches_pushed_candidate, true);
+  assert.equal(evidence.candidate.archive_stored_by_sites, true);
+  assert.equal(evidence.source_identity.approved_local_commit.length, 40);
+  assert.equal(evidence.source_identity.approved_local_project_tree.length, 40);
+  assert.equal(evidence.source_identity.sites_projection_commit.length, 40);
+  assert.equal(evidence.source_identity.projection_tree_matches_approved_local_project_tree, true);
+  assert.equal(evidence.source_identity.push_mode, "NON_FORCE_FAST_FORWARD");
+  assert.equal(evidence.build_archive.status, "PASS_EXACT_SOURCE_BUILD_AND_PACKAGE");
+  assert.equal(evidence.build_archive.built_in_isolated_candidate_copy, true);
+  assert.equal(evidence.build_archive.local_checks.npm_run_tenant, "PASS");
+  assert.equal(evidence.build_archive.local_checks.npm_run_workbench_data, "PASS");
+  assert.equal(evidence.private_access.site_active, true);
+  assert.equal(evidence.private_access.current_user_role, "owner");
+  assert.equal(evidence.private_access.access_mode, "custom");
+  assert.equal(evidence.private_access.allowed_user_count, 1);
+  assert.equal(evidence.private_access.allowed_group_count, 0);
+  assert.equal(evidence.private_access.external_visitor_count, 0);
+  assert.equal(evidence.sites_saved_version.source_readback_matches_projection, true);
+  assert.equal(evidence.sites_saved_version.archive_storage_present, true);
+  assert.equal(evidence.sites_saved_version.new_candidate_deployed, false);
+  assert.equal(evidence.scope_and_limits.deployment_action_called, false);
+  assert.equal(evidence.scope_and_limits.runtime_values_read_or_changed, false);
+  assert.equal(evidence.scope_and_limits.public_audience_changed, false);
+  assert.equal(evidence.scope_and_limits.github_uploaded, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 33 S5-T2 configuration evidence preserves private configuration continuity", async () => {
   const configuration = JSON.parse(
     await readFile(

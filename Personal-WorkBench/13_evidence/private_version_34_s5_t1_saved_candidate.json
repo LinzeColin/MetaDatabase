@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T1",
+  "phase": "S5_T1_PRIVATE_SAVED_VERSION",
+  "status": "PASS_PRIVATE_SAVED_VERSION_CANDIDATE",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-11",
+  "candidate": {
+    "source_subject": "S4-T3A-reviewed tenant-storage candidate",
+    "s4_t3a_readiness_evidence": "13_evidence/s4_t3a_tenant_storage_readiness.json",
+    "source_pushed_to_sites_dedicated_channel": true,
+    "source_readback_matches_pushed_candidate": true,
+    "isolated_build_completed": true,
+    "archive_stored_by_sites": true,
+    "saved_version_number": 34
+  },
+  "source_identity": {
+    "approved_local_commit": "f9850285b3148d4a71139a998422776014a5ad4c",
+    "approved_local_project_tree": "be4304e3cec9d47cfc34409adc2e7164f4a63e7a",
+    "sites_projection_commit": "735e32647119318fdc567208e526f4ca00b1bfa6",
+    "sites_projection_tree": "be4304e3cec9d47cfc34409adc2e7164f4a63e7a",
+    "sites_projection_parent": "95f8886287f6f5f1326d4b463d470337e33a5f4a",
+    "projection_tree_matches_approved_local_project_tree": true,
+    "sites_source_branch": "main",
+    "push_mode": "NON_FORCE_FAST_FORWARD",
+    "sites_source_branch_readback_matches_projection": true
+  },
+  "build_archive": {
+    "status": "PASS_EXACT_SOURCE_BUILD_AND_PACKAGE",
+    "built_in_isolated_candidate_copy": true,
+    "local_sha256": "4169452cddc069f510bcf2eb19e3fd83e35fec0a290e146b471224c7927f2656",
+    "local_size_bytes": 1936263,
+    "required_entries": [
+      "dist/server/index.js",
+      "dist/.openai/hosting.json"
+    ],
+    "local_checks": {
+      "npm_run_check": "PASS",
+      "npm_run_tenant": "PASS",
+      "npm_run_workbench_data": "PASS",
+      "npm_run_quality": "PASS",
+      "npm_run_visual": "PASS",
+      "npm_run_recovery": "PASS",
+      "npm_run_build": "PASS",
+      "npm_run_verify_release": "PASS_BUILD_LAST_MILE_READINESS",
+      "npm_run_validate_acceptance_sequence": "PASS_SEQUENCE_ADDENDUM_INTEGRITY_ONLY"
+    }
+  },
+  "private_access": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "latest_version_matches_saved_candidate": true,
+    "private_access_preserved_after_save": true
+  },
+  "sites_saved_version": {
+    "version_number": 34,
+    "source_readback_matches_projection": true,
+    "archive_storage_present": true,
+    "version_list_contains_saved_candidate": true,
+    "new_candidate_deployed": false
+  },
+  "scope_and_limits": {
+    "deployment_action_called": false,
+    "runtime_values_read_or_changed": false,
+    "d1_or_r2_configuration_changed": false,
+    "real_user_business_data_read_or_written": false,
+    "github_uploaded": false,
+    "vps3_used_as_site_host": false,
+    "public_audience_changed": false,
+    "product_pass_claimed": false,
+    "final_acceptance_claimed": false
+  },
+  "next_phase": "S5-T2 private configuration and owner gates",
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
