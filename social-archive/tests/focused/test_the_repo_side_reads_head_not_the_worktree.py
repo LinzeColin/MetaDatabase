@@ -33,13 +33,24 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
+sys.path.insert(0, str(ROOT / "src"))
 
 from check_production_matches_the_repo import _local_hashes  # noqa: E402
+from social_archive.git_env import clean_git_env  # noqa: E402
 
 
 def _tracked(name: str) -> bool:
+    """这一行的 `env=` 不是样板。
+
+    git 钩子会往环境里塞 `GIT_DIR`，而它**压得过 `cwd=`**——
+    子进程会去问那个仓，于是这条断言可以在完全另一个仓上得出结论。
+    （同样的形态让一个凭据扫描器静悄悄扫了别的仓，报「0 处命中」。）
+    `check_git_calls_cannot_be_hijacked_by_hooks.py` 就是查这个的，
+    而我写这个文件时**忘了它也管 tests/**——是那道门抓到的，不是我。
+    """
     done = subprocess.run(["git", "ls-files", "--error-unmatch", name],
-                          cwd=ROOT, capture_output=True, text=True, check=False)
+                          cwd=ROOT, env=clean_git_env(), capture_output=True,
+                          text=True, check=False)
     return done.returncode == 0
 
 

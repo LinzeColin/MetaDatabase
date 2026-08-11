@@ -139,8 +139,42 @@ step "0) 本地闸门：工作树干净 + 发布门全绿"
 #
 # 钩子是机器侧的东西，不该由我覆盖回去；**测试该待的地方本来就是通往生产的这条路**。
 # 代价是每次部署多两分钟。
-.venv/bin/python scripts/final_verify.py --full --report "$(mktemp -t sa-gate)" >/dev/null \
-  || fail '发布门未通过（含全量测试）。'
+# **失败时必须说出是哪一道门**（2026-08-12）。
+#
+# 原来这里是 `>/dev/null || fail '发布门未通过（含全量测试）。'`：
+# 35 道门跑完，报告写进一个 `mktemp` 出来的随机文件名，然后**整个吞掉**。
+# 部署日志一共 5 行，最后一行是那句「发布门未通过」——
+# 哪道门、为什么，一个字都没有。那次真的有两处不合格
+# （一条新测试起 git 没洗环境；升版之后前端缓存戳没重打），
+# 而日志读起来只像「不知道哪里坏了」。
+#
+# 报告落到固定路径，失败时把不合格那几项直接印出来。
+GATE_REPORT="${TMPDIR:-/tmp}/sa-gate-report.json"
+if ! .venv/bin/python scripts/final_verify.py --full --report "$GATE_REPORT" >/dev/null; then
+  .venv/bin/python - "$GATE_REPORT" <<'PY' >&2 || true
+import json, sys
+try:
+    results = json.load(open(sys.argv[1]))["results"]
+except Exception as exc:
+    print(f"（报告也读不出来：{exc}）"); raise SystemExit
+bad = [r for r in results if r.get("exit_code")]
+print(f"\n不合格 {len(bad)} 项 / 共 {len(results)} 项：")
+# 尾巴 25 行会被 pytest 的 warnings summary 占满，**而 FAILED 那几行正好在它后面**——
+# 第一版就是这样：印出来的全是弃用警告，真正红的那条一个字没有。
+# 所以先把点名的行捞出来，再补尾巴。
+LOUD = ("FAILED ", "ERROR ", "**不合格**", "AssertionError", "Error:")
+for r in bad:
+    print(f"\n  ▸ {' '.join(r['argv'][1:])}")
+    lines = ((r.get("stdout") or "") + (r.get("stderr") or "")).splitlines()
+    named = [l for l in lines if any(k in l for k in LOUD)]
+    for line in named[:12]:
+        print(f"      {line}")
+    if not named:
+        for line in lines[-20:]:
+            print(f"      {line}")
+PY
+  fail "发布门未通过（含全量测试）。完整报告：$GATE_REPORT"
+fi
 .venv/bin/python scripts/build_extension_package.py >/dev/null || fail '扩展包没打出来——用户下载到的会是旧版本。'
 # **打完就在真 Chrome 里装一次这个包。**
 #
