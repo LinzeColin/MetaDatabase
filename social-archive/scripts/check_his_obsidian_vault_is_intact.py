@@ -51,7 +51,7 @@ SUBDIR = "Social Archive"
 def inspect(folder: Path) -> dict:
     """数一遍那些笔记。**只数数，不取正文。**"""
     files = sorted(folder.rglob("*.md"))
-    empty = doubled = like_author = 0
+    empty = doubled = like_author = timestamp_title = 0
     tails: collections.Counter[str] = collections.Counter()
     for path in files:
         text = path.read_text(encoding="utf-8", errors="replace")
@@ -59,6 +59,13 @@ def inspect(folder: Path) -> dict:
         title = (heading.group(1).strip() if heading else "")
         if not title:
             empty += 1
+        # **标题是播放进度**（2026-08-12）。打开他 Obsidian 库随手看一篇，
+        # 标题是 `34:04/42:37`——那是 B 站播放器上的时间，不是标题。
+        # 全库数了一遍：**193 篇里 56 篇是这个样子**，全部来自 history 那条路。
+        # 而此前每一道门都是绿的：这类标题「以数字开头」，
+        # 而那一条恰恰被判成**正常**（「10万个冷知识」那次的教训）。
+        if re.fullmatch(r"\d{1,2}:\d{2}(/\d{1,2}:\d{2})?", title):
+            timestamp_title += 1
         lead = re.match(r"^\d+(?:\.\d+)?[万千]?", title)
         if lead:
             rest = title[lead.end():]
@@ -75,6 +82,7 @@ def inspect(folder: Path) -> dict:
         "empty_heading": empty,
         "title_is_a_doubled_caption": doubled,
         "author_is_a_like_count": like_author,
+        "title_is_a_playback_timestamp": timestamp_title,
         "same_item_twice": sum(1 for count in tails.values() if count > 1),
     }
 
@@ -109,13 +117,32 @@ def main() -> int:
         ("empty_heading", "空标题（我在生产上写出过 4 个）"),
         ("title_is_a_doubled_caption", "标题是「互动数＋文案＋同一段文案」"),
         ("author_is_a_like_count", "作者字段装着点赞数"),
+
         ("same_item_twice", "同一条内容在库里有两份"),
     ):
         if measured[key]:
             problems.append(f"{measured[key]} 篇{why}")
 
+    # **这一条是播报，不是门。**（2026-08-12）
+    #
+    # 56 篇播放进度标题是**他库里已经存在的数据**，不是这次部署弄坏的。
+    # 做成门的话，它在他重新同步之前永远变不绿——而
+    # `a-red-that-can-never-turn-green-is-not-a-signal`：那种红没有信息，
+    # 只会逼下一个人绕过整道检查（连带把真会红的那几条一起绕过去）。
+    #
+    # 真因在取数那一侧（history 那条路把播放器上的时间当成了标题），
+    # 而验证修复要他登录之后的那个页面——我这边看不到。所以：**说出来，不拦。**
+    notes_to_read = []
+    if measured["title_is_a_playback_timestamp"]:
+        notes_to_read.append(
+            f"{measured['title_is_a_playback_timestamp']} 篇标题是播放进度"
+            "（如 34:04/42:37）——**那是 B 站播放器上的时间，不是标题**。"
+            "全部来自 history 那条路；修它要改取数侧，而验证要 Owner 登录后的页面。"
+            "**这一条不拦发布**：它是已经存在的数据，不是这次弄坏的。")
+
     print(json.dumps({
         "status": "FAIL" if problems else "PASS",
+        "notes_to_read_zh": notes_to_read,
         "vault": str(folder), "measured": measured, "problems": problems,
         "boundary_zh": "只读、只数数：不取正文、不打印标题、不改任何东西。",
         "what_this_does_not_prove":

@@ -63,7 +63,12 @@
 <p>那时插件会把刚打开的平台页翻到前台，并让你先在那儿登录，</p>
 <p>然后回到面板上点<strong>「我已登录，继续」</strong>。登录完点那一下就行。</p>
 <p><strong>现在能自动同步的：</strong></p>
-<table><thead><tr><th>平台</th><th>会自动读什么</th></tr></thead><tbody><tr><td>Chrome 书签</td><td>你的全部书签</td></tr><tr><td>B站</td><td>你的收藏夹（全部收藏夹，逐个读）</td></tr><tr><td>小红书 / 抖音 / 快手</td><td>你收藏页上那一批（往下滚再同步一次能读到更多）</td></tr><tr><td>Reddit / Instagram</td><td>你 Saved 页上那一批（同上，往下滚能读到更多）</td></tr></tbody></table>
+<table><thead><tr><th>平台</th><th>会自动读什么</th></tr></thead><tbody><tr><td>Chrome 书签</td><td>你的全部书签</td></tr><tr><td>B站</td><td><strong>不只是收藏夹</strong>：收藏夹、稍后再看、<strong>浏览历史</strong>、<strong>点赞</strong> 都会读进来</td></tr><tr><td>小红书 / 抖音 / 快手</td><td>你收藏页上那一批（往下滚再同步一次能读到更多）</td></tr><tr><td>Reddit / Instagram</td><td>你 Saved 页上那一批（同上，往下滚能读到更多）</td></tr></tbody></table>
+<blockquote><strong>B 站那一行要特别说一句：它连你的浏览历史和点赞也一起存。</strong></blockquote>
+<blockquote>2026-08-12 数过你库里的实况：<strong>条数最多的两类是浏览历史和点赞，收藏夹反而不是最多的</strong>——</blockquote>
+<blockquote>而这份说明此前只写了「收藏夹」。（具体各多少，看资料库里那一列的实数。）</blockquote>
+<blockquote>如果你不想让看过什么、赞过什么进档案馆，<strong>这一条要告诉我</strong>，</blockquote>
+<blockquote>那是改产品的事（<code>account_sync.py</code> 里 bilibili 那一行列着采哪几类），不是你去点什么。</blockquote>
 <blockquote><strong>关于封面和视频</strong>：同步进来的条目会带上封面地址，服务器会去把文件下下来。</blockquote>
 <blockquote><strong>但有些平台会把下载挡掉</strong>（B 站和抖音的反爬，你库里现在就有这样的条目）。</blockquote>
 <blockquote>那种条目正文照样存着，只是没有视频文件，资料库那一列会写</blockquote>
