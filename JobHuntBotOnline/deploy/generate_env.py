@@ -98,6 +98,7 @@ def main() -> None:
         "ACCEPTANCE_EMAIL_B": "",
         "ACCEPTANCE_EMAIL_PLUS_ALIAS": "true",
         "ACCEPTANCE_ACCOUNT_PASSWORD": "",
+        "RUN_REAL_EMAIL_ACCEPTANCE": "false",
         "ACCEPTANCE_IMAP_HOST": "",
         "ACCEPTANCE_IMAP_PORT": "993",
         "ACCEPTANCE_IMAP_USERNAME": "",

@@ -3,6 +3,10 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 test -f .env
 set -a; source .env; set +a
+[[ "${RUN_REAL_EMAIL_ACCEPTANCE:-false}" == "true" ]] || {
+  echo "real email acceptance requires explicit RUN_REAL_EMAIL_ACCEPTANCE=true; no email has been sent" >&2
+  exit 2
+}
 evidence_runner_user=(--user "${ACCEPTANCE_UID:-$(id -u)}:${ACCEPTANCE_GID:-$(id -g)}")
 mkdir -p evidence runtime-data
 python3 - <<'PY'
