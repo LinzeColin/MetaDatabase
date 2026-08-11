@@ -90,6 +90,29 @@ def curl(host: str, method: str, path: str, body: dict | None = None) -> dict:
     return {"_raw": (raw or "")[-300:]}
 
 
+def his_library_count(host: str) -> int | None:
+    """他自己那个库里有多少条——**只数数，不读任何内容**。
+
+    这个演练最要紧的那句话是「他的库一个字节没动」，而在这之前它只是**写着**
+    这句话，没量过。`self-report-is-not-evidence`：能出示的就要出示。
+    跑前跑后各数一次，不一样就红。
+    """
+    inside = (
+        "import sqlite3;"
+        "from social_archive.config import Settings;"
+        "c=sqlite3.connect(f'file:{Settings.from_env().runtime_db}?mode=ro', uri=True);"
+        "print(c.execute('SELECT COUNT(*) FROM content').fetchone()[0])"
+    )
+    done = subprocess.run(
+        ["ssh", "-o", "ConnectTimeout=20", host,
+         f"sudo docker exec -i social-archive-core-api-1 python -c {json.dumps(inside)}"],
+        capture_output=True, text=True, check=False)
+    for line in reversed((done.stdout or "").strip().splitlines()):
+        if line.strip().isdigit():
+            return int(line.strip())
+    return None
+
+
 def read_real_folder(limit: int) -> dict:
     """在**本机**跑插件那份 reader，打 B 站真接口。"""
     script = READ_LIVE % {"folder": PUBLIC_FOLDER, "limit": limit}
@@ -122,6 +145,10 @@ def main() -> int:
         steps.append({"step": name, "measured": measured, "expected": expectation, "ok": bool(ok)})
         if not ok:
             problems.append(f"{name}：期望{expectation}，实际 {measured!r}")
+
+    # ⓪ 先数一次他的库。**这个演练跑在生产机上、而且真的往档案馆写东西**——
+    # 「碰不到他的库」这句话必须是量出来的，不是写出来的。
+    his_before = his_library_count(host)
 
     # ① 真平台那一头
     live = read_real_folder(args.limit)
@@ -203,9 +230,19 @@ def main() -> int:
     finally:
         ssh(host, f"docker rm -f {CONTAINER} >/dev/null 2>&1 || true", check=False)
 
+    his_after = his_library_count(host)
+    if his_before is None or his_after is None:
+        problems.append("数不出他库里有多少条——**这不是通过**：这个演练敢跑在生产机上，"
+                        "全靠「碰不到他的库」这一条，而它此刻没被量到")
+    elif his_before != his_after:
+        problems.append(f"**他的库被动了**：跑之前 {his_before} 条，跑之后 {his_after} 条。"
+                        "这个演练只许写进一次性容器，出现这一条就说明隔离破了")
+
     print(json.dumps({
         "status": "FAIL" if problems else "PASS",
         "platform": "bilibili",
+        "his_library_before": his_before,
+        "his_library_after": his_after,
         "folder_title": live.get("folder_title"),
         "items_read_from_the_real_platform": len(items),
         "steps": steps,

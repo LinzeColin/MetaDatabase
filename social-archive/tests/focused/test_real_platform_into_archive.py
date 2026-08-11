@@ -41,6 +41,11 @@ def test_it_never_touches_his_own_library() -> None:
     assert "docker rm -f" in source, "跑完不收容器，下一次会撞名字"
     assert "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive" in source, (
         "数据根没被指到容器内——这条边界是这个演练敢跑在生产机上的全部理由")
+    # **光靠隔离的写法不够，要量。**（2026-08-12）
+    # 这条边界原来只写在散文里：演练**声称**碰不到他的库，而从没数过。
+    # `self-report-is-not-evidence`——能出示的就要出示。现在跑前跑后各数一次。
+    assert "his_library_count" in source, "不再数他的库了——那句「没动」又变回自述"
+    assert "他的库被动了" in source, "数了却不判红，等于没数"
 
 
 def test_it_compares_titles_not_just_counts() -> None:
