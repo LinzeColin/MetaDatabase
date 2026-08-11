@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "vault": "/Users/linzezhang/Documents/Obsidian/Social Archive",
+  "measured": {
+    "notes": 193,
+    "platforms": [
+      "bilibili",
+      "douyin",
+      "generic-web",
+      "x",
+      "xiaohongshu"
+    ],
+    "empty_heading": 0,
+    "title_is_a_doubled_caption": 0,
+    "author_is_a_like_count": 0,
+    "same_item_twice": 0
+  },
+  "problems": [],
+  "boundary_zh": "只读、只数数：不取正文、不打印标题、不改任何东西。",
+  "what_this_does_not_prove": "不保证每一篇的内容都对——只保证篇数对得上、没有那四类已知的坏形状。"
+}

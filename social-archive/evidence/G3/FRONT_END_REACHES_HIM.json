@@ -126,7 +126,7 @@
       "found": true,
       "platform": "douyin",
       "panelOpened": true,
-      "panelSrc": "chrome-extension://mhkhpnfbnnhbeenegjjdcmipdkljbdbc/connect-frame.html",
+      "panelSrc": "chrome-extension://jignjomlolfjiomfnnjllfpifckiamba/connect-frame.html",
       "errorsAfterClick": []
     },
     "drawer": {

@@ -138,6 +138,34 @@ def test_revoke_is_idempotent_and_says_two_different_things(tmp_path, monkeypatc
     assert b"age-encryption.org" not in raw, "撤销之后库文件里还留着密文"
 
 
+def test_revoking_one_platform_leaves_the_others_alone(tmp_path, monkeypatch) -> None:
+    """**只删他点的那一个。**（2026-08-11）
+
+    撤销是不可逆的：多删一个，就是替他把一份他没让删的登录状态丢掉，
+    而界面只会说「已撤销并从库中删除」——他不会发现少了哪一个。
+
+    上面那条 `test_revoke_is_idempotent_…` 验的是「删了 / 本来就没有」两句话
+    分得清；这条验的是**作用面**。两件事，之前只有前一件有人管。
+    （是把《使用说明》里点名的 28 个按钮逐个对判据时翻出来的：
+    「撤销登录状态」这个名字在所有判据里一次都没出现过——
+    ★ 而那其实是**我那次审计的假阳**：它的覆盖挂在路由名 `/v1/credentials` 上，
+    只是中文标签没出现过。真正缺的只有「作用面」这一条。）
+    """
+    client, api = _client(tmp_path, monkeypatch, with_age_key=True)
+    cookies = _login(api)
+    for platform in ("x", "youtube"):
+        put = client.put(f"/v1/credentials/{platform}",
+                         json={"cookies_txt": SYNTHETIC}, cookies=cookies)
+        assert put.status_code == 200, put.text
+
+    client.delete("/v1/credentials/x", cookies=cookies)
+    listed = client.get("/v1/credentials", cookies=cookies).json()
+    items = listed if isinstance(listed, list) else listed.get("items", [])
+    still = {item.get("platform") for item in items if item.get("connected")}
+    assert "youtube" in still, f"撤销 x 把 youtube 也带走了：{still}"
+    assert "x" not in still, f"x 没被真删掉：{still}"
+
+
 def test_unconfigured_vault_fails_loudly_instead_of_silently(tmp_path, monkeypatch) -> None:
     """没配加密收件人时必须 503 + 中文，不能静默成功也不能存明文。"""
     client, api = _client(tmp_path, monkeypatch, with_age_key=False)
