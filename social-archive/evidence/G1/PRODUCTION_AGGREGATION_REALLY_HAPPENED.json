@@ -5,7 +5,13 @@
     "bilibili",
     "douyin"
   ],
-  "items_imported_by_automatic_sync": 260,
+  "import_events_summed_across_runs": 260,
+  "distinct_items_still_in_the_archive": 186,
+  "distinct_items_by_platform": {
+    "bilibili": 101,
+    "douyin": 85
+  },
+  "why_two_numbers_zh": "前一个是**各次同步各自报的导入数相加**——同一条被两次同步各导一次就记两次；后一个是**去重后现在真的在档案馆里的条数**。两个都对，但只有后一个是「他有多少东西」。",
   "runs_that_imported_something": [
     {
       "platform": "bilibili",

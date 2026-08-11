@@ -61,10 +61,32 @@ out = {
   "sync_runs": rows(
       "select platform, status, discovered_count, imported_count, failed_count, "
       "completeness, last_error_code, started_at from sync_run order by started_at"),
+  # **一次 run 报的 imported_count 是「这次导入了几条」，不是「新增了几条」。**
+  # 同一条被两次同步各导一次，就在两个 run 里各记一次。把它们相加
+  # 得到的是**导入次数**，不是条目数——实测 260 对 186。
+  # 所以这里另外量一次去重后的真数，让播报能把两个口径分开说。
+  "distinct_content_by_account_platform": rows(
+      "select a.platform, count(distinct u.content_id) as n from user_relation u "
+      "join source_account a on a.id = u.source_account_id group by 1 order by 2 desc"),
   "jobs": rows("select job_type, status, count(*) as n from job group by 1,2 order by 3 desc"),
 }
 print(json.dumps(out, ensure_ascii=False))
 ''' % DB
+
+
+def summary_line(report: dict) -> str:
+    """播报的第一行。
+
+    **抽出来是为了能对它写反例。** 原来它是 main() 里的一句 f-string，
+    里面用的是「各次 run 相加」那个数（260），而他库里一共 193 条——
+    多报了 74，读的人没有任何办法看出那是次数不是条数。
+    判据只查 JSON，不查这句散文，所以这个错在每一次部署日志里躺了很久。
+    """
+    worked = report["platforms_that_really_imported"] or ["（一个都没有）"]
+    return (f"自动同步真的进过东西的平台：{'、'.join(worked)}"
+            f"，现在档案馆里去重后 {report['distinct_items_still_in_the_archive']} 条"
+            f"（各次同步报的导入数相加是 {report['import_events_summed_across_runs']}，"
+            f"那是次数不是条数）")
 
 
 def _days_since_sentence(started_at: str) -> str:
@@ -103,6 +125,11 @@ def main() -> int:
     total_imported = sum(r["imported_count"] for r in imported)
     platforms_that_worked = sorted({r["platform"] for r in imported})
     latest = runs[-1] if runs else None
+    # 去重后的真数，只算那些**真的进过东西**的平台，才和上面那个和同口径可比。
+    distinct_rows = measured.get("distinct_content_by_account_platform") or []
+    distinct_by_platform = {r["platform"]: r["n"] for r in distinct_rows}
+    distinct_total = sum(n for platform, n in distinct_by_platform.items()
+                         if platform in platforms_that_worked)
 
     report = {
         # **判据是「有没有真的进过东西」，不是「跑过几次」。**
@@ -110,7 +137,16 @@ def main() -> int:
         "status": "PASS" if platforms_that_worked else "FAIL",
         "criterion_zh": "至少一个真实平台的收藏能自动读进档案馆（验收条件第 1 条）",
         "platforms_that_really_imported": platforms_that_worked,
-        "items_imported_by_automatic_sync": total_imported,
+        # **两个口径都给出来，并且各自说清是什么**（2026-08-12）。
+        # 原来只报 `items_imported_by_automatic_sync`（各次 run 相加 = 260），
+        # 播报写成「共 260 条」——而他库里一共才 193 条，那两个平台去重后是 186。
+        # 一个数字多报了 74，读的人没有任何办法看出它是次数不是条数。
+        "import_events_summed_across_runs": total_imported,
+        "distinct_items_still_in_the_archive": distinct_total,
+        "distinct_items_by_platform": distinct_by_platform,
+        "why_two_numbers_zh":
+            "前一个是**各次同步各自报的导入数相加**——同一条被两次同步各导一次就记两次；"
+            "后一个是**去重后现在真的在档案馆里的条数**。两个都对，但只有后一个是「他有多少东西」。",
         "runs_that_imported_something": [
             {k: r[k] for k in ("platform", "discovered_count", "imported_count", "started_at")}
             for r in imported],
@@ -135,9 +171,7 @@ def main() -> int:
     EVIDENCE.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n",
                         encoding="utf-8")
     if args.brief:
-        worked = report["platforms_that_really_imported"] or ["（一个都没有）"]
-        print(f"  自动同步真的进过东西的平台：{'、'.join(worked)}"
-              f"，共 {report['items_imported_by_automatic_sync']} 条")
+        print(f"  {summary_line(report)}")
         print(f"  {report['why_it_stopped_zh']}")
         for account in report["accounts_now"]:
             state = "开" if account["auto_sync_enabled"] else "关"
