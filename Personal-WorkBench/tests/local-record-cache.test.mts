@@ -56,8 +56,12 @@ test("device-local account scope is re-evaluated after an account switch", async
   const originalWindow = runtime.window;
   const originalFetch = globalThis.fetch;
   let activeUserId = "account-a";
+  const requests: Array<{ input: RequestInfo | URL; init?: RequestInit }> = [];
   Object.defineProperty(runtime, "window", { configurable: true, value: {} });
-  globalThis.fetch = async () => new Response(JSON.stringify({ user: { id: activeUserId } }), { status: 200 });
+  globalThis.fetch = async (input, init) => {
+    requests.push({ input, init });
+    return new Response(JSON.stringify({ user: { id: activeUserId } }), { status: 200 });
+  };
 
   try {
     const firstScope = await resolveBrowserRecordScope();
@@ -69,6 +73,11 @@ test("device-local account scope is re-evaluated after an account switch", async
     assert.notEqual(firstScope, secondScope);
     assert.doesNotMatch(firstScope, /account-a/);
     assert.doesNotMatch(secondScope, /account-b/);
+    assert.deepEqual(requests.map(({ input }) => input), [
+      "/api/auth/get-session?disableCookieCache=true",
+      "/api/auth/get-session?disableCookieCache=true",
+    ]);
+    assert.ok(requests.every(({ init }) => init?.credentials === "same-origin"));
   } finally {
     globalThis.fetch = originalFetch;
     if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");

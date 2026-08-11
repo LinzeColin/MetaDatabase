@@ -169,7 +169,10 @@ export async function resolveBrowserRecordScope(timeoutMs = BROWSER_SCOPE_REQUES
       let timeout: ReturnType<typeof setTimeout> | undefined;
       try {
         const response = await Promise.race<Response | null>([
-          fetch("/api/auth/get-session", { credentials: "same-origin", signal: controller.signal }),
+          // Local-only records are partitioned by account. A Google callback or
+          // account switch must therefore read the current database-backed
+          // session, never a short-lived browser cache from the prior account.
+          fetch("/api/auth/get-session?disableCookieCache=true", { credentials: "same-origin", signal: controller.signal }),
           new Promise<null>((resolve) => {
             timeout = setTimeout(() => {
               controller.abort();
