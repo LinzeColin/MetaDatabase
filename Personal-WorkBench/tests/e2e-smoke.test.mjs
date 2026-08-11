@@ -28,6 +28,10 @@ test("e2e smoke: frozen reference routes stay renderable", async () => {
     assert.match(html, new RegExp(`data-reference-page=\"${route}\"`), route);
     assert.match(html, /class=\"sidebar\"/);
     assert.match(html, /class=\"nav-list\"/);
+    if (route === "home") {
+      assert.match(html, /class=\"home-time\">11:27<\/div>/);
+      assert.match(html, /class=\"home-date\">2026年8月2日<\/p>/);
+    }
   }
 
   for (const route of expectedViewRoutes) {
@@ -41,14 +45,19 @@ test("e2e smoke: frozen reference routes stay renderable", async () => {
 });
 
 test("e2e smoke: normal mode carries account entry and no reference-only lock", async () => {
-  const [home, auth] = await Promise.all([render("/?view=home"), render("/auth/sign-in")]);
+  const [home, auth, welcome] = await Promise.all([render("/?view=home"), render("/auth/sign-in"), render("/")]);
   assert.equal(home.status, 200);
   assert.equal(auth.status, 200);
+  assert.equal(welcome.status, 200);
   const homeHtml = await home.text();
   const authHtml = await auth.text();
+  const welcomeHtml = await welcome.text();
   assert.match(homeHtml, /class=\"account-entry normal-only\"/);
   assert.match(homeHtml, /href=\"\/account\"/);
   assert.match(homeHtml, /data-reference-mode=\"false\"/);
+  assert.match(homeHtml, /正在读取本地时间…/);
+  assert.doesNotMatch(homeHtml, /class=\"home-time\">11:27<\/div>/);
+  assert.match(welcomeHtml, /正在读取本地日期…/);
   assert.match(authHtml, /欢迎回来/);
 });
 

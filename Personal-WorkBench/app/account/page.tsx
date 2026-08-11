@@ -71,7 +71,11 @@ export default function AccountPage() {
         return;
       }
       const nextSession = (await sessionResponse.json()) as Session;
-      if (!nextSession?.user?.emailVerified) {
+      if (!nextSession?.user) {
+        setMessage("请先登录后再管理账户。");
+        return;
+      }
+      if (!nextSession.user.emailVerified) {
         setMessage("请先完成邮箱验证。");
         return;
       }

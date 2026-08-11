@@ -403,7 +403,7 @@ export default function TodoPageClient() {
         {outboxCount > 0 ? <p className="account-note">本机待发队列：{outboxCount} 条</p> : null}
         {error ? <p className="auth-message" role="alert">{error}</p> : null}
         {message ? <p className="account-note">{message}</p> : null}
-        {todos.length === 0 ? (
+        {!loading && !error && todos.length === 0 ? (
           <div className="empty">
             <p>还没有待办，先来一条吧～</p>
           </div>

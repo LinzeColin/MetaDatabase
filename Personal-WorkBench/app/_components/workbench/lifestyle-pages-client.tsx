@@ -4,10 +4,12 @@
 
 import { ChangeEvent, useMemo, useRef, useState } from "react";
 import {
+  asBoolean,
   asNumber,
   asText,
   centsToYuan,
   ResourceStatus,
+  type ResourceState,
   TenantRecord,
   todayIsoDate,
   useTenantResource,
@@ -15,12 +17,37 @@ import {
   yuanToCents,
 } from "./tenant-resource-client";
 import { isDeviceLocalRecord } from "./local-record-cache";
+import { useVisitorTime } from "./visitor-time-client";
 
 const PRIVATE_ASSET_ROOT = "/private-reference-assets";
 const RUNTIME_ASSET_ROOT = `${PRIVATE_ASSET_ROOT}/runtime`;
 
 function saveFeedback(saved: TenantRecord, synced: string, local: string): string {
   return isDeviceLocalRecord(saved) ? local : synced;
+}
+
+type HistoryReadState = Pick<
+  ResourceState<TenantRecord>,
+  "authRequired" | "consentRequired" | "error" | "loading" | "loginSuggested" | "records"
+>;
+
+function canShowEmptyHistory(state: HistoryReadState, reference: boolean): boolean {
+  return reference || (
+    !state.loading
+    && !state.authRequired
+    && !state.consentRequired
+    && !state.loginSuggested
+    && !state.error
+    && state.records.length === 0
+  );
+}
+
+function overviewValue(state: Omit<HistoryReadState, "records">, value: string): string {
+  if (state.loading) return "读取中";
+  if (state.authRequired || state.loginSuggested) return "未登录";
+  if (state.consentRequired) return "未开启";
+  if (state.error) return "不确定";
+  return value;
 }
 
 type HabitCard = {
@@ -39,6 +66,10 @@ type HabitDefinition = TenantRecord & {
 type HabitCheckin = TenantRecord & {
   habit_id?: string;
   local_date?: string;
+};
+
+type OverviewTodoRecord = TenantRecord & {
+  completed?: number | boolean;
 };
 
 type LedgerRecord = TenantRecord & {
@@ -113,6 +144,13 @@ type SavingsTransactionRecord = TenantRecord & {
   note?: string;
 };
 
+const referenceHomeTime = {
+  date: "2026年8月2日",
+  greeting: "早上好，小张张～",
+  time: "11:27",
+  weekday: "星期日",
+};
+
 function asset(name: string) {
   return `${RUNTIME_ASSET_ROOT}/${name}`;
 }
@@ -161,6 +199,9 @@ function DeleteRecordButton({
 export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[]; reference: boolean }) {
   const habits = useTenantResource<HabitDefinition>("habits", { enabled: !reference });
   const checkins = useTenantResource<HabitCheckin>("habit-checkins", { enabled: !reference });
+  const todos = useTenantResource<OverviewTodoRecord>("todos", { enabled: !reference });
+  const overviewLedger = useTenantResource<LedgerRecord>("ledger", { enabled: !reference, sensitive: true });
+  const visitorTime = useVisitorTime(reference);
   const [feedback, setFeedback] = useState("");
   const today = useMemo(() => todayIsoDate(), []);
 
@@ -181,6 +222,17 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
     return labels;
   }, [completedByHabitId, habits.records]);
 
+  const incompleteTodos = useMemo(
+    () => todos.records.filter((todo) => !asBoolean(todo.completed)).length,
+    [todos.records],
+  );
+  const todayExpenses = useMemo(
+    () => overviewLedger.records
+      .filter((record) => asText(record.kind) === "expense" && asText(record.local_date) === today)
+      .reduce((sum, record) => sum + asNumber(record.amount_cents), 0),
+    [overviewLedger.records, today],
+  );
+
   async function ensureHabit(card: HabitCard, index: number): Promise<HabitDefinition | null> {
     const existing = habits.records.find((habit) => asText(habit.title) === card.label);
     if (existing) return existing;
@@ -192,6 +244,10 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
 
   async function toggleHabit(card: HabitCard, index: number) {
     if (reference) return;
+    if (accountActionRequired) {
+      setFeedback(`请先登录并完成邮箱验证，再开始${card.label}打卡。`);
+      return;
+    }
     setFeedback(`正在处理${card.label}打卡…`);
     const habit = await ensureHabit(card, index);
     if (!habit) {
@@ -222,14 +278,28 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
   const authRequired = habits.authRequired || checkins.authRequired;
   const loginSuggested = habits.loginSuggested || checkins.loginSuggested;
   const statusError = habits.error || checkins.error;
+  const accountActionRequired = authRequired || loginSuggested;
+  const displayTime = reference ? referenceHomeTime : visitorTime;
+  const checkinOverview = overviewValue(
+    {
+      authRequired,
+      consentRequired: false,
+      error: statusError,
+      loading: habits.loading || checkins.loading,
+      loginSuggested,
+    },
+    `${completedLabels.size}/5`,
+  );
+  const todoOverview = overviewValue(todos, String(incompleteTodos));
+  const expenseOverview = overviewValue(overviewLedger, centsToYuan(todayExpenses));
 
   return (
     <>
       <section className="home-hero">
-        <p className="home-greeting">早上好，小张张～</p>
-        <div className="home-time">11:27</div>
-        <p className="home-date">2026年8月2日</p>
-        <p className="home-weekday">星期日</p>
+        <p className="home-greeting">{displayTime?.greeting ?? "正在读取本地问候…"}</p>
+        <div className="home-time">{displayTime?.time ?? "正在读取本地时间…"}</div>
+        <p className="home-date">{displayTime?.date ?? "正在读取本地日期…"}</p>
+        <p className="home-weekday">{displayTime?.weekday ?? ""}</p>
       </section>
       <article className="card quote-card">
         <p className="quote-cn">今天的你，比昨天更优秀。</p>
@@ -250,7 +320,7 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
             >
               <img alt="" className="habit-icon" src={asset(card.icon)} />
               <strong>{card.label}</strong>
-              <small>{isCompleted ? "已打卡" : "点击打卡"}</small>
+              <small>{isCompleted ? "已打卡" : accountActionRequired ? "登录后打卡" : "点击打卡"}</small>
             </button>
           );
         })}
@@ -269,15 +339,15 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
         <h2 className="section-title dot">今日概览</h2>
         <div className="overview-grid">
           <div className="overview-stat">
-            <b>{completedLabels.size}/5</b>
+            <b>{checkinOverview}</b>
             <span>今日打卡</span>
           </div>
           <div className="overview-stat">
-            <b>0</b>
+            <b>{todoOverview}</b>
             <span>待办未完成</span>
           </div>
           <div className="overview-stat">
-            <b>¥0.00</b>
+            <b>{expenseOverview}</b>
             <span>今日支出</span>
           </div>
         </div>
@@ -413,7 +483,7 @@ export function LedgerClient({ fixtureDate, reference }: { fixtureDate: string; 
         </h2>
         {!reference ? <ResourceStatus {...ledger} /> : null}
         {feedback ? <p className="interaction-note" role="status">{feedback}</p> : null}
-        {!ledger.loading && ledger.records.length === 0 ? (
+        {canShowEmptyHistory(ledger, reference) ? (
           <div className="empty"><p>还没有账单，记一笔吧～</p></div>
         ) : null}
         <ul className="record-items">
@@ -669,7 +739,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
       <section className="card record-list-card" aria-live="polite">
         <h2 className="section-title">{activeModule === "food" ? "饮食历史" : activeModule === "exercise" ? "运动历史" : "体重历史"}</h2>
         {!reference ? <ResourceStatus {...activeResource} /> : null}
-        {!activeResource.loading && activeResource.records.length === 0 ? <div className="empty"><p>还没有历史记录</p></div> : null}
+        {canShowEmptyHistory(activeResource, reference) ? <div className="empty"><p>还没有历史记录</p></div> : null}
         <ul className="record-items">
           {activeModule === "food" ? foodRecords.records.map((record) => (
             <li className="record-item" key={record.id}><div><strong>{asText(record.food_name)}</strong><p>{mealLabel(record.meal)} · {asNumber(record.calories)} 千卡</p></div><div className="record-meta"><small>{asText(record.local_date)}</small>{!reference ? <DeleteRecordButton disabled={foodRecords.saving} onDelete={() => void foodRecords.destroy(record.id)} /> : null}</div></li>
@@ -734,7 +804,7 @@ export function PeriodClient({ reference }: { reference: boolean }) {
         <h2 className="section-title"><span aria-hidden="true" className="section-glyph">≡</span>历史记录</h2>
         {!reference ? <ResourceStatus {...periods} /> : null}
         {feedback ? <p className="interaction-note" role="status">{feedback}</p> : null}
-        {!periods.loading && periods.records.length === 0 ? <div className="empty"><p>还没有经期记录</p></div> : null}
+        {canShowEmptyHistory(periods, reference) ? <div className="empty"><p>还没有经期记录</p></div> : null}
         <ul className="record-items">
           {periods.records.map((record) => (
             <li className="record-item" key={record.id}><div><strong>{asText(record.start_date)} 至 {asText(record.end_date)}</strong><p>{asText(record.note, "（无备注）")}</p></div><div className="record-meta">{!reference ? <DeleteRecordButton disabled={periods.saving} onDelete={() => void periods.destroy(record.id)} /> : null}</div></li>
@@ -964,7 +1034,7 @@ export function GenericPageClient({
 
       <article className="card record-list-card" aria-live="polite">
         <h2 className="section-title"><span aria-hidden="true" className="section-glyph">≡</span>{label}历史记录</h2>
-        {!current.loading && current.records.length === 0 ? <div className="empty"><p>还没有历史记录，新增一条吧～</p></div> : null}
+        {canShowEmptyHistory(current, reference) ? <div className="empty"><p>还没有历史记录，新增一条吧～</p></div> : null}
         <ul className="record-items">
           {route === "schedule" ? schedule.records.map((record) => <li className="record-item" key={record.id}><div><strong>{genericRecordTitle(record)}</strong><p>{asText(record.note, "（无备注）")}</p></div><div className="record-meta"><small>{asDateTimeInput(record.starts_at).replace("T", " ")}</small>{!reference ? <DeleteRecordButton disabled={schedule.saving} onDelete={() => void schedule.destroy(record.id)} /> : null}</div></li>) : null}
           {route === "anniversary" ? anniversaries.records.map((record) => <li className="record-item" key={record.id}><div><strong>{genericRecordTitle(record)}</strong><p>{asText(record.note, "（无备注）")}</p></div><div className="record-meta"><small>{asText(record.local_date)}{record.repeat_yearly ? " · 每年" : ""}</small>{!reference ? <DeleteRecordButton disabled={anniversaries.saving} onDelete={() => void anniversaries.destroy(record.id)} /> : null}</div></li>) : null}

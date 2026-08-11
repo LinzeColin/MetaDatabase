@@ -8,6 +8,7 @@ const resourceSource = "app/_components/workbench/tenant-resource-client.tsx";
 const todoSource = "app/_components/workbench/todo-page-client.tsx";
 const accountSource = "app/account/page.tsx";
 const legacyImportPanelSource = "app/account/legacy-import-panel.tsx";
+const visitorTimeSource = "app/_components/workbench/visitor-time-client.tsx";
 
 test("workbench pages bind every visible lifecycle module to the tenant resource client", async () => {
   const source = await readFile(lifecycleSource, "utf8");
@@ -41,6 +42,49 @@ test("home preserves an on-device save acknowledgement while still offering the 
   assert.match(source, /const statusError = habits\.error \|\| checkins\.error;/);
   assert.match(source, /authRequired=\{authRequired\}/);
   assert.match(source, /loginSuggested=\{loginSuggested\}/);
+});
+
+test("normal home reports authentication state and visitor-local time without changing the frozen reference view", async () => {
+  const [source, page, visitorTime] = await Promise.all([
+    readFile(lifecycleSource, "utf8"),
+    readFile(pageSource, "utf8"),
+    readFile(visitorTimeSource, "utf8"),
+  ]);
+
+  assert.match(source, /const visitorTime = useVisitorTime\(reference\);/);
+  assert.match(source, /const accountActionRequired = authRequired \|\| loginSuggested;/);
+  assert.match(source, /请先登录并完成邮箱验证，再开始\$\{card\.label\}打卡。/);
+  assert.match(source, /accountActionRequired \? "登录后打卡" : "点击打卡"/);
+  assert.match(source, /useTenantResource<OverviewTodoRecord>\("todos", \{ enabled: !reference \}\)/);
+  assert.match(source, /useTenantResource<LedgerRecord>\("ledger", \{ enabled: !reference, sensitive: true \}\)/);
+  assert.match(source, /function overviewValue\(/);
+  assert.match(source, /return "未登录";/);
+  assert.match(source, /return "不确定";/);
+  assert.doesNotMatch(source, /<div className="home-time">11:27<\/div>/);
+  assert.match(visitorTime, /window\.setInterval\(refresh, refreshIntervalMs\)/);
+  assert.match(visitorTime, /formatVisitorTime\(\)/);
+  assert.match(page, /<VisitorDate fixtureDate=\{fixture\.date\} fixtureWeekday=\{fixture\.weekday\} reference=\{reference\} \/>/);
+});
+
+test("history empty states never replace an unreadable history with a false zero-record claim", async () => {
+  const [lifecycle, todo] = await Promise.all([
+    readFile(lifecycleSource, "utf8"),
+    readFile(todoSource, "utf8"),
+  ]);
+
+  assert.match(lifecycle, /function canShowEmptyHistory\(/);
+  assert.match(lifecycle, /canShowEmptyHistory\(ledger, reference\)/);
+  assert.match(lifecycle, /canShowEmptyHistory\(activeResource, reference\)/);
+  assert.match(lifecycle, /canShowEmptyHistory\(periods, reference\)/);
+  assert.match(lifecycle, /canShowEmptyHistory\(current, reference\)/);
+  assert.match(todo, /!loading && !error && todos\.length === 0/);
+});
+
+test("account distinguishes signed-out visitors from signed-in unverified accounts", async () => {
+  const account = await readFile(accountSource, "utf8");
+
+  assert.match(account, /if \(!nextSession\?\.user\) \{\s+setMessage\("请先登录后再管理账户。"\);/);
+  assert.match(account, /if \(!nextSession\.user\.emailVerified\) \{\s+setMessage\("请先完成邮箱验证。"\);/);
 });
 
 test("account exposes an explicit preview-before-apply legacy migration without changing source browser data", async () => {

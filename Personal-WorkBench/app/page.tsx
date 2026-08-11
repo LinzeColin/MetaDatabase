@@ -11,6 +11,7 @@ import {
 } from "./_components/workbench/lifestyle-pages-client";
 import TodoPageClient from "./_components/workbench/todo-page-client";
 import { LegacyDomainRedirect } from "./_components/workbench/legacy-domain-redirect";
+import { VisitorDate } from "./_components/workbench/visitor-time-client";
 
 const PRIVATE_ASSET_ROOT = "/private-reference-assets";
 const RUNTIME_ASSET_ROOT = `${PRIVATE_ASSET_ROOT}/runtime`;
@@ -52,7 +53,6 @@ const fixture = {
   date: "2026年8月2日",
   weekday: "星期日",
   name: "小张张",
-  time: "11:27",
 };
 
 export const metadata: Metadata = {
@@ -168,7 +168,7 @@ function Welcome({ reference }: { reference: boolean }) {
             src={referenceAsset("welcome_hello_kitty_reference_crop.png")}
           />
           <p className="welcome-date">
-            {fixture.date}&nbsp; {fixture.weekday}
+            <VisitorDate fixtureDate={fixture.date} fixtureWeekday={fixture.weekday} reference={reference} />
           </p>
           <h1 className="welcome-name">
             嗨，{fixture.name}
