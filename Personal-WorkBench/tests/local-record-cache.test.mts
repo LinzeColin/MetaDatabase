@@ -83,6 +83,7 @@ test("local parent references wait for a same-account alias instead of sending a
   assert.deepEqual(habitReferences, [{ field: "habitId", localRecordId: "local_habit", resource: "habits" }]);
   assert.deepEqual(savingsReferences, [{ field: "goalId", localRecordId: "local_goal", resource: "savings-goals" }]);
   assert.deepEqual(deriveDeviceOutboxParentReferences("habit-checkins", { habitId: "rec_habit" }), []);
+  assert.deepEqual(deriveDeviceOutboxParentReferences("ledger", { habitId: "local_habit" }), []);
 
   const action: DeviceOutboxAction = {
     createdAt: 1,

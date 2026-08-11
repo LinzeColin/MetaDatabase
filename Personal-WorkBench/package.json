@@ -34,7 +34,7 @@
     "test:public-launch-preflight": "node --test tests/public-launch-preflight.test.mjs",
     "test:release-evidence": "node --test tests/release-evidence.test.mjs tests/preflight-evidence.test.mjs",
     "test:acceptance-sequence": "node --test tests/acceptance-sequence-addendum.test.mjs",
-    "test:tenant": "node scripts/verify-tenant-contract.mjs && node --test tests/tenant-isolation.test.mjs",
+    "test:tenant": "node scripts/verify-tenant-contract.mjs && node --test tests/tenant-isolation.test.mjs && node --import ./tests/register-cloudflare-workers-loader.mjs --experimental-strip-types --test tests/tenant-store-integration.test.mts",
     "test:quality": "node scripts/verify-quality.mjs",
     "test:resilience": "node --experimental-strip-types scripts/verify-offline-replay.mts",
     "test:api": "node --test tests/api-contract.test.mjs && node --experimental-strip-types --test tests/storage-binding-health.test.mts",

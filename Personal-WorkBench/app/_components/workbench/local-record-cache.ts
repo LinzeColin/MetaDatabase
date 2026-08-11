@@ -242,6 +242,10 @@ const childResourceDependencies = {
   "savings-transactions": { field: "goalId", resource: "savings-goals" },
 } as const satisfies Record<string, Pick<DeviceOutboxParentReference, "field" | "resource">>;
 
+function isChildResourceWithDependency(resource: string): resource is keyof typeof childResourceDependencies {
+  return Object.hasOwn(childResourceDependencies, resource);
+}
+
 function resourceFromOutboxAction(action: DeviceOutboxAction): string | null {
   const match = /^\/api\/mydairy\/([a-z-]+)$/.exec(action.endpoint);
   return match?.[1] ?? null;
@@ -310,8 +314,8 @@ export function deriveDeviceOutboxParentReferences(
   resource: string,
   payload: Record<string, unknown>,
 ): DeviceOutboxParentReference[] {
+  if (!isChildResourceWithDependency(resource)) return [];
   const dependency = childResourceDependencies[resource];
-  if (!dependency) return [];
   const localRecordId = payload[dependency.field];
   if (typeof localRecordId !== "string" || !localRecordId.startsWith("local_")) return [];
   const reference = { field: dependency.field, localRecordId, resource: dependency.resource } as DeviceOutboxParentReference;
