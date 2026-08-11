@@ -9,7 +9,7 @@
   },
   "measured_in_real_chrome": {
     "endpoint_the_extension_itself_uses": "https://social-archive-api.linzezhang.com",
-    "api_ms": 535,
+    "api_ms": 512,
     "api_call": "resolved",
     "api_keys": [
       "items",

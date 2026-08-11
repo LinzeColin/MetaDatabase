@@ -1022,6 +1022,26 @@ else
   printf '  跳过：这台机器上没有 Chrome（前端是否真到得了他手上，本轮没验）。\n'
 fi
 
+step "8.64) 他桌面上那两个双击文件，还在不在、跟不跟得上这台生产"
+# 《使用说明》第二节写着「双击桌面上的『同步到 Obsidian.command』」——
+# 那是他把内容拿进 Obsidian 的主路。而 2026-08-11 一看：**桌面上一个都没有**。
+# 说明书指着一个不存在的东西，而没有任何一步会发现。
+#
+# 那个文件必须自包含（`_scratch/` 里的工作树随时会被回收），代价是主机名写死在
+# 里面——换机器时它不会自动跟上，**而且什么都不会报错**。
+#
+# 先刷新（只在不一致时落盘），再 `--check`。**不接管道**：接了管道
+# 退出码会被管道尾巴吃掉，这个仓为这件事记过教训，而我今天量它时又犯了一次。
+.venv/bin/python scripts/refresh_desktop_launcher.py > /tmp/sa_launcher.$$ 2>&1 \
+  || { cat /tmp/sa_launcher.$$; rm -f /tmp/sa_launcher.$$; fail '刷新桌面那两个双击文件失败。'; }
+if ! .venv/bin/python scripts/refresh_desktop_launcher.py --check > /tmp/sa_launcher.$$ 2>&1; then
+  cat /tmp/sa_launcher.$$
+  rm -f /tmp/sa_launcher.$$
+  fail '他桌面上那两个双击文件和仓里对不上——说明书让他双击的东西不在或过期了。'
+fi
+sed -n '1s/^ */  /p' /tmp/sa_launcher.$$
+rm -f /tmp/sa_launcher.$$
+
 step "8.66) 他点「下载全部 Markdown」，拿到的那个 zip 是好的吗"
 # 《使用说明》第二节两条取法，第一步都是这颗按钮。而在补这一步之前
 # **没有任何一步在生产上验过它**：单元判据跑在本机 TestClient 上，

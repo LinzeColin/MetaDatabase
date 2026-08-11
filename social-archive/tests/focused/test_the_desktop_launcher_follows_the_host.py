@@ -73,3 +73,25 @@ def test_the_rendered_file_is_valid_bash(tmp_path: Path) -> None:
         done = subprocess.run(["bash", "-n", str(tmp_path / "Desktop" / name)],
                               capture_output=True, text=True, check=False)
         assert done.returncode == 0, f"{name} 语法不过：{done.stderr}"
+
+
+def test_the_deploy_actually_refreshes_and_checks_them() -> None:
+    """**没有调用方的判据不算判据。**（2026-08-11）
+
+    `--check` 一直是对的（桌面上没有那两个文件时它退 1），但**没有任何东西调它**。
+    代价是实测出来的：那天一看，他桌面上**一个都没有**，
+    而《使用说明》第二节正让他双击其中一个——说明书指着一个不存在的东西，
+    十几版没人发现。
+
+    现在部署第 8.64 步先刷新（只在不一致时落盘）再 `--check`，红了中止。
+    """
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    assert "refresh_desktop_launcher.py" in deploy, (
+        "部署不刷新桌面那两个文件——他双击的东西会悄悄过期或消失")
+    step = deploy[deploy.index("refresh_desktop_launcher.py"):]
+    nxt = step.find('\nstep "')
+    step = step[:nxt] if nxt > 0 else step
+    assert "--check" in step, "只刷新不核对，等于没验"
+    assert "fail " in step, "对不上不中止部署，等于没验"
+    assert "| tail" not in step and "| head" not in step, (
+        "别把成败接进管道——管道会吃掉退出码（我量这个脚本时就这么错过一次）")
