@@ -1,8 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 
 import type { Metadata } from "next";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import {
   FatlossClient,
@@ -12,7 +10,6 @@ import {
   PeriodClient,
 } from "./_components/workbench/lifestyle-pages-client";
 import TodoPageClient from "./_components/workbench/todo-page-client";
-import { canonicalRetiredHostUrl } from "./_components/workbench/canonical-domain";
 import { LegacyDomainRedirect } from "./_components/workbench/legacy-domain-redirect";
 
 const PRIVATE_ASSET_ROOT = "/private-reference-assets";
@@ -66,15 +63,6 @@ export const metadata: Metadata = {
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
-
-function queryFromSearchParams(searchParams: Record<string, string | string[] | undefined>): string {
-  const query = new URLSearchParams();
-  for (const [key, value] of Object.entries(searchParams)) {
-    if (typeof value === "string") query.append(key, value);
-    else if (Array.isArray(value)) value.forEach((item) => query.append(key, item));
-  }
-  return query.toString();
-}
 
 function asset(name: string) {
   return `${RUNTIME_ASSET_ROOT}/${name}`;
@@ -267,9 +255,7 @@ function GenericPage({ reference, route }: { reference: boolean; route: string }
 }
 
 export default async function HomePage({ searchParams }: PageProps) {
-  const [params, requestHeaders] = await Promise.all([searchParams, headers()]);
-  const canonicalDestination = canonicalRetiredHostUrl(requestHeaders.get("host"), queryFromSearchParams(params));
-  if (canonicalDestination) redirect(canonicalDestination);
+  const params = await searchParams;
   const reference = typeof params.reference === "string" && referenceRoutes.has(params.reference);
   const requestedRoute = reference ? params.reference! : params.view;
   const route = typeof requestedRoute === "string" && navigableRoutes.has(requestedRoute) ? requestedRoute : "welcome";

@@ -26,7 +26,7 @@ test("only the retired Sites host is normalized", () => {
   assert.equal(isRetiredCompatibilityHost(null), false);
 });
 
-test("server-side host normalization preserves incoming query parameters", () => {
+test("retired-host destination construction preserves incoming query parameters", () => {
   assert.equal(
     canonicalRetiredHostUrl("huchuliang-workbench.linzezhang35.chatgpt.site", "view=period&tag=one&tag=two"),
     `${CANONICAL_MYDAIRY_ORIGIN}/?view=period&tag=one&tag=two`,
