@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T2",
+  "phase": "S5_T2_LOCAL_SHELL_BOUNDARY",
+  "status": "EXPECTED_NONPASS_EMPTY_LOCAL_SHELL",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-11",
+  "execution": {
+    "owner_activation_command_executed": true,
+    "owner_activation_precheck_exit_code": 1,
+    "empty_shell_nonpass_expected": true,
+    "risk_count": 18,
+    "protected_runtime_values_injected_into_local_shell": false,
+    "hosted_configuration_missing_inferred": false,
+    "command_output_retained": false,
+    "temporary_artifact_moved_recoverably_to_trash": true,
+    "reason": "The local-only verifier observes process-environment presence and cannot replace the Sites control-plane configuration readback when protected runtime values are intentionally not injected."
+  },
+  "scope_and_limits": {
+    "runtime_values_read": false,
+    "runtime_values_logged": false,
+    "sites_configuration_changed": false,
+    "access_policy_changed": false,
+    "deployment_action_called": false,
+    "real_user_business_data_read_or_written": false,
+    "github_uploaded": false
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
