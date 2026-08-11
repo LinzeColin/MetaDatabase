@@ -34,26 +34,27 @@
 「私人档案馆尚未连接」——**根本没走到要验的那条分支**，而它看起来只是"没通过"。）
 
     python3 scripts/popup_states_drill.py
-## 它**没有**覆盖设置页（2026-08-11，试过，失败了，如实记在这里）
+## 它**也**读设置页那一屏（2026-08-11，中间查错了三次，记在这里）
 
 同一天我在 `apps/pwa/app.js` 和 `apps/browser-extension/options.js` 各修了一处
-「断开的账号也给一颗『立即同步』」。PWA 那侧有 node 级渲染判据 + 生产回读，
-扩展设置页那侧我想在这里补一份真 DOM 证据，**没做成**：
+「断开的账号也给一颗『立即同步』」。给这一处补真 DOM 证据时，反例连着三次不红，
+每一次我都先怀疑产品，而三次全是**演练自己的毛病**：
 
-1. 第一版等待条件写成「等到有卡片」——而 9 张卡从一开始就在，
-   读到的是账号加载**之前**的 DOM，断言与反例同时为绿；
-2. 补了 `/v1/extension/bootstrap`、加了重载、修了选择器（状态在 `.state`，
-   不是 `.account-status`）之后，正对照终于成立：三张卡上真有账号
-   （`我 / 我的 / B站账号`、`1 / 86 / 103 条`、`未连接`）；
-3. **而反例仍然是绿的**：把 options.js 那一支撤回旧写法，三张卡的按钮
-   一个字都没变（都还是「连接账号」）。也就是说这条路上还有一层我没弄清的
-   分支（`!syncable` / `custody` / 装的是哪一份包），**在弄清之前，
-   任何写在这里的断言都是一条永远不会红的检查**。
+1. 等待条件写成「等到有卡片」——9 张卡从一开始就在，读到的是账号加载**之前**
+   的 DOM，正例反例同时为绿；
+2. 假档案馆少了 `/v1/extension/bootstrap`，`checkService()` 不过就把 accounts
+   清空并 return，那一屏永远是「从没连过」的样子；
+3. ★ 最后一个也是最贵的：**这个演练装的是 `dist/social-archive-extension.zip`，
+   不是源码目录**。我改了 `options.js` 却没重打包，于是"正例"和"反例"跑的是
+   同一份旧代码——两次输出当然一模一样。
 
-所以这里**没有**留下那段代码。扩展设置页那一处现在由
-`scripts/find_affordances_the_backend_says_cannot_work.py` 守着
-（三条守卫逐条改坏，逐条打红——那个是验过的），
-真 DOM 那一格**空着，并且这段话就是那个空格的记录**。
+重打包之后 A/B 立刻分开了：
+
+    改之前   小红书/抖音/B站  按钮 = ["立即同步", "断开连接"]   ← 点下去 422
+    改之后   小红书/抖音/B站  按钮 = ["连接账号"]
+
+所以这个演练现在**自己先重打包**（`build_extension_package.py`），
+再验设置页那三张卡。
 
 """
 
@@ -146,6 +147,27 @@ class _Api(BaseHTTPRequestHandler):
         return self._json(200, {"items": []})
 
 
+# 设置页那三张卡（他点「连接与管理账号」看到的那一屏）。
+# **状态在 `.state` 上，不是 `.account-status`**——选择器写错过一次。
+# 「这张卡有没有账号」看 `<small>` 里的显示名：修好之后有账号和没账号的卡
+# 按钮是一样的（都只有「连接账号」），光看按钮分不出来，正对照会永远不成立。
+OPTIONS_CARDS = r"""
+(() => {
+  const cards = [...document.querySelectorAll(".account-card")].map(c => ({
+    title: c.querySelector(".account-title strong")?.textContent || "",
+    who: (c.querySelector(".account-title small")?.textContent || "").trim(),
+    buttons: [...c.querySelectorAll(".card-button")].map(b => (b.textContent || "").trim()),
+  }));
+  const mine = cards.filter(c => ["小红书", "抖音", "B站"].includes(c.title));
+  return JSON.stringify({
+    total: cards.length,
+    cards: mine,
+    with_an_account: mine.filter(c => c.who).length,
+  });
+})()
+"""
+
+
 async def _rpc_factory(ws):
     counter = {"n": 0}
 
@@ -176,6 +198,16 @@ async def run(chrome: str) -> int:
                          ensure_ascii=False))
         return 2
     workspace = Path(tempfile.mkdtemp(prefix="sa-popup-states-"))
+    # **先按当前源码重打一次包。**（2026-08-11）
+    # 这个演练装的是 dist 里那个 zip，不是源码目录。不重打就会验到一份旧代码——
+    # 实测代价：改了 options.js 之后正例反例跑的是同一份包，两次输出一模一样，
+    # 我据此写下「反例不红，说明还有一层分支没弄清」，而那句话是错的。
+    build = subprocess.run([sys.executable, str(ROOT / "scripts/build_extension_package.py")],
+                           cwd=ROOT, capture_output=True, text=True, check=False)
+    if build.returncode != 0:
+        print(json.dumps({"status": "FAIL", "error_code": "PACKAGE_BUILD_FAILED",
+                          "detail": (build.stdout + build.stderr)[-500:]}, ensure_ascii=False))
+        return 2
     unpacked = workspace / "extension"
     with zipfile.ZipFile(ZIP) as archive:
         archive.extractall(unpacked)
@@ -256,6 +288,63 @@ async def run(chrome: str) -> int:
                         got = await rpc("Runtime.evaluate",
                                         {"expression": READ, "returnByValue": True})
                         measured[label] = json.loads(got["result"]["result"]["value"])
+                    if label == "连过后来断了":
+                        # ── **设置页那一屏也得跟着走**（2026-08-11）──
+                        #
+                        # 同一个缺陷有两份：资料库那侧和扩展设置页那侧。
+                        # 我先只修了资料库那侧，而这道门的另一处判据文件头里
+                        # 早就写着「两个界面各有一份」。所以这里也读一遍。
+                        options_url = f"chrome-extension://{extension_id}/options.html"
+                        seen2 = {item.get("id") for item in json.loads(
+                            urllib.request.urlopen(base + "/json", timeout=5).read())}
+                        urllib.request.urlopen(urllib.request.Request(
+                            base + "/json/new?" + options_url, method="PUT"), timeout=10).read()
+                        opt_pages: list = []
+                        for _ in range(20):
+                            await asyncio.sleep(0.5)
+                            opt_pages = [x for x in json.loads(
+                                urllib.request.urlopen(base + "/json", timeout=5).read())
+                                if x.get("type") == "page"
+                                and "options.html" in x.get("url", "")
+                                and x.get("id") not in seen2]
+                            if opt_pages:
+                                break
+                        if not opt_pages:
+                            problems.append("断开状态：设置页没打开")
+                        else:
+                            cards: dict = {}
+                            async with websockets.connect(
+                                    opt_pages[0]["webSocketDebuggerUrl"], max_size=None) as ws:
+                                rpc = await _rpc_factory(ws)
+                                await rpc("Runtime.enable")
+                                # **等账号出现，不是等卡片出现**——卡片一开始就有 9 张。
+                                for _ in range(20):
+                                    got = await rpc("Runtime.evaluate", {
+                                        "expression": OPTIONS_CARDS, "returnByValue": True})
+                                    value = got["result"].get("result", {}).get("value")
+                                    cards = json.loads(value) if value else {}
+                                    if cards.get("with_an_account"):
+                                        break
+                                    await asyncio.sleep(1)
+                            measured["断开时的设置页"] = cards
+                            if not cards.get("with_an_account"):
+                                # 正对照不成立 = 这一屏没被真的走到，下面全是空转。
+                                problems.append(
+                                    "断开状态：设置页 20 秒内三张卡上一个账号都没出现"
+                                    "——这一屏没被真的走到，下面的断言是空转，**不算通过**")
+                            else:
+                                bad = [c["title"] for c in cards.get("cards", [])
+                                       if "立即同步" in c["buttons"]]
+                                if bad:
+                                    problems.append(
+                                        f"断开的账号在设置页上还摆着「立即同步」：{bad}"
+                                        "——点下去服务端回 422「账号尚未连接，请先完成授权」")
+                                lost = [c["title"] for c in cards.get("cards", [])
+                                        if not any("连接" in b for b in c["buttons"])]
+                                if lost:
+                                    problems.append(
+                                        f"断开的账号在设置页上没有「连接账号」：{lost}——他没有出路")
+
                     if label == "连着":
                         # ── 「同步进度」那颗按钮真的打得开侧边栏吗（2026-08-10）──
                         #

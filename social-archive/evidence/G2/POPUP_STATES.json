@@ -13,6 +13,33 @@
       "button": "重新连接账号",
       "accounts": "小 我 1 条 · 同步时间没有记录 未连接 抖 我的 86 条 · 同步时间没有记录 未连接 B B站账号 103 条 · 同步时间没有记录 未连接"
     },
+    "断开时的设置页": {
+      "total": 9,
+      "cards": [
+        {
+          "title": "小红书",
+          "who": "我",
+          "buttons": [
+            "连接账号"
+          ]
+        },
+        {
+          "title": "抖音",
+          "who": "我的",
+          "buttons": [
+            "连接账号"
+          ]
+        },
+        {
+          "title": "B站",
+          "who": "B站账号",
+          "buttons": [
+            "连接账号"
+          ]
+        }
+      ],
+      "with_an_account": 3
+    },
     "连着": {
       "title": "3 个账号 · 190 条内容",
       "copy": "首次全量之后，只同步新增的那些。",
@@ -21,7 +48,7 @@
     },
     "同步进度按钮": {
       "sidepanel_targets": [
-        "chrome-extension://mjmmkkkffhinobgmjoipgnjinpaebhnn/sidepanel.html"
+        "chrome-extension://egoooamjpfecpnidnadphblcpjnhhebe/sidepanel.html"
       ],
       "panel_text": "SA 账号同步 收藏与书签 ↻ 0 同步中 0 已完成 1 需处理 同步全部账号 连接账号 同步中 需处理 全部 ✓ 现在没有正在跑的同步 最近的同步——点上面的「全部」可以看。 打开资料库 账号与导出"
     }
