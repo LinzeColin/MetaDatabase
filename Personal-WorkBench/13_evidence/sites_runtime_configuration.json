@@ -1,46 +1,29 @@
 {
-  "schema_version": "1.1.0",
-  "subject_phase": "S5-T2",
+  "schema_version": "1.2.0",
+  "task_id": "S5-T2",
+  "phase": "S5_T2_PRIVATE_RUNTIME_CONFIGURATION",
   "status": "PASS_PRIVATE_RUNTIME_CONFIGURATION_PRESENCE_ONLY",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
-  "generated_at": "2026-08-09T07:35:45Z",
+  "observed_at": "2026-08-11",
   "source": {
-    "kind": "ChatGPT Sites control-plane key-level readback",
-    "readback_scope": [
-      "configuration revision",
-      "entry key",
-      "Secret classification",
-      "entry counts",
-      "private access shape",
-      "saved candidate deployment state"
-    ],
+    "kind": "Sites control-plane configuration presence readback",
     "values_recorded": false,
     "values_read_or_logged": false,
-    "private_access_preserved": true,
-    "live_origin_value_recorded": false,
-    "origin_bootstrap_evidence": "13_evidence/origin_bootstrap.json"
+    "runtime_configuration_changed_in_this_phase": false
   },
-  "settings": {
-    "revision": 7,
-    "entry_count": 14,
+  "candidate": {
+    "saved_version_number": 32,
+    "saved_version_evidence": "13_evidence/private_version_32_s5_t1_saved_candidate.json",
+    "saved_candidate_relation_confirmed": true
+  },
+  "configuration_presence": {
+    "revision": 8,
+    "entry_count": 15,
     "secret_entry_count": 11,
-    "non_secret_entry_count": 3,
-    "entries": [
-      {"key": "APP_ORIGIN", "is_secret": true},
-      {"key": "BETTER_AUTH_SECRET", "is_secret": true},
-      {"key": "GOOGLE_CLIENT_ID", "is_secret": true},
-      {"key": "GOOGLE_CLIENT_SECRET", "is_secret": true},
-      {"key": "LEGAL_OPERATOR_NAME", "is_secret": true},
-      {"key": "MAIL_FROM", "is_secret": true},
-      {"key": "MAIL_PROVIDER", "is_secret": false},
-      {"key": "NITROSEND_API_KEY", "is_secret": true},
-      {"key": "PRIVACY_CONTACT_EMAIL", "is_secret": true},
-      {"key": "PRIVACY_NOTICE_SHA256", "is_secret": false},
-      {"key": "PRIVACY_POLICY_VERSION", "is_secret": false},
-      {"key": "RESEND_API_KEY", "is_secret": true},
-      {"key": "TURNSTILE_SECRET_KEY", "is_secret": true},
-      {"key": "TURNSTILE_SITE_KEY", "is_secret": true}
-    ]
+    "non_secret_entry_count": 4,
+    "required_auth_email_privacy_and_abuse_protection_configuration_present": true,
+    "origin_configuration_present": true,
+    "configuration_values_not_retained": true
   },
   "private_site_state": {
     "site_active": true,
@@ -49,36 +32,25 @@
     "allowed_users_count": 1,
     "allowed_groups_count": 0,
     "external_visitor_count": 0,
-    "access_policy_revision": 1,
-    "site_live_url_present": true,
-    "site_preview_url_present": false
+    "access_scope_preserved": true,
+    "current_live_or_preview_url_changed_in_this_phase": false
   },
-  "saved_candidate_relation": {
-    "evidence": "13_evidence/saved_version.json",
-    "version_number": 7,
-    "candidate_source_bound": true,
-    "candidate_deployment_action_called": false,
-    "candidate_deployed": false,
-    "conclusion": "The existing live site cannot be the Version 7 candidate because Version 7 has no deployment readback."
+  "owner_gate_support": {
+    "asset_authorization": "PASS_FINAL_AUTHORIZED_ASSETS",
+    "owner_activation_precheck": "PASS_LOCAL_OWNER_ACTIVATION_PRECHECK",
+    "private_origin_bootstrap": "PASS_PRIVATE_ORIGIN_BOOTSTRAP"
   },
-  "configuration_boundaries": {
-    "key_presence_only": true,
-    "does_not_prove_nonempty_values": true,
-    "does_not_prove_current_runtime_is_version_7": true,
-    "does_not_prove_real_auth_or_data_write": true,
-    "does_not_change_access_or_configuration": true
+  "scope_and_limits": {
+    "deployment_action_called": false,
+    "runtime_values_read_or_changed": false,
+    "access_policy_changed": false,
+    "public_audience_changed": false,
+    "real_user_business_data_read_or_written": false,
+    "github_uploaded": false,
+    "product_pass_claimed": false,
+    "final_acceptance_claimed": false
   },
-  "prior_value_free_supporting_evidence": {
-    "owner_activation": {
-      "source": "13_evidence/owner_activation.json",
-      "status": "PASS_LOCAL_OWNER_ACTIVATION_PRECHECK",
-      "configuration_source": "local_environment_presence_only"
-    },
-    "google_oauth_callback": {
-      "source": "13_evidence/google_oauth_callback.json",
-      "status": "PASS_GOOGLE_OAUTH_CALLBACK",
-      "not_revalidated_from_secret_values_in_this_readback": true
-    }
-  },
-  "next_gate": "S5-T3 must deploy only saved Version 7 to the existing custom/private audience, prove signed-in data writes and histories with isolated accounts, then run an explicit rollback check."
+  "next_phase": "S5-T3 controlled private candidate deployment and real authentication, tenant, persistence, and recovery evidence",
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
 }
