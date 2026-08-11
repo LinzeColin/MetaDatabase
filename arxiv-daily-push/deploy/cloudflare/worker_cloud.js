@@ -9,7 +9,7 @@
 // Build identity (ADP-S1-P01-T010): read-only /build.json + footer build id. No secret.
 // build_id/source_sha256 are a self-excluding hash: reset both values back to their
 // zero-placeholders ('0'*12 and '0'*64) and sha256 the file to reproduce source_sha256.
-const BUILD = { build_id: 'fc3067354a84', source_sha256: 'fc3067354a84a36b4b45f11c838aac03aed1684b68009de3a54b62841ee8dbb6', schema_version: 'cn_v0_3', built_at: '2026-08-11' };
+const BUILD = { build_id: '2a488662da69', source_sha256: '2a488662da69b5f02ca87709ce98ef572c2ac3ed37f7f0fe4646f98c2a0484f2', schema_version: 'cn_v0_3', built_at: '2026-08-11' };
 
 // ── S3-P03-T040 Board 3 官方视图 A0 canary 切换（Owner S3 Exit 已批准 A0 晋级）──
 // 默认关 = 部署即基线（生产 Board 3 与六主题不变）。开=Board 3 只把 A0 官方原文作默认证据、媒体降为 discovery。
@@ -1256,7 +1256,7 @@ function heroSection(sel, item, v, spark) {
       </div>
       <div class="vitals-d">
         <div><div class="v">${v.streak}</div><div class="microlabel">STREAK</div></div>
-        <div><div class="v">${v.retention != null ? v.retention + '%' : '—'}</div><div class="microlabel">${v.retention != null ? `RETENTION · n=${v.retentionN}` : 'RETENTION'}</div></div>
+        <div><div class="v">${v.retention != null ? v.retention + '%' : '—'}</div><div class="microlabel">RETENTION</div></div>
         <div><div class="v">${v.due}</div><div class="microlabel">REVIEW DEBT</div></div>
       </div>
       <div><div class="microlabel">近 ${spark.length} 次精选分</div><svg class="sparkline" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">${sparkSVG(spark)}</svg></div>
