@@ -5,58 +5,58 @@
   "results": [
     {
       "drill": "shipped_package_drill.py",
-      "status": "PASS",
-      "seconds": 34.9,
-      "problems": []
+      "status": "NO_JSON",
+      "seconds": 0.2,
+      "problems": [
+        "没有回 JSON（exit 1）：OSError: [Errno 48] Address already in use"
+      ]
     },
     {
       "drill": "extension_update_in_place_drill.py",
       "status": "PASS",
-      "seconds": 9.4,
+      "seconds": 7.3,
       "problems": []
     },
     {
       "drill": "stale_extension_is_blocked_drill.py",
-      "status": "FAIL",
-      "seconds": 37.4,
-      "problems": [
-        "**「下一步」那张卡没指出他真正的下一步**：{'title': '第 1 步：安装浏览器插件', 'why': '收藏内容要从你自己的浏览器里读，所以需要这个插件。装好后页面会自动认出来并带你回来。', 'action': '去安装'}——他装的是连不了账号的那一版，卡片却指他去连账号；那颗按钮在他那儿打不开面板，他还得再撞一次才知道要更新"
-      ]
+      "status": "PASS",
+      "seconds": 29.2,
+      "problems": []
     },
     {
       "drill": "extension_install_page_drill.py",
       "status": "PASS",
-      "seconds": 50.3,
+      "seconds": 38.7,
       "problems": []
     },
     {
       "drill": "extension_save_page_drill.py",
       "status": "PASS",
-      "seconds": 9.2,
+      "seconds": 6.3,
       "problems": []
     },
     {
       "drill": "extension_routing_drill.py",
       "status": "PASS",
-      "seconds": 6.2,
+      "seconds": 4.1,
       "problems": []
     },
     {
       "drill": "extension_capture_drill.py",
       "status": "PASS",
-      "seconds": 18.4,
+      "seconds": 16.2,
       "problems": []
     },
     {
       "drill": "extension_capture_buffer_drill.py",
       "status": "PASS",
-      "seconds": 7.1,
+      "seconds": 4.8,
       "problems": []
     },
     {
       "drill": "extension_bridge_boundary_drill.py",
       "status": "PASS",
-      "seconds": 14.9,
+      "seconds": 13.4,
       "problems": []
     },
     {
@@ -68,43 +68,43 @@
     {
       "drill": "popup_states_drill.py",
       "status": "PASS",
-      "seconds": 19.3,
+      "seconds": 19.5,
       "problems": []
     },
     {
       "drill": "bilibili_end_to_end_drill.py",
       "status": "PASS",
-      "seconds": 24.7,
+      "seconds": 24.8,
       "problems": []
     },
     {
       "drill": "bilibili_acquisition_drill.py",
       "status": "PASS",
-      "seconds": 2.9,
+      "seconds": 2.6,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform xiaohongshu",
       "status": "PASS",
-      "seconds": 40.7,
+      "seconds": 41.2,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform douyin",
       "status": "PASS",
-      "seconds": 41.2,
+      "seconds": 41.9,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform reddit",
       "status": "PASS",
-      "seconds": 41.1,
+      "seconds": 41.2,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform instagram",
       "status": "PASS",
-      "seconds": 41.3,
+      "seconds": 41.2,
       "problems": []
     },
     {

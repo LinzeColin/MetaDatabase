@@ -52,6 +52,9 @@ import urllib.request
 import zipfile
 from http.server import ThreadingHTTPServer
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _drill_port  # noqa: E402
 from urllib.parse import urlparse
 
 import websockets
@@ -431,6 +434,8 @@ async def run(chrome: str) -> int:
     shape.ROUTES = shape._routes(shape.SPEC)
     shape.EXPLORE_PAGE, shape.FAVOURITE_PAGE = shape._pages(shape.SPEC)
     context = shape._cert(workspace)
+    # 端口被上一个演练占着时**说人话**，别抛 traceback 让上游只看到 NO_JSON。
+    _drill_port.require_free(shape.FAKE_PORT, drill=Path(__file__).name)
     server = ThreadingHTTPServer(("127.0.0.1", shape.FAKE_PORT), _FakeWithLibrary)
     server.socket = context.wrap_socket(server.socket, server_side=True)
     threading.Thread(target=server.serve_forever, daemon=True).start()

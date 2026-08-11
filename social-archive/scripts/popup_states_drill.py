@@ -74,6 +74,9 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _drill_port  # noqa: E402
+
 import websockets
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -212,6 +215,8 @@ async def run(chrome: str) -> int:
     with zipfile.ZipFile(ZIP) as archive:
         archive.extractall(unpacked)
 
+    # 端口被上一个演练占着时**说人话**，别抛 traceback 让上游只看到 NO_JSON。
+    _drill_port.require_free(PORT, drill=Path(__file__).name)
     server = ThreadingHTTPServer(("127.0.0.1", PORT), _Api)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     headless = [] if os.environ.get("SA_DRILL_HEADED") else ["--headless=new"]

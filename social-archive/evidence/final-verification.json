@@ -286,7 +286,7 @@
         "scripts/check_git_calls_cannot_be_hijacked_by_hooks.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 385 份 .py，其中 12 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
+      "stdout": "扫了 386 份 .py，其中 12 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
       "stderr": ""
     },
     {
