@@ -231,3 +231,39 @@ def test_the_production_scan_reuses_the_one_scanner() -> None:
     source = (ROOT / "scripts/scan_production_for_leaked_secrets.py").read_text(encoding="utf-8")
     assert "sa_scanner.py" in source and "scan_text" in source
     assert "rm -f /tmp/sa_scanner.py" in source, "跑完没把扫描器从生产删掉"
+
+
+def test_it_also_sees_a_file_that_has_not_been_git_added_yet(tmp_path) -> None:
+    """**这道门此前对「你正在写的那个文件」是瞎的。**（2026-08-11 实测）
+
+    只列 `git ls-files` 的话：新建一个含令牌形状常量的文件、不 `git add`，
+    它报「干净：847 个文件，0 处命中」；`git add` 之后同一条立刻被抓到。
+    也就是说跑 pytest 时全绿，**发布门（部署第 0 步）才拦下来**——
+    我那天就是这样被拦在第 0 步的，而在那之前本地全量是绿的。
+
+    现在 `--all` 也列 `git ls-files --others --exclude-standard`
+    （`.gitignore` 仍然生效，所以 .venv / node_modules 不会被卷进来）。
+    """
+    import subprocess
+
+    probe = ROOT / "scripts" / "_scanner_untracked_probe.py"
+    assert not probe.exists(), "上一次的探针没清掉"
+    written = "s9Kd0fLqW3z" + "XbN7vT2hRmYcE"          # 拼出来，别在判据里留字面量
+    probe.write_text(f'SOCIAL_ARCHIVE_API_TOKEN = "{written}"\n', encoding="utf-8")
+    try:
+        # **起 git 必须洗掉钩子塞的环境变量。**（这道要求本身也是一条门）
+        # 钩子会塞 GIT_DIR，子进程就去问**那个**仓，`cwd=` 压不过它——
+        # 这个仓最坏的一次正是「凭据扫描器静悄悄扫了别的仓，报 0 处命中」。
+        # 我这条判据讲的就是扫描器的盲区，结果自己差点栽在同一个洞里。
+        listed = subprocess.run(["git", "status", "--short", str(probe)], cwd=ROOT,
+                                env=_scan.clean_git_env(),
+                                capture_output=True, text=True, check=False).stdout
+        assert listed.strip().startswith("??"), f"探针不是未跟踪状态：{listed!r}"
+        done = subprocess.run([sys.executable, str(SCANNER), "--all"], cwd=ROOT,
+                              capture_output=True, text=True, check=False)
+        assert done.returncode != 0, (
+            "新建、还没 git add 的文件里放了一个明文令牌，这道门却说干净——"
+            "它对你正在写的那个文件是瞎的\n" + done.stdout[-300:] + done.stderr[-300:])
+        assert "_scanner_untracked_probe" in (done.stdout + done.stderr)
+    finally:
+        probe.unlink(missing_ok=True)

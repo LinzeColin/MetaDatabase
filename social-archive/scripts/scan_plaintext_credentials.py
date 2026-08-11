@@ -208,7 +208,19 @@ def tracked_files(all_files: bool) -> list[Path]:
         out = subprocess.run(["git", "ls-files"], cwd=ROOT, text=True,
                              env=clean_git_env(),
                              capture_output=True, check=True).stdout.split("\n")
-        return [ROOT / p for p in out if p.strip()]
+        # **还没 git add 的新文件也要扫。**（2026-08-11，实测出来的洞）
+        #
+        # 只列 `git ls-files` 的话，这道门**对你正在写的那个文件是瞎的**——
+        # 新建一个含令牌形状常量的文件、不 add，它报「干净：847 个文件，0 处命中」；
+        # `git add` 之后同一条立刻被抓到。也就是说：跑 pytest 时全绿，
+        # 发布门（部署第 0 步）才拦下来。我今天就是这样被拦在部署第 0 步的。
+        #
+        # `--exclude-standard` 让 .gitignore 生效，所以 .venv / node_modules
+        # 这些不会被卷进来。
+        untracked = subprocess.run(
+            ["git", "ls-files", "--others", "--exclude-standard"], cwd=ROOT, text=True,
+            env=clean_git_env(), capture_output=True, check=True).stdout.split("\n")
+        return [ROOT / p for p in (out + untracked) if p.strip()]
     paths: list[Path] = []
     for folder in ("logs", "evidence", "exports"):
         base = ROOT / folder
