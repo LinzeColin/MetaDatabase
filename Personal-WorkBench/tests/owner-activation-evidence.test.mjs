@@ -19,26 +19,26 @@ test("private Sites runtime configuration evidence is key-only", async () => {
   assert.equal(record.status, "PASS_PRIVATE_RUNTIME_CONFIGURATION_PRESENCE_ONLY");
   assert.equal(record.source.values_recorded, false);
   assert.equal(record.source.values_read_or_logged, false);
-  assert.equal(record.source.live_origin_value_recorded, false);
-  assert.equal(record.settings.revision, 7);
-  assert.equal(record.settings.entry_count, record.settings.entries.length);
-  assert.equal(record.settings.entry_count, 14);
-  assert.equal(record.settings.secret_entry_count, 11);
-  assert.equal(record.settings.non_secret_entry_count, 3);
-  assert.ok(record.settings.entries.some((entry) => entry.key === "APP_ORIGIN" && entry.is_secret === true));
-  assert.ok(record.settings.entries.some((entry) => entry.key === "RESEND_API_KEY" && entry.is_secret === true));
+  assert.equal(record.source.runtime_configuration_changed_in_this_phase, false);
+  assert.equal(record.configuration_presence.revision, 8);
+  assert.equal(record.configuration_presence.entry_count, 15);
+  assert.equal(record.configuration_presence.secret_entry_count, 11);
+  assert.equal(record.configuration_presence.non_secret_entry_count, 4);
+  assert.equal(record.configuration_presence.required_auth_email_privacy_and_abuse_protection_configuration_present, true);
+  assert.equal(record.configuration_presence.origin_configuration_present, true);
+  assert.equal(record.configuration_presence.configuration_values_not_retained, true);
   assert.equal(record.private_site_state.access_mode, "custom");
   assert.equal(record.private_site_state.allowed_users_count, 1);
   assert.equal(record.private_site_state.allowed_groups_count, 0);
   assert.equal(record.private_site_state.external_visitor_count, 0);
-  assert.equal(record.saved_candidate_relation.version_number, 7);
-  assert.equal(record.saved_candidate_relation.candidate_deployed, false);
-  assert.equal(record.configuration_boundaries.does_not_prove_real_auth_or_data_write, true);
-  for (const entry of record.settings.entries) {
-    assert.deepEqual(Object.keys(entry).sort(), ["is_secret", "key"]);
-  }
+  assert.equal(record.candidate.saved_version_number, 32);
+  assert.equal(record.scope_and_limits.deployment_action_called, false);
+  assert.equal(record.scope_and_limits.runtime_values_read_or_changed, false);
+  assert.equal(record.scope_and_limits.real_user_business_data_read_or_written, false);
   const serialized = JSON.stringify(record);
-  assert.equal(/"(?:value|values|sender|email|credential|token|url)"\s*:/i.test(serialized), false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
 });
 
 test("private Origin bootstrap evidence never stores a URL, credential, or public-release claim", async () => {

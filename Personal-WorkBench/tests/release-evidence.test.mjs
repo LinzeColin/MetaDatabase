@@ -71,6 +71,51 @@ test("Version 33 S5-T1 saved candidate evidence preserves the private boundary",
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 33 S5-T2 configuration evidence preserves private configuration continuity", async () => {
+  const configuration = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_33_s5_t2_runtime_configuration.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const boundary = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_33_s5_t2_local_shell_boundary.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify({ configuration, boundary });
+
+  assert.equal(configuration.task_id, "S5-T2");
+  assert.equal(configuration.status, "PASS_PRIVATE_RUNTIME_CONFIGURATION_PRESENCE_ONLY");
+  assert.equal(configuration.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(configuration.candidate.saved_version_number, 33);
+  assert.equal(configuration.candidate.configuration_revision_unchanged_from_prior_private_configuration_evidence, true);
+  assert.equal(configuration.configuration_presence.revision, 8);
+  assert.equal(configuration.configuration_presence.entry_count, 15);
+  assert.equal(configuration.configuration_presence.secret_entry_count, 11);
+  assert.equal(configuration.configuration_presence.non_secret_entry_count, 4);
+  assert.equal(configuration.configuration_presence.required_auth_key_types_present, true);
+  assert.equal(configuration.configuration_presence.required_email_key_types_present, true);
+  assert.equal(configuration.configuration_presence.required_privacy_key_types_present, true);
+  assert.equal(configuration.configuration_presence.required_abuse_protection_key_types_present, true);
+  assert.equal(configuration.configuration_presence.required_origin_key_type_present, true);
+  assert.equal(configuration.configuration_presence.configuration_values_inspected, false);
+  assert.equal(configuration.private_site_state.access_mode, "custom");
+  assert.equal(configuration.private_site_state.allowed_users_count, 1);
+  assert.equal(configuration.private_site_state.allowed_groups_count, 0);
+  assert.equal(configuration.private_site_state.external_visitor_count, 0);
+  assert.equal(configuration.scope_and_limits.deployment_action_called, false);
+  assert.equal(configuration.scope_and_limits.public_audience_changed, false);
+  assert.equal(boundary.status, "NOT_HOSTED_CONFIGURATION_TEST");
+  assert.equal(boundary.execution.hosted_configuration_missing_inferred, false);
+  assert.equal(boundary.execution.protected_runtime_values_injected_into_local_shell, false);
+  assert.equal(boundary.sensitive_values_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("controlled browser replay evidence does not retain test credentials", async () => {
   const evidence = JSON.parse(
     await readFile(new URL("../13_evidence/ordinary_chrome_auth_replay.json", import.meta.url), "utf8"),
