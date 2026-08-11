@@ -8,6 +8,7 @@ import {
   type DeviceLocalRecord,
   DeviceOutboxAction,
   isDeviceLocalRecord,
+  invalidateBrowserRecordScope,
   mergeWithDeviceLocalRecords,
   rememberDeviceOutboxRecordAlias,
   readDeviceLocalRecords,
@@ -274,12 +275,13 @@ export function useTenantResource<T extends TenantRecord>(
    * account's remote history: reload the opaque partition before each remote
    * operation instead.
    */
-  const refreshCurrentScope = useCallback(async (): Promise<string | null> => {
+  const refreshCurrentScope = useCallback(async (forceSessionRefresh = false): Promise<string | null> => {
     if (!enabled) return null;
     if (scopeRefreshRef.current) return scopeRefreshRef.current;
     const refresh = (async () => {
       let nextScope = "guest";
       try {
+        if (forceSessionRefresh) invalidateBrowserRecordScope();
         nextScope = await resolveBrowserRecordScope();
       } catch {
         // Treat an unavailable session lookup as the isolated guest partition.
@@ -476,12 +478,12 @@ export function useTenantResource<T extends TenantRecord>(
     return reconciled;
   }, [commitLocalRecords, refreshCurrentScope, resource, sensitive]);
 
-  const reload = useCallback(async () => {
+  const reload = useCallback(async (forceSessionRefresh = false) => {
     if (!enabled) return;
     setLoading(true);
     let requestScope: string | null = null;
     try {
-      requestScope = await refreshCurrentScope();
+      requestScope = await refreshCurrentScope(forceSessionRefresh);
       if (!requestScope) return;
       const response = await fetch(`/api/mydairy/${resource}`, { credentials: "same-origin" });
       const responseScope = await refreshCurrentScope();
@@ -541,10 +543,10 @@ export function useTenantResource<T extends TenantRecord>(
 
   useEffect(() => {
     if (!enabled || !scopeReady || typeof window === "undefined") return;
-    const replayWhenOnline = () => void reload();
-    const refreshWhenVisible = () => void reload();
+    const replayWhenOnline = () => void reload(true);
+    const refreshWhenVisible = () => void reload(true);
     const refreshWhenDocumentVisible = () => {
-      if (typeof document !== "undefined" && document.visibilityState === "visible") void reload();
+      if (typeof document !== "undefined" && document.visibilityState === "visible") void reload(true);
     };
     const replayWhenParentSynchronizes = () => void reload();
     window.addEventListener("online", replayWhenOnline);

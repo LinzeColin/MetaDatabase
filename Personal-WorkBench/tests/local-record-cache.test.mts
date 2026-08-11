@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   createDeviceLocalRecord,
   deriveDeviceOutboxParentReferences,
+  invalidateBrowserRecordScope,
   isDeviceLocalRecord,
   mergeWithDeviceLocalRecords,
   readDeviceLocalRecords,
@@ -52,7 +53,7 @@ test("device-local records remain visible beside remote history without replacin
   assert.equal(merged[1].title, "authoritative cloud replacement");
 });
 
-test("device-local account scope is re-evaluated after an account switch", async () => {
+test("device-local account scope is reused briefly and re-evaluated after an explicit account switch check", async () => {
   const runtime = globalThis as typeof globalThis & {
     window?: unknown;
   };
@@ -60,6 +61,7 @@ test("device-local account scope is re-evaluated after an account switch", async
   const originalFetch = globalThis.fetch;
   let activeUserId = "account-a";
   const requests: Array<{ input: RequestInfo | URL; init?: RequestInit }> = [];
+  invalidateBrowserRecordScope();
   Object.defineProperty(runtime, "window", { configurable: true, value: {} });
   globalThis.fetch = async (input, init) => {
     requests.push({ input, init });
@@ -68,10 +70,13 @@ test("device-local account scope is re-evaluated after an account switch", async
 
   try {
     const firstScope = await resolveBrowserRecordScope();
+    const cachedScope = await resolveBrowserRecordScope();
     activeUserId = "account-b";
+    invalidateBrowserRecordScope();
     const secondScope = await resolveBrowserRecordScope();
 
     assert.match(firstScope, /^account:/);
+    assert.equal(cachedScope, firstScope);
     assert.match(secondScope, /^account:/);
     assert.notEqual(firstScope, secondScope);
     assert.doesNotMatch(firstScope, /account-a/);
@@ -82,6 +87,32 @@ test("device-local account scope is re-evaluated after an account switch", async
     ]);
     assert.ok(requests.every(({ init }) => init?.credentials === "same-origin"));
   } finally {
+    invalidateBrowserRecordScope();
+    globalThis.fetch = originalFetch;
+    if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
+    else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });
+  }
+});
+
+test("a failed session lookup is never cached as a guest scope", async () => {
+  const runtime = globalThis as typeof globalThis & { window?: unknown };
+  const originalWindow = runtime.window;
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  invalidateBrowserRecordScope();
+  Object.defineProperty(runtime, "window", { configurable: true, value: {} });
+  globalThis.fetch = (async () => {
+    calls += 1;
+    if (calls === 1) return new Response(null, { status: 429 });
+    return new Response(JSON.stringify({ user: { id: "account-a" } }), { status: 200 });
+  }) as typeof fetch;
+
+  try {
+    assert.equal(await resolveBrowserRecordScope(), "guest");
+    assert.match(await resolveBrowserRecordScope(), /^account:/);
+    assert.equal(calls, 2);
+  } finally {
+    invalidateBrowserRecordScope();
     globalThis.fetch = originalFetch;
     if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
     else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });
@@ -95,6 +126,7 @@ test("session scope falls back to the guest partition when the session request s
   const originalWindow = runtime.window;
   const originalFetch = globalThis.fetch;
   let requestWasAborted = false;
+  invalidateBrowserRecordScope();
   Object.defineProperty(runtime, "window", { configurable: true, value: {} });
   globalThis.fetch = ((_: RequestInfo | URL, init?: RequestInit) => new Promise<Response>(() => {
     init?.signal?.addEventListener("abort", () => {
@@ -106,6 +138,7 @@ test("session scope falls back to the guest partition when the session request s
     assert.equal(await resolveBrowserRecordScope(20), "guest");
     assert.equal(requestWasAborted, true);
   } finally {
+    invalidateBrowserRecordScope();
     globalThis.fetch = originalFetch;
     if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
     else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });

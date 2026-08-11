@@ -61,6 +61,7 @@ const RECORD_ALIAS_STORE = "record-aliases";
 const LOCAL_MARKER = "__mydairy_device_local_v1";
 const LOCAL_RECORD_FALLBACK_PREFIX = "mydairy.device-records.fallback.v1";
 const BROWSER_SCOPE_REQUEST_TIMEOUT_MS = 2_500;
+const BROWSER_SCOPE_CACHE_TTL_MS = 5_000;
 const tenantFieldNames = new Set(["userId", "user_id", "ownerId", "owner_id", "tenantId", "tenant_id"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -226,7 +227,41 @@ async function accountScope(userId: string): Promise<string> {
   return `account:${opaqueFallback(userId)}`;
 }
 
-let pendingBrowserScope: Promise<string> | null = null;
+type BrowserScopeLookup = {
+  cacheable: boolean;
+  scope: string;
+};
+
+type PendingBrowserScope = {
+  controller: AbortController;
+  generation: number;
+  request: Promise<BrowserScopeLookup>;
+};
+
+let cachedBrowserScope: { expiresAt: number; scope: string } | null = null;
+let pendingBrowserScope: PendingBrowserScope | null = null;
+let browserScopeGeneration = 0;
+let browserScopeInvalidationQueued = false;
+
+/**
+ * A short successful session lookup may be reused by several resource hooks
+ * in one rendered page. Explicit foreground checks clear it first, so an
+ * account switch in another tab cannot retain a prior account partition.
+ */
+export function invalidateBrowserRecordScope(): void {
+  cachedBrowserScope = null;
+  if (browserScopeInvalidationQueued) return;
+  browserScopeInvalidationQueued = true;
+  queueMicrotask(() => {
+    browserScopeInvalidationQueued = false;
+  });
+  browserScopeGeneration += 1;
+  const pending = pendingBrowserScope;
+  if (pending) {
+    pending.controller.abort();
+    if (pendingBrowserScope === pending) pendingBrowserScope = null;
+  }
+}
 
 /**
  * A stable, opaque per-account partition prevents a shared browser from
@@ -235,9 +270,12 @@ let pendingBrowserScope: Promise<string> | null = null;
  */
 export async function resolveBrowserRecordScope(timeoutMs = BROWSER_SCOPE_REQUEST_TIMEOUT_MS): Promise<string> {
   if (typeof window === "undefined") return "guest";
-  if (!pendingBrowserScope) {
-    pendingBrowserScope = (async () => {
-      const controller = new AbortController();
+  const now = Date.now();
+  if (cachedBrowserScope && cachedBrowserScope.expiresAt > now) return cachedBrowserScope.scope;
+  const generation = browserScopeGeneration;
+  if (!pendingBrowserScope || pendingBrowserScope.generation !== generation) {
+    const controller = new AbortController();
+    const request = (async (): Promise<BrowserScopeLookup> => {
       let timeout: ReturnType<typeof setTimeout> | undefined;
       try {
         const response = await Promise.race<Response | null>([
@@ -252,26 +290,34 @@ export async function resolveBrowserRecordScope(timeoutMs = BROWSER_SCOPE_REQUES
             }, timeoutMs);
           }),
         ]);
-        if (!response) return "guest";
-        if (!response.ok) return "guest";
+        if (!response || !response.ok) return { cacheable: false, scope: "guest" };
         const session = (await response.json()) as unknown;
         const user = isRecord(session) && isRecord(session.user) ? session.user : null;
         const userId = user && typeof user.id === "string" && user.id.length > 0 ? user.id : null;
-        return userId ? accountScope(userId) : "guest";
+        return { cacheable: true, scope: userId ? await accountScope(userId) : "guest" };
       } catch {
-        return "guest";
+        return { cacheable: false, scope: "guest" };
       } finally {
         if (timeout !== undefined) clearTimeout(timeout);
       }
     })();
+    pendingBrowserScope = { controller, generation, request };
   }
-  const request = pendingBrowserScope;
+  const pending = pendingBrowserScope;
+  if (!pending) return "guest";
   try {
-    return await request;
+    const resolved = await pending.request;
+    if (resolved.cacheable && pending.generation === browserScopeGeneration) {
+      cachedBrowserScope = {
+        expiresAt: Date.now() + BROWSER_SCOPE_CACHE_TTL_MS,
+        scope: resolved.scope,
+      };
+    }
+    return resolved.scope;
   } finally {
-    // Collapse concurrent component initialization, but never retain a user
-    // scope across a sign-in, sign-out, or account switch in the same tab.
-    if (pendingBrowserScope === request) pendingBrowserScope = null;
+    // Collapse concurrent component initialization. An explicit invalidation
+    // owns a newer generation and may already have replaced this request.
+    if (pendingBrowserScope === pending) pendingBrowserScope = null;
   }
 }
 

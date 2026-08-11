@@ -292,7 +292,8 @@ test("tenant resource client refreshes an account scope before merging or mutati
   const source = await readFile(resourceSource, "utf8");
 
   assert.match(source, /const scopeRefreshRef = useRef<Promise<string \| null> \| null>\(null\);/);
-  assert.match(source, /const refreshCurrentScope = useCallback\(async \(\): Promise<string \| null> => \{/);
+  assert.match(source, /const refreshCurrentScope = useCallback\(async \(forceSessionRefresh = false\): Promise<string \| null> => \{/);
+  assert.match(source, /if \(forceSessionRefresh\) invalidateBrowserRecordScope\(\);/);
   assert.match(source, /if \(nextScope === scopeRef\.current\) return nextScope;/);
   assert.match(source, /commitRecords\(\[\]\);/);
   assert.match(source, /local = \(await readDeviceLocalRecords\(nextScope, resource\)\) as T\[\];/);
@@ -307,6 +308,8 @@ test("tenant resource client refreshes an account scope before merging or mutati
   assert.match(source, /const scopeBeforeRequest = await refreshCurrentScope\(\);/);
   assert.match(source, /if \(scopeBeforeRequest !== scope\) \{/);
   assert.match(source, /window\.addEventListener\("focus", refreshWhenVisible\);/);
+  assert.match(source, /const refreshWhenVisible = \(\) => void reload\(true\);/);
+  assert.match(source, /document\.visibilityState === "visible"\) void reload\(true\);/);
   assert.match(source, /document\.addEventListener\("visibilitychange", refreshWhenDocumentVisible\);/);
 });
 
