@@ -68,15 +68,21 @@ point. Secrets stay outside Git and evidence.
   is absent and prohibited, not a blocker.
 - T09 remains non-authoritative operational evidence only. The corrected VPS3
   Status registration is on draft LinzeHomeHub PR #86 at `a38b973`
-  (`codex/jobhuntbot-status-registration`), but the public snapshot does not
-  yet list JobHuntBot. Do not treat the draft as deployed evidence or replace
-  it with a stale VPS1 collector. Private-Database has a read-back operational
-  record without business data, PII, or Secrets; PostgreSQL is the sole
-  business-data authority.
+  (`codex/jobhuntbot-status-registration`). A current public snapshot readback
+  finds only historical JobHuntBot ledger-event references, not a deployed
+  runtime registration. Do not treat the draft as deployed evidence or replace
+  it with a stale VPS1 collector.
+- Private-Database readback is current at `2026-08-11T04:04:38Z` under
+  `Private-MetaDatabase/JobHuntBotOnline/operations/v0.3.0/latest.json` with
+  schema `jobhuntbot-ops-projection-v2`, `EMAIL_ONLY_BLOCKED`,
+  `production_claimed=false`, and no business data, PII, or Secrets.
+  PostgreSQL remains the sole business-data authority.
 - R2 is deliberately `NOT_CONFIGURED`. No JobHuntBot-specific bucket or
   credential is authorized, and no R2 operation, InfrequentAccess setting,
   recurring task, or cross-project credential reuse was performed. The target
-  ops evidence is noncritical `BLOCKED` with `production_claimed=false`.
+  ops probe records Private-Database `PASS`, Status `BLOCKED`, and R2
+  `NOT_CONFIGURED`; its overall result is noncritical `BLOCKED` with
+  `production_claimed=false`.
 - The JobHuntBot source and all email safeguards are on draft PR #176
   (`codex/jobhuntbot-online-v030-r2`). Do not mark it ready, merge it, or use
   an old `ACCEPTANCE_COMMIT` value as a completion receipt.
