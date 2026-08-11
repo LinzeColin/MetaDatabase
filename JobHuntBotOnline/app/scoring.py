@@ -52,6 +52,11 @@ def _text(value: str | list[str]) -> str:
     return " ".join(value) if isinstance(value, list) else str(value or "")
 
 
+def _role_values(value: str | list[str]) -> list[str]:
+    values = value if isinstance(value, list) else [value]
+    return [re.sub(r"\s+", " ", str(item)).strip() for item in values if str(item).strip()]
+
+
 def _has_alias(text: str, alias: str) -> bool:
     if any("\u4e00" <= char <= "\u9fff" for char in alias):
         return alias in text
@@ -70,10 +75,15 @@ def role_categories(value: str | list[str]) -> set[str]:
 
 def role_search_tag(profile: dict[str, Any]) -> str:
     """Choose one documented provider search tag from confirmed role intent."""
-    primary = profile.get("primary_role_families", [])
+    primary = _role_values(profile.get("primary_role_families", []))
     for category in ROLE_ALIASES:
         if category in role_categories(primary):
             return ROLE_SEARCH_TAGS[category]
+    # A candidate may explicitly confirm a narrow role label that is not yet
+    # in the compact shared taxonomy.  Keep it strict by querying that one
+    # label, rather than falling back to a generic feed or guessing a category.
+    if primary:
+        return primary[0][:80]
     return ""
 
 
@@ -89,6 +99,12 @@ def search_matches(query: str, haystack: str) -> bool:
         if any(_has_alias(text, alias) for alias in ROLE_ALIASES[category]):
             return True
     return False
+
+
+def confirmed_primary_role_matches(profile: dict[str, Any], haystack: str) -> bool:
+    """Match a candidate's explicitly confirmed free-form primary role label."""
+    text = haystack.casefold()
+    return any(_has_alias(text, role.casefold()) for role in _role_values(profile.get("primary_role_families", [])))
 
 
 def score_job(profile: dict[str, Any], job: dict[str, Any], now: datetime | None = None) -> dict[str, Any]:
@@ -137,16 +153,21 @@ def score_job(profile: dict[str, Any], job: dict[str, Any], now: datetime | None
     qualification = "fail" if hard_fail else ("pending" if pending else "pass")
 
     candidate_tokens = _tokens(profile.get("skills", [])) | _tokens(profile.get("keywords", []))
-    profile_role_categories = role_categories(profile.get("primary_role_families", [])) | role_categories(profile.get("secondary_role_families", []))
+    primary_roles = _role_values(profile.get("primary_role_families", []))
+    profile_role_categories = role_categories(primary_roles) | role_categories(profile.get("secondary_role_families", []))
     job_role_categories = role_categories(
         f"{job.get('role_family', '')} {job.get('title', '')} {job.get('description', '')}"
     )
+    job_role_text = f"{job.get('role_family', '')} {job.get('title', '')} {job.get('description', '')}"
+    confirmed_primary_match = confirmed_primary_role_matches(profile, job_role_text)
     job_tokens = _tokens(job.get("skills", [])) | _tokens(job.get("keywords", [])) | _tokens(job.get("title", ""))
     overlap = candidate_tokens & job_tokens
     role_match = profile_role_categories & job_role_categories
     rel_score = min(100, len(overlap) * 12 + (60 if role_match else 0))
     if role_match:
         reasons.append("岗位族与目标方向一致：" + "、".join(sorted(role_match)))
+    elif confirmed_primary_match:
+        reasons.append("岗位标题与已确认目标方向一致")
     if overlap:
         reasons.append("匹配技能：" + "、".join(sorted(overlap)[:6]))
     # When a candidate has confirmed a known role direction, high relevance is
@@ -154,6 +175,8 @@ def score_job(profile: dict[str, Any], job: dict[str, Any], now: datetime | None
     # make an engineering role a high-priority legal recommendation.
     if profile_role_categories:
         relevance = "high" if role_match else ("medium" if rel_score >= 25 else "low")
+    elif primary_roles:
+        relevance = "high" if confirmed_primary_match else ("medium" if rel_score >= 25 else "low")
     else:
         relevance = "high" if rel_score >= 55 else ("medium" if rel_score >= 25 else "low")
 

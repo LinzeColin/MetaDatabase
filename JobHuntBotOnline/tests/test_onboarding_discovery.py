@@ -11,7 +11,7 @@ from app.main import _confirmed_profile_fields
 from app import discovery
 from app.models import CandidateProfile, DiscoveryRun, Job, Recommendation, Resume, User, utcnow
 from app.resume import extract_text, parse_resume, profile_draft
-from app.scoring import score_job, search_matches
+from app.scoring import role_search_tag, score_job, search_matches
 from .conftest import complete_onboarding, csrf, register_verify
 
 
@@ -174,6 +174,41 @@ def test_legal_role_aliases_keep_engineering_out_of_high_relevance():
     assert engineering["relevance"] != "high"
     assert search_matches("法律", "Senior Legal Counsel")
     assert not search_matches("法律", "Senior Software Engineer")
+
+
+def test_confirmed_custom_role_is_targeted_without_promoting_engineering():
+    profile = {
+        "primary_role_families": ["Policy Researcher"],
+        "secondary_role_families": [],
+        "target_locations": [],
+        "work_mode": [],
+        "skills": ["python", "research", "statistics", "sql", "writing"],
+        "keywords": [],
+        "work_authorization": "Australian full working rights",
+        "sponsorship_now": "no",
+        "sponsorship_future": "no",
+    }
+    assert role_search_tag(profile) == "Policy Researcher"
+    policy = score_job(profile, {
+        "title": "Policy Researcher",
+        "description": "Research public policy outcomes.",
+        "role_family": "Other",
+        "location": "Sydney",
+        "work_mode": "hybrid",
+        "skills": ["research", "statistics"],
+        "keywords": [],
+    })
+    engineering = score_job(profile, {
+        "title": "Software Engineer",
+        "description": "Build distributed Python systems.",
+        "role_family": "Data",
+        "location": "Sydney",
+        "work_mode": "hybrid",
+        "skills": ["python", "sql", "statistics"],
+        "keywords": [],
+    })
+    assert policy["relevance"] == "high"
+    assert engineering["relevance"] != "high"
 
 
 def test_plain_text_resume_falls_back_to_gb18030_without_garbled_output():
