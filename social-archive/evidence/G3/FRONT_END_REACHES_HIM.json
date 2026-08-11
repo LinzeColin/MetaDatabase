@@ -111,6 +111,13 @@
       ],
       "errors": [],
       "nextStep": "第 3 步：连接一个能同步的来源 本版本能自动同步的是：B站、抖音、快手、小红书、Chrome书签/网页、Instagram、Reddit。其余平台可以用插件一条条保存。 去连接"
+    },
+    "connect_click": {
+      "found": true,
+      "platform": "douyin",
+      "panelOpened": true,
+      "panelSrc": "chrome-extension://lgogbkipjofghhackbodeniffjohbldg/connect-frame.html",
+      "errorsAfterClick": []
     }
   },
   "problems": []

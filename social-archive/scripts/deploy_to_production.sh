@@ -1022,6 +1022,31 @@ else
   printf '  跳过：这台机器上没有 Chrome（前端是否真到得了他手上，本轮没验）。\n'
 fi
 
+step "8.66) 他点「下载全部 Markdown」，拿到的那个 zip 是好的吗"
+# 《使用说明》第二节两条取法，第一步都是这颗按钮。而在补这一步之前
+# **没有任何一步在生产上验过它**：单元判据跑在本机 TestClient 上，
+# 部署脚本里一次都没出现过 markdown.zip。上一次真去点它是 0.0.0.29。
+#
+# 在容器里用它自己的令牌打自己的回环口——**令牌不出容器，正文一个字都不出来**，
+# 只回条目数/文件数和几个缺陷计数。
+if ! .venv/bin/python scripts/check_his_markdown_export_still_works.py --host "$HOST" \
+      > evidence/G3/HIS_MARKDOWN_EXPORT.json 2>&1; then
+  python3 -c "
+import json
+try:
+    d=json.load(open('evidence/G3/HIS_MARKDOWN_EXPORT.json'))
+except Exception:
+    print(open('evidence/G3/HIS_MARKDOWN_EXPORT.json').read()[-500:]); raise SystemExit
+for p in d.get('problems', []): print('  ✗', p)"
+  fail '他点「下载全部 Markdown」拿到的那个 zip 有问题——那是他把东西拿进 Obsidian 的第一步。'
+fi
+python3 -c "
+import json
+d=json.load(open('evidence/G3/HIS_MARKDOWN_EXPORT.json'))['measured']
+print(f\"  库里 {d['items_in_library']} 条 → zip 里 {d['files_in_zip']} 个文件；\"
+      f\"空标题 {d['empty_heading']}、重复文案标题 {d['title_is_a_doubled_caption']}、\"
+      f\"作者是点赞数 {d['author_is_a_like_count']}、读不出来的 {d['unreadable_files']}。\")"
+
 step "8.68) 从零到能用，在**刚部署的这个镜像**上真走一遍"
 # 上一步验的是界面到不到得了他手上。这一步验的是**按下去之后那条链**：
 # 空库 → 连账号 → 同步 → 看得见（标题/作者都对）→ 删除并清空 → 又空了
