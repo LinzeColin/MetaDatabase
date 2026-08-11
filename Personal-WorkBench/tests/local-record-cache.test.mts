@@ -76,6 +76,30 @@ test("device-local account scope is re-evaluated after an account switch", async
   }
 });
 
+test("session scope falls back to the guest partition when the session request stalls", async () => {
+  const runtime = globalThis as typeof globalThis & {
+    window?: unknown;
+  };
+  const originalWindow = runtime.window;
+  const originalFetch = globalThis.fetch;
+  let requestWasAborted = false;
+  Object.defineProperty(runtime, "window", { configurable: true, value: {} });
+  globalThis.fetch = ((_: RequestInfo | URL, init?: RequestInit) => new Promise<Response>(() => {
+    init?.signal?.addEventListener("abort", () => {
+      requestWasAborted = true;
+    });
+  })) as typeof fetch;
+
+  try {
+    assert.equal(await resolveBrowserRecordScope(20), "guest");
+    assert.equal(requestWasAborted, true);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
+    else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });
+  }
+});
+
 test("local parent references wait for a same-account alias instead of sending a local identifier", async () => {
   const habitReferences = deriveDeviceOutboxParentReferences("habit-checkins", { habitId: "local_habit" });
   const savingsReferences = deriveDeviceOutboxParentReferences("savings-transactions", { goalId: "local_goal" });

@@ -59,6 +59,7 @@ const OUTBOX_STORE = "outbox";
 const OUTBOX_SCOPE_INDEX = "by_scope";
 const RECORD_ALIAS_STORE = "record-aliases";
 const LOCAL_MARKER = "__mydairy_device_local_v1";
+const BROWSER_SCOPE_REQUEST_TIMEOUT_MS = 2_500;
 const tenantFieldNames = new Set(["userId", "user_id", "ownerId", "owner_id", "tenantId", "tenant_id"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -160,12 +161,23 @@ let pendingBrowserScope: Promise<string> | null = null;
  * showing one account's local-only records to another account. Guest records
  * intentionally remain a separate migration source and are never auto-synced.
  */
-export async function resolveBrowserRecordScope(): Promise<string> {
+export async function resolveBrowserRecordScope(timeoutMs = BROWSER_SCOPE_REQUEST_TIMEOUT_MS): Promise<string> {
   if (typeof window === "undefined") return "guest";
   if (!pendingBrowserScope) {
     pendingBrowserScope = (async () => {
+      const controller = new AbortController();
+      let timeout: ReturnType<typeof setTimeout> | undefined;
       try {
-        const response = await fetch("/api/auth/get-session", { credentials: "same-origin" });
+        const response = await Promise.race<Response | null>([
+          fetch("/api/auth/get-session", { credentials: "same-origin", signal: controller.signal }),
+          new Promise<null>((resolve) => {
+            timeout = setTimeout(() => {
+              controller.abort();
+              resolve(null);
+            }, timeoutMs);
+          }),
+        ]);
+        if (!response) return "guest";
         if (!response.ok) return "guest";
         const session = (await response.json()) as unknown;
         const user = isRecord(session) && isRecord(session.user) ? session.user : null;
@@ -173,6 +185,8 @@ export async function resolveBrowserRecordScope(): Promise<string> {
         return userId ? accountScope(userId) : "guest";
       } catch {
         return "guest";
+      } finally {
+        if (timeout !== undefined) clearTimeout(timeout);
       }
     })();
   }
