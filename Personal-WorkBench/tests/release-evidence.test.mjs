@@ -116,6 +116,43 @@ test("Version 33 S5-T2 configuration evidence preserves private configuration co
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 33 S5-T3 private deployment and rollback evidence does not overclaim browser E2E", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_33_s5_t3_controlled_private_deployment_and_rollback.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.phase, "S5-T3");
+  assert.equal(evidence.status, "PASS_CONTROLLED_PRIVATE_DEPLOY_AND_ROLLBACK_PARTIAL");
+  assert.equal(evidence.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(evidence.candidate.saved_version_number, 33);
+  assert.equal(evidence.private_access.access_mode, "custom");
+  assert.equal(evidence.private_access.allowed_user_count, 1);
+  assert.equal(evidence.private_access.allowed_group_count, 0);
+  assert.equal(evidence.private_access.external_visitor_count, 0);
+  assert.equal(evidence.controlled_private_deployment.terminal_status, "succeeded");
+  assert.equal(evidence.rollback_and_restore.rollback_version_number, 32);
+  assert.equal(evidence.rollback_and_restore.rollback_terminal_status, "succeeded");
+  assert.equal(evidence.rollback_and_restore.restore_version_number, 33);
+  assert.equal(evidence.rollback_and_restore.restore_terminal_status, "succeeded");
+  assert.equal(evidence.rollback_and_restore.private_access_preserved_after_rollback_and_restore, true);
+  assert.equal(evidence.post_deployment_observation.initial_deployment_error_event_count, 0);
+  assert.equal(evidence.post_deployment_observation.post_restore_error_event_count, 0);
+  assert.equal(evidence.post_deployment_observation.log_bodies_retained, false);
+  assert.equal(evidence.controlled_browser_e2e.browser_control_runtime_available, false);
+  assert.equal(evidence.controlled_browser_e2e.browser_cookie_or_storage_inspected, false);
+  assert.equal(evidence.controlled_browser_e2e.sites_bypass_token_generated_or_used, false);
+  assert.equal(evidence.change_boundary.public_audience_changed, false);
+  assert.equal(evidence.change_boundary.github_uploaded, false);
+  assert.equal(evidence.change_boundary.product_pass_claimed, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("controlled browser replay evidence does not retain test credentials", async () => {
   const evidence = JSON.parse(
     await readFile(new URL("../13_evidence/ordinary_chrome_auth_replay.json", import.meta.url), "utf8"),
