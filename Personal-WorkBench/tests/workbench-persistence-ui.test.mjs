@@ -53,8 +53,8 @@ test("normal home reports authentication state and visitor-local time without ch
 
   assert.match(source, /const visitorTime = useVisitorTime\(reference\);/);
   assert.match(source, /const accountActionRequired = authRequired \|\| loginSuggested;/);
-  assert.match(source, /请先登录并完成邮箱验证，再开始\$\{card\.label\}打卡。/);
-  assert.match(source, /accountActionRequired \? "登录后打卡" : "点击打卡"/);
+  assert.doesNotMatch(source, /if \(accountActionRequired\) \{[\s\S]*?再开始\$\{card\.label\}打卡。[\s\S]*?return;/);
+  assert.match(source, /accountActionRequired \? "本机打卡" : "点击打卡"/);
   assert.match(source, /useTenantResource<OverviewTodoRecord>\("todos", \{ enabled: !reference \}\)/);
   assert.match(source, /useTenantResource<LedgerRecord>\("ledger", \{ enabled: !reference, sensitive: true \}\)/);
   assert.match(source, /function overviewValue\(/);

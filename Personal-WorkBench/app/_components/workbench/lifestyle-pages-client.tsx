@@ -244,10 +244,6 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
 
   async function toggleHabit(card: HabitCard, index: number) {
     if (reference) return;
-    if (accountActionRequired) {
-      setFeedback(`请先登录并完成邮箱验证，再开始${card.label}打卡。`);
-      return;
-    }
     setFeedback(`正在处理${card.label}打卡…`);
     const habit = await ensureHabit(card, index);
     if (!habit) {
@@ -320,7 +316,7 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
             >
               <img alt="" className="habit-icon" src={asset(card.icon)} />
               <strong>{card.label}</strong>
-              <small>{isCompleted ? "已打卡" : accountActionRequired ? "登录后打卡" : "点击打卡"}</small>
+              <small>{isCompleted ? "已打卡" : accountActionRequired ? "本机打卡" : "点击打卡"}</small>
             </button>
           );
         })}
