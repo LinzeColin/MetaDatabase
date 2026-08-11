@@ -87,7 +87,7 @@
         "scripts/preflight_extension.py"
       ],
       "exit_code": 0,
-      "stdout": "可以装载。manifest v3、version 0.0.0.38、17 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
+      "stdout": "可以装载。manifest v3、version 0.0.0.39、17 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
       "stderr": ""
     },
     {
@@ -97,7 +97,7 @@
         "--all"
       ],
       "exit_code": 0,
-      "stdout": "干净：扫了 837 个文件 + 2 份 diff，0 处命中\n",
+      "stdout": "干净：扫了 840 个文件 + 2 份 diff，0 处命中\n",
       "stderr": ""
     },
     {
@@ -124,7 +124,7 @@
         "scripts/check_the_stated_version_is_the_real_one.py"
       ],
       "exit_code": 0,
-      "stdout": "真源 pyproject.toml 说版本是 0.0.0.38；核了 11 处\n每一处声明的版本都和真源一样，CHANGELOG 里也有这一版。\n",
+      "stdout": "真源 pyproject.toml 说版本是 0.0.0.39；核了 11 处\n每一处声明的版本都和真源一样，CHANGELOG 里也有这一版。\n",
       "stderr": ""
     },
     {
@@ -259,7 +259,7 @@
         "scripts/check_shape_read_platforms_have_drills.py"
       ],
       "exit_code": 0,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"shape_read_in_production\": [\n    \"douyin\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"covered_by_a_drill\": [\n    \"douyin\",\n    \"instagram\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"exempt_with_a_reason\": {\n    \"kuaishou\": \"快手真实响应的字段名我核实不了（要 Owner 的登录态）。写过一份夹具（feeds[].photoId/caption/userName），跑出来 7 条里 3 条丢作者——因为 userName 不在 list-shape.js 的 AUTHOR_KEYS 里（那张表里是 user_name）。顺着那个『失败』改产品，就是拿我自己编的夹具去改生产代码。停在这里，缺口记录在案。**要解掉它，需要一份真实的快手收藏响应的字段名。**\"\n  },\n  \"problems\": [],\n  \"what_this_does_not_prove\": \"只保证「有演练走过这条路」。不保证真站的响应长成夹具那样——那句边界写在演练自己的文件头里，这道门不替它作保。\"\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"shape_read_in_production\": [\n    \"douyin\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"syncable_now\": [\n    \"bilibili\",\n    \"douyin\",\n    \"generic-web\",\n    \"instagram\",\n    \"kuaishou\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"evidence_for_other_paths\": {\n    \"bilibili\": \"bilibili_acquisition_drill.py（打真接口）+ bilibili_end_to_end_drill.py（真 Chrome 整条链）\"\n  },\n  \"covered_by_a_drill\": [\n    \"douyin\",\n    \"instagram\",\n    \"reddit\",\n    \"xiaohongshu\"\n  ],\n  \"exempt_with_a_reason\": {\n    \"generic-web\": \"Chrome 书签：路由（extension_routing_drill，syncChromeBookmarks 被桩掉）和未授权时的文案（shipped_package_drill 的 connect_bookmarks_said）都验过了，**「授权之后书签真的读得进来」没有**——那一下要用户手势，演练点不了原生弹窗。要解掉它：Owner 在真 Chrome 里点一次「连接账号」并选「允许」。\",\n    \"kuaishou\": \"快手真实响应的字段名我核实不了（要 Owner 的登录态）。写过一份夹具（feeds[].photoId/caption/userName），跑出来 7 条里 3 条丢作者——因为 userName 不在 list-shape.js 的 AUTHOR_KEYS 里（那张表里是 user_name）。顺着那个『失败』改产品，就是拿我自己编的夹具去改生产代码。停在这里，缺口记录在案。**要解掉它，需要一份真实的快手收藏响应的字段名。**\"\n  },\n  \"problems\": [],\n  \"what_this_does_not_prove\": \"只保证「有演练走过这条路」。不保证真站的响应长成夹具那样——那句边界写在演练自己的文件头里，这道门不替它作保。\"\n}\n",
       "stderr": ""
     },
     {
