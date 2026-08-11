@@ -163,17 +163,14 @@ test("Version 35 S5-T1 archival evidence preserves the reviewed session-scope re
   assert.equal(serialized.includes("Bearer "), false);
 });
 
-test("Version 37 S5-T1 current saved candidate is source-bound and not deployed", async () => {
+test("Version 37 S5-T1 saved candidate remains a source-bound, undeployed historical record", async () => {
   const evidence = JSON.parse(
     await readFile(
       new URL("../13_evidence/private_version_37_s5_t1_saved_candidate.json", import.meta.url),
       "utf8",
     ),
   );
-  const current = JSON.parse(
-    await readFile(new URL("../13_evidence/saved_version.json", import.meta.url), "utf8"),
-  );
-  const serialized = JSON.stringify({ evidence, current });
+  const serialized = JSON.stringify(evidence);
 
   assert.equal(evidence.task_id, "S5-T1");
   assert.equal(evidence.status, "PASS_PRIVATE_SAVED_VERSION_CANDIDATE");
@@ -196,13 +193,46 @@ test("Version 37 S5-T1 current saved candidate is source-bound and not deployed"
   assert.equal(evidence.sites_saved_version.new_candidate_deployed, false);
   assert.equal(evidence.post_save_readback.candidate_deployed, false);
   assert.equal(evidence.post_save_readback.deployment_action_called, false);
-  assert.equal(current.sites_saved_version.version_number, 37);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
+test("Version 38 S5-T1 current saved candidate is source-bound, archived, and undeployed", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_38_s5_t1_saved_candidate.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const current = JSON.parse(
+    await readFile(new URL("../13_evidence/saved_version.json", import.meta.url), "utf8"),
+  );
+  const serialized = JSON.stringify({ evidence, current });
+
+  assert.equal(evidence.task_id, "S5-T1");
+  assert.equal(evidence.status, "PASS_PRIVATE_SAVED_VERSION_CANDIDATE");
+  assert.equal(evidence.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(evidence.candidate.s4_t3a_readiness, "READINESS_PASS");
+  assert.equal(evidence.candidate.saved_version_number, 38);
+  assert.equal(evidence.candidate.source_pushed_to_sites_dedicated_channel, true);
+  assert.equal(evidence.candidate.source_readback_matches_pushed_candidate, true);
+  assert.equal(evidence.source_identity.current_local_candidate_commit_bound, true);
+  assert.equal(evidence.source_identity.project_tree_matches_sites_source_channel, true);
+  assert.equal(evidence.source_identity.sites_source_branch_readback_matches_candidate, true);
+  assert.equal(evidence.source_identity.push_mode, "NON_FORCE_FAST_FORWARD");
+  assert.equal(evidence.source_identity.source_credential_persisted, false);
+  assert.equal(evidence.sites_saved_version.archive_storage_present, true);
+  assert.equal(evidence.sites_saved_version.new_candidate_deployed, false);
+  assert.equal(evidence.post_save_readback.candidate_deployed, false);
+  assert.equal(evidence.post_save_readback.deployment_action_called, false);
+  assert.equal(current.sites_saved_version.version_number, 38);
   assert.equal(current.sites_saved_version.source_readback_matches_pushed_candidate, true);
   assert.equal(current.post_save_readback.candidate_deployed, false);
-  assert.equal(current.post_save_readback.access_mode, "public");
   assert.equal(current.post_save_readback.access_policy_changed, false);
+  assert.equal(current.post_save_readback.access_policy_rechecked, false);
   assert.equal(current.candidate_exposure_boundary.saved_candidate_is_undeployed, true);
-  assert.equal(current.candidate_exposure_boundary.existing_live_url_is_not_runtime_evidence_for_version_37, true);
+  assert.equal(current.candidate_exposure_boundary.existing_live_url_is_not_runtime_evidence_for_version_38, true);
   assert.equal(current.sensitive_values_recorded, false);
   assert.equal(current.real_user_business_data_read_or_written, false);
   assert.equal(serialized.includes("@"), false);

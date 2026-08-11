@@ -1,13 +1,10 @@
 {
-  "schema_version": "3.1.0",
+  "schema_version": "1.0.0",
   "task_id": "S5-T1",
   "phase": "S5_T1_SAVED_UNDEPLOYED_CANDIDATE",
   "status": "PASS_PRIVATE_SAVED_VERSION_CANDIDATE",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
   "observed_at": "2026-08-11",
-  "product_pass_claimed": false,
-  "final_acceptance_claimed": false,
-  "public_deploy_eligible": false,
   "candidate": {
     "source_subject": "S4-T3A-reviewed captcha readiness candidate",
     "s4_t3a_readiness": "READINESS_PASS",
@@ -22,8 +19,7 @@
     "project_tree_matches_sites_source_channel": true,
     "sites_source_branch_readback_matches_candidate": true,
     "push_mode": "NON_FORCE_FAST_FORWARD",
-    "historical_source_projection_contract_not_used_as_current_identity_proof": true,
-    "short_lived_source_credential_used_per_command_without_recording": true,
+    "source_credential_persisted": false,
     "raw_commit_identifiers_recorded": false
   },
   "build_archive": {
@@ -44,6 +40,13 @@
       "npm_run_verify_release": "PASS_BUILD_LAST_MILE_READINESS"
     }
   },
+  "site_access_snapshot": {
+    "access_policy_rechecked": false,
+    "access_policy_mutation_called": false,
+    "access_policy_changed": false,
+    "public_audience_changed": false,
+    "reason": "The saved-version operation has no access-policy parameter; protected access credentials were not read."
+  },
   "sites_saved_version": {
     "version_number": 38,
     "source_readback_matches_pushed_candidate": true,
@@ -57,32 +60,20 @@
     "detail_source_matches_pushed_candidate": true,
     "archive_stored_by_sites": true,
     "candidate_deployed": false,
-    "deployment_action_called": false,
-    "access_policy_mutation_called": false,
-    "access_policy_changed": false,
-    "public_audience_changed": false,
-    "access_policy_rechecked": false,
-    "access_policy_recheck_reason": "S5-T1 saves source and archive only; no access-policy action was invoked and protected access credentials were not read."
-  },
-  "candidate_exposure_boundary": {
-    "saved_candidate_is_undeployed": true,
-    "existing_live_url_is_not_runtime_evidence_for_version_38": true,
-    "access_policy_was_not_changed_in_this_phase": true
+    "deployment_action_called": false
   },
   "scope_and_limits": {
+    "deployment_action_called": false,
     "runtime_values_read_or_changed": false,
     "d1_or_r2_configuration_changed": false,
     "real_user_business_data_read_or_written": false,
     "github_uploaded": false,
     "vps3_used_as_site_host": false,
+    "public_audience_changed": false,
     "product_pass_claimed": false,
     "final_acceptance_claimed": false
   },
-  "limits_and_follow_up": [
-    "本证据只证明 Version 38 已保存、来源与归档可回读且未部署，不构成公开运行或产品验收。",
-    "本阶段没有读取或改变访问策略；既有 live URL 不能当作 Version 38 的运行时证据。",
-    "真实邮箱与 Google、A/B 隔离、第二设备历史、物理存储对账及回滚恢复仍需在后续受控阶段完成。"
-  ],
+  "next_phase": "S5-T2 configuration and owner gates for the saved candidate",
   "sensitive_values_recorded": false,
   "real_user_business_data_read_or_written": false
 }
