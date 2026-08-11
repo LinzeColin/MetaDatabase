@@ -104,6 +104,12 @@ def structural_commands() -> list[list[str]]:
         # 这道门第一次跑就抓到 saAccountSyncQueueLastResult 写三处、读零处
         # ——那正是我为「放弃时也要说得出原因」补的记录，写进了没人看的地方。
         [python, "scripts/find_write_only_storage_keys.py"],
+        # 上面那道查的是 storage 的**键**，看不见键的**值里面**的字段。
+        # 2026-08-12 合并 main 时，`heartbeatAt` 就是从这个缝里过去的：
+        # 键（saAccountSyncQueueLock）有人读，而 heartbeatAt 每同步一批写一次、
+        # 全代码库没有第二处提到它——每写一次都是白写。上面那道门全程绿着。
+        # 抓到它的是合并后逐行读 diff，不是门；这道门把那次手工阅读固化下来。
+        [python, "scripts/find_write_only_storage_fields.py"],
         # 第四种形态：扩展内部的消息只有一头。有人听没人发（功能在代码上完整、
         # 在产品上够不着），或有人发没人听（消息落进虚空，发送处 catch 掉，
         # 连报错都没有）。这道门第一次跑就抓到 SA_REVOKE_PLATFORM_SESSION——

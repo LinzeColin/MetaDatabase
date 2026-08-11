@@ -446,6 +446,17 @@ def _is_stalled(updated_at: str | None, *, stale_after_seconds: int) -> bool:
     return (datetime.now(UTC) - moved).total_seconds() > stale_after_seconds
 
 
+
+# 「导进了东西，但这次没到底」时补在「新增 N 条。」后面的那半句。
+# 单独拎出来是为了让判据钉得住它，也免得两处各写一遍。
+_IMPORTED_INCOMPLETE_TAIL = "这次没跑完，可能还有没取到的——再同步一次试试。"
+# **别写「接着找」**（2026-08-12 查证）：`last_sync_at` 只在同步
+# **完整跑完**时才写，而他从没完整跑完过，所以再点一次跑的是 `first_full`——
+# 从头重扫，不是从断点续。反过来，一个曾经跑完过的账号又出现 INCOMPLETE 时
+# 走的是 `incremental`，「重新找一遍」在那种情况下又是错的。
+# 两种模式下都成立的话只有「再同步一次试试」，所以就说这句。
+
+
 def describe_sync_outcome(
     *, imported: int, failure_code: str | None, platform_label: str = "", status: str = "",
     updated_at: str | None = None, stale_after_seconds: int = 1800,
@@ -460,9 +471,41 @@ def describe_sync_outcome(
     resolved = resolve(failure_code)
     if imported > 0:
         # 有新增就是成功，即使中途有过可恢复的失败也先报数。
+        #
+        # **但「没跑完」不能被这句话吞掉**（2026-08-12，生产实测）。
+        #
+        # 他那 20 次同步里真的导进东西的只有 4 次，而这 4 次**全部**是
+        # 「导进了东西 + 属于 INCOMPLETE_RUN_CODES」：
+        #
+        #     bilibili 102/102 partial RELATION_SCOPE_UNCONFIRMED
+        #     douyin    35/35  partial STABLE_END_WITHOUT_PROOF
+        #     bilibili  67/67  partial RELATION_SCOPE_UNCONFIRMED
+        #     douyin    56/56  partial STABLE_END_WITHOUT_PROOF
+        #
+        # 因为这个分支排在最前面，下面那条 INCOMPLETE 分支
+        # （「这次同步卡住了，没有正常结束」）**在 imported > 0 时永远到不了**,
+        # 而他的情况恰恰全是 imported > 0。于是四次都只说了「新增 N 条。」。
+        #
+        # `discovered == imported` 说明它把**找到的**都拿回来了，却证不出
+        # 「确实到头了」——也就是可能还有没被发现的。他看到「新增 102 条」
+        # 会合理地以为同步完成了；而从 8-04 起再没进过一条。
+        #
+        # 「中途出过可恢复的错」和「没到底」不是一回事，只给后者补话。
+        # **减掉 SCROLL_PARTIAL_CODES**（2026-08-12，是判据拦下来的）。
+        #
+        # `PARTIAL_BY_PAGE_SCROLL` 两个集合里都有。对它，「没跑完」是真的，
+        # 而「再同步一次试试」是**假的出路**：不往下滚，再点一次读到的还是同一批。
+        # 已有判据 test_a_scroll_partial_with_nothing_new_is_not_shown_as_stuck
+        # 把这件事写得很清楚：「给了一颗『重试』——点了读到的还是同一批，
+        # 那是一颗骗人的按钮」。它拦住了我，拦得对。
+        # 那一类自己那句「往下滚一会儿再同步」才是能用的，别被这里盖掉。
+        incomplete = (code_key(failure_code) in INCOMPLETE_RUN_CODES
+                      and code_key(failure_code) not in SCROLL_PARTIAL_CODES)
         return {
-            "outcome": "imported", "imported": imported,
-            "message_zh": f"新增 {imported} 条。",
+            "outcome": "imported_incomplete" if incomplete else "imported",
+            "imported": imported,
+            "message_zh": (f"新增 {imported} 条。{_IMPORTED_INCOMPLETE_TAIL}"
+                           if incomplete else f"新增 {imported} 条。"),
             "failure_code": failure_code or None,
             "action_zh": resolved.action_zh if resolved else None,
         }

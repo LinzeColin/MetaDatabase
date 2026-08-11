@@ -1,13 +1,12 @@
 {
   "status": "PASS",
-  "version": "0.0.0.56",
-  "version_set_by": "3756fb16697ed957868c8b8d6cad8940cad01db4 08-12 06:43",
+  "version": "0.0.0.57",
+  "version_set_by": "83a7ab40f037b77a22564668fe81ba2ea0790c8e 08-12 07:11",
   "watched": [
     "apps/browser-extension"
   ],
   "tracked_files": 27,
   "changed_since_bump": [
-    "social-archive/apps/browser-extension/background.js",
     "social-archive/apps/browser-extension/manifest.json",
     "social-archive/apps/browser-extension/runtime-config.json"
   ],

@@ -578,12 +578,26 @@ def test_a_scroll_partial_with_nothing_new_is_not_shown_as_stuck() -> None:
 
 
 def test_partial_runs_that_did_import_still_report_the_count_first() -> None:
-    """有新增就先报数——生产里那 169 条和 91 条不能被一句「卡住了」盖掉。"""
+    """有新增就先报数——生产里那 169 条和 91 条不能被一句「卡住了」盖掉。
+
+    **2026-08-12 补了后半句，前半句原样保留。**
+
+    原来这条只断言 `message_zh == "新增 169 条。"`。那守住了「数不许被盖掉」，
+    却把「没跑完」也一起挡在门外了——而生产实测他那 4 次导入**全部**是
+    partial + 没跑完（102/102、35/35、67/67、56/56）。也就是说他每一次收到的
+    「新增 N 条」都瞒了一件事：这次可能没取全。
+
+    所以改成钉两件：**数必须在最前面**（原来的意图），
+    **而且没跑完要说出来**（新的）。用 startswith 而不是 ==，
+    正是为了让前一件仍然是硬要求。
+    """
     outcome = describe_sync_outcome(
         imported=169, failure_code="RELATION_SCOPE_UNCONFIRMED", status="partial"
     )
-    assert outcome["outcome"] == "imported"
-    assert outcome["message_zh"] == "新增 169 条。"
+    said = str(outcome["message_zh"])
+    assert said.startswith("新增 169 条。"), f"数没排在最前面：{said}"
+    assert "没跑完" in said, f"没跑完这件事又被吞掉了：{said}"
+    assert "卡住" not in said, "别用「卡住了」把数盖掉——那正是这条判据当初要防的"
 
 
 def test_failure_codes_are_never_python_class_names() -> None:

@@ -11,6 +11,38 @@
     "bilibili": 101,
     "douyin": 85
   },
+  "import_runs_total": 4,
+  "import_runs_that_did_not_finish": 4,
+  "import_runs_that_did_not_finish_detail": [
+    {
+      "platform": "bilibili",
+      "imported_count": 102,
+      "discovered_count": 102,
+      "last_error_code": "RELATION_SCOPE_UNCONFIRMED",
+      "started_at": "2026-08-03T17:21:58.728050Z"
+    },
+    {
+      "platform": "douyin",
+      "imported_count": 35,
+      "discovered_count": 35,
+      "last_error_code": "STABLE_END_WITHOUT_PROOF",
+      "started_at": "2026-08-03T17:22:55.240282Z"
+    },
+    {
+      "platform": "bilibili",
+      "imported_count": 67,
+      "discovered_count": 67,
+      "last_error_code": "RELATION_SCOPE_UNCONFIRMED",
+      "started_at": "2026-08-03T23:21:58.261560Z"
+    },
+    {
+      "platform": "douyin",
+      "imported_count": 56,
+      "discovered_count": 56,
+      "last_error_code": "STABLE_END_WITHOUT_PROOF",
+      "started_at": "2026-08-03T23:22:52.747181Z"
+    }
+  ],
   "why_two_numbers_zh": "前一个是**各次同步各自报的导入数相加**——同一条被两次同步各导一次就记两次；后一个是**去重后现在真的在档案馆里的条数**。两个都对，但只有后一个是「他有多少东西」。",
   "runs_that_imported_something": [
     {

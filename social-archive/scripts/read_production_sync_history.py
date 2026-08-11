@@ -83,10 +83,17 @@ def summary_line(report: dict) -> str:
     判据只查 JSON，不查这句散文，所以这个错在每一次部署日志里躺了很久。
     """
     worked = report["platforms_that_really_imported"] or ["（一个都没有）"]
-    return (f"自动同步真的进过东西的平台：{'、'.join(worked)}"
+    line = (f"自动同步真的进过东西的平台：{'、'.join(worked)}"
             f"，现在档案馆里去重后 {report['distinct_items_still_in_the_archive']} 条"
             f"（各次同步报的导入数相加是 {report['import_events_summed_across_runs']}，"
             f"那是次数不是条数）")
+    # 「186 条」不等于「186 条就是全部」。导入它们的那几次同步如果没跑完，
+    # 这个数本身就可能是不全的——**别让它读起来像已经收齐了**。
+    ran, total = report.get("import_runs_that_did_not_finish", 0), report.get("import_runs_total", 0)
+    if ran:
+        line += (f"；**但导入它们的 {total} 次同步里有 {ran} 次没跑完**"
+                 f"，所以这个数本身可能就不全")
+    return line
 
 
 def _days_since_sentence(started_at: str) -> str:
@@ -130,6 +137,23 @@ def main() -> int:
     distinct_by_platform = {r["platform"]: r["n"] for r in distinct_rows}
     distinct_total = sum(n for platform, n in distinct_by_platform.items()
                          if platform in platforms_that_worked)
+    # **这些条目是从「没跑完」的同步里来的吗**（2026-08-12）。
+    #
+    # 播报原来只说「去重后 186 条」，读起来像 186 条都好好地进来了。
+    # 而生产实测：他那 4 次导入**全部**是 partial + INCOMPLETE 那一类
+    # （102/102、35/35、67/67、56/56，discovered == imported，
+    # 也就是把找到的都拿回来了却证不出到头了）。
+    # 那个 186 本身可能就是不全的——运维侧要知道的第一件事。
+    # **从 failure_copy 导，别在这里另抄一份。**
+    #
+    # 第一版我把这个集合当字面量写在这里，写了 7 个——而真源里是 13 个
+    # （BILIBILI_COUNT_MISMATCH / BILIBILI_PAGINATION_STUCK / … 都没抄到）。
+    # 也就是说它不是「将来会漂」，是**一开始就漏数**。
+    # 这个仓自己的规矩写在 failure_copy 里：词典只有一处真源。
+    _sys.path.insert(0, str(ROOT / "src"))
+    from social_archive.failure_copy import INCOMPLETE_RUN_CODES
+    partial_imports = [r for r in imported
+                       if str(r.get("last_error_code")) in INCOMPLETE_RUN_CODES]
 
     report = {
         # **判据是「有没有真的进过东西」，不是「跑过几次」。**
@@ -144,6 +168,12 @@ def main() -> int:
         "import_events_summed_across_runs": total_imported,
         "distinct_items_still_in_the_archive": distinct_total,
         "distinct_items_by_platform": distinct_by_platform,
+        "import_runs_total": len(imported),
+        "import_runs_that_did_not_finish": len(partial_imports),
+        "import_runs_that_did_not_finish_detail": [
+            {k: r.get(k) for k in ("platform", "imported_count", "discovered_count",
+                                   "last_error_code", "started_at")}
+            for r in partial_imports],
         "why_two_numbers_zh":
             "前一个是**各次同步各自报的导入数相加**——同一条被两次同步各导一次就记两次；"
             "后一个是**去重后现在真的在档案馆里的条数**。两个都对，但只有后一个是「他有多少东西」。",
