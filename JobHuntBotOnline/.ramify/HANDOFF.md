@@ -66,12 +66,13 @@ point. Secrets stay outside Git and evidence.
   strict six-hour scheduling have target evidence. The post-deploy state probe
   passed at `0002_delivery_lookup` with the exact six-hour invariant. NitroSend
   is absent and prohibited, not a blocker.
-- T09 remains non-authoritative operational evidence only. The Status source
-  has a VPS3 registration on draft PR #86
-  (`codex/jobhuntbot-status-registration`); do not replace it with a stale
-  VPS1 collector. Private-Database has a read-back operational record without
-  business data, PII, or Secrets; PostgreSQL is the sole business-data
-  authority.
+- T09 remains non-authoritative operational evidence only. The corrected VPS3
+  Status registration is on draft LinzeHomeHub PR #86 at `a38b973`
+  (`codex/jobhuntbot-status-registration`), but the public snapshot does not
+  yet list JobHuntBot. Do not treat the draft as deployed evidence or replace
+  it with a stale VPS1 collector. Private-Database has a read-back operational
+  record without business data, PII, or Secrets; PostgreSQL is the sole
+  business-data authority.
 - R2 is deliberately `NOT_CONFIGURED`. No JobHuntBot-specific bucket or
   credential is authorized, and no R2 operation, InfrequentAccess setting,
   recurring task, or cross-project credential reuse was performed. The target
@@ -88,3 +89,7 @@ dedicated synthetic A/B recipients, preflight again, and run one paced
 acceptance attempt only. If it does not reach a real root
 `ACCEPTANCE_RESULT.json` with `core_verdict=PASS` and no open P0/P1, leave the
 result as `EMAIL_ONLY_BLOCKED`/non-final rather than claiming completion.
+
+The remaining T09 status gate also needs PR #86 to be reviewed, deployed, and
+observed in the public snapshot. Do not claim this noncritical operation item
+is complete before that live readback.
