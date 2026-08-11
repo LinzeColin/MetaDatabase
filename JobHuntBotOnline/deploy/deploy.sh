@@ -8,7 +8,7 @@ python3 deploy/verify_taskpack.py --deployment-runtime
 set -a; source .env; set +a
 mkdir -p runtime-data evidence
 previous_image="$(docker compose images -q web 2>/dev/null | head -1 || true)"
-legacy_stopped=0
+legacy_active=0
 legacy_service="${LEGACY_SERVICE:-app}"
 legacy_compose=()
 if [[ -n "${LEGACY_COMPOSE_FILE:-}" ]]; then
@@ -17,14 +17,16 @@ if [[ -n "${LEGACY_COMPOSE_FILE:-}" ]]; then
   legacy_compose=(docker compose --project-directory "$legacy_project_dir" -f "$LEGACY_COMPOSE_FILE")
   "${legacy_compose[@]}" config --services | grep -qx "$legacy_service" \
     || { echo "LEGACY_SERVICE is absent from LEGACY_COMPOSE_FILE" >&2; exit 1; }
+  if "${legacy_compose[@]}" ps --services --filter status=running | grep -qx "$legacy_service"; then
+    legacy_active=1
+  fi
 fi
-if [[ -n "$previous_image" ]]; then
-  echo "$previous_image" > runtime-data/rollback-image.txt
-elif [[ -n "${LEGACY_COMPOSE_FILE:-}" ]]; then
+if [[ "$legacy_active" == "1" ]]; then
   # The first v0.3 deployment may have no prior v0.3 image.  The verified
-  # legacy Compose service is still an executable rollback target and needs a
-  # durable, non-secret identity for later acceptance evidence.
+  # active legacy Compose service is the only executable rollback target.
   printf 'legacy-compose:%s#%s\n' "$LEGACY_COMPOSE_FILE" "$legacy_service" > runtime-data/rollback-image.txt
+elif [[ -n "$previous_image" ]]; then
+  echo "$previous_image" > runtime-data/rollback-image.txt
 fi
 if docker compose ps --services --filter status=running 2>/dev/null | grep -q '^postgres$'; then
   deploy/backup.sh > runtime-data/predeploy-backup.txt
@@ -32,7 +34,7 @@ fi
 rollback_on_error() {
   echo "deployment failed; previous application image remains available in runtime-data/rollback-image.txt" >&2
   docker compose stop web scheduler worker >/dev/null 2>&1 || true
-  if [[ "$legacy_stopped" == "1" ]]; then
+  if [[ "$legacy_active" == "1" ]]; then
     "${legacy_compose[@]}" up -d "$legacy_service" || true
   elif [[ -n "$previous_image" ]]; then
     deploy/rollback.sh "$previous_image" || true
@@ -75,7 +77,6 @@ fi
 
 if [[ -n "${LEGACY_COMPOSE_FILE:-}" ]]; then
   "${legacy_compose[@]}" stop "$legacy_service"
-  legacy_stopped=1
 fi
 docker compose up -d web scheduler worker
 for _ in $(seq 1 60); do

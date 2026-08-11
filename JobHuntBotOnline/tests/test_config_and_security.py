@@ -92,6 +92,8 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     assert "LEGACY_COMPOSE_FILE" in deploy
     assert "LEGACY_COMPOSE_FILE" in rollback
     assert "legacy-compose:" in deploy
+    assert "legacy_active=0" in deploy
+    assert 'if [[ "$legacy_active" == "1" ]]; then' in deploy
     assert "python3 deploy/verify_taskpack.py" in deploy
     assert '--user "${ACCEPTANCE_UID:-$(id -u)}:${ACCEPTANCE_GID:-$(id -g)}"' in deploy
     assert "python3 deploy/verify_taskpack.py" in acceptance
