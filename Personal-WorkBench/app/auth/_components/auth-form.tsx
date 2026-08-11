@@ -6,10 +6,12 @@ import { useSearchParams } from "next/navigation";
 import {
   authSubmissionPreflight,
   buildAuthRequest,
+  captchaSubmissionPreflight,
   readResetToken,
   resolveCaptchaResponse,
   safeAuthFailureMessage,
   SIGN_UP_VERIFICATION_PATH,
+  type CaptchaReadiness,
   type AuthMode,
   usesTurnstileFor,
 } from "./auth-flow";
@@ -64,14 +66,20 @@ function linkFor(mode: AuthMode): { href: string; label: string } {
 }
 
 export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
+  const usesTurnstile = usesTurnstileFor(mode);
   const turnstileContainer = useRef<HTMLDivElement>(null);
   const [fetchedSiteKey, setFetchedSiteKey] = useState<string | null>(null);
+  const [captchaReadiness, setCaptchaReadiness] = useState<CaptchaReadiness>(
+    () => (usesTurnstile && !turnstileSiteKey ? "loading" : "ready"),
+  );
+  const effectiveCaptchaReadiness: CaptchaReadiness = usesTurnstile && !turnstileSiteKey
+    ? captchaReadiness
+    : "ready";
   const siteKey = turnstileSiteKey ?? fetchedSiteKey;
   const [turnstileToken, setTurnstileToken] = useState("");
   const [message, setMessage] = useState(initialMessages[mode]);
   const [submitting, setSubmitting] = useState(false);
   const searchParams = useSearchParams();
-  const usesTurnstile = usesTurnstileFor(mode);
   const showVerifiedSignInMessage = mode === "sign-in" && searchParams.get("verified") === "1" && message === initialMessages["sign-in"];
   const showSignedOutMessage = mode === "sign-in" && searchParams.get("signed_out") === "1" && message === initialMessages["sign-in"];
   const displayedMessage = showVerifiedSignInMessage
@@ -81,23 +89,31 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
       : message;
 
   useEffect(() => {
-    if (turnstileSiteKey) return;
+    if (!usesTurnstile || turnstileSiteKey) return;
     let active = true;
     void fetch("/api/auth/public-config", { credentials: "same-origin" })
       .then((response) => (response.ok ? response.json() : null))
       .then((value: unknown) => {
+        if (!active) return;
         if (
-          active &&
           value &&
           typeof value === "object" &&
           typeof (value as { turnstileSiteKey?: unknown }).turnstileSiteKey === "string"
         ) {
-          setFetchedSiteKey((value as { turnstileSiteKey: string }).turnstileSiteKey);
+          const nextKey = (value as { turnstileSiteKey: string }).turnstileSiteKey.trim();
+          if (nextKey) {
+            setFetchedSiteKey(nextKey);
+            setCaptchaReadiness("ready");
+            return;
+          }
         }
+        setCaptchaReadiness("unavailable");
       })
-      .catch(() => undefined);
+      .catch(() => {
+        if (active) setCaptchaReadiness("unavailable");
+      });
     return () => { active = false; };
-  }, [turnstileSiteKey]);
+  }, [turnstileSiteKey, usesTurnstile]);
 
   useEffect(() => {
     if (!usesTurnstile || !siteKey || !turnstileContainer.current) return;
@@ -171,8 +187,9 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
       ? document.querySelector<HTMLInputElement>('input[name="cf-turnstile-response"]')?.value ?? ""
       : "";
     const captchaResponse = resolveCaptchaResponse(turnstileToken, renderedTurnstileToken);
-    if (usesTurnstile && siteKey && !captchaResponse) {
-      setMessage("请完成验证后继续。");
+    const captchaPreflightMessage = captchaSubmissionPreflight(mode, effectiveCaptchaReadiness, captchaResponse);
+    if (captchaPreflightMessage) {
+      setMessage(captchaPreflightMessage);
       return;
     }
 

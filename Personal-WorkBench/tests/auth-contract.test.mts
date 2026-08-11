@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   authSubmissionPreflight,
   buildAuthRequest,
+  captchaSubmissionPreflight,
   readResetToken,
   resolveCaptchaResponse,
   safeAuthFailureMessage,
@@ -73,6 +74,14 @@ test("managed Turnstile retains a rendered response during callback timing", () 
   assert.equal(resolveCaptchaResponse("callback-token", "rendered-token"), "callback-token");
   assert.equal(resolveCaptchaResponse("", "rendered-token"), "rendered-token");
   assert.equal(resolveCaptchaResponse("  ", "  "), "");
+});
+
+test("auth form waits for public Turnstile readiness instead of submitting a missing CAPTCHA", () => {
+  assert.equal(captchaSubmissionPreflight("sign-up", "loading", ""), "正在加载安全验证，请稍候…");
+  assert.equal(captchaSubmissionPreflight("sign-in", "unavailable", ""), "安全验证暂不可用，请稍后再试。");
+  assert.equal(captchaSubmissionPreflight("forgot-password", "ready", ""), "请完成验证后继续。");
+  assert.equal(captchaSubmissionPreflight("sign-up", "ready", "captcha-token"), null);
+  assert.equal(captchaSubmissionPreflight("verify-email", "loading", ""), null);
 });
 
 test("rate limits show a neutral retry message without claiming email delivery", () => {
@@ -265,4 +274,13 @@ test("account sign-out uses the Better Auth same-origin endpoint and returns to 
   assert.match(accountPage, />退出登录</);
   assert.match(authForm, /searchParams\.get\("signed_out"\) === "1"/);
   assert.match(authForm, /已退出登录。/);
+});
+
+test("auth form uses the CAPTCHA readiness preflight before it builds a request", async () => {
+  const authForm = await readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8");
+
+  assert.match(authForm, /captchaSubmissionPreflight\(mode, effectiveCaptchaReadiness, captchaResponse\)/);
+  assert.match(authForm, /usesTurnstile && !turnstileSiteKey \? "loading" : "ready"/);
+  assert.match(authForm, /setCaptchaReadiness\("ready"\)/);
+  assert.match(authForm, /setCaptchaReadiness\("unavailable"\)/);
 });

@@ -1,4 +1,5 @@
 export type AuthMode = "sign-in" | "sign-up" | "forgot-password" | "reset-password" | "verify-email";
+export type CaptchaReadiness = "loading" | "ready" | "unavailable";
 
 export const SIGN_UP_VERIFICATION_PATH = "/auth/verify-email";
 export const VERIFIED_LOGIN_PATH = "/auth/sign-in?verified=1";
@@ -28,6 +29,24 @@ export function usesTurnstileFor(mode: AuthMode): boolean {
  */
 export function resolveCaptchaResponse(callbackToken: string, renderedToken: string): string {
   return callbackToken.trim() || renderedToken.trim();
+}
+
+/**
+ * Do not send an authentication request until the public Turnstile
+ * configuration has loaded. Sending the normal form first would make the
+ * provider reject an otherwise valid form as a missing CAPTCHA response,
+ * which appears to a visitor as an inert button.
+ */
+export function captchaSubmissionPreflight(
+  mode: AuthMode,
+  readiness: CaptchaReadiness,
+  captchaResponse: string,
+): string | null {
+  if (!usesTurnstileFor(mode)) return null;
+  if (readiness === "loading") return "正在加载安全验证，请稍候…";
+  if (readiness === "unavailable") return "安全验证暂不可用，请稍后再试。";
+  if (!captchaResponse.trim()) return "请完成验证后继续。";
+  return null;
 }
 
 /**
