@@ -56,7 +56,10 @@ if [[ -n "${V02_SQLITE_PATH:-}" ]]; then
     extra_mount+=( -v "$(dirname "$V02_PLATFORM_KEY_OUTPUT"):/migration/secrets" )
     platform_arg=( --platform-key-output "/migration/secrets/$(basename "$V02_PLATFORM_KEY_OUTPUT")" )
   fi
+  # The migration writes a host-mounted evidence file.  Match the acceptance
+  # runner's host identity so its result remains writable on a managed host.
   docker compose run --rm \
+    --user "${ACCEPTANCE_UID:-$(id -u)}:${ACCEPTANCE_GID:-$(id -g)}" \
     -v "$V02_SQLITE_PATH:/migration/v02.db:ro" \
     -v "$old_root:/migration/v02-data:ro" \
     -v "$PWD/evidence:/app/evidence" \

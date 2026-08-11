@@ -93,6 +93,7 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     assert "LEGACY_COMPOSE_FILE" in rollback
     assert "legacy-compose:" in deploy
     assert "python3 deploy/verify_taskpack.py" in deploy
+    assert '--user "${ACCEPTANCE_UID:-$(id -u)}:${ACCEPTANCE_GID:-$(id -g)}"' in deploy
     assert "python3 deploy/verify_taskpack.py" in acceptance
     assert "acceptance outputs so every run creates fresh evidence" in acceptance
     assert "root result is the production-completion authority" in acceptance
