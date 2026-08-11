@@ -316,6 +316,10 @@ test("production ledger identifies Version 35 as the current public-entry partia
   assert.equal(ledger.current_public_access.anonymous_entry_probe.root, "HTTP_200");
   assert.equal(ledger.current_public_access.anonymous_entry_probe.sign_up, "HTTP_200");
   assert.equal(ledger.current_public_access.anonymous_entry_probe.unauthenticated_profile, "HTTP_401");
+  assert.equal(ledger.current_public_access.auth_runtime_public_readiness.turnstile_site_key_present, true);
+  assert.equal(ledger.current_public_access.google_oauth_initiation.status, "HTTP_200_GOOGLE_AUTHORIZATION_URL_RETURNED");
+  assert.equal(ledger.current_public_access.google_oauth_initiation.redirect_followed, false);
+  assert.equal(ledger.current_public_access.google_oauth_initiation.provider_callback_or_application_session_proven, false);
   assert.equal(ledger.controlled_deployment_and_recovery.version_35_private_deploy, "SUCCEEDED");
   assert.equal(ledger.controlled_deployment_and_recovery.version_35_to_34_private_rollback, "SUCCEEDED");
   assert.equal(ledger.controlled_deployment_and_recovery.version_34_to_35_private_restore, "SUCCEEDED");

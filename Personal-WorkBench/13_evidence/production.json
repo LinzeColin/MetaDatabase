@@ -364,8 +364,22 @@
       "public_config": "HTTP_200",
       "unauthenticated_profile": "HTTP_401"
     },
+    "auth_runtime_public_readiness": {
+      "public_config": "HTTP_200",
+      "turnstile_site_key_present": true,
+      "legal_operator_present": true,
+      "privacy_contact_present": true,
+      "raw_values_retained": false
+    },
+    "google_oauth_initiation": {
+      "status": "HTTP_200_GOOGLE_AUTHORIZATION_URL_RETURNED",
+      "redirect_followed": false,
+      "personal_google_account_selected": false,
+      "response_cookie_values_retained": false,
+      "provider_callback_or_application_session_proven": false
+    },
     "raw_url_recorded": false,
     "authenticated_user_or_business_data_read_or_written": false
   },
-  "current_public_entry_note": "With direct owner authorization for the public multi-account SaaS objective, the outer Sites access policy was changed from the historical custom allowlist to public on 2026-08-11. Anonymous probes reached the homepage, all email-auth entry routes and the public configuration endpoint with HTTP 200, while the current mydairy profile endpoint returned HTTP 401 without an application session. No raw URL, credential, user identity, business record, runtime value, D1/R2 record or object was read or written. This only proves public entry and the unauthenticated API boundary; it does not replace current-version email, Google, A/B isolation, second-device, storage reconciliation or recovery evidence."
+  "current_public_entry_note": "With direct owner authorization for the public multi-account SaaS objective, the outer Sites access policy was changed from the historical custom allowlist to public on 2026-08-11. Anonymous probes reached the homepage, all email-auth entry routes and the public configuration endpoint with HTTP 200, while the current mydairy profile endpoint returned HTTP 401 without an application session. A single no-follow social sign-in request also returned a Google authorization URL; no account was selected and no callback or application session was attempted. No raw URL, credential, user identity, business record, runtime value, D1/R2 record or object was read or written. This proves public entry, public auth configuration, Google initiation and the unauthenticated API boundary; it does not replace current-version email verification, Google callback, A/B isolation, second-device, storage reconciliation or recovery evidence."
 }
