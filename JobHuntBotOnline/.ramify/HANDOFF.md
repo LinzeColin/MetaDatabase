@@ -40,10 +40,21 @@ point. Secrets stay outside Git and evidence.
   boundary buffer (configurable only up to 300 seconds). This avoids a
   millisecond collision with the application limiter. These updates do not
   send email and do not require a service restart.
-- A disposable VPS3 container ran all 40 source tests with a read-only source
+- Commit `97b522dd4` is deployed through the normal encrypted
+  backup, Alembic, and service-restart path. PostgreSQL is now at
+  `0002_delivery_lookup`; new delivery audit rows persist the existing keyed
+  email lookup so account deletion and re-registration cannot reset the
+  recipient limit. Historical rows whose user FK had already been cleared
+  remain intentionally unlinked: recovering their lookup from a masked
+  address would weaken the privacy boundary. Future acceptance must use fresh
+  synthetic recipients.
+- A disposable VPS3 container ran all 42 source tests with a read-only source
   mount and `--network none`; all passed. The target taskpack verifier also
-  passes in deployment-runtime mode. No SMTP connection, browser acceptance,
-  or public registration action occurred in those checks.
+  passes in deployment-runtime mode. A disposable PostgreSQL 0001-to-0002
+  upgrade, downgrade, and re-upgrade backfilled only a synthetic keyed lookup;
+  the live encrypted predeploy backup is structurally readable. No SMTP
+  connection, browser acceptance, or public registration action occurred in
+  those checks.
 - There is no root `ACCEPTANCE_RESULT.json`. The prior partial mail run is not
   a production receipt: T10 remains incomplete and a full-production PASS
   must not be claimed.
@@ -52,8 +63,9 @@ point. Secrets stay outside Git and evidence.
 
 - PostgreSQL migration, restart readback, encrypted-backup verification,
   platform DeepSeek probe without key exposure, authorized job discovery, and
-  strict six-hour scheduling have target evidence. NitroSend is absent and
-  prohibited, not a blocker.
+  strict six-hour scheduling have target evidence. The post-deploy state probe
+  passed at `0002_delivery_lookup` with the exact six-hour invariant. NitroSend
+  is absent and prohibited, not a blocker.
 - T09 remains non-authoritative operational evidence only. The Status source
   has a VPS3 registration on draft PR #86
   (`codex/jobhuntbot-status-registration`); do not replace it with a stale
