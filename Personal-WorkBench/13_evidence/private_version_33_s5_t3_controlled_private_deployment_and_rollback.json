@@ -20,6 +20,14 @@
     "external_visitor_count": 0,
     "public_audience_changed": false
   },
+  "current_site_identity": {
+    "brand_title_matches_personal_schedule": true,
+    "mydairy_custom_domain_present": true,
+    "mydairy_custom_domain_status": "active",
+    "mydairy_custom_domain_provider_status": "active",
+    "mydairy_custom_domain_ssl_status": "active",
+    "raw_hostname_recorded": false
+  },
   "controlled_private_deployment": {
     "deployment_started": true,
     "terminal_status": "succeeded",

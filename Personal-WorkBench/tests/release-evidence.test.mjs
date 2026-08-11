@@ -133,6 +133,12 @@ test("Version 33 S5-T3 private deployment and rollback evidence does not overcla
   assert.equal(evidence.private_access.allowed_user_count, 1);
   assert.equal(evidence.private_access.allowed_group_count, 0);
   assert.equal(evidence.private_access.external_visitor_count, 0);
+  assert.equal(evidence.current_site_identity.brand_title_matches_personal_schedule, true);
+  assert.equal(evidence.current_site_identity.mydairy_custom_domain_present, true);
+  assert.equal(evidence.current_site_identity.mydairy_custom_domain_status, "active");
+  assert.equal(evidence.current_site_identity.mydairy_custom_domain_provider_status, "active");
+  assert.equal(evidence.current_site_identity.mydairy_custom_domain_ssl_status, "active");
+  assert.equal(evidence.current_site_identity.raw_hostname_recorded, false);
   assert.equal(evidence.controlled_private_deployment.terminal_status, "succeeded");
   assert.equal(evidence.rollback_and_restore.rollback_version_number, 32);
   assert.equal(evidence.rollback_and_restore.rollback_terminal_status, "succeeded");
