@@ -26,6 +26,13 @@
 `test_he_can_delete_an_account_and_start_over.py` 和从零那一轮在真镜像上验）。
 它证明的是**这颗按钮到得了他手上、按得下去、按下去会发生什么**。
 
+★ **别拿这套夹具去点「连接账号」。**（2026-08-11 试过一次，卡住了）
+`connectAccount()` 第一步是 `await ensureExtensionReady()`，而这里**没有装扩展**——
+那个 await 不返回，`Runtime.evaluate` 就一直等，整个脚本挂住。
+这不是产品缺陷，是这套夹具的射程之外：连账号那条路要真扩展 + 真授权框。
+它由 `bilibili_end_to_end_drill.py` 管（真 Chrome + 真发布包，
+「从连接账号到档案馆里真的出现条目」），每次部署都跑。
+
 ## 无头
 
 `--headless=new`。Owner 说过「为什么你永远都要不停开了又关我的浏览器」——
