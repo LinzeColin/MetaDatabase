@@ -109,6 +109,14 @@ point. Secrets stay outside Git and evidence.
   `production_claimed=false`, deployed code commit `9b983a2d0`, verified
   predeploy backup, and no business data, PII, or Secrets. PostgreSQL remains
   the sole business-data authority.
+- The deployed `evidence/target-private-db.json` is a deliberately narrower
+  readback adapter: its subsystem `verdict=PASS` means Private-Database sync
+  and readback succeeded, while `overall_product_verdict=EMAIL_ONLY_BLOCKED`
+  and `production_claimed=false` preserve the real overall state. Do not copy
+  the overall verdict into the subsystem verdict: `tools/ops_probe.py` would
+  correctly treat that as a blocked PDB integration. A current probe confirms
+  PDB `PASS`, Status `BLOCKED`, R2 `NOT_CONFIGURED`, and overall noncritical
+  `BLOCKED`; no PII, business data, or Secret was written to the adapter.
 - R2 is deliberately `NOT_CONFIGURED`. No JobHuntBot-specific bucket or
   credential is authorized, and no R2 operation, InfrequentAccess setting,
   recurring task, or cross-project credential reuse was performed. The target
