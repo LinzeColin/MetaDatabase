@@ -22,6 +22,10 @@ Do not repeat product research. NitroSend is removed: do not wait for it, connec
   without key exposure, authorized job discovery, and the strict six-hour
   refresh are recorded by target evidence. NitroSend is absent and remains
   prohibited.
+- Current VPS3 database aggregates confirm one discovery-enabled profile, four
+  completed scheduled runs, and all three observed adjacent intervals within
+  6:00:36–6:01:04; there is no overdue discovery schedule. These aggregates
+  contain no user identifier, email, resume, or candidate fact.
 - T09 was re-established with non-authoritative operational evidence only:
   `https://status.linzezhang.com/data/snapshot.json` now registers JobHuntBot
   Online on VPS3 and states the email pause; Private-Database
@@ -37,6 +41,10 @@ Do not repeat product research. NitroSend is removed: do not wait for it, connec
   (`codex/jobhuntbot-status-registration`); it contains only the VPS3 and
   email-pause registration. Do not replace the VPS3 collector with a stale
   VPS1 version.
+- The JobHuntBot source and email fail-closed guard are on draft PR #176
+  (`codex/jobhuntbot-online-v030-r2`). The target's historical
+  `ACCEPTANCE_COMMIT` value must not be used as a completion receipt because
+  its associated root acceptance result is absent.
 
 ## Next authorized action
 
