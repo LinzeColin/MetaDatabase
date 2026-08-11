@@ -156,7 +156,7 @@ function Welcome({ reference }: { reference: boolean }) {
       data-reference-page={reference ? "welcome" : undefined}
     >
       {!reference ? (
-        <a aria-label="登录或管理账户" className="welcome-account-link normal-only" href="/account">
+        <a aria-label="登录或管理账户" className="welcome-account-link normal-only" href="/auth/sign-in">
           登录 / 账户
         </a>
       ) : null}

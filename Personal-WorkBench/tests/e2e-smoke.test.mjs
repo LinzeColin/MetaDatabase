@@ -58,6 +58,8 @@ test("e2e smoke: normal mode carries account entry and no reference-only lock", 
   assert.match(homeHtml, /正在读取本地时间…/);
   assert.doesNotMatch(homeHtml, /class=\"home-time\">11:27<\/div>/);
   assert.match(welcomeHtml, /正在读取本地日期…/);
+  assert.match(welcomeHtml, /class=\"welcome-account-link normal-only\"/);
+  assert.match(welcomeHtml, /href=\"\/auth\/sign-in\"/);
   assert.match(authHtml, /欢迎回来/);
 });
 
