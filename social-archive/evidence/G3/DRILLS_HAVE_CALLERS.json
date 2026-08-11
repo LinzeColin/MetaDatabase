@@ -43,9 +43,9 @@
     "pwa_render_drill.py": "改到那条路时",
     "forget_button_render_drill.py": "**每次发布**（deploy 第 8.65 步）",
     "from_zero_drill.py": "**每次发布**（deploy 第 8.68 步）",
-    "disaster_recovery_drill.py": "定期",
-    "restore_private_database_drill.py": "定期",
-    "restore_runtime_db_drill.py": "定期"
+    "disaster_recovery_drill.py": "**定期（没有任何脚本会自动跑它——靠人记得）**",
+    "restore_private_database_drill.py": "**定期（同上，无自动调用方）**",
+    "restore_runtime_db_drill.py": "**定期（同上，无自动调用方）**"
   },
   "run_by_deploy": [
     "bilibili_acquisition_drill.py",
