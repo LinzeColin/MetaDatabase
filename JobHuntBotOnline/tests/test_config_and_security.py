@@ -144,6 +144,7 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     assert "python3 deploy/verify_taskpack.py" in deploy
     assert "web-canary" in deploy
     assert "--wait-timeout 90" in deploy
+    assert "--profile acceptance build --pull web acceptance" in deploy
     assert '--user "${ACCEPTANCE_UID:-$(id -u)}:${ACCEPTANCE_GID:-$(id -g)}"' in deploy
     assert "python3 deploy/verify_taskpack.py" in acceptance
     assert 'RUN_REAL_EMAIL_ACCEPTANCE:-false' in acceptance

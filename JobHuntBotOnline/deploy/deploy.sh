@@ -63,7 +63,10 @@ trap rollback_on_error ERR
 
 docker network inspect "${EDGE_NETWORK:-coolify}" >/dev/null
 docker compose config >/dev/null
-docker compose build --pull web
+# The official acceptance wrapper bind-mounts its runner, but the profiled
+# image is also a callable operational surface. Rebuild it with Web so a
+# direct operator invocation cannot retain an older email-safety preflight.
+docker compose --profile acceptance build --pull web acceptance
 docker compose up -d postgres
 docker compose run --rm web alembic upgrade head
 
