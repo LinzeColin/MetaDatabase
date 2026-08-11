@@ -48,6 +48,14 @@ point. Secrets stay outside Git and evidence.
   remain intentionally unlinked: recovering their lookup from a masked
   address would weaken the privacy boundary. Future acceptance must use fresh
   synthetic recipients.
+- Commit `8ee2e3690` is deployed through the same backup/build/restart path.
+  It reserves every `production_claimed=true` result for the root
+  `ACCEPTANCE_RESULT.json` on the production target: state, operations,
+  migration, and browser-email component evidence now remain explicitly
+  non-final, and the finalizer rejects any non-root evidence that claims
+  production. An isolated, network-disabled source suite passed before deploy;
+  the post-deploy state probe is `PASS` with `production_claimed=false`.
+  The fresh predeploy encrypted backup is structurally readable.
 - A disposable VPS3 container ran all 42 source tests with a read-only source
   mount and `--network none`; all passed. The target taskpack verifier also
   passes in deployment-runtime mode. A disposable PostgreSQL 0001-to-0002
