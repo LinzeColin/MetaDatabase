@@ -149,7 +149,9 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     assert "python3 deploy/verify_taskpack.py" in acceptance
     assert 'RUN_REAL_EMAIL_ACCEPTANCE:-false' in acceptance
     assert "REAL_EMAIL_ACCEPTANCE_RUN_ID" in acceptance
-    assert "independent delivery identities" in acceptance
+    assert "ACCEPTANCE_ALLOW_SHARED_IMAP_INBOX" in acceptance
+    assert "ACCEPTANCE_ALLOW_SHARED_IMAP_INBOX" in env_example
+    assert '"ACCEPTANCE_ALLOW_SHARED_IMAP_INBOX": "false"' in generator
     assert "ACCEPTANCE_MIN_EMAIL_GAP_SECONDS" in acceptance
     assert "ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS" in acceptance
     assert "ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS" in acceptance

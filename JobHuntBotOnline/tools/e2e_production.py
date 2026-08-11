@@ -106,18 +106,23 @@ def acceptance_email_request_safety_seconds() -> int:
 
 
 def _delivery_identity(address: str) -> tuple[str, str] | None:
-    """Return a conservative mailbox identity without exposing an address.
-
-    Acceptance needs two genuinely independent recipients.  Treating
-    ``owner+first@example`` and ``owner+second@example`` as two recipients is
-    unsafe: on common mail systems they arrive in one inbox and turn the three
-    lifecycle messages into unwanted bursts.  This does not try to normalize
-    provider-specific dot rules; it only refuses the clear plus-alias case.
-    """
+    """Return a conservative mailbox identity without exposing an address."""
     local, separator, domain = address.strip().casefold().partition("@")
     if not separator or not local or not domain:
         return None
     return local.split("+", 1)[0], domain
+
+
+def acceptance_shared_imap_inbox_is_explicitly_allowed() -> bool:
+    """Allow two distinct application addresses in one designated test inbox.
+
+    Two acceptance accounts must always have different email addresses.  A
+    single IMAP inbox may intentionally receive both (for example with
+    sub-addresses), but only behind this explicit one-shot acceptance setting.
+    The three-message ceiling, 30-minute pacing and 24-hour run cooldown are
+    enforced independently and are never relaxed by this setting.
+    """
+    return bool_env("ACCEPTANCE_ALLOW_SHARED_IMAP_INBOX", False)
 
 
 def acceptance_recipient_identity_conflict() -> bool:
@@ -130,11 +135,13 @@ def acceptance_recipient_identity_conflict() -> bool:
     admin_identity = _delivery_identity(os.getenv("ADMIN_EMAIL", ""))
     if not first_identity or not second_identity:
         return True
-    return (
-        first.casefold() == second.casefold()
-        or first_identity == second_identity
+    if first.casefold() == second.casefold():
+        return True
+    shares_delivery_identity = (
+        first_identity == second_identity
         or (admin_identity is not None and (first_identity == admin_identity or second_identity == admin_identity))
     )
+    return shares_delivery_identity and not acceptance_shared_imap_inbox_is_explicitly_allowed()
 
 
 def has_distinct_acceptance_recipients() -> bool:
@@ -239,6 +246,7 @@ def email_lifecycle_preflight() -> dict[str, object] | None:
     )
     real_email_opt_in = bool_env("RUN_REAL_EMAIL_ACCEPTANCE", False)
     real_email_run_id_configured = bool(RUN_ID_RE.fullmatch(os.getenv("REAL_EMAIL_ACCEPTANCE_RUN_ID", "").strip()))
+    shared_imap_inbox_explicitly_allowed = acceptance_shared_imap_inbox_is_explicitly_allowed()
     pacing_configured = True
     imap_timeout_configured = True
     try:
@@ -280,6 +288,7 @@ def email_lifecycle_preflight() -> dict[str, object] | None:
         "standard_smtp_configured": standard_smtp_configured,
         "acceptance_recipient_configured": acceptance_recipient_configured,
         "acceptance_recipient_identity_conflict": recipient_identity_conflict,
+        "acceptance_shared_imap_inbox_explicitly_allowed": shared_imap_inbox_explicitly_allowed,
         "acceptance_imap_configured": acceptance_imap_configured,
         "real_email_opt_in": real_email_opt_in,
         "real_email_run_id_configured": real_email_run_id_configured,

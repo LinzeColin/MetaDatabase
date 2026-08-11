@@ -27,6 +27,9 @@ def identity(address: str):
 first = os.environ["ACCEPTANCE_EMAIL_A"]
 second = os.environ["ACCEPTANCE_EMAIL_B"]
 admin = os.getenv("ADMIN_EMAIL", "")
+allow_shared_imap_inbox = os.getenv("ACCEPTANCE_ALLOW_SHARED_IMAP_INBOX", "false").strip().lower() in {
+    "1", "true", "yes", "on"
+}
 first_identity = identity(first)
 second_identity = identity(second)
 admin_identity = identity(admin)
@@ -34,11 +37,19 @@ if (
     not first_identity
     or not second_identity
     or first.casefold() == second.casefold()
-    or first_identity == second_identity
-    or (admin_identity is not None and (first_identity == admin_identity or second_identity == admin_identity))
 ):
     raise SystemExit(
-        "real email acceptance requires two dedicated recipients with independent delivery identities; "
+        "real email acceptance requires two distinct dedicated recipient addresses; "
+        "no email has been sent"
+    )
+shares_delivery_identity = (
+    first_identity == second_identity
+    or (admin_identity is not None and (first_identity == admin_identity or second_identity == admin_identity))
+)
+if shares_delivery_identity and not allow_shared_imap_inbox:
+    raise SystemExit(
+        "real email acceptance routes both addresses to one inbox; set "
+        "ACCEPTANCE_ALLOW_SHARED_IMAP_INBOX=true for the explicitly paced, one-shot run; "
         "no email has been sent"
     )
 PY

@@ -100,6 +100,7 @@ def main() -> None:
         "LEGACY_SERVICE": "app",
         "ACCEPTANCE_EMAIL_A": "",
         "ACCEPTANCE_EMAIL_B": "",
+        "ACCEPTANCE_ALLOW_SHARED_IMAP_INBOX": "false",
         "ACCEPTANCE_ACCOUNT_PASSWORD": "",
         "RUN_REAL_EMAIL_ACCEPTANCE": "false",
         "REAL_EMAIL_ACCEPTANCE_RUN_ID": "",

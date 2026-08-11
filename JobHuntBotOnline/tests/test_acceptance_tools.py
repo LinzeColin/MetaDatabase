@@ -191,7 +191,7 @@ def test_production_e2e_rejects_alias_fallback_and_same_recipient(tmp_path):
     assert result["email_delivery_sent"] is False
 
 
-def test_production_e2e_rejects_two_plus_aliases_for_the_same_inbox(tmp_path):
+def test_production_e2e_requires_explicit_shared_inbox_permission_for_plus_aliases(tmp_path):
     output = tmp_path / "target-browser.json"
     completed = subprocess.run(
         [sys.executable, str(ROOT / "tools/e2e_production.py"), "--output", str(output)],
@@ -219,7 +219,30 @@ def test_production_e2e_rejects_two_plus_aliases_for_the_same_inbox(tmp_path):
     assert result["blocker"] == "EMAIL_ONLY_BLOCKED"
     assert result["acceptance_recipient_configured"] is False
     assert result["acceptance_recipient_identity_conflict"] is True
+    assert result["acceptance_shared_imap_inbox_explicitly_allowed"] is False
     assert result["email_delivery_sent"] is False
+
+
+def test_production_e2e_accepts_explicit_shared_inbox_for_distinct_aliases(monkeypatch):
+    spec = importlib.util.spec_from_file_location("jobhunt_e2e_production", ROOT / "tools/e2e_production.py")
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    monkeypatch.setenv("ADMIN_EMAIL", "owner@example.test")
+    monkeypatch.setenv("ACCEPTANCE_EMAIL_A", "owner+acceptance-a@example.test")
+    monkeypatch.setenv("ACCEPTANCE_EMAIL_B", "owner+acceptance-b@example.test")
+    monkeypatch.setenv("ACCEPTANCE_ALLOW_SHARED_IMAP_INBOX", "true")
+    monkeypatch.setenv("ALLOW_REGISTRATION", "true")
+    monkeypatch.setenv("SMTP_HOST", "smtp.example.test")
+    monkeypatch.setenv("ACCEPTANCE_IMAP_HOST", "imap.example.test")
+    monkeypatch.setenv("ACCEPTANCE_IMAP_USERNAME", "owner@example.test")
+    monkeypatch.setenv("ACCEPTANCE_IMAP_PASSWORD", "synthetic-password")
+    monkeypatch.setenv("RUN_REAL_EMAIL_ACCEPTANCE", "true")
+    monkeypatch.setenv("REAL_EMAIL_ACCEPTANCE_RUN_ID", "shared-inbox-run-20260811")
+
+    assert module.acceptance_recipient_identity_conflict() is False
+    assert module.has_distinct_acceptance_recipients() is True
+    assert module.email_lifecycle_preflight() is None
 
 
 def test_acceptance_shell_rejects_plus_alias_pair_before_creating_evidence(tmp_path):
@@ -244,7 +267,7 @@ def test_acceptance_shell_rejects_plus_alias_pair_before_creating_evidence(tmp_p
     )
 
     assert completed.returncode != 0
-    assert "independent delivery identities" in completed.stderr
+    assert "ACCEPTANCE_ALLOW_SHARED_IMAP_INBOX=true" in completed.stderr
     assert "no email has been sent" in completed.stderr
     assert not (pack / "ACCEPTANCE_RESULT.json").exists()
 
