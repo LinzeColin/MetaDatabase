@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { google } from "@better-auth/core/social-providers";
 import {
   AUTHENTICATED_HOME_PATH,
   authSubmissionPreflight,
@@ -30,6 +31,7 @@ import { SameOriginRequiredError, assertSameOriginMutation } from "../server/sec
 import { readIdempotencyKey } from "../server/http/request-id.ts";
 import { apiErrorResponse } from "../server/http/api.ts";
 import { SensitiveCloudConsentRequiredError } from "../server/security/privacy-consent.ts";
+import { isVerifiedGoogleEmailClaim } from "../server/auth/index.ts";
 
 const fakeDatabase = {} as D1Database;
 const validRuntime = {
@@ -43,6 +45,21 @@ const validRuntime = {
   TURNSTILE_SECRET_KEY: "turnstile-secret",
   TURNSTILE_SITE_KEY: "turnstile-site-key",
 };
+
+function fakeGoogleIdToken(emailVerified: boolean | string): string {
+  const encode = (value: unknown) => Buffer.from(JSON.stringify(value)).toString("base64url");
+  return [
+    encode({ alg: "none", typ: "JWT" }),
+    encode({
+      sub: "google-test-subject",
+      email: "google-verified@example.test",
+      email_verified: emailVerified,
+      name: "Google Test",
+      picture: "https://example.test/avatar.png",
+    }),
+    "signature",
+  ].join(".");
+}
 
 test("runtime readiness is all-or-nothing and does not expose field names", () => {
   assert.equal(readAuthRuntimeConfig(validRuntime)?.appOrigin, "https://workbench.example.test");
@@ -173,6 +190,38 @@ test("only verified identities can enter tenant data handlers", () => {
   );
   assert.throws(() => requireVerifiedIdentity({ user: { id: "user_a", email: "a@example.test", emailVerified: false } }));
   assert.throws(() => requireVerifiedIdentity(null));
+});
+
+test("Google verified-email claims map strictly into the tenant save gate", async () => {
+  const provider = google({
+    clientId: "google-client",
+    clientSecret: "google-secret",
+  });
+  const verified = await provider.getUserInfo({ idToken: fakeGoogleIdToken(true) } as never);
+  const unverified = await provider.getUserInfo({ idToken: fakeGoogleIdToken(false) } as never);
+
+  assert.equal(verified?.user.emailVerified, true);
+  assert.equal(unverified?.user.emailVerified, false);
+  assert.equal(isVerifiedGoogleEmailClaim({ email_verified: true }), true);
+  assert.equal(isVerifiedGoogleEmailClaim({ email_verified: false }), false);
+  assert.equal(isVerifiedGoogleEmailClaim({ email_verified: "true" }), false);
+  assert.doesNotThrow(() => requireVerifiedIdentity({
+    user: {
+      id: verified?.user.id,
+      email: verified?.user.email,
+      emailVerified: isVerifiedGoogleEmailClaim({ email_verified: true }),
+    },
+  }));
+  assert.throws(() => requireVerifiedIdentity({
+    user: {
+      id: unverified?.user.id,
+      email: unverified?.user.email,
+      emailVerified: isVerifiedGoogleEmailClaim({ email_verified: false }),
+    },
+  }));
+
+  const authSource = await readFile(new URL("../server/auth/index.ts", import.meta.url), "utf8");
+  assert.match(authSource, /mapProfileToUser\(profile\) \{\s+return \{ emailVerified: isVerifiedGoogleEmailClaim\(profile\) \};/);
 });
 
 test("workbench API distinguishes account verification from sensitive cross-device consent", async () => {

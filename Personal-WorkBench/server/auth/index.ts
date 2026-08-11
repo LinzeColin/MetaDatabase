@@ -19,6 +19,11 @@ import { allowedTurnstileHostnames, expectedTurnstileAction } from "./turnstile"
 export { AuthRuntimeNotReadyError, getPublicAuthPageConfig } from "./runtime";
 export type { AuthRuntimeEnv } from "./runtime";
 
+/** Google only grants the tenant data path when its signed claim is strictly true. */
+export function isVerifiedGoogleEmailClaim(profile: { email_verified?: unknown }): boolean {
+  return profile.email_verified === true;
+}
+
 /**
  * Constructs auth only for a fully configured runtime. This prevents the
  * library's development fallback secret from ever being used in this product.
@@ -74,6 +79,9 @@ export function createAuth(env: AuthRuntimeEnv) {
         clientSecret: config.googleClientSecret,
         scope: ["openid", "email", "profile"],
         prompt: "select_account",
+        mapProfileToUser(profile) {
+          return { emailVerified: isVerifiedGoogleEmailClaim(profile) };
+        },
       },
     },
     account: {
