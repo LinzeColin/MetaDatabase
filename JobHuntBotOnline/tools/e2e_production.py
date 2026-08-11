@@ -386,6 +386,8 @@ def register_verify(
     expect_path(page, "/verify-required")
     link = wait_mail_link(address, "verify", base_url, start)
     page.goto(link, wait_until="domcontentloaded")
+    expect_path(page, "/verify-email")
+    click_wait(page, '[data-testid="verify-email-confirm"]')
     expect_path(page, "/onboarding/upload")
     steps.extend(["register", "real_email_verification"])
 

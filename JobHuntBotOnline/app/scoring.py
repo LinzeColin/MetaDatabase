@@ -11,11 +11,84 @@ NO_SPONSORSHIP_NEEDED = {"no", "false", "不需要", "否"}
 SPONSORSHIP_NEEDED = {"yes", "true", "需要", "是"}
 UNCONFIRMED_FACT_VALUES = {"uncertain", "unknown", "unsure", "not sure", "不确定", "待确认"}
 
+# A small deterministic role vocabulary is deliberately shared by scoring,
+# search and source targeting. It is not an AI classification and does not
+# invent a candidate's preference: it only makes a confirmed Chinese or
+# English role label comparable with the public job vocabulary.
+ROLE_ALIASES: dict[str, tuple[str, ...]] = {
+    "Finance": ("finance", "financial", "accounting", "valuation", "investment", "banking", "财务", "金融", "会计", "投资", "估值"),
+    "Data": ("data", "analytics", "sql", "python", "business intelligence", "数据", "数据分析", "商业智能"),
+    "Business Analysis": ("business analyst", "business analysis", "requirements", "stakeholder", "业务分析", "需求分析"),
+    "Operations": ("operations", "supply chain", "process", "project coordinator", "运营", "供应链", "流程"),
+    "Risk": ("risk", "audit", "controls", "风险", "审计", "内控"),
+    "Consulting": ("consultant", "consulting", "strategy", "咨询", "战略"),
+    "Legal": ("legal", "law", "lawyer", "attorney", "counsel", "paralegal", "solicitor", "contract law", "法律", "法务", "律师", "法律顾问", "合同法"),
+}
+
+# Jobicy documents this public keyword parameter. One targeted query replaces
+# its generic query for a profile, so it does not multiply the 6-hour source
+# cadence or its provider-operation budget.
+ROLE_SEARCH_TAGS = {
+    "Finance": "finance",
+    "Data": "data",
+    "Business Analysis": "business analyst",
+    "Operations": "operations",
+    "Risk": "risk",
+    "Consulting": "consulting",
+    "Legal": "legal",
+}
+
 
 def _tokens(value: str | list[str]) -> set[str]:
     if isinstance(value, list):
         value = " ".join(value)
-    return {x.casefold() for x in re.findall(r"[A-Za-z][A-Za-z0-9+#.\-]{1,}", value or "")}
+    return {
+        x.casefold()
+        for x in re.findall(r"[A-Za-z][A-Za-z0-9+#.\-]{1,}|[\u4e00-\u9fff]+", value or "")
+    }
+
+
+def _text(value: str | list[str]) -> str:
+    return " ".join(value) if isinstance(value, list) else str(value or "")
+
+
+def _has_alias(text: str, alias: str) -> bool:
+    if any("\u4e00" <= char <= "\u9fff" for char in alias):
+        return alias in text
+    return bool(re.search(rf"(?<![a-z0-9]){re.escape(alias)}(?![a-z0-9])", text))
+
+
+def role_categories(value: str | list[str]) -> set[str]:
+    """Return known role categories explicitly evidenced by the text."""
+    text = _text(value).casefold()
+    return {
+        category
+        for category, aliases in ROLE_ALIASES.items()
+        if any(_has_alias(text, alias) for alias in aliases)
+    }
+
+
+def role_search_tag(profile: dict[str, Any]) -> str:
+    """Choose one documented provider search tag from confirmed role intent."""
+    primary = profile.get("primary_role_families", [])
+    for category in ROLE_ALIASES:
+        if category in role_categories(primary):
+            return ROLE_SEARCH_TAGS[category]
+    return ""
+
+
+def search_matches(query: str, haystack: str) -> bool:
+    """Match literal text first, then role aliases such as 法律 <-> legal."""
+    needle = query.casefold().strip()
+    text = haystack.casefold()
+    if not needle:
+        return True
+    if needle in text:
+        return True
+    for category in role_categories(needle):
+        if any(_has_alias(text, alias) for alias in ROLE_ALIASES[category]):
+            return True
+    return False
 
 
 def score_job(profile: dict[str, Any], job: dict[str, Any], now: datetime | None = None) -> dict[str, Any]:
@@ -60,16 +133,25 @@ def score_job(profile: dict[str, Any], job: dict[str, Any], now: datetime | None
     qualification = "fail" if hard_fail else ("pending" if pending else "pass")
 
     candidate_tokens = _tokens(profile.get("skills", [])) | _tokens(profile.get("keywords", []))
-    role_tokens = _tokens(profile.get("primary_role_families", [])) | _tokens(profile.get("secondary_role_families", []))
+    profile_role_categories = role_categories(profile.get("primary_role_families", [])) | role_categories(profile.get("secondary_role_families", []))
+    job_role_categories = role_categories(
+        f"{job.get('role_family', '')} {job.get('title', '')} {job.get('description', '')}"
+    )
     job_tokens = _tokens(job.get("skills", [])) | _tokens(job.get("keywords", [])) | _tokens(job.get("title", ""))
     overlap = candidate_tokens & job_tokens
-    role_match = role_tokens & _tokens(job.get("role_family", "") + " " + job.get("title", ""))
-    rel_score = min(100, len(overlap) * 12 + len(role_match) * 24)
+    role_match = profile_role_categories & job_role_categories
+    rel_score = min(100, len(overlap) * 12 + (60 if role_match else 0))
     if role_match:
-        reasons.append("岗位族与目标方向一致")
+        reasons.append("岗位族与目标方向一致：" + "、".join(sorted(role_match)))
     if overlap:
         reasons.append("匹配技能：" + "、".join(sorted(overlap)[:6]))
-    relevance = "high" if rel_score >= 55 else ("medium" if rel_score >= 25 else "low")
+    # When a candidate has confirmed a known role direction, high relevance is
+    # reserved for that direction. Generic transferable skills alone must not
+    # make an engineering role a high-priority legal recommendation.
+    if profile_role_categories:
+        relevance = "high" if role_match else ("medium" if rel_score >= 25 else "low")
+    else:
+        relevance = "high" if rel_score >= 55 else ("medium" if rel_score >= 25 else "low")
 
     posted_at = job.get("posted_at")
     if isinstance(posted_at, str):

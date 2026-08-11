@@ -4,7 +4,7 @@ import os
 import re
 from dataclasses import replace
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 from bs4 import BeautifulSoup
@@ -46,6 +46,21 @@ def latest_link(client: TestClient, kind: str) -> str:
     return match.group(0)
 
 
+def confirm_verification(client: TestClient, link: str):
+    parsed = urlparse(link)
+    path = parsed.path + ("?" + parsed.query if parsed.query else "")
+    page = client.get(path)
+    assert page.status_code == 200
+    assert 'data-testid="verify-email-confirm"' in page.text
+    token = parse_qs(parsed.query).get("token", [""])[0]
+    assert token
+    return client.post(
+        "/verify-email",
+        data={"csrf_token": csrf(page.text), "token": token},
+        follow_redirects=True,
+    )
+
+
 def register_verify(client: TestClient, email: str, password: str = "ValidPass123") -> None:
     page = client.get("/register")
     response = client.post("/register", data={
@@ -57,8 +72,7 @@ def register_verify(client: TestClient, email: str, password: str = "ValidPass12
     }, follow_redirects=True)
     assert response.status_code == 200
     link = latest_link(client, "verify")
-    path = urlparse(link).path + "?" + urlparse(link).query
-    response = client.get(path, follow_redirects=True)
+    response = confirm_verification(client, link)
     assert response.status_code == 200
     assert "上传简历" in response.text
 

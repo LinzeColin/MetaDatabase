@@ -13,6 +13,7 @@ SKILL_TERMS = [
     "valuation", "accounting", "finance", "data analysis", "business analysis",
     "risk", "operations", "project management", "stakeholder", "research",
     "statistics", "machine learning", "aws", "azure", "salesforce", "sap",
+    "legal", "contract", "compliance", "法律", "法务", "合同", "合规",
 ]
 ROLE_RULES = {
     "Finance": ["finance", "financial", "accounting", "valuation", "investment", "banking"],
@@ -21,12 +22,27 @@ ROLE_RULES = {
     "Operations": ["operations", "process", "supply chain", "project management"],
     "Risk": ["risk", "compliance", "audit", "controls"],
     "Consulting": ["consulting", "strategy", "research", "client"],
+    "Legal": ["legal", "lawyer", "attorney", "counsel", "paralegal", "solicitor", "contract law", "法律", "法务", "律师", "合同法"],
 }
 LOCATION_TERMS = ["Sydney", "Melbourne", "Brisbane", "Perth", "Canberra", "Adelaide", "Remote Australia"]
 
 
 class ResumeError(ValueError):
     pass
+
+
+def _decode_plain_text(data: bytes) -> str:
+    """Decode normal UTF text and common Chinese resume encodings safely."""
+    if data.startswith((b"\xff\xfe", b"\xfe\xff")):
+        return data.decode("utf-16")
+    for encoding in ("utf-8-sig", "utf-8", "gb18030"):
+        try:
+            return data.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    # Preserve the prior useful error-tolerant behavior only after all known
+    # deterministic encodings have been attempted.
+    return data.decode("utf-8", errors="replace")
 
 
 def extract_text(filename: str, content_type: str, data: bytes) -> str:
@@ -41,7 +57,7 @@ def extract_text(filename: str, content_type: str, data: bytes) -> str:
             for row in table.rows:
                 text += "\n" + " | ".join(cell.text for cell in row.cells)
     elif suffix in {".txt", ".md"} or content_type.startswith("text/"):
-        text = data.decode("utf-8", errors="replace")
+        text = _decode_plain_text(data)
     else:
         raise ResumeError("支持 PDF、DOCX、TXT 和 Markdown 简历。")
     text = re.sub(r"\r\n?", "\n", text)

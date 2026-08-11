@@ -60,6 +60,7 @@
     "app/templates/settings_data.html",
     "app/templates/settings_profile.html",
     "app/templates/settings_security.html",
+    "app/templates/verify_email.html",
     "app/templates/verify_required.html",
     "app/worker.py",
     "deploy/acceptance.sh",

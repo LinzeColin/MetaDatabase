@@ -18,13 +18,14 @@ from sqlalchemy.orm import Session
 from . import ai
 from .config import Settings, get_settings
 from .db import Base, make_engine, make_session_factory, session_dependency
-from .discovery import claim_run, enqueue_discovery, process_run, safe_http_url
+from .discovery import claim_run, enqueue_discovery, process_run, rescore_existing_recommendations, safe_http_url
 from .email_service import MailRateLimited, Mailer
 from .models import (
     ApplicationEvent, ApplicationPack, CandidateProfile, DiscoveryRun, DiscoverySourceStatus,
     Job, Recommendation, Resume, User, utcnow,
 )
 from .resume import ResumeError, extract_text
+from .scoring import search_matches
 from .security import (
     CryptoBox, check_csrf, create_session, email_lookup, hash_password, mask_email,
     normalize_email, rate_limit, resolve_session, revoke_all_sessions, revoke_session,
@@ -288,11 +289,34 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def verify_required(request: Request):
         return _render(request, "verify_required.html")
 
-    @app.get("/verify-email")
-    def verify_email(request: Request, token: str, db: Session = Depends(get_db)):
+    @app.get("/verify-email", response_class=HTMLResponse)
+    def verify_email_page(request: Request, token: str, db: Session = Depends(get_db)):
+        # Opening an email link is deliberately non-mutating. Mail gateway
+        # scanners fetch links before the recipient does, so consuming the
+        # token on GET would make a real recipient see an unusable link.
+        if not mailer.token_is_active(db, token, "verify"):
+            return _redirect(
+                "/resend-verification",
+                error="验证链接无效、已过期或已被使用。若你刚刚完成验证，请直接登录；否则请在限速结束后手动申请新链接。",
+            )
+        response = _render(request, "verify_email.html", {"token": token})
+        response.headers["Cache-Control"] = "no-store"
+        return response
+
+    @app.post("/verify-email")
+    def verify_email(
+        request: Request,
+        token: str = Form(...),
+        csrf_token: str = Form(...),
+        db: Session = Depends(get_db),
+    ):
+        _require_csrf(request, csrf_token)
         user = mailer.consume_token(db, token, "verify")
         if not user:
-            return _redirect("/resend-verification", error="验证链接无效或已过期。")
+            return _redirect(
+                "/resend-verification",
+                error="验证链接无效、已过期或已被使用。若你刚刚完成验证，请直接登录；否则请在限速结束后手动申请新链接。",
+            )
         user.is_verified = True
         user.verified_at = utcnow()
         db.commit()
@@ -526,6 +550,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         profile = get_profile(db, crypto, user.id)
         profile.update(confirmed)
         row = save_profile(db, crypto, user.id, profile, onboarding_state="complete", discovery_enabled=True)
+        rescore_existing_recommendations(db, user.id, profile, crypto)
         row.next_discovery_at = utcnow()
         db.commit()
         run = enqueue_discovery(db, user.id, "onboarding")
@@ -566,6 +591,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         db: Session = Depends(get_db),
     ):
         user = _require_user(request)
+        active_filters = dict(request.query_params)
+        # The default feed is deliberately high relevance only. An explicit
+        # `relevance=` from the "全部" option remains available for users who
+        # want to inspect the broader queue.
+        if "relevance" not in active_filters:
+            relevance = "high"
+            active_filters["relevance"] = relevance
         rows = db.execute(
             select(Recommendation, Job)
             .join(Job, Job.id == Recommendation.job_id)
@@ -580,9 +612,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         for rec, job in rows:
             skills = json.loads(job.skills_text or "[]")
             keywords = json.loads(job.keywords_text or "[]")
-            hay = " ".join([job.title, job.company, job.location, job.role_family, " ".join(skills), " ".join(keywords)]).casefold()
+            hay = " ".join([
+                job.title, job.company, job.location, job.role_family,
+                " ".join(skills), " ".join(keywords), job.description,
+            ])
             age = (now - (job.posted_at or job.discovered_at)).days
-            if q and q.casefold() not in hay:
+            if q and not search_matches(q, hay):
                 continue
             if city and city != job.city:
                 continue
@@ -620,7 +655,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if latest_run:
             source_rows = db.scalars(select(DiscoverySourceStatus).where(DiscoverySourceStatus.run_id == latest_run.id)).all()
         return _render(request, "recommendations.html", {
-            "items": filtered, "facets": facets, "filters": dict(request.query_params),
+            "items": filtered, "facets": facets, "filters": active_filters,
             "latest_run": latest_run, "source_rows": source_rows,
             "refresh_hours": settings.discovery_refresh_hours,
         })

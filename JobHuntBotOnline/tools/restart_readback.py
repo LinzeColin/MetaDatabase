@@ -12,7 +12,7 @@ import tempfile
 from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from bs4 import BeautifulSoup
 from fastapi.testclient import TestClient
@@ -77,7 +77,16 @@ def main() -> int:
                 "password": password, "password_confirm": password,
             }, follow_redirects=True)
             assert response.status_code == 200
-            client.get(latest_link(client, "verify"), follow_redirects=True)
+            verify_link = latest_link(client, "verify")
+            verify_page = client.get(verify_link)
+            token = parse_qs(urlparse(verify_link).query).get("token", [""])[0]
+            assert token
+            response = client.post(
+                "/verify-email",
+                data={"csrf_token": csrf(verify_page.text), "token": token},
+                follow_redirects=True,
+            )
+            assert "邮箱验证成功" in response.text
             page = client.get("/onboarding/upload")
             response = client.post(
                 "/onboarding/upload", data={"csrf_token": csrf(page.text)},

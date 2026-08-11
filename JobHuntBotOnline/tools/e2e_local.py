@@ -111,6 +111,8 @@ def register_verify(page: Page, base_url: str, email: str, password: str, steps:
     page.get_by_test_id("resend-email").fill(email)
     click_and_wait(page, '[data-testid="resend-submit"]')
     page.goto(mail_link(latest_mail(base_url, "verify", email)), wait_until="domcontentloaded")
+    expect_url(page, "/verify-email")
+    click_and_wait(page, '[data-testid="verify-email-confirm"]')
     expect_url(page, "/onboarding/upload")
     steps.extend(["register", "resend_verification", "verify_email"])
 
@@ -413,6 +415,11 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
         "ADMIN_EMAIL": "owner@example.com",
         "ADMIN_PASSWORD": "AdminPass!2026",
         "ALLOW_REGISTRATION": "true",
+        # This disposable, no-SMTP browser test exercises resend and reset in
+        # one short synthetic session. Production keeps its persisted 30-minute
+        # per-recipient limit and three-per-day maximum.
+        "EMAIL_MIN_INTERVAL_SECONDS": "0",
+        "EMAIL_MAX_PER_USER_PER_24H": "100",
         "DISCOVERY_REFRESH_HOURS": "6",
         "DISCOVERY_FIXTURE_PATH": str(ROOT / "tests/fixtures/jobs.json"),
         "ENABLE_REMOTIVE": "false",

@@ -125,10 +125,33 @@ class Mailer:
         db.commit()
         return user
 
+    def token_is_active(self, db: Session, raw: str, purpose: str) -> bool:
+        """Check a link without consuming it.
+
+        Mail security scanners commonly fetch every URL in a message. A GET
+        request must therefore never be the action that changes verification
+        state; the browser performs a CSRF-protected POST only after the
+        person explicitly confirms the page.
+        """
+        return db.scalar(
+            select(EmailToken.id).where(
+                EmailToken.token_hash == token_hash(raw),
+                EmailToken.purpose == purpose,
+                EmailToken.used_at.is_(None),
+                EmailToken.expires_at > utcnow(),
+            )
+        ) is not None
+
     def send_verification(self, db: Session, user: User) -> None:
         raw, delivery = self._prepare_delivery(db, user, "verify", 24, "verify")
         link = f"{self.settings.base_url}/verify-email?token={raw}"
-        self._send(db, user, delivery, "验证你的 JobHuntBot 邮箱", f"点击下面链接验证邮箱：\n{link}\n\n链接 24 小时有效。")
+        self._send(
+            db,
+            user,
+            delivery,
+            "验证你的 JobHuntBot 邮箱",
+            f"点击下面链接打开确认页面，再点击“确认验证邮箱”：\n{link}\n\n链接 24 小时有效。",
+        )
 
     def send_reset(self, db: Session, user: User) -> None:
         raw, delivery = self._prepare_delivery(db, user, "reset", 1, "reset")

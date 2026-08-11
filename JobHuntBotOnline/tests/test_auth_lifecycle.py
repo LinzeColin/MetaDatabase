@@ -6,9 +6,9 @@ from urllib.parse import urlparse
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from app.models import EmailDelivery, User
+from app.models import EmailDelivery, EmailToken, User
 from app.security import email_lookup
-from .conftest import csrf, latest_link, register_verify
+from .conftest import confirm_verification, csrf, latest_link, register_verify
 
 
 def test_registration_verification_login_logout(client):
@@ -114,8 +114,7 @@ def test_resend_cooldown_preserves_the_existing_verification_token(settings):
         outbox = guarded_client.get("/_test/outbox").json()
         assert [item["kind"] for item in outbox] == ["verify"]
 
-        parsed = urlparse(original_link)
-        verified = guarded_client.get(parsed.path + "?" + parsed.query, follow_redirects=True)
+        verified = confirm_verification(guarded_client, original_link)
         assert "邮箱验证成功" in verified.text
 
 
@@ -134,8 +133,7 @@ def test_daily_delivery_cap_does_not_claim_a_reset_was_sent(settings):
             "password_confirm": "ValidPass123",
         }, follow_redirects=True)
         verify_link = latest_link(guarded_client, "verify")
-        parsed = urlparse(verify_link)
-        guarded_client.get(parsed.path + "?" + parsed.query, follow_redirects=True)
+        confirm_verification(guarded_client, verify_link)
 
         forgot = guarded_client.get("/forgot-password")
         response = guarded_client.post("/forgot-password", data={
@@ -162,8 +160,7 @@ def test_deleted_account_cannot_bypass_recipient_delivery_limit(settings):
             "password_confirm": "ValidPass123",
         }, follow_redirects=True)
         verify_link = latest_link(guarded_client, "verify")
-        parsed = urlparse(verify_link)
-        guarded_client.get(parsed.path + "?" + parsed.query, follow_redirects=True)
+        confirm_verification(guarded_client, verify_link)
 
         delete_page = guarded_client.get("/settings/data")
         deleted = guarded_client.post("/settings/data/delete", data={
@@ -193,6 +190,35 @@ def test_deleted_account_cannot_bypass_recipient_delivery_limit(settings):
         assert len(deliveries) == 1
         assert deliveries[0].user_id is None
         assert replacement is not None and replacement.is_verified is False
+
+
+def test_verification_get_is_scan_safe_until_csrf_confirmation(settings):
+    from app.main import create_app
+
+    app = create_app(settings)
+    with TestClient(app) as guarded_client:
+        register = guarded_client.get("/register")
+        guarded_client.post("/register", data={
+            "csrf_token": csrf(register.text),
+            "email": "scan-safe@example.com",
+            "display_name": "Scan Safe User",
+            "password": "ValidPass123",
+            "password_confirm": "ValidPass123",
+        }, follow_redirects=True)
+        link = latest_link(guarded_client, "verify")
+        parsed = urlparse(link)
+        page = guarded_client.get(parsed.path + "?" + parsed.query)
+        assert page.status_code == 200
+        assert 'data-testid="verify-email-confirm"' in page.text
+
+        with guarded_client.app.state.session_factory() as db:
+            user = db.scalar(select(User).where(User.email_lookup == email_lookup("scan-safe@example.com", settings.email_lookup_secret)))
+            token = db.scalar(select(EmailToken).where(EmailToken.purpose == "verify"))
+            assert user is not None and user.is_verified is False
+            assert token is not None and token.used_at is None
+
+        confirmed = confirm_verification(guarded_client, link)
+        assert "邮箱验证成功" in confirmed.text
 
 
 def test_registration_links_are_hidden_when_mail_is_deferred(settings):
