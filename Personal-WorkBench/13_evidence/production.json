@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2.0",
   "task_id": "S5-T3",
-  "status": "PRIVATE_VERSION_31_S5_T3_GATE_AUDIT_NOT_READY",
+  "status": "PRIVATE_VERSION_32_S5_T3_PARTIAL",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
-  "observed_at": "2026-08-10",
+  "observed_at": "2026-08-11T00:56:50Z",
   "candidate": {
     "local_source_commit": "d95d2394734b3a1af6236443528e08eca2d98655",
     "functional_code_commit": "d43f953bbc9ed5315272249ef8ddcd85aee1c93f",
@@ -32,6 +32,8 @@
     "raw_url_recorded": false
   },
   "controlled_deployment_and_recovery": {
+    "version_32_private_deploy": "SUCCEEDED",
+    "version_32_post_deploy_error_only_window": "ZERO_EVENTS_IN_10_MINUTES",
     "version_31_private_deploy": "SUCCEEDED",
     "version_31_to_30_private_rollback": "SUCCEEDED",
     "version_30_to_31_private_restore": "SUCCEEDED",
@@ -82,7 +84,8 @@
     "live_version_matches_version_28": false,
     "live_version_matches_version_29": false,
     "live_version_matches_version_30": false,
-    "live_version_matches_version_31": true,
+    "live_version_matches_version_31": false,
+    "live_version_matches_version_32": true,
     "live_version_matches_version_31_after_rehearsal": true,
     "live_version_matches_version_30_after_rehearsal": true,
     "live_version_matches_version_29_after_rehearsal": true,
@@ -274,6 +277,7 @@
     "13_evidence/private_version_31_post_restore_error_log_check.json",
     "13_evidence/private_version_31_browserless_auth_preflight.json",
     "13_evidence/private_version_31_s5_t3_gate_audit.json",
+    "13_evidence/private_version_32_s5_t3_controlled_private_deployment.json",
     "13_evidence/version_18_agent_controlled_in_app_workbench_post_replay.json",
     "13_evidence/version_18_agent_controlled_chrome_auth_and_workbench_post_replay.json",
     "13_evidence/version_16_storage_binding_reconciliation.json",
@@ -287,11 +291,11 @@
   "final_acceptance_claimed": false,
   "public_deploy_eligible": false,
   "remaining_required_s5_t3_evidence": [
-    "a successful current Version 31 email registration, verification, reset, and sign-in browser replay",
-    "a successful current Version 31 Google OAuth callback and session",
-    "current Version 31 A/B tenant isolation and physical second-device history readback",
+    "a successful current Version 32 email registration, verification, reset, and sign-in browser replay",
+    "a successful current Version 32 Google OAuth callback and session",
+    "current Version 32 A/B tenant isolation and physical second-device history readback",
     "direct D1/R2 physical mapping or record/object reconciliation beyond the Version 27 data-free binding health probe",
-    "a current Version 31 production fault-recovery replay and broader no-P0 observation"
+    "a current Version 32 production fault-recovery replay and broader no-P0 observation"
   ],
   "current_version_21_note": "Version 21 was an owner-only private deployment. It replaces localized built-in habit idempotency tokens with stable URL-safe identifiers and retains the same verified-session, same-origin, tenant, privacy-consent, runtime and access-policy boundaries. In a controlled Chrome session for temporary verified test accounts, all five habit cards, one consent-gated ledger record and one schedule record completed visible write-plus-reload readback. A current sequential A/B replay then verified two distinct email accounts through registration, verification and sign-in; A wrote a non-sensitive schedule, B could not see it, and A could read it after reauthentication. A further current-version recovery replay delivered a reset message and reached the canonical reset page; it did not submit the final password change. A Google account-selection attempt returned through the state/CSRF guard in an agent-controlled Chrome surface, so it is retained as inconclusive rather than attributed to provider configuration or ordinary-user behavior. A Version 21 to Version 18 private rollback followed by a Version 18 to Version 21 private restore succeeded with environment revision 8 and the owner-only access invariant unchanged. The local unauthenticated control audit separately found 0 no-visible-effect controls of 140. This does not prove application-data continuity through the temporary rollback, a physical second device, direct D1/R2 reconciliation, current Google callback, final reset sign-in, public audience or final product acceptance.",
   "current_version_22_note": "Version 22 was the prior owner-only private deployment. It adds an explicit same-origin account sign-out control that redirects only after the Better Auth sign-out endpoint succeeds, plus a neutral sign-in confirmation. Typecheck, lint, auth contract, build and rendered route smoke all passed before the private deployment. A controlled browser reached the Version 22 account sign-out control, but the account surface could not be confirmed as the temporary identity, so the agent did not click sign out or claim re-login/session recovery. This is an intentional safety boundary, not a product sign-out pass or failure.",
@@ -300,7 +304,8 @@
   "current_version_27_note": "Version 27 was the prior owner-only private deployment. It adds an unlinked, verified-session-only storage-check page used solely for controlled support replay. The route performs a constant D1 query and an R2 HEAD against a fresh randomized internal key, then renders only fixed availability state; it does not select product tables, read an object body, list objects, write or delete data. Local API-contract, storage-probe unit, R2-contract, typecheck, lint, build and rendered-route smoke checks passed. A controlled already-verified temporary email session reached the page and observed both logical bindings as available; the temporary mailbox was deleted, credentials cleared and browser tabs finalized. It proved only live logical binding health, not physical D1/R2 reconciliation, normal-device native upload, physical second-device history, Google callback, final password-reset sign-in, public audience or final product acceptance.",
   "current_version_28_note": "Version 28 was the preceding owner-only private deployment. It reconciled active user-facing fallback and return copy to the personal-schedule identity, named the canonical domain constant for mydairy, and preserved the retired platform hostname only for saved-link normalization plus the retired offline outbox key only for one-time queued-action migration. Its controlled temporary email registration, verification, password-reset, and new-password sign-in replay remains Version 28 evidence only; its separate Google attempt remains unproven because the admin browser policy was unavailable before canonical sign-in rendered.",
   "current_version_29_note": "Version 29 is a historical owner-only private deployment. It packages the local-first, account-scoped IndexedDB record and outbox fixes for the specified workbench controls and todo form. Its browser and rollback evidence remains scoped to Version 29 and cannot satisfy the current Version 30 frozen production gates.",
-  "current_version_31_note": "Version 31 is the current owner-only private deployment. It packages the account-scope refresh repair as a tree-identical project-root source projection after the Version 30 source head using a non-force fast-forward push. The client now re-resolves opaque account scope before remote read, create, delete and non-sensitive outbox replay; a scope change clears the prior in-memory projection before loading the next partition, and stale responses are discarded. Authentication, server tenant derivation, runtime configuration, D1/R2 bindings, access policy, public audience, and real user business data were not changed. Typecheck, lint, local record cache, workbench persistence, privacy, tenant, resilience, module, rendered-route, visual, build and release-verifier checks passed. Post-deployment control-plane readback remains active/owner/custom with one allowed user, zero groups, and zero external visitors. A later owner-only Version 31 to Version 30 rollback followed by a Version 30 to Version 31 restore succeeded. This deployment does not prove current Version 31 email or Google E2E, A/B isolation, physical second-device history, D1/R2 reconciliation, full production recovery/no-P0, public launch eligibility, or final product acceptance.",
+  "current_version_31_note": "Version 31 is a prior owner-only private deployment. It packages the account-scope refresh repair as a tree-identical project-root source projection after the Version 30 source head using a non-force fast-forward push. The client now re-resolves opaque account scope before remote read, create, delete and non-sensitive outbox replay; a scope change clears the prior in-memory projection before loading the next partition, and stale responses are discarded. Authentication, server tenant derivation, runtime configuration, D1/R2 bindings, access policy, public audience, and real user business data were not changed. Typecheck, lint, local record cache, workbench persistence, privacy, tenant, resilience, module, rendered-route, visual, build and release-verifier checks passed. Post-deployment control-plane readback remains active/owner/custom with one allowed user, zero groups, and zero external visitors. A later owner-only Version 31 to Version 30 rollback followed by a Version 30 to Version 31 restore succeeded. This deployment does not prove current Version 31 email or Google E2E, A/B isolation, physical second-device history, D1/R2 reconciliation, full production recovery/no-P0, public launch eligibility, or final product acceptance.",
+  "current_version_32_controlled_private_deploy_note": "Version 32 is the current owner-only private deployment. It reuses the already saved, archived candidate that contains the sensitive-record first-save synchronization repair; source readback and archive presence matched the saved candidate before deployment. The controlled deployment reached succeeded while the site remained active/owner/custom with one allowed user, zero groups and zero external visitors. A bounded error-only observation after deployment returned zero events and retained no log body. This is private deployment evidence only: it does not prove current Version 32 email or Google E2E, A/B isolation, physical second-device history, direct D1/R2 reconciliation, full production recovery/no-P0, public launch eligibility, or final product acceptance.",
   "current_version_31_rollback_restore_note": "A current owner-only private rollback rehearsal deployed the exact prior saved Version 30, reached a succeeded deployment status, then restored the exact approved Version 31 and reached a succeeded deployment status. Both post-success opening requests were limited to agent-owned Codex panels; no browser content, cookie, storage, or page interaction was inspected or used. Post-restore control-plane readback remained active/owner/custom with one allowed user, zero groups, zero external visitors, latest saved version 31, and expected Version 31 source identity. Deployment identifiers, URLs, failure messages, runtime values, user records, and object data were not retained. This completes the current V31 R009 rollback-and-restore evidence only; it does not prove the remaining email, Google, physical-device, A/B, physical storage, production-recovery/P0, public-audience or product-acceptance requirements.",
   "current_version_31_post_restore_error_log_note": "Immediately after the successful owner-only V31 rollback-and-restore rehearsal, an error-only Worker log query covering the preceding 10 minutes and capped at 20 events returned zero events. The query retained no raw message, request identifier, route, account or business data. It is a narrow post-restore no-visible-error observation, not a claim that no production P0 exists outside that window or that the outstanding V31 email, Google, physical-device, A/B, storage and production-recovery evidence has passed.",
   "current_version_31_browserless_auth_preflight_note": "A current V31 browserless GET-only preflight reconfirmed the Sites control plane as active/owner/custom with one allowed user, zero groups, zero external visitors and latest saved version 31. Every tested unauthenticated entry route, including public configuration, returned 401. The Gmail connector was available, but no mailbox content was searched or read and no profile value was retained in evidence. No browser, cookie, storage, Sites bypass token, Turnstile response, authentication submission, application account, runtime value, business record, D1/R2 resource, access policy or audience change was used. The private access gate therefore prevents this environment from making a real browserless email replay; this is an access prerequisite rather than evidence of an application authentication fault or a product-acceptance pass.",

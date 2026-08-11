@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3-CONTROLLED-PRIVATE-DEPLOY-001",
+  "phase": "S5-T3",
+  "status": "PASS_CONTROLLED_PRIVATE_DEPLOYMENT_ONLY",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-11T00:56:50Z",
+  "candidate": {
+    "saved_version_number": 32,
+    "source_readback_matches_saved_candidate": true,
+    "archive_stored_by_sites": true,
+    "private_candidate_reused_without_product_change": true
+  },
+  "private_access": {
+    "site_active": true,
+    "current_user_role": "owner",
+    "access_mode": "custom",
+    "allowed_user_count": 1,
+    "allowed_group_count": 0,
+    "external_visitor_count": 0,
+    "public_audience_changed": false
+  },
+  "controlled_private_deployment": {
+    "deployment_started": true,
+    "terminal_status": "succeeded",
+    "deployed_url_observed_but_not_recorded": true,
+    "open_in_agent_owned_panel_requested": true
+  },
+  "post_deployment_observation": {
+    "error_only_window_minutes": 10,
+    "maximum_events_considered": 20,
+    "error_event_count": 0,
+    "log_bodies_retained": false
+  },
+  "not_proven_by_this_increment": [
+    "current Version 32 email registration, verification, reset, and sign-in browser replay",
+    "current Version 32 Google OAuth callback and session",
+    "current Version 32 A/B tenant isolation and physical second-device history readback",
+    "direct D1/R2 physical mapping or record/object reconciliation",
+    "current Version 32 production fault-recovery replay and broader no-P0 observation"
+  ],
+  "change_boundary": {
+    "runtime_values_read_or_changed": false,
+    "d1_or_r2_configuration_changed": false,
+    "real_user_business_data_read_or_written": false,
+    "github_uploaded": false,
+    "vps3_used_as_site_host": false,
+    "public_audience_changed": false,
+    "product_pass_claimed": false,
+    "final_acceptance_claimed": false
+  },
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
