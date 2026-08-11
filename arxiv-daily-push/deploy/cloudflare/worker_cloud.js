@@ -905,6 +905,18 @@ async function scheduleNewCard(env, itemId) {
      VALUES (?, ?, NULL, NULL, 0, 0, 0, '未学') ON CONFLICT(item_id) DO NOTHING`
   ).bind(itemId, due).run();
 }
+// ★冷启动的第一次评分几乎必然失败★：Owner 一天开一次，每次都是冷 isolate + 冷 D1，
+// 实测第一次 POST 耗时 16.3s 后返回 D1_ERROR: D1 DB storage operation exceeded timeout，
+// 紧接着的 23 次全部 200 / 0.10–0.34s。整个 gradeRecall 靠 dedup_key 幂等（重放要么补写、
+// 要么返回 duplicate），所以整段重放是安全的 —— 重试一次比让 Owner 看见「记录失败」值。
+async function gradeRecallWithRetry(env, itemId, grade, attempts = 3) {
+  let last;
+  for (let i = 0; i < attempts; i++) {
+    try { return await gradeRecall(env, itemId, grade); }
+    catch (e) { last = e; if (i < attempts - 1) await new Promise(r => setTimeout(r, 300 * (i + 1))); }
+  }
+  throw last;
+}
 async function gradeRecall(env, itemId, grade) {
   const today = localDay();  // 「每日一评」按用户本地日
   const dedup = `${itemId}:${today}`;
@@ -1244,7 +1256,7 @@ function heroSection(sel, item, v, spark) {
       </div>
       <div class="vitals-d">
         <div><div class="v">${v.streak}</div><div class="microlabel">STREAK</div></div>
-        <div><div class="v">${v.retention != null ? v.retention + '%' : '—'}</div><div class="microlabel">RETENTION</div></div>
+        <div><div class="v">${v.retention != null ? v.retention + '%' : '—'}</div><div class="microlabel">${v.retention != null ? `RETENTION · n=${v.retentionN}` : 'RETENTION'}</div></div>
         <div><div class="v">${v.due}</div><div class="microlabel">REVIEW DEBT</div></div>
       </div>
       <div><div class="microlabel">近 ${spark.length} 次精选分</div><svg class="sparkline" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">${sparkSVG(spark)}</svg></div>
@@ -1266,7 +1278,13 @@ async function todayPage(env) {
   if (sel.abstain) return PAGE('/', `<span id="todaymain"></span>` + vitalsCard(v) + `<div class="card"><h1>今日弃权</h1><p>${esc(sel.abstain_reason)}</p><p class="mt">决策日期 ${esc(sel.as_of_date)}——宁缺毋滥。可去 <a href="/radar">雷达</a> 挑条目「学这个」，或看 <a href="/history">往期</a>。</p></div>`, { hero });
   const lesson = await env.DB.prepare('SELECT * FROM cn_lessons WHERE item_id=? ORDER BY created_at DESC LIMIT 1').bind(sel.item_id).first();
   const review = await env.DB.prepare('SELECT * FROM cn_reviews WHERE item_id=?').bind(sel.item_id).first();
-  let body = `<span id="todaymain"></span>` + vitalsCard(v) + `<div class="card"><h2>为什么今天选它</h2><p>${esc(sel.why)}</p>
+  // ★「今天」必须真的是今天，否则明说不是★：这一页标题写「今天」，而 cn_selections 取的是最新一行 ——
+  // 当日 cron 还没跑（或跑挂了）时，页面会把昨天的选择当成今天的推给 Owner，且一个字都不提。
+  const day = localDay(), stale = sel.as_of_date !== day;
+  const staleNote = stale
+    ? `<p class="mt"><b>今天（${esc(day)}）还没选出来。</b>下面是最近一次 ${esc(sel.as_of_date)} 的选择 —— 不是今天的。运行情况见 <a href="/system">系统页</a>。</p>`
+    : '';
+  let body = `<span id="todaymain"></span>` + vitalsCard(v) + staleNote + `<div class="card"><h2>为什么${stale ? '' : '今天'}选它</h2><p>${esc(sel.why)}</p>
     <p class="mt">决策日期 ${esc(sel.as_of_date)} · ${esc(BOARD_NAMES[sel.board_id] || sel.board_id || '')}${review ? ' · 证据态 ' + esc(review.evidence_state) : ''}</p></div>`;
   if (item) {
     body += `<div class="card"><h1>${esc(deMath(item.title))}</h1>
@@ -1278,21 +1296,8 @@ async function todayPage(env) {
       <p class="mt">先合上讲义复述，再自评。评分即时进 FSRS 排程（云端即真相）。</p>
       <div class="gradeRow">${[[1,'忘了'],[2,'困难'],[3,'良好'],[4,'轻松']].map(([g,l]) =>
         `<button onclick="grade(${g},this)">${l}</button>`).join('')}</div>
-      <p id="r" class="mt"></p>
-      <script>var _grading=false,_pend=null;
-        function grade(g,btn){if(_grading)return;_grading=true;var row=document.querySelectorAll('.gradeRow button'),r=document.getElementById('r');
-          row.forEach(function(b){b.classList.remove('picked');b.disabled=true;});btn.classList.add('picked');r.removeAttribute('data-state');var left=4;
-          function draw(){r.innerHTML='已选「'+btn.textContent+'」，<b>'+left+'</b>s 后记录　<button type="button" class="btn-sm undo" onclick="gradeUndo()">撤销</button>';}
-          draw();_pend=setInterval(function(){left--;if(left<=0){clearInterval(_pend);_pend=null;gradeCommit(g,btn);}else draw();},1000);}
-        function gradeUndo(){if(_pend){clearInterval(_pend);_pend=null;}document.querySelectorAll('.gradeRow button').forEach(function(b){b.classList.remove('picked');b.disabled=false;});
-          var r=document.getElementById('r');r.setAttribute('data-state','');r.textContent='已撤销，未记录。';_grading=false;}
-        async function gradeCommit(g,btn){var r=document.getElementById('r');btn.setAttribute('aria-busy','true');r.textContent='记录中…';
-          try{var res=await fetch('/api/grade/'+encodeURIComponent(${jsStr(sel.item_id)})+'/'+g,{method:'POST'});if(!res.ok)throw new Error(res.status);var j=await res.json();
-            btn.removeAttribute('aria-busy');r.setAttribute('data-state','ok');
-            r.textContent=j.duplicate?('今天已评过（事件 #'+j.id+'），未重复计。'):('已记录 → 下次复习 '+j.due_at+'（间隔 '+j.interval+' 天，证据态：'+j.evidence_state+'）');
-          }catch(e){btn.removeAttribute('aria-busy');r.setAttribute('data-state','err');r.textContent='记录失败，请重试。';
-            document.querySelectorAll('.gradeRow button').forEach(function(b){b.disabled=false;});_grading=false;}}
-      </script></div>`;
+      <p id="r" class="mt" role="status"></p>
+      ${gradeScript(sel.item_id, null)}</div>`;
   }
   return PAGE('/', body, { hero });
 }
@@ -1479,10 +1484,21 @@ function maintenanceHTML(g) {
     <table><tr><th>来源</th><th>板块</th><th>健康</th><th>连续失败</th><th>上次抓取(尝试)</th></tr>${rows || '<tr><td colspan=5>尚无来源</td></tr>'}</table></div>`;
 }
 async function systemPage(env) {
-  const { results: runs } = await env.DB.prepare('SELECT * FROM cn_run_log ORDER BY at DESC LIMIT 14').all();
-  const rows = (runs || []).map(r => {
+  // ★没跑的那天要显示成「无记录」，不能靠不显示来表示★：原来是「取最近 14 行」，
+  // 于是彻底没跑的日子在表里根本不出现，08-07 直接接 08-05，整个 08-06 静默消失。
+  // 「筛掉的必须单独报」—— 一天完全没跑，恰恰是最该看见的那一行。
+  const dayList = Array.from({ length: 14 }, (_, i) =>
+    new Date(Date.parse(localDay() + 'T00:00:00Z') - i * 864e5).toISOString().slice(0, 10));
+  const { results: runs } = await env.DB.prepare(
+    'SELECT * FROM cn_run_log WHERE as_of_date>=? ORDER BY at DESC').bind(dayList[dayList.length - 1]).all();
+  const byDay = new Map();
+  for (const r of runs || []) if (!byDay.has(r.as_of_date)) byDay.set(r.as_of_date, r);  // 同日多行取最新
+  const rows = dayList.map(d => {
+    const r = byDay.get(d);
+    if (!r) return `<tr><td class="mt">${esc(d)}</td><td><span class="badge">无记录</span></td>
+      <td class="mt">—</td><td class="mt">这一天没有任何运行记录（不是「跑了但没抓到」）。</td></tr>`;
     const c = JSON.parse(r.counts_json || '{}');
-    return `<tr><td class="mt">${esc(r.as_of_date)}</td><td><span class="badge">${esc(r.result)}</span></td>
+    return `<tr><td class="mt">${esc(d)}</td><td><span class="badge">${esc(r.result)}</span></td>
       <td class="mt">arXiv ${c.arxiv || 0} · bio ${c.biorxiv || 0} · 板块流 ${c.feeds || 0} · 候选 ${c.candidates || 0}</td>
       <td class="mt">${esc(r.note || '')}</td></tr>`;
   }).join('');
@@ -1513,7 +1529,7 @@ async function computeVitals(env) {
     q("SELECT COUNT(*) n FROM cn_reviews WHERE reps>0"),
     q("SELECT COUNT(*) n FROM cn_reviews WHERE evidence_state='已掌握'"),
     q("SELECT COUNT(*) n FROM cn_events WHERE kind='grade'"),
-    q("SELECT AVG(CASE WHEN last_grade>=3 THEN 1.0 ELSE 0 END) r FROM cn_reviews WHERE last_grade IS NOT NULL"),
+    q("SELECT AVG(CASE WHEN last_grade>=3 THEN 1.0 ELSE 0 END) r, COUNT(*) n FROM cn_reviews WHERE last_grade IS NOT NULL"),
   ]);
   // streak 按用户本地日分桶（拉原始时间戳在 JS 里换算，避免 UTC 跨日误清零）
   const { results: evs } = await env.DB.prepare(
@@ -1523,12 +1539,13 @@ async function computeVitals(env) {
   if (!set.has(today)) cur = new Date(cur.getTime() - 864e5);  // 今天没学则从昨天起算，不清零
   while (set.has(cur.toISOString().slice(0, 10))) { streak++; cur = new Date(cur.getTime() - 864e5); }
   return { due: due?.n || 0, learned: learned?.n || 0, mastered: mastered?.n || 0,
-           reviews: reviews?.n || 0, retention: ret?.r != null ? Math.round(ret.r * 100) : null, streak };
+           reviews: reviews?.n || 0, retention: ret?.r != null ? Math.round(ret.r * 100) : null,
+           retentionN: ret?.n || 0, streak };  // 分母跟着比例一起走：3 张卡的 100% 和 300 张卡的 100% 不是一回事
 }
 function vitalsCard(v) {
   const cell = (n, l) => `<div class="vital"><div class="n">${n}</div><div class="l">${l}</div></div>`;
   return `<div class="card"><h2>学习数据</h2><div class="vitals">
-    ${cell(v.streak, '连续天数')}${cell(v.due, '待复习')}${cell(v.mastered, '已掌握')}${cell(v.learned, '学习中')}${cell(v.retention != null ? v.retention + '%' : '—', '回忆达标率')}</div>
+    ${cell(v.streak, '连续天数')}${cell(v.due, '待复习')}${cell(v.mastered, '已掌握')}${cell(v.learned, '学习中')}${cell(v.retention != null ? v.retention + '%' : '—', v.retention != null ? `回忆达标率（${v.retentionN} 张卡）` : '回忆达标率')}</div>
     ${v.due > 0 ? `<p style="margin-top:10px"><a class="pill-link" href="/review">开始复习（${v.due} 项到期）→</a></p>` : ''}</div>`;
 }
 const STUDY_JS = `<script>async function study(btn){btn.disabled=true;var o=btn.textContent;btn.textContent='加入中…';
@@ -1579,6 +1596,34 @@ function itemListHTML(items, { study = true } = {}) {
     </div>${study ? `<button class="btn-sm" data-id="${esc(it.id)}" onclick="study(this)">学这个</button>` : ''}</div>`).join('');
 }
 // 可复用的主动回忆评分组件（reveal 内容 + 四档评分 + 脚本）
+// 「今天」页和 /review 页原本各抄了一份一模一样的评分脚本，两边的失败分支也各错一次。
+// 合成这一份，两边都用它 —— 以后再改失败提示只有一个地方要改。
+function gradeScript(itemId, nextHref) {
+  return `<script>var _grading=false,_pend=null;
+    function grade(g,btn){if(_grading)return;_grading=true;var r=document.getElementById('r');
+      document.querySelectorAll('.gradeRow button').forEach(function(b){b.classList.remove('picked');b.disabled=true;});
+      btn.classList.add('picked');r.removeAttribute('data-state');var left=2;
+      function draw(){r.innerHTML='已选「'+btn.textContent+'」，<b>'+left+'</b>s 后记录　<button type="button" class="btn-sm undo" onclick="gradeUndo()">撤销</button>';}
+      draw();_pend=setInterval(function(){left--;if(left<=0){clearInterval(_pend);_pend=null;gradeCommit(g,btn);}else draw();},1000);}
+    function gradeUndo(){if(_pend){clearInterval(_pend);_pend=null;}document.querySelectorAll('.gradeRow button').forEach(function(b){b.classList.remove('picked');b.disabled=false;});
+      var r=document.getElementById('r');r.setAttribute('data-state','');r.textContent='已撤销，未记录。';_grading=false;}
+    function gradeReset(){document.querySelectorAll('.gradeRow button').forEach(function(b){b.classList.remove('picked');b.removeAttribute('aria-busy');b.disabled=false;});_grading=false;}
+    function gradeRetry(g){gradeReset();var btn=document.querySelectorAll('.gradeRow button')[g-1];if(btn){_grading=true;btn.classList.add('picked');gradeCommit(g,btn);}}
+    async function gradeCommit(g,btn){var r=document.getElementById('r');btn.setAttribute('aria-busy','true');r.textContent='记录中…';
+      try{var res=await fetch('/api/grade/'+encodeURIComponent(${jsStr(itemId)})+'/'+g,{method:'POST'});
+        var j=null;try{j=await res.json();}catch(pe){j=null;}
+        if(!res.ok)throw new Error((j&&j.error)?j.error:('HTTP '+res.status));
+        btn.removeAttribute('aria-busy');r.setAttribute('data-state','ok');
+        r.textContent=j.duplicate?('今天已评过（事件 #'+j.id+'），未重复计。'):('已记录 → 下次复习 '+j.due_at+'（间隔 '+j.interval+' 天，证据态：'+j.evidence_state+'）');
+        ${nextHref ? `setTimeout(function(){location.href=${jsStr(nextHref)}},900);` : ''}
+      }catch(e){
+        // ★不许把「写失败」说成一句无信息的「请重试」★：把服务端的真实原因原样显示出来，
+        // Owner 看不懂没关系，他可以整句贴给修的人；那比「记录失败」有用得多。
+        btn.removeAttribute('aria-busy');r.setAttribute('data-state','err');
+        r.innerHTML='没记上（'+String(e&&e.message||e).replace(/[<>&]/g,'')+'）　<button type="button" class="btn-sm" onclick="gradeRetry('+g+')">重试</button>';
+        gradeReset();}}
+  </script>`;
+}
 function graderHTML(itemId, revealInner, nextHref) {
   return `<div class="card"><h2>主动回忆</h2>
     <p class="mt">先合上内容自己复述，再点「显示」核对，然后如实自评。评分即时进 FSRS 排程。</p>
@@ -1587,20 +1632,7 @@ function graderHTML(itemId, revealInner, nextHref) {
     <div class="gradeRow">${[[1, '忘了'], [2, '困难'], [3, '良好'], [4, '轻松']].map(([g, l]) =>
       `<button onclick="grade(${g},this)" aria-label="评分：${l}">${l}</button>`).join('')}</div>
     <p id="r" class="mt" role="status"></p>
-    <script>var _grading=false,_pend=null;
-      function grade(g,btn){if(_grading)return;_grading=true;var row=document.querySelectorAll('.gradeRow button'),r=document.getElementById('r');
-        row.forEach(function(b){b.classList.remove('picked');b.disabled=true;});btn.classList.add('picked');r.removeAttribute('data-state');var left=4;
-        function draw(){r.innerHTML='已选「'+btn.textContent+'」，<b>'+left+'</b>s 后记录　<button type="button" class="btn-sm undo" onclick="gradeUndo()">撤销</button>';}
-        draw();_pend=setInterval(function(){left--;if(left<=0){clearInterval(_pend);_pend=null;gradeCommit(g,btn);}else draw();},1000);}
-      function gradeUndo(){if(_pend){clearInterval(_pend);_pend=null;}document.querySelectorAll('.gradeRow button').forEach(function(b){b.classList.remove('picked');b.disabled=false;});
-        var r=document.getElementById('r');r.setAttribute('data-state','');r.textContent='已撤销，未记录。';_grading=false;}
-      async function gradeCommit(g,btn){var r=document.getElementById('r');btn.setAttribute('aria-busy','true');r.textContent='记录中…';
-        try{var res=await fetch('/api/grade/'+encodeURIComponent(${jsStr(itemId)})+'/'+g,{method:'POST'});if(!res.ok)throw new Error(res.status);var j=await res.json();
-          btn.removeAttribute('aria-busy');r.setAttribute('data-state','ok');
-          r.textContent=j.duplicate?('今天已评过（事件 #'+j.id+'），未重复计。'):('已记录 → 下次复习 '+j.due_at+'（间隔 '+j.interval+' 天，证据态：'+j.evidence_state+'）');
-          ${nextHref ? `setTimeout(function(){location.href=${jsStr(nextHref)}},900);` : ''}}catch(e){btn.removeAttribute('aria-busy');r.setAttribute('data-state','err');r.textContent='记录失败，请重试。';
-          document.querySelectorAll('.gradeRow button').forEach(function(b){b.disabled=false;});_grading=false;}}
-    </script></div>`;
+    ${gradeScript(itemId, nextHref)}</div>`;
 }
 
 // ───────────────────────── 复习会话 /review ─────────────────────────
@@ -2135,7 +2167,7 @@ export default {
           const [, , , idEnc, gradeRaw] = p.split('/');
           const grade = parseInt(gradeRaw, 10);
           if (!idEnc || !(grade >= 1 && grade <= 4)) return jsonResp({ error: 'bad request' }, 422);
-          return jsonResp(await gradeRecall(env, decodeURIComponent(idEnc), grade));
+          return jsonResp(await gradeRecallWithRetry(env, decodeURIComponent(idEnc), grade));
         }
         if (p.startsWith('/api/study/')) {
           const id = decodeURIComponent(p.slice('/api/study/'.length));
@@ -2183,6 +2215,12 @@ export default {
       if (html === null) { html = notFoundPage(); status = 404; }
       return htmlResp(html, status);
     } catch (e) {
+      // ★/api/* 出错必须回 JSON★：原来所有路由共用这一个 catch，于是 POST /api/grade 失败时
+      // 返回的是一整页 HTML 错误页。前端 `await res.json()` 解析不了，只能笼统显示「记录失败，请重试。」，
+      // 真正的原因（D1_ERROR 超时）被埋在 HTML 里，Owner 和排查的人都看不到。
+      if (new URL(request.url).pathname.startsWith('/api/')) {
+        return jsonResp({ error: String(e && e.message || e).slice(0, 300) }, 500);
+      }
       return htmlResp(PAGE('/', `<div class="card"><h1>出错了</h1><p class="mt">${esc(e.message || 'error')}——刷新或回 <a href="/">今天</a>。</p></div>`, { title: '错误' }), 500);
     }
   },
