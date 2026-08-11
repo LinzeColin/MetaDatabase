@@ -26,6 +26,11 @@ Do not repeat product research. NitroSend is removed: do not wait for it, connec
   completed scheduled runs, and all three observed adjacent intervals within
   6:00:36–6:01:04; there is no overdue discovery schedule. These aggregates
   contain no user identifier, email, resume, or candidate fact.
+- The complete local source test suite passed 31/31 in a disposable VPS3
+  container with a read-only source mount and `--network none`; this exercised
+  authentication, tenant isolation, resume/onboarding, discovery, application
+  preparation, migration, recovery tooling, and the email-closed path without
+  sending mail or contacting any external service.
 - T09 was re-established with non-authoritative operational evidence only:
   `https://status.linzezhang.com/data/snapshot.json` now registers JobHuntBot
   Online on VPS3 and states the email pause; Private-Database
