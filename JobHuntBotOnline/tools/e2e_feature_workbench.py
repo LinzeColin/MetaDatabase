@@ -56,6 +56,7 @@ def main() -> int:
     }
     raw_session: str | None = None
     stage = "configuration"
+    client_diagnostics = {"partial_request_count": 0, "console_error_count": 0, "page_error_count": 0}
     factory = make_session_factory(make_engine(settings.database_url))
     try:
         base_url = _base_url(args.base_url or settings.base_url)
@@ -113,20 +114,47 @@ def main() -> int:
                 "sameSite": "Lax",
             }])
             page = context.new_page()
+            page.on(
+                "request",
+                lambda request: client_diagnostics.__setitem__(
+                    "partial_request_count",
+                    client_diagnostics["partial_request_count"] + 1,
+                ) if "/recommendations" in request.url and "partial=true" in request.url else None,
+            )
+            page.on(
+                "console",
+                lambda message: client_diagnostics.__setitem__(
+                    "console_error_count",
+                    client_diagnostics["console_error_count"] + 1,
+                ) if message.type == "error" else None,
+            )
+            page.on(
+                "pageerror",
+                lambda _error: client_diagnostics.__setitem__(
+                    "page_error_count",
+                    client_diagnostics["page_error_count"] + 1,
+                ),
+            )
             stage = "open_recommendations"
             page.goto(f"{base_url}/recommendations", wait_until="domcontentloaded")
             page.wait_for_load_state("networkidle")
             if page.locator("[data-testid='recommendation-results']").count() != 1:
                 raise RuntimeError("recommendation result region is unavailable")
             stage = "expand_relevance"
-            with page.expect_response(lambda response: "/recommendations" in response.url and "partial=true" in response.url):
-                page.locator("[data-testid='filter-relevance']").select_option(value="")
+            requests_before = client_diagnostics["partial_request_count"]
+            page.locator("[data-testid='filter-relevance']").select_option(value="")
+            page.wait_for_timeout(700)
             page.wait_for_load_state("networkidle")
+            if client_diagnostics["partial_request_count"] <= requests_before:
+                raise RuntimeError("relevance selection did not start a live filter request")
             all_count = page.locator("[data-testid='job-card']").count()
             stage = "filter_by_role"
-            with page.expect_response(lambda response: "/recommendations" in response.url and "partial=true" in response.url):
-                page.locator("[data-testid='filter-role']").select_option(label=role)
+            requests_before = client_diagnostics["partial_request_count"]
+            page.locator("[data-testid='filter-role']").select_option(label=role)
+            page.wait_for_timeout(700)
             page.wait_for_load_state("networkidle")
+            if client_diagnostics["partial_request_count"] <= requests_before:
+                raise RuntimeError("role selection did not start a live filter request")
             role_count = page.locator("[data-testid='job-card']").count()
             if all_count != expected_all or role_count != expected_role:
                 raise RuntimeError("live filter result count differs from the server-side record count")
@@ -152,10 +180,12 @@ def main() -> int:
             "live_filter_role_count": expected_role,
             "ai_consultation_entry": True,
             "application_progress_workspace": True,
+            **client_diagnostics,
         })
     except Exception as exc:
         result["error_type"] = type(exc).__name__
         result["stage"] = stage
+        result.update(client_diagnostics)
     finally:
         if raw_session:
             with factory() as db:
