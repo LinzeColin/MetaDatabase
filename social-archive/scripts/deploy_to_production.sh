@@ -1124,6 +1124,9 @@ except Exception:
 for s in d.get('steps', []):
     if not s['ok']: print('  ✗', s['step'], '→', str(s['measured'])[:160])
 if d.get('detail'): print('  ✗', d['detail'][:400])"
+  if grep -q SSH_TRANSPORT_FAILED evidence/G3/FROM_ZERO.json 2>/dev/null; then
+    fail 'ssh 到生产机断了（不是产品缺陷，演练已自动重连过一次）——重跑一次部署即可。'
+  fi
   fail '刚部署的这个镜像上，「从零到能用」这条链走不通。'
 fi
 python3 -c "

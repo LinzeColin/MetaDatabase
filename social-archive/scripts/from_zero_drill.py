@@ -50,9 +50,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import secrets
 import shlex
 import subprocess
+import time
 import sys
 from pathlib import Path
 
@@ -71,6 +73,10 @@ PORT = 18099
 TOKEN = secrets.token_urlsafe(24)
 
 
+class TransportError(RuntimeError):
+    """ssh 那一层断了——**和「产品坏了」是两件事**，报出去要分得清。"""
+
+
 def _host() -> str:
     return (ROOT / "deploy/PRODUCTION_HOST").read_text(encoding="utf-8").strip()
 
@@ -86,8 +92,29 @@ def ssh(host: str, command: str, *, check: bool = True) -> str:
     而这个脚本的每一步都要靠退出码判断。
     """
     done = subprocess.run(["ssh", host, command], capture_output=True, text=True, check=False)
+    # **exit 255 是 ssh 自己断了，不是那条命令失败。**（2026-08-11 实测）
+    #
+    # 一次部署里这个演练报「从零到能用这条链走不通」而中止，日志里是
+    # `exit 255 · Connection closed by … port 22`——**连接掉了**，
+    # 单独重跑立刻 PASS。把它报成产品缺陷，是又一张假脸
+    # （同 `_drill_port` 那次端口撞车）。
+    #
+    # 掉线就重连一次；还不行就带着**说清是连接问题**的错误码退出。
+    if done.returncode == 255:
+        time.sleep(3)
+        done = subprocess.run(["ssh", host, command],
+                              capture_output=True, text=True, check=False)
+        if done.returncode == 255:
+            raise TransportError(
+                f"ssh 连不上或中途断了（exit 255）：{host}\n"
+                f"{(done.stderr or '')[-300:]}")
     if check and done.returncode != 0:
-        raise RuntimeError(f"远端命令失败（exit {done.returncode}）：{command}\n"
+        # **报错时不许把令牌带出来。**（2026-08-11，被 secret_scan.py 抓到）
+        # 失败的命令里含 `Authorization: Bearer <令牌>`，原样写进 evidence/ 和
+        # 部署日志之后，仓里就躺着一个令牌形状的串——哪怕它只是这一轮临时容器的。
+        # 打印之前一律抹掉：这个习惯迟早会印到一个真的上。
+        safe = re.sub(r"Bearer [A-Za-z0-9_\-]+", "Bearer <已抹去>", command)
+        raise RuntimeError(f"远端命令失败（exit {done.returncode}）：{safe}\n"
                            f"{done.stdout[-600:]}{done.stderr[-600:]}")
     return done.stdout
 
@@ -296,6 +323,14 @@ def main() -> int:
     args = parser.parse_args()
     try:
         return run(args.host or _host(), args.version or _version())
+    except TransportError as error:
+        print(json.dumps({
+            "status": "FAIL", "error_code": "SSH_TRANSPORT_FAILED",
+            "detail": str(error)[:600],
+            "message_zh": "**这不是产品缺陷，是 ssh 断了**（已自动重连过一次）。"
+                          "重跑一次这个演练即可；老是这样再去查网络或那台机器的 sshd。",
+        }, ensure_ascii=False, indent=2))
+        return 3
     except RuntimeError as error:
         print(json.dumps({"status": "FAIL", "error_code": "REMOTE_STEP_FAILED",
                           "detail": str(error)[:800]}, ensure_ascii=False))
