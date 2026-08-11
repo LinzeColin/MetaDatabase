@@ -1,5 +1,8 @@
 {
   "status": "PASS",
+  "notes_to_read_zh": [
+    "56 篇标题是播放进度（如 34:04/42:37）——**那是 B 站播放器上的时间，不是标题**。全部来自 history 那条路；修它要改取数侧，而验证要 Owner 登录后的页面。**这一条不拦发布**：它是已经存在的数据，不是这次弄坏的。"
+  ],
   "vault": "/Users/linzezhang/Documents/Obsidian/Social Archive",
   "measured": {
     "notes": 193,
@@ -13,6 +16,7 @@
     "empty_heading": 0,
     "title_is_a_doubled_caption": 0,
     "author_is_a_like_count": 0,
+    "title_is_a_playback_timestamp": 56,
     "same_item_twice": 0
   },
   "problems": [],

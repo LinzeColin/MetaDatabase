@@ -1185,7 +1185,12 @@ else:
     m=d['measured']
     print(f\"  他库里 {m['notes']} 篇，按 {len(m['platforms'])} 个平台分好；\"
           f\"空标题 {m['empty_heading']}、重复文案标题 {m['title_is_a_doubled_caption']}、\"
-          f\"作者是点赞数 {m['author_is_a_like_count']}、同一条两份 {m['same_item_twice']}。\")"
+          f\"作者是点赞数 {m['author_is_a_like_count']}、同一条两份 {m['same_item_twice']}。\")
+    # **播报也要真的播出来。** 2026-08-12：那 56 篇播放进度标题写进了证据文件，
+    # 而这里没印——等于记下来了、没人看见。判据没有调用方不算判据，
+    # 播报没人读也一样。
+    for line in d.get('notes_to_read_zh', []):
+        print(f\"  ⚠️  {line}\")"
 
 step "8.68) 从零到能用，在**刚部署的这个镜像**上真走一遍"
 # 上一步验的是界面到不到得了他手上。这一步验的是**按下去之后那条链**：

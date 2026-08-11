@@ -48,7 +48,7 @@
     },
     "同步进度按钮": {
       "sidepanel_targets": [
-        "chrome-extension://fgpbcagbfebngojfpcjajnknbencnoah/sidepanel.html"
+        "chrome-extension://fhcdgahfekljlndbjgpncadlllbbkhjl/sidepanel.html"
       ],
       "panel_text": "SA 账号同步 收藏与书签 ↻ 0 同步中 0 已完成 1 需处理 同步全部账号 连接账号 同步中 需处理 全部 ✓ 现在没有正在跑的同步 最近的同步——点上面的「全部」可以看。 打开资料库 账号与导出"
     }

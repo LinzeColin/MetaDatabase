@@ -119,3 +119,41 @@ def test_the_deploy_also_checks_his_obsidian_vault() -> None:
     assert "--expect-items" in deploy, "没有和档案馆的条数比对，就只是数了个数"
     assert "HIS_MARKDOWN_EXPORT.json" in deploy, (
         "条数该从上一步那份证据里现取，不许手写一个会过期的数字")
+
+
+def test_the_vault_readout_is_actually_printed() -> None:
+    """**播报也要真的播出来。**（2026-08-12）
+
+    那 56 篇播放进度标题写进了 `evidence/G3/HIS_OBSIDIAN_VAULT.json`，
+    而部署的 8.67 播报块只印那四个已知计数——**等于记下来了、没人看见**。
+    判据没有调用方不算判据；播报没人读也一样。
+    """
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    step = deploy[deploy.index("check_his_obsidian_vault_is_intact.py"):]
+    nxt = step.find('\nstep "')
+    step = step[:nxt] if nxt > 0 else step
+    assert "notes_to_read_zh" in step, (
+        "8.67 不再印那条播报了——它会退回成「写进证据文件但没人看见」")
+
+
+def test_the_timestamp_shape_is_not_a_blocking_gate() -> None:
+    """它是**已经存在的数据**，做成门就永远变不绿。
+
+    `a-red-that-can-never-turn-green-is-not-a-signal`：那种红只会逼下一个人
+    绕过整道检查，连带把真会红的那几条（空标题／重复／同一条两份）一起绕过去。
+    """
+    source = (ROOT / "scripts/check_his_obsidian_vault_is_intact.py").read_text(encoding="utf-8")
+    # **窗口要切对。** 第一版用 `source.index("print(json.dumps(")` 当右端——
+    # 而文件里更早就有一个（库不存在那一支的 SKIPPED 输出），于是 b < a、
+    # 切出空串，`not in ""` 恒真：**这条测试永远绿**。
+    # 是反例把它戳穿的（把播放进度做成门，测试照样全过）。
+    start = source.index("problems: list[str] = []")
+    end = source.rindex("print(json.dumps(")
+    assert end > start, "窗口又切反了"
+    problems_part = source[start:end]
+    # 播报那段本身会提到这个名字，所以只看「有没有被 append 进 problems」
+    appended = [line for line in problems_part.splitlines()
+                if "problems.append" in line or "for key, why in" in line
+                or ('("title_is_a_playback_timestamp"' in line)]
+    assert not any('title_is_a_playback_timestamp' in line for line in appended), (
+        "播放进度标题被塞进 problems 了——它会拦住每一次部署，而他还没重新同步过")
