@@ -8,7 +8,7 @@ import sys
 
 import pytest
 
-from app.config import validate_settings
+from app.config import get_settings, validate_settings
 from app.security import hash_password, validate_password, verify_password
 
 
@@ -21,6 +21,11 @@ def test_refresh_contract_is_exactly_six_hours(settings):
         validate_settings(replace(settings, discovery_refresh_hours=5))
     with pytest.raises(RuntimeError):
         validate_settings(replace(settings, discovery_refresh_hours=12))
+
+
+def test_registration_is_closed_when_the_deployment_variable_is_missing(monkeypatch):
+    monkeypatch.delenv("ALLOW_REGISTRATION", raising=False)
+    assert get_settings().allow_registration is False
 
 
 def test_password_contract():

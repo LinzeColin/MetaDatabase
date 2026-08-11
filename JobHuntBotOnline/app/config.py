@@ -102,7 +102,9 @@ def get_settings() -> Settings:
         session_max_age_seconds=_int("SESSION_MAX_AGE_SECONDS", 7 * 24 * 3600),
         admin_email=os.getenv("ADMIN_EMAIL", "owner@example.com"),
         admin_password=os.getenv("ADMIN_PASSWORD", "AdminPass!2026" if local else ""),
-        allow_registration=_bool("ALLOW_REGISTRATION", True),
+        # Registration is fail-closed: a missing deployment variable must not
+        # create a new public email-delivery path.
+        allow_registration=_bool("ALLOW_REGISTRATION", False),
         owner_entry_enabled=_bool("OWNER_ENTRY_ENABLED", False),
 
         smtp_host=os.getenv("SMTP_HOST", ""),

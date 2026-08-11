@@ -20,6 +20,7 @@ os.environ.update({
     "COOKIE_SECURE": "false",
     "ADMIN_EMAIL": "owner@example.com",
     "ADMIN_PASSWORD": "AdminPass!2026",
+    "ALLOW_REGISTRATION": "true",
     "OWNER_ENTRY_ENABLED": "true",
     "DISCOVERY_REFRESH_HOURS": "6",
     "ENABLE_REMOTIVE": "false",
