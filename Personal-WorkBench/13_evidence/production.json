@@ -373,6 +373,10 @@
     },
     "google_oauth_initiation": {
       "status": "HTTP_200_GOOGLE_AUTHORIZATION_URL_RETURNED",
+      "authorization_host_is_google": true,
+      "redirect_uri_matches_public_origin": true,
+      "state_present": true,
+      "requested_openid_email_profile": true,
       "redirect_followed": false,
       "personal_google_account_selected": false,
       "response_cookie_values_retained": false,
