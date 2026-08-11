@@ -187,7 +187,7 @@
         "scripts/check_docs_match_the_ui.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 docs/ 里 58 处界面词引用\n每一处都在界面上找得到。\n",
+      "stdout": "扫了 docs/ 里 59 处界面词引用\n每一处都在界面上找得到。\n",
       "stderr": ""
     },
     {
@@ -286,7 +286,7 @@
         "scripts/check_git_calls_cannot_be_hijacked_by_hooks.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 389 份 .py，其中 12 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
+      "stdout": "扫了 390 份 .py，其中 12 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
       "stderr": ""
     },
     {
