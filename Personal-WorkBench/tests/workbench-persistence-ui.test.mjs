@@ -154,6 +154,11 @@ test("normal menu routes keep every user-audited lifecycle control bound to a st
 
   assert.match(source, /onClick=\{\(\) => void toggleHabit\(card, index\)\}/);
   assert.match(source, /const saved = await checkins\.create\(\{ habitId: habit\.id, localDate: today \}\);/);
+  assert.match(source, /const recentCheckins = useMemo/);
+  assert.match(source, /function removeCheckin\(checkin: HabitCheckin\)/);
+  assert.match(source, /已删除\$\{label\}的打卡记录。/);
+  assert.match(source, /最近打卡/);
+  assert.match(source, /<DeleteRecordButton disabled=\{checkins\.saving\} onDelete=\{\(\) => void removeCheckin\(checkin\)\} \/>/);
 
   assert.match(source, /onClick=\{\(\) => chooseType\("expense"\)\}/);
   assert.match(source, /onClick=\{\(\) => chooseType\("income"\)\}/);

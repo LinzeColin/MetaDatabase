@@ -237,6 +237,23 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
     return labels;
   }, [completedByHabitId, habits.records]);
 
+  const habitTitleById = useMemo(
+    () => new Map(habits.records.map((habit) => [habit.id, asText(habit.title, "习惯打卡")])),
+    [habits.records],
+  );
+  const recentCheckins = useMemo(
+    () => checkins.records
+      .filter((checkin) => Boolean(asText(checkin.habit_id)) && Boolean(asText(checkin.local_date)))
+      .sort((left, right) => asText(right.local_date).localeCompare(asText(left.local_date)))
+      .slice(0, 10),
+    [checkins.records],
+  );
+  const canShowEmptyCheckinHistory = !checkins.loading
+    && !checkins.authRequired
+    && !checkins.loginSuggested
+    && !checkins.error
+    && recentCheckins.length === 0;
+
   const incompleteTodos = useMemo(
     () => todos.records.filter((todo) => !asBoolean(todo.completed)).length,
     [todos.records],
@@ -281,6 +298,12 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
         )
         : `未完成${card.label}打卡：请先登录；使用 Google 登录无需额外验证邮箱，或检查网络后重试。`,
     );
+  }
+
+  async function removeCheckin(checkin: HabitCheckin) {
+    const label = habitTitleById.get(asText(checkin.habit_id)) ?? "这条";
+    const removed = await checkins.destroy(checkin.id);
+    setFeedback(removed ? `已删除${label}的打卡记录。` : `未能删除${label}的打卡记录，请检查后重试。`);
   }
 
   // Both reads are independent. If one returns the authoritative 401 while
@@ -346,6 +369,26 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
         />
       ) : null}
       {feedback ? <p className="interaction-note" role="status">{feedback}</p> : null}
+      {!reference ? (
+        <article className="card record-list-card" aria-live="polite">
+          <h2 className="section-title dot">最近打卡</h2>
+          {canShowEmptyCheckinHistory ? <div className="empty"><p>还没有打卡历史</p></div> : null}
+          <ul className="record-items">
+            {recentCheckins.map((checkin) => {
+              const label = habitTitleById.get(asText(checkin.habit_id)) ?? "习惯打卡";
+              return (
+                <li className="record-item" key={checkin.id}>
+                  <div><strong>{label}</strong><p>已完成打卡</p></div>
+                  <div className="record-meta">
+                    <small>{asText(checkin.local_date, "未设置日期")}</small>
+                    <DeleteRecordButton disabled={checkins.saving} onDelete={() => void removeCheckin(checkin)} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </article>
+      ) : null}
       <article className="card overview-card" aria-live="polite">
         <h2 className="section-title dot">今日概览</h2>
         <div className="overview-grid">
