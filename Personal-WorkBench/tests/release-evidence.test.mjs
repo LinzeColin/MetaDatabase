@@ -234,6 +234,86 @@ test("Version 35 S5-T2 configuration evidence preserves value-free private conti
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 35 S5-T3 private deployment and rollback evidence does not overclaim browser E2E", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/private_version_35_s5_t3_controlled_private_deployment_and_rollback.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.task_id, "S5-T3");
+  assert.equal(evidence.status, "PASS_CONTROLLED_PRIVATE_DEPLOY_AND_ROLLBACK_PARTIAL");
+  assert.equal(evidence.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(evidence.candidate.saved_version_number, 35);
+  assert.equal(evidence.candidate.source_readback_matches_saved_candidate, true);
+  assert.equal(evidence.candidate.archive_stored_by_sites, true);
+  assert.equal(evidence.private_access.site_active, true);
+  assert.equal(evidence.private_access.current_user_role, "owner");
+  assert.equal(evidence.private_access.access_mode, "custom");
+  assert.equal(evidence.private_access.allowed_user_count, 1);
+  assert.equal(evidence.private_access.allowed_group_count, 0);
+  assert.equal(evidence.private_access.external_visitor_count, 0);
+  assert.equal(evidence.controlled_private_deployment.deployed_version_number, 35);
+  assert.equal(evidence.controlled_private_deployment.terminal_status, "succeeded");
+  assert.equal(evidence.rollback_and_restore.rollback_version_number, 34);
+  assert.equal(evidence.rollback_and_restore.rollback_terminal_status, "succeeded");
+  assert.equal(evidence.rollback_and_restore.restore_version_number, 35);
+  assert.equal(evidence.rollback_and_restore.restore_terminal_status, "succeeded");
+  assert.equal(evidence.rollback_and_restore.private_access_preserved_after_rollback_and_restore, true);
+  assert.equal(evidence.post_restore_observation.error_event_count, 0);
+  assert.equal(evidence.post_restore_observation.log_bodies_retained, false);
+  assert.equal(evidence.controlled_browser_e2e.browser_control_runtime_available, false);
+  assert.equal(evidence.controlled_browser_e2e.browser_cookie_or_storage_inspected, false);
+  assert.equal(evidence.controlled_browser_e2e.sites_bypass_token_generated_or_used, false);
+  assert.equal(
+    evidence.controlled_browser_e2e.email_registration_verification_reset_and_signin,
+    "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR",
+  );
+  assert.equal(
+    evidence.controlled_browser_e2e.a_b_tenant_isolation_and_second_device_history,
+    "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR",
+  );
+  assert.equal(
+    evidence.controlled_browser_e2e.d1_r2_reconciliation,
+    "NOT_RUN_NO_AUTHENTICATED_CLOUDFLARE_STORAGE_CATALOGUE",
+  );
+  assert.equal(evidence.scope_and_limits.public_audience_changed, false);
+  assert.equal(evidence.scope_and_limits.github_uploaded, false);
+  assert.equal(evidence.scope_and_limits.product_pass_claimed, false);
+  assert.equal(evidence.sensitive_values_recorded, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
+test("production ledger identifies Version 35 as the current private partial evidence", async () => {
+  const ledger = JSON.parse(
+    await readFile(new URL("../13_evidence/production.json", import.meta.url), "utf8"),
+  );
+
+  assert.equal(ledger.status, "PRIVATE_VERSION_35_S5_T3_PARTIAL");
+  assert.equal(ledger.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(ledger.current_private_candidate.saved_version_number, 35);
+  assert.equal(ledger.current_private_candidate.source_readback_matches_saved_candidate, true);
+  assert.equal(ledger.current_private_candidate.archive_stored_by_sites, true);
+  assert.equal(ledger.current_private_candidate.controlled_private_deployment, "SUCCEEDED");
+  assert.equal(ledger.current_private_candidate.rollback_restore, "V35_TO_V34_TO_V35_SUCCEEDED");
+  assert.equal(ledger.current_private_candidate.public_audience_changed, false);
+  assert.equal(ledger.current_private_candidate.browser_e2e_current_version, "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR");
+  assert.equal(ledger.controlled_deployment_and_recovery.version_35_private_deploy, "SUCCEEDED");
+  assert.equal(ledger.controlled_deployment_and_recovery.version_35_to_34_private_rollback, "SUCCEEDED");
+  assert.equal(ledger.controlled_deployment_and_recovery.version_34_to_35_private_restore, "SUCCEEDED");
+  assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_35, true);
+  assert.equal(
+    ledger.evidence_files.includes("13_evidence/private_version_35_s5_t3_controlled_private_deployment_and_rollback.json"),
+    true,
+  );
+  assert.equal(ledger.public_deploy_eligible, false);
+});
+
 test("Version 34 S5-T2 configuration evidence preserves value-free private continuity", async () => {
   const configuration = JSON.parse(
     await readFile(
