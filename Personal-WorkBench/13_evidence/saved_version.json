@@ -114,5 +114,18 @@
     "Google、邮箱验证/找回、Turnstile、真实 D1/R2、跨设备同步、私有部署和回滚演练仍由 S5-T2 至 S6-T2 采证。",
     "本次没有发起部署；任何现有 live URL 不被视为本 Candidate 的运行时通过证据。",
     "公开 audience 和 GitHub 上传仍未执行。"
-  ]
+  ],
+  "current_private_candidate": {
+    "observed_at": "2026-08-11",
+    "status": "PASS_PRIVATE_SAVED_VERSION_CANDIDATE",
+    "saved_version_number": 32,
+    "source_pushed_from_s4_t3a_approved_candidate": true,
+    "source_readback_matches_pushed_candidate": true,
+    "archive_stored_by_sites": true,
+    "private_access_preserved": true,
+    "deployment_action_called": false,
+    "public_audience_changed": false,
+    "github_uploaded": false,
+    "evidence": "13_evidence/private_version_32_s5_t1_saved_candidate.json"
+  }
 }
