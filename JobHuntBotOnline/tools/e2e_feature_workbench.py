@@ -55,6 +55,7 @@ def main() -> int:
         "full_production_pass_still_requires_real_email_lifecycle": True,
     }
     raw_session: str | None = None
+    stage = "configuration"
     factory = make_session_factory(make_engine(settings.database_url))
     try:
         base_url = _base_url(args.base_url or settings.base_url)
@@ -95,8 +96,14 @@ def main() -> int:
             raw_session, _session = create_session(db, user, settings)
 
         with sync_playwright() as playwright:
+            stage = "launch_browser"
             browser = playwright.chromium.launch()
             context = browser.new_context()
+            # This optional analytics script is outside the product's same-
+            # origin interaction surface and can keep a browser connection
+            # active indefinitely, preventing an otherwise healthy page from
+            # reaching Playwright's network-idle state.
+            context.route("https://static.cloudflareinsights.com/*", lambda route: route.abort())
             context.add_cookies([{
                 "name": "jobhunt_session",
                 "value": raw_session,
@@ -106,14 +113,17 @@ def main() -> int:
                 "sameSite": "Lax",
             }])
             page = context.new_page()
-            page.goto(f"{base_url}/recommendations", wait_until="networkidle")
+            stage = "open_recommendations"
+            page.goto(f"{base_url}/recommendations", wait_until="domcontentloaded")
             page.wait_for_load_state("networkidle")
             if page.locator("[data-testid='recommendation-results']").count() != 1:
                 raise RuntimeError("recommendation result region is unavailable")
+            stage = "expand_relevance"
             with page.expect_response(lambda response: "/recommendations" in response.url and "partial=true" in response.url):
                 page.locator("[data-testid='filter-relevance']").select_option(value="")
             page.wait_for_load_state("networkidle")
             all_count = page.locator("[data-testid='job-card']").count()
+            stage = "filter_by_role"
             with page.expect_response(lambda response: "/recommendations" in response.url and "partial=true" in response.url):
                 page.locator("[data-testid='filter-role']").select_option(label=role)
             page.wait_for_load_state("networkidle")
@@ -123,11 +133,13 @@ def main() -> int:
             if "partial=true" in page.url or "role=" not in page.url:
                 raise RuntimeError("live filter did not keep a clean, selected URL state")
 
-            page.goto(f"{base_url}/recommendations/{recommendation.id}/ai", wait_until="networkidle")
+            stage = "open_ai_consultation"
+            page.goto(f"{base_url}/recommendations/{recommendation.id}/ai", wait_until="domcontentloaded")
             page.wait_for_load_state("networkidle")
             if page.locator("[data-testid='ai-consult-form']").count() != 1:
                 raise RuntimeError("AI consultation entry is unavailable")
-            page.goto(f"{base_url}/applications", wait_until="networkidle")
+            stage = "open_application_workspace"
+            page.goto(f"{base_url}/applications", wait_until="domcontentloaded")
             page.wait_for_load_state("networkidle")
             if page.locator("[data-testid='application-event-form']").count() != 1:
                 raise RuntimeError("application progress workspace is unavailable")
@@ -143,6 +155,7 @@ def main() -> int:
         })
     except Exception as exc:
         result["error_type"] = type(exc).__name__
+        result["stage"] = stage
     finally:
         if raw_session:
             with factory() as db:
