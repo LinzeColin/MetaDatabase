@@ -346,32 +346,34 @@ def test_pwa_reads_the_failure_code_at_all() -> None:
 
 
 def test_pwa_asset_version_is_not_stale() -> None:
-    """缓存版本号必须随界面改动一起升，否则**回访用户拿到的还是旧 app.js**。
+    """缓存版本号必须随界面改动一起变，否则**回访用户拿到的还是旧 app.js**。
 
-    实测踩到过：本地验 T14 时页面一直显示旧文案，就是 index.html 里
-    `app.js?v=006-r1` 与 sw.js 的缓存名都还停在 v006。
+    实测踩到过三次：
+    - v0.0.0.7 本地验 T14 页面一直显示旧文案，index.html 与 sw.js 都还停在 v006；
+    - **2026-08-11 上午**：这条判据自己写的是 `assert "social-archive-ui-v007" in sw`
+      ——**要求缓存名永远停在 v007**。二十二个版本里谁真去升它，这道门就打红谁。
+      同期公网那份 app.js 是 137559 字节的旧文件，少了刚发的那颗按钮。
+    - **同日下午**：改成跟着 `VERSION` 走之后仍有一扇同形状的门——
+      改了 `apps/pwa/` 却忘了升版，戳照样不动。
 
-    ## 2026-08-11：这条判据自己在替那个 bug 站岗
-
-    它原来写的是 `assert "social-archive-ui-v007" in sw`——
-    **要求缓存名永远停在 v007。** 于是从 v0.0.0.7 到 v0.0.0.29 这二十二版里，
-    谁真去升这个缓存名，这道门就打红谁；不升，它一直是绿的。
-    一道**只有保持不变才能通过**的「防止不变」判据。
-
-    实际后果：`0.0.0.29` 的「删除并清空」发上生产后，公网那份 `app.js`
-    仍是 137559 字节的旧文件（容器里 140335、`cf-cache-status: HIT`、`age: 3794`）。
-
-    改成跟着 `VERSION` 走——**它现在每一版都必须变，也每一版都能变绿。**
-    形制细节由 test_the_browser_gets_the_new_front_end.py 守。
+    现在戳由**内容**算（`scripts/stamp_pwa_assets.py`，sha256 前 8 位）：
+    改了内容哈希必变，忘不掉也糊弄不了。这条判据跟着改成对内容。
     """
-    version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "stamp_pwa_assets_for_matrix", ROOT / "scripts/stamp_pwa_assets.py")
+    stamper = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(stamper)
+    stamp, _ = stamper.compute_stamp()
     for relative in ("apps/pwa/index.html", "apps/pwa/sw.js", "apps/pwa/app.js"):
         text = (ROOT / relative).read_text(encoding="utf-8")
-        stale = re.findall(r"\?v=(?!" + re.escape(version) + r")([^\"'\s>]+)", text)
-        assert not stale, f"{relative} 里还有不跟着版本走的资源戳：{sorted(set(stale))}"
+        stale = re.findall(r"\?v=(?!" + re.escape(stamp) + r")([^\"'\s>)]*)", text)
+        assert not stale, f"{relative} 里还有和内容对不上的资源戳：{sorted(set(stale))}"
     sw = (ROOT / "apps/pwa/sw.js").read_text(encoding="utf-8")
-    assert f"social-archive-ui-{version}" in sw, (
-        f"service worker 缓存名没跟到 {version}——不换代，老用户那份缓存就永远不换")
+    assert f"social-archive-ui-{stamp}" in sw, (
+        f"service worker 缓存名没跟到内容哈希 {stamp}——不换代，老用户那份缓存就永远不换")
 
 
 # ── 词典必须被生产代码真的用上 ────────────────────────────────────

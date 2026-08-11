@@ -207,6 +207,30 @@ else
   printf '  ⚠️  跳过了「国内平台 Cookie 不出浏览器」这道硬闸（SA_ALLOW_DOMESTIC_CREDENTIAL_ON_SERVER）。\n'
 fi
 
+step "0.5) 前端资产的缓存戳，和内容对得上吗"
+# **源站设 Cache-Control 治不了这件事**（同日实测）：
+#   源站 127.0.0.1:18765  →  一个 cache-control 都没有
+#   公网（经 Cloudflare） →  cache-control: max-age=14400
+# 那 4 小时是 Cloudflare 的 Browser Cache TTL 加的，源站的头会被它盖掉。
+# 所以换缓存键是唯一可靠的手段，而键必须永远等于内容的哈希——
+# 改完 apps/pwa/ 忘了重新打戳，这一版就到不了他浏览器（最长 4 小时）。
+if ! .venv/bin/python scripts/stamp_pwa_assets.py --check > /tmp/sa_stamp.$$ 2>&1; then
+  python3 -c "
+import json
+try:
+    d=json.load(open('/tmp/sa_stamp.$$'))
+except Exception:
+    print(open('/tmp/sa_stamp.$$').read()[-600:]); raise SystemExit
+for p in d.get('problems', []): print('  ✗', p)"
+  rm -f /tmp/sa_stamp.$$
+  fail '前端资产的戳和内容对不上——先跑一次 scripts/stamp_pwa_assets.py 再部署。'
+fi
+python3 -c "
+import json
+d=json.load(open('/tmp/sa_stamp.$$'))
+print(f\"  戳 {d['stamp_from_content']}（{len(d['hashed_files'])} 个资产的内容哈希），三处文件都对得上。\")"
+rm -f /tmp/sa_stamp.$$
+
 step "1) 部署前量一次密钥不变量"
 BEFORE="$(secret_fingerprint)"
 printf '%s\n' "$BEFORE" | sed 's/^/  /'

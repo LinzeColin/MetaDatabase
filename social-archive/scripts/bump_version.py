@@ -56,17 +56,15 @@ SITES: list[tuple[str, str, str, str]] = [
     # 拿到的是 137559 字节的旧文件，而容器里那份是 140335 字节。
     # 也就是说：**服务端换了，他浏览器里那份最多 4 小时还是旧的**。
     # 这是资产层的「出了货没升版＝没出货」。跟着版本走，一部署就失效。
-    # **Service Worker 的缓存名 + 预缓存清单。**（2026-08-11）
-    # 它是第二层缓存：名字不变，老用户那份缓存永远不换代；
-    # 预缓存清单里的 URL 和首页请求的 URL 对不上，那几条就是白存的。
-    ("apps/pwa/sw.js", r'social-archive-ui-{old}"', 'social-archive-ui-{new}"',
-     "SW 缓存名；不变就等于回访用户永远停在旧界面"),
-    ("apps/pwa/sw.js", r"\?v={old}", "?v={new}",
-     "SW 预缓存的资源 URL；要和首页请求的那几个是同一个键"),
-    ("apps/pwa/app.js", r"/assets/sw\.js\?v={old}", "/assets/sw.js?v={new}",
-     "注册 SW 的那个 URL；写死了连 SW 本身的更新都要等 CDN"),
-    ("apps/pwa/index.html", r"\?v=[^\"']+", "?v={new}",
-     "前端资产的缓存戳；不跟着版本走，他刷新也拿不到新代码"),
+    # **前端资产的缓存戳不在这里了。**（2026-08-11，同一天里改了两次）
+    #
+    # 第一版把它们改成跟着版本号走（首页 4 处、sw.js 缓存名+清单、app.js 的
+    # 注册 URL）。那修好了「戳永远不动」，却留下同形状的后门：
+    # **改了 apps/pwa/ 却忘了升版 → 戳不动 → 他还是拿旧的**
+    # （apps/browser-extension/ 有「改了就必须升版」那条判据，apps/pwa/ 没有）。
+    #
+    # 现在戳由内容算：scripts/stamp_pwa_assets.py，`--check` 可核对。
+    # 忘不掉也糊弄不了——改了内容哈希必变。这里再插手只会和它打架。
     ("VERSION", r"^{old}\s*$", "{new}\n",
      "部署脚本拿它拼镜像 tag；不改就会部署到另一个 tag 上去"),
     ("src/social_archive/__init__.py", r'(?m)^__version__\s*=\s*"{old}"',

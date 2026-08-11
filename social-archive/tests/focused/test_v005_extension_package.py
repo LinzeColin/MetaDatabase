@@ -57,7 +57,16 @@ def test_service_worker_replaces_the_stale_ui_cache_with_current_assets_immediat
     index_html = (ROOT / "apps/pwa/index.html").read_text(encoding="utf-8")
     app_js = (ROOT / "apps/pwa/app.js").read_text(encoding="utf-8")
     service_worker = (ROOT / "apps/pwa/sw.js").read_text(encoding="utf-8")
-    version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "stamp_pwa_assets_for_sw", ROOT / "scripts/stamp_pwa_assets.py")
+    stamper = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(stamper)
+    # **戳由内容算，不是版本号。** 跟着版本走会留一扇门：
+    # 改了 apps/pwa/ 却忘了升版，戳不动，他还是拿旧的。
+    version, _ = stamper.compute_stamp()
 
     cache_match = _re.search(r'const CACHE = "social-archive-ui-([^"]+)";', service_worker)
     assert cache_match, "sw.js 里找不到带版本的缓存名"
