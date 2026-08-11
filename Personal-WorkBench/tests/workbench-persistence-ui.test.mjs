@@ -82,8 +82,8 @@ test("normal menu routes keep every user-audited lifecycle control bound to a st
   assert.match(source, /onClick=\{\(\) => void addRecord\(\)\}/);
   assert.match(source, /const saved = await ledger\.create\(\{/);
 
-  for (const module of ["exercise", "weight", "food"]) {
-    assert.match(source, new RegExp(`onClick=\\{\\(\\) => selectModule\\("${module}"\\)\\}`), module);
+  for (const resourceModule of ["exercise", "weight", "food"]) {
+    assert.match(source, new RegExp(`onClick=\\{\\(\\) => selectModule\\("${resourceModule}"\\)\\}`), resourceModule);
   }
   assert.match(source, /onClick=\{openPhotoPicker\}/);
   assert.match(source, /photoInputRef\.current\?\.click\(\);/);
