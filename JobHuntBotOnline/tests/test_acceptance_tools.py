@@ -93,6 +93,27 @@ def test_taskpack_verifier_is_reentrant_and_runtime_scoped(tmp_path):
     assert "manifest inventory drift" in drift.stdout
 
 
+def test_taskpack_verifier_ignores_server_only_environment_snapshots(tmp_path):
+    pack = tmp_path / "pack"
+    copy_taskpack_source(pack)
+    (pack / ".env").write_text("SYNTHETIC=1\n", encoding="utf-8")
+    (pack / ".env").chmod(stat.S_IRUSR | stat.S_IWUSR)
+    (pack / "secrets/postgres_password.txt").write_text("synthetic\n", encoding="utf-8")
+    (pack / "secrets/postgres_password.txt").chmod(stat.S_IRUSR | stat.S_IWUSR)
+    (pack / ".env.pre-secret-rotation").write_text("SYNTHETIC_SNAPSHOT=1\n", encoding="utf-8")
+    output = pack / "evidence/target-taskpack.json"
+
+    completed = subprocess.run(
+        [sys.executable, str(pack / "tools/verify_taskpack.py"), "--deployment-runtime", "--output", str(output)],
+        cwd=pack,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stdout
+    assert json.loads(output.read_text(encoding="utf-8"))["verdict"] == "PASS"
+
+
 def test_finalizer_requires_every_critical_evidence(tmp_path):
     evidence = tmp_path / "evidence"; evidence.mkdir(); write_passes(evidence)
     output = tmp_path / "result.json"

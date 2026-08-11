@@ -36,10 +36,17 @@ RUNTIME_GENERATED_EVIDENCE = {
     "evidence/predeploy-taskpack.json",
     "evidence/migration-result.json",
 }
+SERVER_ONLY_ENV_SNAPSHOTS = (".env.pre-", ".env.tmp.")
 
 
 def runtime_artifact(rel: Path, *, deployment_runtime: bool) -> bool:
     value = rel.as_posix()
+    # Deployment operators may retain an inactive, mode-restricted environment
+    # snapshot while replacing server Secrets.  It is neither taskpack source
+    # nor active configuration, and must never be copied into the manifest or
+    # examined as source material.
+    if rel.name.startswith(SERVER_ONLY_ENV_SNAPSHOTS):
+        return True
     if value == "evidence/predeploy-taskpack.json":
         return True
     if not deployment_runtime:
