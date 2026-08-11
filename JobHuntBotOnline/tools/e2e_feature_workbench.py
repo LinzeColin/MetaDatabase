@@ -85,11 +85,30 @@ def main() -> int:
                     or_(Job.owner_user_id.is_(None), Job.owner_user_id == user.id),
                 )
             ) or 0
+            expected_high = db.scalar(
+                select(func.count(Recommendation.id))
+                .join(Job, Job.id == Recommendation.job_id)
+                .where(
+                    Recommendation.user_id == user.id,
+                    Recommendation.relevance == "high",
+                    or_(Job.owner_user_id.is_(None), Job.owner_user_id == user.id),
+                )
+            ) or 0
             expected_role = db.scalar(
                 select(func.count(Recommendation.id))
                 .join(Job, Job.id == Recommendation.job_id)
                 .where(
                     Recommendation.user_id == user.id,
+                    Job.role_family == role,
+                    or_(Job.owner_user_id.is_(None), Job.owner_user_id == user.id),
+                )
+            ) or 0
+            expected_role_high = db.scalar(
+                select(func.count(Recommendation.id))
+                .join(Job, Job.id == Recommendation.job_id)
+                .where(
+                    Recommendation.user_id == user.id,
+                    Recommendation.relevance == "high",
                     Job.role_family == role,
                     or_(Job.owner_user_id.is_(None), Job.owner_user_id == user.id),
                 )
@@ -141,13 +160,20 @@ def main() -> int:
             if page.locator("[data-testid='recommendation-results']").count() != 1:
                 raise RuntimeError("recommendation result region is unavailable")
             stage = "expand_relevance"
+            relevance_control = page.locator("[data-testid='filter-relevance']")
+            initial_relevance = relevance_control.input_value()
+            target_relevance = "high" if initial_relevance == "" else ""
+            expected_relevance_count = expected_all if target_relevance == "" else expected_high
+            expected_role_count = expected_role if target_relevance == "" else expected_role_high
             requests_before = client_diagnostics["partial_request_count"]
-            page.locator("[data-testid='filter-relevance']").select_option(value="")
+            relevance_control.select_option(value=target_relevance)
             page.wait_for_timeout(700)
             page.wait_for_load_state("networkidle")
             if client_diagnostics["partial_request_count"] <= requests_before:
                 raise RuntimeError("relevance selection did not start a live filter request")
             all_count = page.locator("[data-testid='job-card']").count()
+            if all_count != expected_relevance_count:
+                raise RuntimeError("relevance filter result count differs from the server-side record count")
             stage = "filter_by_role"
             requests_before = client_diagnostics["partial_request_count"]
             page.locator("[data-testid='filter-role']").select_option(label=role)
@@ -156,7 +182,7 @@ def main() -> int:
             if client_diagnostics["partial_request_count"] <= requests_before:
                 raise RuntimeError("role selection did not start a live filter request")
             role_count = page.locator("[data-testid='job-card']").count()
-            if all_count != expected_all or role_count != expected_role:
+            if all_count != expected_relevance_count or role_count != expected_role_count:
                 raise RuntimeError("live filter result count differs from the server-side record count")
             if "partial=true" in page.url or "role=" not in page.url:
                 raise RuntimeError("live filter did not keep a clean, selected URL state")
@@ -176,8 +202,9 @@ def main() -> int:
 
         result.update({
             "verdict": "PASS",
-            "live_filter_server_count": expected_all,
-            "live_filter_role_count": expected_role,
+            "live_filter_server_count": expected_relevance_count,
+            "live_filter_role_count": expected_role_count,
+            "initial_relevance": initial_relevance,
             "ai_consultation_entry": True,
             "application_progress_workspace": True,
             **client_diagnostics,
