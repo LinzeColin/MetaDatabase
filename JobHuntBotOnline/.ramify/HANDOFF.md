@@ -54,11 +54,28 @@ Do not repeat product research. NitroSend is removed: do not wait for it, connec
   `ACCEPTANCE_COMMIT` value must not be used as a completion receipt because
   its associated root acceptance result is absent.
 
+## 2026-08-11 anti-burst deployment receipt
+
+- Commit `6e8404f3b` is deployed to the VPS3 release directory. The release
+  directory is intentionally a deployment copy rather than a Git checkout;
+  the exact committed files were staged there before the normal backup,
+  build, Alembic, Web, Scheduler and Worker deployment sequence.
+- A disposable VPS3 container ran the deployed source with a read-only mount
+  and `--network none`: all 36 tests passed. No SMTP connection, real mailbox,
+  browser acceptance, or public registration action occurred in that run.
+- Runtime readback reports `email_min_interval_seconds=1800`,
+  `email_max_per_user_per_24h=3`, and `allow_registration=false`.
+  HTTPS `/readyz` is healthy with `refresh_hours=6`, public `/register`
+  remains HTTP 403, and encrypted-backup verification passed.
+- `deploy/acceptance.sh` was invoked only with the live default opt-out. It
+  exited 2 before evidence cleanup or browser startup, reporting that no email
+  had been sent. The root `ACCEPTANCE_RESULT.json` remains absent.
+
 ## Next authorized action
 
-Deploy and verify the anti-burst controls on VPS3 while public registration
-stays closed. A future real-email production acceptance requires two dedicated
-acceptance inboxes, `ALLOW_REGISTRATION=true`,
+The anti-burst controls are deployed and public registration stays closed. A
+future real-email production acceptance requires two dedicated acceptance
+inboxes, `ALLOW_REGISTRATION=true`,
 `RUN_REAL_EMAIL_ACCEPTANCE=true`, and a fresh
 `REAL_EMAIL_ACCEPTANCE_RUN_ID`; only then may T06/T08 be rerun and a new root
 `ACCEPTANCE_RESULT.json` be considered for T10.
