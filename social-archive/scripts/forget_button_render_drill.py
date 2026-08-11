@@ -52,13 +52,20 @@ import sys
 import tempfile
 import threading
 import urllib.request
+import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import websockets
 
 ROOT = Path(__file__).resolve().parents[1]
-PORT = 8771
+# **必须是 8765。**（2026-08-11）
+# 扩展的 host_permissions 里只有 `http://127.0.0.1:8765/*` 这一个本机源，
+# 换个端口内容脚本就注不进去、页面永远认不出插件——
+# 这个演练此前用 8771，于是**所有以「插件装着」为前提的界面它一屏都走不到**
+# （「下一步」那张卡永远停在「第 1 步：安装浏览器插件」，
+# 点「连接账号」则挂在 ensureExtensionReady 上不返回）。
+PORT = 8765
 DEBUG_PORT = 9371
 DEFAULT_ORIGIN = "https://social-archive-api.linzezhang.com"
 
@@ -70,23 +77,29 @@ ACCOUNTS = {
         {"id": "acct_bili", "platform": "bilibili", "display_name": "B站",
          "connection_state": "disconnected", "auto_sync_enabled": False, "content_count": 103},
     ],
-    "supported_platforms": ["bilibili", "douyin", "kuaishou", "xiaohongshu",
-                            "generic-web", "instagram", "reddit", "x", "youtube"],
-}
-
-FAKE: dict[str, dict] = {
-    # **`/health` 不能少。** 它不在 /v1/ 下，假服务端会 404 它，
-    # 于是 `loadHealth()` 抛错、右上角徽章变成「私人档案馆暂时不可用」——
-    # 那是**夹具的毛病**，而它看起来和一个真缺陷一模一样
-    # （2026-08-11 我照着它查了一轮才发现是自己少喂了一个路由）。
-    "/health": {"status": "ok", "version": "0.0.0.0", "minimum_extension_version": "0.0.0.0",
-                "worker": {"ever_seen": True, "alive": True}},
-    "/v1/storage/status": {"status": "ok", "replicas": []},
-    "/v1/auth/me": {"id": "user_1", "email": "owner@example.com", "display_name": "Owner"},
-    "/v1/accounts": ACCOUNTS,
-    "/v1/sync-runs": {"items": []},
-    "/v1/status": {"connectors": [], "destinations": []},
-    "/v1/library": {"items": [], "total": 0, "facets": {}},
+    # **形状要和服务端下发的一样**：一个对象数组，不是一串平台名。
+    # 我第一版给的是字符串数组，于是「第 3 步」那张卡渲染成
+    # 「本版本能自动同步的是：undefined。」——**夹具的错**，
+    # 但那句话要是真出现在他屏幕上就是产品的错，所以下面单独断言不许有 undefined。
+    #
+    # **九个平台一个都不能少，写在同一个字面量里。**
+    # 我第二版把它拆成两段推导式（能同步的 7 个 + 不能的 2 个），
+    # check_every_platform_table_is_complete.py 立刻报「这张表里没有 x / youtube」
+    # ——它按字面量逐张查，拆开就成了两张各自不全的表。那道门是对的：
+    # 平台表漏一个，用户看到的就是内部 id、空白，或者一个根本不存在的按钮。
+    "supported_platforms": [
+        {"platform": "bilibili", "sync_supported": True, "connect_supported": True},
+        {"platform": "douyin", "sync_supported": True, "connect_supported": True},
+        {"platform": "kuaishou", "sync_supported": True, "connect_supported": True},
+        {"platform": "xiaohongshu", "sync_supported": True, "connect_supported": True},
+        {"platform": "generic-web", "sync_supported": True, "connect_supported": True},
+        {"platform": "instagram", "sync_supported": True, "connect_supported": True},
+        {"platform": "reddit", "sync_supported": True, "connect_supported": True},
+        {"platform": "x", "sync_supported": False, "connect_supported": True,
+         "not_syncable_reason": "本版本还不能自动同步这个平台。"},
+        {"platform": "youtube", "sync_supported": False, "connect_supported": True,
+         "not_syncable_reason": "本版本还不能自动同步这个平台。"},
+    ],
 }
 
 # 页面真发出去的写请求。**「按钮点了没反应」和「按钮根本没画出来」长得一样**，
@@ -185,6 +198,10 @@ READ_BUTTON = r"""
       accountId: b.dataset.forgetAccount,
     })),
     errors: (window.__drillErrors || []).slice(0, 4),
+    // 他照说明书第 3 步要点的就是这张卡。**正对照**：卡片停在第 1/2 步
+    // 说明插件没被认出来，那这条断言就是空转，不许当通过。
+    nextStep: ((document.getElementById("nextStep") || {}).innerText || "")
+      .replace(/\s+/g, " ").slice(0, 260),
   });
 })()
 """
@@ -258,7 +275,17 @@ async def run(chrome: str, origin: str) -> int:
                          ensure_ascii=False))
         return 3
 
+    # **按当前源码重打一次包再装。**（stale-artifacts-from-my-machine-leak-into-the-build）
+    build = subprocess.run([sys.executable, str(ROOT / "scripts/build_extension_package.py")],
+                           cwd=ROOT, capture_output=True, text=True, check=False)
+    if build.returncode != 0:
+        print(json.dumps({"status": "FAIL", "error_code": "PACKAGE_BUILD_FAILED",
+                          "detail": (build.stdout + build.stderr)[-400:]}, ensure_ascii=False))
+        return 3
     profile = Path(tempfile.mkdtemp(prefix="sa-forget-profile-"))
+    unpacked = profile.parent / (profile.name + "-ext")
+    with zipfile.ZipFile(EXTENSION_ZIP) as archive:
+        archive.extractall(unpacked)
     server = ThreadingHTTPServer(("127.0.0.1", PORT), _Handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     process = subprocess.Popen(
@@ -281,6 +308,28 @@ async def run(chrome: str, origin: str) -> int:
             print(json.dumps({"status": "FAIL", "error_code": "CHROME_NOT_UP"}, ensure_ascii=False))
             return 4
         await asyncio.sleep(3)
+        # 装发布包，并把它和假档案馆配上对。
+        version = json.loads(urllib.request.urlopen(base + "/json/version", timeout=5).read())
+        extension_id = ""
+        async with websockets.connect(version["webSocketDebuggerUrl"], max_size=None) as ws:
+            rpc = await _rpc_factory(ws)
+            got = await rpc("Extensions.loadUnpacked", {"path": str(unpacked)})
+            extension_id = (got.get("result") or {}).get("id", "")
+        for _ in range(20):
+            workers = [x for x in json.loads(
+                urllib.request.urlopen(base + "/json", timeout=5).read())
+                if x.get("type") == "service_worker" and extension_id in x.get("url", "")]
+            if workers:
+                async with websockets.connect(workers[0]["webSocketDebuggerUrl"],
+                                              max_size=None) as ws:
+                    rpc = await _rpc_factory(ws)
+                    await rpc("Runtime.enable")
+                    await rpc("Runtime.evaluate", {
+                        "expression": f'SA.setConfig({{endpoint:"http://127.0.0.1:{PORT}",'
+                                      f' token:"drill"}})',
+                        "awaitPromise": True, "returnByValue": True})
+                break
+            await asyncio.sleep(0.5)
         targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
         pages = [t for t in targets if t["type"] == "page" and f"127.0.0.1:{PORT}" in t["url"]]
         if not pages:
@@ -313,6 +362,19 @@ async def run(chrome: str, origin: str) -> int:
             posted.clear()
             measured["right_name"] = await evaluate(click_with_prompt("抖音"))
             measured["right_name_requests"] = list(posted)
+
+            # ── 第二遍：把账号全设成 disconnected，重载，再读那张卡 ──
+            # 这正是 Owner 现在的状态（三个账号全断开），
+            # 也正是《使用说明》第 3 步描述的那一屏。
+            FAKE["/v1/accounts"] = {
+                "items": [{**item, "connection_state": "disconnected",
+                           "auto_sync_enabled": False}
+                          for item in ACCOUNTS["items"]],
+                "supported_platforms": ACCOUNTS["supported_platforms"],
+            }
+            await rpc("Page.reload", {"ignoreCache": True})
+            await asyncio.sleep(4)
+            measured["all_disconnected"] = await evaluate(READ_BUTTON)
     finally:
         process.terminate()
         server.shutdown()
@@ -336,6 +398,28 @@ async def run(chrome: str, origin: str) -> int:
         problems.append("删完没有把服务端那句话说给他听")
     if rendered.get("errors"):
         problems.append(f"页面报错：{rendered['errors']}")
+    # **正对照**：卡片停在第 1/2 步 = 这一页没认出插件，
+    # 那么所有「以插件装着为前提」的断言都是空转，不许当通过。
+    step = rendered.get("nextStep", "")
+    if "第 1 步" in step or "第 2 步" in step:
+        problems.append(
+            f"「下一步」那张卡停在 {step[:40]!r}——**插件没被这一页认出来**。"
+            "多半是端口不在 host_permissions 里（只能是 127.0.0.1:8765），"
+            "或者没和假档案馆配对。这是演练的问题，不是产品的——"
+            "而它会让下面那些断言变成空转")
+    # 这个夹具里抖音是**连着**的，所以这一屏该到第 4 步（同步一次）。
+    elif "第 4 步" not in step:
+        problems.append(f"有一个已连接的可同步账号时，这张卡该是第 4 步，实际是：{step[:120]!r}")
+    # **第二遍：全断开**——他现在就是这个状态，也正是说明书第 3 步描述的那一屏。
+    disconnected_step = measured.get("all_disconnected", {}).get("nextStep", "")
+    if "undefined" in disconnected_step or "[object" in disconnected_step:
+        problems.append(f"那张卡上出现了 undefined/[object：{disconnected_step[:140]!r}"
+                        "——他会在屏幕上读到这个词")
+    if "第 3 步" not in disconnected_step or "去连接" not in disconnected_step:
+        problems.append(
+            f"一个账号都没连着时，他照说明书第 3 步该看到的那张卡不对："
+            f"{disconnected_step[:140]!r}——说明书写的是"
+            "「资料库上会有一张卡片让你『去连接』」")
 
     result = {
         "status": "FAIL" if problems else "PASS",
