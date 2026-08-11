@@ -80,11 +80,12 @@ point. Secrets stay outside Git and evidence.
   finds only historical JobHuntBot ledger-event references, not a deployed
   runtime registration. Do not treat the draft as deployed evidence or replace
   it with a stale VPS1 collector.
-- Private-Database readback is current at `2026-08-11T04:04:38Z` under
+- Private-Database readback is current at `2026-08-11T04:30:18Z` under
   `Private-MetaDatabase/JobHuntBotOnline/operations/v0.3.0/latest.json` with
   schema `jobhuntbot-ops-projection-v2`, `EMAIL_ONLY_BLOCKED`,
-  `production_claimed=false`, and no business data, PII, or Secrets.
-  PostgreSQL remains the sole business-data authority.
+  `production_claimed=false`, deployed code commit `8ee2e3690`, verified
+  predeploy backup, and no business data, PII, or Secrets. PostgreSQL remains
+  the sole business-data authority.
 - R2 is deliberately `NOT_CONFIGURED`. No JobHuntBot-specific bucket or
   credential is authorized, and no R2 operation, InfrequentAccess setting,
   recurring task, or cross-project credential reuse was performed. The target
