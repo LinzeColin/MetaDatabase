@@ -378,6 +378,19 @@
       "response_cookie_values_retained": false,
       "provider_callback_or_application_session_proven": false
     },
+    "public_sign_up_surface": {
+      "status": "HTTP_200",
+      "email_input_present": true,
+      "password_input_present": true,
+      "google_entry_present": true,
+      "turnstile_mount_present": true
+    },
+    "primary_menu_rendering": {
+      "checked_view_count": 9,
+      "all_http_200": true,
+      "distinct_render_count": 9,
+      "raw_html_retained": false
+    },
     "raw_url_recorded": false,
     "authenticated_user_or_business_data_read_or_written": false
   },
