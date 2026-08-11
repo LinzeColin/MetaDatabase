@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { LegacyImportPanel } from "./legacy-import-panel";
 
 type Account = { id: string; providerId: string };
 type Session = { user: { name: string; email: string; emailVerified: boolean } } | null;
@@ -400,6 +401,8 @@ useEffect(() => {
               </div>
               {!privacyDisclosureReady ? <p className="account-note">隐私联系信息尚未配置，当前环境不能开启敏感跨设备保存。</p> : null}
             </section>
+
+            <LegacyImportPanel />
           </>
         ) : <Link className="auth-primary-link" href="/auth/sign-in">去登录</Link>}
       </section>

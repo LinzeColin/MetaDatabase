@@ -6,6 +6,8 @@ const lifecycleSource = "app/_components/workbench/lifestyle-pages-client.tsx";
 const pageSource = "app/page.tsx";
 const resourceSource = "app/_components/workbench/tenant-resource-client.tsx";
 const todoSource = "app/_components/workbench/todo-page-client.tsx";
+const accountSource = "app/account/page.tsx";
+const legacyImportPanelSource = "app/account/legacy-import-panel.tsx";
 
 test("workbench pages bind every visible lifecycle module to the tenant resource client", async () => {
   const source = await readFile(lifecycleSource, "utf8");
@@ -39,6 +41,23 @@ test("home preserves an on-device save acknowledgement while still offering the 
   assert.match(source, /const statusError = habits\.error \|\| checkins\.error;/);
   assert.match(source, /authRequired=\{authRequired\}/);
   assert.match(source, /loginSuggested=\{loginSuggested\}/);
+});
+
+test("account exposes an explicit preview-before-apply legacy migration without changing source browser data", async () => {
+  const [account, panel] = await Promise.all([
+    readFile(accountSource, "utf8"),
+    readFile(legacyImportPanelSource, "utf8"),
+  ]);
+
+  assert.match(account, /import \{ LegacyImportPanel \} from "\.\/legacy-import-panel"/);
+  assert.match(account, /<LegacyImportPanel \/>/);
+  assert.match(panel, /\/api\/mydairy\/legacy-import\/preview/);
+  assert.match(panel, /\/api\/mydairy\/legacy-import\/apply\?request_id=/);
+  assert.match(panel, /accept="application\/json,\.json"/);
+  assert.match(panel, /预览完成：共/);
+  assert.match(panel, /确认导入到我的历史/);
+  assert.match(panel, /不会删除原文件或原浏览器数据/);
+  assert.doesNotMatch(panel, /deleteDatabase|indexedDB\.deleteDatabase|localStorage\.removeItem/);
 });
 
 test("network-level resource uncertainty still offers a truthful sign-in next step", async () => {

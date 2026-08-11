@@ -7,6 +7,7 @@ import {
   LegacyImportConflictError,
   LegacyImportError,
   applyLegacyImport,
+  getLegacyImportDebugState,
   previewLegacyImport,
 } from "../server/data/legacy-import.ts";
 import {
@@ -20,7 +21,10 @@ type LegacyImportDb = Parameters<typeof previewLegacyImport>[0];
 
 type BoundResult = Pick<D1PreparedStatement, "bind" | "run" | "first" | "all" | "raw">;
 
-type D1Mock = Pick<LegacyImportDb, "prepare">;
+type D1Mock = Pick<LegacyImportDb, "batch" | "prepare">;
+type BatchableStatement = BoundResult & {
+  __runLegacyImportBatch?: () => Promise<{ success: boolean; results: unknown[]; meta: ReturnType<typeof emptyMeta> }>;
+};
 
 function emptyMeta(changes = 0, changedDb = false) {
   return {
@@ -34,50 +38,28 @@ function emptyMeta(changes = 0, changedDb = false) {
   } as const;
 }
 
-function asD1Mock(db: DatabaseSync): D1Mock {
+function asD1Mock(db: DatabaseSync, options: { failBatchStatementAt?: number } = {}): D1Mock {
   const normalizeValue = (value: unknown) => {
     if (typeof value === "boolean") return value ? 1 : 0;
     return value;
   };
 
-  return {
-    prepare(sql) {
-      const statement = db.prepare(sql);
-      const bindless: BoundResult = {
-        bind: (...values: unknown[]) => executeBound(...values),
-        run: (async () => {
-          const result = statement.run();
-          return {
-            success: true,
-            results: [],
-            meta: emptyMeta(Number(result.changes ?? 0)),
-          };
-        }) as BoundResult["run"],
-        first: (async () => {
-          const row = statement.get() as Record<string, unknown> | null;
-          return row ?? null;
-        }) as BoundResult["first"],
-        all: (async () => {
-          return {
-            success: true,
-            results: statement.all() as Record<string, unknown>[],
-            meta: emptyMeta(0, false),
-          };
-        }) as BoundResult["all"],
-        raw: (() => Promise.resolve([[],] as [string[], ...unknown[]])) as BoundResult["raw"],
+  const prepare = (sql: string) => {
+    const statement = db.prepare(sql);
+    const executeBound = (...values: unknown[]): BatchableStatement => {
+      const run = async () => {
+        const castValues = values as Parameters<(typeof statement)["run"]>;
+        const normalizedValues = castValues.map(normalizeValue) as Parameters<(typeof statement)["run"]>;
+        const result = statement.run(...normalizedValues);
+        return {
+          success: true,
+          results: [],
+          meta: emptyMeta(Number(result.changes ?? 0), true),
+        };
       };
-      const executeBound = (...values: unknown[]): BoundResult => ({
+      return {
         bind: (...nextValues: unknown[]) => executeBound(...nextValues),
-        run: (async () => {
-          const castValues = values as Parameters<(typeof statement)["run"]>;
-          const normalizedValues = castValues.map(normalizeValue) as Parameters<(typeof statement)["run"]>;
-          const result = statement.run(...normalizedValues);
-          return {
-            success: true,
-            results: [],
-            meta: emptyMeta(Number(result.changes ?? 0), true),
-          };
-        }) as BoundResult["run"],
+        run: run as BoundResult["run"],
         first: (async () => {
           const castValues = values as Parameters<(typeof statement)["get"]>;
           const row = statement.get(...castValues) as Record<string, unknown> | null;
@@ -92,14 +74,60 @@ function asD1Mock(db: DatabaseSync): D1Mock {
           };
         }) as BoundResult["all"],
         raw: (() => Promise.resolve([[],] as [string[], ...unknown[]])) as BoundResult["raw"],
-      });
-      return {
-        bind: (...values: unknown[]) => executeBound(...values),
-        run: bindless.run,
-        first: bindless.first,
-        all: bindless.all,
-        raw: bindless.raw,
+        __runLegacyImportBatch: run,
       };
+    };
+    const bindless: BoundResult = {
+      bind: (...values: unknown[]) => executeBound(...values),
+      run: (async () => {
+        const result = statement.run();
+        return {
+          success: true,
+          results: [],
+          meta: emptyMeta(Number(result.changes ?? 0)),
+        };
+      }) as BoundResult["run"],
+      first: (async () => {
+        const row = statement.get() as Record<string, unknown> | null;
+        return row ?? null;
+      }) as BoundResult["first"],
+      all: (async () => {
+        return {
+          success: true,
+          results: statement.all() as Record<string, unknown>[],
+          meta: emptyMeta(0, false),
+        };
+      }) as BoundResult["all"],
+      raw: (() => Promise.resolve([[],] as [string[], ...unknown[]])) as BoundResult["raw"],
+    };
+    return {
+      bind: (...values: unknown[]) => executeBound(...values),
+      run: bindless.run,
+      first: bindless.first,
+      all: bindless.all,
+      raw: bindless.raw,
+    } as D1PreparedStatement;
+  };
+
+  return {
+    prepare,
+    async batch<T = unknown>(statements: D1PreparedStatement[]): Promise<D1Result<T>[]> {
+      db.exec("SAVEPOINT legacy_import_batch");
+      try {
+        const results = [];
+        for (let index = 0; index < statements.length; index += 1) {
+          if (options.failBatchStatementAt === index + 1) throw new Error("simulated batch interruption");
+          const run = (statements[index] as unknown as BatchableStatement).__runLegacyImportBatch;
+          if (!run) throw new Error("missing test batch runner");
+          results.push(await run());
+        }
+        db.exec("RELEASE SAVEPOINT legacy_import_batch");
+        return results as D1Result<T>[];
+      } catch (error) {
+        db.exec("ROLLBACK TO SAVEPOINT legacy_import_batch");
+        db.exec("RELEASE SAVEPOINT legacy_import_batch");
+        throw error;
+      }
     },
   };
 }
@@ -206,6 +234,56 @@ test("legacy import preview and apply are idempotent and resumable", async () =>
       .prepare("SELECT COUNT(1) AS count FROM habit_definitions WHERE user_id = ?")
       .get("user_legacy") as { count: number };
     assert.equal(habitsCountAfterReplay.count, 1);
+  } finally {
+    db.close();
+  }
+});
+
+test("legacy import rolls an interrupted D1 batch back, preserves the source, and resumes safely", async () => {
+  const db = await setupDb();
+  const d1 = asD1Mock(db);
+  try {
+    const payload = legacyEnvelope();
+    const sourceBeforeAttempt = JSON.stringify(payload);
+    await setPrivacyConsent(d1, "user_legacy", {
+      decision: "accepted",
+      policyVersion: ACCOUNT_PRIVACY_POLICY_VERSION,
+      noticeSha256: ACCOUNT_PRIVACY_NOTICE_SHA256,
+    });
+
+    const preview = await previewLegacyImport(d1, "user_legacy", payload);
+    await assert.rejects(
+      () => applyLegacyImport(asD1Mock(db, { failBatchStatementAt: 2 }), "user_legacy", payload),
+      /simulated batch interruption/,
+    );
+
+    assert.equal(JSON.stringify(payload), sourceBeforeAttempt);
+    assert.equal(
+      (db.prepare("SELECT COUNT(1) AS count FROM habit_definitions WHERE user_id = ?").get("user_legacy") as { count: number }).count,
+      0,
+    );
+    assert.equal(
+      (db.prepare("SELECT COUNT(1) AS count FROM todos WHERE user_id = ?").get("user_legacy") as { count: number }).count,
+      0,
+    );
+
+    const failed = await getLegacyImportDebugState(d1, "user_legacy", payload.sourceInstanceId, preview.payloadSha256);
+    assert.equal(failed?.state, "failed");
+
+    const resumed = await applyLegacyImport(d1, "user_legacy", payload);
+    assert.equal(resumed.state, "completed");
+    assert.equal(resumed.totalInserted, 11);
+    assert.equal(
+      (db.prepare("SELECT COUNT(1) AS count FROM habit_definitions WHERE user_id = ?").get("user_legacy") as { count: number }).count,
+      1,
+    );
+    assert.equal(
+      (db.prepare("SELECT COUNT(1) AS count FROM ledger_entries WHERE user_id = ?").get("user_legacy") as { count: number }).count,
+      1,
+    );
+
+    const completed = await getLegacyImportDebugState(d1, "user_legacy", payload.sourceInstanceId, preview.payloadSha256);
+    assert.equal(completed?.state, "completed");
   } finally {
     db.close();
   }

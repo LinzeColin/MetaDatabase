@@ -38,7 +38,7 @@ export type ImportPreview = {
   canApply: boolean;
 };
 
-type LegacyImportDb = Pick<D1Database, "prepare">;
+type LegacyImportDb = Pick<D1Database, "batch" | "prepare">;
 type LegacyImportRow = {
   id: string;
   values: Record<string, string | number | boolean | null>;
@@ -341,14 +341,18 @@ async function upsertLegacyImportRows(
 }> {
   const insertedCounts: Record<string, number> = {};
   const skippedCounts: Record<string, number> = {};
-  let totalInserted = 0;
   const now = Date.now();
+  const inserts: Array<{ moduleName: LegacyModule; statement: D1PreparedStatement }> = [];
 
   for (const moduleName of MODULES) {
     const resource = moduleResource(moduleName);
     const rows = envelope.modules[moduleName] ?? [];
-    let inserted = 0;
-    let skipped = 0;
+    insertedCounts[moduleName] = 0;
+    skippedCounts[moduleName] = 0;
+
+    if (preview.counts[moduleName] !== rows.length) {
+      throw new LegacyImportConflictError(`模块 ${moduleName} 的预览计数与实际数据不一致`);
+    }
 
     for (const row of rows) {
       const normalized = rowAsRecord(resource, row);
@@ -370,27 +374,33 @@ async function upsertLegacyImportRows(
         now,
       ];
       const marks = insertColumns.map(() => "?").join(", ");
-      const result = await db
-        .prepare(
-          `INSERT OR IGNORE INTO "${resource.table}" (${insertColumns.map((c) => `"${c}"`).join(", ")})
-           VALUES (${marks})`,
-        )
-        .bind(...insertValues)
-        .run() as { meta?: { changes?: number } };
-
-      const changed = result?.meta?.changes ?? 0;
-      if (changed === 1) {
-        inserted += 1;
-      } else {
-        skipped += 1;
-      }
+      inserts.push({
+        moduleName,
+        statement: db
+          .prepare(
+            `INSERT OR IGNORE INTO "${resource.table}" (${insertColumns.map((c) => `"${c}"`).join(", ")})
+             VALUES (${marks})`,
+          )
+          .bind(...insertValues),
+      });
     }
+  }
 
-    insertedCounts[moduleName] = inserted;
-    skippedCounts[moduleName] = skipped;
-    totalInserted += inserted;
-    if (preview.counts[moduleName] !== rows.length) {
-      throw new LegacyImportConflictError(`模块 ${moduleName} 的预览计数与实际数据不一致`);
+  // D1 batch is transactional: an interrupted import cannot leave a partial
+  // product-data batch behind. Stable record IDs make a retry safe if a
+  // completed response was lost after the database committed.
+  const results = inserts.length ? await db.batch(inserts.map(({ statement }) => statement)) : [];
+  if (results.length !== inserts.length) throw new LegacyImportError("迁移批次结果不完整");
+
+  let totalInserted = 0;
+  for (let index = 0; index < inserts.length; index += 1) {
+    const moduleName = inserts[index].moduleName;
+    const changed = results[index]?.meta?.changes ?? 0;
+    if (changed === 1) {
+      insertedCounts[moduleName] += 1;
+      totalInserted += 1;
+    } else {
+      skippedCounts[moduleName] += 1;
     }
   }
 

@@ -645,6 +645,8 @@ img { display: block; max-width: 100%; }
 .account-actions { display: flex; flex-direction: column; gap: 8px; }
 .account-actions .auth-primary-link,
 .account-actions .auth-google { width: 100%; }
+.legacy-import-file { display: flex; flex-direction: column; gap: 6px; color: var(--text-secondary); font-size: 12px; }
+.legacy-import-file input { width: 100%; color: var(--text-secondary); font: inherit; }
 .account-textarea {
   width: 100%;
   min-height: 150px;
