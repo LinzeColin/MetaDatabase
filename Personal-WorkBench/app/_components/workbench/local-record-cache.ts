@@ -244,9 +244,9 @@ let browserScopeGeneration = 0;
 let browserScopeInvalidationQueued = false;
 
 /**
- * A short successful session lookup may be reused by several resource hooks
- * in one rendered page. Explicit foreground checks clear it first, so an
- * account switch in another tab cannot retain a prior account partition.
+ * A short authoritative session result may be reused by several resource
+ * hooks in one rendered page. Explicit foreground checks clear it first, so
+ * an account switch in another tab cannot retain a prior account partition.
  */
 export function invalidateBrowserRecordScope(): void {
   cachedBrowserScope = null;
@@ -290,7 +290,14 @@ export async function resolveBrowserRecordScope(timeoutMs = BROWSER_SCOPE_REQUES
             }, timeoutMs);
           }),
         ]);
-        if (!response || !response.ok) return { cacheable: false, scope: "guest" };
+        if (!response) return { cacheable: false, scope: "guest" };
+        // A normal unsigned response is authoritative, unlike a timeout,
+        // rate-limit, or other transport failure. Reusing this short guest
+        // result prevents each independent resource panel from amplifying the
+        // same 401 into another session lookup. Login navigation and explicit
+        // foreground checks both invalidate it before an account can change.
+        if (response.status === 401) return { cacheable: true, scope: "guest" };
+        if (!response.ok) return { cacheable: false, scope: "guest" };
         const session = (await response.json()) as unknown;
         const user = isRecord(session) && isRecord(session.user) ? session.user : null;
         const userId = user && typeof user.id === "string" && user.id.length > 0 ? user.id : null;

@@ -119,6 +119,37 @@ test("a failed session lookup is never cached as a guest scope", async () => {
   }
 });
 
+test("an authoritative signed-out session is briefly cached and an explicit recheck can enter an account scope", async () => {
+  const runtime = globalThis as typeof globalThis & { window?: unknown };
+  const originalWindow = runtime.window;
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  let signedIn = false;
+  invalidateBrowserRecordScope();
+  Object.defineProperty(runtime, "window", { configurable: true, value: {} });
+  globalThis.fetch = (async () => {
+    calls += 1;
+    if (!signedIn) return new Response(null, { status: 401 });
+    return new Response(JSON.stringify({ user: { id: "account-a" } }), { status: 200 });
+  }) as typeof fetch;
+
+  try {
+    assert.equal(await resolveBrowserRecordScope(), "guest");
+    assert.equal(await resolveBrowserRecordScope(), "guest");
+    assert.equal(calls, 1);
+
+    signedIn = true;
+    invalidateBrowserRecordScope();
+    assert.match(await resolveBrowserRecordScope(), /^account:/);
+    assert.equal(calls, 2);
+  } finally {
+    invalidateBrowserRecordScope();
+    globalThis.fetch = originalFetch;
+    if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
+    else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });
+  }
+});
+
 test("session scope falls back to the guest partition when the session request stalls", async () => {
   const runtime = globalThis as typeof globalThis & {
     window?: unknown;
