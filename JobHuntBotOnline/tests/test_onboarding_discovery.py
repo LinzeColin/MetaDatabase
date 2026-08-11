@@ -5,7 +5,7 @@ from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.main import _confirmed_profile_fields
 from app import discovery
@@ -247,6 +247,33 @@ def test_feed_industry_tags_are_normalized_before_persistence():
         industry=["Professional Services", "Legal"],
     ))
     assert job.industry == "Professional Services Legal"
+
+
+def test_provider_external_id_update_reuses_the_existing_job_row(client):
+    first = discovery.enrich(discovery.NormalizedJob(
+        source="provider", external_id="stable-provider-id", url="https://example.com/old",
+        title="Legal Analyst", company="Example", location="Sydney", description="Initial posting.",
+    ))
+    revised = discovery.enrich(discovery.NormalizedJob(
+        source="provider", external_id="stable-provider-id", url="https://example.com/revised",
+        title="Senior Legal Analyst", company="Example", location="Melbourne", description="Revised posting.",
+    ))
+
+    with client.app.state.session_factory() as db:
+        original, created = discovery._upsert_job(db, first)
+        db.commit()
+        original_id = original.id
+        original_key = original.canonical_key
+
+        reused, created = discovery._upsert_job(db, revised)
+        db.commit()
+
+        assert created is False
+        assert reused.id == original_id
+        assert reused.canonical_key == original_key
+        assert reused.title == "Senior Legal Analyst"
+        assert reused.location == "Melbourne"
+        assert db.scalar(select(func.count(Job.id))) == 1
 
 
 def test_stale_discovery_run_is_closed_for_a_later_refresh(client):

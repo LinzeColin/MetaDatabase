@@ -491,6 +491,16 @@ def recover_stale_runs(db: Session, max_age_seconds: int) -> int:
 def _upsert_job(db: Session, item: NormalizedJob) -> tuple[Job, bool]:
     key = canonical_key(item)
     row = db.scalar(select(Job).where(Job.canonical_key == key))
+    # Provider IDs are the durable identity within a source.  A provider may
+    # legitimately revise a posting URL, title, or location between polls,
+    # which changes our content-derived canonical key without creating a new
+    # job.  Reuse that row before inserting so the database's source/external
+    # uniqueness invariant cannot abort the whole discovery run.
+    if not row:
+        row = db.scalar(select(Job).where(
+            Job.source == item.source,
+            Job.external_id == str(item.external_id),
+        ))
     created = False
     if not row:
         row = Job(
@@ -518,6 +528,17 @@ def _upsert_job(db: Session, item: NormalizedJob) -> tuple[Job, bool]:
     else:
         row.last_seen_at = utcnow()
         row.closed_at = None
+        row.url = item.url or row.url
+        row.title = item.title[:255] or row.title
+        row.company = item.company[:255] or row.company
+        row.location = item.location[:255] or row.location
+        row.city = item.city[:120] or row.city
+        row.country = item.country[:8] or row.country
+        row.work_mode = item.work_mode[:24] or row.work_mode
+        row.role_family = item.role_family[:80] or row.role_family
+        row.industry = item.industry[:80] or row.industry
+        row.skills_text = json.dumps(item.skills or [], ensure_ascii=False)
+        row.keywords_text = json.dumps(item.keywords or [], ensure_ascii=False)
         row.description = item.description or row.description
         row.posted_at = item.posted_at or row.posted_at
     return row, created
