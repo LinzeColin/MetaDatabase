@@ -100,3 +100,22 @@ def test_it_never_prints_the_token_or_any_body() -> None:
     for leak in ('out["titles"]', 'out["sample"]', "print(token", "out[\"token\"]"):
         assert leak not in source, f"它会把不该出来的东西打出来：{leak}"
     assert "token.strip()" not in source.replace("handle.read().strip()", "")
+
+
+def test_the_deploy_also_checks_his_obsidian_vault() -> None:
+    """**整条线的终点也要有人管。**（2026-08-11）
+
+    库里几条、zip 几个、桌面那两个文件都有人验了，
+    **而他 Obsidian 库里那几篇一直没有**——偏偏这一段在这次会话里被弄乱过两次
+    （193→198、198→246）。每次都是我手工数出来的，而手工数不会在下次部署时自己发生。
+    """
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    name = "check_his_obsidian_vault_is_intact.py"
+    assert name in deploy, f"部署不查他的 Obsidian 库——{name} 成了没人跑的摆设"
+    step = deploy[deploy.index(name):]
+    nxt = step.find('\nstep "')
+    step = step[:nxt] if nxt > 0 else step
+    assert "fail " in step, "对不上不中止部署，等于没验"
+    assert "--expect-items" in deploy, "没有和档案馆的条数比对，就只是数了个数"
+    assert "HIS_MARKDOWN_EXPORT.json" in deploy, (
+        "条数该从上一步那份证据里现取，不许手写一个会过期的数字")

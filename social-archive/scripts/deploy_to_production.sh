@@ -1067,6 +1067,45 @@ print(f\"  库里 {d['items_in_library']} 条 → zip 里 {d['files_in_zip']} �
       f\"空标题 {d['empty_heading']}、重复文案标题 {d['title_is_a_doubled_caption']}、\"
       f\"作者是点赞数 {d['author_is_a_like_count']}、读不出来的 {d['unreadable_files']}。\")"
 
+step "8.67) 东西真的在他 Obsidian 库里，而且是干净的"
+# 整条产品线的终点：他把内容读到眼睛里的地方是 Obsidian。
+# 前面每一段都有人验（库里几条、zip 几个、桌面那两个文件），
+# **而他库里那几篇一直没有任何一步管**——
+# 偏偏这一段在这次会话里被弄乱过两次（193→198、198→246：
+# 我在服务器上改了文件名，rsync 把新名字带进来，库里出现两份）。
+#
+# 条数从上一步那份证据里取（不手写，`self-reported-numbers-must-be-computed`）。
+EXPECT_ITEMS="$(python3 -c "
+import json
+try:
+    print(json.load(open('evidence/G3/HIS_MARKDOWN_EXPORT.json'))['measured']['items_in_library'])
+except Exception:
+    print('')
+")"
+if [ -n "$EXPECT_ITEMS" ]; then
+  set -- --expect-items "$EXPECT_ITEMS"
+else
+  set --
+fi
+if ! .venv/bin/python scripts/check_his_obsidian_vault_is_intact.py "$@" \
+      > evidence/G3/HIS_OBSIDIAN_VAULT.json 2>&1; then
+  python3 -c "
+import json
+d=json.load(open('evidence/G3/HIS_OBSIDIAN_VAULT.json'))
+for p in d.get('problems', []): print('  ✗', p)"
+  fail '他 Obsidian 库里那一份和档案馆对不上——那是整条线的终点。'
+fi
+python3 -c "
+import json
+d=json.load(open('evidence/G3/HIS_OBSIDIAN_VAULT.json'))
+if d['status'] == 'SKIPPED':
+    print('  跳过：这台机器上没有那个 Obsidian 库（**是跳过，不是通过**）。')
+else:
+    m=d['measured']
+    print(f\"  他库里 {m['notes']} 篇，按 {len(m['platforms'])} 个平台分好；\"
+          f\"空标题 {m['empty_heading']}、重复文案标题 {m['title_is_a_doubled_caption']}、\"
+          f\"作者是点赞数 {m['author_is_a_like_count']}、同一条两份 {m['same_item_twice']}。\")"
+
 step "8.68) 从零到能用，在**刚部署的这个镜像**上真走一遍"
 # 上一步验的是界面到不到得了他手上。这一步验的是**按下去之后那条链**：
 # 空库 → 连账号 → 同步 → 看得见（标题/作者都对）→ 删除并清空 → 又空了

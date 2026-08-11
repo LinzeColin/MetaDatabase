@@ -6,19 +6,19 @@
     {
       "drill": "shipped_package_drill.py",
       "status": "PASS",
-      "seconds": 30.1,
+      "seconds": 29.9,
       "problems": []
     },
     {
       "drill": "extension_update_in_place_drill.py",
       "status": "PASS",
-      "seconds": 7.1,
+      "seconds": 7.2,
       "problems": []
     },
     {
       "drill": "stale_extension_is_blocked_drill.py",
       "status": "PASS",
-      "seconds": 29.2,
+      "seconds": 28.9,
       "problems": []
     },
     {
@@ -30,7 +30,7 @@
     {
       "drill": "extension_save_page_drill.py",
       "status": "PASS",
-      "seconds": 5.7,
+      "seconds": 6.2,
       "problems": []
     },
     {
@@ -42,7 +42,7 @@
     {
       "drill": "extension_capture_drill.py",
       "status": "PASS",
-      "seconds": 16.3,
+      "seconds": 16.4,
       "problems": []
     },
     {
@@ -54,37 +54,37 @@
     {
       "drill": "extension_bridge_boundary_drill.py",
       "status": "PASS",
-      "seconds": 13.3,
+      "seconds": 13.6,
       "problems": []
     },
     {
       "drill": "pwa_render_drill.py",
       "status": "PASS",
-      "seconds": 35.4,
+      "seconds": 35.6,
       "problems": []
     },
     {
       "drill": "popup_states_drill.py",
       "status": "PASS",
-      "seconds": 19.4,
+      "seconds": 19.3,
       "problems": []
     },
     {
       "drill": "bilibili_end_to_end_drill.py",
       "status": "PASS",
-      "seconds": 24.8,
+      "seconds": 24.6,
       "problems": []
     },
     {
       "drill": "bilibili_acquisition_drill.py",
       "status": "PASS",
-      "seconds": 2.9,
+      "seconds": 5.8,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform xiaohongshu",
       "status": "PASS",
-      "seconds": 41.1,
+      "seconds": 41.2,
       "problems": []
     },
     {
@@ -96,7 +96,7 @@
     {
       "drill": "list_shape_end_to_end_drill.py --platform reddit",
       "status": "PASS",
-      "seconds": 41.1,
+      "seconds": 41.2,
       "problems": []
     },
     {

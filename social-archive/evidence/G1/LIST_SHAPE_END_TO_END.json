@@ -55,9 +55,9 @@
   "captured_urls": [
     "https://www.xiaohongshu.com/api/log",
     "https://www.xiaohongshu.com/api/config",
+    "https://www.xiaohongshu.com/api/homefeed",
     "https://www.xiaohongshu.com/api/user",
-    "https://www.xiaohongshu.com/api/collect/page",
-    "https://www.xiaohongshu.com/api/homefeed"
+    "https://www.xiaohongshu.com/api/collect/page"
   ],
   "recognised": "https://www.xiaohongshu.com/api/collect/page",
   "matched_path": "data.notes",
