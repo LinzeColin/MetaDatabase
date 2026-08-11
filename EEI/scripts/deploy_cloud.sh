@@ -33,14 +33,28 @@ npx wrangler deploy \
   --var EEI_DEPLOY_ID:"$DEPLOY_ID"
 
 echo "[deploy] verifying live build binding"
-LIVE_BUILD="$(curl -fsS "$BASE_URL/v1/meta/build" | python3 -c 'import json,sys; print(json.load(sys.stdin)["commit"])')"
-# grep/cut, not awk field-matching: the first deploy's awk parse false-FAILed
-# on a correctly-bound header.
-LIVE_HEADER="$(curl -s -D - -o /dev/null "$BASE_URL/health" | tr -d '\r' | grep -i '^x-eei-build:' | cut -d' ' -f2)"
-if [ "$LIVE_BUILD" != "$BUILD_SHA" ] || [ "$LIVE_HEADER" != "$BUILD_SHA" ]; then
-  echo "[deploy] FAIL: live build ($LIVE_BUILD / header $LIVE_HEADER) != $BUILD_SHA" >&2
-  exit 1
-fi
+# 新版本推到边缘不是瞬时的。2026-08-11 实测：deploy 返回成功后立刻验，
+# /v1/meta/build 已经是新 SHA 而 /health 的 X-EEI-Build 还是上一版，于是这道门
+# 报了一次 FAIL —— 部署其实是成功的，几秒后两个戳就一致了。
+# 有上限的重试，不是无上限等待（合同 §2.4：任何等待必须有次数上限，超时明确报超时）。
+VERIFY_TRIES=10
+VERIFY_SLEEP=3
+for attempt in $(seq 1 "$VERIFY_TRIES"); do
+  LIVE_BUILD="$(curl -fsS "$BASE_URL/v1/meta/build" | python3 -c 'import json,sys; print(json.load(sys.stdin)["commit"])')"
+  # grep/cut, not awk field-matching: the first deploy's awk parse false-FAILed
+  # on a correctly-bound header.
+  LIVE_HEADER="$(curl -s -D - -o /dev/null "$BASE_URL/health" | tr -d '\r' | grep -i '^x-eei-build:' | cut -d' ' -f2)"
+  if [ "$LIVE_BUILD" = "$BUILD_SHA" ] && [ "$LIVE_HEADER" = "$BUILD_SHA" ]; then
+    echo "[deploy] live build binding confirmed on attempt $attempt/$VERIFY_TRIES"
+    break
+  fi
+  if [ "$attempt" -eq "$VERIFY_TRIES" ]; then
+    echo "[deploy] FAIL: 等了 $((VERIFY_TRIES * VERIFY_SLEEP))s 仍不一致 —— live build ($LIVE_BUILD / header $LIVE_HEADER) != $BUILD_SHA" >&2
+    exit 1
+  fi
+  echo "[deploy] attempt $attempt/$VERIFY_TRIES: 还没传播开（build=$LIVE_BUILD header=$LIVE_HEADER），${VERIFY_SLEEP}s 后重试"
+  sleep "$VERIFY_SLEEP"
+done
 
 mkdir -p "$EVIDENCE_DIR"
 MANIFEST="$EVIDENCE_DIR/$DEPLOY_ID.json"
