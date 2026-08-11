@@ -115,7 +115,7 @@
         "scripts/check_docs_point_at_things_that_exist.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了全仓 31 份文档，85 处 scripts/ 引用、1 处代码块里被 .gitignore 挡着的路径\n文档让人跑的每一个脚本都在；写着「已删」的也确实不在了。\n",
+      "stdout": "扫了全仓 32 份文档，85 处 scripts/ 引用、1 处代码块里被 .gitignore 挡着的路径\n文档让人跑的每一个脚本都在；写着「已删」的也确实不在了。\n",
       "stderr": ""
     },
     {
@@ -286,7 +286,7 @@
         "scripts/check_git_calls_cannot_be_hijacked_by_hooks.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 388 份 .py，其中 12 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
+      "stdout": "扫了 389 份 .py，其中 12 处起 git 的子进程\n每一处起 git 的地方都自己决定了环境。\n",
       "stderr": ""
     },
     {
