@@ -19,7 +19,7 @@ from . import ai
 from .config import Settings, get_settings
 from .db import Base, make_engine, make_session_factory, session_dependency
 from .discovery import claim_run, enqueue_discovery, process_run, safe_http_url
-from .email_service import Mailer
+from .email_service import MailRateLimited, Mailer
 from .models import (
     ApplicationEvent, ApplicationPack, CandidateProfile, DiscoveryRun, DiscoverySourceStatus,
     Job, Recommendation, Resume, User, utcnow,
@@ -223,7 +223,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         db.commit()
         db.refresh(user)
         save_profile(db, crypto, user.id, {}, onboarding_state="needs_resume", discovery_enabled=False)
-        mailer.send_verification(db, user)
+        try:
+            mailer.send_verification(db, user)
+        except MailRateLimited:
+            audit(db, "user_registered_email_deferred", user.id)
+            return _redirect("/verify-required", message="账户已创建；验证邮件受发送保护，暂未发出，请稍后重试。")
         audit(db, "user_registered", user.id)
         return _redirect("/verify-required", message="验证邮件已发送，请打开邮箱完成验证。")
 
@@ -270,8 +274,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lookup = email_lookup(email, settings.email_lookup_secret)
         user = db.scalar(select(User).where(User.email_lookup == lookup))
         if user and user.is_active and not user.is_verified:
-            mailer.send_verification(db, user)
-        return _redirect("/verify-required", message="如果该邮箱需要验证，新的邮件已经发送。")
+            try:
+                mailer.send_verification(db, user)
+            except MailRateLimited:
+                pass
+        return _redirect("/verify-required", message="如该邮箱需要验证，系统会在允许发送时处理请求。")
 
     @app.get("/login", response_class=HTMLResponse)
     def login_page(request: Request):
@@ -342,9 +349,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return _redirect("/forgot-password", error="请求过于频繁，请稍后再试。")
         user = db.scalar(select(User).where(User.email_lookup == email_lookup(email, settings.email_lookup_secret)))
         if user and user.is_active and user.is_verified:
-            mailer.send_reset(db, user)
-            audit(db, "password_reset_requested", user.id)
-        return _redirect("/login", message="如果邮箱已注册，重置邮件已经发送。")
+            try:
+                mailer.send_reset(db, user)
+            except MailRateLimited:
+                pass
+            else:
+                audit(db, "password_reset_requested", user.id)
+        return _redirect("/login", message="如果邮箱已注册，系统会在允许发送时处理请求。")
 
     @app.get("/reset-password", response_class=HTMLResponse)
     def reset_page(request: Request, token: str):

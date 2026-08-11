@@ -7,6 +7,28 @@ set -a; source .env; set +a
   echo "real email acceptance requires explicit RUN_REAL_EMAIL_ACCEPTANCE=true; no email has been sent" >&2
   exit 2
 }
+[[ "${REAL_EMAIL_ACCEPTANCE_RUN_ID:-}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{7,79}$ ]] || {
+  echo "real email acceptance requires a fresh valid REAL_EMAIL_ACCEPTANCE_RUN_ID; no email has been sent" >&2
+  exit 2
+}
+[[ -n "${ACCEPTANCE_EMAIL_A:-}" && -n "${ACCEPTANCE_EMAIL_B:-}" ]] || {
+  echo "real email acceptance requires two dedicated acceptance recipients; no email has been sent" >&2
+  exit 2
+}
+case "${ACCEPTANCE_MIN_EMAIL_GAP_SECONDS:-1800}" in
+  ''|*[!0-9]*) echo "ACCEPTANCE_MIN_EMAIL_GAP_SECONDS must be an integer; no email has been sent" >&2; exit 2 ;;
+esac
+(( ACCEPTANCE_MIN_EMAIL_GAP_SECONDS >= 1800 )) || {
+  echo "ACCEPTANCE_MIN_EMAIL_GAP_SECONDS must be at least 1800; no email has been sent" >&2
+  exit 2
+}
+case "${ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS:-24}" in
+  ''|*[!0-9]*) echo "ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS must be an integer; no email has been sent" >&2; exit 2 ;;
+esac
+(( ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS >= 24 )) || {
+  echo "ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS must be at least 24; no email has been sent" >&2
+  exit 2
+}
 evidence_runner_user=(--user "${ACCEPTANCE_UID:-$(id -u)}:${ACCEPTANCE_GID:-$(id -g)}")
 mkdir -p evidence runtime-data
 python3 - <<'PY'

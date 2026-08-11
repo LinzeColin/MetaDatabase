@@ -4,16 +4,19 @@ Read `START_HERE.md` first. The source Candidate, frozen contract, DAG, deployme
 
 Do not repeat product research. NitroSend is removed: do not wait for it, connect it, or restore it. Observe latest repository and infrastructure, then execute the first unsatisfied task. Preserve current data and a rollback point. If standard SMTP is not yet available, keep public registration closed and continue every non-email task. Secrets stay outside Git and evidence. Do not run `deploy/acceptance.sh`, browser E2E, or any other real-email action unless the Owner grants a new one-time authorization and explicitly sets `RUN_REAL_EMAIL_ACCEPTANCE=true`; the script fails closed without that flag.
 
-## 2026-08-11 VPS3 operational checkpoint — email safety pause
+## 2026-08-11 VPS3 operational checkpoint — controlled email safety
 
 - The live target is VPS3 (`vps-bab7f9dc`) at
   `https://jobhunt.linzezhang.com`. PostgreSQL, Web, Scheduler and Worker are
   running; `/readyz` reports `refresh_hours=6`.
-- The Owner prohibited further real email. `ALLOW_REGISTRATION=false` and
-  `RUN_REAL_EMAIL_ACCEPTANCE=false` are live and the public `/register` route
-  is closed. T06 and the real-email portion of T08 are
-  `EMAIL_ONLY_BLOCKED`; do not create test users, send verification/reset
-  messages, or claim an email was sent.
+- The Owner permits real mail only when it is controlled, and explicitly
+  rejected the prior burst of three messages in ten minutes.
+  `ALLOW_REGISTRATION=false` and `RUN_REAL_EMAIL_ACCEPTANCE=false` remain live
+  and the public `/register` route is closed. This candidate adds a
+  recipient-level 30-minute cooldown, a 24-hour cap of three delivery
+  attempts, two distinct dedicated acceptance addresses, a one-use run ID,
+  a 30-minute acceptance gap, and a persistent 24-hour acceptance cooldown.
+  No new real-email action was run while introducing those controls.
 - A prior root `ACCEPTANCE_RESULT.json` was invalidated and removed after the
   safety pause. There is currently no fresh target root production PASS, so
   T10 must not be marked complete and no full-production claim is allowed.
@@ -53,7 +56,9 @@ Do not repeat product research. NitroSend is removed: do not wait for it, connec
 
 ## Next authorized action
 
-Continue non-email maintenance only. A future real-email production acceptance
-requires a new explicit Owner authorization, `ALLOW_REGISTRATION=true`, and
-`RUN_REAL_EMAIL_ACCEPTANCE=true`; only then may T06/T08 be rerun and a new
-root `ACCEPTANCE_RESULT.json` be considered for T10.
+Deploy and verify the anti-burst controls on VPS3 while public registration
+stays closed. A future real-email production acceptance requires two dedicated
+acceptance inboxes, `ALLOW_REGISTRATION=true`,
+`RUN_REAL_EMAIL_ACCEPTANCE=true`, and a fresh
+`REAL_EMAIL_ACCEPTANCE_RUN_ID`; only then may T06/T08 be rerun and a new root
+`ACCEPTANCE_RESULT.json` be considered for T10.

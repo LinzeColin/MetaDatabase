@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from urllib.parse import urlparse
+
+from fastapi.testclient import TestClient
 
 from .conftest import csrf, latest_link, register_verify
 
@@ -80,6 +83,65 @@ def test_duplicate_registration_does_not_create_second_account(client):
         "password_confirm": "ValidPass123",
     }, follow_redirects=True)
     assert "已注册" in response.text
+
+
+def test_resend_cooldown_preserves_the_existing_verification_token(settings):
+    from app.main import create_app
+
+    guarded = replace(settings, email_min_interval_seconds=1800, email_max_per_user_per_24h=3)
+    app = create_app(guarded)
+    with TestClient(app) as guarded_client:
+        register = guarded_client.get("/register")
+        response = guarded_client.post("/register", data={
+            "csrf_token": csrf(register.text),
+            "email": "cooldown@example.com",
+            "display_name": "Cooldown User",
+            "password": "ValidPass123",
+            "password_confirm": "ValidPass123",
+        }, follow_redirects=True)
+        assert response.status_code == 200
+        original_link = latest_link(guarded_client, "verify")
+
+        resend = guarded_client.get("/resend-verification")
+        response = guarded_client.post("/resend-verification", data={
+            "csrf_token": csrf(resend.text),
+            "email": "cooldown@example.com",
+        }, follow_redirects=True)
+        assert "系统会在允许发送时处理请求" in response.text
+        outbox = guarded_client.get("/_test/outbox").json()
+        assert [item["kind"] for item in outbox] == ["verify"]
+
+        parsed = urlparse(original_link)
+        verified = guarded_client.get(parsed.path + "?" + parsed.query, follow_redirects=True)
+        assert "邮箱验证成功" in verified.text
+
+
+def test_daily_delivery_cap_does_not_claim_a_reset_was_sent(settings):
+    from app.main import create_app
+
+    guarded = replace(settings, email_min_interval_seconds=0, email_max_per_user_per_24h=1)
+    app = create_app(guarded)
+    with TestClient(app) as guarded_client:
+        register = guarded_client.get("/register")
+        guarded_client.post("/register", data={
+            "csrf_token": csrf(register.text),
+            "email": "daily-cap@example.com",
+            "display_name": "Daily Cap User",
+            "password": "ValidPass123",
+            "password_confirm": "ValidPass123",
+        }, follow_redirects=True)
+        verify_link = latest_link(guarded_client, "verify")
+        parsed = urlparse(verify_link)
+        guarded_client.get(parsed.path + "?" + parsed.query, follow_redirects=True)
+
+        forgot = guarded_client.get("/forgot-password")
+        response = guarded_client.post("/forgot-password", data={
+            "csrf_token": csrf(forgot.text),
+            "email": "daily-cap@example.com",
+        }, follow_redirects=True)
+        assert "系统会在允许发送时处理请求" in response.text
+        outbox = guarded_client.get("/_test/outbox").json()
+        assert [item["kind"] for item in outbox] == ["verify"]
 
 
 def test_registration_links_are_hidden_when_mail_is_deferred(settings):

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import shutil
@@ -10,6 +11,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from sqlalchemy import text
+import pytest
 
 from app.db import Base, make_engine, make_session_factory
 from app.models import CandidateProfile, User, utcnow
@@ -151,6 +153,69 @@ def test_production_e2e_marks_closed_email_lifecycle_as_email_only_blocked(tmp_p
     assert result["standard_smtp_configured"] is False
     assert result["email_delivery_sent"] is False
     assert result["synthetic_accounts_created"] is False
+
+
+def test_production_e2e_rejects_alias_fallback_and_same_recipient(tmp_path):
+    output = tmp_path / "target-browser.json"
+    completed = subprocess.run(
+        [sys.executable, str(ROOT / "tools/e2e_production.py"), "--output", str(output)],
+        cwd=ROOT,
+        env={
+            "BASE_URL": "https://jobhunt.example.test",
+            "ALLOW_REGISTRATION": "true",
+            "SMTP_HOST": "smtp.example.test",
+            "ACCEPTANCE_EMAIL_A": "same@example.test",
+            "ACCEPTANCE_EMAIL_B": "SAME@example.test",
+            "ACCEPTANCE_IMAP_HOST": "imap.example.test",
+            "ACCEPTANCE_IMAP_USERNAME": "acceptance@example.test",
+            "ACCEPTANCE_IMAP_PASSWORD": "synthetic-password",
+            "RUN_REAL_EMAIL_ACCEPTANCE": "true",
+            "REAL_EMAIL_ACCEPTANCE_RUN_ID": "mail-safety-run-20260811",
+            "PYTHONDONTWRITEBYTECODE": "1",
+        },
+        capture_output=True,
+        text=True,
+    )
+    assert completed.returncode == 2, completed.stderr
+    result = json.loads(output.read_text(encoding="utf-8"))
+    assert result["verdict"] == "BLOCKED"
+    assert result["blocker"] == "EMAIL_ONLY_BLOCKED"
+    assert result["acceptance_recipient_configured"] is False
+    assert result["email_delivery_sent"] is False
+
+
+def test_real_email_guard_consumes_each_run_id_and_enforces_cooldown(tmp_path):
+    spec = importlib.util.spec_from_file_location("jobhunt_e2e_production", ROOT / "tools/e2e_production.py")
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    state = tmp_path / "runtime-data" / "real-email-acceptance-guard.json"
+
+    module.reserve_real_email_acceptance(
+        state_path=state,
+        run_id="mail-safety-run-20260811",
+        cooldown_hours=24,
+        minimum_gap_seconds=1800,
+    )
+    payload = json.loads(state.read_text(encoding="utf-8"))
+    assert payload["maximum_real_messages"] == 3
+    assert payload["minimum_email_gap_seconds"] == 1800
+    assert "recipient" not in payload
+
+    with pytest.raises(RuntimeError, match="already been consumed"):
+        module.reserve_real_email_acceptance(
+            state_path=state,
+            run_id="mail-safety-run-20260811",
+            cooldown_hours=24,
+            minimum_gap_seconds=1800,
+        )
+    with pytest.raises(RuntimeError, match="cooldown"):
+        module.reserve_real_email_acceptance(
+            state_path=state,
+            run_id="mail-safety-next-20260811",
+            cooldown_hours=24,
+            minimum_gap_seconds=1800,
+        )
 
 
 def test_mail_transport_probe_ignores_generated_evidence(tmp_path):

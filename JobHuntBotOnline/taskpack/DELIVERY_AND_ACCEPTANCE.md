@@ -8,7 +8,7 @@
 4. Generate `.env`. NitroSend is removed. If any standard SMTP relay is already available, inject it securely; otherwise keep `ALLOW_REGISTRATION=false` and continue every non-email task. Inject DeepSeek/acceptance-mailbox secrets outside Git.
 5. Apply Alembic. When a v0.2 database exists, run `tools/migrate_v02_sqlite.py` before switching traffic.
 6. Deploy Web, Scheduler and Worker; absence of NitroSend or SMTP must not stop these steps.
-7. Before full public production acceptance, configure any standard SMTP relay, set `ALLOW_REGISTRATION=true`, and run `deploy/acceptance.sh` on the real HTTPS deployment.
+7. Before full public production acceptance, configure any standard SMTP relay, set `ALLOW_REGISTRATION=true`, and run `deploy/acceptance.sh` on the real HTTPS deployment. Real-mail acceptance is one-shot: it needs `RUN_REAL_EMAIL_ACCEPTANCE=true` plus a fresh `REAL_EMAIL_ACCEPTANCE_RUN_ID`.
 8. Only after core PASS, register operations and commit/push the exact Candidate.
 
 For the observed v0.2 single-container deployment, set `LEGACY_COMPOSE_FILE`
@@ -35,13 +35,14 @@ remains outside Git. Any other inventory drift still fails verification.
 
 ## Production acceptance inputs
 
-The target `.env` uses provider-neutral SMTP; NitroSend is not accepted or required. Full production acceptance must provide dedicated disposable acceptance mailboxes or plus aliases:
+The target `.env` uses provider-neutral SMTP; NitroSend is not accepted or required. Full production acceptance must provide two distinct dedicated disposable acceptance inboxes. Do not use personal mailboxes; plus-alias fallback is deliberately rejected:
 
 - `ACCEPTANCE_EMAIL_A`, `ACCEPTANCE_EMAIL_B`, `ACCEPTANCE_ACCOUNT_PASSWORD`
 - `ACCEPTANCE_IMAP_HOST`, `ACCEPTANCE_IMAP_PORT`, `ACCEPTANCE_IMAP_USERNAME`, `ACCEPTANCE_IMAP_PASSWORD`
-- `ACCEPTANCE_IMAP_FOLDER`, optional `ACCEPTANCE_EMAIL_PLUS_ALIAS=true`
+- `ACCEPTANCE_IMAP_FOLDER`, `RUN_REAL_EMAIL_ACCEPTANCE=true`, fresh `REAL_EMAIL_ACCEPTANCE_RUN_ID`
+- `ACCEPTANCE_MIN_EMAIL_GAP_SECONDS>=1800`, `ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS>=24`
 
-These are test credentials, not candidate data. They are never copied into evidence.
+The harness reserves at most three real messages, waits at least 30 minutes between requests, and persists a 24-hour cooldown before it opens Chromium. These are test credentials, not candidate data. They are never copied into evidence.
 
 ## Verdict
 

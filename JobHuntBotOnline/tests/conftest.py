@@ -105,6 +105,10 @@ def settings(tmp_path):
         upload_root=tmp_path / "uploads",
         backup_root=tmp_path / "backups",
         discovery_fixture_path=str(Path(__file__).parent / "fixtures" / "jobs.json"),
+        # Unit tests exercise their own explicit delivery-limit cases.  Keep
+        # ordinary lifecycle tests fast without weakening production defaults.
+        email_min_interval_seconds=0,
+        email_max_per_user_per_24h=100,
     )
 
 

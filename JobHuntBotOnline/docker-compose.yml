@@ -110,6 +110,9 @@ services:
     env_file: .env
     volumes:
       - ./evidence:/app/evidence
+      # The email safety reservation persists across ephemeral acceptance
+      # containers and is ignored as runtime state by taskpack verification.
+      - ./runtime-data:/app/runtime-data
     networks: [internal, edge]
     depends_on:
       web:

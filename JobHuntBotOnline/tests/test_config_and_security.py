@@ -44,6 +44,8 @@ def test_production_can_deploy_with_registration_closed_while_mail_is_deferred(s
         email_lookup_secret="production-email-secret",
         admin_email="owner@example.com",
         admin_password="ValidAdminPass123",
+        email_min_interval_seconds=1800,
+        email_max_per_user_per_24h=3,
     )
     validate_settings(deferred)
 
@@ -59,10 +61,33 @@ def test_public_registration_requires_standard_smtp_but_not_a_named_vendor(setti
         email_lookup_secret="production-email-secret",
         admin_email="owner@example.com",
         admin_password="ValidAdminPass123",
+        email_min_interval_seconds=1800,
+        email_max_per_user_per_24h=3,
     )
     with pytest.raises(RuntimeError, match="标准 SMTP_HOST"):
         validate_settings(base)
     validate_settings(replace(base, smtp_host="smtp.example.test"))
+
+
+def test_production_email_cadence_cannot_be_relaxed(settings):
+    base = replace(
+        settings,
+        app_env="production",
+        cookie_secure=True,
+        allow_registration=True,
+        smtp_host="smtp.example.test",
+        session_secret="production-session-secret",
+        email_lookup_secret="production-email-secret",
+        admin_email="owner@example.com",
+        admin_password="ValidAdminPass123",
+        email_min_interval_seconds=1800,
+        email_max_per_user_per_24h=3,
+    )
+    validate_settings(base)
+    with pytest.raises(RuntimeError, match="EMAIL_MIN_INTERVAL_SECONDS"):
+        validate_settings(replace(base, email_min_interval_seconds=1799))
+    with pytest.raises(RuntimeError, match="EMAIL_MAX_PER_USER_PER_24H"):
+        validate_settings(replace(base, email_max_per_user_per_24h=4))
 
 
 def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
@@ -98,6 +123,9 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     assert '--user "${ACCEPTANCE_UID:-$(id -u)}:${ACCEPTANCE_GID:-$(id -g)}"' in deploy
     assert "python3 deploy/verify_taskpack.py" in acceptance
     assert 'RUN_REAL_EMAIL_ACCEPTANCE:-false' in acceptance
+    assert "REAL_EMAIL_ACCEPTANCE_RUN_ID" in acceptance
+    assert "ACCEPTANCE_MIN_EMAIL_GAP_SECONDS" in acceptance
+    assert "ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS" in acceptance
     assert 'evidence_runner_user=(--user "${ACCEPTANCE_UID:-$(id -u)}:${ACCEPTANCE_GID:-$(id -g)}")' in acceptance
     assert acceptance.count('"${evidence_runner_user[@]}"') == 4
     assert "acceptance outputs so every run creates fresh evidence" in acceptance
@@ -107,6 +135,7 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     assert 'e2e_production.py:/app/tools/e2e_production.py:ro' in acceptance
     assert "run the configured acceptance harness" in acceptance
     assert 'user: "${ACCEPTANCE_UID:-1000}:${ACCEPTANCE_GID:-1000}"' in compose
+    assert "./runtime-data:/app/runtime-data" in compose
     assert 'page.once("dialog"' in production_e2e
     assert "import httpx" not in ops_probe
     assert 'docker compose ps --services --filter status=running' in backup

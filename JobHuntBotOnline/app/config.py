@@ -45,6 +45,8 @@ class Settings:
     smtp_password: str
     smtp_from: str
     smtp_starttls: bool
+    email_min_interval_seconds: int
+    email_max_per_user_per_24h: int
 
     deepseek_api_key: str
     deepseek_base_url: str
@@ -107,6 +109,11 @@ def get_settings() -> Settings:
         smtp_password=os.getenv("SMTP_PASSWORD", ""),
         smtp_from=os.getenv("SMTP_FROM", "JobHuntBot <no-reply@example.com>"),
         smtp_starttls=_bool("SMTP_STARTTLS", True),
+        # A recipient-level bound complements the public IP limits.  It is
+        # persisted through EmailDelivery so a different IP cannot turn resend
+        # or password-reset links into a mailbox flood.
+        email_min_interval_seconds=_int("EMAIL_MIN_INTERVAL_SECONDS", 1800),
+        email_max_per_user_per_24h=_int("EMAIL_MAX_PER_USER_PER_24H", 3),
 
         deepseek_api_key=os.getenv("DEEPSEEK_API_KEY", ""),
         deepseek_base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com").rstrip("/"),
@@ -148,6 +155,10 @@ def validate_settings(s: Settings) -> None:
         raise RuntimeError("SESSION_MAX_AGE_SECONDS 过短")
     if s.max_upload_bytes < 1024:
         raise RuntimeError("MAX_UPLOAD_BYTES 无效")
+    if s.email_min_interval_seconds < 0:
+        raise RuntimeError("EMAIL_MIN_INTERVAL_SECONDS 不能为负数")
+    if s.email_max_per_user_per_24h < 1:
+        raise RuntimeError("EMAIL_MAX_PER_USER_PER_24H 至少为 1")
     try:
         Fernet(s.data_encryption_key.encode())
     except Exception as exc:
@@ -166,6 +177,10 @@ def validate_settings(s: Settings) -> None:
             raise RuntimeError("生产配置缺失：" + ", ".join(missing))
         if not s.cookie_secure:
             raise RuntimeError("生产环境 COOKIE_SECURE 必须为 true")
+        if s.email_min_interval_seconds < 1800:
+            raise RuntimeError("生产环境 EMAIL_MIN_INTERVAL_SECONDS 至少为 1800")
+        if s.email_max_per_user_per_24h > 3:
+            raise RuntimeError("生产环境 EMAIL_MAX_PER_USER_PER_24H 不得超过 3")
         # Email delivery is provider-neutral. NitroSend is not a dependency.
         # The application may be deployed safely with registration closed while
         # a standard SMTP relay is being configured; public registration cannot
