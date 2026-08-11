@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "phase": "S5_T3_OPS_PROJECTION_PRECHECK",
+  "status": "BLOCKED_LOCAL_OPS_PROJECTION",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-11",
+  "static_safety_guards": {
+    "audit_schema_guard": true,
+    "security_audit_events_schema_present": true,
+    "file_object_prefix_isolation_guard": true
+  },
+  "unauthenticated_adapter_boundary": {
+    "ops_token_injected": false,
+    "status_adapter_configured": true,
+    "ovh_adapter_configured": true,
+    "private_database_adapter_configured": true,
+    "status_adapter_http_503": true,
+    "ovh_adapter_http_503": true,
+    "private_database_adapter_http_503": true,
+    "adapter_response_bodies_retained": false,
+    "adapter_credentials_or_data_read": false
+  },
+  "dependency_state": {
+    "production_smoke_status": "BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK",
+    "risk_count": 4,
+    "hosted_adapter_misconfiguration_inferred": false,
+    "reason": "The probe intentionally omitted an operations credential and did not perform a data-bearing adapter request."
+  },
+  "scope_and_limits": {
+    "deployment_action_called": false,
+    "rollback_action_called": false,
+    "runtime_values_read_or_changed": false,
+    "access_policy_changed": false,
+    "public_audience_changed": false,
+    "d1_or_r2_configuration_changed": false,
+    "real_user_business_data_read_or_written": false,
+    "github_uploaded": false,
+    "vps3_used_as_site_host": false,
+    "product_pass_claimed": false,
+    "final_acceptance_claimed": false
+  },
+  "next_phase_requirement": "Run the controlled operations projection only after the Version 38 authenticated product journey and production smoke evidence are complete.",
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}

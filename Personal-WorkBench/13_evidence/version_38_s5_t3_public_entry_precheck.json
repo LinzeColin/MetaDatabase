@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "phase": "S5_T3_PUBLIC_ENTRY_PRECHECK",
+  "status": "BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-11",
+  "candidate": {
+    "saved_version_number": 38,
+    "candidate_deployed": false,
+    "public_runtime_version_bound_to_v38": false,
+    "reason": "The S5-T3 precheck did not deploy or roll back a version; the existing public endpoint is not runtime evidence for Version 38."
+  },
+  "unauthenticated_public_entry": {
+    "origin_kind": "HTTPS",
+    "origin_reachable": true,
+    "root_http_200": true,
+    "sign_in_http_200": true,
+    "sign_up_http_200": true,
+    "forgot_password_http_200": true,
+    "verify_email_http_200": true,
+    "public_configuration_http_200": true,
+    "unauthenticated_profile_http_401": true,
+    "response_bodies_retained": false
+  },
+  "real_flow_boundary": {
+    "email_or_password_submitted": false,
+    "turnstile_response_submitted": false,
+    "google_account_selected": false,
+    "browser_cookie_or_storage_inspected": false,
+    "real_user_or_business_data_read_or_written": false,
+    "controlled_mail_credentials_present": false,
+    "controlled_google_account_present": false,
+    "real_authentication_replay": "NOT_RUN_NO_CONTROLLED_TEST_IDENTITIES"
+  },
+  "precheck_result": {
+    "risk_count": 2,
+    "missing_controlled_identity_categories": [
+      "email_password",
+      "google"
+    ],
+    "hosted_route_failure_inferred": false,
+    "runtime_configuration_values_read": false
+  },
+  "scope_and_limits": {
+    "deployment_action_called": false,
+    "rollback_action_called": false,
+    "runtime_values_read_or_changed": false,
+    "access_policy_changed": false,
+    "public_audience_changed": false,
+    "d1_or_r2_configuration_changed": false,
+    "github_uploaded": false,
+    "vps3_used_as_site_host": false,
+    "product_pass_claimed": false,
+    "final_acceptance_claimed": false
+  },
+  "next_phase_requirement": "Use a controlled test environment to execute the Version 38 email, Google, tenant-isolation, second-device, and recovery journeys without reusing personal browser or mailbox state.",
+  "sensitive_values_recorded": false,
+  "real_user_business_data_read_or_written": false
+}

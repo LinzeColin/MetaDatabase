@@ -352,6 +352,58 @@ test("Version 38 S5-T2 configuration evidence is value-free and keeps the local-
   assert.equal(serialized.includes("Bearer "), false);
 });
 
+test("Version 38 S5-T3 public-entry and operations prechecks retain their controlled boundaries", async () => {
+  const publicEntry = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/version_38_s5_t3_public_entry_precheck.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const ops = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/version_38_s5_t3_ops_projection_precheck.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify({ publicEntry, ops });
+
+  assert.equal(publicEntry.task_id, "S5-T3");
+  assert.equal(publicEntry.status, "BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK");
+  assert.equal(publicEntry.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(publicEntry.candidate.saved_version_number, 38);
+  assert.equal(publicEntry.candidate.candidate_deployed, false);
+  assert.equal(publicEntry.candidate.public_runtime_version_bound_to_v38, false);
+  assert.equal(publicEntry.unauthenticated_public_entry.root_http_200, true);
+  assert.equal(publicEntry.unauthenticated_public_entry.sign_in_http_200, true);
+  assert.equal(publicEntry.unauthenticated_public_entry.sign_up_http_200, true);
+  assert.equal(publicEntry.unauthenticated_public_entry.forgot_password_http_200, true);
+  assert.equal(publicEntry.unauthenticated_public_entry.verify_email_http_200, true);
+  assert.equal(publicEntry.unauthenticated_public_entry.public_configuration_http_200, true);
+  assert.equal(publicEntry.unauthenticated_public_entry.unauthenticated_profile_http_401, true);
+  assert.equal(publicEntry.real_flow_boundary.email_or_password_submitted, false);
+  assert.equal(publicEntry.real_flow_boundary.turnstile_response_submitted, false);
+  assert.equal(publicEntry.real_flow_boundary.google_account_selected, false);
+  assert.equal(publicEntry.real_flow_boundary.browser_cookie_or_storage_inspected, false);
+  assert.equal(publicEntry.real_flow_boundary.real_authentication_replay, "NOT_RUN_NO_CONTROLLED_TEST_IDENTITIES");
+  assert.equal(publicEntry.scope_and_limits.deployment_action_called, false);
+  assert.equal(publicEntry.scope_and_limits.github_uploaded, false);
+  assert.equal(ops.task_id, "S5-T3");
+  assert.equal(ops.status, "BLOCKED_LOCAL_OPS_PROJECTION");
+  assert.equal(ops.static_safety_guards.audit_schema_guard, true);
+  assert.equal(ops.static_safety_guards.security_audit_events_schema_present, true);
+  assert.equal(ops.static_safety_guards.file_object_prefix_isolation_guard, true);
+  assert.equal(ops.unauthenticated_adapter_boundary.ops_token_injected, false);
+  assert.equal(ops.unauthenticated_adapter_boundary.status_adapter_http_503, true);
+  assert.equal(ops.unauthenticated_adapter_boundary.ovh_adapter_http_503, true);
+  assert.equal(ops.unauthenticated_adapter_boundary.private_database_adapter_http_503, true);
+  assert.equal(ops.unauthenticated_adapter_boundary.adapter_response_bodies_retained, false);
+  assert.equal(ops.scope_and_limits.deployment_action_called, false);
+  assert.equal(ops.scope_and_limits.github_uploaded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
+});
+
 test("Version 35 S5-T2 configuration evidence preserves value-free private continuity", async () => {
   const configuration = JSON.parse(
     await readFile(
