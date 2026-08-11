@@ -103,7 +103,11 @@ def score_job(profile: dict[str, Any], job: dict[str, Any], now: datetime | None
     avoid_industries = [x.casefold() for x in profile.get("avoid_industries", [])]
     if any(x and x in description for x in avoid_roles):
         hard_fail.append("职位属于你明确不接受的岗位")
-    if any(x and x in (job.get("industry", "") or "").casefold() for x in avoid_industries):
+    # Public job feeds occasionally return multiple industry labels.  Treat
+    # them as one searchable value so a historical feed shape cannot abort a
+    # user's whole discovery run.
+    industry = _text(job.get("industry", "")).casefold()
+    if any(x and x in industry for x in avoid_industries):
         hard_fail.append("职位属于你明确不接受的行业")
 
     target_locations = [x.casefold() for x in profile.get("target_locations", [])]

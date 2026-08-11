@@ -8,10 +8,14 @@ python3 deploy/verify_taskpack.py --deployment-runtime
 set -a; source .env; set +a
 mkdir -p runtime-data evidence
 previous_image="$(docker compose images -q web 2>/dev/null | head -1 || true)"
+initial_v03_deploy=0
+if [[ -z "$previous_image" ]]; then
+  initial_v03_deploy=1
+fi
 legacy_active=0
 legacy_service="${LEGACY_SERVICE:-app}"
 legacy_compose=()
-if [[ -n "${LEGACY_COMPOSE_FILE:-}" ]]; then
+if [[ "$initial_v03_deploy" == "1" && -n "${LEGACY_COMPOSE_FILE:-}" ]]; then
   [[ -f "$LEGACY_COMPOSE_FILE" ]] || { echo "LEGACY_COMPOSE_FILE does not exist" >&2; exit 1; }
   legacy_project_dir="$(cd "$(dirname "$LEGACY_COMPOSE_FILE")" && pwd)"
   legacy_compose=(docker compose --project-directory "$legacy_project_dir" -f "$LEGACY_COMPOSE_FILE")
@@ -48,7 +52,7 @@ docker compose build --pull web
 docker compose up -d postgres
 docker compose run --rm web alembic upgrade head
 
-if [[ -n "${V02_SQLITE_PATH:-}" ]]; then
+if [[ "$initial_v03_deploy" == "1" && -n "${V02_SQLITE_PATH:-}" ]]; then
   [[ -f "$V02_SQLITE_PATH" ]] || { echo "V02_SQLITE_PATH does not exist" >&2; exit 1; }
   old_root="${V02_DATA_ROOT:-$(dirname "$V02_SQLITE_PATH")}"; [[ -d "$old_root" ]] || { echo "V02_DATA_ROOT does not exist" >&2; exit 1; }
   extra_mount=()
@@ -75,7 +79,7 @@ else
 EOF
 fi
 
-if [[ -n "${LEGACY_COMPOSE_FILE:-}" ]]; then
+if [[ "$legacy_active" == "1" ]]; then
   "${legacy_compose[@]}" stop "$legacy_service"
 fi
 docker compose up -d web scheduler worker

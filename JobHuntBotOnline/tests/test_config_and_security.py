@@ -118,6 +118,9 @@ def test_production_compose_has_domain_bound_https_route_and_legacy_fallback():
     assert "LEGACY_COMPOSE_FILE" in rollback
     assert "legacy-compose:" in deploy
     assert "legacy_active=0" in deploy
+    assert "initial_v03_deploy=0" in deploy
+    assert 'if [[ "$initial_v03_deploy" == "1" && -n "${LEGACY_COMPOSE_FILE:-}" ]]; then' in deploy
+    assert 'if [[ "$initial_v03_deploy" == "1" && -n "${V02_SQLITE_PATH:-}" ]]; then' in deploy
     assert 'if [[ "$legacy_active" == "1" ]]; then' in deploy
     assert "python3 deploy/verify_taskpack.py" in deploy
     assert '--user "${ACCEPTANCE_UID:-$(id -u)}:${ACCEPTANCE_GID:-$(id -g)}"' in deploy

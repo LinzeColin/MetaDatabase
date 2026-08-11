@@ -113,6 +113,33 @@ def test_uncertain_sponsorship_remains_pending_for_no_sponsorship_job():
     assert "Sponsorship 情况尚未确认" in score["reasons"]
 
 
+def test_industry_list_is_normalized_for_avoidance_scoring():
+    score = score_job(
+        {
+            "target_locations": [],
+            "work_authorization": "Australian full working rights",
+            "sponsorship_now": "no",
+            "sponsorship_future": "no",
+            "work_mode": [],
+            "skills": [],
+            "keywords": [],
+            "primary_role_families": [],
+            "avoid_industries": ["Gambling"],
+        },
+        {
+            "title": "Compliance Analyst",
+            "description": "Review controls.",
+            "industry": ["Financial Services", "Gambling"],
+            "location": "Sydney",
+            "work_mode": "hybrid",
+            "skills": [],
+            "keywords": [],
+        },
+    )
+    assert score["qualification"] == "fail"
+    assert "职位属于你明确不接受的行业" in score["reasons"]
+
+
 def test_legal_role_aliases_keep_engineering_out_of_high_relevance():
     profile = {
         "primary_role_families": ["法律"],
