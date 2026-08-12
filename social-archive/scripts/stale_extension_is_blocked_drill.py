@@ -207,9 +207,25 @@ def _materialize_old(workspace: Path) -> Path:
 
 
 async def _worker_rpc(base: str, extension_id: str):
-    targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
-    workers = [t for t in targets if t.get("type") == "service_worker"
-               and extension_id in t.get("url", "")]
+    """连上这个扩展的 service worker。**要等它出现，不能只问一次。**
+
+    `Extensions.loadUnpacked` 回来之后，service worker 那个 target 是**异步**
+    冒出来的。原来这里只查一次 `/json`，查不到就回 `(None, None)`，
+    调用方随即报 `SERVICE_WORKER_DOWN` —— 那是一句会把人带偏的话：
+    worker 没有 down，是我问得太早。
+
+    （说清楚：今天那几次抖动**不是**这一处——失败时报的不是 SERVICE_WORKER_DOWN。
+    这里改的是另一个真实存在的竞态，顺手关掉，免得它哪天冒出来时
+    我们对着一句假话查半天。）
+    """
+    workers: list = []
+    for _ in range(20):
+        targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
+        workers = [t for t in targets if t.get("type") == "service_worker"
+                   and extension_id in t.get("url", "")]
+        if workers:
+            break
+        await asyncio.sleep(0.5)
     if not workers:
         return None, None
     ws = await websockets.connect(workers[0]["webSocketDebuggerUrl"], max_size=None)
