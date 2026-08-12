@@ -109,11 +109,21 @@ FAKE: dict[str, object] = {
     # 以前那段话写死在 index.html 里（「本版本只有 Chrome 书签能自动读取」），
     # v0.0.0.21 起就成了假话——所以这里要给它真东西去算。
     "/v1/accounts": {"items": [], "supported_platforms": [
+        # PWA_RENDER_FIXTURE：这几行是**假接口的响应夹具**，不是平台表。
+        # 放哪几个只看「这一屏要验什么」：一个能同步的（B站）+ 两个服务端说做不到的
+        # （X、快手），刚好够验「照服务端画」的两侧。2026-08-12 补上快手凑够三个之后，
+        # 平台表完整性那道门把它当成表打红了——它做得对，所以在这里说明白，不是去改它。
         {"platform": "bilibili", "relations": ["favorite"], "sync_supported": True,
          "not_syncable_reason": "", "server_handled": False, "connect_supported": True},
         {"platform": "x", "relations": ["bookmark"], "sync_supported": False,
          "not_syncable_reason": "本版本还不能自动读取 X 的书签。现在可以：在浏览器里打开任意一条推文，点插件的「保存当前页面」。",
          "server_handled": True, "connect_supported": False},
+        # **快手也要在夹具里**（2026-08-12）。它和 X 一样 `sync_supported=false`，
+        # 而「连接账号」那个弹窗原来对它照画一颗「连接」。夹具里只留一个反例，
+        # 就看不出「是不是每个做不到的都照服务端画」。值是从生产抄回来的，不是我编的。
+        {"platform": "kuaishou", "relations": ["favorite"], "sync_supported": False,
+         "not_syncable_reason": "本版本不自动读取快手的收藏。取数需要的那几个字段名只能从你登录后的真实响应里确认，靠公开页推断出来的是假的，所以这条路先不开。现在可以：在浏览器里打开任意一条快手内容，点插件的「保存当前页面」，这一条就会进档案馆。",
+         "server_handled": False, "connect_supported": False},
     ]},
     "/v1/sync-runs": {"items": []},
     "/v1/destinations": {"items": [{
@@ -345,6 +355,7 @@ async def run(chrome: str) -> int:
             never_completed_reading = None
             drawer_reading = None
             disk_reading = None
+            picker_reading = None
             classify_reading = None
             centre_reading = None
             payload = result.get("result", {})
@@ -439,6 +450,34 @@ async def run(chrome: str) -> int:
             disk_reading = ({"error": str(disk_payload["exceptionDetails"])[:200]}
                             if disk_payload.get("exceptionDetails")
                             else json.loads(disk_payload["result"]["value"]))
+
+            # **「连接新账号」那一屏，做不到的平台不许有「连接」按钮。**（2026-08-12）
+            #
+            # 它是 `renderSyncConnectPicker()` 画的，原来对每个平台都画一颗「连接」，
+            # 卡片上还写着「授权一次后自动全量导入，再持续增量同步」——而快手和 X
+            # 服务端明说 `sync_supported=false`。
+            #
+            # **这正是没装扩展的人看到的那一屏**：`openConnectPanel()` 在
+            # `connectFrameUrl` 为空时返回 false，才轮到这个兜底。照着说明书
+            # 第一次操作的人，看到的就是这两颗点了必然失败的按钮。
+            await rpc("Page.navigate", {"url": f"http://127.0.0.1:{PORT}/"})
+            await asyncio.sleep(3)
+            got = await rpc("Runtime.evaluate", {"expression": r"""
+              (() => {
+                const open = document.getElementById("connectNewAccount");
+                if (!open) return JSON.stringify({error: "没有「连接新账号」那颗按钮"});
+                open.click();
+                const cards = [...document.querySelectorAll(".account-connect-card")];
+                return JSON.stringify({cards: cards.map(card => ({
+                  name: (card.querySelector("strong") || {}).textContent || "",
+                  blurb: (card.querySelector("small") || {}).textContent || "",
+                  hasConnectButton: !!card.querySelector("[data-picker-platform]"),
+                }))});
+              })()""", "returnByValue": True})
+            picker_payload = got.get("result", {})
+            picker_reading = ({"error": str(picker_payload["exceptionDetails"])[:200]}
+                              if picker_payload.get("exceptionDetails")
+                              else json.loads(picker_payload["result"]["value"]))
 
             # **他重连之后、第一次完整同步之前那一屏。**（2026-08-10）
             #
@@ -987,6 +1026,34 @@ async def run(chrome: str) -> int:
             problems.append(f"使用说明那一页回不去资料库（返回链接={guide_reading.get('back_link')!r}）")
     measured["guide_page"] = guide_reading
 
+    # 「连接新账号」那一屏：做不到的平台不许有按钮
+    if picker_reading is None:
+        problems.append("**「连接新账号」那一屏没量到**——这不是通过。")
+    elif picker_reading.get("error"):
+        problems.append(f"「连接新账号」那一屏读不了：{picker_reading['error']}")
+    else:
+        cards = picker_reading.get("cards") or []
+        if len(cards) < 3:
+            problems.append(f"那一屏只画出 {len(cards)} 张卡——少了说明它根本没渲染")
+        saw_connectable = False
+        for card in cards:
+            name = (card.get("name") or "").strip()
+            blurb = card.get("blurb") or ""
+            if name in {"快手", "X"}:
+                if card.get("hasConnectButton"):
+                    problems.append(
+                        f"**{name} 那张卡上还有一颗「连接」**——服务端说 sync_supported=false，"
+                        "点下去结构上不可能成功")
+                if "自动全量导入" in blurb:
+                    problems.append(f"**{name} 那张卡还写着「授权一次后自动全量导入」**——对它是假话")
+                if not blurb.strip():
+                    problems.append(f"{name} 那张卡既没按钮也没说为什么——他不知道该怎么办")
+            elif card.get("hasConnectButton"):
+                saw_connectable = True
+        # **反向**：能同步的平台必须**还有**按钮，否则这道门只是把整屏关掉了
+        if cards and not saw_connectable:
+            problems.append("**一张「连接」都没剩下**——能同步的平台被一起挡掉了")
+
     print(json.dumps({
         "status": "PASS" if not problems else "FAIL",
         "cards_rendered": measured.get("cardCount"),
@@ -997,6 +1064,7 @@ async def run(chrome: str) -> int:
         # **量到的东西要印出来。** 不印的话，"通过了"和"根本没量"长得一样——
         # 我自己就先按一个不存在的键去读，读出 null 还以为是没量到。
         "guide_page": guide_reading,
+        "connect_picker": picker_reading,
         "all_accounts_disconnected": disconnected_reading,
         "just_reconnected": reconnected_reading,
         "disk_tight_badge": disk_reading,
