@@ -159,6 +159,10 @@ async function main() {
         has_mail_account: isNonEmptyString(process.env.SITES_SMOKE_EMAIL),
         has_password: isNonEmptyString(process.env.SITES_SMOKE_PASSWORD),
       },
+      real_auth_flow: {
+        status: "NOT_EXECUTED",
+        precheck_only: true,
+      },
       evidence_links: {
         owner_activation: readEvidence(join(ROOT, "13_evidence/owner_activation.json")),
         auth_saved: readEvidence(join(ROOT, "13_evidence/auth-saved.json")),
@@ -238,10 +242,6 @@ async function main() {
 
       if (!summary.checks.credentials.has_google_live_account) {
         summary.risks.push("尚未注入 Google 实时回放用账户（SITES_SMOKE_GOOGLE_EMAIL）。");
-      }
-
-      if (summary.risks.length === 0) {
-        summary.risks.push("生产真实 OAuth/邮件注册/找回/会话链路仍未执行，请由外部 Saved Candidate 与人工/自动化流程完成后回填。");
       }
 
       if (summary.risks.length === 0) {
