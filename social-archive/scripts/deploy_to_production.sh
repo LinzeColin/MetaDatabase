@@ -1046,6 +1046,20 @@ step "8.8) 读一眼：产品对他那份数据说的话对不对"
 .venv/bin/python scripts/audit_production_against_the_product.py --brief 2>/dev/null \
   || printf '  读不到审计结果（不影响部署）\n'
 
+step "8.86) 读一眼：他按过那颗诊断按钮没有"
+# 说明书请他做一件事：在抖音收藏页按一次诊断按钮。按下去之后地址和字段骨架都落在
+# 他自己的服务器上——**而在这一步之前，没有任何东西会告诉我他按过了**，
+# 我得记得自己去翻。「机制建好了、没人去看」这次断在我这一头：
+# 他做完了他那一份，而我不知道。
+#
+# **是播报不是门**：他还没按是完全正常的状态，不该让部署红。
+diagnosis_rc=0
+.venv/bin/python scripts/read_what_his_diagnosis_left_behind.py \
+  --host "$HOST" --brief 2>/dev/null || diagnosis_rc=$?
+if [[ $diagnosis_rc -ne 0 ]]; then
+  printf '  读不到诊断台账（不影响部署）\n'
+fi
+
 step "8.85) 读一眼：有没有哪一类收藏，取回来的整类都缺作者"
 # 2026-08-12：他库里抖音 54 条缺作者。**整体口径看不见问题**——31 条有、54 条没有，
 # 同一条取数路，看起来像"有时取得到"。按 `平台 × 关系` 拆开，形状立刻变了：
