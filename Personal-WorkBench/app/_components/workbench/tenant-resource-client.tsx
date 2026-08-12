@@ -74,6 +74,21 @@ function shouldQueueForReplay(status: number, sensitive: boolean): boolean {
   return status === 401 || status === 403 || status >= 500;
 }
 
+/**
+ * A browser restored from an OAuth callback can briefly retain the prior
+ * account partition while the server already has the new first-party session.
+ * Revalidate once before treating a non-guest 401 as a device-only save. The
+ * caller keeps the same idempotency key, and a genuine sign-out still changes
+ * scope instead of retrying under a different account.
+ */
+export function shouldRetryKnownSessionUnauthorized(
+  status: number,
+  scope: string,
+  forceSessionRefresh = false,
+): boolean {
+  return status === 401 && scope !== "guest" && !forceSessionRefresh;
+}
+
 function newIdempotencyKey(prefix: string): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return `${prefix}-${crypto.randomUUID()}`;
@@ -521,7 +536,16 @@ export function useTenantResource<T extends TenantRecord>(
     try {
       requestScope = await refreshCurrentScope(forceSessionRefresh);
       if (!requestScope) return;
-      const response = await fetch(`/api/mydairy/${resource}`, { credentials: "same-origin" });
+      const fetchRecords = () => fetch(`/api/mydairy/${resource}`, { credentials: "same-origin" });
+      let response = await fetchRecords();
+      if (shouldRetryKnownSessionUnauthorized(response.status, requestScope, forceSessionRefresh)) {
+        const refreshedScope = await refreshCurrentScope(true);
+        if (refreshedScope !== requestScope) {
+          acknowledgeScopeChange(refreshedScope);
+          return;
+        }
+        response = await fetchRecords();
+      }
       const responseScope = await refreshCurrentScope();
       if (responseScope !== requestScope) {
         acknowledgeScopeChange(responseScope);
@@ -710,7 +734,7 @@ export function useTenantResource<T extends TenantRecord>(
         acknowledgeScopeChange(resolvedScope);
         return null;
       }
-      const response = await fetch(withRequestId(resolvedAction.endpoint, requestId), {
+      const submitMutation = () => fetch(withRequestId(resolvedAction.endpoint, requestId), {
         method: resolvedAction.method,
         credentials: "same-origin",
         headers: {
@@ -718,6 +742,15 @@ export function useTenantResource<T extends TenantRecord>(
         },
         body: JSON.stringify(resolvedAction.payload),
       });
+      let response = await submitMutation();
+      if (shouldRetryKnownSessionUnauthorized(response.status, scope)) {
+        const refreshedScope = await refreshCurrentScope(true);
+        if (refreshedScope !== scope) {
+          acknowledgeScopeChange(refreshedScope);
+          return null;
+        }
+        response = await submitMutation();
+      }
       const responseScope = await refreshCurrentScope();
       if (responseScope !== scope) {
         acknowledgeScopeChange(responseScope);

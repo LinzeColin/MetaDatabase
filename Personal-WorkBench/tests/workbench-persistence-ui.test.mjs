@@ -310,6 +310,8 @@ test("sensitive record saves preflight the read-only consent state before fallin
 test("tenant resource client refreshes an account scope before merging or mutating cross-device history", async () => {
   const source = await readFile(resourceSource, "utf8");
 
+  assert.match(source, /export function shouldRetryKnownSessionUnauthorized\(/);
+  assert.match(source, /return status === 401 && scope !== "guest" && !forceSessionRefresh;/);
   assert.match(source, /const scopeRefreshRef = useRef<Promise<string \| null> \| null>\(null\);/);
   assert.match(source, /const refreshCurrentScope = useCallback\(async \(forceSessionRefresh = false\): Promise<string \| null> => \{/);
   assert.match(source, /if \(forceSessionRefresh\) invalidateBrowserRecordScope\(\);/);
@@ -318,6 +320,9 @@ test("tenant resource client refreshes an account scope before merging or mutati
   assert.match(source, /local = \(await readDeviceLocalRecords\(nextScope, resource\)\) as T\[\];/);
   assert.match(source, /const responseScope = await refreshCurrentScope\(\);/);
   assert.match(source, /if \(responseScope !== requestScope\) \{/);
+  assert.match(source, /shouldRetryKnownSessionUnauthorized\(response\.status, requestScope, forceSessionRefresh\)/);
+  assert.match(source, /const refreshedScope = await refreshCurrentScope\(true\);/);
+  assert.match(source, /response = await fetchRecords\(\);/);
   assert.match(source, /const reconciledScope = await refreshCurrentScope\(\);/);
   assert.match(source, /if \(reconciledScope !== requestScope\) \{/);
   assert.match(source, /async \(remote: T\[\], expectedScope: string\): Promise<T\[]>/);
@@ -326,6 +331,8 @@ test("tenant resource client refreshes an account scope before merging or mutati
   assert.match(source, /const scopeAfterReplay = await refreshCurrentScope\(\);/);
   assert.match(source, /const scopeBeforeRequest = await refreshCurrentScope\(\);/);
   assert.match(source, /if \(scopeBeforeRequest !== scope\) \{/);
+  assert.match(source, /shouldRetryKnownSessionUnauthorized\(response\.status, scope\)/);
+  assert.match(source, /response = await submitMutation\(\);/);
   assert.match(source, /window\.addEventListener\("focus", refreshWhenVisible\);/);
   assert.match(source, /const refreshWhenVisible = \(\) => void reload\(true\);/);
   assert.match(source, /window\.addEventListener\("pageshow", refreshWhenPageShows\);/);
@@ -386,7 +393,7 @@ test("dependent local mutations resolve a same-account parent alias before an im
   const deriveEnd = cacheSource.indexOf("async function readDeviceRecordAlias", deriveStart);
   const createStart = source.indexOf("const create = useCallback");
   const resolveStart = source.indexOf("const resolvedAction = await resolveDeviceOutboxAction(scope, deviceOutboxAction);", createStart);
-  const fetchStart = source.indexOf("const response = await fetch", resolveStart);
+  const submitStart = source.indexOf("const submitMutation = () => fetch", resolveStart);
 
   assert.ok(deriveStart >= 0);
   assert.ok(deriveEnd > deriveStart);
@@ -394,9 +401,9 @@ test("dependent local mutations resolve a same-account parent alias before an im
   assert.match(cacheSource.slice(deriveStart, deriveEnd), /return \[reference\];/);
   assert.match(source, /const parentReferences = deriveDeviceOutboxParentReferences\(resource, payload\);/);
   assert.ok(resolveStart > createStart);
-  assert.ok(fetchStart > resolveStart);
-  assert.match(source.slice(resolveStart, fetchStart), /if \(!resolvedAction\)[\s\S]*queueDeviceMutation\(deviceOutboxAction\)/);
-  assert.match(source.slice(fetchStart, fetchStart + 500), /body: JSON\.stringify\(resolvedAction\.payload\)/);
+  assert.ok(submitStart > resolveStart);
+  assert.match(source.slice(resolveStart, submitStart), /if \(!resolvedAction\)[\s\S]*queueDeviceMutation\(deviceOutboxAction\)/);
+  assert.match(source.slice(submitStart, submitStart + 500), /body: JSON\.stringify\(resolvedAction\.payload\)/);
   assert.match(source, /正在等待关联记录同步，完成后会自动同步。/);
 });
 
