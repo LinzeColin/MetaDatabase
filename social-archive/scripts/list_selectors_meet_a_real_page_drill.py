@@ -27,6 +27,18 @@ Owner 生产库里的实况（实测，不是推断）：
 真 Chrome、**公开页面、不带登录态、零费用**，把 `extract-core.js` 里那份
 `LIST_SELECTORS` 原样取出来，在真页面上数一遍命中。
 
+## ★ 小红书那个问题，2026-08-13 已经答了：**选择器没问题**
+
+第一版只让无头 Chrome 去开小红书，拿回 `error_code=300012 / IP at risk`，
+我据此写下「本机 IP 被挡、这台机器答不了」——**这个结论是错的**。
+同一台机器、同一个地址，普通 HTTP 客户端拿回 **200 / 981KB / 96 个命中**。
+**挡住的是无头 Chrome 这个特征，不是这条网络**——而他的插件跑在他自己的
+真 Chrome 里，撞不到那道墙。
+
+所以他库里小红书 0 条**不是选择器的问题**。剩下的候选成因都在已修之列
+（`PLATFORM_PERMISSION_MISSING` 的权限那一下、`RELATION_SCOPE_UNCONFIRMED`
+的范围那一条）。**要确认，得他重连一次再看那个数。**
+
 ## 三种结果要分开，绝不许混成一个「失败」
 
     页面根本没打开 / 撞上人机验证  → BLOCKED_CHANNEL（**不是 FAIL**）
@@ -75,16 +87,31 @@ REAL_PAGES = {
     "douyin": "https://www.douyin.com/discover",
 }
 
-# **这两家本机答不了，各自的原因不一样，别混成一句「跑不了」。**（2026-08-13 实测）
+# **每家用哪条路取页面，是量出来的，不是选出来的。**（2026-08-13 实测）
+#
+#   browser  真 Chrome 打开它自己渲染（列表由 JS 画出来的站只能走这条）
+#   fetch    普通 HTTP 客户端取 HTML，再交给真浏览器解析器 + 真选择器
+#            （**绕开的是无头特征识别，不是任何人机验证**）
+#
+# 实测三家各不相同：
+#
+#   bilibili     browser 21 命中；fetch 只拿到 4.4KB 的壳、0 个链接（列表 JS 渲染）
+#   xiaohongshu  browser 被拒（无头特征）；**fetch 200 / 981KB / 96 命中**（服务端就渲染好了）
+#   douyin       两条都不行（`/discover` 跳推荐流；fetch 拿到 73KB、0 个链接）
+DEFAULT_MODE = {
+    # PUBLIC_LIST_PAGE_FIXTURE：和 REAL_PAGES 同一份夹具的另一半，不是平台表。
+    "bilibili": "browser",
+    "xiaohongshu": "fetch",
+    "douyin": "browser",
+}
+
+# **只剩抖音答不了，而且原因和"被挡"无关。**
 UNANSWERABLE_HERE = {
-    "xiaohongshu": (
-        "本机 IP 被挡：跳到 `/website-login/error`，`error_code=300012`，"
-        "页面只有 71 个字「IP at risk. Switch to a secure network and retry.」。"
-        "**这不是选择器的结论**——换一台够得着的机器跑同一条命令即可。**不绕验证码。**"),
     "douyin": (
-        "`/discover` 会跳到 `/jingxuan`，那是一张**推荐流**，不是条目列表："
-        "整页只有 24 个链接、0 个带 `/video/`。**0 命中在这里说明不了问题**——"
-        "而他库里 douyin 真进过 91 条，足以证明那条选择器在**收藏页**上是管用的。"
+        "`/discover` 会跳到 `/jingxuan`——那是一张**推荐流，不是条目列表**，"
+        "整页 24 个链接、0 个带 `/video/`；fetch 那条路拿回 73KB 但 0 个链接（列表 JS 渲染）。"
+        "**0 命中在这里说明不了问题**——他库里 douyin 真进过 91 条，"
+        "足以证明那条选择器在**收藏页**上是管用的。"
         "要验它得有一张公开的、真的是列表的抖音页，目前没找到。"),
 }
 
@@ -119,7 +146,32 @@ def _selectors_for(platform: str) -> list[str]:
     return [single or double for single, double in found if (single or double)]
 
 
-async def run(chrome: str, platform: str, url: str, headed: bool) -> int:
+def _fetch_html(url: str) -> tuple[int, str]:
+    """用普通 HTTP 客户端取一次页面。
+
+    **为什么需要这条路。**（2026-08-13，推翻了我自己前一版的结论）
+
+    第一版只让无头 Chrome 去开小红书，拿回来的是
+    `error_code=300012 / IP at risk`，我据此写下「本机 IP 被挡」——**错了**。
+    同一台机器、同一个地址，`curl` 带一个正常 UA 拿回 **200、979KB、
+    90 个 `href="/explore/"`**。挡住的是**无头 Chrome 这个特征**，不是这条网络。
+
+    这个差别很要紧：**他的插件跑在他自己的真 Chrome 里**，撞不到这道墙。
+    把「无头被识别」写成「通道不可达」，会让人以为这件事在这台机器上没法查——
+    而它查得了。
+    """
+    request = urllib.request.Request(url, headers={
+        "User-Agent": ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                       "AppleWebKit/537.36 (KHTML, like Gecko) "
+                       "Chrome/151.0.0.0 Safari/537.36"),
+        "Accept-Language": "zh-CN,zh;q=0.9",
+    })
+    with urllib.request.urlopen(request, timeout=25) as response:
+        return response.status, response.read().decode("utf-8", "replace")
+
+
+async def run(chrome: str, platform: str, url: str, headed: bool,
+              via_fetch: bool = False) -> int:
     selectors = _selectors_for(platform)
     profile = Path(tempfile.mkdtemp(prefix="sa-realsel-"))
     process = subprocess.Popen(
@@ -143,14 +195,23 @@ async def run(chrome: str, platform: str, url: str, headed: bool) -> int:
                              ensure_ascii=False, indent=2))
             return 0
 
+        fetched_html = ""
+        if via_fetch:
+            # 取回来的 HTML 交给**真浏览器的解析器**，再跑**真选择器**。
+            # 请求由普通 HTTP 客户端发出，不带无头特征。
+            status, fetched_html = _fetch_html(url)
+            payload["fetched_status"] = status
+            payload["fetched_bytes"] = len(fetched_html)
         async with websockets.connect(version["webSocketDebuggerUrl"], max_size=None) as ws:
             rpc = await shape._rpc_factory(ws)                  # noqa: SLF001
-            await rpc("Target.createTarget", {"url": url})
-        await asyncio.sleep(9)                                  # 首屏 + 懒加载
+            await rpc("Target.createTarget",
+                      {"url": "about:blank" if via_fetch else url})
+        await asyncio.sleep(2 if via_fetch else 9)              # 首屏 + 懒加载
 
         targets = json.loads(urllib.request.urlopen(
             f"http://127.0.0.1:{DEBUG_PORT}/json", timeout=5).read())
-        pages = [t for t in targets if t["type"] == "page" and "about:blank" not in t["url"]]
+        pages = [t for t in targets if t["type"] == "page"
+                 and (via_fetch or "about:blank" not in t["url"])]
         if not pages:
             payload |= {"status": "BLOCKED_CHANNEL", "reason": "PAGE_NEVER_OPENED"}
             print(json.dumps(payload, ensure_ascii=False, indent=2))
@@ -159,6 +220,13 @@ async def run(chrome: str, platform: str, url: str, headed: bool) -> int:
         async with websockets.connect(pages[0]["webSocketDebuggerUrl"], max_size=None) as page:
             prpc = await shape._rpc_factory(page)               # noqa: SLF001
             await prpc("Runtime.enable")
+            if via_fetch:
+                await prpc("Runtime.evaluate", {
+                    "expression": ("(() => { document.open();"
+                                   f" document.write({json.dumps(fetched_html)});"
+                                   " document.close(); return document.title; })()"),
+                    "returnByValue": True, "timeout": 30000})
+                await asyncio.sleep(1)
             probe = await prpc("Runtime.evaluate", {"expression": f'''(() => {{
                 const selectors = {json.dumps(selectors)};
                 const counts = {{}};
@@ -233,11 +301,16 @@ def main() -> int:
     parser.add_argument("--platform", default="xiaohongshu", choices=sorted(REAL_PAGES))
     parser.add_argument("--url", default="")
     parser.add_argument("--headed", action="store_true")
+    parser.add_argument("--via-fetch", action="store_true", default=None,
+                        help="用普通 HTTP 客户端取 HTML 再交给浏览器解析——"
+                             "绕开的是**无头特征识别**，不是任何人机验证")
     parser.add_argument("--chrome",
                         default="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
     args = parser.parse_args()
     return asyncio.run(run(args.chrome, args.platform,
-                           args.url or REAL_PAGES[args.platform], args.headed))
+                           args.url or REAL_PAGES[args.platform], args.headed,
+                           (DEFAULT_MODE.get(args.platform) == "fetch"
+                            if args.via_fetch is None else args.via_fetch)))
 
 
 if __name__ == "__main__":

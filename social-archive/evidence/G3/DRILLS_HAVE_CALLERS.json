@@ -49,7 +49,7 @@
     "extension_install_page_drill.py": "改到那条路时",
     "pwa_render_drill.py": "改到那条路时",
     "douyin_recogniser_does_not_grab_the_wrong_list_drill.py": "改到形状识别那条路时（打一次抖音公开页，零费用）",
-    "list_selectors_meet_a_real_page_drill.py": "每次发布（只跑 B 站，公开页零费用）",
+    "list_selectors_meet_a_real_page_drill.py": "每次发布（B 站 + 小红书，公开页零费用）",
     "net_observer_sees_a_real_page_drill.py": "改到拦截那条路时（打一次 B 站公开页，零费用）",
     "check_every_guide_step_has_a_drill.py": "**发布门每次跑**（`final_verify.py`）",
     "forget_button_render_drill.py": "**每次发布**（deploy 第 8.65 步）",
