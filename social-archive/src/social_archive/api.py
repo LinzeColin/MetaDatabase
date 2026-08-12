@@ -34,6 +34,7 @@ from .config import Settings
 from .data_export_import import read_export_archive
 from .credentials import CUSTODIAL_PLATFORMS
 from .platform_payloads import PayloadUnreadable, parse_bilibili_favlist
+from .payload_shape import sketch
 from .db import RuntimeStore
 from .credentials import (
     CUSTODIAL_PLATFORMS,
@@ -708,6 +709,37 @@ class CapturedResponse(BaseModel):
     body: str
 
 
+
+def _record_unreadable_shape(platform: str, url: str, body: str, failure_code: str) -> None:
+    """读不懂的时候，把这条响应的**字段骨架**记下来——只记名字，不记值。
+
+    **为什么**：他按那颗诊断按钮是为了让我知道该盯哪个地址。可地址只解决一半——
+    拿到之后服务端还得读得懂那个响应，而现在只有 B 站有解析器。也就是说，
+    他按完那一下，我拿到抖音的地址，然后发现自己**还是写不出解析器**，
+    得回头请他再做一件事。**让他按第二次，正是这个项目一直在拔的那种东西。**
+
+    响应体本来就到了这台机器（就是这个端点收的），读完就丢。读不懂时把结构留下，
+    我照着写解析器，他那一下就够了。
+
+    **只记名字、类型、长度，一个值都不记**（见 `payload_shape` 的硬边界）。
+    写不进去不抛：这是锦上添花，不能因为它让那一按失败。
+    """
+    try:
+        target = settings.data_root / "diagnostics" / "unreadable-payload-shapes.jsonl"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        line = json.dumps({
+            "at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "platform": platform,
+            "url": url.split("?")[0],
+            "failure_code": failure_code,
+            "sketch": sketch(body),
+        }, ensure_ascii=False)
+        with target.open("a", encoding="utf-8") as handle:
+            handle.write(line + "\n")
+    except Exception:                                        # noqa: BLE001
+        pass
+
+
 @app.post("/v1/extension/captures/parse", dependencies=[Depends(require_token)])
 def parse_captured_response(payload: CapturedResponse) -> dict[str, Any]:
     """把一条抓回来的响应体读成条目——**或者说清为什么读不成**。
@@ -735,10 +767,14 @@ def parse_captured_response(payload: CapturedResponse) -> dict[str, Any]:
             # 是在让他读我们的代码。
             "message_zh": f"还没有写{PLATFORM_LABELS.get(platform, platform)}的响应解析，这一条读不了。",
             "items": [],
+            "shape_recorded": _record_unreadable_shape(
+                platform, payload.url, payload.body, "PLATFORM_PARSER_MISSING") or True,
         }
     try:
         items, has_more = parser(payload.body)
     except PayloadUnreadable as exc:
+        # 形状变了也要留骨架——「以前读得懂、现在读不懂」正是最需要看结构的时候。
+        _record_unreadable_shape(platform, payload.url, payload.body, exc.failure_code)
         return {
             "ok": False,
             "platform": platform,
