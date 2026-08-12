@@ -27,9 +27,9 @@
     "install_tab_opened": false,
     "install_page_text": "",
     "next_step": {
-      "title": "第 1 步：安装浏览器插件",
-      "why": "收藏内容要从你自己的浏览器里读，所以需要这个插件。装好后页面会自动认出来并带你回来。",
-      "action": "去安装"
+      "title": "第 3 步：连接一个能同步的来源",
+      "why": "本版本能自动同步的是：B站。其余平台可以用插件一条条保存。",
+      "action": "去连接"
     },
     "connect_panel_open": true,
     "dialog": "",
