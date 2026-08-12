@@ -156,8 +156,9 @@ def main() -> int:
             )
             stage = "open_recommendations"
             page.goto(f"{base_url}/recommendations", wait_until="domcontentloaded")
-            page.wait_for_load_state("networkidle")
-            if page.locator("[data-testid='recommendation-results']").count() != 1:
+            recommendation_results = page.locator("[data-testid='recommendation-results']")
+            recommendation_results.wait_for(state="visible")
+            if recommendation_results.count() != 1:
                 raise RuntimeError("recommendation result region is unavailable")
             if page.locator("[data-testid='recommendation-filters']").get_attribute("data-live-filters-ready") != "true":
                 raise RuntimeError("live filter event binding is unavailable")
@@ -170,7 +171,7 @@ def main() -> int:
             requests_before = client_diagnostics["partial_request_count"]
             relevance_control.select_option(value=target_relevance)
             page.wait_for_timeout(700)
-            page.wait_for_load_state("networkidle")
+            recommendation_results.wait_for(state="visible")
             if client_diagnostics["partial_request_count"] <= requests_before:
                 raise RuntimeError("relevance selection did not start a live filter request")
             all_count = page.locator("[data-testid='job-card']").count()
@@ -180,7 +181,7 @@ def main() -> int:
             requests_before = client_diagnostics["partial_request_count"]
             page.locator("[data-testid='filter-role']").select_option(label=role)
             page.wait_for_timeout(700)
-            page.wait_for_load_state("networkidle")
+            recommendation_results.wait_for(state="visible")
             if client_diagnostics["partial_request_count"] <= requests_before:
                 raise RuntimeError("role selection did not start a live filter request")
             role_count = page.locator("[data-testid='job-card']").count()
@@ -191,13 +192,15 @@ def main() -> int:
 
             stage = "open_ai_consultation"
             page.goto(f"{base_url}/recommendations/{recommendation.id}/ai", wait_until="domcontentloaded")
-            page.wait_for_load_state("networkidle")
-            if page.locator("[data-testid='ai-consult-form']").count() != 1:
+            ai_consult_form = page.locator("[data-testid='ai-consult-form']")
+            ai_consult_form.wait_for(state="visible")
+            if ai_consult_form.count() != 1:
                 raise RuntimeError("AI consultation entry is unavailable")
             stage = "open_application_workspace"
             page.goto(f"{base_url}/applications", wait_until="domcontentloaded")
-            page.wait_for_load_state("networkidle")
-            if page.locator("[data-testid='application-event-form']").count() != 1:
+            application_event_form = page.locator("[data-testid='application-event-form']")
+            application_event_form.wait_for(state="visible")
+            if application_event_form.count() != 1:
                 raise RuntimeError("application progress workspace is unavailable")
             context.close()
             browser.close()
