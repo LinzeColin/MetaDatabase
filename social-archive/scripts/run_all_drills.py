@@ -83,6 +83,17 @@ PARAMETRISED = [
     ["list_shape_end_to_end_drill.py", "--platform", "douyin"],
     ["list_shape_end_to_end_drill.py", "--platform", "reddit"],
     ["list_shape_end_to_end_drill.py", "--platform", "instagram"],
+    # **整条链对着他真正下载的那个包走一遍**（2026-08-13 补上调用方）。
+    #
+    # 这件事此前写在 bilibili_end_to_end_drill.py 的文件头里，措辞是
+    # 「每次部署之后**至少跑一次真包**」，并记着最后一次是 **v0.0.0.16**——
+    # 而今天是 v0.0.0.70。**中间五十几版一次都没跑过。**
+    # 靠人记得那一档，这个仓已经拔过很多次了。
+    #
+    # 交付包另有两道自动的门（shipped_package_drill 用未改权限的原包加载；
+    # 部署第 8 / 8.2 步逐字节证明「下载页发的 = 本地的 = git 里的」），
+    # 这一条补的是**整条链**：连接 → 取数 → 入库。
+    ["bilibili_end_to_end_drill.py", "--from-shipped-zip"],
     ["extension_platform_wiring_drill.py", "--platform", "xiaohongshu",
      "--sample-url", "https://www.xiaohongshu.com/explore/abc123",
      "--expect-custody", "forbidden", "--expect-connect-card"],

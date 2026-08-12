@@ -42,14 +42,26 @@ Chrome 的 `--host-resolver-rules` 把 `*.bilibili.com` 指到本机的假站上
 「47 道门全在验暂存目录，从没人打开过最终那个 zip」——改成回读自验证之后，
 第一次跑就抓到 283 个中文名乱码。
 
-所以每次部署之后**至少跑一次真包**：
+**这件事现在不用谁记得了**（2026-08-13）：
 
-    ssh linze-ovh 'curl -s -o /tmp/e.zip http://127.0.0.1:18765/downloads/social-archive-extension.zip'
-    scp linze-ovh:/tmp/e.zip /tmp/ && unzip -q /tmp/e.zip -d /tmp/unpacked
+    python3 scripts/bilibili_end_to_end_drill.py --from-shipped-zip
+
+它解开 `dist/social-archive-extension.zip` 再验，**由 run_all_drills 每次部署
+自动带上**，证据单独写在 `evidence/G3/END_TO_END_RUN_SHIPPED_ZIP.json`
+（和源码目录那一跑分开，否则后跑的会把先跑的盖掉）。
+
+**为什么改**：这一段原来写的是「每次部署之后至少跑一次真包」，配一串
+ssh + curl + unzip 的手敲命令，并记着最后一次是 **v0.0.0.16**——
+而改这段话的时候已经是 **v0.0.0.70**，**中间五十几版一次都没跑过**。
+「靠人记得」这一档，这个仓拔过很多次了，这里是同一个形状。
+
+（交付包另有两道自动的门：`shipped_package_drill` 用**未改权限**的原包加载一次；
+部署第 8 / 8.2 步逐字节证明「下载页发的 = 本地的 = git 里那份代码」。
+这一条补的是**整条链**——连接 → 取数 → 入库——对着真包走一遍。）
+
+要验**生产真正下发**的那个包（而不是本地构建的），仍可手动指路径：
+
     python3 scripts/bilibili_end_to_end_drill.py --ext-dir /tmp/unpacked
-
-2026-08-06 v0.0.0.16 这样跑过一次：24 个文件、manifest 0.0.0.16、
-整条链 PASS（连接 → 确认登录 → 同步 → 3 条入库 → 设置页显示已连接）。
 """
 
 from __future__ import annotations
@@ -443,7 +455,8 @@ SIDEPANEL_PROBE = r"""
 })()
 """
 
-async def run(chrome: str, ext_src: Path = EXT_SRC) -> int:
+async def run(chrome: str, ext_src: Path = EXT_SRC,
+              evidence_name: str = "END_TO_END_RUN.json") -> int:
     workspace = Path(tempfile.mkdtemp(prefix="sa-bili-e2e-"))
     profile = workspace / "profile"
     problems: list[str] = []
@@ -733,6 +746,14 @@ async def run(chrome: str, ext_src: Path = EXT_SRC) -> int:
     report = {
         "status": "PASS" if not problems else "FAIL",
         "task": "G3",
+        # **证据要说清它验的是哪一份扩展。**（2026-08-13）
+        #
+        # 不写的话，「跑的是仓里的源码目录」和「跑的是他真正下载的那个 zip」
+        # 产出的证据**一模一样**——而这两件事的分量差很远。
+        # 这个仓栽过同一个形状：判据绿了，指的却是另一个产物。
+        "extension_under_test": str(ext_src),
+        "extension_version": json.loads(
+            (ext_src / "manifest.json").read_text(encoding="utf-8")).get("version", "?"),
         "journey": measured,
         "account_created": account,
         "items_received": len(items),
@@ -751,7 +772,11 @@ async def run(chrome: str, ext_src: Path = EXT_SRC) -> int:
             "那一下由 Owner 在设置页点「连接账号」时给。"
         ),
     }
-    out_path = ROOT / "evidence/G3/END_TO_END_RUN.json"
+    # **两种跑法各写各的证据文件。**（2026-08-13）
+    #
+    # 源码目录那一跑和真交付包那一跑原来写同一个路径，后跑的把先跑的盖掉——
+    # 于是部署跑了两次、证据只剩一份，而读的人还以为那就是全部。
+    out_path = ROOT / "evidence/G3" / evidence_name
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(report, ensure_ascii=False, indent=2))
@@ -768,13 +793,50 @@ def main() -> int:
     parser.add_argument("--ext-dir", default=None,
                         help="用这个目录当扩展（默认是仓里的源码目录）。"
                              "把生产下发的 zip 解开指到这里，验的才是他真正装的那份。")
+    # **别让「验真包」这件事挂在「有人记得敲那条命令」上。**（2026-08-13）
+    #
+    # 上面那段说明写着「每次部署之后至少跑一次真包」，并记着最后一次是
+    # **v0.0.0.16**——而今天是 v0.0.0.70。**中间五十几版一次都没跑过。**
+    # 这个仓一路在拔的就是这一档：机制建好了、靠人记得、于是没人去看。
+    #
+    # 现在给它一个不用记的入口：`--from-shipped-zip` 把 `dist/` 里那个
+    # **真交付包**解开再验，由 run_all_drills 每次部署自动带上。
+    #
+    # （交付包本身另有两道自动的门：`shipped_package_drill` 用**未改权限**的
+    # 原包加载一次，部署第 8 / 8.2 步逐字节证明「下载页发的 = 本地的 = git 里的」。
+    # 这一条补的是**整条链**——连接 → 取数 → 入库——对着真包走一遍。）
+    parser.add_argument("--from-shipped-zip", action="store_true",
+                        help="解开 dist/social-archive-extension.zip 来验，"
+                             "而不是仓里的源码目录")
     args = parser.parse_args()
-    source = Path(args.ext_dir).resolve() if args.ext_dir else EXT_SRC
+    workspace = None
+    if args.from_shipped_zip:
+        import zipfile
+        zip_path = ROOT / "dist" / "social-archive-extension.zip"
+        if not zip_path.is_file():
+            print(json.dumps({"status": "FAIL", "error_code": "SHIPPED_ZIP_MISSING",
+                              "path": str(zip_path),
+                              "message_zh": "交付包不在——先跑一次打包再验它。"},
+                             ensure_ascii=False))
+            return 2
+        workspace = Path(tempfile.mkdtemp(prefix="sa-bili-zip-"))
+        with zipfile.ZipFile(zip_path) as archive:
+            archive.extractall(workspace)
+        source = workspace
+    else:
+        source = Path(args.ext_dir).resolve() if args.ext_dir else EXT_SRC
     if not source.is_dir():
         print(json.dumps({"status": "FAIL", "error_code": "EXT_DIR_MISSING",
                           "path": str(source)}, ensure_ascii=False))
         return 2
-    return asyncio.run(run(args.chrome, source))
+    try:
+        return asyncio.run(run(
+            args.chrome, source,
+            "END_TO_END_RUN_SHIPPED_ZIP.json" if args.from_shipped_zip
+            else "END_TO_END_RUN.json"))
+    finally:
+        if workspace:
+            shutil.rmtree(workspace, ignore_errors=True)
 
 
 if __name__ == "__main__":
