@@ -47,7 +47,7 @@ fi
 GATE_REPORT="$(mktemp)"
 trap 'rm -f "${GATE_REPORT}"' EXIT
 
-printf 'pre-commit: 跑发布门（实测约 25 秒，门有 36 道）…\n' >&2
+printf 'pre-commit: 跑发布门（实测约 25 秒）…\n' >&2
 if ! (cd "${ROOT}" && "${PY}" scripts/final_verify.py --report "${GATE_REPORT}" >/tmp/sa-precommit.log 2>&1); then
   printf '\n✗ 发布门是红的，拒绝提交。\n\n' >&2
   tail -20 /tmp/sa-precommit.log >&2
