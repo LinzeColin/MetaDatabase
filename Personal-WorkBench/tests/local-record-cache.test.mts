@@ -14,7 +14,9 @@ import {
   readDeviceOutbox,
   removeDeviceOutboxActions,
   removeDeviceLocalRecord,
+  rememberDeviceOutboxRecordAlias,
   resolveBrowserRecordScope,
+  resolveDeviceOutboxAction,
   resolveDeviceOutboxActionWithAliases,
   writeDeviceLocalRecord,
   type DeviceOutboxAction,
@@ -337,4 +339,56 @@ test("local parent references wait for a same-account alias instead of sending a
   assert.ok(resolved);
   assert.equal(resolved.payload.habitId, "rec_habit");
   assert.equal(action.payload.habitId, "local_habit");
+});
+
+test("embedded-browser alias fallback resolves a child only in the originating account scope", async () => {
+  const runtime = globalThis as typeof globalThis & { window?: unknown };
+  const originalWindow = runtime.window;
+  const entries = new Map<string, string>();
+  const storage = {
+    getItem(key: string) { return entries.get(key) ?? null; },
+    removeItem(key: string) { entries.delete(key); },
+    setItem(key: string, value: string) { entries.set(key, value); },
+  };
+  Object.defineProperty(runtime, "window", {
+    configurable: true,
+    value: {
+      dispatchEvent() { return true; },
+      indexedDB: { open() { throw new Error("embedded browser cache unavailable"); } },
+      localStorage: storage,
+    },
+  });
+
+  const parent: DeviceOutboxAction = {
+    createdAt: 1,
+    endpoint: "/api/mydairy/habits",
+    idempotencyKey: "parent-habit-v1",
+    localRecordId: "local_habit",
+    method: "POST",
+    payload: { label: "早起" },
+    queuedAt: 1,
+  };
+  const child: DeviceOutboxAction = {
+    createdAt: 2,
+    endpoint: "/api/mydairy/habit-checkins",
+    idempotencyKey: "child-checkin-v1",
+    localRecordId: "local_checkin",
+    method: "POST",
+    parentReferences: [{ field: "habitId", localRecordId: "local_habit", resource: "habits" }],
+    payload: { habitId: "local_habit", completedAt: 2 },
+    queuedAt: 2,
+  };
+
+  try {
+    await rememberDeviceOutboxRecordAlias("account:alpha", parent, "rec_alpha_habit");
+    const sameAccount = await resolveDeviceOutboxAction("account:alpha", child);
+    const otherAccount = await resolveDeviceOutboxAction("account:beta", child);
+
+    assert.equal(sameAccount?.payload.habitId, "rec_alpha_habit");
+    assert.equal(child.payload.habitId, "local_habit");
+    assert.equal(otherAccount, null);
+  } finally {
+    if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
+    else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });
+  }
 });

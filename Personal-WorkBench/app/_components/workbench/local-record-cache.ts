@@ -63,6 +63,7 @@ const RECORD_ALIAS_STORE = "record-aliases";
 const LOCAL_MARKER = "__mydairy_device_local_v1";
 const LOCAL_RECORD_FALLBACK_PREFIX = "mydairy.device-records.fallback.v1";
 const DEVICE_OUTBOX_FALLBACK_PREFIX = "mydairy.device-outbox.fallback.v1";
+const DEVICE_RECORD_ALIAS_FALLBACK_PREFIX = "mydairy.device-record-alias.fallback.v1";
 const BROWSER_SCOPE_REQUEST_TIMEOUT_MS = 2_500;
 const BROWSER_SCOPE_CACHE_TTL_MS = 5_000;
 const tenantFieldNames = new Set(["userId", "user_id", "ownerId", "owner_id", "tenantId", "tenant_id"]);
@@ -126,6 +127,10 @@ function localRecordFallbackKey(scope: string, resource: string): string {
 
 function deviceOutboxFallbackKey(scope: string): string {
   return `${DEVICE_OUTBOX_FALLBACK_PREFIX}\u0000${scope}`;
+}
+
+function deviceRecordAliasFallbackKey(scope: string, resource: string, localRecordId: string): string {
+  return `${DEVICE_RECORD_ALIAS_FALLBACK_PREFIX}\u0000${scope}\u0000${resource}\u0000${localRecordId}`;
 }
 
 function browserLocalStorage(): Storage | null {
@@ -494,6 +499,38 @@ function appendDeviceOutboxFallback(scope: string, action: DeviceOutboxAction): 
   return writeDeviceOutboxFallback(scope, next) ? next : null;
 }
 
+/**
+ * Parent aliases share the same opaque account scope as their local outbox.
+ * They keep a queued child safe when an embedded browser exposes IndexedDB
+ * but refuses to open it after the parent reaches the cloud.
+ */
+function readDeviceRecordAliasFallback(scope: string, resource: string, localRecordId: string): string | null {
+  const storage = browserLocalStorage();
+  if (!storage) return null;
+  try {
+    const remoteRecordId = storage.getItem(deviceRecordAliasFallbackKey(scope, resource, localRecordId));
+    return typeof remoteRecordId === "string" && remoteRecordId.length > 0 ? remoteRecordId : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeDeviceRecordAliasFallback(
+  scope: string,
+  resource: string,
+  localRecordId: string,
+  remoteRecordId: string,
+): boolean {
+  const storage = browserLocalStorage();
+  if (!storage) return false;
+  try {
+    storage.setItem(deviceRecordAliasFallbackKey(scope, resource, localRecordId), remoteRecordId);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 const childResourceDependencies = {
   "habit-checkins": { field: "habitId", resource: "habits" },
   "savings-transactions": { field: "goalId", resource: "savings-goals" },
@@ -606,19 +643,24 @@ async function readDeviceRecordAlias(
   resource: string,
   localRecordId: string,
 ): Promise<string | null> {
-  if (!canUseIndexedDb()) return null;
-  const database = await openRecordDatabase();
+  const fallback = readDeviceRecordAliasFallback(scope, resource, localRecordId);
+  if (!canUseIndexedDb()) return fallback;
   try {
-    const transaction = database.transaction(RECORD_ALIAS_STORE, "readonly");
-    const row = await requestValue(
-      transaction.objectStore(RECORD_ALIAS_STORE).get(recordAliasKey(scope, resource, localRecordId)),
-    ) as CachedRecordAliasRow | undefined;
-    await transactionDone(transaction);
-    return row && typeof row.remoteRecordId === "string" && row.remoteRecordId.length > 0
-      ? row.remoteRecordId
-      : null;
-  } finally {
-    database.close();
+    const database = await openRecordDatabase();
+    try {
+      const transaction = database.transaction(RECORD_ALIAS_STORE, "readonly");
+      const row = await requestValue(
+        transaction.objectStore(RECORD_ALIAS_STORE).get(recordAliasKey(scope, resource, localRecordId)),
+      ) as CachedRecordAliasRow | undefined;
+      await transactionDone(transaction);
+      return row && typeof row.remoteRecordId === "string" && row.remoteRecordId.length > 0
+        ? row.remoteRecordId
+        : fallback;
+    } finally {
+      database.close();
+    }
+  } catch {
+    return fallback;
   }
 }
 
@@ -666,23 +708,32 @@ export async function rememberDeviceOutboxRecordAlias(
     (resource !== "habits" && resource !== "savings-goals")
     || !action.localRecordId
     || !remoteRecordId
-    || !canUseIndexedDb()
   ) return;
-  const database = await openRecordDatabase();
-  try {
-    const transaction = database.transaction(RECORD_ALIAS_STORE, "readwrite");
-    transaction.objectStore(RECORD_ALIAS_STORE).put({
-      key: recordAliasKey(scope, resource, action.localRecordId),
-      localRecordId: action.localRecordId,
-      remoteRecordId,
-      resource,
-      scope,
-    } satisfies CachedRecordAliasRow);
-    await transactionDone(transaction);
-  } finally {
-    database.close();
+  let saved = false;
+  if (!canUseIndexedDb()) {
+    saved = writeDeviceRecordAliasFallback(scope, resource, action.localRecordId, remoteRecordId);
+  } else {
+    try {
+      const database = await openRecordDatabase();
+      try {
+        const transaction = database.transaction(RECORD_ALIAS_STORE, "readwrite");
+        transaction.objectStore(RECORD_ALIAS_STORE).put({
+          key: recordAliasKey(scope, resource, action.localRecordId),
+          localRecordId: action.localRecordId,
+          remoteRecordId,
+          resource,
+          scope,
+        } satisfies CachedRecordAliasRow);
+        await transactionDone(transaction);
+        saved = true;
+      } finally {
+        database.close();
+      }
+    } catch {
+      saved = writeDeviceRecordAliasFallback(scope, resource, action.localRecordId, remoteRecordId);
+    }
   }
-  if (typeof window !== "undefined") window.dispatchEvent(new Event("mydairy:outbox-alias-resolved"));
+  if (saved && typeof window !== "undefined") window.dispatchEvent(new Event("mydairy:outbox-alias-resolved"));
 }
 
 /**
