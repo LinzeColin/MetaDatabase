@@ -50,6 +50,12 @@ RELATION_WORDS = {
     "观看历史": "history",
 }
 # 表里的平台名 → 平台键。
+#
+# **Chrome 书签（generic-web）故意不在这里**：它根本不走 SCANNABLE_RELATIONS
+# 那条路——`background.js` 直接发 `relation_types: ["bookmark"]`，
+# 而 `SCANNABLE_RELATIONS.get("generic-web")` 是 `None`。
+# 拿一个空集合去卡它，只会把一行正确的话打红。
+# 这是**有意留白，不是漏了**；哪天书签也走同一条路，再把它加进来。
 PLATFORM_WORDS = {"B站": "bilibili", "小红书": "xiaohongshu", "抖音": "douyin",
                   "快手": "kuaishou", "Reddit": "reddit", "Instagram": "instagram"}
 
