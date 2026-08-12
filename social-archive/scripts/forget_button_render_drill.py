@@ -325,10 +325,26 @@ READ_DRAWER = r"""
   const row = document.querySelector("#tableBody tr[data-row-id]");
   if (!row) return JSON.stringify({opened: false, reason: "表里没有条目行"});
   row.click();
-  await new Promise(r => setTimeout(r, 1500));
-  const box = document.getElementById("drawerContent");
-  const text = ((box && box.innerText) || "").replace(/\s+/g, " ");
-  return JSON.stringify({opened: !!(box && text), whole: text.slice(0, 400)});
+  // **等数据到，别等一个写死的毫秒数。**（2026-08-12）
+  //
+  // 原来是 `setTimeout(1500)` 然后读一次。回执是异步取的，1.5 秒有时候不够——
+  // 于是同一份代码连跑两次，一次读到「1 个目的地有回执 Markdown 已写入」，
+  // 一次读到「尚无已完成回执」，后者把部署掐断并报成产品缺陷。
+  // 这个仓的另一个演练文件头里早就写着同一条教训：
+  // 「等待条件写成『等到有卡片』——读到的是账号加载**之前**的 DOM」。
+  //
+  // 现在最多等 12 秒，等到回执那一段出现为止；**真的一直没出现才是缺陷**，
+  // 那时报出来的就不是抖动了。
+  const box = () => document.getElementById("drawerContent");
+  const read = () => ((box() && box().innerText) || "").replace(/\s+/g, " ");
+  let text = "";
+  for (let i = 0; i < 24; i += 1) {
+    await new Promise(r => setTimeout(r, 500));
+    text = read();
+    if (text.includes("已写入")) break;
+  }
+  return JSON.stringify({opened: !!(box() && text), whole: text.slice(0, 400),
+                         waited_for_receipt: text.includes("已写入")});
 })()
 """
 
@@ -503,7 +519,21 @@ async def run(chrome: str, origin: str) -> int:
 
             await rpc("Runtime.evaluate", {"expression": OPEN_CENTRE, "returnByValue": True})
             await asyncio.sleep(1.5)
+            # **等这一页认出插件，别等一个写死的毫秒数。**（2026-08-12）
+            #
+            # 「下一步」那张卡停在第 1/2 步 = 还没认出插件，那时读到的一切
+            # 都是空转（这个文件下面那条正对照就是为它写的）。原来只 sleep 固定时长，
+            # 于是同一份代码连跑两次，一次认出、一次没认出——**没认出的那次把部署
+            # 掐断，还报成产品缺陷**（说明书第 3 步那张卡对不上）。
+            #
+            # 最多等 15 秒；**真的一直认不出才是问题**，那时报出来的不是抖动。
             measured["rendered"] = await evaluate(READ_BUTTON)
+            for _ in range(30):
+                step = (measured["rendered"] or {}).get("nextStep", "")
+                if "第 1 步" not in step and "第 2 步" not in step:
+                    break
+                await asyncio.sleep(0.5)
+                measured["rendered"] = await evaluate(READ_BUTTON)
 
             posted.clear()
             measured["wrong_name"] = await evaluate(click_with_prompt("打错了"))
