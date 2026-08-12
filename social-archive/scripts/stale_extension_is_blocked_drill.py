@@ -315,14 +315,25 @@ async def _one_case(chrome: str, folder: Path, label: str, debug_port: int) -> d
                                         why: pick("nextStepWhy"),
                                         action: pick("nextStepAction") });
             })()'''
-            for _ in range(30):
+            # **认不出插件时要 reload，光等没用。**（2026-08-12 第三次修这处才找对）
+            #
+            # 页面靠 `SA_PING` → bridge.js → `SA_PONG` 认出插件，而 bridge.js 是
+            # **内容脚本**——它只在页面加载时注入。扩展刚装好时打开的那个页面
+            # 可能压根没拿到它，那之后再等多久都不会变。
+            #
+            # 前两次我按「读早了」加等待，各失败一次：等 15 秒那张卡照样停在第 1 步。
+            # 这次改成**重新加载**（重新注入内容脚本），每轮之间才谈得上等。
+            for attempt in range(6):
                 card = await prpc("Runtime.evaluate",
                                   {"expression": CARD, "returnByValue": True})
                 result["next_step"] = json.loads(
                     card.get("result", {}).get("result", {}).get("value") or "{}")
                 if "第 1 步" not in str(result["next_step"].get("title", "")):
                     break
-                await asyncio.sleep(0.5)
+                if attempt < 5:
+                    await prpc("Page.enable")
+                    await prpc("Page.reload", {"ignoreCache": True})
+                    await asyncio.sleep(2.5)
 
             # **真的点下去**，带用户手势——权限申请那条路只在有手势时才成立。
             click = await prpc("Runtime.evaluate", {"expression": '''(() => {
