@@ -12,5 +12,5 @@ fi
 
 script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 PYTHONDONTWRITEBYTECODE=1 python3 "$script_dir/current_production_abd_scoped_explicit_authority_record_intake.py" \
-  --contract "$script_dir/current_production_abd_scoped_explicit_authority_record_intake_contract.json" \
+  --contract "$script_dir/current_production_abd_scoped_explicit_authority_record_intake_contract_002.json" \
   --protected-root "$2"

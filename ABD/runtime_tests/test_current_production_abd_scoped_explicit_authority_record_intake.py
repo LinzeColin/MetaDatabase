@@ -26,7 +26,7 @@ from current_production_abd_scoped_explicit_authority_record_intake import (
 )
 
 
-CONTRACT_PATH = RUNTIME / "current_production_abd_scoped_explicit_authority_record_intake_contract.json"
+CONTRACT_PATH = RUNTIME / "current_production_abd_scoped_explicit_authority_record_intake_contract_002.json"
 RUNNER_PATH = RUNTIME / "run_current_production_abd_scoped_explicit_authority_record_intake.sh"
 MODULE_PATH = RUNTIME / "current_production_abd_scoped_explicit_authority_record_intake.py"
 UTC_TODAY = datetime.now(timezone.utc).date().isoformat()
@@ -68,7 +68,10 @@ def test_contract_preserves_read_only_nonsecret_boundary() -> None:
     assert isinstance(boundary, dict)
     assert expected["maximum_tree_depth"] == 12
     assert expected["maximum_tree_entries"] == 512
+    assert expected["require_exactly_one_valid_authority_record"] is True
+    assert expected["controlled_target_reference_must_be_nonsecret_opaque_identifier"] is True
     assert boundary["candidate_json_key_set_checked_before_value_parse"] is True
+    assert boundary["only_one_valid_authority_record_may_authorize_source"] is True
     assert boundary["target_mapping_emitted_or_persisted"] is False
     assert boundary["ssh_connection_attempted"] is False
 
@@ -82,6 +85,7 @@ def test_valid_explicit_record_is_only_ready_for_a_separate_mapping_phase(tmp_pa
     assert facts["authority_record_state"] == "RESOLVED_IN_MEMORY"
     assert facts["authority_record_ready"] is True
     assert facts["candidate_target_reference_parsed_in_memory_only"] is True
+    assert facts["unique_valid_authority_record_checked_in_memory_only"] is True
     assert result["status"] == PASS_STATUS
     assert result["source_authority_ready"] is True
     assert result["target_mapping_authorized"] is False
@@ -112,6 +116,32 @@ def test_unexpected_fields_are_rejected_before_candidate_values_are_parsed(tmp_p
 
 def test_stale_record_cannot_be_ready(tmp_path: Path) -> None:
     _write_record(tmp_path, _record(observed_on="2000-01-01"))
+
+    facts = intake_explicit_authority_record(tmp_path)
+
+    assert facts["authority_record_state"] == "SCHEMA_INCOMPLETE_REDACTED"
+    assert facts["authority_record_ready"] is False
+
+
+def test_multiple_valid_records_cannot_authorize_a_target(tmp_path: Path) -> None:
+    _write_record(tmp_path, _record(), "abd_authority_record_one.json")
+    _write_record(tmp_path, _record(), "abd_authority_record_two.json")
+
+    facts = intake_explicit_authority_record(tmp_path)
+    result = evaluate_intake(_contract(), facts)
+
+    assert facts["authority_record_state"] == "AMBIGUOUS_EXPLICIT_AUTHORITY_RECORD_REDACTED"
+    assert facts["authority_record_ready"] is False
+    assert facts["unique_valid_authority_record_checked_in_memory_only"] is True
+    assert result["source_authority_ready"] is False
+
+
+@pytest.mark.parametrize(
+    "target_reference",
+    ("user:password@host", "https://target", "/private/path", " target-alias", "target alias"),
+)
+def test_credential_bearing_or_endpoint_target_reference_cannot_be_ready(tmp_path: Path, target_reference: str) -> None:
+    _write_record(tmp_path, _record(controlled_target_reference=target_reference))
 
     facts = intake_explicit_authority_record(tmp_path)
 

@@ -32,6 +32,7 @@ ROOT_STATES = {"AVAILABLE_READ_ONLY", "UNAVAILABLE_REDACTED", "UNSAFE_ROOT_REJEC
 SCAN_STATES = {"COMPLETED", "TRUNCATED_REDACTED", "NOT_ATTEMPTED"}
 AUTHORITY_RECORD_STATES = {
     "RESOLVED_IN_MEMORY",
+    "AMBIGUOUS_EXPLICIT_AUTHORITY_RECORD_REDACTED",
     "NO_EXPLICIT_AUTHORITY_RECORD_REDACTED",
     "SCHEMA_INCOMPLETE_REDACTED",
     "PERMISSION_BOUNDARY_REJECTED_REDACTED",
@@ -42,6 +43,7 @@ MAX_TREE_DEPTH = 12
 MAX_TREE_ENTRIES = 512
 MAX_CANDIDATE_RECORDS = 16
 MAX_CANDIDATE_BYTES = 32768
+MAX_CONTROLLED_TARGET_REFERENCE_CHARACTERS = 128
 REQUIRED_FILENAME_TOKENS = {"authority", "record"}
 BLOCKED_NAME_TOKENS = {
     "account",
@@ -56,6 +58,7 @@ BLOCKED_NAME_TOKENS = {
     "ssh",
     "token",
 }
+FORBIDDEN_TARGET_REFERENCE_CHARACTERS = frozenset(":/@?#[\\]=\r\n\t")
 SKIPPED_DIRECTORY_TOKENS = {"archive", "build", "cache", "node", "node_modules", "vendor"}
 RECORD_FIELDS = {
     "schema_version",
@@ -100,6 +103,8 @@ def _expected_contract() -> dict[str, Any]:
         "maximum_tree_entries": MAX_TREE_ENTRIES,
         "maximum_candidate_records_opened": MAX_CANDIDATE_RECORDS,
         "maximum_candidate_bytes": MAX_CANDIDATE_BYTES,
+        "require_exactly_one_valid_authority_record": True,
+        "controlled_target_reference_must_be_nonsecret_opaque_identifier": True,
         "required_record_fields": sorted(RECORD_FIELDS),
         "provider_api_requests": 0,
         "ssh_connections_attempted": 0,
@@ -113,6 +118,8 @@ def _source_boundary() -> dict[str, Any]:
         "only_private_permission_nonsecret_json_filename_candidates_opened": True,
         "candidate_json_key_set_checked_before_value_parse": True,
         "candidate_target_reference_parsed_in_memory_only": True,
+        "only_one_valid_authority_record_may_authorize_source": True,
+        "controlled_target_reference_must_remain_nonsecret_opaque": True,
         "credential_material_read_emitted_or_persisted": False,
         "target_mapping_emitted_or_persisted": False,
         "protected_path_or_filename_emitted_or_persisted": False,
@@ -134,7 +141,7 @@ def validate_contract(contract: Mapping[str, Any]) -> None:
         raise CurrentProductionAbdScopedExplicitAuthorityRecordIntakeError("contract field set is not exact")
     if contract.get("schema_version") != "1.0.0":
         raise CurrentProductionAbdScopedExplicitAuthorityRecordIntakeError("contract schema is invalid")
-    if contract.get("contract_id") != "ABD-POST-FREEZE-CURRENT-PRODUCTION-ABD-SCOPED-EXPLICIT-AUTHORITY-RECORD-INTAKE-001":
+    if contract.get("contract_id") != "ABD-POST-FREEZE-CURRENT-PRODUCTION-ABD-SCOPED-EXPLICIT-AUTHORITY-RECORD-INTAKE-002":
         raise CurrentProductionAbdScopedExplicitAuthorityRecordIntakeError("contract identifier is invalid")
     if contract.get("product_version") != "0.0.0.1" or contract.get("status") != "ONE_SHOT_CURRENT_PRODUCTION_ABD_SCOPED_EXPLICIT_AUTHORITY_RECORD_INTAKE_READ_ONLY":
         raise CurrentProductionAbdScopedExplicitAuthorityRecordIntakeError("contract status is invalid")
@@ -171,6 +178,17 @@ def _is_named_candidate(path: Path) -> bool:
     return path.suffix.lower() == ".json" and REQUIRED_FILENAME_TOKENS.issubset(_tokens(path))
 
 
+def _is_nonsecret_opaque_target_reference(value: Any) -> bool:
+    return (
+        isinstance(value, str)
+        and 0 < len(value) <= MAX_CONTROLLED_TARGET_REFERENCE_CHARACTERS
+        and value == value.strip()
+        and value.isprintable()
+        and not any(character.isspace() for character in value)
+        and not any(character in FORBIDDEN_TARGET_REFERENCE_CHARACTERS for character in value)
+    )
+
+
 def _record_is_valid(record: Mapping[str, Any], observed_on: str) -> bool:
     target_reference = record.get("controlled_target_reference")
     return (
@@ -181,8 +199,7 @@ def _record_is_valid(record: Mapping[str, Any], observed_on: str) -> bool:
         and record.get("product_version") == "0.0.0.1"
         and record.get("observed_on") == observed_on
         and record.get("noninteractive_only") is True
-        and isinstance(target_reference, str)
-        and bool(target_reference.strip())
+        and _is_nonsecret_opaque_target_reference(target_reference)
         and record.get("owner_task_authorization") == "CURRENT_TASK_AUTHORIZED"
     )
 
@@ -198,6 +215,7 @@ def _base_facts(observed_on: str) -> dict[str, Any]:
         "authority_record_ready": False,
         "candidate_record_key_set_checked_in_memory_only": False,
         "candidate_target_reference_parsed_in_memory_only": False,
+        "unique_valid_authority_record_checked_in_memory_only": False,
         "credential_material_read_emitted_or_persisted": False,
         "target_mapping_emitted_or_persisted": False,
         "protected_path_or_filename_emitted_or_persisted": False,
@@ -227,6 +245,7 @@ def intake_explicit_authority_record(root: Path, observed_on: str | None = None)
     scan_truncated = False
     saw_permission_rejection = False
     saw_schema_incomplete = False
+    valid_record_count = 0
     stack: list[tuple[Path, int]] = [(root, 0)]
 
     while stack and not scan_truncated:
@@ -283,15 +302,19 @@ def intake_explicit_authority_record(root: Path, observed_on: str | None = None)
                     continue
                 facts["candidate_target_reference_parsed_in_memory_only"] = True
                 if _record_is_valid(record, observed):
-                    facts["bounded_scan_state"] = "COMPLETED"
-                    facts["authority_record_state"] = "RESOLVED_IN_MEMORY"
-                    facts["authority_record_ready"] = True
-                    return facts
+                    valid_record_count += 1
+                    continue
                 saw_schema_incomplete = True
 
     facts["bounded_scan_state"] = "TRUNCATED_REDACTED" if scan_truncated else "COMPLETED"
+    facts["unique_valid_authority_record_checked_in_memory_only"] = not scan_truncated
     if scan_truncated:
         facts["authority_record_state"] = "SCAN_LIMIT_REACHED_REDACTED"
+    elif valid_record_count == 1:
+        facts["authority_record_state"] = "RESOLVED_IN_MEMORY"
+        facts["authority_record_ready"] = True
+    elif valid_record_count > 1:
+        facts["authority_record_state"] = "AMBIGUOUS_EXPLICIT_AUTHORITY_RECORD_REDACTED"
     elif saw_schema_incomplete:
         facts["authority_record_state"] = "SCHEMA_INCOMPLETE_REDACTED"
     elif saw_permission_rejection:
@@ -312,6 +335,7 @@ def validate_facts(facts: Mapping[str, Any]) -> None:
         "authority_record_ready",
         "candidate_record_key_set_checked_in_memory_only",
         "candidate_target_reference_parsed_in_memory_only",
+        "unique_valid_authority_record_checked_in_memory_only",
         "credential_material_read_emitted_or_persisted",
         "target_mapping_emitted_or_persisted",
         "protected_path_or_filename_emitted_or_persisted",
@@ -336,7 +360,12 @@ def validate_facts(facts: Mapping[str, Any]) -> None:
         raise CurrentProductionAbdScopedExplicitAuthorityRecordIntakeError("scan state is invalid")
     if facts.get("authority_record_state") not in AUTHORITY_RECORD_STATES:
         raise CurrentProductionAbdScopedExplicitAuthorityRecordIntakeError("authority record state is invalid")
-    for field in ("authority_record_ready", "candidate_record_key_set_checked_in_memory_only", "candidate_target_reference_parsed_in_memory_only"):
+    for field in (
+        "authority_record_ready",
+        "candidate_record_key_set_checked_in_memory_only",
+        "candidate_target_reference_parsed_in_memory_only",
+        "unique_valid_authority_record_checked_in_memory_only",
+    ):
         if type(facts.get(field)) is not bool:
             raise CurrentProductionAbdScopedExplicitAuthorityRecordIntakeError("authority record boolean is invalid")
     for field in (
@@ -356,17 +385,29 @@ def validate_facts(facts: Mapping[str, Any]) -> None:
     record_state = facts["authority_record_state"]
     ready = facts["authority_record_ready"]
     if root_state != "AVAILABLE_READ_ONLY":
-        if scan_state != "NOT_ATTEMPTED" or record_state != "UNAVAILABLE_REDACTED" or ready:
+        if (
+            scan_state != "NOT_ATTEMPTED"
+            or record_state != "UNAVAILABLE_REDACTED"
+            or ready
+            or facts["unique_valid_authority_record_checked_in_memory_only"]
+        ):
             raise CurrentProductionAbdScopedExplicitAuthorityRecordIntakeError("unavailable root facts are inconsistent")
     elif record_state == "RESOLVED_IN_MEMORY":
-        if not ready or scan_state != "COMPLETED" or not facts["candidate_record_key_set_checked_in_memory_only"] or not facts["candidate_target_reference_parsed_in_memory_only"]:
+        if (
+            not ready
+            or scan_state != "COMPLETED"
+            or not facts["candidate_record_key_set_checked_in_memory_only"]
+            or not facts["candidate_target_reference_parsed_in_memory_only"]
+            or not facts["unique_valid_authority_record_checked_in_memory_only"]
+        ):
             raise CurrentProductionAbdScopedExplicitAuthorityRecordIntakeError("resolved record facts are inconsistent")
     else:
         if ready:
             raise CurrentProductionAbdScopedExplicitAuthorityRecordIntakeError("unresolved record cannot be ready")
-        if record_state == "SCAN_LIMIT_REACHED_REDACTED" and scan_state != "TRUNCATED_REDACTED":
-            raise CurrentProductionAbdScopedExplicitAuthorityRecordIntakeError("scan limit facts are inconsistent")
-        if record_state != "SCAN_LIMIT_REACHED_REDACTED" and scan_state != "COMPLETED":
+        if record_state == "SCAN_LIMIT_REACHED_REDACTED":
+            if scan_state != "TRUNCATED_REDACTED" or facts["unique_valid_authority_record_checked_in_memory_only"]:
+                raise CurrentProductionAbdScopedExplicitAuthorityRecordIntakeError("scan limit facts are inconsistent")
+        elif scan_state != "COMPLETED" or not facts["unique_valid_authority_record_checked_in_memory_only"]:
             raise CurrentProductionAbdScopedExplicitAuthorityRecordIntakeError("completed scan facts are inconsistent")
 
 
@@ -377,6 +418,10 @@ def evaluate_intake(contract: Mapping[str, Any], facts: Mapping[str, Any]) -> di
     ready = facts["authority_record_ready"]
     checks = [
         {"id": "EXPLICIT_AUTHORITY_RECORD_INTAKE_EXECUTED", "passed": executed},
+        {
+            "id": "UNIQUE_VALID_AUTHORITY_RECORD_CHECKED",
+            "passed": facts["unique_valid_authority_record_checked_in_memory_only"],
+        },
         {"id": "ABD_SCOPED_EXPLICIT_AUTHORITY_RECORD_READY", "passed": ready},
         {"id": "PROVIDER_SSH_GITHUB_ACTIONS_NOT_ATTEMPTED", "passed": True},
     ]
