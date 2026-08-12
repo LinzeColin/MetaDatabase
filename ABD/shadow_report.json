@@ -1,0 +1,96 @@
+{
+  "artifact_id": "ART-S19-P02-01",
+  "contract_id": "AC-S19-P02",
+  "empirical_observation": {
+    "evidence_status": "NO_EMPIRICAL_REALTIME_SHADOW_EVIDENCE",
+    "model_beta_required_days": 60,
+    "model_beta_required_qualified_signals": 500,
+    "observed_realtime_qualified_signals": 0,
+    "observed_realtime_shadow_days": 0,
+    "synthetic_fixture_counts_may_substitute": false,
+    "target_plausibility_required_days": 90,
+    "target_plausibility_required_independent_equivalent_signals": 1000
+  },
+  "external_effect_boundary": {
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "gmail_message_sent": false,
+    "incremental_cash_spent_aud": "0.00",
+    "market_or_provider_runtime_accessed": false,
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "owner_final_order_only": true,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_fund_fact_or_ledger_mutated": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "synthetic_evidence_promoted_to_empirical": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-10T07:00:00+10:00",
+  "fixture_sha256": "ce4d177d4a94ec59882fb31c72a7b3db08486aa31576f7dcab96ac6d0f06e749",
+  "model_beta_eligible": false,
+  "model_beta_status": "BLOCKED_NO_EMPIRICAL_REALTIME_SHADOW_EVIDENCE",
+  "predecessor_evidence_sha256": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "quality_gates": [
+    {
+      "adjusted_slope": "1.0000",
+      "confidence_lower_bounds_strictly_positive": true,
+      "gate_id": "CALIBRATION",
+      "intercept": "0.0000",
+      "main_error": "0.025",
+      "niche_error": "0.04",
+      "passed": true
+    },
+    {
+      "gate_id": "NET_GROWTH",
+      "net_log_growth_95_lcb": "0.0001",
+      "passed": true,
+      "rule": "STRICTLY_GREATER_THAN_0"
+    },
+    {
+      "advice_age_seconds": 8,
+      "advice_usable_seconds": 8,
+      "gate_id": "FRESHNESS",
+      "passed": true,
+      "quote_age_seconds": 12,
+      "quote_usable_seconds": 12
+    },
+    {
+      "classification": "FROZEN_SYNTHETIC_CAPACITY_ASSERTION_NOT_REAL_PROVIDER_CAPACITY",
+      "gate_id": "CAPACITY",
+      "passed": true
+    },
+    {
+      "gate_id": "DRIFT",
+      "jensen_shannon": "0.0999",
+      "jensen_shannon_stop": "0.10",
+      "passed": true,
+      "population_stability_index": "0.1999",
+      "population_stability_index_stop": "0.20",
+      "rule": "STRICTLY_BELOW_STOP_LINES"
+    }
+  ],
+  "requirement_id": "REQ-S19-P02",
+  "schema_version": "1.0.0",
+  "scope": "FROZEN_SYNTHETIC_METRIC_GATE_REPLAY_ONLY",
+  "shadow_report_sha256": "14d1ac586f7dc13858273b2f5fb8d95dbe359ab628195f826aaab3f2da1368e5",
+  "source_evidence_sha256": {
+    "capacity_report.json": "0dfa4b67eb93f75e101adce94bb534fd8d9fbe7e7f139e5bd60ffa48fd81c11b",
+    "machine/evidence/EVD-S19-P01.json": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+    "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+    "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+    "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76"
+  },
+  "status": "PASS_LOCAL_SYNTHETIC_METRIC_CONTRACT",
+  "synthetic_window": {
+    "beta_thresholds_met_in_fixture_only": true,
+    "evidence_status": "SYNTHETIC_TEST_ONLY_NOT_EMPIRICAL",
+    "logical_qualified_signals": 1000,
+    "logical_shadow_days": 90,
+    "target_plausibility_thresholds_met_in_fixture_only": true
+  }
+}

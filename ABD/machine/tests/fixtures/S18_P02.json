@@ -1,0 +1,260 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "contract_id": "AC-S18-P02",
+  "requirement_id": "REQ-S18-P02",
+  "stage_id": "S18",
+  "phase_id": "P02",
+  "fixed_clock": "2026-08-10T02:00:00+10:00",
+  "expected_next": "S18/P03_READY_NOT_STARTED",
+  "predecessors": [
+    {
+      "contract_id": "AC-S18-P01",
+      "evidence_sha256": "7934fdcc8998467883ab993fee312892311e5a45d26add37e4e00b04a5f8d9e5"
+    }
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "GOLDEN_ALL_SIGNALS_HEALTHY",
+      "diagnostic_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T02:00:00+10:00",
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "signal_snapshot": {
+          "live_advice_age_seconds": 8,
+          "silent_coverage_gap_count": 0,
+          "population_stability_index": "0.10",
+          "resource_envelope_status": "ENVELOPE_PASS",
+          "email_verification_status": "VERIFIED",
+          "evidence_integrity_status": "PASS"
+        }
+      },
+      "expected": {
+        "decision": "NO_HIGH_PRIORITY_ALERTS_KEEP_ADVICE_DISABLED",
+        "triggered_alert_ids": [],
+        "action_ids": []
+      }
+    },
+    {
+      "scenario_id": "LIVE_ADVICE_FRESHNESS_EXCEEDED",
+      "diagnostic_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T02:00:00+10:00",
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "signal_snapshot": {
+          "live_advice_age_seconds": 9,
+          "silent_coverage_gap_count": 0,
+          "population_stability_index": "0.10",
+          "resource_envelope_status": "ENVELOPE_PASS",
+          "email_verification_status": "VERIFIED",
+          "evidence_integrity_status": "PASS"
+        }
+      },
+      "expected": {
+        "decision": "HIGH_PRIORITY_ALERTS_FAIL_CLOSED_ACTIONS_REQUIRED",
+        "triggered_alert_ids": ["HP-LIVE-ADVICE-FRESHNESS"],
+        "action_ids": ["LOGICAL_DISABLE_ADVICE_AND_REQUEST_FRESHNESS_AUDIT"]
+      }
+    },
+    {
+      "scenario_id": "SILENT_COVERAGE_GAP_ONE",
+      "diagnostic_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T02:00:00+10:00",
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "signal_snapshot": {
+          "live_advice_age_seconds": 8,
+          "silent_coverage_gap_count": 1,
+          "population_stability_index": "0.10",
+          "resource_envelope_status": "ENVELOPE_PASS",
+          "email_verification_status": "VERIFIED",
+          "evidence_integrity_status": "PASS"
+        }
+      },
+      "expected": {
+        "decision": "HIGH_PRIORITY_ALERTS_FAIL_CLOSED_ACTIONS_REQUIRED",
+        "triggered_alert_ids": ["HP-SILENT-COVERAGE-GAP"],
+        "action_ids": ["LOGICAL_DISABLE_ADVICE_AND_REQUEST_COVERAGE_AUDIT"]
+      }
+    },
+    {
+      "scenario_id": "MODEL_PSI_EXACT_STOP",
+      "diagnostic_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T02:00:00+10:00",
+        "probability_delta": "0.0001",
+        "odds_tick_delta": -1,
+        "signal_snapshot": {
+          "live_advice_age_seconds": 8,
+          "silent_coverage_gap_count": 0,
+          "population_stability_index": "0.20",
+          "resource_envelope_status": "ENVELOPE_PASS",
+          "email_verification_status": "VERIFIED",
+          "evidence_integrity_status": "PASS"
+        }
+      },
+      "expected": {
+        "decision": "HIGH_PRIORITY_ALERTS_FAIL_CLOSED_ACTIONS_REQUIRED",
+        "triggered_alert_ids": ["HP-MODEL-PSI-STOP"],
+        "action_ids": ["LOGICAL_HOLD_MODEL_RELEASE_AND_REQUEST_DRIFT_REVIEW"]
+      }
+    },
+    {
+      "scenario_id": "MODEL_PSI_MINUS_ONE_IN_TEN_THOUSAND_STABLE",
+      "diagnostic_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T02:00:00+10:00",
+        "probability_delta": "-0.0001",
+        "odds_tick_delta": -1,
+        "signal_snapshot": {
+          "live_advice_age_seconds": 8,
+          "silent_coverage_gap_count": 0,
+          "population_stability_index": "0.1999",
+          "resource_envelope_status": "ENVELOPE_PASS",
+          "email_verification_status": "VERIFIED",
+          "evidence_integrity_status": "PASS"
+        }
+      },
+      "expected": {
+        "decision": "NO_HIGH_PRIORITY_ALERTS_KEEP_ADVICE_DISABLED",
+        "triggered_alert_ids": [],
+        "action_ids": []
+      }
+    },
+    {
+      "scenario_id": "MODEL_PSI_PLUS_ONE_IN_TEN_THOUSAND_STOPS",
+      "diagnostic_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T02:00:00+10:00",
+        "probability_delta": "0.0001",
+        "odds_tick_delta": -1,
+        "signal_snapshot": {
+          "live_advice_age_seconds": 8,
+          "silent_coverage_gap_count": 0,
+          "population_stability_index": "0.2001",
+          "resource_envelope_status": "ENVELOPE_PASS",
+          "email_verification_status": "VERIFIED",
+          "evidence_integrity_status": "PASS"
+        }
+      },
+      "expected": {
+        "decision": "HIGH_PRIORITY_ALERTS_FAIL_CLOSED_ACTIONS_REQUIRED",
+        "triggered_alert_ids": ["HP-MODEL-PSI-STOP"],
+        "action_ids": ["LOGICAL_HOLD_MODEL_RELEASE_AND_REQUEST_DRIFT_REVIEW"]
+      }
+    },
+    {
+      "scenario_id": "RESOURCE_ENVELOPE_FAILS_CLOSED",
+      "diagnostic_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T02:00:00+10:00",
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "signal_snapshot": {
+          "live_advice_age_seconds": 8,
+          "silent_coverage_gap_count": 0,
+          "population_stability_index": "0.10",
+          "resource_envelope_status": "ENVELOPE_FAIL",
+          "email_verification_status": "VERIFIED",
+          "evidence_integrity_status": "PASS"
+        }
+      },
+      "expected": {
+        "decision": "HIGH_PRIORITY_ALERTS_FAIL_CLOSED_ACTIONS_REQUIRED",
+        "triggered_alert_ids": ["HP-RESOURCE-ENVELOPE"],
+        "action_ids": ["LOGICAL_HOLD_CANDIDATE_AND_REQUEST_CAPACITY_REVIEW"]
+      }
+    },
+    {
+      "scenario_id": "EMAIL_VERIFICATION_FAILED",
+      "diagnostic_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T02:00:00+10:00",
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "signal_snapshot": {
+          "live_advice_age_seconds": 8,
+          "silent_coverage_gap_count": 0,
+          "population_stability_index": "0.10",
+          "resource_envelope_status": "ENVELOPE_PASS",
+          "email_verification_status": "FAILED",
+          "evidence_integrity_status": "PASS"
+        }
+      },
+      "expected": {
+        "decision": "HIGH_PRIORITY_ALERTS_FAIL_CLOSED_ACTIONS_REQUIRED",
+        "triggered_alert_ids": ["HP-EMAIL-VERIFICATION"],
+        "action_ids": ["LOGICAL_KEEP_EMAIL_AND_REQUEST_VERIFICATION_REVIEW"]
+      }
+    },
+    {
+      "scenario_id": "EVIDENCE_INTEGRITY_FAILED",
+      "diagnostic_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T02:00:00+10:00",
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "signal_snapshot": {
+          "live_advice_age_seconds": 8,
+          "silent_coverage_gap_count": 0,
+          "population_stability_index": "0.10",
+          "resource_envelope_status": "ENVELOPE_PASS",
+          "email_verification_status": "VERIFIED",
+          "evidence_integrity_status": "FAIL"
+        }
+      },
+      "expected": {
+        "decision": "HIGH_PRIORITY_ALERTS_FAIL_CLOSED_ACTIONS_REQUIRED",
+        "triggered_alert_ids": ["HP-EVIDENCE-INTEGRITY"],
+        "action_ids": ["LOGICAL_QUARANTINE_DERIVED_EVIDENCE_AND_REQUEST_INTEGRITY_AUDIT"]
+      }
+    },
+    {
+      "scenario_id": "MULTIPLE_HIGH_PRIORITY_ALERTS_REMAIN_UNIQUE",
+      "diagnostic_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T02:00:00+10:00",
+        "probability_delta": "-0.0001",
+        "odds_tick_delta": -1,
+        "signal_snapshot": {
+          "live_advice_age_seconds": 9,
+          "silent_coverage_gap_count": 1,
+          "population_stability_index": "0.2001",
+          "resource_envelope_status": "ENVELOPE_FAIL",
+          "email_verification_status": "FAILED",
+          "evidence_integrity_status": "FAIL"
+        }
+      },
+      "expected": {
+        "decision": "HIGH_PRIORITY_ALERTS_FAIL_CLOSED_ACTIONS_REQUIRED",
+        "triggered_alert_ids": ["HP-LIVE-ADVICE-FRESHNESS", "HP-SILENT-COVERAGE-GAP", "HP-MODEL-PSI-STOP", "HP-RESOURCE-ENVELOPE", "HP-EMAIL-VERIFICATION", "HP-EVIDENCE-INTEGRITY"],
+        "action_ids": ["LOGICAL_DISABLE_ADVICE_AND_REQUEST_FRESHNESS_AUDIT", "LOGICAL_DISABLE_ADVICE_AND_REQUEST_COVERAGE_AUDIT", "LOGICAL_HOLD_MODEL_RELEASE_AND_REQUEST_DRIFT_REVIEW", "LOGICAL_HOLD_CANDIDATE_AND_REQUEST_CAPACITY_REVIEW", "LOGICAL_KEEP_EMAIL_AND_REQUEST_VERIFICATION_REVIEW", "LOGICAL_QUARANTINE_DERIVED_EVIDENCE_AND_REQUEST_INTEGRITY_AUDIT"]
+      }
+    },
+    {
+      "scenario_id": "MALFORMED_PROBABILITY_DELTA_FAILS_CLOSED",
+      "diagnostic_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T02:00:00+10:00",
+        "probability_delta": "0.0002",
+        "odds_tick_delta": -1,
+        "signal_snapshot": {
+          "live_advice_age_seconds": 8,
+          "silent_coverage_gap_count": 0,
+          "population_stability_index": "0.20",
+          "resource_envelope_status": "ENVELOPE_PASS",
+          "email_verification_status": "VERIFIED",
+          "evidence_integrity_status": "PASS"
+        }
+      },
+      "expected": {
+        "decision": "HIGH_PRIORITY_ALERTS_FAIL_CLOSED_ACTIONS_REQUIRED",
+        "triggered_alert_ids": ["HP-MALFORMED-DIAGNOSTIC-INPUT"],
+        "action_ids": ["LOGICAL_QUARANTINE_DIAGNOSTIC_INPUT_AND_REQUEST_REPLAY"]
+      }
+    }
+  ]
+}

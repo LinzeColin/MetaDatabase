@@ -1,0 +1,149 @@
+{
+  "claim_boundary": {
+    "external_network_accessed": false,
+    "external_push_sent": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_account_accessed": false,
+    "real_time_soak_waited": false
+  },
+  "default_view_id": "S13-P01-NO-RECOMMENDATION",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "fixture_id": "FIX-S13-P01-CHINESE-WORKBENCH",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "product_version": "0.0.0.1",
+  "schema_version": "1.0.0",
+  "views": [
+    {
+      "coverage": {
+        "detail_zh": "15 个已声明来源能力单元均保留明确缺口，不能把合成夹具当作全部真实市场覆盖。",
+        "level": "AMBER",
+        "status_zh": "覆盖存在明确缺口"
+      },
+      "mode": "NO_RECOMMENDATION",
+      "primary_card": {
+        "action_count": 1,
+        "action_enabled": false,
+        "action_label_zh": "不执行外部动作",
+        "detail_zh": "当前没有同时通过证据、时效、稳定性和风险门的可执行机会。",
+        "evidence_refs": [
+          "S11:RISK-GATE",
+          "S12:TARGET-FALSIFICATION"
+        ],
+        "headline_zh": "当前不建议",
+        "owner_action_zh": "无需操作"
+      },
+      "push": {
+        "body_zh": "当前没有可执行建议；系统将保持证据和风险门，不要求你操作。",
+        "delivery_mode": "LOCAL_RENDER_ONLY_NO_EXTERNAL_PUSH",
+        "external_delivery_performed": false,
+        "title_zh": "全天候投注决策辅助系统当前状态：不建议"
+      },
+      "risk": {
+        "detail_zh": "当前冻结合成容量和风险限制不足以形成真实可执行动作，风险门保持关闭。",
+        "level": "RED",
+        "status_zh": "风险门保持关闭"
+      },
+      "synthetic_test_only": true,
+      "system_health": {
+        "detail_zh": "这是离线确定性验收视图；外部探针、账户和部署均未执行。",
+        "level": "GREY",
+        "status_zh": "离线验收状态"
+      },
+      "target": {
+        "detail_zh": "30%月度目标仍是待证伪和待验证的目标，目标不足不会放宽任何门。",
+        "level": "AMBER",
+        "status_zh": "目标尚未验证"
+      },
+      "view_id": "S13-P01-NO-RECOMMENDATION"
+    },
+    {
+      "coverage": {
+        "detail_zh": "此视图仅验证一张中文卡的版式，不表示真实来源、市场或平台已经可用。",
+        "level": "GREY",
+        "status_zh": "合成预览范围"
+      },
+      "mode": "SYNTHETIC_PREVIEW",
+      "primary_card": {
+        "action_count": 1,
+        "action_enabled": false,
+        "action_label_zh": "合成预览，不可下单",
+        "detail_zh": "此卡只验证中文信息层级；它不是市场预测、平台指令或真实建议。",
+        "evidence_refs": [
+          "S03:ADVICE-CARD",
+          "S11:CONSTRAINED-KELLY"
+        ],
+        "headline_zh": "合成建议预览",
+        "owner_action_zh": "无需操作"
+      },
+      "push": {
+        "body_zh": "合成预览只用于界面验收；外部推送和最终下单均保持关闭。",
+        "delivery_mode": "LOCAL_RENDER_ONLY_NO_EXTERNAL_PUSH",
+        "external_delivery_performed": false,
+        "title_zh": "全天候投注决策辅助系统合成预览"
+      },
+      "risk": {
+        "detail_zh": "任何缺失、过期、身份冲突或万分之一不利翻转都会使动作回到不建议。",
+        "level": "AMBER",
+        "status_zh": "风险门仍需实时核验"
+      },
+      "synthetic_test_only": true,
+      "system_health": {
+        "detail_zh": "本地渲染器未访问网络、账户、邮件或运行主机。",
+        "level": "GREY",
+        "status_zh": "本地合成演示"
+      },
+      "target": {
+        "detail_zh": "合成显示不构成收入、收益率、目标覆盖或复利保证。",
+        "level": "AMBER",
+        "status_zh": "目标只作治理展示"
+      },
+      "view_id": "S13-P01-SYNTHETIC-PREVIEW"
+    },
+    {
+      "coverage": {
+        "detail_zh": "当关键事实、来源或界面状态不能证明时，系统不补全未知信息。",
+        "level": "RED",
+        "status_zh": "覆盖状态不可用"
+      },
+      "mode": "DEGRADED",
+      "primary_card": {
+        "action_count": 1,
+        "action_enabled": false,
+        "action_label_zh": "等待系统恢复",
+        "detail_zh": "关键状态无法验证时，旧建议作废并且不产生新的可执行动作。",
+        "evidence_refs": [
+          "S03:FAILURE-GUIDANCE",
+          "S04:SAFE-ROLLBACK"
+        ],
+        "headline_zh": "系统已降级为不建议",
+        "owner_action_zh": "无需操作"
+      },
+      "push": {
+        "body_zh": "系统状态不可验证，所有旧建议均已失效；不需要你执行任何外部动作。",
+        "delivery_mode": "LOCAL_RENDER_ONLY_NO_EXTERNAL_PUSH",
+        "external_delivery_performed": false,
+        "title_zh": "全天候投注决策辅助系统安全降级状态"
+      },
+      "risk": {
+        "detail_zh": "未知状态按最不利规则处理，新增建议功能保持关闭。",
+        "level": "RED",
+        "status_zh": "风险保护已启用"
+      },
+      "synthetic_test_only": true,
+      "system_health": {
+        "detail_zh": "该状态只证明本地故障展示合同，不表示任何真实主机、隧道或服务状态。",
+        "level": "GREY",
+        "status_zh": "外部运行状态未验证"
+      },
+      "target": {
+        "detail_zh": "系统降级不会通过扩大仓位、追损或降低门槛来追赶目标。",
+        "level": "AMBER",
+        "status_zh": "目标保护规则生效"
+      },
+      "view_id": "S13-P01-DEGRADED"
+    }
+  ]
+}

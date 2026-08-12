@@ -1,0 +1,130 @@
+{
+  "schema_version": "1.0.0",
+  "alert_policy_id": "S18-P02-OBSERVABILITY-ALERT-POLICY",
+  "product_version": "0.0.0.1",
+  "contract_id": "AC-S18-P02",
+  "requirement_id": "REQ-S18-P02",
+  "stage_id": "S18",
+  "phase_id": "P02",
+  "fixed_clock": "2026-08-10T02:00:00+10:00",
+  "execution_mode": "OFFLINE_DETERMINISTIC_CONTRACT_ONLY",
+  "thresholds": {
+    "live_advice_usable_seconds": 8,
+    "silent_coverage_gap_max": 0,
+    "population_stability_index_stop": "0.20"
+  },
+  "high_priority_alerts": [
+    {
+      "id": "HP-LIVE-ADVICE-FRESHNESS",
+      "domain": "FRESHNESS",
+      "signal": "live_advice_age_seconds",
+      "operator": "GREATER_THAN",
+      "threshold_ref": "live_advice_usable_seconds",
+      "source_path": "machine/facts/parameters.json#coverage_and_freshness.advice_usable_seconds.live",
+      "action": {
+        "action_id": "LOGICAL_DISABLE_ADVICE_AND_REQUEST_FRESHNESS_AUDIT",
+        "mode": "AUTOMATIC_LOGICAL",
+        "logical_effect": "NO_RECOMMENDATION_NO_ORDER",
+        "owner_review_required": true
+      }
+    },
+    {
+      "id": "HP-SILENT-COVERAGE-GAP",
+      "domain": "COVERAGE",
+      "signal": "silent_coverage_gap_count",
+      "operator": "GREATER_THAN",
+      "threshold_ref": "silent_coverage_gap_max",
+      "source_path": "machine/facts/canonical_facts.json#truth_and_evidence.silent_coverage_gap_target",
+      "action": {
+        "action_id": "LOGICAL_DISABLE_ADVICE_AND_REQUEST_COVERAGE_AUDIT",
+        "mode": "AUTOMATIC_LOGICAL",
+        "logical_effect": "NO_RECOMMENDATION_NO_ORDER",
+        "owner_review_required": true
+      }
+    },
+    {
+      "id": "HP-MODEL-PSI-STOP",
+      "domain": "MODEL_DRIFT",
+      "signal": "population_stability_index",
+      "operator": "GREATER_THAN_OR_EQUAL",
+      "threshold_ref": "population_stability_index_stop",
+      "source_path": "machine/facts/parameters.json#drift.population_stability_index_stop",
+      "action": {
+        "action_id": "LOGICAL_HOLD_MODEL_RELEASE_AND_REQUEST_DRIFT_REVIEW",
+        "mode": "MANUAL_LOGICAL",
+        "logical_effect": "NO_RECOMMENDATION_NO_ORDER",
+        "owner_review_required": true
+      }
+    },
+    {
+      "id": "HP-RESOURCE-ENVELOPE",
+      "domain": "RESOURCE",
+      "signal": "resource_envelope_status",
+      "operator": "NOT_EQUAL",
+      "threshold_ref": "ENVELOPE_PASS",
+      "source_path": "machine/evidence/EVD-S04-P04.json#production_capacity_verified",
+      "action": {
+        "action_id": "LOGICAL_HOLD_CANDIDATE_AND_REQUEST_CAPACITY_REVIEW",
+        "mode": "MANUAL_LOGICAL",
+        "logical_effect": "NO_RECOMMENDATION_NO_ORDER",
+        "owner_review_required": true
+      }
+    },
+    {
+      "id": "HP-EMAIL-VERIFICATION",
+      "domain": "EMAIL",
+      "signal": "email_verification_status",
+      "operator": "NOT_EQUAL",
+      "threshold_ref": "VERIFIED",
+      "source_path": "machine/facts/canonical_facts.json#email.failed_verification_policy",
+      "action": {
+        "action_id": "LOGICAL_KEEP_EMAIL_AND_REQUEST_VERIFICATION_REVIEW",
+        "mode": "AUTOMATIC_LOGICAL",
+        "logical_effect": "NO_RECOMMENDATION_NO_ORDER",
+        "owner_review_required": true
+      }
+    },
+    {
+      "id": "HP-EVIDENCE-INTEGRITY",
+      "domain": "EVIDENCE",
+      "signal": "evidence_integrity_status",
+      "operator": "NOT_EQUAL",
+      "threshold_ref": "PASS",
+      "source_path": "machine/facts/canonical_facts.json#truth_and_evidence",
+      "action": {
+        "action_id": "LOGICAL_QUARANTINE_DERIVED_EVIDENCE_AND_REQUEST_INTEGRITY_AUDIT",
+        "mode": "AUTOMATIC_LOGICAL",
+        "logical_effect": "NO_RECOMMENDATION_NO_ORDER",
+        "owner_review_required": true
+      }
+    },
+    {
+      "id": "HP-MALFORMED-DIAGNOSTIC-INPUT",
+      "domain": "DIAGNOSTIC_CONTRACT",
+      "signal": "diagnostic_input",
+      "operator": "MALFORMED_INPUT",
+      "threshold_ref": "FAIL_CLOSED",
+      "source_path": "machine/facts/acceptance_contracts.json#AC-S18-P02",
+      "action": {
+        "action_id": "LOGICAL_QUARANTINE_DIAGNOSTIC_INPUT_AND_REQUEST_REPLAY",
+        "mode": "MANUAL_LOGICAL",
+        "logical_effect": "NO_RECOMMENDATION_NO_ORDER",
+        "owner_review_required": true
+      }
+    }
+  ],
+  "safe_action": "NO_RECOMMENDATION_NO_ORDER",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "cloudflare_account_dns_or_tunnel_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "real_market_data_collected": false,
+    "shared_production_ledger_read_or_written": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

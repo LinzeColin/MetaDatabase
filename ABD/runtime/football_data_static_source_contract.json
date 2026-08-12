@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-FOOTBALL-DATA-STATIC-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_MANUAL_INTERNAL_IMPORT_ONLY",
+  "source": {
+    "source_id": "FOOTBALL_DATA_E0_2025_26",
+    "publisher": "Football-Data.co.uk",
+    "terms_url": "https://www.football-data.co.uk/data.php",
+    "source_url": "https://www.football-data.co.uk/mmz4281/2526/E0.csv",
+    "publisher_usage_statement": "FREE_DATA_FOR_LEAGUE_MATCH_PREDICTION",
+    "formal_redistribution_license": "NOT_STATED_ON_PUBLISHER_DATA_PAGE",
+    "permitted_use_here": "INTERNAL_LEAGUE_MATCH_PREDICTION_RESEARCH_ONLY",
+    "prohibited_claims": [
+      "redistribution_rights",
+      "real_time_price_feed",
+      "current_provider_price_truth",
+      "TAB_or_Sportsbet_equivalence",
+      "commercial_data_license"
+    ]
+  },
+  "collection": {
+    "automatic_scheduler_allowed": false,
+    "automatic_retry_allowed": false,
+    "maximum_network_fetches_for_this_contract": 2,
+    "network_fetch_plan": [
+      "bounded_schema_preflight",
+      "single_full_static_download"
+    ],
+    "collection_mode": "MANUAL_ONE_SHOT_STATIC_FILE",
+    "raw_data_destination": "Private-MetaDatabase_only",
+    "source_code_repository_raw_data_allowed": false,
+    "source_page_or_csv_republication_allowed": false
+  },
+  "schema": {
+    "division": "E0",
+    "season_start": "2025-08-01",
+    "season_end": "2026-06-30",
+    "minimum_rows": 300,
+    "required_columns": [
+      "Div",
+      "Date",
+      "HomeTeam",
+      "AwayTeam",
+      "FTHG",
+      "FTAG",
+      "FTR",
+      "B365H",
+      "B365D",
+      "B365A"
+    ],
+    "one_x_two_odds_columns": ["B365H", "B365D", "B365A"]
+  },
+  "runtime_boundary": {
+    "runtime_network_collection_enabled": false,
+    "dynamic_platform_collection_enabled": false,
+    "real_time_freshness_claimed": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "market_account_TAB_or_Gmail_accessed": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "rollback": {
+    "action": "QUARANTINE_THIS_SOURCE_VERSION_AND_DISABLE_FUTURE_IMPORTS",
+    "immutable_raw_evidence_deleted_automatically": false,
+    "affected_capabilities": ["FOOTBALL_DATA_E0_2025_26_STATIC_ONLY"]
+  }
+}

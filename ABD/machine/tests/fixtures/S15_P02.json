@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S15-P02-LOCAL-SOURCE-CONTRACT-INTEGRATION",
+  "contract_id": "AC-S15-P02",
+  "requirement_id": "REQ-S15-P02",
+  "stage_id": "S15",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+  "predecessor": {
+    "contract_id": "AC-S15-P01",
+    "evidence_path": "machine/evidence/EVD-S15-P01.json",
+    "evidence_sha256": "5ea76d98f26bb3225844a0e9ab62c58041647ca5e3337c4c722d7d842ddfc98a",
+    "rollback_path": "machine/evidence/EVD-S15-P01_rollback.json",
+    "rollback_sha256": "cd3b6d2d8e0934103e168c89758f24be727e996f65f86eead8e733ddb678854b",
+    "next": "S15/P02_READY_NOT_STARTED"
+  },
+  "execution_policy": {
+    "offline_deterministic_only": true,
+    "full_regression_or_real_time_soak_allowed": false,
+    "external_runtime_access_allowed": false,
+    "phase_test_only": true,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "minimum_targeted_pytest_cases": 18,
+  "expected_source_contract_ids": ["SRC-S15-P02-PAGE", "SRC-S15-P02-MAIL", "SRC-S15-P02-ODDS", "SRC-S15-P02-RESULT"],
+  "expected_case_ids": [
+    "S15-P02-BASELINE-LOCAL",
+    "S15-P02-SIMULATED-NETWORK-UNAVAILABLE",
+    "S15-P02-ODDS-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND",
+    "S15-P02-ODDS-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND",
+    "S15-P02-PAGE-EVENT-MISMATCH",
+    "S15-P02-MAIL-NOT-ARCHIVED",
+    "S15-P02-RESULT-TICKET-MISMATCH"
+  ],
+  "expected_outage_equivalence": {
+    "baseline_case_id": "S15-P02-BASELINE-LOCAL",
+    "outage_case_id": "S15-P02-SIMULATED-NETWORK-UNAVAILABLE"
+  },
+  "expected_negative_mutation_ids": ["MUT-S15-P02-UNKNOWN-FIELD", "MUT-S15-P02-FLOAT-ODDS", "MUT-S15-P02-NONCANONICAL-ODDS", "MUT-S15-P02-NONSYNTHETIC-RESULT"],
+  "expected_decision": "S15_P02_LOCAL_SOURCE_CONTRACT_INTEGRATION_READY_P03_REQUIRED",
+  "expected_next": "S15/P03_READY_NOT_STARTED"
+}

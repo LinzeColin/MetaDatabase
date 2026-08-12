@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="35" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S14.P03_test" name="test_frozen_taskpack_contract_is_exact" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_candidate_preflight_passes" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_sbom_validates" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_component_governance_validates" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_patch_sla_validates" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_p02_predecessor_is_current" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_production_component_has_complete_metadata" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_development_components_are_not_production" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_unadmitted_runtime_prerequisites_are_blocked" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_execution_boundary_remains_local" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_frozen_snapshot_cases[PASS]" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_frozen_snapshot_cases[P02_PREDECESSOR_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_frozen_snapshot_cases[SBOM_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_frozen_snapshot_cases[GOVERNANCE_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_frozen_snapshot_cases[PATCH_SLA_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_frozen_snapshot_cases[METADATA_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_frozen_snapshot_cases[VERSION_PIN_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_frozen_snapshot_cases[UNADMITTED_RUNTIME_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_frozen_snapshot_cases[EXTERNAL_BOUNDARY_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_frozen_snapshot_cases[PRODUCTION_COUNT_LOW_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_frozen_snapshot_cases[PRODUCTION_COUNT_HIGH_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_frozen_snapshot_cases[POINT_0001_COVERAGE_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_frozen_snapshot_cases[POINT_0001_COVERAGE_OVERFAIL_AND_FOREIGN_ODDS]" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_missing_source_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_missing_version_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_missing_license_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_missing_governance_owner_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_version_pin_mismatch_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_unadmitted_runtime_component_cannot_be_admitted" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_point_0001_coverage_boundary_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_unfavorable_foreign_odds_input_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_malformed_snapshot_is_rejected" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_snapshot_replay_is_deterministic" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_evidence_build_is_deterministic_before_reports" time="0.000" />
+    <testcase classname="tests.S14.P03_test" name="test_rollback_drill_is_local_and_preserves_no_external_state" time="0.000" />
+  </testsuite>
+</testsuites>

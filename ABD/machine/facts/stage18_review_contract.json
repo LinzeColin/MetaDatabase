@@ -1,0 +1,135 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "STAGE-REVIEW-S18",
+  "review_id": "ABD-S18-WHOLE-STAGE-REVIEW",
+  "stage_id": "S18",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-10T05:00:00+10:00",
+  "stage_review_addendum": "LOCAL_STAGE_REVIEW_CONTRACT_NOT_A_FROZEN_TASK_PACK_FACT",
+  "review_scope": {
+    "phase_ids": ["P01", "P02", "P03", "P04"],
+    "requirement_ids": ["REQ-S18-P01", "REQ-S18-P02", "REQ-S18-P03", "REQ-S18-P04"],
+    "acceptance_contract_ids": ["AC-S18-P01", "AC-S18-P02", "AC-S18-P03", "AC-S18-P04"],
+    "task_ids": [
+      "T-S18-P01-01", "T-S18-P01-02", "T-S18-P01-03",
+      "T-S18-P02-01", "T-S18-P02-02", "T-S18-P02-03",
+      "T-S18-P03-01", "T-S18-P03-02", "T-S18-P03-03",
+      "T-S18-P04-01", "T-S18-P04-02", "T-S18-P04-03"
+    ]
+  },
+  "phase_records": [
+    {
+      "phase_id": "P01",
+      "requirement_id": "REQ-S18-P01",
+      "acceptance_contract_id": "AC-S18-P01",
+      "target": "新版本探针失败自动回旧版。",
+      "outputs": ["release_pipeline.yml", "canary_policy.json", "post_release_probe.py"],
+      "evidence_path": "machine/evidence/EVD-S18-P01.json",
+      "evidence_sha256": "7934fdcc8998467883ab993fee312892311e5a45d26add37e4e00b04a5f8d9e5",
+      "rollback_path": "machine/evidence/EVD-S18-P01_rollback.json",
+      "rollback_sha256": "4d5d36930f8fe654bda2c0697140c1f3cabfa75f9e20ca17c444e0a9ef1e0b66",
+      "expected_decision": "S18_P01_SAFE_RELEASE_CONTROL_PASS_P02_REQUIRED",
+      "expected_next": "S18/P02_READY_NOT_STARTED",
+      "required_checks": [
+        "S18P01-PIPELINE-FAIL-CLOSED-EXACT",
+        "S18P01-CANARY-POLICY-FAIL-CLOSED-EXACT",
+        "S18P01-PROBE-REPLAY-AND-FAIL-CLOSED-EXACT",
+        "S18P01-ADVERSE-ONE-IN-TEN-THOUSAND-STABLE"
+      ]
+    },
+    {
+      "phase_id": "P02",
+      "requirement_id": "REQ-S18-P02",
+      "acceptance_contract_id": "AC-S18-P02",
+      "target": "每个高优先级告警有唯一自动或人工动作。",
+      "outputs": ["dashboards.json", "alerts.json", "diagnostic_bundle.py"],
+      "evidence_path": "machine/evidence/EVD-S18-P02.json",
+      "evidence_sha256": "ce54a29f06d7dae07c1e559eebf360c7e41221851290d78496fdf51dd3b957c2",
+      "rollback_path": "machine/evidence/EVD-S18-P02_rollback.json",
+      "rollback_sha256": "74d475e7dddcfab4b1331fe068190e4137cc9f99c050f6f3454bb3afc112f02c",
+      "expected_decision": "S18_P02_OBSERVABILITY_CONTROL_PASS_P03_REQUIRED",
+      "expected_next": "S18/P03_READY_NOT_STARTED",
+      "required_checks": [
+        "S18P02-DASHBOARD-ALERT-UNIQUE-ACTION-EXACT",
+        "S18P02-ALL-HIGH-PRIORITY-ALERTS-HAVE-ONE-UNIQUE-ACTION",
+        "S18P02-ADVERSE-ONE-IN-TEN-THOUSAND-STABLE"
+      ]
+    },
+    {
+      "phase_id": "P03",
+      "requirement_id": "REQ-S18-P03",
+      "acceptance_contract_id": "AC-S18-P03",
+      "target": "自愈不能修改资金事实或放宽风险门。",
+      "outputs": ["self_heal_policy.json", "watchdog.py", "outbox_worker.py"],
+      "evidence_path": "machine/evidence/EVD-S18-P03.json",
+      "evidence_sha256": "99ade2e845cd72af99713e4c0d5d07e2aea3a1e49e6895f5b9bcdeca2a9afe1f",
+      "rollback_path": "machine/evidence/EVD-S18-P03_rollback.json",
+      "rollback_sha256": "43922654ea06dc674986a9502da55daf1f128b5df42eb1a69fc103ec0ab4949f",
+      "expected_decision": "S18_P03_LIMITED_SELF_HEAL_CONTROL_PASS_P04_REQUIRED",
+      "expected_next": "S18/P04_READY_NOT_STARTED",
+      "required_checks": [
+        "S18P03-IMMUTABLE-FUND-AND-RISK-POLICY-EXACT",
+        "S18P03-SELF-HEAL-PRESERVES-FUND-FACTS-AND-RISK-GATES",
+        "S18P03-OUTBOX-LOCAL-ONLY-NOT-SENT",
+        "S18P03-ADVERSE-ONE-IN-TEN-THOUSAND-PRESERVES-RISK-GATE"
+      ]
+    },
+    {
+      "phase_id": "P04",
+      "requirement_id": "REQ-S18-P04",
+      "acceptance_contract_id": "AC-S18-P04",
+      "target": "正常运行无需用户维护；异常仅按暂停合同升级。",
+      "outputs": ["operations_runbook.md", "scheduled_jobs.json", "maintenance_calendar.json"],
+      "evidence_path": "machine/evidence/EVD-S18-P04.json",
+      "evidence_sha256": "b196f207508350f8dbdb51efcd880f1fe616880e490af344bd3b2d238c142931",
+      "rollback_path": "machine/evidence/EVD-S18-P04_rollback.json",
+      "rollback_sha256": "16549e9bc30e27ec7dac585efd43cf6310b91cbfe44271a1db5d61b13ad2cd12",
+      "expected_decision": "S18_P04_OPERATIONS_AUTOMATION_PASS_STAGE_REVIEW_REQUIRED",
+      "expected_next": "S18/STAGE_REVIEW_READY_NOT_STARTED",
+      "required_checks": [
+        "S18P04-RUNBOOK-PAUSE-CONTRACT-EXACT",
+        "S18P04-NORMAL-CYCLE-NO-OWNER-MAINTENANCE",
+        "S18P04-ALL-SCHEDULED-JOB-FAILURES-PAUSE-EXACT",
+        "S18P04-ADVERSE-ONE-IN-TEN-THOUSAND-PRESERVES-GATES"
+      ]
+    }
+  ],
+  "baseline_hashes": {
+    "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+    "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+    "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+    "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+  },
+  "review_gates": [
+    "PHASE_RECEIPTS_CURRENT_AND_PORTABLE",
+    "REQUIREMENT_ACCEPTANCE_TASK_TRACE_CLOSED",
+    "SAFE_RELEASE_PROBE_CANARY_FAIL_CLOSED_PRESERVED",
+    "HIGH_PRIORITY_ALERTS_UNIQUE_ACTION_PRESERVED",
+    "LIMITED_SELF_HEAL_FUND_RISK_AND_OUTBOX_BOUNDARY_PRESERVED",
+    "OPERATIONS_NORMAL_NO_MAINTENANCE_AND_PAUSE_CONTRACT_PRESERVED",
+    "NO_NETWORK_RUNTIME_ACCOUNT_DATABASE_ORDER_DEPLOY_OR_REAL_TIME_SOAK_EXECUTED",
+    "ALL_S18_REVIEW_FINDINGS_RESOLVED",
+    "NO_FULL_REGRESSION_EXECUTED"
+  ],
+  "execution_policy": {
+    "offline_deterministic_only": true,
+    "phase_test_rerun_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "single_pass_fixture_cases_only": true,
+    "signed_phase_receipt_verification_mode": "PINNED_RECEIPT_HASH_INDEX_AND_CURRENT_CONTROL_ARTIFACTS",
+    "github_upload_performed_by_local_review": false,
+    "production_deployed_or_activated": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "targeted_test_command": "pytest -q tests/S18/stage_review_test.py",
+  "release_status_on_pass": "S18_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "next_on_pass": "S18/GITHUB_STAGE_UPLOAD_READY",
+  "next_on_fail": "S18/STAGE_REVIEW_REMEDIATION_REQUIRED",
+  "rollback": "关闭 S18 复审候选，保留 P01--P04 已签名证据并按对应 Phase 回滚合同重放；不修改冻结 Phase 基线或任何外部状态。"
+}

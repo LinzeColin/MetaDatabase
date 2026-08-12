@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-CORE-CONFIG-SEMANTIC-PREFLIGHT-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_CURRENT_PRODUCTION_CORE_CONFIG_SEMANTIC_PREFLIGHT_READ_ONLY",
+  "expected": {
+    "current_target": "BLUE_SHADOW_RELEASE",
+    "config_file_kind": "regular",
+    "rebuild_file_kind": "regular",
+    "allowed_activation_gates": [
+      "READY_FOR_EXPLICIT_P03_ACTIVATION",
+      "BLOCKED_RUNTIME_PREREQUISITES_NOT_VERIFIED"
+    ],
+    "success_frozen_check": {
+      "invoked": true,
+      "status": "PASS",
+      "secret_values_read": false,
+      "error_category": "NONE"
+    }
+  },
+  "source_boundary": {
+    "live_host_nonsecret_metadata_read": true,
+    "privileged_frozen_config_check_permitted": true,
+    "config_contents_read_only_by_frozen_check": true,
+    "config_contents_emitted_or_persisted": false,
+    "runtime_env_contents_read": false,
+    "runtime_secret_contents_read": false,
+    "remote_script_written": false,
+    "host_runtime_or_configuration_changed": false,
+    "image_loaded_or_retagged": false,
+    "unit_created_enabled_or_started": false,
+    "connector_config_written": false,
+    "cloudflare_dns_access_or_tunnel_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_PRODUCTION_CONFIG_SEMANTIC_PREFLIGHT_ONLY_NOT_UNIT_INSTALL_CORE_START_CONNECTOR_ACTIVATION_OR_PUBLIC_RELEASE",
+  "rollback": {
+    "action": "NO_HOST_MUTATION_NO_RUNTIME_ROLLBACK_REQUIRED",
+    "current_candidate_shadow_changed": false,
+    "private_evidence_deleted_automatically": false
+  }
+}

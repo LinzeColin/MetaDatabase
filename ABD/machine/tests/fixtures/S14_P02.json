@@ -1,0 +1,276 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S14-P02-SECURITY-ANALYSIS",
+  "contract_id": "AC-S14-P02",
+  "requirement_id": "REQ-S14-P02",
+  "stage_id": "S14",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "minimum_targeted_pytest_cases": 24,
+  "expected_pipeline_stage_ids": [
+    "CONFIG_TYPE_CHECK",
+    "STATIC_APPLICATION_ANALYSIS",
+    "DEPENDENCY_LOCK_ANALYSIS",
+    "SECRET_REFERENCE_ANALYSIS",
+    "CONTAINER_INFRASTRUCTURE_ANALYSIS"
+  ],
+  "expected_sast_rule_ids": [
+    "SAST-IMPORT-CAPABILITY",
+    "SAST-CALL-CAPABILITY",
+    "SAST-ORDER-CAPABILITY",
+    "SAST-FLOAT-NUMERIC-SAFETY",
+    "SAST-PIPELINE-LOCAL-ONLY"
+  ],
+  "expected_secret_rule_ids": [
+    "SECRET-AWS-ACCESS-KEY",
+    "SECRET-PRIVATE-KEY",
+    "SECRET-GITHUB-PERSONAL-TOKEN",
+    "SECRET-GENERIC-INLINE-ASSIGNMENT"
+  ],
+  "expected_decision": "SECURITY_PIPELINE_READY_UNRESOLVED_CRITICAL_OR_HIGH_FINDINGS_ZERO_LOCAL_ONLY",
+  "expected_next": "S14/P03_READY_NOT_STARTED",
+  "single_pass_case_count": 12,
+  "snapshot_cases": [
+    {
+      "case_id": "POSITIVE_EXACT_LOCAL_SECURITY_CONTRACT",
+      "snapshot": {
+        "p01_receipt_current": true,
+        "pipeline_configuration_closed": true,
+        "static_analysis_passed": true,
+        "dependency_lock_analysis_passed": true,
+        "secret_analysis_passed": true,
+        "container_infrastructure_analysis_passed": true,
+        "external_effect_boundary_preserved": true,
+        "unresolved_critical_count": 0,
+        "unresolved_high_count": 0,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P02_SECURITY_ANALYSIS_VERIFIED_NO_ACTION",
+        "reason_codes": []
+      }
+    },
+    {
+      "case_id": "P01_RECEIPT_FAIL",
+      "snapshot": {
+        "p01_receipt_current": false,
+        "pipeline_configuration_closed": true,
+        "static_analysis_passed": true,
+        "dependency_lock_analysis_passed": true,
+        "secret_analysis_passed": true,
+        "container_infrastructure_analysis_passed": true,
+        "external_effect_boundary_preserved": true,
+        "unresolved_critical_count": 0,
+        "unresolved_high_count": 0,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION",
+        "reason_codes": ["P01_RECEIPT_NOT_CURRENT"]
+      }
+    },
+    {
+      "case_id": "PIPELINE_CONFIG_FAIL",
+      "snapshot": {
+        "p01_receipt_current": true,
+        "pipeline_configuration_closed": false,
+        "static_analysis_passed": true,
+        "dependency_lock_analysis_passed": true,
+        "secret_analysis_passed": true,
+        "container_infrastructure_analysis_passed": true,
+        "external_effect_boundary_preserved": true,
+        "unresolved_critical_count": 0,
+        "unresolved_high_count": 0,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION",
+        "reason_codes": ["PIPELINE_CONFIGURATION_NOT_CLOSED"]
+      }
+    },
+    {
+      "case_id": "SAST_FAIL",
+      "snapshot": {
+        "p01_receipt_current": true,
+        "pipeline_configuration_closed": true,
+        "static_analysis_passed": false,
+        "dependency_lock_analysis_passed": true,
+        "secret_analysis_passed": true,
+        "container_infrastructure_analysis_passed": true,
+        "external_effect_boundary_preserved": true,
+        "unresolved_critical_count": 0,
+        "unresolved_high_count": 0,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION",
+        "reason_codes": ["STATIC_ANALYSIS_FAILED"]
+      }
+    },
+    {
+      "case_id": "DEPENDENCY_FAIL",
+      "snapshot": {
+        "p01_receipt_current": true,
+        "pipeline_configuration_closed": true,
+        "static_analysis_passed": true,
+        "dependency_lock_analysis_passed": false,
+        "secret_analysis_passed": true,
+        "container_infrastructure_analysis_passed": true,
+        "external_effect_boundary_preserved": true,
+        "unresolved_critical_count": 0,
+        "unresolved_high_count": 0,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION",
+        "reason_codes": ["DEPENDENCY_LOCK_ANALYSIS_FAILED"]
+      }
+    },
+    {
+      "case_id": "SECRET_FAIL",
+      "snapshot": {
+        "p01_receipt_current": true,
+        "pipeline_configuration_closed": true,
+        "static_analysis_passed": true,
+        "dependency_lock_analysis_passed": true,
+        "secret_analysis_passed": false,
+        "container_infrastructure_analysis_passed": true,
+        "external_effect_boundary_preserved": true,
+        "unresolved_critical_count": 0,
+        "unresolved_high_count": 0,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION",
+        "reason_codes": ["SECRET_ANALYSIS_FAILED"]
+      }
+    },
+    {
+      "case_id": "CONTAINER_INFRA_FAIL",
+      "snapshot": {
+        "p01_receipt_current": true,
+        "pipeline_configuration_closed": true,
+        "static_analysis_passed": true,
+        "dependency_lock_analysis_passed": true,
+        "secret_analysis_passed": true,
+        "container_infrastructure_analysis_passed": false,
+        "external_effect_boundary_preserved": true,
+        "unresolved_critical_count": 0,
+        "unresolved_high_count": 0,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION",
+        "reason_codes": ["CONTAINER_INFRASTRUCTURE_ANALYSIS_FAILED"]
+      }
+    },
+    {
+      "case_id": "EXTERNAL_BOUNDARY_FAIL",
+      "snapshot": {
+        "p01_receipt_current": true,
+        "pipeline_configuration_closed": true,
+        "static_analysis_passed": true,
+        "dependency_lock_analysis_passed": true,
+        "secret_analysis_passed": true,
+        "container_infrastructure_analysis_passed": true,
+        "external_effect_boundary_preserved": false,
+        "unresolved_critical_count": 0,
+        "unresolved_high_count": 0,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION",
+        "reason_codes": ["EXTERNAL_ACTION_BOUNDARY_RELAXED"]
+      }
+    },
+    {
+      "case_id": "CRITICAL_FINDING_FAIL",
+      "snapshot": {
+        "p01_receipt_current": true,
+        "pipeline_configuration_closed": true,
+        "static_analysis_passed": true,
+        "dependency_lock_analysis_passed": true,
+        "secret_analysis_passed": true,
+        "container_infrastructure_analysis_passed": true,
+        "external_effect_boundary_preserved": true,
+        "unresolved_critical_count": 1,
+        "unresolved_high_count": 0,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION",
+        "reason_codes": ["UNRESOLVED_CRITICAL_FINDINGS"]
+      }
+    },
+    {
+      "case_id": "HIGH_FINDING_FAIL",
+      "snapshot": {
+        "p01_receipt_current": true,
+        "pipeline_configuration_closed": true,
+        "static_analysis_passed": true,
+        "dependency_lock_analysis_passed": true,
+        "secret_analysis_passed": true,
+        "container_infrastructure_analysis_passed": true,
+        "external_effect_boundary_preserved": true,
+        "unresolved_critical_count": 0,
+        "unresolved_high_count": 1,
+        "coverage_score": "1.0000",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION",
+        "reason_codes": ["UNRESOLVED_HIGH_FINDINGS"]
+      }
+    },
+    {
+      "case_id": "POINT_0001_COVERAGE_FAIL",
+      "snapshot": {
+        "p01_receipt_current": true,
+        "pipeline_configuration_closed": true,
+        "static_analysis_passed": true,
+        "dependency_lock_analysis_passed": true,
+        "secret_analysis_passed": true,
+        "container_infrastructure_analysis_passed": true,
+        "external_effect_boundary_preserved": true,
+        "unresolved_critical_count": 0,
+        "unresolved_high_count": 0,
+        "coverage_score": "0.9999",
+        "foreign_odds_input_present": false
+      },
+      "expected": {
+        "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION",
+        "reason_codes": ["CONTROL_COVERAGE_NOT_EXACT"]
+      }
+    },
+    {
+      "case_id": "POINT_0001_COVERAGE_OVERFAIL_AND_FOREIGN_ODDS",
+      "snapshot": {
+        "p01_receipt_current": true,
+        "pipeline_configuration_closed": true,
+        "static_analysis_passed": true,
+        "dependency_lock_analysis_passed": true,
+        "secret_analysis_passed": true,
+        "container_infrastructure_analysis_passed": true,
+        "external_effect_boundary_preserved": true,
+        "unresolved_critical_count": 0,
+        "unresolved_high_count": 0,
+        "coverage_score": "1.0001",
+        "foreign_odds_input_present": true
+      },
+      "expected": {
+        "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION",
+        "reason_codes": ["CONTROL_COVERAGE_NOT_EXACT", "FOREIGN_ODDS_INPUT_REJECTED"]
+      }
+    }
+  ]
+}

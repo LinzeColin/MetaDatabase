@@ -1,0 +1,990 @@
+{
+  "cli_wiring": {
+    "path": "abd_acceptance/__main__.py",
+    "sha256_at_signing": "57f8e6dec134a19c9627b904e14cfae73ae3ccf7f6cefbb13ce82726b9b5139b"
+  },
+  "contract_id": "AC-S18-P04",
+  "decision": "S18_P04_OPERATIONS_AUTOMATION_PASS_STAGE_REVIEW_REQUIRED",
+  "decision_sha256": "4b785a5f10dbbeaa47e19c46c66e10879d2a73a03efd56a31c2bba5649ff4e69",
+  "deterministic_replay": {
+    "adverse_one_in_ten_thousand_vector_count": 1,
+    "external_runtime_accessed": false,
+    "real_time_wait_performed": false,
+    "scenario_count": 12,
+    "scheduled_job_count": 6,
+    "single_job_pause_vector_count": 6,
+    "unsafe_or_malformed_pause_count": 4
+  },
+  "evidence_id": "EVD-S18-P04",
+  "execution_policy": {
+    "external_runtime_access_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "offline_deterministic_only": true,
+    "phase_test_only": true,
+    "production_equivalent_config_schema_only": true
+  },
+  "external_effect_boundary": {
+    "actual_disaster_recovery_executed": false,
+    "actual_fund_facts_read_or_written": false,
+    "actual_ledger_read_or_written": false,
+    "actual_patch_or_backup_performed": false,
+    "actual_process_or_service_restarted": false,
+    "actual_scheduler_or_cron_installed": false,
+    "cloudflare_account_dns_or_tunnel_accessed": false,
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_account_or_host_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "risk_gate_relaxed": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-10T04:00:00+10:00",
+  "hashes": {
+    "code": "1d73df3ecbd182a681ced4c1bb9b29e43afb784978f40ba82e8f28e5c6dd4f48",
+    "inputs": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/operations_automation.py": "04f9be7e8b33347a96f474a1a3d60911f8b30bdb0c25862bc08358cf6417b6d5",
+      "abd_acceptance/operations_automation_acceptance.py": "1d73df3ecbd182a681ced4c1bb9b29e43afb784978f40ba82e8f28e5c6dd4f48",
+      "machine/evidence/EVD-S18-P03.json": "99ade2e845cd72af99713e4c0d5d07e2aea3a1e49e6895f5b9bcdeca2a9afe1f",
+      "machine/evidence/S18/P04/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S18/P04/pytest.xml": "c150e83343c16e92be53f8ad8d2683034fafeec40e55d3477ad7ce59d12b93ec",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S18_P04.json": "541ccadb4044df7291b03460e53b390c93c6bd8d18d1cb18fa2f3ff4a694d4ef",
+      "maintenance_calendar.json": "9919f5ca9a50dc267342651494a0746dfeaaca24c99ea565fdfe06e6d9de0a77",
+      "operations_runbook.md": "aadd01fe17b5c9424b02e3486383446e0f895b9c46fdcf8c0bcef3f8445b1dab",
+      "scheduled_jobs.json": "d4d364eba4859d3dbda6d50902b5220f7312427463c59b9581d7830f5110d73b",
+      "tests/S18/P04_test.py": "2c9c2d62b678969695f166df900dcdb2e31b3cb1705ee805ae7fdac176ecb1ce"
+    },
+    "rollback_evidence": "16549e9bc30e27ec7dac585efd43cf6310b91cbfe44271a1db5d61b13ad2cd12"
+  },
+  "next": "S18/STAGE_REVIEW_READY_NOT_STARTED",
+  "phase_id": "P04",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S18_P04_LOCAL_OPERATIONS_AUTOMATION_ONLY_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S18-P04",
+  "rollback": {
+    "artifacts": {
+      "abd_acceptance/operations_automation.py": {
+        "sha256": "04f9be7e8b33347a96f474a1a3d60911f8b30bdb0c25862bc08358cf6417b6d5",
+        "status": "PASS"
+      },
+      "abd_acceptance/operations_automation_acceptance.py": {
+        "sha256": "1d73df3ecbd182a681ced4c1bb9b29e43afb784978f40ba82e8f28e5c6dd4f48",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S18-P03.json": {
+        "sha256": "99ade2e845cd72af99713e4c0d5d07e2aea3a1e49e6895f5b9bcdeca2a9afe1f",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S18_P04.json": {
+        "sha256": "541ccadb4044df7291b03460e53b390c93c6bd8d18d1cb18fa2f3ff4a694d4ef",
+        "status": "PASS"
+      },
+      "maintenance_calendar.json": {
+        "sha256": "9919f5ca9a50dc267342651494a0746dfeaaca24c99ea565fdfe06e6d9de0a77",
+        "status": "PASS"
+      },
+      "operations_runbook.md": {
+        "sha256": "aadd01fe17b5c9424b02e3486383446e0f895b9c46fdcf8c0bcef3f8445b1dab",
+        "status": "PASS"
+      },
+      "scheduled_jobs.json": {
+        "sha256": "d4d364eba4859d3dbda6d50902b5220f7312427463c59b9581d7830f5110d73b",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S18-P04",
+    "evidence_id": "EVD-S18-P04-ROLLBACK",
+    "external_state_changed": false,
+    "feature_flag_id": "operations_automation:s18_p04_offline_pause_contract",
+    "immutable_fund_and_risk_verified": true,
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_LOCAL_OPERATIONS_AUTOMATION_KEEP_S18_P03_SIGNED_CONTROL",
+    "order_submission_enabled": false,
+    "outbox_sent": false,
+    "pause_contract_preserved": true,
+    "production_state_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S18",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S18P04-BASELINE-PURSUE_GOAL_PROMPT.txt",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S18P04-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S18P04-BASELINE-machine-facts-canonical_facts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S18P04-BASELINE-machine-facts-parameters.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S18P04-BASELINE-machine-facts-costs.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S18P04-BASELINE-machine-facts-roadmap.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S18P04-BASELINE-machine-facts-requirements.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S18P04-BASELINE-machine-facts-acceptance_contracts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S18P04-BASELINE-machine-facts-task_graph.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S18P04-BASELINE-machine-facts-traceability_matrix.json",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S18P04-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S18P04-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S18P04-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S18P04-TRACEABILITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S18-P04",
+          "requirement": "REQ-S18-P04",
+          "tasks": [
+            "T-S18-P04-01",
+            "T-S18-P04-02",
+            "T-S18-P04-03"
+          ]
+        },
+        "id": "S18P04-REQUIREMENT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S18-P04",
+          "requirement": "REQ-S18-P04",
+          "tasks": [
+            "T-S18-P04-01",
+            "T-S18-P04-02",
+            "T-S18-P04-03"
+          ]
+        },
+        "id": "S18P04-ACCEPTANCE-CONTRACT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S18-P04",
+          "requirement": "REQ-S18-P04",
+          "tasks": [
+            "T-S18-P04-01",
+            "T-S18-P04-02",
+            "T-S18-P04-03"
+          ]
+        },
+        "id": "S18P04-TASK-GRAPH-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S18-P04",
+          "requirement": "REQ-S18-P04",
+          "tasks": [
+            "T-S18-P04-01",
+            "T-S18-P04-02",
+            "T-S18-P04-03"
+          ]
+        },
+        "id": "S18P04-TRACEABILITY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contract_id": "AC-S18-P04",
+          "expected_artifact": "machine/evidence/EVD-S18-P04.json",
+          "id": "INDEX-AC-S18-P04",
+          "kind": "ACCEPTANCE_EVIDENCE",
+          "pass_gate": "正常运行无需用户维护；异常仅按暂停合同升级。",
+          "requirement_id": "REQ-S18-P04",
+          "status": "PLANNED"
+        },
+        "id": "S18P04-EVIDENCE-INDEX-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "AC-S18-P03",
+          "evidence_path": "machine/evidence/EVD-S18-P03.json",
+          "evidence_sha256": "99ade2e845cd72af99713e4c0d5d07e2aea3a1e49e6895f5b9bcdeca2a9afe1f",
+          "next": "S18/P04_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "S18P04-S18P03-SIGNED-DEPENDENCY",
+        "passed": true
+      },
+      {
+        "detail": "scheduled_jobs.json",
+        "id": "S18P04-SCHEDULE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "maintenance_calendar.json",
+        "id": "S18P04-CALENDAR-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/parameters.json",
+        "id": "S18P04-PARAMETERS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/canonical_facts.json",
+        "id": "S18P04-CANONICAL-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "operations_runbook.md",
+        "id": "S18P04-RUNBOOK-PAUSE-CONTRACT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "job_ids": [
+            "DAILY_SIGNED_CONTROL_REPLAY",
+            "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+            "WEEKLY_PATCH_READINESS_GATE",
+            "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+            "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+            "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+          ],
+          "owner_maintenance_normal": false,
+          "pause_contract": true
+        },
+        "id": "S18P04-SCHEDULE-CALENDAR-IMMUTABLE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "job_ids": [
+            "DAILY_SIGNED_CONTROL_REPLAY",
+            "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+            "WEEKLY_PATCH_READINESS_GATE",
+            "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+            "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+            "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+          ],
+          "owner_maintenance_normal": false,
+          "pause_contract": true
+        },
+        "id": "S18P04-DAILY-WEEKLY-MONTHLY-OPERATIONS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "parsed",
+        "id": "S18P04-OPERATIONS-RUNNER-LOCAL-ONLY-STATIC",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S18_P04.json",
+        "id": "S18P04-FIXTURE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "decision": "CONTINUE_AUTONOMOUS_OFFLINE_CONTROL_PLANE",
+            "failed_job_ids": [],
+            "passed": true,
+            "scenario_id": "GOLDEN_ALL_LOGICAL_JOBS_PASS"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY"
+            ],
+            "passed": true,
+            "scenario_id": "DAILY_SIGNED_CONTROL_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT"
+            ],
+            "passed": true,
+            "scenario_id": "DAILY_MAIL_EVIDENCE_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "WEEKLY_PATCH_READINESS_GATE"
+            ],
+            "passed": true,
+            "scenario_id": "WEEKLY_PATCH_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY"
+            ],
+            "passed": true,
+            "scenario_id": "WEEKLY_BACKUP_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION"
+            ],
+            "passed": true,
+            "scenario_id": "MONTHLY_DISASTER_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "MONTHLY_RETENTION_FAILURE_PAUSES"
+          },
+          {
+            "decision": "CONTINUE_AUTONOMOUS_OFFLINE_CONTROL_PLANE",
+            "failed_job_ids": [],
+            "passed": true,
+            "scenario_id": "ADVERSE_MINUS_ONE_IN_TEN_THOUSAND_PRESERVES_GATES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY",
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+              "WEEKLY_PATCH_READINESS_GATE",
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "FUND_MUTATION_ATTEMPT_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY",
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+              "WEEKLY_PATCH_READINESS_GATE",
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "RISK_GATE_RELAXATION_ATTEMPT_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY",
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+              "WEEKLY_PATCH_READINESS_GATE",
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "EXTERNAL_EXECUTION_ATTEMPT_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY",
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+              "WEEKLY_PATCH_READINESS_GATE",
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "MALFORMED_JOB_STATUS_PAUSES"
+          }
+        ],
+        "id": "S18P04-NORMAL-CYCLE-NO-OWNER-MAINTENANCE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "expected": [
+            "DAILY_SIGNED_CONTROL_REPLAY",
+            "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+            "WEEKLY_PATCH_READINESS_GATE",
+            "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+            "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+            "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+          ],
+          "observed": [
+            "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+            "DAILY_SIGNED_CONTROL_REPLAY",
+            "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+            "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW",
+            "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+            "WEEKLY_PATCH_READINESS_GATE"
+          ]
+        },
+        "id": "S18P04-ALL-SCHEDULED-JOB-FAILURES-PAUSE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "decision": "CONTINUE_AUTONOMOUS_OFFLINE_CONTROL_PLANE",
+            "failed_job_ids": [],
+            "passed": true,
+            "scenario_id": "GOLDEN_ALL_LOGICAL_JOBS_PASS"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY"
+            ],
+            "passed": true,
+            "scenario_id": "DAILY_SIGNED_CONTROL_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT"
+            ],
+            "passed": true,
+            "scenario_id": "DAILY_MAIL_EVIDENCE_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "WEEKLY_PATCH_READINESS_GATE"
+            ],
+            "passed": true,
+            "scenario_id": "WEEKLY_PATCH_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY"
+            ],
+            "passed": true,
+            "scenario_id": "WEEKLY_BACKUP_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION"
+            ],
+            "passed": true,
+            "scenario_id": "MONTHLY_DISASTER_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "MONTHLY_RETENTION_FAILURE_PAUSES"
+          },
+          {
+            "decision": "CONTINUE_AUTONOMOUS_OFFLINE_CONTROL_PLANE",
+            "failed_job_ids": [],
+            "passed": true,
+            "scenario_id": "ADVERSE_MINUS_ONE_IN_TEN_THOUSAND_PRESERVES_GATES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY",
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+              "WEEKLY_PATCH_READINESS_GATE",
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "FUND_MUTATION_ATTEMPT_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY",
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+              "WEEKLY_PATCH_READINESS_GATE",
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "RISK_GATE_RELAXATION_ATTEMPT_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY",
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+              "WEEKLY_PATCH_READINESS_GATE",
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "EXTERNAL_EXECUTION_ATTEMPT_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY",
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+              "WEEKLY_PATCH_READINESS_GATE",
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "MALFORMED_JOB_STATUS_PAUSES"
+          }
+        ],
+        "id": "S18P04-UNSAFE-INPUT-PAUSES-WITH-IMMUTABLE-GATES",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "decision": "CONTINUE_AUTONOMOUS_OFFLINE_CONTROL_PLANE",
+            "failed_job_ids": [],
+            "passed": true,
+            "scenario_id": "GOLDEN_ALL_LOGICAL_JOBS_PASS"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY"
+            ],
+            "passed": true,
+            "scenario_id": "DAILY_SIGNED_CONTROL_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT"
+            ],
+            "passed": true,
+            "scenario_id": "DAILY_MAIL_EVIDENCE_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "WEEKLY_PATCH_READINESS_GATE"
+            ],
+            "passed": true,
+            "scenario_id": "WEEKLY_PATCH_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY"
+            ],
+            "passed": true,
+            "scenario_id": "WEEKLY_BACKUP_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION"
+            ],
+            "passed": true,
+            "scenario_id": "MONTHLY_DISASTER_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "MONTHLY_RETENTION_FAILURE_PAUSES"
+          },
+          {
+            "decision": "CONTINUE_AUTONOMOUS_OFFLINE_CONTROL_PLANE",
+            "failed_job_ids": [],
+            "passed": true,
+            "scenario_id": "ADVERSE_MINUS_ONE_IN_TEN_THOUSAND_PRESERVES_GATES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY",
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+              "WEEKLY_PATCH_READINESS_GATE",
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "FUND_MUTATION_ATTEMPT_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY",
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+              "WEEKLY_PATCH_READINESS_GATE",
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "RISK_GATE_RELAXATION_ATTEMPT_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY",
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+              "WEEKLY_PATCH_READINESS_GATE",
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "EXTERNAL_EXECUTION_ATTEMPT_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY",
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+              "WEEKLY_PATCH_READINESS_GATE",
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "MALFORMED_JOB_STATUS_PAUSES"
+          }
+        ],
+        "id": "S18P04-ADVERSE-ONE-IN-TEN-THOUSAND-PRESERVES-GATES",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "decision": "CONTINUE_AUTONOMOUS_OFFLINE_CONTROL_PLANE",
+            "failed_job_ids": [],
+            "passed": true,
+            "scenario_id": "GOLDEN_ALL_LOGICAL_JOBS_PASS"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY"
+            ],
+            "passed": true,
+            "scenario_id": "DAILY_SIGNED_CONTROL_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT"
+            ],
+            "passed": true,
+            "scenario_id": "DAILY_MAIL_EVIDENCE_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "WEEKLY_PATCH_READINESS_GATE"
+            ],
+            "passed": true,
+            "scenario_id": "WEEKLY_PATCH_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY"
+            ],
+            "passed": true,
+            "scenario_id": "WEEKLY_BACKUP_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION"
+            ],
+            "passed": true,
+            "scenario_id": "MONTHLY_DISASTER_FAILURE_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "MONTHLY_RETENTION_FAILURE_PAUSES"
+          },
+          {
+            "decision": "CONTINUE_AUTONOMOUS_OFFLINE_CONTROL_PLANE",
+            "failed_job_ids": [],
+            "passed": true,
+            "scenario_id": "ADVERSE_MINUS_ONE_IN_TEN_THOUSAND_PRESERVES_GATES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY",
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+              "WEEKLY_PATCH_READINESS_GATE",
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "FUND_MUTATION_ATTEMPT_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY",
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+              "WEEKLY_PATCH_READINESS_GATE",
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "RISK_GATE_RELAXATION_ATTEMPT_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY",
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+              "WEEKLY_PATCH_READINESS_GATE",
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "EXTERNAL_EXECUTION_ATTEMPT_PAUSES"
+          },
+          {
+            "decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY",
+            "failed_job_ids": [
+              "DAILY_SIGNED_CONTROL_REPLAY",
+              "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT",
+              "WEEKLY_PATCH_READINESS_GATE",
+              "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY",
+              "MONTHLY_DISASTER_RECOVERY_PROJECTION",
+              "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"
+            ],
+            "passed": true,
+            "scenario_id": "MALFORMED_JOB_STATUS_PAUSES"
+          }
+        ],
+        "id": "S18P04-DETERMINISTIC-REPLAY-HASH-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "abd_acceptance/__main__.py",
+        "id": "S18P04-CLI-WRITER-AND-VERIFIER-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "approved": "57f8e6dec134a19c9627b904e14cfae73ae3ccf7f6cefbb13ce82726b9b5139b",
+          "current": "57f8e6dec134a19c9627b904e14cfae73ae3ccf7f6cefbb13ce82726b9b5139b"
+        },
+        "id": "S18P04-S08-LEGACY-SUCCESSOR-PIN-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 27
+        },
+        "id": "S18P04-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S18/P04/paid_dependency_scan.txt",
+        "id": "S18P04-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/validation_report.json",
+        "id": "S18P04-TASKPACK-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S18P04-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_disaster_recovery_executed": false,
+          "actual_fund_facts_read_or_written": false,
+          "actual_ledger_read_or_written": false,
+          "actual_patch_or_backup_performed": false,
+          "actual_process_or_service_restarted": false,
+          "actual_scheduler_or_cron_installed": false,
+          "cloudflare_account_dns_or_tunnel_accessed": false,
+          "external_network_accessed": false,
+          "gmail_account_or_api_accessed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "ovh_account_or_host_accessed": false,
+          "production_deployed_or_activated": false,
+          "real_time_soak_waited": false,
+          "recommendation_generated_or_enabled": false,
+          "risk_gate_relaxed": false
+        },
+        "id": "S18P04-EXTERNAL-EFFECT-BOUNDARY-EXACT",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S18-P04",
+    "decision": "S18_P04_OPERATIONS_AUTOMATION_PASS_STAGE_REVIEW_REQUIRED",
+    "execution_policy": {
+      "external_runtime_access_allowed": false,
+      "full_regression_or_real_time_soak_allowed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "offline_deterministic_only": true,
+      "phase_test_only": true,
+      "production_equivalent_config_schema_only": true
+    },
+    "external_effect_boundary": {
+      "actual_disaster_recovery_executed": false,
+      "actual_fund_facts_read_or_written": false,
+      "actual_ledger_read_or_written": false,
+      "actual_patch_or_backup_performed": false,
+      "actual_process_or_service_restarted": false,
+      "actual_scheduler_or_cron_installed": false,
+      "cloudflare_account_dns_or_tunnel_accessed": false,
+      "external_network_accessed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submission_enabled": false,
+      "ovh_account_or_host_accessed": false,
+      "production_deployed_or_activated": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false,
+      "risk_gate_relaxed": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "hashes": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/operations_automation.py": "04f9be7e8b33347a96f474a1a3d60911f8b30bdb0c25862bc08358cf6417b6d5",
+      "machine/evidence/EVD-S18-P03.json": "99ade2e845cd72af99713e4c0d5d07e2aea3a1e49e6895f5b9bcdeca2a9afe1f",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S18_P04.json": "541ccadb4044df7291b03460e53b390c93c6bd8d18d1cb18fa2f3ff4a694d4ef",
+      "maintenance_calendar.json": "9919f5ca9a50dc267342651494a0746dfeaaca24c99ea565fdfe06e6d9de0a77",
+      "operations_runbook.md": "aadd01fe17b5c9424b02e3486383446e0f895b9c46fdcf8c0bcef3f8445b1dab",
+      "scheduled_jobs.json": "d4d364eba4859d3dbda6d50902b5220f7312427463c59b9581d7830f5110d73b"
+    },
+    "next": "S18/STAGE_REVIEW_READY_NOT_STARTED",
+    "phase_id": "P04",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "requirement_id": "REQ-S18-P04",
+    "stage_id": "S18",
+    "status": "PASS",
+    "summary": {
+      "checks": 41,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 41
+    }
+  }
+}

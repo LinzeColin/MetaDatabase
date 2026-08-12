@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S15-P02-MAIL-001",
+  "source_contract_id": "SRC-S15-P02-MAIL",
+  "source_type": "FROZEN_ARCHIVED_MAIL",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "synthetic_test_only": true,
+  "external_source_accessed": false,
+  "payload": {
+    "event_id": "EVT-S15-P02-0001",
+    "selection_id": "SEL-S15-P02-ALPHA",
+    "ticket_id": "TICKET-S15-P02-0001",
+    "archive_status": "ARCHIVED_LOCAL_EVIDENCE_ONLY",
+    "evidence_status": "VERIFIED_SYNTHETIC_NOTIFICATION"
+  }
+}

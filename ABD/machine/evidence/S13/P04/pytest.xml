@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="18" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S13.P04_test" name="test_candidate_preflight_passes_without_generated_p04_reports" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_catalog_has_exactly_the_six_frozen_complete_path_types" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_each_path_has_input_states_output_evidence_user_action_and_recovery[S13-P04-WALKING-SKELETON]" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_each_path_has_input_states_output_evidence_user_action_and_recovery[S13-P04-GOLDEN]" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_each_path_has_input_states_output_evidence_user_action_and_recovery[S13-P04-BLACK]" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_each_path_has_input_states_output_evidence_user_action_and_recovery[S13-P04-ABUSE]" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_each_path_has_input_states_output_evidence_user_action_and_recovery[S13-P04-DEGRADED]" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_each_path_has_input_states_output_evidence_user_action_and_recovery[S13-P04-RECOVERY]" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_replay_is_exactly_deterministic_and_remains_local_only" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_point_0001_adverse_odds_boundary_replays_black_path_and_not_golden_path" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_float_or_wrong_black_boundary_fails_closed" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_noncontiguous_state_transition_fails_closed" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_forged_recovery_action_that_claims_actual_return_fails_closed" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_candidate_fails_closed_when_path_output_enables_an_actual_return_claim" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_oracle_and_catalogs_have_no_network_soak_or_order_capability" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_rollback_drill_is_local_and_preserves_evidence" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_signing_replaces_only_the_p04_jsonl_row_and_replays" time="0.000" />
+    <testcase classname="tests.S13.P04_test" name="test_acceptance_cli_is_wired_to_the_exact_contract_after_integration" time="0.000" />
+  </testsuite>
+</testsuites>

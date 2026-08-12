@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="24" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S19.P02_test" name="test_fixture_is_exact_s19_p02_contract" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_each_frozen_scenario_has_its_pinned_no_order_result[GOLDEN_SYNTHETIC_ALL_METRICS_PASS_BETA_BLOCKED]" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_each_frozen_scenario_has_its_pinned_no_order_result[ADVERSE_ONE_IN_TEN_THOUSAND_METRICS_STABLE_BETA_BLOCKED]" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_each_frozen_scenario_has_its_pinned_no_order_result[INSUFFICIENT_SYNTHETIC_WINDOW_CANNOT_COUNT_AS_EMPIRICAL]" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_each_frozen_scenario_has_its_pinned_no_order_result[CALIBRATION_BOUNDARY_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_each_frozen_scenario_has_its_pinned_no_order_result[NET_GROWTH_BOUNDARY_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_each_frozen_scenario_has_its_pinned_no_order_result[FRESHNESS_CAPACITY_DRIFT_FAILURES_CLOSE_GATE]" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_each_frozen_scenario_has_its_pinned_no_order_result[EMPIRICAL_PROMOTION_ATTEMPT_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_each_frozen_scenario_has_its_pinned_no_order_result[UNSAFE_RUNTIME_REQUESTS_FAIL_CLOSED]" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_golden_fixture_passes_all_five_local_quality_gates_but_not_model_beta" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_one_in_ten_thousand_adverse_vector_remains_stable_and_no_order" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_insufficient_synthetic_window_cannot_count_as_empirical_realtime_shadow" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_hard_metric_boundaries_and_empirical_promotion_attempt_fail_closed" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_malformed_or_relaxed_inputs_are_rejected[FLOAT_METRIC_REJECTED]" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_malformed_or_relaxed_inputs_are_rejected[UNKNOWN_EVIDENCE_KIND_REJECTED]" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_malformed_or_relaxed_inputs_are_rejected[RELAXED_MODEL_CONFIG_REJECTED]" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_artifacts_are_deterministic_and_keep_beta_blocked" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_core_has_no_runtime_network_process_mail_or_sleep_capability" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_candidate_preflight_is_passed_without_generated_reports_or_external_effects" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_generated_artifact_paths_are_stable_before_and_after_signing" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_evidence_build_is_deterministic_before_signing" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_cli_and_legacy_successor_chain_are_exact" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_rollback_drill_is_local_and_preserves_s19_p01_receipt" time="0.000" />
+    <testcase classname="tests.S19.P02_test" name="test_existing_evidence_verifier_fails_closed_when_no_signed_evidence_exists" time="0.000" />
+  </testsuite>
+</testsuites>

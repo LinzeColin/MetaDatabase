@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-PRIVATE-REDACTED-PREREQUISITE-RECEIPT-CONTINUITY-ATTESTATION-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_CURRENT_PRODUCTION_PRIVATE_REDACTED_PREREQUISITE_RECEIPT_CONTINUITY_ATTESTATION_READ_ONLY",
+  "expected": {
+    "private_area": "Private-MetaDatabase",
+    "private_domain": "ABD",
+    "prerequisite_ids": [
+      "CONTROLLED_ENTRY",
+      "MANAGEMENT_PLANE",
+      "SSH_TRANSPORT",
+      "FROZEN_CONFIG_SEMANTIC_CHECK",
+      "CORE_EXECUTION_CONTRACT"
+    ],
+    "current_receipt_filename_stems": [
+      "abd-current-production-protected-provider-auth-route-resolver-receipt",
+      "abd-current-production-ovh-management-plane-diagnostic-receipt",
+      "abd-current-production-ssh-transport-failure-classification-diagnostic-receipt",
+      "abd-current-production-core-config-semantic-preflight-receipt",
+      "abd-current-production-core-execution-preflight-receipt"
+    ],
+    "maximum_private_receipt_bytes": 16384,
+    "maximum_private_database_read_requests": 6,
+    "provider_api_requests": 0,
+    "product_github_api_requests": 0,
+    "ssh_connections_attempted": 0
+  },
+  "source_boundary": {
+    "private_database_client_read_only": true,
+    "single_private_manifest_metadata_stream_read_in_memory_only": true,
+    "at_most_one_current_candidate_per_prerequisite_receipt_type": true,
+    "selected_private_redacted_receipt_status_fields_read_in_memory_only": true,
+    "private_object_path_hash_or_raw_content_emitted_copied_or_persisted": false,
+    "credential_config_or_runtime_secret_read_or_persisted": false,
+    "workflow_secret_value_read_or_persisted": false,
+    "address_port_or_target_mapping_read_or_persisted": false,
+    "raw_command_content_read_or_persisted": false,
+    "product_github_api_request_sent": false,
+    "provider_api_request_sent": false,
+    "ssh_connection_attempted": false,
+    "browser_login_submitted": false,
+    "workflow_dispatched_or_pushed": false,
+    "provider_resource_network_cloudflare_host_or_service_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_PRODUCTION_PRIVATE_REDACTED_PREREQUISITE_RECEIPT_CONTINUITY_ONLY_NOT_ACTUAL_CI_AUTHORIZATION_PROVIDER_RESOURCE_STATE_SSH_CONFIG_SEMANTIC_CHECK_CORE_EXECUTION_DEPLOYMENT_PUBLIC_ENDPOINT_CORE_START_OR_PRODUCTION_RELEASE",
+  "rollback": {
+    "action": "NO_PRIVATE_DATA_PROVIDER_WORKFLOW_OR_HOST_MUTATION_NO_RUNTIME_ROLLBACK_REQUIRED",
+    "current_candidate_shadow_changed": false,
+    "private_evidence_deleted_automatically": false
+  }
+}

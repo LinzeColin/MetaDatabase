@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-ABD-SCOPED-EXPLICIT-AUTHORITY-RECORD-INTAKE-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_CURRENT_PRODUCTION_ABD_SCOPED_EXPLICIT_AUTHORITY_RECORD_INTAKE_READ_ONLY",
+  "expected": {
+    "allowed_candidate_suffixes": [".json"],
+    "required_filename_tokens": ["authority", "record"],
+    "maximum_tree_depth": 12,
+    "maximum_tree_entries": 512,
+    "maximum_candidate_records_opened": 16,
+    "maximum_candidate_bytes": 32768,
+    "required_record_fields": [
+      "controlled_target_reference",
+      "noninteractive_only",
+      "observed_on",
+      "owner_task_authorization",
+      "product",
+      "product_version",
+      "record_type",
+      "schema_version"
+    ],
+    "provider_api_requests": 0,
+    "ssh_connections_attempted": 0,
+    "github_api_requests": 0
+  },
+  "source_boundary": {
+    "protected_root_read_only": true,
+    "only_private_permission_nonsecret_json_filename_candidates_opened": true,
+    "candidate_json_key_set_checked_before_value_parse": true,
+    "candidate_target_reference_parsed_in_memory_only": true,
+    "credential_material_read_emitted_or_persisted": false,
+    "target_mapping_emitted_or_persisted": false,
+    "protected_path_or_filename_emitted_or_persisted": false,
+    "browser_login_submitted": false,
+    "provider_api_request_sent": false,
+    "ssh_connection_attempted": false,
+    "github_api_request_sent": false,
+    "provider_resource_or_network_changed": false,
+    "host_runtime_or_configuration_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_PRODUCTION_ABD_SCOPED_EXPLICIT_AUTHORITY_RECORD_INTAKE_ONLY_NOT_TARGET_VALUE_DISCLOSURE_PROVIDER_RESOURCE_STATE_SSH_RETRY_HOST_METADATA_READ_REPAIR_DEPLOYMENT_CORE_START_CLOUDFLARE_ACTIVATION_OR_PUBLIC_RELEASE",
+  "rollback": {
+    "action": "NO_PROTECTED_SOURCE_PROVIDER_OR_HOST_MUTATION_NO_RUNTIME_ROLLBACK_REQUIRED",
+    "current_candidate_shadow_changed": false,
+    "private_evidence_deleted_automatically": false
+  }
+}

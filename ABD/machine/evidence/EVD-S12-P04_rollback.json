@@ -1,0 +1,36 @@
+{
+  "artifacts": {
+    "kill_report.schema.json": {
+      "sha256": "204722497be497600a966489c00d9f995dc518ed1114ec00716d2b269bd3c78c",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S12_P04.json": {
+      "sha256": "b8ba40499ce63173b3c950c653fa50e42d7ab976e2c09baa2fc1d3f55b192adb",
+      "status": "PASS"
+    },
+    "target_acceptance.json": {
+      "sha256": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76",
+      "status": "PASS"
+    },
+    "target_falsification.py": {
+      "sha256": "3d03c955b98f2932a7361a8be6856cf00e6e2b924e73bad432e55f4fc43430ad",
+      "status": "PASS"
+    },
+    "tests/S12/P04_test.py": {
+      "sha256": "9426d7d9ee01ea615312f64825e572c3e9fc18389e4c6141adc3e9474f03eeb5",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S12-P04",
+  "evidence_id": "EVD-S12-P04-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "target:falsification_and_verification_gate",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_TARGET_FALSIFICATION_GATE_RESTORE_SIGNED_P03_KEEP_ALL_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

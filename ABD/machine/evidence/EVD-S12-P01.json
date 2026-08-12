@@ -1,0 +1,146 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python target_engine.py --fixture machine/tests/fixtures/S12_P01.json --parameters machine/facts/parameters.json --output target_vectors.json",
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S12/P01/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S12/P01_test.py --junitxml=machine/evidence/S12/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S12/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S12-P01 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S12-P01",
+  "decision": "TARGET_CURVE_READY_DOWNSTREAM_CAPACITY_ECONOMICS_AND_FALSIFICATION_GATES_REQUIRED",
+  "decision_sha256": "1ed8f0137e5ef9fc760d5e9a1ac47d7ac0e581a2524fbbd0fa2c651c416b9465",
+  "deterministic_replay": {
+    "monthly_records": 4,
+    "real_time_wait_performed": false
+  },
+  "evidence_id": "EVD-S12-P01",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "hashes": {
+    "code": "fa05a9c4de4046d44ac07508af174d75fcc6145e76341c6230ec1537bfa926bc",
+    "inputs": {
+      "cashflow_adjustment.py": "e40b7051d2d39defecddacdbff57057e67a63c0ad21e46045d004bd3126eef3c",
+      "machine/evidence/EVD-S01-P04.json": "ae6ce2a897e9dd41c34d01cdc7f2cdd3c8cfbb41477662898ef3c9f766e49643",
+      "machine/evidence/EVD-S10-P04.json": "0700d4af988731fa39fc9506751b993e509da8afa78d63ef951c3bac842a9ed3",
+      "machine/evidence/EVD-S11-P04.json": "d9bc525ce3902cdda3ca6ad6253cc77ab69cddb4641b3d4d7e2c207f59c49ed2",
+      "machine/evidence/S01/STAGE_REVIEW/github_delivery_receipt.json": "ca4f4d34507a11afaa72a261b6603699264460a078335ff4a36a1d8791e35dde",
+      "machine/evidence/S12/P01/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S12/P01/pytest.xml": "6e482004dcdee45da81584ff27e08d4e91d35b8da36972c0bcdc88e40a8dc452",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S12_P01.json": "9c050728f860fe69568959499af4852284dc87034ee6ce44ad28cea43409d69b",
+      "target_engine.py": "be759f9d8d89f14bb64f77342aa02139cf899c20ad25edd4c144b65b6ef30534",
+      "target_vectors.json": "80fcd5c54a25d893eda11f84a039d75ae8f40862b4d26e3f9d6370983bbd956e",
+      "tests/S12/P01_test.py": "d4a57b6740950888d63d3392451cc5cc728aac0d528a50efe0f5d7484d1e6b05"
+    },
+    "rollback_evidence": "47601c6b52ad0fb04eae4bc2231bcf24ecb4a023d4e301f6a5a00fc3c4c2c69f"
+  },
+  "next": "S12/P02_READY_NOT_STARTED",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S12_P01_LOCAL_EVIDENCE_ONLY_STAGE_REVIEW_REQUIRED_BEFORE_UPLOAD",
+  "requirement_id": "REQ-S12-P01",
+  "rollback": {
+    "artifacts": {
+      "cashflow_adjustment.py": {
+        "sha256": "e40b7051d2d39defecddacdbff57057e67a63c0ad21e46045d004bd3126eef3c",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S12_P01.json": {
+        "sha256": "9c050728f860fe69568959499af4852284dc87034ee6ce44ad28cea43409d69b",
+        "status": "PASS"
+      },
+      "target_engine.py": {
+        "sha256": "be759f9d8d89f14bb64f77342aa02139cf899c20ad25edd4c144b65b6ef30534",
+        "status": "PASS"
+      },
+      "target_vectors.json": {
+        "sha256": "80fcd5c54a25d893eda11f84a039d75ae8f40862b4d26e3f9d6370983bbd956e",
+        "status": "PASS"
+      },
+      "tests/S12/P01_test.py": {
+        "sha256": "d4a57b6740950888d63d3392451cc5cc728aac0d528a50efe0f5d7484d1e6b05",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S12-P01",
+    "evidence_id": "EVD-S12-P01-ROLLBACK",
+    "external_state_changed": false,
+    "feature_flag_id": "target:cashflow_adjusted_curve",
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_TARGET_CURVE_SCOPED_FLAG_RESTORE_SIGNED_S01_S10_S11_PREDECESSORS_KEEP_ALL_EVIDENCE",
+    "order_submission_enabled": false,
+    "production_state_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "shared_runtime_contract": {
+    "current_validation": "evaluate_contract",
+    "paths_excluded_from_receipt_input_hashes": [
+      "abd_acceptance/__main__.py",
+      "abd_acceptance/budget.py"
+    ],
+    "reason": "later dispatcher and dependency-scan evolution must not invalidate phase-owned frozen evidence"
+  },
+  "stage_id": "S12",
+  "status": "PASS",
+  "validation": {
+    "contract_id": "AC-S12-P01",
+    "decision": "TARGET_CURVE_READY_DOWNSTREAM_CAPACITY_ECONOMICS_AND_FALSIFICATION_GATES_REQUIRED",
+    "external_effect_boundary": {
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submission_enabled": false,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "hashes": {
+      "cashflow_adjustment.py": "e40b7051d2d39defecddacdbff57057e67a63c0ad21e46045d004bd3126eef3c",
+      "machine/evidence/EVD-S01-P04.json": "ae6ce2a897e9dd41c34d01cdc7f2cdd3c8cfbb41477662898ef3c9f766e49643",
+      "machine/evidence/EVD-S10-P04.json": "0700d4af988731fa39fc9506751b993e509da8afa78d63ef951c3bac842a9ed3",
+      "machine/evidence/EVD-S11-P04.json": "d9bc525ce3902cdda3ca6ad6253cc77ab69cddb4641b3d4d7e2c207f59c49ed2",
+      "machine/evidence/S01/STAGE_REVIEW/github_delivery_receipt.json": "ca4f4d34507a11afaa72a261b6603699264460a078335ff4a36a1d8791e35dde",
+      "machine/tests/fixtures/S12_P01.json": "9c050728f860fe69568959499af4852284dc87034ee6ce44ad28cea43409d69b",
+      "target_engine.py": "be759f9d8d89f14bb64f77342aa02139cf899c20ad25edd4c144b65b6ef30534",
+      "target_vectors.json": "80fcd5c54a25d893eda11f84a039d75ae8f40862b4d26e3f9d6370983bbd956e",
+      "tests/S12/P01_test.py": "d4a57b6740950888d63d3392451cc5cc728aac0d528a50efe0f5d7484d1e6b05"
+    },
+    "next": "S12/P02_READY_NOT_STARTED",
+    "phase_id": "P01",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "stage_id": "S12",
+    "status": "PASS",
+    "summary": {
+      "checks": 29,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 29
+    }
+  }
+}

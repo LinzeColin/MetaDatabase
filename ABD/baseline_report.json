@@ -1,0 +1,51 @@
+{
+  "artifact_id": "ART-S16-P01-02",
+  "champion_active_weight": "1.00",
+  "champion_model_id": "MARKET_CONSENSUS_CHAMPION",
+  "claim_boundary": {
+    "empirical_model_increment_verified": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "contract_id": "AC-S16-P01",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "frozen_windows": [
+    {
+      "classification": "FROZEN_SYNTHETIC_PRE_EVALUATION_NOT_EMPIRICAL",
+      "end_at": "2025-01-31T23:59:59+10:00",
+      "observed_outcome_count": 0,
+      "start_at": "2025-01-01T00:00:00+10:00",
+      "window_id": "S16-P01-FW-01"
+    },
+    {
+      "classification": "FROZEN_SYNTHETIC_PRE_EVALUATION_NOT_EMPIRICAL",
+      "end_at": "2025-02-28T23:59:59+10:00",
+      "observed_outcome_count": 0,
+      "start_at": "2025-02-01T00:00:00+10:00",
+      "window_id": "S16-P01-FW-02"
+    },
+    {
+      "classification": "FROZEN_SYNTHETIC_PRE_EVALUATION_NOT_EMPIRICAL",
+      "end_at": "2025-03-31T23:59:59+10:00",
+      "observed_outcome_count": 0,
+      "start_at": "2025-03-01T00:00:00+10:00",
+      "window_id": "S16-P01-FW-03"
+    }
+  ],
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "registry_sha256": "e4414fe73050ac6a389fa395f82badb0ff7882db81af87870add3219329060a5",
+  "schema_version": "1.0.0",
+  "stage_id": "S16",
+  "window_comparison_status": "PRE_EVALUATION_SYNTHETIC_ONLY_NO_EMPIRICAL_SCORE"
+}

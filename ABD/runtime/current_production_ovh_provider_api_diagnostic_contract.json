@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-OVH-PROVIDER-API-DIAGNOSTIC-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_CURRENT_PRODUCTION_OVH_PROVIDER_API_DIAGNOSTIC_READ_ONLY",
+  "expected": {
+    "allowed_provider_api_access": [
+      "QUERY_PASS",
+      "CREDENTIAL_SOURCE_UNAVAILABLE_REDACTED",
+      "TARGET_MAPPING_UNAVAILABLE_REDACTED",
+      "ACCESS_DENIED_REDACTED",
+      "REQUEST_FAILED_REDACTED",
+      "RESPONSE_INVALID_REDACTED"
+    ],
+    "allowed_resource_presence": [
+      "PRESENT",
+      "ABSENT",
+      "UNKNOWN",
+      "NOT_OBSERVED"
+    ],
+    "allowed_power_states": [
+      "POWERED_ON",
+      "POWERED_OFF",
+      "UNKNOWN",
+      "NOT_OBSERVED"
+    ],
+    "allowed_network_states": [
+      "NETWORK_READY",
+      "NETWORK_DEGRADED",
+      "UNKNOWN",
+      "NOT_OBSERVED"
+    ],
+    "maximum_provider_api_requests": 1,
+    "allowed_provider_api_methods": [
+      "GET"
+    ]
+  },
+  "source_boundary": {
+    "protected_noninteractive_credential_source_permitted": true,
+    "credential_material_used_in_memory_only": true,
+    "credential_material_emitted_or_persisted": false,
+    "target_mapping_emitted_or_persisted": false,
+    "raw_provider_response_emitted_or_persisted": false,
+    "browser_login_submitted": false,
+    "provider_resource_created_deleted_rebuilt_or_restarted": false,
+    "provider_network_security_group_ip_dns_or_cloudflare_changed": false,
+    "host_runtime_or_configuration_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_PRODUCTION_OVH_PROVIDER_API_DIAGNOSTIC_ONLY_NOT_HOST_RECOVERY_SSH_TRANSPORT_RETRY_CONFIG_SEMANTIC_CHECK_UNIT_INSTALL_CORE_START_CONNECTOR_ACTIVATION_OR_PUBLIC_RELEASE",
+  "rollback": {
+    "action": "NO_PROVIDER_OR_HOST_MUTATION_NO_RUNTIME_ROLLBACK_REQUIRED",
+    "current_candidate_shadow_changed": false,
+    "private_evidence_deleted_automatically": false
+  }
+}

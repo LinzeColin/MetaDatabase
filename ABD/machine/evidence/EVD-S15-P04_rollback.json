@@ -1,0 +1,47 @@
+{
+  "actual_return_claimed": false,
+  "artifacts": {
+    "abd_acceptance/traceability_proxy.py": {
+      "sha256": "0962daec70f055d76fec4e7753b2b1aa9e057f9310ac58207342cf2d422ef755",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S15-P03.json": {
+      "sha256": "c669a73781f28bb8fd1a5521f284c24f47bbe9595ad12f95ad9c47c27c809c29",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S15-P03_rollback.json": {
+      "sha256": "6761c0afe059c562d2147c0d1c731e3b9dc52f1d5dd6c71da08195554c99e258",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S15_P04.json": {
+      "sha256": "68e0393e80d6846a7a2302e0e90ae9e1c91d6c4d6cb21ec3aea4877833c95605",
+      "status": "PASS"
+    },
+    "software_gate.json": {
+      "sha256": "2a610b254e32b773f6ea7299151d584549550868757a352bd6b94517f0beaf8e",
+      "status": "PASS"
+    },
+    "tests/S15/P04_test.py": {
+      "sha256": "a25e89fe09dc597cdf38751587a20710ce48a62735d31c2737c3b566da4fc5f9",
+      "status": "PASS"
+    },
+    "traceability_validator.py": {
+      "sha256": "84e523af17592a70bba09388a3de3a1c84e024130fb617ad070d2b8ffe531c69",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S15-P04",
+  "database_state_changed": false,
+  "evidence_id": "EVD-S15-P04-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "quality:s15-p04-traceability-software-gate",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_S15_P04_TRACEABILITY_GATE_KEEP_SIGNED_S15_P03",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_account_balance_read_or_written": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

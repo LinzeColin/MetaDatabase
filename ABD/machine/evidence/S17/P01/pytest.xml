@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="28" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S17.P01_test" name="test_candidate_preflight_replays_the_exact_local_load_contract" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_artifacts_replay_byte_for_value_from_the_frozen_fixture" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_every_replay_scenario_preserves_every_input_disposition[BASELINE_FULL_HISTORY]" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_every_replay_scenario_preserves_every_input_disposition[TEN_X_FULL_HISTORY]" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_every_replay_scenario_preserves_every_input_disposition[TEN_X_BOUNDARY_0_9999]" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_every_replay_scenario_preserves_every_input_disposition[TEN_X_TRACKED_FAULT]" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_every_replay_identity_digest_is_deterministic[BASELINE_FULL_HISTORY]" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_every_replay_identity_digest_is_deterministic[TEN_X_FULL_HISTORY]" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_every_replay_identity_digest_is_deterministic[TEN_X_BOUNDARY_0_9999]" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_every_replay_identity_digest_is_deterministic[TEN_X_TRACKED_FAULT]" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_profile_preserves_frozen_full_history_and_exact_ten_x_load" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_boundary_and_fault_cases_keep_reserve_and_track_quarantine" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_vps_gate_is_local_only_and_never_claims_real_measurement_or_deployment" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_artifact_identity_and_hash_links_are_closed" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_invalid_load_or_action_mutations_fail_closed[NOT_TEN_X]" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_invalid_load_or_action_mutations_fail_closed[PLUS_0_0001_RESOURCE]" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_invalid_load_or_action_mutations_fail_closed[SILENT_DISPOSITION_LOSS]" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_invalid_load_or_action_mutations_fail_closed[ACTION_ENABLED]" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_cost_hash_drift_fails_before_any_capacity_artifact_is_accepted" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_signed_predecessor_metadata_remains_exact[AC-S15-P04]" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_signed_predecessor_metadata_remains_exact[AC-S16-P04]" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_load_outputs_preserve_the_no_runtime_and_no_return_claim_boundary" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_rollback_is_local_only_and_keeps_runtime_blocked" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_execution_policy_blocks_full_regression_soak_and_external_runtime" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_core_oracle_and_generator_have_no_network_process_wait_or_order_capability" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_acceptance_cli_is_wired_to_the_exact_phase_contract" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_writer_refuses_noncanonical_evidence_directory_without_writing" time="0.000" />
+    <testcase classname="tests.S17.P01_test" name="test_input_paths_are_current_local_artifacts" time="0.000" />
+  </testsuite>
+</testsuites>

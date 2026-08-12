@@ -1,0 +1,555 @@
+{
+  "cli_wiring": {
+    "path": "abd_acceptance/__main__.py",
+    "sha256_at_signing": "83c37c9575cfdec3de9b83c9750627ee1a729f6b33959002d35a3012e3ffc1fe"
+  },
+  "contract_id": "AC-S19-P01",
+  "decision": "S19_P01_WALKING_SKELETON_AND_SOFTWARE_ALPHA_PASS_P02_REQUIRED",
+  "decision_sha256": "3405ba474c1bb2e3c9f7e4a60460618d26fbfc949807c6b7cd8d52bba47e5763",
+  "deterministic_replay": {
+    "adverse_one_in_ten_thousand_vector_count": 1,
+    "external_runtime_accessed": false,
+    "lifecycle_step_count": 7,
+    "real_time_wait_performed": false,
+    "scenario_count": 8,
+    "unsafe_request_vector_count": 6
+  },
+  "evidence_id": "EVD-S19-P01",
+  "execution_policy": {
+    "external_runtime_access_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "offline_deterministic_only": true,
+    "phase_test_only": true,
+    "production_equivalent_config_schema_only": true
+  },
+  "external_effect_boundary": {
+    "actual_fund_facts_read_or_written": false,
+    "actual_ledger_read_or_written": false,
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "gmail_message_sent": false,
+    "incremental_cash_spent_aud": "0.00",
+    "market_or_account_runtime_accessed": false,
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "owner_final_order_only": true,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-10T06:00:00+10:00",
+  "hashes": {
+    "code": "a0a7888b23bb198d7244086787d7cb1dcdc2ef713e9f6604f36f2cc7f359e010",
+    "inputs": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/walking_skeleton.py": "9d7dc1cb171994b2c76c0c9fda1366a23f14eeb7f4e2b534c2d346758b78b508",
+      "abd_acceptance/walking_skeleton_acceptance.py": "a0a7888b23bb198d7244086787d7cb1dcdc2ef713e9f6604f36f2cc7f359e010",
+      "machine/evidence/EVD-S12-P04.json": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+      "machine/evidence/EVD-S13-P04.json": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e",
+      "machine/evidence/EVD-S17-P04.json": "08e1d389d3b0d80d6c729d9835dc27343018985cd8cc1796a9528b5ed7d6e708",
+      "machine/evidence/EVD-S18-P04.json": "b196f207508350f8dbdb51efcd880f1fe616880e490af344bd3b2d238c142931",
+      "machine/evidence/S19/P01/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S19/P01/pytest.xml": "ae3a33d759b187ac382e071b6f4b74e8a5679acde21ba9ac6c7c0becc9bf5636",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S19_P01.json": "6cb29ca6234cfe85f1a15fd8ad7b473900aa2cfd565432d348f9dfb29f6102cf",
+      "software_alpha_gate.json": "841aa21fa366438727e6d0555f45fe819ecb0e526876e36f994a9b3dec23373b",
+      "tests/S19/P01_test.py": "40473ef591aeec3f3cefbe2ea1bcd7ba917262ac1fcae79c6f6e918c68f5ec50",
+      "walking_skeleton_evidence.json": "12230a8068e9c6fee8f249fff4b8e71d67898bd8eb94d3ae9272ecfb2ee0bfd0"
+    },
+    "rollback_evidence": "6297ba555889762ce6eba2a615ddd4087c162f7905a3f19cb7716dad185eccdc"
+  },
+  "next": "S19/P02_READY_NOT_STARTED",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S19_P01_LOCAL_SOFTWARE_ALPHA_ONLY_P02_REQUIRED",
+  "requirement_id": "REQ-S19-P01",
+  "rollback": {
+    "artifacts": {
+      "abd_acceptance/walking_skeleton.py": {
+        "sha256": "9d7dc1cb171994b2c76c0c9fda1366a23f14eeb7f4e2b534c2d346758b78b508",
+        "status": "PASS"
+      },
+      "abd_acceptance/walking_skeleton_acceptance.py": {
+        "sha256": "a0a7888b23bb198d7244086787d7cb1dcdc2ef713e9f6604f36f2cc7f359e010",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S12-P04.json": {
+        "sha256": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S13-P04.json": {
+        "sha256": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S17-P04.json": {
+        "sha256": "08e1d389d3b0d80d6c729d9835dc27343018985cd8cc1796a9528b5ed7d6e708",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S18-P04.json": {
+        "sha256": "b196f207508350f8dbdb51efcd880f1fe616880e490af344bd3b2d238c142931",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S19_P01.json": {
+        "sha256": "6cb29ca6234cfe85f1a15fd8ad7b473900aa2cfd565432d348f9dfb29f6102cf",
+        "status": "PASS"
+      },
+      "software_alpha_gate.json": {
+        "sha256": "841aa21fa366438727e6d0555f45fe819ecb0e526876e36f994a9b3dec23373b",
+        "status": "PASS"
+      },
+      "tests/S19/P01_test.py": {
+        "sha256": "40473ef591aeec3f3cefbe2ea1bcd7ba917262ac1fcae79c6f6e918c68f5ec50",
+        "status": "PASS"
+      },
+      "walking_skeleton_evidence.json": {
+        "sha256": "12230a8068e9c6fee8f249fff4b8e71d67898bd8eb94d3ae9272ecfb2ee0bfd0",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S19-P01",
+    "evidence_id": "EVD-S19-P01-ROLLBACK",
+    "external_state_changed": false,
+    "feature_flag_id": "walking_skeleton:s19_p01_local_only",
+    "immutable_evidence_and_replay_preserved": true,
+    "incremental_cash_spent_aud": "0.00",
+    "mail_sent": false,
+    "mode": "DISABLE_S19_P01_LOCAL_FEATURE_RESTORE_SIGNED_S18_P04_EVIDENCE",
+    "order_submission_enabled": false,
+    "previous_signed_artifact": "machine/evidence/EVD-S18-P04.json",
+    "production_state_changed": false,
+    "real_time_soak_waited": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S19",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S19P01-BASELINE-PURSUE_GOAL_PROMPT.txt",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S19P01-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S19P01-BASELINE-machine-facts-canonical_facts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S19P01-BASELINE-machine-facts-parameters.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S19P01-BASELINE-machine-facts-costs.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S19P01-BASELINE-machine-facts-roadmap.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S19P01-BASELINE-machine-facts-requirements.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S19P01-BASELINE-machine-facts-acceptance_contracts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S19P01-BASELINE-machine-facts-task_graph.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S19P01-BASELINE-machine-facts-traceability_matrix.json",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S19P01-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S19P01-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S19P01-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S19P01-TRACEABILITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/roadmap.json",
+        "id": "S19P01-ROADMAP-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "pass_gate": "不使用真实资金即可确定性闭环。",
+          "scope": [
+            "walking_skeleton_evidence.json",
+            "software_alpha_gate.json"
+          ]
+        },
+        "id": "S19P01-TASKPACK-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "outputs": [
+            "machine/evidence/EVD-S19-P01.json",
+            "machine/evidence/EVD-S19-P01_rollback.json",
+            "machine/tests/fixtures/S19_P01.json",
+            "software_alpha_gate.json",
+            "tests/S19/P01_test.py",
+            "walking_skeleton_evidence.json"
+          ],
+          "tasks": [
+            "T-S19-P01-01",
+            "T-S19-P01-02",
+            "T-S19-P01-03"
+          ]
+        },
+        "id": "S19P01-TRACE-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+          "expected": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+          "next": "S12/STAGE_REVIEW_READY_NOT_STARTED"
+        },
+        "id": "S19P01-PREDECESSOR-ACS12P04-CURRENT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e",
+          "expected": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e",
+          "next": "S13/STAGE_REVIEW_READY_NOT_STARTED"
+        },
+        "id": "S19P01-PREDECESSOR-ACS13P04-CURRENT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "08e1d389d3b0d80d6c729d9835dc27343018985cd8cc1796a9528b5ed7d6e708",
+          "expected": "08e1d389d3b0d80d6c729d9835dc27343018985cd8cc1796a9528b5ed7d6e708",
+          "next": "S17/STAGE_REVIEW_READY_NOT_STARTED"
+        },
+        "id": "S19P01-PREDECESSOR-ACS17P04-CURRENT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b196f207508350f8dbdb51efcd880f1fe616880e490af344bd3b2d238c142931",
+          "expected": "b196f207508350f8dbdb51efcd880f1fe616880e490af344bd3b2d238c142931",
+          "next": "S18/STAGE_REVIEW_READY_NOT_STARTED"
+        },
+        "id": "S19P01-PREDECESSOR-ACS18P04-CURRENT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "scenarios": [
+            "GOLDEN_LOCAL_CLOSED_LOOP",
+            "ADVERSE_ONE_IN_TEN_THOUSAND_PRESERVES_NO_ORDER",
+            "EXTERNAL_EXECUTION_ATTEMPT_FAILS_CLOSED",
+            "ACTUAL_ORDER_ATTEMPT_FAILS_CLOSED",
+            "REAL_FUND_MUTATION_ATTEMPT_FAILS_CLOSED",
+            "REAL_MAIL_SEND_ATTEMPT_FAILS_CLOSED",
+            "PRODUCTION_DEPLOY_ATTEMPT_FAILS_CLOSED",
+            "RISK_GATE_RELAXATION_ATTEMPT_FAILS_CLOSED"
+          ]
+        },
+        "id": "S19P01-FIXTURE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "failure_codes": [],
+            "matched": true,
+            "scenario_id": "GOLDEN_LOCAL_CLOSED_LOOP",
+            "status": "PASS"
+          },
+          {
+            "failure_codes": [],
+            "matched": true,
+            "scenario_id": "ADVERSE_ONE_IN_TEN_THOUSAND_PRESERVES_NO_ORDER",
+            "status": "PASS"
+          },
+          {
+            "failure_codes": [
+              "EXTERNAL_RUNTIME_REQUESTED"
+            ],
+            "matched": true,
+            "scenario_id": "EXTERNAL_EXECUTION_ATTEMPT_FAILS_CLOSED",
+            "status": "FAIL_CLOSED"
+          },
+          {
+            "failure_codes": [
+              "ACTUAL_ORDER_REQUESTED"
+            ],
+            "matched": true,
+            "scenario_id": "ACTUAL_ORDER_ATTEMPT_FAILS_CLOSED",
+            "status": "FAIL_CLOSED"
+          },
+          {
+            "failure_codes": [
+              "REAL_FUND_MUTATION_REQUESTED"
+            ],
+            "matched": true,
+            "scenario_id": "REAL_FUND_MUTATION_ATTEMPT_FAILS_CLOSED",
+            "status": "FAIL_CLOSED"
+          },
+          {
+            "failure_codes": [
+              "REAL_MAIL_SEND_REQUESTED"
+            ],
+            "matched": true,
+            "scenario_id": "REAL_MAIL_SEND_ATTEMPT_FAILS_CLOSED",
+            "status": "FAIL_CLOSED"
+          },
+          {
+            "failure_codes": [
+              "PRODUCTION_DEPLOY_REQUESTED"
+            ],
+            "matched": true,
+            "scenario_id": "PRODUCTION_DEPLOY_ATTEMPT_FAILS_CLOSED",
+            "status": "FAIL_CLOSED"
+          },
+          {
+            "failure_codes": [
+              "IMMUTABLE_RISK_GATE_CHANGED_OR_RELAXED"
+            ],
+            "matched": true,
+            "scenario_id": "RISK_GATE_RELAXATION_ATTEMPT_FAILS_CLOSED",
+            "status": "FAIL_CLOSED"
+          }
+        ],
+        "id": "S19P01-FROZEN-SCENARIOS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "scenario_count": 8
+        },
+        "id": "S19P01-DETERMINISTIC-REPLAY-HASH-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "LOCAL_ALPHA_CLOSED_LOOP_NO_ORDER",
+        "id": "S19P01-GOLDEN-CLOSED-LOOP-NO-FUNDS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "alpha": "f3d078e63955a8f8aa0f48d14c4b38db0ec50a7a62351a34df26cfa1a9d2cff7",
+          "walking": "5bd47e7a79e5f51d76b9218177fe115789edf9e4b33442566078faf35c24aa0a"
+        },
+        "id": "S19P01-ARTIFACT-BUILD-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [],
+        "id": "S19P01-CORE-NO-EXTERNAL-RUNTIME-CAPABILITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "alpha": "841aa21fa366438727e6d0555f45fe819ecb0e526876e36f994a9b3dec23373b",
+          "walking": "12230a8068e9c6fee8f249fff4b8e71d67898bd8eb94d3ae9272ecfb2ee0bfd0"
+        },
+        "id": "S19P01-GENERATED-ARTIFACTS-REPLAY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "SOFTWARE_ALPHA_LOCAL_ONLY_NOT_DEPLOYED",
+        "id": "S19P01-SOFTWARE-ALPHA-LOCAL-ONLY",
+        "passed": true
+      },
+      {
+        "detail": "abd_acceptance/__main__.py",
+        "id": "S19P01-CLI-WRITER-AND-VERIFIER-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "approved": "83c37c9575cfdec3de9b83c9750627ee1a729f6b33959002d35a3012e3ffc1fe",
+          "current": "83c37c9575cfdec3de9b83c9750627ee1a729f6b33959002d35a3012e3ffc1fe"
+        },
+        "id": "S19P01-S08-LEGACY-SUCCESSOR-PIN-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 23
+        },
+        "id": "S19P01-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S19/P01/paid_dependency_scan.txt",
+        "id": "S19P01-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/validation_report.json",
+        "id": "S19P01-TASKPACK-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S19P01-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_fund_facts_read_or_written": false,
+          "actual_ledger_read_or_written": false,
+          "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+          "external_network_accessed": false,
+          "gmail_account_or_api_accessed": false,
+          "gmail_message_sent": false,
+          "incremental_cash_spent_aud": "0.00",
+          "market_or_account_runtime_accessed": false,
+          "order_submitted_confirmed_or_retried": false,
+          "ovh_or_cloudflare_runtime_accessed": false,
+          "owner_final_order_only": true,
+          "production_deployed_or_activated": false,
+          "real_time_soak_waited": false,
+          "recommendation_generated_or_enabled": false
+        },
+        "id": "S19P01-EXTERNAL-EFFECT-BOUNDARY-EXACT",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S19-P01",
+    "decision": "S19_P01_WALKING_SKELETON_AND_SOFTWARE_ALPHA_PASS_P02_REQUIRED",
+    "execution_policy": {
+      "external_runtime_access_allowed": false,
+      "full_regression_or_real_time_soak_allowed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "offline_deterministic_only": true,
+      "phase_test_only": true,
+      "production_equivalent_config_schema_only": true
+    },
+    "external_effect_boundary": {
+      "actual_fund_facts_read_or_written": false,
+      "actual_ledger_read_or_written": false,
+      "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+      "external_network_accessed": false,
+      "gmail_account_or_api_accessed": false,
+      "gmail_message_sent": false,
+      "incremental_cash_spent_aud": "0.00",
+      "market_or_account_runtime_accessed": false,
+      "order_submitted_confirmed_or_retried": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "owner_final_order_only": true,
+      "production_deployed_or_activated": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "hashes": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/walking_skeleton.py": "9d7dc1cb171994b2c76c0c9fda1366a23f14eeb7f4e2b534c2d346758b78b508",
+      "machine/evidence/EVD-S12-P04.json": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+      "machine/evidence/EVD-S13-P04.json": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e",
+      "machine/evidence/EVD-S17-P04.json": "08e1d389d3b0d80d6c729d9835dc27343018985cd8cc1796a9528b5ed7d6e708",
+      "machine/evidence/EVD-S18-P04.json": "b196f207508350f8dbdb51efcd880f1fe616880e490af344bd3b2d238c142931",
+      "machine/evidence/S19/P01/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S19/P01/pytest.xml": "ae3a33d759b187ac382e071b6f4b74e8a5679acde21ba9ac6c7c0becc9bf5636",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S19_P01.json": "6cb29ca6234cfe85f1a15fd8ad7b473900aa2cfd565432d348f9dfb29f6102cf",
+      "software_alpha_gate.json": "841aa21fa366438727e6d0555f45fe819ecb0e526876e36f994a9b3dec23373b",
+      "walking_skeleton_evidence.json": "12230a8068e9c6fee8f249fff4b8e71d67898bd8eb94d3ae9272ecfb2ee0bfd0"
+    },
+    "next": "S19/P02_READY_NOT_STARTED",
+    "phase_id": "P01",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "requirement_id": "REQ-S19-P01",
+    "stage_id": "S19",
+    "status": "PASS",
+    "summary": {
+      "checks": 36,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 36
+    }
+  }
+}

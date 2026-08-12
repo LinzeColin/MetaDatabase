@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-OVH-KEYCHAIN-AUTH-SOURCE-DIAGNOSTIC-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_CURRENT_PRODUCTION_OVH_KEYCHAIN_AUTH_SOURCE_DIAGNOSTIC_READ_ONLY",
+  "expected": {
+    "canonical_generic_password_services": [
+      "ABD_OVH_CURRENT_PRODUCTION_AUTH_TARGET",
+      "ABD_OVH_CURRENT_PRODUCTION_API",
+      "OVH_CURRENT_PRODUCTION_AUTH_TARGET",
+      "OVH_CURRENT_PRODUCTION_API"
+    ],
+    "provider_internet_password_hosts": [
+      "api.ovh.com",
+      "eu.api.ovh.com",
+      "sg.api.ovh.com"
+    ],
+    "maximum_keychain_command_timeout_seconds": 3,
+    "provider_api_requests": 0
+  },
+  "source_boundary": {
+    "keychain_metadata_read_in_memory_only": true,
+    "canonical_structured_credential_read_in_memory_only": true,
+    "credential_material_emitted_or_persisted": false,
+    "target_mapping_emitted_or_persisted": false,
+    "browser_login_submitted": false,
+    "provider_api_request_sent": false,
+    "provider_resource_created_deleted_rebuilt_or_restarted": false,
+    "provider_network_security_group_ip_dns_or_cloudflare_changed": false,
+    "host_runtime_or_configuration_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_PRODUCTION_OVH_KEYCHAIN_AUTH_SOURCE_DIAGNOSTIC_ONLY_NOT_PROVIDER_API_QUERY_HOST_RECOVERY_SSH_TRANSPORT_RETRY_CONFIG_SEMANTIC_CHECK_UNIT_INSTALL_CORE_START_CONNECTOR_ACTIVATION_OR_PUBLIC_RELEASE",
+  "rollback": {
+    "action": "NO_KEYCHAIN_PROVIDER_OR_HOST_MUTATION_NO_RUNTIME_ROLLBACK_REQUIRED",
+    "current_candidate_shadow_changed": false,
+    "private_evidence_deleted_automatically": false
+  }
+}

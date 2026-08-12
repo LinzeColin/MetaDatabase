@@ -1,0 +1,110 @@
+{
+  "artifact_id": "ART-S12-P04-02",
+  "contract_id": "AC-S12-P04",
+  "decision": "TARGET_FALSIFICATION_CONTRACT_READY_NO_EMPIRICAL_TARGET_VERIFICATION",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_provider_capacity_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "falsification_gate": {
+    "current_empirical_assessment": {
+      "complete_calendar_months": 0,
+      "evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+      "independent_equivalent_signals": 5,
+      "monthly_return_95_upper_bound": "0.0000",
+      "reason_code": "FALSIFICATION_REQUIRES_6_COMPLETE_MONTHS_AND_1000_SIGNALS",
+      "status": "NOT_EVALUABLE_NO_EMPIRICAL_6_MONTH_DATA",
+      "target_monthly_return": "0.30"
+    },
+    "required_conditions": [
+      "至少6个完整自然月",
+      "至少1000个独立等效信号",
+      "月收益率的95%上界仍低于30%"
+    ],
+    "synthetic_case_assessment": {
+      "complete_calendar_months": 6,
+      "evidence_status": "SYNTHETIC_TEST_ONLY_NOT_EMPIRICAL",
+      "independent_equivalent_signals": 1000,
+      "monthly_return_95_upper_bound": "0.2999",
+      "reason_code": "FALSIFICATION_REQUIRES_6_COMPLETE_MONTHS_AND_1000_SIGNALS",
+      "status": "SYNTHETIC_TEST_ONLY_NOT_EMPIRICAL",
+      "target_monthly_return": "0.30"
+    },
+    "synthetic_case_is_not_empirical": true
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "hard_gate_invariants": {
+    "financial_return_verified_or_guaranteed": false,
+    "order_submission_enabled": false,
+    "recommendation_generated_or_enabled": false,
+    "risk_target_shortfall_may_relax_gate": false,
+    "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION",
+    "synthetic_artifacts_may_substitute_for_actual_return": false,
+    "threshold_or_position_or_evidence_may_be_relaxed": false
+  },
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "phase_id": "P04",
+  "plausibility_gate": {
+    "observed_independent_equivalent_signals": 5,
+    "observed_shadow_days": 0,
+    "reason_code": "PLAUSIBILITY_INSUFFICIENT_90D_OR_1000_SIGNALS",
+    "required_conditions": [
+      "保守月度对数增长中位数 >= ln(1.3)",
+      "月度对数增长第5百分位 > 0",
+      "按来源、平台限额、机会数量和相关性校正后的容量通过"
+    ],
+    "required_independent_equivalent_signals": 1000,
+    "required_shadow_days": 90,
+    "source_capacity_independent_equivalent_signals": 5,
+    "status": "NOT_PLAUSIBLE_INSUFFICIENT_90D_OR_1000_SIGNALS"
+  },
+  "product_version": "0.0.0.1",
+  "requirement_id": "REQ-S12-P04",
+  "schema_version": "1.0.0",
+  "source_evidence": {
+    "capacity_report_sha256": "0dfa4b67eb93f75e101adce94bb534fd8d9fbe7e7f139e5bd60ffa48fd81c11b",
+    "opportunity_cost_content_sha256": "eb16677de35f5178cd87027469f4cbe057e4a8e2ee7258f7d3c7fa82b5f9d230",
+    "opportunity_cost_file_sha256": "d9d5302a55306155b3e4de02dcf58b75b77fba25d59136747f49815ab97fe754",
+    "p01_evidence_sha256": "9462cfab12b28218bf84419d45bf0c4d512aa406d5547de108f0dfbb09d4214a",
+    "p02_evidence_sha256": "dba62cb8d87a6a33fb7e4ea90615a7a892233e908fd48973000afc43576395f0",
+    "p03_evidence_sha256": "10ece6229575dc17dfed64e802d734d1ad199df592393b9525552d9f26c04a58",
+    "sensitivity_grid_content_sha256": "ffe270dbe1abd3c6fa7352572005d11e5c9290291cf1341ec06771c3bea049cd",
+    "sensitivity_grid_file_sha256": "4b9ce49e2d04d2bdac9ca1d26890de8fae828db432315ea6e96aa48b2f3ad7a2"
+  },
+  "stage_id": "S12",
+  "target_acceptance_sha256": "daea99596daad0333987e0cbdd2db1b78615e526e2b741e1ea215fceebdcc994",
+  "target_shortfall_report": {
+    "bankroll_principal_cents": 30000,
+    "best_synthetic_upper_band_cents": 800,
+    "incremental_cash_budget_cents": 0,
+    "status": "TARGET_SHORTFALL_REPORT_ONLY",
+    "synthetic_upper_band_shortfall_cents": 8200,
+    "target_increment_cents": 9000
+  },
+  "verification_gate": {
+    "current_empirical_assessment": {
+      "cashflow_adjusted_geometric_monthly_return": "0.0000",
+      "complete_calendar_months": 0,
+      "evidence_complete": false,
+      "evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+      "reason_code": "VERIFICATION_REQUIRES_12_MONTHS_EXECUTION_EVIDENCE_AND_ZERO_RECONCILIATION_DIFFERENCE",
+      "status": "NOT_VERIFIABLE_NO_ACTUAL_EXECUTION_AND_RECONCILIATION_EVIDENCE",
+      "target_monthly_return": "0.30",
+      "unresolved_reconciliation_differences": 0
+    },
+    "required_conditions": [
+      "至少12个完整自然月",
+      "按现金流调整后的月度几何收益 >= 30%",
+      "证据完整",
+      "未解决对账差异为0"
+    ]
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S17-WHOLE-STAGE-REVIEW",
+  "contract_id": "STAGE-REVIEW-S17",
+  "review_id": "ABD-S17-WHOLE-STAGE-REVIEW",
+  "stage_id": "S17",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-10T00:00:00+10:00",
+  "single_pass_case_count": 10,
+  "minimum_targeted_pytest_cases": 27,
+  "expected_phase_ids": ["P01", "P02", "P03", "P04"],
+  "expected_phase_evidence_sha256": {
+    "P01": "2f8cc9265cea7eec0e28d6ae0608ba6548a75378d28b850e639509465bff2fa9",
+    "P02": "c417d9eb732c24969d11db52bd501438572a57e2b3eeef8791085e746aae2711",
+    "P03": "2f40bd1eed62a0b1ed14347507d497fa54cc63db56c4f31112c631fe48beef97",
+    "P04": "08e1d389d3b0d80d6c729d9835dc27343018985cd8cc1796a9528b5ed7d6e708"
+  },
+  "expected_phase_rollback_sha256": {
+    "P01": "daaf5ca4b5f3b4c5089aa9a75d7ec0837bda8447943a32842ac502a11d401b88",
+    "P02": "8d496ff9548c7b71dd1777c4067e91b7c8148d3337efde160a14b57150fa5a3c",
+    "P03": "73de0722f20bf34a76c461e87a36bd6b8748168d1bd8dbfb8b60d9df8d7364b4",
+    "P04": "6d268bbbec86958f790f78da7ef4194b2a542c4231d8b0ebc8fb5143f25c0622"
+  },
+  "expected_next": "S17/GITHUB_STAGE_UPLOAD_READY",
+  "expected_release_status": "S17_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "expected_findings_summary": {"total": 3, "open": 0, "resolved": 3, "blocked": 0},
+  "cases": [
+    {
+      "case_id": "POSITIVE_EXACT_STAGE",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "load_gate_preserved": true, "idempotency_gate_preserved": true, "chaos_gate_preserved": true, "recovery_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S17_STAGE_REVIEW_VERIFIED_NO_ACTION", "reason_codes": []}
+    },
+    {
+      "case_id": "PHASE_RECEIPT_FAIL",
+      "snapshot": {"phase_receipts_current": false, "taskpack_trace_closed": true, "load_gate_preserved": true, "idempotency_gate_preserved": true, "chaos_gate_preserved": true, "recovery_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S17_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["PHASE_RECEIPTS_NOT_CURRENT"]}
+    },
+    {
+      "case_id": "TASKPACK_TRACE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": false, "load_gate_preserved": true, "idempotency_gate_preserved": true, "chaos_gate_preserved": true, "recovery_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S17_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["TASKPACK_TRACE_NOT_CLOSED"]}
+    },
+    {
+      "case_id": "LOAD_GATE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "load_gate_preserved": false, "idempotency_gate_preserved": true, "chaos_gate_preserved": true, "recovery_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S17_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["LOAD_ENVELOPE_OR_NO_SILENT_DROP_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "IDEMPOTENCY_GATE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "load_gate_preserved": true, "idempotency_gate_preserved": false, "chaos_gate_preserved": true, "recovery_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S17_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["IDEMPOTENCY_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "CHAOS_GATE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "load_gate_preserved": true, "idempotency_gate_preserved": true, "chaos_gate_preserved": false, "recovery_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S17_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["CHAOS_STALE_DATA_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "RECOVERY_GATE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "load_gate_preserved": true, "idempotency_gate_preserved": true, "chaos_gate_preserved": true, "recovery_gate_preserved": false, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S17_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["RECOVERY_RPO_RTO_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "EXTERNAL_BOUNDARY_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "load_gate_preserved": true, "idempotency_gate_preserved": true, "chaos_gate_preserved": true, "recovery_gate_preserved": true, "external_action_boundary_preserved": false, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S17_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["EXTERNAL_ACTION_BOUNDARY_RELAXED"]}
+    },
+    {
+      "case_id": "PORTABILITY_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "load_gate_preserved": true, "idempotency_gate_preserved": true, "chaos_gate_preserved": true, "recovery_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": false, "findings_open": 0},
+      "expected": {"status": "S17_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["EVIDENCE_NOT_PORTABLE"]}
+    },
+    {
+      "case_id": "OPEN_FINDING_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "load_gate_preserved": true, "idempotency_gate_preserved": true, "chaos_gate_preserved": true, "recovery_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 1},
+      "expected": {"status": "S17_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["OPEN_REVIEW_FINDINGS"]}
+    }
+  ]
+}

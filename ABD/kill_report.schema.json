@@ -1,0 +1,66 @@
+{
+  "artifact_id": "ART-S12-P04-03",
+  "contract_id": "AC-S12-P04",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_provider_capacity_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "hard_invariants": {
+    "actual_return_required_for_verification": true,
+    "order_submission_enabled": false,
+    "risk_target_shortfall_may_relax_gate": false,
+    "synthetic_fixture_may_be_marked_empirical": false,
+    "target_shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION"
+  },
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "kill_report_schema_sha256": "f4a9bc8169287bba1124b3362e8d395c412333e48f51c3fe7e20a7f3fb891f41",
+  "phase_id": "P04",
+  "product_version": "0.0.0.1",
+  "reason_codes": [
+    {
+      "code": "TARGET_SHORTFALL_REPORT_ONLY",
+      "meaning": "目标短缺仅报告，不修改阈值、仓位或证据门。",
+      "safe_action": "KEEP_GATES_UNCHANGED_NO_RECOMMENDATION"
+    },
+    {
+      "code": "PLAUSIBILITY_INSUFFICIENT_90D_OR_1000_SIGNALS",
+      "meaning": "90天或1000独立等效信号未满足，不能宣称可行。",
+      "safe_action": "CONTINUE_OBSERVATION_WITHOUT_GATE_RELAXATION"
+    },
+    {
+      "code": "FALSIFICATION_REQUIRES_6_COMPLETE_MONTHS_AND_1000_SIGNALS",
+      "meaning": "未有6个完整自然月和1000独立等效信号的经验数据，不得证伪。",
+      "safe_action": "KEEP_UNVERIFIED"
+    },
+    {
+      "code": "VERIFICATION_REQUIRES_12_MONTHS_EXECUTION_EVIDENCE_AND_ZERO_RECONCILIATION_DIFFERENCE",
+      "meaning": "未有12个月实际执行、完整证据和零未解决对账差异，不得验证。",
+      "safe_action": "KEEP_UNVERIFIED"
+    },
+    {
+      "code": "NO_GATE_RELAXATION_FOR_TARGET_SHORTFALL",
+      "meaning": "目标短缺不能放松风险、证据、来源、阈值或仓位控制。",
+      "safe_action": "NO_RECOMMENDATION"
+    }
+  ],
+  "record_required_fields": [
+    "reason_code",
+    "status",
+    "evidence_status",
+    "observed_at_or_fixed_clock",
+    "source_artifact_sha256",
+    "recommended_action"
+  ],
+  "requirement_id": "REQ-S12-P04",
+  "schema_version": "1.0.0",
+  "stage_id": "S12"
+}

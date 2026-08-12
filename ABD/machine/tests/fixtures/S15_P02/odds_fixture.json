@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S15-P02-ODDS-001",
+  "source_contract_id": "SRC-S15-P02-ODDS",
+  "source_type": "FROZEN_ODDS_SNAPSHOT",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "synthetic_test_only": true,
+  "external_source_accessed": false,
+  "payload": {
+    "event_id": "EVT-S15-P02-0001",
+    "market_id": "MKT-S15-P02-WIN",
+    "selection_id": "SEL-S15-P02-ALPHA",
+    "ticket_id": "TICKET-S15-P02-0001",
+    "quoted_odds": "1.8000",
+    "minimum_odds": "1.8000",
+    "odds_status": "FROZEN_VISIBLE_QUOTE"
+  }
+}

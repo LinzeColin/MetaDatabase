@@ -1,0 +1,86 @@
+{
+  "claim_boundary": {
+    "actual_market_or_odds_observed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "network_accessed": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false,
+    "recommendation_generated": false
+  },
+  "contract_id": "AC-S11-P03",
+  "expected_baseline_actions": [
+    "ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES",
+    "NO_RECOMMENDATION",
+    "ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES",
+    "ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES",
+    "ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES"
+  ],
+  "expected_final_actions": [
+    "ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION",
+    "NO_RECOMMENDATION"
+  ],
+  "expected_provider_score_sha256": "8c2438d4f3fc1ea8cd777290c98956791a6c7174e208c3ce1dddf9ed246dd446",
+  "expected_report_sha256": "44dcc7468b279b69adead8c36fb8068cceccbcf697832840b0b19bf5a5d9d6f0",
+  "expected_routing_fixtures_sha256": "ad03a9d4944ccf1076916c25db2a9068e6bfdc5adafc586de080fa128d53c7b6",
+  "expected_selected_provider_ids": [
+    "SYNTHETIC_PROVIDER_ALPHA",
+    null,
+    "SYNTHETIC_PROVIDER_ALPHA",
+    "SYNTHETIC_PROVIDER_ALPHA",
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    "SYNTHETIC_PROVIDER_ALPHA",
+    "SYNTHETIC_PROVIDER_ALPHA"
+  ],
+  "expected_time_bands": [
+    "more_than_24h",
+    "2h_to_24h",
+    "15m_to_2h",
+    "0_to_15m",
+    "live"
+  ],
+  "expected_unstable_vector_ids": [
+    "R03-QUOTE-AGE-BOUNDARY-ADVERSE-FLIP",
+    "R04-MINIMUM-ODDS-BOUNDARY-ADVERSE-FLIP",
+    "R11-RETURN-POINT-0001-ADVERSE-FLIP",
+    "R12-LIVE-QUOTE-AGE-BOUNDARY-ADVERSE-FLIP"
+  ],
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "fixture_id": "FIX-S11-P03-UNIQUE-SYNTHETIC-PLATFORM-ROUTING",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "required_provider_reason_codes": [
+    "ALL_PLATFORM_GATES_PASS",
+    "SOURCE_CONTRACT_NOT_PASSED",
+    "SETTLEMENT_RULES_UNCLEAR",
+    "ACTION_CHANNEL_UNAVAILABLE",
+    "MINIMUM_STAKE_EXCEEDS_ROUTING_STAKE",
+    "UPSTREAM_P02_CANDIDATE_GATE_NOT_PASSED",
+    "NON_POSITIVE_EXECUTABLE_PLATFORM_SCORE"
+  ],
+  "requirement_id": "REQ-S11-P03",
+  "schema_version": "1.0.0",
+  "stage_id": "S11"
+}

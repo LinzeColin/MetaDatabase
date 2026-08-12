@@ -1,0 +1,819 @@
+{
+  "contract_id": "AC-S14-P04",
+  "decision": "LOCAL_PRE_RELEASE_PROVENANCE_COMPLETE_STAGE_REVIEW_REQUIRED",
+  "decision_sha256": "5a3497a1342cb0581d6c72905ad267ca0aecf137673b94ffcba490289e3a3c8d",
+  "deterministic_replay": {
+    "external_network_accessed": false,
+    "real_time_wait_performed": false,
+    "snapshot_case_count": 13,
+    "source_input_count": 15
+  },
+  "evidence_id": "EVD-S14-P04",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "hashes": {
+    "code": "f62a854c400d6fc4415dc27bcf4032249f41f911e0c6ca515dd46288243f0c9a",
+    "inputs": {
+      "../LICENSE": "aac7f387d4714b270cc91576fdb4e96bb92e14cec27c104c0107bad4ebf6f7df",
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/artifact_provenance.py": "f62a854c400d6fc4415dc27bcf4032249f41f911e0c6ca515dd46288243f0c9a",
+      "artifact_signing.md": "0a704b5027102bc1bff059f95ebc3ca0feb3969e8144802211b1a0c8686aef3a",
+      "component_governance.json": "717241b508c80527ee3d667a350d45d3ee38d3015f4ef6f9094d06bc6daf2066",
+      "machine/evidence/EVD-S14-P03.json": "5d0644b143115c6cdd99eb8774b8f8cbc68a618ba86b82772ff6797e7293708c",
+      "machine/evidence/EVD-S14-P03_rollback.json": "39437e5a68e6cb86bc6a4122bcda763b501be4196d2973a64c0d2a2b2c8d64b2",
+      "machine/evidence/S14/P04/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S14/P04/pytest.xml": "978aa2414d6b73ff1e93ba1ba886ce0153c89ea3f5b06c424bdd07886b7e5ecd",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/dependency_budget.lock": "4904a86b7561456edef9f5e4c9da3e8fa5562a83892f224e58ea3a7511e66b06",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S14_P04.json": "082c164d0c3ed6424acf08cac94e8df5da49b594a0d57b280c40a1049da996e5",
+      "patch_sla.json": "efd03538bd1d8566db07070a9f003aa048f30e1cecb09dc9588318f51d094859",
+      "provenance.json": "ea15398557448c8631962f8044ae71cb45e96e1eac7b3ea829038a42e2ee47d9",
+      "pyproject.toml": "ed30542952d445085e1f7724872bda1b697898f90576bf9bd65fd3191719bb72",
+      "sbom.json": "c0648815a4453ed5b203d7c3778f1306141b972251c8a1c511c6ff6a2abb961e",
+      "security_rollback.md": "25a109c3ab719fceec877c5957058b017b4d7f96743e16e864e733370cb7a396",
+      "tests/S14/P04_test.py": "7cc23082133d66bb591b9c2cd4c53b6aaa71bace41ef684d1f863cbd0c7f9913",
+      "uv.lock": "982a3044aabd62584d76cddcbd9dfcfe761482a5e60248ad5e299c18fd2ad9cf"
+    },
+    "local_attestation": "faf8257505f58a79e738ab373a153cc739f04aa493d5c7538611ebb150fc8e30",
+    "rollback_evidence": "0b3bfaa1bccf0dccb77afea4f6c44b3eab670d5e0af5d07bc5a1ff73aaef68b5"
+  },
+  "local_attestation_boundary": {
+    "actual_release_signature_created": false,
+    "keyed_or_identity_signature_created": false,
+    "production_approval_evidence_present": false
+  },
+  "next": "S14/STAGE_REVIEW_READY_NOT_STARTED",
+  "phase_id": "P04",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S14_P04_LOCAL_EVIDENCE_ONLY_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S14-P04",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S14-P04_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S14",
+  "status": "PASS",
+  "structured_failure_evidence": {
+    "fixture": "machine/tests/fixtures/S14_P04.json",
+    "format": "DETERMINISTIC_JSON_FIXTURE_AND_JUNIT_REPORT",
+    "rejected_case_ids": [
+      "P03_PREDECESSOR_FAIL",
+      "PROVENANCE_FAIL",
+      "SIGNING_POLICY_FAIL",
+      "ROLLBACK_POLICY_FAIL",
+      "SOURCE_TRACE_FAIL",
+      "DEPENDENCY_TRACE_FAIL",
+      "BUILD_ENVIRONMENT_FAIL",
+      "ATTESTATION_FAIL",
+      "EXTERNAL_BOUNDARY_FAIL",
+      "POINT_0001_COVERAGE_LOW",
+      "POINT_0001_COVERAGE_HIGH",
+      "FOREIGN_ODDS_INPUT_FAIL"
+    ]
+  },
+  "validation": {
+    "analysis": {
+      "build_environment_trace_current": true,
+      "dependency_trace_current": true,
+      "external_account_or_runtime_used": false,
+      "external_network_used": false,
+      "local_attestation_is_keyed_signature": false,
+      "production_artifact_or_host_verified": false,
+      "source_input_count": 15,
+      "source_trace_current": true
+    },
+    "checks": [
+      {
+        "detail": {
+          "index": "PASS",
+          "predecessor_verifier": "PASS"
+        },
+        "id": "S14P04-P03-SIGNED-DEPENDENCY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S14P04-REQUIREMENTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S14P04-CONTRACTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S14P04-TASK-GRAPH-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S14P04-TRACEABILITY-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/evidence_index.jsonl",
+        "id": "S14P04-EVIDENCE-INDEX-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "index_status": "PASS",
+          "task_ids": [
+            "T-S14-P04-01",
+            "T-S14-P04-02",
+            "T-S14-P04-03"
+          ]
+        },
+        "id": "S14P04-REQUIREMENT-ACCEPTANCE-TASK-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "provenance.json",
+        "id": "S14P04-PROVENANCE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "artifact_signing.md",
+        "id": "S14P04-SIGNING-POLICY-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "security_rollback.md",
+        "id": "S14P04-ROLLBACK-POLICY-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S14_P04.json",
+        "id": "S14P04-FIXTURE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_document_count": 2,
+          "attestation_is_keyed_signature": false,
+          "dependency_lock_count": 3,
+          "source_input_count": 15
+        },
+        "id": "S14P04-PROVENANCE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_release_signature_created": false,
+          "sha256": "0a704b5027102bc1bff059f95ebc3ca0feb3969e8144802211b1a0c8686aef3a"
+        },
+        "id": "S14P04-SIGNING-POLICY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_mutation_performed": false,
+          "sha256": "25a109c3ab719fceec877c5957058b017b4d7f96743e16e864e733370cb7a396"
+        },
+        "id": "S14P04-ROLLBACK-POLICY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "AC-S14-P04",
+          "expected_decision": "LOCAL_PRE_RELEASE_PROVENANCE_COMPLETE_STAGE_REVIEW_REQUIRED",
+          "expected_next": "S14/STAGE_REVIEW_READY_NOT_STARTED",
+          "fixed_clock": "2026-08-09T00:00:00+10:00",
+          "fixture_id": "FIX-S14-P04-ARTIFACT-PROVENANCE",
+          "minimum_targeted_pytest_cases": 37,
+          "phase_id": "P04",
+          "product_version": "0.0.0.1",
+          "requirement_id": "REQ-S14-P04",
+          "schema_version": "1.0.0",
+          "snapshot_case_count": 13,
+          "snapshot_cases": [
+            {
+              "case_id": "PASS",
+              "expected": {
+                "reason_codes": [],
+                "status": "S14P04_PROVENANCE_VERIFIED_NO_ACTION"
+              },
+              "snapshot": {
+                "attestation_valid": true,
+                "build_environment_trace_closed": true,
+                "coverage_score": "1.0000",
+                "dependency_trace_closed": true,
+                "external_effect_boundary_preserved": true,
+                "foreign_odds_input_present": false,
+                "p03_receipt_current": true,
+                "provenance_closed": true,
+                "rollback_policy_closed": true,
+                "signing_policy_closed": true,
+                "source_trace_closed": true
+              }
+            },
+            {
+              "case_id": "P03_PREDECESSOR_FAIL",
+              "expected": {
+                "reason_codes": [
+                  "P03_RECEIPT_NOT_CURRENT"
+                ],
+                "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+              },
+              "snapshot": {
+                "attestation_valid": true,
+                "build_environment_trace_closed": true,
+                "coverage_score": "1.0000",
+                "dependency_trace_closed": true,
+                "external_effect_boundary_preserved": true,
+                "foreign_odds_input_present": false,
+                "p03_receipt_current": false,
+                "provenance_closed": true,
+                "rollback_policy_closed": true,
+                "signing_policy_closed": true,
+                "source_trace_closed": true
+              }
+            },
+            {
+              "case_id": "PROVENANCE_FAIL",
+              "expected": {
+                "reason_codes": [
+                  "PROVENANCE_NOT_CLOSED"
+                ],
+                "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+              },
+              "snapshot": {
+                "attestation_valid": true,
+                "build_environment_trace_closed": true,
+                "coverage_score": "1.0000",
+                "dependency_trace_closed": true,
+                "external_effect_boundary_preserved": true,
+                "foreign_odds_input_present": false,
+                "p03_receipt_current": true,
+                "provenance_closed": false,
+                "rollback_policy_closed": true,
+                "signing_policy_closed": true,
+                "source_trace_closed": true
+              }
+            },
+            {
+              "case_id": "SIGNING_POLICY_FAIL",
+              "expected": {
+                "reason_codes": [
+                  "SIGNING_POLICY_NOT_CLOSED"
+                ],
+                "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+              },
+              "snapshot": {
+                "attestation_valid": true,
+                "build_environment_trace_closed": true,
+                "coverage_score": "1.0000",
+                "dependency_trace_closed": true,
+                "external_effect_boundary_preserved": true,
+                "foreign_odds_input_present": false,
+                "p03_receipt_current": true,
+                "provenance_closed": true,
+                "rollback_policy_closed": true,
+                "signing_policy_closed": false,
+                "source_trace_closed": true
+              }
+            },
+            {
+              "case_id": "ROLLBACK_POLICY_FAIL",
+              "expected": {
+                "reason_codes": [
+                  "ROLLBACK_POLICY_NOT_CLOSED"
+                ],
+                "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+              },
+              "snapshot": {
+                "attestation_valid": true,
+                "build_environment_trace_closed": true,
+                "coverage_score": "1.0000",
+                "dependency_trace_closed": true,
+                "external_effect_boundary_preserved": true,
+                "foreign_odds_input_present": false,
+                "p03_receipt_current": true,
+                "provenance_closed": true,
+                "rollback_policy_closed": false,
+                "signing_policy_closed": true,
+                "source_trace_closed": true
+              }
+            },
+            {
+              "case_id": "SOURCE_TRACE_FAIL",
+              "expected": {
+                "reason_codes": [
+                  "SOURCE_TRACE_NOT_CLOSED"
+                ],
+                "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+              },
+              "snapshot": {
+                "attestation_valid": true,
+                "build_environment_trace_closed": true,
+                "coverage_score": "1.0000",
+                "dependency_trace_closed": true,
+                "external_effect_boundary_preserved": true,
+                "foreign_odds_input_present": false,
+                "p03_receipt_current": true,
+                "provenance_closed": true,
+                "rollback_policy_closed": true,
+                "signing_policy_closed": true,
+                "source_trace_closed": false
+              }
+            },
+            {
+              "case_id": "DEPENDENCY_TRACE_FAIL",
+              "expected": {
+                "reason_codes": [
+                  "DEPENDENCY_TRACE_NOT_CLOSED"
+                ],
+                "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+              },
+              "snapshot": {
+                "attestation_valid": true,
+                "build_environment_trace_closed": true,
+                "coverage_score": "1.0000",
+                "dependency_trace_closed": false,
+                "external_effect_boundary_preserved": true,
+                "foreign_odds_input_present": false,
+                "p03_receipt_current": true,
+                "provenance_closed": true,
+                "rollback_policy_closed": true,
+                "signing_policy_closed": true,
+                "source_trace_closed": true
+              }
+            },
+            {
+              "case_id": "BUILD_ENVIRONMENT_FAIL",
+              "expected": {
+                "reason_codes": [
+                  "BUILD_ENVIRONMENT_TRACE_NOT_CLOSED"
+                ],
+                "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+              },
+              "snapshot": {
+                "attestation_valid": true,
+                "build_environment_trace_closed": false,
+                "coverage_score": "1.0000",
+                "dependency_trace_closed": true,
+                "external_effect_boundary_preserved": true,
+                "foreign_odds_input_present": false,
+                "p03_receipt_current": true,
+                "provenance_closed": true,
+                "rollback_policy_closed": true,
+                "signing_policy_closed": true,
+                "source_trace_closed": true
+              }
+            },
+            {
+              "case_id": "ATTESTATION_FAIL",
+              "expected": {
+                "reason_codes": [
+                  "LOCAL_ATTESTATION_INVALID"
+                ],
+                "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+              },
+              "snapshot": {
+                "attestation_valid": false,
+                "build_environment_trace_closed": true,
+                "coverage_score": "1.0000",
+                "dependency_trace_closed": true,
+                "external_effect_boundary_preserved": true,
+                "foreign_odds_input_present": false,
+                "p03_receipt_current": true,
+                "provenance_closed": true,
+                "rollback_policy_closed": true,
+                "signing_policy_closed": true,
+                "source_trace_closed": true
+              }
+            },
+            {
+              "case_id": "EXTERNAL_BOUNDARY_FAIL",
+              "expected": {
+                "reason_codes": [
+                  "EXTERNAL_ACTION_BOUNDARY_RELAXED"
+                ],
+                "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+              },
+              "snapshot": {
+                "attestation_valid": true,
+                "build_environment_trace_closed": true,
+                "coverage_score": "1.0000",
+                "dependency_trace_closed": true,
+                "external_effect_boundary_preserved": false,
+                "foreign_odds_input_present": false,
+                "p03_receipt_current": true,
+                "provenance_closed": true,
+                "rollback_policy_closed": true,
+                "signing_policy_closed": true,
+                "source_trace_closed": true
+              }
+            },
+            {
+              "case_id": "POINT_0001_COVERAGE_LOW",
+              "expected": {
+                "reason_codes": [
+                  "PROVENANCE_COVERAGE_NOT_EXACT"
+                ],
+                "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+              },
+              "snapshot": {
+                "attestation_valid": true,
+                "build_environment_trace_closed": true,
+                "coverage_score": "0.9999",
+                "dependency_trace_closed": true,
+                "external_effect_boundary_preserved": true,
+                "foreign_odds_input_present": false,
+                "p03_receipt_current": true,
+                "provenance_closed": true,
+                "rollback_policy_closed": true,
+                "signing_policy_closed": true,
+                "source_trace_closed": true
+              }
+            },
+            {
+              "case_id": "POINT_0001_COVERAGE_HIGH",
+              "expected": {
+                "reason_codes": [
+                  "PROVENANCE_COVERAGE_NOT_EXACT"
+                ],
+                "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+              },
+              "snapshot": {
+                "attestation_valid": true,
+                "build_environment_trace_closed": true,
+                "coverage_score": "1.0001",
+                "dependency_trace_closed": true,
+                "external_effect_boundary_preserved": true,
+                "foreign_odds_input_present": false,
+                "p03_receipt_current": true,
+                "provenance_closed": true,
+                "rollback_policy_closed": true,
+                "signing_policy_closed": true,
+                "source_trace_closed": true
+              }
+            },
+            {
+              "case_id": "FOREIGN_ODDS_INPUT_FAIL",
+              "expected": {
+                "reason_codes": [
+                  "FOREIGN_ODDS_INPUT_REJECTED"
+                ],
+                "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+              },
+              "snapshot": {
+                "attestation_valid": true,
+                "build_environment_trace_closed": true,
+                "coverage_score": "1.0000",
+                "dependency_trace_closed": true,
+                "external_effect_boundary_preserved": true,
+                "foreign_odds_input_present": true,
+                "p03_receipt_current": true,
+                "provenance_closed": true,
+                "rollback_policy_closed": true,
+                "signing_policy_closed": true,
+                "source_trace_closed": true
+              }
+            }
+          ],
+          "stage_id": "S14"
+        },
+        "id": "S14P04-FIXTURE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "278c010f3942381045370e204f57f01b677ae508ddec4721a3cceea5ece207b8",
+          "real_time_soak_waited": false,
+          "reason_codes": [],
+          "recommendation_generated": false,
+          "release_enabled": false,
+          "status": "S14P04_PROVENANCE_VERIFIED_NO_ACTION"
+        },
+        "id": "S14P04-ACTUAL-PROVENANCE-SNAPSHOT-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "278c010f3942381045370e204f57f01b677ae508ddec4721a3cceea5ece207b8",
+          "real_time_soak_waited": false,
+          "reason_codes": [],
+          "recommendation_generated": false,
+          "release_enabled": false,
+          "status": "S14P04_PROVENANCE_VERIFIED_NO_ACTION"
+        },
+        "id": "S14P04-CASE-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "ce8a231b1d657f1eb58ffb4c8d7a14a1b417562d4276c62335eca698dd62f3ed",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "P03_RECEIPT_NOT_CURRENT"
+          ],
+          "recommendation_generated": false,
+          "release_enabled": false,
+          "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P04-CASE-P03_PREDECESSOR_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "7c49dac72b0d689c366661111b58b03f3d07dd6f47a5edbd06c7a346329e9c55",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "PROVENANCE_NOT_CLOSED"
+          ],
+          "recommendation_generated": false,
+          "release_enabled": false,
+          "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P04-CASE-PROVENANCE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "5b96feedab0b378935e151bb87fb4fa8afb8cd84b73d292156bda117cb78aeea",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "SIGNING_POLICY_NOT_CLOSED"
+          ],
+          "recommendation_generated": false,
+          "release_enabled": false,
+          "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P04-CASE-SIGNING_POLICY_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "713de27af2f2a574dd0f1ee32205bd11175df8fd30ed99bd2349d8a0898f04e6",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "ROLLBACK_POLICY_NOT_CLOSED"
+          ],
+          "recommendation_generated": false,
+          "release_enabled": false,
+          "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P04-CASE-ROLLBACK_POLICY_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "206ee9fc127bde72b7fa90e2698ed5cf4c9f21c34f82f67fa4fe44794e69b974",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "SOURCE_TRACE_NOT_CLOSED"
+          ],
+          "recommendation_generated": false,
+          "release_enabled": false,
+          "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P04-CASE-SOURCE_TRACE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "abb5072d173fc50933a008c986edbe32a2628bca1fd36266580020f546998cea",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "DEPENDENCY_TRACE_NOT_CLOSED"
+          ],
+          "recommendation_generated": false,
+          "release_enabled": false,
+          "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P04-CASE-DEPENDENCY_TRACE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "0a5d61266234917d1dbe7083646d8ba730d4b7f023439d3c001b6b283178fc22",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "BUILD_ENVIRONMENT_TRACE_NOT_CLOSED"
+          ],
+          "recommendation_generated": false,
+          "release_enabled": false,
+          "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P04-CASE-BUILD_ENVIRONMENT_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "cb4ec2b536321874e9f655721b431bcf597981c322d7bcec8624ca40c65fb404",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "LOCAL_ATTESTATION_INVALID"
+          ],
+          "recommendation_generated": false,
+          "release_enabled": false,
+          "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P04-CASE-ATTESTATION_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "1e5fd27355fabd2c079fd89f1f53bbdc108265be2e3f6007ba25f6a63c83123e",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "EXTERNAL_ACTION_BOUNDARY_RELAXED"
+          ],
+          "recommendation_generated": false,
+          "release_enabled": false,
+          "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P04-CASE-EXTERNAL_BOUNDARY_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "6748aea935387993198b0a50aa206f5e7b20526ce2e199f725f8e7543bf98bc5",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "PROVENANCE_COVERAGE_NOT_EXACT"
+          ],
+          "recommendation_generated": false,
+          "release_enabled": false,
+          "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P04-CASE-POINT_0001_COVERAGE_LOW",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "6748aea935387993198b0a50aa206f5e7b20526ce2e199f725f8e7543bf98bc5",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "PROVENANCE_COVERAGE_NOT_EXACT"
+          ],
+          "recommendation_generated": false,
+          "release_enabled": false,
+          "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P04-CASE-POINT_0001_COVERAGE_HIGH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "1c8a112c1adb7eff8ac0f3e8bf9f37bcf45bbb1a98a64b7e0f0f94e6b831ad7d",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "FOREIGN_ODDS_INPUT_REJECTED"
+          ],
+          "recommendation_generated": false,
+          "release_enabled": false,
+          "status": "S14P04_PROVENANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P04-CASE-FOREIGN_ODDS_INPUT_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 42
+        },
+        "id": "S14P04-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S14/P04/paid_dependency_scan.txt",
+        "id": "S14P04-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S14P04-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S14-P04",
+    "decision": "LOCAL_PRE_RELEASE_PROVENANCE_COMPLETE_STAGE_REVIEW_REQUIRED",
+    "hashes": {
+      "../LICENSE": "aac7f387d4714b270cc91576fdb4e96bb92e14cec27c104c0107bad4ebf6f7df",
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/artifact_provenance.py": "f62a854c400d6fc4415dc27bcf4032249f41f911e0c6ca515dd46288243f0c9a",
+      "artifact_signing.md": "0a704b5027102bc1bff059f95ebc3ca0feb3969e8144802211b1a0c8686aef3a",
+      "component_governance.json": "717241b508c80527ee3d667a350d45d3ee38d3015f4ef6f9094d06bc6daf2066",
+      "machine/evidence/EVD-S14-P03.json": "5d0644b143115c6cdd99eb8774b8f8cbc68a618ba86b82772ff6797e7293708c",
+      "machine/evidence/EVD-S14-P03_rollback.json": "39437e5a68e6cb86bc6a4122bcda763b501be4196d2973a64c0d2a2b2c8d64b2",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S14_P04.json": "082c164d0c3ed6424acf08cac94e8df5da49b594a0d57b280c40a1049da996e5",
+      "patch_sla.json": "efd03538bd1d8566db07070a9f003aa048f30e1cecb09dc9588318f51d094859",
+      "sbom.json": "c0648815a4453ed5b203d7c3778f1306141b972251c8a1c511c6ff6a2abb961e",
+      "security_rollback.md": "25a109c3ab719fceec877c5957058b017b4d7f96743e16e864e733370cb7a396",
+      "tests/S14/P04_test.py": "7cc23082133d66bb591b9c2cd4c53b6aaa71bace41ef684d1f863cbd0c7f9913"
+    },
+    "next": "S14/STAGE_REVIEW_READY_NOT_STARTED",
+    "phase_id": "P04",
+    "requirement_id": "REQ-S14-P04",
+    "snapshot": {
+      "external_network_used": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submission_enabled": false,
+      "output_sha256": "278c010f3942381045370e204f57f01b677ae508ddec4721a3cceea5ece207b8",
+      "real_time_soak_waited": false,
+      "reason_codes": [],
+      "recommendation_generated": false,
+      "release_enabled": false,
+      "status": "S14P04_PROVENANCE_VERIFIED_NO_ACTION"
+    },
+    "stage_id": "S14",
+    "status": "PASS",
+    "summary": {
+      "checks": 32,
+      "failed": 0,
+      "failed_ids": [],
+      "passed": 32
+    }
+  }
+}

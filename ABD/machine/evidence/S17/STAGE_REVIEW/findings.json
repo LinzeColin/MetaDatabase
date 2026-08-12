@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S17-WHOLE-STAGE-REVIEW",
+  "stage_id": "S17",
+  "fixed_clock": "2026-08-10T00:00:00+10:00",
+  "findings": [
+    {
+      "id": "S17-REVIEW-001",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_STAGE_REVIEW",
+      "observation": "冻结 10× 全历史重放可能被误读为真实 VPS 容量、吞吐或 soak 证明。",
+      "resolution": "P01 将资源门固定为本地计数守恒制品，明确未观察真实 VPS，并在资源不可用或超限时保持运行时部署阻断。",
+      "resolution_evidence": ["load_profile.json", "capacity_evidence.json", "machine/evidence/EVD-S17-P01.json"],
+      "external_state_changed": false,
+      "real_time_soak_waited": false
+    },
+    {
+      "id": "S17-REVIEW-002",
+      "severity": "CRITICAL",
+      "status": "RESOLVED_IN_STAGE_REVIEW",
+      "observation": "逻辑并发和逻辑故障控制不得产生重复建议、真实账本事件、陈旧数据使用或订单动作。",
+      "resolution": "P02 将重复建议和账本事件门固定为零；P03 对八类错误拒绝陈旧数据并自动降级；两者均保持 NO_RECOMMENDATION_NO_ORDER。",
+      "resolution_evidence": ["idempotency_report.json", "chaos_scenarios.json", "machine/evidence/EVD-S17-P02.json", "machine/evidence/EVD-S17-P03.json"],
+      "external_state_changed": false,
+      "real_time_soak_waited": false
+    },
+    {
+      "id": "S17-REVIEW-003",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_STAGE_REVIEW",
+      "observation": "逻辑 RPO/RTO 门可能被误读为已执行的备份恢复或建议服务恢复。",
+      "resolution": "P04 固定 60 秒/900 秒逻辑门及 61 秒/901 秒失败关闭向量，演练文档明确不重启、不读写账本、不恢复备份、不删除票据。",
+      "resolution_evidence": ["disaster_drill.md", "recovery_report.json", "machine/evidence/EVD-S17-P04.json"],
+      "external_state_changed": false,
+      "real_time_soak_waited": false
+    }
+  ],
+  "summary": {"total": 3, "open": 0, "resolved": 3, "blocked": 0},
+  "explicit_limitations": [
+    "S17 只验证冻结本地负载、逻辑并发、逻辑故障与逻辑恢复控制及其已签名证据。",
+    "S17 复审通过不构成真实 OVH/VPS 容量、数据库恢复、Cloudflare、TAB/Gmail、市场、账户、部署或实际收益证明。",
+    "既有 S07/S08 连续性回放的已知独立限制不在本次 S17 复审范围内，且未被本次结果覆盖或消除。",
+    "A$300×1.3^n 的30%月度目标仍为 UNVERIFIED_NOT_GUARANTEED。"
+  ],
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "github_upload_performed": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

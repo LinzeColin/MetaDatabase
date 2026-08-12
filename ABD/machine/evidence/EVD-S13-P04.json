@@ -1,0 +1,600 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S13/P04_test.py --junitxml=machine/evidence/S13/P04/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S13/P04/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S13/P04/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S13-P04 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S13-P04",
+  "decision": "SIX_COMPLETE_SYNTHETIC_JOURNEYS_AND_LOCAL_RECOVERY_READY_STAGE_REVIEW_REQUIRED",
+  "decision_sha256": "ecc7bb82f14c24abb6a235657d1065f2138411bb14527753dbe1b2b6182fe0c3",
+  "deterministic_replay": {
+    "adverse_scenario_count": 1,
+    "journey_count": 6,
+    "real_time_wait_performed": false
+  },
+  "evidence_id": "EVD-S13-P04",
+  "external_effect_boundary": {
+    "actual_market_or_odds_observed": false,
+    "actual_order_execution_claimed": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_account_accessed": false,
+    "real_time_soak_waited": false,
+    "system_order_confirmation_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "hashes": {
+    "code": "76b8a78f81c8c861ec0a20d499c6408b12a02934481f738b2ddcdd4dbad1b31a",
+    "inputs": {
+      "abd_acceptance/journey_paths.py": "76b8a78f81c8c861ec0a20d499c6408b12a02934481f738b2ddcdd4dbad1b31a",
+      "journey_tests.json": "2f99eb4a558c9e5959c25ea4fcc4b30af0247db506fab4ef74b638b932575030",
+      "machine/evidence/EVD-S13-P03.json": "7ebe8b2b59bce33b34e1c7bab01bf96a7d2225414725bddebada481443fc197a",
+      "machine/evidence/S13/P04/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S13/P04/pytest.xml": "9c8dabf783b06d81a7cc6003f416f04dba2059e1662985e86d5dbf731a031a52",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S13_P04.json": "23fae33cbd088c9e63894952ec84b49e195bf14f02a10a576d80b11380021500",
+      "recovery_actions.json": "b303c0ab00a151f016170ca4e0d6f7018d21e30980332c8eb1f8b25cfa5319db",
+      "tests/S13/P04_test.py": "4f20aff3bd1d3c846a5880ae828722f0a3a81c0784513c8094695456c0941c2a"
+    },
+    "rollback_evidence": "8cea40846c7d60b5ee8adaecee741e97be17a46e6045728e71cfb08131dc0856"
+  },
+  "next": "S13/STAGE_REVIEW_READY_NOT_STARTED",
+  "phase_id": "P04",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S13_P04_LOCAL_EVIDENCE_ONLY_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S13-P04",
+  "rollback": {
+    "actual_return_claimed": false,
+    "artifacts": {
+      "abd_acceptance/journey_paths.py": {
+        "sha256": "76b8a78f81c8c861ec0a20d499c6408b12a02934481f738b2ddcdd4dbad1b31a",
+        "status": "PASS"
+      },
+      "journey_tests.json": {
+        "sha256": "2f99eb4a558c9e5959c25ea4fcc4b30af0247db506fab4ef74b638b932575030",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S13_P04.json": {
+        "sha256": "23fae33cbd088c9e63894952ec84b49e195bf14f02a10a576d80b11380021500",
+        "status": "PASS"
+      },
+      "recovery_actions.json": {
+        "sha256": "b303c0ab00a151f016170ca4e0d6f7018d21e30980332c8eb1f8b25cfa5319db",
+        "status": "PASS"
+      },
+      "tests/S13/P04_test.py": {
+        "sha256": "4f20aff3bd1d3c846a5880ae828722f0a3a81c0784513c8094695456c0941c2a",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S13-P04",
+    "evidence_id": "EVD-S13-P04-ROLLBACK",
+    "external_state_changed": false,
+    "feature_flag_id": "journey:s13-p04-six-complete-paths",
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_S13_P04_JOURNEY_CATALOG_RESTORE_SIGNED_S13_P03_KEEP_ALL_EVIDENCE",
+    "order_submission_enabled": false,
+    "production_state_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S13",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S13P04-REQUIREMENTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S13P04-CONTRACTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S13P04-TASK-GRAPH-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S13P04-TRACEABILITY-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "scope": [
+            "journey_tests.json",
+            "recovery_actions.json"
+          ],
+          "target": "每类路径有输入、状态、输出、证据和恢复。"
+        },
+        "id": "S13P04-TASKPACK-SCOPE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "tasks": [
+            "T-S13-P04-01",
+            "T-S13-P04-02",
+            "T-S13-P04-03"
+          ],
+          "trace": {
+            "acceptance_criteria_id": "AC-S13-P04",
+            "artifact_ids": [
+              "ART-S13-P04-01",
+              "ART-S13-P04-02"
+            ],
+            "evidence_id": "EVD-S13-P04",
+            "phase_id": "P04",
+            "requirement_id": "REQ-S13-P04",
+            "stage_id": "S13",
+            "task_ids": [
+              "T-S13-P04-01",
+              "T-S13-P04-02",
+              "T-S13-P04-03"
+            ],
+            "test_ids": [
+              "TEST-S13-P04",
+              "TEST-S13-P04-BOUNDARY",
+              "TEST-S13-P04-REPLAY"
+            ]
+          }
+        },
+        "id": "S13P04-TASKPACK-TRACE-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S13_P04.json",
+        "id": "S13P04-FIXTURE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "journey_tests.json",
+        "id": "S13P04-JOURNEY-CATALOG-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "recovery_actions.json",
+        "id": "S13P04-RECOVERY-CATALOG-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "fields": [
+            "claim_boundary",
+            "expected_journey_types",
+            "expected_next",
+            "expected_preflight_minimum",
+            "expected_recovery_action_ids",
+            "expected_replay_sha256",
+            "expected_terminal_statuses",
+            "expected_transition_counts",
+            "fixed_clock",
+            "fixture_id",
+            "parameters_sha256",
+            "predecessor",
+            "schema_version"
+          ],
+          "fixture_id": "FIX-S13-P04-SIX-COMPLETE-JOURNEYS"
+        },
+        "id": "S13P04-FIXTURE-CONTRACT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "fixture": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S13P04-PARAMETERS-HASH-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "actual_return_claimed": false,
+            "automatic_order_submitted": false,
+            "evidence_refs": [
+              "EVD-S13-P01",
+              "EVD-S13-P02",
+              "EVD-S13-P03",
+              "JOURNEY-S13-P04-WALKING-SKELETON"
+            ],
+            "external_state_changed": false,
+            "input_id": "INPUT-S13-P04-WS",
+            "journey_id": "S13-P04-WALKING-SKELETON",
+            "journey_type": "WALKING_SKELETON",
+            "recovery_action_id": "RECOVER-S13-P04-WALKING-SKELETON",
+            "recovery_terminal_status": "RECOVERY_READY_NO_NEW_RECOMMENDATION",
+            "synthetic_test_only": true,
+            "terminal_status": "ADVICE_ONLY_EVIDENCE_RECORDED_NO_ACTUAL_RETURN",
+            "transition_count": 4,
+            "user_action_zh": "仅由用户自行完成或放弃最终下单；系统不确认、不提交、不重试。"
+          },
+          {
+            "actual_return_claimed": false,
+            "automatic_order_submitted": false,
+            "evidence_refs": [
+              "EVD-S13-P01",
+              "EVD-S13-P02",
+              "EVD-S13-P03",
+              "JOURNEY-S13-P04-GOLDEN"
+            ],
+            "external_state_changed": false,
+            "input_id": "INPUT-S13-P04-GOLDEN",
+            "journey_id": "S13-P04-GOLDEN",
+            "journey_type": "GOLDEN",
+            "recovery_action_id": "RECOVER-S13-P04-GOLDEN",
+            "recovery_terminal_status": "RECOVERY_READY_REAL_RETURN_STILL_UNCLAIMED",
+            "synthetic_test_only": true,
+            "terminal_status": "SYNTHETIC_SETTLEMENT_RECORDED_NOT_ACTUAL_RETURN",
+            "transition_count": 4,
+            "user_action_zh": "用户仍自行完成或放弃最终下单；明确确认也不等于账户对账或真实收益。"
+          },
+          {
+            "actual_return_claimed": false,
+            "automatic_order_submitted": false,
+            "evidence_refs": [
+              "EVD-S13-P01",
+              "EVD-S13-P02",
+              "EVD-S13-P03",
+              "JOURNEY-S13-P04-BLACK"
+            ],
+            "external_state_changed": false,
+            "input_id": "INPUT-S13-P04-BLACK",
+            "journey_id": "S13-P04-BLACK",
+            "journey_type": "BLACK",
+            "recovery_action_id": "RECOVER-S13-P04-BLACK",
+            "recovery_terminal_status": "NO_RECOMMENDATION_UNTIL_NEW_GATES_PASS",
+            "synthetic_test_only": true,
+            "terminal_status": "RED_REVOKE_DO_NOT_ORDER",
+            "transition_count": 3,
+            "user_action_zh": "不下单；等待新的、完整通过门的建议。"
+          },
+          {
+            "actual_return_claimed": false,
+            "automatic_order_submitted": false,
+            "evidence_refs": [
+              "EVD-S13-P01",
+              "EVD-S13-P02",
+              "EVD-S13-P03",
+              "JOURNEY-S13-P04-ABUSE"
+            ],
+            "external_state_changed": false,
+            "input_id": "INPUT-S13-P04-ABUSE",
+            "journey_id": "S13-P04-ABUSE",
+            "journey_type": "ABUSE",
+            "recovery_action_id": "RECOVER-S13-P04-ABUSE",
+            "recovery_terminal_status": "QUARANTINED_NO_RECOMMENDATION",
+            "synthetic_test_only": true,
+            "terminal_status": "QUARANTINED_NO_ACTION_NO_ACTUAL_CLAIM",
+            "transition_count": 2,
+            "user_action_zh": "无需操作；不可信内容被隔离且不会改变机器事实、权限或资金结论。"
+          },
+          {
+            "actual_return_claimed": false,
+            "automatic_order_submitted": false,
+            "evidence_refs": [
+              "EVD-S13-P01",
+              "EVD-S13-P02",
+              "EVD-S13-P03",
+              "JOURNEY-S13-P04-DEGRADED"
+            ],
+            "external_state_changed": false,
+            "input_id": "INPUT-S13-P04-DEGRADED",
+            "journey_id": "S13-P04-DEGRADED",
+            "journey_type": "DEGRADED",
+            "recovery_action_id": "RECOVER-S13-P04-DEGRADED",
+            "recovery_terminal_status": "DEGRADED_CAPABILITY_DISABLED_NO_RECOMMENDATION",
+            "synthetic_test_only": true,
+            "terminal_status": "NO_RECOMMENDATION_DEGRADED",
+            "transition_count": 2,
+            "user_action_zh": "无需操作；受影响能力关闭，等待恢复后的新建议。"
+          },
+          {
+            "actual_return_claimed": false,
+            "automatic_order_submitted": false,
+            "evidence_refs": [
+              "EVD-S13-P01",
+              "EVD-S13-P02",
+              "EVD-S13-P03",
+              "JOURNEY-S13-P04-RECOVERY"
+            ],
+            "external_state_changed": false,
+            "input_id": "INPUT-S13-P04-RECOVERY",
+            "journey_id": "S13-P04-RECOVERY",
+            "journey_type": "RECOVERY",
+            "recovery_action_id": "RECOVER-S13-P04-RECOVERY",
+            "recovery_terminal_status": "LOCAL_RECOVERY_COMPLETE_NO_EXTERNAL_EFFECT",
+            "synthetic_test_only": true,
+            "terminal_status": "RECOVERY_COMPLETED_LOCAL_ONLY_NO_EXTERNAL_EFFECT",
+            "transition_count": 3,
+            "user_action_zh": "无需操作；恢复只重放已签名证据，过期建议保持无效。"
+          }
+        ],
+        "id": "S13P04-SIX-PATHS-INPUT-STATE-OUTPUT-EVIDENCE-RECOVERY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "84e36b5726e8008216c635387c68b4c13f451e2e6c1ee8067117ecf73323227f",
+        "id": "S13P04-DETERMINISTIC-REPLAY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "black": {
+            "actual_return_claimed": false,
+            "automatic_order_submitted": false,
+            "evidence_refs": [
+              "EVD-S13-P01",
+              "EVD-S13-P02",
+              "EVD-S13-P03",
+              "JOURNEY-S13-P04-BLACK"
+            ],
+            "external_state_changed": false,
+            "input_id": "INPUT-S13-P04-BLACK",
+            "journey_id": "S13-P04-BLACK",
+            "journey_type": "BLACK",
+            "recovery_action_id": "RECOVER-S13-P04-BLACK",
+            "recovery_terminal_status": "NO_RECOMMENDATION_UNTIL_NEW_GATES_PASS",
+            "synthetic_test_only": true,
+            "terminal_status": "RED_REVOKE_DO_NOT_ORDER",
+            "transition_count": 3,
+            "user_action_zh": "不下单；等待新的、完整通过门的建议。"
+          },
+          "golden": {
+            "actual_return_claimed": false,
+            "automatic_order_submitted": false,
+            "evidence_refs": [
+              "EVD-S13-P01",
+              "EVD-S13-P02",
+              "EVD-S13-P03",
+              "JOURNEY-S13-P04-GOLDEN"
+            ],
+            "external_state_changed": false,
+            "input_id": "INPUT-S13-P04-GOLDEN",
+            "journey_id": "S13-P04-GOLDEN",
+            "journey_type": "GOLDEN",
+            "recovery_action_id": "RECOVER-S13-P04-GOLDEN",
+            "recovery_terminal_status": "RECOVERY_READY_REAL_RETURN_STILL_UNCLAIMED",
+            "synthetic_test_only": true,
+            "terminal_status": "SYNTHETIC_SETTLEMENT_RECORDED_NOT_ACTUAL_RETURN",
+            "transition_count": 4,
+            "user_action_zh": "用户仍自行完成或放弃最终下单；明确确认也不等于账户对账或真实收益。"
+          }
+        },
+        "id": "S13P04-POINT-0001-ADVERSE-ODDS-REVOKES-WITHOUT-ACTUAL-CLAIM",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "action_id": "RECOVER-S13-P04-WALKING-SKELETON",
+            "actual_return_claimed": false,
+            "evidence_preserved": true,
+            "external_state_changed": false,
+            "journey_id": "S13-P04-WALKING-SKELETON",
+            "order_submission_enabled": false,
+            "production_state_changed": false,
+            "steps": [
+              "EXPIRE_CURRENT_SYNTHETIC_ADVICE",
+              "PRESERVE_EVIDENCE",
+              "REPLAY_FROZEN_INPUTS"
+            ],
+            "synthetic_test_only": true,
+            "terminal_status": "RECOVERY_READY_NO_NEW_RECOMMENDATION",
+            "trigger_status": "ADVICE_ONLY_EVIDENCE_RECORDED_NO_ACTUAL_RETURN"
+          },
+          {
+            "action_id": "RECOVER-S13-P04-GOLDEN",
+            "actual_return_claimed": false,
+            "evidence_preserved": true,
+            "external_state_changed": false,
+            "journey_id": "S13-P04-GOLDEN",
+            "order_submission_enabled": false,
+            "production_state_changed": false,
+            "steps": [
+              "PRESERVE_ADVICE_AND_SYNTHETIC_SETTLEMENT",
+              "RESTORE_SIGNED_S13_P03",
+              "REPLAY_FROZEN_INPUTS"
+            ],
+            "synthetic_test_only": true,
+            "terminal_status": "RECOVERY_READY_REAL_RETURN_STILL_UNCLAIMED",
+            "trigger_status": "SYNTHETIC_SETTLEMENT_RECORDED_NOT_ACTUAL_RETURN"
+          },
+          {
+            "action_id": "RECOVER-S13-P04-BLACK",
+            "actual_return_claimed": false,
+            "evidence_preserved": true,
+            "external_state_changed": false,
+            "journey_id": "S13-P04-BLACK",
+            "order_submission_enabled": false,
+            "production_state_changed": false,
+            "steps": [
+              "INVALIDATE_SYNTHETIC_TICKET",
+              "PRESERVE_EVIDENCE",
+              "WAIT_FOR_FRESH_FROZEN_INPUT"
+            ],
+            "synthetic_test_only": true,
+            "terminal_status": "NO_RECOMMENDATION_UNTIL_NEW_GATES_PASS",
+            "trigger_status": "RED_REVOKE_DO_NOT_ORDER"
+          },
+          {
+            "action_id": "RECOVER-S13-P04-ABUSE",
+            "actual_return_claimed": false,
+            "evidence_preserved": true,
+            "external_state_changed": false,
+            "journey_id": "S13-P04-ABUSE",
+            "order_submission_enabled": false,
+            "production_state_changed": false,
+            "steps": [
+              "QUARANTINE_UNTRUSTED_INPUT",
+              "PRESERVE_EVIDENCE",
+              "REQUIRE_FRESH_TRUSTED_INPUT"
+            ],
+            "synthetic_test_only": true,
+            "terminal_status": "QUARANTINED_NO_RECOMMENDATION",
+            "trigger_status": "QUARANTINED_NO_ACTION_NO_ACTUAL_CLAIM"
+          },
+          {
+            "action_id": "RECOVER-S13-P04-DEGRADED",
+            "actual_return_claimed": false,
+            "evidence_preserved": true,
+            "external_state_changed": false,
+            "journey_id": "S13-P04-DEGRADED",
+            "order_submission_enabled": false,
+            "production_state_changed": false,
+            "steps": [
+              "DISABLE_AFFECTED_CAPABILITY",
+              "PRESERVE_EVIDENCE",
+              "RESTORE_SIGNED_S13_P03"
+            ],
+            "synthetic_test_only": true,
+            "terminal_status": "DEGRADED_CAPABILITY_DISABLED_NO_RECOMMENDATION",
+            "trigger_status": "NO_RECOMMENDATION_DEGRADED"
+          },
+          {
+            "action_id": "RECOVER-S13-P04-RECOVERY",
+            "actual_return_claimed": false,
+            "evidence_preserved": true,
+            "external_state_changed": false,
+            "journey_id": "S13-P04-RECOVERY",
+            "order_submission_enabled": false,
+            "production_state_changed": false,
+            "steps": [
+              "REPLAY_SIGNED_S13_P03_EVIDENCE",
+              "KEEP_EXPIRED_ADVICE_INVALID",
+              "PRESERVE_EVIDENCE"
+            ],
+            "synthetic_test_only": true,
+            "terminal_status": "LOCAL_RECOVERY_COMPLETE_NO_EXTERNAL_EFFECT",
+            "trigger_status": "RECOVERY_COMPLETED_LOCAL_ONLY_NO_EXTERNAL_EFFECT"
+          }
+        ],
+        "id": "S13P04-ALL-RECOVERIES-PRESERVE-EVIDENCE-AND-LOCAL-ONLY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "index": {
+            "actual_artifact": "machine/evidence/EVD-S13-P03.json",
+            "artifact_sha256": "7ebe8b2b59bce33b34e1c7bab01bf96a7d2225414725bddebada481443fc197a",
+            "contract_id": "AC-S13-P03",
+            "id": "INDEX-AC-S13-P03",
+            "kind": "PHASE_EVIDENCE",
+            "next": "S13/P04_READY_NOT_STARTED",
+            "requirement_id": "REQ-S13-P03",
+            "stage_id": "S13",
+            "status": "PASS",
+            "verified_at": "2026-08-09T00:00:00+10:00"
+          },
+          "predecessor": {
+            "contract_id": "AC-S13-P03",
+            "evidence_path": "machine/evidence/EVD-S13-P03.json",
+            "evidence_sha256": "7ebe8b2b59bce33b34e1c7bab01bf96a7d2225414725bddebada481443fc197a",
+            "next": "S13/P04_READY_NOT_STARTED",
+            "status": "PASS"
+          }
+        },
+        "id": "S13P04-P03-PREDECESSOR-SIGNED-AND-INDEXED",
+        "passed": true
+      },
+      {
+        "detail": "static boundary intact",
+        "id": "S13P04-STATIC-NO-NETWORK-SOAK-OR-ORDER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 10,
+          "dependency_manifests": 2,
+          "failed": 0,
+          "failed_check_ids": [],
+          "locked_registry_packages": 12,
+          "paid_or_unknown_dependencies": 0,
+          "passed": 10,
+          "providers": 5,
+          "runtime_direct_dependencies": 0
+        },
+        "id": "S13P04-ZERO-INCREMENTAL-CASH-AND-DEPENDENCY-GATE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 18
+        },
+        "id": "S13P04-TARGETED-JUNIT-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S13/P04/paid_dependency_scan.txt",
+        "id": "S13P04-PAID-DEPENDENCY-REPORT-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/validation_report.json",
+        "id": "S13P04-TASKPACK-REPORT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S13P04-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S13-P04",
+    "decision": "SIX_COMPLETE_SYNTHETIC_JOURNEYS_AND_LOCAL_RECOVERY_READY_STAGE_REVIEW_REQUIRED",
+    "external_effect_boundary": {
+      "actual_market_or_odds_observed": false,
+      "actual_order_execution_claimed": false,
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submission_enabled": false,
+      "production_deployed_or_activated": false,
+      "real_account_accessed": false,
+      "real_time_soak_waited": false,
+      "system_order_confirmation_enabled": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "hashes": {
+      "journey_tests.json": "2f99eb4a558c9e5959c25ea4fcc4b30af0247db506fab4ef74b638b932575030",
+      "machine/evidence/EVD-S13-P03.json": "7ebe8b2b59bce33b34e1c7bab01bf96a7d2225414725bddebada481443fc197a",
+      "machine/tests/fixtures/S13_P04.json": "23fae33cbd088c9e63894952ec84b49e195bf14f02a10a576d80b11380021500",
+      "recovery_actions.json": "b303c0ab00a151f016170ca4e0d6f7018d21e30980332c8eb1f8b25cfa5319db"
+    },
+    "next": "S13/STAGE_REVIEW_READY_NOT_STARTED",
+    "phase_id": "P04",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "stage_id": "S13",
+    "status": "PASS",
+    "summary": {
+      "checks": 22,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 22
+    }
+  }
+}

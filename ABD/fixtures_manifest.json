@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S15-P02-03",
+  "manifest_id": "FIXTURES-S15-P02-LOCAL-SERVICE-BUNDLE",
+  "contract_id": "AC-S15-P02",
+  "requirement_id": "REQ-S15-P02",
+  "stage_id": "S15",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "fixtures": [
+    {"fixture_id": "FIX-S15-P02-PAGE-001", "path": "machine/tests/fixtures/S15_P02/page_fixture.json", "sha256": "bfba5996e0544989e0f3714b75f7b5d643a0b5136583d049e681bba19fe32c8b", "source_contract_id": "SRC-S15-P02-PAGE"},
+    {"fixture_id": "FIX-S15-P02-MAIL-001", "path": "machine/tests/fixtures/S15_P02/mail_fixture.json", "sha256": "d64d98faa34dd0f9c7ea4ff5dbf82d5fc175e7cabf06229bc47a19e3116e91c9", "source_contract_id": "SRC-S15-P02-MAIL"},
+    {"fixture_id": "FIX-S15-P02-ODDS-001", "path": "machine/tests/fixtures/S15_P02/odds_fixture.json", "sha256": "3724c2e243999b339ac5f4fa205d532f284676feb960552967b27d1077d8ff2c", "source_contract_id": "SRC-S15-P02-ODDS"},
+    {"fixture_id": "FIX-S15-P02-RESULT-001", "path": "machine/tests/fixtures/S15_P02/result_fixture.json", "sha256": "ef9de89420e7a30a0ab8f843180c5e8a191fe39747c3e9cf1e39e526370843cf", "source_contract_id": "SRC-S15-P02-RESULT"}
+  ],
+  "shared_identifiers": {
+    "event_id": "EVT-S15-P02-0001",
+    "market_id": "MKT-S15-P02-WIN",
+    "selection_id": "SEL-S15-P02-ALPHA",
+    "ticket_id": "TICKET-S15-P02-0001"
+  },
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "tab_or_provider_runtime_accessed": false,
+    "real_account_balance_read_or_written": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

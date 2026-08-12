@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-CORE-CAPACITY-ADMISSION-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_CURRENT_PRODUCTION_CORE_CAPACITY_ADMISSION_READ_ONLY",
+  "expected": {
+    "source_guard_contract_id": "ABD-POST-FREEZE-HOST-BUNDLE",
+    "source_guard_script": "runtime/host_capacity_gate.py",
+    "minimum_vcpu": 2,
+    "minimum_memory_kib": 4194304,
+    "minimum_physical_disk_bytes": 42949672960,
+    "maximum_swap_used_kib": 0
+  },
+  "source_boundary": {
+    "live_host_capacity_metadata_read": true,
+    "remote_script_written": false,
+    "host_runtime_or_configuration_changed": false,
+    "image_loaded_or_retagged": false,
+    "unit_created_enabled_or_started": false,
+    "connector_config_written": false,
+    "runtime_secret_or_tunnel_credential_read": false,
+    "external_network_scope": "AUTHORIZED_SSH_HOST_METADATA_ONLY",
+    "cloudflare_dns_access_or_tunnel_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_PRODUCTION_CORE_CAPACITY_ADMISSION_ONLY_NOT_CORE_START_SERVICE_DEPLOYMENT_OR_PUBLIC_RELEASE",
+  "rollback": {
+    "action": "NO_HOST_MUTATION_NO_RUNTIME_ROLLBACK_REQUIRED",
+    "current_candidate_shadow_changed": false,
+    "private_evidence_deleted_automatically": false
+  }
+}

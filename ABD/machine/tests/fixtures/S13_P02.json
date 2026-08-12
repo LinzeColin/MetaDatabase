@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S13-P02-ACCEPTANCE",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "expected_match_fixture_id": "FIX-S13-P02-VISIBLE-QUOTE-CHECK",
+  "expected_case_count": 10,
+  "expected_adverse_scenario_count": 2,
+  "expected_parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+  "expected_provider_contracts_sha256": "a9d0fd864fad7ac4c14ec6a324d447abbc8497b256a232f9ca04b3115b15364a",
+  "expected_green_case_ids": [
+    "M01-GREEN-EXACT-MINIMUM",
+    "M04-ODDS-POINT-0001-ABOVE",
+    "M10-GREEN-ONE-SECOND-LEFT"
+  ],
+  "expected_red_case_ids": [
+    "M02-ODDS-ONE-TICK-BELOW",
+    "M03-ODDS-POINT-0001-BELOW",
+    "M05-EVENT-IDENTITY-MISMATCH",
+    "M06-MARKET-AND-SELECTION-MISMATCH",
+    "M07-VISIBLE-FIELDS-UNAVAILABLE",
+    "M08-RISK-DISABLED",
+    "M09-EXPIRED-AT-BOUNDARY"
+  ],
+  "expected_replay_sha256": "d51b02b31c090e11773aad4d86defdf546f71dba5091821d76b5492fe367d8b5",
+  "expected_preflight_minimum": 25,
+  "expected_feature_flag_id": "ui:browser_companion_visible_quote_check",
+  "expected_next": "S13/P03_READY_NOT_STARTED",
+  "claim_boundary": {
+    "actual_market_or_odds_observed": false,
+    "automatic_platform_open_performed": false,
+    "browser_extension_installed_or_executed": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_account_accessed": false,
+    "real_time_soak_waited": false
+  }
+}

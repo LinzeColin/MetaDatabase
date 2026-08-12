@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="39" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S17.P02_test" name="test_fixture_is_exact_s17_p02_contract" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_policy_keeps_both_duplicate_gates_at_zero" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_each_frozen_scenario_replays_to_its_pinned_summary[ORDERED_SINGLE]" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_each_frozen_scenario_replays_to_its_pinned_summary[FAN_IN_DUPLICATE_8]" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_each_frozen_scenario_replays_to_its_pinned_summary[OUT_OF_ORDER_DELAYED]" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_each_frozen_scenario_replays_to_its_pinned_summary[TIMEOUT_RETRY]" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_each_frozen_scenario_replays_to_its_pinned_summary[CONFLICT_QUARANTINE]" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_each_frozen_scenario_replays_to_its_pinned_summary[BOUNDARY_PLUS_MINUS_0001]" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_out_of_order_input_is_reduced_to_stable_logical_order" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_fan_in_concurrency_vector_suppresses_seven_duplicates" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_timeout_attempt_has_no_state_change_and_retry_commits_once" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_conflicting_payload_is_quarantined_without_duplicate_projection" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_plus_minus_one_in_ten_thousand_boundary_keeps_actions_disabled" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_report_aggregate_is_exact" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_report_idempotency_gate_is_strictly_zero_duplicate" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_local_projection_identifiers_are_unique" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_fault_log_contains_only_fail_closed_non_action_dispositions" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_artifact_is_deterministic_across_two_builds" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_current_generated_report_replays_exactly" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_generator_source_hash_is_bound_into_report" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_current_report_is_machine_readable" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_invalid_product_version_fixture_fails_closed" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_invalid_baseline_hash_fixture_fails_closed" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_duplicate_operation_identifier_fixture_fails_closed" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_out_of_range_probability_boundary_fixture_fails_closed" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_wrong_predecessor_hash_fixture_fails_closed" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_mutated_scenario_cannot_be_replayed_as_approved_vector" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_all_records_keep_recommendation_and_order_disabled" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_claim_boundary_excludes_real_runtime_and_ledger" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_execution_policy_excludes_threads_processes_and_soak" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_p01_predecessor_is_bound_in_report" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_p01_signed_receipt_remains_verifiable_after_shared_dispatcher_growth" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_candidate_preflight_passes_before_signing" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_full_acceptance_preflight_has_expected_number_of_checks" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_rollback_drill_keeps_all_external_state_unchanged" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_cli_contains_only_the_required_s17_p02_writer_and_verifier_wiring" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_existing_legacy_allowlist_tracks_the_exact_shared_dispatcher_successor" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_existing_stage8_pins_track_only_the_refreshed_compatibility_chain" time="0.000" />
+    <testcase classname="tests.S17.P02_test" name="test_fixture_minimum_is_covered_by_this_targeted_module" time="0.000" />
+  </testsuite>
+</testsuites>

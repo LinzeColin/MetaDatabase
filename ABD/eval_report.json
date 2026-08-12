@@ -1,0 +1,299 @@
+{
+  "aggregate_metrics": {
+    "brier_skill": "0.001670395",
+    "calibration_error_main": "0.0049999999999999999999999999999999999999999999999993",
+    "calibration_error_niche": "0.0056000000000000000000000000000000000000000000000008",
+    "calibration_intercept": "0.00080422414255810208791798615211207127905104395897",
+    "calibration_slope": "1.0051348111570321864992038359007389118494265829353",
+    "candidate_brier": "0.2209665",
+    "candidate_logloss": "0.6329546734655356282889320316568673216346873409886",
+    "closing_price_advantage": "0.033048449185983068927087992195577901970971166885318",
+    "logloss_skill": "0.003796088805915883621856931164",
+    "market_brier": "0.222636895",
+    "market_logloss": "0.6367507622714515119107889628209783027252165439824",
+    "net_log_growth": "0.00022183907918300413993350992577568388000919359357708"
+  },
+  "artifact_id": "ART-S16-P02-03",
+  "block_metrics": [
+    {
+      "block_id": "S16P02-FOLD-01",
+      "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL",
+      "end_at": "2025-04-30T23:59:59+10:00",
+      "metrics": {
+        "brier_skill": "0.0016344",
+        "calibration_error_main": "0.0060000000000000000000000000000000000000000000000014",
+        "calibration_error_niche": "0.0055999999999999999999999999999999999999999999999962",
+        "calibration_intercept": "-0.00179066022544283413848631239935587761674718196459",
+        "calibration_slope": "1.0091250670960815888352120236178207192699946323135",
+        "candidate_brier": "0.22077",
+        "candidate_logloss": "0.6325165248563847297710037696023183386269148826096",
+        "closing_price_advantage": "0.032787667711451485360398566704856553045230222379972",
+        "logloss_skill": "0.003741734753646616702849931637",
+        "market_brier": "0.2224044",
+        "market_logloss": "0.6362582596100313464738537012394107310149243033896",
+        "net_log_growth": "0.00022181539112973813249870317853239744212167572278908"
+      },
+      "sample_count": 250,
+      "start_at": "2025-04-01T00:00:00+10:00"
+    },
+    {
+      "block_id": "S16P02-FOLD-02",
+      "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL",
+      "end_at": "2025-05-31T23:59:59+10:00",
+      "metrics": {
+        "brier_skill": "0.00172144",
+        "calibration_error_main": "0.007399999999999999999999999999999999999999999999999",
+        "calibration_error_niche": "0.0055919999999999999999999999999999999999999999999962",
+        "calibration_intercept": "0.01978743961352657004830917874396135265700483091787",
+        "calibration_slope": "0.96618357487922705314009661835748792270531400966185",
+        "candidate_brier": "0.223165",
+        "candidate_logloss": "0.63770517473272030028542987471170733880971417872128",
+        "closing_price_advantage": "0.03588913217905344177289225609436062677809878160634",
+        "logloss_skill": "0.003773674409374067341720929185",
+        "market_brier": "0.22488644",
+        "market_logloss": "0.64147884914209436762715080389649934300065443595444",
+        "net_log_growth": "0.00024361313399393410342883978605419360181216324832288"
+      },
+      "sample_count": 250,
+      "start_at": "2025-05-01T00:00:00+10:00"
+    },
+    {
+      "block_id": "S16P02-FOLD-03",
+      "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL",
+      "end_at": "2025-06-30T23:59:59+10:00",
+      "metrics": {
+        "brier_skill": "0.00162736",
+        "calibration_error_main": "0.0066000000000000000000000000000000000000000000000035",
+        "calibration_error_niche": "0.014599999999999999999999999999999999999999999999998",
+        "calibration_intercept": "-0.02328287707997852925389157273215244229736983360171",
+        "calibration_slope": "1.0520665593129361245303274288781535158346752549651",
+        "candidate_brier": "0.218377",
+        "candidate_logloss": "0.6275213052947942289704547051104021444761221308004",
+        "closing_price_advantage": "0.030724155887852181693344823314836859632552439717881",
+        "logloss_skill": "0.00361631300916782003158309172",
+        "market_brier": "0.22000436",
+        "market_logloss": "0.63113761830396204900203779683064972648473002710696",
+        "net_log_growth": "0.00020530600730434672787440592019270634460805788664022"
+      },
+      "sample_count": 250,
+      "start_at": "2025-06-01T00:00:00+10:00"
+    },
+    {
+      "block_id": "S16P02-FOLD-04",
+      "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL",
+      "end_at": "2025-07-31T23:59:59+10:00",
+      "metrics": {
+        "brier_skill": "0.00198844",
+        "calibration_error_main": "0.022015999999999999999999999999999999999999999999999",
+        "calibration_error_niche": "0.011599999999999999999999999999999999999999999999996",
+        "calibration_intercept": "-0.00546645195920558239398819108964036500268384326356",
+        "calibration_slope": "1.0198604401502952227589908749329039184111647879764",
+        "candidate_brier": "0.219946",
+        "candidate_logloss": "0.63063727538668088412452112995665440516676902653516",
+        "closing_price_advantage": "0.037961954623833506830140042489951024753873660367856",
+        "logloss_skill": "0.004771317110213789587721365302",
+        "market_brier": "0.22193444",
+        "market_logloss": "0.63540859249689467371224249525835663859344341529184",
+        "net_log_growth": "0.00026017831887840318801003964400184264911866626902011"
+      },
+      "sample_count": 250,
+      "start_at": "2025-07-01T00:00:00+10:00"
+    },
+    {
+      "block_id": "S16P02-FOLD-05",
+      "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL",
+      "end_at": "2025-08-31T23:59:59+10:00",
+      "metrics": {
+        "brier_skill": "0.00124236",
+        "calibration_error_main": "0.0059840000000000000000000000000000000000000000000014",
+        "calibration_error_niche": "0.010383999999999999999999999999999999999999999999996",
+        "calibration_intercept": "0.00184219001610305958132045088566827697262479871176",
+        "calibration_slope": "0.99838969404186795491143317230273752012882447665055",
+        "candidate_brier": "0.22157",
+        "candidate_logloss": "0.6341461060950563123037264798747995592321121285206",
+        "closing_price_advantage": "0.029692399976052529859817951619827012926213548386823",
+        "logloss_skill": "0.002911503793001765417117812773",
+        "market_brier": "0.22281236",
+        "market_logloss": "0.63705760988805807772084429264811111795825767164336",
+        "net_log_growth": "0.00018881895635680309327083371664248452561575690776386"
+      },
+      "sample_count": 250,
+      "start_at": "2025-08-01T00:00:00+10:00"
+    },
+    {
+      "block_id": "S16P02-FOLD-06",
+      "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL",
+      "end_at": "2025-09-30T23:59:59+10:00",
+      "metrics": {
+        "brier_skill": "0.0019674",
+        "calibration_error_main": "0.007399999999999999999999999999999999999999999999999",
+        "calibration_error_niche": "0.0045999999999999999999999999999999999999999999999962",
+        "calibration_intercept": "0.00684702093397745571658615136876006441223832528181",
+        "calibration_slope": "0.99838969404186795491143317230273752012882447665055",
+        "candidate_brier": "0.221157",
+        "candidate_logloss": "0.63328936371152259176789069094109518772731593420776",
+        "closing_price_advantage": "0.034855310689852789635394359631192602200475928530884",
+        "logloss_skill": "0.004424757407314401292960158301",
+        "market_brier": "0.2231244",
+        "market_logloss": "0.63771412111883699306085084924213989115767204866932",
+        "net_log_growth": "0.00023834710741702021104063589894123358671596191871449"
+      },
+      "sample_count": 250,
+      "start_at": "2025-09-01T00:00:00+10:00"
+    },
+    {
+      "block_id": "S16P02-FOLD-07",
+      "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL",
+      "end_at": "2025-10-31T23:59:59+10:00",
+      "metrics": {
+        "brier_skill": "0.00146736",
+        "calibration_error_main": "0.013992000000000000000000000000000000000000000000002",
+        "calibration_error_niche": "0.0056079999999999999999999999999999999999999999999962",
+        "calibration_intercept": "0.03297047772410091250670960815888352120236178207192",
+        "calibration_slope": "0.94471282877079978529253891572732152442297369833603",
+        "candidate_brier": "0.224377",
+        "candidate_logloss": "0.64031616466472272130017831594358327305788190228512",
+        "closing_price_advantage": "0.029689304708317130904317371004741983386094531712813",
+        "logloss_skill": "0.003319761864824320416767804004",
+        "market_brier": "0.22584436",
+        "market_logloss": "0.64363592652954704171694611994767701239653878313984",
+        "net_log_growth": "0.00019481832725404953084591808330821544795959107257702"
+      },
+      "sample_count": 250,
+      "start_at": "2025-10-01T00:00:00+10:00"
+    },
+    {
+      "block_id": "S16P02-FOLD-08",
+      "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL",
+      "end_at": "2025-11-30T23:59:59+10:00",
+      "metrics": {
+        "brier_skill": "0.0017144",
+        "calibration_error_main": "0.0076000000000000000000000000000000000000000000000035",
+        "calibration_error_niche": "0.013599999999999999999999999999999999999999999999998",
+        "calibration_intercept": "-0.02433494363929146537842190016103059581320450885668",
+        "calibration_slope": "1.0520665593129361245303274288781535158346752549651",
+        "candidate_brier": "0.21837",
+        "candidate_logloss": "0.62750547298240325778825128711437832598066854422872",
+        "closing_price_advantage": "0.032787667711451485360398566704856553045230222379972",
+        "logloss_skill": "0.003809648099784288184134356391",
+        "market_brier": "0.2200844",
+        "market_logloss": "0.63131512108218754597238564350498196119551166666396",
+        "net_log_growth": "0.00022181539112973813249870317853239744212167572278908"
+      },
+      "sample_count": 250,
+      "start_at": "2025-11-01T00:00:00+10:00"
+    }
+  ],
+  "calibration_gates": {
+    "calibration_error_main_market": {
+      "passed": true,
+      "source_metric_id": "MET-S01-P04-011",
+      "threshold": "<=0.025",
+      "value": "0.0049999999999999999999999999999999999999999999999993"
+    },
+    "calibration_error_niche_market": {
+      "passed": true,
+      "source_metric_id": "MET-S01-P04-012",
+      "threshold": "<=0.04",
+      "value": "0.0056000000000000000000000000000000000000000000000008"
+    },
+    "calibration_intercept_absolute": {
+      "passed": true,
+      "source_metric_id": "MET-S01-P04-010",
+      "threshold": "<=0.02",
+      "value": "0.0008042241425581020879179861521"
+    },
+    "calibration_slope": {
+      "passed": true,
+      "source_metric_id": "MET-S01-P04-009",
+      "threshold": "[0.90,1.10]",
+      "value": "1.0051348111570321864992038359007389118494265829353"
+    }
+  },
+  "claim_boundary": {
+    "empirical_model_increment_verified": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "synthetic_evaluation_only": true
+  },
+  "contract_id": "AC-S16-P02",
+  "eval_catalog_sha256": "031b34ab561eedb7b6d298282ba66f826f1d5996fa0c525a012be2d5af8a73cb",
+  "evaluation_scope": {
+    "bootstrap_iterations": 2000,
+    "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL",
+    "confidence_level": "0.95",
+    "lower_tail_quantile": "0.05",
+    "real_market_or_execution_observation_count": 0,
+    "synthetic_observation_count": 2000,
+    "temporal_fold_count": 8
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "gate_summary": {
+    "all_95pct_lower_bound_gates_pass": true,
+    "all_calibration_gates_pass": true,
+    "all_s16_p02_gates_pass": true,
+    "scope": "FROZEN_SYNTHETIC_EVALUATION_ONLY_NOT_EMPIRICAL_OR_FINANCIAL_RETURN"
+  },
+  "input_mode": "FROZEN_SYNTHETIC_EVALUATION_NO_NETWORK_NO_ACCOUNT",
+  "lower_confidence_bound_gates": {
+    "brier_skill_95pct_lower_bound": {
+      "passed": true,
+      "source_metric_id": "MET-S01-P04-013",
+      "threshold": ">0",
+      "value": "0.00154076"
+    },
+    "closing_price_advantage_95pct_lower_bound": {
+      "passed": true,
+      "source_metric_id": "MET-S01-P04-015",
+      "threshold": ">0",
+      "value": "0.031497328490651396036170015547476903052582967399506"
+    },
+    "logloss_skill_95pct_lower_bound": {
+      "passed": true,
+      "source_metric_id": "MET-S01-P04-014",
+      "threshold": ">0",
+      "value": "0.00349122018912439406722994026"
+    },
+    "net_log_growth_95pct_lower_bound": {
+      "passed": true,
+      "source_metric_id": "MET-S01-P04-016",
+      "threshold": ">0",
+      "value": "0.0002081335596413366773993955834717618672359813603688"
+    }
+  },
+  "model_promotion": {
+    "activation_status": "NOT_ACTIVATED_PENDING_S16_P03_AND_S16_P04",
+    "model_id": "GENERIC_RESIDUAL_CHALLENGER",
+    "next_required_gates": [
+      "AC-S16-P03",
+      "AC-S16-P04"
+    ],
+    "weight_after": "0.00",
+    "weight_before": "0.00",
+    "weight_change_allowed": false
+  },
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "requirement_id": "REQ-S16-P02",
+  "schema_version": "1.0.0",
+  "source_hashes": {
+    "baseline_report.json": "060d12d4b311fe334815632c9e343b990c0b392bf79bd8421162430f337d4b68",
+    "challenger_report.json": "86c1c49b1e20149847430c08f06249bef9bc93063a1e6ab2954db31633153145",
+    "machine/evidence/EVD-S16-P01.json": "9d0081fd92199eb4fb60800b81aa078d18e69219a49d5c2bcf03f7c0fcdb865c",
+    "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+    "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+    "model_registry.json": "e4414fe73050ac6a389fa395f82badb0ff7882db81af87870add3219329060a5"
+  },
+  "stage_id": "S16"
+}

@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="27" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S18.P04_test" name="test_fixture_is_exact_s18_p04_contract" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_each_frozen_cycle_has_its_pinned_pause_contract_result[GOLDEN_ALL_LOGICAL_JOBS_PASS]" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_each_frozen_cycle_has_its_pinned_pause_contract_result[DAILY_SIGNED_CONTROL_FAILURE_PAUSES]" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_each_frozen_cycle_has_its_pinned_pause_contract_result[DAILY_MAIL_EVIDENCE_FAILURE_PAUSES]" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_each_frozen_cycle_has_its_pinned_pause_contract_result[WEEKLY_PATCH_FAILURE_PAUSES]" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_each_frozen_cycle_has_its_pinned_pause_contract_result[WEEKLY_BACKUP_FAILURE_PAUSES]" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_each_frozen_cycle_has_its_pinned_pause_contract_result[MONTHLY_DISASTER_FAILURE_PAUSES]" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_each_frozen_cycle_has_its_pinned_pause_contract_result[MONTHLY_RETENTION_FAILURE_PAUSES]" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_each_frozen_cycle_has_its_pinned_pause_contract_result[ADVERSE_MINUS_ONE_IN_TEN_THOUSAND_PRESERVES_GATES]" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_each_frozen_cycle_has_its_pinned_pause_contract_result[FUND_MUTATION_ATTEMPT_PAUSES]" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_each_frozen_cycle_has_its_pinned_pause_contract_result[RISK_GATE_RELAXATION_ATTEMPT_PAUSES]" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_each_frozen_cycle_has_its_pinned_pause_contract_result[EXTERNAL_EXECUTION_ATTEMPT_PAUSES]" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_each_frozen_cycle_has_its_pinned_pause_contract_result[MALFORMED_JOB_STATUS_PAUSES]" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_normal_cycle_needs_no_owner_maintenance_or_real_scheduler" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_all_daily_weekly_and_monthly_job_failures_pause_exactly_once" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_adverse_one_in_ten_thousand_vector_preserves_the_gates" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_unsafe_fund_risk_external_and_float_requests_only_pause" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_schedule_calendar_and_runbook_are_exact_and_reject_gate_weakening" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_operations_replay_hash_is_deterministic" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_runner_has_no_runtime_network_process_or_mail_dependencies" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_cli_has_exact_s18_p04_writer_and_verifier_mappings" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_legacy_successor_chain_allows_only_the_current_dispatcher_hash" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_candidate_preflight_covers_current_taskpack_and_signed_p03_dependency" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_preflight_has_no_external_effects_or_production_claim" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_evidence_build_is_deterministic_before_signing" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_fixture_rejects_wrong_predecessor_hash_and_reordered_scenarios" time="0.000" />
+    <testcase classname="tests.S18.P04_test" name="test_rollback_drill_only_disables_local_operations_automation" time="0.000" />
+  </testsuite>
+</testsuites>

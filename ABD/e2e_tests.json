@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S15-P03-01",
+  "contract_id": "AC-S15-P03",
+  "requirement_id": "REQ-S15-P03",
+  "stage_id": "S15",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "journey_classes": ["GOLDEN", "BLACK", "DEGRADED", "RECOVERY"],
+  "environment_modes": ["ALL_LOCAL_SURFACES", "SIMULATED_EDGE_SCHEMA_UNAVAILABLE", "RECOVERY_LOCAL_REPLAY"],
+  "scenarios": [
+    {
+      "case_id": "S15-P03-GOLDEN-BASELINE-LOCAL",
+      "journey_class": "GOLDEN",
+      "source_replay_case_id": "S15-P02-BASELINE-LOCAL",
+      "environment_mode": "ALL_LOCAL_SURFACES",
+      "simulated_unavailable_environment_id": "NONE",
+      "expected": {
+        "status": "E2E_GOLDEN_LOCAL_PASS_NO_EXTERNAL_ACTION",
+        "reason_codes": ["ALL_LOCAL_SURFACES_CONTRACT_VALIDATED", "P02_BASELINE_LOCAL_REPLAY_PASS"]
+      }
+    },
+    {
+      "case_id": "S15-P03-GOLDEN-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND",
+      "journey_class": "GOLDEN",
+      "source_replay_case_id": "S15-P02-ODDS-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND",
+      "environment_mode": "ALL_LOCAL_SURFACES",
+      "simulated_unavailable_environment_id": "NONE",
+      "expected": {
+        "status": "E2E_GOLDEN_LOCAL_PASS_NO_EXTERNAL_ACTION",
+        "reason_codes": ["ALL_LOCAL_SURFACES_CONTRACT_VALIDATED", "P02_FAVOURABLE_BOUNDARY_REPLAY_PASS"]
+      }
+    },
+    {
+      "case_id": "S15-P03-BLACK-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND",
+      "journey_class": "BLACK",
+      "source_replay_case_id": "S15-P02-ODDS-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND",
+      "environment_mode": "ALL_LOCAL_SURFACES",
+      "simulated_unavailable_environment_id": "NONE",
+      "expected": {
+        "status": "E2E_BLACK_REVOKED_NO_ORDER",
+        "reason_codes": ["P02_ADVERSE_MINUS_0_0001_FAILED_CLOSED", "NO_EXTERNAL_ACTION"]
+      }
+    },
+    {
+      "case_id": "S15-P03-BLACK-RESULT-TICKET-MISMATCH",
+      "journey_class": "BLACK",
+      "source_replay_case_id": "S15-P02-RESULT-TICKET-MISMATCH",
+      "environment_mode": "ALL_LOCAL_SURFACES",
+      "simulated_unavailable_environment_id": "NONE",
+      "expected": {
+        "status": "E2E_BLACK_REVOKED_NO_ORDER",
+        "reason_codes": ["P02_RESULT_TICKET_MISMATCH_FAILED_CLOSED", "NO_EXTERNAL_ACTION"]
+      }
+    },
+    {
+      "case_id": "S15-P03-DEGRADED-SIMULATED-EDGE-SCHEMA-UNAVAILABLE",
+      "journey_class": "DEGRADED",
+      "source_replay_case_id": "S15-P02-BASELINE-LOCAL",
+      "environment_mode": "SIMULATED_EDGE_SCHEMA_UNAVAILABLE",
+      "simulated_unavailable_environment_id": "ENV-S15-P03-CLOUDFLARE-EDGE-SCHEMA",
+      "expected": {
+        "status": "E2E_DEGRADED_LOCAL_RECOVERY_PAGE_NO_ACTION",
+        "reason_codes": ["SIMULATED_EDGE_SCHEMA_UNAVAILABLE", "RECOVERY_PAGE_STATIC_CONTRACT_VALIDATED"]
+      }
+    },
+    {
+      "case_id": "S15-P03-RECOVERY-FRESH-LOCAL-REPLAY",
+      "journey_class": "RECOVERY",
+      "source_replay_case_id": "S15-P02-BASELINE-LOCAL",
+      "environment_mode": "RECOVERY_LOCAL_REPLAY",
+      "simulated_unavailable_environment_id": "NONE",
+      "expected": {
+        "status": "E2E_RECOVERY_READY_FRESH_LOCAL_REPLAY_NO_ACTION",
+        "reason_codes": ["FRESH_LOCAL_P02_BASELINE_REPLAY_PASS", "RECOVERY_CATALOG_STATIC_CONTRACT_VALIDATED"]
+      }
+    }
+  ],
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "cloudflare_account_dns_or_tunnel_accessed": false,
+    "desktop_or_mobile_browser_exercised": false,
+    "browser_component_installed_or_run": false,
+    "tab_or_provider_runtime_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "real_account_balance_read_or_written": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

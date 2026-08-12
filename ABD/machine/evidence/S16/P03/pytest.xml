@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="38" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S16.P03_test" name="test_fixture_identity_and_scope_are_frozen" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_each_frozen_attack_is_blocked[0-FUTURE_LEAKAGE]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_each_frozen_attack_is_blocked[1-OUTLIER_PRICE]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_each_frozen_attack_is_blocked[2-IDENTITY_MISMATCH]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_each_frozen_attack_is_blocked[3-DATA_POISONING]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_each_frozen_attack_is_blocked[4-CORRELATION_EXPOSURE]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_each_frozen_attack_is_blocked[5-TARGET_CHASING]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_each_frozen_attack_uses_a_nonempty_reason[0-FUTURE_LEAKAGE]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_each_frozen_attack_uses_a_nonempty_reason[1-OUTLIER_PRICE]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_each_frozen_attack_uses_a_nonempty_reason[2-IDENTITY_MISMATCH]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_each_frozen_attack_uses_a_nonempty_reason[3-DATA_POISONING]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_each_frozen_attack_uses_a_nonempty_reason[4-CORRELATION_EXPOSURE]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_each_frozen_attack_uses_a_nonempty_reason[5-TARGET_CHASING]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_attack_boundary_that_no_longer_detects_causes_a_blocking_phase_result[0-payload0]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_attack_boundary_that_no_longer_detects_causes_a_blocking_phase_result[1-payload1]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_attack_boundary_that_no_longer_detects_causes_a_blocking_phase_result[2-payload2]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_attack_boundary_that_no_longer_detects_causes_a_blocking_phase_result[3-payload3]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_attack_boundary_that_no_longer_detects_causes_a_blocking_phase_result[4-payload4]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_attack_boundary_that_no_longer_detects_causes_a_blocking_phase_result[5-payload5]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_all_six_attack_categories_are_present_once" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_cross_model_review_keeps_champion_and_candidate_unactivated" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_cross_model_review_binds_the_redteam_artifact_hash" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_replay_is_byte_stable_for_identical_inputs" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_fixture_identity_and_predecessor_mutations_fail_closed[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_fixture_identity_and_predecessor_mutations_fail_closed[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_fixture_identity_and_predecessor_mutations_fail_closed[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_fixture_identity_and_predecessor_mutations_fail_closed[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_artifact_identities_are_exact[artifact_path0-ART-S16-P03-01]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_artifact_identities_are_exact[artifact_path1-ART-S16-P03-02]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_claim_boundary_prohibits_external_effects[external_network_accessed]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_claim_boundary_prohibits_external_effects[real_market_or_odds_observed]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_claim_boundary_prohibits_external_effects[order_submission_enabled]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_claim_boundary_prohibits_external_effects[production_deployed_or_activated]" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_oracle_static_boundary_has_no_network_or_process_imports" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_candidate_preflight_passes_before_report_signing" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_contract_evaluation_remains_phase_scoped_before_report_signing" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_rollback_is_local_and_preserves_no_promotion" time="0.000" />
+    <testcase classname="tests.S16.P03_test" name="test_generator_wrapper_is_a_local_engine_entrypoint" time="0.000" />
+  </testsuite>
+</testsuites>

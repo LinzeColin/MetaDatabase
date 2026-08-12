@@ -1,0 +1,418 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S19-P02-SHADOW-BETA",
+  "contract_id": "AC-S19-P02",
+  "requirement_id": "REQ-S19-P02",
+  "stage_id": "S19",
+  "phase_id": "P02",
+  "fixed_clock": "2026-08-10T07:00:00+10:00",
+  "expected_next": "S19/P03_READY_NOT_STARTED",
+  "predecessor_evidence_sha256": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+  "source_evidence_sha256": {
+    "machine/evidence/EVD-S19-P01.json": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+    "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+    "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76",
+    "capacity_report.json": "0dfa4b67eb93f75e101adce94bb534fd8d9fbe7e7f139e5bd60ffa48fd81c11b",
+    "model_release_gate.json": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720"
+  },
+  "model_config": {
+    "stage": "BETA",
+    "kelly_fraction": "0.20",
+    "residual_weight_cap": "0.35",
+    "target_shortfall_may_relax_gate": false,
+    "unstable_action": "NO_RECOMMENDATION"
+  },
+  "scenarios": [
+    {
+      "scenario_id": "GOLDEN_SYNTHETIC_ALL_METRICS_PASS_BETA_BLOCKED",
+      "shadow_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T07:00:00+10:00",
+        "evaluation_id": "S19-P02-GOLDEN",
+        "evidence_kind": "FROZEN_SYNTHETIC_TEST_ONLY",
+        "runtime_evidence_receipt_present": false,
+        "synthetic_window": {"logical_shadow_days": 90, "logical_qualified_signals": 1000},
+        "metric_snapshot": {
+          "calibration_slope": "1.0001",
+          "calibration_intercept": "0.0000",
+          "calibration_error_main": "0.025",
+          "calibration_error_niche": "0.04",
+          "brier_skill_95_lcb": "0.0001",
+          "logloss_skill_95_lcb": "0.0001",
+          "closing_price_advantage_95_lcb": "0.0001",
+          "net_log_growth_95_lcb": "0.0001",
+          "quote_age_seconds": 12,
+          "advice_age_seconds": 8,
+          "capacity_gate_passed": true,
+          "population_stability_index": "0.1999",
+          "jensen_shannon": "0.0999",
+          "probability_delta": "-0.0001",
+          "odds_tick_delta": -1
+        },
+        "model_config": {
+          "stage": "BETA",
+          "kelly_fraction": "0.20",
+          "residual_weight_cap": "0.35",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        },
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "PASS_LOCAL_SYNTHETIC_METRIC_CONTRACT",
+        "decision": "LOCAL_SHADOW_METRIC_GATES_PASS_EMPIRICAL_RUNTIME_REQUIRED",
+        "action": "NO_RECOMMENDATION",
+        "all_quality_gates_pass": true,
+        "model_beta_status": "BLOCKED_NO_EMPIRICAL_REALTIME_SHADOW_EVIDENCE",
+        "model_beta_eligible": false,
+        "failure_codes": []
+      }
+    },
+    {
+      "scenario_id": "ADVERSE_ONE_IN_TEN_THOUSAND_METRICS_STABLE_BETA_BLOCKED",
+      "shadow_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T07:00:00+10:00",
+        "evaluation_id": "S19-P02-ADVERSE-ONE-IN-TEN-THOUSAND",
+        "evidence_kind": "FROZEN_SYNTHETIC_TEST_ONLY",
+        "runtime_evidence_receipt_present": false,
+        "synthetic_window": {"logical_shadow_days": 60, "logical_qualified_signals": 500},
+        "metric_snapshot": {
+          "calibration_slope": "0.9001",
+          "calibration_intercept": "0.0200",
+          "calibration_error_main": "0.025",
+          "calibration_error_niche": "0.04",
+          "brier_skill_95_lcb": "0.0001",
+          "logloss_skill_95_lcb": "0.0001",
+          "closing_price_advantage_95_lcb": "0.0001",
+          "net_log_growth_95_lcb": "0.0001",
+          "quote_age_seconds": 12,
+          "advice_age_seconds": 8,
+          "capacity_gate_passed": true,
+          "population_stability_index": "0.1999",
+          "jensen_shannon": "0.0999",
+          "probability_delta": "-0.0001",
+          "odds_tick_delta": -1
+        },
+        "model_config": {
+          "stage": "BETA",
+          "kelly_fraction": "0.20",
+          "residual_weight_cap": "0.35",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        },
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "PASS_LOCAL_SYNTHETIC_METRIC_CONTRACT",
+        "action": "NO_RECOMMENDATION",
+        "all_quality_gates_pass": true,
+        "model_beta_status": "BLOCKED_NO_EMPIRICAL_REALTIME_SHADOW_EVIDENCE",
+        "model_beta_eligible": false,
+        "failure_codes": []
+      }
+    },
+    {
+      "scenario_id": "INSUFFICIENT_SYNTHETIC_WINDOW_CANNOT_COUNT_AS_EMPIRICAL",
+      "shadow_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T07:00:00+10:00",
+        "evaluation_id": "S19-P02-INSUFFICIENT-SYNTHETIC",
+        "evidence_kind": "FROZEN_SYNTHETIC_TEST_ONLY",
+        "runtime_evidence_receipt_present": false,
+        "synthetic_window": {"logical_shadow_days": 59, "logical_qualified_signals": 499},
+        "metric_snapshot": {
+          "calibration_slope": "1.0000",
+          "calibration_intercept": "0.0000",
+          "calibration_error_main": "0.0200",
+          "calibration_error_niche": "0.0300",
+          "brier_skill_95_lcb": "0.0001",
+          "logloss_skill_95_lcb": "0.0001",
+          "closing_price_advantage_95_lcb": "0.0001",
+          "net_log_growth_95_lcb": "0.0001",
+          "quote_age_seconds": 1,
+          "advice_age_seconds": 1,
+          "capacity_gate_passed": true,
+          "population_stability_index": "0.0100",
+          "jensen_shannon": "0.0100",
+          "probability_delta": "0",
+          "odds_tick_delta": 0
+        },
+        "model_config": {
+          "stage": "BETA",
+          "kelly_fraction": "0.20",
+          "residual_weight_cap": "0.35",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        },
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "PASS_LOCAL_SYNTHETIC_METRIC_CONTRACT",
+        "action": "NO_RECOMMENDATION",
+        "all_quality_gates_pass": true,
+        "model_beta_status": "BLOCKED_NO_EMPIRICAL_REALTIME_SHADOW_EVIDENCE",
+        "model_beta_eligible": false,
+        "failure_codes": []
+      }
+    },
+    {
+      "scenario_id": "CALIBRATION_BOUNDARY_FAILS_CLOSED",
+      "shadow_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T07:00:00+10:00",
+        "evaluation_id": "S19-P02-CALIBRATION-BOUNDARY",
+        "evidence_kind": "FROZEN_SYNTHETIC_TEST_ONLY",
+        "runtime_evidence_receipt_present": false,
+        "synthetic_window": {"logical_shadow_days": 90, "logical_qualified_signals": 1000},
+        "metric_snapshot": {
+          "calibration_slope": "0.9000",
+          "calibration_intercept": "0.0000",
+          "calibration_error_main": "0.0200",
+          "calibration_error_niche": "0.0300",
+          "brier_skill_95_lcb": "0.0001",
+          "logloss_skill_95_lcb": "0.0001",
+          "closing_price_advantage_95_lcb": "0.0001",
+          "net_log_growth_95_lcb": "0.0001",
+          "quote_age_seconds": 1,
+          "advice_age_seconds": 1,
+          "capacity_gate_passed": true,
+          "population_stability_index": "0.0100",
+          "jensen_shannon": "0.0100",
+          "probability_delta": "-0.0001",
+          "odds_tick_delta": -1
+        },
+        "model_config": {
+          "stage": "BETA",
+          "kelly_fraction": "0.20",
+          "residual_weight_cap": "0.35",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        },
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "FAIL_CLOSED",
+        "decision": "NO_RECOMMENDATION_QUALITY_OR_EVIDENCE_GATE_FAILED",
+        "action": "NO_RECOMMENDATION",
+        "all_quality_gates_pass": false,
+        "model_beta_status": "BLOCKED_QUALITY_GATE_FAILURE",
+        "model_beta_eligible": false,
+        "failure_codes": ["CALIBRATION_GATE_FAILED"]
+      }
+    },
+    {
+      "scenario_id": "NET_GROWTH_BOUNDARY_FAILS_CLOSED",
+      "shadow_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T07:00:00+10:00",
+        "evaluation_id": "S19-P02-NET-GROWTH-BOUNDARY",
+        "evidence_kind": "FROZEN_SYNTHETIC_TEST_ONLY",
+        "runtime_evidence_receipt_present": false,
+        "synthetic_window": {"logical_shadow_days": 90, "logical_qualified_signals": 1000},
+        "metric_snapshot": {
+          "calibration_slope": "1.0000",
+          "calibration_intercept": "0.0000",
+          "calibration_error_main": "0.0200",
+          "calibration_error_niche": "0.0300",
+          "brier_skill_95_lcb": "0.0001",
+          "logloss_skill_95_lcb": "0.0001",
+          "closing_price_advantage_95_lcb": "0.0001",
+          "net_log_growth_95_lcb": "0",
+          "quote_age_seconds": 1,
+          "advice_age_seconds": 1,
+          "capacity_gate_passed": true,
+          "population_stability_index": "0.0100",
+          "jensen_shannon": "0.0100",
+          "probability_delta": "0",
+          "odds_tick_delta": 0
+        },
+        "model_config": {
+          "stage": "BETA",
+          "kelly_fraction": "0.20",
+          "residual_weight_cap": "0.35",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        },
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "FAIL_CLOSED",
+        "action": "NO_RECOMMENDATION",
+        "all_quality_gates_pass": false,
+        "model_beta_status": "BLOCKED_QUALITY_GATE_FAILURE",
+        "model_beta_eligible": false,
+        "failure_codes": ["NET_GROWTH_GATE_FAILED"]
+      }
+    },
+    {
+      "scenario_id": "FRESHNESS_CAPACITY_DRIFT_FAILURES_CLOSE_GATE",
+      "shadow_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T07:00:00+10:00",
+        "evaluation_id": "S19-P02-FRESHNESS-CAPACITY-DRIFT",
+        "evidence_kind": "FROZEN_SYNTHETIC_TEST_ONLY",
+        "runtime_evidence_receipt_present": false,
+        "synthetic_window": {"logical_shadow_days": 90, "logical_qualified_signals": 1000},
+        "metric_snapshot": {
+          "calibration_slope": "1.0000",
+          "calibration_intercept": "0.0000",
+          "calibration_error_main": "0.0200",
+          "calibration_error_niche": "0.0300",
+          "brier_skill_95_lcb": "0.0001",
+          "logloss_skill_95_lcb": "0.0001",
+          "closing_price_advantage_95_lcb": "0.0001",
+          "net_log_growth_95_lcb": "0.0001",
+          "quote_age_seconds": 13,
+          "advice_age_seconds": 9,
+          "capacity_gate_passed": false,
+          "population_stability_index": "0.20",
+          "jensen_shannon": "0.10",
+          "probability_delta": "0",
+          "odds_tick_delta": 0
+        },
+        "model_config": {
+          "stage": "BETA",
+          "kelly_fraction": "0.20",
+          "residual_weight_cap": "0.35",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        },
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "FAIL_CLOSED",
+        "action": "NO_RECOMMENDATION",
+        "all_quality_gates_pass": false,
+        "model_beta_status": "BLOCKED_QUALITY_GATE_FAILURE",
+        "model_beta_eligible": false,
+        "failure_codes": ["FRESHNESS_GATE_FAILED", "CAPACITY_GATE_FAILED", "DRIFT_GATE_FAILED"]
+      }
+    },
+    {
+      "scenario_id": "EMPIRICAL_PROMOTION_ATTEMPT_FAILS_CLOSED",
+      "shadow_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T07:00:00+10:00",
+        "evaluation_id": "S19-P02-EMPIRICAL-PROMOTION-ATTEMPT",
+        "evidence_kind": "SIGNED_EMPIRICAL_REALTIME_SHADOW",
+        "runtime_evidence_receipt_present": true,
+        "synthetic_window": {"logical_shadow_days": 90, "logical_qualified_signals": 1000},
+        "metric_snapshot": {
+          "calibration_slope": "1.0000",
+          "calibration_intercept": "0.0000",
+          "calibration_error_main": "0.0200",
+          "calibration_error_niche": "0.0300",
+          "brier_skill_95_lcb": "0.0001",
+          "logloss_skill_95_lcb": "0.0001",
+          "closing_price_advantage_95_lcb": "0.0001",
+          "net_log_growth_95_lcb": "0.0001",
+          "quote_age_seconds": 1,
+          "advice_age_seconds": 1,
+          "capacity_gate_passed": true,
+          "population_stability_index": "0.0100",
+          "jensen_shannon": "0.0100",
+          "probability_delta": "0",
+          "odds_tick_delta": 0
+        },
+        "model_config": {
+          "stage": "BETA",
+          "kelly_fraction": "0.20",
+          "residual_weight_cap": "0.35",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        },
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "FAIL_CLOSED",
+        "action": "NO_RECOMMENDATION",
+        "all_quality_gates_pass": true,
+        "model_beta_status": "BLOCKED_EMPIRICAL_EVIDENCE_NOT_VERIFIABLE_IN_LOCAL_FIXTURE",
+        "model_beta_eligible": false,
+        "failure_codes": ["EMPIRICAL_EVIDENCE_NOT_VERIFIABLE_IN_FROZEN_LOCAL_EVALUATOR"]
+      }
+    },
+    {
+      "scenario_id": "UNSAFE_RUNTIME_REQUESTS_FAIL_CLOSED",
+      "shadow_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T07:00:00+10:00",
+        "evaluation_id": "S19-P02-UNSAFE-RUNTIME",
+        "evidence_kind": "FROZEN_SYNTHETIC_TEST_ONLY",
+        "runtime_evidence_receipt_present": false,
+        "synthetic_window": {"logical_shadow_days": 90, "logical_qualified_signals": 1000},
+        "metric_snapshot": {
+          "calibration_slope": "1.0000",
+          "calibration_intercept": "0.0000",
+          "calibration_error_main": "0.0200",
+          "calibration_error_niche": "0.0300",
+          "brier_skill_95_lcb": "0.0001",
+          "logloss_skill_95_lcb": "0.0001",
+          "closing_price_advantage_95_lcb": "0.0001",
+          "net_log_growth_95_lcb": "0.0001",
+          "quote_age_seconds": 1,
+          "advice_age_seconds": 1,
+          "capacity_gate_passed": true,
+          "population_stability_index": "0.0100",
+          "jensen_shannon": "0.0100",
+          "probability_delta": "0",
+          "odds_tick_delta": 0
+        },
+        "model_config": {
+          "stage": "BETA",
+          "kelly_fraction": "0.20",
+          "residual_weight_cap": "0.35",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        },
+        "requested_external_execution": true,
+        "requested_actual_order": true,
+        "requested_real_fund_mutation": true,
+        "requested_real_mail_send": true,
+        "requested_production_deploy": true
+      },
+      "expected": {
+        "status": "FAIL_CLOSED",
+        "action": "NO_RECOMMENDATION",
+        "all_quality_gates_pass": true,
+        "model_beta_status": "FAIL_CLOSED_UNSAFE_RUNTIME_REQUEST",
+        "model_beta_eligible": false,
+        "failure_codes": ["EXTERNAL_RUNTIME_REQUESTED", "ACTUAL_ORDER_REQUESTED", "REAL_FUND_MUTATION_REQUESTED", "REAL_MAIL_SEND_REQUESTED", "PRODUCTION_DEPLOY_REQUESTED"]
+      }
+    }
+  ],
+  "malformed_inputs": [
+    {"case_id": "FLOAT_METRIC_REJECTED", "mutation": "float_metric"},
+    {"case_id": "UNKNOWN_EVIDENCE_KIND_REJECTED", "mutation": "unknown_evidence_kind"},
+    {"case_id": "RELAXED_MODEL_CONFIG_REJECTED", "mutation": "relaxed_model_config"}
+  ]
+}

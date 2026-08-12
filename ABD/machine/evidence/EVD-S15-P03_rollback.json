@@ -1,0 +1,82 @@
+{
+  "actual_return_claimed": false,
+  "artifacts": {
+    "abd_acceptance/e2e_multi_environment.py": {
+      "sha256": "3c55f069087eab79f797283670e787f3e9d82507a1bb2e5ac7ee5c717096f359",
+      "status": "PASS"
+    },
+    "browser_companion/content.js": {
+      "sha256": "3ff80d5753986340cce15b6ed64c4ebfcda9dc947ff2cf3a7e50357a607af677",
+      "status": "PASS"
+    },
+    "browser_companion/manifest.json": {
+      "sha256": "a5f9223e479bb2f099da536a862c9575399e024d6fe76205bbac058cb6a8e47d",
+      "status": "PASS"
+    },
+    "degraded_page.html": {
+      "sha256": "29c49f3388f8b7214c1d75869ebc2c8434d502972cb74a2883595c10d89f6b40",
+      "status": "PASS"
+    },
+    "e2e_evidence.json": {
+      "sha256": "7ca2390c513a716873423035244cec0a7280ea47194305296cb30251e251113a",
+      "status": "PASS"
+    },
+    "e2e_tests.json": {
+      "sha256": "9eaa3c409f66fd3fcff7a3b166ef0a75983d5a5bc6fc2136bb533d7875bbea31",
+      "status": "PASS"
+    },
+    "environment_matrix.json": {
+      "sha256": "28c5dac00b2691785ff1918037b385d46cfe73e6d1b1893ae7fe4dc92693cf06",
+      "status": "PASS"
+    },
+    "infra/cloudflared.yml": {
+      "sha256": "7f3855b637a020b3769d93bcbaa2539a692ab6eec314a8b722d29c6e0f5118f1",
+      "status": "PASS"
+    },
+    "infra/compose.yml": {
+      "sha256": "babed827948b77e28d395b0d36d2142605b8144f7e778302d6c384930aa54808",
+      "status": "PASS"
+    },
+    "infra/config.schema.json": {
+      "sha256": "bb08e4dd88137d88b5d842bd5ed2fb815163d53ab44f33d21730fdb2dd2f27da",
+      "status": "PASS"
+    },
+    "journey_tests.json": {
+      "sha256": "2f99eb4a558c9e5959c25ea4fcc4b30af0247db506fab4ef74b638b932575030",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S15_P03.json": {
+      "sha256": "22f95e81ead56255c3e97c00aa75b926455a093bb1b3db5f22f8296e61fe2022",
+      "status": "PASS"
+    },
+    "recovery_actions.json": {
+      "sha256": "b303c0ab00a151f016170ca4e0d6f7018d21e30980332c8eb1f8b25cfa5319db",
+      "status": "PASS"
+    },
+    "tests/S15/P03_test.py": {
+      "sha256": "42c60c0cc620f2c4c86265cecb51d54dbc0d536d02859ca4d641791474e614cc",
+      "status": "PASS"
+    },
+    "webapp/app.css": {
+      "sha256": "8a49a1149fa3c74b95a6d3f343c14c9f5cd35f27d8824ebcd573b2016cdbda65",
+      "status": "PASS"
+    },
+    "webapp/index.html": {
+      "sha256": "46f6ae484a9c6f29737eccf6e710397e2fc0d247a8c7d02acae6e94298cae77d",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S15-P03",
+  "evidence_id": "EVD-S15-P03-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "quality:s15-p03-local-multi-surface-e2e",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_S15_P03_LOCAL_MULTI_SURFACE_HARNESS_KEEP_SIGNED_S15_P02",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_account_balance_read_or_written": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

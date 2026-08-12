@@ -1,0 +1,67 @@
+{
+  "artifacts": {
+    "abd_acceptance/stage13_review.py": {
+      "sha256": "577f1ebd995f69dcdb671cee6c3ada80d1688cd30c28c6f771964d4a7c8c2df9",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S13-P01.json": {
+      "sha256": "161a75ad86f1f0f745eae393b27b3a7f7a07c034d4342381f88b95892ad0199d",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S13-P01_rollback.json": {
+      "sha256": "504ef71bbaba64179ba54b7e8a6be64b9aecca64c2e9db0db27fd65569c175c1",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S13-P02.json": {
+      "sha256": "42be48209052f1056d16dd002322ca710cafbe1023be7c9a20a16d158abbbe89",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S13-P02_rollback.json": {
+      "sha256": "37216196b19640aba63181e9a5211c5ec31048e33495f4b8da11d5f1391fd236",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S13-P03.json": {
+      "sha256": "7ebe8b2b59bce33b34e1c7bab01bf96a7d2225414725bddebada481443fc197a",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S13-P03_rollback.json": {
+      "sha256": "38da833ecfc4199cc842f6725f77b9d4c740f117734e546f8b31f9de37b7b9a6",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S13-P04.json": {
+      "sha256": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S13-P04_rollback.json": {
+      "sha256": "8cea40846c7d60b5ee8adaecee741e97be17a46e6045728e71cfb08131dc0856",
+      "status": "PASS"
+    },
+    "machine/evidence/S13/STAGE_REVIEW/findings.json": {
+      "sha256": "8f92f4d8e363b3a6e05d9d60e7386ca95b3f6650f4d9a8565ae7901c0ed82c8c",
+      "status": "PASS"
+    },
+    "machine/facts/stage13_review_contract.json": {
+      "sha256": "f3af5b65449b9d8f548c7f0931485a463a28587e44bdb383a17a3280afee7b48",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S13_STAGE_REVIEW.json": {
+      "sha256": "a45775dd1cb70085f4e15a51d0b834f2ece4d10858ea1350553f69bfea7905d2",
+      "status": "PASS"
+    },
+    "tests/S13/stage_review_test.py": {
+      "sha256": "cc1d7bd0bc04fad97856fb8b59e00a4f70e4791e27feb92ca0df65ef4bfb83c4",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "STAGE-REVIEW-S13",
+  "evidence_id": "EVD-S13-STAGE-REVIEW-ROLLBACK",
+  "external_state_changed": false,
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "CLOSE_S13_REVIEW_CANDIDATE_PRESERVE_SIGNED_PHASE_EVIDENCE_NO_EXTERNAL_MUTATION",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

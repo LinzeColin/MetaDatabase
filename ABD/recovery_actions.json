@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0.0",
+  "recovery_catalog_id": "S13-P04-RECOVERY-ACTIONS",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "claim_boundary": {
+    "actual_market_or_odds_observed": false,
+    "actual_order_execution_claimed": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_account_accessed": false,
+    "real_time_soak_waited": false,
+    "system_order_confirmation_enabled": false
+  },
+  "actions": [
+    {
+      "action_id": "RECOVER-S13-P04-WALKING-SKELETON",
+      "journey_id": "S13-P04-WALKING-SKELETON",
+      "trigger_status": "ADVICE_ONLY_EVIDENCE_RECORDED_NO_ACTUAL_RETURN",
+      "steps": ["EXPIRE_CURRENT_SYNTHETIC_ADVICE", "PRESERVE_EVIDENCE", "REPLAY_FROZEN_INPUTS"],
+      "terminal_status": "RECOVERY_READY_NO_NEW_RECOMMENDATION",
+      "evidence_preserved": true,
+      "external_state_changed": false,
+      "production_state_changed": false,
+      "actual_return_claimed": false,
+      "order_submission_enabled": false,
+      "synthetic_test_only": true
+    },
+    {
+      "action_id": "RECOVER-S13-P04-GOLDEN",
+      "journey_id": "S13-P04-GOLDEN",
+      "trigger_status": "SYNTHETIC_SETTLEMENT_RECORDED_NOT_ACTUAL_RETURN",
+      "steps": ["PRESERVE_ADVICE_AND_SYNTHETIC_SETTLEMENT", "RESTORE_SIGNED_S13_P03", "REPLAY_FROZEN_INPUTS"],
+      "terminal_status": "RECOVERY_READY_REAL_RETURN_STILL_UNCLAIMED",
+      "evidence_preserved": true,
+      "external_state_changed": false,
+      "production_state_changed": false,
+      "actual_return_claimed": false,
+      "order_submission_enabled": false,
+      "synthetic_test_only": true
+    },
+    {
+      "action_id": "RECOVER-S13-P04-BLACK",
+      "journey_id": "S13-P04-BLACK",
+      "trigger_status": "RED_REVOKE_DO_NOT_ORDER",
+      "steps": ["INVALIDATE_SYNTHETIC_TICKET", "PRESERVE_EVIDENCE", "WAIT_FOR_FRESH_FROZEN_INPUT"],
+      "terminal_status": "NO_RECOMMENDATION_UNTIL_NEW_GATES_PASS",
+      "evidence_preserved": true,
+      "external_state_changed": false,
+      "production_state_changed": false,
+      "actual_return_claimed": false,
+      "order_submission_enabled": false,
+      "synthetic_test_only": true
+    },
+    {
+      "action_id": "RECOVER-S13-P04-ABUSE",
+      "journey_id": "S13-P04-ABUSE",
+      "trigger_status": "QUARANTINED_NO_ACTION_NO_ACTUAL_CLAIM",
+      "steps": ["QUARANTINE_UNTRUSTED_INPUT", "PRESERVE_EVIDENCE", "REQUIRE_FRESH_TRUSTED_INPUT"],
+      "terminal_status": "QUARANTINED_NO_RECOMMENDATION",
+      "evidence_preserved": true,
+      "external_state_changed": false,
+      "production_state_changed": false,
+      "actual_return_claimed": false,
+      "order_submission_enabled": false,
+      "synthetic_test_only": true
+    },
+    {
+      "action_id": "RECOVER-S13-P04-DEGRADED",
+      "journey_id": "S13-P04-DEGRADED",
+      "trigger_status": "NO_RECOMMENDATION_DEGRADED",
+      "steps": ["DISABLE_AFFECTED_CAPABILITY", "PRESERVE_EVIDENCE", "RESTORE_SIGNED_S13_P03"],
+      "terminal_status": "DEGRADED_CAPABILITY_DISABLED_NO_RECOMMENDATION",
+      "evidence_preserved": true,
+      "external_state_changed": false,
+      "production_state_changed": false,
+      "actual_return_claimed": false,
+      "order_submission_enabled": false,
+      "synthetic_test_only": true
+    },
+    {
+      "action_id": "RECOVER-S13-P04-RECOVERY",
+      "journey_id": "S13-P04-RECOVERY",
+      "trigger_status": "RECOVERY_COMPLETED_LOCAL_ONLY_NO_EXTERNAL_EFFECT",
+      "steps": ["REPLAY_SIGNED_S13_P03_EVIDENCE", "KEEP_EXPIRED_ADVICE_INVALID", "PRESERVE_EVIDENCE"],
+      "terminal_status": "LOCAL_RECOVERY_COMPLETE_NO_EXTERNAL_EFFECT",
+      "evidence_preserved": true,
+      "external_state_changed": false,
+      "production_state_changed": false,
+      "actual_return_claimed": false,
+      "order_submission_enabled": false,
+      "synthetic_test_only": true
+    }
+  ]
+}

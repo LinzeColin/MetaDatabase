@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-SSH-LOCAL-ROUTE-POLICY-DIAGNOSTIC-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_CURRENT_PRODUCTION_SSH_LOCAL_ROUTE_POLICY_DIAGNOSTIC_READ_ONLY",
+  "expected": {
+    "candidate_alias_selector": "UNIQUE_OVH_OR_VPS_HOST_DECLARATION",
+    "maximum_local_command_timeout_seconds": 2,
+    "route_queries": [
+      "default",
+      "numeric_target_only"
+    ],
+    "socket_connection_attempts": 0,
+    "ssh_connection_attempts": 0,
+    "provider_api_requests": 0,
+    "github_api_requests": 0
+  },
+  "source_boundary": {
+    "only_host_declaration_aliases_and_ssh_g_transport_metadata_read": true,
+    "alias_address_port_user_identity_proxy_or_route_values_emitted_or_persisted": false,
+    "credential_material_read_emitted_or_persisted": false,
+    "socket_connection_attempted": false,
+    "ssh_connection_attempted": false,
+    "interactive_authentication_permitted": false,
+    "local_known_hosts_modified": false,
+    "provider_api_request_sent": false,
+    "github_api_request_sent": false,
+    "provider_resource_created_deleted_rebuilt_or_restarted": false,
+    "provider_network_security_group_ip_dns_or_cloudflare_changed": false,
+    "host_runtime_or_configuration_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_PRODUCTION_SSH_LOCAL_ROUTE_POLICY_DIAGNOSTIC_ONLY_NOT_DNS_PROBE_SOCKET_CONNECTION_SSH_AUTHENTICATION_HOST_RECOVERY_CONFIG_SEMANTIC_CHECK_UNIT_INSTALL_CORE_START_CONNECTOR_ACTIVATION_OR_PUBLIC_RELEASE",
+  "rollback": {
+    "action": "NO_LOCAL_NETWORK_OR_HOST_MUTATION_NO_RUNTIME_ROLLBACK_REQUIRED",
+    "current_candidate_shadow_changed": false,
+    "private_evidence_deleted_automatically": false
+  }
+}

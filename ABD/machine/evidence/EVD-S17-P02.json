@@ -1,0 +1,408 @@
+{
+  "cli_wiring": {
+    "path": "abd_acceptance/__main__.py",
+    "sha256_at_signing": "5fa1d508928e764117b5eb7e05705c9e738b760afb00355d3bc4f2303f8f3daf"
+  },
+  "contract_id": "AC-S17-P02",
+  "decision": "S17_P02_IDEMPOTENCY_PASS_P03_REQUIRED",
+  "decision_sha256": "537e518e5d8c60a07a0a7ecc4305ec4fb5f27d869b38308cdb3a0c75cfb797f8",
+  "deterministic_replay": {
+    "duplicate_ledger_event_count": 0,
+    "duplicate_suggestion_count": 0,
+    "local_synthetic_ledger_projections": 8,
+    "logical_lane_input_attempts": 19,
+    "quarantined_key_conflict_count": 1,
+    "real_time_wait_performed": false,
+    "suppressed_duplicate_attempts": 9,
+    "timeout_no_state_change_count": 1
+  },
+  "evidence_id": "EVD-S17-P02",
+  "execution_policy": {
+    "external_runtime_access_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "offline_deterministic_only": true,
+    "phase_test_only": true,
+    "runtime_thread_or_process_concurrency_allowed": false
+  },
+  "external_effect_boundary": {
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "owner_final_order_only": true,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_ledger_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_runtime_concurrency_executed": false,
+    "real_time_soak_waited": false,
+    "real_vps_resource_observed_or_measured": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-10T00:00:00+10:00",
+  "hashes": {
+    "code": "8cc52a92fad95586e0e0337ecbf609845ac182f9cf29284a3ca7d0f2b3386fa9",
+    "inputs": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/concurrency_idempotency.py": "8cc52a92fad95586e0e0337ecbf609845ac182f9cf29284a3ca7d0f2b3386fa9",
+      "abd_acceptance/concurrency_idempotency_engine.py": "751d4fae8cdb788fb24a5d90955af373e8f7d9254e39d7ca46bdcfbcc67d3757",
+      "concurrency_test.py": "931d7641bc73d65707307827d4ac6c73e8d26af0c893313039eb532dd1493b6c",
+      "idempotency_report.json": "b9d0a0191c1aee7a3694f8f9916812a53818681626036344e8a9ad07d5580a1f",
+      "machine/evidence/EVD-S17-P01.json": "2f8cc9265cea7eec0e28d6ae0608ba6548a75378d28b850e639509465bff2fa9",
+      "machine/evidence/S17/P02/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S17/P02/pytest.xml": "9eee7745fecb289f828231346c29773f9d6d349702927b3f8a9261e08c675b98",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S17_P02.json": "63f0b877e79698c88f1a3adfa8de369ce2c1fb82c6f0cbfd8979575a0ae6562b"
+    },
+    "rollback_evidence": "8d496ff9548c7b71dd1777c4067e91b7c8148d3337efde160a14b57150fa5a3c"
+  },
+  "next": "S17/P03_READY_NOT_STARTED",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S17_P02_LOCAL_IDEMPOTENCY_EVIDENCE_ONLY_P03_REQUIRED",
+  "requirement_id": "REQ-S17-P02",
+  "rollback": {
+    "artifacts": {
+      "abd_acceptance/concurrency_idempotency.py": {
+        "sha256": "8cc52a92fad95586e0e0337ecbf609845ac182f9cf29284a3ca7d0f2b3386fa9",
+        "status": "PASS"
+      },
+      "abd_acceptance/concurrency_idempotency_engine.py": {
+        "sha256": "751d4fae8cdb788fb24a5d90955af373e8f7d9254e39d7ca46bdcfbcc67d3757",
+        "status": "PASS"
+      },
+      "concurrency_test.py": {
+        "sha256": "931d7641bc73d65707307827d4ac6c73e8d26af0c893313039eb532dd1493b6c",
+        "status": "PASS"
+      },
+      "idempotency_report.json": {
+        "sha256": "b9d0a0191c1aee7a3694f8f9916812a53818681626036344e8a9ad07d5580a1f",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S17-P01.json": {
+        "sha256": "2f8cc9265cea7eec0e28d6ae0608ba6548a75378d28b850e639509465bff2fa9",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S17_P02.json": {
+        "sha256": "63f0b877e79698c88f1a3adfa8de369ce2c1fb82c6f0cbfd8979575a0ae6562b",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S17-P02",
+    "evidence_id": "EVD-S17-P02-ROLLBACK",
+    "external_state_changed": false,
+    "feature_flag_id": "idempotency:s17_frozen_logical_lane_replay",
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_LOCAL_IDEMPOTENCY_REPLAY_KEEP_RUNTIME_DEPLOYMENT_BLOCKED",
+    "order_submission_enabled": false,
+    "production_state_changed": false,
+    "real_ledger_read_or_written": false,
+    "real_runtime_concurrency_executed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S17",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S17P02-BASELINE-PURSUE_GOAL_PROMPT.txt",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S17P02-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S17P02-BASELINE-machine-facts-canonical_facts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S17P02-BASELINE-machine-facts-parameters.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S17P02-BASELINE-machine-facts-costs.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S17P02-BASELINE-machine-facts-roadmap.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S17P02-BASELINE-machine-facts-requirements.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S17P02-BASELINE-machine-facts-acceptance_contracts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S17P02-BASELINE-machine-facts-task_graph.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S17P02-BASELINE-machine-facts-traceability_matrix.json",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S17P02-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S17P02-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S17P02-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S17P02-TRACEABILITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S17-P02-01",
+          "T-S17-P02-02",
+          "T-S17-P02-03"
+        ],
+        "id": "S17P02-TASKPACK-SCOPE-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contract_id": "AC-S17-P02",
+          "expected_artifact": "machine/evidence/EVD-S17-P02.json",
+          "id": "INDEX-AC-S17-P02",
+          "kind": "ACCEPTANCE_EVIDENCE",
+          "pass_gate": "重复建议/账本事件为0。",
+          "requirement_id": "REQ-S17-P02",
+          "status": "PLANNED"
+        },
+        "id": "S17P02-EVIDENCE-INDEX-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence_sha256": "2f8cc9265cea7eec0e28d6ae0608ba6548a75378d28b850e639509465bff2fa9",
+          "status": "PASS"
+        },
+        "id": "S17P02-P01-SIGNED-PREDECESSOR-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "idempotency_report.json": "b9d0a0191c1aee7a3694f8f9916812a53818681626036344e8a9ad07d5580a1f"
+        },
+        "id": "S17P02-IDEMPOTENCY-ARTIFACT-REPLAY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "aggregate": {
+            "accepted_local_projection_count": 8,
+            "input_attempt_count": 19,
+            "quarantined_key_conflict_count": 1,
+            "suppressed_duplicate_attempt_count": 9,
+            "timeout_no_state_change_count": 1
+          },
+          "idempotency_gate": {
+            "duplicate_ledger_event_count": 0,
+            "duplicate_suggestion_count": 0,
+            "input_attempts_accounted": true,
+            "local_projection_count": 8,
+            "passed": true,
+            "projection_identity_unique": true,
+            "suppressed_duplicate_attempt_count": 9
+          }
+        },
+        "id": "S17P02-ZERO-DUPLICATE-SUGGESTION-AND-LEDGER-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "forbidden": [],
+          "forbidden_calls": [],
+          "imports": [
+            "__future__",
+            "abd_acceptance",
+            "argparse",
+            "ast",
+            "canonical_facts",
+            "concurrency_idempotency_engine",
+            "hashlib",
+            "json",
+            "pathlib",
+            "re",
+            "typing",
+            "xml"
+          ],
+          "url_literals": []
+        },
+        "id": "S17P02-LOCAL-ONLY-STATIC-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "current_sha256": "5fa1d508928e764117b5eb7e05705c9e738b760afb00355d3bc4f2303f8f3daf",
+          "matched": 4,
+          "required_fragments": 4
+        },
+        "id": "S17P02-CLI-WRITER-AND-VERIFIER-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 39
+        },
+        "id": "S17P02-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S17/P02/paid_dependency_scan.txt",
+        "id": "S17P02-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S17P02-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+          "external_network_accessed": false,
+          "financial_return_verified_or_guaranteed": false,
+          "gmail_account_or_api_accessed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "ovh_or_cloudflare_runtime_accessed": false,
+          "owner_final_order_only": true,
+          "production_deployed_or_activated": false,
+          "real_account_balance_read_or_written": false,
+          "real_ledger_read_or_written": false,
+          "real_market_or_odds_observed": false,
+          "real_runtime_concurrency_executed": false,
+          "real_time_soak_waited": false,
+          "real_vps_resource_observed_or_measured": false,
+          "recommendation_generated_or_enabled": false
+        },
+        "id": "S17P02-EXTERNAL-EFFECT-BOUNDARY-EXACT",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S17-P02",
+    "decision": "S17_P02_IDEMPOTENCY_PASS_P03_REQUIRED",
+    "execution_policy": {
+      "external_runtime_access_allowed": false,
+      "full_regression_or_real_time_soak_allowed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "offline_deterministic_only": true,
+      "phase_test_only": true,
+      "runtime_thread_or_process_concurrency_allowed": false
+    },
+    "external_effect_boundary": {
+      "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submission_enabled": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "owner_final_order_only": true,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_ledger_read_or_written": false,
+      "real_market_or_odds_observed": false,
+      "real_runtime_concurrency_executed": false,
+      "real_time_soak_waited": false,
+      "real_vps_resource_observed_or_measured": false,
+      "recommendation_generated_or_enabled": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "hashes": {
+      "concurrency_test.py": "931d7641bc73d65707307827d4ac6c73e8d26af0c893313039eb532dd1493b6c",
+      "idempotency_report.json": "b9d0a0191c1aee7a3694f8f9916812a53818681626036344e8a9ad07d5580a1f",
+      "machine/evidence/EVD-S17-P01.json": "2f8cc9265cea7eec0e28d6ae0608ba6548a75378d28b850e639509465bff2fa9",
+      "machine/tests/fixtures/S17_P02.json": "63f0b877e79698c88f1a3adfa8de369ce2c1fb82c6f0cbfd8979575a0ae6562b"
+    },
+    "next": "S17/P03_READY_NOT_STARTED",
+    "phase_id": "P02",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "requirement_id": "REQ-S17-P02",
+    "stage_id": "S17",
+    "status": "PASS",
+    "summary": {
+      "checks": 25,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 25
+    }
+  }
+}

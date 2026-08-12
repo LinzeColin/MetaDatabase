@@ -1,0 +1,71 @@
+{
+  "artifact_id": "ART-S12-P03-03",
+  "contract_id": "AC-S12-P03",
+  "decision": "SYNTHETIC_COST_DISCLOSURE_ONLY_DO_NOT_REPORT_ROI_OR_TARGET_SUCCESS",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_provider_capacity_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "operating_cost": {
+    "bankroll_principal_cents": 30000,
+    "existing_recurring_cost_status": "UNKNOWN_ACCOUNT_SPECIFIC_NO_BILLING_ACCESS",
+    "existing_resources_are_not_relabelled_zero": true,
+    "incremental_cash_budget_cents": 0,
+    "incremental_cash_spent_cents": 0,
+    "incremental_cash_status": "ZERO_NEW_CASH_ONLY_NOT_TOTAL_SYSTEM_COST"
+  },
+  "opportunity_cost_bands": [
+    {
+      "classification": "SENSITIVITY_ONLY_NOT_OWNER_TIME_VALUATION",
+      "high_aud": "14400.00",
+      "illustrative_hourly_value_aud": "30.00",
+      "likely_aud": "9600.00",
+      "low_aud": "7200.00"
+    },
+    {
+      "classification": "SENSITIVITY_ONLY_NOT_OWNER_TIME_VALUATION",
+      "high_aud": "24000.00",
+      "illustrative_hourly_value_aud": "50.00",
+      "likely_aud": "16000.00",
+      "low_aud": "12000.00"
+    },
+    {
+      "classification": "SENSITIVITY_ONLY_NOT_OWNER_TIME_VALUATION",
+      "high_aud": "48000.00",
+      "illustrative_hourly_value_aud": "100.00",
+      "likely_aud": "32000.00",
+      "low_aud": "24000.00"
+    },
+    {
+      "classification": "SENSITIVITY_ONLY_NOT_OWNER_TIME_VALUATION",
+      "high_aud": "72000.00",
+      "illustrative_hourly_value_aud": "150.00",
+      "likely_aud": "48000.00",
+      "low_aud": "36000.00"
+    }
+  ],
+  "opportunity_cost_sha256": "eb16677de35f5178cd87027469f4cbe057e4a8e2ee7258f7d3c7fa82b5f9d230",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "requirement_id": "REQ-S12-P03",
+  "return_cost_boundary": {
+    "actual_return_requires_verified_execution_and_reconciliation": true,
+    "loss_or_drawdown_may_be_hidden": false,
+    "return_bands_are_not_realized_revenue": true,
+    "roi_reported": false,
+    "sensitivity_grid_sha256": "ffe270dbe1abd3c6fa7352572005d11e5c9290291cf1341ec06771c3bea049cd",
+    "target_curve_or_sensitivity_may_substitute_for_actual_return": false
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S12"
+}

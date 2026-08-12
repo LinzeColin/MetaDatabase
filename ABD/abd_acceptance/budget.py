@@ -511,6 +511,20 @@ def _audit_imports(
         "decimal_math",
         "cross_impl_check",
         "robustness_gate",
+        "friction",
+        "decision_gate",
+        "platform_router",
+        "risk_engine",
+        "target_engine",
+        "cashflow_adjustment",
+        "capacity_model",
+        "equivalent_signal",
+        "economics",
+        "target_falsification",
+        "quote_check",
+        "post_advice_worker",
+        "result_settler",
+        "performance_report",
     }
     stdlib = set(sys.stdlib_module_names)
     for path in paths:

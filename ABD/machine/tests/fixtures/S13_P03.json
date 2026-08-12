@@ -1,0 +1,211 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S13-P03-POST-ADVICE-SETTLEMENT",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+  "predecessor": {
+    "contract_id": "AC-S13-P02",
+    "evidence_path": "machine/evidence/EVD-S13-P02.json",
+    "next": "S13/P03_READY_NOT_STARTED"
+  },
+  "claim_boundary": {
+    "actual_market_or_odds_observed": false,
+    "actual_order_execution_claimed": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_account_accessed": false,
+    "real_time_soak_waited": false,
+    "system_order_confirmation_enabled": false
+  },
+  "cases": [
+    {
+      "case_id": "A01-UNCONFIRMED-ADVICE-ONLY",
+      "advice": {
+        "schema_version": "1.0.0",
+        "advice_id": "S13-P03-ADVICE-0001",
+        "advice_issued_at": "2026-08-09T00:00:00+10:00",
+        "ticket_id": "S13-P02-TICKET-ALPHA",
+        "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+        "event_id": "EVENT-SYNTH-ALPHA-001",
+        "market_id": "MARKET-SYNTH-WINNER",
+        "selection_id": "SELECTION-SYNTH-ALPHA",
+        "recommended_odds": "2.200000",
+        "minimum_odds": "2.200000",
+        "stake_cents": 225,
+        "synthetic_test_only": true
+      },
+      "confirmation": null,
+      "settlement": null,
+      "expected": {
+        "advice_status": "ADVICE_RECORDED_OWNER_CONFIRMATION_PENDING",
+        "result_status": "UNCONFIRMED_DO_NOT_SETTLE_OR_CLAIM_ACTUAL_RETURN",
+        "synthetic_pnl_cents": null,
+        "relative_closing_line_advantage": null
+      }
+    },
+    {
+      "case_id": "A02-CONFIRMED-AWAITING-SETTLEMENT",
+      "advice": {
+        "schema_version": "1.0.0",
+        "advice_id": "S13-P03-ADVICE-0002",
+        "advice_issued_at": "2026-08-09T00:00:00+10:00",
+        "ticket_id": "S13-P02-TICKET-ALPHA",
+        "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+        "event_id": "EVENT-SYNTH-ALPHA-002",
+        "market_id": "MARKET-SYNTH-WINNER",
+        "selection_id": "SELECTION-SYNTH-ALPHA",
+        "recommended_odds": "2.200000",
+        "minimum_odds": "2.200000",
+        "stake_cents": 225,
+        "synthetic_test_only": true
+      },
+      "confirmation": {
+        "schema_version": "1.0.0",
+        "confirmation_id": "S13-P03-CONFIRMATION-0002",
+        "advice_id": "S13-P03-ADVICE-0002",
+        "confirmed_at": "2026-08-09T00:00:15+10:00",
+        "confirmation_mode": "OWNER_EXPLICIT_CONFIRMATION",
+        "synthetic_test_only": true
+      },
+      "settlement": null,
+      "expected": {
+        "advice_status": "ADVICE_RECORDED_OWNER_CONFIRMED_PENDING_RECONCILIATION",
+        "result_status": "OWNER_CONFIRMED_AWAITING_SETTLEMENT_EVIDENCE",
+        "synthetic_pnl_cents": null,
+        "relative_closing_line_advantage": null
+      }
+    },
+    {
+      "case_id": "A03-CONFIRMED-SYNTHETIC-WIN",
+      "advice": {
+        "schema_version": "1.0.0",
+        "advice_id": "S13-P03-ADVICE-0003",
+        "advice_issued_at": "2026-08-09T00:00:00+10:00",
+        "ticket_id": "S13-P02-TICKET-ALPHA",
+        "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+        "event_id": "EVENT-SYNTH-ALPHA-003",
+        "market_id": "MARKET-SYNTH-WINNER",
+        "selection_id": "SELECTION-SYNTH-ALPHA",
+        "recommended_odds": "2.200000",
+        "minimum_odds": "2.200000",
+        "stake_cents": 225,
+        "synthetic_test_only": true
+      },
+      "confirmation": {
+        "schema_version": "1.0.0",
+        "confirmation_id": "S13-P03-CONFIRMATION-0003",
+        "advice_id": "S13-P03-ADVICE-0003",
+        "confirmed_at": "2026-08-09T00:00:15+10:00",
+        "confirmation_mode": "OWNER_EXPLICIT_CONFIRMATION",
+        "synthetic_test_only": true
+      },
+      "settlement": {
+        "schema_version": "1.0.0",
+        "settlement_id": "S13-P03-SETTLEMENT-0003",
+        "advice_id": "S13-P03-ADVICE-0003",
+        "settled_at": "2026-08-09T00:01:00+10:00",
+        "outcome": "WON",
+        "settled_odds": "2.200000",
+        "closing_odds": "2.100000",
+        "synthetic_test_only": true
+      },
+      "expected": {
+        "advice_status": "ADVICE_RECORDED_OWNER_CONFIRMED_PENDING_RECONCILIATION",
+        "result_status": "SYNTHETIC_SETTLED_NOT_ACTUAL_RETURN",
+        "synthetic_pnl_cents": 270,
+        "relative_closing_line_advantage": "0.047619047619"
+      }
+    },
+    {
+      "case_id": "A04-CONFIRMED-ADVERSE-POINT-0001-LOSS",
+      "advice": {
+        "schema_version": "1.0.0",
+        "advice_id": "S13-P03-ADVICE-0004",
+        "advice_issued_at": "2026-08-09T00:00:00+10:00",
+        "ticket_id": "S13-P02-TICKET-ALPHA",
+        "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+        "event_id": "EVENT-SYNTH-ALPHA-004",
+        "market_id": "MARKET-SYNTH-WINNER",
+        "selection_id": "SELECTION-SYNTH-ALPHA",
+        "recommended_odds": "2.200000",
+        "minimum_odds": "2.200000",
+        "stake_cents": 225,
+        "synthetic_test_only": true
+      },
+      "confirmation": {
+        "schema_version": "1.0.0",
+        "confirmation_id": "S13-P03-CONFIRMATION-0004",
+        "advice_id": "S13-P03-ADVICE-0004",
+        "confirmed_at": "2026-08-09T00:00:15+10:00",
+        "confirmation_mode": "OWNER_EXPLICIT_CONFIRMATION",
+        "synthetic_test_only": true
+      },
+      "settlement": {
+        "schema_version": "1.0.0",
+        "settlement_id": "S13-P03-SETTLEMENT-0004",
+        "advice_id": "S13-P03-ADVICE-0004",
+        "settled_at": "2026-08-09T00:01:00+10:00",
+        "outcome": "LOST",
+        "settled_odds": "2.200000",
+        "closing_odds": "2.200100",
+        "synthetic_test_only": true
+      },
+      "expected": {
+        "advice_status": "ADVICE_RECORDED_OWNER_CONFIRMED_PENDING_RECONCILIATION",
+        "result_status": "SYNTHETIC_SETTLED_NOT_ACTUAL_RETURN",
+        "synthetic_pnl_cents": -225,
+        "relative_closing_line_advantage": "-0.000045452479"
+      }
+    },
+    {
+      "case_id": "A05-CONFIRMED-FAVOURABLE-POINT-0001-VOID",
+      "advice": {
+        "schema_version": "1.0.0",
+        "advice_id": "S13-P03-ADVICE-0005",
+        "advice_issued_at": "2026-08-09T00:00:00+10:00",
+        "ticket_id": "S13-P02-TICKET-ALPHA",
+        "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+        "event_id": "EVENT-SYNTH-ALPHA-005",
+        "market_id": "MARKET-SYNTH-WINNER",
+        "selection_id": "SELECTION-SYNTH-ALPHA",
+        "recommended_odds": "2.200000",
+        "minimum_odds": "2.200000",
+        "stake_cents": 225,
+        "synthetic_test_only": true
+      },
+      "confirmation": {
+        "schema_version": "1.0.0",
+        "confirmation_id": "S13-P03-CONFIRMATION-0005",
+        "advice_id": "S13-P03-ADVICE-0005",
+        "confirmed_at": "2026-08-09T00:00:15+10:00",
+        "confirmation_mode": "OWNER_EXPLICIT_CONFIRMATION",
+        "synthetic_test_only": true
+      },
+      "settlement": {
+        "schema_version": "1.0.0",
+        "settlement_id": "S13-P03-SETTLEMENT-0005",
+        "advice_id": "S13-P03-ADVICE-0005",
+        "settled_at": "2026-08-09T00:01:00+10:00",
+        "outcome": "VOID",
+        "settled_odds": "2.200000",
+        "closing_odds": "2.199900",
+        "synthetic_test_only": true
+      },
+      "expected": {
+        "advice_status": "ADVICE_RECORDED_OWNER_CONFIRMED_PENDING_RECONCILIATION",
+        "result_status": "SYNTHETIC_SETTLED_NOT_ACTUAL_RETURN",
+        "synthetic_pnl_cents": 0,
+        "relative_closing_line_advantage": "0.000045456611"
+      }
+    }
+  ],
+  "expected_case_count": 5,
+  "expected_synthetic_pnl_cents": 45,
+  "expected_mean_relative_closing_line_advantage": "0.015873017250",
+  "expected_replay_sha256": "c5d2dbb3335ebc906d63aceb840eb101c84c04747e8c8bd044ad3c43edb1fcf5",
+  "expected_preflight_minimum": 16,
+  "expected_next": "S13/P04_READY_NOT_STARTED"
+}

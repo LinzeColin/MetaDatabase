@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "S12-P04-TARGET-FALSIFICATION-FROZEN",
+  "contract_id": "AC-S12-P04",
+  "requirement_id": "REQ-S12-P04",
+  "stage_id": "S12",
+  "phase_id": "P04",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "p01_evidence_sha256": "9462cfab12b28218bf84419d45bf0c4d512aa406d5547de108f0dfbb09d4214a",
+  "p02_evidence_sha256": "dba62cb8d87a6a33fb7e4ea90615a7a892233e908fd48973000afc43576395f0",
+  "p03_evidence_sha256": "10ece6229575dc17dfed64e802d734d1ad199df592393b9525552d9f26c04a58",
+  "capacity_report_sha256": "0dfa4b67eb93f75e101adce94bb534fd8d9fbe7e7f139e5bd60ffa48fd81c11b",
+  "sensitivity_grid_sha256": "ffe270dbe1abd3c6fa7352572005d11e5c9290291cf1341ec06771c3bea049cd",
+  "opportunity_cost_sha256": "eb16677de35f5178cd87027469f4cbe057e4a8e2ee7258f7d3c7fa82b5f9d230",
+  "bankroll_cents": 30000,
+  "incremental_cash_budget_cents": 0,
+  "target_monthly_return": "0.30",
+  "current_shadow_observed_days": 0,
+  "current_independent_equivalent_signals": 5,
+  "current_empirical_falsification_record": {
+    "evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+    "complete_calendar_months": 0,
+    "independent_equivalent_signals": 5,
+    "monthly_return_95_upper_bound": "0.0000"
+  },
+  "current_empirical_verification_record": {
+    "evidence_status": "NO_EMPIRICAL_EXECUTION_EVIDENCE",
+    "complete_calendar_months": 0,
+    "cashflow_adjusted_geometric_monthly_return": "0.0000",
+    "evidence_complete": false,
+    "unresolved_reconciliation_differences": 0
+  },
+  "synthetic_falsification_case": {
+    "evidence_status": "SYNTHETIC_TEST_ONLY_NOT_EMPIRICAL",
+    "complete_calendar_months": 6,
+    "independent_equivalent_signals": 1000,
+    "monthly_return_95_upper_bound": "0.2999"
+  },
+  "expected_target_acceptance_sha256": "daea99596daad0333987e0cbdd2db1b78615e526e2b741e1ea215fceebdcc994",
+  "expected_kill_report_schema_sha256": "f4a9bc8169287bba1124b3362e8d395c412333e48f51c3fe7e20a7f3fb891f41"
+}

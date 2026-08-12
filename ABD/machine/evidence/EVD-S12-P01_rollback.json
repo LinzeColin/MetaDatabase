@@ -1,0 +1,36 @@
+{
+  "artifacts": {
+    "cashflow_adjustment.py": {
+      "sha256": "e40b7051d2d39defecddacdbff57057e67a63c0ad21e46045d004bd3126eef3c",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S12_P01.json": {
+      "sha256": "9c050728f860fe69568959499af4852284dc87034ee6ce44ad28cea43409d69b",
+      "status": "PASS"
+    },
+    "target_engine.py": {
+      "sha256": "be759f9d8d89f14bb64f77342aa02139cf899c20ad25edd4c144b65b6ef30534",
+      "status": "PASS"
+    },
+    "target_vectors.json": {
+      "sha256": "80fcd5c54a25d893eda11f84a039d75ae8f40862b4d26e3f9d6370983bbd956e",
+      "status": "PASS"
+    },
+    "tests/S12/P01_test.py": {
+      "sha256": "d4a57b6740950888d63d3392451cc5cc728aac0d528a50efe0f5d7484d1e6b05",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S12-P01",
+  "evidence_id": "EVD-S12-P01-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "target:cashflow_adjusted_curve",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_TARGET_CURVE_SCOPED_FLAG_RESTORE_SIGNED_S01_S10_S11_PREDECESSORS_KEEP_ALL_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

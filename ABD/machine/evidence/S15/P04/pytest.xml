@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="19" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S15.P04_test" name="test_candidate_preflight_replays_the_declared_s15_traceability_gate_only" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_gate_and_fixture_name_exact_p04_outputs_and_critical_scope" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_each_critical_phase_has_a_complete_non_orphan_chain[P01]" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_each_critical_phase_has_a_complete_non_orphan_chain[P02]" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_each_critical_phase_has_a_complete_non_orphan_chain[P03]" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_each_critical_phase_has_a_complete_non_orphan_chain[P04]" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_p04_task_and_test_links_are_exactly_the_frozen_contract_links" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_one_in_ten_thousand_favourable_and_adverse_paths_remain_opposite_and_local" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_identical_frozen_inputs_replay_deterministically" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_traceability_negative_mutations_fail_closed[MUT-S15-P04-UNKNOWN-GATE-FIELD]" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_traceability_negative_mutations_fail_closed[MUT-S15-P04-ORPHAN-S15-TASK]" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_traceability_negative_mutations_fail_closed[MUT-S15-P04-CYCLIC-TASK-GRAPH]" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_traceability_negative_mutations_fail_closed[MUT-S15-P04-UNPASSED-CRITICAL-PREDECESSOR]" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_traceability_negative_mutations_fail_closed[MUT-S15-P04-BOUNDARY-CASE-MISMATCH]" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_fixture_is_closed_and_has_the_required_targeted_test_floor" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_rollback_drill_keeps_signed_p03_and_changes_no_external_or_database_state" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_execution_policy_cannot_be_interpreted_as_live_host_or_edge_access" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_oracle_has_no_network_process_wait_or_order_capability" time="0.000" />
+    <testcase classname="tests.S15.P04_test" name="test_signed_p03_receipt_is_pinned_and_remains_local_evidence_only" time="0.000" />
+  </testsuite>
+</testsuites>

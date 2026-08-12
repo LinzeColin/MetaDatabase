@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="38" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S11.P03_test" name="test_candidate_preflight_passes_without_generated_test_reports" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_score_policy_and_routing_fixtures_are_exact_frozen_replays" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_frozen_unique_route_boundary_and_negative_vectors[R01-UNIQUE-STABLE-SYNTHETIC-PLATFORM-ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES-ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES-ALL_PLATFORM_GATES_AND_UNIQUE_ROUTE_STABLE]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_frozen_unique_route_boundary_and_negative_vectors[R02-TOP-SCORE-TIE-FAILS-CLOSED-NO_RECOMMENDATION-NO_RECOMMENDATION-TOP_PLATFORM_SCORE_TIED]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_frozen_unique_route_boundary_and_negative_vectors[R03-QUOTE-AGE-BOUNDARY-ADVERSE-FLIP-ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES-NO_RECOMMENDATION-ADVERSE_PLATFORM_ROUTING_STABILITY_FLIP]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_frozen_unique_route_boundary_and_negative_vectors[R04-MINIMUM-ODDS-BOUNDARY-ADVERSE-FLIP-ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES-NO_RECOMMENDATION-ADVERSE_PLATFORM_ROUTING_STABILITY_FLIP]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_frozen_unique_route_boundary_and_negative_vectors[R05-SOURCE-CONTRACT-FAILS-CLOSED-NO_RECOMMENDATION-NO_RECOMMENDATION-NO_PLATFORM_PASSES_ALL_HARD_GATES]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_frozen_unique_route_boundary_and_negative_vectors[R06-SETTLEMENT-RULES-FAIL-CLOSED-NO_RECOMMENDATION-NO_RECOMMENDATION-NO_PLATFORM_PASSES_ALL_HARD_GATES]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_frozen_unique_route_boundary_and_negative_vectors[R07-ACTION-CHANNEL-FAILS-CLOSED-NO_RECOMMENDATION-NO_RECOMMENDATION-NO_PLATFORM_PASSES_ALL_HARD_GATES]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_frozen_unique_route_boundary_and_negative_vectors[R08-MINIMUM-STAKE-EXCEEDS-ROUTING-STAKE-NO_RECOMMENDATION-NO_RECOMMENDATION-NO_PLATFORM_PASSES_ALL_HARD_GATES]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_frozen_unique_route_boundary_and_negative_vectors[R09-UPSTREAM-P02-CANDIDATE-REQUIRED-NO_RECOMMENDATION-NO_RECOMMENDATION-NO_PLATFORM_PASSES_ALL_HARD_GATES]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_frozen_unique_route_boundary_and_negative_vectors[R10-NONPOSITIVE-EXECUTABLE-SCORE-NO_RECOMMENDATION-NO_RECOMMENDATION-NO_PLATFORM_PASSES_ALL_HARD_GATES]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_frozen_unique_route_boundary_and_negative_vectors[R11-RETURN-POINT-0001-ADVERSE-FLIP-ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES-NO_RECOMMENDATION-ADVERSE_PLATFORM_ROUTING_STABILITY_FLIP]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_frozen_unique_route_boundary_and_negative_vectors[R12-LIVE-QUOTE-AGE-BOUNDARY-ADVERSE-FLIP-ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES-NO_RECOMMENDATION-ADVERSE_PLATFORM_ROUTING_STABILITY_FLIP]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_only_one_stable_synthetic_provider_is_routed_and_it_is_not_a_recommendation" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_every_platform_hard_gate_fails_closed_with_a_specific_provider_reason[R05-SOURCE-CONTRACT-FAILS-CLOSED-SOURCE_CONTRACT_NOT_PASSED]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_every_platform_hard_gate_fails_closed_with_a_specific_provider_reason[R06-SETTLEMENT-RULES-FAIL-CLOSED-SETTLEMENT_RULES_UNCLEAR]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_every_platform_hard_gate_fails_closed_with_a_specific_provider_reason[R07-ACTION-CHANNEL-FAILS-CLOSED-ACTION_CHANNEL_UNAVAILABLE]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_every_platform_hard_gate_fails_closed_with_a_specific_provider_reason[R08-MINIMUM-STAKE-EXCEEDS-ROUTING-STAKE-MINIMUM_STAKE_EXCEEDS_ROUTING_STAKE]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_every_platform_hard_gate_fails_closed_with_a_specific_provider_reason[R09-UPSTREAM-P02-CANDIDATE-REQUIRED-UPSTREAM_P02_CANDIDATE_GATE_NOT_PASSED]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_every_platform_hard_gate_fails_closed_with_a_specific_provider_reason[R10-NONPOSITIVE-EXECUTABLE-SCORE-NON_POSITIVE_EXECUTABLE_PLATFORM_SCORE]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_one_in_ten_thousand_time_penalty_and_odds_adversity_forces_no_recommendation[R03-QUOTE-AGE-BOUNDARY-ADVERSE-FLIP-expected_flips0]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_one_in_ten_thousand_time_penalty_and_odds_adversity_forces_no_recommendation[R04-MINIMUM-ODDS-BOUNDARY-ADVERSE-FLIP-expected_flips1]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_one_in_ten_thousand_time_penalty_and_odds_adversity_forces_no_recommendation[R11-RETURN-POINT-0001-ADVERSE-FLIP-expected_flips2]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_one_in_ten_thousand_time_penalty_and_odds_adversity_forces_no_recommendation[R12-LIVE-QUOTE-AGE-BOUNDARY-ADVERSE-FLIP-expected_flips3]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_all_five_frozen_time_bands_are_bound_to_quote_usable_limits" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_malformed_ambiguous_or_non_fixed_point_routing_inputs_fail_closed[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_malformed_ambiguous_or_non_fixed_point_routing_inputs_fail_closed[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_malformed_ambiguous_or_non_fixed_point_routing_inputs_fail_closed[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_malformed_ambiguous_or_non_fixed_point_routing_inputs_fail_closed[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_fixed_point_provider_rejects_unaligned_stake_and_unknown_p02_binding" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_deterministic_replay_hash_is_identical_without_waiting" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_core_source_has_no_network_process_soak_float_or_order_capability" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_candidate_fails_closed_when_score_policy_is_tampered" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_candidate_fails_closed_when_fixture_hash_is_tampered" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_candidate_fails_closed_when_p02_receipt_is_tampered" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_rollback_drill_is_local_and_has_no_external_side_effect" time="0.000" />
+    <testcase classname="tests.S11.P03_test" name="test_cli_is_wired_to_exact_contract_and_phase_boundaries" time="0.000" />
+  </testsuite>
+</testsuites>

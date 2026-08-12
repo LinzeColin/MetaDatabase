@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0.0",
+  "policy_id": "S14-P03-COMPONENT-GOVERNANCE",
+  "contract_id": "AC-S14-P03",
+  "requirement_id": "REQ-S14-P03",
+  "stage_id": "S14",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "execution_mode": "FROZEN_LOCAL_DETERMINISTIC_NO_NETWORK",
+  "production_component_required_fields": [
+    "bom_ref",
+    "name",
+    "version",
+    "version_pin",
+    "source",
+    "license",
+    "governance_owner"
+  ],
+  "component_scope_rule": {
+    "production_scope_source": "sbom.json.production_components",
+    "production_component_must_be_explicitly_scoped": true,
+    "unadmitted_runtime_items_count_as_production": false,
+    "unadmitted_runtime_release_action": "BLOCK_RELEASE"
+  },
+  "admission_rules": {
+    "missing_source": "BLOCK_RELEASE",
+    "missing_version": "BLOCK_RELEASE",
+    "missing_license": "BLOCK_RELEASE",
+    "missing_governance_owner": "BLOCK_RELEASE",
+    "non_exact_version_pin": "BLOCK_RELEASE",
+    "paid_or_unknown_cost_dependency": "BLOCK_ADMISSION_DO_NOT_PURCHASE",
+    "new_external_component": "REQUIRE_SOURCE_LICENSE_COST_AND_S14_P02_REVIEW"
+  },
+  "license_policy": {
+    "first_party_expression": "LicenseRef-LinzeZhang-Proprietary",
+    "development_allowlist_source": "machine/facts/dependency_budget.lock",
+    "unknown_license_action": "BLOCK_RELEASE",
+    "external_service_terms_are_not_code_license": true
+  },
+  "version_pin_policy": {
+    "production_version_must_equal_version_pin": true,
+    "version_prefix_v_allowed": false,
+    "unknown_version_action": "BLOCK_RELEASE",
+    "runtime_direct_dependencies_must_match_pyproject": true
+  },
+  "ownership_policy": {
+    "required_owner_field": "governance_owner",
+    "default_governance_owner": "单一账户持有人",
+    "upstream_copyright_not_inferred": true,
+    "missing_owner_action": "BLOCK_RELEASE"
+  },
+  "unadmitted_runtime_policy": {
+    "required_scope": "PLANNED_RUNTIME_PREREQUISITE_NOT_PRODUCTION_COMPONENT",
+    "required_release_admission": "BLOCKED",
+    "unknown_metadata_is_admitted": false,
+    "actual_release_requires_new_component_record": true
+  },
+  "patch_sla_reference": "patch_sla.json",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "real_account_balance_read_or_written": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "not_production_evidence": true
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-SSH-NONINTERACTIVE-TRANSPORT-PROOF-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_CURRENT_PRODUCTION_SSH_NONINTERACTIVE_TRANSPORT_PROOF_READ_ONLY",
+  "expected": {
+    "local_route_policy_contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-SSH-LOCAL-ROUTE-POLICY-DIAGNOSTIC-001",
+    "local_route_policy_contract_status": "ONE_SHOT_CURRENT_PRODUCTION_SSH_LOCAL_ROUTE_POLICY_DIAGNOSTIC_READ_ONLY",
+    "accepted_route_shape": "DIRECT",
+    "maximum_ssh_connection_attempts": 1,
+    "connect_timeout_seconds": 10,
+    "remote_command": "sudo -n true",
+    "password_authentication_permitted": false,
+    "keyboard_interactive_authentication_permitted": false,
+    "local_known_hosts_modified": false,
+    "provider_api_requests": 0,
+    "github_api_requests": 0
+  },
+  "source_boundary": {
+    "fixed_local_route_policy_contract_read_only": true,
+    "local_ssh_config_metadata_read": true,
+    "configured_identity_material_directly_inspected": false,
+    "credential_material_emitted_or_persisted": false,
+    "candidate_alias_or_target_value_emitted_or_persisted": false,
+    "interactive_authentication_permitted": false,
+    "local_known_hosts_modified": false,
+    "ssh_connection_attempted_at_most_once": true,
+    "remote_command_limited_to_noninteractive_sudo_true": true,
+    "remote_config_runtime_env_or_secret_read": false,
+    "remote_script_written": false,
+    "host_runtime_or_configuration_changed": false,
+    "image_loaded_or_retagged": false,
+    "unit_created_enabled_or_started": false,
+    "connector_config_written": false,
+    "cloudflare_dns_access_or_tunnel_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_PRODUCTION_SSH_NONINTERACTIVE_TRANSPORT_PROOF_ONLY_NOT_CURRENT_HOST_METADATA_CONFIG_SEMANTIC_CHECK_HOST_RECOVERY_UNIT_INSTALL_CORE_START_CONNECTOR_ACTIVATION_OR_PUBLIC_RELEASE",
+  "rollback": {
+    "action": "NO_HOST_MUTATION_NO_RUNTIME_ROLLBACK_REQUIRED",
+    "current_candidate_shadow_changed": false,
+    "private_evidence_deleted_automatically": false
+  }
+}

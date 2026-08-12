@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-OVH-GITHUB-ACTIONS-ENVIRONMENT-REST-NAME-DIAGNOSTIC-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_CURRENT_PRODUCTION_OVH_GITHUB_ACTIONS_ENVIRONMENT_REST_NAME_DIAGNOSTIC_READ_ONLY",
+  "expected": {
+    "repository": "LinzeColin/MetaDatabase",
+    "github_rest_method": "GET",
+    "github_rest_endpoint": "repos/LinzeColin/MetaDatabase/environments?per_page=100&page=1",
+    "github_cli_name_selection": ".environments | map(.name)",
+    "canonical_environment_name": "production",
+    "maximum_environment_page_size": 100,
+    "maximum_github_rest_get_requests": 1,
+    "maximum_github_query_timeout_seconds": 10,
+    "provider_api_requests": 0
+  },
+  "source_boundary": {
+    "github_rest_get_only": true,
+    "github_rest_response_reduced_to_environment_names_in_cli": true,
+    "environment_names_read_in_memory_only": true,
+    "github_rest_non_name_response_fields_emitted_or_persisted": false,
+    "github_actions_environment_secret_name_or_value_read_or_emitted": false,
+    "github_actions_workflow_created_updated_or_dispatched": false,
+    "branch_pr_or_repository_state_changed": false,
+    "browser_login_submitted": false,
+    "provider_api_request_sent": false,
+    "provider_resource_created_deleted_rebuilt_or_restarted": false,
+    "provider_network_security_group_ip_dns_or_cloudflare_changed": false,
+    "host_runtime_or_configuration_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_PRODUCTION_OVH_GITHUB_ACTIONS_ENVIRONMENT_REST_NAME_DIAGNOSTIC_ONLY_NOT_SECRET_INSPECTION_WORKFLOW_CREATION_WORKFLOW_DISPATCH_PROVIDER_API_QUERY_HOST_RECOVERY_SSH_TRANSPORT_RETRY_CONFIG_SEMANTIC_CHECK_UNIT_INSTALL_CORE_START_CONNECTOR_ACTIVATION_OR_PUBLIC_RELEASE",
+  "rollback": {
+    "action": "NO_GITHUB_PROVIDER_OR_HOST_MUTATION_NO_RUNTIME_ROLLBACK_REQUIRED",
+    "current_candidate_shadow_changed": false,
+    "private_evidence_deleted_automatically": false
+  }
+}

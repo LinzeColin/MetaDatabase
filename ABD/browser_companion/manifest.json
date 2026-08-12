@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "全天候投注决策辅助系统即时校验组件",
+  "version": "0.0.0.1",
+  "description": "仅读取当前激活页面中明确标记的可见字段，进行本地即时校验；不联网、不自动打开平台、不点击或提交订单。",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "action": {
+    "default_title": "即时校验"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

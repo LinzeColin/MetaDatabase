@@ -1,0 +1,115 @@
+{
+  "schema_version": "1.0.0",
+  "threat_model_id": "S14-P01-THREAT-MODEL",
+  "contract_id": "AC-S14-P01",
+  "requirement_id": "REQ-S14-P01",
+  "stage_id": "S14",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "execution_mode": "FROZEN_SYNTHETIC_LOCAL_CONTRACT_ONLY",
+  "high_risk_control_coverage_required": "1.0000",
+  "scope_boundary": {
+    "product_role": "ANALYSIS_AND_ADVICE_ONLY",
+    "owner_final_order_only": true,
+    "production_enforcement_verified": false,
+    "real_account_or_market_accessed": false
+  },
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "real_account_balance_read_or_written": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "threats": [
+    {
+      "threat_id": "THR-PROMPT-INJECTION",
+      "category": "UNTRUSTED_CONTENT",
+      "risk_level": "HIGH",
+      "assets": ["advice_ledger", "operator_decision"],
+      "entry_points": ["web_content", "mail_content", "model_input"],
+      "prevention_control_ids": ["CTRL-PROMPT-TREAT-CONTENT-AS-DATA"],
+      "detection_control_ids": ["CTRL-PROMPT-RECORD-UNTRUSTED-PROVENANCE"],
+      "response_control_ids": ["CTRL-PROMPT-REVOKE-ACTION"],
+      "recovery_control_ids": ["CTRL-PROMPT-PRESERVE-EVIDENCE-REPLAY"],
+      "local_contract_only": true
+    },
+    {
+      "threat_id": "THR-MALICIOUS-ATTACHMENT",
+      "category": "UNTRUSTED_ATTACHMENT",
+      "risk_level": "HIGH",
+      "assets": ["mail_archive", "parser_runtime"],
+      "entry_points": ["mail_attachment"],
+      "prevention_control_ids": ["CTRL-ATTACHMENT-QUARANTINE-NO-EXECUTION"],
+      "detection_control_ids": ["CTRL-ATTACHMENT-MALWARE-AND-PARSER-RESULT"],
+      "response_control_ids": ["CTRL-ATTACHMENT-KEEP-AND-ALERT"],
+      "recovery_control_ids": ["CTRL-ATTACHMENT-RESTORE-FROM-ARCHIVE"],
+      "local_contract_only": true
+    },
+    {
+      "threat_id": "THR-CREDENTIAL-EXPOSURE",
+      "category": "SECRET_HANDLING",
+      "risk_level": "HIGH",
+      "assets": ["runtime_credentials", "deployment_configuration"],
+      "entry_points": ["logs", "fixtures", "source_artifacts"],
+      "prevention_control_ids": ["CTRL-SECRET-NO-PLAINTEXT-IN-ARTIFACTS"],
+      "detection_control_ids": ["CTRL-SECRET-STATIC-PATTERN-REJECTION"],
+      "response_control_ids": ["CTRL-SECRET-DISABLE-EXPOSED-CAPABILITY"],
+      "recovery_control_ids": ["CTRL-SECRET-ROTATE-OUTSIDE-LOCAL-CONTRACT"],
+      "local_contract_only": true
+    },
+    {
+      "threat_id": "THR-DATA-POISONING",
+      "category": "SOURCE_INTEGRITY",
+      "risk_level": "HIGH",
+      "assets": ["canonical_facts", "market_evidence"],
+      "entry_points": ["external_source", "derived_dataset"],
+      "prevention_control_ids": ["CTRL-SOURCE-CANONICAL-PRECEDENCE"],
+      "detection_control_ids": ["CTRL-SOURCE-HASH-AND-IDENTITY-CHECK"],
+      "response_control_ids": ["CTRL-SOURCE-REVOKE-UNVERIFIED-INPUT"],
+      "recovery_control_ids": ["CTRL-SOURCE-RESTORE-SIGNED-STATE"],
+      "local_contract_only": true
+    },
+    {
+      "threat_id": "THR-IDENTITY-MISMATCH",
+      "category": "IDENTITY_INTEGRITY",
+      "risk_level": "HIGH",
+      "assets": ["source_identity", "owner_action_channel"],
+      "entry_points": ["sender_identity", "visible_platform_fields"],
+      "prevention_control_ids": ["CTRL-IDENTITY-REQUIRE-EXACT-BINDING"],
+      "detection_control_ids": ["CTRL-IDENTITY-MISMATCH-RED-REVOKE"],
+      "response_control_ids": ["CTRL-IDENTITY-NO-ACTION-ON-MISMATCH"],
+      "recovery_control_ids": ["CTRL-IDENTITY-REPLAY-SIGNED-REGISTRY"],
+      "local_contract_only": true
+    },
+    {
+      "threat_id": "THR-FALSE-EVIDENCE",
+      "category": "EVIDENCE_INTEGRITY",
+      "risk_level": "HIGH",
+      "assets": ["acceptance_evidence", "audit_trail"],
+      "entry_points": ["evidence_index", "derived_report"],
+      "prevention_control_ids": ["CTRL-EVIDENCE-IMMUTABLE-HASH-PIN"],
+      "detection_control_ids": ["CTRL-EVIDENCE-INDEX-ARTIFACT-CROSSCHECK"],
+      "response_control_ids": ["CTRL-EVIDENCE-REJECT-UNVERIFIABLE-CLAIM"],
+      "recovery_control_ids": ["CTRL-EVIDENCE-PRESERVE-AND-REPLAY"],
+      "local_contract_only": true
+    },
+    {
+      "threat_id": "THR-UNAUTHORIZED-EXTERNAL-ACTION",
+      "category": "ACTION_BOUNDARY",
+      "risk_level": "HIGH",
+      "assets": ["owner_final_order", "runtime_environment"],
+      "entry_points": ["automation_output", "operator_interface"],
+      "prevention_control_ids": ["CTRL-ACTION-OWNER-FINAL-ORDER-ONLY"],
+      "detection_control_ids": ["CTRL-ACTION-STATIC-NO-EXTERNAL-CAPABILITY"],
+      "response_control_ids": ["CTRL-ACTION-DISABLE-AND-NO-RETRY"],
+      "recovery_control_ids": ["CTRL-ACTION-LOCAL-ROLLBACK-PRESERVE-EVIDENCE"],
+      "local_contract_only": true
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="19" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S15.P02_test" name="test_candidate_preflight_replays_only_the_declared_local_source_contract_surface" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_catalogs_name_exact_task_outputs_and_closed_synthetic_source_contracts" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_frozen_source_contract_integration_cases_replay_exactly[S15-P02-BASELINE-LOCAL]" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_frozen_source_contract_integration_cases_replay_exactly[S15-P02-SIMULATED-NETWORK-UNAVAILABLE]" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_frozen_source_contract_integration_cases_replay_exactly[S15-P02-ODDS-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND]" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_frozen_source_contract_integration_cases_replay_exactly[S15-P02-ODDS-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND]" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_frozen_source_contract_integration_cases_replay_exactly[S15-P02-PAGE-EVENT-MISMATCH]" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_frozen_source_contract_integration_cases_replay_exactly[S15-P02-MAIL-NOT-ARCHIVED]" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_frozen_source_contract_integration_cases_replay_exactly[S15-P02-RESULT-TICKET-MISMATCH]" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_simulated_network_unavailable_projection_is_identical_to_baseline_without_a_network_probe" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_source_fixture_negative_mutations_fail_closed[MUT-S15-P02-UNKNOWN-FIELD]" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_source_fixture_negative_mutations_fail_closed[MUT-S15-P02-FLOAT-ODDS]" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_source_fixture_negative_mutations_fail_closed[MUT-S15-P02-NONCANONICAL-ODDS]" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_source_fixture_negative_mutations_fail_closed[MUT-S15-P02-NONSYNTHETIC-RESULT]" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_identical_frozen_input_replay_is_deterministic_and_never_an_order" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_rollback_drill_is_local_only_and_keeps_signed_s15_p01_predecessor" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_execution_boundary_never_converts_local_contract_tests_into_live_or_return_claims" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_fixture_manifest_explicitly_excludes_real_network_outage_and_external_source_access" time="0.000" />
+    <testcase classname="tests.S15.P02_test" name="test_oracle_has_no_network_process_sleep_or_order_capability" time="0.000" />
+  </testsuite>
+</testsuites>

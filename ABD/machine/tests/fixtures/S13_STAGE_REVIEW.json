@@ -1,0 +1,164 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S13-WHOLE-STAGE-REVIEW",
+  "contract_id": "STAGE-REVIEW-S13",
+  "review_id": "ABD-S13-WHOLE-STAGE-REVIEW",
+  "stage_id": "S13",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "single_pass_case_count": 9,
+  "minimum_targeted_pytest_cases": 24,
+  "expected_phase_ids": ["P01", "P02", "P03", "P04"],
+  "expected_phase_evidence_sha256": {
+    "P01": "161a75ad86f1f0f745eae393b27b3a7f7a07c034d4342381f88b95892ad0199d",
+    "P02": "42be48209052f1056d16dd002322ca710cafbe1023be7c9a20a16d158abbbe89",
+    "P03": "7ebe8b2b59bce33b34e1c7bab01bf96a7d2225414725bddebada481443fc197a",
+    "P04": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e"
+  },
+  "expected_phase_rollback_sha256": {
+    "P01": "504ef71bbaba64179ba54b7e8a6be64b9aecca64c2e9db0db27fd65569c175c1",
+    "P02": "37216196b19640aba63181e9a5211c5ec31048e33495f4b8da11d5f1391fd236",
+    "P03": "38da833ecfc4199cc842f6725f77b9d4c740f117734e546f8b31f9de37b7b9a6",
+    "P04": "8cea40846c7d60b5ee8adaecee741e97be17a46e6045728e71cfb08131dc0856"
+  },
+  "expected_next": "S13/GITHUB_STAGE_UPLOAD_READY",
+  "expected_release_status": "S13_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "expected_findings_summary": {"total": 0, "open": 0, "resolved": 0, "blocked": 0},
+  "cases": [
+    {
+      "case_id": "POSITIVE_EXACT_STAGE",
+      "snapshot": {
+        "phase_receipts_current": true,
+        "taskpack_trace_closed": true,
+        "chinese_workbench_gate_preserved": true,
+        "visible_quote_gate_preserved": true,
+        "post_advice_gate_preserved": true,
+        "six_paths_recovery_gate_preserved": true,
+        "external_action_boundary_preserved": true,
+        "portable_evidence": true,
+        "findings_open": 0
+      },
+      "expected": {"status": "S13_STAGE_REVIEW_VERIFIED_NO_ACTION", "reason_codes": []}
+    },
+    {
+      "case_id": "PHASE_RECEIPT_FAIL",
+      "snapshot": {
+        "phase_receipts_current": false,
+        "taskpack_trace_closed": true,
+        "chinese_workbench_gate_preserved": true,
+        "visible_quote_gate_preserved": true,
+        "post_advice_gate_preserved": true,
+        "six_paths_recovery_gate_preserved": true,
+        "external_action_boundary_preserved": true,
+        "portable_evidence": true,
+        "findings_open": 0
+      },
+      "expected": {"status": "S13_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["PHASE_RECEIPTS_NOT_CURRENT"]}
+    },
+    {
+      "case_id": "TASKPACK_TRACE_FAIL",
+      "snapshot": {
+        "phase_receipts_current": true,
+        "taskpack_trace_closed": false,
+        "chinese_workbench_gate_preserved": true,
+        "visible_quote_gate_preserved": true,
+        "post_advice_gate_preserved": true,
+        "six_paths_recovery_gate_preserved": true,
+        "external_action_boundary_preserved": true,
+        "portable_evidence": true,
+        "findings_open": 0
+      },
+      "expected": {"status": "S13_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["TASKPACK_TRACE_NOT_CLOSED"]}
+    },
+    {
+      "case_id": "CHINESE_WORKBENCH_GATE_FAIL",
+      "snapshot": {
+        "phase_receipts_current": true,
+        "taskpack_trace_closed": true,
+        "chinese_workbench_gate_preserved": false,
+        "visible_quote_gate_preserved": true,
+        "post_advice_gate_preserved": true,
+        "six_paths_recovery_gate_preserved": true,
+        "external_action_boundary_preserved": true,
+        "portable_evidence": true,
+        "findings_open": 0
+      },
+      "expected": {"status": "S13_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["CHINESE_WORKBENCH_OR_LOCAL_PUSH_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "VISIBLE_QUOTE_GATE_FAIL",
+      "snapshot": {
+        "phase_receipts_current": true,
+        "taskpack_trace_closed": true,
+        "chinese_workbench_gate_preserved": true,
+        "visible_quote_gate_preserved": false,
+        "post_advice_gate_preserved": true,
+        "six_paths_recovery_gate_preserved": true,
+        "external_action_boundary_preserved": true,
+        "portable_evidence": true,
+        "findings_open": 0
+      },
+      "expected": {"status": "S13_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["VISIBLE_QUOTE_REVOKE_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "POST_ADVICE_GATE_FAIL",
+      "snapshot": {
+        "phase_receipts_current": true,
+        "taskpack_trace_closed": true,
+        "chinese_workbench_gate_preserved": true,
+        "visible_quote_gate_preserved": true,
+        "post_advice_gate_preserved": false,
+        "six_paths_recovery_gate_preserved": true,
+        "external_action_boundary_preserved": true,
+        "portable_evidence": true,
+        "findings_open": 0
+      },
+      "expected": {"status": "S13_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["POST_ADVICE_OR_SYNTHETIC_RETURN_BOUNDARY_RELAXED"]}
+    },
+    {
+      "case_id": "SIX_PATH_GATE_FAIL",
+      "snapshot": {
+        "phase_receipts_current": true,
+        "taskpack_trace_closed": true,
+        "chinese_workbench_gate_preserved": true,
+        "visible_quote_gate_preserved": true,
+        "post_advice_gate_preserved": true,
+        "six_paths_recovery_gate_preserved": false,
+        "external_action_boundary_preserved": true,
+        "portable_evidence": true,
+        "findings_open": 0
+      },
+      "expected": {"status": "S13_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["SIX_PATH_OR_RECOVERY_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "EXTERNAL_BOUNDARY_FAIL",
+      "snapshot": {
+        "phase_receipts_current": true,
+        "taskpack_trace_closed": true,
+        "chinese_workbench_gate_preserved": true,
+        "visible_quote_gate_preserved": true,
+        "post_advice_gate_preserved": true,
+        "six_paths_recovery_gate_preserved": true,
+        "external_action_boundary_preserved": false,
+        "portable_evidence": true,
+        "findings_open": 0
+      },
+      "expected": {"status": "S13_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["EXTERNAL_ACTION_BOUNDARY_RELAXED"]}
+    },
+    {
+      "case_id": "PORTABILITY_AND_OPEN_FINDING_FAIL",
+      "snapshot": {
+        "phase_receipts_current": true,
+        "taskpack_trace_closed": true,
+        "chinese_workbench_gate_preserved": true,
+        "visible_quote_gate_preserved": true,
+        "post_advice_gate_preserved": true,
+        "six_paths_recovery_gate_preserved": true,
+        "external_action_boundary_preserved": true,
+        "portable_evidence": false,
+        "findings_open": 1
+      },
+      "expected": {"status": "S13_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["EVIDENCE_NOT_PORTABLE", "OPEN_REVIEW_FINDINGS"]}
+    }
+  ]
+}

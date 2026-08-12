@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="19" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S15.P03_test" name="test_candidate_preflight_replays_only_the_declared_local_multi_surface_contract" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_catalogs_name_exact_task_outputs_and_only_local_contract_surfaces" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_frozen_golden_black_degraded_and_recovery_cases_replay_exactly[S15-P03-GOLDEN-BASELINE-LOCAL]" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_frozen_golden_black_degraded_and_recovery_cases_replay_exactly[S15-P03-GOLDEN-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND]" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_frozen_golden_black_degraded_and_recovery_cases_replay_exactly[S15-P03-BLACK-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND]" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_frozen_golden_black_degraded_and_recovery_cases_replay_exactly[S15-P03-BLACK-RESULT-TICKET-MISMATCH]" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_frozen_golden_black_degraded_and_recovery_cases_replay_exactly[S15-P03-DEGRADED-SIMULATED-EDGE-SCHEMA-UNAVAILABLE]" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_frozen_golden_black_degraded_and_recovery_cases_replay_exactly[S15-P03-RECOVERY-FRESH-LOCAL-REPLAY]" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_all_declared_local_surfaces_are_hash_pinned_and_semantically_closed" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_every_required_journey_class_is_present_in_the_frozen_e2e_suite" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_identical_frozen_input_replay_is_deterministic_without_device_or_network_execution" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_e2e_negative_mutations_fail_closed[MUT-S15-P03-UNKNOWN-E2E-FIELD]" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_e2e_negative_mutations_fail_closed[MUT-S15-P03-UNPINNED-ENVIRONMENT-HASH]" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_e2e_negative_mutations_fail_closed[MUT-S15-P03-UNDECLARED-P02-REPLAY-CASE]" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_e2e_negative_mutations_fail_closed[MUT-S15-P03-UNSTRUCTURED-EVIDENCE-LOG]" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_rollback_drill_is_local_only_and_keeps_signed_s15_p02_predecessor" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_execution_boundary_never_converts_static_contract_replay_into_live_runtime_claims" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_evidence_explicitly_excludes_live_host_edge_device_and_network_outage_claims" time="0.000" />
+    <testcase classname="tests.S15.P03_test" name="test_oracle_has_no_network_process_sleep_or_order_capability" time="0.000" />
+  </testsuite>
+</testsuites>

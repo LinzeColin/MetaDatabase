@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S15-WHOLE-STAGE-REVIEW",
+  "contract_id": "STAGE-REVIEW-S15",
+  "review_id": "ABD-S15-WHOLE-STAGE-REVIEW",
+  "stage_id": "S15",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "single_pass_case_count": 10,
+  "minimum_targeted_pytest_cases": 18,
+  "expected_phase_ids": ["P01", "P02", "P03", "P04"],
+  "expected_phase_evidence_sha256": {
+    "P01": "5ea76d98f26bb3225844a0e9ab62c58041647ca5e3337c4c722d7d842ddfc98a",
+    "P02": "b3e8c7f5eb604d19029ff23eb0f4c382ac194634a9fdc4fe8f44e998dde22521",
+    "P03": "c669a73781f28bb8fd1a5521f284c24f47bbe9595ad12f95ad9c47c27c809c29",
+    "P04": "3fd288e66d3c473881dc92257992eb41b85422a5c0aaa92f1ff00e202a15feda"
+  },
+  "expected_phase_rollback_sha256": {
+    "P01": "cd3b6d2d8e0934103e168c89758f24be727e996f65f86eead8e733ddb678854b",
+    "P02": "971bc1d3b8059d064cfa4b379c3978e557a0f328a8c26122d95b0f8d4826f499",
+    "P03": "6761c0afe059c562d2147c0d1c731e3b9dc52f1d5dd6c71da08195554c99e258",
+    "P04": "3d44192dc0724a4414608e4f2bd5363f5082ee041bb0d3e5c43ea835b36e5a13"
+  },
+  "expected_next": "S15/GITHUB_STAGE_UPLOAD_READY",
+  "expected_release_status": "S15_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "expected_findings_summary": {"total": 2, "open": 0, "resolved": 2, "blocked": 0},
+  "cases": [
+    {
+      "case_id": "POSITIVE_EXACT_STAGE",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "correctness_gate_preserved": true, "source_contract_gate_preserved": true, "e2e_gate_preserved": true, "traceability_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S15_STAGE_REVIEW_VERIFIED_NO_ACTION", "reason_codes": []}
+    },
+    {
+      "case_id": "PHASE_RECEIPT_FAIL",
+      "snapshot": {"phase_receipts_current": false, "taskpack_trace_closed": true, "correctness_gate_preserved": true, "source_contract_gate_preserved": true, "e2e_gate_preserved": true, "traceability_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S15_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["PHASE_RECEIPTS_NOT_CURRENT"]}
+    },
+    {
+      "case_id": "TASKPACK_TRACE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": false, "correctness_gate_preserved": true, "source_contract_gate_preserved": true, "e2e_gate_preserved": true, "traceability_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S15_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["TASKPACK_TRACE_NOT_CLOSED"]}
+    },
+    {
+      "case_id": "CORRECTNESS_GATE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "correctness_gate_preserved": false, "source_contract_gate_preserved": true, "e2e_gate_preserved": true, "traceability_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S15_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["SOFTWARE_CORRECTNESS_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "SOURCE_CONTRACT_GATE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "correctness_gate_preserved": true, "source_contract_gate_preserved": false, "e2e_gate_preserved": true, "traceability_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S15_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["SOURCE_CONTRACT_OR_SIMULATED_NETWORK_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "E2E_GATE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "correctness_gate_preserved": true, "source_contract_gate_preserved": true, "e2e_gate_preserved": false, "traceability_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S15_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["MULTI_SURFACE_E2E_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "TRACEABILITY_GATE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "correctness_gate_preserved": true, "source_contract_gate_preserved": true, "e2e_gate_preserved": true, "traceability_gate_preserved": false, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S15_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["TRACEABILITY_OR_CRITICAL_ACCEPTANCE_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "EXTERNAL_BOUNDARY_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "correctness_gate_preserved": true, "source_contract_gate_preserved": true, "e2e_gate_preserved": true, "traceability_gate_preserved": true, "external_action_boundary_preserved": false, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S15_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["EXTERNAL_ACTION_BOUNDARY_RELAXED"]}
+    },
+    {
+      "case_id": "PORTABILITY_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "correctness_gate_preserved": true, "source_contract_gate_preserved": true, "e2e_gate_preserved": true, "traceability_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": false, "findings_open": 0},
+      "expected": {"status": "S15_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["EVIDENCE_NOT_PORTABLE"]}
+    },
+    {
+      "case_id": "OPEN_FINDING_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "correctness_gate_preserved": true, "source_contract_gate_preserved": true, "e2e_gate_preserved": true, "traceability_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 1},
+      "expected": {"status": "S15_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["OPEN_REVIEW_FINDINGS"]}
+    }
+  ]
+}
