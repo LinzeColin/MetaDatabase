@@ -68,7 +68,14 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-import websockets
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import websockets  # noqa: E402
+
+import _production_shapes  # noqa: E402
+
+_supported_platforms_like_production = (
+    _production_shapes.supported_platforms_like_production)
 
 ROOT = Path(__file__).resolve().parents[1]
 EXT_SRC = ROOT / "apps/browser-extension"
@@ -185,20 +192,19 @@ class _Api(BaseHTTPRequestHandler):
                 # **照生产的形状给全九个平台**，不是只给 bilibili。
                 # 只给一个的话，弹窗里那几句照事实清单重写的话会算出
                 # 「只有哔哩哔哩」——看着像产品说错了，其实是夹具不全。
-                "supported_platforms": (
-                    [{"platform": "bilibili", "relations": ["favorite"],
-                      "sync_supported": True, "not_syncable_reason": "",
-                      "server_handled": False, "connect_supported": True},
-                     {"platform": "generic-web", "relations": ["bookmark"],
-                      "sync_supported": True, "not_syncable_reason": "",
-                      "server_handled": False, "connect_supported": True}]
-                    + [{"platform": name, "relations": ["favorite"],
-                        "sync_supported": False,
-                        "not_syncable_reason": "本版本还不能自动读取。现在可以：点插件的「保存到我的档案馆」。",
-                        "server_handled": name in ("x", "reddit", "instagram"),
-                        "connect_supported": name in ("x", "reddit", "instagram", "youtube")}
-                       for name in ("xiaohongshu", "douyin", "kuaishou",
-                                    "x", "reddit", "instagram", "youtube")]),
+                #
+                # **而「照生产的形状」得真照着，不能手抄。**（2026-08-13）
+                #
+                # 手抄那版把 xiaohongshu / douyin / instagram / reddit 四家写成
+                # `sync_supported: False`，而生产上 `SYNCABLE_NOW` 早就含着这四家
+                # （API 那行就是 `"sync_supported": platform in SYNCABLE_NOW`）。
+                # 后果不是夹具"不够全"，是**方向反了**：这个演练一直在验
+                # 「这四家只能手动保存」那一屏，而他在生产上看到的是能同步那一屏——
+                # **他真会看到的那一屏，反而一次都没被走过。**
+                #
+                # 所以直接读服务端那个常量。两份词典必然漂开，这个仓已经因为
+                # 同一件事修过好几处（失败文案、归档状态、回执键名、扫描范围）。
+                "supported_platforms": _supported_platforms_like_production(),
             })
             return
         # **列表要放在详情前面判。** `enqueueAccountSync` 进门第一件事就是

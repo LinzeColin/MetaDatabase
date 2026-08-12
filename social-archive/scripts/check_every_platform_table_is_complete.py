@@ -113,6 +113,17 @@ DELIBERATE_SUBSETS = {
     "SHAPE_READ_PLATFORMS": "只覆盖三个「接口带签名、只能拦截」的国内源；"
                             "其余平台按 Owner 的平台表走别的主路径",
 
+    # _production_shapes.py 的文件头（2026-08-13）：那段列的是**两处抄反了的夹具**，
+    # 不是平台目录。而它下面那个函数是 `for platform in PLATFORM_RELATIONS.items()`
+    # **现算**的——**结构上不可能漏平台**，比这道门要求的还严：
+    # 加一个平台，它自动就有了，不需要谁记得来改。
+    "PRODUCTION_SHAPES": "照 PLATFORM_RELATIONS 现算的，结构上不可能是子集；"
+                         "文件头那段列的是抄反了的两处夹具，不是平台表",
+    # forget_button_render_drill.py 的 ACCOUNTS：和 POPUP_STATE_FIXTURE 同一类，
+    # **是账号夹具，不是平台表**。它照抄 Owner 生产库里那两个账号
+    # （抖音 86 条 connected、B站 103 条 disconnected），验的是「忘掉这个平台」
+    # 那颗按钮怎么画，和平台是谁无关。列全九个不多验任何东西。
+    "FORGET_ACCOUNTS_FIXTURE": "忘记按钮演练的账号夹具；照抄生产那两个账号，不是平台表",
     "FORBIDDEN_PLATFORMS": "国内四平台的硬边界名单，youtube 本来就不该在里面",
     "DOMESTIC_PLATFORMS": "同上，国内平台专用",
     "SERVER_ACCOUNT_CONNECTORS": "服务端直连的那几个；youtube 走 Cookie 托管，不走这条",
