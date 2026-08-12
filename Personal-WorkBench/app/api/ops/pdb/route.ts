@@ -1,10 +1,14 @@
-import { buildOpsProbePayload, ensureOpsAuthorization, NO_STORE_HEADERS } from "@/server/security/ops";
+import {
+  buildOpsProbePayload,
+  ensureOpsAuthorization,
+  NO_STORE_HEADERS,
+  normalizedOpsWriteMode,
+} from "@/server/security/ops";
 
 export const runtime = "edge";
 
 function writeMode() {
-  const raw = process.env.PRIVATE_DATABASE_ADAPTER_WRITE;
-  return raw ? raw.trim().toLowerCase() : "readwrite";
+  return normalizedOpsWriteMode(process.env.PRIVATE_DATABASE_ADAPTER_WRITE);
 }
 
 export async function GET(request: Request): Promise<Response> {
