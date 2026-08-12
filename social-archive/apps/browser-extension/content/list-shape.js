@@ -248,8 +248,25 @@
     // **挖到壳里去的要另有旁证。** 见 findKeyDeep 的那段：`id` 太常见了，
     // 挖五层几乎能在任何数组里挖出一个来。摊平的那种维持原样，不加码。
     const wrapped = Boolean(corePath);
-    const corroborated = titleRate >= MIN_HOMOGENEITY || authorRate >= MIN_HOMOGENEITY;
-    const homogeneous = consistent && (!wrapped || corroborated);
+    // **旁证对摊平的那种也要要。**（2026-08-12）
+    //
+    // 原来只有 id 藏在壳里时才要旁证，摊平的「维持原样，不加码」。
+    // 于是**一个每项只有 id、别的什么都没有的数组照样过关**。
+    // 真页面上撞到了：抖音登录二维码那个 Lottie 动画文件
+    // （`obj/passport-fe/scan-code-guide-side.json`）的 `assets` 数组，
+    // 7 项、每项 `{id,w,h,u,p,e}`，id 率 100% —— 当场被认成收藏列表。
+    //
+    // 后果不是「没数据」，是**编出来的网址进档案馆**：抖音走 id_template，
+    // 于是 `image_0` 拼成 `https://www.douyin.com/video/image_0`，
+    // 7 条 404 安安静静落库、标题全空。这个文件自己就写着
+    // 「拼错的网址比没有更糟……半年后点开才发现全是 404」。
+    //
+    // 时间也算旁证：内容条目至少会带标题、作者、时间三者之一，
+    // 而配置/动画/埋点数组三样都没有。
+    const corroborated = titleRate >= MIN_HOMOGENEITY
+      || authorRate >= MIN_HOMOGENEITY
+      || timeRate >= MIN_HOMOGENEITY;
+    const homogeneous = consistent && corroborated;
     return {
       count: items.length,
       id_rate: Number(idRate.toFixed(2)),
@@ -264,9 +281,10 @@
       rejected: homogeneous ? ""
         : !consistent
           ? `只有 ${Math.round(idRate * 100)}% 的元素在同一个位置带得出 id，不像一批同类条目`
-          : `id 藏在 ${corePath} 里（不在元素本身上），而只有 `
-            + `${Math.round(titleRate * 100)}% 有标题、${Math.round(authorRate * 100)}% 有作者——`
-            + "挖得越深越要旁证，否则埋点和配置里的 id 也会被认成内容",
+          : `每项都带得出 id，但只有 ${Math.round(titleRate * 100)}% 有标题、`
+            + `${Math.round(authorRate * 100)}% 有作者、${Math.round(timeRate * 100)}% 有时间——`
+            + "光有 id 不算内容，还要旁证（标题/作者/时间三者之一），"
+            + "否则动画/配置/埋点里的 id 也会被认成收藏",
     };
   }
 
