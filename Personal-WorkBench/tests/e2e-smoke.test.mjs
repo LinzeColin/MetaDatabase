@@ -55,6 +55,8 @@ test("e2e smoke: normal mode carries account entry and no reference-only lock", 
   assert.match(homeHtml, /class=\"account-entry normal-only\"/);
   assert.match(homeHtml, /href=\"\/auth\/sign-in\"/);
   assert.match(homeHtml, /正在确认登录…/);
+  assert.match(homeHtml, /data-interactions-ready=\"false\"/);
+  assert.match(homeHtml, /正在准备工作台…/);
   assert.match(homeHtml, /data-reference-mode=\"false\"/);
   assert.match(homeHtml, /正在读取本地时间…/);
   assert.doesNotMatch(homeHtml, /class=\"home-time\">11:27<\/div>/);
@@ -84,6 +86,15 @@ test("e2e smoke: every primary menu route renders its own normal-mode content", 
     assert.match(html, new RegExp(distinctiveText), route);
     assert.match(html, /data-reference-mode="false"/, route);
   }
+});
+
+test("e2e smoke: public fatloss shorthand keeps the normal menu destination", async () => {
+  const response = await render("/?view=fatloss");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /减脂记录/);
+  assert.match(html, /data-reference-mode="false"/);
+  assert.doesNotMatch(html, /class="welcome-page"/);
 });
 
 test("e2e smoke: email verification recovery and sign-in status guidance render", async () => {

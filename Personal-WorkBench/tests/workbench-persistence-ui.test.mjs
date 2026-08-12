@@ -9,6 +9,8 @@ const todoSource = "app/_components/workbench/todo-page-client.tsx";
 const accountSource = "app/account/page.tsx";
 const legacyImportPanelSource = "app/account/legacy-import-panel.tsx";
 const visitorTimeSource = "app/_components/workbench/visitor-time-client.tsx";
+const interactionGateSource = "app/_components/workbench/interaction-ready.tsx";
+const globalStylesSource = "app/globals.css";
 
 test("workbench pages bind every visible lifecycle module to the tenant resource client", async () => {
   const source = await readFile(lifecycleSource, "utf8");
@@ -175,6 +177,27 @@ test("first-paint write controls wait for resource initialization instead of los
   assert.match(todo, /disabled=\{todos\.loading \|\| todos\.saving\}/);
 });
 
+test("normal-mode controls wait for hydration without changing frozen reference pages", async () => {
+  const [page, gate, styles] = await Promise.all([
+    readFile(pageSource, "utf8"),
+    readFile(interactionGateSource, "utf8"),
+    readFile(globalStylesSource, "utf8"),
+  ]);
+
+  assert.match(page, /import \{ WorkbenchInteractionReady \} from "\.\/\_components\/workbench\/interaction-ready"/);
+  assert.match(page, /reference \? children : <WorkbenchInteractionReady>\{children\}<\/WorkbenchInteractionReady>/);
+  assert.match(gate, /useSyncExternalStore\(subscribeToHydration, \(\) => true, \(\) => false\)/);
+  assert.match(gate, /inert=\{!ready\}/);
+  assert.match(gate, /正在准备工作台…/);
+  assert.match(styles, /\.workbench-interaction-gate\[data-interactions-ready="false"\]/);
+});
+
+test("guest dependent records accurately say they remain on the current device", async () => {
+  const source = await readFile(resourceSource, "utf8");
+
+  assert.match(source, /scope === "guest"\s+\? "已保存在当前设备。当前未登录，关联记录会保留在这台设备。"/);
+});
+
 test("normal menu routes keep every user-audited lifecycle control bound to a state change or record write", async () => {
   const [source, page] = await Promise.all([
     readFile(lifecycleSource, "utf8"),
@@ -183,6 +206,7 @@ test("normal menu routes keep every user-audited lifecycle control bound to a st
 
   assert.match(page, /const reference = typeof params\.reference === "string" && referenceRoutes\.has\(params\.reference\);/);
   assert.match(page, /const requestedRoute = reference \? params\.reference! : params\.view;/);
+  assert.match(page, /normalRouteAliases\[requestedRoute\] \?\? requestedRoute/);
   for (const label of ["早起", "阅读", "运动", "喝水", "早睡"]) {
     assert.match(page, new RegExp(`label: "${label}"`), label);
   }

@@ -723,7 +723,9 @@ export function useTenantResource<T extends TenantRecord>(
           const queuedForReplay = sensitive ? false : await queueDeviceMutation(deviceOutboxAction);
           setError(queuedForReplay
             ? "已保存在当前设备。正在等待关联记录同步，完成后会自动同步。"
-            : "已保存在当前设备。关联记录正在同步，请稍后刷新后再试。",
+            : scope === "guest"
+              ? "已保存在当前设备。当前未登录，关联记录会保留在这台设备。"
+              : "已保存在当前设备。关联记录正在同步，请稍后刷新后再试。",
           );
           setAuthRequired(false);
           setConsentRequired(false);

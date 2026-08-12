@@ -11,6 +11,7 @@ import {
 } from "./_components/workbench/lifestyle-pages-client";
 import TodoPageClient from "./_components/workbench/todo-page-client";
 import { AccountEntry } from "./_components/workbench/account-entry";
+import { WorkbenchInteractionReady } from "./_components/workbench/interaction-ready";
 import { LegacyDomainRedirect } from "./_components/workbench/legacy-domain-redirect";
 import { VisitorDate } from "./_components/workbench/visitor-time-client";
 
@@ -37,6 +38,14 @@ const navigableRoutes = new Set([
   "savings",
   "period",
 ]);
+
+// The menu keeps the frozen `fatloss-food` route, while a few public links
+// used the natural short name. Accept that normal-mode alias so a copied link
+// never falls back to the welcome screen and appears to have lost the menu.
+// Reference URLs remain exact and untouched for visual-regression integrity.
+const normalRouteAliases: Readonly<Record<string, string>> = {
+  fatloss: "fatloss-food",
+};
 
 const navItems = [
   ["home", "桌面", "nav_desktop.png"],
@@ -120,7 +129,7 @@ function Shell({
           {!reference ? (
             <AccountEntry className="account-entry normal-only" signedOutHref="/auth/sign-in" />
           ) : null}
-          {children}
+          {reference ? children : <WorkbenchInteractionReady>{children}</WorkbenchInteractionReady>}
         </main>
       </div>
     </div>
@@ -255,7 +264,10 @@ export default async function HomePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const reference = typeof params.reference === "string" && referenceRoutes.has(params.reference);
   const requestedRoute = reference ? params.reference! : params.view;
-  const route = typeof requestedRoute === "string" && navigableRoutes.has(requestedRoute) ? requestedRoute : "welcome";
+  const normalizedRoute = reference || typeof requestedRoute !== "string"
+    ? requestedRoute
+    : normalRouteAliases[requestedRoute] ?? requestedRoute;
+  const route = typeof normalizedRoute === "string" && navigableRoutes.has(normalizedRoute) ? normalizedRoute : "welcome";
 
   let page: ReactNode;
   switch (route) {
