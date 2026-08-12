@@ -28,6 +28,18 @@ r"""真抖音页面上，形状识别器会不会认错东西（2026-08-12）。
 实测（2026-08-12）：收下 16 条真响应（`aweme/v1/web/*` 那一族），
 识别器回 `LIST_SHAPE_NOT_RECOGNISED`。**它没有乱抓。**
 
+## 四个平台各撞一遍（2026-08-12 实测）
+
+同一个识别器给四家都用，所以这一族缺陷不是抖音独有的：
+
+    douyin       31 条真响应   修好后不再乱认   正对照成立
+    xiaohongshu  13 条真响应   不乱认           正对照成立
+    instagram    18 条真响应   不乱认           正对照成立
+    reddit       **一条都没抓到** —— 无头 Chrome 打不开它的公开页
+
+**reddit 那一行是「没量到」，不是「通过」。** 它退出 4 并明说抓不到，
+不许被读成第四个平台也验过了。要验它得换一条能加载的路（或者带头跑）。
+
 ## 它不证明什么
 
 - **不证明登录之后认得出他的收藏。** 那要他的登录态，只能发生在他的浏览器里。
@@ -54,7 +66,18 @@ ROOT = Path(__file__).resolve().parents[1]
 OBSERVER = ROOT / "apps" / "browser-extension" / "net-observer.js"
 LIST_SHAPE = ROOT / "apps" / "browser-extension" / "content" / "list-shape.js"
 # 他库里一条真实的公开抖音视频页。**不带登录态**——这正是这个演练要的状态。
-PAGE = "https://www.douyin.com/video/7324133995774594331"
+# 每个平台一个**公开**页面（不带登录态）。这一族缺陷不是抖音独有的——
+# 同一个识别器给小红书/Reddit/Instagram 也用，所以逐个都要撞一遍。
+PAGES = {
+    # RECOGNISER_REAL_PAGES：只放真走形状识别这条路的四家。
+    # X 走服务端连接器、YouTube 本版不自动读——给它们列一个公开页，
+    # 只会造出「这两家也验过了」的假象。
+    "douyin": "https://www.douyin.com/video/7324133995774594331",
+    "xiaohongshu": "https://www.xiaohongshu.com/explore",
+    "reddit": "https://www.reddit.com/r/popular/",
+    "instagram": "https://www.instagram.com/explore/",
+}
+PAGE = PAGES["douyin"]
 DEBUG_PORT = 9418
 
 COLLECTOR = """
@@ -138,7 +161,10 @@ def main() -> int:
     parser.add_argument("--chrome",
                         default="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
     parser.add_argument("--wait", type=float, default=14.0)
+    parser.add_argument("--platform", default="douyin", choices=sorted(PAGES))
     args = parser.parse_args()
+    global PAGE
+    PAGE = PAGES[args.platform]
 
     captures = asyncio.run(capture(args.chrome, args.wait))
     problems: list[str] = []
