@@ -98,10 +98,13 @@ PARAMETRISED = [
     #
     # 其余所有按形状读的演练打的都是**我们自己写的假站**——我编的响应形状，
     # 选择器当然选得中。这一条打真页面（公开、不登录、零费用）。
-    # 只跑 B 站：小红书本机 IP 被挡（error_code=300012），
-    # 抖音没有一张公开的、真的是列表的页面。两家各自的理由写在演练里，
-    # **它们回 BLOCKED_CHANNEL 而不是 FAIL**——「答不了」不等于「答案是坏的」。
+    # 两家各走各的路（演练里的 DEFAULT_MODE 是量出来的）：
+    # B 站列表由 JS 渲染，只能真浏览器打开（21 命中）；小红书拒无头，
+    # 而它服务端就把列表渲染好了，取 HTML 再解析（96 命中）。
+    # **抖音仍答不了**——没有一张公开的、真的是列表的抖音页，
+    # 它回 BLOCKED_CHANNEL 而不是 FAIL：「答不了」不等于「答案是坏的」。
     ["list_selectors_meet_a_real_page_drill.py", "--platform", "bilibili"],
+    ["list_selectors_meet_a_real_page_drill.py", "--platform", "xiaohongshu"],
     ["extension_platform_wiring_drill.py", "--platform", "xiaohongshu",
      "--sample-url", "https://www.xiaohongshu.com/explore/abc123",
      "--expect-custody", "forbidden", "--expect-connect-card"],
