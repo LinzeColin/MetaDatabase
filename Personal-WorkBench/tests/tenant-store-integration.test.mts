@@ -164,3 +164,95 @@ test("tenant store rejects cross-account habit and savings parent references bef
     sqlite.close();
   }
 });
+
+test("every tenant record resource keeps create, history, update, and delete inside its signed-in account", async () => {
+  const sqlite = await setupDb();
+  const db = asTenantDb(sqlite);
+  try {
+    const fixtures: Array<{
+      id: string;
+      input: Record<string, unknown>;
+      name: string;
+    }> = [
+      {
+        id: "habit-alpha",
+        name: "habits",
+        input: { active: true, iconKey: "habit_early.png", sortOrder: 1, title: "早起" },
+      },
+      {
+        id: "checkin-alpha",
+        name: "habit-checkins",
+        input: { habitId: "habit-alpha", localDate: "2026-08-12" },
+      },
+      {
+        id: "todo-alpha",
+        name: "todos",
+        input: { completed: false, completedAt: null, dueDate: "2026-08-13", note: "alpha only", priority: "normal", title: "待办" },
+      },
+      {
+        id: "ledger-alpha",
+        name: "ledger",
+        input: { amountCents: 1200, category: "餐饮", currency: "CNY", kind: "expense", localDate: "2026-08-12", note: "午餐" },
+      },
+      {
+        id: "food-alpha",
+        name: "food",
+        input: { calories: 320, foodName: "早餐", localDate: "2026-08-12", meal: "breakfast", note: "", photoObjectId: null, source: "manual" },
+      },
+      {
+        id: "exercise-alpha",
+        name: "exercise",
+        input: { activity: "散步", caloriesBurned: null, durationMinutes: 30, localDate: "2026-08-12", note: "" },
+      },
+      {
+        id: "weight-alpha",
+        name: "weights",
+        input: { localDate: "2026-08-12", note: "", weightGrams: 52300 },
+      },
+      {
+        id: "schedule-alpha",
+        name: "schedule",
+        input: { allDay: false, endsAt: null, note: "", startsAt: 1786492800000, title: "日程" },
+      },
+      {
+        id: "anniversary-alpha",
+        name: "anniversaries",
+        input: { localDate: "2026-08-12", note: "", repeatYearly: true, title: "纪念日" },
+      },
+      {
+        id: "diary-alpha",
+        name: "diary",
+        input: { body: "alpha only", localDate: "2026-08-12", mood: "平静", photoObjectId: null, title: "日记" },
+      },
+      {
+        id: "goal-alpha",
+        name: "savings-goals",
+        input: { archived: false, currency: "CNY", targetCents: 300000, targetDate: null, title: "应急金" },
+      },
+      {
+        id: "transaction-alpha",
+        name: "savings-transactions",
+        input: { amountCents: 5000, goalId: "goal-alpha", localDate: "2026-08-12", note: "存入" },
+      },
+      {
+        id: "period-alpha",
+        name: "periods",
+        input: { endDate: "2026-08-12", note: "", startDate: "2026-08-10" },
+      },
+    ];
+
+    for (const fixture of fixtures) {
+      const target = resource(fixture.name);
+      await create(db, fixture.name, "user_a", fixture.id, fixture.input);
+
+      assert.equal((await getTenantRecord(db, target, "user_a", fixture.id))?.id, fixture.id, fixture.name);
+      assert.deepEqual(await listTenantRecords(db, target, "user_b"), [], fixture.name);
+      assert.equal(await getTenantRecord(db, target, "user_b", fixture.id), null, fixture.name);
+      await assert.rejects(() => updateTenantRecord(db, target, "user_b", fixture.id, {}), NotAccessibleError, fixture.name);
+      await assert.rejects(() => deleteTenantRecord(db, target, "user_b", fixture.id), NotAccessibleError, fixture.name);
+      assert.equal((await getTenantRecord(db, target, "user_a", fixture.id))?.id, fixture.id, fixture.name);
+    }
+  } finally {
+    sqlite.close();
+  }
+});
