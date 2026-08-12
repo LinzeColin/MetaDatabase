@@ -2,7 +2,7 @@
   "status": "PASS",
   "host": "linze-vps3",
   "image": "social-archive/core:0.0.0.67",
-  "container_id": "db68049dbc55",
+  "container_id": "374d9c40e74f",
   "what_this_proves": "刚部署的那个镜像里，从空库到连接、同步、看得见、删除并清空、再从头来一遍，整条链在 HTTP 上真的走得通",
   "what_this_does_not_prove": "不碰他自己的库（这一轮跑在容器内 tmpfs 上），所以不证明他那份数据的状态",
   "steps": [
@@ -20,7 +20,7 @@
     },
     {
       "step": "能开始连一个抖音",
-      "measured": "conn_g0INbR-_Xv6H6576Fs-MqINUXbdo9OAZ",
+      "measured": "conn_ri_8CxCGIC5j-VH7E3Xppl_8dxzp-GXN",
       "expected": "一个 connection_ref",
       "ok": true
     },
@@ -28,7 +28,7 @@
       "step": "连接完成，拿到账号和一次首同步",
       "measured": {
         "account_id": "acct_42b9c0d4fe4b9b4d5f6e4d5dcdc46a7b",
-        "sync_run_id": "sync_1e9e73b9f55d173afc50835a7be6b8ea"
+        "sync_run_id": "sync_cd38f8aa4d79373a2729b664d126b15b"
       },
       "expected": "两个都非空",
       "ok": true
@@ -111,7 +111,7 @@
     },
     {
       "step": "删完还能从头再连一次",
-      "measured": "sync_d08268db71afdae07b594268404da697",
+      "measured": "sync_6c1239c8ba75bd9215640f783c77eb4a",
       "expected": "一个非空 sync_run id",
       "ok": true
     },
