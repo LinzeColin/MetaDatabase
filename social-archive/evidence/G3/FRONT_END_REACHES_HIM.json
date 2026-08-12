@@ -1,5 +1,6 @@
 {
   "status": "PASS",
+  "not_reached": [],
   "what_this_proves": "他打得到的那个域名下发的那份前端，在真 Chrome 里画出了「删除并清空」，误点拦得住，打对名字会真发 POST …/forget",
   "what_this_does_not_prove": "接口是假的——服务端删干净没有由从零那一轮在真镜像上验",
   "supply_from_production": {
@@ -126,12 +127,13 @@
       "found": true,
       "platform": "douyin",
       "panelOpened": true,
-      "panelSrc": "chrome-extension://dfmgceekmaeofiaenefigoeiffhdfloo/connect-frame.html",
+      "panelSrc": "chrome-extension://ijaefkffphkekffkccjkdglebnjnbobj/connect-frame.html",
       "errorsAfterClick": []
     },
     "drawer": {
       "opened": true,
-      "whole": "真正的一次性她来了 收藏 未分类 内容 已保留结构化关系、原始链接和归档信息。 关键信息 平台 抖音 来源账号 未标记账号 收藏时间 — 发布时间 — 作者 未知作者 收藏夹 未分组 归档状态 视频没存下 最近同步 — 归档文件 · 0 项 该条内容当前只有结构化信息与原始链接。 自动导出 M N O G 1 个目的地有回执 Markdown 已写入"
+      "whole": "真正的一次性她来了 收藏 未分类 内容 已保留结构化关系、原始链接和归档信息。 关键信息 平台 抖音 来源账号 未标记账号 收藏时间 — 发布时间 — 作者 未知作者 收藏夹 未分组 归档状态 视频没存下 最近同步 — 归档文件 · 0 项 该条内容当前只有结构化信息与原始链接。 自动导出 M N O G 1 个目的地有回执 Markdown 已写入",
+      "waited_for_receipt": true
     }
   },
   "problems": []

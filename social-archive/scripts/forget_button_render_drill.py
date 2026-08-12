@@ -325,10 +325,26 @@ READ_DRAWER = r"""
   const row = document.querySelector("#tableBody tr[data-row-id]");
   if (!row) return JSON.stringify({opened: false, reason: "表里没有条目行"});
   row.click();
-  await new Promise(r => setTimeout(r, 1500));
-  const box = document.getElementById("drawerContent");
-  const text = ((box && box.innerText) || "").replace(/\s+/g, " ");
-  return JSON.stringify({opened: !!(box && text), whole: text.slice(0, 400)});
+  // **等数据到，别等一个写死的毫秒数。**（2026-08-12）
+  //
+  // 原来是 `setTimeout(1500)` 然后读一次。回执是异步取的，1.5 秒有时候不够——
+  // 于是同一份代码连跑两次，一次读到「1 个目的地有回执 Markdown 已写入」，
+  // 一次读到「尚无已完成回执」，后者把部署掐断并报成产品缺陷。
+  // 这个仓的另一个演练文件头里早就写着同一条教训：
+  // 「等待条件写成『等到有卡片』——读到的是账号加载**之前**的 DOM」。
+  //
+  // 现在最多等 12 秒，等到回执那一段出现为止；**真的一直没出现才是缺陷**，
+  // 那时报出来的就不是抖动了。
+  const box = () => document.getElementById("drawerContent");
+  const read = () => ((box() && box().innerText) || "").replace(/\s+/g, " ");
+  let text = "";
+  for (let i = 0; i < 24; i += 1) {
+    await new Promise(r => setTimeout(r, 500));
+    text = read();
+    if (text.includes("已写入")) break;
+  }
+  return JSON.stringify({opened: !!(box() && text), whole: text.slice(0, 400),
+                         waited_for_receipt: text.includes("已写入")});
 })()
 """
 
@@ -503,7 +519,21 @@ async def run(chrome: str, origin: str) -> int:
 
             await rpc("Runtime.evaluate", {"expression": OPEN_CENTRE, "returnByValue": True})
             await asyncio.sleep(1.5)
+            # **等这一页认出插件，别等一个写死的毫秒数。**（2026-08-12）
+            #
+            # 「下一步」那张卡停在第 1/2 步 = 还没认出插件，那时读到的一切
+            # 都是空转（这个文件下面那条正对照就是为它写的）。原来只 sleep 固定时长，
+            # 于是同一份代码连跑两次，一次认出、一次没认出——**没认出的那次把部署
+            # 掐断，还报成产品缺陷**（说明书第 3 步那张卡对不上）。
+            #
+            # 最多等 15 秒；**真的一直认不出才是问题**，那时报出来的不是抖动。
             measured["rendered"] = await evaluate(READ_BUTTON)
+            for _ in range(30):
+                step = (measured["rendered"] or {}).get("nextStep", "")
+                if "第 1 步" not in step and "第 2 步" not in step:
+                    break
+                await asyncio.sleep(0.5)
+                measured["rendered"] = await evaluate(READ_BUTTON)
 
             posted.clear()
             measured["wrong_name"] = await evaluate(click_with_prompt("打错了"))
@@ -536,6 +566,7 @@ async def run(chrome: str, origin: str) -> int:
     rendered = measured.get("rendered", {})
     buttons = rendered.get("forgetButtons", [])
     problems: list[str] = []
+    skipped: list[str] = []
     if not buttons:
         problems.append("真 Chrome 里一颗「删除并清空」都没画出来——他点不到它")
     elif not all(b.get("label") == "删除并清空" for b in buttons):
@@ -554,7 +585,17 @@ async def run(chrome: str, origin: str) -> int:
     # **正对照**：卡片停在第 1/2 步 = 这一页没认出插件，
     # 那么所有「以插件装着为前提」的断言都是空转，不许当通过。
     step = rendered.get("nextStep", "")
-    if "第 1 步" in step or "第 2 步" in step:
+    # **前提不成立时，别再把下游断言当成产品缺陷报一遍。**（2026-08-12）
+    #
+    # 这一页没认出插件时，「下一步」那张卡本来就该指向装/连插件——
+    # 那是**对的**。而下面那条「他照说明书第 3 步该看到的卡」拿它去比，
+    # 就会报出第二条听起来像产品缺陷的问题，把部署掐断。
+    #
+    # 实测就是这么发生的：同一次运行里第一条说「这是演练的问题，不是产品的」，
+    # 第二条却把同一件事写成产品对不上说明书。**夹具的限制伪装成产品缺陷**，
+    # 这个仓栽过好几次。所以：前提不成立就把下游那条改成「没跑到」。
+    harness_lost_the_extension = "第 1 步" in step or "第 2 步" in step
+    if harness_lost_the_extension:
         problems.append(
             f"「下一步」那张卡停在 {step[:40]!r}——**插件没被这一页认出来**。"
             "多半是端口不在 host_permissions 里（只能是 127.0.0.1:8765），"
@@ -603,7 +644,12 @@ async def run(chrome: str, origin: str) -> int:
             "——那是他现在唯一走得通的一步")
     elif click.get("errorsAfterClick"):
         problems.append(f"点「连接账号」之后页面报错：{click['errorsAfterClick']}")
-    if "第 3 步" not in disconnected_step or "去连接" not in disconnected_step:
+    if harness_lost_the_extension:
+        # 前提已经报过了，这里只如实说这一条没跑到——不重复报成第二个缺陷。
+        skipped.append(
+            "「照说明书第 3 步该看到那张卡」这一条**没跑到**："
+            "这一页没认出插件，卡片本来就该指向装/连插件。前提修好了才谈得上验它。")
+    elif "第 3 步" not in disconnected_step or "去连接" not in disconnected_step:
         problems.append(
             f"一个账号都没连着时，他照说明书第 3 步该看到的那张卡不对："
             f"{disconnected_step[:140]!r}——说明书写的是"
@@ -611,6 +657,8 @@ async def run(chrome: str, origin: str) -> int:
 
     result = {
         "status": "FAIL" if problems else "PASS",
+        # **没跑到的要印出来。** 不印的话「通过了」和「根本没验」长得一样。
+        "not_reached": skipped,
         "what_this_proves": "他打得到的那个域名下发的那份前端，在真 Chrome 里画出了"
                             "「删除并清空」，误点拦得住，打对名字会真发 POST …/forget",
         "what_this_does_not_prove": "接口是假的——服务端删干净没有由从零那一轮在真镜像上验",

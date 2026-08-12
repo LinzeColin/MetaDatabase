@@ -303,14 +303,26 @@ async def _one_case(chrome: str, folder: Path, label: str, debug_port: int) -> d
             # 它的规则是「按顺序找出第一个没做完的事，只显示它」。
             # 装着旧插件的人，第一件没做完的事是**更新**，不是连账号——
             # 而上一版把他指去「连接一个能同步的来源」，那颗按钮在他那儿打不开面板。
-            card = await prpc("Runtime.evaluate", {"expression": '''(() => {
+            # **等这一页认出插件再读这张卡。**（2026-08-12）
+            #
+            # 卡片停在「第 1 步：安装浏览器插件」= 页面还没认出插件，那时读到的
+            # 不是他的实况。原来读一次就走，于是这个演练今天连着把部署掐断，
+            # 而单独重跑就 PASS——报出来的却是一句听起来像产品缺陷的话。
+            # 最多等 15 秒；真的一直停在第 1 步才是问题。
+            CARD = '''(() => {
                 const pick = id => (document.getElementById(id) || {}).textContent || "";
                 return JSON.stringify({ title: pick("nextStepTitle"),
                                         why: pick("nextStepWhy"),
                                         action: pick("nextStepAction") });
-            })()''', "returnByValue": True})
-            result["next_step"] = json.loads(
-                card.get("result", {}).get("result", {}).get("value") or "{}")
+            })()'''
+            for _ in range(30):
+                card = await prpc("Runtime.evaluate",
+                                  {"expression": CARD, "returnByValue": True})
+                result["next_step"] = json.loads(
+                    card.get("result", {}).get("result", {}).get("value") or "{}")
+                if "第 1 步" not in str(result["next_step"].get("title", "")):
+                    break
+                await asyncio.sleep(0.5)
 
             # **真的点下去**，带用户手势——权限申请那条路只在有手势时才成立。
             click = await prpc("Runtime.evaluate", {"expression": '''(() => {
@@ -324,7 +336,28 @@ async def _one_case(chrome: str, folder: Path, label: str, debug_port: int) -> d
             if not clicked.get("clicked"):
                 result["error"] = "CONNECT_BUTTON_NOT_FOUND"
                 return result
-            await asyncio.sleep(3)
+            # **等面板开，别等一个写死的秒数。**（2026-08-12）
+            #
+            # 原来是 `sleep(3)` 之后读一次。面板是异步开的，3 秒有时候不够——
+            # 于是这个演练今天两次把部署掐断，两次单独重跑都 PASS，
+            # 报出来的却是「就地连接这件事没成立，他还是得跳走」——**一句听起来
+            # 像产品缺陷的话**。同一天同一个坑在另外两个演练上也各踩了一次。
+            #
+            # 最多等 12 秒，等到面板开或者有 toast 为止；真的一直不开才是缺陷。
+            READ_PANEL = '''(() => {
+                const stack = document.getElementById("toastStack");
+                const toasts = stack ? [...stack.children].map(node => node.textContent) : [];
+                const backdrop = document.getElementById("connectModalBackdrop");
+                const open = !!backdrop && backdrop.classList.contains("open");
+                return JSON.stringify({ toasts, open, dialogs: window.__saDialogs || [] });
+            })()'''
+            for _ in range(24):
+                await asyncio.sleep(0.5)
+                probe = await prpc("Runtime.evaluate",
+                                   {"expression": READ_PANEL, "returnByValue": True})
+                got = json.loads(probe.get("result", {}).get("result", {}).get("value") or "{}")
+                if got.get("open") or got.get("toasts") or got.get("dialogs"):
+                    break
 
             read = await prpc("Runtime.evaluate", {"expression": '''(() => {
                 const stack = document.getElementById("toastStack");
