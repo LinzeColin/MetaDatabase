@@ -54,9 +54,9 @@
   "captured_responses": 5,
   "captured_urls": [
     "https://www.instagram.com/api/log",
+    "https://www.instagram.com/api/user",
     "https://www.instagram.com/api/config",
     "https://www.instagram.com/api/v1/collections/saved",
-    "https://www.instagram.com/api/user",
     "https://www.instagram.com/api/v1/feed/timeline"
   ],
   "recognised": "https://www.instagram.com/api/v1/collections/saved",
