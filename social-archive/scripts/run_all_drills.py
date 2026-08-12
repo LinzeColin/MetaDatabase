@@ -94,6 +94,14 @@ PARAMETRISED = [
     # 部署第 8 / 8.2 步逐字节证明「下载页发的 = 本地的 = git 里的」），
     # 这一条补的是**整条链**：连接 → 取数 → 入库。
     ["bilibili_end_to_end_drill.py", "--from-shipped-zip"],
+    # **选择器落在真页面上选不选得中**（2026-08-13）。
+    #
+    # 其余所有按形状读的演练打的都是**我们自己写的假站**——我编的响应形状，
+    # 选择器当然选得中。这一条打真页面（公开、不登录、零费用）。
+    # 只跑 B 站：小红书本机 IP 被挡（error_code=300012），
+    # 抖音没有一张公开的、真的是列表的页面。两家各自的理由写在演练里，
+    # **它们回 BLOCKED_CHANNEL 而不是 FAIL**——「答不了」不等于「答案是坏的」。
+    ["list_selectors_meet_a_real_page_drill.py", "--platform", "bilibili"],
     ["extension_platform_wiring_drill.py", "--platform", "xiaohongshu",
      "--sample-url", "https://www.xiaohongshu.com/explore/abc123",
      "--expect-custody", "forbidden", "--expect-connect-card"],

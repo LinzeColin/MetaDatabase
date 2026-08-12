@@ -104,6 +104,7 @@ python scripts/<演练名>.py
 | `extension_install_page_drill.py` | 改到那条路时 | 装着旧插件的人能不能靠那一页更新掉 |
 | `pwa_render_drill.py` | 改到那条路时 | 页面上那两段话真的显示出来了吗；**「连接新账号」那个弹窗里，做不到的平台不许有按钮**（快手/X 只显示原因） |
 | `douyin_recogniser_does_not_grab_the_wrong_list_drill.py` | 改到形状识别那条路时（打一次抖音公开页，零费用） | 真抖音页面上，形状识别器会不会把别的东西认成收藏列表。**它当场逮到一个**：登录二维码那个 Lottie 动画文件的 `assets` 数组被认成 7 条收藏，过一遍归一化就是 7 条 `douyin.com/video/image_0` 这样的 404 落库。内建正对照（混一条真像列表的进去，识别器必须认出来），不然它是空转。`--platform` 可选 douyin/xiaohongshu/reddit/instagram——**同一个识别器四家都用**；实测前三家修好后都不乱认；**reddit 量不到且已定性**——它给无头 Chrome 的是一屏人机验证（Prove your humanity），唯一的通路是过验证码，而那件事不做。那一行永远是**没量到**，不是通过，也不必再试 |
+| `list_selectors_meet_a_real_page_drill.py` | 每次发布（只跑 B 站，公开页零费用） | `LIST_SELECTORS` 那几条落在**真页面**上选不选得中。实测 B 站热门榜选中 21 个节点。**小红书本机 IP 被挡**（`error_code=300012`）、抖音没有公开的列表页——这两家回 `BLOCKED_CHANNEL` 不是 `FAIL`，换台够得着的机器可以补上 |
 | `net_observer_sees_a_real_page_drill.py` | 改到拦截那条路时（打一次 B 站公开页，零费用） | 拦截器在**真页面**上包不包得住：注进 document_start → 页面自己发请求 → 扣在 pending 里 → 配置下来后补判抛出。实测扣住 16 条、抛出 15 条、收藏夹那一族抓到 4 条。**顺带查出 `INTERCEPT_PREFIXES` 里配的 `resource/list` 不是网页真正请求的地址**（网页用 resource/ids + resource/infos）。不验权限那一下——那要 Owner 本人 |
 | `read_what_his_diagnosis_left_behind.py` | **每次发布**（deploy 第 8.86 步，**播报不是门**） | 他按过那颗诊断按钮没有？按了就把该盯的地址和响应字段骨架印出来。没有这一步的话，他做完了他那一份而我不知道——机制建好了没人去看，这次断在我这一头 |
 | `check_a_relation_never_loses_the_author.py` | **每次发布**（deploy 第 8.85 步，**播报不是门**） | 按「平台 × 关系」分组算作者填充率，某一组条数够多而填充率为 0 就说出来。按**产品显示时**的口径算（点赞数不算作者）。整体看抖音 54/86 缺失像是**一半取不到**，拆开才看见 **favorite 16/16、like 69/69 都是零**——抖音那条自动取数路从没取到过一个真作者，而 B 站同一套机制是 93–99% |
