@@ -37,7 +37,7 @@ from app.models import (
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default="")
-    parser.add_argument("--require-alembic-head", default="0001_saas_baseline")
+    parser.add_argument("--require-alembic-head", default="0002_delivery_lookup")
     args = parser.parse_args()
 
     errors: list[str] = []
@@ -109,10 +109,14 @@ def main() -> int:
         if invalid_intervals:
             errors.append("one or more completed discovery intervals are not exactly six hours")
 
+    passed = not errors
     result = {
-        "verdict": "PASS" if not errors else "FAIL",
+        "verdict": "PASS" if passed else "FAIL",
         "scope": "read-only schema, aggregate counts, Alembic identity, tenant schema and exact six-hour refresh invariant",
-        "production_claimed": settings.app_env == "production",
+        # A schema/readback probe can prove only its stated scope.  The root
+        # ACCEPTANCE_RESULT.json is the sole authority for a production claim.
+        "production_claimed": False,
+        "completion_authority": "root ACCEPTANCE_RESULT.json only",
         "app_version": settings.app_version,
         "refresh_interval_hours": settings.discovery_refresh_hours,
         "alembic_revision": alembic_revision,

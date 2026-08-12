@@ -39,7 +39,9 @@ MARKER = "migration_v02_sqlite_complete"
 
 
 def connect_source(path: Path) -> sqlite3.Connection:
-    uri = f"file:{quote(str(path.resolve()))}?mode=ro"
+    # T01 supplies a finished, isolated backup restore.  `immutable=1` keeps
+    # SQLite from creating WAL/SHM lock state beside that read-only snapshot.
+    uri = f"file:{quote(str(path.resolve()))}?mode=ro&immutable=1"
     conn = sqlite3.connect(uri, uri=True)
     conn.row_factory = sqlite3.Row
     return conn
@@ -111,9 +113,21 @@ def label(value: str, mapping: dict[str, str], default: str) -> str:
 def read_old_upload(old_root: Path, stored_path: str, old_cipher: Fernet, fallback: bytes) -> bytes:
     if not stored_path:
         return fallback
-    path = Path(stored_path)
-    if not path.is_absolute():
-        path = old_root / path
+    source_root = old_root.resolve()
+    uploads_root = (source_root / "uploads").resolve()
+    stored = Path(stored_path)
+    if stored.is_absolute():
+        try:
+            path = source_root / stored.relative_to("/data")
+        except ValueError:
+            return fallback
+    else:
+        path = source_root / stored
+    try:
+        path = path.resolve()
+        path.relative_to(uploads_root)
+    except ValueError:
+        return fallback
     if not path.is_file():
         return fallback
     raw = path.read_bytes()

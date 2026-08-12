@@ -1,9 +1,11 @@
 {
   "verdict": "PASS",
-  "command": "python -m pytest -q",
-  "tests_passed": 18,
+  "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/jobhuntbot-v04-pycache python -m pytest -q -p no:cacheprovider --junitxml=/private/tmp/jobhuntbot-v04-pytest-release.xml",
+  "tests_passed": 77,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "duration_seconds": 21.531,
   "return_code": 0,
-  "duration_seconds": 12.658,
-  "output_tail": "..................                                                       [100%]",
   "production_claimed": false
 }

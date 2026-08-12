@@ -1,9 +1,9 @@
 {
   "verdict": "PASS",
-  "command": "migration and URL safety tests",
+  "command": "python3 -m pytest -q tests/test_migration_and_url_safety.py",
   "tests_passed": 2,
   "return_code": 0,
-  "duration_seconds": 2.574,
+  "duration_seconds": 2.551,
   "output_tail": "..                                                                       [100%]",
   "production_claimed": false
 }

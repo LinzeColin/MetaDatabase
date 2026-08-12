@@ -1,7 +1,13 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
+import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import select
 
+from app import ai
+from app.main import create_app
 from app.models import User
 from app.security import email_lookup
 from .conftest import complete_onboarding, csrf, register_verify
@@ -19,6 +25,46 @@ def login(client, email: str, password: str):
 def logout(client):
     page = client.get("/dashboard", follow_redirects=True)
     return client.post("/logout", data={"csrf_token": csrf(page.text)}, follow_redirects=True)
+
+
+def test_owner_entry_is_server_gated_and_starts_a_session_without_mail(client, settings):
+    page = client.get("/owner-entry")
+    assert page.status_code == 200
+    assert 'data-testid="owner-entry-password"' in page.text
+    assert 'name="email"' not in page.text
+    before = client.get("/_test/outbox").json()
+
+    rejected = client.post("/owner-entry", data={
+        "csrf_token": csrf(page.text),
+        "password": "WrongOwnerPass123",
+    }, follow_redirects=True)
+    assert "密码不正确" in rejected.text
+
+    page = client.get("/owner-entry")
+    regular_admin_password = client.post("/owner-entry", data={
+        "csrf_token": csrf(page.text),
+        "password": settings.admin_password,
+    }, follow_redirects=True)
+    assert "密码不正确" in regular_admin_password.text
+
+    page = client.get("/owner-entry")
+    accepted = client.post("/owner-entry", data={
+        "csrf_token": csrf(page.text),
+        "password": settings.owner_entry_password,
+    }, follow_redirects=True)
+    assert accepted.status_code == 200
+    assert "上传简历" in accepted.text
+    assert client.get("/_test/outbox").json() == before
+    assert settings.owner_entry_password != settings.admin_password
+    with client.app.state.session_factory() as db:
+        owner = db.scalar(select(User).where(User.email_lookup == email_lookup(settings.admin_email, settings.email_lookup_secret)))
+        assert owner and owner.is_admin and owner.is_verified
+
+
+def test_owner_entry_is_hidden_when_not_enabled(settings):
+    disabled = replace(settings, owner_entry_enabled=False)
+    with TestClient(create_app(disabled)) as disabled_client:
+        assert disabled_client.get("/owner-entry").status_code == 404
 
 
 def test_admin_can_change_quota_and_disable_user(client, settings):
@@ -68,3 +114,47 @@ def test_user_can_delete_own_account(client, settings):
     with client.app.state.session_factory() as db:
         user = db.scalar(select(User).where(User.email_lookup == email_lookup("delete@example.com", settings.email_lookup_secret)))
         assert user is None
+
+
+def test_zero_user_ai_quota_blocks_before_provider_client_is_created(client, settings, monkeypatch):
+    provider_calls: list[object] = []
+
+    class ForbiddenClient:
+        def __init__(self, *args, **kwargs):
+            provider_calls.append((args, kwargs))
+            raise AssertionError("zero quota must not create a provider client")
+
+    monkeypatch.setattr(ai.httpx, "Client", ForbiddenClient)
+    enabled_ai_settings = replace(settings, deepseek_api_key="test-only-deepseek-key")
+
+    with client.app.state.session_factory() as db:
+        user = User(
+            email_lookup="quota-zero-user",
+            email_encrypted=b"test-only-ciphertext",
+            password_hash="test-only-password-hash",
+            daily_ai_request_limit=0,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        with pytest.raises(ai.AIUnavailable, match="额度已用完"):
+            ai.generate(
+                db,
+                enabled_ai_settings,
+                user,
+                system_prompt="test system prompt",
+                user_prompt="test user prompt",
+            )
+
+    assert provider_calls == []
+
+
+def test_platform_status_reports_configuration_without_deepseek_secret(client, settings):
+    enabled_ai_settings = replace(settings, deepseek_api_key="test-only-deepseek-key")
+    with client.app.state.session_factory() as db:
+        status = ai.platform_status(db, enabled_ai_settings)
+
+    assert status["configured"] is True
+    assert "deepseek_api_key" not in status
+    assert "test-only-deepseek-key" not in repr(status)

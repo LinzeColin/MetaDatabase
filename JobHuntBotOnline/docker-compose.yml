@@ -1,5 +1,40 @@
 name: ${COMPOSE_PROJECT_NAME:-jobhuntbot-online}
 
+x-web-runtime: &web-runtime
+  image: ${APP_IMAGE:-jobhuntbot-online:0.4.0}
+  build:
+    context: .
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  env_file: .env
+  depends_on:
+    postgres:
+      condition: service_healthy
+  volumes:
+    - jobhunt_uploads:/data/uploads
+    - jobhunt_backups:/data/backups
+  expose: ["8000"]
+  labels:
+    traefik.enable: "true"
+    traefik.docker.network: "${EDGE_NETWORK:-coolify}"
+    traefik.http.routers.jobhuntbot-http.entrypoints: "http"
+    traefik.http.routers.jobhuntbot-http.rule: "Host(`${DOMAIN}`)"
+    traefik.http.routers.jobhuntbot-http.middlewares: "jobhuntbot-https"
+    traefik.http.routers.jobhuntbot-http.service: "jobhuntbot"
+    traefik.http.routers.jobhuntbot-http.priority: "100"
+    traefik.http.routers.jobhuntbot.entrypoints: "https"
+    traefik.http.routers.jobhuntbot.rule: "Host(`${DOMAIN}`)"
+    traefik.http.routers.jobhuntbot.tls: "true"
+    traefik.http.routers.jobhuntbot.tls.certresolver: "letsencrypt"
+    traefik.http.routers.jobhuntbot.priority: "100"
+    traefik.http.services.jobhuntbot.loadbalancer.server.port: "8000"
+    traefik.http.services.jobhuntbot.loadbalancer.healthcheck.path: "/readyz"
+    traefik.http.services.jobhuntbot.loadbalancer.healthcheck.interval: "5s"
+    traefik.http.services.jobhuntbot.loadbalancer.healthcheck.timeout: "2s"
+    traefik.http.middlewares.jobhuntbot-https.redirectscheme.scheme: "https"
+    traefik.http.middlewares.jobhuntbot-https.redirectscheme.permanent: "true"
+  networks: [internal, edge]
+
 services:
   postgres:
     image: postgres:17.6
@@ -17,42 +52,26 @@ services:
       interval: 10s
       timeout: 5s
       retries: 15
-    networks: [internal]
+    networks:
+      internal:
+        # `web` also joins the shared edge network, where another project may
+        # legitimately use the generic `postgres` name. Keep the application
+        # database address unique to this Compose project's private network.
+        aliases:
+          - jobhuntbot-db
 
   web:
-    image: ${APP_IMAGE:-jobhuntbot-online:0.3.0}
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    env_file: .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - jobhunt_uploads:/data/uploads
-      - jobhunt_backups:/data/backups
-    expose: ["8000"]
-    labels:
-      traefik.enable: "true"
-      traefik.docker.network: "${EDGE_NETWORK:-coolify}"
-      traefik.http.routers.jobhuntbot-http.entrypoints: "http"
-      traefik.http.routers.jobhuntbot-http.rule: "Host(`${DOMAIN}`)"
-      traefik.http.routers.jobhuntbot-http.middlewares: "jobhuntbot-https"
-      traefik.http.routers.jobhuntbot-http.service: "jobhuntbot"
-      traefik.http.routers.jobhuntbot-http.priority: "100"
-      traefik.http.routers.jobhuntbot.entrypoints: "https"
-      traefik.http.routers.jobhuntbot.rule: "Host(`${DOMAIN}`)"
-      traefik.http.routers.jobhuntbot.tls: "true"
-      traefik.http.routers.jobhuntbot.tls.certresolver: "letsencrypt"
-      traefik.http.routers.jobhuntbot.priority: "100"
-      traefik.http.services.jobhuntbot.loadbalancer.server.port: "8000"
-      traefik.http.middlewares.jobhuntbot-https.redirectscheme.scheme: "https"
-      traefik.http.middlewares.jobhuntbot-https.redirectscheme.permanent: "true"
-    networks: [internal, edge]
+    <<: *web-runtime
+
+  # Keep one independently supervised hot Web instance alive.  Traefik only
+  # routes ready instances, so an ordinary primary restart or image switch does
+  # not turn the first Owner request into a 502/503 blank state.
+  web-canary:
+    <<: *web-runtime
+    profiles: ["canary"]
 
   scheduler:
-    image: ${APP_IMAGE:-jobhuntbot-online:0.3.0}
+    image: ${APP_IMAGE:-jobhuntbot-online:0.4.0}
     build:
       context: .
       dockerfile: Dockerfile
@@ -65,10 +84,15 @@ services:
     volumes:
       - jobhunt_uploads:/data/uploads
       - jobhunt_backups:/data/backups
+    # The image's HTTP healthcheck only applies to the Uvicorn web process.
+    # Scheduler is a non-HTTP loop and must not be marked unhealthy for not
+    # serving /readyz.
+    healthcheck:
+      disable: true
     networks: [internal]
 
   worker:
-    image: ${APP_IMAGE:-jobhuntbot-online:0.3.0}
+    image: ${APP_IMAGE:-jobhuntbot-online:0.4.0}
     build:
       context: .
       dockerfile: Dockerfile
@@ -81,17 +105,27 @@ services:
     volumes:
       - jobhunt_uploads:/data/uploads
       - jobhunt_backups:/data/backups
+    # Worker is likewise a non-HTTP loop; liveness is its running process and
+    # job/state probes, not the web endpoint inherited from the image.
+    healthcheck:
+      disable: true
     networks: [internal, edge]
 
   acceptance:
     profiles: ["acceptance"]
-    image: ${ACCEPTANCE_IMAGE:-jobhuntbot-online-acceptance:0.3.0}
+    image: ${ACCEPTANCE_IMAGE:-jobhuntbot-online-acceptance:0.4.0}
+    # Keep generated evidence host-writable so a later fresh acceptance run
+    # cannot be blocked by artifacts owned by the container's default root user.
+    user: "${ACCEPTANCE_UID:-1000}:${ACCEPTANCE_GID:-1000}"
     build:
       context: .
       dockerfile: Dockerfile.acceptance
     env_file: .env
     volumes:
       - ./evidence:/app/evidence
+      # The email safety reservation persists across ephemeral acceptance
+      # containers and is ignored as runtime state by taskpack verification.
+      - ./runtime-data:/app/runtime-data
     networks: [internal, edge]
     depends_on:
       web:

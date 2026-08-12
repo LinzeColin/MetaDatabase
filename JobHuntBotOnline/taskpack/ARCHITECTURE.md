@@ -1,25 +1,37 @@
-# Architecture
+# 架构与业务流
 
 ```mermaid
 flowchart LR
-  U[Browser user] --> H[HTTPS reverse proxy]
-  H --> W[FastAPI Web]
-  W --> P[(PostgreSQL)]
-  W --> O[(Encrypted uploads)]
-  S[Scheduler every minute] --> P
-  K[Discovery Worker] --> P
-  K --> A[Authorized job APIs]
-  W --> D[Platform DeepSeek API]
-  W --> M[SMTP]
-  P --> B[Encrypted backup]
-  O --> B
+  U[用户中文网页] --> A[邮箱账户与租户边界]
+  A --> R[多份简历与候选人事实]
+  R --> C[金融/法律职业事实识别]
+  C --> Q[硬资格引擎]
+  S[合法岗位来源] --> D[六小时发现与去重]
+  D --> Q
+  Q --> F[个性化推荐与多维筛选]
+  F --> J[岗位详情与逐条证据]
+  J --> RR[岗位级简历路由]
+  RR --> P[申请包]
+  P --> X[岗位定制 DOCX]
+  P --> T[申请进度与证据]
+  T --> DB[(PostgreSQL)]
+  R --> DB
+  D --> DB
+  F --> DB
+  AI[平台人工智能服务] -.仅增强.-> P
+  B[备份/恢复/回滚] --> DB
 ```
 
-## Boundaries
+## 关键机制
 
-- Web, Scheduler and Worker share one image and one PostgreSQL authority.
-- Scheduler only queues due profiles. Worker claims queued runs, isolates source failures, updates recommendations and sets `next_discovery_at = completed_at + 6h`.
-- Candidate PII and application content are encrypted at the application layer. Passwords use Argon2; sessions are server-side and versioned.
-- Public jobs may deduplicate globally. Manually imported jobs include tenant identity in their canonical key and remain owner-scoped.
-- DeepSeek is a bounded enhancement layer. Qualification hard rules remain deterministic.
-- v0.2 SQLite is read-only during migration. The importer decrypts with the former key and re-encrypts with the v0.3 key; the old per-user DeepSeek key is never written to the business database.
+1. **候选人事实层**：原始简历字节加密保存；解析结果、资质和用户确认分开记录。
+2. **硬资格层**：年限、职级、资质、律师准入、执业证书、工作权利和雇主担保先于相似度排序。
+3. **推荐层**：资格通过／待确认／不符合与相关性、机会潜力分别呈现，不使用伪精确录用率。
+4. **简历路由层**：每个岗位重新比较用户所有简历；默认简历只作平分时次级因素。
+5. **文档层**：使用已选简历和用户确认事实生成 DOCX；不修改原文件，不补造数字或职责。
+6. **运行层**：Web、调度器、后台任务处理器和 PostgreSQL 分离；发现任务每六小时运行。
+7. **降级层**：单一岗位来源或人工智能服务失败不拖垮其他来源和确定性规则。
+
+## 数据权威
+
+PostgreSQL 是业务数据权威。对象目录保存加密简历和备份；Private-Database、状态页或 R2 只在现有授权范围内承担运维投影或对象备份，不成为第二业务数据库。

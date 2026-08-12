@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}确认验证邮箱｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="center-card">
+  <div class="mail-illustration">✉</div>
+  <span class="eyebrow">还差一次确认</span>
+  <h1>确认验证邮箱</h1>
+  <p>请确认这是你本人打开的验证链接。完成后将进入上传简历页面。</p>
+  <form method="post" action="/verify-email" class="form-stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="token" value="{{ token }}">
+    <button class="button full" type="submit" data-testid="verify-email-confirm">确认验证邮箱</button>
+  </form>
+</section>
+{% endblock %}

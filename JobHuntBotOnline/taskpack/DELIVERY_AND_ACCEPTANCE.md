@@ -1,29 +1,39 @@
-# Delivery and Acceptance
+# 最后一公里与验收说明
 
-## Delivery sequence
+## Codex 只需完成
 
-1. Run `python tools/verify_taskpack.py --output evidence/predeploy-taskpack.json`.
-2. Observe latest repository/environment and capture `evidence/target-current-truth.json`.
-3. Create rollback point and verified backup before any migration.
-4. Generate `.env`, inject SMTP/DeepSeek/IMAP secrets, and keep all secret values outside Git.
-5. Apply Alembic. When a v0.2 database exists, run `tools/migrate_v02_sqlite.py` before switching traffic.
-6. Deploy Web, Scheduler and Worker.
-7. Run `deploy/acceptance.sh` on the real HTTPS deployment.
-8. Only after core PASS, register operations and commit/push the exact Candidate.
+1. 重新观察当前仓库、网站、数据库和部署规则；
+2. 建立备份和可执行回滚点；
+3. 将本包增量语义合入当前更优实现；
+4. 完成必要的可逆数据库和运行配置适配；
+5. 运行全部源码测试和金融／法律事务；
+6. 在真实浏览器逐页操作全部可见控件；
+7. 部署并验证六小时调度、租户隔离、重启读回和恢复；
+8. commit、push，并按当前仓治理推进 PR／合并／部署。
 
-## Production acceptance inputs
+## 浏览器验收
 
-The target `.env` must provide dedicated disposable acceptance mailboxes or plus aliases:
+至少使用两个全新合成账户和两份内容明显不同的简历：
 
-- `ACCEPTANCE_EMAIL_A`, `ACCEPTANCE_EMAIL_B`, `ACCEPTANCE_ACCOUNT_PASSWORD`
-- `ACCEPTANCE_IMAP_HOST`, `ACCEPTANCE_IMAP_PORT`, `ACCEPTANCE_IMAP_USERNAME`, `ACCEPTANCE_IMAP_PASSWORD`
-- `ACCEPTANCE_IMAP_FOLDER`, optional `ACCEPTANCE_EMAIL_PLUS_ALIAS=true`
+- 金融：金融分析、Excel、估值、财务建模；
+- 法律：JD、PLT、澳大利亚律师准入、执业证书、合同与合规。
 
-These are test credentials, not candidate data. They are never copied into evidence.
+实际点击：注册、验证、登录、上传、设默认、删除、确认资料、刷新岗位、全部筛选、清除、详情、收藏、忽略、恢复、生成申请包、下载 DOCX、复制回答、编辑材料、记录全部申请状态、数据导出、修改密码、忘记密码、账户删除和管理员功能。每一步核对页面结果与数据库状态。
 
-## Verdict
+## 通过条件
 
-- `PASS`: every critical Acceptance passes on the exact deployment, no P0/P1.
-- `FAIL`: a required behavior is reproducibly wrong.
-- `BLOCKED`: real permission, identity, Secret, network or evidence is unavailable.
-- Local evidence can support implementation quality but cannot become a production verdict.
+- 金融总监十五年岗位不再显示资格通过；
+- 总法律顾问十二年岗位对中级法律用户不再通过；
+- 商业律师在准入、执业证书和年限满足时通过；
+- 金融岗位选择金融简历，法律岗位选择法律简历；
+- DOCX 可打开且无虚构事实；
+- 用户界面全中文，无空按钮、死链接、控制台或页面错误；
+- 单一来源失败不显示为“没有岗位”；
+- 两账户互不可见；
+- 刷新、重登、服务重启和恢复后结果仍成立。
+
+## 邮件与人工智能
+
+NitroSend 不使用。标准 SMTP 暂不可用时，只将邮件相关事务标记为阻断，继续验证其他功能。平台人工智能密钥不进入代码、日志、截图或导出；服务失败时确定性资格和 DOCX 仍可用。
+
+既有反骚扰控制继续生效：生产每个收件人至少间隔 30 分钟、24 小时最多 3 次，且收件人删除或重新注册不会重置持久化限制。真实邮件验收只可在专用不同邮箱、一次性运行标识和 24 小时冷却满足时执行；不得自动重试、缩短间隔或将未投递邮件记为已发送。

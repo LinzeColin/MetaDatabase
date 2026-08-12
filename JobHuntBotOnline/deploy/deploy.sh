@@ -1,32 +1,77 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export PYTHONDONTWRITEBYTECODE=1
 cd "$(dirname "$0")/.."
 test -f .env
 test -f secrets/postgres_password.txt
 [[ "$(stat -c '%a' .env)" =~ ^(600|400)$ ]] || { echo ".env must be mode 0600 or 0400" >&2; exit 1; }
-python deploy/verify_taskpack.py
+python3 deploy/verify_taskpack.py --deployment-runtime
 set -a; source .env; set +a
 mkdir -p runtime-data evidence
 previous_image="$(docker compose images -q web 2>/dev/null | head -1 || true)"
-if [[ -n "$previous_image" ]]; then
+initial_v03_deploy=0
+if [[ -z "$previous_image" ]]; then
+  initial_v03_deploy=1
+fi
+legacy_active=0
+legacy_service="${LEGACY_SERVICE:-app}"
+legacy_compose=()
+canary_was_active=0
+primary_replaced=0
+canary_updated=0
+if [[ "$initial_v03_deploy" == "1" && -n "${LEGACY_COMPOSE_FILE:-}" ]]; then
+  [[ -f "$LEGACY_COMPOSE_FILE" ]] || { echo "LEGACY_COMPOSE_FILE does not exist" >&2; exit 1; }
+  legacy_project_dir="$(cd "$(dirname "$LEGACY_COMPOSE_FILE")" && pwd)"
+  legacy_compose=(docker compose --project-directory "$legacy_project_dir" -f "$LEGACY_COMPOSE_FILE")
+  "${legacy_compose[@]}" config --services | grep -qx "$legacy_service" \
+    || { echo "LEGACY_SERVICE is absent from LEGACY_COMPOSE_FILE" >&2; exit 1; }
+  if "${legacy_compose[@]}" ps --services --filter status=running | grep -qx "$legacy_service"; then
+    legacy_active=1
+  fi
+fi
+if [[ "$legacy_active" == "1" ]]; then
+  # The first v0.3 deployment may have no prior v0.3 image.  The verified
+  # active legacy Compose service is the only executable rollback target.
+  printf 'legacy-compose:%s#%s\n' "$LEGACY_COMPOSE_FILE" "$legacy_service" > runtime-data/rollback-image.txt
+elif [[ -n "$previous_image" ]]; then
   echo "$previous_image" > runtime-data/rollback-image.txt
+fi
+if docker compose --profile canary ps --services --filter status=running 2>/dev/null | grep -qx 'web-canary'; then
+  canary_was_active=1
 fi
 if docker compose ps --services --filter status=running 2>/dev/null | grep -q '^postgres$'; then
   deploy/backup.sh > runtime-data/predeploy-backup.txt
 fi
 rollback_on_error() {
   echo "deployment failed; previous application image remains available in runtime-data/rollback-image.txt" >&2
-  if [[ -n "$previous_image" ]]; then deploy/rollback.sh "$previous_image" || true; fi
+  if [[ "$primary_replaced" == "1" ]]; then
+    docker compose stop web scheduler worker >/dev/null 2>&1 || true
+    if [[ "$legacy_active" == "1" ]]; then
+      docker compose --profile canary stop web-canary >/dev/null 2>&1 || true
+      "${legacy_compose[@]}" up -d "$legacy_service" || true
+    elif [[ -n "$previous_image" ]]; then
+      deploy/rollback.sh "$previous_image" || true
+    fi
+  elif [[ "$canary_updated" == "1" ]]; then
+    if [[ "$canary_was_active" == "1" && -n "$previous_image" ]]; then
+      APP_IMAGE="$previous_image" docker compose --profile canary up -d --no-deps --force-recreate web-canary || true
+    else
+      docker compose --profile canary stop web-canary >/dev/null 2>&1 || true
+    fi
+  fi
 }
 trap rollback_on_error ERR
 
 docker network inspect "${EDGE_NETWORK:-coolify}" >/dev/null
 docker compose config >/dev/null
-docker compose build --pull web
+# The official acceptance wrapper bind-mounts its runner, but the profiled
+# image is also a callable operational surface. Rebuild it with Web so a
+# direct operator invocation cannot retain an older email-safety preflight.
+docker compose --profile acceptance build --pull web acceptance
 docker compose up -d postgres
 docker compose run --rm web alembic upgrade head
 
-if [[ -n "${V02_SQLITE_PATH:-}" ]]; then
+if [[ "$initial_v03_deploy" == "1" && -n "${V02_SQLITE_PATH:-}" ]]; then
   [[ -f "$V02_SQLITE_PATH" ]] || { echo "V02_SQLITE_PATH does not exist" >&2; exit 1; }
   old_root="${V02_DATA_ROOT:-$(dirname "$V02_SQLITE_PATH")}"; [[ -d "$old_root" ]] || { echo "V02_DATA_ROOT does not exist" >&2; exit 1; }
   extra_mount=()
@@ -36,7 +81,10 @@ if [[ -n "${V02_SQLITE_PATH:-}" ]]; then
     extra_mount+=( -v "$(dirname "$V02_PLATFORM_KEY_OUTPUT"):/migration/secrets" )
     platform_arg=( --platform-key-output "/migration/secrets/$(basename "$V02_PLATFORM_KEY_OUTPUT")" )
   fi
+  # The migration writes a host-mounted evidence file.  Match the acceptance
+  # runner's host identity so its result remains writable on a managed host.
   docker compose run --rm \
+    --user "${ACCEPTANCE_UID:-$(id -u)}:${ACCEPTANCE_GID:-$(id -g)}" \
     -v "$V02_SQLITE_PATH:/migration/v02.db:ro" \
     -v "$old_root:/migration/v02-data:ro" \
     -v "$PWD/evidence:/app/evidence" \
@@ -46,23 +94,30 @@ if [[ -n "${V02_SQLITE_PATH:-}" ]]; then
       "${platform_arg[@]}" --output /app/evidence/migration-result.json
 else
   cat > evidence/migration-result.json <<'EOF'
-{"verdict":"PASS","mode":"fresh_schema_or_previously_migrated","production_claimed":true,"secret_values_printed":false}
+{"verdict":"PASS","mode":"fresh_schema_or_previously_migrated","production_claimed":false,"completion_authority":"root ACCEPTANCE_RESULT.json only","secret_values_printed":false}
 EOF
 fi
 
-docker compose up -d web scheduler worker
-for _ in $(seq 1 60); do
-  if health_json="$(curl -fsS "${BASE_URL%/}/healthz" 2>/dev/null)" \
-    && curl -fsS "${BASE_URL%/}/readyz" >/dev/null 2>&1 \
-    && python - "$health_json" "${APP_VERSION:-0.3.0}" <<'PY'
-import json
-import sys
+canary_updated=1
+# Bring the new hot instance to readiness while the current primary still
+# serves traffic.  The canary remains running after deployment so subsequent
+# ordinary restarts have no public routing gap.
+docker compose --profile canary up -d --no-deps --force-recreate --wait --wait-timeout 90 web-canary
 
-payload = json.loads(sys.argv[1])
-assert payload.get("status") == "ok"
-assert payload.get("version") == sys.argv[2]
-PY
-  then
+if [[ "$legacy_active" == "1" ]]; then
+  "${legacy_compose[@]}" stop "$legacy_service"
+fi
+primary_replaced=1
+docker compose up -d --no-deps --force-recreate web scheduler worker
+for _ in $(seq 1 60); do
+  if docker compose exec -T web curl -fsS http://127.0.0.1:8000/readyz >/dev/null 2>&1; then
+    break
+  fi
+  sleep 3
+done
+docker compose exec -T web curl -fsS http://127.0.0.1:8000/readyz >/dev/null
+for _ in $(seq 1 60); do
+  if curl -fsS "${BASE_URL%/}/readyz" >/dev/null 2>&1; then
     trap - ERR
     echo "application services are ready; run deploy/acceptance.sh"
     exit 0

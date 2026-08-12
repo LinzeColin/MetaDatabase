@@ -1,6 +1,7 @@
 {
   "verdict": "PASS",
   "scope": "taskpack structure, DAG, source/config syntax, script executability, secret boundary and local evidence",
+  "deployment_runtime": false,
   "production_claimed": false,
   "errors": [],
   "warnings": []

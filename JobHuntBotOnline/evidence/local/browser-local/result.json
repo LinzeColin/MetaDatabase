@@ -1,8 +1,11 @@
 {
   "verdict": "PASS",
   "scope": "real Uvicorn + Chromium, synthetic accounts/data, all critical controls and negative paths",
-  "base_url": "http://127.0.0.1:18427",
+  "base_url": "http://127.0.0.1:55198",
   "synthetic_data_only": true,
+  "owner_entry_only": false,
+  "real_email_delivery_sent": false,
+  "synthetic_outbox_events": true,
   "production_claimed": false,
   "refresh_interval_hours": 6,
   "steps": [
@@ -15,10 +18,15 @@
     "all_recommendation_filters",
     "manual_refresh",
     "job_detail",
+    "ai_consultation",
     "save_job",
     "application_pack",
+    "resume_routing",
+    "resume_docx_download",
+    "application_pack_edit",
     "copy_buttons",
     "application_statuses",
+    "application_progress_edit",
     "manual_url_safety",
     "manual_job_import",
     "profile_settings",
@@ -41,7 +49,7 @@
     "admin_platform_status",
     "mobile_no_horizontal_overflow"
   ],
-  "step_count": 34,
+  "step_count": 39,
   "console_errors": [],
   "page_errors": []
 }

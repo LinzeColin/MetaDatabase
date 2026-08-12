@@ -10,6 +10,11 @@ test-results/
 runtime-data/*
 !runtime-data/.gitkeep
 evidence/runtime/*
+evidence/predeploy-taskpack.json
+evidence/migration-result.json
+evidence/target-*.json
+ACCEPTANCE_RESULT.json
+secrets/*.txt
 *.log
 .DS_Store
 OWNER_LOGIN.txt

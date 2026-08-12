@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ app_name }}{% endblock %}</title>
-  <link rel="stylesheet" href="/static/app.css">
-  <script src="/static/app.js" defer></script>
+  <link rel="stylesheet" href="/static/app.css?v={{ static_revision }}">
+  <script src="/static/app.js?v={{ static_revision }}" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">跳到主要内容</a>
@@ -32,7 +32,7 @@
     {% else %}
     <nav class="nav" aria-label="账户导航">
       <a href="/login" data-testid="nav-login">登录</a>
-      <a class="button small" href="/register" data-testid="nav-register">免费注册</a>
+      {% if registration_open %}<a class="button small" href="/register" data-testid="nav-register">免费注册</a>{% endif %}
     </nav>
     {% endif %}
   </header>

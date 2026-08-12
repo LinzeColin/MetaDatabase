@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import hashlib
+from html import unescape
 import json
 import re
+import signal
+import threading
+from contextlib import contextmanager
 from dataclasses import dataclass, asdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -14,11 +18,12 @@ from bs4 import BeautifulSoup
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
+from .career_intelligence import detect_role_family, detect_skills
 from .config import Settings
 from .models import (
     CandidateProfile, DiscoveryRun, DiscoverySourceStatus, Job, Recommendation, utcnow,
 )
-from .scoring import score_job
+from .scoring import role_search_tag, score_job
 from .security import CryptoBox
 
 
@@ -43,9 +48,21 @@ class NormalizedJob:
 
 
 def clean_html(value: str) -> str:
-    if not value:
+    text = str(value or "")
+    if not text:
         return ""
-    return BeautifulSoup(value, "html.parser").get_text("\n", strip=True)
+    # Some providers return their rich-text payload HTML-escaped more than once.
+    # Decode it before parsing, then keep only text so provider content is never
+    # treated as executable page markup.
+    for _ in range(3):
+        decoded = unescape(text)
+        if decoded == text:
+            break
+        text = decoded
+    soup = BeautifulSoup(text, "html.parser")
+    for node in soup(["script", "style", "noscript", "template"]):
+        node.decompose()
+    return soup.get_text("\n", strip=True)
 
 
 def parse_date(value) -> datetime | None:
@@ -131,17 +148,59 @@ ROLE_RULES = {
     "Operations": ["operations", "supply chain", "process", "project coordinator"],
     "Risk": ["risk", "compliance", "audit", "controls"],
     "Consulting": ["consultant", "consulting", "strategy"],
+    "Legal": ["legal", "lawyer", "attorney", "counsel", "paralegal", "solicitor", "contract law"],
 }
 SKILLS = ["excel", "sql", "python", "power bi", "tableau", "valuation", "accounting", "risk", "salesforce", "sap"]
 
 
+class SourceDeadlineExceeded(TimeoutError):
+    pass
+
+
+@contextmanager
+def _source_deadline(seconds: int):
+    """Bound one provider without letting it freeze the Worker indefinitely.
+
+    httpx already has per-I/O timeouts, but a process-level deadline also
+    covers a provider implementation that gets stuck outside an I/O phase.
+    The production Worker is a Unix main thread; test and non-Unix contexts
+    retain the regular httpx timeout behavior.
+    """
+    if (
+        seconds <= 0
+        or not hasattr(signal, "SIGALRM")
+        or threading.current_thread() is not threading.main_thread()
+    ):
+        yield
+        return
+
+    def _raise_timeout(_signum, _frame):
+        raise SourceDeadlineExceeded(f"source exceeded {seconds}s deadline")
+
+    old_handler = signal.getsignal(signal.SIGALRM)
+    signal.signal(signal.SIGALRM, _raise_timeout)
+    old_timer = signal.setitimer(signal.ITIMER_REAL, float(seconds))
+    try:
+        yield
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, old_handler)
+        if old_timer[0] > 0:
+            signal.setitimer(signal.ITIMER_REAL, old_timer[0], old_timer[1])
+
+
 def enrich(job: NormalizedJob) -> NormalizedJob:
+    # A few public feeds model industry as several tags.  Persist one readable
+    # label instead of letting a list leak into the string-backed Job record.
+    if isinstance(job.industry, list):
+        job.industry = " ".join(str(value) for value in job.industry if value)
+    else:
+        job.industry = str(job.industry or "")
     text = f"{job.title} {job.description}".casefold()
     if not job.role_family:
-        scores = {role: sum(term in text for term in terms) for role, terms in ROLE_RULES.items()}
-        job.role_family = max(scores, key=scores.get) if max(scores.values(), default=0) else "Other"
+        job.role_family = detect_role_family(f"{job.title} {job.description}")
     if not job.skills:
-        job.skills = [s for s in SKILLS if s in text]
+        job.skills = detect_skills(f"{job.title} {job.description}")
     if not job.keywords:
         job.keywords = sorted(set((job.skills or []) + re.findall(r"[A-Za-z][A-Za-z+#.\-]{2,}", job.title)))[:24]
     loc = job.location.casefold()
@@ -207,8 +266,12 @@ def _arbeitnow(client: httpx.Client, limit: int) -> list[NormalizedJob]:
     return out
 
 
-def _jobicy(client: httpx.Client, limit: int) -> list[NormalizedJob]:
-    data = client.get("https://jobicy.com/api/v2/remote-jobs", params={"count": limit}).json()
+def _jobicy(client: httpx.Client, limit: int, profile: dict | None = None) -> list[NormalizedJob]:
+    params: dict[str, str | int] = {"count": min(max(1, limit), 100)}
+    tag = role_search_tag(profile or {})
+    if tag:
+        params["tag"] = tag
+    data = client.get("https://jobicy.com/api/v2/remote-jobs", params=params).json()
     out = []
     for row in data.get("jobs", [])[:limit]:
         out.append(enrich(NormalizedJob(
@@ -356,7 +419,7 @@ def fetch_sources(settings: Settings, profile: dict) -> Iterable[tuple[str, str,
         if settings.enable_arbeitnow:
             providers.append(("arbeitnow", lambda: _arbeitnow(client, settings.discovery_max_jobs_per_source)))
         if settings.enable_jobicy:
-            providers.append(("jobicy", lambda: _jobicy(client, settings.discovery_max_jobs_per_source)))
+            providers.append(("jobicy", lambda: _jobicy(client, settings.discovery_max_jobs_per_source, profile)))
         if settings.adzuna_app_id and settings.adzuna_app_key:
             providers.append(("adzuna", lambda: _adzuna(client, settings, profile)))
         if settings.greenhouse_boards:
@@ -369,7 +432,8 @@ def fetch_sources(settings: Settings, profile: dict) -> Iterable[tuple[str, str,
             providers.append(("freehire", lambda: _freehire(client, settings.freehire_base_url, profile, settings.discovery_max_jobs_per_source)))
         for name, fn in providers:
             try:
-                jobs = [j for j in fn() if safe_http_url(j.url) and j.title and j.company]
+                with _source_deadline(settings.discovery_source_timeout_seconds):
+                    jobs = [j for j in fn() if safe_http_url(j.url) and j.title and j.company]
                 for job in jobs:
                     job.url = safe_http_url(job.url)
                 yield name, "ok", jobs, ""
@@ -404,9 +468,52 @@ def claim_run(db: Session) -> DiscoveryRun | None:
     return run
 
 
+def fail_run(db: Session, run_id: int, reason: str) -> bool:
+    """Close a claimed run after an unexpected Worker exception."""
+    db.rollback()
+    run = db.get(DiscoveryRun, run_id)
+    if not run or run.status not in {"queued", "running"}:
+        return False
+    run.status = "failed"
+    run.completed_at = utcnow()
+    run.error_summary = (reason or "worker error")[:4000]
+    db.commit()
+    return True
+
+
+def recover_stale_runs(db: Session, max_age_seconds: int) -> int:
+    """Release abandoned Worker leases so a later refresh can make progress."""
+    cutoff = utcnow() - timedelta(seconds=max(1, max_age_seconds))
+    rows = db.scalars(
+        select(DiscoveryRun).where(
+            DiscoveryRun.status == "running",
+            DiscoveryRun.started_at.is_not(None),
+            DiscoveryRun.started_at < cutoff,
+        )
+    ).all()
+    for run in rows:
+        run.status = "failed"
+        run.completed_at = utcnow()
+        suffix = "Worker lease expired before the source run completed"
+        run.error_summary = f"{run.error_summary or ''}\n{suffix}".strip()[:4000]
+    if rows:
+        db.commit()
+    return len(rows)
+
+
 def _upsert_job(db: Session, item: NormalizedJob) -> tuple[Job, bool]:
     key = canonical_key(item)
     row = db.scalar(select(Job).where(Job.canonical_key == key))
+    # Provider IDs are the durable identity within a source.  A provider may
+    # legitimately revise a posting URL, title, or location between polls,
+    # which changes our content-derived canonical key without creating a new
+    # job.  Reuse that row before inserting so the database's source/external
+    # uniqueness invariant cannot abort the whole discovery run.
+    if not row:
+        row = db.scalar(select(Job).where(
+            Job.source == item.source,
+            Job.external_id == str(item.external_id),
+        ))
     created = False
     if not row:
         row = Job(
@@ -434,9 +541,75 @@ def _upsert_job(db: Session, item: NormalizedJob) -> tuple[Job, bool]:
     else:
         row.last_seen_at = utcnow()
         row.closed_at = None
+        row.url = item.url or row.url
+        row.title = item.title[:255] or row.title
+        row.company = item.company[:255] or row.company
+        row.location = item.location[:255] or row.location
+        row.city = item.city[:120] or row.city
+        row.country = item.country[:8] or row.country
+        row.work_mode = item.work_mode[:24] or row.work_mode
+        row.role_family = item.role_family[:80] or row.role_family
+        row.industry = item.industry[:80] or row.industry
+        row.skills_text = json.dumps(item.skills or [], ensure_ascii=False)
+        row.keywords_text = json.dumps(item.keywords or [], ensure_ascii=False)
         row.description = item.description or row.description
         row.posted_at = item.posted_at or row.posted_at
     return row, created
+
+
+def _stored_job_payload(job: Job) -> dict:
+    return {
+        "title": job.title,
+        "description": job.description,
+        "location": job.location,
+        "city": job.city,
+        "work_mode": job.work_mode,
+        "role_family": job.role_family,
+        "industry": job.industry,
+        "skills": json.loads(job.skills_text or "[]"),
+        "keywords": json.loads(job.keywords_text or "[]"),
+        "posted_at": job.posted_at,
+    }
+
+
+def rescore_existing_recommendations(
+    db: Session,
+    user_id: int,
+    profile: dict,
+    crypto: CryptoBox,
+) -> int:
+    """Refresh existing tenant recommendations after a confirmed preference change.
+
+    This deliberately does not create a recommendation for every global job;
+    it only updates records the candidate has already received. New targeted
+    source rows remain the mechanism that adds new opportunities.
+    """
+    rows = db.execute(
+        select(Recommendation, Job)
+        .join(Job, Job.id == Recommendation.job_id)
+        .where(
+            Recommendation.user_id == user_id,
+            Job.closed_at.is_(None),
+            or_(Job.owner_user_id.is_(None), Job.owner_user_id == user_id),
+        )
+    ).all()
+    for rec, job in rows:
+        score = score_job(profile, _stored_job_payload(job))
+        rec.qualification = score["qualification"]
+        rec.relevance = score["relevance"]
+        rec.opportunity = score["opportunity"]
+        rec.rank_score = score["rank_score"]
+        rec.reasons_encrypted = crypto.encrypt_json({
+            "reasons": score["reasons"],
+            "requirement_checks": score.get("requirement_checks", []),
+            "requirements": score.get("requirements", {}),
+            "domain": score.get("domain", "general"),
+            "role_family": score.get("role_family", ""),
+        })
+        rec.last_scored_at = utcnow()
+    if rows:
+        db.commit()
+    return len(rows)
 
 
 def process_run(db: Session, run: DiscoveryRun, settings: Settings, crypto: CryptoBox) -> DiscoveryRun:
@@ -448,6 +621,7 @@ def process_run(db: Session, run: DiscoveryRun, settings: Settings, crypto: Cryp
         db.commit()
         return run
     profile = crypto.decrypt_json(profile_row.payload_encrypted, {})
+    rescore_existing_recommendations(db, run.user_id, profile, crypto)
     total_seen = total_new = total_rec = sources = 0
     failures = []
     for source, status, jobs, detail in fetch_sources(settings, profile):
@@ -483,7 +657,13 @@ def process_run(db: Session, run: DiscoveryRun, settings: Settings, crypto: Cryp
             rec.relevance = score["relevance"]
             rec.opportunity = score["opportunity"]
             rec.rank_score = score["rank_score"]
-            rec.reasons_encrypted = crypto.encrypt_json(score["reasons"])
+            rec.reasons_encrypted = crypto.encrypt_json({
+                "reasons": score["reasons"],
+                "requirement_checks": score.get("requirement_checks", []),
+                "requirements": score.get("requirements", {}),
+                "domain": score.get("domain", "general"),
+                "role_family": score.get("role_family", ""),
+            })
             rec.last_scored_at = utcnow()
             total_rec += 1
         db.commit()

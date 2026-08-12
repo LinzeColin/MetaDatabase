@@ -4,19 +4,22 @@
 This script uses two synthetic acceptance accounts, the real SMTP/IMAP path, the
 real background Worker, and a real Chromium browser. It deletes the synthetic
 accounts at the end. It never prints mailbox passwords, application passwords,
-DeepSeek credentials, cookies, verification tokens, or resume contents.
+DeepSeek credentials, cookies, verification tokens, or resume contents. When
+the email lifecycle prerequisites are deliberately unavailable, it reports
+EMAIL_ONLY_BLOCKED before creating an account or sending email.
 """
 from __future__ import annotations
 
 import argparse
 import email
 import email.utils
+import fcntl
 import imaplib
 import json
 import os
 import re
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.message import Message
 from pathlib import Path
 from urllib.parse import urlparse
@@ -24,6 +27,14 @@ from urllib.parse import urlparse
 from playwright.sync_api import Browser, Page, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
+MIN_ACCEPTANCE_EMAIL_GAP_SECONDS = 1800
+MIN_REAL_EMAIL_COOLDOWN_HOURS = 24
+MAX_REAL_EMAIL_MESSAGES = 3
+DEFAULT_IMAP_CONNECT_TIMEOUT_SECONDS = 20
+MAX_IMAP_CONNECT_TIMEOUT_SECONDS = 60
+DEFAULT_ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS = 30
+MAX_ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS = 300
+RUN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{7,79}$")
 
 
 def env_required(name: str) -> str:
@@ -37,19 +48,271 @@ def bool_env(name: str, default: bool) -> bool:
     return os.getenv(name, str(default)).strip().lower() in {"1", "true", "yes", "on"}
 
 
+def acceptance_minimum_email_gap_seconds() -> int:
+    raw = os.getenv("ACCEPTANCE_MIN_EMAIL_GAP_SECONDS", str(MIN_ACCEPTANCE_EMAIL_GAP_SECONDS)).strip()
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise RuntimeError("ACCEPTANCE_MIN_EMAIL_GAP_SECONDS must be an integer") from exc
+    if value < MIN_ACCEPTANCE_EMAIL_GAP_SECONDS:
+        raise RuntimeError(
+            f"ACCEPTANCE_MIN_EMAIL_GAP_SECONDS must be at least {MIN_ACCEPTANCE_EMAIL_GAP_SECONDS}"
+        )
+    return value
+
+
+def acceptance_real_email_cooldown_hours() -> int:
+    raw = os.getenv("ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS", str(MIN_REAL_EMAIL_COOLDOWN_HOURS)).strip()
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise RuntimeError("ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS must be an integer") from exc
+    if value < MIN_REAL_EMAIL_COOLDOWN_HOURS:
+        raise RuntimeError(
+            f"ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS must be at least {MIN_REAL_EMAIL_COOLDOWN_HOURS}"
+        )
+    return value
+
+
+def imap_connect_timeout_seconds() -> int:
+    raw = os.getenv("ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS", str(DEFAULT_IMAP_CONNECT_TIMEOUT_SECONDS)).strip()
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise RuntimeError("ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS must be an integer") from exc
+    if not 1 <= value <= MAX_IMAP_CONNECT_TIMEOUT_SECONDS:
+        raise RuntimeError(
+            f"ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS must be between 1 and {MAX_IMAP_CONNECT_TIMEOUT_SECONDS}"
+        )
+    return value
+
+
+def acceptance_email_request_safety_seconds() -> int:
+    raw = os.getenv(
+        "ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS",
+        str(DEFAULT_ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS),
+    ).strip()
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise RuntimeError("ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS must be an integer") from exc
+    if not DEFAULT_ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS <= value <= MAX_ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS:
+        raise RuntimeError(
+            "ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS must be between "
+            f"{DEFAULT_ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS} and "
+            f"{MAX_ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS}"
+        )
+    return value
+
+
+def _delivery_identity(address: str) -> tuple[str, str] | None:
+    """Return a conservative mailbox identity without exposing an address."""
+    local, separator, domain = address.strip().casefold().partition("@")
+    if not separator or not local or not domain:
+        return None
+    return local.split("+", 1)[0], domain
+
+
+def acceptance_shared_imap_inbox_is_explicitly_allowed() -> bool:
+    """Allow two distinct application addresses in one designated test inbox.
+
+    Two acceptance accounts must always have different email addresses.  A
+    single IMAP inbox may intentionally receive both (for example with
+    sub-addresses), but only behind this explicit one-shot acceptance setting.
+    The three-message ceiling, 30-minute pacing and 24-hour run cooldown are
+    enforced independently and are never relaxed by this setting.
+    """
+    return bool_env("ACCEPTANCE_ALLOW_SHARED_IMAP_INBOX", False)
+
+
+def acceptance_recipient_identity_conflict() -> bool:
+    first = os.getenv("ACCEPTANCE_EMAIL_A", "").strip()
+    second = os.getenv("ACCEPTANCE_EMAIL_B", "").strip()
+    if not first or not second:
+        return False
+    first_identity = _delivery_identity(first)
+    second_identity = _delivery_identity(second)
+    admin_identity = _delivery_identity(os.getenv("ADMIN_EMAIL", ""))
+    if not first_identity or not second_identity:
+        return True
+    if first.casefold() == second.casefold():
+        return True
+    shares_delivery_identity = (
+        first_identity == second_identity
+        or (admin_identity is not None and (first_identity == admin_identity or second_identity == admin_identity))
+    )
+    return shares_delivery_identity and not acceptance_shared_imap_inbox_is_explicitly_allowed()
+
+
+def has_distinct_acceptance_recipients() -> bool:
+    first = os.getenv("ACCEPTANCE_EMAIL_A", "").strip()
+    second = os.getenv("ACCEPTANCE_EMAIL_B", "").strip()
+    return bool(
+        first
+        and second
+        and first.casefold() != second.casefold()
+        and not acceptance_recipient_identity_conflict()
+    )
+
+
+def acceptance_run_id() -> str:
+    value = os.getenv("REAL_EMAIL_ACCEPTANCE_RUN_ID", "").strip()
+    if not RUN_ID_RE.fullmatch(value):
+        raise RuntimeError("REAL_EMAIL_ACCEPTANCE_RUN_ID is missing or invalid")
+    return value
+
+
+def real_email_guard_path() -> Path:
+    return ROOT / "runtime-data" / "real-email-acceptance-guard.json"
+
+
+def reserve_real_email_acceptance(
+    *,
+    state_path: Path,
+    run_id: str,
+    cooldown_hours: int,
+    minimum_gap_seconds: int,
+) -> None:
+    """Persist a one-shot reservation before any browser action can send mail.
+
+    The state has no recipient, credential, or candidate information.  It is
+    placed under runtime-data so deployment-runtime verification treats it as
+    operational state rather than distributable taskpack source.
+    """
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = state_path.with_name(state_path.name + ".lock")
+    with lock_path.open("a+", encoding="utf-8") as lock:
+        os.chmod(lock_path, 0o600)
+        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+        try:
+            now = datetime.now(timezone.utc)
+            if state_path.exists():
+                try:
+                    previous = json.loads(state_path.read_text(encoding="utf-8"))
+                    if not isinstance(previous, dict) or previous.get("version") != 1:
+                        raise ValueError("unexpected state shape")
+                    previous_run_id = previous.get("run_id")
+                    cooldown_until = datetime.fromisoformat(str(previous["cooldown_until"]).replace("Z", "+00:00"))
+                    if cooldown_until.tzinfo is None or not isinstance(previous_run_id, str):
+                        raise ValueError("invalid state values")
+                except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+                    raise RuntimeError("real email acceptance guard state is invalid; refusing to send") from exc
+                if previous_run_id == run_id:
+                    raise RuntimeError("real email acceptance run id has already been consumed")
+                if cooldown_until > now:
+                    raise RuntimeError("real email acceptance is within its cooldown; refusing to send")
+
+            cooldown_until = now + timedelta(hours=cooldown_hours)
+            payload = {
+                "version": 1,
+                "run_id": run_id,
+                "reserved_at": now.isoformat().replace("+00:00", "Z"),
+                "cooldown_until": cooldown_until.isoformat().replace("+00:00", "Z"),
+                "minimum_email_gap_seconds": minimum_gap_seconds,
+                "maximum_real_messages": MAX_REAL_EMAIL_MESSAGES,
+            }
+            temporary = state_path.with_name(f".{state_path.name}.{os.getpid()}.tmp")
+            temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            os.chmod(temporary, 0o600)
+            os.replace(temporary, state_path)
+        finally:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+
+
+class EmailPacer:
+    def __init__(self, minimum_gap_seconds: int, request_safety_seconds: int):
+        self.minimum_gap_seconds = minimum_gap_seconds
+        self.request_safety_seconds = request_safety_seconds
+        self._last_request_at: float | None = None
+
+    def wait_before_request(self) -> None:
+        if self._last_request_at is not None:
+            required_gap = self.minimum_gap_seconds + self.request_safety_seconds
+            remaining = required_gap - (time.monotonic() - self._last_request_at)
+            if remaining > 0:
+                time.sleep(remaining)
+        self._last_request_at = time.monotonic()
+
+
+def email_lifecycle_preflight() -> dict[str, object] | None:
+    """Return a truthful email-only block before the browser transaction starts."""
+    registration_enabled = bool_env("ALLOW_REGISTRATION", False)
+    standard_smtp_configured = bool(os.getenv("SMTP_HOST", "").strip())
+    acceptance_recipient_configured = has_distinct_acceptance_recipients()
+    recipient_identity_conflict = acceptance_recipient_identity_conflict()
+    acceptance_imap_configured = all(
+        os.getenv(name, "").strip()
+        for name in ("ACCEPTANCE_IMAP_HOST", "ACCEPTANCE_IMAP_USERNAME", "ACCEPTANCE_IMAP_PASSWORD")
+    )
+    real_email_opt_in = bool_env("RUN_REAL_EMAIL_ACCEPTANCE", False)
+    real_email_run_id_configured = bool(RUN_ID_RE.fullmatch(os.getenv("REAL_EMAIL_ACCEPTANCE_RUN_ID", "").strip()))
+    shared_imap_inbox_explicitly_allowed = acceptance_shared_imap_inbox_is_explicitly_allowed()
+    pacing_configured = True
+    imap_timeout_configured = True
+    try:
+        acceptance_minimum_email_gap_seconds()
+        acceptance_real_email_cooldown_hours()
+        acceptance_email_request_safety_seconds()
+    except RuntimeError:
+        pacing_configured = False
+    try:
+        imap_connect_timeout_seconds()
+    except RuntimeError:
+        imap_timeout_configured = False
+    missing: list[str] = []
+    if not registration_enabled:
+        missing.append("ALLOW_REGISTRATION=true")
+    if not standard_smtp_configured:
+        missing.append("standard SMTP_HOST")
+    if not acceptance_recipient_configured:
+        missing.append("two distinct acceptance recipients with independent delivery identities")
+    if not acceptance_imap_configured:
+        missing.append("acceptance IMAP mailbox")
+    if not real_email_opt_in:
+        missing.append("RUN_REAL_EMAIL_ACCEPTANCE=true")
+    if not real_email_run_id_configured:
+        missing.append("valid REAL_EMAIL_ACCEPTANCE_RUN_ID")
+    if not pacing_configured:
+        missing.append("email pacing safety configuration")
+    if not imap_timeout_configured:
+        missing.append("IMAP connection timeout safety configuration")
+    if not missing:
+        return None
+    return {
+        "verdict": "BLOCKED",
+        "blocker": "EMAIL_ONLY_BLOCKED",
+        "scope": "real HTTPS email lifecycle preflight",
+        "reason": "email lifecycle prerequisites are not configured",
+        "missing_prerequisites": missing,
+        "registration_enabled": registration_enabled,
+        "standard_smtp_configured": standard_smtp_configured,
+        "acceptance_recipient_configured": acceptance_recipient_configured,
+        "acceptance_recipient_identity_conflict": recipient_identity_conflict,
+        "acceptance_shared_imap_inbox_explicitly_allowed": shared_imap_inbox_explicitly_allowed,
+        "acceptance_imap_configured": acceptance_imap_configured,
+        "real_email_opt_in": real_email_opt_in,
+        "real_email_run_id_configured": real_email_run_id_configured,
+        "pacing_configured": pacing_configured,
+        "imap_timeout_configured": imap_timeout_configured,
+        "smtp_contract": "standards-compatible SMTP",
+        "nitrosend_dependency": False,
+        "email_delivery_sent": False,
+        "synthetic_accounts_created": False,
+        "full_production_pass_still_requires_real_email_lifecycle": True,
+        "production_claimed": False,
+        "secret_values_exposed": False,
+    }
+
+
 def derived_emails() -> tuple[str, str]:
     explicit_a = os.getenv("ACCEPTANCE_EMAIL_A", "").strip()
     explicit_b = os.getenv("ACCEPTANCE_EMAIL_B", "").strip()
-    if explicit_a and explicit_b:
+    if has_distinct_acceptance_recipients():
         return explicit_a, explicit_b
-    base = env_required("ACCEPTANCE_EMAIL")
-    if not bool_env("ACCEPTANCE_EMAIL_PLUS_ALIAS", True):
-        raise RuntimeError("set ACCEPTANCE_EMAIL_A and ACCEPTANCE_EMAIL_B when plus aliases are disabled")
-    local, sep, domain = base.partition("@")
-    if not sep:
-        raise RuntimeError("ACCEPTANCE_EMAIL is invalid")
-    run_id = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-    return f"{local}+jobhunt-a-{run_id}@{domain}", f"{local}+jobhunt-b-{run_id}@{domain}"
+    raise RuntimeError(
+        "set two distinct ACCEPTANCE_EMAIL_A and ACCEPTANCE_EMAIL_B values "
+        "and explicitly allow a shared IMAP inbox when the two addresses route together"
+    )
 
 
 def message_text(msg: Message) -> str:
@@ -74,11 +337,12 @@ def message_text(msg: Message) -> str:
 def imap_connection():
     host = env_required("ACCEPTANCE_IMAP_HOST")
     port = int(os.getenv("ACCEPTANCE_IMAP_PORT", "993"))
+    connect_timeout = imap_connect_timeout_seconds()
     use_ssl = bool_env("ACCEPTANCE_IMAP_SSL", True)
     if use_ssl:
-        client = imaplib.IMAP4_SSL(host, port)
+        client = imaplib.IMAP4_SSL(host, port, timeout=connect_timeout)
     else:
-        client = imaplib.IMAP4(host, port)
+        client = imaplib.IMAP4(host, port, timeout=connect_timeout)
         if bool_env("ACCEPTANCE_IMAP_STARTTLS", True):
             client.starttls()
     client.login(env_required("ACCEPTANCE_IMAP_USERNAME"), env_required("ACCEPTANCE_IMAP_PASSWORD"))
@@ -92,8 +356,9 @@ def wait_mail_link(recipient: str, kind: str, base_url: str, not_before: float) 
     deadline = time.time() + timeout
     last_seen = ""
     while time.time() < deadline:
-        client = imap_connection()
+        client = None
         try:
+            client = imap_connection()
             status, _ = client.select(folder, readonly=True)
             if status != "OK":
                 raise RuntimeError(f"cannot select IMAP folder {folder}")
@@ -128,11 +393,17 @@ def wait_mail_link(recipient: str, kind: str, base_url: str, not_before: float) 
                     if candidate.startswith(base_url) and parsed.path == required_path:
                         return candidate
                 last_seen = f"matching recipient found but no {kind} link"
+        except (OSError, imaplib.IMAP4.error):
+            # A bounded socket timeout or transient IMAP failure must consume
+            # only this polling attempt.  It never triggers a second SMTP
+            # request; the browser keeps waiting until the overall deadline.
+            last_seen = "IMAP connection or request unavailable"
         finally:
-            try:
-                client.logout()
-            except Exception:
-                pass
+            if client is not None:
+                try:
+                    client.logout()
+                except Exception:
+                    pass
         time.sleep(4)
     raise RuntimeError(f"timed out waiting for {kind} email ({last_seen or 'no matching mail'})")
 
@@ -147,17 +418,27 @@ def click_wait(page: Page, selector: str) -> None:
     page.wait_for_load_state("domcontentloaded")
 
 
-def register_verify(page: Page, base_url: str, address: str, password: str, steps: list[str]) -> None:
+def register_verify(
+    page: Page,
+    base_url: str,
+    address: str,
+    password: str,
+    steps: list[str],
+    pacer: EmailPacer,
+) -> None:
     start = time.time()
     page.goto(f"{base_url}/register", wait_until="domcontentloaded")
     page.get_by_test_id("register-name").fill("Production Acceptance Candidate")
     page.get_by_test_id("register-email").fill(address)
     page.get_by_test_id("register-password").fill(password)
     page.get_by_test_id("register-password-confirm").fill(password)
+    pacer.wait_before_request()
     click_wait(page, '[data-testid="register-submit"]')
     expect_path(page, "/verify-required")
     link = wait_mail_link(address, "verify", base_url, start)
     page.goto(link, wait_until="domcontentloaded")
+    expect_path(page, "/verify-email")
+    click_wait(page, '[data-testid="verify-email-confirm"]')
     expect_path(page, "/onboarding/upload")
     steps.extend(["register", "real_email_verification"])
 
@@ -240,12 +521,20 @@ def candidate_actions(page: Page, steps: list[str]) -> tuple[str, str]:
     return detail_url, pack_url
 
 
-def reset_password(page: Page, base_url: str, address: str, old_password: str, steps: list[str]) -> str:
+def reset_password(
+    page: Page,
+    base_url: str,
+    address: str,
+    old_password: str,
+    steps: list[str],
+    pacer: EmailPacer,
+) -> str:
     page.goto(f"{base_url}/dashboard", wait_until="domcontentloaded")
     click_wait(page, '[data-testid="logout-button"]')
     start = time.time()
     page.goto(f"{base_url}/forgot-password", wait_until="domcontentloaded")
     page.get_by_test_id("forgot-email").fill(address)
+    pacer.wait_before_request()
     click_wait(page, '[data-testid="forgot-submit"]')
     link = wait_mail_link(address, "reset", base_url, start)
     page.goto(link, wait_until="domcontentloaded")
@@ -275,23 +564,94 @@ def logout(page: Page, base_url: str) -> None:
 
 def delete_account(page: Page, base_url: str, password: str) -> None:
     page.goto(f"{base_url}/settings/data", wait_until="domcontentloaded")
-    page.on("dialog", lambda dialog: dialog.accept())
+    # This helper is used twice in one browser context. Registering a persistent
+    # listener would make the second confirmation attempt accept the same dialog
+    # twice and leak a harness error into otherwise clean production evidence.
+    page.once("dialog", lambda dialog: dialog.accept())
     page.get_by_test_id("delete-password").fill(password)
     page.get_by_test_id("delete-confirmation").fill("删除我的账户")
     click_wait(page, '[data-testid="delete-account-submit"]')
     expect_path(page, "/")
 
 
+def cleanup_verified_synthetic_accounts(base_url: str, accounts: dict[str, str]) -> list[str]:
+    """Best-effort cleanup after a browser-flow failure, without sending email.
+
+    Accounts enter ``accounts`` only after their verification flow completed, so
+    a fresh browser can authenticate and use the normal self-service deletion
+    path.  The returned diagnostics contain exception classes only: neither
+    address nor password may enter acceptance evidence.
+    """
+    errors: list[str] = []
+    if not accounts:
+        return errors
+    try:
+        with sync_playwright() as playwright:
+            browser: Browser = playwright.chromium.launch(
+                headless=True,
+                executable_path=os.getenv("PLAYWRIGHT_CHROMIUM_EXECUTABLE") or None,
+                args=["--no-sandbox", "--disable-dev-shm-usage"],
+            )
+            context = browser.new_context(viewport={"width": 1440, "height": 1100}, ignore_https_errors=False)
+            page = context.new_page()
+            page.set_default_timeout(20000)
+            page.set_default_navigation_timeout(30000)
+            for address, password in reversed(list(accounts.items())):
+                try:
+                    page.goto(f"{base_url}/login", wait_until="domcontentloaded")
+                    page.get_by_test_id("login-email").fill(address)
+                    page.get_by_test_id("login-password").fill(password)
+                    click_wait(page, '[data-testid="login-submit"]')
+                    expect_path(page, "/dashboard")
+                    delete_account(page, base_url, password)
+                    accounts.pop(address, None)
+                except Exception as exc:
+                    errors.append(type(exc).__name__)
+            context.close()
+            browser.close()
+    except Exception as exc:
+        errors.append(type(exc).__name__)
+    return errors
+
+
 def run(args: argparse.Namespace) -> tuple[dict, int]:
     base_url = env_required("BASE_URL").rstrip("/")
     if not base_url.startswith("https://"):
         return {"verdict": "BLOCKED", "reason": "BASE_URL is not HTTPS", "production_claimed": False}, 2
-    email_a, email_b = derived_emails()
+    preflight = email_lifecycle_preflight()
+    if preflight:
+        return preflight, 2
+    try:
+        email_a, email_b = derived_emails()
+        minimum_email_gap_seconds = acceptance_minimum_email_gap_seconds()
+        cooldown_hours = acceptance_real_email_cooldown_hours()
+        imap_connect_timeout = imap_connect_timeout_seconds()
+        email_request_safety_seconds = acceptance_email_request_safety_seconds()
+        reserve_real_email_acceptance(
+            state_path=real_email_guard_path(),
+            run_id=acceptance_run_id(),
+            cooldown_hours=cooldown_hours,
+            minimum_gap_seconds=minimum_email_gap_seconds,
+        )
+    except RuntimeError as exc:
+        return {
+            "verdict": "BLOCKED",
+            "blocker": "EMAIL_ONLY_BLOCKED",
+            "scope": "real HTTPS email lifecycle anti-burst guard",
+            "reason": str(exc),
+            "email_delivery_sent": False,
+            "synthetic_accounts_created": False,
+            "full_production_pass_still_requires_real_email_lifecycle": True,
+            "production_claimed": False,
+            "secret_values_exposed": False,
+        }, 2
+    pacer = EmailPacer(minimum_email_gap_seconds, email_request_safety_seconds)
     password = os.getenv("ACCEPTANCE_ACCOUNT_PASSWORD", "ProdAcceptPass123").strip()
     steps: list[str] = []
     console_errors: list[str] = []
     page_errors: list[str] = []
     cleanup: dict[str, str] = {}
+    cleanup_errors: list[str] = []
     try:
         with sync_playwright() as playwright:
             browser: Browser = playwright.chromium.launch(
@@ -309,16 +669,17 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
             page.goto(base_url, wait_until="domcontentloaded")
             if urlparse(page.url).scheme != "https":
                 raise AssertionError("browser did not remain on HTTPS")
-            register_verify(page, base_url, email_a, password, steps)
+            register_verify(page, base_url, email_a, password, steps, pacer)
+            cleanup[email_a] = password
             onboard_and_wait(page, base_url, steps)
             detail_url, pack_url = candidate_actions(page, steps)
-            password_a = reset_password(page, base_url, email_a, password, steps)
+            password_a = reset_password(page, base_url, email_a, password, steps, pacer)
             cleanup[email_a] = password_a
 
             logout(page, base_url)
-            register_verify(page, base_url, email_b, password, steps)
-            onboard_and_wait(page, base_url, steps)
+            register_verify(page, base_url, email_b, password, steps, pacer)
             cleanup[email_b] = password
+            onboard_and_wait(page, base_url, steps)
             for target in [detail_url, pack_url]:
                 response = page.request.get(target)
                 if response.status != 404:
@@ -351,17 +712,29 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
         return {
             "verdict": "PASS",
             "scope": "real HTTPS, real SMTP/IMAP, real background discovery, two synthetic tenants and Chromium",
-            "production_claimed": True,
+            # This is a critical component of the acceptance, not the final
+            # production verdict.  finalize_acceptance.py alone may make that
+            # claim after it has checked every required evidence file.
+            "production_claimed": False,
+            "completion_authority": "root ACCEPTANCE_RESULT.json only",
             "base_url": base_url,
             "refresh_interval_hours": 6,
             "steps": steps,
             "step_count": len(steps),
             "synthetic_accounts_deleted": True,
+            "email_safety": {
+                "minimum_gap_seconds": minimum_email_gap_seconds,
+                "request_safety_seconds": email_request_safety_seconds,
+                "cooldown_hours": cooldown_hours,
+                "imap_connect_timeout_seconds": imap_connect_timeout,
+                "maximum_real_messages": MAX_REAL_EMAIL_MESSAGES,
+            },
             "console_errors": [],
             "page_errors": [],
             "secret_values_exposed": False,
         }, 0
     except Exception as exc:
+        cleanup_errors = cleanup_verified_synthetic_accounts(base_url, cleanup)
         return {
             "verdict": "FAIL",
             "scope": "real production browser acceptance",
@@ -370,6 +743,8 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
             "error": str(exc),
             "steps_completed": steps,
             "synthetic_accounts_requiring_cleanup": len(cleanup),
+            "synthetic_accounts_deleted_on_failure": not cleanup,
+            "synthetic_account_cleanup_errors": cleanup_errors,
             "console_errors": console_errors[-20:],
             "page_errors": page_errors[-20:],
             "secret_values_exposed": False,

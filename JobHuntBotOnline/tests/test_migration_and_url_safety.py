@@ -3,16 +3,19 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
+import subprocess
+import sys
 from argparse import Namespace
 from pathlib import Path
 
+import pytest
 from cryptography.fernet import Fernet
 from sqlalchemy import func, select
 
 from app.db import make_engine, make_session_factory
 from app.discovery import safe_http_url
 from app.models import ApplicationPack, CandidateProfile, Job, Recommendation, Resume, User
-from tools.migrate_v02_sqlite import PREFIX, migrate
+from tools.migrate_v02_sqlite import PREFIX, connect_source, migrate
 
 
 def seal(cipher: Fernet, value: str) -> str:
@@ -53,6 +56,9 @@ def build_v02(path: Path, key: str, data_root: Path) -> None:
 def test_v02_migration_reencrypts_and_preserves_counts(tmp_path, monkeypatch):
     old_key = Fernet.generate_key().decode(); new_key = Fernet.generate_key().decode()
     source = tmp_path / "old.db"; old_root = tmp_path / "old-data"; build_v02(source, old_key, old_root)
+    raw = sqlite3.connect(source)
+    raw.execute("UPDATE resumes SET encrypted_file_path = ?", ("/data/uploads/legacy.bin",))
+    raw.commit(); raw.close()
     target = tmp_path / "new.db"; upload_root = tmp_path / "new-uploads"
     monkeypatch.setenv("APP_ENV", "test")
     monkeypatch.setenv("DATABASE_URL", f"sqlite+pysqlite:///{target}")
@@ -71,11 +77,72 @@ def test_v02_migration_reencrypts_and_preserves_counts(tmp_path, monkeypatch):
         assert db.scalar(select(func.count(Job.id))) == 1
         assert db.scalar(select(func.count(Recommendation.id))) == 1
         assert db.scalar(select(func.count(ApplicationPack.id))) == 1
+        resume = db.scalar(select(Resume))
+        assert resume is not None and resume.size_bytes == len(b"legacy resume bytes")
     raw = sqlite3.connect(target)
     columns = {row[1] for row in raw.execute("PRAGMA table_info(users)")}
     assert "email_encrypted" in columns and "api_key" not in columns
     assert b"owner@example.com" not in target.read_bytes()
     assert b"legacy-secret-key" not in target.read_bytes()
+
+
+def test_v02_source_connection_is_immutable_and_read_only(tmp_path):
+    source = tmp_path / "isolated-v02.db"
+    writable = sqlite3.connect(source)
+    writable.execute("CREATE TABLE source_check(value TEXT)")
+    writable.execute("INSERT INTO source_check VALUES('ok')")
+    writable.commit(); writable.close()
+
+    readonly = connect_source(source)
+    assert readonly.execute("SELECT value FROM source_check").fetchone()[0] == "ok"
+    with pytest.raises(sqlite3.OperationalError):
+        readonly.execute("CREATE TABLE must_not_persist(value TEXT)")
+    readonly.close()
+
+
+def test_delivery_lookup_migration_backfills_current_user_without_email_plaintext(tmp_path):
+    database = tmp_path / "legacy-email-delivery.db"
+    raw = sqlite3.connect(database)
+    raw.executescript("""
+    CREATE TABLE users(id INTEGER PRIMARY KEY, email_lookup TEXT NOT NULL);
+    CREATE TABLE email_deliveries(
+        id INTEGER PRIMARY KEY,
+        user_id INTEGER,
+        kind TEXT NOT NULL,
+        recipient_masked TEXT NOT NULL,
+        status TEXT NOT NULL,
+        error TEXT,
+        created_at TEXT NOT NULL
+    );
+    INSERT INTO users(id, email_lookup) VALUES(1, 'recipient-hmac-only');
+    INSERT INTO email_deliveries(id, user_id, kind, recipient_masked, status, created_at)
+    VALUES(1, 1, 'verify', 'r***@example.com', 'sent', '2026-08-01T00:00:00');
+    """)
+    raw.commit()
+    raw.close()
+
+    env = os.environ.copy()
+    env.update({"DATABASE_URL": f"sqlite+pysqlite:///{database}", "PYTHONDONTWRITEBYTECODE": "1"})
+    completed = subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", "head"],
+        cwd=Path(__file__).resolve().parents[1], env=env, capture_output=True, text=True,
+    )
+    assert completed.returncode == 0, completed.stderr
+
+    raw = sqlite3.connect(database)
+    columns = {row[1] for row in raw.execute("PRAGMA table_info(email_deliveries)")}
+    progress_columns = {row[1] for row in raw.execute("PRAGMA table_info(application_progresses)")}
+    pack_columns = {row[1] for row in raw.execute("PRAGMA table_info(application_packs)")}
+    event_columns = {row[1] for row in raw.execute("PRAGMA table_info(application_events)")}
+    stored_lookup = raw.execute("SELECT recipient_lookup FROM email_deliveries WHERE id=1").fetchone()[0]
+    revision = raw.execute("SELECT version_num FROM alembic_version").fetchone()[0]
+    raw.close()
+    assert "recipient_lookup" in columns
+    assert stored_lookup == "recipient-hmac-only"
+    assert {"user_id", "job_id", "status", "version", "updated_at"}.issubset(progress_columns)
+    assert {"updated_at", "version"}.issubset(pack_columns)
+    assert {"action", "revision"}.issubset(event_columns)
+    assert revision == "0003_application_workspace"
 
 
 def test_safe_http_url_rejects_private_and_malformed_ports():

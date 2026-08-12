@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 import secrets
 from contextlib import asynccontextmanager
 from datetime import timedelta
@@ -16,33 +18,146 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from . import ai
+from .career_intelligence import domain_for_role, domain_label, normalize_role, role_label
 from .config import Settings, get_settings
 from .db import Base, make_engine, make_session_factory, session_dependency
-from .discovery import claim_run, enqueue_discovery, process_run, safe_http_url
-from .email_service import Mailer
+from .discovery import clean_html, claim_run, enqueue_discovery, process_run, rescore_existing_recommendations, safe_http_url
+from .email_service import MailRateLimited, Mailer
+from .document_export import build_tailored_resume_docx
 from .models import (
     ApplicationEvent, ApplicationPack, CandidateProfile, DiscoveryRun, DiscoverySourceStatus,
     Job, Recommendation, Resume, User, utcnow,
 )
 from .resume import ResumeError, extract_text
+from .scoring import search_matches
 from .security import (
     CryptoBox, check_csrf, create_session, email_lookup, hash_password, mask_email,
     normalize_email, rate_limit, resolve_session, revoke_all_sessions, revoke_session,
     validate_password, verify_password,
 )
 from .services import (
-    audit, build_application_pack, delete_user_account, get_profile, get_profile_row,
-    list_experiences, list_resumes, manual_job, recommendation_for_user, save_profile,
-    store_resume, user_export,
+    application_pack_for_user, application_progress_error, application_progress_for_user, audit,
+    build_application_materials, build_application_pack, consult_application_materials, create_application_progress,
+    decode_score_evidence,
+    delete_user_account, ensure_application_materials, get_profile, get_profile_row,
+    list_application_progresses, list_experiences, list_resumes, manual_job,
+    recommendation_for_user, save_profile, store_resume, update_application_materials,
+    update_application_progress, user_export,
 )
 
 SESSION_COOKIE = "jobhunt_session"
 CSRF_COOKIE = "jobhunt_csrf"
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+TEMPLATES.env.filters["role_label"] = role_label
+TEMPLATES.env.filters["domain_label"] = domain_label
+STATIC_ROOT = Path(__file__).parent / "static"
+
+
+def _static_asset_revision() -> str:
+    digest = hashlib.sha256()
+    for asset in ("app.css", "app.js"):
+        digest.update((STATIC_ROOT / asset).read_bytes())
+    return digest.hexdigest()[:12]
+
+
+STATIC_ASSET_REVISION = _static_asset_revision()
 
 
 def _csv_list(value: str) -> list[str]:
-    return [x.strip() for x in value.replace("，", ",").split(",") if x.strip()]
+    return [item.strip() for item in re.split(r"[,，、;；\n]+", value) if item.strip()]
+
+
+SPONSORSHIP_VALUES = {"yes", "no", "uncertain"}
+WORK_MODE_VALUES = {"remote", "hybrid", "onsite"}
+APPLICATION_STATUS_LABELS = {
+    "pending": "待处理",
+    "submitted": "已提交",
+    "interview": "面试／笔试",
+    "rejected": "已拒绝",
+    "offer": "录用通知",
+    "withdrawn": "已撤回",
+}
+LEGAL_ADMISSION_VALUES = {"admitted", "not_admitted", "uncertain", "not_applicable"}
+PRACTISING_CERTIFICATE_VALUES = {"current", "held", "not_current", "uncertain", "not_applicable"}
+
+
+def _float_or_none(value: str) -> float | None:
+    cleaned = value.strip()
+    if not cleaned:
+        return None
+    try:
+        numeric = float(cleaned)
+    except ValueError:
+        return None
+    return max(0.0, min(numeric, 60.0))
+
+
+def _confirmed_profile_fields(
+    *,
+    primary_roles: str,
+    target_locations: str,
+    work_authorization: str,
+    sponsorship_now: str,
+    sponsorship_future: str,
+    work_modes: list[str],
+    experience_years: str,
+    professional_credentials: str,
+    credentials_confirmed: bool,
+    legal_admission: str,
+    practising_certificate: str,
+    relocation: str,
+    available_start: str,
+    avoid_roles: str,
+    avoid_industries: str,
+) -> tuple[dict[str, Any] | None, str | None]:
+    """Accept only facts that the user has explicitly confirmed in this form."""
+    roles = _csv_list(primary_roles)
+    locations = _csv_list(target_locations)
+    authorization = work_authorization.strip()
+    now = sponsorship_now.strip().casefold()
+    future = sponsorship_future.strip().casefold()
+    modes = list(dict.fromkeys(value.strip().casefold() for value in work_modes if value.strip()))
+    relocation_value = relocation.strip().casefold()
+    years = _float_or_none(experience_years)
+    admission = legal_admission.strip().casefold()
+    certificate = practising_certificate.strip().casefold()
+    if not roles:
+        return None, "请明确至少一个目标岗位族。"
+    if not locations:
+        return None, "请明确至少一个目标城市或地区。"
+    if not authorization:
+        return None, "请填写当前工作权利；如不确定请明确填写“不确定”。"
+    if now not in SPONSORSHIP_VALUES or future not in SPONSORSHIP_VALUES:
+        return None, "请明确现在和未来是否需要雇主担保。"
+    if not modes:
+        return None, "请至少选择一种可接受的工作模式。"
+    if any(value not in WORK_MODE_VALUES for value in modes):
+        return None, "工作模式包含无效值。"
+    if relocation_value not in {"", "yes", "no"}:
+        return None, "搬迁偏好无效。"
+    if experience_years.strip() and years is None:
+        return None, "相关经验年限应为 0 到 60 之间的数字。"
+    if admission not in LEGAL_ADMISSION_VALUES:
+        return None, "律师准入状态无效。"
+    if certificate not in PRACTISING_CERTIFICATE_VALUES:
+        return None, "执业证书状态无效。"
+    return {
+        "primary_role_families": roles,
+        "target_locations": locations,
+        "work_authorization": authorization,
+        "sponsorship_now": now,
+        "sponsorship_future": future,
+        "work_mode": modes,
+        "experience_years": years,
+        "professional_credentials": _csv_list(professional_credentials),
+        "credentials_confirmed": bool(credentials_confirmed),
+        "legal_admission": admission,
+        "practising_certificate": certificate,
+        "relocation": relocation_value,
+        "available_start": available_start.strip(),
+        "avoid_roles": _csv_list(avoid_roles),
+        "avoid_industries": _csv_list(avoid_industries),
+    }, None
 
 
 def _query_url(path: str, **params: str) -> str:
@@ -96,7 +211,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; "
+            "default-src 'self'; img-src 'self' data:; style-src 'self'; "
+            "script-src 'self' https://static.cloudflareinsights.com; connect-src 'self'; "
             "form-action 'self'; frame-ancestors 'none'; base-uri 'self'"
         )
         if not request.cookies.get(CSRF_COOKIE):
@@ -140,8 +256,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "request": request,
             "app_name": settings.app_name,
             "app_version": settings.app_version,
+            "static_revision": STATIC_ASSET_REVISION,
             "user": request.state.user,
             "csrf_token": _csrf(request),
+            "registration_open": settings.allow_registration,
+            "email_delivery_ready": settings.testing or settings.app_env != "production" or bool(settings.smtp_host),
             "message": request.query_params.get("message", ""),
             "error": request.query_params.get("error", ""),
         })
@@ -174,6 +293,54 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if request.state.user and request.state.user.is_verified:
             return _redirect("/dashboard")
         return _render(request, "landing.html", {"registration_open": settings.allow_registration})
+
+    @app.get("/owner-entry", response_class=HTMLResponse, include_in_schema=False)
+    def owner_entry_page(request: Request):
+        if not settings.owner_entry_enabled:
+            raise HTTPException(404, "资源不存在。")
+        if request.state.user and request.state.user.is_admin and request.state.user.is_verified:
+            return _redirect("/dashboard")
+        return _render(request, "owner_entry.html")
+
+    @app.post("/owner-entry", include_in_schema=False)
+    def owner_entry(
+        request: Request,
+        password: str = Form(...),
+        csrf_token: str = Form(...),
+        db: Session = Depends(get_db),
+    ):
+        if not settings.owner_entry_enabled:
+            raise HTTPException(404, "资源不存在。")
+        _require_csrf(request, csrf_token)
+        ip = request.client.host if request.client else "unknown"
+        if not rate_limit(db, key=f"owner-entry:{ip}", limit=5, window_seconds=900):
+            return _redirect("/owner-entry", error="尝试次数过多，请 15 分钟后再试。")
+        owner = db.scalar(select(User).where(
+            User.email_lookup == email_lookup(settings.admin_email, settings.email_lookup_secret),
+        ))
+        if (
+            not owner
+            or not owner.is_active
+            or not owner.is_admin
+            or not settings.owner_entry_password
+            or not secrets.compare_digest(settings.owner_entry_password, password)
+        ):
+            return _redirect("/owner-entry", error="Owner 入口密码不正确或当前不可用。")
+        # This is deliberately limited to the pre-provisioned platform Owner.
+        # It creates an ordinary authenticated session but never registers a
+        # user, changes verification state, or invokes SMTP.
+        raw, _session = create_session(db, owner, settings)
+        owner.last_login_at = utcnow()
+        db.commit()
+        audit(db, "owner_entry_login", owner.id)
+        profile = get_profile_row(db, owner.id)
+        target = "/dashboard" if profile and profile.onboarding_state == "complete" else "/onboarding/upload"
+        response = _redirect(target, message="Owner 入口已打开；无需邮箱验证。")
+        response.set_cookie(
+            SESSION_COOKIE, raw, httponly=True, secure=settings.cookie_secure,
+            samesite="lax", max_age=settings.session_max_age_seconds,
+        )
+        return response
 
     @app.get("/register", response_class=HTMLResponse)
     def register_page(request: Request):
@@ -220,7 +387,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         db.commit()
         db.refresh(user)
         save_profile(db, crypto, user.id, {}, onboarding_state="needs_resume", discovery_enabled=False)
-        mailer.send_verification(db, user)
+        try:
+            mailer.send_verification(db, user)
+        except MailRateLimited:
+            audit(db, "user_registered_email_deferred", user.id)
+            return _redirect("/verify-required", message="账户已创建；验证邮件受发送保护，暂未发出，请稍后重试。")
         audit(db, "user_registered", user.id)
         return _redirect("/verify-required", message="验证邮件已发送，请打开邮箱完成验证。")
 
@@ -228,11 +399,34 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def verify_required(request: Request):
         return _render(request, "verify_required.html")
 
-    @app.get("/verify-email")
-    def verify_email(request: Request, token: str, db: Session = Depends(get_db)):
+    @app.get("/verify-email", response_class=HTMLResponse)
+    def verify_email_page(request: Request, token: str, db: Session = Depends(get_db)):
+        # Opening an email link is deliberately non-mutating. Mail gateway
+        # scanners fetch links before the recipient does, so consuming the
+        # token on GET would make a real recipient see an unusable link.
+        if not mailer.token_is_active(db, token, "verify"):
+            return _redirect(
+                "/resend-verification",
+                error="验证链接无效、已过期或已被使用。若你刚刚完成验证，请直接登录；否则请在限速结束后手动申请新链接。",
+            )
+        response = _render(request, "verify_email.html", {"token": token})
+        response.headers["Cache-Control"] = "no-store"
+        return response
+
+    @app.post("/verify-email")
+    def verify_email(
+        request: Request,
+        token: str = Form(...),
+        csrf_token: str = Form(...),
+        db: Session = Depends(get_db),
+    ):
+        _require_csrf(request, csrf_token)
         user = mailer.consume_token(db, token, "verify")
         if not user:
-            return _redirect("/resend-verification", error="验证链接无效或已过期。")
+            return _redirect(
+                "/resend-verification",
+                error="验证链接无效、已过期或已被使用。若你刚刚完成验证，请直接登录；否则请在限速结束后手动申请新链接。",
+            )
         user.is_verified = True
         user.verified_at = utcnow()
         db.commit()
@@ -247,6 +441,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/resend-verification", response_class=HTMLResponse)
     def resend_page(request: Request):
+        if settings.app_env == "production" and not settings.smtp_host:
+            raise HTTPException(503, "邮件服务正在配置中，请稍后再试。")
         return _render(request, "resend_verification.html")
 
     @app.post("/resend-verification")
@@ -257,14 +453,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         db: Session = Depends(get_db),
     ):
         _require_csrf(request, csrf_token)
+        if settings.app_env == "production" and not settings.smtp_host:
+            raise HTTPException(503, "邮件服务正在配置中，请稍后再试。")
         ip = request.client.host if request.client else "unknown"
         if not rate_limit(db, key=f"resend:{ip}", limit=5, window_seconds=3600):
             return _redirect("/resend-verification", error="请求过于频繁，请稍后再试。")
         lookup = email_lookup(email, settings.email_lookup_secret)
         user = db.scalar(select(User).where(User.email_lookup == lookup))
         if user and user.is_active and not user.is_verified:
-            mailer.send_verification(db, user)
-        return _redirect("/verify-required", message="如果该邮箱需要验证，新的邮件已经发送。")
+            try:
+                mailer.send_verification(db, user)
+            except MailRateLimited:
+                pass
+        return _redirect("/verify-required", message="如该邮箱需要验证，系统会在允许发送时处理请求。")
 
     @app.get("/login", response_class=HTMLResponse)
     def login_page(request: Request):
@@ -316,6 +517,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/forgot-password", response_class=HTMLResponse)
     def forgot_page(request: Request):
+        if settings.app_env == "production" and not settings.smtp_host:
+            raise HTTPException(503, "邮件找回正在配置中，请稍后再试。")
         return _render(request, "forgot_password.html")
 
     @app.post("/forgot-password")
@@ -326,14 +529,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         db: Session = Depends(get_db),
     ):
         _require_csrf(request, csrf_token)
+        if settings.app_env == "production" and not settings.smtp_host:
+            raise HTTPException(503, "邮件找回正在配置中，请稍后再试。")
         ip = request.client.host if request.client else "unknown"
         if not rate_limit(db, key=f"forgot:{ip}", limit=6, window_seconds=3600):
             return _redirect("/forgot-password", error="请求过于频繁，请稍后再试。")
         user = db.scalar(select(User).where(User.email_lookup == email_lookup(email, settings.email_lookup_secret)))
         if user and user.is_active and user.is_verified:
-            mailer.send_reset(db, user)
-            audit(db, "password_reset_requested", user.id)
-        return _redirect("/login", message="如果邮箱已注册，重置邮件已经发送。")
+            try:
+                mailer.send_reset(db, user)
+            except MailRateLimited:
+                pass
+            else:
+                audit(db, "password_reset_requested", user.id)
+        return _redirect("/login", message="如果邮箱已注册，系统会在允许发送时处理请求。")
 
     @app.get("/reset-password", response_class=HTMLResponse)
     def reset_page(request: Request, token: str):
@@ -414,7 +623,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         user = _require_user(request)
         if not db.scalar(select(Resume).where(Resume.user_id == user.id)):
             return _redirect("/onboarding/upload", error="请先上传简历。")
-        return _render(request, "onboarding_confirm.html", {"profile": get_profile(db, crypto, user.id)})
+        profile = get_profile(db, crypto, user.id)
+        return _render(request, "onboarding_confirm.html", {
+            "profile": profile,
+            "primary_roles_display": ", ".join(
+                role_label(normalize_role(role)) for role in profile.get("primary_role_families", [])
+            ),
+        })
 
     @app.post("/onboarding/confirm")
     def onboarding_confirm_post(
@@ -425,6 +640,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         sponsorship_now: str = Form(...),
         sponsorship_future: str = Form(...),
         work_modes: list[str] = Form([]),
+        experience_years: str = Form(""),
+        professional_credentials: str = Form(""),
+        credentials_confirmed: bool = Form(False),
+        legal_admission: str = Form("uncertain"),
+        practising_certificate: str = Form("uncertain"),
         relocation: str = Form(""),
         available_start: str = Form(""),
         avoid_roles: str = Form(""),
@@ -434,20 +654,29 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     ):
         _require_csrf(request, csrf_token)
         user = _require_user(request)
+        confirmed, error = _confirmed_profile_fields(
+            primary_roles=primary_roles,
+            target_locations=target_locations,
+            work_authorization=work_authorization,
+            sponsorship_now=sponsorship_now,
+            sponsorship_future=sponsorship_future,
+            work_modes=work_modes,
+            experience_years=experience_years,
+            professional_credentials=professional_credentials,
+            credentials_confirmed=credentials_confirmed,
+            legal_admission=legal_admission,
+            practising_certificate=practising_certificate,
+            relocation=relocation,
+            available_start=available_start,
+            avoid_roles=avoid_roles,
+            avoid_industries=avoid_industries,
+        )
+        if error or confirmed is None:
+            return _redirect("/onboarding/confirm", error=error or "关键事实尚未确认。")
         profile = get_profile(db, crypto, user.id)
-        profile.update({
-            "primary_role_families": _csv_list(primary_roles),
-            "target_locations": _csv_list(target_locations),
-            "work_authorization": work_authorization.strip(),
-            "sponsorship_now": sponsorship_now,
-            "sponsorship_future": sponsorship_future,
-            "work_mode": work_modes or ["hybrid", "onsite", "remote"],
-            "relocation": relocation,
-            "available_start": available_start.strip(),
-            "avoid_roles": _csv_list(avoid_roles),
-            "avoid_industries": _csv_list(avoid_industries),
-        })
+        profile.update(confirmed)
         row = save_profile(db, crypto, user.id, profile, onboarding_state="complete", discovery_enabled=True)
+        rescore_existing_recommendations(db, user.id, profile, crypto)
         row.next_discovery_at = utcnow()
         db.commit()
         run = enqueue_discovery(db, user.id, "onboarding")
@@ -472,22 +701,30 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return _redirect("/recommendations", message="岗位已刷新。")
         return _redirect("/recommendations", message="刷新任务已进入队列，稍后自动更新。")
 
-    @app.get("/recommendations", response_class=HTMLResponse)
-    def recommendations(
+    def _recommendation_context(
         request: Request,
-        q: str = "",
-        city: str = "",
-        role: str = "",
-        skill: str = "",
-        source: str = "",
-        freshness: str = "",
-        qualification: str = "",
-        relevance: str = "",
-        opportunity: str = "",
-        status: str = "",
-        db: Session = Depends(get_db),
-    ):
-        user = _require_user(request)
+        db: Session,
+        user: User,
+        *,
+        q: str,
+        domain: str,
+        city: str,
+        role: str,
+        skill: str,
+        source: str,
+        freshness: str,
+        qualification: str,
+        relevance: str,
+        opportunity: str,
+        status: str,
+    ) -> dict[str, Any]:
+        active_filters = {key: value for key, value in request.query_params.items() if key != "partial"}
+        # The default feed is deliberately high relevance only. An explicit
+        # `relevance=` from the "全部" option remains available for users who
+        # want to inspect the broader queue.
+        if "relevance" not in active_filters:
+            relevance = "high"
+            active_filters["relevance"] = relevance
         rows = db.execute(
             select(Recommendation, Job)
             .join(Job, Job.id == Recommendation.job_id)
@@ -497,14 +734,30 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             )
             .order_by(Recommendation.rank_score.desc(), Job.posted_at.desc())
         ).all()
+        try:
+            freshness_days = int(freshness) if freshness else None
+        except ValueError:
+            freshness_days = None
         now = utcnow()
         filtered = []
         for rec, job in rows:
             skills = json.loads(job.skills_text or "[]")
             keywords = json.loads(job.keywords_text or "[]")
-            hay = " ".join([job.title, job.company, job.location, job.role_family, " ".join(skills), " ".join(keywords)]).casefold()
+            hay = " ".join([
+                job.title, job.company, job.location, job.role_family,
+                " ".join(skills), " ".join(keywords), job.description,
+            ])
             age = (now - (job.posted_at or job.discovered_at)).days
-            if q and q.casefold() not in hay:
+            evidence = decode_score_evidence(crypto, rec.reasons_encrypted)
+            stored_domain = str(evidence.get("domain") or "")
+            job_domain = (
+                stored_domain
+                if stored_domain in {"finance", "legal"}
+                else domain_for_role(job.role_family, f"{job.title} {job.description}")
+            )
+            if q and not search_matches(q, hay):
+                continue
+            if domain and domain != job_domain:
                 continue
             if city and city != job.city:
                 continue
@@ -514,7 +767,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 continue
             if source and source != job.source:
                 continue
-            if freshness and age > int(freshness):
+            if freshness_days is not None and age > freshness_days:
                 continue
             if qualification and qualification != rec.qualification:
                 continue
@@ -529,9 +782,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "job": job,
                 "skills": skills,
                 "age_days": age,
-                "reasons": crypto.decrypt_json(rec.reasons_encrypted, []),
+                "domain": job_domain,
+                "reasons": evidence["reasons"],
+                "requirement_checks": evidence["requirement_checks"],
             })
         facets = {
+            "domains": [
+                (key, domain_label(key))
+                for key in ("finance", "legal", "general")
+                if any(item["domain"] == key for item in filtered)
+                or any(
+                    domain_for_role(job.role_family, f"{job.title} {job.description}") == key
+                    for _rec, job in rows
+                )
+            ],
             "cities": sorted({job.city for _rec, job in rows if job.city}),
             "roles": sorted({job.role_family for _rec, job in rows if job.role_family}),
             "skills": sorted({s for _rec, job in rows for s in json.loads(job.skills_text or "[]")})[:80],
@@ -541,11 +805,39 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         source_rows = []
         if latest_run:
             source_rows = db.scalars(select(DiscoverySourceStatus).where(DiscoverySourceStatus.run_id == latest_run.id)).all()
-        return _render(request, "recommendations.html", {
-            "items": filtered, "facets": facets, "filters": dict(request.query_params),
+        return {
+            "items": filtered, "facets": facets, "filters": active_filters,
             "latest_run": latest_run, "source_rows": source_rows,
             "refresh_hours": settings.discovery_refresh_hours,
-        })
+        }
+
+    @app.get("/recommendations", response_class=HTMLResponse)
+    def recommendations(
+        request: Request,
+        q: str = "",
+        domain: str = "",
+        city: str = "",
+        role: str = "",
+        skill: str = "",
+        source: str = "",
+        freshness: str = "",
+        qualification: str = "",
+        relevance: str = "",
+        opportunity: str = "",
+        status: str = "",
+        partial: bool = False,
+        db: Session = Depends(get_db),
+    ):
+        user = _require_user(request)
+        context = _recommendation_context(
+            request, db, user,
+            q=q, domain=domain, city=city, role=role, skill=skill, source=source,
+            freshness=freshness, qualification=qualification, relevance=relevance,
+            opportunity=opportunity, status=status,
+        )
+        if partial:
+            return _render(request, "recommendation_results.html", context)
+        return _render(request, "recommendations.html", context)
 
     @app.get("/recommendations/{rec_id}", response_class=HTMLResponse)
     def recommendation_detail(request: Request, rec_id: int, db: Session = Depends(get_db)):
@@ -554,11 +846,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if not result:
             raise HTTPException(404, "岗位不存在。")
         rec, job = result
+        evidence = decode_score_evidence(crypto, rec.reasons_encrypted)
         return _render(request, "recommendation_detail.html", {
             "rec": rec, "job": job,
+            "job_description": clean_html(job.description),
             "skills": json.loads(job.skills_text or "[]"),
             "keywords": json.loads(job.keywords_text or "[]"),
-            "reasons": crypto.decrypt_json(rec.reasons_encrypted, []),
+            "reasons": evidence["reasons"],
+            "requirement_checks": evidence["requirement_checks"],
+            "requirements": evidence["requirements"],
+            "job_domain": (
+                evidence["domain"]
+                if evidence["domain"] in {"finance", "legal"}
+                else domain_for_role(job.role_family, f"{job.title} {job.description}")
+            ),
         })
 
     @app.post("/recommendations/{rec_id}/status")
@@ -597,16 +898,211 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         pack, note = build_application_pack(db, crypto, settings, user, rec, job)
         return _redirect(f"/application-packs/{pack.id}", message=note or "申请包已生成。")
 
-    @app.get("/application-packs/{pack_id}", response_class=HTMLResponse)
-    def pack_detail(request: Request, pack_id: int, db: Session = Depends(get_db)):
-        user = _require_user(request)
+    def _owned_pack_context(db: Session, user: User, pack_id: int) -> tuple[ApplicationPack, Job, dict[str, Any]]:
         pack = db.scalar(select(ApplicationPack).where(ApplicationPack.id == pack_id, ApplicationPack.user_id == user.id))
         if not pack:
             raise HTTPException(404, "申请包不存在。")
         job = db.get(Job, pack.job_id)
-        return _render(request, "application_pack.html", {
-            "pack": pack, "job": job, "content": crypto.decrypt_json(pack.content_encrypted, {}),
+        if not job:
+            raise HTTPException(404, "岗位不存在。")
+        content = ensure_application_materials(
+            crypto.decrypt_json(pack.content_encrypted, {}),
+            profile=get_profile(db, crypto, user.id),
+            experiences=list_experiences(db, crypto, user.id),
+            job=job,
+        )
+        return pack, job, content
+
+    def _render_ai_consultation(
+        request: Request,
+        *,
+        job: Job,
+        materials: dict[str, Any],
+        form_action: str,
+        back_url: str,
+        question: str = "",
+        answer: str | None = None,
+        note: str | None = None,
+        error: str | None = None,
+    ):
+        return _render(request, "ai_consult.html", {
+            "job": job,
+            "materials": materials,
+            "form_action": form_action,
+            "back_url": back_url,
+            "question": question,
+            "answer": answer,
+            "ai_note": note,
+            "error": error or "",
         })
+
+    @app.get("/recommendations/{rec_id}/ai", response_class=HTMLResponse)
+    def recommendation_ai_page(request: Request, rec_id: int, db: Session = Depends(get_db)):
+        user = _require_user(request)
+        result = recommendation_for_user(db, user.id, rec_id)
+        if not result:
+            raise HTTPException(404, "岗位不存在。")
+        _rec, job = result
+        materials = build_application_materials(
+            get_profile(db, crypto, user.id),
+            list_experiences(db, crypto, user.id),
+            job,
+        )
+        return _render_ai_consultation(
+            request,
+            job=job,
+            materials=materials,
+            form_action=f"/recommendations/{rec_id}/ai",
+            back_url=f"/recommendations/{rec_id}",
+        )
+
+    @app.post("/recommendations/{rec_id}/ai", response_class=HTMLResponse)
+    def recommendation_ai_post(
+        request: Request,
+        rec_id: int,
+        question: str = Form(...),
+        csrf_token: str = Form(...),
+        db: Session = Depends(get_db),
+    ):
+        _require_csrf(request, csrf_token)
+        user = _require_user(request)
+        result = recommendation_for_user(db, user.id, rec_id)
+        if not result:
+            raise HTTPException(404, "岗位不存在。")
+        _rec, job = result
+        materials = build_application_materials(
+            get_profile(db, crypto, user.id),
+            list_experiences(db, crypto, user.id),
+            job,
+        )
+        if not question.strip():
+            return _render_ai_consultation(
+                request, job=job, materials=materials,
+                form_action=f"/recommendations/{rec_id}/ai", back_url=f"/recommendations/{rec_id}",
+                error="请输入希望咨询的问题。",
+            )
+        answer, note = consult_application_materials(
+            db, settings, user, job=job, materials=materials, question=question,
+        )
+        audit(db, "recommendation_ai_consulted", user.id, f"rec={rec_id}")
+        return _render_ai_consultation(
+            request, job=job, materials=materials,
+            form_action=f"/recommendations/{rec_id}/ai", back_url=f"/recommendations/{rec_id}",
+            question=question, answer=answer, note=note,
+        )
+
+    @app.get("/application-packs/{pack_id}", response_class=HTMLResponse)
+    def pack_detail(request: Request, pack_id: int, db: Session = Depends(get_db)):
+        user = _require_user(request)
+        pack, job, content = _owned_pack_context(db, user, pack_id)
+        return _render(request, "application_pack.html", {
+            "pack": pack, "job": job, "content": content,
+        })
+
+    @app.get("/application-packs/{pack_id}/resume.docx")
+    def download_tailored_resume(request: Request, pack_id: int, db: Session = Depends(get_db)):
+        user = _require_user(request)
+        result = application_pack_for_user(db, crypto, user.id, pack_id)
+        if not result:
+            raise HTTPException(404, "申请包不存在。")
+        _pack, job, _resume, parsed, content = result
+        data = build_tailored_resume_docx(content, parsed)
+        safe_title = "".join(
+            character if character.isalnum() else "-"
+            for character in job.title
+        ).strip("-")[:60] or "job"
+        return Response(
+            content=data,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={
+                "Content-Disposition": f'attachment; filename="tailored-resume-{safe_title}.docx"',
+            },
+        )
+
+    @app.get("/application-packs/{pack_id}/edit", response_class=HTMLResponse)
+    def pack_edit_page(request: Request, pack_id: int, db: Session = Depends(get_db)):
+        user = _require_user(request)
+        pack, job, content = _owned_pack_context(db, user, pack_id)
+        return _render(request, "application_pack_edit.html", {
+            "pack": pack, "job": job, "content": content,
+        })
+
+    @app.post("/application-packs/{pack_id}/edit")
+    def pack_edit_post(
+        request: Request,
+        pack_id: int,
+        why_me_summary: str = Form(...),
+        cv_headline: str = Form(...),
+        cv_summary: str = Form(...),
+        cv_bullets: str = Form(""),
+        answer_why_role: str = Form(...),
+        answer_why_me: str = Form(...),
+        answer_role_example: str = Form(...),
+        csrf_token: str = Form(...),
+        db: Session = Depends(get_db),
+    ):
+        _require_csrf(request, csrf_token)
+        user = _require_user(request)
+        pack, _job, content = _owned_pack_context(db, user, pack_id)
+        required = [why_me_summary, cv_headline, cv_summary, answer_why_role, answer_why_me, answer_role_example]
+        if any(not value.strip() for value in required):
+            return _redirect(f"/application-packs/{pack_id}/edit", error="请保留岗位适配理由、简历概要与三道回答；它们都可以如实改写。")
+        update_application_materials(
+            db,
+            crypto,
+            pack,
+            content=content,
+            why_me_summary=why_me_summary,
+            cv_headline=cv_headline,
+            cv_summary=cv_summary,
+            cv_bullets=cv_bullets,
+            interview_answers={
+                "why_role": answer_why_role,
+                "why_me": answer_why_me,
+                "role_example": answer_role_example,
+            },
+        )
+        audit(db, "application_pack_edited", user.id, f"pack={pack_id};version={pack.version}")
+        return _redirect(f"/application-packs/{pack_id}", message="岗位适配简历与回答已更新；原始简历未被修改。")
+
+    @app.get("/application-packs/{pack_id}/ai", response_class=HTMLResponse)
+    def pack_ai_page(request: Request, pack_id: int, db: Session = Depends(get_db)):
+        user = _require_user(request)
+        _pack, job, content = _owned_pack_context(db, user, pack_id)
+        return _render_ai_consultation(
+            request,
+            job=job,
+            materials=content["materials"],
+            form_action=f"/application-packs/{pack_id}/ai",
+            back_url=f"/application-packs/{pack_id}",
+        )
+
+    @app.post("/application-packs/{pack_id}/ai", response_class=HTMLResponse)
+    def pack_ai_post(
+        request: Request,
+        pack_id: int,
+        question: str = Form(...),
+        csrf_token: str = Form(...),
+        db: Session = Depends(get_db),
+    ):
+        _require_csrf(request, csrf_token)
+        user = _require_user(request)
+        _pack, job, content = _owned_pack_context(db, user, pack_id)
+        if not question.strip():
+            return _render_ai_consultation(
+                request, job=job, materials=content["materials"],
+                form_action=f"/application-packs/{pack_id}/ai", back_url=f"/application-packs/{pack_id}",
+                error="请输入希望咨询的问题。",
+            )
+        answer, note = consult_application_materials(
+            db, settings, user, job=job, materials=content["materials"], question=question,
+        )
+        audit(db, "application_pack_ai_consulted", user.id, f"pack={pack_id}")
+        return _render_ai_consultation(
+            request, job=job, materials=content["materials"],
+            form_action=f"/application-packs/{pack_id}/ai", back_url=f"/application-packs/{pack_id}",
+            question=question, answer=answer, note=note,
+        )
 
     @app.get("/jobs/manual", response_class=HTMLResponse)
     def manual_page(request: Request):
@@ -637,21 +1133,33 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return _redirect(f"/recommendations/{rec.id}", message="岗位已导入并分析。")
 
     @app.get("/applications", response_class=HTMLResponse)
-    def applications_page(request: Request, db: Session = Depends(get_db)):
+    def applications_page(request: Request, job_id: int | None = None, db: Session = Depends(get_db)):
         user = _require_user(request)
         events = db.execute(
             select(ApplicationEvent, Job)
             .join(Job, Job.id == ApplicationEvent.job_id)
-            .where(ApplicationEvent.user_id == user.id)
+            .where(ApplicationEvent.user_id == user.id, (Job.owner_user_id.is_(None)) | (Job.owner_user_id == user.id))
             .order_by(ApplicationEvent.created_at.desc())
         ).all()
         recommendations = db.execute(
             select(Recommendation, Job)
             .join(Job, Job.id == Recommendation.job_id)
-            .where(Recommendation.user_id == user.id)
+            .where(Recommendation.user_id == user.id, (Job.owner_user_id.is_(None)) | (Job.owner_user_id == user.id))
             .order_by(Job.company, Job.title)
         ).all()
-        return _render(request, "applications.html", {"events": events, "recommendations": recommendations})
+        history = [{
+            "event": event,
+            "job": job,
+            "evidence": crypto.decrypt_text(event.evidence_encrypted, ""),
+            "notes": crypto.decrypt_text(event.notes_encrypted, ""),
+        } for event, job in events]
+        return _render(request, "applications.html", {
+            "events": history,
+            "progresses": list_application_progresses(db, crypto, user.id),
+            "recommendations": recommendations,
+            "selected_job_id": job_id,
+            "status_labels": APPLICATION_STATUS_LABELS,
+        })
 
     @app.post("/applications")
     def applications_post(
@@ -665,32 +1173,86 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     ):
         _require_csrf(request, csrf_token)
         user = _require_user(request)
-        rec = db.scalar(select(Recommendation).where(Recommendation.user_id == user.id, Recommendation.job_id == job_id))
+        rec = db.scalar(
+            select(Recommendation)
+            .join(Job, Job.id == Recommendation.job_id)
+            .where(Recommendation.user_id == user.id, Recommendation.job_id == job_id, (Job.owner_user_id.is_(None)) | (Job.owner_user_id == user.id))
+        )
         if not rec:
             raise HTTPException(404, "岗位不存在。")
-        allowed = {"pending", "submitted", "interview", "rejected", "offer", "withdrawn"}
-        if status not in allowed:
-            raise HTTPException(400, "无效申请状态。")
-        if status == "submitted" and len(evidence.strip()) < 5:
-            return _redirect("/applications", error="只有看到确认页面、确认文字或申请编号后，才能记录为已提交。")
-        event = ApplicationEvent(
-            user_id=user.id,
-            job_id=job_id,
-            status=status,
-            evidence_encrypted=crypto.encrypt_text(evidence.strip()) if evidence.strip() else None,
-            notes_encrypted=crypto.encrypt_text(notes.strip()) if notes.strip() else None,
+        error = application_progress_error(status, evidence)
+        if error:
+            return _redirect("/applications", error=error)
+        progress, created = create_application_progress(
+            db, crypto, user_id=user.id, job_id=job_id, status=status, evidence=evidence, notes=notes,
         )
-        db.add(event)
+        if not created:
+            return _redirect(f"/applications/{progress.id}/edit", message="这个岗位已有申请进度，请编辑当前记录。")
         if status == "submitted":
             rec.user_status = "applied"
         db.commit()
-        audit(db, "application_event_recorded", user.id, status)
+        audit(db, "application_progress_created", user.id, status)
         return _redirect("/applications", message="申请进度已保存。")
+
+    @app.get("/applications/{progress_id}/edit", response_class=HTMLResponse)
+    def application_edit_page(request: Request, progress_id: int, db: Session = Depends(get_db)):
+        user = _require_user(request)
+        progress = application_progress_for_user(db, user.id, progress_id)
+        if not progress:
+            raise HTTPException(404, "申请进度不存在。")
+        job = db.get(Job, progress.job_id)
+        if not job or (job.owner_user_id is not None and job.owner_user_id != user.id):
+            raise HTTPException(404, "申请进度不存在。")
+        return _render(request, "application_edit.html", {
+            "progress": progress,
+            "job": job,
+            "evidence": crypto.decrypt_text(progress.evidence_encrypted, ""),
+            "notes": crypto.decrypt_text(progress.notes_encrypted, ""),
+            "status_labels": APPLICATION_STATUS_LABELS,
+        })
+
+    @app.post("/applications/{progress_id}/edit")
+    def application_edit_post(
+        request: Request,
+        progress_id: int,
+        status: str = Form(...),
+        evidence: str = Form(""),
+        notes: str = Form(""),
+        csrf_token: str = Form(...),
+        db: Session = Depends(get_db),
+    ):
+        _require_csrf(request, csrf_token)
+        user = _require_user(request)
+        progress = application_progress_for_user(db, user.id, progress_id)
+        if not progress:
+            raise HTTPException(404, "申请进度不存在。")
+        error = application_progress_error(status, evidence)
+        if error:
+            return _redirect(f"/applications/{progress_id}/edit", error=error)
+        rec = db.scalar(
+            select(Recommendation).where(Recommendation.user_id == user.id, Recommendation.job_id == progress.job_id)
+        )
+        if not rec:
+            raise HTTPException(404, "岗位不存在。")
+        update_application_progress(db, crypto, progress, status=status, evidence=evidence, notes=notes)
+        if status == "submitted":
+            rec.user_status = "applied"
+        elif rec.user_status == "applied":
+            rec.user_status = "preparing"
+        db.commit()
+        audit(db, "application_progress_edited", user.id, f"status={status};version={progress.version}")
+        return _redirect("/applications", message="申请进度已更新，并保留了修订记录。")
 
     @app.get("/settings/profile", response_class=HTMLResponse)
     def settings_profile(request: Request, db: Session = Depends(get_db)):
         user = _require_user(request)
-        return _render(request, "settings_profile.html", {"profile": get_profile(db, crypto, user.id)})
+        profile = get_profile(db, crypto, user.id)
+        return _render(request, "settings_profile.html", {
+            "profile": profile,
+            "primary_roles_display": ", ".join(
+                role_label(normalize_role(role)) for role in profile.get("primary_role_families", [])
+            ),
+        })
 
     @app.post("/settings/profile")
     def settings_profile_post(
@@ -701,6 +1263,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         sponsorship_now: str = Form(...),
         sponsorship_future: str = Form(...),
         work_modes: list[str] = Form([]),
+        experience_years: str = Form(""),
+        professional_credentials: str = Form(""),
+        credentials_confirmed: bool = Form(False),
+        legal_admission: str = Form("uncertain"),
+        practising_certificate: str = Form("uncertain"),
         relocation: str = Form(""),
         available_start: str = Form(""),
         avoid_roles: str = Form(""),
@@ -710,19 +1277,27 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     ):
         _require_csrf(request, csrf_token)
         user = _require_user(request)
+        confirmed, error = _confirmed_profile_fields(
+            primary_roles=primary_roles,
+            target_locations=target_locations,
+            work_authorization=work_authorization,
+            sponsorship_now=sponsorship_now,
+            sponsorship_future=sponsorship_future,
+            work_modes=work_modes,
+            experience_years=experience_years,
+            professional_credentials=professional_credentials,
+            credentials_confirmed=credentials_confirmed,
+            legal_admission=legal_admission,
+            practising_certificate=practising_certificate,
+            relocation=relocation,
+            available_start=available_start,
+            avoid_roles=avoid_roles,
+            avoid_industries=avoid_industries,
+        )
+        if error or confirmed is None:
+            return _redirect("/settings/profile", error=error or "关键事实尚未确认。")
         profile = get_profile(db, crypto, user.id)
-        profile.update({
-            "primary_role_families": _csv_list(primary_roles),
-            "target_locations": _csv_list(target_locations),
-            "work_authorization": work_authorization.strip(),
-            "sponsorship_now": sponsorship_now,
-            "sponsorship_future": sponsorship_future,
-            "work_mode": work_modes,
-            "relocation": relocation,
-            "available_start": available_start.strip(),
-            "avoid_roles": _csv_list(avoid_roles),
-            "avoid_industries": _csv_list(avoid_industries),
-        })
+        profile.update(confirmed)
         row = save_profile(db, crypto, user.id, profile, onboarding_state="complete", discovery_enabled=True)
         row.next_discovery_at = utcnow()
         db.commit()

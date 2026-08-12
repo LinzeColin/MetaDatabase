@@ -1,8 +1,14 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from urllib.parse import urlparse
 
-from .conftest import csrf, latest_link, register_verify
+from fastapi.testclient import TestClient
+from sqlalchemy import select
+
+from app.models import EmailDelivery, EmailToken, User
+from app.security import email_lookup
+from .conftest import confirm_verification, csrf, latest_link, register_verify
 
 
 def test_registration_verification_login_logout(client):
@@ -80,3 +86,155 @@ def test_duplicate_registration_does_not_create_second_account(client):
         "password_confirm": "ValidPass123",
     }, follow_redirects=True)
     assert "已注册" in response.text
+
+
+def test_resend_cooldown_preserves_the_existing_verification_token(settings):
+    from app.main import create_app
+
+    guarded = replace(settings, email_min_interval_seconds=1800, email_max_per_user_per_24h=3)
+    app = create_app(guarded)
+    with TestClient(app) as guarded_client:
+        register = guarded_client.get("/register")
+        response = guarded_client.post("/register", data={
+            "csrf_token": csrf(register.text),
+            "email": "cooldown@example.com",
+            "display_name": "Cooldown User",
+            "password": "ValidPass123",
+            "password_confirm": "ValidPass123",
+        }, follow_redirects=True)
+        assert response.status_code == 200
+        original_link = latest_link(guarded_client, "verify")
+
+        resend = guarded_client.get("/resend-verification")
+        response = guarded_client.post("/resend-verification", data={
+            "csrf_token": csrf(resend.text),
+            "email": "cooldown@example.com",
+        }, follow_redirects=True)
+        assert "系统会在允许发送时处理请求" in response.text
+        outbox = guarded_client.get("/_test/outbox").json()
+        assert [item["kind"] for item in outbox] == ["verify"]
+
+        verified = confirm_verification(guarded_client, original_link)
+        assert "邮箱验证成功" in verified.text
+
+
+def test_daily_delivery_cap_does_not_claim_a_reset_was_sent(settings):
+    from app.main import create_app
+
+    guarded = replace(settings, email_min_interval_seconds=0, email_max_per_user_per_24h=1)
+    app = create_app(guarded)
+    with TestClient(app) as guarded_client:
+        register = guarded_client.get("/register")
+        guarded_client.post("/register", data={
+            "csrf_token": csrf(register.text),
+            "email": "daily-cap@example.com",
+            "display_name": "Daily Cap User",
+            "password": "ValidPass123",
+            "password_confirm": "ValidPass123",
+        }, follow_redirects=True)
+        verify_link = latest_link(guarded_client, "verify")
+        confirm_verification(guarded_client, verify_link)
+
+        forgot = guarded_client.get("/forgot-password")
+        response = guarded_client.post("/forgot-password", data={
+            "csrf_token": csrf(forgot.text),
+            "email": "daily-cap@example.com",
+        }, follow_redirects=True)
+        assert "系统会在允许发送时处理请求" in response.text
+        outbox = guarded_client.get("/_test/outbox").json()
+        assert [item["kind"] for item in outbox] == ["verify"]
+
+
+def test_deleted_account_cannot_bypass_recipient_delivery_limit(settings):
+    from app.main import create_app
+
+    guarded = replace(settings, email_min_interval_seconds=1800, email_max_per_user_per_24h=3)
+    app = create_app(guarded)
+    with TestClient(app) as guarded_client:
+        register = guarded_client.get("/register")
+        guarded_client.post("/register", data={
+            "csrf_token": csrf(register.text),
+            "email": "recreate@example.com",
+            "display_name": "Recreate User",
+            "password": "ValidPass123",
+            "password_confirm": "ValidPass123",
+        }, follow_redirects=True)
+        verify_link = latest_link(guarded_client, "verify")
+        confirm_verification(guarded_client, verify_link)
+
+        delete_page = guarded_client.get("/settings/data")
+        deleted = guarded_client.post("/settings/data/delete", data={
+            "csrf_token": csrf(delete_page.text),
+            "password": "ValidPass123",
+            "confirmation": "删除我的账户",
+        }, follow_redirects=True)
+        assert "账户和个人数据已删除" in deleted.text
+
+        re_register = guarded_client.get("/register")
+        deferred = guarded_client.post("/register", data={
+            "csrf_token": csrf(re_register.text),
+            "email": "recreate@example.com",
+            "display_name": "Recreate User",
+            "password": "ValidPass123",
+            "password_confirm": "ValidPass123",
+        }, follow_redirects=True)
+        assert "验证邮件受发送保护，暂未发出" in deferred.text
+        assert [item["kind"] for item in guarded_client.get("/_test/outbox").json()] == ["verify"]
+
+        lookup = email_lookup("recreate@example.com", guarded.email_lookup_secret)
+        with guarded_client.app.state.session_factory() as db:
+            deliveries = db.scalars(
+                select(EmailDelivery).where(EmailDelivery.recipient_lookup == lookup)
+            ).all()
+            replacement = db.scalar(select(User).where(User.email_lookup == lookup))
+        assert len(deliveries) == 1
+        assert deliveries[0].user_id is None
+        assert replacement is not None and replacement.is_verified is False
+
+
+def test_verification_get_is_scan_safe_until_csrf_confirmation(settings):
+    from app.main import create_app
+
+    app = create_app(settings)
+    with TestClient(app) as guarded_client:
+        register = guarded_client.get("/register")
+        guarded_client.post("/register", data={
+            "csrf_token": csrf(register.text),
+            "email": "scan-safe@example.com",
+            "display_name": "Scan Safe User",
+            "password": "ValidPass123",
+            "password_confirm": "ValidPass123",
+        }, follow_redirects=True)
+        link = latest_link(guarded_client, "verify")
+        parsed = urlparse(link)
+        page = guarded_client.get(parsed.path + "?" + parsed.query)
+        assert page.status_code == 200
+        assert 'data-testid="verify-email-confirm"' in page.text
+
+        with guarded_client.app.state.session_factory() as db:
+            user = db.scalar(select(User).where(User.email_lookup == email_lookup("scan-safe@example.com", settings.email_lookup_secret)))
+            token = db.scalar(select(EmailToken).where(EmailToken.purpose == "verify"))
+            assert user is not None and user.is_verified is False
+            assert token is not None and token.used_at is None
+
+        confirmed = confirm_verification(guarded_client, link)
+        assert "邮箱验证成功" in confirmed.text
+
+
+def test_registration_links_are_hidden_when_mail_is_deferred(settings):
+    from dataclasses import replace
+    from fastapi.testclient import TestClient
+    from app.main import create_app
+
+    deferred = replace(settings, app_env="production", cookie_secure=True, allow_registration=False, smtp_host="")
+    app = create_app(deferred)
+    from app.db import Base
+    Base.metadata.create_all(app.state.engine)
+    with TestClient(app, base_url="https://testserver") as deferred_client:
+        landing = deferred_client.get("/")
+        assert 'data-testid="hero-register"' not in landing.text
+        login = deferred_client.get("/login")
+        assert 'data-testid="login-register-link"' not in login.text
+        assert 'data-testid="forgot-password-link"' not in login.text
+        assert deferred_client.get("/register").status_code == 403
+        assert deferred_client.get("/forgot-password").status_code == 503

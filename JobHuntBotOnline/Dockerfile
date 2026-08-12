@@ -15,6 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 COPY tools ./tools
+COPY deploy ./deploy
 COPY tests/fixtures ./tests/fixtures
 COPY alembic ./alembic
 COPY alembic.ini pyproject.toml ./

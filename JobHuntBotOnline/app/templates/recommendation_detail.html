@@ -3,37 +3,18 @@
 {% block content %}
 <section class="detail-head">
   <a href="/recommendations" class="back-link" data-testid="detail-back">← 返回推荐列表</a>
-  <div class="detail-title"><div><span class="source-label">{{ job.source }}</span><h1>{{ job.title }}</h1><p>{{ job.company }} · {{ job.location or '地点未说明' }}</p></div><a class="button" href="{{ job.url }}" target="_blank" rel="noopener noreferrer" data-testid="official-job-link">打开官方岗位 ↗</a></div>
+  <div class="detail-title"><div><span class="source-label">{{ job.source }} · {{ job_domain|domain_label }}</span><h1>{{ job.title }}</h1><p>{{ job.company }} · {{ job.location or '地点未说明' }} · {{ job.role_family|role_label }}</p></div><a class="button" href="{{ job.url }}" target="_blank" rel="noopener noreferrer" data-testid="official-job-link">打开官方岗位 ↗</a></div>
 </section>
 <section class="detail-grid">
   <div class="detail-main">
-    <article class="panel">
-      <h2>为什么推荐</h2>
-      <ul>{% for reason in reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
-    </article>
-    <article class="panel">
-      <h2>岗位说明</h2>
-      <div class="description">{{ job.description }}</div>
-    </article>
+    <article class="panel"><div class="panel-head"><div><span class="eyebrow">硬资格检查</span><h2>先确认能不能投</h2></div><span class="score {{ rec.qualification }}">{{ {'pass':'通过','pending':'待确认','fail':'不符合'}[rec.qualification] }}</span></div><div class="requirement-grid" data-testid="requirement-checks">{% for item in requirement_checks %}<div class="requirement-row {{ item.status }}"><span>{{ {'pass':'✓','pending':'?','fail':'×'}[item.status] }}</span><div><b>{{ item.label }}</b><p>{{ item.evidence }}</p></div></div>{% else %}<p class="empty">岗位正文没有识别到明确的年限、资质或准入要求；仍需阅读原文。</p>{% endfor %}</div></article>
+    <article class="panel"><h2>为什么推荐</h2><ul>{% for reason in reasons %}<li>{{ reason }}</li>{% else %}<li>岗位信息不足，请打开官方页面核对。</li>{% endfor %}</ul></article>
+    <article class="panel"><h2>岗位说明</h2><div class="description" data-testid="job-description">{{ job_description }}</div></article>
   </div>
   <aside class="detail-aside">
-    <article class="panel">
-      <h2>三层判断</h2>
-      <dl class="summary-list">
-        <div><dt>资格</dt><dd>{{ {'pass':'通过','pending':'待确认','fail':'不符合'}[rec.qualification] }}</dd></div>
-        <div><dt>相关性</dt><dd>{{ {'high':'高','medium':'中','low':'低'}[rec.relevance] }}</dd></div>
-        <div><dt>机会潜力</dt><dd>{{ {'high':'高','medium':'中','low':'低'}[rec.opportunity] }}</dd></div>
-      </dl>
-    </article>
-    <article class="panel">
-      <h2>标签</h2>
-      <div class="tag-row">{% for skill in skills %}<span>{{ skill }}</span>{% endfor %}{% for keyword in keywords[:6] %}<span>{{ keyword }}</span>{% endfor %}</div>
-    </article>
-    <article class="panel action-stack">
-      <form method="post" action="/recommendations/{{ rec.id }}/status"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="status" value="saved"><button class="button full" type="submit" data-testid="save-job">收藏岗位</button></form>
-      <form method="post" action="/recommendations/{{ rec.id }}/pack"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="button full" type="submit" data-testid="create-pack">生成申请包</button></form>
-      <form method="post" action="/recommendations/{{ rec.id }}/status"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="status" value="ignored"><button class="button ghost full" type="submit" data-testid="ignore-job">暂不考虑</button></form>
-    </article>
+    <article class="panel"><h2>三层判断</h2><dl class="summary-list"><div><dt>资格</dt><dd>{{ {'pass':'通过','pending':'待确认','fail':'不符合'}[rec.qualification] }}</dd></div><div><dt>相关性</dt><dd>{{ {'high':'高','medium':'中','low':'低'}[rec.relevance] }}</dd></div><div><dt>机会潜力</dt><dd>{{ {'high':'高','medium':'中','low':'低'}[rec.opportunity] }}</dd></div><div><dt>岗位级别</dt><dd>{{ {'intern':'实习','graduate':'毕业生','junior':'初级','associate':'助理／中初级','mid':'中级','senior':'高级','manager':'经理','director':'总监','executive':'高管','partner':'合伙人','unknown':'未说明'}.get(requirements.seniority,'未说明') }}</dd></div>{% if requirements.required_years is not none %}<div><dt>明确年限</dt><dd>至少 {{ requirements.required_years }} 年</dd></div>{% endif %}</dl></article>
+    <article class="panel"><h2>技能与关键词</h2><div class="tag-row">{% for skill in skills %}<span>{{ skill }}</span>{% endfor %}{% for keyword in keywords[:6] %}<span>{{ keyword }}</span>{% endfor %}</div></article>
+    <article class="panel action-stack"><form method="post" action="/recommendations/{{ rec.id }}/status"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="status" value="saved"><button class="button full" type="submit" data-testid="save-job">收藏岗位</button></form><form method="post" action="/recommendations/{{ rec.id }}/pack"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="button full" type="submit" data-testid="create-pack">选择简历并生成申请包</button></form><a class="button ghost full" href="/recommendations/{{ rec.id }}/ai" data-testid="ask-ai">询问人工智能</a><form method="post" action="/recommendations/{{ rec.id }}/status"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="status" value="ignored"><button class="button ghost full" type="submit" data-testid="ignore-job">暂不考虑</button></form></article>
   </aside>
 </section>
 {% endblock %}

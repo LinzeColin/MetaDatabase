@@ -5,7 +5,7 @@ import time
 
 from .config import get_settings
 from .db import Base, make_engine, make_session_factory
-from .discovery import claim_run, process_run
+from .discovery import claim_run, fail_run, process_run, recover_stale_runs
 from .models import *  # noqa: F401,F403
 from .security import CryptoBox
 
@@ -21,11 +21,21 @@ def main() -> None:
     crypto = CryptoBox(settings.data_encryption_key)
     while True:
         with factory() as db:
+            recovered = recover_stale_runs(
+                db,
+                max(300, settings.discovery_source_timeout_seconds * 12),
+            )
+            if recovered:
+                logging.warning("recovered %s stale discovery run(s)", recovered)
             run = claim_run(db)
             if run:
                 logging.info("processing discovery run %s for user %s", run.id, run.user_id)
-                process_run(db, run, settings, crypto)
-                logging.info("completed discovery run %s with status %s", run.id, run.status)
+                try:
+                    process_run(db, run, settings, crypto)
+                    logging.info("completed discovery run %s with status %s", run.id, run.status)
+                except Exception as exc:
+                    logging.exception("discovery run %s failed unexpectedly", run.id)
+                    fail_run(db, run.id, str(exc))
             else:
                 time.sleep(3)
 
