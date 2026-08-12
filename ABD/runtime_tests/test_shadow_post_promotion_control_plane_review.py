@@ -14,9 +14,12 @@ if str(RUNTIME) not in sys.path:
     sys.path.insert(0, str(RUNTIME))
 
 from shadow_post_promotion_control_plane_review import (
+    DIAGNOSTIC_FAIL_STATUS,
+    DIAGNOSTIC_PASS_STATUS,
     FAIL_STATUS,
     PASS_STATUS,
     ShadowPostPromotionReviewError,
+    build_diagnostic_receipt,
     build_receipt,
     collect_review_facts,
     evaluate_review_facts,
@@ -53,7 +56,7 @@ def _facts(**overrides: object) -> dict[str, bool]:
     return values
 
 
-def _read_text(contract: dict[str, object]):
+def _read_text(contract: dict[str, object], *, connector_unreadable: bool = False):
     expected = contract["expected"]
     assert isinstance(expected, dict)
     candidate_manifest = json.dumps(
@@ -72,6 +75,8 @@ def _read_text(contract: dict[str, object]):
     )
 
     def read_text(path: Path) -> str:
+        if connector_unreadable and str(path) == str(expected["connector_config_path"]):
+            raise ShadowPostPromotionReviewError("review input must be a regular file")
         values = {
             str(expected["identity_contract_path"]): installed_identity_contract,
             "/opt/abd/releases/blue/release_manifest.json": candidate_manifest,
@@ -173,6 +178,32 @@ def test_command_failure_cannot_be_misread_as_an_absent_core_or_retained_image()
     assert evaluate_review_facts(contract, facts)["status"] == FAIL_STATUS
 
 
+def test_unreadable_connector_is_a_specific_failed_control_not_a_generic_execution_error() -> None:
+    contract = _contract()
+    facts = collect_review_facts(
+        contract,
+        OBSERVED_ON,
+        run=_runner(contract),
+        read_text=_read_text(contract, connector_unreadable=True),
+        read_first_line=_read_first_line(contract),
+    )
+    diagnostic = build_diagnostic_receipt(
+        contract,
+        facts,
+        OBSERVED_ON,
+        connector_config_regular_file=False,
+    )
+
+    assert facts["connector_has_no_hostname"] is False
+    assert diagnostic["status"] == DIAGNOSTIC_FAIL_STATUS
+    assert diagnostic["diagnostic_complete"] is True
+    assert diagnostic["control_plane_valid"] is False
+    assert "CONNECTOR_CONFIG_REGULAR_FILE" in diagnostic["failure_codes"]
+    assert "CONNECTOR_HAS_NO_HOSTNAME" in diagnostic["failure_codes"]
+    assert diagnostic["observed"]["connector_hostname_configured"] is None
+    assert "error_type" not in diagnostic
+
+
 @pytest.mark.parametrize(
     ("overrides", "failure_code"),
     [
@@ -204,6 +235,28 @@ def test_success_receipt_is_bounded_and_redacted() -> None:
     assert str(expected["image_reference"]) not in serialized
     assert receipt["source_boundary"]["runtime_secret_content_read"] is False
     assert receipt["source_boundary"]["runtime_state_changed"] is False
+
+
+def test_diagnostic_receipt_has_only_redacted_stage_booleans() -> None:
+    contract = _contract()
+    receipt = build_diagnostic_receipt(
+        contract,
+        _facts(),
+        OBSERVED_ON,
+        connector_config_regular_file=True,
+    )
+    serialized = json.dumps(receipt, sort_keys=True)
+    expected = contract["expected"]
+    assert isinstance(expected, dict)
+
+    assert receipt["status"] == DIAGNOSTIC_PASS_STATUS
+    assert receipt["diagnostic_complete"] is True
+    assert receipt["control_plane_valid"] is True
+    assert receipt["failure_codes"] == []
+    assert len(receipt["stages"]) == 14
+    assert all(set(stage) == {"id", "passed"} for stage in receipt["stages"])
+    assert str(expected["image_id"]) not in serialized
+    assert str(expected["image_reference"]) not in serialized
 
 
 def test_source_has_no_mutating_or_external_network_capability() -> None:

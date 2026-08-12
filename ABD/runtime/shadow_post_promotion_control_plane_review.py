@@ -15,6 +15,9 @@ from typing import Any, Callable, Mapping, Sequence
 PASS_STATUS = "PASS_POST_PROMOTION_CONTROL_PLANE_OBSERVATION"
 FAIL_STATUS = "FAIL_POST_PROMOTION_CONTROL_PLANE_OBSERVATION"
 RECEIPT_TYPE = "ABD_POST_PROMOTION_CONTROL_PLANE_OBSERVATION"
+DIAGNOSTIC_PASS_STATUS = "PASS_POST_PROMOTION_CONTROL_PLANE_DIAGNOSTIC"
+DIAGNOSTIC_FAIL_STATUS = "FAIL_POST_PROMOTION_CONTROL_PLANE_DIAGNOSTIC"
+DIAGNOSTIC_RECEIPT_TYPE = "ABD_POST_PROMOTION_CONTROL_PLANE_DIAGNOSTIC"
 
 
 class ShadowPostPromotionReviewError(ValueError):
@@ -42,6 +45,13 @@ def _read_first_line(path: Path) -> str:
         raise ShadowPostPromotionReviewError("review input must be a regular file")
     with path.open("r", encoding="utf-8") as handle:
         return handle.readline().rstrip("\r\n")
+
+
+def _is_regular_file(path: Path) -> bool:
+    try:
+        return path.is_file() and not path.is_symlink()
+    except OSError:
+        return False
 
 
 def _run(arguments: Sequence[str]) -> tuple[int, str]:
@@ -284,7 +294,7 @@ def collect_review_facts(
     try:
         connector_config = read_text(Path(str(expected["connector_config_path"])))
         facts["connector_has_no_hostname"] = not any(line.lstrip().startswith("hostname:") for line in connector_config.splitlines())
-    except (OSError, UnicodeDecodeError):
+    except (OSError, UnicodeDecodeError, ShadowPostPromotionReviewError):
         pass
     return facts
 
@@ -349,12 +359,87 @@ def build_receipt(contract: Mapping[str, Any], facts: Mapping[str, Any], observe
     }
 
 
+def build_diagnostic_receipt(
+    contract: Mapping[str, Any],
+    facts: Mapping[str, Any],
+    observed_on: str,
+    *,
+    connector_config_regular_file: bool,
+) -> dict[str, Any]:
+    """Return redacted per-stage control-plane diagnostics without remediation."""
+
+    validate_contract(contract)
+    if not isinstance(connector_config_regular_file, bool):
+        raise ShadowPostPromotionReviewError("connector regular-file observation must be a boolean")
+    try:
+        observed_date = date.fromisoformat(observed_on).isoformat()
+    except ValueError as exc:
+        raise ShadowPostPromotionReviewError("observed date is invalid") from exc
+    result = evaluate_review_facts(contract, facts)
+    connector_has_no_hostname = connector_config_regular_file and bool(facts["connector_has_no_hostname"])
+    stages = [
+        {"id": "IDENTITY_ATTESTER_PASS", "passed": facts["installed_identity_attester_pass"]},
+        {"id": "IDENTITY_CONTRACT_MATCHES_CANDIDATE", "passed": facts["installed_identity_contract_matches_candidate"]},
+        {"id": "EXACTLY_ONE_SHADOW", "passed": facts["exactly_one_shadow"]},
+        {"id": "CORE_RUNTIME_ABSENT", "passed": facts["core_container_absent"]},
+        {"id": "RUNNING_SHADOW_CANDIDATE_IMAGE", "passed": facts["running_shadow_candidate_image"]},
+        {"id": "BLUE_COMPOSE_PROJECT_EXACT", "passed": facts["blue_compose_project_exact"]},
+        {"id": "CANDIDATE_TAG_AND_REFERENCE_EXACT", "passed": facts["candidate_tag_and_reference_exact"]},
+        {"id": "PRIOR_IMAGE_RETAINED_UNTAGGED", "passed": facts["prior_image_retained_untagged"]},
+        {"id": "CURRENT_RELEASE_BLUE", "passed": facts["current_release_blue"]},
+        {"id": "BLUE_GREEN_SLOT_CONTROLS_MATCH_CANDIDATE", "passed": facts["blue_green_slot_controls_match_candidate"]},
+        {"id": "CORE_SERVICE_INACTIVE", "passed": facts["core_service_inactive"]},
+        {"id": "CORE_CONNECTOR_INACTIVE", "passed": facts["core_connector_inactive"]},
+        {"id": "CONNECTOR_CONFIG_REGULAR_FILE", "passed": connector_config_regular_file},
+        {"id": "CONNECTOR_HAS_NO_HOSTNAME", "passed": connector_has_no_hostname},
+    ]
+    failure_codes = [str(stage["id"]) for stage in stages if not stage["passed"]]
+    valid = not failure_codes
+    return {
+        "schema_version": "1.0.0",
+        "receipt_type": DIAGNOSTIC_RECEIPT_TYPE,
+        "status": DIAGNOSTIC_PASS_STATUS if valid else DIAGNOSTIC_FAIL_STATUS,
+        "decision": "CURRENT_BLUE_SHADOW_CONTROL_PLANE_DIAGNOSTIC_PASS" if valid else "CURRENT_BLUE_SHADOW_CONTROL_PLANE_DIAGNOSTIC_IDENTIFIED_GAPS",
+        "observed_on": observed_date,
+        "diagnostic_complete": True,
+        "control_plane_valid": valid,
+        "stages": stages,
+        "failure_codes": failure_codes,
+        "observed": {
+            "shadow_container_count": 1 if facts["exactly_one_shadow"] else 0,
+            "core_container_count": 0 if facts["core_container_absent"] else 1,
+            "active_slot": "blue" if facts["current_release_blue"] else "NOT_BLUE",
+            "candidate_running": facts["running_shadow_candidate_image"],
+            "connector_config_regular_file": connector_config_regular_file,
+            "connector_hostname_configured": None if not connector_config_regular_file else not connector_has_no_hostname,
+        },
+        "source_boundary": dict(_object(contract["source_boundary"], "source_boundary")),
+        "claim_boundary": contract["claim_boundary"],
+        "review_status_before_diagnostic": result["status"],
+    }
+
+
 def observe_host(contract_path: Path, observed_on: str) -> dict[str, Any]:
     if os.geteuid() != 0:
         raise ShadowPostPromotionReviewError("host observation must run as root")
     contract = load_contract(contract_path)
     facts = collect_review_facts(contract, observed_on)
     return build_receipt(contract, facts, observed_on)
+
+
+def diagnose_host(contract_path: Path, observed_on: str) -> dict[str, Any]:
+    if os.geteuid() != 0:
+        raise ShadowPostPromotionReviewError("host diagnostic must run as root")
+    contract = load_contract(contract_path)
+    expected = _object(contract["expected"], "review expected")
+    facts = collect_review_facts(contract, observed_on)
+    connector_config_regular_file = _is_regular_file(Path(str(expected["connector_config_path"])))
+    return build_diagnostic_receipt(
+        contract,
+        facts,
+        observed_on,
+        connector_config_regular_file=connector_config_regular_file,
+    )
 
 
 def _failure_receipt(error: Exception, observed_on: str) -> dict[str, Any]:
@@ -379,17 +464,42 @@ def _failure_receipt(error: Exception, observed_on: str) -> dict[str, Any]:
     }
 
 
+def _diagnostic_failure_receipt(error: Exception, observed_on: str) -> dict[str, Any]:
+    try:
+        observed_date = date.fromisoformat(observed_on).isoformat()
+    except ValueError:
+        observed_date = "INVALID"
+    return {
+        "schema_version": "1.0.0",
+        "receipt_type": DIAGNOSTIC_RECEIPT_TYPE,
+        "status": DIAGNOSTIC_FAIL_STATUS,
+        "decision": "CURRENT_BLUE_SHADOW_CONTROL_PLANE_DIAGNOSTIC_FAILED_CLOSED",
+        "observed_on": observed_date,
+        "diagnostic_complete": False,
+        "control_plane_valid": False,
+        "stages": [],
+        "failure_codes": ["POST_PROMOTION_CONTROL_PLANE_DIAGNOSTIC_FAILED"],
+        "error_type": type(error).__name__,
+        "runtime_secret_content_read": False,
+        "external_network_accessed": False,
+        "runtime_state_changed": False,
+        "real_time_soak_waited": False,
+    }
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--contract", type=Path, required=True)
     parser.add_argument("--observed-on", required=True)
+    parser.add_argument("--diagnose", action="store_true")
     args = parser.parse_args(argv)
     try:
-        receipt = observe_host(args.contract, args.observed_on)
+        receipt = diagnose_host(args.contract, args.observed_on) if args.diagnose else observe_host(args.contract, args.observed_on)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, ShadowPostPromotionReviewError, ValueError) as exc:
-        receipt = _failure_receipt(exc, args.observed_on)
+        receipt = _diagnostic_failure_receipt(exc, args.observed_on) if args.diagnose else _failure_receipt(exc, args.observed_on)
     print(json.dumps(receipt, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
-    return 0 if receipt["status"] == PASS_STATUS else 1
+    expected_status = DIAGNOSTIC_PASS_STATUS if args.diagnose else PASS_STATUS
+    return 0 if receipt["status"] == expected_status else 1
 
 
 if __name__ == "__main__":
