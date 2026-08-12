@@ -102,6 +102,7 @@ python scripts/<演练名>.py
 | `extension_bridge_boundary_drill.py` | 改到那条路时 | 档案馆页面能给令牌，但不能改它往哪儿发 |
 | `extension_install_page_drill.py` | 改到那条路时 | 装着旧插件的人能不能靠那一页更新掉 |
 | `pwa_render_drill.py` | 改到那条路时 | 页面上那两段话真的显示出来了吗；**「连接新账号」那个弹窗里，做不到的平台不许有按钮**（快手/X 只显示原因） |
+| `net_observer_sees_a_real_page_drill.py` | 改到拦截那条路时（打一次 B 站公开页，零费用） | 拦截器在**真页面**上包不包得住：注进 document_start → 页面自己发请求 → 扣在 pending 里 → 配置下来后补判抛出。实测扣住 16 条、抛出 15 条、收藏夹那一族抓到 4 条。**顺带查出 `INTERCEPT_PREFIXES` 里配的 `resource/list` 不是网页真正请求的地址**（网页用 resource/ids + resource/infos）。不验权限那一下——那要 Owner 本人 |
 | `check_a_relation_never_loses_the_author.py` | **每次发布**（deploy 第 8.85 步，**播报不是门**） | 按「平台 × 关系」分组算作者填充率，某一组条数够多而填充率为 0 就说出来。按**产品显示时**的口径算（点赞数不算作者）。整体看抖音 54/86 缺失像是**一半取不到**，拆开才看见 **favorite 16/16、like 69/69 都是零**——抖音那条自动取数路从没取到过一个真作者，而 B 站同一套机制是 93–99% |
 | `check_every_guide_step_has_a_drill.py` | **发布门每次跑**（`final_verify.py`） | 使用说明里每一节小标题，都登记了一个真的在跑的演练。隔壁那道 `check_the_guide_matches_the_product.py` 只回答**那颗按钮存不存在**，不回答**这一步有没有人走过** |
 | `forget_button_render_drill.py` | **每次发布**（deploy 第 8.65 步） | **从公开域名取回来的那份前端**，在真 Chrome 里画不画得出这次发的界面（0.0.0.29 实测：/health 报新版，而 CDN 给的 app.js 还是旧的、少了「删除并清空」） |

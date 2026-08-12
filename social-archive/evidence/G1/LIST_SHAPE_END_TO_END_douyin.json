@@ -56,8 +56,8 @@
     "https://www.douyin.com/api/log",
     "https://www.douyin.com/api/config",
     "https://www.douyin.com/api/user",
-    "https://www.douyin.com/aweme/v1/web/aweme/listcollection/",
-    "https://www.douyin.com/aweme/v1/web/tab/feed/"
+    "https://www.douyin.com/aweme/v1/web/tab/feed/",
+    "https://www.douyin.com/aweme/v1/web/aweme/listcollection/"
   ],
   "recognised": "https://www.douyin.com/aweme/v1/web/aweme/listcollection/",
   "matched_path": "aweme_list",
