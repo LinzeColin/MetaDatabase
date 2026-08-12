@@ -101,7 +101,8 @@ python scripts/<演练名>.py
 | `extension_platform_wiring_drill.py` | 改到那条路时 | 加一个平台时，四张表都接上了吗 |
 | `extension_bridge_boundary_drill.py` | 改到那条路时 | 档案馆页面能给令牌，但不能改它往哪儿发 |
 | `extension_install_page_drill.py` | 改到那条路时 | 装着旧插件的人能不能靠那一页更新掉 |
-| `pwa_render_drill.py` | 改到那条路时 | 页面上那两段话真的显示出来了吗 |
+| `pwa_render_drill.py` | 改到那条路时 | 页面上那两段话真的显示出来了吗；**「连接新账号」那个弹窗里，做不到的平台不许有按钮**（快手/X 只显示原因） |
+| `check_every_guide_step_has_a_drill.py` | **发布门每次跑**（`final_verify.py`） | 使用说明里每一节小标题，都登记了一个真的在跑的演练。隔壁那道 `check_the_guide_matches_the_product.py` 只回答**那颗按钮存不存在**，不回答**这一步有没有人走过** |
 | `forget_button_render_drill.py` | **每次发布**（deploy 第 8.65 步） | **从公开域名取回来的那份前端**，在真 Chrome 里画不画得出这次发的界面（0.0.0.29 实测：/health 报新版，而 CDN 给的 app.js 还是旧的、少了「删除并清空」） |
 | `from_zero_drill.py` | **每次发布**（deploy 第 8.68 步） | **在刚部署的那个镜像上**从空库走到能用：连账号 → 同步 → 看得见（标题/作者都对）→ 删除并清空 → 又空了 → 重连 → 再同步。跑在一次性容器的 tmpfs 上，**碰不到他的库** |
 | `real_platform_into_archive_drill.py` | **每次发布**（deploy 第 8.55 步） | **一个真平台的收藏，真的进到档案馆里**：B 站公开收藏夹（不带登录态）→ 插件自己的 `readFolder` → `POST /v1/captures/batch` → 从库里**按标题**读回来。跑在一次性容器的 tmpfs 上；**跑前跑后各数一次他的库，条数变了就红**（不是写着「碰不到」，是量过）；只证明 bilibili 一个平台 |

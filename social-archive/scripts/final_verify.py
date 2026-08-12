@@ -170,6 +170,11 @@ def structural_commands() -> list[list[str]]:
         # 一份没人核对的使用说明是同一类东西：写的时候对，改一次代码就开始骗人，
         # 而**读它的人是 Owner，他没有别的办法发现自己被骗了**。
         [python, "scripts/check_the_guide_matches_the_product.py"],
+        # 上面那道只回答「这颗按钮存在吗」，**不回答「这一步有人走过吗」**。
+        # 按钮个个都在而那一串连起来走不通，是这个仓栽过的另一种跟头
+        # （「单步命令都验过≠链条走得通」）。这道门要求说明里每一节小标题
+        # 都登记了一个真的在跑的演练；说明里新加一节而没人认领 → 红。
+        [python, "scripts/check_every_guide_step_has_a_drill.py"],
         # 使用说明改了却忘了重生成产品里那一页 → 他看到的是上一版。
         [python, "scripts/build_guide_page.py", "--check"],
         # 第十种：**界面上写死的「哪些平台能干什么」**（v0.0.0.15）。
