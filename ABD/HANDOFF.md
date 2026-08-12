@@ -6,6 +6,7 @@
 
 ## 当前状态
 
+- 后冻结 current-production core capacity admission（单一独立增量）已完成：新增 `runtime/current_production_core_capacity_admission.py` 与精确合同，按既有冻结 guard 以内存流在当前 host 读取 vCPU、物理内存、物理根盘及 host-wide swap；四项门均通过，capacity admission 为 PASS。该结果仅证明当前 host 满足 core capacity 的资源前置，`core_start_authorized=false`，仍要求独立的 nonsecret release/unit/secret-presence preflight 与执行合同。没有写入远端脚本、配置、镜像、unit 或 connector，没有启动服务、Cloudflare、市场/账户/TAB/Gmail、建议或订单；脱敏回执已写入私有数据面。本地仅执行 `py_compile` 与 `9 passed` 定向测试，未运行全量测试、完整回归或真实时间 soak，新增现金 A$0。它不构成 core deployment、host recovery、公开 endpoint、7×24 或收益证明。
 - 后冻结 current-candidate recovery OCI content attestation（单一独立增量）已完成：新增 `runtime/current_candidate_recovery_oci_attestation.py` 与精确合同，复用既有 OCI layout/runtime 语义校验后，再对当前 candidate 的 archive 内容、字节数、manifest、config、`linux/amd64` 与非空 layer set 做固定 identity 比对。临时读取的私有 archive 全部通过，且 archive 未 load/tag、没有 Docker/host/unit/connector/Cloudflare/市场/账户/TAB/Gmail/建议/订单动作；临时 archive 与回执均在入库后删除。它只证明可恢复 current candidate 的私有 OCI archive 内容与既有 candidate identity 一致，明确不能替代未证明的 old rollback asset，也不构成 host recovery、core production、公开 endpoint、7×24 或收益证明。脱敏回执已写入私有数据面，`execution_authorized=false`；本地仅执行 `py_compile` 与 `9 passed` 定向测试，未运行全量测试、完整回归或真实时间 soak，新增现金 A$0。
 - 后冻结 current-production rollback OCI catalog locator（单一独立增量）已完成：新增 `runtime/current_production_rollback_oci_locator.py` 与精确合同，只允许读取私有 catalog manifest 和已列 ABD 脱敏 JSON 回执，不下载任何 OCI archive。一次有界目录读取成功，所有 39 个已列 ABD JSON 回执均成功作内存中的旧 image 精确身份查找，结果为 `0`；GitHub code search 同为 `0` 但索引不完整，故结论严格为旧 rollback OCI archive 尚未被当前私有元数据证明，绝不称其不存在。当前 candidate 的 OCI archive catalog record 仍可定位，但尚未读取其 object content，因而也不构成可恢复性或自动回退证明。脱敏 locator receipt 已写入私有数据面，`execution_authorized=false`；本地仅执行 `py_compile` 与 `8 passed` 定向测试，未运行全量测试、完整回归或真实时间 soak，新增现金 A$0。它不下载/加载/标记 image，不改主机、core、connector、Cloudflare、市场/账户/TAB/Gmail、建议或订单，不构成 host recovery、core production、公开 endpoint、7×24 或收益证明。
 - 后冻结 current-production control-plane remediation contract（单一独立增量）已完成：新增 `runtime/current_production_control_plane_remediation.py` 与精确合同，把前一阶段五项控制面缺口固化为只读、不可激活的后续前提。本次仅作一次脱敏主机元数据读取：旧回退 image 当前不在主机，私有目录查询不可读故其可恢复来源严格为 `UNKNOWN`；`abd.service` 与 `abd-cloudflared.service` 均为 `not-found` 且 `inactive`；connector config 当前缺失，hostname 状态为 `UNKNOWN`。合同要求未来任何 image load 先具备可恢复 OCI archive 的独立证明，任何 core activation 先具备独立容量与执行合同，任何 connector 动作先具备独立非秘密配置与秘密绑定合同；本合同永不授权 image/unit/config/Cloudflare 写入、服务启动、真实市场/账户/TAB/Gmail、建议或订单。脱敏合同回执已写入私有数据面，`execution_authorized=false`；本地仅执行 `py_compile` 与 `8 passed` 定向测试，未运行全量测试、完整回归或真实时间 soak，新增现金 A$0。它不构成主机修复、core production、公开 endpoint、Cloudflare 全球访问、7×24、真实市场/账户/TAB/Gmail、建议/订单或收益证明。
@@ -185,12 +186,15 @@
 - `runtime/current_production_rollback_oci_locator_contract.json`
 - `runtime/current_candidate_recovery_oci_attestation.py`
 - `runtime/current_candidate_recovery_oci_attestation_contract.json`
+- `runtime/current_production_core_capacity_admission.py`
+- `runtime/current_production_core_capacity_admission_contract.json`
 - `runtime_tests/test_runtime_server.py`
 - `runtime_tests/test_shadow_runtime_image_identity_attestation.py`
 - `runtime_tests/test_shadow_post_promotion_control_plane_review.py`
 - `runtime_tests/test_current_production_control_plane_remediation.py`
 - `runtime_tests/test_current_production_rollback_oci_locator.py`
 - `runtime_tests/test_current_candidate_recovery_oci_attestation.py`
+- `runtime_tests/test_current_production_core_capacity_admission.py`
 - `abd_acceptance/walking_skeleton.py`
 - `abd_acceptance/walking_skeleton_acceptance.py`
 - `machine/tests/fixtures/S19_P01.json`
@@ -524,7 +528,7 @@
 
 ## 未解决风险
 
-- 当前生产主机的完整 post-promotion control plane 尚未通过：五项原始缺口已被单独 remediation contract 固化，但未被该合同消除。current candidate 的私有 OCI archive 内容现已独立证明与既有 candidate identity 一致，可作为 future current-candidate recovery 的输入；但旧回退 image 不在主机，私有 manifest 和所有已列 ABD JSON 回执都未证明其 archive，GitHub code index 又不完整，因此 old rollback asset 仍只能标为 `NOT_PROVED`，绝不称其不存在或可自动回退。两个 core unit 仍 `not-found/inactive`、connector config 缺失且 hostname `UNKNOWN`；不得把“缺失”推断为无 hostname、已启用 connector、已启动 core 或可自动回退。后续不得放宽既有合同、自动覆盖文件、隐式加载镜像或启动任何服务；image/core/connector 分别必须先满足合同列明的独立前置。
+- 当前生产主机的完整 post-promotion control plane 尚未通过：五项原始缺口已被单独 remediation contract 固化，但未被该合同消除。current candidate 的私有 OCI archive 内容现已独立证明与既有 candidate identity 一致，可作为 future current-candidate recovery 的输入；current host 的核心容量/host-wide swap 前置也已通过，但不等同于 core start。旧回退 image 不在主机，私有 manifest 和所有已列 ABD JSON 回执都未证明其 archive，GitHub code index 又不完整，因此 old rollback asset 仍只能标为 `NOT_PROVED`，绝不称其不存在或可自动回退。两个 core unit 仍 `not-found/inactive`、connector config 缺失且 hostname `UNKNOWN`；不得把“缺失”推断为无 hostname、已启用 connector、已启动 core 或可自动回退。后续不得放宽既有合同、自动覆盖文件、隐式加载镜像或启动任何服务；image/core/connector 分别必须先满足合同列明的独立前置。
 - 旧主机路径的 2026-08-12 单次有界 SSH 传输曾端口超时，且其运行态不能外推到当前生产主机；当前生产主机已经完成一次阶段化诊断但仍未取得完整 control-plane PASS。不得把旧主机超时、本地合同、定向测试、旧晋级回执或当前诊断中通过的子项外推为生产 control-plane 通过。
 - 当前 blue shadow 已由私有归档的固定 source→OCI candidate 晋级，且 source archive、OCI archive、candidate Docker manifest identity、blue/green manifest/env 与独立 attester 均已形成一次性证据链；但它仍仅是单机 loopback `SHADOW_READ_ONLY`，没有 core service、公开 hostname、Cloudflare Access/DNS、真实市场/账户/TAB/Gmail、建议、订单、7×24 或收益验证。旧 image 仅作为 untagged 手动回退资产保留，不应被误称为自动持续部署或生产回退保证。
 - S11/P01--P04、整体复审和 GitHub 阶段上传均已完成；其修复后的远端检查曾在较早提交上显示成功，但不能替代或外推至更新后的 S12 提交。
@@ -557,6 +561,6 @@
 
 ## 下一步
 
-下一次 run 必须只执行一个明确 phase：对当前 production host 执行 core capacity admission 的只读、脱敏核验，严格使用冻结 vCPU、物理内存、物理盘与 host-wide swap 门，并将“通过/失败”记录为独立回执；不得在该 phase 内加载/标记 image、改写主机文件、创建/启动 unit、启用 connector、Cloudflare/DNS/Access、真实市场、账户、TAB/Gmail、建议或订单。后续任一运行时变更都须再次具备独立、可回滚的合同与私有回执。
+下一次 run 必须只执行一个明确 phase：对当前 production host 的 core nonsecret release、unit 及 runtime-secret-presence 前置做只读、脱敏核验，先判定是否具备独立执行合同的精确输入；不得在该 phase 内加载/标记 image、改写主机文件、创建/启动 unit、启用 connector、Cloudflare/DNS/Access、真实市场、账户、TAB/Gmail、建议或订单。后续任一运行时变更都须再次具备独立、可回滚的合同与私有回执。
 
 保持 PR #174 的远端 CI 状态与本地结果彼此独立；不得把 pending、远端检查、Draft PR、本地验收、当前 loopback shadow、一次性 attestation、无 hostname connector、两项历史来源、静态残差描述、主机可达性或 OCI 制品外推为 CI、合并、公开 endpoint、core deployment、Cloudflare 全球访问、真实市场、账户或生产上线完成。静态残差回执明确不是模型增量或参数更新依据；未来若做新的静态证据 phase，必须继续保持单独、不可激活且不改变 `model_beta_gate` 的边界。当前 Cloudflare MFA 重验为 `Inactive`，所以受保护 shadow hostname/DNS phase 只能在唯一账户持有人在仓库外完成 MFA 且其状态可独立复验后再选作一个新的明确 phase；不得输入/复用账号密码、OTP 或创建 Access/DNS 绕过。core service 仍须以冻结的 2560m resource limit、现时 host memory 和原有严格 swap/capacity 合同另行裁决，不能把当前 connector、容器 no-additional-swap、两项静态历史数据、静态残差描述或用户对 host-wide swap 的纠正误用为 core 通过。保持零新增现金与既有证据、数值、风险、安全和来源门不降级。
