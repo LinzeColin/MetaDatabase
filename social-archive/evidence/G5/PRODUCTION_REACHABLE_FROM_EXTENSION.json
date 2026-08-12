@@ -4,12 +4,12 @@
   "token_supplied": true,
   "package_he_would_download": {
     "url": "https://social-archive-api.linzezhang.com/downloads/social-archive-extension.zip",
-    "sha256": "7d1632bdf0c73127",
+    "sha256": "4b7beb18a6bfd6d6",
     "same_as_repo_build": true
   },
   "measured_in_real_chrome": {
     "endpoint_the_extension_itself_uses": "https://social-archive-api.linzezhang.com",
-    "api_ms": 547,
+    "api_ms": 556,
     "api_call": "resolved",
     "api_keys": [
       "items",
@@ -49,12 +49,6 @@
           "own_text": "抖音 未连接 连接账号"
         },
         {
-          "name": "快手",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "快手 未连接 连接账号"
-        },
-        {
           "name": "B站",
           "state": "未连接",
           "button": "连接账号",
@@ -79,6 +73,12 @@
           "own_text": "Chrome 书签 未连接 连接账号"
         },
         {
+          "name": "快手",
+          "state": "",
+          "button": null,
+          "own_text": "快手 本版本不自动读取快手的收藏。取数需要的那几个字段名只能从你登录后的真实响应里确认，靠公开页推断出来的是假的，所以这条路先不开。现在可以：在浏览器里打开任意一条快手内容，点插件的「保存当前页面」，这一条就会进档案馆。"
+        },
+        {
           "name": "X",
           "state": "未连接",
           "button": "连接账号",
@@ -94,11 +94,10 @@
       "says_it_cannot_read_sources": false,
       "says_nothing_syncs": false,
       "manual_only_mentioned": false,
-      "body_head": "连接账号 点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。 小红书 未连接 连接账号 抖音 未连接 连接账号 快手 未连接 连接账号 B站 未连接 连接账号 Reddit 未连接 连接账号 Instagram 未连接 连接账号 Chrome 书签 未连接 连接账号 X 本版本还不能自动读取 X 的书签。原因是官方 X 接口可能收费，而这个项目的硬规矩是绝不产生新的必付费用，所",
+      "body_head": "连接账号 点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。 小红书 未连接 连接账号 抖音 未连接 连接账号 B站 未连接 连接账号 Reddit 未连接 连接账号 Instagram 未连接 连接账号 Chrome 书签 未连接 连接账号 快手 本版本不自动读取快手的收藏。取数需要的那几个字段名只能从你登录后的真实响应里确认，靠公开页推断出来的是假的，所以这条路先不开。现在",
       "connect_supported_platforms": [
         "xiaohongshu",
         "douyin",
-        "kuaishou",
         "bilibili",
         "x",
         "reddit",
@@ -117,13 +116,6 @@
           },
           {
             "name": "抖音",
-            "before": "连接账号",
-            "after": "正在连接…",
-            "disabled": true,
-            "note": ""
-          },
-          {
-            "name": "快手",
             "before": "连接账号",
             "after": "正在连接…",
             "disabled": true,
