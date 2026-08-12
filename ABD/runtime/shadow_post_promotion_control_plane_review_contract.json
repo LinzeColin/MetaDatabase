@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-SHADOW-POST-PROMOTION-REVIEW-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_HOST_LOOPBACK_POST_PROMOTION_REVIEW_ONLY",
+  "expected": {
+    "identity_attester_path": "/usr/local/lib/abd/shadow_runtime_image_identity_attestation.py",
+    "identity_contract_path": "/usr/local/lib/abd/shadow_runtime_image_identity_attestation_contract.json",
+    "image_id": "sha256:a79c1109c85beb9bc495372daf6f7e8f620e6006244ac7d2b32b8481355257b2",
+    "image_reference": "local/abd-runtime@sha256:a79c1109c85beb9bc495372daf6f7e8f620e6006244ac7d2b32b8481355257b2",
+    "image_tag": "local/abd-runtime:0.0.0.1",
+    "prior_image_id": "sha256:6d51e3e01c2fb7a02460ac9c9eeaf20b8f41f144c4dc795eaae5335b15737ec8",
+    "shadow_label": "com.linze.abd.runtime-role=candidate-shadow",
+    "core_label": "com.linze.abd.phase=S04-P01",
+    "blue_project": "abd-shadow-blue",
+    "current_release_path": "/opt/abd/current",
+    "blue_release_path": "/opt/abd/releases/blue",
+    "slot_root": "/etc/abd/slots",
+    "slots": [
+      "blue",
+      "green"
+    ],
+    "core_service": "abd.service",
+    "core_connector_service": "abd-cloudflared.service",
+    "connector_config_path": "/etc/cloudflared/config.yml"
+  },
+  "source_boundary": {
+    "live_docker_metadata_read": true,
+    "nonsecret_slot_metadata_read": true,
+    "fixed_loopback_identity_attester_invoked": true,
+    "runtime_secret_content_read": false,
+    "external_network_accessed": false,
+    "cloudflare_changed": false,
+    "core_runtime_started": false,
+    "runtime_state_changed": false,
+    "continuous_monitoring_created": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_HOST_LOOPBACK_SHADOW_CONTROL_PLANE_ONLY_NOT_SOURCE_TO_OCI_REVALIDATION_OR_PUBLIC_RELEASE",
+  "rollback": {
+    "action": "NO_RUNTIME_MUTATION_NO_ROLLBACK_REQUIRED",
+    "runtime_or_configuration_changed": false,
+    "prior_private_evidence_deleted_automatically": false
+  }
+}
