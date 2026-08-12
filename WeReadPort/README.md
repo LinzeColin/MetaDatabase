@@ -34,6 +34,16 @@
 
 自有 Cloudflare Worker 只绑定 `weread.linzezhang.com`，并配置 `WEREAD_ACCOUNT_SERVICE_URL=https://weread-api.linzezhang.com`、`WRP_INTERNAL_PROXY_SECRET`、`WRP_PUBLIC_HOST=weread.linzezhang.com` 与发布身份。OVH 账户服务始终只监听 `127.0.0.1:8788`；Coolify Traefik 只经 Docker 私网桥接到该端口，不能直接开放明文 HTTP 端口。
 
+> ⚠️ **部署前必读**：上面这些变量是在版本控制之外配的（`wrangler.jsonc` 里没有）。裸跑 `npx wrangler deploy` 会把线上 8 个 plain_text 变量全部清掉 —— 站点当场变成「账户服务尚未完成安全连接」。2026-08-12 真发生过一次，靠 `wrangler rollback` 恢复。
+>
+> 部署时必须先从**当前线上版本**取回这些变量再用 `--var` 一并带上：
+>
+> ```
+> GET /accounts/<account>/workers/scripts/weread-port/versions/<当前版本 id>
+> ```
+>
+> secret（`WRP_INTERNAL_PROXY_SECRET`）由 Cloudflare 自动保留，不必也不许重新传。
+
 ## 本地冻结验证
 
 要求 Node.js 22.13+、Python 3.11+：
