@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-CANDIDATE-RECOVERY-OCI-ATTESTATION-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_PRIVATE_OCI_ARCHIVE_CONTENT_ATTESTATION_ONLY",
+  "expected": {
+    "private_object_path": "objects/2c/2cbfde404f1d21b3241da4f31eb67f44708798c959e62c2213265647c2db332d_abd-shadow-oci-candidate-a79c1109c85b-20260810.tar",
+    "archive_sha256": "2cbfde404f1d21b3241da4f31eb67f44708798c959e62c2213265647c2db332d",
+    "archive_bytes": 18043392,
+    "manifest_digest": "sha256:a79c1109c85beb9bc495372daf6f7e8f620e6006244ac7d2b32b8481355257b2",
+    "config_digest": "sha256:e9a3d81370ec722178393f1d153fc8c1540987ec44740aa435603977b1688702",
+    "semantic_contract_id": "ABD-POST-FREEZE-SHADOW-SOURCE-TO-OCI-001"
+  },
+  "source_boundary": {
+    "private_archive_object_downloaded": true,
+    "temporary_local_archive_only": true,
+    "archive_content_read": true,
+    "archive_loaded_or_retagged": false,
+    "host_runtime_or_configuration_changed": false,
+    "unit_created_enabled_or_started": false,
+    "connector_config_written": false,
+    "runtime_secret_or_tunnel_credential_read": false,
+    "external_network_scope": "PRIVATE_DATABASE_OBJECT_GET_ONLY",
+    "cloudflare_dns_access_or_tunnel_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_CANDIDATE_RECOVERY_ARCHIVE_CONTENT_ONLY_NOT_OLD_ROLLBACK_ASSET_HOST_RECOVERY_OR_AUTOMATIC_ROLLBACK",
+  "rollback": {
+    "action": "DELETE_ONLY_THIS_RUN_TEMPORARY_ARCHIVE_AFTER_ATTESTATION",
+    "current_candidate_shadow_changed": false,
+    "private_evidence_deleted_automatically": false
+  }
+}
