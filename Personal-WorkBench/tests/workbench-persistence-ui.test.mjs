@@ -113,7 +113,7 @@ test("network-level resource uncertainty gives Google users a truthful sign-in n
   assert.match(source, /暂时无法保存这条记录。请先确认已登录；使用 Google 登录无需额外验证邮箱。若已登录，请检查网络后重试。/);
   assert.match(source, /暂时无法删除这条记录。请先确认已登录；使用 Google 登录无需额外验证邮箱。若已登录，请检查网络后重试。/);
   assert.match(source, /authRequired \|\| loginSuggested \? <a className="data-link" href="\/auth\/sign-in">去登录<\/a> : null/);
-  assert.match(source, /consentRequired \? <a className="data-link" href="\/account">开启敏感跨设备保存<\/a> : null/);
+  assert.match(source, /consentRequired \? <a className="data-link" href="\/account" onClick=\{continueAfterConsent\}>开启敏感跨设备保存<\/a> : null/);
 });
 
 test("persistence UI distinguishes an explicit sensitive-consent denial from an account-verification denial", async () => {
@@ -358,6 +358,8 @@ test("tenant resource replays only same-account local records, and sensitive rec
   assert.match(source, /allActions = await appendDeviceOutbox\(scope, recoveryAction\);/);
   assert.match(source, /const queuedForReplay = await queueDeviceMutation\(deviceOutboxAction\);/);
   assert.match(source, /mydairy:privacy-consent-accepted/);
+  assert.match(source, /accountReturnPathFromLocation/);
+  assert.match(source, /return_to=/);
   assert.match(source, /window\.addEventListener\("online", replayWhenOnline\)/);
   assert.match(source, /开启敏感跨设备保存后会自动同步这条记录。/);
   assert.match(source, /使用 Google 登录无需额外验证邮箱。/);
@@ -369,6 +371,9 @@ test("tenant resource replays only same-account local records, and sensitive rec
   assert.match(cacheSource, /DEVICE_OUTBOX_FALLBACK_PREFIX/);
   assert.match(cacheSource, /const existing = await requestValue\(store\.get\(key\)\);/);
   assert.match(account, /window\.dispatchEvent\(new Event\("mydairy:privacy-consent-accepted"\)\);/);
+  assert.match(account, /safeAccountReturnPath/);
+  assert.match(account, /正在返回原页面同步你的历史记录…/);
+  assert.match(account, /window\.location\.assign\(returnTo\)/);
   assert.match(account, /本设备当前账号暂存的敏感记录会自动同步。/);
 });
 

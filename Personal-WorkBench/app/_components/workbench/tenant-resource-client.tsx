@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { accountReturnPathFromLocation } from "./account-return-path";
 import {
   appendDeviceOutbox,
   createDeviceLocalRecoveryOutboxAction,
@@ -954,11 +955,17 @@ export function ResourceStatus({
 }: Pick<ResourceState<TenantRecord>, "authRequired" | "consentRequired" | "error" | "loading" | "loginSuggested">) {
   if (loading) return <p className="interaction-note" role="status">正在读取你的历史记录…</p>;
   if (!error) return null;
+  const continueAfterConsent = (event: { preventDefault: () => void }) => {
+    if (typeof window === "undefined") return;
+    event.preventDefault();
+    const returnTo = accountReturnPathFromLocation(window.location);
+    window.location.assign(`/account?return_to=${encodeURIComponent(returnTo)}`);
+  };
   return (
     <p className="interaction-note" role="status">
       {error}{" "}
       {authRequired || loginSuggested ? <a className="data-link" href="/auth/sign-in">去登录</a> : null}
-      {consentRequired ? <a className="data-link" href="/account">开启敏感跨设备保存</a> : null}
+      {consentRequired ? <a className="data-link" href="/account" onClick={continueAfterConsent}>开启敏感跨设备保存</a> : null}
     </p>
   );
 }

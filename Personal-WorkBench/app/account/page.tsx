@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { safeAccountReturnPath } from "../_components/workbench/account-return-path";
 import { LegacyImportPanel } from "./legacy-import-panel";
 
 type Account = { id: string; providerId: string };
@@ -62,6 +63,9 @@ export default function AccountPage() {
   const [privacyNoticeHash, setPrivacyNoticeHash] = useState("e".repeat(64));
   const [requiresFreshLogin, setRequiresFreshLogin] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
+  const returnTo = typeof window === "undefined"
+    ? null
+    : safeAccountReturnPath(new URLSearchParams(window.location.search).get("return_to"));
 
   async function loadAccount() {
     try {
@@ -202,7 +206,12 @@ useEffect(() => {
       await loadAccount();
       if (decision === "accepted") {
         window.dispatchEvent(new Event("mydairy:privacy-consent-accepted"));
-        setMessage("已开启敏感内容跨设备保存。返回记录页后，本设备当前账号暂存的敏感记录会自动同步。");
+        if (returnTo) {
+          setMessage("已开启敏感内容跨设备保存，正在返回原页面同步你的历史记录…");
+          window.setTimeout(() => window.location.assign(returnTo), 0);
+        } else {
+          setMessage("已开启敏感内容跨设备保存。返回记录页后，本设备当前账号暂存的敏感记录会自动同步。");
+        }
       }
       else setMessage("已关闭敏感内容跨设备保存。");
     } catch {
