@@ -11,7 +11,19 @@
 # 射程限制很重要：.git/hooks 是**整个仓库共享**的，本仓还有别的 worktree
 # 在做别的项目。无差别地跑 social-archive 的门会把别人的提交也卡住。
 # 所以先看这次提交碰没碰 social-archive/，没碰就直接放行。
+# social-archive-gate-hook   ← 安装脚本靠这个标记认出「装的是不是我们这份」
 set -uo pipefail
+
+# **先把原来那个守卫叫一遍。**（2026-08-12）
+#
+# `.git/hooks` 是整个仓库共享的，这个位置上原本装着 `linze-maintree-guard`
+# （铁律 2 的机器强制版：主树上不许提交）。它是活的、且重要——踩掉它等于
+# 把铁律 2 的机器保障拆了。所以安装脚本把它搬到 `pre-commit.chained`，
+# 这里第一件事就是调用它：**它说不行就不行**，轮不到发布门说话。
+CHAINED="$(dirname "$0")/pre-commit.chained"
+if [ -x "${CHAINED}" ]; then
+  "${CHAINED}" "$@" || exit $?
+fi
 
 if ! git diff --cached --name-only | grep -q '^social-archive/'; then
   exit 0
@@ -35,7 +47,7 @@ fi
 GATE_REPORT="$(mktemp)"
 trap 'rm -f "${GATE_REPORT}"' EXIT
 
-printf 'pre-commit: 跑发布门（约 5 秒）…\n' >&2
+printf 'pre-commit: 跑发布门（实测约 25 秒，门有 36 道）…\n' >&2
 if ! (cd "${ROOT}" && "${PY}" scripts/final_verify.py --report "${GATE_REPORT}" >/tmp/sa-precommit.log 2>&1); then
   printf '\n✗ 发布门是红的，拒绝提交。\n\n' >&2
   tail -20 /tmp/sa-precommit.log >&2

@@ -190,3 +190,25 @@ python scripts/run_all_drills.py
 `run_all_drills.py` 的输出里会明说没跑它们，**不让人以为全覆盖了**——
 但它们不再**靠人记得**：三个都挂在部署第 8.69 步上，在生产机上真跑。
 
+
+## 提交前那道门（2026-08-12 才真正装上）
+
+`scripts/git-hooks/pre-commit` 早就写好了，它的文件头写着「『下次注意』不是修复，
+这个 hook 是修复」。**而它从来没有被装上过**：`.git/hooks/pre-commit` 那个位置上
+装的是另一个守卫（铁律 2 的主树保护），它在 worktree 里第一件事就是 `exit 0`。
+
+没有任何东西装它、没有任何判据验它装没装、README 和 AGENTS.md 一个字没提它。
+**一个没被装上的守卫不是守卫**——当天我七次在文档判据红着的情况下提交，
+一次都没被拦住，就是它。
+
+```bash
+bash scripts/install_git_hooks.sh          # 装（会把原来那个守卫链上，不踩掉）
+bash scripts/install_git_hooks.sh --check  # 只看装没装
+```
+
+**链，不是盖**：`.git/hooks` 整个仓库共享，那个主树守卫是活的且重要，
+所以安装脚本把它搬到 `pre-commit.chained`，新 hook 第一件事就是调用它——
+它说不行就不行，轮不到发布门说话。
+
+三种情形都验过：主树 main 上仍被铁律 2 拦住（退出 1）；worktree 里门绿放行
+（退出 0，36 道）；故意造一处文档违规当场拦住（退出 1，并打印红在哪）。
