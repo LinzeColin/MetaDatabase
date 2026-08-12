@@ -9,7 +9,7 @@
 // Build identity (ADP-S1-P01-T010): read-only /build.json + footer build id. No secret.
 // build_id/source_sha256 are a self-excluding hash: reset both values back to their
 // zero-placeholders ('0'*12 and '0'*64) and sha256 the file to reproduce source_sha256.
-const BUILD = { build_id: '9f4369fcdf0a', source_sha256: '9f4369fcdf0a5d6ba3d7f6d95739c6b20717cfc9bf045eb879cf762434232a2a', schema_version: 'cn_v0_3', built_at: '2026-08-12' };
+const BUILD = { build_id: 'd6d4d0471597', source_sha256: 'd6d4d0471597c507326d0b2fa8f421fd3add06c1e0bb19c9314d06c27027c1c1', schema_version: 'cn_v0_3', built_at: '2026-08-12' };
 
 // ── S3-P03-T040 Board 3 官方视图 A0 canary 切换（Owner S3 Exit 已批准 A0 晋级）──
 // 默认关 = 部署即基线（生产 Board 3 与六主题不变）。开=Board 3 只把 A0 官方原文作默认证据、媒体降为 discovery。
@@ -208,20 +208,44 @@ function parseOaiArxiv(xml) {
   return { items: out, token: tokM ? tokM[1].trim() : null };
 }
 
+// 2026-08-12 查 33 天运行日志：`arxiv:TimeoutError` 5 次，那 5 天 arxiv=0（主源整天缺席）。
+// 实测 arXiv OAI 正常 1–5 秒（中位 ~2.3s），偶发 13.9s —— 20 秒的预算大多数时候够用，
+// 所以真正的问题不是「慢」，是**这段代码对慢没有任何容错**：
+//   · 超时从 await fetch 抛出去 -> 整个函数抛 -> **前面几页已经抓到的 items 全丢**
+//     （ARXIV_PAGES=2：第 1 页拿到 200 篇、第 2 页超时，结果是 0 篇而不是 200 篇）
+//   · 503 有退避重试，超时没有 —— 同样是「这次不行」，处理方式却完全不同
+// 另外 export.arxiv.org/oai2 现在 301 跳到 oaipmh.arxiv.org/oai，实测跳转约值 1 秒，
+// 且多一次子请求；直接打规范地址，不依赖一个可能再变的重定向。
+const ARXIV_OAI_BASE = 'https://oaipmh.arxiv.org/oai';
+const ARXIV_PAGE_TIMEOUT_MS = 20000;
+const ARXIV_PAGE_RETRIES = 1;          // 每页最多重试 1 次；有上限，不是无限等（合同 §2.4）
+
 async function fetchArxivAll(fromDay) {
-  const base = 'https://export.arxiv.org/oai2';
-  let url = `${base}?verb=ListRecords&metadataPrefix=arXiv&from=${fromDay}`;
+  let url = `${ARXIV_OAI_BASE}?verb=ListRecords&metadataPrefix=arXiv&from=${fromDay}`;
   const items = [];
-  for (let page = 0; page < ARXIV_PAGES; page++) {   // 页封顶，控制 CPU/子请求
-    const resp = await fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(20000) });
-    if (resp.status === 503) { await new Promise(r => setTimeout(r, 3000)); continue; }  // OAI 忙，退避一次
-    if (!resp.ok) break;
+  let truncated = null;                // 非 null = 抓到一半被打断，调用方要据此记降级
+  for (let page = 0; page < ARXIV_PAGES; page++) {
+    let resp = null;
+    for (let attempt = 0; attempt <= ARXIV_PAGE_RETRIES; attempt++) {
+      try {
+        resp = await fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(ARXIV_PAGE_TIMEOUT_MS) });
+        break;
+      } catch (e) {
+        // ★关键：超时/网络错不再往外抛★ —— 抛出去等于把已抓到的整批丢掉。
+        if (attempt === ARXIV_PAGE_RETRIES) { truncated = 'arxiv:' + (e && e.name || 'FetchError'); break; }
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+    if (!resp) break;                                            // 重试用尽，保留已抓到的
+    if (resp.status === 503) { await new Promise(r => setTimeout(r, 3000)); continue; }
+    if (!resp.ok) { truncated = 'arxiv:http' + resp.status; break; }
     const xml = await resp.text();
     const { items: got, token } = parseOaiArxiv(xml);
     items.push(...got);
     if (!token || items.length >= ARXIV_CAP) break;
-    url = `${base}?verb=ListRecords&resumptionToken=${encodeURIComponent(token)}`;
+    url = `${ARXIV_OAI_BASE}?verb=ListRecords&resumptionToken=${encodeURIComponent(token)}`;
   }
+  items.truncatedReason = truncated;   // 挂在数组上，调用方读一下就知道这批是不是残的
   return items;
 }
 
@@ -386,9 +410,13 @@ async function ingestAll(env, counts) {
 
   // arXiv 全站（OAI-PMH，所有领域）
   try {
-    const papers = (await fetchArxivAll(fromDay)).slice(0, ARXIV_CAP);
+    const fetched = await fetchArxivAll(fromDay);
+    const papers = fetched.slice(0, ARXIV_CAP);
     for (const p of papers) itemStmts.push(itemStmt(env, { ...p, board: 'board1', source: 'arxiv-all', kind: 'paper' }));
     counts.arxiv = papers.length;
+    // 半途被打断也要记降级：现在能保住已抓到的那部分（以前是整批丢），
+    // 但「抓到一半」不等于「正常」—— 不记的话它会以「200 篇、正常」的样子混过去。
+    if (fetched.truncatedReason) counts.degraded.push(fetched.truncatedReason + ':truncated');
     // ★抓到 0 篇也要记降级★ —— 原来只有 throw 才进 degraded，于是「接口 200 但一篇没返回」
     // 会被算成正常。2026-08-03 实测：arxiv=0 而 degraded 里只有 feed:science-advances，
     // 那天要不是恰好另一个源也挂了，整天会被记成「正常」——主源零产出被当成没问题。
