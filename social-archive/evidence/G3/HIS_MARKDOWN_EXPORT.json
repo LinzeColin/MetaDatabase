@@ -1,5 +1,5 @@
 {
-  "status": "PASS",
+  "status": "FAIL",
   "host": "linze-vps3",
   "measured": {
     "library_status": 200,
@@ -8,12 +8,14 @@
     "zip_bytes": 116598,
     "files_in_zip": 193,
     "empty_heading": 0,
-    "title_is_a_doubled_caption": 0,
+    "title_is_a_doubled_caption": 1,
     "title_merely_starts_with_a_number": 92,
     "author_is_a_like_count": 0,
     "unreadable_files": 0
   },
-  "problems": [],
+  "problems": [
+    "1 个文件标题是「互动数＋文案＋同一段文案」那种（后半截和前半截重复）"
+  ],
   "boundary_zh": "只读、只数数：不取任何内容正文，不打印令牌（令牌不出容器）。",
   "what_this_does_not_prove": "不保证他电脑上那个 Obsidian 库是对的——那要他双击那个 .command；这里只回答「那颗按钮现在按下去，拿到的 zip 是不是好的」。"
 }

@@ -19,7 +19,16 @@
   const platformIcons = { "generic-web":"书", xiaohongshu:"红", douyin:"抖", kuaishou:"快", bilibili:"B", x:"X", reddit:"R", instagram:"I", youtube:"Y" };
   const relationCopy = {
     "generic-web":"全部 Chrome 书签与文件夹", xiaohongshu:"收藏夹、收藏、点赞", douyin:"收藏夹、收藏、点赞",
-    kuaishou:"收藏、点赞", bilibili:"收藏夹、稍后再看、历史、点赞", x:"书签、点赞", reddit:"Saved、Upvoted", instagram:"Saved Collections", youtube:"稍后观看、播放列表"
+      // **x 这一句 2026-08-12 改过。** 原来写「书签、点赞」，读起来像这两样会被
+      // 自动读进来——而 X 在 NOT_SYNCABLE_YET 里，本版一条都读不了
+      // （官方接口可能收费，零费用硬规矩把那条路主动关着）。
+      //
+      // **没有把它在 SCANNABLE_RELATIONS 里登记成空**：试过，被
+      // test_sync_scope_is_reachable 拦下了，拦得对——X 走服务端连接器，
+      // 点下去当场报「零费用门未确认」；清空范围会把它变成 YouTube 那种
+      // 「永远转」的形态。快速失败带一句原因是可以的，永远转不行。
+      // 所以只改这句话本身。
+    kuaishou:"收藏、点赞", bilibili:"收藏夹、稍后再看、历史、点赞", x:"本版还不能自动读，只能在页面上点插件手动保存", reddit:"Saved、Upvoted", instagram:"Saved Collections", youtube:"稍后观看、播放列表"
   };
   const destinationNames = { social_archive:"我的档案馆", markdown:"Markdown", notion:"Notion", obsidian:"Obsidian", github:"GitHub Private", karakeep:"Karakeep", linkwarden:"Linkwarden", archivebox:"ArchiveBox" };
   const activeStates = new Set(["queued","authorizing","discovering","scanning","normalizing","artifacting","exporting"]);

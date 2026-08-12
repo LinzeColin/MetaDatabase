@@ -63,10 +63,15 @@
 <p>那时插件会把刚打开的平台页翻到前台，并让你先在那儿登录，</p>
 <p>然后回到面板上点<strong>「我已登录，继续」</strong>。登录完点那一下就行。</p>
 <p><strong>现在能自动同步的：</strong></p>
-<table><thead><tr><th>平台</th><th>会自动读什么</th></tr></thead><tbody><tr><td>Chrome 书签</td><td>你的全部书签</td></tr><tr><td>B站</td><td>收藏夹、稍后再看、<strong>点赞</strong>（2026-08-12 起<strong>不再采浏览历史</strong>）</td></tr><tr><td>小红书 / 抖音</td><td>你收藏页上那一批（往下滚再同步一次能读到更多）</td></tr><tr><td>Reddit / Instagram</td><td>你 Saved 页上那一批（同上，往下滚能读到更多）</td></tr></tbody></table>
+<table><thead><tr><th>平台</th><th>会自动读什么</th></tr></thead><tbody><tr><td>Chrome 书签</td><td>你的全部书签</td></tr><tr><td>B站</td><td><strong>收藏夹</strong>（2026-08-12 起不再采浏览历史；稍后再看和点赞本来就没在自动读）</td></tr><tr><td>小红书 / 抖音</td><td>你收藏页上那一批（往下滚再同步一次能读到更多）</td></tr><tr><td>Reddit / Instagram</td><td>你 Saved 页上那一批（同上，往下滚能读到更多）</td></tr></tbody></table>
 <blockquote><strong>B 站那一行 2026-08-12 改过一次，说清楚是怎么回事：</strong></blockquote>
 <blockquote>此前它连你的浏览历史也一起存，而这份说明只写了「收藏夹」。数过你库里的实况之后</blockquote>
-<blockquote>你定了先停浏览历史、点赞留着，所以现在 B 站只采<strong>收藏夹 / 稍后再看 / 点赞</strong>三类。</blockquote>
+<blockquote>你定了先停浏览历史、点赞留着。<strong>而查生产数据时发现两件事要说清楚</strong>：</blockquote>
+<blockquote>· <strong>B 站真正会自动去读的只有收藏夹这一种。</strong> <code>SCANNABLE_RELATIONS</code> 里</blockquote>
+<blockquote>  B 站就写着 <code>favorite</code> 一项；稍后再看和点赞只是<strong>允许存在</strong>的关系类型</blockquote>
+<blockquote>  （手动存的、或早期版本留下的能挂在那儿），不是同步会去枚举的。</blockquote>
+<blockquote>· 你库里那些点赞<strong>是抖音的，不是 B 站的</strong>——B 站一条点赞都没有。</blockquote>
+<blockquote>  （各多少条看资料库里那一列的实数，这里不写死，写死了同步一次就成假话。）</blockquote>
 <blockquote><strong>已经存进来的历史条目一条不删</strong>——归档的意义就是东西留下来，只是不再新增。</blockquote>
 <blockquote>顺带说一件相关的：那批历史条目里有 56 篇标题曾经是播放器上的时间</blockquote>
 <blockquote>（像 <code>06:26/12:57</code>），2026-08-12 已经用 B 站公开接口修回真标题和作者，</blockquote>

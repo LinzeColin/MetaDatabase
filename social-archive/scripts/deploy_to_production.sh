@@ -334,6 +334,23 @@ rsync -az --omit-dir-times \
   --exclude 'runtime/' --exclude '.env' --exclude '__pycache__' \
   --exclude '.pytest_cache' --exclude '*.pyc' --exclude '.DS_Store' \
   "$DEPLOY_SNAPSHOT/" "$HOST:$REMOTE_DIR/" || fail 'rsync 失败。'
+# **改了名字的文件，上一版那个名字会一直赖在生产上。** rsync 只覆盖，不删除。
+#
+# 2026-08-12 实测：`git mv` 把两个修复脚本改了名，同步之后生产上新旧两份都在，
+# 第 9 步「only_on_production —— 没人知道从哪来的代码正在生产上跑」当场打红。
+# 打得对：从那一步看过去，它和「有人手工 scp 上去一个脚本」长得一模一样。
+#
+# **只对纯代码那三个目录开 --delete**。整个 $REMOTE_DIR 开 --delete 会连
+# runtime/、密钥、他的数据一起抹掉——那三样本来就只在生产上有。
+# 这三个目录恰好就是第 9 步比对的范围，所以「同步完还剩多余文件」这件事
+# 从此不会再发生。开之前先 `--dry-run` 看过要删什么（只有那两个改名的）。
+for code_dir in scripts src apps; do
+  [[ -d "$DEPLOY_SNAPSHOT/$code_dir" ]] || continue
+  rsync -az --omit-dir-times --delete \
+    --exclude '__pycache__' --exclude '*.pyc' --exclude '.DS_Store' \
+    "$DEPLOY_SNAPSHOT/$code_dir/" "$HOST:$REMOTE_DIR/$code_dir/" \
+    || fail "清理 $code_dir 下的残留文件失败。"
+done
 LOCAL_ZIP="$(shasum -a 256 dist/social-archive-extension.zip | cut -d' ' -f1)"
 REMOTE_ZIP="$(ssh -o ConnectTimeout=20 "$HOST" "cd '$REMOTE_DIR' && sha256sum dist/social-archive-extension.zip | cut -d' ' -f1")"
 [[ "$LOCAL_ZIP" == "$REMOTE_ZIP" ]] || fail "扩展包没同步过去（本地 ${LOCAL_ZIP}，远端 ${REMOTE_ZIP}）。"

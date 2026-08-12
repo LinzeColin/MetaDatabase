@@ -41,6 +41,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+from social_archive.title_repair import undouble_title  # noqa: E402
 
 
 def classify(text: str) -> dict:
@@ -48,6 +51,9 @@ def classify(text: str) -> dict:
 
     容器里只有标准库，所以这个函数不许引第三方，也不许引本仓的东西——
     它的源码会被 `inspect.getsource` 取出来、原样送进 `docker exec`。
+    「抓重了」那一条用的 `undouble_title` 也一样：不是 import 进来的，
+    是把 `src/social_archive/title_repair.py` 整个文本一起注进去
+    （那个模块只用标准库 `re`），所以**全项目仍然只有一份实现**。
     """
     import re as _re
 
@@ -60,13 +66,14 @@ def classify(text: str) -> dict:
     # 「2.0万文案文案」——**真正的缺陷是"重复"，不是"以数字开头"**。
     # 第一版只判前缀，生产上量到 29 个「命中」，而「10万个冷知识」这种
     # 正当标题会被一起算进去：那是判据过宽，不是他数据的毛病。
-    lead = _re.match(r"^\d+(?:\.\d+)?[万千]?", title)
-    if lead:
+    if _re.match(r"^\d+(?:\.\d+)?[万千亿]?", title):
         out["starts_with_number"] = 1
-        rest = title[lead.end():]
-        half = len(rest) // 2
-        if half >= 4 and rest[:half] == rest[half:]:
-            out["doubled_caption"] = 1
+    # **这里原来自己写了第三套「重复」判定**（2026-08-12）。三套里两套都
+    # 要求「去掉数字前缀后正好对半分成一样的两半」，而他库里那条前一遍结尾
+    # 多一个空格，长度成了奇数，两半永远对不上；`[万千]` 也不含「亿」。
+    # 现在统一走 `undouble_title`——同一批文本一把尺子。
+    if undouble_title(title) != title:
+        out["doubled_caption"] = 1
     author = _re.search(r'^author:\s*"([^"]*)"', text, _re.M)
     if author and _re.fullmatch(r"\d+(?:\.\d+)?[万千]?", author.group(1).strip()):
         out["like_count_author"] = 1
@@ -141,9 +148,21 @@ print(json.dumps(out, ensure_ascii=False))
 
 
 def _inside() -> str:
-    """把 classify 的源码原样塞进要送进容器的那段脚本。"""
+    """把 classify 的源码原样塞进要送进容器的那段脚本。
+
+    连 `title_repair` 那份模块的**文本**一起塞——它只用标准库 `re`，
+    所以容器里不用装什么就能跑，而「抓重了」的判定全项目仍然只有一份实现。
+    注入的是文件本身，不是抄一遍：那个模块改了，这里跟着改。
+    """
     import inspect
-    return INSIDE_TEMPLATE.replace("__CLASSIFY__", inspect.getsource(classify))
+    shared = (ROOT / "src/social_archive/title_repair.py").read_text(encoding="utf-8")
+    # **`from __future__ import annotations` 必须在文件最前面。** 这段是塞进
+    # 模板中间的，带着它整段编译不过（`SyntaxError`），送进容器就是当场崩。
+    # 容器跑 3.13，`str | None` 本来就原生成立，去掉它没有副作用。
+    shared = "\n".join(line for line in shared.splitlines()
+                       if not line.startswith("from __future__ import"))
+    return (INSIDE_TEMPLATE
+            .replace("__CLASSIFY__", shared + "\n\n" + inspect.getsource(classify)))
 
 
 

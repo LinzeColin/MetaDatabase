@@ -29,6 +29,8 @@ COALESCE 于是**保住库里那个好标题**——数据修复因此才修得�
 
 from __future__ import annotations
 
+import pytest
+
 import sys
 from pathlib import Path
 
@@ -85,3 +87,33 @@ def test_the_repair_survives_a_resync() -> None:
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))
+
+
+# 长视频的播放进度带小时段（2026-08-12）。第一版判据只写 `\d{1,2}:\d{2}`，
+# 于是他库里 6 条这种标题**只认出 1 条**，另外 5 条一路绿到底——而且文件名
+# 还照着它 slug 成了 `00-09-02-08-01-ceadab37.md`，他在侧边栏根本认不出是什么。
+# 下面每一条都是从他库里原样抄的。
+HOURS_LONG_PLAYBACK = [
+    "00:09/02:08:01",       # 看到 9 秒 / 全长 2 小时 8 分——**两边位数可以不一样**
+    "00:17/01:06:07",
+    "01:11:19/01:15:32",
+    "02:13:37/02:17:46",
+    "03:21/03:06:18",
+]
+
+
+@pytest.mark.parametrize("title", HOURS_LONG_PLAYBACK)
+def test_a_long_videos_playback_position_is_also_not_a_title(title: str) -> None:
+    from social_archive.models import CaptureRequest
+    request = CaptureRequest(platform="bilibili",
+                             url="https://www.bilibili.com/video/BV1xx", title=title)
+    assert request.title is None, f"{title} 是播放器上的时间，不该当标题存下来"
+
+
+def test_a_real_title_with_a_colon_survives() -> None:
+    """反面：判据不许宽到吃掉带冒号的正当标题，否则它只是恒红。"""
+    from social_archive.models import CaptureRequest
+    for title in ("云上的中国2：第一集 智慧出行", "3:10 到尤马", "第01:重新开始"):
+        request = CaptureRequest(platform="bilibili",
+                                 url="https://www.bilibili.com/video/BV1xx", title=title)
+        assert request.title == title, title
