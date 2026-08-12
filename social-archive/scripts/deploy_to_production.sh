@@ -1063,9 +1063,14 @@ step "8.85) 读一眼：有没有哪一类收藏，取回来的整类都缺作�
 # 第一版写的是 `|| printf '读不到分组结果'`——于是它先把问题原原本本印出来，
 # 紧接着又说自己读不到，**同一屏里两句话互相矛盾，后一句是假的**。
 # 这正是这个项目一路在拔的那种东西，别在新加的一步上又种一个。
+# **`|| 赋值` 不能省。** 这个脚本开着 `set -e`：把命令单独一行写、下一行再读 `$?`，
+# 那一行非零时脚本当场就退了。第一次这样写，8.85 直接把部署掐断在这里，
+# 后面 8.9 / 8.55 / 8.6 / 8.66 / 8.68 / 第 9 步验收**一个都没跑**——
+# 一个「播报」步骤杀掉了整场部署，比它原来那句假话严重得多。
+relation_author_rc=0
 .venv/bin/python scripts/check_a_relation_never_loses_the_author.py \
-  --host "$HOST" --brief 2>/dev/null
-relation_author_rc=$?
+  --host "$HOST" --brief 2>/dev/null || relation_author_rc=$?
+# 退出码 4 是「量到了，而且有问题」，不是「没量到」——两者要分开说。
 if [[ $relation_author_rc -ne 0 && $relation_author_rc -ne 4 ]]; then
   printf '  读不到分组结果（不影响部署）\n'
 fi
