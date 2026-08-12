@@ -7,8 +7,8 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <h2>记录新进度</h2>
     <label>岗位<select name="job_id" required data-testid="application-job">{% for rec, job in recommendations %}<option value="{{ job.id }}" {% if selected_job_id == job.id %}selected{% endif %}>{{ job.company }} · {{ job.title }}</option>{% endfor %}</select></label>
-    <label>状态<select name="status" required data-testid="application-status"><option value="pending">待处理</option><option value="submitted">已提交</option><option value="interview">面试／笔试</option><option value="rejected">已拒绝</option><option value="offer">Offer</option><option value="withdrawn">已撤回</option></select></label>
-    <label>确认依据<input name="evidence" placeholder="例如：Thank you 页面、申请编号、确认邮件" data-testid="application-evidence"><small>记录“已提交”时必填。</small></label>
+    <label>状态<select name="status" required data-testid="application-status"><option value="pending">待处理</option><option value="submitted">已提交</option><option value="interview">面试／笔试</option><option value="rejected">已拒绝</option><option value="offer">录用通知</option><option value="withdrawn">已撤回</option></select></label>
+    <label>确认依据<input name="evidence" placeholder="例如：确认页面、申请编号、确认邮件" data-testid="application-evidence"><small>记录“已提交”时必填。</small></label>
     <label>备注<textarea name="notes" rows="5" data-testid="application-notes"></textarea></label>
     <button class="button full" type="submit" data-testid="application-submit">保存进度</button>
   </form>

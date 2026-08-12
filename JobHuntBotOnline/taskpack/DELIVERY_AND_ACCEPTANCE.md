@@ -1,52 +1,39 @@
-# Delivery and Acceptance
+# 最后一公里与验收说明
 
-## Delivery sequence
+## Codex 只需完成
 
-1. Run `python3 tools/verify_taskpack.py --output evidence/predeploy-taskpack.json`.
-2. Observe latest repository/environment and capture `evidence/target-current-truth.json`.
-3. Create rollback point and verified backup before any migration.
-4. Generate `.env`. NitroSend is removed. If any standard SMTP relay is already available, inject it securely; otherwise keep `ALLOW_REGISTRATION=false` and continue every non-email task. Inject DeepSeek/acceptance-mailbox secrets outside Git.
-5. Apply Alembic. When a v0.2 database exists, run `tools/migrate_v02_sqlite.py` before switching traffic.
-6. Deploy Web, Scheduler and Worker; absence of NitroSend or SMTP must not stop these steps.
-7. Before full public production acceptance, configure any standard SMTP relay, set `ALLOW_REGISTRATION=true`, and run `deploy/acceptance.sh` on the real HTTPS deployment. Real-mail acceptance is one-shot: it needs `RUN_REAL_EMAIL_ACCEPTANCE=true` plus a fresh `REAL_EMAIL_ACCEPTANCE_RUN_ID`.
-8. Only after core PASS, register operations and commit/push the exact Candidate.
+1. 重新观察当前仓库、网站、数据库和部署规则；
+2. 建立备份和可执行回滚点；
+3. 将本包增量语义合入当前更优实现；
+4. 完成必要的可逆数据库和运行配置适配；
+5. 运行全部源码测试和金融／法律事务；
+6. 在真实浏览器逐页操作全部可见控件；
+7. 部署并验证六小时调度、租户隔离、重启读回和恢复；
+8. commit、push，并按当前仓治理推进 PR／合并／部署。
 
-For the observed v0.2 single-container deployment, set `LEGACY_COMPOSE_FILE`
-and `LEGACY_SERVICE=app` while migrating. The deploy script waits until the
-PostgreSQL migration is ready, stops only the old public service immediately
-before starting the new routed Web service, and restores that old service if
-the new runtime cannot become ready. Clear the legacy settings only after the
-v0.3 recovery gate is complete.
+## 浏览器验收
 
-For a v0.2 SQLite source operating with WAL, restore the fresh encrypted T01
-backup into an isolated migration snapshot and set `V02_SQLITE_PATH` and
-`V02_DATA_ROOT` to that snapshot. Do not mount the live SQLite main file by
-itself: its WAL may contain uncheckpointed rows and is not a migration source.
+至少使用两个全新合成账户和两份内容明显不同的简历：
 
-## Runtime verification boundary
+- 金融：金融分析、Excel、估值、财务建模；
+- 法律：JD、PLT、澳大利亚律师准入、执业证书、合同与合规。
 
-`tools/verify_taskpack.py` is strict by default: a distributable TaskPack must
-not carry runtime Secret files or undeclared generated output. Deployment
-scripts invoke it with `--deployment-runtime` only after `.env` has been
-created. That mode permits exactly `.env`, `OWNER_LOGIN.txt`,
-`secrets/postgres_password.txt`, `runtime-data/` output, and the DAG-defined
-target evidence; each permitted Secret file must be mode `0600` or `0400` and
-remains outside Git. Any other inventory drift still fails verification.
+实际点击：注册、验证、登录、上传、设默认、删除、确认资料、刷新岗位、全部筛选、清除、详情、收藏、忽略、恢复、生成申请包、下载 DOCX、复制回答、编辑材料、记录全部申请状态、数据导出、修改密码、忘记密码、账户删除和管理员功能。每一步核对页面结果与数据库状态。
 
-## Production acceptance inputs
+## 通过条件
 
-The target `.env` uses provider-neutral SMTP; NitroSend is not accepted or required. Full production acceptance must provide two independent, dedicated acceptance inboxes explicitly. Automatic plus-alias fallback is disabled, and two addresses with the same local-part root (for example `owner+one@…` and `owner+two@…`) are rejected before any mail is sent. This conservatively prevents a single inbox from receiving the three lifecycle messages.
+- 金融总监十五年岗位不再显示资格通过；
+- 总法律顾问十二年岗位对中级法律用户不再通过；
+- 商业律师在准入、执业证书和年限满足时通过；
+- 金融岗位选择金融简历，法律岗位选择法律简历；
+- DOCX 可打开且无虚构事实；
+- 用户界面全中文，无空按钮、死链接、控制台或页面错误；
+- 单一来源失败不显示为“没有岗位”；
+- 两账户互不可见；
+- 刷新、重登、服务重启和恢复后结果仍成立。
 
-- `ACCEPTANCE_EMAIL_A`, `ACCEPTANCE_EMAIL_B`, `ACCEPTANCE_ACCOUNT_PASSWORD`
-- `ACCEPTANCE_IMAP_HOST`, `ACCEPTANCE_IMAP_PORT`, `ACCEPTANCE_IMAP_USERNAME`, `ACCEPTANCE_IMAP_PASSWORD`
-- `ACCEPTANCE_IMAP_FOLDER`, `ACCEPTANCE_IMAP_CONNECT_TIMEOUT_SECONDS=20`, `RUN_REAL_EMAIL_ACCEPTANCE=true`, fresh `REAL_EMAIL_ACCEPTANCE_RUN_ID`
-- `ACCEPTANCE_MIN_EMAIL_GAP_SECONDS>=1800`, `ACCEPTANCE_EMAIL_REQUEST_SAFETY_SECONDS=30`, `ACCEPTANCE_REAL_EMAIL_COOLDOWN_HOURS>=24`
+## 邮件与人工智能
 
-The harness reserves at most three real messages, waits at least 30 minutes plus a 30-second application-rate-limit buffer between requests, bounds every IMAP connection to 20 seconds, and persists a 24-hour cooldown before it opens Chromium. These are test credentials, not candidate data. They are never copied into evidence.
+NitroSend 不使用。标准 SMTP 暂不可用时，只将邮件相关事务标记为阻断，继续验证其他功能。平台人工智能密钥不进入代码、日志、截图或导出；服务失败时确定性资格和 DOCX 仍可用。
 
-## Verdict
-
-- `PASS`: every critical Acceptance passes on the exact deployment, no P0/P1.
-- `FAIL`: a required behavior is reproducibly wrong.
-- `BLOCKED`: real permission, identity, Secret, network or evidence is unavailable.
-- Local evidence can support implementation quality but cannot become a production verdict.
+既有反骚扰控制继续生效：生产每个收件人至少间隔 30 分钟、24 小时最多 3 次，且收件人删除或重新注册不会重置持久化限制。真实邮件验收只可在专用不同邮箱、一次性运行标识和 24 小时冷却满足时执行；不得自动重试、缩短间隔或将未投递邮件记为已发送。

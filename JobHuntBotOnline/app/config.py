@@ -90,7 +90,7 @@ def get_settings() -> Settings:
     settings = Settings(
         app_env=env,
         app_name=os.getenv("APP_NAME", "JobHuntBot Online"),
-        app_version=os.getenv("APP_VERSION", "0.3.0"),
+        app_version=os.getenv("APP_VERSION", "0.4.0"),
         base_url=os.getenv("BASE_URL", "http://127.0.0.1:8000").rstrip("/"),
         database_url=os.getenv(
             "DATABASE_URL",

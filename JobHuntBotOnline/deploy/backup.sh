@@ -18,7 +18,7 @@ else
   # named uploads volume and Alembic state with neutral one-off containers so
   # Traefik never sees a temporary non-HTTP `web` task on the shared edge.
   project="${COMPOSE_PROJECT_NAME:-jobhuntbot-online}"
-  app_image="${APP_IMAGE:-jobhuntbot-online:0.3.0}"
+  app_image="${APP_IMAGE:-jobhuntbot-online:0.4.0}"
   internal_network="${project}_internal"
   docker image inspect "$app_image" >/dev/null
   docker network inspect "$internal_network" >/dev/null

@@ -23,7 +23,7 @@ if [[ -z "$target" && -f runtime-data/rollback-image.txt ]]; then
   target="$(cat runtime-data/rollback-image.txt)"
 fi
 [[ -n "$target" ]] || { echo "rollback image is missing" >&2; exit 2; }
-current_tag="${APP_IMAGE:-jobhuntbot-online:0.3.0}"
+current_tag="${APP_IMAGE:-jobhuntbot-online:0.4.0}"
 docker image inspect "$target" >/dev/null
 docker tag "$target" "$current_tag"
 docker compose --profile canary up -d --no-build --force-recreate web web-canary scheduler worker

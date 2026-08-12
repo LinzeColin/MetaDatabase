@@ -38,11 +38,11 @@ def main() -> None:
     database_password = quote(postgres_password, safe="")
     lines = {
         "COMPOSE_PROJECT_NAME": args.compose_project_name,
-        "APP_IMAGE": "jobhuntbot-online:0.3.0",
-        "ACCEPTANCE_IMAGE": "jobhuntbot-online-acceptance:0.3.0",
+        "APP_IMAGE": "jobhuntbot-online:0.4.0",
+        "ACCEPTANCE_IMAGE": "jobhuntbot-online-acceptance:0.4.0",
         "APP_ENV": "production",
         "APP_NAME": "JobHuntBot Online",
-        "APP_VERSION": "0.3.0",
+        "APP_VERSION": "0.4.0",
         "BASE_URL": f"https://{args.domain}",
         "DOMAIN": args.domain,
         "APP_TIMEZONE": "Australia/Sydney",

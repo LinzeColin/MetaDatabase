@@ -93,7 +93,7 @@ def complete_onboarding(client: TestClient) -> None:
         follow_redirects=True,
     )
     assert response.status_code == 200
-    assert "只确认会影响推荐结果" in response.text
+    assert "只确认会影响推荐" in response.text
     response = client.post(
         "/onboarding/confirm",
         data={

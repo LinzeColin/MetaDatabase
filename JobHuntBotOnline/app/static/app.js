@@ -37,6 +37,29 @@ const initializeJobHuntBot = () => {
     });
   });
 
+  const roleInput = document.querySelector('input[name="primary_roles"]');
+  const updateSpecialistFields = () => {
+    const value = (roleInput?.value || "").toLowerCase();
+    const showLegal = /法律|法务|律师|合规|合同|legal|law|compliance|contract/.test(value);
+    document.querySelectorAll('[data-specialist="legal"]').forEach((node) => {
+      node.classList.toggle("specialist-muted", !showLegal);
+    });
+  };
+  document.querySelectorAll("[data-role-preset]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (!roleInput) return;
+      const existing = roleInput.value.split(/[,，;；、]/).map((x) => x.trim()).filter(Boolean);
+      const incoming = (button.dataset.rolePreset || "").split(",").map((x) => x.trim()).filter(Boolean);
+      roleInput.value = [...new Set([...existing, ...incoming])].join("、");
+      roleInput.dispatchEvent(new Event("input", { bubbles: true }));
+      button.classList.add("selected");
+    });
+  });
+  if (roleInput) {
+    roleInput.addEventListener("input", updateSpecialistFields);
+    updateSpecialistFields();
+  }
+
   const filterForm = document.querySelector("[data-live-filters]");
   const results = document.querySelector("#recommendation-results");
   const liveStatus = document.querySelector("#filter-live-status");

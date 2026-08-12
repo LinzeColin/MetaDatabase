@@ -8,23 +8,32 @@ from typing import Any
 from docx import Document
 from pypdf import PdfReader
 
-SKILL_TERMS = [
-    "excel", "sql", "python", "power bi", "tableau", "financial modeling",
-    "valuation", "accounting", "finance", "data analysis", "business analysis",
-    "risk", "operations", "project management", "stakeholder", "research",
-    "statistics", "machine learning", "aws", "azure", "salesforce", "sap",
-    "legal", "contract", "compliance", "法律", "法务", "合同", "合规",
+from .career_intelligence import (
+    SKILL_TERMS,
+    ROLE_RULES,
+    detect_credentials,
+    detect_role_family,
+    detect_skills,
+    estimate_experience_years,
+    infer_professional_facts,
+)
+
+LOCATION_TERMS = [
+    "Sydney", "Melbourne", "Brisbane", "Perth", "Canberra", "Adelaide",
+    "Remote Australia", "Australia", "悉尼", "墨尔本", "布里斯班", "珀斯", "堪培拉", "远程",
 ]
-ROLE_RULES = {
-    "Finance": ["finance", "financial", "accounting", "valuation", "investment", "banking"],
-    "Data": ["data", "sql", "python", "tableau", "power bi", "statistics", "analytics"],
-    "Business Analysis": ["business analysis", "business analyst", "stakeholder", "requirements"],
-    "Operations": ["operations", "process", "supply chain", "project management"],
-    "Risk": ["risk", "compliance", "audit", "controls"],
-    "Consulting": ["consulting", "strategy", "research", "client"],
-    "Legal": ["legal", "lawyer", "attorney", "counsel", "paralegal", "solicitor", "contract law", "法律", "法务", "律师", "合同法"],
-}
-LOCATION_TERMS = ["Sydney", "Melbourne", "Brisbane", "Perth", "Canberra", "Adelaide", "Remote Australia"]
+
+EXPERIENCE_HINTS = (
+    "intern", "analyst", "accountant", "auditor", "finance", "investment", "treasury", "tax",
+    "lawyer", "solicitor", "legal", "paralegal", "clerk", "counsel", "compliance", "contract",
+    "manager", "assistant", "project", "research", "operations", "consultant", "associate",
+    "实习", "分析", "会计", "审计", "金融", "法律", "律师", "法务", "合规", "合同", "项目", "运营",
+)
+
+EDUCATION_HINTS = (
+    "university", "bachelor", "master", "degree", "unsw", "college", "juris doctor", "llb", "jd",
+    "大学", "本科", "硕士", "学士", "博士", "法学",
+)
 
 
 class ResumeError(ValueError):
@@ -40,8 +49,6 @@ def _decode_plain_text(data: bytes) -> str:
             return data.decode(encoding)
         except UnicodeDecodeError:
             continue
-    # Preserve the prior useful error-tolerant behavior only after all known
-    # deterministic encodings have been attempted.
     return data.decode("utf-8", errors="replace")
 
 
@@ -68,57 +75,117 @@ def extract_text(filename: str, content_type: str, data: bytes) -> str:
 
 
 def _sentences(text: str) -> list[str]:
-    items = []
-    for line in text.splitlines():
-        line = line.strip(" \t•▪●-–—")
-        if 20 <= len(line) <= 500:
+    items: list[str] = []
+    for raw in text.splitlines():
+        line = raw.strip(" \t•▪●-–—")
+        if 12 <= len(line) <= 700:
             items.append(line)
     return items
 
 
+def _role_scores(text: str) -> dict[str, int]:
+    lower = text.casefold()
+    scores: dict[str, int] = {}
+    for role, terms in ROLE_RULES.items():
+        score = sum(lower.count(term.casefold()) for term in terms)
+        scores[role] = score
+    detected = detect_role_family(text)
+    if detected != "Other":
+        scores[detected] = scores.get(detected, 0) + 4
+    return scores
+
+
+def _extract_name(text: str) -> str:
+    # Keep this intentionally conservative. The name is only used inside the
+    # user's generated document and never becomes a job-match fact.
+    for line in text.splitlines()[:6]:
+        cleaned = line.strip()
+        if 2 <= len(cleaned) <= 70 and not re.search(r"[@|/\\]|resume|curriculum|简历", cleaned, re.I):
+            if len(cleaned.split()) <= 6:
+                return cleaned
+    return ""
+
+
 def parse_resume(text: str) -> dict[str, Any]:
     lower = text.casefold()
-    skills = sorted({term for term in SKILL_TERMS if term in lower})
-    role_scores = {
-        role: sum(lower.count(term) for term in terms)
-        for role, terms in ROLE_RULES.items()
-    }
-    role_families = [r for r, score in sorted(role_scores.items(), key=lambda x: (-x[1], x[0])) if score > 0][:4]
-
-    education = []
+    skills = sorted(set(detect_skills(text)))
+    role_scores = _role_scores(text)
+    role_families = [
+        role for role, score in sorted(role_scores.items(), key=lambda item: (-item[1], item[0]))
+        if score > 0
+    ][:5]
+    education: list[str] = []
+    experiences: list[str] = []
     for line in _sentences(text):
         l = line.casefold()
-        if any(term in l for term in ["university", "bachelor", "master", "degree", "unsw", "college"]):
+        if any(term in l for term in EDUCATION_HINTS):
             education.append(line)
-    experiences = []
-    for line in _sentences(text):
-        l = line.casefold()
-        if any(term in l for term in ["intern", "analyst", "manager", "assistant", "project", "research"]):
+        if any(term in l for term in EXPERIENCE_HINTS):
             experiences.append(line)
-    experiences = experiences[:10]
 
-    locations = [loc for loc in LOCATION_TERMS if loc.casefold() in lower]
-    keywords = sorted(set(skills + role_families + [w for w in re.findall(r"[A-Za-z][A-Za-z+#.\-]{2,}", text) if len(w) < 28]))[:80]
+    credentials = detect_credentials(text)
+    professional = infer_professional_facts(text)
+    locations = []
+    for loc in LOCATION_TERMS:
+        if loc.casefold() in lower:
+            canonical = {
+                "悉尼": "Sydney", "墨尔本": "Melbourne", "布里斯班": "Brisbane", "珀斯": "Perth",
+                "堪培拉": "Canberra", "远程": "Remote Australia",
+            }.get(loc, loc)
+            if canonical not in locations:
+                locations.append(canonical)
+
+    # Keep keywords bounded and deterministic. This is a discovery seed, not a
+    # claim that every token is a skill.
+    raw_keywords = [
+        token for token in re.findall(r"[A-Za-z][A-Za-z0-9+#.\-]{2,}", text)
+        if len(token) < 30
+    ]
+    keywords = sorted(set(skills + role_families + credentials + raw_keywords), key=str.casefold)[:100]
+    years = professional.get("experience_years")
+    summary_parts = [
+        f"识别到 {len(skills)} 项技能",
+        f"{len(experiences[:12])} 段可能相关经历",
+        f"{len(role_families)} 个候选岗位方向",
+    ]
+    if years is not None:
+        summary_parts.append(f"约 {years:g} 年相关经验（待本人确认）")
+    if credentials:
+        summary_parts.append("专业资质：" + "、".join(credentials[:6]))
+
     return {
+        "candidate_name": _extract_name(text),
         "skills": skills,
         "role_families": role_families,
-        "education": education[:6],
-        "experiences": experiences,
+        "education": education[:10],
+        "experiences": experiences[:16],
         "locations": locations,
         "keywords": keywords,
-        "summary": f"系统从简历中识别到 {len(skills)} 项技能、{len(experiences)} 段可能相关经历和 {len(role_families)} 个候选岗位族。",
+        "experience_years": years,
+        "professional_credentials": credentials,
+        "legal_admission": professional.get("legal_admission", "uncertain"),
+        "practising_certificate": professional.get("practising_certificate", "uncertain"),
+        "education_levels": professional.get("education_levels", []),
+        "summary": "系统从简历中" + "、".join(summary_parts) + "。",
     }
 
 
 def profile_draft(parsed: dict[str, Any]) -> dict[str, Any]:
-    locations = parsed.get("locations") or []
+    # Do not invent locations or work modes. The user confirms them on the next
+    # page. Empty is safer than a polished but false profile.
     return {
         "primary_role_families": parsed.get("role_families", [])[:3],
         "secondary_role_families": parsed.get("role_families", [])[3:],
-        "target_locations": locations,
+        "target_locations": parsed.get("locations", []),
         "work_mode": [],
         "skills": parsed.get("skills", []),
-        "keywords": parsed.get("keywords", [])[:40],
+        "keywords": parsed.get("keywords", [])[:50],
+        "experience_years": parsed.get("experience_years"),
+        "professional_credentials": parsed.get("professional_credentials", []),
+        "credentials_confirmed": False,
+        "education_levels": parsed.get("education_levels", []),
+        "legal_admission": parsed.get("legal_admission", "uncertain"),
+        "practising_certificate": parsed.get("practising_certificate", "uncertain"),
         "work_authorization": "",
         "sponsorship_now": "",
         "sponsorship_future": "",
@@ -132,5 +199,5 @@ def profile_draft(parsed: dict[str, Any]) -> dict[str, Any]:
 def experience_records(parsed: dict[str, Any]) -> list[dict[str, str]]:
     return [
         {"title": f"经历 {idx}", "detail": detail, "kind": "experience", "strength": "medium"}
-        for idx, detail in enumerate(parsed.get("experiences", [])[:8], start=1)
+        for idx, detail in enumerate(parsed.get("experiences", [])[:12], start=1)
     ]

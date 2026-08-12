@@ -58,8 +58,8 @@ def test_recommendation_actions_application_pack_and_progress(client):
     pack_response = client.post(f"/recommendations/{rec_id}/pack", data={
         "csrf_token": csrf(saved.text)
     }, follow_redirects=True)
-    assert "申请准备" in pack_response.text
-    assert "Why this role" in pack_response.text
+    assert "岗位申请工作台" in pack_response.text
+    assert "为什么申请这个岗位" in pack_response.text
 
     with client.app.state.session_factory() as db:
         pack = db.scalar(select(ApplicationPack))

@@ -81,6 +81,11 @@ def test_server_confirmation_validation_rejects_unconfirmed_or_invalid_facts():
         "sponsorship_now": "no",
         "sponsorship_future": "no",
         "work_modes": ["hybrid"],
+        "experience_years": "",
+        "professional_credentials": "",
+        "credentials_confirmed": False,
+        "legal_admission": "uncertain",
+        "practising_certificate": "uncertain",
         "relocation": "no",
         "available_start": "",
         "avoid_roles": "",
@@ -122,7 +127,7 @@ def test_uncertain_sponsorship_remains_pending_for_no_sponsorship_job():
         },
     )
     assert score["qualification"] == "pending"
-    assert "Sponsorship 情况尚未确认" in score["reasons"]
+    assert any("雇主担保情况尚未完全确认" in reason for reason in score["reasons"])
 
 
 def test_industry_list_is_normalized_for_avoidance_scoring():
@@ -347,7 +352,7 @@ def test_resume_first_flow_creates_profile_and_recommendations(client):
     feed = client.get("/recommendations")
     assert "Graduate Financial Analyst" in feed.text
     assert "Junior Data Analyst" in feed.text
-    assert "每 6 小时刷新" in feed.text
+    assert "每 6 小时自动刷新" in feed.text
 
 
 def test_recommendation_filter_partial_is_server_rendered_for_live_updates(client):
@@ -372,7 +377,7 @@ def test_filters_are_composable(client):
 
     default_feed = client.get("/recommendations")
     assert 'name="relevance"' in default_feed.text
-    assert '<option value="high" selected>高（默认）</option>' in default_feed.text
+    assert '<option value="high" selected>高</option>' in default_feed.text
 
     response = client.get("/recommendations", params={
         "city": "Sydney",

@@ -18,6 +18,7 @@ from bs4 import BeautifulSoup
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
+from .career_intelligence import detect_role_family, detect_skills
 from .config import Settings
 from .models import (
     CandidateProfile, DiscoveryRun, DiscoverySourceStatus, Job, Recommendation, utcnow,
@@ -197,10 +198,9 @@ def enrich(job: NormalizedJob) -> NormalizedJob:
         job.industry = str(job.industry or "")
     text = f"{job.title} {job.description}".casefold()
     if not job.role_family:
-        scores = {role: sum(term in text for term in terms) for role, terms in ROLE_RULES.items()}
-        job.role_family = max(scores, key=scores.get) if max(scores.values(), default=0) else "Other"
+        job.role_family = detect_role_family(f"{job.title} {job.description}")
     if not job.skills:
-        job.skills = [s for s in SKILLS if s in text]
+        job.skills = detect_skills(f"{job.title} {job.description}")
     if not job.keywords:
         job.keywords = sorted(set((job.skills or []) + re.findall(r"[A-Za-z][A-Za-z+#.\-]{2,}", job.title)))[:24]
     loc = job.location.casefold()
@@ -599,7 +599,13 @@ def rescore_existing_recommendations(
         rec.relevance = score["relevance"]
         rec.opportunity = score["opportunity"]
         rec.rank_score = score["rank_score"]
-        rec.reasons_encrypted = crypto.encrypt_json(score["reasons"])
+        rec.reasons_encrypted = crypto.encrypt_json({
+            "reasons": score["reasons"],
+            "requirement_checks": score.get("requirement_checks", []),
+            "requirements": score.get("requirements", {}),
+            "domain": score.get("domain", "general"),
+            "role_family": score.get("role_family", ""),
+        })
         rec.last_scored_at = utcnow()
     if rows:
         db.commit()
@@ -651,7 +657,13 @@ def process_run(db: Session, run: DiscoveryRun, settings: Settings, crypto: Cryp
             rec.relevance = score["relevance"]
             rec.opportunity = score["opportunity"]
             rec.rank_score = score["rank_score"]
-            rec.reasons_encrypted = crypto.encrypt_json(score["reasons"])
+            rec.reasons_encrypted = crypto.encrypt_json({
+                "reasons": score["reasons"],
+                "requirement_checks": score.get("requirement_checks", []),
+                "requirements": score.get("requirements", {}),
+                "domain": score.get("domain", "general"),
+                "role_family": score.get("role_family", ""),
+            })
             rec.last_scored_at = utcnow()
             total_rec += 1
         db.commit()

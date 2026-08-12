@@ -1,21 +1,16 @@
-<section class="results-head" data-result-count="{{ items|length }}"><h2>{{ items|length }} 个结果</h2><span>“机会潜力”不是录用概率，而是基于新鲜度、匹配和申请摩擦的可解释等级。</span></section>
+<section class="results-head" data-result-count="{{ items|length }}"><h2>{{ items|length }} 个结果</h2><span>“机会潜力”不是录用概率；明确不符合的岗位不会排在可申请岗位前面。</span></section>
 <section class="job-list" data-testid="recommendation-list">
   {% for item in items %}
-  <article class="job-card" data-testid="job-card">
+  <article class="job-card qualification-{{ item.rec.qualification }}" data-testid="job-card">
     <div class="job-main">
-      <div class="job-top"><span class="source-label">{{ item.job.source }}</span><span>{{ item.age_days }} 天前</span></div>
+      <div class="job-top"><span class="source-label">{{ item.job.source }}</span><span>{{ item.domain|domain_label }} · {{ item.age_days }} 天前</span></div>
       <h3><a href="/recommendations/{{ item.rec.id }}" data-testid="job-detail-link">{{ item.job.title }}</a></h3>
       <p class="company">{{ item.job.company }} · {{ item.job.location or '地点未说明' }}</p>
-      <div class="tag-row"><span>{{ item.job.role_family }}</span>{% for skill in item.skills[:5] %}<span>{{ skill }}</span>{% endfor %}</div>
-      <p class="reason">{{ item.reasons[0] if item.reasons else '打开详情查看推荐依据' }}</p>
+      <div class="tag-row"><span>{{ item.job.role_family|role_label }}</span>{% for skill in item.skills[:5] %}<span>{{ skill }}</span>{% endfor %}</div>
+      {% set concern = (item.requirement_checks|selectattr('status','equalto','fail')|list|first) or (item.requirement_checks|selectattr('status','equalto','pending')|list|first) %}
+      {% if concern %}<p class="requirement-alert {{ concern.status }}"><b>{{ concern.label }}</b>：{{ concern.evidence }}</p>{% else %}<p class="reason">{{ item.reasons[0] if item.reasons else '打开详情查看推荐依据' }}</p>{% endif %}
     </div>
-    <div class="score-stack">
-      <span class="score {{ item.rec.qualification }}">资格 <b>{{ {'pass':'通过','pending':'待确认','fail':'不符合'}[item.rec.qualification] }}</b></span>
-      <span class="score {{ item.rec.relevance }}">相关性 <b>{{ {'high':'高','medium':'中','low':'低'}[item.rec.relevance] }}</b></span>
-      <span class="score {{ item.rec.opportunity }}">机会潜力 <b>{{ {'high':'高','medium':'中','low':'低'}[item.rec.opportunity] }}</b></span>
-    </div>
+    <div class="score-stack"><span class="score {{ item.rec.qualification }}">资格 <b>{{ {'pass':'通过','pending':'待确认','fail':'不符合'}[item.rec.qualification] }}</b></span><span class="score {{ item.rec.relevance }}">相关性 <b>{{ {'high':'高','medium':'中','low':'低'}[item.rec.relevance] }}</b></span><span class="score {{ item.rec.opportunity }}">机会潜力 <b>{{ {'high':'高','medium':'中','low':'低'}[item.rec.opportunity] }}</b></span></div>
   </article>
-  {% else %}
-  <div class="empty-state"><span>⌕</span><h3>当前筛选下没有岗位</h3><p>清除筛选，或查看上方来源状态，确认是没有结果还是某个来源暂时失败。</p><a class="button ghost" href="/recommendations">清除全部筛选</a></div>
-  {% endfor %}
+  {% else %}<div class="empty-state"><span>⌕</span><h3>当前筛选下没有岗位</h3><p>清除筛选，或查看上方来源状态，确认是没有结果还是某个来源暂时失败。</p><a class="button ghost" href="/recommendations">清除全部筛选</a></div>{% endfor %}
 </section>

@@ -4,7 +4,5 @@
   "deployment_runtime": false,
   "production_claimed": false,
   "errors": [],
-  "warnings": [
-    "local Chromium is blocked by a managed URLBlocklist; no browser PASS is claimed; production Playwright remains mandatory"
-  ]
+  "warnings": []
 }

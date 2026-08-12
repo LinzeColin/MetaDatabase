@@ -2,40 +2,29 @@
 {% block title %}岗位推荐｜JobHuntBot{% endblock %}
 {% block content %}
 <section class="page-head">
-  <div><span class="eyebrow">自动岗位 Feed</span><h1>优先处理最值得的机会</h1><p>每 {{ refresh_hours }} 小时刷新。排序同时考虑资格、相关性、机会潜力和岗位新鲜度。</p></div>
-  <form method="post" action="/recommendations/refresh">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <button class="button" type="submit" data-testid="refresh-recommendations">立即刷新</button>
-  </form>
+  <div><span class="eyebrow">动态岗位聚合</span><h1>优先处理真正值得申请的机会</h1><p>每 {{ refresh_hours }} 小时自动刷新。金融与法律岗位会额外核对年限、级别和专业资质。</p></div>
+  <form method="post" action="/recommendations/refresh"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="button" type="submit" data-testid="refresh-recommendations">立即刷新</button></form>
 </section>
-
 <section class="source-strip" data-testid="source-status">
   {% if latest_run %}
-  <div><b>最近刷新</b><span>{{ latest_run.completed_at or latest_run.created_at }}</span></div>
-  <div><b>发现</b><span>{{ latest_run.jobs_seen }} 个</span></div>
-  <div><b>新增</b><span>{{ latest_run.jobs_new }} 个</span></div>
-  {% for row in source_rows %}
-  <span class="source-badge {{ row.status }}" title="{{ row.detail or '' }}">{{ row.source }} · {{ row.status }} · {{ row.jobs_seen }}</span>
-  {% endfor %}
+  <div><b>最近刷新</b><span>{{ latest_run.completed_at or latest_run.created_at }}</span></div><div><b>发现</b><span>{{ latest_run.jobs_seen }} 个</span></div><div><b>新增</b><span>{{ latest_run.jobs_new }} 个</span></div>
+  {% for row in source_rows %}<span class="source-badge {{ row.status }}" title="{{ row.detail or '' }}">{{ row.source }} · {{ {'completed':'成功','failed':'失败','running':'运行中','queued':'排队中'}.get(row.status,row.status) }} · {{ row.jobs_seen }}</span>{% endfor %}
   {% else %}<span>岗位发现正在准备中。</span>{% endif %}
 </section>
-
 <form method="get" action="/recommendations" class="filter-panel" data-testid="recommendation-filters" data-live-filters>
   <label class="search-field">搜索<input name="q" value="{{ filters.get('q','') }}" placeholder="公司、岗位、技能或关键词" data-testid="filter-q"></label>
-  <label>城市<select name="city" data-testid="filter-city"><option value="">全部</option>{% for x in facets.cities %}<option {% if filters.get('city')==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></label>
-  <label>岗位族<select name="role" data-testid="filter-role"><option value="">全部</option>{% for x in facets.roles %}<option {% if filters.get('role')==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></label>
-  <label>技能<select name="skill" data-testid="filter-skill"><option value="">全部</option>{% for x in facets.skills %}<option {% if filters.get('skill')==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></label>
-  <label>来源<select name="source" data-testid="filter-source"><option value="">全部</option>{% for x in facets.sources %}<option {% if filters.get('source')==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></label>
+  <label>专业领域<select name="domain" data-testid="filter-domain"><option value="">全部</option>{% for value,label in facets.domains %}<option value="{{ value }}" {% if filters.get('domain')==value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+  <label>城市<select name="city" data-testid="filter-city"><option value="">全部</option>{% for x in facets.cities %}<option value="{{ x }}" {% if filters.get('city')==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></label>
+  <label>岗位方向<select name="role" data-testid="filter-role"><option value="">全部</option>{% for x in facets.roles %}<option value="{{ x }}" {% if filters.get('role')==x %}selected{% endif %}>{{ x|role_label }}</option>{% endfor %}</select></label>
+  <label>技能<select name="skill" data-testid="filter-skill"><option value="">全部</option>{% for x in facets.skills %}<option value="{{ x }}" {% if filters.get('skill')==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></label>
+  <label>来源<select name="source" data-testid="filter-source"><option value="">全部</option>{% for x in facets.sources %}<option value="{{ x }}" {% if filters.get('source')==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></label>
   <label>新鲜度<select name="freshness" data-testid="filter-freshness"><option value="">全部</option><option value="1" {% if filters.get('freshness')=='1' %}selected{% endif %}>24 小时</option><option value="3" {% if filters.get('freshness')=='3' %}selected{% endif %}>3 天</option><option value="7" {% if filters.get('freshness')=='7' %}selected{% endif %}>7 天</option><option value="30" {% if filters.get('freshness')=='30' %}selected{% endif %}>30 天</option></select></label>
   <label>资格<select name="qualification" data-testid="filter-qualification"><option value="">全部</option><option value="pass" {% if filters.get('qualification')=='pass' %}selected{% endif %}>通过</option><option value="pending" {% if filters.get('qualification')=='pending' %}selected{% endif %}>待确认</option><option value="fail" {% if filters.get('qualification')=='fail' %}selected{% endif %}>不符合</option></select></label>
-  <label>相关性<select name="relevance" data-testid="filter-relevance"><option value="">全部</option><option value="high" {% if filters.get('relevance')=='high' %}selected{% endif %}>高（默认）</option><option value="medium" {% if filters.get('relevance')=='medium' %}selected{% endif %}>中</option><option value="low" {% if filters.get('relevance')=='low' %}selected{% endif %}>低</option></select></label>
+  <label>相关性<select name="relevance" data-testid="filter-relevance"><option value="">全部</option><option value="high" {% if filters.get('relevance')=='high' %}selected{% endif %}>高</option><option value="medium" {% if filters.get('relevance')=='medium' %}selected{% endif %}>中</option><option value="low" {% if filters.get('relevance')=='low' %}selected{% endif %}>低</option></select></label>
   <label>机会潜力<select name="opportunity" data-testid="filter-opportunity"><option value="">全部</option><option value="high" {% if filters.get('opportunity')=='high' %}selected{% endif %}>高</option><option value="medium" {% if filters.get('opportunity')=='medium' %}selected{% endif %}>中</option><option value="low" {% if filters.get('opportunity')=='low' %}selected{% endif %}>低</option></select></label>
   <label>我的状态<select name="status" data-testid="filter-status"><option value="">全部</option><option value="new" {% if filters.get('status')=='new' %}selected{% endif %}>新发现</option><option value="saved" {% if filters.get('status')=='saved' %}selected{% endif %}>已收藏</option><option value="ignored" {% if filters.get('status')=='ignored' %}selected{% endif %}>已忽略</option><option value="preparing" {% if filters.get('status')=='preparing' %}selected{% endif %}>准备申请</option><option value="applied" {% if filters.get('status')=='applied' %}selected{% endif %}>已申请</option></select></label>
   <div class="filter-actions"><button class="button" type="submit" data-testid="filter-submit">应用筛选</button><a class="button ghost" href="/recommendations" data-testid="filter-clear">清除</a></div>
 </form>
-<p id="filter-live-status" class="filter-live-status" role="status" aria-live="polite">筛选条件变更后会自动更新结果。</p>
-
-<div id="recommendation-results" data-testid="recommendation-results">
-  {% include "recommendation_results.html" %}
-</div>
+<p id="filter-live-status" class="filter-live-status" role="status" aria-live="polite">修改筛选条件后会自动更新结果。</p>
+<div id="recommendation-results" data-testid="recommendation-results">{% include "recommendation_results.html" %}</div>
 {% endblock %}

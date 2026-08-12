@@ -25,6 +25,7 @@ os.environ.update({
     "DATA_ENCRYPTION_KEY": "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
     "EMAIL_LOOKUP_SECRET": "restart-email", "COOKIE_SECURE": "false",
     "ADMIN_EMAIL": "owner@example.com", "ADMIN_PASSWORD": "AdminPass!2026",
+    "ALLOW_REGISTRATION": "true",
     "DISCOVERY_REFRESH_HOURS": "6", "ENABLE_REMOTIVE": "false",
     "ENABLE_ARBEITNOW": "false", "ENABLE_JOBICY": "false",
 })

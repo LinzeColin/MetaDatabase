@@ -94,23 +94,30 @@ def expect_url(page: Page, suffix: str) -> None:
         raise AssertionError(f"unexpected URL {page.url}; expected path {suffix}")
 
 
-def click_and_wait(page: Page, selector: str) -> None:
-    page.locator(selector).click()
-    page.wait_for_load_state("domcontentloaded")
+def click_and_wait(page: Page, selector: str, *, navigation: bool = True) -> None:
+    if navigation:
+        with page.expect_navigation(wait_until="networkidle"):
+            page.locator(selector).click()
+        return
+    with page.expect_response(
+        lambda response: response.status == 200 and "partial=true" in response.url
+    ):
+        page.locator(selector).click()
+    page.wait_for_load_state("networkidle")
 
 
 def register_verify(page: Page, base_url: str, email: str, password: str, steps: list[str]) -> None:
-    page.goto(f"{base_url}/register", wait_until="domcontentloaded")
+    page.goto(f"{base_url}/register", wait_until="networkidle")
     page.get_by_test_id("register-name").fill("Synthetic Candidate")
     page.get_by_test_id("register-email").fill(email)
     page.get_by_test_id("register-password").fill(password)
     page.get_by_test_id("register-password-confirm").fill(password)
     click_and_wait(page, '[data-testid="register-submit"]')
     page.get_by_test_id("verify-resend").click()
-    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_load_state("networkidle")
     page.get_by_test_id("resend-email").fill(email)
     click_and_wait(page, '[data-testid="resend-submit"]')
-    page.goto(mail_link(latest_mail(base_url, "verify", email)), wait_until="domcontentloaded")
+    page.goto(mail_link(latest_mail(base_url, "verify", email)), wait_until="networkidle")
     expect_url(page, "/verify-email")
     click_and_wait(page, '[data-testid="verify-email-confirm"]')
     expect_url(page, "/onboarding/upload")
@@ -119,7 +126,7 @@ def register_verify(page: Page, base_url: str, email: str, password: str, steps:
 
 def owner_entry(page: Page, base_url: str, password: str, steps: list[str]) -> None:
     """Enter the pre-provisioned Owner account without registration or mail."""
-    page.goto(f"{base_url}/owner-entry", wait_until="domcontentloaded")
+    page.goto(f"{base_url}/owner-entry", wait_until="networkidle")
     page.get_by_test_id("owner-entry-password").fill(password)
     click_and_wait(page, '[data-testid="owner-entry-submit"]')
     expect_url(page, "/onboarding/upload")
@@ -128,16 +135,33 @@ def owner_entry(page: Page, base_url: str, password: str, steps: list[str]) -> N
     steps.append("owner_entry_without_email")
 
 
-def onboard(page: Page, root: Path, steps: list[str]) -> None:
-    page.get_by_test_id("resume-file").set_input_files(str(root / "tests/fixtures/resume.txt"))
+def onboard(
+    page: Page,
+    root: Path,
+    steps: list[str],
+    *,
+    resume_file: str = "finance_resume.txt",
+    roles: str = "金融分析、会计与审计、风险管理",
+    locations: str = "Sydney, Melbourne, Remote Australia",
+    years: str = "3",
+    credentials: str = "CPA",
+    legal_admission: str = "not_applicable",
+    certificate: str = "not_applicable",
+) -> None:
+    page.get_by_test_id("resume-file").set_input_files(str(root / f"tests/fixtures/{resume_file}"))
     page.get_by_test_id("resume-upload-submit").click()
-    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_load_state("networkidle")
     expect_url(page, "/onboarding/confirm")
-    page.get_by_test_id("confirm-roles").fill("Finance, Data, Business Analysis")
-    page.get_by_test_id("confirm-locations").fill("Sydney, Melbourne, Remote Australia")
+    page.get_by_test_id("confirm-roles").fill(roles)
+    page.get_by_test_id("confirm-locations").fill(locations)
     page.get_by_test_id("confirm-work-authorization").fill("Australian full working rights")
     page.get_by_test_id("confirm-sponsorship-now").select_option("no")
     page.get_by_test_id("confirm-sponsorship-future").select_option("no")
+    page.get_by_test_id("confirm-experience-years").fill(years)
+    page.get_by_test_id("confirm-credentials").fill(credentials)
+    page.get_by_test_id("confirm-credentials-confirmed").check()
+    page.get_by_test_id("confirm-legal-admission").select_option(legal_admission)
+    page.get_by_test_id("confirm-practising-certificate").select_option(certificate)
     for value in ["remote", "hybrid", "onsite"]:
         checkbox = page.locator(f'input[name="work_modes"][value="{value}"]')
         if not checkbox.is_checked():
@@ -164,6 +188,7 @@ def assert_external_link(locator) -> None:
 def exercise_filters(page: Page, steps: list[str]) -> None:
     filters = [
         ("filter-q", "Analyst"),
+        ("filter-domain", "finance"),
         ("filter-city", "Sydney"),
         ("filter-role", "Finance"),
         ("filter-skill", "excel"),
@@ -188,7 +213,10 @@ def exercise_filters(page: Page, steps: list[str]) -> None:
             locator.select_option(value)
         else:
             locator.fill(value)
-    click_and_wait(page, '[data-testid="filter-submit"]')
+    if page.get_by_test_id("recommendation-filters").get_attribute("data-live-filters-ready") != "true":
+        raise AssertionError("实时筛选事件未绑定")
+    page.wait_for_timeout(700)
+    click_and_wait(page, '[data-testid="filter-submit"]', navigation=False)
     page.get_by_test_id("recommendation-filters").wait_for()
     click_and_wait(page, '[data-testid="filter-clear"]')
     page.get_by_test_id("job-card").first.wait_for()
@@ -199,16 +227,40 @@ def exercise_candidate_flow(page: Page, base_url: str, steps: list[str]) -> tupl
     click_and_wait(page, '[data-testid="refresh-recommendations"]')
     exercise_filters(page, steps)
     page.get_by_test_id("job-detail-link").first.click()
-    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_load_state("networkidle")
     expect_url(page, "/recommendations/")
     assert_external_link(page.get_by_test_id("official-job-link"))
     detail_url = page.url
+    with page.expect_navigation(wait_until="networkidle"):
+        page.get_by_test_id("ask-ai").click()
+    page.get_by_test_id("ai-consult-question").fill("这份岗位最该突出哪段已确认经历？")
+    with page.expect_response(
+        lambda response: response.request.method == "POST" and response.url.endswith("/ai")
+    ):
+        page.get_by_test_id("ai-consult-submit").click()
+    page.wait_for_load_state("networkidle")
+    if not page.get_by_test_id("ai-consult-answer").inner_text().strip():
+        raise AssertionError("AI 问询没有返回可见建议")
+    with page.expect_navigation(wait_until="networkidle"):
+        page.locator(".back-link").click()
     click_and_wait(page, '[data-testid="save-job"]')
     page.get_by_test_id("ignore-job").wait_for()
     click_and_wait(page, '[data-testid="create-pack"]')
     expect_url(page, "/application-packs/")
     assert_external_link(page.get_by_test_id("pack-open-job"))
     pack_url = page.url
+    if page.get_by_test_id("resume-routing").count() != 1:
+        raise AssertionError("简历自动路由说明缺失")
+    with page.expect_download() as download_info:
+        page.get_by_test_id("pack-download-resume").click()
+    download = download_info.value
+    if not download.suggested_filename.endswith(".docx"):
+        raise AssertionError("岗位定制简历不是 DOCX")
+    click_and_wait(page, '[data-testid="edit-application-pack"]')
+    expect_url(page, "/application-packs/")
+    page.get_by_test_id("why-me-summary").fill(page.get_by_test_id("why-me-summary").input_value())
+    click_and_wait(page, '[data-testid="save-application-pack"]')
+    expect_url(page, "/application-packs/")
     page.get_by_test_id("copy-why-role").click()
     page.wait_for_timeout(100)
     if page.get_by_test_id("copy-why-role").inner_text() not in {"已复制", "复制失败", "复制"}:
@@ -226,17 +278,22 @@ def exercise_candidate_flow(page: Page, base_url: str, steps: list[str]) -> tupl
     page.get_by_test_id("application-notes").fill("Synthetic accepted control")
     click_and_wait(page, '[data-testid="application-submit"]')
     for status in ["pending", "interview", "rejected", "offer", "withdrawn"]:
-        page.get_by_test_id("application-status").select_option(status)
-        page.get_by_test_id("application-evidence").fill("")
-        page.get_by_test_id("application-notes").fill(f"Synthetic {status}")
-        click_and_wait(page, '[data-testid="application-submit"]')
-    steps.extend(["manual_refresh", "job_detail", "save_job", "application_pack", "copy_buttons", "application_statuses"])
+        with page.expect_navigation(wait_until="networkidle"):
+            page.get_by_test_id("edit-application-progress").first.click()
+        page.get_by_test_id("application-edit-status").select_option(status)
+        page.get_by_test_id("application-edit-evidence").fill("")
+        page.get_by_test_id("application-edit-notes").fill(f"Synthetic {status}")
+        click_and_wait(page, '[data-testid="save-application-progress"]')
+    steps.extend([
+        "manual_refresh", "job_detail", "ai_consultation", "save_job", "application_pack", "resume_routing",
+        "resume_docx_download", "application_pack_edit", "copy_buttons", "application_statuses", "application_progress_edit",
+    ])
     return detail_url, pack_url
 
 
 def manual_job(page: Page, steps: list[str]) -> None:
     page.get_by_test_id("nav-manual-job").click()
-    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_load_state("networkidle")
     # Server-side safety negative control (fill() rejects malformed URL in browser validation,
     # so use a syntactically valid but private address).
     page.get_by_test_id("manual-url").fill("http://127.0.0.1/private")
@@ -262,12 +319,16 @@ def manual_job(page: Page, steps: list[str]) -> None:
 
 def settings_and_password(page: Page, base_url: str, email: str, old_password: str, steps: list[str]) -> str:
     page.get_by_test_id("nav-settings").click()
-    page.wait_for_load_state("domcontentloaded")
-    page.get_by_test_id("settings-roles").fill("Finance, Data, Treasury")
+    page.wait_for_load_state("networkidle")
+    page.get_by_test_id("settings-roles").fill("金融分析、会计与审计、法律")
+    page.get_by_test_id("settings-experience-years").fill("4")
+    page.get_by_test_id("settings-credentials").fill("CPA、JD、PLT")
+    if not page.get_by_test_id("settings-credentials-confirmed").is_checked():
+        page.get_by_test_id("settings-credentials-confirmed").check()
     page.get_by_test_id("settings-locations").fill("Sydney, Melbourne, Remote Australia")
     page.get_by_test_id("settings-start").fill("2026-12")
     click_and_wait(page, '[data-testid="settings-profile-submit"]')
-    page.goto(f"{base_url}/settings/data", wait_until="domcontentloaded")
+    page.goto(f"{base_url}/settings/data", wait_until="networkidle")
     with page.expect_download() as download_info:
         page.get_by_test_id("data-export").click()
     download = download_info.value
@@ -275,7 +336,7 @@ def settings_and_password(page: Page, base_url: str, email: str, old_password: s
     data = export_path.read_text(encoding="utf-8")
     if "DEEPSEEK_API_KEY" in data or "SESSION_SECRET" in data:
         raise AssertionError("user export contains platform secret material")
-    page.goto(f"{base_url}/settings/security", wait_until="domcontentloaded")
+    page.goto(f"{base_url}/settings/security", wait_until="networkidle")
     new_password = "ChangedPass123"
     page.get_by_test_id("security-current-password").fill(old_password)
     page.get_by_test_id("security-new-password").fill(new_password)
@@ -295,23 +356,23 @@ def settings_and_password(page: Page, base_url: str, email: str, old_password: s
     expect_url(page, "/dashboard")
     # Forgot/reset, then ensure token is single-use.
     page.get_by_test_id("logout-button").click()
-    page.wait_for_load_state("domcontentloaded")
-    page.goto(f"{base_url}/forgot-password", wait_until="domcontentloaded")
+    page.wait_for_load_state("networkidle")
+    page.goto(f"{base_url}/forgot-password", wait_until="networkidle")
     page.get_by_test_id("forgot-email").fill(email)
     click_and_wait(page, '[data-testid="forgot-submit"]')
     link = mail_link(latest_mail(base_url, "reset", email))
-    page.goto(link, wait_until="domcontentloaded")
+    page.goto(link, wait_until="networkidle")
     final_password = "ResetFinalPass123"
     page.get_by_test_id("reset-password").fill(final_password)
     page.get_by_test_id("reset-password-confirm").fill(final_password)
     click_and_wait(page, '[data-testid="reset-submit"]')
-    page.goto(link, wait_until="domcontentloaded")
+    page.goto(link, wait_until="networkidle")
     page.get_by_test_id("reset-password").fill("ReuseShouldFail123")
     page.get_by_test_id("reset-password-confirm").fill("ReuseShouldFail123")
     click_and_wait(page, '[data-testid="reset-submit"]')
     if "无效或已过期" not in page.content():
         raise AssertionError("reset token could be reused")
-    page.goto(f"{base_url}/login", wait_until="domcontentloaded")
+    page.goto(f"{base_url}/login", wait_until="networkidle")
     page.get_by_test_id("login-email").fill(email)
     page.get_by_test_id("login-password").fill(final_password)
     click_and_wait(page, '[data-testid="login-submit"]')
@@ -323,14 +384,25 @@ def settings_and_password(page: Page, base_url: str, email: str, old_password: s
 def second_user_isolation(page: Page, base_url: str, root: Path, detail_url: str, pack_url: str, steps: list[str]) -> tuple[str, str]:
     # Leave user A, then perform the full lifecycle for user B in the same browser context.
     mark_progress("tenant: start")
-    page.goto(f"{base_url}/dashboard", wait_until="domcontentloaded")
+    page.goto(f"{base_url}/dashboard", wait_until="networkidle")
     click_and_wait(page, '[data-testid="logout-button"]')
     mark_progress("tenant: user A logged out")
     email = "candidate-b@example.com"
     password = "ValidPass123"
     register_verify(page, base_url, email, password, steps)
     mark_progress("tenant: user B verified")
-    onboard(page, root, steps)
+    onboard(
+        page,
+        root,
+        steps,
+        resume_file="legal_resume.txt",
+        roles="法律、合规、合同与法务运营",
+        locations="Melbourne, Sydney",
+        years="4",
+        credentials="JD、PLT、澳大利亚律师准入、澳大利亚执业证书",
+        legal_admission="admitted",
+        certificate="current",
+    )
     mark_progress("tenant: user B onboarded")
     response = page.request.get(detail_url)
     if response.status != 404:
@@ -340,7 +412,7 @@ def second_user_isolation(page: Page, base_url: str, root: Path, detail_url: str
     if response.status != 404:
         raise AssertionError(f"cross-tenant pack returned {response.status}")
     mark_progress("tenant: pack negative checked")
-    page.goto(f"{base_url}/jobs/manual", wait_until="domcontentloaded")
+    page.goto(f"{base_url}/jobs/manual", wait_until="networkidle")
     page.get_by_test_id("manual-url").fill("https://company.example/jobs/synthetic-manual")
     page.get_by_test_id("manual-title").fill("Graduate Treasury Analyst")
     page.get_by_test_id("manual-company").fill("Manual Company")
@@ -348,7 +420,7 @@ def second_user_isolation(page: Page, base_url: str, root: Path, detail_url: str
     page.get_by_test_id("manual-description").fill("Synthetic second tenant manual job.")
     click_and_wait(page, '[data-testid="manual-submit"]')
     mark_progress("tenant: same URL imported")
-    page.goto(f"{base_url}/settings/data", wait_until="domcontentloaded")
+    page.goto(f"{base_url}/settings/data", wait_until="networkidle")
     page.on("dialog", lambda dialog: dialog.accept())
     page.get_by_test_id("delete-password").fill(password)
     page.get_by_test_id("delete-confirmation").fill("删除我的账户")
@@ -360,28 +432,28 @@ def second_user_isolation(page: Page, base_url: str, root: Path, detail_url: str
 
 
 def admin_flow(page: Page, base_url: str, admin_email: str, admin_password: str, steps: list[str]) -> None:
-    page.goto(f"{base_url}/login", wait_until="domcontentloaded")
+    page.goto(f"{base_url}/login", wait_until="networkidle")
     page.get_by_test_id("login-email").fill(admin_email)
     page.get_by_test_id("login-password").fill(admin_password)
     click_and_wait(page, '[data-testid="login-submit"]')
     page.get_by_test_id("nav-admin").click()
-    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_load_state("networkidle")
     page.get_by_test_id("admin-users-table").wait_for()
     row = page.locator("table tbody tr").filter(has=page.locator('[data-testid^="admin-toggle-"]')).first
     quota = row.locator('[data-testid^="admin-quota-"]').first
     quota.fill("17")
     row.locator('[data-testid^="admin-quota-submit-"]').first.click()
-    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_load_state("networkidle")
     row = page.locator("table tbody tr").filter(has=page.locator('[data-testid^="admin-toggle-"]')).first
     row.locator('[data-testid^="admin-toggle-"]').first.click()
-    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_load_state("networkidle")
     row = page.locator("table tbody tr").filter(has=page.locator('[data-testid^="admin-toggle-"]')).first
     if "已停用" not in row.inner_text():
         raise AssertionError("admin disable did not apply")
     row.locator('[data-testid^="admin-toggle-"]').first.click()
-    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_load_state("networkidle")
     page.get_by_test_id("admin-platform-link").click()
-    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_load_state("networkidle")
     if "6h" not in page.content() or "不展示 Secret 值" not in page.content():
         raise AssertionError("admin platform contract is missing")
     click_and_wait(page, '[data-testid="logout-button"]')
@@ -390,11 +462,11 @@ def admin_flow(page: Page, base_url: str, admin_email: str, admin_password: str,
 
 def mobile_check(page: Page, base_url: str, email: str, password: str, steps: list[str]) -> None:
     page.set_viewport_size({"width": 390, "height": 844})
-    page.goto(f"{base_url}/login", wait_until="domcontentloaded")
+    page.goto(f"{base_url}/login", wait_until="networkidle")
     page.get_by_test_id("login-email").fill(email)
     page.get_by_test_id("login-password").fill(password)
     click_and_wait(page, '[data-testid="login-submit"]')
-    page.goto(f"{base_url}/recommendations", wait_until="domcontentloaded")
+    page.goto(f"{base_url}/recommendations", wait_until="networkidle")
     overflow = page.evaluate("document.documentElement.scrollWidth > window.innerWidth + 1")
     if overflow:
         raise AssertionError("mobile recommendations page has horizontal overflow")
@@ -402,7 +474,7 @@ def mobile_check(page: Page, base_url: str, email: str, password: str, steps: li
     click_and_wait(page, '[data-testid="filter-submit"]')
     if page.get_by_test_id("job-card").count():
         page.get_by_test_id("job-detail-link").first.click()
-        page.wait_for_load_state("domcontentloaded")
+        page.wait_for_load_state("networkidle")
         if page.evaluate("document.documentElement.scrollWidth > window.innerWidth + 1"):
             raise AssertionError("mobile detail page has horizontal overflow")
     page.set_viewport_size({"width": 1440, "height": 1100})
@@ -416,7 +488,7 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
     env.update({
         "APP_ENV": "test",
         "APP_NAME": "JobHuntBot Online",
-        "APP_VERSION": "0.3.0",
+        "APP_VERSION": "0.4.0",
         "BASE_URL": base_url,
         "DATABASE_URL": f"sqlite+pysqlite:///{temp / 'e2e.db'}",
         "SESSION_SECRET": "e2e-session-secret",
@@ -471,26 +543,26 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
                 owner_entry(page, base_url, env["OWNER_ENTRY_PASSWORD"], steps)
                 mark_progress("owner entered without email")
             else:
-                page.goto(base_url, wait_until="domcontentloaded")
+                page.goto(base_url, wait_until="networkidle")
                 page.get_by_test_id("hero-register").click()
-                page.wait_for_load_state("domcontentloaded")
+                page.wait_for_load_state("networkidle")
                 register_verify(page, base_url, email, initial_password, steps)
                 mark_progress("user1 verified")
             onboard(page, ROOT, steps)
             mark_progress("owner or user1 onboarded")
 
             if args.owner_entry_only:
-                page.goto(f"{base_url}/dashboard", wait_until="domcontentloaded")
+                page.goto(f"{base_url}/dashboard", wait_until="networkidle")
                 page.get_by_test_id("dashboard-view-recommendations").click()
-                page.wait_for_load_state("domcontentloaded")
+                page.wait_for_load_state("networkidle")
                 page.get_by_test_id("job-card").first.wait_for()
                 steps.append("owner_recommendations_visible")
                 context.close()
                 browser.close()
             else:
                 # Exercise all primary navigation and dashboard cards without losing state.
-                page.get_by_test_id("nav-dashboard").click(); page.wait_for_load_state("domcontentloaded")
-                page.get_by_test_id("dashboard-view-recommendations").click(); page.wait_for_load_state("domcontentloaded")
+                page.get_by_test_id("nav-dashboard").click(); page.wait_for_load_state("networkidle")
+                page.get_by_test_id("dashboard-view-recommendations").click(); page.wait_for_load_state("networkidle")
                 detail_url, pack_url = exercise_candidate_flow(page, base_url, steps)
                 mark_progress("candidate flow complete")
                 manual_job(page, steps)
@@ -525,7 +597,8 @@ def run(args: argparse.Namespace) -> tuple[dict, int]:
             "base_url": base_url,
             "synthetic_data_only": True,
             "owner_entry_only": owner_scope,
-            "email_sent": False if owner_scope else None,
+            "real_email_delivery_sent": False,
+            "synthetic_outbox_events": not owner_scope,
             "production_claimed": False,
             "refresh_interval_hours": 6,
             "steps": steps,

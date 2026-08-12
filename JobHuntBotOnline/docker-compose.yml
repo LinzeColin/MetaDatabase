@@ -1,7 +1,7 @@
 name: ${COMPOSE_PROJECT_NAME:-jobhuntbot-online}
 
 x-web-runtime: &web-runtime
-  image: ${APP_IMAGE:-jobhuntbot-online:0.3.0}
+  image: ${APP_IMAGE:-jobhuntbot-online:0.4.0}
   build:
     context: .
     dockerfile: Dockerfile
@@ -71,7 +71,7 @@ services:
     profiles: ["canary"]
 
   scheduler:
-    image: ${APP_IMAGE:-jobhuntbot-online:0.3.0}
+    image: ${APP_IMAGE:-jobhuntbot-online:0.4.0}
     build:
       context: .
       dockerfile: Dockerfile
@@ -92,7 +92,7 @@ services:
     networks: [internal]
 
   worker:
-    image: ${APP_IMAGE:-jobhuntbot-online:0.3.0}
+    image: ${APP_IMAGE:-jobhuntbot-online:0.4.0}
     build:
       context: .
       dockerfile: Dockerfile
@@ -113,7 +113,7 @@ services:
 
   acceptance:
     profiles: ["acceptance"]
-    image: ${ACCEPTANCE_IMAGE:-jobhuntbot-online-acceptance:0.3.0}
+    image: ${ACCEPTANCE_IMAGE:-jobhuntbot-online-acceptance:0.4.0}
     # Keep generated evidence host-writable so a later fresh acceptance run
     # cannot be blocked by artifacts owned by the container's default root user.
     user: "${ACCEPTANCE_UID:-1000}:${ACCEPTANCE_GID:-1000}"

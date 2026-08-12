@@ -1,206 +1,210 @@
 {
-  "version": "0.3.0-r2",
+  "version": "0.4.0",
   "tasks": [
     {
       "id": "T00",
-      "stage": "OBSERVE_CURRENT_TRUTH",
-      "title": "观察最新仓库和真实部署",
+      "title": "观察当前真实功能和仓库",
       "depends_on": [],
+      "action": "只读观察最新仓库、真实网站、数据库、调度、邮件、人工智能服务、已有测试和第一处功能断点。",
       "outputs": [
         "evidence/target-current-truth.json"
       ],
       "acceptance": [
         "AC-PACK-00"
       ],
-      "rollback": "只读，无副作用",
-      "stop_condition": "目标项目、域名或权限身份无法唯一确定"
+      "rollback": "只读",
+      "stop_condition": "目标项目或真实入口无法确定"
     },
     {
       "id": "T01",
-      "stage": "PROTECT_CURRENT_STATE",
-      "title": "建立部署前备份与回滚点",
+      "title": "保护当前可用版本",
       "depends_on": [
         "T00"
       ],
+      "action": "创建应用、数据库、上传对象和配置恢复点，记录当前可执行回滚目标。",
       "outputs": [
         "runtime-data/predeploy-backup.txt",
         "runtime-data/rollback-image.txt"
       ],
       "acceptance": [
-        "AC-RECOVERY-09"
+        "AC-RECOVERY-13"
       ],
-      "rollback": "不改变当前运行版本",
+      "rollback": "保持当前版本运行",
       "stop_condition": "备份不可读或无恢复权限"
     },
     {
       "id": "T02",
-      "stage": "ADAPT_SOURCE",
-      "title": "把 v0.3 Candidate 适配到最新仓库",
+      "title": "良性合入 v0.4 增量",
       "depends_on": [
         "T00",
         "T01"
       ],
+      "action": "按语义比较当前实现与本包，只合入金融／法律资格、多简历路由、DOCX 和中文体验；保护所有更优现有实现。",
       "outputs": [
-        "目标仓 v0.3 源码 Candidate"
+        "当前仓可运行 Candidate"
       ],
       "acceptance": [
-        "AC-PACK-00",
-        "AC-TENANT-02"
+        "AC-FINANCE-02",
+        "AC-LEGAL-03",
+        "AC-RESUME-04",
+        "AC-DOCX-05",
+        "AC-CHINESE-08"
       ],
-      "rollback": "保留独立工作树或可逆提交",
-      "stop_condition": "与 Owner L0/L1 冲突"
+      "rollback": "独立工作树或可逆提交",
+      "stop_condition": "发现改变北极星、数据权威、费用或法律边界"
     },
     {
       "id": "T03",
-      "stage": "CONFIGURE_SECRETS",
-      "title": "生成生产配置并安全注入非邮件 Secret；邮件可延后",
+      "title": "运行源码与数据事务测试",
       "depends_on": [
         "T02"
       ],
+      "action": "运行完整测试、编译、界面合同和真实 Uvicorn 金融／法律双用户事务；修复第一处断点并重跑。",
       "outputs": [
-        ".env",
-        "secrets/postgres_password.txt",
-        "安全登录交付"
+        "evidence/target-source-tests-v04.json",
+        "evidence/target-http-v04.json"
       ],
       "acceptance": [
-        "AC-AI-03",
-        "AC-PROD-10"
+        "AC-FINANCE-02",
+        "AC-LEGAL-03",
+        "AC-RESUME-04",
+        "AC-DOCX-05",
+        "AC-TENANT-10",
+        "AC-PERSIST-12"
       ],
-      "rollback": "删除未生效配置，不影响旧服务",
-      "stop_condition": "缺失真实域名、数据库或核心 Secret 权限；NitroSend/SMTP 缺失不得阻断本任务"
+      "rollback": "回退本次失败改动",
+      "stop_condition": "同类修复两次仍失败"
     },
     {
       "id": "T04",
-      "stage": "MIGRATE_DATA",
-      "title": "部署 PostgreSQL Schema 并迁移 v0.2 数据",
+      "title": "适配数据库和部署运行时",
       "depends_on": [
         "T01",
         "T03"
       ],
+      "action": "执行必要的向前兼容迁移，部署 Web、调度器和后台任务处理器；不因暂缺 SMTP 停止非邮件工作。",
       "outputs": [
-        "Alembic head",
-        "migration-result.json"
+        "migration-result.json",
+        "当前部署"
       ],
       "acceptance": [
-        "AC-DATA-08"
+        "AC-DISCOVERY-06",
+        "AC-REFRESH-07",
+        "AC-PERSIST-12"
       ],
-      "rollback": "恢复部署前备份并回到旧应用",
+      "rollback": "恢复应用和数据库恢复点",
       "stop_condition": "迁移数量或读回不一致"
     },
     {
       "id": "T05",
-      "stage": "DEPLOY_RUNTIME",
-      "title": "部署 Web、Scheduler、Worker（邮件未就绪也继续）",
+      "title": "真实浏览器逐控件验收",
       "depends_on": [
-        "T03",
         "T04"
       ],
+      "action": "在允许 Chromium 的环境使用金融／法律合成账户，逐页操作所有可见按钮、输入、筛选、链接和下载，核对页面、网络、数据库与控制台。",
       "outputs": [
-        "真实 deployment identity"
-      ],
-      "acceptance": [
-        "AC-DISCOVERY-04",
-        "AC-REFRESH-05",
-        "AC-UX-06",
-        "AC-APPLICATION-07",
-        "AC-SOURCE-11"
-      ],
-      "rollback": "切回 rollback image，数据库保持兼容",
-      "stop_condition": "健康检查或任务队列失败"
-    },
-    {
-      "id": "T06",
-      "stage": "VERIFY_EMAIL",
-      "title": "验证任意标准 SMTP 注册和密码重置",
-      "depends_on": [
-        "T05"
-      ],
-      "outputs": [
-        "evidence/target-email.json"
+        "evidence/target-browser-v04.json"
       ],
       "acceptance": [
         "AC-AUTH-01",
-        "AC-PROD-10"
+        "AC-CONTROLS-09",
+        "AC-CHINESE-08",
+        "AC-TENANT-10",
+        "AC-DOCX-05"
       ],
-      "rollback": "停用注册或切回旧版本",
-      "stop_condition": "标准 SMTP 凭据不可用时仅阻断 T06/T08；记录 EMAIL_ONLY_BLOCKED，其他任务继续"
+      "rollback": "删除合成账户和测试数据",
+      "stop_condition": "浏览器、账户、邮件或权限不可用时仅标记受影响项并继续其他验证"
     },
     {
-      "id": "T07",
-      "stage": "VERIFY_DEEPSEEK",
-      "title": "验证平台 DeepSeek 和降级",
+      "id": "T06",
+      "title": "验证真实来源、六小时刷新和人工智能降级",
       "depends_on": [
-        "T05"
+        "T04"
       ],
+      "action": "核对授权岗位来源、新增／更新／去重／失败状态、下一次六小时调度和平台人工智能成功／失败降级。",
       "outputs": [
+        "evidence/target-sources.json",
+        "evidence/target-state-after.json",
         "evidence/target-deepseek.json"
       ],
       "acceptance": [
-        "AC-AI-03"
+        "AC-DISCOVERY-06",
+        "AC-REFRESH-07",
+        "AC-AI-11"
       ],
-      "rollback": "清除 Key，核心规则继续",
-      "stop_condition": "Key、额度或供应商不可用"
+      "rollback": "恢复旧配置或停用失败来源",
+      "stop_condition": "新增费用或未授权来源"
+    },
+    {
+      "id": "T07",
+      "title": "重启读回和恢复验证",
+      "depends_on": [
+        "T05",
+        "T06"
+      ],
+      "action": "重启应用运行时，核对推荐、简历、申请包和状态；验证备份可读和隔离恢复。",
+      "outputs": [
+        "evidence/target-restart.json",
+        "evidence/target-recovery.json"
+      ],
+      "acceptance": [
+        "AC-PERSIST-12",
+        "AC-RECOVERY-13"
+      ],
+      "rollback": "执行既有回滚路径",
+      "stop_condition": "读回或恢复不一致"
     },
     {
       "id": "T08",
-      "stage": "PRODUCTION_ACCEPTANCE",
-      "title": "执行真实 HTTPS 全链验收",
+      "title": "最终功能裁决",
       "depends_on": [
+        "T03",
         "T05",
         "T06",
         "T07"
       ],
+      "action": "基于真实用户结果生成 ACCEPTANCE_RESULT.json；提交／部署身份仅作记录，不代替功能结论。",
       "outputs": [
         "ACCEPTANCE_RESULT.json"
       ],
       "acceptance": [
+        "AC-PACK-00",
         "AC-AUTH-01",
-        "AC-TENANT-02",
-        "AC-AI-03",
-        "AC-DISCOVERY-04",
-        "AC-REFRESH-05",
-        "AC-UX-06",
-        "AC-APPLICATION-07",
-        "AC-DATA-08",
-        "AC-RECOVERY-09",
-        "AC-PROD-10",
-        "AC-SOURCE-11"
+        "AC-FINANCE-02",
+        "AC-LEGAL-03",
+        "AC-RESUME-04",
+        "AC-DOCX-05",
+        "AC-DISCOVERY-06",
+        "AC-REFRESH-07",
+        "AC-CHINESE-08",
+        "AC-CONTROLS-09",
+        "AC-TENANT-10",
+        "AC-AI-11",
+        "AC-PERSIST-12",
+        "AC-RECOVERY-13"
       ],
-      "rollback": "任何 P0/P1 失败立即切回回滚镜像/备份",
-      "stop_condition": "core verdict 非 PASS"
+      "rollback": "失败则恢复最后验证版本",
+      "stop_condition": "任何关键验收未通过或存在 P0/P1"
     },
     {
       "id": "T09",
-      "stage": "INTEGRATE_OPERATIONS",
-      "title": "接入 status、Private-Database 和授权 R2",
+      "title": "落库、部署和交接",
       "depends_on": [
-        "T05"
+        "T08"
       ],
+      "action": "按目标仓当前治理 commit、push，并在已授权范围完成 PR／合并／部署；回报可点击入口、实际用户结果和回滚目标。",
       "outputs": [
-        "evidence/target-ops.json"
+        "当前仓提交",
+        "部署结果",
+        "简明交接"
       ],
       "acceptance": [
-        "AC-OPS-12"
+        "AC-PACK-00",
+        "AC-PERSIST-12",
+        "AC-RECOVERY-13"
       ],
-      "rollback": "移除新增只读投影/定时器",
-      "stop_condition": "会产生未授权费用或第二事实源"
-    },
-    {
-      "id": "T10",
-      "stage": "RELEASE",
-      "title": "提交、推送并记录部署与回滚身份",
-      "depends_on": [
-        "T08",
-        "T09"
-      ],
-      "outputs": [
-        "commit/branch/deployment/rollback references"
-      ],
-      "acceptance": [
-        "AC-OPS-12"
-      ],
-      "rollback": "按目标仓规则 revert 或部署上一制品",
-      "stop_condition": "生产 Acceptance 漂移或仓库门失败"
+      "rollback": "回滚应用并保留修复分支",
+      "stop_condition": "需要 Owner 的公开发布、费用、法律或不可逆决定"
     }
   ]
 }

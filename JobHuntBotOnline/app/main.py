@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import secrets
 from contextlib import asynccontextmanager
 from datetime import timedelta
@@ -17,10 +18,12 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from . import ai
+from .career_intelligence import domain_for_role, domain_label, normalize_role, role_label
 from .config import Settings, get_settings
 from .db import Base, make_engine, make_session_factory, session_dependency
 from .discovery import clean_html, claim_run, enqueue_discovery, process_run, rescore_existing_recommendations, safe_http_url
 from .email_service import MailRateLimited, Mailer
+from .document_export import build_tailored_resume_docx
 from .models import (
     ApplicationEvent, ApplicationPack, CandidateProfile, DiscoveryRun, DiscoverySourceStatus,
     Job, Recommendation, Resume, User, utcnow,
@@ -33,8 +36,9 @@ from .security import (
     validate_password, verify_password,
 )
 from .services import (
-    application_progress_error, application_progress_for_user, audit, build_application_materials,
-    build_application_pack, consult_application_materials, create_application_progress,
+    application_pack_for_user, application_progress_error, application_progress_for_user, audit,
+    build_application_materials, build_application_pack, consult_application_materials, create_application_progress,
+    decode_score_evidence,
     delete_user_account, ensure_application_materials, get_profile, get_profile_row,
     list_application_progresses, list_experiences, list_resumes, manual_job,
     recommendation_for_user, save_profile, store_resume, update_application_materials,
@@ -44,6 +48,8 @@ from .services import (
 SESSION_COOKIE = "jobhunt_session"
 CSRF_COOKIE = "jobhunt_csrf"
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+TEMPLATES.env.filters["role_label"] = role_label
+TEMPLATES.env.filters["domain_label"] = domain_label
 STATIC_ROOT = Path(__file__).parent / "static"
 
 
@@ -58,7 +64,7 @@ STATIC_ASSET_REVISION = _static_asset_revision()
 
 
 def _csv_list(value: str) -> list[str]:
-    return [x.strip() for x in value.replace("，", ",").split(",") if x.strip()]
+    return [item.strip() for item in re.split(r"[,，、;；\n]+", value) if item.strip()]
 
 
 SPONSORSHIP_VALUES = {"yes", "no", "uncertain"}
@@ -68,9 +74,22 @@ APPLICATION_STATUS_LABELS = {
     "submitted": "已提交",
     "interview": "面试／笔试",
     "rejected": "已拒绝",
-    "offer": "Offer",
+    "offer": "录用通知",
     "withdrawn": "已撤回",
 }
+LEGAL_ADMISSION_VALUES = {"admitted", "not_admitted", "uncertain", "not_applicable"}
+PRACTISING_CERTIFICATE_VALUES = {"current", "held", "not_current", "uncertain", "not_applicable"}
+
+
+def _float_or_none(value: str) -> float | None:
+    cleaned = value.strip()
+    if not cleaned:
+        return None
+    try:
+        numeric = float(cleaned)
+    except ValueError:
+        return None
+    return max(0.0, min(numeric, 60.0))
 
 
 def _confirmed_profile_fields(
@@ -81,6 +100,11 @@ def _confirmed_profile_fields(
     sponsorship_now: str,
     sponsorship_future: str,
     work_modes: list[str],
+    experience_years: str,
+    professional_credentials: str,
+    credentials_confirmed: bool,
+    legal_admission: str,
+    practising_certificate: str,
     relocation: str,
     available_start: str,
     avoid_roles: str,
@@ -94,6 +118,9 @@ def _confirmed_profile_fields(
     future = sponsorship_future.strip().casefold()
     modes = list(dict.fromkeys(value.strip().casefold() for value in work_modes if value.strip()))
     relocation_value = relocation.strip().casefold()
+    years = _float_or_none(experience_years)
+    admission = legal_admission.strip().casefold()
+    certificate = practising_certificate.strip().casefold()
     if not roles:
         return None, "请明确至少一个目标岗位族。"
     if not locations:
@@ -101,13 +128,19 @@ def _confirmed_profile_fields(
     if not authorization:
         return None, "请填写当前工作权利；如不确定请明确填写“不确定”。"
     if now not in SPONSORSHIP_VALUES or future not in SPONSORSHIP_VALUES:
-        return None, "请明确现在和未来是否需要 Sponsorship。"
+        return None, "请明确现在和未来是否需要雇主担保。"
     if not modes:
         return None, "请至少选择一种可接受的工作模式。"
     if any(value not in WORK_MODE_VALUES for value in modes):
         return None, "工作模式包含无效值。"
     if relocation_value not in {"", "yes", "no"}:
         return None, "搬迁偏好无效。"
+    if experience_years.strip() and years is None:
+        return None, "相关经验年限应为 0 到 60 之间的数字。"
+    if admission not in LEGAL_ADMISSION_VALUES:
+        return None, "律师准入状态无效。"
+    if certificate not in PRACTISING_CERTIFICATE_VALUES:
+        return None, "执业证书状态无效。"
     return {
         "primary_role_families": roles,
         "target_locations": locations,
@@ -115,6 +148,11 @@ def _confirmed_profile_fields(
         "sponsorship_now": now,
         "sponsorship_future": future,
         "work_mode": modes,
+        "experience_years": years,
+        "professional_credentials": _csv_list(professional_credentials),
+        "credentials_confirmed": bool(credentials_confirmed),
+        "legal_admission": admission,
+        "practising_certificate": certificate,
         "relocation": relocation_value,
         "available_start": available_start.strip(),
         "avoid_roles": _csv_list(avoid_roles),
@@ -585,7 +623,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         user = _require_user(request)
         if not db.scalar(select(Resume).where(Resume.user_id == user.id)):
             return _redirect("/onboarding/upload", error="请先上传简历。")
-        return _render(request, "onboarding_confirm.html", {"profile": get_profile(db, crypto, user.id)})
+        profile = get_profile(db, crypto, user.id)
+        return _render(request, "onboarding_confirm.html", {
+            "profile": profile,
+            "primary_roles_display": ", ".join(
+                role_label(normalize_role(role)) for role in profile.get("primary_role_families", [])
+            ),
+        })
 
     @app.post("/onboarding/confirm")
     def onboarding_confirm_post(
@@ -596,6 +640,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         sponsorship_now: str = Form(...),
         sponsorship_future: str = Form(...),
         work_modes: list[str] = Form([]),
+        experience_years: str = Form(""),
+        professional_credentials: str = Form(""),
+        credentials_confirmed: bool = Form(False),
+        legal_admission: str = Form("uncertain"),
+        practising_certificate: str = Form("uncertain"),
         relocation: str = Form(""),
         available_start: str = Form(""),
         avoid_roles: str = Form(""),
@@ -612,6 +661,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             sponsorship_now=sponsorship_now,
             sponsorship_future=sponsorship_future,
             work_modes=work_modes,
+            experience_years=experience_years,
+            professional_credentials=professional_credentials,
+            credentials_confirmed=credentials_confirmed,
+            legal_admission=legal_admission,
+            practising_certificate=practising_certificate,
             relocation=relocation,
             available_start=available_start,
             avoid_roles=avoid_roles,
@@ -653,6 +707,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         user: User,
         *,
         q: str,
+        domain: str,
         city: str,
         role: str,
         skill: str,
@@ -693,7 +748,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 " ".join(skills), " ".join(keywords), job.description,
             ])
             age = (now - (job.posted_at or job.discovered_at)).days
+            evidence = decode_score_evidence(crypto, rec.reasons_encrypted)
+            stored_domain = str(evidence.get("domain") or "")
+            job_domain = (
+                stored_domain
+                if stored_domain in {"finance", "legal"}
+                else domain_for_role(job.role_family, f"{job.title} {job.description}")
+            )
             if q and not search_matches(q, hay):
+                continue
+            if domain and domain != job_domain:
                 continue
             if city and city != job.city:
                 continue
@@ -718,9 +782,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "job": job,
                 "skills": skills,
                 "age_days": age,
-                "reasons": crypto.decrypt_json(rec.reasons_encrypted, []),
+                "domain": job_domain,
+                "reasons": evidence["reasons"],
+                "requirement_checks": evidence["requirement_checks"],
             })
         facets = {
+            "domains": [
+                (key, domain_label(key))
+                for key in ("finance", "legal", "general")
+                if any(item["domain"] == key for item in filtered)
+                or any(
+                    domain_for_role(job.role_family, f"{job.title} {job.description}") == key
+                    for _rec, job in rows
+                )
+            ],
             "cities": sorted({job.city for _rec, job in rows if job.city}),
             "roles": sorted({job.role_family for _rec, job in rows if job.role_family}),
             "skills": sorted({s for _rec, job in rows for s in json.loads(job.skills_text or "[]")})[:80],
@@ -740,6 +815,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def recommendations(
         request: Request,
         q: str = "",
+        domain: str = "",
         city: str = "",
         role: str = "",
         skill: str = "",
@@ -755,7 +831,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         user = _require_user(request)
         context = _recommendation_context(
             request, db, user,
-            q=q, city=city, role=role, skill=skill, source=source,
+            q=q, domain=domain, city=city, role=role, skill=skill, source=source,
             freshness=freshness, qualification=qualification, relevance=relevance,
             opportunity=opportunity, status=status,
         )
@@ -770,12 +846,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if not result:
             raise HTTPException(404, "岗位不存在。")
         rec, job = result
+        evidence = decode_score_evidence(crypto, rec.reasons_encrypted)
         return _render(request, "recommendation_detail.html", {
             "rec": rec, "job": job,
             "job_description": clean_html(job.description),
             "skills": json.loads(job.skills_text or "[]"),
             "keywords": json.loads(job.keywords_text or "[]"),
-            "reasons": crypto.decrypt_json(rec.reasons_encrypted, []),
+            "reasons": evidence["reasons"],
+            "requirement_checks": evidence["requirement_checks"],
+            "requirements": evidence["requirements"],
+            "job_domain": (
+                evidence["domain"]
+                if evidence["domain"] in {"finance", "legal"}
+                else domain_for_role(job.role_family, f"{job.title} {job.description}")
+            ),
         })
 
     @app.post("/recommendations/{rec_id}/status")
@@ -915,6 +999,26 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "pack": pack, "job": job, "content": content,
         })
 
+    @app.get("/application-packs/{pack_id}/resume.docx")
+    def download_tailored_resume(request: Request, pack_id: int, db: Session = Depends(get_db)):
+        user = _require_user(request)
+        result = application_pack_for_user(db, crypto, user.id, pack_id)
+        if not result:
+            raise HTTPException(404, "申请包不存在。")
+        _pack, job, _resume, parsed, content = result
+        data = build_tailored_resume_docx(content, parsed)
+        safe_title = "".join(
+            character if character.isalnum() else "-"
+            for character in job.title
+        ).strip("-")[:60] or "job"
+        return Response(
+            content=data,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={
+                "Content-Disposition": f'attachment; filename="tailored-resume-{safe_title}.docx"',
+            },
+        )
+
     @app.get("/application-packs/{pack_id}/edit", response_class=HTMLResponse)
     def pack_edit_page(request: Request, pack_id: int, db: Session = Depends(get_db)):
         user = _require_user(request)
@@ -942,7 +1046,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         pack, _job, content = _owned_pack_context(db, user, pack_id)
         required = [why_me_summary, cv_headline, cv_summary, answer_why_role, answer_why_me, answer_role_example]
         if any(not value.strip() for value in required):
-            return _redirect(f"/application-packs/{pack_id}/edit", error="请保留 Why me、简历概要与三道回答；它们都可以如实改写。")
+            return _redirect(f"/application-packs/{pack_id}/edit", error="请保留岗位适配理由、简历概要与三道回答；它们都可以如实改写。")
         update_application_materials(
             db,
             crypto,
@@ -959,7 +1063,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             },
         )
         audit(db, "application_pack_edited", user.id, f"pack={pack_id};version={pack.version}")
-        return _redirect(f"/application-packs/{pack_id}", message="岗位适配 CV 与回答已更新；原始简历未被修改。")
+        return _redirect(f"/application-packs/{pack_id}", message="岗位适配简历与回答已更新；原始简历未被修改。")
 
     @app.get("/application-packs/{pack_id}/ai", response_class=HTMLResponse)
     def pack_ai_page(request: Request, pack_id: int, db: Session = Depends(get_db)):
@@ -1142,7 +1246,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/settings/profile", response_class=HTMLResponse)
     def settings_profile(request: Request, db: Session = Depends(get_db)):
         user = _require_user(request)
-        return _render(request, "settings_profile.html", {"profile": get_profile(db, crypto, user.id)})
+        profile = get_profile(db, crypto, user.id)
+        return _render(request, "settings_profile.html", {
+            "profile": profile,
+            "primary_roles_display": ", ".join(
+                role_label(normalize_role(role)) for role in profile.get("primary_role_families", [])
+            ),
+        })
 
     @app.post("/settings/profile")
     def settings_profile_post(
@@ -1153,6 +1263,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         sponsorship_now: str = Form(...),
         sponsorship_future: str = Form(...),
         work_modes: list[str] = Form([]),
+        experience_years: str = Form(""),
+        professional_credentials: str = Form(""),
+        credentials_confirmed: bool = Form(False),
+        legal_admission: str = Form("uncertain"),
+        practising_certificate: str = Form("uncertain"),
         relocation: str = Form(""),
         available_start: str = Form(""),
         avoid_roles: str = Form(""),
@@ -1169,6 +1284,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             sponsorship_now=sponsorship_now,
             sponsorship_future=sponsorship_future,
             work_modes=work_modes,
+            experience_years=experience_years,
+            professional_credentials=professional_credentials,
+            credentials_confirmed=credentials_confirmed,
+            legal_admission=legal_admission,
+            practising_certificate=practising_certificate,
             relocation=relocation,
             available_start=available_start,
             avoid_roles=avoid_roles,

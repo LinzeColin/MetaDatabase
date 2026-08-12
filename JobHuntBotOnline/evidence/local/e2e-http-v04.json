@@ -1,0 +1,23 @@
+{
+  "verdict": "PASS",
+  "scope": "real Uvicorn HTTP/Cookie/form/download v0.4 finance/legal golden path",
+  "synthetic_data_only": true,
+  "production_claimed": false,
+  "email_delivery_sent": false,
+  "steps": [
+    "金融注册验证",
+    "金融硬资格拦截",
+    "领域实时筛选服务端事务",
+    "金融简历路由",
+    "DOCX 下载",
+    "默认简历不覆盖岗位路由",
+    "申请依据校验",
+    "法律注册验证",
+    "律师准入执业证书判断",
+    "总法律顾问年限拦截",
+    "跨租户隔离",
+    "全中文界面"
+  ],
+  "step_count": 12,
+  "refresh_interval_hours": 6
+}

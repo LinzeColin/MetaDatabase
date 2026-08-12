@@ -1,15 +1,23 @@
-# Roadmap
+# 当前版本与未来隔离
 
-## Current release v0.3.0
+## 当前发布：v0.4.0
 
-One vertical slice only: public email SaaS → resume-first onboarding → automatic recommendation Feed → application preparation and tracking → persistence and recovery.
+只交付并验收：
 
-## Explicit future backlog
+- 金融／法律硬资格判断；
+- 多简历岗位级路由；
+- 岗位定制 DOCX；
+- 全中文用户体验；
+- 保留 v0.3 的多用户、动态聚合、六小时刷新、筛选和申请管理；
+- 真实金融／法律双用户、租户隔离、重启读回和恢复。
 
-- Official SEEK/LinkedIn/Indeed partnerships or approved APIs;
-- automated form filling with supervised browser bridge;
-- organization/team accounts and billing;
-- calibrated personal interview probability after sufficient real outcome data;
-- multilingual product surfaces.
+## 未来候选，不进入本次
 
-None of these may enter v0.3.0 deployment or Acceptance.
+- 根据回复、面试、拒绝和录用结果训练个人化转化模型；
+- 招聘周期提醒和邮件自动分类；
+- 更多国家法律准入规则；
+- 多语言简历和 PDF 排版；
+- 大学职业中心或企业组织权限；
+- 付费套餐和计费。
+
+这些功能不得延迟或污染当前黄金事务。

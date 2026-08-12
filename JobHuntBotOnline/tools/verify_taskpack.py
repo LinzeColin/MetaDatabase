@@ -16,12 +16,12 @@ REQUIRED = [
     "README.md", "LICENSE", "NOTICE", "Dockerfile", "Dockerfile.acceptance", "docker-compose.yml",
     "taskpack/CANONICAL_CONTRACT.md", "taskpack/task_dag.json",
     "taskpack/acceptance_contract.json", "taskpack/TRACEABILITY.md",
-    "taskpack/ARCHITECTURE.md", "taskpack/DELIVERY_AND_ACCEPTANCE.md",
+    "taskpack/ARCHITECTURE.md", "taskpack/DELIVERY_AND_ACCEPTANCE.md", "taskpack/DEPENDENCIES.md",
     "taskpack/ROADMAP.md", "taskpack/MANIFEST.json",
     "deploy/deploy.sh", "deploy/acceptance.sh", "deploy/backup.sh",
     "deploy/restore.sh", "deploy/rollback.sh", "deploy/diagnose.sh",
     "deploy/generate_env.py", "deploy/verify_taskpack.py",
-    "tools/verify_taskpack.py", "tools/e2e_local.py", "tools/ui_contract.py",
+    "tools/verify_taskpack.py", "tools/e2e_local.py", "tools/e2e_http_v04.py", "tools/ui_contract.py",
     "tools/restart_readback.py", "tools/online_source_probe.py",
     "tools/deepseek_probe.py", "tools/e2e_production.py", "tools/mail_transport_probe.py",
     "tools/migrate_v02_sqlite.py", "tools/production_state_probe.py",
@@ -143,7 +143,8 @@ def main() -> int:
             dag = read_json(ROOT / "taskpack/task_dag.json")
             errors.extend(dag_errors(dag))
             acceptance = read_json(ROOT / "taskpack/acceptance_contract.json")
-            acceptance_ids = {item.get("id") for item in acceptance.get("items", [])}
+            acceptance_rows = acceptance.get("acceptance") or acceptance.get("items") or []
+            acceptance_ids = {item.get("id") for item in acceptance_rows if isinstance(item, dict)}
             for task in dag.get("tasks", []):
                 for ac in task.get("acceptance", []):
                     if ac not in acceptance_ids:

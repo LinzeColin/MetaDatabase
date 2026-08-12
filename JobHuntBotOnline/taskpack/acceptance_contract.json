@@ -1,50 +1,182 @@
 {
-  "version": "0.3.0-r2",
-  "core_verdict_rule": "All critical acceptance items PASS on the exact target deployment and no open P0/P1.",
-  "items": [
+  "version": "0.4.0",
+  "product": "JobHuntBot Online",
+  "primary_examples": [
+    "金融求职者",
+    "法律求职者"
+  ],
+  "rules": {
+    "refresh_interval_hours": 6,
+    "user_interface_language": "zh-CN",
+    "production_claim_requires_real_user_transaction": true,
+    "not_run_is_pass": false,
+    "model_may_override_hard_qualification": false
+  },
+  "acceptance": [
     {
       "id": "AC-PACK-00",
       "critical": true,
-      "oracle": "Required control files exist; DAG is acyclic; source/config syntax and local evidence are valid.",
+      "requirement": "任务包可在动态仓库中冷启动并保护更优实现",
+      "oracle": "Codex 能识别当前北极星、语义增量、第一处断点、可逆边界和真实验收，不机械覆盖最新实现。",
       "tests": [
-        "python3 tools/verify_taskpack.py"
+        "tools/verify_taskpack.py"
       ],
       "evidence": [
-        "evidence/local/taskpack_validation.json"
+        "evidence/local/taskpack-validation-v04.json"
       ]
     },
     {
       "id": "AC-AUTH-01",
       "critical": true,
-      "oracle": "A new user registers through a provider-neutral standard SMTP path, receives and consumes verification mail, logs in, requests and consumes one-time password reset; expired/reused token fails. NitroSend is neither required nor accepted.",
+      "requirement": "账户生命周期可用",
+      "oracle": "两个合成用户完成注册、邮箱验证、登录、退出、忘记密码、单次密码重置；旧密码和重用令牌失效。",
       "tests": [
-        "pytest auth lifecycle",
-        "production browser + IMAP"
+        "tests/test_auth_lifecycle.py",
+        "tools/e2e_http_v04.py",
+        "tools/e2e_production.py"
       ],
       "evidence": [
-        "evidence/local/browser-local/result.json",
-        "evidence/target-email.json"
+        "evidence/local/e2e-http-v04.json",
+        "evidence/target-browser-v04.json"
       ]
     },
     {
-      "id": "AC-TENANT-02",
+      "id": "AC-FINANCE-02",
       "critical": true,
-      "oracle": "User B cannot read User A recommendation, pack, export, resume, profile or events; attempts return non-disclosing 404/denial.",
+      "requirement": "金融硬资格正确",
+      "oracle": "Early Career 金融用户可通过 Graduate Financial Analyst；明确要求十五年经验的 Senior Finance Director 必须不符合；要求 CPA 或 CA 时按用户确认资质判断。",
       "tests": [
-        "pytest tenant isolation",
-        "production two-user negative controls"
+        "tests/test_finance_legal_intelligence.py::test_finance_and_legal_hard_requirements_are_explainable",
+        "tools/e2e_http_v04.py"
       ],
       "evidence": [
-        "evidence/local/browser-local/result.json",
-        "ACCEPTANCE_RESULT.json"
+        "evidence/local/e2e-http-v04.json",
+        "evidence/target-browser-v04.json"
       ]
     },
     {
-      "id": "AC-AI-03",
+      "id": "AC-LEGAL-03",
       "critical": true,
-      "oracle": "Platform Secret is configured server-side, hidden from users/exports, bounded by per-user/platform budget, and deterministic fallback remains usable on failure.",
+      "requirement": "法律硬资格正确",
+      "oracle": "具备 JD、PLT、澳大利亚律师准入、有效执业证书和足够年限的用户可通过商业律师岗位；十二年总法律顾问岗位必须不符合；缺少准入或证书不能通过明确要求岗位。",
       "tests": [
-        "pytest AI/security",
+        "tests/test_finance_legal_intelligence.py::test_finance_and_legal_hard_requirements_are_explainable",
+        "tools/e2e_http_v04.py"
+      ],
+      "evidence": [
+        "evidence/local/e2e-http-v04.json",
+        "evidence/target-browser-v04.json"
+      ]
+    },
+    {
+      "id": "AC-RESUME-04",
+      "critical": true,
+      "requirement": "多简历按岗位路由",
+      "oracle": "同一用户拥有金融和法律简历时，金融岗位选择金融简历、法律岗位选择法律简历；最后上传或默认状态不得错误覆盖岗位证据。",
+      "tests": [
+        "tests/test_finance_legal_intelligence.py::test_job_specific_resume_routing_and_docx_are_fact_bounded",
+        "tools/e2e_http_v04.py"
+      ],
+      "evidence": [
+        "evidence/local/e2e-http-v04.json",
+        "evidence/target-browser-v04.json"
+      ]
+    },
+    {
+      "id": "AC-DOCX-05",
+      "critical": true,
+      "requirement": "岗位定制简历可实际使用",
+      "oracle": "下载返回有效 DOCX，文件可打开，包含岗位适配摘要、真实技能／经历／资质与待确认项；原始简历未被覆盖，无虚构事实。",
+      "tests": [
+        "tests/test_finance_legal_intelligence.py::test_job_specific_resume_routing_and_docx_are_fact_bounded",
+        "tools/e2e_http_v04.py"
+      ],
+      "evidence": [
+        "evidence/local/e2e-http-v04.json",
+        "evidence/target-browser-v04.json"
+      ]
+    },
+    {
+      "id": "AC-DISCOVERY-06",
+      "critical": true,
+      "requirement": "上传后自动聚合岗位",
+      "oracle": "完成确认后无需手工粘贴岗位即可获得推荐；重复运行去重；单一来源失败不拖垮其他来源并明确显示失败。",
+      "tests": [
+        "tests/test_onboarding_discovery.py",
+        "tools/e2e_http_v04.py",
+        "tools/online_source_probe.py"
+      ],
+      "evidence": [
+        "evidence/local/e2e-http-v04.json",
+        "evidence/target-sources.json"
+      ]
+    },
+    {
+      "id": "AC-REFRESH-07",
+      "critical": true,
+      "requirement": "每六小时自动刷新",
+      "oracle": "配置、调度和运行记录都显示下一轮在本轮完成后六小时；不是只显示文案。",
+      "tests": [
+        "tests/test_onboarding_discovery.py",
+        "tools/production_state_probe.py"
+      ],
+      "evidence": [
+        "evidence/local/e2e-http-v04.json",
+        "evidence/target-state-after.json"
+      ]
+    },
+    {
+      "id": "AC-CHINESE-08",
+      "critical": true,
+      "requirement": "用户体验全中文",
+      "oracle": "主黄金事务中的导航、字段、按钮、提示、错误、推荐证据、申请包和下载文档默认中文；品牌名和文件格式名除外。",
+      "tests": [
+        "tests/test_finance_legal_intelligence.py::test_major_candidate_surfaces_are_chinese",
+        "tools/ui_contract.py",
+        "tools/e2e_local.py"
+      ],
+      "evidence": [
+        "evidence/local/ui-contract-v04.json",
+        "evidence/target-browser-v04.json"
+      ]
+    },
+    {
+      "id": "AC-CONTROLS-09",
+      "critical": true,
+      "requirement": "所有可见控件有真实作用",
+      "oracle": "逐个操作可见按钮、输入、选择、链接和下载；页面、网络、数据库及刷新后状态一致，无空按钮、死链接、控制台或页面错误。",
+      "tests": [
+        "tools/ui_contract.py",
+        "tools/e2e_local.py",
+        "tools/e2e_production.py"
+      ],
+      "evidence": [
+        "evidence/local/ui-contract-v04.json",
+        "evidence/target-browser-v04.json"
+      ]
+    },
+    {
+      "id": "AC-TENANT-10",
+      "critical": true,
+      "requirement": "多租户隔离",
+      "oracle": "A 账户无法读取或修改 B 的简历、推荐、申请包、进度和导出，返回不泄露资源存在性的拒绝。",
+      "tests": [
+        "tests/test_application_and_tenant.py",
+        "tools/e2e_http_v04.py",
+        "tools/e2e_production.py"
+      ],
+      "evidence": [
+        "evidence/local/e2e-http-v04.json",
+        "evidence/target-browser-v04.json"
+      ]
+    },
+    {
+      "id": "AC-AI-11",
+      "critical": true,
+      "requirement": "平台人工智能安全降级",
+      "oracle": "普通用户看不到、输入不了、导出不了平台密钥；模型失败或额度为零时，资格判断、岗位路由和 DOCX 仍可使用。",
+      "tests": [
+        "tests/test_config_and_security.py",
         "tools/deepseek_probe.py"
       ],
       "evidence": [
@@ -52,114 +184,32 @@
       ]
     },
     {
-      "id": "AC-DISCOVERY-04",
+      "id": "AC-PERSIST-12",
       "critical": true,
-      "oracle": "After resume upload and one confirmation page, recommendations appear without manually pasting a job URL.",
+      "requirement": "持久化和重启读回",
+      "oracle": "推荐、简历路由、申请包、收藏和申请状态在刷新、重登和应用服务重启后保持一致。",
       "tests": [
-        "pytest onboarding",
-        "browser golden"
+        "tools/e2e_http_v04.py",
+        "tools/restart_readback.py",
+        "deploy/acceptance.sh"
       ],
       "evidence": [
-        "evidence/local/browser-local/result.json",
-        "ACCEPTANCE_RESULT.json"
+        "evidence/local/e2e-http-v04.json",
+        "evidence/target-restart.json"
       ]
     },
     {
-      "id": "AC-REFRESH-05",
+      "id": "AC-RECOVERY-13",
       "critical": true,
-      "oracle": "Configured refresh is exactly 6 hours and each completed run sets next_discovery_at to completed_at + 6 hours.",
+      "requirement": "备份恢复和回滚",
+      "oracle": "部署前备份可读，隔离恢复验证成功，应用有可执行回滚目标；失败不破坏现有业务数据。",
       "tests": [
-        "pytest refresh contract",
-        "production DB read"
+        "deploy/backup.sh",
+        "deploy/restore.sh",
+        "deploy/rollback.sh"
       ],
       "evidence": [
-        "evidence/local/restart_readback.json",
-        "ACCEPTANCE_RESULT.json"
-      ]
-    },
-    {
-      "id": "AC-UX-06",
-      "critical": true,
-      "oracle": "All forms, buttons, inputs and links are wired; city/role/skill/source/freshness/qualification/relevance/opportunity/status filters compose; mobile has no horizontal overflow.",
-      "tests": [
-        "tools/ui_contract.py",
-        "Playwright browser golden"
-      ],
-      "evidence": [
-        "evidence/local/ui_contract.json",
-        "evidence/local/browser-local/result.json"
-      ]
-    },
-    {
-      "id": "AC-APPLICATION-07",
-      "critical": true,
-      "oracle": "Save/ignore, application pack, official link, manual import and result tracking work; submitted status requires evidence.",
-      "tests": [
-        "pytest application",
-        "browser golden"
-      ],
-      "evidence": [
-        "evidence/local/browser-local/result.json"
-      ]
-    },
-    {
-      "id": "AC-DATA-08",
-      "critical": true,
-      "oracle": "PostgreSQL is at Alembic head; v0.2 data counts and Owner records are preserved and readable after migration.",
-      "tests": [
-        "alembic current",
-        "migrate_v02_sqlite.py"
-      ],
-      "evidence": [
-        "migration-result.json"
-      ]
-    },
-    {
-      "id": "AC-RECOVERY-09",
-      "critical": true,
-      "oracle": "Encrypted backup is structurally readable; application restart preserves data; an explicit rollback image exists.",
-      "tests": [
-        "restart_readback.py",
-        "backup verify-only",
-        "isolated restore or approved recovery rehearsal"
-      ],
-      "evidence": [
-        "evidence/local/restart_readback.json",
-        "ACCEPTANCE_RESULT.json"
-      ]
-    },
-    {
-      "id": "AC-PROD-10",
-      "critical": true,
-      "oracle": "Real HTTPS has valid login/registration and no mixed-content or browser console/page errors; standard SMTP links use BASE_URL; no NitroSend-specific configuration exists.",
-      "tests": [
-        "production browser acceptance"
-      ],
-      "evidence": [
-        "ACCEPTANCE_RESULT.json"
-      ]
-    },
-    {
-      "id": "AC-SOURCE-11",
-      "critical": true,
-      "oracle": "At least one authorized external source succeeds; each source status is visible; one failed source does not erase successful results.",
-      "tests": [
-        "online_source_probe.py --require-success",
-        "degraded path"
-      ],
-      "evidence": [
-        "evidence/target-sources.json"
-      ]
-    },
-    {
-      "id": "AC-OPS-12",
-      "critical": false,
-      "oracle": "Deployment is registered in status and authorized long-term sync reports a real state without creating a second authority.",
-      "tests": [
-        "status and sync probes"
-      ],
-      "evidence": [
-        "evidence/target-ops.json"
+        "evidence/target-recovery.json"
       ]
     }
   ]
