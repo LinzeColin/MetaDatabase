@@ -156,7 +156,11 @@
     // 只读收藏——点赞那条列表页面不一定会发，没验过就不承诺。
     xiaohongshu: Object.freeze(["favorite"]),
     douyin: Object.freeze(["favorite"]),
-    kuaishou: Object.freeze(["favorite"]),
+    // **快手不再声明可扫关系**（Owner 2026-08-12 定：明确不做自动读取）。
+    // 留着 ["favorite"] 的后果不是中性的：服务端照样会下发这个范围，
+    // 而扩展界面上根本不给同步按钮、没人去扫，那次 run 就永远等不到终批——
+    // 圈一直转。他抖音那二十次就是这个形状。
+    kuaishou: Object.freeze([]),
     // v0.0.0.22：同一条路。Reddit 的 saved、Instagram 的 saved 都有
     // **不需要用户名的固定地址**（/user/me/saved、/your_activity/saved），
     // 所以能直接导过去。upvoted 那条没验过，不列——不列就等于不承诺。

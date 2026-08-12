@@ -37,19 +37,33 @@ def _item(external_id, relation="favorite", collection="tech"):
     )
 
 
-DOMESTIC_ACCOUNT_CASES = (
-    ("xiaohongshu", "favorite"),
-    ("douyin", "favorite"),
-    ("kuaishou", "favorite"),
-    ("bilibili", "favorite"),
-)
-
 DOMESTIC_URL_PREFIXES = {
     "xiaohongshu": "https://www.xiaohongshu.com/explore/",
     "douyin": "https://www.douyin.com/video/",
     "kuaishou": "https://www.kuaishou.com/short-video/",
     "bilibili": "https://www.bilibili.com/video/",
 }
+
+
+def _domestic_cases() -> tuple[tuple[str, str], ...]:
+    """**从 SYNCABLE_NOW 现算，不在这里再抄一份平台清单。**
+
+    这里原来是写死的四条，含 `("kuaishou", "favorite")`。
+    2026-08-12 按 Owner 的裁定把快手改成「只能手动保存」之后，
+    服务端开始正确地拒绝它，而这条判据还在要求它能连能同步——**红的是判据，
+    不是产品**。
+
+    抄一份平台清单就会有第二处真源，而这个仓当天已经为「同一件事两份表必然漂开」
+    修过好几处（失败文案、归档状态、可扫关系）。所以这里改成现算：
+    谁在 `SYNCABLE_NOW` 里，谁才进这条判据。
+    """
+    from social_archive.account_sync import SYNCABLE_NOW
+    return tuple((platform, "favorite") for platform in sorted(DOMESTIC_URL_PREFIXES)
+                 if platform in SYNCABLE_NOW)
+
+
+DOMESTIC_ACCOUNT_CASES = _domestic_cases()
+assert DOMESTIC_ACCOUNT_CASES, "一个国内平台都没算出来——这条判据在空转"
 
 
 def _domestic_item(platform, external_id, relation):

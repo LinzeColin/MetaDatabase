@@ -17,7 +17,7 @@ SCANNABLE_RELATIONS: dict[str, tuple[str, ...]] = {
     "bilibili": ("favorite",),
     "douyin": ("favorite",),
     "instagram": ("saved",),
-    "kuaishou": ("favorite",),
+    "kuaishou": (),
     "reddit": ("saved",),
     "xiaohongshu": ("favorite",),
     "youtube": (),

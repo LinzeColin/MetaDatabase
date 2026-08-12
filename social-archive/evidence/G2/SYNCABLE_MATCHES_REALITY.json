@@ -6,7 +6,6 @@
     "douyin",
     "generic-web",
     "instagram",
-    "kuaishou",
     "reddit",
     "xiaohongshu"
   ],
@@ -20,9 +19,7 @@
     "douyin": [
       "favorite"
     ],
-    "kuaishou": [
-      "favorite"
-    ],
+    "kuaishou": [],
     "reddit": [
       "saved"
     ],
