@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import expect, sync_playwright
 from sqlalchemy import func, or_, select
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -177,7 +177,9 @@ def main() -> int:
             recommendation_results.wait_for(state="visible")
             if client_diagnostics["partial_request_count"] <= requests_before:
                 raise RuntimeError("relevance selection did not start a live filter request")
-            all_count = page.locator("[data-testid='job-card']").count()
+            job_cards = page.locator("[data-testid='job-card']")
+            expect(job_cards).to_have_count(expected_relevance_count)
+            all_count = job_cards.count()
             if all_count != expected_relevance_count:
                 raise RuntimeError("relevance filter result count differs from the server-side record count")
             stage = "filter_by_role"
@@ -192,7 +194,8 @@ def main() -> int:
             recommendation_results.wait_for(state="visible")
             if client_diagnostics["partial_request_count"] <= requests_before:
                 raise RuntimeError("role selection did not start a live filter request")
-            role_count = page.locator("[data-testid='job-card']").count()
+            expect(job_cards).to_have_count(expected_role_count)
+            role_count = job_cards.count()
             if all_count != expected_relevance_count or role_count != expected_role_count:
                 raise RuntimeError("live filter result count differs from the server-side record count")
             if "partial=true" in page.url or "role=" not in page.url:
