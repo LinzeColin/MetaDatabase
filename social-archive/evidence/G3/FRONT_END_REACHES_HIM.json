@@ -14,7 +14,7 @@
       {
         "url": "/assets/styles.css?v=1db8acd9",
         "bytes": 39548,
-        "cf_cache_status": "HIT",
+        "cf_cache_status": "REVALIDATED",
         "age": ""
       },
       {
@@ -26,13 +26,13 @@
       {
         "url": "/assets/favicon.svg?v=1db8acd9",
         "bytes": 182,
-        "cf_cache_status": "HIT",
+        "cf_cache_status": "REVALIDATED",
         "age": ""
       },
       {
         "url": "/assets/app.js?v=1db8acd9",
         "bytes": 144188,
-        "cf_cache_status": "HIT",
+        "cf_cache_status": "REVALIDATED",
         "age": ""
       }
     ]
@@ -127,7 +127,7 @@
       "found": true,
       "platform": "douyin",
       "panelOpened": true,
-      "panelSrc": "chrome-extension://ieblkijdgjkggkpaiojfililnpjeeffj/connect-frame.html",
+      "panelSrc": "chrome-extension://mogdifobiammpdclfbohpkdeeadjopaj/connect-frame.html",
       "errorsAfterClick": []
     },
     "drawer": {
