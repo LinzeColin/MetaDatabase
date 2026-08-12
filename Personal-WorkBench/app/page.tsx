@@ -118,7 +118,7 @@ function Shell({
         <Sidebar reference={reference} route={route} />
         <main className="main">
           {!reference ? (
-            <AccountEntry className="account-entry normal-only" signedOutHref="/account" />
+            <AccountEntry className="account-entry normal-only" signedOutHref="/auth/sign-in" />
           ) : null}
           {children}
         </main>
