@@ -48,7 +48,19 @@ r"""真抖音页面上，形状识别器会不会认错东西（2026-08-12）。
     不带（现状） douyin 59 / 23 / 36 条、reddit 0 条
 
 **它没救回 reddit，还把本来好好的抖音打坏了**，所以撤了。
-要验 reddit 得换别的路（带头跑，或者找一个服务端渲染、请求打得出来的页面）。
+
+**然后去查了 reddit 到底给了无头 Chrome 什么**，答案是一屏人机验证：
+
+    title    "Reddit - Prove your humanity"
+    body     「We're committed to safety and security. But not for bots.
+              Complete the challenge below and let us know you're a real person.」
+
+**所以这不是「我还没试够」，是这条路只能靠过验证码，而那件事不做。**
+reddit 这一行就此定性：**自动化里量不到，别再试了**。
+
+真要给 reddit 这条路留证据，只有两种正当办法：
+Owner 自己在有头浏览器里跑一次；或者等哪天有一个不设人机验证的公开页面。
+在那之前它一直是「没量到」——不是缺陷，也不是通过。
 
 ## 它不证明什么
 
