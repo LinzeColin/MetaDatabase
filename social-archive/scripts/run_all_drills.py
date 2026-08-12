@@ -46,6 +46,8 @@ ZERO_ARG = [
     # `grep -l outdated scripts/*_drill.py` 当时是空的：十六个演练没有一个走过它。
     # 旧插件不是我捏的，是 git 里 v0.0.0.22 那份真实构建。
     "stale_extension_is_blocked_drill.py",
+    # 答得慢的插件还认不认得出——上面那个演练三次掐断部署的真因就在这儿。
+    "slow_extension_is_still_detected_drill.py",
     "extension_install_page_drill.py",
     "extension_save_page_drill.py",
     "extension_routing_drill.py",
