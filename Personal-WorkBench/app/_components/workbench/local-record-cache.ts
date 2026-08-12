@@ -207,6 +207,10 @@ function toSnakeCase(value: string): string {
   return value.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
 }
 
+function toCamelCase(value: string): string {
+  return value.replace(/_([a-z0-9])/g, (_, character: string) => character.toUpperCase());
+}
+
 function newLocalId(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return `local_${crypto.randomUUID().replaceAll("-", "")}`;
@@ -347,6 +351,46 @@ export function createDeviceLocalRecord(payload: Record<string, unknown>, now = 
     id,
     updated_at: now,
   } as DeviceLocalRecord;
+}
+
+/**
+ * Device records store display fields in snake_case, while the tenant API
+ * accepts the normal browser request shape. This recovers only the original
+ * record fields; cache metadata and any tenant-shaped field stay on-device.
+ */
+export function deviceLocalRecordRequestPayload(record: DeviceLocalRecord): Record<string, unknown> {
+  const metadata = new Set([LOCAL_MARKER, "created_at", "id", "updated_at"]);
+  const payload: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(record)) {
+    if (metadata.has(key) || tenantFieldNames.has(key)) continue;
+    payload[toCamelCase(key)] = value;
+  }
+  return payload;
+}
+
+/**
+ * Older sensitive records may have been safely retained in an account's
+ * device cache before a consent-pending outbox existed. Once the account has
+ * passed the server consent gate, this creates a stable, account-scoped retry
+ * action so those records can join normal replay without moving guest data.
+ */
+export function createDeviceLocalRecoveryOutboxAction(
+  resource: string,
+  record: DeviceLocalRecord,
+): DeviceOutboxAction | null {
+  if (!/^[a-z-]+$/.test(resource) || !record.id.startsWith("local_")) return null;
+  const payload = deviceLocalRecordRequestPayload(record);
+  if (!Object.keys(payload).length) return null;
+  return {
+    createdAt: record.created_at,
+    endpoint: `/api/mydairy/${resource}`,
+    idempotencyKey: `local-recovery-${resource}-${record.id}`,
+    localRecordId: record.id,
+    method: "POST",
+    payload,
+    queuedAt: record.created_at,
+    requiresSensitiveConsent: true,
+  };
 }
 
 export function isDeviceLocalRecord(value: unknown): value is DeviceLocalRecord {

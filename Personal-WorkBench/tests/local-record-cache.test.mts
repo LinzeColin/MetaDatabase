@@ -3,6 +3,8 @@ import test from "node:test";
 
 import {
   createDeviceLocalRecord,
+  createDeviceLocalRecoveryOutboxAction,
+  deviceLocalRecordRequestPayload,
   appendDeviceOutbox,
   deriveDeviceOutboxParentReferences,
   invalidateBrowserRecordScope,
@@ -39,6 +41,40 @@ test("device-local records retain display fields while excluding client tenant i
   assert.equal(record.tenant_id, undefined);
   assert.equal(record.user_id, undefined);
   assert.equal(isDeviceLocalRecord(record), true);
+});
+
+test("legacy sensitive device records recover a stable API action without cache metadata or tenant fields", () => {
+  const record = createDeviceLocalRecord(
+    {
+      amountCents: 4567,
+      localDate: "2026-08-12",
+      note: "existing device history",
+      tenantId: "must-not-leave-device",
+    },
+    123,
+    "local_legacy_ledger",
+  );
+
+  assert.deepEqual(deviceLocalRecordRequestPayload(record), {
+    amountCents: 4567,
+    localDate: "2026-08-12",
+    note: "existing device history",
+  });
+  assert.deepEqual(createDeviceLocalRecoveryOutboxAction("ledger", record), {
+    createdAt: 123,
+    endpoint: "/api/mydairy/ledger",
+    idempotencyKey: "local-recovery-ledger-local_legacy_ledger",
+    localRecordId: "local_legacy_ledger",
+    method: "POST",
+    payload: {
+      amountCents: 4567,
+      localDate: "2026-08-12",
+      note: "existing device history",
+    },
+    queuedAt: 123,
+    requiresSensitiveConsent: true,
+  });
+  assert.equal(createDeviceLocalRecoveryOutboxAction("ledger", { ...record, id: "rec_not_device" }), null);
 });
 
 test("device-local records remain visible beside remote history without replacing a remote row", () => {

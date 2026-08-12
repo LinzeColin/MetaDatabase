@@ -3,6 +3,11 @@ import { readFile } from "node:fs/promises";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 
+import {
+  createDeviceLocalRecord,
+  createDeviceLocalRecoveryOutboxAction,
+} from "../app/_components/workbench/local-record-cache.ts";
+
 const origin = "http://127.0.0.1:4310";
 const alphaEmail = "alpha@example.test";
 const betaEmail = "beta@example.test";
@@ -223,6 +228,27 @@ test("local auth-to-tenant chain verifies two accounts, isolated history, and pa
       assert.ok(Array.isArray(payload.data));
       return payload.data;
     };
+    const createRecoveredSensitiveRecord = async (
+      cookie: string,
+      resourceName: "ledger" | "weights" | "diary" | "periods",
+      payload: Record<string, unknown>,
+    ) => {
+      const local = createDeviceLocalRecord(payload, 900, `local_recovery_${resourceName}`);
+      const action = createDeviceLocalRecoveryOutboxAction(resourceName, local);
+      assert.ok(action);
+      const headers = requestHeaders(cookie);
+      headers.set("idempotency-key", action.idempotencyKey);
+      const response = await resourceRoute.POST(
+        new Request(`${origin}${action.endpoint}`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(action.payload),
+        }),
+        { params: Promise.resolve({ resource: resourceName }) },
+      );
+      assert.equal(response.status, 200, resourceName);
+      return action;
+    };
 
     await signUp(alphaEmail, "Alpha");
     await signUp(betaEmail, "Beta");
@@ -239,11 +265,49 @@ test("local auth-to-tenant chain verifies two accounts, isolated history, and pa
     await privacyConsent(alphaDeviceOne);
     await privacyConsent(betaDevice);
 
-    await createLedger(alphaDeviceOne, "local-alpha-ledger-0001", "expense");
+    const recoveredLedger = await createRecoveredSensitiveRecord(alphaDeviceOne, "ledger", {
+      amountCents: 4567,
+      category: "恢复记录",
+      currency: "CNY",
+      kind: "expense",
+      localDate: "2026-08-12",
+      note: "pre-consent device history",
+    });
+    await createRecoveredSensitiveRecord(alphaDeviceOne, "weights", {
+      localDate: "2026-08-12",
+      note: "pre-consent device history",
+      weightGrams: 52300,
+    });
+    await createRecoveredSensitiveRecord(alphaDeviceOne, "diary", {
+      body: "pre-consent device history",
+      localDate: "2026-08-12",
+      mood: "平静",
+      title: "恢复",
+    });
+    await createRecoveredSensitiveRecord(alphaDeviceOne, "periods", {
+      endDate: "2026-08-12",
+      note: "pre-consent device history",
+      startDate: "2026-08-10",
+    });
+    const retryHeaders = requestHeaders(alphaDeviceOne);
+    retryHeaders.set("idempotency-key", recoveredLedger.idempotencyKey);
+    const retry = await resourceRoute.POST(
+      new Request(`${origin}${recoveredLedger.endpoint}`, {
+        method: "POST",
+        headers: retryHeaders,
+        body: JSON.stringify(recoveredLedger.payload),
+      }),
+      { params: Promise.resolve({ resource: "ledger" }) },
+    );
+    assert.equal(retry.status, 200);
     assert.equal((await listLedger(alphaDeviceTwo)).length, 1);
     assert.equal((await listLedger(betaDevice)).length, 0);
+
+    await createLedger(alphaDeviceOne, "local-alpha-ledger-0001", "expense");
+    assert.equal((await listLedger(alphaDeviceTwo)).length, 2);
+    assert.equal((await listLedger(betaDevice)).length, 0);
     await createLedger(betaDevice, "local-beta-ledger-0001", "income");
-    assert.equal((await listLedger(alphaDeviceTwo)).length, 1);
+    assert.equal((await listLedger(alphaDeviceTwo)).length, 2);
     assert.equal((await listLedger(betaDevice)).length, 1);
 
     const resetRequest = await callAuth("/request-password-reset", {
@@ -262,7 +326,7 @@ test("local auth-to-tenant chain verifies two accounts, isolated history, and pa
       context,
     );
     assert.equal(revoked.status, 401);
-    assert.equal((await listLedger(await signIn(alphaEmail, resetPassword))).length, 1);
+    assert.equal((await listLedger(await signIn(alphaEmail, resetPassword))).length, 2);
     assert.equal(unexpectedOutbound, false);
   } finally {
     globalThis.fetch = originalFetch;

@@ -353,6 +353,9 @@ test("tenant resource replays only same-account local records, and sensitive rec
   assert.match(source, /if \(sensitive\) return false;/);
   assert.match(source, /requiresSensitiveConsent: true as const/);
   assert.match(source, /cloudAvailabilityRef\.current !== "available"/);
+  assert.match(source, /createDeviceLocalRecoveryOutboxAction/);
+  assert.match(source, /Before consent-pending replay existed/);
+  assert.match(source, /allActions = await appendDeviceOutbox\(scope, recoveryAction\);/);
   assert.match(source, /const queuedForReplay = await queueDeviceMutation\(deviceOutboxAction\);/);
   assert.match(source, /mydairy:privacy-consent-accepted/);
   assert.match(source, /window\.addEventListener\("online", replayWhenOnline\)/);
@@ -361,6 +364,8 @@ test("tenant resource replays only same-account local records, and sensitive rec
   assert.match(cacheSource, /export async function removeDeviceOutboxActions/);
   assert.match(cacheSource, /export async function resolveDeviceOutboxAction/);
   assert.match(cacheSource, /export async function rememberDeviceOutboxRecordAlias/);
+  assert.match(cacheSource, /export function createDeviceLocalRecoveryOutboxAction/);
+  assert.match(cacheSource, /export function deviceLocalRecordRequestPayload/);
   assert.match(cacheSource, /DEVICE_OUTBOX_FALLBACK_PREFIX/);
   assert.match(cacheSource, /const existing = await requestValue\(store\.get\(key\)\);/);
   assert.match(account, /window\.dispatchEvent\(new Event\("mydairy:privacy-consent-accepted"\)\);/);

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   appendDeviceOutbox,
+  createDeviceLocalRecoveryOutboxAction,
   createDeviceLocalRecord,
   deriveDeviceOutboxParentReferences,
   type DeviceLocalRecord,
@@ -419,12 +420,30 @@ export function useTenantResource<T extends TenantRecord>(
     // server read has passed the explicit consent gate. The server repeats the
     // same gate before parsing every replayed mutation.
     if (!scope || scope !== expectedScope || scope === "guest" || (sensitive && cloudAvailabilityRef.current !== "available")) return remote;
-    let actions: DeviceOutboxAction[];
+    let allActions: DeviceOutboxAction[];
     try {
-      actions = (await readDeviceOutbox(scope)).filter((action) => actionTargetsResource(action, resource));
+      allActions = await readDeviceOutbox(scope);
+      // Before consent-pending replay existed, a signed-in account's sensitive
+      // local rows were deliberately retained on this device without an
+      // outbox action. Recover those same-account rows only after the current
+      // read above passed the server consent gate; guest rows never reach here.
+      if (sensitive) {
+        for (const record of localRecordsRef.current) {
+          if (!isDeviceLocalRecord(record)) continue;
+          if (allActions.some((action) => actionTargetsResource(action, resource) && action.localRecordId === record.id)) continue;
+          const recoveryAction = createDeviceLocalRecoveryOutboxAction(resource, record);
+          if (!recoveryAction) continue;
+          try {
+            allActions = await appendDeviceOutbox(scope, recoveryAction);
+          } catch {
+            // The local row remains visible and can retry on the next valid read.
+          }
+        }
+      }
     } catch {
       return remote;
     }
+    const actions = allActions.filter((action) => actionTargetsResource(action, resource));
     if (!actions.length) return remote;
 
     let reconciled = remote;
