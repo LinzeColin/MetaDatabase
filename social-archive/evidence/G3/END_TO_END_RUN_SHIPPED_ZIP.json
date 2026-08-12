@@ -1,7 +1,7 @@
 {
   "status": "PASS",
   "task": "G3",
-  "extension_under_test": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension",
+  "extension_under_test": "/var/folders/w9/fnb1wnyd3dg6npzvt909scm80000gn/T/sa-bili-zip-y7b2eo12",
   "extension_version": "0.0.0.70",
   "journey": {
     "connect": {
@@ -21,28 +21,28 @@
     },
     "tabs_before": [
       {
-        "id": 830464375,
+        "id": 1852447418,
         "active": false
       },
       {
-        "id": 830464376,
+        "id": 1852447419,
         "active": false
       },
       {
-        "id": 830464379,
+        "id": 1852447422,
         "active": true
       }
     ],
-    "my_tab_id": 830464379,
+    "my_tab_id": 1852447422,
     "queue_before": [
       {
         "accountId": "acct-1",
-        "enqueuedAt": 1786569827491,
+        "enqueuedAt": 1786569802473,
         "profileUrl": "",
         "syncRunId": "run-1",
         "tabId": null,
         "triggerType": "first_connect",
-        "updatedAt": 1786569827491
+        "updatedAt": 1786569802473
       }
     ],
     "alarm_scheduled": true,
@@ -60,15 +60,15 @@
     "queue_after": [],
     "tabs_after": [
       {
-        "id": 830464375,
+        "id": 1852447418,
         "active": false
       },
       {
-        "id": 830464376,
+        "id": 1852447419,
         "active": false
       },
       {
-        "id": 830464379,
+        "id": 1852447422,
         "active": true
       }
     ],
