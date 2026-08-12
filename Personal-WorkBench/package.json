@@ -42,6 +42,7 @@
     "test:recovery": "npm run test:resilience",
     "test:regression": "npm run test:modules && npm run test:workbench-data && npm run test:e2e",
     "verify:release": "node scripts/verify-release.mjs",
+    "test:production-smoke": "npm run verify:production-smoke",
     "verify:production-smoke": "node scripts/verify-production-smoke.mjs",
     "verify:public-launch": "node scripts/verify-public-launch-preflight.mjs",
     "verify:owner-activation": "node scripts/verify-owner-activation.mjs",
