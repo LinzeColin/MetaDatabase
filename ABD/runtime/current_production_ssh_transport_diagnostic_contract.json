@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-SSH-TRANSPORT-DIAGNOSTIC-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_CURRENT_PRODUCTION_SSH_TRANSPORT_DIAGNOSTIC_READ_ONLY",
+  "expected": {
+    "allowed_routes": [
+      "DIRECT",
+      "PROXY"
+    ],
+    "direct_tcp_timeout_seconds": 3,
+    "ssh_connect_timeout_seconds": 10,
+    "remote_commands": [
+      "true",
+      "sudo -n true"
+    ]
+  },
+  "source_boundary": {
+    "local_ssh_config_metadata_read": true,
+    "configured_identity_material_directly_inspected": false,
+    "credential_material_emitted_or_persisted": false,
+    "interactive_authentication_permitted": false,
+    "local_known_hosts_modified": false,
+    "remote_config_runtime_env_or_secret_read": false,
+    "remote_script_written": false,
+    "host_runtime_or_configuration_changed": false,
+    "image_loaded_or_retagged": false,
+    "unit_created_enabled_or_started": false,
+    "connector_config_written": false,
+    "cloudflare_dns_access_or_tunnel_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_PRODUCTION_SSH_TRANSPORT_DIAGNOSTIC_ONLY_NOT_HOST_RECOVERY_CONFIG_SEMANTIC_CHECK_UNIT_INSTALL_CORE_START_CONNECTOR_ACTIVATION_OR_PUBLIC_RELEASE",
+  "rollback": {
+    "action": "NO_HOST_MUTATION_NO_RUNTIME_ROLLBACK_REQUIRED",
+    "current_candidate_shadow_changed": false,
+    "private_evidence_deleted_automatically": false
+  }
+}
