@@ -463,6 +463,7 @@ export function LedgerClient({ fixtureDate, reference }: { fixtureDate: string; 
       note: note.trim(),
     };
     const wasEditing = Boolean(editingId);
+    setFeedback(wasEditing ? "正在修改账单…" : "正在保存账单…");
     const saved = editingId ? await ledger.update(editingId, payload) : await ledger.create(payload);
     if (!saved) return;
     setAmount("");
@@ -722,9 +723,10 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
       setModuleFeedback("请按 YYYY-MM-DD 填写日期。");
       return;
     }
+    const foodEditing = editing?.module === "food" ? editing : null;
+    setModuleFeedback(foodEditing ? "正在修改饮食记录…" : "正在保存饮食记录…");
     const upload = await uploadFoodPhoto();
     if (!upload.ok) return;
-    const foodEditing = editing?.module === "food" ? editing : null;
     const payload = {
       calories: parsedCalories,
       foodName: normalizedFood,
@@ -782,6 +784,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
       localDate: date,
       note: note.trim(),
     };
+    setModuleFeedback(exerciseEditing ? "正在修改运动记录…" : "正在保存运动记录…");
     const saved = exerciseEditing
       ? await exerciseRecords.update(exerciseEditing.id, payload)
       : await exerciseRecords.create(payload);
@@ -808,6 +811,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
     }
     const weightEditing = editing?.module === "weight" ? editing : null;
     const payload = { localDate: date, note: note.trim(), weightGrams };
+    setModuleFeedback(weightEditing ? "正在修改体重记录…" : "正在保存体重记录…");
     const saved = weightEditing ? await weightRecords.update(weightEditing.id, payload) : await weightRecords.create(payload);
     if (!saved) return;
     setWeightKg("");
@@ -1101,6 +1105,7 @@ export function GenericPageClient({
     }
     const payload = { allDay: false, note: note.trim(), startsAt: timestamp, title: title.trim() };
     const editingRecordId = editingKind === "primary" ? editingId : null;
+    setFeedback(editingRecordId ? "正在修改日程…" : "正在保存日程…");
     const saved = editingRecordId ? await schedule.update(editingRecordId, payload) : await schedule.create(payload);
     if (!saved) return;
     const wasEditing = Boolean(editingRecordId);
@@ -1125,6 +1130,7 @@ export function GenericPageClient({
     }
     const payload = { localDate: date, note: note.trim(), repeatYearly, title: title.trim() };
     const editingRecordId = editingKind === "primary" ? editingId : null;
+    setFeedback(editingRecordId ? "正在修改纪念日…" : "正在保存纪念日…");
     const saved = editingRecordId ? await anniversaries.update(editingRecordId, payload) : await anniversaries.create(payload);
     if (!saved) return;
     const wasEditing = Boolean(editingRecordId);
@@ -1149,6 +1155,7 @@ export function GenericPageClient({
     }
     const payload = { body: body.trim(), localDate: date, mood: mood.trim(), title: title.trim() };
     const editingRecordId = editingKind === "primary" ? editingId : null;
+    setFeedback(editingRecordId ? "正在修改日记…" : "正在保存日记…");
     const saved = editingRecordId ? await diary.update(editingRecordId, payload) : await diary.create(payload);
     if (!saved) return;
     const wasEditing = Boolean(editingRecordId);
@@ -1178,6 +1185,7 @@ export function GenericPageClient({
     }
     const payload = { archived: false, currency: "CNY", targetCents, targetDate: targetDate || null, title: title.trim() };
     const editingRecordId = editingKind === "primary" ? editingId : null;
+    setFeedback(editingRecordId ? "正在修改存钱计划…" : "正在保存存钱计划…");
     const saved = editingRecordId ? await savingsGoals.update(editingRecordId, payload) : await savingsGoals.create(payload);
     if (!saved) return;
     const wasEditing = Boolean(editingRecordId);
@@ -1205,6 +1213,7 @@ export function GenericPageClient({
     }
     const payload = { amountCents, goalId: selectedGoalId, localDate: date, note: note.trim() };
     const editingRecordId = editingKind === "transaction" ? editingId : null;
+    setFeedback(editingRecordId ? "正在修改存入记录…" : "正在保存存入记录…");
     const saved = editingRecordId
       ? await savingsTransactions.update(editingRecordId, payload)
       : await savingsTransactions.create(payload);

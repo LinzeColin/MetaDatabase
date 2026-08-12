@@ -241,6 +241,24 @@ test("period record control immediately acknowledges pending and failed saves", 
   assert.doesNotMatch(source, /if \(periods\.consentRequired\)/);
 });
 
+test("every asynchronous workbench save immediately exposes an in-page pending state", async () => {
+  const source = await readFile(lifecycleSource, "utf8");
+
+  for (const message of [
+    "正在保存账单…",
+    "正在保存饮食记录…",
+    "正在保存运动记录…",
+    "正在保存体重记录…",
+    "正在保存日程…",
+    "正在保存纪念日…",
+    "正在保存日记…",
+    "正在保存存钱计划…",
+    "正在保存存入记录…",
+  ]) {
+    assert.match(source, new RegExp(message), message);
+  }
+});
+
 test("todo uses a browser-valid date pattern and the shared account-scoped persistence client", async () => {
   const source = await readFile(todoSource, "utf8");
   const cacheSource = await readFile("app/_components/workbench/local-record-cache.ts", "utf8");
