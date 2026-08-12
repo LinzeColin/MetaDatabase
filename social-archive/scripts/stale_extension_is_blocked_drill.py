@@ -350,6 +350,32 @@ async def _one_case(chrome: str, folder: Path, label: str, debug_port: int) -> d
                     await prpc("Page.enable")
                     await prpc("Page.reload", {"ignoreCache": True})
                     await asyncio.sleep(2.5)
+            else:
+                # **六轮都没认出来 —— 把「为什么」当场取回来，别留成一个谜。**
+                #
+                # 这处抖动我已经修错三次（两次当成「读早了」、一次当成 service
+                # worker 睡着），每次都是**猜**。真正能分辨的是一个标记：
+                # `bridge.js` 注进去时会设 `__socialArchiveExtensionBridgeState`。
+                #
+                #   标记不在  → 内容脚本压根没注进来（注入那一侧的问题）
+                #   标记在而 detected 仍是 false → PING/PONG 这一趟没走通
+                #
+                # 两种的下一步完全不同。下次再红时，报告里直接写着是哪一种。
+                probe = await prpc("Runtime.evaluate", {"expression": '''
+                    JSON.stringify({
+                      bridge_injected: !!window.__socialArchiveExtensionBridgeState,
+                      bridge_state: window.__socialArchiveExtensionBridgeState
+                        ? Object.keys(window.__socialArchiveExtensionBridgeState) : [],
+                      href: location.href,
+                    })''', "returnByValue": True})
+                found = json.loads(
+                    probe.get("result", {}).get("result", {}).get("value") or "{}")
+                found["case"] = label
+                # **旧插件那一例本来就注不进来**：老构建的 manifest 里没有
+                # 这个页面的 match。所以那一例出现这条不是异常，是预期——
+                # 标上是哪一例，免得它看起来像个缺陷。
+                found["expected_for_this_case"] = (label != "new")
+                result["why_not_detected"] = found
 
             # **真的点下去**，带用户手势——权限申请那条路只在有手势时才成立。
             click = await prpc("Runtime.evaluate", {"expression": '''(() => {

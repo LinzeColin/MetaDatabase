@@ -16,7 +16,14 @@
     },
     "connect_panel_open": false,
     "dialog": "",
-    "error": ""
+    "error": "",
+    "why_not_detected": {
+      "bridge_injected": false,
+      "bridge_state": [],
+      "href": "http://127.0.0.1:8765/",
+      "case": "old",
+      "expected_for_this_case": true
+    }
   },
   "new": {
     "case": "new",
