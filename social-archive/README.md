@@ -1,4 +1,4 @@
-# Social Archive v0.0.0.66
+# Social Archive v0.0.0.67
 
 免费、私有、跨平台的收藏、点赞与网页归档系统。日常操作采用 E2N 式一键保存；来源授权和 Notion/Obsidian/GitHub/Markdown 目的地连接状态可见；配置存在不等于已连接。默认归档 L0/L1/L3，L2 关闭。
 
