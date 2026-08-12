@@ -116,6 +116,21 @@ test("network-level resource uncertainty gives Google users a truthful sign-in n
   assert.match(source, /consentRequired \? <a className="data-link" href="\/account" onClick=\{continueAfterConsent\}>开启敏感跨设备保存<\/a> : null/);
 });
 
+test("an OAuth return rechecks the session once and refreshes every mounted history panel", async () => {
+  const [resource, accountEntry, authForm] = await Promise.all([
+    readFile(resourceSource, "utf8"),
+    readFile("app/_components/workbench/account-entry.tsx", "utf8"),
+    readFile("app/auth/_components/auth-form.tsx", "utf8"),
+  ]);
+
+  assert.match(authForm, /markAuthReturnRecovery\(\);/);
+  assert.match(accountEntry, /consumeAuthReturnRecovery\(\)/);
+  assert.match(accountEntry, /AUTH_RETURN_RECOVERY_DELAYS_MS\.map/);
+  assert.match(accountEntry, /window\.dispatchEvent\(new Event\(AUTH_RETURN_RECOVERY_EVENT\)\)/);
+  assert.match(resource, /window\.addEventListener\(AUTH_RETURN_RECOVERY_EVENT, refreshAfterAuthReturn\)/);
+  assert.match(resource, /window\.removeEventListener\(AUTH_RETURN_RECOVERY_EVENT, refreshAfterAuthReturn\)/);
+});
+
 test("persistence UI distinguishes an explicit sensitive-consent denial from an account-verification denial", async () => {
   const source = await readFile(resourceSource, "utf8");
 

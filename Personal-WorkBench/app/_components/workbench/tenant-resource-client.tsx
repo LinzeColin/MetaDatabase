@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AUTH_RETURN_RECOVERY_EVENT } from "../../auth/_components/auth-return-recovery";
 import { accountReturnPathFromLocation } from "./account-return-path";
 import {
   appendDeviceOutbox,
@@ -612,11 +613,13 @@ export function useTenantResource<T extends TenantRecord>(
     const refreshWhenDocumentVisible = () => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") void reload(true);
     };
+    const refreshAfterAuthReturn = () => void reload(true);
     const replayWhenParentSynchronizes = () => void reload();
     const replayWhenPrivacyConsentIsAccepted = () => void reload(true);
     window.addEventListener("online", replayWhenOnline);
     window.addEventListener("focus", refreshWhenVisible);
     window.addEventListener("pageshow", refreshWhenPageShows);
+    window.addEventListener(AUTH_RETURN_RECOVERY_EVENT, refreshAfterAuthReturn);
     window.addEventListener("mydairy:outbox-alias-resolved", replayWhenParentSynchronizes);
     window.addEventListener("mydairy:privacy-consent-accepted", replayWhenPrivacyConsentIsAccepted);
     if (typeof document !== "undefined") document.addEventListener("visibilitychange", refreshWhenDocumentVisible);
@@ -624,6 +627,7 @@ export function useTenantResource<T extends TenantRecord>(
       window.removeEventListener("online", replayWhenOnline);
       window.removeEventListener("focus", refreshWhenVisible);
       window.removeEventListener("pageshow", refreshWhenPageShows);
+      window.removeEventListener(AUTH_RETURN_RECOVERY_EVENT, refreshAfterAuthReturn);
       window.removeEventListener("mydairy:outbox-alias-resolved", replayWhenParentSynchronizes);
       window.removeEventListener("mydairy:privacy-consent-accepted", replayWhenPrivacyConsentIsAccepted);
       if (typeof document !== "undefined") document.removeEventListener("visibilitychange", refreshWhenDocumentVisible);

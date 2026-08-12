@@ -16,6 +16,7 @@ import {
   type AuthMode,
   usesTurnstileFor,
 } from "./auth-flow";
+import { markAuthReturnRecovery } from "./auth-return-recovery";
 
 type TurnstileApi = {
   render(
@@ -203,6 +204,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
       });
       const payload = (await response.json().catch(() => null)) as { url?: unknown } | null;
       if (response.ok && typeof payload?.url === "string") {
+        markAuthReturnRecovery();
         window.location.assign(payload.url);
         return;
       }
@@ -258,6 +260,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
         return;
       }
       if (mode === "sign-in") {
+        markAuthReturnRecovery();
         window.location.assign(AUTHENTICATED_HOME_PATH);
         return;
       }

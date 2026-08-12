@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  AUTH_RETURN_RECOVERY_DELAYS_MS,
+  AUTH_RETURN_RECOVERY_EVENT,
+  consumeAuthReturnRecovery,
+} from "../../auth/_components/auth-return-recovery";
 
 type AccountEntryState = "checking" | "signed-in" | "signed-out" | "verification-required";
 
@@ -27,6 +32,14 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
     let active = true;
     let controller: AbortController | null = null;
     let requestGeneration = 0;
+    let recoveryAnnounced = false;
+    const shouldRecoverAuthReturn = consumeAuthReturnRecovery();
+
+    const announceRecoveredSession = (nextState: AccountEntryState) => {
+      if (!shouldRecoverAuthReturn || recoveryAnnounced || nextState === "signed-out" || nextState === "checking") return;
+      recoveryAnnounced = true;
+      window.dispatchEvent(new Event(AUTH_RETURN_RECOVERY_EVENT));
+    };
 
     const refresh = () => {
       const generation = ++requestGeneration;
@@ -43,7 +56,10 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
           return session.user.emailVerified === false ? "verification-required" as const : "signed-in" as const;
         })
         .then((nextState) => {
-          if (active && generation === requestGeneration) setState(nextState);
+          if (active && generation === requestGeneration) {
+            setState(nextState);
+            announceRecoveredSession(nextState);
+          }
         })
         .catch(() => {
           // Do not turn a known session into a signed-out display because a
@@ -56,12 +72,20 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
     };
 
     refresh();
+    // Better Auth commits the browser session and the user row separately.
+    // During an OAuth return, the first authoritative lookup can therefore be
+    // a short-lived signed-out result even though the callback has succeeded.
+    // Retry only for the one tab that deliberately began a successful sign-in.
+    const recoveryTimers = shouldRecoverAuthReturn
+      ? AUTH_RETURN_RECOVERY_DELAYS_MS.map((delay) => window.setTimeout(refresh, delay))
+      : [];
     window.addEventListener("focus", refresh);
     window.addEventListener("pageshow", refresh);
     document.addEventListener("visibilitychange", refreshWhenDocumentVisible);
     return () => {
       active = false;
       controller?.abort();
+      recoveryTimers.forEach((timer) => window.clearTimeout(timer));
       window.removeEventListener("focus", refresh);
       window.removeEventListener("pageshow", refresh);
       document.removeEventListener("visibilitychange", refreshWhenDocumentVisible);
