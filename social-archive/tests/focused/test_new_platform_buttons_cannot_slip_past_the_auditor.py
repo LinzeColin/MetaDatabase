@@ -69,6 +69,46 @@ def test_an_unknown_marker_is_not_quietly_in_the_allow_lists() -> None:
         "这颗标记是当初溜过去的那个反例；把它加进白名单等于把这道门关掉")
 
 
+def test_every_promising_button_sits_inside_a_function_the_auditor_inspects() -> None:
+    """承诺型按钮不许长在判据没看的函数里。
+
+    判据是**按函数**查的（`SURFACES` 里一屏一个函数名）。它的兜底能发现
+    「多了一颗没人表过态的**新标记**」，却发现不了「**老标记**被用在一个
+    新函数里」——那个函数不在表里，整段就不会被展开，守卫有没有都无所谓。
+
+    快手和 X 那两颗按钮就是这么活下来的：`renderSyncConnectPicker()` 用的是
+    普通写法，只是**没人把这个函数登记进去**，于是判据一路是绿的。
+
+    这条断言把每一处标记映射回它所在的函数，凡是落在表外的当场红。
+    """
+    module = _load()
+    covered: dict[str, set[str]] = {}
+    for surface in module.SURFACES:
+        covered.setdefault(surface["file"], set()).add(surface["function"])
+
+    function_start = re.compile(r"^\s{0,4}(?:async\s+)?function\s+([A-Za-z0-9_$]+)", re.M)
+    for relative, functions in covered.items():
+        text = (ROOT / relative).read_text(encoding="utf-8", errors="ignore")
+        bounds = [(m.start(), m.group(1)) for m in function_start.finditer(text)]
+        assert bounds, f"{relative} 里一个函数都没解析出来——这条断言会恒绿，先修它"
+        seen = 0
+        for marker in module.PROMISING_MARKERS:
+            for hit in re.finditer(re.escape(marker), text):
+                owner = "(顶层)"
+                for start, name in bounds:
+                    if start < hit.start():
+                        owner = name
+                    else:
+                        break
+                seen += 1
+                line = text[: hit.start()].count("\n") + 1
+                assert owner in functions, (
+                    f"{relative}:{line} 的 {marker} 长在 {owner}() 里，"
+                    f"而判据只查 {sorted(functions)}——"
+                    "把这个函数登记进 SURFACES（连它真正起作用的那个守卫一起）")
+        assert seen, f"{relative} 里一颗承诺型按钮都没扫到——正则多半失效了"
+
+
 def test_the_auditor_passes_on_the_repo_right_now() -> None:
     """**它现在必须是绿的。** 上面三条都可能在一个恒红的判据上通过。"""
     done = subprocess.run([sys.executable, str(CHECKER)],
