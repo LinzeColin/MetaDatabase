@@ -7,7 +7,12 @@
  */
 export const AUTH_RETURN_RECOVERY_EVENT = "mydairy:auth-return-recovered";
 export const AUTH_RETURN_RECOVERY_KEY = "mydairy.auth-return-recovery.v1";
-export const AUTH_RETURN_RECOVERY_DELAYS_MS = [300, 1_100] as const;
+// Better Auth commits the session and user state independently.  Most OAuth
+// returns settle within the first two reads, but keep two later bounded reads
+// for a slow edge/database commit so the just-authenticated tab can recover
+// without asking the visitor to refresh or sign in again.  This is never a
+// general polling loop: it runs only after this tab deliberately starts auth.
+export const AUTH_RETURN_RECOVERY_DELAYS_MS = [300, 1_100, 3_000, 6_000] as const;
 
 type SessionStoragePort = Pick<Storage, "getItem" | "removeItem" | "setItem">;
 

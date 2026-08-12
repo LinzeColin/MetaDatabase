@@ -27,7 +27,8 @@ test("a successful auth return leaves one value-free recovery marker", () => {
 });
 
 test("auth return recovery uses a bounded client-only retry contract", () => {
-  assert.deepEqual(AUTH_RETURN_RECOVERY_DELAYS_MS, [300, 1_100]);
+  assert.deepEqual(AUTH_RETURN_RECOVERY_DELAYS_MS, [300, 1_100, 3_000, 6_000]);
+  assert.equal(Math.max(...AUTH_RETURN_RECOVERY_DELAYS_MS) <= 6_000, true);
   assert.equal(AUTH_RETURN_RECOVERY_EVENT, "mydairy:auth-return-recovered");
   assert.equal(AUTH_RETURN_RECOVERY_KEY.includes("token"), false);
   assert.equal(AUTH_RETURN_RECOVERY_KEY.includes("user"), false);
