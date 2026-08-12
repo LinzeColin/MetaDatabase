@@ -6,6 +6,7 @@
 
 ## 当前状态
 
+- 后冻结 current-production local outbound-policy classification diagnostic（单一独立增量）已完成：新增精确合同、受控 shell 入口与定向测试。该 phase 只以每命令两秒上限读取本机默认路由可用性、系统代理启用状态和 PF 启用状态，绝不读取 PF 规则、代理/路由值、credential/config/runtime secret；没有 DNS、socket、SSH、浏览器、provider/GitHub 请求、known_hosts 写入、资源/网络/Cloudflare/主机变更、部署、市场/账户/TAB/Gmail、建议或订单。实际为 `PASS_CURRENT_PRODUCTION_LOCAL_OUTBOUND_POLICY_CLASSIFICATION_DIAGNOSTIC`，本机政策已分类但结果严格为 `LOCAL_POLICY_UNKNOWN_REDACTED`，`current_tcp_failure_explained=false`、`core_start_authorized=false`。脱敏回执已写入私有数据面并单次读回；本地仅执行 shell syntax、内存语法编译与该模块 `23 passed` 定向测试，未运行全量测试、完整回归或真实时间 soak，新增现金 A$0。该结果不证明或归因本次 TCP 失败，更不证明远端主机、认证/权限、配置、core production、公开 endpoint、7×24 或收益；不得重复 TCP/SSH 探测或绕过门，下一步只能另立一次受控、无重复连接的 deployment-route recovery evidence phase。
 - 后冻结 current-production SSH transport failure-classification diagnostic（单一独立增量）已完成：新增精确合同、受控 shell 入口与定向测试。该 phase 仅从既有 SSH config 选择唯一受限 alias、用本地 `ssh -G` 读取非秘密 transport metadata，并仅在 direct 数值目标时以固定三秒上限发起至多一次 TCP `connect_ex`；没有 DNS、SSH 认证、远端命令、sudo、known_hosts 写入、provider/GitHub 请求、资源/网络/Cloudflare/主机变更、部署、市场/账户/TAB/Gmail、建议或订单。实际为 `PASS_CURRENT_PRODUCTION_SSH_TRANSPORT_FAILURE_CLASSIFICATION_DIAGNOSTIC`，分类完成但 TCP 不可达，严格为 `SSH_TCP_OTHER_SOCKET_FAILURE_REDACTED`，`core_start_authorized=false`。脱敏回执已写入私有数据面并单次读回；本地仅执行 shell syntax、内存语法编译与该模块 `21 passed` 定向测试，未运行全量测试、完整回归或真实时间 soak，新增现金 A$0。该结果不证明主机下线、认证/权限、配置、core production、公开 endpoint、7×24 或收益，且不得通过重复 TCP/SSH 尝试绕过；下一步只能另立不连接的本机 outbound-policy 分类 phase。
 - 后冻结 current-production SSH local route-policy diagnostic（单一独立增量）已完成：新增精确合同、受控 shell 入口与定向测试。该 phase 只读取既有 SSH config 的受管 Host 声明与 `ssh -G` 的非秘密 transport metadata，并只对本机默认/数值目标路由、Proxy 形态和未连接 socket 可用性作固定分类；若 root config 含 `Include` 或 `Match exec`，会在 `ssh -G` 前失败关闭。实际为 `PASS_CURRENT_PRODUCTION_SSH_LOCAL_ROUTE_POLICY_DIAGNOSTIC`，本机 route policy ready；socket/SSH 连接、认证、known_hosts 写入、provider/GitHub 请求、资源/网络/Cloudflare/主机变更、市场/账户/TAB/Gmail、建议和订单均为 `0`/未发生，`core_start_authorized=false`。脱敏回执已写入私有数据面并单次读回；本地仅执行 shell syntax、内存语法编译与该模块 `15 passed` 定向测试，未运行全量测试、完整回归或真实时间 soak，新增现金 A$0。该结果只能说明本机前置路线可用，不能解释先前 TCP 失败，更不能证明远端主机、认证/权限、配置、core production、公开 endpoint、7×24 或收益；下一步只能另立一次有界 SSH transport failure-classification phase。
 - 后冻结 protected nonsecret documentation pointer resolver（单一独立增量）已完成：新增精确合同、受控 shell 入口与定向测试。该 phase 只在受保护根目录的固定深度/条目上限内识别 README/HANDOFF/INVENTORY/DEPLOYMENT/ARCHITECTURE/TOPOLOGY/RUNBOOK/OPERATIONS 命名的非秘密文档，跳过敏感命名路径；文档必须是普通文件、非软链、禁止组/其他用户写入，且每份固定字节上限。只接受跨该集合唯一的内联、相对、非秘密 JSON pointer，只有 pointer 唯一时才允许检查单一 target source。实际固定集合未声明唯一 pointer，严格为 `NOT_DECLARED_REDACTED`，所以没有打开 target JSON，也不证明 source、credential、target mapping 或资源不存在。provider、SSH、GitHub 请求均为 `0`，没有浏览器登录、资源/网络/Cloudflare/主机变更、部署、市场/账户/TAB/Gmail、建议或订单；脱敏回执已写入私有数据面并单次读回。本地仅执行 shell syntax、内存语法编译与该模块 `17 passed` 定向测试，未运行全量测试、完整回归或真实时间 soak，新增现金 A$0。它只完成非秘密文档范围的 pointer 声明核验，不证明 target、OVH 资源、电源、网络、SSH、配置、core production、公开 endpoint、7×24 或收益；下一步必须另立 current-production SSH local route-policy diagnostic phase。
@@ -190,6 +191,10 @@
 
 ## 关键文件
 
+- `runtime/current_production_local_outbound_policy_classification_diagnostic.py`
+- `runtime/current_production_local_outbound_policy_classification_diagnostic_contract.json`
+- `runtime/run_current_production_local_outbound_policy_classification_diagnostic.sh`
+- `runtime_tests/test_current_production_local_outbound_policy_classification_diagnostic.py`
 - `runtime/current_production_ssh_transport_failure_classification_diagnostic.py`
 - `runtime/current_production_ssh_transport_failure_classification_diagnostic_contract.json`
 - `runtime/run_current_production_ssh_transport_failure_classification_diagnostic.sh`
@@ -601,6 +606,7 @@
 
 ## 未解决风险
 
+- 最新 current-production local outbound-policy classification diagnostic 已完整读取受限本机 route/proxy/PF 状态类别，但结果严格为 `LOCAL_POLICY_UNKNOWN_REDACTED`，且合同禁止读取 PF 规则或代理/路由值。因此它既不解释也不归因先前的 TCP 失败，不能证明本机无阻断、远端异常、认证/权限、服务端配置或 core 状态。不得通过放宽本机读取边界、重复 TCP/SSH、猜测替代地址或部署来消除该未知；下一步若继续，必须另立并由现有受控非秘密元数据决定的 deployment-route recovery evidence phase，不能把 unknown 伪装成根因。
 - 最新 current-production SSH transport failure-classification diagnostic 在唯一、固定三秒的 direct 数值 TCP 观察中完成失败分类，且没有尝试 SSH 认证、远端命令或 sudo；当前结果为 `SSH_TCP_OTHER_SOCKET_FAILURE_REDACTED`。本机 route-policy ready 与这个结果不能互相抵消，也不证明主机下线、远端防火墙、认证/权限、服务端配置或 core 状态。不得在同一目标上循环或立即重复 TCP/SSH 尝试；下一步只可另立一个不连接的本机 outbound-policy 分类 phase，若仍不能解释，仅记录 `UNKNOWN`，不伪造根因或绕过门。
 - 最新 current-production SSH local route-policy diagnostic 已证明本机 direct route policy、默认/数值目标路由与未连接 socket 前置可用，但严格没有发起 socket/SSH 连接、认证或远端检查。因此它不能解释先前 TCP `OTHER_FAILED_REDACTED`，也不证明主机、认证、权限、配置或 core 状态；不得把本机 route ready 外推为 transport 或上线 ready。下一步若继续，必须是单独的、有固定次数/时限、非交互且不写 known_hosts 的 SSH transport failure-classification phase；其结果无论如何都不得绕过管理平面、配置语义和 core 合同。
 - 最新 protected nonsecret documentation pointer resolver 已完成固定非秘密文档集的只读检索，结果为 `NOT_DECLARED_REDACTED`，没有 target source 被打开。这不证明受保护目录没有 metadata source，也不授权扩大至其他文件名、猜测/伪造 pointer、读取 credential/target 值、连接 SSH、请求 provider/GitHub API 或部署。三个 pointer 路径（通用有界 locator、根 README、受控非秘密文档集）都已各自形成失败关闭回执；后续应转向不依赖 source pointer 的既有 SSH 本机路由前置核验，而不是重复扫描。
@@ -641,6 +647,6 @@
 
 ## 下一步
 
-下一次 run 必须只执行一个明确 phase：独立、只读、脱敏地实施 **current-production local outbound-policy classification diagnostic**。它只能检查本机的静态 route/interface/proxy/firewall policy 状态，将结果归入固定、不含 target 或原始配置/错误文本的类别；不读取 credential/config/runtime secret，不发起 DNS、socket、SSH、浏览器、provider/GitHub 请求或任何远端动作，不写 known_hosts，不创建/修改资源、网络、Cloudflare、主机或服务。若本机 policy 仍不能解释本次 TCP 分类，只记录 `UNKNOWN` 并结束；不得以重复 TCP/SSH 探测、猜测替代地址、认证、部署或启动服务来冒充诊断完成。无论结果，保持 `core_start_authorized=false`；只有完整受控入口、管理平面、SSH transport、冻结 config semantic check 与 core 合同均有各自可复验 ready 证据后，才可另立 phase 讨论任何 core action。
+下一次 run 必须只执行一个明确 phase：独立、只读、脱敏地实施 **current-production deployment-route recovery evidence diagnostic**。它只能从已有受控且非秘密的部署路径元数据中确认是否存在可验证的 current-production recovery route（例如已存在的 provider-console、out-of-band 或 CI deployment-route 声明）；不得读取、输出、复制或持久化 credential、地址、端口、用户、密钥、token、target mapping、配置/secret 内容或原始错误，不得发起 DNS/socket/SSH/浏览器登录、provider/GitHub API 请求或任何远端动作，不得创建/修改资源、网络、Cloudflare、主机或服务。若无唯一既有安全 route，仅记录 `NOT_AVAILABLE_REDACTED` 并结束；不得猜测替代地址、复用 credential、循环连接、认证、部署或启动服务。无论结果，保持 `core_start_authorized=false`；只有完整受控入口、管理平面、SSH transport、冻结 config semantic check 与 core 合同均有各自可复验 ready 证据后，才可另立 phase 讨论任何 core action。
 
 保持 PR #174 的远端 CI 状态与本地结果彼此独立；不得把 pending、远端检查、Draft PR、本地验收、当前 loopback shadow、一次性 attestation、无 hostname connector、两项历史来源、静态残差描述、主机可达性或 OCI 制品外推为 CI、合并、公开 endpoint、core deployment、Cloudflare 全球访问、真实市场、账户或生产上线完成。静态残差回执明确不是模型增量或参数更新依据；未来若做新的静态证据 phase，必须继续保持单独、不可激活且不改变 `model_beta_gate` 的边界。当前 Cloudflare MFA 重验为 `Inactive`，所以受保护 shadow hostname/DNS phase 只能在唯一账户持有人在仓库外完成 MFA 且其状态可独立复验后再选作一个新的明确 phase；不得输入/复用账号密码、OTP 或创建 Access/DNS 绕过。core service 仍须以冻结的 2560m resource limit、现时 host memory 和原有严格 swap/capacity 合同另行裁决，不能把当前 connector、容器 no-additional-swap、两项静态历史数据、静态残差描述或用户对 host-wide swap 的纠正误用为 core 通过。保持零新增现金与既有证据、数值、风险、安全和来源门不降级。
