@@ -19,28 +19,28 @@
     },
     "tabs_before": [
       {
-        "id": 1035733896,
+        "id": 846985444,
         "active": false
       },
       {
-        "id": 1035733897,
+        "id": 846985445,
         "active": false
       },
       {
-        "id": 1035733900,
+        "id": 846985448,
         "active": true
       }
     ],
-    "my_tab_id": 1035733900,
+    "my_tab_id": 846985448,
     "queue_before": [
       {
         "accountId": "acct-1",
-        "enqueuedAt": 1786563973313,
+        "enqueuedAt": 1786566563148,
         "profileUrl": "",
         "syncRunId": "run-1",
         "tabId": null,
         "triggerType": "first_connect",
-        "updatedAt": 1786563973313
+        "updatedAt": 1786566563148
       }
     ],
     "alarm_scheduled": true,
@@ -58,15 +58,15 @@
     "queue_after": [],
     "tabs_after": [
       {
-        "id": 1035733896,
+        "id": 846985444,
         "active": false
       },
       {
-        "id": 1035733897,
+        "id": 846985445,
         "active": false
       },
       {
-        "id": 1035733900,
+        "id": 846985448,
         "active": true
       }
     ],
@@ -88,9 +88,9 @@
       "hasSettingsButton": true,
       "hasSaveButton": true,
       "hasOpenLibrary": true,
-      "manageAccountsHint": "哔哩哔哩、普通网页可自动同步；其余平台用下面的「保存当前页面」",
-      "saveSummary": "保存当前页面（7 个平台只能这样存）",
-      "diagnoseWhy": "小红书、抖音、快手、X、Reddit、Instagram、YouTube的收藏列表现在还读不了",
+      "manageAccountsHint": "小红书、抖音、哔哩哔哩、Reddit、Instagram、普通网页可自动同步；其余平台用下面的「保存当前页面」",
+      "saveSummary": "保存当前页面",
+      "diagnoseWhy": "快手、X、YouTube的收藏列表现在还读不了",
       "saveIsCollapsed": true,
       "mentionsBilibiliCannotRead": false
     },

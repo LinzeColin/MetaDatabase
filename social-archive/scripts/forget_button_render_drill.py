@@ -57,6 +57,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _production_shapes  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _drill_port  # noqa: E402
 
 import websockets
@@ -81,7 +84,10 @@ DEBUG_PORT = 9371
 DEFAULT_ORIGIN = "https://social-archive-api.linzezhang.com"
 
 # 夹具照他生产库里的实况：三个国内平台，抖音那个有 86 条。
+# 这是**账号夹具，不是平台表**——登记在
+# DELIBERATE_SUBSETS["FORGET_ACCOUNTS_FIXTURE"]（和 POPUP_STATE_FIXTURE 同一类）。
 ACCOUNTS = {
+    # FORGET_ACCOUNTS_FIXTURE —— **账号夹具，不是平台表**（和 POPUP_STATE_FIXTURE 同类）。
     "items": [
         {"id": "acct_douyin", "platform": "douyin", "display_name": "抖音",
          "connection_state": "connected", "auto_sync_enabled": True, "content_count": 86},
@@ -93,24 +99,20 @@ ACCOUNTS = {
     # 「本版本能自动同步的是：undefined。」——**夹具的错**，
     # 但那句话要是真出现在他屏幕上就是产品的错，所以下面单独断言不许有 undefined。
     #
-    # **九个平台一个都不能少，写在同一个字面量里。**
+    # **九个平台一个都不能少。**（2026-08-13 起改成现算，不再靠字面量）
+    #
+    # 原来这里是一整块九个平台的字面量，理由写在下面——而**手抄的那份把
+    # kuaishou 写成 `sync_supported: True`，生产上它明确不能自动读**。
+    # 于是这个演练一直在验一屏他看不到的界面。现在照
+    # `_production_shapes.supported_platforms_like_production()` 现算，
+    # 加平台自动就有，也不可能再写反。
+    #
+    # 下面这段说的是那个字面量为什么当初不能拆，留着做记录：
     # 我第二版把它拆成两段推导式（能同步的 7 个 + 不能的 2 个），
     # check_every_platform_table_is_complete.py 立刻报「这张表里没有 x / youtube」
     # ——它按字面量逐张查，拆开就成了两张各自不全的表。那道门是对的：
     # 平台表漏一个，用户看到的就是内部 id、空白，或者一个根本不存在的按钮。
-    "supported_platforms": [
-        {"platform": "bilibili", "sync_supported": True, "connect_supported": True},
-        {"platform": "douyin", "sync_supported": True, "connect_supported": True},
-        {"platform": "kuaishou", "sync_supported": True, "connect_supported": True},
-        {"platform": "xiaohongshu", "sync_supported": True, "connect_supported": True},
-        {"platform": "generic-web", "sync_supported": True, "connect_supported": True},
-        {"platform": "instagram", "sync_supported": True, "connect_supported": True},
-        {"platform": "reddit", "sync_supported": True, "connect_supported": True},
-        {"platform": "x", "sync_supported": False, "connect_supported": True,
-         "not_syncable_reason": "本版本还不能自动同步这个平台。"},
-        {"platform": "youtube", "sync_supported": False, "connect_supported": True,
-         "not_syncable_reason": "本版本还不能自动同步这个平台。"},
-    ],
+    "supported_platforms": _production_shapes.supported_platforms_like_production(),
 }
 
 FAKE: dict[str, dict] = {
