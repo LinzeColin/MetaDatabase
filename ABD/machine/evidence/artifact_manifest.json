@@ -1,5 +1,5 @@
 {
-  "file_count": 1126,
+  "file_count": 1273,
   "files": [
     {
       "bytes": 25,
@@ -17,9 +17,9 @@
       "sha256": "a1b6d13afea6f383061d2d3405efe2f2d8f4867fbb08a5edf0e53415c16a239a"
     },
     {
-      "bytes": 151863,
+      "bytes": 255683,
       "path": "HANDOFF.md",
-      "sha256": "58bd4326469292c4757f494d16ba018ff2bdac5d00187456fb6e788fec8698e4"
+      "sha256": "ccdefdbfe1e84a9d1c6cb8cb208bd7bc7c349359db5b082c36dc9069e6ec41da"
     },
     {
       "bytes": 643,
@@ -4642,6 +4642,386 @@
       "sha256": "749569f373742b5ee02aec7b3ce4307d14c9e2359651817e82755e42f17f3a0f"
     },
     {
+      "bytes": 13436,
+      "path": "runtime/current_candidate_recovery_oci_attestation.py",
+      "sha256": "2019da08c3b301279fe8a3f0bb7df789cba8fc7622df40972750f2c9cdbd414c"
+    },
+    {
+      "bytes": 1774,
+      "path": "runtime/current_candidate_recovery_oci_attestation_contract.json",
+      "sha256": "f53db40826c1843ad0a8067c34bc4680c30f9b01554335ab5eb3fab1b59ec010"
+    },
+    {
+      "bytes": 23195,
+      "path": "runtime/current_production_abd_scoped_explicit_authority_record_intake.py",
+      "sha256": "6441976da828026d9d138474a5b6583b85209101b19a47bec6671d200f4331ae"
+    },
+    {
+      "bytes": 2194,
+      "path": "runtime/current_production_abd_scoped_explicit_authority_record_intake_contract.json",
+      "sha256": "ad083240e007a0f4b04506ffd82825ba7036917d2ab4a97d6b3509d77f6ed6a8"
+    },
+    {
+      "bytes": 2463,
+      "path": "runtime/current_production_abd_scoped_explicit_authority_record_intake_contract_002.json",
+      "sha256": "844ebbefcf0dc66ddf8cc8b0b19526098b9351a260dd96724ac149c64db1d648"
+    },
+    {
+      "bytes": 18494,
+      "path": "runtime/current_production_abd_scoped_transport_authority_source_resolution.py",
+      "sha256": "68f5f65a380d6e058834e56eba120a4646c887f3ce24a02e7a6ceffd5d4315b3"
+    },
+    {
+      "bytes": 2061,
+      "path": "runtime/current_production_abd_scoped_transport_authority_source_resolution_contract.json",
+      "sha256": "cb14752c5c32ee23b570d860497df496a122d0d3bb97a3b16568ffbd19cdf792"
+    },
+    {
+      "bytes": 356,
+      "path": "runtime/current_production_blue_release_acceptance_init.py",
+      "sha256": "58f645d08ec01b11cb662b65ef351af8057b1ce24d5f49f25ecb77bed5b8234d"
+    },
+    {
+      "bytes": 17294,
+      "path": "runtime/current_production_blue_release_repair.py",
+      "sha256": "7146fddf9fed79232a464aad0f2dcad9f74aa899ab17f4696456490900d716a0"
+    },
+    {
+      "bytes": 2464,
+      "path": "runtime/current_production_blue_release_repair_contract.json",
+      "sha256": "cb5d1172f169db52ce56d00b2045ddb5a286dffed4514b1e773480cd098bdb5f"
+    },
+    {
+      "bytes": 25318,
+      "path": "runtime/current_production_ci_deployment_route_static_declaration_diagnostic.py",
+      "sha256": "ba63d214fd9154e582040e32d9366cdb145505f5de12421a3fa598f4eed42823"
+    },
+    {
+      "bytes": 2058,
+      "path": "runtime/current_production_ci_deployment_route_static_declaration_diagnostic_contract.json",
+      "sha256": "9f600a98863c92a7a68a59e6eddfc6c0f881e27dd293dfbc7a1f3975c38ee458"
+    },
+    {
+      "bytes": 14531,
+      "path": "runtime/current_production_control_plane_remediation.py",
+      "sha256": "7a3f9f01aeea7d4a641b73ef9d9b7e73a6fde2472bded7c7ef49a8d32e974f88"
+    },
+    {
+      "bytes": 2751,
+      "path": "runtime/current_production_control_plane_remediation_contract.json",
+      "sha256": "540175998998e6272268de6eac55e113fde73db168e472e2f7290ef3f019c066"
+    },
+    {
+      "bytes": 23128,
+      "path": "runtime/current_production_core_activation_prerequisite_static_evidence_classification_diagnostic.py",
+      "sha256": "cd29764a2f33ca1ccef6fa8094ea5a89dba4b00cb90aa72acb7f54ae81102d8e"
+    },
+    {
+      "bytes": 3055,
+      "path": "runtime/current_production_core_activation_prerequisite_static_evidence_classification_diagnostic_contract.json",
+      "sha256": "e95355385b34f196e2f3cca862d78366597daa2a5eaaa4336aae427d6b0aaab3"
+    },
+    {
+      "bytes": 9620,
+      "path": "runtime/current_production_core_capacity_admission.py",
+      "sha256": "b7a8270daf98b77c5451885459a3ce5bfbfa65d4776a4bca8bbbd7bf6c600085"
+    },
+    {
+      "bytes": 1439,
+      "path": "runtime/current_production_core_capacity_admission_contract.json",
+      "sha256": "d947071f185be4cc0f56d26356b45aa4734c8f0a27008038bcd39c2079f0239e"
+    },
+    {
+      "bytes": 12883,
+      "path": "runtime/current_production_core_config_semantic_preflight.py",
+      "sha256": "77da172b37116b3322be77e7e1b04261fffd2c683ffb90cfec7ee8d640c75d17"
+    },
+    {
+      "bytes": 1732,
+      "path": "runtime/current_production_core_config_semantic_preflight_contract.json",
+      "sha256": "e57f3a04862221b679f6c2be4ae7d305a01631906c31a865be84f6cd649363bc"
+    },
+    {
+      "bytes": 26666,
+      "path": "runtime/current_production_core_execution_canonical_nonready_failure_domain_declaration_diagnostic.py",
+      "sha256": "b5849203c2ca00267c1ec205fa151cd242e0bc6deb14afc908110a79ac49c77f"
+    },
+    {
+      "bytes": 3619,
+      "path": "runtime/current_production_core_execution_canonical_nonready_failure_domain_declaration_diagnostic_contract.json",
+      "sha256": "0a4fa381c8c9aa4fc6a23d5b809b837e1cad5e21225a98b57d0afc4f3c48f28a"
+    },
+    {
+      "bytes": 26632,
+      "path": "runtime/current_production_core_execution_current_release_metadata_subdomain_declaration_diagnostic.py",
+      "sha256": "d7f73d274088dd6dd7d048d6a7c3547f9ece694ee3c4901ab68a5441c2e65a4d"
+    },
+    {
+      "bytes": 3707,
+      "path": "runtime/current_production_core_execution_current_release_metadata_subdomain_declaration_diagnostic_contract.json",
+      "sha256": "fc9924225d7b7eae57d8ed89f7e7999388fffd9a82cc2456677dc10255420fb0"
+    },
+    {
+      "bytes": 14001,
+      "path": "runtime/current_production_core_execution_preflight.py",
+      "sha256": "6df142e489407b42b00a29ed4de2cc32a3bc103de536f041184315bc0847024a"
+    },
+    {
+      "bytes": 1913,
+      "path": "runtime/current_production_core_execution_preflight_contract.json",
+      "sha256": "e6af5becef89a5cc306945c3857bb591a4be60073e01369a4a8ff1c0081b6d09"
+    },
+    {
+      "bytes": 24608,
+      "path": "runtime/current_production_core_execution_redacted_receipt_schema_compatibility_diagnostic.py",
+      "sha256": "1104965b78945f1213f730f8fe7b13b56982a6cdaffbc81bc345fb66b285ef13"
+    },
+    {
+      "bytes": 2799,
+      "path": "runtime/current_production_core_execution_redacted_receipt_schema_compatibility_diagnostic_contract.json",
+      "sha256": "89957881c3161db860c514573f2c7825dd421557a756fc7f27eec9105bed0944"
+    },
+    {
+      "bytes": 19648,
+      "path": "runtime/current_production_local_outbound_policy_classification_diagnostic.py",
+      "sha256": "8b40d0b61d048332705a1c9779a09345e23a3f6986b9a27e7b143112367a90cf"
+    },
+    {
+      "bytes": 2106,
+      "path": "runtime/current_production_local_outbound_policy_classification_diagnostic_contract.json",
+      "sha256": "8cc2de460e967b0669dae0dee510a55c2e80c505c6ceef4fe0fb47b22930dbfb"
+    },
+    {
+      "bytes": 15423,
+      "path": "runtime/current_production_ovh_github_actions_environment_name_diagnostic.py",
+      "sha256": "67540114213f9849d76b93c7b0f76f3053a14143b0a4cec8a6b0da295c21245a"
+    },
+    {
+      "bytes": 1956,
+      "path": "runtime/current_production_ovh_github_actions_environment_name_diagnostic_contract.json",
+      "sha256": "11e4e587ef3e90318d9b0709c5d92d8b9b090a5dd92ef6362f76c09f32cd86fb"
+    },
+    {
+      "bytes": 16064,
+      "path": "runtime/current_production_ovh_github_actions_environment_rest_name_diagnostic.py",
+      "sha256": "ae47243421daac4d905a48ea1d51146fcc286a5e1a12587aec691a7b72832d62"
+    },
+    {
+      "bytes": 2138,
+      "path": "runtime/current_production_ovh_github_actions_environment_rest_name_diagnostic_contract.json",
+      "sha256": "40b5c6b790ff8f1e6a988055815303719cd77b923ea7389960b325f924c767f3"
+    },
+    {
+      "bytes": 15862,
+      "path": "runtime/current_production_ovh_github_actions_organization_secret_name_diagnostic.py",
+      "sha256": "f9d4f80fe2d0ed2519c104a915ef56967ddcb21e4dd76aaeea60970056ff5006"
+    },
+    {
+      "bytes": 1985,
+      "path": "runtime/current_production_ovh_github_actions_organization_secret_name_diagnostic_contract.json",
+      "sha256": "5a91c262817384f69aa9e3bd8c6baf2bbce817067f3d915222704ecd96e74a62"
+    },
+    {
+      "bytes": 12987,
+      "path": "runtime/current_production_ovh_github_actions_secret_name_diagnostic.py",
+      "sha256": "7473fbd5d744a8c8f4094f77068927e8363982c20d7356e57424927669980b54"
+    },
+    {
+      "bytes": 1728,
+      "path": "runtime/current_production_ovh_github_actions_secret_name_diagnostic_contract.json",
+      "sha256": "8f382cc6a41d8dc5fbc66de27cf33c89a9fb2c73cb7be273e39dae50dc06c87e"
+    },
+    {
+      "bytes": 12506,
+      "path": "runtime/current_production_ovh_keychain_auth_source_diagnostic.py",
+      "sha256": "da677ae5ceaac663292a7ceb5df7a216096bdb716843e7dfb0eb35771f4c4c8c"
+    },
+    {
+      "bytes": 1805,
+      "path": "runtime/current_production_ovh_keychain_auth_source_diagnostic_contract.json",
+      "sha256": "8dc05abb69bb0e08c5039716bb3f48e5edef6f92aa0bff771f7aaa408acd6d0a"
+    },
+    {
+      "bytes": 13012,
+      "path": "runtime/current_production_ovh_management_plane_diagnostic.py",
+      "sha256": "ca41e3956aac826a812bf816adfe89c5f9cca107aa0388b661b611863cc97b2e"
+    },
+    {
+      "bytes": 1952,
+      "path": "runtime/current_production_ovh_management_plane_diagnostic_contract.json",
+      "sha256": "af460bd40b559122533cb92830eec5364abcc276d392273c157c9c33858d5a8f"
+    },
+    {
+      "bytes": 11914,
+      "path": "runtime/current_production_ovh_process_auth_source_diagnostic.py",
+      "sha256": "12b9c06d5da8250b77dcae9482e3fc9956b7188f024e7745e86f3c82e83407aa"
+    },
+    {
+      "bytes": 1612,
+      "path": "runtime/current_production_ovh_process_auth_source_diagnostic_contract.json",
+      "sha256": "ba7657fef8865adbc41b177ca3ee6804816ca10320651205500ba5731e2fb7e3"
+    },
+    {
+      "bytes": 14292,
+      "path": "runtime/current_production_ovh_provider_api_diagnostic.py",
+      "sha256": "4a9a8ff19c4194ebb1cd06f00ca0e27e360e4a034096acb33285091c2a4ac080"
+    },
+    {
+      "bytes": 2062,
+      "path": "runtime/current_production_ovh_provider_api_diagnostic_contract.json",
+      "sha256": "5c2c970b1fda2c798e77da17030a16c31c4ee1ec48ca5cb92e81dc6186ca59db"
+    },
+    {
+      "bytes": 25268,
+      "path": "runtime/current_production_private_redacted_prerequisite_receipt_continuity_attestation.py",
+      "sha256": "f69a5fd465d2b553491e59c025ab6f2e85a37f81dd24a6e182f67da89a664ad9"
+    },
+    {
+      "bytes": 2724,
+      "path": "runtime/current_production_private_redacted_prerequisite_receipt_continuity_attestation_contract.json",
+      "sha256": "094260c1c113e433f68e1e2dcc7b9eda9f85774a48ec4b848a764644ca11d4bc"
+    },
+    {
+      "bytes": 21809,
+      "path": "runtime/current_production_protected_documentation_pointer_resolver.py",
+      "sha256": "55a868e43817d2a2f405fb90c0d489f032d6f6c21015d5ac6030720ba373d764"
+    },
+    {
+      "bytes": 2374,
+      "path": "runtime/current_production_protected_documentation_pointer_resolver_contract.json",
+      "sha256": "7014e2e6604af70d9d0057a1495198a5ec77442b23861ffd64749373ae59d3df"
+    },
+    {
+      "bytes": 21446,
+      "path": "runtime/current_production_protected_provider_auth_route_resolver.py",
+      "sha256": "45714ad132aebd605f6c5677cd5d96dfee4257227688d41f367598f4e8d24ea9"
+    },
+    {
+      "bytes": 2346,
+      "path": "runtime/current_production_protected_provider_auth_route_resolver_contract.json",
+      "sha256": "af11a42826b611331b3a3d4b3bd1ce554c31e5b398606a4d56d3103ac30e4fb7"
+    },
+    {
+      "bytes": 25517,
+      "path": "runtime/current_production_protected_target_metadata_locator.py",
+      "sha256": "04ff947bcb97769d59eaf92b417571f82112ae6b979ce0524fc62200ec140b8a"
+    },
+    {
+      "bytes": 1903,
+      "path": "runtime/current_production_protected_target_metadata_locator_contract.json",
+      "sha256": "060aef1f95de576fd1fe253d3609b122c89f8eaa7b22dcec0a6f595fe5d95d0e"
+    },
+    {
+      "bytes": 19139,
+      "path": "runtime/current_production_readme_protected_source_pointer_resolver.py",
+      "sha256": "2d379bb8541aa58573ca37de517bd856cd89c0c8e397fb4f3c6189b28ae7ae35"
+    },
+    {
+      "bytes": 1959,
+      "path": "runtime/current_production_readme_protected_source_pointer_resolver_contract.json",
+      "sha256": "24abf8ecee646e8ee719caf2c91576a393cb4ecf628cc080e8e5301a09462ce1"
+    },
+    {
+      "bytes": 31460,
+      "path": "runtime/current_production_rebuild_metadata_current_host_evidence_acquisition_contract_diagnostic.py",
+      "sha256": "5b5e05558c2d215eb33ad3f1faad5d48704ee4c427af1cbcd098b97220b8c21f"
+    },
+    {
+      "bytes": 3558,
+      "path": "runtime/current_production_rebuild_metadata_current_host_evidence_acquisition_contract_diagnostic_contract.json",
+      "sha256": "0c493dce1667eeef6c75347117ee55c327c86491aa8c96d2a8b2d2869f08609e"
+    },
+    {
+      "bytes": 34507,
+      "path": "runtime/current_production_rebuild_metadata_current_host_evidence_collection_run_contract_diagnostic.py",
+      "sha256": "26358a062bee6c37f578fcfa4648c9c9928ff6436c0470de15a4deebb3d11257"
+    },
+    {
+      "bytes": 3984,
+      "path": "runtime/current_production_rebuild_metadata_current_host_evidence_collection_run_contract_diagnostic_contract.json",
+      "sha256": "6b8e624444a14f468b9ce616c2862d7b3cc9fff80fb023b17c6a6308e8da63a1"
+    },
+    {
+      "bytes": 37587,
+      "path": "runtime/current_production_rebuild_metadata_one_shot_current_host_evidence_collection_execution.py",
+      "sha256": "a1fb0e77de67a42bd13239952837852e5a59015583d7ec668dc3438a9b781042"
+    },
+    {
+      "bytes": 3861,
+      "path": "runtime/current_production_rebuild_metadata_one_shot_current_host_evidence_collection_execution_contract.json",
+      "sha256": "e8ab49d0f007a6d94136704942778eb13a875a7b8578ed51d0b0e37ce9722e7b"
+    },
+    {
+      "bytes": 30610,
+      "path": "runtime/current_production_rebuild_metadata_repair_execution_admission_contract_diagnostic.py",
+      "sha256": "d562eeef54d0b9f76dc3d13c89ba62a293901d26d07efa8908c04d792e6475ae"
+    },
+    {
+      "bytes": 2845,
+      "path": "runtime/current_production_rebuild_metadata_repair_execution_admission_contract_diagnostic_contract.json",
+      "sha256": "fc547fe8800351d6a94d497ccd1b179fa6b7be46185b0e7f4339398f333aefa1"
+    },
+    {
+      "bytes": 22045,
+      "path": "runtime/current_production_rebuild_metadata_source_repair_provenance_reconciliation_diagnostic.py",
+      "sha256": "f38dc4d8fb741e3b203f9a25b8c5d205158d728bc883a5fdc4eee9a105292197"
+    },
+    {
+      "bytes": 2510,
+      "path": "runtime/current_production_rebuild_metadata_source_repair_provenance_reconciliation_diagnostic_contract.json",
+      "sha256": "0ba4c6b8074c1284f93e6f4eb936d97ae37e73788bb0b6a0d651e29552283265"
+    },
+    {
+      "bytes": 12948,
+      "path": "runtime/current_production_rollback_oci_locator.py",
+      "sha256": "178d19fc4334e040c62681952b184d1e5aa96fb5502e310d60a7c190776ca48a"
+    },
+    {
+      "bytes": 1599,
+      "path": "runtime/current_production_rollback_oci_locator_contract.json",
+      "sha256": "563f1da4fc70660a043ce217ba44a70e4c12e9bc28c9ec4ec1e2ac97cd2ddba4"
+    },
+    {
+      "bytes": 21330,
+      "path": "runtime/current_production_ssh_local_route_policy_diagnostic.py",
+      "sha256": "9b448aa307365948b64b5d43eef0eb7be0dc73f36a25b9ffb6eb1030d49a02eb"
+    },
+    {
+      "bytes": 1889,
+      "path": "runtime/current_production_ssh_local_route_policy_diagnostic_contract.json",
+      "sha256": "df656bd47eea0a73ebbf5f128696ed165ddb11436c7e6c1ba907ccf98c6ba126"
+    },
+    {
+      "bytes": 24009,
+      "path": "runtime/current_production_ssh_noninteractive_transport_proof.py",
+      "sha256": "7e3cf4557dd48f4d2e988eae928bc7d0e066108accefd33943eb22e0726782c7"
+    },
+    {
+      "bytes": 2258,
+      "path": "runtime/current_production_ssh_noninteractive_transport_proof_contract.json",
+      "sha256": "a840ada05e6925e13744aa98c5ec9b312277e5b3404cb90138c40a89ad5664d7"
+    },
+    {
+      "bytes": 14307,
+      "path": "runtime/current_production_ssh_transport_diagnostic.py",
+      "sha256": "f23d7cb8cb410f677359c883cb7478aa6b34e3c8a9477d715facced5039b36b2"
+    },
+    {
+      "bytes": 1576,
+      "path": "runtime/current_production_ssh_transport_diagnostic_contract.json",
+      "sha256": "21eaef47f31d270252dad21aad431aa0ba712502b7fe55e3526ceaa377df71d5"
+    },
+    {
+      "bytes": 22514,
+      "path": "runtime/current_production_ssh_transport_failure_classification_diagnostic.py",
+      "sha256": "77bebc213d9f5ac1c28d7985a71f6b864785fb78951e17c8ab7774789945dafe"
+    },
+    {
+      "bytes": 1999,
+      "path": "runtime/current_production_ssh_transport_failure_classification_diagnostic_contract.json",
+      "sha256": "42f3ebae7ba14acee56d9071653db07a4e6e37b926929b10c48f11f60f8d81e3"
+    },
+    {
       "bytes": 11058,
       "path": "runtime/football_data_static_source.py",
       "sha256": "4e16e0adceb3e9e553c82847f3a966b3fb00ff39c9cf9138b3909661bd51c0d0"
@@ -4664,12 +5044,17 @@
     {
       "bytes": 2940,
       "path": "runtime/host_bundle_contract.json",
-      "sha256": "0f5c82fb7a27cf2121c9fef21a78649d278726d81d79d9cd1c27d3988c06c50c"
+      "sha256": "8fedfb0b70f3c11becb0ee5612a904b7845b3ebf99b7c2705fd060df636b14bf"
     },
     {
-      "bytes": 5643,
+      "bytes": 5853,
       "path": "runtime/host_capacity_gate.py",
-      "sha256": "975fb0040b1ac3592b72707faa399eb4bc0f179f91d65a2df0d6aa456f7183c6"
+      "sha256": "e29499b3a9e0010036a83fdb732238ddf2dce3bf017f1ae6c0715d83701e44a1"
+    },
+    {
+      "bytes": 6852,
+      "path": "runtime/install_current_production_blue_release_repair.sh",
+      "sha256": "e84fcba32051ef5806204838c2414f39228aa4b341de853f974d60035493d2ae"
     },
     {
       "bytes": 945,
@@ -4705,6 +5090,166 @@
       "bytes": 1506,
       "path": "runtime/release_contract.json",
       "sha256": "c7d22cac8facd371b2b111f0ff258877d037e6c4f0a9dbd2bd81d450a1085d1e"
+    },
+    {
+      "bytes": 546,
+      "path": "runtime/run_current_production_abd_scoped_explicit_authority_record_intake.sh",
+      "sha256": "40014dde90f8d447d0bd61180c22fb44c5a290d1a016a87b38069bfbd70b89b8"
+    },
+    {
+      "bytes": 533,
+      "path": "runtime/run_current_production_abd_scoped_transport_authority_source_resolution.sh",
+      "sha256": "031d6282538480d56c6228303681d082942bdf57189a2813985fe623cdd1ebdf"
+    },
+    {
+      "bytes": 545,
+      "path": "runtime/run_current_production_ci_deployment_route_static_declaration_diagnostic.sh",
+      "sha256": "236f27b34eb008f72810bea6bf75bc9d97a3cc06527bd07b65733adc3e37fb22"
+    },
+    {
+      "bytes": 608,
+      "path": "runtime/run_current_production_core_activation_prerequisite_static_evidence_classification_diagnostic.sh",
+      "sha256": "215bb54371e0627f335a9ea2ad08af7af4b660ba15573c3df4f216d0493c628e"
+    },
+    {
+      "bytes": 5315,
+      "path": "runtime/run_current_production_core_config_semantic_preflight.sh",
+      "sha256": "4d0773f08278ec33f8b90ffd949ecb3238819ffe4a23731fd495ab93fcd0ffa1"
+    },
+    {
+      "bytes": 764,
+      "path": "runtime/run_current_production_core_execution_canonical_nonready_failure_domain_declaration_diagnostic.sh",
+      "sha256": "bd597be6c7aec8961fa34ccf9a2367205767d5b162b92c73c8f42a26d1936c14"
+    },
+    {
+      "bytes": 767,
+      "path": "runtime/run_current_production_core_execution_current_release_metadata_subdomain_declaration_diagnostic.sh",
+      "sha256": "f64ef4b92f4b40e1dfcf3fe3986ef5d7c7c69a7fcb51d238c7401d7db241932b"
+    },
+    {
+      "bytes": 740,
+      "path": "runtime/run_current_production_core_execution_redacted_receipt_schema_compatibility_diagnostic.sh",
+      "sha256": "523ba103765b3dd2389878368b33c4c6be54427309d64ec2388da36fa287bc77"
+    },
+    {
+      "bytes": 444,
+      "path": "runtime/run_current_production_local_outbound_policy_classification_diagnostic.sh",
+      "sha256": "55d6889295015872f873628013615e0721eccb6dc5ef53f0db66bbf1c9d9b38a"
+    },
+    {
+      "bytes": 3587,
+      "path": "runtime/run_current_production_ovh_github_actions_environment_name_diagnostic.sh",
+      "sha256": "d3b13ea00d2671c99c739d2a10035b2abd90345322bb39ad5c32919fa3aa54ee"
+    },
+    {
+      "bytes": 3247,
+      "path": "runtime/run_current_production_ovh_github_actions_environment_rest_name_diagnostic.sh",
+      "sha256": "06ab7e7fb4976b01487dfdf229539588dadfce6e8a12dceff0e36e2848beeed3"
+    },
+    {
+      "bytes": 3771,
+      "path": "runtime/run_current_production_ovh_github_actions_organization_secret_name_diagnostic.sh",
+      "sha256": "483651de19b4e3253b2d3955a0b0a71ca35190e3efb1be6e73f3bc37e819806d"
+    },
+    {
+      "bytes": 3373,
+      "path": "runtime/run_current_production_ovh_github_actions_secret_name_diagnostic.sh",
+      "sha256": "db4e7d7f980b2ed579a7385e57471190310274f1788d10d5d448f6a423d39774"
+    },
+    {
+      "bytes": 4534,
+      "path": "runtime/run_current_production_ovh_keychain_auth_source_diagnostic.sh",
+      "sha256": "e4c729cde14e213e947a38ccb1c4195f0f4406ecc6ab2d54e8c086135ef8525d"
+    },
+    {
+      "bytes": 3555,
+      "path": "runtime/run_current_production_ovh_process_auth_source_diagnostic.sh",
+      "sha256": "1ad0ba68c239cded1acb8ed3becda559bbab123b24d1ab39f05d42d951eef4eb"
+    },
+    {
+      "bytes": 5448,
+      "path": "runtime/run_current_production_ovh_provider_api_diagnostic.sh",
+      "sha256": "40cc8d1c441277089294a91ba99873117b55185210f25eacd74de778787d2422"
+    },
+    {
+      "bytes": 731,
+      "path": "runtime/run_current_production_private_redacted_prerequisite_receipt_continuity_attestation.sh",
+      "sha256": "6db1cc366a1a5841977f11d42d176300784d4066684fad27962e1136415c69e8"
+    },
+    {
+      "bytes": 533,
+      "path": "runtime/run_current_production_protected_documentation_pointer_resolver.sh",
+      "sha256": "a9efa593869fa87ea8b62dc58ed8cb3b0f6c604f3498d2b6694cd18e0e57cd18"
+    },
+    {
+      "bytes": 527,
+      "path": "runtime/run_current_production_protected_provider_auth_route_resolver.sh",
+      "sha256": "86f5eed9506dc1d6c7498c24532ba60006d7ad2587ffd486138219d83784dce5"
+    },
+    {
+      "bytes": 512,
+      "path": "runtime/run_current_production_protected_target_metadata_locator.sh",
+      "sha256": "1d8715fd5e7939f7230aad0bd824922214d5b8e26f6d1e7c2ba365bfcf28f0b7"
+    },
+    {
+      "bytes": 601,
+      "path": "runtime/run_current_production_readme_protected_source_pointer_resolver.sh",
+      "sha256": "903101c7670ba3fab2633ea38c0416ef65191286b788787ed96e9f40ff9ac748"
+    },
+    {
+      "bytes": 927,
+      "path": "runtime/run_current_production_rebuild_metadata_current_host_evidence_acquisition_contract_diagnostic.sh",
+      "sha256": "2dec0ae156bb4c2528dae9fe93066f10bb8382c911f57745f472c027fdd047c9"
+    },
+    {
+      "bytes": 1081,
+      "path": "runtime/run_current_production_rebuild_metadata_current_host_evidence_collection_run_contract_diagnostic.sh",
+      "sha256": "75a2341eec35f8001071739f87450bf504bf76a23d544cb962e8be517d581e3d"
+    },
+    {
+      "bytes": 1412,
+      "path": "runtime/run_current_production_rebuild_metadata_one_shot_current_host_evidence_collection_execution.sh",
+      "sha256": "05af360863310dccbb587bedf600520996ba08a3f5e3c98151476524a81ea7f1"
+    },
+    {
+      "bytes": 911,
+      "path": "runtime/run_current_production_rebuild_metadata_repair_execution_admission_contract_diagnostic.sh",
+      "sha256": "2f92bc5ff239fe4b19ca78e6dd51aa1734946fe467ca9549a89477ab0b32d529"
+    },
+    {
+      "bytes": 845,
+      "path": "runtime/run_current_production_rebuild_metadata_source_repair_provenance_reconciliation_diagnostic.sh",
+      "sha256": "183187a84485be7839c0288e99de83417b95436067b6cef8a9e5f1be68dd8eba"
+    },
+    {
+      "bytes": 503,
+      "path": "runtime/run_current_production_ssh_local_route_policy_diagnostic.sh",
+      "sha256": "d7de822ed2fa7fb3e47f9d01c6f97e636e5b9b8a8f6d1063a3a6a7067e90a198"
+    },
+    {
+      "bytes": 702,
+      "path": "runtime/run_current_production_ssh_noninteractive_transport_proof.sh",
+      "sha256": "08173b36573c73575b760d1b1c5c97330bf1bb02d90f913819d6dbbbd7caec21"
+    },
+    {
+      "bytes": 4280,
+      "path": "runtime/run_current_production_ssh_transport_diagnostic.sh",
+      "sha256": "122cb0249ab2fd8dec1c90fadac306d676687821371d72d3e4c2023f3ecf832d"
+    },
+    {
+      "bytes": 653,
+      "path": "runtime/run_current_production_ssh_transport_failure_classification_diagnostic.sh",
+      "sha256": "95eec011be05a8cd614250cc51756d1895ba878e466ec6e91b5374779cf48685"
+    },
+    {
+      "bytes": 25156,
+      "path": "runtime/shadow_post_promotion_control_plane_review.py",
+      "sha256": "08645fce613491f858401e87f388e3d4086ce7886f1794d41238ec0001846348"
+    },
+    {
+      "bytes": 2127,
+      "path": "runtime/shadow_post_promotion_control_plane_review_contract.json",
+      "sha256": "f26badb1a2f7fefb5dcea7676d5d2a9817b13183eecda333619c0276f3e7e080"
     },
     {
       "bytes": 38272,
@@ -4767,6 +5312,191 @@
       "sha256": "bbb89523453251b389e044b4043802237860f2300941e47e16fcc07b27bed83a"
     },
     {
+      "bytes": 4406,
+      "path": "runtime_tests/test_current_candidate_recovery_oci_attestation.py",
+      "sha256": "87cc3893b7b61d6b12be5beb5ab7ee01c82bf2dd052a2d7c31dad2ac61bf97b3"
+    },
+    {
+      "bytes": 9659,
+      "path": "runtime_tests/test_current_production_abd_scoped_explicit_authority_record_intake.py",
+      "sha256": "2488842c302299022ed3785ea476d38ff32a7c936e682ab90c47848a1aecc651"
+    },
+    {
+      "bytes": 8547,
+      "path": "runtime_tests/test_current_production_abd_scoped_transport_authority_source_resolution.py",
+      "sha256": "aa6c10f910ce99a89991384010dcab41ad01adbdb0a358f0f6c39239c2d6ecbe"
+    },
+    {
+      "bytes": 9247,
+      "path": "runtime_tests/test_current_production_blue_release_repair.py",
+      "sha256": "62ed8f996455a998f714487566c6f8f2deff69e62c677e0dbcb5b2f6f625a81f"
+    },
+    {
+      "bytes": 11457,
+      "path": "runtime_tests/test_current_production_ci_deployment_route_static_declaration_diagnostic.py",
+      "sha256": "db7bccd8ce9b81c7a21b1c489f53907af12ea7c5b37908e02166276c227f5553"
+    },
+    {
+      "bytes": 4612,
+      "path": "runtime_tests/test_current_production_control_plane_remediation.py",
+      "sha256": "e7574ab71dadd1ada811c679bad22f342031018df4f12060f28e6f0c35b551fa"
+    },
+    {
+      "bytes": 10703,
+      "path": "runtime_tests/test_current_production_core_activation_prerequisite_static_evidence_classification_diagnostic.py",
+      "sha256": "c12c79c876aed829e12758e2c8a6a18602e5ff395eb105716351dcc34808c669"
+    },
+    {
+      "bytes": 3828,
+      "path": "runtime_tests/test_current_production_core_capacity_admission.py",
+      "sha256": "32b65cf61f1f7700c67841d83a9a64d0e420a244daf68ebf06c0c876d32741c5"
+    },
+    {
+      "bytes": 6246,
+      "path": "runtime_tests/test_current_production_core_config_semantic_preflight.py",
+      "sha256": "4a00b411afc3b253ddf56413ef4d624dc049b990104e2cf113c8b431826b1bc7"
+    },
+    {
+      "bytes": 14162,
+      "path": "runtime_tests/test_current_production_core_execution_canonical_nonready_failure_domain_declaration_diagnostic.py",
+      "sha256": "06d4054bed1bba895ee7eb9945919e377fab2d35c99a486b56c225135c38a1c9"
+    },
+    {
+      "bytes": 13860,
+      "path": "runtime_tests/test_current_production_core_execution_current_release_metadata_subdomain_declaration_diagnostic.py",
+      "sha256": "9c1d81427120d65b427d78f463e16a93ff82549b005f11caa0f2d043dba3d09e"
+    },
+    {
+      "bytes": 6068,
+      "path": "runtime_tests/test_current_production_core_execution_preflight.py",
+      "sha256": "889f06ff6e1f1cf55fb57245f001ab37f9c50d2be5ffa6a5774b7ab15420956b"
+    },
+    {
+      "bytes": 11710,
+      "path": "runtime_tests/test_current_production_core_execution_redacted_receipt_schema_compatibility_diagnostic.py",
+      "sha256": "5e03721805dafa7e44a3db5ab01fde7793933eabf9bbdbb73cd3a063c963c540"
+    },
+    {
+      "bytes": 11708,
+      "path": "runtime_tests/test_current_production_local_outbound_policy_classification_diagnostic.py",
+      "sha256": "d926b980e5c7c8d01e299ffc4c0ca88f127a40fd3470dc471f7f5cbac8adb79c"
+    },
+    {
+      "bytes": 9257,
+      "path": "runtime_tests/test_current_production_ovh_github_actions_environment_name_diagnostic.py",
+      "sha256": "3660ccc6fb5d3667b51ff93b23b2cee73e7bc4e55c1168d89a8e360af6af8f07"
+    },
+    {
+      "bytes": 9681,
+      "path": "runtime_tests/test_current_production_ovh_github_actions_environment_rest_name_diagnostic.py",
+      "sha256": "757d8a2ac552e21af615a8c70e1fb8e5361db2caf55623dcb5516e3b9cf88932"
+    },
+    {
+      "bytes": 9131,
+      "path": "runtime_tests/test_current_production_ovh_github_actions_organization_secret_name_diagnostic.py",
+      "sha256": "36c6f45e07119284280d5cea7e8c33ec5de99dc94ad8f0b456d1c3a4b2200e72"
+    },
+    {
+      "bytes": 7232,
+      "path": "runtime_tests/test_current_production_ovh_github_actions_secret_name_diagnostic.py",
+      "sha256": "dae48f374e7ade8abfa6bf1c7ffbb97a9ac35d3280377b5543cd808fc18eedf7"
+    },
+    {
+      "bytes": 6540,
+      "path": "runtime_tests/test_current_production_ovh_keychain_auth_source_diagnostic.py",
+      "sha256": "ccbdeb1122563f12a6993cdabd3866cf4606782def790a2d85e15359e8798fe0"
+    },
+    {
+      "bytes": 6016,
+      "path": "runtime_tests/test_current_production_ovh_management_plane_diagnostic.py",
+      "sha256": "3508fecaa8ec8a31f794963285a405812dbd9fe4e9041106850268ff55e3171e"
+    },
+    {
+      "bytes": 7278,
+      "path": "runtime_tests/test_current_production_ovh_process_auth_source_diagnostic.py",
+      "sha256": "583619bb2baca9637332d38c3ea46554de903573817fc271e23f627e34edd770"
+    },
+    {
+      "bytes": 8316,
+      "path": "runtime_tests/test_current_production_ovh_provider_api_diagnostic.py",
+      "sha256": "ac382a8835d8e3fdf3dac9970bd31d40bb8d3cda900697f8af6d96edc57f9371"
+    },
+    {
+      "bytes": 12258,
+      "path": "runtime_tests/test_current_production_private_redacted_prerequisite_receipt_continuity_attestation.py",
+      "sha256": "f78f03de0d4e6375fab4e43d07d75693fd5ace3d47814bda8c52a7d7993130e8"
+    },
+    {
+      "bytes": 11755,
+      "path": "runtime_tests/test_current_production_protected_documentation_pointer_resolver.py",
+      "sha256": "4be857eaa801dfaa52476008179280bd1b0cc4dd20cce49a232b1785a0c34320"
+    },
+    {
+      "bytes": 11818,
+      "path": "runtime_tests/test_current_production_protected_provider_auth_route_resolver.py",
+      "sha256": "7eb96aac558f4e99b7f6cf9047afa991501d2290ba7ecdbcb44971425439cfe3"
+    },
+    {
+      "bytes": 10015,
+      "path": "runtime_tests/test_current_production_protected_target_metadata_locator.py",
+      "sha256": "c667db57370e14386c76a203168c5dbff3eccb17dc5046bde487753bd728fdbb"
+    },
+    {
+      "bytes": 11119,
+      "path": "runtime_tests/test_current_production_readme_protected_source_pointer_resolver.py",
+      "sha256": "17b3280a4ea0dbc49226ac9e2ec94b0f7ae2c899c3927c1a263556c2a3ab35ba"
+    },
+    {
+      "bytes": 10698,
+      "path": "runtime_tests/test_current_production_rebuild_metadata_current_host_evidence_acquisition_contract_diagnostic.py",
+      "sha256": "5a4ae4cd95139a5db422d0aca4bc587b1827e35ece8bf95851103c0d8bef1182"
+    },
+    {
+      "bytes": 12493,
+      "path": "runtime_tests/test_current_production_rebuild_metadata_current_host_evidence_collection_run_contract_diagnostic.py",
+      "sha256": "f200988d6c547f0a2bc3868b0c57be0bd58ee7a5bd784f8a8c59d98fa940d6c5"
+    },
+    {
+      "bytes": 13646,
+      "path": "runtime_tests/test_current_production_rebuild_metadata_one_shot_current_host_evidence_collection_execution.py",
+      "sha256": "e3e0e6fa47c2150fd5facaa96e8df605ef48e79aae217c3b2048c2df2df24fb2"
+    },
+    {
+      "bytes": 10600,
+      "path": "runtime_tests/test_current_production_rebuild_metadata_repair_execution_admission_contract_diagnostic.py",
+      "sha256": "706ba45d9dc6b551b7b486ea435275681ab9cb9d77c17c3a801b070d2229cbf3"
+    },
+    {
+      "bytes": 9441,
+      "path": "runtime_tests/test_current_production_rebuild_metadata_source_repair_provenance_reconciliation_diagnostic.py",
+      "sha256": "8511b3074fc8447fd36740450a6d47834b41e3c4d1a6c615576efee73b597a29"
+    },
+    {
+      "bytes": 4865,
+      "path": "runtime_tests/test_current_production_rollback_oci_locator.py",
+      "sha256": "d4fce412f56f29cf43fa14ccba2cc78646e8c4a5d3137a6c3677f11eb8b9705c"
+    },
+    {
+      "bytes": 8221,
+      "path": "runtime_tests/test_current_production_ssh_local_route_policy_diagnostic.py",
+      "sha256": "4161752e77042c6dc7d42fc1739a4276ac3be00c66c550d17f971e898b93283e"
+    },
+    {
+      "bytes": 13893,
+      "path": "runtime_tests/test_current_production_ssh_noninteractive_transport_proof.py",
+      "sha256": "b7a1ef3c3bfc479a846f43fe5053ac23466b6cd1fa1c4a3d468ab7cf5078e41b"
+    },
+    {
+      "bytes": 6477,
+      "path": "runtime_tests/test_current_production_ssh_transport_diagnostic.py",
+      "sha256": "267b6bf447835d9287ec805dc97d41f420363be73ec3d8581914de69123094f3"
+    },
+    {
+      "bytes": 10738,
+      "path": "runtime_tests/test_current_production_ssh_transport_failure_classification_diagnostic.py",
+      "sha256": "f8ce84cfaaff22da720f57163cba9f679c09f3a19782f2e455c814cc1c599488"
+    },
+    {
       "bytes": 4389,
       "path": "runtime_tests/test_football_data_static_source.py",
       "sha256": "029a6c35e8de41efe0857868d3a17b36abd05da15098f45cae8689221b8ae3fe"
@@ -4777,9 +5507,9 @@
       "sha256": "56c220052d3b78b0f9386682677ee09451e5dfd6799ae330331c0b36ba1f56da"
     },
     {
-      "bytes": 3973,
+      "bytes": 3968,
       "path": "runtime_tests/test_host_capacity_gate.py",
-      "sha256": "49c18edc05071726ee9574a1d537fe3ed6e341784666e24e0712b3ba3e4a383f"
+      "sha256": "3460055f908f524b1d2645db51ffe3d4c5e8be545be09134d9cb93bc3361ec20"
     },
     {
       "bytes": 4664,
@@ -4790,6 +5520,11 @@
       "bytes": 7449,
       "path": "runtime_tests/test_runtime_server.py",
       "sha256": "00e7ac1df4c3e6837d0a22bb26199474c824ec627ca5794fdcb9701ec2a49af0"
+    },
+    {
+      "bytes": 10849,
+      "path": "runtime_tests/test_shadow_post_promotion_control_plane_review.py",
+      "sha256": "e9b0ddb4dde88a52f621dfe182ec6d5191d566844c91c5c7fb90077b066c3b05"
     },
     {
       "bytes": 6022,
