@@ -10,6 +10,7 @@ import {
   PeriodClient,
 } from "./_components/workbench/lifestyle-pages-client";
 import TodoPageClient from "./_components/workbench/todo-page-client";
+import { AccountEntry } from "./_components/workbench/account-entry";
 import { LegacyDomainRedirect } from "./_components/workbench/legacy-domain-redirect";
 import { VisitorDate } from "./_components/workbench/visitor-time-client";
 
@@ -117,9 +118,7 @@ function Shell({
         <Sidebar reference={reference} route={route} />
         <main className="main">
           {!reference ? (
-            <a aria-label="登录或管理账户" className="account-entry normal-only" href="/account">
-              登录 / 账户
-            </a>
+            <AccountEntry className="account-entry normal-only" signedOutHref="/account" />
           ) : null}
           {children}
         </main>
@@ -156,9 +155,7 @@ function Welcome({ reference }: { reference: boolean }) {
       data-reference-page={reference ? "welcome" : undefined}
     >
       {!reference ? (
-        <a aria-label="登录或管理账户" className="welcome-account-link normal-only" href="/auth/sign-in">
-          登录 / 账户
-        </a>
+        <AccountEntry className="welcome-account-link normal-only" signedOutHref="/auth/sign-in" />
       ) : null}
       <section className="welcome-page">
         <div className="welcome-inner">
