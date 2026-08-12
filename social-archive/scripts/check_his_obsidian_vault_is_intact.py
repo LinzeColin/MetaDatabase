@@ -44,6 +44,10 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+from social_archive.title_repair import undouble_title  # noqa: E402
+
 DEFAULT_VAULT = Path.home() / "Documents/Obsidian"
 SUBDIR = "Social Archive"
 
@@ -66,12 +70,20 @@ def inspect(folder: Path) -> dict:
         # 而那一条恰恰被判成**正常**（「10万个冷知识」那次的教训）。
         if re.fullmatch(r"\d{1,2}:\d{2}(/\d{1,2}:\d{2})?", title):
             timestamp_title += 1
-        lead = re.match(r"^\d+(?:\.\d+)?[万千]?", title)
-        if lead:
-            rest = title[lead.end():]
-            half = len(rest) // 2
-            if half >= 4 and rest[:half] == rest[half:]:
-                doubled += 1
+        # **这一条曾经和修复脚本口径不一样，于是放过了它该抓的东西**（2026-08-12）。
+        #
+        # 原来写的是「去掉数字前缀之后，正好对半分成一模一样的两半」：
+        #
+        #     half = len(rest) // 2
+        #     if half >= 4 and rest[:half] == rest[half:]
+        #
+        # 库里那一条前一遍结尾多一个空格，`len(rest)` 是奇数，两半永远对不上——
+        # 这道门于是报 0，而修复脚本在同一份文本上找到 1 条。另外两处窄：
+        # `[万千]` 不含「亿」，而且非要有数字前缀（没前缀的纯重复它看不见）。
+        #
+        # 现在直接用入库那道校验的同一份实现，**一份文本一把尺子**。
+        if undouble_title(title) != title:
+            doubled += 1
         author = re.search(r'^author:\s*"([^"]*)"', text, re.M)
         if author and re.fullmatch(r"\d+(?:\.\d+)?[万千]?", author.group(1).strip()):
             like_author += 1

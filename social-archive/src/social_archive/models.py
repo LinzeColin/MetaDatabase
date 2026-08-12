@@ -5,6 +5,8 @@ import re
 from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
+from social_archive.title_repair import undouble_title
+
 ArchiveLevel = Literal["L0", "L1", "L2", "L3"]
 RelationType = Literal["manual_save", "bookmark", "saved", "favorite", "like", "upvoted", "watch_later", "history", "collection"]
 
@@ -66,6 +68,19 @@ class CaptureRequest(BaseModel):
         if _PLAYBACK_TIMESTAMP.fullmatch(value.strip()):
             return None
         return value
+
+    @field_validator("title")
+    @classmethod
+    def a_title_scraped_twice_gets_one_copy(cls, value: str | None) -> str | None:
+        """`23.0万极限三选一…极限三选一…` → `极限三选一…`。判据见 `title_repair`。
+
+        **这一条修，不像上面那条置空**——因为真标题就在这串里，重复本身就是证据，
+        不用联网也不用他登录。置空反而把已经拿到的东西扔了。
+
+        生产实测 11 条，全部是抖音。光修库里的存量不够：下一次抖音同步会照原样
+        再写一遍，所以判据要摆在入口这里，存量修复只是把过去那批补上。
+        """
+        return undouble_title(value)
 
     @field_validator("requested_levels")
     @classmethod
