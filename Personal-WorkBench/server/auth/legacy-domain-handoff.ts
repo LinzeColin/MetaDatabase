@@ -8,6 +8,10 @@ import {
   RETIRED_COMPATIBILITY_HOST,
   isRetiredCompatibilityHost,
 } from "@/app/_components/workbench/canonical-domain";
+import {
+  AUTH_COOKIE_PREFIX,
+  SECURE_AUTH_SESSION_COOKIE_NAME,
+} from "./cookie-names";
 
 export {
   LEGACY_DOMAIN_HANDOFF_COMPLETE_URL,
@@ -18,7 +22,6 @@ export {
 export const LEGACY_DOMAIN_HANDOFF_TTL_MS = 60_000;
 
 const HANDOFF_IDENTIFIER_PREFIX = "mydairy:legacy-domain-handoff:";
-const SECURE_SESSION_COOKIE_NAME = "__Secure-better-auth.session_token";
 const LEGACY_DOMAIN_ORIGIN = `https://${RETIRED_COMPATIBILITY_HOST}`;
 const SIGNED_SESSION_COOKIE_PATTERN = /^[A-Za-z0-9._~-]{20,2048}$/;
 
@@ -83,7 +86,7 @@ export function newLegacyHandoffId(randomId = crypto.randomUUID()): string {
 
 /** Extract only Better Auth's signed, HttpOnly session cookie; no browser storage is consulted. */
 export function legacySignedSessionCookie(headers: Headers): string | null {
-  const sessionCookie = getSessionCookie(headers);
+  const sessionCookie = getSessionCookie(headers, { cookiePrefix: AUTH_COOKIE_PREFIX });
   return isSafeSignedSessionCookie(sessionCookie) ? sessionCookie : null;
 }
 
@@ -140,7 +143,7 @@ export async function consumeLegacyDomainHandoff(
 /** Reuses the already signed Better Auth token without exposing it to the browser. */
 export function legacyHandoffSessionHeaders(sessionCookie: string): Headers | null {
   if (!isSafeSignedSessionCookie(sessionCookie)) return null;
-  return new Headers({ Cookie: `${SECURE_SESSION_COOKIE_NAME}=${encodeURIComponent(sessionCookie)}` });
+  return new Headers({ Cookie: `${SECURE_AUTH_SESSION_COOKIE_NAME}=${encodeURIComponent(sessionCookie)}` });
 }
 
 export function legacyHandoffSessionCookieHeader(
@@ -158,7 +161,7 @@ export function legacyHandoffSessionCookieHeader(
         : Number.NaN;
   if (!Number.isFinite(expiresAt) || expiresAt <= now) return null;
   const maxAge = Math.max(1, Math.floor((expiresAt - now) / 1_000));
-  return `${SECURE_SESSION_COOKIE_NAME}=${encodeURIComponent(sessionCookie)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
+  return `${SECURE_AUTH_SESSION_COOKIE_NAME}=${encodeURIComponent(sessionCookie)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
 }
 
 export function transferableAuthSession(value: unknown): value is {

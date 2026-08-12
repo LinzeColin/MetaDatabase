@@ -14,6 +14,7 @@ import {
   parseLegacyHandoffId,
   transferableAuthSession,
 } from "../server/auth/legacy-domain-handoff.ts";
+import { SECURE_AUTH_SESSION_COOKIE_NAME } from "../server/auth/cookie-names.ts";
 
 type StoredRow = { expiresAt: number; value: string };
 
@@ -106,16 +107,17 @@ test("handoff accepts only the precise old-to-new browser origins", () => {
   assert.equal(isCanonicalHandoffCompletionRequest(forged), false);
 });
 
-test("only the signed Better Auth cookie is moved into a first-party canonical cookie", () => {
-  const headers = new Headers({ Cookie: `__Secure-better-auth.session_token=${sessionCookie}; unrelated=value` });
+test("only the configured signed Better Auth cookie is moved into a first-party canonical cookie", () => {
+  const headers = new Headers({ Cookie: `${SECURE_AUTH_SESSION_COOKIE_NAME}=${sessionCookie}; unrelated=value` });
   assert.equal(legacySignedSessionCookie(headers), sessionCookie);
-  assert.equal(legacySignedSessionCookie(new Headers({ Cookie: "__Secure-better-auth.session_token=bad;" })), null);
+  assert.equal(legacySignedSessionCookie(new Headers({ Cookie: `${SECURE_AUTH_SESSION_COOKIE_NAME}=bad;` })), null);
+  assert.equal(legacySignedSessionCookie(new Headers({ Cookie: `__Secure-better-auth.session_token=${sessionCookie};` })), null);
   assert.equal(
     legacyHandoffSessionHeaders(sessionCookie)?.get("cookie"),
-    `__Secure-better-auth.session_token=${sessionCookie}`,
+    `${SECURE_AUTH_SESSION_COOKIE_NAME}=${sessionCookie}`,
   );
   const setCookie = legacyHandoffSessionCookieHeader(sessionCookie, 11_000, 1_000);
-  assert.match(setCookie ?? "", /^__Secure-better-auth\.session_token=/);
+  assert.ok((setCookie ?? "").startsWith(`${SECURE_AUTH_SESSION_COOKIE_NAME}=`));
   assert.match(setCookie ?? "", /HttpOnly/);
   assert.match(setCookie ?? "", /Secure/);
   assert.match(setCookie ?? "", /SameSite=Lax/);

@@ -14,6 +14,7 @@ import {
   readAuthRuntimeConfig,
   type AuthRuntimeEnv,
 } from "./runtime";
+import { AUTH_COOKIE_PREFIX } from "./cookie-names";
 import { allowedTurnstileHostnames, expectedTurnstileAction } from "./turnstile";
 
 export { AuthRuntimeNotReadyError, getPublicAuthPageConfig } from "./runtime";
@@ -113,7 +114,7 @@ export function createAuth(env: AuthRuntimeEnv) {
     },
     advanced: {
       useSecureCookies: true,
-      cookiePrefix: "hcl-workbench",
+      cookiePrefix: AUTH_COOKIE_PREFIX,
       defaultCookieAttributes: {
         httpOnly: true,
         secure: true,
