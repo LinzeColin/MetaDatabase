@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "S5-T3",
+  "status": "CURRENT_V71_PUBLIC_REGRESSION_RECORDED",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-13",
+  "candidate": {
+    "sites_version_number": 71,
+    "sites_source_commit": "3fac3cba223d322676b881219cf3530043b498c2",
+    "deployment_environment_revision": 10,
+    "canonical_origin": "https://mydairy.linzezhang.com",
+    "site_title": "个人日程"
+  },
+  "public_regression": {
+    "fresh_isolated_browser_context": true,
+    "anonymous_guest_entry_and_account_link": "PASS",
+    "google_authorization_initiation_canonical_callback": "PASS",
+    "all_requested_workbench_controls_save_and_reload_on_same_temporary_device": true,
+    "page_script_error_count": 0,
+    "visual_frozen_route_regression": {
+      "status": "PASS",
+      "routes": 5,
+      "rounds": 3,
+      "evidence": "13_evidence/visual/manifest.json"
+    },
+    "normal_mode_e2e_smoke": {
+      "status": "PASS",
+      "tests": 4
+    }
+  },
+  "runtime_and_recovery": {
+    "transactional_mail_transport_controlled_delivery": "PASS_PROVIDER_ONLY",
+    "saved_version_70_to_71_restore": "SUCCEEDED",
+    "public_candidate_restored_after_rehearsal": true,
+    "auth_form_and_turnstile_surface_rendered_in_isolated_browser": true,
+    "automated_context_received_no_turnstile_token_and_sent_no_auth_submission": true
+  },
+  "scope_and_cleanup": {
+    "real_user_browser_tabs_cookies_or_storage_inspected": false,
+    "real_user_business_data_read_or_written": false,
+    "guest_device_data_destroyed_after_regression": true,
+    "d1_r2_dns_vps3_or_runtime_values_changed_by_this_regression": false,
+    "historical_production_ledger_overwritten": false,
+    "github_project_uploaded": false
+  },
+  "not_proven": [
+    "Current Version 71 real email sign-up, verification, password reset, and password sign-in",
+    "Current Version 71 full Google OAuth callback and application session",
+    "Current Version 71 two real accounts with a physical second-device history readback",
+    "Physical D1 or R2 provider binding and reconciliation"
+  ]
+}
