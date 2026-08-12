@@ -6,109 +6,109 @@
     {
       "drill": "shipped_package_drill.py",
       "status": "PASS",
-      "seconds": 30.5,
+      "seconds": 29.9,
       "problems": []
     },
     {
       "drill": "extension_update_in_place_drill.py",
       "status": "PASS",
-      "seconds": 7.2,
+      "seconds": 7.0,
       "problems": []
     },
     {
       "drill": "stale_extension_is_blocked_drill.py",
       "status": "PASS",
-      "seconds": 29.5,
+      "seconds": 28.8,
       "problems": []
     },
     {
       "drill": "extension_install_page_drill.py",
       "status": "PASS",
-      "seconds": 39.4,
+      "seconds": 38.3,
       "problems": []
     },
     {
       "drill": "extension_save_page_drill.py",
       "status": "PASS",
-      "seconds": 5.8,
+      "seconds": 5.5,
       "problems": []
     },
     {
       "drill": "extension_routing_drill.py",
       "status": "PASS",
-      "seconds": 4.3,
+      "seconds": 4.0,
       "problems": []
     },
     {
       "drill": "extension_capture_drill.py",
       "status": "PASS",
-      "seconds": 16.3,
+      "seconds": 16.1,
       "problems": []
     },
     {
       "drill": "extension_capture_buffer_drill.py",
       "status": "PASS",
-      "seconds": 5.5,
+      "seconds": 4.7,
       "problems": []
     },
     {
       "drill": "extension_bridge_boundary_drill.py",
       "status": "PASS",
-      "seconds": 14.2,
+      "seconds": 13.2,
       "problems": []
     },
     {
       "drill": "pwa_render_drill.py",
       "status": "PASS",
-      "seconds": 38.8,
+      "seconds": 38.4,
       "problems": []
     },
     {
       "drill": "popup_states_drill.py",
       "status": "PASS",
-      "seconds": 19.5,
+      "seconds": 22.2,
       "problems": []
     },
     {
       "drill": "bilibili_end_to_end_drill.py",
       "status": "PASS",
-      "seconds": 24.9,
+      "seconds": 24.6,
       "problems": []
     },
     {
       "drill": "bilibili_acquisition_drill.py",
       "status": "PASS",
-      "seconds": 4.4,
+      "seconds": 4.6,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform xiaohongshu",
       "status": "PASS",
-      "seconds": 41.3,
+      "seconds": 41.5,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform douyin",
       "status": "PASS",
-      "seconds": 41.8,
+      "seconds": 41.4,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform reddit",
       "status": "PASS",
-      "seconds": 41.6,
+      "seconds": 41.3,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform instagram",
       "status": "PASS",
-      "seconds": 41.4,
+      "seconds": 41.2,
       "problems": []
     },
     {
       "drill": "extension_platform_wiring_drill.py --platform xiaohongshu --sample-url https://www.xiaohongshu.com/explore/abc123 --expect-custody forbidden --expect-connect-card",
       "status": "PASS",
-      "seconds": 7.4,
+      "seconds": 7.0,
       "problems": []
     }
   ],
