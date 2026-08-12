@@ -85,6 +85,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
   const [captchaReadiness, setCaptchaReadiness] = useState<CaptchaReadiness>(
     () => (usesTurnstile && !turnstileSiteKey ? "loading" : "ready"),
   );
+  const [captchaRetryNonce, setCaptchaRetryNonce] = useState(0);
   // A server-supplied site key means the widget may begin mounting immediately,
   // not that the browser can necessarily reach the verification service.
   const effectiveCaptchaReadiness: CaptchaReadiness = usesTurnstile ? captchaReadiness : "ready";
@@ -105,7 +106,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
         : message;
 
   useEffect(() => {
-    if (!usesTurnstile || turnstileSiteKey) return;
+    if (!usesTurnstile || turnstileSiteKey || fetchedSiteKey) return;
     let active = true;
     void fetch("/api/auth/public-config", { credentials: "same-origin" })
       .then((response) => (response.ok ? response.json() : null))
@@ -129,7 +130,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
         if (active) setCaptchaReadiness("unavailable");
       });
     return () => { active = false; };
-  }, [turnstileSiteKey, usesTurnstile]);
+  }, [captchaRetryNonce, fetchedSiteKey, turnstileSiteKey, usesTurnstile]);
 
   useEffect(() => {
     if (!usesTurnstile || !siteKey || !turnstileContainer.current) return;
@@ -177,7 +178,18 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
       cancelled = true;
       if (widgetId && window.turnstile) window.turnstile.remove(widgetId);
     };
-  }, [siteKey, usesTurnstile]);
+  }, [captchaRetryNonce, siteKey, usesTurnstile]);
+
+  function retryCaptcha(): void {
+    setTurnstileToken("");
+    setCaptchaReadiness("loading");
+    // A failed external script is not reloadable. Remove only that failed
+    // element; a loaded Turnstile runtime is safely remounted by the effect.
+    if (!window.turnstile) {
+      document.querySelector<HTMLScriptElement>('script[data-workbench-turnstile="true"]')?.remove();
+    }
+    setCaptchaRetryNonce((attempt) => attempt + 1);
+  }
 
   async function submitGoogle(): Promise<void> {
     setSubmitting(true);
@@ -293,6 +305,11 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
             </label>
           ) : null}
           {usesTurnstile ? <div className="turnstile-slot" ref={turnstileContainer} /> : null}
+          {usesTurnstile && effectiveCaptchaReadiness === "unavailable" ? (
+            <button type="button" className="auth-google" onClick={retryCaptcha} disabled={!interactive || submitting}>
+              重试安全验证
+            </button>
+          ) : null}
           <button type="submit" className="auth-submit" disabled={!interactive || submitting}>
             {submitting ? "请稍候…" : mode === "sign-up" ? "注册" : mode === "forgot-password" ? "发送说明" : mode === "reset-password" ? "更新密码" : mode === "verify-email" ? "重新发送验证邮件" : "登录"}
           </button>

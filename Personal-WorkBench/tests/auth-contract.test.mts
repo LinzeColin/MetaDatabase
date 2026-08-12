@@ -420,6 +420,9 @@ test("auth form uses the CAPTCHA readiness preflight before it builds a request"
   assert.match(authForm, /setCaptchaReadiness\("unavailable"\)/);
   assert.match(authForm, /"error-callback": markUnavailable/);
   assert.match(authForm, /existing\.addEventListener\("error", markUnavailable/);
+  assert.match(authForm, /function retryCaptcha\(\): void/);
+  assert.match(authForm, /setCaptchaRetryNonce\(\(attempt\) => attempt \+ 1\)/);
+  assert.match(authForm, /重试安全验证/);
 });
 
 test("auth controls wait for client hydration instead of losing the first sign-in click", async () => {
