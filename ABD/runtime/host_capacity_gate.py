@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed physical host gate for an ABD systemd start."""
+"""Fail-closed physical host capacity and active-swap gate for an ABD start."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from typing import Any, Callable, Mapping, Sequence
 MIN_VCPU = 2
 MIN_MEMORY_KIB = 4096 * 1024
 MIN_PHYSICAL_DISK_BYTES = 40 * 1024 * 1024 * 1024
-EXPECTED_SWAP_ENTRIES = 0
+MAX_SWAP_USED_KIB = 0
 PASS_DECISION = "HOST_CAPACITY_AND_SWAP_GATE_PASS"
 FAIL_DECISION = "HOST_CAPACITY_OR_SWAP_GATE_FAIL_CLOSED"
 UNAVAILABLE_DECISION = "HOST_CAPACITY_GATE_INPUT_UNAVAILABLE_FAIL_CLOSED"
@@ -33,19 +33,24 @@ def _nonnegative_int(value: Any, field: str) -> int:
     return value
 
 
-def _read_memtotal_kib(text: str) -> int:
+def _read_meminfo_kib(text: str, key: str, field: str) -> int:
     for line in text.splitlines():
         fields = line.split()
-        if len(fields) == 3 and fields[0] == "MemTotal:" and fields[2] == "kB":
-            return _nonnegative_int(int(fields[1]), "memory_kib")
-    raise HostCapacityGateError("MemTotal is unavailable")
+        if len(fields) == 3 and fields[0] == key and fields[2] == "kB":
+            return _nonnegative_int(int(fields[1]), field)
+    raise HostCapacityGateError("%s is unavailable" % key.rstrip(":"))
 
 
-def _read_swap_entries(text: str) -> int:
-    rows = [line for line in text.splitlines() if line.strip()]
-    if not rows or rows[0].split()[0] != "Filename":
-        raise HostCapacityGateError("/proc/swaps header is unavailable")
-    return len(rows) - 1
+def _read_memtotal_kib(text: str) -> int:
+    return _read_meminfo_kib(text, "MemTotal:", "memory_kib")
+
+
+def _read_swap_used_kib(text: str) -> int:
+    swap_total_kib = _read_meminfo_kib(text, "SwapTotal:", "swap_total_kib")
+    swap_free_kib = _read_meminfo_kib(text, "SwapFree:", "swap_free_kib")
+    if swap_free_kib > swap_total_kib:
+        raise HostCapacityGateError("SwapFree exceeds SwapTotal")
+    return swap_total_kib - swap_free_kib
 
 
 def _run_command(arguments: Sequence[str]) -> str:
@@ -76,16 +81,17 @@ def collect_host_facts(
     run: CommandRunner = _run_command,
 ) -> dict[str, int]:
     observed_cpu_count = os.cpu_count() if cpu_count is None else cpu_count
+    meminfo_text = (proc_root / "meminfo").read_text(encoding="utf-8")
     return {
         "vcpu": _nonnegative_int(observed_cpu_count, "vcpu"),
-        "memory_kib": _read_memtotal_kib((proc_root / "meminfo").read_text(encoding="utf-8")),
+        "memory_kib": _read_memtotal_kib(meminfo_text),
         "physical_disk_bytes": _read_physical_root_disk_bytes(run),
-        "swap_entries": _read_swap_entries((proc_root / "swaps").read_text(encoding="utf-8")),
+        "swap_used_kib": _read_swap_used_kib(meminfo_text),
     }
 
 
 def evaluate_host_facts(facts: Mapping[str, Any]) -> dict[str, Any]:
-    required = ("vcpu", "memory_kib", "physical_disk_bytes", "swap_entries")
+    required = ("vcpu", "memory_kib", "physical_disk_bytes", "swap_used_kib")
     if set(facts) != set(required):
         raise HostCapacityGateError("host facts must contain exactly the required direct observations")
     actual = {field: _nonnegative_int(facts[field], field) for field in required}
@@ -104,10 +110,10 @@ def evaluate_host_facts(facts: Mapping[str, Any]) -> dict[str, Any]:
             "minimum": MIN_PHYSICAL_DISK_BYTES,
         },
         {
-            "id": "SWAP_ENTRIES_ZERO",
-            "passed": actual["swap_entries"] == EXPECTED_SWAP_ENTRIES,
-            "actual": actual["swap_entries"],
-            "expected": EXPECTED_SWAP_ENTRIES,
+            "id": "SWAP_USAGE_ZERO",
+            "passed": actual["swap_used_kib"] <= MAX_SWAP_USED_KIB,
+            "actual": actual["swap_used_kib"],
+            "maximum": MAX_SWAP_USED_KIB,
         },
     ]
     failures = [row["id"] for row in checks if not row["passed"]]

@@ -36,7 +36,7 @@ def _facts(**overrides: int) -> dict[str, int]:
         "vcpu": 6,
         "memory_kib": 11956724,
         "physical_disk_bytes": 107374182400,
-        "swap_entries": 0,
+        "swap_used_kib": 0,
     }
     values.update(overrides)
     return values
@@ -70,7 +70,7 @@ def test_current_capacity_passes_but_cannot_authorize_core_start() -> None:
         ("vcpu", 1, "MIN_VCPU"),
         ("memory_kib", 4194303, "MIN_MEMORY_KIB"),
         ("physical_disk_bytes", 42949672959, "MIN_PHYSICAL_DISK_BYTES"),
-        ("swap_entries", 1, "SWAP_ENTRIES_ZERO"),
+        ("swap_used_kib", 1, "SWAP_USAGE_ZERO"),
     ],
 )
 def test_each_capacity_or_swap_failure_fails_closed(key: str, value: int, failure_code: str) -> None:

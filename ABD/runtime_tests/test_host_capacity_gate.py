@@ -13,7 +13,7 @@ if str(RUNTIME) not in sys.path:
     sys.path.insert(0, str(RUNTIME))
 
 from host_capacity_gate import (
-    EXPECTED_SWAP_ENTRIES,
+    MAX_SWAP_USED_KIB,
     MIN_MEMORY_KIB,
     MIN_PHYSICAL_DISK_BYTES,
     MIN_VCPU,
@@ -28,13 +28,13 @@ def _facts(**overrides: int) -> dict[str, int]:
         "vcpu": MIN_VCPU,
         "memory_kib": MIN_MEMORY_KIB,
         "physical_disk_bytes": MIN_PHYSICAL_DISK_BYTES,
-        "swap_entries": EXPECTED_SWAP_ENTRIES,
+        "swap_used_kib": MAX_SWAP_USED_KIB,
     }
     values.update(overrides)
     return values
 
 
-def test_exact_capacity_and_no_swap_boundary_passes() -> None:
+def test_exact_capacity_and_no_active_swap_boundary_passes() -> None:
     result = evaluate_host_facts(_facts())
 
     assert result["status"] == "PASS"
@@ -50,7 +50,7 @@ def test_exact_capacity_and_no_swap_boundary_passes() -> None:
         ("vcpu", MIN_VCPU - 1, "MIN_VCPU"),
         ("memory_kib", MIN_MEMORY_KIB - 1, "MIN_MEMORY_KIB"),
         ("physical_disk_bytes", MIN_PHYSICAL_DISK_BYTES - 1, "MIN_PHYSICAL_DISK_BYTES"),
-        ("swap_entries", 1, "SWAP_ENTRIES_ZERO"),
+        ("swap_used_kib", 1, "SWAP_USAGE_ZERO"),
     ],
 )
 def test_each_resource_or_swap_failure_closes_activation(field: str, value: int, failure_code: str) -> None:
@@ -61,11 +61,13 @@ def test_each_resource_or_swap_failure_closes_activation(field: str, value: int,
     assert result["failure_codes"] == [failure_code]
 
 
-def test_collect_host_facts_uses_the_parent_physical_disk_and_proc_values(tmp_path: Path) -> None:
+def test_collect_host_facts_uses_the_parent_physical_disk_and_unused_configured_swap(tmp_path: Path) -> None:
     proc = tmp_path / "proc"
     proc.mkdir()
-    (proc / "meminfo").write_text("MemTotal:        4194304 kB\n", encoding="utf-8")
-    (proc / "swaps").write_text("Filename\tType\tSize\tUsed\tPriority\n", encoding="utf-8")
+    (proc / "meminfo").write_text(
+        "MemTotal:        4194304 kB\nSwapTotal:       1048576 kB\nSwapFree:        1048576 kB\n",
+        encoding="utf-8",
+    )
     calls: list[tuple[str, ...]] = []
 
     def run(arguments: tuple[str, ...]) -> str:
@@ -100,7 +102,7 @@ def test_guard_contract_and_installer_do_not_start_a_service() -> None:
         "minimum_vcpu": MIN_VCPU,
         "minimum_memory_kib": MIN_MEMORY_KIB,
         "minimum_physical_disk_bytes": MIN_PHYSICAL_DISK_BYTES,
-        "required_swap_entries": EXPECTED_SWAP_ENTRIES,
+        "maximum_swap_used_kib": MAX_SWAP_USED_KIB,
         "failure_mode": "FAIL_CLOSED_NO_SERVICE_START",
     }
     assert dropin == "[Service]\nExecStartPre=/usr/local/lib/abd/host_capacity_gate.py\n"

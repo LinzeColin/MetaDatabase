@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from host_capacity_gate import (
-    EXPECTED_SWAP_ENTRIES,
+    MAX_SWAP_USED_KIB,
     MIN_MEMORY_KIB,
     MIN_PHYSICAL_DISK_BYTES,
     MIN_VCPU,
@@ -81,7 +81,7 @@ def validate_contract(contract: Mapping[str, Any]) -> None:
         "minimum_vcpu": MIN_VCPU,
         "minimum_memory_kib": MIN_MEMORY_KIB,
         "minimum_physical_disk_bytes": MIN_PHYSICAL_DISK_BYTES,
-        "required_swap_entries": EXPECTED_SWAP_ENTRIES,
+        "maximum_swap_used_kib": MAX_SWAP_USED_KIB,
     }:
         raise CurrentProductionCoreCapacityAdmissionError("capacity admission thresholds are not exact")
     expected_boundary = {
@@ -149,7 +149,8 @@ def build_receipt(contract: Mapping[str, Any], result: Mapping[str, Any], observ
     redacted_checks = [
         {"id": check.get("id"), "passed": check.get("passed")}
         for check in checks
-        if set(check) in ({"id", "passed", "actual", "minimum"}, {"id", "passed", "actual", "expected"})
+        if set(check)
+        in ({"id", "passed", "actual", "minimum"}, {"id", "passed", "actual", "maximum"})
     ]
     if len(redacted_checks) != 4:
         raise CurrentProductionCoreCapacityAdmissionError("admission checks are not exact")

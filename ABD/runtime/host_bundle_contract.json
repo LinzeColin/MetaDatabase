@@ -36,7 +36,7 @@
     "minimum_vcpu": 2,
     "minimum_memory_kib": 4194304,
     "minimum_physical_disk_bytes": 42949672960,
-    "required_swap_entries": 0,
+    "maximum_swap_used_kib": 0,
     "failure_mode": "FAIL_CLOSED_NO_SERVICE_START"
   },
   "post_freeze_shadow_attestation": {
