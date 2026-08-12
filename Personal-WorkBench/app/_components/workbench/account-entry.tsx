@@ -34,7 +34,14 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
     let controller: AbortController | null = null;
     let requestGeneration = 0;
     let recoveryAnnounced = false;
-    const shouldRecoverAuthReturn = consumeAuthReturnRecovery() || consumeAuthReturnRecoveryFromLocation();
+    // Consume both independent one-shot signals. A normal same-tab callback
+    // has both: sessionStorage makes the recovery resilient to a redirect,
+    // while the location marker is needed if an embedded browser rebuilt the
+    // tab. Short-circuiting would leave the harmless URL marker behind and
+    // make a later reload repeat this bounded recovery path.
+    const recoveryMarkedInStorage = consumeAuthReturnRecovery();
+    const recoveryMarkedInLocation = consumeAuthReturnRecoveryFromLocation();
+    const shouldRecoverAuthReturn = recoveryMarkedInStorage || recoveryMarkedInLocation;
 
     const announceRecoveredSession = (nextState: AccountEntryState) => {
       if (!shouldRecoverAuthReturn || recoveryAnnounced || nextState === "signed-out" || nextState === "checking") return;
