@@ -39,8 +39,13 @@ ATTRIBUTION = {
     "keyframes": "T082 (ambient-motion perf: the cosmos meteor keyframe converted from layout-animating "
                  "left/top to a screen-path-equivalent transform:translate so every ambient loop is "
                  "compositor-safe). Documented as the ONLY contract element T082 changed; reviewed and deployed.",
+    "page_shell": "P18 (f21f16887, 2026-07-19, deploy 9b97…) —— PAGE 模板里 <title> 的 "
+                  "esc(opts.title) 改成 esc(deMath(opts.title))，剥掉标题里的内联 LaTeX 定界符。"
+                  "逐提交追踪确认：基线冻结后 17 个动过 worker 的提交里，page_shell 只在 f21f16887 变过一次，"
+                  "之后再没动过（含 #177/#184/#189 三个 PR）；对 PAGE 模板做 unified diff 恰好 2 行、"
+                  "只有 <title> 那一行。属排版正确性修复，与六主题视觉身份无关，且已上线 24 天。",
     "master_visual": "aggregate hash over the whole theme/motion surface -- moves iff a component moves; "
-                     "attributable because base_css and keyframes are.",
+                     "attributable because base_css, keyframes and page_shell are.",
 }
 
 
