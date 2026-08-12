@@ -140,6 +140,23 @@ test("habit controls distinguish an on-device check-in from a cloud-synced check
   assert.match(source, /saveFeedback\(/);
 });
 
+test("first-paint write controls wait for resource initialization instead of losing a click", async () => {
+  const [lifecycle, todo] = await Promise.all([
+    readFile(lifecycleSource, "utf8"),
+    readFile(todoSource, "utf8"),
+  ]);
+
+  assert.match(lifecycle, /disabled=\{habits\.loading \|\| checkins\.loading \|\| habits\.saving \|\| checkins\.saving\}/);
+  assert.match(lifecycle, /disabled=\{ledger\.loading \|\| ledger\.saving\}/);
+  assert.match(lifecycle, /disabled=\{foodRecords\.loading \|\| foodRecords\.saving\}/);
+  assert.match(lifecycle, /disabled=\{exerciseRecords\.loading \|\| exerciseRecords\.saving\}/);
+  assert.match(lifecycle, /disabled=\{weightRecords\.loading \|\| weightRecords\.saving\}/);
+  assert.match(lifecycle, /disabled=\{periods\.loading \|\| periods\.saving\}/);
+  assert.match(lifecycle, /disabled=\{reference \|\| current\.loading \|\| current\.saving\}/);
+  assert.match(lifecycle, /disabled=\{reference \|\| savingsTransactions\.loading \|\| savingsTransactions\.saving\}/);
+  assert.match(todo, /disabled=\{todos\.loading \|\| todos\.saving\}/);
+});
+
 test("normal menu routes keep every user-audited lifecycle control bound to a state change or record write", async () => {
   const [source, page] = await Promise.all([
     readFile(lifecycleSource, "utf8"),
