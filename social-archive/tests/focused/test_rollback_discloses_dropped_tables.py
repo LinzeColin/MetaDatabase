@@ -28,10 +28,27 @@ ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts" / "rollback_0007.sh"
 
 
+# v0.0.0.7 **并进 main 之前**那个 main 的提交。
+#
+# 这里原来写的是 `origin/main`——在 v0.0.0.7 还没合进去的时候，那确实就是
+# 「v0.0.0.7 之前」。2026-08-12 把 PR #178 合进 main 之后，`origin/main`
+# 变成了**这条线自己**，schema 里当然有 `platform_credential` 了，
+# 于是这条判据的前提当场不成立。
+#
+# **是它自己那条防空转的断言把这件事喊出来的**（「快照里不该有 v0.0.0.7 的表——
+# 否则这条判据在空转」）。没有那一句，它会安安静静地拿一个「已经有那些表」的
+# 快照去测「回滚会丢哪些表」，然后一路绿着什么也没测。
+#
+# 所以钉死这个 SHA：「v0.0.0.7 之前长什么样」是一件**历史事实**，不会再变，
+# 而 `origin/main` 会一直往前走。
+PRE_V0007_MAIN = "9bb82da350c474a149f521c6b0dd96dd6bb31b4d"
+
+
 def _pre_v0007_snapshot(path: Path) -> None:
-    """用 origin/main 的 schema 造一个 v0.0.0.7 之前的快照。"""
+    """用 v0.0.0.7 合进 main **之前**那个 main 的 schema 造快照。"""
     schema = subprocess.run(
-        ["git", "show", "origin/main:social-archive/src/social_archive/sql/runtime_schema.sql"],
+        ["git", "show",
+         f"{PRE_V0007_MAIN}:social-archive/src/social_archive/sql/runtime_schema.sql"],
         cwd=ROOT, env=clean_git_env(), capture_output=True, text=True, check=True,
     ).stdout
     con = sqlite3.connect(path)

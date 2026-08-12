@@ -12,13 +12,12 @@
     3
   ],
   "guide": "docs/使用说明.md",
-  "buttons_checked": 25,
+  "buttons_checked": 26,
   "claimed_auto": [
     "bilibili",
     "douyin",
     "generic-web",
     "instagram",
-    "kuaishou",
     "reddit",
     "xiaohongshu"
   ],
@@ -27,11 +26,11 @@
     "douyin",
     "generic-web",
     "instagram",
-    "kuaishou",
     "reddit",
     "xiaohongshu"
   ],
   "claimed_manual": [
+    "kuaishou",
     "x",
     "youtube"
   ],
