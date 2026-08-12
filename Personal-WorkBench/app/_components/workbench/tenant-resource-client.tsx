@@ -251,6 +251,13 @@ export function useTenantResource<T extends TenantRecord>(
   const scopeInitializationRef = useRef<Promise<void> | null>(null);
   const scopeRefreshRef = useRef<Promise<string | null> | null>(null);
   const cloudAvailabilityRef = useRef<CloudAvailability>("unknown");
+  const [firstScopeReady] = useState(() => {
+    let resolve = () => {};
+    const promise = new Promise<void>((complete) => {
+      resolve = complete;
+    });
+    return { promise, resolve };
+  });
 
   const commitRecords = useCallback((next: T[]) => {
     recordsRef.current = next;
@@ -378,12 +385,12 @@ export function useTenantResource<T extends TenantRecord>(
     };
     const initialization = initializeScope();
     scopeInitializationRef.current = initialization;
-    void initialization;
+    void initialization.finally(firstScopeReady.resolve);
 
     return () => {
       cancelled = true;
     };
-  }, [commitLocalRecords, commitRecords, enabled, resource]);
+  }, [commitLocalRecords, commitRecords, enabled, firstScopeReady.resolve, resource]);
 
   const queueDeviceMutation = useCallback(async (action: DeviceOutboxAction): Promise<boolean> => {
     const scope = scopeRef.current;
@@ -563,12 +570,24 @@ export function useTenantResource<T extends TenantRecord>(
 
   const create = useCallback(async (payload: Record<string, unknown>, idempotencyKey?: string): Promise<T | null> => {
     if (!enabled) return null;
-    if (!scopeRef.current && scopeInitializationRef.current) await scopeInitializationRef.current;
-    const scope = await refreshCurrentScope();
-    if (!scope) return null;
+    // The first paint intentionally renders the controls before the browser
+    // storage/session effect has finished. Keep that first click in the same
+    // resource lifecycle rather than racing its initialization and dropping
+    // a device-local record.
     setSaving(true);
     setError("");
     setLoginSuggested(false);
+    await firstScopeReady.promise;
+    if (!enabled) {
+      setSaving(false);
+      return null;
+    }
+    if (!scopeRef.current && scopeInitializationRef.current) await scopeInitializationRef.current;
+    const scope = await refreshCurrentScope();
+    if (!scope) {
+      setSaving(false);
+      return null;
+    }
 
     // A signed-in user can submit before the initial resource GET settles.
     // For sensitive modules, resolve the existing read-only consent gate first
@@ -727,7 +746,7 @@ export function useTenantResource<T extends TenantRecord>(
     } finally {
       setSaving(false);
     }
-  }, [acknowledgeLocalSave, acknowledgeScopeChange, applyFailure, commitLocalRecords, commitRecords, enabled, queueDeviceMutation, refreshCurrentScope, reload, resource, sensitive]);
+  }, [acknowledgeLocalSave, acknowledgeScopeChange, applyFailure, commitLocalRecords, commitRecords, enabled, firstScopeReady, queueDeviceMutation, refreshCurrentScope, reload, resource, sensitive]);
 
   /**
    * Update keeps the same two-plane rule as create: a device-local row may be

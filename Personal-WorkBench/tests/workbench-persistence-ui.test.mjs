@@ -253,6 +253,8 @@ test("tenant resource client writes an opaque device-local fallback before a clo
   const source = await readFile(resourceSource, "utf8");
   const cacheSource = await readFile("app/_components/workbench/local-record-cache.ts", "utf8");
 
+  assert.match(source, /await firstScopeReady\.promise/);
+  assert.match(source, /initialization\.finally\(firstScopeReady\.resolve\)/);
   assert.match(source, /resolveBrowserRecordScope/);
   assert.match(source, /writeDeviceLocalRecord/);
   assert.match(source, /sensitive && cloudAvailabilityRef\.current !== "available"/);
