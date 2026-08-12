@@ -46,7 +46,7 @@ def main() -> int:
     status_url=os.getenv('STATUS_URL','').strip()
     if status_url:
         try:
-            request = Request(status_url, headers={"User-Agent": "jobhuntbot-ops-probe/0.3"})
+            request = Request(status_url, headers={"User-Agent": "jobhuntbot-ops-probe/0.4"})
             with urlopen(request, timeout=10) as response:
                 status_code = response.status
             checks.append({"name":"STATUS_URL","status":"PASS" if status_code < 500 else "FAIL","http_status":status_code})

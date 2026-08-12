@@ -110,7 +110,7 @@ def main() -> int:
     )
     result = {
         "product": "JobHuntBot Online",
-        "product_version": "0.3.0",
+        "product_version": os.getenv("APP_VERSION", "0.4.0").strip() or "0.4.0",
         "core_verdict": "PASS" if not critical_bad else "BLOCKED",
         "verdict": overall,
         "production_claimed": production_claimed,

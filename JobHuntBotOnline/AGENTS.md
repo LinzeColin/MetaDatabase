@@ -12,7 +12,7 @@
 
 ## 事实与责任
 
-- 本包是完整 v0.3.0 Candidate，不是生产 PASS 声明。
+- 本包是完整 v0.4.0 Candidate，不是生产 PASS 声明。
 - Delivery Agent 对真实环境观察、适配、迁移、部署、修复、回滚和重测端到端负责。
 - HTTP 200、容器存活、截图、测试绿灯或 Agent 自述不能代替真实用户事务。
 - 保护仓库中更新且更好的实现；先分类 `satisfied / apply / adapt / equivalent / conflict / blocked / obsolete`。
