@@ -132,9 +132,46 @@ SURFACES = (
             'account.connection_state === "disconnected"': ("data-sync-account",),
         },
     },
+    {
+        "file": "apps/pwa/app.js",
+        "function": "renderSyncConnectPicker",
+        # **这一屏原来根本不在这张表里**（2026-08-12 补）。
+        #
+        # 判据只看 `renderSyncTable()` 和扩展的 `renderAccounts()`，而资料库页
+        # 「连接账号」弹窗里那一排卡片是**另一个函数**画的。它对每个平台都画一颗
+        # 「连接」，卡片上还写着「授权一次后自动全量导入，再持续增量同步」——
+        # 而生产实测服务端对快手和 X 明说 `sync_supported=false`。
+        #
+        # 两颗结构上不可能成功的按钮，配一句对它们而言是假话的说明，
+        # 而这道门一路是绿的：**它守的是函数，不是界面。**
+        "guards": ("support?.sync_supported === false",),
+        "guard_scope": {
+            "support?.sync_supported === false": ("data-picker-platform",),
+        },
+    },
 )
+
 # 承诺「点了会同步/会连上」的按钮标记。
-PROMISING_MARKERS = ("data-sync-account", "data-connect-platform")
+PROMISING_MARKERS = ("data-sync-account", "data-connect-platform",
+                     # 资料库页「连接账号」弹窗里那一排卡片上的「连接」。
+                     # 2026-08-12 加进来：它画的时候还附着一句「授权一次后自动全量
+                     # 导入，再持续增量同步」，而快手和 X 服务端明说 sync_supported=false。
+                     "data-picker-platform")
+
+# **已经看过、判定为「不是入口承诺」的平台级标记。**
+#
+# 这两颗都画在「已经连上之后」那一支里：`data-verify-platform` 要先
+# `pending`（即他已经点过「连接账号」走进了流程），`data-save-session` 要先
+# `account` 存在。它们是**下游动作**，前面那道守卫已经替它们把过关了。
+KNOWN_DOWNSTREAM_MARKERS = ("data-verify-platform", "data-save-session",
+                            "data-disconnect-account", "data-revoke-platform",
+                            "data-forget-account", "data-account-id",
+                            # 资料库顶上那排筛选标签（`state.platform = ...`）。
+                            # 它不承诺任何平台能做什么，只是切换在看哪一批。
+                            "data-platform")
+
+# 长得像「对某个平台/某个账号做一件事」的标记。
+PLATFORM_LEVEL_MARKER = re.compile(r"data-[a-z-]*?(?:platform|account)(?==)")
 CAPABILITY = "sync_supported"
 
 # 服务端自己产出的、会被当成「这个平台能用」的视图。
@@ -176,6 +213,27 @@ def main() -> int:
         if nxt:
             block = block[: nxt.start()]
         checked += 1
+
+        # **先问「这一屏有没有我不认识的平台级按钮」**（2026-08-12）。
+        #
+        # 原来只在两个写死的标记里找。我拿一颗 `data-sync-platform` 去试它，
+        # 它一声不吭地放行了——那颗标记确实不存在于本仓，所以那次是我的反例不成立；
+        # 但它暴露的事是真的：**这张清单要靠人去维护，而新加一颗按钮不会提醒任何人。**
+        # 「判据扫的集合比实况小」这个形状在本仓已经咬过八次。
+        #
+        # 所以改成：扫出这一屏里所有长得像平台/账号级动作的标记，
+        # 凡是既不在「承诺」名单也不在「已判定为下游」名单里的，**当场打红**——
+        # 逼人去决定它算不算承诺，而不是默默漏掉。
+        unknown = sorted({
+            marker for marker in PLATFORM_LEVEL_MARKER.findall(block)
+            if marker not in PROMISING_MARKERS and marker not in KNOWN_DOWNSTREAM_MARKERS
+        })
+        if unknown:
+            problems.append(
+                f"  {rel} 的 {function}() 里有判据不认识的平台级按钮标记：{unknown}"
+                " —— 先决定它算不算「承诺这个平台能用」：算就加进 PROMISING_MARKERS"
+                "（然后它要受守卫管），不算就写清理由加进 KNOWN_DOWNSTREAM_MARKERS"
+            )
 
         used = [m for m in PROMISING_MARKERS if m in block]
         if not used:

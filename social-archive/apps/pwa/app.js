@@ -225,7 +225,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
-  const PRODUCT_VERSION = "0.0.0.66";
+  const PRODUCT_VERSION = "0.0.0.67";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -2042,7 +2042,25 @@
   }
 
   function renderSyncConnectPicker() {
-    const cards = platformOrder.filter(key => key !== "all").map(key => `<article class="account-connect-card"><span>${platformLogo(key)}</span><div class="grow"><strong>${escapeHtml(platformMeta[key].label)}</strong><small>授权一次后自动全量导入，再持续增量同步</small></div><button class="btn small" data-picker-platform="${platformMeta[key].server}">连接</button></article>`).join("");
+    // **这一屏原来对每个平台都画一颗「连接」，还写着「授权一次后自动全量导入，
+    // 再持续增量同步」**（2026-08-12）。而服务端对 `ks` 和 `x` 明说
+    // `sync_supported=false`：快手的取数字段只能从登录后的真实响应里确认，
+    // X 的官方接口可能收费而这个项目绝不产生必付费用。
+    //
+    // 两颗按钮都是**结构上不可能成功**的，那句「自动全量导入」对它们是假话。
+    // 同一份 `state.platformSupport` 就在手边，账号页那一侧一直在用它，
+    // 这一屏从来没问过——`find_affordances...` 也只看 `renderAccounts()`，
+    // 看不到这个函数，所以它一路是绿的。
+    const cards = platformOrder.filter(key => key !== "all").map(key => {
+      const server = platformMeta[key].server;
+      const support = state.platformSupport[server];
+      const head = `<article class="account-connect-card"><span>${platformLogo(key)}</span>`;
+      if (support?.sync_supported === false) {
+        const why = escapeHtml(support.not_syncable_reason || "本版本还不能自动同步这个平台。");
+        return `${head}<div class="grow"><strong>${escapeHtml(platformMeta[key].label)}</strong><small>${why}</small></div></article>`;
+      }
+      return `${head}<div class="grow"><strong>${escapeHtml(platformMeta[key].label)}</strong><small>授权一次后自动全量导入，再持续增量同步</small></div><button class="btn small" data-picker-platform="${server}">连接</button></article>`;
+    }).join("");
     const body = $("syncTableBody").closest(".modal-body");
     const existing = body.querySelector(".account-connect-grid");
     if (existing) existing.remove();
@@ -2267,7 +2285,7 @@
     }
     await loadLibrary();
     renderNextStep();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=7192d319").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=08fb7190").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {
