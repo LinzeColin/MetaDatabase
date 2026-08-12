@@ -43,6 +43,27 @@ test("all custom mutation routes use the shared same-origin session boundary", a
   assert.ok(deletion.includes("assertConfiguredSameOriginMutation(request, env)"));
 });
 
+test("legacy-domain session handoff is a narrowly scoped, server-validated exception", async () => {
+  const [issue, complete, helper] = await Promise.all([
+    readFile("app/api/auth/legacy-domain-handoff/route.ts", "utf8"),
+    readFile("app/api/auth/legacy-domain-handoff/complete/route.ts", "utf8"),
+    readFile("server/auth/legacy-domain-handoff.ts", "utf8"),
+  ]);
+
+  assert.ok(issue.includes("isRetiredHandoffIssuanceRequest(request)"));
+  assert.ok(issue.indexOf("createAuth(env).api.getSession") < issue.indexOf("await readJson(request)"));
+  assert.ok(issue.includes("legacySignedSessionCookie(request.headers)"));
+  assert.ok(issue.includes("issueLegacyDomainHandoff"));
+  assert.equal(issue.includes("sessionCookie },"), false);
+
+  assert.ok(complete.includes("isCanonicalHandoffCompletionRequest(request)"));
+  assert.ok(complete.indexOf("consumeLegacyDomainHandoff") < complete.indexOf("createAuth(env).api.getSession"));
+  assert.ok(complete.includes("legacyHandoffSessionCookieHeader"));
+  assert.ok(helper.includes('DELETE FROM "verification" WHERE "identifier" = ? AND "expiresAt" > ? RETURNING "value"'));
+  assert.ok(issue.includes("Referrer-Policy"), "handoff issuance must suppress referrer forwarding");
+  assert.ok(complete.includes("Referrer-Policy"), "handoff completion must suppress referrer forwarding");
+});
+
 test("account UI presents the full sensitive cross-device privacy disclosure before enable", async () => {
   const [page, route] = await Promise.all([
     readFile("app/account/page.tsx", "utf8"),
@@ -71,13 +92,16 @@ test("resource data access only uses static resource mappings and user predicate
   assert.ok(!store.includes("request.params"));
 });
 
-test("worker CSP permits only the Turnstile third-party surface", async () => {
+test("worker CSP permits Turnstile and the one retired-host canonical handoff target", async () => {
   const worker = await readFile("worker/index.ts", "utf8");
   assert.ok(worker.includes("Content-Security-Policy"));
   assert.ok(worker.includes("https://challenges.cloudflare.com"));
   assert.ok(worker.includes("frame-ancestors 'none'"));
   assert.ok(worker.includes("img-src 'self' data: blob:"));
   assert.ok(worker.includes("X-Content-Type-Options"));
+  assert.ok(worker.includes("isRetiredCompatibilityHost"));
+  assert.ok(worker.includes("form-action 'self' ${CANONICAL_MYDAIRY_ORIGIN}"));
+  assert.ok(worker.includes('"form-action \'self\'"'));
 });
 
 test("sensitive cloud paths gate storage before normal API persistence", async () => {

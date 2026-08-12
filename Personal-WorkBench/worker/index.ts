@@ -1,6 +1,10 @@
 /** Cloudflare Worker entry point for the vinext-starter template. */
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
+import {
+  CANONICAL_MYDAIRY_ORIGIN,
+  isRetiredCompatibilityHost,
+} from "../app/_components/workbench/canonical-domain";
 
 interface Env {
   ASSETS: Fetcher;
@@ -20,23 +24,31 @@ interface ExecutionContext {
   passThroughOnException(): void;
 }
 
-const contentSecurityPolicy = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "frame-ancestors 'none'",
-  "form-action 'self'",
-  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
-  "font-src 'self' data:",
-  "connect-src 'self' https://challenges.cloudflare.com",
-  "frame-src https://challenges.cloudflare.com",
-].join("; ");
+function contentSecurityPolicy(request: Request): string {
+  // The retired hostname needs exactly one cross-origin form target so a
+  // verified legacy session can become a first-party canonical cookie. Every
+  // other host retains the stricter default form-action policy.
+  const formAction = isRetiredCompatibilityHost(new URL(request.url).host)
+    ? `form-action 'self' ${CANONICAL_MYDAIRY_ORIGIN}`
+    : "form-action 'self'";
+  return [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    formAction,
+    "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://challenges.cloudflare.com",
+    "frame-src https://challenges.cloudflare.com",
+  ].join("; ");
+}
 
-function withSecurityHeaders(response: Response): Response {
+function withSecurityHeaders(request: Request, response: Response): Response {
   const headers = new Headers(response.headers);
-  headers.set("Content-Security-Policy", contentSecurityPolicy);
+  headers.set("Content-Security-Policy", contentSecurityPolicy(request));
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("X-Frame-Options", "DENY");
@@ -58,7 +70,7 @@ const worker = {
 
     if (url.pathname === "/_vinext/image") {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
-      return withSecurityHeaders(await handleImageOptimization(request, {
+      return withSecurityHeaders(request, await handleImageOptimization(request, {
         fetchAsset: (path) => env.ASSETS.fetch(new Request(new URL(path, request.url))),
         transformImage: async (body, { width, format, quality }) => {
           const result = await env.IMAGES.input(body).transform(width > 0 ? { width } : {}).output({ format, quality });
@@ -67,7 +79,7 @@ const worker = {
       }, allowedWidths));
     }
 
-    return withSecurityHeaders(await handler.fetch(request, env, ctx));
+    return withSecurityHeaders(request, await handler.fetch(request, env, ctx));
   },
 };
 
