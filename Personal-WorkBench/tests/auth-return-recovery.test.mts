@@ -5,7 +5,9 @@ import {
   AUTH_RETURN_RECOVERY_DELAYS_MS,
   AUTH_RETURN_RECOVERY_EVENT,
   AUTH_RETURN_RECOVERY_KEY,
+  AUTH_RETURN_RECOVERY_QUERY_KEY,
   consumeAuthReturnRecovery,
+  consumeAuthReturnRecoveryFromLocation,
   markAuthReturnRecovery,
 } from "../app/auth/_components/auth-return-recovery.ts";
 
@@ -27,9 +29,26 @@ test("a successful auth return leaves one value-free recovery marker", () => {
 });
 
 test("auth return recovery uses a bounded client-only retry contract", () => {
-  assert.deepEqual(AUTH_RETURN_RECOVERY_DELAYS_MS, [300, 1_100, 3_000, 6_000]);
-  assert.equal(Math.max(...AUTH_RETURN_RECOVERY_DELAYS_MS) <= 6_000, true);
+  assert.deepEqual(AUTH_RETURN_RECOVERY_DELAYS_MS, [300, 1_100, 3_000, 6_000, 12_000, 20_000]);
+  assert.equal(Math.max(...AUTH_RETURN_RECOVERY_DELAYS_MS) <= 20_000, true);
   assert.equal(AUTH_RETURN_RECOVERY_EVENT, "mydairy:auth-return-recovered");
   assert.equal(AUTH_RETURN_RECOVERY_KEY.includes("token"), false);
   assert.equal(AUTH_RETURN_RECOVERY_KEY.includes("user"), false);
+  assert.equal(AUTH_RETURN_RECOVERY_QUERY_KEY.includes("token"), false);
+  assert.equal(AUTH_RETURN_RECOVERY_QUERY_KEY.includes("user"), false);
+});
+
+test("a value-free callback marker restores recovery after an embedded tab is recreated", () => {
+  const replacements: Array<{ data: unknown; title: string; url: string | URL | null | undefined }> = [];
+  const location = { hash: "#today", pathname: "/", search: "?view=home&auth_return=1" };
+  const history = {
+    state: null,
+    replaceState(data: unknown, title: string, url?: string | URL | null) {
+      replacements.push({ data, title, url });
+    },
+  };
+
+  assert.equal(consumeAuthReturnRecoveryFromLocation(location, history), true);
+  assert.deepEqual(replacements, [{ data: null, title: "", url: "/?view=home#today" }]);
+  assert.equal(consumeAuthReturnRecoveryFromLocation({ hash: "", pathname: "/", search: "?view=home" }, history), false);
 });

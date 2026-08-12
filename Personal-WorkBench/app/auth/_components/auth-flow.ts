@@ -1,9 +1,17 @@
+import {
+  AUTH_RETURN_RECOVERY_QUERY_KEY,
+  AUTH_RETURN_RECOVERY_QUERY_VALUE,
+} from "./auth-return-recovery";
+
 export type AuthMode = "sign-in" | "sign-up" | "forgot-password" | "reset-password" | "verify-email";
 export type CaptchaReadiness = "loading" | "ready" | "unavailable";
 
 export const SIGN_UP_VERIFICATION_PATH = "/auth/verify-email";
 export const VERIFIED_LOGIN_PATH = "/auth/sign-in?verified=1";
-export const AUTHENTICATED_HOME_PATH = "/?view=home";
+// Keep the marker free of identity, credential, callback URL, or business
+// data. AccountEntry removes it after using it to recover a just-returned
+// OAuth or email session in an embedded browser that rebuilt the tab.
+export const AUTHENTICATED_HOME_PATH = `/?view=home&${AUTH_RETURN_RECOVERY_QUERY_KEY}=${AUTH_RETURN_RECOVERY_QUERY_VALUE}`;
 
 export type AuthFormValues = {
   email: string;

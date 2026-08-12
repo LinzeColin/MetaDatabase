@@ -5,6 +5,7 @@ import {
   AUTH_RETURN_RECOVERY_DELAYS_MS,
   AUTH_RETURN_RECOVERY_EVENT,
   consumeAuthReturnRecovery,
+  consumeAuthReturnRecoveryFromLocation,
 } from "../../auth/_components/auth-return-recovery";
 
 type AccountEntryState = "checking" | "signed-in" | "signed-out" | "verification-required";
@@ -33,7 +34,7 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
     let controller: AbortController | null = null;
     let requestGeneration = 0;
     let recoveryAnnounced = false;
-    const shouldRecoverAuthReturn = consumeAuthReturnRecovery();
+    const shouldRecoverAuthReturn = consumeAuthReturnRecovery() || consumeAuthReturnRecoveryFromLocation();
 
     const announceRecoveredSession = (nextState: AccountEntryState) => {
       if (!shouldRecoverAuthReturn || recoveryAnnounced || nextState === "signed-out" || nextState === "checking") return;

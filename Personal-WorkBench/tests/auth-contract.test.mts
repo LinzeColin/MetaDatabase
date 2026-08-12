@@ -373,7 +373,7 @@ test("email sign-up and password reset keep the documented callback contracts", 
     "x-captcha-response": "captcha-token",
   });
   assert.equal(buildAuthRequest("sign-in", base).body.callbackURL, AUTHENTICATED_HOME_PATH);
-  assert.equal(AUTHENTICATED_HOME_PATH, "/?view=home");
+  assert.equal(AUTHENTICATED_HOME_PATH, "/?view=home&auth_return=1");
   assert.deepEqual(buildAuthRequest("forgot-password", base).headers, {
     "x-captcha-response": "captcha-token",
   });
