@@ -89,8 +89,26 @@ def _drop_the_second_copy(body: str) -> str | None:
 def undouble_title(value: str | None) -> str | None:
     """抓重了就还原成真标题，否则**原样返回**（包括原来的空白和 None）。
 
-    两种摆法都认：计数前缀 + 重复正文，以及没有前缀的纯重复正文。
-    两种都不是，就一个字都不改——这个函数只在能拿出证据时动手。
+    ## 两个条件都要满足，缺一不动
+
+    1. 前面有页面上那截播放数（`23.0万`）；
+    2. 去掉它之后，正文重复了一遍，且后一遍占 40% 以上。
+
+    ## 为什么非要有第一条
+
+    只按「正文重复」判，会吃掉**本来就在重复的正当文案**。他库里就有一条：
+
+        咕咕嘎嘎😜咕咕嘎嘎🤪咕咕嘎嘎😜咕咕嘎嘎🤪……#咕咕嘎嘎 #抖音热门舞蹈计划
+
+    这一条今天没被动，纯属侥幸——中间有个错字（`咭咕嘎嘎`）又带着尾巴上的标签，
+    前后两半才没能字字相等。**换一条干干净净重复两遍的文案，就会被砍掉一半。**
+
+    而生产库里真正抓歪的那 11 条，**每一条都带着计数前缀**——那截计数就是
+    「这串里混进了页面零件」的证据。要求它在，判据一条真的都不少抓，
+    却把「本来就重复」那一整类挡在外面。
+
+    代价是漏判：万一将来抓歪的标题没带计数，这里不会修。**漏判只是留着不动，
+    看得见、以后还能修；误判是把人家的文案砍掉一半，悄无声息。** 两害取轻。
     """
     if value is None:
         return None
@@ -99,12 +117,7 @@ def undouble_title(value: str | None) -> str | None:
         return value
 
     without_count = _COUNT_PREFIX.sub("", text, count=1)
-    if without_count != text:
-        kept = _drop_the_second_copy(without_count)
-        if kept:
-            return kept.strip()
-
-    kept = _drop_the_second_copy(text)
-    if kept:
-        return kept.strip()
-    return value
+    if without_count == text:
+        return value                    # 没有那截计数 → 没有证据 → 不动
+    kept = _drop_the_second_copy(without_count)
+    return kept.strip() if kept else value

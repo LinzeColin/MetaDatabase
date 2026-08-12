@@ -3,11 +3,11 @@
   "host": "linze-vps3",
   "measured": {
     "real": "/var/lib/social-archive/runtime/social-archive.sqlite3",
-    "real_bytes": 5173248,
+    "real_bytes": 5177344,
     "same_name_files": [
       {
         "path": "/var/lib/social-archive/runtime/social-archive.sqlite3",
-        "bytes": 5173248
+        "bytes": 5177344
       }
     ]
   },
