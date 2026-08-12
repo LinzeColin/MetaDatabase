@@ -339,17 +339,31 @@ async def _one_case(chrome: str, folder: Path, label: str, debug_port: int) -> d
             #
             # 前两次我按「读早了」加等待，各失败一次：等 15 秒那张卡照样停在第 1 步。
             # 这次改成**重新加载**（重新注入内容脚本），每轮之间才谈得上等。
+            #
+            # **等的是「安装」那一张，不是所有第 1 步。**（2026-08-13）
+            #
+            # 上面那段注释写的是「卡片停在**第 1 步：安装浏览器插件**」，而代码
+            # 判的是 `"第 1 步" not in title`——**范围比注释宽一档**。
+            # 旧插件那一例，正确的卡片本来就叫「第 1 步：**更新**浏览器插件」，
+            # 于是这个循环**每一次都会跑满六轮**：白等 15 秒、白 reload 五次，
+            # 而且把页面停在「刚 reload 完 2.5 秒」的状态上才去点按钮。
+            # 我加在 else 里的那个诊断也因此每跑必触发、每次都报
+            # `bridge_injected: false`——那是**刚 reload 完还没注入**，
+            # 不是缺陷，我差点把它当成线索追下去。
+            WAITING_FOR_RECOGNITION = "安装浏览器插件"
             for attempt in range(6):
                 card = await prpc("Runtime.evaluate",
                                   {"expression": CARD, "returnByValue": True})
                 result["next_step"] = json.loads(
                     card.get("result", {}).get("result", {}).get("value") or "{}")
-                if "第 1 步" not in str(result["next_step"].get("title", "")):
+                if WAITING_FOR_RECOGNITION not in str(result["next_step"].get("title", "")):
                     break
                 if attempt < 5:
                     await prpc("Page.enable")
                     await prpc("Page.reload", {"ignoreCache": True})
                     await asyncio.sleep(2.5)
+            else:
+                result["never_recognised_the_extension"] = True
 
             # **真的点下去**，带用户手势——权限申请那条路只在有手势时才成立。
             click = await prpc("Runtime.evaluate", {"expression": '''(() => {
@@ -402,6 +416,84 @@ async def _one_case(chrome: str, folder: Path, label: str, debug_port: int) -> d
             dialogs = seen.get("dialogs") or []
             result["dialog"] = str(dialogs[0])[:120] if dialogs else ""
 
+            # **面板没开时，当场问清是哪一种**——就在这一刻，不在别的时刻。
+            #（2026-08-13）
+            #
+            # 这处抖动我修错四次。前三次是猜（两次「读早了」、一次 service
+            # worker 睡着）。第四次我加了个诊断，但**挂错了地方**：挂在
+            # reload 循环耗尽那一支，而那一支每跑必进、且刚 reload 完内容脚本
+            # 本来就还没注入，于是它每次都报 `bridge_injected: false`——
+            # 一条自己造出来的假线索。
+            #
+            # service worker 那条已被实测排除：冷启动叫醒后 SA_PONG 只要 31 毫秒，
+            # 400 毫秒的收集窗绰绰有余。所以真因不是「答得慢」。
+            #
+            # 要分的是这三种，而且只有**在他点完、面板没开的那一刻**问才算数：
+            #
+            #   bridge 不在                → 内容脚本没注进来
+            #   bridge 在、长窗口重探仍 0 条 → PING/PONG 这条链真的断了
+            #   bridge 在、重探答得上       → 400 毫秒那一窗当时没收到，是竞态
+            #
+            # 三种的下一步完全不同，而报告里现在直接写着是哪一种。
+            # **只在「本该开」的那一例上问。** 旧插件那一例面板不开是**正确结果**
+            # （它就是要被拦住），在那儿印一条 `why_not_detected` 等于在绿的跑里
+            # 摆一条看着像线索的东西——我上一版正是这么把自己骗了一轮。
+            if label == "new" and not result["connect_panel_open"]:
+                # **到达时刻要在 `on()` 里打，不能在 await 之后打。**（2026-08-13）
+                #
+                # 第一版把 `performance.now()` 放在 promise resolve 之后，
+                # 而这个 promise 是等满 5 秒才 resolve 的——于是它印出 5953ms，
+                # 那是**窗口结束的时刻**，不是应答到达的时刻。我差点拿这个数
+                # 去定产品那边的重试窗口。
+                probe = await prpc("Runtime.evaluate", {"expression": '''(async () => {
+                    const requestId = crypto.randomUUID();
+                    const t0 = performance.now();
+                    let firstAt = null;
+                    const replies = await new Promise(resolve => {
+                      const found = [];
+                      const done = setTimeout(() => {
+                        window.removeEventListener("message", on); resolve(found); }, 5000);
+                      function on(event) {
+                        const d = event.data || {};
+                        if (event.source !== window || d.source !== "social-archive-extension"
+                            || d.requestId !== requestId) return;
+                        if (firstAt === null) firstAt = Math.round(performance.now() - t0);
+                        found.push({ version: d.version, detected: d.detected });
+                      }
+                      window.addEventListener("message", on);
+                      window.postMessage({ source: "social-archive-web",
+                                           type: "SA_PING", requestId }, location.origin);
+                      void done;
+                    });
+                    return JSON.stringify({
+                      replies_within_5s: replies.length,
+                      first_reply_ms: firstAt,        // null = 5 秒内一条都没到
+                      replies, href: location.href,
+                      // 主世界读不到内容脚本设的标记（隔离世界），这里**不作为证据**，
+                      // 只留个位置说明为什么不读它。
+                      marker_not_readable_from_main_world: true,
+                    });
+                })()''', "awaitPromise": True, "returnByValue": True, "timeout": 20000})
+                found = json.loads(
+                    probe.get("result", {}).get("result", {}).get("value") or "{}")
+                found["case"] = label
+                # **只按「答没答」分类。**（2026-08-13）
+                #
+                # 第一版还看 `window.__socialArchiveExtensionBridgeState`，
+                # 想用它分出「内容脚本没注进来」。那个读法是错的：内容脚本活在
+                # **隔离世界**，它设的全局变量主世界根本看不见，所以那一项
+                # **恒为 false**——两例都 false，它分不出任何东西。
+                # 第一版还把它排在最前面，于是旧插件那一例被判成「没注进来」，
+                # 而同一份报告里明明躺着一条 0.0.0.22 的应答。
+                #
+                # 答上了就是答上了，这是主世界能拿到的最硬的证据。
+                found["which_kind"] = (
+                    f"竞态：{found.get('first_reply_ms')} 毫秒才答上，"
+                    f"而页面只等 400 毫秒"
+                    if found.get("replies_within_5s")
+                    else "5 秒内一条都没答——PING/PONG 这条链真的断了")
+                result["why_not_detected"] = found
+
         targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
         install = [t for t in targets if "/extension-install" in t.get("url", "")]
         result["install_tab_opened"] = bool(install)
@@ -444,8 +536,26 @@ async def run(chrome: str) -> int:
         with zipfile.ZipFile(ZIP) as archive:
             archive.extractall(new)
 
-        stale = await _one_case(chrome, old, "old", DEBUG_PORT)
-        fresh = await _one_case(chrome, new, "new", DEBUG_PORT + 1)
+        # **卡住要变成一次失败，不许变成一次「一直等」。**（2026-08-13）
+        #
+        # 实测撞见过一次：这个演练在旧插件那一例上停了 13 分半，没有任何输出，
+        # 端口一直占着。部署那头看到的只是「还没回来」——**比红更糟**，
+        # 红至少写着哪条链断了，而卡住什么都不写。
+        # CDP 的 `Runtime.evaluate` 一旦对面不答，await 是没有客户端超时的。
+        #
+        # 一例最多 5 分钟（实测一例约 35 秒，留足十倍余量）。
+        async def _bounded(folder: Path, label: str, port: int) -> dict:
+            try:
+                return await asyncio.wait_for(
+                    _one_case(chrome, folder, label, port), timeout=300)
+            except asyncio.TimeoutError:
+                return {"case": label, "error": "CASE_TIMED_OUT",
+                        "extension_version": "", "toasts": [],
+                        "install_tab_opened": False, "install_page_text": "",
+                        "next_step": {}, "connect_panel_open": False, "dialog": ""}
+
+        stale = await _bounded(old, "old", DEBUG_PORT)
+        fresh = await _bounded(new, "new", DEBUG_PORT + 1)
     finally:
         server.shutdown()
         shutil.rmtree(workspace, ignore_errors=True)

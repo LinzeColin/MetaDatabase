@@ -1046,6 +1046,24 @@ step "8.8) 读一眼：产品对他那份数据说的话对不对"
 .venv/bin/python scripts/audit_production_against_the_product.py --brief 2>/dev/null \
   || printf '  读不到审计结果（不影响部署）\n'
 
+step "8.87) 读一眼：自动聚合还在跑吗（不是「能不能跑」，是「还在不在跑」）"
+# 他要的第一件事是「多平台聚合真的发生」。而这个仓验它的方式一直是**演练**：
+# 在真 Chrome 里点一遍、看见条目进来、判据变绿——那证的是**按钮按得动**。
+#
+# 这两件事分开过一次：8/3 那晚真进了 260 条，8/4 起就停了，而 31 道门
+# 一处都没抓到，因为门全在验机制，没有一个去问「后来还在跑吗」。
+# 2026-08-13 这一步建起来之前，仓里**没有任何东西读
+# `user_relation.last_sync_run_id`**——「哪些条目是自动抓进来的」谁都没问过。
+#
+# **是播报不是门**：他没连账号、或者主动断开了，都是正常状态，不该让部署红。
+# 要当门用给 `--require-recent-success DAYS`（必须自己给天数，没有默认值）。
+aggregation_rc=0
+.venv/bin/python scripts/did_aggregation_actually_happen.py \
+  --host "$HOST" --brief 2>/dev/null || aggregation_rc=$?
+if [[ $aggregation_rc -ne 0 ]]; then
+  printf '  读不到同步台账（不影响部署）\n'
+fi
+
 step "8.86) 读一眼：他按过那颗诊断按钮没有"
 # 说明书请他做一件事：在抖音收藏页按一次诊断按钮。按下去之后地址和字段骨架都落在
 # 他自己的服务器上——**而在这一步之前，没有任何东西会告诉我他按过了**，

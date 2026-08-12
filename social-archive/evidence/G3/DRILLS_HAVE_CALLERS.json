@@ -25,6 +25,7 @@
     "restore_private_database_drill.py",
     "restore_runtime_db_drill.py",
     "shipped_package_drill.py",
+    "slow_extension_is_still_detected_drill.py",
     "stale_extension_is_blocked_drill.py"
   ],
   "registry": "docs/DRILLS.md",
@@ -34,6 +35,7 @@
     "production_reachability_drill.py": "每次发布",
     "extension_update_in_place_drill.py": "每次发布",
     "stale_extension_is_blocked_drill.py": "每次发布",
+    "slow_extension_is_still_detected_drill.py": "每次发布",
     "list_shape_end_to_end_drill.py": "改到那条路时",
     "bilibili_end_to_end_drill.py": "改到那条路时",
     "bilibili_acquisition_drill.py": "**每次发布**（run_all_drills）",
@@ -78,6 +80,7 @@
     "restore_private_database_drill.py",
     "restore_runtime_db_drill.py",
     "shipped_package_drill.py",
+    "slow_extension_is_still_detected_drill.py",
     "stale_extension_is_blocked_drill.py"
   ],
   "problems": [],

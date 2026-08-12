@@ -225,7 +225,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
-  const PRODUCT_VERSION = "0.0.0.69";
+  const PRODUCT_VERSION = "0.0.0.70";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -1591,9 +1591,68 @@
     });
   }
 
-  async function refreshExtensionStatus() {
+  /** 等**第一条**应答，来了就立刻返回，最多等 waitMs（2026-08-13）。
+   *
+   * `pingExtensions` 是为了数重复而生的：它必须等满一窗，才知道有没有第二份
+   * 插件也答了。而「到底装没装」不需要等满——第一条到了就已经有答案。
+   */
+  function waitForFirstExtensionReply(waitMs) {
+    const requestId = crypto.randomUUID();
+    return new Promise(resolve => {
+      const timer = setTimeout(() => {
+        window.removeEventListener("message", onMessage); resolve(null);
+      }, waitMs);
+      function onMessage(event) {
+        const data = event.data || {};
+        if (event.source !== window || data.source !== "social-archive-extension"
+            || data.requestId !== requestId) return;
+        clearTimeout(timer);
+        window.removeEventListener("message", onMessage);
+        resolve(data);
+      }
+      window.addEventListener("message", onMessage);
+      window.postMessage({ source: "social-archive-web", type: "SA_PING", requestId }, location.origin);
+    });
+  }
+
+  /** @param {{patient?: boolean}} options — `patient` 只给「点下去的那一刻」用。
+   *
+   * **不能给首屏用。**（2026-08-13，加完耐心重试当天就撞上了）
+   * 首屏是 `Promise.allSettled([loadHealth(), loadAccountsAndDestinations(),
+   * refreshExtensionStatus()])`——没装插件的人在这儿会白等满那几秒，
+   * 整页跟着晚出来。实测代价：`pwa_render_drill` 当场红两条
+   * （关系筛选没照数据重建、收藏夹那一栏没显示），因为它读的时候页面还没画完。
+   * **那不是演练的问题，是没装插件的人真会多等几秒。**
+   *
+   * 只有 `ensureExtensionReady()` 需要耐心：它那句结论（「还没有检测到插件」）
+   * 会把人送去装一个已经装着的插件，值得多等；首屏没有这个代价。
+   */
+  async function refreshExtensionStatus({ patient = false } = {}) {
     try {
-      const replies = await pingExtensions();
+      // **一窗没答，不等于没装。**（2026-08-13）
+      //
+      // 这一句的结论很贵：`detected: false` 会让「去连接」当场弹出
+      // 「还没有检测到 Social Archive 浏览器插件……要现在打开安装说明吗？」，
+      // 把一个**插件装得好好的**人送去装插件。
+      //
+      // 而它原来只凭一个 400 毫秒的窗口下这个结论。实测（真 Chrome，同一份
+      // v0.0.0.69 发布包）：同样的点击，三次里有一次那一窗收不到，
+      // 换 5 秒窗口再探就答上了——**插件一直在，只是那一窗没赶上**。
+      // 这个演练因此三次掐断部署，我照着它报的那句话查了四轮都查偏。
+      //
+      // 慢的那条路不该由他承担后果：先按老样子探一窗（绝大多数时候够，
+      // 且要等满才数得出「装了两份」），一条都没有时再耐心等一次——
+      // **等到第一条就走，不等满**，所以只有真的没装才会花掉这几秒。
+      let replies = await pingExtensions();
+      if (!replies.length && patient) {
+        const late = await waitForFirstExtensionReply(5000);
+        if (late) {
+          // 既然它活着，再收一窗把「有没有第二份」也数准；
+          // 万一这一窗又没赶上，至少用刚拿到的这条，不要退回"没装"。
+          replies = await pingExtensions();
+          if (!replies.length) replies = [late];
+        }
+      }
       if (!replies.length) throw new Error("没有检测到 Social Archive 浏览器插件");
       // **装了两份时，报最新那一份的版本，但把重复本身说出来。**
       // 只报最新会让他以为一切正常，而连接落到哪一份是不确定的。
@@ -1650,7 +1709,8 @@
   }
 
   async function ensureExtensionReady() {
-    const extension = await refreshExtensionStatus();
+    // **这一刻才值得等**：这句结论会把人送去装一个已经装着的插件。
+    const extension = await refreshExtensionStatus({ patient: true });
     // **不要把页面跳走。**
     //
     // 原来这两处直接 location.href = "/extension-install"：用户点的按钮写着
@@ -2285,7 +2345,7 @@
     }
     await loadLibrary();
     renderNextStep();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=1db8acd9").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=9c6bcb0d").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {
