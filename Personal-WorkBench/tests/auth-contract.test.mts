@@ -418,3 +418,12 @@ test("auth form uses the CAPTCHA readiness preflight before it builds a request"
   assert.match(authForm, /setCaptchaReadiness\("ready"\)/);
   assert.match(authForm, /setCaptchaReadiness\("unavailable"\)/);
 });
+
+test("auth controls wait for client hydration instead of losing the first sign-in click", async () => {
+  const authForm = await readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8");
+
+  assert.match(authForm, /useSyncExternalStore\(subscribeToHydration, hydratedSnapshot, serverSnapshot\)/);
+  assert.match(authForm, /function serverSnapshot\(\) \{\s+return false;/);
+  assert.match(authForm, /正在准备登录…/);
+  assert.match(authForm, /disabled=\{!interactive \|\| submitting\}/);
+});

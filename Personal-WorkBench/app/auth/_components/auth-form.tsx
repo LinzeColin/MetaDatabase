@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -50,6 +50,18 @@ const initialMessages: Record<AuthMode, string> = {
   "verify-email": "请打开验证邮件中的链接；未收到时可重新发送。",
 };
 
+function subscribeToHydration() {
+  return () => {};
+}
+
+function hydratedSnapshot() {
+  return true;
+}
+
+function serverSnapshot() {
+  return false;
+}
+
 function titleFor(mode: AuthMode): string {
   return {
     "sign-in": "欢迎回来",
@@ -80,6 +92,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
   const [turnstileToken, setTurnstileToken] = useState("");
   const [message, setMessage] = useState(initialMessages[mode]);
   const [submitting, setSubmitting] = useState(false);
+  const interactive = useSyncExternalStore(subscribeToHydration, hydratedSnapshot, serverSnapshot);
   const searchParams = useSearchParams();
   const showVerifiedSignInMessage = mode === "sign-in" && searchParams.get("verified") === "1" && message === initialMessages["sign-in"];
   const showSignedOutMessage = mode === "sign-in" && searchParams.get("signed_out") === "1" && message === initialMessages["sign-in"];
@@ -87,7 +100,9 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
     ? "邮箱已验证，请登录。"
     : showSignedOutMessage
       ? "已退出登录。"
-      : message;
+      : !interactive
+        ? "正在准备登录…"
+        : message;
 
   useEffect(() => {
     if (!usesTurnstile || turnstileSiteKey) return;
@@ -267,7 +282,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
             </label>
           ) : null}
           {usesTurnstile ? <div className="turnstile-slot" ref={turnstileContainer} /> : null}
-          <button type="submit" className="auth-submit" disabled={submitting}>
+          <button type="submit" className="auth-submit" disabled={!interactive || submitting}>
             {submitting ? "请稍候…" : mode === "sign-up" ? "注册" : mode === "forgot-password" ? "发送说明" : mode === "reset-password" ? "更新密码" : mode === "verify-email" ? "重新发送验证邮件" : "登录"}
           </button>
         </form>
@@ -277,7 +292,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
           <Link className="auth-secondary-link" href={link.href}>{link.label}</Link>
         )}
         {mode === "sign-in" || mode === "sign-up" ? (
-          <button type="button" className="auth-google" onClick={submitGoogle} disabled={submitting}>使用 Google 继续</button>
+          <button type="button" className="auth-google" onClick={submitGoogle} disabled={!interactive || submitting}>使用 Google 继续</button>
         ) : null}
         {mode === "sign-in" ? <Link className="auth-secondary-link" href="/auth/forgot-password">忘记密码？</Link> : null}
       </section>
