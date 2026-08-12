@@ -9,7 +9,7 @@
 // Build identity (ADP-S1-P01-T010): read-only /build.json + footer build id. No secret.
 // build_id/source_sha256 are a self-excluding hash: reset both values back to their
 // zero-placeholders ('0'*12 and '0'*64) and sha256 the file to reproduce source_sha256.
-const BUILD = { build_id: '2a488662da69', source_sha256: '2a488662da69b5f02ca87709ce98ef572c2ac3ed37f7f0fe4646f98c2a0484f2', schema_version: 'cn_v0_3', built_at: '2026-08-11' };
+const BUILD = { build_id: '9f4369fcdf0a', source_sha256: '9f4369fcdf0a5d6ba3d7f6d95739c6b20717cfc9bf045eb879cf762434232a2a', schema_version: 'cn_v0_3', built_at: '2026-08-12' };
 
 // ── S3-P03-T040 Board 3 官方视图 A0 canary 切换（Owner S3 Exit 已批准 A0 晋级）──
 // 默认关 = 部署即基线（生产 Board 3 与六主题不变）。开=Board 3 只把 A0 官方原文作默认证据、媒体降为 discovery。
@@ -138,6 +138,9 @@ const nowISO = () => new Date().toISOString();
 const dayISO = (d = new Date()) => d.toISOString().slice(0, 10);
 // 本地日（用户在 UTC+8，中国标准时）：streak 与「每日一评」防重按用户的一天分桶，而非 UTC
 const LOCAL_OFFSET_H = 8;
+// 一次日跑最长容忍多久：超过这个还停在「运行中」就当它中断了。
+// cron 每天只跑一次（20:30 UTC），90 分钟足够松，且远小于一天。
+const STALE_RUNNING_MS = 90 * 60 * 1000;
 const localDay = (iso = nowISO()) => new Date(Date.parse(iso) + LOCAL_OFFSET_H * 3600e3).toISOString().slice(0, 10);
 async function sha1(s) {
   const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(s));
@@ -386,6 +389,11 @@ async function ingestAll(env, counts) {
     const papers = (await fetchArxivAll(fromDay)).slice(0, ARXIV_CAP);
     for (const p of papers) itemStmts.push(itemStmt(env, { ...p, board: 'board1', source: 'arxiv-all', kind: 'paper' }));
     counts.arxiv = papers.length;
+    // ★抓到 0 篇也要记降级★ —— 原来只有 throw 才进 degraded，于是「接口 200 但一篇没返回」
+    // 会被算成正常。2026-08-03 实测：arxiv=0 而 degraded 里只有 feed:science-advances，
+    // 那天要不是恰好另一个源也挂了，整天会被记成「正常」——主源零产出被当成没问题。
+    // 官方源那一块本来就是这么写的（a0:…:parsed0），这里和 bioRxiv 两处漏了。
+    if (!papers.length) counts.degraded.push('arxiv:parsed0');
     healthStmts.push(healthStmt(env, 'arxiv-all', papers.length > 0, hmap['arxiv-all']?.consecutive_failures));
   } catch (e) { counts.degraded.push('arxiv:' + e.name); healthStmts.push(healthStmt(env, 'arxiv-all', false, hmap['arxiv-all']?.consecutive_failures)); }
 
@@ -394,6 +402,7 @@ async function ingestAll(env, counts) {
     const bio = await fetchBiorxiv(fromDay, toDay);
     for (const p of bio) itemStmts.push(itemStmt(env, { ...p, board: 'board1', source: 'biorxiv', kind: 'paper' }));
     counts.biorxiv = bio.length;
+    if (!bio.length) counts.degraded.push('biorxiv:parsed0');   // 同 arXiv：0 篇也是降级，不是正常
     healthStmts.push(healthStmt(env, 'biorxiv', bio.length > 0, hmap['biorxiv']?.consecutive_failures));
   } catch (e) { counts.degraded.push('biorxiv:' + e.name); healthStmts.push(healthStmt(env, 'biorxiv', false, hmap['biorxiv']?.consecutive_failures)); }
 
@@ -950,11 +959,23 @@ async function runDaily(env, trigger) {
   const runId = new Date().toISOString().replace(/[:.]/g, '').slice(0, 15) + '-' + trigger;
   const counts = { degraded: [] };
   let result = '正常', note = null;
+  // ★开跑先占一行★：原来只在最末尾写一次 run_log，于是「cron 没触发」和「触发了但整个
+  // invocation 被杀」在库里长得一模一样 —— 都是零行。2026-08-06 就是这样：0 条目入库、
+  // 0 选择、0 运行日志，事后无从判定。先落一行「运行中」，收尾时改写它：
+  //   收尾改写成功 -> 正常/降级/弃权/失败
+  //   留着一行「运行中」-> 跑起来了但没跑完（被杀 / 超时）
+  //   一行都没有       -> cron 压根没触发
+  let claimed = false;
   try {
     await seedSources(env);
     const done = await env.DB.prepare("SELECT run_id FROM cn_run_log WHERE as_of_date=? AND result IN ('正常','降级','弃权')").bind(asOfDate).first();
     if (done) { result = '未运行'; note = `当日已成功运行 ${done.run_id}，幂等跳过`; }
     else {
+      await env.DB.prepare(
+        `INSERT INTO cn_run_log (run_id, as_of_date, result, counts_json, note, at) VALUES (?, ?, ?, ?, ?, ?)
+         ON CONFLICT(run_id) DO NOTHING`
+      ).bind(runId, asOfDate, '运行中', '{}', `${trigger} 已开始`, nowISO()).run();
+      claimed = true;
       await ingestAll(env, counts);
       await enrichMeta(env, counts);   // T063：+1 个外部子请求（一批 50 条 DOI）；失败只降级
       const pick = await selectDaily(env, asOfDate, counts);
@@ -963,10 +984,16 @@ async function runDaily(env, trigger) {
       if (counts.degraded.length) result = result === '正常' ? '降级' : result;
     }
   } catch (e) { result = '失败'; note = e.name + ': ' + (e.message || '').slice(0, 200); }
-  await env.DB.prepare(
-    `INSERT INTO cn_run_log (run_id, as_of_date, result, counts_json, note, at) VALUES (?, ?, ?, ?, ?, ?)
-     ON CONFLICT(run_id) DO NOTHING`
-  ).bind(runId, asOfDate, result, JSON.stringify(counts), note, nowISO()).run();
+  // 占过位就改写那一行；没占位（幂等跳过 / seedSources 就炸了）才插新行。
+  if (claimed) {
+    await env.DB.prepare('UPDATE cn_run_log SET result=?, counts_json=?, note=?, at=? WHERE run_id=?')
+      .bind(result, JSON.stringify(counts), note, nowISO(), runId).run();
+  } else {
+    await env.DB.prepare(
+      `INSERT INTO cn_run_log (run_id, as_of_date, result, counts_json, note, at) VALUES (?, ?, ?, ?, ?, ?)
+       ON CONFLICT(run_id) DO NOTHING`
+    ).bind(runId, asOfDate, result, JSON.stringify(counts), note, nowISO()).run();
+  }
   return { runId, result, counts, note };
 }
 
@@ -1498,9 +1525,18 @@ async function systemPage(env) {
     if (!r) return `<tr><td class="mt">${esc(d)}</td><td><span class="badge">无记录</span></td>
       <td class="mt">—</td><td class="mt">这一天没有任何运行记录（不是「跑了但没抓到」）。</td></tr>`;
     const c = JSON.parse(r.counts_json || '{}');
-    return `<tr><td class="mt">${esc(d)}</td><td><span class="badge">${esc(r.result)}</span></td>
-      <td class="mt">arXiv ${c.arxiv || 0} · bio ${c.biorxiv || 0} · 板块流 ${c.feeds || 0} · 候选 ${c.candidates || 0}</td>
-      <td class="mt">${esc(r.note || '')}</td></tr>`;
+    // 「运行中」是开跑时占的位，收尾会改写掉。它要是留着，说明那次跑起来了但没跑完
+    // （被杀 / 超时）——超过 STALE_RUNNING_MS 就照实说「中断」，不许一直显示「正在跑」。
+    const running = r.result === '运行中';
+    const ageMs = Date.now() - Date.parse(r.at || '');
+    const stale = running && !(ageMs < STALE_RUNNING_MS);
+    const label = stale ? '中断' : r.result;
+    const detail = stale
+      ? '开跑了但没跑完（被杀或超时）；不是「没触发」——没触发是整行不存在。'
+      : esc(r.note || '');
+    return `<tr><td class="mt">${esc(d)}</td><td><span class="badge">${esc(label)}</span></td>
+      <td class="mt">${running ? '—' : `arXiv ${c.arxiv || 0} · bio ${c.biorxiv || 0} · 板块流 ${c.feeds || 0} · 候选 ${c.candidates || 0}`}</td>
+      <td class="mt">${detail}</td></tr>`;
   }).join('');
   const total = await env.DB.prepare('SELECT COUNT(*) n FROM cn_items').first();
   let covHTML = '', maintHTML = '';
