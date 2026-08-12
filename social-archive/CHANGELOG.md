@@ -6,6 +6,63 @@
 > **这里不补写**：隔了两版再靠回忆重建变更记录，写出来的东西看着像记录，
 > 其实是推测，比空着更容易被人当真。
 
+## v0.0.0.69 — 登录二维码的动画文件被认成收藏列表，7 条编出来的网址会进档案馆
+
+### 我刚请他「重连抖音」，然后在真页面上撞见这个
+
+上一版我把说明书改成「先重连一次试试」。为了确认那条路安全，我拿真 Chrome 打开
+一个**公开的**抖音视频页（不带登录态），把观察器收到的**真响应**喂给
+`list-shape.js` 里那个真识别器。
+
+它认出了一个「收藏列表」：
+
+    https://lf-ucenter-web.yhgfb-cn-static.com/obj/passport-fe/scan-code-guide-side.json
+    path=assets   7 条
+
+那是**登录二维码那个 Lottie 动画文件**（顶层键 `v/fr/ip/op/layers/markers`），
+`assets` 数组里 7 项，每项 `{id,w,h,u,p,e}`。
+
+### 后果不是「没数据」，是编出来的网址安静落库
+
+抖音走 `id_template`。把那 7 项过一遍归一化：
+
+    落地 7 条，跳过 0 条
+    https://www.douyin.com/video/image_0   标题空
+    https://www.douyin.com/video/image_1   标题空
+
+**7 条 404 进档案馆，标题全空。** 而这个文件自己的注释就写着：
+「拼错的网址比没有更糟：它会安安静静地进档案馆，半年后点开才发现全是 404，
+而那时已经无从追溯。」
+
+### 洞在哪
+
+```js
+const wrapped = Boolean(corePath);
+const corroborated = titleRate >= MIN_HOMOGENEITY || authorRate >= MIN_HOMOGENEITY;
+const homogeneous = consistent && (!wrapped || corroborated);
+```
+
+**旁证只在 id 藏在壳里时才要**；摊平的那种「维持原样，不加码」。
+于是一个每项只有 id、别的什么都没有的数组照样过关——Lottie 的 `assets` 正是这样。
+
+改成：**摊平的也要旁证**，并把时间也算作旁证（内容条目至少带标题、作者、时间
+三者之一，而动画/配置/埋点三样都没有）。
+
+### 两侧都验过
+
+    Lottie 动画     → 不认了，理由写明「光有 id 不算内容，还要旁证」
+    真收藏形状      → 照样认出 7 条
+    四个平台演练    → douyin / xiaohongshu / reddit / instagram 全 PASS
+
+### 这件事是怎么翻出来的
+
+不是读代码。是**我先写了一个演练去证「识别器不会认错」，而它第一版是空转的**：
+识别器读的是 `capture.text`，我喂的是 `capture.body`，于是每一条都被判「不是 JSON」
+——它什么也没看见，却照样回「没认出来」，我差点把那次 PASS 当成结论。
+
+**戳穿它的是正对照**：往真响应里混一条长得像收藏列表的，识别器也没认出来 →
+说明输入它根本读不懂。改对字段名之后，真页面上立刻认出了那个动画文件。
+
 ## v0.0.0.68 — 那一按读不懂任何东西时，它说得像失败了，而其实成了
 
 ### 他照说明书按的唯一那一下
