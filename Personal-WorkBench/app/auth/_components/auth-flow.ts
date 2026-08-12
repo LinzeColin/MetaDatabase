@@ -45,7 +45,7 @@ export function captchaSubmissionPreflight(
 ): string | null {
   if (!usesTurnstileFor(mode)) return null;
   if (readiness === "loading") return "正在加载安全验证，请稍候…";
-  if (readiness === "unavailable") return "安全验证暂不可用，请稍后再试。";
+  if (readiness === "unavailable") return "安全验证暂不可用，请检查网络后重试。";
   if (!captchaResponse.trim()) return "请完成验证后继续。";
   return null;
 }

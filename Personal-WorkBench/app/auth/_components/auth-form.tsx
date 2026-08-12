@@ -85,9 +85,9 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
   const [captchaReadiness, setCaptchaReadiness] = useState<CaptchaReadiness>(
     () => (usesTurnstile && !turnstileSiteKey ? "loading" : "ready"),
   );
-  const effectiveCaptchaReadiness: CaptchaReadiness = usesTurnstile && !turnstileSiteKey
-    ? captchaReadiness
-    : "ready";
+  // A server-supplied site key means the widget may begin mounting immediately,
+  // not that the browser can necessarily reach the verification service.
+  const effectiveCaptchaReadiness: CaptchaReadiness = usesTurnstile ? captchaReadiness : "ready";
   const siteKey = turnstileSiteKey ?? fetchedSiteKey;
   const [turnstileToken, setTurnstileToken] = useState("");
   const [message, setMessage] = useState(initialMessages[mode]);
@@ -136,14 +136,23 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
 
     let widgetId: string | undefined;
     let cancelled = false;
+    const markUnavailable = () => {
+      if (cancelled) return;
+      setTurnstileToken("");
+      setCaptchaReadiness("unavailable");
+    };
     const mount = () => {
       if (cancelled || !window.turnstile || !turnstileContainer.current) return;
       widgetId = window.turnstile.render(turnstileContainer.current, {
         sitekey: siteKey,
         action: "workbench_auth",
-        callback: setTurnstileToken,
+        callback: (token) => {
+          if (cancelled) return;
+          setTurnstileToken(token);
+          setCaptchaReadiness("ready");
+        },
         "expired-callback": () => setTurnstileToken(""),
-        "error-callback": () => setTurnstileToken(""),
+        "error-callback": markUnavailable,
       });
     };
 
@@ -152,6 +161,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
       mount();
     } else if (existing) {
       existing.addEventListener("load", mount, { once: true });
+      existing.addEventListener("error", markUnavailable, { once: true });
     } else {
       const script = document.createElement("script");
       script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
@@ -159,6 +169,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
       script.defer = true;
       script.dataset.workbenchTurnstile = "true";
       script.addEventListener("load", mount, { once: true });
+      script.addEventListener("error", markUnavailable, { once: true });
       document.head.appendChild(script);
     }
 

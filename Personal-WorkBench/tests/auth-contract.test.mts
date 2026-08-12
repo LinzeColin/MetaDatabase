@@ -128,7 +128,7 @@ test("managed Turnstile retains a rendered response during callback timing", () 
 
 test("auth form waits for public Turnstile readiness instead of submitting a missing CAPTCHA", () => {
   assert.equal(captchaSubmissionPreflight("sign-up", "loading", ""), "正在加载安全验证，请稍候…");
-  assert.equal(captchaSubmissionPreflight("sign-in", "unavailable", ""), "安全验证暂不可用，请稍后再试。");
+  assert.equal(captchaSubmissionPreflight("sign-in", "unavailable", ""), "安全验证暂不可用，请检查网络后重试。");
   assert.equal(captchaSubmissionPreflight("forgot-password", "ready", ""), "请完成验证后继续。");
   assert.equal(captchaSubmissionPreflight("sign-up", "ready", "captcha-token"), null);
   assert.equal(captchaSubmissionPreflight("verify-email", "loading", ""), null);
@@ -415,8 +415,11 @@ test("auth form uses the CAPTCHA readiness preflight before it builds a request"
 
   assert.match(authForm, /captchaSubmissionPreflight\(mode, effectiveCaptchaReadiness, captchaResponse\)/);
   assert.match(authForm, /usesTurnstile && !turnstileSiteKey \? "loading" : "ready"/);
+  assert.match(authForm, /usesTurnstile \? captchaReadiness : "ready"/);
   assert.match(authForm, /setCaptchaReadiness\("ready"\)/);
   assert.match(authForm, /setCaptchaReadiness\("unavailable"\)/);
+  assert.match(authForm, /"error-callback": markUnavailable/);
+  assert.match(authForm, /existing\.addEventListener\("error", markUnavailable/);
 });
 
 test("auth controls wait for client hydration instead of losing the first sign-in click", async () => {
