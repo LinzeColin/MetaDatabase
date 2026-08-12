@@ -6,6 +6,7 @@
 
 ## 当前状态
 
+- 后冻结 current-production SSH local route-policy diagnostic（单一独立增量）已完成：新增精确合同、受控 shell 入口与定向测试。该 phase 只读取既有 SSH config 的受管 Host 声明与 `ssh -G` 的非秘密 transport metadata，并只对本机默认/数值目标路由、Proxy 形态和未连接 socket 可用性作固定分类；若 root config 含 `Include` 或 `Match exec`，会在 `ssh -G` 前失败关闭。实际为 `PASS_CURRENT_PRODUCTION_SSH_LOCAL_ROUTE_POLICY_DIAGNOSTIC`，本机 route policy ready；socket/SSH 连接、认证、known_hosts 写入、provider/GitHub 请求、资源/网络/Cloudflare/主机变更、市场/账户/TAB/Gmail、建议和订单均为 `0`/未发生，`core_start_authorized=false`。脱敏回执已写入私有数据面并单次读回；本地仅执行 shell syntax、内存语法编译与该模块 `15 passed` 定向测试，未运行全量测试、完整回归或真实时间 soak，新增现金 A$0。该结果只能说明本机前置路线可用，不能解释先前 TCP 失败，更不能证明远端主机、认证/权限、配置、core production、公开 endpoint、7×24 或收益；下一步只能另立一次有界 SSH transport failure-classification phase。
 - 后冻结 protected nonsecret documentation pointer resolver（单一独立增量）已完成：新增精确合同、受控 shell 入口与定向测试。该 phase 只在受保护根目录的固定深度/条目上限内识别 README/HANDOFF/INVENTORY/DEPLOYMENT/ARCHITECTURE/TOPOLOGY/RUNBOOK/OPERATIONS 命名的非秘密文档，跳过敏感命名路径；文档必须是普通文件、非软链、禁止组/其他用户写入，且每份固定字节上限。只接受跨该集合唯一的内联、相对、非秘密 JSON pointer，只有 pointer 唯一时才允许检查单一 target source。实际固定集合未声明唯一 pointer，严格为 `NOT_DECLARED_REDACTED`，所以没有打开 target JSON，也不证明 source、credential、target mapping 或资源不存在。provider、SSH、GitHub 请求均为 `0`，没有浏览器登录、资源/网络/Cloudflare/主机变更、部署、市场/账户/TAB/Gmail、建议或订单；脱敏回执已写入私有数据面并单次读回。本地仅执行 shell syntax、内存语法编译与该模块 `17 passed` 定向测试，未运行全量测试、完整回归或真实时间 soak，新增现金 A$0。它只完成非秘密文档范围的 pointer 声明核验，不证明 target、OVH 资源、电源、网络、SSH、配置、core production、公开 endpoint、7×24 或收益；下一步必须另立 current-production SSH local route-policy diagnostic phase。
 - 后冻结 README→protected source pointer resolver（单一独立增量）已完成：新增精确合同、受控 shell 入口与定向测试。该 phase 只读 GithubProject 根 README，且只接受一个内联、相对、非秘密的受保护 JSON pointer；只有 README 明确声明唯一 pointer 后才允许检查该单一 source 的类型、权限和顶层键集合。实际根 README 未声明合格 pointer，严格为 `NOT_DECLARED_REDACTED`，故没有打开受保护 source，也不证明 source、credential、target mapping 或资源不存在。provider、SSH、GitHub 请求均为 `0`，没有浏览器登录、资源/网络/Cloudflare/主机变更、部署、市场/账户/TAB/Gmail、建议或订单；脱敏回执已写入私有数据面并单次读回。本地仅执行 shell syntax、内存语法编译与该模块 `16 passed` 定向测试，未运行全量测试、完整回归或真实时间 soak，新增现金 A$0。它只完成 README pointer 声明核验，不证明 target、OVH 资源、电源、网络、SSH、配置、core production、公开 endpoint、7×24 或收益；下一步必须另立 protected nonsecret documentation pointer resolver phase。
 - 后冻结 protected current-production target metadata locator（单一独立增量）已完成：新增受限 locator、精确合同、受控 shell 入口与定向测试。该 phase 只在用户授权的受保护根目录内做一次深度/条目/候选文件数/文件大小均固定上限的只读盘点；仅允许打开权限严格的非秘密候选 JSON，并以键名状态机检查顶层键集合，绝不解析、输出或持久化候选值、credential、target 值、路径或文件名。实际扫描到达固定条目上限，严格为 `SCAN_LIMIT_REACHED_REDACTED`，`protected_target_metadata_located=false`，因此不证明 source 不存在，也不允许 transport/provider/host action。provider、SSH、GitHub 请求均为 `0`，没有浏览器登录、资源/网络/Cloudflare/主机变更、部署、市场/账户/TAB/Gmail、建议或订单；脱敏回执已写入私有数据面并单次读回。本地仅执行 shell syntax、内存语法编译与该模块 `15 passed` 定向测试，未运行全量测试、完整回归或真实时间 soak，新增现金 A$0。它只完成这个 bounded locator，不证明 credential、target mapping、OVH 资源、电源、网络、SSH、配置、core production、公开 endpoint、7×24 或收益；下一步必须另立 README 到受保护 source pointer resolver phase。
@@ -188,6 +189,10 @@
 
 ## 关键文件
 
+- `runtime/current_production_ssh_local_route_policy_diagnostic.py`
+- `runtime/current_production_ssh_local_route_policy_diagnostic_contract.json`
+- `runtime/run_current_production_ssh_local_route_policy_diagnostic.sh`
+- `runtime_tests/test_current_production_ssh_local_route_policy_diagnostic.py`
 - `runtime/current_production_protected_documentation_pointer_resolver.py`
 - `runtime/current_production_protected_documentation_pointer_resolver_contract.json`
 - `runtime/run_current_production_protected_documentation_pointer_resolver.sh`
@@ -591,6 +596,7 @@
 
 ## 未解决风险
 
+- 最新 current-production SSH local route-policy diagnostic 已证明本机 direct route policy、默认/数值目标路由与未连接 socket 前置可用，但严格没有发起 socket/SSH 连接、认证或远端检查。因此它不能解释先前 TCP `OTHER_FAILED_REDACTED`，也不证明主机、认证、权限、配置或 core 状态；不得把本机 route ready 外推为 transport 或上线 ready。下一步若继续，必须是单独的、有固定次数/时限、非交互且不写 known_hosts 的 SSH transport failure-classification phase；其结果无论如何都不得绕过管理平面、配置语义和 core 合同。
 - 最新 protected nonsecret documentation pointer resolver 已完成固定非秘密文档集的只读检索，结果为 `NOT_DECLARED_REDACTED`，没有 target source 被打开。这不证明受保护目录没有 metadata source，也不授权扩大至其他文件名、猜测/伪造 pointer、读取 credential/target 值、连接 SSH、请求 provider/GitHub API 或部署。三个 pointer 路径（通用有界 locator、根 README、受控非秘密文档集）都已各自形成失败关闭回执；后续应转向不依赖 source pointer 的既有 SSH 本机路由前置核验，而不是重复扫描。
 - 最新 README→protected source pointer resolver 已确认根 README 未声明唯一合格的非秘密 JSON pointer，故 source 状态严格为 `NOT_DECLARED_REDACTED`。这不证明受保护目录没有 metadata source，也不授权伪造/猜测 pointer、扩大到 credential/target 值读取、连接 SSH、请求 provider/GitHub API 或部署。受保护非秘密文档集合的独立尝试现也结束为 `NOT_DECLARED_REDACTED`；不得重复 pointer 扫描，后续只可转向既有 SSH 的本机 route-policy 前置核验。
 - 最新 protected target metadata locator 只完成受保护根目录的固定有界、非秘密文件名元数据与 JSON 键集检查；实际达到扫描上限，因而 target source 仍为 `SCAN_LIMIT_REACHED_REDACTED`。这既不证明没有 metadata source，也不授权扩大递归读取、猜测路径、读取 credential/target 值、连接 SSH、请求 provider/GitHub API 或部署。根 README pointer 尝试现已独立结束为 `NOT_DECLARED_REDACTED`；不得重复该无 pointer 路径，后续只能按新的受保护非秘密文档集合边界继续。
@@ -629,6 +635,6 @@
 
 ## 下一步
 
-下一次 run 必须只执行一个明确 phase：独立、只读、脱敏地实施 **current-production SSH local route-policy diagnostic**。该 phase 只允许从既有 current-production SSH 配置在内存中解析已受管 alias 的非秘密 transport metadata，并对本机 route policy、默认路由存在性、ProxyCommand/ProxyJump 形态和 socket 前本地可用性作固定分类；绝不输出或持久化 alias、地址、端口、用户、密钥路径、route 原文、proxy 值或 stderr，不发起 socket/SSH 连接、不认证、不写 known_hosts、不读取 credential/config/runtime secret，也不发送 provider/GitHub API 请求、创建/修改资源、网络、Cloudflare 或服务。若本地 route policy 无法解释先前 TCP 失败，只记录固定 `UNKNOWN` 类别并结束；该 phase 不得重复 TCP 重试或把本地路由结论外推为主机、认证、配置、core 或上线状态。任何 core action 仍须在完整受控入口、管理平面与 SSH transport 都取得可复验 ready 证据后，另立 phase 重试冻结 `infra/rebuild.sh check --config /etc/abd/config.json`。
+下一次 run 必须只执行一个明确 phase：独立、脱敏地实施 **current-production SSH transport failure-classification diagnostic**。它只可基于本次已确认的本机 route-policy 前置，对同一既有受管 target 作一次固定时限、非交互的 transport 分类；不得读取/输出/复制 credential、地址、端口、用户、密钥路径、route/proxy/stderr 或配置/secret 内容，不得循环重试、猜测替代地址、写 known_hosts、执行远端命令、sudo、部署、启动服务、修改资源/网络/Cloudflare，或请求 provider/GitHub API。无论结果，均保持 `core_start_authorized=false`；只有完整受控入口、管理平面、SSH transport、冻结 config semantic check 与 core 合同均有各自可复验 ready 证据后，才可另立 phase 讨论任何 core action。
 
 保持 PR #174 的远端 CI 状态与本地结果彼此独立；不得把 pending、远端检查、Draft PR、本地验收、当前 loopback shadow、一次性 attestation、无 hostname connector、两项历史来源、静态残差描述、主机可达性或 OCI 制品外推为 CI、合并、公开 endpoint、core deployment、Cloudflare 全球访问、真实市场、账户或生产上线完成。静态残差回执明确不是模型增量或参数更新依据；未来若做新的静态证据 phase，必须继续保持单独、不可激活且不改变 `model_beta_gate` 的边界。当前 Cloudflare MFA 重验为 `Inactive`，所以受保护 shadow hostname/DNS phase 只能在唯一账户持有人在仓库外完成 MFA 且其状态可独立复验后再选作一个新的明确 phase；不得输入/复用账号密码、OTP 或创建 Access/DNS 绕过。core service 仍须以冻结的 2560m resource limit、现时 host memory 和原有严格 swap/capacity 合同另行裁决，不能把当前 connector、容器 no-additional-swap、两项静态历史数据、静态残差描述或用户对 host-wide swap 的纠正误用为 core 通过。保持零新增现金与既有证据、数值、风险、安全和来源门不降级。
