@@ -328,6 +328,8 @@ test("tenant resource client refreshes an account scope before merging or mutati
   assert.match(source, /if \(scopeBeforeRequest !== scope\) \{/);
   assert.match(source, /window\.addEventListener\("focus", refreshWhenVisible\);/);
   assert.match(source, /const refreshWhenVisible = \(\) => void reload\(true\);/);
+  assert.match(source, /window\.addEventListener\("pageshow", refreshWhenPageShows\);/);
+  assert.match(source, /const refreshWhenPageShows = \(\) => void reload\(true\);/);
   assert.match(source, /document\.visibilityState === "visible"\) void reload\(true\);/);
   assert.match(source, /document\.addEventListener\("visibilitychange", refreshWhenDocumentVisible\);/);
 });

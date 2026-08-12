@@ -581,6 +581,10 @@ export function useTenantResource<T extends TenantRecord>(
     if (!enabled || !scopeReady || typeof window === "undefined") return;
     const replayWhenOnline = () => void reload(true);
     const refreshWhenVisible = () => void reload(true);
+    // A social-login callback can restore this page from the browser's
+    // back/forward cache without emitting focus or visibilitychange. Keep the
+    // tenant resource state in step with AccountEntry's pageshow refresh.
+    const refreshWhenPageShows = () => void reload(true);
     const refreshWhenDocumentVisible = () => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") void reload(true);
     };
@@ -588,12 +592,14 @@ export function useTenantResource<T extends TenantRecord>(
     const replayWhenPrivacyConsentIsAccepted = () => void reload(true);
     window.addEventListener("online", replayWhenOnline);
     window.addEventListener("focus", refreshWhenVisible);
+    window.addEventListener("pageshow", refreshWhenPageShows);
     window.addEventListener("mydairy:outbox-alias-resolved", replayWhenParentSynchronizes);
     window.addEventListener("mydairy:privacy-consent-accepted", replayWhenPrivacyConsentIsAccepted);
     if (typeof document !== "undefined") document.addEventListener("visibilitychange", refreshWhenDocumentVisible);
     return () => {
       window.removeEventListener("online", replayWhenOnline);
       window.removeEventListener("focus", refreshWhenVisible);
+      window.removeEventListener("pageshow", refreshWhenPageShows);
       window.removeEventListener("mydairy:outbox-alias-resolved", replayWhenParentSynchronizes);
       window.removeEventListener("mydairy:privacy-consent-accepted", replayWhenPrivacyConsentIsAccepted);
       if (typeof document !== "undefined") document.removeEventListener("visibilitychange", refreshWhenDocumentVisible);
