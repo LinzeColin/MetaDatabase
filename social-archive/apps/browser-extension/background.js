@@ -2341,10 +2341,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // **这一按到底有没有把东西存下来**，让调用方能直接读，不用去解那句中文。
         imported: 0,
         failureCode: readable > 0 ? null : (firstProblem?.failure_code || "UNREADABLE"),
+        // **一条都读不懂 ≠ 这一按白按了。**（2026-08-12）
+        //
+        // 这一按的**目的是找出该盯哪个地址**（T09 抓到即固化），不是把收藏收进来。
+        // 地址已经在 `urls` 里、也已经送到他自己的服务器上了——那件事成了。
+        //
+        // 而原来这条路只会说「拦到了响应，但一条都读不懂。」。他照着说明书按了
+        // 那唯一的一下，屏幕回他一句听起来像失败的话，于是他会以为没成、
+        // 要么再按一遍，要么干脆不告诉我。**真正要紧的那件事一个字都没提。**
+        //
+        // 实测这不是假想：B 站收藏页真正请求的四个接口
+        // （folder/info、folder/whitelist、resource/ids、resource/infos）
+        // 拿真响应喂进解析器，**四个全是 PAYLOAD_SHAPE_CHANGED / PLATFORM_REFUSED**
+        // ——解析器只认 `resource/list`，而网页根本不打那一条。
+        // 也就是说「读不懂」是这一按的**常态**，不是例外。
         message_zh: readable > 0
           ? `拦到 ${netCaptureBuffer.length} 条${note}，其中 ${readable} 条读得懂，共 ${items} 条收藏。`
             + importedNote
-          : (firstProblem?.message_zh || "拦到了响应，但一条都读不懂。") + note,
+          : netCaptureBuffer.length > 0
+            ? `拦到 ${netCaptureBuffer.length} 条${note}，暂时一条都读不成收藏——`
+              + `**这一按要的是地址，地址已经记下来了**。`
+              + `（读不懂是意料之中：要先知道该盯哪个地址，才谈得上读它。）`
+            : (firstProblem?.message_zh || "一条响应都没拦到。") + note,
       };
     }
     if (message?.type === "SA_GET_NET_CAPTURES") {
