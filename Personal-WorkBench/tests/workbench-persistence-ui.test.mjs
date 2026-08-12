@@ -321,7 +321,7 @@ test("tenant resource client refreshes an account scope before merging or mutati
   assert.match(source, /const reconciledScope = await refreshCurrentScope\(\);/);
   assert.match(source, /if \(reconciledScope !== requestScope\) \{/);
   assert.match(source, /async \(remote: T\[\], expectedScope: string\): Promise<T\[]>/);
-  assert.match(source, /if \(!scope \|\| scope !== expectedScope \|\| scope === "guest" \|\| sensitive\) return remote;/);
+  assert.match(source, /scope === "guest" \|\| \(sensitive && cloudAvailabilityRef\.current !== "available"\)/);
   assert.match(source, /const scopeBeforeReplay = await refreshCurrentScope\(\);/);
   assert.match(source, /const scopeAfterReplay = await refreshCurrentScope\(\);/);
   assert.match(source, /const scopeBeforeRequest = await refreshCurrentScope\(\);/);
@@ -332,9 +332,12 @@ test("tenant resource client refreshes an account scope before merging or mutati
   assert.match(source, /document\.addEventListener\("visibilitychange", refreshWhenDocumentVisible\);/);
 });
 
-test("tenant resource retries only same-account non-sensitive local records after connectivity returns", async () => {
-  const source = await readFile(resourceSource, "utf8");
-  const cacheSource = await readFile("app/_components/workbench/local-record-cache.ts", "utf8");
+test("tenant resource replays only same-account local records, and sensitive records only after a current consented read", async () => {
+  const [source, cacheSource, account] = await Promise.all([
+    readFile(resourceSource, "utf8"),
+    readFile("app/_components/workbench/local-record-cache.ts", "utf8"),
+    readFile(accountSource, "utf8"),
+  ]);
 
   assert.match(source, /appendDeviceOutbox/);
   assert.match(source, /Before account-scoped IndexedDB existed/);
@@ -348,15 +351,20 @@ test("tenant resource retries only same-account non-sensitive local records afte
   assert.match(source, /replayOutboxQueue/);
   assert.match(source, /scope === "guest"/);
   assert.match(source, /if \(sensitive\) return false;/);
-  assert.match(source, /if \(!scope \|\| scope !== expectedScope \|\| scope === "guest" \|\| sensitive\) return remote;/);
-  assert.match(source, /const queuedForReplay = sensitive \? false : await queueDeviceMutation\(deviceOutboxAction\);/);
+  assert.match(source, /requiresSensitiveConsent: true as const/);
+  assert.match(source, /cloudAvailabilityRef\.current !== "available"/);
+  assert.match(source, /const queuedForReplay = await queueDeviceMutation\(deviceOutboxAction\);/);
+  assert.match(source, /mydairy:privacy-consent-accepted/);
   assert.match(source, /window\.addEventListener\("online", replayWhenOnline\)/);
-  assert.match(source, /已保存在当前设备。连接恢复后会自动同步。/);
+  assert.match(source, /开启敏感跨设备保存后会自动同步这条记录。/);
   assert.match(source, /使用 Google 登录无需额外验证邮箱。/);
   assert.match(cacheSource, /export async function removeDeviceOutboxActions/);
   assert.match(cacheSource, /export async function resolveDeviceOutboxAction/);
   assert.match(cacheSource, /export async function rememberDeviceOutboxRecordAlias/);
+  assert.match(cacheSource, /DEVICE_OUTBOX_FALLBACK_PREFIX/);
   assert.match(cacheSource, /const existing = await requestValue\(store\.get\(key\)\);/);
+  assert.match(account, /window\.dispatchEvent\(new Event\("mydairy:privacy-consent-accepted"\)\);/);
+  assert.match(account, /本设备当前账号暂存的敏感记录会自动同步。/);
 });
 
 test("dependent local mutations resolve a same-account parent alias before an immediate cloud request", async () => {

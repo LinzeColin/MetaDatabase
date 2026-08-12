@@ -145,8 +145,16 @@ function localSaveMessage(availability: CloudAvailability, sensitive: boolean, q
       ? "已保存在当前设备。当前账号尚未完成保存验证；验证状态更新后会继续同步。"
       : "已保存在当前设备。当前账号尚未完成保存验证；若刚使用 Google 登录，请退出后重新登录，邮箱账号请完成验证邮件。";
   }
+  if (queuedForReplay && availability === "consent_required") {
+    return "已保存在当前设备。开启敏感跨设备保存后会自动同步这条记录。";
+  }
   if (queuedForReplay && availability === "unauthorized") {
-    return "已保存在当前设备。完成登录后会自动同步；使用 Google 登录无需额外验证邮箱。";
+    return sensitive
+      ? "已保存在当前设备。完成登录并确认敏感跨设备保存仍开启后会自动同步。"
+      : "已保存在当前设备。完成登录后会自动同步；使用 Google 登录无需额外验证邮箱。";
+  }
+  if (queuedForReplay && sensitive) {
+    return "已保存在当前设备。确认敏感跨设备保存仍开启后会自动同步。";
   }
   if (queuedForReplay) {
     return "已保存在当前设备。连接恢复后会自动同步。";
@@ -407,9 +415,10 @@ export function useTenantResource<T extends TenantRecord>(
 
   const flushDeviceOutbox = useCallback(async (remote: T[], expectedScope: string): Promise<T[]> => {
     const scope = scopeRef.current;
-    // Sensitive records require a current explicit consent path; this generic
-    // replay never treats a previously local sensitive row as consented.
-    if (!scope || scope !== expectedScope || scope === "guest" || sensitive) return remote;
+    // Sensitive payloads become replayable only after this resource's current
+    // server read has passed the explicit consent gate. The server repeats the
+    // same gate before parsing every replayed mutation.
+    if (!scope || scope !== expectedScope || scope === "guest" || (sensitive && cloudAvailabilityRef.current !== "available")) return remote;
     let actions: DeviceOutboxAction[];
     try {
       actions = (await readDeviceOutbox(scope)).filter((action) => actionTargetsResource(action, resource));
@@ -556,14 +565,17 @@ export function useTenantResource<T extends TenantRecord>(
       if (typeof document !== "undefined" && document.visibilityState === "visible") void reload(true);
     };
     const replayWhenParentSynchronizes = () => void reload();
+    const replayWhenPrivacyConsentIsAccepted = () => void reload(true);
     window.addEventListener("online", replayWhenOnline);
     window.addEventListener("focus", refreshWhenVisible);
     window.addEventListener("mydairy:outbox-alias-resolved", replayWhenParentSynchronizes);
+    window.addEventListener("mydairy:privacy-consent-accepted", replayWhenPrivacyConsentIsAccepted);
     if (typeof document !== "undefined") document.addEventListener("visibilitychange", refreshWhenDocumentVisible);
     return () => {
       window.removeEventListener("online", replayWhenOnline);
       window.removeEventListener("focus", refreshWhenVisible);
       window.removeEventListener("mydairy:outbox-alias-resolved", replayWhenParentSynchronizes);
+      window.removeEventListener("mydairy:privacy-consent-accepted", replayWhenPrivacyConsentIsAccepted);
       if (typeof document !== "undefined") document.removeEventListener("visibilitychange", refreshWhenDocumentVisible);
     };
   }, [enabled, reload, scopeReady]);
@@ -626,6 +638,7 @@ export function useTenantResource<T extends TenantRecord>(
       ...(parentReferences.length ? { parentReferences } : {}),
       payload,
       queuedAt: deviceLocalRecord.created_at,
+      ...(sensitive ? { requiresSensitiveConsent: true as const } : {}),
     };
 
     const scopeBeforeRequest = await refreshCurrentScope();
@@ -639,7 +652,8 @@ export function useTenantResource<T extends TenantRecord>(
     // positively confirmed the user's cross-device consent.
     if (sensitive && cloudAvailabilityRef.current !== "available") {
       if (localPersisted) {
-        acknowledgeLocalSave(cloudAvailabilityRef.current);
+        const queuedForReplay = await queueDeviceMutation(deviceOutboxAction);
+        acknowledgeLocalSave(cloudAvailabilityRef.current, queuedForReplay);
         setSaving(false);
         return localRecord;
       }
@@ -687,9 +701,11 @@ export function useTenantResource<T extends TenantRecord>(
         const code = await readFailureCode(response);
         cloudAvailabilityRef.current = cloudAvailabilityFor(response.status, code);
         if (localPersisted) {
-          const queuedForReplay = shouldQueueForReplay(response.status, sensitive)
+          const queuedForReplay = sensitive
             ? await queueDeviceMutation(deviceOutboxAction)
-            : false;
+            : shouldQueueForReplay(response.status, sensitive)
+              ? await queueDeviceMutation(deviceOutboxAction)
+              : false;
           acknowledgeLocalSave(cloudAvailabilityRef.current, queuedForReplay);
           return localRecord;
         }
@@ -736,7 +752,7 @@ export function useTenantResource<T extends TenantRecord>(
       }
       cloudAvailabilityRef.current = "unavailable";
       if (localPersisted) {
-        const queuedForReplay = sensitive ? false : await queueDeviceMutation(deviceOutboxAction);
+        const queuedForReplay = await queueDeviceMutation(deviceOutboxAction);
         acknowledgeLocalSave("unavailable", queuedForReplay);
         return localRecord;
       }

@@ -3,11 +3,14 @@ import test from "node:test";
 
 import {
   createDeviceLocalRecord,
+  appendDeviceOutbox,
   deriveDeviceOutboxParentReferences,
   invalidateBrowserRecordScope,
   isDeviceLocalRecord,
   mergeWithDeviceLocalRecords,
   readDeviceLocalRecords,
+  readDeviceOutbox,
+  removeDeviceOutboxActions,
   removeDeviceLocalRecord,
   resolveBrowserRecordScope,
   resolveDeviceOutboxActionWithAliases,
@@ -211,6 +214,57 @@ test("device-local history falls back to an opaque same-origin partition when In
     await removeDeviceLocalRecord("account:alpha", "schedule", alpha.id);
     assert.deepEqual(await readDeviceLocalRecords("account:alpha", "schedule"), []);
     assert.deepEqual((await readDeviceLocalRecords("account:beta", "schedule")).map((record) => record.id), ["local_beta"]);
+  } finally {
+    if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
+    else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });
+  }
+});
+
+test("sensitive consent-pending outbox actions survive an embedded-browser fallback without crossing account scopes", async () => {
+  const runtime = globalThis as typeof globalThis & { window?: unknown };
+  const originalWindow = runtime.window;
+  const entries = new Map<string, string>();
+  const storage = {
+    getItem(key: string) {
+      return entries.get(key) ?? null;
+    },
+    removeItem(key: string) {
+      entries.delete(key);
+    },
+    setItem(key: string, value: string) {
+      entries.set(key, value);
+    },
+  };
+  Object.defineProperty(runtime, "window", {
+    configurable: true,
+    value: {
+      indexedDB: { open() { throw new Error("embedded browser cache unavailable"); } },
+      localStorage: storage,
+    },
+  });
+
+  const action: DeviceOutboxAction = {
+    createdAt: 40,
+    endpoint: "/api/mydairy/periods",
+    idempotencyKey: "period-consent-pending",
+    localRecordId: "local_period",
+    method: "POST",
+    payload: { startDate: "2026-08-12" },
+    queuedAt: 40,
+    requiresSensitiveConsent: true,
+  };
+
+  try {
+    await appendDeviceOutbox("account:alpha", action);
+    const alpha = await readDeviceOutbox("account:alpha");
+    const beta = await readDeviceOutbox("account:beta");
+
+    assert.deepEqual(alpha.map((entry) => entry.idempotencyKey), ["period-consent-pending"]);
+    assert.equal(alpha[0].requiresSensitiveConsent, true);
+    assert.deepEqual(beta, []);
+
+    await removeDeviceOutboxActions("account:alpha", [action.idempotencyKey]);
+    assert.deepEqual(await readDeviceOutbox("account:alpha"), []);
   } finally {
     if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
     else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });

@@ -200,7 +200,10 @@ useEffect(() => {
         return;
       }
       await loadAccount();
-      if (decision === "accepted") setMessage("已开启敏感内容跨设备保存。");
+      if (decision === "accepted") {
+        window.dispatchEvent(new Event("mydairy:privacy-consent-accepted"));
+        setMessage("已开启敏感内容跨设备保存。返回记录页后，本设备当前账号暂存的敏感记录会自动同步。");
+      }
       else setMessage("已关闭敏感内容跨设备保存。");
     } catch {
       setMessage("服务暂时不可用，请稍后再试。");

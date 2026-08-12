@@ -19,6 +19,8 @@ export type DeviceOutboxAction = {
   parentReferences?: DeviceOutboxParentReference[];
   payload: Record<string, unknown>;
   queuedAt: number;
+  /** This queued payload is eligible only after a current account opt-in. */
+  requiresSensitiveConsent?: true;
 };
 
 export type DeviceOutboxParentReference = {
@@ -60,6 +62,7 @@ const OUTBOX_SCOPE_INDEX = "by_scope";
 const RECORD_ALIAS_STORE = "record-aliases";
 const LOCAL_MARKER = "__mydairy_device_local_v1";
 const LOCAL_RECORD_FALLBACK_PREFIX = "mydairy.device-records.fallback.v1";
+const DEVICE_OUTBOX_FALLBACK_PREFIX = "mydairy.device-outbox.fallback.v1";
 const BROWSER_SCOPE_REQUEST_TIMEOUT_MS = 2_500;
 const BROWSER_SCOPE_CACHE_TTL_MS = 5_000;
 const tenantFieldNames = new Set(["userId", "user_id", "ownerId", "owner_id", "tenantId", "tenant_id"]);
@@ -119,6 +122,10 @@ function cacheKey(scope: string, resource: string, id: string): string {
 
 function localRecordFallbackKey(scope: string, resource: string): string {
   return `${LOCAL_RECORD_FALLBACK_PREFIX}\u0000${scope}\u0000${resource}`;
+}
+
+function deviceOutboxFallbackKey(scope: string): string {
+  return `${DEVICE_OUTBOX_FALLBACK_PREFIX}\u0000${scope}`;
 }
 
 function browserLocalStorage(): Storage | null {
@@ -356,6 +363,7 @@ function isDeviceOutboxAction(value: unknown): value is DeviceOutboxAction {
     && Number.isFinite(value.createdAt)
     && Number.isFinite(value.queuedAt)
     && (value.localRecordId === undefined || typeof value.localRecordId === "string")
+    && (value.requiresSensitiveConsent === undefined || value.requiresSensitiveConsent === true)
     && (value.parentReferences === undefined
       || (Array.isArray(value.parentReferences) && value.parentReferences.every(isDeviceOutboxParentReference)));
 }
@@ -376,7 +384,70 @@ function sanitizeOutboxAction(action: DeviceOutboxAction): DeviceOutboxAction {
   const parentReferences = action.parentReferences
     ?.filter(isDeviceOutboxParentReference)
     .map((reference) => ({ ...reference }));
-  return parentReferences?.length ? { ...action, parentReferences, payload } : { ...action, payload };
+  const consent = action.requiresSensitiveConsent === true ? { requiresSensitiveConsent: true as const } : {};
+  return parentReferences?.length
+    ? { ...action, ...consent, parentReferences, payload }
+    : { ...action, ...consent, payload };
+}
+
+function normalizeDeviceOutboxActions(actions: unknown[]): DeviceOutboxAction[] {
+  const byIdempotencyKey = new Map<string, DeviceOutboxAction>();
+  for (const candidate of actions) {
+    if (!isDeviceOutboxAction(candidate)) continue;
+    byIdempotencyKey.set(candidate.idempotencyKey, sanitizeOutboxAction(candidate));
+  }
+  return [...byIdempotencyKey.values()].sort((left, right) => left.queuedAt - right.queuedAt);
+}
+
+/**
+ * Mirrors the record fallback for embedded browsers that expose IndexedDB but
+ * reject opening it. The key is still account-scoped and opaque; a guest
+ * action is never promoted to a later account by the resource client.
+ */
+function readDeviceOutboxFallback(scope: string): DeviceOutboxAction[] {
+  const storage = browserLocalStorage();
+  if (!storage) return [];
+  try {
+    const parsed = JSON.parse(storage.getItem(deviceOutboxFallbackKey(scope)) ?? "null") as unknown;
+    return Array.isArray(parsed) ? normalizeDeviceOutboxActions(parsed) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeDeviceOutboxFallback(scope: string, actions: DeviceOutboxAction[]): boolean {
+  const storage = browserLocalStorage();
+  if (!storage) return false;
+  try {
+    const next = normalizeDeviceOutboxActions(actions);
+    const key = deviceOutboxFallbackKey(scope);
+    if (next.length) storage.setItem(key, JSON.stringify(next));
+    else storage.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function removeDeviceOutboxFallback(scope: string, idempotencyKeys: string[]): boolean {
+  const storage = browserLocalStorage();
+  if (!storage) return false;
+  try {
+    const removed = new Set(idempotencyKeys);
+    return writeDeviceOutboxFallback(
+      scope,
+      readDeviceOutboxFallback(scope).filter((action) => !removed.has(action.idempotencyKey)),
+    );
+  } catch {
+    return false;
+  }
+}
+
+function appendDeviceOutboxFallback(scope: string, action: DeviceOutboxAction): DeviceOutboxAction[] | null {
+  const current = readDeviceOutboxFallback(scope);
+  if (current.some((entry) => entry.idempotencyKey === action.idempotencyKey)) return current;
+  const next = normalizeDeviceOutboxActions([...current, action]);
+  return writeDeviceOutboxFallback(scope, next) ? next : null;
 }
 
 const childResourceDependencies = {
@@ -576,46 +647,54 @@ export async function rememberDeviceOutboxRecordAlias(
  * unknown shared-browser account can never be replayed as the next account.
  */
 export async function readDeviceOutbox(scope: string): Promise<DeviceOutboxAction[]> {
-  if (!canUseIndexedDb()) return [];
-  const database = await openRecordDatabase();
+  const fallback = readDeviceOutboxFallback(scope);
+  if (!canUseIndexedDb()) return fallback;
   try {
-    const transaction = database.transaction(OUTBOX_STORE, "readonly");
-    const index = transaction.objectStore(OUTBOX_STORE).index(OUTBOX_SCOPE_INDEX);
-    const rows = await requestValue(index.getAll(IDBKeyRange.only(scope))) as CachedOutboxRow[];
-    await transactionDone(transaction);
-    return rows
-      .map((row) => row.action)
-      .filter(isDeviceOutboxAction)
-      .sort((left, right) => left.queuedAt - right.queuedAt);
-  } finally {
-    database.close();
+    const database = await openRecordDatabase();
+    try {
+      const transaction = database.transaction(OUTBOX_STORE, "readonly");
+      const index = transaction.objectStore(OUTBOX_STORE).index(OUTBOX_SCOPE_INDEX);
+      const rows = await requestValue(index.getAll(IDBKeyRange.only(scope))) as CachedOutboxRow[];
+      await transactionDone(transaction);
+      return normalizeDeviceOutboxActions([...fallback, ...rows.map((row) => row.action)]);
+    } finally {
+      database.close();
+    }
+  } catch {
+    return fallback;
   }
 }
 
 export async function writeDeviceOutbox(scope: string, actions: DeviceOutboxAction[]): Promise<void> {
-  if (!canUseIndexedDb()) throw new Error("IndexedDB is unavailable.");
-  const database = await openRecordDatabase();
+  if (!canUseIndexedDb()) {
+    if (writeDeviceOutboxFallback(scope, actions)) return;
+    throw new Error("Device outbox storage is unavailable.");
+  }
   try {
-    const transaction = database.transaction(OUTBOX_STORE, "readwrite");
-    const store = transaction.objectStore(OUTBOX_STORE);
-    const index = store.index(OUTBOX_SCOPE_INDEX);
-    const existingKeys = await requestValue(index.getAllKeys(IDBKeyRange.only(scope)));
-    for (const key of existingKeys) store.delete(key);
-    const seen = new Set<string>();
-    for (const source of actions) {
-      if (!isDeviceOutboxAction(source) || seen.has(source.idempotencyKey)) continue;
-      seen.add(source.idempotencyKey);
-      const action = sanitizeOutboxAction(source);
-      store.put({
-        action,
-        key: outboxKey(scope, action.idempotencyKey),
-        queuedAt: action.queuedAt,
-        scope,
-      } satisfies CachedOutboxRow);
+    const database = await openRecordDatabase();
+    try {
+      const transaction = database.transaction(OUTBOX_STORE, "readwrite");
+      const store = transaction.objectStore(OUTBOX_STORE);
+      const index = store.index(OUTBOX_SCOPE_INDEX);
+      const existingKeys = await requestValue(index.getAllKeys(IDBKeyRange.only(scope)));
+      for (const key of existingKeys) store.delete(key);
+      for (const action of normalizeDeviceOutboxActions(actions)) {
+        store.put({
+          action,
+          key: outboxKey(scope, action.idempotencyKey),
+          queuedAt: action.queuedAt,
+          scope,
+        } satisfies CachedOutboxRow);
+      }
+      await transactionDone(transaction);
+    } finally {
+      database.close();
     }
-    await transactionDone(transaction);
-  } finally {
-    database.close();
+    // A successful replacement write makes any degraded-mode snapshot stale.
+    writeDeviceOutboxFallback(scope, []);
+  } catch (error) {
+    if (writeDeviceOutboxFallback(scope, actions)) return;
+    throw error;
   }
 }
 
@@ -625,41 +704,62 @@ export async function writeDeviceOutbox(scope: string, actions: DeviceOutboxActi
  * workbench module in the same browser.
  */
 export async function removeDeviceOutboxActions(scope: string, idempotencyKeys: string[]): Promise<void> {
-  if (!canUseIndexedDb()) return;
   const keys = [...new Set(idempotencyKeys.filter((value) => typeof value === "string" && value.length > 0))];
   if (!keys.length) return;
-  const database = await openRecordDatabase();
-  try {
-    const transaction = database.transaction(OUTBOX_STORE, "readwrite");
-    const store = transaction.objectStore(OUTBOX_STORE);
-    for (const idempotencyKey of keys) store.delete(outboxKey(scope, idempotencyKey));
-    await transactionDone(transaction);
-  } finally {
-    database.close();
+  if (!canUseIndexedDb()) {
+    removeDeviceOutboxFallback(scope, keys);
+    return;
   }
+  let indexedDbError: unknown = null;
+  try {
+    const database = await openRecordDatabase();
+    try {
+      const transaction = database.transaction(OUTBOX_STORE, "readwrite");
+      const store = transaction.objectStore(OUTBOX_STORE);
+      for (const idempotencyKey of keys) store.delete(outboxKey(scope, idempotencyKey));
+      await transactionDone(transaction);
+    } finally {
+      database.close();
+    }
+  } catch (error) {
+    indexedDbError = error;
+  }
+  const removedFallback = removeDeviceOutboxFallback(scope, keys);
+  if (indexedDbError && !removedFallback) throw indexedDbError;
 }
 
 export async function appendDeviceOutbox(scope: string, action: DeviceOutboxAction): Promise<DeviceOutboxAction[]> {
-  if (!canUseIndexedDb()) throw new Error("IndexedDB is unavailable.");
   if (!isDeviceOutboxAction(action)) throw new Error("Invalid device outbox action.");
-  const database = await openRecordDatabase();
-  try {
-    const transaction = database.transaction(OUTBOX_STORE, "readwrite");
-    const store = transaction.objectStore(OUTBOX_STORE);
-    const key = outboxKey(scope, action.idempotencyKey);
-    const existing = await requestValue(store.get(key));
-    if (!existing) {
-      const sanitized = sanitizeOutboxAction(action);
-      store.put({
-        action: sanitized,
-        key,
-        queuedAt: sanitized.queuedAt,
-        scope,
-      } satisfies CachedOutboxRow);
-    }
-    await transactionDone(transaction);
-  } finally {
-    database.close();
+  if (!canUseIndexedDb()) {
+    const fallback = appendDeviceOutboxFallback(scope, action);
+    if (fallback) return fallback;
+    throw new Error("Device outbox storage is unavailable.");
   }
-  return readDeviceOutbox(scope);
+  try {
+    const database = await openRecordDatabase();
+    try {
+      const transaction = database.transaction(OUTBOX_STORE, "readwrite");
+      const store = transaction.objectStore(OUTBOX_STORE);
+      const key = outboxKey(scope, action.idempotencyKey);
+      const existing = await requestValue(store.get(key));
+      if (!existing) {
+        const sanitized = sanitizeOutboxAction(action);
+        store.put({
+          action: sanitized,
+          key,
+          queuedAt: sanitized.queuedAt,
+          scope,
+        } satisfies CachedOutboxRow);
+      }
+      await transactionDone(transaction);
+    } finally {
+      database.close();
+    }
+    removeDeviceOutboxFallback(scope, [action.idempotencyKey]);
+    return readDeviceOutbox(scope);
+  } catch (error) {
+    const fallback = appendDeviceOutboxFallback(scope, action);
+    if (fallback) return fallback;
+    throw error;
+  }
 }

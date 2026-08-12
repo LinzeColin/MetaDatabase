@@ -15,6 +15,8 @@ export type OutboxAction = {
   idempotencyKey: string;
   /** Local-only row replaced after this idempotent mutation succeeds. */
   localRecordId?: string;
+  /** Sensitive data may replay only after this account's current opt-in. */
+  requiresSensitiveConsent?: true;
   createdAt: number;
   queuedAt: number;
 };
@@ -52,6 +54,7 @@ function isOutboxAction(value: unknown): value is OutboxAction {
     isObject(value.payload) &&
     typeof value.idempotencyKey === "string" &&
     (value.localRecordId === undefined || typeof value.localRecordId === "string") &&
+    (value.requiresSensitiveConsent === undefined || value.requiresSensitiveConsent === true) &&
     Number.isFinite(value.createdAt) &&
     Number.isFinite(value.queuedAt)
   );

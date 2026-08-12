@@ -69,6 +69,13 @@ const localAction: OutboxAction = {
   localRecordId: "local_todo_01",
 };
 
+const consentPendingAction: OutboxAction = {
+  ...actionA,
+  idempotencyKey: "consent-pending",
+  localRecordId: "local_sensitive_01",
+  requiresSensitiveConsent: true,
+};
+
 test("parseOutbox filters invalid entries and keeps partial queue", () => {
   assert.deepEqual(parseOutbox(null), []);
   assert.deepEqual(parseOutbox("[]"), []);
@@ -94,6 +101,16 @@ test("outbox preserves the local row linkage required for reconciliation", () =>
 
   assert.equal(parsed.length, 1);
   assert.equal(parsed[0].localRecordId, "local_todo_01");
+});
+
+test("outbox retains an explicit sensitive-consent marker and rejects a forged false marker", () => {
+  const parsed = parseOutbox(JSON.stringify([
+    consentPendingAction,
+    { ...consentPendingAction, idempotencyKey: "forged-false", requiresSensitiveConsent: false },
+  ]));
+
+  assert.deepEqual(parsed.map((action) => action.idempotencyKey), ["consent-pending"]);
+  assert.equal(parsed[0].requiresSensitiveConsent, true);
 });
 
 test("retired-brand outbox migrates into mydairy without losing queued work", () => {
