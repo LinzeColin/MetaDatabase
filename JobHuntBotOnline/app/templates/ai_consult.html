@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}AI 问询｜{{ job.title }}{% endblock %}
+{% block content %}
+<section class="detail-head"><a class="back-link" href="{{ back_url }}">← 返回岗位准备</a><div><span class="eyebrow">站内 AI 问询</span><h1>{{ job.title }}</h1><p class="muted">AI 只会根据岗位与已确认材料给出可编辑建议；资料不足时会明确说明，不能代替本人确认。</p></div></section>
+<section class="two-column align-start">
+  <form method="post" action="{{ form_action }}" class="form-card" data-testid="ai-consult-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <h2>想问什么？</h2>
+    <label>问题<textarea name="question" rows="8" required placeholder="例如：这份岗位最该突出哪段已确认经历？" data-testid="ai-consult-question">{{ question }}</textarea></label>
+    <p class="muted">不会访问招聘网站账号，也不会代表你提交申请。</p>
+    <button class="button full" type="submit" data-testid="ai-consult-submit">生成核对建议</button>
+  </form>
+  <article class="panel ai-answer" data-testid="ai-consult-answer">
+    <h2>核对建议</h2>
+    {% if answer %}<p class="workspace-copy">{{ answer }}</p>{% else %}<p class="empty">输入一个具体问题后，会在这里给出只基于已确认材料的建议。</p>{% endif %}
+    {% if ai_note %}<p class="gap-note"><b>说明：</b>{{ ai_note }}</p>{% endif %}
+    <h3>可用事实来源</h3>
+    <ul class="evidence-list">{% for item in materials.why_me.evidence %}<li class="{{ item.state }}"><b>{{ item.requirement }}</b><span>{{ item.evidence }}</span></li>{% endfor %}</ul>
+  </article>
+</section>
+{% endblock %}

@@ -1,0 +1,37 @@
+{
+  "task": "T06",
+  "claim": "换个角度量了一次判据覆盖：api.py 的 43 条路由里，**判据一次都没碰过的有 5 条**。其中一条是 Owner 连账号的最后一下。",
+  "measured_at": "2026-08-05T10:0Z",
+  "how": "把 api.py 里的路由抽出来，按**整条 URL 形状**（前缀 + 参数 + 参数后那一段）去 tests/ 里找。只比前缀会把 `/v1/accounts/{id}/sync-runs` 这类算成有覆盖。",
+  "the_one_that_mattered": {
+    "route": "POST /v1/accounts/connect/{platform}/complete",
+    "why": "**那是他点完「连接账号」、在平台页面登完录之后，扩展回头把连接落库的那一下。** 交接里「他可以做的第二件事」就是它。",
+    "what_had_been_verified_before": "设置页有那张卡、按钮真叫「连接账号」、Cookie 导出白名单里有 youtube、服务端 CUSTODIAL_PLATFORMS 认它——**全都是按下去之前的事**。",
+    "what_had_not": "按下去之后那一下：落不落库、账号列表里出不出现、连接方式合不合法。**一条判据都没有。**",
+    "now": "补 5 条：真落库并出现在账号列表 / 六种连接方式全收 / 不认识的方式 422 / 凭空的 connection_ref 被拒 / 重连同一账号不产生第二个。"
+  },
+  "what_writing_the_test_proved_about_the_endpoint": {
+    "what_happened": "第一版编了个 `conn-fixture-0001` 直接调 complete，**被 422 顶回来**：「连接凭据无效，请重新连接账号」。",
+    "reading": "**那是接口做对了**——它不收凭空来的 ref。连接本来就是两步：start（打开登录页）→ 人去登录 → complete（落库）。",
+    "kept": "把这条单独钉成一条判据，免得哪天有人为了「方便」把它放开。"
+  },
+  "the_other_four_and_why_they_are_not_the_same": {
+    "GET /": "根路径，跳转而已。",
+    "POST /v1/import/markdown": "已登记在 NOT_FOR_CLIENTS：界面走的是 ZIP 导入那条。**没人调 + 没判据**，属于可以考虑删掉的那一类，但删接口是产品决定。",
+    "GET /v1/search": "同上，资料库自己带全文与筛选。",
+    "POST /v1/sync-runs/{id}/batches": "**有真实调用方**（扩展 background.js），但路由本身是薄壳——`ingest_batch` 在 coordinator 层被 test_account_mirror_sync / test_account_mirror_batch_protocol 反复验过。没覆盖的只是 HTTP 那层的 422 映射。"
+  },
+  "what_this_does_not_prove": [
+    "**不证明连接会成功。** 这几条判据跑的是本地 TestClient 与合成账号；真实平台会话（T06 的 Oracle）仍然 NOT_RUN，仍要 Owner 去连一次。",
+    "不证明其余 38 条路由的覆盖**够**——只证明它们在判据里出现过。出现过不等于验到了要害。",
+    "**没有把「路由覆盖」做成门。** 5 条里 4 条各有各的正当理由；一道要求 100% 的门只会逼人写没意义的判据。",
+    "**扩展那 9 种没判据的消息里，只补了 1 种。** 其余 8 种仍只有源码层断言——证明的是「接上了」，不是「点下去真的做了那件事」。"
+  ],
+  "the_same_count_on_the_extension_side": {
+    "measured": "扩展里 25 种消息类型，**判据里没出现过的 9 种**。",
+    "the_one_that_mattered": "SA_VERIFY_PLATFORM_SESSION —— 设置页那颗**「我已登录，继续」**。连接是两步：点「连接账号」打开登录页 → 人去登录 → 点这一颗。**第二颗按钮此前一条判据都没有**，而那是他登录之后唯一能做的动作。",
+    "verified_in_a_real_browser": "把下发的包装进一次性 profile 的真 Chrome，在 service worker 里问了一遍：verifyPendingPlatform / connectPlatform / captureActive / openAccountCenter / getPendingConnections **五个全是函数**。（captureActive 的 fn.length 是 0，因为两个参数都有默认值——不是没接上。）",
+    "guarded": "两条判据：两颗按钮各自发的消息后台都得真的接；verify 那条消息必须走到 verifyPendingPlatform。反例：删掉后台那条分支 → 两条当场红。",
+    "still_uncovered": "其余 8 种消息（SA_CAPTURE_ACTIVE、SA_NET_CAPTURE、SA_WEB_BRIDGE_* 等）仍然只有源码层的断言，**没有行为判据**。要真验它们得把整个归档服务也搭起来，那是另一件事。"
+  }
+}

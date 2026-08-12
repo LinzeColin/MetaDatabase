@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0",
+  "task": "T08",
+  "slice": "S3",
+  "recorded_at": "2026-08-04T00:35Z",
+  "status": "PARTIAL —— 拦截机制在真实浏览器里跑通；真实平台页面的 Acceptance 仍未达成",
+
+  "why_this_file": {
+    "what_was_missing": "INTERCEPT_PROOF.json 里的 simulated_run 是**Node 的 vm 沙箱**：假 window、假 fetch、假 Response。而这个项目已经栽过一次——注入顺序反了的 bug 只有在真实浏览器里才暴露，沙箱里我是先挂监听再跑观察器，永远看不到。",
+    "so": "沙箱证明不了「在真 Chrome 里、对真 Response 对象、经真 postMessage 到真 service worker」这一整条链。这份文件补的就是那条链。"
+  },
+
+  "how_no_platform_was_touched": {
+    "the_trick": "观察器的匹配是 `url.includes(prefix)`（net-observer.js:43）。所以一个**本地** URL 只要路径里含有那段前缀就会命中。",
+    "rig": "把 SOCIAL_ARCHIVE_PWA_ROOT 指到临时目录，在里面放 `api.bilibili.com/x/v3/fav/resource/list` 这个静态文件，由 /assets 挂载对外。页面 fetch 它时，URL 里逐字含有目录中登记的那条真前缀。",
+    "why_this_origin_needs_no_prompt": "`http://127.0.0.1:8765/*` 就写在 manifest 的 host_permissions 里，装扩展时即授予——**不需要任何权限气泡**。所以这一整轮没有向 Owner 索要任何授权，也没有向任何平台发过一个请求。",
+    "prefix_used": "api.bilibili.com/x/v3/fav/resource/list —— 直接从 platform-catalog 的 interceptPrefixes('bilibili') 取，不是另写一个测试值"
+  },
+
+  "measured_live": {
+    "browser": "Chrome 150.0.7871.187，一次性 profile（--disable-sync），扩展经 CDP Extensions.loadUnpacked 装入",
+    "injection_order": "按 background.js 的真实顺序：先 content/net-relay.js（ISOLATED），后 net-observer.js（MAIN），再 SA_OBSERVER_CONFIGURE 下发前缀",
+    "configure_ack": "{\"ok\":true}",
+
+    "the_page_fires_its_own_request": {
+      "note": "**观察器不合成请求**。是页面自己 fetch，观察器只抄响应。",
+      "page_read_bytes": 116,
+      "background_received_bytes": 116,
+      "byte_identical_to_server_response": true,
+      "why_this_matters": "页面读到的和我们抄到的都是完整的 116 字节 —— 证明 clone() 没有把流消费掉。这条性质此前只在 Node 的假 Response 上验过；真实 Response 的流语义与假对象不是一回事，正是必须在真浏览器里验的东西。"
+    },
+
+    "selectivity": {
+      "matched_request": "/assets/api.bilibili.com/x/v3/fav/resource/list?media_id=1 → 抄下（status 200）",
+      "unmatched_request": "/assets/unrelated.json → **不抄**",
+      "buffer_entry": {"url": "/assets/api.bilibili.com/x/v3/fav/resource/list?media_id=1", "status": 200, "len": 116}
+    },
+
+    "idempotency": {
+      "why_it_matters": "重复注入若重复包装 fetch，一次请求会被抄两份——数据翻倍且没人会发现。",
+      "measured": [
+        "注入两次之后：一次匹配请求令缓冲区 3 → 4（增量 1）",
+        "注入三次之后：一次匹配请求令缓冲区 4 → 5（增量 1）"
+      ],
+      "verdict": "增量恒为 1，双重包装会是 2。幂等成立。"
+    },
+
+    "a_wrong_expectation_i_corrected": {
+      "what": "第一次查幂等时我断言 matched 应该是 2，实测是 3，差点当成缺陷。",
+      "why_i_was_wrong": "我自己为了取「服务端原始响应」也 fetch 了一次同一个 URL —— **那一次同样命中前缀**。3 次匹配请求产生 3 条抄件，恰恰是对的。",
+      "how_i_settled_it": "改成量**增量**而不是总数：固定注入次数，发一次请求，看缓冲区涨多少。总数依赖我有没有数清自己发过几次请求，增量不依赖。",
+      "lesson": "又一次「判据指错了对象」。这次是我把自己的探测请求算漏了。"
+    }
+  },
+
+  "acceptance_self_check": {
+    "acceptance_text": "在真实收藏页上捕获非空响应体，并与肉眼可见条目数比对",
+    "result": "NOT_RUN",
+    "what_is_proven_now": "注入链路、MAIN/ISOLATED 分工、clone 不消费流、前缀选择性、幂等、relay→background 缓冲 —— 全部在真实 Chrome 里实测通过",
+    "what_is_still_missing": "真实 bilibili 收藏页的响应**形状**。那需要一个已登录的 bilibili 页面；干净的自动化 profile 会撞验证码，而我不绕验证码（L0 边界）。",
+    "not_the_same_thing": "机制能跑 ≠ 解析得对。真实响应的字段、翻页游标、边界情况全部未知，那正是 T09「抓到即固化」要做的事：第一次真实响应原样落盘成 fixture，解析器判据由它生成。",
+    "what_would_unblock": "Owner 在自己已登录 bilibili 的浏览器里跑一次，或在一次性窗口里登录一次 bilibili。"
+  },
+
+  "boundaries_unchanged": [
+    "全程没有向任何国内平台发过请求",
+    "没有读取任何 Cookie（观察器里不出现 document.cookie / chrome.cookies）",
+    "没有合成请求、没有伪造签名",
+    "没有绕过任何验证码",
+    "没有向 Owner 索取任何权限授予（用的是 manifest 里已声明的 127.0.0.1 origin）"
+  ],
+
+  "cleanup": "临时 pwa 根、假响应文件、一次性 Chrome profile、本地实例，验完即删。"
+}

@@ -1,0 +1,180 @@
+"""平台表不许漏平台，**而且不许靠我记得有几张**（v0.0.0.7 / T06）。
+
+给 youtube 接入口这一件事上，「我以为已经查全了，又冒出一张表」发生了四次，
+**每一次都是宣布完成之后才发现的**：
+
+  1. 「开 B 站时顺手连一下」—— 方向就错了，硬边界禁止
+  2. 「两个方向都封住了」—— 漏 platform-catalog.js，中文名退回内部 id
+  3. 四张表全绿之后 —— 漏 options.js 的 platformOrder，
+     **设置页不出卡片，交接里让 Owner 点的那个按钮根本不存在**
+  4. 补完之后又扫出四张 —— popup ×2、sidepanel ×2、options 的 relationCopy
+
+第 4 次不是我想起来的，是**改用机器扫**才捞出来的。这道门就是那次扫描。
+"""
+
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+CHECK = ROOT / "scripts/check_every_platform_table_is_complete.py"
+SOURCE = CHECK.read_text(encoding="utf-8")
+
+
+def _run(cwd: Path | None = None) -> subprocess.CompletedProcess:
+    return subprocess.run([sys.executable, str(CHECK)], cwd=cwd or ROOT,
+                          capture_output=True, text=True, check=False)
+
+
+def test_the_repo_passes_right_now() -> None:
+    done = _run()
+    assert done.returncode == 0, done.stdout + done.stderr
+
+
+def test_it_catches_a_table_that_forgot_a_platform(tmp_path) -> None:
+    """**先验它会红。** 造一份少了 youtube 的平台表，它必须报出来。
+
+    这里不改仓里的文件——那种判据不可重入，跑到一半被打断就留下一个改坏的源文件。
+    做法是把检查器复制进一个临时小仓，只在那儿放一张缺平台的表。
+    """
+    (tmp_path / "scripts").mkdir(parents=True)
+    (tmp_path / "src/social_archive").mkdir(parents=True)
+    (tmp_path / "apps").mkdir()
+    (tmp_path / "src/social_archive/credentials.py").write_text(
+        'CUSTODIAL_PLATFORMS = frozenset({"x", "instagram", "youtube"})\n', encoding="utf-8")
+    (tmp_path / "src/social_archive/__init__.py").write_text("", encoding="utf-8")
+    (tmp_path / "scripts/check.py").write_text(SOURCE, encoding="utf-8")
+    (tmp_path / "apps/ui.js").write_text(
+        'const names = { xiaohongshu:"小红书", douyin:"抖音", bilibili:"B站", x:"X" };\n',
+        encoding="utf-8")
+    done = subprocess.run([sys.executable, str(tmp_path / "scripts/check.py")],
+                          cwd=tmp_path, capture_output=True, text=True, check=False)
+    assert done.returncode != 0, "一张少了 youtube 的表，这道门却放过了"
+    assert "youtube" in done.stdout, done.stdout
+
+
+def test_a_complete_table_passes(tmp_path) -> None:
+    """对照面：表里齐了就必须放行，否则它只是个永远喊红的门。"""
+    (tmp_path / "scripts").mkdir(parents=True)
+    (tmp_path / "src/social_archive").mkdir(parents=True)
+    (tmp_path / "apps").mkdir()
+    (tmp_path / "src/social_archive/credentials.py").write_text(
+        'CUSTODIAL_PLATFORMS = frozenset({"x", "instagram", "youtube"})\n', encoding="utf-8")
+    (tmp_path / "src/social_archive/__init__.py").write_text("", encoding="utf-8")
+    (tmp_path / "scripts/check.py").write_text(SOURCE, encoding="utf-8")
+    (tmp_path / "apps/ui.js").write_text(
+        'const names = { xiaohongshu:"小红书", douyin:"抖音", bilibili:"B站", '
+        'x:"X", instagram:"Instagram", youtube:"YouTube" };\n', encoding="utf-8")
+    done = subprocess.run([sys.executable, str(tmp_path / "scripts/check.py")],
+                          cwd=tmp_path, capture_output=True, text=True, check=False)
+    assert done.returncode == 0, done.stdout + done.stderr
+
+
+def test_deliberate_subsets_must_carry_a_reason() -> None:
+    """**允许例外，但例外必须说得出话。**
+
+    和「已删 xxx」那条规则同一个道理：放行的门槛是写下理由，
+    否则这张表会慢慢变成「凡是报错的都加进来」的静音开关。
+    """
+    import ast
+
+    tree = ast.parse(SOURCE)
+    subsets = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and any(
+                getattr(t, "id", "") == "DELIBERATE_SUBSETS" for t in node.targets):
+            subsets = ast.literal_eval(node.value)
+    assert isinstance(subsets, dict) and subsets, "找不到那张例外表"
+    for marker, reason in subsets.items():
+        assert isinstance(reason, str) and len(reason) >= 8, (
+            f"{marker!r} 这条例外没写清理由：{reason!r}"
+        )
+
+
+def test_exemptions_are_keyed_on_the_line_not_the_table_name() -> None:
+    """**platform_canary.py 里两张表都叫 `platforms`。**
+
+    一张是全平台、一张是 all-cn 的国内子集。按表名登记就分不开这两者——
+    要么一起放行（漏掉真缺失），要么一起报错（冤枉有意的子集）。
+    """
+    assert "marker in line for marker in DELIBERATE_SUBSETS" in SOURCE, (
+        "例外还是按表名匹配的"
+    )
+    assert "all-cn" in SOURCE, "那张国内子集没有被登记"
+
+
+def test_it_says_out_loud_what_it_cannot_see() -> None:
+    """**一道门把自己的盲区说出来，和它查到什么一样重要。**
+
+    这条判据本身被改过一次：它原来钉的是「跨行的表看不到」那句话，
+    而那个盲区**后来被补上了**——于是判据红了。红得对：
+    盲区清单变了，声明就得跟着变。它钉的是「有没有声明」，不是某一句话。
+
+    现在剩下的盲区是：拼出来的平台名、从配置读的、嵌套太深的。
+    """
+    # **钉性质，不钉措辞。** 这条判据已经因为改字红过两次了——
+    # 第一次是盲区被补上、清单变了，那次红得对；第二次是我把
+    # 「查不到不等于没问题」换了个说法，那次纯属判据太死。
+    # 一条只认某句话的判据，拦的是改字的人，不是拿掉声明的人。
+    import re
+
+    declares_a_limit = re.search(r"看不到|盲区|查不到|局限", SOURCE)
+    refuses_to_claim_completeness = re.search(
+        r"不等于|不是「?以后|不代表|并不说明", SOURCE)
+    assert declares_a_limit, "没有声明任何盲区"
+    assert refuses_to_claim_completeness, (
+        "声明了盲区，却没说清「查不到 ≠ 没问题」——那会读成「已经查全了」"
+    )
+
+
+def test_it_is_wired_into_the_release_gate() -> None:
+    text = (ROOT / "scripts/final_verify.py").read_text(encoding="utf-8")
+    code = "\n".join(line for line in text.splitlines() if not line.strip().startswith("#"))
+    assert "check_every_platform_table_is_complete.py" in code, (
+        "这道门没被发布门调用——只在注释里提到不算"
+    )
+
+
+def test_it_sees_tables_that_span_multiple_lines() -> None:
+    """**第一版把「跨行的表看不到」写成了已知盲区——而那不是「没有问题」。**
+
+    补上块检测当天就从盲区里捞出两处真缺失：PWA 的 platformMeta
+    （Owner 的库里 YouTube 会被标成「Chrome书签/网页」）和抓取选择器。
+    """
+    assert "_blocks" in SOURCE, "只按单行认表，跨行的一张都看不见"
+    assert "括号配平" in SOURCE or "depth" in SOURCE, "没有按括号配平取块"
+
+
+def test_the_block_window_never_truncates() -> None:
+    """**窗口截断会让它指控一个没错的表。**
+
+    第一版取 60 行，而 platform-catalog 的 PLATFORMS 块有 80 行——
+    它读到一半就下结论，报「PLATFORMS 里没有 instagram」，
+    而 instagram 就在第 99 行。配不平时必须放弃，不能据此指控。
+    """
+    assert "lines[index:]" in SOURCE, "块窗口还是定长的，会读到一半就下结论"
+    assert "closed" in SOURCE and "if not closed" in SOURCE, (
+        "配不平的时候没有放弃，可能拿半截块去指控"
+    )
+
+
+def test_the_pwa_library_knows_youtube() -> None:
+    """Owner 的库里，YouTube 不能显示成「Chrome书签/网页」。
+
+    PWA 的 platformMeta 缺 youtube 时会走 `|| platformMeta.web` 兜底——
+    不崩，但标签、图标、筛选标签页全是错的。
+    """
+    app = (ROOT / "apps/pwa/app.js").read_text(encoding="utf-8")
+    assert 'server: "youtube"' in app, "PWA 的平台元数据里没有 youtube"
+    styles = (ROOT / "apps/pwa/styles.css").read_text(encoding="utf-8")
+    assert ".platform-logo.yt" in styles, "那个平台标记没有样式，会是个没上色的方块"
+
+
+# YouTube 内容 id 的判据**不在这里**——它在
+# tests/focused/test_extension_shared_modules.py::
+#   test_youtube_ids_survive_the_junk_youtube_puts_in_its_urls
+#
+# 第一版写在这个文件里，而且是 grep 源码（断言 'searchParams.get("v")' 在不在）。
+# 那种写法**证明不了它算得对**：改成 get("V")、写错短链判断、
+# 或者两个不同视频撞成同一个 id，grep 全都照样绿。
+# 那边用 _run_node 真跑模块，三种 URL 形态归一、不同视频不撞、别的平台不受波及。

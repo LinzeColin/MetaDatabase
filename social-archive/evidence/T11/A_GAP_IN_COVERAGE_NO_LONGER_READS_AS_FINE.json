@@ -1,0 +1,72 @@
+{
+  "task": "T11",
+  "claim": "覆盖不满的目的地，「下一步」现在会说清差多少、为什么差、怎么补；满覆盖的不受打扰。已上线并在生产读回。",
+  "measured_at": "2026-08-05T06:2Z",
+  "what_the_owner_used_to_read": {
+    "obsidian": {
+      "coverage": "已送到这里 1 / 193 条。",
+      "next_action": "最近一次自动导入成功。"
+    },
+    "archivebox": {
+      "coverage": "已送到这里 0 / 193 条。",
+      "next_action": "连接检查通过，可以自动导入。"
+    },
+    "why_that_was_wrong": "**两句下一步单独看都是真的**——最近那一次确实成功、连接确实通过。合起来却把「192 条从来没到过这里」说成了一切正常。他没有技术背景，读到「导入成功」就不会再往下想那个 1。"
+  },
+  "the_half_fix_that_came_before": "2026-08-04 已经修过这个地方一次：那次让 coverage_zh 照实说「1 / 193 条」。**数字诚实了，下一步没动。** 半个修复看起来比没修更让人放心——数字在那儿，而紧挨着的一句话在说不用管。",
+  "what_it_says_now_in_production": {
+    "obsidian": "**还有 192 条从来没送到这里。** 自动投递只在新内容进来时发生，先前入库的不会自己追上去。要补投，在服务器上跑一次：docker compose exec core-api python /app/scripts/backfill_destination.py --destination obsidian --apply（原本的状态：最近一次自动导入成功。）",
+    "archivebox": "同上，193 条",
+    "markdown_and_github": "已送到 193 / 193 条，下一步仍是「最近一次自动导入成功。」——**满覆盖的不许被打扰**，否则这条提示会变成人人都有的噪音"
+  },
+  "three_things_the_sentence_has_to_do": [
+    "说清**差多少**——数字就在旁边，但没人把两句话连起来读",
+    "说清**为什么差**：投递只在新内容进来时发生，先前入库的不会自己追上去。**这不是坏了**——只报「少了 192 条」会让人去查一个没坏的东西",
+    "说清**怎么补**：那条 docker compose exec 命令。在主机上跑会报 RUN_ME_INSIDE_THE_CONTAINER（密钥路径是容器里的挂载点），**给错了等于没给**"
+  ],
+  "what_it_deliberately_does_not_do": [
+    "**没授权的目的地不报差额**（Notion / Karakeep / Linkwarden 都是 0/193）——对一个还没连上的目的地说「还有 193 条没送到」是把顺序说反了，它该先说怎么连上。",
+    "主保存链路（social_archive）排除在外，它按定义就是全量。",
+    "**不改状态、不报错**。差额不是故障，把它变成红灯会让人以为要修一个没坏的东西。"
+  ],
+  "guards": {
+    "file": "tests/focused/test_a_gap_in_coverage_is_not_reported_as_fine.py",
+    "count": 7,
+    "the_core_one_is_behavioural": "真跑 views()：造 3 条内容、只给 markdown 记 1 条成功回执，断言下一步里出现「还有 2 条从来没送到这里」。",
+    "what_it_taught_me_on_its_first_run": "**它红在我没料到的地方**——markdown 在夹具里还没授权，于是差额分支正确地没有触发。那正是这条分支该有的样子；判据逼我确认了条件是对的，而不是我以为的。",
+    "load_bearing_proof": "把那一支换成 `if False:`，四条判据红。",
+    "the_browser_one": {
+      "file": "scripts/pwa_render_drill.py",
+      "what_it_reads": "真 Chrome 里 `.destination-live-card` 的 innerText——差额那句、覆盖那句、隐私说明三段都要在里面，`.privacy-note` 也要在。",
+      "load_bearing_proof": "app.js 里三处渲染分别改坏（不画隐私说明 / 不画覆盖 / 把差额那句的读取换成一个不存在的字段），三次全红，每次点的都是被改坏的那一处。改完即刻还原。",
+      "what_it_cannot_see": "夹具里 last_message_zh 与 next_action_zh 都填了差额那句，所以「服务端只写了其中一个」那种回归它验不出——那条钉在上面那个文件里。"
+    }
+  },
+  "what_this_does_not_prove": [
+    "**不证明那 192 条会被补上。** 这次改的是「他知不知道」，不是「东西到没到」。补投仍要人在服务器上跑一次，而 Owner 早先裁定过「只补 GitHub」。",
+    "不证明 ArchiveBox 那条链是通的：它显示 connected/automatic，是我 08-05 探针的副作用，**它从来没成功投递过任何一条**。现在至少它自己说了这件事。",
+    "**仍然不证明 Owner 眼睛看到了它。** 这里证明的是「界面代码会渲染那个字段」，不是「他打开页面看见了」——那要等他真的去看。",
+    "~~没有在真浏览器里看过这两段文字渲染出来~~ —— **2026-08-05 看过了**，见 `scripts/pwa_render_drill.py`：四句全部在真 Chrome 的 DOM 里读到，`.privacy-note` 也在。反例三次全红。"
+  ],
+  "the_fix_was_invisible_for_twenty_minutes": {
+    "what": "第一版只写了 next_action_zh。而两个界面渲染的都是 item.last_message_zh || item.next_action_zh——**前者优先，且对已连接的目的地它总是有值**（「最近一次自动导入成功。」）。",
+    "consequence": "服务端说了实话，界面照旧报平安。**那个修复写完就是隐形的。**",
+    "how_it_surfaced": "写证据时给自己留了一条「不证明界面真的显示了这句话」，然后去查了那句话——查出来它确实没显示。",
+    "fix": "差额同时写进两个字段。改界面要改两处，而且下次多一个界面就又漏一处；写在源头只写一次。",
+    "guard": "判据现在断言 last_message_zh（界面先读的那个）里有差额，并钉住「两个界面都还在读这两个字段」——哪天界面改了优先级，它会红，那时该回来重看这段逻辑。",
+    "lesson": "「建好了没接上」这次落在我自己二十分钟前的修复上。"
+  },
+  "the_third_invisible_thing": {
+    "what": "连着两次踩「修好的话没人显示」之后，去数了一遍服务端产出的中文文案字段：六个里就 privacy_note_zh 一个没有任何界面读。**八条隐私说明，一条都没露过面。**",
+    "why_it_is_the_worst_one_to_be_silent_about": "那是「他的东西去了哪、钥匙在谁手里」。这个项目 T05 曾经上线过一句与实现相反的隐私声明——这个位置上的沉默最贵。",
+    "second_problem": "那八条是给工程师看的（「REST 令牌只从 0600 Secret 读取」「Integration Token 不返回扩展」「L3 对象走加密副本」）。Owner 说过他没有技术基础，**让他读这些词等于让他读我们的代码**。已重写成人话；技术细节搬到 docs/ 与代码注释里。",
+    "also_fixed": "同一个坑的连接器那一侧：给 youtube 写的「点哪儿」在 registry.next_action_zh 里，而**没有任何界面读连接器的这个字段**（卡片显示的是 account_sync.NOT_SYNCABLE_YET）。已挪进真正显示的那一句，两条判据也从不显示的字段改盯显示的那一句。",
+    "why_no_gate_for_this_class": "按字段名查只抓得到 privacy_note_zh 这一个，而今天那两次都是**同一个字段名在不同对象上被遮住**——名字级的检查看不见。加一道抓不到目标的门，就是我一天里反复在拆的那种装饰。"
+  },
+  "the_reason_i_gave_for_not_checking_was_wrong": {
+    "原文写": "目的地卡片要有已认证的服务才渲染得出来，而我不该去取 Owner 的登录态。这一格要等他自己打开看。",
+    "错在哪": "**「不该取 Owner 的登录态」是对的，「所以验不了」是错的。** 卡片要的不是他的登录态，是一个会回 200 的 `/v1/auth/me`——起个假服务端就有了，一次性 profile、只连 127.0.0.1、碰不到他任何东西。",
+    "为什么记下来": "挡路的理由写得越像边界，越没人会回头验它。这一条把「我不该做 A」滑成了「所以 B 做不到」，而 B 根本不需要 A。",
+    "第一次跑还是红的，而那是夹具的错": "假服务端按 URL 去磁盘上找 `apps/pwa/assets/app.js`，那个目录不存在（真服务端是把 `apps/pwa/` 平挂在 `/assets` 下的，api.py:1215）。主脚本 404、页面一个接口都没发，报出来却只有一句「0 张卡都没渲染」——**差一点就把自己的夹具错当成产品缺陷写进证据里。** 现在演练会记下页面问过哪些接口，并为这种情况留了单独的出口 `APP_SCRIPT_NEVER_SERVED`。"
+  }
+}

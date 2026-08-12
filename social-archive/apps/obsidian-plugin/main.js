@@ -141,7 +141,7 @@ class SocialArchivePlugin extends Plugin {
   async handle(request, response) {
     if (!this.authorized(request)) return this.send(response, 401, { status: "unauthorized" });
     if (request.method === "GET" && request.url === "/health") {
-      return this.send(response, 200, { status: "ok", product: "Social Archive", version: "0.0.0.6", port: this.settings.port });
+      return this.send(response, 200, { status: "ok", product: "Social Archive", version: "0.0.0.7", port: this.settings.port });
     }
     if (request.method !== "PUT" || request.url !== "/vault") return this.send(response, 404, { status: "not_found" });
     if (!String(request.headers["content-type"] || "").toLowerCase().startsWith("text/markdown")) {

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# 主机变更(2026-08-10):生产已从 VPS-1(139.99.61.6)迁到 VPS-3(15.235.141.201),VPS-1 已退役。
 # 把当前提交部署到云服务器。
 #
 # 沿用服务器上已有的机制，不另起一套：不可变 release 目录 + 指针移动。
@@ -20,7 +21,7 @@
 
 set -euo pipefail
 
-HOST="${CB_DEPLOY_HOST:-139.99.61.6}"
+HOST="${CB_DEPLOY_HOST:-15.235.141.201}"
 USER_NAME="${CB_DEPLOY_USER:-ubuntu}"
 KEY="${CB_DEPLOY_KEY:-$HOME/Documents/Codex/GithubProject/_protected/alpha_deploy_private/linze_ovh_production_ed25519}"
 APP_ROOT="/opt/cyberboss-cloud"

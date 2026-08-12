@@ -60,6 +60,26 @@ case "$store" in
   r2|oci|github) ;;
   *) printf '%s\n' '恢复目标只能是 r2、oci 或 github。' >&2; exit 2 ;;
 esac
+# **恢复目标不能落在 /tmp 或 /var/tmp 下。**
+#
+# 这个包装脚本用 systemd-run 起单元，带着 `--property=PrivateTmp=yes`——
+# 那意味着单元看到的 /tmp 与 /var/tmp 是**私有的 tmpfs**，单元一退出就没了。
+#
+# 2026-08-04 实测：`--target /tmp/xxx/restored.bin` 返回
+# `{"status":"PASS", ..., "target_written": true}`，而宿主机上那个目录**是空的**。
+# **真出事的时候，你会以为文件已经恢复出来了，手里却什么都没有。**
+#
+# PrivateTmp 本身是对的（恢复过程里的中间产物不该留在共享 /tmp），
+# 所以拦的是目标路径，不是那条属性。
+case "$target" in
+  /tmp/*|/var/tmp/*|/tmp|/var/tmp)
+    printf '%s\n' '恢复目标不能放在 /tmp 或 /var/tmp：本脚本用 PrivateTmp=yes 起单元，' >&2
+    printf '%s\n' '那两个目录在单元里是私有的，跑完就没了——你会看到 PASS 而目录是空的。' >&2
+    printf '%s\n' '换一个别的位置，例如 /home/<你>/sa-restore/ 或一块外接盘。' >&2
+    exit 2
+    ;;
+esac
+
 if [[ "$verify_only" != "1" && -z "$target" ]]; then
   printf '%s\n' '实际恢复必须指定新的空目录；只读验证请显式使用 --verify-only。' >&2
   exit 2
@@ -82,7 +102,24 @@ case "$store" in
     ;;
   github)
     credential_properties=(
-      --property=LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_token
+      # **必须是 github_markdown_token，不是 github_token。**
+      #
+      # 2026-08-04 实测：
+      #   github_token          → GraphQL: Could not resolve to a Repository
+      #                           with the name 'LinzeColin/Private-Database'
+      #   github_markdown_token → {"nameWithOwner":"LinzeColin/Private-Database"}
+      #
+      # 也就是说**备份写得进去、按文档的恢复路取不出来**——复制单元
+      # （social-archive-replication.service:22）加载的一直是
+      # github_markdown_token，只有这里加载了另一个看不见私有仓的令牌。
+      #
+      # 「副本登记成 verified」和「副本取得回来」是两件事。三份副本在库里
+      # 都是 verified，而 github 那一份的取回演练直接失败：
+      # GITHUB_RELEASE_READ_FAILED。
+      #
+      # 凭据在 systemd 里的**名字**仍然叫 github_token（下面 export 的是
+      # $CREDENTIALS_DIRECTORY/github_token），改的只是它从哪个文件来。
+      --property=LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_markdown_token
     )
     ;;
 esac

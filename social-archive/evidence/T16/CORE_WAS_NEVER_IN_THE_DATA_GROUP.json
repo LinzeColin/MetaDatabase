@@ -1,0 +1,50 @@
+{
+  "task": "T16",
+  "claim": "Core 容器从来没加入宿主数据组（GID 980）。它一直「能用」，只是因为碰巧总是容器先建 SQLite 的 -wal/-shm。**哪一次宿主任务先建，Core 就被锁在外面**——今天为此断线两次。已修，并用同一个失败条件做了前后对照。",
+  "invariant": "INV-REVERSIBLE / C-T00-01 家族",
+  "measured_at": "2026-08-05",
+  "the_failure_state": {
+    "listing": [
+      "-rw-rw---- 1 10001         socialarchive  social-archive.sqlite3",
+      "-rw-rw---- 1 socialarchive socialarchive  social-archive.sqlite3-shm",
+      "-rw-rw---- 1 socialarchive socialarchive  social-archive.sqlite3-wal"
+    ],
+    "reading": "主库属主 10001（容器建的）；-wal/-shm 属主 **987**（宿主 socialarchive 账号建的——status 定时任务每 5 分钟以它的身份写库）。模式 0660、组 980。而 Core 是 uid 10001 / gid 10001：**属主不对，组也不对**。",
+    "symptom": "`sqlite3.OperationalError: unable to open database file`；所有要鉴权的路由 500；core-worker 直接退出（docker ps -a 里状态是 Created）。",
+    "why_it_hid": "SQLite 只有在需要建/写 -wal 与 -shm 时才碰它们。谁先建，那两个文件就归谁。**过去一直是容器先建**，所以从没暴露。"
+  },
+  "the_root_cause": "compose.yaml 里 `group_add`（数据组 980 + 密钥组 10001）那两行**一直只挂在 cli-tools 下**；core-api 与 core-worker 从来没有。实测三个容器的 id：cli-tools 是 `groups=10001,980`，两个 core 只有 `groups=10001`。同一个数据面，两套权限。",
+  "i_had_blamed_the_wrong_thing": "今天早些时候同样报过一次 500，我当时写进证据的是「磁盘压力最合理的怀疑，**不是已证实的根因**」。**现在证实了，是这个。** 那份证据里的谨慎措辞救了它——如果当时写成结论，今天就会带着一个错的根因继续走。",
+  "the_fix": "core-api 与 core-worker 补上与 cli-tools 相同的两行 group_add。实测三个容器现在都是 `groups=10001(socialarchive),980`。",
+  "before_after_on_the_identical_condition": {
+    "how_reproduced": "删掉 -wal/-shm，让宿主 socialarchive 账号（uid 987）持一个 WAL 连接不放，那两个文件就以 987 留在盘上。",
+    "confirmed_state": "-rw-rw---- 1 socialarchive socialarchive … -shm / -wal（uid 987、组 980）",
+    "before_fix": "所有要鉴权的路由 500（当时连打三次全 500）",
+    "after_fix": "同一状态下 `/v1/accounts` 连打三次 **200 / 200 / 200**"
+  },
+  "guards": {
+    "file": "tests/focused/test_every_service_on_the_data_plane_shares_its_groups.py",
+    "assertions": [
+      "**先证明数据面服务名单是完整的**：谁 bind 了共享的宿主路径谁就算——名单不是我拍的",
+      "每个数据面服务都必须同时加入数据组与密钥组，且 group_add 正好两项",
+      "两个 GID 不能配成同一个值（C-T00-01 的原始教训）"
+    ],
+    "counter_example": "去掉 core-api 的 group_add → 2 条转红"
+  },
+  "three_times_my_own_guard_was_wrong_first": [
+    "数「全文出现几次那个变量名」——我自己的注释里也提到它们，判据对着正确配置转红",
+    "手搓 YAML：从 `group_add:` 往下数带 `-` 的行，一路数进后面的 `secrets:` 列表，14 ≠ 2。**改用 yaml.safe_load**",
+    "判「谁在数据面上」时看容器内路径 /var/lib/social-archive，漏掉 cli-tools（它挂到 /work/output）。**共享的是宿主那块盘，不是容器里的路径名**"
+  ],
+  "what_this_does_not_prove": [
+    "不证明数据面上没有别的权限错配。这一轮逐个扫过数据根下 13 个目录（宿主账号 / core / cli 各自能不能写），只查出 evidence/ 一处——已修。",
+    "**不证明 core-worker 之前那次退出没有丢任务**——已核：job 表 running 0 条、queued 0 条，content 193 / user_relation 194 / artifact 552 与断线前一致，sync_run 全在终态（cancelled 1 / failed 3 / partial 16），没有卡在 scanning 的。**核过了，没丢。**"
+  ],
+  "concurrent_writes_measured": {
+    "why": "上一版这份证据里写着「不证明宿主任务与容器同时写库是安全的——只验了『都打得开』」。补上了。",
+    "how": "在 diagnostics/ 下新建一个空的 WAL 库（那个目录两边都写得动），宿主账号与容器同时各写 300 行。**不碰生产库。**",
+    "result": "宿主 300/300 成功、容器 300/300 成功，总行数 600，两边 seq 各自 0..299 完整，`PRAGMA integrity_check` = ok。",
+    "conclusion": "同一块盘上两个身份并发写同一个 WAL 库，没有丢行、没有报错、没有损坏。",
+    "still_not_proven": "只测了插入。跨进程的读改写事务、长事务、以及 -wal 增长后的 checkpoint 竞争都没测。"
+  }
+}

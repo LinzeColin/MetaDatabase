@@ -1,0 +1,168 @@
+#!/usr/bin/env python3
+"""每一个失败码都要说得出人话（v0.0.0.7 / T14）。
+
+## 为什么需要它
+
+INV-NO-SILENT-ZERO 说的是「0 条时界面说得出为什么」。而失败文案词典是
+**人手维护**的映射表——代码里新加一个失败码，没人提醒你去补词典。
+补漏的后果不是少一句话，是界面说「我们没能记录下原因」，
+而原因就写在 `last_error_code` 里。**明知原因却说不知道，比不说更糟。**
+
+这一版里同一形态出现了两次：
+
+  1. 生产库里躺着三个当前代码已删除的遗留码，词典不认（查数据才发现）
+  2. **连接器层七个码整层没进过词典**（读代码就能发现，我只是没扫那一层）
+
+第 2 条正是这个脚本要自动化的事：把「代码里到底有哪些失败码」
+从「我记得扫过哪些文件」变成一条命令。
+
+## 怎么找
+
+按**写法**扫，不按文件列举——加一个新文件不会漏：
+
+    Python   ConnectorError("CODE"      failure_code="CODE"
+             "code": "CODE"             error_code="CODE"
+    JS       failureCode: "CODE"        failure_code: "CODE"
+
+只认 `^[A-Z][A-Z0-9_]{3,}$` 这种形状，避免把普通字符串当成码。
+
+## 它不保证什么
+
+只覆盖**字面量**。动态拼出来的码（`f"{prefix}_FAILED"`、
+`exc.__class__.__name__`）它结构上就看不见。
+
+**这条局限已经被堵上了，但不是靠改这个脚本，而是靠禁掉那种写法：**
+`tests/focused/test_failure_copy_matrix.py::test_failure_codes_are_never_python_class_names`
+禁止把异常类名当失败码。写法被禁之后，扫字面量就够了。
+
+（这条局限不是假想。生产 connector_state 里真躺着一个 `CONNECTORERROR`，
+就是 `exc.__class__.__name__.upper()` 产生的——它落到「我们没能记录下原因」，
+而原因就在那个异常对象里。改的时候先找到三处，写了判据才发现是八处。）
+"""
+
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+# 只扫**会走到界面**的路径。scripts/ 下的码是给运维看 systemd 日志的，
+# 要求它们有中文界面文案是越界——但也别忘了它们仍然要能被人读懂。
+SCAN_DIRS = ("src", "apps")
+CODE_SHAPE = re.compile(r"^[A-Z][A-Z0-9_]{3,}$")
+
+PATTERNS = (
+    re.compile(r'ConnectorError\(\s*"([A-Z][A-Z0-9_]+)"'),
+    re.compile(r'failure_code\s*[=:]\s*"([A-Z][A-Z0-9_]+)"'),
+    re.compile(r'failureCode\s*[=:]\s*"([A-Z][A-Z0-9_]+)"'),
+    re.compile(r'error_code\s*[=:]\s*"([A-Z][A-Z0-9_]+)"'),
+    re.compile(r'"code"\s*:\s*"([A-Z][A-Z0-9_]+)"'),
+    re.compile(r'code\s*:\s*"([A-Z][A-Z0-9_]+)"'),
+    # **兜底写法**：`failure_code: error?.failureCode || "BROWSER_SCAN_FAILED"`
+    # 前面几条都要求引号紧跟冒号，于是整整一类码被漏掉了。
+    # 实测：把 BROWSER_SCAN_FAILED 的别名删掉，这道门**照样通过**——
+    # 因为它压根没看见那个码。漏掉的还有 UPLOAD_FAILED、
+    # RELATION_TERMINAL_NOT_PROVEN。
+    re.compile(r'\|\|\s*"([A-Z][A-Z0-9_]+)"'),
+    re.compile(r'\bor\s+"([A-Z][A-Z0-9_]+)"'),
+    # **三元写法**：同一个坑的第三种形态（2026-08-06 / G1 实测）。
+    #
+    #     failureCode: countMatches ? null : "BILIBILI_COUNT_MISMATCH",
+    #     failureCode: allComplete ? null
+    #       : (skipped.length ? "BILIBILI_SOME_ITEMS_HAVE_NO_URL"
+    #                         : "BILIBILI_SOME_FOLDERS_INCOMPLETE"),
+    #
+    # 上面每一条都要求引号**紧跟**在冒号后面，于是这三个码整整齐齐地
+    # 从这道门下面走过去了：新写的 17 个 B 站失败码，它只看见 14 个。
+    # 漏掉的那 3 个若真发生，用户看到的就是「我们没能记录下原因」——
+    # 而这道门存在的唯一目的就是防这句话。
+    #
+    # 改成**开窗**：`failureCode:` 之后 240 字符内的所有大写字面量都算。
+    # 窗口开大的代价是可能多收几个不相干的常量，那会让这道门更严而不是更松；
+    # 而漏收的代价是一条永远没人解释的失败码。两边不对称，宁可多收。
+    re.compile(r'(?:failure_code|failureCode|error_code)\s*[=:][^;}\n]{0,240}?'
+               r'"([A-Z][A-Z0-9_]{3,})"', re.S),
+)
+
+# 不是失败码的大写字面量（状态、类型、算法名等）。每条写清它是什么。
+NOT_A_FAILURE_CODE = {
+    # 保存前的当场拒绝：这一页是信息流，不是一条内容。
+    # **不进 sync_run**——它是同步调用的返回值，弹窗直接把 error 那句原话显示出来
+    # （「这一页是小红书的列表/信息流，不是某一条内容。请先点开你想存的那一条…」）。
+    # 立这条护栏的由头是 Owner 生产库里那三行：bilibili 首页、抖音精选、小红书发现页
+    # 各被当成"一条内容"存了下来，其中小红书那条还借用了页面上第一条笔记的标题。
+    "PAGE_IS_A_FEED_NOT_AN_ITEM",
+    "L0", "L1", "L2", "L3",                       # 归档层级
+    "UNEXPLAINED_ZERO",                           # 词典自己产生的兜底码
+    "NOTHING_NEW", "SYNC_STALLED",                # 同上，由 describe_sync_outcome 产生
+    "PLATFORM_MISMATCH",                          # 批次内条目级错误，不进 sync_run.last_error_code
+    "CONTRACT_VIOLATION", "CONTRACTVIOLATION",    # 解析器内部标记
+    "MISSINGBINARY",                              # 同上
+    # 诊断按钮专用：读不出当前标签页的域名。**不进 sync_run**，
+    # 只在插件弹窗里就地显示一句中文（「读不出当前页面的域名，无法开始诊断。」）。
+    # 走失败文案词典反而会把它变成一句同步失败，那是另一回事。
+    "DIAGNOSTIC_NO_HOST",
+}
+
+
+def scan() -> dict[str, list[str]]:
+    found: dict[str, list[str]] = {}
+    for folder in SCAN_DIRS:
+        base = ROOT / folder
+        if not base.is_dir():
+            continue
+        for path in base.rglob("*"):
+            if path.suffix not in {".py", ".js"} or not path.is_file():
+                continue
+            if path.resolve() == Path(__file__).resolve():
+                continue  # 别把自己的正则字面量当成失败码
+            try:
+                text = path.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError):
+                continue
+            for i, line in enumerate(text.splitlines(), 1):
+                for pattern in PATTERNS:
+                    for code in pattern.findall(line):
+                        if not CODE_SHAPE.match(code) or code in NOT_A_FAILURE_CODE:
+                            continue
+                        found.setdefault(code, []).append(
+                            f"{path.relative_to(ROOT)}:{i}"
+                        )
+    return found
+
+
+def main() -> int:
+    from social_archive.failure_copy import (
+        INCOMPLETE_RUN_CODES,
+        PRODUCT_FAULT_CODES,
+        code_key,
+        resolve,
+    )
+
+    found = scan()
+    unexplainable: list[str] = []
+    for code, places in sorted(found.items()):
+        key = code_key(code)
+        if resolve(code) is not None:
+            continue
+        if key in INCOMPLETE_RUN_CODES or key in PRODUCT_FAULT_CODES:
+            continue
+        unexplainable.append(f"  {code}  ←  {places[0]}" + (f"（共 {len(places)} 处）" if len(places) > 1 else ""))
+
+    print(f"扫到失败码 {len(found)} 个（{', '.join(SCAN_DIRS)}）")
+    if unexplainable:
+        print(f"**说不出人话的 {len(unexplainable)} 个** —— 界面会显示「我们没能记录下原因」，")
+        print("而原因就写在代码里。补进 failure_copy 的 _ALIASES / INCOMPLETE_RUN_CODES /")
+        print("PRODUCT_FAULT_CODES，或说明它为什么不是失败码（NOT_A_FAILURE_CODE）。")
+        for line in unexplainable:
+            print(line)
+        return 1
+    print("每一个都能落到一句中文。")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

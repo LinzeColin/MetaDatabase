@@ -13,7 +13,13 @@ LoadCredential=r2_access_key_id:/opt/social-archive/runtime/secrets/r2_access_ke
 LoadCredential=r2_secret_access_key:/opt/social-archive/runtime/secrets/r2_secret_access_key
 LoadCredential=oci_access_key_id:/opt/social-archive/runtime/secrets/oci_access_key_id
 LoadCredential=oci_secret_access_key:/opt/social-archive/runtime/secrets/oci_secret_access_key
-LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_token
+# **必须用有私有仓权限的那个 token。** 实测（2026-08-04）：
+# runtime/secrets/github_token 只看得见公开仓——用它查 Private-Database
+# 直接报 not resolvable，于是第三份副本（GitHub Release）永远失败，
+# 而错误信息说的是「私有归档仓验证失败」，听起来像仓库不对。
+# Core 容器拿到的一直是另一个（compose 把 github_markdown_token 映射进去），
+# 只有这条 systemd 路径漏了。
+LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_markdown_token
 Environment=SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE=%d/r2_access_key_id
 Environment=SOCIAL_ARCHIVE_R2_SECRET_ACCESS_KEY_FILE=%d/r2_secret_access_key
 Environment=SOCIAL_ARCHIVE_OCI_ACCESS_KEY_ID_FILE=%d/oci_access_key_id
@@ -21,6 +27,16 @@ Environment=SOCIAL_ARCHIVE_OCI_SECRET_ACCESS_KEY_FILE=%d/oci_secret_access_key
 Environment=SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token
 ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/replicate_objects.py --store all --limit 200
 ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/github_release_backup.py --upload
+# **索引要跟上制品的节奏。**
+#
+# 制品在这条单元里每 ~15 分钟复制一次，而运行库索引原来一天才备一次
+# （social-archive-backup.timer，03:20 UTC）。机器在这两者之间没了，
+# 就会留下一批**有制品、没索引行**的孤儿密文——救回来也不知道是什么。
+#
+# --skip-if-unchanged：库没变的那些轮次只做一次 VACUUM INTO + 一次哈希，
+# 不产生任何流量。变更检测的两半都实测过是确定性的
+# （VACUUM INTO 连做三次哈希一致；gzip 置 mtime=0 且 filename=""）。
+ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/backup_runtime_db.py --skip-if-unchanged
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict

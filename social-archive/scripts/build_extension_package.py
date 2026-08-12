@@ -14,9 +14,19 @@ EXCLUDED = {".DS_Store"}
 
 
 def main() -> int:
+    # 版本只有一个真源：仓根的 VERSION 文件。
+    #
+    # 这里原先写死 "0.0.0.6"。写死的后果不是打包失败——是**版本号只能靠人记得
+    # 同时改两处**，而其中一处改漏了就会在打包这一步才炸，且报错说的是
+    # 「manifest 版本必须是 0.0.0.6」，听起来像 manifest 错了，
+    # 其实是这行常量过期了。
+    expected = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     manifest = json.loads((SOURCE / "manifest.json").read_text(encoding="utf-8"))
-    if manifest.get("version") != "0.0.0.6":
-        raise SystemExit("extension manifest version must be 0.0.0.6")
+    if manifest.get("version") != expected:
+        raise SystemExit(
+            f"扩展 manifest 的版本是 {manifest.get('version')}，"
+            f"而 VERSION 文件写的是 {expected}——两者必须一致"
+        )
     files = sorted(
         path for path in SOURCE.rglob("*")
         if path.is_file() and path.name not in EXCLUDED and "__pycache__" not in path.parts

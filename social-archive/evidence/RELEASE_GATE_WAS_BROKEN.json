@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "what": "T18 的结构发布门 scripts/final_verify.py 自 T03 起一直 FAIL，且无人知晓",
+  "recorded_at": "2026-08-04T17:10Z",
+  "severity": "用来证明「可以发布」的东西自己是坏的",
+  "how_it_was_found": "排查「我写的这些守卫到底在哪里被执行」时发现：本仓 .github/workflows 有 32 个工作流，**没有一个跑 social-archive**。于是去看本地有没有统一的门，找到 final_verify.py，一跑就是 FAIL。",
+  "root_cause": {
+    "what": "final_verify 的结构命令里有一行 `validate_compose.py compose.workers.yaml`",
+    "but": "compose.workers.yaml 已在 v0.0.0.7 / T03 删除——那三个 HTTP worker 被实测证伪（上游 API 只有单篇详情，没有任何收藏枚举接口）",
+    "result": "文件不存在 → validate_compose 退出码 2 → 整道门 FAIL",
+    "who_broke_it": "我，在 T03 删 compose.workers.yaml 时没有同步改 final_verify",
+    "why_nobody_noticed": "没有 CI 跑它，而本地流程里也没人调用它。红了三十多个提交都没人知道。"
+  },
+  "no_ci_covers_this_project": {
+    "workflows_in_repo": 32,
+    "mentioning_social_archive": 0,
+    "consequence": "本会话写的所有守卫（shell 花括号扫描、compose secret 覆盖、租户审计、脱敏扫描、文案漂移…）**只在有人手动敲 pytest 时才生效**。",
+    "not_fixed_here": "没有新增 CI 工作流。理由：加 workflow 只有推到 GitHub 才验得了，而任务包明确规定 T18 之前不推。写一个自己验不了的东西，不如把发现讲清楚留给 T18。",
+    "recommended_for_T18": "加一个路径过滤到 social-archive/** 的工作流，跑 pytest + scripts/final_verify.py。本仓已有同形态先例（abd-stage0-validation.yml 就是 uv run pytest）。"
+  },
+  "fixed": {
+    "removed": "compose.workers.yaml 那一行（并写明理由，免得下一个人再加回来）",
+    "added_three_new_gates": [
+      "scripts/preflight_extension.py —— 扩展装得上装不上",
+      "scripts/scan_plaintext_credentials.py --all —— Cookie 明文",
+      "scripts/validate_deployment_contract.py —— 部署合同"
+    ],
+    "why_add_them": "写了守卫却不挂进发布门，等于只在有人手敲 pytest 时才生效。",
+    "not_duplicate_of_secret_scan": "已有的 scripts/secret_scan.py 查的是私钥 / GitHub PAT / AWS key / Bearer 头；新的那个查 Netscape cookie 行与高危 cookie 名。两者互补，都留。"
+  },
+  "now": {
+    "gates": 9,
+    "status": "PASS",
+    "list": [
+      "compileall src scripts",
+      "check_brand",
+      "secret_scan",
+      "validate_compose compose.yaml",
+      "validate_compose compose.readers.yaml",
+      "validate_systemd",
+      "preflight_extension",
+      "scan_plaintext_credentials --all",
+      "validate_deployment_contract"
+    ]
+  },
+  "guard": {
+    "file": "tests/focused/test_final_verify_gate_is_intact.py（4 条）",
+    "what": [
+      "final_verify 引用的每个路径都必须存在——删文件要同步改它",
+      "本版本新增的三道门必须在里面",
+      "已删的 compose.workers.yaml 不许再被引用",
+      "**直接跑一遍 final_verify，它必须绿** —— 这条比前三条都强：前三条查引用对不对，这条查它真的过不过"
+    ]
+  },
+  "what_this_does_not_prove": [
+    "只查了 final_verify.py 这一道门。其余脚本（validate_systemd / validate_compose 等）是否也在验已删除的东西，没有逐个核。",
+    "「无 CI 覆盖本项目」是当时查 32 个 workflow 得出的，没有验证 GitHub 侧是否有仓库级设置会另行触发。"
+  ],
+  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。"
+}

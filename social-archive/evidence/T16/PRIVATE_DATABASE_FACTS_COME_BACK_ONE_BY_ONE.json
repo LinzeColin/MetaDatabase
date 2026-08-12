@@ -1,0 +1,60 @@
+{
+  "task": "T16",
+  "claim": "Private-Database 那 100 条 fact 能从两个异地副本各取回一次，逐条核 sha256 一条不差。",
+  "measured_at": "2026-08-05T04:23:44Z",
+  "why_this_had_to_be_measured": [
+    "同一天早些时候的证据里，我写下一句自认的缺口：",
+    "  「不证明 private-database 那条链——这次只把 runtime-db 快照取回来了，",
+    "   那 100 条 fact 的副本仍然只有它自己的回执作证。」",
+    "去看了一眼，缺口比想的更实在：`scripts/` 下只有 `sync_private_database.py`",
+    "（**写**的那一半），**没有任何东西把它写出去的东西读回来**。",
+    "runtime-db 那条链早就有 restore_runtime_db_drill.py；这一条一直没有。",
+    "**这正是这个项目最常见的失败形态：建好了没接上，写进去了没人取出来。**"
+  ],
+  "what_was_built": {
+    "script": "scripts/restore_private_database_drill.py",
+    "the_whole_way": "下载 → 核密文哈希 → age 解密 → 核明文哈希 → 解 tar → **逐条核 fact 哈希**",
+    "why_the_last_step_is_the_point": "密文哈希一致只说明字节没坏；明文哈希一致只说明整包没坏。manifest 里给了 100 条 fact 各自的 sha256——不逐条核一遍，等于守着一张对得上的清单却从没点过数。"
+  },
+  "results": {
+    "r2": {
+      "status": "PASS",
+      "fact_count": 100,
+      "every_fact_hash_matched": true,
+      "hashed_as": "line_with_newline"
+    },
+    "oci": {
+      "status": "PASS",
+      "fact_count": 100,
+      "every_fact_hash_matched": true,
+      "hashed_as": "line_with_newline"
+    },
+    "manifest": "/var/lib/social-archive/backups/private-database/20260805T033505Z/manifest.json",
+    "object_key": "backups/private-database/20260805T033505Z/feda78b5cb1defb29be66e31ffd41f819a1596ae44a9aed4903080953f159b5b.tar.gz.age",
+    "note": "这一份正是**备份 timer 自主触发那一次**（03:35）的产物，不是手工跑出来的。"
+  },
+  "the_mistake_this_drill_made_about_itself": {
+    "what": "第一版按「一个 fact 一个文件」去数，跑出 restored_count: 2 而不是 100。",
+    "how_close_it_came_to_being_wrong": "**差一点就当成「远端那份少了 98 条」报出去。**",
+    "what_it_actually_was": "去看包里到底是什么：facts.ndjson（100 条，一行一个 JSON）+ snapshot.json（清单副本）。包一点问题都没有，是**我对它的结构猜错了**。",
+    "why_it_matters_more_than_a_missed_bug": "指错原因比不报更糟：那一条要是发出去，下一个人会去查一个根本没坏的备份链。",
+    "the_fix": "改成按行算，而且**行尾算不算进哈希不猜**——两种口径都算，看哪一种和 manifest 对得上，并把用的是哪一种如实报出来（实测是 line_with_newline）。"
+  },
+  "a_second_thing_that_almost_slipped": {
+    "what": "写完判据后做突变验证，把实现退回「按文件数」，判据**全绿**。",
+    "why": "那次替换因为 shell 转义根本没匹配上——**反例压根没写进文件**。",
+    "how_it_was_caught": "改用文件内写入并先打印 `t.count(old)` 与写入后的确认，才看到 count=1、写入 True；这一次两条判据当场红。",
+    "lesson": "反例不红的时候，先确认它到底有没有走到那条路上——今天第五次。"
+  },
+  "guards": {
+    "file": "tests/focused/test_private_database_restore_drill.py",
+    "count": 10,
+    "load_bearing_proof": "把实现退回按文件数（确认写入成功后），test_it_hashes_lines_not_files 与 test_it_offers_both_line_ending_conventions 两条红。"
+  },
+  "what_this_does_not_prove": [
+    "**不证明 fact 的内容是对的。** 只核了哈希与条数——「取回来的和存进去的一样」不等于「存进去的本来就对」。",
+    "不证明 GitHub 那份——**因为按设计就不该有那一份**。这条链的 manifest 里只有 r2 / oci 两份回执，看着比索引的三份少一个，其实不是：这些 fact 的规范住处就是 LinzeColin/Private-Database 那个仓（索引的第三份也落在那儿，而索引在 GitHub 上没有家）。再往同一个仓放一份备份，备份与源同生共死。故障域其实同样是三个：GitHub 上的源 + R2 + OCI。已把这条理由写进 backup.py，免得下一个人去「补」那第三份。",
+    "**age 私钥仍是全机一份的单点。** 这两次取回都靠它解开。"
+  ],
+  "cleanup": "演练目录 /srv/sa-drills 已删；全程只读远端，生产数据面一个字节没动。"
+}

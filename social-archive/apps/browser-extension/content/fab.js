@@ -5,7 +5,14 @@
   const button = document.createElement("button");
   button.id = ID;
   button.type = "button";
-  button.textContent = "保存到我的档案馆";
+  // **一个动作只能有一个名字。**
+  //
+  // 这里原来叫「保存到我的档案馆」，而插件弹窗上那颗叫「保存当前页面」——
+  // 同一件事两个名字。更糟的是服务端的文案写着「点**插件的**
+  // 「保存到我的档案馆」」：那个名字确实存在，但它在网页上这颗悬浮按钮上，
+  // 不在插件弹窗里。他会打开弹窗，找不到，然后卡住。
+  // 这个仓自己写过一句话：**指错方向的下一步，比不给下一步更坏。**
+  button.textContent = "保存当前页面";
   button.setAttribute("aria-label", "保存当前页面到 Social Archive");
   Object.assign(button.style, {
     position: "fixed", right: "20px", bottom: "24px", zIndex: "2147483647",

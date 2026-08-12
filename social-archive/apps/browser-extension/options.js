@@ -2,20 +2,47 @@
 (() => {
   "use strict";
   const $ = id => document.getElementById(id);
-  const platformOrder = ["generic-web", "xiaohongshu", "douyin", "kuaishou", "bilibili", "x", "reddit", "instagram"];
-  const platformNames = { "generic-web":"Chrome 书签", xiaohongshu:"小红书", douyin:"抖音", kuaishou:"快手", bilibili:"B站", x:"X", reddit:"Reddit", instagram:"Instagram" };
-  const platformIcons = { "generic-web":"书", xiaohongshu:"红", douyin:"抖", kuaishou:"快", bilibili:"B", x:"X", reddit:"R", instagram:"I" };
+  // **这三张表是「加平台」的第五、六、七张。**
+  //
+  // 2026-08-05：youtube 在插件那四张表里都接上了（检测、权限、中文名、关系地址），
+  // 真浏览器里的接线演练也全绿——**而这里一个字都没有**。
+  // 后果不是显示难看，是**设置页根本不给 YouTube 出卡片**，
+  // 于是那个「连接账号」按钮不存在，交接里让 Owner 做的第二件事**做不了**。
+  //
+  // 更要命的是同一天我还在服务端写了句「点插件里的连接」当下一步——
+  // 指着一个不存在的按钮。**指错方向的下一步，比不给下一步更坏。**
+  //
+  // 加平台时这三张也要一起改；judge 在
+  // tests/focused/test_options_page_offers_every_connectable_platform.py。
+  const platformOrder = ["generic-web", "xiaohongshu", "douyin", "kuaishou", "bilibili", "x", "reddit", "instagram", "youtube"];
+  const platformNames = { "generic-web":"Chrome 书签", xiaohongshu:"小红书", douyin:"抖音", kuaishou:"快手", bilibili:"B站", x:"X", reddit:"Reddit", instagram:"Instagram", youtube:"YouTube" };
+  const platformIcons = { "generic-web":"书", xiaohongshu:"红", douyin:"抖", kuaishou:"快", bilibili:"B", x:"X", reddit:"R", instagram:"I", youtube:"Y" };
   const relationCopy = {
     "generic-web":"全部 Chrome 书签与文件夹", xiaohongshu:"收藏夹、收藏、点赞", douyin:"收藏夹、收藏、点赞",
-    kuaishou:"收藏、点赞", bilibili:"收藏夹、稍后再看、历史、点赞", x:"书签、点赞", reddit:"Saved、Upvoted", instagram:"Saved Collections"
+      // **x 这一句 2026-08-12 改过。** 原来写「书签、点赞」，读起来像这两样会被
+      // 自动读进来——而 X 在 NOT_SYNCABLE_YET 里，本版一条都读不了
+      // （官方接口可能收费，零费用硬规矩把那条路主动关着）。
+      //
+      // **没有把它在 SCANNABLE_RELATIONS 里登记成空**：试过，被
+      // test_sync_scope_is_reachable 拦下了，拦得对——X 走服务端连接器，
+      // 点下去当场报「零费用门未确认」；清空范围会把它变成 YouTube 那种
+      // 「永远转」的形态。快速失败带一句原因是可以的，永远转不行。
+      // 所以只改这句话本身。
+    kuaishou:"收藏、点赞", bilibili:"收藏夹、稍后再看、历史、点赞", x:"本版还不能自动读，只能在页面上点插件手动保存", reddit:"Saved、Upvoted", instagram:"Saved Collections", youtube:"稍后观看、播放列表"
   };
-  const destinationNames = { social_archive:"主档案", markdown:"Markdown", notion:"Notion", obsidian:"Obsidian", github:"GitHub Private", karakeep:"Karakeep", linkwarden:"Linkwarden", archivebox:"ArchiveBox" };
+  const destinationNames = { social_archive:"我的档案馆", markdown:"Markdown", notion:"Notion", obsidian:"Obsidian", github:"GitHub Private", karakeep:"Karakeep", linkwarden:"Linkwarden", archivebox:"ArchiveBox" };
   const activeStates = new Set(["queued","authorizing","discovering","scanning","normalizing","artifacting","exporting"]);
   let config = null;
   let accounts = [];
   let runs = [];
   let destinations = [];
   let pendingConnections = {};
+  // 托管中的登录状态（v0.0.0.7 / T06）。服务端 GET /v1/credentials 只回形态：
+  // 平台、有没有、几条、什么时候存的。**永远不回 cookie 的名或值。**
+  let credentials = [];
+  // 每个平台「现在同步得动吗」，来自服务端（account_sync.SYNCABLE_NOW）。
+  // **网页那侧修过一遍，这一侧漏了** —— 同一份假话在两个界面各有一份。
+  let platformSupport = {};
   let serviceReady = false;
 
   function setServiceMessage(message = "", type = "needs") {
@@ -33,46 +60,29 @@
     clearTimeout(toast.timer);
     toast.timer = setTimeout(() => node.classList.add("hidden"), 4200);
   }
-  function stateLabel(value) { return ({connected:"已连接",degraded:"降级可用",disconnected:"未连接",authorizing:"正在授权",queued:"等待同步",discovering:"正在发现",scanning:"正在同步",normalizing:"正在整理",artifacting:"正在归档",exporting:"正在导出",completed:"同步完成",partial:"部分完成",failed:"需要处理",blocked_environment:"重新连接"})[value] || value || "未连接"; }
+  function stateLabel(value) { return ({connected:"已连接",degraded:"降级可用",disconnected:"未连接",authorizing:"正在授权",queued:"等待同步",discovering:"正在发现",scanning:"正在同步",normalizing:"正在整理",artifacting:"正在归档",exporting:"正在导出",completed:"同步完成",partial:"部分完成",failed:"需要处理",blocked_environment:"重新连接"})[value] || (value ? "状态未知" : "未连接"); }
   function latestRun(accountId) { return runs.filter(run => run.source_account_id === accountId).sort((a,b)=>String(b.updated_at||"").localeCompare(String(a.updated_at||"")))[0] || null; }
-  function formatTime(value) { if(!value)return"尚未同步";const d=new Date(value);return Number.isNaN(d.getTime())?"尚未同步":new Intl.DateTimeFormat("zh-CN",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(d).replaceAll("/","-"); }
+  // **「没有时间戳」不等于「没同步过」。**
+  //
+  // `last_sync_at` 只在一次同步**完全跑完**时才写（account_sync.py 里那两处
+  // UPDATE 都挂在 `final_status == "completed"` 上）。而实际发生过的是：
+  // 跑完了、导进来 102 条、结局是 partial——字段永远是空的。
+  // 于是这张卡片会印出 `103 条 · 尚未同步`：**同一行里自相矛盾**。
+  function formatTime(value, blank = "尚未同步") { if(!value)return blank;const d=new Date(value);return Number.isNaN(d.getTime())?blank:new Intl.DateTimeFormat("zh-CN",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(d).replaceAll("/","-"); }
 
   async function checkService() {
     config = await SA.getConfig();
     $("endpoint").value = config.endpoint;
+    // v0.0.0.7 / T03：判据只剩一条——**拿现有凭据真的调一次受保护接口**。
+    // 旧实现先问服务端「还要不要配对」，再据此决定要不要弹出手抄码的输入框。
+    // 那条链路已删；而且它把"服务说不用配对"当成"我连得上"，中间隔着凭据有没有效。
     try {
-      const status = await fetch(`${config.endpoint}/v1/pairing/status`, {cache:"no-store"}).then(r=>r.ok?r.json():null);
-      if (status?.pairing_required === false && status.service_ready) {
-        serviceReady = true;
-        $("serviceState").className = "state connected";
-        $("serviceState").textContent = "已连接";
-        $("serviceBadge").className = "badge connected";
-        $("serviceBadge").textContent = "私人档案馆已连接";
-        $("pairingArea").classList.add("hidden");
-        setServiceMessage();
-        return true;
-      }
-      if (status?.pairing_required === true && !status.one_time_code_available) {
-        serviceReady = false;
-        $("serviceState").className = "state error";
-        $("serviceState").textContent = "等待配对码";
-        $("serviceBadge").className = "badge error";
-        $("serviceBadge").textContent = "等待配对码";
-        // Keep the input visible.  Hiding it here dead-ended the user: a code
-        // lives at most ten minutes, so by the time one is in hand this branch
-        // has usually gone true again, and with the field hidden there was no
-        // way forward and no way to retry.
-        $("pairingArea").classList.remove("hidden");
-        setServiceMessage("私人档案馆已就绪，正在等待一次性配对码。拿到码后直接粘贴到下面并点“一键连接”即可；配对码十分钟内有效。插件不会请求或改变任一平台的登录状态。", "needs");
-        return false;
-      }
       await SA.api("/v1/extension/bootstrap", {timeoutMs:6000});
       serviceReady = true;
       $("serviceState").className = "state connected";
       $("serviceState").textContent = "已连接";
       $("serviceBadge").className = "badge connected";
       $("serviceBadge").textContent = "私人档案馆已连接";
-      $("pairingArea").classList.add("hidden");
       setServiceMessage();
       return true;
     } catch (_) {
@@ -81,20 +91,27 @@
       $("serviceState").textContent = "待连接";
       $("serviceBadge").className = "badge error";
       $("serviceBadge").textContent = "需要连接";
-      $("pairingArea").classList.remove("hidden");
-      setServiceMessage();
+      // 没连上时不再要用户输入任何东西——指路去已登录的档案馆页面点一下即可。
+      setServiceMessage("还没有连上私人档案馆。请打开档案馆页面并登录，插件会自动接上，无需输入任何内容。", "needs");
       return false;
     }
   }
 
   async function loadData() {
-    if (!await checkService()) { accounts=[]; runs=[]; destinations=[]; render(); return; }
+    if (!await checkService()) { accounts=[]; runs=[]; destinations=[]; credentials=[]; render(); return; }
     try {
-      const [accountData, runData, bootstrap, pendingData] = await Promise.all([
+      const [accountData, runData, bootstrap, pendingData, credentialData] = await Promise.all([
         SA.api("/v1/accounts",{timeoutMs:8000}), SA.api("/v1/sync-runs?limit=200",{timeoutMs:8000}), SA.api("/v1/extension/bootstrap",{timeoutMs:8000}),
-        chrome.runtime.sendMessage({type:"SA_GET_PENDING_CONNECTIONS"}).catch(()=>({items:{}}))
+        chrome.runtime.sendMessage({type:"SA_GET_PENDING_CONNECTIONS"}).catch(()=>({items:{}})),
+        // 单独兜底：托管状态读不到不该让整页空白——其余四项是这一页的主体。
+        SA.api("/v1/credentials",{timeoutMs:8000}).catch(()=>({items:[]})),
+        // **只能加在末尾。** 插在中间会把后面每一项都挪一位，而解构名字不会报错，
+        // 只会静静地把 credentials 读成别的东西——服务徽章那次就是这么坏的。
+        loadMediaSessionPlatforms()
       ]);
       accounts=accountData.items||[]; runs=runData.items||[]; destinations=bootstrap.destinations||[]; pendingConnections=pendingData.items||{};
+      platformSupport=Object.fromEntries((accountData.supported_platforms||[]).map(item=>[item.platform,item]));
+      credentials=credentialData.items||[];
     } catch(error){ toast(`状态读取失败：${error.message}`,"error"); }
     render();
   }
@@ -113,24 +130,107 @@
       const account=accounts.find(item=>item.platform===platform && (platform!=="generic-web" || item.external_account_id==="chrome-bookmarks"));
       const run=account?latestRun(account.id):null;
       const pending=Boolean(pendingConnections[platform]);
-      const status=pending?"authorizing":(run && activeStates.has(run.status)?run.status:(account?.connection_state||"disconnected"));
+      // 托管登录状态是**独立于 source_account 的**一份事实：走 Cookie 托管连接
+      // （connectPlatformSessionByCookies）只会把加密后的登录状态存进服务端，
+      // 不会建 source_account 行。此前这一页只看 accounts，于是连接成功弹出
+      //「已连接，登录状态已加密保存（N 条）」之后，刷新回来卡片仍显示「未连接」。
+      const custody=credentials.find(item=>item.platform===platform && item.connected)||null;
+      const status=pending?"authorizing":(run && activeStates.has(run.status)?run.status:(account?.connection_state||(custody?"connected":"disconnected")));
       const imported=Number(run?.imported_count||0),discovered=Number(run?.discovered_count||0);
       const progress=discovered?Math.min(100,Math.round(imported/discovered*100)):(run&&activeStates.has(run.status)?18:(account?100:0));
+      // 失败时优先显示**为什么**（v0.0.0.7 / T14）。message_zh 由服务端算好下发，
+      // 词典只有一处真源，扩展不再需要自己抄一份——先前它压根没有词典，
+      // 同步失败只显示状态标签「需要处理」，说不出原因。
+      const failureText = run && run.last_error_code ? (run.message_zh || "") : "";
       const meta=pending
         ? `登录页已经打开。完成登录后会自动继续；未自动识别时点击“我已登录”。`
-        : account
-          ? (run&&activeStates.has(run.status)?`已导入 ${imported.toLocaleString("zh-CN")}/${discovered?discovered.toLocaleString("zh-CN"):"…"} 条`:`${Number(account.content_count||0).toLocaleString("zh-CN")} 条 · ${formatTime(account.last_sync_at)}`)
-          : relationCopy[platform];
-      const action=pending
+        : failureText
+          ? failureText
+          : account
+            ? (run&&activeStates.has(run.status)?`已导入 ${imported.toLocaleString("zh-CN")}/${discovered?discovered.toLocaleString("zh-CN"):"…"} 条`:`${Number(account.content_count||0).toLocaleString("zh-CN")} 条 · ${formatTime(account.last_sync_at, Number(account.content_count||0) ? "同步时间没有记录" : "尚未同步")}`)
+            : custody
+              ? `登录状态已加密保存（${Number(custody.cookie_count||0).toLocaleString("zh-CN")} 条）· ${formatTime(custody.updated_at)}`
+              : (platformSupport[platform]?.sync_supported === false
+                ? (platformSupport[platform]?.not_syncable_reason || "本版本还不能自动同步这个平台。")
+                // **优先照「这一版真的会读什么」写**。relationCopy 是一张写死的散文表，
+                // B 站那条写着「收藏夹、稍后再看、历史、点赞」而实际只读收藏夹——
+                // 他点「连接账号」时以为四样都会同步。目录里没登记的平台
+                // （取数路还没做的那些）仍然用 relationCopy，行为不变。
+                : (globalThis.SAPlatformCatalog?.SCANNABLE_RELATIONS?.[platform]
+                  // **登记成「空」的平台要说话，不能留一片空白。**（2026-08-10）
+                  // 今天把 youtube 登记成 `Object.freeze([])`（取数路没做，不登记的话
+                  // 服务端会下发一个扫不动的范围，那次 run 永远不收敛）。于是
+                  // scannableSummary 返回空串，这张卡片就**空着**——真机上读出来是
+                  //「YouTube / 未连接 / 未连接 /（空）/ 连接账号」。
+                  // 空白读起来像加载失败，不是「这一版读不了」。
+                    ? (globalThis.SAPlatformCatalog.scannableSummary(platform)
+                          || "本版还不能自动读，只能在页面上点插件手动保存")
+                    : relationCopy[platform]));
+      // 「随时可以一键撤销」是连接成功时**当着用户面许下的原话**（background.js）。
+      // 此前撤销只存在于两处代码里：服务端 DELETE /v1/credentials/{platform}，
+      // 以及扩展的 SA_REVOKE_PLATFORM_SESSION 处理体——**而没有任何界面发出这条消息**。
+      // 也就是说这句承诺在产品上是假的。这颗按钮就是把它变成真的。
+      const revoke=custody?`<button class="card-button danger" data-revoke-platform="${platform}">撤销登录状态</button>`:"";
+      // **同步不了的平台不给同步/连接按钮。**
+      //
+      // 与网页那侧同一条规则（见 account_sync.SYNCABLE_NOW）。小红书/抖音/
+      // 快手/B站 的取数路在本版本是 stub：画了按钮点下去必然失败，
+      // 而失败文案曾经说的是「暂时连不上服务器，[ 重试 ]」。
+      const syncable = platformSupport[platform]?.sync_supported !== false;
+      // **「同步不了」不等于「连了没用」。** 网页那侧犯过一次同样的错：
+      // 把 x / instagram 移出「能同步」之后，这段逻辑顺手把它们的**连接入口**
+      // 也一起关了。那对国内四家是对的（Cookie 一步不离开浏览器，服务端根本
+      // 不接收），对 x / instagram 是错的（托管的登录状态会被取原文件那条路用到）。
+      // 服务端为此单独下发 connect_supported，依据是 credentials.CUSTODIAL_PLATFORMS。
+      const connectable = platformSupport[platform]?.connect_supported !== false;
+      // **守卫必须排在最前面。** 放在 pending 之后的话，一个同步不了的平台
+      // 只要还留着未完成的连接流程，就仍会画出「我已登录，继续」和「重新打开」
+      // ——把人推进一条走到头也没用的路。这一处是新加的那道门抓出来的，
+      // 不是我自己看出来的。
+      const action=!syncable
+        ? (account
+            ? `<button class="card-button danger" data-disconnect-account="${SA.escapeHtml(account.id)}">断开连接</button>${revoke}`
+            : connectable
+              ? `<button class="card-button" data-connect-platform="${platform}">连接账号</button>`
+              : "")
+        : pending
         ? `<button class="card-button primary" data-verify-platform="${platform}">我已登录，继续</button><button class="card-button" data-connect-platform="${platform}">重新打开</button>`
+        // **断开的账号只有一件事做得成：连回来。**（2026-08-11）
+        //
+        // 这一支原来只问「有没有 account」，从不问它连着没有。而真镜像上实测：
+        //   已连接  POST /v1/accounts/{id}/sync → 202
+        //   已断开  POST /v1/accounts/{id}/sync → 422「账号尚未连接，请先完成授权」
+        // Owner 三个账号现在全是 disconnected，这里于是给他三颗必然失败的「立即同步」。
+        //
+        // ★ 同一天我在 apps/pwa/app.js 修过一模一样的一处，**而这一处漏了**——
+        // 正是这道门的文件头写着的那句：「两个界面各有一份。第一轮只修了网页那侧，
+        // 扩展设置页原样留着同样的假话。」我又犯了一次。
+        //
+        // ★ 这里**不放**「删除并清空」。我第一版顺手加了一颗，而这个页面里
+        // 根本没有它的点击处理——就是这个仓栽过六次的「建好了没接上」。
+        // 那颗按钮的家在资料库（PWA）那一侧，已经在真 Chrome 里验过点得动、
+        // 真发 POST …/forget。这里只给他现在唯一走得通的那一条路。
+        : account && account.connection_state === "disconnected"
+          ? `<button class="card-button primary" data-connect-platform="${platform}">连接账号</button>${revoke}`
         : account
-          ? `<button class="card-button primary" data-sync-account="${SA.escapeHtml(account.id)}">立即同步</button>${["blocked_environment","failed"].includes(status)?`<button class="card-button" data-connect-platform="${platform}">重新连接</button>`:""}`
-          : `<button class="card-button primary" data-connect-platform="${platform}">连接账号</button>`;
-      return `<article class="account-card"><header><span class="platform-icon">${platformIcons[platform]}</span><span class="account-title"><strong>${platformNames[platform]}</strong><small>${SA.escapeHtml(account?.display_name||"未连接")}</small></span><span class="state ${SA.escapeHtml(status)}">${SA.escapeHtml(stateLabel(status))}</span></header><div class="account-meta">${SA.escapeHtml(meta)}</div><div class="progress"><span style="width:${progress}%"></span></div><div class="account-actions">${action}</div></article>`;
+          ? `<button class="card-button primary" data-sync-account="${SA.escapeHtml(account.id)}">立即同步</button>${["blocked_environment","failed"].includes(status)?`<button class="card-button" data-connect-platform="${platform}">重新连接</button>`:""}<button class="card-button danger" data-disconnect-account="${SA.escapeHtml(account.id)}">断开连接</button>${revoke}`
+          : custody
+            ? `<button class="card-button" data-connect-platform="${platform}">重新连接</button>${revoke}`
+            : `<button class="card-button primary" data-connect-platform="${platform}">连接账号</button>`;
+      // **两条路，两颗按钮。** Instagram 的连接走扩展读取（主路径，不碰 cookie），
+      // 而「保存登录状态」是给下载媒体用的补全路径——它没被删，只是不再霸占
+      // 「连接账号」那颗按钮。少了这一颗，那套机制就变成从界面上够不着的，
+      // 而这个仓在「建好了没接上」上已经栽过五次。
+      const mediaSession = mediaSessionPlatforms.includes(platform) && account
+        ? `<button class="card-button" data-save-session="${platform}">保存登录状态</button>` : "";
+      return `<article class="account-card"><header><span class="platform-icon">${platformIcons[platform]}</span><span class="account-title"><strong>${platformNames[platform]}</strong><small>${SA.escapeHtml(account?.display_name||"未连接")}</small></span><span class="state ${SA.escapeHtml(status)}">${SA.escapeHtml(stateLabel(status))}</span></header><div class="account-meta">${SA.escapeHtml(meta)}</div><div class="progress"><span style="width:${progress}%"></span></div><div class="account-actions">${action}${mediaSession}</div></article>`;
     }).join("");
     document.querySelectorAll("[data-connect-platform]").forEach(button=>button.addEventListener("click",()=>connectPlatform(button.dataset.connectPlatform,button)));
+    document.querySelectorAll("[data-save-session]").forEach(button=>button.addEventListener("click",()=>saveMediaSession(button.dataset.saveSession,button)));
     document.querySelectorAll("[data-verify-platform]").forEach(button=>button.addEventListener("click",()=>verifyPlatform(button.dataset.verifyPlatform,button)));
     document.querySelectorAll("[data-sync-account]").forEach(button=>button.addEventListener("click",()=>syncAccount(button.dataset.syncAccount,button)));
+    document.querySelectorAll("[data-revoke-platform]").forEach(button=>button.addEventListener("click",()=>revokePlatform(button.dataset.revokePlatform,button)));
+    document.querySelectorAll("[data-disconnect-account]").forEach(button=>button.addEventListener("click",()=>disconnectAccount(button.dataset.disconnectAccount,button)));
   }
 
   function renderDestinations() {
@@ -138,7 +238,7 @@
     const map=new Map(destinations.map(item=>[item.destination_id,item]));
     $("destinationGrid").innerHTML=order.map(id=>{
       const item=map.get(id)||{};const state=id==="social_archive"||id==="markdown"?(item.state||"connected"):(item.state||"needs_user_action");
-      return `<article class="destination-card"><header><strong>${destinationNames[id]}</strong><span class="state ${SA.escapeHtml(state)}">${SA.escapeHtml(SA.statusCopy(state))}</span></header><p>${SA.escapeHtml(item.last_message_zh||item.next_action_zh||(state==="connected"?"自动写入已开启":"在网站连接向导中完成一次真实写入"))}</p></article>`;
+      return `<article class="destination-card"><header><strong>${destinationNames[id]}</strong><span class="state ${SA.escapeHtml(state)}">${SA.escapeHtml(SA.statusCopy(state))}</span></header><p>${SA.escapeHtml(item.last_message_zh||item.next_action_zh||(state==="connected"?"自动写入已开启":"在网站连接向导中完成一次真实写入"))}</p><p class="muted">${SA.escapeHtml(item.coverage_zh||"")}</p><p class="muted">${SA.escapeHtml(item.privacy_note_zh||"")}</p></article>`;
     }).join("");
   }
   function render(){renderSummary();renderAccounts();renderDestinations();}
@@ -147,6 +247,25 @@
     if(!serviceReady){toast("请先连接私人档案馆","needs");location.hash="service";return;}
     button.disabled=true;button.textContent="正在连接…";
     try{
+      // **权限必须在这里要，不能到 service worker 里去要。**
+      //
+      // `chrome.permissions.request` 要求「在一次用户手势期间调用」，而**用户手势
+      // 不会跨过 sendMessage 那道边界**：background 收到消息时手势已经没了。
+      // 原来这一步直接发消息，由 connectBrowserPlatform 去调 request——
+      // 实测（真 Chrome + 原样解包的发布包）抛的是
+      // 「This function must be called during a user gesture」。
+      //
+      // 也就是说**全新安装点「连接账号」，权限框根本不会弹出来**，
+      // 之后每次读取都拿不到权限。这是结构上不可能成功的那种按钮。
+      //
+      // 这里是点击处理器，手势还在。popup.js:46 早就是这么写的——
+      // 正确写法仓里一直有，只是账号页这条路没用它。
+      // background 那边的 requestPlatformPermission 会先 contains 再 request，
+      // 所以这里给到了，那边就直接放行，不会问第二次。
+      if(!await grantWhatConnectNeeds(platform)){
+        toast(`${platformNames[platform]}：还没有获得需要的授权。请再点一次「连接账号」，并在浏览器弹出的框里选「允许」。`,"needs");
+        return;
+      }
       const result=await chrome.runtime.sendMessage({type:"SA_ACCOUNT_CONNECT",platform});
       if(!result?.ok)throw new Error(result?.error||"连接未完成");
       toast(result.message||"授权流程已打开");
@@ -155,11 +274,123 @@
     }catch(error){toast(`${platformNames[platform]}：${error.message}`,"error");}
     finally{button.disabled=false;button.textContent="连接账号";}
   }
+  /** 保存登录状态：给「下载原图原视频」那条补全路径用的（v0.0.0.22）。
+   *
+   * 和「连接账号」是两件事，文案里要说清，否则他不知道这颗按钮干嘛的。
+   */
+  let mediaSessionPlatforms=[];
+  let custodialPlatforms=[];
+  async function loadMediaSessionPlatforms(){
+    try{const r=await chrome.runtime.sendMessage({type:"SA_MEDIA_SESSION_PLATFORMS"});
+        mediaSessionPlatforms=Array.isArray(r?.platforms)?r.platforms:[];
+        custodialPlatforms=Array.isArray(r?.custodial)?r.custodial:[];}
+    catch(_){mediaSessionPlatforms=[];custodialPlatforms=[];}
+  }
+
+  /** 这颗按钮点下去，那条路会用到哪些权限——**在手势还在的时候一次要齐**。
+   *
+   * ## 为什么必须在这里
+   *
+   * `chrome.permissions.request` 要求「在一次用户手势期间调用」，而**手势不会
+   * 跨过 sendMessage 那道边界**：background 收到消息时它已经没了。
+   *
+   * 三个申请点原来全在 background 里。实测（真 Chrome + 原样解包的发布包，
+   * 在 service worker 里直接调）**三种权限一个都要不到**：
+   *
+   *     bookmarks  This function must be called during a user gesture
+   *     cookies    同上
+   *     host       同上
+   *
+   * 也就是说账号页上**每一颗「连接账号」在全新安装时都拿不到它要的权限**——
+   * 包括 Chrome 书签那一颗，而那是我一直说"实测跑通"的那个平台
+   * （那份实测跑在演练里，而演练在加载前把可选权限全提成了必给权限）。
+   *
+   * popup.js:46 一直是对的写法（在页面上下文里要），只是账号页这条路没用它。
+   * background 那边的 requestPlatformPermission 会先 contains 再 request，
+   * 所以这里给到了，那边直接放行，不会问第二次。
+   *
+   * ## 三条路各要什么
+   *
+   *   Chrome 书签      bookmarks（它没有域名，patterns 是空的）
+   *   浏览器读取平台   该平台的域名
+   *   登录状态托管     cookies + 该平台的域名
+   */
+  async function grantWhatConnectNeeds(platform){
+    const origins=SA.patternsForPlatform(platform)||[];
+    const permissions=[];
+    if(platform==="generic-web"||platform==="chrome-bookmarks")permissions.push("bookmarks");
+    // 同时支持两条路的平台（Instagram）连接走的是浏览器读取，不要 cookies；
+    // 它的登录状态托管有单独那颗「保存登录状态」，在那儿单独要。
+    else if(custodialPlatforms.includes(platform)&&!mediaSessionPlatforms.includes(platform))permissions.push("cookies");
+    const request={};
+    if(permissions.length)request.permissions=permissions;
+    if(origins.length)request.origins=origins;
+    if(!request.permissions&&!request.origins)return true;
+    if(await chrome.permissions.contains(request).catch(()=>false))return true;
+    return chrome.permissions.request(request).catch(()=>false);
+  }
+  async function saveMediaSession(platform,button){
+    // 同一条规矩：cookies 和域名都要在手势还在的时候要到手。
+    const origins=SA.patternsForPlatform(platform)||[];
+    const need={permissions:["cookies"],...(origins.length?{origins}:{})};
+    const ok=await chrome.permissions.contains(need).catch(()=>false)
+      || await chrome.permissions.request(need).catch(()=>false);
+    if(!ok){toast(`${platformNames[platform]}：没有获得读取登录状态的授权。`,"needs");return;}
+    button.disabled=true;button.textContent="正在保存…";
+    try{
+      const result=await chrome.runtime.sendMessage({type:"SA_CONNECT_PLATFORM_SESSION",platform});
+      if(!result?.ok)throw new Error(result?.error||"没能保存登录状态");
+      toast(result.message||"登录状态已加密保存，随时可以一键撤销");
+      await loadData();
+    }catch(error){toast(`${platformNames[platform]}：${error.message}`,"needs");}
+    finally{button.disabled=false;button.textContent="保存登录状态";}
+  }
   async function verifyPlatform(platform,button){
     button.disabled=true;button.textContent="正在检查…";
     try{const result=await chrome.runtime.sendMessage({type:"SA_VERIFY_PLATFORM_SESSION",platform});if(!result?.ok)throw new Error(result?.error||"尚未检测到登录状态");toast(result.message||"账号已连接，首次同步已经开始");await loadData();}
     catch(error){toast(`${platformNames[platform]}：${error.message}`,"needs");}
     finally{button.disabled=false;button.textContent="我已登录，继续";}
+  }
+  /** 一键撤销托管的登录状态（v0.0.0.7 / T06 · INV-REVERSIBLE）。
+   *
+   * 走 background 而不是直接 fetch：撤销要做的**不止**服务端删库那一半，
+   * 还要把浏览器这边的 cookies 权限一起还回去（chrome.permissions.remove）。
+   * 只删服务端的话，用户在扩展详情页看到的仍然是「这个插件能读我的 Cookie」——
+   * 撤销了却看不出撤销了，和没撤销一样。那段逻辑在 background 里，
+   * 权限 API 也只有 background 能调。
+   */
+  async function revokePlatform(platform,button){
+    if(!confirm(`撤销后，服务器上保存的 ${platformNames[platform]||platform} 登录状态会被立即删除，插件也会交还读取该站点 Cookie 的权限。\n\n需要时可以重新连接。确定撤销吗？`))return;
+    button.disabled=true;button.textContent="正在撤销…";
+    try{
+      const result=await chrome.runtime.sendMessage({type:"SA_REVOKE_PLATFORM_SESSION",platform});
+      if(!result?.ok)throw new Error(result?.error||"撤销失败");
+      toast(result.message_zh||"已撤销，服务器上的登录信息已删除。");
+      await loadData();
+    }catch(error){toast(`${platformNames[platform]||platform}：${error.message}`,"error");}
+    finally{button.disabled=false;button.textContent="撤销登录状态";}
+  }
+  /** 断开账号（v0.0.0.7 / INV-REVERSIBLE）。
+   *
+   * 连接是一次点击，此前**断开做不到**——而连上之后每 6 小时自己跑一次，
+   * 用户没有任何办法让它停下来。这颗按钮就是那个「停」。
+   *
+   * 措辞刻意把「不再同步」和「内容留着」分开说：断开是"别再替我去取了"，
+   * 不是"把我存的东西清掉"。归档的意义就是东西留下来。
+   */
+  async function disconnectAccount(accountId,button){
+    const account=accounts.find(item=>item.id===accountId);
+    const name=account?platformNames[account.platform]||account.platform:"这个账号";
+    const kept=Number(account?.content_count||0).toLocaleString("zh-CN");
+    if(!confirm(`断开 ${name} 之后不会再自动同步。\n\n已经存下的 ${kept} 条内容都会留着，随时可以重新连接。\n\n确定断开吗？`))return;
+    button.disabled=true;button.textContent="正在断开…";
+    try{
+      const result=await chrome.runtime.sendMessage({type:"SA_DISCONNECT_ACCOUNT",accountId});
+      if(!result?.ok)throw new Error(result?.error||"断开失败");
+      toast(result.message_zh||"已断开连接。");
+      await loadData();
+    }catch(error){toast(`${name}：${error.message}`,"error");}
+    finally{button.disabled=false;button.textContent="断开连接";}
   }
   async function syncAccount(accountId,button){
     button.disabled=true;button.textContent="正在启动…";
@@ -173,25 +404,42 @@
     catch(error){toast(error.message,"needs");}
     finally{$("syncAll").disabled=false;}
   }
-  async function pair(){
-    const endpoint=String($("endpoint").value||config.endpoint).replace(/\/$/,"");const code=$("pairingCode").value.trim();
-    if(!code)return toast("请输入一次性配对码","needs");
+  /** 打开档案馆页面去连接（v0.0.0.7 / T03）。
+   *
+   * 这里**不再有任何输入框**。凭据由已登录的档案馆页面替扩展取好并直接递过来，
+   * 用户在这个页面一个字符都不用输入——这是 T03 的 Acceptance 原文要求。
+   */
+  async function openLibraryToConnect(){
     $("connectService").disabled=true;
     try{
-      const response=await fetch(`${endpoint}${config.pairingPath||"/v1/pairing/exchange"}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,device_name:"Social Archive Chrome"})});
-      const payload=await response.json().catch(()=>({}));if(!response.ok)throw new Error(payload.detail||`配对失败（${response.status}）`);
-      await SA.setConfig({endpoint:payload.endpoint||endpoint,libraryUrl:payload.library_url||config.libraryUrl,token:payload.token||"",onboardingComplete:true});
-      toast("私人档案馆已连接");await loadData();
+      const libraryUrl=String(config.libraryUrl||"").replace(/\/$/,"");
+      if(!/^https?:\/\//i.test(libraryUrl))throw new Error("档案馆地址无效，请检查服务连接设置。");
+      await chrome.tabs.create({url:libraryUrl,active:true});
+      toast("已打开档案馆页面，登录后插件会自动接上。");
     }catch(error){toast(error.message,"error");}
     finally{$("connectService").disabled=false;}
   }
 
-  $("connectService").addEventListener("click",pair);
+  $("connectService").addEventListener("click",openLibraryToConnect);
   $("syncAll").addEventListener("click",syncAll);
   $("jumpAccounts").addEventListener("click",()=>{location.hash="accounts";$("accounts").scrollIntoView({behavior:"smooth"});});
   $("refreshAccounts").addEventListener("click",loadData);
   $("openLibrary").addEventListener("click",async()=>chrome.tabs.create({url:(await SA.getConfig()).libraryUrl}));
   $("openDestinationCenter").addEventListener("click",async()=>chrome.tabs.create({url:`${(await SA.getConfig()).libraryUrl}/?open=destinations`}));
   $("finish").addEventListener("click",async()=>{await SA.setConfig({onboardingComplete:true});chrome.tabs.create({url:(await SA.getConfig()).libraryUrl});});
+  // 页面上那颗浮动按钮的开关。**此前 showFloatingButton 只有默认值 true，
+  // 全仓没有任何一处写它**——按钮出现在每个已授权的平台页面上，而用户没有
+  // 任何办法关掉它。「怎么让这个按钮消失」这个问题在界面上没有答案。
+  (async () => {
+    const box = $("showFloatingButton");
+    if (!box) return;
+    box.checked = (await SA.getConfig()).showFloatingButton !== false;
+    box.addEventListener("change", async () => {
+      await SA.setConfig({ showFloatingButton: box.checked });
+      // 已经打开的页面上那颗按钮要下一次加载才消失，说清楚，别让人以为没生效。
+      toast(box.checked ? "已开启；打开平台页面就能看到它。"
+                        : "已关掉；已经开着的页面刷新一次才会消失。");
+    });
+  })();
   loadData();
 })();

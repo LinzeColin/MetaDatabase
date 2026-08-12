@@ -5,6 +5,7 @@ import os
 import urllib.request
 
 from social_archive.config import Settings
+from social_archive import __version__
 from social_archive.status_projection import sanitize_status_document
 from social_archive.utils import atomic_write, read_secret, utcnow
 
@@ -12,7 +13,9 @@ from social_archive.utils import atomic_write, read_secret, utcnow
 def _down_document(exc: Exception) -> dict[str, object]:
     return {
         "project": "Social Archive",
-        "version": "0.0.0.6",
+        # 版本跟着包走。写死的话，升级之后状态站会一直报旧版本，
+        # 而这是外部唯一能看到本服务版本的地方。
+        "version": __version__,
         "generated_at": utcnow(),
         "overall": "down",
         "connectors": [],

@@ -1,0 +1,180 @@
+{
+  "status": "PASS",
+  "task": "G3",
+  "journey": {
+    "connect": {
+      "ok": true,
+      "state": "connected",
+      "accountId": "acct-1",
+      "syncRunId": "run-1",
+      "queuedCount": 1,
+      "message": "已确认登录（B站 · 测试账号），正在后台读取你的收藏夹。",
+      "platform": "bilibili",
+      "displayName": "B站 · 测试账号"
+    },
+    "verify": {
+      "ok": false,
+      "state": "not_pending",
+      "error": "没有等待确认的连接流程，请重新点击连接账号"
+    },
+    "tabs_before": [
+      {
+        "id": 846985444,
+        "active": false
+      },
+      {
+        "id": 846985445,
+        "active": false
+      },
+      {
+        "id": 846985448,
+        "active": true
+      }
+    ],
+    "my_tab_id": 846985448,
+    "queue_before": [
+      {
+        "accountId": "acct-1",
+        "enqueuedAt": 1786566563148,
+        "profileUrl": "",
+        "syncRunId": "run-1",
+        "tabId": null,
+        "triggerType": "first_connect",
+        "updatedAt": 1786566563148
+      }
+    ],
+    "alarm_scheduled": true,
+    "alarm_period_minutes": 1,
+    "sync": {
+      "ok": true,
+      "syncRunId": "run-1",
+      "status": "completed",
+      "results": [
+        {
+          "accepted": 0
+        }
+      ]
+    },
+    "queue_after": [],
+    "tabs_after": [
+      {
+        "id": 846985444,
+        "active": false
+      },
+      {
+        "id": 846985445,
+        "active": false
+      },
+      {
+        "id": 846985448,
+        "active": true
+      }
+    ],
+    "still_looking_at_my_tab": true,
+    "tabs_created_by_sync": 0,
+    "options_card": {
+      "gridExists": true,
+      "cardCount": 9,
+      "mentionsBilibili": true,
+      "biliCardText": "B B站 B站 · 测试账号 已连接 3 条 · 08-06 10:00 立即同步 断开连接",
+      "biliButtons": [
+        "立即同步",
+        "断开连接"
+      ],
+      "anyConnectButton": true,
+      "anySyncButton": true
+    },
+    "popup": {
+      "hasSettingsButton": true,
+      "hasSaveButton": true,
+      "hasOpenLibrary": true,
+      "manageAccountsHint": "小红书、抖音、哔哩哔哩、Reddit、Instagram、普通网页可自动同步；其余平台用下面的「保存当前页面」",
+      "saveSummary": "保存当前页面",
+      "diagnoseWhy": "快手、X、YouTube的收藏列表现在还读不了",
+      "saveIsCollapsed": true,
+      "mentionsBilibiliCannotRead": false
+    },
+    "sidepanel": {
+      "renders": true,
+      "activeCount": "0",
+      "doneCount": "1",
+      "actionCount": "0",
+      "cardCount": 0,
+      "firstCard": "",
+      "emptyShown": true,
+      "bodyStart": "SA 账号同步 收藏与书签 ↻ 0 同步中 1 已完成 0 需处理 同步全部账号 连接账号 同步中 需处理 全部 ✓ 现在没有正在跑的同步 最近完成了 1 次——点上面的「全部」可以看。 打开资料库 账号与导出"
+    }
+  },
+  "account_created": {
+    "id": "acct-1",
+    "platform": "bilibili",
+    "connection_state": "connected",
+    "content_count": 3,
+    "last_sync_at": "2026-08-06T00:00:00Z",
+    "external_account_id": "1919810",
+    "display_name": "B站 · 测试账号",
+    "metadata": {
+      "auth_method": "browser_session",
+      "verified_by": "bilibili_nav_api",
+      "extension_version": "0.0.0.70",
+      "auto_sync_enabled": true,
+      "sync_interval_minutes": 360
+    }
+  },
+  "items_received": 3,
+  "item_urls": [
+    "https://www.bilibili.com/video/BV1aaaaaaaaa",
+    "https://www.bilibili.com/video/BV1bbbbbbbbb",
+    "https://www.bilibili.com/video/BV1cccccccccc"
+  ],
+  "collections": [
+    "111",
+    "222"
+  ],
+  "batches": [
+    {
+      "relation": "favorite",
+      "scope": "collection",
+      "items": 2,
+      "completeness": "partial",
+      "failure_code": null
+    },
+    {
+      "relation": "favorite",
+      "scope": "collection",
+      "items": 0,
+      "completeness": "complete",
+      "failure_code": null
+    },
+    {
+      "relation": "favorite",
+      "scope": "collection",
+      "items": 1,
+      "completeness": "partial",
+      "failure_code": null
+    },
+    {
+      "relation": "favorite",
+      "scope": "collection",
+      "items": 0,
+      "completeness": "complete",
+      "failure_code": null
+    },
+    {
+      "relation": "favorite",
+      "scope": "relation",
+      "items": 0,
+      "completeness": "complete",
+      "failure_code": null
+    }
+  ],
+  "bilibili_endpoints_called": [
+    "/",
+    "/favicon.ico",
+    "/x/v3/fav/folder/created/list-all",
+    "/x/v3/fav/resource/list",
+    "/x/web-interface/nav"
+  ],
+  "problems": [],
+  "what_this_does_not_prove": "对面是本机固定装置，不是真 B 站——「B 站真的会那样回」由 bilibili_acquisition_drill.py 打真接口去证。另外**没有验权限授予那一下**：演练点不了 chrome.permissions.request 的弹窗，所以加载前把 bilibili 的 host 权限从可选挪成了必需。那一下由 Owner 在设置页点「连接账号」时给。"
+}

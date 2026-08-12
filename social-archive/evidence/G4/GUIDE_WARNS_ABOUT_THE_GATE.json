@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "guide_first_url": "https://social-archive.linzezhang.com/",
+  "measured": {
+    "status": 302,
+    "location": "https://tiny-scene-b867.cloudflareaccess.com/cdn-cgi/access/login/social-archive.linzezhang.com"
+  },
+  "guide_mentions_the_gate": true,
+  "problems": [],
+  "why_zh": "这道门补的是**反方向**：另一道门查「说明里写的真的存在」，查不到「真实存在、而说明里没有」。少说也是说错。"
+}

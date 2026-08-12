@@ -1,0 +1,43 @@
+{
+  "task": "T16",
+  "claim": "索引备份从「一天一次」提到「跟着制品每 ~15 分钟一次，且只在库真的变了时才上传」。生产实测：跟着复制单元跑出了新快照并双仓验证；紧接着连跑两次都正确跳过、不产生流量。",
+  "invariant": "INV-REVERSIBLE",
+  "measured_at": "2026-08-04",
+
+  "the_asymmetry_being_fixed": "制品在复制单元里每 ~15 分钟复制一次，而运行库索引一天才备一次（03:20 UTC）。机器在这两者之间没了，就会留下一批**有制品、没索引行**的孤儿密文——救回来也不知道是什么。",
+
+  "why_not_just_upload_every_15_minutes": "一次快照密文约 963 KB。无条件每 15 分钟传一次 = 92 MB/天 ≈ 34 GB/年，而 R2 软限是 8.94 GB。所以必须只在变了时才传。",
+  "quota_headroom_measured": "R2 已用 24.5 MB / 软限 8.94 GB（0.27%）；OCI 24.5 MB / 18.36 GB（0.13%）。",
+
+  "the_change_detector_and_why_both_halves_had_to_be_measured": {
+    "vacuum_into": "同一个库连做三次 VACUUM INTO，sha256 完全一致（构造里特意删过几行、留了 freelist）。**确定性成立。**",
+    "gzip": "**只置 mtime=0 还不够。** GzipFile 拿到 fileobj 时会从 `fileobj.name` 推出一个文件名也写进头部。实测：同样内容写进 a.gz 与 b.gz → `7bddc5ee…` vs `a5b42f87…`，**不一致**；显式 `filename=\"\"` 之后两次都是 `fc32ac2f…`。",
+    "how_it_was_caught": "**是我自己的自测抓出来的**——第一版只改了 mtime，自测立刻打出「不一致」。差一点就带着一个「永远判定为已变化」的检测器上线，那样这个开关等于没有。"
+  },
+
+  "production_measurements": {
+    "ran_via_replication_unit": "Result=success；产出新快照 snapshot 4,468,736 字节 → 密文 962,979 字节，object_key backups/runtime-db/20260804T131144Z/…，r2 verified、oci verified",
+    "back_to_back_runs_with_nothing_written": [
+      "RUN1 → {\"status\":\"PASS\",\"skipped\":true,\"reason\":\"RUNTIME_DB_UNCHANGED\",\"original_sha256\":\"c697b8c1…\"}",
+      "RUN2 → 同上，同一个 original_sha256"
+    ],
+    "meaning": "跳过路径真的走了；两次算出同一个明文哈希，**确定性在真库上也成立**。"
+  },
+
+  "two_of_my_own_gates_fired_on_this_change": [
+    "**systemd 漂移闸门**（两小时前刚建的）拦下了这次部署：我改了 replication.service 却没装上去。它打出了那一行 cp。**这是它第一次在真实改动上生效。**",
+    "**磁盘闸门**随后也拦了一次：可用降到 4G（< 5G 阈值）。按它给的办法只删悬空镜像，回到 8.0G 再部署。"
+  ],
+
+  "two_mistakes_i_made_and_fixed": [
+    "第一版把密文留在 TemporaryDirectory 里，`with` 块一退出文件就没了，上传会拿到一个不存在的路径。改成：确认这一轮要传，才建正式目录并把密文挪过去。",
+    "判据把「跳过要早于上传」钉在字符串 `_upload_and_verify` 上，而那个名字在文件第 56 行的 import 里就出现了——**判据永远说「先传后判」**。改钉在真正的调用上。"
+  ],
+
+  "what_this_does_not_prove": [
+    "不证明每 15 分钟这个节奏够。它只是把「最坏落后一天」变成「最坏落后一刻钟」；真正要多快取决于能接受丢多少。",
+    "**索引仍然只有两份远程副本**（R2 + OCI），制品是三份。GitHub 那一份要走 release pack 那条路，本轮没做。",
+    "不证明快照不会越积越多。脚本刻意不删旧快照（保留策略是运维决定），现在每次库变化都会留一份——**长期会占空间，需要人来定保留期**。",
+    "不证明定时器在无人干预下稳定跑。这次是手动触发的复制单元；完整周期没观察过。"
+  ]
+}

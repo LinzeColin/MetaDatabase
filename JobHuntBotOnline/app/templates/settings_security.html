@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}账户安全｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="settings-layout">
+  <aside class="settings-nav"><h2>设置</h2><a href="/settings/profile">求职偏好</a><a class="active" href="/settings/security">账户安全</a><a href="/settings/data">数据与隐私</a></aside>
+  <div>
+    <article class="panel"><h1>账户安全</h1><dl class="summary-list"><div><dt>登录邮箱</dt><dd>{{ masked_email }}</dd></div><div><dt>DeepSeek API</dt><dd>由平台统一安全管理，普通用户不可见</dd></div></dl></article>
+    <form method="post" action="/settings/security" class="form-card compact" data-testid="change-password-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <h2>修改密码</h2>
+      <label>当前密码<input type="password" name="current_password" required data-testid="security-current-password"></label>
+      <label>新密码<input type="password" name="new_password" minlength="10" required data-testid="security-new-password"></label>
+      <label>确认新密码<input type="password" name="new_password_confirm" required data-testid="security-new-password-confirm"></label>
+      <button class="button" type="submit" data-testid="security-password-submit">修改并退出所有设备</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

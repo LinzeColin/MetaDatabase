@@ -1,0 +1,91 @@
+{
+  "task": "T02",
+  "claim": "登录后端一直是好的，而产品里**根本没有登录按钮**。已补上登录闸并部署到生产。",
+  "how_it_surfaced": {
+    "trigger": "Owner 说「我点击也登陆了」。",
+    "measured_instead_of_believed": {
+      "users": 1,
+      "users_note": "这 1 行是 T01 迁移回填的默认账户，不是这次登录",
+      "oauth_identity": 0,
+      "session": 0,
+      "server_log": "有 GET /v1/auth/providers 200，**没有任何一次 /start 或 callback**"
+    },
+    "conclusion": "不是他操作错了。产品里没有可点的登录入口。"
+  },
+  "root_cause": {
+    "backend": "auth.py 提供 7 条路由，且 providers 显示 google/github 均 configured=true —— 后端从来是好的。",
+    "frontend": "全仓客户端只调用其中一条（POST /v1/auth/extension-token）。**/v1/auth/{provider}/start 零调用。**",
+    "why_no_gate_caught_it": "`find_endpoints_no_client_calls.py` 只扫 api.py，**从没看过 auth.py**。射程写错，本轮第六次。",
+    "gate_fixed": "门已扩到 auth.py。一扩就报出 3 条死接口：GET /providers、POST /logout、DELETE /extension-token。"
+  },
+  "what_was_built": [
+    "未登录时一层登录闸盖住整页，**先过闸再干别的** —— 否则后面每个接口都 401，用户看到一堆「服务连接异常」，而真因是没登录",
+    "只给 configured=true 的 provider 画按钮（画一个点了就 503 的按钮更糟）",
+    "start 只返回 authorize_url，**跳转由客户端自己做**；不跳等于点了没反应",
+    "设置面板补「当前登录」一栏：退出登录 + 断开浏览器插件 —— 同时补上 INV-REVERSIBLE 的两处缺口（能登进来要能退出去，能发令牌要能收回来）"
+  ],
+  "deployed_and_verified": {
+    "at": "2026-08-04T05:4x UTC",
+    "origin_index_html": "HTTP 200，含 loginGate，资源版本戳 ?v=007-r2",
+    "origin_app_js": "HTTP 200，含 requireLogin 与 /v1/auth/me",
+    "auth_endpoints": "/v1/auth/providers → 200；/v1/auth/me（未登录）→ 401",
+    "service_worker": "缓存名与三处资源版本戳一起从 r1 顶到 r2 —— 不顶的话回访用户继续吃旧页面（日志里那条 GET /v1/pairing/status 404 就是旧缓存还在跑的证据）"
+  },
+  "a_mistake_worth_recording": {
+    "what": "提交时带着一条红判据。",
+    "cause": "`pytest -q | tail -2 && git commit` —— **`&&` 看的是 tail 的退出码**，不是 pytest 的。本轮第二次栽在管道吞退出码上。",
+    "fix": "改用 `; RC=$?` 显式读。",
+    "the_test_itself_was_also_wrong": "那条判据逐字钉死 `const CACHE = \"social-archive-ui-v007-r1\"`。**它只能证明「没人动过这个值」，而「没人动它」正是它要防的 bug。** 改成断言四处互相一致后，立刻抓到我自己只顶了两处、另两处还停在 r1 —— 正是「缓存换了、资源没换」。"
+  },
+  "what_this_does_not_prove": [
+    "**没有真的走完一次 OAuth 往返。** 判据与部署验证只证明了按钮在、接口活、未登录返回 401。真正的 200 要等 Owner 点一次。",
+    "没有验证 OAuth 应用那侧的回调地址配得对不对（redirect_uri 必须与 Google/GitHub 应用里登记的一致）。如果不一致，点了会停在对方的报错页 —— 那是下一个要查的地方。",
+    "没有在真实浏览器里确认旧 Service Worker 会被 r2 顶掉；skipWaiting + clients.claim 都在，但没实测。"
+  ],
+  "second_wall_found_before_the_owner_hit_it": {
+    "what": "补上登录按钮之后，**在资料库域上点下去仍然会失败**——原因与按钮无关。",
+    "measured": {
+      "state_cookie": "sa_oauth_state；HttpOnly; Max-Age=600; Path=/v1/auth; SameSite=lax; Secure —— **没有 Domain 属性，即 host-only**",
+      "where_start_is_called": "PWA 用相对路径调 /v1/auth/{p}/start → cookie 种在**页面所在的那个域**",
+      "where_callback_lands": "_redirect_uri 用的是 settings.public_base_url → https://social-archive-api.linzezhang.com/v1/auth/{p}/callback",
+      "consequence": "两个域不同 → 回调收不到 state cookie → callback 里 compare_digest 失败 → HTTP 400「登录链接已失效，请回到首页重新登录。」",
+      "why_the_message_misleads": "那句话听起来像超时或链接过期，实际是域不匹配。用户会一遍遍重试。",
+      "also": "即使 state 过了，SESSION_COOKIE 也会种在 API 域，而 PWA 在资料库域同源调 /v1/auth/me 依然带不上——**这条链路在双域下不可能成立**。"
+    },
+    "measured_facts_that_shaped_the_answer": [
+      "直接把 authorize_url 丢给 Google / GitHub：两家都回 302（跳登录页），**不是 redirect_uri_mismatch** —— 说明 API 域那个回调地址在两个 OAuth 应用里都已登记好。",
+      "https://social-archive-api.linzezhang.com/ **返回同一份 PWA**（15317 字节，含 loginGate），且**不在 Cloudflare Access 后面**。",
+      "https://social-archive.linzezhang.com/ 被 Access 拦（302）。"
+    ],
+    "immediate_workaround": "用 API 域打开页面。整条登录链路同源，今天就能登上。",
+    "the_permanent_fix_needs_the_owner": {
+      "why": "要让资料库域也能登录，redirect_uri 必须改成资料库域的地址；**而它必须先在 Google 与 GitHub 的 OAuth 应用里登记**——那是 Owner 的控制台，我进不去，也不该进。",
+      "exact_values_to_register": [
+        "https://social-archive.linzezhang.com/v1/auth/google/callback",
+        "https://social-archive.linzezhang.com/v1/auth/github/callback"
+      ],
+      "note": "登记后 API 域那两个可以保留，两边都能用。代码这侧只需把 _redirect_uri 从 public_base_url 换成 public_library_url。",
+      "what_i_did_not_do": "**没有把 cookie 的 Domain 放宽到 .linzezhang.com。** 那样会让登录 cookie 对该域名下所有子域可见（status、其它项目都在同一个父域），拿可用性换掉一层隔离，不替 Owner 做这个取舍。"
+    }
+  },
+  "fixed_and_measured_on_production": {
+    "at": "2026-08-04T06:0x UTC",
+    "what_owner_hit": {
+      "log": "GET /v1/auth/github/start 200 → GET /v1/auth/google/callback **400** → GET /v1/auth/github/callback **400**",
+      "db": "oauth_identity 0 / session 0",
+      "meaning": "他点了好几次，每次都倒在回调那一步。预判成立。"
+    },
+    "the_fix": [
+      "/v1/auth/providers 多回 login_base —— 告诉界面该去哪个域发起登录（配置驱动，不在前端写死域名）",
+      "/start 支持 ?redirect=1 直接 302 —— 登录必须是**顶层跳转**：跨域 fetch 种不上 SameSite=lax 的 cookie",
+      "callback 成功后 302 跳回应用，不再甩一行 {\"ok\":true}"
+    ],
+    "measured_proof_without_owner_account": {
+      "start_redirect": "HTTP 302 → accounts.google.com，**且 set-cookie: sa_oauth_state 就在这个 302 响应上**（种在注入的 response 上等于没种，这一处刻意验过）",
+      "callback_with_matching_cookie": "HTTP **502**「登录服务暂时不可用」—— 说明**已经走过 state 校验**，倒在假 code 的兑换上（预期）",
+      "callback_without_cookie": "HTTP 400「登录链接已失效」—— 正是 Owner 撞的那个",
+      "conclusion": "同域之后 state 校验通过。剩下只差一个真实 OAuth code，那需要 Owner 的账号。"
+    },
+    "what_is_still_not_proven": "**没有完成过一次真实登录。** 上面证明的是「那堵墙拆了」，不是「登录成功了」。session 表仍为 0，直到 Owner 真的点一次。"
+  }
+}

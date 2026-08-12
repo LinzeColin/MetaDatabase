@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
+from social_archive.title_repair import is_playback_timestamp, undouble_title
+
 ArchiveLevel = Literal["L0", "L1", "L2", "L3"]
 RelationType = Literal["manual_save", "bookmark", "saved", "favorite", "like", "upvoted", "watch_later", "history", "collection"]
 
@@ -34,6 +36,47 @@ class CaptureRequest(BaseModel):
     raw_metadata: dict[str, Any] = Field(default_factory=dict)
     requested_levels: list[ArchiveLevel] = Field(default_factory=lambda: ["L0", "L1", "L3"])
     destination_ids: list[str] = Field(default_factory=lambda: ["social_archive"], max_length=8)
+
+    @field_validator("title")
+    @classmethod
+    def a_playback_timestamp_is_not_a_title(cls, value: str | None) -> str | None:
+        """`06:26/12:57` 是播放器上的时间，不是标题——**置空，别存**。
+
+        2026-08-12 生产实测：他 193 条里有 56 条是这样，全部来自 B 站 history
+        那条路，占他 B 站条目的一半以上。打开 Obsidian 一眼望去认不出是什么。
+
+        **置空而不是拒绝整条**：拒绝的话那条内容根本进不来，他丢的是内容本身，
+        比标题错更糟。置空之后界面有兜底（`item.title || _urlLabel(...)`），
+        他看到的是链接尾巴——不好看，但至少是真的。
+
+        而且 `title=COALESCE(excluded.title, content.title)` 遇到 NULL 会**保住
+        库里已有的好标题**，所以这道门顺带让「把那 56 条修回真标题」修得住：
+        下一次 history 同步不会再把它冲回播放进度。
+
+        **这不代表取数侧修好了**：真标题在历史页的哪个元素上，仍然要等他
+        登录之后的那一页。这道门只保证「错的东西进不来」，不保证「对的东西进得来」。
+        """
+        if value is None:
+            return None
+        # **判定搬到 `title_repair` 里了**：这里原来自己写了一份 `\d{1,2}:\d{2}`，
+        # 认不出长视频那种带小时的（`01:11:19/01:15:32`）。他库里 6 条这样的
+        # 标题，两处判据只认出 1 条，另外 5 条一路绿到底。一份文本一把尺子。
+        if is_playback_timestamp(value):
+            return None
+        return value
+
+    @field_validator("title")
+    @classmethod
+    def a_title_scraped_twice_gets_one_copy(cls, value: str | None) -> str | None:
+        """`23.0万极限三选一…极限三选一…` → `极限三选一…`。判据见 `title_repair`。
+
+        **这一条修，不像上面那条置空**——因为真标题就在这串里，重复本身就是证据，
+        不用联网也不用他登录。置空反而把已经拿到的东西扔了。
+
+        生产实测 11 条，全部是抖音。光修库里的存量不够：下一次抖音同步会照原样
+        再写一遍，所以判据要摆在入口这里，存量修复只是把过去那批补上。
+        """
+        return undouble_title(value)
 
     @field_validator("requested_levels")
     @classmethod

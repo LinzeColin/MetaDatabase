@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0",
+  "task": "T06",
+  "slice": "S2",
+  "recorded_at": "2026-08-04T13:00Z",
+  "status": "BLOCKED",
+  "must_not_be_rewritten_as_pass": true,
+  "no_cookie_value_in_this_file": true,
+  "what_is_blocked": "Acceptance：服务端收到的 cookies.txt 能让 gallery-dl 取到只有登录用户才看得到的内容（Oracle：gallery-dl -j 拿到 ≥1 条 Owner 私有条目）",
+  "why": "要拿到 Owner 真实的 X 会话只有两条路，两条都走不通：",
+  "paths_considered": [
+    {
+      "path": "(a) 把扩展以未打包形式载入 Chrome，由 Owner 点一次「连接 X」",
+      "blocked_by": "载入未打包扩展要走 chrome://extensions → 开发者模式 → 加载已解压。chrome:// 是浏览器设置页：computer-use 对浏览器只有只读权限（点击被拒），Chrome 扩展工具也进不了 chrome:// 页面。",
+      "verdict": "只有 Owner 能做"
+    },
+    {
+      "path": "(b) 由我直接读 Chrome 的加密 Cookie 库（macOS 上要过 Keychain）",
+      "blocked_by": "这是绕开产品自身的授权流程去取用户的会话凭据，与本产品「只在用户点连接时读取，读完立即上传并丢弃」的硬边界直接冲突，也超出我该做的范围。",
+      "verdict": "有能力做，但**不做**。这是判断，不是能力限制。"
+    }
+  ],
+  "measured_facts": {
+    "artifact_closed": true,
+    "tests": "16 条（tests/focused/test_cookie_export_format.py），全过",
+    "format_verified_against_frozen_fact": "不输出 #HttpOnly_ 前缀、会话 cookie expiry 写 0、7 列 TAB、首行标识——逐条判据",
+    "boundaries_verified": "国内四平台在导出第一行就拒；chrome.cookies 全扩展只出现在 cookie-export.js；cookies 是可选权限",
+    "rollback_ready": "chrome.permissions.remove + DELETE /v1/credentials/{platform}（T05 已建，带 secure_delete）",
+    "acceptance_result": "NOT_RUN",
+    "no_real_session_was_ever_uploaded": true
+  },
+  "additional_prerequisite": "T05 已记：生产是否已配 SOCIAL_ARCHIVE_AGE_RECIPIENT 与 AGE_IDENTITY_FILE 尚未核对。未配置时 PUT /v1/credentials 返回 503 + 中文提示（不会静默失败），但连接走不通。Owner 点连接之前需先确认这两项在生产就位。",
+  "what_would_unblock_it": [
+    "Owner 载入扩展（chrome://extensions → 开发者模式 → 加载已解压 → 选 apps/browser-extension/）",
+    "在已登录 X 的浏览器里点一次「连接 X」",
+    "服务端跑 gallery-dl -j 验证能拿到私有条目，把条数与平台补进 evidence/T06/COOKIE_ROUNDTRIP.json（绝不记任何 cookie 值）"
+  ],
+  "owner_action_required": true,
+  "downstream_blocked_by_this": [
+    "T17（只剩「取得那一站」）"
+  ],
+  "prerequisite_checked_against_production": {
+    "measured_at": "2026-08-04T16:20Z",
+    "GET /v1/credentials on production": 404,
+    "oauth_secrets_present": true,
+    "credential_age_identity_present": false,
+    "note": "T05/T06 一直记着「生产是否已配 age 密钥未核对」——现在核了：备份私钥是 root:root 0600，Core（uid 10001）**读不到**，所以原本复用它的设计在生产上会直接失败。凭据专用密钥尚未创建，T18 部署时一并建。详见 evidence/PRODUCTION_STATE_VERIFIED.json"
+  },
+  "rechecked_2026_08_05": {
+    "为什么重核": "这份回执是 08-04 写的，写得很扎实（四条路逐条试过）。但**回执也会陈**——今天已经因为交接表里陈掉的「依赖」白停过两格（T11、T13）。所以把它依据的事实逐条重量。",
+    "仍然成立的": {
+      "Oracle 没跑": "真的没跑。platform_credential 表**一行都没有**——没有任何平台凭据在托管，gallery-dl 无从谈起。这个 BLOCKED 是真的。",
+      "只有 Owner 能做那一步": "仍然成立。读他的浏览器会话得由他点一次连接。"
+    },
+    "已经不成立的": {
+      "「凭据专用密钥尚未创建，T18 部署时一并建」": "**已经建好了**。生产实测：runtime/secrets/credential_age_identity 存在且非空，容器里也读得到（0640、组 10001）。这条前置不再挡路。",
+      "downstream_blocked_by_this 那张表": "写着 T07/T11/T15/T16/T17/T18 都被它挡着。**今天量下来 T07、T15、T16、T18 全是 done，T11 的投递侧也在没有它的情况下推进了**。真正还等着它的只有 T17 里「取得那一站」。"
+    },
+    "框得太窄的一处": {
+      "回执写的": "「要拿到 Owner 真实的 **X** 会话」",
+      "Oracle 原文": "「gallery-dl -j 拿到 ≥1 条 **Owner 私有条目**」——没说是哪个平台。",
+      "所以": "**任何**一个他连上的平台都能让这个 Oracle 跑起来，不必等 X。而 X 那条路还额外压着零费用门（只有他能开）。他本来就要为 T08 打开 B 站收藏夹页——同一次里点一下「连接」，这一格就有机会一起动。",
+      "没有替他决定": "连不连、连哪个，是他的事；这里只是把「必须是 X」这个不必要的窄口子拆掉。"
+    }
+  }
+}

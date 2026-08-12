@@ -1,0 +1,53 @@
+{
+  "task": "T02",
+  "claim": "登录链路在**生产上**闭环了：Owner 用 Google 真的登进去了，服务端留下了 user / oauth_identity / session 三条记录，三态实测（无 Cookie / 伪造 Cookie / 真实会话）行为正确。T02 从 in_progress 转 done。",
+  "measured_at": "2026-08-04",
+  "host": "linze-ovh · /opt/social-archive · social-archive/core:0.0.0.7",
+
+  "what_was_blocking": "此前 T02 的最后一格是「只差 Owner 打开档案馆页面用 Google/GitHub 点一次登录」。本机实测早已通过，但**本机通过不等于生产通过**——中间还隔着 redirect_uri 注册、Cookie 域、Cloudflare Access 三层，本轮之前每一层都出过错。",
+
+  "records_in_production": {
+    "users": {
+      "count": 1,
+      "row": "id=usr_4c10…17c4, display_name=Owner, is_owner=1, created_at=2026-08-04T05:21:06Z",
+      "note": "05:21 是 v0.0.0.7 上线迁移建的 Owner 行。"
+    },
+    "oauth_identity": {
+      "count": 1,
+      "provider": "google",
+      "created_at": "2026-08-04T06:23:50Z",
+      "note": "**这条才是 Owner 真的点了那一下的证据**——它比 users 行晚了一个小时，是 OAuth 回调写进来的。"
+    },
+    "session": {
+      "count": 1,
+      "created_at": "2026-08-04T06:23:50Z",
+      "expires_at": "2026-09-03T06:23:50Z",
+      "revoked_at": "（空，会话仍有效）"
+    }
+  },
+
+  "three_states_measured": [
+    "GET /v1/auth/me 无 Cookie        → 401 {\"detail\":\"还没有登录。\"}",
+    "GET /v1/auth/me 伪造 Cookie      → 401 {\"detail\":\"还没有登录。\"}（伪造的 sa_session 不被接受）",
+    "GET /v1/auth/me 真实会话 Cookie  → 200 {\"user_id\":\"usr_4c10…\",\"display_name\":\"Owner\",\"is_owner\":true}"
+  ],
+
+  "login_entry": {
+    "endpoint": "GET /v1/auth/providers",
+    "response": "{\"providers\":[{\"name\":\"google\",\"configured\":true},{\"name\":\"github\",\"configured\":true}],\"login_base\":\"https://social-archive.linzezhang.com\"}",
+    "why_login_base_matters": "redirect_uri 必须与注册处逐字节一致。本轮为此改过一次真源：从 public_base_url 换成 public_library_url——用错的那次，Google 返回的是 `Error 400: redirect_uri_mismatch`，而我一开始把那个 302 误读成「注册过了」。"
+  },
+
+  "known_limitation_recorded_not_fixed": {
+    "fact": "session 表的 id 列**就是 Cookie 的明文值**，不是它的哈希。能读到那张表的人可以直接冒充这个会话。",
+    "scope": "单用户自托管、库文件只有 root 与 uid 10001 读得到、站点前面还有 Cloudflare Access。",
+    "why_not_fixed_now": "改成存哈希会让 Owner 当前的会话立刻失效、被迫重登。可以做成兼容式（resolve 时明文与哈希都认，create 时只写哈希），**但那不在 T02 的验收里**，记在这里而不是顺手改掉。",
+    "contrast": "扩展令牌的做法是对的——auth.py 第 319 行注释：「明文只在这里返回一次——库里只有哈希」。两处不一致，session 是落后的那一处。"
+  },
+
+  "what_this_does_not_prove": [
+    "不证明 GitHub 那条路能走通。configured=true 只说明 client id/secret 都在，Owner 实际点的是 Google。GitHub 侧的 redirect_uri 注册**没有被任何一次真实登录验证过**。",
+    "不证明登出按钮在生产上点得动。撤销逻辑（revoke_session）本机验过，生产上没有人点过——真去点会把 Owner 踢下线，没有理由为了取证做这件事。",
+    "不证明 Cloudflare Access 之后还有第二道门是必要的。目前是 CF Access + 应用自己的登录两层，Owner 要过两次。这是现状描述，不是设计结论。"
+  ]
+}

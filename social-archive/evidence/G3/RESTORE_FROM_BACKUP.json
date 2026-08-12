@@ -1,0 +1,174 @@
+{
+  "status": "PASS",
+  "host": "linze-vps3",
+  "targets": [
+    {
+      "key": "runtime-db",
+      "zh": "他的档案馆运行库（那 193 条内容就在这里面）",
+      "restorable_copies": 3,
+      "required": 3,
+      "coverage_zh": null,
+      "content_rows_per_copy": {
+        "r2": 193,
+        "oci": 193,
+        "github": 193
+      },
+      "attempts": [
+        {
+          "target": "runtime-db",
+          "store": "r2",
+          "exit_code": 0,
+          "snapshot_batch": "20260811T233755Z",
+          "drill": {
+            "status": "PASS",
+            "generated_at": "2026-08-12T20:40:15.928494Z",
+            "source_store": "r2",
+            "object_key": "backups/runtime-db/20260811T233755Z/19a05ae129d1b528e31f9eb4898c7d1b43015537d9beb87885c9c7d810178011.sqlite3.gz.age",
+            "restored_to": "/var/tmp/restore-check-jgMq/restored-runtime.sqlite3",
+            "restored_byte_size": 5025792,
+            "restored_counts": {
+              "content": 193,
+              "user_relation": 194,
+              "artifact": 552,
+              "object_replica": 1656,
+              "destination_receipt": 391
+            },
+            "live_counts_now": {
+              "content": 193,
+              "user_relation": 194,
+              "artifact": 552,
+              "object_replica": 1656,
+              "destination_receipt": 391
+            },
+            "problems": [],
+            "note": "快照是取快照那一刻的样子；此后写入的行自然不在里面，所以两边计数可以不同。"
+          }
+        },
+        {
+          "target": "runtime-db",
+          "store": "oci",
+          "exit_code": 0,
+          "snapshot_batch": "20260811T233755Z",
+          "drill": {
+            "status": "PASS",
+            "generated_at": "2026-08-12T20:40:21.080883Z",
+            "source_store": "oci",
+            "object_key": "backups/runtime-db/20260811T233755Z/19a05ae129d1b528e31f9eb4898c7d1b43015537d9beb87885c9c7d810178011.sqlite3.gz.age",
+            "restored_to": "/var/tmp/restore-check-m05Z/restored-runtime.sqlite3",
+            "restored_byte_size": 5025792,
+            "restored_counts": {
+              "content": 193,
+              "user_relation": 194,
+              "artifact": 552,
+              "object_replica": 1656,
+              "destination_receipt": 391
+            },
+            "live_counts_now": {
+              "content": 193,
+              "user_relation": 194,
+              "artifact": 552,
+              "object_replica": 1656,
+              "destination_receipt": 391
+            },
+            "problems": [],
+            "note": "快照是取快照那一刻的样子；此后写入的行自然不在里面，所以两边计数可以不同。"
+          }
+        },
+        {
+          "target": "runtime-db",
+          "store": "github",
+          "exit_code": 0,
+          "snapshot_batch": "20260811T032751Z",
+          "drill": {
+            "status": "PASS",
+            "generated_at": "2026-08-12T20:40:27.761869Z",
+            "source_store": "github",
+            "object_key": "backups/runtime-db/20260811T032751Z/e107d65356ea74304338d28b87ab902b269476bb8527cff5a8871072581b3b0a.sqlite3.gz.age",
+            "restored_to": "/var/tmp/restore-check-IqRM/restored-runtime.sqlite3",
+            "restored_byte_size": 4825088,
+            "restored_counts": {
+              "content": 193,
+              "user_relation": 194,
+              "artifact": 552,
+              "object_replica": 1656,
+              "destination_receipt": 391
+            },
+            "live_counts_now": {
+              "content": 193,
+              "user_relation": 194,
+              "artifact": 552,
+              "object_replica": 1656,
+              "destination_receipt": 391
+            },
+            "problems": [],
+            "note": "快照是取快照那一刻的样子；此后写入的行自然不在里面，所以两边计数可以不同。"
+          }
+        }
+      ]
+    },
+    {
+      "key": "private-database",
+      "zh": "Private-Database 的 fact 包（哈希逐条对）",
+      "restorable_copies": 1,
+      "required": 1,
+      "coverage_zh": null,
+      "content_rows_per_copy": {},
+      "attempts": [
+        {
+          "target": "private-database",
+          "store": "r2",
+          "exit_code": 0,
+          "snapshot_batch": "20260811T032747Z",
+          "drill": {
+            "status": "PASS",
+            "generated_at": "2026-08-12T20:40:31.863918Z",
+            "source_store": "r2",
+            "object_key": "backups/private-database/20260811T032747Z/feda78b5cb1defb29be66e31ffd41f819a1596ae44a9aed4903080953f159b5b.tar.gz.age",
+            "restored_to": "/var/tmp/restore-check-TIPI/restored-facts",
+            "fact_count": 100,
+            "every_fact_hash_matched": true,
+            "hashed_as": "line_with_newline",
+            "note": "逐条核过：manifest 里那 100 条 fact 的 sha256，取回来的包一条不差。"
+          }
+        }
+      ]
+    },
+    {
+      "key": "disaster-recovery",
+      "zh": "索引和制品对不对得上（抽样，不是全量）",
+      "restorable_copies": 1,
+      "required": 1,
+      "coverage_zh": "这次验的是索引里 552 个制品中的 25 个（窗口 94–119）——**不是全量**。起点每次部署挪一格，连着发几十版才走完一圈。",
+      "content_rows_per_copy": {},
+      "attempts": [
+        {
+          "target": "disaster-recovery",
+          "store": "r2",
+          "exit_code": 0,
+          "snapshot_batch": "20260811T233755Z",
+          "drill": {
+            "status": "PASS",
+            "generated_at": "2026-08-12T20:41:02.572791Z",
+            "source_store": "r2",
+            "artifacts_in_index": 552,
+            "checked_this_run": 25,
+            "window": {
+              "from": 94,
+              "to": 119,
+              "offset_given": 1750
+            },
+            "recovered_and_hash_verified": 25,
+            "failed": 0,
+            "failure_samples": [],
+            "target": "/var/tmp/restore-check-FOzU",
+            "coverage_zh": "这次验的是索引里 552 个制品中的 25 个（窗口 94–119）——**不是全量**。起点每次部署挪一格，连着发几十版才走完一圈。",
+            "note": "restore_object.py 自己就会比对哈希；这里数的是它判 PASS 的个数。"
+          }
+        }
+      ]
+    }
+  ],
+  "problems": [],
+  "third_copy_zh": "第三份（GitHub）现在**也真取一次**。它此前报「取不回、只有 Owner 能授权」是两个自己的毛病叠出来的：比的是一批没有它收据的快照，用的是一把看不见那个仓的令牌——**都跟权限无关**。",
+  "boundary_zh": "只读：远端副本只下载不改，落地在一次性目录、跑完就删；密钥由 systemd 发，这个脚本只经手路径、不读内容。"
+}

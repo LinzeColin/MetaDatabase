@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0",
+  "what": "生产现状的只读核实。把几条一直是「断言」的话变成「实测」。",
+  "recorded_at": "2026-08-04T16:20Z",
+  "host": "linze-ovh (vps-83b882b4)",
+  "read_only": true,
+  "nothing_was_written": "本次只读。没有改 .env、没有建 secret、没有重启任何容器。理由见 why_i_did_not_provision_now。",
+  "no_secret_values_in_this_file": true,
+  "running_now": {
+    "core-api": "social-archive/core:0.0.0.6，Up 12 hours (healthy)",
+    "core-worker": "social-archive/core:0.0.0.6，Up 12 hours",
+    "cli-tools": "social-archive/cli-tools:0.0.0.6，Up 14 hours (healthy)",
+    "health": "GET /health → 200"
+  },
+  "confirms_T02_and_T06_blocked_reasons": {
+    "was_asserted": "「生产跑的是 0.0.0.6 镜像，不含 auth 路由，真实登录要等新镜像上线」",
+    "now_measured": {
+      "GET /v1/auth/providers": 404,
+      "GET /v1/credentials": 404,
+      "GET /health": 200
+    },
+    "verdict": "两组新路由确实都不在线上。T02 / T06 的 BLOCKED 理由成立，不是托词。"
+  },
+  "oauth_credentials_are_in_place": {
+    "github_oauth_client_id": "20 字节，属主 10001:socialarchive-secrets，权限 0640",
+    "github_oauth_client_secret": "40 字节，同上",
+    "google_oauth_client_id": "72 字节，同上",
+    "google_oauth_client_secret": "35 字节，同上",
+    "core_runs_as": "socialarchive（uid 10001）——属主匹配，读得到",
+    "verdict": "上一轮 T02 provisioning 的结果仍在，字节数与预期长度一致。"
+  },
+  "a_finding_that_confirms_this_round_s_fix_was_necessary": {
+    "what": "备份用的 age 私钥 /opt/social-archive/runtime/secrets/age_identity.txt 是 **root:root 0600**。",
+    "core_runs_as": "socialarchive (uid 10001)",
+    "therefore": "**Core 根本读不到它。**",
+    "why_this_matters": "T05 的 CredentialVault 原本用的就是 settings.age_identity_file，指向的正是这个文件。也就是说：即使 compose 把它挂进去，Core 也会因为权限读不了——**凭据解密在生产上会直接失败**，而不只是「安全上不理想」。",
+    "so": "本轮把凭据密钥与备份密钥分开，不是锦上添花的加固，是**这个功能能不能用**的前提。当时的理由写的是安全，现在多了一条更硬的：它本来就跑不起来。",
+    "and_the_permission_model_is_correct_as_is": "备份私钥就该是 root-only、不进容器。不需要改它的权限——需要的是另一把 Core 读得到的凭据密钥。"
+  },
+  "stale_leftover_found": {
+    "what": ".env 里仍有 SOCIAL_ARCHIVE_PAIRING_CODE_FILE",
+    "harm": "无——config.py 本轮已不再读这个键，多余的环境变量会被忽略。",
+    "but": "它是配对码链路的最后一点残留。T18 部署时顺手删掉，免得下一个人以为那条链路还在。"
+  },
+  "why_i_did_not_provision_now": "生产现在跑的是 0.0.0.6。此刻往 .env 里加 v0.0.0.7 才用得到的键、建 v0.0.0.7 才读的 secret，会造成「配置指向一个没上线的版本」的错位状态——一旦中间出岔子，没人会注意到，直到 T18 才炸。生产写入应该发生在部署窗口里，和镜像一起上。所以本次只读核实，把要做什么、怎么做写清楚，留给 T18 一次做完。",
+  "method": "ssh 只读：docker ps / docker inspect / stat / curl loopback / grep .env 的**键名**（不取值）。全程未使用任何写操作。",
+  "what_was_missing_for_T18_and_is_now_done": {
+    "corrected_at": "2026-08-04T06:5x UTC",
+    "why_this_entry_exists": "这份文件里原有一节 what_is_still_missing_for_T18，列着两项「不存在」。**T18 部署时我把它们都补上了，却没有回来改这份证据。** 关于生产状态的说法一旦过时，比没写更糟——读的人会据此重做已经做过的事，或以为系统缺东西。",
+    "original_claims": [
+      {
+        "item": "runtime/secrets/credential_age_identity",
+        "status": "不存在",
+        "how": "age-keygen 生成一对**独立**密钥；私钥写入该文件，属主 10001:socialarchive-secrets、权限 0640（与其他 Core 可读 secret 一致，**不要**用 root:root 0600，那样 Core 读不到）",
+        "why_a_new_pair": "备份那对必须留在宿主机、仅恢复演练时读取；凭据那把要常驻在 24 小时联网的 Core 里。共用会让 Core 一旦被攻破就丢掉全部历史备份。"
+      },
+      {
+        "item": ".env 的 SOCIAL_ARCHIVE_CREDENTIAL_AGE_IDENTITY_FILE 与 SOCIAL_ARCHIVE_CREDENTIAL_AGE_RECIPIENT",
+        "status": "两个键都不存在",
+        "how": "IDENTITY_FILE=/run/secrets/credential_age_identity；RECIPIENT 填上一步生成的公钥（公钥不是机密，可直接进 .env）"
+      }
+    ],
+    "measured_now": [
+      {
+        "item": "runtime/secrets/credential_age_identity",
+        "was": "不存在",
+        "now": "**存在**：0640 root:socialarchive-secrets，184 字节；与备份那把 age 密钥是**独立**的一对（备份私钥仍然不进容器）",
+        "verified": "在 core-api 容器内实测可读 ✓"
+      },
+      {
+        "item": ".env 的 SOCIAL_ARCHIVE_CREDENTIAL_AGE_IDENTITY_FILE 与 SOCIAL_ARCHIVE_CREDENTIAL_AGE_RECIPIENT",
+        "was": "两个键都不存在",
+        "now": "**两个都已设**（RECIPIENT 是公钥，不是机密）"
+      }
+    ]
+  },
+  "disk_pressure_now": {
+    "measured_at": "2026-08-04T06:5x UTC",
+    "value": "38G 中已用 30G，**可用 7.6G / 80%**",
+    "history_this_session": "部署时一度到 0 可用（core-api 镜像构建 no space left on device 失败两次）。只做过安全回收：docker builder prune、apt-get clean、删掉构建失败的半成品镜像与已停用的旧镜像。**没有碰其它项目的镜像与数据**。",
+    "still_owner_s_call": "这台机器上还跑着 kmfa / coolify / memory-atlas / gatus 等无关服务，/srv 占 8.7G。要不要扩盘或清理别的项目，不在本仓射程内。"
+  },
+  "what_this_does_not_prove": [
+    "**这份文件是某个时刻的快照，不是持续为真的断言。** 本次改正就是因为它里面两条「不存在」在 T18 部署后已经不成立，而我没有回来改——关于生产状态的说法一旦过时，比没写更糟：读的人会据此重做已经做过的事，或以为系统缺东西。",
+    "凭据密钥只验证了「存在、权限对、容器内可读」。**没有验证过用它真的加解密一次平台会话**——那要等 Owner 连接 X / Instagram。",
+    "磁盘 7.6G 可用是此刻的数字。构建镜像一次要 1G 上下，几次构建就能把它吃掉；这不是一个「解决了」的状态。",
+    "文件里其余小节（更早那些实测）没有重新核对，只改了本次确认过时的那两条与磁盘。**其它条目的时效性未经复核。**"
+  ]
+}

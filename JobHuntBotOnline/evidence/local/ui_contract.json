@@ -1,0 +1,14 @@
+{
+  "verdict": "PASS",
+  "scope": "all shipped Jinja forms, controls, links, data-testid hooks and FastAPI route bindings",
+  "totals": {
+    "templates": 28,
+    "forms": 25,
+    "buttons": 32,
+    "inputs": 109,
+    "links": 57,
+    "testids": 170
+  },
+  "errors": [],
+  "warnings": []
+}

@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "downloaded_from": "https://social-archive-api.linzezhang.com/downloads/social-archive-extension.zip",
+  "compared_against": "git HEAD:social-archive/apps/browser-extension/",
+  "measured": {
+    "files_in_package": 27,
+    "identical_to_head": 27,
+    "differs_from_head": 0,
+    "not_in_commit": 0
+  },
+  "problems": [],
+  "what_this_answers_zh": "他现在点下载拿到的，是不是我提交的那份代码。**不是**「我这台机器上的 zip 和服务器上的 zip 一样吗」——那两个可以一样地坏。",
+  "boundary_zh": "只读；一个 GET 加 git show；不验代码对不对，只验发出去的等于入了库的。"
+}

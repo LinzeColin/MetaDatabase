@@ -1,0 +1,16 @@
+{
+  "verdict": "PASS_WITH_ENVIRONMENT_LIMITATION",
+  "scope": "cold-extracted preliminary R2 ZIP in a separate directory",
+  "production_claimed": false,
+  "pytest_tests_passed": 21,
+  "taskpack_validation": "PASS",
+  "ui_contract": "PASS",
+  "restart_readback": "PASS",
+  "mail_transport": "PASS",
+  "nitrosend_dependency": false,
+  "refresh_interval_hours": 6,
+  "browser_verdict": "BLOCKED_BY_MANAGED_URLBLOCKLIST",
+  "browser_pass_claimed": false,
+  "production_playwright_still_required": true,
+  "executable_deploy_scripts": true
+}

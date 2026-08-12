@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .db import RuntimeStore
-from .utils import atomic_write, safe_slug, sha256_bytes, utcnow
+from .utils import atomic_write, clean_display_author, safe_slug, sha256_bytes, utcnow
 
 
 class StandardExporter:
@@ -40,7 +40,7 @@ class StandardExporter:
             "canonical_url": item["canonical_url"],
             "platform": item["platform"],
             "title": item.get("title"),
-            "author_name": item.get("author_name"),
+            "author_name": clean_display_author(item.get("author_name")) or None,
             "text": item.get("body"),
             "published_at": item.get("published_at"),
             "first_observed_at": item.get("first_observed_at"),
@@ -108,7 +108,7 @@ class StandardExporter:
                 "url": item["canonical_url"],
                 "relation_type": item.get("relation_type"),
                 "collection": item.get("collection_key"),
-                "author": item.get("author_name"),
+                "author": clean_display_author(item.get("author_name")) or None,
                 "saved_at": item.get("last_observed_at"),
                 "artifact_count": item.get("artifact_count", 0),
             }
@@ -151,7 +151,7 @@ class StandardExporter:
                     "平台": item["platform"],
                     "关系": item.get("relation_type") or "",
                     "收藏夹": item.get("collection_key") or "",
-                    "作者": item.get("author_name") or "",
+                    "作者": clean_display_author(item.get("author_name")),
                     "原始链接": item["canonical_url"],
                     "最近观察": item.get("last_observed_at") or "",
                     "制品数": item.get("artifact_count", 0),

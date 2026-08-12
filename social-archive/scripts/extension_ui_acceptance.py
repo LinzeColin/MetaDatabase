@@ -54,7 +54,7 @@ def main() -> int:
       };
       window.fetch = async (url, options={}) => {
         const value = String(url);
-        if (value.includes("runtime-config.json")) return new Response(JSON.stringify({endpoint:"https://social-archive-api.linzezhang.com",library_url:"https://social-archive.linzezhang.com",pairing_path:"/v1/pairing/exchange",managed:true}),{status:200,headers:{"Content-Type":"application/json"}});
+        if (value.includes("runtime-config.json")) return new Response(JSON.stringify({endpoint:"https://social-archive-api.linzezhang.com",library_url:"https://social-archive.linzezhang.com",managed:true}),{status:200,headers:{"Content-Type":"application/json"}});
         if (value.includes("/v1/extension/bootstrap")) return new Response(JSON.stringify({
           destinations:[
             {destination_id:"social_archive",state:"connected"},

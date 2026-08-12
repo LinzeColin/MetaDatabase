@@ -160,6 +160,13 @@
       margin: 0 auto;
       padding: 24px 24px 48px;
     }
+    /* 下一步：永远只有一件事，且必须比周围都显眼。 */
+    .next-step { display:flex; align-items:center; gap:16px; padding:16px 18px; margin-bottom:14px;
+                 border:1px solid var(--brand); border-radius:14px; background:var(--brand-soft); }
+    .next-step.hidden { display:none; }
+    .next-step-body { flex:1; display:flex; flex-direction:column; gap:4px; min-width:0; }
+    .next-step-body strong { font-size:15px; }
+    .next-step-body span { color:var(--text-2); font-size:12.5px; line-height:1.5; }
     .sync-strip {
       display: flex;
       align-items: center;
@@ -223,6 +230,27 @@
     .btn.primary { color: white; background: var(--brand); border-color: var(--brand); box-shadow: 0 7px 18px rgba(55, 103, 232, .22); }
     .btn.primary:hover { background: var(--brand-2); border-color: var(--brand-2); box-shadow: 0 9px 24px rgba(55, 103, 232, .28); }
     .btn.small { min-height: 34px; padding: 0 10px; border-radius: 8px; font-size: 12px; }
+    /* 登录闸（v0.0.0.7 / T02）。未登录时盖住整页——后面每个接口都会 401，
+       让用户看一堆「服务连接异常」而真因是没登录，是最差的一种交互。 */
+    .login-gate { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center;
+                  background: var(--bg, #f6f5f1); padding: 24px; }
+    .login-gate.hidden { display: none; }
+    .login-card { max-width: 420px; width: 100%; text-align: center; background: var(--surface, #fff);
+                  border: 1px solid var(--border, #e7e4dd); border-radius: 20px; padding: 34px 30px;
+                  box-shadow: 0 18px 50px rgba(0,0,0,.08); }
+    .login-card .brand-mark { margin: 0 auto 16px; width: 46px; height: 46px; border-radius: 13px;
+                              display: grid; place-items: center; background: var(--text, #171717);
+                              color: #fff; font-weight: 800; }
+    .login-card h1 { font-size: 22px; margin: 0 0 10px; }
+    .login-card p { color: var(--text-3, #6f6c65); line-height: 1.65; margin: 0 0 18px; font-size: 13px; }
+    .login-buttons { display: flex; flex-direction: column; gap: 9px; }
+    .login-btn { width: 100%; justify-content: center; }
+    .login-note { margin-top: 16px !important; font-size: 12px; }
+    /* subtle-danger 在 app.js 里被用了三处（暂停/取消，以及本轮的断开），
+       而样式表里**一条规则都没有**——按钮画出来和普通按钮长得一模一样。
+       这是"引用了一个不存在的类"，和引用一个不存在的函数是同一种没接上。 */
+    .btn.subtle-danger { border-color: #f0c4bf; color: #b42318; }
+    .btn.subtle-danger:hover { background: #fff0ee; }
 
     .platform-tabs-wrap {
       position: relative;
@@ -275,6 +303,7 @@
     .platform-logo.x { background: #111318; }
     .platform-logo.reddit { background: linear-gradient(145deg, #ff6937, #e84818); }
     .platform-logo.ins { background: linear-gradient(145deg, #8d42dc, #ef3c69 56%, #ffbd55); }
+    .platform-logo.yt { background: linear-gradient(145deg, #ff0000, #cc0000); }
     .platform-logo.web { background: linear-gradient(145deg, #29a68e, #167968); }
 
     .toolbar-shell {
@@ -500,6 +529,12 @@
     .status-pill.pending { background: var(--warning-soft); color: var(--warning); }
     .status-pill.issue { background: var(--danger-soft); color: var(--danger); }
     .export-dots { display: flex; align-items: center; gap: 6px; }
+    /* 目的地回执逐条列出，失败的那条带「重试」（v0.0.0.7 / T14）。 */
+    .receipt-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .receipt-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .receipt-row > span:first-child { min-width: 92px; color: var(--text); }
+    .receipt-row .muted { display: inline; flex: 1; margin-top: 0; font-size: 11px; }
+    .receipt-row .btn.small { min-height: 26px; padding: 0 8px; font-size: 11px; }
     .export-dot { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-size: 9px; font-weight: 900; border: 1px solid var(--line); background: var(--surface-2); color: var(--text-3); }
     .export-dot.done { background: var(--success-soft); border-color: color-mix(in srgb, var(--success) 25%, var(--line)); color: var(--success); }
     .link-btn { min-height: 32px; padding: 0 9px; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; color: var(--brand-2); display: inline-flex; align-items: center; gap: 5px; text-decoration: none; font-weight: 800; font-size: 11px; }
@@ -732,7 +767,7 @@
 .sync-strip.needs .pulse{background:var(--warning);box-shadow:0 0 0 5px color-mix(in srgb,var(--warning) 15%,transparent)}
 .sync-strip.error .pulse{background:var(--danger);box-shadow:0 0 0 5px color-mix(in srgb,var(--danger) 15%,transparent)}
 .account-connect-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.account-connect-card,.destination-live-card,.settings-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:14px}.account-connect-card{display:flex;align-items:center;gap:12px}.account-connect-card .grow{min-width:0;flex:1}.account-connect-card strong,.account-connect-card small{display:block}.account-connect-card small{color:var(--text-3);margin-top:3px}.connection-state{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--text-2)}.connection-state::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--text-3)}.connection-state.connected::before{background:var(--success)}.connection-state.scanning::before,.connection-state.authorized::before{background:var(--warning)}.connection-state.error::before{background:var(--danger)}
-.destination-live-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.destination-live-card header{display:flex;align-items:center;justify-content:space-between;gap:12px}.destination-live-card p,.settings-card p{color:var(--text-2);margin:8px 0 0}.destination-live-card footer{display:flex;gap:8px;align-items:center;margin-top:12px}.destination-live-card .state-label{margin-left:auto}
+.destination-live-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.destination-live-card header{display:flex;align-items:center;justify-content:space-between;gap:12px}.destination-live-card p,.settings-card p{color:var(--text-2);margin:8px 0 0}.destination-live-card footer{display:flex;gap:8px;align-items:center;margin-top:12px}.destination-live-card .state-label{margin-left:auto}.destination-live-card .privacy-note{border-left:2px solid var(--line);padding-left:8px;margin-top:6px;font-size:11px}
 .settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.settings-card label{display:flex;align-items:flex-start;gap:10px}.settings-card input[type=checkbox]{width:18px;height:18px;margin-top:2px}.settings-card strong,.settings-card span{display:block}.settings-card span{color:var(--text-3);font-size:12px;margin-top:3px}
 .form-grid{display:grid;gap:12px}.form-grid label{display:grid;gap:6px;color:var(--text-2)}.form-grid input,.form-grid select{height:40px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);padding:0 10px}.form-help{margin:0;color:var(--text-3);font-size:12px;line-height:1.5}.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.inline-error{color:var(--danger);font-size:12px;margin-top:8px}
 .sync-table .progress-track{min-width:120px}.sync-action-stack{display:flex;gap:6px;flex-wrap:wrap}.sync-table td{vertical-align:middle}.sync-table .muted{display:block;color:var(--text-3);font-size:10px;margin-top:2px}

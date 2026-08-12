@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}数据与隐私｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="settings-layout">
+  <aside class="settings-nav"><h2>设置</h2><a href="/settings/profile">求职偏好</a><a href="/settings/security">账户安全</a><a class="active" href="/settings/data">数据与隐私</a></aside>
+  <div class="stack">
+    <article class="panel"><h1>数据与隐私</h1><p>你可以导出自己可读的候选人资料、推荐、申请包和进度记录。平台不会在导出中包含 DeepSeek Key、Session 或内部 Secret。</p><a class="button" href="/settings/data/export" data-testid="data-export">下载我的数据</a></article>
+    <form method="post" action="/settings/data/delete" class="form-card danger-card" data-testid="delete-account-form" data-confirm="此操作会永久删除账户和个人数据，确定继续吗？">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <h2>删除账户</h2><p>删除后无法恢复。请输入密码和指定确认文字。</p>
+      <label>密码<input type="password" name="password" required data-testid="delete-password"></label>
+      <label>确认文字<input name="confirmation" required placeholder="删除我的账户" data-testid="delete-confirmation"></label>
+      <button class="button danger" type="submit" data-testid="delete-account-submit">永久删除账户</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

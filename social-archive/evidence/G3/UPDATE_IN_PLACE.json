@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "shipped_version": "0.0.0.70",
+  "before_overwrite": {
+    "version": "0.0.0.1",
+    "id": "gllomlfoledkneleaiehkcfabmgapfhn",
+    "stored": {
+      "endpoint": "https://drill.example",
+      "token": "drill-token-abc"
+    }
+  },
+  "after_overwrite": {
+    "version": "0.0.0.70",
+    "id": "gllomlfoledkneleaiehkcfabmgapfhn",
+    "stored": {
+      "endpoint": "https://drill.example",
+      "token": "drill-token-abc"
+    }
+  },
+  "problems": [],
+  "message_zh": "在原文件夹里覆盖再重载：ID 不变、版本更新、已配对的凭据还在。",
+  "what_this_does_not_prove": "不证明他在 Finder 里覆盖文件夹的体验（那是他做的事）。这里证明的是覆盖之后 Chrome 这一侧会怎样——而那正是那三句承诺的内容。"
+}

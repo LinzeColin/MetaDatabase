@@ -1,0 +1,345 @@
+#!/usr/bin/env python3
+"""在真 Chrome 里问一遍：这个平台**四张表**都接上了吗（v0.0.0.7 / T06）。
+
+## 为什么不靠对表
+
+2026-08-05 给 youtube 接入口时，我两次宣布「封住了」，两次都错：
+
+  · 先说「开 B 站时顺手连一下」——**硬边界禁止**（国内平台的 Cookie 不出浏览器）
+  · 再说「两个方向都封住了」——**漏了第三张表**（content/platform-catalog.js），
+    于是 platformLabel("youtube") 原样返回内部 id
+
+**两次都是宣布完成之后才发现的。** 而且**第三次比前两次更糟**：
+2026-08-05 又发现 `options.js` 里那三张表（platformOrder / platformNames /
+platformIcons）里一个 youtube 都没有——**设置页根本不给它出卡片**，
+于是那个「连接账号」按钮不存在，交接里让 Owner 做的第二件事**做不了**。
+当时这个演练已经全绿：它问的是 service worker 那四张表，
+**问不到设置页会不会出这张卡**。
+
+一个平台散在**七张**表里（shared.js 的 PLATFORM_RULES、
+platform-catalog.js 的 PLATFORMS、cookie-export.js 的 ALLOWED/FORBIDDEN、
+options.js 的 platformOrder/platformNames/platformIcons、以及服务端那几张），
+靠人去对，总会漏掉一张。
+
+所以这个演练不对表：**把下发的那个 ZIP 装进真 Chrome，在 service worker 里
+一次问完**。四张表在真运行时里说的话必须一致。
+
+## 用法
+
+    python3 scripts/extension_platform_wiring_drill.py --ext-dir <解压好的扩展目录> \\
+        --platform youtube --sample-url https://www.youtube.com/playlist?list=WL
+
+    # 期望这个平台**不能**托管 Cookie（国内四平台）时：
+    ... --platform bilibili --sample-url https://space.bilibili.com/1/favlist --expect-custody forbidden
+
+## 边界
+
+· 一次性 profile，跑完删；不碰 Owner 的 profile、不联网、不碰生产。
+· 只读：问的全是已加载模块的常量与纯函数，不触发任何连接或同步。
+"""
+
+from __future__ import annotations
+
+import argparse
+import asyncio
+import json
+import shutil
+import subprocess
+import sys
+import tempfile
+import urllib.request
+from pathlib import Path
+
+import websockets
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+from drill_extension_dir import resolve_ext_dir  # noqa: E402
+
+PROBE = r"""
+(config => {
+  const out = {};
+  const rule = SA.platformFromUrl(config.sampleUrl);
+  out.detected = rule && rule.id;
+  out.permissionPatterns = SA.patternsForPlatform(config.platform) || [];
+  out.label = globalThis.SAPlatformCatalog?.platformLabel?.(config.platform);
+  out.relations = globalThis.SAPlatformCatalog?.platformCatalogEntry?.(config.platform)?.relations || [];
+  out.relationUrls = out.relations.map(r =>
+    globalThis.SAPlatformCatalog?.relationUrl?.(config.platform, r));
+  out.custodyAllowed = !!globalThis.SACookieExport?.ALLOWED_PLATFORMS?.[config.platform];
+  out.custodyForbidden = !!globalThis.SACookieExport?.FORBIDDEN_PLATFORMS?.has?.(config.platform);
+  // 误伤检查：一个**不该**被认成这个平台的地址
+  out.decoyDetected = (SA.platformFromUrl(config.decoyUrl) || {}).id;
+  return JSON.stringify(out);
+})(%s)
+"""
+
+
+def judge(measured: dict, platform: str, decoy_url: str, expect_custody: str) -> list[str]:
+    """**只判定，不碰浏览器。**
+
+    搬出来是因为守它的判据原本全是 grep 源码。其中一条断言
+    「国内平台的 Cookie 必须永不出浏览器」这句话在不在文件里——
+    而我刚给这段加的注释里**也有这句话**，于是即便把整个分支删掉，
+    那条判据照样是绿的。这就是今天已经栽过好几次的「判据钉在注释上」。
+
+    判定单独成函数之后，判据可以直接喂它一个假的 measured 看它红不红——
+    那是反例，不是 grep。
+    """
+    problems = []
+    if measured["detected"] != platform:
+        problems.append(f"那个地址没有被认成 {platform}，而是 {measured['detected']}")
+    if not measured["permissionPatterns"]:
+        problems.append("没有权限模式——连不上，也读不了那个站点")
+    # **中文名退回内部 id，正是第三张表缺席的症状。**
+    if not measured["label"] or measured["label"] == platform:
+        problems.append(f"中文名退回了内部 id（{measured['label']!r}）——"
+                        "platform-catalog 里多半没有它，用户会看到这个词")
+    if not measured["relations"]:
+        problems.append("目录里没有声明任何关系类型")
+    if any(not str(u or "").startswith("https://") for u in measured["relationUrls"]):
+        problems.append(f"有关系类型没有对应的 https 地址：{measured['relationUrls']}")
+    # **托管有三种状态，不是两种。**
+    #
+    # 第一版只有 yes/no，于是 reddit 被判 FAIL，理由还是
+    # 「国内平台的 Cookie 必须永不出浏览器」——**而 reddit 根本不是国内平台**。
+    # 那是我自己的演练在指错原因，和今天早上在 T13 里修的是同一种病。
+    #
+    #   yes        白名单里有、禁止名单里没有        —— x / instagram / youtube
+    #   forbidden  禁止名单里有、白名单里没有        —— 国内四平台，硬边界
+    #   not-yet    两张表都没有                      —— 支持这个平台，但托管还没做
+    if expect_custody == "yes":
+        if not measured["custodyAllowed"]:
+            problems.append("Cookie 导出白名单里没有它——连接会走不通")
+        if measured["custodyForbidden"]:
+            problems.append("它同时出现在禁止名单里，两张表自相矛盾")
+    elif expect_custody == "forbidden":
+        if measured["custodyAllowed"]:
+            problems.append("**它不该能托管 Cookie，而白名单里有它**")
+        if not measured["custodyForbidden"]:
+            problems.append("它不在禁止名单里——国内平台的 Cookie 必须永不出浏览器，"
+                            "这条硬边界要靠那张表兜住")
+    else:   # not-yet
+        if measured["custodyAllowed"]:
+            problems.append("说好托管还没做，白名单里却有它")
+        if measured["custodyForbidden"]:
+            problems.append("它被放进了禁止名单——那张表是给「Cookie 永不出浏览器」的"
+                            "国内平台留的，别用它表达「还没做」")
+    card = measured.get("connectCard")
+    if card is not None:
+        if card.get("error") == "NO_CARDS_RENDERED_IN_15S":
+            # **这是演练自己的问题，不是产品的。** 说清楚，别让下一个人
+            # 去查一个不存在的「小红书卡片丢了」。
+            problems.append("设置页 15 秒内一张卡都没渲染出来——**这是演练/时序问题，"
+                            "不是「这个平台没有卡」**。重跑一次；老是这样就把等待放宽。")
+        elif card.get("error"):
+            problems.append(f"设置页那一步没做成：{card['error']}")
+        elif not card.get("found"):
+            problems.append(
+                f"**设置页里没有 {measured.get('label')!r} 这张卡**——"
+                f"没有卡就没有「连接账号」按钮，说「去连接它」等于指着一个不存在的按钮。"
+                f"设置页现有的是：{card.get('titles')}")
+        elif not any("连接" in text for text in card.get("buttons", [])):
+            problems.append(f"卡片在，但上面没有连接类按钮：{card.get('buttons')}")
+        # **档案馆自己在这一屏只许有一个名字。**
+        # 三张目的地名字表曾经把它写成三个（Social Archive／我的档案馆／主档案），
+        # 而改完三张表之后页面上**还留着**「主档案」——它在 options.html 的一句
+        # 正文里，不在任何表里。判据比表看不见正文，只有读渲染出来的页面才发现。
+        if card.get("saysMainArchive"):
+            problems.append(
+                "**设置页上还写着「主档案」**——那是档案馆自己的旧叫法。"
+                "同一样东西在不同界面上叫不同名字，对没有技术基础的人就是不同的东西。")
+        if card.get("saysMyArchive") is False:
+            problems.append("设置页上没有出现「我的档案馆」——档案馆自己那张卡可能没画出来")
+    if measured["decoyDetected"] == platform:
+        problems.append(f"误伤：{decoy_url} 也被认成了 {platform}")
+    return problems
+
+
+CARD_PROBE = r"""
+(config => {
+  const cards = [...document.querySelectorAll(".account-card")].map(card => ({
+    title: card.querySelector(".account-title strong")?.textContent || "",
+    buttons: [...card.querySelectorAll(".card-button")].map(b => b.textContent),
+  }));
+  const mine = cards.find(c => c.title === config.label);
+  const pageText = document.body.innerText || "";
+  return JSON.stringify({
+    total: cards.length,
+    found: !!mine,
+    buttons: mine ? mine.buttons : [],
+    titles: cards.map(c => c.title),
+    // **档案馆自己在这一屏叫什么。**
+    //
+    // 2026-08-06：三张目的地名字表把它写成三个名字（Social Archive／
+    // 我的档案馆／主档案）。改完三张表之后**页面上还留着「主档案」**——
+    // 它写在 options.html 的一句正文里，不在任何一张表里。
+    // 判据比的是表，看不见正文；**只有把渲染出来的页面读回来才发现**。
+    // 那次是拿一个临时脚本查的，查完就没了——现在把它固化在这儿。
+    saysMainArchive: pageText.includes("主档案"),
+    saysMyArchive: pageText.includes("我的档案馆"),
+  });
+})(%s)
+"""
+
+
+async def _rpc_factory(ws):
+    counter = {"n": 0}
+
+    async def rpc(method, params=None):
+        counter["n"] += 1
+        ident = counter["n"]
+        await ws.send(json.dumps({"id": ident, "method": method, "params": params or {}}))
+        while True:
+            message = json.loads(await ws.recv())
+            if message.get("id") == ident:
+                return message
+
+    return rpc
+
+
+async def run(chrome: str, ext_dir: str, platform: str, sample_url: str,
+              decoy_url: str, expect_custody: str, expect_connect_card: bool = False) -> int:
+    profile = Path(tempfile.mkdtemp(prefix="sa-wiring-profile-"))
+    process = subprocess.Popen(
+        [chrome, f"--user-data-dir={profile}", "--remote-debugging-port=9348",
+         *([] if __import__("os").environ.get("SA_DRILL_HEADED") else ["--headless=new"]),   # Owner 不该被弹窗打断；调试设 SA_DRILL_HEADED=1
+         "--no-first-run", "--no-default-browser-check", "--disable-sync",
+         "--disable-background-networking", "--no-service-autorun",
+         "--password-store=basic", "--use-mock-keychain", "about:blank"],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    base = "http://127.0.0.1:9348"
+    try:
+        for _ in range(40):
+            try:
+                version = json.loads(urllib.request.urlopen(base + "/json/version", timeout=2).read())
+                break
+            except Exception:                       # noqa: BLE001 —— 等它起来
+                await asyncio.sleep(0.5)
+        else:
+            print(json.dumps({"status": "FAIL", "error_code": "CHROME_NOT_UP"}, ensure_ascii=False))
+            return 4
+
+        async with websockets.connect(version["webSocketDebuggerUrl"], max_size=None) as ws:
+            rpc = await _rpc_factory(ws)
+            loaded = await rpc("Extensions.loadUnpacked", {"path": ext_dir})
+            if "error" in loaded:
+                print(json.dumps({"status": "FAIL", "error_code": "LOAD_UNPACKED_FAILED",
+                                  "detail": loaded["error"]}, ensure_ascii=False))
+                return 4
+            extension_id = loaded["result"]["id"]
+        await asyncio.sleep(3)
+
+        targets = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
+        workers = [t for t in targets if t["type"] == "service_worker" and extension_id in t["url"]]
+        if not workers:
+            print(json.dumps({"status": "FAIL", "error_code": "SERVICE_WORKER_ASLEEP"},
+                             ensure_ascii=False))
+            return 4
+        async with websockets.connect(workers[0]["webSocketDebuggerUrl"], max_size=None) as ws:
+            rpc = await _rpc_factory(ws)
+            await rpc("Runtime.enable")
+            expression = PROBE % json.dumps(
+                {"platform": platform, "sampleUrl": sample_url, "decoyUrl": decoy_url})
+            result = await rpc("Runtime.evaluate", {"expression": expression, "returnByValue": True})
+            payload = result.get("result", {})
+            if payload.get("exceptionDetails"):
+                print(json.dumps({"status": "FAIL", "error_code": "PROBE_THREW",
+                                  "detail": str(payload["exceptionDetails"])[:300]},
+                                 ensure_ascii=False))
+                return 4
+            measured = json.loads(payload["result"]["value"])
+
+        # **再开一次设置页，看那张卡到底在不在。**
+        #
+        # 上面问的全是 service worker 里的表。设置页那三张（platformOrder /
+        # platformNames / platformIcons）是**另一个文件、另一个执行环境**，
+        # service worker 看不见它们——2026-08-05 漏掉 youtube 的正是这里。
+        if expect_connect_card:
+            async with websockets.connect(version["webSocketDebuggerUrl"], max_size=None) as ws:
+                rpc = await _rpc_factory(ws)
+                created = await rpc("Target.createTarget",
+                                    {"url": f"chrome-extension://{extension_id}/options.html"})
+                target_id = created["result"]["targetId"]
+            await asyncio.sleep(3)
+            pages = json.loads(urllib.request.urlopen(base + "/json", timeout=5).read())
+            page = next((item for item in pages if item.get("id") == target_id), None)
+            if page is None:
+                measured["connectCard"] = {"error": "OPTIONS_PAGE_DID_NOT_OPEN"}
+            else:
+                async with websockets.connect(page["webSocketDebuggerUrl"], max_size=None) as ws:
+                    rpc = await _rpc_factory(ws)
+                    await rpc("Runtime.enable")
+                    card_probe = CARD_PROBE % json.dumps({"label": measured.get("label")})
+                    # **等卡片渲染出来再读。**（2026-08-11）
+                    #
+                    # 原来是 sleep(3) 之后读一次。那些卡是异步画的，机器忙的时候
+                    # 三秒不够——0.0.0.33 部署时这里读到 `total: 0`，报出来的却是
+                    # 「设置页里没有 '小红书' 这张卡……现有的是：[]」，
+                    # **于是整次部署被一个时序问题中止了**（同一条命令单独重跑立刻 9 张卡全在）。
+                    #
+                    # 「页面还没画完」和「这个平台真的没有卡」是两个完全不同的诊断，
+                    # 长得却一模一样——这个仓在 pwa_render_drill 上吃过同一口
+                    # （APP_SCRIPT_NEVER_SERVED 那个单独出口就是为此加的）。
+                    card: dict = {}
+                    for _ in range(15):
+                        result = await rpc("Runtime.evaluate",
+                                           {"expression": card_probe, "returnByValue": True})
+                        value = result.get("result", {}).get("result", {}).get("value")
+                        card = json.loads(value) if value else {}
+                        if card.get("total"):
+                            break
+                        await asyncio.sleep(1)
+                    if not card:
+                        card = {"error": "CARD_PROBE_RETURNED_NOTHING"}
+                    elif not card.get("total"):
+                        # 一张都没有 = 夹具/时序，不是产品缺陷。**分开报。**
+                        card = {"error": "NO_CARDS_RENDERED_IN_15S"}
+                    measured["connectCard"] = card
+    finally:
+        process.terminate()
+        try:
+            process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            process.kill()
+        shutil.rmtree(profile, ignore_errors=True)
+
+    problems = judge(measured, platform, decoy_url, expect_custody)
+
+    print(json.dumps({
+        "status": "PASS" if not problems else "FAIL",
+        "platform": platform,
+        "measured": measured,
+        "problems": problems,
+    }, ensure_ascii=False))
+    return 0 if not problems else 4
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="在真 Chrome 里问一遍这个平台四张表都接上了吗")
+    parser.add_argument("--ext-dir", default=None,
+                        help="解压好的扩展目录；不给就用 dist 里的发布包")
+    parser.add_argument("--platform", required=True)
+    parser.add_argument("--sample-url", required=True, help="这个平台的一个真实页面地址")
+    parser.add_argument("--decoy-url", default="https://mail.google.com/mail/u/0/",
+                        help="一个**不该**被认成这个平台的地址")
+    parser.add_argument("--expect-custody", choices=("yes", "forbidden", "not-yet"),
+                        default="yes",
+                        help="yes=白名单里有；forbidden=国内平台硬边界；not-yet=两张表都没有")
+    parser.add_argument("--expect-connect-card", action="store_true",
+                        help="真打开扩展设置页，确认这个平台有卡片和「连接账号」按钮")
+    parser.add_argument("--chrome",
+                        default="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+    args = parser.parse_args()
+    # 没给 --ext-dir 就用发布包：要先打包再解压才跑得动的演练，
+    # 就是没人跑的演练；默认用发布包还顺带让它验的是他真正下载的那一份。
+    args.ext_dir = resolve_ext_dir(args.ext_dir)
+    if not Path(args.ext_dir).is_dir():
+        print(json.dumps({"status": "FAIL", "error_code": "EXT_DIR_MISSING"}, ensure_ascii=False))
+        return 2
+    return asyncio.run(run(args.chrome, str(Path(args.ext_dir).resolve()), args.platform,
+                           args.sample_url, args.decoy_url, args.expect_custody,
+                           args.expect_connect_card))
+
+
+if __name__ == "__main__":
+    sys.exit(main())

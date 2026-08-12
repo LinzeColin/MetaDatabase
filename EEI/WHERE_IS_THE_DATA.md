@@ -12,7 +12,7 @@ OVH 上那份 postgres 是可重建的工作缓存，不是权威；Cloudflare D
 | 位置 | 角色 | 装什么 | 权威? |
 |---|---|---|---|
 | `Private-Database/Private-MetaDatabase/`（domain `EEI`） | **权威长期事实层** | 实体 / 关系 / 事件 + 各自的证据锚点（source_document id、locator、官方 URL、publisher）；发布记录、故障结论、恢复事实 | ✅ **是** |
-| OVH `eei-db`（postgres，139.99.61.6） | 计算节点的**可重建事务缓存** | 采集中间态、幂等去重、游标、Runtime Journal、Outbox | ❌ 否 |
+| OVH `eei-db`（postgres，15.235.141.201） | 计算节点的**可重建事务缓存** | 采集中间态、幂等去重、游标、Runtime Journal、Outbox | ❌ 否 |
 | OVH 容器磁盘（`.eei_*_state.json` / `.eei_*_runs.jsonl`） | Runtime Journal | 轮询日志、seen-accession 环、刷新游标 | ❌ 否（高频，且定义上可重建） |
 | Cloudflare D1 `eei-publication` | **可重建冷索引** | 公开站点查询用的投影（含 pulse 聚合） | ❌ 否 |
 | Cloudflare R2 | 冷备 / 大文件冷存 | 原始申报正文、二进制、含隐私的对象 | ❌ 否（权威层只存引用+hash） |

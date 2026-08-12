@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}上传简历｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="onboarding-head">
+  <span class="step-chip">第 1 步，共 2 步</span>
+  <h1>上传简历，其他交给系统</h1>
+  <p>系统会自动提取技能、经历和可能适合的岗位族。原始文件加密保存，不会公开。</p>
+</section>
+<section class="upload-card">
+  <form method="post" action="/onboarding/upload" enctype="multipart/form-data" data-testid="resume-upload-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label class="upload-zone" for="resume-file" data-testid="resume-drop-zone">
+      <span class="upload-icon">↑</span>
+      <strong>选择一份简历</strong>
+      <span>PDF、DOCX、TXT 或 Markdown，最大 10MB</span>
+      <input id="resume-file" name="resume" type="file" accept=".pdf,.docx,.txt,.md" required data-testid="resume-file">
+      <em id="selected-file">尚未选择文件</em>
+    </label>
+    <button class="button large full" type="submit" data-testid="resume-upload-submit">上传并自动整理</button>
+  </form>
+</section>
+{% if resumes %}
+<section class="panel compact">
+  <h2>已上传文件</h2>
+  {% for resume in resumes %}
+  <div class="file-row"><span>{{ resume.name }}</span><small>{{ (resume.size_bytes / 1024)|round(1) }} KB · {{ resume.created_at }}</small></div>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,49 @@
+{
+  "task": "T14",
+  "claim": "同一种「界面说得到、后端做不到」的第四处，在服务端自己产出的连接器健康视图里：instagram / bilibili / tiktok 三个自称 healthy 且写着「可直接点击『读取/保存』」，而真跑一次全都是 blocked。已修、已部署、已在生产复验。",
+  "invariant": "INV-REAL-USABLE",
+  "measured_at": "2026-08-05",
+
+  "how_it_was_found": "**不是判据发现的。** 我在查另一件事（状态页里 overall 为什么永远 degraded）时，顺手把连接器状态列出来看了一眼。",
+
+  "the_false_claims": {
+    "instagram": "healthy「可直接点击\"读取/保存\"。」—— 真跑：INSTAGRAM_SIDECAR_BLOCKED（session 文件是 0 字节）",
+    "bilibili": "healthy「可直接点击\"读取/保存\"。」—— 真跑：BILI_SIDECAR_BLOCKED「bilibili-cli 尚未配置」",
+    "tiktok": "healthy「可直接点击\"读取/保存\"。」—— **它连 PLATFORM_RELATIONS 都不在**，界面上根本没有这个平台"
+  },
+
+  "root_cause": "这三个的探针是 `self.command.health()`——它测的是**「CLI sidecar 活着吗」**，不是「这个连接器干得成活吗」。sidecar 活着（实测 /health 返回 tools 全 true），于是三个都报 healthy。instagram 那支还多包了一层 `probe if healthy else blocked`，但因为 command.health() 就是 healthy，那层守卫等于没有。",
+
+  "why_not_probe_the_real_prerequisite": "instagram 的 session、bilibili 的登录态，都要**真跑一次取数**才能验——状态探针每次渲染页面都会调，不能带这种代价和副作用。所以换了个判法。",
+
+  "the_fix": "**连接器视图不得比产品自己的能力声明更乐观。** SYNCABLE_NOW / NOT_SYNCABLE_YET 已经是那份声明；health_views 拿它钳一次，并直接用平台自己那句中文（含「现在可以：…」）。同一处真源，同一句话。",
+
+  "a_second_lie_fixed_on_the_way": {
+    "before": "x 那一条显示：「状态代码：X_ZERO_COST_NOT_CONFIRMED。尚未配置真实账号或 Worker；先使用保存当前页面，再按向导配置。」",
+    "what_is_wrong": "把失败码摆给用户看；并且叫他「按向导配置」——**而没有任何向导能打开那道零费用门**，那是 Owner 的花钱判断。",
+    "after": "「本版本还不能自动读取 X 的书签。原因是官方 X 接口可能收费，而这个项目的硬规矩是绝不产生新的必付费用，所以那条路是主动关着的。现在可以：…」"
+  },
+
+  "one_more_inconsistency": "第一版修完之后，同样是「本版本读不了」，bilibili/instagram 是 blocked_environment 而小红书/抖音/快手是 degraded。**`degraded` 读起来像「暂时不行、待会儿再试」，而这件事重试多少次都一样。** 已统一。",
+
+  "production_after": {
+    "distribution": "healthy 1 / blocked_environment 8",
+    "the_only_healthy_one": "generic-web —— 唯一有实测底的那个（T04：62 条 Chrome 书签全量入库）",
+    "every_blocked_one": "都带着「现在可以：…」那半句"
+  },
+
+  "the_guard": {
+    "file": "scripts/find_affordances_the_backend_says_cannot_work.py",
+    "what_changed": "这道门原来只看两个**界面文件**。这次那句假话出在**服务端自己产出的视图**里——不是界面文件，那套 SURFACES 根本查不到。新增 SERVER_SIDE_SURFACES，把 registry.health_views 也纳入。",
+    "counter_example": "去掉那道钳制 → 门指名道姓地红：「registry.py 的 health_views()：这些守卫不在了：['connector_id in NOT_SYNCABLE_YET']」",
+    "the_gates_own_admission": "门的说明里写着：**四处假话没有一处是它发现的**，全是 Owner 撞出来的，或我给别的事取证时顺手撞见的。这句留在门里，免得下次有人以为有门就安全。"
+  },
+
+  "an_existing_guard_i_had_to_rework_carefully": "test_connector_status_uses_fresh_probe_metadata_and_fails_closed 原来靠「正文里出现失败码」来证明探针是新鲜的。**那个用意是对的，保留了**（last_error_code / last_checked_at / latency_ms 各自都还证明着）；断言换成「失败码不许出现在正文里」+「库里那条旧的成功状态不许泄漏」。改判据时要分清**它想守什么**和**它碰巧怎么守的**。",
+
+  "what_this_does_not_prove": [
+    "不证明 instagram / bilibili 配好凭据之后就能用。钳制只是不再撒谎，没有让它们变得能用。",
+    "不证明还有没有第五处。这一处是顺手撞见的，不是搜出来的；那道门守的仍然只有平台级承诺这一类。",
+    "**不证明 overall 那个字段有意义。** 它是 `所有连接器都 healthy 才 healthy`，而 8 个平台在本版本注定不 healthy——**它永远是 degraded，因此不携带任何信号**。没有动它：怎么定义「整体健康」是产品判断，不该我顺手定。"
+  ]
+}

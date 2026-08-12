@@ -1,0 +1,159 @@
+r"""他点「下载全部 Markdown」拿到的那个 zip，有人在生产上验吗（2026-08-11）。
+
+## 这道门为什么在
+
+《使用说明》第二节两条取法，第一步都是同一颗按钮。而在此之前
+**没有任何一步在生产上验过它**：单元判据跑在本机 `TestClient` 上，
+部署脚本里一次都没出现过 `markdown.zip`。我上一次真去点它是 0.0.0.29，
+到补这道门时已经隔了十几版——
+`never-verified-the-final-artifact-itself` 那条教训的同一个形状。
+
+第一次真跑就有收获（虽然是我自己的毛病）：
+
+    第一版判据：标题「以互动数开头」→ 生产上 29 个命中
+    读清楚之后：真正的缺陷是**后半截和前半截重复**（「2.0万文案文案」），
+                而「10万个冷知识」这种正当标题被一起算了进去
+    改准之后：**重复的 0 个**，仅仅以数字开头的 92 个（正常内容）
+
+## 这里测的是什么
+
+`classify()` 是**同一份代码**：脚本用 `inspect.getsource` 把它塞进
+`docker exec` 送进容器，判据直接 import 它。所以下面这些例子测的
+就是生产上真正跑的那段逻辑，不是它的一份手抄。
+
+生产上的那次实测（数字、不含正文）落在 `evidence/G3/HIS_MARKDOWN_EXPORT.json`。
+"""
+
+from __future__ import annotations
+
+import importlib.util
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+SCRIPT = ROOT / "scripts/check_his_markdown_export_still_works.py"
+
+
+def _module():
+    spec = importlib.util.spec_from_file_location("markdown_export_check", SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
+
+
+def _note(title: str, author: str | None = None) -> str:
+    line = f'author: "{author}"' if author is not None else "author: null"
+    return f'---\nplatform: "douyin"\n{line}\n---\n\n# {title}\n\n原始链接：https://x\n'
+
+
+def test_a_good_note_is_not_flagged() -> None:
+    got = _module().classify(_note("真正的一次性她来了", "雪瑜"))
+    assert got == {"empty_heading": 0, "doubled_caption": 0,
+                   "starts_with_number": 0, "like_count_author": 0}
+
+
+def test_an_empty_heading_is_caught() -> None:
+    """我在生产上写出过 4 个空标题。"""
+    assert _module().classify(_note(""))["empty_heading"] == 1
+
+
+def test_the_doubled_caption_is_caught() -> None:
+    """抖音那种「互动数＋文案＋同一段文案」。"""
+    got = _module().classify(_note("2.0万真正的一次性她来了真正的一次性她来了"))
+    assert got["doubled_caption"] == 1
+    assert got["starts_with_number"] == 1
+
+
+def test_a_title_that_merely_starts_with_a_number_is_not_a_defect() -> None:
+    """**这条是那 29 个假命中的墓志铭。**
+
+    「10万个冷知识」以数字开头，但它不是「互动数＋重复文案」——
+    把它算成缺陷，我就会去修一个不存在的问题，或者把他的正当标题改掉。
+    """
+    got = _module().classify(_note("10万个冷知识第一集讲的是海水为什么是咸的"))
+    assert got["doubled_caption"] == 0, "正当标题被当成了缺陷"
+    assert got["starts_with_number"] == 1, "参考数也该记上"
+
+
+def test_a_like_count_in_the_author_field_is_caught() -> None:
+    """他那条笔记的 frontmatter 曾经写着 `author: "26.6万"`。"""
+    assert _module().classify(_note("随便", "26.6万"))["like_count_author"] == 1
+    assert _module().classify(_note("随便", "雪瑜"))["like_count_author"] == 0
+
+
+def test_the_deploy_actually_runs_this_check() -> None:
+    """**没有调用方的判据不算判据。** 它必须每次部署都真去点那颗按钮。"""
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    name = "check_his_markdown_export_still_works.py"
+    assert name in deploy, f"部署脚本没有调用 {name}——那条路又回到没人验的状态"
+    step = deploy[deploy.index(name):]
+    nxt = step.find('\nstep "')
+    step = step[:nxt] if nxt > 0 else step
+    assert "fail " in step, "它红了不中止部署，等于没验"
+    assert "| tail" not in step and "| head" not in step, "别把成败接进管道"
+
+
+def test_it_never_prints_the_token_or_any_body() -> None:
+    """**只读、只数数。** 这条守的是它自己的边界。"""
+    source = SCRIPT.read_text(encoding="utf-8")
+    assert 'print(json.dumps(out' in source
+    for leak in ('out["titles"]', 'out["sample"]', "print(token", "out[\"token\"]"):
+        assert leak not in source, f"它会把不该出来的东西打出来：{leak}"
+    assert "token.strip()" not in source.replace("handle.read().strip()", "")
+
+
+def test_the_deploy_also_checks_his_obsidian_vault() -> None:
+    """**整条线的终点也要有人管。**（2026-08-11）
+
+    库里几条、zip 几个、桌面那两个文件都有人验了，
+    **而他 Obsidian 库里那几篇一直没有**——偏偏这一段在这次会话里被弄乱过两次
+    （193→198、198→246）。每次都是我手工数出来的，而手工数不会在下次部署时自己发生。
+    """
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    name = "check_his_obsidian_vault_is_intact.py"
+    assert name in deploy, f"部署不查他的 Obsidian 库——{name} 成了没人跑的摆设"
+    step = deploy[deploy.index(name):]
+    nxt = step.find('\nstep "')
+    step = step[:nxt] if nxt > 0 else step
+    assert "fail " in step, "对不上不中止部署，等于没验"
+    assert "--expect-items" in deploy, "没有和档案馆的条数比对，就只是数了个数"
+    assert "HIS_MARKDOWN_EXPORT.json" in deploy, (
+        "条数该从上一步那份证据里现取，不许手写一个会过期的数字")
+
+
+def test_the_vault_readout_is_actually_printed() -> None:
+    """**播报也要真的播出来。**（2026-08-12）
+
+    那 56 篇播放进度标题写进了 `evidence/G3/HIS_OBSIDIAN_VAULT.json`，
+    而部署的 8.67 播报块只印那四个已知计数——**等于记下来了、没人看见**。
+    判据没有调用方不算判据；播报没人读也一样。
+    """
+    deploy = (ROOT / "scripts/deploy_to_production.sh").read_text(encoding="utf-8")
+    step = deploy[deploy.index("check_his_obsidian_vault_is_intact.py"):]
+    nxt = step.find('\nstep "')
+    step = step[:nxt] if nxt > 0 else step
+    assert "notes_to_read_zh" in step, (
+        "8.67 不再印那条播报了——它会退回成「写进证据文件但没人看见」")
+
+
+def test_the_timestamp_shape_is_not_a_blocking_gate() -> None:
+    """它是**已经存在的数据**，做成门就永远变不绿。
+
+    `a-red-that-can-never-turn-green-is-not-a-signal`：那种红只会逼下一个人
+    绕过整道检查，连带把真会红的那几条（空标题／重复／同一条两份）一起绕过去。
+    """
+    source = (ROOT / "scripts/check_his_obsidian_vault_is_intact.py").read_text(encoding="utf-8")
+    # **窗口要切对。** 第一版用 `source.index("print(json.dumps(")` 当右端——
+    # 而文件里更早就有一个（库不存在那一支的 SKIPPED 输出），于是 b < a、
+    # 切出空串，`not in ""` 恒真：**这条测试永远绿**。
+    # 是反例把它戳穿的（把播放进度做成门，测试照样全过）。
+    start = source.index("problems: list[str] = []")
+    end = source.rindex("print(json.dumps(")
+    assert end > start, "窗口又切反了"
+    problems_part = source[start:end]
+    # 播报那段本身会提到这个名字，所以只看「有没有被 append 进 problems」
+    appended = [line for line in problems_part.splitlines()
+                if "problems.append" in line or "for key, why in" in line
+                or ('("title_is_a_playback_timestamp"' in line)]
+    assert not any('title_is_a_playback_timestamp' in line for line in appended), (
+        "播放进度标题被塞进 problems 了——它会拦住每一次部署，而他还没重新同步过")

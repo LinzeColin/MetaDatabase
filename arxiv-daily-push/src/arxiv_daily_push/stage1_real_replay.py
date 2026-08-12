@@ -219,7 +219,7 @@ def validate_real_historical_arxiv_replay_report(report: Mapping[str, Any]) -> l
         "email_previews_generated",
         "queue_ledgers_generated",
         "content_ledger_selected_rows_generated",
-        "content_ledger_queued_rows_generated",
+        "content_ledger_queued_rows_agree_with_queue",
         "content_ledger_email_state_present",
         "content_ledger_artifact_refs_present",
         "no_production_side_effects",
@@ -247,8 +247,17 @@ def validate_real_historical_arxiv_replay_report(report: Mapping[str, Any]) -> l
             errors.append(f"{count_key} must equal required_replay_count")
     if int(report.get("content_ledger_selected_row_count") or 0) != required:
         errors.append("content_ledger_selected_row_count must equal required_replay_count")
-    if int(report.get("content_ledger_queued_row_count") or 0) < required:
-        errors.append("content_ledger_queued_row_count must be at least required_replay_count")
+    # 队列只收 ROI >= ROI_QUEUE_MIN_SCORE 的落选候选（queue_reason=high_value_not_selected_today），
+    # 所以「当天没有够格的亚军」是正常态，不是缺陷。
+    # 旧判据要求 queued_row_count >= required（等于要求 30 天平均每天至少 1 条），
+    # 考的是**语料碰巧有没有足够高分亚军**，不是重放对不对 —— 2026-08-12 实测 17/30 天为 0，
+    # 而账本与队列逐日一致（30/30 相符）、queue_continuity_break_count=0，逻辑是好的。
+    # 换成数据无关的真不变量：账本里的 queued 行必须与各天队列长度逐日相等，一条不多一条不少。
+    ledger_vs_queue = report.get("content_ledger_queue_agreement")
+    if not isinstance(ledger_vs_queue, Mapping):
+        errors.append("content_ledger_queue_agreement must be an object")
+    elif int(ledger_vs_queue.get("mismatch_day_count") or 0) != 0:
+        errors.append("content_ledger_queue_agreement.mismatch_day_count must be 0")
     source_policy = report.get("source_policy")
     if not isinstance(source_policy, Mapping):
         errors.append("source_policy must be an object")
@@ -603,6 +612,29 @@ def _summarize_replay(
     unsupported_p0_p1 = sum(int(record.get("unsupported_p0_p1_count") or 0) for record in passed)
     real_source_ids = [source_id for source_id in selected if source_id.startswith("arxiv:")]
     selected_ledger_rows = [row for row in content_ledger_rows if str(row.get("queue_state") or "") == "covered_deep"]
+    # 数据无关的真不变量：账本里每天的 queued 行数，必须与那天队列的实际长度相等。
+    # 这测的是「账本有没有忠实反映队列」，而不是「语料碰巧有多少高分亚军」——
+    # 后者是数据属性，任何阈值都会随语料漂移（旧判据 queued>=required 就是这么恒红的）。
+    _queue_by_date = {str(l.get("date") or ""): int(l.get("queued_item_count") or 0) for l in queue_ledgers}
+    _ledger_queued_by_date: dict[str, int] = {}
+    for row in content_ledger_rows:
+        if str(row.get("queue_state") or "") != "queued":
+            continue
+        # ★字段叫 event_date，不是 date★ —— 第一版写成 row.get("date")，
+        # 于是这条判据一行都匹配不到、算出来永远是 0，对着好好的产物报红。
+        _day = str(row.get("event_date") or "")
+        _ledger_queued_by_date[_day] = _ledger_queued_by_date.get(_day, 0) + 1
+    _mismatch_dates = sorted(
+        d for d in set(_queue_by_date) | set(_ledger_queued_by_date)
+        if _queue_by_date.get(d, 0) != _ledger_queued_by_date.get(d, 0)
+    )
+    content_ledger_queue_agreement = {
+        "checked_day_count": len(_queue_by_date),
+        "mismatch_day_count": len(_mismatch_dates),
+        "mismatch_dates": _mismatch_dates,
+        "queue_item_total": sum(_queue_by_date.values()),
+        "ledger_queued_row_total": sum(_ledger_queued_by_date.values()),
+    }
     queued_ledger_rows = [row for row in content_ledger_rows if str(row.get("queue_state") or "") == "queued"]
     artifact_ref_rows = [
         row
@@ -634,7 +666,7 @@ def _summarize_replay(
         "email_previews_generated": len(email_previews) == required,
         "queue_ledgers_generated": len(queue_ledgers) == required,
         "content_ledger_selected_rows_generated": len(selected_ledger_rows) == required,
-        "content_ledger_queued_rows_generated": len(queued_ledger_rows) >= required,
+        "content_ledger_queued_rows_agree_with_queue": len(_mismatch_dates) == 0,
         "content_ledger_email_state_present": len(email_state_rows) == len(content_ledger_rows) and bool(content_ledger_rows),
         "content_ledger_artifact_refs_present": len(artifact_ref_rows) >= required,
         "no_production_side_effects": True,
@@ -663,6 +695,7 @@ def _summarize_replay(
         "content_ledger_row_count": len(content_ledger_rows),
         "content_ledger_selected_row_count": len(selected_ledger_rows),
         "content_ledger_queued_row_count": len(queued_ledger_rows),
+        "content_ledger_queue_agreement": content_ledger_queue_agreement,
         "lookback_days": int(lookback_days),
         "max_results": int(max_results),
         "source_policy": {

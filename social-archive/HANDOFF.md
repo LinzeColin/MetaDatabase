@@ -1,5 +1,15 @@
 # Social Archive handoff
 
+> **这份不是当前交接。** 它停在 **v0.0.0.6（2026-08-03）**，正文里的
+> 「current execution」指的是那一天的 v0.0.0.6，不是今天。
+>
+> **当前交接是 [`evidence/HANDOFF_v0007.md`](evidence/HANDOFF_v0007.md)。**
+> 要接手、要知道 Owner 还欠哪几下、要知道哪些格子没做完，读那一份。
+>
+> 这份留着是因为它是 v0.0.0.6 的记录（SA-205 那条线、当时的 Canary 约束、
+> 那个 ZIP 的哈希），删了就查不到了。但**别照着它判断今天的状态**——
+> 2026-08-05 发现它躺在仓根、名字又恰好是最容易被点开的那个，
+> 而当前那份藏在 evidence/ 里。
 ## v0.0.0.6 production cutover and real provider receipts (2026-08-03 UTC, supersedes the SA-205 block narrative below)
 
 **Production was never running v0.0.0.6, and it was never the developer Mac.** `evidence/SA-205/PRODUCTION_ORIGIN_READBACK.json` concluded the Cloudflare Tunnel origin was a local container from the `v0006-s0` worktree. That is retracted in `evidence/SA-205/PRODUCTION_ORIGIN_CORRECTION_20260803.json`: the public API and the Mac loopback reported different versions at the same instant, no cloudflared existed on the Mac at all, and deploying only the OVH host flipped the public endpoint while the Mac container stayed untouched. The real origin is `vps-83b882b4`, Compose project `/opt/social-archive`. Every prior "invalid production target" observation came from inspecting the wrong host.

@@ -1,0 +1,107 @@
+{
+  "task": "T06",
+  "claim": "「随时可以一键撤销」此前在产品上是假的：服务端路由与扩展处理体都在，而没有任何界面能触发它。已接上并有判据守住。",
+  "invariants": ["INV-REVERSIBLE", "INV-REAL-USABLE", "INV-ZERO-BARRIER"],
+  "how_it_was_found": {
+    "not_by_reading_code": "不是审出来的。新加的第 16 道门 find_messages_with_only_one_end.py 第一次跑就报了 SA_REVOKE_PLATFORM_SESSION「有人听、没人发」。",
+    "why_the_existing_gates_could_not_see_it": [
+      "find_unwired_code.py 只看 Python 符号引用——这是 JS。",
+      "find_endpoints_no_client_calls.py 当时**只比对路径、不看方法**：DELETE /v1/credentials/{platform} 确实有一处 fetch，于是判为「有人调」。它看不见的是那处 fetch 本身在一段没人能触发的代码里。",
+      "find_write_only_storage_keys.py 看的是 chrome.storage 键，不是消息。"
+    ],
+    "the_fourth_shape": "扩展内部靠消息互通的那一层，前三道门一道都看不见。这是本轮「建好了没接上」的第四种形态，也是第 9 次。"
+  },
+  "the_promise_and_the_gap": {
+    "what_the_product_says": [
+      "background.js 连接成功：「已连接，登录状态已加密保存（N 条）。**随时可以一键撤销。**」",
+      "api.py PUT /v1/credentials：「登录信息已加密保存，**随时可以一键撤销**。」"
+    ],
+    "what_existed": [
+      "服务端 DELETE /v1/credentials/{platform} —— 可用，且真的 secure_delete",
+      "扩展 SA_REVOKE_PLATFORM_SESSION 处理体 —— 删服务端 + chrome.permissions.remove，两半都对"
+    ],
+    "what_was_missing": "**发出那条消息的界面。** 全仓零处。撤销这件事在代码上完整、在产品上不存在。",
+    "why_it_matters_more_than_a_missing_button": "托管的是平台登录状态。「随时能撤销」是用户交出它的前提；这句话不成立，前面那次同意就是在不实信息下作出的。"
+  },
+  "a_second_thing_the_same_look_uncovered": {
+    "what": "走 Cookie 托管连接（connectPlatformSessionByCookies）**不会建 source_account 行**，而设置页的平台卡片只看 accounts。",
+    "user_visible_consequence": "连接 X 成功、弹出「已连接，登录状态已加密保存（N 条）」，刷新回来卡片仍然显示**未连接**。用户看到的是连接失败了。",
+    "fix": "这一页现在也读 GET /v1/credentials；有托管记录就显示「登录状态已加密保存（N 条）· 时间」，并给出「重新连接」与「撤销登录状态」两个动作。",
+    "note": "GET /v1/credentials 此前**一个调用方都没有**——正是加了方法维度之后才暴露的。路径维度上它被同前缀的 PUT/DELETE 掩盖了。"
+  },
+  "third_finding_same_scan": {
+    "endpoint": "POST /v1/destinations/receipts/{receipt_id}/retry",
+    "who_called_it": "**只有 scripts/browser_acceptance.py**（我自己的验收桩）。能被测试驱动，用户点不到。",
+    "why_that_is_a_lie_too": "冻结词典里多条文案以「[ 重试 ]」收尾（SERVER_UNREACHABLE、NOT_LOGGED_IN、以及认不出的失败码那句兜底）。文案许诺一个动作，界面上却没有对应按钮。",
+    "fix": "内容详情抽屉的「自动导出」区从只显示一个数字（「N 个真实回执」）改为逐条列出目的地与结果；失败的那条带「重试」，点击 POST 该接口。",
+    "deliberately_not_shown_on_success": "服务端对非 failed 的回执返回 409。界面上就该是「根本没有这颗按钮」，而不是点了才被拒绝——点了才知道不能点，是把服务端校验当成了交互设计。",
+    "still_open": "POST /v1/jobs/{job_id}/retry 仍然没有调用方。界面上没有任何地方逐条列出下载任务，因此也无从画那颗按钮；用户目前只能重跑整次同步。已登记在 find_endpoints_no_client_calls.py 的 NOT_FOR_CLIENTS 里，写明是「真的没人调」而不是「不该调」。"
+  },
+  "dead_code_removed_in_the_same_pass": {
+    "why_delete_rather_than_exempt": "留着的坏处不是占地方：它让一条链路在代码上看起来是完整的闭环，而中间那一环不存在。本轮反复栽的就是这种「看着接上了」。",
+    "removed": [
+      {
+        "what": "SA_CONFIGURE（bridge.js）+ SA_WEB_BRIDGE_CONFIGURE（background.js）",
+        "reason": "**这条不只是死代码。** 它让页面下发 endpoint / libraryUrl 写进扩展配置，而同一个文件里二十行之后的 SA_WEB_BRIDGE_ADOPT_TOKEN 明写「服务地址取扩展自己的托管配置，不接受页面下发——页面能改端点就等于任何拿到桥的页面都能把上行改到别处去」。同一份代码里写着规则，又留着一个违反它的入口。桥注入在档案馆页面上，同源的任何脚本都发得出那条消息。",
+        "reachable_today": "没人发它只说明**今天**没被用到，不等于用不了。"
+      },
+      {
+        "what": "SA_PLATFORM_PAGE_READY + completePendingBrowserConnection（background.js，约 35 行）",
+        "reason": "T03 删掉 DOM 抓取器之后的残骸。它读的 message.loggedIn / externalAccountId / accountName 三个字段**在全仓无人产出**，触发条件再也不会成立。真正的登录态确认在 verifyPendingPlatform，那里明确返回 LOGIN_PROOF_UNAVAILABLE 并说清原因——那是诚实的阻塞，这段是它的残骸。"
+      },
+      {
+        "what": "SA_CONNECT_PLATFORM_SESSION 处理体（约 28 行）",
+        "reason": "与 connectPlatformSessionByCookies() 逐行重复的两份同一逻辑，而界面走的是函数直调。两份同样的东西只有一份会被改到。"
+      },
+      {"what": "SA_GET_SYNC_CONTROL_STATE", "reason": "无发送方。暂停/取消真正生效的是编排层每轮自查 stopStateFor()，那条不依赖任何消息。"},
+      {"what": "SA_REFRESH_FAB", "reason": "无发送方，且 tabs.onUpdated / permissions.onAdded 已经在注。"}
+    ],
+    "one_was_wired_instead_of_deleted": {
+      "what": "SA_NET_OBSERVER_STATE —— 有人发、没人听",
+      "detail": "中继一直把观察器自报的 SA_OBSERVER_INSTALLED / SA_OBSERVER_READY 转给 background，而 background 没有这条消息的处理体，消息落进虚空（发送处 .catch(() => {})，连报错都没有）。",
+      "why_that_matters": "安装那段代码的注释自己写着：丢掉 INSTALLED 的后果是「background 会分不清『观察器装好了』和『注入静默失败了』」。注释写明不许发生的事，就发生在它下面几行。",
+      "fix": "加了处理体，按 tab 记录 installed / ready / prefixCount，标签页关闭时清掉；安装结果里如实带上观察器自报。**它是异步到达的，拿不到不等于注入失败，所以只做如实汇报、不拿它当判据。**"
+    }
+  },
+  "gates": {
+    "new": {
+      "file": "scripts/find_messages_with_only_one_end.py",
+      "what": "扩展消息只有一头：有人听没人发（功能在代码上完整、在产品上够不着），或有人发没人听（消息落进虚空）。",
+      "scope_is_apps_only": "**判据脚本里发一条消息不算产品里有人发。** 验收脚本能驱动的东西，用户点不到——这条区别正是 POST .../retry 那个缺口一直没暴露的原因。",
+      "first_version_was_wrong": {
+        "what": "第一版把 SA_PONG 和六条 SA_*_RESULT 全报成「有人发、没人听」。**是误报。**",
+        "root_cause": "页面侧的 postToExtension() 用 crypto.randomUUID() 生成 requestId，回来时只比对 data.requestId，**根本不看 type**。",
+        "fix": "所有生产处都带 requestId 的名字判为「有主的应答」。这不是开后门，是按它真实的对应机制判定。",
+        "how_it_was_caught": "去读了消费方，而不是相信自己的第一版正则。"
+      },
+      "proved_by_reintroduction": "把 options.js 里那句 sendMessage 换成常量 → 「有人听、没人发的 1 条：SA_REVOKE_PLATFORM_SESSION」，退出 1；还原后退出 0。"
+    },
+    "fixed": {
+      "file": "scripts/find_endpoints_no_client_calls.py",
+      "what": "改成按 (路径, 方法) 判定。取调用点前后各 220 字符找 method:\"X\" 或 .post( 之类；没写方法的按 GET 算（fetch 与 SA.api 的默认值）。",
+      "what_it_immediately_found": "两个 POST 重试接口没有产品调用方；GET /v1/credentials 之前被同前缀的 PUT/DELETE 掩盖。",
+      "proved_by_reintroduction": "把回执重试那句 api(..., {method:\"POST\"}) 换掉 → 报「这个路径有人调，但没人用这个方法：已见 GET」，退出 1；还原后退出 0。"
+    },
+    "tests": {
+      "file": "tests/focused/test_promised_actions_have_buttons.py",
+      "count": 8,
+      "first_version_was_green_and_proved_nothing": {
+        "what": "第一版断言 'data-revoke-platform' in options。把整段按钮 HTML 摘掉之后**判据照样全绿**——因为 querySelectorAll(\"[data-revoke-platform]\") 那一行里也有这个字符串。",
+        "lesson": "判据被自己要找的选择器满足了。改成 re.search(r'<button[^>]*data-revoke-platform') 之后，同样的反证立刻两条变红。",
+        "note": "这是本轮第 N 次「先写反证再信绿灯」救回来的一次。绿灯本身不是证据。"
+      }
+    }
+  },
+  "measured_after": {
+    "suite": "563 passed / 0 failed",
+    "release_gate": "PASS（16 道）",
+    "extension_preflight": "2 passed",
+    "plaintext_credential_scan": "239 文件 + 2 份 diff，0 处命中"
+  },
+  "what_this_does_not_prove": [
+    "**没有在真实浏览器里点过那颗撤销按钮。** 判据打在源码上，证明的是「接上了」，不是「点下去真的撤销了」。真跑一次需要 Owner 先用自己的 X / Instagram 账号完成一次连接（T06 的 Oracle 仍然 NOT_RUN）。",
+    "没有在真实浏览器里点过回执重试。服务端那条路由有判据覆盖，界面这半只验证了会发出正确的请求。",
+    "删掉的五段代码没有在真实 Chrome 里回归验证。判据能证明它们没有发送方、因此不可达；不能证明 Chrome 在某种我没想到的情形下不会送来那条消息。",
+    "SA_INSTALL_NET_OBSERVER 与 SA_GET_NET_CAPTURES 仍然只有一头，已登记为例外并写明接上的条件：取数缝隙 acquireRelationItems() 目前是显式 stub，填上它需要 Owner 在已登录的国内平台页面上确认收藏接口的响应形状。"
+  ]
+}

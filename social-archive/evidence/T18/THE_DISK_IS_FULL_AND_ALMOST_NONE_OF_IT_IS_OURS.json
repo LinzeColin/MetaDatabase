@@ -1,0 +1,42 @@
+{
+  "task": "T18",
+  "claim": "2026-08-05 部署被磁盘门挡住。清完所有**属于我们的**可回收空间之后仍差 0.3G——因为整台机器 34G 里我们只占 2.4G。",
+  "measured_at": "2026-08-05T08:1Z",
+  "what_blocked": "scripts/deploy_to_production.sh 第 4 道门：可用 3.2G < 门槛 5G，拒绝构建。**那道门做对了**——它没有降标准，也没有去删别人的东西。",
+  "what_i_was_authorized_to_do_and_what_it_yielded": {
+    "docker_builder_prune": "**0B。** 实测 Build Cache 60 项全部 active，可回收为 0。授权了不等于有东西可清——**跑完照实报 0，不假装清出了空间**。",
+    "delete_rollback_image": "1.5G（3.2G → 4.7G）。social-archive/core:rollback = efee1e76649a，与正在跑的 0.0.0.7（109de20b58c3）**是两个不同的镜像**，没有任何容器在用它，删掉不影响服务。",
+    "still_short": "4.7G < 5G，差 0.3G。"
+  },
+  "our_entire_footprint": {
+    "/opt/social-archive": "120M（其中 .venv 92M）",
+    "/var/lib/social-archive": "180M（备份 82M、staging 58M、GitHub 包 25M）",
+    "images_in_use": "core:0.0.0.7 1.06GB + cli-tools:0.0.0.7 994MB，两个都在跑",
+    "total": "约 2.4G / 34G",
+    "conclusion": "**没有一样是能再删的。** 数据要留，两个镜像都在跑。"
+  },
+  "where_the_rest_goes": {
+    "/var/lib/containerd": "12G —— 25 个镜像的共享层存储，删这里等于删别人的镜像",
+    "/srv/linze": "6.8G —— 其中 .trivycache **2.5G**（漏洞库缓存，可再生）、apps 2.4G、work 1.4G",
+    "/tmp/pytest-of-ubuntu": "2.2G —— 三个 750M 的 pytest 运行目录（当天 02:01/02:18/02:33），另有 pytest-current 符号链接",
+    "/opt/cyberboss-cloud": "1.1G",
+    "other_images": "kmfa 三个约 2.8G、coolify 三件套约 2.2G、keycloak 691M、postgres 420M"
+  },
+  "the_two_clear_candidates_that_are_not_ours": [
+    "/srv/linze/.trivycache 2.5G —— Trivy 的漏洞库缓存，下次扫描会自己重新下载",
+    "/tmp/pytest-of-ubuntu 2.2G —— pytest 的临时目录，按设计就是可丢的",
+    "**任一个单独清掉都够过 5G 那道门。** 但它们属于别的项目，我没有动——「安全诊断」和「替别人做决定」是两件事，而只有 Owner 知道那些项目还在不在用。"
+  ],
+  "why_there_is_no_urgency": "等着部署的只有一个开发用脚本（check_production_matches_the_repo.py）在镜像里的副本，而它**从来不在容器里跑**。生产健康、跑的是正确代码、仓与主机逐文件一致。",
+  "the_thing_i_broke_and_how_it_is_covered": {
+    "what": "删掉回滚镜像 = **这台机器现在没有回滚点**，直到下一次部署成功。",
+    "why_it_was_not_just_silently_left": "运维手册此前**根本没有回滚那一节**——那条一行命令只在部署脚本跑完时打印一次，终端一滚就没了。半夜要回滚的人在文档里找不到它。",
+    "now": "手册补了一节，第一句不是命令而是**先确认回滚点还在**（docker image inspect），并写明没有回滚点时的正解是恢复快照（镜像回滚只能退代码、退不了数据）。",
+    "verified": "那条检查命令刚在生产上跑过，如实报 No such image。"
+  },
+  "what_this_does_not_prove": [
+    "**不证明清掉那两处就安全。** 我没有去查 Trivy 缓存和那些 pytest 目录背后的项目此刻在不在跑——那需要动别人的东西才能确认，而我不该那么做。",
+    "不证明 0.3G 就够：门槛是 5G，清完刚好过线不代表构建过程中不会再吃掉几百 M。**留出余量比刚好过线安全。**",
+    "**不证明磁盘不会再满。** 每次部署都会产生新层；今天七次构建就是这次紧张的直接来源。"
+  ]
+}
