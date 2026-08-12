@@ -57,6 +57,9 @@ test("normal routes retain a separate account entry and resolve without referenc
 test("account entry reports session state without rendering account identity", async () => {
   const source = await import("node:fs/promises").then(({ readFile }) => readFile(new URL("../app/_components/workbench/account-entry.tsx", import.meta.url), "utf8"));
   assert.match(source, /get-session\?disableCookieCache=true/);
+  assert.match(source, /addEventListener\("focus", refresh\)/);
+  assert.match(source, /addEventListener\("pageshow", refresh\)/);
+  assert.match(source, /addEventListener\("visibilitychange", refreshWhenDocumentVisible\)/);
   assert.match(source, /已登录 · 账户/);
   assert.match(source, /已登录 · 待验证/);
   assert.doesNotMatch(source, /session\.user\.email(?:[^A-Za-z]|$)/);
