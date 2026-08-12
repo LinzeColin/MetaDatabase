@@ -169,8 +169,11 @@ def main() -> int:
             expected_relevance_count = expected_all if target_relevance == "" else expected_high
             expected_role_count = expected_role if target_relevance == "" else expected_role_high
             requests_before = client_diagnostics["partial_request_count"]
-            relevance_control.select_option(value=target_relevance)
-            page.wait_for_timeout(700)
+            with page.expect_response(
+                lambda response: "/recommendations" in response.url
+                and "partial=true" in response.url and response.ok
+            ):
+                relevance_control.select_option(value=target_relevance)
             recommendation_results.wait_for(state="visible")
             if client_diagnostics["partial_request_count"] <= requests_before:
                 raise RuntimeError("relevance selection did not start a live filter request")
@@ -179,8 +182,13 @@ def main() -> int:
                 raise RuntimeError("relevance filter result count differs from the server-side record count")
             stage = "filter_by_role"
             requests_before = client_diagnostics["partial_request_count"]
-            page.locator("[data-testid='filter-role']").select_option(label=role)
-            page.wait_for_timeout(700)
+            # `role` is the stable API value (for example, ``Finance``), while
+            # the fully Chinese UI intentionally renders a translated label.
+            with page.expect_response(
+                lambda response: "/recommendations" in response.url
+                and "partial=true" in response.url and response.ok
+            ):
+                page.locator("[data-testid='filter-role']").select_option(value=role)
             recommendation_results.wait_for(state="visible")
             if client_diagnostics["partial_request_count"] <= requests_before:
                 raise RuntimeError("role selection did not start a live filter request")
