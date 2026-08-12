@@ -175,6 +175,15 @@ def structural_commands() -> list[list[str]]:
         # （「单步命令都验过≠链条走得通」）。这道门要求说明里每一节小标题
         # 都登记了一个真的在跑的演练；说明里新加一节而没人认领 → 红。
         [python, "scripts/check_every_guide_step_has_a_drill.py"],
+        # **那道「提交前跑发布门」的 hook，这台机器上装没装。**（2026-08-12）
+        #
+        # 它在仓里躺了很久，文件头写着「『下次注意』不是修复，这个 hook 是修复」，
+        # 而 `.git/hooks/pre-commit` 那个位置上是另一个守卫（铁律 2 的主树保护），
+        # 于是它**从来没有生效过**——当天七次带着红门提交都没被拦住。
+        #
+        # 判据自己也要有调用方，否则它和那个 hook 是同一种东西。装它一行命令，
+        # 红了的时候错误信息里就写着。
+        ["bash", "scripts/install_git_hooks.sh", "--check"],
         # 使用说明改了却忘了重生成产品里那一页 → 他看到的是上一版。
         [python, "scripts/build_guide_page.py", "--check"],
         # 第十种：**界面上写死的「哪些平台能干什么」**（v0.0.0.15）。
