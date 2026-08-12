@@ -481,6 +481,7 @@ scripts/backfill_sec_history.py
 scripts/backup_restore_drill.py
 scripts/build_cloud_frontend.sh
 scripts/build_production_gold_labels.py
+scripts/cf_worker_vars.py
 scripts/check_database_schema.py
 scripts/compile_model_runtime_defaults.py
 scripts/cross_verify_relationship_candidates.py
