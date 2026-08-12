@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+const initializeJobHuntBot = () => {
   document.querySelectorAll("form").forEach((form) => {
     form.addEventListener("submit", (event) => {
       if (form.matches("[data-live-filters]")) return;
@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const results = document.querySelector("#recommendation-results");
   const liveStatus = document.querySelector("#filter-live-status");
   if (filterForm && results) {
+    filterForm.dataset.liveFiltersReady = "true";
     let debounceTimer;
     let currentRequest;
     const updateResults = async () => {
@@ -83,4 +84,10 @@ document.addEventListener("DOMContentLoaded", () => {
     filterForm.querySelectorAll("select").forEach((input) => input.addEventListener("change", scheduleUpdate));
     filterForm.querySelectorAll("input[type='text'], input[type='search']").forEach((input) => input.addEventListener("input", scheduleUpdate));
   }
-});
+};
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeJobHuntBot, { once: true });
+} else {
+  initializeJobHuntBot();
+}

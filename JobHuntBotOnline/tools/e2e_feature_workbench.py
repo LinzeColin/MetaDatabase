@@ -159,6 +159,8 @@ def main() -> int:
             page.wait_for_load_state("networkidle")
             if page.locator("[data-testid='recommendation-results']").count() != 1:
                 raise RuntimeError("recommendation result region is unavailable")
+            if page.locator("[data-testid='recommendation-filters']").get_attribute("data-live-filters-ready") != "true":
+                raise RuntimeError("live filter event binding is unavailable")
             stage = "expand_relevance"
             relevance_control = page.locator("[data-testid='filter-relevance']")
             initial_relevance = relevance_control.input_value()
@@ -207,6 +209,7 @@ def main() -> int:
             "initial_relevance": initial_relevance,
             "ai_consultation_entry": True,
             "application_progress_workspace": True,
+            "live_filter_binding_ready": True,
             **client_diagnostics,
         })
     except Exception as exc:

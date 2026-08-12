@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import secrets
 from contextlib import asynccontextmanager
@@ -43,6 +44,17 @@ from .services import (
 SESSION_COOKIE = "jobhunt_session"
 CSRF_COOKIE = "jobhunt_csrf"
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+STATIC_ROOT = Path(__file__).parent / "static"
+
+
+def _static_asset_revision() -> str:
+    digest = hashlib.sha256()
+    for asset in ("app.css", "app.js"):
+        digest.update((STATIC_ROOT / asset).read_bytes())
+    return digest.hexdigest()[:12]
+
+
+STATIC_ASSET_REVISION = _static_asset_revision()
 
 
 def _csv_list(value: str) -> list[str]:
@@ -206,6 +218,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "request": request,
             "app_name": settings.app_name,
             "app_version": settings.app_version,
+            "static_revision": STATIC_ASSET_REVISION,
             "user": request.state.user,
             "csrf_token": _csrf(request),
             "registration_open": settings.allow_registration,
