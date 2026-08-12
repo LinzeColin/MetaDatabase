@@ -35,9 +35,13 @@ import time
 import urllib.request
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+try:
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+except NameError:                                            # exec 进来的（生产容器只读，cp 不进去）
+    pass
 
 from social_archive.title_repair import is_all_chrome_no_title, undouble_title  # noqa: E402
+from social_archive.utils import safe_slug                                      # noqa: E402
 
 DEFAULT_VAULT = Path.home() / "Documents/Obsidian"
 SUBDIR = "Social Archive"
@@ -78,16 +82,40 @@ def real_title(bv: str, attempts: int = 3) -> tuple[str, str] | str | None:
     return None
 
 
+def _rename_to_match(path: Path, title: str, renamed: list, apply: bool = True) -> Path:
+    """文件名也跟着改回真标题。**不改会在下一次导出时多出一份。**
+
+    导出那一侧按 `safe_slug(标题)-<id 后 8 位>.md` 起名。标题修好了而文件名还留着
+    抓重的那一串，下次导出就会照新标题写出**另一个文件**，旧的原地不动——
+    他打开 Obsidian 看到的是同一条内容两份。这个仓的笔记数被弄乱过两次
+    （193→198→246），就是这个形状。
+
+    尾部那 8 位是内容 id，**必须原样保留**：它是「同一条内容」的唯一凭据，
+    查重那道门也是按它数的。
+    """
+    tail = path.stem.rsplit("-", 1)[-1]
+    target = path.with_name(f"{safe_slug(title, tail)}-{tail}.md")
+    if target == path or target.exists():
+        return path
+    renamed.append({"from": path.name[:44], "to": target.name[:44]})
+    if not apply:                       # 干跑也要把要改的名字列出来（先出提案，后落盘）
+        return path
+    path.rename(target)
+    return target
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="把他库里从页面上抓歪的标题修回真标题")
     parser.add_argument("--apply", action="store_true", help="真的写文件（默认只看不改）")
     parser.add_argument("--vault", default=str(DEFAULT_VAULT))
+    parser.add_argument("--subdir", default=SUBDIR,
+                        help="笔记在哪个子目录下。生产上那批导出的 markdown 用 `markdown`——`/v1/library/markdown.zip` 就是从它打的，那一份坏了他下载下来就是坏的")
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--backup-root", default=str(Path.home() / ".social-archive-backups"),
                         help="备份放哪儿——**必须在 vault 之外**，否则 Obsidian 里多出一份重复笔记")
     args = parser.parse_args()
 
-    folder = Path(args.vault) / SUBDIR
+    folder = Path(args.vault) / args.subdir
     if not folder.is_dir():
         print(json.dumps({"status": "SKIPPED", "why": f"{folder} 不在"}, ensure_ascii=False))
         return 0
@@ -109,18 +137,20 @@ def main() -> int:
         doubled, all_chrome = doubled[:args.limit], all_chrome[:args.limit]
 
     backup = None
-    if args.apply and (doubled or all_chrome):
+    if args.apply:
         backup = Path(args.backup_root) / f"social-archive-vault-titles-{int(time.time())}"
         backup.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(folder, backup)
 
     fixed_locally, fixed_from_api, unresolved = [], [], []
+    renamed: list = []
 
     # 第一趟：抓重的。不联网，所有平台都能修。
     for path, text, current, repaired in doubled:
         if args.apply:
             path.write_text(TITLE_LINE.sub(lambda _m: f"# {repaired}", text, count=1),
                             encoding="utf-8")
+            path = _rename_to_match(path, repaired, renamed)
         fixed_locally.append({"file": path.name[:40], "old": current[:40], "new": repaired[:40]})
 
     # 第二趟：整串都是页面零件的。只有 B 站查得回来。
@@ -148,6 +178,21 @@ def main() -> int:
             path.write_text(updated, encoding="utf-8")
         fixed_from_api.append({"file": path.name[:40], "old": current, "new": title[:44]})
 
+    # 第三趟：**文件名也得跟上标题**，否则下一次导出会多出一整批重复笔记。
+    #
+    # 2026-08-12 实测：他库里 193 篇有 **146 篇**的文件名还是修之前那个标题
+    # slug 出来的（`00-00-14-48-0fc30463.md`——播放进度）。笔记里的标题昨天
+    # 已经修好了，文件名没人管。两个后果，第二个更严重：
+    #
+    #   · 他在 Obsidian 侧边栏看到的仍然是一串时间码，认不出是什么；
+    #   · 导出那一侧按 `safe_slug(标题)-<id 后 8 位>.md` 起名，**下一次导出会照
+    #     新标题写出 146 个新文件，旧的原地不动** —— 193 篇变成 339 篇。
+    #     这个仓的笔记数被弄乱过两次（193→198→246），就是这个形状。
+    for path in sorted(folder.rglob("*.md")):
+        found = TITLE_LINE.search(path.read_text(encoding="utf-8", errors="replace"))
+        if found:
+            _rename_to_match(path, found.group(1), renamed, apply=args.apply)
+
     kinds: dict[str, int] = {}
     for item in unresolved:
         kinds[item["kind"]] = kinds.get(item["kind"], 0) + 1
@@ -158,6 +203,8 @@ def main() -> int:
         "all_chrome_looked_up_from_the_public_api": len(fixed_from_api),
         "still_broken_by_kind": kinds,
         "backup": str(backup) if backup else "（干跑不备份）",
+        "renamed_to_match_the_title": len(renamed),
+        "renames": renamed[:5],
         "samples_fixed_locally": fixed_locally[:4],
         "samples_fixed_from_api": fixed_from_api[:4],
         "unresolved": unresolved[:8],

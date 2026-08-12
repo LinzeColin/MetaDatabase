@@ -49,9 +49,23 @@ _REPEAT_MUST_COVER = 0.4
 
 # 整串就是页面上的一个零件，正文一个字都没抓到——这一类**本地修不了**，
 # 只能拿链接去外面查（B 站有公开接口，抖音没有）。
-_PLAYBACK = re.compile(r"^\d{1,2}:\d{2}(?:/\d{1,2}:\d{2})?$")
+# 播放器上的时间。**长视频带小时那一段**（`01:11:19/01:15:32`）也算——
+# 第一版只写了 `\d{1,2}:\d{2}`，于是他库里 6 条里只认出 1 条，另外 5 条
+# （都是一小时以上的视频）一路绿到底，文件名还照着它 slug 成了 `00-09-02-08-01`。
+# 两边位数可以不一样：`00:09/02:08:01` 是「看到 9 秒 / 全长 2 小时 8 分」。
+_CLOCK = r"\d{1,2}:\d{2}(?::\d{2})?"
+_PLAYBACK = re.compile(rf"^{_CLOCK}(?:/{_CLOCK})?$")
 _UI_LABEL = re.compile(r"^(?:已看完|正在看|未看完|稍后再看|已追完)$")
 _ONLY_NUMBERS = re.compile(r"^[\d.:万亿\s]+$")
+
+
+def is_playback_timestamp(value: str | None) -> bool:
+    """整串就是播放器上的时间——`06:26/12:57`、`01:11:19/01:15:32`。
+
+    入库那道校验和查库那几道门都用这一个，**不许各写一套**：
+    `models.py` 原来自己有一份窄的，于是同一批标题两处判得不一样。
+    """
+    return bool(_PLAYBACK.fullmatch((value or "").strip()))
 
 
 def is_all_chrome_no_title(value: str | None) -> bool:

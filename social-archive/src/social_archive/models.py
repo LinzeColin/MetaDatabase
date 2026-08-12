@@ -1,19 +1,12 @@
 from __future__ import annotations
 
-import re
-
 from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
-from social_archive.title_repair import undouble_title
+from social_archive.title_repair import is_playback_timestamp, undouble_title
 
 ArchiveLevel = Literal["L0", "L1", "L2", "L3"]
 RelationType = Literal["manual_save", "bookmark", "saved", "favorite", "like", "upvoted", "watch_later", "history", "collection"]
-
-
-# 播放进度长这样：`06:26` 或 `06:26/12:57`。**锚定全匹配**——
-# 「10万个冷知识」这种正当标题以数字开头，不能误伤（v0.0.0.41 那次的教训）。
-_PLAYBACK_TIMESTAMP = re.compile(r"\d{1,2}:\d{2}(?:/\d{1,2}:\d{2})?")
 
 
 class CaptureRequest(BaseModel):
@@ -65,7 +58,10 @@ class CaptureRequest(BaseModel):
         """
         if value is None:
             return None
-        if _PLAYBACK_TIMESTAMP.fullmatch(value.strip()):
+        # **判定搬到 `title_repair` 里了**：这里原来自己写了一份 `\d{1,2}:\d{2}`，
+        # 认不出长视频那种带小时的（`01:11:19/01:15:32`）。他库里 6 条这样的
+        # 标题，两处判据只认出 1 条，另外 5 条一路绿到底。一份文本一把尺子。
+        if is_playback_timestamp(value):
             return None
         return value
 

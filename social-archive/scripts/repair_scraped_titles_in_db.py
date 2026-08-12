@@ -59,7 +59,13 @@ import time
 import urllib.request
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+# **生产容器的 rootfs 是只读的**，`docker cp` 进不去，这个脚本只能靠
+# `python3 -c "exec(...)"` 送进去跑——那时候没有 `__file__`。容器里
+# `social_archive` 本来就装着，所以取不到路径就直接用装好的那一份。
+try:
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+except NameError:                                            # exec 进来的，没有 __file__
+    pass
 
 from social_archive.title_repair import is_all_chrome_no_title, undouble_title  # noqa: E402
 
