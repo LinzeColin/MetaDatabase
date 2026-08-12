@@ -5117,19 +5117,19 @@
       "sha256": "4d0773f08278ec33f8b90ffd949ecb3238819ffe4a23731fd495ab93fcd0ffa1"
     },
     {
-      "bytes": 764,
+      "bytes": 781,
       "path": "runtime/run_current_production_core_execution_canonical_nonready_failure_domain_declaration_diagnostic.sh",
-      "sha256": "bd597be6c7aec8961fa34ccf9a2367205767d5b162b92c73c8f42a26d1936c14"
+      "sha256": "692564ef080464ca0369b6c3102c9af062c9e96291bcdf3ad038c3bb78eea734"
     },
     {
-      "bytes": 767,
+      "bytes": 784,
       "path": "runtime/run_current_production_core_execution_current_release_metadata_subdomain_declaration_diagnostic.sh",
-      "sha256": "f64ef4b92f4b40e1dfcf3fe3986ef5d7c7c69a7fcb51d238c7401d7db241932b"
+      "sha256": "ff24dfb12b0fbcb05777f9e657f5c4b87f9f16caf2df3a820e46c301fcd629ca"
     },
     {
-      "bytes": 740,
+      "bytes": 757,
       "path": "runtime/run_current_production_core_execution_redacted_receipt_schema_compatibility_diagnostic.sh",
-      "sha256": "523ba103765b3dd2389878368b33c4c6be54427309d64ec2388da36fa287bc77"
+      "sha256": "e57463a137d4149bd0354f46c5dff596d825066ec4e1e00a4c2eb63da7f5e690"
     },
     {
       "bytes": 444,
@@ -5172,9 +5172,9 @@
       "sha256": "40cc8d1c441277089294a91ba99873117b55185210f25eacd74de778787d2422"
     },
     {
-      "bytes": 731,
+      "bytes": 748,
       "path": "runtime/run_current_production_private_redacted_prerequisite_receipt_continuity_attestation.sh",
-      "sha256": "6db1cc366a1a5841977f11d42d176300784d4066684fad27962e1136415c69e8"
+      "sha256": "066494e861f29602d643d68633ff8ea9a1547b220af701b57b9c580280c91aba"
     },
     {
       "bytes": 533,
