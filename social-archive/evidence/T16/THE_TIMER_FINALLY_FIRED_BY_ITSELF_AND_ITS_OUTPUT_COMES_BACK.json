@@ -1,0 +1,63 @@
+{
+  "task": "T16",
+  "claim": "备份 timer **由它自己触发过一次**，而且那一次产出的快照能从异地取回来、解开、打开，五张表与生产库逐个相同。",
+  "measured_at": "2026-08-05T04:11:15Z",
+  "why_this_was_the_one_thing_left": [
+    "上一次交接把 T16 唯一没证明的事收窄成一句：**「备份 timer 从没由它自己触发过（LAST 是 `-`）」**，",
+    "并写下「下次会话第一件事是回来看那一栏」。",
+    "此前所有备份都是**手工触发**的。手工触发成功，只证明脚本能跑；",
+    "**不证明它会在没有人盯着的时候跑**——而耐久性要的正是后者。"
+  ],
+  "what_the_column_says_now": {
+    "unit": "social-archive-backup.timer",
+    "LAST": "2026-08-05 03:35:02 UTC（此前是 `-`）",
+    "NEXT": "2026-08-06 03:21:34 UTC",
+    "service_Result": "success",
+    "NRestarts": 0,
+    "other_three_timers": "status / private-database-sync / replication 三个 LAST 都是真时间戳，Result 全 success"
+  },
+  "what_that_run_actually_produced": {
+    "private_database": {
+      "manifest": "/var/lib/social-archive/backups/private-database/20260805T033505Z/manifest.json",
+      "fact_count": 100,
+      "verified_remote_copies": 2
+    },
+    "runtime_db_snapshot": {
+      "manifest": "/var/lib/social-archive/backups/runtime-db/20260805T033511Z/manifest.json",
+      "original_sha256": "b173e6d1a3cf3e90f13ae2ce10f425238fe0ffb61be4452990c3ef6c39a65bd0",
+      "snapshot_byte_size": 4808704,
+      "cipher_byte_size": 1077319,
+      "encryption": "age-x25519",
+      "verified_remote_copies": 3,
+      "stores": ["r2", "oci", "github"]
+    }
+  },
+  "why_the_log_alone_was_not_enough": [
+    "那份日志里写着 `\"status\": \"PASS\"`、`verified_remote_copies: 3`——**但那是备份进程在描述它自己**。",
+    "本版已经栽过两次同型的假绿：`docker tag` 静默失败而外层 printf 照报成功；",
+    "`--target /tmp` 被 PrivateTmp 吞掉，脚本仍然报成功。",
+    "**所以把字节真取回来重算一遍，是这件事唯一诚实的收尾。**"
+  ],
+  "the_independent_restore": {
+    "from_store": "github",
+    "why_github": "它是第三份副本，也是最容易被忽略的那一份（另外两份是 S3 兼容对象存储，路径相同；GitHub 那条是另一套代码）。",
+    "object_key": "backups/runtime-db/20260805T033511Z/b173e6d1a3cf3e90f13ae2ce10f425238fe0ffb61be4452990c3ef6c39a65bd0.sqlite3.gz.age",
+    "restored_to": "/srv/sa-drills/timer-output-check/restored-runtime.sqlite3（跑完已删）",
+    "restored_byte_size": 4808704,
+    "restored_counts": {"content": 193, "user_relation": 194, "artifact": 552,
+                        "object_replica": 1656, "destination_receipt": 391},
+    "live_counts_at_the_same_moment": {"content": 193, "user_relation": 194, "artifact": 552,
+                                       "object_replica": 1656, "destination_receipt": 391},
+    "status": "PASS"
+  },
+  "two_guards_that_fired_on_me_along_the_way": [
+    "**RECOVERY_TARGET_INVALID**：第一次把 --target 指向 /var/lib/social-archive/drills，脚本拒绝执行，理由是「恢复目标不能落入运行数据面」。这个拒绝是对的——恢复演练最坏的失手就是盖在生产数据上。",
+    "**PermissionError: age_identity.txt**：以 socialarchive 身份跑读不到私钥。备份只需要公钥，恢复才需要私钥，两者权限本来就不同；照 restore_object_systemd.sh 的既有做法用 root 的瞬时单元跑通。"
+  ],
+  "what_this_does_not_prove": [
+    "**不证明明天还会自己跑。** 它只证明「至少自主触发过一次并且那一次是好的」。NEXT 那一栏要到 2026-08-06 03:21 才验第二次。",
+    "不证明 private-database 那条链——这次只把 runtime-db 快照取回来了，那 100 条 fact 的副本仍然只有它自己的回执作证。",
+    "**age 私钥仍是全机一份的单点。** 这次恢复正是靠它解开的；它没了，三份异地副本一起变成不可读的字节。第二份放哪只有 Owner 能定。"
+  ],
+  "cleanup": "演练目录 /srv/sa-drills 与 /var/lib/social-archive/drills 已删；生产数据面十一个目录一个没动。"
+}

@@ -1,0 +1,30 @@
+{
+  "task": "T18",
+  "claim": "把「锚点必须唯一」当尺子，机械地量了一遍全部判据的切片锚点。**量出一个活的假绿**，并顺手在同一轮清理里揪出一个生产缺陷。",
+  "measured_at": "2026-08-05",
+  "why_this_sweep_happened": "同一族的毛病一天里栽了三次（固定字节窗口两次、锚在注释上一次），每次都是它**误报**时才被发现——判据红了、代码没坏。误报会自己找上门，**漏报不会**。所以不能等下一次，得主动去量。",
+  "the_rule_that_turned_out_to_be_the_real_one": "问题不在窗口多大，而在 **`split(anchor, 1)` 会静默取第一处**。锚点一旦不唯一，判据可能长期在验一个根本不相干的位置，而且永远绿。",
+  "how_it_was_measured": "扫全部判据文件，抽出每处 `.split(\"锚点\", 1)`，再抽出该判据读过的源文件，剥掉注释后数锚点出现次数。共 116 组（锚点 × 源文件），13 组不唯一。",
+  "triage_of_the_13": {
+    "真假绿": "1 处 —— test_promised_actions_have_buttons 的 revokePlatform（见下）",
+    "只是脆，现在还对": "1 处 —— test_failure_copy_matrix 的 humanMessage：两个文件里第一处**恰好**是函数定义，后面几处是调用。哪天有人在定义上面加一处调用，窗口就滑到调用点，判据从「验兜底覆盖哪些状态码」变成「验调用点附近有没有这些数字」，**而且不会报错，只会继续绿**。已改成切函数。",
+    "扫描器自己的误报": "11 处 —— 有的锚点是用来数个数的（`def `、`|| fail`、`; do`），有的判据已经先切了一层再找（test_cookies_reach_the_sidecar 就明确写着「不能直接 split，这一行出现四次」，它先切 `def capture_url`）。"
+  },
+  "the_live_false_green": {
+    "在哪": "tests/focused/test_promised_actions_have_buttons.py，那条「撤销不许绕过 background 直连 DELETE」",
+    "怎么坏的": "锚在 `revokePlatform` 上取之后 600 字。它在 options.js 里出现三次——前两次都在第 165 行那句事件绑定里（调用 + button.dataset.revokePlatform），函数定义在第 205 行。600 字的窗口够不到函数体。",
+    "证明": "往真正的 revokePlatform 里塞一句 `fetch(\"/v1/credentials/x\",{method:\"DELETE\"})`——**判据照样通过**。而它自称拦的正是这件事。",
+    "修完再验": "改成 js_function 切真正那个函数，同样的突变当场变红。"
+  },
+  "a_production_defect_the_same_cleanup_turned_up": "把固定窗口改成按结构切时，发现 syncAccountById 的真实函数体只有 1562 字符，而判据用的窗口是 2400/2600——早就切进了隔壁函数。切准之后读隔壁那段，看见 runBrowserAccountSync 的能力判断顺序是反的：先 serverHandled 再 canSync。bilibili 同时 server_handled=true 与 sync_supported=false，旧队列任务会被交给一个同样做不成的服务端，**界面一直转圈**。已修并上线，反例验过。",
+  "three_bad_counter_examples_i_wrote_along_the_way": [
+    "反例用了中文文件名，而检查器的正则只认 ASCII —— 反例没触发，检查器「通过」了。",
+    "反例把 429 改成 4291 —— 而断言是子串匹配，`\"429\" in \"4291\"` 为真，改了等于没改。换成整行删除才真的红。",
+    "反例改的是全文件第一处 429 —— 那一处**恰好**在目标函数里，纯属运气；换个文件就验错地方了。"
+  ],
+  "what_this_does_not_prove": [
+    "不证明剩下那些判据都在验对地方。这次量的是**锚点唯不唯一**这一个维度；一个唯一的锚点照样可能配一个太小的窗口，那种这次看不出来。",
+    "不证明扫描器覆盖全。它靠「判据文件里出现的源码路径字面量」去猜验的是哪个文件，路径拼出来的、或从别处传进来的，它看不见。",
+    "不证明那 11 处误报里没有真问题。它们是我逐个看过判定为「数个数」或「已先切一层」的，看走眼的可能性存在。"
+  ]
+}

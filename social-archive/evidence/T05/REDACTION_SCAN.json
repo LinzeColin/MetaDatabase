@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "task": "T05",
+  "slice": "S2",
+  "goal": "有界 Cookie 托管：只收西方三源，加密存储，国内平台一律拒绝，可一键撤销，任何地方不出现明文",
+  "recorded_at": "2026-08-04T11:30Z",
+  "acceptance_clause": "全仓扫描无明文",
+  "oracle": "明文扫描命中 = 0",
+  "scanner": {
+    "path": "scripts/scan_plaintext_credentials.py",
+    "what_it_matches": [
+      "Netscape cookies.txt 行形态：域名 + 7 个 tab 分隔字段（gallery-dl / yt-dlp 唯一会被写出的格式）",
+      "已知高危 cookie 名后面跟 16+ 位值：auth_token / ct0 / sessionid / SAPISID / __Secure-1PSID 等"
+    ],
+    "why_two_shapes": "只扫 cookie 这类关键词没用——它在注释里到处都是；只扫行形态又会漏掉被塞进 JSON 的单个值。两类都要。",
+    "placeholder_allowlist": "REDACTED / EXAMPLE / fixture* 等占位值不报，否则真出事时没人看告警",
+    "self_check": "扫到 0 个文件时退出码 2 而不是 0——「没扫到」和「没问题」长得一样，本机吃过不止一次亏"
+  },
+  "positive_control": {
+    "what": "先往 logs/ 里放一条真形态的 Netscape cookie 行，确认扫描器报红",
+    "result": "命中 2 处（netscape_cookie_line + high_risk_cookie_value），退出码 1",
+    "why_it_matters": "只跑阴性扫描然后说「干净」是没有意义的——必须先证明它抓得到"
+  },
+  "scan_result": {
+    "scope": "全部受 git 版本控制的文件 + git diff + git diff --cached",
+    "scanned_files": 442,
+    "scanned_diffs": 2,
+    "hits": 0,
+    "clean": true,
+    "exit_code": 0
+  },
+  "test_fixture_note": "判据用的 cookie 值是编的，但**形态和真的一样**（.x.com\\tTRUE\\t/\\tTRUE\\t0\\tauth_token\\t…）。用 REDACTED 当夹具会让脱敏扫描器永远测不出来。这些夹具值本身会被扫描器的占位白名单之外的规则命中吗？不会——它们在 tests/ 里，而 tests/focused/test_credential_custody.py 与扫描器自身、credentials.py 一起在 SELF 白名单内，理由是它们本来就该出现这些形态。",
+  "stop_condition": {
+    "rule": "任何一次扫描发现明文，立即停止整个 S2",
+    "triggered": false,
+    "current": "0 处命中"
+  },
+  "what_this_does_not_prove": [
+    "扫的是仓内文件与 diff，**不含运行时日志与数据库内容**。生产日志里是否漏过明文，本文件不作保证。",
+    "阳性对照只种了一种形态的 cookie 串；扫描器对其它形态（base64、分片拼接）的召回没有测过。"
+  ],
+  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。"
+}

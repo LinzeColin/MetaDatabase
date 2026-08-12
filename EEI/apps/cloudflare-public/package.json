@@ -6,6 +6,6 @@
   "scripts": {
     "test": "node --test tests/scoring_parity.test.mjs",
     "smoke": "bash ../../scripts/run_cloud_worker_smoke.sh",
-    "deploy": "npx --yes wrangler@4.42.0 deploy"
+    "deploy": "node -e \"console.error('不要用这个入口。裸跑 wrangler deploy 会用配置替换线上 vars （secret 保留、plain_text 不保留），且不做任何部署后回读。请在 EEI 根目录跑：bash scripts/deploy_cloud.sh');process.exit(1)\""
   }
 }

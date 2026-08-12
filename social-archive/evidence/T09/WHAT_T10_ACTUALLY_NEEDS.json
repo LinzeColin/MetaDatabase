@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "task": "T09",
+  "slice": "S1",
+  "recorded_at": "2026-08-05T15:20Z",
+  "status": "BLOCKED",
+  "must_not_be_rewritten_as_pass": true,
+  "claim": "T10 缺的不是 Owner 那一按，是两处结构 + 一个必须先定的设计问题。逐行核过，写下来的每一条都能自己去看。",
+
+  "why_this_receipt_exists": {
+    "原来的说法": "交接里 T10 那一格只写「依赖 T08 的真实数据（拦截路要 Owner 那次诊断）」。",
+    "为什么那句话有害": "**它会让下一个人干等。** 而真正依赖那一按的只有一件事：xiaohongshu / douyin 的前缀还是 null，要靠诊断去发现。bilibili 的前缀早就在表里，两处结构工作一处都不依赖他。",
+    "同一天已经栽过一次同样的形状": "上午那条是「我不该取 Owner 的登录态 → 所以验不了」——而那件事根本不需要他的登录态。**挡路的理由写得越像边界，越没人回头验它。**"
+  },
+
+  "gap_1_nothing_ever_installs_the_observer_outside_the_diagnostic": {
+    "实测": "全仓只有一个发送方发 `SA_INSTALL_NET_OBSERVER`：`popup.js:260`，写死 `diagnostic: true`。",
+    "后果": "`registerContentScripts` 在 `installNetObserverForTab` 里面（background.js 188–323），`tabs.onUpdated` 只注 FAB。**正常浏览时观察器根本不装。**",
+    "还有一层": "诊断分支进门就把查表得到的前缀**整个覆盖掉**（改用当前页域名推）。所以 `INTERCEPT_PREFIXES` 里 bilibili 那条 `api.bilibili.com/x/v3/fav/resource/list` **今天没有任何代码路径会用到**。",
+    "但机制本身是完整的": "`diagnostic: false` 那条分支已经写好了，而且想得很细：不刷新用户正在看的页面，改成即时注入 + 注册给随后的导航用。**缺的只是一个调用方。**"
+  },
+
+  "gap_2_readable_is_not_stored": {
+    "实测": "`/v1/extension/captures/parse` 只把响应读成条目并返回，**不落库**；后台只 `items += (parsed.items||[]).length` 数了个数，条目本身丢掉。",
+    "已经做的": "2026-08-05 先把话说准了——那一按现在会明说「这 N 条还没有进你的档案馆」，返回里也有 `imported: 0`。见 T08/THE_BUFFER_DROPS_THE_RIGHT_END.json。",
+    "没做的": "真的把条目收进资料库。"
+  },
+
+  "the_design_question_that_has_to_be_settled_first": {
+    "问题": "**缓冲区归谁。** `installNetObserverForTab` 一进门就 `netCaptureBuffer.length = 0`（background.js 198–200）。",
+    "那句清空的理由写得很清楚": "「**每次诊断都是一次新的测量**，先把上一次的清干净」——理由是**诊断**语义：连按两次会把上一次的响应一起数进去，换个平台更糟。",
+    "所以naive 地加一个自动调用方会出事": "`tabs.onUpdated` 每次装观察器都清一次缓冲区。用户随便翻两页，刚抓到的东西就没了；**更要命的是它会清掉 Owner 正在做的那次诊断**。",
+    "可选的解法（没有替 Owner 定）": [
+      "把清空挪进 `if (diagnostic)`——忠于那句注释写的理由，但非诊断路反复装观察器时缓冲区只增不减，靠 pop() 保早，时间一长留下的是很旧的东西",
+      "改成**按标签页各存各的**，诊断只清自己那一格——更正确，但要动缓冲区的数据结构和它的上限语义"
+    ],
+    "为什么今天不动它": "**Owner 的下一件事就是按那颗诊断按钮。** 在他按之前改动清空时机，正好压在他要走的那条路上——真出问题，他看到的是「又白按了一次」，而他没有技术基础去分辨是谁的错。这不是不做，是**排在他按完之后做**。"
+  },
+
+  "what_this_does_not_prove": [
+    "**不证明 T10 做了一部分。** 这份收据里没有任何产品改动，它只是把「还差什么」核清楚——把 pending 的理由从一句错的换成三条能自己去看的。",
+    "两处结构缺口是读代码读出来的，**没有真跑过一次非诊断安装**（今天没有调用方可跑）。",
+    "缓冲区那两条解法都没实现、没验过，孰优孰劣这里不下结论。"
+  ]
+}

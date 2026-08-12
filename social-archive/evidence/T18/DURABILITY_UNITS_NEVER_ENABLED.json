@@ -1,0 +1,129 @@
+{
+  "schema_version": "1.0",
+  "task": "T18 / T16",
+  "recorded_at": "2026-08-04T01:50Z",
+  "severity": "本会话最严重的一条",
+  "claim": "生产上**备份、三地复制、私有库同步三个 timer 从来没有启用过**，journalctl 90 天内全是 No entries。549 个制品里 530 个一个异地副本都没有。数据只存在于 OVH 那一块盘上。",
+  "how_it_surfaced": "在演练对象级恢复（restore_object.py）时，发现它拒绝恢复 status != 'complete' 的制品。查生产：549 个制品里只有 2 个是 complete。顺着查副本，再顺着查 timer。",
+  "measured_in_production_2026_08_04": {
+    "artifacts_total": 549,
+    "with_at_least_one_replica": 19,
+    "with_zero_replicas": 530,
+    "with_all_three_replicas": 2,
+    "artifact_status": {
+      "complete": 2,
+      "staged": 547
+    },
+    "replica_by_store": {
+      "r2": 19,
+      "oci": 19,
+      "github": 2
+    },
+    "zero_replica_by_level": {
+      "L1": 265,
+      "L3": 265
+    },
+    "data_root_size": "40M",
+    "systemd": {
+      "social-archive.service": "enabled / active",
+      "social-archive-status.timer": "enabled / active",
+      "social-archive-backup.timer": "**disabled / inactive**",
+      "social-archive-replication.timer": "**disabled / inactive**",
+      "social-archive-private-database-sync.timer": "**disabled / inactive**"
+    },
+    "journalctl_90_days": "三个 disabled 的 unit 全部 'No entries' —— 从来没跑过",
+    "backup_dir_contents": "只有 v0.0.0.6 取证阶段留下的手工产物（phasea-*, phase-b-*, release-*），没有任何定时备份"
+  },
+  "what_it_means": "产品的卖点是「归档」。而 96.5% 的制品存在于且仅存在于一块盘上，没有定时备份，没有异地副本。那块盘坏了就没了。**而界面照样显示「已归档」。**",
+  "a_wrong_root_cause_i_published_and_corrected": {
+    "what_i_first_concluded": "prepare_systemd_host.sh 装了 11 个 unit、跑了 daemon-reload，却从来不 systemctl enable —— 我当场判定这是脚本缺陷。",
+    "why_that_was_wrong": "读完脚本末尾才发现它明确写着「未启用或启动任何 unit…由 Owner 完成下一步验收后再显式启用」。**不启用是设计，不是 bug**：装好 → 验收 → 显式启用，这个取舍本身是对的（自动拉起一个还没验收的服务更危险）。",
+    "the_actual_gap": "交接只说了一句「由 Owner 显式启用」，**没说要启用哪几个**，也没有任何东西回头核一遍。于是五个里启了两个，剩下三个——恰好是保命的那三个——没人发现。",
+    "lesson": "这是本会话第四次「先下结论再读完」。前三次是判据指错对象，这次是把一个**有意的设计**当成了缺陷。差别在于：如果我照着「修」下去，会把一条正确的安全取舍改掉。"
+  },
+  "fixes": {
+    "prepare_systemd_host.sh": "--apply 结束时**逐条列出**要启用的 unit 与完整命令，并标注每个是干什么的（定时备份 / 三地副本 / 私有库同步）。一句笼统的「由 Owner 显式启用」正是漏掉三个的原因。",
+    "scripts/check_durability_units.sh": "新增。在宿主机上跑，逐个核 is-enabled / is-active，任一没启用就退出 1，并把后果说清楚：「备份没启用 = 没有任何定时备份；复制没启用 = 制品只存在于本机这一块盘上；两者都静默——界面照样显示已归档」。",
+    "why_a_shell_script_not_a_pytest": "这件事只有在**宿主机上**才问得出答案，测试机上没有那些 unit。做成 pytest 只会永远 skip，那比没有更糟。"
+  },
+  "what_i_did_not_do": {
+    "did_not_enable_anything": "**没有在生产上启用任何 unit。** 这是改动 Owner 的生产系统，属于部署动作。",
+    "why_not_just_do_it": "启用备份是有益的，但仍是未经许可的生产状态变更；而且有个实际风险：r2 / oci 的凭据我无法验证是否可用（它们是 root 独占的，我也不该去读）。凭据无效时，一个每 15 分钟触发的 timer 会持续失败刷日志。该不该现在启、按什么顺序启，是 Owner 的判断。",
+    "recommended_commands": [
+      "systemctl enable --now social-archive-backup.timer",
+      "systemctl enable --now social-archive-replication.timer",
+      "systemctl enable --now social-archive-private-database-sync.timer",
+      "之后跑 bash scripts/check_durability_units.sh 复核",
+      "再看一次 /v1/status 的 storage.completion，确认 530 那个数字开始下降"
+    ]
+  },
+  "what_this_does_not_prove": [
+    "没有查清 19 个已有副本是什么时候、由谁产生的（推测是 v0.0.0.6 SA-507 取证阶段的手工运行，但没有证据）。",
+    "对象级恢复 restore_object.py 只演练了拒绝路径（对象不存在 / 收据不完整），**没有真的从任何一个 store 恢复过一个对象**——那需要云凭据。",
+    "仍未证明：**云端凭据（r2/oci 的 key、github token）是否有效**。配置项齐全 ≠ 密钥没过期、桶还在、配额够。那只有真跑一次复制才知道，而那需要在生产上启用 timer——是 Owner 的动作。"
+  ],
+  "a_second_wrong_move_and_the_guard_that_caught_it": {
+    "what_i_did": "为了让交接说清楚，我把 `systemctl enable --now …` 六条命令直接印进了 prepare_systemd_host.sh 的输出。",
+    "what_broke": "validate_systemd.py 当场判 FAIL：「prepare_systemd_host.sh 不得启用或启动生产服务」。它的规则是**在这个文件里看到 systemctl enable / start 字样就拒绝**。",
+    "is_the_guard_too_blunt": "它分不清「印出来」和「执行」。但这条钝是**对的**：装好与启用必须是两个人为分开的动作，而一个 grep 不到的例外迟早会变成真的执行。判据宁可钝，不可漏。",
+    "fix": "prepare_systemd_host.sh 只列 unit 名字与各自作用，命令交给 scripts/check_durability_units.sh —— 那是只读检查器，不是准备器。",
+    "and_i_committed_it_red": "**我在门是 FAIL 的状态下提交了一次**（提交 74）。原因是提交信息在跑完之前就写好了——本会话第二次犯，而这次比第一次严重：第一次只是数字写错，这次是把红的门提交了进去。下一提交修复。"
+  },
+  "preflight_before_recommending_enable": {
+    "why": "我上一轮建议 Owner 启用那三个 timer，同时坦白「没验证启用后复制真的能成功」。在他动手之前把这句补上——否则我的建议可能让他每 15 分钟收一次失败日志。",
+    "scripts_still_work": {
+      "replicate_objects.py": "加载正常（188 行）；--dry-run 无凭据时退出 3，输出 {\"status\":\"BLOCKED_ENVIRONMENT\",\"message\":\"缺少 SOCIAL_ARCHIVE_AGE_RECIPIENT；禁止明文复制\"}",
+      "github_release_backup.py": "同样退出 3，「禁止明文备份」",
+      "verdict": "**失败得很响亮，不会静默跳过。** 这一点很重要：如果它们在缺配置时静默成功，副本数会一直是 0 而没人知道。"
+    },
+    "production_config_is_complete": {
+      "checked_in": "/etc/social-archive/social-archive.env —— **unit 实际读的那一份**，不是 /opt 下的 .env",
+      "all_present": [
+        "SOCIAL_ARCHIVE_AGE_RECIPIENT",
+        "SOCIAL_ARCHIVE_R2_BUCKET",
+        "SOCIAL_ARCHIVE_R2_ENDPOINT",
+        "SOCIAL_ARCHIVE_OCI_BUCKET",
+        "SOCIAL_ARCHIVE_OCI_ENDPOINT",
+        "SOCIAL_ARCHIVE_GITHUB_ARCHIVE_REPOSITORY"
+      ],
+      "conclusion": "六项全在。**唯一的原因就是 timer 没启用**，不是配置缺失。启用之后应当能真的复制。"
+    },
+    "two_false_findings_i_caught_before_reporting": [
+      {
+        "claim": "`replicate_objects.py --store {r2,oci,all}` 没有 github，所以三副本永远凑不齐。",
+        "why_wrong": "social-archive-replication.service 有**两条 ExecStart**：replicate_objects.py --store all（r2+oci）与 github_release_backup.py --upload（github）。一个 unit 覆盖三个 store。**我只看了脚本参数，没看 unit。**"
+      },
+      {
+        "claim": "SOCIAL_ARCHIVE_GITHUB_BACKUP_REPO 缺失。",
+        "why_wrong": "**那个变量名是我猜的。** 真名是 SOCIAL_ARCHIVE_GITHUB_ARCHIVE_REPOSITORY，生产上有值。按猜的名字去 grep，grep 不到就报「缺」——又一次「判据指错了对象」，这次指错的是变量名。"
+      }
+    ],
+    "recommendation_now_stands_with_evidence": "启用那三个 timer 是安全的：脚本能跑、配置齐全、缺东西时会明确报错而不是静默。",
+    "all_four_units_verified_not_just_two": {
+      "why": "上一轮我只验了 replicate_objects 与 github_release_backup 两个脚本，却在建议里一并推荐启用 backup.timer 与 private-database-sync.timer。**推荐四个只验了两个，就是挑选性执行。** 补齐。",
+      "results": [
+        {
+          "unit": "social-archive-backup.timer",
+          "script": "backup.py（324 行）",
+          "no_config": "退出 3 · AGE_RECIPIENT_MISSING · 「禁止明文备份」· local_checkout=false"
+        },
+        {
+          "unit": "social-archive-replication.timer",
+          "script": "replicate_objects.py（188 行）+ github_release_backup.py",
+          "no_config": "两者都退出 3 ·「禁止明文复制 / 备份」"
+        },
+        {
+          "unit": "social-archive-private-database-sync.timer",
+          "script": "sync_private_database.py（393 行）",
+          "no_config": "退出 3 · PRIVATE_DATABASE_CLIENT_UNAVAILABLE ·「禁止回退到本地 Private-Database 工作树」"
+        }
+      ],
+      "common_property": "**四个脚本缺配置时全都退出 3 并打印明确的中文原因，没有一个静默成功。** 这正是启用它们之前最该确认的性质：静默成功的备份等于没有备份，而且没人会发现。"
+    },
+    "two_more_variables_i_checked_wrong": {
+      "SOCIAL_ARCHIVE_PRIVATE_DB_TOKEN_FILE": "我报它在 /etc 里「缺」。实际是 prepare_systemd_host.sh 的 is_unit_credential_file_key **故意剥掉**的——凭据路径不进长期环境文件，由 unit 的 LoadCredential= 加 Environment=…=%d/private_database_token 注入。**按设计如此，不是缺失。**",
+      "SOCIAL_ARCHIVE_PRIVATE_DATABASE_ROOT": "我也报它「缺」。而 sync_private_database.py 里**根本不读这个变量**（grep 0 命中）。我在核一个它不需要的东西。",
+      "same_pattern_again": "这两次和前面猜错变量名是同一个毛病的第三、第四次：**先假定「它应该有 X」，再去 grep X，grep 不到就报缺**，而没先确认它到底需不需要 X、以及 X 是不是那个名字。"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "task": "T06",
+  "claim": "往这个产品里加一个平台，现在有一条可重复的验收路：改完四张表 → 跑一次演练 → 它在真 Chrome 里告诉你哪一张还没接上，包括你自己都没意识到的那一张。",
+  "measured_at": "2026-08-05",
+  "why_this_had_to_be_measured": [
+    "接 youtube 时我两次宣布「封住了」，两次都错，**两次都是宣布完成之后才发现的**：",
+    "  一次说「开 B 站时顺手连一下」——B 站在 FORBIDDEN_PLATFORMS 里，硬边界禁止；",
+    "  一次说「两个方向都封住了」——漏了第三张表 content/platform-catalog.js，",
+    "  于是 platformLabel('youtube') 原样返回内部 id，而界面上多处直接显示它。",
+    "一个平台散在四张表里，靠人去对，总会漏掉一张。所以这条验收路不能是「再仔细对一遍」。"
+  ],
+  "how": {
+    "script": "scripts/extension_platform_wiring_drill.py",
+    "approach": "把**下发给 Owner 的那个 ZIP** 解开装进一次性 profile 的真 Chrome，在 service worker 里一次问完四张表：检测、权限模式、中文名、关系地址、Cookie 托管的两张名单，外加一个不该被认成该平台的诱饵地址。",
+    "why_not_read_the_source": "读源码那件事判据已经在做了。这个演练的价值在于问**真运行时**——第三张表那种漏，恰恰是四份源码各自都「看着对」的时候发生的。"
+  },
+  "results_six_platforms": {
+    "youtube": "PASS —— 中文名 YouTube，关系 ['watch_later','playlist']（yes）",
+    "x": "PASS —— 中文名 X（yes）",
+    "instagram": "PASS —— 中文名 Instagram（yes）",
+    "xiaohongshu": "PASS —— 中文名 小红书（forbidden）",
+    "douyin": "PASS —— 中文名 抖音（forbidden）",
+    "kuaishou": "PASS —— 中文名 快手（forbidden）",
+    "bilibili": "PASS —— 白名单里没有它、禁止名单里有它（forbidden）",
+    "reddit": "PASS —— 两张表都没有它（not-yet），**这是改判之后的结果，见下**"
+  },
+  "the_defect_this_drill_found_in_itself": {
+    "what": "把演练指向其余五个平台时，reddit 报红，理由是「它不在禁止名单里——国内平台的 Cookie 必须永不出浏览器」。",
+    "why_thats_wrong": "**reddit 不是国内平台。** 它两张表都没进，是因为托管还没做——那是个正确的状态，而演练把它报成了违反硬边界。",
+    "why_it_matters_more_than_a_missed_bug": "指错原因比不报更糟：会让人去改一个没坏的东西，甚至为了「修」它把 reddit 塞进禁止名单——那张表是给「Cookie 永不出浏览器」留的，被当成待办清单用之后就再也说不清它到底在表达什么。",
+    "fix": "托管改成三种状态：yes（白名单有、禁止名单无）/ forbidden（禁止名单有、白名单无，国内四平台的硬边界）/ not-yet（两张表都没有）。"
+  },
+  "a_bug_this_drill_caught_in_its_own_guards": {
+    "what": "守这个演练的判据原本全是 grep 源码，其中一条盯的是「国内平台的 Cookie 必须永不出浏览器」这句话在不在文件里。",
+    "how_it_went_false_green": "我给那段代码写注释时，把这句话原样写进了注释。那条判据于是变成「注释还在就绿」——整个分支删光，它照样绿。",
+    "fix": "判定搬成纯函数 judge()，判据改成直接喂它一份假的测量结果看它红不红。",
+    "counter_example_run": "拿掉 not-yet 整支 → test_custody_has_three_states_not_two 红（tests/focused/test_wiring_drill_checks_what_it_claims.py:108）；还原后 8 条全过。",
+    "note": "「判据钉在注释上」今天是第四次。前三次：doctor 的 PASS、deploy 的 system prune 警告、注释里的 chrome://extensions。"
+  },
+  "what_this_does_not_prove": [
+    "**不证明那个平台能真的同步。** 它验的是四张表口径一致，不是取数通路。取数还要等 Owner 那次诊断把平台接口地址固化下来（T09/T17）。",
+    "不证明 Cookie 托管真的能走通——那是 evidence/T06/CUSTODY_ROUNDTRIP_LIVE.json 的事。",
+    "not-yet 只说明「两张表都没有它」，不说明这个平台**将来**该不该托管；那是产品判断，不是演练能给的。"
+  ],
+  "cleanup": "一次性 profile，跑完删；不碰 Owner 的 profile、不联网、不碰生产。判据里明确禁止出现 linze-ovh / /opt/social-archive / 线上域名。",
+  "how_to_use_it_next_time": [
+    "改完四张表之后：",
+    "  unzip -q -o dist/social-archive-extension.zip -d /tmp/sa-wire",
+    "  python3 scripts/extension_platform_wiring_drill.py --ext-dir /tmp/sa-wire \\",
+    "      --platform <平台> --sample-url <该平台一个真实页面> --expect-custody yes|forbidden|not-yet",
+    "它会把哪一张表没接上直接说出来，包括你自己都没意识到的那一张。"
+  ],
+  "verification": "886 条测试通过；发布门 20 道退出码 0。提交 25d1267c。"
+}

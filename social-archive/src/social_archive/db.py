@@ -2,16 +2,17 @@ from __future__ import annotations
 
 import json
 import re
+import secrets
 import sqlite3
 import time
 from contextlib import contextmanager
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from importlib.resources import files
 from pathlib import Path
 from typing import Any, Iterator
 
 from .models import CaptureRequest
-from .utils import canonicalize_url, json_bytes, sha256_bytes, stable_id, utcnow
+from .utils import clean_display_author, clean_display_title, canonicalize_url, json_bytes, sha256_bytes, stable_id, utcnow
 
 
 _CJK_HAN_RE = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
@@ -37,6 +38,13 @@ def _cjk_substrings(value: str) -> list[str]:
 
 def _like_pattern(value: str) -> str:
     return "%" + value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+
+
+# **成因不在我们这边的失败**：自动入队不许把它们复活。
+# 平台挡住服务器、内容形态工具不认——这两种重排一万次也一样，
+# 而每次重排都是一次真的对外请求（Owner 生产库里量到每天约 128 次）。
+STRUCTURAL_FAILURE_CODES = ("MEDIA_BLOCKED_BY_PLATFORM", "MEDIA_TYPE_UNSUPPORTED")
+STRUCTURAL_PLACEHOLDERS = ",".join("?" for _ in STRUCTURAL_FAILURE_CODES)
 
 
 class RuntimeStore:
@@ -99,7 +107,12 @@ class RuntimeStore:
             for name, declaration in relation_additions.items():
                 if relation_columns and name not in relation_columns:
                     con.execute(f"ALTER TABLE user_relation ADD COLUMN {name} {declaration}")
+            # v0.0.0.7 / T01 多租户。这四张表的 user_id 被下面的租户索引引用，
+            # 所以必须在 executescript 之前就位，否则 CREATE INDEX 会因缺列而失败。
+            self._add_tenant_columns(con)
             con.executescript(schema)
+            # 回填必须在建表之后（users 表要先存在），且在任何读取之前。
+            self._backfill_owner_tenancy(con)
             con.execute(
                 "UPDATE user_relation SET relation_observed_at=COALESCE(relation_observed_at,first_observed_at)"
             )
@@ -129,6 +142,273 @@ class RuntimeStore:
             for name, declaration in connector_additions.items():
                 if name not in connector_columns:
                     con.execute(f"ALTER TABLE connector_state ADD COLUMN {name} {declaration}")
+
+    # ── 多租户（v0.0.0.7 / T01）──────────────────────────────────────
+
+    #: 只有 Owner 一个用户时的确定性 id。确定性是有意的——迁移可以重复跑，
+    #: 回滚脚本也需要一个不必猜的目标。
+    OWNER_USER_ID = stable_id("usr", "owner")
+
+    #: 带 user_id 的表。content 与 artifact **有意不在此列**：它们是内容寻址、
+    #: 全局去重的，两个用户收藏同一条内容时只有一行，user_id 只能记"谁先到"，
+    #: 那是假隔离。真正的所有权边是 user_relation。
+    TENANT_TABLES = ("source_account", "user_relation", "platform_collection", "sync_run")
+
+    #: 身份／凭据类的表也带 user_id，但它们**不经 for_user 收敛**——
+    #: 它们不是"内容"，是"这个人是谁 / 他授权了什么"，读取路径本来就按会话直查。
+    #: 它们建表时 user_id 就是 NOT NULL，结构上不可能为空。
+    #:
+    #: 但 T01 的 Oracle 原文是「**各表** user_id 为空 = 0」——审计必须把它们也数进去，
+    #: 否则审计报的是"我数过的那几张表没问题"，而不是"没问题"。
+    #: T05 加 platform_credential 时就漏了：8 张表带 user_id，审计只覆盖 4 张。
+    IDENTITY_TABLES = ("oauth_identity", "session", "extension_token", "platform_credential")
+
+    #: 审计面 = 内容租户表 + 身份凭据表。新增任何带 user_id 的表都必须进这两者之一，
+    #: 有 test_every_user_id_table_is_audited 盯着。
+    AUDITED_TABLES = TENANT_TABLES + IDENTITY_TABLES
+
+    def _add_tenant_columns(self, con: sqlite3.Connection) -> None:
+        """幂等地给既有表加 user_id。新库这些表还不存在，跳过即可。"""
+        for table in self.TENANT_TABLES:
+            columns = {row[1] for row in con.execute(f"PRAGMA table_info({table})").fetchall()}
+            if columns and "user_id" not in columns:
+                con.execute(f"ALTER TABLE {table} ADD COLUMN user_id TEXT REFERENCES users(id)")
+
+    def _backfill_owner_tenancy(self, con: sqlite3.Connection) -> None:
+        """把既有数据全部归属给 Owner。
+
+        本版本只有 Owner 一个用户，所以"归属"是无歧义的。这一步必须做到
+        **一行不剩**——T01 的验收就是"不存在 user_id 为空的业务行"。
+
+        只有在确实存在待回填的行时才建 Owner 行，避免给一个全新的空库
+        凭空塞一个用户。
+        """
+        pending = sum(
+            con.execute(f"SELECT COUNT(*) FROM {table} WHERE user_id IS NULL OR user_id=''").fetchone()[0]
+            for table in self.TENANT_TABLES
+        )
+        if not pending:
+            return
+        con.execute(
+            "INSERT OR IGNORE INTO users(id, display_name, created_at, is_owner) VALUES(?,?,?,1)",
+            (self.OWNER_USER_ID, "Owner", utcnow()),
+        )
+        for table in self.TENANT_TABLES:
+            con.execute(
+                f"UPDATE {table} SET user_id=? WHERE user_id IS NULL OR user_id=''",
+                (self.OWNER_USER_ID,),
+            )
+
+    def _ensure_owner_user(self, con: sqlite3.Connection, now: str) -> str:
+        """保证 Owner 行存在并返回其 id。
+
+        写入路径必须能拿到一个真实存在的 user_id：user_id 上有外键，指向
+        不存在的行会直接违反约束。这一步幂等，重复调用不产生第二行。
+        """
+        con.execute(
+            "INSERT OR IGNORE INTO users(id, display_name, created_at, is_owner) VALUES(?,?,?,1)",
+            (self.OWNER_USER_ID, "Owner", now),
+        )
+        return self.OWNER_USER_ID
+
+    def tenancy_audit(self) -> dict[str, Any]:
+        """T01 的 Oracle：每张带 user_id 的表还剩几行没有归属。全部为 0 才算迁移完成。
+
+        覆盖面是 AUDITED_TABLES（内容租户表 + 身份凭据表），不是只有 TENANT_TABLES。
+        少数一张，审计报的就是"我数过的那几张没问题"而不是"没问题"——
+        这台机器已经在别处吃过这个亏。
+
+        `uncovered_tables` 是审计对自己的检查：库里任何带 user_id 却不在
+        AUDITED_TABLES 里的表都会被列出来。它非空就说明审计面漏了。
+        """
+        with self.connection() as con:
+            present = {
+                row[0] for row in con.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table'"
+                ).fetchall()
+            }
+            audited = [table for table in self.AUDITED_TABLES if table in present]
+            uncovered = sorted(
+                name for name in present
+                if name not in self.AUDITED_TABLES
+                and any(
+                    column[1] == "user_id"
+                    for column in con.execute(f"PRAGMA table_info({name})").fetchall()
+                )
+            )
+            return {
+                "orphan_rows": {
+                    table: con.execute(
+                        f"SELECT COUNT(*) FROM {table} WHERE user_id IS NULL OR user_id=''"
+                    ).fetchone()[0]
+                    for table in audited
+                },
+                "total_rows": {
+                    table: con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+                    for table in audited
+                },
+                "audited_tables": audited,
+                "uncovered_tables": uncovered,
+                "users": con.execute("SELECT COUNT(*) FROM users").fetchone()[0],
+            }
+
+    def for_user(self, user_id: str) -> "TenantScope":
+        """取得一个按 user_id 收敛的读取视图。
+
+        面向用户的读取一律走这里。裸 RuntimeStore 的同名方法保留给 worker 与
+        运维路径（它们本来就要跨用户看作业队列），但**不得**被 API 层直接调用。
+        """
+        if not user_id:
+            raise ValueError("user_id 不能为空——空 user_id 会退化成全库读取")
+        return TenantScope(self, user_id)
+
+    # ── 登录会话与身份（v0.0.0.7 / T02）──────────────────────────────
+
+    def upsert_oauth_identity(
+        self, *, provider: str, subject: str, display_name: str | None
+    ) -> str:
+        """按 (provider, subject) 找人；第一次见到就建用户。返回 user_id。
+
+        用 provider 侧的稳定 subject 而不是邮箱做主键：邮箱可以改，改了就会变成
+        另一个人，历史数据全部失联。
+        """
+        if provider not in {"google", "github"}:
+            raise ValueError(f"未知的登录方式 {provider}")
+        if not subject:
+            raise ValueError("provider 未返回 subject，拒绝建立身份")
+        now = utcnow()
+        identity_id = stable_id("oid", provider, subject)
+        with self.connection() as con:
+            row = con.execute(
+                "SELECT user_id FROM oauth_identity WHERE provider=? AND subject=?",
+                (provider, subject),
+            ).fetchone()
+            if row:
+                return str(row["user_id"])
+            # 本版本站点仍在 Cloudflare Access 后面，只有 Owner 进得来，
+            # 所以第一个登录的人就是 Owner；T01 迁移建的那行也用同一个 id。
+            existing_owner = con.execute("SELECT id FROM users WHERE is_owner=1").fetchone()
+            if existing_owner:
+                user_id = str(existing_owner["id"])
+            else:
+                user_id = self.OWNER_USER_ID
+                con.execute(
+                    "INSERT OR IGNORE INTO users(id,display_name,created_at,is_owner) VALUES(?,?,?,1)",
+                    (user_id, display_name or "Owner", now),
+                )
+            if display_name:
+                con.execute(
+                    "UPDATE users SET display_name=COALESCE(display_name,?) WHERE id=?",
+                    (display_name, user_id),
+                )
+            con.execute(
+                "INSERT INTO oauth_identity(id,user_id,provider,subject,created_at) VALUES(?,?,?,?,?)",
+                (identity_id, user_id, provider, subject, now),
+            )
+            return user_id
+
+    def create_session(self, *, user_id: str, ttl_seconds: int = 60 * 60 * 24 * 30) -> str:
+        """签发会话。返回的 id 就是 Cookie 里放的值——不用 JWT，撤销更简单。"""
+        session_id = secrets.token_urlsafe(32)
+        now = datetime.now(UTC)
+        with self.connection() as con:
+            con.execute(
+                "INSERT INTO session(id,user_id,created_at,expires_at) VALUES(?,?,?,?)",
+                (
+                    session_id,
+                    user_id,
+                    now.isoformat(),
+                    (now + timedelta(seconds=ttl_seconds)).isoformat(),
+                ),
+            )
+        return session_id
+
+    def resolve_session(self, session_id: str) -> str | None:
+        """会话 → user_id。过期或已撤销一律返回 None。
+
+        过期判断放在 SQL 里而不是取出来再比：少一次"忘了比"的机会。
+        """
+        if not session_id:
+            return None
+        with self.connection() as con:
+            row = con.execute(
+                """SELECT user_id FROM session
+                   WHERE id=? AND revoked_at IS NULL AND expires_at > ?""",
+                (session_id, datetime.now(UTC).isoformat()),
+            ).fetchone()
+        return str(row["user_id"]) if row else None
+
+    def revoke_session(self, session_id: str) -> bool:
+        with self.connection() as con:
+            cur = con.execute(
+                "UPDATE session SET revoked_at=? WHERE id=? AND revoked_at IS NULL",
+                (utcnow(), session_id),
+            )
+        return cur.rowcount > 0
+
+    # ── 扩展令牌（v0.0.0.7 / T03）────────────────────────────────────
+    #
+    # 取代旧的一次性码。它在真实使用中连续失败三次（CONFLICT_ORDER 已废止它）：
+    # 十分钟有效期 + 手抄验证码本身就是技术门槛，与 INV-ZERO-BARRIER 直接冲突。
+    #
+    # 长期、可撤销、绑 user_id。明文只在签发那一刻返回一次，库里只留哈希——
+    # 库被读走也冒充不了扩展。
+
+    @staticmethod
+    def _hash_extension_token(plaintext: str) -> str:
+        return sha256_bytes(plaintext.encode("utf-8"))
+
+    def issue_extension_token(self, *, user_id: str) -> str:
+        """签发一枚新令牌并**撤销该用户此前所有令牌**。
+
+        为什么顺手撤旧的：用户重装扩展时会再点一次连接，旧令牌就此失联却仍然有效——
+        那是一枚永远没人用、也永远没人撤的活令牌。一次一枚，语义干净。
+        """
+        plaintext = secrets.token_urlsafe(32)
+        now = utcnow()
+        with self.connection() as con:
+            con.execute(
+                "UPDATE extension_token SET revoked_at=? WHERE user_id=? AND revoked_at IS NULL",
+                (now, user_id),
+            )
+            con.execute(
+                "INSERT INTO extension_token(id,user_id,token_hash,created_at) VALUES(?,?,?,?)",
+                (stable_id("ext", user_id, now, plaintext), user_id,
+                 self._hash_extension_token(plaintext), now),
+            )
+        return plaintext
+
+    def resolve_extension_token(self, plaintext: str) -> str | None:
+        """令牌 → user_id。已撤销的返回 None。
+
+        按哈希查而不是取出来逐个比：库里本来就没有明文可比。
+        """
+        if not plaintext:
+            return None
+        with self.connection() as con:
+            row = con.execute(
+                "SELECT user_id FROM extension_token WHERE token_hash=? AND revoked_at IS NULL",
+                (self._hash_extension_token(plaintext),),
+            ).fetchone()
+        return str(row["user_id"]) if row else None
+
+    def revoke_extension_tokens(self, user_id: str) -> int:
+        """一键撤销。撤销后扩展上行应当立刻拿到 401（T03 Oracle）。"""
+        with self.connection() as con:
+            cur = con.execute(
+                "UPDATE extension_token SET revoked_at=? WHERE user_id=? AND revoked_at IS NULL",
+                (utcnow(), user_id),
+            )
+        return cur.rowcount
+
+    def revoke_all_sessions(self, user_id: str) -> int:
+        """撤销某人全部会话。设备丢了、或怀疑泄漏时用。"""
+        with self.connection() as con:
+            cur = con.execute(
+                "UPDATE session SET revoked_at=? WHERE user_id=? AND revoked_at IS NULL",
+                (utcnow(), user_id),
+            )
+        return cur.rowcount
 
     def capture(self, request: CaptureRequest) -> tuple[str, str, str]:
         now = utcnow()
@@ -162,16 +442,19 @@ class RuntimeStore:
                      last_synced_at=excluded.last_synced_at""",
                 (content_id, platform, request.external_content_id, canonical_url, request.title, request.author_name, request.published_at, now, now, metadata_json, summary, request.language, len(request.media_urls), now),
             )
+            # 归属：本版本只有 Owner 一个用户，故写入路径统一落 OWNER_USER_ID。
+            # T02 接上登录后，这里改成从会话取真实 user_id——这是那一步唯一要动的地方。
+            owner = self._ensure_owner_user(con, now)
             if request.source_account_id:
                 con.execute(
-                    """INSERT INTO source_account(id,platform,external_account_id,created_at,updated_at)
-                       VALUES(?,?,?,?,?)
+                    """INSERT INTO source_account(id,user_id,platform,external_account_id,created_at,updated_at)
+                       VALUES(?,?,?,?,?,?)
                        ON CONFLICT(id) DO UPDATE SET platform=excluded.platform,external_account_id=excluded.external_account_id,updated_at=excluded.updated_at""",
-                    (account_id, platform, request.source_account_id, now, now),
+                    (account_id, owner, platform, request.source_account_id, now, now),
                 )
             con.execute(
-                """INSERT INTO user_relation(id,source_account_id,content_id,relation_type,collection_key,status,first_observed_at,last_observed_at,relation_observed_at,missing_complete_scan_count,last_sync_run_id)
-                   VALUES(?,?,?,?,?,'active',?,?,?,?,?)
+                """INSERT INTO user_relation(id,user_id,source_account_id,content_id,relation_type,collection_key,status,first_observed_at,last_observed_at,relation_observed_at,missing_complete_scan_count,last_sync_run_id)
+                   VALUES(?,?,?,?,?,?,'active',?,?,?,?,?)
                    ON CONFLICT(id) DO UPDATE SET
                      status='active',
                      last_observed_at=excluded.last_observed_at,
@@ -179,7 +462,7 @@ class RuntimeStore:
                      missing_complete_scan_count=0,
                      last_sync_run_id=COALESCE(excluded.last_sync_run_id,user_relation.last_sync_run_id),
                      closed_at=NULL""",
-                (relation_id, account_id, content_id, request.relation_type, request.collection_key, now, now, relation_time, 0, str(request.raw_metadata.get("sync_run_id") or "") or None),
+                (relation_id, owner, account_id, content_id, request.relation_type, request.collection_key, now, now, relation_time, 0, str(request.raw_metadata.get("sync_run_id") or "") or None),
             )
             con.execute(
                 "INSERT OR IGNORE INTO observation(id,connector_id,content_id,observed_at,payload_json,payload_sha256) VALUES(?,?,?,?,?,?)",
@@ -229,6 +512,63 @@ class RuntimeStore:
             )
         return artifact_id
 
+    def content_ids_missing_from_destination(self, destination_id: str) -> list[str]:
+        """还没送到这个目的地的内容 id。
+
+        判据取的是 destination_binding —— 那张表记的是「**真的送到了**」，
+        不是「排过队」。用作业表去判会把还在队里的算成已送，
+        于是补投第二次就少投一批。
+        """
+        with self.connection() as con:
+            return [
+                str(row[0])
+                for row in con.execute(
+                    "SELECT c.id FROM content c WHERE NOT EXISTS ("
+                    "  SELECT 1 FROM destination_binding b"
+                    "  WHERE b.content_id = c.id AND b.destination_id = ?)"
+                    " ORDER BY c.first_observed_at",
+                    (destination_id,),
+                )
+            ]
+
+    def destination_coverage(self) -> dict[str, int]:
+        """每个目的地**真的收到过多少条内容**。
+
+        为什么要有它：2026-08-04 实测，github 与 obsidian 的状态都是
+        `connected` + 「最近一次自动导入成功。」，而它们各自只有 **1 条**回执
+        ——库里有 193 条。默认导出集是 `["social_archive", "markdown"]`
+        （扩展的 DEFAULT_CONFIG 与 account_sync 两处都是），所以那两个目的地
+        从来就没有自动收到过东西。
+
+        界面说「连接成功、自动导入」，而实际是 1/193。**这不是谎，是没说全。**
+        把「收到了多少条」摆出来，比任何措辞都直接。
+        """
+        with self.connection() as con:
+            rows = con.execute(
+                """SELECT destination_id, COUNT(DISTINCT content_id) AS n
+                   FROM destination_receipt WHERE status IN ('done','noop')
+                   GROUP BY destination_id"""
+            ).fetchall()
+        return {row["destination_id"]: int(row["n"]) for row in rows}
+
+    def content_total(self) -> int:
+        with self.connection() as con:
+            return int(con.execute("SELECT COUNT(*) FROM content").fetchone()[0])
+
+    def force_requeue_failed_job(self, job_id: str) -> bool:
+        """显式重排一个结构性失败的活儿（换了下载器之类的时候用）。
+
+        自动入队不会碰它们——见 `enqueue_job` 里那段。这里是"我确实知道
+        成因变了"的出口，**必须有人明确调它**，不是顺带发生的。
+        """
+        with self.connection() as con:
+            changed = con.execute(
+                """UPDATE job SET status='queued', not_before=?, lease_owner=NULL,
+                       lease_expires_at=NULL, updated_at=? WHERE id=? AND status='failed'""",
+                (utcnow(), utcnow(), job_id),
+            ).rowcount
+        return bool(changed)
+
     def enqueue_job(self, job_type: str, payload: dict[str, Any], connector_id: str | None = None) -> str:
         payload_raw = json.dumps(payload, ensure_ascii=False, sort_keys=True)
         job_id = stable_id("job", job_type, connector_id, sha256_bytes(payload_raw.encode("utf-8")))
@@ -238,6 +578,45 @@ class RuntimeStore:
                 """INSERT OR IGNORE INTO job(id,job_type,connector_id,payload_json,status,attempt_count,not_before,created_at,updated_at)
                    VALUES(?,?,?,?,'queued',0,?,?,?)""",
                 (job_id, job_type, connector_id, payload_raw, now, now, now),
+            )
+            # **失败过的活儿，要能被重新请求。**
+            #
+            # job_id 是 (job_type, connector_id, payload) 的稳定哈希，配 INSERT OR IGNORE
+            # ——对**还没跑完**的活儿这是对的：同一件事不该排两次。
+            # 但一条 status='failed' 的记录会把这件事**永久钉死**：之后每一次
+            # enqueue 都被 IGNORE 掉，接口照样返回 job_id 和 202，界面照样说
+            # 「已加入队列」，而**没有任何东西会跑**。
+            #
+            # 2026-08-04 实测：markdown 导出修好之后我重排 83 条，79 条跑了，
+            # 剩下 4 条纹丝不动——它们在 2026-08-03T17:23 失败过，job 表里那一行
+            # 从那时起就没再动过。接口返回的是那 4 个旧 id。
+            #
+            # 只复活 failed。queued/running/retry 不动（本来就要跑），
+            # done 也不动——把已完成的活儿因为一次重复入队就重跑，
+            # 是另一种意外，得由调用方明确要求。
+            # **但结构性失败不许被这条复活。**
+            #
+            # 2026-08-07 在 Owner 生产库里量到：32 个 download_l3 挂着
+            # MEDIA_BLOCKED_BY_PLATFORM，而 attempt_count 全是 6。
+            # 那不是重试策略的问题（那个码的 retryable 本来就是 False），
+            # 是**每 6 小时一次同步会重新 capture 同一条抖音内容 → 同一个
+            # job id → 上面那条 UPDATE 把它复活 → 再打一次注定失败的请求**。
+            #
+            # 32 条 × 每天 4 次同步 ≈ 每天 128 次对抖音 CDN 的无效请求，
+            # 而且**永远不会停**——那条内容只要还在他的收藏里就一直这样。
+            # 这是「永远变不绿的红」的机器版本：一件结构上不可能成功的事，
+            # 被无限重排。
+            #
+            # 复活的本意是"我们把成因修好了，让它再跑一次"——那些成因在我们这边
+            # （导出实现坏了、部署没配）。平台挡住服务器不在我们这边，
+            # 修不好，也就不该被自动重排。真要重排（比如换了下载器），
+            # 由调用方显式 force_requeue_failed_job()。
+            con.execute(
+                f"""UPDATE job SET status='queued', not_before=?, lease_owner=NULL,
+                       lease_expires_at=NULL, updated_at=?
+                   WHERE id=? AND status='failed'
+                     AND COALESCE(last_error_code,'') NOT IN ({STRUCTURAL_PLACEHOLDERS})""",
+                (now, now, job_id, *STRUCTURAL_FAILURE_CODES),
             )
         return job_id
 
@@ -511,6 +890,66 @@ class RuntimeStore:
             result["evidence"] = {}
         return result
 
+    def reclassify_content(
+        self, content_ids: list[str], *, topic: str, keywords: list[str]
+    ) -> dict[str, Any]:
+        """把已入库内容的主题与关键词改成用户填的这一份。
+
+        **这个方法此前不存在，而界面一直在调它背后那个接口。**
+        2026-08-06 实测：`POST /v1/library/classify` 回 405 Method Not Allowed——
+        「批量修改分类」那颗按钮从来就没成功过一次。
+
+        与 capture 那条路上的写入有两处**故意不同**：
+
+          · capture 那边是「有就覆盖、没有就保留原样」（`CASE WHEN ... != '未分类'`），
+            因为它是自动来的、不该抹掉人填过的东西。
+            **这里是人亲手填的，就照他说的写**，包括把主题改回「未分类」。
+          · source 记 `manual`、confidence 记 1.0：**人说的话不打折**。
+
+        返回里把「点名了几条」和「真的改了几条」分开报——
+        选中的内容里若有已经不在库里的，**不许当成改成功了**。
+        """
+        wanted = list(dict.fromkeys(item for item in content_ids if item))
+        if not wanted:
+            return {"requested": 0, "updated": 0, "missing": []}
+        clean_topic = (topic or "未分类").strip()[:256] or "未分类"
+        clean_keywords = list(dict.fromkeys(
+            item.strip() for item in keywords if item and item.strip()))[:32]
+        now = utcnow()
+        with self.connection() as con:
+            con.execute("BEGIN IMMEDIATE")
+            placeholders = ",".join("?" for _ in wanted)
+            existing = [
+                str(row[0]) for row in
+                con.execute(f"SELECT id FROM content WHERE id IN ({placeholders})", wanted)
+            ]
+            for content_id in existing:
+                con.execute(
+                    """INSERT INTO content_classification(
+                           content_id,topic,keywords_json,confidence,source,updated_at)
+                       VALUES(?,?,?,?,?,?)
+                       ON CONFLICT(content_id) DO UPDATE SET
+                         topic=excluded.topic,
+                         keywords_json=excluded.keywords_json,
+                         confidence=excluded.confidence,
+                         source=excluded.source,
+                         updated_at=excluded.updated_at""",
+                    (content_id, clean_topic,
+                     json.dumps(clean_keywords, ensure_ascii=False), 1.0, "manual", now),
+                )
+            # **必须显式 COMMIT。** 连接是 `isolation_level=None`（自动提交），
+            # 而 `BEGIN IMMEDIATE` 开了显式事务；`connection()` 的 finally 里只有
+            # `con.close()`，**没有提交** —— 关掉就等于回滚。
+            #
+            # 第一版忘了这一句：接口回 `{"updated": 1}`，而资料库里读回来还是「未分类」。
+            # **报了成功、什么都没存**——正是这一整天在拆的那种东西，这次是我自己写的。
+            # 抓到它的是那条「改完之后按那个主题筛得出来」的判据：
+            # 只断言接口回了 200 的话，它会一直绿着。
+            con.execute("COMMIT")
+        missing = [item for item in wanted if item not in set(existing)]
+        return {"requested": len(wanted), "updated": len(existing), "missing": missing,
+                "topic": clean_topic, "keywords": clean_keywords}
+
     def list_library(
         self,
         *,
@@ -522,6 +961,7 @@ class RuntimeStore:
         observed_to: str | None = None,
         limit: int = 100,
         offset: int = 0,
+        user_id: str | None = None,
     ) -> list[dict[str, Any]]:
         clauses = ["1=1"]
         where_args: list[Any] = []
@@ -532,20 +972,41 @@ class RuntimeStore:
             literal_query = _literal_fts_query(q)
             cjk_terms = _cjk_substrings(q)
             if literal_query:
-                clauses.append("c.id IN (SELECT content_id FROM content_fts WHERE content_fts MATCH ?)")
-                where_args.append(literal_query)
+                # **搜索框写着「搜索标题、内容、关键词、作者或链接」——链接那一项此前是假的。**
+                #
+                # content_fts 只索引 title / author_name / body / tags，**没有 url**。
+                # 2026-08-06 对着生产（193 条）实测：`bilibili` 有 31 条（那是标题里出现的），
+                # 而 `http`、`com`、`BV`、`douyin` **全是 0**——尽管这 193 条的链接里
+                # 每一条都含 http 和 com。也就是说粘一个网址进去永远找不到东西，
+                # 而界面明明白白承诺了「或链接」。
+                #
+                # 用 LIKE 直接查 c.canonical_url，不动 FTS 的表结构（那要重建索引、动生产数据）。
+                # 与 FTS 之间是 **OR**：链接命中也算命中。
+                clauses.append(
+                    "(c.id IN (SELECT content_id FROM content_fts WHERE content_fts MATCH ?)"
+                    " OR c.canonical_url LIKE ? ESCAPE '\\')"
+                )
+                where_args.extend([literal_query, _like_pattern(q.strip())])
             for term in cjk_terms:
                 pattern = _like_pattern(term)
+                # 中文那一路同样要能命中链接（小红书/B站的链接里也可能带中文）。
                 clauses.append(
-                    """c.id IN (SELECT content_id FROM content_fts
+                    """(c.id IN (SELECT content_id FROM content_fts
                        WHERE title LIKE ? ESCAPE '\\' OR author_name LIKE ? ESCAPE '\\'
-                          OR body LIKE ? ESCAPE '\\' OR tags LIKE ? ESCAPE '\\')"""
+                          OR body LIKE ? ESCAPE '\\' OR tags LIKE ? ESCAPE '\\')
+                       OR c.canonical_url LIKE ? ESCAPE '\\')"""
                 )
-                where_args.extend([pattern, pattern, pattern, pattern])
+                where_args.extend([pattern, pattern, pattern, pattern, pattern])
             if not literal_query and not cjk_terms:
                 clauses.append("0=1")
         relation_clauses: list[str] = []
         relation_args: list[Any] = []
+        # 租户过滤必须建在这里，不能在外层 content 上：它决定"用哪条关系去 join"，
+        # 于是别人的内容根本连不进结果集，而 LIMIT/OFFSET 语义仍然正确。
+        # 放外层再过滤会让一页返回不足 limit 条，翻页就错了。
+        if user_id:
+            relation_clauses.append("r2.user_id=?")
+            relation_args.append(user_id)
         if relation:
             relation_clauses.append("r2.relation_type=?")
             relation_args.append(relation)
@@ -606,9 +1067,15 @@ class RuntimeStore:
         sort_dir: str = "desc",
         limit: int = 100,
         offset: int = 0,
+        user_id: str | None = None,
     ) -> dict[str, Any]:
         clauses = ["r.status='active'"]
         args: list[Any] = []
+        # 租户过滤加在关系表 r 上（这张表就是所有权边），facet 统计与分页共用同一组
+        # clauses，所以计数和翻页会一起被收敛到本用户，不会出现"总数是全库、页是自己"的错位。
+        if user_id:
+            clauses.append("r.user_id=?")
+            args.append(user_id)
         if platform:
             clauses.append("c.platform=?")
             args.append(platform.lower())
@@ -632,16 +1099,31 @@ class RuntimeStore:
             literal_query = _literal_fts_query(q)
             cjk_terms = _cjk_substrings(q)
             if literal_query:
-                clauses.append("c.id IN (SELECT content_id FROM content_fts WHERE content_fts MATCH ?)")
-                args.append(literal_query)
+                # **搜索框写着「搜索标题、内容、关键词、作者或链接」——链接那一项此前是假的。**
+                #
+                # content_fts 只索引 title / author_name / body / tags，**没有 url**。
+                # 2026-08-06 对着生产（193 条）实测：`bilibili` 有 31 条（那是标题里出现的），
+                # 而 `http`、`com`、`BV`、`douyin` **全是 0**——尽管这 193 条的链接里
+                # 每一条都含 http 和 com。也就是说粘一个网址进去永远找不到东西，
+                # 而界面明明白白承诺了「或链接」。
+                #
+                # 用 LIKE 直接查 c.canonical_url，不动 FTS 的表结构（那要重建索引、动生产数据）。
+                # 与 FTS 之间是 **OR**：链接命中也算命中。
+                clauses.append(
+                    "(c.id IN (SELECT content_id FROM content_fts WHERE content_fts MATCH ?)"
+                    " OR c.canonical_url LIKE ? ESCAPE '\\')"
+                )
+                args.extend([literal_query, _like_pattern(q.strip())])
             for term in cjk_terms:
                 pattern = _like_pattern(term)
+                # 中文那一路同样要能命中链接（小红书/B站的链接里也可能带中文）。
                 clauses.append(
-                    """c.id IN (SELECT content_id FROM content_fts
+                    """(c.id IN (SELECT content_id FROM content_fts
                        WHERE title LIKE ? ESCAPE '\\' OR author_name LIKE ? ESCAPE '\\'
-                          OR body LIKE ? ESCAPE '\\' OR tags LIKE ? ESCAPE '\\')"""
+                          OR body LIKE ? ESCAPE '\\' OR tags LIKE ? ESCAPE '\\')
+                       OR c.canonical_url LIKE ? ESCAPE '\\')"""
                 )
-                args.extend([pattern, pattern, pattern, pattern])
+                args.extend([pattern, pattern, pattern, pattern, pattern])
             if not literal_query and not cjk_terms:
                 clauses.append("0=1")
         where = " AND ".join(clauses)
@@ -652,13 +1134,43 @@ class RuntimeStore:
         base = f"""WITH relation_rows AS (
             SELECT c.id,c.platform,c.external_content_id,c.canonical_url,c.title,c.author_name,c.published_at,
                    c.summary,c.language,c.media_count,c.last_synced_at,c.last_observed_at,
-                   r.id AS relation_id,r.relation_type AS primary_relation,r.collection_key AS primary_collection,
+                   r.id AS relation_id,r.relation_type AS primary_relation,
+                   -- **这一格是他真的会读的那一格，而它一直端的是原始 key。**（2026-08-10）
+                   --
+                   -- 下面 `collection_names` 那一列 2026-08-07 已经改成"只取查得到
+                   -- 名字的"，注释里连反例都点了名。**而 app.js 读的是这一个**：
+                   --     collection: item.primary_collection || collections.join("、") || "未分组"
+                   -- `primary_collection` 排在最前面，所以那次只修好了没人看的那一半。
+                   --
+                   -- 2026-08-10 去生产库里数：194 条关系里 **100 条这一格是内部值**
+                   -- （70 条是一百字的页面文案「综合视频直播专栏 更多筛选 清空历史…」，
+                   -- 30 条是 'bilibili:/3493091105311656/favlist' 这样一条路径）。
+                   --
+                   -- 筛选不受影响：过滤走的是 `r.collection_key`，分面给的 key 是
+                   -- 原始值、label 才是名字。这里改的只是**显示**。
+                   (SELECT pc.name FROM platform_collection pc
+                     WHERE pc.source_account_id = r.source_account_id
+                       AND pc.relation_type = r.relation_type
+                       AND pc.external_collection_id = r.collection_key
+                     LIMIT 1) AS primary_collection,
                    COALESCE(r.relation_observed_at,r.first_observed_at) AS relation_time,
                    COALESCE(sa.display_name,sa.external_account_id,'') AS account_name,
                    COALESCE(cc.topic,'未分类') AS topic,COALESCE(cc.keywords_json,'[]') AS keywords_json,
                    COALESCE(cc.confidence,0) AS classification_confidence,COALESCE(cc.source,'local_rules') AS classification_source,
                    (SELECT COUNT(*) FROM artifact a WHERE a.content_id=c.id) AS artifact_count,
                    CASE
+                     -- **「完整」不许盖住"视频没存下来"。**
+                     --
+                     -- 2026-08-07 量他生产库：193 条全标着「完整」，而任务表里
+                     -- 有 33 个 download_l3 是 failed（MEDIA_BLOCKED_BY_PLATFORM
+                     -- ——B 站/抖音把下载挡了）。那 33 条有正文、没有视频，
+                     -- 而这一列对他说「完整」。**他会以为视频存下来了。**
+                     --
+                     -- 判断放在最前面：正文那几个 artifact 是 complete 的，
+                     -- 按原来的顺序会先命中「完整」，这一档永远轮不到。
+                     WHEN EXISTS(SELECT 1 FROM job j
+                                 WHERE j.job_type='download_l3' AND j.status='failed'
+                                   AND json_extract(j.payload_json,'$.content_id')=c.id) THEN '视频没存下'
                      WHEN EXISTS(SELECT 1 FROM artifact a WHERE a.content_id=c.id AND a.status='complete') THEN '完整'
                      WHEN EXISTS(SELECT 1 FROM artifact a WHERE a.content_id=c.id AND a.status IN ('staged','ready')) THEN '处理中'
                      ELSE '仅元数据'
@@ -667,7 +1179,24 @@ class RuntimeStore:
                    (SELECT GROUP_CONCAT(dr.destination_id) FROM destination_receipt dr WHERE dr.content_id=c.id AND dr.status='done') AS export_destination_ids,
                    ROW_NUMBER() OVER (PARTITION BY c.id ORDER BY COALESCE(r.relation_observed_at,r.first_observed_at) DESC,r.id) AS row_rank,
                    GROUP_CONCAT(r.relation_type) OVER (PARTITION BY c.id) AS relation_types,
-                   GROUP_CONCAT(NULLIF(r.collection_key,'')) OVER (PARTITION BY c.id) AS collection_names
+                   -- **这一列以前直接拼 collection_key，却叫 collection_names。**
+                   -- 于是界面拿到的是「111」「222」这种媒体 id，而不是「学习」「音乐」。
+                   -- 名字一直存在 platform_collection 里，只是从来没人 join 过它。
+                   --
+                   -- **只取查得到名字的。** 中间那一版写的是"查不到就退回 key，
+                   -- 那样至少还能分组"——对着生产一读就知道那句话站不住：
+                   -- 他库里 100 条带着 v0.0.0.6 抓取器留下的 key，其中一个是
+                   -- 一百字的页面文案（'综合视频直播专栏 更多筛选 清空历史…'）。
+                   -- 那种东西出现在「收藏夹」这一格里，比显示「未分组」糟得多。
+                   -- 说不出名字的一律不显示——和筛选框那边同一条规矩。
+                   -- **两个界面对同一件事必须给同一个答案**，这个项目已经在
+                   -- 「同一道门在两处布局给出相反结论」上栽过。
+                   GROUP_CONCAT(NULLIF(
+                       (SELECT pc.name FROM platform_collection pc
+                         WHERE pc.source_account_id = r.source_account_id
+                           AND pc.relation_type = r.relation_type
+                           AND pc.external_collection_id = r.collection_key
+                         LIMIT 1), '')) OVER (PARTITION BY c.id) AS collection_names
             FROM content c
             JOIN user_relation r ON r.content_id=c.id
             LEFT JOIN source_account sa ON sa.id=r.source_account_id
@@ -692,6 +1221,18 @@ class RuntimeStore:
                     WHERE {where} GROUP BY c.platform ORDER BY count DESC""",
                 args,
             ).fetchall()
+            # **关系也要出 facet。** 界面上那个「关系」筛选此前是写死的四个
+            # （收藏/点赞/书签/稍后再看），而且**没有任何代码去重建它**。
+            # 2026-08-06 对着生产量：书签 0 条、稍后再看 1 条，
+            # 而**最大的那一组「观看历史」71 条（193 条里的 37%）根本不在名单上**。
+            # 主题那个筛选早就是照 facet 重建的，关系这个一直没跟上。
+            relation_rows = con.execute(
+                f"""SELECT r.relation_type AS relation,COUNT(DISTINCT c.id) AS count
+                    FROM content c JOIN user_relation r ON r.content_id=c.id
+                    LEFT JOIN content_classification cc ON cc.content_id=c.id
+                    WHERE {where} GROUP BY r.relation_type ORDER BY count DESC LIMIT 100""",
+                args,
+            ).fetchall()
             topic_rows = con.execute(
                 f"""SELECT COALESCE(cc.topic,'未分类') AS topic,COUNT(DISTINCT c.id) AS count
                     FROM content c JOIN user_relation r ON r.content_id=c.id
@@ -699,7 +1240,53 @@ class RuntimeStore:
                     WHERE {where} GROUP BY COALESCE(cc.topic,'未分类') ORDER BY count DESC LIMIT 100""",
                 args,
             ).fetchall()
+            # 收藏夹分面（v0.0.0.10）。前三个分面早就有了，唯独收藏夹没有——
+            # 而 B 站接上之后，「按收藏夹看」是他最自然的一个动作：
+            # 库里的 collection_key 是媒体 id，没有这一栏他连哪些收藏夹存在都不知道。
+            # `key` 给筛选用（库里存的就是它），`label` 给人看。
+            # **只提供「我们知道名字」的收藏夹。**
+            #
+            # 2026-08-06 对着生产量出来的：他库里 193 条中有 100 条带着
+            # v0.0.0.6 那个 DOM 抓取器留下的 collection_key，而那个抓取器
+            # 正是因为不可靠才被 T03 删掉的。它留下的东西长这样：
+            #
+            #   '综合视频直播专栏 更多筛选 清空历史批量管理全部时长10分钟以下…'  70 条
+            #   'bilibili:/3493091105311656/favlist'                        30 条
+            #
+            # 第一版这道分面照单全收，于是**一串 100 字的页面文案会出现在他的筛选下拉框里**。
+            # 判据全绿、接口也没错——错的是把说不出名字的 key 当成收藏夹端给用户。
+            #
+            # 规则：有 platform_collection 记录（也就是平台自己告诉我们的名字）才算数。
+            # 走 API 那条路的收藏夹永远有名字；说不出名字的一律不进筛选框。
+            # 条目自身的 `collections` 仍然退回 key —— 那是"这条属于哪一组"，
+            # 少了它连分组都没有；而筛选框是"请选一个"，端不出名字就不该请人选。
+            collection_rows = con.execute(
+                f"""SELECT r.collection_key AS key, pc.name AS label,
+                           COUNT(DISTINCT c.id) AS count
+                    FROM content c JOIN user_relation r ON r.content_id=c.id
+                    JOIN platform_collection pc
+                      ON pc.source_account_id = r.source_account_id
+                     AND pc.relation_type = r.relation_type
+                     AND pc.external_collection_id = r.collection_key
+                    LEFT JOIN content_classification cc ON cc.content_id=c.id
+                    WHERE {where} AND COALESCE(r.collection_key,'')<>''
+                    GROUP BY r.collection_key, pc.name ORDER BY count DESC LIMIT 100""",
+                args,
+            ).fetchall()
         for row in rows:
+            # **和导出的 Markdown 用同一个函数修标题。**（2026-08-10）
+            # 抖音那条取数路把「互动数 + 文案 + 文案」拼成了标题；
+            # 两处各修各的必然漂开，这个仓今天已经因为「同一件事两处不同答案」
+            # 修过三回了。存下来的数据不动，只在显示时修。
+            if row.get("title"):
+                row["title"] = clean_display_title(row["title"])
+            # **作者字段同理，而且我第一次只接了标题、把它漏了。**（2026-08-10）
+            # 真制品上走一遍才看见：库里标题已经是「真正的一次性她来了」，
+            # 而同一行的作者还是 `26.6万`——**他在页面上看到的就是点赞数当作者**。
+            # 导出的 Markdown 那一侧当天就修了，这一侧漏了：同一件事两处各修各的，
+            # 漏一处就等于没修（这个仓今天为这个形状修过四回）。
+            if row.get("author_name"):
+                row["author_name"] = clean_display_author(row["author_name"]) or None
             try:
                 row["keywords"] = json.loads(row.pop("keywords_json") or "[]")
             except (TypeError, ValueError):
@@ -716,7 +1303,9 @@ class RuntimeStore:
             "sort_dir": direction.lower(),
             "facets": {
                 "platforms": [dict(row) for row in platform_rows],
+                "relations": [dict(row) for row in relation_rows],
                 "topics": [dict(row) for row in topic_rows],
+                "collections": [dict(row) for row in collection_rows],
             },
         }
 
@@ -947,10 +1536,10 @@ class RuntimeStore:
         with self.connection() as con:
             if source_account_id:
                 con.execute(
-                    """INSERT INTO source_account(id,platform,external_account_id,created_at,updated_at)
-                       VALUES(?,?,?,?,?)
+                    """INSERT INTO source_account(id,user_id,platform,external_account_id,created_at,updated_at)
+                       VALUES(?,?,?,?,?,?)
                        ON CONFLICT(id) DO UPDATE SET platform=excluded.platform,external_account_id=excluded.external_account_id,updated_at=excluded.updated_at""",
-                    (account_id, connector_id.strip().lower(), source_account_id, now, now),
+                    (account_id, self._ensure_owner_user(con, now), connector_id.strip().lower(), source_account_id, now, now),
                 )
             con.execute(
                 """INSERT INTO scan_receipt(id,connector_id,source_account_id,relation_type,started_at,completed_at,completeness,item_count,cursor_start,cursor_end,failure_code,evidence_sha256)
@@ -972,6 +1561,58 @@ class RuntimeStore:
                 ),
             )
         return receipt_id
+
+    def record_worker_heartbeat(self, owner: str) -> None:
+        """Worker 还活着。每轮循环写一次，**空转的那一轮也要写**。
+
+        只在有任务时写的话，一个"闲着但活着"的 worker 和一个"死了"的 worker
+        在数据上分不开——而恰恰是没任务的时候最需要知道它还在。
+        """
+        now = utcnow()
+        with self.connection() as con:
+            con.execute("BEGIN IMMEDIATE")
+            con.execute(
+                """INSERT INTO worker_heartbeat(worker_id,owner,last_seen_at)
+                   VALUES('default',?,?)
+                   ON CONFLICT(worker_id) DO UPDATE SET owner=excluded.owner,
+                     last_seen_at=excluded.last_seen_at""",
+                (str(owner)[:256], now),
+            )
+            con.execute("COMMIT")
+
+    def worker_liveness(self, *, stale_after_seconds: int = 120) -> dict[str, Any]:
+        """Worker 最近一次露面是什么时候。
+
+        **从来没写过心跳**（`last_seen_at` 为 None）与**写过但很久没动**
+        是两件事，分开报：前者多半是刚部署完还没起来，或者这一版的 worker
+        根本没在写心跳；后者是它挂了。合成一个布尔值会把这两种都说成"死了"。
+        """
+        with self.connection() as con:
+            row = con.execute(
+                "SELECT owner,last_seen_at FROM worker_heartbeat WHERE worker_id='default'"
+            ).fetchone()
+        if not row:
+            return {"ever_seen": False, "alive": False, "last_seen_at": None,
+                    "seconds_since": None,
+                    "note": "从来没收到过 worker 心跳——它可能没启动，或者跑的是不写心跳的旧版本。"}
+        stamp = str(row["last_seen_at"] or "")
+        try:
+            seen = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+        except ValueError:
+            return {"ever_seen": True, "alive": False, "last_seen_at": stamp,
+                    "seconds_since": None, "note": "心跳时间戳读不懂。"}
+        if seen.tzinfo is None:
+            seen = seen.replace(tzinfo=UTC)
+        seconds = (datetime.now(UTC) - seen).total_seconds()
+        return {
+            "ever_seen": True,
+            "alive": seconds <= stale_after_seconds,
+            "last_seen_at": stamp,
+            "seconds_since": round(seconds, 1),
+            "note": ("" if seconds <= stale_after_seconds else
+                     f"worker 已经 {int(seconds)} 秒没动过——后台任务不会有人处理，"
+                     "而接口本身照样是好的。"),
+        }
 
     def apply_complete_scan(
         self,
@@ -1025,6 +1666,27 @@ class RuntimeStore:
     # Account-mirror state belongs to the rebuildable runtime journal.  The
     # methods below intentionally expose opaque handle references only to the
     # coordinator, never to public account-list responses.
+    def find_source_account_by_platform(
+        self, *, platform: str, auth_method: str | None = None
+    ) -> dict[str, Any] | None:
+        """这个平台上已经有账号了吗（用来认领，而不是开第二个）。
+
+        取**最早建的那一个**：他的条目挂在那上面。取最新的会在已经分叉过
+        一次之后越走越偏。
+        """
+        clauses = ["platform=?"]
+        params: list[Any] = [platform.strip().lower()]
+        if auth_method:
+            clauses.append("auth_method=?")
+            params.append(auth_method)
+        with self.connection() as con:
+            row = con.execute(
+                f"SELECT * FROM source_account WHERE {' AND '.join(clauses)} "
+                "ORDER BY created_at LIMIT 1",
+                params,
+            ).fetchone()
+        return dict(row) if row else None
+
     def upsert_source_account(
         self,
         *,
@@ -1044,10 +1706,10 @@ class RuntimeStore:
         with self.connection() as con:
             con.execute(
                 """INSERT INTO source_account(
-                       id,platform,external_account_id,display_name,auth_ref,
+                       id,user_id,platform,external_account_id,display_name,auth_ref,
                        connection_state,auth_method,auth_handle_ref,auto_sync_enabled,
                        sync_interval_minutes,last_verified_at,metadata_json,created_at,updated_at
-                   ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                   ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                    ON CONFLICT(id) DO UPDATE SET
                      platform=excluded.platform,
                      external_account_id=excluded.external_account_id,
@@ -1062,6 +1724,7 @@ class RuntimeStore:
                      updated_at=excluded.updated_at""",
                 (
                     account_id,
+                    self._ensure_owner_user(con, now),
                     normalized_platform,
                     external_account_id,
                     display_name,
@@ -1144,6 +1807,145 @@ class RuntimeStore:
             )
         return cur.rowcount == 1
 
+    def forget_source_account(self, account_id: str) -> dict[str, Any]:
+        """把一个账号连同它带进来的内容一起删掉——**不可逆**。（2026-08-10）
+
+        ## 为什么和「断开」分开
+
+        `disconnect_source_account` 是「别再替我去取了」，内容一条都不动，
+        那是对的默认。但他要的是另一件事：**清干净、从零再走一遍**，
+        用来确认这套东西到底能不能用。断开做不到——重连之后旧数据还在，
+        分不清「同步真的跑了」还是「本来就有」。
+
+        ## 只删「只属于它」的内容
+
+        `content` 是共享的（同一条内容可以同时被两个账号收藏），账号关系挂在
+        `user_relation` 上。所以：删掉这个账号的关系之后，**再删那些一条关系
+        都不剩的内容**。别的账号还留着的，一条都不碰。
+
+        ## 如实报数
+
+        删了几个关系、几条内容、几次同步记录，逐项报出来。
+        这个仓的老毛病是「报个总数让人以为全清了」——这里每一项分开给。
+        """
+        with self.connection() as con:
+            row = con.execute(
+                "SELECT platform FROM source_account WHERE id=?", (account_id,)).fetchone()
+            if row is None:
+                return {"found": False}
+            platform = str(row["platform"])
+            content_ids = [str(r["content_id"]) for r in con.execute(
+                "SELECT DISTINCT content_id FROM user_relation WHERE source_account_id=?",
+                (account_id,))]
+            relations = con.execute(
+                "DELETE FROM user_relation WHERE source_account_id=?", (account_id,)).rowcount
+            orphans = [cid for cid in content_ids if not con.execute(
+                "SELECT 1 FROM user_relation WHERE content_id=? LIMIT 1", (cid,)).fetchone()]
+            removed_paths: list[str] = []
+            # **引用 content(id) 的表是数出来的，不是想出来的。**（2026-08-10）
+            # 第一版只列了六张我记得的，跑起来直接
+            # `sqlite3.IntegrityError: FOREIGN KEY constraint failed`——
+            # 外键把我拦住了，那是它该做的。这里按 schema 里真实的 FK 列全：
+            #   user_relation / observation / artifact / destination_binding
+            #   / destination_receipt / content_classification
+            # 另外 object_replica 挂的是 artifact，要在 artifact 之前清。
+            for cid in orphans:
+                for artifact_id in [str(r["id"]) for r in con.execute(
+                        "SELECT id FROM artifact WHERE content_id=?", (cid,))]:
+                    con.execute("DELETE FROM object_replica WHERE artifact_id=?", (artifact_id,))
+                for table in ("observation", "artifact", "destination_binding",
+                              "destination_receipt", "content_classification"):
+                    con.execute(f"DELETE FROM {table} WHERE content_id=?", (cid,))
+                con.execute("DELETE FROM content WHERE id=?", (cid,))
+            runs = [str(r["id"]) for r in con.execute(
+                "SELECT id FROM sync_run WHERE source_account_id=?", (account_id,))]
+            for run_id in runs:
+                con.execute("DELETE FROM sync_run_scope WHERE sync_run_id=?", (run_id,))
+                con.execute("DELETE FROM sync_run_event WHERE sync_run_id=?", (run_id,))
+                # **第三张挂在 sync_run 上的表**：第一版漏了它，外键又把我拦住一次。
+                # 教训不是「再多想一张」，是**照着 schema 里的 REFERENCES 数**：
+                #   sync_run_event / sync_seen_relation / sync_run_scope
+                con.execute("DELETE FROM sync_seen_relation WHERE sync_run_id=?", (run_id,))
+            con.execute("DELETE FROM sync_run WHERE source_account_id=?", (account_id,))
+            con.execute("DELETE FROM sync_checkpoint WHERE source_account_id=?", (account_id,))
+            con.execute("DELETE FROM scan_receipt WHERE source_account_id=?", (account_id,))
+            con.execute("DELETE FROM platform_collection WHERE source_account_id=?", (account_id,))
+            con.execute("DELETE FROM source_account WHERE id=?", (account_id,))
+        return {
+            "found": True,
+            "platform": platform,
+            "removed_relations": int(relations),
+            "removed_content": len(orphans),
+            "kept_content_shared_with_other_accounts": len(content_ids) - len(orphans),
+            "removed_sync_runs": len(runs),
+            "removed_export_files": removed_paths,
+        }
+
+    def disconnect_source_account(self, account_id: str) -> dict[str, Any]:
+        """断开一个已连接的账号（v0.0.0.7 / INV-REVERSIBLE）。
+
+        ## 为什么需要它
+
+        清点不变量守卫时发现 INV-REVERSIBLE 只有一个（回滚脚本）。顺着把路由表
+        按「加了什么就要能撤什么」比一遍，缺口很直接：
+
+            POST /extension-token           ↔  DELETE /extension-token        ✓
+            PUT  /v1/credentials/{platform} ↔  DELETE /v1/credentials/{…}     ✓
+            登录                             ↔  登出                           ✓
+            **POST /v1/accounts/connect/…   ↔  （没有）**
+
+        连一个账号一次点击，断开做不到。而连上之后它每 6 小时自己跑一次
+        （auto_sync_enabled + sync_interval_minutes 默认 360），
+        **用户没有任何办法让它停下来。**
+
+        ## 只断连接，不删内容
+
+        归档的意义就是东西留下来。断开做四件事，一件都不多：
+
+          1. connection_state → disconnected，auto_sync_enabled → 0（不再自己跑）
+          2. 清掉 auth_ref / auth_handle_ref（不再持有连接凭证的引用）
+          3. 把还在跑的 sync_run 落到 cancelled（否则界面上永远转圈）
+          4. 如实报出**保留了多少条内容**——用户要知道断开不等于清空
+
+        平台凭据（Cookie 托管）的撤销是**另一件事**，走
+        DELETE /v1/credentials/{platform}，由调用方按用户意愿分别决定。
+        两件事合并会让「我只是不想它再自动跑了」变成「我的登录状态也没了」。
+        """
+        now = utcnow()
+        with self.connection() as con:
+            row = con.execute(
+                "SELECT platform,connection_state FROM source_account WHERE id=?", (account_id,)
+            ).fetchone()
+            if row is None:
+                return {"found": False}
+            already = str(row["connection_state"]) == "disconnected"
+            con.execute(
+                """UPDATE source_account
+                   SET connection_state='disconnected', auto_sync_enabled=0,
+                       auth_ref=NULL, auth_handle_ref=NULL, last_error_code=NULL, updated_at=?
+                   WHERE id=?""",
+                (now, account_id),
+            )
+            cancelled = con.execute(
+                """UPDATE sync_run SET status='cancelled', updated_at=?,
+                          last_error_code='ACCOUNT_DISCONNECTED',
+                          last_error_message='账号已断开连接，这次同步已停止。'
+                   WHERE source_account_id=?
+                     AND status NOT IN ('completed','partial','cancelled','failed','blocked_environment')""",
+                (now, account_id),
+            ).rowcount
+            kept = int(con.execute(
+                "SELECT COUNT(DISTINCT content_id) FROM user_relation "
+                "WHERE source_account_id=? AND status='active'", (account_id,)
+            ).fetchone()[0])
+        return {
+            "found": True,
+            "platform": str(row["platform"]),
+            "already_disconnected": already,
+            "cancelled_runs": int(cancelled),
+            "kept_content_count": kept,
+        }
+
     def upsert_platform_collection(
         self,
         *,
@@ -1159,10 +1961,12 @@ class RuntimeStore:
         collection_id = stable_id("col", source_account_id, relation_type, external)
         with self.connection() as con:
             con.execute(
+                # user_id 继承自所属 source_account——收藏夹属于谁，取决于账号属于谁，
+                # 不是取决于"当前是谁在跑"。用子查询而不是传参，写入路径就没有传错的机会。
                 """INSERT INTO platform_collection(
-                       id,source_account_id,external_collection_id,relation_type,name,item_count,
+                       id,user_id,source_account_id,external_collection_id,relation_type,name,item_count,
                        status,first_observed_at,last_observed_at,metadata_json
-                   ) VALUES(?,?,?,?,?,?,'active',?,?,?)
+                   ) VALUES(?,(SELECT user_id FROM source_account WHERE id=?),?,?,?,?,?,'active',?,?,?)
                    ON CONFLICT(id) DO UPDATE SET
                      name=excluded.name,
                      item_count=COALESCE(excluded.item_count,platform_collection.item_count),
@@ -1170,6 +1974,7 @@ class RuntimeStore:
                      metadata_json=excluded.metadata_json""",
                 (
                     collection_id,
+                    source_account_id,  # 供上面的 user_id 子查询使用
                     source_account_id,
                     external_collection_id,
                     relation_type,
@@ -1196,11 +2001,13 @@ class RuntimeStore:
         normalized_relations = list(dict.fromkeys(relation_types))
         with self.connection() as con:
             con.execute(
+                # 同上：同步运行归属于账号的主人。
                 """INSERT INTO sync_run(
-                       id,source_account_id,platform,mode,trigger_type,status,relation_scope_json,updated_at
-                   ) VALUES(?,?,?,?,?,'queued',?,?)""",
+                       id,user_id,source_account_id,platform,mode,trigger_type,status,relation_scope_json,updated_at
+                   ) VALUES(?,(SELECT user_id FROM source_account WHERE id=?),?,?,?,?,'queued',?,?)""",
                 (
                     run_id,
+                    source_account_id,  # 供上面的 user_id 子查询使用
                     source_account_id,
                     platform.strip().lower(),
                     mode,
@@ -1233,6 +2040,154 @@ class RuntimeStore:
                 (event_id, sync_run_id, event_type, sequence_no, json.dumps(payload or {}, ensure_ascii=False, sort_keys=True), utcnow()),
             )
         return event_id
+
+    def provenance_audit(self) -> dict[str, int | list[str]]:
+        """INV-TRUTH-TRACEABLE 的库层落点：**每条内容都答得出「怎么进来的」。**
+
+        这条不变量此前**一个判据都没有**——清点各不变量的守卫时发现
+        TRUTH-TRACEABLE / REAL-USABLE / HONEST-EVIDENCE 三条只活在文档里。
+
+        溯源断掉的样子不是报错，是「库里有一条东西，没人说得清它从哪来」。
+        那和静默的零是同一种病的另一面：**数据在，出处没了。**
+
+        实测生产（2026-08-04）：193 条内容 193 条有观察记录，0 条孤儿制品。
+        也就是说这条不变量当时是成立的——但没有任何东西在盯着它。
+
+        每一项都是**必须为 0**。非 0 不代表数据错，代表**溯源链断了**。
+        """
+        checks = {
+            # 内容进来时必定伴随一条 observation（capture 路径写的）
+            "content_without_observation":
+                "SELECT COUNT(*) FROM content WHERE id NOT IN (SELECT content_id FROM observation)",
+            # 制品必须挂在某条内容上
+            "artifact_without_content":
+                "SELECT COUNT(*) FROM artifact WHERE content_id NOT IN (SELECT id FROM content)",
+            # 关系（谁收藏了什么）必须指得到内容
+            "relation_without_content":
+                "SELECT COUNT(*) FROM user_relation WHERE content_id NOT IN (SELECT id FROM content)",
+            # 观察记录反过来也不能指向不存在的内容
+            "observation_without_content":
+                "SELECT COUNT(*) FROM observation WHERE content_id NOT IN (SELECT id FROM content)",
+        }
+        out: dict[str, int | list[str]] = {}
+        with self.connection() as con:
+            for name, sql in checks.items():
+                out[name] = int(con.execute(sql).fetchone()[0])
+            out["content_total"] = int(con.execute("SELECT COUNT(*) FROM content").fetchone()[0])
+        out["broken"] = sorted(k for k, v in out.items() if k in checks and int(v) > 0)
+        return out
+
+    def privacy_facts(self) -> dict[str, Any]:
+        """把「隐私边界」从一句自称改成一次测量（v0.0.0.7）。
+
+        `/v1/extension/bootstrap` 此前回的是三个写死的字面量：
+
+            "cookie_custody": False, "password_custody": False,
+            "user_triggered_capture_only": True
+
+        其中 `cookie_custody: False` 从 T05/T06 起就是**假的**——产品确实在
+        托管西方三源的登录状态（加密后落库）。一个自称是隐私边界的字段说了假话，
+        比没有这个字段更糟：读它的人会据此以为不存在这件事。
+
+        而且它被一条判据逐字钉住（test_extension_api 断言整个字典），
+        **错的事实由绿灯守着**，是本轮遇到过最糟的形状。
+
+        所以这里全部改成算出来的：
+          · 密码：扫 sqlite_master 里有没有 password 形状的列。**不是"我们不存"，
+            是"库里现在没有这种列"**——能出示的出示，只能自述的别写成事实。
+          · 自动同步：数有多少个账号开着定时同步。这直接反驳了
+            "user_triggered_capture_only"——连接过的账号会按周期自己跑。
+        """
+        password_shaped = re.compile(r"(?i)\b(password|passwd|pwd)\b")
+        columns: list[str] = []
+        auto_sync = 0
+        with self.connection() as con:
+            for row in con.execute(
+                "SELECT name, sql FROM sqlite_master WHERE type='table' AND sql IS NOT NULL"
+            ):
+                for line in str(row["sql"]).splitlines():
+                    field = line.strip().split(" ", 1)[0].strip(",()\"'`")
+                    if field and password_shaped.fullmatch(field):
+                        columns.append(f"{row['name']}.{field}")
+            try:
+                auto_sync = int(con.execute(
+                    "SELECT COUNT(*) FROM source_account "
+                    "WHERE auto_sync_enabled=1 AND connection_state IN ('connected','degraded')"
+                ).fetchone()[0])
+            except sqlite3.Error:
+                auto_sync = 0
+        return {"password_shaped_columns": sorted(columns), "auto_sync_accounts": auto_sync}
+
+    def owner_user_for_content(self, content_id: str) -> str | None:
+        """这条内容是谁的。用于取用他自己托管的平台会话。
+
+        走 user_relation 而不是 content：**所有权边在关系上，不在内容上**
+        （同一条内容可以被不同的人各自收藏，内容本身没有主人）。
+        这一点在 TENANT_TABLES 的注释里已经写明。
+        """
+        with self.connection() as con:
+            row = con.execute(
+                "SELECT user_id FROM user_relation WHERE content_id=? AND user_id IS NOT NULL "
+                "ORDER BY first_observed_at LIMIT 1",
+                (str(content_id),),
+            ).fetchone()
+        return str(row["user_id"]) if row and row["user_id"] else None
+
+    def stalled_active_runs(
+        self, *, stale_after_seconds: int = 1800, limit: int = 200
+    ) -> list[dict[str, object]]:
+        """卡在非终态不动的同步运行（v0.0.0.7 / T04）。
+
+        `unexplained_zero_runs` 只看**终态**（partial/failed/blocked_environment）。
+        但真正让用户看到「点了同步永远在转」的，恰恰是**永远到不了终态**的运行
+        ——它不在那三种状态里，所以那个审计一条都抓不到。
+
+        实测抓到过两种成因，都不是设想出来的：
+
+          1. 同步范围里混进了枚举不出来的关系类型（manual_save），
+             那一路永远等不到终批，run 永远停在 scanning。
+          2. MV3 的 service worker 被杀在半路，队列条目已被摘走，
+             没有任何东西会再推进它，run 永远停在 queued。
+
+        两条都修了，这个审计是**兜底**：将来再冒出第三种成因，
+        它至少能被看见，而不是又变成一次没人说得清的转圈。
+        """
+        cutoff = int(max(0, stale_after_seconds))
+        with self.connection() as con:
+            rows = con.execute(
+                """SELECT id,platform,status,imported_count,updated_at,started_at
+                     FROM sync_run
+                    WHERE status NOT IN
+                          ('completed','partial','failed','cancelled','blocked_environment')
+                      AND updated_at IS NOT NULL
+                      AND CAST((julianday('now') - julianday(updated_at)) * 86400 AS INTEGER) > ?
+                    ORDER BY updated_at ASC LIMIT ?""",
+                (cutoff, int(limit)),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def unexplained_zero_runs(self, *, limit: int = 200) -> list[dict[str, object]]:
+        """INV-NO-SILENT-ZERO 的库层审计（v0.0.0.7 / T14）。
+
+        找出「已经跑到终态、一条都没进来、却没有任何失败码」的同步运行。
+        这正是 v0.0.0.6 那种静默的零：界面显示成功、表格是空的、
+        没有任何地方说得出为什么。
+
+        `completed` 且 imported=0 **不算**——那是「已经是最新的，没有新增」，
+        是好事，且界面上会显示成另一句话。只有 partial / failed /
+        blocked_environment 这些非成功终态才要求必须给出原因。
+        """
+        with self.connection() as con:
+            rows = con.execute(
+                """SELECT id,platform,status,imported_count,completeness,last_error_code
+                     FROM sync_run
+                    WHERE status IN ('partial','failed','blocked_environment')
+                      AND imported_count = 0
+                      AND (last_error_code IS NULL OR TRIM(last_error_code) = '')
+                    ORDER BY updated_at DESC LIMIT ?""",
+                (int(limit),),
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def update_sync_run(
         self,
@@ -1439,6 +2394,38 @@ class RuntimeStore:
                 (platform.strip().lower(), account_id, relation_type),
             ).fetchall()
         return {str(row["collection_key"] or "") for row in rows}
+
+    def list_registered_collections(
+        self,
+        *,
+        platform: str,
+        external_account_id: str,
+        relation_type: str,
+    ) -> set[str]:
+        """平台**确认存在过**的收藏夹（`platform_collection` 里登记过的）。
+
+        和 `list_existing_relation_collections` 的区别是要害：后者只是
+        「库里有条目挂着这个 key」，而 key 可能是**上一代取数路留下的写法**。
+
+        2026-08-06 在 Owner 生产库里量到：他有 30 条 B 站收藏挂在
+        `bilibili:/3493091105311656/favlist` 这个 key 上——那是 T03 删掉的
+        DOM 抓取器留下的写法，而现在这条路用的是媒体 id。
+        关系级销账会把"库里已有的收藏夹"也算进待检查名单（本意是
+        「这次同步里变空的收藏夹也要关掉」），于是那个旧 key 被当成
+        **一个变空了的收藏夹**，连续两次同步之后整桶销账——**他 30 条收藏没了**。
+
+        登记过的才可能"变空"：一个收藏夹要先被平台报出来（带名字）才会进
+        `platform_collection`。旧 key 从没登记过，所以它不是"变空"，
+        是"我们换了写法"。这两件事必须分开，**因为一件该关，另一件会丢数据**。
+        """
+        account_id = stable_id("acct", platform.strip().lower(), external_account_id)
+        with self.connection() as con:
+            rows = con.execute(
+                """SELECT DISTINCT external_collection_id FROM platform_collection
+                   WHERE source_account_id=? AND relation_type=?""",
+                (account_id, relation_type),
+            ).fetchall()
+        return {str(row["external_collection_id"] or "") for row in rows if row["external_collection_id"]}
 
     def upsert_sync_run_scope(
         self,
@@ -1648,3 +2635,75 @@ class RuntimeStore:
             complete = int(con.execute("SELECT COUNT(*) FROM artifact WHERE status='complete'").fetchone()[0])
             pending = max(0, total - complete)
             return {"required_replicas": 3, "total_artifacts": total, "all_three_verified": complete, "pending": pending}
+
+
+class TenantScope:
+    """按 user_id 收敛的读取视图（v0.0.0.7 / T01）。
+
+    存在的理由：把"记得加 user_id"从**纪律**变成**类型**。
+    面向用户的读取只要走这里，就不可能忘记过滤；裸 RuntimeStore 留给 worker
+    与运维路径，它们本来就需要跨用户看作业队列。
+
+    单条获取（get_*）一律先验证归属再返回，**不归你的一律返回 None** ——
+    不是抛异常。返回 None 让调用方自然走向 404，而 403 会泄漏"这个 id 存在"
+    这一事实本身。
+    """
+
+    def __init__(self, store: RuntimeStore, user_id: str):
+        self._store = store
+        self.user_id = user_id
+
+    # ── 资料库 ────────────────────────────────────────────────────
+    def list_library(self, **kwargs: Any) -> list[dict[str, Any]]:
+        kwargs.pop("user_id", None)  # 调用方不得覆盖租户边界
+        return self._store.list_library(user_id=self.user_id, **kwargs)
+
+    def list_library_table(self, **kwargs: Any) -> dict[str, Any]:
+        kwargs.pop("user_id", None)
+        return self._store.list_library_table(user_id=self.user_id, **kwargs)
+
+    def get_content(self, content_id: str) -> dict[str, Any] | None:
+        """只有当本用户对该内容确有一条关系时才返回。
+
+        content 本身是全局去重的共享维度，光有 content_id 不代表有权看它；
+        凭据是 user_relation 上的那条边。
+        """
+        if not self._owns_content(content_id):
+            return None
+        return self._store.get_content(content_id)
+
+    def content_bodies(self, content_ids: list[str]) -> dict[str, str]:
+        owned = [cid for cid in content_ids if self._owns_content(cid)]
+        return self._store.content_bodies(owned) if owned else {}
+
+    # ── 来源账号 ──────────────────────────────────────────────────
+    def list_source_accounts(self) -> list[dict[str, Any]]:
+        return [a for a in self._store.list_source_accounts() if a.get("user_id") == self.user_id]
+
+    def get_source_account(self, account_id: str, *, include_handle: bool = False) -> dict[str, Any] | None:
+        account = self._store.get_source_account(account_id, include_handle=include_handle)
+        if account is None or account.get("user_id") != self.user_id:
+            return None
+        return account
+
+    # ── 同步运行 ──────────────────────────────────────────────────
+    def list_sync_runs(self, *, source_account_id: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
+        if source_account_id and self.get_source_account(source_account_id) is None:
+            return []
+        runs = self._store.list_sync_runs(source_account_id=source_account_id, limit=limit)
+        return [r for r in runs if r.get("user_id") == self.user_id]
+
+    def get_sync_run(self, sync_run_id: str) -> dict[str, Any] | None:
+        run = self._store.get_sync_run(sync_run_id)
+        if run is None or run.get("user_id") != self.user_id:
+            return None
+        return run
+
+    # ── 内部 ──────────────────────────────────────────────────────
+    def _owns_content(self, content_id: str) -> bool:
+        with self._store.connection() as con:
+            row = con.execute(
+                "SELECT 1 FROM user_relation WHERE content_id=? AND user_id=? LIMIT 1",
+                (content_id, self.user_id),
+            ).fetchone()
+        return row is not None

@@ -1,0 +1,53 @@
+{
+  "task": "T14",
+  "claim": "顺着 Instagram 那条「HTTP 422」往下拉，拉出三个叠在一起的缺陷。第三个是安全问题：脱敏器把真正的 JWT 留在日志里，却把用户要看的解释吃掉了。三个都已修、已部署、已在生产复验。",
+  "measured_at": "2026-08-04",
+  "how_it_started": "给 SYNCABLE_NOW 取证时，我打了一次 POST /v1/connectors/instagram/run，拿到 `{\"detail\":\"CLI Sidecar 调用失败：HTTP 422\"}`。没有失败码、没有中文下一步、看不出缺什么。那句话本身就是第一条线索。",
+  "defect_1_the_reason_was_thrown_away": {
+    "what": "sidecars/cli-tools/server.py:286 返回的是 `{\"status\":\"failed\",\"error\":\"<异常类名>\",\"message\":\"<真实原因>\"}`，而 connectors/command.py 的 `_remote` 在 `raise_for_status()` 抛出后**丢掉整个响应体**，换成一句「CLI Sidecar 调用失败：HTTP {status}」。",
+    "why_it_matters": "**原因一直都在，是我们扔的。** 这和「读不懂就报没有」是同一种毛病的镜像：读到了原因，然后丢掉。",
+    "fix": "先读 sidecar 的 message/error，读不到才退回状态码。",
+    "what_it_revealed": "修完立刻看见真话：`[Errno 13] Permission denied: '/run/secrets/instagram_session'`"
+  },
+  "defect_2_the_container_could_not_read_its_own_secret": {
+    "what": "cli-tools 跑在 uid 10002 / gid 10001；instagram_session 是 **0600** owner=10001，组权限为零。同目录的 cli_worker_token 是 0640。",
+    "consequence": "**不管有没有配 session，Instagram 从来就没能工作过。** 这是 C-T00-01 家族的又一例。",
+    "root_cause": "这条不变量此前**只存在于一句注释里**——scripts/prepare_systemd_host.sh:205 写着「/run/secrets/* 10001:10001 0640」，而没有任何一行代码去落实它。生产上那些 0640 是不知哪一次手敲出来的，instagram_session 被漏掉了。",
+    "same_disease_as_this_morning": "今早我用 `chown -R` 打断生产 6 分钟，事后写的结论是「经验只存在于注释里，拦不住现敲的命令」。**这是同一句话的第二个实例，隔了几小时。**",
+    "fix": "install.sh 现在真的去 chmod 640 + chown 10001:10001，**名单从 compose.yaml 自己读**——抄一份必然漂开，instagram_session 就是这么被漏掉的。生产上定点改了那一个文件（没有再做递归大扫除）。",
+    "verified": "docker exec 实测：cli-tools 挂进去的两个密钥现在都读得到。"
+  },
+  "defect_3_the_redactor_leaked_the_secret_and_ate_the_explanation": {
+    "old_pattern": "(?i)(token|secret|password|cookie|authorization|session)[=: ]+[^\\s,;]+",
+    "it_leaked": {
+      "input": "Authorization: Bearer <一个 JWT 形状的长串>",
+      "old_output": "Authorization=<已隐藏> <那个 JWT 原样留着，一个字符没遮>",
+      "why": "关键词后面的第一段是 `Bearer`。它遮住了 `Bearer` 这个词，**把真正的 JWT 原样留下**。这个函数存在的全部理由就是防这个。"
+    },
+    "it_over_ate": {
+      "inputs": [
+        "Instagram Session 尚未配置 → Instagram Session=<已隐藏>",
+        "缺少 Reddit OAuth token 或 username → 缺少 Reddit OAuth token=<已隐藏> username"
+      ],
+      "why": "分隔符 `[=: ]` 里有一个裸空格，中文散文因此被当成 key value。",
+      "how_it_surfaced": "把 defect_2 修好之后，失败原因显示成 `Instagram Session=<已隐藏>`——**权限修对了，话还是说不出来。**"
+    },
+    "fix": "分两种：显式 `key=value` / `key: value` 一律遮到 `;` `,` 或行尾（Bearer 那种整段都在范围里）；只隔一个空格的**只在后面那段像密钥时才遮**（长度 ≥12，或字母数字混排）。",
+    "direction_of_the_change": "**在「漏」的方向上严格强于旧版**（旧版遮不住的现在遮得住）；在「过」的方向上只放过明显是散文的部分。判据 13 条覆盖两个方向，反证换回旧正则 → 8 条转红。"
+  },
+  "end_to_end_on_production": {
+    "before": "{\"detail\":\"CLI Sidecar 调用失败：HTTP 422\"}",
+    "after": {
+      "status": "blocked_environment",
+      "failure_code": "INSTAGRAM_SIDECAR_BLOCKED",
+      "message": "Instagram Session 尚未配置",
+      "next_action_zh": "Instagram Session 尚未配置"
+    }
+  },
+  "what_this_does_not_prove": [
+    "**不证明 Instagram 现在能同步。** 它现在能说清自己缺什么，仅此而已。session 仍然是空的，而配置它需要服务器访问权限——所以 instagram 已经被移出 SYNCABLE_NOW。",
+    "不证明脱敏器现在滴水不漏。它仍然是一个正则，仍然只认那几个关键词。它现在**比旧版严**，不等于它够严。",
+    "不证明其它密钥的权限都对。只核了挂进 cli-tools 的两个和挂进 core 的十二个中被读到的那些；`github_markdown_token` 是 0400 而它靠 owner=10001 读得到，与文档写的 0640 不一致——**留着没动**，因为改它没有实测需求，而今早的教训是别做没有必要的权限改动。"
+  ],
+  "a_gate_caught_this_file_itself": "写完这份证据，scan_plaintext_credentials 当场判红：我把一个 JWT 形状的字符串（虽然是假的）写进了 evidence/。**规矩是对的**——证据里不许出现令牌形状的东西，下一个读它的人分不清真假，扫描器更分不清。已改成文字描述。"
+}

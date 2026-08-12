@@ -10,6 +10,8 @@ HOST_ENV_FILE="$HOST_ENV_DIR/social-archive.env"
 SYSTEMD_DIR="/etc/systemd/system"
 BACKUP_ROOT="/var/backups/social-archive"
 SYSTEM_USER="socialarchive"
+# 密钥组与数据组是**两个**组：数据组管写产出，密钥组管读 /run/secrets/。
+SECRETS_GROUP="socialarchive-secrets"
 # Core runs unprivileged as this uid. It owns the shared bind data root; the
 # dedicated host service account is granted group access only to that data root.
 # Long-lived source secrets stay root-owned and are handed to a unit through
@@ -34,26 +36,32 @@ UNITS=(
 # Source files remain in runtime/secrets. PID 1 alone opens them for the
 # named systemd units and provides short-lived per-unit credential copies.
 # The script never changes their ownership or mode.
-HOST_SECRET_NAMES=(
-  r2_access_key_id
-  r2_secret_access_key
-  oci_access_key_id
-  oci_secret_access_key
-  github_token
-  private_database_token
-  social_archive_api_token
-  social_archive_pairing_code
-  cli_worker_token
-  notion_token
-  obsidian_rest_token
-  karakeep_api_token
-  linkwarden_api_token
-)
 
 fail() {
   printf 'systemd 宿主机准备停止：%s\n' "$1" >&2
   exit 2
 }
+
+#
+# **这份名单原先是手写的十五个名字，而 compose 声明了十九个。**
+# 差的那几个（instagram_session 与本轮新增的两个 OAuth token）不会在这里报缺，
+# 于是这个脚本一路通过，然后 `docker compose up` 用 Docker 自己的错误挂掉——
+# 正是 test_compose_secrets_are_all_created 的说明里写明「最要命」的那种。
+#
+# 改成从 compose 现读：凡是声明成 `./runtime/secrets/<name>` 的，都必须存在。
+# 这样加一个新 secret 时**不需要有人记得回来改这一行**。
+# >>> DERIVE_HOST_SECRET_NAMES（判据会原样取出这一段单独跑，别在中间插别的）
+HOST_SECRET_NAMES=()
+while IFS= read -r secret_name; do
+  [[ -n "$secret_name" ]] && HOST_SECRET_NAMES+=("$secret_name")
+done < <(
+  grep -hoE 'file:[[:space:]]*\./runtime/secrets/[A-Za-z0-9_.]+' "$ROOT"/compose*.yaml 2>/dev/null \
+    | sed 's#.*/##' | sort -u
+)
+# <<< DERIVE_HOST_SECRET_NAMES
+# 一个都没读到 = 解析失败或 compose 不在，不能当成"没有要检查的"。
+[[ ${#HOST_SECRET_NAMES[@]} -gt 0 ]] \
+  || fail '从 compose 里没解析出任何 file-based secret —— 拒绝在什么都不检查的情况下继续。'
 
 env_value() {
   file_env_value "$ROOT/.env" "$1"
@@ -67,7 +75,7 @@ file_env_value() {
 
 is_unit_credential_file_key() {
   case "$1" in
-    SOCIAL_ARCHIVE_API_TOKEN_FILE|SOCIAL_ARCHIVE_PAIRING_CODE_FILE|SOCIAL_ARCHIVE_CLI_WORKER_TOKEN_FILE|SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE|SOCIAL_ARCHIVE_R2_SECRET_ACCESS_KEY_FILE|SOCIAL_ARCHIVE_OCI_ACCESS_KEY_ID_FILE|SOCIAL_ARCHIVE_OCI_SECRET_ACCESS_KEY_FILE|SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE|SOCIAL_ARCHIVE_PRIVATE_DB_TOKEN_FILE|SOCIAL_ARCHIVE_NOTION_TOKEN_FILE|SOCIAL_ARCHIVE_OBSIDIAN_REST_TOKEN_FILE|SOCIAL_ARCHIVE_KARAKEEP_TOKEN_FILE|SOCIAL_ARCHIVE_LINKWARDEN_TOKEN_FILE)
+    SOCIAL_ARCHIVE_API_TOKEN_FILE|SOCIAL_ARCHIVE_CLI_WORKER_TOKEN_FILE|SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE|SOCIAL_ARCHIVE_R2_SECRET_ACCESS_KEY_FILE|SOCIAL_ARCHIVE_OCI_ACCESS_KEY_ID_FILE|SOCIAL_ARCHIVE_OCI_SECRET_ACCESS_KEY_FILE|SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE|SOCIAL_ARCHIVE_PRIVATE_DB_TOKEN_FILE|SOCIAL_ARCHIVE_NOTION_TOKEN_FILE|SOCIAL_ARCHIVE_OBSIDIAN_REST_TOKEN_FILE|SOCIAL_ARCHIVE_KARAKEEP_TOKEN_FILE|SOCIAL_ARCHIVE_LINKWARDEN_TOKEN_FILE)
       return 0
       ;;
   esac
@@ -105,6 +113,8 @@ validate_source_contract() {
   [[ "$(env_value SOCIAL_ARCHIVE_IMPORT_HOST_PATH)" == "$HOST_DATA_ROOT/import" ]] || fail "生产 SOCIAL_ARCHIVE_IMPORT_HOST_PATH 必须精确为 $HOST_DATA_ROOT/import，禁止 Core 与宿主机分裂导入面。"
   [[ "$(env_value SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH)" == "$HOST_DATA_ROOT/vendor-output" ]] || fail "生产 SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH 必须精确为 $HOST_DATA_ROOT/vendor-output，禁止 Core 与 CLI Sidecar 分裂输出面。"
   [[ "$(env_value SOCIAL_ARCHIVE_HOST_DATA_GID)" =~ ^[0-9]+$ ]] || fail 'SOCIAL_ARCHIVE_HOST_DATA_GID 必须是宿主机 socialarchive 组的数字 gid。'
+  [[ "$(env_value SOCIAL_ARCHIVE_HOST_SECRETS_GID)" =~ ^[0-9]+$ ]] || fail 'SOCIAL_ARCHIVE_HOST_SECRETS_GID 必须是宿主机 socialarchive-secrets 组的数字 gid。缺了它，CLI Sidecar 读不到 /run/secrets/（C-T00-01）。'
+  [[ "$(env_value SOCIAL_ARCHIVE_HOST_SECRETS_GID)" != "$(env_value SOCIAL_ARCHIVE_HOST_DATA_GID)" ]] || fail '数据组与密钥组不能是同一个 gid：写产出要 socialarchive，读密钥要 socialarchive-secrets。配成一样必然有一边坏掉。'
   private_database_client="$(env_value SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT)"
   [[ -n "$private_database_client" ]] || fail '缺少 SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT；禁止回退到本地 Private-Database 工作树。'
   [[ "$(basename "$private_database_client")" == "private_db_client.py" && -f "$private_database_client" && ! -L "$private_database_client" ]] || fail 'SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT 必须指向已安装、非符号链接的官方 private_db_client.py；禁止 clone 或挂载 Private-Database。'
@@ -190,6 +200,16 @@ fi
 host_data_gid="$(id -g "$SYSTEM_USER")"
 [[ "$(env_value SOCIAL_ARCHIVE_HOST_DATA_GID)" == "$host_data_gid" ]] || fail "SOCIAL_ARCHIVE_HOST_DATA_GID 必须精确等于 $SYSTEM_USER 的 gid ($host_data_gid)，否则 CLI Sidecar 无法写入共享数据根。"
 
+# **写产出和读密钥是两个组，不能共用一个变量。**（C-T00-01）
+#   /var/lib/social-archive/vendor-output  10001:980   2770 → 要 socialarchive
+#   /run/secrets/*                         10001:10001 0640 → 要 socialarchive-secrets
+# 只给前者，容器 /health 照样 200 而业务路由一律 401，界面永远「同步中」。
+if ! getent group "$SECRETS_GROUP" >/dev/null 2>&1; then
+  groupadd --system "$SECRETS_GROUP"
+fi
+host_secrets_gid="$(getent group "$SECRETS_GROUP" | cut -d: -f3)"
+[[ "$(env_value SOCIAL_ARCHIVE_HOST_SECRETS_GID)" == "$host_secrets_gid" ]] || fail "SOCIAL_ARCHIVE_HOST_SECRETS_GID 必须精确等于 $SECRETS_GROUP 的 gid ($host_secrets_gid)，否则 CLI Sidecar 读不到 /run/secrets/ 下的密钥（这正是 C-T00-01）。"
+
 # These paths are deliberately shallow: the command establishes only new data
 # directories and never recursively changes ownership of existing user objects.
 # Core's entrypoint uses umask 0007, so newly created SQLite/CAS files inherit
@@ -202,7 +222,9 @@ for shared_path in \
   "$HOST_DATA_ROOT/exports" \
   "$HOST_DATA_ROOT/vendor-output" \
   "$HOST_DATA_ROOT/vendor-output/cli" \
-  "$HOST_DATA_ROOT/status"; do
+  "$HOST_DATA_ROOT/status" \
+  "$HOST_DATA_ROOT/diagnostics" \
+  "$HOST_DATA_ROOT/evidence"; do
   install -d -m 2770 -o "$CORE_CONTAINER_UID" -g "$SYSTEM_USER" "$shared_path"
 done
 
@@ -252,3 +274,23 @@ systemctl daemon-reload
 
 printf '宿主机准备完成；可回滚备份：%s\n' "$backup_dir"
 printf '未启用或启动任何 unit、Docker、Tunnel 或云资源；由 Owner 完成下一步验收后再显式启用。\n'
+
+# **把「要启用什么」逐条列出来，不要只说「由 Owner 显式启用」。**
+#
+# 生产实测（2026-08-04）：只有 social-archive.service 与 status.timer 被启用过，
+# 而 backup / replication / private-database-sync 三个 timer 一直是 disabled，
+# journalctl 90 天内 "No entries" —— **从来没跑过**。
+# 后果：549 个制品里 530 个一个异地副本都没有，也没有任何定时备份。
+# 对一个以「归档」为卖点的产品，这是最要命的那种沉默失败。
+#
+# 这里**只列名字，不写启用命令**：validate_systemd.py 明令本脚本里不许出现
+# 那两个动词，而那条规矩是对的——装好与启用必须是两个人为分开的动作。
+# 具体命令交给 scripts/check_durability_units.sh，它是只读检查器，不是准备器。
+printf '\n必须由 Owner 显式启用的 unit（缺一个就有数据只存在一份的风险）：\n'
+printf '  social-archive.service\n'
+printf '  social-archive-backup.timer                  —— 定时备份\n'
+printf '  social-archive-replication.timer             —— 三地副本\n'
+printf '  social-archive-private-database-sync.timer   —— 私有库同步\n'
+printf '  social-archive-status.timer\n'
+printf '  social-archive-cloudflared.service\n'
+printf '\n启用命令与逐项核对：bash scripts/check_durability_units.sh\n'

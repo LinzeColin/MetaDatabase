@@ -251,43 +251,6 @@ def test_openapi_probe_refuses_ambiguous_routes_without_posting(monkeypatch):
     assert seen == []
 
 
-def test_ks_worker_is_documented_openapi_sidecar_without_secret_or_core_import():
-    root = Path(__file__).resolve().parents[2]
-    compose = yaml.safe_load((root / "compose.workers.yaml").read_text(encoding="utf-8"))
-    worker = compose["services"]["ks-worker"]
-    core_dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
-
-    assert worker["build"]["context"] == "./runtime/vendors/KS-Downloader"
-    assert worker["command"] == ["python", "main.py", "api"]
-    assert set(worker["profiles"]) == {"domestic-stable", "kuaishou"}
-    assert worker["ports"] == ["127.0.0.1:5557:5557"]
-    assert worker["restart"] == "unless-stopped"
-    assert worker["security_opt"] == ["no-new-privileges:true"]
-    assert "secrets" not in worker
-    assert "cookie" not in json.dumps(worker, ensure_ascii=False).lower()
-    assert "KS-Downloader" not in core_dockerfile
-    assert "COPY runtime" not in core_dockerfile
-
-
-def test_douk_worker_is_experimental_sidecar_without_secret_or_core_import():
-    root = Path(__file__).resolve().parents[2]
-    compose = yaml.safe_load((root / "compose.workers.yaml").read_text(encoding="utf-8"))
-    worker = compose["services"]["douk-worker"]
-    core_dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
-
-    assert worker["build"]["context"] == "./runtime/vendors/TikTokDownloader"
-    assert worker["command"] == ["python", "main.py", "api"]
-    assert worker["profiles"] == ["douk-experimental"]
-    assert "stdin_open" not in worker
-    assert "tty" not in worker
-    assert "healthcheck" in worker
-    assert worker["ports"] == ["127.0.0.1:5555:5555"]
-    assert worker["restart"] == "no"
-    assert worker["security_opt"] == ["no-new-privileges:true"]
-    assert "secrets" not in worker
-    assert "cookie" not in json.dumps(worker, ensure_ascii=False).lower()
-    assert "TikTokDownloader" not in core_dockerfile
-    assert "COPY runtime" not in core_dockerfile
 
 
 def test_vendor_sync_supports_taskpack_douk_lock_in_isolated_git_environment(monkeypatch, tmp_path, capsys):

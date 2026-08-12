@@ -40,7 +40,7 @@ class XHSWorkerConnector:
                 response = client.get(f"{self.worker_url}/openapi.json")
             return {"state":"healthy" if response.status_code == 200 else "degraded","status_code":response.status_code}
         except httpx.HTTPError as exc:
-            return {"state":"degraded","error_code":exc.__class__.__name__}
+            return {"state":"degraded","error_code":"HEALTH_PROBE_FAILED","detail":exc.__class__.__name__}
 
     def capture(self, payload: dict[str, Any]) -> ConnectorResult:
         url = assert_public_http_url(str(payload["url"]))
@@ -163,7 +163,7 @@ class OpenAPIURLWorkerConnector:
         try:
             return {"state":"healthy","route":self._resolve_route()}
         except Exception as exc:
-            return {"state":"degraded","error_code":exc.__class__.__name__,"message":str(exc)}
+            return {"state":"degraded","error_code":"WORKER_PROBE_OR_CALL_FAILED","message":f"{exc.__class__.__name__}: {exc}"}
 
     def capture(self, payload: dict[str, Any]) -> ConnectorResult:
         run_id = str(uuid.uuid4())

@@ -1,0 +1,32 @@
+{
+  "task": "T16 / T18",
+  "claim": "08-04 那条最严重的记录（三个 timer 从没启用、530/549 个制品零异地副本）今天**重新量了一遍**，不是照抄结论：三个 timer 全部 enabled/active，552 个制品在 r2/oci/github 三仓全部 verified，零副本的是 0。",
+  "measured_at": "2026-08-05",
+  "why_remeasure_instead_of_trusting_the_record": "备份是最容易「修好过一次就再也没人看」的东西。记录说修好了，而记录会陈；**能出示的就出示**。这次直接打生产的库和 systemd。",
+  "measured_in_production": {
+    "artifacts_total": 552,
+    "status_complete": 552,
+    "with_at_least_one_replica": 552,
+    "with_zero_replicas": 0,
+    "replicas_by_store": {"r2": "552 verified", "oci": "552 verified", "github": "552 verified"},
+    "timers": {
+      "social-archive-backup.timer": "enabled / active",
+      "social-archive-replication.timer": "enabled / active（2 分钟前刚跑过）",
+      "social-archive-private-database-sync.timer": "enabled / active（4 分钟前刚跑过）",
+      "social-archive-status.timer": "enabled / active（3 分钟前刚跑过）"
+    },
+    "对比 2026-08-04": "当时 549 个制品里 530 个零副本、三个 timer 全 disabled、journalctl 90 天 No entries"
+  },
+  "the_one_thing_that_was_still_unproven": {
+    "what": "**备份 timer 从来没有由它自己触发过一次。** `systemctl list-timers` 的 LAST 一栏是 `-`。",
+    "an_error_i_made_and_corrected_within_the_minute": "我先说成「备份单元本体从没执行过」。**那是错的**——journalctl 显示 08-04 它跑过四次（12:26 / 13:23 / 13:31 / 17:48），每次 Result=success。没发生过的只是**由 timer 自动触发**：四次全是手工 `systemctl start`。这两件事差别很大，不能混着说。",
+    "what_was_done": "又手工触发一次，完整走单元本体（systemd 环境、User、PrivateTmp、LoadCredential 都算数）：Result=success，ExecMainStatus=0；私有库备份 PASS（100 条事实、2 份远端已核）；运行库快照 PASS，**r2 / oci / github 三份全部 verified**。",
+    "what_remains_unproven": "timer 在 03:20 UTC 自己醒过来这件事本身。已核到的是：Unit=social-archive-backup.service（指向的正是刚验过的那个）、Persistent=yes、时间戳文件在、systemd 已把 next_elapse 排到 2026-08-05 03:20:00 UTC。**排上了不等于跑过**——这条留着，下一次会话该做的第一件事是回来看 LAST 那一栏。"
+  },
+  "one_thing_that_got_fixed_mid_session_and_shows_in_the_log": "08-04 13:23 那次运行里 github 一栏是 `blocked_prerequisite / GITHUB_VAULT_NOT_CONFIGURED`，只有 2 份远端副本；13:31 之后变成 verified，3 份。日志把这个转折原样留着，不用谁复述。",
+  "what_this_does_not_prove": [
+    "不证明 timer 会按时自己触发——那要等 2026-08-05 03:20 UTC 之后回来看 LAST。",
+    "不证明这些副本解得开。解得开是另一件事，由 552/552 的全量恢复演练证明（另一份证据），那次演练用的是**远端副本 + 完整解密链**。",
+    "不证明 age 私钥还在。全机只有一份，Owner 尚未决定第二份放哪；私钥没了这三份副本一份也解不开。"
+  ]
+}

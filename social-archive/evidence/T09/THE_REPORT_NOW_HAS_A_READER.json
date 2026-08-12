@@ -1,0 +1,46 @@
+{
+  "task": "T09",
+  "claim": "「抓到即固化」这一步接上了：诊断报告现在**有人读**，而且只固化读得懂的那一条，读不懂就拒绝。",
+  "measured_at": "2026-08-05",
+  "what_was_missing": {
+    "第一处": "**没有任何东西读那份报告。** 诊断把结果落到 diagnostics/extension-diagnostics.jsonl，然后就到此为止——这是「建好了没接上」的第十处：写进去了，没人取出来。",
+    "第二处": "**就算读了也不够用。** 报告里只有 readable_count 这个数字。只报「有三条能读」却不说是哪三条，等于把最要紧的那一样漏了——拦截前缀正是从那个地址上取的。已在同一轮把 readable_urls 从 background → 弹窗 → 服务端三段接通（只送地址，响应体一个字节都不上传）。"
+  },
+  "what_it_refuses_to_do": "平台目录里写着「没实测过的一律写 null，而不是写一个看着像的」。这个脚本守同一条线，三种情况一律拒绝：没有 readable_urls（只知道拦到了、不知道哪条是收藏接口）；推出来的前缀只到域名（那不是前缀，是「拦下所有东西」）；报告里没有那个平台。多条读得懂时取公共前缀**按 `/` 切、不按字符切**——按字符切会切出 `…/fav/resou` 这种半截路径段，看着像前缀，匹配行为完全不可预期。",
+  "measured_against_the_real_production_report": {
+    "命令": "scripts/freeze_intercept_prefix.py --platform bilibili --report /var/lib/social-archive/diagnostics/extension-diagnostics.jsonl",
+    "结果": "REFUSED / NOTHING_READABLE —— 「bilibili 有 2 条诊断记录，但没有一条读得懂」",
+    "为什么这是对的": "那 2 条里一条是上线核对时写的合成记录（readable_count=0），另一条是更早的真实记录，都没有读得懂的地址。**拒绝，而不是从 urls 里挑一个看着像的**，正是这个脚本存在的理由。"
+  },
+  "so_what_happens_when_owner_presses_the_button": "他在 B 站收藏夹页按一次诊断 → 报告带着**读得懂的那几条完整地址**自己落到服务器 → 跑一次这个脚本（`--apply`）→ 前缀进平台目录。脚本写完会自己提醒：**写进去了不等于真能拦到**，下一步还要重打包、装上、跑一次同步看条数。",
+  "what_this_does_not_prove": [
+    "**不证明它对真实平台固化出来的前缀是对的。** 这次验通的是「成功那条路本身」，用的是回环站点的地址（127.0.0.1:8765/…）。真实平台的地址要等 Owner 按那一下。",
+    "不证明 B 站那条已有前缀是对的。那条是任务包三处来源互相印证来的，不是实测抓包来的。",
+    "不证明写进目录之后就能用。写完到能用之间还隔着重打包、重装、跑一次真同步——脚本自己在输出里说了这句话。"
+  ],
+  "the_success_path_is_now_proven_too": {
+    "why_it_mattered": "上面写着「它一次都没成功固化过，被验过的只有拒绝那几条路」。而**成功那条恰恰是 Owner 按完诊断之后要走的**——留着不验，等于把风险全押在他那一按上。",
+    "how": "把回环抓取演练接到固化为止：真 Chrome 抓到 → 生产解析器读懂 → 按弹窗上报的格式造一份报告 → 跑 freeze_intercept_prefix.py --apply 写进一份**临时**目录副本 → 回头核对写进去的是不是这次抓到的那个地址。",
+    "measured": {
+      "抓到": 2,
+      "生产解析器读出条目": 2,
+      "固化退出码": 0,
+      "目录写成": "bilibili: Object.freeze([\"127.0.0.1:8765/x/v3/fav/resource/list\"])",
+      "真目录有没有被碰": "没有——写的是 /tmp 下的副本，git status 里没有 platform-catalog.js"
+    },
+    "what_makes_this_better_than_a_unit_test": "那个地址不是我手写进报告里的，是**真 Chrome 在回环站点上抓下来、再由生产解析器判定读得懂**的那一个。整条链上任何一环把地址弄丢或改形，最后写进目录的东西就对不上。",
+    "a_bug_this_caught_in_the_drill_itself": "第一版把临时报告的变量也叫 `report`，把上面那个「观察器自报状态」顶掉了，最终输出里塞进一个 PosixPath 当场崩。重名改掉了。"
+  },
+  "the_handoff_command_was_run_against_production_2026_08_05": {
+    "为什么单独验这个": "交接里给了一条命令让下一个人在容器里跑。**这个仓栽过同类的坑**：我自己写的交接命令在干净 clone 上跑不起来（dist/ 被 gitignore 挡着），而在我本机看不出来，因为文件就在那儿。所以照抄交接里那一行，真跑一次。",
+    "照抄的那一行": "sudo docker exec social-archive-core-api-1 python /app/scripts/freeze_intercept_prefix.py --platform bilibili --report /var/lib/social-archive/diagnostics/extension-diagnostics.jsonl",
+    "结果": {
+      "跑起来了": "是——脚本在镜像里、报告路径在容器里都对得上",
+      "它说了什么": "REFUSED / NOTHING_READABLE：「bilibili 有 2 条诊断记录，但**没有一条读得懂**」",
+      "退出码": 4,
+      "**这正是它该做的**": "那 2 条是 Owner 用**旧插件**按出来的——观察器落地太晚，页面加载时打的那个请求一条都没抓到。这时候写进平台目录的只能是「看着像的」，脚本拒绝写，并且用退出码说出来。"
+    },
+    "顺带纠正我自己的一次误读": "第一次量退出码时我写的是 `... | tail -6; echo $?`——**那读到的是 tail 的退出码**，于是看着像「拒绝了却退 0」。重新量才是 4。**管道会把退出码换成最后一个命令的**，这条在别处也会咬人。",
+    "所以 Owner 那一步是通的": "他重装插件、在 B 站收藏夹页按一次诊断之后，readable_urls 会有内容，同一条命令就会给出可用前缀。**卡住的只剩他那一下。**"
+  }
+}

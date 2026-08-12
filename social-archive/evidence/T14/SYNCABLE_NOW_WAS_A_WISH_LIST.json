@@ -1,0 +1,64 @@
+{
+  "task": "T14",
+  "claim": "SYNCABLE_NOW 里四个平台，三个是假的。x / reddit / instagram 界面上都画着「立即同步」，而生产上实测点下去分别是「零费用门未确认」「缺少 Reddit OAuth token 或 username」「HTTP 422」。已砍到只剩唯一有实测底的 generic-web。",
+  "invariant": "INV-REAL-USABLE",
+  "measured_at": "2026-08-04",
+  "how_measured": "POST /v1/connectors/{id}/run 打到生产服务器。**不是读代码推的。** 账号同步走的是同一条 registry.run(platform, request)，所以这四次调用量到的就是用户点「立即同步」会遇到的东西。",
+
+  "measurements": {
+    "x": {
+      "status": "blocked_environment",
+      "code": "X_ZERO_COST_NOT_CONFIRMED",
+      "message": "零费用门未确认，官方 X API 保持关闭。",
+      "why_it_cannot_be_fixed_by_owner_action": "闸门是 SOCIAL_ARCHIVE_X_API_ZERO_COST_CONFIRMED（默认 false），对应 Owner 的 L0 硬边界「0 新增必付费用」。**没有任何授权动作能打开它**——只有确认那个 API 权益绝不收费才行，而那是一个花钱与否的判断，只能 Owner 自己下。",
+      "the_comment_that_misled_me": "SYNCABLE_NOW 里 x 那行原来的注释写着「Cookie 托管 + gallery-dl（T06/T07），需先连接账号」。**那是意图，代码没有实现它。** 真正跑的是 registry.run('x', …)，也就是被零费用门关着的官方 API 那条。"
+    },
+    "reddit": {
+      "status": "blocked_environment",
+      "code": "REDDIT_AUTH_MISSING",
+      "message": "缺少 Reddit OAuth token 或 username",
+      "why_it_is_not_really_syncable": "配置项确实「设得上」——写进 /run/secrets/reddit_oauth_token 就行，find_settings_with_no_way_to_set_them 因此放行。**但那要有服务器访问权限、要会编辑文件。** Owner 的原话是「我没有技术基础」。没有界面，没有授权入口。「设得上」和「他设得上」是两件事。"
+    },
+    "instagram": {
+      "status": "HTTP 422",
+      "body": "{\"detail\":\"CLI Sidecar 调用失败：HTTP 422\"}",
+      "note": "**连结构化失败都不是。** 没有 failure_code、没有中文下一步，直接是一个 FastAPI 的 detail 字符串。这条本身就是缺陷，与能不能同步无关。"
+    },
+    "bilibili": {
+      "status": "failed",
+      "code": "BILI_SIDECAR_BLOCKED",
+      "message": "bilibili-cli 尚未配置",
+      "note": "它本来就不在 SYNCABLE_NOW 里，这次只是顺手量了。"
+    },
+    "generic-web": "没有重量。T04 已实测：62 条 Chrome 书签 queued→completed 全量入库，界面表格 62/62 逐条对上。**这是唯一一个有实测底的。**"
+  },
+
+  "what_changed": {
+    "SYNCABLE_NOW": "从 {generic-web, x, instagram, reddit} 砍成 {generic-web}",
+    "NOT_SYNCABLE_YET": "给 x / reddit / instagram 各写一句。**文案里不出现 OAuth / token / sidecar / API**——让 Owner 读这些词等于让他读我们的代码。每一句都带「现在可以：…」，给出他真的能做的事（用插件保存单条内容）。",
+    "user_visible_effect": "这三个平台的卡片不再画「立即同步」按钮，改成显示那句原因；它们也不会再被放进同步队列。"
+  },
+
+  "guards": {
+    "file": "tests/focused/test_syncable_now_is_a_fact_list.py",
+    "assertions": [
+      "SYNCABLE_NOW 里的每一项都必须在 PROVEN_BY_REAL_DATA 里——往那张表加名字之前先拿出实测证据",
+      "每个平台要么能同步、要么有一句非空的原因（漏掉的话界面会画按钮而理由是空串）",
+      "原因里不许出现 OAuth / token / sidecar / HTTP / cookie 这些词",
+      "每一句都要有「现在可以」——只说做不到是半句话",
+      "不许给不存在的平台写理由"
+    ],
+    "counter_examples_run": [
+      "把 x 放回 SYNCABLE_NOW → test_nothing_claims_to_be_syncable_without_a_measured_basis 转红",
+      "把 reddit 的理由改成「缺少 Reddit OAuth token」→ test_the_reasons_do_not_make_the_owner_read_our_code 转红"
+    ]
+  },
+
+  "the_one_decision_only_the_owner_can_make": "x 要不要恢复，取决于**官方 X API 是不是确实不收费**。那是花钱与否的判断，不是技术选型。我不替他猜，也不会自己把 SOCIAL_ARCHIVE_X_API_ZERO_COST_CONFIRMED 打开。",
+
+  "what_this_does_not_prove": [
+    "不证明 reddit / instagram 在授权补齐之后就能成。只证明现在这个状态下它们成不了。真正跑通还要有一次带凭据的实跑。",
+    "不证明 instagram 那个 HTTP 422 的根因是「没配 session」。422 是 sidecar 返回的，没有细分；**它是不是配置问题都还没查清**，只知道它现在不是一个说得出人话的失败。",
+    "不证明砍掉这三个是 Owner 想要的产品决策。它是**诚实性**决策：与其给一颗点下去说「零费用门未确认」的按钮，不如说清楚现在能做什么。要恢复随时可以，前提是先有实测。"
+  ]
+}

@@ -2,7 +2,7 @@ name: social-archive
 services:
   core-api:
     build: .
-    image: social-archive/core:0.0.0.6
+    image: social-archive/core:0.0.0.67
     command: ["social-archive-api"]
     env_file: [.env]
     ports: ["127.0.0.1:${SOCIAL_ARCHIVE_CORE_LOOPBACK_PORT:-18765}:8765"]
@@ -15,16 +15,53 @@ services:
       - ${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}:/var/lib/social-archive/vendor-output
     # Replica credentials remain host-only: systemd gives each maintenance job
     # a short-lived credential copy instead of mounting them into Core.
+    # **Core 也必须加入宿主数据组（GID 980）。**
+    #
+    # 2026-08-05 生产实测，第二次因为这件事断线：
+    #
+    #     -rw-rw---- 1 10001         socialarchive  social-archive.sqlite3
+    #     -rw-rw---- 1 socialarchive socialarchive  social-archive.sqlite3-shm
+    #     -rw-rw---- 1 socialarchive socialarchive  social-archive.sqlite3-wal
+    #
+    # 主库属主是 10001（容器建的），而 -wal/-shm 属主是 **987**（宿主
+    # socialarchive 账号建的——status 定时任务每 5 分钟以它的身份写库）。
+    # 模式 0660、组 980，而 Core 是 uid 10001 / gid 10001：**属主不对，组也不对**。
+    # SQLite 于是报 `unable to open database file`，所有要鉴权的路由 500，
+    # core-worker 直接退出。
+    #
+    # 它一直"能用"，只是因为碰巧总是容器先建那两个文件。**哪一次宿主任务先建，
+    # Core 就被锁在外面。** 今天早些时候那次"一次性的 500"就是它，
+    # 当时被下一次重建掩盖了，我误记成磁盘压力。
+    #
+    # cli-tools 一直有这两行，core-api / core-worker 一直没有——同一个数据面，
+    # 两套权限，迟早对不上。
+    group_add:
+      - "${SOCIAL_ARCHIVE_HOST_DATA_GID:-980}"
+      - "${SOCIAL_ARCHIVE_HOST_SECRETS_GID:-10001}"
     secrets: &core_secrets
       - social_archive_api_token
-      - social_archive_pairing_code
       - cli_worker_token
+      # 登录与凭据托管（v0.0.0.7）。**不挂这三个，Core 起来就是残的**：
+      # OAuth 登录返回 503、已托管的平台 Cookie 解不开——而 .env 里那几个
+      # *_FILE 变量指向的正是这些路径，看起来像"配好了"。
+      # 注意这里**没有**挂备份用的 age 私钥：那把仅在恢复演练时读取，
+      # 不进这个 24 小时联网的容器（见 config.py 里 credential_age_* 的说明）。
+      - google_oauth_client_secret
+      - github_oauth_client_secret
+      - credential_age_identity
       - notion_token
       - source: github_markdown_token
         target: github_token
       - obsidian_rest_token
       - karakeep_api_token
       - linkwarden_api_token
+      # X / Reddit 的账号扫描走各自的官方 OAuth。这两个此前**只存在于代码里**：
+      # registry.py 读它们，而 .env.example、compose、部署脚本、文档一处都没有
+      # ——也就是说没有任何文档化的路径能把 token 放进容器，两个连接器
+      # 永远返回 blocked_environment（scripts/find_settings_with_no_way_to_set_them.py）。
+      # 空占位是安全的：读到空值走的是「尚未授权」那一支，有中文说明。
+      - x_oauth_token
+      - reddit_oauth_token
     networks: [default, social_archive_readers]
     restart: unless-stopped
     security_opt: ["no-new-privileges:true"]
@@ -38,13 +75,36 @@ services:
       start_period: 20s
 
   core-worker:
-    image: social-archive/core:0.0.0.6
+    image: social-archive/core:0.0.0.67
     command: ["social-archive-worker"]
     env_file: [.env]
     volumes:
       - ${SOCIAL_ARCHIVE_DATA_HOST_PATH:-./runtime/data}:/var/lib/social-archive
       - ${SOCIAL_ARCHIVE_IMPORT_HOST_PATH:-./runtime/import}:/var/lib/social-archive/import
       - ${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}:/var/lib/social-archive/vendor-output
+    # **同上：worker 与 api 跑在同一个数据面，权限必须一致。**
+    #
+    # 2026-08-05 生产实测，第二次因为这件事断线：
+    #
+    #     -rw-rw---- 1 10001         socialarchive  social-archive.sqlite3
+    #     -rw-rw---- 1 socialarchive socialarchive  social-archive.sqlite3-shm
+    #     -rw-rw---- 1 socialarchive socialarchive  social-archive.sqlite3-wal
+    #
+    # 主库属主是 10001（容器建的），而 -wal/-shm 属主是 **987**（宿主
+    # socialarchive 账号建的——status 定时任务每 5 分钟以它的身份写库）。
+    # 模式 0660、组 980，而 Core 是 uid 10001 / gid 10001：**属主不对，组也不对**。
+    # SQLite 于是报 `unable to open database file`，所有要鉴权的路由 500，
+    # core-worker 直接退出。
+    #
+    # 它一直"能用"，只是因为碰巧总是容器先建那两个文件。**哪一次宿主任务先建，
+    # Core 就被锁在外面。** 今天早些时候那次"一次性的 500"就是它，
+    # 当时被下一次重建掩盖了，我误记成磁盘压力。
+    #
+    # cli-tools 一直有这两行，core-api / core-worker 一直没有——同一个数据面，
+    # 两套权限，迟早对不上。
+    group_add:
+      - "${SOCIAL_ARCHIVE_HOST_DATA_GID:-980}"
+      - "${SOCIAL_ARCHIVE_HOST_SECRETS_GID:-10001}"
     secrets: *core_secrets
     networks: [default, social_archive_readers]
     restart: unless-stopped
@@ -66,7 +126,7 @@ services:
       context: ./sidecars/cli-tools
       additional_contexts:
         bilibili_cli: ./runtime/vendors/bilibili_cli
-    image: social-archive/cli-tools:0.0.0.6
+    image: social-archive/cli-tools:0.0.0.67
     env_file: [.env]
     environment:
       SOCIAL_ARCHIVE_CLI_OUTPUT_ROOT: /work/output/cli
@@ -74,12 +134,28 @@ services:
       SOCIAL_ARCHIVE_INSTAGRAM_SESSION_FILE: /run/secrets/instagram_session
     volumes:
       - ${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}:/work/output
-    # The Core owns the shared host tree; the CLI Sidecar writes only its
-    # derived output through the explicitly configured host maintenance group.
-    # Production must set this to `id -g socialarchive`, rather than relying
-    # on a coincidental numeric group inside the image.
+    # **两个组，不是一个。** 这个 sidecar 要同时做两件需要不同组的事：
+    #
+    #   写产出  /var/lib/social-archive/vendor-output  属主 10001:980 模式 2770
+    #           → 需要 socialarchive (GID 980)
+    #   读密钥  /run/secrets/cli_worker_token           属主 10001:10001 模式 0640
+    #           → 需要 socialarchive-secrets (GID 10001)
+    #
+    # 原来这里只有一个 ${SOCIAL_ARCHIVE_HOST_DATA_GID}，生产 .env 里是 980。
+    # 于是容器拿到 groups=999,980，**读不了自己的密钥**。实测（2026-08-04）：
+    #
+    #   core-api   uid=10001 gid=10001            → 读 cli_worker_token OK
+    #   cli-tools  uid=10002 gid=999 groups=999,980 → 读 cli_worker_token 拒绝
+    #
+    # 后果不是"少个功能"：/health 照样 200，业务路由一律 401，job 层终态
+    # failed 而 sync_run 仍是 scanning、last_error_code 为空——界面永远
+    # 「同步中」。这就是 C-T00-01，v0.0.0.6「点了同步是 0」的第一处断点。
+    #
+    # 旧注释还叫人把这个值设成 socialarchive 组的 gid —— 那正是 980，
+    # 等于把这个故障写进了操作指引。所以那句话删掉了，判据也盯着它别回来。
     group_add:
-      - "${SOCIAL_ARCHIVE_HOST_DATA_GID:-10001}"
+      - "${SOCIAL_ARCHIVE_HOST_DATA_GID:-980}"
+      - "${SOCIAL_ARCHIVE_HOST_SECRETS_GID:-10001}"
     secrets:
       - cli_worker_token
       - instagram_session
@@ -102,9 +178,13 @@ secrets:
   github_token: {file: ./runtime/secrets/github_token}
   github_markdown_token: {file: ./runtime/secrets/github_markdown_token}
   social_archive_api_token: {file: ./runtime/secrets/social_archive_api_token}
-  social_archive_pairing_code: {file: ./runtime/secrets/social_archive_pairing_code}
+  google_oauth_client_secret: {file: ./runtime/secrets/google_oauth_client_secret}
+  github_oauth_client_secret: {file: ./runtime/secrets/github_oauth_client_secret}
+  credential_age_identity: {file: ./runtime/secrets/credential_age_identity}
   cli_worker_token: {file: ./runtime/secrets/cli_worker_token}
   instagram_session: {file: ./runtime/secrets/instagram_session}
+  x_oauth_token: {file: ./runtime/secrets/x_oauth_token}
+  reddit_oauth_token: {file: ./runtime/secrets/reddit_oauth_token}
   notion_token: {file: ./runtime/secrets/notion_token}
   obsidian_rest_token: {file: ./runtime/secrets/obsidian_rest_token}
   karakeep_api_token: {file: ./runtime/secrets/karakeep_api_token}

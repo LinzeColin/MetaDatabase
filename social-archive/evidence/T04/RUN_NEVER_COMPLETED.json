@@ -1,0 +1,83 @@
+{
+  "task": "T04（回归）",
+  "claim": "首次连接 Chrome 书签的同步运行**永远到不了终态**——62 条全进来了，圈还一直在转。已修，并在真实浏览器里验完。",
+
+  "how_it_surfaced": {
+    "not_by_reading_code": "这条是被真实浏览器逼出来的。我改动了 processSyncQueue（T15 的 worker 恢复），那正是 T04 跑通的那条路径，所以回头在真机上重跑一遍确认没改坏。",
+    "what_i_saw": [
+      "62 条全部入库 ✓",
+      "运行状态停在 scanning，等了 90 秒不动 ✗",
+      "扩展这边是干净的：队列空、锁已释放、lastResult 是 ok:true imported:62"
+    ],
+    "so_not_worker_death": "扩展把活干完了并拿到了服务端的回应。卡的是服务端那一侧——它自己不收敛。"
+  },
+
+  "root_cause": {
+    "run_record": "relation_scope = ['bookmark', 'manual_save']",
+    "chain": [
+      "api.py 里首次连接起同步：AccountSyncRequest(mode='first_full', trigger_type='first_connect') —— **没传 relation_types**",
+      "account_sync._relations(platform, None) → requested 为空 → 返回该平台全部关系",
+      "PLATFORM_RELATIONS['generic-web'] = ['bookmark', 'manual_save']",
+      "而扩展的 syncChromeBookmarks 只会送 relation_type='bookmark' 的终批",
+      "manual_save 那一路永远等不到终批 → _finalize_relation_scope 永远算不出「全部关系都终结了」 → run 永远停在 scanning"
+    ],
+    "the_real_mistake": "把「**允许**出现的关系类型」当成了「**能去枚举**的关系类型」。manual_save 是「用户自己手动存的这一条」（CaptureRequest 的默认值），必须允许，否则手动收藏会被 422 拒；但没有任何平台页面能列出「我手动存过哪些」，它根本不可枚举。"
+  },
+
+  "pre_existing": {
+    "verdict": "**不是这次改出来的。**",
+    "proof": "git show origin/main:./src/social_archive/account_sync.py 与 api.py 逐字相同：generic-web 的关系表是 ['bookmark','manual_save']，_relations 的空请求分支返回全部，首次同步不传 relation_types。",
+    "meaning": "v0.0.0.6「点了同步，圈一直转」的成因里，这是独立的一条——而且它命中的正是唯一一个真的能用的账号（Chrome 书签）。"
+  },
+
+  "fix": {
+    "what": "把「允许」和「可枚举」分开：新增 NON_SCANNABLE_RELATIONS 与 _scannable_relations()，只用于计算同步范围；批次校验仍走 _relations，manual_save 照常允许。",
+    "why_not_just_pass_relation_types_at_the_call_site": "那只修了这一个调用点。范围计算本身还是错的，下一个不传 relation_types 的调用方会再踩一次。判据里专门有一条穷举所有平台的默认范围。"
+  },
+
+  "verified_live_after_fix": {
+    "setup": "全新数据根、一次性 Chrome profile（--disable-sync）、Owner 真实书签复制进去、CDP 装扩展、**点真按钮**",
+    "user_gesture_is_real": "直接调 connectChromeBookmarks() 被 Chrome 拒绝：'This function must be called during a user gesture'。只有 Input.dispatchMouseEvent 点在真按钮上才过——也就是说走的是产品自己的授权路径，不是绕过它。",
+    "observed": [
+      {"t": "+22s", "status": "queued",    "imported": 0,  "scope": ["bookmark"]},
+      {"t": "+44s", "status": "completed", "imported": 62, "scope": ["bookmark"], "message_zh": "新增 62 条。"},
+      {"t": "+66s", "status": "completed", "imported": 62},
+      {"t": "+88s", "status": "completed", "imported": 62}
+    ],
+    "before_fix": "同样的操作，状态停在 scanning 不动（观察 90 秒），scope 是 ['bookmark','manual_save']",
+    "also_confirms": "T15 的周期闹钟在真机上是活的：chrome.alarms.getAll() 里 sa-account-sync-queue 的 periodInMinutes = 1。整条同步在我改过 processSyncQueue 之后照样跑通 62 条，没有回归。"
+  },
+
+  "second_defect_found_in_the_same_run": {
+    "what": "run 还在 queued 的那几十秒，界面文案是「这次没有取到任何内容，而且我们没能记录下原因。这是产品的问题，请重试一次」。",
+    "why_wrong": "用户刚点完连接就被告知产品坏了，而它只是**还没开始跑**。",
+    "fix": "describe_sync_outcome 对非终态返回 in_progress + 「正在同步，请稍候。」",
+    "but_that_removed_a_signal": {
+      "honest_assessment": "那句吓人的文案，恰恰是我发现「永远停在 scanning」的唯一线索。把它改掉就等于把唯一的报警关掉。",
+      "so_i_checked_what_else_watches": "查了 unexplained_zero_runs 的调用方——**一个都没有**。我在 T14 写的那个审计从来没被接到任何地方。也就是说 INV-NO-SILENT-ZERO 一直只是一句话，没有任何东西在执行它。",
+      "what_i_did": [
+        "新增 db.stalled_active_runs()：按「多久没动」抓永远到不了终态的运行（判据是时间，不是当前状态）",
+        "把两个审计一起挂到 GET /v1/status 的 sync_health 上——**挂上去才算数**",
+        "判据 test_the_invariant_has_an_actual_enforcement_point 盯着这件事，免得日后又变回没人调用"
+      ],
+      "verified_live": "重启服务后 curl /v1/status → sync_health 在线，unexplained_zero=0、stalled=0"
+    }
+  },
+
+  "guard_i_narrowed_and_why": {
+    "which": "tests/focused/test_failure_copy_matrix.py::test_zero_without_a_reason_is_called_out_not_dressed_up_as_success",
+    "before": "用 status='scanning' 当例子，断言必须显示「这是产品的问题」",
+    "after": "改成穷举**终态**（partial / failed / blocked_environment）以及未知状态",
+    "why_this_is_not_lowering_the_bar": "被移出这条判据的那一种（永远到不了终态）没有被放过，而是换了个更准的判据去抓——按时间判的 stalled_active_runs，并且真的挂到了接口上。原来那条判据的例子选错了：它用「当前状态」去判「是不是卡住了」，而这两件事不是一回事。",
+    "counter_check": "同一个文件里加了 test_the_invariant_has_an_actual_enforcement_point，盯住两个审计必须挂在 api.py 上——这是原来根本不存在的约束。"
+  },
+
+  "what_this_does_not_prove": [
+    "只验了 Chrome 书签这一条路径。其余平台的 scope 由穷举判据覆盖，但没有真机跑过。",
+    "stale_after_seconds 默认 1800 秒是拍的，没有实测「多久算卡住」。",
+    "sync_health 挂在 /v1/status 上了，但**界面还没有读它**——审计现在可查，还不会主动告诉用户。",
+    "没有验证 stalled 审计在真实卡住的运行上报出来（本地那次 run 已经修好了，造不出真实的卡死样本，只有单元判据里的构造样本）。"
+  ],
+
+  "suite_after": "497 passed / 7 failed（7 条为 origin/main 既有）；发布门 9 道全绿；明文扫描 480 文件 0 命中。"
+}

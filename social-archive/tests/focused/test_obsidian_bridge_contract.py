@@ -25,7 +25,10 @@ def test_obsidian_plugin_is_token_bound_loopback_only_and_markdown_only():
     root = Path(__file__).parents[2] / "apps/obsidian-plugin"
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     source = (root / "main.js").read_text(encoding="utf-8")
-    assert manifest["version"] == "0.0.0.6"
+    # 版本跟着仓根 VERSION 走，不再逐字钉死——钉死的那种断言只能证明
+    # "没人动过它"，而版本本来就是要动的。
+    expected = (Path(__file__).parents[2] / "VERSION").read_text(encoding="utf-8").strip()
+    assert manifest["version"] == expected
     assert manifest["isDesktopOnly"] is True
     assert 'listen(this.settings.port, "127.0.0.1"' in source
     assert "this.settings.port = DEFAULT_SETTINGS.port" in source

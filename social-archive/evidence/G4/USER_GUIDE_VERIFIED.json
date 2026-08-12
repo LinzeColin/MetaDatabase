@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "task": "G4",
+  "sync_period_minutes": [
+    360
+  ],
+  "sync_hours_stated_in_guide": [
+    6
+  ],
+  "backup_copies_confirmed_today": 3,
+  "backup_copies_stated_in_guide": [
+    3
+  ],
+  "guide": "docs/使用说明.md",
+  "buttons_checked": 26,
+  "claimed_auto": [
+    "bilibili",
+    "douyin",
+    "generic-web",
+    "instagram",
+    "reddit",
+    "xiaohongshu"
+  ],
+  "product_auto": [
+    "bilibili",
+    "douyin",
+    "generic-web",
+    "instagram",
+    "reddit",
+    "xiaohongshu"
+  ],
+  "claimed_manual": [
+    "kuaishou",
+    "x",
+    "youtube"
+  ],
+  "problems": [],
+  "message_zh": "使用说明里写的每一步，产品里都真的有。",
+  "what_this_does_not_prove": "不检查步骤顺不顺、语气好不好，只保证说的每件事都存在。"
+}

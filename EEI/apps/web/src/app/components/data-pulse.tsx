@@ -28,15 +28,19 @@ const POLL_INTERVAL_MS = 60_000;
 
 type MetricKey = "entities" | "relationships" | "events";
 
+// ★这三个数说的是采集库，不是图上能看见的东西★
+// 首屏此前把「实体 14,708 / 关系 14,576」和下面一行「当前视图 0 家实体 · 0 条关系」
+// 并排放着，而 relationships 的说明还写着「已核实关系」——同一屏里「已核实关系」有两个
+// 互相矛盾的意思。看的人只剩一个结论：这软件坏了。标签必须自己说清楚数的是哪一边。
 const METRIC_LABEL: Record<MetricKey, string> = {
-  entities: "实体",
-  relationships: "关系",
-  events: "事件"
+  entities: "采集库 · 实体",
+  relationships: "采集库 · 关系",
+  events: "采集库 · 事件"
 };
 
 const METRIC_HINT: Record<MetricKey, string> = {
-  entities: "已建档的公司与机构",
-  relationships: "控股 / 供应 / 治理等已核实关系",
+  entities: "采集库里已建档的公司与机构（不等于图上画得出来）",
+  relationships: "采集库里的关系候选，尚未经过 Owner 签核发布",
   events: "官方申报与披露事件"
 };
 
@@ -121,7 +125,14 @@ function HeartbeatDot({ record }: { record: PulseRecord }) {
 
 // —— the always-on strip ————————————————————————————————————————————
 
-export function PulseStrip({ days = 30 }: { days?: number }) {
+export function PulseStrip({
+  days = 30,
+  publishedRelationships = null
+}: {
+  days?: number;
+  /** 已签核发布、图上真的画得出来的关系条数。null = 还没拿到，不是 0。 */
+  publishedRelationships?: number | null;
+}) {
   const result = usePulse(days);
 
   if (!result || result.status !== "hydrated") {
@@ -150,6 +161,17 @@ export function PulseStrip({ days = 30 }: { days?: number }) {
           </span>
         </div>
       ))}
+      {/* 采集库有多大 ≠ 图上看得见多少。把两个数放在一起，任何一屏都不会再被读成
+          「有 14,708 个实体但画不出来 = 坏了」。0 是真的 0，不是加载失败。 */}
+      <div className="pulseMetric pulsePublished" title="已经过 Owner 签核发布、图上真的画得出来的关系条数">
+        <span className="pulseMetricLabel">已发布到图上 · 关系</span>
+        <span className="pulseMetricValue" data-testid="pulse-published-relationships">
+          {publishedRelationships === null ? "载入中" : formatCount(publishedRelationships)}
+        </span>
+        {publishedRelationships === 0 ? (
+          <span className="pulseDelta">图上暂时一条都没有</span>
+        ) : null}
+      </div>
       <div className="pulseStripTail">
         <HeartbeatDot record={record} />
         <a className="pulseStripLink" href="/objects-scope">

@@ -10,7 +10,12 @@ import tempfile
 from pathlib import Path
 
 from social_archive.config import Settings
-from social_archive.recovery import RecoveryBundleError, load_recovery_bundle
+from social_archive.recovery import (
+    SECRET_PATH_FALLBACKS,
+    RecoveryBundleError,
+    load_recovery_bundle,
+    resolve_secret_path,
+)
 from social_archive.storage import create_s3_client
 from social_archive.utils import read_secret, sha256_file
 
@@ -41,8 +46,9 @@ def _s3_config(store_id: str) -> dict[str, str] | None:
     prefix = f"SOCIAL_ARCHIVE_{store_id.upper()}"
     endpoint = os.getenv(f"{prefix}_ENDPOINT", "").strip()
     bucket = os.getenv(f"{prefix}_BUCKET", "").strip()
-    access = read_secret(os.getenv(f"{prefix}_ACCESS_KEY_ID_FILE"))
-    secret = read_secret(os.getenv(f"{prefix}_SECRET_ACCESS_KEY_FILE"))
+    # 主机上这几个路径指的是容器里的挂载点，见 recovery.resolve_secret_path。
+    access = read_secret(resolve_secret_path(os.getenv(f"{prefix}_ACCESS_KEY_ID_FILE")))
+    secret = read_secret(resolve_secret_path(os.getenv(f"{prefix}_SECRET_ACCESS_KEY_FILE")))
     region_name = os.getenv(f"{prefix}_REGION", "auto").strip() or "auto"
     addressing_style = os.getenv(f"{prefix}_ADDRESSING_STYLE", "path").strip() or "path"
     s3_compatibility = os.getenv(f"{prefix}_S3_COMPATIBILITY", "aws").strip().lower() or "aws"
@@ -182,12 +188,30 @@ def main() -> int:
     if ciphertext is not None and (not ciphertext.is_file() or ciphertext.is_symlink() or sha256_file(ciphertext) != cipher_sha):
         print(json.dumps({"status": "FAIL", "message": "备份密文缺失或哈希不一致"}, ensure_ascii=False))
         return 1
-    identity = settings.age_identity_file or os.getenv("SOCIAL_ARCHIVE_AGE_IDENTITY_FILE")
+    identity = resolve_secret_path(
+        settings.age_identity_file or os.getenv("SOCIAL_ARCHIVE_AGE_IDENTITY_FILE"))
     if args.dry_run:
-        print(json.dumps({"status": "READY", "manifest": str(manifest_path), "cipher_sha256": cipher_sha, "identity_configured": bool(identity)}, ensure_ascii=False))
+        print(json.dumps({"status": "READY",
+                          # 从远端读的时候 manifest_path 是 None，原来直接 str() 出来
+                          # 就是字符串 "None"——**演练报告上最不该含糊的就是
+                          # 「你正要恢复的是哪一份」**。真恢复那条路（第 248 行）
+                          # 早就写对了，是这条演练路没跟上。
+                          "manifest": str(manifest_path) if manifest_path else "remote:latest",
+                          "source_store": args.from_store,
+                          "cipher_sha256": cipher_sha,
+                          # **改成看文件在不在，不是看配了没配。**
+                          # 原来只判 bool(identity)：`.env` 里配着一个容器里的路径，
+                          # 主机上那个文件根本不存在，而 --dry-run 照样报
+                          # identity_configured=true——**演练说准备好了，真恢复时才发现没有**。
+                          "identity_configured": bool(identity and Path(identity).is_file()),
+                          "secret_path_fallbacks": list(SECRET_PATH_FALLBACKS)},
+                         ensure_ascii=False))
         return 0
     if not identity or not Path(identity).is_file():
-        print(json.dumps({"status": "BLOCKED_ENVIRONMENT", "message": "恢复节点缺少 SOCIAL_ARCHIVE_AGE_IDENTITY_FILE"}, ensure_ascii=False))
+        print(json.dumps({"status": "BLOCKED_ENVIRONMENT",
+                          "message": "恢复节点缺少 SOCIAL_ARCHIVE_AGE_IDENTITY_FILE",
+                          "secret_path_fallbacks": list(SECRET_PATH_FALLBACKS)},
+                         ensure_ascii=False))
         return 3
 
     target = Path(args.target).resolve() if args.target else settings.data_root / "restore" / original_sha[:12]

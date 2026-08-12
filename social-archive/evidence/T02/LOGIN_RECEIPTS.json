@@ -1,0 +1,99 @@
+{
+  "schema_version": "1.0",
+  "task": "T02",
+  "slice": "S1",
+  "goal": "Owner 能用 Google 或 GitHub 登录进站点，登出后受保护接口拒绝访问",
+  "recorded_at": "2026-08-04T06:00Z",
+  "honesty_note": "本文件记录的是 environment_unknown 已解除与制品已就位。**T02 的 Acceptance 仍未达成**，见文末 acceptance_self_check——它要求在真实浏览器完成两次真实登录，那需要新镜像上线（T18）。绝不把这里的进展写成 PASS。",
+
+  "environment_unknown_resolved": {
+    "what": "两个 OAuth 应用的 client_id / client_secret",
+    "previous_status": "BLOCKED（见 CREDENTIAL_BLOCKED_RECEIPT.json，四条路实测都走不通）",
+    "how_unblocked": "Owner 连上 Claude in Chrome 扩展，Delivery 用 Owner 已登录的会话代为创建；Google 的法律条款勾选由 Owner 亲自完成（owner_gates.legal_or_brand_change）。",
+    "now": "RESOLVED"
+  },
+
+  "github_oauth_app": {
+    "app_id": "3769969",
+    "client_id": "Ov23lifw8qvwMxrAOtH6",
+    "homepage_url": "https://social-archive.linzezhang.com",
+    "callback_url": "https://social-archive.linzezhang.com/v1/auth/github/callback",
+    "created_by": "Delivery Agent，经 Owner 已登录的 Chrome 会话",
+    "secret_handling": "Owner 直接提供；经 ssh stdin 写入生产机，未落本地文件"
+  },
+
+  "google_oauth_client": {
+    "gcp_project": "social-archive-504412",
+    "why_new_project": "Owner 账号下已有 WeRead Port 项目且同意屏幕已配好，复用它更省事——但那样 Owner 登录时看到的同意屏幕会写『WeRead Port』，与 INV-ZERO-BARRIER 冲突。故单开项目。",
+    "consent_screen": {"app_name": "Social Archive", "user_type": "External", "support_email": "已填", "legal_checkbox": "由 Owner 亲自勾选"},
+    "client_type": "Web application",
+    "client_name": "Social Archive Web",
+    "client_id": "227545368418-0gtom0a5ep4dhoh50124ldmsmhoveqfo.apps.googleusercontent.com",
+    "redirect_uri": "https://social-archive.linzezhang.com/v1/auth/google/callback",
+    "secret_handling": "经剪贴板取准确值——控制台字体里 l/I 无法分辨，OCR 抄错一个字符登录就会失败；不猜。"
+  },
+
+  "provisioned_on_production": {
+    "host": "OVH VPS (linze-ovh)",
+    "secrets_dir": "/opt/social-archive/runtime/secrets/",
+    "files": [
+      {"name": "github_oauth_client_id", "mode": "0640", "group": "socialarchive-secrets", "bytes": 20, "sha256_prefix": "e6765912aa"},
+      {"name": "github_oauth_client_secret", "mode": "0640", "group": "socialarchive-secrets", "bytes": 40, "sha256_prefix": "1b36567f19"},
+      {"name": "google_oauth_client_id", "mode": "0640", "group": "socialarchive-secrets", "bytes": 72, "sha256_prefix": "d3255078ec"},
+      {"name": "google_oauth_client_secret", "mode": "0640", "group": "socialarchive-secrets", "bytes": 35, "sha256_prefix": "3e2f0de40c"}
+    ],
+    "byte_counts_match_expected_lengths": true,
+    "owner_uid": 10001,
+    "note": "与既有 secret（social_archive_api_token 等）同一套权限模型。core-api 以 uid 10001 运行，属主匹配可读——不是 T00 里 cli-tools 那个 group_add 加错组的情况。",
+    "env_wired": [
+      "SOCIAL_ARCHIVE_GOOGLE_CLIENT_ID",
+      "SOCIAL_ARCHIVE_GOOGLE_CLIENT_SECRET_FILE=/run/secrets/google_oauth_client_secret",
+      "SOCIAL_ARCHIVE_GITHUB_CLIENT_ID",
+      "SOCIAL_ARCHIVE_GITHUB_CLIENT_SECRET_FILE=/run/secrets/github_oauth_client_secret"
+    ],
+    "rollback": "改 .env 前已留精确副本 /opt/social-archive/.env.pre-oauth-20260803T195929Z",
+    "no_secret_value_in_this_file": true
+  },
+
+  "artifacts": [
+    {"path": "src/social_archive/auth.py", "what": "两个 provider 的授权码流、会话签发、登出、/me、扩展令牌签发与撤销"},
+    {"path": "src/social_archive/db.py", "what": "upsert_oauth_identity / create_session / resolve_session / revoke_session / revoke_all_sessions"},
+    {"path": "src/social_archive/config.py", "what": "四个 OAuth 配置字段"},
+    {"path": "tests/focused/test_auth_session.py", "what": "31 个测试"}
+  ],
+
+  "tests": {
+    "count": 31,
+    "covers": [
+      "同一 subject 第二次登录仍是同一人",
+      "两个 provider 落到同一个 Owner（换按钮不该看不到自己的数据）",
+      "第一次登录认领 T01 迁移建的 is_owner 行，不另建用户",
+      "provider 不给 subject 时拒绝建身份（不拿空串当主键）",
+      "登出后受保护入口返回 401；登出幂等；过期会话被拒",
+      "会话 id 不可猜且唯一",
+      "未配置凭据时 503 + 中文而非 500 + 堆栈",
+      "扩展令牌签发/撤销/明文不落库/旧令牌自动失效",
+      "带扩展令牌能过受保护业务端点，撤销后拒"
+    ],
+    "regression": {"passed": 326, "failed": 11, "baseline_failed": 11, "note": "失败集合与 origin/main 一致，未弄坏既有测试"},
+    "not_acceptance": "任务包把『pytest 全绿』明确列在不能拿来当 PASS 的证据里。这 31 个测试证明的是制品自洽，不是产品可用。"
+  },
+
+  "rollback": {
+    "code": "关闭 auth 路由（移除 app.include_router(auth.build_router(...))），站点退回仅 Cloudflare Access 访问",
+    "credentials": ".env 有精确副本；四个 secret 文件可直接删除",
+    "external": "两个 OAuth 应用可在各自后台删除，不影响其他系统"
+  },
+
+  "acceptance_self_check": {
+    "requirement": "Owner 在真实浏览器用两个 provider 各登录成功一次；登出后受保护接口返回 401",
+    "oracle": "干净会话真实登录两次；oauth_identities 表有两行真实 subject；带过期会话请求 /v1/sources 得 401",
+    "result": "NOT_RUN",
+    "why_not_run": "生产跑的是 social-archive/core:0.0.0.6 镜像，不含 auth 路由。真实登录要等新镜像上线（T18）。凭据已就位，届时无需再等 Owner。",
+    "what_is_done": "environment_unknown 已解除；制品与测试已闭环；回滚已具备",
+    "what_remains": "部署后在干净浏览器各登录一次，把两行真实 subject 与 401 回执补进本文件",
+    "must_not_be_rewritten_as_pass": true
+  },
+
+  "next": "T03 剩 DOM 抓取器一块（建议与 T08 同做）。T02 的 Acceptance 与 T18 部署绑定。"
+}

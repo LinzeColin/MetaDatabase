@@ -109,7 +109,11 @@ def test_read_only_cli_does_not_persist_receipts(monkeypatch, capsys):
 
     assert module.main() == 0
     emitted = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
-    assert [item["platform"] for item in emitted] == ["generic-web", "x", "reddit", "instagram", "tiktok", "xiaohongshu", "douyin", "kuaishou", "bilibili"]
+    # **这张清单是手写的，不是从源码读的——那是有意的。**
+    # 它不验「代码等于代码」（那种断言永远绿），它验「加平台的人有没有想过
+    # canary 要不要跟着加」。2026-08-05 加 youtube 时它当场红了一次，
+    # 而那正是它存在的理由：逼人回答一次，而不是默默跟着变。
+    assert [item["platform"] for item in emitted] == ["generic-web", "x", "reddit", "instagram", "tiktok", "xiaohongshu", "douyin", "kuaishou", "bilibili", "youtube"]
     assert calls == [(item["platform"], 2, True) for item in emitted]
 
 

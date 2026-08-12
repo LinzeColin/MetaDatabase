@@ -1,0 +1,31 @@
+{
+  "task": "T18",
+  "claim": "生产盘 93% 满，部署被磁盘门正当拦下。**能安全回收的、属于我们自己的东西已经没有了**——剩下的要么是别的项目的，要么是回滚点本身。",
+  "measured_at": "2026-08-05",
+  "numbers": {
+    "根分区": "38G 总量，35G 已用，**3.1G 可用（93%）**，门槛 5G",
+    "docker": "Images 9.79GB（1.6GB 可回收）· Build Cache 3.75GB（868MB 可回收）· Containers 1.71GB · Volumes 1.50GB",
+    "悬空镜像": "**0 个** —— 门原来那句「先回收悬空镜像」在这种情况下是白跑一趟，已改",
+    "我们自己的应用数据": "/opt/social-archive 120M + /var/lib/social-archive 150M = **270M**",
+    "我们自己的镜像": "core 两个（0.0.0.7 与 rollback，各 1.06GB）+ cli-tools 994MB ≈ 3.1GB"
+  },
+  "what_is_actually_taking_the_space": {
+    "/var/lib": "16G（含共享的 docker）",
+    "/srv": "8.0G —— /srv/linze 6.7G、/srv/status-gate-input 767M，**别的项目**",
+    "/tmp/pytest-of-ubuntu": "1.5G —— 四批 pytest 临时目录。**不是我们的**：里面的用例名是 test_normalize_jsonl_emits_ / test_fault_injection_updates_ / test_old_automation_is_archived 这类，与本项目无关；而且最新一批是 08-05 00:03，本会话从未在这台机器上跑过 pytest（判据都在开发机跑）。",
+    "/opt/cyberboss-cloud": "1.1G，别的项目"
+  },
+  "what_i_refused_to_do": [
+    "**没删 /tmp/pytest-of-ubuntu 那 1.5G。** 看着像垃圾，但它是别人的垃圾——和「只回收带我们标签的悬空镜像」是同一条边界。",
+    "**没跑 docker builder prune。** 那 868MB 是共享构建缓存，删了会拖慢同机别的项目的构建。而且就算删了也只到 4G 上下，仍然不够 5G。",
+    "**没删 :rollback 那个镜像。** 它是唯一能回去的地方，为了腾 1GB 把回滚点烧掉，是这一天里最不该做的交易。",
+    "**任何情况下都没用 docker system prune。**"
+  ],
+  "consequence_right_now": "最近三次提交（T13 的失败码与「下一步」修复）**已入库但没上线**。生产跑的仍是上一版——那一版会把 8 个被挡住的连接器的下一步写成「按向导配置」，而那个向导不存在。这不是紧急故障，但它是一句**还在给用户看的假话**。",
+  "why_this_needs_the_owner": "腾出空间的每一条路都要动别人的东西（他自己的其它项目）或者烧掉回滚点。**这台机器是他的，那些项目也是他的**，该由他决定动哪个。",
+  "what_this_does_not_prove": [
+    "不证明那 1.5G pytest 目录真的可以删。我只证明了它**不是本项目的**，没去查它属于哪个项目、那个项目还需不需要它。",
+    "不证明 builder prune 之后就够。实测可回收 868MB，从 3.1G 到约 4G，**仍然不到 5G 门槛**——所以它单独解决不了问题。",
+    "不证明磁盘会继续涨。没有量增长速率，也没查是什么在持续写入。"
+  ]
+}

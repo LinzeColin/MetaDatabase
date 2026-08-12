@@ -1,0 +1,16 @@
+{
+  "repository": "git@github.com:LinzeColin/MetaDatabase.git",
+  "target_project": "social-archive",
+  "expected_outcome": "Social Archive v0.0.0.7 frozen acceptance contract",
+  "commit": "3804a005651fdc89f1ec0a419f54536471c2d4b9",
+  "dirty": "M social-archive/apps/pwa/app.js\n M social-archive/evidence/final-verification.json\n M social-archive/scripts/browser_acceptance.py\n M social-archive/scripts/prepare_verifier_input.py\n M social-archive/scripts/status_publish.py\n M social-archive/scripts/status_server.py\n?? social-archive/evidence/verifier-input.json",
+  "taskpack_digest": null,
+  "acceptance_contract": "machine/acceptance_contract.json",
+  "task_dag": "machine/task_dag.yaml",
+  "traceability": "machine/traceability.json",
+  "what_this_does_not_prove": [
+    "这份文件只记录**身份**（仓库、commit、工作树是否干净、任务包摘要），不做任何验证。",
+    "它不代表验收通过，也不代表这些 commit 上的代码跑过任何一条判据。",
+    "dirty 非空表示工作树有未提交改动——那样这份身份记录指向的东西无法被别人复现。"
+  ]
+}

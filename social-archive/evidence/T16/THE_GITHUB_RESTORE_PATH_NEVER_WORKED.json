@@ -1,0 +1,46 @@
+{
+  "task": "T16",
+  "claim": "GitHub 那份备份**写得进去、取不出来**，而库里三份副本全登记着 verified。两个缺陷叠在一起，任何一个都足以让整条 GitHub 恢复路失效。都修好之后，三仓取回演练首次全部 PASS，三边哈希一致。",
+  "invariant": "INV-REVERSIBLE",
+  "measured_at": "2026-08-04",
+
+  "how_it_surfaced": "我在上一条证据（DURABILITY_STILL_HOLDS_552）里写了一句「不证明那三份副本**现在**还能取回来——这次数的是登记状态，没有重跑取回演练」。**写完当天就去补跑，第一次就撞上了。**",
+
+  "drill_1": {
+    "r2": "success", "oci": "success",
+    "github": "FAIL — GITHUB_RELEASE_READ_FAILED「GitHub Private Draft Release 读取失败」"
+  },
+  "defect_1_wrong_credential": {
+    "measured": [
+      "github_token          → GraphQL: Could not resolve to a Repository with the name 'LinzeColin/Private-Database'",
+      "github_markdown_token → {\"nameWithOwner\":\"LinzeColin/Private-Database\"}"
+    ],
+    "root_cause": "写备份那条路（social-archive-replication.service:22）加载的一直是 github_markdown_token；**只有恢复脚本加载了另一个看不见私有仓的令牌**（scripts/restore_object_systemd.sh）。凭据在 systemd 里的名字都叫 github_token，差别只在它从哪个文件来。",
+    "fix": "恢复脚本改成加载 github_markdown_token，与复制单元一致。判据两条：① 备份与恢复必须加载同一来源；② 钉住具体是哪一个（两边一致但两边都错，第一条看不出来）。"
+  },
+
+  "drill_2": {"github": "FAIL — GITHUB_PACK_INVALID「GitHub Release 对象路径非法或重复」"},
+  "defect_2_cas_duplicates": {
+    "measured": "那个包 500 个对象里有 **3 组**路径重复。",
+    "why_duplicates_are_normal": "对象按内容寻址：路径 = `objects/{原文 sha256}.age`。**两个制品只要字节相同，就必然指向同一条路径。** 清单里保留两条记录是对的——它记的是「哪个 artifact 对应哪个对象」，多对一是这套设计的正常结果。",
+    "the_damage": "原来一见重复就整包判废，于是**整包 500 个对象一个都恢复不了**。三组重复，废掉五百个。",
+    "fix": "路径仍必须等于 objects/{原文 sha256}.age；重复出现时比对密文哈希——同一份放行，两份不同才判废。"
+  },
+
+  "drill_3_after_both_fixes": {
+    "r2": "PASS  original_sha256=eb61ea04d1d5c10e… cipher_sha256=4d788cb96ab9de1a…",
+    "oci": "PASS  同上",
+    "github": "PASS  同上",
+    "note": "三边的 original_sha256 与 cipher_sha256 完全一致。"
+  },
+
+  "the_record_i_have_to_correct": "T16 的既有记录写着「三个仓各做过一次恢复演练，取回的字节哈希与登记值一致」。**今天实测 GitHub 那条路有两个各自足以致命的缺陷。** 我无法还原当时到底跑了什么——可能走的是别的路径，也可能那句话本来就不成立。**不猜。** 这里只写今天量到的：修之前两次都失败，修之后 PASS。",
+
+  "two_times_i_misread_my_own_output": "查第二个缺陷时我先怀疑清单里的 path 被截断、少了 .age。**是我打印时用 `str(v)[:70]` 把它截了。** 紧接着看 object_key 又用 `[:80]` 截了一次，差点再下一个错结论。本地留存的四个 manifest 实测全是完整的 76 字符。**截断自己的诊断输出，然后拿它当证据——这一天里犯了两次。**",
+
+  "what_this_does_not_prove": [
+    "**只对这一个制品验过。** 552 个里挑了 1 个（最近产生、三份副本齐全的那个）。同一个包里的其余 499 个没有逐个取回。",
+    "不证明别的备份包也能取回。三仓演练只针对 20260804T060736Z 这一个包；本地留存的另外四个包没有试过。",
+    "不证明真实灾难恢复能成。这次用的是 --verify-only：**只取回并核对哈希，没有真的写回数据目录**。整库恢复没有演练过。"
+  ]
+}

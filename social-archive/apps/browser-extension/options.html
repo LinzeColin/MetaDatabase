@@ -17,7 +17,7 @@
   <main>
     <section class="hero">
       <span class="eyebrow">账号收藏库镜像</span>
-      <h1>连接一次账号，收藏、点赞和书签自动搬进来</h1>
+      <h1>连接一次账号，收藏和书签自动搬进来</h1>
       <p>不需要逐条打开帖子，也不需要复制 Cookie、Token 或运行命令。首次同步完成后，只同步新增内容。</p>
       <div class="hero-actions"><button id="syncAll" class="button primary">立即同步全部账号</button><button id="jumpAccounts" class="button">连接新账号</button></div>
       <div class="summary" aria-live="polite">
@@ -28,10 +28,9 @@
     </section>
 
     <section id="service" class="panel service-panel">
-      <div class="section-heading"><div><span class="step-number">1</span><h2>连接私人档案馆</h2><p>通常会自动连接；只有首次安装或换浏览器时需要输入一次性配对码。</p></div><span id="serviceState" class="state checking">检查中</span></div>
-      <div id="pairingArea" class="pairing hidden">
-        <label><span>一次性配对码</span><input id="pairingCode" maxlength="20" autocomplete="one-time-code" placeholder="例如 ABCD-EFGH"></label>
-        <button id="connectService" class="button primary">一键连接</button>
+      <div class="section-heading"><div><span class="step-number">1</span><h2>连接私人档案馆</h2><p>通常会自动连接；如果没连上，打开档案馆页面登录一次即可，无需输入任何内容。</p></div><span id="serviceState" class="state checking">检查中</span></div>
+      <div class="pairing">
+        <button id="connectService" class="button primary">打开档案馆页面登录</button>
       </div>
       <details class="advanced"><summary>服务连接遇到问题</summary><label><span>服务地址</span><input id="endpoint" type="url"></label><p>普通情况下无需修改。</p></details>
       <div id="serviceMessage" class="message hidden" role="status"></div>
@@ -44,8 +43,13 @@
     </section>
 
     <section id="destinations" class="panel">
-      <div class="section-heading"><div><span class="step-number">3</span><h2>选择自动导出</h2><p>主档案与 Markdown 默认开启；Notion、Obsidian 和 GitHub 完成真实写入后才显示已连接。</p></div><button id="openDestinationCenter" class="button ghost">打开连接向导</button></div>
+      <div class="section-heading"><div><span class="step-number">3</span><h2>选择自动导出</h2><p>我的档案馆与 Markdown 默认开启；Notion、Obsidian 和 GitHub 完成真实写入后才显示已连接。</p></div><button id="openDestinationCenter" class="button ghost">打开连接向导</button></div>
       <div id="destinationGrid" class="destination-grid"></div>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading"><div><h2>页面上那颗按钮</h2><p>打开支持的平台页面时，右下角会出现一颗「保存当前页面」。不想要就关掉它——插件的其他功能不受影响。</p></div></div>
+      <label class="toggle-row"><input type="checkbox" id="showFloatingButton" name="showFloatingButton" checked> <span>在平台页面显示这颗按钮</span></label>
     </section>
 
     <section class="panel finish-panel">
@@ -54,6 +58,9 @@
     </section>
   </main>
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <!-- 平台目录：设置页那张卡要照「这一版真的会读什么」来写，
+       不能再用写死的散文（B 站那条曾经承诺四样、实际只读一样）。-->
+  <script src="content/platform-catalog.js"></script>
   <script src="shared.js"></script>
   <script src="options.js"></script>
 </body>

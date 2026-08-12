@@ -1,0 +1,48 @@
+{
+  "task": "T14",
+  "claim": "193 条内容里 34 条没有原始媒体文件。查清了：先是一批陈的 401（Core 与 sidecar 令牌一度对不上，且被「失败任务永久钉死」那个缺陷冻住），复活后剩下的 33 个是**结构性**的——抖音与 B站 不让服务器直接取。失败码从一律 JOB_FAILED 改成说得清的三类。",
+  "measured_at": "2026-08-04",
+
+  "the_starting_picture": {
+    "download_l3": "done 166 / failed 34",
+    "all_34_said": "CLI Sidecar 调用失败：HTTP 401",
+    "failure_code": "全部是 `ConnectorError`（Python 类名当失败码——仓库自己的规矩明写不许这样）",
+    "timing": "2026-08-03 的 08/11/17/23 四个时段，**不是** 2026-08-04 我那次 chown 断线造成的"
+  },
+
+  "was_the_401_still_real": {
+    "token_hashes": "Core 与 cli-tools 容器里 /run/secrets/cli_worker_token 的 sha256 前 16 位完全一致，长度都是 43 字节（**只比哈希，不看值**）",
+    "live_call": "Core 用自己的令牌打 sidecar 的 /v1/capture-url → HTTP 200",
+    "conclusion": "401 那批是陈的。而它们**永远不会自己重试**——job_id 是稳定哈希 + INSERT OR IGNORE，一条 failed 记录把这件事钉死（见同日另一条修复）。"
+  },
+
+  "what_recovery_showed": {
+    "after_revive": "done 167（+1 真的恢复了）/ failed 33",
+    "by_platform": "抖音 32、B站 1",
+    "real_reasons": [
+      "抖音：`WARNING: [Douyin] …: Failed to parse JSON` —— 平台返回的东西 yt-dlp 解不了",
+      "B站：`ERROR: [BiliBili] …: HTTP Error 412` —— 风控"
+    ],
+    "why_it_is_structural": "我们**不绕**（L0 边界：不做验证码/风控绕过）。而国内平台的 Cookie 按 INV-DOMESTIC-COOKIE-STAYS 一步都不离开浏览器，服务端拿不到登录态。**这两条加起来，服务端就是取不到，重试多少次都一样。**"
+  },
+
+  "what_changed": {
+    "MediaUnavailable": "按真实原因分三类：MEDIA_BLOCKED_BY_PLATFORM（解不了 JSON / 412 / 403，结构性，不再重试）、MEDIA_TEMPORARILY_UNAVAILABLE（限流、超时，可以再试）、MEDIA_NOT_RETRIEVED（其余）。",
+    "worker": "_finish_failed_job 改成用异常自带的码，**JOB_FAILED 只作兜底**——它说明不了任何事，而「说不出原因」和「原因就在代码里」是两回事。",
+    "copy": "三个码各有中文；前两类落 PRODUCT_FAULT_CODES（问题在我们这边，别反复重试）。要说给用户的是：内容本身已经保存好了（标题、链接、正文都在），少的只是那个原始视频文件。"
+  },
+
+  "final_state_on_production": {
+    "download_l3": "done 167 / failed 33",
+    "failure_codes": "MEDIA_BLOCKED_BY_PLATFORM 32 / MEDIA_NOT_RETRIEVED 1（**再没有一个 JOB_FAILED**）",
+    "coverage": "有 L3 原文件的内容 159 / 193",
+    "disk": "6.3G 可用（84%）"
+  },
+
+  "what_this_does_not_prove": [
+    "**不证明那 34 条的原文件永远拿不到。** 结论只对「服务端直接取」成立。真正的出路是在 Owner 已登录的浏览器里取——那正是 T08 在做的事。",
+    "不证明剩下那 1 个 MEDIA_NOT_RETRIEVED 的原因清楚了。它没落进前两类，说明它的错误文本不匹配任何已知形态——**没有去查**，它一个人。",
+    "不证明 159/193 是稳定值。新内容进来仍会走同一条路，抖音的仍会失败。",
+    "不证明我这次的重跑没有代价：32 个任务各跑了一次 yt-dlp，磁盘从 7.2G 掉到 6.3G（临时产物）。**没有清理**——那是别的项目也在用的构建缓存区域，不该顺手动。"
+  ]
+}

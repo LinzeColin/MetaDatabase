@@ -18,7 +18,12 @@ WEB_DIR="$REPO_ROOT/apps/web"
 DIST_DIR="$REPO_ROOT/apps/cloudflare-public/dist"
 
 BUILD_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD)"
-if [ -n "$(git -C "$REPO_ROOT" status --porcelain -- "$REPO_ROOT" 2>/dev/null)" ]; then
+# 「脏」的口径必须和 deploy_cloud.sh 完全一致，否则两个戳永远对不上：
+# 这里给 SHA 加 -dirty，而 deploy_cloud.sh 的 BUILD_SHA 不加 —— header 来自本脚本
+# 写的 _headers、/v1/meta/build 来自 deploy 绑的 var，验收那一步就必然红。
+# apps/web/next-env.d.ts 是 Next 生成的（next build 与 typegen 各写一个值），
+# 本脚本自己就会翻它，所以两边一起豁免它。
+if [ -n "$(git -C "$REPO_ROOT" status --porcelain -- "$REPO_ROOT" 2>/dev/null | grep -v '/apps/web/next-env\.d\.ts$' || true)" ]; then
   BUILD_SHA="${BUILD_SHA}-dirty"
 fi
 BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"

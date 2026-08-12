@@ -2,12 +2,12 @@
   "schema": "linze.flow_state.v1",
   "steps": {
     "BL-ADP-DAILY.deliver": {
-      "at": "2026-08-11T04:00:19.473009+08:00",
+      "at": "2026-08-12T04:04:38.193523+08:00",
       "note": "生产开关 ADP_PRODUCTION_ENABLED 未设为 true,投递作业每天被跳过(mode=watchdog)",
       "state": "blocked_by_input"
     },
     "BL-ADP-DAILY.scan": {
-      "at": "2026-08-11T06:39:21.670440+08:00",
+      "at": "2026-08-12T06:43:53.918069+08:00",
       "note": "看门狗全绿:最新一轮真的抓到了论文、候选非空,页面路由与新鲜度都正常",
       "state": "healthy"
     }

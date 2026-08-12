@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# 提交前先把发布门跑一遍。**只在这次提交动了 social-archive/ 时才跑。**
+#
+# 为什么存在：本会话我两次在门是红的状态下提交，
+# 两次都是因为**提交信息在跑完之前就写好了**。
+#   第一次：测试数字写错（539/7 实为 538/8）
+#   第二次：validate_systemd 判 FAIL，10 个测试红，照样提交了进去
+#
+# 「下次注意」不是修复。这个 hook 是修复。
+#
+# 射程限制很重要：.git/hooks 是**整个仓库共享**的，本仓还有别的 worktree
+# 在做别的项目。无差别地跑 social-archive 的门会把别人的提交也卡住。
+# 所以先看这次提交碰没碰 social-archive/，没碰就直接放行。
+set -uo pipefail
+
+if ! git diff --cached --name-only | grep -q '^social-archive/'; then
+  exit 0
+fi
+
+ROOT="$(git rev-parse --show-toplevel)/social-archive"
+PY="${ROOT}/.venv/bin/python"
+
+if [ ! -x "${PY}" ]; then
+  printf 'pre-commit: 找不到 %s，跳过发布门检查。\n' "${PY}" >&2
+  printf '            **这是跳过，不是通过。**\n' >&2
+  exit 0
+fi
+
+# **检查不许改工作树**：否则每次提交完都留下一个脏文件，
+# 而「脏 0」正是我用来确认收尾干净的信号——让检查去污染它，
+# 等于把自己的仪表盘弄花。
+#
+# 原来是「先备份那份报告、跑完再拷回去」，一个 trap 加十几行。
+# 发布门现在有了 --report，直接让它写到别处，那套备份还原就不需要了。
+GATE_REPORT="$(mktemp)"
+trap 'rm -f "${GATE_REPORT}"' EXIT
+
+printf 'pre-commit: 跑发布门（约 5 秒）…\n' >&2
+if ! (cd "${ROOT}" && "${PY}" scripts/final_verify.py --report "${GATE_REPORT}" >/tmp/sa-precommit.log 2>&1); then
+  printf '\n✗ 发布门是红的，拒绝提交。\n\n' >&2
+  tail -20 /tmp/sa-precommit.log >&2
+  printf '\n修好再提交；确实要带着红门提交请用 git commit --no-verify（并在信息里说明为什么）。\n' >&2
+  exit 1
+fi
+# **道数从产物里读，不写死。** 原来这里硬编码「12 道」，加了第 13 道之后
+# 它继续说 12——一个每次提交都在撒谎的数字，正是本轮反复在修的那类东西。
+# 数的是**这一次刚跑出来**的那份报告，不是仓里那份历史产物。
+GATES="$(sed -n 's/.*"exit_code".*/x/p' "${GATE_REPORT}" 2>/dev/null | wc -l | tr -d ' ')"
+if [ -n "${GATES}" ] && [ "${GATES}" != "0" ]; then
+  printf 'pre-commit: 发布门 %s 道全绿。\n' "${GATES}" >&2
+else
+  printf 'pre-commit: 发布门全绿。\n' >&2
+fi
+exit 0

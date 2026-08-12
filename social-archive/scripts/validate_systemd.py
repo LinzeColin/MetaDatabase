@@ -130,7 +130,11 @@ def main() -> int:
     for needle in (
         "LoadCredential=r2_access_key_id:/opt/social-archive/runtime/secrets/r2_access_key_id",
         "LoadCredential=oci_secret_access_key:/opt/social-archive/runtime/secrets/oci_secret_access_key",
-        "LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_token",
+        # **凭据来源换成了 github_markdown_token**：只有它有私有仓权限。
+        # runtime/secrets/github_token 只看得见公开仓，用它查 Private-Database
+        # 报 not resolvable，第三份副本因此永远失败（实测 2026-08-04）。
+        # 注意 target 名仍是 github_token —— 应用读的是 %d/github_token。
+        "LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_markdown_token",
         "Environment=SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token",
     ):
         _require(replication, needle, "social-archive-replication.service")

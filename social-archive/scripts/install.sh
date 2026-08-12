@@ -28,12 +28,12 @@ done
 [[ -n "$PYTHON" ]] || fail '需要 Python 3.12 或更高版本（可使用 python3.12）。'
 command -v docker >/dev/null || fail '缺少 Docker。OVH Ubuntu 请按 Docker 官方仓库安装 Docker Engine 与 Compose plugin。'
 docker compose version >/dev/null 2>&1 || fail '缺少 docker compose plugin。'
-for required in pyproject.toml compose.yaml .env.example scripts/setup_wizard.py scripts/generate_pairing_code.py scripts/status_server.py scripts/build_extension_package.py; do
+for required in pyproject.toml compose.yaml .env.example scripts/setup_wizard.py scripts/ensure_api_token.py scripts/status_server.py scripts/build_extension_package.py; do
   [[ -f "$required" ]] || fail "安装源文件缺失：$required"
 done
 if $DRY_RUN; then
   printf '预检通过：Python、Git、Docker/Compose 和安装源文件均可用。\n'
-  printf '未创建 .env、runtime、Secret、配对码、venv、Docker network 或镜像；未运行向导。\n'
+  printf '未创建 .env、runtime、Secret、venv、Docker network 或镜像；未运行向导。\n'
   exit 0
 fi
 mkdir -p runtime/{data,secrets,import,exports,vendor-src,evidence} runtime/vendor-output/{cli,xhs,kuaishou,douk}
@@ -45,10 +45,46 @@ if [[ "$(id -u)" == "0" ]]; then
   chmod 2770 runtime/data runtime/import runtime/vendor-output runtime/vendor-output/{cli,xhs,kuaishou,douk}
 fi
 chmod 700 runtime/secrets
-for name in r2_access_key_id r2_secret_access_key oci_access_key_id oci_secret_access_key github_token private_database_token social_archive_api_token social_archive_pairing_code cli_worker_token instagram_session notion_token obsidian_rest_token karakeep_api_token linkwarden_api_token; do
+# 这份清单必须覆盖 compose.yaml 里**每一个** file-based secret。
+# Compose 对缺文件是硬错：少一个，docker compose up 直接起不来，
+# 报的还是 Docker 自己的错，看不出是哪一环没建。
+# 空占位是安全的——应用读到空值会返回 503 + 中文说明，而不是静默当成"没配也能跑"。
+for name in r2_access_key_id r2_secret_access_key oci_access_key_id oci_secret_access_key github_token github_markdown_token private_database_token social_archive_api_token cli_worker_token instagram_session notion_token obsidian_rest_token karakeep_api_token linkwarden_api_token google_oauth_client_secret github_oauth_client_secret credential_age_identity x_oauth_token reddit_oauth_token; do
   [[ -e "runtime/secrets/$name" ]] || : > "runtime/secrets/$name"
   chmod 600 "runtime/secrets/$name"
 done
+# **挂进容器的那些，容器必须读得到。**
+#
+# 这条不变量此前**只存在于一句注释里**（scripts/prepare_systemd_host.sh:205
+# 写着「/run/secrets/* 10001:10001 0640」），没有任何一行代码去落实它。
+# 生产上那些 0640 是不知哪一次手敲出来的，而 instagram_session 被漏掉了，
+# 一直是 0600。
+#
+# 后果：cli-tools 跑在 uid 10002 / gid 10001，0600 owner=10001 一点权限都不给。
+# 2026-08-04 实测，Instagram 连接器返回
+# `[Errno 13] Permission denied: '/run/secrets/instagram_session'`
+# ——**不管有没有配 session，它从来就没能工作过。**
+#
+# 名单从 compose.yaml 自己读，不在这里再抄一份：抄的那份必然漂开。
+mounted="$("$PYTHON" - <<'PYMOUNTED'
+import pathlib, re
+text = pathlib.Path("compose.yaml").read_text(encoding="utf-8")
+# 服务块里的 secrets 引用（含 `- source: x` 形式）。定义块在文件末尾的顶层
+# `secrets:` 里，那里是 `name: {file: …}`，不带前导 `- `，天然不会被这条匹配到。
+names = set(re.findall(r"^\s+-\s+(?:source:\s*)?([a-z0-9_]+)\s*$", text, re.M))
+print(" ".join(sorted(names)))
+PYMOUNTED
+)"
+for name in $mounted; do
+  [[ -e "runtime/secrets/$name" ]] || continue
+  chmod 640 "runtime/secrets/$name"
+done
+if [[ "$(id -u)" == "0" ]]; then
+  for name in $mounted; do
+    [[ -e "runtime/secrets/$name" ]] || continue
+    chown 10001:10001 "runtime/secrets/$name"
+  done
+fi
 "$PYTHON" - <<'PYSECRETS'
 from pathlib import Path
 import secrets
@@ -76,7 +112,6 @@ ensure(root/'linkwarden.env',[
     'NEXTAUTH_URL=http://localhost:3001',f'NEXTAUTH_SECRET={secrets.token_hex(32)}',
 ])
 PYSECRETS
-PAIRING_CODE="$("$PYTHON" scripts/generate_pairing_code.py --code-file runtime/secrets/social_archive_pairing_code --token-file runtime/secrets/social_archive_api_token --ttl-seconds 600)"
 [[ -f .env ]] || cp .env.example .env
 "$PYTHON" scripts/setup_wizard.py --non-interactive
 if [[ -t 0 && "${SOCIAL_ARCHIVE_SKIP_WIZARD:-0}" != "1" ]]; then
@@ -96,4 +131,4 @@ fi
 "$PYTHON" scripts/build_extension_package.py
 docker network inspect social-archive-readers >/dev/null 2>&1 || docker network create social-archive-readers >/dev/null
 docker compose build core-api core-worker cli-tools
-printf '\n安装完成。当前一次性配对码：%s\n下一步只需运行：bash scripts/start.sh\n' "$PAIRING_CODE"
+printf '\n安装完成。下一步只需运行：bash scripts/start.sh\n'

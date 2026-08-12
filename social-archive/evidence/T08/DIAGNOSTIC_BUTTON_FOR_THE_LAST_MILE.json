@@ -1,0 +1,49 @@
+{
+  "task": "T08",
+  "claim": "国内四源缺的不是代码，是平台返回的数据长什么样。已把 Owner 要做的减到「打开收藏页 + 点一下」。",
+  "why_a_human_is_unavoidable": {
+    "what_is_missing": "小红书 / 抖音 / B站 / 快手 的收藏列表接口，返回的 JSON 长什么样。",
+    "where_it_exists": "**只存在于 Owner 已登录的浏览器里。** 我拿不到，也不该拿——那需要他的登录态。",
+    "so_the_goal_was": "把他要做的压到最少：打开已登录的收藏页 → 点一下 → 滚几屏 → 复制结果。"
+  },
+  "what_was_built": {
+    "where": "插件弹窗里一个折叠区「帮开发者看一眼这个平台（诊断）」",
+    "flow": "点「开始看（10 秒）」→ 安装网络观察器 → 倒计时提示滚动 → 列出这一页请求了哪些地址 → 一键复制",
+    "privacy": "**只记地址和大小，不读取也不上传任何内容。** SA_GET_NET_CAPTURES 本来就只回 urls / count / totalBytes，拿不到响应体；页面上显示的与可复制的也只有地址。",
+    "reused_plumbing": "SA_INSTALL_NET_OBSERVER 与 SA_GET_NET_CAPTURES —— 两块早就建好、却**一直没有任何界面能触发**的管道。它们正是 find_messages_with_only_one_end 名单里的两条例外；现在真的接上了，**豁免随之退掉**（用完不退，名单会变成没人再核的东西）。"
+  },
+  "three_layers_of_self_check_after_shipping": [
+    {
+      "layer": "拦截前缀",
+      "found": "平台目录里**只有 bilibili 有前缀**，xiaohongshu / douyin / kuaishou 全是 null。而观察器在前缀为空时显式拒绝安装。",
+      "consequence": "**那颗按钮在 3/4 的平台上会当场被拒——工具拒绝执行它自己被造出来要做的事。**",
+      "fix": "诊断模式下前缀由当前标签页的域名推出（space.bilibili.com → bilibili.com）。安全上不放宽：只从 tab.url 推，调用方给什么都不采信，否则「诊断」就成了一个能指定抓任意域名的通道。"
+    },
+    {
+      "layer": "权限模式",
+      "found": "查过了——四个国内平台在 PLATFORM_RULES 与 manifest 的 optional_host_permissions 里都齐全。**这一层没问题。**",
+      "note": "查之前不知道；不查就不知道。"
+    },
+    {
+      "layer": "认不出的页面",
+      "found": "platformFromUrl 认不出时回落到 generic-web，而它的权限模式是**空数组**：继续走下去会请求零个 origin → executeScript 缺 host 权限 → 一句「无法在该页面上启动同步」。用户对着那句话没法行动。",
+      "fix": "先判断这个平台有没有权限模式，没有就当场说清楚该去哪些平台的收藏页。"
+    }
+  ],
+  "a_gate_caught_me_again": "新加的失败码 DIAGNOSTIC_NO_HOST 没有人话文案，check_every_failure_code_is_explainable 立刻报出。归类为 NOT_A_FAILURE_CODE 并写清为什么：它只在弹窗里就地显示，不进 sync_run——走失败文案词典反而会把它变成一次同步失败。",
+  "guards": {
+    "file": "tests/focused/test_net_observer_contract.py（新增 3 条）",
+    "cover": [
+      "诊断不依赖它要去发现的那个答案（前缀未知也能跑）",
+      "诊断范围不能由调用方指定（只从 tab.url 推）",
+      "认不出的页面当场说清楚，且这个判断排在安装之前"
+    ],
+    "proved_by_reintroduction": "拆掉诊断模式 → 2 条变红；顺序判断同样有反证。"
+  },
+  "what_this_does_not_prove": [
+    "**没有在真实平台页面上跑过一次。** 三层自查都是读代码与静态推演；观察器能不能在小红书/B站的真实页面上装上、能不能抓到收藏接口，只有 Owner 点那一下才知道。",
+    "没有验证十秒够不够——那取决于页面翻页时机。不够的话结果会是空列表，界面会明说「一条都没抓到」并提示滚动。",
+    "拿到地址之后还要写解析器，那是下一步，本次没做。",
+    "T08 的 Acceptance 原文不在仓内（任务包未随仓交付），所以这里不声称 T08 完成，只声称「把 Owner 那一步减到最小」。"
+  ]
+}
