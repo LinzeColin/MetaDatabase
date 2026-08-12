@@ -7,6 +7,16 @@
       "button": "连接第一个账号",
       "accounts": "没有已连接账号。点击上方“连接与管理账号”开始。"
     },
+    "诊断按钮": {
+      "summary_text": "帮开发者看一眼这个平台（诊断）",
+      "details_opened": true,
+      "button_found": true,
+      "label_before": "开始看（最多 30 秒，别关这个窗）",
+      "status_before": "",
+      "label_after": "开始看（最多 30 秒，别关这个窗）",
+      "status_text": "请先打开一个可保存的网页",
+      "result_shown": false
+    },
     "连过后来断了": {
       "title": "3 个账号已断开",
       "copy": "这些账号存下的 190 条内容一条都没少。重新连接一次就会继续同步。",
@@ -48,7 +58,7 @@
     },
     "同步进度按钮": {
       "sidepanel_targets": [
-        "chrome-extension://fleegiecbnamfaehlaolanikhgoidfnf/sidepanel.html"
+        "chrome-extension://pblkpjchaadihejdpaifagccpkihlaka/sidepanel.html"
       ],
       "panel_text": "SA 账号同步 收藏与书签 ↻ 0 同步中 0 已完成 1 需处理 同步全部账号 连接账号 同步中 需处理 全部 ✓ 现在没有正在跑的同步 最近的同步——点上面的「全部」可以看。 打开资料库 账号与导出"
     }

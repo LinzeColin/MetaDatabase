@@ -293,6 +293,63 @@ async def run(chrome: str) -> int:
                         got = await rpc("Runtime.evaluate",
                                         {"expression": READ, "returnByValue": True})
                         measured[label] = json.loads(got["result"]["result"]["value"])
+
+                    if label == "从没连过":
+                        # ── **那颗诊断按钮，真的按得动吗**（2026-08-12）──
+                        #
+                        # 说明书现在把它写成了「只有你做得到的那一下」：抖音的收藏
+                        # 接口地址只存在于他登录后的浏览器里，按一下它就把**地址**
+                        # 送到他自己的服务器，我读到就能让抖音改走和 B 站一样的路。
+                        #
+                        # **而在此之前，没有任何东西点过这颗按钮。**
+                        # `extension_capture_buffer_drill` 验的是它背后那段
+                        # （`SA_NET_CAPTURE` / `SA_PARSE_NET_CAPTURES`），走的是
+                        # `chrome.runtime.sendMessage` ——**一条用户走不到的路**。
+                        # 那正是 `harness-grants-what-users-must-earn` 的形状：
+                        # 机制验过了，而他手里那颗按钮谁也没按过。
+                        #
+                        # 这里只验「按得动」，不验「抓到了抖音的地址」——
+                        # 后者要他的登录态，演练里没有。判据是：
+                        # 折叠区展得开、按钮在、**按下去处理器真的跑起来了**
+                        # （按钮文字变了）。按钮是死的时候这三条会红。
+                        async with websockets.connect(pages[0]["webSocketDebuggerUrl"],
+                                                      max_size=None) as ws:
+                            rpc = await _rpc_factory(ws)
+                            await rpc("Runtime.enable")
+                            got = await rpc("Runtime.evaluate", {"expression": r"""
+                              (() => {
+                                const summary = [...document.querySelectorAll("summary")]
+                                  .find(s => s.textContent.includes("诊断"));
+                                const details = summary && summary.closest("details");
+                                if (details) details.open = true;
+                                const button = document.getElementById("diagnose");
+                                return JSON.stringify({
+                                  summary_text: summary ? summary.textContent.trim() : "",
+                                  details_opened: !!(details && details.open),
+                                  button_found: !!button,
+                                  label_before: button ? button.textContent.trim() : "",
+                                  // **点之前的 `#status` 也要留一份。**
+                                  // 弹窗一加载就会往那儿写一句（活动页不是可保存的网页时
+                                  // 写的是「请先打开一个可保存的网页」）。不留底的话，
+                                  // 那句话会被我当成「处理器跑过了」的证据——它不是。
+                                  status_before: (document.getElementById("status")||{}).textContent || "",
+                                });
+                              })()""", "returnByValue": True})
+                            before = json.loads(got["result"]["result"]["value"])
+                            if before.get("button_found"):
+                                await rpc("Runtime.evaluate", {
+                                    "expression": 'document.getElementById("diagnose").click()',
+                                    "returnByValue": True})
+                                await asyncio.sleep(3)
+                                got = await rpc("Runtime.evaluate", {"expression": r"""
+                                  JSON.stringify({
+                                    label_after: (document.getElementById("diagnose")||{}).textContent || "",
+                                    status_text: (document.getElementById("status")||{}).textContent || "",
+                                    result_shown: !((document.getElementById("diagnoseResult")||{}).classList||{contains:()=>true}).contains("hidden"),
+                                  })""", "returnByValue": True})
+                                before.update(json.loads(got["result"]["result"]["value"]))
+                            measured["诊断按钮"] = before
+
                     if label == "连过后来断了":
                         # ── **设置页那一屏也得跟着走**（2026-08-11）──
                         #
@@ -404,6 +461,48 @@ async def run(chrome: str) -> int:
         server.shutdown()
         process.terminate()
         shutil.rmtree(workspace, ignore_errors=True)
+
+    # 那颗诊断按钮：说明书把它写成了「只有你做得到的那一下」，
+    # 所以它必须是**按得动**的。这里不验它抓到了什么（那要他的登录态）。
+    diag = measured.get("诊断按钮") or {}
+    if not diag:
+        problems.append("**诊断按钮那一屏没量到**——这不是通过")
+    else:
+        if not diag.get("button_found"):
+            problems.append("**弹窗里找不到那颗诊断按钮**——说明书让他按的东西不在")
+        if not diag.get("details_opened"):
+            problems.append("诊断那个折叠区展不开——他点不到里面那颗按钮")
+        # **判「处理器跑没跑起来」不能看按钮文字。**（2026-08-12，我第一版就错在这里）
+        #
+        # 演练里弹窗是当普通页面开的，活动标签页就是它自己（`chrome-extension://`）。
+        # 处理器进门第一件事是认平台，认不出来就**立刻抛**「这个页面不是可诊断的
+        # 平台，请先打开…的收藏页」，`finally` 再把按钮文字复原。
+        # 也就是说：**文字没变恰恰是它跑对了**，而我把这判成了「按钮是死的」。
+        # 夹具的限制伪装成产品缺陷，这个仓栽过好几次。
+        #
+        # 真正算数的信号是 `#status` 那一行——处理器跑到任何一个出口都会写它。
+        said = (diag.get("status_text") or "").strip()
+        was = (diag.get("status_before") or "").strip()
+        # **判「处理器跑没跑起来」不能看按钮文字**，也不能看 `#status` 是不是非空。
+        # 我在这三处各错过一次，记在这里免得下一个人重走：
+        #
+        # 1. 按钮文字：处理器 `finally` 里会把它复原，**文字没变恰恰是跑对了**；
+        # 2. `#status` 非空：弹窗一加载就会往那儿写，不是这一按写的；
+        # 3. 期待「不是可诊断的平台」那句：真正先炸的是更早一步——
+        #    `SA.activeTab()` 在活动页不是 http(s) 时抛「请先打开一个可保存的网页」。
+        #    演练里弹窗是当普通页面开的，活动页就是它自己，所以走的是这条。
+        #
+        # 算数的信号是：**点之前和点之后，`#status` 变了**，而且变成一句他照着做得动的话。
+        actionable = any(word in said for word in ("打开", "收藏页", "登录"))
+        if not diag.get("button_found"):
+            pass                                  # 上面已经报过「按钮不在」
+        elif said == was:
+            problems.append(
+                f"**按下去 `#status` 和点之前一模一样（{was[:40]!r}）**——处理器没跑起来，"
+                "那颗按钮是死的。说明书正让他去按它")
+        elif not actionable:
+            problems.append(
+                f"按下去说的是 {said[:60]!r}——没告诉他下一步该干什么")
 
     fresh = measured.get("从没连过") or {}
     stale = measured.get("连过后来断了") or {}
