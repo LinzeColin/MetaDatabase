@@ -124,6 +124,16 @@ DELIBERATE_SUBSETS = {
     # （抖音 86 条 connected、B站 103 条 disconnected），验的是「忘掉这个平台」
     # 那颗按钮怎么画，和平台是谁无关。列全九个不多验任何东西。
     "FORGET_ACCOUNTS_FIXTURE": "忘记按钮演练的账号夹具；照抄生产那两个账号，不是平台表",
+    # list_selectors_meet_a_real_page_drill.py 的 REAL_PAGES：**不是平台表**，
+    # 是「**公开可达、而且本身就是一份条目列表**」的页面。
+    # x / instagram / youtube 没有这样的公开页（列表都要登录才看得见），
+    # 硬列一个进去只会造出一条永远 BLOCKED 的假条目——**多列一个不是更全，是假证据**。
+    #
+    # 标记特意用 `PUBLIC_LIST_PAGE_FIXTURE` 而不是 `REAL_PAGES`：后者是
+    # **已登记的 `RECOGNISER_REAL_PAGES` 的子串**，拿它当键会连带把那一条的
+    # 作用面悄悄放宽（这里是 `marker in block` 的子串匹配）。
+    "PUBLIC_LIST_PAGE_FIXTURE": "只放公开可达且本身就是条目列表的页面；"
+                                "x/instagram/youtube 的列表都要登录，列进去是假证据",
     "FORBIDDEN_PLATFORMS": "国内四平台的硬边界名单，youtube 本来就不该在里面",
     "DOMESTIC_PLATFORMS": "同上，国内平台专用",
     "SERVER_ACCOUNT_CONNECTORS": "服务端直连的那几个；youtube 走 Cookie 托管，不走这条",
