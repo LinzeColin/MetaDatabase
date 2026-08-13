@@ -147,6 +147,7 @@ test("local auth-to-tenant chain verifies two accounts, isolated history, and pa
     workerEnv = workerModule.env as unknown as Record<string, unknown>;
     Object.assign(workerEnv, env);
     const googleFallbackRoute = await import("../app/auth/google/route.ts");
+    const legacyLoginRoute = await import("../app/auth/login/route.ts");
     const privacyRoute = await import("../app/api/account/privacy/route.ts");
     const resourceRoute = await import("../app/api/mydairy/[resource]/route.ts");
     const { ACCOUNT_PRIVACY_NOTICE_SHA256, ACCOUNT_PRIVACY_POLICY_VERSION } = await import("../server/data/account-lifecycle.ts");
@@ -163,6 +164,13 @@ test("local auth-to-tenant chain verifies two accounts, isolated history, and pa
     assert.equal(new URL(String(fallbackGoogleUrl.searchParams.get("redirect_uri"))).origin, origin);
     assert.ok(fallbackGoogleStart.headers.get("set-cookie"));
     assert.equal(fallbackGoogleStart.headers.get("cache-control"), "no-store");
+
+    const legacyLogin = legacyLoginRoute.GET(new Request(`${origin}/auth/login?return_to=https://invalid.example`));
+    assert.equal(legacyLogin.status, 302);
+    assert.equal(legacyLogin.headers.get("location"), `${origin}/auth/sign-in`);
+    assert.equal(legacyLogin.headers.get("cache-control"), "no-store");
+    assert.equal(legacyLogin.headers.get("referrer-policy"), "no-referrer");
+    assert.equal(legacyLogin.headers.get("set-cookie"), null);
 
     const callAuth = (path: string, body: Record<string, unknown>, cookie?: string) =>
       auth.handler(
