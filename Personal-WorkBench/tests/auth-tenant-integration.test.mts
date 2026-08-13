@@ -228,6 +228,38 @@ test("local auth-to-tenant chain verifies two accounts, isolated history, and pa
       assert.ok(Array.isArray(payload.data));
       return payload.data;
     };
+    const createResource = async (
+      cookie: string,
+      resourceName: string,
+      idempotencyKey: string,
+      body: Record<string, unknown>,
+    ) => {
+      const headers = requestHeaders(cookie);
+      headers.set("idempotency-key", idempotencyKey);
+      const response = await resourceRoute.POST(
+        new Request(`${origin}/api/mydairy/${resourceName}`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(body),
+        }),
+        { params: Promise.resolve({ resource: resourceName }) },
+      );
+      assert.equal(response.status, 200, resourceName);
+      const payload = await response.json() as { data?: unknown };
+      assert.ok(payload.data && typeof payload.data === "object" && !Array.isArray(payload.data), resourceName);
+      assert.equal(typeof (payload.data as { id?: unknown }).id, "string", resourceName);
+      return payload.data as { id: string };
+    };
+    const listResource = async (cookie: string, resourceName: string) => {
+      const response = await resourceRoute.GET(
+        new Request(`${origin}/api/mydairy/${resourceName}`, { headers: requestHeaders(cookie) }),
+        { params: Promise.resolve({ resource: resourceName }) },
+      );
+      assert.equal(response.status, 200, resourceName);
+      const payload = await response.json() as { data?: unknown };
+      assert.ok(Array.isArray(payload.data), resourceName);
+      return payload.data as Array<{ id?: unknown }>;
+    };
     const createRecoveredSensitiveRecord = async (
       cookie: string,
       resourceName: "ledger" | "weights" | "diary" | "periods",
@@ -309,6 +341,132 @@ test("local auth-to-tenant chain verifies two accounts, isolated history, and pa
     await createLedger(betaDevice, "local-beta-ledger-0001", "income");
     assert.equal((await listLedger(alphaDeviceTwo)).length, 2);
     assert.equal((await listLedger(betaDevice)).length, 1);
+
+    // The product must not be a ledger-only SaaS: every normal workbench
+    // module has to create cloud history for the current verified account and
+    // surface that same history to a second session, while the other account
+    // cannot discover any of those rows. This exercises the real route gate,
+    // resource whitelist, consent guard, tenant store, and session-derived
+    // owner together instead of testing those layers in isolation.
+    const habit = await createResource(alphaDeviceOne, "habits", "full-chain-habit-0001", {
+      active: true,
+      iconKey: "habit_early.png",
+      sortOrder: 1,
+      title: "早起",
+    });
+    const fullChainRecords = [
+      { resourceName: "habits", id: habit.id },
+      {
+        resourceName: "habit-checkins",
+        id: (await createResource(alphaDeviceOne, "habit-checkins", "full-chain-checkin-0001", {
+          habitId: habit.id,
+          localDate: "2026-08-13",
+        })).id,
+      },
+      {
+        resourceName: "todos",
+        id: (await createResource(alphaDeviceOne, "todos", "full-chain-todo-0001", {
+          completed: false,
+          completedAt: null,
+          dueDate: "2026-08-14",
+          note: "跨设备回读",
+          priority: "normal",
+          title: "喝水",
+        })).id,
+      },
+      {
+        resourceName: "food",
+        id: (await createResource(alphaDeviceOne, "food", "full-chain-food-0001", {
+          calories: 320,
+          foodName: "早餐",
+          localDate: "2026-08-13",
+          meal: "breakfast",
+          note: "",
+          photoObjectId: null,
+          source: "manual",
+        })).id,
+      },
+      {
+        resourceName: "exercise",
+        id: (await createResource(alphaDeviceOne, "exercise", "full-chain-exercise-0001", {
+          activity: "散步",
+          caloriesBurned: null,
+          durationMinutes: 30,
+          localDate: "2026-08-13",
+          note: "",
+        })).id,
+      },
+      {
+        resourceName: "weights",
+        id: (await createResource(alphaDeviceOne, "weights", "full-chain-weight-0001", {
+          localDate: "2026-08-13",
+          note: "",
+          weightGrams: 52300,
+        })).id,
+      },
+      {
+        resourceName: "schedule",
+        id: (await createResource(alphaDeviceOne, "schedule", "full-chain-schedule-0001", {
+          allDay: false,
+          endsAt: null,
+          note: "",
+          startsAt: 1786579200000,
+          title: "日程",
+        })).id,
+      },
+      {
+        resourceName: "anniversaries",
+        id: (await createResource(alphaDeviceOne, "anniversaries", "full-chain-anniversary-0001", {
+          localDate: "2026-08-13",
+          note: "",
+          repeatYearly: true,
+          title: "纪念日",
+        })).id,
+      },
+      {
+        resourceName: "diary",
+        id: (await createResource(alphaDeviceOne, "diary", "full-chain-diary-0001", {
+          body: "跨设备回读",
+          localDate: "2026-08-13",
+          mood: "平静",
+          photoObjectId: null,
+          title: "日记",
+        })).id,
+      },
+      {
+        resourceName: "periods",
+        id: (await createResource(alphaDeviceOne, "periods", "full-chain-period-0001", {
+          endDate: "2026-08-13",
+          note: "",
+          startDate: "2026-08-11",
+        })).id,
+      },
+    ];
+    const savingsGoal = await createResource(alphaDeviceOne, "savings-goals", "full-chain-goal-0001", {
+      archived: false,
+      currency: "CNY",
+      targetCents: 300000,
+      targetDate: null,
+      title: "应急金",
+    });
+    fullChainRecords.push(
+      { resourceName: "savings-goals", id: savingsGoal.id },
+      {
+        resourceName: "savings-transactions",
+        id: (await createResource(alphaDeviceOne, "savings-transactions", "full-chain-transaction-0001", {
+          amountCents: 5000,
+          goalId: savingsGoal.id,
+          localDate: "2026-08-13",
+          note: "存入",
+        })).id,
+      },
+    );
+    for (const record of fullChainRecords) {
+      const alphaHistory = await listResource(alphaDeviceTwo, record.resourceName);
+      assert.equal(alphaHistory.some((value) => value.id === record.id), true, `${record.resourceName}: second device`);
+      const betaHistory = await listResource(betaDevice, record.resourceName);
+      assert.equal(betaHistory.some((value) => value.id === record.id), false, `${record.resourceName}: cross-account leak`);
+    }
 
     const resetRequest = await callAuth("/request-password-reset", {
       email: alphaEmail,
