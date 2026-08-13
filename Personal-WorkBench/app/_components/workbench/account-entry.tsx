@@ -10,6 +10,7 @@ import {
 import {
   accountEntryInitialStateForSession,
   isConfirmedAccountEntryState,
+  shouldRefreshAccountEntryImmediately,
   type AccountEntryInitialState,
   type AccountEntryState,
 } from "./account-entry-state";
@@ -50,6 +51,7 @@ export function AccountEntry({ className, initialState = "checking", signedOutHr
     const recoveryMarkedInStorage = consumeAuthReturnRecovery();
     const recoveryMarkedInLocation = consumeAuthReturnRecoveryFromLocation();
     const shouldRecoverAuthReturn = recoveryMarkedInStorage || recoveryMarkedInLocation;
+    const shouldRefreshImmediately = shouldRefreshAccountEntryImmediately(initialServerState, shouldRecoverAuthReturn);
 
     const announceRecoveredSession = (nextState: AccountEntryState) => {
       if (!shouldRecoverAuthReturn || recoveryAnnounced || (nextState !== "signed-in" && nextState !== "verification-required")) return;
@@ -112,6 +114,12 @@ export function AccountEntry({ className, initialState = "checking", signedOutHr
       if (document.visibilityState === "visible") refresh();
     };
 
+    const refreshWhenPageShows = (event: PageTransitionEvent) => {
+      // `pageshow` also fires on the initial navigation. Only a back/forward
+      // cache restoration needs an additional authoritative session read.
+      if (event.persisted) refresh();
+    };
+
     if (shouldRecoverAuthReturn) {
       const finalRetryDelay = AUTH_RETURN_RECOVERY_DELAYS_MS[AUTH_RETURN_RECOVERY_DELAYS_MS.length - 1];
       recoveryFailureTimer = window.setTimeout(() => {
@@ -128,7 +136,7 @@ export function AccountEntry({ className, initialState = "checking", signedOutHr
       }, 0);
     }
 
-    refresh();
+    if (shouldRefreshImmediately) refresh();
     // A very fast OAuth callback can resolve before sibling resource clients
     // finish installing their recovery listener. Replay an already verified
     // result once after that initial mount window, so their first guest-scope
@@ -149,7 +157,7 @@ export function AccountEntry({ className, initialState = "checking", signedOutHr
       ? AUTH_RETURN_RECOVERY_DELAYS_MS.map((delay) => window.setTimeout(refresh, delay))
       : [];
     window.addEventListener("focus", refresh);
-    window.addEventListener("pageshow", refresh);
+    window.addEventListener("pageshow", refreshWhenPageShows);
     document.addEventListener("visibilitychange", refreshWhenDocumentVisible);
     return () => {
       active = false;
@@ -158,7 +166,7 @@ export function AccountEntry({ className, initialState = "checking", signedOutHr
       if (postRecoveryReplayTimer !== null) window.clearTimeout(postRecoveryReplayTimer);
       recoveryTimers.forEach((timer) => window.clearTimeout(timer));
       window.removeEventListener("focus", refresh);
-      window.removeEventListener("pageshow", refresh);
+      window.removeEventListener("pageshow", refreshWhenPageShows);
       document.removeEventListener("visibilitychange", refreshWhenDocumentVisible);
     };
   }, [initialServerState]);

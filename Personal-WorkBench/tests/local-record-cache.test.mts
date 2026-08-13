@@ -142,7 +142,7 @@ test("device-local account scope is reused briefly and re-evaluated after an exp
   }
 });
 
-test("a failed session lookup is never cached as a guest scope", async () => {
+test("a failed session lookup briefly coalesces without becoming an authoritative guest cache", async () => {
   const runtime = globalThis as typeof globalThis & { window?: unknown };
   const originalWindow = runtime.window;
   const originalFetch = globalThis.fetch;
@@ -157,6 +157,9 @@ test("a failed session lookup is never cached as a guest scope", async () => {
 
   try {
     assert.equal(await resolveBrowserRecordScope(), "guest");
+    assert.equal(await resolveBrowserRecordScope(), "guest");
+    assert.equal(calls, 1);
+    invalidateBrowserRecordScope();
     assert.match(await resolveBrowserRecordScope(), /^account:/);
     assert.equal(calls, 2);
   } finally {

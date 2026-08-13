@@ -83,6 +83,7 @@ const DEVICE_OUTBOX_FALLBACK_PREFIX = "mydairy.device-outbox.fallback.v1";
 const DEVICE_RECORD_ALIAS_FALLBACK_PREFIX = "mydairy.device-record-alias.fallback.v1";
 const BROWSER_SCOPE_REQUEST_TIMEOUT_MS = 2_500;
 const BROWSER_SCOPE_CACHE_TTL_MS = 5_000;
+const BROWSER_SCOPE_UNAVAILABLE_BACKOFF_MS = 2_500;
 const GUEST_DEVICE_HISTORY_SOURCE_KEY = "mydairy.guest-device-history-source.v1";
 const GUEST_DEVICE_HISTORY_EXPORTED_AT_KEY = "mydairy.guest-device-history-exported-at.v1";
 const tenantFieldNames = new Set(["userId", "user_id", "ownerId", "owner_id", "tenantId", "tenant_id"]);
@@ -335,6 +336,7 @@ let cachedBrowserScope: { expiresAt: number; scope: string } | null = null;
 let pendingBrowserScope: PendingBrowserScope | null = null;
 let browserScopeGeneration = 0;
 let browserScopeInvalidationQueued = false;
+let browserScopeUnavailableUntil = 0;
 
 /**
  * A short authoritative session result may be reused by several resource
@@ -343,6 +345,7 @@ let browserScopeInvalidationQueued = false;
  */
 export function invalidateBrowserRecordScope(): void {
   cachedBrowserScope = null;
+  browserScopeUnavailableUntil = 0;
   if (browserScopeInvalidationQueued) return;
   browserScopeInvalidationQueued = true;
   queueMicrotask(() => {
@@ -365,6 +368,11 @@ export async function resolveBrowserRecordScope(timeoutMs = BROWSER_SCOPE_REQUES
   if (typeof window === "undefined") return "guest";
   const now = Date.now();
   if (cachedBrowserScope && cachedBrowserScope.expiresAt > now) return cachedBrowserScope.scope;
+  // A 429 or transport failure is never treated as an authenticated or
+  // authoritative guest result. It does, however, need a tiny backoff so a
+  // page with several resources cannot amplify one failed lookup into a
+  // request storm that keeps the real login endpoint rate-limited.
+  if (browserScopeUnavailableUntil > now) return "guest";
   const generation = browserScopeGeneration;
   if (!pendingBrowserScope || pendingBrowserScope.generation !== generation) {
     const controller = new AbortController();
@@ -412,6 +420,9 @@ export async function resolveBrowserRecordScope(timeoutMs = BROWSER_SCOPE_REQUES
         expiresAt: Date.now() + BROWSER_SCOPE_CACHE_TTL_MS,
         scope: resolved.scope,
       };
+      browserScopeUnavailableUntil = 0;
+    } else if (pending.generation === browserScopeGeneration) {
+      browserScopeUnavailableUntil = Date.now() + BROWSER_SCOPE_UNAVAILABLE_BACKOFF_MS;
     }
     return resolved.scope;
   } finally {

@@ -50,19 +50,22 @@ export function GuestHistoryRecoveryNotice() {
     const inspect = () => {
       const generation = ++requestGeneration;
       controller?.abort();
-      controller = new AbortController();
-      void fetch("/api/auth/get-session?disableCookieCache=true", {
-        credentials: "same-origin",
-        signal: controller.signal,
-      })
-        .then(async (response) => {
+      const nextController = new AbortController();
+      controller = nextController;
+      void countGuestDeviceHistoryRecords()
+        .then(async (guestRecordCount) => {
+          // Do not spend a session lookup on an ordinary fresh device: the
+          // import notice cannot render unless it first has local guest rows.
+          if (guestRecordCount <= 0) return null;
+          const response = await fetch("/api/auth/get-session?disableCookieCache=true", {
+            credentials: "same-origin",
+            signal: nextController.signal,
+          });
           if (!response.ok) return null;
           const session = (await response.json().catch(() => null)) as BrowserSession | null;
           if (!session?.user || typeof session.user.id !== "string" || !session.user.id || session.user.emailVerified !== true) return null;
-
-          const nextCount = await countGuestDeviceHistoryRecords();
           return {
-            count: nextCount,
+            count: guestRecordCount,
             href: `/account?return_to=${encodeURIComponent(accountReturnPathFromLocation(window.location))}`,
           };
         })
@@ -87,6 +90,12 @@ export function GuestHistoryRecoveryNotice() {
       if (document.visibilityState === "visible") inspect();
     };
 
+    const inspectWhenPageShows = (event: PageTransitionEvent) => {
+      // Initial navigation has already run `inspect`; only a bfcache restore
+      // needs to reconsider the browser's current signed-in account.
+      if (event.persisted) inspect();
+    };
+
     inspect();
     // AccountEntry emits this only after its authoritative, bounded OAuth
     // return recovery sees a verified session. Without this listener a first
@@ -95,7 +104,7 @@ export function GuestHistoryRecoveryNotice() {
     window.addEventListener(AUTH_RETURN_RECOVERY_EVENT, inspect);
     window.addEventListener(LEGACY_DEVICE_HISTORY_TRANSFER_EVENT, inspect);
     window.addEventListener("focus", inspect);
-    window.addEventListener("pageshow", inspect);
+    window.addEventListener("pageshow", inspectWhenPageShows);
     document.addEventListener("visibilitychange", inspectWhenDocumentVisible);
     // AccountEntry normally broadcasts once it observes a verified session.
     // If this sibling mounted after that broadcast, retain the same bounded
@@ -111,7 +120,7 @@ export function GuestHistoryRecoveryNotice() {
       window.removeEventListener(AUTH_RETURN_RECOVERY_EVENT, inspect);
       window.removeEventListener(LEGACY_DEVICE_HISTORY_TRANSFER_EVENT, inspect);
       window.removeEventListener("focus", inspect);
-      window.removeEventListener("pageshow", inspect);
+      window.removeEventListener("pageshow", inspectWhenPageShows);
       document.removeEventListener("visibilitychange", inspectWhenDocumentVisible);
     };
   }, [authReturnRequested]);

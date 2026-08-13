@@ -610,7 +610,12 @@ export function useTenantResource<T extends TenantRecord>(
     // A social-login callback can restore this page from the browser's
     // back/forward cache without emitting focus or visibilitychange. Keep the
     // tenant resource state in step with AccountEntry's pageshow refresh.
-    const refreshWhenPageShows = () => void reload(true);
+    const refreshWhenPageShows = (event: PageTransitionEvent) => {
+      // Browsers fire `pageshow` on a normal first load too. The initial
+      // lifecycle above already reads this resource; repeat only when a
+      // bfcache restore may have revived an older account/session scope.
+      if (event.persisted) void reload(true);
+    };
     const refreshWhenDocumentVisible = () => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") void reload(true);
     };

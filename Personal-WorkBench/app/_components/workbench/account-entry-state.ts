@@ -30,3 +30,16 @@ export function accountEntryInitialStateForSession(session: unknown): AccountEnt
 export function isConfirmedAccountEntryState(state: AccountEntryState): boolean {
   return state === "signed-in" || state === "verification-required";
 }
+
+/**
+ * A current first-party server render already establishes the initial guest,
+ * verified, or verification-required affordance. The browser only needs an
+ * immediate follow-up request when that render could not establish anything,
+ * or when an OAuth callback deliberately asks for bounded recovery retries.
+ */
+export function shouldRefreshAccountEntryImmediately(
+  initialState: AccountEntryInitialState,
+  hasAuthReturnRecovery: boolean,
+): boolean {
+  return initialState === "checking" || hasAuthReturnRecovery;
+}

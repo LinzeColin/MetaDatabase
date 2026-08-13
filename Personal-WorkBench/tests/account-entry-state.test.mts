@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   accountEntryInitialStateForSession,
   isConfirmedAccountEntryState,
+  shouldRefreshAccountEntryImmediately,
 } from "../app/_components/workbench/account-entry-state.ts";
 
 test("server account-entry state contains no profile data and requires a real session identity", () => {
@@ -13,4 +14,8 @@ test("server account-entry state contains no profile data and requires a real se
   assert.equal(isConfirmedAccountEntryState("signed-in"), true);
   assert.equal(isConfirmedAccountEntryState("verification-required"), true);
   assert.equal(isConfirmedAccountEntryState("session-unavailable"), false);
+  assert.equal(shouldRefreshAccountEntryImmediately("checking", false), true);
+  assert.equal(shouldRefreshAccountEntryImmediately("signed-out", false), false);
+  assert.equal(shouldRefreshAccountEntryImmediately("signed-in", false), false);
+  assert.equal(shouldRefreshAccountEntryImmediately("signed-out", true), true);
 });

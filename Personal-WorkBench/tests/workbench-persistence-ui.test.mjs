@@ -318,7 +318,7 @@ test("a verified account with anonymous device records sees the explicit recover
   assert.match(notice, /AUTH_RETURN_RECOVERY_DELAYS_MS\.map\(\(delay\) => window\.setTimeout\(inspect, delay\)\)/);
   assert.match(notice, /recoveryTimers\.forEach\(\(timer\) => window\.clearTimeout\(timer\)\)/);
   assert.match(notice, /window\.addEventListener\(AUTH_RETURN_RECOVERY_EVENT, inspect\)/);
-  assert.match(notice, /window\.addEventListener\("pageshow", inspect\)/);
+  assert.match(notice, /window\.addEventListener\("pageshow", inspectWhenPageShows\)/);
   assert.match(notice, /window\.removeEventListener\(AUTH_RETURN_RECOVERY_EVENT, inspect\)/);
   assert.match(notice, /controller\?\.abort\(\)/);
   assert.doesNotMatch(notice, /legacy-import\/apply|buildGuestDeviceHistoryEnvelope|deleteDatabase|localStorage\.removeItem/);
@@ -524,7 +524,8 @@ test("tenant resource client refreshes an account scope before merging or mutati
   assert.match(source, /window\.addEventListener\("focus", refreshWhenVisible\);/);
   assert.match(source, /const refreshWhenVisible = \(\) => void reload\(true\);/);
   assert.match(source, /window\.addEventListener\("pageshow", refreshWhenPageShows\);/);
-  assert.match(source, /const refreshWhenPageShows = \(\) => void reload\(true\);/);
+  assert.match(source, /const refreshWhenPageShows = \(event: PageTransitionEvent\) => \{/);
+  assert.match(source, /if \(event\.persisted\) void reload\(true\);/);
   assert.match(source, /document\.visibilityState === "visible"\) void reload\(true\);/);
   assert.match(source, /document\.addEventListener\("visibilitychange", refreshWhenDocumentVisible\);/);
 });
