@@ -61,11 +61,25 @@ jobs:
           trap 'rm -f "$response_file" "$error_file" "$app_file" "$detail_file" "$deploy_file" "$status_file" "$deployment_file"' EXIT
           chmod 600 "$response_file" "$error_file" "$app_file" "$detail_file" "$deploy_file" "$status_file" "$deployment_file"
 
-          if ! inventory_http_code="$(curl --silent --show-error --max-time 15 --retry 0 \
-            -w '%{http_code}' \
-            -H "Authorization: Bearer ${api_token}" \
-            "${api_root}/applications" \
-            -o "$response_file" 2>"$error_file")"; then
+          inventory_http_code=""
+          credential_header=""
+          for candidate_header in \
+            "Authorization: Bearer ${api_token}" \
+            "X-API-KEY: ${api_token}" \
+            "X-Coolify-Token: ${api_token}"; do
+            if candidate_http_code="$(curl --silent --show-error --max-time 15 --retry 0 \
+              -w '%{http_code}' \
+              -H "$candidate_header" \
+              "${api_root}/applications" \
+              -o "$response_file" 2>"$error_file")" \
+              && [[ "$candidate_http_code" == "200" ]]; then
+              inventory_http_code="200"
+              credential_header="$candidate_header"
+              break
+            fi
+            inventory_http_code="${candidate_http_code:-000}"
+          done
+          if [[ -z "$credential_header" && "$inventory_http_code" == "000" ]]; then
             echo "inventory_transport=unreachable"
             echo "::error::Unable to read the Coolify application inventory."
             exit 1
@@ -172,7 +186,7 @@ jobs:
           fi
 
           if ! curl --fail --silent --show-error --max-time 15 --retry 0 \
-            -H "Authorization: Bearer ${api_token}" \
+            -H "$credential_header" \
             "${api_root}/applications/${app_uuid}" \
             -o "$detail_file" 2>"$error_file"; then
             echo "::error::Unable to verify the selected Coolify application."
@@ -204,7 +218,7 @@ jobs:
 
           if ! curl --fail --silent --show-error --max-time 15 --retry 0 \
             -X POST \
-            -H "Authorization: Bearer ${api_token}" \
+            -H "$credential_header" \
             "${api_root}/deploy?uuid=${app_uuid}&force=false" \
             -o "$deploy_file" 2>"$error_file"; then
             echo "::error::Coolify did not accept the deployment request."
@@ -234,7 +248,7 @@ jobs:
 
           deployment_status="unknown"
           if curl --fail --silent --show-error --max-time 15 --retry 0 \
-            -H "Authorization: Bearer ${api_token}" \
+            -H "$credential_header" \
             "${api_root}/deployments/${deployment_uuid}" \
             -o "$status_file" 2>"$error_file"; then
             deployment_status="$(python3 - "$status_file" <<'PY'
