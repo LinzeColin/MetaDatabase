@@ -44,6 +44,7 @@ type AuthFormProps = {
 };
 
 const CAPTCHA_RESPONSE_TIMEOUT_MS = 15_000;
+const CAPTCHA_UNAVAILABLE_MESSAGE = "安全验证暂不可用，请检查网络后重试。";
 
 const initialMessages: Record<AuthMode, string> = {
   "sign-in": "登录后，换设备也能接着用。",
@@ -335,7 +336,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
           ) : null}
           {usesTurnstile && effectiveCaptchaReadiness === "unavailable" ? (
             <>
-              <p className="auth-captcha-message" role="status">安全验证暂不可用，请检查网络后重试。</p>
+              {message !== CAPTCHA_UNAVAILABLE_MESSAGE ? <p className="auth-captcha-message" role="status">{CAPTCHA_UNAVAILABLE_MESSAGE}</p> : null}
               <button type="button" className="auth-google" onClick={retryCaptcha} disabled={!interactive || submitting}>
                 重试安全验证
               </button>
