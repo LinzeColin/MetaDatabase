@@ -170,6 +170,28 @@ test("a failed session lookup briefly coalesces without becoming an authoritativ
   }
 });
 
+test("a slow but successful default session lookup keeps the authenticated device partition", async () => {
+  const runtime = globalThis as typeof globalThis & { window?: unknown };
+  const originalWindow = runtime.window;
+  const originalFetch = globalThis.fetch;
+  invalidateBrowserRecordScope();
+  Object.defineProperty(runtime, "window", { configurable: true, value: {} });
+  globalThis.fetch = (() => new Promise<Response>((resolve) => {
+    setTimeout(() => {
+      resolve(new Response(JSON.stringify({ user: { id: "slow-account" } }), { status: 200 }));
+    }, 2_700);
+  })) as typeof fetch;
+
+  try {
+    assert.match(await resolveBrowserRecordScope(), /^account:/);
+  } finally {
+    invalidateBrowserRecordScope();
+    globalThis.fetch = originalFetch;
+    if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
+    else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });
+  }
+});
+
 test("an authoritative signed-out session is briefly cached and an explicit recheck can enter an account scope", async () => {
   const runtime = globalThis as typeof globalThis & { window?: unknown };
   const originalWindow = runtime.window;

@@ -81,7 +81,11 @@ const LOCAL_MARKER = "__mydairy_device_local_v1";
 const LOCAL_RECORD_FALLBACK_PREFIX = "mydairy.device-records.fallback.v1";
 const DEVICE_OUTBOX_FALLBACK_PREFIX = "mydairy.device-outbox.fallback.v1";
 const DEVICE_RECORD_ALIAS_FALLBACK_PREFIX = "mydairy.device-record-alias.fallback.v1";
-const BROWSER_SCOPE_REQUEST_TIMEOUT_MS = 2_500;
+// Keep this aligned with the account control's authoritative session check.
+// A hosted D1-backed lookup can legitimately take longer than the old 2.5 s
+// budget; treating that slow successful response as "guest" after an OAuth
+// return partitions the just-authenticated person's history on this device.
+const BROWSER_SCOPE_REQUEST_TIMEOUT_MS = 8_000;
 const BROWSER_SCOPE_CACHE_TTL_MS = 5_000;
 const BROWSER_SCOPE_UNAVAILABLE_BACKOFF_MS = 2_500;
 const GUEST_DEVICE_HISTORY_SOURCE_KEY = "mydairy.guest-device-history-source.v1";
