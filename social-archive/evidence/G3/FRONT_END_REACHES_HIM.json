@@ -8,29 +8,29 @@
     "index_bytes": 20645,
     "index_cf_cache_status": "DYNAMIC",
     "stamps_in_index": [
-      "ce57eaaa"
+      "1a16c552"
     ],
     "assets": [
       {
-        "url": "/assets/styles.css?v=ce57eaaa",
+        "url": "/assets/styles.css?v=1a16c552",
         "bytes": 39548,
         "cf_cache_status": "MISS",
         "age": ""
       },
       {
-        "url": "/assets/manifest.webmanifest?v=ce57eaaa",
+        "url": "/assets/manifest.webmanifest?v=1a16c552",
         "bytes": 282,
         "cf_cache_status": "DYNAMIC",
         "age": ""
       },
       {
-        "url": "/assets/favicon.svg?v=ce57eaaa",
+        "url": "/assets/favicon.svg?v=1a16c552",
         "bytes": 182,
         "cf_cache_status": "MISS",
         "age": ""
       },
       {
-        "url": "/assets/app.js?v=ce57eaaa",
+        "url": "/assets/app.js?v=1a16c552",
         "bytes": 150481,
         "cf_cache_status": "MISS",
         "age": ""
@@ -127,7 +127,7 @@
       "found": true,
       "platform": "douyin",
       "panelOpened": true,
-      "panelSrc": "chrome-extension://kndnlmlffjpcbekgeondjeehaghlbolp/connect-frame.html",
+      "panelSrc": "chrome-extension://kobachkpmmabgbmlgelhfmaoieeljfjn/connect-frame.html",
       "errorsAfterClick": []
     },
     "drawer": {
