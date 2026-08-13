@@ -69,7 +69,8 @@ export async function verifyAuthContract() {
   assert.ok(flow.includes("callbackURL: VERIFIED_LOGIN_PATH"));
   assert.ok(form.includes('searchParams.get("verified") === "1"'));
   assert.ok(form.includes("重新发送验证邮件"));
-  assert.ok(form.includes('"/api/auth/sign-in/social"'));
+  assert.ok(form.includes('href="/auth/google"'));
+  assert.ok(!form.includes("onClick={startGoogle}"));
   assert.ok(form.includes("challenges.cloudflare.com/turnstile"));
   assert.ok(authError.includes("email_doesn't_match"));
   assert.ok(authError.includes("account_not_linked"));

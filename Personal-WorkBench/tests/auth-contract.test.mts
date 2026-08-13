@@ -407,8 +407,12 @@ test("email sign-up and password reset keep the documented callback contracts", 
 });
 
 test("successful email and Google login both return to the authenticated desktop", async () => {
-  const authForm = await readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8");
-  assert.match(authForm, /callbackURL: AUTHENTICATED_HOME_PATH/);
+  const [authForm, googleStart] = await Promise.all([
+    readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/auth/google/route.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(authForm, /href="\/auth\/google"/);
+  assert.match(googleStart, /callbackURL: AUTHENTICATED_HOME_PATH/);
   assert.match(authForm, /window\.location\.assign\(AUTHENTICATED_HOME_PATH\)/);
 });
 
@@ -460,4 +464,13 @@ test("auth controls wait for client hydration instead of losing the first sign-i
   assert.match(authForm, /function serverSnapshot\(\) \{\s+return false;/);
   assert.match(authForm, /正在准备登录…/);
   assert.match(authForm, /disabled=\{!interactive \|\| submitting\}/);
+});
+
+test("Google sign-in remains a native server navigation after hydration", async () => {
+  const authForm = await readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8");
+
+  assert.match(authForm, /href="\/auth\/google"/);
+  assert.doesNotMatch(authForm, /function startGoogle/);
+  assert.doesNotMatch(authForm, /function submitGoogle/);
+  assert.doesNotMatch(authForm, /onClick=\{startGoogle\}/);
 });

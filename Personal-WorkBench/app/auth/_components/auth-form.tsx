@@ -207,38 +207,6 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
     setCaptchaRetryNonce((attempt) => attempt + 1);
   }
 
-  async function submitGoogle(): Promise<void> {
-    setSubmitting(true);
-    setMessage("");
-    try {
-      const response = await fetch("/api/auth/sign-in/social", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ provider: "google", callbackURL: AUTHENTICATED_HOME_PATH }),
-      });
-      const payload = (await response.json().catch(() => null)) as { url?: unknown } | null;
-      if (response.ok && typeof payload?.url === "string") {
-        markAuthReturnRecovery();
-        window.location.assign(payload.url);
-        return;
-      }
-      setMessage(safeAuthFailureMessage(response.status, "sign-in"));
-    } catch {
-      setMessage("服务暂时不可用，请稍后再试。");
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  function startGoogle(event: React.MouseEvent<HTMLAnchorElement>): void {
-    // Before React finishes hydration, let the native link take the server
-    // path. Once interactive, retain the existing immediate client feedback.
-    if (!interactive) return;
-    event.preventDefault();
-    if (!submitting) void submitGoogle();
-  }
-
   async function submitForm(event: React.FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     const resetToken = readResetToken(window.location.search);
@@ -352,14 +320,18 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
           <Link className="auth-secondary-link" href={link.href}>{link.label}</Link>
         )}
         {mode === "sign-in" || mode === "sign-up" ? (
-          <a
-            aria-disabled={submitting || undefined}
-            className="auth-google"
-            href="/auth/google"
-            onClick={startGoogle}
-          >
-            {submitting ? "正在打开 Google…" : "使用 Google 继续"}
-          </a>
+          <>
+            {/* Keep this as a plain navigation even after hydration. It reaches
+                the same server-owned OAuth start route without depending on a
+                client fetch, so an extension, slow script, or embedded browser
+                cannot turn a visible Google button into an inert control. */}
+            <a
+              className="auth-google"
+              href="/auth/google"
+            >
+              使用 Google 继续
+            </a>
+          </>
         ) : null}
         {mode === "sign-in" ? <Link className="auth-secondary-link" href="/auth/forgot-password">忘记密码？</Link> : null}
       </section>
