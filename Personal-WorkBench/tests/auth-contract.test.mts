@@ -13,6 +13,7 @@ import {
   SIGN_UP_VERIFICATION_PATH,
   VERIFIED_LOGIN_PATH,
 } from "../app/auth/_components/auth-flow.ts";
+import { authErrorRecovery } from "../app/auth/_components/auth-error.ts";
 import {
   getAuthRuntimeMissingCategories,
   getPublicAuthPageConfig,
@@ -94,6 +95,21 @@ test("an explicit verified Google link may use a different mailbox without impli
   assert.match(source, /disableImplicitLinking: true/);
   assert.match(source, /allowDifferentEmails: true/);
   assert.match(source, /allowUnlinkingAll: false/);
+  assert.match(source, /errorURL: `\$\{config\.appOrigin\}\/auth\/error`/);
+});
+
+test("OAuth error recovery is actionable without reflecting provider text", () => {
+  assert.deepEqual(authErrorRecovery("email_doesn't_match"), {
+    title: "Google 连接未完成",
+    message: "当前账户与所选 Google 账号不一致。请回到账户页，再点击“连接 Google”并选择要关联的账号。",
+    primaryHref: "/account",
+    primaryLabel: "返回账户",
+  });
+  assert.equal(authErrorRecovery("account_not_linked").primaryHref, "/auth/sign-in");
+  assert.equal(authErrorRecovery("state_mismatch").title, "本次登录已过期");
+  const unknown = authErrorRecovery("<provider-description>");
+  assert.equal(unknown.title, "登录没有完成");
+  assert.ok(!unknown.message.includes("provider-description"));
 });
 
 test("Better Auth rate-limit timestamp remains an epoch-millisecond number", () => {

@@ -54,6 +54,12 @@ export function createAuth(env: AuthRuntimeEnv) {
     },
     basePath: "/api/auth",
     trustedOrigins: config.trustedOrigins,
+    // OAuth callbacks must return to a same-origin, product-owned recovery
+    // screen. The screen maps only a bounded set of error codes and never
+    // reflects a provider-supplied description into the UI.
+    onAPIError: {
+      errorURL: `${config.appOrigin}/auth/error`,
+    },
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: true,

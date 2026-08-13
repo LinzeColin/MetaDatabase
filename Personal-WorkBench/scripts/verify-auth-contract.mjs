@@ -11,6 +11,8 @@ const sourceFiles = [
   "app/api/auth/[...all]/route.ts",
   "app/auth/_components/auth-form.tsx",
   "app/auth/_components/auth-flow.ts",
+  "app/auth/_components/auth-error.ts",
+  "app/auth/error/page.tsx",
   "app/account/page.tsx",
   "app/api/auth/public-config/route.ts",
 ];
@@ -29,8 +31,10 @@ export async function verifyAuthContract() {
   const route = sources[4];
   const form = sources[5];
   const flow = sources[6];
-  const account = sources[7];
-  const publicConfig = sources[8];
+  const authError = sources[7];
+  const authErrorPage = sources[8];
+  const account = sources[9];
+  const publicConfig = sources[10];
   const requiredFragments = [
     "requireEmailVerification: true",
     "minPasswordLength: 12",
@@ -50,6 +54,7 @@ export async function verifyAuthContract() {
     "allowedHosts: config.trustedOrigins.map",
     "fallback: config.appOrigin",
     "trustedOrigins: config.trustedOrigins",
+    "errorURL: `${config.appOrigin}/auth/error`",
   ];
   for (const fragment of requiredFragments) assert.ok(auth.includes(fragment), `missing auth contract: ${fragment}`);
   assert.ok(turnstile.includes('"workbench_auth"'));
@@ -66,6 +71,11 @@ export async function verifyAuthContract() {
   assert.ok(form.includes("重新发送验证邮件"));
   assert.ok(form.includes('"/api/auth/sign-in/social"'));
   assert.ok(form.includes("challenges.cloudflare.com/turnstile"));
+  assert.ok(authError.includes("email_doesn't_match"));
+  assert.ok(authError.includes("account_not_linked"));
+  assert.ok(!authError.includes("error_description"));
+  assert.ok(authErrorPage.includes("authErrorRecovery(params.error)"));
+  assert.ok(!authErrorPage.includes("error_description"));
   assert.ok(account.includes('"/api/auth/link-social"'));
   assert.ok(account.includes("主动点击连接后绑定"));
   assert.ok(publicConfig.includes("getPublicAuthPageConfig"));
