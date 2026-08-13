@@ -14,7 +14,7 @@
       {
         "url": "/assets/styles.css?v=af983539",
         "bytes": 39548,
-        "cf_cache_status": "HIT",
+        "cf_cache_status": "EXPIRED",
         "age": ""
       },
       {
@@ -26,13 +26,13 @@
       {
         "url": "/assets/favicon.svg?v=af983539",
         "bytes": 182,
-        "cf_cache_status": "HIT",
+        "cf_cache_status": "EXPIRED",
         "age": ""
       },
       {
         "url": "/assets/app.js?v=af983539",
         "bytes": 148549,
-        "cf_cache_status": "HIT",
+        "cf_cache_status": "EXPIRED",
         "age": ""
       }
     ]
@@ -127,7 +127,7 @@
       "found": true,
       "platform": "douyin",
       "panelOpened": true,
-      "panelSrc": "chrome-extension://ddmfpdkonpogbipmceaodejkoegkkmpj/connect-frame.html",
+      "panelSrc": "chrome-extension://ebfidcicpolfclfndjbgkcmblgpikeej/connect-frame.html",
       "errorsAfterClick": []
     },
     "drawer": {
