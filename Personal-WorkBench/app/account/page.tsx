@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { safeAccountReturnPath } from "../_components/workbench/account-return-path";
+import { DeviceHistoryTransferPanel } from "./device-history-transfer-panel";
 import { LegacyImportPanel } from "./legacy-import-panel";
 
 type Account = { id: string; providerId: string };
@@ -422,6 +423,7 @@ useEffect(() => {
               {!privacyDisclosureReady ? <p className="account-note">隐私联系信息尚未配置，当前环境不能开启敏感跨设备保存。</p> : null}
             </section>
 
+            <DeviceHistoryTransferPanel returnTo={returnTo} />
             <LegacyImportPanel />
           </>
         ) : <Link className="auth-primary-link" href="/auth/sign-in">去登录</Link>}

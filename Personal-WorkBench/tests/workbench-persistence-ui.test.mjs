@@ -198,6 +198,26 @@ test("guest dependent records accurately say they remain on the current device",
   assert.match(source, /scope === "guest"\s+\? "已保存在当前设备。当前未登录，关联记录会保留在这台设备。"/);
 });
 
+test("account management offers an explicit, preview-first import for this device's anonymous history", async () => {
+  const [accountPage, transferPanel, cacheSource, legacySource] = await Promise.all([
+    readFile("app/account/page.tsx", "utf8"),
+    readFile("app/account/device-history-transfer-panel.tsx", "utf8"),
+    readFile("app/_components/workbench/local-record-cache.ts", "utf8"),
+    readFile("server/data/legacy-import.ts", "utf8"),
+  ]);
+
+  assert.match(accountPage, /<DeviceHistoryTransferPanel returnTo=\{returnTo\} \/>/);
+  assert.match(transferPanel, /buildGuestDeviceHistoryEnvelope/);
+  assert.match(transferPanel, /预览导入内容/);
+  assert.match(transferPanel, /确认导入到当前账号/);
+  assert.match(transferPanel, /不会自动导入，也不会删除设备上的原记录/);
+  assert.match(transferPanel, /仅检查当前这台设备的匿名本机记录/);
+  assert.match(cacheSource, /readDeviceLocalRecords\("guest", resource\)/);
+  assert.match(cacheSource, /module === "food" \|\| module === "diary"\) delete payload\.photoObjectId/);
+  assert.match(legacySource, /"habitCheckins"/);
+  assert.match(legacySource, /"savingsTransactions"/);
+});
+
 test("normal menu routes keep every user-audited lifecycle control bound to a state change or record write", async () => {
   const [source, page] = await Promise.all([
     readFile(lifecycleSource, "utf8"),

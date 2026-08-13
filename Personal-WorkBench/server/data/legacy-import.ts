@@ -4,6 +4,7 @@ import { requireAcceptedSensitiveCloudConsent } from "@/server/security/privacy-
 
 export type LegacyModule =
   | "habits"
+  | "habitCheckins"
   | "todos"
   | "ledger"
   | "food"
@@ -13,6 +14,7 @@ export type LegacyModule =
   | "anniversaries"
   | "diary"
   | "savings"
+  | "savingsTransactions"
   | "period";
 
 export type WorkbenchLegacyEnvelope = {
@@ -103,6 +105,7 @@ type LegacyImportResult = {
 
 const MODULES: LegacyModule[] = [
   "habits",
+  "habitCheckins",
   "todos",
   "ledger",
   "food",
@@ -112,6 +115,7 @@ const MODULES: LegacyModule[] = [
   "anniversaries",
   "diary",
   "savings",
+  "savingsTransactions",
   "period",
 ];
 
@@ -119,6 +123,7 @@ const SENSITIVE_LEGACY_MODULES: readonly LegacyModule[] = ["ledger", "weight", "
 
 const LEGACY_MODULE_TO_RESOURCE: Record<LegacyModule, keyof typeof tenantResources> = {
   habits: "habits",
+  habitCheckins: "habit-checkins",
   todos: "todos",
   ledger: "ledger",
   food: "food",
@@ -128,6 +133,7 @@ const LEGACY_MODULE_TO_RESOURCE: Record<LegacyModule, keyof typeof tenantResourc
   anniversaries: "anniversaries",
   diary: "diary",
   savings: "savings-goals",
+  savingsTransactions: "savings-transactions",
   period: "periods",
 };
 

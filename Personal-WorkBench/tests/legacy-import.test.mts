@@ -153,6 +153,9 @@ function legacyEnvelope(overrides: Record<string, unknown> = {}) {
       habits: [
         { id: "habit_0000001", title: "晨起", iconKey: "sun" },
       ],
+      habitCheckins: [
+        { id: "habit_checkin_001", habitId: "habit_0000001", localDate: "2026-08-05" },
+      ],
       todos: [
         { id: "todo_00000001", title: "喝水", dueDate: "2026-08-05" },
       ],
@@ -179,6 +182,9 @@ function legacyEnvelope(overrides: Record<string, unknown> = {}) {
       ],
       savings: [
         { id: "savings_01", title: "应急金", targetCents: 100000, currency: "CNY" },
+      ],
+      savingsTransactions: [
+        { id: "savings_transaction_001", goalId: "savings_01", amountCents: 1000, localDate: "2026-08-05" },
       ],
       period: [
         { id: "period_01", startDate: "2026-08-01", endDate: "2026-08-05" },
@@ -212,8 +218,10 @@ test("legacy import preview and apply are idempotent and resumable", async () =>
     assert.equal(applyResult.state, "completed");
     assert.equal(applyResult.replayed, false);
     assert.equal(applyResult.insertedCounts?.habits, 1);
+    assert.equal(applyResult.insertedCounts?.habitCheckins, 1);
+    assert.equal(applyResult.insertedCounts?.savingsTransactions, 1);
     assert.equal(applyResult.insertedCounts?.period, 1);
-    assert.equal(applyResult.totalInserted, 11);
+    assert.equal(applyResult.totalInserted, 13);
 
     const habitsCount = db
       .prepare("SELECT COUNT(1) AS count FROM habit_definitions WHERE user_id = ?")
@@ -225,10 +233,20 @@ test("legacy import preview and apply are idempotent and resumable", async () =>
       .get("user_legacy") as { count: number };
     assert.equal(foodsCount.count, 1);
 
+    const checkinsCount = db
+      .prepare("SELECT COUNT(1) AS count FROM habit_checkins WHERE user_id = ?")
+      .get("user_legacy") as { count: number };
+    assert.equal(checkinsCount.count, 1);
+
+    const transactionsCount = db
+      .prepare("SELECT COUNT(1) AS count FROM savings_transactions WHERE user_id = ?")
+      .get("user_legacy") as { count: number };
+    assert.equal(transactionsCount.count, 1);
+
     const replay = await applyLegacyImport(d1, "user_legacy", payload);
     assert.equal(replay.state, "completed");
     assert.equal(replay.replayed, true);
-    assert.equal(replay.totalInserted, 11);
+    assert.equal(replay.totalInserted, 13);
 
     const habitsCountAfterReplay = db
       .prepare("SELECT COUNT(1) AS count FROM habit_definitions WHERE user_id = ?")
@@ -272,7 +290,7 @@ test("legacy import rolls an interrupted D1 batch back, preserves the source, an
 
     const resumed = await applyLegacyImport(d1, "user_legacy", payload);
     assert.equal(resumed.state, "completed");
-    assert.equal(resumed.totalInserted, 11);
+    assert.equal(resumed.totalInserted, 13);
     assert.equal(
       (db.prepare("SELECT COUNT(1) AS count FROM habit_definitions WHERE user_id = ?").get("user_legacy") as { count: number }).count,
       1,

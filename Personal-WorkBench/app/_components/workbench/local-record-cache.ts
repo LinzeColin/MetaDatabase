@@ -29,6 +29,35 @@ export type DeviceOutboxParentReference = {
   resource: "habits" | "savings-goals";
 };
 
+/**
+ * The only device-only history that may be offered for account import is the
+ * anonymous partition. Account partitions deliberately stay private to the
+ * account that created them, even when a shared browser later signs in as a
+ * different person.
+ */
+export type GuestDeviceHistoryModule =
+  | "habits"
+  | "habitCheckins"
+  | "todos"
+  | "ledger"
+  | "food"
+  | "exercise"
+  | "weight"
+  | "schedule"
+  | "anniversaries"
+  | "diary"
+  | "savings"
+  | "savingsTransactions"
+  | "period";
+
+export type GuestDeviceHistoryEnvelope = {
+  sourceInstanceId: string;
+  sourceSchemaVersion: 1;
+  exportedAt: string;
+  modules: Partial<Record<GuestDeviceHistoryModule, Array<Record<string, unknown>>>>;
+  imageManifest: [];
+};
+
 type CachedRecordRow = {
   id: string;
   key: string;
@@ -66,7 +95,28 @@ const DEVICE_OUTBOX_FALLBACK_PREFIX = "mydairy.device-outbox.fallback.v1";
 const DEVICE_RECORD_ALIAS_FALLBACK_PREFIX = "mydairy.device-record-alias.fallback.v1";
 const BROWSER_SCOPE_REQUEST_TIMEOUT_MS = 2_500;
 const BROWSER_SCOPE_CACHE_TTL_MS = 5_000;
+const GUEST_DEVICE_HISTORY_SOURCE_KEY = "mydairy.guest-device-history-source.v1";
+const GUEST_DEVICE_HISTORY_EXPORTED_AT_KEY = "mydairy.guest-device-history-exported-at.v1";
 const tenantFieldNames = new Set(["userId", "user_id", "ownerId", "owner_id", "tenantId", "tenant_id"]);
+
+const guestDeviceHistoryResources: ReadonlyArray<{
+  module: GuestDeviceHistoryModule;
+  resource: string;
+}> = [
+  { module: "habits", resource: "habits" },
+  { module: "habitCheckins", resource: "habit-checkins" },
+  { module: "todos", resource: "todos" },
+  { module: "ledger", resource: "ledger" },
+  { module: "food", resource: "food" },
+  { module: "exercise", resource: "exercise" },
+  { module: "weight", resource: "weights" },
+  { module: "schedule", resource: "schedule" },
+  { module: "anniversaries", resource: "anniversaries" },
+  { module: "diary", resource: "diary" },
+  { module: "savings", resource: "savings-goals" },
+  { module: "savingsTransactions", resource: "savings-transactions" },
+  { module: "period", resource: "periods" },
+];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -139,6 +189,45 @@ function browserLocalStorage(): Storage | null {
     return window.localStorage;
   } catch {
     return null;
+  }
+}
+
+function newGuestDeviceHistorySourceId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `guest-device-${crypto.randomUUID()}`;
+  }
+  return `guest-device-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+/**
+ * A stable, value-free source identifier makes an explicit retry idempotent.
+ * It identifies this browser's anonymous cache, never an account or user.
+ */
+export function guestDeviceHistorySourceId(storage = browserLocalStorage()): string {
+  try {
+    const existing = storage?.getItem(GUEST_DEVICE_HISTORY_SOURCE_KEY) ?? "";
+    if (/^guest-device-[a-z0-9-]{8,}$/i.test(existing)) return existing;
+    const next = newGuestDeviceHistorySourceId();
+    storage?.setItem(GUEST_DEVICE_HISTORY_SOURCE_KEY, next);
+    return next;
+  } catch {
+    return newGuestDeviceHistorySourceId();
+  }
+}
+
+/** Keep the explicit-import payload stable across a safe retry in this browser. */
+export function guestDeviceHistoryExportedAt(
+  storage = browserLocalStorage(),
+  now = new Date(),
+): string {
+  try {
+    const existing = storage?.getItem(GUEST_DEVICE_HISTORY_EXPORTED_AT_KEY) ?? "";
+    if (existing && !Number.isNaN(new Date(existing).getTime())) return existing;
+    const next = now.toISOString();
+    storage?.setItem(GUEST_DEVICE_HISTORY_EXPORTED_AT_KEY, next);
+    return next;
+  } catch {
+    return now.toISOString();
   }
 }
 
@@ -371,6 +460,40 @@ export function deviceLocalRecordRequestPayload(record: DeviceLocalRecord): Reco
     payload[toCamelCase(key)] = value;
   }
   return payload;
+}
+
+/**
+ * Build an explicit import candidate from this browser's anonymous records.
+ * It never reads account-scoped records, never reads files, and deliberately
+ * omits photo references because local image bytes have no safe cloud mapping.
+ * Applying the envelope remains a separate, verified-account confirmation.
+ */
+export async function buildGuestDeviceHistoryEnvelope(
+  now = new Date(),
+  sourceInstanceId = guestDeviceHistorySourceId(),
+  exportedAt = guestDeviceHistoryExportedAt(browserLocalStorage(), now),
+): Promise<GuestDeviceHistoryEnvelope> {
+  const modules: GuestDeviceHistoryEnvelope["modules"] = {};
+
+  for (const { module, resource } of guestDeviceHistoryResources) {
+    const records = await readDeviceLocalRecords("guest", resource);
+    const rows = records
+      .filter((record) => record.id.startsWith("local_"))
+      .map((record) => {
+        const payload = deviceLocalRecordRequestPayload(record);
+        if (module === "food" || module === "diary") delete payload.photoObjectId;
+        return { id: record.id, ...payload };
+      });
+    if (rows.length) modules[module] = rows;
+  }
+
+  return {
+    sourceInstanceId,
+    sourceSchemaVersion: 1,
+    exportedAt,
+    modules,
+    imageManifest: [],
+  };
 }
 
 /**

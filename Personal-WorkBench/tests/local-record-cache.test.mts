@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   createDeviceLocalRecord,
+  buildGuestDeviceHistoryEnvelope,
   createDeviceLocalRecoveryOutboxAction,
   deviceLocalRecordRequestPayload,
   appendDeviceOutbox,
@@ -252,6 +253,52 @@ test("device-local history falls back to an opaque same-origin partition when In
     await removeDeviceLocalRecord("account:alpha", "schedule", alpha.id);
     assert.deepEqual(await readDeviceLocalRecords("account:alpha", "schedule"), []);
     assert.deepEqual((await readDeviceLocalRecords("account:beta", "schedule")).map((record) => record.id), ["local_beta"]);
+  } finally {
+    if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
+    else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });
+  }
+});
+
+test("an explicit guest-device import candidate includes every supported module without reading account scopes or moving image bytes", async () => {
+  const runtime = globalThis as typeof globalThis & { window?: unknown };
+  const originalWindow = runtime.window;
+  const entries = new Map<string, string>();
+  const storage = {
+    getItem(key: string) { return entries.get(key) ?? null; },
+    removeItem(key: string) { entries.delete(key); },
+    setItem(key: string, value: string) { entries.set(key, value); },
+  };
+  Object.defineProperty(runtime, "window", {
+    configurable: true,
+    value: {
+      indexedDB: { open() { throw new Error("embedded browser cache unavailable"); } },
+      localStorage: storage,
+    },
+  });
+
+  try {
+    await writeDeviceLocalRecord("guest", "habits", createDeviceLocalRecord({ title: "晨起", iconKey: "sun" }, 1, "local_habit_guest"));
+    await writeDeviceLocalRecord("guest", "habit-checkins", createDeviceLocalRecord({ habitId: "local_habit_guest", localDate: "2026-08-13" }, 2, "local_checkin_guest"));
+    await writeDeviceLocalRecord("guest", "food", createDeviceLocalRecord({
+      foodName: "早餐", calories: 300, meal: "breakfast", localDate: "2026-08-13", note: "", photoObjectId: "private-photo-id", source: "manual",
+    }, 3, "local_food_guest"));
+    await writeDeviceLocalRecord("guest", "savings-goals", createDeviceLocalRecord({ title: "旅行", targetCents: 10000, currency: "CNY", targetDate: null, archived: false }, 4, "local_goal_guest"));
+    await writeDeviceLocalRecord("guest", "savings-transactions", createDeviceLocalRecord({ goalId: "local_goal_guest", amountCents: 500, localDate: "2026-08-13", note: "" }, 5, "local_transaction_guest"));
+    await writeDeviceLocalRecord("account:other", "ledger", createDeviceLocalRecord({ kind: "expense", amountCents: 999, currency: "CNY", localDate: "2026-08-13", category: "不应读取", note: "" }, 6, "local_account_only"));
+
+    const first = await buildGuestDeviceHistoryEnvelope(new Date("2026-08-13T00:00:00.000Z"));
+    const second = await buildGuestDeviceHistoryEnvelope(new Date("2026-08-13T00:01:00.000Z"));
+
+    assert.match(first.sourceInstanceId, /^guest-device-/);
+    assert.equal(second.sourceInstanceId, first.sourceInstanceId);
+    assert.equal(first.exportedAt, "2026-08-13T00:00:00.000Z");
+    assert.equal(second.exportedAt, first.exportedAt);
+    assert.equal(first.sourceSchemaVersion, 1);
+    assert.deepEqual(first.imageManifest, []);
+    assert.deepEqual(first.modules.habitCheckins, [{ id: "local_checkin_guest", habitId: "local_habit_guest", localDate: "2026-08-13" }]);
+    assert.deepEqual(first.modules.savingsTransactions, [{ id: "local_transaction_guest", goalId: "local_goal_guest", amountCents: 500, localDate: "2026-08-13", note: "" }]);
+    assert.equal(first.modules.food?.[0]?.photoObjectId, undefined);
+    assert.equal(first.modules.ledger, undefined);
   } finally {
     if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
     else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });
