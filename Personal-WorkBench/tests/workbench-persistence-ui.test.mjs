@@ -232,6 +232,12 @@ test("a verified account with anonymous device records sees the explicit recover
   assert.match(notice, /countGuestDeviceHistoryRecords/);
   assert.match(notice, /预览并导入到当前账号/);
   assert.match(notice, /AUTH_RETURN_RECOVERY_EVENT/);
+  assert.match(notice, /AUTH_RETURN_RECOVERY_DELAYS_MS/);
+  assert.match(notice, /AUTH_RETURN_RECOVERY_QUERY_KEY/);
+  assert.match(notice, /AUTH_RETURN_RECOVERY_QUERY_VALUE/);
+  assert.match(notice, /useState\(\(\) => \{/);
+  assert.match(notice, /AUTH_RETURN_RECOVERY_DELAYS_MS\.map\(\(delay\) => window\.setTimeout\(inspect, delay\)\)/);
+  assert.match(notice, /recoveryTimers\.forEach\(\(timer\) => window\.clearTimeout\(timer\)\)/);
   assert.match(notice, /window\.addEventListener\(AUTH_RETURN_RECOVERY_EVENT, inspect\)/);
   assert.match(notice, /window\.addEventListener\("pageshow", inspect\)/);
   assert.match(notice, /window\.removeEventListener\(AUTH_RETURN_RECOVERY_EVENT, inspect\)/);

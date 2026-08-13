@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AUTH_RETURN_RECOVERY_EVENT } from "../../auth/_components/auth-return-recovery";
+import {
+  AUTH_RETURN_RECOVERY_DELAYS_MS,
+  AUTH_RETURN_RECOVERY_EVENT,
+  AUTH_RETURN_RECOVERY_QUERY_KEY,
+  AUTH_RETURN_RECOVERY_QUERY_VALUE,
+} from "../../auth/_components/auth-return-recovery";
 import { accountReturnPathFromLocation } from "./account-return-path";
 import { countGuestDeviceHistoryRecords } from "./local-record-cache";
 
@@ -21,6 +26,20 @@ type BrowserSession = {
 export function GuestHistoryRecoveryNotice() {
   const [count, setCount] = useState(0);
   const [href, setHref] = useState("/account");
+  // Capture the value-free marker during render, before AccountEntry's effect
+  // can remove it from the URL. This keeps the recovery notice independent of
+  // sibling effect ordering after an OAuth callback restores a page.
+  const [authReturnRequested] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return new URLSearchParams(window.location.search).get(AUTH_RETURN_RECOVERY_QUERY_KEY)
+        === AUTH_RETURN_RECOVERY_QUERY_VALUE;
+    } catch {
+      // A malformed or inaccessible location simply leaves the optional
+      // recovery hint in its ordinary one-shot inspection mode.
+      return false;
+    }
+  });
 
   useEffect(() => {
     let active = true;
@@ -76,15 +95,23 @@ export function GuestHistoryRecoveryNotice() {
     window.addEventListener("focus", inspect);
     window.addEventListener("pageshow", inspect);
     document.addEventListener("visibilitychange", inspectWhenDocumentVisible);
+    // AccountEntry normally broadcasts once it observes a verified session.
+    // If this sibling mounted after that broadcast, retain the same bounded
+    // auth-return retry window here instead of making the person reload or
+    // sign in a second time. Ordinary anonymous visits never carry the marker.
+    const recoveryTimers = authReturnRequested
+      ? AUTH_RETURN_RECOVERY_DELAYS_MS.map((delay) => window.setTimeout(inspect, delay))
+      : [];
     return () => {
       active = false;
       controller?.abort();
+      recoveryTimers.forEach((timer) => window.clearTimeout(timer));
       window.removeEventListener(AUTH_RETURN_RECOVERY_EVENT, inspect);
       window.removeEventListener("focus", inspect);
       window.removeEventListener("pageshow", inspect);
       document.removeEventListener("visibilitychange", inspectWhenDocumentVisible);
     };
-  }, []);
+  }, [authReturnRequested]);
 
   if (!count) return null;
 
