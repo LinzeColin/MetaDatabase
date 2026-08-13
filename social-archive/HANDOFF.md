@@ -1,5 +1,32 @@
 # Social Archive 交接
 
+> **交给下一个人（或下一个 AI）时，把下面这段整块粘过去就够了。**
+
+```
+你要接手的是 LinzeColin/MetaDatabase 里的 social-archive：一个跑在生产上的
+个人多平台收藏归档系统（B站/抖音/小红书/Reddit/Instagram/Chrome 书签）。
+
+先读 social-archive/HANDOFF.md，只读第一到第六节（后面是历史，别照着做）。
+它会告诉你：现在跑到哪一版、什么东西没人管也会继续跑、怎么一眼看出它还活着、
+只有 Owner 本人能做的那一件、坏了去哪儿查。
+
+三条不能破的约束（破了会花钱或泄露登录态）：
+1. 云端账单必须恒为 $0.00：禁止 R2 的 InfrequentAccess 存储类，禁止用"整包下载"
+   去判断存在（判存在用 HeadObject）。新增周期任务先算月操作量。
+2. 国内平台的 Cookie 不出 Owner 的浏览器。服务器上一个都不许有——
+   部署第 0.9 步就是专门查这件事的硬闸。
+3. 开发一律在 git worktree 里做，主工作树永远停 main、永远干净。
+
+改代码之后必须跑 `bash scripts/deploy_to_production.sh`（在开发机上）：
+它自己带一整套真 Chrome 演练 + 发布门 + 部署后从公开域名回读（数目会变，别记死）。
+不要用 systemctl restart 代替它——那不会重建镜像，代码改动一个字都不会生效。
+
+判活的一条命令：
+curl -s https://social-archive-api.linzezhang.com/health
+看 version / worker.alive / backup.stale / replication.stale（后两个要是 false）。
+```
+
+
 **这一节是当前状态（2026-08-13）。下面每个数字都是当天从生产上量出来的，不是记忆。**
 
 ## 一、它现在是什么
@@ -7,7 +34,7 @@
 | | |
 |---|---|
 | 公开地址 | `https://social-archive.linzezhang.com`（资料库）／ `…-api.…`（接口） |
-| 跑着的版本 | **0.0.0.77**（从本机打公开域名读回来的，不是打回环） |
+| 跑着的版本 | **0.0.0.78**（从本机打公开域名读回来的，不是打回环） |
 | 生产机 | 见 `deploy/PRODUCTION_HOST`——**唯一真源，别把机器名抄进命令** |
 | 你的库 | 内容 **193** 条、关系 **194** 条、制品 **552** 个 |
 | 三份副本 | **552 / 552 全部三份已验证，pending 0** |
