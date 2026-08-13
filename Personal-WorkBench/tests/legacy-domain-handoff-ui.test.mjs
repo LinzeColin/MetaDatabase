@@ -45,6 +45,8 @@ test("retired-domain redirect carries only a bounded anonymous history payload b
   }
   assert.match(authHandoff, /LegacyDomainRedirect/);
   assert.doesNotMatch(authHandoff, /sign-in\/social|AuthForm/);
+  assert.match(authHandoff, /CANONICAL_MYDAIRY_ORIGIN/);
+  assert.match(authHandoff, /如果没有自动打开，继续登录/);
   assert.match(account, /LegacyDomainRedirect/);
   assert.match(redirect, /initiallyRetiredHost/);
   assert.match(redirect, /legacy-domain-transfer/);

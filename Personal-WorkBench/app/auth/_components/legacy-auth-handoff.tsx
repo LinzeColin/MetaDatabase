@@ -1,6 +1,7 @@
 "use client";
 
 import { LegacyDomainRedirect } from "../../_components/workbench/legacy-domain-redirect";
+import { CANONICAL_MYDAIRY_ORIGIN } from "../../_components/workbench/canonical-domain";
 
 /**
  * Authentication must never begin on the retired hostname: Better Auth keeps
@@ -18,6 +19,9 @@ export function LegacyAuthHandoff() {
           <p className="auth-message" role="status">
             正在将你带到新的个人日程地址，随后即可继续登录。
           </p>
+          <a className="auth-primary-link" href={`${CANONICAL_MYDAIRY_ORIGIN}/auth/sign-in`}>
+            如果没有自动打开，继续登录
+          </a>
         </section>
       </main>
     </>
