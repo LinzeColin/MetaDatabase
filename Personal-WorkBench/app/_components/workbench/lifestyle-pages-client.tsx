@@ -348,7 +348,9 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
             <button
               aria-pressed={isCompleted}
               className="habit-card"
-              disabled={habits.loading || checkins.loading || habits.saving || checkins.saving}
+              // `create` waits for the account/device scope to finish initializing.
+              // Do not turn that short read into an inert first tap.
+              disabled={habits.saving || checkins.saving}
               key={card.label}
               onClick={() => void toggleHabit(card, index)}
               type="button"
@@ -547,7 +549,7 @@ export function LedgerClient({ fixtureDate, reference }: { fixtureDate: string; 
             <input className="input" onChange={(event) => setNote(event.currentTarget.value)} placeholder="写点什么…" value={note} />
           </label>
         </div>
-        <button className="primary full" disabled={ledger.loading || ledger.saving} onClick={() => void addRecord()} type="button">
+        <button className="primary full" disabled={ledger.saving} onClick={() => void addRecord()} type="button">
           {ledger.saving ? "保存中…" : editingId ? "保存修改" : "＋ 记一笔"}
         </button>
       </form>
@@ -847,7 +849,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
           <>
             <label className="field">
               <span>饮食照片（可选，帮您记录）</span>
-              <button className="upload-zone" disabled={foodRecords.loading || foodRecords.saving} onClick={openPhotoPicker} type="button">
+              <button className="upload-zone" disabled={foodRecords.saving} onClick={openPhotoPicker} type="button">
                 <img alt="" src={asset("food_camera.png")} />
                 <span>{photoName || "点击上传食物照片"}</span>
               </button>
@@ -862,7 +864,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
               <label className="field"><span>日期</span><input className="input" onChange={(event) => setDate(event.currentTarget.value)} readOnly={reference} value={date} /></label>
               <label className="field"><span>备注</span><input className="input" onChange={(event) => setNote(event.currentTarget.value)} placeholder="可选" value={note} /></label>
             </div>
-            <button className="primary full" disabled={foodRecords.loading || foodRecords.saving} onClick={() => void addFoodRecord()} type="button">{foodRecords.saving ? "保存中…" : editing?.module === "food" ? "保存修改" : "＋ 记录饮食"}</button>
+            <button className="primary full" disabled={foodRecords.saving} onClick={() => void addFoodRecord()} type="button">{foodRecords.saving ? "保存中…" : editing?.module === "food" ? "保存修改" : "＋ 记录饮食"}</button>
           </>
         ) : activeModule === "exercise" ? (
           <div className="form-grid">
@@ -871,14 +873,14 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
             <label className="field"><span>消耗热量（可选）</span><input className="input" inputMode="numeric" onChange={(event) => setCaloriesBurned(event.currentTarget.value)} value={caloriesBurned} /></label>
             <label className="field"><span>日期</span><input className="input" onChange={(event) => setDate(event.currentTarget.value)} readOnly={reference} value={date} /></label>
             <label className="field wide"><span>备注</span><input className="input" onChange={(event) => setNote(event.currentTarget.value)} placeholder="可选" value={note} /></label>
-            <button className="primary full" disabled={exerciseRecords.loading || exerciseRecords.saving} onClick={() => void addExerciseRecord()} type="button">{exerciseRecords.saving ? "保存中…" : editing?.module === "exercise" ? "保存修改" : "＋ 记录运动"}</button>
+            <button className="primary full" disabled={exerciseRecords.saving} onClick={() => void addExerciseRecord()} type="button">{exerciseRecords.saving ? "保存中…" : editing?.module === "exercise" ? "保存修改" : "＋ 记录运动"}</button>
           </div>
         ) : (
           <div className="form-grid">
             <label className="field"><span>体重（千克）</span><input className="input" inputMode="decimal" onChange={(event) => setWeightKg(event.currentTarget.value)} placeholder="例如：52.3" value={weightKg} /></label>
             <label className="field"><span>日期</span><input className="input" onChange={(event) => setDate(event.currentTarget.value)} readOnly={reference} value={date} /></label>
             <label className="field wide"><span>备注</span><input className="input" onChange={(event) => setNote(event.currentTarget.value)} placeholder="可选" value={note} /></label>
-            <button className="primary full" disabled={weightRecords.loading || weightRecords.saving} onClick={() => void addWeightRecord()} type="button">{weightRecords.saving ? "保存中…" : editing?.module === "weight" ? "保存修改" : "＋ 记录体重"}</button>
+            <button className="primary full" disabled={weightRecords.saving} onClick={() => void addWeightRecord()} type="button">{weightRecords.saving ? "保存中…" : editing?.module === "weight" ? "保存修改" : "＋ 记录体重"}</button>
           </div>
         )}
         {editing?.module === activeModule ? <button className="auth-secondary-link" onClick={cancelEditing} type="button">取消修改</button> : null}
@@ -959,7 +961,7 @@ export function PeriodClient({ reference }: { reference: boolean }) {
           <label className="field"><span>开始日期</span><input className="input" onChange={(event) => setStartDate(event.currentTarget.value)} readOnly={reference} value={startDate} /></label>
           <label className="field"><span>结束日期</span><input className="input" onChange={(event) => setEndDate(event.currentTarget.value)} readOnly={reference} value={endDate} /></label>
         </div>
-        <button className="primary full" disabled={periods.loading || periods.saving} onClick={() => void addPeriodRecord()} type="button">{periods.saving ? "保存中…" : editingId ? "保存修改" : "＋ 记录经期"}</button>
+        <button className="primary full" disabled={periods.saving} onClick={() => void addPeriodRecord()} type="button">{periods.saving ? "保存中…" : editingId ? "保存修改" : "＋ 记录经期"}</button>
       </form>
       <article className="card period-overview">
         <h2 className="section-title"><img alt="" src={asset("period_title.png")} />周期概览</h2>
@@ -1281,7 +1283,7 @@ export function GenericPageClient({
             </div>
           </div>
         ) : null}
-        <button className="primary full" disabled={reference || current.loading || current.saving} onClick={() => void action()} type="button">
+        <button className="primary full" disabled={reference || current.saving} onClick={() => void action()} type="button">
           {current.saving ? "保存中…" : primaryEditing ? "保存修改" : route === "savings" ? "＋ 新增存钱计划" : "＋ 新增记录"}
         </button>
         {primaryEditing ? <button className="auth-secondary-link" onClick={cancelEditing} type="button">取消修改</button> : null}
@@ -1298,7 +1300,7 @@ export function GenericPageClient({
             <label className="field"><span>日期</span><input className="input" onChange={(event) => setDate(event.currentTarget.value)} value={date} /></label>
             <label className="field wide"><span>备注</span><input className="input" maxLength={1000} onChange={(event) => setNote(event.currentTarget.value)} value={note} /></label>
           </div></div>
-          <button className="primary full" disabled={reference || savingsTransactions.loading || savingsTransactions.saving} onClick={() => void submitSavingsTransaction()} type="button">{savingsTransactions.saving ? "保存中…" : transactionEditing ? "保存修改" : "＋ 记录存入"}</button>
+          <button className="primary full" disabled={reference || savingsTransactions.saving} onClick={() => void submitSavingsTransaction()} type="button">{savingsTransactions.saving ? "保存中…" : transactionEditing ? "保存修改" : "＋ 记录存入"}</button>
           {transactionEditing ? <button className="auth-secondary-link" onClick={cancelEditing} type="button">取消修改</button> : null}
           {!reference ? <ResourceStatus {...savingsTransactions} /> : null}
         </article>

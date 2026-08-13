@@ -214,7 +214,7 @@ export default function TodoPageClient() {
               />
             </label>
           </div>
-          <button className="primary full" disabled={todos.loading || todos.saving} type="submit">
+          <button className="primary full" disabled={todos.saving} type="submit">
             {todos.saving ? "保存中…" : editingId ? "保存修改" : "＋ 新增待办"}
           </button>
         </form>

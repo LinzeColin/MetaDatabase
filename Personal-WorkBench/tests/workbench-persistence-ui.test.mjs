@@ -194,21 +194,28 @@ test("habit controls distinguish an on-device check-in from a cloud-synced check
   assert.match(source, /saveFeedback\(/);
 });
 
-test("first-paint write controls wait for resource initialization instead of losing a click", async () => {
-  const [lifecycle, todo] = await Promise.all([
+test("first lifecycle write controls accept a tap while resource initialization completes", async () => {
+  const [lifecycle, todo, resource] = await Promise.all([
     readFile(lifecycleSource, "utf8"),
     readFile(todoSource, "utf8"),
+    readFile(resourceSource, "utf8"),
   ]);
 
-  assert.match(lifecycle, /disabled=\{habits\.loading \|\| checkins\.loading \|\| habits\.saving \|\| checkins\.saving\}/);
-  assert.match(lifecycle, /disabled=\{ledger\.loading \|\| ledger\.saving\}/);
-  assert.match(lifecycle, /disabled=\{foodRecords\.loading \|\| foodRecords\.saving\}/);
-  assert.match(lifecycle, /disabled=\{exerciseRecords\.loading \|\| exerciseRecords\.saving\}/);
-  assert.match(lifecycle, /disabled=\{weightRecords\.loading \|\| weightRecords\.saving\}/);
-  assert.match(lifecycle, /disabled=\{periods\.loading \|\| periods\.saving\}/);
-  assert.match(lifecycle, /disabled=\{reference \|\| current\.loading \|\| current\.saving\}/);
-  assert.match(lifecycle, /disabled=\{reference \|\| savingsTransactions\.loading \|\| savingsTransactions\.saving\}/);
-  assert.match(todo, /disabled=\{todos\.loading \|\| todos\.saving\}/);
+  // The shared resource client serializes a first create behind its scope
+  // initialization. The visible controls must therefore not discard a real
+  // first tap merely because the history read is still pending.
+  assert.match(resource, /await firstScopeReady\.promise/);
+  assert.match(lifecycle, /disabled=\{habits\.saving \|\| checkins\.saving\}/);
+  assert.match(lifecycle, /disabled=\{ledger\.saving\}/);
+  assert.match(lifecycle, /disabled=\{foodRecords\.saving\}/);
+  assert.match(lifecycle, /disabled=\{exerciseRecords\.saving\}/);
+  assert.match(lifecycle, /disabled=\{weightRecords\.saving\}/);
+  assert.match(lifecycle, /disabled=\{periods\.saving\}/);
+  assert.match(lifecycle, /disabled=\{reference \|\| current\.saving\}/);
+  assert.match(lifecycle, /disabled=\{reference \|\| savingsTransactions\.saving\}/);
+  assert.match(todo, /disabled=\{todos\.saving\}/);
+  assert.doesNotMatch(lifecycle, /disabled=\{(?:habits|checkins|ledger|foodRecords|exerciseRecords|weightRecords|periods|current|savingsTransactions)\.loading/);
+  assert.doesNotMatch(todo, /disabled=\{todos\.loading/);
 });
 
 test("stalled workbench history requests recover instead of leaving controls disabled", async () => {
