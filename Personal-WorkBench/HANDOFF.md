@@ -17,7 +17,7 @@
 
 ## 当前状态
 
-- 2026-08-14（邮箱验证码异常的 Google 直达恢复候选）：当 Cloudflare Turnstile 在某些嵌入式浏览器或网络环境中不可用时，认证页现在会在错误提示旁立即显示原生“改用 Google 登录”入口；该入口沿用既有同源 /auth/google、固定 canonical callback 和无身份回站标记，不依赖验证码恢复或客户端 fetch。正常验证码、邮箱登录、注册、找回、Google、Better Auth 会话、Cookie、租户隔离、D1/R2、隐私同意和冻结参考视觉均未改变。认证链 40/40、工作台数据 53/53、typecheck、lint（0 error，保留既有 1 warning）、生产 build、e2e 5/5 与冻结视觉 5 页 3 轮均通过；待保存并公开部署后再采集线上只读复核。
+- 2026-08-14（V106 邮箱验证码异常的 Google 直达恢复已公开发布）：当 Cloudflare Turnstile 在某些嵌入式浏览器或网络环境中不可用时，认证页现在会在错误提示旁立即显示原生“改用 Google 登录”入口；该入口沿用既有同源 /auth/google、固定 canonical callback 和无身份回站标记，不依赖验证码恢复或客户端 fetch。正常验证码、邮箱登录、注册、找回、Google、Better Auth 会话、Cookie、租户隔离、D1/R2、隐私同意和冻结参考视觉均未改变。认证链 40/40、工作台数据 53/53、typecheck、lint（0 error，保留既有 1 warning）、生产 build、e2e 5/5 与冻结视觉 5 页 3 轮均通过。Sites Version #106 已公开部署；canonical 认证页与公开验证码配置均为 200、Google 原生入口仍到 provider、认证页 no-store、可见 Turnstile CSS 仍存在，已部署客户端资源含 Google 直达恢复文案，Worker error-only 查询为 0。未读取、使用或写入个人 Google／邮箱、Cookie、账户、历史、D1/R2 或 GitHub；真实成功 provider callback、受控 A/B 与第二设备读回仍按当前验收阶段继续。
 
 - 2026-08-14（V105 邮箱认证验证码可见性已公开发布）：定位到登录、注册和找回密码的 Turnstile 容器此前只有 `1px` 高且裁切溢出，导致已正常加载的 Cloudflare 验证框在页面上不可见，用户无法完成邮箱认证。当前容器按标准验证框高度显示并居中，不再裁切；验证码令牌、15 秒脚本加载恢复、Google 原生入口、Better Auth 会话、Cookie、邮箱／Google 回调、租户隔离、D1/R2、隐私同意和冻结工作台视觉均未改变。`test:auth` 40/40、typecheck、生产 build 和五页三轮视觉门均通过；lint 为 0 error，保留 1 条既有 Hook warning。Sites Version #105 已公开部署；线上登录页 200、服务端公开验证码配置存在、实际加载 CSS 已含可见 `65px` Turnstile 容器规则、Google 入口仍存在，发布后 15 分钟 error-only Worker 日志为 0。未读取、使用或写入个人 Google／邮箱、Cookie、账户、历史、D1/R2 或 GitHub；由于当前会话没有受控浏览器自动化接口和专用测试身份，尚未把人工完成验证码后的真实邮箱／Google callback、A/B 与第二设备读回伪装为已执行。
 
