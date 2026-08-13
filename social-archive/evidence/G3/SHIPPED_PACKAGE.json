@@ -1,9 +1,9 @@
 {
   "status": "PASS",
   "package": "dist/social-archive-extension.zip",
-  "package_sha256_prefix": "d4aa574b079b8e46",
+  "package_sha256_prefix": "f27c37fe974b6ac9",
   "manifest": {
-    "version": "0.0.0.71",
+    "version": "0.0.0.72",
     "host": [
       "https://social-archive-api.linzezhang.com/*",
       "https://social-archive.linzezhang.com/*",
@@ -44,9 +44,9 @@
     "text": "连接账号\n\n点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。\n\n小红书\n等你登录\n连接账号\n我已登录，继续\nX\n本版本还不能自动读取 X 的书签。现在可以：在浏览器里打开任意一条推文，点插件的「保存当前页面」。\n请先在平台",
     "click": {
       "tried": true,
-      "badge": "私人档案馆已连接 · v0.0.0.22 · 插件 v0.0.0.71",
+      "badge": "私人档案馆已连接 · v0.0.0.22 · 插件 v0.0.0.72",
       "panelOpen": true,
-      "frameSrc": "chrome-extension://lladonegpjmfkbhdcdpal",
+      "frameSrc": "chrome-extension://hknafhmmofibephandbjc",
       "contentReloads": 2,
       "syncStillOpen": false
     },
