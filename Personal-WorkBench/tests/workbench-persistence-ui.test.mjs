@@ -140,7 +140,7 @@ test("network-level resource uncertainty gives Google users a truthful sign-in n
   assert.match(source, /暂时无法保存这条记录。请先确认已登录；使用 Google 登录无需额外验证邮箱。若已登录，请检查网络后重试。/);
   assert.match(source, /暂时无法删除这条记录。请先确认已登录；使用 Google 登录无需额外验证邮箱。若已登录，请检查网络后重试。/);
   assert.match(source, /authRequired \|\| loginSuggested \? <a className="data-link" href="\/auth\/sign-in">去登录<\/a> : null/);
-  assert.match(source, /consentRequired \? <a className="data-link" href="\/account" onClick=\{continueAfterConsent\}>开启敏感跨设备保存<\/a> : null/);
+  assert.match(source, /consentRequired \? <a className="data-link" href="\/account" onClick=\{continueAfterConsent\}>核对跨设备同步设置<\/a> : null/);
 });
 
 test("an OAuth return rechecks the session once and refreshes every mounted history panel", async () => {

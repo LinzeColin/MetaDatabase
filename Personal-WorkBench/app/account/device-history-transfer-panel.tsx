@@ -59,7 +59,7 @@ function previewCount(preview: ImportPreview | null): number {
 
 function failureMessage(status: number): string {
   if (status === 401) return "登录状态已失效，请重新登录后再试。";
-  if (status === 403) return "这台设备的记录含敏感内容；请先在上方明确开启敏感跨设备保存。";
+  if (status === 403) return "这台设备的记录含敏感内容；请先在上方核对当前跨设备同步设置。";
   if (status === 409) return "预览发现重复或无效记录，未导入任何内容。";
   if (status >= 500) return "迁移服务暂时不可用；这台设备上的原记录没有改变，可稍后重试。";
   return "无法处理这台设备的记录；原记录没有改变。";
@@ -181,7 +181,7 @@ export function DeviceHistoryTransferPanel({ returnTo }: DeviceHistoryTransferPa
       <p className="account-section-title">登录前本机历史</p>
       <p className="account-note">
         仅检查当前这台设备的匿名本机记录，不读取其他账号的数据。不会自动导入，也不会删除设备上的原记录。
-        {sensitive ? " 其中包含敏感记录，需先在上方明确开启敏感跨设备保存。" : ""}
+        {sensitive ? " 其中包含敏感记录，需先在上方核对当前跨设备同步设置。" : ""}
       </p>
       <div className="account-actions">
         <button className="auth-google" disabled={busy} onClick={() => void inspectDeviceHistory()} type="button">

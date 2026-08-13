@@ -39,7 +39,7 @@ function totalCount(preview: LegacyPreview | undefined): number {
 
 function errorMessage(status: number): string {
   if (status === 401) return "登录状态已失效，请重新登录后再试。";
-  if (status === 403) return "这份备份含敏感内容；请先在本页开启敏感跨设备保存。";
+  if (status === 403) return "这份备份含敏感内容；请先在本页核对当前跨设备同步设置。";
   if (status === 409) return "备份中有重复或无效记录，无法导入。";
   if (status >= 500) return "迁移服务暂时不可用；本机源文件未改变，可稍后重试。";
   return "备份文件格式不受支持，请确认选择的是个人日程导出的 JSON 文件。";

@@ -885,7 +885,7 @@ export function useTenantResource<T extends TenantRecord>(
     }
     if (sensitive && cloudAvailabilityRef.current !== "available") {
       if (cloudAvailabilityRef.current === "consent_required") {
-        setError("这类记录需要你先在账户页明确开启敏感内容跨设备保存。");
+        setError("这类记录的跨设备同步需要在账户页核对当前设置。");
         setConsentRequired(true);
       } else {
         setError("暂时无法确认当前账号的跨设备保存状态，请刷新后再试。");
@@ -1016,7 +1016,7 @@ export function ResourceStatus({
     <p className="interaction-note" role="status">
       {error}{" "}
       {authRequired || loginSuggested ? <a className="data-link" href="/auth/sign-in">去登录</a> : null}
-      {consentRequired ? <a className="data-link" href="/account" onClick={continueAfterConsent}>开启敏感跨设备保存</a> : null}
+      {consentRequired ? <a className="data-link" href="/account" onClick={continueAfterConsent}>核对跨设备同步设置</a> : null}
     </p>
   );
 }

@@ -246,10 +246,10 @@ export default function AccountPage() {
       if (decision === "accepted") {
         window.dispatchEvent(new Event("mydairy:privacy-consent-accepted"));
         if (returnTo) {
-          setMessage("已开启敏感内容跨设备保存，正在返回原页面同步你的历史记录…");
+          setMessage("已确认敏感内容跨设备保存，正在返回原页面同步你的历史记录…");
           window.setTimeout(() => window.location.assign(returnTo), 0);
         } else {
-          setMessage("已开启敏感内容跨设备保存。返回记录页后，本设备当前账号暂存的敏感记录会自动同步。");
+          setMessage("已确认敏感内容跨设备保存。返回记录页后，本设备当前账号暂存的敏感记录会自动同步。");
         }
       }
       else setMessage("已关闭敏感内容跨设备保存。");
