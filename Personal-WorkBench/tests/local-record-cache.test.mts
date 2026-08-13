@@ -20,9 +20,14 @@ import {
   resolveBrowserRecordScope,
   resolveDeviceOutboxAction,
   resolveDeviceOutboxActionWithAliases,
+  restoreLegacyGuestDeviceHistory,
   writeDeviceLocalRecord,
   type DeviceOutboxAction,
 } from "../app/_components/workbench/local-record-cache.ts";
+import {
+  parseLegacyDeviceHistoryPayload,
+  serializeLegacyDeviceHistoryPayload,
+} from "../app/_components/workbench/legacy-device-history-payload.ts";
 
 test("device-local records retain display fields while excluding client tenant identifiers", () => {
   const record = createDeviceLocalRecord(
@@ -301,6 +306,66 @@ test("an explicit guest-device import candidate includes every supported module 
     assert.equal(first.modules.food?.[0]?.photoObjectId, undefined);
     assert.equal(first.modules.ledger, undefined);
     assert.equal(await countGuestDeviceHistoryRecords(), 5);
+  } finally {
+    if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
+    else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });
+  }
+});
+
+test("a retired-domain envelope restores only the canonical guest partition and retains the source payload", async () => {
+  const runtime = globalThis as typeof globalThis & { window?: unknown };
+  const originalWindow = runtime.window;
+  const entries = new Map<string, string>();
+  const storage = {
+    getItem(key: string) { return entries.get(key) ?? null; },
+    removeItem(key: string) { entries.delete(key); },
+    setItem(key: string, value: string) { entries.set(key, value); },
+  };
+  Object.defineProperty(runtime, "window", {
+    configurable: true,
+    value: {
+      indexedDB: { open() { throw new Error("embedded browser cache unavailable"); } },
+      localStorage: storage,
+    },
+  });
+
+  const envelope = {
+    sourceInstanceId: "guest-device-legacy-history-0001",
+    sourceSchemaVersion: 1,
+    exportedAt: "2026-08-13T00:00:00.000Z",
+    modules: {
+      schedule: [{ id: "local_legacy_schedule", title: "旧站日程", startsAt: 1_700_000_000_000, allDay: true }],
+      food: [{ id: "local_legacy_food", foodName: "旧站早餐", calories: 300, meal: "breakfast", localDate: "2026-08-13", photoObjectId: "old-private-object" }],
+    },
+    imageManifest: [],
+  };
+  const payload = serializeLegacyDeviceHistoryPayload(envelope);
+
+  try {
+    assert.ok(payload);
+    const sourceBeforeRestore = payload;
+    await writeDeviceLocalRecord("guest", "schedule", createDeviceLocalRecord({ title: "canonical-existing", startsAt: 2, allDay: false }, 2, "local_canonical_existing"));
+    await writeDeviceLocalRecord("account:other", "schedule", createDeviceLocalRecord({ title: "other-account", startsAt: 3, allDay: false }, 3, "local_other_account"));
+
+    const result = await restoreLegacyGuestDeviceHistory(payload);
+    assert.deepEqual(result, { accepted: true, restored: 2, skipped: 0 });
+    assert.equal(payload, sourceBeforeRestore);
+    assert.deepEqual(
+      new Set((await readDeviceLocalRecords("guest", "schedule")).map((record) => record.id)),
+      new Set(["local_canonical_existing", "local_legacy_schedule"]),
+    );
+    const food = await readDeviceLocalRecords("guest", "food");
+    assert.equal(food[0]?.food_name, "旧站早餐");
+    assert.equal(food[0]?.photo_object_id, undefined);
+    assert.deepEqual(
+      (await readDeviceLocalRecords("account:other", "schedule")).map((record) => record.id),
+      ["local_other_account"],
+    );
+    assert.equal(await countGuestDeviceHistoryRecords(), 3);
+
+    const unsafe = JSON.parse(payload) as { modules: { schedule: Array<Record<string, unknown>> } };
+    unsafe.modules.schedule[0].userId = "not-anonymous";
+    assert.equal(parseLegacyDeviceHistoryPayload(unsafe), null);
   } finally {
     if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
     else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });

@@ -8,6 +8,7 @@ import {
   AUTH_RETURN_RECOVERY_QUERY_VALUE,
 } from "../../auth/_components/auth-return-recovery";
 import { accountReturnPathFromLocation } from "./account-return-path";
+import { LEGACY_DEVICE_HISTORY_TRANSFER_EVENT } from "./legacy-device-history-payload";
 import { countGuestDeviceHistoryRecords } from "./local-record-cache";
 
 type BrowserSession = {
@@ -92,6 +93,7 @@ export function GuestHistoryRecoveryNotice() {
     // session read that races the callback could hide the device-history
     // recovery entry until a manual reload.
     window.addEventListener(AUTH_RETURN_RECOVERY_EVENT, inspect);
+    window.addEventListener(LEGACY_DEVICE_HISTORY_TRANSFER_EVENT, inspect);
     window.addEventListener("focus", inspect);
     window.addEventListener("pageshow", inspect);
     document.addEventListener("visibilitychange", inspectWhenDocumentVisible);
@@ -107,6 +109,7 @@ export function GuestHistoryRecoveryNotice() {
       controller?.abort();
       recoveryTimers.forEach((timer) => window.clearTimeout(timer));
       window.removeEventListener(AUTH_RETURN_RECOVERY_EVENT, inspect);
+      window.removeEventListener(LEGACY_DEVICE_HISTORY_TRANSFER_EVENT, inspect);
       window.removeEventListener("focus", inspect);
       window.removeEventListener("pageshow", inspect);
       document.removeEventListener("visibilitychange", inspectWhenDocumentVisible);

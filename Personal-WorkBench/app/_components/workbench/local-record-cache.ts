@@ -1,3 +1,14 @@
+import {
+  parseLegacyDeviceHistoryPayload,
+  type GuestDeviceHistoryEnvelope,
+  type GuestDeviceHistoryModule,
+} from "./legacy-device-history-payload.ts";
+
+export type {
+  GuestDeviceHistoryEnvelope,
+  GuestDeviceHistoryModule,
+} from "./legacy-device-history-payload.ts";
+
 /**
  * Device-local records are deliberately kept outside the cloud data plane.
  * They make an interrupted, logged-out, or consent-paused interaction useful
@@ -35,29 +46,6 @@ export type DeviceOutboxParentReference = {
  * account that created them, even when a shared browser later signs in as a
  * different person.
  */
-export type GuestDeviceHistoryModule =
-  | "habits"
-  | "habitCheckins"
-  | "todos"
-  | "ledger"
-  | "food"
-  | "exercise"
-  | "weight"
-  | "schedule"
-  | "anniversaries"
-  | "diary"
-  | "savings"
-  | "savingsTransactions"
-  | "period";
-
-export type GuestDeviceHistoryEnvelope = {
-  sourceInstanceId: string;
-  sourceSchemaVersion: 1;
-  exportedAt: string;
-  modules: Partial<Record<GuestDeviceHistoryModule, Array<Record<string, unknown>>>>;
-  imageManifest: [];
-};
-
 type CachedRecordRow = {
   id: string;
   key: string;
@@ -494,6 +482,52 @@ export async function buildGuestDeviceHistoryEnvelope(
     modules,
     imageManifest: [],
   };
+}
+
+export type GuestDeviceHistoryRestoreResult = {
+  accepted: boolean;
+  restored: number;
+  skipped: number;
+};
+
+/**
+ * The retired host's IndexedDB is a different browser origin. Restore its
+ * bounded anonymous envelope into this origin's guest partition only; account
+ * partitions, outbox actions, image bytes, and source records are untouched.
+ */
+export async function restoreLegacyGuestDeviceHistory(
+  value: unknown,
+): Promise<GuestDeviceHistoryRestoreResult> {
+  const envelope = parseLegacyDeviceHistoryPayload(value);
+  if (!envelope) return { accepted: false, restored: 0, skipped: 0 };
+
+  let restored = 0;
+  let skipped = 0;
+  const now = Date.now();
+  for (const { module, resource } of guestDeviceHistoryResources) {
+    const rows = envelope.modules[module] ?? [];
+    const existingIds = new Set((await readDeviceLocalRecords("guest", resource)).map((record) => record.id));
+    for (const row of rows) {
+      const id = typeof row.id === "string" ? row.id : "";
+      if (!id || existingIds.has(id)) {
+        skipped += 1;
+        continue;
+      }
+      const payload: Record<string, unknown> = {};
+      for (const [key, item] of Object.entries(row)) {
+        if (
+          key !== "id"
+          && key !== "photoObjectId"
+          && key !== "photo_object_id"
+          && !tenantFieldNames.has(key)
+        ) payload[key] = item;
+      }
+      await writeDeviceLocalRecord("guest", resource, createDeviceLocalRecord(payload, now, id));
+      existingIds.add(id);
+      restored += 1;
+    }
+  }
+  return { accepted: true, restored, skipped };
 }
 
 /**

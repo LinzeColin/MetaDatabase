@@ -13,6 +13,7 @@ import TodoPageClient from "./_components/workbench/todo-page-client";
 import { AccountEntry } from "./_components/workbench/account-entry";
 import { GuestHistoryRecoveryNotice } from "./_components/workbench/guest-history-recovery-notice";
 import { WorkbenchInteractionReady } from "./_components/workbench/interaction-ready";
+import { LegacyDomainHistoryRecovery } from "./_components/workbench/legacy-domain-history-recovery";
 import { LegacyDomainRedirect } from "./_components/workbench/legacy-domain-redirect";
 import { VisitorDate } from "./_components/workbench/visitor-time-client";
 
@@ -298,6 +299,7 @@ export default async function HomePage({ searchParams }: PageProps) {
 
   return (
     <>
+      <LegacyDomainHistoryRecovery />
       <LegacyDomainRedirect />
       {page}
     </>

@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import { canonicalRetiredUrl } from "./canonical-domain";
+import { buildGuestDeviceHistoryEnvelope } from "./local-record-cache";
+import { serializeLegacyDeviceHistoryPayload } from "./legacy-device-history-payload";
 import { LEGACY_DOMAIN_HANDOFF_COMPLETE_URL, parseLegacyHandoffId } from "./legacy-domain-handoff";
 
 type HandoffResponse = { handoff?: unknown };
@@ -11,18 +13,41 @@ function handoffIdFromResponse(value: unknown): string | null {
   return parseLegacyHandoffId((value as HandoffResponse).handoff);
 }
 
-function submitHandoff(handoff: string): void {
+function appendHiddenValue(form: HTMLFormElement, name: string, value: string): void {
+  const input = document.createElement("input");
+  input.name = name;
+  input.type = "hidden";
+  input.value = value;
+  form.appendChild(input);
+}
+
+function submitHandoff(handoff: string | null, history: string | null, next: string): void {
   const form = document.createElement("form");
   form.action = LEGACY_DOMAIN_HANDOFF_COMPLETE_URL;
   form.method = "POST";
   form.style.display = "none";
-  const input = document.createElement("input");
-  input.name = "handoff";
-  input.type = "hidden";
-  input.value = handoff;
-  form.appendChild(input);
+  if (handoff) appendHiddenValue(form, "handoff", handoff);
+  if (history) appendHiddenValue(form, "history", history);
+  appendHiddenValue(form, "next", next);
   document.body.appendChild(form);
   form.submit();
+}
+
+async function legacyDeviceHistoryPayload(): Promise<string | null> {
+  let timer: number | null = null;
+  try {
+    return await Promise.race([
+      buildGuestDeviceHistoryEnvelope().then((envelope) => {
+        const hasRecords = Object.values(envelope.modules).some((rows) => Array.isArray(rows) && rows.length > 0);
+        return hasRecords ? serializeLegacyDeviceHistoryPayload(envelope) : null;
+      }),
+      new Promise<null>((resolve) => {
+        timer = window.setTimeout(() => resolve(null), 2_500);
+      }),
+    ]);
+  } finally {
+    if (timer !== null) window.clearTimeout(timer);
+  }
 }
 
 export function LegacyDomainRedirect() {
@@ -37,23 +62,36 @@ export function LegacyDomainRedirect() {
 
     const preserveExistingSession = async () => {
       try {
-        const response = await fetch("/api/auth/legacy-domain-handoff", {
-          method: "POST",
-          credentials: "same-origin",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            next: `${window.location.pathname}${window.location.search}${window.location.hash}`,
-          }),
-        });
-        const payload = await response.json().catch(() => null) as HandoffResponse | null;
-        const handoff = response.ok ? handoffIdFromResponse(payload) : null;
-        if (!handoff || cancelled) {
+        const next = window.location.pathname + window.location.search + window.location.hash;
+        const [history, response] = await Promise.all([
+          legacyDeviceHistoryPayload().catch(() => null),
+          fetch("/api/auth/legacy-domain-handoff", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ next }),
+          }).catch(() => null),
+        ]);
+        if (cancelled) return;
+        if (!response) {
+          if (history) {
+            submitHandoff(null, history, next);
+            return;
+          }
           redirect();
           return;
         }
-        // The form POST keeps the opaque id out of the redirect URL and lets
-        // the canonical site set its first-party, HttpOnly cookie.
-        submitHandoff(handoff);
+        const payload = await response.json().catch(() => null) as HandoffResponse | null;
+        const handoff = response.ok ? handoffIdFromResponse(payload) : null;
+        if (!handoff && !history) {
+          redirect();
+          return;
+        }
+        // The form keeps the opaque session id and the browser-only history
+        // payload out of the URL. The canonical completion page sets its
+        // first-party cookie and places the anonymous payload in canonical
+        // sessionStorage; no history is written to D1/R2 by this handoff.
+        submitHandoff(handoff, history, next);
       } catch {
         redirect();
       }

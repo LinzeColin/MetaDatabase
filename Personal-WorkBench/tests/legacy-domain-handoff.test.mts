@@ -130,3 +130,40 @@ test("only a server-authenticated session can complete a handoff", () => {
   assert.equal(transferableAuthSession({ session: { expiresAt: new Date() }, user: {} }), false);
   assert.equal(transferableAuthSession(null), false);
 });
+
+test("canonical completion keeps a retired anonymous history handoff in browser storage only", async () => {
+  const oldOrigin = "https://huchuliang-workbench.linzezhang35.chatgpt.site";
+  const canonicalOrigin = "https://mydairy.linzezhang.com";
+  const [{ POST }, { serializeLegacyDeviceHistoryPayload }] = await Promise.all([
+    import("../app/api/auth/legacy-domain-handoff/complete/route.ts"),
+    import("../app/_components/workbench/legacy-device-history-payload.ts"),
+  ]);
+  const historyPayload = serializeLegacyDeviceHistoryPayload({
+    sourceInstanceId: "guest-device-route-history-0001",
+    sourceSchemaVersion: 1,
+    exportedAt: "2026-08-13T00:00:00.000Z",
+    modules: {
+      diary: [{ id: "local_route_diary", localDate: "2026-08-13", body: "</script><script>throw new Error()</script>" }],
+    },
+    imageManifest: [],
+  });
+  assert.ok(historyPayload);
+
+  const form = new FormData();
+  form.set("history", historyPayload);
+  form.set("next", "/?view=period");
+  const response = await POST(new Request(canonicalOrigin + "/api/auth/legacy-domain-handoff/complete", {
+    method: "POST",
+    headers: { Origin: oldOrigin },
+    body: form,
+  }));
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  assert.ok((response.headers.get("content-security-policy") ?? "").includes("default-src"));
+  const body = await response.text();
+  assert.match(body, /sessionStorage\.setItem/);
+  assert.match(body, /https:\/\/mydairy\.linzezhang\.com\/\?view=period/);
+  assert.equal(body.includes("</script><script>"), false);
+  assert.equal(body.includes("\\u003c/script"), true);
+});
