@@ -1,7 +1,7 @@
 {
   "status": "PASS",
-  "version": "0.0.0.74",
-  "version_set_by": "02cf11b3425c927d77548ae55ea9e8a1bf12accc 08-13 22:52",
+  "version": "0.0.0.75",
+  "version_set_by": "3d46320db07a31630e00e76f7bb3acb83099432e 08-13 23:32",
   "watched": [
     "apps/browser-extension"
   ],

@@ -94,9 +94,12 @@ if [ "${BAD}" = "1" ]; then
   printf '  备份没启用 = 没有任何定时备份\n'
   printf '  复制没启用 = 制品只存在于本机这一块盘上\n'
   printf '  两者都静默 —— 界面照样显示「已归档」。\n'
+  # **带 sudo**：2026-08-13 生产实测，非 root 跑 `systemctl enable` 会得到
+  # `Interactive authentication required`。提示里给一条会被拒的命令，
+  # 等于把人送去撞墙——这个仓今天已经因为同一件事修过运维手册四条命令。
   printf '\n启用命令（由 Owner 执行，本脚本只读不改）：\n'
   for unit in "${REQUIRED[@]}"; do
-    printf '  systemctl enable --now %s\n' "${unit}"
+    printf '  sudo systemctl enable --now %s\n' "${unit}"
   done
   printf '\n启用后重跑本脚本复核；再看 /v1/status 的 storage.completion。\n'
   exit 1
@@ -105,4 +108,4 @@ fi
 
 printf '\n✓ 保命的 unit 都已启用，**而且每个定时器上次真的跑成了**。\n'
 printf '  它没有证明的：这一轮备份的内容对不对、副本能不能解开——\n'
-printf '  那要看 `/v1/status` 的 replicas 和 `scripts/restore.sh --verify`。\n'
+printf '  那要看 `/v1/status` 的 replicas；\n  要真的验"取得回来"，在开发机上跑 scripts/check_the_backup_can_actually_be_restored.py\n  （生产上直接敲 restore.sh 会回 BLOCKED_ENVIRONMENT：解密身份在 unit 的 EnvironmentFile 里）。\n'

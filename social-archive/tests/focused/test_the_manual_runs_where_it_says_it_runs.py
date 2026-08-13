@@ -3,7 +3,10 @@ r"""运维手册标着「在生产上」的命令，得在生产上真的跑得�
 ## 它修的是什么
 
 手册开头就写着「**先分清你在哪台机器上——两套命令不能混用**」，而它自己
-在生产那一侧给了三条跑不通的命令。2026-08-13 逐条在生产上实测：
+在生产那一侧给了**五条**跑不通的命令。2026-08-13 逐条在生产上实测——
+其中 `journalctl` 与 `systemctl enable` 两条是**后来才发现的**：
+前者不报错只给个空，后者挂在一个标题里没有「生产」二字的小节下、
+被这条判据第一版的切法整个漏掉（射程因此改成按命令本身判）：
 
     systemctl restart social-archive.service
       → Failed to restart …: Interactive authentication required.
@@ -41,33 +44,47 @@ ROOT = Path(__file__).resolve().parents[2]
 MANUAL = ROOT / "docs/06_运维手册.md"
 
 
-def _production_commands() -> list[str]:
-    """切出「生产」那些小节里的命令行。
+# 只可能在生产机上跑的东西：systemd 是生产的，`/opt/social-archive` 也是。
+# 开发机那一节两样都不含（start/stop/doctor/backup/restore/export 全是相对路径），
+# 所以按这个判不会误伤它。
+_PRODUCTION_ONLY = ("systemctl", "journalctl", "/opt/social-archive")
 
-    口径：从 `### 生产` 开头的小节，到下一个 `###` 为止；
-    外加任何标了 `# 在生产上` 的代码块。**写出来免得被当成扫了全文。**
+
+def _production_commands() -> list[str]:
+    """哪些命令是「在生产上跑」的。
+
+    两条信号，满足其一即算：
+
+      A. **块被标成生产**——在 `### 生产…` 小节里，或块里写着 `# 在生产上`；
+      B. **命令本身只可能在生产上跑**——含 `systemctl` / `journalctl` /
+         `/opt/social-archive`。
+
+    **第一版只有 A，于是漏了一处**：`systemctl enable --now …` 那个块挂在
+    「### 保命的三个 timer」小节下，标题里没有「生产」两个字，
+    而它同样需要 root。加上 B 之后立刻就抓住了。
+
+    口径写出来，免得被当成扫了全文——开发机那一节不在射程内，
+    那些命令本来就不是给生产用的。
     """
     text = MANUAL.read_text(encoding="utf-8")
-    chunks: list[str] = []
 
-    # `### 生产…` 小节
-    for match in re.finditer(r"^### 生产.*$", text, re.M):
-        start = match.end()
-        nxt = re.search(r"^### ", text[start:], re.M)
-        chunks.append(text[start: start + (nxt.start() if nxt else len(text) - start)])
-
-    # 标了「在生产上」的代码块
-    for block in re.findall(r"```bash\n(.*?)```", text, re.S):
-        if "在生产上" in block:
-            chunks.append(block)
+    # 每个代码块连同它最近的上级标题一起取出来
+    blocks: list[tuple[str, str]] = []
+    for match in re.finditer(r"```bash\n(.*?)```", text, re.S):
+        heading = ""
+        for head in re.finditer(r"^#{2,4} .*$", text[: match.start()], re.M):
+            heading = head.group(0)
+        blocks.append((heading, match.group(1)))
 
     cmds: list[str] = []
-    for chunk in chunks:
-        for block in re.findall(r"```bash\n(.*?)```", chunk, re.S) or [chunk]:
-            for line in block.splitlines():
-                line = line.split("#", 1)[0].strip()
-                if line and not line.startswith(("```", ">")):
-                    cmds.append(line)
+    for heading, block in blocks:
+        marked = heading.startswith("### 生产") or "在生产上" in block
+        for line in block.splitlines():
+            line = line.split("#", 1)[0].strip()
+            if not line or line.startswith(("```", ">")):
+                continue
+            if marked or any(token in line for token in _PRODUCTION_ONLY):
+                cmds.append(line)
     return cmds
 
 
