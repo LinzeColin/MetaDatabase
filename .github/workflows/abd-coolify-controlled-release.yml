@@ -38,7 +38,18 @@ jobs:
             exit 1
           fi
 
-          base_url="${COOLIFY_BASE_URL%/}"
+          base_url="$(printf '%s' "$COOLIFY_BASE_URL" | tr -d '\r\n')"
+          api_token="$(printf '%s' "$COOLIFY_API_TOKEN" | tr -d '\r\n')"
+          api_token="${api_token#Bearer }"
+          if [[ "$api_token" == \"*\" ]]; then
+            api_token="${api_token#\"}"
+            api_token="${api_token%\"}"
+          fi
+          if [[ -z "$api_token" ]]; then
+            echo "::error::Coolify deployment credentials are unavailable."
+            exit 1
+          fi
+          base_url="${base_url%/}"
           api_root="${base_url%/api/v1}/api/v1"
           response_file="$(mktemp)"
           error_file="$(mktemp)"
@@ -52,7 +63,7 @@ jobs:
 
           if ! inventory_http_code="$(curl --silent --show-error --max-time 15 --retry 0 \
             -w '%{http_code}' \
-            -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+            -H "Authorization: Bearer ${api_token}" \
             "${api_root}/applications" \
             -o "$response_file" 2>"$error_file")"; then
             echo "inventory_transport=unreachable"
@@ -161,7 +172,7 @@ jobs:
           fi
 
           if ! curl --fail --silent --show-error --max-time 15 --retry 0 \
-            -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+            -H "Authorization: Bearer ${api_token}" \
             "${api_root}/applications/${app_uuid}" \
             -o "$detail_file" 2>"$error_file"; then
             echo "::error::Unable to verify the selected Coolify application."
@@ -193,7 +204,7 @@ jobs:
 
           if ! curl --fail --silent --show-error --max-time 15 --retry 0 \
             -X POST \
-            -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+            -H "Authorization: Bearer ${api_token}" \
             "${api_root}/deploy?uuid=${app_uuid}&force=false" \
             -o "$deploy_file" 2>"$error_file"; then
             echo "::error::Coolify did not accept the deployment request."
@@ -223,7 +234,7 @@ jobs:
 
           deployment_status="unknown"
           if curl --fail --silent --show-error --max-time 15 --retry 0 \
-            -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+            -H "Authorization: Bearer ${api_token}" \
             "${api_root}/deployments/${deployment_uuid}" \
             -o "$status_file" 2>"$error_file"; then
             deployment_status="$(python3 - "$status_file" <<'PY'
