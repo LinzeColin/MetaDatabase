@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { canonicalRetiredUrl } from "./canonical-domain";
+import { CANONICAL_MYDAIRY_ORIGIN, canonicalRetiredUrl } from "./canonical-domain";
 import { buildGuestDeviceHistoryEnvelope } from "./local-record-cache";
 import { serializeLegacyDeviceHistoryPayload } from "./legacy-device-history-payload";
 import { LEGACY_DOMAIN_HANDOFF_COMPLETE_URL, parseLegacyHandoffId } from "./legacy-domain-handoff";
@@ -50,7 +50,15 @@ async function legacyDeviceHistoryPayload(): Promise<string | null> {
   }
 }
 
-export function LegacyDomainRedirect() {
+type LegacyDomainRedirectProps = {
+  /**
+   * Set from the request host so the retired domain never paints actionable
+   * workbench controls before its client-side session/history handoff starts.
+   */
+  initiallyRetiredHost?: boolean;
+};
+
+export function LegacyDomainRedirect({ initiallyRetiredHost = false }: LegacyDomainRedirectProps) {
   useEffect(() => {
     const destination = canonicalRetiredUrl(window.location.href);
     if (!destination || destination === window.location.href) return;
@@ -103,5 +111,15 @@ export function LegacyDomainRedirect() {
     };
   }, []);
 
-  return null;
+  if (!initiallyRetiredHost) return null;
+
+  return (
+    <div aria-busy="true" aria-live="polite" className="legacy-domain-transfer" role="status">
+      <div className="legacy-domain-transfer-card">
+        <h1>正在打开个人日程</h1>
+        <p>正在安全迁移到新的地址，随后即可继续登录和查看历史记录。</p>
+        <a href={CANONICAL_MYDAIRY_ORIGIN}>如果没有自动打开，请进入个人日程</a>
+      </div>
+    </div>
+  );
 }

@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-async function render(path) {
+async function render(path, host = "localhost") {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}-${Math.random()}`);
   const { default: worker } = await import(workerUrl.href);
   return worker.fetch(
-    new Request(`http://localhost${path}`, { headers: { accept: "text/html" } }),
+    new Request(`http://${host}${path}`, { headers: { accept: "text/html", host } }),
     {
       ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) },
     },
@@ -52,6 +52,15 @@ test("normal routes retain a separate account entry and resolve without referenc
   assert.match(authHtml, /欢迎回来/);
   assert.match(authHtml, /aria-label="返回个人日程"/);
   assert.doesNotMatch(authHtml, /返回工作台/);
+});
+
+test("the retired domain renders a non-interactive handoff before workbench controls", async () => {
+  const response = await render("/?view=home", "huchuliang-workbench.linzezhang35.chatgpt.site");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /class="legacy-domain-transfer"/);
+  assert.match(html, /正在打开个人日程/);
+  assert.match(html, /href="https:\/\/mydairy\.linzezhang\.com"/);
 });
 
 test("account entry reports session state without rendering account identity", async () => {

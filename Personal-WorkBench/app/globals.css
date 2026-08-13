@@ -148,6 +148,49 @@ img { display: block; max-width: 100%; }
 
 .reference-mode .normal-only { display: none !important; }
 
+.legacy-domain-transfer {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(255, 249, 251, 0.96);
+}
+
+.legacy-domain-transfer-card {
+  width: min(100%, 390px);
+  padding: 26px 22px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--card-radius);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.legacy-domain-transfer-card h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.legacy-domain-transfer-card p {
+  margin: 10px 0 18px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.legacy-domain-transfer-card a {
+  color: var(--text-accent);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.legacy-domain-transfer-card a:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 .sidebar {
   position: relative;
   z-index: 5;

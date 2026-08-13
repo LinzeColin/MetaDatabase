@@ -2,6 +2,7 @@
 
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { headers } from "next/headers";
 import {
   FatlossClient,
   GenericPageClient,
@@ -15,6 +16,7 @@ import { GuestHistoryRecoveryNotice } from "./_components/workbench/guest-histor
 import { WorkbenchInteractionReady } from "./_components/workbench/interaction-ready";
 import { LegacyDomainHistoryRecovery } from "./_components/workbench/legacy-domain-history-recovery";
 import { LegacyDomainRedirect } from "./_components/workbench/legacy-domain-redirect";
+import { isRetiredCompatibilityHost } from "./_components/workbench/canonical-domain";
 import { VisitorDate } from "./_components/workbench/visitor-time-client";
 
 const PRIVATE_ASSET_ROOT = "/private-reference-assets";
@@ -268,6 +270,7 @@ function GenericPage({ reference, route }: { reference: boolean; route: string }
 }
 
 export default async function HomePage({ searchParams }: PageProps) {
+  const retiredHost = isRetiredCompatibilityHost((await headers()).get("host"));
   const params = await searchParams;
   const reference = typeof params.reference === "string" && referenceRoutes.has(params.reference);
   const requestedRoute = reference ? params.reference! : params.view;
@@ -300,7 +303,7 @@ export default async function HomePage({ searchParams }: PageProps) {
   return (
     <>
       <LegacyDomainHistoryRecovery />
-      <LegacyDomainRedirect />
+      <LegacyDomainRedirect initiallyRetiredHost={retiredHost} />
       {page}
     </>
   );
