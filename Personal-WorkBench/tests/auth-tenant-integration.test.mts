@@ -318,6 +318,23 @@ test("local auth-to-tenant chain verifies two accounts, isolated history, and pa
     await privacyConsent(alphaDeviceOne);
     await privacyConsent(betaDevice);
 
+    // The account endpoint must expose the stored consent version, not mask a
+    // stale consent as current. Otherwise the UI can say "enabled" while the
+    // resource API correctly rejects a sensitive write.
+    sqlite.prepare("UPDATE profile_settings SET privacy_policy_version = ? WHERE user_id = (SELECT id FROM \"user\" WHERE email = ?)")
+      .run("2026-08-02.v1", alphaEmail);
+    const stalePrivacy = await privacyRoute.GET(new Request(`${origin}/api/account/privacy`, { headers: requestHeaders(alphaDeviceOne) }));
+    assert.equal(stalePrivacy.status, 200);
+    const stalePrivacyPayload = await stalePrivacy.json() as {
+      currentVersion?: unknown;
+      policyVersion?: unknown;
+      state?: unknown;
+    };
+    assert.equal(stalePrivacyPayload.state, "accepted");
+    assert.equal(stalePrivacyPayload.policyVersion, "2026-08-02.v1");
+    assert.equal(stalePrivacyPayload.currentVersion, ACCOUNT_PRIVACY_POLICY_VERSION);
+    await privacyConsent(alphaDeviceOne);
+
     const recoveredLedger = await createRecoveredSensitiveRecord(alphaDeviceOne, "ledger", {
       amountCents: 4567,
       category: "恢复记录",

@@ -569,7 +569,7 @@ test("tenant resource replays only same-account local records, and sensitive rec
   assert.match(source, /accountReturnPathFromLocation/);
   assert.match(source, /return_to=/);
   assert.match(source, /window\.addEventListener\("online", replayWhenOnline\)/);
-  assert.match(source, /开启敏感跨设备保存后会自动同步这条记录。/);
+  assert.match(source, /账户页确认当前敏感跨设备设置后会自动同步这条记录。/);
   assert.match(source, /使用 Google 登录无需额外验证邮箱。/);
   assert.match(cacheSource, /export async function removeDeviceOutboxActions/);
   assert.match(cacheSource, /export async function resolveDeviceOutboxAction/);

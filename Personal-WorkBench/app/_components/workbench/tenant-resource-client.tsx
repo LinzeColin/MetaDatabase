@@ -116,7 +116,7 @@ function failureMessage(status: number, sensitive: boolean, code: ApiFailureCode
     return {
       authRequired: false,
       consentRequired: true,
-      message: "这类记录需要你先在账户页明确开启敏感内容跨设备保存。",
+      message: "敏感内容跨设备保存尚未获服务端确认。请在账户页核对“当前策略”；若已同意版本不是当前版本，重新确认后会自动同步。",
     };
   }
   if (code === "EMAIL_VERIFICATION_REQUIRED") {
@@ -165,7 +165,7 @@ function localSaveMessage(availability: CloudAvailability, sensitive: boolean, q
       : "已保存在当前设备。当前账号尚未完成保存验证；若刚使用 Google 登录，请退出后重新登录，邮箱账号请完成验证邮件。";
   }
   if (queuedForReplay && availability === "consent_required") {
-    return "已保存在当前设备。开启敏感跨设备保存后会自动同步这条记录。";
+    return "已保存在当前设备。账户页确认当前敏感跨设备设置后会自动同步这条记录。";
   }
   if (queuedForReplay && availability === "unauthorized") {
     return sensitive
@@ -182,7 +182,7 @@ function localSaveMessage(availability: CloudAvailability, sensitive: boolean, q
     return "已保存在当前设备。登录后可跨设备同步；使用 Google 登录无需额外验证邮箱。";
   }
   if (availability === "consent_required") {
-    return "已保存在当前设备。本条未上传；如需后续敏感记录跨设备同步，请在账户页明确开启。";
+    return "已保存在当前设备。本条未上传；请在账户页核对当前敏感跨设备设置。";
   }
   if (sensitive) {
     return "已保存在当前设备。本条暂未上传；请刷新后确认登录状态和跨设备保存设置。";

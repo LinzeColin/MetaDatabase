@@ -29,7 +29,6 @@ export async function GET(request: Request): Promise<Response> {
     return Response.json(
       {
         ...snapshot,
-        policyVersion: currentPolicyVersion(),
         noticeSha256: currentNoticeSha256(),
         currentVersion: currentPolicyVersion(),
         legalOperatorName: publicConfig.legalOperatorName,

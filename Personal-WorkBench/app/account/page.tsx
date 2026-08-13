@@ -384,6 +384,10 @@ export default function AccountPage() {
     privacy.state === "accepted" &&
     privacy.policyVersion === privacy.currentVersion &&
     privacy.deletionState === "active";
+  const privacyConsentNeedsRefresh =
+    privacy.state === "accepted" &&
+    privacy.policyVersion !== privacy.currentVersion &&
+    privacy.deletionState === "active";
   const privacyDisclosureReady = Boolean(privacy.legalOperatorName && privacy.privacyContactEmail);
 
   return (
@@ -464,13 +468,14 @@ export default function AccountPage() {
                 <p>本产品不是医疗、诊断、治疗或 PHI 服务，也不面向儿童。运营者：{privacy.legalOperatorName ?? "当前候选尚未配置"}；隐私联系：{privacy.privacyContactEmail ? <a href={`mailto:${privacy.privacyContactEmail}`}>{privacy.privacyContactEmail}</a> : "当前候选尚未配置"}。</p>
               </div>
               <p className="account-note">
-                当前策略：{privacyAccepted ? "已开启" : "未开启"}（版本 {privacy.policyVersion ?? privacy.currentVersion}）
+                当前策略：{privacyAccepted ? "已开启" : privacyConsentNeedsRefresh ? "需要重新确认" : "未开启"}
+                （已同意版本 {privacy.policyVersion ?? "未同意"}；当前版本 {privacy.currentVersion}）
               </p>
               <p className="account-note">首次开启前已同意版本：{privacy.policyVersion || "未同意"}，同意时间：{prettyDate(privacy.consentedAt)}。</p>
               {privacy.revokedAt ? <p className="account-note">最近撤回：{prettyDate(privacy.revokedAt)}。</p> : null}
               <div className="account-actions">
                 <button type="button" className="auth-primary-link" onClick={() => void setConsent("accepted")} disabled={isBusy || privacyAccepted || !privacyDisclosureReady}>
-                  开启敏感跨设备
+                  {privacyConsentNeedsRefresh ? "重新确认敏感跨设备保存" : "开启敏感跨设备"}
                 </button>
                 <button type="button" className="auth-google" onClick={() => void setConsent("revoked")} disabled={isBusy || !privacyAccepted}>
                   关闭并撤回
