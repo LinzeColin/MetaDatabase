@@ -487,7 +487,8 @@
       state.minimumExtensionVersion = health.minimum_extension_version || "";
       state.health = health;
       const worker = health.worker || null;
-      if (worker && worker.ever_seen && worker.alive === false) {
+      const workerDown = !!(worker && worker.ever_seen && worker.alive === false);
+      if (workerDown) {
         setServiceBadge("needs", "后台没在跑 · 新的同步会排队等着");
       } else {
         // **「有新版本」要说，但不许拦。**
@@ -497,6 +498,19 @@
         // 然后我只做了「不挡」那一半——`outdated` 算出来了，**没有任何地方读它**。
         // 「建好了没接上」，而且是在修完同一个毛病的下一轮里自己犯的。
         paintServiceBadge();
+      }
+      // **备份那条链停了，也要主动说。**（2026-08-13）
+      //
+      // 2026-08-11 23:53 起它连着失败了 108 次、28 小时（systemd 那个单元
+      // 进不去工作目录），而界面上**一个字都没有**：
+      // `/v1/status` 的 replicas 一直是 verified——那是库里记着的**历史回执**，
+      // 不是"现在还在跑"。「加密存三份」停了一天多，每个绿灯都还是绿的。
+      //
+      // 句子由服务端给（`message_zh`），这边不造句——和存储那一格同一个规矩。
+      // 后台没在跑时不抢那句话：那件事更急。
+      const replication = health.replication || null;
+      if (!workerDown && replication && replication.message_zh) {
+        setServiceBadge("needs", replication.message_zh);
       }
       // 存储吃紧时要**主动**说，别等用户发现媒体没下下来才去猜。
       //
@@ -2345,7 +2359,7 @@
     }
     await loadLibrary();
     renderNextStep();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=9c6bcb0d").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=af983539").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {

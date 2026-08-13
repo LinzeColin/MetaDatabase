@@ -342,6 +342,68 @@ def _free_disk() -> dict[str, Any]:
     return {"measured": False, "why_zh": "数据库路径的每一层都不存在，量不到盘"}
 
 
+# 复制/备份那条链**上一次真的跑完是什么时候**。（2026-08-13）
+#
+# ## 为什么要有这一格
+#
+# 2026-08-11 23:53 起，`social-archive-replication.service` 每次触发都以
+# `200/CHDIR` 失败（有人把 `/opt/social-archive` 改成了 700，而它以
+# socialarchive 用户跑）。**连着失败 108 次、28 小时**，而：
+#
+#   · `/v1/status` 的 `replicas` 一直是 `verified` —— 那是**库里记着的历史回执**，
+#     记的是过去成功过，不是现在还在跑；
+#   · `recovery.last_backup` 写死成 "unknown"；
+#   · 界面上没有任何一处提到备份。
+#
+# **「加密存三份」停了一天多，而每一个绿灯都还是绿的。**
+#
+# ## 这一格取的是什么
+#
+# `replicate_objects.py` 每跑一次就重写 `status/object-replication.json`。
+# 服务跑不起来时脚本根本不执行，那个文件就停在旧时间——**所以它的时间戳
+# 是这条链的活性信号**，而回执是历史。两者差别正是这次事故的全部。
+def _replication_liveness() -> dict[str, Any]:
+    path = settings.data_root / "status/object-replication.json"
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {"last_run_at": None, "status": "unknown", "stale": None,
+                "why": "还没有 status/object-replication.json"}
+    last = str(document.get("generated_at") or "")
+    hours: float | None = None
+    try:
+        seen = datetime.fromisoformat(last.replace("Z", "+00:00"))
+        hours = (datetime.now(UTC) - seen).total_seconds() / 3600.0
+    except ValueError:
+        pass
+    # 定时器约每 15 分钟触发一次，2 小时没动过就是真的没在跑了。
+    stale = None if hours is None else hours > 2.0
+    status = str(document.get("status") or "unknown")
+    # **句子在这边写，界面只负责说出来**（和存储吃紧那一格同一个规矩：
+    # 界面自己造句等于绕过冻结词典）。
+    #
+    # 措辞要先按住他最担心的那件事：**已经存下来的东西没有少**。
+    # 停的是"再复制一份到别处"，不是"你的东西丢了"。
+    message = ""
+    if stale:
+        howlong = f"{int(hours)} 小时" if hours and hours >= 1 else "一会儿"
+        # **这句是给他看的，不许带 Markdown**——界面按纯文本渲染，
+        # 写了 `**` 他就会看到两个星号。判据：
+        # test_no_markdown_in_sentences_the_user_reads.py（它当场抓到了我）。
+        message = (f"备份已经 {howlong}没有跑过了——已存下的内容一条都没少，"
+                   f"停下来的是「再存一份到别处」这件事。")
+    elif status not in ("PASS", "unknown"):
+        message = ("最近一次备份没跑完——已存下的内容一条都没少，"
+                   "但这一轮的副本没有做上去。")
+    return {
+        "last_run_at": last or None,
+        "status": status,
+        "hours_since": None if hours is None else round(hours, 2),
+        "stale": stale,
+        "message_zh": message,
+    }
+
+
 @app.get("/health")
 def health() -> dict[str, Any]:
     return {
@@ -351,6 +413,8 @@ def health() -> dict[str, Any]:
         "time": utcnow(),
         "paid_api_allowed": settings.paid_api_allowed,
         "archive_defaults": {"L0": True, "L1": True, "L2": settings.l2_enabled, "L3": settings.l3_enabled},
+        # **备份这条链还在不在跑**——不是"以前成功过"，是"刚才跑过"。
+        "replication": _replication_liveness(),
         # **后台在不在跑，也算健康的一部分。**
         #
         # 2026-08-06 一次被打断的部署留下 core-api 起来了、core-worker 卡在
