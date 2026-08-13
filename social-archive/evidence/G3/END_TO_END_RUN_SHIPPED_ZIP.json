@@ -1,7 +1,7 @@
 {
   "status": "PASS",
   "task": "G3",
-  "extension_under_test": "/var/folders/w9/fnb1wnyd3dg6npzvt909scm80000gn/T/sa-bili-zip-w6yh7d2r",
+  "extension_under_test": "/var/folders/w9/fnb1wnyd3dg6npzvt909scm80000gn/T/sa-bili-zip-duiwsbto",
   "extension_version": "0.0.0.70",
   "journey": {
     "connect": {
@@ -21,28 +21,28 @@
     },
     "tabs_before": [
       {
-        "id": 929013129,
+        "id": 1664742265,
         "active": false
       },
       {
-        "id": 929013130,
+        "id": 1664742266,
         "active": false
       },
       {
-        "id": 929013133,
+        "id": 1664742269,
         "active": true
       }
     ],
-    "my_tab_id": 929013133,
+    "my_tab_id": 1664742269,
     "queue_before": [
       {
         "accountId": "acct-1",
-        "enqueuedAt": 1786605925537,
+        "enqueuedAt": 1786608131820,
         "profileUrl": "",
         "syncRunId": "run-1",
         "tabId": null,
         "triggerType": "first_connect",
-        "updatedAt": 1786605925537
+        "updatedAt": 1786608131820
       }
     ],
     "alarm_scheduled": true,
@@ -60,15 +60,15 @@
     "queue_after": [],
     "tabs_after": [
       {
-        "id": 929013129,
+        "id": 1664742265,
         "active": false
       },
       {
-        "id": 929013130,
+        "id": 1664742266,
         "active": false
       },
       {
-        "id": 929013133,
+        "id": 1664742269,
         "active": true
       }
     ],
