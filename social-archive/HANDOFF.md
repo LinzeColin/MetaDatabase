@@ -35,7 +35,7 @@ curl -s https://social-archive-api.linzezhang.com/health
 | | |
 |---|---|
 | 公开地址 | `https://social-archive.linzezhang.com`（资料库）／ `…-api.…`（接口） |
-| 跑着的版本 | **0.0.0.86**（从本机打公开域名读回来的，不是打回环） |
+| 跑着的版本 | **0.0.0.87**（从本机打公开域名读回来的，不是打回环） |
 | 生产机 | 见 `deploy/PRODUCTION_HOST`——**唯一真源，别把机器名抄进命令** |
 | 你的库 | 内容 **193** 条、关系 **194** 条、制品 **552** 个 |
 | 三份副本 | **552 / 552 全部三份已验证，pending 0** |
