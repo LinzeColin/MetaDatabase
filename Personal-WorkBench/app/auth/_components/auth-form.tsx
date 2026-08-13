@@ -43,6 +43,8 @@ type AuthFormProps = {
   turnstileSiteKey: string | null;
 };
 
+const CAPTCHA_RESPONSE_TIMEOUT_MS = 15_000;
+
 const initialMessages: Record<AuthMode, string> = {
   "sign-in": "登录后，换设备也能接着用。",
   "sign-up": "注册后请完成邮箱验证，再开始记录。",
@@ -84,7 +86,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
   const turnstileContainer = useRef<HTMLDivElement>(null);
   const [fetchedSiteKey, setFetchedSiteKey] = useState<string | null>(null);
   const [captchaReadiness, setCaptchaReadiness] = useState<CaptchaReadiness>(
-    () => (usesTurnstile && !turnstileSiteKey ? "loading" : "ready"),
+    () => (usesTurnstile ? "loading" : "ready"),
   );
   const [captchaRetryNonce, setCaptchaRetryNonce] = useState(0);
   // A server-supplied site key means the widget may begin mounting immediately,
@@ -124,7 +126,6 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
           const nextKey = (value as { turnstileSiteKey: string }).turnstileSiteKey.trim();
           if (nextKey) {
             setFetchedSiteKey(nextKey);
-            setCaptchaReadiness("ready");
             return;
           }
         }
@@ -140,9 +141,16 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
     if (!usesTurnstile || !siteKey || !turnstileContainer.current) return;
 
     let widgetId: string | undefined;
+    let responseTimeout: number | undefined;
     let cancelled = false;
+    const clearResponseTimeout = () => {
+      if (responseTimeout === undefined) return;
+      window.clearTimeout(responseTimeout);
+      responseTimeout = undefined;
+    };
     const markUnavailable = () => {
       if (cancelled) return;
+      clearResponseTimeout();
       setTurnstileToken("");
       setCaptchaReadiness("unavailable");
     };
@@ -153,12 +161,14 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
         action: "workbench_auth",
         callback: (token) => {
           if (cancelled) return;
+          clearResponseTimeout();
           setTurnstileToken(token);
           setCaptchaReadiness("ready");
         },
         "expired-callback": () => setTurnstileToken(""),
         "error-callback": markUnavailable,
       });
+      responseTimeout = window.setTimeout(markUnavailable, CAPTCHA_RESPONSE_TIMEOUT_MS);
     };
 
     const existing = document.querySelector<HTMLScriptElement>('script[data-workbench-turnstile="true"]');
@@ -180,6 +190,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
 
     return () => {
       cancelled = true;
+      clearResponseTimeout();
       if (widgetId && window.turnstile) window.turnstile.remove(widgetId);
     };
   }, [captchaRetryNonce, siteKey, usesTurnstile]);
@@ -319,10 +330,16 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
             </label>
           ) : null}
           {usesTurnstile ? <div className="turnstile-slot" ref={turnstileContainer} /> : null}
+          {usesTurnstile && effectiveCaptchaReadiness === "loading" ? (
+            <p className="auth-captcha-message" role="status">正在准备安全验证，请稍候…</p>
+          ) : null}
           {usesTurnstile && effectiveCaptchaReadiness === "unavailable" ? (
-            <button type="button" className="auth-google" onClick={retryCaptcha} disabled={!interactive || submitting}>
-              重试安全验证
-            </button>
+            <>
+              <p className="auth-captcha-message" role="status">安全验证暂不可用，请检查网络后重试。</p>
+              <button type="button" className="auth-google" onClick={retryCaptcha} disabled={!interactive || submitting}>
+                重试安全验证
+              </button>
+            </>
           ) : null}
           <button type="submit" className="auth-submit" disabled={!interactive || submitting}>
             {submitting ? "请稍候…" : mode === "sign-up" ? "注册" : mode === "forgot-password" ? "发送说明" : mode === "reset-password" ? "更新密码" : mode === "verify-email" ? "重新发送验证邮件" : "登录"}

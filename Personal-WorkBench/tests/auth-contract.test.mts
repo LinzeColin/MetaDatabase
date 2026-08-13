@@ -437,15 +437,18 @@ test("auth form uses the CAPTCHA readiness preflight before it builds a request"
   const authForm = await readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8");
 
   assert.match(authForm, /captchaSubmissionPreflight\(mode, effectiveCaptchaReadiness, captchaResponse\)/);
-  assert.match(authForm, /usesTurnstile && !turnstileSiteKey \? "loading" : "ready"/);
+  assert.match(authForm, /usesTurnstile \? "loading" : "ready"/);
   assert.match(authForm, /usesTurnstile \? captchaReadiness : "ready"/);
   assert.match(authForm, /setCaptchaReadiness\("ready"\)/);
   assert.match(authForm, /setCaptchaReadiness\("unavailable"\)/);
+  assert.match(authForm, /CAPTCHA_RESPONSE_TIMEOUT_MS = 15_000/);
+  assert.match(authForm, /window\.setTimeout\(markUnavailable, CAPTCHA_RESPONSE_TIMEOUT_MS\)/);
   assert.match(authForm, /"error-callback": markUnavailable/);
   assert.match(authForm, /existing\.addEventListener\("error", markUnavailable/);
   assert.match(authForm, /function retryCaptcha\(\): void/);
   assert.match(authForm, /setCaptchaRetryNonce\(\(attempt\) => attempt \+ 1\)/);
   assert.match(authForm, /重试安全验证/);
+  assert.match(authForm, /正在准备安全验证，请稍候…/);
 });
 
 test("auth controls wait for client hydration instead of losing the first sign-in click", async () => {
