@@ -112,6 +112,19 @@ PARAMETRISED = [
     ["douyin_recogniser_does_not_grab_the_wrong_list_drill.py", "--platform", "douyin"],
     ["list_selectors_meet_a_real_page_drill.py", "--platform", "bilibili"],
     ["list_selectors_meet_a_real_page_drill.py", "--platform", "xiaohongshu"],
+    # **抖音也接进来——即使它每次都会报 BLOCKED_CHANNEL。**（2026-08-13）
+    #
+    # 它此前不在这张表里，于是部署**静默地不覆盖抖音**：三个平台里，
+    # 恰恰是取数路 2026-08-06 换过、换完还没真跑过的那一个，从来没被点过名。
+    #
+    # 实测它会回 `NO_USABLE_PUBLIC_LIST_PAGE`：`/discover` 跳到 `/jingxuan`
+    # （推荐流不是列表，整页 24 个链接、0 个带 `/video/`），fetch 那条拿回 73KB
+    # 但 0 个链接（列表是 JS 渲染的）。**这不是缺陷，是没有一张公开的列表页可打。**
+    #
+    # 那也正是要接进来的理由：`—` BLOCKED_CHANNEL 不掐部署，但会**每次把这个
+    # 缺口打印出来**。省略它等于把"没测到"伪装成"不用测"——
+    # 这个仓对没跑的恢复演练也是点名而不是省略（「不靠人记得」）。
+    ["list_selectors_meet_a_real_page_drill.py", "--platform", "douyin"],
     ["extension_platform_wiring_drill.py", "--platform", "xiaohongshu",
      "--sample-url", "https://www.xiaohongshu.com/explore/abc123",
      "--expect-custody", "forbidden", "--expect-connect-card"],

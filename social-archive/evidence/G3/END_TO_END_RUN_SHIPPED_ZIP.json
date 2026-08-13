@@ -1,8 +1,8 @@
 {
   "status": "PASS",
   "task": "G3",
-  "extension_under_test": "/var/folders/w9/fnb1wnyd3dg6npzvt909scm80000gn/T/sa-bili-zip-4vpi2kgz",
-  "extension_version": "0.0.0.75",
+  "extension_under_test": "/var/folders/w9/fnb1wnyd3dg6npzvt909scm80000gn/T/sa-bili-zip-elzzn05v",
+  "extension_version": "0.0.0.76",
   "journey": {
     "connect": {
       "ok": true,
@@ -21,28 +21,28 @@
     },
     "tabs_before": [
       {
-        "id": 984453308,
+        "id": 1414372163,
         "active": false
       },
       {
-        "id": 984453309,
+        "id": 1414372164,
         "active": false
       },
       {
-        "id": 984453312,
+        "id": 1414372167,
         "active": true
       }
     ],
-    "my_tab_id": 984453312,
+    "my_tab_id": 1414372167,
     "queue_before": [
       {
         "accountId": "acct-1",
-        "enqueuedAt": 1786630861071,
+        "enqueuedAt": 1786633462221,
         "profileUrl": "",
         "syncRunId": "run-1",
         "tabId": null,
         "triggerType": "first_connect",
-        "updatedAt": 1786630861071
+        "updatedAt": 1786633462221
       }
     ],
     "alarm_scheduled": true,
@@ -60,15 +60,15 @@
     "queue_after": [],
     "tabs_after": [
       {
-        "id": 984453308,
+        "id": 1414372163,
         "active": false
       },
       {
-        "id": 984453309,
+        "id": 1414372164,
         "active": false
       },
       {
-        "id": 984453312,
+        "id": 1414372167,
         "active": true
       }
     ],
@@ -118,7 +118,7 @@
     "metadata": {
       "auth_method": "browser_session",
       "verified_by": "bilibili_nav_api",
-      "extension_version": "0.0.0.75",
+      "extension_version": "0.0.0.76",
       "auto_sync_enabled": true,
       "sync_interval_minutes": 360
     }
