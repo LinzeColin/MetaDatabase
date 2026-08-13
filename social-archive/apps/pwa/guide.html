@@ -141,7 +141,7 @@
 <p>或者明确告诉你<strong>在这个页面发出的响应里没有认出收藏列表</strong>，</p>
 <p>并让你确认停在收藏夹页面上、而且已经往下滚动过。</p>
 <p><strong>不会出现说成功了、却一条都没有这种含糊的情况</strong> —— 那种沉默正是这个产品一直在防的。</p>
-<table><thead><tr><th>平台</th><th>自动同步</th><th>为什么</th></tr></thead><tbody><tr><td>Chrome 书签</td><td>✅ 能</td><td>机制在真浏览器里跑通过——<strong>但演练里读的是 62 条假书签，不是你的</strong>。真数据要用你自己的账号才验得到，而那只能发生在你的浏览器里。更要紧的是<strong>授权那一下是 Chrome 自己弹的框、自动化点不了</strong>：<strong>没授权时那句提示对不对</strong>——验过了；<strong>授权之后书签真的读进来</strong>——没验过</td></tr><tr><td>B站</td><td>✅ 能</td><td>收藏夹走 B 站自己的公开接口，实测读得通</td></tr><tr><td>小红书</td><td>✅ 能</td><td>在你自己的收藏页上，认出页面发出的那个列表</td></tr><tr><td>抖音</td><td>✅ 能</td><td>同上</td></tr><tr><td>快手</td><td>❌ 手动保存</td><td>2026-08-12 定的：<strong>不做自动读取</strong>。要取数就得知道快手收藏页那条请求返回的 JSON 里标题/作者/链接各叫什么，而那三个名字只能从你登录后的真实响应里确认——靠公开页推断出来的是假的（试过一次，拿到的 <code>userName</code> 其实是遥测 Cookie 名）。与其给一颗点了取不到东西的按钮，不如现在说清楚：打开任意一条快手内容，点插件的「保存当前页面」，这一条就会进档案馆</td></tr><tr><td>X</td><td>❌ 手动保存</td><td>两条路都不通：官方接口可能收费（这个项目绝不产生新的必付费用），而读页面那条路对 X 也不成立——它的条目埋在五层嵌套里，认出来的会是错的编号，拼出来的网址点开是 404。<strong>宁可不做，也不给你一批打不开的链接</strong></td></tr><tr><td>Reddit</td><td>✅ 能</td><td>在你自己的 Saved 页上，认出页面发出的那个列表</td></tr><tr><td>Instagram</td><td>✅ 能</td><td>同上</td></tr><tr><td>YouTube</td><td>❌ 手动保存</td><td>能连账号，但读取稍后观看和播放列表的那条路还没写</td></tr></tbody></table>
+<table><thead><tr><th>平台</th><th>自动同步</th><th>为什么</th></tr></thead><tbody><tr><td>Chrome 书签</td><td>✅ 能</td><td>机制在真浏览器里跑通过——<strong>但演练里读的是 62 条假书签，不是你的</strong>。真数据要用你自己的账号才验得到，而那只能发生在你的浏览器里。更要紧的是<strong>授权那一下是 Chrome 自己弹的框、自动化点不了</strong>：<strong>没授权时那句提示对不对</strong>——验过了；<strong>授权之后书签真的读进来</strong>——没验过</td></tr><tr><td>B站</td><td>✅ 能</td><td>收藏夹走 B 站自己的公开接口，实测读得通</td></tr><tr><td>小红书</td><td>✅ 能</td><td>在你自己的收藏页上，认出页面发出的那个列表</td></tr><tr><td>抖音</td><td>✅ 能</td><td>同上</td></tr><tr><td>快手</td><td>❌ 手动保存</td><td>2026-08-12 定的：<strong>不做自动读取</strong>。要取数就得知道快手收藏页那条请求返回的 JSON 里标题/作者/链接各叫什么，而那三个名字只能从你登录后的真实响应里确认——靠公开页推断出来的是假的（试过一次，拿到的 <code>userName</code> 其实是遥测 Cookie 名）。与其给一颗点了取不到东西的按钮，不如现在说清楚：打开任意一条快手内容，点插件的「保存当前页面」，这一条就会进档案馆</td></tr><tr><td>X</td><td>❌ 手动保存</td><td>两条路都不通：官方接口可能收费（这个项目绝不产生新的必付费用），而读页面那条路对 X 也不成立——它的条目埋在五层嵌套里，认出来的会是错的编号，拼出来的网址点开是 404。<strong>宁可不做，也不给你一批打不开的链接</strong></td></tr><tr><td>Reddit</td><td>✅ 能</td><td>在你自己的 Saved 页上，认出页面发出的那个列表</td></tr><tr><td>Instagram</td><td>✅ 能</td><td>同上</td></tr><tr><td>YouTube</td><td>❌ 手动保存</td><td>读取稍后观看和播放列表的那条路还没写。<strong>它那张卡上不会有「连接账号」</strong>——连了也取不到东西，所以卡上直接写明只能手动保存（2026-08-14 改：原来这里写的是<strong>能连账号</strong>，而界面上根本没有 YouTube 这张卡，是句空话）</td></tr></tbody></table>
 <p>不能自动的平台，<strong>卡片上不会给你「立即同步」按钮</strong>——</p>
 <p>不会出现点了没反应这种事。</p>
 <hr>
@@ -192,6 +192,13 @@
 <p><strong>只看前两列会被骗</strong>：<code>enabled</code> / <code>active</code> 说的是定时器本身还装着、还在数着点，</p>
 <p>跟它叫起来的那个活儿干成没干成毫无关系。红了它会直接告诉你是哪个服务、</p>
 <p>下一步敲哪三条命令。</p>
+<p><strong>最后一列有三种值，<code>?</code> 那种最容易被当成没问题：</strong></p>
+<table><thead><tr><th>印出来的</th><th>意思</th></tr></thead><tbody><tr><td><code>✓ 上次成功 &lt;时刻&gt;</code></td><td>定时器叫起来的那次真的跑成了</td></tr><tr><td><code>✗ 上次失败 …</code></td><td>跑了没成，下面会告诉你查哪个服务</td></tr><tr><td><code>? 上次成功的是<strong>手工</strong>那次 …</code></td><td><strong>成功的那次是人手动跑的；定时那次成没成，这几个字段答不了</strong></td></tr></tbody></table>
+<p>最后那种是 2026-08-14 加的，因为它真的骗过一次：8/13 定时那次凌晨失败了，</p>
+<p>后来有人手工补跑成功，而系统只记<strong>最近一次运行</strong>的结果、<strong>不分是谁叫起来的</strong>，</p>
+<p>于是表上印 <code>✓ 上次成功</code>，把失败的那次自动运行整个盖住。</p>
+<p><strong>手工能跑通，和没人管也会跑，是两件事。</strong> 看见 <code>?</code> 就照它给出的命令</p>
+<p>去看定时那一刻；下一次自动跑完之后它会自己变回 <code>✓</code>。</p>
 <p><strong>还有两句你可能碰到</strong>（都属于同一条链，处置一样）：</p>
 <blockquote>最近一次备份没跑完——已存下的内容一条都没少，但这一轮的副本没有做上去。</blockquote>
 <blockquote>还没有做出过任何一次备份。</blockquote>

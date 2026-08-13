@@ -29,7 +29,16 @@
     yt: { label: "YouTube", short: "Y", cls: "yt", server: "youtube" },
     web: { label: "Chrome书签/网页", short: "书", cls: "web", server: "generic-web" }
   };
-  const platformOrder = ["all", "xhs", "dy", "ks", "bili", "x", "reddit", "ins", "web"];
+  // **服务端有的平台，界面上不许整个不存在。**（2026-08-14）
+  // 这里原来是 8 个，漏掉 `yt`：而 `yt` 的标签在 platformMeta 里一直定义着、
+  // 扩展也会把 youtube.com 认成平台 `youtube`（shared.js）、服务端
+  // PLATFORM_RELATIONS 也覆盖它。于是手动存下来的 YouTube 条目**只能在
+  // 「全部」里看到，没有自己的筛选格，连接面板上也没有它那张卡**——
+  // 而使用说明那张表里 YouTube 是列着的，还写着「能连账号」。
+  // 快手和 X 同样不能自动同步，却都有卡（卡上明说只能手动）；
+  // 九个里只有 YouTube 是缺的。补齐之后它会走和快手/X 一样的那一支：
+  // sync_supported=false → 卡片当场说清「这个只能手动保存」，不给按钮。
+  const platformOrder = ["all", "xhs", "dy", "ks", "bili", "x", "reddit", "ins", "yt", "web"];
   const serverToUiPlatform = Object.fromEntries(Object.entries(platformMeta).filter(([key]) => key !== "all").map(([key, value]) => [value.server, key]));
 
   /** 没有标题时，用链接的尾巴认人——比六张一模一样的「无标题内容」有用。 */
@@ -225,7 +234,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
-  const PRODUCT_VERSION = "0.0.0.85";
+  const PRODUCT_VERSION = "0.0.0.86";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -2386,7 +2395,7 @@
     }
     await loadLibrary();
     renderNextStep();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=a4222d5f").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=02d753fb").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {
