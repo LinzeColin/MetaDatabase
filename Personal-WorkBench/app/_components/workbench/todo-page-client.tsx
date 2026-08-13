@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useSyncExternalStore } from "react";
 import { isDeviceLocalRecord } from "./local-record-cache";
 import {
   asBoolean,
@@ -28,6 +28,14 @@ function savedOnDevice(record: TodoRecord): boolean {
   return isDeviceLocalRecord(record);
 }
 
+function useInteractionReady(): boolean {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
+
 /**
  * Todos use the shared tenant resource client so the page has the same
  * account-scoped device cache, verified-session writes, retry queue and
@@ -35,6 +43,7 @@ function savedOnDevice(record: TodoRecord): boolean {
  */
 export default function TodoPageClient() {
   const todos = useTenantResource<TodoRecord>("todos");
+  const interactionReady = useInteractionReady();
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
   const [dueDate, setDueDate] = useState(() => todayIsoDate());
@@ -214,7 +223,7 @@ export default function TodoPageClient() {
               />
             </label>
           </div>
-          <button className="primary full" disabled={todos.saving} type="submit">
+          <button className="primary full" disabled={!interactionReady || todos.saving} type="submit">
             {todos.saving ? "保存中…" : editingId ? "保存修改" : "＋ 新增待办"}
           </button>
         </form>

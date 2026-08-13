@@ -194,26 +194,29 @@ test("habit controls distinguish an on-device check-in from a cloud-synced check
   assert.match(source, /saveFeedback\(/);
 });
 
-test("first lifecycle write controls accept a tap while resource initialization completes", async () => {
+test("first lifecycle write controls wait for hydration, then accept a tap while resource initialization completes", async () => {
   const [lifecycle, todo, resource] = await Promise.all([
     readFile(lifecycleSource, "utf8"),
     readFile(todoSource, "utf8"),
     readFile(resourceSource, "utf8"),
   ]);
 
-  // The shared resource client serializes a first create behind its scope
-  // initialization. The visible controls must therefore not discard a real
-  // first tap merely because the history read is still pending.
+  // Server markup is visible before client event handlers exist. Controls wait
+  // only for that hydration boundary; the shared resource client then
+  // serializes a first create behind its scope initialization instead of
+  // disabling the action for the whole history read.
   assert.match(resource, /await firstScopeReady\.promise/);
-  assert.match(lifecycle, /disabled=\{habits\.saving \|\| checkins\.saving\}/);
-  assert.match(lifecycle, /disabled=\{ledger\.saving\}/);
-  assert.match(lifecycle, /disabled=\{foodRecords\.saving\}/);
-  assert.match(lifecycle, /disabled=\{exerciseRecords\.saving\}/);
-  assert.match(lifecycle, /disabled=\{weightRecords\.saving\}/);
-  assert.match(lifecycle, /disabled=\{periods\.saving\}/);
-  assert.match(lifecycle, /disabled=\{reference \|\| current\.saving\}/);
-  assert.match(lifecycle, /disabled=\{reference \|\| savingsTransactions\.saving\}/);
-  assert.match(todo, /disabled=\{todos\.saving\}/);
+  assert.match(lifecycle, /function useInteractionReady\(\): boolean/);
+  assert.match(lifecycle, /disabled=\{!interactionReady \|\| habits\.saving \|\| checkins\.saving\}/);
+  assert.match(lifecycle, /disabled=\{!interactionReady \|\| ledger\.saving\}/);
+  assert.match(lifecycle, /disabled=\{!interactionReady \|\| foodRecords\.saving\}/);
+  assert.match(lifecycle, /disabled=\{!interactionReady \|\| exerciseRecords\.saving\}/);
+  assert.match(lifecycle, /disabled=\{!interactionReady \|\| weightRecords\.saving\}/);
+  assert.match(lifecycle, /disabled=\{!interactionReady \|\| periods\.saving\}/);
+  assert.match(lifecycle, /disabled=\{reference \|\| !interactionReady \|\| current\.saving\}/);
+  assert.match(lifecycle, /disabled=\{reference \|\| !interactionReady \|\| savingsTransactions\.saving\}/);
+  assert.match(todo, /function useInteractionReady\(\): boolean/);
+  assert.match(todo, /disabled=\{!interactionReady \|\| todos\.saving\}/);
   assert.doesNotMatch(lifecycle, /disabled=\{(?:habits|checkins|ledger|foodRecords|exerciseRecords|weightRecords|periods|current|savingsTransactions)\.loading/);
   assert.doesNotMatch(todo, /disabled=\{todos\.loading/);
 });

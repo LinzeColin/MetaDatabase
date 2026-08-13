@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { ChangeEvent, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
   asBoolean,
   asNumber,
@@ -25,6 +25,19 @@ const RUNTIME_ASSET_ROOT = `${PRIVATE_ASSET_ROOT}/runtime`;
 
 function saveFeedback(saved: TenantRecord, synced: string, local: string): string {
   return isDeviceLocalRecord(saved) ? local : synced;
+}
+
+/**
+ * Server markup is visible before React attaches mutation handlers. Keep an
+ * action inert for only that handoff, then let the resource client serialize
+ * the first write while its history read finishes.
+ */
+function useInteractionReady(): boolean {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 }
 
 type HistoryReadState = Pick<
@@ -216,6 +229,7 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
   const habits = useTenantResource<HabitDefinition>("habits", { enabled: !reference });
   const checkins = useTenantResource<HabitCheckin>("habit-checkins", { enabled: !reference });
   const todos = useTenantResource<OverviewTodoRecord>("todos", { enabled: !reference });
+  const interactionReady = useInteractionReady();
   const overviewLedger = useTenantResource<LedgerRecord>("ledger", { enabled: !reference, sensitive: true });
   const visitorTime = useVisitorTime(reference);
   const [feedback, setFeedback] = useState("");
@@ -350,7 +364,7 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
               className="habit-card"
               // `create` waits for the account/device scope to finish initializing.
               // Do not turn that short read into an inert first tap.
-              disabled={habits.saving || checkins.saving}
+              disabled={!interactionReady || habits.saving || checkins.saving}
               key={card.label}
               onClick={() => void toggleHabit(card, index)}
               type="button"
@@ -415,6 +429,7 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
 
 export function LedgerClient({ fixtureDate, reference }: { fixtureDate: string; reference: boolean }) {
   const ledger = useTenantResource<LedgerRecord>("ledger", { enabled: !reference, sensitive: true });
+  const interactionReady = useInteractionReady();
   const [type, setType] = useState<LedgerType>("expense");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("餐饮");
@@ -500,6 +515,7 @@ export function LedgerClient({ fixtureDate, reference }: { fixtureDate: string; 
           <button
             aria-pressed={type === "expense"}
             className={type === "expense" ? "is-active" : ""}
+            disabled={!interactionReady}
             onClick={() => chooseType("expense")}
             type="button"
           >
@@ -508,6 +524,7 @@ export function LedgerClient({ fixtureDate, reference }: { fixtureDate: string; 
           <button
             aria-pressed={type === "income"}
             className={type === "income" ? "is-active" : ""}
+            disabled={!interactionReady}
             onClick={() => chooseType("income")}
             type="button"
           >
@@ -549,7 +566,7 @@ export function LedgerClient({ fixtureDate, reference }: { fixtureDate: string; 
             <input className="input" onChange={(event) => setNote(event.currentTarget.value)} placeholder="写点什么…" value={note} />
           </label>
         </div>
-        <button className="primary full" disabled={ledger.saving} onClick={() => void addRecord()} type="button">
+        <button className="primary full" disabled={!interactionReady || ledger.saving} onClick={() => void addRecord()} type="button">
           {ledger.saving ? "保存中…" : editingId ? "保存修改" : "＋ 记一笔"}
         </button>
       </form>
@@ -588,6 +605,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
   const foodRecords = useTenantResource<FoodRecord>("food", { enabled: !reference });
   const exerciseRecords = useTenantResource<ExerciseRecord>("exercise", { enabled: !reference });
   const weightRecords = useTenantResource<WeightRecord>("weights", { enabled: !reference, sensitive: true });
+  const interactionReady = useInteractionReady();
   const [activeModule, setActiveModule] = useState<FatlossModule>("food");
   const [moduleFeedback, setModuleFeedback] = useState("");
   const [food, setFood] = useState("");
@@ -830,13 +848,13 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
   return (
     <>
       <div className="module-tabs" role="tablist" aria-label="减脂记录类型">
-        <button aria-selected={activeModule === "exercise"} className={`module-tab ${activeModule === "exercise" ? "is-active" : ""}`} onClick={() => selectModule("exercise")} role="tab" type="button">
+        <button aria-selected={activeModule === "exercise"} className={`module-tab ${activeModule === "exercise" ? "is-active" : ""}`} disabled={!interactionReady} onClick={() => selectModule("exercise")} role="tab" type="button">
           <img alt="" className="module-tab-icon" src={asset("tab_exercise.png")} />运动
         </button>
-        <button aria-selected={activeModule === "weight"} className={`module-tab ${activeModule === "weight" ? "is-active" : ""}`} onClick={() => selectModule("weight")} role="tab" type="button">
+        <button aria-selected={activeModule === "weight"} className={`module-tab ${activeModule === "weight" ? "is-active" : ""}`} disabled={!interactionReady} onClick={() => selectModule("weight")} role="tab" type="button">
           <img alt="" className="module-tab-icon" src={asset("tab_weight.png")} />体重
         </button>
-        <button aria-selected={activeModule === "food"} className={`module-tab ${activeModule === "food" ? "is-active" : ""}`} onClick={() => selectModule("food")} role="tab" type="button">
+        <button aria-selected={activeModule === "food"} className={`module-tab ${activeModule === "food" ? "is-active" : ""}`} disabled={!interactionReady} onClick={() => selectModule("food")} role="tab" type="button">
           <img alt="" className="module-tab-icon" src={asset("tab_food.png")} />饮食
         </button>
       </div>
@@ -849,7 +867,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
           <>
             <label className="field">
               <span>饮食照片（可选，帮您记录）</span>
-              <button className="upload-zone" disabled={foodRecords.saving} onClick={openPhotoPicker} type="button">
+              <button className="upload-zone" disabled={!interactionReady || foodRecords.saving} onClick={openPhotoPicker} type="button">
                 <img alt="" src={asset("food_camera.png")} />
                 <span>{photoName || "点击上传食物照片"}</span>
               </button>
@@ -864,7 +882,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
               <label className="field"><span>日期</span><input className="input" onChange={(event) => setDate(event.currentTarget.value)} readOnly={reference} value={date} /></label>
               <label className="field"><span>备注</span><input className="input" onChange={(event) => setNote(event.currentTarget.value)} placeholder="可选" value={note} /></label>
             </div>
-            <button className="primary full" disabled={foodRecords.saving} onClick={() => void addFoodRecord()} type="button">{foodRecords.saving ? "保存中…" : editing?.module === "food" ? "保存修改" : "＋ 记录饮食"}</button>
+            <button className="primary full" disabled={!interactionReady || foodRecords.saving} onClick={() => void addFoodRecord()} type="button">{foodRecords.saving ? "保存中…" : editing?.module === "food" ? "保存修改" : "＋ 记录饮食"}</button>
           </>
         ) : activeModule === "exercise" ? (
           <div className="form-grid">
@@ -873,14 +891,14 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
             <label className="field"><span>消耗热量（可选）</span><input className="input" inputMode="numeric" onChange={(event) => setCaloriesBurned(event.currentTarget.value)} value={caloriesBurned} /></label>
             <label className="field"><span>日期</span><input className="input" onChange={(event) => setDate(event.currentTarget.value)} readOnly={reference} value={date} /></label>
             <label className="field wide"><span>备注</span><input className="input" onChange={(event) => setNote(event.currentTarget.value)} placeholder="可选" value={note} /></label>
-            <button className="primary full" disabled={exerciseRecords.saving} onClick={() => void addExerciseRecord()} type="button">{exerciseRecords.saving ? "保存中…" : editing?.module === "exercise" ? "保存修改" : "＋ 记录运动"}</button>
+            <button className="primary full" disabled={!interactionReady || exerciseRecords.saving} onClick={() => void addExerciseRecord()} type="button">{exerciseRecords.saving ? "保存中…" : editing?.module === "exercise" ? "保存修改" : "＋ 记录运动"}</button>
           </div>
         ) : (
           <div className="form-grid">
             <label className="field"><span>体重（千克）</span><input className="input" inputMode="decimal" onChange={(event) => setWeightKg(event.currentTarget.value)} placeholder="例如：52.3" value={weightKg} /></label>
             <label className="field"><span>日期</span><input className="input" onChange={(event) => setDate(event.currentTarget.value)} readOnly={reference} value={date} /></label>
             <label className="field wide"><span>备注</span><input className="input" onChange={(event) => setNote(event.currentTarget.value)} placeholder="可选" value={note} /></label>
-            <button className="primary full" disabled={weightRecords.saving} onClick={() => void addWeightRecord()} type="button">{weightRecords.saving ? "保存中…" : editing?.module === "weight" ? "保存修改" : "＋ 记录体重"}</button>
+            <button className="primary full" disabled={!interactionReady || weightRecords.saving} onClick={() => void addWeightRecord()} type="button">{weightRecords.saving ? "保存中…" : editing?.module === "weight" ? "保存修改" : "＋ 记录体重"}</button>
           </div>
         )}
         {editing?.module === activeModule ? <button className="auth-secondary-link" onClick={cancelEditing} type="button">取消修改</button> : null}
@@ -909,6 +927,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
 
 export function PeriodClient({ reference }: { reference: boolean }) {
   const periods = useTenantResource<PeriodRecord>("periods", { enabled: !reference, sensitive: true });
+  const interactionReady = useInteractionReady();
   const [startDate, setStartDate] = useState(() => (reference ? "" : todayIsoDate()));
   const [endDate, setEndDate] = useState(() => (reference ? "" : todayIsoDate()));
   const [note, setNote] = useState("");
@@ -961,7 +980,7 @@ export function PeriodClient({ reference }: { reference: boolean }) {
           <label className="field"><span>开始日期</span><input className="input" onChange={(event) => setStartDate(event.currentTarget.value)} readOnly={reference} value={startDate} /></label>
           <label className="field"><span>结束日期</span><input className="input" onChange={(event) => setEndDate(event.currentTarget.value)} readOnly={reference} value={endDate} /></label>
         </div>
-        <button className="primary full" disabled={periods.saving} onClick={() => void addPeriodRecord()} type="button">{periods.saving ? "保存中…" : editingId ? "保存修改" : "＋ 记录经期"}</button>
+        <button className="primary full" disabled={!interactionReady || periods.saving} onClick={() => void addPeriodRecord()} type="button">{periods.saving ? "保存中…" : editingId ? "保存修改" : "＋ 记录经期"}</button>
       </form>
       <article className="card period-overview">
         <h2 className="section-title"><img alt="" src={asset("period_title.png")} />周期概览</h2>
@@ -1016,6 +1035,7 @@ export function GenericPageClient({
   const diary = useTenantResource<DiaryRecord>("diary", { enabled: !reference && route === "diary", sensitive: true });
   const savingsGoals = useTenantResource<SavingsGoalRecord>("savings-goals", { enabled: !reference && route === "savings" });
   const savingsTransactions = useTenantResource<SavingsTransactionRecord>("savings-transactions", { enabled: !reference && route === "savings" });
+  const interactionReady = useInteractionReady();
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
   const [date, setDate] = useState(() => todayIsoDate());
@@ -1283,7 +1303,7 @@ export function GenericPageClient({
             </div>
           </div>
         ) : null}
-        <button className="primary full" disabled={reference || current.saving} onClick={() => void action()} type="button">
+        <button className="primary full" disabled={reference || !interactionReady || current.saving} onClick={() => void action()} type="button">
           {current.saving ? "保存中…" : primaryEditing ? "保存修改" : route === "savings" ? "＋ 新增存钱计划" : "＋ 新增记录"}
         </button>
         {primaryEditing ? <button className="auth-secondary-link" onClick={cancelEditing} type="button">取消修改</button> : null}
@@ -1300,7 +1320,7 @@ export function GenericPageClient({
             <label className="field"><span>日期</span><input className="input" onChange={(event) => setDate(event.currentTarget.value)} value={date} /></label>
             <label className="field wide"><span>备注</span><input className="input" maxLength={1000} onChange={(event) => setNote(event.currentTarget.value)} value={note} /></label>
           </div></div>
-          <button className="primary full" disabled={reference || savingsTransactions.saving} onClick={() => void submitSavingsTransaction()} type="button">{savingsTransactions.saving ? "保存中…" : transactionEditing ? "保存修改" : "＋ 记录存入"}</button>
+          <button className="primary full" disabled={reference || !interactionReady || savingsTransactions.saving} onClick={() => void submitSavingsTransaction()} type="button">{savingsTransactions.saving ? "保存中…" : transactionEditing ? "保存修改" : "＋ 记录存入"}</button>
           {transactionEditing ? <button className="auth-secondary-link" onClick={cancelEditing} type="button">取消修改</button> : null}
           {!reference ? <ResourceStatus {...savingsTransactions} /> : null}
         </article>
