@@ -2,7 +2,9 @@
   "status": "PASS",
   "ran": 23,
   "failed": 0,
-  "blocked_channel": [],
+  "blocked_channel": [
+    "douyin_recogniser_does_not_grab_the_wrong_list_drill.py --platform douyin"
+  ],
   "results": [
     {
       "drill": "shipped_package_drill.py",
@@ -13,25 +15,25 @@
     {
       "drill": "extension_update_in_place_drill.py",
       "status": "PASS",
-      "seconds": 6.9,
+      "seconds": 7.2,
       "problems": []
     },
     {
       "drill": "stale_extension_is_blocked_drill.py",
       "status": "PASS",
-      "seconds": 24.6,
+      "seconds": 25.6,
       "problems": []
     },
     {
       "drill": "slow_extension_is_still_detected_drill.py",
       "status": "PASS",
-      "seconds": 42.0,
+      "seconds": 41.6,
       "problems": []
     },
     {
       "drill": "extension_install_page_drill.py",
       "status": "PASS",
-      "seconds": 38.2,
+      "seconds": 38.3,
       "problems": []
     },
     {
@@ -43,7 +45,7 @@
     {
       "drill": "extension_routing_drill.py",
       "status": "PASS",
-      "seconds": 4.1,
+      "seconds": 4.0,
       "problems": []
     },
     {
@@ -55,7 +57,7 @@
     {
       "drill": "extension_capture_buffer_drill.py",
       "status": "PASS",
-      "seconds": 5.4,
+      "seconds": 4.7,
       "problems": []
     },
     {
@@ -67,49 +69,49 @@
     {
       "drill": "pwa_render_drill.py",
       "status": "PASS",
-      "seconds": 41.5,
+      "seconds": 41.6,
       "problems": []
     },
     {
       "drill": "popup_states_drill.py",
       "status": "PASS",
-      "seconds": 22.1,
+      "seconds": 22.2,
       "problems": []
     },
     {
       "drill": "bilibili_end_to_end_drill.py",
       "status": "PASS",
-      "seconds": 24.7,
+      "seconds": 25.3,
       "problems": []
     },
     {
       "drill": "bilibili_acquisition_drill.py",
       "status": "PASS",
-      "seconds": 2.4,
+      "seconds": 2.9,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform xiaohongshu",
       "status": "PASS",
-      "seconds": 41.2,
+      "seconds": 40.6,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform douyin",
       "status": "PASS",
-      "seconds": 41.0,
+      "seconds": 41.1,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform reddit",
       "status": "PASS",
-      "seconds": 41.1,
+      "seconds": 41.2,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform instagram",
       "status": "PASS",
-      "seconds": 40.6,
+      "seconds": 40.7,
       "problems": []
     },
     {
@@ -120,8 +122,8 @@
     },
     {
       "drill": "douyin_recogniser_does_not_grab_the_wrong_list_drill.py --platform douyin",
-      "status": "PASS",
-      "seconds": 20.2,
+      "status": "BLOCKED_CHANNEL",
+      "seconds": 18.7,
       "problems": []
     },
     {
@@ -133,7 +135,7 @@
     {
       "drill": "list_selectors_meet_a_real_page_drill.py --platform xiaohongshu",
       "status": "PASS",
-      "seconds": 5.1,
+      "seconds": 5.0,
       "problems": []
     },
     {
@@ -148,6 +150,6 @@
     "restore_private_database_drill.py": "本机没有远端凭据；**它已经有自动调用方了**——部署第 8.69 步真跑（实测 2 秒）",
     "restore_runtime_db_drill.py": "本机没有远端凭据；**它已经有自动调用方了**——部署第 8.69 步在生产机上真跑一遍"
   },
-  "message_zh": "23/23 个演练全绿。",
+  "message_zh": "22/23 个演练全绿；**另有 1 条这次没量到**（平台挡了无头浏览器，不是产品的问题，也不算验过）：douyin_recogniser_does_not_grab_the_wrong_list_drill.py --platform douyin",
   "what_this_does_not_prove": "不跑恢复类那三个——**本机没有远端凭据**（不是没有备份：清单每 15 分钟一份）；它们由**部署第 8.69 步**在生产机上真跑，不在这一条的覆盖里。这里面**只有一条打真平台接口**（B 站的公开收藏夹，不带登录态）；其余每一条跑的都是仓里自己写的假站，所以它们答不了「那个平台今天改没改接口」。要登录态才看得见的响应（小红书／抖音／快手／Reddit／Instagram）一条都没验过——那只能发生在 Owner 自己的浏览器里。它回答的是：**这一版的每条链，在真 Chrome 里还走得通吗。**"
 }

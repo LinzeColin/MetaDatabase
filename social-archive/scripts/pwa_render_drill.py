@@ -52,6 +52,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -1107,6 +1108,28 @@ async def run(chrome: str) -> int:
         # **反向**：能同步的平台必须**还有**按钮，否则这道门只是把整屏关掉了
         if cards and not saw_connectable:
             problems.append("**一张「连接」都没剩下**——能同步的平台被一起挡掉了")
+
+        # **同一屏上两处说法必须一致。**（2026-08-13）
+        #
+        # 标题那句（「本版本能自动同步的是：…」）是从**服务端返回的那几个平台**
+        # 现算的；而这些卡片是从**界面自己的 platformOrder**（8 个）画的。
+        # 两个集合一旦不重合，差额原来全部落进"给按钮"那一侧——
+        # 于是同一屏上会出现「标题说只有 B 站、下面却有六颗连接按钮」。
+        #
+        # 生产上碰巧不发作（服务端正好覆盖那 8 个），所以只有这里看得见。
+        # 我自己被这一屏误导过一次：以为产品在给假按钮，查了半天才发现
+        # 那是夹具只声明 3 个平台 + 代码失败开放共同造出来的。
+        header = str(measured.get("syncHeader") or "")
+        match = re.search(r"本版本能自动同步的是：(.+?)。", header)
+        named = {n.strip() for n in match.group(1).split("、")} if match else set()
+        with_button = {(c.get("name") or "").strip()
+                       for c in cards if c.get("hasConnectButton")}
+        if named != with_button:
+            problems.append(
+                f"**同一屏上两处说法打架**：标题点名 {sorted(named)}，"
+                f"而有「连接」按钮的是 {sorted(with_button)}——"
+                "标题按服务端返回的算，按钮按界面自己的平台表画，"
+                "缺数据时不许倒向「给按钮」那一侧")
 
     print(json.dumps({
         "status": "PASS" if not problems else "FAIL",
