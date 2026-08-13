@@ -17,6 +17,8 @@
 
 ## 当前状态
 
+- 2026-08-13（V96 工作台请求卡住恢复已公开发布）：工作台的历史读取、保存、修改、删除和待发记录重放现在共享 8 秒有界等待。网络或嵌入式浏览器使请求悬住时，页面会结束“正在读取／保存”状态、保留既有本机记录与同账号待发队列，并重新允许用户操作，而不是让所有控件长期不可点；既有幂等键、同账号别名、敏感同意、认证、会话、租户隔离、D1/R2、数据模型和冻结 reference 页均未改。新增独立超时单测；`test:workbench-data` 31/31、`test:tenant`、`test:auth` 37/37、typecheck、生产 build、视觉 5 路由/3 轮和 e2e 5/5 全部通过；lint 为 0 error（保留 1 条既有 Hook warning）。Sites Version #96 已成功公开部署到 canonical `mydairy.linzezhang.com`，保存版本来源与发布源码一致；全新隔离浏览器故意让记账历史请求悬住，8 秒后“暂时无法读取你的历史记录”可见、“＋记一笔”重新可点、页面脚本错误为 0，发布后 Worker error-only 查询为 0。该项修复用户感知的“所有按钮一直不可用”网络边缘，不替代成功 provider callback、真实 A/B 账户、第二设备或物理 D1/R2 对账。
+
 - 2026-08-13（V95 Google 取消登录恢复已公开发布）：用户在 Google 账户选择页取消本次授权时，站内现在明确显示“已取消本次 Google 登录”，并说明本次没有登录、没有写入任何记录；可直接返回登录页重试。仅调整 OAuth 错误页的 `access_denied` 文案和主操作，不改成功认证、邮箱认证、Turnstile、会话、租户隔离、D1/R2、隐私同意或访客本机保存。精确本地 `test:auth` 37/37、typecheck 与生产 build 通过；lint 为 0 error（保留 1 条既有 Hook warning）。Sites Version #95 已成功公开部署到 canonical `mydairy.linzezhang.com`，保存版本来源与发布源码一致；全新隔离、无账号浏览器实际回放 Google 取消 callback 后回到站内错误页，取消说明和“未写入任何记录”均可见，页面脚本错误为 0；发布后 Worker error-only 查询为 0。该项补齐取消登录的可解释恢复，不替代成功 provider callback、真实 A/B 账户、第二设备或物理 D1/R2 对账。
 
 - 2026-08-13（V94 Google 回站恢复加固已公开发布）：Google 的原生同源登录入口现在在离站前也写入既有、无身份值的同标签回站恢复标记；脚本可用时可覆盖少数 provider 回站丢失 URL 标记的浏览器情形，脚本不可用时仍由既有固定 callback URL 标记接管。未改变 Google/邮箱认证、Turnstile、会话 Cookie、租户隔离、D1/R2、隐私同意或访客本机保存。精确本地 `test:auth` 37/37、typecheck 与生产 build 通过；lint 为 0 error（保留 1 条既有 Hook warning）。Sites Version #94 已成功公开部署到 canonical `mydairy.linzezhang.com`；全新隔离浏览器中认证运行时就绪、实际点击 Google 进入账户选择页、返回同源登录页后可读到无值回站标记、产品页脚本错误为 0。该项消除“Google 已完成但桌面仍未及时恢复会话”的一条回站边缘路径，不替代成功 provider callback、真实 A/B 账户、第二设备或物理 D1/R2 对账。
