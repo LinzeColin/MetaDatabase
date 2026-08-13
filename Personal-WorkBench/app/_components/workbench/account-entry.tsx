@@ -7,25 +7,17 @@ import {
   consumeAuthReturnRecovery,
   consumeAuthReturnRecoveryFromLocation,
 } from "../../auth/_components/auth-return-recovery";
-
-type AccountEntryState =
-  | "checking"
-  | "signed-in"
-  | "signed-out"
-  | "verification-required"
-  | "session-unavailable"
-  | "auth-return-failed";
+import {
+  accountEntryInitialStateForSession,
+  isConfirmedAccountEntryState,
+  type AccountEntryInitialState,
+  type AccountEntryState,
+} from "./account-entry-state";
 
 type AccountEntryProps = {
   className: string;
+  initialState?: AccountEntryInitialState;
   signedOutHref: string;
-};
-
-type BrowserSession = {
-  user?: {
-    emailVerified?: unknown;
-    id?: unknown;
-  };
 };
 
 // A connection that never settles must not leave the shared account control
@@ -37,8 +29,9 @@ const SESSION_LOOKUP_TIMEOUT_MS = 8_000;
  * Keeps the persistent account entry truthful after an OAuth callback without
  * displaying an account identifier in the shared workbench chrome.
  */
-export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
-  const [state, setState] = useState<AccountEntryState>("checking");
+export function AccountEntry({ className, initialState = "checking", signedOutHref }: AccountEntryProps) {
+  const [initialServerState] = useState<AccountEntryInitialState>(() => initialState);
+  const [state, setState] = useState<AccountEntryState>(() => initialState);
 
   useEffect(() => {
     let active = true;
@@ -46,8 +39,9 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
     let recoveryFailureTimer: number | null = null;
     let requestGeneration = 0;
     let recoveryAnnounced = false;
-    let recoveredAuthReturn = false;
-    let initialSessionResolved = false;
+    const initialServerConfirmed = isConfirmedAccountEntryState(initialServerState);
+    let recoveredAuthReturn = initialServerConfirmed;
+    let initialSessionResolved = initialServerConfirmed;
     // Consume both independent one-shot signals. A normal same-tab callback
     // has both: sessionStorage makes the recovery resilient to a redirect,
     // while the location marker is needed if an embedded browser rebuilt the
@@ -78,12 +72,7 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
         .then(async (response) => {
           if (response.status === 401) return "signed-out" as const;
           if (!response.ok) return "session-unavailable" as const;
-          const session = (await response.json().catch(() => null)) as BrowserSession | null;
-          if (!session?.user || typeof session.user.id !== "string" || !session.user.id) return "signed-out" as const;
-          // The data routes accept only a strict true claim. Treat an absent
-          // or false claim as awaiting verification too, so the persistent
-          // entry never promises cloud sync that the server will reject.
-          return session.user.emailVerified === true ? "signed-in" as const : "verification-required" as const;
+          return accountEntryInitialStateForSession(await response.json().catch(() => null));
         })
         .then((nextState) => {
           if (active && generation === requestGeneration) {
@@ -96,6 +85,10 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
             // guest while Better Auth finishes its bounded session commit.
             // A clear retry state is shown only after the full recovery window.
             if (shouldRecoverAuthReturn && (nextState === "signed-out" || nextState === "session-unavailable") && !recoveredAuthReturn) return;
+            // A same-request server render already established the session.
+            // Keep that truthful state during a transient browser-only fetch
+            // failure; an explicit 401 still takes precedence and signs out.
+            if (initialServerConfirmed && nextState === "session-unavailable") return;
             setState(nextState);
             announceRecoveredSession(nextState);
           }
@@ -124,6 +117,15 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
       recoveryFailureTimer = window.setTimeout(() => {
         if (active && !recoveredAuthReturn) setState("auth-return-failed");
       }, finalRetryDelay + 2_000);
+    }
+
+    // A server-confirmed session can be present before this client effect
+    // mounts. Reuse the existing delayed broadcast so every mounted resource
+    // panel sees the OAuth return without exposing an account identifier.
+    if (shouldRecoverAuthReturn && initialServerConfirmed) {
+      window.setTimeout(() => {
+        if (active) announceRecoveredSession(initialServerState);
+      }, 0);
     }
 
     refresh();
@@ -159,7 +161,7 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
       window.removeEventListener("pageshow", refresh);
       document.removeEventListener("visibilitychange", refreshWhenDocumentVisible);
     };
-  }, []);
+  }, [initialServerState]);
 
   const signedIn = state === "signed-in" || state === "verification-required";
   const awaitingVerification = state === "verification-required";

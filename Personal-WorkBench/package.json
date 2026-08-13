@@ -18,7 +18,7 @@
     "test:visual": "node scripts/test-visual.mjs",
     "test:legacy-import": "node --import ./tests/register-cloudflare-workers-loader.mjs --experimental-strip-types --test tests/legacy-import.test.mts",
     "test:modules": "node --test tests/module-matrix.test.mjs",
-    "test:workbench-data": "node --experimental-strip-types --test tests/account-return-path.test.mts tests/auth-return-recovery.test.mts tests/visitor-time.test.mts tests/local-record-cache.test.mts tests/request-timeout.test.mts && node --test tests/workbench-persistence-ui.test.mjs tests/legacy-domain-handoff-ui.test.mjs",
+    "test:workbench-data": "node --experimental-strip-types --test tests/account-entry-state.test.mts tests/account-return-path.test.mts tests/auth-return-recovery.test.mts tests/visitor-time.test.mts tests/local-record-cache.test.mts tests/request-timeout.test.mts && node --test tests/workbench-persistence-ui.test.mjs tests/legacy-domain-handoff-ui.test.mjs",
     "test:e2e": "node --import ./tests/register-cloudflare-workers-loader.mjs --test tests/e2e-smoke.test.mjs",
     "test:privacy": "node --import ./tests/register-cloudflare-workers-loader.mjs --experimental-strip-types --test tests/privacy.test.mts",
     "test:account-lifecycle": "node --import ./tests/register-cloudflare-workers-loader.mjs --experimental-strip-types --test tests/account-lifecycle.test.mts",

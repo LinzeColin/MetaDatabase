@@ -54,7 +54,9 @@ test("e2e smoke: normal mode carries account entry and no reference-only lock", 
   const welcomeHtml = await welcome.text();
   assert.match(homeHtml, /class=\"account-entry normal-only\"/);
   assert.match(homeHtml, /href=\"\/auth\/sign-in\"/);
-  assert.match(homeHtml, /正在确认登录…/);
+  assert.match(homeHtml, /data-account-state=\"signed-out\"/);
+  assert.match(homeHtml, /登录以同步/);
+  assert.doesNotMatch(homeHtml, /正在确认登录…/);
   assert.match(homeHtml, /data-interactions-ready=\"false\"/);
   assert.match(homeHtml, /正在准备工作台…/);
   assert.match(homeHtml, /data-reference-mode=\"false\"/);

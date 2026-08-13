@@ -11,6 +11,7 @@ const legacyImportPanelSource = "app/account/legacy-import-panel.tsx";
 const visitorTimeSource = "app/_components/workbench/visitor-time-client.tsx";
 const interactionGateSource = "app/_components/workbench/interaction-ready.tsx";
 const guestHistoryRecoverySource = "app/_components/workbench/guest-history-recovery-notice.tsx";
+const accountEntryServerSource = "app/_components/workbench/account-entry-server.tsx";
 const globalStylesSource = "app/globals.css";
 
 test("workbench pages bind every visible lifecycle module to the tenant resource client", async () => {
@@ -67,6 +68,26 @@ test("normal home reports authentication state and visitor-local time without ch
   assert.match(visitorTime, /window\.setInterval\(refresh, refreshIntervalMs\)/);
   assert.match(visitorTime, /formatVisitorTime\(\)/);
   assert.match(page, /<VisitorDate fixtureDate=\{fixture\.date\} fixtureWeekday=\{fixture\.weekday\} reference=\{reference\} \/>/);
+});
+
+test("normal pages seed the account affordance from a first-party server session without exposing identity", async () => {
+  const [page, serverEntry, clientEntry] = await Promise.all([
+    readFile(pageSource, "utf8"),
+    readFile(accountEntryServerSource, "utf8"),
+    readFile("app/_components/workbench/account-entry.tsx", "utf8"),
+  ]);
+
+  assert.match(page, /import \{ AccountEntryServer \} from "\.\/_components\/workbench\/account-entry-server"/);
+  assert.match(page, /<AccountEntryServer className="account-entry normal-only" signedOutHref="\/auth\/sign-in" \/>/);
+  assert.match(serverEntry, /AUTH_SESSION_COOKIE_NAME/);
+  assert.match(serverEntry, /SECURE_AUTH_SESSION_COOKIE_NAME/);
+  assert.match(serverEntry, /api\.getSession\(\{/);
+  assert.match(serverEntry, /disableCookieCache: true/);
+  assert.match(serverEntry, /<AccountEntry className=\{className\} initialState=\{initialState\} signedOutHref=\{signedOutHref\} \/>/);
+  assert.doesNotMatch(serverEntry, /user\.email|user\.name/);
+  assert.match(clientEntry, /initialState\?: AccountEntryInitialState/);
+  assert.match(clientEntry, /const initialServerConfirmed = isConfirmedAccountEntryState\(initialServerState\);/);
+  assert.match(clientEntry, /if \(initialServerConfirmed && nextState === "session-unavailable"\) return;/);
 });
 
 test("history empty states never replace an unreadable history with a false zero-record claim", async () => {

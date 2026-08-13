@@ -11,7 +11,7 @@ import {
   PeriodClient,
 } from "./_components/workbench/lifestyle-pages-client";
 import TodoPageClient from "./_components/workbench/todo-page-client";
-import { AccountEntry } from "./_components/workbench/account-entry";
+import { AccountEntryServer } from "./_components/workbench/account-entry-server";
 import { GuestHistoryRecoveryNotice } from "./_components/workbench/guest-history-recovery-notice";
 import { WorkbenchInteractionReady } from "./_components/workbench/interaction-ready";
 import { LegacyDomainHistoryRecovery } from "./_components/workbench/legacy-domain-history-recovery";
@@ -131,7 +131,7 @@ function Shell({
         <Sidebar reference={reference} route={route} />
         <main className="main">
           {!reference ? (
-            <AccountEntry className="account-entry normal-only" signedOutHref="/auth/sign-in" />
+            <AccountEntryServer className="account-entry normal-only" signedOutHref="/auth/sign-in" />
           ) : null}
           {reference ? children : (
             <WorkbenchInteractionReady>
@@ -173,7 +173,7 @@ function Welcome({ reference }: { reference: boolean }) {
       data-reference-page={reference ? "welcome" : undefined}
     >
       {!reference ? (
-        <AccountEntry className="welcome-account-link normal-only" signedOutHref="/auth/sign-in" />
+        <AccountEntryServer className="welcome-account-link normal-only" signedOutHref="/auth/sign-in" />
       ) : null}
       <section className="welcome-page">
         <div className="welcome-inner">

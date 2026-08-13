@@ -42,7 +42,9 @@ test("normal routes retain a separate account entry and resolve without referenc
   assert.equal(home.status, 200);
   const homeHtml = await home.text();
   assert.match(homeHtml, /class="account-entry normal-only"/);
-  assert.match(homeHtml, /正在确认登录…/);
+  assert.match(homeHtml, /data-account-state="signed-out"/);
+  assert.match(homeHtml, /登录以同步/);
+  assert.doesNotMatch(homeHtml, /正在确认登录…/);
   assert.match(homeHtml, /href="\/auth\/sign-in"/);
   assert.match(homeHtml, /aria-label="个人日程导航"/);
   assert.doesNotMatch(homeHtml, /返回工作台/);
@@ -64,14 +66,20 @@ test("the retired domain renders a non-interactive handoff before workbench cont
 });
 
 test("account entry reports session state without rendering account identity", async () => {
-  const source = await import("node:fs/promises").then(({ readFile }) => readFile(new URL("../app/_components/workbench/account-entry.tsx", import.meta.url), "utf8"));
+  const { readFile } = await import("node:fs/promises");
+  const [source, serverEntry] = await Promise.all([
+    readFile(new URL("../app/_components/workbench/account-entry.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/_components/workbench/account-entry-server.tsx", import.meta.url), "utf8"),
+  ]);
   assert.match(source, /get-session\?disableCookieCache=true/);
   assert.match(source, /addEventListener\("focus", refresh\)/);
   assert.match(source, /addEventListener\("pageshow", refresh\)/);
   assert.match(source, /addEventListener\("visibilitychange", refreshWhenDocumentVisible\)/);
-  assert.match(source, /session\.user\.emailVerified === true/);
+  assert.match(source, /accountEntryInitialStateForSession/);
+  assert.match(serverEntry, /api\.getSession\(\{/);
+  assert.match(serverEntry, /disableCookieCache: true/);
   assert.match(source, /登录以同步/);
   assert.match(source, /已登录 · 账户/);
   assert.match(source, /已登录 · 待验证/);
-  assert.doesNotMatch(source, /session\.user\.email(?:[^A-Za-z]|$)/);
+  assert.doesNotMatch(serverEntry, /user\.email|user\.name/);
 });
