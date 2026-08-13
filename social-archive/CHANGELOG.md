@@ -6,6 +6,55 @@
 > **这里不补写**：隔了两版再靠回忆重建变更记录，写出来的东西看着像记录，
 > 其实是推测，比空着更容易被人当真。
 
+## v0.0.0.82 — 我手工补跑成功，把定时那次的失败盖住了，而判据说绿
+
+### 一次真的漏报（今天在生产上抓到的）
+
+`check_durability_units.sh` 存在的全部理由是回答一句话：
+**「没人管它，那件事还在做吗？」** 它答错了：
+
+    timer   LastTriggerUSec        = 2026-08-13 03:33:46 UTC   ← 定时触发
+    service ExecMainStartTimestamp = 2026-08-13 08:51:06 UTC   ← 我手工补跑
+
+而 journalctl 里白纸黑字躺着：
+
+    03:33:46  Changing to the requested working directory failed: Permission denied
+    03:33:46  Main process exited, code=exited, status=200/CHDIR
+    03:33:46  Failed to start social-archive-backup.service
+    08:52:00  Deactivated successfully                          ← 手工那次
+
+**表上印的是「✓ 上次成功 08:51:06」。**
+最后一次自动运行是失败的，而这道判据说绿的。
+
+**根因**：systemd 只保留「最近一次运行」的结果，**不分是谁叫起来的**。
+读 `Result` / `ExecMainStartTimestamp` 拿到的是那次**手工**运行的结论，
+跟「定时器叫起来的那次」没有任何关系。
+**「手工能跑通」和「没人管也会跑」是两件事——后者才是这个产品的卖点。**
+
+（顺带确认：权限那个根因已修好，`/opt/social-archive` 现在是
+`drwxr-x--- ubuntu socialarchive`，服务以 `socialarchive` 跑，进得去。
+今晚 03:32 UTC 那次会成功。产品没问题，坏的是这道判据。）
+
+### 改了什么
+
+- 比 `LastTriggerUSec`（定时触发那一刻）和 `ExecMainStartTimestamp`（服务最近一次起）。
+  差超过 5 分钟 → 这一格印 **`?` 上次成功的是手工那次**，并给出**定时那一刻**的
+  `journalctl` 命令；结尾那句「每个定时器上次真的跑成了」也**不再出现**。
+  不阻断（手工跑过是正常操作，为此常红就成了狼来了），但不许再声称定时那次成功。
+- 时间解析从 `date -d` 换成 `python3`：`date -d` 是 GNU 专有，
+  **在开发机（macOS）上会静默失败**，那段判断在我自己机器上永远不执行——
+  这个仓栽过「没测过的兜底分支只在别人机器上发作」。解不出来时也印 `?`，
+  **不许掉进"看着像成功"那一支**。
+- 新增 `tests/focused/test_a_manual_rerun_must_not_mask_the_timer.py`：
+  把一个**假 `systemctl`** 放进 PATH，让脚本整条真跑起来。四条：
+  隔几小时不许说成功／就是定时那次可以说成功（反方向，防"永远说 ?"作弊）／
+  解不出来也不许说成功／四个保命定时器一个都没少扫。
+
+> **第一版测试误红，而产品是对的。** 断言整篇 grep `✓ 上次成功`，
+> 命中的是脚本解释段里我自己写的那句引文「而这张表当时印的是『✓ 上次成功 08:51:06』」。
+> 与「我写来解释修复的注释把判据废掉」同型，只是方向相反。
+> 改成只看表格那几行（每行以 unit 名开头）。
+
 ## v0.0.0.81 — 交接提示词让接手方「只读第一到第六节」，而那样数正好漏掉最贵的一节
 
 ### 缺口
