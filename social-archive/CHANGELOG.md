@@ -6,6 +6,63 @@
 > **这里不补写**：隔了两版再靠回忆重建变更记录，写出来的东西看着像记录，
 > 其实是推测，比空着更容易被人当真。
 
+## v0.0.0.74 — 运维手册标着「在生产上」的三条命令，在生产上都跑不通
+
+### 他会撞见的那一幕
+
+服务器出了点事，他（或者接手的人）翻开运维手册照着敲：
+
+```bash
+# 在生产上
+cd /opt/social-archive
+bash scripts/backup.sh                    # 先取快照
+bash scripts/update.sh                    # 重建镜像 → 重建容器 → 健康检查
+```
+
+第一条报 `PermissionError`，第二条**先花几分钟重建完镜像**，然后在第 2/3 步倒下：
+
+    Failed to restart social-archive.service: Interactive authentication required.
+
+于是机器停在一个没人描述过的中间态：**新镜像已经建好，容器还跑着旧的**。
+
+同一节前面还有一条 `systemctl restart social-archive.service`，同样没带 sudo。
+
+### 逐条实测（2026-08-13，在生产上）
+
+| 命令 | 结果 |
+|---|---|
+| `systemctl status …` | ✓ 不需要 root |
+| `journalctl -u … ` | ✓ 不需要 root |
+| `check_durability_units.sh` | ✓ 不需要 root |
+| `systemctl restart …` | ✗ `Interactive authentication required` |
+| `bash scripts/backup.sh` | ✗ `PermissionError: /var/lib/social-archive` |
+| `sudo -u socialarchive bash scripts/backup.sh` | ✗ `AGE_RECIPIENT_MISSING` |
+| `bash scripts/update.sh` | ✗ 第 2/3 步同上，且发生在重建镜像之后 |
+
+权限那两条是**在 `/run` 里放一个无害探针 unit 试出来的**，没有去动他真正的服务；
+同一个探针以 root 跑退出码 0，所以「加 sudo」这个修法有两个方向的证据。
+
+**备份那条不是"少个 sudo"**：`sudo -u socialarchive` 也不行，因为
+`SOCIAL_ARCHIVE_AGE_RECIPIENT` 来自 systemd unit 的 EnvironmentFile、不在 shell 里。
+（脚本**拒绝**而不是退化成明文备份，这一点是对的。）
+它的正确入口是那个 unit 本身，和每天自动跑的是同一条路。
+
+### 改了什么
+
+- 手册那三条换成实测能跑的写法；**其余三条不加 sudo**——
+  无谓的提权会让人以为每条都要，下次就懒得分了。
+- `update.sh` 在**重建镜像之前**就先问一句「我重启得动吗」，不行就当场停。
+  建完再倒是最坏的顺序：几分钟白花，而且机器落在一个中间态。
+- 新判据钉住这一节：标着「在生产上」的块里不许再出现已知跑不通的写法，
+  也不许给只读命令平白加 sudo。
+
+### 一次差点写进文档的误报
+
+我先在生产上把手册**开发机那一节**的命令也跑了一遍，三条全红，
+差一点当成缺陷写进去——而手册第 5 行就写着
+「**先分清你在哪台机器上——两套命令不能混用**」。
+那三条红是我跑错地方造出来的。**这一版只改真正标着「在生产上」的那些。**
+
 ## v0.0.0.73 — 那句话首屏说得出，重绘一次就没了；以及仓的前门是坏的
 
 ### 一、备份那句话会被自己人抹掉
