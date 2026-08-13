@@ -95,8 +95,14 @@ step() { printf '\n=== %s ===\n' "$1"; }
 # 而这个项目要 >=3.12，退回去只会在更远的地方以更难懂的方式炸
 # （这个仓在「没测过的兜底分支只在别人机器上发作」上栽过）。
 [ -x "$ROOT/.venv/bin/python" ] || fail "本地 venv 不在（$ROOT/.venv/bin/python）。
-  这棵树上 2026-08-10 见过它凭空消失两次。重建：
-      cd '$ROOT' && uv venv --python 3.13 .venv && uv pip install --python .venv/bin/python -e '.[test]'"
+  这棵树上 2026-08-10 见过它凭空消失两次。
+  重建（**只用标准库，不需要额外装任何东西**——scripts/install.sh 用的也是这条路）：
+      cd '$ROOT'
+      python3.13 -m venv .venv || python3.12 -m venv .venv
+      .venv/bin/python -m pip install --upgrade pip
+      .venv/bin/pip install -e '.[test]'
+  （装了 uv 的话这条更快，**但 uv 不是前置条件**：
+      uv venv --python 3.13 .venv && uv pip install --python .venv/bin/python -e '.[test]'）"
 "$ROOT/.venv/bin/python" -c 'import sys; assert sys.version_info >= (3, 12), sys.version' \
   || fail "本地 venv 的 Python 低于 3.12——发布门和判据都会以看不懂的方式失败。按上面那条命令重建。"
 
