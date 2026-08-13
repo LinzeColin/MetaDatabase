@@ -82,7 +82,25 @@ printf '\n秘密文件权限：\n'
 #
 # 挂载名单从 compose.yaml 读，不在这里抄第二份——抄的那份必然漂开
 # （instagram_session 就是那么被漏掉的）。
-if [[ -d runtime/secrets ]]; then
+# **读不到 ≠ 没问题。**（2026-08-13）
+#
+# `runtime/secrets` 是 700、属主是容器 uid（10001）。以 ubuntu 跑这个诊断时，
+# `find` 直接 Permission denied，**下面那个 while 循环体一次都不会执行**——
+# 于是这一项打印一个标题然后一片空白。而 `[[ -d ]]` 是成立的（父目录进得去），
+# 所以也落不到「未配置」那一支。
+#
+# 实测他会看到的就是这两行：
+#
+#     秘密文件权限：
+#     find: 'runtime/secrets': Permission denied
+#
+# **一片空白最容易被读成「没查出问题」**，而实际是「一个都没查」。
+# 所以先判读不读得进去，读不进去就明说这一项没做，并告诉他怎么才做得到。
+if [[ -d runtime/secrets && ! -r runtime/secrets ]]; then
+  printf '**这一项没有检查**（不是没问题）：读不到 runtime/secrets——\n'
+  printf '  它属于容器用户、权限 700，普通用户看不见里面。\n'
+  printf '  要真的检查这一项：sudo bash scripts/doctor.sh\n'
+elif [[ -d runtime/secrets ]]; then
   MOUNTED="$("${PYTHON[@]}" - <<'PYMOUNTED'
 import pathlib, re
 text = pathlib.Path("compose.yaml").read_text(encoding="utf-8")
