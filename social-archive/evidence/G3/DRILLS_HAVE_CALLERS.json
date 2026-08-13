@@ -64,6 +64,7 @@
     "bilibili_end_to_end_drill.py",
     "check_every_guide_step_has_a_drill.py",
     "disaster_recovery_drill.py",
+    "douyin_recogniser_does_not_grab_the_wrong_list_drill.py",
     "extension_bridge_boundary_drill.py",
     "extension_capture_buffer_drill.py",
     "extension_capture_drill.py",

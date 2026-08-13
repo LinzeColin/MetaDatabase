@@ -103,6 +103,12 @@ PARAMETRISED = [
     # 而它服务端就把列表渲染好了，取 HTML 再解析（96 命中）。
     # **抖音仍答不了**——没有一张公开的、真的是列表的抖音页，
     # 它回 BLOCKED_CHANNEL 而不是 FAIL：「答不了」不等于「答案是坏的」。
+    # **识别器在真页面上会不会乱抓**——只跑真见得到内容流的那两家（2026-08-13 实测）：
+    #     douyin 56 条真响应条条带内容、instagram 18/18
+    #     xiaohongshu 14 条全是风控与埋点（带内容 0）、reddit 一条都收不到
+    # 后两家在这台机器上量不到，接进来只会每次多两条 BLOCKED_CHANNEL。
+    ["douyin_recogniser_does_not_grab_the_wrong_list_drill.py", "--platform", "douyin"],
+    ["douyin_recogniser_does_not_grab_the_wrong_list_drill.py", "--platform", "instagram"],
     ["list_selectors_meet_a_real_page_drill.py", "--platform", "bilibili"],
     ["list_selectors_meet_a_real_page_drill.py", "--platform", "xiaohongshu"],
     ["extension_platform_wiring_drill.py", "--platform", "xiaohongshu",
@@ -183,22 +189,40 @@ def main() -> int:
     for argv in plan:
         result = _run(argv, args.timeout)
         results.append(result)
-        mark = "✓" if result["status"] == "PASS" else "✗"
+        # ✗ 是「没过」，— 是「没量到」。用同一个记号会把两件事混成一件：
+        # 一个要去修产品，一个要去换通道。
+        mark = ("✓" if result["status"] == "PASS"
+                else "—" if result["status"] == "BLOCKED_CHANNEL" else "✗")
         print(f"  {mark} {result['drill']:<62} {result['status']:<8} {result['seconds']}s",
               flush=True)
         for problem in result["problems"][:2]:
             print(f"      {str(problem)[:150]}", flush=True)
 
-    bad = [item for item in results if item["status"] != "PASS"]
+    # **「答不了」既不算过，也不算没过——但绝不许读成"覆盖到了"。**（2026-08-13）
+    #
+    # 有几条演练打的是真平台页面，而平台会挡无头浏览器（小红书给风控页、
+    # reddit 给人机验证）。那种时候产品没有任何问题，掐断部署是错的；
+    # 可要是悄悄当成绿的，我们就会以为那一维验过了——而它没有。
+    #
+    # 所以单独一档：不进 `bad`（不掐部署），但**单独列出来、单独计数**，
+    # 让「这次少验了哪一维」在日志里一眼看得见。
+    blocked = [item for item in results if item["status"] == "BLOCKED_CHANNEL"]
+    bad = [item for item in results if item["status"] not in ("PASS", "BLOCKED_CHANNEL")]
     report = {
         "status": "PASS" if not bad else "FAIL",
         "ran": len(results),
         "failed": len(bad),
+        # **不是"全跑过了"**：这几条这次没量到，各自的原因在它们自己的输出里。
+        "blocked_channel": [item["drill"] for item in blocked],
         "results": results,
         # **说清没跑的那几个**，否则这一条会被当成"全部覆盖"。
         "not_run": NEEDS_REAL_INPUT,
-        "message_zh": (f"{len(results)} 个演练全绿。" if not bad
-                       else f"{len(bad)}/{len(results)} 个演练没过。"),
+        "message_zh": (
+            (f"{len(results) - len(blocked)}/{len(results)} 个演练全绿"
+             + (f"；**另有 {len(blocked)} 条这次没量到**（平台挡了无头浏览器，"
+                f"不是产品的问题，也不算验过）：{'、'.join(i['drill'] for i in blocked)}"
+                if blocked else "。"))
+            if not bad else f"{len(bad)}/{len(results)} 个演练没过。"),
         # **这一句 2026-08-10 改过一次，因为它开始说得比实际少。**
         # 原话是「也不证明真平台的响应长什么样」——在把 bilibili_acquisition_drill
         # 收进来之后，这句话不再成立：那一条打的就是 B 站的真接口。

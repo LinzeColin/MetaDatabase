@@ -193,11 +193,20 @@ def main() -> int:
     if not captures:
         # **抓不到就明说没量到。** 报「识别器没认错」而其实一条输入都没有，
         # 是这个仓最常见的那种假绿。
+        # **状态要和这句话一致。**（2026-08-13）
+        #
+        # 原来这里 status 是 `FAIL`，而同一段话写着「这是没量到，不是通过」——
+        # 一个读起来是"没通过"，一个说的是"没量到"。两者差别很大：
+        # 没通过要去修产品，没量到要去换通道。reddit 每次都走这一支
+        # （它给无头 Chrome 的是一屏人机验证），于是这条演练对它**永远报 FAIL**，
+        # 而 DRILLS.md 里写的是「那一行永远是没量到」。**同一件事两个说法。**
         print(json.dumps({
-            "status": "FAIL", "error_code": "NOTHING_CAPTURED",
-            "message_zh": "一条真响应都没收到（网络或风控）——**这是没量到，不是通过**。",
+            "status": "BLOCKED_CHANNEL", "error_code": "NOTHING_CAPTURED",
+            "message_zh": ("一条真响应都没收到（网络或风控）——**这是没量到，不是通过**，"
+                           "也不是产品坏了。换一条够得着的通道再跑。"),
+            "what_this_does_not_prove": "既不证明识别器会乱抓，也不证明它不会。",
         }, ensure_ascii=False, indent=2))
-        return 4
+        return 0
 
     node = shutil.which("node")
     if not node:
