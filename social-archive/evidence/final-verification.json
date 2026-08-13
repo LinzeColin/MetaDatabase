@@ -142,7 +142,7 @@
         "scripts/check_every_platform_table_is_complete.py"
       ],
       "exit_code": 0,
-      "stdout": "扫了 apps/src/scripts 下 31 处平台表；已登记的有意子集 22 张；允许自带平台中文名的地方 4 处\n每一张平台表都提到了所有可托管平台。\n",
+      "stdout": "扫了 apps/src/scripts 下 31 处平台表；已登记的有意子集 23 张；允许自带平台中文名的地方 4 处\n每一张平台表都提到了所有可托管平台。\n",
       "stderr": ""
     },
     {
