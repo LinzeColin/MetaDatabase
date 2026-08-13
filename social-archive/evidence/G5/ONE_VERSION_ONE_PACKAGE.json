@@ -1,16 +1,13 @@
 {
   "status": "PASS",
   "version": "0.0.0.79",
-  "version_set_by": "baa453bc204acdc8f6bbd8f83d5090aaaae73372 08-14 01:49",
+  "version_set_by": "a59a90c8d2c8aa26e19f1242805d55312e916207 08-14 02:46",
   "watched": [
     "apps/browser-extension"
   ],
   "tracked_files": 27,
-  "changed_since_bump": [
-    "social-archive/apps/browser-extension/manifest.json",
-    "social-archive/apps/browser-extension/runtime-config.json"
-  ],
-  "version_being_bumped_right_now": true,
+  "changed_since_bump": [],
+  "version_being_bumped_right_now": false,
   "problems": [],
   "what_this_does_not_prove": "不保证插件是对的，只保证**它变了的时候版本号跟着变**。它也不拦同一版重复部署——改服务端而不动插件时那是正常的。"
 }
