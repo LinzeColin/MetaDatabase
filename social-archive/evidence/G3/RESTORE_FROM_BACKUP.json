@@ -18,13 +18,13 @@
           "target": "runtime-db",
           "store": "r2",
           "exit_code": 0,
-          "snapshot_batch": "20260813T035600Z",
+          "snapshot_batch": "20260813T075831Z",
           "drill": {
             "status": "PASS",
-            "generated_at": "2026-08-13T07:35:36.581796Z",
+            "generated_at": "2026-08-13T08:11:05.433512Z",
             "source_store": "r2",
-            "object_key": "backups/runtime-db/20260813T035600Z/f0693ed62279702e0a79cb68d52abe82b553e9847c20c9f3380e1c3803487ae4.sqlite3.gz.age",
-            "restored_to": "/var/tmp/restore-check-TOk5/restored-runtime.sqlite3",
+            "object_key": "backups/runtime-db/20260813T075831Z/73eb1d9c97dfedf58df601ac9a31b9a510933450525aad26b267710516678747.sqlite3.gz.age",
+            "restored_to": "/var/tmp/restore-check-Ecfe/restored-runtime.sqlite3",
             "restored_byte_size": 5570560,
             "restored_counts": {
               "content": 193,
@@ -48,13 +48,13 @@
           "target": "runtime-db",
           "store": "oci",
           "exit_code": 0,
-          "snapshot_batch": "20260813T035600Z",
+          "snapshot_batch": "20260813T075831Z",
           "drill": {
             "status": "PASS",
-            "generated_at": "2026-08-13T07:35:43.376546Z",
+            "generated_at": "2026-08-13T08:11:12.082392Z",
             "source_store": "oci",
-            "object_key": "backups/runtime-db/20260813T035600Z/f0693ed62279702e0a79cb68d52abe82b553e9847c20c9f3380e1c3803487ae4.sqlite3.gz.age",
-            "restored_to": "/var/tmp/restore-check-iwXO/restored-runtime.sqlite3",
+            "object_key": "backups/runtime-db/20260813T075831Z/73eb1d9c97dfedf58df601ac9a31b9a510933450525aad26b267710516678747.sqlite3.gz.age",
+            "restored_to": "/var/tmp/restore-check-uUMA/restored-runtime.sqlite3",
             "restored_byte_size": 5570560,
             "restored_counts": {
               "content": 193,
@@ -81,10 +81,10 @@
           "snapshot_batch": "20260811T032751Z",
           "drill": {
             "status": "PASS",
-            "generated_at": "2026-08-13T07:35:53.293951Z",
+            "generated_at": "2026-08-13T08:11:19.549892Z",
             "source_store": "github",
             "object_key": "backups/runtime-db/20260811T032751Z/e107d65356ea74304338d28b87ab902b269476bb8527cff5a8871072581b3b0a.sqlite3.gz.age",
-            "restored_to": "/var/tmp/restore-check-8DDx/restored-runtime.sqlite3",
+            "restored_to": "/var/tmp/restore-check-VwLQ/restored-runtime.sqlite3",
             "restored_byte_size": 4825088,
             "restored_counts": {
               "content": 193,
@@ -121,10 +121,10 @@
           "snapshot_batch": "20260811T032747Z",
           "drill": {
             "status": "PASS",
-            "generated_at": "2026-08-13T07:35:58.722857Z",
+            "generated_at": "2026-08-13T08:11:24.553517Z",
             "source_store": "r2",
             "object_key": "backups/private-database/20260811T032747Z/feda78b5cb1defb29be66e31ffd41f819a1596ae44a9aed4903080953f159b5b.tar.gz.age",
-            "restored_to": "/var/tmp/restore-check-dKS9/restored-facts",
+            "restored_to": "/var/tmp/restore-check-n9r9/restored-facts",
             "fact_count": 100,
             "every_fact_hash_matched": true,
             "hashed_as": "line_with_newline",
@@ -145,10 +145,10 @@
           "target": "disaster-recovery",
           "store": "r2",
           "exit_code": 0,
-          "snapshot_batch": "20260813T035600Z",
+          "snapshot_batch": "20260813T075831Z",
           "drill": {
             "status": "PASS",
-            "generated_at": "2026-08-13T07:36:34.602564Z",
+            "generated_at": "2026-08-13T08:11:59.577254Z",
             "source_store": "r2",
             "artifacts_in_index": 552,
             "checked_this_run": 25,
@@ -160,7 +160,7 @@
             "recovered_and_hash_verified": 25,
             "failed": 0,
             "failure_samples": [],
-            "target": "/var/tmp/restore-check-z3hX",
+            "target": "/var/tmp/restore-check-wnqg",
             "coverage_zh": "这次验的是索引里 552 个制品中的 25 个（窗口 94–119）——**不是全量**。起点每次部署挪一格，连着发几十版才走完一圈。",
             "note": "restore_object.py 自己就会比对哈希；这里数的是它判 PASS 的个数。"
           }
