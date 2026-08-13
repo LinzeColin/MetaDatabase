@@ -258,18 +258,44 @@ def main() -> int:
             f"{verdict.get('chosen_count')} 条——那不是他的收藏，"
             "认错的后果是把别人的内容当成他的存进档案馆")
 
+    # **这一跑到底见没见到一个"内容流"。**（2026-08-13）
+    #
+    # 之前这里一律说「它不会从热搜或推荐流里乱抓」——**而有的平台压根没让我们
+    # 看见热搜或推荐流**。小红书实测：无头 Chrome 被风控挡下，落在
+    # `/website-login/error`，收到的 14 条真响应全是 `as.xiaohongshu.com/api/sec/*`
+    # 和 `apm-fe.xiaohongshu.com/api/data`——**安全与埋点接口，一条内容都没有**。
+    # 识别器在一张没有列表的页面上"没乱抓"，**说明不了它面对真列表时也不乱抓**。
+    #
+    # 正对照仍然成立（塞一个像列表的进去，它认得出来），所以这不是空转；
+    # 但**那句话要收窄到证据的边界内**。
+    CONTENT_FREE = ("/api/sec/", "/apm", "/api/data", "/api/p/pj", "sbtsource")
+    content_like = [c for c in captures
+                    if not any(mark in str(c.get("url") or "") for mark in CONTENT_FREE)]
+    saw_a_feed = len(content_like) > 0
     print(json.dumps({
         "status": "FAIL" if problems else "PASS",
         "page": PAGE,
         "real_responses_fed_to_the_recogniser": len(captures),
+        # **收到几条 ≠ 见到了内容。** 分开数，别让「14 条真响应」读起来像
+        # 「见过 14 条内容」——那 14 条可能全是风控和埋点。
+        "content_bearing_responses": len(content_like),
+        "saw_a_real_feed": saw_a_feed,
         "sample_urls": [str(c.get("url"))[:88] for c in captures[:8]],
         "verdict": verdict,
         "problems": problems,
-        "message_zh": ("没登录时识别器明说没认出来——**它不会从热搜或推荐流里乱抓**。"
-                       if not problems else "识别器认错了——见 problems。"),
+        "message_zh": (
+            "识别器认错了——见 problems。" if problems else
+            ("没登录时识别器明说没认出来——**它不会从热搜或推荐流里乱抓**。"
+             if saw_a_feed else
+             "**这一跑没有见到任何内容流**（收到的真响应全是风控／埋点接口，"
+             "多半被挡在了登录或风控页）。结论只到「识别器还活着、正对照认得出"
+             "塞进去的那个列表」为止——**不能据此说它面对真列表不会乱抓**。")),
         "what_this_does_not_prove":
-            "不证明登录之后认得出他的收藏（那要他的登录态）。这里证的是另一半："
-            "认不出的时候不会瞎认。",
+            ("不证明登录之后认得出他的收藏（那要他的登录态）。这里证的是另一半："
+             "认不出的时候不会瞎认。"
+             if saw_a_feed else
+             "**这一跑连推荐流都没见到**，所以它既不证明会乱抓、也不证明不会乱抓；"
+             "只证明识别器本身没坏（正对照认出了塞进去的那个列表）。"),
     }, ensure_ascii=False, indent=2))
     return 0 if not problems else 4
 
