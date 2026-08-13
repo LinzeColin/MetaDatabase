@@ -198,12 +198,25 @@ def run(host: str, version: str) -> int:
         note("连接完成，拿到账号和一次首同步", {"account_id": account_id, "sync_run_id": run_id},
              "两个都非空", bool(account_id) and bool(run_id))
 
+        # **这一批刻意带上两样他库里出过问题的东西**（2026-08-13）：
+        #
+        #   · `collection_name` + `external_collection_id` —— 他库里那 3 行
+        #     `platform_collection` 的 external id 是 NULL，联表永远匹配不上，
+        #     于是「收藏夹」那一列 194 条全是「未分组」。客户端那一侧
+        #     8f32ef76 已经改成"发名字必带 id"，**而这条链从没被端到端走过**。
+        #   · 地址上的埋点 —— 他库里 127 条带着 `source=` / `spm_id_from`。
+        #     今天改了规范化，**同样没有端到端证据**。
+        #
+        # 两样都验在「他重连之后会怎样」这个问题上，而这个演练正好走的就是那条路。
         batch = curl(host, "POST", f"/v1/sync-runs/{run_id}/batches", {
             "relation_type": "favorite", "scope_type": "relation",
             "completeness": "complete", "has_more": False,
+            "collection_name": "我的收藏夹",
+            "external_collection_id": "dy:favlist:1",
             "items": [{"platform": "douyin",
-                       "url": "https://www.douyin.com/video/769",
+                       "url": "https://www.douyin.com/video/769?source=Baiduspider-sdc",
                        "external_content_id": "769", "relation_type": "favorite",
+                       "collection_key": "dy:favlist:1",
                        "title": "2.0万真正的一次性她来了真正的一次性她来了",
                        "author_name": "26.6万"}]})
         note("送完终批，那次同步跑到 completed", batch.get("status"), "completed",
@@ -219,6 +232,20 @@ def run(host: str, version: str) -> int:
              bool(items) and items[0].get("title") == "真正的一次性她来了")
         note("点赞数没被当成作者", items[0].get("author_name") if items else "（没有条目）",
              "空", bool(items) and not items[0].get("author_name"))
+
+        # **收藏夹那一列要显示得出名字。**（2026-08-13）
+        # 他库里 194 条全是「未分组」——因为 platform_collection 的
+        # external id 是 NULL，联表匹配不上。这一条走的是修好之后的那条链。
+        note("收藏夹显示得出名字（不是「未分组」）",
+             items[0].get("primary_collection") if items else "（没有条目）",
+             "我的收藏夹",
+             bool(items) and items[0].get("primary_collection") == "我的收藏夹")
+
+        # **存下来的地址不许带埋点。**（2026-08-13）
+        # 送进去的是 `...?source=Baiduspider-sdc`，存下来该是干净的。
+        stored_url = items[0].get("canonical_url") if items else ""
+        note("地址上的埋点被洗掉了", stored_url, "不含 source=",
+             bool(items) and "source=" not in str(stored_url))
 
         # ── 他今天真正卡在的那一段：断开之后能不能连回来、连回来会不会自己跑 ──
         #
