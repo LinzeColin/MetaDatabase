@@ -1,7 +1,7 @@
 {
   "status": "PASS",
   "task": "G3",
-  "extension_under_test": "/var/folders/w9/fnb1wnyd3dg6npzvt909scm80000gn/T/sa-bili-zip-5it0ye9w",
+  "extension_under_test": "/var/folders/w9/fnb1wnyd3dg6npzvt909scm80000gn/T/sa-bili-zip-wt_tgrz0",
   "extension_version": "0.0.0.70",
   "journey": {
     "connect": {
@@ -21,28 +21,28 @@
     },
     "tabs_before": [
       {
-        "id": 75576562,
+        "id": 1272331368,
         "active": false
       },
       {
-        "id": 75576563,
+        "id": 1272331369,
         "active": false
       },
       {
-        "id": 75576566,
+        "id": 1272331372,
         "active": true
       }
     ],
-    "my_tab_id": 75576566,
+    "my_tab_id": 1272331372,
     "queue_before": [
       {
         "accountId": "acct-1",
-        "enqueuedAt": 1786600602125,
+        "enqueuedAt": 1786602369804,
         "profileUrl": "",
         "syncRunId": "run-1",
         "tabId": null,
         "triggerType": "first_connect",
-        "updatedAt": 1786600602125
+        "updatedAt": 1786602369804
       }
     ],
     "alarm_scheduled": true,
@@ -60,15 +60,15 @@
     "queue_after": [],
     "tabs_after": [
       {
-        "id": 75576562,
+        "id": 1272331368,
         "active": false
       },
       {
-        "id": 75576563,
+        "id": 1272331369,
         "active": false
       },
       {
-        "id": 75576566,
+        "id": 1272331372,
         "active": true
       }
     ],
