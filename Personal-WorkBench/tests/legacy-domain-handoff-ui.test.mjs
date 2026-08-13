@@ -3,11 +3,12 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("retired-domain redirect carries only a bounded anonymous history payload beside the opaque session handoff", async () => {
-  const [redirect, contract, recovery, completion] = await Promise.all([
+  const [redirect, contract, recovery, completion, nextConfig] = await Promise.all([
     readFile("app/_components/workbench/legacy-domain-redirect.tsx", "utf8"),
     readFile("app/_components/workbench/legacy-domain-handoff.ts", "utf8"),
     readFile("app/_components/workbench/legacy-domain-history-recovery.tsx", "utf8"),
     readFile("app/api/auth/legacy-domain-handoff/complete/route.ts", "utf8"),
+    readFile("next.config.ts", "utf8"),
   ]);
 
   assert.match(redirect, /fetch\("\/api\/auth\/legacy-domain-handoff", \{/);
@@ -25,4 +26,7 @@ test("retired-domain redirect carries only a bounded anonymous history payload b
   assert.doesNotMatch(completion, /legacy-import\/apply|legacy-import\/preview/);
   assert.match(contract, /safeAccountReturnPath/);
   assert.match(contract, /HANDOFF_ID_PATTERN/);
+  assert.match(nextConfig, /allowedDevOrigins: \[RETIRED_WORKBENCH_HOST\]/);
+  assert.match(nextConfig, /allowedOrigins: \[RETIRED_WORKBENCH_HOST\]/);
+  assert.match(nextConfig, /bodySizeLimit: "8mb"/);
 });

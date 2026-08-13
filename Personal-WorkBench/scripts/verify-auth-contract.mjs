@@ -37,7 +37,7 @@ export async function verifyAuthContract() {
     "maxPasswordLength: 128",
     "revokeSessionsOnPasswordReset: true",
     "disableImplicitLinking: true",
-    "allowDifferentEmails: false",
+    "allowDifferentEmails: true",
     "allowUnlinkingAll: false",
     'storage: "database"',
     "cloudflare-turnstile",

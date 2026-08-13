@@ -89,6 +89,13 @@ test("Better Auth binds its dynamic host allowlist to the parsed trusted origins
   assert.ok(source.includes("allowedHostnames: allowedTurnstileHostnames(config.turnstileSecretKey, config.trustedOrigins)"));
 });
 
+test("an explicit verified Google link may use a different mailbox without implicit account matching", async () => {
+  const source = await readFile(new URL("../server/auth/index.ts", import.meta.url), "utf8");
+  assert.match(source, /disableImplicitLinking: true/);
+  assert.match(source, /allowDifferentEmails: true/);
+  assert.match(source, /allowUnlinkingAll: false/);
+});
+
 test("Better Auth rate-limit timestamp remains an epoch-millisecond number", () => {
   assert.equal(rateLimit.lastRequest.mapToDriverValue(1_234_567_890), 1_234_567_890);
 });

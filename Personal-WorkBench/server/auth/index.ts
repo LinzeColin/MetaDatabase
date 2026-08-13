@@ -89,7 +89,10 @@ export function createAuth(env: AuthRuntimeEnv) {
       accountLinking: {
         enabled: true,
         disableImplicitLinking: true,
-        allowDifferentEmails: false,
+        // A signed-in person may explicitly connect a verified Google account
+        // even when its mailbox differs from their password-login mailbox.
+        // This does not enable implicit email-based account merges.
+        allowDifferentEmails: true,
         allowUnlinkingAll: false,
         updateUserInfoOnLink: false,
       },
