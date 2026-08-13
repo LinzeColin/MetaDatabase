@@ -53,6 +53,15 @@ def structural_commands() -> list[list[str]]:
         # 让人跑 `scripts/restore.sh`——那一天再发现脚本不在，是最坏的时机。
         # 这道门把文档里出现的 scripts/xxx 逐个去磁盘上找一遍。
         [python, "scripts/check_docs_point_at_things_that_exist.py"],
+        # 上一道查的是文档提到的**脚本**在不在磁盘上。这一道查文档点名的
+        # **`/health` 字段**在不在响应里——整个交接压在四个字段名上
+        # （HANDOFF.md 的可粘提示词让接手方 curl 一下看这四样）。
+        # 名字一漂，`.get()` 给的是 None：既不等于 True 也不等于 False，
+        # 于是"一条链真的停了"会被读成"没事"。2026-08-14 我自己按猜的字段名
+        # 读生产，两条链都印出 last=None，差点写进结论——那还是我五小时前
+        # 刚写的那一格。而 check_docs_match_the_ui 只扫 docs/，
+        # **HANDOFF.md 在仓根，它一个字没看过。**
+        [python, "scripts/check_docs_name_real_health_fields.py"],
         # 同一类：文档安静地说一个不成立的事实。2026-08-05 数了一遍全仓的版本号，
         # README 第 1 行说 v0.0.0.6、AGENTS.md 第 9 行说 v0.0.0.6——**而 AGENTS.md
         # 是接手的 agent 读的那一份**，每一个后来的人都会被它告知一个错的版本；

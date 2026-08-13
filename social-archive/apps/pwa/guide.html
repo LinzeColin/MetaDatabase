@@ -200,6 +200,23 @@
 <blockquote>8/12、8/13 连着两天没做出备份，而当时界面上一个字都没有——</blockquote>
 <blockquote>因为那会儿只接了往别处复制那半条链的信号，它一直好好的，</blockquote>
 <blockquote>就把死掉的另一半整个挡住了。</blockquote>
+<p><strong>顶上说「只存在这一台机器上」</strong></p>
+<blockquote>还没有把任何一份内容复制到别处——你存下的东西都在，但目前它们只存在这一台机器上。</blockquote>
+<p>这句话只会在<strong>一台全新的、或者那条链从来没跑成过的机器</strong>上出现。</p>
+<p>它和上面几句的区别值得说清楚：上面那些是<strong>跑过、这次没跑成</strong>，</p>
+<p>这一句是<strong>一次都没跑成过</strong>——所以不要等它自己追上，它不会。</p>
+<p>处置和上面一样，先跑这条看是哪个定时器没起来：</p>
+<pre><code>cd /opt/social-archive &amp;&amp; bash scripts/check_durability_units.sh</code></pre>
+<blockquote><strong>为什么专门有这一句</strong>：2026-08-14 量出来，这个状态下界面<strong>一个字都不说</strong>。</blockquote>
+<blockquote>备份那条链早就会说话了，而复制这条链的同名状态被一个<strong>三件事并成一个</strong>的</blockquote>
+<blockquote>判断吞掉了——<strong>确实一次都没跑过</strong>和<strong>读不出来所以不知道</strong>写在了一起，</blockquote>
+<blockquote>而后者按设计是不出声的。于是<strong>真的一次都没备份到别处</strong>这件事，</blockquote>
+<blockquote>就跟着不出声了。</blockquote>
+<p><strong>顶上说「状态记录坏掉了」</strong></p>
+<blockquote>复制这一步的状态记录坏掉了——你存下的东西都在，但现在没办法确认它们到底有没有第二份。</blockquote>
+<p>意思是那份记录本身读得到、但内容坏了，所以<strong>说不出</strong>上一次复制的结果。</p>
+<p>它说的是<strong>说不出</strong>，不是<strong>没有副本</strong>——别把它读成东西丢了。</p>
+<p>处置同上，跑一次上面那条命令；它会直接告诉你那个服务上次跑成没跑成。</p>
 <p><strong>库里好多条写着未知作者、发布时间是空的</strong></p>
 <p>这是老版本取数时没取到，不是显示出了问题——<strong>重新同步会去补它们</strong>。</p>
 <p>早期那几次同步的取数路还没带作者和发布时间，现在带了。<strong>补得回多少分两种情况</strong>：</p>

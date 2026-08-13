@@ -95,7 +95,28 @@ def test_跑了但没跑完也要说(api_module, tmp_path: Path) -> None:
 
 
 def test_文件还不存在时不许假装正常(api_module, tmp_path: Path) -> None:
-    """**「读不到」不等于「没问题」**——这个仓最常踩的那种空默认值。"""
+    """**读不到不等于没问题**——这个仓最常踩的那种空默认值。
+
+    2026-08-14 这一格又分细了一层，所以这条断言跟着变：
+
+    原来「文件不在」和「读不动」共用一支，统一答 `status="unknown"`、
+    `stale=None`。而 unknown 按设计**不说话**——于是「这条链一次都没跑成过」
+    搭着「不知道」的便车安静溜过去，界面一个字都没有。
+
+    产品那边的规矩早就写在备份那条链里了（`_newest_completed_snapshot`）：
+    **目录/文件不在 = 确实没跑过，这是「知道」，不是「不知道」。**
+    这里补齐同一条规矩。
+
+    这条判据要守的东西一个字没松：**绝不许报成健康**。
+    松的只是「用哪个值表示不健康」——从 `None`（不知道）改成 `True`（知道，坏了），
+    而后者更强。真正的「不知道」那一支（读不动）另有判据钉着，见
+    `test_replication_never_running_is_not_silence.py`。
+    """
     got = api_module._replication_liveness()                      # noqa: SLF001
-    assert got["status"] == "unknown"
-    assert got["stale"] is None, "读不到就该是「不知道」，不该是 False"
+    # 这一条是底线，先断言它：无论怎么分支，都不许说"没事"。
+    assert got["stale"] is not False, f"文件都还没有，不许报成健康：{got}"
+    assert got["status"] == "never-ran", got["status"]
+    assert got["stale"] is True, "文件不在 = 确实没跑过，这是知道，不是不知道"
+    assert got["message_zh"], (
+        "知道它没跑过却一个字都不说——界面靠 message_zh 触发徽章，"
+        "不下发这一格等于用户看不见")

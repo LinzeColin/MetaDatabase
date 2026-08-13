@@ -364,11 +364,33 @@ def _free_disk() -> dict[str, Any]:
 # 是这条链的活性信号**，而回执是历史。两者差别正是这次事故的全部。
 def _replication_liveness() -> dict[str, Any]:
     path = settings.data_root / "status/object-replication.json"
+    # **三件事不许并成一个 `except`**（备份那一格早就分开了，这一格 2026-08-14 才补）：
+    # 并起来之后只能统一答 "unknown"，而 unknown 按设计不说话——
+    # 于是「确实一次都没跑过」搭着「不知道」的便车溜过去，界面全哑。
+    # 拿空数据根起真 app 量过：backup 那条会说话，replication 这条连
+    # `message_zh` 这个键都不下发。
     try:
         document = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {"last_run_at": None, "status": "unknown", "stale": None,
-                "why": "还没有 status/object-replication.json"}
+    except FileNotFoundError:
+        # 文件不在 = 这条链**确实一次都没跑成过**（`replicate_objects.py`
+        # 跑一次就重写它）。这是**知道**，不是不知道，所以必须说话。
+        return {"last_run_at": None, "status": "never-ran", "hours_since": None,
+                "stale": True,
+                "message_zh": failure_copy.NO_REPLICATION_YET_SENTENCE,
+                "why": "还没有 status/object-replication.json——这条链一次都没跑成过"}
+    except OSError as exc:
+        # 读不动（权限之类）——**这才是真的不知道**，不许拿它吓人。
+        return {"last_run_at": None, "status": "unknown", "hours_since": None,
+                "stale": None, "message_zh": "",
+                "why": f"读不到 status/object-replication.json（{type(exc).__name__}）"
+                       "——这不等于没跑过"}
+    except ValueError:
+        # 文件在、但不是合法 JSON = 状态记录坏了。也是**知道**：
+        # 说不出这条链的近况本身就是要报的事，不能装作没看见。
+        return {"last_run_at": None, "status": "unreadable", "hours_since": None,
+                "stale": True,
+                "message_zh": failure_copy.REPLICATION_STATUS_UNREADABLE_SENTENCE,
+                "why": "status/object-replication.json 不是合法 JSON"}
     last = str(document.get("generated_at") or "")
     hours: float | None = None
     try:
@@ -392,12 +414,19 @@ def _replication_liveness() -> dict[str, Any]:
         message = failure_copy.backup_stale_sentence(hours)
     elif status not in ("PASS", "unknown"):
         message = failure_copy.BACKUP_RUN_INCOMPLETE_SENTENCE
+    # `why` 在这里也要有（哪怕是空串）：**键集必须在所有状态下一样**。
+    # 否则「这个字段存不存在」取决于当时是哪一支——一份夹具是干净状态、
+    # 一份是降级状态，两边量出来的 schema 就不是同一个，
+    # 而拿它去核对文档的判据会同时产生假阴（漏掉只在降级支出现的名字）
+    # 和假阳（把只在正常支出现的名字报成不存在）。2026-08-14 我刚写的那道门
+    # 就是这么坏的，量出来才发现。
     return {
         "last_run_at": last or None,
         "status": status,
         "hours_since": None if hours is None else round(hours, 2),
         "stale": stale,
         "message_zh": message,
+        "why": "",
     }
 
 
@@ -502,6 +531,7 @@ def _backup_liveness() -> dict[str, Any]:
         "hours_since": round(hours, 2),
         "stale": stale,
         "message_zh": failure_copy.backup_missing_sentence(hours) if stale else "",
+        "why": "",          # 键集恒定，理由见 _replication_liveness 末尾那段
     }
 
 

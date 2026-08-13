@@ -457,6 +457,35 @@ def backup_missing_sentence(hours: float | None) -> str:
             "但这一轮没有做出新的备份。")
 
 
+# ## 第三轮：同一个病根，压着的是 replication 的**「从来没跑过」**那一支
+#
+# 上面那段注释写着「上一轮我只把 replication 接了出来，就以为这条线补完了」。
+# 2026-08-14 反过来又犯一次：**我把 backup 的「从来没跑过」接了出来，
+# 而 replication 的同名状态一个字都不说。**
+#
+# 拿空数据根起真 app 量出来的（不是读代码推的）：
+#
+#     backup       从没跑过 → message_zh="还没有做出过任何一次备份。"  徽标会说话
+#     replication  从没跑过 → **连 message_zh 这个键都没有**            徽标全哑
+#
+# 哑的原因是那一支 `except (OSError, ValueError)` 把三件事收成了一个：
+# 文件不在（**知道**：脚本跑一次就会写它，没有就是没跑过）、
+# 读不动（**不知道**：权限之类，不该拿它吓人）、
+# 不是合法 JSON（**知道**：状态坏了）。收成一个之后只能统一答"unknown"，
+# 而 unknown 按设计是不说话的——于是"确实没跑过"搭了"不知道"的便车溜过去。
+#
+# 这正是 2026-08-04 那次事故的形状：三个 timer 全 disabled、90 天 No entries，
+# 而界面照样显示「已归档」。
+NO_REPLICATION_YET_SENTENCE = (
+    "还没有把任何一份内容复制到别处——你存下的东西都在，"
+    "但目前它们只存在这一台机器上。")
+
+
+REPLICATION_STATUS_UNREADABLE_SENTENCE = (
+    "复制这一步的状态记录坏掉了——你存下的东西都在，"
+    "但现在没办法确认它们到底有没有第二份。")
+
+
 def code_key(code: str | None) -> str:
     """失败码规范化。库里存的大小写不一定一致。"""
     return str(code or "").strip().upper()
