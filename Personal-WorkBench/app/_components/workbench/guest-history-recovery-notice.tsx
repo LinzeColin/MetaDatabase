@@ -66,7 +66,10 @@ export function GuestHistoryRecoveryNotice() {
           if (!session?.user || typeof session.user.id !== "string" || !session.user.id || session.user.emailVerified !== true) return null;
           return {
             count: guestRecordCount,
-            href: `/account?return_to=${encodeURIComponent(accountReturnPathFromLocation(window.location))}`,
+            // Following this explicitly labelled recovery entry may prepare a
+            // read-only server preview on the account page. It never imports
+            // or deletes history; the later confirmation remains required.
+            href: `/account?recover_guest_history=1&return_to=${encodeURIComponent(accountReturnPathFromLocation(window.location))}`,
           };
         })
         .then((next) => {
@@ -131,7 +134,7 @@ export function GuestHistoryRecoveryNotice() {
     <aside className="guest-history-recovery-notice" role="status">
       <strong>登录前记录还在这台设备</strong>
       <p>发现 {count} 条本机记录。为保护多账号数据，它们不会自动合并到当前账号。</p>
-      <a className="data-link" href={href}>预览并导入到当前账号</a>
+      <a className="data-link" href={href}>查看并预览本机历史</a>
     </aside>
   );
 }

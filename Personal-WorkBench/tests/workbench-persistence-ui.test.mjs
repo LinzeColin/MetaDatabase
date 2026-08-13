@@ -270,7 +270,7 @@ test("account management offers an explicit, preview-first import for this devic
     readFile("server/data/legacy-import.ts", "utf8"),
   ]);
 
-  assert.match(accountPage, /<DeviceHistoryTransferPanel returnTo=\{returnTo\} \/>/);
+  assert.match(accountPage, /<DeviceHistoryTransferPanel previewOnArrival=\{previewGuestHistoryOnArrival\} returnTo=\{returnTo\} \/>/);
   assert.match(transferPanel, /buildGuestDeviceHistoryEnvelope/);
   assert.match(transferPanel, /预览导入内容/);
   assert.match(transferPanel, /确认导入到当前账号/);
@@ -309,9 +309,11 @@ test("verified account UI exposes only a data-free sync-health confirmation", as
 });
 
 test("a verified account with anonymous device records sees the explicit recovery entry on the workbench", async () => {
-  const [page, notice, cache] = await Promise.all([
+  const [page, notice, accountPage, transferPanel, cache] = await Promise.all([
     readFile(pageSource, "utf8"),
     readFile(guestHistoryRecoverySource, "utf8"),
+    readFile(accountSource, "utf8"),
+    readFile("app/account/device-history-transfer-panel.tsx", "utf8"),
     readFile("app/_components/workbench/local-record-cache.ts", "utf8"),
   ]);
 
@@ -319,7 +321,8 @@ test("a verified account with anonymous device records sees the explicit recover
   assert.match(notice, /get-session\?disableCookieCache=true/);
   assert.match(notice, /session\.user\.emailVerified !== true/);
   assert.match(notice, /countGuestDeviceHistoryRecords/);
-  assert.match(notice, /预览并导入到当前账号/);
+  assert.match(notice, /recover_guest_history=1/);
+  assert.match(notice, /查看并预览本机历史/);
   assert.match(notice, /AUTH_RETURN_RECOVERY_EVENT/);
   assert.match(notice, /AUTH_RETURN_RECOVERY_DELAYS_MS/);
   assert.match(notice, /AUTH_RETURN_RECOVERY_QUERY_KEY/);
@@ -332,6 +335,11 @@ test("a verified account with anonymous device records sees the explicit recover
   assert.match(notice, /window\.removeEventListener\(AUTH_RETURN_RECOVERY_EVENT, inspect\)/);
   assert.match(notice, /controller\?\.abort\(\)/);
   assert.doesNotMatch(notice, /legacy-import\/apply|buildGuestDeviceHistoryEnvelope|deleteDatabase|localStorage\.removeItem/);
+  assert.match(accountPage, /previewGuestHistoryOnArrival/);
+  assert.match(accountPage, /<DeviceHistoryTransferPanel previewOnArrival=\{previewGuestHistoryOnArrival\} returnTo=\{returnTo\} \/>/);
+  assert.match(transferPanel, /previewOnArrival\?: boolean/);
+  assert.match(transferPanel, /autoPreviewConsumed/);
+  assert.match(transferPanel, /autoPreviewConsumed\.current = true;\s+void previewImport\(\);/);
   assert.match(cache, /export async function countGuestDeviceHistoryRecords\(\)/);
   assert.match(cache, /readDeviceLocalRecords\("guest", resource\)/);
 });

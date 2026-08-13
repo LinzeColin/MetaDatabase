@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   buildGuestDeviceHistoryEnvelope,
   type GuestDeviceHistoryEnvelope,
@@ -22,6 +22,7 @@ type ImportResult = {
 };
 
 type DeviceHistoryTransferPanelProps = {
+  previewOnArrival?: boolean;
   returnTo?: string | null;
 };
 
@@ -71,12 +72,13 @@ function failureMessage(status: number): string {
  * device before creating an account. It cannot read another account scope and
  * it never deletes the device source after import.
  */
-export function DeviceHistoryTransferPanel({ returnTo }: DeviceHistoryTransferPanelProps) {
+export function DeviceHistoryTransferPanel({ previewOnArrival = false, returnTo }: DeviceHistoryTransferPanelProps) {
   const [envelope, setEnvelope] = useState<GuestDeviceHistoryEnvelope | null>(null);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [requestId, setRequestId] = useState("");
   const [busy, setBusy] = useState(true);
   const [message, setMessage] = useState("正在检查这台设备上是否有登录前保存的记录…");
+  const autoPreviewConsumed = useRef(false);
 
   const inspectDeviceHistory = async () => {
     setBusy(true);
@@ -109,7 +111,7 @@ export function DeviceHistoryTransferPanel({ returnTo }: DeviceHistoryTransferPa
   const count = totalCount(envelope);
   const sensitive = containsSensitiveHistory(envelope);
 
-  async function previewImport(): Promise<void> {
+  const previewImport = useCallback(async (): Promise<void> => {
     if (!envelope || !count || busy) return;
     setBusy(true);
     setMessage("正在预览这台设备的记录…");
@@ -138,7 +140,16 @@ export function DeviceHistoryTransferPanel({ returnTo }: DeviceHistoryTransferPa
     } finally {
       setBusy(false);
     }
-  }
+  }, [busy, count, envelope]);
+
+  useEffect(() => {
+    // The person deliberately chose the recovery entry on the workbench. Make
+    // that link truthfully open its non-mutating preview, while retaining the
+    // final explicit import confirmation and all tenant/privacy checks.
+    if (!previewOnArrival || autoPreviewConsumed.current || busy || preview || !envelope || !count) return;
+    autoPreviewConsumed.current = true;
+    void previewImport();
+  }, [busy, count, envelope, preview, previewImport, previewOnArrival]);
 
   async function applyImport(): Promise<void> {
     if (!envelope || !preview?.canApply || !requestId || busy) return;

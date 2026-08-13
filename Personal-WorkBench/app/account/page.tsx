@@ -69,9 +69,11 @@ export default function AccountPage() {
   const [isBusy, setIsBusy] = useState(false);
   const [accountCheckUnavailable, setAccountCheckUnavailable] = useState(false);
   const [syncHealth, setSyncHealth] = useState<SyncHealth>("idle");
-  const returnTo = typeof window === "undefined"
-    ? null
-    : safeAccountReturnPath(new URLSearchParams(window.location.search).get("return_to"));
+  const accountQuery = typeof window === "undefined" ? null : new URLSearchParams(window.location.search);
+  const returnTo = safeAccountReturnPath(accountQuery?.get("return_to") ?? null);
+  // This marker is supplied only by the user-facing device-history notice.
+  // It authorizes an automatic preview, never an import or source deletion.
+  const previewGuestHistoryOnArrival = accountQuery?.get("recover_guest_history") === "1";
 
   /**
    * This is a deliberately data-free, verified-session-only check. The route
@@ -484,7 +486,7 @@ export default function AccountPage() {
               {!privacyDisclosureReady ? <p className="account-note">隐私联系信息尚未配置，当前环境不能开启敏感跨设备保存。</p> : null}
             </section>
 
-            <DeviceHistoryTransferPanel returnTo={returnTo} />
+            <DeviceHistoryTransferPanel previewOnArrival={previewGuestHistoryOnArrival} returnTo={returnTo} />
             <LegacyImportPanel />
           </>
         ) : (
