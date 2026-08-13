@@ -132,6 +132,9 @@ test("an OAuth return rechecks the session once and refreshes every mounted hist
   assert.match(accountEntry, /const recoveryMarkedInStorage = consumeAuthReturnRecovery\(\);/);
   assert.match(accountEntry, /const recoveryMarkedInLocation = consumeAuthReturnRecoveryFromLocation\(\);/);
   assert.match(accountEntry, /AUTH_RETURN_RECOVERY_DELAYS_MS\.map/);
+  assert.match(accountEntry, /auth-return-failed/);
+  assert.match(accountEntry, /登录未完成 · 重试/);
+  assert.match(accountEntry, /finalRetryDelay \+ 2_000/);
   assert.match(accountEntry, /window\.dispatchEvent\(new Event\(AUTH_RETURN_RECOVERY_EVENT\)\)/);
   assert.match(resource, /window\.addEventListener\(AUTH_RETURN_RECOVERY_EVENT, refreshAfterAuthReturn\)/);
   assert.match(resource, /window\.removeEventListener\(AUTH_RETURN_RECOVERY_EVENT, refreshAfterAuthReturn\)/);

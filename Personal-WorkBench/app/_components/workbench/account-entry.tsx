@@ -8,7 +8,12 @@ import {
   consumeAuthReturnRecoveryFromLocation,
 } from "../../auth/_components/auth-return-recovery";
 
-type AccountEntryState = "checking" | "signed-in" | "signed-out" | "verification-required";
+type AccountEntryState =
+  | "checking"
+  | "signed-in"
+  | "signed-out"
+  | "verification-required"
+  | "auth-return-failed";
 
 type AccountEntryProps = {
   className: string;
@@ -32,8 +37,10 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
   useEffect(() => {
     let active = true;
     let controller: AbortController | null = null;
+    let recoveryFailureTimer: number | null = null;
     let requestGeneration = 0;
     let recoveryAnnounced = false;
+    let recoveredAuthReturn = false;
     // Consume both independent one-shot signals. A normal same-tab callback
     // has both: sessionStorage makes the recovery resilient to a redirect,
     // while the location marker is needed if an embedded browser rebuilt the
@@ -68,6 +75,14 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
         })
         .then((nextState) => {
           if (active && generation === requestGeneration) {
+            if (nextState !== "signed-out") {
+              recoveredAuthReturn = true;
+              if (recoveryFailureTimer !== null) window.clearTimeout(recoveryFailureTimer);
+            }
+            // Do not make a just-returned OAuth visitor look like an ordinary
+            // guest while Better Auth finishes its bounded session commit.
+            // A clear retry state is shown only after the full recovery window.
+            if (shouldRecoverAuthReturn && nextState === "signed-out" && !recoveredAuthReturn) return;
             setState(nextState);
             announceRecoveredSession(nextState);
           }
@@ -81,6 +96,13 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
     const refreshWhenDocumentVisible = () => {
       if (document.visibilityState === "visible") refresh();
     };
+
+    if (shouldRecoverAuthReturn) {
+      const finalRetryDelay = AUTH_RETURN_RECOVERY_DELAYS_MS[AUTH_RETURN_RECOVERY_DELAYS_MS.length - 1];
+      recoveryFailureTimer = window.setTimeout(() => {
+        if (active && !recoveredAuthReturn) setState("auth-return-failed");
+      }, finalRetryDelay + 2_000);
+    }
 
     refresh();
     // Better Auth commits the browser session and the user row separately.
@@ -96,6 +118,7 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
     return () => {
       active = false;
       controller?.abort();
+      if (recoveryFailureTimer !== null) window.clearTimeout(recoveryFailureTimer);
       recoveryTimers.forEach((timer) => window.clearTimeout(timer));
       window.removeEventListener("focus", refresh);
       window.removeEventListener("pageshow", refresh);
@@ -107,6 +130,8 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
   const awaitingVerification = state === "verification-required";
   const label = state === "checking"
     ? "正在确认登录…"
+    : state === "auth-return-failed"
+      ? "登录未完成 · 重试"
     : awaitingVerification
       ? "已登录 · 待验证"
       : signedIn
@@ -114,6 +139,8 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
         : "登录以同步";
   const ariaLabel = state === "checking"
     ? "正在确认登录状态"
+    : state === "auth-return-failed"
+      ? "登录没有完成，重新登录后再同步历史记录"
     : awaitingVerification
       ? "已登录，当前账号待完成验证"
       : signedIn
@@ -121,6 +148,8 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
         : "登录后启用跨设备同步";
   const title = state === "checking"
     ? "正在确认当前登录状态"
+    : state === "auth-return-failed"
+      ? "登录没有完成，请重新登录后再同步历史记录。"
     : awaitingVerification
       ? "当前账号待完成验证，验证后才能同步历史记录。"
       : signedIn
