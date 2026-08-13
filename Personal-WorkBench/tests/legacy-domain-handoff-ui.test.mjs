@@ -3,12 +3,21 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("retired-domain redirect carries only a bounded anonymous history payload beside the opaque session handoff", async () => {
-  const [redirect, contract, recovery, completion, nextConfig] = await Promise.all([
+  const [redirect, contract, recovery, completion, nextConfig, authPages, authHandoff, account] = await Promise.all([
     readFile("app/_components/workbench/legacy-domain-redirect.tsx", "utf8"),
     readFile("app/_components/workbench/legacy-domain-handoff.ts", "utf8"),
     readFile("app/_components/workbench/legacy-domain-history-recovery.tsx", "utf8"),
     readFile("app/api/auth/legacy-domain-handoff/complete/route.ts", "utf8"),
     readFile("next.config.ts", "utf8"),
+    Promise.all([
+      "sign-in",
+      "sign-up",
+      "forgot-password",
+      "reset-password",
+      "verify-email",
+    ].map((route) => readFile(`app/auth/${route}/page.tsx`, "utf8"))),
+    readFile("app/auth/_components/legacy-auth-handoff.tsx", "utf8"),
+    readFile("app/account/page.tsx", "utf8"),
   ]);
 
   assert.match(redirect, /fetch\("\/api\/auth\/legacy-domain-handoff", \{/);
@@ -29,4 +38,11 @@ test("retired-domain redirect carries only a bounded anonymous history payload b
   assert.match(nextConfig, /allowedDevOrigins: \[RETIRED_WORKBENCH_HOST\]/);
   assert.match(nextConfig, /allowedOrigins: \[RETIRED_WORKBENCH_HOST\]/);
   assert.match(nextConfig, /bodySizeLimit: "8mb"/);
+  for (const page of authPages) {
+    assert.match(page, /isRetiredAuthHost\(\)/);
+    assert.match(page, /LegacyAuthHandoff/);
+  }
+  assert.match(authHandoff, /LegacyDomainRedirect/);
+  assert.doesNotMatch(authHandoff, /sign-in\/social|AuthForm/);
+  assert.match(account, /LegacyDomainRedirect/);
 });

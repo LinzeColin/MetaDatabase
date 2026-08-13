@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { authErrorRecovery } from "../_components/auth-error";
+import { LegacyAuthHandoff } from "../_components/legacy-auth-handoff";
+import { isRetiredAuthHost } from "../_components/retired-auth-host";
+
+export const dynamic = "force-dynamic";
 
 type AuthErrorPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -7,6 +11,7 @@ type AuthErrorPageProps = {
 
 /** A product-owned, value-safe landing page for failed OAuth callbacks. */
 export default async function AuthErrorPage({ searchParams }: AuthErrorPageProps) {
+  if (await isRetiredAuthHost()) return <LegacyAuthHandoff />;
   const params = await searchParams;
   const recovery = authErrorRecovery(params.error);
 

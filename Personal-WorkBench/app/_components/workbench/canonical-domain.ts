@@ -10,17 +10,24 @@ export function isRetiredCompatibilityHost(host: string | null | undefined): boo
   return normalized === RETIRED_COMPATIBILITY_HOST || normalized === `${RETIRED_COMPATIBILITY_HOST}:443`;
 }
 
-export function canonicalRetiredHostUrl(host: string | null | undefined, search = ""): string | null {
+export function canonicalRetiredHostUrl(
+  host: string | null | undefined,
+  search = "",
+  pathname = "/",
+  hash = "",
+): string | null {
   if (!isRetiredCompatibilityHost(host)) return null;
   const destination = new URL(CANONICAL_MYDAIRY_ORIGIN);
+  destination.pathname = pathname.startsWith("/") ? pathname : "/";
   destination.search = search.startsWith("?") ? search.slice(1) : search;
+  destination.hash = hash.startsWith("#") ? hash.slice(1) : hash;
   return destination.toString();
 }
 
 export function canonicalRetiredUrl(currentUrl: string): string | null {
   try {
     const url = new URL(currentUrl);
-    return canonicalRetiredHostUrl(url.host, url.search);
+    return canonicalRetiredHostUrl(url.host, url.search, url.pathname, url.hash);
   } catch {
     return null;
   }

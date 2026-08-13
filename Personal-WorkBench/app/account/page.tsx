@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { safeAccountReturnPath } from "../_components/workbench/account-return-path";
+import { LegacyDomainRedirect } from "../_components/workbench/legacy-domain-redirect";
 import { DeviceHistoryTransferPanel } from "./device-history-transfer-panel";
 import { LegacyImportPanel } from "./legacy-import-panel";
 
@@ -349,8 +350,10 @@ useEffect(() => {
   const privacyDisclosureReady = Boolean(privacy.legalOperatorName && privacy.privacyContactEmail);
 
   return (
-    <main className="auth-shell">
-      <section className="card account-card" aria-labelledby="account-title">
+    <>
+      <LegacyDomainRedirect />
+      <main className="auth-shell">
+        <section className="card account-card" aria-labelledby="account-title">
         <Link className="auth-back" href="/" aria-label="返回个人日程">←</Link>
         <h1 id="account-title">账户管理</h1>
         {session ? <p>{session.user.name} · {session.user.email}</p> : null}
@@ -427,7 +430,8 @@ useEffect(() => {
             <LegacyImportPanel />
           </>
         ) : <Link className="auth-primary-link" href="/auth/sign-in">去登录</Link>}
-      </section>
-    </main>
+        </section>
+      </main>
+    </>
   );
 }
