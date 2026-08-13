@@ -33,7 +33,7 @@
     "metadata": {
       "auth_method": "browser_session",
       "verified_by": "list_shape_recognised",
-      "extension_version": "0.0.0.83",
+      "extension_version": "0.0.0.84",
       "auto_sync_enabled": true,
       "sync_interval_minutes": 360
     }
@@ -54,8 +54,8 @@
   "captured_responses": 5,
   "captured_urls": [
     "https://www.xiaohongshu.com/api/log",
-    "https://www.xiaohongshu.com/api/config",
     "https://www.xiaohongshu.com/api/user",
+    "https://www.xiaohongshu.com/api/config",
     "https://www.xiaohongshu.com/api/homefeed",
     "https://www.xiaohongshu.com/api/collect/page"
   ],

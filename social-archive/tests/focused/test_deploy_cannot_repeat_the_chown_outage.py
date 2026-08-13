@@ -74,7 +74,18 @@ def test_it_keeps_a_rollback_image_and_prints_the_rollback_command() -> None:
 
 def test_rsync_does_not_delete_and_does_not_touch_runtime_or_env() -> None:
     code = code_only(DEPLOY.read_text(encoding="utf-8"))
-    rsync = code.split("rsync ", 1)[1].split("|| fail", 1)[0]
+    # **锚到真正那条同步命令，不是"第一次出现的 rsync 这个词"。**
+    # 原来写的是 `code.split("rsync ", 1)[1]`——2026-08-14 我在上游加了一句
+    # 提示文案，里面有「是 rsync 的目标」几个字，判据当场切到了那句话上，
+    # 报「没有排除 runtime/」。产品一个字没改，是判据的锚滑走了。
+    # 这里改成：按行首的 rsync 切块，只认目标是 $HOST:$REMOTE_DIR 的那一块，
+    # 并且**要求它唯一**——多一条少一条都当场报错，不许静默换个目标继续绿。
+    chunks = [c.split("|| fail", 1)[0] for c in code.split("\nrsync ")[1:]]
+    main = [c for c in chunks if '"$HOST:$REMOTE_DIR/"' in c]
+    assert len(main) == 1, (
+        f"行首的 rsync 命令里，目标是 $HOST:$REMOTE_DIR 的有 {len(main)} 条（应当正好 1 条）。"
+        "命令改写了就把这里一起改——否则这道判据会对着别的东西发表意见。")
+    rsync = main[0]
     assert "--delete" not in rsync, (
         "带 --delete 的第一版试图删掉远端我自己留的 .env.pre-* 备份"
     )
