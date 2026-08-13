@@ -21,7 +21,7 @@ from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Res
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
-from . import __version__, auth
+from . import __version__, auth, failure_copy
 from .account_sync import (
     SERVER_ACCOUNT_CONNECTORS,
     NOT_SYNCABLE_YET,
@@ -384,17 +384,14 @@ def _replication_liveness() -> dict[str, Any]:
     #
     # 措辞要先按住他最担心的那件事：**已经存下来的东西没有少**。
     # 停的是"再复制一份到别处"，不是"你的东西丢了"。
+    # 句子在冻结词典里（`failure_copy`），这里只挑哪一句——
+    # 「词典只有一处真源」，而且那本词典也在 check_docs_match_the_ui 的语料里，
+    # 说明书引用它时对得上。
     message = ""
     if stale:
-        howlong = f"{int(hours)} 小时" if hours and hours >= 1 else "一会儿"
-        # **这句是给他看的，不许带 Markdown**——界面按纯文本渲染，
-        # 写了 `**` 他就会看到两个星号。判据：
-        # test_no_markdown_in_sentences_the_user_reads.py（它当场抓到了我）。
-        message = (f"备份已经 {howlong}没有跑过了——已存下的内容一条都没少，"
-                   f"停下来的是「再存一份到别处」这件事。")
+        message = failure_copy.backup_stale_sentence(hours)
     elif status not in ("PASS", "unknown"):
-        message = ("最近一次备份没跑完——已存下的内容一条都没少，"
-                   "但这一轮的副本没有做上去。")
+        message = failure_copy.BACKUP_RUN_INCOMPLETE_SENTENCE
     return {
         "last_run_at": last or None,
         "status": status,
