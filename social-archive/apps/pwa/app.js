@@ -2386,7 +2386,7 @@
     }
     await loadLibrary();
     renderNextStep();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=ce57eaaa").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=1a16c552").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {
