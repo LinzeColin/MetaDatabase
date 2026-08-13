@@ -17,6 +17,7 @@ import {
   usesTurnstileFor,
 } from "./auth-flow";
 import { markAuthReturnRecovery } from "./auth-return-recovery";
+import { requestWithTimeout } from "../../_components/workbench/request-timeout";
 
 type TurnstileApi = {
   render(
@@ -115,7 +116,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
   useEffect(() => {
     if (!usesTurnstile || turnstileSiteKey || fetchedSiteKey) return;
     let active = true;
-    void fetch("/api/auth/public-config", { credentials: "same-origin" })
+    void requestWithTimeout("/api/auth/public-config", { credentials: "same-origin" })
       .then((response) => (response.ok ? response.json() : null))
       .then((value: unknown) => {
         if (!active) return;
@@ -240,7 +241,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
     setSubmitting(true);
     setMessage("");
     try {
-      const response = await fetch(request.endpoint, {
+      const response = await requestWithTimeout(request.endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...request.headers },
         credentials: "same-origin",

@@ -473,6 +473,15 @@ test("auth controls wait for client hydration instead of losing the first sign-i
   assert.match(authForm, /disabled=\{!interactive \|\| submitting\}/);
 });
 
+test("authentication requests recover after a bounded first-party wait", async () => {
+  const authForm = await readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8");
+
+  assert.match(authForm, /import \{ requestWithTimeout \} from "\.\.\/\.\.\/_components\/workbench\/request-timeout"/);
+  assert.match(authForm, /requestWithTimeout\("\/api\/auth\/public-config", \{ credentials: "same-origin" \}\)/);
+  assert.match(authForm, /requestWithTimeout\(request\.endpoint, \{/);
+  assert.doesNotMatch(authForm, /\bfetch\(/);
+});
+
 test("Google sign-in remains a native server navigation after hydration", async () => {
   const authForm = await readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8");
 

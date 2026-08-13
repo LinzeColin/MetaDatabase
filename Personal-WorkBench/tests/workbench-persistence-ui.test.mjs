@@ -101,6 +101,9 @@ test("account exposes an explicit preview-before-apply legacy migration without 
   assert.match(account, /<LegacyImportPanel \/>/);
   assert.match(panel, /\/api\/mydairy\/legacy-import\/preview/);
   assert.match(panel, /\/api\/mydairy\/legacy-import\/apply\?request_id=/);
+  assert.match(panel, /import \{ requestWithTimeout \} from "\.\.\/_components\/workbench\/request-timeout"/);
+  assert.match(panel, /requestWithTimeout\("\/api\/mydairy\/legacy-import\/preview"/);
+  assert.doesNotMatch(panel, /\bfetch\(/);
   assert.match(panel, /accept="application\/json,\.json"/);
   assert.match(panel, /预览完成：共/);
   assert.match(panel, /确认导入到我的历史/);
@@ -188,9 +191,10 @@ test("first-paint write controls wait for resource initialization instead of los
 });
 
 test("stalled workbench history requests recover instead of leaving controls disabled", async () => {
-  const [resource, timeout] = await Promise.all([
+  const [resource, timeout, lifecycle] = await Promise.all([
     readFile(resourceSource, "utf8"),
     readFile("app/_components/workbench/request-timeout.ts", "utf8"),
+    readFile(lifecycleSource, "utf8"),
   ]);
 
   assert.match(timeout, /export const WORKBENCH_REQUEST_TIMEOUT_MS = 8_000;/);
@@ -200,6 +204,10 @@ test("stalled workbench history requests recover instead of leaving controls dis
   assert.match(resource, /const fetchRecords = \(\) => requestWithTimeout\(`\/api\/mydairy\/\$\{resource\}`/);
   assert.match(resource, /requestWithTimeout\(withRequestId\(resolvedAction\.endpoint, requestId\)/);
   assert.match(resource, /requestWithTimeout\(withRequestId\(`\/api\/mydairy\/\$\{resource\}/);
+  assert.match(lifecycle, /import \{ requestWithTimeout \} from "\.\/request-timeout"/);
+  assert.match(lifecycle, /requestWithTimeout\(withRequestId\("\/api\/mydairy\/files", crypto\.randomUUID\(\)\)/);
+  assert.match(lifecycle, /requestWithTimeout\(withRequestId\(`\/api\/mydairy\/files\/\$\{encodeURIComponent\(id\)\}`, crypto\.randomUUID\(\)\)/);
+  assert.doesNotMatch(lifecycle, /\bfetch\(/);
 });
 
 test("normal-mode controls wait for hydration without changing frozen reference pages", async () => {
@@ -237,6 +245,9 @@ test("account management offers an explicit, preview-first import for this devic
   assert.match(transferPanel, /确认导入到当前账号/);
   assert.match(transferPanel, /不会自动导入，也不会删除设备上的原记录/);
   assert.match(transferPanel, /仅检查当前这台设备的匿名本机记录/);
+  assert.match(transferPanel, /import \{ requestWithTimeout \} from "\.\.\/_components\/workbench\/request-timeout"/);
+  assert.match(transferPanel, /requestWithTimeout\("\/api\/mydairy\/legacy-import\/preview"/);
+  assert.doesNotMatch(transferPanel, /\bfetch\(/);
   assert.match(cacheSource, /readDeviceLocalRecords\("guest", resource\)/);
   assert.match(cacheSource, /module === "food" \|\| module === "diary"\) delete payload\.photoObjectId/);
   assert.match(legacySource, /"habitCheckins"/);

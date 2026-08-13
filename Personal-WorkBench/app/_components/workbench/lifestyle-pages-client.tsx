@@ -17,6 +17,7 @@ import {
   yuanToCents,
 } from "./tenant-resource-client";
 import { isDeviceLocalRecord } from "./local-record-cache";
+import { requestWithTimeout } from "./request-timeout";
 import { useVisitorTime } from "./visitor-time-client";
 
 const PRIVATE_ASSET_ROOT = "/private-reference-assets";
@@ -676,7 +677,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
     form.set("module", "food");
     form.set("file", photoFile);
     try {
-      const response = await fetch(withRequestId("/api/mydairy/files", crypto.randomUUID()), {
+      const response = await requestWithTimeout(withRequestId("/api/mydairy/files", crypto.randomUUID()), {
         body: form,
         credentials: "same-origin",
         method: "POST",
@@ -701,7 +702,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
 
   async function discardUploadedPhoto(id?: string) {
     if (!id) return;
-    await fetch(withRequestId(`/api/mydairy/files/${encodeURIComponent(id)}`, crypto.randomUUID()), {
+    await requestWithTimeout(withRequestId(`/api/mydairy/files/${encodeURIComponent(id)}`, crypto.randomUUID()), {
       credentials: "same-origin",
       method: "DELETE",
     }).catch(() => undefined);

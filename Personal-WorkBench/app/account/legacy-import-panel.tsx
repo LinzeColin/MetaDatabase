@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type ChangeEvent } from "react";
+import { requestWithTimeout } from "../_components/workbench/request-timeout";
 
 type LegacyPreview = {
   canApply?: boolean;
@@ -87,7 +88,7 @@ export function LegacyImportPanel() {
     setBusy(true);
     setMessage("正在检查备份内容…");
     try {
-      const response = await fetch("/api/mydairy/legacy-import/preview", {
+      const response = await requestWithTimeout("/api/mydairy/legacy-import/preview", {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
@@ -118,7 +119,7 @@ export function LegacyImportPanel() {
     setBusy(true);
     setMessage("正在导入备份…请保持本页打开。 ");
     try {
-      const response = await fetch(`/api/mydairy/legacy-import/apply?request_id=${encodeURIComponent(requestId)}`, {
+      const response = await requestWithTimeout(`/api/mydairy/legacy-import/apply?request_id=${encodeURIComponent(requestId)}`, {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },

@@ -5,6 +5,7 @@ import {
   buildGuestDeviceHistoryEnvelope,
   type GuestDeviceHistoryEnvelope,
 } from "../_components/workbench/local-record-cache";
+import { requestWithTimeout } from "../_components/workbench/request-timeout";
 
 type ImportPreview = {
   canApply?: boolean;
@@ -113,7 +114,7 @@ export function DeviceHistoryTransferPanel({ returnTo }: DeviceHistoryTransferPa
     setBusy(true);
     setMessage("正在预览这台设备的记录…");
     try {
-      const response = await fetch("/api/mydairy/legacy-import/preview", {
+      const response = await requestWithTimeout("/api/mydairy/legacy-import/preview", {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
@@ -144,7 +145,7 @@ export function DeviceHistoryTransferPanel({ returnTo }: DeviceHistoryTransferPa
     setBusy(true);
     setMessage("正在导入到当前账号…请保持本页打开。");
     try {
-      const response = await fetch(`/api/mydairy/legacy-import/apply?request_id=${encodeURIComponent(requestId)}`, {
+      const response = await requestWithTimeout(`/api/mydairy/legacy-import/apply?request_id=${encodeURIComponent(requestId)}`, {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
