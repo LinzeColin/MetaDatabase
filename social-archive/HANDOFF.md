@@ -35,7 +35,7 @@ curl -s https://social-archive-api.linzezhang.com/health
 | | |
 |---|---|
 | 公开地址 | `https://social-archive.linzezhang.com`（资料库）／ `…-api.…`（接口） |
-| 跑着的版本 | **0.0.0.90**（从本机打公开域名读回来的，不是打回环） |
+| 跑着的版本 | **0.0.0.91**（从本机打公开域名读回来的，不是打回环） |
 | 生产机 | 见 `deploy/PRODUCTION_HOST`——**唯一真源，别把机器名抄进命令** |
 | 你的库 | 内容 **193** 条、关系 **194** 条、制品 **552** 个 |
 | 三份副本 | **552 / 552 全部三份已验证，pending 0** |
@@ -225,6 +225,27 @@ curl -s https://social-archive-api.linzezhang.com/health
 1. **不要用 `InfrequentAccess` 存储类**（建桶／写对象／生命周期转换都不行）。
    R2 免费额度只覆盖 Standard；实账单量过：**51 次 IA 操作 = $9.00**，
    同周期 301 万次 Standard = $0.00。
+
+   **怎么查它现在还是不是 $0.00**（这条以前没写，等于最贵的那条不变量你没法验）：
+   机器执行体在生产机上，每 6 小时跑一次（`/etc/cron.d/linze-r2-freetier-guard`），
+   把判定写成一个文件。读它：
+
+   ```bash
+   ssh "$(cat deploy/PRODUCTION_HOST)" 'sudo tail -4 /srv/linze/logs/r2-free-tier-guard.log'
+   ```
+
+   2026-08-14 实测那一行长这样（**数字会变，看的是比例和最后那个「熔断」**）：
+
+   ```
+   severity=WARN classA=28540/1000000(投影104932) classB=412050/10000000(投影566186) 存储=4.44GB/10GB IA对象=45 熔断=0
+   ```
+
+   · 三个比例都远在额度内 → 账单是 0
+   · `熔断=0` → 没有任何桶的默认存储类被改成非 Standard（改了它会自动改回来并计数）
+   · `IA对象=45` 是**历史尾巴**：那是 30 天最短计费期没走完的旧对象，
+     零 IA 操作、约 $0.01/月、会自然消失。
+     **不要为了"清理"它去做 CopyObject——转换本身就是 IA 操作，$9.00 起步。**
+     守卫自己在判定里也写了这句。
 2. **不要 `git prune` / `git gc --prune=now`**。不可达对象一删没有后悔药；
    这个仓的一个工作树半路整棵消失过，提交全活正是因为没人 prune 过。
 
