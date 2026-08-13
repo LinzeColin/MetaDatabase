@@ -71,6 +71,21 @@ def _squeeze(text: str) -> str:
     return "".join("".join(lines).split())
 
 
+def test_切出来的那几截自己得是像样的() -> None:
+    """**`split("了", 1)[-1]` 这种切法会悄悄挪。**
+
+    句子一改，切点就跑到别处，切出来的短串**碰巧也在文档里**——
+    于是这条判据什么都没在守，却一直是绿的。
+    所以先核一遍切出来的东西本身：够长、且不含数字（小时数会变）。
+
+    2026-08-13 实测四截分别是 43 / 33 / 33 / 12 字。
+    """
+    for name, part in _invariant_parts().items():
+        assert len(part) >= 12, f"{name} 切出来的太短，八成是切点挪了：{part!r}"
+        assert not any(ch.isdigit() for ch in part), (
+            f"{name} 里还带着数字，小时数一变这条就会误红：{part!r}")
+
+
 @pytest.mark.parametrize("name", list(_invariant_parts()))
 def test_每一句都能在说明书里查到(name: str) -> None:
     part = _squeeze(_invariant_parts()[name])

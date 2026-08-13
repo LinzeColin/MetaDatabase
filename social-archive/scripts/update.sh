@@ -60,6 +60,25 @@ else
 fi
 printf '版本：%s\n\n' "$(cat VERSION 2>/dev/null || echo '未知')"
 
+# **重启 systemd 单元要 root，而这一步排在重建镜像之后。**（2026-08-13）
+#
+# 生产实测（在 /run 里放一个无害探针 unit 试的，没动真正的服务）：
+#
+#     以 ubuntu：  Failed to restart …: Interactive authentication required.
+#     以 root：    退出码 0
+#
+# 而 `systemctl restart` 排在 `docker compose build` 后面——于是留下
+# 「新镜像已经建好、容器还跑着旧的」这种**没人描述过的中间态**，
+# 而脚本从头到尾没提过要 root。运维手册那个「在生产上」的块教的也正是
+# 不带 sudo 的跑法（同一版一起修了）。
+#
+# 建完再倒是最坏的顺序：几分钟白花，机器还落在中间态。所以先问。
+if [[ "$ON_SYSTEMD" = "1" && "$(id -u)" != "0" ]]; then
+  fail '这台机器上 Core 由 systemd 管着，重启它要 root。
+  现在就停，免得重建完镜像才倒在第 2/3 步、留下一个半途状态。
+  改用：  sudo bash scripts/update.sh'
+fi
+
 printf '== 1/3 重建镜像（这一步是 systemctl restart 不会做的）==\n'
 docker compose build core-api core-worker cli-tools
 
