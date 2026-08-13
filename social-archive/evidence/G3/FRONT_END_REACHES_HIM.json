@@ -8,30 +8,30 @@
     "index_bytes": 20645,
     "index_cf_cache_status": "DYNAMIC",
     "stamps_in_index": [
-      "a4222d5f"
+      "02d753fb"
     ],
     "assets": [
       {
-        "url": "/assets/styles.css?v=a4222d5f",
+        "url": "/assets/styles.css?v=02d753fb",
         "bytes": 39548,
         "cf_cache_status": "MISS",
         "age": ""
       },
       {
-        "url": "/assets/manifest.webmanifest?v=a4222d5f",
+        "url": "/assets/manifest.webmanifest?v=02d753fb",
         "bytes": 282,
         "cf_cache_status": "DYNAMIC",
         "age": ""
       },
       {
-        "url": "/assets/favicon.svg?v=a4222d5f",
+        "url": "/assets/favicon.svg?v=02d753fb",
         "bytes": 182,
         "cf_cache_status": "MISS",
         "age": ""
       },
       {
-        "url": "/assets/app.js?v=a4222d5f",
-        "bytes": 150481,
+        "url": "/assets/app.js?v=02d753fb",
+        "bytes": 151314,
         "cf_cache_status": "MISS",
         "age": ""
       }
@@ -39,7 +39,7 @@
   },
   "measured": {
     "rendered": {
-      "rowCount": 8,
+      "rowCount": 9,
       "rowsText": [
         "小 | 小红书 | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
         "抖 | 抖音 | 抖音 | 已连接 | 86 | 条 | 首次同步尚未开始 | — | 立即同步 | 断开 | 删除并清空",
@@ -48,6 +48,7 @@
         "X | X | 本版本暂不支持自动同步 | 未连接 | — | 本版本还不能自动读取 | X | 的书签。原因是官方 | X | 接口可能收费，而这个项目的硬规矩是绝不产生新的必付费用，所以那条路是主动关着的。现在可以：在浏览器里打开任意一条推文，点插件的「保存当前页面」。 | 连接之后，保存单条内容时服务器会用你的登",
         "R | Reddit | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
         "In | Instagram | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
+        "Y | YouTube | 本版本暂不支持自动同步 | 未连接 | — | 本版本还不能自动读取 | YouTube | 的稍后观看和播放列表。现在可以：点这张卡片上的「连接账号」，把登录状态交给你自己的服务器保管；以及在任意视频页点插件保存当前这一条。 | 连接之后，保存单条内容时服务器会用你的登录状态去尝试下载原文",
         "书 | Chrome书签/网页 | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号"
       ],
       "forgetButtons": [
@@ -94,7 +95,7 @@
       }
     ],
     "all_disconnected": {
-      "rowCount": 8,
+      "rowCount": 9,
       "rowsText": [
         "小 | 小红书 | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
         "抖 | 抖音 | 抖音 | 未连接 | 86 | 条 | 首次同步尚未开始 | 账号已断开——点这一行的「连接账号」重新授权一次就会继续同步；已存下的 | 86 | 条一条不会少。 | — | 连接账号 | 删除并清空",
@@ -103,6 +104,7 @@
         "X | X | 本版本暂不支持自动同步 | 未连接 | — | 本版本还不能自动读取 | X | 的书签。原因是官方 | X | 接口可能收费，而这个项目的硬规矩是绝不产生新的必付费用，所以那条路是主动关着的。现在可以：在浏览器里打开任意一条推文，点插件的「保存当前页面」。 | 连接之后，保存单条内容时服务器会用你的登",
         "R | Reddit | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
         "In | Instagram | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号",
+        "Y | YouTube | 本版本暂不支持自动同步 | 未连接 | — | 本版本还不能自动读取 | YouTube | 的稍后观看和播放列表。现在可以：点这张卡片上的「连接账号」，把登录状态交给你自己的服务器保管；以及在任意视频页点插件保存当前这一条。 | 连接之后，保存单条内容时服务器会用你的登录状态去尝试下载原文",
         "书 | Chrome书签/网页 | 尚未连接 | 未连接 | — | 连接后自动首次全量同步 | — | 连接账号"
       ],
       "forgetButtons": [
@@ -127,7 +129,7 @@
       "found": true,
       "platform": "douyin",
       "panelOpened": true,
-      "panelSrc": "chrome-extension://ghjmdnlpmhlcichjjlebhhaaoiedniba/connect-frame.html",
+      "panelSrc": "chrome-extension://nklbclbkcdlgbkhjepcdbbldhlakbocc/connect-frame.html",
       "errorsAfterClick": []
     },
     "drawer": {
