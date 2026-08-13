@@ -30,7 +30,30 @@ REQUIRED=(
 
 BAD=0
 BAD_RUN=0
+UNKNOWN_RUN=0
 FAILING=()
+UNCONFIRMED=()
+
+# systemd 的墙钟时间串（`Thu 2026-08-13 08:51:06 UTC`）→ 秒。转不出来**回空**。
+#
+# 为什么不用 `date -d`：那是 GNU 专有的写法，在开发机（macOS）上直接失败，
+# 于是这段判断在我自己机器上**永远不执行**——判据坏在只在别人机器上发作的分支里，
+# 这个仓已经栽过。python3 两边都有（宿主机跑的就是 Python 应用）。
+# 万一它也不在，上面那一支会把"比不出来"如实印出来，**不会掉进"看着像成功"**。
+_epoch() {
+  [ -n "${1:-}" ] && [ "${1}" != "n/a" ] || return 0
+  python3 - "$1" <<'PY' 2>/dev/null || true
+import datetime, sys
+s = sys.argv[1].strip()
+for fmt in ("%a %Y-%m-%d %H:%M:%S %Z", "%a %Y-%m-%d %H:%M:%S"):
+    try:
+        when = datetime.datetime.strptime(s, fmt)
+    except ValueError:
+        continue
+    print(int(when.replace(tzinfo=datetime.timezone.utc).timestamp()))
+    break
+PY
+}
 printf '%-46s %-10s %-10s %s\n' UNIT 启用 运行 上次跑的结果
 printf '%.0s-' {1..92}; printf '\n'
 for unit in "${REQUIRED[@]}"; do
@@ -59,7 +82,31 @@ for unit in "${REQUIRED[@]}"; do
         outcome="✗ 上次失败 ${result}/${code}"
         BAD_RUN=1; FAILING+=("${svc}")
       else
-        outcome="✓ 上次成功 ${started}"
+        # **「这个服务上次跑成了」不等于「定时器叫起来的那次跑成了」。**
+        #
+        # 2026-08-13 生产实测，这两个是不同的时刻：
+        #     timer   LastTriggerUSec        = 03:33:46   ← 定时触发，200/CHDIR **失败**
+        #     service ExecMainStartTimestamp = 08:51:06   ← 我手工补跑，成功
+        # 而这一列当时印的是「✓ 上次成功 08:51:06」——**把失败的那次自动运行整个盖住**。
+        # 这道判据存在的全部理由就是抓这一种，它却报了绿。
+        #
+        # systemd 没有「上一次由定时器触发的那次跑成没有」这个字段。
+        # 能诚实做到的是：两个时刻差得多，就**说清楚这个结果不是定时那次的**，
+        # 并给出去哪儿看的确切命令。不阻断（手工跑过是正常操作，
+        # 为此常红就变成狼来了），但不许再声称「定时那次成功了」。
+        trig="$(systemctl show "${unit}" -p LastTriggerUSec --value 2>/dev/null)"
+        t_s="$(_epoch "${trig}")"
+        s_s="$(_epoch "${started}")"
+        if [ -z "${t_s}" ] || [ -z "${s_s}" ]; then
+          # **解不出来就说解不出来**，不许掉进"看着像成功"那一支。
+          outcome="? 成功了，但比不出是不是定时那次（时间串解不出来）"
+          UNKNOWN_RUN=1; UNCONFIRMED+=("${unit}|${svc}|${trig:-未知}")
+        elif [ "$(( s_s - t_s ))" -gt 300 ]; then
+          outcome="? 上次成功的是**手工**那次 ${started}"
+          UNKNOWN_RUN=1; UNCONFIRMED+=("${unit}|${svc}|${trig}")
+        else
+          outcome="✓ 上次成功 ${started}"
+        fi
       fi
       ;;
   esac
@@ -106,6 +153,28 @@ if [ "${BAD}" = "1" ]; then
 fi
 [ "${BAD_RUN}" = "1" ] && exit 1
 
-printf '\n✓ 保命的 unit 都已启用，**而且每个定时器上次真的跑成了**。\n'
+if [ "${UNKNOWN_RUN}" = "1" ]; then
+  printf '\n? 有定时器**它自己那次跑成没跑成，这几个字段答不了**。\n'
+  printf '  这几个的最近一次运行是**手工触发**的（时刻比定时触发晚很多），\n'
+  printf '  而 systemd 只保留"最近一次运行"的结果，不分是谁叫起来的。\n'
+  printf '\n  为什么要专门说：2026-08-13 生产上就是这样——\n'
+  printf '    03:33:46  定时触发 → 200/CHDIR **失败**\n'
+  printf '    08:51:06  手工补跑 → 成功\n'
+  printf '  而这张表当时印的是「✓ 上次成功 08:51:06」，**把失败的那次自动运行整个盖住**。\n'
+  printf '  「手工能跑通」和「没人管它也会跑」是两件事，后者才是这个产品的卖点。\n'
+  printf '\n  去看那次定时到底成没成（时间窗就是它触发的那一刻）：\n'
+  for row in "${UNCONFIRMED[@]}"; do
+    u="${row%%|*}"; rest="${row#*|}"; s="${rest%%|*}"; when="${rest#*|}"
+    printf '    # %s 触发于 %s\n' "${u}" "${when}"
+    printf '    sudo journalctl -u %s --since "%s" -n 30 --no-pager\n' "${s}" "${when}"
+  done
+  printf '\n  确认那次是好的之后，等下一次自动触发跑完再看这张表，它会变回 ✓。\n'
+fi
+
+if [ "${UNKNOWN_RUN}" = "1" ]; then
+  printf '\n✓ 保命的 unit 都已启用；**但上面那几个"定时那次成没成"还没确认**。\n'
+else
+  printf '\n✓ 保命的 unit 都已启用，**而且每个定时器上次真的跑成了**。\n'
+fi
 printf '  它没有证明的：这一轮备份的内容对不对、副本能不能解开——\n'
 printf '  那要看 `/v1/status` 的 replicas；\n  要真的验"取得回来"，在开发机上跑 scripts/check_the_backup_can_actually_be_restored.py\n  （生产上直接敲 restore.sh 会回 BLOCKED_ENVIRONMENT：解密身份在 unit 的 EnvironmentFile 里）。\n'
