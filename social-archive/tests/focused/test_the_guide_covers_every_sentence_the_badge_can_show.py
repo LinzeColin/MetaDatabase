@@ -43,17 +43,66 @@ from social_archive import failure_copy  # noqa: E402
 
 
 def _invariant_parts() -> dict[str, str]:
-    """每句话里**不随小时数变化**的那一截。"""
+    """每句话里**不随小时数变化**的那一截。
+
+    **键是 `failure_copy` 里那个符号的名字**，不是我随手起的中文标签——
+    下面 `test_这张清单必须自己去产品里数` 靠它和产品源码对齐。
+    2026-08-14 之前这里是中文标签，于是这张清单**只能靠我记得去加**，
+    而我当天就忘了：新增两句 replication 文案，这道门一声不吭地全绿。
+    """
     return {
         # replication 停了（这一句说明书早就有）
-        "复制停了": failure_copy.BACKUP_STALE_TAIL,
+        "backup_stale_sentence": failure_copy.BACKUP_STALE_TAIL,
         # replication 跑了但没跑完
-        "复制没跑完": failure_copy.BACKUP_RUN_INCOMPLETE_SENTENCE,
+        "BACKUP_RUN_INCOMPLETE_SENTENCE": failure_copy.BACKUP_RUN_INCOMPLETE_SENTENCE,
         # backup 本身没做出来（2026-08-13 新增）
-        "没做出新备份": failure_copy.backup_missing_sentence(53).split("了", 1)[-1],
+        "backup_missing_sentence": failure_copy.backup_missing_sentence(53).split("了", 1)[-1],
         # 一次都没备份过
-        "从没备份过": failure_copy.NO_BACKUP_YET_SENTENCE,
+        "NO_BACKUP_YET_SENTENCE": failure_copy.NO_BACKUP_YET_SENTENCE,
+        # replication 一次都没跑过（2026-08-14 新增）
+        "NO_REPLICATION_YET_SENTENCE": failure_copy.NO_REPLICATION_YET_SENTENCE,
+        # replication 的状态文件坏了（2026-08-14 新增）
+        "REPLICATION_STATUS_UNREADABLE_SENTENCE":
+            failure_copy.REPLICATION_STATUS_UNREADABLE_SENTENCE,
     }
+
+
+def _symbols_the_badge_can_actually_show() -> set[str]:
+    """**去产品源码里数**：那两个活性函数实际引用了 `failure_copy` 的哪几个符号。
+
+    徽章的触发条件就是 `message_zh` 非空，而 `message_zh` 的值全部来自
+    这两个函数里的 `failure_copy.X`。所以这个集合就是"徽章能说的话"的真源。
+
+    **用 `ast` 读源码，不 import。** 第一版写的是 `inspect.getsource`，
+    那要先 import `social_archive.api`；而这个测试没有设环境变量，
+    于是 `settings` 落到生产默认的 `/var/lib/social-archive`，
+    直接 `PermissionError` 炸在导入那一步——要测的东西一个字都没测到。
+    （预测这条会绿、实际红了，差额就是这个。）
+
+    附带的好处：`ast` 里根本没有注释，所以「我写来解释修复的那句注释
+    把判据废掉」那种事在这里结构上不可能发生。
+    """
+    import ast  # noqa: PLC0415
+
+    tree = ast.parse((ROOT / "src/social_archive/api.py").read_text(encoding="utf-8"))
+    wanted = {"_backup_liveness", "_replication_liveness"}
+    found: set[str] = set()
+    seen_functions: set[str] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.FunctionDef) or node.name not in wanted:
+            continue
+        seen_functions.add(node.name)
+        for child in ast.walk(node):
+            if (isinstance(child, ast.Attribute)
+                    and isinstance(child.value, ast.Name)
+                    and child.value.id == "failure_copy"):
+                found.add(child.attr)
+
+    # **函数改名了要当场知道**，不能悄悄变成"扫了个空集合然后全绿"。
+    assert seen_functions == wanted, (
+        f"api.py 里找不到这几个活性函数：{sorted(wanted - seen_functions)}。"
+        "改名了就把这里一起改——否则这道门会对着空集合永远绿。")
+    return found
 
 
 def _squeeze(text: str) -> str:
@@ -84,6 +133,33 @@ def test_切出来的那几截自己得是像样的() -> None:
         assert len(part) >= 12, f"{name} 切出来的太短，八成是切点挪了：{part!r}"
         assert not any(ch.isdigit() for ch in part), (
             f"{name} 里还带着数字，小时数一变这条就会误红：{part!r}")
+
+
+def test_这张清单必须自己去产品里数() -> None:
+    """**这道门自己的扫描集，不许靠人记得去维护。**
+
+    2026-08-14 实测的代价：我给 replication 加了两句新文案（"一次都没跑过"、
+    "状态记录坏了"），说明书一个字没写，而这道门**全绿**——
+    因为它比的是一张手写的四句清单，新句子根本不在它眼里。
+
+    「判据扫的集合比实况小」在这个仓已经数不清第几次。修法不是这次记得补，
+    是让清单和产品源码对齐：产品那两个函数引用了哪几个 `failure_copy` 符号，
+    这里就必须有哪几个。
+    """
+    used = _symbols_the_badge_can_actually_show()
+    listed = set(_invariant_parts())
+
+    missing = used - listed
+    assert not missing, (
+        f"产品能说、而这道门没在管的句子：{sorted(missing)}\n"
+        "  它们不在清单里，于是「说明书有没有写」从来没被查过。\n"
+        "  加进 _invariant_parts()，并把句子写进 docs/使用说明.md。")
+
+    stale = listed - used
+    assert not stale, (
+        f"清单里有产品已经不说的句子：{sorted(stale)}\n"
+        "  留着它会逼说明书保留一段用户永远见不到的话——"
+        "  那是**永远变不绿之外的另一种坏**：永远绿着却在守一件不存在的事。")
 
 
 @pytest.mark.parametrize("name", list(_invariant_parts()))
