@@ -172,12 +172,13 @@ test("auth form waits for public Turnstile readiness instead of submitting a mis
 });
 
 test("email auth pages render the public Turnstile key without a second client configuration request", async () => {
-  const [form, pageConfig, signIn, signUp, forgotPassword] = await Promise.all([
+  const [form, pageConfig, signIn, signUp, forgotPassword, styles] = await Promise.all([
     readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/auth/_components/public-auth-page-config.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/auth/sign-in/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/auth/sign-up/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/auth/forgot-password/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
 
   assert.match(pageConfig, /getPublicAuthPageConfig/);
@@ -189,6 +190,7 @@ test("email auth pages render the public Turnstile key without a second client c
   assert.match(form, /CAPTCHA_SCRIPT_LOAD_TIMEOUT_MS = 15_000/);
   assert.match(form, /setCaptchaReadiness\("challenge"\)/);
   assert.doesNotMatch(form, /CAPTCHA_RESPONSE_TIMEOUT_MS/);
+  assert.match(styles, /\.turnstile-slot\s*\{[\s\S]*min-height:\s*65px;[\s\S]*overflow:\s*visible;/);
 });
 
 test("rate limits show a neutral retry message without claiming email delivery", () => {

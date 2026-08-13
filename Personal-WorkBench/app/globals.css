@@ -694,7 +694,13 @@ img { display: block; max-width: 100%; }
 .auth-form label { display: flex; flex-direction: column; gap: 6px; color: var(--text-secondary); font-size: 12px; font-weight: 600; }
 .auth-form input { width: 100%; height: 44px; box-sizing: border-box; border: 1px solid #efd9e2; border-radius: 11px; outline: none; padding: 0 12px; color: var(--text-primary); background: #fffdfd; font: inherit; }
 .auth-form input:focus { border-color: var(--pink-400); box-shadow: 0 0 0 3px rgba(224, 132, 164, 0.16); }
-.turnstile-slot { min-height: 1px; overflow: hidden; }
+.turnstile-slot {
+  display: flex;
+  min-height: 65px;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: visible;
+}
 .auth-submit,
 .auth-google,
 .auth-submit,
