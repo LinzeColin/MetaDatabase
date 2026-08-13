@@ -8,31 +8,31 @@
     "index_bytes": 20645,
     "index_cf_cache_status": "DYNAMIC",
     "stamps_in_index": [
-      "af983539"
+      "5135e72a"
     ],
     "assets": [
       {
-        "url": "/assets/styles.css?v=af983539",
+        "url": "/assets/styles.css?v=5135e72a",
         "bytes": 39548,
-        "cf_cache_status": "EXPIRED",
+        "cf_cache_status": "MISS",
         "age": ""
       },
       {
-        "url": "/assets/manifest.webmanifest?v=af983539",
+        "url": "/assets/manifest.webmanifest?v=5135e72a",
         "bytes": 282,
         "cf_cache_status": "DYNAMIC",
         "age": ""
       },
       {
-        "url": "/assets/favicon.svg?v=af983539",
+        "url": "/assets/favicon.svg?v=5135e72a",
         "bytes": 182,
-        "cf_cache_status": "EXPIRED",
+        "cf_cache_status": "MISS",
         "age": ""
       },
       {
-        "url": "/assets/app.js?v=af983539",
+        "url": "/assets/app.js?v=5135e72a",
         "bytes": 148549,
-        "cf_cache_status": "EXPIRED",
+        "cf_cache_status": "MISS",
         "age": ""
       }
     ]
@@ -127,7 +127,7 @@
       "found": true,
       "platform": "douyin",
       "panelOpened": true,
-      "panelSrc": "chrome-extension://ebfidcicpolfclfndjbgkcmblgpikeej/connect-frame.html",
+      "panelSrc": "chrome-extension://kejgcpnnhpbodbioeognekanckopplcl/connect-frame.html",
       "errorsAfterClick": []
     },
     "drawer": {

@@ -225,7 +225,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
-  const PRODUCT_VERSION = "0.0.0.71";
+  const PRODUCT_VERSION = "0.0.0.72";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -508,9 +508,20 @@
       //
       // 句子由服务端给（`message_zh`），这边不造句——和存储那一格同一个规矩。
       // 后台没在跑时不抢那句话：那件事更急。
-      const replication = health.replication || null;
-      if (!workerDown && replication && replication.message_zh) {
-        setServiceBadge("needs", replication.message_zh);
+      //
+      // **而备份是两条会单独死的链，上一版只读了其中一条。**（2026-08-13）
+      //
+      // 8/12～13 死的是另一条：`backup.timer` 做出加密快照那条。生产上 8/11
+      // 之后隔了两天才有下一份，v0.0.0.71 为此**加了 `/health.backup` 这一格**
+      // ——而这一页从来没读过它，于是那句话谁也看不见。
+      // 「建好了没接上」的第 7 次，这回没接上的不是接口，是接口里的一个字段。
+      //
+      // **backup 排在前面**：连第一份新备份都没做出来，比"做出来了但还没复制
+      // 到别处"更要紧，而一行徽章只放得下一句。
+      const stalledChain = [health.backup, health.replication]
+        .find((chain) => chain && chain.message_zh);
+      if (!workerDown && stalledChain) {
+        setServiceBadge("needs", stalledChain.message_zh);
       }
       // 存储吃紧时要**主动**说，别等用户发现媒体没下下来才去猜。
       //
@@ -2359,7 +2370,7 @@
     }
     await loadLibrary();
     renderNextStep();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=5135e72a").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=cde71d43").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {
