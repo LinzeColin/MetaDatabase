@@ -1,0 +1,227 @@
+name: ABD Coolify controlled release
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Run safe target discovery or request one non-forced deployment.
+        required: true
+        default: discover
+        type: choice
+        options:
+          - discover
+          - deploy
+
+permissions:
+  contents: read
+
+concurrency:
+  group: abd-coolify-controlled-release
+  cancel-in-progress: false
+
+jobs:
+  controlled-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}
+      COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+      MODE: ${{ inputs.mode }}
+    steps:
+      - name: Discover the unique ABD target
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${COOLIFY_BASE_URL:-}" || -z "${COOLIFY_API_TOKEN:-}" ]]; then
+            echo "::error::Coolify deployment credentials are unavailable."
+            exit 1
+          fi
+
+          api_root="${COOLIFY_BASE_URL%/}/api/v1"
+          response_file="$(mktemp)"
+          error_file="$(mktemp)"
+          app_file="$(mktemp)"
+          detail_file="$(mktemp)"
+          deploy_file="$(mktemp)"
+          status_file="$(mktemp)"
+          deployment_file="$(mktemp)"
+          trap 'rm -f "$response_file" "$error_file" "$app_file" "$detail_file" "$deploy_file" "$status_file" "$deployment_file"' EXIT
+          chmod 600 "$response_file" "$error_file" "$app_file" "$detail_file" "$deploy_file" "$status_file" "$deployment_file"
+
+          if ! curl --fail --silent --show-error --max-time 15 --retry 0 \
+            -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+            "${api_root}/applications" \
+            -o "$response_file" 2>"$error_file"; then
+            echo "::error::Unable to read the Coolify application inventory."
+            exit 1
+          fi
+
+          python3 - "$response_file" "$app_file" <<'PY'
+          import json
+          import pathlib
+          import re
+          import sys
+
+          source = pathlib.Path(sys.argv[1])
+          destination = pathlib.Path(sys.argv[2])
+
+          try:
+              payload = json.loads(source.read_text(encoding="utf-8"))
+          except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+              print("::error::Coolify returned an unreadable application inventory.")
+              raise SystemExit(1)
+
+          def rows(value):
+              if isinstance(value, list):
+                  return value
+              if isinstance(value, dict):
+                  for key in ("applications", "data"):
+                      candidate = value.get(key)
+                      if isinstance(candidate, list):
+                          return candidate
+              return []
+
+          def repository_matches(value):
+              normalized = str(value or "").strip().lower().rstrip("/")
+              if normalized.endswith(".git"):
+                  normalized = normalized[:-4]
+              return bool(re.search(r"(?:[/:])linzecolin/metadatabase$", normalized))
+
+          def abd_name(row):
+              text = " ".join(str(row.get(key) or "") for key in ("name", "description"))
+              return bool(re.search(r"(?<![a-z0-9])abd(?![a-z0-9])", text, flags=re.IGNORECASE))
+
+          matches = {}
+          for row in rows(payload):
+              if not isinstance(row, dict):
+                  continue
+              uuid = str(row.get("uuid") or "").strip()
+              if (
+                  uuid
+                  and repository_matches(row.get("git_repository"))
+                  and str(row.get("git_branch") or "").strip() == "main"
+                  and abd_name(row)
+              ):
+                  matches[uuid] = row
+
+          count = len(matches)
+          print(f"abd_candidate_count={count}")
+          if count == 1:
+              uuid = next(iter(matches))
+              destination.write_text(uuid, encoding="utf-8")
+              print("selection_status=unique")
+          elif count == 0:
+              destination.write_text("", encoding="utf-8")
+              print("selection_status=none")
+          else:
+              destination.write_text("", encoding="utf-8")
+              print("selection_status=ambiguous")
+          PY
+
+          app_uuid="$(<"$app_file")"
+          if [[ -z "$app_uuid" ]]; then
+            if [[ "$MODE" == "discover" ]]; then
+              echo "release_action=no_deployment_requested"
+              exit 0
+            fi
+            echo "::error::A unique ABD target was not found; deployment was not requested."
+            exit 1
+          fi
+          printf '::add-mask::%s\n' "$app_uuid"
+
+          if [[ "$MODE" == "discover" ]]; then
+            echo "release_action=discovery_complete"
+            exit 0
+          fi
+          if [[ "$MODE" != "deploy" ]]; then
+            echo "::error::Unsupported release mode."
+            exit 1
+          fi
+
+          if ! curl --fail --silent --show-error --max-time 15 --retry 0 \
+            -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+            "${api_root}/applications/${app_uuid}" \
+            -o "$detail_file" 2>"$error_file"; then
+            echo "::error::Unable to verify the selected Coolify application."
+            exit 1
+          fi
+
+          python3 - "$detail_file" <<'PY'
+          import json
+          import pathlib
+          import re
+          import sys
+
+          try:
+              application = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+          except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+              print("::error::Coolify returned an unreadable target configuration.")
+              raise SystemExit(1)
+
+          normalized = str(application.get("git_repository") or "").strip().lower().rstrip("/")
+          if normalized.endswith(".git"):
+              normalized = normalized[:-4]
+          repository_ok = bool(re.search(r"(?:[/:])linzecolin/metadatabase$", normalized))
+          branch_ok = str(application.get("git_branch") or "").strip() == "main"
+          if not (repository_ok and branch_ok):
+              print("::error::The selected target no longer matches the ABD release source guard.")
+              raise SystemExit(1)
+          print("target_source_guard=passed")
+          PY
+
+          if ! curl --fail --silent --show-error --max-time 15 --retry 0 \
+            -X POST \
+            -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+            "${api_root}/deploy?uuid=${app_uuid}&force=false" \
+            -o "$deploy_file" 2>"$error_file"; then
+            echo "::error::Coolify did not accept the deployment request."
+            exit 1
+          fi
+
+          python3 - "$deploy_file" "$deployment_file" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          try:
+              payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+          except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+              print("::error::Coolify returned an unreadable deployment receipt.")
+              raise SystemExit(1)
+
+          deployment_uuid = str(payload.get("deployment_uuid") or payload.get("uuid") or "").strip()
+          if not deployment_uuid:
+              print("::error::Coolify did not return a deployment receipt.")
+              raise SystemExit(1)
+          pathlib.Path(sys.argv[2]).write_text(deployment_uuid, encoding="utf-8")
+          PY
+
+          deployment_uuid="$(<"$deployment_file")"
+          printf '::add-mask::%s\n' "$deployment_uuid"
+
+          deployment_status="unknown"
+          if curl --fail --silent --show-error --max-time 15 --retry 0 \
+            -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+            "${api_root}/deployments/${deployment_uuid}" \
+            -o "$status_file" 2>"$error_file"; then
+            deployment_status="$(python3 - "$status_file" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          try:
+              payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+          except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+              print("unknown")
+              raise SystemExit(0)
+
+          value = str(payload.get("status") or "").strip().lower()
+          allowed = {"queued", "in_progress", "running", "finished", "success", "failed", "cancelled", "canceled"}
+          print(value if value in allowed else "unknown")
+          PY
+            )"
+          fi
+
+          echo "release_action=deployment_requested"
+          echo "deployment_status=${deployment_status}"
