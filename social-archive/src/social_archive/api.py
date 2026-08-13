@@ -401,6 +401,74 @@ def _replication_liveness() -> dict[str, Any]:
     }
 
 
+# **备份本身**上一次真的做出来是什么时候。（2026-08-13）
+#
+# 上面那一格盯的是 replication（把制品再复制到别处）。这一格盯它的上游：
+# `backup.timer` 每天跑一次 `backup.py`，做出一份加密快照。**两条链会单独死。**
+#
+# 2026-08-12、08-13 连着两天，`backup.service` 以同一个 `200/CHDIR` 失败——
+# 和 08-11 那次 replication 事故同一个根因（`/opt/social-archive` 被改回 700，
+# 两个服务共用这个 `WorkingDirectory`）。后果在快照目录上一目了然：
+#
+#     20260811T032747Z   ← 最后一次自动备份
+#     （8/12、8/13 两天整个缺失）
+#     20260813T085049Z   ← 人手触发才补上的
+#
+# **而修那次事故时我只确认了 replication 恢复、没回头查 backup**，
+# 于是它又静静死了两天，`/health` 全程一个字都没有。
+#
+# ## 这一格取的是什么
+#
+# 不新增心跳文件，**直接看产物**：`backups/private-database/<UTC 时间戳>/`，
+# 目录名就是那次备份的时刻。而且要求里面有 `manifest.json`——跑一半崩掉也会
+# 留下目录，**光有目录不算做完**。自述会骗人，产物不会。
+def _backup_liveness() -> dict[str, Any]:
+    root = settings.data_root / "backups/private-database"
+    readable = True
+    try:
+        entries = list(root.iterdir())
+    except FileNotFoundError:
+        # 目录不在 = 确实一次都没备份过（备份跑起来会自己建）。这是**知道**，不是不知道。
+        entries = []
+    except OSError:
+        # 读不动（权限等）——这才是真的不知道。**不许和上一支并成一个默认值。**
+        readable, entries = False, []
+
+    newest: datetime | None = None
+    newest_name = ""
+    for entry in entries:
+        if not (entry / "manifest.json").is_file():
+            continue  # 跑一半留下的空壳
+        try:
+            when = datetime.strptime(entry.name, "%Y%m%dT%H%M%SZ").replace(tzinfo=UTC)
+        except ValueError:
+            continue
+        if newest is None or when > newest:
+            newest, newest_name = when, entry.name
+
+    if newest is None:
+        # **「读不到」和「确实一个都没有」是两回事**，不许并成一个默认值：
+        # 前者是不知道（不该拿它吓人），后者是真的没有备份（必须说）。
+        if not readable:
+            return {"last_backup_at": None, "hours_since": None, "stale": None,
+                    "message_zh": "",
+                    "why": "读不到 backups/private-database——这不等于没有备份"}
+        return {"last_backup_at": None, "hours_since": None, "stale": True,
+                "message_zh": failure_copy.NO_BACKUP_YET_SENTENCE,
+                "why": "backups/private-database 下没有一个做完的快照"}
+
+    hours = (datetime.now(UTC) - newest).total_seconds() / 3600.0
+    # 定时器一天一次（带几分钟抖动）。30 小时 = **整整一次都没跑成**，
+    # 不是"跑晚了几分钟"——留够余量，免得变成狼来了。
+    stale = hours > 30.0
+    return {
+        "last_backup_at": newest_name,
+        "hours_since": round(hours, 2),
+        "stale": stale,
+        "message_zh": failure_copy.backup_missing_sentence(hours) if stale else "",
+    }
+
+
 @app.get("/health")
 def health() -> dict[str, Any]:
     return {
@@ -411,6 +479,11 @@ def health() -> dict[str, Any]:
         "paid_api_allowed": settings.paid_api_allowed,
         "archive_defaults": {"L0": True, "L1": True, "L2": settings.l2_enabled, "L3": settings.l3_enabled},
         # **备份这条链还在不在跑**——不是"以前成功过"，是"刚才跑过"。
+        #
+        # 两格，因为是两条会单独死的链：`backup` 做出快照，`replication`
+        # 把它复制到别处。2026-08-12~13 实测只死了前一条，而当时只有后一条
+        # 接了出来，于是整整两天没有新备份、而这里全绿。
+        "backup": _backup_liveness(),
         "replication": _replication_liveness(),
         # **后台在不在跑，也算健康的一部分。**
         #
@@ -1575,7 +1648,15 @@ def status_projection() -> dict[str, Any]:
         "destinations": destinations.views(),
         "storage": store.quota_states(),
         "replicas": store.replica_summary(),
-        "recovery": {"last_backup": "unknown", "last_restore_drill": "unknown"},
+        # `last_backup` 曾经写死成 "unknown"（2026-08-11 那次事故的记录里点过名）。
+        # **写死的 "unknown" 比空着更坏**：它长得像"查过了，不知道"，
+        # 其实是"根本没去查"。现在它读的是真产物——最近那份做完的快照。
+        # `last_restore_drill` 还是 unknown，因为**确实没有任何东西在记它**；
+        # 保留原样，不拿一个编出来的值填上去。
+        "recovery": {
+            "last_backup": _backup_liveness().get("last_backup_at") or "unknown",
+            "last_restore_drill": "unknown",
+        },
     }
 
 
