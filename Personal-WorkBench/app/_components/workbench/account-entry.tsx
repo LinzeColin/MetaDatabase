@@ -13,6 +13,7 @@ type AccountEntryState =
   | "signed-in"
   | "signed-out"
   | "verification-required"
+  | "session-unavailable"
   | "auth-return-failed";
 
 type AccountEntryProps = {
@@ -26,6 +27,11 @@ type BrowserSession = {
     id?: unknown;
   };
 };
+
+// A connection that never settles must not leave the shared account control
+// saying "正在确认登录…" forever. The browser can still use the ordinary login
+// link while a later focus/pageshow check retries the authoritative session.
+const SESSION_LOOKUP_TIMEOUT_MS = 8_000;
 
 /**
  * Keeps the persistent account entry truthful after an OAuth callback without
@@ -41,6 +47,7 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
     let requestGeneration = 0;
     let recoveryAnnounced = false;
     let recoveredAuthReturn = false;
+    let initialSessionResolved = false;
     // Consume both independent one-shot signals. A normal same-tab callback
     // has both: sessionStorage makes the recovery resilient to a redirect,
     // while the location marker is needed if an embedded browser rebuilt the
@@ -51,7 +58,7 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
     const shouldRecoverAuthReturn = recoveryMarkedInStorage || recoveryMarkedInLocation;
 
     const announceRecoveredSession = (nextState: AccountEntryState) => {
-      if (!shouldRecoverAuthReturn || recoveryAnnounced || nextState === "signed-out" || nextState === "checking") return;
+      if (!shouldRecoverAuthReturn || recoveryAnnounced || (nextState !== "signed-in" && nextState !== "verification-required")) return;
       recoveryAnnounced = true;
       window.dispatchEvent(new Event(AUTH_RETURN_RECOVERY_EVENT));
     };
@@ -59,13 +66,18 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
     const refresh = () => {
       const generation = ++requestGeneration;
       controller?.abort();
-      controller = new AbortController();
+      const nextController = new AbortController();
+      controller = nextController;
+      const timeout = window.setTimeout(() => {
+        if (controller === nextController) nextController.abort();
+      }, SESSION_LOOKUP_TIMEOUT_MS);
       void fetch("/api/auth/get-session?disableCookieCache=true", {
         credentials: "same-origin",
-        signal: controller.signal,
+        signal: nextController.signal,
       })
         .then(async (response) => {
-          if (!response.ok) return "signed-out" as const;
+          if (response.status === 401) return "signed-out" as const;
+          if (!response.ok) return "session-unavailable" as const;
           const session = (await response.json().catch(() => null)) as BrowserSession | null;
           if (!session?.user || typeof session.user.id !== "string" || !session.user.id) return "signed-out" as const;
           // The data routes accept only a strict true claim. Treat an absent
@@ -75,21 +87,31 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
         })
         .then((nextState) => {
           if (active && generation === requestGeneration) {
-            if (nextState !== "signed-out") {
+            initialSessionResolved = true;
+            if (nextState === "signed-in" || nextState === "verification-required") {
               recoveredAuthReturn = true;
               if (recoveryFailureTimer !== null) window.clearTimeout(recoveryFailureTimer);
             }
             // Do not make a just-returned OAuth visitor look like an ordinary
             // guest while Better Auth finishes its bounded session commit.
             // A clear retry state is shown only after the full recovery window.
-            if (shouldRecoverAuthReturn && nextState === "signed-out" && !recoveredAuthReturn) return;
+            if (shouldRecoverAuthReturn && (nextState === "signed-out" || nextState === "session-unavailable") && !recoveredAuthReturn) return;
             setState(nextState);
             announceRecoveredSession(nextState);
           }
         })
         .catch(() => {
           // Do not turn a known session into a signed-out display because a
-          // foreground refresh briefly lost network access.
+          // foreground refresh briefly lost network access. Before the first
+          // result, however, render a truthful retryable state rather than an
+          // indefinite checking label. An OAuth return keeps its bounded
+          // recovery window and surfaces its dedicated retry state later.
+          if (active && generation === requestGeneration && !initialSessionResolved && !shouldRecoverAuthReturn) {
+            setState("session-unavailable");
+          }
+        })
+        .finally(() => {
+          window.clearTimeout(timeout);
         });
     };
 
@@ -132,6 +154,8 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
     ? "正在确认登录…"
     : state === "auth-return-failed"
       ? "登录未完成 · 重试"
+    : state === "session-unavailable"
+      ? "暂时无法确认登录"
     : awaitingVerification
       ? "已登录 · 待验证"
       : signedIn
@@ -141,6 +165,8 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
     ? "正在确认登录状态"
     : state === "auth-return-failed"
       ? "登录没有完成，重新登录后再同步历史记录"
+    : state === "session-unavailable"
+      ? "暂时无法确认登录，请检查网络后重试"
     : awaitingVerification
       ? "已登录，当前账号待完成验证"
       : signedIn
@@ -150,6 +176,8 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
     ? "正在确认当前登录状态"
     : state === "auth-return-failed"
       ? "登录没有完成，请重新登录后再同步历史记录。"
+    : state === "session-unavailable"
+      ? "暂时无法确认登录，请检查网络后重试。"
     : awaitingVerification
       ? "当前账号待完成验证，验证后才能同步历史记录。"
       : signedIn
