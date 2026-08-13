@@ -476,6 +476,10 @@ test("account sign-out uses the Better Auth same-origin endpoint and returns to 
 
 test("auth form uses the CAPTCHA readiness preflight before it builds a request", async () => {
   const authForm = await readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8");
+  const captchaUnavailableBlock = authForm.slice(
+    authForm.indexOf('effectiveCaptchaReadiness === "unavailable"'),
+    authForm.indexOf('<button type="submit"'),
+  );
 
   assert.match(authForm, /captchaSubmissionPreflight\(mode, effectiveCaptchaReadiness, captchaResponse\)/);
   assert.match(authForm, /usesTurnstile \? "loading" : "ready"/);
@@ -492,6 +496,9 @@ test("auth form uses the CAPTCHA readiness preflight before it builds a request"
   assert.match(authForm, /重试安全验证/);
   assert.match(authForm, /message !== CAPTCHA_UNAVAILABLE_MESSAGE/);
   assert.match(authForm, /正在准备安全验证，请稍候…/);
+  assert.match(captchaUnavailableBlock, /href="\/auth\/google"/);
+  assert.match(captchaUnavailableBlock, /改用 Google 登录/);
+  assert.match(captchaUnavailableBlock, /onClick=\{\(\) => markAuthReturnRecovery\(\)\}/);
 });
 
 test("auth controls wait for client hydration instead of losing the first sign-in click", async () => {

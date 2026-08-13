@@ -327,6 +327,13 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
           {usesTurnstile && effectiveCaptchaReadiness === "unavailable" ? (
             <>
               {message !== CAPTCHA_UNAVAILABLE_MESSAGE ? <p className="auth-captcha-message" role="status">{CAPTCHA_UNAVAILABLE_MESSAGE}</p> : null}
+              <a
+                className="auth-google"
+                href="/auth/google"
+                onClick={() => markAuthReturnRecovery()}
+              >
+                改用 Google 登录
+              </a>
               <button type="button" className="auth-google" onClick={retryCaptcha} disabled={!interactive || submitting}>
                 重试安全验证
               </button>
