@@ -134,6 +134,11 @@ DELIBERATE_SUBSETS = {
     # 作用面悄悄放宽（这里是 `marker in block` 的子串匹配）。
     "PUBLIC_LIST_PAGE_FIXTURE": "只放公开可达且本身就是条目列表的页面；"
                                 "x/instagram/youtube 的列表都要登录，列进去是假证据",
+    # utils._QUERY_KEYS_WORTH_KEEPING：**不是平台表**，是「这个站的地址身份
+    # 需要留哪些查询参数」。只登记**真去看过**的那几家（B站/抖音/快手身份全在
+    # path，小红书要留 xsec_token 否则打不开）；没看过的站不列——
+    # **列一个进去等于替那个站猜哪些参数属于身份**，猜错就把能打开的链接改坏。
+    "URL_IDENTITY_KEEPLIST": "地址身份要留的查询参数；只登记真查过的站，没查过的不猜",
     "FORBIDDEN_PLATFORMS": "国内四平台的硬边界名单，youtube 本来就不该在里面",
     "DOMESTIC_PLATFORMS": "同上，国内平台专用",
     "SERVER_ACCOUNT_CONNECTORS": "服务端直连的那几个；youtube 走 Cookie 托管，不走这条",

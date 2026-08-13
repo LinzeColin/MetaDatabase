@@ -73,6 +73,30 @@ def sha256_file(path: Path, chunk_size: int = 1024 * 1024) -> str:
     return digest.hexdigest()
 
 
+# 每个平台**要留下**的查询参数（其余一律丢掉）。**这是白名单，不是黑名单**：
+# 黑名单要穷举所有埋点参数名，那是开放集合，永远补不全；白名单只要回答
+# 「这条地址的身份需要哪些参数」，那是个封闭问题。
+#
+# 不在这张表里的站按老样子处理（只丢 utm_* / fbclid / gclid），
+# 因为「哪些参数属于身份」得一站一站看，猜不得。
+_QUERY_KEYS_WORTH_KEEPING: dict[str, frozenset[str]] = {
+    # URL_IDENTITY_KEEPLIST：**不是平台表**，是「这个站的地址身份需要哪些查询参数」。
+    # 只登记我真去看过的那几家；没看过的不列——列了就是替那个站猜。
+    # 视频/图文的身份全在 path（BV 号、aweme id）里，查询串一个都不需要。
+    "bilibili.com": frozenset(),
+    "douyin.com": frozenset(),
+    "kuaishou.com": frozenset(),
+    # **小红书是例外**：`xsec_token` 是那条链接的签名，去掉就打不开了。
+    "xiaohongshu.com": frozenset({"xsec_token", "xsec_source"}),
+}
+
+
+def _host_family(host: str) -> str:
+    """`www.bilibili.com` → `bilibili.com`；只取最后两段，够用且不猜。"""
+    parts = host.split(".")
+    return ".".join(parts[-2:]) if len(parts) >= 2 else host
+
+
 def canonicalize_url(value: str) -> str:
     parsed = urllib.parse.urlsplit(value.strip())
     if parsed.scheme.lower() not in {"http", "https"} or not parsed.hostname:
@@ -85,6 +109,22 @@ def canonicalize_url(value: str) -> str:
     query = urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)
     tracking = {"utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "fbclid", "gclid"}
     query = [(k, v) for k, v in query if k.lower() not in tracking]
+    # **国内那几家的追踪参数，这张黑名单一个都不认。**（2026-08-13）
+    #
+    # 实测他生产库：193 条内容里 **129 条带查询串**——
+    #   bilibili 100 条 `spm_id_from`（"你是从哪儿点进来的"，纯埋点)
+    #   douyin    28 条 `source`（值形如 `Baiduspider-sdc`）
+    # 而上面那张表只有 utm_* / fbclid / gclid，**都是西方站的**。
+    # 后果不只是链接难看：他库里 `BV1oMgZ6EETu` **存了两行**，
+    # 就因为两次的 `spm_id_from` 不一样。
+    #
+    # **不再往黑名单里加名字**——今天已经在别处栽过：按来源拉黑名单是打地鼠，
+    # 换个平台就漏一批。这里改成**按平台列出"要留的"**（封闭集合）：
+    # 视频地址的身份只在 path 里，查询串一个都不需要；
+    # 小红书是例外，`xsec_token` 少了那条链接打不开，所以留着。
+    host_keeps = _QUERY_KEYS_WORTH_KEEPING.get(_host_family(host))
+    if host_keeps is not None:
+        query = [(k, v) for k, v in query if k.lower() in host_keeps]
     clean = urllib.parse.urlunsplit((parsed.scheme.lower(), netloc, parsed.path or "/", urllib.parse.urlencode(query, doseq=True), ""))
     return clean
 
