@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   createDeviceLocalRecord,
   buildGuestDeviceHistoryEnvelope,
+  countGuestDeviceHistoryRecords,
   createDeviceLocalRecoveryOutboxAction,
   deviceLocalRecordRequestPayload,
   appendDeviceOutbox,
@@ -299,6 +300,7 @@ test("an explicit guest-device import candidate includes every supported module 
     assert.deepEqual(first.modules.savingsTransactions, [{ id: "local_transaction_guest", goalId: "local_goal_guest", amountCents: 500, localDate: "2026-08-13", note: "" }]);
     assert.equal(first.modules.food?.[0]?.photoObjectId, undefined);
     assert.equal(first.modules.ledger, undefined);
+    assert.equal(await countGuestDeviceHistoryRecords(), 5);
   } finally {
     if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
     else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });

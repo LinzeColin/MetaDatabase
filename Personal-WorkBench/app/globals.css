@@ -132,6 +132,19 @@ img { display: block; max-width: 100%; }
   font-size: 11px;
   line-height: 16px;
 }
+.guest-history-recovery-notice {
+  margin: 12px 0 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(222, 143, 170, 0.32);
+  border-radius: 16px;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: var(--shadow-soft);
+  font-size: 12px;
+  line-height: 18px;
+}
+.guest-history-recovery-notice strong { color: var(--text-primary); }
+.guest-history-recovery-notice p { margin: 3px 0; }
 
 .reference-mode .normal-only { display: none !important; }
 

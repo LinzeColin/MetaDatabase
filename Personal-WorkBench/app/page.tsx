@@ -11,6 +11,7 @@ import {
 } from "./_components/workbench/lifestyle-pages-client";
 import TodoPageClient from "./_components/workbench/todo-page-client";
 import { AccountEntry } from "./_components/workbench/account-entry";
+import { GuestHistoryRecoveryNotice } from "./_components/workbench/guest-history-recovery-notice";
 import { WorkbenchInteractionReady } from "./_components/workbench/interaction-ready";
 import { LegacyDomainRedirect } from "./_components/workbench/legacy-domain-redirect";
 import { VisitorDate } from "./_components/workbench/visitor-time-client";
@@ -129,7 +130,12 @@ function Shell({
           {!reference ? (
             <AccountEntry className="account-entry normal-only" signedOutHref="/auth/sign-in" />
           ) : null}
-          {reference ? children : <WorkbenchInteractionReady>{children}</WorkbenchInteractionReady>}
+          {reference ? children : (
+            <WorkbenchInteractionReady>
+              <GuestHistoryRecoveryNotice />
+              {children}
+            </WorkbenchInteractionReady>
+          )}
         </main>
       </div>
     </div>

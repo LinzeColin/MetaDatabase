@@ -10,6 +10,7 @@ const accountSource = "app/account/page.tsx";
 const legacyImportPanelSource = "app/account/legacy-import-panel.tsx";
 const visitorTimeSource = "app/_components/workbench/visitor-time-client.tsx";
 const interactionGateSource = "app/_components/workbench/interaction-ready.tsx";
+const guestHistoryRecoverySource = "app/_components/workbench/guest-history-recovery-notice.tsx";
 const globalStylesSource = "app/globals.css";
 
 test("workbench pages bind every visible lifecycle module to the tenant resource client", async () => {
@@ -185,7 +186,7 @@ test("normal-mode controls wait for hydration without changing frozen reference 
   ]);
 
   assert.match(page, /import \{ WorkbenchInteractionReady \} from "\.\/\_components\/workbench\/interaction-ready"/);
-  assert.match(page, /reference \? children : <WorkbenchInteractionReady>\{children\}<\/WorkbenchInteractionReady>/);
+  assert.match(page, /reference \? children : \([\s\S]*?<WorkbenchInteractionReady>[\s\S]*?<GuestHistoryRecoveryNotice \/>[\s\S]*?\{children\}[\s\S]*?<\/WorkbenchInteractionReady>[\s\S]*?\)/);
   assert.match(gate, /useSyncExternalStore\(subscribeToHydration, \(\) => true, \(\) => false\)/);
   assert.match(gate, /inert=\{!ready\}/);
   assert.match(gate, /正在准备工作台…/);
@@ -216,6 +217,23 @@ test("account management offers an explicit, preview-first import for this devic
   assert.match(cacheSource, /module === "food" \|\| module === "diary"\) delete payload\.photoObjectId/);
   assert.match(legacySource, /"habitCheckins"/);
   assert.match(legacySource, /"savingsTransactions"/);
+});
+
+test("a verified account with anonymous device records sees the explicit recovery entry on the workbench", async () => {
+  const [page, notice, cache] = await Promise.all([
+    readFile(pageSource, "utf8"),
+    readFile(guestHistoryRecoverySource, "utf8"),
+    readFile("app/_components/workbench/local-record-cache.ts", "utf8"),
+  ]);
+
+  assert.match(page, /<GuestHistoryRecoveryNotice \/>/);
+  assert.match(notice, /get-session\?disableCookieCache=true/);
+  assert.match(notice, /session\.user\.emailVerified !== true/);
+  assert.match(notice, /countGuestDeviceHistoryRecords/);
+  assert.match(notice, /预览并导入到当前账号/);
+  assert.doesNotMatch(notice, /legacy-import\/apply|buildGuestDeviceHistoryEnvelope|deleteDatabase|localStorage\.removeItem/);
+  assert.match(cache, /export async function countGuestDeviceHistoryRecords\(\)/);
+  assert.match(cache, /readDeviceLocalRecords\("guest", resource\)/);
 });
 
 test("normal menu routes keep every user-audited lifecycle control bound to a state change or record write", async () => {

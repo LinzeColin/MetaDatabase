@@ -497,6 +497,21 @@ export async function buildGuestDeviceHistoryEnvelope(
 }
 
 /**
+ * This read-only count lets the normal workbench make an existing anonymous
+ * history recoverable after sign-in without manufacturing an import envelope
+ * or touching an account-scoped cache. The actual transfer remains the
+ * separate preview-and-confirm flow on the account page.
+ */
+export async function countGuestDeviceHistoryRecords(): Promise<number> {
+  let count = 0;
+  for (const { resource } of guestDeviceHistoryResources) {
+    const records = await readDeviceLocalRecords("guest", resource);
+    count += records.filter((record) => record.id.startsWith("local_")).length;
+  }
+  return count;
+}
+
+/**
  * Older sensitive records may have been safely retained in an account's
  * device cache before a consent-pending outbox existed. Once the account has
  * passed the server consent gate, this creates a stable, account-scoped retry
