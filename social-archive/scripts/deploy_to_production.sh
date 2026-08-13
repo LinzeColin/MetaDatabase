@@ -334,6 +334,31 @@ rsync -az --omit-dir-times \
   --exclude 'runtime/' --exclude '.env' --exclude '__pycache__' \
   --exclude '.pytest_cache' --exclude '*.pyc' --exclude '.DS_Store' \
   "$DEPLOY_SNAPSHOT/" "$HOST:$REMOTE_DIR/" || fail 'rsync 失败。'
+
+# **上面这一行每跑一次，就把他的备份复制打断一次。**（2026-08-13 查明）
+#
+# `DEPLOY_SNAPSHOT` 是 `mktemp -d` 建的——**权限 700**。而 `rsync -a` 含 `-p`
+# （保留权限），`--omit-dir-times` **只省时间戳、不省权限**。于是 rsync 把
+# 快照根目录那个 700 **盖到了 `/opt/social-archive` 上**。
+#
+# 后果不在这台机器上，在那台：`social-archive-replication.service` 以
+# `socialarchive` 用户跑，700 之后它连工作目录都进不去，每次触发都是
+# `200/CHDIR`。**实测代价：2026-08-11 23:53 起连着失败 108 次、28 小时，
+# 而当时界面上一个字都没有**（那一格看的是"以前成功过没有"，不是"现在还在不在跑"）。
+# 我当天上午手工修好，**当天下午又被自己的下一次部署改回去了**——
+# 靠手工修一个每次部署都会重来的东西，是修不完的。
+#
+# 所以在这里把不变量放回去：属主不动，只让服务用户进得去（组内 r-x）。
+# `runtime/secrets` 自己是 700 且属主是容器 uid，**不会因为这一步被放开**。
+ssh -o ConnectTimeout=20 "$HOST" "
+  sudo chgrp socialarchive '$REMOTE_DIR' &&
+  sudo chmod 750 '$REMOTE_DIR'" \
+  || fail "复原 ${REMOTE_DIR} 的属组/权限失败——备份服务会进不去那个目录。"
+
+# **回读**：以那个用户真的进得去为准，不以「我发过那两条命令」为准。
+ssh -o ConnectTimeout=20 "$HOST" "sudo -u socialarchive test -x '$REMOTE_DIR'" \
+  || fail "备份服务那个用户仍然进不去 ${REMOTE_DIR}——复制/备份会每次都失败。"
+printf '  %s 属组权限已复原（备份服务进得去；rsync -a 每次都会把它改回 700）\n' "$REMOTE_DIR"
 # **改了名字的文件，上一版那个名字会一直赖在生产上。** rsync 只覆盖，不删除。
 #
 # 2026-08-12 实测：`git mv` 把两个修复脚本改了名，同步之后生产上新旧两份都在，
