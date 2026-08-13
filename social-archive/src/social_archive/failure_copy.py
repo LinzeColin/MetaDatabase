@@ -411,6 +411,24 @@ PRODUCT_FAULT_CODES: frozenset[str] = frozenset({
 })
 _PRODUCT_FAULT_SENTENCE = "这次没有取到内容，问题在我们这边，已经记下来了。不用反复重试。"
 
+# 备份那条链停了时给他看的话。**放在这本词典里，不放在 api.py**——
+# 这个仓的规矩是「词典只有一处真源」，而 2026-08-13 我第一版把它写在了
+# `api.py` 的函数里：`check_docs_match_the_ui.py` 的语料只有 `apps/` 下的
+# .js/.html，于是**说明书引用这句话时被判成「界面上找不到」**——
+# 判据没错，是那句话没待在它该待的地方。
+BACKUP_STALE_TAIL = "——已存下的内容一条都没少，停下来的是「再存一份到别处」这件事。"
+
+
+def backup_stale_sentence(hours: float | None) -> str:
+    """备份很久没跑过了。`hours` 是距上次跑完的小时数。"""
+    if hours is not None and hours >= 1:
+        return f"备份已经 {int(hours)} 小时没有跑过了{BACKUP_STALE_TAIL}"
+    return f"备份已经有一会儿没有跑过了{BACKUP_STALE_TAIL}"
+
+
+BACKUP_RUN_INCOMPLETE_SENTENCE = (
+    "最近一次备份没跑完——已存下的内容一条都没少，但这一轮的副本没有做上去。")
+
 
 def code_key(code: str | None) -> str:
     """失败码规范化。库里存的大小写不一定一致。"""

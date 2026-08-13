@@ -41,6 +41,14 @@ ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 UI_DIRS = ("apps",)
 
+# **给人看的句子有一半不在 apps/ 里。**（2026-08-13）
+#
+# 这个仓的规矩是「界面不自己造句，用服务端下发的 message_zh」——
+# 那些句子住在 `failure_copy.py` 这本冻结词典里。而这道门的语料只有
+# `apps/` 下的 .js/.html，于是**说明书引用一句服务端下发的话时，
+# 它会报「界面上找不到」**——判据没错，是语料少了一半。
+SERVER_COPY = ("src/social_archive/failure_copy.py",)
+
 # **界面词一律用引号引用。加粗是强调，不是引用。**
 #
 # 这条约定是试出来的：本轮往手册里写了一张表，按钮名用 `**断开**` 标出，
@@ -90,6 +98,13 @@ def ui_blob() -> str:
                     chunks.append(_ui_text(path))
                 except (OSError, UnicodeDecodeError):
                     continue
+    for name in SERVER_COPY:
+        path = ROOT / name
+        if path.is_file():
+            try:
+                chunks.append(path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeDecodeError):
+                pass
     return "\n".join(chunks)
 
 

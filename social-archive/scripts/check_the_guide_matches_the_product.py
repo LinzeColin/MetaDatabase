@@ -52,6 +52,13 @@ UI_FILES = (
     "apps/pwa/app.js",
     "apps/pwa/index.html",
     "apps/pwa/extension-install.html",
+    # **给人看的句子有一半不在 apps/ 里。**（2026-08-13）
+    #
+    # 这个仓的规矩是「界面不自己造句，用服务端下发的 message_zh」——那些句子
+    # 住在这本冻结词典里（失败文案、同步结果、备份停了那一句…）。
+    # 少了它，说明书引用一句**服务端下发**的话就会被判成「界面上没有」，
+    # 而那句话他明明看得见。隔壁 check_docs_match_the_ui.py 同一天同一个补法。
+    "src/social_archive/failure_copy.py",
 )
 
 # **不是我们界面上的字**，逐条写清它是谁的。
