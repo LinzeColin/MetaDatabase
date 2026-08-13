@@ -6,7 +6,7 @@
 
 - 产品：Social Archive
 - 目录：`social-archive/`
-- 版本：`v0.0.0.87`
+- 版本：`v0.0.0.88`
 - Python 包：`social_archive`
 - 环境变量前缀：`SOCIAL_ARCHIVE_`
 - 私有域名：`social-archive.linzezhang.com`
@@ -58,6 +58,11 @@
 它们此前**一条都没写在文档里**，规矩全在门自己肚子里，
 每个人都得先被拦一次才知道。
 
+> **这张表会长，而且必须跟着长。** 2026-08-14 一天新增了七道这类门，
+> 而它们的规矩当天全都只在门肚子里——接手的人（或 AI）会被拦住，
+> 却不知道为什么。**加一道对写东西的人提要求的门，就要在这里补一行**，
+> 否则那道门的成本就从「作者一次」变成「以后每个人各一次」。
+
 | 你在做什么 | 规矩 | 拦你的那道门 |
 |---|---|---|
 | 写文档，引用界面上的词 | 直角引号只给**界面上真有的词**；强调用粗体 | `check_docs_match_the_ui.py` |
@@ -66,6 +71,13 @@
 | 代码里新加一个 error_code | 同时补上对应的中文文案，否则界面只会说「我们没能记录下原因」 | `check_every_failure_code_is_explainable.py` |
 | 加一个平台 | 十几张平台表都要提到它；确实该是子集的，登记时**必须写下理由** | `check_every_platform_table_is_complete.py` |
 | 改版本号 | 真源是 `pyproject.toml`，其余全部对它；CHANGELOG 要有这一版 | `check_the_stated_version_is_the_real_one.py` |
+| 文档里点 `/health` 的字段名 | 名字必须真的在响应里；两种状态下**键集要一样** | `check_docs_name_real_health_fields.py` |
+| 给活性链加一个状态 | 判定「不对」就**必须给一句 `message_zh`**，否则界面全哑；键集在所有状态下恒定 | `test_a_verdict_without_a_sentence_is_invisible.py` |
+| 给徽章加一句新文案 | 说明书里必须写到它（清单用 `ast` 自己去产品里数，忘了就红） | `test_the_guide_covers_every_sentence_the_badge_can_show.py` |
+| 界面加/减一个平台 | 服务端认得的，界面必须有一格；反向多出来的会给一颗不可能成功的按钮 | `test_no_platform_is_invisible_in_the_ui.py` ＋ `find_affordances_the_backend_says_cannot_work.py` |
+| 文档里写 ssh 命令 | 问生产状态的取值要在**生产机上**展开（**单引号**）；不许写死版本号兜底 | `test_remote_commands_read_remote_state.py` |
+| 改 HANDOFF 首屏那段可粘提示词 | 边界用**标题原文**不用序数区间；平台清单必须等于 `SYNCABLE_NOW`；两条红线要写在里面 | `test_the_handover_prompt_points_at_real_sections.py` |
+| 脚本给人一条补救命令 | 那条路必须**只用标准库就能走通**；提到第三方工具要写明它不是前置条件 | `test_the_way_out_needs_no_undocumented_tool.py` |
 
 其余那些 `find_*` 是查「建好了没接上」的六种形态（未引用的符号、没人调的接口、
 只写不读的存储键、只有一头的消息、没法设置的配置项、根本不存在的函数），
