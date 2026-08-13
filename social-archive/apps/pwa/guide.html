@@ -177,6 +177,29 @@
 <blockquote>这句话是 2026-08-13 加的，起因是它<strong>真的停过 28 小时而没人知道</strong>：</blockquote>
 <blockquote>服务连着失败了 108 次，而界面上一个字都没有——当时那一格看的是</blockquote>
 <blockquote><strong>以前成功过没有</strong>，不是<strong>现在还在不在跑</strong>。现在看的是后者。</blockquote>
+<p><strong>顶上出现一句说没有做出新备份的话</strong></p>
+<p>这是<strong>另一句</strong>，和上面那句长得像，说的却是另一件事（中间那个数字随实际情况变）：</p>
+<blockquote>已经 53 小时没有做出新的备份了——之前存下的内容一条都没少，</blockquote>
+<blockquote>但这段时间里新进来的东西还没有进过备份。</blockquote>
+<p>两句话的区别，就是备份那条链的两半：</p>
+<table><thead><tr><th>你看到的那句在说</th><th>停的是哪一半</th><th>你已有的东西</th></tr></thead><tbody><tr><td>备份很久<strong>没有跑过</strong>了，停下来的是「再存一份到别处」</td><td>副本没往云端送</td><td>一条不少，主库好好的</td></tr><tr><td>很久<strong>没有做出新的备份</strong>了</td><td>连当天那份加密快照都没做出来</td><td>一条不少，<strong>但这段时间新进来的还没进过备份</strong></td></tr></tbody></table>
+<p><strong>处置也不一样。</strong> 上面那句每 15 分钟跑一次，偶尔滞后一两个小时是正常的；</p>
+<p><strong>这一句不是</strong>——做备份是每天一次，而这句话要<strong>超过 30 小时</strong>（也就是整整漏掉一次）</p>
+<p>才会出现。<strong>它一出现就已经是真的停了</strong>，不用再等着看它会不会自己追上。</p>
+<p>要有人连到服务器上看一眼，一条命令就能看出是哪个环节：</p>
+<pre><code>cd /opt/social-archive &amp;&amp; bash scripts/check_durability_units.sh</code></pre>
+<p>它会把四个定时器逐行列出来，最后一列写着上次跑的结果。</p>
+<p><strong>只看前两列会被骗</strong>：<code>enabled</code> / <code>active</code> 说的是定时器本身还装着、还在数着点，</p>
+<p>跟它叫起来的那个活儿干成没干成毫无关系。红了它会直接告诉你是哪个服务、</p>
+<p>下一步敲哪三条命令。</p>
+<p><strong>还有两句你可能碰到</strong>（都属于同一条链，处置一样）：</p>
+<blockquote>最近一次备份没跑完——已存下的内容一条都没少，但这一轮的副本没有做上去。</blockquote>
+<blockquote>还没有做出过任何一次备份。</blockquote>
+<p>前一句是跑起来了但中途没完；后一句只会在一台全新的、还没跑过备份的机器上出现。</p>
+<blockquote>这一节是 2026-08-13 加的，起因和上面那句一样是<strong>真的发生过</strong>：</blockquote>
+<blockquote>8/12、8/13 连着两天没做出备份，而当时界面上一个字都没有——</blockquote>
+<blockquote>因为那会儿只接了往别处复制那半条链的信号，它一直好好的，</blockquote>
+<blockquote>就把死掉的另一半整个挡住了。</blockquote>
 <p><strong>库里好多条写着未知作者、发布时间是空的</strong></p>
 <p>这是老版本取数时没取到，不是显示出了问题——<strong>重新同步会去补它们</strong>。</p>
 <p>早期那几次同步的取数路还没带作者和发布时间，现在带了。<strong>补得回多少分两种情况</strong>：</p>

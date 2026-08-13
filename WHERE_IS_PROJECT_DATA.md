@@ -23,7 +23,7 @@
 
 | 项目 | 耐久路由 | 当前状态 |
 |---|---|---|
-| xhs-douyin-2notion | `Private-MetaDatabase` / `domain=xhs-douyin-2notion` / `private_db_client.py ingest|get|list|verify`；禁止 clone | Task005 仅完成 CI-synth 验证；未执行真实传输、认证会话、系统备份设置或物理删除 |
+| social-archive（旧名 xhs-douyin-2notion） | 结构化事实账本：`Private-MetaDatabase` / `domain=SocialArchive`（`private_db_client.py` 的 ingest/get/list/verify；禁止 clone）。**主库与制品不在私有仓**：在生产机 `/var/lib/social-archive`（机器名见 `social-archive/deploy/PRODUCTION_HOST`），每天一份加密快照，并复制到 R2 / OCI / GitHub 三处。取回办法与逐条证据见 [`social-archive/HANDOFF.md`](social-archive/HANDOFF.md) | ✅ 生产在跑；2026-08-13 实测 193 条内容，当日抽验副本 3/3 |
 
 ## 将来怎么用（免 clone）
 

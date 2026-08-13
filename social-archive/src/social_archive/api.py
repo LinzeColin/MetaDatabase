@@ -422,8 +422,12 @@ def _replication_liveness() -> dict[str, Any]:
 # 不新增心跳文件，**直接看产物**：`backups/private-database/<UTC 时间戳>/`，
 # 目录名就是那次备份的时刻。而且要求里面有 `manifest.json`——跑一半崩掉也会
 # 留下目录，**光有目录不算做完**。自述会骗人，产物不会。
-def _backup_liveness() -> dict[str, Any]:
-    root = settings.data_root / "backups/private-database"
+def _newest_completed_snapshot(root: Path) -> tuple[datetime | None, str, bool]:
+    """那个目录里**最近一份做完的**快照。回 (时刻, 目录名, 读得到吗)。
+
+    做完的标记是里面有 `manifest.json`——跑一半崩掉也会留下目录，
+    **光有目录不算做完**。
+    """
     readable = True
     try:
         entries = list(root.iterdir())
@@ -445,6 +449,38 @@ def _backup_liveness() -> dict[str, Any]:
             continue
         if newest is None or when > newest:
             newest, newest_name = when, entry.name
+    return newest, newest_name, readable
+
+
+def _backup_liveness() -> dict[str, Any]:
+    # **备份服务一次跑四件事，而只看第一件会漏掉后面三件。**（2026-08-13）
+    #
+    # `social-archive-backup.service` 里串着四条 ExecStart，`Type=oneshot`
+    # 按序执行、前一条失败就不往下走：
+    #
+    #     backup.py --once                  做私有库加密快照
+    #     backup_runtime_db.py --github     做运行库快照并推一份到 GitHub
+    #     prune_runtime_db_snapshots.py     清理
+    #     prune_r2_backup_replicas.py       清理
+    #
+    # 第一条成了、第二条挂了 → 服务整体失败，**而私有库那边有新快照**，
+    # 只看它就是绿的。宿主机上 `check_durability_units.sh` 第四列抓得到，
+    # 徽章抓不到——而他看的是徽章。
+    #
+    # 所以两条链都看，**取更旧的那一个**（最弱的一环）。不新增句子：
+    # 「已经 N 小时没有做出新的备份了」对两条都成立。
+    newest, newest_name, readable = _newest_completed_snapshot(
+        settings.data_root / "backups/private-database")
+    rt_newest, rt_name, rt_readable = _newest_completed_snapshot(
+        settings.data_root / "backups/runtime-db")
+
+    # 取更旧的那条当口径；任一条读不到就整体算读不到。
+    readable = readable and rt_readable
+    if newest is not None and rt_newest is not None:
+        newest, newest_name = ((newest, newest_name) if newest <= rt_newest
+                               else (rt_newest, rt_name))
+    elif rt_newest is None:
+        newest, newest_name = None, ""
 
     if newest is None:
         # **「读不到」和「确实一个都没有」是两回事**，不许并成一个默认值：

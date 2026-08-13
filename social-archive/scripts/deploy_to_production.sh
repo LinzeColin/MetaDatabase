@@ -466,6 +466,8 @@ step "3.5) systemd 单元有没有漂"
 # 是它从版本控制之外做的**：主机一旦重建，这条就无声消失。
 # 现在 .conf 已收进 deploy/systemd/<unit>.d/，并且这里会盯着它。
 DRIFT=""
+UNREACHED=""
+ABSENT=""
 for unit in deploy/systemd/*.service deploy/systemd/*.timer deploy/systemd/*.d/*.conf; do
   [[ -e "$unit" ]] || continue
   case "$unit" in
@@ -477,10 +479,43 @@ for unit in deploy/systemd/*.service deploy/systemd/*.timer deploy/systemd/*.d/*
     deploy/systemd/*.d/*) name="$(basename "$(dirname "$unit")")/$(basename "$unit")" ;;
     *) name="$(basename "$unit")" ;;
   esac
-  if ! ssh -o ConnectTimeout=20 "$HOST" "sudo diff -q /etc/systemd/system/${name} ${REMOTE_DIR}/${unit} >/dev/null 2>&1"; then
-    DRIFT="${DRIFT}  ${name}\n"
-  fi
+  # **`ssh` 非零有两种完全不同的含义，第一版把它们并成了一支。**（2026-08-13）
+  #
+  # 那天部署到这一步撞上两次 `ssh_dispatch_run_fatal: Operation timed out`，
+  # 于是这里报「这两个 unit 与仓里不一致」并**中止了部署**——而它俩逐字节一致
+  # （当场 `sudo cat` 下来 diff 过）。两次超时，正好两个"漂移"，一一对应。
+  # 更坏的是它给出的处置：那行 `sudo cp …` 会去"修"一个不存在的问题。
+  #
+  # `ssh` 回的是**远端命令的退出码**，除非 ssh 自己失败——那时它回 255：
+  #   0    两份一样
+  #   1    远端 diff 说不一样   ← 真漂移
+  #   2    diff 打不开文件      ← unit 压根没装（要说，但不是同一件事）
+  #   255  ssh 没连上           ← **不知道**，不许记成漂移
+  #
+  # （那台机器上还有别的项目在定时 ssh，抢连接是常态，不是一次性意外。）
+  ssh -o ConnectTimeout=20 "$HOST" \
+    "sudo diff -q /etc/systemd/system/${name} ${REMOTE_DIR}/${unit} >/dev/null 2>&1"
+  case "$?" in
+    0)   ;;
+    1)   DRIFT="${DRIFT}  ${name}\n" ;;
+    255) UNREACHED="${UNREACHED}  ${name}\n" ;;
+    *)   ABSENT="${ABSENT}  ${name}\n" ;;
+  esac
 done
+if [[ -n "$UNREACHED" ]]; then
+  # **「没查成」和「查了没问题」必须分开说**——这一步原来只会说后者。
+  printf '  **这几个 unit 这次没比成**（ssh 连不上；既不是「不一致」，也不是「一致」）：\n'
+  printf "$UNREACHED"
+  fail 'systemd 单元这一步没查成——网络不通时不许把「不知道」当成「漂移」，也不许当成「一致」。等网络稳了重跑。'
+fi
+if [[ -n "$ABSENT" ]]; then
+  printf '  **这几个 unit 在生产上根本没装**（不是内容不一致）：\n'
+  printf "$ABSENT"
+  printf '  装它们（unit 以 root 跑，所以由你来敲）：\n'
+  printf "    ssh %s 'sudo cp %s/deploy/systemd/{%s} /etc/systemd/system/ && sudo systemctl daemon-reload'\n" \
+    "$HOST" "$REMOTE_DIR" "$(printf "$ABSENT" | tr -d ' ' | paste -sd, -)"
+  fail 'systemd 单元缺失。仓里有、生产上没有——那条链根本没在跑。'
+fi
 if [[ -n "$DRIFT" ]]; then
   printf '  **这些 systemd 单元与仓里的不一致**（装着的是旧的）：\n'
   printf "$DRIFT"
