@@ -1,15 +1,80 @@
-# Social Archive handoff
+# Social Archive 交接
 
-> **这份不是当前交接。** 它停在 **v0.0.0.6（2026-08-03）**，正文里的
-> 「current execution」指的是那一天的 v0.0.0.6，不是今天。
->
-> **当前交接是 [`evidence/HANDOFF_v0007.md`](evidence/HANDOFF_v0007.md)。**
-> 要接手、要知道 Owner 还欠哪几下、要知道哪些格子没做完，读那一份。
->
-> 这份留着是因为它是 v0.0.0.6 的记录（SA-205 那条线、当时的 Canary 约束、
-> 那个 ZIP 的哈希），删了就查不到了。但**别照着它判断今天的状态**——
-> 2026-08-05 发现它躺在仓根、名字又恰好是最容易被点开的那个，
-> 而当前那份藏在 evidence/ 里。
+**这一节是当前状态（2026-08-13）。下面每个数字都是当天从生产上量出来的，不是记忆。**
+
+## 一、它现在是什么
+
+| | |
+|---|---|
+| 公开地址 | `https://social-archive.linzezhang.com`（资料库）／ `…-api.…`（接口） |
+| 跑着的版本 | **0.0.0.70**（从本机打公开域名读回来的，不是打回环） |
+| 生产机 | 见 `deploy/PRODUCTION_HOST`——**唯一真源，别把机器名抄进命令** |
+| 你的库 | 内容 **193** 条、关系 **194** 条、制品 **552** 个 |
+| 三份副本 | **552 / 552 全部三份已验证，pending 0** |
+
+## 二、没有人照看也会继续跑的部分（当天逐条验过）
+
+- 三个容器 `restart: unless-stopped`，且 `docker` 开机自启 → **重启后自己回来**
+- 三个 systemd 定时器 `enabled`（对象复制、状态投影、私有库同步）→ **重启后自己回来**
+- 自动同步跑在服务器的 `core-worker` 里，**不经过任何人的电脑**
+- 磁盘 26% 占用（72G 可用），归档数据 370M
+
+**也就是说：不改代码的话，这套东西不需要任何人（也不需要任何 agent）。**
+
+## 三、怎么一眼看出它还好着
+
+打开资料库那一页就够了。**坏了它会自己说话**，不用去翻日志：
+
+- 后台没在跑 → 顶部徽章变成「后台没在跑 · 新的同步会排队等着」
+- 备份停了 → 徽章说「备份已经 N 小时没有跑过了——已存下的内容一条都没少……」
+
+要自己确认，打一条命令：
+
+```bash
+curl -s https://social-archive-api.linzezhang.com/health
+```
+
+看三样：`version`、`worker.alive`、`replication.stale`（`false` 才对）。
+
+> **为什么专门有「备份停了」这一格。** 2026-08-11 23:53 起，复制服务连着失败
+> **108 次、28 小时**（有人把 `/opt/social-archive` 改成了 700，而它以
+> `socialarchive` 用户跑）。而那段时间里 `/v1/status` 的 `replicas` 一直是
+> `verified`——**那是库里记着的历史回执，不是"现在还在跑"**。
+> 所以 2026-08-13 把**活性**接进了 `/health`：它读的是复制脚本每次跑完重写的
+> 那个文件的时间戳。回执是历史，时间戳才是活性。
+
+## 四、只有你能做的那一件
+
+**重新连接那三个账号**（现在 bilibili / douyin / xiaohongshu **全部是 disconnected**）。
+
+资料库 → 每一行点**「连接账号」** → Chrome 弹的授权框选**「允许」**。
+
+只能你做，因为最后那一下要**真实的用户手势**（`chrome.permissions.request` 的硬限制），
+无头浏览器点不了；而国内平台的 Cookie 按设计不出你的浏览器。
+
+**断开不删东西**——已经存下的 193 条一条不少，只是不再自动跑。
+
+## 五、坏了怎么办
+
+`docs/06_运维手册.md`。回滚、体检、备份、恢复都在那儿，命令都从
+`deploy/PRODUCTION_HOST` 取机器名（2026-08-13 修的：那一节原来写死了一台
+**已经连不上**的机器，半夜照着敲会挂在超时上）。
+
+## 六、两条绝对不要碰的
+
+1. **不要用 `InfrequentAccess` 存储类**（建桶／写对象／生命周期转换都不行）。
+   R2 免费额度只覆盖 Standard；实账单量过：**51 次 IA 操作 = $9.00**，
+   同周期 301 万次 Standard = $0.00。
+2. **不要 `git prune` / `git gc --prune=now`**。不可达对象一删没有后悔药；
+   这个仓的一个工作树半路整棵消失过，提交全活正是因为没人 prune 过。
+
+---
+
+> **下面是 v0.0.0.6（2026-08-03）的历史记录**，留着是因为里面有 SA-205 那条线、
+> 当时的 Canary 约束和那个 ZIP 的哈希，删了就查不到了。
+> **别照着它判断今天的状态。** 更早的一份 build-agent 视角交接在
+> [`evidence/HANDOFF_v0007.md`](evidence/HANDOFF_v0007.md)（v0.0.0.7 / 8-03，
+> 面向任务包，同样不是今天的状态）。
 ## v0.0.0.6 production cutover and real provider receipts (2026-08-03 UTC, supersedes the SA-205 block narrative below)
 
 **Production was never running v0.0.0.6, and it was never the developer Mac.** `evidence/SA-205/PRODUCTION_ORIGIN_READBACK.json` concluded the Cloudflare Tunnel origin was a local container from the `v0006-s0` worktree. That is retracted in `evidence/SA-205/PRODUCTION_ORIGIN_CORRECTION_20260803.json`: the public API and the Mac loopback reported different versions at the same instant, no cloudflared existed on the Mac at all, and deploying only the OVH host flipped the public endpoint while the Mac container stayed untouched. The real origin is `vps-83b882b4`, Compose project `/opt/social-archive`. Every prior "invalid production target" observation came from inspecting the wrong host.
