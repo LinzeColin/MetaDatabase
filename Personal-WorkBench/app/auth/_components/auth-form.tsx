@@ -44,7 +44,7 @@ type AuthFormProps = {
   turnstileSiteKey: string | null;
 };
 
-const CAPTCHA_RESPONSE_TIMEOUT_MS = 15_000;
+const CAPTCHA_SCRIPT_LOAD_TIMEOUT_MS = 15_000;
 const CAPTCHA_UNAVAILABLE_MESSAGE = "安全验证暂不可用，请检查网络后重试。";
 
 const initialMessages: Record<AuthMode, string> = {
@@ -143,56 +143,74 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
     if (!usesTurnstile || !siteKey || !turnstileContainer.current) return;
 
     let widgetId: string | undefined;
-    let responseTimeout: number | undefined;
+    let scriptLoadTimeout: number | undefined;
+    let scriptElement: HTMLScriptElement | null = null;
     let cancelled = false;
-    const clearResponseTimeout = () => {
-      if (responseTimeout === undefined) return;
-      window.clearTimeout(responseTimeout);
-      responseTimeout = undefined;
+    const clearScriptLoadTimeout = () => {
+      if (scriptLoadTimeout === undefined) return;
+      window.clearTimeout(scriptLoadTimeout);
+      scriptLoadTimeout = undefined;
     };
     const markUnavailable = () => {
       if (cancelled) return;
-      clearResponseTimeout();
+      clearScriptLoadTimeout();
       setTurnstileToken("");
       setCaptchaReadiness("unavailable");
     };
     const mount = () => {
       if (cancelled || !window.turnstile || !turnstileContainer.current) return;
-      widgetId = window.turnstile.render(turnstileContainer.current, {
-        sitekey: siteKey,
-        action: "workbench_auth",
-        callback: (token) => {
-          if (cancelled) return;
-          clearResponseTimeout();
-          setTurnstileToken(token);
-          setCaptchaReadiness("ready");
-        },
-        "expired-callback": () => setTurnstileToken(""),
-        "error-callback": markUnavailable,
-      });
-      responseTimeout = window.setTimeout(markUnavailable, CAPTCHA_RESPONSE_TIMEOUT_MS);
+      clearScriptLoadTimeout();
+      // A rendered Turnstile challenge can legitimately wait for a person to
+      // complete it. Only a missing script is a load failure; never turn an
+      // already-visible challenge into "unavailable" after an arbitrary timer.
+      setCaptchaReadiness("challenge");
+      try {
+        widgetId = window.turnstile.render(turnstileContainer.current, {
+          sitekey: siteKey,
+          action: "workbench_auth",
+          callback: (token) => {
+            if (cancelled) return;
+            setTurnstileToken(token);
+            setCaptchaReadiness("ready");
+          },
+          "expired-callback": () => {
+            setTurnstileToken("");
+            setCaptchaReadiness("challenge");
+          },
+          "error-callback": markUnavailable,
+        });
+      } catch {
+        markUnavailable();
+      }
+    };
+
+    const waitForScript = (script: HTMLScriptElement) => {
+      scriptElement = script;
+      scriptLoadTimeout = window.setTimeout(markUnavailable, CAPTCHA_SCRIPT_LOAD_TIMEOUT_MS);
+      script.addEventListener("load", mount, { once: true });
+      script.addEventListener("error", markUnavailable, { once: true });
     };
 
     const existing = document.querySelector<HTMLScriptElement>('script[data-workbench-turnstile="true"]');
     if (window.turnstile) {
       mount();
     } else if (existing) {
-      existing.addEventListener("load", mount, { once: true });
-      existing.addEventListener("error", markUnavailable, { once: true });
+      waitForScript(existing);
     } else {
       const script = document.createElement("script");
       script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
       script.async = true;
       script.defer = true;
       script.dataset.workbenchTurnstile = "true";
-      script.addEventListener("load", mount, { once: true });
-      script.addEventListener("error", markUnavailable, { once: true });
+      waitForScript(script);
       document.head.appendChild(script);
     }
 
     return () => {
       cancelled = true;
-      clearResponseTimeout();
+      clearScriptLoadTimeout();
+      scriptElement?.removeEventListener("load", mount);
+      scriptElement?.removeEventListener("error", markUnavailable);
       if (widgetId && window.turnstile) window.turnstile.remove(widgetId);
     };
   }, [captchaRetryNonce, siteKey, usesTurnstile]);
@@ -302,6 +320,9 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
           {usesTurnstile ? <div className="turnstile-slot" ref={turnstileContainer} /> : null}
           {usesTurnstile && effectiveCaptchaReadiness === "loading" ? (
             <p className="auth-captcha-message" role="status">正在准备安全验证，请稍候…</p>
+          ) : null}
+          {usesTurnstile && effectiveCaptchaReadiness === "challenge" ? (
+            <p className="auth-captcha-message" role="status">请完成安全验证后继续。</p>
           ) : null}
           {usesTurnstile && effectiveCaptchaReadiness === "unavailable" ? (
             <>

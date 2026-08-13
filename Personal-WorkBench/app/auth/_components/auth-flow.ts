@@ -4,7 +4,7 @@ import {
 } from "./auth-return-recovery";
 
 export type AuthMode = "sign-in" | "sign-up" | "forgot-password" | "reset-password" | "verify-email";
-export type CaptchaReadiness = "loading" | "ready" | "unavailable";
+export type CaptchaReadiness = "loading" | "challenge" | "ready" | "unavailable";
 
 export const SIGN_UP_VERIFICATION_PATH = "/auth/verify-email";
 export const VERIFIED_LOGIN_PATH = "/auth/sign-in?verified=1";
@@ -54,6 +54,7 @@ export function captchaSubmissionPreflight(
   if (!usesTurnstileFor(mode)) return null;
   if (readiness === "loading") return "正在加载安全验证，请稍候…";
   if (readiness === "unavailable") return "安全验证暂不可用，请检查网络后重试。";
+  if (readiness === "challenge") return "请完成验证后继续。";
   if (!captchaResponse.trim()) return "请完成验证后继续。";
   return null;
 }

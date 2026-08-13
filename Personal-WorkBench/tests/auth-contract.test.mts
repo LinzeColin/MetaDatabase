@@ -165,9 +165,30 @@ test("managed Turnstile retains a rendered response during callback timing", () 
 test("auth form waits for public Turnstile readiness instead of submitting a missing CAPTCHA", () => {
   assert.equal(captchaSubmissionPreflight("sign-up", "loading", ""), "正在加载安全验证，请稍候…");
   assert.equal(captchaSubmissionPreflight("sign-in", "unavailable", ""), "安全验证暂不可用，请检查网络后重试。");
+  assert.equal(captchaSubmissionPreflight("forgot-password", "challenge", ""), "请完成验证后继续。");
   assert.equal(captchaSubmissionPreflight("forgot-password", "ready", ""), "请完成验证后继续。");
   assert.equal(captchaSubmissionPreflight("sign-up", "ready", "captcha-token"), null);
   assert.equal(captchaSubmissionPreflight("verify-email", "loading", ""), null);
+});
+
+test("email auth pages render the public Turnstile key without a second client configuration request", async () => {
+  const [form, pageConfig, signIn, signUp, forgotPassword] = await Promise.all([
+    readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/auth/_components/public-auth-page-config.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/auth/sign-in/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/auth/sign-up/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/auth/forgot-password/page.tsx", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(pageConfig, /getPublicAuthPageConfig/);
+  assert.match(pageConfig, /turnstileSiteKey/);
+  for (const source of [signIn, signUp, forgotPassword]) {
+    assert.match(source, /publicAuthTurnstileSiteKey/);
+    assert.match(source, /turnstileSiteKey=\{publicAuthTurnstileSiteKey\(\)\}/);
+  }
+  assert.match(form, /CAPTCHA_SCRIPT_LOAD_TIMEOUT_MS = 15_000/);
+  assert.match(form, /setCaptchaReadiness\("challenge"\)/);
+  assert.doesNotMatch(form, /CAPTCHA_RESPONSE_TIMEOUT_MS/);
 });
 
 test("rate limits show a neutral retry message without claiming email delivery", () => {
@@ -459,11 +480,11 @@ test("auth form uses the CAPTCHA readiness preflight before it builds a request"
   assert.match(authForm, /usesTurnstile \? captchaReadiness : "ready"/);
   assert.match(authForm, /setCaptchaReadiness\("ready"\)/);
   assert.match(authForm, /setCaptchaReadiness\("unavailable"\)/);
-  assert.match(authForm, /CAPTCHA_RESPONSE_TIMEOUT_MS = 15_000/);
+  assert.match(authForm, /CAPTCHA_SCRIPT_LOAD_TIMEOUT_MS = 15_000/);
   assert.match(authForm, /CAPTCHA_UNAVAILABLE_MESSAGE = "安全验证暂不可用，请检查网络后重试。"/);
-  assert.match(authForm, /window\.setTimeout\(markUnavailable, CAPTCHA_RESPONSE_TIMEOUT_MS\)/);
+  assert.match(authForm, /window\.setTimeout\(markUnavailable, CAPTCHA_SCRIPT_LOAD_TIMEOUT_MS\)/);
   assert.match(authForm, /"error-callback": markUnavailable/);
-  assert.match(authForm, /existing\.addEventListener\("error", markUnavailable/);
+  assert.match(authForm, /script\.addEventListener\("error", markUnavailable/);
   assert.match(authForm, /function retryCaptcha\(\): void/);
   assert.match(authForm, /setCaptchaRetryNonce\(\(attempt\) => attempt \+ 1\)/);
   assert.match(authForm, /重试安全验证/);
