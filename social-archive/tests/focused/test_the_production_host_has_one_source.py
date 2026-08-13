@@ -14,6 +14,16 @@ r"""「生产是哪台机器」只准有一个真源（2026-08-10）。
 `scripts/` 下的可执行代码里不许再出现写死的主机名；默认值一律来自
 `deploy/PRODUCTION_HOST`（临时覆盖用 `SOCIAL_ARCHIVE_DEPLOY_HOST`）。
 注释和文档字符串里可以出现（它们在讲历史，改了反而变成假话）。
+
+## ★ 2026-08-13 补上文档那一半
+
+上面这条只管 `scripts/`。而 `docs/06_运维手册.md` 的**回滚命令**里一直写着
+`ssh linze-ovh`——**那台机器已经连不上了**（实测 139.99.61.6 超时）。
+半夜要回滚的人照着敲，会挂在超时上，还以为是自己网络的问题。
+
+所以再钉一条：**`docs/` 里可以复制粘贴的命令块（```bash / ```sh）
+不许出现写死的主机名**。散文里讲历史照旧允许——
+风险在他会照着敲的那几行，不在解释来龙去脉的句子里。
 """
 
 from __future__ import annotations
@@ -72,3 +82,42 @@ def test_no_script_hardcodes_the_host(path: Path) -> None:
         f"{path.name} 里写死了主机名：\n  " + "\n  ".join(offenders)
         + f"\n默认值要走 deploy/PRODUCTION_HOST（py 用 production_host.deploy_host()）。"
           "写死的话，换机器时漏掉这一处就会静默连回旧机器。")
+
+
+# ── 文档里那些他会照着敲的命令 ──────────────────────────────────────────
+
+DOCS = ROOT / "docs"
+_FENCE = re.compile(r"```(?:bash|sh|shell)\n(.*?)```", re.S)
+# **这里要认所有的机器别名，不只是当前那台。**
+# 上面那条判据只挡当前主机名（为的是"换机器只改一处"）；文档这一侧的风险
+# 反过来——写着一台**已经不存在**的机器，照着敲的人挂在超时上，
+# 而当前主机名的判据一个字都不会说。
+HOSTNAME_IN_CODE = re.compile(r"\blinze-[a-z0-9]+\b")
+
+
+def _command_blocks() -> list[tuple[Path, str]]:
+    out: list[tuple[Path, str]] = []
+    for path in sorted(DOCS.rglob("*.md")):
+        for block in _FENCE.findall(path.read_text(encoding="utf-8")):
+            out.append((path, block))
+    return out
+
+
+def test_the_scan_finds_command_blocks() -> None:
+    """**先证明这把尺子量得到东西**——围栏写法一变就会一块都扫不到。"""
+    blocks = _command_blocks()
+    assert len(blocks) >= 5, f"只扫到 {len(blocks)} 个命令块，围栏正则多半没匹配上"
+    assert any("ssh" in b for _p, b in blocks), "扫到的块里一个 ssh 都没有，取错地方了"
+
+
+def test_没有文档让他去连一台写死的机器() -> None:
+    """`docs/` 里可复制的命令块不许写死主机名。
+
+    2026-08-13 实测：`linze-ovh`（139.99.61.6）已经连不上，
+    而运维手册的回滚命令还指着它。
+    """
+    bad = [(path.name, block.strip()[:70])
+           for path, block in _command_blocks() if HOSTNAME_IN_CODE.search(block)]
+    assert not bad, (
+        f"这些命令块里写死了主机名，照着敲会连到一台可能已经不存在的机器：{bad}\n"
+        f"改成从真源取：`H=\"$(cat deploy/PRODUCTION_HOST)\"` 再用 `ssh \"$H\"`。")
