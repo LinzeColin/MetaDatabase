@@ -187,6 +187,21 @@ test("first-paint write controls wait for resource initialization instead of los
   assert.match(todo, /disabled=\{todos\.loading \|\| todos\.saving\}/);
 });
 
+test("stalled workbench history requests recover instead of leaving controls disabled", async () => {
+  const [resource, timeout] = await Promise.all([
+    readFile(resourceSource, "utf8"),
+    readFile("app/_components/workbench/request-timeout.ts", "utf8"),
+  ]);
+
+  assert.match(timeout, /export const WORKBENCH_REQUEST_TIMEOUT_MS = 8_000;/);
+  assert.match(timeout, /controller\.abort\(\)/);
+  assert.match(timeout, /clearTimeout\(timeout\)/);
+  assert.match(resource, /import \{ requestWithTimeout \} from "\.\/request-timeout";/);
+  assert.match(resource, /const fetchRecords = \(\) => requestWithTimeout\(`\/api\/mydairy\/\$\{resource\}`/);
+  assert.match(resource, /requestWithTimeout\(withRequestId\(resolvedAction\.endpoint, requestId\)/);
+  assert.match(resource, /requestWithTimeout\(withRequestId\(`\/api\/mydairy\/\$\{resource\}/);
+});
+
 test("normal-mode controls wait for hydration without changing frozen reference pages", async () => {
   const [page, gate, styles] = await Promise.all([
     readFile(pageSource, "utf8"),
@@ -390,7 +405,7 @@ test("built-in habit requests use a stable ASCII idempotency key", async () => {
 test("tenant resource client uses verified-session endpoints without client tenant fields", async () => {
   const source = await readFile(resourceSource, "utf8");
 
-  assert.match(source, /fetch\(`\/api\/mydairy\/\$\{resource\}`/);
+  assert.match(source, /requestWithTimeout\(`\/api\/mydairy\/\$\{resource\}`/);
   assert.doesNotMatch(source, /\/api\/workbench\//);
   assert.match(source, /credentials: \"same-origin\"/);
   assert.match(source, /request_id/);
@@ -528,7 +543,7 @@ test("dependent local mutations resolve a same-account parent alias before an im
   const deriveEnd = cacheSource.indexOf("async function readDeviceRecordAlias", deriveStart);
   const createStart = source.indexOf("const create = useCallback");
   const resolveStart = source.indexOf("const resolvedAction = await resolveDeviceOutboxAction(scope, deviceOutboxAction);", createStart);
-  const submitStart = source.indexOf("const submitMutation = () => fetch", resolveStart);
+  const submitStart = source.indexOf("const submitMutation = () => requestWithTimeout", resolveStart);
 
   assert.ok(deriveStart >= 0);
   assert.ok(deriveEnd > deriveStart);

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AUTH_RETURN_RECOVERY_EVENT } from "../../auth/_components/auth-return-recovery";
 import { accountReturnPathFromLocation } from "./account-return-path";
+import { requestWithTimeout } from "./request-timeout";
 import {
   appendDeviceOutbox,
   createDeviceLocalRecoveryOutboxAction,
@@ -474,7 +475,7 @@ export function useTenantResource<T extends TenantRecord>(
         if (scopeBeforeReplay !== expectedScope) {
           return { type: "error", message: "账户已切换，本机待发记录仍保留在原账户分区。" };
         }
-        const response = await fetch(withRequestId(resolvedAction.endpoint, resolvedAction.idempotencyKey), {
+        const response = await requestWithTimeout(withRequestId(resolvedAction.endpoint, resolvedAction.idempotencyKey), {
           method: resolvedAction.method,
           credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
@@ -537,7 +538,7 @@ export function useTenantResource<T extends TenantRecord>(
     try {
       requestScope = await refreshCurrentScope(forceSessionRefresh);
       if (!requestScope) return;
-      const fetchRecords = () => fetch(`/api/mydairy/${resource}`, { credentials: "same-origin" });
+      const fetchRecords = () => requestWithTimeout(`/api/mydairy/${resource}`, { credentials: "same-origin" });
       let response = await fetchRecords();
       if (shouldRetryKnownSessionUnauthorized(response.status, requestScope, forceSessionRefresh)) {
         const refreshedScope = await refreshCurrentScope(true);
@@ -740,7 +741,7 @@ export function useTenantResource<T extends TenantRecord>(
         acknowledgeScopeChange(resolvedScope);
         return null;
       }
-      const submitMutation = () => fetch(withRequestId(resolvedAction.endpoint, requestId), {
+      const submitMutation = () => requestWithTimeout(withRequestId(resolvedAction.endpoint, requestId), {
         method: resolvedAction.method,
         credentials: "same-origin",
         headers: {
@@ -891,7 +892,7 @@ export function useTenantResource<T extends TenantRecord>(
 
     try {
       const requestId = idempotencyKey ?? newIdempotencyKey(`${resource}-update`);
-      const response = await fetch(withRequestId(`/api/mydairy/${resource}/${encodeURIComponent(id)}`, requestId), {
+      const response = await requestWithTimeout(withRequestId(`/api/mydairy/${resource}/${encodeURIComponent(id)}`, requestId), {
         method: "PATCH",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
@@ -958,7 +959,7 @@ export function useTenantResource<T extends TenantRecord>(
     }
     try {
       const requestId = idempotencyKey ?? newIdempotencyKey(`${resource}-delete`);
-      const response = await fetch(withRequestId(`/api/mydairy/${resource}/${encodeURIComponent(id)}`, requestId), {
+      const response = await requestWithTimeout(withRequestId(`/api/mydairy/${resource}/${encodeURIComponent(id)}`, requestId), {
         method: "DELETE",
         credentials: "same-origin",
       });
