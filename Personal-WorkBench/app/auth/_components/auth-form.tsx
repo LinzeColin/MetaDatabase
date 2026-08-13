@@ -328,6 +328,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
             <a
               className="auth-google"
               href="/auth/google"
+              onClick={() => markAuthReturnRecovery()}
             >
               使用 Google 继续
             </a>

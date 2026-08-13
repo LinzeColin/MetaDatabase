@@ -412,6 +412,7 @@ test("successful email and Google login both return to the authenticated desktop
     readFile(new URL("../app/auth/google/route.ts", import.meta.url), "utf8"),
   ]);
   assert.match(authForm, /href="\/auth\/google"/);
+  assert.match(authForm, /onClick=\{\(\) => markAuthReturnRecovery\(\)\}/);
   assert.match(googleStart, /callbackURL: AUTHENTICATED_HOME_PATH/);
   assert.match(authForm, /window\.location\.assign\(AUTHENTICATED_HOME_PATH\)/);
 });
