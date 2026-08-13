@@ -107,6 +107,12 @@ test("OAuth error recovery is actionable without reflecting provider text", () =
   });
   assert.equal(authErrorRecovery("account_not_linked").primaryHref, "/auth/sign-in");
   assert.equal(authErrorRecovery("state_mismatch").title, "本次登录已过期");
+  assert.deepEqual(authErrorRecovery("access_denied"), {
+    title: "已取消本次 Google 登录",
+    message: "本次没有登录，也没有写入任何记录。返回登录页后可重新选择 Google，或使用邮箱和密码登录。",
+    primaryHref: "/auth/sign-in",
+    primaryLabel: "返回登录",
+  });
   const unknown = authErrorRecovery("<provider-description>");
   assert.equal(unknown.title, "登录没有完成");
   assert.ok(!unknown.message.includes("provider-description"));

@@ -14,6 +14,13 @@ export function authErrorRecovery(value: unknown): AuthErrorRecovery {
   const code = typeof value === "string" ? value : "";
 
   switch (code) {
+    case "access_denied":
+      return {
+        title: "已取消本次 Google 登录",
+        message: "本次没有登录，也没有写入任何记录。返回登录页后可重新选择 Google，或使用邮箱和密码登录。",
+        primaryHref: "/auth/sign-in",
+        primaryLabel: "返回登录",
+      };
     case "email_doesn't_match":
       return {
         title: "Google 连接未完成",
