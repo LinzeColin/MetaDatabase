@@ -127,6 +127,18 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
     }
 
     refresh();
+    // A very fast OAuth callback can resolve before sibling resource clients
+    // finish installing their recovery listener. Replay an already verified
+    // result once after that initial mount window, so their first guest-scope
+    // read cannot leave the just-signed-in person looking at empty history.
+    // A still-pending callback keeps the normal retry path below instead.
+    const postRecoveryReplayTimer = shouldRecoverAuthReturn
+      ? window.setTimeout(() => {
+        if (active && recoveredAuthReturn) {
+          window.dispatchEvent(new Event(AUTH_RETURN_RECOVERY_EVENT));
+        }
+      }, AUTH_RETURN_RECOVERY_DELAYS_MS[1])
+      : null;
     // Better Auth commits the browser session and the user row separately.
     // During an OAuth return, the first authoritative lookup can therefore be
     // a short-lived signed-out result even though the callback has succeeded.
@@ -141,6 +153,7 @@ export function AccountEntry({ className, signedOutHref }: AccountEntryProps) {
       active = false;
       controller?.abort();
       if (recoveryFailureTimer !== null) window.clearTimeout(recoveryFailureTimer);
+      if (postRecoveryReplayTimer !== null) window.clearTimeout(postRecoveryReplayTimer);
       recoveryTimers.forEach((timer) => window.clearTimeout(timer));
       window.removeEventListener("focus", refresh);
       window.removeEventListener("pageshow", refresh);
