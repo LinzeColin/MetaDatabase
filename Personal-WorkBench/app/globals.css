@@ -701,7 +701,7 @@ img { display: block; max-width: 100%; }
 .auth-primary-link { display: flex; width: 100%; min-height: 44px; align-items: center; justify-content: center; border: 0; border-radius: 11px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; text-decoration: none; }
 .auth-submit,
 .auth-primary-link { color: #fff !important; background: var(--text-accent); }
-.auth-google { color: var(--text-primary); background: #fff6f9; border: 1px solid #f0dbe4; }
+.auth-google { color: var(--text-primary); background: #fff6f9; border: 1px solid #f0dbe4; text-decoration: none; }
 .auth-submit:disabled,
 .auth-google:disabled { cursor: wait; opacity: 0.66; }
 .auth-secondary-link { align-self: center; margin-top: 2px; }

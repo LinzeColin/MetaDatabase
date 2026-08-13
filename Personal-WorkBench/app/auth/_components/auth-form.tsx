@@ -98,10 +98,13 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
   const searchParams = useSearchParams();
   const showVerifiedSignInMessage = mode === "sign-in" && searchParams.get("verified") === "1" && message === initialMessages["sign-in"];
   const showSignedOutMessage = mode === "sign-in" && searchParams.get("signed_out") === "1" && message === initialMessages["sign-in"];
+  const showServerStartFailure = mode === "sign-in" && searchParams.get("auth_error") === "1" && message === initialMessages["sign-in"];
   const displayedMessage = showVerifiedSignInMessage
     ? "邮箱已验证，请登录。"
     : showSignedOutMessage
       ? "已退出登录。"
+      : showServerStartFailure
+        ? "登录入口暂时不可用，请稍后重试。"
       : !interactive
         ? "正在准备登录…"
         : message;
@@ -216,6 +219,14 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
     }
   }
 
+  function startGoogle(event: React.MouseEvent<HTMLAnchorElement>): void {
+    // Before React finishes hydration, let the native link take the server
+    // path. Once interactive, retain the existing immediate client feedback.
+    if (!interactive) return;
+    event.preventDefault();
+    if (!submitting) void submitGoogle();
+  }
+
   async function submitForm(event: React.FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     const resetToken = readResetToken(window.location.search);
@@ -323,7 +334,14 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
           <Link className="auth-secondary-link" href={link.href}>{link.label}</Link>
         )}
         {mode === "sign-in" || mode === "sign-up" ? (
-          <button type="button" className="auth-google" onClick={submitGoogle} disabled={!interactive || submitting}>使用 Google 继续</button>
+          <a
+            aria-disabled={submitting || undefined}
+            className="auth-google"
+            href="/auth/google"
+            onClick={startGoogle}
+          >
+            {submitting ? "正在打开 Google…" : "使用 Google 继续"}
+          </a>
         ) : null}
         {mode === "sign-in" ? <Link className="auth-secondary-link" href="/auth/forgot-password">忘记密码？</Link> : null}
       </section>
