@@ -21,10 +21,10 @@
           "snapshot_batch": "20260811T233755Z",
           "drill": {
             "status": "PASS",
-            "generated_at": "2026-08-13T01:09:17.679959Z",
+            "generated_at": "2026-08-13T01:44:07.093598Z",
             "source_store": "r2",
             "object_key": "backups/runtime-db/20260811T233755Z/19a05ae129d1b528e31f9eb4898c7d1b43015537d9beb87885c9c7d810178011.sqlite3.gz.age",
-            "restored_to": "/var/tmp/restore-check-JVsh/restored-runtime.sqlite3",
+            "restored_to": "/var/tmp/restore-check-hNDY/restored-runtime.sqlite3",
             "restored_byte_size": 5025792,
             "restored_counts": {
               "content": 193,
@@ -51,10 +51,10 @@
           "snapshot_batch": "20260811T233755Z",
           "drill": {
             "status": "PASS",
-            "generated_at": "2026-08-13T01:09:22.617843Z",
+            "generated_at": "2026-08-13T01:44:12.201489Z",
             "source_store": "oci",
             "object_key": "backups/runtime-db/20260811T233755Z/19a05ae129d1b528e31f9eb4898c7d1b43015537d9beb87885c9c7d810178011.sqlite3.gz.age",
-            "restored_to": "/var/tmp/restore-check-Eqpo/restored-runtime.sqlite3",
+            "restored_to": "/var/tmp/restore-check-Ki1l/restored-runtime.sqlite3",
             "restored_byte_size": 5025792,
             "restored_counts": {
               "content": 193,
@@ -81,10 +81,10 @@
           "snapshot_batch": "20260811T032751Z",
           "drill": {
             "status": "PASS",
-            "generated_at": "2026-08-13T01:09:29.242994Z",
+            "generated_at": "2026-08-13T01:44:18.594704Z",
             "source_store": "github",
             "object_key": "backups/runtime-db/20260811T032751Z/e107d65356ea74304338d28b87ab902b269476bb8527cff5a8871072581b3b0a.sqlite3.gz.age",
-            "restored_to": "/var/tmp/restore-check-B5Yi/restored-runtime.sqlite3",
+            "restored_to": "/var/tmp/restore-check-cSe3/restored-runtime.sqlite3",
             "restored_byte_size": 4825088,
             "restored_counts": {
               "content": 193,
@@ -121,10 +121,10 @@
           "snapshot_batch": "20260811T032747Z",
           "drill": {
             "status": "PASS",
-            "generated_at": "2026-08-13T01:09:33.640243Z",
+            "generated_at": "2026-08-13T01:44:22.814456Z",
             "source_store": "r2",
             "object_key": "backups/private-database/20260811T032747Z/feda78b5cb1defb29be66e31ffd41f819a1596ae44a9aed4903080953f159b5b.tar.gz.age",
-            "restored_to": "/var/tmp/restore-check-uwIL/restored-facts",
+            "restored_to": "/var/tmp/restore-check-R5mV/restored-facts",
             "fact_count": 100,
             "every_fact_hash_matched": true,
             "hashed_as": "line_with_newline",
@@ -148,7 +148,7 @@
           "snapshot_batch": "20260811T233755Z",
           "drill": {
             "status": "PASS",
-            "generated_at": "2026-08-13T01:10:06.045089Z",
+            "generated_at": "2026-08-13T01:44:55.327063Z",
             "source_store": "r2",
             "artifacts_in_index": 552,
             "checked_this_run": 25,
@@ -160,7 +160,7 @@
             "recovered_and_hash_verified": 25,
             "failed": 0,
             "failure_samples": [],
-            "target": "/var/tmp/restore-check-kvhJ",
+            "target": "/var/tmp/restore-check-EMhk",
             "coverage_zh": "这次验的是索引里 552 个制品中的 25 个（窗口 94–119）——**不是全量**。起点每次部署挪一格，连着发几十版才走完一圈。",
             "note": "restore_object.py 自己就会比对哈希；这里数的是它判 PASS 的个数。"
           }
