@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  accountEntryStateForAuthReturn,
   accountEntryInitialStateForSession,
   isConfirmedAccountEntryState,
   shouldRefreshAccountEntryImmediately,
@@ -18,4 +19,8 @@ test("server account-entry state contains no profile data and requires a real se
   assert.equal(shouldRefreshAccountEntryImmediately("signed-out", false), false);
   assert.equal(shouldRefreshAccountEntryImmediately("signed-in", false), false);
   assert.equal(shouldRefreshAccountEntryImmediately("signed-out", true), true);
+  assert.equal(accountEntryStateForAuthReturn("signed-out", false), "signed-out");
+  assert.equal(accountEntryStateForAuthReturn("signed-out", true), "checking");
+  assert.equal(accountEntryStateForAuthReturn("signed-in", true), "signed-in");
+  assert.equal(accountEntryStateForAuthReturn("verification-required", true), "verification-required");
 });

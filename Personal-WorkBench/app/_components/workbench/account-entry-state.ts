@@ -32,6 +32,20 @@ export function isConfirmedAccountEntryState(state: AccountEntryState): boolean 
 }
 
 /**
+ * A callback can reach the desktop before the session row is visible to the
+ * first server render. Keep that short, bounded recovery window truthful: the
+ * visitor has just completed a sign-in attempt, so do not paint the ordinary
+ * signed-out affordance until the authoritative client reads settle.
+ */
+export function accountEntryStateForAuthReturn(
+  initialState: AccountEntryInitialState,
+  hasAuthReturnRecovery: boolean,
+): AccountEntryState {
+  if (hasAuthReturnRecovery && !isConfirmedAccountEntryState(initialState)) return "checking";
+  return initialState;
+}
+
+/**
  * A current first-party server render already establishes the initial guest,
  * verified, or verification-required affordance. The browser only needs an
  * immediate follow-up request when that render could not establish anything,

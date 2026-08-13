@@ -8,6 +8,7 @@ import {
   consumeAuthReturnRecoveryFromLocation,
 } from "../../auth/_components/auth-return-recovery";
 import {
+  accountEntryStateForAuthReturn,
   accountEntryInitialStateForSession,
   isConfirmedAccountEntryState,
   shouldRefreshAccountEntryImmediately,
@@ -52,6 +53,16 @@ export function AccountEntry({ className, initialState = "checking", signedOutHr
     const recoveryMarkedInLocation = consumeAuthReturnRecoveryFromLocation();
     const shouldRecoverAuthReturn = recoveryMarkedInStorage || recoveryMarkedInLocation;
     const shouldRefreshImmediately = shouldRefreshAccountEntryImmediately(initialServerState, shouldRecoverAuthReturn);
+    // Schedule the transition after hydration rather than synchronously in
+    // this effect. It must never overwrite a session that a very fast
+    // authoritative read has already recovered.
+    const recoveryPendingTimer = shouldRecoverAuthReturn && !initialServerConfirmed
+      ? window.setTimeout(() => {
+        if (active && !recoveredAuthReturn) {
+          setState(accountEntryStateForAuthReturn(initialServerState, shouldRecoverAuthReturn));
+        }
+      }, 0)
+      : null;
 
     const announceRecoveredSession = (nextState: AccountEntryState) => {
       if (!shouldRecoverAuthReturn || recoveryAnnounced || (nextState !== "signed-in" && nextState !== "verification-required")) return;
@@ -162,6 +173,7 @@ export function AccountEntry({ className, initialState = "checking", signedOutHr
     return () => {
       active = false;
       controller?.abort();
+      if (recoveryPendingTimer !== null) window.clearTimeout(recoveryPendingTimer);
       if (recoveryFailureTimer !== null) window.clearTimeout(recoveryFailureTimer);
       if (postRecoveryReplayTimer !== null) window.clearTimeout(postRecoveryReplayTimer);
       recoveryTimers.forEach((timer) => window.clearTimeout(timer));
