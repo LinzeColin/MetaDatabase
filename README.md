@@ -19,7 +19,7 @@
 | Signal-Lattice/Stock_Skill/equity-foresight-signal-skill | ✅ 0.0.0.1（v0.0.0.1）当前 | 股势前瞻；source-only、`numeric-quad`，未安装本机运行时 |
 | Signal-Lattice/Stock_Skill/global-equity-lead-lag-atlas | ✅ 0.0.0.1（v0.0.0.1）当前 | 全球股市时序联动图谱；source-only、`numeric-quad`，未安装本机运行时 |
 | Signal-Lattice/Stock_Skill/equity-event-atlas | ✅ 0.0.0.1（v0.0.0.1）当前 | 股票事件航图；source-only、`numeric-quad`，未安装本机运行时 |
-| xhs-douyin-2notion | 🚧 Stage 0 | 个人小红书/抖音内容知识治理；Public Code / Private Runtime |
+| social-archive | ✅ 生产在跑 | 个人多平台收藏/点赞/网页归档（B站·抖音·小红书等）。**接手先读** [`social-archive/HANDOFF.md`](social-archive/HANDOFF.md)。旧名 `xhs-douyin-2notion`／代号 `x2n`，见 [`social-archive/docs/migration/LEGACY_MIGRATION.md`](social-archive/docs/migration/LEGACY_MIGRATION.md) |
 | PFI | ✅ 已在仓 | 个人财务智能 Streamlit 应用（顶层 `PFI/`，运行时读本机 `~/.pfi/runtime/`）；与 `LinzeDatabase/PFI` 数据目录不是同一个东西 |
 | ADP | ✅ 已迁入 | canonical 路径 `arxiv-daily-push/`；2026-07-20 从 CodexProject 迁入并纳入 `dual-plane.yml` |
 | CyberBoss | 🚧 Prestage 0 | 全云微信驱动 Codex MVP；唯一代码身份为本仓 `CyberBoss/`，按 AGPL-3.0-only 子树许可推进 |

@@ -102,7 +102,15 @@ FAKE: dict[str, object] = {
                            "last_seen_at": "2026-08-06T00:00:00Z",
                            "seconds_since": 9999.0,
                            "note": "worker 已经 9999 秒没动过——后台任务不会有人处理，"
-                                   "而接口本身照样是好的。"}},
+                                   "而接口本身照样是好的。"},
+                # 备份那两条链**默认都是好的**（`message_zh` 空 = 不说话）。
+                # 放在这里是为了让夹具和真服务端**同形**：/health 真的回这两格，
+                # 夹具缺一格的话，下面那一屏就只能靠现造，
+                # 而「夹具比真货干净」这件事这个仓已经吃过好几次亏。
+                "backup": {"last_backup_at": "20260813T085049Z", "hours_since": 0.9,
+                           "stale": False, "message_zh": ""},
+                "replication": {"last_run_at": "2026-08-13T08:45:31Z", "status": "PASS",
+                                "hours_since": 0.1, "stale": False, "message_zh": ""}},
     "/v1/auth/me": {"user_id": "fixture", "display_name": "夹具用户"},
     "/v1/auth/providers": {"items": []},
     # **能同步的平台由接口下发**：同步中心那段话是照它现算的。
@@ -355,6 +363,7 @@ async def run(chrome: str) -> int:
             never_completed_reading = None
             drawer_reading = None
             disk_reading = None
+            backup_reading = None
             picker_reading = None
             classify_reading = None
             centre_reading = None
@@ -450,6 +459,36 @@ async def run(chrome: str) -> int:
             disk_reading = ({"error": str(disk_payload["exceptionDetails"])[:200]}
                             if disk_payload.get("exceptionDetails")
                             else json.loads(disk_payload["result"]["value"]))
+
+            # **备份那条链停了那一屏。**（2026-08-13）
+            #
+            # 8/12～13 备份连着两天没做出来，而界面上一个字都没有。
+            # v0.0.0.71 加了 `/health.backup` 这一格，v0.0.0.72 才接到界面上，
+            # v0.0.0.73 又把它从 `loadHealth()` 挪进 `paintServiceBadge()`
+            # ——因为写在前者里，`refreshEverything()` 重画一次就抹掉了。
+            #
+            # 这一屏验的是**那句话真的出现在真 Chrome 的徽章上**，
+            # 不是"源码里引用了那个字段"（单元判据管那个，而他的验收标准写着
+            # 「源码层通过、单元测试通过都不算数」）。
+            #
+            # 磁盘那一段排在备份**后面**且同样 return，所以这里不用把它关掉；
+            # 但 worker 必须是活的——它排在最前面，会把后面全挡住。
+            FAKE["/health"] = json.loads(json.dumps(FAKE["/health"]))
+            FAKE["/health"]["backup"] = {
+                "last_backup_at": "20260811T032747Z", "hours_since": 53.4,
+                "stale": True,
+                "message_zh": "已经 53 小时没有做出新的备份了——之前存下的内容一条都没少，"
+                              "但这段时间里新进来的东西还没有进过备份。"}
+            await rpc("Page.navigate", {"url": f"http://127.0.0.1:{PORT}/"})
+            await asyncio.sleep(3)
+            got = await rpc("Runtime.evaluate", {"expression": r"""
+              JSON.stringify({
+                badge: (document.getElementById("serviceBadge") || {}).textContent || "",
+              })""", "returnByValue": True})
+            backup_payload = got.get("result", {})
+            backup_reading = ({"error": str(backup_payload["exceptionDetails"])[:200]}
+                              if backup_payload.get("exceptionDetails")
+                              else json.loads(backup_payload["result"]["value"]))
 
             # **「连接新账号」那一屏，做不到的平台不许有「连接」按钮。**（2026-08-12）
             #
@@ -904,6 +943,21 @@ async def run(chrome: str) -> int:
                 f"说了「磁盘」却不是服务端量到的那个数：{badge!r}——"
                 "句子该由服务端给（接口自带 message_zh，界面不另造）")
 
+    # 备份那条链停了那一屏（2026-08-13）
+    if not backup_reading or backup_reading.get("error"):
+        problems.append(f"**「备份没做出来」那一屏没量到**：{backup_reading}——这不是通过。")
+    else:
+        badge = backup_reading.get("badge", "")
+        if "没有做出新的备份" not in badge:
+            problems.append(
+                f"服务端说备份 53 小时没做出来，而这一屏没说：{badge!r}——"
+                "8/12~13 真的连着两天没做出备份，界面一个字都没有；"
+                "v0.0.0.72 接上过一次，但写在 loadHealth 里，重画一次就被抹掉")
+        if "53" not in badge:
+            problems.append(
+                f"说了备份的事却不是服务端给的那句：{badge!r}——"
+                "句子该由服务端给（界面不另造）")
+
     # 重连之后、第一次完整同步之前（2026-08-10）
     if not never_completed_reading or never_completed_reading.get("error"):
         problems.append(f"**「重连后还没完整同步过」那一屏没量到**：{never_completed_reading}")
@@ -1068,6 +1122,7 @@ async def run(chrome: str) -> int:
         "all_accounts_disconnected": disconnected_reading,
         "just_reconnected": reconnected_reading,
         "disk_tight_badge": disk_reading,
+        "backup_stopped_badge": backup_reading,
         "never_completed": never_completed_reading,
         "detail_drawer": drawer_reading,
         "bulk_classify": classify_reading,

@@ -161,6 +161,74 @@ def test_the_badge_shows_which_extension_version_is_installed() -> None:
     assert "插件 v" not in blank["text"], f"没装插件却显示了版本：{blank}"
 
 
+_BACKUP_STALE = {"stale": True, "last_backup_at": "20260811T032747Z",
+                 "hours_since": 53.4,
+                 "message_zh": "已经 53 小时没有做出新的备份了——之前存下的内容一条都没少，"
+                               "但这段时间里新进来的东西还没有进过备份。"}
+_REPL_STALE = {"stale": True, "hours_since": 28.0,
+               "message_zh": "备份已经 28 小时没有跑过了——已存下的内容一条都没少，"
+                             "停下来的是「再存一份到别处」这件事。"}
+_DISK_TIGHT = {"tight": True, "free_gb": 1.59,
+               "message_zh": "服务器磁盘只剩 1.59 G（已用 95.8%）。"}
+
+
+def test_备份没做出来时那句话真的出现在徽章上() -> None:
+    """**v0.0.0.72 的写法过不了这一条。**
+
+    那一版把判断写在 `loadHealth()` 末尾——首屏看得见，而 `refreshEverything()`
+    再调一次 `paintServiceBadge()` 就把它整个抹掉。这条判据只喂
+    `paintServiceBadge`，所以「写在别处」结构上就通不过。
+    """
+    out = _paint({"health": {"version": "9.9.9.9", "worker": ALIVE,
+                             "backup": _BACKUP_STALE},
+                  "extension": {"detected": False}})
+    assert "没有做出新的备份" in out["text"], f"备份停了而徽章不说：{out}"
+    assert out["cls"] == "needs"
+
+
+def test_只是没复制到别处时说的是另一句() -> None:
+    out = _paint({"health": {"version": "9.9.9.9", "worker": ALIVE,
+                             "replication": _REPL_STALE},
+                  "extension": {"detected": False}})
+    assert "再存一份到别处" in out["text"], f"复制停了而徽章不说：{out}"
+
+
+def test_两条都停时先说没做出来那一句() -> None:
+    """一行徽章只放得下一句：**连第一份新备份都没做出来**，
+    比「做出来了但还没复制到别处」更要紧。"""
+    out = _paint({"health": {"version": "9.9.9.9", "worker": ALIVE,
+                             "backup": _BACKUP_STALE, "replication": _REPL_STALE},
+                  "extension": {"detected": False}})
+    assert "没有做出新的备份" in out["text"], f"两条都停时该先说这一句：{out}"
+    assert "再存一份到别处" not in out["text"]
+
+
+def test_备份停了比盘快满了更急() -> None:
+    """盘紧只是新媒体存不下；备份停了是新东西没有副本。"""
+    out = _paint({"health": {"version": "9.9.9.9", "worker": ALIVE,
+                             "backup": _BACKUP_STALE, "disk": _DISK_TIGHT},
+                  "extension": {"detected": False}})
+    assert "没有做出新的备份" in out["text"], f"被磁盘那句盖过去了：{out}"
+
+
+def test_后台没在跑仍然压过备份那句() -> None:
+    """**后台没在跑最急**——它意味着新的同步根本不会被处理。"""
+    out = _paint({"health": {"version": "9.9.9.9", "worker": DEAD,
+                             "backup": _BACKUP_STALE},
+                  "extension": {"detected": False}})
+    assert "后台没在跑" in out["text"], f"最急的那件事被盖住了：{out}"
+
+
+def test_都好着的时候一个字都不说() -> None:
+    """新鲜就别打扰——服务端不给 message_zh，这边就不该造出一句来。"""
+    out = _paint({"health": {"version": "9.9.9.9", "worker": ALIVE,
+                             "backup": {"stale": False, "message_zh": ""},
+                             "replication": {"stale": False, "message_zh": ""}},
+                  "extension": {"detected": True, "compatible": True, "outdated": False}})
+    for noise in ("没有做出新的备份", "再存一份到别处"):
+        assert noise not in out["text"], f"没停却在说备份的事：{out}"
+
+
 def test_a_modern_but_unpaired_extension_is_not_told_it_cannot_connect() -> None:
     """**别用 `connectFrameUrl` 当「连不连得上」的判据。**（2026-08-10）
 

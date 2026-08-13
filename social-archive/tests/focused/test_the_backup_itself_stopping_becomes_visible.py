@@ -38,13 +38,22 @@ from pathlib import Path
 import pytest
 
 
-def _make_snapshot(root: Path, when: datetime, *, finished: bool = True) -> str:
-    """造一份快照。目录名就是它的时刻——生产上就是这么落的。"""
+def _make_snapshot(root: Path, when: datetime, *, finished: bool = True,
+                   chain: str = "both") -> str:
+    """造一份快照。目录名就是它的时刻——生产上就是这么落的。
+
+    `chain` 指哪一条：`private-database`（做加密快照）、`runtime-db`
+    （做运行库快照并推 GitHub），或 `both`。**默认造两条**，因为
+    `_backup_liveness` 取的是两条里更旧的那个——只造一条的话，
+    另一条会以"从没备份过"的身份把结论压下去。
+    """
     name = when.strftime("%Y%m%dT%H%M%SZ")
-    path = root / "backups/private-database" / name
-    (path / "encrypted").mkdir(parents=True, exist_ok=True)
-    if finished:
-        (path / "manifest.json").write_text("{}", encoding="utf-8")
+    chains = ("private-database", "runtime-db") if chain == "both" else (chain,)
+    for one in chains:
+        path = root / "backups" / one / name
+        (path / "encrypted").mkdir(parents=True, exist_ok=True)
+        if finished:
+            (path / "manifest.json").write_text("{}", encoding="utf-8")
     return name
 
 
@@ -113,6 +122,33 @@ def test_读不到不等于没有备份(api_module, tmp_path: Path, monkeypatch)
     assert got["stale"] is None, "读不到就该是「不知道」，不该是 False 也不该是 True"
     assert got["message_zh"] == "", "读不到就不许拿吓人的话去填"
     assert "读不到" in got["why"]
+
+
+def test_运行库那条停了也要说(api_module, tmp_path: Path) -> None:
+    """**备份服务一次跑四件事，第一件成了不等于四件都成了。**
+
+    `social-archive-backup.service` 是 `Type=oneshot`、四条 ExecStart 按序跑：
+    做私有库快照 → 做运行库快照并推 GitHub → 两个清理。
+    第一条成、第二条挂 → 服务整体失败，**而私有库那边有新快照**。
+    只看私有库就是绿的，而他看的正是那一格。
+    """
+    now = datetime.now(UTC)
+    _make_snapshot(tmp_path, now - timedelta(hours=2), chain="private-database")
+    old = _make_snapshot(tmp_path, now - timedelta(days=2, hours=6), chain="runtime-db")
+    got = api_module._backup_liveness()                           # noqa: SLF001
+    assert got["stale"] is True, "只看私有库那条会给绿灯——这正是要抓的那次"
+    assert got["last_backup_at"] == old, "口径要取更旧的那条（最弱的一环）"
+
+
+def test_反过来私有库那条停了同样要说(api_module, tmp_path: Path) -> None:
+    """两条链谁停都要说，不是只盯着新加的那条。"""
+    now = datetime.now(UTC)
+    old = _make_snapshot(tmp_path, now - timedelta(days=2, hours=6),
+                         chain="private-database")
+    _make_snapshot(tmp_path, now - timedelta(hours=2), chain="runtime-db")
+    got = api_module._backup_liveness()                           # noqa: SLF001
+    assert got["stale"] is True
+    assert got["last_backup_at"] == old
 
 
 def test_两条链分开报(api_module, tmp_path: Path) -> None:

@@ -225,7 +225,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
-  const PRODUCT_VERSION = "0.0.0.72";
+  const PRODUCT_VERSION = "0.0.0.73";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -423,6 +423,28 @@
     // 真 Chrome 里一读：徽章还是「私人档案馆已连接」——`init()` 在最后
     // 又调了一次 paintServiceBadge()，把它整个覆盖掉了。**渲染出来才看见的。**
     //
+    // **备份那两条链，哪条停了都要说。**（2026-08-13）
+    //
+    // 2026-08-11 复制服务连着失败 108 次、28 小时；8/12～13 换成做快照那条
+    // 连着两天没跑出来。两次界面上都一个字都没有。
+    //
+    // **必须写在这个函数里**——和上面磁盘那一段同一个理由，而我上一版没照做：
+    // v0.0.0.72 把它写在 `loadHealth()` 末尾，首屏看得见，
+    // 而 `refreshEverything()` 再调一次 `paintServiceBadge()` 就把它整个抹掉。
+    // 同一个坑，离那段注释 8 行，我又踩了一遍。
+    //
+    // 排在 worker 之后、磁盘之前：后台没在跑最急；备份停了比盘紧更急
+    // （盘紧只是新媒体存不下，备份停了是新东西没有副本）。
+    // `backup` 排在 `replication` 前面：连第一份新备份都没做出来，
+    // 比"做出来了但还没复制到别处"更要紧，而一行徽章只放得下一句。
+    //
+    // 句子由服务端给（`message_zh`），这边不造句。
+    const stalledChain = [health.backup, health.replication]
+      .find((chain) => chain && chain.message_zh);
+    if (stalledChain) {
+      setServiceBadge("needs", stalledChain.message_zh);
+      return;
+    }
     // 句子由服务端给（规矩：接口自带 message_zh，我们不另造句子）；
     // 排在 worker 之后：后台没在跑比盘紧更急。
     if (health.disk && health.disk.tight && health.disk.message_zh) {
@@ -498,30 +520,6 @@
         // 然后我只做了「不挡」那一半——`outdated` 算出来了，**没有任何地方读它**。
         // 「建好了没接上」，而且是在修完同一个毛病的下一轮里自己犯的。
         paintServiceBadge();
-      }
-      // **备份那条链停了，也要主动说。**（2026-08-13）
-      //
-      // 2026-08-11 23:53 起它连着失败了 108 次、28 小时（systemd 那个单元
-      // 进不去工作目录），而界面上**一个字都没有**：
-      // `/v1/status` 的 replicas 一直是 verified——那是库里记着的**历史回执**，
-      // 不是"现在还在跑"。「加密存三份」停了一天多，每个绿灯都还是绿的。
-      //
-      // 句子由服务端给（`message_zh`），这边不造句——和存储那一格同一个规矩。
-      // 后台没在跑时不抢那句话：那件事更急。
-      //
-      // **而备份是两条会单独死的链，上一版只读了其中一条。**（2026-08-13）
-      //
-      // 8/12～13 死的是另一条：`backup.timer` 做出加密快照那条。生产上 8/11
-      // 之后隔了两天才有下一份，v0.0.0.71 为此**加了 `/health.backup` 这一格**
-      // ——而这一页从来没读过它，于是那句话谁也看不见。
-      // 「建好了没接上」的第 7 次，这回没接上的不是接口，是接口里的一个字段。
-      //
-      // **backup 排在前面**：连第一份新备份都没做出来，比"做出来了但还没复制
-      // 到别处"更要紧，而一行徽章只放得下一句。
-      const stalledChain = [health.backup, health.replication]
-        .find((chain) => chain && chain.message_zh);
-      if (!workerDown && stalledChain) {
-        setServiceBadge("needs", stalledChain.message_zh);
       }
       // 存储吃紧时要**主动**说，别等用户发现媒体没下下来才去猜。
       //
@@ -2370,7 +2368,7 @@
     }
     await loadLibrary();
     renderNextStep();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=cde71d43").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=ececbc54").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {
