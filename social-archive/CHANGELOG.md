@@ -6,6 +6,54 @@
 > **这里不补写**：隔了两版再靠回忆重建变更记录，写出来的东西看着像记录，
 > 其实是推测，比空着更容易被人当真。
 
+## v0.0.0.75 — 「出事了怎么把东西拿回来」是六条散文，一条命令都没有
+
+### 他会撞见的那一幕
+
+服务器没了。他（或者接手的人）翻到运维手册的 **恢复顺序**：
+
+    1. 只读验证恢复点、清单、签名/哈希和目标路径。
+    2. 新建空目录恢复 Private-Database 快照，不覆盖现有工作树。
+    3. 重建 Runtime SQLite、FTS 与 PWA Projection。
+    …
+
+六条，**一条能敲的命令都没有**。而全文里唯二指向命令的两处，在生产上都跑不通：
+
+    （`bash scripts/backup.sh` 取的那种）      ← 权限 + 缺 AGE_RECIPIENT
+    `scripts/restore.sh --verify`             ← BLOCKED_ENVIRONMENT：缺 AGE_IDENTITY_FILE
+
+**备份的全部意义就是能恢复**，而这一节把它写成了一段描述。
+
+### 而能跑的那条一直在仓里
+
+`scripts/check_the_backup_can_actually_be_restored.py` —— **每次部署都真跑一遍**
+（下载 → 解密 → 打开 → 判，不是读登记表），今天这几次部署的输出都是
+「三份都是真取回来的」。**恢复那一节从没提过它。**
+
+它跑得通而手敲跑不通的原因很具体：它用
+`systemd-run --property=EnvironmentFile=/etc/social-archive/social-archive.env`
+把解密身份带进去；那个身份在 systemd unit 的环境里，不在 shell 里。
+
+现在恢复那一节第一句就是这条命令，并写明为什么不要直接敲 `restore.sh`。
+
+### 顺带三处
+
+- 第 180 行 `systemctl enable --now …` 没带 sudo（实测非 root 被拒）。
+  **上一版那道新判据没抓到它**——它按小节标题切「生产」，而这一节叫
+  「保命的三个 timer」。判据的射程改成按命令本身判（含 `systemctl` 或
+  `/opt/social-archive` 就算生产侧），这一处立刻就被抓住了。
+- 散文里「（`bash scripts/backup.sh` 取的那种）」改成生产上真正取快照的那条链。
+- `HANDOFF` 的磁盘那一行停在旧读数（26% / 72G / 370M），
+  而那一节开头写着「下面每个数字都是当天从生产上量出来的」。
+  今天实测：**31% / 67G 可用 / 归档数据 192M，docker 镜像 12G**。
+
+### 一处我差点写错的
+
+我一度以为 `scripts/restore.sh --verify` 是个不存在的参数（真名是 `--verify-only`），
+准备当成「提示指向不存在的出口」来修。**两个都跑了才发现两者行为一样**——
+argparse 允许无歧义的长选项前缀，`--verify` 就是 `--verify-only` 的缩写。
+真问题在别处（环境变量），和参数名无关。
+
 ## v0.0.0.74 — 运维手册标着「在生产上」的三条命令，在生产上都跑不通
 
 ### 他会撞见的那一幕

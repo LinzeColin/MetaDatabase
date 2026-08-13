@@ -225,7 +225,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
-  const PRODUCT_VERSION = "0.0.0.74";
+  const PRODUCT_VERSION = "0.0.0.75";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -2368,7 +2368,7 @@
     }
     await loadLibrary();
     renderNextStep();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=de092de3").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=6d904caa").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {
