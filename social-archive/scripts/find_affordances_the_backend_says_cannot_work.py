@@ -144,9 +144,19 @@ SURFACES = (
         #
         # 两颗结构上不可能成功的按钮，配一句对它们而言是假话的说明，
         # 而这道门一路是绿的：**它守的是函数，不是界面。**
-        "guards": ("support?.sync_supported === false",),
+        # **v0.0.0.76：守卫改成了失败关闭，这里跟着钉新的完整表达式。**
+        #
+        # 原来是 `support?.sync_supported === false`——`support` 为
+        # `undefined` 时整个表达式为假，于是**服务端没提到的平台照样给按钮**。
+        # 生产上碰巧不发作（服务端正好覆盖界面那 8 个平台），演练里则直接画出
+        # 「标题说只有 B 站、下面六颗连接按钮」那一屏。
+        #
+        # 新写法 `!support || support.sync_supported === false` **更严不更松**：
+        # 它多守住了"没有数据"那一档。这道门的 FAIL 文案本来就写着
+        # 「要么写法变了、判据要跟着重写」——这次就是后者。
+        "guards": ("!support || support.sync_supported === false",),
         "guard_scope": {
-            "support?.sync_supported === false": ("data-picker-platform",),
+            "!support || support.sync_supported === false": ("data-picker-platform",),
         },
     },
 )

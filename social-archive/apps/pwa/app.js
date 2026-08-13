@@ -225,7 +225,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
-  const PRODUCT_VERSION = "0.0.0.75";
+  const PRODUCT_VERSION = "0.0.0.76";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -2138,8 +2138,26 @@
       const server = platformMeta[key].server;
       const support = state.platformSupport[server];
       const head = `<article class="account-connect-card"><span>${platformLogo(key)}</span>`;
-      if (support?.sync_supported === false) {
-        const why = escapeHtml(support.not_syncable_reason || "本版本还不能自动同步这个平台。");
+      // **服务端没提到这个平台时要失败关闭，不是失败开放。**（2026-08-13）
+      //
+      // 原来写的是 `support?.sync_supported === false`：`support` 是
+      // `undefined` 时整个表达式为假，于是**照样给一颗「连接」**。
+      // 这一屏的卡片来自界面自己的 `platformOrder`（8 个），而能力来自服务端；
+      // 两个集合一旦不重合，差额全部落进"给按钮"那一侧。
+      //
+      // 生产上碰巧不发作——服务端 `PLATFORM_RELATIONS` 正好覆盖了这 8 个。
+      // 但那是当前配置的巧合，不是保证：**加一个界面平台而服务端没跟上，
+      // 就会冒出一颗结构上不可能成功的按钮**，而这正是这一屏存在的理由。
+      //
+      // 同一份数据的另一个读法（首屏与同步中心那句「本版本能自动同步的是…」）
+      // 是从**服务端返回的那几个**出发的，所以它不会多说。两处口径必须一致，
+      // 否则同一屏上会出现「标题说只有 B 站、下面却有六颗连接按钮」。
+      // 演练里正是这个形状（夹具只声明 3 个平台）——那一屏在生产上不可能出现，
+      // 而我自己被它误导过一次。
+      if (!support || support.sync_supported === false) {
+        // **`support?.`，不是 `support.`**：改成失败关闭之后，这一支现在也接
+        // `support === undefined`（服务端压根没提这个平台），点号会当场抛。
+        const why = escapeHtml(support?.not_syncable_reason || "本版本还不能自动同步这个平台。");
         return `${head}<div class="grow"><strong>${escapeHtml(platformMeta[key].label)}</strong><small>${why}</small></div></article>`;
       }
       return `${head}<div class="grow"><strong>${escapeHtml(platformMeta[key].label)}</strong><small>授权一次后自动全量导入，再持续增量同步</small></div><button class="btn small" data-picker-platform="${server}">连接</button></article>`;
@@ -2368,7 +2386,7 @@
     }
     await loadLibrary();
     renderNextStep();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=6d904caa").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=152649fe").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {
