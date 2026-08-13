@@ -6,6 +6,7 @@
 """
 
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -266,15 +267,35 @@ def test_it_survives_the_environment_a_git_hook_hands_it(tmp_path) -> None:
     assert "只有作者机器上有" in done.stdout, done.stdout
 
 
-def test_the_stale_root_handoff_says_it_is_not_current() -> None:
-    """仓根 `HANDOFF.md` 停在 v0.0.0.6，而当前那份在 evidence/ 里。
+def test_the_root_handoff_is_either_current_or_says_it_is_not() -> None:
+    """仓根 `HANDOFF.md` 要么**是**当前的，要么**说清自己不是**。（2026-08-13 改）
 
-    名字最容易被点开的那一份，正文第三行写着「v0.0.0.6 current execution」。
-    接手的人照着它判断今天的状态，会得到一个两个版本前的答案。
+    ## 这条原来钉的是另一件事
+
+    原来它叫 `..._says_it_is_not_current`，硬要求那份文档声明「我不是当前交接」——
+    因为当时它确实停在 v0.0.0.6，而真正当前的那份藏在 `evidence/` 里。
+    **那是把一个当时的窘境钉成了永久规则**：等有人真把它更新成当前的，
+    这道门反而会把他打红。2026-08-13 就是这么被打红的。
+
+    ## 现在钉的是那件真正要紧的事
+
+    **名字最容易被点开的那一份，不许让人读到一个过时的状态。** 两条路都算通过：
+
+      · 它写着当前版本号（= `pyproject.toml` 里那个）→ 它就是当前的；
+      · 或者它明说自己不是当前的，并指出当前那份在哪。
+
+    两样都没有，才是真问题——那种文档会让接手的人拿着几十版之前的状态做判断。
     """
-    head = "\n".join((ROOT / "HANDOFF.md").read_text(encoding="utf-8").splitlines()[:14])
-    assert "不是当前交接" in head, "仓根那份交接没说自己不是当前的"
-    assert "evidence/HANDOFF_v0007.md" in head, "没有指出当前交接在哪"
+    text = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
+    head = "\n".join(text.splitlines()[:60])
+    version = re.search(r'version\s*=\s*"([^"]+)"',
+                        (ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    assert version, "读不到 pyproject.toml 里的版本——这条判据没法判"
+    claims_current = version.group(1) in head
+    admits_stale = "不是当前交接" in head and "HANDOFF_v0007" in head
+    assert claims_current or admits_stale, (
+        f"仓根那份交接既没写当前版本（{version.group(1)}），也没说自己不是当前的——"
+        f"接手的人会照着一份过时的状态做判断。")
 
 
 def test_the_deprecated_doc_still_warns_the_reader() -> None:
