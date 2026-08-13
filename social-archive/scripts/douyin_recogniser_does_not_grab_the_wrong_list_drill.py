@@ -277,18 +277,52 @@ def main() -> int:
     #
     # 正对照仍然成立（塞一个像列表的进去，它认得出来），所以这不是空转；
     # 但**那句话要收窄到证据的边界内**。
-    CONTENT_FREE = ("/api/sec/", "/apm", "/api/data", "/api/p/pj", "sbtsource")
-    content_like = [c for c in captures
-                    if not any(mark in str(c.get("url") or "") for mark in CONTENT_FREE)]
+    # **数「有几个列表形状的候选」，不数「哪个主机发的」。**（2026-08-13）
+    #
+    # 我今天在这个数上连错两版：
+    #   一版只按路径挑埋点 → 抖音报「52 条全带内容」，而其中 25 条是
+    #     `mcs.zijieapi.com`、5 条是 `mon.zijieapi.com`，全是字节的埋点；
+    #   二版补上主机名 → 抖音 17，而 instagram 又报「17 条全带内容」，
+    #     其中 9 条是 `/ajax/bulk-route-definitions/`、3 条是 `/ajax/bz`（埋点）、
+    #     1 条 bootloader，**真内容只有 3 条 `/api/graphql`**。
+    # **按主机/路径拉黑名单是打地鼠**，每换一个平台就漏一批。
+    #
+    # 换个问法就稳了：**这一跑里，有几个"长得像列表"的负载摆在识别器面前？**
+    # 埋点响应里那种 11 个对象的数组**也算**——它正是最该被拒的那种诱惑，
+    # 识别器把它拒掉恰恰是这条演练要证的事。
+    # 这个数只要 ≥1，「它没乱抓」这句话就有内容；等于 0 才是没量到。
+    def _list_shaped(payload, depth=0) -> int:
+        if depth > 6:
+            return 0
+        if isinstance(payload, list):
+            here = 1 if len(payload) >= 3 and isinstance(payload[0], dict) else 0
+            return here + sum(_list_shaped(v, depth + 1) for v in payload[:3])
+        if isinstance(payload, dict):
+            return sum(_list_shaped(v, depth + 1) for v in payload.values())
+        return 0
+
+    content_like = []
+    for capture_item in captures:
+        try:
+            parsed = json.loads(capture_item.get("text") or "")
+        except (ValueError, TypeError):
+            continue
+        if _list_shaped(parsed):
+            content_like.append(capture_item)
     saw_a_feed = len(content_like) > 0
+    # **面前一个候选都没有，就不是"过了"，是"没量到"。**（2026-08-13）
+    #
+    # 正对照仍然证明识别器活着，但这条演练要证的是「面对诱惑不乱抓」——
+    # 没有诱惑就没有考题。报 PASS 会让部署日志把这一维记成验过了。
     print(json.dumps({
-        "status": "FAIL" if problems else "PASS",
+        "status": ("FAIL" if problems
+                   else "PASS" if saw_a_feed else "BLOCKED_CHANNEL"),
         "page": PAGE,
         "real_responses_fed_to_the_recogniser": len(captures),
-        # **收到几条 ≠ 见到了内容。** 分开数，别让「14 条真响应」读起来像
-        # 「见过 14 条内容」——那 14 条可能全是风控和埋点。
-        "content_bearing_responses": len(content_like),
-        "saw_a_real_feed": saw_a_feed,
+        # **收到几条 ≠ 有几个列表摆在它面前。** 分开数，别让「14 条真响应」
+        # 读起来像「它顶住了 14 次诱惑」——那 14 条可能一个数组都没有。
+        "list_shaped_payloads": len(content_like),
+        "faced_a_list_shaped_candidate": saw_a_feed,
         "sample_urls": [str(c.get("url"))[:88] for c in captures[:8]],
         "verdict": verdict,
         "problems": problems,
@@ -296,9 +330,9 @@ def main() -> int:
             "识别器认错了——见 problems。" if problems else
             ("没登录时识别器明说没认出来——**它不会从热搜或推荐流里乱抓**。"
              if saw_a_feed else
-             "**这一跑没有见到任何内容流**（收到的真响应全是风控／埋点接口，"
-             "多半被挡在了登录或风控页）。结论只到「识别器还活着、正对照认得出"
-             "塞进去的那个列表」为止——**不能据此说它面对真列表不会乱抓**。")),
+             "**这一跑里一个「长得像列表」的负载都没有**（多半被挡在了登录或风控页）。"
+             "识别器面前根本没有诱惑，所以「它没乱抓」这句话是空的——"
+             "结论只到「识别器还活着、正对照认得出塞进去的那个列表」为止。")),
         "what_this_does_not_prove":
             ("不证明登录之后认得出他的收藏（那要他的登录态）。这里证的是另一半："
              "认不出的时候不会瞎认。"

@@ -104,11 +104,12 @@ PARAMETRISED = [
     # **抖音仍答不了**——没有一张公开的、真的是列表的抖音页，
     # 它回 BLOCKED_CHANNEL 而不是 FAIL：「答不了」不等于「答案是坏的」。
     # **识别器在真页面上会不会乱抓**——只跑真见得到内容流的那两家（2026-08-13 实测）：
-    #     douyin 56 条真响应条条带内容、instagram 18/18
-    #     xiaohongshu 14 条全是风控与埋点（带内容 0）、reddit 一条都收不到
-    # 后两家在这台机器上量不到，接进来只会每次多两条 BLOCKED_CHANNEL。
+    # 量的是「面前摆了几个长得像列表的负载」——只有 douyin 真有（实测 12 个）。
+    # instagram / xiaohongshu / reddit 在这台机器上都是 0 个候选，
+    # 接进来只会每次多几条「没量到」。**这三个数我连错两版才量准**：
+    # 先按路径挑埋点（抖音报 52/52），再补主机名（instagram 又报 17/17），
+    # 最后改成结构判定才稳——按主机拉黑名单是打地鼠。
     ["douyin_recogniser_does_not_grab_the_wrong_list_drill.py", "--platform", "douyin"],
-    ["douyin_recogniser_does_not_grab_the_wrong_list_drill.py", "--platform", "instagram"],
     ["list_selectors_meet_a_real_page_drill.py", "--platform", "bilibili"],
     ["list_selectors_meet_a_real_page_drill.py", "--platform", "xiaohongshu"],
     ["extension_platform_wiring_drill.py", "--platform", "xiaohongshu",
