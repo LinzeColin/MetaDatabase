@@ -1,17 +1,17 @@
 {
   "status": "PASS",
-  "shipped_version": "0.0.0.85",
+  "shipped_version": "0.0.0.86",
   "before_overwrite": {
     "version": "0.0.0.1",
-    "id": "dblffgilcchjjbkhdgfalfcaooglipio",
+    "id": "jllagokhebohmligiklgpkkblfbpbmbf",
     "stored": {
       "endpoint": "https://drill.example",
       "token": "drill-token-abc"
     }
   },
   "after_overwrite": {
-    "version": "0.0.0.85",
-    "id": "dblffgilcchjjbkhdgfalfcaooglipio",
+    "version": "0.0.0.86",
+    "id": "jllagokhebohmligiklgpkkblfbpbmbf",
     "stored": {
       "endpoint": "https://drill.example",
       "token": "drill-token-abc"
