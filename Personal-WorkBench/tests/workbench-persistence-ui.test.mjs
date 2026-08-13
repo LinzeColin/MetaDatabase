@@ -231,6 +231,11 @@ test("a verified account with anonymous device records sees the explicit recover
   assert.match(notice, /session\.user\.emailVerified !== true/);
   assert.match(notice, /countGuestDeviceHistoryRecords/);
   assert.match(notice, /预览并导入到当前账号/);
+  assert.match(notice, /AUTH_RETURN_RECOVERY_EVENT/);
+  assert.match(notice, /window\.addEventListener\(AUTH_RETURN_RECOVERY_EVENT, inspect\)/);
+  assert.match(notice, /window\.addEventListener\("pageshow", inspect\)/);
+  assert.match(notice, /window\.removeEventListener\(AUTH_RETURN_RECOVERY_EVENT, inspect\)/);
+  assert.match(notice, /controller\?\.abort\(\)/);
   assert.doesNotMatch(notice, /legacy-import\/apply|buildGuestDeviceHistoryEnvelope|deleteDatabase|localStorage\.removeItem/);
   assert.match(cache, /export async function countGuestDeviceHistoryRecords\(\)/);
   assert.match(cache, /readDeviceLocalRecords\("guest", resource\)/);

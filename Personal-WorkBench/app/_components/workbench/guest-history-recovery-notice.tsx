@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AUTH_RETURN_RECOVERY_EVENT } from "../../auth/_components/auth-return-recovery";
 import { accountReturnPathFromLocation } from "./account-return-path";
 import { countGuestDeviceHistoryRecords } from "./local-record-cache";
 
@@ -23,28 +24,65 @@ export function GuestHistoryRecoveryNotice() {
 
   useEffect(() => {
     let active = true;
+    let controller: AbortController | null = null;
+    let requestGeneration = 0;
 
-    const inspect = async () => {
-      try {
-        const response = await fetch("/api/auth/get-session?disableCookieCache=true", { credentials: "same-origin" });
-        if (!response.ok) return;
-        const session = (await response.json().catch(() => null)) as BrowserSession | null;
-        if (!session?.user || typeof session.user.id !== "string" || !session.user.id || session.user.emailVerified !== true) return;
+    const inspect = () => {
+      const generation = ++requestGeneration;
+      controller?.abort();
+      controller = new AbortController();
+      void fetch("/api/auth/get-session?disableCookieCache=true", {
+        credentials: "same-origin",
+        signal: controller.signal,
+      })
+        .then(async (response) => {
+          if (!response.ok) return null;
+          const session = (await response.json().catch(() => null)) as BrowserSession | null;
+          if (!session?.user || typeof session.user.id !== "string" || !session.user.id || session.user.emailVerified !== true) return null;
 
-        const nextCount = await countGuestDeviceHistoryRecords();
-        if (!active || nextCount <= 0) return;
-        const returnTo = accountReturnPathFromLocation(window.location);
-        setHref(`/account?return_to=${encodeURIComponent(returnTo)}`);
-        setCount(nextCount);
-      } catch {
-        // This optional recovery hint must never turn a usable workbench into
-        // an error state when browser storage or the session check is absent.
-      }
+          const nextCount = await countGuestDeviceHistoryRecords();
+          return {
+            count: nextCount,
+            href: `/account?return_to=${encodeURIComponent(accountReturnPathFromLocation(window.location))}`,
+          };
+        })
+        .then((next) => {
+          if (!active || generation !== requestGeneration) return;
+          if (!next || next.count <= 0) {
+            setCount(0);
+            setHref("/account");
+            return;
+          }
+          setHref(next.href);
+          setCount(next.count);
+        })
+        .catch(() => {
+          // This optional recovery hint must never turn a usable workbench
+          // into an error state when browser storage or the session check is
+          // absent. A newer foreground/session event can safely retry it.
+        });
     };
 
-    void inspect();
+    const inspectWhenDocumentVisible = () => {
+      if (document.visibilityState === "visible") inspect();
+    };
+
+    inspect();
+    // AccountEntry emits this only after its authoritative, bounded OAuth
+    // return recovery sees a verified session. Without this listener a first
+    // session read that races the callback could hide the device-history
+    // recovery entry until a manual reload.
+    window.addEventListener(AUTH_RETURN_RECOVERY_EVENT, inspect);
+    window.addEventListener("focus", inspect);
+    window.addEventListener("pageshow", inspect);
+    document.addEventListener("visibilitychange", inspectWhenDocumentVisible);
     return () => {
       active = false;
+      controller?.abort();
+      window.removeEventListener(AUTH_RETURN_RECOVERY_EVENT, inspect);
+      window.removeEventListener("focus", inspect);
+      window.removeEventListener("pageshow", inspect);
+      document.removeEventListener("visibilitychange", inspectWhenDocumentVisible);
     };
   }, []);
 
