@@ -115,6 +115,13 @@ export function createAuth(env: AuthRuntimeEnv) {
       window: 60,
       max: 100,
       customRules: {
+        // A signed-in workbench mounts several independent resource panels.
+        // They coalesce their requests in the browser, but an OAuth return or
+        // a foreground restore can still produce a legitimate burst across
+        // open tabs. This read-only endpoint never authenticates a password
+        // or sends mail, so keep a bounded higher ceiling instead of letting
+        // an ordinary multi-tab session lock itself out of status recovery.
+        "/get-session": { window: 60, max: 240 },
         "/sign-up/email": { window: 60 * 60, max: 8 },
         "/sign-in/email": { window: 15 * 60, max: 12 },
         "/request-password-reset": { window: 60 * 60, max: 6 },

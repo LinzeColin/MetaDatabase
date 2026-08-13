@@ -122,6 +122,13 @@ test("Better Auth rate-limit timestamp remains an epoch-millisecond number", () 
   assert.equal(rateLimit.lastRequest.mapToDriverValue(1_234_567_890), 1_234_567_890);
 });
 
+test("session-status reads retain a bounded multi-tab recovery allowance", async () => {
+  const source = await readFile(new URL("../server/auth/index.ts", import.meta.url), "utf8");
+  assert.match(source, /"\/get-session": \{ window: 60, max: 240 \}/);
+  assert.match(source, /"\/sign-in\/email": \{ window: 15 \* 60, max: 12 \}/);
+  assert.match(source, /"\/sign-up\/email": \{ window: 60 \* 60, max: 8 \}/);
+});
+
 test("official Turnstile test secret uses its documented fixed action only", () => {
   assert.equal(
     expectedTurnstileAction("1x0000000000000000000000000000000AA", ["http://127.0.0.1:4175"]),
