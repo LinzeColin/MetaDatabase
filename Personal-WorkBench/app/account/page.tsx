@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { safeAccountReturnPath } from "../_components/workbench/account-return-path";
 import { LegacyDomainRedirect } from "../_components/workbench/legacy-domain-redirect";
 import { DeviceHistoryTransferPanel } from "./device-history-transfer-panel";
@@ -22,6 +22,7 @@ type PrivacySnapshot = {
   privacyContactEmail?: string | null;
 };
 type DeletionState = "active" | "pending";
+type SyncHealth = "checking" | "idle" | "ready" | "unavailable";
 
 type ExportResponse = {
   data: Record<string, unknown>;
@@ -65,11 +66,37 @@ export default function AccountPage() {
   const [privacyNoticeHash, setPrivacyNoticeHash] = useState("e".repeat(64));
   const [requiresFreshLogin, setRequiresFreshLogin] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
+  const [syncHealth, setSyncHealth] = useState<SyncHealth>("idle");
   const returnTo = typeof window === "undefined"
     ? null
     : safeAccountReturnPath(new URLSearchParams(window.location.search).get("return_to"));
 
-  async function loadAccount() {
+  /**
+   * This is a deliberately data-free, verified-session-only check. The route
+   * executes a constant D1 statement and a private R2 head request, so a
+   * person can distinguish an unavailable sync service from empty history
+   * without exposing any table, object, account, or storage identifier.
+   */
+  const checkSyncHealth = useCallback(async () => {
+    setSyncHealth("checking");
+    try {
+      const response = await fetch("/storage-check", { credentials: "same-origin" });
+      if (!response.ok) {
+        setSyncHealth("unavailable");
+        return;
+      }
+      const document = await response.text();
+      setSyncHealth(
+        document.includes('data-d1="available"') && document.includes('data-r2="available"')
+          ? "ready"
+          : "unavailable",
+      );
+    } catch {
+      setSyncHealth("unavailable");
+    }
+  }, []);
+
+  const loadAccount = useCallback(async () => {
     try {
       // A Google callback may upgrade the database user immediately while an
       // older browser session snapshot still says emailVerified=false. Account
@@ -90,6 +117,7 @@ export default function AccountPage() {
         return;
       }
       setSession(nextSession);
+      void checkSyncHealth();
 
       const accountResponse = await fetch("/api/auth/list-accounts", { credentials: "same-origin" });
       if (accountResponse.ok) {
@@ -123,13 +151,13 @@ export default function AccountPage() {
     } catch {
       setMessage("服务暂时不可用，请稍后再试。");
     }
-  }
+  }, [checkSyncHealth]);
 
-useEffect(() => {
-  (async () => {
-    await loadAccount();
-  })();
-}, []);
+  useEffect(() => {
+    void (async () => {
+      await loadAccount();
+    })();
+  }, [loadAccount]);
 
   async function linkGoogle() {
     if (isBusy) return;
@@ -369,6 +397,22 @@ useEffect(() => {
               <button type="button" className="auth-google" onClick={linkGoogle} disabled={isBusy}>连接 Google</button>
               <button type="button" className="auth-google" onClick={() => void signOut()} disabled={isBusy}>退出登录</button>
               <p className="account-note">Google 只会在你主动点击连接后绑定。至少会保留一种可用登录方式。</p>
+            </section>
+
+            <section className="account-section" aria-label="同步状态">
+              <p className="account-section-title">同步状态</p>
+              <p className="account-note" aria-live="polite">
+                {syncHealth === "checking"
+                  ? "正在确认同步服务…"
+                  : syncHealth === "ready"
+                    ? "同步服务已连接。符合保存条件的记录可以继续同步到其他设备。"
+                    : syncHealth === "unavailable"
+                      ? "暂时无法确认同步服务。当前设备上的记录不会因此丢失，可稍后重新检查。"
+                      : "还未检查同步服务。"}
+              </p>
+              <button type="button" className="auth-google" onClick={() => void checkSyncHealth()} disabled={syncHealth === "checking"}>
+                {syncHealth === "checking" ? "正在检查…" : "检查同步状态"}
+              </button>
             </section>
 
             <section className="account-section" aria-label="数据导出与删除">

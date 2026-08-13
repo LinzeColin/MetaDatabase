@@ -228,6 +228,23 @@ test("account management offers an explicit, preview-first import for this devic
   assert.match(legacySource, /"savingsTransactions"/);
 });
 
+test("verified account UI exposes only a data-free sync-health confirmation", async () => {
+  const [accountPage, storageRoute, storageProbe] = await Promise.all([
+    readFile(accountSource, "utf8"),
+    readFile("app/storage-check/route.ts", "utf8"),
+    readFile("server/storage/binding-health.ts", "utf8"),
+  ]);
+
+  assert.match(accountPage, /fetch\("\/storage-check"/);
+  assert.match(accountPage, /同步服务已连接。符合保存条件的记录可以继续同步到其他设备。/);
+  assert.match(accountPage, /当前设备上的记录不会因此丢失/);
+  assert.match(accountPage, /检查同步状态/);
+  assert.match(storageRoute, /requireVerifiedSession/);
+  assert.match(storageRoute, /probeStorageBindings/);
+  assert.match(storageProbe, /SELECT 1 AS storage_binding_probe/);
+  assert.equal(/\.list\(|\.get\(|\.put\(|\.delete\(/.test(storageProbe), false);
+});
+
 test("a verified account with anonymous device records sees the explicit recovery entry on the workbench", async () => {
   const [page, notice, cache] = await Promise.all([
     readFile(pageSource, "utf8"),
