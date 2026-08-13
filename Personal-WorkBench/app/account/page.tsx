@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { safeAccountReturnPath } from "../_components/workbench/account-return-path";
 import { LegacyDomainRedirect } from "../_components/workbench/legacy-domain-redirect";
+import { requestWithTimeout } from "../_components/workbench/request-timeout";
 import { DeviceHistoryTransferPanel } from "./device-history-transfer-panel";
 import { LegacyImportPanel } from "./legacy-import-panel";
 
@@ -66,6 +67,7 @@ export default function AccountPage() {
   const [privacyNoticeHash, setPrivacyNoticeHash] = useState("e".repeat(64));
   const [requiresFreshLogin, setRequiresFreshLogin] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
+  const [accountCheckUnavailable, setAccountCheckUnavailable] = useState(false);
   const [syncHealth, setSyncHealth] = useState<SyncHealth>("idle");
   const returnTo = typeof window === "undefined"
     ? null
@@ -80,7 +82,7 @@ export default function AccountPage() {
   const checkSyncHealth = useCallback(async () => {
     setSyncHealth("checking");
     try {
-      const response = await fetch("/storage-check", { credentials: "same-origin" });
+      const response = await requestWithTimeout("/storage-check", { credentials: "same-origin" });
       if (!response.ok) {
         setSyncHealth("unavailable");
         return;
@@ -97,12 +99,18 @@ export default function AccountPage() {
   }, []);
 
   const loadAccount = useCallback(async () => {
+    setAccountCheckUnavailable(false);
     try {
       // A Google callback may upgrade the database user immediately while an
       // older browser session snapshot still says emailVerified=false. Account
       // settings decide whether sensitive records may sync, so they must read
       // the current server-side session rather than that stale snapshot.
-      const sessionResponse = await fetch("/api/auth/get-session?disableCookieCache=true", { credentials: "same-origin" });
+      const sessionResponse = await requestWithTimeout("/api/auth/get-session?disableCookieCache=true", { credentials: "same-origin" });
+      if (sessionResponse.status !== 401 && !sessionResponse.ok) {
+        setAccountCheckUnavailable(true);
+        setMessage("暂时无法确认账户状态，请检查网络后重试。当前设备上的记录不会因此丢失。");
+        return;
+      }
       if (!sessionResponse.ok) {
         setMessage("请先登录后再管理账户。");
         return;
@@ -119,12 +127,12 @@ export default function AccountPage() {
       setSession(nextSession);
       void checkSyncHealth();
 
-      const accountResponse = await fetch("/api/auth/list-accounts", { credentials: "same-origin" });
+      const accountResponse = await requestWithTimeout("/api/auth/list-accounts", { credentials: "same-origin" });
       if (accountResponse.ok) {
         setAccounts((await accountResponse.json()) as Account[]);
       }
 
-      const privacyResponse = await fetch("/api/account/privacy", { credentials: "same-origin" });
+      const privacyResponse = await requestWithTimeout("/api/account/privacy", { credentials: "same-origin" });
       if (privacyResponse.ok) {
         const snapshot = (await privacyResponse.json()) as PrivacySnapshot;
         setPrivacy({
@@ -140,7 +148,7 @@ export default function AccountPage() {
         setPrivacyNoticeHash(snapshot.noticeSha256 ?? "e".repeat(64));
       }
 
-      const deletionResponse = await fetch("/api/account/delete", { credentials: "same-origin" });
+      const deletionResponse = await requestWithTimeout("/api/account/delete", { credentials: "same-origin" });
       if (deletionResponse.ok) {
         const deletionInfo = (await deletionResponse.json()) as { state: DeletionState; tokenExpiresAt: number | null };
         setDeletion(deletionInfo.state);
@@ -149,7 +157,8 @@ export default function AccountPage() {
 
       setMessage("");
     } catch {
-      setMessage("服务暂时不可用，请稍后再试。");
+      setAccountCheckUnavailable(true);
+      setMessage("暂时无法确认账户状态，请检查网络后重试。当前设备上的记录不会因此丢失。");
     }
   }, [checkSyncHealth]);
 
@@ -164,7 +173,7 @@ export default function AccountPage() {
     setMessage("");
     setIsBusy(true);
     try {
-      const response = await fetch("/api/auth/link-social", {
+      const response = await requestWithTimeout("/api/auth/link-social", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
@@ -188,7 +197,7 @@ export default function AccountPage() {
     setMessage("");
     setIsBusy(true);
     try {
-      const response = await fetch("/api/auth/sign-out", {
+      const response = await requestWithTimeout("/api/auth/sign-out", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
@@ -213,7 +222,7 @@ export default function AccountPage() {
     setMessage("");
     setIsBusy(true);
     try {
-      const response = await fetch("/api/account/privacy", {
+      const response = await requestWithTimeout("/api/account/privacy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
@@ -256,7 +265,7 @@ export default function AccountPage() {
     setMessage("");
     setIsBusy(true);
     try {
-      const response = await fetch("/api/account/delete", {
+      const response = await requestWithTimeout("/api/account/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
@@ -292,7 +301,7 @@ export default function AccountPage() {
     setMessage("");
     setIsBusy(true);
     try {
-      const response = await fetch("/api/account/delete", {
+      const response = await requestWithTimeout("/api/account/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
@@ -322,7 +331,7 @@ export default function AccountPage() {
     setMessage("");
     setIsBusy(true);
     try {
-      const response = await fetch("/api/account/delete", {
+      const response = await requestWithTimeout("/api/account/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
@@ -354,7 +363,7 @@ export default function AccountPage() {
     setMessage("");
     setIsBusy(true);
     try {
-      const response = await fetch("/api/account/export", { credentials: "same-origin" });
+      const response = await requestWithTimeout("/api/account/export", { credentials: "same-origin" });
       const body = (await response.json().catch(() => null)) as ExportResponse | null;
       if (!response.ok || !body) {
         setMessage("导出失败，请稍后再试。");
@@ -473,7 +482,16 @@ export default function AccountPage() {
             <DeviceHistoryTransferPanel returnTo={returnTo} />
             <LegacyImportPanel />
           </>
-        ) : <Link className="auth-primary-link" href="/auth/sign-in">去登录</Link>}
+        ) : (
+          <div className="account-actions">
+            <Link className="auth-primary-link" href="/auth/sign-in">去登录</Link>
+            {accountCheckUnavailable ? (
+              <button type="button" className="auth-google" onClick={() => void loadAccount()}>
+                重新检查账户状态
+              </button>
+            ) : null}
+          </div>
+        )}
         </section>
       </main>
     </>

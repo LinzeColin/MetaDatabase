@@ -433,7 +433,7 @@ test("account sign-out uses the Better Auth same-origin endpoint and returns to 
     accountPage.indexOf("async function setConsent"),
   );
 
-  assert.match(signOutSection, /fetch\("\/api\/auth\/sign-out"/);
+  assert.match(signOutSection, /requestWithTimeout\("\/api\/auth\/sign-out"/);
   assert.match(signOutSection, /method: "POST"/);
   assert.match(signOutSection, /headers: \{ "Content-Type": "application\/json" \}/);
   assert.match(signOutSection, /credentials: "same-origin"/);

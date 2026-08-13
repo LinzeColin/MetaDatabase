@@ -86,7 +86,7 @@ test("history empty states never replace an unreadable history with a false zero
 test("account distinguishes signed-out visitors from signed-in unverified accounts", async () => {
   const account = await readFile(accountSource, "utf8");
 
-  assert.match(account, /fetch\("\/api\/auth\/get-session\?disableCookieCache=true", \{ credentials: "same-origin" \}\)/);
+  assert.match(account, /requestWithTimeout\("\/api\/auth\/get-session\?disableCookieCache=true", \{ credentials: "same-origin" \}\)/);
   assert.match(account, /if \(!nextSession\?\.user\) \{\s+setMessage\("请先登录后再管理账户。"\);/);
   assert.match(account, /if \(!nextSession\.user\.emailVerified\) \{\s+setMessage\("请先完成邮箱验证。"\);/);
 });
@@ -250,7 +250,13 @@ test("verified account UI exposes only a data-free sync-health confirmation", as
     readFile("server/storage/binding-health.ts", "utf8"),
   ]);
 
-  assert.match(accountPage, /fetch\("\/storage-check"/);
+  assert.match(accountPage, /import \{ requestWithTimeout \} from "\.\.\/\_components\/workbench\/request-timeout"/);
+  assert.match(accountPage, /requestWithTimeout\("\/storage-check"/);
+  assert.match(accountPage, /requestWithTimeout\("\/api\/auth\/get-session\?disableCookieCache=true"/);
+  assert.match(accountPage, /requestWithTimeout\("\/api\/account\/privacy"/);
+  assert.doesNotMatch(accountPage, /\bfetch\(/);
+  assert.match(accountPage, /暂时无法确认账户状态，请检查网络后重试。当前设备上的记录不会因此丢失。/);
+  assert.match(accountPage, /重新检查账户状态/);
   assert.match(accountPage, /同步服务已连接。符合保存条件的记录可以继续同步到其他设备。/);
   assert.match(accountPage, /当前设备上的记录不会因此丢失/);
   assert.match(accountPage, /检查同步状态/);
