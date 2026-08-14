@@ -16,7 +16,7 @@ import {
   withRequestId,
   yuanToCents,
 } from "./tenant-resource-client";
-import { isDeviceLocalRecord } from "./local-record-cache";
+import { isDeviceLocalRecord, resolveBrowserRecordScope } from "./local-record-cache";
 import { requestWithTimeout } from "./request-timeout";
 import { useVisitorTime } from "./visitor-time-client";
 
@@ -693,6 +693,14 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
 
   async function uploadFoodPhoto(): Promise<{ id?: string; localOnly?: boolean; ok: boolean }> {
     if (!photoFile) return { ok: true };
+    // A guest record has no verified owner for a private file. Preserve the
+    // text entry on this device without issuing a known-unauthorized upload.
+    // The shared scope resolver also waits through an OAuth-return handoff so
+    // a just-signed-in person is not incorrectly downgraded to guest storage.
+    if (await resolveBrowserRecordScope() === "guest") {
+      setUploadFeedback("照片未上传；饮食文字记录仍会保存在当前设备。");
+      return { localOnly: true, ok: true };
+    }
     const form = new FormData();
     form.set("module", "food");
     form.set("file", photoFile);

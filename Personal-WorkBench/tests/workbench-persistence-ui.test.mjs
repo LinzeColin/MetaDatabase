@@ -283,6 +283,21 @@ test("confirmed guest scopes keep history and saves on this device without prote
   assert.match(source.slice(guestCreate, sensitiveGate), /当前设备无法保存这条本机记录/);
 });
 
+test("guest food photos stay out of the protected upload route while the food entry remains device-local", async () => {
+  const source = await readFile(lifecycleSource, "utf8");
+  const uploadStart = source.indexOf("async function uploadFoodPhoto");
+  const guestScope = source.indexOf('if (await resolveBrowserRecordScope() === "guest")', uploadStart);
+  const formData = source.indexOf("const form = new FormData()", uploadStart);
+  const uploadRequest = source.indexOf('"/api/mydairy/files"', uploadStart);
+
+  assert.ok(uploadStart >= 0);
+  assert.ok(guestScope > uploadStart && guestScope < formData);
+  assert.match(source.slice(guestScope, formData), /localOnly: true/);
+  assert.match(source.slice(guestScope, formData), /照片未上传；饮食文字记录仍会保存在当前设备/);
+  assert.ok(uploadRequest > formData);
+  assert.match(source, /import \{ isDeviceLocalRecord, resolveBrowserRecordScope \} from "\.\/local-record-cache"/);
+});
+
 test("account management offers an explicit, preview-first import for this device's anonymous history", async () => {
   const [accountPage, transferPanel, cacheSource, legacySource] = await Promise.all([
     readFile("app/account/page.tsx", "utf8"),
