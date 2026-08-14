@@ -178,9 +178,10 @@ test("auth form waits for public Turnstile readiness instead of submitting a mis
   assert.equal(captchaSubmissionPreflight("verify-email", "loading", ""), null);
 });
 
-test("email auth pages render the public Turnstile key without a second client configuration request", async () => {
-  const [form, pageConfig, signIn, signUp, forgotPassword, styles] = await Promise.all([
+test("email auth pages render public provider identifiers without a second client configuration request", async () => {
+  const [form, googleIdentity, pageConfig, signIn, signUp, forgotPassword, styles] = await Promise.all([
     readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/auth/_components/google-identity-button.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/auth/_components/public-auth-page-config.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/auth/sign-in/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/auth/sign-up/page.tsx", import.meta.url), "utf8"),
@@ -190,14 +191,23 @@ test("email auth pages render the public Turnstile key without a second client c
 
   assert.match(pageConfig, /getPublicAuthPageConfig/);
   assert.match(pageConfig, /turnstileSiteKey/);
+  assert.match(pageConfig, /googleClientId/);
   for (const source of [signIn, signUp, forgotPassword]) {
     assert.match(source, /publicAuthTurnstileSiteKey/);
     assert.match(source, /turnstileSiteKey=\{publicAuthTurnstileSiteKey\(\)\}/);
   }
+  for (const source of [signIn, signUp]) {
+    assert.match(source, /publicAuthGoogleClientId/);
+    assert.match(source, /googleClientId=\{publicAuthGoogleClientId\(\)\}/);
+  }
   assert.match(form, /CAPTCHA_SCRIPT_LOAD_TIMEOUT_MS = 15_000/);
   assert.match(form, /setCaptchaReadiness\("challenge"\)/);
   assert.doesNotMatch(form, /CAPTCHA_RESPONSE_TIMEOUT_MS/);
+  assert.match(googleIdentity, /https:\/\/accounts\.google\.com\/gsi\/client/);
+  assert.match(googleIdentity, /idToken: \{ token: credential \}/);
+  assert.match(googleIdentity, /callbackURL: callbacksRef\.current\.callbackURL/);
   assert.match(styles, /\.turnstile-slot\s*\{[\s\S]*min-height:\s*65px;[\s\S]*overflow:\s*visible;/);
+  assert.match(styles, /\.auth-google-identity\s*\{[\s\S]*min-height:\s*44px;/);
 });
 
 test("rate limits show a neutral retry message without claiming email delivery", () => {
@@ -244,6 +254,7 @@ test("mail sender accepts the frozen binding name and rejects conflicting aliase
     }),
     {
       turnstileSiteKey: "turnstile-site-key",
+      googleClientId: "google-client",
       legalOperatorName: "Example Operator",
       privacyContactEmail: "privacy@example.test",
     },
@@ -452,12 +463,17 @@ test("email sign-up and password reset keep the documented callback contracts", 
 });
 
 test("successful email and Google login both return to the authenticated desktop", async () => {
-  const [authForm, googleStart] = await Promise.all([
+  const [authForm, googleIdentity, googleStart] = await Promise.all([
     readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/auth/_components/google-identity-button.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/auth/google/route.ts", import.meta.url), "utf8"),
   ]);
-  assert.match(authForm, /href="\/auth\/google"/);
-  assert.match(authForm, /onClick=\{\(\) => markAuthReturnRecovery\(\)\}/);
+  assert.match(authForm, /GoogleIdentityButton/);
+  assert.match(authForm, /callbackURL=\{AUTHENTICATED_HOME_PATH\}/);
+  assert.match(googleIdentity, /"\/api\/auth\/sign-in\/social"/);
+  assert.match(googleIdentity, /provider: "google"/);
+  assert.match(googleIdentity, /href=\{fallbackHref\}/);
+  assert.match(googleIdentity, /onClick=\{onFallback\}/);
   assert.match(googleStart, /callbackURL: AUTHENTICATED_HOME_PATH/);
   assert.match(authForm, /searchParams\.get\("link_google"\) === "1"/);
   assert.match(authForm, /authenticatedLocationAfterEmailSignIn\(continueGoogleLinkAfterEmailSignIn\)/);
@@ -519,9 +535,8 @@ test("auth form uses the CAPTCHA readiness preflight before it builds a request"
   assert.match(authForm, /重试安全验证/);
   assert.match(authForm, /message !== CAPTCHA_UNAVAILABLE_MESSAGE/);
   assert.match(authForm, /正在准备安全验证，请稍候…/);
-  assert.match(captchaUnavailableBlock, /href="\/auth\/google"/);
-  assert.match(captchaUnavailableBlock, /改用 Google 登录/);
-  assert.match(captchaUnavailableBlock, /onClick=\{\(\) => markAuthReturnRecovery\(\)\}/);
+  assert.doesNotMatch(captchaUnavailableBlock, /href="\/auth\/google"/);
+  assert.match(authForm, /GoogleIdentityButton/);
 });
 
 test("auth controls wait for client hydration instead of losing the first sign-in click", async () => {
@@ -542,11 +557,16 @@ test("authentication requests recover after a bounded first-party wait", async (
   assert.doesNotMatch(authForm, /\bfetch\(/);
 });
 
-test("Google sign-in remains a native server navigation after hydration", async () => {
-  const authForm = await readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8");
+test("Google sign-in uses the official identity credential path and keeps a server fallback", async () => {
+  const [authForm, googleIdentity] = await Promise.all([
+    readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/auth/_components/google-identity-button.tsx", import.meta.url), "utf8"),
+  ]);
 
-  assert.match(authForm, /href="\/auth\/google"/);
-  assert.doesNotMatch(authForm, /function startGoogle/);
-  assert.doesNotMatch(authForm, /function submitGoogle/);
-  assert.doesNotMatch(authForm, /onClick=\{startGoogle\}/);
+  assert.match(authForm, /GoogleIdentityButton/);
+  assert.match(googleIdentity, /identity\.initialize/);
+  assert.match(googleIdentity, /identity\.renderButton/);
+  assert.match(googleIdentity, /idToken: \{ token: credential \}/);
+  assert.match(googleIdentity, /href=\{fallbackHref\}/);
+  assert.match(googleIdentity, /onClick=\{onFallback\}/);
 });

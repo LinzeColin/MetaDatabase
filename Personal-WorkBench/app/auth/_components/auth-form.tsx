@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
+  AUTHENTICATED_HOME_PATH,
   authenticatedLocationAfterEmailSignIn,
   authSubmissionPreflight,
   buildAuthRequest,
@@ -17,6 +18,7 @@ import {
   usesTurnstileFor,
 } from "./auth-flow";
 import { markAuthReturnRecovery } from "./auth-return-recovery";
+import { GoogleIdentityButton } from "./google-identity-button";
 import { requestWithTimeout } from "../../_components/workbench/request-timeout";
 
 type TurnstileApi = {
@@ -42,6 +44,7 @@ declare global {
 type AuthFormProps = {
   mode: AuthMode;
   turnstileSiteKey: string | null;
+  googleClientId?: string | null;
 };
 
 const CAPTCHA_SCRIPT_LOAD_TIMEOUT_MS = 15_000;
@@ -83,7 +86,7 @@ function linkFor(mode: AuthMode): { href: string; label: string } {
   return { href: "/auth/sign-in", label: "返回登录" };
 }
 
-export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
+export function AuthForm({ mode, turnstileSiteKey, googleClientId = null }: AuthFormProps) {
   const usesTurnstile = usesTurnstileFor(mode);
   const turnstileContainer = useRef<HTMLDivElement>(null);
   const [fetchedSiteKey, setFetchedSiteKey] = useState<string | null>(null);
@@ -229,6 +232,21 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
     setCaptchaRetryNonce((attempt) => attempt + 1);
   }
 
+  function beginGoogleSignIn(): void {
+    setSubmitting(true);
+    setMessage("正在完成 Google 登录…");
+  }
+
+  function completeGoogleSignIn(): void {
+    markAuthReturnRecovery();
+    window.location.assign(AUTHENTICATED_HOME_PATH);
+  }
+
+  function failGoogleSignIn(nextMessage: string): void {
+    setSubmitting(false);
+    setMessage(nextMessage);
+  }
+
   async function submitForm(event: React.FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     const resetToken = readResetToken(window.location.search);
@@ -330,13 +348,6 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
           {usesTurnstile && effectiveCaptchaReadiness === "unavailable" ? (
             <>
               {message !== CAPTCHA_UNAVAILABLE_MESSAGE ? <p className="auth-captcha-message" role="status">{CAPTCHA_UNAVAILABLE_MESSAGE}</p> : null}
-              <a
-                className="auth-google"
-                href="/auth/google"
-                onClick={() => markAuthReturnRecovery()}
-              >
-                改用 Google 登录
-              </a>
               <button type="button" className="auth-google" onClick={retryCaptcha} disabled={!interactive || submitting}>
                 重试安全验证
               </button>
@@ -352,19 +363,16 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
           <Link className="auth-secondary-link" href={link.href}>{link.label}</Link>
         )}
         {mode === "sign-in" || mode === "sign-up" ? (
-          <>
-            {/* Keep this as a plain navigation even after hydration. It reaches
-                the same server-owned OAuth start route without depending on a
-                client fetch, so an extension, slow script, or embedded browser
-                cannot turn a visible Google button into an inert control. */}
-            <a
-              className="auth-google"
-              href="/auth/google"
-              onClick={() => markAuthReturnRecovery()}
-            >
-              使用 Google 继续
-            </a>
-          </>
+          <GoogleIdentityButton
+            clientId={googleClientId}
+            disabled={!interactive || submitting}
+            callbackURL={AUTHENTICATED_HOME_PATH}
+            fallbackHref="/auth/google"
+            onStart={beginGoogleSignIn}
+            onSuccess={completeGoogleSignIn}
+            onFailure={failGoogleSignIn}
+            onFallback={markAuthReturnRecovery}
+          />
         ) : null}
         {mode === "sign-in" ? <Link className="auth-secondary-link" href="/auth/forgot-password">忘记密码？</Link> : null}
       </section>

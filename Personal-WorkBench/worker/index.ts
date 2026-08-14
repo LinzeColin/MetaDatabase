@@ -37,12 +37,12 @@ function contentSecurityPolicy(request: Request): string {
     "object-src 'none'",
     "frame-ancestors 'none'",
     formAction,
-    "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+    "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://accounts.google.com",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self' data:",
-    "connect-src 'self' https://challenges.cloudflare.com",
-    "frame-src https://challenges.cloudflare.com",
+    "connect-src 'self' https://challenges.cloudflare.com https://accounts.google.com",
+    "frame-src https://challenges.cloudflare.com https://accounts.google.com",
   ].join("; ");
 }
 
