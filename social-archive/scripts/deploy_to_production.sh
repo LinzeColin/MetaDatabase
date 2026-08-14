@@ -1086,6 +1086,23 @@ step "8.2) 验收：他下载到的那个包，是不是 HEAD 里那份代码"
 .venv/bin/python scripts/check_the_shipped_package_is_the_committed_code.py --brief \
   || fail "他能下载到的包和 HEAD 不是同一份。生产上摆着一份没有对应提交的代码——这一步不能放过。"
 
+# **上面那道比的是「包里那些文件对不对」，不是「该有的文件都在不在」。**
+#
+# 它的比较集是**包里有的文件**：逐个拿 zip 里的条目去和 git 里同名的比。
+# 少打包一个文件，27/27 照样全对。而 `shipped_package_drill` 那道也盖不住——
+# Chrome 装载期只校验 manifest 点到名的东西。
+#
+# 2026-08-14 实测：`background.js` 用 executeScript 注入 6 个文件，
+# manifest 里一个名字都没提过（bilibili-reader / extract-core / extract /
+# fab / net-relay / net-observer）。把 `content/bilibili-reader.js` 改个名——
+# 打包成功、对得上 git、Chrome 装得上、worker 起得来、23 个演练全绿，
+# 而唯一跑通的那条 B 站读取路在他按下「连接账号」那一刻才静静失败。
+#
+# 查的是**线上那份**（他点下载拿到的就是它），不是本地 dist。
+.venv/bin/python scripts/check_the_package_ships_what_it_injects.py \
+  --zip "https://social-archive-api.linzezhang.com/downloads/social-archive-extension.zip" \
+  || fail "他下载到的那个包，缺了它运行时会去注入的文件——装得上、起得来，只在他点下去时静静失败。"
+
 step "8.5) 验收：装上这个包的真 Chrome，够不够得着**刚部署的这台生产**"
 # **十四个演练一个都没碰过真生产。** 它们全带着
 #   --host-resolver-rules=MAP social-archive.linzezhang.com 127.0.0.1:<假端口>
@@ -1515,6 +1532,38 @@ for t in d['targets']:
 batch=[a.get('snapshot_batch') for t in d['targets'] for a in t['attempts'] if a.get('snapshot_batch')]
 print(f\"  用的是 {sorted(batch)[-1]} 那批快照。\" if batch else \"  （这次没记下是哪批快照）\")
 print('  三份都是真取回来的（下载→解密→打开→判），不是读登记表。')"
+
+step "8.95) 验收台账引的那几份证据，重新量一遍（别让它们冻在旧版本上）"
+# **2026-08-14 查出来的：四条验收判据里，第 4 条的证据停在七天前。**
+#
+#   evidence/G5/DEPLOYED_AND_READ_BACK.json → expected_version: 0.0.0.22
+#                                              time: 2026-08-07T04:34:44
+#
+# 那时线上跑的是 0.0.0.101，中间隔了 79 个版本。它标着 PASS。
+#
+# 根因不是有人忘了跑，是**没有任何东西会跑它**：
+#
+#     $ grep -n verify_production_deployment scripts/deploy_to_production.sh
+#     45:# 然后**一定要跑一次完整回读**（scripts/verify_production_deployment.py 与 …
+#
+# 唯一一次出现，在一条注释里。注释写着「一定要跑」，而没有一行代码跑它——
+# 「注释声称的守卫不是守卫」「判据没有调用方就不算做完」，两条一起犯。
+#
+# 一起接的还有另外三个：同一次排查发现台账引的 9 份证据里，有 4 份的产出者
+# 部署都够不到（G2 两份、G4 一份、G5 一份）。G1/G3 那几份是靠 run_all_drills
+# 顺带刷新的，所以没冻住——**那是运气，不是设计**。
+.venv/bin/python scripts/check_sync_promises_match_reality.py > /dev/null \
+  || fail "界面承诺的同步能力和代码里的对不上。"
+.venv/bin/python scripts/check_no_mechanism_is_unreachable.py > /dev/null \
+  || fail "有机制没有任何调得到它的路。"
+.venv/bin/python scripts/check_the_guide_matches_the_product.py > /dev/null \
+  || fail "使用说明里写的某一步，产品里没有。"
+.venv/bin/python scripts/verify_production_deployment.py --host "$HOST" > /dev/null \
+  || fail "从生产回读失败——用户真正拿到的那几样东西里有对不上的。"
+# 量完之后，核一遍「台账引的证据是不是这一版的、产出者是不是都够得到」。
+# **放在最后**：前面每一步刷新的正是它要核的那些文件。
+.venv/bin/python scripts/check_the_ledger_evidence_is_for_this_version.py \
+  || fail "验收台账引的证据对不上这一版——不许拿旧版本的实测给这一版背书。"
 
 step "9) 验收：仓、主机、**镜像里那一份**，三份是不是同一份代码"
 # 第 8 步只核了**扩展包**那一个文件。其余一百多个源文件，在这一步之前
