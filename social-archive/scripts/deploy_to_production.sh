@@ -335,7 +335,30 @@ step "2) 同步源码"
 # 从快照同步之后，「部署途中不许动工作树」就不再是一条要人记得的规矩，
 # 而是一件做不到的事。
 DEPLOY_SNAPSHOT="$(mktemp -d -t sa-deploy-snapshot)"
-trap 'rm -rf "$DEPLOY_SNAPSHOT"' EXIT
+
+# **rsync 会把远端目录改成 700，而复原是后面一条顺序执行的命令。**（2026-08-14）
+#
+# 中间只要出一次错——rsync 部分成功后 `|| fail`、网络断、有人 Ctrl-C——
+# 脚本就退出了，而 `/opt/social-archive` 停在 700。
+# 后果不在这台机器上：备份和复制都以 `socialarchive` 用户跑，
+# 700 之后连工作目录都进不去，**每次触发都是 200/CHDIR，直到下一次部署成功**。
+#
+# 这正是 2026-08-11（连着失败 108 次、28 小时）和 8/12～13（备份连着两天没做出快照）
+# 那两次事故的机制。文档里一直写着「有人把 /opt/social-archive 改回 700」——
+# **那个「有人」就是这个脚本。**
+#
+# 所以复原不能只放在正常路径上，要挂在 EXIT 上：无论怎么退出都跑一次。
+# 幂等（chgrp/chmod 重复执行无副作用），所以正常路径那次照旧保留。
+REMOTE_PERMS_TOUCHED=0
+_restore_remote_perms() {
+  [ "${REMOTE_PERMS_TOUCHED}" = "1" ] || return 0
+  ssh -o ConnectTimeout=20 "$HOST" "sudo chgrp socialarchive '$REMOTE_DIR' &&
+    sudo chmod 750 '$REMOTE_DIR'" >/dev/null 2>&1 \
+    && printf '  （退出兜底）%s 的属组/权限已复原\n' "$REMOTE_DIR" \
+    || printf '  ⚠ （退出兜底）复原 %s 的属组/权限失败——备份服务会进不去那个目录，请手工执行：\n    ssh %s "sudo chgrp socialarchive %s && sudo chmod 750 %s"\n' \
+         "$REMOTE_DIR" "$HOST" "$REMOTE_DIR" "$REMOTE_DIR"
+}
+trap 'rm -rf "$DEPLOY_SNAPSHOT"; _restore_remote_perms' EXIT
 # **必须从仓根跑，且子目录前缀要让 git 自己给。**
 #
 # 在 social-archive/ 里直接 `git archive HEAD:social-archive` 会报
@@ -354,6 +377,9 @@ cp dist/social-archive-extension.zip "$DEPLOY_SNAPSHOT/dist/" \
   || fail '快照里放不进扩展包。'
 # 演练在第 0 步会**合法地**重写 evidence/**，那份要用工作树里的最新结果。
 rsync -a --omit-dir-times evidence/ "$DEPLOY_SNAPSHOT/evidence/" 2>/dev/null || true
+# **在 rsync 之前立标志，不是之后**：部分传输一样会把权限改掉，
+# 而 `|| fail` 那一支根本走不到后面。
+REMOTE_PERMS_TOUCHED=1
 rsync -az --omit-dir-times \
   --exclude '.git' --exclude '.venv' --exclude 'node_modules' \
   --exclude 'runtime/' --exclude '.env' --exclude '__pycache__' \
