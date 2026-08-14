@@ -395,6 +395,11 @@ test("normal menu routes keep every user-audited lifecycle control bound to a st
   }
 
   assert.match(source, /onClick=\{\(\) => void toggleHabit\(card, index\)\}/);
+  assert.match(source, /const \[pendingHabitLabel, setPendingHabitLabel\] = useState<string \| null>\(null\);/);
+  assert.match(source, /setPendingHabitLabel\(card\.label\);/);
+  assert.match(source, /setPendingHabitLabel\(\(current\) => current === card\.label \? null : current\);/);
+  assert.match(source, /aria-busy=\{isPending\}/);
+  assert.match(source, /isPending \? "正在保存…"/);
   assert.match(source, /const saved = await checkins\.create\(\{ habitId: habit\.id, localDate: today \}\);/);
   assert.match(source, /const recentCheckins = useMemo/);
   assert.match(source, /function removeCheckin\(checkin: HabitCheckin\)/);

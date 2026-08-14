@@ -233,6 +233,7 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
   const overviewLedger = useTenantResource<LedgerRecord>("ledger", { enabled: !reference, sensitive: true });
   const visitorTime = useVisitorTime(reference);
   const [feedback, setFeedback] = useState("");
+  const [pendingHabitLabel, setPendingHabitLabel] = useState<string | null>(null);
   const today = useMemo(() => todayIsoDate(), []);
 
   const completedByHabitId = useMemo(() => {
@@ -292,27 +293,32 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
   async function toggleHabit(card: HabitCard, index: number) {
     if (reference) return;
     setFeedback(`正在处理${card.label}打卡…`);
-    const habit = await ensureHabit(card, index);
-    if (!habit) {
-      setFeedback(`未完成${card.label}打卡：请先登录；使用 Google 登录无需额外验证邮箱，或检查网络后重试。`);
-      return;
+    setPendingHabitLabel(card.label);
+    try {
+      const habit = await ensureHabit(card, index);
+      if (!habit) {
+        setFeedback(`未完成${card.label}打卡：请先登录；使用 Google 登录无需额外验证邮箱，或检查网络后重试。`);
+        return;
+      }
+      const existing = completedByHabitId.get(habit.id);
+      if (existing) {
+        const removed = await checkins.destroy(existing.id);
+        setFeedback(removed ? `已取消${card.label}打卡。` : `未能取消${card.label}打卡，请检查后重试。`);
+        return;
+      }
+      const saved = await checkins.create({ habitId: habit.id, localDate: today });
+      setFeedback(
+        saved
+          ? saveFeedback(
+            saved,
+            `已完成${card.label}打卡，历史记录已同步。`,
+            `已完成${card.label}打卡，记录已保存在当前设备。`,
+          )
+          : `未完成${card.label}打卡：请先登录；使用 Google 登录无需额外验证邮箱，或检查网络后重试。`,
+      );
+    } finally {
+      setPendingHabitLabel((current) => current === card.label ? null : current);
     }
-    const existing = completedByHabitId.get(habit.id);
-    if (existing) {
-      const removed = await checkins.destroy(existing.id);
-      setFeedback(removed ? `已取消${card.label}打卡。` : `未能取消${card.label}打卡，请检查后重试。`);
-      return;
-    }
-    const saved = await checkins.create({ habitId: habit.id, localDate: today });
-    setFeedback(
-      saved
-        ? saveFeedback(
-          saved,
-          `已完成${card.label}打卡，历史记录已同步。`,
-          `已完成${card.label}打卡，记录已保存在当前设备。`,
-        )
-        : `未完成${card.label}打卡：请先登录；使用 Google 登录无需额外验证邮箱，或检查网络后重试。`,
-    );
   }
 
   async function removeCheckin(checkin: HabitCheckin) {
@@ -358,8 +364,10 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
       <div className="habit-grid">
         {habitCards.map((card, index) => {
           const isCompleted = completedLabels.has(card.label);
+          const isPending = pendingHabitLabel === card.label;
           return (
             <button
+              aria-busy={isPending}
               aria-pressed={isCompleted}
               className="habit-card"
               // `create` waits for the account/device scope to finish initializing.
@@ -371,7 +379,7 @@ export function HomeClient({ habitCards, reference }: { habitCards: HabitCard[];
             >
               <img alt="" className="habit-icon" src={asset(card.icon)} />
               <strong>{card.label}</strong>
-              <small>{isCompleted ? "已打卡" : accountActionRequired ? "本机打卡" : "点击打卡"}</small>
+              <small>{isCompleted ? "已打卡" : isPending ? "正在保存…" : accountActionRequired ? "本机打卡" : "点击打卡"}</small>
             </button>
           );
         })}
