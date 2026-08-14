@@ -33,7 +33,7 @@
     "metadata": {
       "auth_method": "browser_session",
       "verified_by": "list_shape_recognised",
-      "extension_version": "0.0.0.98",
+      "extension_version": "0.0.0.99",
       "auto_sync_enabled": true,
       "sync_interval_minutes": 360
     }
@@ -56,8 +56,8 @@
     "https://www.instagram.com/api/log",
     "https://www.instagram.com/api/config",
     "https://www.instagram.com/api/v1/collections/saved",
-    "https://www.instagram.com/api/user",
-    "https://www.instagram.com/api/v1/feed/timeline"
+    "https://www.instagram.com/api/v1/feed/timeline",
+    "https://www.instagram.com/api/user"
   ],
   "recognised": "https://www.instagram.com/api/v1/collections/saved",
   "matched_path": "items",
