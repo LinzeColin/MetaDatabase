@@ -234,23 +234,26 @@ export function GoogleIdentityButton({
   // Server rendering happens before this component can load either React's
   // handlers or Google's identity script. Keep a real link during that whole
   // window, so a visitor can still begin the same server-owned OAuth flow
-  // instead of seeing an inert or empty login control. Once GIS is ready it
-  // replaces this progressive-enhancement fallback with its native button.
-  if (availability !== "ready") {
-    return (
-      <a className="auth-google" data-google-native-fallback="true" href="/auth/google">
-        使用 Google 授权登录
-      </a>
-    );
-  }
-
+  // instead of seeing an inert or empty login control. The native host must
+  // remain mounted behind that link: otherwise the effect above sees a null
+  // ref and can never hand the control over to GIS after hydration.
+  const shouldShowNativeFallback = availability !== "ready";
   return (
     <div
       className={`auth-google-identity${disabled ? " is-disabled" : ""}`}
       aria-busy={disabled}
       aria-label="使用 Google 继续"
     >
-      <div ref={containerRef} />
+      {shouldShowNativeFallback ? (
+        <a className="auth-google" data-google-native-fallback="true" href="/auth/google">
+          使用 Google 授权登录
+        </a>
+      ) : null}
+      <div
+        ref={containerRef}
+        aria-hidden={shouldShowNativeFallback || undefined}
+        className={shouldShowNativeFallback ? "auth-google-identity-stage" : undefined}
+      />
     </div>
   );
 }

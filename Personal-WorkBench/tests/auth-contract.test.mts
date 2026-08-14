@@ -563,9 +563,10 @@ test("authentication requests recover after a bounded first-party wait", async (
 });
 
 test("Google sign-in uses the official identity credential path and keeps a server fallback", async () => {
-  const [authForm, googleIdentity] = await Promise.all([
+  const [authForm, googleIdentity, styles] = await Promise.all([
     readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/auth/_components/google-identity-button.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
 
   assert.match(authForm, /GoogleIdentityButton/);
@@ -574,7 +575,11 @@ test("Google sign-in uses the official identity credential path and keeps a serv
   assert.match(googleIdentity, /idToken: \{ token: credential \}/);
   assert.match(googleIdentity, /function authorizationUrlFrom/);
   assert.match(googleIdentity, /window\.location\.assign\(authorizationUrl\)/);
-  assert.match(googleIdentity, /if \(availability !== "ready"\)/);
+  assert.match(googleIdentity, /const shouldShowNativeFallback = availability !== "ready"/);
   assert.match(googleIdentity, /data-google-native-fallback="true"/);
   assert.match(googleIdentity, /href="\/auth\/google"/);
+  assert.match(googleIdentity, /ref=\{containerRef\}/);
+  assert.match(googleIdentity, /className=\{shouldShowNativeFallback \? "auth-google-identity-stage" : undefined\}/);
+  assert.match(styles, /\.auth-google-identity\s*\{[\s\S]*position:\s*relative;/);
+  assert.match(styles, /\.auth-google-identity > \.auth-google-identity-stage\s*\{[\s\S]*pointer-events:\s*none;/);
 });
