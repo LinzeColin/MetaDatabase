@@ -725,9 +725,11 @@ export function useTenantResource<T extends TenantRecord>(
       cloudAvailabilityRef.current = "unauthorized";
       if (localPersisted) {
         acknowledgeLocalSave("unauthorized");
+        setSaving(false);
         return localRecord;
       }
       setError("当前设备无法保存这条本机记录，请检查浏览器存储权限后重试。");
+      setSaving(false);
       return null;
     }
 

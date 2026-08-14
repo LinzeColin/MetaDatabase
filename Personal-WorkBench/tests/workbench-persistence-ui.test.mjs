@@ -280,6 +280,7 @@ test("confirmed guest scopes keep history and saves on this device without prote
   assert.match(source.slice(guestReload, fetchStart), /applyFailure\(401\)/);
   assert.ok(guestCreate > createStart && guestCreate < sensitiveGate);
   assert.match(source.slice(guestCreate, sensitiveGate), /acknowledgeLocalSave\("unauthorized"\)/);
+  assert.match(source.slice(guestCreate, sensitiveGate), /setSaving\(false\)/);
   assert.match(source.slice(guestCreate, sensitiveGate), /当前设备无法保存这条本机记录/);
 });
 
