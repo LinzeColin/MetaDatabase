@@ -9,37 +9,37 @@
     {
       "drill": "shipped_package_drill.py",
       "status": "PASS",
-      "seconds": 29.9,
+      "seconds": 36.4,
       "problems": []
     },
     {
       "drill": "extension_update_in_place_drill.py",
       "status": "PASS",
-      "seconds": 7.0,
+      "seconds": 6.9,
       "problems": []
     },
     {
       "drill": "stale_extension_is_blocked_drill.py",
       "status": "PASS",
-      "seconds": 24.9,
+      "seconds": 24.7,
       "problems": []
     },
     {
       "drill": "slow_extension_is_still_detected_drill.py",
       "status": "PASS",
-      "seconds": 42.5,
+      "seconds": 41.0,
       "problems": []
     },
     {
       "drill": "extension_install_page_drill.py",
       "status": "PASS",
-      "seconds": 37.6,
+      "seconds": 38.0,
       "problems": []
     },
     {
       "drill": "extension_save_page_drill.py",
       "status": "PASS",
-      "seconds": 6.0,
+      "seconds": 5.5,
       "problems": []
     },
     {
@@ -57,7 +57,7 @@
     {
       "drill": "extension_capture_buffer_drill.py",
       "status": "PASS",
-      "seconds": 4.5,
+      "seconds": 4.6,
       "problems": []
     },
     {
@@ -87,19 +87,19 @@
     {
       "drill": "bilibili_acquisition_drill.py",
       "status": "PASS",
-      "seconds": 2.5,
+      "seconds": 2.4,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform xiaohongshu",
       "status": "PASS",
-      "seconds": 41.1,
+      "seconds": 40.5,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform douyin",
       "status": "PASS",
-      "seconds": 41.2,
+      "seconds": 41.1,
       "problems": []
     },
     {
@@ -111,25 +111,25 @@
     {
       "drill": "list_shape_end_to_end_drill.py --platform instagram",
       "status": "PASS",
-      "seconds": 41.2,
+      "seconds": 40.7,
       "problems": []
     },
     {
       "drill": "bilibili_end_to_end_drill.py --from-shipped-zip",
       "status": "PASS",
-      "seconds": 24.6,
+      "seconds": 24.3,
       "problems": []
     },
     {
       "drill": "douyin_recogniser_does_not_grab_the_wrong_list_drill.py --platform douyin",
       "status": "PASS",
-      "seconds": 20.0,
+      "seconds": 19.7,
       "problems": []
     },
     {
       "drill": "list_selectors_meet_a_real_page_drill.py --platform bilibili",
       "status": "PASS",
-      "seconds": 10.0,
+      "seconds": 10.1,
       "problems": []
     },
     {
