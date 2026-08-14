@@ -1,9 +1,26 @@
 {
   "schema_version": "1.4.0",
   "task_id": "S5-T3",
-  "status": "PUBLIC_ENTRY_VERSION_125_S5_T3_PARTIAL",
+  "status": "PUBLIC_ENTRY_VERSION_126_S5_T3_PARTIAL",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
-  "observed_at": "2026-08-14T09:14:24Z",
+  "observed_at": "2026-08-14T09:35:17Z",
+  "current_version_126_habit_feedback": {
+    "status": "PASS_PUBLIC_VERSION_126_GUEST_HABIT_FEEDBACK",
+    "evidence": "13_evidence/public_version_126_habit_feedback.json",
+    "current_saved_version_number": 126,
+    "previous_saved_version_number": 125,
+    "public_deployment": "SUCCEEDED",
+    "guest_desktop_route": "/?view=home",
+    "guest_habit_click": "EARLY_CHECKIN_IMMEDIATE_FEEDBACK_AND_REFRESH_READBACK_PASSED",
+    "runtime_exceptions": 0,
+    "google_identity_entry": "PUBLIC_SIGN_IN_BUTTON_READY_WITH_CONFIGURED_CLIENT_AND_ZERO_RUNTIME_EXCEPTIONS",
+    "does_not_replace": [
+      "Current Version 126 real Google callback.",
+      "Current Version 126 email lifecycle replay.",
+      "Current Version 126 A/B isolation and physical second-device history.",
+      "Direct physical D1/R2 reconciliation."
+    ]
+  },
   "current_version_125_rollback_restore": {
     "status": "PASS_PUBLIC_VERSION_125_ROLLBACK_RESTORE",
     "evidence": "13_evidence/public_version_125_rollback_restore.json",
@@ -32,17 +49,15 @@
     "browser_e2e_current_version": "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR"
   },
   "current_public_candidate": {
-    "saved_version_number": 125,
+    "saved_version_number": 126,
     "source_recorded_by_sites": true,
     "archive_stored_by_sites": true,
     "public_deployment": "SUCCEEDED",
-    "rollback_target_saved_version_number": 124,
-    "rollback_restore": "V125_TO_V124_TO_V125_SUCCEEDED",
-    "post_restore_home_and_sign_in": "HTTP_200",
-    "post_restore_public_auth_config": "HTTP_200",
-    "post_restore_unauthenticated_profile": "HTTP_401_NO_APPLICATION_SESSION",
-    "google_browser_identity_entry": "PRESENT",
-    "legacy_google_start": "RETURNS_TO_CANONICAL_BROWSER_SIGN_IN",
+    "previous_saved_version_number": 125,
+    "rollback_rehearsal_for_current_version": "NOT_RUN_PREVIOUS_V125_TO_V124_TO_V125_REHEARSAL_RETAINS_A_SAVED_RECOVERY_POINT",
+    "guest_habit_feedback_replay": "PASS_IMMEDIATE_VISIBLE_STATE_THEN_REFRESH_READBACK",
+    "guest_habit_feedback_runtime_exceptions": 0,
+    "google_identity_entry_readiness": "PASS_PUBLIC_SIGN_IN_BUTTON_READY_WITH_CONFIGURED_CLIENT",
     "authenticated_product_flow_current_version": "NOT_RUN_NO_COMPLETED_CONTROLLED_ACCOUNT_REPLAY"
   },
   "candidate": {
@@ -63,6 +78,7 @@
     "environment_revision": 8
   },
   "controlled_deployment_and_recovery": {
+    "version_126_public_deploy": "SUCCEEDED",
     "version_125_public_deploy": "SUCCEEDED",
     "version_125_to_124_public_rollback": "SUCCEEDED",
     "version_124_to_125_public_restore": "SUCCEEDED",
@@ -133,7 +149,8 @@
     "live_version_matches_version_36": false,
     "live_version_matches_version_37": false,
     "live_version_matches_version_124": false,
-    "live_version_matches_version_125": true,
+    "live_version_matches_version_125": false,
+    "live_version_matches_version_126": true,
     "live_version_matches_version_31_after_rehearsal": true,
     "live_version_matches_version_30_after_rehearsal": true,
     "live_version_matches_version_29_after_rehearsal": true,
@@ -274,6 +291,7 @@
     "13_evidence/owner_activation.json",
     "13_evidence/tenant_matrix.json",
     "13_evidence/production-smoke-run.json",
+    "13_evidence/public_version_126_habit_feedback.json",
     "13_evidence/public_version_125_rollback_restore.json",
     "13_evidence/email_signup_replay.json",
     "13_evidence/tenant_history_replay.json",

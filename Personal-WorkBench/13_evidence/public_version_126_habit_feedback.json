@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "task_id": "S5-T3",
+  "status": "PASS_PUBLIC_VERSION_126_GUEST_HABIT_FEEDBACK",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-14T09:35:17Z",
+  "scope": "Public guest desktop interaction replay for the current personal schedule site.",
+  "deployment": {
+    "saved_version_number": 126,
+    "public_deployment": "SUCCEEDED",
+    "previous_saved_version_number": 125
+  },
+  "interaction_replay": {
+    "route": "/?view=home",
+    "control": "早起",
+    "immediate_feedback": "PASS_VISIBLE_PENDING_OR_COMPLETED_STATE_WITHIN_450_MS",
+    "refresh_readback": "PASS_EARLY_CHECKIN_REMAINS_VISIBLE_WITH_RECENT_CHECKIN_SECTION",
+    "runtime_exceptions": 0
+  },
+  "google_identity_entry": {
+    "sign_in_page": "/auth/sign-in",
+    "public_config_google_client_present": true,
+    "browser_button_rendered_and_ready": true,
+    "runtime_exceptions": 0,
+    "account_selection_or_session_created": false
+  },
+  "test_context": {
+    "isolated_browser_profile": true,
+    "test_profile_removed_after_replay": true,
+    "real_user_business_data_read_or_written": false,
+    "account_identifiers_cookies_or_secrets_recorded": false
+  },
+  "not_proven": [
+    "A completed Google account selection and callback on Version 126.",
+    "A completed email registration, verification, reset, and sign-in replay on Version 126.",
+    "Current Version 126 A/B tenant isolation or physical second-device history readback.",
+    "Direct physical D1/R2 reconciliation.",
+    "A Version 126 rollback-and-restore rehearsal."
+  ]
+}
