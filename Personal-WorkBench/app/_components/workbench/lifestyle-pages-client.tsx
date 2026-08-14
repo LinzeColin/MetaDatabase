@@ -491,7 +491,10 @@ export function LedgerClient({ fixtureDate, reference }: { fixtureDate: string; 
     const wasEditing = Boolean(editingId);
     setFeedback(wasEditing ? "正在修改账单…" : "正在保存账单…");
     const saved = editingId ? await ledger.update(editingId, payload) : await ledger.create(payload);
-    if (!saved) return;
+    if (!saved) {
+      setFeedback("未能保存账单，请查看页面状态提示后重试。");
+      return;
+    }
     setAmount("");
     setNote("");
     setEditingId(null);
@@ -776,6 +779,7 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
     const saved = foodEditing ? await foodRecords.update(foodEditing.id, payload) : await foodRecords.create(payload);
     if (!saved) {
       await discardUploadedPhoto(upload.id);
+      setModuleFeedback("未能保存饮食记录，请查看页面状态提示后重试。");
       return;
     }
     let photoNotice = upload.localOnly ? "照片未上传；本条饮食文字记录已保存在当前设备。" : "";
@@ -825,7 +829,10 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
     const saved = exerciseEditing
       ? await exerciseRecords.update(exerciseEditing.id, payload)
       : await exerciseRecords.create(payload);
-    if (!saved) return;
+    if (!saved) {
+      setModuleFeedback("未能保存运动记录，请查看页面状态提示后重试。");
+      return;
+    }
     setActivity("");
     setDurationMinutes("");
     setCaloriesBurned("");
@@ -850,7 +857,10 @@ export function FatlossClient({ fixtureDate, reference }: { fixtureDate: string;
     const payload = { localDate: date, note: note.trim(), weightGrams };
     setModuleFeedback(weightEditing ? "正在修改体重记录…" : "正在保存体重记录…");
     const saved = weightEditing ? await weightRecords.update(weightEditing.id, payload) : await weightRecords.create(payload);
-    if (!saved) return;
+    if (!saved) {
+      setModuleFeedback("未能保存体重记录，请查看页面状态提示后重试。");
+      return;
+    }
     setWeightKg("");
     setNote("");
     setEditing(null);
@@ -1146,7 +1156,10 @@ export function GenericPageClient({
     const editingRecordId = editingKind === "primary" ? editingId : null;
     setFeedback(editingRecordId ? "正在修改日程…" : "正在保存日程…");
     const saved = editingRecordId ? await schedule.update(editingRecordId, payload) : await schedule.create(payload);
-    if (!saved) return;
+    if (!saved) {
+      setFeedback("未能保存日程，请查看页面状态提示后重试。");
+      return;
+    }
     const wasEditing = Boolean(editingRecordId);
     setEditingId(null);
     setEditingKind(null);
@@ -1171,7 +1184,10 @@ export function GenericPageClient({
     const editingRecordId = editingKind === "primary" ? editingId : null;
     setFeedback(editingRecordId ? "正在修改纪念日…" : "正在保存纪念日…");
     const saved = editingRecordId ? await anniversaries.update(editingRecordId, payload) : await anniversaries.create(payload);
-    if (!saved) return;
+    if (!saved) {
+      setFeedback("未能保存纪念日，请查看页面状态提示后重试。");
+      return;
+    }
     const wasEditing = Boolean(editingRecordId);
     setEditingId(null);
     setEditingKind(null);
@@ -1196,7 +1212,10 @@ export function GenericPageClient({
     const editingRecordId = editingKind === "primary" ? editingId : null;
     setFeedback(editingRecordId ? "正在修改日记…" : "正在保存日记…");
     const saved = editingRecordId ? await diary.update(editingRecordId, payload) : await diary.create(payload);
-    if (!saved) return;
+    if (!saved) {
+      setFeedback("未能保存日记，请查看页面状态提示后重试。");
+      return;
+    }
     const wasEditing = Boolean(editingRecordId);
     setEditingId(null);
     setEditingKind(null);
@@ -1226,7 +1245,10 @@ export function GenericPageClient({
     const editingRecordId = editingKind === "primary" ? editingId : null;
     setFeedback(editingRecordId ? "正在修改存钱计划…" : "正在保存存钱计划…");
     const saved = editingRecordId ? await savingsGoals.update(editingRecordId, payload) : await savingsGoals.create(payload);
-    if (!saved) return;
+    if (!saved) {
+      setFeedback("未能保存存钱计划，请查看页面状态提示后重试。");
+      return;
+    }
     const wasEditing = Boolean(editingRecordId);
     setEditingId(null);
     setEditingKind(null);
@@ -1256,7 +1278,10 @@ export function GenericPageClient({
     const saved = editingRecordId
       ? await savingsTransactions.update(editingRecordId, payload)
       : await savingsTransactions.create(payload);
-    if (!saved) return;
+    if (!saved) {
+      setFeedback("未能保存存入记录，请查看页面状态提示后重试。");
+      return;
+    }
     const wasEditing = Boolean(editingRecordId);
     setEditingId(null);
     setEditingKind(null);

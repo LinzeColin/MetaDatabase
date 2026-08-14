@@ -95,7 +95,10 @@ export default function TodoPageClient() {
     const saved = editingId
       ? await todos.update(editingId, payload)
       : await todos.create({ ...payload, completed: false, completedAt: null });
-    if (!saved) return;
+    if (!saved) {
+      setMessage("未能保存待办，请查看页面状态提示后重试。");
+      return;
+    }
 
     clearForm();
     if (savedOnDevice(saved)) {
@@ -110,7 +113,10 @@ export default function TodoPageClient() {
     const saved = await todos.update(todo.id, completing
       ? { completed: true }
       : { completed: false, completedAt: null });
-    if (!saved) return;
+    if (!saved) {
+      setMessage("未能更新待办，请查看页面状态提示后重试。");
+      return;
+    }
     if (savedOnDevice(saved)) {
       setMessage(completing ? "待办已在当前设备标记完成。" : "待办已在当前设备恢复为待完成。");
     } else {

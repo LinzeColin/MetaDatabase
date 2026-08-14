@@ -456,6 +456,29 @@ test("period record control immediately acknowledges pending and failed saves", 
   assert.doesNotMatch(source, /if \(periods\.consentRequired\)/);
 });
 
+test("every record action replaces stale pending feedback when a save cannot complete", async () => {
+  const [lifecycle, todo] = await Promise.all([
+    readFile(lifecycleSource, "utf8"),
+    readFile(todoSource, "utf8"),
+  ]);
+
+  for (const message of [
+    "未能保存账单，请查看页面状态提示后重试。",
+    "未能保存饮食记录，请查看页面状态提示后重试。",
+    "未能保存运动记录，请查看页面状态提示后重试。",
+    "未能保存体重记录，请查看页面状态提示后重试。",
+    "未能保存日程，请查看页面状态提示后重试。",
+    "未能保存纪念日，请查看页面状态提示后重试。",
+    "未能保存日记，请查看页面状态提示后重试。",
+    "未能保存存钱计划，请查看页面状态提示后重试。",
+    "未能保存存入记录，请查看页面状态提示后重试。",
+  ]) {
+    assert.match(lifecycle, new RegExp(message), message);
+  }
+  assert.match(todo, /未能保存待办，请查看页面状态提示后重试。/);
+  assert.match(todo, /未能更新待办，请查看页面状态提示后重试。/);
+});
+
 test("every asynchronous workbench save immediately exposes an in-page pending state", async () => {
   const source = await readFile(lifecycleSource, "utf8");
 
