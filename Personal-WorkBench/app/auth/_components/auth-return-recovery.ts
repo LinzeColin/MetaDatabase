@@ -16,6 +16,14 @@ export const AUTH_RETURN_RECOVERY_QUERY_VALUE = "1";
 // general polling loop: it runs only after this tab deliberately starts auth.
 export const AUTH_RETURN_RECOVERY_DELAYS_MS = [300, 1_100, 3_000, 6_000, 12_000, 20_000] as const;
 
+// The marker has no identity data, but its meaning must survive sibling React
+// effects consuming it in different orders. Keep the bounded state in the
+// current tab only; a different tab (or a later ordinary page load) never
+// inherits it.
+const AUTH_RETURN_RECOVERY_WINDOW_MS = AUTH_RETURN_RECOVERY_DELAYS_MS[AUTH_RETURN_RECOVERY_DELAYS_MS.length - 1];
+let authReturnRecoveryWindow: object | null = null;
+let authReturnRecoveryUntil = 0;
+
 type SessionStoragePort = Pick<Storage, "getItem" | "removeItem" | "setItem">;
 type AuthReturnLocationPort = Pick<Location, "hash" | "pathname" | "search">;
 type HistoryPort = Pick<History, "replaceState" | "state">;
@@ -39,6 +47,53 @@ function historyPort(): HistoryPort | null {
   return window.history;
 }
 
+function browserWindowPort(): object | null {
+  if (typeof window === "undefined") return null;
+  return window;
+}
+
+function beginAuthReturnRecovery(now = Date.now()): void {
+  const currentWindow = browserWindowPort();
+  if (!currentWindow) return;
+  if (authReturnRecoveryWindow !== currentWindow) {
+    authReturnRecoveryWindow = currentWindow;
+    authReturnRecoveryUntil = now + AUTH_RETURN_RECOVERY_WINDOW_MS;
+    return;
+  }
+  authReturnRecoveryUntil = Math.max(authReturnRecoveryUntil, now + AUTH_RETURN_RECOVERY_WINDOW_MS);
+}
+
+function hasRecoveryMarker(storage: SessionStoragePort | null, location: AuthReturnLocationPort | null): boolean {
+  try {
+    if (storage?.getItem(AUTH_RETURN_RECOVERY_KEY) === "1") return true;
+  } catch {
+    // The URL marker below can still recover an embedded browser that blocks
+    // sessionStorage.
+  }
+  try {
+    return Boolean(location && new URLSearchParams(location.search).get(AUTH_RETURN_RECOVERY_QUERY_KEY) === AUTH_RETURN_RECOVERY_QUERY_VALUE);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Returns the remaining bounded recovery time for this exact browser tab.
+ * Resource clients use it to avoid placing the first post-login record in the
+ * anonymous partition when Better Auth briefly returns an empty user object.
+ */
+export function authReturnRecoveryRemainingMs(
+  now = Date.now(),
+  storage = sessionStoragePort(),
+  location = authReturnLocationPort(),
+): number {
+  const currentWindow = browserWindowPort();
+  if (!currentWindow) return 0;
+  if (hasRecoveryMarker(storage, location)) beginAuthReturnRecovery(now);
+  if (authReturnRecoveryWindow !== currentWindow || authReturnRecoveryUntil <= now) return 0;
+  return authReturnRecoveryUntil - now;
+}
+
 /** Mark a successful browser authentication handoff before navigation. */
 export function markAuthReturnRecovery(storage = sessionStoragePort()): void {
   try {
@@ -54,6 +109,7 @@ export function consumeAuthReturnRecovery(storage = sessionStoragePort()): boole
   try {
     if (storage?.getItem(AUTH_RETURN_RECOVERY_KEY) !== "1") return false;
     storage.removeItem(AUTH_RETURN_RECOVERY_KEY);
+    beginAuthReturnRecovery();
     return true;
   } catch {
     return false;
@@ -82,6 +138,7 @@ export function consumeAuthReturnRecoveryFromLocation(
       "",
       `${location.pathname}${nextSearch ? `?${nextSearch}` : ""}${location.hash}`,
     );
+    beginAuthReturnRecovery();
     return true;
   } catch {
     return false;

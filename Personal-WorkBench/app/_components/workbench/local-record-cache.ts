@@ -3,6 +3,10 @@ import {
   type GuestDeviceHistoryEnvelope,
   type GuestDeviceHistoryModule,
 } from "./legacy-device-history-payload.ts";
+import {
+  AUTH_RETURN_RECOVERY_DELAYS_MS,
+  authReturnRecoveryRemainingMs,
+} from "../../auth/_components/auth-return-recovery.ts";
 
 export type {
   GuestDeviceHistoryEnvelope,
@@ -342,6 +346,22 @@ let browserScopeGeneration = 0;
 let browserScopeInvalidationQueued = false;
 let browserScopeUnavailableUntil = 0;
 
+function waitForScopeRecovery(delayMs: number, signal: AbortSignal): Promise<boolean> {
+  if (signal.aborted) return Promise.resolve(false);
+  if (delayMs <= 0) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve(true);
+    }, delayMs);
+    const onAbort = () => {
+      clearTimeout(timer);
+      resolve(false);
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
 /**
  * A short authoritative session result may be reused by several resource
  * hooks in one rendered page. Explicit foreground checks clear it first, so
@@ -381,36 +401,72 @@ export async function resolveBrowserRecordScope(timeoutMs = BROWSER_SCOPE_REQUES
   if (!pendingBrowserScope || pendingBrowserScope.generation !== generation) {
     const controller = new AbortController();
     const request = (async (): Promise<BrowserScopeLookup> => {
-      let timeout: ReturnType<typeof setTimeout> | undefined;
-      try {
-        const response = await Promise.race<Response | null>([
-          // Local-only records are partitioned by account. A Google callback or
-          // account switch must therefore read the current database-backed
-          // session, never a short-lived browser cache from the prior account.
-          fetch("/api/auth/get-session?disableCookieCache=true", { credentials: "same-origin", signal: controller.signal }),
-          new Promise<null>((resolve) => {
-            timeout = setTimeout(() => {
-              controller.abort();
-              resolve(null);
-            }, timeoutMs);
-          }),
-        ]);
-        if (!response) return { cacheable: false, scope: "guest" };
-        // A normal unsigned response is authoritative, unlike a timeout,
-        // rate-limit, or other transport failure. Reusing this short guest
-        // result prevents each independent resource panel from amplifying the
-        // same 401 into another session lookup. Login navigation and explicit
-        // foreground checks both invalidate it before an account can change.
-        if (response.status === 401) return { cacheable: true, scope: "guest" };
-        if (!response.ok) return { cacheable: false, scope: "guest" };
-        const session = (await response.json()) as unknown;
-        const user = isRecord(session) && isRecord(session.user) ? session.user : null;
-        const userId = user && typeof user.id === "string" && user.id.length > 0 ? user.id : null;
-        return { cacheable: true, scope: userId ? await accountScope(userId) : "guest" };
-      } catch {
-        return { cacheable: false, scope: "guest" };
-      } finally {
-        if (timeout !== undefined) clearTimeout(timeout);
+      const recoveryStartedAt = Date.now();
+      let nextRecoveryDelayIndex = 0;
+      while (true) {
+        let timeout: ReturnType<typeof setTimeout> | undefined;
+        const attemptController = new AbortController();
+        const abortAttempt = () => attemptController.abort();
+        if (controller.signal.aborted) abortAttempt();
+        else controller.signal.addEventListener("abort", abortAttempt, { once: true });
+        let resolved: BrowserScopeLookup;
+        try {
+          const response = await Promise.race<Response | null>([
+            // Local-only records are partitioned by account. A Google callback
+            // or account switch must therefore read the current database-backed
+            // session, never a short-lived browser cache from the prior account.
+            fetch("/api/auth/get-session?disableCookieCache=true", { credentials: "same-origin", signal: attemptController.signal }),
+            new Promise<null>((resolve) => {
+              timeout = setTimeout(() => {
+                abortAttempt();
+                resolve(null);
+              }, timeoutMs);
+            }),
+          ]);
+          if (controller.signal.aborted || !response) {
+            resolved = { cacheable: false, scope: "guest" };
+          } else if (response.status === 401) {
+            // A normal unsigned response is authoritative, unlike a timeout,
+            // rate-limit, or other transport failure. Reusing this short guest
+            // result prevents each independent resource panel from amplifying
+            // the same 401 into another session lookup. Login navigation and
+            // explicit foreground checks both invalidate it before an account
+            // can change.
+            resolved = { cacheable: true, scope: "guest" };
+          } else if (!response.ok) {
+            resolved = { cacheable: false, scope: "guest" };
+          } else {
+            const session = (await response.json()) as unknown;
+            const user = isRecord(session) && isRecord(session.user) ? session.user : null;
+            const userId = user && typeof user.id === "string" && user.id.length > 0 ? user.id : null;
+            resolved = { cacheable: true, scope: userId ? await accountScope(userId) : "guest" };
+          }
+        } catch {
+          resolved = { cacheable: false, scope: "guest" };
+        } finally {
+          if (timeout !== undefined) clearTimeout(timeout);
+          controller.signal.removeEventListener("abort", abortAttempt);
+        }
+
+        if (resolved.scope !== "guest" || !authReturnRecoveryRemainingMs()) return resolved;
+
+        // AccountEntry already retries this exact value-free, same-tab auth
+        // return. The resource partition must share that window: otherwise a
+        // callback's first `{ user: null }` response makes a just-authenticated
+        // person's first click look like anonymous device-only history.
+        const elapsed = Date.now() - recoveryStartedAt;
+        while (
+          nextRecoveryDelayIndex < AUTH_RETURN_RECOVERY_DELAYS_MS.length
+          && AUTH_RETURN_RECOVERY_DELAYS_MS[nextRecoveryDelayIndex] <= elapsed
+        ) {
+          nextRecoveryDelayIndex += 1;
+        }
+        if (nextRecoveryDelayIndex >= AUTH_RETURN_RECOVERY_DELAYS_MS.length) return resolved;
+        const retryAt = AUTH_RETURN_RECOVERY_DELAYS_MS[nextRecoveryDelayIndex];
+        nextRecoveryDelayIndex += 1;
+        if (!await waitForScopeRecovery(retryAt - elapsed, controller.signal)) {
+          return { cacheable: false, scope: "guest" };
+        }
       }
     })();
     pendingBrowserScope = { controller, generation, request };

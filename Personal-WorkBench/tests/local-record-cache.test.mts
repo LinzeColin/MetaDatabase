@@ -25,6 +25,10 @@ import {
   type DeviceOutboxAction,
 } from "../app/_components/workbench/local-record-cache.ts";
 import {
+  consumeAuthReturnRecovery,
+  markAuthReturnRecovery,
+} from "../app/auth/_components/auth-return-recovery.ts";
+import {
   parseLegacyDeviceHistoryPayload,
   serializeLegacyDeviceHistoryPayload,
 } from "../app/_components/workbench/legacy-device-history-payload.ts";
@@ -184,6 +188,77 @@ test("a slow but successful default session lookup keeps the authenticated devic
 
   try {
     assert.match(await resolveBrowserRecordScope(), /^account:/);
+  } finally {
+    invalidateBrowserRecordScope();
+    globalThis.fetch = originalFetch;
+    if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
+    else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });
+  }
+});
+
+test("an OAuth return waits past one empty session response before choosing the account partition", async () => {
+  const runtime = globalThis as typeof globalThis & { window?: unknown };
+  const originalWindow = runtime.window;
+  const originalFetch = globalThis.fetch;
+  const entries = new Map<string, string>();
+  const storage = {
+    getItem(key: string) { return entries.get(key) ?? null; },
+    removeItem(key: string) { entries.delete(key); },
+    setItem(key: string, value: string) { entries.set(key, value); },
+  };
+  let calls = 0;
+  invalidateBrowserRecordScope();
+  Object.defineProperty(runtime, "window", {
+    configurable: true,
+    value: { location: { search: "" }, sessionStorage: storage },
+  });
+  globalThis.fetch = (async () => {
+    calls += 1;
+    return new Response(JSON.stringify({ user: calls === 1 ? null : { id: "account-after-oauth" } }), { status: 200 });
+  }) as typeof fetch;
+
+  try {
+    markAuthReturnRecovery(storage);
+    assert.equal(consumeAuthReturnRecovery(storage), true);
+    assert.match(await resolveBrowserRecordScope(), /^account:/);
+    assert.equal(calls, 2);
+  } finally {
+    invalidateBrowserRecordScope();
+    globalThis.fetch = originalFetch;
+    if (originalWindow === undefined) Reflect.deleteProperty(runtime, "window");
+    else Object.defineProperty(runtime, "window", { configurable: true, value: originalWindow });
+  }
+});
+
+test("an OAuth return retries after a slow first session lookup instead of choosing the guest partition", async () => {
+  const runtime = globalThis as typeof globalThis & { window?: unknown };
+  const originalWindow = runtime.window;
+  const originalFetch = globalThis.fetch;
+  const entries = new Map<string, string>();
+  const storage = {
+    getItem(key: string) { return entries.get(key) ?? null; },
+    removeItem(key: string) { entries.delete(key); },
+    setItem(key: string, value: string) { entries.set(key, value); },
+  };
+  let calls = 0;
+  invalidateBrowserRecordScope();
+  Object.defineProperty(runtime, "window", {
+    configurable: true,
+    value: { location: { search: "" }, sessionStorage: storage },
+  });
+  globalThis.fetch = ((_: RequestInfo | URL, init?: RequestInit) => {
+    calls += 1;
+    if (calls > 1) return Promise.resolve(new Response(JSON.stringify({ user: { id: "account-after-slow-oauth" } }), { status: 200 }));
+    return new Promise<Response>((_, reject) => {
+      init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")), { once: true });
+    });
+  }) as typeof fetch;
+
+  try {
+    markAuthReturnRecovery(storage);
+    assert.equal(consumeAuthReturnRecovery(storage), true);
+    assert.match(await resolveBrowserRecordScope(20), /^account:/);
+    assert.equal(calls, 2);
   } finally {
     invalidateBrowserRecordScope();
     globalThis.fetch = originalFetch;
