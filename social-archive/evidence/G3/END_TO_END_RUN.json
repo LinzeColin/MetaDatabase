@@ -2,7 +2,7 @@
   "status": "PASS",
   "task": "G3",
   "extension_under_test": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension",
-  "extension_version": "0.0.0.94",
+  "extension_version": "0.0.0.95",
   "journey": {
     "connect": {
       "ok": true,
@@ -21,28 +21,28 @@
     },
     "tabs_before": [
       {
-        "id": 953689905,
+        "id": 1068470223,
         "active": false
       },
       {
-        "id": 953689906,
+        "id": 1068470224,
         "active": false
       },
       {
-        "id": 953689909,
+        "id": 1068470227,
         "active": true
       }
     ],
-    "my_tab_id": 953689909,
+    "my_tab_id": 1068470227,
     "queue_before": [
       {
         "accountId": "acct-1",
-        "enqueuedAt": 1786670351137,
+        "enqueuedAt": 1786672423683,
         "profileUrl": "",
         "syncRunId": "run-1",
         "tabId": null,
         "triggerType": "first_connect",
-        "updatedAt": 1786670351137
+        "updatedAt": 1786672423683
       }
     ],
     "alarm_scheduled": true,
@@ -60,15 +60,15 @@
     "queue_after": [],
     "tabs_after": [
       {
-        "id": 953689905,
+        "id": 1068470223,
         "active": false
       },
       {
-        "id": 953689906,
+        "id": 1068470224,
         "active": false
       },
       {
-        "id": 953689909,
+        "id": 1068470227,
         "active": true
       }
     ],
@@ -118,7 +118,7 @@
     "metadata": {
       "auth_method": "browser_session",
       "verified_by": "bilibili_nav_api",
-      "extension_version": "0.0.0.94",
+      "extension_version": "0.0.0.95",
       "auto_sync_enabled": true,
       "sync_interval_minutes": 360
     }
