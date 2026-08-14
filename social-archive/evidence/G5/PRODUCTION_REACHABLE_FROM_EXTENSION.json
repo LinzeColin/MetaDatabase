@@ -4,12 +4,12 @@
   "token_supplied": true,
   "package_he_would_download": {
     "url": "https://social-archive-api.linzezhang.com/downloads/social-archive-extension.zip",
-    "sha256": "9737b4c1de2847bb",
+    "sha256": "e69076df4c7fc01c",
     "same_as_repo_build": true
   },
   "measured_in_real_chrome": {
     "endpoint_the_extension_itself_uses": "https://social-archive-api.linzezhang.com",
-    "api_ms": 325,
+    "api_ms": 351,
     "api_call": "resolved",
     "api_keys": [
       "items",
