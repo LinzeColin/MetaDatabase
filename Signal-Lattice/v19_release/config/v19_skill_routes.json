@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "skills": [
+    {
+      "skill_id": "stock-commercial-opportunities",
+      "display_name": "股票商业机会拆解",
+      "family": "商业捕获",
+      "profile": "commercial",
+      "canonical_hint": "stock-commercial-opportunities"
+    },
+    {
+      "skill_id": "bottleneck-serenity-skill",
+      "display_name": "瓶颈宁静技能",
+      "family": "瓶颈与稀缺",
+      "profile": "bottleneck",
+      "canonical_hint": "bottleneck-serenity-skill"
+    },
+    {
+      "skill_id": "equity-foresight-signal",
+      "display_name": "股势前瞻",
+      "family": "定量预测",
+      "profile": "foresight",
+      "canonical_hint": "equity-foresight-signal"
+    },
+    {
+      "skill_id": "global-equity-lead-lag-atlas",
+      "display_name": "全球股市时序联动图谱",
+      "family": "跨市场时序",
+      "profile": "lead_lag",
+      "canonical_hint": "global-equity-lead-lag-atlas"
+    },
+    {
+      "skill_id": "equity-event-atlas",
+      "display_name": "股票事件航图",
+      "family": "离散事件",
+      "profile": "event",
+      "canonical_hint": "equity-event-atlas"
+    },
+    {
+      "skill_id": "serenity-skill",
+      "display_name": "宁静投研技能",
+      "family": "综合基本面",
+      "profile": "serenity",
+      "canonical_hint": "serenity-skill"
+    }
+  ]
+}

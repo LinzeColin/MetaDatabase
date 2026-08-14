@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "app_version": "0.0.0.1.42",
+  "prompt_version": "v0.0.0.19",
+  "timezone": "Australia/Sydney",
+  "refresh_seconds": 15,
+  "report_stale_seconds": 45,
+  "daily_full_scan_hour": 1,
+  "daily_full_scan_minute": 0,
+  "max_candidates_per_bucket": 5,
+  "max_incremental_candidates": 18,
+  "history_bars": 140,
+  "public_url": "https://signal-lattice.linzezhang.com",
+  "status_url": "https://status.linzezhang.com",
+  "report_currency": "AUD",
+  "nominal_aud": 10000.0,
+  "cash_rate_annual_pct": 4.35,
+  "cash_rate_as_of": "2026-08-14",
+  "switch_gate": {
+    "base_round_trip_pct": 0.06,
+    "high_liquidity_spread_slippage_pct": 0.10,
+    "state_break_pct": 0.25,
+    "evidence_uncertainty": {
+      "high": 0.25,
+      "medium": 0.75,
+      "low": 1.50
+    },
+    "default_evidence_quality": "medium",
+    "tactical_20d_floor_pct": -0.25
+  },
+  "risk": {
+    "forced_review_drawdown_pct": 12.0,
+    "hard_failure_drawdown_pct": 20.0,
+    "stale_liquidity_reserve_pct": 0.25
+  },
+  "market_provider": "moomoo",
+  "fallback_to_last_snapshot": true,
+  "source_refresh_paths": {
+    "meta_registry": "/var/lib/signal-lattice/upstream/MetaDatabase/Signal-Lattice/Stock_Skill/REGISTRY.json",
+    "meta_stock_skill_root": "/var/lib/signal-lattice/upstream/MetaDatabase/Signal-Lattice/Stock_Skill",
+    "serenity_skill": "/var/lib/signal-lattice/upstream/AgentDatabase/CodexSkills/registry/codex/serenity-skill/SKILL.md",
+    "security_evidence_dir": "/var/lib/signal-lattice/evidence/securities",
+    "macro_events_file": "/var/lib/signal-lattice/evidence/macro_events.json",
+    "official_nav_file": "/var/lib/signal-lattice/evidence/official_nav.json"
+  }
+}

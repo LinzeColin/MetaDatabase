@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "labels": {
+    "platform": "MooMooAU只读产品与行情证据",
+    "price": "最近有效常规收盘、正式NAV或只读报价",
+    "skills": "六技能Canonical方法契约",
+    "cash": "澳洲现金利率配置",
+    "state": "V19唯一权威影子状态"
+  },
+  "canonical_urls": {
+    "registry": "https://raw.githubusercontent.com/LinzeColin/MetaDatabase/main/Signal-Lattice/Stock_Skill/REGISTRY.json",
+    "serenity": "https://raw.githubusercontent.com/LinzeColin/AgentDatabase/main/CodexSkills/registry/codex/serenity-skill/SKILL.md"
+  }
+}

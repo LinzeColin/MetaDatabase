@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "signal-lattice-v19"
+version = "0.0.0.1.42"
+description = "Signal Lattice V19 frozen six-skill single-winner shadow research runtime with a 15-second cadence"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+signal-lattice-v19 = "signal_lattice_v19.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

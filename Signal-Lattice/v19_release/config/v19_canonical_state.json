@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0.0",
+  "prompt_version": "v0.0.0.19",
+  "platform": "MooMooAU",
+  "name": "State Street SPDR 标普500 ETF",
+  "code": "SPY",
+  "provider_code": "AU.SPY",
+  "direction": "看涨",
+  "allocation_pct": 100.0,
+  "channel": "ASX",
+  "currency": "AUD",
+  "reference_price": 1095.34,
+  "high_water": 1095.34,
+  "observable_drawdown_pct": 0.0,
+  "risk_adjusted_drawdown_pct": 0.0,
+  "established_at": "2026-08-09T00:00:00+10:00",
+  "main_window_trading_days": 60,
+  "tactical_window_trading_days": 20,
+  "shadow_only": true
+}

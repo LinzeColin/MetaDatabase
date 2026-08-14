@@ -1,0 +1,272 @@
+{
+  "schema_version": "1.0.0",
+  "market_preference": [
+    "AU",
+    "US",
+    "HK"
+  ],
+  "buckets": [
+    {
+      "id": "us_broad",
+      "name": "美国宽基",
+      "risk_tier": 1,
+      "include_tokens": [
+        "S&P 500",
+        "US 500",
+        "NASDAQ 100",
+        "US TOTAL",
+        "UNITED STATES"
+      ],
+      "fallback": [
+        {
+          "provider_code": "AU.SPY",
+          "public_code": "SPY",
+          "name": "State Street SPDR 标普500 ETF",
+          "market": "AU",
+          "currency": "AUD"
+        },
+        {
+          "provider_code": "AU.IVV",
+          "public_code": "IVV",
+          "name": "iShares 标普500 ETF",
+          "market": "AU",
+          "currency": "AUD"
+        }
+      ]
+    },
+    {
+      "id": "china_assets",
+      "name": "中国资产",
+      "risk_tier": 1,
+      "include_tokens": [
+        "CHINA",
+        "CSI 300",
+        "HANG SENG",
+        "CHINESE"
+      ],
+      "fallback": [
+        {
+          "provider_code": "AU.IZZ",
+          "public_code": "IZZ",
+          "name": "中国大盘ETF",
+          "market": "AU",
+          "currency": "AUD"
+        },
+        {
+          "provider_code": "US.MCHI",
+          "public_code": "MCHI",
+          "name": "中国宽基ETF",
+          "market": "US",
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "id": "developed_ex_us",
+      "name": "美国以外发达",
+      "risk_tier": 1,
+      "include_tokens": [
+        "DEVELOPED",
+        "EUROPE",
+        "JAPAN",
+        "EX US",
+        "EX-USA"
+      ],
+      "fallback": [
+        {
+          "provider_code": "AU.VGS",
+          "public_code": "VGS",
+          "name": "全球发达市场ETF",
+          "market": "AU",
+          "currency": "AUD"
+        },
+        {
+          "provider_code": "US.VEA",
+          "public_code": "VEA",
+          "name": "发达市场ETF",
+          "market": "US",
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "id": "emerging_markets",
+      "name": "新兴市场",
+      "risk_tier": 1,
+      "include_tokens": [
+        "EMERGING",
+        "EM ASIA",
+        "MSCI EM"
+      ],
+      "fallback": [
+        {
+          "provider_code": "AU.VGE",
+          "public_code": "VGE",
+          "name": "新兴市场ETF",
+          "market": "AU",
+          "currency": "AUD"
+        },
+        {
+          "provider_code": "US.VWO",
+          "public_code": "VWO",
+          "name": "新兴市场ETF",
+          "market": "US",
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "id": "global_broad",
+      "name": "全球宽基",
+      "risk_tier": 1,
+      "include_tokens": [
+        "ALL COUNTRY",
+        "ACWI",
+        "WORLD",
+        "GLOBAL EQUITY"
+      ],
+      "fallback": [
+        {
+          "provider_code": "AU.DHHF",
+          "public_code": "DHHF",
+          "name": "全球多元股票ETF",
+          "market": "AU",
+          "currency": "AUD"
+        },
+        {
+          "provider_code": "US.ACWI",
+          "public_code": "ACWI",
+          "name": "全球宽基ETF",
+          "market": "US",
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "id": "sector_theme",
+      "name": "行业/主题",
+      "risk_tier": 2,
+      "include_tokens": [
+        "SEMICONDUCTOR",
+        "ARTIFICIAL INTELLIGENCE",
+        "TECHNOLOGY",
+        "CYBER",
+        "ENERGY",
+        "HEALTHCARE"
+      ],
+      "fallback": [
+        {
+          "provider_code": "AU.SEMI",
+          "public_code": "SEMI",
+          "name": "半导体主题ETF",
+          "market": "AU",
+          "currency": "AUD"
+        },
+        {
+          "provider_code": "US.SMH",
+          "public_code": "SMH",
+          "name": "半导体主题ETF",
+          "market": "US",
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "id": "commodity",
+      "name": "商品",
+      "risk_tier": 2,
+      "include_tokens": [
+        "GOLD",
+        "COMMODITY",
+        "OIL",
+        "CRUDE",
+        "SILVER"
+      ],
+      "fallback": [
+        {
+          "provider_code": "AU.GOLD",
+          "public_code": "GOLD",
+          "name": "黄金ETF",
+          "market": "AU",
+          "currency": "AUD"
+        },
+        {
+          "provider_code": "US.GLD",
+          "public_code": "GLD",
+          "name": "黄金ETF",
+          "market": "US",
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "id": "rates_credit",
+      "name": "利率/信用",
+      "risk_tier": 1,
+      "include_tokens": [
+        "BOND",
+        "TREASURY",
+        "FIXED INCOME",
+        "CREDIT",
+        "CORPORATE"
+      ],
+      "fallback": [
+        {
+          "provider_code": "AU.IAF",
+          "public_code": "IAF",
+          "name": "综合债券ETF",
+          "market": "AU",
+          "currency": "AUD"
+        },
+        {
+          "provider_code": "US.IEF",
+          "public_code": "IEF",
+          "name": "中期国债ETF",
+          "market": "US",
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "id": "cash_alternative",
+      "name": "货币/现金替代",
+      "risk_tier": 1,
+      "include_tokens": [
+        "CASH",
+        "MONEY MARKET",
+        "TREASURY BILL",
+        "HIGH INTEREST"
+      ],
+      "fallback": [
+        {
+          "provider_code": "AU.AAA",
+          "public_code": "AAA",
+          "name": "澳元现金ETF",
+          "market": "AU",
+          "currency": "AUD"
+        },
+        {
+          "provider_code": "US.BIL",
+          "public_code": "BIL",
+          "name": "短期国库券ETF",
+          "market": "US",
+          "currency": "USD"
+        }
+      ]
+    }
+  ],
+  "defensive_tokens": [
+    "BEAR",
+    "SHORT",
+    "INVERSE",
+    "HEDGE"
+  ],
+  "leveraged_tokens": [
+    "2X",
+    "3X",
+    "ULTRA",
+    "GEARED",
+    "LEVERAGED"
+  ],
+  "max_candidates_per_bucket": 5
+}

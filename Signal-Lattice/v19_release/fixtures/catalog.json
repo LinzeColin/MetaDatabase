@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0.0",
+  "items": [
+    {
+      "provider_code": "AU.SPY",
+      "public_code": "SPY",
+      "name": "State Street SPDR S&P 500 ETF",
+      "market": "AU",
+      "currency": "AUD",
+      "liquidity_score": 0.98
+    },
+    {
+      "provider_code": "AU.IZZ",
+      "public_code": "IZZ",
+      "name": "China CSI 300 ETF",
+      "market": "AU",
+      "currency": "AUD",
+      "liquidity_score": 0.76
+    },
+    {
+      "provider_code": "AU.VGS",
+      "public_code": "VGS",
+      "name": "Developed Markets ex USA ETF",
+      "market": "AU",
+      "currency": "AUD",
+      "liquidity_score": 0.95
+    },
+    {
+      "provider_code": "AU.VGE",
+      "public_code": "VGE",
+      "name": "MSCI Emerging Markets ETF",
+      "market": "AU",
+      "currency": "AUD",
+      "liquidity_score": 0.88
+    },
+    {
+      "provider_code": "AU.DHHF",
+      "public_code": "DHHF",
+      "name": "Global Equity All Country ETF",
+      "market": "AU",
+      "currency": "AUD",
+      "liquidity_score": 0.91
+    },
+    {
+      "provider_code": "AU.SEMI",
+      "public_code": "SEMI",
+      "name": "Global Semiconductor Technology ETF",
+      "market": "AU",
+      "currency": "AUD",
+      "liquidity_score": 0.84
+    },
+    {
+      "provider_code": "AU.GOLD",
+      "public_code": "GOLD",
+      "name": "Physical Gold Commodity ETF",
+      "market": "AU",
+      "currency": "AUD",
+      "liquidity_score": 0.9
+    },
+    {
+      "provider_code": "AU.IAF",
+      "public_code": "IAF",
+      "name": "Australian Composite Bond ETF",
+      "market": "AU",
+      "currency": "AUD",
+      "liquidity_score": 0.93
+    },
+    {
+      "provider_code": "AU.AAA",
+      "public_code": "AAA",
+      "name": "High Interest Cash ETF",
+      "market": "AU",
+      "currency": "AUD",
+      "liquidity_score": 0.99
+    }
+  ]
+}

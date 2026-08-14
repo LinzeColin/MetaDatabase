@@ -1,0 +1,37 @@
+[Unit]
+Description=Signal Lattice V19 fifteen-second full visible result loop
+After=network-online.target signal-lattice-v19-api.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=signal-lattice
+Group=signal-lattice
+EnvironmentFile=/etc/signal-lattice-v19/runtime.env
+ExecStart=/opt/signal-lattice-v19/current/venv/bin/signal-lattice-v19 loop
+Restart=always
+RestartSec=2
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0077
+ReadWritePaths=/var/lib/signal-lattice-v19
+ReadOnlyPaths=/opt/signal-lattice-v19/current -/var/lib/signal-lattice/upstream -/var/lib/signal-lattice/evidence
+MemoryMax=1536M
+CPUQuota=300%
+TasksMax=160
+
+[Install]
+WantedBy=multi-user.target
