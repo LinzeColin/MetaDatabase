@@ -21,4 +21,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 USER 10001:10001
 EXPOSE 8080
 
+HEALTHCHECK --interval=60s --timeout=5s --start-period=15s --retries=3 \
+  CMD python3 -c 'import json,urllib.request; opener=urllib.request.build_opener(urllib.request.ProxyHandler({})); state=json.load(opener.open("http://127.0.0.1:8080/healthz",timeout=3)); expected={"service":"ABD","version":"0.0.0.1","mode":"OBSERVATION_ONLY","decision":"NO_RECOMMENDATION_NO_ORDER","ready":True,"recommendation_enabled":False,"order_submission_enabled":False,"market_or_account_connected":False,"gmail_or_tab_connected":False}; raise SystemExit(0 if all(state.get(key)==value for key,value in expected.items()) else 1)'
+
 ENTRYPOINT ["python3", "-m", "abd_runtime.server"]
