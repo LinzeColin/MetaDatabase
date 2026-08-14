@@ -574,4 +574,7 @@ test("Google sign-in uses the official identity credential path and keeps a serv
   assert.match(googleIdentity, /idToken: \{ token: credential \}/);
   assert.match(googleIdentity, /function authorizationUrlFrom/);
   assert.match(googleIdentity, /window\.location\.assign\(authorizationUrl\)/);
+  assert.match(googleIdentity, /if \(availability !== "ready"\)/);
+  assert.match(googleIdentity, /data-google-native-fallback="true"/);
+  assert.match(googleIdentity, /href="\/auth\/google"/);
 });

@@ -231,18 +231,23 @@ export function GoogleIdentityButton({
     void startOAuthFallback();
   }, [autoStartFallback, disabled, startOAuthFallback]);
 
-  if (availability === "unavailable") {
+  // Server rendering happens before this component can load either React's
+  // handlers or Google's identity script. Keep a real link during that whole
+  // window, so a visitor can still begin the same server-owned OAuth flow
+  // instead of seeing an inert or empty login control. Once GIS is ready it
+  // replaces this progressive-enhancement fallback with its native button.
+  if (availability !== "ready") {
     return (
-      <button type="button" className="auth-google" onClick={() => { void startOAuthFallback(); }} disabled={disabled}>
+      <a className="auth-google" data-google-native-fallback="true" href="/auth/google">
         使用 Google 授权登录
-      </button>
+      </a>
     );
   }
 
   return (
     <div
       className={`auth-google-identity${disabled ? " is-disabled" : ""}`}
-      aria-busy={availability === "loading" || disabled}
+      aria-busy={disabled}
       aria-label="使用 Google 继续"
     >
       <div ref={containerRef} />
