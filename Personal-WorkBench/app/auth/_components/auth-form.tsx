@@ -367,7 +367,7 @@ export function AuthForm({ mode, turnstileSiteKey, googleClientId = null }: Auth
             clientId={googleClientId}
             disabled={!interactive || submitting}
             callbackURL={AUTHENTICATED_HOME_PATH}
-            fallbackHref="/auth/google"
+            autoStartFallback={mode === "sign-in" && searchParams.get("google") === "1"}
             onStart={beginGoogleSignIn}
             onSuccess={completeGoogleSignIn}
             onFailure={failGoogleSignIn}

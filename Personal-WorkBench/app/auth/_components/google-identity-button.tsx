@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { requestWithTimeout } from "../../_components/workbench/request-timeout";
 
 const GOOGLE_IDENTITY_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
@@ -45,7 +45,7 @@ type GoogleIdentityButtonProps = {
   clientId: string | null;
   disabled: boolean;
   callbackURL: string;
-  fallbackHref: string;
+  autoStartFallback?: boolean;
   onStart(): void;
   onSuccess(): void;
   onFailure(message: string): void;
@@ -58,6 +58,18 @@ function credentialFrom(response: GoogleCredentialResponse): string {
   return typeof response.credential === "string" ? response.credential.trim() : "";
 }
 
+function authorizationUrlFrom(value: unknown): string | null {
+  if (!value || typeof value !== "object") return null;
+  const rawUrl = (value as { url?: unknown }).url;
+  if (typeof rawUrl !== "string") return null;
+  try {
+    const url = new URL(rawUrl);
+    return url.protocol === "https:" && url.hostname === "accounts.google.com" ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Uses Google's supported browser identity credential exchange. Its server
  * verification stays on Better Auth's existing Google provider route, so a
@@ -68,19 +80,20 @@ export function GoogleIdentityButton({
   clientId,
   disabled,
   callbackURL,
-  fallbackHref,
+  autoStartFallback = false,
   onStart,
   onSuccess,
   onFailure,
   onFallback,
 }: GoogleIdentityButtonProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const callbacksRef = useRef({ callbackURL, onStart, onSuccess, onFailure });
+  const fallbackStartedRef = useRef(false);
+  const callbacksRef = useRef({ callbackURL, onStart, onSuccess, onFailure, onFallback });
   const [availability, setAvailability] = useState<Availability>(clientId ? "loading" : "unavailable");
 
   useEffect(() => {
-    callbacksRef.current = { callbackURL, onStart, onSuccess, onFailure };
-  }, [callbackURL, onFailure, onStart, onSuccess]);
+    callbacksRef.current = { callbackURL, onStart, onSuccess, onFailure, onFallback };
+  }, [callbackURL, onFailure, onFallback, onStart, onSuccess]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -187,11 +200,42 @@ export function GoogleIdentityButton({
     };
   }, [clientId]);
 
+  const startOAuthFallback = useCallback(async () => {
+    if (disabled) return;
+    callbacksRef.current.onStart();
+    try {
+      const response = await requestWithTimeout("/api/auth/sign-in/social", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          provider: "google",
+          callbackURL: callbacksRef.current.callbackURL,
+        }),
+      });
+      const authorizationUrl = response.ok ? authorizationUrlFrom(await response.json()) : null;
+      if (!authorizationUrl) {
+        callbacksRef.current.onFailure("无法启动 Google 授权，请稍后重试，或使用邮箱和密码登录。");
+        return;
+      }
+      callbacksRef.current.onFallback();
+      window.location.assign(authorizationUrl);
+    } catch {
+      callbacksRef.current.onFailure("Google 登录服务暂时不可用，请稍后重试，或使用邮箱和密码登录。");
+    }
+  }, [disabled]);
+
+  useEffect(() => {
+    if (!autoStartFallback || disabled || fallbackStartedRef.current) return;
+    fallbackStartedRef.current = true;
+    void startOAuthFallback();
+  }, [autoStartFallback, disabled, startOAuthFallback]);
+
   if (availability === "unavailable") {
     return (
-      <a className="auth-google" href={fallbackHref} onClick={onFallback}>
-        使用 Google 继续
-      </a>
+      <button type="button" className="auth-google" onClick={() => { void startOAuthFallback(); }} disabled={disabled}>
+        使用 Google 授权登录
+      </button>
     );
   }
 

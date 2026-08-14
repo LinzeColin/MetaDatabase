@@ -75,7 +75,10 @@ export async function verifyAuthContract() {
   assert.ok(googleIdentity.includes("https://accounts.google.com/gsi/client"));
   assert.ok(googleIdentity.includes('"/api/auth/sign-in/social"'));
   assert.ok(googleIdentity.includes("idToken: { token: credential }"));
-  assert.ok(googleIdentity.includes("href={fallbackHref}"));
+  assert.ok(googleIdentity.includes("function authorizationUrlFrom"));
+  assert.ok(googleIdentity.includes('provider: "google"'));
+  assert.ok(googleIdentity.includes("window.location.assign(authorizationUrl)"));
+  assert.ok(form.includes('autoStartFallback={mode === "sign-in" && searchParams.get("google") === "1"}'));
   assert.ok(!googleIdentity.includes("CLIENT_SECRET"));
   assert.ok(!form.includes("onClick={startGoogle}"));
   assert.ok(form.includes("challenges.cloudflare.com/turnstile"));

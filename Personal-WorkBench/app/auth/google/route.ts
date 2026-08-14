@@ -18,9 +18,10 @@ function redirect(destination: URL): Response {
 }
 
 /**
- * The browser identity route is the registered Google flow for this public
- * domain. A normal navigation therefore returns to that same page instead of
- * starting an incompatible server redirect with a different callback type.
+ * Direct Google links hand off to the sign-in page with an explicit fallback
+ * request. After hydration, the page starts Better Auth's normal OAuth code
+ * flow, so a blocked browser-identity button cannot return to this same page
+ * without ever reaching Google's account selection.
  */
 export async function GET(request: Request): Promise<Response> {
   let requestUrl: URL;

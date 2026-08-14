@@ -183,6 +183,20 @@ test("local auth-to-tenant chain verifies two accounts, isolated history, and pa
           body: JSON.stringify(body),
         }),
       );
+    const fallbackOAuthStart = await callAuth("/sign-in/social", {
+      provider: "google",
+      callbackURL: "/?view=home&auth_return=1",
+    });
+    assert.equal(fallbackOAuthStart.status, 200);
+    const fallbackOAuthPayload = await fallbackOAuthStart.json() as { redirect?: unknown; url?: unknown };
+    assert.equal(fallbackOAuthPayload.redirect, true);
+    assert.equal(typeof fallbackOAuthPayload.url, "string");
+    if (typeof fallbackOAuthPayload.url !== "string") throw new Error("expected Google OAuth authorization URL");
+    const fallbackOAuthUrl = new URL(fallbackOAuthPayload.url);
+    assert.equal(fallbackOAuthUrl.protocol, "https:");
+    assert.equal(fallbackOAuthUrl.hostname, "accounts.google.com");
+    assert.equal(fallbackOAuthUrl.pathname, "/o/oauth2/v2/auth");
+    assert.ok(fallbackOAuthUrl.searchParams.get("state"));
     const signUp = async (email: string, name: string) => {
       const response = await callAuth("/sign-up/email", {
         name,

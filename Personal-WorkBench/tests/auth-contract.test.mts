@@ -470,10 +470,12 @@ test("successful email and Google login both return to the authenticated desktop
   ]);
   assert.match(authForm, /GoogleIdentityButton/);
   assert.match(authForm, /callbackURL=\{AUTHENTICATED_HOME_PATH\}/);
+  assert.match(authForm, /autoStartFallback=\{mode === "sign-in" && searchParams\.get\("google"\) === "1"\}/);
   assert.match(googleIdentity, /"\/api\/auth\/sign-in\/social"/);
   assert.match(googleIdentity, /provider: "google"/);
-  assert.match(googleIdentity, /href=\{fallbackHref\}/);
-  assert.match(googleIdentity, /onClick=\{onFallback\}/);
+  assert.match(googleIdentity, /function authorizationUrlFrom/);
+  assert.match(googleIdentity, /url\.hostname === "accounts\.google\.com"/);
+  assert.match(googleIdentity, /window\.location\.assign\(authorizationUrl\)/);
   assert.match(googleStart, /\/auth\/sign-in\?google=1/);
   assert.match(authForm, /searchParams\.get\("link_google"\) === "1"/);
   assert.match(authForm, /authenticatedLocationAfterEmailSignIn\(continueGoogleLinkAfterEmailSignIn\)/);
@@ -567,6 +569,6 @@ test("Google sign-in uses the official identity credential path and keeps a serv
   assert.match(googleIdentity, /identity\.initialize/);
   assert.match(googleIdentity, /identity\.renderButton/);
   assert.match(googleIdentity, /idToken: \{ token: credential \}/);
-  assert.match(googleIdentity, /href=\{fallbackHref\}/);
-  assert.match(googleIdentity, /onClick=\{onFallback\}/);
+  assert.match(googleIdentity, /function authorizationUrlFrom/);
+  assert.match(googleIdentity, /window\.location\.assign\(authorizationUrl\)/);
 });
