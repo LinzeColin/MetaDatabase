@@ -1,0 +1,16 @@
+[Unit]
+Description=ABD observation runtime local pause record (%i)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/logger -t abd-v0001-observation-operations PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+

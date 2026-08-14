@@ -1,0 +1,13 @@
+[Unit]
+Description=Schedule daily ABD observation runtime local operations window
+
+[Timer]
+# 31 daily + 5 weekly + 1 monthly = 37 local-only checks/month; no Cloudflare or R2 calls.
+OnCalendar=*-*-* 04:15:00
+AccuracySec=5min
+Persistent=true
+Unit=abd-v0001-observation-operations@daily.service
+
+[Install]
+WantedBy=timers.target
+
