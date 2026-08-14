@@ -337,8 +337,38 @@
       }
       if (bestHere) candidates.push(bestHere);
       else {
-        const why = score(arrays[0].items).rejected || "数组里的元素不像内容条目";
-        rejected.push({ url: safePath(url), why });
+        // **把它找到的字段名也带上。**（2026-08-14）
+        //
+        // `score()` 已经算出了 `id_keys` / `id_path` / `core_path`，
+        // 而这里原来只留一句 `why` 就把整个 stats 丢了。
+        // 后果落在最贵的一次上：他点了抖音、认不出、把诊断整段发我——
+        // 而诊断里只有比率（多少元素有 id/标题/作者），**没有一个字段叫什么**。
+        // 使用说明承诺的却是「只写下有哪几个字段、各是什么类型」。
+        // 于是我只能再问他一次，而他说过不要这种来回。
+        //
+        // 也不再用 `arrays[0]`：那只是**第一个**数组，不是最像的那个。
+        // 全都 0 分时按元素多的挑——收藏列表通常是这一页上最长的那个数组。
+        //
+        // **只带键名，不带任何值。** 这段是要他整段复制发出来的，
+        // 里面不能有他的标题、链接或 id。
+        const biggest = arrays.reduce(
+          (best, one) => (!best || one.items.length > best.items.length ? one : best), null);
+        const stats = score(biggest.items);
+        const sample = biggest.items[0];
+        const keys = (sample && typeof sample === "object")
+          ? Object.keys(sample).slice(0, 40)
+          : [];
+        rejected.push({
+          url: safePath(url),
+          why: stats.rejected || "数组里的元素不像内容条目",
+          count: biggest.items.length,
+          path: biggest.path,
+          id_keys: stats.id_keys,
+          id_path: stats.id_path,
+          core_path: stats.core_path,
+          // 每一项自己带哪几个键——**这就是我照着改取数路要的东西**
+          item_keys: keys,
+        });
       }
     }
     // **打平时怎么办。**
