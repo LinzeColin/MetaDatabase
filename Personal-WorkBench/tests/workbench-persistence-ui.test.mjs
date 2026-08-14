@@ -136,6 +136,8 @@ test("network-level resource uncertainty gives Google users a truthful sign-in n
   const source = await readFile(resourceSource, "utf8");
 
   assert.match(source, /const \[loginSuggested, setLoginSuggested\] = useState\(false\);/);
+  assert.match(source, /当前未登录：记录仍会保存在这台设备；登录后可跨设备同步并查看云端历史。使用 Google 登录无需额外验证邮箱。/);
+  assert.doesNotMatch(source, /请先登录后再保存和查看你的历史记录。使用 Google 登录无需额外验证邮箱。/);
   assert.match(source, /暂时无法读取你的历史记录。请先确认已登录；使用 Google 登录无需额外验证邮箱。若已登录，请检查网络后重试。/);
   assert.match(source, /暂时无法保存这条记录。请先确认已登录；使用 Google 登录无需额外验证邮箱。若已登录，请检查网络后重试。/);
   assert.match(source, /暂时无法删除这条记录。请先确认已登录；使用 Google 登录无需额外验证邮箱。若已登录，请检查网络后重试。/);

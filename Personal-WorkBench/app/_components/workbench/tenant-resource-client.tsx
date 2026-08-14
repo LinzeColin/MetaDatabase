@@ -130,7 +130,7 @@ function failureMessage(status: number, sensitive: boolean, code: ApiFailureCode
     return {
       authRequired: true,
       consentRequired: false,
-      message: "请先登录后再保存和查看你的历史记录。使用 Google 登录无需额外验证邮箱。",
+      message: "当前未登录：记录仍会保存在这台设备；登录后可跨设备同步并查看云端历史。使用 Google 登录无需额外验证邮箱。",
     };
   }
   if (status === 403) {
