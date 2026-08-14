@@ -1,0 +1,13 @@
+[Unit]
+Description=Schedule ABD observation runtime limited self-heal watchdog
+
+[Timer]
+# 12 local-only checks/hour × 24 × 31 = 8,928 checks/month; no Cloudflare or R2 calls.
+OnBootSec=2min
+OnUnitActiveSec=5min
+AccuracySec=30s
+Persistent=true
+Unit=abd-v0001-observation-watchdog.service
+
+[Install]
+WantedBy=timers.target

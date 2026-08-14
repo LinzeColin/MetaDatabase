@@ -1,0 +1,11 @@
+[Unit]
+Description=Schedule monthly ABD observation runtime local operations window
+
+[Timer]
+OnCalendar=*-*-01 04:45:00
+AccuracySec=5min
+Persistent=true
+Unit=abd-v0001-observation-operations@monthly.service
+
+[Install]
+WantedBy=timers.target

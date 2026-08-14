@@ -1,0 +1,25 @@
+[Unit]
+Description=ABD observation runtime local operations window (%i)
+Documentation=https://github.com/LinzeColin/MetaDatabase/tree/main/ABD
+Wants=docker.service abd-v0001-observation-watchdog.timer
+After=docker.service abd-v0001-observation-watchdog.timer
+Requires=docker.service
+ConditionPathExists=/usr/bin/docker
+OnFailure=abd-v0001-observation-operations-pause@%i.service
+
+[Service]
+Type=oneshot
+UMask=0077
+Environment=PATH=/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/bin/sh /usr/local/lib/abd/abd-v0001-observation-operations.sh %i
+TimeoutStartSec=20s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/run/docker.sock
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
