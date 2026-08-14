@@ -476,7 +476,10 @@ test("successful email and Google login both return to the authenticated desktop
   assert.match(googleIdentity, /function authorizationUrlFrom/);
   assert.match(googleIdentity, /url\.hostname === "accounts\.google\.com"/);
   assert.match(googleIdentity, /window\.location\.assign\(authorizationUrl\)/);
-  assert.match(googleStart, /\/auth\/sign-in\?google=1/);
+  assert.match(googleStart, /createAuth\(env\)\.handler/);
+  assert.match(googleStart, /\/api\/auth\/sign-in\/social/);
+  assert.match(googleStart, /accounts\.google\.com/);
+  assert.match(googleStart, /\/auth\/google/);
   assert.match(authForm, /searchParams\.get\("link_google"\) === "1"/);
   assert.match(authForm, /authenticatedLocationAfterEmailSignIn\(continueGoogleLinkAfterEmailSignIn\)/);
 });
