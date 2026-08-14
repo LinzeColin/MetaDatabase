@@ -19,6 +19,7 @@
 
 - V129 为首屏保留了服务端可点击的 `/auth/google` 链接；复核该组件发现 fallback 单独返回时，Google Identity Services 的挂载容器不在 DOM，客户端 effect 会得到空 ref，无法把入口接管为既有原生 Google 按钮。V131 保留首屏同源回退链接，同时在其后方保持一个惰性、不可点击的原生挂载点；身份服务就绪后才移除链接并显示既有原生按钮。没有改变 canonical OAuth route、邮箱认证、会话、显式账号关联、tenant 推导、隐私同意、D1/R2、账户策略或冻结视觉路由。
 - V131 已保存并公开部署。无账号探针确认首页和登录页均为 200，服务端登录页同时含 native fallback 和 native stage，canonical `/auth/google` 为 no-store 的 302 至 Google 授权起点；发布后 15 分钟 error-only Worker 查询为 0。没有选择 Google 账号、跟随 callback、创建会话、读取 Cookie 值、账户或业务记录，也没有访问 D1/R2 内容。
+- 随后已执行 V131 → V130 → V131 的公开回滚恢复演练：回退和恢复均成功；V130 与恢复后的 V131 均保持首页／登录入口 200、canonical Google 授权起点 302 和未登录 profile 401。恢复后 V131 的 native fallback 与 native stage 再次由服务端渲染，15 分钟 error-only Worker 查询仍为 0。未访问账户、业务记录或 D1/R2 内容，因此不把这条无账号回放误作数据不变量验收。
 - `test:auth` 41/41、typecheck、生产 build 与视觉回归（5 路由、3 轮）通过；lint 为 0 error，保留既有 1 条 Hook warning。脱敏事实见 `13_evidence/public_version_131_google_native_handoff.json`。
 - 本轮只修复原生按钮的客户端接管前提，不将其伪装为真实登录：V131 的受控 Google callback、邮箱全生命周期、A/B 租户、物理第二设备、直接 D1/R2 对账及 V131 回滚演练仍未完成。
 

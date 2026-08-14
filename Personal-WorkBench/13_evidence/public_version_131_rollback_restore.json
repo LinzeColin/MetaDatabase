@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "task_id": "S5-T3",
+  "status": "PASS_PUBLIC_VERSION_131_ROLLBACK_RESTORE",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-14T12:06:15Z",
+  "scope": "Public V131 rollback to the immediately preceding saved V130 followed by an immediate restore to V131, with no-account entry verification only.",
+  "deployment": {
+    "current_saved_version_number": 131,
+    "rollback_target_saved_version_number": 130,
+    "rollback_deployment": "SUCCEEDED",
+    "restore_deployment": "SUCCEEDED",
+    "rollback_restore": "V131_TO_V130_TO_V131_SUCCEEDED"
+  },
+  "rollback_no_account_probe": {
+    "home": "HTTP_200",
+    "sign_in": "HTTP_200",
+    "canonical_auth_google": "HTTP_302_TO_GOOGLE_AUTHORIZATION_URL",
+    "authorization_host_is_google": true,
+    "unauthenticated_profile": "HTTP_401"
+  },
+  "post_restore_no_account_probe": {
+    "home": "HTTP_200",
+    "server_rendered_native_google_fallback": true,
+    "server_rendered_google_native_stage": true,
+    "canonical_auth_google": "HTTP_302_TO_GOOGLE_AUTHORIZATION_URL",
+    "authorization_host_is_google": true,
+    "authorization_response_no_store": true,
+    "unauthenticated_profile": "HTTP_401",
+    "google_account_selected": false,
+    "provider_callback_followed": false,
+    "application_session_created": false
+  },
+  "post_restore_observation": {
+    "error_only_window_minutes": 15,
+    "error_event_count": 0,
+    "log_bodies_retained": false
+  },
+  "not_proven": [
+    "Application-data invariants through the public rollback because no account or business record was accessed.",
+    "A completed Google callback or email lifecycle on Version 131.",
+    "Current Version 131 A/B tenant isolation, physical second-device history, or direct D1/R2 reconciliation.",
+    "The broader R-014 provider and migration fault-injection matrix."
+  ],
+  "real_user_business_data_read_or_written": false,
+  "account_identifiers_cookies_or_secrets_recorded": false
+}
