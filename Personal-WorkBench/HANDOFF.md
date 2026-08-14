@@ -15,7 +15,14 @@
 
 完成“个人日程 / mydairy”的公开多账户 SaaS 迁移。2026-08-11 已按 Owner 的明确公开运营目标将最外层 Sites 入口切换为 public；当前 S5-T3 仍需采集真实认证、A/B 租户写入/历史、D1/R2 对账及负向恢复证据。公开入口不等同于最终产品验收。Owner 已在本轮明确授权将已完成修复与遗留验收项同步至 GitHub。
 
-## 2026-08-14 当前进展：V127 Google OAuth 回退入口公开修复
+## 2026-08-14 当前进展：V128 Google OAuth 直达入口公开修复
+
+- V127 已让页面接管后的回退能启动 OAuth，但直达 `/auth/google` 仍先到登录页，依赖浏览器 JavaScript 完成第二步。V128 将 canonical 边缘路由改为调用既有 Better Auth 社会登录起点，严格接受 `https://accounts.google.com` 授权地址、转发 Secure／HttpOnly state cookie 后立即 302 到 Google；Google ID Token 路径、邮箱登录、账号显式关联、租户隔离、隐私同意、D1/R2 与冻结视觉页均未改变。
+- V128 已保存并公开部署。无账号、无 Cookie 线上探针确认登录页 200、canonical `/auth/google` 为 302 至 Google 授权页且带 state 与安全 state cookie；退役域 `/auth/google` 为 302 至 canonical `/auth/google`，避免 state 被写到旧域。没有选择 Google 账号、跟随 callback、创建会话、读取 Cookie 值、账户、业务记录或 D1/R2。
+- `test:auth` 41/41、`test:workbench-data` 58/58、typecheck 与生产 build 均通过；lint 为 0 error，保留既有 1 条 Hook warning。脱敏事实见 `13_evidence/public_version_128_google_oauth_direct_start.json`。
+- 本轮只消除了授权起点对页面接管的依赖，不将其伪装为完成登录：V128 的受控 Google callback、邮箱全生命周期、A/B 租户、物理第二设备、直接 D1/R2 对账及 V128 回滚演练仍未完成。
+
+## 2026-08-14 历史进展：V127 Google OAuth 回退入口公开修复
 
 - 线上实际探针确认 `/auth/google` 仅返回 canonical 登录页的显式 Google 请求；此前浏览器身份按钮不可用时，页面会回到这同一登录页而不会启动授权，正是“Google 已启用但登录不可用”的一条可复现路径。现将回退改为同源调用 Better Auth 的既有 `/api/auth/sign-in/social`，仅接受 `https://accounts.google.com` 授权地址后再跳转；`/auth/google` 的显式请求会在页面接管后自动走同一条标准 code flow。原 Google ID Token 路径、邮箱登录、账号显式关联、租户隔离、隐私同意、D1/R2 与视觉页均未改变。
 - V127 已保存并公开部署。无账号公开探针确认登录页为 200、`/auth/google` 到 canonical 带显式回退请求的 302、社会登录起点为 200，并返回带 state 的 Google 授权地址；没有选择 Google 账号、跟随 callback、创建会话、读取 Cookie/账户/业务记录或访问 D1/R2。
