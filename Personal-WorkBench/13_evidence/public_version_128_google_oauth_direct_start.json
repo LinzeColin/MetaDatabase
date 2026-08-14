@@ -38,6 +38,11 @@
     "build": "PASS",
     "lint": "PASS_0_ERRORS_1_PREEXISTING_WARNING"
   },
+  "post_deployment_observation": {
+    "error_only_window_minutes": 10,
+    "error_event_count": 0,
+    "log_bodies_retained": false
+  },
   "not_proven": [
     "A completed Google account selection and callback on Version 128.",
     "A completed email registration, verification, reset, and sign-in replay on Version 128.",

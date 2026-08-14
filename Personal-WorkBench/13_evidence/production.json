@@ -111,6 +111,7 @@
   },
   "controlled_deployment_and_recovery": {
     "version_128_public_deploy": "SUCCEEDED",
+    "version_128_post_deploy_error_only_window": "ZERO_EVENTS_IN_10_MINUTES",
     "version_127_public_deploy": "SUCCEEDED",
     "version_126_public_deploy": "SUCCEEDED",
     "version_125_public_deploy": "SUCCEEDED",

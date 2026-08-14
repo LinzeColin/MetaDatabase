@@ -662,6 +662,7 @@ test("production ledger identifies Version 128 as the current public-entry parti
   assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_35, false);
   assert.equal(ledger.controlled_deployment_and_recovery.version_36_public_deploy, "SUCCEEDED");
   assert.equal(ledger.controlled_deployment_and_recovery.version_128_public_deploy, "SUCCEEDED");
+  assert.equal(ledger.controlled_deployment_and_recovery.version_128_post_deploy_error_only_window, "ZERO_EVENTS_IN_10_MINUTES");
   assert.equal(ledger.controlled_deployment_and_recovery.version_127_public_deploy, "SUCCEEDED");
   assert.equal(ledger.controlled_deployment_and_recovery.version_126_public_deploy, "SUCCEEDED");
   assert.equal(ledger.controlled_deployment_and_recovery.version_125_public_deploy, "SUCCEEDED");
@@ -702,6 +703,32 @@ test("production ledger identifies Version 128 as the current public-entry parti
     true,
   );
   assert.equal(ledger.public_deploy_eligible, false);
+});
+
+test("Version 128 direct Google start evidence retains no account or secret material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/public_version_128_google_oauth_direct_start.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.task_id, "S5-T3");
+  assert.equal(evidence.status, "PASS_PUBLIC_VERSION_128_GOOGLE_OAUTH_DIRECT_START");
+  assert.equal(evidence.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(evidence.public_no_account_probe.canonical_auth_google, "HTTP_302_TO_GOOGLE_AUTHORIZATION_URL");
+  assert.equal(evidence.public_no_account_probe.authorization_url.state_present, true);
+  assert.equal(evidence.public_no_account_probe.authorization_url.secure_state_cookie_present, true);
+  assert.equal(evidence.public_no_account_probe.google_account_selected, false);
+  assert.equal(evidence.public_no_account_probe.application_session_created, false);
+  assert.equal(evidence.post_deployment_observation.error_event_count, 0);
+  assert.equal(evidence.post_deployment_observation.log_bodies_retained, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.account_identifiers_cookies_or_secrets_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
 });
 
 test("Version 35 storage mapping boundary retains only read-only aggregate evidence", async () => {
