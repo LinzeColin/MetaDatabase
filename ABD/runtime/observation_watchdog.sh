@@ -84,4 +84,3 @@ printf '%s\n' 'abd observation watchdog: restarting unhealthy owned observation 
 /usr/bin/docker restart --time 10 "$CONTAINER_NAME" >/dev/null
 mv -f "$history_tmp" "$RESTART_HISTORY"
 trap - EXIT HUP INT TERM
-

@@ -9,4 +9,3 @@ Unit=abd-v0001-observation-operations@weekly.service
 
 [Install]
 WantedBy=timers.target
-

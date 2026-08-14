@@ -55,4 +55,3 @@ case "$window" in
 esac
 
 printf '%s\n' "abd observation operations: $window local maintenance window ready; no owner action required" >&2
-
