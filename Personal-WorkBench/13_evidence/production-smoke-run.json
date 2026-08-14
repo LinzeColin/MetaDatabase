@@ -3,7 +3,7 @@
   "subject_phase": "S5-T3",
   "status": "BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK",
   "verdict": "NOT_ISSUED_PRE_VERIFIER",
-  "generated_at": "2026-08-11T07:09:13.827Z",
+  "generated_at": "2026-08-14T12:23:05.487Z",
   "environment": {
     "production_origin_configured": true,
     "production_origin_kind": "HTTPS",
@@ -16,49 +16,49 @@
         "ok": true,
         "status": 200,
         "reason": "HTTP_REACHABLE",
-        "duration_ms": 228
+        "duration_ms": 141
       },
       "sign_in": {
         "route": "/auth/sign-in",
         "ok": true,
         "status": 200,
         "reason": "HTTP_REACHABLE",
-        "duration_ms": 73
+        "duration_ms": 65
       },
       "sign_up": {
         "route": "/auth/sign-up",
         "ok": true,
         "status": 200,
         "reason": "HTTP_REACHABLE",
-        "duration_ms": 69
+        "duration_ms": 68
       },
       "forgot_password": {
         "route": "/auth/forgot-password",
         "ok": true,
         "status": 200,
         "reason": "HTTP_REACHABLE",
-        "duration_ms": 54
+        "duration_ms": 59
       },
       "verify_email": {
         "route": "/auth/verify-email",
         "ok": true,
         "status": 200,
         "reason": "HTTP_REACHABLE",
-        "duration_ms": 57
+        "duration_ms": 67
       },
       "public_config": {
         "route": "/api/auth/public-config",
         "ok": true,
         "status": 200,
         "reason": "HTTP_REACHABLE",
-        "duration_ms": 55
+        "duration_ms": 147
       },
       "profile_probe": {
         "route": "/api/mydairy/profile",
         "ok": false,
         "status": 401,
         "reason": "HTTP_REACHABLE",
-        "duration_ms": 70
+        "duration_ms": 68
       }
     },
     "production_assets": {
@@ -71,6 +71,10 @@
       "has_google_live_account": false,
       "has_mail_account": false,
       "has_password": false
+    },
+    "real_auth_flow": {
+      "status": "NOT_EXECUTED",
+      "precheck_only": true
     },
     "evidence_links": {
       "owner_activation": {
@@ -91,49 +95,49 @@
       "route": "/",
       "status": 200,
       "ok": true,
-      "elapsed_ms": 228
+      "elapsed_ms": 141
     },
     {
       "probe": "GET",
       "route": "/auth/sign-in",
       "status": 200,
       "ok": true,
-      "elapsed_ms": 73
+      "elapsed_ms": 65
     },
     {
       "probe": "GET",
       "route": "/auth/sign-up",
       "status": 200,
       "ok": true,
-      "elapsed_ms": 69
+      "elapsed_ms": 68
     },
     {
       "probe": "GET",
       "route": "/auth/forgot-password",
       "status": 200,
       "ok": true,
-      "elapsed_ms": 54
+      "elapsed_ms": 59
     },
     {
       "probe": "GET",
       "route": "/auth/verify-email",
       "status": 200,
       "ok": true,
-      "elapsed_ms": 57
+      "elapsed_ms": 67
     },
     {
       "probe": "GET",
       "route": "/api/auth/public-config",
       "status": 200,
       "ok": true,
-      "elapsed_ms": 55
+      "elapsed_ms": 147
     },
     {
       "probe": "GET",
       "route": "/api/mydairy/profile",
       "status": 401,
       "ok": false,
-      "elapsed_ms": 70
+      "elapsed_ms": 68
     }
   ],
   "risks": [
