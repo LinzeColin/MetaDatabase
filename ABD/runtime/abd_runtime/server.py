@@ -11,7 +11,11 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Mapping
 
+from .alpha_skeleton import AlphaSkeletonError, build_alpha_skeleton
+from .final_delivery import FinalDeliveryRuntimeError, build_final_delivery
+from .ga_reconciliation import GAReconciliationRuntimeError, build_ga_reconciliation
 from .observation_evidence import ObservationEvidenceError, build_observation_evidence
+from .shadow_beta import ShadowBetaRuntimeError, build_shadow_beta
 
 
 VERSION = "0.0.0.1"
@@ -82,6 +86,10 @@ def _home_page() -> bytes:
         "<p>运行控制面已启动，当前为只读观察。</p>"
         "<p>静态校准证据仅覆盖 2025/26 E0 单赛季描述，不能用于模型参数更新。</p>"
         "<p>系统不生成建议、不连接真实市场、账户、TAB 或 Gmail，也不执行订单。</p>"
+        "<p>软件 Alpha 仅展示固定合成闭环：<a href=\"/alpha\">/alpha</a>。</p>"
+        "<p>Shadow Beta 仅展示合成门并保持阻断：<a href=\"/beta\">/beta</a>。</p>"
+        "<p>GA 对账仅展示零行本地控制：<a href=\"/ga\">/ga</a>。</p>"
+        "<p>最终交付当前待整阶段复审：<a href=\"/delivery\">/delivery</a>。</p>"
         "<p>此页面仅通过受保护访问入口提供，不代表全球或中国大陆可达承诺。</p>"
         "<p>月度 30% 目标尚未验证且不保证。</p>"
         "</main></body></html>"
@@ -95,6 +103,10 @@ class RuntimeHTTPServer(ThreadingHTTPServer):
     def __init__(self, address: tuple[str, int], state: Mapping[str, Any]) -> None:
         self.runtime_state = dict(state)
         self.observation_evidence = build_observation_evidence(self.runtime_state)
+        self.alpha_skeleton = build_alpha_skeleton(self.runtime_state)
+        self.shadow_beta = build_shadow_beta(self.runtime_state)
+        self.ga_reconciliation = build_ga_reconciliation(self.runtime_state)
+        self.final_delivery = build_final_delivery(self.runtime_state)
         super().__init__(address, RuntimeRequestHandler)
 
 
@@ -127,6 +139,38 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
                 HTTPStatus.OK,
                 "application/json; charset=utf-8",
                 _json_bytes(self.server.observation_evidence),
+                head_only=head_only,
+            )
+            return
+        if path == "/alpha":
+            self._send(
+                HTTPStatus.OK,
+                "application/json; charset=utf-8",
+                _json_bytes(self.server.alpha_skeleton),
+                head_only=head_only,
+            )
+            return
+        if path == "/beta":
+            self._send(
+                HTTPStatus.OK,
+                "application/json; charset=utf-8",
+                _json_bytes(self.server.shadow_beta),
+                head_only=head_only,
+            )
+            return
+        if path == "/ga":
+            self._send(
+                HTTPStatus.OK,
+                "application/json; charset=utf-8",
+                _json_bytes(self.server.ga_reconciliation),
+                head_only=head_only,
+            )
+            return
+        if path == "/delivery":
+            self._send(
+                HTTPStatus.OK,
+                "application/json; charset=utf-8",
+                _json_bytes(self.server.final_delivery),
                 head_only=head_only,
             )
             return
@@ -174,7 +218,16 @@ def main(argv: list[str] | None = None) -> int:
         port = int(args.port)
         state = build_runtime_state(Path(args.config))
         server = create_server(args.host, port, state)
-    except (TypeError, ValueError, RuntimeConfigurationError, ObservationEvidenceError) as exc:
+    except (
+        TypeError,
+        ValueError,
+        RuntimeConfigurationError,
+        ObservationEvidenceError,
+        AlphaSkeletonError,
+        FinalDeliveryRuntimeError,
+        GAReconciliationRuntimeError,
+        ShadowBetaRuntimeError,
+    ) as exc:
         print("ABD runtime configuration rejected: %s" % exc, file=sys.stderr)
         return 2
     try:
