@@ -474,7 +474,7 @@ test("successful email and Google login both return to the authenticated desktop
   assert.match(googleIdentity, /provider: "google"/);
   assert.match(googleIdentity, /href=\{fallbackHref\}/);
   assert.match(googleIdentity, /onClick=\{onFallback\}/);
-  assert.match(googleStart, /callbackURL: AUTHENTICATED_HOME_PATH/);
+  assert.match(googleStart, /\/auth\/sign-in\?google=1/);
   assert.match(authForm, /searchParams\.get\("link_google"\) === "1"/);
   assert.match(authForm, /authenticatedLocationAfterEmailSignIn\(continueGoogleLinkAfterEmailSignIn\)/);
 });

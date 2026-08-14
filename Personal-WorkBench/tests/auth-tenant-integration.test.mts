@@ -157,19 +157,15 @@ test("local auth-to-tenant chain verifies two accounts, isolated history, and pa
       headers: new Headers({ "cf-connecting-ip": "127.0.0.1" }),
     }));
     assert.equal(fallbackGoogleStart.status, 302);
-    const fallbackGoogleLocation = fallbackGoogleStart.headers.get("location");
-    assert.ok(fallbackGoogleLocation);
-    const fallbackGoogleUrl = new URL(fallbackGoogleLocation);
-    assert.equal(fallbackGoogleUrl.host, "accounts.google.com");
-    assert.equal(new URL(String(fallbackGoogleUrl.searchParams.get("redirect_uri"))).origin, origin);
-    assert.ok(fallbackGoogleStart.headers.get("set-cookie"));
+    assert.equal(fallbackGoogleStart.headers.get("location"), `${origin}/auth/sign-in?google=1`);
+    assert.equal(fallbackGoogleStart.headers.get("set-cookie"), null);
     assert.equal(fallbackGoogleStart.headers.get("cache-control"), "no-store");
 
     const retiredGoogleStart = await googleFallbackRoute.GET(new Request(
       "https://huchuliang-workbench.linzezhang35.chatgpt.site/auth/google",
     ));
     assert.equal(retiredGoogleStart.status, 302);
-    assert.equal(retiredGoogleStart.headers.get("location"), "https://mydairy.linzezhang.com/auth/google");
+    assert.equal(retiredGoogleStart.headers.get("location"), "https://mydairy.linzezhang.com/auth/sign-in?google=1");
     assert.equal(retiredGoogleStart.headers.get("set-cookie"), null);
 
     const legacyLogin = legacyLoginRoute.GET(new Request(`${origin}/auth/login?return_to=https://invalid.example`));
