@@ -596,6 +596,7 @@ test("production ledger identifies Version 126 as the current public-entry parti
   assert.equal(ledger.current_version_126_habit_feedback.guest_habit_click, "EARLY_CHECKIN_IMMEDIATE_FEEDBACK_AND_REFRESH_READBACK_PASSED");
   assert.equal(ledger.current_version_126_habit_feedback.runtime_exceptions, 0);
   assert.equal(ledger.current_version_126_habit_feedback.google_identity_entry, "PUBLIC_SIGN_IN_BUTTON_READY_WITH_CONFIGURED_CLIENT_AND_ZERO_RUNTIME_EXCEPTIONS");
+  assert.equal(ledger.current_version_126_habit_feedback.guest_control_matrix, "PASS_9_MENU_ROUTES_18_AUDITED_CONTROLS_WITH_REFRESH_READBACK");
   assert.equal(ledger.current_version_125_rollback_restore.status, "PASS_PUBLIC_VERSION_125_ROLLBACK_RESTORE");
   assert.equal(ledger.current_version_125_rollback_restore.current_saved_version_number, 125);
   assert.equal(ledger.current_version_125_rollback_restore.rollback_target_saved_version_number, 124);
@@ -609,6 +610,8 @@ test("production ledger identifies Version 126 as the current public-entry parti
   assert.equal(ledger.current_public_candidate.guest_habit_feedback_replay, "PASS_IMMEDIATE_VISIBLE_STATE_THEN_REFRESH_READBACK");
   assert.equal(ledger.current_public_candidate.guest_habit_feedback_runtime_exceptions, 0);
   assert.equal(ledger.current_public_candidate.google_identity_entry_readiness, "PASS_PUBLIC_SIGN_IN_BUTTON_READY_WITH_CONFIGURED_CLIENT");
+  assert.equal(ledger.current_public_candidate.guest_control_matrix, "PASS_9_MENU_ROUTES_18_AUDITED_CONTROLS_WITH_REFRESH_READBACK");
+  assert.equal(ledger.observed_interface.current_version_126_guest_control_matrix, "PASS_9_MENU_ROUTES_18_AUDITED_CONTROLS_WITH_REFRESH_READBACK_RUNTIME_EXCEPTIONS_0");
   assert.equal(ledger.current_public_candidate.authenticated_product_flow_current_version, "NOT_RUN_NO_COMPLETED_CONTROLLED_ACCOUNT_REPLAY");
   assert.equal(ledger.current_private_candidate.saved_version_number, 35);
   assert.equal(ledger.current_private_candidate.source_readback_matches_saved_candidate, true);

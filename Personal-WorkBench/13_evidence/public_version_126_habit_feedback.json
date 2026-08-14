@@ -3,7 +3,7 @@
   "task_id": "S5-T3",
   "status": "PASS_PUBLIC_VERSION_126_GUEST_HABIT_FEEDBACK",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
-  "observed_at": "2026-08-14T09:35:17Z",
+  "observed_at": "2026-08-14T09:50:12Z",
   "scope": "Public guest desktop interaction replay for the current personal schedule site.",
   "deployment": {
     "saved_version_number": 126,
@@ -23,6 +23,13 @@
     "browser_button_rendered_and_ready": true,
     "runtime_exceptions": 0,
     "account_selection_or_session_created": false
+  },
+  "full_guest_control_matrix": {
+    "distinct_menu_routes": 9,
+    "audited_controls": 18,
+    "refresh_readback": true,
+    "runtime_exceptions": 0,
+    "result": "PASS"
   },
   "test_context": {
     "isolated_browser_profile": true,
