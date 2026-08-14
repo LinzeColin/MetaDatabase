@@ -1,0 +1,57 @@
+{
+  "_why": "验收台账（G1..G5）引哪几份证据来支撑四条判据。原件在 ~/.claude/goal/sessions/<session>.sa-ledger.json——那在仓外，随本机消失，接手的人看不见。这份是它在仓里的副本，判据 scripts/check_the_ledger_evidence_is_for_this_version.py 照着它逐份核。",
+  "_history": "2026-08-14 建。当天发现 G5/DEPLOYED_AND_READ_BACK.json 停在 v0.0.0.22（七天前、79 个版本前）却标着 PASS——因为它的产出者 verify_production_deployment.py 在部署脚本里**只出现在一条注释里**，从来没被调过。四条判据里的第 4 条『上线并回读』，它的证据就是这一份。",
+  "_note_on_dates": "别拿提交日期判新旧。确定性判据（对静态表、对文档）输出逐字节不变，旧日期只意味着『此后没变过』。真正会随版本变的是**对生产的实测**，它们带 expected_version——那一档必须等于当前 VERSION。",
+  "criteria": {
+    "G1": {
+      "slice": "取数",
+      "says": "至少一个真实平台的收藏能自动读进档案馆",
+      "evidence": [
+        "evidence/G1/BILIBILI_ACQUISITION.json",
+        "evidence/G1/LIST_SHAPE_END_TO_END.json",
+        "evidence/G1/LIST_SHAPE_END_TO_END_reddit.json",
+        "evidence/G1/LIST_SHAPE_END_TO_END_instagram.json"
+      ]
+    },
+    "G2": {
+      "slice": "界面诚实",
+      "says": "界面画的按钮与服务端事实清单一致，做不到的当场说清只能手动保存",
+      "evidence": [
+        "evidence/G2/SYNCABLE_MATCHES_REALITY.json",
+        "evidence/G2/NO_MECHANISM_IS_UNREACHABLE.json"
+      ]
+    },
+    "G3": {
+      "slice": "端到端",
+      "says": "真 Chrome 里从头走一遍并读回结果",
+      "evidence": [
+        "evidence/G3/END_TO_END_RUN.json"
+      ]
+    },
+    "G4": {
+      "slice": "说明书",
+      "says": "说明里写的每一步都被判据验过真的存在",
+      "evidence": [
+        "evidence/G4/USER_GUIDE_VERIFIED.json"
+      ]
+    },
+    "G5": {
+      "slice": "上线",
+      "says": "部署到生产再从生产回读，不拿本地结果冒充线上结果",
+      "evidence": [
+        "evidence/G5/DEPLOYED_AND_READ_BACK.json"
+      ]
+    }
+  },
+  "producers": {
+    "evidence/G1/BILIBILI_ACQUISITION.json": "scripts/bilibili_acquisition_drill.py",
+    "evidence/G1/LIST_SHAPE_END_TO_END.json": "scripts/list_shape_end_to_end_drill.py",
+    "evidence/G1/LIST_SHAPE_END_TO_END_reddit.json": "scripts/list_shape_end_to_end_drill.py",
+    "evidence/G1/LIST_SHAPE_END_TO_END_instagram.json": "scripts/list_shape_end_to_end_drill.py",
+    "evidence/G2/SYNCABLE_MATCHES_REALITY.json": "scripts/check_sync_promises_match_reality.py",
+    "evidence/G2/NO_MECHANISM_IS_UNREACHABLE.json": "scripts/check_no_mechanism_is_unreachable.py",
+    "evidence/G3/END_TO_END_RUN.json": "scripts/bilibili_end_to_end_drill.py",
+    "evidence/G4/USER_GUIDE_VERIFIED.json": "scripts/check_the_guide_matches_the_product.py",
+    "evidence/G5/DEPLOYED_AND_READ_BACK.json": "scripts/verify_production_deployment.py"
+  }
+}
