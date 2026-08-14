@@ -157,15 +157,22 @@ test("local auth-to-tenant chain verifies two accounts, isolated history, and pa
       headers: new Headers({ "cf-connecting-ip": "127.0.0.1" }),
     }));
     assert.equal(fallbackGoogleStart.status, 302);
-    assert.equal(fallbackGoogleStart.headers.get("location"), `${origin}/auth/sign-in?google=1`);
-    assert.equal(fallbackGoogleStart.headers.get("set-cookie"), null);
+    const fallbackGoogleLocation = fallbackGoogleStart.headers.get("location");
+    assert.equal(typeof fallbackGoogleLocation, "string");
+    if (typeof fallbackGoogleLocation !== "string") throw new Error("expected direct Google authorization URL");
+    const fallbackGoogleUrl = new URL(fallbackGoogleLocation);
+    assert.equal(fallbackGoogleUrl.origin, "https://accounts.google.com");
+    assert.equal(fallbackGoogleUrl.pathname, "/o/oauth2/v2/auth");
+    assert.equal(fallbackGoogleUrl.searchParams.has("state"), true);
+    assert.equal(fallbackGoogleUrl.searchParams.get("redirect_uri"), `${origin}/api/auth/callback/google`);
+    assert.match(fallbackGoogleStart.headers.get("set-cookie") ?? "", /__Secure-hcl-workbench\.state=/);
     assert.equal(fallbackGoogleStart.headers.get("cache-control"), "no-store");
 
     const retiredGoogleStart = await googleFallbackRoute.GET(new Request(
       "https://huchuliang-workbench.linzezhang35.chatgpt.site/auth/google",
     ));
     assert.equal(retiredGoogleStart.status, 302);
-    assert.equal(retiredGoogleStart.headers.get("location"), "https://mydairy.linzezhang.com/auth/sign-in?google=1");
+    assert.equal(retiredGoogleStart.headers.get("location"), "https://mydairy.linzezhang.com/auth/google");
     assert.equal(retiredGoogleStart.headers.get("set-cookie"), null);
 
     const legacyLogin = legacyLoginRoute.GET(new Request(`${origin}/auth/login?return_to=https://invalid.example`));

@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "task_id": "S5-T3",
+  "status": "PASS_PUBLIC_VERSION_129_GOOGLE_NATIVE_FALLBACK",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-14T11:11:27Z",
+  "scope": "Public server-rendered Google authorization fallback repair for the current personal schedule site.",
+  "deployment": {
+    "saved_version_number": 129,
+    "previous_saved_version_number": 128,
+    "public_deployment": "SUCCEEDED",
+    "source_push": "NON_FORCE_FAST_FORWARD_PROJECT_ROOT_PROJECTION"
+  },
+  "repair": {
+    "observed_defect": "Before client hydration, the Google identity control could render without a native click target even though the canonical authorization route was available.",
+    "new_behavior": "Until Google Identity Services is ready, server rendering exposes a native anchor to canonical /auth/google. Once the identity script is ready, the existing Google identity button replaces the fallback.",
+    "unchanged_boundaries": "The canonical OAuth route, Better Auth session flow, email auth, tenant derivation, privacy consent, D1/R2 bindings, and frozen visual routes are unchanged."
+  },
+  "public_no_account_probe": {
+    "sign_in": "HTTP_200",
+    "server_rendered_native_google_fallback": true,
+    "native_fallback_href": "CANONICAL_AUTH_GOOGLE",
+    "sign_in_server_error_observed": false,
+    "canonical_auth_google": "HTTP_302_TO_GOOGLE_AUTHORIZATION_URL",
+    "authorization_url": {
+      "scheme": "https",
+      "host": "accounts.google.com",
+      "path": "/o/oauth2/v2/auth",
+      "state_present": true,
+      "secure_state_cookie_present": true
+    },
+    "google_account_selected": false,
+    "provider_callback_followed": false,
+    "application_session_created": false
+  },
+  "local_validation": {
+    "auth_contract_and_integration": "PASS_41",
+    "workbench_data": "PASS_58",
+    "typecheck": "PASS",
+    "build": "PASS",
+    "lint": "PASS_0_ERRORS_1_PREEXISTING_WARNING"
+  },
+  "post_deployment_observation": {
+    "error_only_window_minutes": 10,
+    "error_event_count": 0,
+    "log_bodies_retained": false
+  },
+  "not_proven": [
+    "A completed Google account selection and callback on Version 129.",
+    "A completed email registration, verification, reset, and sign-in replay on Version 129.",
+    "Current Version 129 A/B tenant isolation or physical second-device history readback.",
+    "Direct physical D1/R2 reconciliation.",
+    "A Version 129 rollback-and-restore rehearsal."
+  ],
+  "real_user_business_data_read_or_written": false,
+  "account_identifiers_cookies_or_secrets_recorded": false
+}
