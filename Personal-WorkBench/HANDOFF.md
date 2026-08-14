@@ -17,7 +17,7 @@
 
 ## 当前状态
 
-- 2026-08-14（V117 旧域 Google 一键收口已公开发布）：确认 Google OAuth 已启用，canonical `/auth/google` 实际 302 到 Google 账户页并下发 Secure／HttpOnly／Lax state Cookie；发现退役的 `huchuliang-workbench…chatgpt.site` 仍可打开时，其 Google 入口会先落到 canonical 登录页，要求用户再次点击。现仅将该旧域 `/auth/google` 重定向改为 canonical `/auth/google`，使一次点击直接启动同一条已验证 OAuth 链路；未更改 Google 配置、证书、账户、D1/R2、会话规则、租户隔离或历史数据。`test:auth` 41/41、typecheck、production build 与回归（模块 1/1、工作台 56/56、e2e 5/5）通过；线上 Version #117 active，旧域→canonical OAuth→Google 与 canonical 首页均实际返回预期，隔离浏览器早起打卡→刷新读回仍为已打卡且脚本错误为 0。真实已验证 Google callback、受控 A/B、第二设备和物理 D1/R2 对账继续按 S5-T3 采证，不以入口检查替代。
+- 2026-08-14（V117 旧域 Google 一键收口已公开发布）：确认 Google OAuth 已启用，canonical `/auth/google` 实际 302 到 Google 账户页并下发 Secure／HttpOnly／Lax state Cookie；发现退役的 `huchuliang-workbench…chatgpt.site` 仍可打开时，其 Google 入口会先落到 canonical 登录页，要求用户再次点击。现仅将该旧域 `/auth/google` 重定向改为 canonical `/auth/google`，使一次点击直接启动同一条已验证 OAuth 链路；未更改 Google 配置、证书、账户、D1/R2、会话规则、租户隔离或历史数据。`test:auth` 41/41、typecheck、production build 与回归（模块 1/1、工作台 56/56、e2e 5/5）通过；线上 Version #117 active，旧域→canonical OAuth→Google 与 canonical 首页均实际返回预期，隔离浏览器早起打卡→刷新读回仍为已打卡且脚本错误为 0。另以隔离旧域 IndexedDB 合成记账记录重放：旧域 `?view=ledger` 自动到 canonical 同一路由，新域 guest 分区读回该记录，页面错误为 0；该上下文随后关闭，未触及真实账户或数据。真实已验证 Google callback、受控 A/B、第二设备和物理 D1/R2 对账继续按 S5-T3 采证，不以入口检查替代。
 
 - 2026-08-14（V116 公开恢复与回滚演练）：当前公开版本为 V116，修复 OAuth／邮箱登录回跳后的首个会话读取短暂为空时，资源客户端误落入匿名本机分区的竞态；修补仅涉及同标签、无身份值的恢复标记、会话作用域重试及其回归测试。线上 canonical Google 启动实际为 302 至 Google 账户页，携带 Secure／HttpOnly／Lax 状态 Cookie，Google 端未报告 callback URL 不匹配。按 S5-T3 演练已短暂部署上一 Saved Version V115，确认首页、登录页和 Google 启动入口正常后恢复 V116；恢复后新隔离浏览器完成本机早起打卡→刷新读回，登录页 Google 入口可见且可达，页面脚本错误为 0，最近 10 分钟 Worker error-only 为 0。该回滚／恢复事实不替代受控真人 Google／邮箱回调、A/B 账户、第二设备或 D1/R2 物理对账。
 
