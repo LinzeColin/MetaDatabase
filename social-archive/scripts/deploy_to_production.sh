@@ -1086,6 +1086,23 @@ step "8.2) 验收：他下载到的那个包，是不是 HEAD 里那份代码"
 .venv/bin/python scripts/check_the_shipped_package_is_the_committed_code.py --brief \
   || fail "他能下载到的包和 HEAD 不是同一份。生产上摆着一份没有对应提交的代码——这一步不能放过。"
 
+# **上面那道比的是「包里那些文件对不对」，不是「该有的文件都在不在」。**
+#
+# 它的比较集是**包里有的文件**：逐个拿 zip 里的条目去和 git 里同名的比。
+# 少打包一个文件，27/27 照样全对。而 `shipped_package_drill` 那道也盖不住——
+# Chrome 装载期只校验 manifest 点到名的东西。
+#
+# 2026-08-14 实测：`background.js` 用 executeScript 注入 6 个文件，
+# manifest 里一个名字都没提过（bilibili-reader / extract-core / extract /
+# fab / net-relay / net-observer）。把 `content/bilibili-reader.js` 改个名——
+# 打包成功、对得上 git、Chrome 装得上、worker 起得来、23 个演练全绿，
+# 而唯一跑通的那条 B 站读取路在他按下「连接账号」那一刻才静静失败。
+#
+# 查的是**线上那份**（他点下载拿到的就是它），不是本地 dist。
+.venv/bin/python scripts/check_the_package_ships_what_it_injects.py \
+  --zip "https://social-archive-api.linzezhang.com/downloads/social-archive-extension.zip" \
+  || fail "他下载到的那个包，缺了它运行时会去注入的文件——装得上、起得来，只在他点下去时静静失败。"
+
 step "8.5) 验收：装上这个包的真 Chrome，够不够得着**刚部署的这台生产**"
 # **十四个演练一个都没碰过真生产。** 它们全带着
 #   --host-resolver-rules=MAP social-archive.linzezhang.com 127.0.0.1:<假端口>

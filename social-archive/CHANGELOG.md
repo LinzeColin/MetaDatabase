@@ -6,6 +6,55 @@
 > **这里不补写**：隔了两版再靠回忆重建变更记录，写出来的东西看着像记录，
 > 其实是推测，比空着更容易被人当真。
 
+## v0.0.0.101 — 包里少一个运行时注入的文件，全线绿着而他点下去才炸
+
+### 缺口是怎么找出来的
+
+不是从代码里翻出来的，是**自己去公开域名下载了一次那个包**。
+下载下来的 sha256 和本地 `dist/` 那份完全相同，说明真 Chrome 演练加载的
+就是他会拿到的那批字节——到这里为止是好消息。接着问了下一句：
+**「包里 27 个文件都对得上」和「该有的文件都在」是同一件事吗？**
+
+不是。已有两道判据各差一档：
+
+| 判据 | 它的比较集 | 少一个文件会怎样 |
+|---|---|---|
+| `check_the_shipped_package_is_the_committed_code.py` | **包里有的文件** | 27/27 照样全对 |
+| `shipped_package_drill.py`（真 Chrome 装载） | **manifest 点到名的文件** | manifest 没提的一律看不见 |
+
+实测 `background.js`：`executeScript` 注入 6 个文件，manifest **一个名字都没提过**——
+
+    content/bilibili-reader.js   content/extract-core.js   content/extract.js
+    content/fab.js               content/net-relay.js      net-observer.js
+
+manifest 里没有这些名字，Chrome 装载期**结构上不可能**校验它们。
+把 `content/bilibili-reader.js` 改个名的后果：打包成功、对得上 git、
+Chrome 装得上、service worker 起得来、23 个演练全绿——
+而那是**唯一一条真跑通的读取路**，会在他按下「连接账号」那一刻静静失败。
+
+这是这个仓反复付代价的那个形状：**判据扫的集合比实况小**。
+上一次是「没人打开过最终那个 zip」，这次是「打开了，但只数了里面有的」。
+
+### 改了什么
+
+- 新增 `scripts/check_the_package_ships_what_it_injects.py`：从五处取运行时引用
+  （`executeScript({files:[…]})` / `runtime.getURL` / `importScripts` / `import…from` /
+  HTML 的 `<script src>` `<link href>`），逐条断言指得到包内实体。
+  **查的是线上那份**（`--zip <url>`，他点下载拿到的就是它），不是暂存目录。
+- 接进部署第 8 步紧跟在「包是不是提交的那份」之后——判据没有调用方就不算做完。
+- `tests/focused/test_the_package_ships_what_it_injects.py`：**每一条都配一个必须红的反例**
+  ——抽掉 `content/bilibili-reader.js` 要红、空扫要红、注入机制整档消失要红，
+  并且先断言反例真的造出来了（这个仓有过「反例根本没生效，3 passed 是假绿」）。
+
+### 顺带查实的两件事
+
+- **Cloudflare 按浏览器签名封 `Python-urllib`**（error 1010，403；curl 与不发 UA 都是 200）。
+  仓里 `check_the_shipped_package_is_the_committed_code.py` 早就踩过并定了写法，
+  照抄它的 `Mozilla/5.0 (package-check)`——前缀让边缘放行，括号里说真话，不冒充真浏览器。
+  他用 Chrome 下载不受影响（实测 200）。
+- 包里 `icon.svg` 没有被 manifest 引用（Chrome 的 `icons` 不支持 SVG）。
+  不影响功能，记在这里免得下次有人以为它是承重的。
+
 ## v0.0.0.100 — 认不出列表时那段诊断，偏偏不说字段叫什么
 
 ### 为什么这一条值钱
