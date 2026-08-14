@@ -234,7 +234,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
-  const PRODUCT_VERSION = "0.0.0.97";
+  const PRODUCT_VERSION = "0.0.0.98";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -416,6 +416,18 @@
     const worker = health.worker || null;
     if (worker && worker.ever_seen && worker.alive === false) {
       setServiceBadge("needs", "后台没在跑 · 新的同步会排队等着");
+      return;
+    }
+    // **worker 活着，但可能跟接口不是同一版。**（2026-08-14）
+    //
+    // 上面那一支只看 `alive === false`。版本不符时 `alive` 是 true，
+    // 于是它一路穿过去，而下面两条链也没事——**四个信号全正常，
+    // 而后台跑的是旧代码**。服务端已经把句子算好放在 `worker.message_zh` 里，
+    // 这里不读它的话就是又一次「信号建好了没接上」（今天第四次）。
+    //
+    // 句子由服务端下发，界面不自己造——和存储吃紧、备份那几格同一个规矩。
+    if (worker && worker.message_zh) {
+      setServiceBadge("degraded", worker.message_zh);
       return;
     }
     // **服务器盘快满了要当场说。**（2026-08-10）
@@ -2395,7 +2407,7 @@
     }
     await loadLibrary();
     renderNextStep();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=4023ac57").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=b532a023").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {

@@ -8,6 +8,7 @@ from pathlib import Path
 
 import httpx
 
+from . import __version__
 from .account_sync import AccountSyncCoordinator
 from .config import Settings
 from .connectors.command import CommandArtifactConnector
@@ -200,7 +201,7 @@ def run() -> None:
         if now - last_beat >= 15:
             # **空转的那一轮也要写。** 只在有任务时写的话，
             # 「闲着但活着」和「死了」在数据上分不开。
-            store.record_worker_heartbeat(owner)
+            store.record_worker_heartbeat(owner, __version__)
             last_beat = now
         job = store.claim_job(owner)
         if not job:

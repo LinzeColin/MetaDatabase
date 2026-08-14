@@ -280,7 +280,12 @@ CREATE TABLE IF NOT EXISTS destination_receipt (
 CREATE TABLE IF NOT EXISTS worker_heartbeat (
   worker_id TEXT PRIMARY KEY,
   owner TEXT NOT NULL,
-  last_seen_at TEXT NOT NULL
+  last_seen_at TEXT NOT NULL,
+  -- worker 自己那一版。**没有它就查不出「一半新一半旧」**：
+  -- 部署被打断时可能 api 换了新镜像而 worker 还跑旧的，那时
+  -- /health 的 version 是 api 报的、worker.alive 是 true（旧 worker 照样发心跳），
+  -- 四个信号全正常而系统是坏的。（2026-08-14 量出来的缺口）
+  version TEXT
 );
 
 CREATE TABLE IF NOT EXISTS quota_state (

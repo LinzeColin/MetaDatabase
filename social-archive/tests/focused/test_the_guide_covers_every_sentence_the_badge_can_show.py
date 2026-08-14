@@ -64,6 +64,11 @@ def _invariant_parts() -> dict[str, str]:
         # replication 的状态文件坏了（2026-08-14 新增）
         "REPLICATION_STATUS_UNREADABLE_SENTENCE":
             failure_copy.REPLICATION_STATUS_UNREADABLE_SENTENCE,
+        # 接口和后台跑在不同版本上（2026-08-14 新增）。
+        # 取 worker_version=None 那一支：另一支带版本号（有数字），
+        # 而上面 test_切出来的那几截 明令不许含数字（版本一变就误红）。
+        "worker_version_mismatch_sentence":
+            failure_copy.worker_version_mismatch_sentence("x", None),
     }
 
 
@@ -85,12 +90,25 @@ def _symbols_the_badge_can_actually_show() -> set[str]:
     import ast  # noqa: PLC0415
 
     tree = ast.parse((ROOT / "src/social_archive/api.py").read_text(encoding="utf-8"))
-    wanted = {"_backup_liveness", "_replication_liveness"}
+    # **按名字自动发现，不写死清单。**（2026-08-14 第二次改）
+    #
+    # 上一版写死 `{"_backup_liveness", "_replication_liveness"}`。当天晚些时候
+    # 我加了第三个活性函数（`_worker_liveness_with_version_check`）并给它写了
+    # 一句新文案——**这道门安静地全绿**，因为那个函数不在它眼里。
+    # 早上刚把手写的句子清单改成 ast 去数，而**扫描集本身还是手写的**：
+    # 「判据扫的集合比实况小」换了一层继续发作。
+    #
+    # 现在的口径：`api.py` 里名字带 `liveness` 的**所有**函数。
+    # 加第四个不用改这里；改名会被下面那条「一个都没扫到」拦住。
+    functions = [node for node in ast.walk(tree)
+                 if isinstance(node, ast.FunctionDef) and "liveness" in node.name]
+    wanted = {node.name for node in functions}
+    assert len(wanted) >= 3, (
+        f"api.py 里只找到 {sorted(wanted)} 这几个活性函数（至少应有 3 个：备份/复制/worker）。"
+        "改名了就把这里一起改——否则这道门会对着不全的集合发表意见。")
     found: set[str] = set()
     seen_functions: set[str] = set()
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.FunctionDef) or node.name not in wanted:
-            continue
+    for node in functions:
         seen_functions.add(node.name)
         for child in ast.walk(node):
             if (isinstance(child, ast.Attribute)

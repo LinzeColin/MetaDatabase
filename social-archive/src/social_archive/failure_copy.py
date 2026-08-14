@@ -665,3 +665,21 @@ def describe_sync_outcome(
         "message_zh": "这次没有取到任何内容，而且我们没能记录下原因。这是产品的问题，请重试一次；如果还是这样，请联系我们。",
         "failure_code": "UNEXPLAINED_ZERO", "action_zh": "重试",
     }
+
+
+# ## worker 和接口跑在不同版本上（2026-08-14）
+#
+# 部署被打断时可能 api 换了新镜像而 core-worker 还跑旧的。
+# 那时四个信号全正常：`version` 是 api 报的（新的）、`worker.alive` 是 true
+# （旧 worker 照样发心跳）、两条备份链也没事——**而后台跑的是旧代码**。
+#
+# 2026-08-06 出过它的一个变体：SIGTERM 打断在 `docker compose up` 中间，
+# core-worker 卡在 Created、后台任务全积压，而 /health 是好的。
+# 那一种后来被 `worker.alive` 查出来了；**这一种（活着但是旧的）在此之前查不出来**。
+def worker_version_mismatch_sentence(api_version: str, worker_version: str | None) -> str:
+    """接口和后台跑在不同版本上。`worker_version` 为 None = 旧 worker 根本不写版本。"""
+    if not worker_version:
+        return ("后台跑的是一个不报版本的旧版——你已经存下的东西一条都没少，"
+                "但新收进来的可能是按旧规则处理的。")
+    return (f"接口是 {api_version}、后台是 {worker_version}，两边版本对不上"
+            "——你已经存下的东西一条都没少，但新收进来的是按后台那一版处理的。")
