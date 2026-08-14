@@ -229,16 +229,12 @@ export function readAuthRuntimeConfig(env: AuthRuntimeEnv): AuthRuntimeConfig | 
 
 export function getPublicAuthPageConfig(env: AuthRuntimeEnv): {
   turnstileSiteKey: string | null;
-  googleClientId: string | null;
   legalOperatorName: string | null;
   privacyContactEmail: string | null;
 } {
   const config = readAuthRuntimeConfig(env);
   return {
     turnstileSiteKey: config?.turnstileSiteKey ?? null,
-    // OAuth client IDs identify the public browser application. The paired
-    // client secret remains exclusively inside the server runtime.
-    googleClientId: config?.googleClientId ?? null,
     legalOperatorName: nonEmpty(env.LEGAL_OPERATOR_NAME),
     privacyContactEmail: publicContactEmail(env.PRIVACY_CONTACT_EMAIL),
   };

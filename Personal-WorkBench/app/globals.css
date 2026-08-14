@@ -710,10 +710,8 @@ img { display: block; max-width: 100%; }
 .auth-primary-link { color: #fff !important; background: var(--text-accent); }
 .auth-google { color: var(--text-primary); background: #fff6f9; border: 1px solid #f0dbe4; text-decoration: none; }
 .auth-submit:disabled,
-.auth-google:disabled { cursor: wait; opacity: 0.66; }
-.auth-google-identity { display: flex; width: 100%; min-height: 44px; align-items: center; justify-content: center; }
-.auth-google-identity > div { width: 100%; min-height: 44px; }
-.auth-google-identity.is-disabled { pointer-events: none; opacity: 0.66; }
+.auth-google:disabled,
+.auth-google[aria-disabled="true"] { cursor: wait; opacity: 0.66; pointer-events: none; }
 .auth-secondary-link { align-self: center; margin-top: 2px; }
 .account-card { position: relative; display: flex; width: min(100%, 430px); flex-direction: column; gap: 14px; padding: 28px 22px; }
 .account-card h1 { margin: 0; padding-right: 32px; font-size: 22px; }

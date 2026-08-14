@@ -72,10 +72,10 @@ export async function verifyAuthContract() {
   assert.ok(form.includes('searchParams.get("verified") === "1"'));
   assert.ok(form.includes("重新发送验证邮件"));
   assert.ok(form.includes("GoogleIdentityButton"));
-  assert.ok(googleIdentity.includes("https://accounts.google.com/gsi/client"));
-  assert.ok(googleIdentity.includes('"/api/auth/sign-in/social"'));
-  assert.ok(googleIdentity.includes("idToken: { token: credential }"));
   assert.ok(googleIdentity.includes("href={fallbackHref}"));
+  assert.ok(googleIdentity.includes("onClick={handleClick}"));
+  assert.ok(googleIdentity.includes("onFallback();"));
+  assert.ok(!googleIdentity.includes("accounts.google.com/gsi"));
   assert.ok(!googleIdentity.includes("CLIENT_SECRET"));
   assert.ok(!form.includes("onClick={startGoogle}"));
   assert.ok(form.includes("challenges.cloudflare.com/turnstile"));

@@ -178,7 +178,7 @@ test("auth form waits for public Turnstile readiness instead of submitting a mis
   assert.equal(captchaSubmissionPreflight("verify-email", "loading", ""), null);
 });
 
-test("email auth pages render public provider identifiers without a second client configuration request", async () => {
+test("email auth pages render the public Turnstile key without a second client configuration request", async () => {
   const [form, googleIdentity, pageConfig, signIn, signUp, forgotPassword, styles] = await Promise.all([
     readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/auth/_components/google-identity-button.tsx", import.meta.url), "utf8"),
@@ -191,23 +191,18 @@ test("email auth pages render public provider identifiers without a second clien
 
   assert.match(pageConfig, /getPublicAuthPageConfig/);
   assert.match(pageConfig, /turnstileSiteKey/);
-  assert.match(pageConfig, /googleClientId/);
   for (const source of [signIn, signUp, forgotPassword]) {
     assert.match(source, /publicAuthTurnstileSiteKey/);
     assert.match(source, /turnstileSiteKey=\{publicAuthTurnstileSiteKey\(\)\}/);
   }
-  for (const source of [signIn, signUp]) {
-    assert.match(source, /publicAuthGoogleClientId/);
-    assert.match(source, /googleClientId=\{publicAuthGoogleClientId\(\)\}/);
-  }
   assert.match(form, /CAPTCHA_SCRIPT_LOAD_TIMEOUT_MS = 15_000/);
   assert.match(form, /setCaptchaReadiness\("challenge"\)/);
   assert.doesNotMatch(form, /CAPTCHA_RESPONSE_TIMEOUT_MS/);
-  assert.match(googleIdentity, /https:\/\/accounts\.google\.com\/gsi\/client/);
-  assert.match(googleIdentity, /idToken: \{ token: credential \}/);
-  assert.match(googleIdentity, /callbackURL: callbacksRef\.current\.callbackURL/);
+  assert.match(googleIdentity, /href=\{fallbackHref\}/);
+  assert.match(googleIdentity, /onClick=\{handleClick\}/);
+  assert.doesNotMatch(googleIdentity, /accounts\.google\.com\/gsi/);
   assert.match(styles, /\.turnstile-slot\s*\{[\s\S]*min-height:\s*65px;[\s\S]*overflow:\s*visible;/);
-  assert.match(styles, /\.auth-google-identity\s*\{[\s\S]*min-height:\s*44px;/);
+  assert.doesNotMatch(styles, /auth-google-identity/);
 });
 
 test("rate limits show a neutral retry message without claiming email delivery", () => {
@@ -254,7 +249,6 @@ test("mail sender accepts the frozen binding name and rejects conflicting aliase
     }),
     {
       turnstileSiteKey: "turnstile-site-key",
-      googleClientId: "google-client",
       legalOperatorName: "Example Operator",
       privacyContactEmail: "privacy@example.test",
     },
@@ -469,11 +463,9 @@ test("successful email and Google login both return to the authenticated desktop
     readFile(new URL("../app/auth/google/route.ts", import.meta.url), "utf8"),
   ]);
   assert.match(authForm, /GoogleIdentityButton/);
-  assert.match(authForm, /callbackURL=\{AUTHENTICATED_HOME_PATH\}/);
-  assert.match(googleIdentity, /"\/api\/auth\/sign-in\/social"/);
-  assert.match(googleIdentity, /provider: "google"/);
   assert.match(googleIdentity, /href=\{fallbackHref\}/);
-  assert.match(googleIdentity, /onClick=\{onFallback\}/);
+  assert.match(googleIdentity, /onClick=\{handleClick\}/);
+  assert.match(googleIdentity, /onFallback\(\);/);
   assert.match(googleStart, /callbackURL: AUTHENTICATED_HOME_PATH/);
   assert.match(authForm, /searchParams\.get\("link_google"\) === "1"/);
   assert.match(authForm, /authenticatedLocationAfterEmailSignIn\(continueGoogleLinkAfterEmailSignIn\)/);
@@ -557,16 +549,15 @@ test("authentication requests recover after a bounded first-party wait", async (
   assert.doesNotMatch(authForm, /\bfetch\(/);
 });
 
-test("Google sign-in uses the official identity credential path and keeps a server fallback", async () => {
+test("Google sign-in uses the server-owned OAuth redirect before and after hydration", async () => {
   const [authForm, googleIdentity] = await Promise.all([
     readFile(new URL("../app/auth/_components/auth-form.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/auth/_components/google-identity-button.tsx", import.meta.url), "utf8"),
   ]);
 
   assert.match(authForm, /GoogleIdentityButton/);
-  assert.match(googleIdentity, /identity\.initialize/);
-  assert.match(googleIdentity, /identity\.renderButton/);
-  assert.match(googleIdentity, /idToken: \{ token: credential \}/);
   assert.match(googleIdentity, /href=\{fallbackHref\}/);
-  assert.match(googleIdentity, /onClick=\{onFallback\}/);
+  assert.match(googleIdentity, /onClick=\{handleClick\}/);
+  assert.match(googleIdentity, /onFallback\(\);/);
+  assert.doesNotMatch(googleIdentity, /accounts\.google\.com\/gsi/);
 });

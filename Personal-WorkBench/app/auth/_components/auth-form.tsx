@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
-  AUTHENTICATED_HOME_PATH,
   authenticatedLocationAfterEmailSignIn,
   authSubmissionPreflight,
   buildAuthRequest,
@@ -44,7 +43,6 @@ declare global {
 type AuthFormProps = {
   mode: AuthMode;
   turnstileSiteKey: string | null;
-  googleClientId?: string | null;
 };
 
 const CAPTCHA_SCRIPT_LOAD_TIMEOUT_MS = 15_000;
@@ -86,7 +84,7 @@ function linkFor(mode: AuthMode): { href: string; label: string } {
   return { href: "/auth/sign-in", label: "返回登录" };
 }
 
-export function AuthForm({ mode, turnstileSiteKey, googleClientId = null }: AuthFormProps) {
+export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
   const usesTurnstile = usesTurnstileFor(mode);
   const turnstileContainer = useRef<HTMLDivElement>(null);
   const [fetchedSiteKey, setFetchedSiteKey] = useState<string | null>(null);
@@ -232,21 +230,6 @@ export function AuthForm({ mode, turnstileSiteKey, googleClientId = null }: Auth
     setCaptchaRetryNonce((attempt) => attempt + 1);
   }
 
-  function beginGoogleSignIn(): void {
-    setSubmitting(true);
-    setMessage("正在完成 Google 登录…");
-  }
-
-  function completeGoogleSignIn(): void {
-    markAuthReturnRecovery();
-    window.location.assign(AUTHENTICATED_HOME_PATH);
-  }
-
-  function failGoogleSignIn(nextMessage: string): void {
-    setSubmitting(false);
-    setMessage(nextMessage);
-  }
-
   async function submitForm(event: React.FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     const resetToken = readResetToken(window.location.search);
@@ -364,13 +347,8 @@ export function AuthForm({ mode, turnstileSiteKey, googleClientId = null }: Auth
         )}
         {mode === "sign-in" || mode === "sign-up" ? (
           <GoogleIdentityButton
-            clientId={googleClientId}
             disabled={!interactive || submitting}
-            callbackURL={AUTHENTICATED_HOME_PATH}
             fallbackHref="/auth/google"
-            onStart={beginGoogleSignIn}
-            onSuccess={completeGoogleSignIn}
-            onFailure={failGoogleSignIn}
             onFallback={markAuthReturnRecovery}
           />
         ) : null}
