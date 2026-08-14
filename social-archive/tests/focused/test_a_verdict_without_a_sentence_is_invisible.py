@@ -65,6 +65,14 @@ def _health(tmp_path: Path, monkeypatch, build) -> dict:
     return TestClient(api.app).get("/health").json()
 
 
+
+def _minutes_ago(minutes: int) -> str:
+    """N 分钟前的 UTC 时刻，ISO + Z。夹具里一律用它，别写死时间。"""
+    import datetime as _dt
+    return (_dt.datetime.now(_dt.timezone.utc)
+            - _dt.timedelta(minutes=minutes)).isoformat().replace("+00:00", "Z")
+
+
 def _nothing(root: Path) -> None:
     """全新安装。"""
 
@@ -76,7 +84,11 @@ def _healthy(root: Path) -> None:
         (snapshot / "manifest.json").write_text("{}", encoding="utf-8")
     (root / "status").mkdir(parents=True, exist_ok=True)
     (root / "status/object-replication.json").write_text(
-        json.dumps({"generated_at": "2026-08-14T03:05:00Z", "status": "PASS"}),
+        # **时间要相对当下算，不能写死。**（2026-08-14 下午修）
+        # 原来写死 `2026-08-14T03:05:00Z`，而复制链的门槛是 2 小时——
+        # 早上跑绿的这条，下午 05:15 UTC 再跑就变成「一切正常却在说话」。
+        # 夹具会随真实时间腐烂，而它会在**别人的机器上**先发作。
+        json.dumps({"generated_at": _minutes_ago(5), "status": "PASS"}),
         encoding="utf-8")
 
 
@@ -88,7 +100,9 @@ def _corrupt(root: Path) -> None:
 def _replication_failed(root: Path) -> None:
     _healthy(root)
     (root / "status/object-replication.json").write_text(
-        json.dumps({"generated_at": "2026-08-14T03:05:00Z", "status": "FAIL"}),
+        # 同样别写死——这一支现在碰巧仍能过（它本来就该说话），
+        # 而碰巧能过的腐烂夹具正是以后会咬人的那种。
+        json.dumps({"generated_at": _minutes_ago(5), "status": "FAIL"}),
         encoding="utf-8")
 
 
