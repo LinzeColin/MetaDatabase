@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
-  AUTHENTICATED_HOME_PATH,
+  authenticatedLocationAfterEmailSignIn,
   authSubmissionPreflight,
   buildAuthRequest,
   captchaSubmissionPreflight,
@@ -103,12 +103,15 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
   const showVerifiedSignInMessage = mode === "sign-in" && searchParams.get("verified") === "1" && message === initialMessages["sign-in"];
   const showSignedOutMessage = mode === "sign-in" && searchParams.get("signed_out") === "1" && message === initialMessages["sign-in"];
   const showServerStartFailure = mode === "sign-in" && searchParams.get("auth_error") === "1" && message === initialMessages["sign-in"];
+  const continueGoogleLinkAfterEmailSignIn = mode === "sign-in" && searchParams.get("link_google") === "1";
   const displayedMessage = showVerifiedSignInMessage
     ? "邮箱已验证，请登录。"
     : showSignedOutMessage
       ? "已退出登录。"
       : showServerStartFailure
         ? "登录入口暂时不可用，请稍后重试。"
+      : continueGoogleLinkAfterEmailSignIn && message === initialMessages["sign-in"]
+        ? "先使用邮箱和密码确认已有账户；登录后会继续完成 Google 连接。"
       : !interactive
         ? "正在准备登录…"
         : message;
@@ -271,7 +274,7 @@ export function AuthForm({ mode, turnstileSiteKey }: AuthFormProps) {
       }
       if (mode === "sign-in") {
         markAuthReturnRecovery();
-        window.location.assign(AUTHENTICATED_HOME_PATH);
+        window.location.assign(authenticatedLocationAfterEmailSignIn(continueGoogleLinkAfterEmailSignIn));
         return;
       }
       if (mode === "sign-up") {

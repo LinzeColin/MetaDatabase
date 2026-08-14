@@ -8,6 +8,10 @@ export type CaptchaReadiness = "loading" | "challenge" | "ready" | "unavailable"
 
 export const SIGN_UP_VERIFICATION_PATH = "/auth/verify-email";
 export const VERIFIED_LOGIN_PATH = "/auth/sign-in?verified=1";
+// This fixed route is only reached from the product-owned OAuth recovery
+// screen after the person has explicitly chosen to prove their existing
+// email-account ownership before linking Google. It is not caller supplied.
+export const GOOGLE_ACCOUNT_LINK_PATH = "/account?link_google=1";
 // Keep the marker free of identity, credential, callback URL, or business
 // data. AccountEntry removes it after using it to recover a just-returned
 // OAuth or email session in an embedded browser that rebuilt the tab.
@@ -29,6 +33,15 @@ export type AuthRequest = {
 
 export function usesTurnstileFor(mode: AuthMode): boolean {
   return mode === "sign-in" || mode === "sign-up" || mode === "forgot-password";
+}
+
+/**
+ * Keep the post-password path bounded. A Google account is never implicitly
+ * merged with an existing email account; this only continues the explicit
+ * link flow the person started on the product-owned error page.
+ */
+export function authenticatedLocationAfterEmailSignIn(continueGoogleLink: boolean): string {
+  return continueGoogleLink ? GOOGLE_ACCOUNT_LINK_PATH : AUTHENTICATED_HOME_PATH;
 }
 
 /**

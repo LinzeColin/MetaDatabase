@@ -4,6 +4,7 @@ import test from "node:test";
 import { google } from "@better-auth/core/social-providers";
 import {
   AUTHENTICATED_HOME_PATH,
+  authenticatedLocationAfterEmailSignIn,
   authSubmissionPreflight,
   buildAuthRequest,
   captchaSubmissionPreflight,
@@ -11,6 +12,7 @@ import {
   resolveCaptchaResponse,
   safeAuthFailureMessage,
   SIGN_UP_VERIFICATION_PATH,
+  GOOGLE_ACCOUNT_LINK_PATH,
   VERIFIED_LOGIN_PATH,
 } from "../app/auth/_components/auth-flow.ts";
 import { authErrorRecovery } from "../app/auth/_components/auth-error.ts";
@@ -105,7 +107,12 @@ test("OAuth error recovery is actionable without reflecting provider text", () =
     primaryHref: "/account",
     primaryLabel: "返回账户",
   });
-  assert.equal(authErrorRecovery("account_not_linked").primaryHref, "/auth/sign-in");
+  assert.deepEqual(authErrorRecovery("account_not_linked"), {
+    title: "Google 尚未关联",
+    message: "这个邮箱已有独立账户。为保护多账号数据不会自动合并；请先用邮箱密码确认该账户，随后会继续你主动发起的 Google 连接。",
+    primaryHref: "/auth/sign-in?link_google=1",
+    primaryLabel: "使用邮箱登录并连接 Google",
+  });
   assert.equal(authErrorRecovery("state_mismatch").title, "本次登录已过期");
   assert.deepEqual(authErrorRecovery("access_denied"), {
     title: "已取消本次 Google 登录",
@@ -433,6 +440,8 @@ test("email sign-up and password reset keep the documented callback contracts", 
   });
   assert.equal(buildAuthRequest("sign-in", base).body.callbackURL, AUTHENTICATED_HOME_PATH);
   assert.equal(AUTHENTICATED_HOME_PATH, "/?view=home&auth_return=1");
+  assert.equal(authenticatedLocationAfterEmailSignIn(false), AUTHENTICATED_HOME_PATH);
+  assert.equal(authenticatedLocationAfterEmailSignIn(true), GOOGLE_ACCOUNT_LINK_PATH);
   assert.deepEqual(buildAuthRequest("forgot-password", base).headers, {
     "x-captcha-response": "captcha-token",
   });
@@ -450,7 +459,21 @@ test("successful email and Google login both return to the authenticated desktop
   assert.match(authForm, /href="\/auth\/google"/);
   assert.match(authForm, /onClick=\{\(\) => markAuthReturnRecovery\(\)\}/);
   assert.match(googleStart, /callbackURL: AUTHENTICATED_HOME_PATH/);
-  assert.match(authForm, /window\.location\.assign\(AUTHENTICATED_HOME_PATH\)/);
+  assert.match(authForm, /searchParams\.get\("link_google"\) === "1"/);
+  assert.match(authForm, /authenticatedLocationAfterEmailSignIn\(continueGoogleLinkAfterEmailSignIn\)/);
+});
+
+test("an existing email account may continue an explicitly requested Google link without implicit matching", async () => {
+  const [accountPage, authServer] = await Promise.all([
+    readFile(new URL("../app/account/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../server/auth/index.ts", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(accountPage, /accountQuery\?\.get\("link_google"\) === "1"/);
+  assert.match(accountPage, /autoGoogleLinkConsumed/);
+  assert.match(accountPage, /location\.searchParams\.delete\("link_google"\)/);
+  assert.match(accountPage, /void linkGoogle\(\);/);
+  assert.match(authServer, /disableImplicitLinking: true/);
 });
 
 test("account sign-out uses the Better Auth same-origin endpoint and returns to a neutral login message", async () => {

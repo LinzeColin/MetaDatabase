@@ -31,9 +31,9 @@ export function authErrorRecovery(value: unknown): AuthErrorRecovery {
     case "account_not_linked":
       return {
         title: "Google 尚未关联",
-        message: "这个 Google 账号还没有关联到已有账户。请先使用邮箱密码登录，再到账户页点击“连接 Google”。",
-        primaryHref: "/auth/sign-in",
-        primaryLabel: "返回登录",
+        message: "这个邮箱已有独立账户。为保护多账号数据不会自动合并；请先用邮箱密码确认该账户，随后会继续你主动发起的 Google 连接。",
+        primaryHref: "/auth/sign-in?link_google=1",
+        primaryLabel: "使用邮箱登录并连接 Google",
       };
     case "state_not_found":
     case "state_mismatch":

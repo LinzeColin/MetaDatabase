@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { safeAccountReturnPath } from "../_components/workbench/account-return-path";
 import { LegacyDomainRedirect } from "../_components/workbench/legacy-domain-redirect";
 import { requestWithTimeout } from "../_components/workbench/request-timeout";
@@ -69,11 +69,16 @@ export default function AccountPage() {
   const [isBusy, setIsBusy] = useState(false);
   const [accountCheckUnavailable, setAccountCheckUnavailable] = useState(false);
   const [syncHealth, setSyncHealth] = useState<SyncHealth>("idle");
+  const autoGoogleLinkConsumed = useRef(false);
   const accountQuery = typeof window === "undefined" ? null : new URLSearchParams(window.location.search);
   const returnTo = safeAccountReturnPath(accountQuery?.get("return_to") ?? null);
   // This marker is supplied only by the user-facing device-history notice.
   // It authorizes an automatic preview, never an import or source deletion.
   const previewGuestHistoryOnArrival = accountQuery?.get("recover_guest_history") === "1";
+  // This marker is produced only by the bounded account-not-linked recovery
+  // action. The person has already selected Google, then explicitly supplied
+  // their email password; it never enables an implicit account merge.
+  const continueGoogleLinkAfterEmailSignIn = accountQuery?.get("link_google") === "1";
 
   /**
    * This is a deliberately data-free, verified-session-only check. The route
@@ -170,7 +175,7 @@ export default function AccountPage() {
     })();
   }, [loadAccount]);
 
-  async function linkGoogle() {
+  const linkGoogle = useCallback(async () => {
     if (isBusy) return;
     setMessage("");
     setIsBusy(true);
@@ -192,7 +197,21 @@ export default function AccountPage() {
     } finally {
       setIsBusy(false);
     }
-  }
+  }, [isBusy]);
+
+  useEffect(() => {
+    if (!continueGoogleLinkAfterEmailSignIn || !session || autoGoogleLinkConsumed.current) return;
+    autoGoogleLinkConsumed.current = true;
+    try {
+      const location = new URL(window.location.href);
+      location.searchParams.delete("link_google");
+      window.history.replaceState(window.history.state, "", `${location.pathname}${location.search}${location.hash}`);
+    } catch {
+      // Failure to clear this non-sensitive convenience marker must not block
+      // the explicit link operation; the ref still prevents a local loop.
+    }
+    void linkGoogle();
+  }, [continueGoogleLinkAfterEmailSignIn, linkGoogle, session]);
 
   async function signOut() {
     if (isBusy) return;
