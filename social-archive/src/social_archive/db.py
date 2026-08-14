@@ -107,6 +107,12 @@ class RuntimeStore:
             for name, declaration in relation_additions.items():
                 if relation_columns and name not in relation_columns:
                     con.execute(f"ALTER TABLE user_relation ADD COLUMN {name} {declaration}")
+            # v0.0.0.98：worker 心跳带上它自己那一版。加列式、可空，
+            # 老库补上之后旧 worker 写进来仍是 NULL——**那本身就是信息**
+            # （"跑的是不写版本的旧 worker"），所以不给默认值。
+            beat_columns = {row[1] for row in con.execute("PRAGMA table_info(worker_heartbeat)").fetchall()}
+            if beat_columns and "version" not in beat_columns:
+                con.execute("ALTER TABLE worker_heartbeat ADD COLUMN version TEXT")
             # v0.0.0.7 / T01 多租户。这四张表的 user_id 被下面的租户索引引用，
             # 所以必须在 executescript 之前就位，否则 CREATE INDEX 会因缺列而失败。
             self._add_tenant_columns(con)
@@ -1562,7 +1568,7 @@ class RuntimeStore:
             )
         return receipt_id
 
-    def record_worker_heartbeat(self, owner: str) -> None:
+    def record_worker_heartbeat(self, owner: str, version: str | None = None) -> None:
         """Worker 还活着。每轮循环写一次，**空转的那一轮也要写**。
 
         只在有任务时写的话，一个"闲着但活着"的 worker 和一个"死了"的 worker
@@ -1572,11 +1578,11 @@ class RuntimeStore:
         with self.connection() as con:
             con.execute("BEGIN IMMEDIATE")
             con.execute(
-                """INSERT INTO worker_heartbeat(worker_id,owner,last_seen_at)
-                   VALUES('default',?,?)
+                """INSERT INTO worker_heartbeat(worker_id,owner,last_seen_at,version)
+                   VALUES('default',?,?,?)
                    ON CONFLICT(worker_id) DO UPDATE SET owner=excluded.owner,
-                     last_seen_at=excluded.last_seen_at""",
-                (str(owner)[:256], now),
+                     last_seen_at=excluded.last_seen_at, version=excluded.version""",
+                (str(owner)[:256], now, (str(version)[:64] if version else None)),
             )
             con.execute("COMMIT")
 
@@ -1589,18 +1595,20 @@ class RuntimeStore:
         """
         with self.connection() as con:
             row = con.execute(
-                "SELECT owner,last_seen_at FROM worker_heartbeat WHERE worker_id='default'"
+                "SELECT owner,last_seen_at,version FROM worker_heartbeat WHERE worker_id='default'"
             ).fetchone()
         if not row:
+            # **键集在所有分支里一样**：今天刚为「字段依状态而存在」修过两条链，
+            # 任何拿一份夹具量 schema 的判据都会被它同时造出假阴和假阳。
             return {"ever_seen": False, "alive": False, "last_seen_at": None,
-                    "seconds_since": None,
+                    "seconds_since": None, "version": None,
                     "note": "从来没收到过 worker 心跳——它可能没启动，或者跑的是不写心跳的旧版本。"}
         stamp = str(row["last_seen_at"] or "")
         try:
             seen = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
         except ValueError:
             return {"ever_seen": True, "alive": False, "last_seen_at": stamp,
-                    "seconds_since": None, "note": "心跳时间戳读不懂。"}
+                    "seconds_since": None, "version": None, "note": "心跳时间戳读不懂。"}
         if seen.tzinfo is None:
             seen = seen.replace(tzinfo=UTC)
         seconds = (datetime.now(UTC) - seen).total_seconds()
@@ -1609,6 +1617,8 @@ class RuntimeStore:
             "alive": seconds <= stale_after_seconds,
             "last_seen_at": stamp,
             "seconds_since": round(seconds, 1),
+            # 旧 worker 不写这一格，读出来是 None——**那本身就是信息**，不是缺失。
+            "version": (str(row["version"]) if row["version"] else None),
             "note": ("" if seconds <= stale_after_seconds else
                      f"worker 已经 {int(seconds)} 秒没动过——后台任务不会有人处理，"
                      "而接口本身照样是好的。"),

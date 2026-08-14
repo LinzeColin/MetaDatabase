@@ -362,6 +362,33 @@ def _free_disk() -> dict[str, Any]:
 # `replicate_objects.py` 每跑一次就重写 `status/object-replication.json`。
 # 服务跑不起来时脚本根本不执行，那个文件就停在旧时间——**所以它的时间戳
 # 是这条链的活性信号**，而回执是历史。两者差别正是这次事故的全部。
+def _worker_liveness_with_version_check() -> dict[str, Any]:
+    """worker 活着，**还要跟接口跑在同一版上**。（2026-08-14）
+
+    此前 `/health` 让人看的四样（`version`/`worker.alive`/两条 `stale`）
+    **查不出「一半新一半旧」**：部署被打断时可能 api 换了新镜像而 core-worker
+    还跑旧的，那时四样全正常而后台跑的是旧代码。
+    实测过 `/health.worker` 和 `worker_heartbeat` 表**两边都不带版本**，
+    所以对不上也没人知道——v0.0.0.98 给心跳加了一列，这里把它接出来。
+
+    **判断和句子都放在这里**，因为界面那侧的规矩是「接口自带 message_zh，
+    我们不另造句子」；不下发句子的话徽章不会亮，等于没修。
+    """
+    block = store.worker_liveness()
+    api_version = str(__version__)
+    block["api_version"] = api_version
+    seen = block.get("version")
+    # **只在它确实活着的时候比。** 死了/从没见过是另一件事，已经有各自的说法；
+    # 这时候再叠一句版本不符只会盖掉更要紧的那句。
+    mismatch = bool(block.get("alive")) and (seen != api_version)
+    block["version_matches"] = (None if not block.get("alive") else not mismatch)
+    if mismatch:
+        block["message_zh"] = failure_copy.worker_version_mismatch_sentence(api_version, seen)
+    else:
+        block.setdefault("message_zh", "")
+    return block
+
+
 def _replication_liveness() -> dict[str, Any]:
     path = settings.data_root / "status/object-replication.json"
     # **三件事不许并成一个 `except`**（备份那一格早就分开了，这一格 2026-08-14 才补）：
@@ -560,7 +587,7 @@ def health() -> dict[str, Any]:
         #
         # 放在这里（而不是只放 /v1/status）是因为**部署脚本打的就是这一条**，
         # 而那次故障恰恰要在部署当场被发现。
-        "worker": store.worker_liveness(),
+        "worker": _worker_liveness_with_version_check(),
         # **盘满是这个服务已知的死法，而此前没有任何东西会先说一声。**
         #
         # 2026-08-05 那次：/v1/accounts 报 `sqlite3.OperationalError:
