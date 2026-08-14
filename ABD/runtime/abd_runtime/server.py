@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .alpha_skeleton import AlphaSkeletonError, build_alpha_skeleton
+from .final_delivery import FinalDeliveryRuntimeError, build_final_delivery
 from .ga_reconciliation import GAReconciliationRuntimeError, build_ga_reconciliation
 from .observation_evidence import ObservationEvidenceError, build_observation_evidence
 from .shadow_beta import ShadowBetaRuntimeError, build_shadow_beta
@@ -88,6 +89,7 @@ def _home_page() -> bytes:
         "<p>软件 Alpha 仅展示固定合成闭环：<a href=\"/alpha\">/alpha</a>。</p>"
         "<p>Shadow Beta 仅展示合成门并保持阻断：<a href=\"/beta\">/beta</a>。</p>"
         "<p>GA 对账仅展示零行本地控制：<a href=\"/ga\">/ga</a>。</p>"
+        "<p>最终交付当前待整阶段复审：<a href=\"/delivery\">/delivery</a>。</p>"
         "<p>此页面仅通过受保护访问入口提供，不代表全球或中国大陆可达承诺。</p>"
         "<p>月度 30% 目标尚未验证且不保证。</p>"
         "</main></body></html>"
@@ -104,6 +106,7 @@ class RuntimeHTTPServer(ThreadingHTTPServer):
         self.alpha_skeleton = build_alpha_skeleton(self.runtime_state)
         self.shadow_beta = build_shadow_beta(self.runtime_state)
         self.ga_reconciliation = build_ga_reconciliation(self.runtime_state)
+        self.final_delivery = build_final_delivery(self.runtime_state)
         super().__init__(address, RuntimeRequestHandler)
 
 
@@ -163,6 +166,14 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
                 head_only=head_only,
             )
             return
+        if path == "/delivery":
+            self._send(
+                HTTPStatus.OK,
+                "application/json; charset=utf-8",
+                _json_bytes(self.server.final_delivery),
+                head_only=head_only,
+            )
+            return
         self._send(
             HTTPStatus.NOT_FOUND,
             "application/json; charset=utf-8",
@@ -213,6 +224,7 @@ def main(argv: list[str] | None = None) -> int:
         RuntimeConfigurationError,
         ObservationEvidenceError,
         AlphaSkeletonError,
+        FinalDeliveryRuntimeError,
         GAReconciliationRuntimeError,
         ShadowBetaRuntimeError,
     ) as exc:
