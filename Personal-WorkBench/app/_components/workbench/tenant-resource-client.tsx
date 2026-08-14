@@ -538,6 +538,16 @@ export function useTenantResource<T extends TenantRecord>(
     try {
       requestScope = await refreshCurrentScope(forceSessionRefresh);
       if (!requestScope) return;
+      // A confirmed guest scope has no verified tenant to query. Keep the
+      // device-only history visible and explain the sync boundary without
+      // sending intentionally unauthorized resource requests on every mount,
+      // focus, or local save.
+      if (requestScope === "guest") {
+        cloudAvailabilityRef.current = "unauthorized";
+        commitRecords(localRecordsRef.current);
+        applyFailure(401);
+        return;
+      }
       const fetchRecords = () => requestWithTimeout(`/api/mydairy/${resource}`, { credentials: "same-origin" });
       let response = await fetchRecords();
       if (shouldRetryKnownSessionUnauthorized(response.status, requestScope, forceSessionRefresh)) {
@@ -705,6 +715,19 @@ export function useTenantResource<T extends TenantRecord>(
     if (scopeBeforeRequest !== scope) {
       acknowledgeScopeChange(scopeBeforeRequest);
       setSaving(false);
+      return null;
+    }
+
+    // Guest records are deliberately device-only. Do not issue a protected
+    // resource mutation merely to receive the expected 401 before preserving
+    // the record locally; a later account never inherits this guest partition.
+    if (scope === "guest") {
+      cloudAvailabilityRef.current = "unauthorized";
+      if (localPersisted) {
+        acknowledgeLocalSave("unauthorized");
+        return localRecord;
+      }
+      setError("当前设备无法保存这条本机记录，请检查浏览器存储权限后重试。");
       return null;
     }
 

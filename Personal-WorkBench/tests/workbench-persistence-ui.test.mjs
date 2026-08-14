@@ -264,6 +264,25 @@ test("guest dependent records accurately say they remain on the current device",
   assert.match(source, /scope === "guest"\s+\? "已保存在当前设备。当前未登录，关联记录会保留在这台设备。"/);
 });
 
+test("confirmed guest scopes keep history and saves on this device without protected resource requests", async () => {
+  const source = await readFile(resourceSource, "utf8");
+  const reloadStart = source.indexOf("const reload = useCallback");
+  const guestReload = source.indexOf('if (requestScope === "guest")', reloadStart);
+  const fetchStart = source.indexOf("const fetchRecords = () => requestWithTimeout", reloadStart);
+  const createStart = source.indexOf("const create = useCallback");
+  const guestCreate = source.indexOf('if (scope === "guest")', createStart);
+  const sensitiveGate = source.indexOf("if (sensitive && cloudAvailabilityRef.current !== \"available\")", createStart);
+
+  assert.ok(reloadStart >= 0);
+  assert.ok(guestReload > reloadStart && guestReload < fetchStart);
+  assert.match(source.slice(guestReload, fetchStart), /cloudAvailabilityRef\.current = "unauthorized"/);
+  assert.match(source.slice(guestReload, fetchStart), /commitRecords\(localRecordsRef\.current\)/);
+  assert.match(source.slice(guestReload, fetchStart), /applyFailure\(401\)/);
+  assert.ok(guestCreate > createStart && guestCreate < sensitiveGate);
+  assert.match(source.slice(guestCreate, sensitiveGate), /acknowledgeLocalSave\("unauthorized"\)/);
+  assert.match(source.slice(guestCreate, sensitiveGate), /当前设备无法保存这条本机记录/);
+});
+
 test("account management offers an explicit, preview-first import for this device's anonymous history", async () => {
   const [accountPage, transferPanel, cacheSource, legacySource] = await Promise.all([
     readFile("app/account/page.tsx", "utf8"),
