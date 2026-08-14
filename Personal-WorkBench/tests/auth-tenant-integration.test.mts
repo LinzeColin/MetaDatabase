@@ -165,6 +165,13 @@ test("local auth-to-tenant chain verifies two accounts, isolated history, and pa
     assert.ok(fallbackGoogleStart.headers.get("set-cookie"));
     assert.equal(fallbackGoogleStart.headers.get("cache-control"), "no-store");
 
+    const retiredGoogleStart = await googleFallbackRoute.GET(new Request(
+      "https://huchuliang-workbench.linzezhang35.chatgpt.site/auth/google",
+    ));
+    assert.equal(retiredGoogleStart.status, 302);
+    assert.equal(retiredGoogleStart.headers.get("location"), "https://mydairy.linzezhang.com/auth/google");
+    assert.equal(retiredGoogleStart.headers.get("set-cookie"), null);
+
     const legacyLogin = legacyLoginRoute.GET(new Request(`${origin}/auth/login?return_to=https://invalid.example`));
     assert.equal(legacyLogin.status, 302);
     assert.equal(legacyLogin.headers.get("location"), `${origin}/auth/sign-in`);

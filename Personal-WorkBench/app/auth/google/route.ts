@@ -44,7 +44,10 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   if (isRetiredCompatibilityHost(requestUrl.host)) {
-    return redirect(new URL("/auth/sign-in", CANONICAL_MYDAIRY_ORIGIN));
+    // This navigation cannot reuse the retired host's host-only OAuth state
+    // cookie. Start the canonical, same-origin flow immediately instead of
+    // making a person land on the sign-in page and press Google a second time.
+    return redirect(new URL("/auth/google", CANONICAL_MYDAIRY_ORIGIN));
   }
 
   try {
