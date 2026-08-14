@@ -9,3 +9,8 @@ import { getPublicAuthPageConfig } from "@/server/auth";
 export function publicAuthTurnstileSiteKey(): string | null {
   return getPublicAuthPageConfig(env).turnstileSiteKey;
 }
+
+/** Google OAuth client IDs are public browser identifiers, never secrets. */
+export function publicAuthGoogleClientId(): string | null {
+  return getPublicAuthPageConfig(env).googleClientId;
+}

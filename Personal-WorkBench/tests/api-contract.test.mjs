@@ -92,11 +92,11 @@ test("resource data access only uses static resource mappings and user predicate
   assert.ok(!store.includes("request.params"));
 });
 
-test("worker CSP permits Turnstile and the one retired-host canonical handoff target", async () => {
+test("worker CSP permits Turnstile, Google Identity and the one retired-host canonical handoff target", async () => {
   const worker = await readFile("worker/index.ts", "utf8");
   assert.ok(worker.includes("Content-Security-Policy"));
   assert.ok(worker.includes("https://challenges.cloudflare.com"));
-  assert.ok(!worker.includes("https://accounts.google.com"));
+  assert.ok(worker.includes("https://accounts.google.com"));
   assert.ok(worker.includes("frame-ancestors 'none'"));
   assert.ok(worker.includes("img-src 'self' data: blob:"));
   assert.ok(worker.includes("X-Content-Type-Options"));
