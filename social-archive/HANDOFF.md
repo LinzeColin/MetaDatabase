@@ -35,7 +35,7 @@ curl -s https://social-archive-api.linzezhang.com/health
 | | |
 |---|---|
 | 公开地址 | `https://social-archive.linzezhang.com`（资料库）／ `…-api.…`（接口） |
-| 跑着的版本 | **0.0.0.95**（从本机打公开域名读回来的，不是打回环） |
+| 跑着的版本 | **0.0.0.96**（从本机打公开域名读回来的，不是打回环） |
 | 生产机 | 见 `deploy/PRODUCTION_HOST`——**唯一真源，别把机器名抄进命令** |
 | 你的库 | 内容 **193** 条、关系 **194** 条、制品 **552** 个 |
 | 三份副本 | **552 / 552 全部三份已验证，pending 0** |
@@ -159,6 +159,30 @@ curl -s https://social-archive-api.linzezhang.com/health
 
 看四样：`version`、`worker.alive`、**`backup.stale`**、`replication.stale`
 （后两个都要是 `false`）。
+
+> **这四样查不出的一种情况，写在这儿免得你以为它全覆盖**（2026-08-14 量的）：
+> 部署被打断时，可能 `core-api` 换成了新镜像而 `core-worker` **还跑着旧的**。
+> 那时 `version` 是 api 报的（新的）、`worker.alive` 是 `true`（旧 worker 照样发心跳）
+> ——**一半新一半旧，这四样都正常**。
+>
+> 实测过 `/health.worker` 只有 `ever_seen`/`alive`/`last_seen_at`/`seconds_since`/`note`，
+> 心跳表 `worker_heartbeat` 只有 `worker_id`/`owner`/`last_seen_at`：**两边都不带版本**。
+> 要修得让 worker 把自己的版本写进心跳，那是动表结构的事，没在交付前做。
+>
+> 现在能查出来的办法（一条命令，在生产机上）：
+>
+> ```bash
+> ssh "$(cat deploy/PRODUCTION_HOST)" 'sudo docker ps --format "{{.Names}}  {{.Image}}" | grep social'
+> ```
+>
+> 三个容器的镜像标签应当**完全一样**（当天实测都是 `0.0.0.95`）。不一样就是被打断过，
+> 补一条就好（`compose up` 是幂等的）：
+> `ssh <host> 'cd /opt/social-archive && sudo docker compose up -d core-api core-worker cli-tools'`
+>
+> 这一格 2026-08-06 出过一次：SIGTERM 打断在 `docker compose up` 中间，
+> `core-worker` 卡在 `Created`、后台任务全积压，**而当时 /health 是好的**
+> （那时还没有 `worker.alive` 这一格；停着的那种现在查得出来，
+> **跑着旧镜像那种仍然查不出来**）。
 
 > **为什么备份要占两格。** 它是两条会**单独死**的链：`backup` 做出加密快照，
 > `replication` 把快照复制到别处。两次事故各死了一条：
