@@ -842,6 +842,7 @@ test("Version 131 Google native handoff evidence retains no account or secret ma
   assert.equal(evidence.verdict, "NOT_PRODUCT_ACCEPTANCE");
   assert.equal(evidence.deployment.saved_version_number, 131);
   assert.equal(evidence.deployment.previous_saved_version_number, 130);
+  assert.equal(evidence.local_validation.visual, "PASS_5_ROUTES_3_ROUNDS");
   assert.equal(evidence.public_no_account_probe.home, "HTTP_200");
   assert.equal(evidence.public_no_account_probe.sign_in, "HTTP_200");
   assert.equal(evidence.public_no_account_probe.server_rendered_native_google_fallback, true);

@@ -20,7 +20,8 @@
     "auth_contract_and_integration": "PASS_41",
     "typecheck": "PASS",
     "build": "PASS",
-    "lint": "PASS_0_ERRORS_1_PREEXISTING_WARNING"
+    "lint": "PASS_0_ERRORS_1_PREEXISTING_WARNING",
+    "visual": "PASS_5_ROUTES_3_ROUNDS"
   },
   "public_no_account_probe": {
     "home": "HTTP_200",
