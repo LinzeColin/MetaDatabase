@@ -17,6 +17,8 @@
 
 ## 当前状态
 
+- 2026-08-14（V114 本机保存提示真值已公开发布）：公开访客本来就可完成本机打卡、刷新后读回本机历史；但资源读取的匿名 401 文案错误地说“请先登录后再保存和查看历史”，与实际行为相矛盾，容易被理解为按钮或存储失效。现改为明确说明“当前未登录：记录仍会保存在这台设备；登录后可跨设备同步并查看云端历史”，保留现有 Google／邮箱认证、账户分区、敏感同意、D1/R2 写入门与所有本机保存行为。工作台数据回归 54/54、typecheck、lint（0 error，保留既有 1 条 Hook warning）与生产 build 通过；公开 canonical 隔离浏览器实际验证新文案、早起打卡确认、刷新读回和页面脚本错误 0，Google 入口仍为 200 → accounts.google.com，回调为 canonical `/api/auth/callback/google` 且 OAuth 状态 Cookie 保持 Secure／HttpOnly／Lax。未读取或写入个人 Google／邮箱、Cookie、账户、业务历史、D1/R2 或 GitHub；真实 provider callback、受控 A/B、第二设备读回及物理 D1/R2 对账仍是独立验收项。
+
 - 2026-08-14（V113 登录前历史恢复预览直达已公开发布）：用户在工作台主动点击“查看并预览本机历史”后，账户页现在会自动完成一次只读预览；真正导入仍需点击“确认导入到当前账号”，不会自动合并或删除本机源记录。该缩短路径保留既有多账号分区、当前敏感跨设备策略、预览先于写入、幂等导入和安全回跳。工作台数据回归 54/54、typecheck 与精确发布源生产 build 通过，lint 为 0 error（保留既有 1 条 Hook warning）。公开 canonical 隔离浏览器以合成访客记录和模拟已验证会话复核：恢复入口→自动预览请求 1 次→自动导入请求 0 次→确认按钮保持可用，页面脚本错误为 0。Sites 新版本已保存并部署成功；未读取或写入个人 Google／邮箱、Cookie、账户、业务历史、D1/R2 或 GitHub。真实 provider callback、受控 A/B、第二设备读回及物理 D1/R2 对账仍是独立验收项。
 
 - 2026-08-14（R-003 公开认证前置复核）：以全新匿名隔离浏览器实际复核 canonical `/auth/sign-in`、`/auth/sign-up`、`/auth/forgot-password` 均为 200；登录页 Turnstile 运行时已加载、可见容器高约 71px、响应输入存在，Google 直达入口可见且可操作，页面脚本错误为 0。`/api/auth/public-config` 返回公开验证码键与运营者/隐私联系信息存在性；`/auth/google` 为 302，provider 为 Google 且 callback 精确指向 canonical `/api/auth/callback/google`；匿名数据库会话读取为正常空会话。GitHub 只读清点显示仓库没有可复用的个人日程生产回放工作流，也未列出 `SITES_SMOKE_*` 或 ops 测试身份 Secret；未读取 Secret、账户、Cookie、邮箱或业务数据，未触发工作流、未上传 GitHub。该前置证明入口和公开配置面健康，不将未完成的真人 Turnstile、邮箱收信/验证/找回/新密码登录、Google callback、A/B、第二设备或 D1/R2 物理对账冒充为完成。
