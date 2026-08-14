@@ -238,6 +238,12 @@ jobs:
 
           deployment_uuid = str(payload.get("deployment_uuid") or payload.get("uuid") or "").strip()
           if not deployment_uuid:
+              deployments = payload.get("deployments")
+              if isinstance(deployments, list) and len(deployments) == 1 and isinstance(deployments[0], dict):
+                  deployment_uuid = str(
+                      deployments[0].get("deployment_uuid") or deployments[0].get("uuid") or ""
+                  ).strip()
+          if not deployment_uuid:
               print("::error::Coolify did not return a deployment receipt.")
               raise SystemExit(1)
           pathlib.Path(sys.argv[2]).write_text(deployment_uuid, encoding="utf-8")
