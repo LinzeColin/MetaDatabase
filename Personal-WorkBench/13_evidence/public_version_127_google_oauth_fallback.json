@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "task_id": "S5-T3",
+  "status": "PASS_PUBLIC_VERSION_127_GOOGLE_OAUTH_FALLBACK_START",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-14T10:15:54Z",
+  "scope": "Public Google authorization-start regression repair for the current personal schedule site.",
+  "deployment": {
+    "saved_version_number": 127,
+    "previous_saved_version_number": 126,
+    "public_deployment": "SUCCEEDED",
+    "source_push": "NON_FORCE_FAST_FORWARD_PROJECT_ROOT_PROJECTION"
+  },
+  "repair": {
+    "observed_defect": "A browser-identity fallback could return to the same sign-in page without starting Google authorization.",
+    "new_behavior": "The fallback posts to Better Auth social sign-in, validates the Google authorization host, then navigates to the returned authorization URL.",
+    "direct_auth_google_route": "REDIRECTS_TO_SIGN_IN_WITH_EXPLICIT_GOOGLE_FALLBACK_REQUEST"
+  },
+  "public_no_account_probe": {
+    "sign_in": "HTTP_200",
+    "auth_google": "HTTP_302_TO_CANONICAL_SIGN_IN_WITH_GOOGLE_REQUEST",
+    "oauth_start": "HTTP_200",
+    "authorization_url": {
+      "scheme": "https",
+      "host": "accounts.google.com",
+      "path": "/o/oauth2/v2/auth",
+      "state_present": true,
+      "redirect_flag": true
+    },
+    "google_account_selected": false,
+    "provider_callback_followed": false,
+    "application_session_created": false
+  },
+  "local_validation": {
+    "auth_contract_and_integration": "PASS_41",
+    "typecheck": "PASS",
+    "build": "PASS",
+    "workbench_data": "PASS_58",
+    "lint": "PASS_0_ERRORS_1_PREEXISTING_WARNING"
+  },
+  "not_proven": [
+    "A completed Google account selection and callback on Version 127.",
+    "A completed email registration, verification, reset, and sign-in replay on Version 127.",
+    "Current Version 127 A/B tenant isolation or physical second-device history readback.",
+    "Direct physical D1/R2 reconciliation.",
+    "A Version 127 rollback-and-restore rehearsal."
+  ],
+  "real_user_business_data_read_or_written": false,
+  "account_identifiers_cookies_or_secrets_recorded": false
+}

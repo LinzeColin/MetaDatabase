@@ -583,13 +583,18 @@ test("Version 37 public deployment and recovery evidence retains the current lim
   assert.equal(serialized.includes("Bearer "), false);
 });
 
-test("production ledger identifies Version 126 as the current public-entry partial evidence", async () => {
+test("production ledger identifies Version 127 as the current public-entry partial evidence", async () => {
   const ledger = JSON.parse(
     await readFile(new URL("../13_evidence/production.json", import.meta.url), "utf8"),
   );
 
-  assert.equal(ledger.status, "PUBLIC_ENTRY_VERSION_126_S5_T3_PARTIAL");
+  assert.equal(ledger.status, "PUBLIC_ENTRY_VERSION_127_S5_T3_PARTIAL");
   assert.equal(ledger.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(ledger.current_version_127_google_oauth_fallback.status, "PASS_PUBLIC_VERSION_127_GOOGLE_OAUTH_FALLBACK_START");
+  assert.equal(ledger.current_version_127_google_oauth_fallback.current_saved_version_number, 127);
+  assert.equal(ledger.current_version_127_google_oauth_fallback.previous_saved_version_number, 126);
+  assert.equal(ledger.current_version_127_google_oauth_fallback.auth_google_route, "CANONICAL_SIGN_IN_EXPLICIT_FALLBACK_REQUEST");
+  assert.equal(ledger.current_version_127_google_oauth_fallback.public_oauth_start, "HTTP_200_GOOGLE_AUTHORIZATION_URL_WITH_STATE");
   assert.equal(ledger.current_version_126_habit_feedback.status, "PASS_PUBLIC_VERSION_126_GUEST_HABIT_FEEDBACK");
   assert.equal(ledger.current_version_126_habit_feedback.current_saved_version_number, 126);
   assert.equal(ledger.current_version_126_habit_feedback.previous_saved_version_number, 125);
@@ -601,18 +606,21 @@ test("production ledger identifies Version 126 as the current public-entry parti
   assert.equal(ledger.current_version_125_rollback_restore.current_saved_version_number, 125);
   assert.equal(ledger.current_version_125_rollback_restore.rollback_target_saved_version_number, 124);
   assert.equal(ledger.current_version_125_rollback_restore.rollback_restore, "V125_TO_V124_TO_V125_SUCCEEDED");
-  assert.equal(ledger.current_public_candidate.saved_version_number, 126);
+  assert.equal(ledger.current_public_candidate.saved_version_number, 127);
   assert.equal(ledger.current_public_candidate.source_recorded_by_sites, true);
   assert.equal(ledger.current_public_candidate.archive_stored_by_sites, true);
   assert.equal(ledger.current_public_candidate.public_deployment, "SUCCEEDED");
-  assert.equal(ledger.current_public_candidate.previous_saved_version_number, 125);
+  assert.equal(ledger.current_public_candidate.previous_saved_version_number, 126);
   assert.equal(ledger.current_public_candidate.rollback_rehearsal_for_current_version, "NOT_RUN_PREVIOUS_V125_TO_V124_TO_V125_REHEARSAL_RETAINS_A_SAVED_RECOVERY_POINT");
-  assert.equal(ledger.current_public_candidate.guest_habit_feedback_replay, "PASS_IMMEDIATE_VISIBLE_STATE_THEN_REFRESH_READBACK");
-  assert.equal(ledger.current_public_candidate.guest_habit_feedback_runtime_exceptions, 0);
-  assert.equal(ledger.current_public_candidate.google_identity_entry_readiness, "PASS_PUBLIC_SIGN_IN_BUTTON_READY_WITH_CONFIGURED_CLIENT");
-  assert.equal(ledger.current_public_candidate.guest_control_matrix, "PASS_9_MENU_ROUTES_18_AUDITED_CONTROLS_WITH_REFRESH_READBACK");
+  assert.equal(ledger.current_public_candidate.guest_habit_feedback_replay, "PASS_VERSION_126_HISTORICAL_BASELINE");
+  assert.equal(ledger.current_public_candidate.google_oauth_fallback_start, "PASS_PUBLIC_AUTH_GOOGLE_TO_GOOGLE_AUTHORIZATION_URL");
   assert.equal(ledger.observed_interface.current_version_126_guest_control_matrix, "PASS_9_MENU_ROUTES_18_AUDITED_CONTROLS_WITH_REFRESH_READBACK_RUNTIME_EXCEPTIONS_0");
   assert.equal(ledger.current_public_candidate.authenticated_product_flow_current_version, "NOT_RUN_NO_COMPLETED_CONTROLLED_ACCOUNT_REPLAY");
+  assert.equal(ledger.authentication.version_127_google_oauth_fallback_start, "PASS_PUBLIC_AUTH_GOOGLE_TO_GOOGLE_AUTHORIZATION_URL_WITH_STATE");
+  assert.equal(ledger.authentication.version_127_google_oauth_callback, "NOT_RUN_NO_CONTROLLED_ACCOUNT_SELECTION_OR_CALLBACK");
+  assert.equal(ledger.authentication.version_127_email_lifecycle_replay, "NOT_RUN_NO_CONTROLLED_EMAIL_BROWSER_REPLAY");
+  assert.equal(ledger.tenant_and_history.version_127_current_physical_a_b_replay, "NOT_RUN");
+  assert.equal(ledger.tenant_and_history.version_127_physical_second_device_history, "NOT_RUN");
   assert.equal(ledger.current_private_candidate.saved_version_number, 35);
   assert.equal(ledger.current_private_candidate.source_readback_matches_saved_candidate, true);
   assert.equal(ledger.current_private_candidate.archive_stored_by_sites, true);
@@ -646,6 +654,7 @@ test("production ledger identifies Version 126 as the current public-entry parti
   assert.equal(ledger.controlled_deployment_and_recovery.version_34_to_35_private_restore, "SUCCEEDED");
   assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_35, false);
   assert.equal(ledger.controlled_deployment_and_recovery.version_36_public_deploy, "SUCCEEDED");
+  assert.equal(ledger.controlled_deployment_and_recovery.version_127_public_deploy, "SUCCEEDED");
   assert.equal(ledger.controlled_deployment_and_recovery.version_126_public_deploy, "SUCCEEDED");
   assert.equal(ledger.controlled_deployment_and_recovery.version_125_public_deploy, "SUCCEEDED");
   assert.equal(ledger.controlled_deployment_and_recovery.version_125_to_124_public_rollback, "SUCCEEDED");
@@ -657,7 +666,8 @@ test("production ledger identifies Version 126 as the current public-entry parti
   assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_37, false);
   assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_124, false);
   assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_125, false);
-  assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_126, true);
+  assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_126, false);
+  assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_127, true);
   assert.equal(
     ledger.evidence_files.includes("13_evidence/private_version_35_s5_t3_controlled_private_deployment_and_rollback.json"),
     true,
@@ -668,6 +678,10 @@ test("production ledger identifies Version 126 as the current public-entry parti
   );
   assert.equal(
     ledger.evidence_files.includes("13_evidence/public_version_126_habit_feedback.json"),
+    true,
+  );
+  assert.equal(
+    ledger.evidence_files.includes("13_evidence/public_version_127_google_oauth_fallback.json"),
     true,
   );
   assert.equal(
