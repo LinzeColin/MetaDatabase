@@ -8,6 +8,7 @@ import shlex
 import subprocess
 import sys
 import urllib.error
+import re
 from pathlib import Path
 
 import yaml
@@ -45,7 +46,10 @@ def test_install_dry_run_is_zero_write_even_when_prerequisites_are_available(tmp
     scripts = project / "scripts"
     scripts.mkdir(parents=True)
     (scripts / "install.sh").write_text((ROOT / "scripts" / "install.sh").read_text(encoding="utf-8"), encoding="utf-8")
-    for relative in ("pyproject.toml", "compose.yaml", ".env.example", "scripts/setup_wizard.py", "scripts/generate_pairing_code.py", "scripts/status_server.py"):
+    # 这份清单必须与 install.sh 的必需文件检查**一致**。少一个，dry-run 就会
+    # 报「安装源文件缺失」，而那看起来像 install.sh 坏了，其实是夹具漏建。
+    # build_extension_package.py 一直不在这里，所以这条判据从 origin/main 起就是红的。
+    for relative in ("pyproject.toml", "compose.yaml", ".env.example", "scripts/setup_wizard.py", "scripts/ensure_api_token.py", "scripts/status_server.py", "scripts/build_extension_package.py"):
         target = project / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text("fixture\n", encoding="utf-8")
@@ -68,6 +72,31 @@ def test_install_dry_run_is_zero_write_even_when_prerequisites_are_available(tmp
     assert not (project / "runtime").exists()
 
 
+def _provision_source_tree(project: Path) -> None:
+    """把夹具的 secret 清单也交给 compose 决定。
+
+    这份清单原先是**第四份手写名单**（compose / install.sh /
+    prepare_systemd_host.sh / 这里）。四份里任何一份漏一个，
+    dry-run 就会报「缺少宿主机 Secret」——看起来像脚本坏了，其实是夹具漏建。
+
+    prepare_systemd_host.sh 现在从 compose 现读必需清单，所以夹具也照抄真
+    compose，再按它建占位。少一份要维护的名单。
+    """
+    for compose in sorted(ROOT.glob("compose*.yaml")):
+        (project / compose.name).write_text(compose.read_text(encoding="utf-8"), encoding="utf-8")
+    secrets = project / "runtime" / "secrets"
+    secrets.mkdir(parents=True, exist_ok=True)
+    names = set()
+    for compose in sorted(ROOT.glob("compose*.yaml")):
+        names |= set(re.findall(
+            r"file:\s*\./runtime/secrets/([a-z_][a-z0-9_.]*)",
+            compose.read_text(encoding="utf-8"),
+        ))
+    assert names, "从 compose 里没解析出 secret —— 夹具在空转"
+    for name in sorted(names):
+        (secrets / name).write_text("fixture\n", encoding="utf-8")
+
+
 def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
     project = tmp_path / "project"
     scripts = project / "scripts"
@@ -84,7 +113,8 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
         "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n"
         "SOCIAL_ARCHIVE_IMPORT_HOST_PATH=/var/lib/social-archive/import\n"
         "SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH=/var/lib/social-archive/vendor-output\n"
-        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n"
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=980\n"
+        "SOCIAL_ARCHIVE_HOST_SECRETS_GID=10001\n"
         f"SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT={private_database_client}\n",
         encoding="utf-8",
     )
@@ -107,24 +137,7 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
         "social-archive-status-web.service",
     ):
         (units / name).write_text("fixture\n", encoding="utf-8")
-    secrets = project / "runtime" / "secrets"
-    secrets.mkdir(parents=True)
-    for name in (
-        "r2_access_key_id",
-        "r2_secret_access_key",
-        "oci_access_key_id",
-        "oci_secret_access_key",
-        "github_token",
-        "private_database_token",
-        "social_archive_api_token",
-        "social_archive_pairing_code",
-        "cli_worker_token",
-        "notion_token",
-        "obsidian_rest_token",
-        "karakeep_api_token",
-        "linkwarden_api_token",
-    ):
-        (secrets / name).write_text("fixture\n", encoding="utf-8")
+    _provision_source_tree(project)
     before = sorted(str(path.relative_to(project)) for path in project.rglob("*"))
 
     result = subprocess.run(["bash", "scripts/prepare_systemd_host.sh", "--dry-run"], cwd=project, text=True, capture_output=True, check=False)
@@ -140,7 +153,8 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
         "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n"
         "SOCIAL_ARCHIVE_IMPORT_HOST_PATH=/var/lib/social-archive/import\n"
         "SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH=/var/lib/social-archive/vendor-output\n"
-        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n"
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=980\n"
+        "SOCIAL_ARCHIVE_HOST_SECRETS_GID=10001\n"
         f"SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT={project / 'missing' / 'private_db_client.py'}\n",
         encoding="utf-8",
     )
@@ -155,7 +169,8 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
         "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n"
         "SOCIAL_ARCHIVE_IMPORT_HOST_PATH=./runtime/import\n"
         "SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH=/var/lib/social-archive/vendor-output\n"
-        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n"
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=980\n"
+        "SOCIAL_ARCHIVE_HOST_SECRETS_GID=10001\n"
         f"SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT={private_database_client}\n",
         encoding="utf-8",
     )
@@ -169,7 +184,8 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
         "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n"
         "SOCIAL_ARCHIVE_IMPORT_HOST_PATH=/var/lib/social-archive/import\n"
         "SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH=/var/lib/social-archive/vendor-output\n"
-        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n"
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=980\n"
+        "SOCIAL_ARCHIVE_HOST_SECRETS_GID=10001\n"
         f"SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT={private_database_client}\n",
         encoding="utf-8",
     )
@@ -209,6 +225,7 @@ def test_systemd_host_prepare_refuses_to_erase_existing_nonsecret_host_configura
         f"SOCIAL_ARCHIVE_IMPORT_HOST_PATH={data_root}/import\n"
         f"SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH={data_root}/vendor-output\n"
         "SOCIAL_ARCHIVE_HOST_DATA_GID=980\n"
+        "SOCIAL_ARCHIVE_HOST_SECRETS_GID=10001\n"
         f"SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT={private_database_client}\n",
         encoding="utf-8",
     )
@@ -231,24 +248,7 @@ def test_systemd_host_prepare_refuses_to_erase_existing_nonsecret_host_configura
         "social-archive-status-web.service",
     ):
         (units / name).write_text("fixture\n", encoding="utf-8")
-    secrets = project / "runtime" / "secrets"
-    secrets.mkdir(parents=True)
-    for name in (
-        "r2_access_key_id",
-        "r2_secret_access_key",
-        "oci_access_key_id",
-        "oci_secret_access_key",
-        "github_token",
-        "private_database_token",
-        "social_archive_api_token",
-        "social_archive_pairing_code",
-        "cli_worker_token",
-        "notion_token",
-        "obsidian_rest_token",
-        "karakeep_api_token",
-        "linkwarden_api_token",
-    ):
-        (secrets / name).write_text("fixture\n", encoding="utf-8")
+    _provision_source_tree(project)
     host_env = project / "etc" / "social-archive" / "social-archive.env"
     host_env.parent.mkdir(parents=True)
     host_env.write_text("SOCIAL_ARCHIVE_R2_ENDPOINT=https://fixture.invalid\n", encoding="utf-8")
@@ -289,7 +289,10 @@ def test_systemd_host_prepare_keeps_long_lived_secrets_root_only_and_uses_unit_c
     assert "SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=$ROOT/runtime/secrets/github_token" not in prepare
     assert "validate_host_env_replacement" in prepare
     assert "拒绝覆盖并清空既有非 Secret 配置" in prepare
-    assert 'LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_token' in replication
+# 凭据来源是 github_markdown_token（唯一有私有仓权限的那个），
+    # target 名仍是 github_token —— 应用读的是 %d/github_token。
+    # 用 runtime/secrets/github_token 的话第三份副本永远失败（实测 2026-08-04）。
+    assert 'LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_markdown_token' in replication
     assert 'Environment=SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token' in replication
     assert 'LoadCredential=r2_access_key_id:/opt/social-archive/runtime/secrets/r2_access_key_id' in backup
     assert 'Environment=SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE=%d/r2_access_key_id' in backup
@@ -354,9 +357,9 @@ def test_only_the_documented_systemd_credential_directory_can_use_root_owned_gro
     )
 
 
-def test_start_uses_the_installed_project_python_for_pairing_code_generation():
+def test_start_uses_the_installed_project_python_for_api_token_provisioning():
     start = (ROOT / "scripts" / "start.sh").read_text(encoding="utf-8")
-    assert ".venv/bin/python scripts/generate_pairing_code.py" in start
+    assert ".venv/bin/python scripts/ensure_api_token.py" in start
     assert "docker compose up -d --force-recreate core-api core-worker" in start
 
 
@@ -382,12 +385,18 @@ def test_core_and_host_maintenance_share_an_explicit_bind_data_plane():
     assert "social_archive_data" not in (compose.get("volumes") or {})
 
     cli = compose["services"]["cli-tools"]
-    assert cli["group_add"] == ["${SOCIAL_ARCHIVE_HOST_DATA_GID:-10001}"]
+    assert cli["group_add"] == [
+        "${SOCIAL_ARCHIVE_HOST_DATA_GID:-980}",
+        # 写产出与读密钥是两个组。只给前者 → CLI Sidecar 读不到自己的密钥，
+        # /health 仍 200 而业务路由全 401（C-T00-01）。
+        "${SOCIAL_ARCHIVE_HOST_SECRETS_GID:-10001}",
+    ]
 
     example = (ROOT / ".env.example").read_text(encoding="utf-8")
     prepare = (ROOT / "scripts" / "prepare_systemd_host.sh").read_text(encoding="utf-8")
     assert "SOCIAL_ARCHIVE_DATA_HOST_PATH=./runtime/data" in example
-    assert "SOCIAL_ARCHIVE_HOST_DATA_GID=10001" in example
+    assert "SOCIAL_ARCHIVE_HOST_DATA_GID=980" in example
+    assert "SOCIAL_ARCHIVE_HOST_SECRETS_GID=10001" in example
     assert 'HOST_DATA_ROOT="/var/lib/social-archive"' in prepare
     assert "SOCIAL_ARCHIVE_DATA_HOST_PATH" in prepare
     assert "SOCIAL_ARCHIVE_DATA_ROOT" in prepare
@@ -424,9 +433,24 @@ def test_install_provisions_shared_nonroot_bind_mounts_for_core_and_cli_sidecar(
     assert "chmod 2770 runtime/data runtime/import runtime/vendor-output runtime/vendor-output/{cli,xhs,kuaishou,douk}" in install
     assert "groupadd --system --gid 10001 socialarchive" in core_dockerfile
     assert "useradd --system --uid 10001 --gid socialarchive" in core_dockerfile
-    assert "groupadd --system --gid 10001 socialarchive" in cli_dockerfile
-    assert "useradd --system --uid 10002 --gid socialarchive" in cli_dockerfile
-    assert "chown -R cliworker:socialarchive /work /worker" in cli_dockerfile
+    # The Core owns the shared host tree.  The CLI Sidecar reaches it through the
+    # explicitly configured host maintenance group granted at run time, which is
+    # stronger than baking a coincidental numeric gid into the image: production
+    # sets SOCIAL_ARCHIVE_HOST_DATA_GID to the real `id -g socialarchive`.
+    assert "useradd --system --uid 10002" in cli_dockerfile
+    compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+    cli_service = compose.split("\n  cli-tools:", 1)[1]
+    assert "group_add:" in cli_service
+    # 兜底值是 **980**，不是 10001（2026-08-12 合并时改）。
+    #
+    # 这一行原来钉的是 10001——那是数据与密钥共用一个属组的时候。之后拆成了两个：
+    # 数据 `SOCIAL_ARCHIVE_HOST_DATA_GID`（980）、密钥
+    # `SOCIAL_ARCHIVE_HOST_SECRETS_GID`（10001）。生产 `.env` 实测正是这两个值。
+    # 同一个文件上面那条判据（`cli["group_add"] == [...]`）钉的就是 980，
+    # **两条判据一度在同一个文件里互相矛盾**，而矛盾的那条对着生产是错的。
+    assert '"${SOCIAL_ARCHIVE_HOST_DATA_GID:-980}"' in cli_service
+    assert "${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}:/work/output" in cli_service
+    assert "SOCIAL_ARCHIVE_HOST_DATA_GID=" in (ROOT / ".env.example").read_text(encoding="utf-8")
 
 
 def test_deployment_probe_read_only_never_calls_dns_or_https(monkeypatch, capsys):
@@ -503,3 +527,19 @@ def test_tunnel_renderer_uses_isolated_ports_and_has_no_file_write(tmp_path):
     assert rendered["config"]["ingress"][2]["path"] == r"^/social-archive(\.json|-health)$"
     assert "http://127.0.0.1:80" in serialized
     assert list(tmp_path.glob("*.yml")) == []
+
+
+def test_doctor_self_test_names_appledouble_sidecars_instead_of_crashing(tmp_path):
+    # A macOS-side deploy left ._api.py and ._db.py in the production tree.
+    # They are binary resource forks, so the self-test's rglob("*.py") compile
+    # loop died on an opaque UnicodeDecodeError that named no file.
+    doctor = (ROOT / "scripts" / "doctor.sh").read_text(encoding="utf-8")
+    assert 'rglob("._*")' in doctor
+    assert "AppleDouble" in doctor
+    # The guard must run before the compile loop, or the crash wins the race.
+    assert doctor.index('rglob("._*")') < doctor.index('for source in root.rglob("*.py"):')
+
+
+def test_deploy_tree_has_no_appledouble_sidecars():
+    offenders = [str(path.relative_to(ROOT)) for path in ROOT.rglob("._*") if ".venv" not in path.parts]
+    assert offenders == [], f"macOS AppleDouble sidecars must never be committed or deployed: {offenders}"

@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-REBUILD-METADATA-CURRENT-HOST-EVIDENCE-COLLECTION-RUN-CONTRACT-DIAGNOSTIC-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_CURRENT_PRODUCTION_REBUILD_METADATA_CURRENT_HOST_EVIDENCE_COLLECTION_RUN_CONTRACT_DIAGNOSTIC_STATIC_READ_ONLY",
+  "expected": {
+    "rebuild_metadata_subdomain": "CURRENT_RELEASE_REBUILD_METADATA_INCOMPLETE_REDACTED",
+    "acquisition_contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-REBUILD-METADATA-CURRENT-HOST-EVIDENCE-ACQUISITION-CONTRACT-DIAGNOSTIC-001",
+    "acquisition_contract_status": "ONE_SHOT_CURRENT_PRODUCTION_REBUILD_METADATA_CURRENT_HOST_EVIDENCE_ACQUISITION_CONTRACT_DIAGNOSTIC_STATIC_READ_ONLY",
+    "admission_contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-REBUILD-METADATA-REPAIR-EXECUTION-ADMISSION-CONTRACT-DIAGNOSTIC-001",
+    "admission_contract_status": "ONE_SHOT_CURRENT_PRODUCTION_REBUILD_METADATA_REPAIR_EXECUTION_ADMISSION_CONTRACT_DIAGNOSTIC_STATIC_READ_ONLY",
+    "core_preflight_contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-CORE-EXECUTION-PREFLIGHT-001",
+    "core_preflight_contract_status": "ONE_SHOT_CURRENT_PRODUCTION_CORE_EXECUTION_PREFLIGHT_READ_ONLY",
+    "future_collection_request_fields": [
+      "schema_version",
+      "collection_id",
+      "requested_on",
+      "requested_observed_on",
+      "collection_mode"
+    ],
+    "future_collection_request_defaults": {
+      "collection_mode": "ONE_SHOT_CURRENT_HOST_METADATA_READ_ONLY",
+      "maximum_collection_attempts": 1,
+      "same_utc_date_required": true,
+      "historical_or_static_evidence_accepted": false
+    },
+    "future_collection_receipt_fields": [
+      "schema_version",
+      "receipt_type",
+      "observed_on",
+      "acquired_on",
+      "metadata_freshness_state",
+      "privileged_metadata_read",
+      "runtime_prerequisites",
+      "core_unit",
+      "connector_unit",
+      "repair_execution_authorized",
+      "core_start_authorized"
+    ],
+    "future_collection_failure_states": [
+      "STATIC_INPUT_REJECTED_REDACTED",
+      "CURRENT_HOST_METADATA_REQUIRED_REDACTED",
+      "CURRENT_HOST_METADATA_STALE_REDACTED",
+      "CURRENT_HOST_METADATA_SCHEMA_REJECTED_REDACTED"
+    ],
+    "product_github_api_requests": 0,
+    "provider_api_requests": 0,
+    "ssh_connections_attempted": 0
+  },
+  "source_boundary": {
+    "fixed_local_acquisition_contract_read_only": true,
+    "fixed_local_admission_contract_read_only": true,
+    "fixed_local_core_preflight_contract_read_only": true,
+    "future_current_host_metadata_collection_contract_declared_only": true,
+    "future_current_host_metadata_collection_executed": false,
+    "current_host_metadata_read": false,
+    "config_runtime_or_secret_value_read_or_persisted": false,
+    "address_port_or_target_mapping_read_or_persisted": false,
+    "raw_repair_command_read_or_persisted": false,
+    "private_object_path_hash_or_raw_content_read_or_persisted": false,
+    "product_github_api_request_sent": false,
+    "provider_api_request_sent": false,
+    "ssh_connection_attempted": false,
+    "browser_login_submitted": false,
+    "workflow_dispatched_or_pushed": false,
+    "provider_resource_network_cloudflare_host_or_service_changed": false,
+    "repair_deployment_or_core_start_attempted": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_PRODUCTION_REBUILD_METADATA_CURRENT_HOST_EVIDENCE_COLLECTION_RUN_CONTRACT_DIAGNOSTIC_ONLY_NOT_CURRENT_HOST_COLLECTION_REPAIR_CONFIG_VALUE_COMMAND_TARGET_CREDENTIAL_CI_AUTHORIZATION_PROVIDER_RESOURCE_STATE_SSH_DEPLOYMENT_PUBLIC_ENDPOINT_CORE_START_OR_PRODUCTION_RELEASE",
+  "rollback": {
+    "action": "NO_CURRENT_HOST_COLLECTION_OR_EXTERNAL_MUTATION_NO_RUNTIME_ROLLBACK_REQUIRED",
+    "current_candidate_shadow_changed": false,
+    "private_evidence_deleted_automatically": false
+  }
+}

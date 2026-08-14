@@ -1,0 +1,444 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python load_test.py --root .",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S17/P01_test.py --junitxml=machine/evidence/S17/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S17/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S17/P01/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S17-P01 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S17-P01",
+  "decision": "S17_P01_FROZEN_FULL_HISTORY_10X_LOAD_PASS_P02_REQUIRED",
+  "decision_sha256": "b0de3341321cd050f42adcd6d3ce53710b612e940d3ed2087e4fe71018fafd08",
+  "deterministic_replay": {
+    "adverse_delta": "0.0001",
+    "real_time_wait_performed": false,
+    "scenario_count": 4,
+    "synthetic_full_history_events": 1200,
+    "ten_x_events": 12000
+  },
+  "evidence_id": "EVD-S17-P01",
+  "execution_policy": {
+    "external_runtime_access_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "offline_deterministic_only": true,
+    "phase_test_only": true,
+    "real_vps_load_or_soak_allowed": false
+  },
+  "external_effect_boundary": {
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "owner_final_order_only": true,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "real_vps_resource_observed_or_measured": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-10T00:00:00+10:00",
+  "hashes": {
+    "code": "922ccd92b9c473169c6e6c6b00dcf767f8bc8c0bd551e8851cc4cc3014be0392",
+    "inputs": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/__main__.py": "c346e9ccf167f3b400df7fe91eb9410dfd1779ba7babda6249d05a264ec36804",
+      "abd_acceptance/load_test.py": "922ccd92b9c473169c6e6c6b00dcf767f8bc8c0bd551e8851cc4cc3014be0392",
+      "abd_acceptance/load_test_engine.py": "b156652d90b128906f9c65784efa1dcccf80ffc670a85216831ed95a80edb2e9",
+      "capacity_evidence.json": "b794e4414647aa49123548c17107f79e1911240c28c098e8038aa223ba224b18",
+      "load_profile.json": "4bf9f38c50cb9a57a0a897bd87060761ef56fb8e23973c633500ff8984583501",
+      "load_test.py": "d512a6b7777ff1bc3e8ba429a69ed7c4752f88f35612556a3bc52c2622e80db6",
+      "machine/evidence/EVD-S15-P04.json": "3fd288e66d3c473881dc92257992eb41b85422a5c0aaa92f1ff00e202a15feda",
+      "machine/evidence/EVD-S16-P04.json": "5543c7963bb6d8de97cd1e5c1872e2576fddde3dc98805fce48d763633f6ae45",
+      "machine/evidence/S17/P01/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S17/P01/pytest.xml": "9044fd87a7845cc91c87a25bad2755ba29fc78c556823978bef576997fafde05",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S17_P01.json": "42bac3d3565c5dbd12b62c1f038b7146ad390516e578e481526c980b2a42949b"
+    },
+    "rollback_evidence": "daaf5ca4b5f3b4c5089aa9a75d7ec0837bda8447943a32842ac502a11d401b88"
+  },
+  "next": "S17/P02_READY_NOT_STARTED",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S17_P01_LOCAL_LOAD_EVIDENCE_ONLY_P02_REQUIRED",
+  "requirement_id": "REQ-S17-P01",
+  "rollback": {
+    "artifacts": {
+      "abd_acceptance/__main__.py": {
+        "sha256": "c346e9ccf167f3b400df7fe91eb9410dfd1779ba7babda6249d05a264ec36804",
+        "status": "PASS"
+      },
+      "abd_acceptance/load_test.py": {
+        "sha256": "922ccd92b9c473169c6e6c6b00dcf767f8bc8c0bd551e8851cc4cc3014be0392",
+        "status": "PASS"
+      },
+      "abd_acceptance/load_test_engine.py": {
+        "sha256": "b156652d90b128906f9c65784efa1dcccf80ffc670a85216831ed95a80edb2e9",
+        "status": "PASS"
+      },
+      "capacity_evidence.json": {
+        "sha256": "b794e4414647aa49123548c17107f79e1911240c28c098e8038aa223ba224b18",
+        "status": "PASS"
+      },
+      "load_profile.json": {
+        "sha256": "4bf9f38c50cb9a57a0a897bd87060761ef56fb8e23973c633500ff8984583501",
+        "status": "PASS"
+      },
+      "load_test.py": {
+        "sha256": "d512a6b7777ff1bc3e8ba429a69ed7c4752f88f35612556a3bc52c2622e80db6",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S15-P04.json": {
+        "sha256": "3fd288e66d3c473881dc92257992eb41b85422a5c0aaa92f1ff00e202a15feda",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S16-P04.json": {
+        "sha256": "5543c7963bb6d8de97cd1e5c1872e2576fddde3dc98805fce48d763633f6ae45",
+        "status": "PASS"
+      },
+      "machine/facts/costs.json": {
+        "sha256": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S17_P01.json": {
+        "sha256": "42bac3d3565c5dbd12b62c1f038b7146ad390516e578e481526c980b2a42949b",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S17-P01",
+    "evidence_id": "EVD-S17-P01-ROLLBACK",
+    "external_state_changed": false,
+    "feature_flag_id": "load:s17_frozen_full_history_10x",
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_LOCAL_LOAD_REPLAY_KEEP_RUNTIME_DEPLOYMENT_BLOCKED",
+    "order_submission_enabled": false,
+    "production_state_changed": false,
+    "real_time_soak_waited": false,
+    "real_vps_resource_observed_or_measured": false,
+    "recommendation_generated": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S17",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S17P01-BASELINE-PURSUE_GOAL_PROMPT.txt",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S17P01-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S17P01-BASELINE-machine-facts-canonical_facts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S17P01-BASELINE-machine-facts-parameters.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S17P01-BASELINE-machine-facts-roadmap.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S17P01-BASELINE-machine-facts-requirements.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S17P01-BASELINE-machine-facts-acceptance_contracts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S17P01-BASELINE-machine-facts-task_graph.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S17P01-BASELINE-machine-facts-traceability_matrix.json",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S17P01-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S17P01-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S17P01-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S17P01-TRACEABILITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S17-P01-01",
+          "T-S17-P01-02",
+          "T-S17-P01-03"
+        ],
+        "id": "S17P01-TASKPACK-SCOPE-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contract_id": "AC-S17-P01",
+          "expected_artifact": "machine/evidence/EVD-S17-P01.json",
+          "id": "INDEX-AC-S17-P01",
+          "kind": "ACCEPTANCE_EVIDENCE",
+          "pass_gate": "VPS-1资源门内且无静默丢数据。",
+          "requirement_id": "REQ-S17-P01",
+          "status": "PLANNED"
+        },
+        "id": "S17P01-EVIDENCE-INDEX-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "AC-S15-P04",
+          "evidence_path": "machine/evidence/EVD-S15-P04.json",
+          "evidence_sha256": "3fd288e66d3c473881dc92257992eb41b85422a5c0aaa92f1ff00e202a15feda",
+          "next": "S15/STAGE_REVIEW_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "S17P01-PREDECESSOR-AC-S15-P04-CURRENT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "AC-S16-P04",
+          "evidence_path": "machine/evidence/EVD-S16-P04.json",
+          "evidence_sha256": "5543c7963bb6d8de97cd1e5c1872e2576fddde3dc98805fce48d763633f6ae45",
+          "next": "S16/STAGE_REVIEW_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "S17P01-PREDECESSOR-AC-S16-P04-CURRENT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capacity_evidence.json": "b794e4414647aa49123548c17107f79e1911240c28c098e8038aa223ba224b18",
+          "load_profile.json": "4bf9f38c50cb9a57a0a897bd87060761ef56fb8e23973c633500ff8984583501"
+        },
+        "id": "S17P01-ARTIFACT-REPLAY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_rule": "ONE_PROVIDER_TICK_ADVERSE",
+          "adverse_probability_delta": "0.0001",
+          "baseline_event_count": 1200,
+          "event_identity_digest_algorithm": "SHA-256",
+          "history_scope": "FROZEN_SYNTHETIC_ALL_HISTORY_INDEX_NOT_REAL_MARKET",
+          "load_multiplier": 10,
+          "queue_cap": 12000,
+          "resource_unit_cap": 10000,
+          "safety_reserve_units": 1,
+          "silent_drop_max": 0,
+          "ten_x_event_count": 12000
+        },
+        "id": "S17P01-FROZEN-10X-LOAD-PROFILE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_vps_capacity_claimed": false,
+          "actual_vps_capacity_measured": false,
+          "declared_resource_id": "RES-OVH-EXISTING-VPS1",
+          "effective_resource_unit_cap": 9999,
+          "local_envelope_passed": true,
+          "maximum_observed_queue_high_water": 12000,
+          "maximum_observed_resource_units": 9999,
+          "on_resource_unavailable_or_limit": "BLOCK_RUNTIME_DEPLOYMENT_KEEP_LOCAL_DEVELOPMENT_AND_EVIDENCE",
+          "queue_cap": 12000,
+          "runtime_deployment_allowed": false
+        },
+        "id": "S17P01-VPS-ENVELOPE-AND-NO-SILENT-DROP-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "forbidden": [],
+          "imports": [
+            "__future__",
+            "abd_acceptance",
+            "argparse",
+            "ast",
+            "canonical_facts",
+            "hashlib",
+            "json",
+            "load_test_engine",
+            "model_release_gate",
+            "pathlib",
+            "re",
+            "traceability_proxy",
+            "typing",
+            "xml"
+          ],
+          "url_literals": []
+        },
+        "id": "S17P01-LOCAL-ONLY-STATIC-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "matched": 4,
+          "required_fragments": 4
+        },
+        "id": "S17P01-CLI-WRITER-AND-VERIFIER-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 28
+        },
+        "id": "S17P01-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S17/P01/paid_dependency_scan.txt",
+        "id": "S17P01-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S17P01-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+          "external_network_accessed": false,
+          "financial_return_verified_or_guaranteed": false,
+          "gmail_account_or_api_accessed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "ovh_or_cloudflare_runtime_accessed": false,
+          "owner_final_order_only": true,
+          "production_deployed_or_activated": false,
+          "real_account_balance_read_or_written": false,
+          "real_market_or_odds_observed": false,
+          "real_time_soak_waited": false,
+          "real_vps_resource_observed_or_measured": false,
+          "recommendation_generated_or_enabled": false
+        },
+        "id": "S17P01-EXTERNAL-EFFECT-BOUNDARY-EXACT",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S17-P01",
+    "decision": "S17_P01_FROZEN_FULL_HISTORY_10X_LOAD_PASS_P02_REQUIRED",
+    "execution_policy": {
+      "external_runtime_access_allowed": false,
+      "full_regression_or_real_time_soak_allowed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "offline_deterministic_only": true,
+      "phase_test_only": true,
+      "real_vps_load_or_soak_allowed": false
+    },
+    "external_effect_boundary": {
+      "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submission_enabled": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "owner_final_order_only": true,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_market_or_odds_observed": false,
+      "real_time_soak_waited": false,
+      "real_vps_resource_observed_or_measured": false,
+      "recommendation_generated_or_enabled": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "hashes": {
+      "abd_acceptance/__main__.py": "c346e9ccf167f3b400df7fe91eb9410dfd1779ba7babda6249d05a264ec36804",
+      "capacity_evidence.json": "b794e4414647aa49123548c17107f79e1911240c28c098e8038aa223ba224b18",
+      "load_profile.json": "4bf9f38c50cb9a57a0a897bd87060761ef56fb8e23973c633500ff8984583501",
+      "load_test.py": "d512a6b7777ff1bc3e8ba429a69ed7c4752f88f35612556a3bc52c2622e80db6",
+      "machine/evidence/EVD-S15-P04.json": "3fd288e66d3c473881dc92257992eb41b85422a5c0aaa92f1ff00e202a15feda",
+      "machine/evidence/EVD-S16-P04.json": "5543c7963bb6d8de97cd1e5c1872e2576fddde3dc98805fce48d763633f6ae45",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/tests/fixtures/S17_P01.json": "42bac3d3565c5dbd12b62c1f038b7146ad390516e578e481526c980b2a42949b"
+    },
+    "next": "S17/P02_READY_NOT_STARTED",
+    "phase_id": "P01",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "requirement_id": "REQ-S17-P01",
+    "stage_id": "S17",
+    "status": "PASS",
+    "summary": {
+      "checks": 26,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 26
+    }
+  }
+}

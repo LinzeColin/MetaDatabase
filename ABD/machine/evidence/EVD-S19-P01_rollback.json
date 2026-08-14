@@ -1,0 +1,58 @@
+{
+  "artifacts": {
+    "abd_acceptance/walking_skeleton.py": {
+      "sha256": "9d7dc1cb171994b2c76c0c9fda1366a23f14eeb7f4e2b534c2d346758b78b508",
+      "status": "PASS"
+    },
+    "abd_acceptance/walking_skeleton_acceptance.py": {
+      "sha256": "a0a7888b23bb198d7244086787d7cb1dcdc2ef713e9f6604f36f2cc7f359e010",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S12-P04.json": {
+      "sha256": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S13-P04.json": {
+      "sha256": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S17-P04.json": {
+      "sha256": "08e1d389d3b0d80d6c729d9835dc27343018985cd8cc1796a9528b5ed7d6e708",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S18-P04.json": {
+      "sha256": "b196f207508350f8dbdb51efcd880f1fe616880e490af344bd3b2d238c142931",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S19_P01.json": {
+      "sha256": "6cb29ca6234cfe85f1a15fd8ad7b473900aa2cfd565432d348f9dfb29f6102cf",
+      "status": "PASS"
+    },
+    "software_alpha_gate.json": {
+      "sha256": "841aa21fa366438727e6d0555f45fe819ecb0e526876e36f994a9b3dec23373b",
+      "status": "PASS"
+    },
+    "tests/S19/P01_test.py": {
+      "sha256": "40473ef591aeec3f3cefbe2ea1bcd7ba917262ac1fcae79c6f6e918c68f5ec50",
+      "status": "PASS"
+    },
+    "walking_skeleton_evidence.json": {
+      "sha256": "12230a8068e9c6fee8f249fff4b8e71d67898bd8eb94d3ae9272ecfb2ee0bfd0",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S19-P01",
+  "evidence_id": "EVD-S19-P01-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "walking_skeleton:s19_p01_local_only",
+  "immutable_evidence_and_replay_preserved": true,
+  "incremental_cash_spent_aud": "0.00",
+  "mail_sent": false,
+  "mode": "DISABLE_S19_P01_LOCAL_FEATURE_RESTORE_SIGNED_S18_P04_EVIDENCE",
+  "order_submission_enabled": false,
+  "previous_signed_artifact": "machine/evidence/EVD-S18-P04.json",
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

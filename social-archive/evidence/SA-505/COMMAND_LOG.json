@@ -1,172 +1,38 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-505",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T02:35:03.142Z",
-  "integration_base": "c72c78fd402673d65c2263762be3e549c41730a0",
-  "production_run_id": "20260802T022218Z",
+  "taskpack_version": "v0.0.0.6",
+  "implementation_commit": "5341745f546ec113117b34784a89d2e7e2e4dd28",
+  "implementation_tree": "90d510987be571039d729aed15f53a3c8a38b814",
+  "record_context": "v0.0.0.6 stage re-verification against the live OVH production deployment. Secret values were never printed; Bearer tokens and GitHub tokens are shown redacted.",
   "commands": [
     {
-      "id": "taskpack_verify",
-      "command": "python3 START_HERE.py verify",
-      "environment": "Task Pack",
-      "status": "PASS",
-      "result": "Verified sealed package.",
-      "mutation": false
-    },
-    {
-      "id": "latest_main_sync",
-      "command": "git fetch origin main; fast-forward to origin/main",
-      "environment": "execution worktree",
-      "status": "PASS",
-      "result": "c72c78fd402673d65c2263762be3e549c41730a0",
-      "mutation": "fast-forward only"
-    },
-    {
-      "id": "local_install",
-      "command": "bash scripts/install.sh --dry-run",
-      "environment": "local",
-      "status": "PASS",
-      "result": "exit 0",
-      "mutation": false
-    },
-    {
-      "id": "local_doctor",
       "command": "bash scripts/doctor.sh --self-test",
-      "environment": "local",
+      "command_sha256": "778f8fc4c97a0243f1ef1a4d4d8a98f3e95f6d7de7581dbe2d6b80e102b1bf62",
+      "executed": true,
+      "exit_code": 0,
       "status": "PASS",
-      "result": "exit 0",
-      "mutation": false
+      "summary": "28 项本地部署合同检查全部 PASS；compose 与 systemd 合同有效。首次运行曾因 AppleDouble 残留崩溃，已修复并清理。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
     },
     {
-      "id": "focused_tests",
-      "command": "pytest deployment_contract + status_projection",
-      "environment": "local",
+      "command": ".venv/bin/python scripts/deployment_probe.py --domain social-archive.linzezhang.com --network-confirmed",
+      "command_sha256": "49bdb1e88892acba2e5106618d487939ee0df4da25a1666445d878d424c04a5f",
+      "executed": true,
+      "exit_code": 3,
+      "status": "BLOCKED_ENVIRONMENT",
+      "summary": "https 403，为 Cloudflare Access 拒绝无凭据非浏览器请求，属预期姿态；探针把任何非 200 判为阻塞，不应读作部署缺陷。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
+    },
+    {
+      "command": "无凭据公网 smoke：7 个端点",
+      "command_sha256": "6e1f82514a4420744f0d8162ce4c54e54c9891bcb61df30abac7f57ece394030",
+      "executed": true,
+      "exit_code": 0,
       "status": "PASS",
-      "result": "23 passed in 2.25s",
-      "mutation": false
-    },
-    {
-      "id": "production_install",
-      "command": "bash scripts/install.sh --dry-run",
-      "environment": "vps-83b882b4",
-      "status": "PASS",
-      "result": "exit 0",
-      "mutation": false
-    },
-    {
-      "id": "production_doctor",
-      "command": "bash scripts/doctor.sh --self-test",
-      "environment": "vps-83b882b4",
-      "status": "PASS",
-      "result": "exit 0",
-      "mutation": false
-    },
-    {
-      "id": "cloudflare_api",
-      "command": "GET Access/Tunnel/Rulesets via official connector",
-      "environment": "Cloudflare connector",
-      "status": "FAIL_PRESERVED_NONBLOCKING",
-      "result": "request is not authorized",
-      "mutation": false
-    },
-    {
-      "id": "cloudflare_dashboard",
-      "command": "Read Access, Tunnel, connector, WAF, rate-limit control plane",
-      "environment": "authenticated dashboard",
-      "status": "PASS",
-      "result": "Real IDs captured; identity value redacted.",
-      "mutation": false
-    },
-    {
-      "id": "pre_collector_initial",
-      "command": "Read pre-restart runtime state",
-      "environment": "vps-83b882b4",
-      "status": "FAIL_PRESERVED_NON_MUTATING",
-      "result": "Missing worker Health template field; exited before restart.",
-      "mutation": false
-    },
-    {
-      "id": "pre_collector_corrected",
-      "command": "Read systemd/Compose/SQLite/tree/timer/rollback baseline",
-      "environment": "vps-83b882b4",
-      "status": "PASS",
-      "result": "Read-only baseline complete.",
-      "mutation": false
-    },
-    {
-      "id": "controlled_restart",
-      "command": "systemctl restart social-archive.service",
-      "environment": "vps-83b882b4",
-      "status": "PASS",
-      "result": "Core and status-web recreated; health recovered.",
-      "mutation": "runtime restart"
-    },
-    {
-      "id": "status_publish",
-      "command": "systemctl start social-archive-status.service",
-      "environment": "vps-83b882b4",
-      "status": "PASS",
-      "result": "Result=success; projection regenerated.",
-      "mutation": "status projection write"
-    },
-    {
-      "id": "python_public_matrix",
-      "command": "Python urllib read-only public matrix",
-      "environment": "local",
-      "status": "FAIL_PRESERVED_NONBLOCKING",
-      "result": "Blanket 403; second pairing request 429.",
-      "mutation": false
-    },
-    {
-      "id": "temp_wrapper",
-      "command": "Temporary evidence wrapper with cleanup",
-      "environment": "local safety layer",
-      "status": "REJECTED_NO_EXECUTION",
-      "result": "rm -rf style cleanup rejected before start.",
-      "mutation": false
-    },
-    {
-      "id": "curl_public_matrix",
-      "command": "curl public matrix plus two safe GET rate probes",
-      "environment": "local",
-      "status": "PASS",
-      "result": "All assertions PASS; rate 405 then 429.",
-      "mutation": false
+      "summary": "资料库 302（Access 边界）、health/pairing 200、三个业务路由 401、状态投影 200。",
+      "environment": "local"
     }
   ],
-  "production_evidence": {
-    "PRE_STATE": [
-      "272fe21430a4ebc1a94a85ef81be1c51b41cc54587df003898bd9ad6558c4e2f",
-      "/var/lib/social-archive/evidence/SA-505/20260802T022218Z/PRE_STATE.json"
-    ],
-    "RESTART": [
-      "88d08ab8af45011fc64a5585d3ea4d4aa9b1267439a8af607816efbece9e898a",
-      "/var/lib/social-archive/evidence/SA-505/20260802T022218Z/RESTART.json"
-    ],
-    "POST_STATE": [
-      "e3a33006c518142d6dff2d26bcf84ec083216f918828fffb7a40512bdbf262d1",
-      "/var/lib/social-archive/evidence/SA-505/20260802T022218Z/POST_STATE.json"
-    ],
-    "INTEGRITY_COMPARE": [
-      "d47ca209c5fbec3ee2cc0870f650b5ed0677bb495ee1a806e67c3d9ef53c48cd",
-      "/var/lib/social-archive/evidence/SA-505/20260802T022218Z/INTEGRITY_COMPARE.json"
-    ],
-    "CLOUDFLARE_CONTROL_PLANE": [
-      "d350c9b4321cb506de052fd9a9671a9bc2f26c07fd90f0bfd52464b9bfbea08b",
-      "/var/lib/social-archive/evidence/SA-505/20260802T022218Z/CLOUDFLARE_CONTROL_PLANE.json"
-    ],
-    "PUBLIC_MATRIX": [
-      "1c6a162217cf93693caf02e6f6309f03fb6ee8fd27a7f977d0a8d49899646037",
-      "/var/lib/social-archive/evidence/SA-505/20260802T022218Z/PUBLIC_MATRIX.json"
-    ],
-    "PUBLIC_MATRIX_FAILED_PYTHON_UA": [
-      "b2a2d61e87ab34973e25bcee12f9c39b10033e34bc91c2522c1b925d7657fe4b",
-      "/var/lib/social-archive/evidence/SA-505/20260802T022218Z/PUBLIC_MATRIX-FAILED-PYTHON-UA.json"
-    ]
-  },
-  "blocking_failures": [],
-  "source_git_commit_created": false,
-  "source_git_push_performed": false,
-  "next_task_not_started": "SA-506"
+  "generated_at": "2026-08-03T07:40:00Z"
 }

@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="35" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S09.P03_test" name="test_candidate_preflight_passes_without_generated_phase_reports" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_report_is_an_exact_deterministic_replay_of_the_frozen_fixture" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_each_frozen_distribution_preserves_mass_and_bounded_tail[POISSON_REFERENCE]" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_each_frozen_distribution_preserves_mass_and_bounded_tail[DIXON_COLES_REFERENCE]" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_each_frozen_distribution_preserves_mass_and_bounded_tail[SKELLAM_REFERENCE]" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_each_frozen_distribution_preserves_mass_and_bounded_tail[NEGATIVE_BINOMIAL_REFERENCE]" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_dixon_coles_adjusts_only_low_score_cells_and_keeps_nonnegative_mass" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_skellam_is_symmetric_when_home_and_away_rates_match" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_negative_binomial_tail_is_explicit_and_mass_is_complete" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_score_projection_maps_each_required_market_only_after_tail_gate[ONE_X_TWO]" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_score_projection_maps_each_required_market_only_after_tail_gate[TOTALS_2_5]" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_score_projection_maps_each_required_market_only_after_tail_gate[BOTH_TEAMS_TO_SCORE]" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_each_frozen_football_case_matches_its_market_and_temporal_contract[FOOTBALL_POSITIVE]" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_each_frozen_football_case_matches_its_market_and_temporal_contract[FOOTBALL_BOUNDARY_AT_DECISION]" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_each_frozen_football_case_matches_its_market_and_temporal_contract[FOOTBALL_FUTURE_REQUIRED_FEATURE]" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_each_frozen_football_case_matches_its_market_and_temporal_contract[FOOTBALL_UNCONFIRMED]" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_each_frozen_football_case_matches_its_market_and_temporal_contract[FOOTBALL_TAIL_FALLBACK]" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_future_observation_is_excluded_from_football_asof_selection" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_exact_decision_time_is_allowed_while_plus_point_zero_zero_zero_one_and_high_tail_fall_back" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_float_market_probability_is_rejected" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_event_must_be_strictly_after_decision_time" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_ambiguous_same_timestamp_feature_history_fails_closed" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_timezone_is_required_for_decision_clock" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_distribution_registry_policy_and_football_contract_drift_are_rejected" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_hierarchical_rate_outside_frozen_bounds_fails_closed" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_one_hundred_replays_have_one_hash_without_waiting" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_ten_thousand_deterministic_adverse_perturbations_do_not_require_real_time_soak" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_core_sources_have_no_network_process_soak_float_or_order_capability" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_rollback_drill_is_hash_only_and_changes_no_external_state" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_candidate_fails_closed_when_distribution_registry_is_tampered" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_candidate_fails_closed_when_p02_signed_predecessor_is_tampered" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_phase_receipt_is_absent_before_delivery_and_cannot_be_claimed" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_cli_is_wired_to_exact_contract_and_distribution_registry" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_fixture_and_report_keep_financial_and_runtime_claims_unverified" time="0.000" />
+    <testcase classname="tests.S09.P03_test" name="test_zero_rate_poisson_is_exact_at_zero_and_nonnegative" time="0.000" />
+  </testsuite>
+</testsuites>

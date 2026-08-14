@@ -1,0 +1,115 @@
+{
+  "artifacts": {
+    "abd_acceptance/stage14_review.py": {
+      "sha256": "5ee7691c0e9983c3576b66119d785885c2098aaadb64a8b0f0aa21ea4f53cbae",
+      "status": "PASS"
+    },
+    "abuse_cases.json": {
+      "sha256": "cbedeb6b97b0a61862a8e3fba0bcaf371d462c42a58bb7df8aa1c7855ade5b65",
+      "status": "PASS"
+    },
+    "artifact_signing.md": {
+      "sha256": "0a704b5027102bc1bff059f95ebc3ca0feb3969e8144802211b1a0c8686aef3a",
+      "status": "PASS"
+    },
+    "component_governance.json": {
+      "sha256": "717241b508c80527ee3d667a350d45d3ee38d3015f4ef6f9094d06bc6daf2066",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S14-P01.json": {
+      "sha256": "91d353c7e3f850119cbc755936c4023537c6870ec3f1a384346bc1875aa90a8c",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S14-P01_rollback.json": {
+      "sha256": "feba53995af01741678c252fb0f2a2d58af4a3a37f5b558f70a94549354463c0",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S14-P02.json": {
+      "sha256": "ef081da80f4b8d690dcc396cf762d5998d761136a95bd04dd5ece0c942d4fee9",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S14-P02_rollback.json": {
+      "sha256": "1000e28224fb747657065d500cc903560ed0bcc97ee7a8ebd8665b251c0f0d70",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S14-P03.json": {
+      "sha256": "5d0644b143115c6cdd99eb8774b8f8cbc68a618ba86b82772ff6797e7293708c",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S14-P03_rollback.json": {
+      "sha256": "39437e5a68e6cb86bc6a4122bcda763b501be4196d2973a64c0d2a2b2c8d64b2",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S14-P04.json": {
+      "sha256": "820f5a1c13f788386c54af8d18551bd6bd40d7816d659c6ffd43a657c25ddf4b",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S14-P04_rollback.json": {
+      "sha256": "0b3bfaa1bccf0dccb77afea4f6c44b3eab670d5e0af5d07bc5a1ff73aaef68b5",
+      "status": "PASS"
+    },
+    "machine/evidence/S14/STAGE_REVIEW/findings.json": {
+      "sha256": "e56d177cbd92735eef4a2667186e4ed8bfc3871e648e834683a8260f0e723bf0",
+      "status": "PASS"
+    },
+    "machine/facts/stage14_review_contract.json": {
+      "sha256": "775f1fdd2fec8508752e5b3e13caf2a41b0dc9a5cdbf72b1551391d7d5325942",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S14_STAGE_REVIEW.json": {
+      "sha256": "a1bbd6927bf73307680145175e8e5daed2fa03af082971726393bf5140b6f31c",
+      "status": "PASS"
+    },
+    "patch_sla.json": {
+      "sha256": "efd03538bd1d8566db07070a9f003aa048f30e1cecb09dc9588318f51d094859",
+      "status": "PASS"
+    },
+    "provenance.json": {
+      "sha256": "ea15398557448c8631962f8044ae71cb45e96e1eac7b3ea829038a42e2ee47d9",
+      "status": "PASS"
+    },
+    "sast_policy.json": {
+      "sha256": "683c204a17ebb1b4526b16af4a2d825aaa59cd1fc72f829f56c7ea44c54bff9f",
+      "status": "PASS"
+    },
+    "sbom.json": {
+      "sha256": "c0648815a4453ed5b203d7c3778f1306141b972251c8a1c511c6ff6a2abb961e",
+      "status": "PASS"
+    },
+    "secret_policy.json": {
+      "sha256": "65d28e5e65e61b0420b9b70cb9115cb5f0b57447920e2ad119b92d55cdc3ae6e",
+      "status": "PASS"
+    },
+    "security_pipeline.yml": {
+      "sha256": "5f55c92a9bb640caf27aa331ed9ecfbc63f8f503d5d4228c1b7aed9d301314b3",
+      "status": "PASS"
+    },
+    "security_rollback.md": {
+      "sha256": "25a109c3ab719fceec877c5957058b017b4d7f96743e16e864e733370cb7a396",
+      "status": "PASS"
+    },
+    "tests/S14/stage_review_test.py": {
+      "sha256": "bf41eb50448b740de336c8ae4ef28ed3dff91986773f96f0b30fd6d9625261f6",
+      "status": "PASS"
+    },
+    "threat_model.json": {
+      "sha256": "22ebb7e08b2b59b4fa01f3f311c4fd970839c63fb1ef2797f802f7d11d1157f5",
+      "status": "PASS"
+    },
+    "trust_boundaries.json": {
+      "sha256": "800748b98a1d32f6c2009dd8e02e877b2beb0c10906a91032a649e7457021737",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "STAGE-REVIEW-S14",
+  "evidence_id": "EVD-S14-STAGE-REVIEW-ROLLBACK",
+  "external_state_changed": false,
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "CLOSE_S14_REVIEW_CANDIDATE_PRESERVE_SIGNED_PHASE_EVIDENCE_NO_EXTERNAL_MUTATION",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

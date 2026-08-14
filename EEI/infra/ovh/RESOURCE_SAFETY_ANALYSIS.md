@@ -2,7 +2,7 @@
 
 **Scope.** Run EEI's data-collection + dynamic-refresh pipeline as a hard
 resource-capped app on the owner's single central governance server
-(`ubuntu@139.99.61.6`), co-existing with every other project already deployed
+(`ubuntu@15.235.141.201`), co-existing with every other project already deployed
 there. Governance policy forbids a dedicated server, so the goal is **make EEI a
 good neighbour under a hard cap**, never to move it off-box.
 

@@ -1,0 +1,326 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "contract_id": "AC-S18-P03",
+  "requirement_id": "REQ-S18-P03",
+  "stage_id": "S18",
+  "phase_id": "P03",
+  "fixed_clock": "2026-08-10T03:00:00+10:00",
+  "expected_next": "S18/P04_READY_NOT_STARTED",
+  "predecessors": [
+    {
+      "contract_id": "AC-S18-P02",
+      "evidence_sha256": "ce54a29f06d7dae07c1e559eebf360c7e41221851290d78496fdf51dd3b957c2"
+    }
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "HEALTHY_NO_FAULT_KEEP_GATES",
+      "watchdog_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T03:00:00+10:00",
+        "fault_id": "NO_FAULT",
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "fund_facts_snapshot": {
+          "money_storage": "INTEGER_CENTS",
+          "frozen_bankroll_reference_aud": "300.00",
+          "actual_fund_fact_mutation_allowed": false,
+          "actual_ledger_mutation_allowed": false
+        },
+        "risk_gate_snapshot": {
+          "kelly_fraction_alpha": "0.00",
+          "kelly_fraction_beta": "0.20",
+          "kelly_fraction_ga": "0.25",
+          "total_open_exposure_cap": "0.150",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        }
+      },
+      "expected": {
+        "decision": "SELF_HEAL_NO_ACTION_KEEP_GATES",
+        "operation_ids": []
+      }
+    },
+    {
+      "scenario_id": "CANDIDATE_PROCESS_UNHEALTHY_LOGICAL_RESTART_ONLY",
+      "watchdog_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T03:00:00+10:00",
+        "fault_id": "CANDIDATE_PROCESS_UNHEALTHY",
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "fund_facts_snapshot": {
+          "money_storage": "INTEGER_CENTS",
+          "frozen_bankroll_reference_aud": "300.00",
+          "actual_fund_fact_mutation_allowed": false,
+          "actual_ledger_mutation_allowed": false
+        },
+        "risk_gate_snapshot": {
+          "kelly_fraction_alpha": "0.00",
+          "kelly_fraction_beta": "0.20",
+          "kelly_fraction_ga": "0.25",
+          "total_open_exposure_cap": "0.150",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        }
+      },
+      "expected": {
+        "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+        "operation_ids": ["LOGICAL_RESTART_CANDIDATE_ONLY"]
+      }
+    },
+    {
+      "scenario_id": "FROZEN_REPLAY_MISMATCH_RETRY_ONLY",
+      "watchdog_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T03:00:00+10:00",
+        "fault_id": "FROZEN_REPLAY_MISMATCH",
+        "probability_delta": "0.0001",
+        "odds_tick_delta": -1,
+        "fund_facts_snapshot": {
+          "money_storage": "INTEGER_CENTS",
+          "frozen_bankroll_reference_aud": "300.00",
+          "actual_fund_fact_mutation_allowed": false,
+          "actual_ledger_mutation_allowed": false
+        },
+        "risk_gate_snapshot": {
+          "kelly_fraction_alpha": "0.00",
+          "kelly_fraction_beta": "0.20",
+          "kelly_fraction_ga": "0.25",
+          "total_open_exposure_cap": "0.150",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        }
+      },
+      "expected": {
+        "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+        "operation_ids": ["LOGICAL_RETRY_FROZEN_REPLAY_ONLY"]
+      }
+    },
+    {
+      "scenario_id": "SILENT_COVERAGE_GAP_REPLAY_DERIVED_STATE_ONLY",
+      "watchdog_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T03:00:00+10:00",
+        "fault_id": "SILENT_COVERAGE_GAP_DETECTED",
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "fund_facts_snapshot": {
+          "money_storage": "INTEGER_CENTS",
+          "frozen_bankroll_reference_aud": "300.00",
+          "actual_fund_fact_mutation_allowed": false,
+          "actual_ledger_mutation_allowed": false
+        },
+        "risk_gate_snapshot": {
+          "kelly_fraction_alpha": "0.00",
+          "kelly_fraction_beta": "0.20",
+          "kelly_fraction_ga": "0.25",
+          "total_open_exposure_cap": "0.150",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        }
+      },
+      "expected": {
+        "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+        "operation_ids": ["LOGICAL_REPLAY_DERIVED_STATE_ONLY"]
+      }
+    },
+    {
+      "scenario_id": "SOURCE_FRESHNESS_FAILED_SWITCH_SIGNED_SNAPSHOT_ONLY",
+      "watchdog_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T03:00:00+10:00",
+        "fault_id": "SOURCE_FRESHNESS_FAILED",
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "fund_facts_snapshot": {
+          "money_storage": "INTEGER_CENTS",
+          "frozen_bankroll_reference_aud": "300.00",
+          "actual_fund_fact_mutation_allowed": false,
+          "actual_ledger_mutation_allowed": false
+        },
+        "risk_gate_snapshot": {
+          "kelly_fraction_alpha": "0.00",
+          "kelly_fraction_beta": "0.20",
+          "kelly_fraction_ga": "0.25",
+          "total_open_exposure_cap": "0.150",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        }
+      },
+      "expected": {
+        "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+        "operation_ids": ["LOGICAL_SWITCH_TO_PREVIOUS_SIGNED_SOURCE_SNAPSHOT"]
+      }
+    },
+    {
+      "scenario_id": "MODEL_PSI_STOP_ROLLBACK_SIGNED_CANDIDATE_ONLY",
+      "watchdog_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T03:00:00+10:00",
+        "fault_id": "MODEL_PSI_STOP",
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "fund_facts_snapshot": {
+          "money_storage": "INTEGER_CENTS",
+          "frozen_bankroll_reference_aud": "300.00",
+          "actual_fund_fact_mutation_allowed": false,
+          "actual_ledger_mutation_allowed": false
+        },
+        "risk_gate_snapshot": {
+          "kelly_fraction_alpha": "0.00",
+          "kelly_fraction_beta": "0.20",
+          "kelly_fraction_ga": "0.25",
+          "total_open_exposure_cap": "0.150",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        }
+      },
+      "expected": {
+        "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+        "operation_ids": ["LOGICAL_ROLLBACK_TO_PREVIOUS_SIGNED_MODEL_CANDIDATE"]
+      }
+    },
+    {
+      "scenario_id": "EVIDENCE_DERIVED_STATE_CORRUPT_REBUILD_ONLY",
+      "watchdog_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T03:00:00+10:00",
+        "fault_id": "EVIDENCE_DERIVED_STATE_CORRUPT",
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "fund_facts_snapshot": {
+          "money_storage": "INTEGER_CENTS",
+          "frozen_bankroll_reference_aud": "300.00",
+          "actual_fund_fact_mutation_allowed": false,
+          "actual_ledger_mutation_allowed": false
+        },
+        "risk_gate_snapshot": {
+          "kelly_fraction_alpha": "0.00",
+          "kelly_fraction_beta": "0.20",
+          "kelly_fraction_ga": "0.25",
+          "total_open_exposure_cap": "0.150",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        }
+      },
+      "expected": {
+        "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+        "operation_ids": ["LOGICAL_REBUILD_DERIVED_STATE_ONLY"]
+      }
+    },
+    {
+      "scenario_id": "UNSAFE_FUND_MUTATION_REQUEST_ESCALATES",
+      "watchdog_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T03:00:00+10:00",
+        "fault_id": "CANDIDATE_PROCESS_UNHEALTHY",
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "fund_facts_snapshot": {
+          "money_storage": "INTEGER_CENTS",
+          "frozen_bankroll_reference_aud": "300.01",
+          "actual_fund_fact_mutation_allowed": false,
+          "actual_ledger_mutation_allowed": false
+        },
+        "risk_gate_snapshot": {
+          "kelly_fraction_alpha": "0.00",
+          "kelly_fraction_beta": "0.20",
+          "kelly_fraction_ga": "0.25",
+          "total_open_exposure_cap": "0.150",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        }
+      },
+      "expected": {
+        "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+        "operation_ids": ["LOGICAL_ESCALATE_OWNER_OUTBOX_ONLY"]
+      }
+    },
+    {
+      "scenario_id": "RISK_GATE_RELAXATION_ATTEMPT_ESCALATES",
+      "watchdog_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T03:00:00+10:00",
+        "fault_id": "MODEL_PSI_STOP",
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "fund_facts_snapshot": {
+          "money_storage": "INTEGER_CENTS",
+          "frozen_bankroll_reference_aud": "300.00",
+          "actual_fund_fact_mutation_allowed": false,
+          "actual_ledger_mutation_allowed": false
+        },
+        "risk_gate_snapshot": {
+          "kelly_fraction_alpha": "0.00",
+          "kelly_fraction_beta": "0.20",
+          "kelly_fraction_ga": "0.25",
+          "total_open_exposure_cap": "0.150",
+          "target_shortfall_may_relax_gate": true,
+          "unstable_action": "NO_RECOMMENDATION"
+        }
+      },
+      "expected": {
+        "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+        "operation_ids": ["LOGICAL_ESCALATE_OWNER_OUTBOX_ONLY"]
+      }
+    },
+    {
+      "scenario_id": "ADVERSE_MINUS_ONE_IN_TEN_THOUSAND_PRESERVES_RISK_GATE",
+      "watchdog_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T03:00:00+10:00",
+        "fault_id": "MODEL_PSI_STOP",
+        "probability_delta": "-0.0001",
+        "odds_tick_delta": -1,
+        "fund_facts_snapshot": {
+          "money_storage": "INTEGER_CENTS",
+          "frozen_bankroll_reference_aud": "300.00",
+          "actual_fund_fact_mutation_allowed": false,
+          "actual_ledger_mutation_allowed": false
+        },
+        "risk_gate_snapshot": {
+          "kelly_fraction_alpha": "0.00",
+          "kelly_fraction_beta": "0.20",
+          "kelly_fraction_ga": "0.25",
+          "total_open_exposure_cap": "0.150",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        }
+      },
+      "expected": {
+        "decision": "SELF_HEAL_PLAN_APPROVED_WITH_IMMUTABLE_FUNDS_AND_RISK",
+        "operation_ids": ["LOGICAL_ROLLBACK_TO_PREVIOUS_SIGNED_MODEL_CANDIDATE"]
+      }
+    },
+    {
+      "scenario_id": "MALFORMED_PROBABILITY_DELTA_ESCALATES",
+      "watchdog_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T03:00:00+10:00",
+        "fault_id": "NO_FAULT",
+        "probability_delta": "0.0002",
+        "odds_tick_delta": -1,
+        "fund_facts_snapshot": {
+          "money_storage": "INTEGER_CENTS",
+          "frozen_bankroll_reference_aud": "300.00",
+          "actual_fund_fact_mutation_allowed": false,
+          "actual_ledger_mutation_allowed": false
+        },
+        "risk_gate_snapshot": {
+          "kelly_fraction_alpha": "0.00",
+          "kelly_fraction_beta": "0.20",
+          "kelly_fraction_ga": "0.25",
+          "total_open_exposure_cap": "0.150",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        }
+      },
+      "expected": {
+        "decision": "SELF_HEAL_FAIL_CLOSED_ESCALATION",
+        "operation_ids": ["LOGICAL_ESCALATE_OWNER_OUTBOX_ONLY"]
+      }
+    }
+  ]
+}

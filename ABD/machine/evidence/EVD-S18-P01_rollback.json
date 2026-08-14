@@ -1,0 +1,54 @@
+{
+  "artifacts": {
+    "abd_acceptance/post_release_probe.py": {
+      "sha256": "eb79f63999d87ed824a25388db5603b814db95cbf640c91d8cc139e63dcb2e4c",
+      "status": "PASS"
+    },
+    "abd_acceptance/safe_release.py": {
+      "sha256": "fe520d8560ef9d6180fe25f01c714bd069a121ba8fe819b2a5ce8f20aaf69d99",
+      "status": "PASS"
+    },
+    "canary_policy.json": {
+      "sha256": "f0580cab643cb5c3dfd56b5d6437cb62335e673bb4ccaf5758bcb933abebab08",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S04-P04.json": {
+      "sha256": "cc5c845238614bdb7c1fb3ad5706363453ec84880c6cf44430ffef3f9d23bb69",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S14-P04.json": {
+      "sha256": "820f5a1c13f788386c54af8d18551bd6bd40d7816d659c6ffd43a657c25ddf4b",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S17-P04.json": {
+      "sha256": "08e1d389d3b0d80d6c729d9835dc27343018985cd8cc1796a9528b5ed7d6e708",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S18_P01.json": {
+      "sha256": "a94ea3c99776ea21991b5ab6ccabbf44cd948d028d206498a927b24065e4cf17",
+      "status": "PASS"
+    },
+    "post_release_probe.py": {
+      "sha256": "58278f86aa5dfeebd6b9f79aac6cf145818054af58d0f5c4381d365bef0181ab",
+      "status": "PASS"
+    },
+    "release_pipeline.yml": {
+      "sha256": "9c8528aad6cafc71a73d014b782a9c413ffb4c4cb0bbaff0007f86d83ffbae7f",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S18-P01",
+  "evidence_id": "EVD-S18-P01-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "safe_release:s18_p01_offline_candidate_pipeline",
+  "incremental_cash_spent_aud": "0.00",
+  "logical_auto_rollback_verified": true,
+  "mode": "DISABLE_LOCAL_CANDIDATE_PIPELINE_KEEP_PREVIOUS_SIGNED_RELEASE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "real_traffic_switched": false,
+  "recommendation_generated_or_enabled": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

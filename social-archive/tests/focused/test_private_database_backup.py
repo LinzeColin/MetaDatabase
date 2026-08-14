@@ -99,7 +99,13 @@ def test_backup_remote_receipt_binds_original_cipher_and_algorithm(monkeypatch, 
 
     class FakeClient:
         def upload_file(self, source, bucket, key, ExtraArgs):
-            uploaded.update({"bytes": Path(source).read_bytes(), "bucket": bucket, "key": key, "metadata": ExtraArgs["Metadata"]})
+            uploaded.update({
+                "bytes": Path(source).read_bytes(),
+                "bucket": bucket,
+                "key": key,
+                "metadata": ExtraArgs["Metadata"],
+                "storage_class": ExtraArgs["StorageClass"],
+            })
 
         def head_object(self, **_kwargs):
             return {"Metadata": uploaded["metadata"], "ETag": '"fixture-etag"'}
@@ -121,6 +127,7 @@ def test_backup_remote_receipt_binds_original_cipher_and_algorithm(monkeypatch, 
         "cipher-sha256": encrypted.cipher_sha256,
         "encryption": "age-x25519",
     }
+    assert uploaded["storage_class"] == "STANDARD"
     assert result["status"] == "verified"
     assert result["cipher_sha256"] == encrypted.cipher_sha256
     assert not list((tmp_path / "readback").glob("*"))
@@ -136,7 +143,12 @@ def test_recovery_descriptor_is_hash_verified_and_contains_no_fact_payload(monke
 
     class FakeClient:
         def put_object(self, **kwargs):
-            uploaded.update({"body": kwargs["Body"], "metadata": kwargs["Metadata"], "key": kwargs["Key"]})
+            uploaded.update({
+                "body": kwargs["Body"],
+                "metadata": kwargs["Metadata"],
+                "key": kwargs["Key"],
+                "storage_class": kwargs["StorageClass"],
+            })
 
         def head_object(self, **_kwargs):
             return {"Metadata": uploaded["metadata"]}
@@ -164,6 +176,7 @@ def test_recovery_descriptor_is_hash_verified_and_contains_no_fact_payload(monke
     payload = json.loads(uploaded["body"])
     assert result["status"] == "verified"
     assert uploaded["key"].endswith("/recovery.json")
+    assert uploaded["storage_class"] == "STANDARD"
     assert "facts" not in payload and "body" not in payload and "ciphertext" not in payload
 
 
@@ -240,7 +253,7 @@ def test_backup_uses_only_api_delivered_facts_and_mirrors_r2_then_oci(monkeypatc
     assert not settings.private_database_root.exists()
 
 
-def test_r2_failure_blocks_oci_instead_of_claiming_a_cold_backup(monkeypatch, service, store, settings, tmp_path, capsys):
+def test_r2_failure_still_attempts_the_offsite_copy_without_claiming_a_cold_backup(monkeypatch, service, store, settings, tmp_path, capsys):
     _delivered_complete_fact(service, store)
     module = _load_script(Path(__file__).resolve().parents[2])
     _set_settings(monkeypatch, module, _configured(settings))
@@ -249,20 +262,27 @@ def test_r2_failure_blocks_oci_instead_of_claiming_a_cold_backup(monkeypatch, se
     monkeypatch.setattr(module, "_s3_config", lambda store_id: {"id": store_id, "endpoint": "https://fixture", "bucket": "fixture", "access": "a", "secret": "b"})
     calls: list[str] = []
 
-    def fail_r2(config, *_args):
+    def fail_r2_only(config, *_args):
         calls.append(config["id"])
-        raise RuntimeError("r2 unavailable")
+        if config["id"] == "r2":
+            raise RuntimeError("r2 unavailable")
+        return {"status": "verified", "object_key": "fixture", "cipher_sha256": "fixture"}
 
-    monkeypatch.setattr(module, "_upload_and_verify", fail_r2)
+    monkeypatch.setattr(module, "_upload_and_verify", fail_r2_only)
     output = tmp_path / "r2-failure"
     monkeypatch.setattr(sys, "argv", ["backup.py", "--once", "--output", str(output)])
 
     assert module.main() == 4
     report = json.loads(capsys.readouterr().out)
+    # Not claiming a cold backup is the job of the overall verdict, not of
+    # skipping the upload. Chaining them meant an R2 outage took the offsite
+    # copy from two copies to zero, precisely when it is most needed. The
+    # frozen v0.0.0.6 pack iterates both stores independently.
     assert report["status"] == "DEGRADED"
-    assert calls == ["r2"]
+    assert calls == ["r2", "oci"], "the offsite copy must be attempted even when the primary fails"
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
-    assert manifest["receipts"]["oci"]["status"] == "blocked_prerequisite"
+    assert manifest["receipts"]["r2"]["status"] == "failed"
+    assert manifest["receipts"]["oci"]["status"] == "verified"
 
 
 def test_backup_refuses_completed_but_not_api_acknowledged_facts(monkeypatch, service, store, settings, capsys):

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}平台状态｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="page-head"><div><span class="eyebrow">平台管理</span><h1>平台状态</h1><p>只显示 Provider 是否配置和额度，不展示 Secret 值。</p></div><a class="button ghost" href="/admin/users" data-testid="admin-users-link">用户管理</a></section>
+<section class="metric-grid">
+  <article class="metric"><span>自动刷新</span><strong>{{ refresh_hours }}h</strong><small>固定合同，不允许漂移</small></article>
+  <article class="metric"><span>排队任务</span><strong>{{ queued }}</strong><small>等待 Worker 执行</small></article>
+  <article class="metric"><span>运行任务</span><strong>{{ running }}</strong><small>当前正在发现岗位</small></article>
+</section>
+<section class="panel">
+  <h2>DeepSeek 平台 Gateway</h2>
+  <dl class="summary-list">
+    <div><dt>已配置</dt><dd>{{ '是' if ai_status.configured else '否' }}</dd></div>
+    <div><dt>模型</dt><dd>{{ ai_status.model }}</dd></div>
+    <div><dt>熔断状态</dt><dd>{{ ai_status.breaker }}</dd></div>
+    <div><dt>平台请求日上限</dt><dd>{{ ai_status.platform_daily_request_limit }}</dd></div>
+    <div><dt>默认用户请求日上限</dt><dd>{{ ai_status.default_user_daily_request_limit }}</dd></div>
+  </dl>
+</section>
+{% endblock %}

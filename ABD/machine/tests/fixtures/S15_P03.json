@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S15-P03-LOCAL-MULTI-SURFACE-E2E",
+  "contract_id": "AC-S15-P03",
+  "requirement_id": "REQ-S15-P03",
+  "stage_id": "S15",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+  "predecessor": {
+    "contract_id": "AC-S15-P02",
+    "evidence_path": "machine/evidence/EVD-S15-P02.json",
+    "evidence_sha256": "b3e8c7f5eb604d19029ff23eb0f4c382ac194634a9fdc4fe8f44e998dde22521",
+    "rollback_path": "machine/evidence/EVD-S15-P02_rollback.json",
+    "rollback_sha256": "971bc1d3b8059d064cfa4b379c3978e557a0f328a8c26122d95b0f8d4826f499",
+    "next": "S15/P03_READY_NOT_STARTED"
+  },
+  "execution_policy": {
+    "offline_deterministic_only": true,
+    "production_equivalent_config_schema_only": true,
+    "full_regression_or_real_time_soak_allowed": false,
+    "external_runtime_access_allowed": false,
+    "phase_test_only": true,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "minimum_targeted_pytest_cases": 19,
+  "expected_environment_ids": [
+    "ENV-S15-P03-OVH-CONFIG-SCHEMA",
+    "ENV-S15-P03-CLOUDFLARE-EDGE-SCHEMA",
+    "ENV-S15-P03-ZH-DESKTOP-STATIC",
+    "ENV-S15-P03-ZH-MOBILE-STATIC",
+    "ENV-S15-P03-BROWSER-COMPONENT",
+    "ENV-S15-P03-RECOVERY-PATH"
+  ],
+  "expected_case_ids": [
+    "S15-P03-GOLDEN-BASELINE-LOCAL",
+    "S15-P03-GOLDEN-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND",
+    "S15-P03-BLACK-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND",
+    "S15-P03-BLACK-RESULT-TICKET-MISMATCH",
+    "S15-P03-DEGRADED-SIMULATED-EDGE-SCHEMA-UNAVAILABLE",
+    "S15-P03-RECOVERY-FRESH-LOCAL-REPLAY"
+  ],
+  "expected_journey_classes": ["GOLDEN", "BLACK", "DEGRADED", "RECOVERY"],
+  "expected_negative_mutation_ids": [
+    "MUT-S15-P03-UNKNOWN-E2E-FIELD",
+    "MUT-S15-P03-UNPINNED-ENVIRONMENT-HASH",
+    "MUT-S15-P03-UNDECLARED-P02-REPLAY-CASE",
+    "MUT-S15-P03-UNSTRUCTURED-EVIDENCE-LOG"
+  ],
+  "expected_decision": "S15_P03_LOCAL_MULTI_SURFACE_E2E_READY_P04_REQUIRED",
+  "expected_next": "S15/P04_READY_NOT_STARTED"
+}

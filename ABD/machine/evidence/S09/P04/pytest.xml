@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="38" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S09.P04_test" name="test_candidate_preflight_passes_without_generated_phase_reports" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_report_is_an_exact_deterministic_replay_of_the_frozen_fixture" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_each_frozen_case_matches_its_market_and_fallback_contract[RACING_POSITIVE]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_each_frozen_case_matches_its_market_and_fallback_contract[RACING_FUTURE_REQUIRED_FEATURE]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_each_frozen_case_matches_its_market_and_fallback_contract[BASKETBALL_POSITIVE]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_each_frozen_case_matches_its_market_and_fallback_contract[BASKETBALL_UNCONFIRMED]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_each_frozen_case_matches_its_market_and_fallback_contract[BASEBALL_POSITIVE]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_each_frozen_case_matches_its_market_and_fallback_contract[BASEBALL_BOUNDARY_AT_DECISION]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_each_frozen_case_matches_its_market_and_fallback_contract[NICHE_MARKET_ONLY]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_racing_plackett_luce_and_harville_probabilities_preserve_complete_mass" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_future_observation_is_excluded_from_racing_asof_selection" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_exact_decision_time_is_allowed_while_plus_point_zero_zero_zero_one_and_unconfirmed_fall_back" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_unproven_or_unavailable_input_keeps_the_market_untouched[RACING_FUTURE_REQUIRED_FEATURE]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_unproven_or_unavailable_input_keeps_the_market_untouched[BASKETBALL_UNCONFIRMED]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_unproven_or_unavailable_input_keeps_the_market_untouched[NICHE_MARKET_ONLY]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_event_must_be_strictly_after_the_frozen_decision_time[RACING_POSITIVE-RacingModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_event_must_be_strictly_after_the_frozen_decision_time[BASKETBALL_POSITIVE-BasketballModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_event_must_be_strictly_after_the_frozen_decision_time[BASEBALL_POSITIVE-BaseballModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_float_market_probabilities_are_rejected[RACING_POSITIVE-RacingModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_float_market_probabilities_are_rejected[BASKETBALL_POSITIVE-BasketballModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_float_market_probabilities_are_rejected[BASEBALL_POSITIVE-BaseballModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_ambiguous_same_timestamp_feature_history_fails_closed" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_timezone_is_required_for_the_decision_clock[RACING_POSITIVE-RacingModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_timezone_is_required_for_the_decision_clock[BASKETBALL_POSITIVE-BasketballModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_timezone_is_required_for_the_decision_clock[BASEBALL_POSITIVE-BaseballModelInputError]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_niche_policy_drift_is_rejected_by_all_scoped_models" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_core_sources_have_no_network_process_soak_float_or_order_capability" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_one_hundred_replays_have_one_hash_without_waiting[RACING_POSITIVE]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_one_hundred_replays_have_one_hash_without_waiting[BASKETBALL_POSITIVE]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_one_hundred_replays_have_one_hash_without_waiting[BASEBALL_POSITIVE]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_one_hundred_replays_have_one_hash_without_waiting[NICHE_MARKET_ONLY]" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_ten_thousand_deterministic_adverse_perturbations_do_not_require_real_time_soak" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_rollback_drill_is_hash_only_and_changes_no_external_state" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_candidate_fails_closed_when_niche_policy_is_tampered" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_candidate_fails_closed_when_p03_signed_predecessor_is_tampered" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_phase_receipt_is_absent_before_delivery_and_cannot_be_claimed" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_cli_is_wired_to_the_exact_contract_and_preserves_no_order_boundary" time="0.000" />
+    <testcase classname="tests.S09.P04_test" name="test_fixture_and_report_keep_financial_and_runtime_claims_unverified" time="0.000" />
+  </testsuite>
+</testsuites>

@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "task_ids": ["SA-501", "SA-502", "SA-503"],
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T06:30:00Z",
+  "scope": "real_object_replication_to_r2_and_oci_plus_github_third_copy_precondition",
+  "executed_on": "OVH vps-83b882b4, /opt/social-archive, production credentials",
+  "owner_authorization": {
+    "question_asked": "17 pending artifacts belong to 3 content rows: one Social Archive Canary, one real Bilibili video with media and page snapshots, one real Xiaohongshu post. Replication writes them as age ciphertext to R2, OCI and the GitHub private archive.",
+    "owner_answer": "全部复制（含真实内容） — replicate everything including the real content",
+    "note": "Every prior run had deliberately held at 'no user data uploaded'. This run carries the Owner's explicit instruction to lift that hold."
+  },
+  "replication_result": {
+    "status": "PASS",
+    "r2": {"status": "PASS", "attempted": 17, "passed": 17, "failed": 0},
+    "oci": {"status": "PASS", "attempted": 17, "passed": 17, "failed": 0},
+    "encryption": "age-x25519",
+    "object_key_scheme": "primary-objects/sha256/<aa>/<bb>/<sha256>.age",
+    "content_covered": [
+      {"platform": "generic-web", "title": "Social Archive Canary"},
+      {"platform": "bilibili", "note": "real Owner-captured video with mp4, images and page snapshots"},
+      {"platform": "generic-web", "note": "real Owner-captured Xiaohongshu post"}
+    ]
+  },
+  "github_third_copy": {
+    "status": "BLOCKED_ENVIRONMENT",
+    "error_code": "ARCHIVE_REPOSITORY_TOKEN_UNSCOPED",
+    "defects_found_and_fixed": [
+      {
+        "defect": "SOCIAL_ARCHIVE_GITHUB_ARCHIVE_REPOSITORY was set to LinzeColin/Private-Database, the structured-facts plane, rather than a dedicated object archive. CANONICAL_STATE authority_planes keeps structured facts and the third ciphertext copy on separate planes.",
+        "fix": "Repointed to LinzeColin/Social-Archive-Vault. Prior .env preserved at /opt/social-archive-rollback/env-before-archive-repo-fix.bak."
+      },
+      {
+        "defect": "LinzeColin/Social-Archive-Vault did not exist. A prior session recorded creating it, but it 404s even for a full repo-scope credential, so it was deleted or never persisted.",
+        "fix": "Recreated as a private repository: private=true, visibility=private, default_branch=main."
+      }
+    ],
+    "remaining_blocker": {
+      "what": "runtime/secrets/github_token is a fine-grained PAT that still authenticates as LinzeColin but resolves neither the old nor the new Vault repository, on the repo endpoint and on its granted contents and releases endpoints alike. A fine-grained token selects repositories by ID, so recreating the repository under the same name cannot re-attach it.",
+      "why_not_worked_around": [
+        "github_markdown_token reaches Private-Database and MetaDatabase with admin, but a selected-repository token cannot be widened to a newly created repository through any GitHub API.",
+        "Using the broad local OAuth credential on the production host is forbidden by the taskpack and by the prior recorded boundary.",
+        "Retargeting the third copy at Private-Database would pass the command while conflating the object-bytes plane with the structured-facts plane, so it was rejected."
+      ],
+      "single_next_step": "Mint a fine-grained token whose only repository is LinzeColin/Social-Archive-Vault with Contents: read and write, then write it to /opt/social-archive/runtime/secrets/github_token as 0600. This is a GitHub UI action that no API can perform."
+    }
+  },
+  "what_this_proves": [
+    "Two of the three ciphertext copies are real: 17 of 17 artifacts replicated to both R2 and OCI, including real Owner-captured content.",
+    "The archive repository target now exists and the configuration points at the correct plane."
+  ],
+  "what_this_does_not_prove": [
+    "SA-503. No Draft, asset, ciphertext or receipt exists in the GitHub private archive.",
+    "SA-501/SA-502 closure on their own; the frozen Oracle also requires the quota guard and the completion contract.",
+    "Any three-target recovery, which by definition needs the third copy."
+  ],
+  "non_actions": [
+    "No secret value was printed to the terminal, transcript, evidence or Git.",
+    "No repository was deleted, no existing repository content was modified, and the new archive repository is empty.",
+    "No timer was enabled, no tag or release was created, and nothing was pushed to origin."
+  ]
+}

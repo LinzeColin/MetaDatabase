@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-303",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S3",
+  "title": "完善授权、任务、错误与三副本状态界面",
+  "status": "PASS",
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "adapt",
+  "acceptance_ids": [
+    "AC-SA-303"
+  ],
+  "tests": [
+    "TEST-SA-303"
+  ],
+  "oracle": "所有平台和目的地显示已授权/需操作/降级；任务可重试；未齐三收据不显示完成。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "15 extension/storage/PWA tests passed; quota, relation history and task surfaces retained.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+  },
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "3ce58be6533fff0c63bcc51af32eab2974c34bdc14fbc9fe185a97057d34da9a"
+}

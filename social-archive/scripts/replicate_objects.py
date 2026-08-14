@@ -176,12 +176,50 @@ def main() -> int:
             "attempted": len(results), "results": results,
         }
     report["completion"] = runtime.replication_completion()
+    # **索引也要出现在这份状态里。**
+    #
+    # 这份 JSON 是对外的耐久性信号。2026-08-04 之前它写着
+    # `all_three_verified: 549 / pending: 0 / PASS`——**每个字都是真的**，
+    # 而当时运行库索引全世界只有一份：552 个加密块躺在三个云上，
+    # 没有任何东西说得出它们分别是什么。
+    #
+    # 「制品都齐了」被当成了「档案馆安全了」。差别不在数字对不对，
+    # 在于**没显示的那一格**。
+    report["index_backup"] = _index_backup_status(settings)
     report["status"] = "PASS" if failures == 0 and blocked == 0 else ("DEGRADED" if attempted else "BLOCKED_ENVIRONMENT")
     output = settings.data_root / "status/object-replication.json"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, ensure_ascii=False))
     return 0 if report["status"] == "PASS" else (4 if attempted else 3)
+
+
+def _index_backup_status(settings) -> dict[str, Any]:
+    """运行库快照最近一次备成什么样。
+
+    只读 backup_runtime_db.py 落下的 manifest，不重新计算、不联网——
+    这份报告是复制任务顺手带出来的，不该在这里再跑一遍备份。
+    """
+    root = settings.data_root / "backups/runtime-db"
+    if not root.is_dir():
+        return {"status": "MISSING", "message": "运行库索引从未备份过——制品救得回来，而没有东西说得出它们是什么"}
+    for directory in sorted((item for item in root.iterdir() if item.is_dir()), reverse=True):
+        manifest = directory / "manifest.json"
+        if not manifest.is_file():
+            continue
+        try:
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        verified = int(data.get("verified_remote_copies") or 0)
+        return {
+            "status": "PASS" if verified >= 2 else "DEGRADED",
+            "created_at": data.get("created_at"),
+            "verified_remote_copies": verified,
+            "stores": {name: receipt.get("status") for name, receipt in (data.get("receipts") or {}).items()},
+            "snapshot_byte_size": data.get("snapshot_byte_size"),
+        }
+    return {"status": "MISSING", "message": "backups/runtime-db 下没有可用的 manifest"}
 
 
 if __name__ == "__main__":

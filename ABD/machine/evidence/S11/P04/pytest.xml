@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="44" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S11.P04_test" name="test_candidate_preflight_passes_without_generated_test_reports" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_frozen_graph_vectors_and_report_are_exact_replays" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_fixed_vectors_cover_stage_caps_exposure_controls_and_hard_stops[K01-GA-P03-ROUTE-STABLE-RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE-RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE-600-ALL_CONSTRAINED_KELLY_AND_RISK_GATES_STABLE]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_fixed_vectors_cover_stage_caps_exposure_controls_and_hard_stops[K02-BETA-SINGLE-TICKET-CAP-RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE-RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE-450-ALL_CONSTRAINED_KELLY_AND_RISK_GATES_STABLE]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_fixed_vectors_cover_stage_caps_exposure_controls_and_hard_stops[K03-ALPHA-COEFFICIENT-ZERO-NO_RECOMMENDATION-NO_RECOMMENDATION-0-STAGE_COEFFICIENT_ZERO]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_fixed_vectors_cover_stage_caps_exposure_controls_and_hard_stops[K04-EVENT-CAP-REMAINING-CAPACITY-RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE-RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE-100-ALL_CONSTRAINED_KELLY_AND_RISK_GATES_STABLE]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_fixed_vectors_cover_stage_caps_exposure_controls_and_hard_stops[K05-CLUSTER-CAP-REMAINING-CAPACITY-RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE-RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE-100-ALL_CONSTRAINED_KELLY_AND_RISK_GATES_STABLE]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_fixed_vectors_cover_stage_caps_exposure_controls_and_hard_stops[K06-OPEN-CAP-REMAINING-CAPACITY-RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE-RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE-100-ALL_CONSTRAINED_KELLY_AND_RISK_GATES_STABLE]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_fixed_vectors_cover_stage_caps_exposure_controls_and_hard_stops[K07-BELOW-PROVIDER-MINIMUM-NO-UPROUND-NO_RECOMMENDATION-NO_RECOMMENDATION-0-STAKE_BELOW_PROVIDER_MINIMUM]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_fixed_vectors_cover_stage_caps_exposure_controls_and_hard_stops[K08-DAILY-LOSS-SOFT-STOP-NO_RECOMMENDATION-NO_RECOMMENDATION-0-DAILY_LOSS_SOFT_STOP]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_fixed_vectors_cover_stage_caps_exposure_controls_and_hard_stops[K09-STRATEGY-SLICE-DRAWDOWN-KILL-NO_RECOMMENDATION-NO_RECOMMENDATION-0-STRATEGY_SLICE_DRAWDOWN_KILL]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_fixed_vectors_cover_stage_caps_exposure_controls_and_hard_stops[K10-LEDGER-DIFFERENCE-HARD-STOP-NO_RECOMMENDATION-NO_RECOMMENDATION-0-LEDGER_DIFFERENCE_HARD_STOP]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_fixed_vectors_cover_stage_caps_exposure_controls_and_hard_stops[K11-RISK-THRESHOLD-POINT-0001-FLIP-RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE-NO_RECOMMENDATION-0-ADVERSE_RISK_STABILITY_FLIP]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_fixed_vectors_cover_stage_caps_exposure_controls_and_hard_stops[K12-TARGET-SHORTFALL-DIAGNOSTIC-ONLY-RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE-RISK_GATED_SYNTHETIC_CANDIDATE_PENDING_FINAL_ADVICE-600-ALL_CONSTRAINED_KELLY_AND_RISK_GATES_STABLE]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_every_generated_allocation_and_adverse_scenario_respects_all_risk_caps" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_property_synthetic_exposure_ranges_never_create_a_cap_breach[0]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_property_synthetic_exposure_ranges_never_create_a_cap_breach[1]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_property_synthetic_exposure_ranges_never_create_a_cap_breach[95]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_property_synthetic_exposure_ranges_never_create_a_cap_breach[100]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_property_synthetic_exposure_ranges_never_create_a_cap_breach[1396]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_property_synthetic_exposure_ranges_never_create_a_cap_breach[1497]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_property_synthetic_exposure_ranges_never_create_a_cap_breach[1500]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_property_synthetic_exposure_ranges_never_create_a_cap_breach[1501]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_property_synthetic_exposure_ranges_never_create_a_cap_breach[4500]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_one_in_ten_thousand_risk_threshold_tightening_flips_to_no_recommendation" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_target_shortfall_is_diagnostic_only_and_never_increases_or_relaxes_stake" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_loss_drawdown_and_ledger_boundaries_stop_new_candidate[daily_loss_fraction-0.03-DAILY_LOSS_SOFT_STOP]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_loss_drawdown_and_ledger_boundaries_stop_new_candidate[seven_day_drawdown_fraction-0.075-SEVEN_DAY_DRAWDOWN_DIAGNOSTIC]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_loss_drawdown_and_ledger_boundaries_stop_new_candidate[strategy_slice_drawdown_fraction-0.1-STRATEGY_SLICE_DRAWDOWN_KILL]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_loss_drawdown_and_ledger_boundaries_stop_new_candidate[absolute_drawdown_fraction-0.7-ABSOLUTE_DISASTER_LINE_HARD_STOP]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_loss_drawdown_and_ledger_boundaries_stop_new_candidate[ledger_difference_cents-1-LEDGER_DIFFERENCE_HARD_STOP]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_under_minimum_stake_is_zero_and_never_rounded_up" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_deterministic_replay_hash_is_identical_without_waiting" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_malformed_or_drifted_graph_and_vectors_fail_closed[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_malformed_or_drifted_graph_and_vectors_fail_closed[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_malformed_or_drifted_graph_and_vectors_fail_closed[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_malformed_or_drifted_graph_and_vectors_fail_closed[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_malformed_or_drifted_graph_and_vectors_fail_closed[&lt;lambda&gt;4]" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_core_source_has_no_network_process_soak_float_or_order_capability" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_candidate_fails_closed_when_frozen_graph_is_tampered" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_candidate_fails_closed_when_expected_report_hash_is_tampered" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_candidate_fails_closed_when_p03_predecessor_is_changed" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_rollback_drill_is_local_and_has_no_external_side_effect" time="0.000" />
+    <testcase classname="tests.S11.P04_test" name="test_cli_is_wired_to_exact_contract_and_phase_boundaries" time="0.000" />
+  </testsuite>
+</testsuites>

@@ -1,0 +1,78 @@
+{
+  "artifact_id": "ART-S11-P01-02",
+  "candidate_results": [
+    {
+      "action": "NO_ORDER_RESEARCH_ONLY",
+      "adverse_friction": "0.0111",
+      "adverse_net_expected": "0.01489943",
+      "adverse_odds": "1.799999",
+      "candidate_id": "C-MORE-THAN-2H",
+      "conservative_probability": "0.57",
+      "effective_friction": "0.011",
+      "net_expected": "0.015",
+      "odds": "1.8",
+      "time_band": "MORE_THAN_2H"
+    },
+    {
+      "action": "NO_ORDER_RESEARCH_ONLY",
+      "adverse_friction": "0.0151",
+      "adverse_net_expected": "-0.00710056",
+      "adverse_odds": "1.799999",
+      "candidate_id": "C-15M-TO-2H",
+      "conservative_probability": "0.56",
+      "effective_friction": "0.015",
+      "net_expected": "-0.007",
+      "odds": "1.8",
+      "time_band": "15M_TO_2H"
+    },
+    {
+      "action": "NO_ORDER_RESEARCH_ONLY",
+      "adverse_friction": "0.0211",
+      "adverse_net_expected": "0.00489943",
+      "adverse_odds": "1.799999",
+      "candidate_id": "C-0-TO-15M",
+      "conservative_probability": "0.57",
+      "effective_friction": "0.021",
+      "net_expected": "0.005",
+      "odds": "1.8",
+      "time_band": "0_TO_15M"
+    },
+    {
+      "action": "NO_ORDER_RESEARCH_ONLY",
+      "adverse_friction": "0.0341",
+      "adverse_net_expected": "0.0458994",
+      "adverse_odds": "1.799999",
+      "candidate_id": "C-LIVE",
+      "conservative_probability": "0.6",
+      "effective_friction": "0.034",
+      "net_expected": "0.046",
+      "odds": "1.8",
+      "time_band": "LIVE"
+    }
+  ],
+  "claim_boundary": {
+    "actual_market_or_odds_observed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "network_accessed": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false,
+    "recommendation_generated": false
+  },
+  "contract_id": "AC-S11-P01",
+  "decision": "FRICTION_REPLAY_READY_DOWNSTREAM_MINIMUM_ODDS_AND_RISK_GATES_REQUIRED",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "model_sha256": "9e659a8788eeda8ebe3a38783022b6ba4c0ca4b0125fb56c41ff9641ca12e444",
+  "next": "S11/P02_READY_NOT_STARTED",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "requirement_id": "REQ-S11-P01",
+  "schema_version": "1.0.0",
+  "stage_id": "S11",
+  "summary": {
+    "candidate_count": 4,
+    "order_actions_enabled": false,
+    "positive_net_expected_count": 3,
+    "recommendations_enabled": false
+  }
+}

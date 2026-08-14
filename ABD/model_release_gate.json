@@ -1,0 +1,241 @@
+{
+  "artifact_id": "ART-S16-P04-02",
+  "claim_boundary": {
+    "cross_model_review_is_not_model_inference": true,
+    "empirical_model_increment_verified": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_activation_enabled": false,
+    "model_gate_is_not_deployment_authorization": true,
+    "model_promotion_allowed": false,
+    "model_system_card_is_not_model_activation": true,
+    "model_weight_changed": false,
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "software_gate_is_not_model_gate": true,
+    "synthetic_evaluation_only": true,
+    "synthetic_redteam_only": true
+  },
+  "contract_id": "AC-S16-P04",
+  "decision": "S16_P04_DUAL_GATE_CONTROL_PASS_STAGE_REVIEW_REQUIRED_NOT_DEPLOYMENT",
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "frozen_control_cases": [
+    {
+      "adverse_probability_delta": "-0.0001",
+      "case_id": "S16P04-GATE-01",
+      "classification": "FROZEN_LOGICAL_CONTROL_CASE_NOT_MODEL_OR_RELEASE_EVIDENCE",
+      "market_prior_weight": "0.5000",
+      "model_empirical_increment_verified": false,
+      "model_stage": "ALPHA",
+      "reason_code": "MODEL_GATE_NOT_PASSED",
+      "release_allowed": false,
+      "residual_weight": "0.0000",
+      "software_gate_passed": true,
+      "stage_review_passed": true
+    },
+    {
+      "adverse_probability_delta": "0.0000",
+      "case_id": "S16P04-GATE-02",
+      "classification": "FROZEN_LOGICAL_CONTROL_CASE_NOT_MODEL_OR_RELEASE_EVIDENCE",
+      "market_prior_weight": "0.5000",
+      "model_empirical_increment_verified": true,
+      "model_stage": "BETA",
+      "reason_code": "SOFTWARE_GATE_NOT_PASSED",
+      "release_allowed": false,
+      "residual_weight": "0.35",
+      "software_gate_passed": false,
+      "stage_review_passed": true
+    },
+    {
+      "adverse_probability_delta": "0.0000",
+      "case_id": "S16P04-GATE-03",
+      "classification": "FROZEN_LOGICAL_CONTROL_CASE_NOT_MODEL_OR_RELEASE_EVIDENCE",
+      "market_prior_weight": "0.5000",
+      "model_empirical_increment_verified": true,
+      "model_stage": "GA",
+      "reason_code": "STAGE_REVIEW_NOT_PASSED",
+      "release_allowed": false,
+      "residual_weight": "0.50",
+      "software_gate_passed": true,
+      "stage_review_passed": false
+    },
+    {
+      "adverse_probability_delta": "0.0000",
+      "case_id": "S16P04-GATE-04",
+      "classification": "FROZEN_LOGICAL_CONTROL_CASE_NOT_MODEL_OR_RELEASE_EVIDENCE",
+      "market_prior_weight": "0.5000",
+      "model_empirical_increment_verified": true,
+      "model_stage": "GA",
+      "reason_code": "P04_PHASE_NOT_A_DEPLOYMENT_AUTHORIZATION",
+      "release_allowed": false,
+      "residual_weight": "0.50",
+      "software_gate_passed": true,
+      "stage_review_passed": true
+    },
+    {
+      "adverse_probability_delta": "-0.0001",
+      "case_id": "S16P04-GATE-05",
+      "classification": "FROZEN_LOGICAL_CONTROL_CASE_NOT_MODEL_OR_RELEASE_EVIDENCE",
+      "market_prior_weight": "0.5000",
+      "model_empirical_increment_verified": false,
+      "model_stage": "BETA",
+      "reason_code": "MODEL_GATE_NOT_PASSED",
+      "release_allowed": false,
+      "residual_weight": "0.35",
+      "software_gate_passed": true,
+      "stage_review_passed": true
+    },
+    {
+      "adverse_probability_delta": "0.0000",
+      "case_id": "S16P04-GATE-06",
+      "classification": "FROZEN_LOGICAL_CONTROL_CASE_NOT_MODEL_OR_RELEASE_EVIDENCE",
+      "market_prior_weight": "0.4999",
+      "model_empirical_increment_verified": false,
+      "model_stage": "BETA",
+      "reason_code": "MARKET_PRIOR_WEIGHT_BELOW_MIN",
+      "release_allowed": false,
+      "residual_weight": "0.35",
+      "software_gate_passed": true,
+      "stage_review_passed": true
+    },
+    {
+      "adverse_probability_delta": "0.0000",
+      "case_id": "S16P04-GATE-07",
+      "classification": "FROZEN_LOGICAL_CONTROL_CASE_NOT_MODEL_OR_RELEASE_EVIDENCE",
+      "market_prior_weight": "0.5000",
+      "model_empirical_increment_verified": false,
+      "model_stage": "BETA",
+      "reason_code": "RESIDUAL_WEIGHT_ABOVE_STAGE_CAP",
+      "release_allowed": false,
+      "residual_weight": "0.3501",
+      "software_gate_passed": true,
+      "stage_review_passed": true
+    }
+  ],
+  "gate_independence": {
+    "both_gates_required_before_any_future_release_review": true,
+    "model_pass_can_replace_software_pass": false,
+    "p04_control_pass_is_not_deployment_authorization": true,
+    "p04_control_pass_is_not_model_pass": true,
+    "software_pass_can_replace_model_pass": false
+  },
+  "input_mode": "FROZEN_LOCAL_GATE_CONTROL_NO_NETWORK_NO_ACCOUNT",
+  "lifecycle_release_status": [
+    {
+      "configured_kelly_fraction": "0.00",
+      "configured_single_ticket_cap": "0.00",
+      "current_status": "LOCAL_SYNTHETIC_CONTROL_ONLY_NOT_MODEL_ACTIVATION",
+      "required_before_any_operational_transition": "independent empirical-model gate and a separately authorized release path",
+      "residual_weight_cap": "0.35",
+      "stage": "ALPHA"
+    },
+    {
+      "configured_kelly_fraction": "0.20",
+      "configured_single_ticket_cap": "0.015",
+      "current_status": "BLOCKED_PENDING_INDEPENDENT_EMPIRICAL_MODEL_GATE",
+      "required_before_any_operational_transition": "E3 evidence tier, independent empirical model increment, and a separately authorized release path",
+      "residual_weight_cap": "0.35",
+      "stage": "BETA"
+    },
+    {
+      "configured_kelly_fraction": "0.25",
+      "configured_single_ticket_cap": "0.020",
+      "current_status": "BLOCKED_PENDING_INDEPENDENT_EMPIRICAL_MODEL_GATE",
+      "required_before_any_operational_transition": "GA-required evidence tiers, independent empirical model increment, and a separately authorized release path",
+      "residual_weight_cap": "0.50",
+      "stage": "GA"
+    }
+  ],
+  "model_gate": {
+    "activation_allowed": false,
+    "conditions": [
+      {
+        "condition_id": "MODEL-EMPIRICAL-INCREMENT",
+        "evidence_scope": "S16/P01-P03 local synthetic control only",
+        "passed": false,
+        "reason_code": "NO_EMPIRICAL_MODEL_INCREMENT_EVIDENCE"
+      },
+      {
+        "condition_id": "MODEL-P02-SYNTHETIC-EVALUATION",
+        "evidence_scope": "frozen synthetic evaluation only",
+        "passed": true,
+        "reason_code": "SYNTHETIC_EVALUATION_GATES_PASS_NOT_EMPIRICAL"
+      },
+      {
+        "condition_id": "MODEL-P03-REDTEAM",
+        "evidence_scope": "frozen local red-team only",
+        "passed": true,
+        "reason_code": "FROZEN_REDTEAM_PATHS_BLOCKED_NOT_MODEL_INFERENCE"
+      }
+    ],
+    "p03_predecessor": {
+      "contract_id": "AC-S16-P03",
+      "evidence_path": "machine/evidence/EVD-S16-P03.json",
+      "evidence_sha256": "d86c3a811022a14afa76457051dcf575e91c330bd7171c052d7cf1b849b5739d",
+      "status": "PASS"
+    },
+    "passed": false,
+    "status": "BLOCKED_NO_EMPIRICAL_MODEL_INCREMENT"
+  },
+  "next": "S16/STAGE_REVIEW_READY_NOT_STARTED",
+  "phase_id": "P04",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "requirement_id": "REQ-S16-P04",
+  "rollback": {
+    "action": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "feature_flag_id": "model:s16_system_card_dual_release_gate",
+    "model_activation_enabled": false,
+    "order_submission_enabled": false,
+    "release_state_after_rollback": "NOT_DEPLOYED_OR_ACTIVATED"
+  },
+  "schema_version": "1.0.0",
+  "software_gate": {
+    "limitation": "软件控制证据不构成模型经验增量、模型激活或生产部署许可。",
+    "passed": true,
+    "receipt": {
+      "contract_id": "AC-S15-P04",
+      "evidence_path": "machine/evidence/EVD-S15-P04.json",
+      "evidence_sha256": "3fd288e66d3c473881dc92257992eb41b85422a5c0aaa92f1ff00e202a15feda",
+      "status": "PASS"
+    },
+    "stage_review_receipt": {
+      "contract_id": "STAGE-REVIEW-S15",
+      "evidence_path": "machine/evidence/EVD-S15-STAGE-REVIEW.json",
+      "evidence_sha256": "1422ca3d52f66d30cb39c7431d928486a0b5d3d0750d45327b7896d03695b9c7",
+      "status": "PASS"
+    },
+    "status": "PASS_LOCAL_SOFTWARE_EVIDENCE_ONLY"
+  },
+  "source_hashes": {
+    "cross_model_review.json": "01c0bd21f3ca6ec93ca4e2d07929e3ec685ef4faead4982cbe6bd6ea455267d9",
+    "machine/evidence/EVD-S15-P04.json": "3fd288e66d3c473881dc92257992eb41b85422a5c0aaa92f1ff00e202a15feda",
+    "machine/evidence/EVD-S15-STAGE-REVIEW.json": "1422ca3d52f66d30cb39c7431d928486a0b5d3d0750d45327b7896d03695b9c7",
+    "machine/evidence/EVD-S16-P03.json": "d86c3a811022a14afa76457051dcf575e91c330bd7171c052d7cf1b849b5739d",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+    "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+    "machine/tests/fixtures/S16_P03.json": "325f88501a8a97f0c85dc594959754aa4becce505f60cf3d40f0ca80487e7f49",
+    "model_redteam.json": "1eb8c20a1465606d513d5f6b076f3396a45112ed0e5c0ef3a3b5fcc3037a3a9e"
+  },
+  "stage_id": "S16",
+  "summary": {
+    "all_cases_release_blocked": true,
+    "case_count": 7,
+    "deployment_allowed": false,
+    "model_activation_allowed": false,
+    "model_gate_passed": false,
+    "software_gate_passed": true,
+    "stage_review_required": true
+  }
+}

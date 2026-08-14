@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="23" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S19.P01_test" name="test_fixture_is_exact_s19_p01_contract" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_each_frozen_scenario_has_its_pinned_no_order_result[GOLDEN_LOCAL_CLOSED_LOOP]" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_each_frozen_scenario_has_its_pinned_no_order_result[ADVERSE_ONE_IN_TEN_THOUSAND_PRESERVES_NO_ORDER]" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_each_frozen_scenario_has_its_pinned_no_order_result[EXTERNAL_EXECUTION_ATTEMPT_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_each_frozen_scenario_has_its_pinned_no_order_result[ACTUAL_ORDER_ATTEMPT_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_each_frozen_scenario_has_its_pinned_no_order_result[REAL_FUND_MUTATION_ATTEMPT_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_each_frozen_scenario_has_its_pinned_no_order_result[REAL_MAIL_SEND_ATTEMPT_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_each_frozen_scenario_has_its_pinned_no_order_result[PRODUCTION_DEPLOY_ATTEMPT_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_each_frozen_scenario_has_its_pinned_no_order_result[RISK_GATE_RELAXATION_ATTEMPT_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_golden_lifecycle_closes_discovery_to_recovery_locally_only" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_one_in_ten_thousand_adverse_vector_keeps_the_no_order_gate" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_malformed_cycle_input_fails_before_it_can_be_interpreted[duplicate_step]" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_malformed_cycle_input_fails_before_it_can_be_interpreted[float_delta]" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_malformed_cycle_input_fails_before_it_can_be_interpreted[unknown_market]" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_plan_replay_is_content_addressed_and_deterministic" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_software_alpha_artifacts_remain_local_and_not_a_return_claim" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_core_has_no_runtime_network_process_mail_or_sleep_capability" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_candidate_preflight_is_passed_without_generated_reports_or_external_effects" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_generated_artifact_paths_are_stable_before_and_after_signing" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_evidence_build_is_deterministic_before_signing" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_cli_and_legacy_successor_chain_are_exact" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_rollback_drill_is_local_and_preserves_s18_receipt" time="0.000" />
+    <testcase classname="tests.S19.P01_test" name="test_existing_evidence_verifier_fails_closed_when_no_signed_evidence_exists" time="0.000" />
+  </testsuite>
+</testsuites>

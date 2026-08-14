@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S11-P01-FRICTION",
+  "contract_id": "AC-S11-P01",
+  "requirement_id": "REQ-S11-P01",
+  "stage_id": "S11",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "rolling_window_size": 5,
+  "time_bands": [
+    {
+      "time_band": "MORE_THAN_2H",
+      "observations": [
+        {"observation_index": 1, "price_worsening": "0.004", "rejection": "0.001", "settlement": "0.001", "operational": "0.001"},
+        {"observation_index": 2, "price_worsening": "0.005", "rejection": "0.001", "settlement": "0.001", "operational": "0.001"},
+        {"observation_index": 3, "price_worsening": "0.006", "rejection": "0.001", "settlement": "0.001", "operational": "0.001"},
+        {"observation_index": 4, "price_worsening": "0.007", "rejection": "0.001", "settlement": "0.001", "operational": "0.001"},
+        {"observation_index": 5, "price_worsening": "0.008", "rejection": "0.001", "settlement": "0.001", "operational": "0.001"}
+      ]
+    },
+    {
+      "time_band": "15M_TO_2H",
+      "observations": [
+        {"observation_index": 1, "price_worsening": "0.006", "rejection": "0.001", "settlement": "0.001", "operational": "0.001"},
+        {"observation_index": 2, "price_worsening": "0.007", "rejection": "0.001", "settlement": "0.001", "operational": "0.001"},
+        {"observation_index": 3, "price_worsening": "0.008", "rejection": "0.001", "settlement": "0.001", "operational": "0.001"},
+        {"observation_index": 4, "price_worsening": "0.009", "rejection": "0.001", "settlement": "0.001", "operational": "0.001"},
+        {"observation_index": 5, "price_worsening": "0.010", "rejection": "0.001", "settlement": "0.001", "operational": "0.001"}
+      ]
+    },
+    {
+      "time_band": "0_TO_15M",
+      "observations": [
+        {"observation_index": 1, "price_worsening": "0.015", "rejection": "0.001", "settlement": "0.001", "operational": "0.001"},
+        {"observation_index": 2, "price_worsening": "0.016", "rejection": "0.001", "settlement": "0.001", "operational": "0.001"},
+        {"observation_index": 3, "price_worsening": "0.017", "rejection": "0.001", "settlement": "0.001", "operational": "0.001"},
+        {"observation_index": 4, "price_worsening": "0.018", "rejection": "0.001", "settlement": "0.001", "operational": "0.001"},
+        {"observation_index": 5, "price_worsening": "0.017", "rejection": "0.001", "settlement": "0.001", "operational": "0.001"}
+      ]
+    },
+    {
+      "time_band": "LIVE",
+      "observations": [
+        {"observation_index": 1, "price_worsening": "0.025", "rejection": "0.002", "settlement": "0.001", "operational": "0.001"},
+        {"observation_index": 2, "price_worsening": "0.027", "rejection": "0.002", "settlement": "0.001", "operational": "0.001"},
+        {"observation_index": 3, "price_worsening": "0.028", "rejection": "0.002", "settlement": "0.001", "operational": "0.001"},
+        {"observation_index": 4, "price_worsening": "0.029", "rejection": "0.002", "settlement": "0.001", "operational": "0.001"},
+        {"observation_index": 5, "price_worsening": "0.030", "rejection": "0.002", "settlement": "0.001", "operational": "0.001"}
+      ]
+    }
+  ],
+  "candidates": [
+    {"candidate_id": "C-MORE-THAN-2H", "time_band": "MORE_THAN_2H", "conservative_probability": "0.57", "odds": "1.80"},
+    {"candidate_id": "C-15M-TO-2H", "time_band": "15M_TO_2H", "conservative_probability": "0.56", "odds": "1.80"},
+    {"candidate_id": "C-0-TO-15M", "time_band": "0_TO_15M", "conservative_probability": "0.57", "odds": "1.80"},
+    {"candidate_id": "C-LIVE", "time_band": "LIVE", "conservative_probability": "0.60", "odds": "1.80"}
+  ],
+  "claim_boundary": {
+    "network_accessed": false,
+    "actual_market_or_odds_observed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "expected_model_sha256": "9e659a8788eeda8ebe3a38783022b6ba4c0ca4b0125fb56c41ff9641ca12e444",
+  "expected_backtest_sha256": "48bfc623fbff74b07b2fb84b77304b846c6dd25a8329cad526dd0cdfcfb2b1db"
+}

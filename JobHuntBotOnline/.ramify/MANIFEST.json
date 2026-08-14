@@ -1,0 +1,7 @@
+{
+  "revision": 1,
+  "status": "CANDIDATE_READY_FOR_TARGET_DELIVERY",
+  "canonical_files": ["KERNEL.md", "DECISIONS.md", "HANDOFF.md"],
+  "integrity": "validated by taskpack inventory at packaging time",
+  "production_verified": false
+}

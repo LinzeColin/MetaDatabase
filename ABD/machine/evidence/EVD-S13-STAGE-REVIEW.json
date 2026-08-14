@@ -1,0 +1,1094 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S13/stage_review_test.py --junitxml=machine/evidence/S13/STAGE_REVIEW/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S13/STAGE_REVIEW/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S13/STAGE_REVIEW/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract STAGE-REVIEW-S13 --evidence machine/evidence"
+  ],
+  "contract_id": "STAGE-REVIEW-S13",
+  "decision": "S13_WHOLE_STAGE_REVIEW_PASS",
+  "decision_sha256": "6ad32e3df4baeb3978fd503fe5355b8a39d802a9b87a49b5c05c7d55c3387e51",
+  "evidence_id": "EVD-S13-STAGE-REVIEW",
+  "external_effect_boundary": {
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_network_accessed_for_product_runtime": false,
+    "github_upload_performed_by_local_review": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_or_strategy_executed": false,
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "owner_final_order_only": true,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "remote_ci_result_claimed_by_local_review": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "hashes": {
+    "inputs": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/stage13_review.py": "577f1ebd995f69dcdb671cee6c3ada80d1688cd30c28c6f771964d4a7c8c2df9",
+      "browser_companion/background.js": "d5cb6bde73bf3749750991fa3f2941550e15ae54ec868ef9619b452d24c77427",
+      "browser_companion/manifest.json": "a5f9223e479bb2f099da536a862c9575399e024d6fe76205bbac058cb6a8e47d",
+      "journey_tests.json": "2f99eb4a558c9e5959c25ea4fcc4b30af0247db506fab4ef74b638b932575030",
+      "machine/evidence/EVD-S13-P01.json": "161a75ad86f1f0f745eae393b27b3a7f7a07c034d4342381f88b95892ad0199d",
+      "machine/evidence/EVD-S13-P01_rollback.json": "504ef71bbaba64179ba54b7e8a6be64b9aecca64c2e9db0db27fd65569c175c1",
+      "machine/evidence/EVD-S13-P02.json": "42be48209052f1056d16dd002322ca710cafbe1023be7c9a20a16d158abbbe89",
+      "machine/evidence/EVD-S13-P02_rollback.json": "37216196b19640aba63181e9a5211c5ec31048e33495f4b8da11d5f1391fd236",
+      "machine/evidence/EVD-S13-P03.json": "7ebe8b2b59bce33b34e1c7bab01bf96a7d2225414725bddebada481443fc197a",
+      "machine/evidence/EVD-S13-P03_rollback.json": "38da833ecfc4199cc842f6725f77b9d4c740f117734e546f8b31f9de37b7b9a6",
+      "machine/evidence/EVD-S13-P04.json": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e",
+      "machine/evidence/EVD-S13-P04_rollback.json": "8cea40846c7d60b5ee8adaecee741e97be17a46e6045728e71cfb08131dc0856",
+      "machine/evidence/S13/STAGE_REVIEW/findings.json": "8f92f4d8e363b3a6e05d9d60e7386ca95b3f6650f4d9a8565ae7901c0ed82c8c",
+      "machine/evidence/S13/STAGE_REVIEW/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S13/STAGE_REVIEW/pytest.xml": "aff9cad89ebe549cbbb3eb19a5cbe0e332c28ff51b8b7a7cf356ff5c157a4e20",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/stage13_review_contract.json": "f3af5b65449b9d8f548c7f0931485a463a28587e44bdb383a17a3280afee7b48",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S13_P03.json": "f8aef9dc1c419082f0573a5f9edf19fed26b809d38f2b3e12bf650ce529a1da5",
+      "machine/tests/fixtures/S13_STAGE_REVIEW.json": "a45775dd1cb70085f4e15a51d0b834f2ece4d10858ea1350553f69bfea7905d2",
+      "push_service.py": "2e3649aa5bf223ff176a7a1c0e02e1ad9e0db0b9f6ba0b32204bfcdcef522d42",
+      "recovery_actions.json": "b303c0ab00a151f016170ca4e0d6f7018d21e30980332c8eb1f8b25cfa5319db",
+      "tests/S13/stage_review_test.py": "cc1d7bd0bc04fad97856fb8b59e00a4f70e4791e27feb92ca0df65ef4bfb83c4",
+      "webapp/index.html": "46f6ae484a9c6f29737eccf6e710397e2fc0d247a8c7d02acae6e94298cae77d"
+    },
+    "rollback_evidence": "7266bd2034efe5bbf61c23c55fc2b7dbe36fcba488971739681c81537ec1d366"
+  },
+  "next": "S13/GITHUB_STAGE_UPLOAD_READY",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S13_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "review_id": "ABD-S13-WHOLE-STAGE-REVIEW",
+  "review_limitations": [
+    {
+      "id": "S13-LOCAL-EVIDENCE-BOUNDARY",
+      "statement": "S13 复审只证明冻结合成制品与本地证据链；不证明真实浏览器、移动设备、市场、账户、TAB/Gmail、OVH、Cloudflare、部署、上线、订单或实际收益。",
+      "status": "UNVERIFIED_OUT_OF_SCOPE"
+    }
+  ],
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S13-STAGE-REVIEW_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S13",
+  "stage_snapshot_summary": {
+    "real_time_waited": false,
+    "reason_codes": [],
+    "status": "S13_STAGE_REVIEW_VERIFIED_NO_ACTION"
+  },
+  "stage_status": "S13_WHOLE_STAGE_REVIEW_PASS",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": "machine/facts/stage13_review_contract.json",
+        "id": "S13REVIEW-CONTRACT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S13_STAGE_REVIEW.json",
+        "id": "S13REVIEW-FIXTURE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S13/STAGE_REVIEW/findings.json",
+        "id": "S13REVIEW-FINDINGS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "STAGE-REVIEW-S13",
+          "fixed_clock": "2026-08-09T00:00:00+10:00",
+          "next_on_fail": "S13/STAGE_REVIEW_REMEDIATION_REQUIRED",
+          "next_on_pass": "S13/GITHUB_STAGE_UPLOAD_READY",
+          "product_version": "0.0.0.1",
+          "release_status_on_pass": "S13_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+          "review_id": "ABD-S13-WHOLE-STAGE-REVIEW",
+          "schema_version": "1.0.0",
+          "stage_id": "S13",
+          "targeted_test_command": "pytest -q tests/S13/stage_review_test.py"
+        },
+        "id": "S13REVIEW-CONTRACT-IDENTITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contract_ids": [
+            "AC-S13-P01",
+            "AC-S13-P02",
+            "AC-S13-P03",
+            "AC-S13-P04"
+          ],
+          "phase_ids": [
+            "P01",
+            "P02",
+            "P03",
+            "P04"
+          ],
+          "requirement_ids": [
+            "REQ-S13-P01",
+            "REQ-S13-P02",
+            "REQ-S13-P03",
+            "REQ-S13-P04"
+          ],
+          "task_ids": [
+            "T-S13-P01-01",
+            "T-S13-P01-02",
+            "T-S13-P01-03",
+            "T-S13-P02-01",
+            "T-S13-P02-02",
+            "T-S13-P02-03",
+            "T-S13-P03-01",
+            "T-S13-P03-02",
+            "T-S13-P03-03",
+            "T-S13-P04-01",
+            "T-S13-P04-02",
+            "T-S13-P04-03"
+          ]
+        },
+        "id": "S13REVIEW-SCOPE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_contract_id": "AC-S13-P01",
+            "evidence_path": "machine/evidence/EVD-S13-P01.json",
+            "evidence_sha256": "161a75ad86f1f0f745eae393b27b3a7f7a07c034d4342381f88b95892ad0199d",
+            "expected_decision": "CHINESE_WORKBENCH_AND_LOCAL_PUSH_CONTRACT_READY_PLATFORM_VALIDATION_AND_POST_ADVICE_EVIDENCE_REQUIRED",
+            "expected_next": "S13/P02_READY_NOT_STARTED",
+            "outputs": [
+              "webapp",
+              "push_service.py",
+              "ui_fixtures.json"
+            ],
+            "phase_id": "P01",
+            "requirement_id": "REQ-S13-P01",
+            "rollback_path": "machine/evidence/EVD-S13-P01_rollback.json",
+            "rollback_sha256": "504ef71bbaba64179ba54b7e8a6be64b9aecca64c2e9db0db27fd65569c175c1",
+            "target": "手机/电脑任意地点可访问，界面中文。"
+          },
+          {
+            "acceptance_contract_id": "AC-S13-P02",
+            "evidence_path": "machine/evidence/EVD-S13-P02.json",
+            "evidence_sha256": "42be48209052f1056d16dd002322ca710cafbe1023be7c9a20a16d158abbbe89",
+            "expected_decision": "BROWSER_COMPANION_AND_LOCAL_VISIBLE_QUOTE_CHECK_READY_POST_ADVICE_EVIDENCE_REQUIRED",
+            "expected_next": "S13/P03_READY_NOT_STARTED",
+            "outputs": [
+              "browser_companion",
+              "quote_check.py",
+              "match_fixtures.json"
+            ],
+            "phase_id": "P02",
+            "requirement_id": "REQ-S13-P02",
+            "rollback_path": "machine/evidence/EVD-S13-P02_rollback.json",
+            "rollback_sha256": "37216196b19640aba63181e9a5211c5ec31048e33495f4b8da11d5f1391fd236",
+            "target": "低于最低赔率、身份不符或过期立即红色撤销。"
+          },
+          {
+            "acceptance_contract_id": "AC-S13-P03",
+            "evidence_path": "machine/evidence/EVD-S13-P03.json",
+            "evidence_sha256": "7ebe8b2b59bce33b34e1c7bab01bf96a7d2225414725bddebada481443fc197a",
+            "expected_decision": "POST_ADVICE_EVIDENCE_AND_SYNTHETIC_SETTLEMENT_READY_REAL_RETURN_REQUIRES_SEPARATE_EVIDENCE",
+            "expected_next": "S13/P04_READY_NOT_STARTED",
+            "outputs": [
+              "post_advice_worker.py",
+              "result_settler.py",
+              "performance_report.py"
+            ],
+            "phase_id": "P03",
+            "requirement_id": "REQ-S13-P03",
+            "rollback_path": "machine/evidence/EVD-S13-P03_rollback.json",
+            "rollback_sha256": "38da833ecfc4199cc842f6725f77b9d4c740f117734e546f8b31f9de37b7b9a6",
+            "target": "没有确认时不伪造真实收益。"
+          },
+          {
+            "acceptance_contract_id": "AC-S13-P04",
+            "evidence_path": "machine/evidence/EVD-S13-P04.json",
+            "evidence_sha256": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e",
+            "expected_decision": "SIX_COMPLETE_SYNTHETIC_JOURNEYS_AND_LOCAL_RECOVERY_READY_STAGE_REVIEW_REQUIRED",
+            "expected_next": "S13/STAGE_REVIEW_READY_NOT_STARTED",
+            "outputs": [
+              "journey_tests.json",
+              "recovery_actions.json"
+            ],
+            "phase_id": "P04",
+            "requirement_id": "REQ-S13-P04",
+            "rollback_path": "machine/evidence/EVD-S13-P04_rollback.json",
+            "rollback_sha256": "8cea40846c7d60b5ee8adaecee741e97be17a46e6045728e71cfb08131dc0856",
+            "target": "每类路径有输入、状态、输出、证据和恢复。"
+          }
+        ],
+        "id": "S13REVIEW-PHASE-RECORDS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S13REVIEW-FROZEN-BASELINE-PINS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "PHASE_RECEIPTS_CURRENT_AND_PORTABLE",
+          "REQUIREMENT_ACCEPTANCE_TASK_TRACE_CLOSED",
+          "CHINESE_WORKBENCH_ACTIONS_DISABLED_AND_LOCAL_PUSH_ONLY_GATE_PRESERVED",
+          "VISIBLE_QUOTE_IDENTITY_MINIMUM_ODDS_EXPIRY_AND_RISK_REVOKE_GATE_PRESERVED",
+          "POST_ADVICE_SYNTHETIC_SETTLEMENT_NOT_ACTUAL_RETURN_GATE_PRESERVED",
+          "SIX_COMPLETE_PATHS_AND_LOCAL_RECOVERY_GATE_PRESERVED",
+          "NO_NETWORK_ACCOUNT_ORDER_DEPLOY_OR_REAL_TIME_SOAK_EXECUTED",
+          "ALL_REVIEW_FINDINGS_RESOLVED",
+          "NO_FULL_REGRESSION_EXECUTED"
+        ],
+        "id": "S13REVIEW-GATES-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "full_regression_or_real_time_soak_allowed": false,
+          "github_upload_performed_by_local_review": false,
+          "incremental_cash_spent_aud": "0.00",
+          "offline_deterministic_only": true,
+          "phase_test_rerun_allowed": false,
+          "production_deployed_or_activated": false,
+          "single_pass_fixture_cases_only": true
+        },
+        "id": "S13REVIEW-NO-FULL-REGRESSION-POLICY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "STAGE-REVIEW-S13",
+          "expected_findings_summary": {
+            "blocked": 0,
+            "open": 0,
+            "resolved": 0,
+            "total": 0
+          },
+          "expected_next": "S13/GITHUB_STAGE_UPLOAD_READY",
+          "expected_phase_evidence_sha256": {
+            "P01": "161a75ad86f1f0f745eae393b27b3a7f7a07c034d4342381f88b95892ad0199d",
+            "P02": "42be48209052f1056d16dd002322ca710cafbe1023be7c9a20a16d158abbbe89",
+            "P03": "7ebe8b2b59bce33b34e1c7bab01bf96a7d2225414725bddebada481443fc197a",
+            "P04": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e"
+          },
+          "expected_phase_ids": [
+            "P01",
+            "P02",
+            "P03",
+            "P04"
+          ],
+          "expected_phase_rollback_sha256": {
+            "P01": "504ef71bbaba64179ba54b7e8a6be64b9aecca64c2e9db0db27fd65569c175c1",
+            "P02": "37216196b19640aba63181e9a5211c5ec31048e33495f4b8da11d5f1391fd236",
+            "P03": "38da833ecfc4199cc842f6725f77b9d4c740f117734e546f8b31f9de37b7b9a6",
+            "P04": "8cea40846c7d60b5ee8adaecee741e97be17a46e6045728e71cfb08131dc0856"
+          },
+          "expected_release_status": "S13_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+          "fixed_clock": "2026-08-09T00:00:00+10:00",
+          "fixture_id": "FIX-S13-WHOLE-STAGE-REVIEW",
+          "minimum_targeted_pytest_cases": 24,
+          "product_version": "0.0.0.1",
+          "review_id": "ABD-S13-WHOLE-STAGE-REVIEW",
+          "schema_version": "1.0.0",
+          "single_pass_case_count": 9,
+          "stage_id": "S13"
+        },
+        "id": "S13REVIEW-FIXTURE-IDENTITY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "POSITIVE_EXACT_STAGE",
+          "PHASE_RECEIPT_FAIL",
+          "TASKPACK_TRACE_FAIL",
+          "CHINESE_WORKBENCH_GATE_FAIL",
+          "VISIBLE_QUOTE_GATE_FAIL",
+          "POST_ADVICE_GATE_FAIL",
+          "SIX_PATH_GATE_FAIL",
+          "EXTERNAL_BOUNDARY_FAIL",
+          "PORTABILITY_AND_OPEN_FINDING_FAIL"
+        ],
+        "id": "S13REVIEW-SINGLE-PASS-CASES-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "blocked": 0,
+          "open": 0,
+          "resolved": 0,
+          "total": 0
+        },
+        "id": "S13REVIEW-FINDINGS-AND-LIMITATIONS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S13REVIEW-BASELINE-PURSUE_GOAL_PROMPT-TXT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S13REVIEW-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S13REVIEW-BASELINE-CANONICAL_FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S13REVIEW-BASELINE-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S13REVIEW-BASELINE-COSTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S13REVIEW-BASELINE-ROADMAP-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S13REVIEW-BASELINE-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S13REVIEW-BASELINE-ACCEPTANCE_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S13REVIEW-BASELINE-TASK_GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S13REVIEW-BASELINE-TRACEABILITY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S13REVIEW-REQUIREMENTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S13REVIEW-CONTRACTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S13REVIEW-TASK-GRAPH-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S13REVIEW-TRACEABILITY-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/evidence_index.jsonl",
+        "id": "S13REVIEW-EVIDENCE-INDEX-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_criteria_id": "AC-S13-P01",
+          "artifact_ids": [
+            "ART-S13-P01-01",
+            "ART-S13-P01-02",
+            "ART-S13-P01-03"
+          ],
+          "evidence_id": "EVD-S13-P01",
+          "phase_id": "P01",
+          "requirement_id": "REQ-S13-P01",
+          "stage_id": "S13",
+          "task_ids": [
+            "T-S13-P01-01",
+            "T-S13-P01-02",
+            "T-S13-P01-03"
+          ],
+          "test_ids": [
+            "TEST-S13-P01",
+            "TEST-S13-P01-BOUNDARY",
+            "TEST-S13-P01-REPLAY"
+          ]
+        },
+        "id": "S13REVIEW-P01-REQUIREMENT-ACCEPTANCE-TASK-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_criteria_id": "AC-S13-P02",
+          "artifact_ids": [
+            "ART-S13-P02-01",
+            "ART-S13-P02-02",
+            "ART-S13-P02-03"
+          ],
+          "evidence_id": "EVD-S13-P02",
+          "phase_id": "P02",
+          "requirement_id": "REQ-S13-P02",
+          "stage_id": "S13",
+          "task_ids": [
+            "T-S13-P02-01",
+            "T-S13-P02-02",
+            "T-S13-P02-03"
+          ],
+          "test_ids": [
+            "TEST-S13-P02",
+            "TEST-S13-P02-BOUNDARY",
+            "TEST-S13-P02-REPLAY"
+          ]
+        },
+        "id": "S13REVIEW-P02-REQUIREMENT-ACCEPTANCE-TASK-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_criteria_id": "AC-S13-P03",
+          "artifact_ids": [
+            "ART-S13-P03-01",
+            "ART-S13-P03-02",
+            "ART-S13-P03-03"
+          ],
+          "evidence_id": "EVD-S13-P03",
+          "phase_id": "P03",
+          "requirement_id": "REQ-S13-P03",
+          "stage_id": "S13",
+          "task_ids": [
+            "T-S13-P03-01",
+            "T-S13-P03-02",
+            "T-S13-P03-03"
+          ],
+          "test_ids": [
+            "TEST-S13-P03",
+            "TEST-S13-P03-BOUNDARY",
+            "TEST-S13-P03-REPLAY"
+          ]
+        },
+        "id": "S13REVIEW-P03-REQUIREMENT-ACCEPTANCE-TASK-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_criteria_id": "AC-S13-P04",
+          "artifact_ids": [
+            "ART-S13-P04-01",
+            "ART-S13-P04-02"
+          ],
+          "evidence_id": "EVD-S13-P04",
+          "phase_id": "P04",
+          "requirement_id": "REQ-S13-P04",
+          "stage_id": "S13",
+          "task_ids": [
+            "T-S13-P04-01",
+            "T-S13-P04-02",
+            "T-S13-P04-03"
+          ],
+          "test_ids": [
+            "TEST-S13-P04",
+            "TEST-S13-P04-BOUNDARY",
+            "TEST-S13-P04-REPLAY"
+          ]
+        },
+        "id": "S13REVIEW-P04-REQUIREMENT-ACCEPTANCE-TASK-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "P01": true,
+          "P02": true,
+          "P03": true,
+          "P04": true
+        },
+        "id": "S13REVIEW-REQUIREMENT-ACCEPTANCE-TASK-TRACE-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S13-P01.json",
+        "id": "S13REVIEW-P01-EVIDENCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S13-P01_rollback.json",
+        "id": "S13REVIEW-P01-ROLLBACK-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "AC-S13-P01",
+          "evidence_path": "machine/evidence/EVD-S13-P01.json",
+          "evidence_sha256": "161a75ad86f1f0f745eae393b27b3a7f7a07c034d4342381f88b95892ad0199d",
+          "next": "S13/P02_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "S13REVIEW-P01-CURRENT-PHASE-ORACLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_artifact": "machine/evidence/EVD-S13-P01.json",
+          "artifact_sha256": "161a75ad86f1f0f745eae393b27b3a7f7a07c034d4342381f88b95892ad0199d",
+          "contract_id": "AC-S13-P01",
+          "id": "INDEX-AC-S13-P01",
+          "kind": "PHASE_EVIDENCE",
+          "next": "S13/P02_READY_NOT_STARTED",
+          "requirement_id": "REQ-S13-P01",
+          "stage_id": "S13",
+          "status": "PASS",
+          "verified_at": "2026-08-09T00:00:00+10:00"
+        },
+        "id": "S13REVIEW-P01-EVIDENCE-INDEX-BOUNDARY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S13REVIEW-P01-ROLLBACK-LOCAL-ONLY",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S13-P01.json",
+        "id": "S13REVIEW-P01-EVIDENCE-PORTABLE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S13-P02.json",
+        "id": "S13REVIEW-P02-EVIDENCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S13-P02_rollback.json",
+        "id": "S13REVIEW-P02-ROLLBACK-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "AC-S13-P02",
+          "evidence_path": "machine/evidence/EVD-S13-P02.json",
+          "evidence_sha256": "42be48209052f1056d16dd002322ca710cafbe1023be7c9a20a16d158abbbe89",
+          "next": "S13/P03_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "S13REVIEW-P02-CURRENT-PHASE-ORACLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_artifact": "machine/evidence/EVD-S13-P02.json",
+          "artifact_sha256": "42be48209052f1056d16dd002322ca710cafbe1023be7c9a20a16d158abbbe89",
+          "contract_id": "AC-S13-P02",
+          "id": "INDEX-AC-S13-P02",
+          "kind": "PHASE_EVIDENCE",
+          "next": "S13/P03_READY_NOT_STARTED",
+          "requirement_id": "REQ-S13-P02",
+          "stage_id": "S13",
+          "status": "PASS",
+          "verified_at": "2026-08-09T00:00:00+10:00"
+        },
+        "id": "S13REVIEW-P02-EVIDENCE-INDEX-BOUNDARY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S13REVIEW-P02-ROLLBACK-LOCAL-ONLY",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S13-P02.json",
+        "id": "S13REVIEW-P02-EVIDENCE-PORTABLE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S13-P03.json",
+        "id": "S13REVIEW-P03-EVIDENCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S13-P03_rollback.json",
+        "id": "S13REVIEW-P03-ROLLBACK-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "AC-S13-P03",
+          "evidence_path": "machine/evidence/EVD-S13-P03.json",
+          "evidence_sha256": "7ebe8b2b59bce33b34e1c7bab01bf96a7d2225414725bddebada481443fc197a",
+          "next": "S13/P04_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "S13REVIEW-P03-CURRENT-PHASE-ORACLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_artifact": "machine/evidence/EVD-S13-P03.json",
+          "artifact_sha256": "7ebe8b2b59bce33b34e1c7bab01bf96a7d2225414725bddebada481443fc197a",
+          "contract_id": "AC-S13-P03",
+          "id": "INDEX-AC-S13-P03",
+          "kind": "PHASE_EVIDENCE",
+          "next": "S13/P04_READY_NOT_STARTED",
+          "requirement_id": "REQ-S13-P03",
+          "stage_id": "S13",
+          "status": "PASS",
+          "verified_at": "2026-08-09T00:00:00+10:00"
+        },
+        "id": "S13REVIEW-P03-EVIDENCE-INDEX-BOUNDARY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S13REVIEW-P03-ROLLBACK-LOCAL-ONLY",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S13-P03.json",
+        "id": "S13REVIEW-P03-EVIDENCE-PORTABLE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S13-P04.json",
+        "id": "S13REVIEW-P04-EVIDENCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S13-P04_rollback.json",
+        "id": "S13REVIEW-P04-ROLLBACK-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "AC-S13-P04",
+          "evidence_path": "machine/evidence/EVD-S13-P04.json",
+          "evidence_sha256": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e",
+          "next": "S13/STAGE_REVIEW_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "S13REVIEW-P04-CURRENT-PHASE-ORACLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_artifact": "machine/evidence/EVD-S13-P04.json",
+          "artifact_sha256": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e",
+          "contract_id": "AC-S13-P04",
+          "id": "INDEX-AC-S13-P04",
+          "kind": "PHASE_EVIDENCE",
+          "next": "S13/STAGE_REVIEW_READY_NOT_STARTED",
+          "requirement_id": "REQ-S13-P04",
+          "stage_id": "S13",
+          "status": "PASS",
+          "verified_at": "2026-08-09T00:00:00+10:00"
+        },
+        "id": "S13REVIEW-P04-EVIDENCE-INDEX-BOUNDARY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S13REVIEW-P04-ROLLBACK-LOCAL-ONLY",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S13-P04.json",
+        "id": "S13REVIEW-P04-EVIDENCE-PORTABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "P01": true,
+          "P02": true,
+          "P03": true,
+          "P04": true
+        },
+        "id": "S13REVIEW-PHASE-RECEIPTS-CURRENT-AND-PORTABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_contract": true,
+          "receipt_controls": true
+        },
+        "id": "S13REVIEW-CHINESE-WORKBENCH-AND-LOCAL-PUSH-GATE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_contract": true,
+          "receipt_controls": true
+        },
+        "id": "S13REVIEW-VISIBLE-QUOTE-REVOKE-AND-OWNER-ONLY-GATE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_contract": true,
+          "receipt_controls": true
+        },
+        "id": "S13REVIEW-POST-ADVICE-SYNTHETIC-NO-ACTUAL-RETURN-GATE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_contract": true,
+          "receipt_controls": true
+        },
+        "id": "S13REVIEW-SIX-COMPLETE-PATHS-AND-LOCAL-RECOVERY-GATE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "phase_boundaries": true
+        },
+        "id": "S13REVIEW-NO-NETWORK-ACCOUNT-ORDER-DEPLOY-OR-SOAK-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 26
+        },
+        "id": "S13REVIEW-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S13/STAGE_REVIEW/paid_dependency_scan.txt",
+        "id": "S13REVIEW-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S13REVIEW-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      },
+      {
+        "detail": "portable",
+        "id": "S13REVIEW-REVIEW-EVIDENCE-PORTABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "0b1a3f77abbcf493cb263ef578d88388ac083bb3b42c9300928a31b6d15a4c36",
+          "real_time_soak_waited": false,
+          "reason_codes": [],
+          "recommendation_generated": false,
+          "status": "S13_STAGE_REVIEW_VERIFIED_NO_ACTION"
+        },
+        "id": "S13REVIEW-LIVE-SNAPSHOT-NO-ACTION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "0b1a3f77abbcf493cb263ef578d88388ac083bb3b42c9300928a31b6d15a4c36",
+          "real_time_soak_waited": false,
+          "reason_codes": [],
+          "recommendation_generated": false,
+          "status": "S13_STAGE_REVIEW_VERIFIED_NO_ACTION"
+        },
+        "id": "S13REVIEW-CASE-POSITIVE_EXACT_STAGE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "8d12271f6875aa9b379eed74a0551a246a02c8c85366269e22ab2d8039392d91",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "PHASE_RECEIPTS_NOT_CURRENT"
+          ],
+          "recommendation_generated": false,
+          "status": "S13_STAGE_REVIEW_REJECTED_NO_ACTION"
+        },
+        "id": "S13REVIEW-CASE-PHASE_RECEIPT_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "4dbed69c1196c122a4e2339b909eb902ec40d8d691e600f096fea5095450283a",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "TASKPACK_TRACE_NOT_CLOSED"
+          ],
+          "recommendation_generated": false,
+          "status": "S13_STAGE_REVIEW_REJECTED_NO_ACTION"
+        },
+        "id": "S13REVIEW-CASE-TASKPACK_TRACE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "c5d58c4573c16908e3689d0ee0a92100ec897322abb475bf7e6f4861858e2408",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "CHINESE_WORKBENCH_OR_LOCAL_PUSH_GATE_RELAXED"
+          ],
+          "recommendation_generated": false,
+          "status": "S13_STAGE_REVIEW_REJECTED_NO_ACTION"
+        },
+        "id": "S13REVIEW-CASE-CHINESE_WORKBENCH_GATE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "fddbd9104c04e7df47f8e52e88a8d9db08e543e449e38a28ae41dd6bcb59033a",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "VISIBLE_QUOTE_REVOKE_GATE_RELAXED"
+          ],
+          "recommendation_generated": false,
+          "status": "S13_STAGE_REVIEW_REJECTED_NO_ACTION"
+        },
+        "id": "S13REVIEW-CASE-VISIBLE_QUOTE_GATE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "f114da6dd988b3e4f24794a8fdcd59e3a574222bb7ae431141e5e35b46b46141",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "POST_ADVICE_OR_SYNTHETIC_RETURN_BOUNDARY_RELAXED"
+          ],
+          "recommendation_generated": false,
+          "status": "S13_STAGE_REVIEW_REJECTED_NO_ACTION"
+        },
+        "id": "S13REVIEW-CASE-POST_ADVICE_GATE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "889506b4550d3fbceee9b0c2fbaef584c2b4493ab60cc1add1d563607a897fd1",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "SIX_PATH_OR_RECOVERY_GATE_RELAXED"
+          ],
+          "recommendation_generated": false,
+          "status": "S13_STAGE_REVIEW_REJECTED_NO_ACTION"
+        },
+        "id": "S13REVIEW-CASE-SIX_PATH_GATE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "e4b4ec7259a83b5054d60e4e71bf0ec27faff6c8b88809bc861a349dce75dde0",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "EXTERNAL_ACTION_BOUNDARY_RELAXED"
+          ],
+          "recommendation_generated": false,
+          "status": "S13_STAGE_REVIEW_REJECTED_NO_ACTION"
+        },
+        "id": "S13REVIEW-CASE-EXTERNAL_BOUNDARY_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "98be35f9aa1e38e39af51e57d1795dd53862fc2ef473de26b5c264102e31e710",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "EVIDENCE_NOT_PORTABLE",
+            "OPEN_REVIEW_FINDINGS"
+          ],
+          "recommendation_generated": false,
+          "status": "S13_STAGE_REVIEW_REJECTED_NO_ACTION"
+        },
+        "id": "S13REVIEW-CASE-PORTABILITY_AND_OPEN_FINDING_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "denied": [],
+          "imports": [
+            "__future__",
+            "ast",
+            "canonical_facts",
+            "chinese_workbench",
+            "hashlib",
+            "journey_paths",
+            "json",
+            "pathlib",
+            "platform_quote_check",
+            "post_advice_settlement",
+            "re",
+            "typing",
+            "xml"
+          ],
+          "tokens": []
+        },
+        "id": "S13REVIEW-STATIC-NO-NETWORK-PROCESS-SOAK-OR-ORDER-CAPABILITY",
+        "passed": true
+      },
+      {
+        "detail": "required",
+        "id": "S13REVIEW-REPORTS-REQUIRED-WHEN-SIGNING",
+        "passed": true
+      }
+    ],
+    "contract_id": "STAGE-REVIEW-S13",
+    "decision": "S13_WHOLE_STAGE_REVIEW_PASS",
+    "external_effect_boundary": {
+      "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+      "external_network_accessed_for_product_runtime": false,
+      "github_upload_performed_by_local_review": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "model_or_strategy_executed": false,
+      "order_submitted_confirmed_or_retried": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "owner_final_order_only": true,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false,
+      "remote_ci_result_claimed_by_local_review": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "hashes": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "machine/evidence/EVD-S13-P01.json": "161a75ad86f1f0f745eae393b27b3a7f7a07c034d4342381f88b95892ad0199d",
+      "machine/evidence/EVD-S13-P01_rollback.json": "504ef71bbaba64179ba54b7e8a6be64b9aecca64c2e9db0db27fd65569c175c1",
+      "machine/evidence/EVD-S13-P02.json": "42be48209052f1056d16dd002322ca710cafbe1023be7c9a20a16d158abbbe89",
+      "machine/evidence/EVD-S13-P02_rollback.json": "37216196b19640aba63181e9a5211c5ec31048e33495f4b8da11d5f1391fd236",
+      "machine/evidence/EVD-S13-P03.json": "7ebe8b2b59bce33b34e1c7bab01bf96a7d2225414725bddebada481443fc197a",
+      "machine/evidence/EVD-S13-P03_rollback.json": "38da833ecfc4199cc842f6725f77b9d4c740f117734e546f8b31f9de37b7b9a6",
+      "machine/evidence/EVD-S13-P04.json": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e",
+      "machine/evidence/EVD-S13-P04_rollback.json": "8cea40846c7d60b5ee8adaecee741e97be17a46e6045728e71cfb08131dc0856",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+    },
+    "next": "S13/GITHUB_STAGE_UPLOAD_READY",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "review_id": "ABD-S13-WHOLE-STAGE-REVIEW",
+    "snapshot": {
+      "chinese_workbench_gate_preserved": true,
+      "external_action_boundary_preserved": true,
+      "findings_open": 0,
+      "phase_receipts_current": true,
+      "portable_evidence": true,
+      "post_advice_gate_preserved": true,
+      "six_paths_recovery_gate_preserved": true,
+      "taskpack_trace_closed": true,
+      "visible_quote_gate_preserved": true
+    },
+    "stage_id": "S13",
+    "stage_status": "S13_WHOLE_STAGE_REVIEW_PASS",
+    "status": "PASS",
+    "summary": {
+      "checks": 78,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 78
+    }
+  }
+}

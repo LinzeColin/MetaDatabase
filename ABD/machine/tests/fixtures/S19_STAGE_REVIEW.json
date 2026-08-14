@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S19-WHOLE-STAGE-REVIEW",
+  "contract_id": "STAGE-REVIEW-S19",
+  "review_id": "ABD-S19-WHOLE-STAGE-REVIEW",
+  "stage_id": "S19",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-10T10:00:00+10:00",
+  "single_pass_case_count": 10,
+  "minimum_targeted_pytest_cases": 27,
+  "expected_phase_ids": ["P01", "P02", "P03", "P04"],
+  "expected_phase_evidence_sha256": {
+    "P01": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+    "P02": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177",
+    "P03": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b",
+    "P04": "b1de99378bbb12fbe4d49819bd4d71301330cad661c038b452ba368a0872f0ad"
+  },
+  "expected_phase_rollback_sha256": {
+    "P01": "6297ba555889762ce6eba2a615ddd4087c162f7905a3f19cb7716dad185eccdc",
+    "P02": "90db8f84ec6a6e5a06b280f9f969ee3e4c5a21a9deecd754965f381d5f2af655",
+    "P03": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef",
+    "P04": "6e036dbe4a35fae1cdffdeaf98b0aa232b2a84d1a0d1ab1bfaeef51322d4bb96"
+  },
+  "expected_next": "S19/GITHUB_STAGE_UPLOAD_READY",
+  "expected_release_status": "S19_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "expected_findings_summary": {"total": 3, "open": 0, "resolved": 3, "blocked": 0},
+  "cases": [
+    {
+      "case_id": "POSITIVE_EXACT_STAGE",
+      "snapshot": {
+        "phase_receipts_current": true,
+        "taskpack_trace_closed": true,
+        "alpha_local_only_preserved": true,
+        "beta_and_ga_truth_boundary_preserved": true,
+        "final_delivery_boundary_preserved": true,
+        "release_chain_preserved": true,
+        "external_action_boundary_preserved": true,
+        "portable_evidence": true,
+        "findings_open": 0
+      },
+      "expected": {"status": "S19_STAGE_REVIEW_VERIFIED_NO_ACTION", "reason_codes": []}
+    },
+    {
+      "case_id": "PHASE_RECEIPT_FAIL",
+      "snapshot": {"phase_receipts_current": false, "taskpack_trace_closed": true, "alpha_local_only_preserved": true, "beta_and_ga_truth_boundary_preserved": true, "final_delivery_boundary_preserved": true, "release_chain_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S19_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["PHASE_RECEIPTS_NOT_CURRENT"]}
+    },
+    {
+      "case_id": "TASKPACK_TRACE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": false, "alpha_local_only_preserved": true, "beta_and_ga_truth_boundary_preserved": true, "final_delivery_boundary_preserved": true, "release_chain_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S19_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["TASKPACK_TRACE_NOT_CLOSED"]}
+    },
+    {
+      "case_id": "ALPHA_GATE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "alpha_local_only_preserved": false, "beta_and_ga_truth_boundary_preserved": true, "final_delivery_boundary_preserved": true, "release_chain_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S19_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["ALPHA_LOCAL_ONLY_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "MODEL_AND_GA_BOUNDARY_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "alpha_local_only_preserved": true, "beta_and_ga_truth_boundary_preserved": false, "final_delivery_boundary_preserved": true, "release_chain_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S19_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["BETA_OR_GA_TRUTH_BOUNDARY_RELAXED"]}
+    },
+    {
+      "case_id": "FINAL_DELIVERY_BOUNDARY_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "alpha_local_only_preserved": true, "beta_and_ga_truth_boundary_preserved": true, "final_delivery_boundary_preserved": false, "release_chain_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S19_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["FINAL_DELIVERY_BOUNDARY_RELAXED"]}
+    },
+    {
+      "case_id": "RELEASE_CHAIN_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "alpha_local_only_preserved": true, "beta_and_ga_truth_boundary_preserved": true, "final_delivery_boundary_preserved": true, "release_chain_preserved": false, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S19_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["RELEASE_CHAIN_RELAXED"]}
+    },
+    {
+      "case_id": "EXTERNAL_BOUNDARY_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "alpha_local_only_preserved": true, "beta_and_ga_truth_boundary_preserved": true, "final_delivery_boundary_preserved": true, "release_chain_preserved": true, "external_action_boundary_preserved": false, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S19_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["EXTERNAL_ACTION_BOUNDARY_RELAXED"]}
+    },
+    {
+      "case_id": "PORTABILITY_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "alpha_local_only_preserved": true, "beta_and_ga_truth_boundary_preserved": true, "final_delivery_boundary_preserved": true, "release_chain_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": false, "findings_open": 0},
+      "expected": {"status": "S19_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["EVIDENCE_NOT_PORTABLE"]}
+    },
+    {
+      "case_id": "OPEN_FINDING_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "alpha_local_only_preserved": true, "beta_and_ga_truth_boundary_preserved": true, "final_delivery_boundary_preserved": true, "release_chain_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 1},
+      "expected": {"status": "S19_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["OPEN_REVIEW_FINDINGS"]}
+    }
+  ]
+}

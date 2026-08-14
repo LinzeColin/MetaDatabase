@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import importlib
-import json
 import time
 from pathlib import Path
 
@@ -21,21 +20,9 @@ LIBRARY_HEADERS = {
 def _stage3_client(tmp_path: Path, monkeypatch) -> tuple[TestClient, object, str]:
     data_root = tmp_path / "data"
     token_file = tmp_path / "api-token"
-    pairing_file = tmp_path / "pairing.json"
     token = "stage3-fixture-device-token"
     token_file.write_text(token, encoding="utf-8")
     token_file.chmod(0o600)
-    pairing_file.write_text(
-        json.dumps(
-            {
-                "code": "ABCD-EFGH-JKLM",
-                "expires_at_epoch": time.time() + 300,
-                "attempts_remaining": 5,
-            }
-        ),
-        encoding="utf-8",
-    )
-    pairing_file.chmod(0o600)
     for key, value in {
         "SOCIAL_ARCHIVE_DATA_ROOT": data_root,
         "SOCIAL_ARCHIVE_RUNTIME_DB": data_root / "runtime.sqlite3",
@@ -44,7 +31,6 @@ def _stage3_client(tmp_path: Path, monkeypatch) -> tuple[TestClient, object, str
         "SOCIAL_ARCHIVE_WATCH_ROOT": data_root / "import",
         "SOCIAL_ARCHIVE_PWA_ROOT": PWA_ROOT,
         "SOCIAL_ARCHIVE_API_TOKEN_FILE": token_file,
-        "SOCIAL_ARCHIVE_PAIRING_CODE_FILE": pairing_file,
         "SOCIAL_ARCHIVE_PAIRING_REQUIRED": "true",
         "SOCIAL_ARCHIVE_PUBLIC_BASE_URL": f"https://{API_HOST}",
         "SOCIAL_ARCHIVE_PUBLIC_LIBRARY_URL": f"https://{LIBRARY_HOST}",
@@ -57,15 +43,42 @@ def _stage3_client(tmp_path: Path, monkeypatch) -> tuple[TestClient, object, str
 
 
 def test_pwa_shell_is_self_contained_and_mobile_ready():
-    assert all((PWA_ROOT / name).exists() for name in ("index.html", "styles.css", "app.js", "sw.js", "manifest.webmanifest"))
+    """PWA 外壳自带全部资产、能离线、窄屏可用。
+
+    **同样按能力重写过（v0.0.0.7）。** 原来钉的是「三步开始使用」
+    「先保存第一条内容」「id=detailDialog」——三个都在 v0.0.0.6 的
+    SA-003 overlay（40d833bf）里被删/替换了：引导文案不再是三步，
+    详情从 dialog 换成 drawer。断点也从 900/600 改成 1180/760。
+
+    钉那些字符串等于钉住某一版的界面设计。这里改成钉外壳该有的能力：
+    五个文件在、有 viewport、有详情载体、有资料库数据源、
+    有失败时给人看的下一步、有响应式断点。
+    """
+    import re as _re
+
+    assert all((PWA_ROOT / name).exists()
+               for name in ("index.html", "styles.css", "app.js", "sw.js", "manifest.webmanifest"))
     html = (PWA_ROOT / "index.html").read_text(encoding="utf-8")
     app = (PWA_ROOT / "app.js").read_text(encoding="utf-8")
     styles = (PWA_ROOT / "styles.css").read_text(encoding="utf-8")
     assert 'name="viewport"' in html
-    assert all(token in html for token in ("三步开始使用", "先保存第一条内容", "id=\"detailDialog\""))
-    assert all(token in app for token in ("/v1/library?", "openDetail", "next_action_zh", "暂时不能读取"))
-    assert all(token in styles for token in ("@media(max-width:900px)", "@media(max-width:600px)", ".library.feed", ".library.grid"))
+    # The Owner-approved table shell replaced the v0.0.0.5 three-step onboarding
+    # copy and its modal detail dialog with a persistent detail drawer, and it
+    # dropped the .library.feed/.library.grid views at the 900/600px
+    # breakpoints.  Bind what the current shell actually ships.
+    assert 'id="detailDrawer"' in html
+    assert all(token in app for token in ("/v1/library?", "openDetail", "next_action_zh"))
+    assert all(token in styles for token in ("@media (max-width: 1180px)", "@media (max-width: 760px)"))
 
+    assert 'name="viewport"' in html, "窄屏不可用：没有 viewport"
+    assert 'id="detailDrawer"' in html, "没有详情载体"
+    assert 'id="tableBody"' in html, "没有资料库表体"
+
+    assert "/v1/library?" in app and "openDetail" in app
+    # 失败时要说得出下一步——INV-ZERO-BARRIER 的落点之一
+    assert "next_action_zh" in app, "界面没有读服务端给的下一步动作"
+
+    assert len(_re.findall(r"@media\s*\(\s*max-width", styles)) >= 2, "响应式断点不足"
 
 def test_cloudflare_access_allows_library_not_independent_extension_api(tmp_path, monkeypatch):
     client, _, token = _stage3_client(tmp_path, monkeypatch)
@@ -86,14 +99,18 @@ def test_stage3_first_setup_save_find_failure_and_retry(tmp_path, monkeypatch):
     client, api, _ = _stage3_client(tmp_path, monkeypatch)
 
     api_headers = {"host": API_HOST}
-    status = client.get("/v1/pairing/status", headers=api_headers)
-    assert status.status_code == 200
-    assert status.json()["one_time_code_available"] is True
-    paired = client.post("/v1/pairing/exchange", headers=api_headers, json={"code": "ABCD-EFGH-JKLM", "device_name": "Stage 3 fixture"})
-    assert paired.status_code == 200
-    assert paired.json()["library_url"] == f"https://{LIBRARY_HOST}"
-    assert paired.json()["endpoint"] == f"https://{API_HOST}"
-    assert client.get("/v1/pairing/status", headers=api_headers).json()["one_time_code_available"] is False
+    # v0.0.0.7 / T03：原先这里走一次性码（签发 + 手抄 + 校验三段）。
+    # 那条链路已删——十分钟过期、要用户手抄，本身就是 INV-ZERO-BARRIER 禁止的门槛。
+    # 换成扩展长期令牌：已登录页面替扩展取，用户不接触令牌文本。
+    user_id = api.store.upsert_oauth_identity(
+        provider="github", subject="stage3", display_name="Owner"
+    )
+    extension_token = api.store.issue_extension_token(user_id=user_id)
+    assert api.store.resolve_extension_token(extension_token) == user_id
+    # 撤销后立刻失效——扩展上行会因此拿到 401，这是 T03 的 Oracle。
+    api.store.revoke_extension_tokens(user_id)
+    assert api.store.resolve_extension_token(extension_token) is None
+    extension_token = api.store.issue_extension_token(user_id=user_id)
 
     markdown_probe = client.post("/v1/destinations/markdown/probe", headers=LIBRARY_HEADERS)
     assert markdown_probe.status_code == 200

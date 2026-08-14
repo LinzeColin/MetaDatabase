@@ -53,6 +53,36 @@ JUNIT_PATH = Path("machine/evidence/S07/P04/pytest.xml")
 FULL_JUNIT_PATH = Path("machine/evidence/S07/P04/full_regression.xml")
 PACK_REPORT_PATH = Path("machine/evidence/validation_report.json")
 SCAN_REPORT_PATH = Path("machine/evidence/S07/P04/paid_dependency_scan.txt")
+S09_STAGE_REVIEW_INDEX_ID = "INDEX-S09-STAGE-REVIEW"
+S09_STAGE_REVIEW_EVIDENCE_PATH = Path("machine/evidence/EVD-S09-STAGE-REVIEW.json")
+S10_STAGE_REVIEW_INDEX_ID = "INDEX-S10-STAGE-REVIEW"
+S10_STAGE_REVIEW_EVIDENCE_PATH = Path("machine/evidence/EVD-S10-STAGE-REVIEW.json")
+S11_STAGE_REVIEW_INDEX_ID = "INDEX-S11-STAGE-REVIEW"
+S11_STAGE_REVIEW_EVIDENCE_PATH = Path("machine/evidence/EVD-S11-STAGE-REVIEW.json")
+S12_STAGE_REVIEW_INDEX_ID = "INDEX-S12-STAGE-REVIEW"
+S12_STAGE_REVIEW_EVIDENCE_PATH = Path("machine/evidence/EVD-S12-STAGE-REVIEW.json")
+S13_STAGE_REVIEW_INDEX_ID = "INDEX-S13-STAGE-REVIEW"
+S13_STAGE_REVIEW_EVIDENCE_PATH = Path("machine/evidence/EVD-S13-STAGE-REVIEW.json")
+S14_STAGE_REVIEW_INDEX_ID = "INDEX-S14-STAGE-REVIEW"
+S14_STAGE_REVIEW_EVIDENCE_PATH = Path("machine/evidence/EVD-S14-STAGE-REVIEW.json")
+S15_STAGE_REVIEW_INDEX_ID = "INDEX-S15-STAGE-REVIEW"
+S15_STAGE_REVIEW_EVIDENCE_PATH = Path("machine/evidence/EVD-S15-STAGE-REVIEW.json")
+S16_STAGE_REVIEW_INDEX_ID = "INDEX-S16-STAGE-REVIEW"
+S16_STAGE_REVIEW_EVIDENCE_PATH = Path("machine/evidence/EVD-S16-STAGE-REVIEW.json")
+S17_STAGE_REVIEW_INDEX_ID = "INDEX-S17-STAGE-REVIEW"
+S17_STAGE_REVIEW_EVIDENCE_PATH = Path("machine/evidence/EVD-S17-STAGE-REVIEW.json")
+S18_STAGE_REVIEW_INDEX_ID = "INDEX-S18-STAGE-REVIEW"
+S18_STAGE_REVIEW_EVIDENCE_PATH = Path("machine/evidence/EVD-S18-STAGE-REVIEW.json")
+S19_STAGE_REVIEW_INDEX_ID = "INDEX-S19-STAGE-REVIEW"
+S19_STAGE_REVIEW_EVIDENCE_PATH = Path("machine/evidence/EVD-S19-STAGE-REVIEW.json")
+S12_P01_INDEX_ID = "INDEX-AC-S12-P01"
+S12_P01_EVIDENCE_PATH = Path("machine/evidence/EVD-S12-P01.json")
+S12_P02_INDEX_ID = "INDEX-AC-S12-P02"
+S12_P02_EVIDENCE_PATH = Path("machine/evidence/EVD-S12-P02.json")
+S12_P03_INDEX_ID = "INDEX-AC-S12-P03"
+S12_P03_EVIDENCE_PATH = Path("machine/evidence/EVD-S12-P03.json")
+S12_P04_INDEX_ID = "INDEX-AC-S12-P04"
+S12_P04_EVIDENCE_PATH = Path("machine/evidence/EVD-S12-P04.json")
 
 PHASE_ARTIFACT_PATHS = {
     "ART-S07-P04-01": EVIDENCE_INDEX_PATH,
@@ -82,7 +112,7 @@ PINNED_BASELINE_HASHES: Dict[str, str] = {
     P03_EVIDENCE_PATH.as_posix(): "ca87f049463efa377e18ada24ba7cdeb1cf2c1aff920b9d872794d4146728fa9",
     P03_ROLLBACK_PATH.as_posix(): "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf",
 }
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "864a0014bea5041e9532a3390654e9f6367f1f04832b2366ac86b50a0982e697"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "8f679ca2ffc363a109de94a3ad785e6fe7bed567d70f8a45e2c911e12283371a"
 LEGACY_EVIDENCE_CODE_HASH = "20a388d41762688b7336698a0069f5c2a6fa817fa7d78436f3ee7d86e460263f"
 FULL_REGRESSION_TEST_MINIMUM = 5028
 REQUIRED_COVERAGE = Decimal("1.0000")
@@ -578,6 +608,504 @@ def _taskpack_orphans(
     }
 
 
+def _s09_stage_review_index_successor(root: Path, index_by_id: Mapping[str, Mapping[str, Any]]) -> Dict[str, Any]:
+    """Allow only the exact S09 review receipt to extend the frozen index."""
+
+    row = index_by_id.get(S09_STAGE_REVIEW_INDEX_ID)
+    if row is None:
+        return {"state": "ABSENT", "valid": True}
+    evidence_path = root / S09_STAGE_REVIEW_EVIDENCE_PATH
+    try:
+        evidence = strict_json_load(evidence_path)
+        artifact_hash = sha256_file(evidence_path)
+    except Exception as exc:
+        return {"state": "INVALID", "valid": False, "reason": "%s: %s" % (type(exc).__name__, exc)}
+    valid = (
+        row.get("id") == S09_STAGE_REVIEW_INDEX_ID
+        and row.get("kind") == "STAGE_REVIEW_EVIDENCE"
+        and row.get("stage_id") == "S09"
+        and row.get("contract_id") == "STAGE-REVIEW-S09"
+        and row.get("status") == "PASS"
+        and row.get("actual_artifact") == S09_STAGE_REVIEW_EVIDENCE_PATH.as_posix()
+        and row.get("artifact_sha256") == artifact_hash
+        and row.get("next") == "S09/GITHUB_STAGE_UPLOAD_READY"
+        and isinstance(evidence, Mapping)
+        and evidence.get("contract_id") == "STAGE-REVIEW-S09"
+        and evidence.get("stage_id") == "S09"
+        and evidence.get("status") == "PASS"
+        and evidence.get("decision") == "S09_WHOLE_STAGE_REVIEW_PASS"
+        and evidence.get("next") == "S09/GITHUB_STAGE_UPLOAD_READY"
+        and evidence.get("release_status") == "S09_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT"
+    )
+    return {
+        "state": "VALID" if valid else "INVALID",
+        "valid": valid,
+        "artifact_hash_matches": row.get("artifact_sha256") == artifact_hash,
+    }
+
+
+def _s10_stage_review_index_successor(root: Path, index_by_id: Mapping[str, Mapping[str, Any]]) -> Dict[str, Any]:
+    """Allow only the exact S10 review receipt to extend the frozen index."""
+
+    row = index_by_id.get(S10_STAGE_REVIEW_INDEX_ID)
+    if row is None:
+        return {"state": "ABSENT", "valid": True}
+    evidence_path = root / S10_STAGE_REVIEW_EVIDENCE_PATH
+    try:
+        evidence = strict_json_load(evidence_path)
+        artifact_hash = sha256_file(evidence_path)
+    except Exception as exc:
+        return {"state": "INVALID", "valid": False, "reason": "%s: %s" % (type(exc).__name__, exc)}
+    valid = (
+        row.get("id") == S10_STAGE_REVIEW_INDEX_ID
+        and row.get("kind") == "STAGE_REVIEW_EVIDENCE"
+        and row.get("stage_id") == "S10"
+        and row.get("contract_id") == "STAGE-REVIEW-S10"
+        and row.get("status") == "PASS"
+        and row.get("actual_artifact") == S10_STAGE_REVIEW_EVIDENCE_PATH.as_posix()
+        and row.get("artifact_sha256") == artifact_hash
+        and row.get("next") == "S10/GITHUB_STAGE_UPLOAD_READY"
+        and isinstance(evidence, Mapping)
+        and evidence.get("contract_id") == "STAGE-REVIEW-S10"
+        and evidence.get("stage_id") == "S10"
+        and evidence.get("status") == "PASS"
+        and evidence.get("decision") == "S10_WHOLE_STAGE_REVIEW_PASS"
+        and evidence.get("next") == "S10/GITHUB_STAGE_UPLOAD_READY"
+        and evidence.get("release_status") == "S10_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT"
+    )
+    return {
+        "state": "VALID" if valid else "INVALID",
+        "valid": valid,
+        "artifact_hash_matches": row.get("artifact_sha256") == artifact_hash,
+    }
+
+
+def _s11_stage_review_index_successor(root: Path, index_by_id: Mapping[str, Mapping[str, Any]]) -> Dict[str, Any]:
+    """Allow only the exact S11 review receipt to extend the frozen index."""
+
+    row = index_by_id.get(S11_STAGE_REVIEW_INDEX_ID)
+    if row is None:
+        return {"state": "ABSENT", "valid": True}
+    evidence_path = root / S11_STAGE_REVIEW_EVIDENCE_PATH
+    try:
+        evidence = strict_json_load(evidence_path)
+        artifact_hash = sha256_file(evidence_path)
+    except Exception as exc:
+        return {"state": "INVALID", "valid": False, "reason": "%s: %s" % (type(exc).__name__, exc)}
+    valid = (
+        row.get("id") == S11_STAGE_REVIEW_INDEX_ID
+        and row.get("kind") == "STAGE_REVIEW_EVIDENCE"
+        and row.get("stage_id") == "S11"
+        and row.get("contract_id") == "STAGE-REVIEW-S11"
+        and row.get("status") == "PASS"
+        and row.get("actual_artifact") == S11_STAGE_REVIEW_EVIDENCE_PATH.as_posix()
+        and row.get("artifact_sha256") == artifact_hash
+        and row.get("next") == "S11/GITHUB_STAGE_UPLOAD_READY"
+        and isinstance(evidence, Mapping)
+        and evidence.get("contract_id") == "STAGE-REVIEW-S11"
+        and evidence.get("stage_id") == "S11"
+        and evidence.get("status") == "PASS"
+        and evidence.get("decision") == "S11_WHOLE_STAGE_REVIEW_PASS"
+        and evidence.get("next") == "S11/GITHUB_STAGE_UPLOAD_READY"
+        and evidence.get("release_status") == "S11_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT"
+    )
+    return {
+        "state": "VALID" if valid else "INVALID",
+        "valid": valid,
+        "artifact_hash_matches": row.get("artifact_sha256") == artifact_hash,
+    }
+
+
+def _s12_p01_index_successor(root: Path, index_by_id: Mapping[str, Mapping[str, Any]]) -> Dict[str, Any]:
+    """Allow the frozen planned row or its one exact S12/P01 successor."""
+
+    row = index_by_id.get(S12_P01_INDEX_ID)
+    if row is None:
+        return {"state": "INVALID", "valid": False, "reason": "frozen planned S12/P01 index row is missing"}
+    planned = (
+        row.get("id") == S12_P01_INDEX_ID
+        and row.get("kind") == "ACCEPTANCE_EVIDENCE"
+        and row.get("acceptance_contract_id") == "AC-S12-P01"
+        and row.get("requirement_id") == "REQ-S12-P01"
+        and row.get("expected_artifact") == S12_P01_EVIDENCE_PATH.as_posix()
+        and row.get("pass_gate") == "固定时钟下目标曲线与高精度参考一致。"
+        and row.get("status") == "PLANNED"
+    )
+    if planned:
+        return {"state": "PLANNED", "valid": True}
+    evidence_path = root / S12_P01_EVIDENCE_PATH
+    try:
+        evidence = strict_json_load(evidence_path)
+        artifact_hash = sha256_file(evidence_path)
+    except Exception as exc:
+        return {"state": "INVALID", "valid": False, "reason": "%s: %s" % (type(exc).__name__, exc)}
+    valid = (
+        row.get("id") == S12_P01_INDEX_ID
+        and row.get("kind") == "PHASE_EVIDENCE"
+        and row.get("stage_id") == "S12"
+        and row.get("contract_id") == "AC-S12-P01"
+        and row.get("requirement_id") == "REQ-S12-P01"
+        and row.get("status") == "PASS"
+        and row.get("actual_artifact") == S12_P01_EVIDENCE_PATH.as_posix()
+        and row.get("artifact_sha256") == artifact_hash
+        and row.get("next") == "S12/P02_READY_NOT_STARTED"
+        and isinstance(evidence, Mapping)
+        and evidence.get("contract_id") == "AC-S12-P01"
+        and evidence.get("requirement_id") == "REQ-S12-P01"
+        and evidence.get("stage_id") == "S12"
+        and evidence.get("phase_id") == "P01"
+        and evidence.get("status") == "PASS"
+        and evidence.get("decision") == "TARGET_CURVE_READY_DOWNSTREAM_CAPACITY_ECONOMICS_AND_FALSIFICATION_GATES_REQUIRED"
+        and evidence.get("next") == "S12/P02_READY_NOT_STARTED"
+        and evidence.get("release_status") == "S12_P01_LOCAL_EVIDENCE_ONLY_STAGE_REVIEW_REQUIRED_BEFORE_UPLOAD"
+    )
+    return {
+        "state": "VALID" if valid else "INVALID",
+        "valid": valid,
+        "artifact_hash_matches": row.get("artifact_sha256") == artifact_hash,
+    }
+
+
+def _s12_p02_index_successor(root: Path, index_by_id: Mapping[str, Mapping[str, Any]]) -> Dict[str, Any]:
+    """Allow the frozen planned row or its one exact S12/P02 successor."""
+
+    row = index_by_id.get(S12_P02_INDEX_ID)
+    if row is None:
+        return {"state": "INVALID", "valid": False, "reason": "frozen planned S12/P02 index row is missing"}
+    planned = (
+        row.get("id") == S12_P02_INDEX_ID
+        and row.get("kind") == "ACCEPTANCE_EVIDENCE"
+        and row.get("acceptance_contract_id") == "AC-S12-P02"
+        and row.get("requirement_id") == "REQ-S12-P02"
+        and row.get("expected_artifact") == S12_P02_EVIDENCE_PATH.as_posix()
+        and row.get("pass_gate") == "不把高度相关机会重复计入30%覆盖。"
+        and row.get("status") == "PLANNED"
+    )
+    if planned:
+        return {"state": "PLANNED", "valid": True}
+    evidence_path = root / S12_P02_EVIDENCE_PATH
+    try:
+        evidence = strict_json_load(evidence_path)
+        artifact_hash = sha256_file(evidence_path)
+    except Exception as exc:
+        return {"state": "INVALID", "valid": False, "reason": "%s: %s" % (type(exc).__name__, exc)}
+    valid = (
+        row.get("id") == S12_P02_INDEX_ID
+        and row.get("kind") == "PHASE_EVIDENCE"
+        and row.get("stage_id") == "S12"
+        and row.get("contract_id") == "AC-S12-P02"
+        and row.get("requirement_id") == "REQ-S12-P02"
+        and row.get("status") == "PASS"
+        and row.get("actual_artifact") == S12_P02_EVIDENCE_PATH.as_posix()
+        and row.get("artifact_sha256") == artifact_hash
+        and row.get("next") == "S12/P03_READY_NOT_STARTED"
+        and isinstance(evidence, Mapping)
+        and evidence.get("contract_id") == "AC-S12-P02"
+        and evidence.get("requirement_id") == "REQ-S12-P02"
+        and evidence.get("stage_id") == "S12"
+        and evidence.get("phase_id") == "P02"
+        and evidence.get("status") == "PASS"
+        and evidence.get("decision") == "CAPACITY_CORRELATION_READY_DOWNSTREAM_ECONOMICS_AND_FALSIFICATION_GATES_REQUIRED"
+        and evidence.get("next") == "S12/P03_READY_NOT_STARTED"
+        and evidence.get("release_status") == "S12_P02_LOCAL_EVIDENCE_ONLY_STAGE_REVIEW_REQUIRED_BEFORE_UPLOAD"
+    )
+    return {
+        "state": "VALID" if valid else "INVALID",
+        "valid": valid,
+        "artifact_hash_matches": row.get("artifact_sha256") == artifact_hash,
+    }
+
+
+def _s12_p03_index_successor(root: Path, index_by_id: Mapping[str, Mapping[str, Any]]) -> Dict[str, Any]:
+    """Allow the frozen planned row or its one exact S12/P03 successor."""
+
+    row = index_by_id.get(S12_P03_INDEX_ID)
+    if row is None:
+        return {"state": "INVALID", "valid": False, "reason": "frozen planned S12/P03 index row is missing"}
+    planned = (
+        row.get("id") == S12_P03_INDEX_ID
+        and row.get("kind") == "ACCEPTANCE_EVIDENCE"
+        and row.get("acceptance_contract_id") == "AC-S12-P03"
+        and row.get("requirement_id") == "REQ-S12-P03"
+        and row.get("expected_artifact") == S12_P03_EVIDENCE_PATH.as_posix()
+        and row.get("pass_gate") == "所有收益带区间、置信度和失败概率，不输出保证。"
+        and row.get("status") == "PLANNED"
+    )
+    if planned:
+        return {"state": "PLANNED", "valid": True}
+    evidence_path = root / S12_P03_EVIDENCE_PATH
+    try:
+        evidence = strict_json_load(evidence_path)
+        artifact_hash = sha256_file(evidence_path)
+    except Exception as exc:
+        return {"state": "INVALID", "valid": False, "reason": "%s: %s" % (type(exc).__name__, exc)}
+    valid = (
+        row.get("id") == S12_P03_INDEX_ID
+        and row.get("kind") == "PHASE_EVIDENCE"
+        and row.get("stage_id") == "S12"
+        and row.get("contract_id") == "AC-S12-P03"
+        and row.get("requirement_id") == "REQ-S12-P03"
+        and row.get("status") == "PASS"
+        and row.get("actual_artifact") == S12_P03_EVIDENCE_PATH.as_posix()
+        and row.get("artifact_sha256") == artifact_hash
+        and row.get("next") == "S12/P04_READY_NOT_STARTED"
+        and isinstance(evidence, Mapping)
+        and evidence.get("contract_id") == "AC-S12-P03"
+        and evidence.get("requirement_id") == "REQ-S12-P03"
+        and evidence.get("stage_id") == "S12"
+        and evidence.get("phase_id") == "P03"
+        and evidence.get("status") == "PASS"
+        and evidence.get("decision") == "ECONOMICS_SENSITIVITY_READY_DOWNSTREAM_FALSIFICATION_GATE_REQUIRED"
+        and evidence.get("next") == "S12/P04_READY_NOT_STARTED"
+        and evidence.get("release_status") == "S12_P03_LOCAL_EVIDENCE_ONLY_STAGE_REVIEW_REQUIRED_BEFORE_UPLOAD"
+    )
+    return {
+        "state": "VALID" if valid else "INVALID",
+        "valid": valid,
+        "artifact_hash_matches": row.get("artifact_sha256") == artifact_hash,
+    }
+
+
+def _s12_p04_index_successor(root: Path, index_by_id: Mapping[str, Mapping[str, Any]]) -> Dict[str, Any]:
+    """Allow the frozen planned row or its one exact S12/P04 successor."""
+
+    row = index_by_id.get(S12_P04_INDEX_ID)
+    if row is None:
+        return {"state": "INVALID", "valid": False, "reason": "frozen planned S12/P04 index row is missing"}
+    planned = (
+        row.get("id") == S12_P04_INDEX_ID
+        and row.get("kind") == "ACCEPTANCE_EVIDENCE"
+        and row.get("acceptance_contract_id") == "AC-S12-P04"
+        and row.get("requirement_id") == "REQ-S12-P04"
+        and row.get("expected_artifact") == S12_P04_EVIDENCE_PATH.as_posix()
+        and row.get("pass_gate") == "目标短缺只报告，不降低阈值、仓位或证据门。"
+        and row.get("status") == "PLANNED"
+    )
+    if planned:
+        return {"state": "PLANNED", "valid": True}
+    evidence_path = root / S12_P04_EVIDENCE_PATH
+    try:
+        evidence = strict_json_load(evidence_path)
+        artifact_hash = sha256_file(evidence_path)
+    except Exception as exc:
+        return {"state": "INVALID", "valid": False, "reason": "%s: %s" % (type(exc).__name__, exc)}
+    valid = (
+        row.get("id") == S12_P04_INDEX_ID
+        and row.get("kind") == "PHASE_EVIDENCE"
+        and row.get("stage_id") == "S12"
+        and row.get("contract_id") == "AC-S12-P04"
+        and row.get("requirement_id") == "REQ-S12-P04"
+        and row.get("status") == "PASS"
+        and row.get("actual_artifact") == S12_P04_EVIDENCE_PATH.as_posix()
+        and row.get("artifact_sha256") == artifact_hash
+        and row.get("next") == "S12/STAGE_REVIEW_READY_NOT_STARTED"
+        and isinstance(evidence, Mapping)
+        and evidence.get("contract_id") == "AC-S12-P04"
+        and evidence.get("requirement_id") == "REQ-S12-P04"
+        and evidence.get("stage_id") == "S12"
+        and evidence.get("phase_id") == "P04"
+        and evidence.get("status") == "PASS"
+        and evidence.get("decision") == "TARGET_FALSIFICATION_AND_VERIFICATION_CONTRACT_READY_STAGE_REVIEW_REQUIRED"
+        and evidence.get("next") == "S12/STAGE_REVIEW_READY_NOT_STARTED"
+        and evidence.get("release_status") == "S12_P04_LOCAL_EVIDENCE_ONLY_STAGE_REVIEW_REQUIRED_BEFORE_UPLOAD"
+    )
+    return {
+        "state": "VALID" if valid else "INVALID",
+        "valid": valid,
+        "artifact_hash_matches": row.get("artifact_sha256") == artifact_hash,
+    }
+
+
+def _s12_stage_review_index_successor(root: Path, index_by_id: Mapping[str, Mapping[str, Any]]) -> Dict[str, Any]:
+    """Allow only the exact S12 review receipt to extend the frozen index."""
+
+    row = index_by_id.get(S12_STAGE_REVIEW_INDEX_ID)
+    if row is None:
+        return {"state": "ABSENT", "valid": True}
+    evidence_path = root / S12_STAGE_REVIEW_EVIDENCE_PATH
+    try:
+        evidence = strict_json_load(evidence_path)
+        artifact_hash = sha256_file(evidence_path)
+    except Exception as exc:
+        return {"state": "INVALID", "valid": False, "reason": "%s: %s" % (type(exc).__name__, exc)}
+    valid = (
+        row.get("id") == S12_STAGE_REVIEW_INDEX_ID
+        and row.get("kind") == "STAGE_REVIEW_EVIDENCE"
+        and row.get("stage_id") == "S12"
+        and row.get("contract_id") == "STAGE-REVIEW-S12"
+        and row.get("status") == "PASS"
+        and row.get("actual_artifact") == S12_STAGE_REVIEW_EVIDENCE_PATH.as_posix()
+        and row.get("artifact_sha256") == artifact_hash
+        and row.get("next") == "S12/GITHUB_STAGE_UPLOAD_READY"
+        and isinstance(evidence, Mapping)
+        and evidence.get("contract_id") == "STAGE-REVIEW-S12"
+        and evidence.get("stage_id") == "S12"
+        and evidence.get("status") == "PASS"
+        and evidence.get("decision") == "S12_WHOLE_STAGE_REVIEW_PASS"
+        and evidence.get("next") == "S12/GITHUB_STAGE_UPLOAD_READY"
+        and evidence.get("release_status") == "S12_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT"
+    )
+    return {
+        "state": "VALID" if valid else "INVALID",
+        "valid": valid,
+        "artifact_hash_matches": row.get("artifact_sha256") == artifact_hash,
+    }
+
+
+def _s13_stage_review_index_successor(root: Path, index_by_id: Mapping[str, Mapping[str, Any]]) -> Dict[str, Any]:
+    """Allow only the exact S13 review receipt to extend the frozen index."""
+
+    row = index_by_id.get(S13_STAGE_REVIEW_INDEX_ID)
+    if row is None:
+        return {"state": "ABSENT", "valid": True}
+    evidence_path = root / S13_STAGE_REVIEW_EVIDENCE_PATH
+    try:
+        evidence = strict_json_load(evidence_path)
+        artifact_hash = sha256_file(evidence_path)
+    except Exception as exc:
+        return {"state": "INVALID", "valid": False, "reason": "%s: %s" % (type(exc).__name__, exc)}
+    valid = (
+        row.get("id") == S13_STAGE_REVIEW_INDEX_ID
+        and row.get("kind") == "STAGE_REVIEW_EVIDENCE"
+        and row.get("stage_id") == "S13"
+        and row.get("contract_id") == "STAGE-REVIEW-S13"
+        and row.get("status") == "PASS"
+        and row.get("actual_artifact") == S13_STAGE_REVIEW_EVIDENCE_PATH.as_posix()
+        and row.get("artifact_sha256") == artifact_hash
+        and row.get("next") == "S13/GITHUB_STAGE_UPLOAD_READY"
+        and isinstance(evidence, Mapping)
+        and evidence.get("contract_id") == "STAGE-REVIEW-S13"
+        and evidence.get("stage_id") == "S13"
+        and evidence.get("status") == "PASS"
+        and evidence.get("decision") == "S13_WHOLE_STAGE_REVIEW_PASS"
+        and evidence.get("next") == "S13/GITHUB_STAGE_UPLOAD_READY"
+        and evidence.get("release_status") == "S13_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT"
+    )
+    return {
+        "state": "VALID" if valid else "INVALID",
+        "valid": valid,
+        "artifact_hash_matches": row.get("artifact_sha256") == artifact_hash,
+    }
+
+
+def _s14_stage_review_index_successor(root: Path, index_by_id: Mapping[str, Mapping[str, Any]]) -> Dict[str, Any]:
+    """Allow only the exact S14 review receipt to extend the frozen index."""
+
+    row = index_by_id.get(S14_STAGE_REVIEW_INDEX_ID)
+    if row is None:
+        return {"state": "ABSENT", "valid": True}
+    evidence_path = root / S14_STAGE_REVIEW_EVIDENCE_PATH
+    try:
+        evidence = strict_json_load(evidence_path)
+        artifact_hash = sha256_file(evidence_path)
+    except Exception as exc:
+        return {"state": "INVALID", "valid": False, "reason": "%s: %s" % (type(exc).__name__, exc)}
+    valid = (
+        row.get("id") == S14_STAGE_REVIEW_INDEX_ID
+        and row.get("kind") == "STAGE_REVIEW_EVIDENCE"
+        and row.get("stage_id") == "S14"
+        and row.get("contract_id") == "STAGE-REVIEW-S14"
+        and row.get("status") == "PASS"
+        and row.get("actual_artifact") == S14_STAGE_REVIEW_EVIDENCE_PATH.as_posix()
+        and row.get("artifact_sha256") == artifact_hash
+        and row.get("next") == "S14/GITHUB_STAGE_UPLOAD_READY"
+        and isinstance(evidence, Mapping)
+        and evidence.get("contract_id") == "STAGE-REVIEW-S14"
+        and evidence.get("stage_id") == "S14"
+        and evidence.get("status") == "PASS"
+        and evidence.get("decision") == "S14_WHOLE_STAGE_REVIEW_PASS"
+        and evidence.get("next") == "S14/GITHUB_STAGE_UPLOAD_READY"
+        and evidence.get("release_status") == "S14_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT"
+    )
+    return {
+        "state": "VALID" if valid else "INVALID",
+        "valid": valid,
+        "artifact_hash_matches": row.get("artifact_sha256") == artifact_hash,
+    }
+
+
+def _s15_stage_review_index_successor(root: Path, index_by_id: Mapping[str, Mapping[str, Any]]) -> Dict[str, Any]:
+    """Allow only the exact S15 review receipt to extend the frozen index."""
+
+    row = index_by_id.get(S15_STAGE_REVIEW_INDEX_ID)
+    if row is None:
+        return {"state": "ABSENT", "valid": True}
+    evidence_path = root / S15_STAGE_REVIEW_EVIDENCE_PATH
+    try:
+        evidence = strict_json_load(evidence_path)
+        artifact_hash = sha256_file(evidence_path)
+    except Exception as exc:
+        return {"state": "INVALID", "valid": False, "reason": "%s: %s" % (type(exc).__name__, exc)}
+    valid = (
+        row.get("id") == S15_STAGE_REVIEW_INDEX_ID
+        and row.get("kind") == "STAGE_REVIEW_EVIDENCE"
+        and row.get("stage_id") == "S15"
+        and row.get("contract_id") == "STAGE-REVIEW-S15"
+        and row.get("status") == "PASS"
+        and row.get("actual_artifact") == S15_STAGE_REVIEW_EVIDENCE_PATH.as_posix()
+        and row.get("artifact_sha256") == artifact_hash
+        and row.get("next") == "S15/GITHUB_STAGE_UPLOAD_READY"
+        and isinstance(evidence, Mapping)
+        and evidence.get("contract_id") == "STAGE-REVIEW-S15"
+        and evidence.get("stage_id") == "S15"
+        and evidence.get("status") == "PASS"
+        and evidence.get("decision") == "S15_WHOLE_STAGE_REVIEW_PASS"
+        and evidence.get("next") == "S15/GITHUB_STAGE_UPLOAD_READY"
+        and evidence.get("release_status") == "S15_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT"
+    )
+    return {
+        "state": "VALID" if valid else "INVALID",
+        "valid": valid,
+        "artifact_hash_matches": row.get("artifact_sha256") == artifact_hash,
+    }
+
+
+def _later_stage_review_index_successor(
+    root: Path,
+    index_by_id: Mapping[str, Mapping[str, Any]],
+    *,
+    stage_id: str,
+    index_id: str,
+    evidence_path: Path,
+) -> Dict[str, Any]:
+    """Allow only an exact S16--S19 whole-stage review successor row."""
+
+    row = index_by_id.get(index_id)
+    if row is None:
+        return {"state": "ABSENT", "valid": True}
+    try:
+        evidence = strict_json_load(root / evidence_path)
+        artifact_hash = sha256_file(root / evidence_path)
+    except Exception as exc:
+        return {"state": "INVALID", "valid": False, "reason": "%s: %s" % (type(exc).__name__, exc)}
+    contract_id = "STAGE-REVIEW-%s" % stage_id
+    decision = "%s_WHOLE_STAGE_REVIEW_PASS" % stage_id
+    next_state = "%s/GITHUB_STAGE_UPLOAD_READY" % stage_id
+    release_status = "%s_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT" % stage_id
+    valid = (
+        row.get("id") == index_id
+        and row.get("kind") == "STAGE_REVIEW_EVIDENCE"
+        and row.get("stage_id") == stage_id
+        and row.get("contract_id") == contract_id
+        and row.get("status") == "PASS"
+        and row.get("actual_artifact") == evidence_path.as_posix()
+        and row.get("artifact_sha256") == artifact_hash
+        and row.get("next") == next_state
+        and isinstance(evidence, Mapping)
+        and evidence.get("contract_id") == contract_id
+        and evidence.get("stage_id") == stage_id
+        and evidence.get("status") == "PASS"
+        and evidence.get("decision") == decision
+        and evidence.get("next") == next_state
+        and evidence.get("release_status") == release_status
+    )
+    return {
+        "state": "VALID" if valid else "INVALID",
+        "valid": valid,
+        "artifact_hash_matches": row.get("artifact_sha256") == artifact_hash,
+    }
+
+
 def _check_taskpack_continuity(
     root: Path,
     fixture: Mapping[str, Any] | None,
@@ -590,19 +1118,123 @@ def _check_taskpack_continuity(
     try:
         orphans, lookup = _taskpack_orphans(requirements, contracts, tasks, traceability, index)
         expected_counts = fixture.get("expected_counts") if isinstance(fixture, Mapping) else {}
+        s09_successor = _s09_stage_review_index_successor(root, lookup["index_by_id"])
+        s10_successor = _s10_stage_review_index_successor(root, lookup["index_by_id"])
+        s11_successor = _s11_stage_review_index_successor(root, lookup["index_by_id"])
+        s12_p01_successor = _s12_p01_index_successor(root, lookup["index_by_id"])
+        s12_p02_successor = _s12_p02_index_successor(root, lookup["index_by_id"])
+        s12_p03_successor = _s12_p03_index_successor(root, lookup["index_by_id"])
+        s12_p04_successor = _s12_p04_index_successor(root, lookup["index_by_id"])
+        s12_stage_review_successor = _s12_stage_review_index_successor(root, lookup["index_by_id"])
+        s13_stage_review_successor = _s13_stage_review_index_successor(root, lookup["index_by_id"])
+        s14_stage_review_successor = _s14_stage_review_index_successor(root, lookup["index_by_id"])
+        s15_stage_review_successor = _s15_stage_review_index_successor(root, lookup["index_by_id"])
+        s16_stage_review_successor = _later_stage_review_index_successor(
+            root,
+            lookup["index_by_id"],
+            stage_id="S16",
+            index_id=S16_STAGE_REVIEW_INDEX_ID,
+            evidence_path=S16_STAGE_REVIEW_EVIDENCE_PATH,
+        )
+        s17_stage_review_successor = _later_stage_review_index_successor(
+            root,
+            lookup["index_by_id"],
+            stage_id="S17",
+            index_id=S17_STAGE_REVIEW_INDEX_ID,
+            evidence_path=S17_STAGE_REVIEW_EVIDENCE_PATH,
+        )
+        s18_stage_review_successor = _later_stage_review_index_successor(
+            root,
+            lookup["index_by_id"],
+            stage_id="S18",
+            index_id=S18_STAGE_REVIEW_INDEX_ID,
+            evidence_path=S18_STAGE_REVIEW_EVIDENCE_PATH,
+        )
+        s19_stage_review_successor = _later_stage_review_index_successor(
+            root,
+            lookup["index_by_id"],
+            stage_id="S19",
+            index_id=S19_STAGE_REVIEW_INDEX_ID,
+            evidence_path=S19_STAGE_REVIEW_EVIDENCE_PATH,
+        )
+        expected_index_count = (
+            expected_counts.get("index")
+            + sum(
+                successor["state"] == "VALID"
+                for successor in (
+                    s09_successor,
+                    s10_successor,
+                    s11_successor,
+                    s12_stage_review_successor,
+                    s13_stage_review_successor,
+                    s14_stage_review_successor,
+                    s15_stage_review_successor,
+                    s16_stage_review_successor,
+                    s17_stage_review_successor,
+                    s18_stage_review_successor,
+                    s19_stage_review_successor,
+                )
+            )
+            if isinstance(expected_counts.get("index"), int)
+            else None
+        )
+        successors_ordered = (
+            (s10_successor["state"] == "ABSENT" or s09_successor["state"] == "VALID")
+            and (s11_successor["state"] == "ABSENT" or s10_successor["state"] == "VALID")
+            and s12_p01_successor.get("valid") is True
+            and (s12_p01_successor["state"] == "PLANNED" or s11_successor["state"] == "VALID")
+            and s12_p02_successor.get("valid") is True
+            and (s12_p02_successor["state"] == "PLANNED" or s12_p01_successor["state"] == "VALID")
+            and s12_p03_successor.get("valid") is True
+            and (s12_p03_successor["state"] == "PLANNED" or s12_p02_successor["state"] == "VALID")
+            and s12_p04_successor.get("valid") is True
+            and (s12_p04_successor["state"] == "PLANNED" or s12_p03_successor["state"] == "VALID")
+            and s12_stage_review_successor.get("valid") is True
+            and (s12_stage_review_successor["state"] == "ABSENT" or s12_p04_successor["state"] == "VALID")
+            and s13_stage_review_successor.get("valid") is True
+            and (s13_stage_review_successor["state"] == "ABSENT" or s12_stage_review_successor["state"] == "VALID")
+            and s14_stage_review_successor.get("valid") is True
+            and (s14_stage_review_successor["state"] == "ABSENT" or s13_stage_review_successor["state"] == "VALID")
+            and s15_stage_review_successor.get("valid") is True
+            and (s15_stage_review_successor["state"] == "ABSENT" or s14_stage_review_successor["state"] == "VALID")
+            and s16_stage_review_successor.get("valid") is True
+            and (s16_stage_review_successor["state"] == "ABSENT" or s15_stage_review_successor["state"] == "VALID")
+            and s17_stage_review_successor.get("valid") is True
+            and (s17_stage_review_successor["state"] == "ABSENT" or s16_stage_review_successor["state"] == "VALID")
+            and s18_stage_review_successor.get("valid") is True
+            and (s18_stage_review_successor["state"] == "ABSENT" or s17_stage_review_successor["state"] == "VALID")
+            and s19_stage_review_successor.get("valid") is True
+            and (s19_stage_review_successor["state"] == "ABSENT" or s18_stage_review_successor["state"] == "VALID")
+        )
         counts_ok = (
             isinstance(expected_counts, Mapping)
             and len(requirements) == expected_counts.get("requirements")
             and len(contracts) == expected_counts.get("contracts")
             and len(tasks) == expected_counts.get("tasks")
             and len(traceability) == expected_counts.get("traceability")
-            and len(index) == expected_counts.get("index")
+            and s09_successor.get("valid") is True
+            and s10_successor.get("valid") is True
+            and s11_successor.get("valid") is True
+            and s12_p01_successor.get("valid") is True
+            and s12_p02_successor.get("valid") is True
+            and s12_p03_successor.get("valid") is True
+            and s12_p04_successor.get("valid") is True
+            and s12_stage_review_successor.get("valid") is True
+            and s13_stage_review_successor.get("valid") is True
+            and s14_stage_review_successor.get("valid") is True
+            and s15_stage_review_successor.get("valid") is True
+            and s16_stage_review_successor.get("valid") is True
+            and s17_stage_review_successor.get("valid") is True
+            and s18_stage_review_successor.get("valid") is True
+            and s19_stage_review_successor.get("valid") is True
+            and successors_ordered
+            and len(index) == expected_index_count
         )
         _add(
             checks,
             "S07P04-ALL-LINK-COLLECTIONS-COVERED",
             counts_ok and not any(orphans.values()),
-            {"counts": {"requirements": len(requirements), "contracts": len(contracts), "tasks": len(tasks), "traceability": len(traceability), "index": len(index)}, "orphans": orphans},
+            {"counts": {"requirements": len(requirements), "contracts": len(contracts), "tasks": len(tasks), "traceability": len(traceability), "index": len(index)}, "expected_index_count": expected_index_count, "s09_stage_review_successor": s09_successor, "s10_stage_review_successor": s10_successor, "s11_stage_review_successor": s11_successor, "s12_p01_successor": s12_p01_successor, "s12_p02_successor": s12_p02_successor, "s12_p03_successor": s12_p03_successor, "s12_p04_successor": s12_p04_successor, "s12_stage_review_successor": s12_stage_review_successor, "s13_stage_review_successor": s13_stage_review_successor, "s14_stage_review_successor": s14_stage_review_successor, "s15_stage_review_successor": s15_stage_review_successor, "s16_stage_review_successor": s16_stage_review_successor, "s17_stage_review_successor": s17_stage_review_successor, "s18_stage_review_successor": s18_stage_review_successor, "s19_stage_review_successor": s19_stage_review_successor, "successors_ordered": successors_ordered, "orphans": orphans},
         )
         requirement = _row(requirements, REQUIREMENT_ID)
         contract = _row(contracts, CONTRACT_ID)

@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import importlib
+from pathlib import Path
 
 from fastapi.testclient import TestClient
+
+# 版本从真源读，不写死——升一次版改一次测试是没道理的，
+# 而且写死的那个数正是升版时最容易忘的东西。
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def _client(tmp_path, monkeypatch) -> TestClient:
@@ -35,7 +40,8 @@ def test_extension_install_guide_and_package_are_real_downloads(tmp_path, monkey
     assert package.status_code == 200
     assert package.content == b"PK\x03\x04fixture-extension"
     assert package.headers["content-type"] == "application/zip"
-    assert "social-archive-extension-v0.0.0.6.zip" in package.headers["content-disposition"]
+    version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+    assert f"social-archive-extension-v{version}.zip" in package.headers["content-disposition"]
     assert len(package.headers["x-social-archive-sha256"]) == 64
 
 
@@ -45,13 +51,26 @@ def test_extension_bootstrap_is_single_render_payload(tmp_path, monkeypatch):
     assert response.status_code == 200
     body = response.json()
     assert body["project"] == "Social Archive"
-    assert body["version"] == "0.0.0.6"
+    assert body["version"] == (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     assert body["archive_defaults"] == ["L0", "L1", "L3"]
-    assert body["privacy"] == {
-        "cookie_custody": False,
-        "password_custody": False,
-        "user_triggered_capture_only": True,
+    # 这条断言原先逐字钉着 {"cookie_custody": False, "password_custody": False,
+    # "user_triggered_capture_only": True}。**其中第一条从 T05/T06 起就是假的**
+    # ——产品确实在托管西方三源的登录状态（加密后落库）。
+    # 也就是说：一句错的事实，由一盏绿灯守着。
+    #
+    # 现在这三项全部由 store.privacy_facts() 与托管清单算出来，判据也跟着
+    # 改成断言"算出来的东西对不对"，而不是"字面量有没有被改动"。
+    privacy = body["privacy"]
+    assert privacy["cookie_custody"] is True, "产品在托管西方三源的登录状态，不能对外说没有"
+    assert set(privacy["cookie_custody_platforms"]) == {"x", "instagram", "youtube"}
+    assert set(privacy["cookie_never_leaves_browser_platforms"]) == {
+        "xiaohongshu", "douyin", "bilibili", "kuaishou"
     }
+    assert privacy["password_custody"] is False
+    assert privacy["password_shaped_columns"] == [], (
+        "库里出现了 password 形状的列——这不是文案问题，是 L0 边界被越过了"
+    )
+    assert privacy["auto_sync_accounts"] == 0, "全新库里不该有开着定时同步的账号"
     assert {"connectors", "destinations", "jobs", "storage", "summary"} <= body.keys()
     assert all({"last_checked_at", "latency_ms", "last_message_zh"} <= item.keys() for item in body["connectors"])
     assert all({"last_checked_at", "latency_ms", "last_message_zh"} <= item.keys() for item in body["destinations"])
@@ -183,3 +202,12 @@ def test_local_obsidian_bridge_receipts_are_safe_and_separate_from_server_obsidi
     assert {key: after[key] for key in ("id", "canonical_url", "title", "metadata_json")} == {
         key: detail[key] for key in ("id", "canonical_url", "title", "metadata_json")
     }
+
+
+# 这里原有 main 的 test_options_never_hides_the_pairing_input_when_no_code_is_available。
+# 它钉的是一次性配对码的设置页 UI，而那条链路在 2026-08-04 的 T03(b) 里整条删掉了
+# （改成资料库页面用自己的会话换令牌，经 SA_ADOPT_TOKEN 交给扩展，用户不输入任何字符）。
+# 留着它就是一条**永远变不绿的红**：它要求的那个输入框按设计不该存在。
+# 「不许把人堵死」这个意图由 test_extension_account_sync_bridge.py 接管——
+# 那里反过来断言 pairing_required / one_time_code_available 不许再出现。
+

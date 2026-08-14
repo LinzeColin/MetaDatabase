@@ -1,0 +1,36 @@
+{
+  "artifacts": {
+    "economics.py": {
+      "sha256": "0dd12d78ac522432653287284edcd9186d8a069723a43b5d9e10a695410f5e19",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S12_P03.json": {
+      "sha256": "f36db145e763c7b73e695af068f17d1c741ca01489276b1d9efd62e30b925903",
+      "status": "PASS"
+    },
+    "opportunity_cost.json": {
+      "sha256": "d9d5302a55306155b3e4de02dcf58b75b77fba25d59136747f49815ab97fe754",
+      "status": "PASS"
+    },
+    "sensitivity_grid.json": {
+      "sha256": "4b9ce49e2d04d2bdac9ca1d26890de8fae828db432315ea6e96aa48b2f3ad7a2",
+      "status": "PASS"
+    },
+    "tests/S12/P03_test.py": {
+      "sha256": "4f928b46b7173756893359bfa92014e97321279af086d3704be455924291ba66",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S12-P03",
+  "evidence_id": "EVD-S12-P03-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "economics:sensitivity_disclosure",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_ECONOMICS_SENSITIVITY_DISCLOSURE_RESTORE_SIGNED_P02_KEEP_ALL_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

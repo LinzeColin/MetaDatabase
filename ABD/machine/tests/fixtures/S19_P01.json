@@ -1,0 +1,214 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S19-P01-WALKING-SKELETON",
+  "contract_id": "AC-S19-P01",
+  "requirement_id": "REQ-S19-P01",
+  "stage_id": "S19",
+  "phase_id": "P01",
+  "fixed_clock": "2026-08-10T06:00:00+10:00",
+  "expected_next": "S19/P02_READY_NOT_STARTED",
+  "predecessors": {
+    "AC-S12-P04": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+    "AC-S13-P04": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e",
+    "AC-S17-P04": "08e1d389d3b0d80d6c729d9835dc27343018985cd8cc1796a9528b5ed7d6e708",
+    "AC-S18-P04": "b196f207508350f8dbdb51efcd880f1fe616880e490af344bd3b2d238c142931"
+  },
+  "market": {
+    "market_id": "SYNTHETIC-MARKET-S19-P01",
+    "source_kind": "FROZEN_LOCAL_FIXTURE",
+    "evidence_tier": "E0_SYNTHETIC_TEST_ONLY",
+    "implied_probability": "0.500000000"
+  },
+  "lifecycle_steps": [
+    "DISCOVER",
+    "ADVICE",
+    "INVALIDATE",
+    "SYNTHETIC_RESULT",
+    "REPLAY",
+    "LOCAL_MAIL_EVIDENCE",
+    "RECOVERY"
+  ],
+  "fund_facts_snapshot": {
+    "money_storage": "INTEGER_CENTS",
+    "frozen_bankroll_reference_aud": "300.00",
+    "actual_fund_fact_mutation_allowed": false,
+    "actual_ledger_mutation_allowed": false
+  },
+  "risk_gate_snapshot": {
+    "kelly_fraction_alpha": "0.00",
+    "kelly_fraction_beta": "0.20",
+    "kelly_fraction_ga": "0.25",
+    "total_open_exposure_cap": "0.150",
+    "target_shortfall_may_relax_gate": false,
+    "unstable_action": "NO_RECOMMENDATION"
+  },
+  "scenarios": [
+    {
+      "scenario_id": "GOLDEN_LOCAL_CLOSED_LOOP",
+      "cycle_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T06:00:00+10:00",
+        "cycle_id": "S19-P01-GOLDEN",
+        "market": {
+          "market_id": "SYNTHETIC-MARKET-S19-P01",
+          "source_kind": "FROZEN_LOCAL_FIXTURE",
+          "evidence_tier": "E0_SYNTHETIC_TEST_ONLY",
+          "implied_probability": "0.500000000"
+        },
+        "lifecycle_steps": ["DISCOVER", "ADVICE", "INVALIDATE", "SYNTHETIC_RESULT", "REPLAY", "LOCAL_MAIL_EVIDENCE", "RECOVERY"],
+        "probability_delta": "0",
+        "odds_tick_delta": 0,
+        "fund_facts_snapshot": {
+          "money_storage": "INTEGER_CENTS",
+          "frozen_bankroll_reference_aud": "300.00",
+          "actual_fund_fact_mutation_allowed": false,
+          "actual_ledger_mutation_allowed": false
+        },
+        "risk_gate_snapshot": {
+          "kelly_fraction_alpha": "0.00",
+          "kelly_fraction_beta": "0.20",
+          "kelly_fraction_ga": "0.25",
+          "total_open_exposure_cap": "0.150",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        },
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "PASS",
+        "decision": "LOCAL_ALPHA_CLOSED_LOOP_NO_ORDER",
+        "action": "NO_RECOMMENDATION",
+        "failure_codes": []
+      }
+    },
+    {
+      "scenario_id": "ADVERSE_ONE_IN_TEN_THOUSAND_PRESERVES_NO_ORDER",
+      "cycle_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T06:00:00+10:00",
+        "cycle_id": "S19-P01-ADVERSE-ONE-IN-TEN-THOUSAND",
+        "market": {
+          "market_id": "SYNTHETIC-MARKET-S19-P01",
+          "source_kind": "FROZEN_LOCAL_FIXTURE",
+          "evidence_tier": "E0_SYNTHETIC_TEST_ONLY",
+          "implied_probability": "0.500000000"
+        },
+        "lifecycle_steps": ["DISCOVER", "ADVICE", "INVALIDATE", "SYNTHETIC_RESULT", "REPLAY", "LOCAL_MAIL_EVIDENCE", "RECOVERY"],
+        "probability_delta": "-0.0001",
+        "odds_tick_delta": -1,
+        "fund_facts_snapshot": {
+          "money_storage": "INTEGER_CENTS",
+          "frozen_bankroll_reference_aud": "300.00",
+          "actual_fund_fact_mutation_allowed": false,
+          "actual_ledger_mutation_allowed": false
+        },
+        "risk_gate_snapshot": {
+          "kelly_fraction_alpha": "0.00",
+          "kelly_fraction_beta": "0.20",
+          "kelly_fraction_ga": "0.25",
+          "total_open_exposure_cap": "0.150",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        },
+        "requested_external_execution": false,
+        "requested_actual_order": false,
+        "requested_real_fund_mutation": false,
+        "requested_real_mail_send": false,
+        "requested_production_deploy": false
+      },
+      "expected": {
+        "status": "PASS",
+        "decision": "LOCAL_ALPHA_CLOSED_LOOP_NO_ORDER",
+        "action": "NO_RECOMMENDATION",
+        "failure_codes": []
+      }
+    },
+    {
+      "scenario_id": "EXTERNAL_EXECUTION_ATTEMPT_FAILS_CLOSED",
+      "cycle_input": {
+        "schema_version": "1.0.0", "fixed_clock": "2026-08-10T06:00:00+10:00", "cycle_id": "S19-P01-EXTERNAL-REQUEST",
+        "market": {"market_id": "SYNTHETIC-MARKET-S19-P01", "source_kind": "FROZEN_LOCAL_FIXTURE", "evidence_tier": "E0_SYNTHETIC_TEST_ONLY", "implied_probability": "0.500000000"},
+        "lifecycle_steps": ["DISCOVER", "ADVICE", "INVALIDATE", "SYNTHETIC_RESULT", "REPLAY", "LOCAL_MAIL_EVIDENCE", "RECOVERY"],
+        "probability_delta": "0", "odds_tick_delta": 0,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.00", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": false, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": true, "requested_actual_order": false, "requested_real_fund_mutation": false, "requested_real_mail_send": false, "requested_production_deploy": false
+      },
+      "expected": {"status": "FAIL_CLOSED", "decision": "PAUSE_AND_REJECT_UNSAFE_REQUEST", "action": "NO_RECOMMENDATION", "failure_codes": ["EXTERNAL_RUNTIME_REQUESTED"]}
+    },
+    {
+      "scenario_id": "ACTUAL_ORDER_ATTEMPT_FAILS_CLOSED",
+      "cycle_input": {
+        "schema_version": "1.0.0", "fixed_clock": "2026-08-10T06:00:00+10:00", "cycle_id": "S19-P01-ORDER-REQUEST",
+        "market": {"market_id": "SYNTHETIC-MARKET-S19-P01", "source_kind": "FROZEN_LOCAL_FIXTURE", "evidence_tier": "E0_SYNTHETIC_TEST_ONLY", "implied_probability": "0.500000000"},
+        "lifecycle_steps": ["DISCOVER", "ADVICE", "INVALIDATE", "SYNTHETIC_RESULT", "REPLAY", "LOCAL_MAIL_EVIDENCE", "RECOVERY"],
+        "probability_delta": "0", "odds_tick_delta": 0,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.00", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": false, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": false, "requested_actual_order": true, "requested_real_fund_mutation": false, "requested_real_mail_send": false, "requested_production_deploy": false
+      },
+      "expected": {"status": "FAIL_CLOSED", "decision": "PAUSE_AND_REJECT_UNSAFE_REQUEST", "action": "NO_RECOMMENDATION", "failure_codes": ["ACTUAL_ORDER_REQUESTED"]}
+    },
+    {
+      "scenario_id": "REAL_FUND_MUTATION_ATTEMPT_FAILS_CLOSED",
+      "cycle_input": {
+        "schema_version": "1.0.0", "fixed_clock": "2026-08-10T06:00:00+10:00", "cycle_id": "S19-P01-FUND-MUTATION",
+        "market": {"market_id": "SYNTHETIC-MARKET-S19-P01", "source_kind": "FROZEN_LOCAL_FIXTURE", "evidence_tier": "E0_SYNTHETIC_TEST_ONLY", "implied_probability": "0.500000000"},
+        "lifecycle_steps": ["DISCOVER", "ADVICE", "INVALIDATE", "SYNTHETIC_RESULT", "REPLAY", "LOCAL_MAIL_EVIDENCE", "RECOVERY"],
+        "probability_delta": "0", "odds_tick_delta": 0,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.00", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": false, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": false, "requested_actual_order": false, "requested_real_fund_mutation": true, "requested_real_mail_send": false, "requested_production_deploy": false
+      },
+      "expected": {"status": "FAIL_CLOSED", "decision": "PAUSE_AND_REJECT_UNSAFE_REQUEST", "action": "NO_RECOMMENDATION", "failure_codes": ["REAL_FUND_MUTATION_REQUESTED"]}
+    },
+    {
+      "scenario_id": "REAL_MAIL_SEND_ATTEMPT_FAILS_CLOSED",
+      "cycle_input": {
+        "schema_version": "1.0.0", "fixed_clock": "2026-08-10T06:00:00+10:00", "cycle_id": "S19-P01-MAIL-SEND",
+        "market": {"market_id": "SYNTHETIC-MARKET-S19-P01", "source_kind": "FROZEN_LOCAL_FIXTURE", "evidence_tier": "E0_SYNTHETIC_TEST_ONLY", "implied_probability": "0.500000000"},
+        "lifecycle_steps": ["DISCOVER", "ADVICE", "INVALIDATE", "SYNTHETIC_RESULT", "REPLAY", "LOCAL_MAIL_EVIDENCE", "RECOVERY"],
+        "probability_delta": "0", "odds_tick_delta": 0,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.00", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": false, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": false, "requested_actual_order": false, "requested_real_fund_mutation": false, "requested_real_mail_send": true, "requested_production_deploy": false
+      },
+      "expected": {"status": "FAIL_CLOSED", "decision": "PAUSE_AND_REJECT_UNSAFE_REQUEST", "action": "NO_RECOMMENDATION", "failure_codes": ["REAL_MAIL_SEND_REQUESTED"]}
+    },
+    {
+      "scenario_id": "PRODUCTION_DEPLOY_ATTEMPT_FAILS_CLOSED",
+      "cycle_input": {
+        "schema_version": "1.0.0", "fixed_clock": "2026-08-10T06:00:00+10:00", "cycle_id": "S19-P01-DEPLOY-REQUEST",
+        "market": {"market_id": "SYNTHETIC-MARKET-S19-P01", "source_kind": "FROZEN_LOCAL_FIXTURE", "evidence_tier": "E0_SYNTHETIC_TEST_ONLY", "implied_probability": "0.500000000"},
+        "lifecycle_steps": ["DISCOVER", "ADVICE", "INVALIDATE", "SYNTHETIC_RESULT", "REPLAY", "LOCAL_MAIL_EVIDENCE", "RECOVERY"],
+        "probability_delta": "0", "odds_tick_delta": 0,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.00", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": false, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": false, "requested_actual_order": false, "requested_real_fund_mutation": false, "requested_real_mail_send": false, "requested_production_deploy": true
+      },
+      "expected": {"status": "FAIL_CLOSED", "decision": "PAUSE_AND_REJECT_UNSAFE_REQUEST", "action": "NO_RECOMMENDATION", "failure_codes": ["PRODUCTION_DEPLOY_REQUESTED"]}
+    },
+    {
+      "scenario_id": "RISK_GATE_RELAXATION_ATTEMPT_FAILS_CLOSED",
+      "cycle_input": {
+        "schema_version": "1.0.0", "fixed_clock": "2026-08-10T06:00:00+10:00", "cycle_id": "S19-P01-RISK-RELAXATION",
+        "market": {"market_id": "SYNTHETIC-MARKET-S19-P01", "source_kind": "FROZEN_LOCAL_FIXTURE", "evidence_tier": "E0_SYNTHETIC_TEST_ONLY", "implied_probability": "0.500000000"},
+        "lifecycle_steps": ["DISCOVER", "ADVICE", "INVALIDATE", "SYNTHETIC_RESULT", "REPLAY", "LOCAL_MAIL_EVIDENCE", "RECOVERY"],
+        "probability_delta": "0", "odds_tick_delta": 0,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.00", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": true, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": false, "requested_actual_order": false, "requested_real_fund_mutation": false, "requested_real_mail_send": false, "requested_production_deploy": false
+      },
+      "expected": {"status": "FAIL_CLOSED", "decision": "PAUSE_AND_REJECT_UNSAFE_REQUEST", "action": "NO_RECOMMENDATION", "failure_codes": ["IMMUTABLE_RISK_GATE_CHANGED_OR_RELAXED"]}
+    }
+  ],
+  "malformed_inputs": [
+    {"case_id": "DUPLICATED_LIFECYCLE_STEP", "mutation": "duplicate_step"},
+    {"case_id": "FLOAT_PROBABILITY_DELTA", "mutation": "float_delta"},
+    {"case_id": "UNFROZEN_MARKET", "mutation": "unknown_market"}
+  ]
+}

@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-403",
-  "taskpack_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.6",
   "stage": "S4",
   "title": "完成 Obsidian 与标准 Markdown/JSONL 目的地",
   "status": "PASS",
   "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
+  "live_environment_status": "PASS",
   "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "equivalent",
+  "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
   "acceptance_ids": [
     "AC-SA-403"
   ],
@@ -17,14 +17,18 @@
   ],
   "oracle": "本地 Vault/REST 两种模式和标准导出可独立启用；文件原子写、可重建、可导回。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "7 destination/export tests passed.",
+  "result_summary": "Obsidian 以文件系统 Vault 直写并回读通过（本不需要 REST Token）；标准 Markdown 与 JSONL 由 export_all.py 在生产产出 9 个文件，JSONL 记录结构完整。三者与 GitHub 副本 projection_sha256 一致。",
+  "evidence": [
+    "evidence/SA-403/V006_OBSIDIAN_VAULT_DESTINATION_20260803.json",
+    "evidence/SA-404/V006_MULTI_DESTINATION_RECEIPTS_20260803.json"
+  ],
+  "blocking_reason": null,
   "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+    "implementation_commit": "812d7a02d303df22c8845b437c36a52f471e3195",
+    "full_application_regression": "310 passed",
+    "taskpack_verify": "PASS, 395 manifest entries, 0 failures"
   },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "ff7fe6b526c054252d343d1a9493b678f17890032b8168e7dfb45915aee69423"
+  "predecessor_evidence": "evidence/SA-403/history/pre-v0.0.0.6-stage-reverification/PREVIOUS_RESULT.json",
+  "supersedes": "该任务此前的 RESULT.json 记录为 v0.0.0.5 的 PASS。在 v0.0.0.6 下沿用那个 PASS 会把未真正运行的环境门伪装成已通过，故按实测结果重写。",
+  "generated_at": "2026-08-03T07:35:00Z"
 }

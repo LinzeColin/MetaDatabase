@@ -1,0 +1,110 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "STAGE-REVIEW-S13",
+  "review_id": "ABD-S13-WHOLE-STAGE-REVIEW",
+  "stage_id": "S13",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "review_scope": {
+    "phase_ids": ["P01", "P02", "P03", "P04"],
+    "requirement_ids": ["REQ-S13-P01", "REQ-S13-P02", "REQ-S13-P03", "REQ-S13-P04"],
+    "acceptance_contract_ids": ["AC-S13-P01", "AC-S13-P02", "AC-S13-P03", "AC-S13-P04"],
+    "task_ids": [
+      "T-S13-P01-01", "T-S13-P01-02", "T-S13-P01-03",
+      "T-S13-P02-01", "T-S13-P02-02", "T-S13-P02-03",
+      "T-S13-P03-01", "T-S13-P03-02", "T-S13-P03-03",
+      "T-S13-P04-01", "T-S13-P04-02", "T-S13-P04-03"
+    ]
+  },
+  "phase_records": [
+    {
+      "phase_id": "P01",
+      "requirement_id": "REQ-S13-P01",
+      "acceptance_contract_id": "AC-S13-P01",
+      "target": "手机/电脑任意地点可访问，界面中文。",
+      "outputs": ["webapp", "push_service.py", "ui_fixtures.json"],
+      "evidence_path": "machine/evidence/EVD-S13-P01.json",
+      "evidence_sha256": "161a75ad86f1f0f745eae393b27b3a7f7a07c034d4342381f88b95892ad0199d",
+      "rollback_path": "machine/evidence/EVD-S13-P01_rollback.json",
+      "rollback_sha256": "504ef71bbaba64179ba54b7e8a6be64b9aecca64c2e9db0db27fd65569c175c1",
+      "expected_decision": "CHINESE_WORKBENCH_AND_LOCAL_PUSH_CONTRACT_READY_PLATFORM_VALIDATION_AND_POST_ADVICE_EVIDENCE_REQUIRED",
+      "expected_next": "S13/P02_READY_NOT_STARTED"
+    },
+    {
+      "phase_id": "P02",
+      "requirement_id": "REQ-S13-P02",
+      "acceptance_contract_id": "AC-S13-P02",
+      "target": "低于最低赔率、身份不符或过期立即红色撤销。",
+      "outputs": ["browser_companion", "quote_check.py", "match_fixtures.json"],
+      "evidence_path": "machine/evidence/EVD-S13-P02.json",
+      "evidence_sha256": "42be48209052f1056d16dd002322ca710cafbe1023be7c9a20a16d158abbbe89",
+      "rollback_path": "machine/evidence/EVD-S13-P02_rollback.json",
+      "rollback_sha256": "37216196b19640aba63181e9a5211c5ec31048e33495f4b8da11d5f1391fd236",
+      "expected_decision": "BROWSER_COMPANION_AND_LOCAL_VISIBLE_QUOTE_CHECK_READY_POST_ADVICE_EVIDENCE_REQUIRED",
+      "expected_next": "S13/P03_READY_NOT_STARTED"
+    },
+    {
+      "phase_id": "P03",
+      "requirement_id": "REQ-S13-P03",
+      "acceptance_contract_id": "AC-S13-P03",
+      "target": "没有确认时不伪造真实收益。",
+      "outputs": ["post_advice_worker.py", "result_settler.py", "performance_report.py"],
+      "evidence_path": "machine/evidence/EVD-S13-P03.json",
+      "evidence_sha256": "7ebe8b2b59bce33b34e1c7bab01bf96a7d2225414725bddebada481443fc197a",
+      "rollback_path": "machine/evidence/EVD-S13-P03_rollback.json",
+      "rollback_sha256": "38da833ecfc4199cc842f6725f77b9d4c740f117734e546f8b31f9de37b7b9a6",
+      "expected_decision": "POST_ADVICE_EVIDENCE_AND_SYNTHETIC_SETTLEMENT_READY_REAL_RETURN_REQUIRES_SEPARATE_EVIDENCE",
+      "expected_next": "S13/P04_READY_NOT_STARTED"
+    },
+    {
+      "phase_id": "P04",
+      "requirement_id": "REQ-S13-P04",
+      "acceptance_contract_id": "AC-S13-P04",
+      "target": "每类路径有输入、状态、输出、证据和恢复。",
+      "outputs": ["journey_tests.json", "recovery_actions.json"],
+      "evidence_path": "machine/evidence/EVD-S13-P04.json",
+      "evidence_sha256": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e",
+      "rollback_path": "machine/evidence/EVD-S13-P04_rollback.json",
+      "rollback_sha256": "8cea40846c7d60b5ee8adaecee741e97be17a46e6045728e71cfb08131dc0856",
+      "expected_decision": "SIX_COMPLETE_SYNTHETIC_JOURNEYS_AND_LOCAL_RECOVERY_READY_STAGE_REVIEW_REQUIRED",
+      "expected_next": "S13/STAGE_REVIEW_READY_NOT_STARTED"
+    }
+  ],
+  "baseline_hashes": {
+    "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+    "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+    "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+    "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+  },
+  "review_gates": [
+    "PHASE_RECEIPTS_CURRENT_AND_PORTABLE",
+    "REQUIREMENT_ACCEPTANCE_TASK_TRACE_CLOSED",
+    "CHINESE_WORKBENCH_ACTIONS_DISABLED_AND_LOCAL_PUSH_ONLY_GATE_PRESERVED",
+    "VISIBLE_QUOTE_IDENTITY_MINIMUM_ODDS_EXPIRY_AND_RISK_REVOKE_GATE_PRESERVED",
+    "POST_ADVICE_SYNTHETIC_SETTLEMENT_NOT_ACTUAL_RETURN_GATE_PRESERVED",
+    "SIX_COMPLETE_PATHS_AND_LOCAL_RECOVERY_GATE_PRESERVED",
+    "NO_NETWORK_ACCOUNT_ORDER_DEPLOY_OR_REAL_TIME_SOAK_EXECUTED",
+    "ALL_REVIEW_FINDINGS_RESOLVED",
+    "NO_FULL_REGRESSION_EXECUTED"
+  ],
+  "execution_policy": {
+    "offline_deterministic_only": true,
+    "phase_test_rerun_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "single_pass_fixture_cases_only": true,
+    "github_upload_performed_by_local_review": false,
+    "production_deployed_or_activated": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "targeted_test_command": "pytest -q tests/S13/stage_review_test.py",
+  "release_status_on_pass": "S13_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "next_on_pass": "S13/GITHUB_STAGE_UPLOAD_READY",
+  "next_on_fail": "S13/STAGE_REVIEW_REMEDIATION_REQUIRED",
+  "rollback": "关闭 S13 复审候选，保留 P01--P04 已签名证据并按对应 Phase 回滚合同重放；不修改冻结 Phase 基线或任何外部状态。"
+}

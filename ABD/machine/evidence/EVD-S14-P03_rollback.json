@@ -1,0 +1,39 @@
+{
+  "artifacts": {
+    "abd_acceptance/component_governance.py": {
+      "sha256": "d2ce4b9618383ca9ca307c6eb53a8344bf1d115d99cf5633f02a0cbe34bc82cf",
+      "status": "PASS"
+    },
+    "component_governance.json": {
+      "sha256": "717241b508c80527ee3d667a350d45d3ee38d3015f4ef6f9094d06bc6daf2066",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S14_P03.json": {
+      "sha256": "460eb7cd79aa7c1ca60a6a9bdcaaa523e79c6c8fc5618f050e79bf422218f68c",
+      "status": "PASS"
+    },
+    "patch_sla.json": {
+      "sha256": "efd03538bd1d8566db07070a9f003aa048f30e1cecb09dc9588318f51d094859",
+      "status": "PASS"
+    },
+    "sbom.json": {
+      "sha256": "c0648815a4453ed5b203d7c3778f1306141b972251c8a1c511c6ff6a2abb961e",
+      "status": "PASS"
+    },
+    "tests/S14/P03_test.py": {
+      "sha256": "2022e2024abd435b6384f6d3217888b08eb24feaab38c86802e166a56a1d30f7",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S14-P03",
+  "evidence_id": "EVD-S14-P03-ROLLBACK",
+  "external_state_changed": false,
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_S14_P03_COMPONENT_ADMISSION_PRESERVE_P02_AND_SIGNED_EVIDENCE_NO_EXTERNAL_MUTATION",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

@@ -1,0 +1,29 @@
+{
+  "verdict": "BLOCKED_NETWORK",
+  "synthetic_profile_only": true,
+  "successful_job_count": 0,
+  "sources": [
+    {
+      "source": "remotive",
+      "status": "failed",
+      "jobs": 0,
+      "safe_urls": 0,
+      "detail": "[Errno -3] Temporary failure in name resolution"
+    },
+    {
+      "source": "arbeitnow",
+      "status": "failed",
+      "jobs": 0,
+      "safe_urls": 0,
+      "detail": "[Errno -3] Temporary failure in name resolution"
+    },
+    {
+      "source": "jobicy",
+      "status": "failed",
+      "jobs": 0,
+      "safe_urls": 0,
+      "detail": "[Errno -3] Temporary failure in name resolution"
+    }
+  ],
+  "production_claimed": false
+}

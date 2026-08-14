@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-SHADOW-SOURCE-TO-OCI-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_NONRUNNING_SOURCE_TO_OCI_CANDIDATE_ONLY",
+  "source_snapshot": {
+    "git_commit": "b7df8bee5bc91987970ce51d540c68f3fc324f36",
+    "archive_format": "GIT_ARCHIVE_TAR",
+    "archive_sha256": "7ad7b97aeaaec84b747dc3002a849851cba7625fa7e300dd1015ff83d023d6d6",
+    "archive_bytes": 20480,
+    "files": [
+      {
+        "path": "ABD/runtime/Dockerfile",
+        "sha256": "070ecdcbcc793688fd0705023727b792e15a0990df10d98f26c2c924eadbd4fa",
+        "bytes": 651
+      },
+      {
+        "path": "ABD/runtime/abd_runtime/__init__.py",
+        "sha256": "c51bef940aa5d988af7d7ab25377eaaa53250f1713708b4e302be4ad608c2155",
+        "bytes": 365
+      },
+      {
+        "path": "ABD/runtime/abd_runtime/observation_evidence.py",
+        "sha256": "095035ab3f8e38da84cf253e634a9e98d3852413b2b8f8f558fe60b0ff09d317",
+        "bytes": 2181
+      },
+      {
+        "path": "ABD/runtime/abd_runtime/server.py",
+        "sha256": "38e8afc40650a1eee8cd7596dd8575ed0221114058620ec75b98ba0dcf184d73",
+        "bytes": 7647
+      },
+      {
+        "path": "ABD/runtime/build_oci.sh",
+        "sha256": "749569f373742b5ee02aec7b3ce4307d14c9e2359651817e82755e42f17f3a0f",
+        "bytes": 1271
+      }
+    ]
+  },
+  "build": {
+    "platform": "linux/amd64",
+    "base_image_reference": "docker.io/library/python:3.12-alpine@sha256:aa679aa4eed6eb56c1dc6ad3f1b98b7d2d788fd961596779d188fdedad97fb38",
+    "base_image_must_already_be_cached": true,
+    "pull_allowed": false,
+    "network_mode": "none",
+    "oci_output_required": true,
+    "candidate_loaded_into_docker_store": false,
+    "candidate_started": false
+  },
+  "expected_oci_runtime_config": {
+    "architecture": "amd64",
+    "os": "linux",
+    "working_dir": "/app",
+    "user": "10001:10001",
+    "entrypoint": [
+      "python3",
+      "-m",
+      "abd_runtime.server"
+    ],
+    "labels": {
+      "org.opencontainers.image.title": "ABD observation runtime",
+      "org.opencontainers.image.version": "0.0.0.1",
+      "org.opencontainers.image.description": "Non-trading, non-recommendation ABD runtime control plane"
+    }
+  },
+  "evidence": {
+    "archive_source_tar": true,
+    "archive_oci_tar": true,
+    "archive_redacted_receipt": true,
+    "private_database_area": "Private-MetaDatabase",
+    "readback_sha256_required": true
+  },
+  "source_boundary": {
+    "runtime_secret_content_read": false,
+    "external_network_accessed": false,
+    "cloudflare_changed": false,
+    "core_runtime_started": false,
+    "running_shadow_replaced": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "rollback": {
+    "on_failure": "REMOVE_ONLY_THIS_RUNS_NONRUNNING_BUILD_DIRECTORY_AND_OCI_OUTPUT",
+    "keep_existing_running_shadow_unchanged": true,
+    "keep_current_release_symlink_unchanged": true,
+    "do_not_load_or_start_candidate": true
+  }
+}

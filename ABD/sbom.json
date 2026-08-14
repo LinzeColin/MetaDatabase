@@ -1,0 +1,309 @@
+{
+  "schema_version": "1.0.0",
+  "bom_format": "ABD_LOCAL_COMPONENT_BOM",
+  "bom_id": "S14-P03-COMPONENT-INVENTORY",
+  "contract_id": "AC-S14-P03",
+  "requirement_id": "REQ-S14-P03",
+  "stage_id": "S14",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "execution_mode": "FROZEN_LOCAL_DETERMINISTIC_NO_NETWORK",
+  "inventory_status": "FROZEN_LOCAL_PRE_RELEASE_NOT_A_DEPLOYED_SBOM",
+  "scope_boundary": {
+    "production_component_definition": "Only source components whose metadata is complete in this local worktree.",
+    "runtime_direct_dependencies_from_pyproject": [],
+    "production_component_count": 1,
+    "declared_unadmitted_items_not_counted_as_production": [
+      "UNADMITTED-ABD-IMAGE",
+      "UNADMITTED-CLOUDFLARED-BINARY",
+      "UNADMITTED-CLOUDFLARE-OVH-RUNTIME"
+    ],
+    "excluded_as_not_claimed": [
+      "DEPLOYED_CONTAINER_IMAGE",
+      "INSTALLED_CLOUDFLARED_BINARY",
+      "OVH_HOST_CONFIGURATION",
+      "CLOUDFLARE_ACCOUNT_CONFIGURATION",
+      "REAL_CVE_OR_VENDOR_ADVISORY_STATUS"
+    ]
+  },
+  "production_components": [
+    {
+      "bom_ref": "pkg:generic/abd@0.0.0.1",
+      "name": "abd",
+      "version": "0.0.0.1",
+      "version_pin": "0.0.0.1",
+      "component_type": "APPLICATION_SOURCE",
+      "scope": "PRODUCTION",
+      "source": {
+        "kind": "LOCAL_VIRTUAL_PROJECT",
+        "manifest": "pyproject.toml",
+        "repository_remote": "git@github.com:LinzeColin/MetaDatabase.git",
+        "subdirectory": "ABD"
+      },
+      "license": {
+        "expression": "LicenseRef-LinzeZhang-Proprietary",
+        "evidence_path": "../LICENSE",
+        "verification": "LOCAL_REPOSITORY_ROOT_LICENSE_TEXT"
+      },
+      "governance_owner": "单一账户持有人",
+      "release_admission": "P03_METADATA_COMPLETE_P04_PROVENANCE_AND_DEPLOYMENT_GATES_REMAIN"
+    }
+  ],
+  "development_components": [
+    {
+      "bom_ref": "pkg:pypi/attrs@26.1.0",
+      "name": "attrs",
+      "version": "26.1.0",
+      "scope": "DEV_TRANSITIVE",
+      "source": {
+        "package_url": "https://pypi.org/project/attrs/26.1.0/",
+        "lock_path": "machine/facts/dependency_budget.lock"
+      },
+      "license": {
+        "expression": "MIT",
+        "evidence_path": "machine/facts/dependency_budget.lock"
+      },
+      "governance_owner": "单一账户持有人",
+      "production_component": false,
+      "release_admission": "DEVELOPMENT_ONLY_NOT_IN_PRODUCTION_COMPONENT_SCOPE"
+    },
+    {
+      "bom_ref": "pkg:pypi/colorama@0.4.6",
+      "name": "colorama",
+      "version": "0.4.6",
+      "scope": "DEV_TRANSITIVE_WINDOWS_ONLY",
+      "source": {
+        "package_url": "https://pypi.org/project/colorama/0.4.6/",
+        "lock_path": "machine/facts/dependency_budget.lock"
+      },
+      "license": {
+        "expression": "BSD-3-Clause",
+        "evidence_path": "machine/facts/dependency_budget.lock"
+      },
+      "governance_owner": "单一账户持有人",
+      "production_component": false,
+      "release_admission": "DEVELOPMENT_ONLY_NOT_IN_PRODUCTION_COMPONENT_SCOPE"
+    },
+    {
+      "bom_ref": "pkg:pypi/iniconfig@2.3.0",
+      "name": "iniconfig",
+      "version": "2.3.0",
+      "scope": "DEV_TRANSITIVE",
+      "source": {
+        "package_url": "https://pypi.org/project/iniconfig/2.3.0/",
+        "lock_path": "machine/facts/dependency_budget.lock"
+      },
+      "license": {
+        "expression": "MIT",
+        "evidence_path": "machine/facts/dependency_budget.lock"
+      },
+      "governance_owner": "单一账户持有人",
+      "production_component": false,
+      "release_admission": "DEVELOPMENT_ONLY_NOT_IN_PRODUCTION_COMPONENT_SCOPE"
+    },
+    {
+      "bom_ref": "pkg:pypi/jsonschema@4.25.1",
+      "name": "jsonschema",
+      "version": "4.25.1",
+      "scope": "DEV_DIRECT",
+      "source": {
+        "package_url": "https://pypi.org/project/jsonschema/4.25.1/",
+        "lock_path": "machine/facts/dependency_budget.lock"
+      },
+      "license": {
+        "expression": "MIT",
+        "evidence_path": "machine/facts/dependency_budget.lock"
+      },
+      "governance_owner": "单一账户持有人",
+      "production_component": false,
+      "release_admission": "DEVELOPMENT_ONLY_NOT_IN_PRODUCTION_COMPONENT_SCOPE"
+    },
+    {
+      "bom_ref": "pkg:pypi/jsonschema-specifications@2025.9.1",
+      "name": "jsonschema-specifications",
+      "version": "2025.9.1",
+      "scope": "DEV_TRANSITIVE",
+      "source": {
+        "package_url": "https://pypi.org/project/jsonschema-specifications/2025.9.1/",
+        "lock_path": "machine/facts/dependency_budget.lock"
+      },
+      "license": {
+        "expression": "MIT",
+        "evidence_path": "machine/facts/dependency_budget.lock"
+      },
+      "governance_owner": "单一账户持有人",
+      "production_component": false,
+      "release_admission": "DEVELOPMENT_ONLY_NOT_IN_PRODUCTION_COMPONENT_SCOPE"
+    },
+    {
+      "bom_ref": "pkg:pypi/packaging@26.2",
+      "name": "packaging",
+      "version": "26.2",
+      "scope": "DEV_TRANSITIVE",
+      "source": {
+        "package_url": "https://pypi.org/project/packaging/26.2/",
+        "lock_path": "machine/facts/dependency_budget.lock"
+      },
+      "license": {
+        "expression": "Apache-2.0 OR BSD-2-Clause",
+        "evidence_path": "machine/facts/dependency_budget.lock"
+      },
+      "governance_owner": "单一账户持有人",
+      "production_component": false,
+      "release_admission": "DEVELOPMENT_ONLY_NOT_IN_PRODUCTION_COMPONENT_SCOPE"
+    },
+    {
+      "bom_ref": "pkg:pypi/pluggy@1.6.0",
+      "name": "pluggy",
+      "version": "1.6.0",
+      "scope": "DEV_TRANSITIVE",
+      "source": {
+        "package_url": "https://pypi.org/project/pluggy/1.6.0/",
+        "lock_path": "machine/facts/dependency_budget.lock"
+      },
+      "license": {
+        "expression": "MIT",
+        "evidence_path": "machine/facts/dependency_budget.lock"
+      },
+      "governance_owner": "单一账户持有人",
+      "production_component": false,
+      "release_admission": "DEVELOPMENT_ONLY_NOT_IN_PRODUCTION_COMPONENT_SCOPE"
+    },
+    {
+      "bom_ref": "pkg:pypi/pygments@2.20.0",
+      "name": "pygments",
+      "version": "2.20.0",
+      "scope": "DEV_TRANSITIVE",
+      "source": {
+        "package_url": "https://pypi.org/project/Pygments/2.20.0/",
+        "lock_path": "machine/facts/dependency_budget.lock"
+      },
+      "license": {
+        "expression": "BSD-2-Clause",
+        "evidence_path": "machine/facts/dependency_budget.lock"
+      },
+      "governance_owner": "单一账户持有人",
+      "production_component": false,
+      "release_admission": "DEVELOPMENT_ONLY_NOT_IN_PRODUCTION_COMPONENT_SCOPE"
+    },
+    {
+      "bom_ref": "pkg:pypi/pytest@8.4.2",
+      "name": "pytest",
+      "version": "8.4.2",
+      "scope": "DEV_DIRECT",
+      "source": {
+        "package_url": "https://pypi.org/project/pytest/8.4.2/",
+        "lock_path": "machine/facts/dependency_budget.lock"
+      },
+      "license": {
+        "expression": "MIT",
+        "evidence_path": "machine/facts/dependency_budget.lock"
+      },
+      "governance_owner": "单一账户持有人",
+      "production_component": false,
+      "release_admission": "DEVELOPMENT_ONLY_NOT_IN_PRODUCTION_COMPONENT_SCOPE"
+    },
+    {
+      "bom_ref": "pkg:pypi/referencing@0.37.0",
+      "name": "referencing",
+      "version": "0.37.0",
+      "scope": "DEV_TRANSITIVE",
+      "source": {
+        "package_url": "https://pypi.org/project/referencing/0.37.0/",
+        "lock_path": "machine/facts/dependency_budget.lock"
+      },
+      "license": {
+        "expression": "MIT",
+        "evidence_path": "machine/facts/dependency_budget.lock"
+      },
+      "governance_owner": "单一账户持有人",
+      "production_component": false,
+      "release_admission": "DEVELOPMENT_ONLY_NOT_IN_PRODUCTION_COMPONENT_SCOPE"
+    },
+    {
+      "bom_ref": "pkg:pypi/rpds-py@2026.6.3",
+      "name": "rpds-py",
+      "version": "2026.6.3",
+      "scope": "DEV_TRANSITIVE",
+      "source": {
+        "package_url": "https://pypi.org/project/rpds-py/2026.6.3/",
+        "lock_path": "machine/facts/dependency_budget.lock"
+      },
+      "license": {
+        "expression": "MIT",
+        "evidence_path": "machine/facts/dependency_budget.lock"
+      },
+      "governance_owner": "单一账户持有人",
+      "production_component": false,
+      "release_admission": "DEVELOPMENT_ONLY_NOT_IN_PRODUCTION_COMPONENT_SCOPE"
+    },
+    {
+      "bom_ref": "pkg:pypi/typing-extensions@4.16.0",
+      "name": "typing-extensions",
+      "version": "4.16.0",
+      "scope": "DEV_TRANSITIVE",
+      "source": {
+        "package_url": "https://pypi.org/project/typing-extensions/4.16.0/",
+        "lock_path": "machine/facts/dependency_budget.lock"
+      },
+      "license": {
+        "expression": "PSF-2.0",
+        "evidence_path": "machine/facts/dependency_budget.lock"
+      },
+      "governance_owner": "单一账户持有人",
+      "production_component": false,
+      "release_admission": "DEVELOPMENT_ONLY_NOT_IN_PRODUCTION_COMPONENT_SCOPE"
+    }
+  ],
+  "declared_unadmitted_runtime_prerequisites": [
+    {
+      "id": "UNADMITTED-ABD-IMAGE",
+      "component_kind": "CONTAINER_IMAGE_SELECTOR",
+      "declared_in": "infra/compose.yml",
+      "scope": "PLANNED_RUNTIME_PREREQUISITE_NOT_PRODUCTION_COMPONENT",
+      "source": "INFRA_TEMPLATE_ONLY",
+      "version": "UNKNOWN_REQUIRED_AT_ACTUAL_RELEASE",
+      "license": "UNKNOWN_REQUIRED_AT_ACTUAL_RELEASE",
+      "governance_owner": "单一账户持有人",
+      "release_admission": "BLOCKED",
+      "block_reason": "ABD_IMAGE is required by digest, but this worktree contains no actual release image value."
+    },
+    {
+      "id": "UNADMITTED-CLOUDFLARED-BINARY",
+      "component_kind": "TUNNEL_CLIENT_BINARY",
+      "declared_in": "infra/cloudflared.yml",
+      "scope": "PLANNED_RUNTIME_PREREQUISITE_NOT_PRODUCTION_COMPONENT",
+      "source": "INFRA_TEMPLATE_ONLY",
+      "version": "UNKNOWN_REQUIRED_AT_ACTUAL_RELEASE",
+      "license": "UNKNOWN_REQUIRED_AT_ACTUAL_RELEASE",
+      "governance_owner": "单一账户持有人",
+      "release_admission": "BLOCKED",
+      "block_reason": "The local tunnel configuration is a template and does not prove an installed cloudflared binary."
+    },
+    {
+      "id": "UNADMITTED-CLOUDFLARE-OVH-RUNTIME",
+      "component_kind": "EXTERNAL_RUNTIME_CONFIGURATION",
+      "declared_in": "machine/facts/canonical_facts.json",
+      "scope": "PLANNED_RUNTIME_PREREQUISITE_NOT_PRODUCTION_COMPONENT",
+      "source": "OWNER_DECLARED_PLANNED_RUNTIME",
+      "version": "UNKNOWN_ACCOUNT_AND_HOST_SPECIFIC",
+      "license": "NOT_A_LOCAL_SOFTWARE_COMPONENT",
+      "governance_owner": "单一账户持有人",
+      "release_admission": "BLOCKED",
+      "block_reason": "No OVH host or Cloudflare account configuration was inspected or activated in this phase."
+    }
+  ],
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "real_account_balance_read_or_written": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "not_production_evidence": true
+}

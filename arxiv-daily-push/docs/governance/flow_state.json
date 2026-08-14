@@ -2,14 +2,14 @@
   "schema": "linze.flow_state.v1",
   "steps": {
     "BL-ADP-DAILY.deliver": {
-      "at": "2026-08-03T04:16:46.601441+08:00",
+      "at": "2026-08-14T03:59:25.837096+08:00",
       "note": "生产开关 ADP_PRODUCTION_ENABLED 未设为 true,投递作业每天被跳过(mode=watchdog)",
       "state": "blocked_by_input"
     },
     "BL-ADP-DAILY.scan": {
-      "at": "2026-08-03T06:57:49.735897+08:00",
-      "note": "看门狗全绿:最新一轮真的抓到了论文、候选非空,页面路由与新鲜度都正常",
-      "state": "healthy"
+      "at": "2026-08-14T06:43:24.206658+08:00",
+      "note": "看门狗有不变量被破坏(非静默归零):FAIL  backfill last_run degraded: ['backfill:TimeoutError'] (cursor 2016-06-23)",
+      "state": "degraded"
     }
   }
 }

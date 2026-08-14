@@ -1,0 +1,183 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S14-P01-THREAT-MODEL",
+  "contract_id": "AC-S14-P01",
+  "requirement_id": "REQ-S14-P01",
+  "stage_id": "S14",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "minimum_targeted_pytest_cases": 22,
+  "expected_threat_ids": [
+    "THR-PROMPT-INJECTION",
+    "THR-MALICIOUS-ATTACHMENT",
+    "THR-CREDENTIAL-EXPOSURE",
+    "THR-DATA-POISONING",
+    "THR-IDENTITY-MISMATCH",
+    "THR-FALSE-EVIDENCE",
+    "THR-UNAUTHORIZED-EXTERNAL-ACTION"
+  ],
+  "expected_boundary_ids": [
+    "BND-UNTRUSTED-CONTENT",
+    "BND-ATTACHMENT-QUARANTINE",
+    "BND-CREDENTIAL-MATERIAL",
+    "BND-SOURCE-INTEGRITY",
+    "BND-IDENTITY-BINDING",
+    "BND-EVIDENCE-CHAIN",
+    "BND-OWNER-EXTERNAL-ACTION"
+  ],
+  "expected_case_ids": [
+    "ABUSE-S14-P01-01",
+    "ABUSE-S14-P01-02",
+    "ABUSE-S14-P01-03",
+    "ABUSE-S14-P01-04",
+    "ABUSE-S14-P01-05",
+    "ABUSE-S14-P01-06",
+    "ABUSE-S14-P01-07"
+  ],
+  "expected_next": "S14/P02_READY_NOT_STARTED",
+  "expected_decision": "THREAT_MODEL_AND_TRUST_BOUNDARIES_READY_SECURITY_REMEDIATION_REQUIRED_BEFORE_PRODUCTION",
+  "single_pass_case_count": 10,
+  "snapshot_cases": [
+    {
+      "case_id": "POSITIVE_EXACT_LOCAL_CONTRACT",
+      "snapshot": {
+        "dependency_receipts_current": true,
+        "all_high_threats_controlled": true,
+        "trust_boundaries_closed": true,
+        "abuse_cases_closed": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "findings_open": 0,
+        "foreign_odds_input_present": false
+      },
+      "expected": {"status": "S14P01_THREAT_MODEL_VERIFIED_NO_ACTION", "reason_codes": []}
+    },
+    {
+      "case_id": "DEPENDENCY_RECEIPT_FAIL",
+      "snapshot": {
+        "dependency_receipts_current": false,
+        "all_high_threats_controlled": true,
+        "trust_boundaries_closed": true,
+        "abuse_cases_closed": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "findings_open": 0,
+        "foreign_odds_input_present": false
+      },
+      "expected": {"status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION", "reason_codes": ["DEPENDENCY_RECEIPTS_NOT_CURRENT"]}
+    },
+    {
+      "case_id": "THREAT_CONTROL_FAIL",
+      "snapshot": {
+        "dependency_receipts_current": true,
+        "all_high_threats_controlled": false,
+        "trust_boundaries_closed": true,
+        "abuse_cases_closed": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "findings_open": 0,
+        "foreign_odds_input_present": false
+      },
+      "expected": {"status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION", "reason_codes": ["HIGH_RISK_THREAT_CONTROL_GAP"]}
+    },
+    {
+      "case_id": "BOUNDARY_FAIL",
+      "snapshot": {
+        "dependency_receipts_current": true,
+        "all_high_threats_controlled": true,
+        "trust_boundaries_closed": false,
+        "abuse_cases_closed": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "findings_open": 0,
+        "foreign_odds_input_present": false
+      },
+      "expected": {"status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION", "reason_codes": ["TRUST_BOUNDARY_NOT_CLOSED"]}
+    },
+    {
+      "case_id": "ABUSE_CASE_FAIL",
+      "snapshot": {
+        "dependency_receipts_current": true,
+        "all_high_threats_controlled": true,
+        "trust_boundaries_closed": true,
+        "abuse_cases_closed": false,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "findings_open": 0,
+        "foreign_odds_input_present": false
+      },
+      "expected": {"status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION", "reason_codes": ["ABUSE_CASE_COVERAGE_GAP"]}
+    },
+    {
+      "case_id": "EXTERNAL_BOUNDARY_FAIL",
+      "snapshot": {
+        "dependency_receipts_current": true,
+        "all_high_threats_controlled": true,
+        "trust_boundaries_closed": true,
+        "abuse_cases_closed": true,
+        "external_effect_boundary_preserved": false,
+        "coverage_score": "1.0000",
+        "findings_open": 0,
+        "foreign_odds_input_present": false
+      },
+      "expected": {"status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION", "reason_codes": ["EXTERNAL_ACTION_BOUNDARY_RELAXED"]}
+    },
+    {
+      "case_id": "POINT_0001_COVERAGE_FAIL",
+      "snapshot": {
+        "dependency_receipts_current": true,
+        "all_high_threats_controlled": true,
+        "trust_boundaries_closed": true,
+        "abuse_cases_closed": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "0.9999",
+        "findings_open": 0,
+        "foreign_odds_input_present": false
+      },
+      "expected": {"status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION", "reason_codes": ["CONTROL_COVERAGE_NOT_EXACT"]}
+    },
+    {
+      "case_id": "POINT_0001_COVERAGE_OVERFAIL",
+      "snapshot": {
+        "dependency_receipts_current": true,
+        "all_high_threats_controlled": true,
+        "trust_boundaries_closed": true,
+        "abuse_cases_closed": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0001",
+        "findings_open": 0,
+        "foreign_odds_input_present": false
+      },
+      "expected": {"status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION", "reason_codes": ["CONTROL_COVERAGE_NOT_EXACT"]}
+    },
+    {
+      "case_id": "OPEN_FINDING_FAIL",
+      "snapshot": {
+        "dependency_receipts_current": true,
+        "all_high_threats_controlled": true,
+        "trust_boundaries_closed": true,
+        "abuse_cases_closed": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "findings_open": 1,
+        "foreign_odds_input_present": false
+      },
+      "expected": {"status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION", "reason_codes": ["OPEN_SECURITY_FINDINGS"]}
+    },
+    {
+      "case_id": "FOREIGN_ODDS_INPUT_REJECTED",
+      "snapshot": {
+        "dependency_receipts_current": true,
+        "all_high_threats_controlled": true,
+        "trust_boundaries_closed": true,
+        "abuse_cases_closed": true,
+        "external_effect_boundary_preserved": true,
+        "coverage_score": "1.0000",
+        "findings_open": 0,
+        "foreign_odds_input_present": true
+      },
+      "expected": {"status": "S14P01_THREAT_MODEL_REJECTED_NO_ACTION", "reason_codes": ["FOREIGN_ODDS_INPUT_REJECTED"]}
+    }
+  ]
+}

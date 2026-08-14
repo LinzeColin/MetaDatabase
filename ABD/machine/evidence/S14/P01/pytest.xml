@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="37" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S14.P01_test" name="test_candidate_preflight_passes_without_generated_test_reports" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_frozen_catalogs_bind_the_exact_task_pack_identifiers" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_each_high_threat_has_four_distinct_control_groups[THR-PROMPT-INJECTION]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_each_high_threat_has_four_distinct_control_groups[THR-MALICIOUS-ATTACHMENT]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_each_high_threat_has_four_distinct_control_groups[THR-CREDENTIAL-EXPOSURE]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_each_high_threat_has_four_distinct_control_groups[THR-DATA-POISONING]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_each_high_threat_has_four_distinct_control_groups[THR-IDENTITY-MISMATCH]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_each_high_threat_has_four_distinct_control_groups[THR-FALSE-EVIDENCE]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_each_high_threat_has_four_distinct_control_groups[THR-UNAUTHORIZED-EXTERNAL-ACTION]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_boundary_and_abuse_case_bind_each_threat_control[0]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_boundary_and_abuse_case_bind_each_threat_control[1]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_boundary_and_abuse_case_bind_each_threat_control[2]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_boundary_and_abuse_case_bind_each_threat_control[3]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_boundary_and_abuse_case_bind_each_threat_control[4]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_boundary_and_abuse_case_bind_each_threat_control[5]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_boundary_and_abuse_case_bind_each_threat_control[6]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_frozen_single_pass_snapshots_replay_exactly[POSITIVE_EXACT_LOCAL_CONTRACT]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_frozen_single_pass_snapshots_replay_exactly[DEPENDENCY_RECEIPT_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_frozen_single_pass_snapshots_replay_exactly[THREAT_CONTROL_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_frozen_single_pass_snapshots_replay_exactly[BOUNDARY_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_frozen_single_pass_snapshots_replay_exactly[ABUSE_CASE_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_frozen_single_pass_snapshots_replay_exactly[EXTERNAL_BOUNDARY_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_frozen_single_pass_snapshots_replay_exactly[POINT_0001_COVERAGE_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_frozen_single_pass_snapshots_replay_exactly[POINT_0001_COVERAGE_OVERFAIL]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_frozen_single_pass_snapshots_replay_exactly[OPEN_FINDING_FAIL]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_frozen_single_pass_snapshots_replay_exactly[FOREIGN_ODDS_INPUT_REJECTED]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_malformed_security_snapshots_fail_closed[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_malformed_security_snapshots_fail_closed[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_malformed_security_snapshots_fail_closed[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_catalog_tampering_fails_closed" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_boundary_tampering_fails_closed" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_abuse_outcome_tampering_fails_closed" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_external_effect_and_execution_boundaries_are_exactly_local_only" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_oracle_has_no_network_process_soak_or_order_capability" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_rollback_drill_is_local_and_preserves_external_state" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_writer_rejects_a_noncanonical_evidence_directory_before_mutation" time="0.000" />
+    <testcase classname="tests.S14.P01_test" name="test_acceptance_cli_is_wired_and_unsigned_evidence_cannot_verify" time="0.000" />
+  </testsuite>
+</testsuites>

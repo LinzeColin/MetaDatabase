@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-504",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T06:38:17Z",
+  "status": "PASS",
+  "scope": "real_no_clone_private_database_completed_fact_sync_and_idempotency",
+  "executed_on": "OVH vps-83b882b4, /opt/social-archive",
+  "client": {
+    "path": "/opt/kmos/KMDatabase/machine/tools/private_db_client.py",
+    "present": true,
+    "transport": "Private-Database API client",
+    "local_checkout": false,
+    "note": "No clone, checkout, commit or push. The no-clone contract holds."
+  },
+  "dry_run": {
+    "status": "READY",
+    "candidate_fact_count": 1,
+    "already_delivered_count": 0,
+    "pending_count": 1
+  },
+  "first_run": {
+    "status": "PASS",
+    "candidate_fact_count": 1,
+    "attempted_fact_count": 1,
+    "already_delivered_count": 0,
+    "delivered_this_run": 1,
+    "failures": []
+  },
+  "idempotency_rerun": {
+    "status": "NO_CHANGE",
+    "candidate_fact_count": 1,
+    "already_delivered_count": 1,
+    "note": "The second run delivered nothing and reported the fact as already delivered, so the Outbox marks delivered only after the strict readback succeeds."
+  },
+  "what_this_proves": [
+    "Completed-state facts reach LinzeColin/Private-Database through the official clone-free client with a repository-scoped token.",
+    "The sync is idempotent: a repeat run is NO_CHANGE rather than a duplicate delivery."
+  ],
+  "what_this_does_not_prove": [
+    "SA-504 closure on its own. The frozen Oracle also covers the cold backup path, which was not exercised in this run.",
+    "Any three-target object recovery, which still needs the GitHub third ciphertext copy recorded as blocked in evidence/SA-503/V006_THIRD_COPY_STATUS_20260803.json."
+  ],
+  "non_actions": [
+    "No clone, checkout, commit, push, or Private-Database history rewrite.",
+    "No secret value was printed to terminal, transcript, evidence or Git.",
+    "No timer was enabled."
+  ]
+}

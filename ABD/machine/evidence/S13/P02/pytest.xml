@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="24" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S13.P02_test" name="test_candidate_preflight_passes_without_generated_test_reports" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_fixture_is_closed_and_matches_the_frozen_acceptance_contract" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_replay_has_exact_green_red_partition_and_hash" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_each_frozen_visible_page_case_matches_the_expected_fail_closed_result[M01-GREEN-EXACT-MINIMUM]" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_each_frozen_visible_page_case_matches_the_expected_fail_closed_result[M02-ODDS-ONE-TICK-BELOW]" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_each_frozen_visible_page_case_matches_the_expected_fail_closed_result[M03-ODDS-POINT-0001-BELOW]" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_each_frozen_visible_page_case_matches_the_expected_fail_closed_result[M04-ODDS-POINT-0001-ABOVE]" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_each_frozen_visible_page_case_matches_the_expected_fail_closed_result[M05-EVENT-IDENTITY-MISMATCH]" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_each_frozen_visible_page_case_matches_the_expected_fail_closed_result[M06-MARKET-AND-SELECTION-MISMATCH]" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_each_frozen_visible_page_case_matches_the_expected_fail_closed_result[M07-VISIBLE-FIELDS-UNAVAILABLE]" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_each_frozen_visible_page_case_matches_the_expected_fail_closed_result[M08-RISK-DISABLED]" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_each_frozen_visible_page_case_matches_the_expected_fail_closed_result[M09-EXPIRED-AT-BOUNDARY]" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_each_frozen_visible_page_case_matches_the_expected_fail_closed_result[M10-GREEN-ONE-SECOND-LEFT]" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_one_provider_tick_and_two_second_adverse_variants_revoke_immediately[ADVERSE-ODDS-ONE-TICK]" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_one_provider_tick_and_two_second_adverse_variants_revoke_immediately[ADVERSE-TIME-PLUS-TWO-SECONDS]" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_copy_instruction_never_creates_a_deep_link_or_an_automatic_open" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_malformed_float_or_unsafe_ticket_fails_closed" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_browser_component_is_minimum_permission_and_has_no_network_or_click_capability" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_quote_checker_has_no_network_soak_or_order_import_capability" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_candidate_fails_closed_when_browser_manifest_requests_a_host_permission" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_candidate_fails_closed_when_minimum_odds_fixture_is_tampered" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_rollback_drill_is_local_and_preserves_no_external_effect" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_signing_replaces_only_the_p02_jsonl_row_and_replays" time="0.000" />
+    <testcase classname="tests.S13.P02_test" name="test_acceptance_cli_is_wired_to_the_exact_contract_after_integration" time="0.000" />
+  </testsuite>
+</testsuites>

@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0",
+  "task": "T12",
+  "slice": "S4",
+  "goal": "Reddit saved 与 upvoted 真实入库",
+  "invariant": "INV-REAL-USABLE",
+  "recorded_at": "2026-08-04T14:00Z",
+  "status": "BLOCKED",
+  "must_not_be_rewritten_as_pass": true,
+
+  "honesty_note": "运行器与失败归类已闭环并按真实样本验过。**Acceptance 仍未达成**——它要求 saved 与 upvoted 各 ≥1 条真实条目入库，那需要 Owner 在浏览器点一次 Reddit 授权。见文末。",
+
+  "artifacts": [
+    {"path": "src/social_archive/gallerydl_runner.py",
+     "what": "gallery-dl -j 三元组契约解析 + 失败归类。**T07（X）与 T12（Reddit）共用**"},
+    {"path": "evidence/fixtures/gallerydl/",
+     "what": "从任务包 04_FIXTURES 引入的四份真实样本，判据直接打在它们上面"},
+    {"path": "tests/focused/test_gallerydl_contract.py", "what": "20 条判据"}
+  ],
+
+  "why_fixtures_not_constructed_input": "契约测试如果喂自己编的数据，测的是「我以为上游长什么样」，而不是上游真的长什么样。上游一改，构造的样本不会变红，真实样本会。所以把任务包固化的样本引进仓里，判据直接打在它们上面，并自带「样本不在或太小就报错」的自检——否则整组判据会变成空转。",
+
+  "subprocess_not_import": {
+    "rule": "任务包 suggested_path：gallery-dl 以子进程调用，禁止 import 进运行路径",
+    "reasons": ["许可证：gallery-dl 是 GPL-2.0，import 会让许可证问题传导到整个运行路径", "稳定性：上游一次异常不能把 worker 拖死"],
+    "guard": "判据断言源码里不出现 import gallery_dl / from gallery_dl，且确实用 subprocess"
+  },
+
+  "triple_contract": {
+    "codes": {"2": "目录/元数据（不入库）", "3": "文件（入库）", "6": "队列（翻页）", "-1": "错误"},
+    "real_sample_parses": true,
+    "unknown_code_behaviour": "记成错误，**不当成文件混进结果**。混进去的话一次契约变更会表现成「数据变少了」而不是「契约变了」。错误信息里直接写明按 CONFLICT_ORDER 记录后再改解析器。",
+    "malformed_top_level": "不表现成「跑通了，0 条」，而是显式失败"
+  },
+
+  "reddit_unauthenticated_is_not_a_network_problem": {
+    "task_pack_stop_condition": "未授权时 gallery-dl 拿到 HTML 而不是 API 并直接 AbortExtraction。**不要把它当网络问题重试**，它就是缺 OAuth。",
+    "real_sample": "evidence/fixtures/gallerydl/gallerydl_reddit_unauthenticated_failure.real.json（10 万字节，错误信息里是一整坨 CSS）",
+    "classified_as": "REDDIT_NOT_AUTHORIZED",
+    "why_it_matters": "错判成可重试的后果是：界面转圈、日志刷屏、用户等半天，最后还是 0 条且没人说得出为什么。归类之后落到的文案是「Reddit 需要单独授权一次。[ 去授权 ]」，不是「重试」。",
+    "detection_keys_on_shape": "判断「这是网页不是错误描述」打在形态上（--rem / {-- / :root{ / @media / <!doctype 等出现 ≥2 处），不打在某个固定字符串上——Reddit 换个皮肤 CSS 会全变，但「这是一坨样式表」不会变。",
+    "same_shape_on_other_platforms_means_something_else": "非 Reddit 的 URL 拿到网页归为 CREDENTIAL_EXPIRED（会话过期被重定向到登录页）。两者下一步不同：一个去授权，一个重新连接。",
+    "truncation": "真实样本那条 message 有十万字节，原样存进 sync_run 会把库撑爆。截到 2KB（T07 suggested_path 的规定），且截断后仍能辨认出是哪种失败——判据两条都验了。"
+  },
+
+  "acceptance_self_check": {
+    "requirement": "Reddit saved 与 upvoted 各 ≥1 条真实条目入库",
+    "oracle": "抽样 2 条 URL 可打开且标题一致",
+    "result": "NOT_RUN",
+    "environment_unknown": "Reddit OAuth refresh token",
+    "why_not_run": "任务包自己写明：「只有 Owner 能在浏览器点授权」。探测方式是 `gallery-dl oauth:reddit`，浏览器点一次即可，无需注册应用。这一步不在我能触及的范围内。",
+    "task_pack_branch_taken": "任务包给的分支是「Owner 不愿授权 → 标 BLOCKED，不影响其他来源」。这里取 BLOCKED，且确实不影响其他来源。",
+    "what_is_done": "契约解析、失败归类、截断、子进程边界、许可证边界，全部有判据且打在真实样本上",
+    "what_remains": [
+      "Owner 跑一次 gallery-dl oauth:reddit 并在浏览器点授权",
+      "把 refresh token 按 T05 的凭据通道存起来（注意：Reddit 走 OAuth 不是 Cookie，T05 的 CredentialStore 目前只收西方三源的 Cookie，Reddit token 需要单独的存放位——这一点尚未建，见 below）",
+      "跑 saved 与 upvoted 各一次，把条数与抽样结果补进本文件"
+    ],
+    "must_not_be_rewritten_as_pass": true
+  },
+
+  "gap_identified_not_hidden": {
+    "what": "T05 的 CredentialStore 明确拒绝 reddit（理由：它走 OAuth 不是 Cookie），但**目前还没有任何地方存放 Reddit 的 OAuth refresh token**。",
+    "why_not_built_now": "存法取决于 gallery-dl 期望的形态——它把 token 写进自己的配置文件（~/.config/gallery-dl/config.json）还是走环境变量，需要在真实授权一次之后才能确定。现在建等于猜，猜错了要推倒重来。",
+    "when": "Owner 授权那一刻同时确定，属于 T12 剩下的那半",
+    "not_a_silent_omission": "写在这里，且 T05 的判据 test_reddit_is_rejected_because_it_uses_oauth_not_because_it_was_forgotten 已经把「Reddit 不是漏掉的」钉住了"
+  },
+
+  "tests": {"count": 20, "file": "tests/focused/test_gallerydl_contract.py"},
+  "rollback": {"task_pack_says": "停用该 runner", "how": "不调用 gallerydl_runner.run；模块本身无副作用、无持久状态；代码层 git revert"},
+  "shared_with_T07": "本运行器同时是 T07（X 书签与喜欢）的取数路。T07 只缺 cookies（阻塞于 T06），契约与失败归类这一半已经在这里做完了。"
+}

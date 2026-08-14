@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0.0",
+  "policy_id": "S14-P03-PATCH-SLA",
+  "contract_id": "AC-S14-P03",
+  "requirement_id": "REQ-S14-P03",
+  "stage_id": "S14",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "execution_mode": "FROZEN_LOCAL_DETERMINISTIC_NO_NETWORK",
+  "scope": "Static lifecycle policy only; it does not measure live remediation elapsed time or query a CVE feed.",
+  "severity_slas": [
+    {
+      "severity": "CRITICAL",
+      "maximum_elapsed_hours": "24",
+      "deadline_basis": "CONFIRMED_SEVERITY_TIMESTAMP",
+      "required_action": "DISABLE_AFFECTED_COMPONENT_OR_BLOCK_RELEASE"
+    },
+    {
+      "severity": "HIGH",
+      "maximum_elapsed_hours": "168",
+      "deadline_basis": "CONFIRMED_SEVERITY_TIMESTAMP",
+      "required_action": "DISABLE_AFFECTED_COMPONENT_OR_BLOCK_RELEASE"
+    },
+    {
+      "severity": "MEDIUM",
+      "maximum_elapsed_hours": "720",
+      "deadline_basis": "CONFIRMED_SEVERITY_TIMESTAMP",
+      "required_action": "SCHEDULE_PATCH_OR_BLOCK_NEXT_RELEASE"
+    }
+  ],
+  "maintenance_cadence": [
+    {
+      "control": "CLAMAV_SIGNATURE_UPDATE",
+      "cadence": "DAILY",
+      "evidence_action": "RECORD_RESULT_OR_BLOCK_MAIL_INGESTION_IF_UNAVAILABLE"
+    },
+    {
+      "control": "SOURCE_CONTRACT_REVALIDATION",
+      "cadence": "WEEKLY",
+      "evidence_action": "RECORD_RESULT_OR_MARK_SOURCE_NOT_RECOMMENDABLE"
+    },
+    {
+      "control": "SECRET_ROTATION_DRILL",
+      "cadence": "QUARTERLY",
+      "evidence_action": "RECORD_DRILL_WITHOUT_STORING_SECRET_VALUE"
+    },
+    {
+      "control": "RECOVERY_DRILL",
+      "cadence": "MONTHLY",
+      "evidence_action": "RECORD_LOCAL_RECOVERY_RESULT"
+    }
+  ],
+  "unknown_vulnerability_or_component_action": "BLOCK_NEW_RELEASE_DISABLE_AFFECTED_COMPONENT_PRESERVE_EVIDENCE",
+  "rollback_rule": "DISABLE_AFFECTED_COMPONENT_RESTORE_LAST_SIGNED_ARTIFACT_PRESERVE_EVIDENCE",
+  "clock_boundary": {
+    "real_time_measurement_performed": false,
+    "real_time_soak_waited": false,
+    "policy_deadlines_are_not_claimed_as_completed": true
+  },
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "real_account_balance_read_or_written": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "not_production_evidence": true
+}

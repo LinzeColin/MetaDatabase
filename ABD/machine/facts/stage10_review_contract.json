@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "STAGE-REVIEW-S10",
+  "review_id": "ABD-S10-WHOLE-STAGE-REVIEW",
+  "stage_id": "S10",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "review_scope": {
+    "phase_ids": ["P01", "P02", "P03", "P04"],
+    "requirement_ids": ["REQ-S10-P01", "REQ-S10-P02", "REQ-S10-P03", "REQ-S10-P04"],
+    "acceptance_contract_ids": ["AC-S10-P01", "AC-S10-P02", "AC-S10-P03", "AC-S10-P04"],
+    "task_ids": [
+      "T-S10-P01-01", "T-S10-P01-02", "T-S10-P01-03",
+      "T-S10-P02-01", "T-S10-P02-02", "T-S10-P02-03",
+      "T-S10-P03-01", "T-S10-P03-02", "T-S10-P03-03",
+      "T-S10-P04-01", "T-S10-P04-02", "T-S10-P04-03"
+    ]
+  },
+  "phase_records": [
+    {
+      "phase_id": "P01",
+      "requirement_id": "REQ-S10-P01",
+      "acceptance_contract_id": "AC-S10-P01",
+      "target": "斜率0.90–1.10、截距绝对值≤0.02。",
+      "outputs": ["calibration.py", "temporal_cv.py", "calibration_report.json"],
+      "evidence_path": "machine/evidence/EVD-S10-P01.json",
+      "evidence_sha256": "851e86a0e1deb0166fc07a1b0c726e31cb68c12e0809df0237ca0a2b1225c6f2",
+      "rollback_path": "machine/evidence/EVD-S10-P01_rollback.json",
+      "rollback_sha256": "7567a7280d9f1c2c3ee7fc84a087484366a9889a26e59bb0e6c9c80a276df72d",
+      "expected_decision": "TEMPORAL_CALIBRATION_READY_DOWNSTREAM_UNCERTAINTY_GATES_REQUIRED",
+      "expected_next": "S10/P02_READY_NOT_STARTED"
+    },
+    {
+      "phase_id": "P02",
+      "requirement_id": "REQ-S10-P02",
+      "acceptance_contract_id": "AC-S10-P02",
+      "target": "固定种子/输入可重放，保守概率单调。",
+      "outputs": ["uncertainty.py", "bootstrap_manifest.json"],
+      "evidence_path": "machine/evidence/EVD-S10-P02.json",
+      "evidence_sha256": "1481efc71fcc185c57a06ddee11d3e0015e534b2084cd90b43dda8ef55fcaa69",
+      "rollback_path": "machine/evidence/EVD-S10-P02_rollback.json",
+      "rollback_sha256": "d77c82afa272549e402b1b40c9adedcb0c1242a3f1fbb6669e10d2c0d96fec00",
+      "expected_decision": "CONSERVATIVE_PROBABILITY_READY_DOWNSTREAM_DECIMAL_GATE_REQUIRED",
+      "expected_next": "S10/P03_READY_NOT_STARTED"
+    },
+    {
+      "phase_id": "P03",
+      "requirement_id": "REQ-S10-P03",
+      "acceptance_contract_id": "AC-S10-P03",
+      "target": "两套实现差≤1e-12且动作完全一致。",
+      "outputs": ["decimal_math.py", "numeric_vectors.json", "cross_impl_check.py"],
+      "evidence_path": "machine/evidence/EVD-S10-P03.json",
+      "evidence_sha256": "7b848a4e885b5f1b9b31752b88c8b136e1b66f734ed0cdf30926b325bbc0f55c",
+      "rollback_path": "machine/evidence/EVD-S10-P03_rollback.json",
+      "rollback_sha256": "ed6ff395318ea8b4ec47f2d534211979b85ce9e91d4d262288002250c77d787c",
+      "expected_decision": "DECIMAL_FIXED_POINT_READY_DOWNSTREAM_ROBUSTNESS_GATE_REQUIRED",
+      "expected_next": "S10/P04_READY_NOT_STARTED"
+    },
+    {
+      "phase_id": "P04",
+      "requirement_id": "REQ-S10-P04",
+      "acceptance_contract_id": "AC-S10-P04",
+      "target": "所有硬边界±0.0001用例100%符合预期。",
+      "outputs": ["robustness_gate.py", "boundary_vectors.json", "robustness_report.json"],
+      "evidence_path": "machine/evidence/EVD-S10-P04.json",
+      "evidence_sha256": "0700d4af988731fa39fc9506751b993e509da8afa78d63ef951c3bac842a9ed3",
+      "rollback_path": "machine/evidence/EVD-S10-P04_rollback.json",
+      "rollback_sha256": "16354f0f1b4011d015c41cc57b19946185f6f296932b85a04a22f4822c15ae32",
+      "expected_decision": "ROBUSTNESS_GATE_READY_STAGE_REVIEW_REQUIRED",
+      "expected_next": "S10/STAGE_REVIEW_READY_NOT_STARTED"
+    }
+  ],
+  "baseline_hashes": {
+    "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+    "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+    "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+    "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+  },
+  "review_gates": [
+    "PHASE_RECEIPTS_CURRENT_AND_PORTABLE",
+    "REQUIREMENT_ACCEPTANCE_TASK_TRACE_CLOSED",
+    "TEMPORAL_CALIBRATION_AND_TIME_ORDER_PRESERVED",
+    "CONSERVATIVE_BOOTSTRAP_AND_MONOTONICITY_PRESERVED",
+    "DECIMAL_FIXED_POINT_AND_DUAL_IMPLEMENTATION_PRESERVED",
+    "ONE_IN_TEN_THOUSAND_ADVERSE_GATE_PRESERVED",
+    "NO_NETWORK_ORDER_OR_REAL_TIME_SOAK_EXECUTED",
+    "ALL_REVIEW_FINDINGS_RESOLVED",
+    "NO_FULL_REGRESSION_EXECUTED"
+  ],
+  "execution_policy": {
+    "offline_deterministic_only": true,
+    "phase_test_rerun_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "github_upload_performed_by_local_review": false,
+    "production_deployed_or_activated": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "targeted_test_command": "pytest -q tests/S10/stage_review_test.py",
+  "release_status_on_pass": "S10_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "next_on_pass": "S10/GITHUB_STAGE_UPLOAD_READY",
+  "next_on_fail": "S10/STAGE_REVIEW_REMEDIATION_REQUIRED",
+  "rollback": "关闭 Stage S10 复审候选，保留 P01--P04 已签名证据并按对应 Phase 回滚合同重放；不修改外部状态。"
+}

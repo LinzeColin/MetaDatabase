@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S11-WHOLE-STAGE-REVIEW",
+  "stage_id": "S11",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "findings": [
+    {
+      "id": "S11-REVIEW-001",
+      "category": "REVIEW_CONTRACT_GAP",
+      "severity": "P1",
+      "status": "RESOLVED_IN_STAGE_REVIEW",
+      "title": "S11 四个 Phase 已签名，但冻结任务包未预置整体复审合同",
+      "evidence": [
+        "machine/facts/task_graph.json",
+        "machine/evidence/evidence_index.jsonl",
+        "machine/evidence/EVD-S11-P04.json"
+      ],
+      "resolution": "新增独立、离线的 S11 整体复审附录，精确绑定 P01--P04 已签名证据、回滚哈希、冻结基线、摩擦、证据层和最低赔率、唯一合成平台路由、受限凯利与风险上限。该附录不修改冻结 Phase 基线，不重跑 Phase 测试套件，也不允许全量回归或真实时间 soak。",
+      "residual_risk": "复审通过只表示本地冻结证据链和门当前可重放；GitHub 上传、远程 CI、OVH、Cloudflare、账户、真实市场、最终下单及收益均未验证。"
+    }
+  ],
+  "summary": {"total": 1, "open": 0, "resolved": 1, "blocked": 0},
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "github_upload_performed": false,
+    "production_deployed_or_activated": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

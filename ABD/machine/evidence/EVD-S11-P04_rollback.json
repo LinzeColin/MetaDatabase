@@ -1,0 +1,40 @@
+{
+  "artifacts": {
+    "abd_acceptance/risk_engine.py": {
+      "sha256": "0ea98225ac8c0a0570cdd19bae6b863d7a114c98e4fedc4aaebbfad7cbc2d26d",
+      "status": "PASS"
+    },
+    "correlation_graph.json": {
+      "sha256": "3824d91006252f503c060f971a63d4d7e5fc5f2a44d44750bd0603b81e85b89a",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S11_P04.json": {
+      "sha256": "8fdf91d7c7d2e384fe15aed903668805996ad8088c5cd95a9fd96a2c46f08d57",
+      "status": "PASS"
+    },
+    "risk_engine.py": {
+      "sha256": "29f5bdca8497e0b1e29397ca0349861cd58daed38f8b0536459e96c05f1675fc",
+      "status": "PASS"
+    },
+    "risk_vectors.json": {
+      "sha256": "f580d2ee1477aa8a28666826d1f7abbac7f9d36fd4ae0a87b6ce9458d1dd18ff",
+      "status": "PASS"
+    },
+    "tests/S11/P04_test.py": {
+      "sha256": "83a6936195a3108fcdd6bebaa53e83b43e6aab53cee4bbd798977a9c1ea45547",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S11-P04",
+  "evidence_id": "EVD-S11-P04-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "model:constrained_kelly_and_correlated_portfolio",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_CONSTRAINED_KELLY_RESTORE_SIGNED_S11_P03_KEEP_ALL_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

@@ -1,0 +1,85 @@
+{
+  "artifact_id": "ART-S11-P04-01",
+  "clusters": [
+    {
+      "cap_fraction": "0.05",
+      "category": "same_event_different_markets",
+      "cluster_id": "C01-SAME-EVENT-MARKETS"
+    },
+    {
+      "cap_fraction": "0.05",
+      "category": "same_participant_or_team_time_window",
+      "cluster_id": "C02-PARTICIPANT-OR-TEAM-WINDOW"
+    },
+    {
+      "cap_fraction": "0.05",
+      "category": "same_league_weather_or_lineup_shock",
+      "cluster_id": "C03-LEAGUE-WEATHER-LINEUP"
+    },
+    {
+      "cap_fraction": "0.05",
+      "category": "futures_and_single_event_outcome",
+      "cluster_id": "C04-FUTURES-SINGLE-EVENT"
+    },
+    {
+      "cap_fraction": "0.05",
+      "category": "same_source_anomaly",
+      "cluster_id": "C05-SOURCE-ANOMALY"
+    },
+    {
+      "cap_fraction": "0.05",
+      "category": "shared_model_feature_or_data_failure",
+      "cluster_id": "C06-SHARED-MODEL-OR-DATA"
+    }
+  ],
+  "contract_id": "AC-S11-P04",
+  "decision": "CONSTRAINED_KELLY_CORRELATION_POLICY_READY",
+  "external_effect_boundary": {
+    "actual_market_or_odds_observed": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "graph_id": "GRAPH-S11-P04-CORRELATION",
+  "hard_caps": {
+    "correlation_cluster_cap": "0.05",
+    "event_cap": "0.05",
+    "single_ticket_cap_by_stage": {
+      "ALPHA": "0",
+      "BETA": "0.015",
+      "GA": "0.02"
+    },
+    "total_open_exposure_cap": "0.15"
+  },
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "next": "S11/P04_RISK_REPLAY_REQUIRED",
+  "phase_id": "P04",
+  "product_version": "0.0.0.1",
+  "requirement_id": "REQ-S11-P04",
+  "required_cluster_categories": [
+    "same_event_different_markets",
+    "same_participant_or_team_time_window",
+    "same_league_weather_or_lineup_shock",
+    "futures_and_single_event_outcome",
+    "same_source_anomaly",
+    "shared_model_feature_or_data_failure"
+  ],
+  "risk_controls": {
+    "absolute_disaster_line": "0.7",
+    "chase_loss_prohibited": true,
+    "daily_loss_soft_stop": "0.03",
+    "seven_day_drawdown_diagnostic": "0.075",
+    "strategy_slice_kill_drawdown": "0.1",
+    "target_shortfall_may_relax_gate": false
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S11"
+}

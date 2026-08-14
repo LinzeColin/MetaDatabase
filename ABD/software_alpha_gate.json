@@ -1,0 +1,40 @@
+{
+  "activation_conditions": {
+    "actual_order_submission_enabled": false,
+    "external_runtime_accessed": false,
+    "local_mail_evidence_only": true,
+    "real_funds_used": false,
+    "recovery_replay_ready": true,
+    "risk_or_evidence_gate_relaxed": false,
+    "single_market_lifecycle_closed": true
+  },
+  "alpha_status": "SOFTWARE_ALPHA_LOCAL_ONLY_NOT_DEPLOYED",
+  "artifact_id": "ART-S19-P01-02",
+  "contract_id": "AC-S19-P01",
+  "external_effect_boundary": {
+    "actual_fund_facts_read_or_written": false,
+    "actual_ledger_read_or_written": false,
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "gmail_message_sent": false,
+    "incremental_cash_spent_aud": "0.00",
+    "market_or_account_runtime_accessed": false,
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "owner_final_order_only": true,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-10T06:00:00+10:00",
+  "next_required_gate": "S19/P02_READY_NOT_STARTED",
+  "owner_action": "FINAL_ORDER_ONLY_IF_FUTURE_EXTERNAL_GATES_PASS",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "requirement_id": "REQ-S19-P01",
+  "schema_version": "1.0.0",
+  "software_alpha_gate_sha256": "f3d078e63955a8f8aa0f48d14c4b38db0ec50a7a62351a34df26cfa1a9d2cff7",
+  "status": "PASS",
+  "walking_skeleton_evidence_sha256": "5bd47e7a79e5f51d76b9218177fe115789edf9e4b33442566078faf35c24aa0a"
+}

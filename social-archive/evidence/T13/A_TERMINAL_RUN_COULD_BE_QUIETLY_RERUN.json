@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "task": "T13",
+  "slice": "S1",
+  "recorded_at": "2026-08-06T07:20Z",
+  "status": "PASS",
+  "claim": "已经报给用户「被环境挡住了」的同步，会被悄悄翻出来重跑一遍。已修并落成判据。",
+  "how_i_found_it": {
+    "工具": "scripts/list_lists_that_almost_match.py（刚为上一个缺陷做的按内容找法）",
+    "它报的那一对": {
+      "src/social_archive/db.py:1826": "{\"completed\",\"partial\",\"cancelled\",\"failed\",\"blocked_environment\"} —— 算不算跑完了（跑完要盖 completed_at）",
+      "src/social_archive/account_sync.py:284": "{\"cancelled\",\"completed\",\"partial\",\"failed\"} —— process_job 开头那道「已经结束就别做了」的闸"
+    },
+    "差一个": "`blocked_environment`。"
+  },
+  "i_measured_the_consequence_instead_of_guessing": {
+    "怎么量的": "造一个 reddit 账号、起一次同步、把 run 打到 `blocked_environment`（此时它已经盖了 completed_at），账号保持连着，再投一次同一个任务。连接器换成一个「被调到就报错」的假货。",
+    "结果": "**它真的跑到连接器去了。**",
+    "所以": "一个已经报给用户「被环境挡住了」、而且已经盖了完成时间的运行，会在用户没点过重试的情况下被重跑一遍。"
+  },
+  "why_this_is_not_the_intended_recovery": "从阻塞里出来的正当路子是**用户点重试**：db.py 的 retry 迁移是 `{partial, failed, blocked_environment} → queued`，会把它重新排队；那时 status 是 queued，这道闸自然放行。**绕过它意味着重跑不是用户要求的。**",
+  "the_fix": "把 `blocked_environment` 加进 process_job 那道闸。",
+  "the_guard": {
+    "文件": "tests/focused/test_a_terminal_run_is_not_quietly_rerun.py",
+    "行为判据": "五个终态**逐个参数化**跑一遍，连接器换成「被调到就报错」的假货——这次漏的是 blocked_environment，下次可能是别的，把整组钉住。",
+    "结构判据": "db.py 说「算跑完了」的那一组，必须是 process_job 那道闸的**子集**。两处各写各的必然漂开，这一条就是那次漂开留下的。",
+    "反例": "把 blocked_environment 拿掉，2 条红（行为那条 + 结构那条）。"
+  },
+  "what_this_does_not_prove": [
+    "**没有在生产上复现过。** 这需要「任务被重复投递」才会发生，而队列在什么情况下会重投，这里没有查。核到的是「一旦重投，闸拦不住」。",
+    "只查了 db.py 与 account_sync.py 这两处终态清单。别处若还有第三份，这条判据看不见。",
+    "不证明 `blocked_environment` 该不该算终态——只保证两处说的是同一件事。"
+  ]
+}

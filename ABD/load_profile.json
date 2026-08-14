@@ -1,0 +1,142 @@
+{
+  "artifact_id": "ART-S17-P01-02",
+  "claim_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "real_vps_resource_observed_or_measured": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "contract_id": "AC-S17-P01",
+  "costs_sha256": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+  "execution_policy": {
+    "external_runtime_access_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "offline_deterministic_only": true,
+    "phase_test_only": true,
+    "real_vps_load_or_soak_allowed": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-10T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_FULL_HISTORY_10X_LOAD_NOT_LIVE_VPS",
+  "load_definition": {
+    "adverse_odds_rule": "ONE_PROVIDER_TICK_ADVERSE",
+    "adverse_probability_delta": "0.0001",
+    "baseline_event_count": 1200,
+    "event_identity_digest_algorithm": "SHA-256",
+    "history_scope": "FROZEN_SYNTHETIC_ALL_HISTORY_INDEX_NOT_REAL_MARKET",
+    "load_multiplier": 10,
+    "queue_cap": 12000,
+    "resource_unit_cap": 10000,
+    "safety_reserve_units": 1,
+    "silent_drop_max": 0,
+    "ten_x_event_count": 12000
+  },
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "requirement_id": "REQ-S17-P01",
+  "resource_contract": {
+    "automatic_overage_allowed": false,
+    "capability_status": "UNVERIFIED_IN_S00_P03",
+    "incremental_cash_cost_aud": "0.00",
+    "on_unavailable_or_limit": "BLOCK_RUNTIME_DEPLOYMENT_KEEP_LOCAL_DEVELOPMENT_AND_EVIDENCE",
+    "ownership_basis": "OWNER_DECLARED_PREEXISTING_RESOURCE",
+    "paid_tier_allowed": false,
+    "resource_id": "RES-OVH-EXISTING-VPS1",
+    "resource_name": "OVH Singapore VPS-1"
+  },
+  "scenarios": [
+    {
+      "accepted_count": 1200,
+      "accounted_count": 1200,
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "dropped_count": 0,
+      "identity_digest": "99dac8c126d3fd7ab709d7bfe093d0185dd8e0c46da7411dcdb675af5b65fe36",
+      "ingress_count": 1200,
+      "load_multiplier": 1,
+      "missing_disposition_count": 0,
+      "quarantined_count": 0,
+      "queue_high_water": 1200,
+      "replay_status": "PASS_COUNT_CONSERVING_NO_ACTION",
+      "resource_units": 1200,
+      "scenario_id": "BASELINE_FULL_HISTORY"
+    },
+    {
+      "accepted_count": 12000,
+      "accounted_count": 12000,
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "dropped_count": 0,
+      "identity_digest": "0f02d0915c0b9b389d5b203e6abeab1651da247e81db804b004532ae07cb56ff",
+      "ingress_count": 12000,
+      "load_multiplier": 10,
+      "missing_disposition_count": 0,
+      "quarantined_count": 0,
+      "queue_high_water": 8500,
+      "replay_status": "PASS_COUNT_CONSERVING_NO_ACTION",
+      "resource_units": 7500,
+      "scenario_id": "TEN_X_FULL_HISTORY"
+    },
+    {
+      "accepted_count": 12000,
+      "accounted_count": 12000,
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "dropped_count": 0,
+      "identity_digest": "17b0583b73228384b20ae9d07aa2f0ec334386387e2151e2bae46be04b5fa342",
+      "ingress_count": 12000,
+      "load_multiplier": 10,
+      "missing_disposition_count": 0,
+      "quarantined_count": 0,
+      "queue_high_water": 12000,
+      "replay_status": "PASS_COUNT_CONSERVING_NO_ACTION",
+      "resource_units": 9999,
+      "scenario_id": "TEN_X_BOUNDARY_0_9999"
+    },
+    {
+      "accepted_count": 11999,
+      "accounted_count": 12000,
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "dropped_count": 0,
+      "identity_digest": "9fd10f5dc51e6f7bbffc8031c659bd385feac80d4c427cfc6778ab90c67663e3",
+      "ingress_count": 12000,
+      "load_multiplier": 10,
+      "missing_disposition_count": 0,
+      "quarantined_count": 1,
+      "queue_high_water": 9000,
+      "replay_status": "PASS_COUNT_CONSERVING_NO_ACTION",
+      "resource_units": 8000,
+      "scenario_id": "TEN_X_TRACKED_FAULT"
+    }
+  ],
+  "schema_version": "1.0.0",
+  "signed_predecessors": [
+    {
+      "contract_id": "AC-S15-P04",
+      "evidence_path": "machine/evidence/EVD-S15-P04.json",
+      "evidence_sha256": "3fd288e66d3c473881dc92257992eb41b85422a5c0aaa92f1ff00e202a15feda",
+      "next": "S15/STAGE_REVIEW_READY_NOT_STARTED",
+      "status": "PASS"
+    },
+    {
+      "contract_id": "AC-S16-P04",
+      "evidence_path": "machine/evidence/EVD-S16-P04.json",
+      "evidence_sha256": "5543c7963bb6d8de97cd1e5c1872e2576fddde3dc98805fce48d763633f6ae45",
+      "next": "S16/STAGE_REVIEW_READY_NOT_STARTED",
+      "status": "PASS"
+    }
+  ],
+  "source_generator": {
+    "artifact_id": "ART-S17-P01-01",
+    "path": "load_test.py",
+    "sha256": "d512a6b7777ff1bc3e8ba429a69ed7c4752f88f35612556a3bc52c2622e80db6"
+  },
+  "stage_id": "S17"
+}

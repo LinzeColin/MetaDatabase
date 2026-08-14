@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "task": "T14",
+  "recorded_at": "2026-08-04T00:55Z",
+  "claim": "失败文案词典是照着我能读到的代码路径建的。去查了一次生产库，发现它盖不住真实数据。",
+
+  "how_i_found_it": "把本轮新写的 unexplained_zero_runs 审计逻辑直接跑在生产 sync_run 表上，想看看真实世界里有多少「说不清的零」。",
+
+  "the_good_news": {
+    "unexplained_zero_in_production": 0,
+    "meaning": "生产上每一条终态运行都带着失败码。库层意义上的静默零不存在。"
+  },
+
+  "the_bad_news": {
+    "production_sync_run_codes_2026_08_04": [
+      {"code": "BROWSER_SCAN_FAILED", "runs": 4, "imported": 0, "in_dictionary": true},
+      {"code": "RELATION_SCOPE_UNCONFIRMED", "runs": 7, "imported": 169, "in_dictionary": false},
+      {"code": "STABLE_END_WITHOUT_PROOF", "runs": 2, "imported": 91, "in_dictionary": false},
+      {"code": "SYNC_RUN_ABANDONED", "runs": 3, "imported": 0, "in_dictionary": false}
+    ],
+    "key_fact": "后三个码**在当前代码里一个字都搜不到**（grep 全仓 0 命中）。它们是 v0.0.0.6 留下的，那部分代码已被 T03 删除，记录却还躺在生产库里。",
+    "consequence": "不认它们，这 12 条历史记录在界面上会渲染成「这次没有取到任何内容，而且我们没能记录下原因。这是产品的问题」——而原因白纸黑字写在 last_error_code 里。**明知原因却告诉用户不知道，比不说更糟。**"
+  },
+
+  "the_lesson": {
+    "what_i_did_wrong": "词典与别名表是我读代码列出来的：搜 failure_code 的字符串字面量、顺着调用链找。那只能覆盖**当前代码能产生**的码。",
+    "what_i_missed": "生产库里存着**已经不存在的代码**产生的码。数据比代码活得久。",
+    "generalization": "凡是「把运行时数据映射成人话」的表，光读代码列不全，必须拿真实数据核一遍。这和本会话反复出现的『判据指错了对象』是同一个毛病的另一种形态：我核的是代码，而要核的是数据。"
+  },
+
+  "fix": {
+    "what": "新增 INCOMPLETE_RUN_CODES —— 「没跑完」类的码共用一句话，因为对用户来说它们是同一件事。",
+    "sentence": "这次同步卡住了，没有正常结束。你已经取到的内容都还在。",
+    "why_one_sentence": "同时说清两件事：没正常结束（所以别当成功），已拿到的没丢（所以别慌）。三个遗留码 + 本版新增的 SYNC_STALLED / SYNC_INTERRUPTED 都适用。",
+    "imported_still_wins": "有新增仍然先报数——生产里那 169 条和 91 条不会被一句「卡住了」盖掉。判据专门钉了这一条。",
+    "product_contract_note": "这句话不在 ZERO_BARRIER_UX.md 的冻结七句里，和 T12 记的两处缺口是同一性质：要真正定稿得先改产品文档，那是 Owner 的裁定。"
+  },
+
+  "guards": {
+    "file": "tests/focused/test_failure_copy_matrix.py",
+    "new": [
+      "PRODUCTION_CODES 参数化：**把生产实测的四个码连同次数和条数钉进判据**，逐个断言不落到 unexplained_zero",
+      "「没跑完」的句子必须同时含「没有正常结束」和「都还在」",
+      "有新增的 partial 仍然先报数（169 条那种）"
+    ],
+    "why_pin_production_numbers": "把次数与条数写进判据，是为了让日后有人看到这条判据时知道它不是我拍脑袋想出来的场景，而是生产上真实发生过的。"
+  },
+
+  "what_this_does_not_prove": [
+    "只查了 sync_run 一张表的 last_error_code。job 表、destination_receipt、object_replica 里是否也有代码已不认识的状态值，没查。",
+    "没有在部署后确认这 12 条历史记录在界面上真的显示成了新句子——那要等 T18。",
+    "生产上 0 条「说不清的零」是**当前**快照；v0.0.0.6 期间是否出现过、后来被覆盖，无从得知。"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "artifacts": {
+    "abd_acceptance/software_correctness.py": {
+      "sha256": "f1ff2c06878e2c05c58d808d37cad76566abc50b3d4e54e4aa97281644bea29e",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S15_P01.json": {
+      "sha256": "dd1d0907f11bcdc13680f184e71559ad0c724814470d597e2c1cc095e83fb076",
+      "status": "PASS"
+    },
+    "property_tests.json": {
+      "sha256": "be82dd1473627c080f1565ee2d9116f6e1ca4ebaae75b67aab56581731d8d174",
+      "status": "PASS"
+    },
+    "schema_tests.json": {
+      "sha256": "24913c321fbaef507541b4e9284edcf083f941fe572ae46620bbf1e715faf111",
+      "status": "PASS"
+    },
+    "tests/S15/P01_test.py": {
+      "sha256": "02d2d5a52ab84a80196d5ca742ea540dbd506f5b6f32c0e37212ec359e08406d",
+      "status": "PASS"
+    },
+    "unit_tests.json": {
+      "sha256": "688067381ddc749ad82388bc307522700bdb8331f12cf05fb1f0849ef369d125",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S15-P01",
+  "evidence_id": "EVD-S15-P01-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "quality:s15-p01-offline-correctness-contract",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_S15_P01_LOCAL_CORRECTNESS_TEST_SURFACE_KEEP_SIGNED_PREDECESSORS",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_account_balance_read_or_written": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

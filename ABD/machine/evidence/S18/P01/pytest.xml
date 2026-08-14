@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="25" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S18.P01_test" name="test_fixture_is_exact_s18_p01_contract" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_each_frozen_probe_vector_has_its_pinned_safe_result[GOLDEN_ALL_PROBES_PASS]" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_each_frozen_probe_vector_has_its_pinned_safe_result[HEALTH_PROBE_FAILED]" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_each_frozen_probe_vector_has_its_pinned_safe_result[NUMERIC_CROSS_IMPLEMENTATION_FAILED]" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_each_frozen_probe_vector_has_its_pinned_safe_result[UNKNOWN_EXTRA_PROBE_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_each_frozen_probe_vector_has_its_pinned_safe_result[ADVERSE_MINUS_ONE_IN_TEN_THOUSAND_STABLE]" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_each_frozen_probe_vector_has_its_pinned_safe_result[MISSING_LEDGER_PROBE_FAILS_CLOSED]" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_all_required_probes_are_covered_by_golden_vector" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_health_failure_automatically_returns_the_previous_logical_slot" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_numeric_failure_automatically_returns_the_previous_logical_slot" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_unknown_or_missing_probe_fails_closed" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_one_in_ten_thousand_adverse_vector_never_enables_advice_or_order" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_boolean_does_not_substitute_for_adverse_tick" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_float_payload_fails_closed" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_pipeline_is_json_subset_of_yaml_with_exact_fail_closed_stages" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_canary_policy_is_bounded_and_keeps_actions_disabled" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_candidate_preflight_covers_current_taskpack_and_signed_dependencies" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_preflight_has_no_external_effects" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_evidence_build_is_deterministic_before_signing" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_fixture_rejects_wrong_predecessor_hash" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_fixture_rejects_reordered_scenarios" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_probe_runner_has_no_runtime_network_or_process_dependencies" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_cli_has_exact_s18_p01_writer_and_verifier_mappings" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_legacy_successor_chain_allows_only_the_current_dispatcher_hash" time="0.000" />
+    <testcase classname="tests.S18.P01_test" name="test_rollback_drill_only_disables_local_candidate_control" time="0.000" />
+  </testsuite>
+</testsuites>

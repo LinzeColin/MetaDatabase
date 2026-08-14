@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S13-P04-SIX-COMPLETE-JOURNEYS",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+  "predecessor": {
+    "contract_id": "AC-S13-P03",
+    "evidence_path": "machine/evidence/EVD-S13-P03.json",
+    "evidence_sha256": "7ebe8b2b59bce33b34e1c7bab01bf96a7d2225414725bddebada481443fc197a",
+    "next": "S13/P04_READY_NOT_STARTED"
+  },
+  "claim_boundary": {
+    "actual_market_or_odds_observed": false,
+    "actual_order_execution_claimed": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_account_accessed": false,
+    "real_time_soak_waited": false,
+    "system_order_confirmation_enabled": false
+  },
+  "expected_journey_types": [
+    "WALKING_SKELETON",
+    "GOLDEN",
+    "BLACK",
+    "ABUSE",
+    "DEGRADED",
+    "RECOVERY"
+  ],
+  "expected_transition_counts": {
+    "S13-P04-WALKING-SKELETON": 4,
+    "S13-P04-GOLDEN": 4,
+    "S13-P04-BLACK": 3,
+    "S13-P04-ABUSE": 2,
+    "S13-P04-DEGRADED": 2,
+    "S13-P04-RECOVERY": 3
+  },
+  "expected_terminal_statuses": {
+    "S13-P04-WALKING-SKELETON": "ADVICE_ONLY_EVIDENCE_RECORDED_NO_ACTUAL_RETURN",
+    "S13-P04-GOLDEN": "SYNTHETIC_SETTLEMENT_RECORDED_NOT_ACTUAL_RETURN",
+    "S13-P04-BLACK": "RED_REVOKE_DO_NOT_ORDER",
+    "S13-P04-ABUSE": "QUARANTINED_NO_ACTION_NO_ACTUAL_CLAIM",
+    "S13-P04-DEGRADED": "NO_RECOMMENDATION_DEGRADED",
+    "S13-P04-RECOVERY": "RECOVERY_COMPLETED_LOCAL_ONLY_NO_EXTERNAL_EFFECT"
+  },
+  "expected_recovery_action_ids": [
+    "RECOVER-S13-P04-WALKING-SKELETON",
+    "RECOVER-S13-P04-GOLDEN",
+    "RECOVER-S13-P04-BLACK",
+    "RECOVER-S13-P04-ABUSE",
+    "RECOVER-S13-P04-DEGRADED",
+    "RECOVER-S13-P04-RECOVERY"
+  ],
+  "expected_replay_sha256": "84e36b5726e8008216c635387c68b4c13f451e2e6c1ee8067117ecf73323227f",
+  "expected_preflight_minimum": 17,
+  "expected_next": "S13/STAGE_REVIEW_READY_NOT_STARTED"
+}

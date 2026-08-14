@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0.0",
+  "dashboard_set_id": "S18-P02-OFFLINE-OBSERVABILITY-DASHBOARDS",
+  "product_version": "0.0.0.1",
+  "contract_id": "AC-S18-P02",
+  "requirement_id": "REQ-S18-P02",
+  "stage_id": "S18",
+  "phase_id": "P02",
+  "fixed_clock": "2026-08-10T02:00:00+10:00",
+  "execution_mode": "OFFLINE_DETERMINISTIC_CONTRACT_ONLY",
+  "dashboards": [
+    {
+      "id": "FRESHNESS_AND_COVERAGE",
+      "domain": "SOURCE_TIMELINESS_AND_SILENT_GAPS",
+      "metric_fields": ["live_advice_age_seconds", "silent_coverage_gap_count"],
+      "alert_ids": ["HP-LIVE-ADVICE-FRESHNESS", "HP-SILENT-COVERAGE-GAP"],
+      "runtime_mode": "FROZEN_STRUCTURED_INPUT_REPLAY_ONLY"
+    },
+    {
+      "id": "MODEL_AND_RESOURCE",
+      "domain": "MODEL_DRIFT_AND_CAPACITY_ENVELOPE",
+      "metric_fields": ["population_stability_index", "resource_envelope_status"],
+      "alert_ids": ["HP-MODEL-PSI-STOP", "HP-RESOURCE-ENVELOPE"],
+      "runtime_mode": "FROZEN_STRUCTURED_INPUT_REPLAY_ONLY"
+    },
+    {
+      "id": "EMAIL_AND_EVIDENCE",
+      "domain": "EMAIL_VERIFICATION_AND_EVIDENCE_INTEGRITY",
+      "metric_fields": ["email_verification_status", "evidence_integrity_status"],
+      "alert_ids": ["HP-EMAIL-VERIFICATION", "HP-EVIDENCE-INTEGRITY"],
+      "runtime_mode": "FROZEN_STRUCTURED_INPUT_REPLAY_ONLY"
+    },
+    {
+      "id": "DIAGNOSTIC_CONTRACT",
+      "domain": "MALFORMED_INPUT_FAIL_CLOSED",
+      "metric_fields": ["schema_version", "fixed_clock", "probability_delta", "odds_tick_delta"],
+      "alert_ids": ["HP-MALFORMED-DIAGNOSTIC-INPUT"],
+      "runtime_mode": "FROZEN_STRUCTURED_INPUT_REPLAY_ONLY"
+    }
+  ],
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "cloudflare_account_dns_or_tunnel_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "real_market_data_collected": false,
+    "shared_production_ledger_read_or_written": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

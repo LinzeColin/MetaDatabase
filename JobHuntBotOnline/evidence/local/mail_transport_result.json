@@ -1,0 +1,11 @@
+{
+  "verdict": "PASS",
+  "nitrosend_dependency": false,
+  "provider_contract": "standards-compatible SMTP",
+  "mail_deferred_registration_open": "false",
+  "generic_smtp_registration_open": "true",
+  "non_email_delivery_can_continue": true,
+  "full_production_pass_still_requires_real_email_lifecycle": true,
+  "errors": [],
+  "production_claimed": false
+}

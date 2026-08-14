@@ -1,0 +1,76 @@
+{
+  "artifact_id": "ART-S19-P04-02",
+  "contract_id": "AC-S19-P04",
+  "external_effect_boundary": {
+    "database_or_market_runtime_accessed": false,
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_network_accessed": false,
+    "gmail_or_tab_account_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "owner_final_order_only": true,
+    "production_deployed_or_activated": false,
+    "real_account_or_fund_mutated": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "synthetic_evidence_promoted_to_empirical": false
+  },
+  "final_acceptance_path": "final_acceptance.json",
+  "final_acceptance_sha256": "54f6741bca209941b75098bc5e1d51880758dec4fedc755c9b83198b227ac3bd",
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-10T09:00:00+10:00",
+  "handoff_bundle": {
+    "archive_sha256_recorded_in": "machine/evidence/EVD-S19-P04.json",
+    "format": "ZIP_STORED_FIXED_CLOCK_NON_SECRET_REPOSITORY_RELATIVE",
+    "member_count": 9,
+    "members": [
+      {
+        "path": "final_acceptance.json",
+        "sha256": "54f6741bca209941b75098bc5e1d51880758dec4fedc755c9b83198b227ac3bd"
+      },
+      {
+        "integrity": "SELF_NORMALIZED_SHA256_VIA_MANIFEST_SHA256",
+        "path": "release_manifest.json"
+      },
+      {
+        "path": "machine/evidence/EVD-S19-P01.json",
+        "sha256": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219"
+      },
+      {
+        "path": "machine/evidence/EVD-S19-P02.json",
+        "sha256": "6d13caf6132005bbfa1f2d31e3bfbce23366065702404d1c56e4dff1f4c73177"
+      },
+      {
+        "path": "machine/evidence/EVD-S19-P03.json",
+        "sha256": "3bb3a41f8bb23f65bd4c5fbd4aba14c361d8a391d3cdbaca2666aae9887f345b"
+      },
+      {
+        "path": "machine/evidence/EVD-S19-P03_rollback.json",
+        "sha256": "7e55153bc6ab27c7e00b238dcc685e00566ed32e6a317b0a6233df543ca1c9ef"
+      },
+      {
+        "path": "ga_report.json",
+        "sha256": "1164263e77391c7982fd2ac819845f0d06e811332ccdea0e05f55da6a927a24d"
+      },
+      {
+        "path": "actual_reconciliation.json",
+        "sha256": "9453b1b3942de55cebe218ebd7c5d481713e8a57150477c4ba74e9b9a9e1749b"
+      },
+      {
+        "path": "target_acceptance.json",
+        "sha256": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76"
+      }
+    ],
+    "path": "handoff_bundle.zip"
+  },
+  "manifest_sha256": "851fadb816efb2b5e6798e91f1a02e2004f9646952b349ac20be5bc00abaaa41",
+  "next": "S19/STAGE_REVIEW_READY_NOT_STARTED",
+  "product": "ABD",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_decision": "S19_STAGE_REVIEW_REQUIRED_BEFORE_GITHUB_UPLOAD_OR_ANY_DEPLOYMENT",
+  "schema_version": "1.0.0",
+  "status": "LOCAL_DELIVERY_MANIFEST_NOT_A_PRODUCTION_RELEASE",
+  "version": "0.0.0.1",
+  "version_and_hash_status": "UNAMBIGUOUS_NO_CONFLICT"
+}

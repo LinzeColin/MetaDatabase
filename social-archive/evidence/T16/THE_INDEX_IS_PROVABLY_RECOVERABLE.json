@@ -1,0 +1,35 @@
+{
+  "task": "T16",
+  "claim": "运行库快照不只是「传上去了」——从 R2 与 OCI 各取回一次，解密、解压、打开、数表，**五张关键表的行数与生产库逐个相同**，两次取回来的文件逐字节一致。生产数据面一个字节没动。",
+  "invariant": "INV-REVERSIBLE",
+  "measured_at": "2026-08-04",
+
+  "why_this_drill_and_not_just_the_upload_receipt": "backup_runtime_db.py 证明的是「做出来了、传上去了、密文读回来一致」。**那三件事都成立，快照仍然可能是个打不开的文件。** 这一天已经吃过两次同形状的亏：三份副本全登记 verified 而 GitHub 那条取回路根本跑不通；恢复报 `target_written: true` 而目标目录是空的。",
+
+  "the_full_path_exercised": [
+    "从对象仓下载密文",
+    "比对密文 sha256 与 manifest —— 一致",
+    "age 解密（私钥经 systemd LoadCredential 送入，值不落盘、不进日志）",
+    "比对明文 sha256 与 manifest —— 一致",
+    "gunzip 还原成 sqlite3 文件",
+    "以只读方式打开",
+    "数表"
+  ],
+
+  "counts": {
+    "restored_from_r2": {"content": 193, "user_relation": 194, "artifact": 552, "object_replica": 1656, "destination_receipt": 199},
+    "restored_from_oci": {"content": 193, "user_relation": 194, "artifact": 552, "object_replica": 1656, "destination_receipt": 199},
+    "live_database_at_the_same_moment": {"content": 193, "user_relation": 194, "artifact": 552, "object_replica": 1656, "destination_receipt": 199},
+    "verdict": "**五张表逐个相同。**"
+  },
+  "byte_comparison": "两次取回落地的 restored-runtime.sqlite3 用 cmp 比过：**逐字节相同**。也就是说 R2 与 OCI 上那两份不是各自坏了一点点还都能开，而是同一份东西。",
+  "blast_radius": "全程只读远端；落地目录在 /home 下（脚本会拒绝落进运行数据面）；跑完两个演练目录都已删除；生产库 4,591,616 字节、时间戳未变。",
+
+  "what_this_does_not_prove": [
+    "**不证明拿它能把服务重新跑起来。** 验的是「这个库文件能打开、内容对得上」，不是「把它放回去、把 552 个制品取回来、把服务拉起来」。整套灾难恢复仍然没有演练过。",
+    "只比了五张表的**行数**，没有逐行比内容。",
+    "**索引只有两份远程副本**（R2 + OCI），制品是三份。GitHub 那一份要走 release pack 那条路，本轮没做。",
+    "不证明定时器会稳定产出。这次是手动触发；一个完整周期没观察过。",
+    "不证明 age 私钥本身安全。这次能解密只说明它现在在宿主机上可用；私钥的备份与轮换不在本轮范围——**它要是丢了，三份副本一份也解不开**。"
+  ]
+}

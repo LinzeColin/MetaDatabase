@@ -1,0 +1,233 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-504",
+  "taskpack_version": "v0.0.0.5",
+  "status": "PASS",
+  "generated_at": "2026-08-02T02:01:42Z",
+  "source_main_sha": "aa4efbe43afc7c627db3609ca021ea38d67e6ba5",
+  "secrets_logged": false,
+  "source_git_write": false,
+  "commands": [
+    {
+      "sequence": 1,
+      "scope": "preparation_evidence",
+      "command": "python3 scripts/sync_private_database.py --once",
+      "status": "BLOCKED_ENVIRONMENT",
+      "exit_code": 3,
+      "summary": "Preparation run lacked SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT and correctly prohibited local checkout fallback.",
+      "provider_write": false,
+      "preserved": true
+    },
+    {
+      "sequence": 2,
+      "scope": "preparation_evidence",
+      "command": "python3 scripts/backup.py --once",
+      "status": "BLOCKED_ENVIRONMENT",
+      "exit_code": 3,
+      "summary": "Preparation run lacked an age recipient and correctly prohibited plaintext backup.",
+      "provider_write": false,
+      "preserved": true
+    },
+    {
+      "sequence": 3,
+      "scope": "latest_main",
+      "command": "git fetch origin main; git diff HEAD..origin/main; git merge --ff-only origin/main",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Fast-forwarded to aa4efbe43afc7c627db3609ca021ea38d67e6ba5; the only upstream path was CyberBoss evidence."
+    },
+    {
+      "sequence": 4,
+      "scope": "semantic_reconcile",
+      "command": "Compare Task Pack Overlay, latest-main and deployed script SHA/diff",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Both deployed scripts exactly match latest main and are stronger than the old Overlay; no source overwrite or implementation edit."
+    },
+    {
+      "sequence": 5,
+      "scope": "environment_preflight",
+      "command": "Inspect deployed systemd units, client, age, R2/OCI configuration, credential custody and timer state",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Official client and age present; five root-owned credential files non-empty and mode 0600; sync and backup timers disabled/inactive.",
+      "provider_write": false
+    },
+    {
+      "sequence": 6,
+      "scope": "focused_test",
+      "command": "python3 -m pytest -q focused SA-504 tests",
+      "status": "FAILED_TEST_ENVIRONMENT",
+      "exit_code": 4,
+      "summary": "Global Python lacked pydantic; pytest did not collect tests.",
+      "provider_write": false
+    },
+    {
+      "sequence": 7,
+      "scope": "focused_test",
+      "command": "Probe existing repository-managed virtual environments",
+      "status": "BLOCKED_ENVIRONMENT",
+      "exit_code": 3,
+      "summary": "No existing managed interpreter contained both pydantic and pytest.",
+      "provider_write": false
+    },
+    {
+      "sequence": 8,
+      "scope": "focused_test_wrapper",
+      "command": "Create an explicit temporary uv environment with manual cleanup",
+      "status": "REJECTED_BEFORE_EXECUTION",
+      "summary": "Command safety policy rejected explicit rm-based cleanup; no environment or test process was created.",
+      "provider_write": false
+    },
+    {
+      "sequence": 9,
+      "scope": "focused_test",
+      "command": "uv run --isolated --frozen --no-cache python -m pytest",
+      "status": "FAILED_TEST_ENVIRONMENT",
+      "exit_code": 1,
+      "summary": "Default locked dependencies omitted the project test extra, so pytest was unavailable after isolated installation.",
+      "provider_write": false
+    },
+    {
+      "sequence": 10,
+      "scope": "focused_test",
+      "command": "uv run --isolated --frozen --extra test --no-cache python -m pytest -q tests/focused/test_private_database_sync.py tests/focused/test_private_database_backup.py",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "15 passed in 0.57 seconds; isolated environment managed by uv; no lock or worktree mutation.",
+      "provider_write": false
+    },
+    {
+      "sequence": 11,
+      "scope": "private_database_preflight",
+      "command": "sync_private_database.py --dry-run and official Private-Database verify in a transient unit",
+      "status": "PARTIAL_WRAPPER_FAILURE",
+      "exit_code": 0,
+      "summary": "Official verify returned 38 total, 33 present, 5 legacy-path missing; dry-run wrapper omitted ReadWritePaths and SQLite returned unable to open database file.",
+      "provider_write": false
+    },
+    {
+      "sequence": 12,
+      "scope": "private_database_preflight",
+      "command": "sync_private_database.py --dry-run with deployed ReadWritePaths policy",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "READY; candidate_fact_count=1, already_delivered_count=1, pending_count=0.",
+      "provider_write": false
+    },
+    {
+      "sequence": 13,
+      "scope": "private_database_sync",
+      "command": "systemctl start social-archive-private-database-sync.service",
+      "status": "PASS_COMMAND_FAILED_EVIDENCE_WRAPPER",
+      "exit_code": 0,
+      "summary": "Frozen command returned NO_CHANGE with candidate=1 and delivered=1; wrapper expected a retained InvocationID and returned evidence code 70 after the successful service.",
+      "provider_write": false,
+      "failed_wrapper_evidence": "/var/lib/social-archive/evidence/SA-504/20260802T014951Z/SYNC_ONCE.json"
+    },
+    {
+      "sequence": 14,
+      "scope": "private_database_sync_evidence_recovery",
+      "command": "Read-only journal window and systemctl Result/ExecMainStatus",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Recovered exact first NO_CHANGE JSON and proved service Result=success, ExecMainStatus=0.",
+      "provider_write": false
+    },
+    {
+      "sequence": 15,
+      "scope": "private_database_sync",
+      "command": "systemctl start social-archive-private-database-sync.service using journal cursor evidence capture",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Second frozen invocation returned NO_CHANGE with the same candidate=1 and delivered=1.",
+      "provider_write": false,
+      "evidence": "/var/lib/social-archive/evidence/SA-504/20260802T015116Z/SYNC_REPEAT.json",
+      "evidence_sha256": "ddde37dbcf54e0f78a5cacb7a8adae7919f0b41f09b8bebb664c75a0dbec2e2a"
+    },
+    {
+      "sequence": 16,
+      "scope": "private_database_independent_readback",
+      "command": "Official client verify/get manifest/get fact plus strict legacy compatibility verifier",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "One target fact was byte-exactly read back; all five legacy-prefixed objects were individually size/SHA verified; effective manifest complete.",
+      "provider_write": false,
+      "evidence": "/var/lib/social-archive/evidence/SA-504/20260802T015116Z/SYNC_VERIFY.json",
+      "evidence_sha256": "8c7693f200d6305f71a79d7c332a4cce442c581d00820aa95d45f056e92478e8"
+    },
+    {
+      "sequence": 17,
+      "scope": "cold_backup_preflight",
+      "command": "backup.py --dry-run through exact systemd credentials",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "READY; fact_count=1; source API-synchronized canonical facts; stores R2 then OCI.",
+      "provider_write": false
+    },
+    {
+      "sequence": 18,
+      "scope": "cold_backup_wrapper",
+      "command": "Capture backup service with a unit-scoped pre-run journal cursor",
+      "status": "FAILED_BEFORE_EXECUTION",
+      "exit_code": 1,
+      "summary": "The service had no previous unit journal cursor; wrapper exited before systemctl start. No backup directory or provider operation occurred.",
+      "provider_write": false,
+      "empty_evidence_directory": "/var/lib/social-archive/evidence/SA-504/20260802T015427Z"
+    },
+    {
+      "sequence": 19,
+      "scope": "cold_backup",
+      "command": "systemctl start social-archive-backup.service using a global journal cursor",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "One fact deterministically snapshotted, age-encrypted, written and internally read back from R2 then OCI; both recovery descriptors verified.",
+      "provider_write": true,
+      "plaintext_write": false,
+      "evidence": "/var/lib/social-archive/evidence/SA-504/20260802T015554Z/BACKUP_ONCE.json",
+      "evidence_sha256": "e57c85411c15263482be672414b2d3be17521e4e7627d62a5ac145a569371f45"
+    },
+    {
+      "sequence": 20,
+      "scope": "cold_backup_independent_readback",
+      "command": "Fresh R2/OCI ciphertext and descriptor download plus deterministic PrivateTmp snapshot reconstruction",
+      "status": "PARTIAL_VERIFIER_PASS",
+      "exit_code": 2,
+      "summary": "All provider, hash, descriptor, age, original snapshot and no-plaintext assertions passed; verifier incorrectly rejected the expected .age.json metadata sidecar.",
+      "provider_write": false,
+      "evidence": "/var/lib/social-archive/evidence/SA-504/20260802T015554Z/BACKUP_VERIFY-FAILED-FILESET.json",
+      "evidence_sha256": "b0bb2527e258c2ac530d5e66077b4281123195de6f815110cdba65b86bedc8cb"
+    },
+    {
+      "sequence": 21,
+      "scope": "cold_backup_verifier_adaptation",
+      "command": "Inspect sidecar schema keys without emitting values or payload",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Sidecar contains only schema, algorithm, sizes, hashes and recipient fingerprint; no facts, payload, secret, token, identity or private key.",
+      "provider_write": false
+    },
+    {
+      "sequence": 22,
+      "scope": "cold_backup_final_evidence",
+      "command": "Preserve failed verifier, enforce actual safe persisted-file invariant, and consolidate SA-504 production RESULT",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "All blocking assertions PASS; provider reupload=false.",
+      "provider_write": false,
+      "evidence": "/var/lib/social-archive/evidence/SA-504/20260802T015554Z/RESULT.json",
+      "evidence_sha256": "3d4a2794fcbde3247a972d971a0cc0c37787660d731718f5dca44320731540d2"
+    },
+    {
+      "sequence": 23,
+      "scope": "private_database_permission",
+      "command": "gh api repos/LinzeColin/Private-Database using deployed dedicated systemd credential",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "private=true; pull/push/admin/maintain/triage all true; token material not emitted.",
+      "provider_write": false,
+      "evidence": "/var/lib/social-archive/evidence/SA-504/20260802T015554Z/PRIVATE_DB_PERMISSION.json",
+      "evidence_sha256": "ed018fe40515be3e6d66e66e87cbf4cc70a655456f4a1e1c41a5c425fa52d261"
+    }
+  ]
+}

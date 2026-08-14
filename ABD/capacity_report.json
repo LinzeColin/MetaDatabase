@@ -1,0 +1,285 @@
+{
+  "artifact_id": "ART-S12-P02-03",
+  "clusters": [
+    {
+      "cluster_id": "C01-SAME-EVENT-MARKETS",
+      "cluster_remaining_capacity_cents": 1500,
+      "correlation_adjusted_capacity_cents": 1200,
+      "counting_rule": "ONE_REPRESENTATIVE_PER_PREDECLARED_HIGH_CORRELATION_CLUSTER",
+      "member_opportunity_ids": [
+        "S12-P02-C01-A",
+        "S12-P02-C01-B"
+      ],
+      "naive_member_executable_capacity_cents": 2320,
+      "not_counted_as_additional_coverage_ids": [
+        "S12-P02-C01-B"
+      ],
+      "representative_opportunity_id": "S12-P02-C01-A"
+    },
+    {
+      "cluster_id": "C02-PARTICIPANT-OR-TEAM-WINDOW",
+      "cluster_remaining_capacity_cents": 1500,
+      "correlation_adjusted_capacity_cents": 1040,
+      "counting_rule": "ONE_REPRESENTATIVE_PER_PREDECLARED_HIGH_CORRELATION_CLUSTER",
+      "member_opportunity_ids": [
+        "S12-P02-C02-A"
+      ],
+      "naive_member_executable_capacity_cents": 1040,
+      "not_counted_as_additional_coverage_ids": [],
+      "representative_opportunity_id": "S12-P02-C02-A"
+    },
+    {
+      "cluster_id": "C03-LEAGUE-WEATHER-LINEUP",
+      "cluster_remaining_capacity_cents": 1500,
+      "correlation_adjusted_capacity_cents": 1350,
+      "counting_rule": "ONE_REPRESENTATIVE_PER_PREDECLARED_HIGH_CORRELATION_CLUSTER",
+      "member_opportunity_ids": [
+        "S12-P02-C03-A",
+        "S12-P02-C03-B"
+      ],
+      "naive_member_executable_capacity_cents": 2430,
+      "not_counted_as_additional_coverage_ids": [
+        "S12-P02-C03-B"
+      ],
+      "representative_opportunity_id": "S12-P02-C03-A"
+    },
+    {
+      "cluster_id": "C04-FUTURES-SINGLE-EVENT",
+      "cluster_remaining_capacity_cents": 1500,
+      "correlation_adjusted_capacity_cents": 900,
+      "counting_rule": "ONE_REPRESENTATIVE_PER_PREDECLARED_HIGH_CORRELATION_CLUSTER",
+      "member_opportunity_ids": [
+        "S12-P02-C04-A"
+      ],
+      "naive_member_executable_capacity_cents": 900,
+      "not_counted_as_additional_coverage_ids": [],
+      "representative_opportunity_id": "S12-P02-C04-A"
+    },
+    {
+      "cluster_id": "C05-SOURCE-ANOMALY",
+      "cluster_remaining_capacity_cents": 0,
+      "correlation_adjusted_capacity_cents": 0,
+      "counting_rule": "ONE_REPRESENTATIVE_PER_PREDECLARED_HIGH_CORRELATION_CLUSTER",
+      "member_opportunity_ids": [
+        "S12-P02-C05-A"
+      ],
+      "naive_member_executable_capacity_cents": 0,
+      "not_counted_as_additional_coverage_ids": [],
+      "representative_opportunity_id": "S12-P02-C05-A"
+    },
+    {
+      "cluster_id": "C06-SHARED-MODEL-OR-DATA",
+      "cluster_remaining_capacity_cents": 1500,
+      "correlation_adjusted_capacity_cents": 600,
+      "counting_rule": "ONE_REPRESENTATIVE_PER_PREDECLARED_HIGH_CORRELATION_CLUSTER",
+      "member_opportunity_ids": [
+        "S12-P02-C06-A"
+      ],
+      "naive_member_executable_capacity_cents": 600,
+      "not_counted_as_additional_coverage_ids": [],
+      "representative_opportunity_id": "S12-P02-C06-A"
+    }
+  ],
+  "contract_id": "AC-S12-P02",
+  "correlation_graph_sha256": "a2e4e0adc3af1424956b5a90237210f95819a04a0e58eb74f29576c94293de29",
+  "decision": "CAPACITY_CORRECTED_SYNTHETIC_ONLY_NOT_TARGET_COVERAGE",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_provider_capacity_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "next": "S12/P03_READY_NOT_STARTED",
+  "p01_evidence_sha256": "9462cfab12b28218bf84419d45bf0c4d512aa406d5547de108f0dfbb09d4214a",
+  "phase_id": "P02",
+  "platform_allocations": [
+    {
+      "capacity_before_platform_limit_cents": 1200,
+      "cluster_id": "C01-SAME-EVENT-MARKETS",
+      "correlation_adjusted_capacity_cents": 1200,
+      "final_executable_capacity_cents": 1200,
+      "opportunity_id": "S12-P02-C01-A",
+      "platform_id": "SYNTHETIC-TAB-A",
+      "platform_remaining_after_cents": 600,
+      "platform_remaining_before_cents": 1800,
+      "platform_rule": "DETERMINISTIC_DECLARED_REMAINING_CAPACITY_NO_OVERALLOCATION",
+      "representative_selected": true
+    },
+    {
+      "capacity_before_platform_limit_cents": 1040,
+      "cluster_id": "C02-PARTICIPANT-OR-TEAM-WINDOW",
+      "correlation_adjusted_capacity_cents": 1040,
+      "final_executable_capacity_cents": 600,
+      "opportunity_id": "S12-P02-C02-A",
+      "platform_id": "SYNTHETIC-TAB-A",
+      "platform_remaining_after_cents": 0,
+      "platform_remaining_before_cents": 600,
+      "platform_rule": "DETERMINISTIC_DECLARED_REMAINING_CAPACITY_NO_OVERALLOCATION",
+      "representative_selected": true
+    },
+    {
+      "capacity_before_platform_limit_cents": 1350,
+      "cluster_id": "C03-LEAGUE-WEATHER-LINEUP",
+      "correlation_adjusted_capacity_cents": 1350,
+      "final_executable_capacity_cents": 1350,
+      "opportunity_id": "S12-P02-C03-A",
+      "platform_id": "SYNTHETIC-SPORTSBET-B",
+      "platform_remaining_after_cents": 250,
+      "platform_remaining_before_cents": 1600,
+      "platform_rule": "DETERMINISTIC_DECLARED_REMAINING_CAPACITY_NO_OVERALLOCATION",
+      "representative_selected": true
+    },
+    {
+      "capacity_before_platform_limit_cents": 900,
+      "cluster_id": "C04-FUTURES-SINGLE-EVENT",
+      "correlation_adjusted_capacity_cents": 900,
+      "final_executable_capacity_cents": 250,
+      "opportunity_id": "S12-P02-C04-A",
+      "platform_id": "SYNTHETIC-SPORTSBET-B",
+      "platform_remaining_after_cents": 0,
+      "platform_remaining_before_cents": 250,
+      "platform_rule": "DETERMINISTIC_DECLARED_REMAINING_CAPACITY_NO_OVERALLOCATION",
+      "representative_selected": true
+    },
+    {
+      "capacity_before_platform_limit_cents": 0,
+      "cluster_id": "C05-SOURCE-ANOMALY",
+      "correlation_adjusted_capacity_cents": 0,
+      "final_executable_capacity_cents": 0,
+      "opportunity_id": "S12-P02-C05-A",
+      "platform_id": "SYNTHETIC-OTHER-C",
+      "platform_remaining_after_cents": 700,
+      "platform_remaining_before_cents": 700,
+      "platform_rule": "DETERMINISTIC_DECLARED_REMAINING_CAPACITY_NO_OVERALLOCATION",
+      "representative_selected": true
+    },
+    {
+      "capacity_before_platform_limit_cents": 600,
+      "cluster_id": "C06-SHARED-MODEL-OR-DATA",
+      "correlation_adjusted_capacity_cents": 600,
+      "final_executable_capacity_cents": 600,
+      "opportunity_id": "S12-P02-C06-A",
+      "platform_id": "SYNTHETIC-OTHER-C",
+      "platform_remaining_after_cents": 100,
+      "platform_remaining_before_cents": 700,
+      "platform_rule": "DETERMINISTIC_DECLARED_REMAINING_CAPACITY_NO_OVERALLOCATION",
+      "representative_selected": true
+    }
+  ],
+  "policy": {
+    "chase_loss_prohibited": true,
+    "correlation_rule": "ONE_REPRESENTATIVE_PER_PREDECLARED_HIGH_CORRELATION_CLUSTER",
+    "executable_fraction_rule": "FLOOR_RISK_LIMITED_CAPACITY_TIMES_DECLARED_EXECUTABLE_FRACTION",
+    "platform_rule": "DETERMINISTIC_DECLARED_REMAINING_CAPACITY_NO_OVERALLOCATION",
+    "target_shortfall_may_relax_gate": false
+  },
+  "prepared_opportunities": [
+    {
+      "correlation_cluster_id": "C01-SAME-EVENT-MARKETS",
+      "executable_fraction": "0.8",
+      "opportunity_id": "S12-P02-C01-A",
+      "platform_id": "SYNTHETIC-TAB-A",
+      "pre_platform_executable_capacity_cents": 1200,
+      "requested_capacity_cents": 1500,
+      "risk_limited_capacity_cents": 1500
+    },
+    {
+      "correlation_cluster_id": "C01-SAME-EVENT-MARKETS",
+      "executable_fraction": "0.8",
+      "opportunity_id": "S12-P02-C01-B",
+      "platform_id": "SYNTHETIC-TAB-A",
+      "pre_platform_executable_capacity_cents": 1120,
+      "requested_capacity_cents": 1400,
+      "risk_limited_capacity_cents": 1400
+    },
+    {
+      "correlation_cluster_id": "C02-PARTICIPANT-OR-TEAM-WINDOW",
+      "executable_fraction": "0.8",
+      "opportunity_id": "S12-P02-C02-A",
+      "platform_id": "SYNTHETIC-TAB-A",
+      "pre_platform_executable_capacity_cents": 1040,
+      "requested_capacity_cents": 1300,
+      "risk_limited_capacity_cents": 1300
+    },
+    {
+      "correlation_cluster_id": "C03-LEAGUE-WEATHER-LINEUP",
+      "executable_fraction": "0.9",
+      "opportunity_id": "S12-P02-C03-A",
+      "platform_id": "SYNTHETIC-SPORTSBET-B",
+      "pre_platform_executable_capacity_cents": 1350,
+      "requested_capacity_cents": 1500,
+      "risk_limited_capacity_cents": 1500
+    },
+    {
+      "correlation_cluster_id": "C03-LEAGUE-WEATHER-LINEUP",
+      "executable_fraction": "0.9",
+      "opportunity_id": "S12-P02-C03-B",
+      "platform_id": "SYNTHETIC-SPORTSBET-B",
+      "pre_platform_executable_capacity_cents": 1080,
+      "requested_capacity_cents": 1200,
+      "risk_limited_capacity_cents": 1200
+    },
+    {
+      "correlation_cluster_id": "C04-FUTURES-SINGLE-EVENT",
+      "executable_fraction": "0.75",
+      "opportunity_id": "S12-P02-C04-A",
+      "platform_id": "SYNTHETIC-SPORTSBET-B",
+      "pre_platform_executable_capacity_cents": 900,
+      "requested_capacity_cents": 1200,
+      "risk_limited_capacity_cents": 1200
+    },
+    {
+      "correlation_cluster_id": "C05-SOURCE-ANOMALY",
+      "executable_fraction": "0.75",
+      "opportunity_id": "S12-P02-C05-A",
+      "platform_id": "SYNTHETIC-OTHER-C",
+      "pre_platform_executable_capacity_cents": 0,
+      "requested_capacity_cents": 700,
+      "risk_limited_capacity_cents": 0
+    },
+    {
+      "correlation_cluster_id": "C06-SHARED-MODEL-OR-DATA",
+      "executable_fraction": "0.75",
+      "opportunity_id": "S12-P02-C06-A",
+      "platform_id": "SYNTHETIC-OTHER-C",
+      "pre_platform_executable_capacity_cents": 600,
+      "requested_capacity_cents": 800,
+      "risk_limited_capacity_cents": 800
+    }
+  ],
+  "product_version": "0.0.0.1",
+  "report_sha256": "5faf8ec203240a492d5de07553a32413fc5455a7406657d193f219850e13cf7f",
+  "requirement_id": "REQ-S12-P02",
+  "schema_version": "1.0.0",
+  "stage_id": "S12",
+  "summary": {
+    "correlation_adjusted_capacity_cents": 5090,
+    "distinct_correlation_cluster_count": 6,
+    "duplicate_capacity_not_counted_cents": 2200,
+    "final_platform_and_executable_capacity_cents": 4000,
+    "independent_equivalent_signals": 5,
+    "platform_limited_capacity_not_counted_cents": 1090,
+    "platform_remaining_capacity_cents": {
+      "SYNTHETIC-OTHER-C": 100,
+      "SYNTHETIC-SPORTSBET-B": 0,
+      "SYNTHETIC-TAB-A": 0
+    },
+    "raw_candidate_count": 8,
+    "raw_naive_executable_capacity_cents": 7290,
+    "remaining_opportunity_count": 5
+  },
+  "target_plausibility": {
+    "capacity_is_not_return_or_30_PERCENT_COVERAGE": true,
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "independent_equivalent_signals_observed": 5,
+    "independent_equivalent_signals_required": 1000,
+    "status": "INSUFFICIENT_INDEPENDENT_EQUIVALENT_SIGNALS_TARGET_UNVERIFIED"
+  }
+}

@@ -1,19 +1,20 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-402",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "taskpack_version": "v0.0.0.6",
+  "implementation_commit": "5341745f546ec113117b34784a89d2e7e2e4dd28",
+  "implementation_tree": "90d510987be571039d729aed15f53a3c8a38b814",
+  "record_context": "v0.0.0.6 stage re-verification against the live OVH production deployment. Secret values were never printed; Bearer tokens and GitHub tokens are shown redacted.",
   "commands": [
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_destinations.py",
-      "command_sha256": "96b8f74a574d0fe444fc3f888b579ceedab24d59eeee5839a0fd234addbfc073",
+      "command": "curl -X POST .../v1/destinations/notion/probe",
+      "command_sha256": "e5c4d8333ed5058d0c430c223c72d9015a8093ca0ea22ed861b1ffa43d124c24",
       "executed": true,
-      "status": "PASS",
       "exit_code": 0,
-      "summary": "5 destination tests passed."
+      "status": "BLOCKED_ENVIRONMENT",
+      "summary": "state=needs_user_action：notion_token 为 0 字节且未配置 data_source_id。未尝试任何 Notion 写入。",
+      "environment": "ssh linze-ovh + sudo, with .env sourced and *_FILE remapped to /opt/social-archive/runtime/secrets/"
     }
   ],
-  "record_sha256": "330f0dd51fcdd88586efeaa2454e8ebb8e4eacd8bd0941272dd873b641ddfbfe"
+  "generated_at": "2026-08-03T07:40:00Z"
 }

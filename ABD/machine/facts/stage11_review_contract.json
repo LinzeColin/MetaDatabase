@@ -1,0 +1,110 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "STAGE-REVIEW-S11",
+  "review_id": "ABD-S11-WHOLE-STAGE-REVIEW",
+  "stage_id": "S11",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "review_scope": {
+    "phase_ids": ["P01", "P02", "P03", "P04"],
+    "requirement_ids": ["REQ-S11-P01", "REQ-S11-P02", "REQ-S11-P03", "REQ-S11-P04"],
+    "acceptance_contract_ids": ["AC-S11-P01", "AC-S11-P02", "AC-S11-P03", "AC-S11-P04"],
+    "task_ids": [
+      "T-S11-P01-01", "T-S11-P01-02", "T-S11-P01-03",
+      "T-S11-P02-01", "T-S11-P02-02", "T-S11-P02-03",
+      "T-S11-P03-01", "T-S11-P03-02", "T-S11-P03-03",
+      "T-S11-P04-01", "T-S11-P04-02", "T-S11-P04-03"
+    ]
+  },
+  "phase_records": [
+    {
+      "phase_id": "P01",
+      "requirement_id": "REQ-S11-P01",
+      "acceptance_contract_id": "AC-S11-P01",
+      "target": "有效摩擦取默认与实测95分位较大者。",
+      "outputs": ["friction.py", "friction_model.json", "friction_backtest.json"],
+      "evidence_path": "machine/evidence/EVD-S11-P01.json",
+      "evidence_sha256": "4bf25a1a68e3078f512a7cbf0992285e2890d62b5284de24eefd750390b7e2f8",
+      "rollback_path": "machine/evidence/EVD-S11-P01_rollback.json",
+      "rollback_sha256": "24b22dbf26bd39184a5d84be3c55d8797464d40cb8616ce7a750763e33f7ca39",
+      "expected_decision": "FRICTION_READY_DOWNSTREAM_THRESHOLD_AND_RISK_GATES_REQUIRED",
+      "expected_next": "S11/P02_READY_NOT_STARTED"
+    },
+    {
+      "phase_id": "P02",
+      "requirement_id": "REQ-S11-P02",
+      "acceptance_contract_id": "AC-S11-P02",
+      "target": "所有阈值边界及万分之一扰动通过。",
+      "outputs": ["decision_gate.py", "evidence_tiers.json", "threshold_vectors.json"],
+      "evidence_path": "machine/evidence/EVD-S11-P02.json",
+      "evidence_sha256": "59e814b20d237eff982ff763bb3573ba8c129e6817c4c1cf61e273c366bab065",
+      "rollback_path": "machine/evidence/EVD-S11-P02_rollback.json",
+      "rollback_sha256": "f6f68ab4a8ac3ceac8a672c48fb7e965679845f2e47002a65e8d35c8cffab118",
+      "expected_decision": "EVIDENCE_TIER_AND_MINIMUM_ODDS_READY_DOWNSTREAM_PLATFORM_AND_RISK_GATES_REQUIRED",
+      "expected_next": "S11/P03_READY_NOT_STARTED"
+    },
+    {
+      "phase_id": "P03",
+      "requirement_id": "REQ-S11-P03",
+      "acceptance_contract_id": "AC-S11-P03",
+      "target": "只显示一个最高分且全部门通过的平台。",
+      "outputs": ["platform_router.py", "provider_score.json", "routing_fixtures.json"],
+      "evidence_path": "machine/evidence/EVD-S11-P03.json",
+      "evidence_sha256": "c3d0c61870a37e6c8ee3e71650008fdcf23d4bc2da4d1ec9e83e8e846a4b12d4",
+      "rollback_path": "machine/evidence/EVD-S11-P03_rollback.json",
+      "rollback_sha256": "59abddacdf3c055a4a7fff7d10a2aa9c1b2d3386e8358204c54d642ee62f3ac7",
+      "expected_decision": "UNIQUE_SYNTHETIC_PLATFORM_ROUTE_READY_DOWNSTREAM_CONSTRAINED_KELLY_AND_RISK_GATES_REQUIRED",
+      "expected_next": "S11/P04_READY_NOT_STARTED"
+    },
+    {
+      "phase_id": "P04",
+      "requirement_id": "REQ-S11-P04",
+      "acceptance_contract_id": "AC-S11-P04",
+      "target": "任意属性测试不能越过风险上限。",
+      "outputs": ["risk_engine.py", "correlation_graph.json", "risk_vectors.json"],
+      "evidence_path": "machine/evidence/EVD-S11-P04.json",
+      "evidence_sha256": "d9bc525ce3902cdda3ca6ad6253cc77ab69cddb4641b3d4d7e2c207f59c49ed2",
+      "rollback_path": "machine/evidence/EVD-S11-P04_rollback.json",
+      "rollback_sha256": "5d0ae695f8eb47c05d568a062a0cb4c8150fdc4757b8f7cf97f463ecaa504508",
+      "expected_decision": "CONSTRAINED_KELLY_RISK_CAPS_REPLAYED_SYNTHETIC_ONLY_STAGE_REVIEW_REQUIRED",
+      "expected_next": "S11/STAGE_REVIEW_READY_NOT_STARTED"
+    }
+  ],
+  "baseline_hashes": {
+    "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+    "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+    "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+    "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+  },
+  "review_gates": [
+    "PHASE_RECEIPTS_CURRENT_AND_PORTABLE",
+    "REQUIREMENT_ACCEPTANCE_TASK_TRACE_CLOSED",
+    "FRICTION_EXECUTABLE_NET_EXPECTATION_GATE_PRESERVED",
+    "EVIDENCE_TIER_MINIMUM_ODDS_AND_ONE_IN_TEN_THOUSAND_GATE_PRESERVED",
+    "UNIQUE_SYNTHETIC_PLATFORM_ROUTE_GATE_PRESERVED",
+    "CONSTRAINED_KELLY_CORRELATION_AND_RISK_CAPS_PRESERVED",
+    "NO_NETWORK_ORDER_OR_REAL_TIME_SOAK_EXECUTED",
+    "ALL_REVIEW_FINDINGS_RESOLVED",
+    "NO_FULL_REGRESSION_EXECUTED"
+  ],
+  "execution_policy": {
+    "offline_deterministic_only": true,
+    "phase_test_rerun_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "single_pass_fixture_cases_only": true,
+    "github_upload_performed_by_local_review": false,
+    "production_deployed_or_activated": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "targeted_test_command": "pytest -q tests/S11/stage_review_test.py",
+  "release_status_on_pass": "S11_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "next_on_pass": "S11/GITHUB_STAGE_UPLOAD_READY",
+  "next_on_fail": "S11/STAGE_REVIEW_REMEDIATION_REQUIRED",
+  "rollback": "关闭 S11 复审候选，保留 P01--P04 已签名证据并按对应 Phase 回滚合同重放；不修改冻结 Phase 基线或任何外部状态。"
+}

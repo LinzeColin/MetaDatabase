@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0.0",
+  "boundary_catalog_id": "S14-P01-TRUST-BOUNDARIES",
+  "contract_id": "AC-S14-P01",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "execution_mode": "FROZEN_SYNTHETIC_LOCAL_CONTRACT_ONLY",
+  "boundaries": [
+    {
+      "boundary_id": "BND-UNTRUSTED-CONTENT",
+      "threat_id": "THR-PROMPT-INJECTION",
+      "trusted_inputs": ["canonical_facts", "acceptance_contract"],
+      "untrusted_inputs": ["web_content", "mail_content", "model_input"],
+      "allowed_actions": ["PARSE_AS_DATA", "RECORD_PROVENANCE"],
+      "prohibited_actions": ["FOLLOW_CONTENT_INSTRUCTION", "ENABLE_EXTERNAL_ACTION"],
+      "violation_action": "REVOKE_AND_PRESERVE_EVIDENCE",
+      "control_ids": ["CTRL-PROMPT-TREAT-CONTENT-AS-DATA", "CTRL-PROMPT-RECORD-UNTRUSTED-PROVENANCE", "CTRL-PROMPT-REVOKE-ACTION", "CTRL-PROMPT-PRESERVE-EVIDENCE-REPLAY"]
+    },
+    {
+      "boundary_id": "BND-ATTACHMENT-QUARANTINE",
+      "threat_id": "THR-MALICIOUS-ATTACHMENT",
+      "trusted_inputs": ["parser_registry", "quarantine_rules"],
+      "untrusted_inputs": ["mail_attachment"],
+      "allowed_actions": ["SCAN_AND_QUARANTINE", "RECORD_RESULT"],
+      "prohibited_actions": ["EXECUTE_ATTACHMENT", "TRASH_ON_UNKNOWN"],
+      "violation_action": "KEEP_AND_ALERT",
+      "control_ids": ["CTRL-ATTACHMENT-QUARANTINE-NO-EXECUTION", "CTRL-ATTACHMENT-MALWARE-AND-PARSER-RESULT", "CTRL-ATTACHMENT-KEEP-AND-ALERT", "CTRL-ATTACHMENT-RESTORE-FROM-ARCHIVE"]
+    },
+    {
+      "boundary_id": "BND-CREDENTIAL-MATERIAL",
+      "threat_id": "THR-CREDENTIAL-EXPOSURE",
+      "trusted_inputs": ["production_secret_store"],
+      "untrusted_inputs": ["logs", "fixtures", "source_artifacts"],
+      "allowed_actions": ["REFER_TO_SECRET_CONTRACT_ONLY"],
+      "prohibited_actions": ["STORE_PLAINTEXT_SECRET", "READ_SECRET_IN_LOCAL_TEST"],
+      "violation_action": "DISABLE_EXPOSED_CAPABILITY",
+      "control_ids": ["CTRL-SECRET-NO-PLAINTEXT-IN-ARTIFACTS", "CTRL-SECRET-STATIC-PATTERN-REJECTION", "CTRL-SECRET-DISABLE-EXPOSED-CAPABILITY", "CTRL-SECRET-ROTATE-OUTSIDE-LOCAL-CONTRACT"]
+    },
+    {
+      "boundary_id": "BND-SOURCE-INTEGRITY",
+      "threat_id": "THR-DATA-POISONING",
+      "trusted_inputs": ["canonical_facts", "signed_source_receipt"],
+      "untrusted_inputs": ["external_source", "derived_dataset"],
+      "allowed_actions": ["HASH_AND_IDENTITY_VALIDATE", "RECORD_SOURCE_GAP"],
+      "prohibited_actions": ["PROMOTE_UNVERIFIED_SOURCE", "LOWER_EVIDENCE_GATE"],
+      "violation_action": "REVOKE_UNVERIFIED_INPUT",
+      "control_ids": ["CTRL-SOURCE-CANONICAL-PRECEDENCE", "CTRL-SOURCE-HASH-AND-IDENTITY-CHECK", "CTRL-SOURCE-REVOKE-UNVERIFIED-INPUT", "CTRL-SOURCE-RESTORE-SIGNED-STATE"]
+    },
+    {
+      "boundary_id": "BND-IDENTITY-BINDING",
+      "threat_id": "THR-IDENTITY-MISMATCH",
+      "trusted_inputs": ["signed_identity_registry"],
+      "untrusted_inputs": ["sender_identity", "visible_platform_fields"],
+      "allowed_actions": ["COMPARE_EXACT_IDENTITY_FIELDS"],
+      "prohibited_actions": ["ASSUME_IDENTITY_MATCH", "CONTINUE_ON_MISMATCH"],
+      "violation_action": "RED_REVOKE_NO_ACTION",
+      "control_ids": ["CTRL-IDENTITY-REQUIRE-EXACT-BINDING", "CTRL-IDENTITY-MISMATCH-RED-REVOKE", "CTRL-IDENTITY-NO-ACTION-ON-MISMATCH", "CTRL-IDENTITY-REPLAY-SIGNED-REGISTRY"]
+    },
+    {
+      "boundary_id": "BND-EVIDENCE-CHAIN",
+      "threat_id": "THR-FALSE-EVIDENCE",
+      "trusted_inputs": ["signed_receipt", "artifact_manifest", "evidence_index"],
+      "untrusted_inputs": ["derived_report", "unverified_claim"],
+      "allowed_actions": ["HASH_CROSSCHECK", "PRESERVE_REPLAY_INPUT"],
+      "prohibited_actions": ["CLAIM_UNVERIFIED_RESULT", "REPLACE_SIGNED_EVIDENCE"],
+      "violation_action": "REJECT_CLAIM_AND_PRESERVE_RECORD",
+      "control_ids": ["CTRL-EVIDENCE-IMMUTABLE-HASH-PIN", "CTRL-EVIDENCE-INDEX-ARTIFACT-CROSSCHECK", "CTRL-EVIDENCE-REJECT-UNVERIFIABLE-CLAIM", "CTRL-EVIDENCE-PRESERVE-AND-REPLAY"]
+    },
+    {
+      "boundary_id": "BND-OWNER-EXTERNAL-ACTION",
+      "threat_id": "THR-UNAUTHORIZED-EXTERNAL-ACTION",
+      "trusted_inputs": ["owner_final_order"],
+      "untrusted_inputs": ["automation_output", "operator_interface"],
+      "allowed_actions": ["DISPLAY_LOCAL_STATUS", "RECORD_NO_ACTION"],
+      "prohibited_actions": ["AUTO_EXTERNAL_ACTION", "RETRY_EXTERNAL_ACTION"],
+      "violation_action": "DISABLE_AND_PRESERVE_EVIDENCE",
+      "control_ids": ["CTRL-ACTION-OWNER-FINAL-ORDER-ONLY", "CTRL-ACTION-STATIC-NO-EXTERNAL-CAPABILITY", "CTRL-ACTION-DISABLE-AND-NO-RETRY", "CTRL-ACTION-LOCAL-ROLLBACK-PRESERVE-EVIDENCE"]
+    }
+  ]
+}

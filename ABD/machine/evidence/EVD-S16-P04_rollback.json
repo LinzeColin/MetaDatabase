@@ -1,0 +1,60 @@
+{
+  "artifacts": {
+    "abd_acceptance/model_release_engine.py": {
+      "sha256": "c61c04ba6e3ff40d93f8b622346b488b64dd45ecf3f98b3d13171f63cc60935b",
+      "status": "PASS"
+    },
+    "abd_acceptance/model_release_gate.py": {
+      "sha256": "0457b12ff198803c065a5adc978d7d4bb963e145a838fdd9c7a9b288f819940c",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S15-P04.json": {
+      "sha256": "3fd288e66d3c473881dc92257992eb41b85422a5c0aaa92f1ff00e202a15feda",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S15-STAGE-REVIEW.json": {
+      "sha256": "1422ca3d52f66d30cb39c7431d928486a0b5d3d0750d45327b7896d03695b9c7",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S16-P03.json": {
+      "sha256": "d86c3a811022a14afa76457051dcf575e91c330bd7171c052d7cf1b849b5739d",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S16_P04.json": {
+      "sha256": "be9f808755948b01eb8a7385ae08c0eea8d18fa2feced05a2469b28ec53a72fe",
+      "status": "PASS"
+    },
+    "model_release_gate.json": {
+      "sha256": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+      "status": "PASS"
+    },
+    "model_release_gate.py": {
+      "sha256": "5065b1345a068afd6c5d11cc959a2f561a71b1b6a151763474eeebe29365acd7",
+      "status": "PASS"
+    },
+    "model_system_card.json": {
+      "sha256": "9661226458f047bdf41e42ffe317bec768f250f1f23c6272e519a1fc94098b66",
+      "status": "PASS"
+    },
+    "tests/S16/P04_test.py": {
+      "sha256": "82e7632bffb0517a2916ae1c22c94eb0b0249620e0418548d45b0d6a63295d98",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S16-P04",
+  "evidence_id": "EVD-S16-P04-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "model:s16_system_card_dual_release_gate",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_S16_P04_CARD_AND_GATE_KEEP_MODEL_BLOCKED_NOT_DEPLOYED",
+  "model_activation_enabled": false,
+  "model_promotion_allowed": false,
+  "model_weight_changed": false,
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_account_balance_read_or_written": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

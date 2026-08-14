@@ -1,0 +1,66 @@
+{
+  "advice_usable_seconds": {
+    "0_to_15m": 15,
+    "15m_to_2h": 45,
+    "2h_to_24h": 240,
+    "live": 8,
+    "more_than_24h": 1500
+  },
+  "artifact_id": "ART-S11-P03-01",
+  "contract_id": "AC-S11-P03",
+  "decision": "FROZEN_SYNTHETIC_PLATFORM_SCORE_POLICY_READY",
+  "external_effect_boundary": {
+    "actual_market_or_odds_observed": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "hard_gates": {
+    "action_channel_must_be_available": true,
+    "adverse_stability_must_preserve_action_and_provider": true,
+    "minimum_stake_must_not_exceed_routing_stake": true,
+    "observed_odds_must_meet_minimum": true,
+    "p02_candidate_action_required": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+    "routing_stake_must_align_to_provider_increment": true,
+    "score_must_be_strictly_positive": true,
+    "settlement_rules_must_be_clear": true,
+    "source_contract_must_pass": true,
+    "unique_highest_score_required": true
+  },
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "next": "S11/P03_ROUTING_REPLAY_REQUIRED",
+  "numeric_determinism": {
+    "decimal_precision_digits": 50,
+    "money_storage": "INTEGER_CENTS",
+    "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+    "odds_storage_scale": "1e-6",
+    "penalty_perturbation": "0.0001",
+    "return_perturbation": "0.0001",
+    "score_scale": "1e-12",
+    "time_perturbation_seconds": 2,
+    "unstable_action": "NO_RECOMMENDATION"
+  },
+  "penalty_policy": "ALL_PENALTIES_ARE_FROZEN_SYNTHETIC_CONSERVATIVE_UPPER_BOUNDS",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "provider_score_id": "SCORE-S11-P03-PLATFORM",
+  "quote_usable_seconds": {
+    "0_to_15m": 30,
+    "15m_to_2h": 90,
+    "2h_to_24h": 420,
+    "live": 12,
+    "more_than_24h": 2100
+  },
+  "requirement_id": "REQ-S11-P03",
+  "schema_version": "1.0.0",
+  "score_formula": "S_platform = r_L - P_stale - P_settlement - P_minimum_stake - P_action_friction",
+  "stage_id": "S11"
+}

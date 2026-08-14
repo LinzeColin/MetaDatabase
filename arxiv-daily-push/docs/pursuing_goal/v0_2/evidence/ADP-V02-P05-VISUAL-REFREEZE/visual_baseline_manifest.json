@@ -5,7 +5,7 @@
     "live_build_id": "b189d3cc0703"
   },
   "iteration": "ITER-20260719-ADP-V02-INTEGRATE",
-  "live_build_id": "204c97eb5406",
+  "live_build_id": "d6d4d0471597",
   "release_mode": "PRODUCTION",
   "worker_source": "arxiv-daily-push/deploy/cloudflare/worker_cloud.js",
   "themes": [
@@ -2494,13 +2494,15 @@
   "drifted_since_t077": [
     "base_css",
     "keyframes",
-    "master_visual"
+    "master_visual",
+    "page_shell"
   ],
   "unexplained_drift": [],
   "attribution": {
     "base_css": "T079 (mobile overflow: .card overflow-wrap, img/svg/video max-width, <=520px table scroll) + T080 (component-state matrix: :active/:disabled/[aria-busy]/:focus-visible/[data-state]/undo). Both documented base-CSS-only, independently reviewed, and deployed.",
     "keyframes": "T082 (ambient-motion perf: the cosmos meteor keyframe converted from layout-animating left/top to a screen-path-equivalent transform:translate so every ambient loop is compositor-safe). Documented as the ONLY contract element T082 changed; reviewed and deployed.",
-    "master_visual": "aggregate hash over the whole theme/motion surface -- moves iff a component moves; attributable because base_css and keyframes are."
+    "master_visual": "aggregate hash over the whole theme/motion surface -- moves iff a component moves; attributable because base_css, keyframes and page_shell are.",
+    "page_shell": "P18 (f21f16887, 2026-07-19, deploy 9b97…) —— PAGE 模板里 <title> 的 esc(opts.title) 改成 esc(deMath(opts.title))，剥掉标题里的内联 LaTeX 定界符。逐提交追踪确认：基线冻结后 17 个动过 worker 的提交里，page_shell 只在 f21f16887 变过一次，之后再没动过（含 #177/#184/#189 三个 PR）；对 PAGE 模板做 unified diff 恰好 2 行、只有 <title> 那一行。属排版正确性修复，与六主题视觉身份无关，且已上线 24 天。"
   },
   "per_theme_identity_unchanged_since_t077": true,
   "asset_hashes": {
@@ -2512,7 +2514,7 @@
       "cosmos": "sha256:4de56de407c595fbfeed7f8c62c9f5a2993ed712d49542da9b05fc4d0605b5eb",
       "forest": "sha256:67fd28c35736963effc5067d14136e034dd5d7fdbf24780934d1f63cf318b13d"
     },
-    "master_visual": "sha256:835ab841a5b263d8fe048f9d899f93a35bf441d4c59aee1cf95b61dbd7fe945a",
+    "master_visual": "sha256:6e629e97ccd82cf30e7f4fe333eda210171f92e0555dd4ff406d11e2308e09d3",
     "reduced_motion": "sha256:955ba7cf8282fcef2686ea8c4f1b4d495e41e7f6246492268f8e5f4dbb080201",
     "keyframes": "sha256:097ecb77b50c14fe5f2a7e6327d6f4de69c4df7fef688dfb1551b45c8f1b5191",
     "fx_layers": "sha256:b7a69fb87a4911d4b4eb2c2cf946559cc2de0e46470364f5dfd6ee6e9a53f1bb",
@@ -2521,7 +2523,7 @@
     "dom_producers": "sha256:849724ac5f18686c26250948468536b6640a44df8a53478b17129c9e2b7cef31",
     "hero_section_fn": "sha256:7c0d5a729b33622ca3db19255f3a47eb24a866d2f63e221b2199fab9db732b84",
     "hero_video_assets": "sha256:fb2df237f7278b151dd97ed7d9605f5fdb367236fe67dff7cf566976eb3f58d3",
-    "page_shell": "sha256:d5c96556fef92ada3e2aa4ae6f36ff49e50ce40f10f98d0f858cb465a728032c",
+    "page_shell": "sha256:3c277a538921768ba531308575314f64c73bdbf762e1ea424da42f6e4b6128a3",
     "theme_options": "sha256:fdc4f6bb44992adf4b3339c35b3f47771cc8af3763fe0e300f42d042bdab2b4e",
     "hero_wiring": "sha256:7a192a5bd4d7198fafd2919fd29d6cd71e55ef7ea87d2d20c1565ab497f1819b",
     "theme_js": "sha256:01fc54f5b047811a01eae91ec3bb46c7838d8929856729b554fd78d02a21c812",

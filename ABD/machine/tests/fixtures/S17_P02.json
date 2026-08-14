@@ -1,0 +1,295 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIXTURE-S17-P02-001",
+  "contract_id": "AC-S17-P02",
+  "requirement_id": "REQ-S17-P02",
+  "stage_id": "S17",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-10T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_LOGICAL_CONCURRENCY_RETRY_IDEMPOTENCY_NOT_RUNTIME",
+  "baseline_hashes": {
+    "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+    "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+    "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+    "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+  },
+  "predecessor": {
+    "contract_id": "AC-S17-P01",
+    "evidence_path": "machine/evidence/EVD-S17-P01.json",
+    "evidence_sha256": "2f8cc9265cea7eec0e28d6ae0608ba6548a75378d28b850e639509465bff2fa9",
+    "status": "PASS",
+    "next": "S17/P02_READY_NOT_STARTED"
+  },
+  "idempotency_policy": {
+    "scheduler": "FROZEN_LOGICAL_LANE_SCHEDULER_NOT_RUNTIME_CONCURRENCY",
+    "idempotency_key_scope": "ONE_LOCAL_SYNTHETIC_LEDGER_PROJECTION_PER_KEY_AND_PAYLOAD",
+    "timeout_policy": "TIMEOUT_BEFORE_COMMIT_HAS_NO_STATE_CHANGE",
+    "key_conflict_policy": "QUARANTINE_NO_RECOMMENDATION_NO_ORDER",
+    "duplicate_suggestion_max": 0,
+    "duplicate_ledger_event_max": 0,
+    "adverse_probability_delta": "0.0001",
+    "adverse_odds_rule": "ONE_PROVIDER_TICK_ADVERSE",
+    "recommendation_enabled": false,
+    "order_submission_enabled": false
+  },
+  "scenarios": [
+    {
+      "scenario_id": "ORDERED_SINGLE",
+      "operations": [
+        {
+          "operation_id": "S17P02_ORDERED_001",
+          "logical_clock": 10,
+          "lane": 0,
+          "attempt": 1,
+          "idempotency_key": "S17P02_ORDERED_KEY_001",
+          "payload": {
+            "event_type": "NO_RECOMMENDATION_AUDIT",
+            "odds_tick_delta": 0,
+            "probability_delta": "0.0000",
+            "source_version": "0.0.0.1"
+          },
+          "fault": "NONE"
+        }
+      ],
+      "expected": {
+        "input_attempt_count": 1,
+        "accepted_local_projection_count": 1,
+        "suppressed_duplicate_attempt_count": 0,
+        "timeout_no_state_change_count": 0,
+        "quarantined_key_conflict_count": 0
+      }
+    },
+    {
+      "scenario_id": "FAN_IN_DUPLICATE_8",
+      "operations": [
+        {
+          "operation_id": "S17P02_FANIN_001",
+          "logical_clock": 20,
+          "lane": 0,
+          "attempt": 1,
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": 0, "probability_delta": "0.0000", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        },
+        {
+          "operation_id": "S17P02_FANIN_002",
+          "logical_clock": 20,
+          "lane": 1,
+          "attempt": 2,
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": 0, "probability_delta": "0.0000", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        },
+        {
+          "operation_id": "S17P02_FANIN_003",
+          "logical_clock": 20,
+          "lane": 2,
+          "attempt": 3,
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": 0, "probability_delta": "0.0000", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        },
+        {
+          "operation_id": "S17P02_FANIN_004",
+          "logical_clock": 20,
+          "lane": 3,
+          "attempt": 4,
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": 0, "probability_delta": "0.0000", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        },
+        {
+          "operation_id": "S17P02_FANIN_005",
+          "logical_clock": 20,
+          "lane": 4,
+          "attempt": 5,
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": 0, "probability_delta": "0.0000", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        },
+        {
+          "operation_id": "S17P02_FANIN_006",
+          "logical_clock": 20,
+          "lane": 5,
+          "attempt": 6,
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": 0, "probability_delta": "0.0000", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        },
+        {
+          "operation_id": "S17P02_FANIN_007",
+          "logical_clock": 20,
+          "lane": 6,
+          "attempt": 7,
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": 0, "probability_delta": "0.0000", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        },
+        {
+          "operation_id": "S17P02_FANIN_008",
+          "logical_clock": 20,
+          "lane": 7,
+          "attempt": 8,
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": 0, "probability_delta": "0.0000", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        }
+      ],
+      "expected": {
+        "input_attempt_count": 8,
+        "accepted_local_projection_count": 1,
+        "suppressed_duplicate_attempt_count": 7,
+        "timeout_no_state_change_count": 0,
+        "quarantined_key_conflict_count": 0
+      }
+    },
+    {
+      "scenario_id": "OUT_OF_ORDER_DELAYED",
+      "operations": [
+        {
+          "operation_id": "S17P02_OOO_002",
+          "logical_clock": 42,
+          "lane": 0,
+          "attempt": 1,
+          "idempotency_key": "S17P02_OOO_KEY_002",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": 0, "probability_delta": "0.0000", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        },
+        {
+          "operation_id": "S17P02_OOO_001",
+          "logical_clock": 41,
+          "lane": 0,
+          "attempt": 1,
+          "idempotency_key": "S17P02_OOO_KEY_001",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": 0, "probability_delta": "0.0000", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        },
+        {
+          "operation_id": "S17P02_OOO_003",
+          "logical_clock": 42,
+          "lane": 1,
+          "attempt": 2,
+          "idempotency_key": "S17P02_OOO_KEY_002",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": 0, "probability_delta": "0.0000", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        }
+      ],
+      "expected": {
+        "input_attempt_count": 3,
+        "accepted_local_projection_count": 2,
+        "suppressed_duplicate_attempt_count": 1,
+        "timeout_no_state_change_count": 0,
+        "quarantined_key_conflict_count": 0
+      }
+    },
+    {
+      "scenario_id": "TIMEOUT_RETRY",
+      "operations": [
+        {
+          "operation_id": "S17P02_TIMEOUT_001",
+          "logical_clock": 50,
+          "lane": 0,
+          "attempt": 1,
+          "idempotency_key": "S17P02_TIMEOUT_KEY_001",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": 0, "probability_delta": "0.0000", "source_version": "0.0.0.1"},
+          "fault": "TIMEOUT_BEFORE_COMMIT"
+        },
+        {
+          "operation_id": "S17P02_TIMEOUT_002",
+          "logical_clock": 51,
+          "lane": 0,
+          "attempt": 2,
+          "idempotency_key": "S17P02_TIMEOUT_KEY_001",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": 0, "probability_delta": "0.0000", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        },
+        {
+          "operation_id": "S17P02_TIMEOUT_003",
+          "logical_clock": 52,
+          "lane": 1,
+          "attempt": 3,
+          "idempotency_key": "S17P02_TIMEOUT_KEY_001",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": 0, "probability_delta": "0.0000", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        }
+      ],
+      "expected": {
+        "input_attempt_count": 3,
+        "accepted_local_projection_count": 1,
+        "suppressed_duplicate_attempt_count": 1,
+        "timeout_no_state_change_count": 1,
+        "quarantined_key_conflict_count": 0
+      }
+    },
+    {
+      "scenario_id": "CONFLICT_QUARANTINE",
+      "operations": [
+        {
+          "operation_id": "S17P02_CONFLICT_001",
+          "logical_clock": 60,
+          "lane": 0,
+          "attempt": 1,
+          "idempotency_key": "S17P02_CONFLICT_KEY_001",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": -1, "probability_delta": "-0.0001", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        },
+        {
+          "operation_id": "S17P02_CONFLICT_002",
+          "logical_clock": 60,
+          "lane": 1,
+          "attempt": 2,
+          "idempotency_key": "S17P02_CONFLICT_KEY_001",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": -1, "probability_delta": "0.0001", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        }
+      ],
+      "expected": {
+        "input_attempt_count": 2,
+        "accepted_local_projection_count": 1,
+        "suppressed_duplicate_attempt_count": 0,
+        "timeout_no_state_change_count": 0,
+        "quarantined_key_conflict_count": 1
+      }
+    },
+    {
+      "scenario_id": "BOUNDARY_PLUS_MINUS_0001",
+      "operations": [
+        {
+          "operation_id": "S17P02_BOUNDARY_001",
+          "logical_clock": 70,
+          "lane": 0,
+          "attempt": 1,
+          "idempotency_key": "S17P02_BOUNDARY_KEY_001",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": -1, "probability_delta": "-0.0001", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        },
+        {
+          "operation_id": "S17P02_BOUNDARY_002",
+          "logical_clock": 71,
+          "lane": 0,
+          "attempt": 1,
+          "idempotency_key": "S17P02_BOUNDARY_KEY_002",
+          "payload": {"event_type": "NO_RECOMMENDATION_AUDIT", "odds_tick_delta": 0, "probability_delta": "0.0001", "source_version": "0.0.0.1"},
+          "fault": "NONE"
+        }
+      ],
+      "expected": {
+        "input_attempt_count": 2,
+        "accepted_local_projection_count": 2,
+        "suppressed_duplicate_attempt_count": 0,
+        "timeout_no_state_change_count": 0,
+        "quarantined_key_conflict_count": 0
+      }
+    }
+  ],
+  "expected_decision": "S17_P02_IDEMPOTENCY_PASS_P03_REQUIRED",
+  "expected_next": "S17/P03_READY_NOT_STARTED",
+  "minimum_targeted_pytest_cases": 28
+}

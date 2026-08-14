@@ -1,0 +1,23 @@
+{
+  "task": "T16",
+  "claim": "耐久性在新制品进来之后依然成立：**552 / 552 个制品，每一个都有三份已验证副本**（R2 + OCI + GitHub Release）。零缺副本、零不足三份、零失败。",
+  "invariant": "INV-REVERSIBLE / 数据不能只有一份",
+  "measured_at": "2026-08-04",
+
+  "why_re_measured": "T16 收工时的数字是 549/549。这一天里我补了 79 条 markdown 导出、复活了 34 个媒体下载任务，制品从 549 涨到 552。**「当时全了」不等于「现在还全」**——增量进来之后没人再数过。",
+
+  "measurement": {
+    "artifact_total": 552,
+    "by_store": {"r2": "verified 552", "oci": "verified 552", "github": "verified 552"},
+    "replicas_per_artifact": "3 份 → 552 个制品（没有 0/1/2 份的）",
+    "artifacts_with_zero_verified_replica": 0,
+    "artifacts_under_three": 0,
+    "non_verified_rows": "无（object_replica 里没有任何 status != verified 的行）"
+  },
+
+  "what_this_does_not_prove": [
+    "不证明那三份副本**现在**还能取回来。这次数的是库里的登记状态（status=verified + verified_sha256），**没有重跑取回演练**。T16 当时对三个仓各做过一次真实取回并核对过哈希；这次没有。",
+    "不证明新制品的复制是自动跟上的。552 与 549 之差只有 3 个，可能正好赶上定时器；**没有专门做「刚产生的制品多久有三份」的测量**。",
+    "不证明副本内容与本地一致。verified_sha256 是登记值，这次只比对了「有没有」，没有重新下载比对。"
+  ]
+}

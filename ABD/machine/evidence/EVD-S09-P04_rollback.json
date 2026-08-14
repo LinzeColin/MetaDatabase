@@ -1,0 +1,57 @@
+{
+  "artifacts": {
+    "abd_acceptance/__init__.py": {
+      "sha256": "73c938eca7294d2dc03d604344d85031d4164aef5a02990dd0d884af3e8f44d1",
+      "status": "PASS"
+    },
+    "abd_acceptance/__main__.py": {
+      "sha256": "44096a17cfe0a183129b7b8e23be58389573a68cd9b39813f58f04000b8b7f8b",
+      "status": "PASS"
+    },
+    "abd_acceptance/multi_sport_fallback.py": {
+      "sha256": "e5b1ff31d7741c1aed5879e53dd16df52c92eebf868c77c1e3b13982ee454793",
+      "status": "PASS"
+    },
+    "baseball_model.py": {
+      "sha256": "9c3d4c96c0b091c417b7a7fb26e4934b2759935830424fa2e0e23f8a1c27f9f4",
+      "status": "PASS"
+    },
+    "basketball_model.py": {
+      "sha256": "4e08ae49001dfac763efe74d085f1cff22908e6be8efad0d12bcb85a5902f349",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S09_P04.json": {
+      "sha256": "c0845e20c29f157ceec7b8b0c342036b249b94da6034705726ecfa2d1601a817",
+      "status": "PASS"
+    },
+    "niche_fallback.json": {
+      "sha256": "2c3bf6bd36af747a1efb5b3d931a2d2953675d330d7cbe1f1131a15528836887",
+      "status": "PASS"
+    },
+    "racing_model.py": {
+      "sha256": "195f7a2bcaf9a82fa9d25a4a96775093fa9408d0a3a885aa7558fd69d12c3301",
+      "status": "PASS"
+    },
+    "tests/S09/P04_test.py": {
+      "sha256": "dffbc347e8c3c2c8f922ce9f3b2a46251bfeb81c433ce1f7cefb5034ba49be0a",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S09-P04",
+  "evidence_id": "EVD-S09-P04-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flags": [
+    "model:racing_plackett_luce_harville",
+    "model:basketball_pace_efficiency",
+    "model:baseball_pitcher_bullpen",
+    "policy:niche_market_only"
+  ],
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_MULTISPORT_SCOPED_FLAGS_RESTORE_P03_RECEIPT_KEEP_ALL_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

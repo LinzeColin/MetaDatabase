@@ -1,0 +1,171 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S09/P01/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S09/P01_test.py --junitxml=machine/evidence/S09/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S09/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S09-P01 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S09-P01",
+  "decision": "MARKET_ANCHORED_RESIDUAL_BASELINE_READY_DOWNSTREAM_GATES_REQUIRED",
+  "decision_sha256": "786a90e8a49f961aa3a6b7fdba5119047447e508e1656cf6906ea76c65465307",
+  "deterministic_replay": {
+    "adverse_perturbation_iterations": 10000,
+    "real_time_wait_performed": false,
+    "replay_iterations": 100
+  },
+  "evidence_id": "EVD-S09-P01",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "hashes": {
+    "code": "925dfa4288d222179b3150cb834aebc54a9a9c367950ed8be4ac47f429eea968",
+    "inputs": {
+      "abd_acceptance/generic_residual.py": "925dfa4288d222179b3150cb834aebc54a9a9c367950ed8be4ac47f429eea968",
+      "generic_residual.py": "f21e553c673df881f88e6454ff4e5c7cacc2b79c3d8a1a8f034fa3f247426a06",
+      "machine/evidence/EVD-S02-P04.json": "062d4bf5cfbc5e63c3fb454874a8f6a10cbaa67ad84c8ea9fc77fe64b81f633f",
+      "machine/evidence/EVD-S07-P04.json": "a2fa2f72c069050ed7045f7e7c3cbe5928664bee4e91d1307169b19d466a6fa6",
+      "machine/evidence/S09/P01/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S09/P01/pytest.xml": "6e9b55249c3de73e8677068e8147501d4689950604ec353bff25b09858161d42",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S09_P01.json": "bc7d7bde116a7a3ab6307d928726b3a3c766a7130ab620b04fe79ae71b83e2f3",
+      "market_family_registry.json": "b61486138f221ec8ef54f30359867cc9f84049df33cf21548f5988519cd58930",
+      "tests/S09/P01_test.py": "6b6bc6de2305ff999df1fabe8e0224bae80972e19174a97b418c9cf8feefe27c"
+    },
+    "rollback_evidence": "208b14e59992a78505f6f79a6b7e4b6b704059a38bbe1649e7016e9bbd5f8199"
+  },
+  "next": "S09/P02_READY_NOT_STARTED",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S09_P01_LOCAL_EVIDENCE_ONLY_STAGE_REVIEW_REQUIRED_BEFORE_UPLOAD",
+  "requirement_id": "REQ-S09-P01",
+  "rollback": {
+    "artifacts": {
+      "abd_acceptance/__init__.py": {
+        "sha256": "a4cf74175db69b8df4bf6d3e711cf06af34d8e01d88efa5f9a19108c75ff58b3",
+        "status": "PASS"
+      },
+      "abd_acceptance/__main__.py": {
+        "sha256": "451348648d4ee93ebbc14e7301a8a6f105498fc91ab73379324fc8512aca4af3",
+        "status": "PASS"
+      },
+      "abd_acceptance/generic_residual.py": {
+        "sha256": "925dfa4288d222179b3150cb834aebc54a9a9c367950ed8be4ac47f429eea968",
+        "status": "PASS"
+      },
+      "generic_residual.py": {
+        "sha256": "f21e553c673df881f88e6454ff4e5c7cacc2b79c3d8a1a8f034fa3f247426a06",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S09_P01.json": {
+        "sha256": "bc7d7bde116a7a3ab6307d928726b3a3c766a7130ab620b04fe79ae71b83e2f3",
+        "status": "PASS"
+      },
+      "market_family_registry.json": {
+        "sha256": "b61486138f221ec8ef54f30359867cc9f84049df33cf21548f5988519cd58930",
+        "status": "PASS"
+      },
+      "tests/S09/P01_test.py": {
+        "sha256": "6b6bc6de2305ff999df1fabe8e0224bae80972e19174a97b418c9cf8feefe27c",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S09-P01",
+    "evidence_id": "EVD-S09-P01-ROLLBACK",
+    "external_state_changed": false,
+    "feature_flag_id": "model:generic_residual",
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_MODEL_GENERIC_RESIDUAL_SCOPED_FLAG_RESTORE_PREDECESSOR_RECEIPTS_KEEP_ALL_EVIDENCE",
+    "order_submission_enabled": false,
+    "production_state_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "shared_runtime_contract": {
+    "current_validation": "evaluate_contract",
+    "paths_excluded_from_receipt_input_hashes": [
+      "abd_acceptance/__main__.py",
+      "abd_acceptance/__init__.py"
+    ],
+    "reason": "downstream dispatcher or bootstrap evolution must not invalidate phase-owned evidence"
+  },
+  "stage_id": "S09",
+  "status": "PASS",
+  "validation": {
+    "contract_id": "AC-S09-P01",
+    "decision": "MARKET_ANCHORED_RESIDUAL_BASELINE_READY_DOWNSTREAM_GATES_REQUIRED",
+    "external_effect_boundary": {
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submission_enabled": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_market_or_odds_observed": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-30T00:00:00+10:00",
+    "hashes": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/generic_residual.py": "925dfa4288d222179b3150cb834aebc54a9a9c367950ed8be4ac47f429eea968",
+      "generic_residual.py": "f21e553c673df881f88e6454ff4e5c7cacc2b79c3d8a1a8f034fa3f247426a06",
+      "machine/evidence/EVD-S02-P04.json": "062d4bf5cfbc5e63c3fb454874a8f6a10cbaa67ad84c8ea9fc77fe64b81f633f",
+      "machine/evidence/EVD-S07-P04.json": "a2fa2f72c069050ed7045f7e7c3cbe5928664bee4e91d1307169b19d466a6fa6",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S09_P01.json": "bc7d7bde116a7a3ab6307d928726b3a3c766a7130ab620b04fe79ae71b83e2f3",
+      "market_family_registry.json": "b61486138f221ec8ef54f30359867cc9f84049df33cf21548f5988519cd58930",
+      "tests/S09/P01_test.py": "6b6bc6de2305ff999df1fabe8e0224bae80972e19174a97b418c9cf8feefe27c"
+    },
+    "next": "S09/P02_READY_NOT_STARTED",
+    "phase_id": "P01",
+    "product_version": "0.0.0.1",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "requirement_id": "REQ-S09-P01",
+    "schema_version": "1.0.0",
+    "stage_id": "S09",
+    "status": "PASS",
+    "summary": {
+      "checks": 38,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 38
+    }
+  }
+}

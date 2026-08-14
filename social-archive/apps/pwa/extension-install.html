@@ -22,28 +22,239 @@
     li strong { display:block; margin-bottom:8px; font-size:1.08rem; }
     li p { margin:0; color:#4b554f; line-height:1.55; }
     code { padding:2px 7px; border-radius:6px; background:var(--soft); font-family:"SFMono-Regular",Menlo,monospace; overflow-wrap:anywhere; }
+    /* 实时检测条（v0.0.0.7）。原来这一页是纯静态的：装好了也不会有任何反应，
+       用户只能自己猜「好了没有」，然后手动切回去。 */
+    .detect { display:flex; align-items:center; gap:12px; margin:0 0 26px; padding:16px 20px;
+              border:1px solid var(--line); border-radius:16px; background:rgba(255,253,248,.9); font-weight:600; }
+    .detect .dot { width:11px; height:11px; border-radius:50%; background:#b8a98f; flex:none;
+                   box-shadow:0 0 0 5px rgba(184,169,143,.18); }
+    .detect.ready { border-color:var(--green); background:var(--soft); }
+    .detect.ready .dot { background:var(--green); box-shadow:0 0 0 5px rgba(23,104,79,.18); }
     .privacy { margin-top:22px; padding:18px 20px; border-left:4px solid var(--green); border-radius:12px; background:var(--soft); line-height:1.6; }
+    .fixit { margin-top:18px; padding:14px 18px; border-radius:12px; background:var(--soft); line-height:1.6; }
+    .fixit summary { cursor:pointer; font-weight:600; }
+    .fixit p { margin:10px 0 0; }
     @media (max-width:680px) { main{padding-top:30px} ol{grid-template-columns:1fr} li{min-height:auto} }
   </style>
 </head>
 <body>
   <main>
-    <p class="eyebrow">Social Archive v0.0.0.6 · 免费安装</p>
-    <h1>五分钟装好，之后看到好内容只点一下。</h1>
-    <p class="lead">Chrome Web Store 上架前使用官方 ZIP 安装包。下面六步不需要命令行，也不用填写服务器、端口或 Token。</p>
+    <p class="eyebrow" id="eyebrow">Social Archive · 免费安装</p>
+    <h1 id="headline">正在看你这台电脑上是什么情况…</h1>
+    <p class="lead" id="lead"><strong>浏览器不允许网页替你安装或更新扩展</strong>——这几下只能你自己点。
+      这一页会先认一认你现在的状态，再只给你该做的那几步。</p>
+    <div class="detect" id="detect"><span class="dot"></span><span id="detectText">正在检测插件…</span></div>
     <div class="actions">
-      <a class="button" href="/downloads/social-archive-extension.zip" download>1. 下载官方安装包</a>
-      <a class="button secondary" href="/home">返回 Social Archive</a>
+      <a class="button" id="downloadBtn" href="/downloads/social-archive-extension.zip" download>先下载安装包</a>
+      <!-- 原来这里写的是 href="/home"，而**那个地址回 404**（2026-08-06 实测）。
+           首页就是 "/"。一个「返回」按钮把人送进 404，比没有按钮更糟。 -->
+      <a class="button secondary" href="/">返回资料库</a>
     </div>
-    <ol aria-label="Chrome 插件安装步骤">
-      <li><strong>解压下载的 ZIP</strong><p>在“下载”文件夹双击解压 ZIP，得到一个插件文件夹。</p></li>
+    <section id="updateBlock" hidden>
+      <h2 style="font-size:19px;margin:26px 0 6px">你已经装过了，这次只需要<strong>换掉里面的文件</strong></h2>
+      <p class="lead" style="margin:0 0 14px">下面每一步都实测过。<strong>关键是那个文件夹的位置不能变</strong>——
+        位置一变，Chrome 会把它当成另一个插件，你已经连好的凭据会留在旧的那个上。</p>
+      <ol aria-label="Chrome 插件更新步骤">
+        <li><strong>下载新版安装包</strong>
+          <p>就是上面那颗「先下载安装包」。下载完双击解压。</p></li>
+        <li><strong>把解压出来的文件，覆盖进你原来那个插件文件夹</strong>
+          <p><strong>不要新建文件夹，也不要换地方。</strong>把新解压出来的那些文件，
+            直接盖进你当初放在“文稿”里的那个插件文件夹（系统问「是否替换」就选替换）。</p>
+          <p>忘了它在哪？打开 <code>chrome://extensions</code>，Social Archive 那一项里
+            写着它的文件夹位置。</p></li>
+        <li><strong>点一下「重新加载」</strong>
+          <p>在 <code>chrome://extensions</code> 上找到 Social Archive 那一项，
+            点它的<strong>重新加载（⟳）</strong>按钮。</p></li>
+        <li><strong>回到本页</strong>
+          <p>版本对上了，上面那一条会自动变绿并把你送回资料库。
+            <strong>你不需要自己判断成没成。</strong></p></li>
+      </ol>
+      <p class="privacy" style="margin-top:14px"><strong>别做这一件事：</strong>
+        更新时<strong>不要再点一次「加载已解压的扩展程序」</strong>去装新文件夹。
+        实测过：换一个文件夹装，Chrome 会给它一个<strong>新的插件 ID</strong>——
+        等于你同时装了两个插件，而已经连好的凭据留在旧的那个上，新的那个还得重连一次。
+        在原文件夹里覆盖再重新加载，<strong>ID 不变、凭据也还在</strong>。</p>
+    </section>
+    <ol id="installSteps" aria-label="Chrome 插件安装步骤">
+      <li><strong>解压 ZIP，并把文件夹放到“文稿”里</strong>
+        <p>双击解压得到一个插件文件夹，<strong>把它拖进“文稿”（Documents）</strong>再往下做。
+          Chrome 是<strong>直接读这个文件夹</strong>运行插件的——留在“下载”里，
+          哪天你清理下载或清空废纸篓，插件就会坏掉。</p></li>
       <li><strong>打开扩展管理页</strong><p>在 Chrome 地址栏输入 <code>chrome://extensions</code> 并回车。</p></li>
       <li><strong>打开开发者模式</strong><p>点击页面右上角“开发者模式”开关。</p></li>
-      <li><strong>载入插件文件夹</strong><p>点击“加载已解压的扩展程序”，选择刚才解压的文件夹。</p></li>
-      <li><strong>返回网站并刷新</strong><p>回到 Social Archive。页面会显示“已检测到插件，还需要连接”。</p></li>
-      <li><strong>点击连接</strong><p>按页面提示完成一次性配对。以后在任何网页点击“保存到我的档案馆”即可。</p></li>
+      <li><strong>载入插件文件夹</strong><p>点击“加载已解压的扩展程序”，选择放进“文稿”的那个文件夹。</p></li>
     </ol>
-    <p class="privacy"><strong>隐私边界：</strong>插件不会把密码、Cookie 或浏览器登录状态交给服务器。若安装包未生成，下载会明确报错，不会提供旧版本或第三方文件。</p>
+    <details class="fixit">
+      <summary>点插件图标看到「ERR_FILE_NOT_FOUND / 文件可能已被移动、编辑或删除」怎么办</summary>
+      <p>这句话的意思是：<strong>插件条目还在，但它依赖的那个文件夹已经不在原来的位置了</strong>——
+        被清理、被移动、或者被重命名了。插件里没有任何东西丢失，重新指一次路就好。</p>
+      <p>做两件事：① 到 <code>chrome://extensions</code> 把 Social Archive 那一项<strong>移除</strong>；
+        ② 回到本页重新下载解压，把文件夹放进“文稿”，再“加载已解压的扩展程序”。
+        <strong>你保存过的内容都在服务器上，不会因为这一步丢失。</strong></p>
+    </details>
+    <p class="privacy"><strong>隐私边界：</strong>插件永远不会向服务器索要或上传你的<strong>密码</strong>。登录状态分两种处理，取决于平台：小红书、抖音、快手、B站、Reddit、Instagram 走的是“在你自己的浏览器里读页面”，它们的 Cookie <strong>一步都不会离开你的浏览器</strong>（这一条现在由演练在真 Chrome 里逐次观测：整条链碰 <code>chrome.cookies</code> 的次数必须是 0）；只有 X 和 YouTube 需要在服务器上替你取内容，点“连接”时才会读取该站点的登录状态、<strong>加密后</strong>保存到你自己的服务器上，随时可以在设置页一键撤销并从库中删除。若安装包未生成，下载会明确报错，不会提供旧版本或第三方文件。</p>
   </main>
+  <script>
+    // 装好之后**自动回首页**，不让用户自己判断「好了没有」。
+    //
+    // 原来这一页是纯静态的：第 5、6 步写着「返回网站并刷新」「点击连接」——
+    // 把两个本来可以自动完成的动作丢给了人。Owner 的原话：
+    // 「然后当插件准备好之后。就自动回退到首页。」
+    //
+    // 检测走的是和主页面同一条桥：向自己 postMessage 一个 SA_PING，
+    // 扩展注入的 bridge.js 会回一条带同样 requestId 的消息。
+    // 桥没注入（＝插件没装）时就什么也不会回来，于是继续等。
+    (() => {
+      "use strict";
+      const dot = document.getElementById("detect");
+      const text = document.getElementById("detectText");
+      let done = false;
+
+      // **应答里是带版本号的**（background.js 的 SA_WEB_BRIDGE_STATUS 会回 version），
+      // 而这一页原来只看「有没有回应」，把版本整个丢掉了。后果很具体：
+      // 装着旧插件的人，首页说「去更新」→ 跳到这里 → 旧插件应答 → 这里说
+      // 「✓ 已检测到插件，正在把你送回首页」→ 回到首页 → 还是「去更新」。
+      // **一个死循环**，而整页没有一个字讲怎么更新。Owner 的原话：
+      // 「不能真的更新插件版本，整个软件完全不能使用」。
+      function ping() {
+        return new Promise(resolve => {
+          const requestId = (crypto.randomUUID && crypto.randomUUID()) || String(Math.random());
+          const timer = setTimeout(() => { window.removeEventListener("message", onMessage); resolve(null); }, 1200);
+          function onMessage(event) {
+            const data = event.data || {};
+            if (event.source !== window || data.source !== "social-archive-extension" || data.requestId !== requestId) return;
+            clearTimeout(timer);
+            window.removeEventListener("message", onMessage);
+            resolve(data);
+          }
+          window.addEventListener("message", onMessage);
+          window.postMessage({ source: "social-archive-web", type: "SA_PING", requestId }, location.origin);
+        });
+      }
+
+      // 该装成哪个版本，问服务端要——**不写死在这一页里**，
+      // 写死的话升一次版就得记得改两处，而漏改的那次没人会发现。
+      let requiredVersion = "";
+      let minimumVersion = "";
+      /** 版本逐段按数字比。字符串比会说 "0.0.0.9" > "0.0.0.10"。 */
+      function compareVersions(left, right) {
+        const a = String(left || "").split(".").map(Number);
+        const b = String(right || "").split(".").map(Number);
+        for (let i = 0; i < Math.max(a.length, b.length); i += 1) {
+          const x = Number.isFinite(a[i]) ? a[i] : 0;
+          const y = Number.isFinite(b[i]) ? b[i] : 0;
+          if (x !== y) return x < y ? -1 : 1;
+        }
+        return 0;
+      }
+      async function loadRequiredVersion() {
+        try {
+          const health = await fetch("/health", { cache: "no-store" }).then(r => r.json());
+          requiredVersion = String(health.version || "");
+          minimumVersion = String(health.minimum_extension_version || "");
+        } catch (_) { requiredVersion = ""; minimumVersion = ""; }
+      }
+
+      const show = (id, on) => { const el = document.getElementById(id); if (el) el.hidden = !on; };
+      function paintInstall() {
+        document.getElementById("headline").textContent = "四步装好，之后看到好内容只点一下。";
+        document.getElementById("eyebrow").textContent = "Social Archive · 免费安装";
+        show("updateBlock", false); show("installSteps", true);
+      }
+      // **理由由调用方给，不许写死。**（2026-08-10）
+      //
+      // 这个函数有两个调用方，而它原来对两边说同一句话：
+      // 「你装着 vX，而资料库至少需要 vY」。
+      //
+      // 对「低于下限」那一支是对的。对**另一支**——高于下限、只是不是最新——
+      // 那句话是**反话**：Owner 装的是 v0.0.0.22，下限是 v0.0.0.9。
+      // 22 比 9 大，于是这一页在标题上说「你装的是旧版」，紧接着第一段就
+      // 告诉他他已经够格了。他要么以为这页坏了，要么以为不用动。
+      //
+      // 真 Chrome 里把那一页整段读回来才看见的：两句话都在，第一句排在最前面。
+      // 判据只盯 JSON、漏掉用户真正会读的散文——这个仓栽过。
+      function paintUpdate(installed, why) {
+        document.getElementById("eyebrow").textContent = "Social Archive · 更新已装的插件";
+        document.getElementById("headline").textContent = "你装的是旧版，换掉文件就好。";
+        document.getElementById("lead").innerHTML =
+          "你这台电脑上装着 <strong>v" + (installed || "未知") + "</strong>，" + why +
+          "<strong>不用重装、也不用重新连接</strong>——按下面几步把文件换掉即可。";
+        show("updateBlock", true); show("installSteps", false);
+      }
+
+      // 一直转下去看起来像卡住了。几次之后改口说清楚：
+      // 「还没装是正常的，装好这里会自己变绿」——**等待也要有解释**。
+      let rounds = 0;
+      async function loop() {
+        if (done) return;
+        const reply = await ping();
+
+        if (reply) {
+          const installed = String(reply.version || "");
+          // **版本对上了才算好。** 只看「有没有回应」的那一版，会把装着旧插件的人
+          // 一遍遍送回首页，而首页又把他送回来。
+          // **只有低于下限才拦。** 相等判据会让服务端每升一个补丁版本
+          // 就把所有人挡在门外——那正是「整个软件完全不能使用」的来源。
+          // 拿不到下限就退回旧行为（要求相等），那是更严的一侧。
+          const tooOld = minimumVersion
+            ? compareVersions(installed, minimumVersion) < 0
+            : Boolean(requiredVersion && installed !== requiredVersion);
+          if (installed && tooOld) {
+            paintUpdate(installed,
+              "而资料库<strong>至少</strong>需要 <strong>v"
+              + (minimumVersion || requiredVersion || "更新的版本") + "</strong>。");
+            dot.classList.remove("ready");
+            text.textContent = "检测到 v" + installed + "，至少需要 v" + (minimumVersion || requiredVersion) +
+              "——按下面几步换掉文件，换好这里会自动变绿。";
+            setTimeout(loop, 1500);   // 继续盯着，换好了立刻变绿
+            return;
+          }
+          // **高于下限、但不是最新——这一档以前没有，于是成了一个死循环。**
+          //
+          // 下限是 0.0.0.9，他装的是 0.0.0.21：不算 tooOld，于是这一页说
+          // 「✓ 插件已是 v0.0.0.21，正在把你送回资料库…」并把他送回去；
+          // 而资料库那边正让他更新（旧版的权限申请在 service worker 里，
+          // **连接账号一次也不会成**）。他就在两页之间来回打转。
+          //
+          // 上面那段注释警告过反方向的死循环（首页说去更新→这里说已装好→回首页）。
+          // 这是同一个循环的另一半：**这一页只认"太旧"，不认"旧"。**
+          //
+          // 这一档不拦（他仍然能保存、能看资料库），但**不许自动送回去**：
+          // 把换文件那几步摆出来，并说清不换会少什么。
+          const behind = requiredVersion
+            && compareVersions(installed || "0", requiredVersion) < 0;
+          if (installed && behind) {
+            // **不许说「至少需要 vY」**——他这一档本来就高于下限，
+            // 那句话等于告诉他不用动。真正的原因是「连接账号要最新的」。
+            paintUpdate(installed,
+              "最新是 <strong>v" + requiredVersion + "</strong>。"
+              + "现在也能保存和查看，<strong>但连接账号要更新之后才成</strong>。");
+            dot.classList.remove("ready");
+            text.textContent = "检测到 v" + installed + "，最新是 v" + requiredVersion +
+              "——现在也能保存和查看，但连接账号需要更新后才成。" +
+              "按下面几步换掉文件，换好这里会自动变绿。";
+            setTimeout(loop, 1500);
+            return;
+          }
+          done = true;
+          dot.classList.add("ready");
+          text.textContent = installed
+            ? "✓ 插件已是 v" + installed + "，正在把你送回资料库…"
+            : "✓ 已检测到插件，正在把你送回资料库…";
+          setTimeout(() => { location.href = "/"; }, 1500);
+          return;
+        }
+
+        paintInstall();
+        rounds += 1;
+        if (rounds === 2) {
+          text.textContent = "还没检测到插件——按下面四步装好即可，装好的那一刻这里会自动变绿并带你回资料库。";
+        }
+        setTimeout(loop, 1500);
+      }
+      loadRequiredVersion().then(loop);
+    })();
+  </script>
+  <p style="margin:2.5rem 0 0;font-size:14px;opacity:.85">装完想看完整步骤（连账号、平时怎么用、出问题怎么办）：<a href="/guide">使用说明</a></p>
 </body>
 </html>

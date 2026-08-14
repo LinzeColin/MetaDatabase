@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-02T04:11:57Z",
+  "task": "SA-507",
+  "secrets_redacted": true,
+  "commands": [
+    {
+      "command": "git fetch origin main",
+      "status": "PASS",
+      "result": "Latest origin/main baseline d9961c3a0a14ec2a1b50f741b50324634e470fc6."
+    },
+    {
+      "command": "python3 -m pytest -q",
+      "cwd": "social-archive",
+      "status": "PASS",
+      "result": "245 passed, 1 StarletteDeprecationWarning."
+    },
+    {
+      "command": "git diff --check",
+      "cwd": "target repository",
+      "status": "PASS",
+      "result": "No output."
+    },
+    {
+      "command": "python3 START_HERE.py verify",
+      "cwd": "sealed Task Pack with Python 3.12 runtime",
+      "status": "PASS",
+      "result": "107 required files, 73 application tests, and 383 manifest hashes passed; product_runtime_verdict remained NOT_RUN."
+    },
+    {
+      "command": "python3 scripts/secret_scan.py",
+      "cwd": "social-archive",
+      "status": "PASS",
+      "result": "No hits."
+    },
+    {
+      "command": "bash scripts/restore.sh --help",
+      "cwd": "/opt/social-archive",
+      "status": "PASS",
+      "result": "Restore CLI exposed latest, target, dry-run, verify-only, and r2/oci source options."
+    },
+    {
+      "command": "bash scripts/restore.sh --latest --verify-only",
+      "cwd": "/opt/social-archive with existing environment-file identity path",
+      "status": "PASS",
+      "result": "Verified latest manifest, fact_count=1, original_sha256=b3a8cec092729045c19447f2f8efa0358d2a91b87aea92b5da737a0abca8d6b2."
+    },
+    {
+      "command": "docker compose exec -T core-api python scripts/status_publish.py",
+      "cwd": "/opt/social-archive",
+      "status": "PASS",
+      "result": "/var/lib/social-archive/status/social-archive.json"
+    },
+    {
+      "command": "production loopback GET health, extension-install, and extension ZIP",
+      "status": "PASS",
+      "result": "HTTP 200; version 0.0.0.5; ZIP sha256=04fede5d2ce38c797e7d2147cee226ebe84ce6c05de5e80be572bf3db9908706."
+    },
+    {
+      "command": "Private-Database deterministic backup",
+      "status": "PASS",
+      "result": "Manifest 20260802T033342Z; 1 fact; 2 verified remote copies; 2 recovery descriptors."
+    },
+    {
+      "command": "GitHub Draft release upload and independent readback",
+      "status": "PASS",
+      "result": "Existing private repository LinzeColin/Private-Database; tag social-archive-backup-20260802T035535Z; 2 assets; no repository creation."
+    },
+    {
+      "command": "destination probes",
+      "status": "PARTIAL",
+      "result": "GitHub private and Markdown passed; Notion and Obsidian require owner configuration."
+    },
+    {
+      "command": "browser extension install, pair, one-click save, restart persistence",
+      "status": "NOT_RUN",
+      "result": "Blocked by owner-controlled Chrome unpacked-extension installation and browser security policy."
+    }
+  ]
+}

@@ -1,0 +1,172 @@
+{
+  "status": "PASS",
+  "endpoint": "https://social-archive-api.linzezhang.com",
+  "token_supplied": true,
+  "package_he_would_download": {
+    "url": "https://social-archive-api.linzezhang.com/downloads/social-archive-extension.zip",
+    "sha256": "5411422f3186760e",
+    "same_as_repo_build": true
+  },
+  "measured_in_real_chrome": {
+    "endpoint_the_extension_itself_uses": "https://social-archive-api.linzezhang.com",
+    "api_ms": 321,
+    "api_call": "resolved",
+    "api_keys": [
+      "items",
+      "total",
+      "limit",
+      "offset",
+      "sort_by",
+      "sort_dir",
+      "facets"
+    ],
+    "api_looks_like_a_web_page": false,
+    "api_items": 1,
+    "has_host_permission": true,
+    "raw_status": 401,
+    "raw_redirected": false,
+    "raw_final_host": "social-archive-api.linzezhang.com",
+    "raw_body_head": "{\"detail\":\"扩展尚未授权或令牌已失效\"}",
+    "manual_type": "basic",
+    "manual_status": 401,
+    "health_type": "basic",
+    "health_status": 200,
+    "control_blocked_host_type": "opaqueredirect",
+    "control_blocked_host_status": 0,
+    "connect_panel": {
+      "rows": 9,
+      "buttons": [
+        {
+          "name": "小红书",
+          "state": "未连接",
+          "button": "连接账号",
+          "own_text": "小红书 未连接 连接账号"
+        },
+        {
+          "name": "抖音",
+          "state": "未连接",
+          "button": "连接账号",
+          "own_text": "抖音 未连接 连接账号"
+        },
+        {
+          "name": "B站",
+          "state": "未连接",
+          "button": "连接账号",
+          "own_text": "B站 未连接 连接账号"
+        },
+        {
+          "name": "Reddit",
+          "state": "未连接",
+          "button": "连接账号",
+          "own_text": "Reddit 未连接 连接账号"
+        },
+        {
+          "name": "Instagram",
+          "state": "未连接",
+          "button": "连接账号",
+          "own_text": "Instagram 未连接 连接账号"
+        },
+        {
+          "name": "Chrome 书签",
+          "state": "未连接",
+          "button": "连接账号",
+          "own_text": "Chrome 书签 未连接 连接账号"
+        },
+        {
+          "name": "快手",
+          "state": "",
+          "button": null,
+          "own_text": "快手 本版本不自动读取快手的收藏。取数需要的那几个字段名只能从你登录后的真实响应里确认，靠公开页推断出来的是假的，所以这条路先不开。现在可以：在浏览器里打开任意一条快手内容，点插件的「保存当前页面」，这一条就会进档案馆。"
+        },
+        {
+          "name": "X",
+          "state": "未连接",
+          "button": "连接账号",
+          "own_text": "X 本版本还不能自动读取 X 的书签。原因是官方 X 接口可能收费，而这个项目的硬规矩是绝不产生新的必付费用，所以那条路是主动关着的。现在可以：在浏览器里打开任意一条推文，点插件的「保存当前页面」。 未连接 连接账号"
+        },
+        {
+          "name": "YouTube",
+          "state": "未连接",
+          "button": "连接账号",
+          "own_text": "YouTube 本版本还不能自动读取 YouTube 的稍后观看和播放列表。现在可以：点这张卡片上的「连接账号」，把登录状态交给你自己的服务器保管；以及在任意视频页点插件保存当前这一条。 未连接 连接账号"
+        }
+      ],
+      "says_it_cannot_read_sources": false,
+      "says_nothing_syncs": false,
+      "manual_only_mentioned": false,
+      "body_head": "连接账号 点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。 小红书 未连接 连接账号 抖音 未连接 连接账号 B站 未连接 连接账号 Reddit 未连接 连接账号 Instagram 未连接 连接账号 Chrome 书签 未连接 连接账号 快手 本版本不自动读取快手的收藏。取数需要的那几个字段名只能从你登录后的真实响应里确认，靠公开页推断出来的是假的，所以这条路先不开。现在",
+      "connect_supported_platforms": [
+        "xiaohongshu",
+        "douyin",
+        "bilibili",
+        "x",
+        "reddit",
+        "instagram",
+        "youtube",
+        "generic-web"
+      ],
+      "press": {
+        "pressed": [
+          {
+            "name": "小红书",
+            "before": "连接账号",
+            "after": "正在连接…",
+            "disabled": true,
+            "note": ""
+          },
+          {
+            "name": "抖音",
+            "before": "连接账号",
+            "after": "正在连接…",
+            "disabled": true,
+            "note": ""
+          },
+          {
+            "name": "B站",
+            "before": "连接账号",
+            "after": "正在连接…",
+            "disabled": true,
+            "note": ""
+          },
+          {
+            "name": "Reddit",
+            "before": "连接账号",
+            "after": "正在连接…",
+            "disabled": true,
+            "note": ""
+          },
+          {
+            "name": "Instagram",
+            "before": "连接账号",
+            "after": "正在连接…",
+            "disabled": true,
+            "note": ""
+          },
+          {
+            "name": "Chrome 书签",
+            "before": "连接账号",
+            "after": "正在连接…",
+            "disabled": true,
+            "note": ""
+          },
+          {
+            "name": "X",
+            "before": "连接账号",
+            "after": "正在连接…",
+            "disabled": true,
+            "note": ""
+          },
+          {
+            "name": "YouTube",
+            "before": "连接账号",
+            "after": "正在连接…",
+            "disabled": true,
+            "note": ""
+          }
+        ]
+      }
+    }
+  },
+  "problems": [],
+  "what_this_answers_zh": "装上发布包、用**插件自己配置的端点**、拿真令牌调 /v1/library，**插件到底拿到什么**。其余十四个演练都把这个域名映射到本机假服务器，所以这条路此前从没被走过。负对照是资料库域名（在 Access 后面），它必须不通。"
+}

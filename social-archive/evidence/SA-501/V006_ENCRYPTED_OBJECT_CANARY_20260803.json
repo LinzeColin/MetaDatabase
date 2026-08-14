@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "task_ids": ["SA-501", "SA-502"],
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T06:24:39Z",
+  "status": "PASS",
+  "scope": "real_encrypted_object_write_readback_delete_against_production_r2_and_oci",
+  "executed_on": "OVH vps-83b882b4, /opt/social-archive, production credentials",
+  "preconditions_verified": {
+    "r2_endpoint_configured": true,
+    "r2_bucket_configured": true,
+    "oci_endpoint_configured": true,
+    "oci_bucket_configured": true,
+    "r2_credentials_populated": true,
+    "oci_credentials_populated": true,
+    "age_identity_present": true,
+    "age_recipient_derivation": "public recipient derived in-process from the protected identity with age-keygen -y; the identity itself was never copied, printed, or transmitted"
+  },
+  "dry_run": {
+    "status": "READY",
+    "r2": {"status": "READY", "bucket": "social-archive-e2n-v0004", "encryption": "age-x25519"},
+    "oci": {"status": "READY", "bucket": "social-archive-e2n-v0004", "encryption": "age-x25519"}
+  },
+  "encrypted_canary": {
+    "status": "PASS",
+    "original_sha256": "6f88bbffabe294dcbb9613dcf7b047cd8a4655ed0e0452a899f9993f1c362204",
+    "cipher_sha256": "58bbb8360d4fbe9b46cd58e009c4304582c923d21ffc38361493c268010d4d3c",
+    "identical_ciphertext_across_both_stores": true,
+    "results": [
+      {
+        "store": "r2",
+        "status": "PASS",
+        "key": "probes/social-archive/sha256/6f/88/6f88bbffabe294dcbb9613dcf7b047cd8a4655ed0e0452a899f9993f1c362204.age",
+        "etag": "17ff0c038589d8d38c2df6fdf5b69d0e",
+        "verified_readback": true,
+        "deleted_after_probe": true
+      },
+      {
+        "store": "oci",
+        "status": "PASS",
+        "key": "probes/social-archive/sha256/6f/88/6f88bbffabe294dcbb9613dcf7b047cd8a4655ed0e0452a899f9993f1c362204.age",
+        "etag": "17ff0c038589d8d38c2df6fdf5b69d0e",
+        "verified_readback": true,
+        "deleted_after_probe": true
+      }
+    ]
+  },
+  "what_this_proves": [
+    "Both remote object stores accept an age-x25519 ciphertext, return it byte-identical on download, and verify against the recorded cipher SHA-256.",
+    "The same ciphertext is stored under the same content-addressed key in both stores, which is the two-of-three precondition for the identical-ciphertext replica contract.",
+    "The probe object was deleted from both stores afterwards, so no probe residue remains."
+  ],
+  "what_this_does_not_prove": [
+    "SA-503. The GitHub private archive third ciphertext copy was not exercised in this run.",
+    "A completed runtime artifact replica. This canary uses a freshly generated non-user-data probe object, not a real archived item.",
+    "SA-501/SA-502 task closure on its own. The frozen Oracle also requires the quota guard and the completion contract to be exercised against a real runtime artifact."
+  ],
+  "non_actions": [
+    "No user content, runtime SQLite row, CAS object, or Private-Database fact was read, written, or uploaded.",
+    "No secret value was printed to the terminal, the transcript, this evidence file, or Git. Only the public age recipient prefix was ever displayed.",
+    "No bucket, lifecycle rule, credential, or provider setting was created or modified.",
+    "No deployment, container rebuild, timer enablement, tag, release, or push occurred."
+  ]
+}

@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="32" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S11.P02_test" name="test_candidate_preflight_passes_without_generated_test_reports" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_evidence_tiers_and_vectors_are_exact_frozen_replays" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_minimum_odds_formula_is_conservatively_rounded_up[V01-E4-STABLE-PASS-E4-1.733334]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_minimum_odds_formula_is_conservatively_rounded_up[V03-E3-BOUNDARY-STABLE-PASS-E3-1.766667]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_minimum_odds_formula_is_conservatively_rounded_up[V04-E2-BOUNDARY-STABLE-PASS-E2-1.8]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_minimum_odds_formula_is_conservatively_rounded_up[V05-E1-BOUNDARY-STABLE-PASS-E1-1.816667]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_e4_to_e0_threshold_vectors_have_one_final_reason_code[V01-E4-STABLE-PASS-E4-CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES-ALL_EVIDENCE_AND_PRICE_GATES_STABLE]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_e4_to_e0_threshold_vectors_have_one_final_reason_code[V02-E4-EXACT-MINIMUM-ODDS-ADVERSE-FLIP-E4-NO_RECOMMENDATION-ADVERSE_STABILITY_FLIP]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_e4_to_e0_threshold_vectors_have_one_final_reason_code[V03-E3-BOUNDARY-STABLE-PASS-E3-CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES-ALL_EVIDENCE_AND_PRICE_GATES_STABLE]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_e4_to_e0_threshold_vectors_have_one_final_reason_code[V04-E2-BOUNDARY-STABLE-PASS-E2-CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES-ALL_EVIDENCE_AND_PRICE_GATES_STABLE]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_e4_to_e0_threshold_vectors_have_one_final_reason_code[V05-E1-BOUNDARY-STABLE-PASS-E1-CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES-ALL_EVIDENCE_AND_PRICE_GATES_STABLE]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_e4_to_e0_threshold_vectors_have_one_final_reason_code[V06-E0-NONPRICE-SOURCES-BELOW-MINIMUM-E0-NO_RECOMMENDATION-EVIDENCE_TIER_E0]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_e4_to_e0_threshold_vectors_have_one_final_reason_code[V07-E4-MODEL-STAGE-BELOW-MINIMUM-E0-NO_RECOMMENDATION-EVIDENCE_TIER_E0]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_e4_to_e0_threshold_vectors_have_one_final_reason_code[V08-E2-DISAGREEMENT-PLUS-POINT-0001-E0-NO_RECOMMENDATION-EVIDENCE_TIER_E0]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_e4_to_e0_threshold_vectors_have_one_final_reason_code[V09-IDENTITY-BELOW-THRESHOLD-E0-NO_RECOMMENDATION-IDENTITY_CONFIDENCE_BELOW_THRESHOLD]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_e4_to_e0_threshold_vectors_have_one_final_reason_code[V10-FEATURE-COMPLETENESS-BELOW-THRESHOLD-E0-NO_RECOMMENDATION-REQUIRED_FEATURE_COMPLETENESS_BELOW_THRESHOLD]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_e4_to_e0_threshold_vectors_have_one_final_reason_code[V11-ODDS-ONE-TICK-BELOW-MINIMUM-E4-NO_RECOMMENDATION-ODDS_BELOW_MINIMUM]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_e4_to_e0_threshold_vectors_have_one_final_reason_code[V12-SOURCE-CONTRACT-FAILS-CLOSED-E0-NO_RECOMMENDATION-SOURCE_CONTRACT_NOT_PASSED]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_exact_minimum_odds_candidate_fails_every_adverse_dimension" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_candidate_output_remains_downstream_gated_and_never_an_order" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_malformed_or_non_fixed_point_vectors_fail_closed[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_malformed_or_non_fixed_point_vectors_fail_closed[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_malformed_or_non_fixed_point_vectors_fail_closed[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_malformed_or_non_fixed_point_vectors_fail_closed[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_deterministic_replay_hash_is_identical_without_waiting" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_core_source_has_no_network_process_soak_float_or_order_capability" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_candidate_fails_closed_when_tier_artifact_is_tampered" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_candidate_fails_closed_when_fixture_hash_is_tampered" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_candidate_fails_closed_when_predecessor_receipt_is_tampered" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_rollback_drill_is_local_and_has_no_external_side_effect" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_cli_is_wired_to_exact_contract_and_phase_boundaries" time="0.000" />
+    <testcase classname="tests.S11.P02_test" name="test_invalid_vector_boolean_and_negative_source_count_fail_closed" time="0.000" />
+  </testsuite>
+</testsuites>

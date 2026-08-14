@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-304",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "commands": [
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_reader_profiles.py",
+      "command_sha256": "b55bff30f4ea0913f7f95a20e1946e57d92336fa65243f9953bae21e1265dbad",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "9 reader profile tests passed."
+    }
+  ],
+  "record_sha256": "2315d7ce60e93c64bd65fd949ade5795431c95c21afdaf1319abbb5921f017de"
+}

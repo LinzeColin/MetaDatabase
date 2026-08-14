@@ -1,0 +1,65 @@
+{
+  "task": "T04",
+  "claim": "连接账号此前没有反向动作：连上之后每 6 小时自己跑一次，用户没有任何办法让它停下来。已补上断开，且只断连接不删内容。",
+  "invariants": ["INV-REVERSIBLE", "INV-REAL-USABLE"],
+  "how_it_was_found": {
+    "method": "接着上一条（隐私声明）的同一次清点：每条不变量各有几个机器守卫。INV-REVERSIBLE 只有 1 个（回滚脚本）。于是把路由表按「正向动作 ↔ 反向动作」比了一遍。",
+    "table": [
+      {"forward": "POST /extension-token", "backward": "DELETE /extension-token", "ok": true},
+      {"forward": "PUT /v1/credentials/{platform}", "backward": "DELETE /v1/credentials/{platform}", "ok": true},
+      {"forward": "登录", "backward": "登出", "ok": true},
+      {"forward": "POST /v1/accounts/connect/start", "backward": "**什么都没有**", "ok": false}
+    ],
+    "also_missing_but_not_fixed_here": [
+      "POST /v1/captures —— 归档一条内容之后没有删除入口。这一条**故意不做**：删内容是不可逆的破坏性动作，语义（连制品一起删？连观察记录一起删？）需要 Owner 裁定，不替他猜。",
+      "POST /v1/destinations/{id}/probe —— 目的地授权之后没有断开入口。比断开账号轻，但同类。记在这里免得当作没看见。"
+    ]
+  },
+  "why_it_matters": {
+    "the_user_facing_shape": "连一个账号是一次点击。连上之后 auto_sync_enabled=1 且 sync_interval_minutes=360，它每 6 小时自己跑一次。**在此之前，产品里没有任何一个地方能让它停。**",
+    "not_just_tidiness": "这不是「少个按钮」。定时同步会持续用 Owner 托管的登录状态去平台取数；不能停下来，等于把一次连接变成了一个无法收回的授权。"
+  },
+  "fix": {
+    "endpoint": "DELETE /v1/accounts/{account_id}",
+    "what_it_does": [
+      "connection_state → disconnected，auto_sync_enabled → 0（不再自己跑）",
+      "清掉 auth_ref / auth_handle_ref（不再持有连接凭证的引用）",
+      "把还在跑的 sync_run 落到 cancelled 并写明 ACCOUNT_DISCONNECTED（否则界面上永远转圈）",
+      "如实报出保留了多少条内容"
+    ],
+    "what_it_deliberately_does_not_do": {
+      "content": "**一条都不删。** 归档的意义就是东西留下来。断开是「别再替我去取了」，不是「把我存的东西清掉」。判据把这条界线钉死：内容数在断开前后必须一模一样。",
+      "credentials": "不顺手撤销托管的平台登录状态。那是 DELETE /v1/credentials/{platform}，由用户分别决定。合并会让「我只是不想它再自动跑了」变成「我的登录状态也没了」。"
+    },
+    "extension_side": {
+      "why_through_background": "服务端标成 disconnected 之后，**扩展本地队列里那条待办还在**，下一次唤醒照样会去跑它。「服务端说断开了、插件还在同步」是最难查的那种不一致。所以断开走 background，调完接口顺手 removeQueuedSync。",
+      "ui": "设置页每张已连接的卡片上多一颗「断开连接」。确认框把两件事分开说：不再自动同步；已存的 N 条都留着。"
+    }
+  },
+  "guards": {
+    "file": "tests/focused/test_everything_connected_can_be_disconnected.py",
+    "count": 7,
+    "covers": [
+      "三对正反动作都在（少了反的那一半就是加得了撤不掉）",
+      "断开后 auto_sync_enabled=False —— 反证把这一句从 UPDATE 里摘掉，判据立刻变红",
+      "**内容数断开前后一致**",
+      "幂等：再点一次不报错（用户重复点是常态）",
+      "不存在的账号回 found=False，不能回一个「成功了」",
+      "扩展那边清了本地队列",
+      "断开与凭据撤销保持分离"
+    ],
+    "proved_by_reintroduction": "把 UPDATE 里的 auto_sync_enabled=0 / auth_ref=NULL 摘掉 → 1 条变红「断开了却还会自己跑」；还原后 7 条全绿。"
+  },
+  "measured_after": {
+    "suite": "586 passed / 0 failed",
+    "release_gate": "PASS（17 道）",
+    "message_gate": "33 个消息类型，每条都既有发送方也有接收方",
+    "endpoint_gate": "35 个路由，每个都至少有一处界面调用"
+  },
+  "what_this_does_not_prove": [
+    "**没有在真实浏览器里点过这颗按钮。** 判据覆盖的是 store 层的行为与源码上的接线；端到端要等 Owner 连一个真实账号。",
+    "没有验证「断开后定时器真的不再触发」这一条端到端的时间行为——判据只证明了 auto_sync_enabled 落到 0，以及编排层读的是这一列。",
+    "内容删除（POST /v1/captures 的反向）仍然没有。这是有意留空的：破坏性且语义需要 Owner 裁定。",
+    "目的地授权的反向动作仍然没有。已记录，未做。"
+  ]
+}

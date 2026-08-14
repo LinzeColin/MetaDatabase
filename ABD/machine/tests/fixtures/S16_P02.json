@@ -1,0 +1,110 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S16-P02-CAPABILITY-CALIBRATION-EVALUATION",
+  "contract_id": "AC-S16-P02",
+  "requirement_id": "REQ-S16-P02",
+  "stage_id": "S16",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_EVALUATION_NO_NETWORK_NO_ACCOUNT",
+  "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+  "p01_evidence": {
+    "evidence_path": "machine/evidence/EVD-S16-P01.json",
+    "evidence_sha256": "9d0081fd92199eb4fb60800b81aa078d18e69219a49d5c2bcf03f7c0fcdb865c",
+    "status": "PASS",
+    "next": "S16/P02_READY_NOT_STARTED"
+  },
+  "evaluation_candidate_model_id": "GENERIC_RESIDUAL_CHALLENGER",
+  "evaluation_protocol": {
+    "cohort_classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL",
+    "confidence_level": "0.95",
+    "lower_tail_quantile": "0.05",
+    "bootstrap_iterations": 2000,
+    "minimum_sample_count": 2000,
+    "temporal_fold_count": 8,
+    "fixed_seed": 20260809
+  },
+  "block_templates": [
+    {
+      "cell_id": "S16P02-CELL-01",
+      "market_segment": "MAIN",
+      "sample_count": 62,
+      "candidate_probability": "0.30",
+      "market_probability": "0.27",
+      "outcome_successes": 19,
+      "conservative_margin": "0.002",
+      "recommended_odds": "3.45",
+      "closing_odds": "3.35",
+      "stake_fraction": "0.005",
+      "friction_log_penalty": "0.00005"
+    },
+    {
+      "cell_id": "S16P02-CELL-02",
+      "market_segment": "MAIN",
+      "sample_count": 63,
+      "candidate_probability": "0.45",
+      "market_probability": "0.41",
+      "outcome_successes": 28,
+      "conservative_margin": "0.002",
+      "recommended_odds": "2.35",
+      "closing_odds": "2.28",
+      "stake_fraction": "0.005",
+      "friction_log_penalty": "0.00005"
+    },
+    {
+      "cell_id": "S16P02-CELL-03",
+      "market_segment": "NICHE",
+      "sample_count": 63,
+      "candidate_probability": "0.60",
+      "market_probability": "0.56",
+      "outcome_successes": 38,
+      "conservative_margin": "0.002",
+      "recommended_odds": "1.78",
+      "closing_odds": "1.72",
+      "stake_fraction": "0.005",
+      "friction_log_penalty": "0.00005"
+    },
+    {
+      "cell_id": "S16P02-CELL-04",
+      "market_segment": "NICHE",
+      "sample_count": 62,
+      "candidate_probability": "0.75",
+      "market_probability": "0.71",
+      "outcome_successes": 47,
+      "conservative_margin": "0.002",
+      "recommended_odds": "1.45",
+      "closing_odds": "1.40",
+      "stake_fraction": "0.005",
+      "friction_log_penalty": "0.00005"
+    }
+  ],
+  "evaluation_blocks": [
+    {"block_id": "S16P02-FOLD-01", "start_at": "2025-04-01T00:00:00+10:00", "end_at": "2025-04-30T23:59:59+10:00", "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL", "candidate_probability_shift": "0.000", "market_probability_shift": "0.000", "outcome_success_deltas": [0, 0, 0, 0], "recommended_odds_multiplier": "1.000", "closing_odds_multiplier": "1.000"},
+    {"block_id": "S16P02-FOLD-02", "start_at": "2025-05-01T00:00:00+10:00", "end_at": "2025-05-31T23:59:59+10:00", "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL", "candidate_probability_shift": "0.001", "market_probability_shift": "-0.001", "outcome_success_deltas": [0, 1, 0, -1], "recommended_odds_multiplier": "1.002", "closing_odds_multiplier": "0.999"},
+    {"block_id": "S16P02-FOLD-03", "start_at": "2025-06-01T00:00:00+10:00", "end_at": "2025-06-30T23:59:59+10:00", "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL", "candidate_probability_shift": "-0.001", "market_probability_shift": "0.001", "outcome_success_deltas": [-1, 0, 1, 0], "recommended_odds_multiplier": "0.999", "closing_odds_multiplier": "1.001"},
+    {"block_id": "S16P02-FOLD-04", "start_at": "2025-07-01T00:00:00+10:00", "end_at": "2025-07-31T23:59:59+10:00", "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL", "candidate_probability_shift": "0.002", "market_probability_shift": "-0.001", "outcome_success_deltas": [1, -1, 0, 1], "recommended_odds_multiplier": "1.003", "closing_odds_multiplier": "0.998"},
+    {"block_id": "S16P02-FOLD-05", "start_at": "2025-08-01T00:00:00+10:00", "end_at": "2025-08-31T23:59:59+10:00", "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL", "candidate_probability_shift": "-0.002", "market_probability_shift": "0.001", "outcome_success_deltas": [0, 0, -1, 0], "recommended_odds_multiplier": "0.998", "closing_odds_multiplier": "1.001"},
+    {"block_id": "S16P02-FOLD-06", "start_at": "2025-09-01T00:00:00+10:00", "end_at": "2025-09-30T23:59:59+10:00", "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL", "candidate_probability_shift": "0.001", "market_probability_shift": "0.000", "outcome_success_deltas": [0, 1, 0, 0], "recommended_odds_multiplier": "1.001", "closing_odds_multiplier": "0.999"},
+    {"block_id": "S16P02-FOLD-07", "start_at": "2025-10-01T00:00:00+10:00", "end_at": "2025-10-31T23:59:59+10:00", "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL", "candidate_probability_shift": "-0.001", "market_probability_shift": "0.001", "outcome_success_deltas": [1, 0, 0, -1], "recommended_odds_multiplier": "0.997", "closing_odds_multiplier": "1.000"},
+    {"block_id": "S16P02-FOLD-08", "start_at": "2025-11-01T00:00:00+10:00", "end_at": "2025-11-30T23:59:59+10:00", "classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL", "candidate_probability_shift": "0.000", "market_probability_shift": "0.000", "outcome_success_deltas": [-1, 0, 1, 0], "recommended_odds_multiplier": "1.000", "closing_odds_multiplier": "1.000"}
+  ],
+  "minimum_targeted_pytest_cases": 26,
+  "expected_decision": "S16_P02_SYNTHETIC_EVALUATION_LCB_GATES_PASS_P03_REDTEAM_REQUIRED",
+  "expected_next": "S16/P03_READY_NOT_STARTED",
+  "claim_boundary": {
+    "external_network_accessed": false,
+    "real_market_or_odds_observed": false,
+    "empirical_model_increment_verified": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "real_account_balance_read_or_written": false,
+    "gmail_account_or_api_accessed": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "financial_return_verified_or_guaranteed": false,
+    "real_time_soak_waited": false,
+    "synthetic_evaluation_only": true,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

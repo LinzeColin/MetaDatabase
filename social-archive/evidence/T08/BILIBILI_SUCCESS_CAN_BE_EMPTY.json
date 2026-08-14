@@ -1,0 +1,57 @@
+{
+  "task": "T08",
+  "claim": "B站收藏接口在没有登录态时返回 HTTP 200 + 业务码 0 + data 为 null。这是实测的，不是推测。据此写了解析器、端点与判据，并把诊断按钮从「拦到了吗」升级成「读得懂吗」。**bilibili 仍然不可同步**——这一段只证明字节读得懂。",
+  "invariant": "INV-NO-SILENT-ZERO",
+  "measured_at": "2026-08-04",
+
+  "measurement": {
+    "how": "本机 curl，不带任何 Cookie、不带登录态、只带一个普通 User-Agent。没有代理、没有绕过任何东西。",
+    "request": "GET https://api.bilibili.com/x/v3/fav/resource/list?media_id={mid}&pn=1&ps=5&platform=web",
+    "media_ids_tried": ["12 (uid 1)", "22 (uid 2)", "2082592 (uid 208259)", "9469742 (uid 946974)"],
+    "result_every_time": {
+      "http_status": 200,
+      "body": "{\"code\":0,\"message\":\"OK\",\"ttl\":1,\"data\":null}"
+    },
+    "also_tried": "GET https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=1 → HTTP 200，{\"code\":0,\"message\":\"OK\",\"ttl\":1,\"data\":null}"
+  },
+
+  "why_this_matters": {
+    "the_shape": "**HTTP 200、业务码 0、message \"OK\"、data 是 null。** 它不是错误码、不是 4xx、不是异常——所有常规的错误处理都不会被触发。",
+    "the_trap": "照常理写的解析器会 `data.get(\"medias\", [])` 拿到空列表，一路走完，在服务端留下 completeness=complete、item_count=0 的回执。用户读到「你没有收藏」，真相是「这个浏览器没登录」。",
+    "precedent": "v0.0.0.6 生产上「永远是 0」就是这个形状（evidence/T00/CURRENT_TRUTH.json）。"
+  },
+
+  "what_was_built": {
+    "src/social_archive/platform_payloads.py": "parse_bilibili_favlist —— `code==0 且 data is None` → 抛 PayloadUnreadable(NOT_LOGGED_IN)，中文里明写「**这不代表你没有收藏**」。",
+    "POST /v1/extension/captures/parse": "要么给条目，要么给失败码 + 一句能照着做的中文。**没有含糊的成功。**",
+    "SA_PARSE_NET_CAPTURES": "扩展把 background 缓冲里的响应体逐条送去解析（原样送，扩展不 JSON.parse）。",
+    "诊断按钮": "报告里多一行「读得懂：…」。原来只报地址与字节数——而这条实测响应**只看地址与字节数的话看起来完全成功**。"
+  },
+
+  "measured_versus_documented": {
+    "measured": [
+      "接口活着，HTTP 200",
+      "信封形状 {code, message, ttl, data}",
+      "匿名访问 → data 为 null（四次独立请求，全一致）"
+    ],
+    "documented_but_unverified": "data.medias[] 里每一项的字段名（bvid / id / title / cover / pubtime / fav_time / upper.name / link）。来自公开文档与任务包三处互相印证，**没有被任何真实响应验证过**。",
+    "how_the_unverified_part_is_contained": "非空 medias 列表却一条都映射不出来时**抛错**，不返回空列表。宁可报「读到了 N 条但看不懂」，也不要报「你没有收藏」。判据 test_a_non_empty_list_that_maps_to_nothing_raises_instead_of_returning_zero 钉住这一条。"
+  },
+
+  "gates_that_fired_during_this_work": [
+    "find_unwired_code.py —— 新模块 parse_bilibili_favlist 没有任何调用方，当场转红。接上端点才绿。**没有走豁免。**",
+    "find_endpoints_no_client_calls.py —— 新端点没有任何界面调用，当场转红。接上诊断按钮才绿。",
+    "失败文案门 —— NOTHING_CAPTURED / UNREADABLE 两个新码「说不出人话」，转红。",
+    "test_pwa_alias_table_covers_every_internal_code_python_knows —— Python 加了别名而 PWA 没跟上，转红。"
+  ],
+  "counter_example": "把 `data is None` 那一支去掉、让它退化成「成功 0 条」→ 2 条判据转红；还原 → 647 条全过，19 道发布门全绿。",
+
+  "what_this_does_not_prove": [
+    "**不证明 bilibili 可以同步了。** SYNCABLE_NOW 里没有它，界面上也不会给「立即同步」按钮。这一段只证明「平台给的这段字节我们读得懂/读不懂说得清」。",
+    "不证明字段名是对的。匿名请求拿不到任何一条 medias，所以条目映射从头到尾没有被真实数据验证过。",
+    "不证明拦截真的会命中这个 URL。前缀 `api.bilibili.com/x/v3/fav/resource/list` 仍然只有文档来源；要证明它，得在一个**登录着的**浏览器里打开收藏页跑一次诊断。",
+    "不证明小红书 / 抖音 / 快手 的任何一件事。它们的收藏接口前缀至今是 null。"
+  ],
+
+  "what_owner_would_need_to_do_to_finish_this": "在他自己登录着的 Chrome 里打开 B 站收藏夹页面，点插件的「帮开发者看一眼这个平台（诊断）」，滚几屏。报告里那行「读得懂：…」会直接说明：拦到了几条、其中几条读得懂、共多少条收藏。**不需要他理解任何技术细节，也不需要他把任何东西复制给我。**"
+}

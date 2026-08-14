@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-ABD-SCOPED-CURRENT-TRANSPORT-AUTHORITY-SOURCE-RESOLUTION-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_CURRENT_PRODUCTION_ABD_SCOPED_CURRENT_TRANSPORT_AUTHORITY_SOURCE_RESOLUTION_READ_ONLY",
+  "expected": {
+    "required_authority_properties": [
+      "ABD_SCOPE",
+      "SAME_UTC_DATE",
+      "NONINTERACTIVE_BOUNDARY",
+      "CONTROLLED_TARGET_AUTHORITY"
+    ],
+    "source_surfaces": [
+      "PROTECTED_EXACT_OVH_AUTH_KEYSET",
+      "GITHUB_REPOSITORY_VARIABLE_NAMES",
+      "GITHUB_REPOSITORY_ENVIRONMENT_NAMES",
+      "OVH_EXISTING_BROWSER_SESSION"
+    ],
+    "maximum_github_api_requests": 2,
+    "maximum_browser_navigation_attempts": 1,
+    "provider_api_requests": 0,
+    "ssh_connections_attempted": 0
+  },
+  "source_boundary": {
+    "owner_task_authorization_observed": true,
+    "protected_root_read_only": true,
+    "protected_exact_json_keysets_read_in_memory_only": true,
+    "credential_material_emitted_or_persisted": false,
+    "target_mapping_emitted_or_persisted": false,
+    "github_variable_or_environment_values_read_emitted_or_persisted": false,
+    "browser_existing_session_state_only": true,
+    "browser_login_submitted": false,
+    "provider_api_request_sent": false,
+    "ssh_connection_attempted": false,
+    "host_runtime_or_configuration_changed": false,
+    "cloudflare_dns_access_or_tunnel_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_PRODUCTION_ABD_SCOPED_TRANSPORT_AUTHORITY_SOURCE_RESOLUTION_ONLY_NOT_TARGET_VALUE_DISCLOSURE_PROVIDER_RESOURCE_STATE_SSH_RETRY_HOST_METADATA_READ_REPAIR_DEPLOYMENT_CORE_START_CLOUDFLARE_ACTIVATION_OR_PUBLIC_RELEASE",
+  "rollback": {
+    "action": "NO_PROVIDER_BROWSER_OR_HOST_MUTATION_NO_RUNTIME_ROLLBACK_REQUIRED",
+    "current_candidate_shadow_changed": false,
+    "private_evidence_deleted_automatically": false
+  }
+}

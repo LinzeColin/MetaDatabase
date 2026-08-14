@@ -84,15 +84,24 @@ def main() -> int:
         "library_access_policy": "Cloudflare Access",
         "separate_api_host": API_HOST,
         "public_health": "GET /health",
-        "public_pairing_status": "`GET /v1/pairing/status`",
-        "public_pairing_exchange": "`POST /v1/pairing/exchange`",
-        "pairing_rate_limit": "10 次",
-        "pairing_attempt_limit": "5 次",
-        "pairing_ttl": "10 分钟",
-        "pairing_body_limit": "16 KiB",
+        # v0.0.0.7 / T03：一次性配对码的两条公开路径与它的三条边缘保护
+        # （10 次限流目标 / 5 次尝试上限 / 10 分钟有效期 / 16 KiB 体积上限）
+        # 已随链路一并移除——端点没了，检查它们只会永远红。
+        # 边缘限流规则本身**没有放宽**，改为下面这条通用防护来核对。
+        "api_host_has_no_public_pairing_path": None,  # 见下方反向检查
+        "edge_rate_limit_not_relaxed": "1 次 / 10 秒",
+        "extension_token_is_revocable": "撤销后扩展上行立刻 401",
         "real_rule_evidence_not_source": "真实 Rule ID",
     }.items():
+        if phrase is None:
+            continue
         check(name, phrase in policy)
+
+    # 反向检查：策略文件里不许再出现可用的配对端点声明。
+    check(
+        "api_host_has_no_public_pairing_path",
+        "`POST /v1/pairing/exchange`" not in policy.split("已随 v0.0.0.7")[0],
+    )
 
     check("library_url_declared", f"SOCIAL_ARCHIVE_PUBLIC_LIBRARY_URL=https://{LIBRARY_HOST}" in env)
     check("api_url_declared", f"SOCIAL_ARCHIVE_PUBLIC_BASE_URL=https://{API_HOST}" in env)

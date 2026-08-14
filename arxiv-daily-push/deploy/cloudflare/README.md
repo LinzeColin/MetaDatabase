@@ -50,7 +50,8 @@ Worker cron 20:30 UTC（=悉尼 06:30 AEST）：刷新到期提醒计数（失�
 PYTHONPATH=src var/venv/bin/python -m adp mirror push      # 推镜像（兜底数据）
 PYTHONPATH=src var/venv/bin/python -m adp mirror pull      # 收兜底页评分
 PYTHONPATH=src var/venv/bin/python -m adp mirror snapshot  # 周快照（R2 启用后上云）
-cd deploy/cloudflare && npx wrangler deploy                # 重新部署镜像/代理 Worker（adp-mirror）
+CLOUDFLARE_API_TOKEN=… python3 deploy/cloudflare/deploy.py  # 重新部署云端 Worker（adp-cloud，唯一认可入口）
+cd deploy/cloudflare && npx wrangler deploy                # 镜像/代理 Worker（adp-mirror，另一个 worker）
 cd deploy/cloudflare/home && npx wrangler deploy           # 重新部署主页 Worker（home）
 launchctl kickstart -k gui/$UID/com.linze.adp.web          # 重启本机网页
 launchctl kickstart -k gui/$UID/com.linze.adp.tunnel       # 重启隧道 connector

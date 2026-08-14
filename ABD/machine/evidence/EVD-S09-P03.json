@@ -1,0 +1,178 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S09/P03/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S09/P03_test.py --junitxml=machine/evidence/S09/P03/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S09/P03/pytest.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S09-P03 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S09-P03",
+  "decision": "SCORE_DISTRIBUTIONS_AND_FOOTBALL_RESIDUAL_READY_DOWNSTREAM_GATES_REQUIRED",
+  "decision_sha256": "73c75ef883aabf94b8b1f42d80d63a1d9b6ec38b24ea1dc0f167f188687a32dc",
+  "deterministic_replay": {
+    "adverse_perturbation_iterations": 10000,
+    "real_time_wait_performed": false,
+    "replay_iterations": 100
+  },
+  "evidence_id": "EVD-S09-P03",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "hashes": {
+    "code": "949e14069a6579524dbfc26784d8da9062428d37f474cece9feeaf67388e53ee",
+    "inputs": {
+      "abd_acceptance/score_football_models.py": "949e14069a6579524dbfc26784d8da9062428d37f474cece9feeaf67388e53ee",
+      "distribution_tests.json": "88558194423cf78c47fd43bf5b5fa2ebcc2d1033127ea5bb48d7bd241691ec38",
+      "football_model.py": "b5a9d264bc3879e0ddc7edb0e4c7256095875a497a3be664eaa97e2655f3a8d5",
+      "machine/evidence/EVD-S09-P02.json": "f741dd700156c397eab05bf63810ab7a233e9b5e496769f1b038dcecb0e08daf",
+      "machine/evidence/S09/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S09/P03/pytest.xml": "50a6d0480ffc611b43b865f5ff3016e82524d7d8504fcba6e1d2033bc6047653",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S09_P03.json": "987f86373d70d8992af212236848b9b41eadb5a19f516b029cfe06418d84705c",
+      "market_family_registry.json": "b61486138f221ec8ef54f30359867cc9f84049df33cf21548f5988519cd58930",
+      "score_models.py": "286ef8e1359ea3fa3ae936754e0b1f43a2707ef5376e3f4b39c8df5da59b2ac3",
+      "tests/S09/P03_test.py": "a8b4b822d1f698a143eb764882c703a0b23e58eb4e5fefbbb90acd3ae941f164"
+    },
+    "rollback_evidence": "0201487b48e3f81ebf78deafa43d1b5fff4caa15b1a7156c343c9514dd70b7c6"
+  },
+  "next": "S09/P04_READY_NOT_STARTED",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S09_P03_LOCAL_EVIDENCE_ONLY_STAGE_REVIEW_REQUIRED_BEFORE_UPLOAD",
+  "requirement_id": "REQ-S09-P03",
+  "rollback": {
+    "artifacts": {
+      "abd_acceptance/__init__.py": {
+        "sha256": "4c5d738b04fd901995ec72863c8e4848b3ca2e0ca57e50ebce8ec7c8c1376e1b",
+        "status": "PASS"
+      },
+      "abd_acceptance/__main__.py": {
+        "sha256": "5927351809150aa87a7d1a758c444438526794258f9dc5a57ea6d7aea763b76e",
+        "status": "PASS"
+      },
+      "abd_acceptance/score_football_models.py": {
+        "sha256": "949e14069a6579524dbfc26784d8da9062428d37f474cece9feeaf67388e53ee",
+        "status": "PASS"
+      },
+      "distribution_tests.json": {
+        "sha256": "88558194423cf78c47fd43bf5b5fa2ebcc2d1033127ea5bb48d7bd241691ec38",
+        "status": "PASS"
+      },
+      "football_model.py": {
+        "sha256": "b5a9d264bc3879e0ddc7edb0e4c7256095875a497a3be664eaa97e2655f3a8d5",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S09_P03.json": {
+        "sha256": "987f86373d70d8992af212236848b9b41eadb5a19f516b029cfe06418d84705c",
+        "status": "PASS"
+      },
+      "score_models.py": {
+        "sha256": "286ef8e1359ea3fa3ae936754e0b1f43a2707ef5376e3f4b39c8df5da59b2ac3",
+        "status": "PASS"
+      },
+      "tests/S09/P03_test.py": {
+        "sha256": "a8b4b822d1f698a143eb764882c703a0b23e58eb4e5fefbbb90acd3ae941f164",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S09-P03",
+    "evidence_id": "EVD-S09-P03-ROLLBACK",
+    "external_state_changed": false,
+    "feature_flags": [
+      "model:football_hierarchical_score"
+    ],
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_FOOTBALL_SCOPED_MODEL_FLAG_RESTORE_P02_RECEIPT_KEEP_ALL_EVIDENCE",
+    "order_submission_enabled": false,
+    "production_state_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "shared_runtime_contract": {
+    "current_validation": "evaluate_contract",
+    "paths_excluded_from_receipt_input_hashes": [
+      "abd_acceptance/__main__.py",
+      "abd_acceptance/__init__.py"
+    ],
+    "reason": "downstream dispatcher or bootstrap evolution must not invalidate phase-owned evidence"
+  },
+  "stage_id": "S09",
+  "status": "PASS",
+  "validation": {
+    "contract_id": "AC-S09-P03",
+    "decision": "SCORE_DISTRIBUTIONS_AND_FOOTBALL_RESIDUAL_READY_DOWNSTREAM_GATES_REQUIRED",
+    "external_effect_boundary": {
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submission_enabled": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_market_or_odds_observed": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-30T00:00:00+10:00",
+    "hashes": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/score_football_models.py": "949e14069a6579524dbfc26784d8da9062428d37f474cece9feeaf67388e53ee",
+      "distribution_tests.json": "88558194423cf78c47fd43bf5b5fa2ebcc2d1033127ea5bb48d7bd241691ec38",
+      "football_model.py": "b5a9d264bc3879e0ddc7edb0e4c7256095875a497a3be664eaa97e2655f3a8d5",
+      "machine/evidence/EVD-S09-P02.json": "f741dd700156c397eab05bf63810ab7a233e9b5e496769f1b038dcecb0e08daf",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S09_P03.json": "987f86373d70d8992af212236848b9b41eadb5a19f516b029cfe06418d84705c",
+      "score_models.py": "286ef8e1359ea3fa3ae936754e0b1f43a2707ef5376e3f4b39c8df5da59b2ac3",
+      "tests/S09/P03_test.py": "a8b4b822d1f698a143eb764882c703a0b23e58eb4e5fefbbb90acd3ae941f164"
+    },
+    "next": "S09/P04_READY_NOT_STARTED",
+    "phase_id": "P03",
+    "product_version": "0.0.0.1",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "requirement_id": "REQ-S09-P03",
+    "schema_version": "1.0.0",
+    "stage_id": "S09",
+    "status": "PASS",
+    "summary": {
+      "checks": 39,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 39
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}确认关键事实｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="onboarding-head">
+  <span class="step-chip">第 2 步，共 2 步</span>
+  <h1>只确认会影响推荐和资格判断的内容</h1>
+  <p>技能、经历、学历和可能的专业方向已经从简历中整理。工作权利、经验年限和专业资质必须由你确认。</p>
+</section>
+<form method="post" action="/onboarding/confirm" class="form-card" data-testid="onboarding-confirm-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <section class="preset-panel">
+    <div><b>快速选择目标方向</b><small>可多选，仍可在下方手工修改</small></div>
+    <div class="preset-row">
+      <button type="button" class="preset-chip" data-action="role-preset" data-role-preset="金融分析,会计与审计,风险管理">金融</button>
+      <button type="button" class="preset-chip" data-action="role-preset" data-role-preset="法律,合规,合同与法务运营">法律</button>
+      <button type="button" class="preset-chip" data-action="role-preset" data-role-preset="数据分析,业务分析">数据与业务分析</button>
+    </div>
+  </section>
+  <div class="form-grid">
+    <label class="wide">目标岗位方向<input name="primary_roles" required value="{{ primary_roles_display }}" placeholder="例如：金融分析、会计与审计、法律、合规" data-testid="confirm-roles"><small>使用逗号分隔。系统会自动映射常见中英文岗位名称。</small></label>
+    <label class="wide">目标城市或地区<input name="target_locations" required value="{{ profile.target_locations|join(', ') }}" placeholder="例如：悉尼、墨尔本、澳大利亚远程" data-testid="confirm-locations"></label>
+    <label>当前工作权利<input name="work_authorization" required value="{{ profile.work_authorization }}" placeholder="例如：澳大利亚完整工作权利" data-testid="confirm-work-authorization"></label>
+    <label>相关工作经验年限<input name="experience_years" inputmode="decimal" value="{{ profile.experience_years if profile.experience_years is not none else '' }}" placeholder="例如：2.5" data-testid="confirm-experience-years"><small>只填写与目标方向相关的年限；不确定可留空，系统会标记待确认。</small></label>
+    <label>现在是否需要雇主担保<select name="sponsorship_now" required data-testid="confirm-sponsorship-now"><option value="">请选择</option><option value="no" {% if profile.sponsorship_now == 'no' %}selected{% endif %}>不需要</option><option value="yes" {% if profile.sponsorship_now == 'yes' %}selected{% endif %}>需要</option><option value="uncertain" {% if profile.sponsorship_now == 'uncertain' %}selected{% endif %}>不确定</option></select></label>
+    <label>未来是否需要雇主担保<select name="sponsorship_future" required data-testid="confirm-sponsorship-future"><option value="">请选择</option><option value="no" {% if profile.sponsorship_future == 'no' %}selected{% endif %}>不需要</option><option value="yes" {% if profile.sponsorship_future == 'yes' %}selected{% endif %}>需要</option><option value="uncertain" {% if profile.sponsorship_future == 'uncertain' %}selected{% endif %}>不确定</option></select></label>
+    <fieldset class="wide"><legend>可接受工作模式</legend><div class="check-row"><label><input type="checkbox" name="work_modes" value="remote" {% if 'remote' in profile.work_mode %}checked{% endif %}>远程</label><label><input type="checkbox" name="work_modes" value="hybrid" {% if 'hybrid' in profile.work_mode %}checked{% endif %}>混合办公</label><label><input type="checkbox" name="work_modes" value="onsite" {% if 'onsite' in profile.work_mode %}checked{% endif %}>现场办公</label></div></fieldset>
+    <label class="wide">已取得的专业资质<input name="professional_credentials" value="{{ profile.professional_credentials|join(', ') }}" placeholder="例如：CPA、CA、CFA、LLB、JD、PLT" data-testid="confirm-credentials"><small>金融和法律岗位会据此核对明确资质要求。</small></label>
+    <label class="check-card"><input type="checkbox" name="credentials_confirmed" value="true" {% if profile.credentials_confirmed %}checked{% endif %} data-testid="confirm-credentials-confirmed"><span><b>我已核对以上专业资质</b><small>勾选后，缺少岗位明确要求的资质可直接判为不符合；未勾选时只标记待确认。</small></span></label>
+    <label data-specialist="legal">澳大利亚律师准入状态<select name="legal_admission" data-testid="confirm-legal-admission"><option value="uncertain" {% if profile.legal_admission=='uncertain' %}selected{% endif %}>尚未确认</option><option value="admitted" {% if profile.legal_admission=='admitted' %}selected{% endif %}>已取得准入</option><option value="not_admitted" {% if profile.legal_admission=='not_admitted' %}selected{% endif %}>尚未取得</option><option value="not_applicable" {% if profile.legal_admission=='not_applicable' %}selected{% endif %}>不适用</option></select></label>
+    <label data-specialist="legal">澳大利亚执业证书状态<select name="practising_certificate" data-testid="confirm-practising-certificate"><option value="uncertain" {% if profile.practising_certificate=='uncertain' %}selected{% endif %}>尚未确认</option><option value="current" {% if profile.practising_certificate=='current' %}selected{% endif %}>当前有效</option><option value="held" {% if profile.practising_certificate=='held' %}selected{% endif %}>曾持有／需核对有效期</option><option value="not_current" {% if profile.practising_certificate=='not_current' %}selected{% endif %}>当前无有效证书</option><option value="not_applicable" {% if profile.practising_certificate=='not_applicable' %}selected{% endif %}>不适用</option></select></label>
+    <label>是否接受搬迁<select name="relocation" data-testid="confirm-relocation"><option value="" {% if not profile.relocation %}selected{% endif %}>视岗位而定</option><option value="yes" {% if profile.relocation=='yes' %}selected{% endif %}>可以</option><option value="no" {% if profile.relocation=='no' %}selected{% endif %}>不可以</option></select></label>
+    <label>可入职时间<input name="available_start" value="{{ profile.available_start }}" placeholder="例如：2026 年 11 月或提前 4 周通知" data-testid="confirm-available-start"></label>
+    <label>明确不接受的岗位<input name="avoid_roles" value="{{ profile.avoid_roles|join(', ') }}" placeholder="例如：销售、无薪实习" data-testid="confirm-avoid-roles"></label>
+    <label>明确不接受的行业<input name="avoid_industries" value="{{ profile.avoid_industries|join(', ') }}" placeholder="例如：博彩" data-testid="confirm-avoid-industries"></label>
+  </div>
+  <div class="form-actions"><a class="button ghost" href="/onboarding/upload" data-testid="confirm-back">返回简历库</a><button class="button large" type="submit" data-testid="confirm-submit">保存并自动寻找岗位</button></div>
+</form>
+{% endblock %}

@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-BLUE-RELEASE-REPAIR-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_CURRENT_PRODUCTION_BLUE_RELEASE_REPAIR_NO_CORE_ACTIVATION",
+  "expected": {
+    "current_target": "BLUE_SHADOW_RELEASE",
+    "shadow_blue_project_present": true,
+    "core_unit": {
+      "load_state": "not-found",
+      "active_state": "inactive"
+    },
+    "existing_files": {
+      "compose_file_kind": "regular"
+    },
+    "missing_before_repair": {
+      "config_schema_file_kind": "missing",
+      "rebuild_file_kind": "missing",
+      "abd_acceptance_directory_kind": "missing"
+    },
+    "host_python_major_minor": "3.12",
+    "host_python_jsonschema_import": "present",
+    "source_bundle_profile": {
+      "infra_paths": [
+        "infra/config.schema.json",
+        "infra/rebuild.sh"
+      ],
+      "bootstrap_initializer_source": "runtime/current_production_blue_release_acceptance_init.py",
+      "acceptance_module_paths": [
+        "abd_acceptance/infrastructure_iac.py",
+        "abd_acceptance/canonical_facts.py",
+        "abd_acceptance/legacy_receipt_compatibility.py",
+        "abd_acceptance/stage3_delivery.py"
+      ],
+      "acceptance_package_python_file_count": 5,
+      "acceptance_package_nonpython_file_count": 0
+    }
+  },
+  "source_boundary": {
+    "local_nonsecret_source_bundle_read": true,
+    "live_host_nonsecret_metadata_read": true,
+    "config_contents_read": false,
+    "runtime_env_contents_read": false,
+    "runtime_secret_contents_read": false,
+    "release_compose_contents_changed": false,
+    "release_nonsecret_files_added": true,
+    "current_symlink_changed": false,
+    "shadow_container_changed": false,
+    "image_loaded_or_retagged": false,
+    "unit_created_enabled_or_started": false,
+    "connector_config_written": false,
+    "cloudflare_dns_access_or_tunnel_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_PRODUCTION_BLUE_RELEASE_NONSECRET_REPAIR_ONLY_NOT_CONFIG_VALIDATION_UNIT_INSTALL_CORE_START_CONNECTOR_ACTIVATION_OR_PUBLIC_RELEASE",
+  "rollback": {
+    "failure_cleanup": "REMOVE_ONLY_EXACT_FILES_CREATED_BY_THIS_RUN",
+    "successful_repair_rollback": "SEPARATE_CONTRACT_REQUIRED",
+    "current_symlink_preserved": true,
+    "shadow_runtime_preserved": true
+  }
+}

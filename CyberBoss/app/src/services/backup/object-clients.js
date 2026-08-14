@@ -152,6 +152,7 @@ class R2ObjectClient {
       body,
       extraHeaders: {
         "Content-Type": "application/octet-stream",
+        "x-amz-storage-class": "STANDARD",
         // 元数据里只放长度和摘要，绝不放用户标识。
         "x-amz-meta-sha256": String(metadata.sha256 || ""),
         "x-amz-meta-release": String(metadata.releaseId || ""),

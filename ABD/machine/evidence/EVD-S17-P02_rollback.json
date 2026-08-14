@@ -1,0 +1,42 @@
+{
+  "artifacts": {
+    "abd_acceptance/concurrency_idempotency.py": {
+      "sha256": "8cc52a92fad95586e0e0337ecbf609845ac182f9cf29284a3ca7d0f2b3386fa9",
+      "status": "PASS"
+    },
+    "abd_acceptance/concurrency_idempotency_engine.py": {
+      "sha256": "751d4fae8cdb788fb24a5d90955af373e8f7d9254e39d7ca46bdcfbcc67d3757",
+      "status": "PASS"
+    },
+    "concurrency_test.py": {
+      "sha256": "931d7641bc73d65707307827d4ac6c73e8d26af0c893313039eb532dd1493b6c",
+      "status": "PASS"
+    },
+    "idempotency_report.json": {
+      "sha256": "b9d0a0191c1aee7a3694f8f9916812a53818681626036344e8a9ad07d5580a1f",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S17-P01.json": {
+      "sha256": "2f8cc9265cea7eec0e28d6ae0608ba6548a75378d28b850e639509465bff2fa9",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S17_P02.json": {
+      "sha256": "63f0b877e79698c88f1a3adfa8de369ce2c1fb82c6f0cbfd8979575a0ae6562b",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S17-P02",
+  "evidence_id": "EVD-S17-P02-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "idempotency:s17_frozen_logical_lane_replay",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_LOCAL_IDEMPOTENCY_REPLAY_KEEP_RUNTIME_DEPLOYMENT_BLOCKED",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_ledger_read_or_written": false,
+  "real_runtime_concurrency_executed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

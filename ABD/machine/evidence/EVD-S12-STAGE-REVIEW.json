@@ -1,0 +1,1317 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python -m abd_acceptance --verify-existing AC-S12-P01 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --verify-existing AC-S12-P02 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --verify-existing AC-S12-P03 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --verify-existing AC-S12-P04 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S12/STAGE_REVIEW/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S12/stage_review_test.py --junitxml=machine/evidence/S12/STAGE_REVIEW/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S12/STAGE_REVIEW/pytest.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract STAGE-REVIEW-S12 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "STAGE-REVIEW-S12",
+  "decision": "S12_WHOLE_STAGE_REVIEW_PASS",
+  "decision_sha256": "5447cfb3f7bb39c0964033153dd5ed6428d7ff2a3b2dd3701de3ebefe1e6c108",
+  "deterministic_review": {
+    "full_regression_executed": false,
+    "phase_test_suites_rerun": false,
+    "real_time_wait_performed": false,
+    "single_pass_fixture_cases": 9
+  },
+  "evidence_id": "EVD-S12-STAGE-REVIEW",
+  "external_effect_boundary": {
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_network_accessed_for_product_runtime": false,
+    "github_upload_performed_by_local_review": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_or_strategy_executed": false,
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "owner_final_order_only": true,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "remote_ci_result_claimed_by_local_review": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "hashes": {
+    "code": "836c7e2db91488a3db647afbf2f24fb7b0995def25ee49ada33509efe5abd741",
+    "inputs": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/__main__.py": "9393f0a1be9b3405da0b85dbcafe6bcc41678f51ac101b9092a828b7ff23fe22",
+      "abd_acceptance/capacity_correlation.py": "46f5eefd942f32d34812be06ba345672fe2e1a84d1c9d7cac7c911e9cfe9365f",
+      "abd_acceptance/economics_sensitivity.py": "da8d5171b730b03f7de1794a4c467890ded76aa490e1b0eb86bcb3852091c9c4",
+      "abd_acceptance/evidence_continuity.py": "2b779aa080b140fe281613b21644b2c506f71c0219bae22a3dcc19aff923986d",
+      "abd_acceptance/stage12_review.py": "836c7e2db91488a3db647afbf2f24fb7b0995def25ee49ada33509efe5abd741",
+      "abd_acceptance/target_curve.py": "fa05a9c4de4046d44ac07508af174d75fcc6145e76341c6230ec1537bfa926bc",
+      "abd_acceptance/target_falsification_gate.py": "1fd6037a836598820f253382e47ec0aff8dd74874b5a8f3a106ee832d12541d4",
+      "capacity_model.py": "0c73f3d33b1e37026dbf7efda5694cfce9110a4f87bd9e4626379f47637993aa",
+      "capacity_report.json": "0dfa4b67eb93f75e101adce94bb534fd8d9fbe7e7f139e5bd60ffa48fd81c11b",
+      "cashflow_adjustment.py": "e40b7051d2d39defecddacdbff57057e67a63c0ad21e46045d004bd3126eef3c",
+      "economics.py": "0dd12d78ac522432653287284edcd9186d8a069723a43b5d9e10a695410f5e19",
+      "equivalent_signal.py": "5e80c4ca97971f82a6db74c345bd177c3b366b735e2d94ce7678620db79a2153",
+      "kill_report.schema.json": "204722497be497600a966489c00d9f995dc518ed1114ec00716d2b269bd3c78c",
+      "machine/evidence/EVD-S12-P01.json": "9462cfab12b28218bf84419d45bf0c4d512aa406d5547de108f0dfbb09d4214a",
+      "machine/evidence/EVD-S12-P01_rollback.json": "47601c6b52ad0fb04eae4bc2231bcf24ecb4a023d4e301f6a5a00fc3c4c2c69f",
+      "machine/evidence/EVD-S12-P02.json": "dba62cb8d87a6a33fb7e4ea90615a7a892233e908fd48973000afc43576395f0",
+      "machine/evidence/EVD-S12-P02_rollback.json": "1aeb15bd630c8f4dc9eaba24f8c344db3047d363c12bcba909d46f6bb0a2f4ca",
+      "machine/evidence/EVD-S12-P03.json": "10ece6229575dc17dfed64e802d734d1ad199df592393b9525552d9f26c04a58",
+      "machine/evidence/EVD-S12-P03_rollback.json": "04cb344aeafb66c96ec4efa20360c200c1bba7887b9bb2f1c249032d03c1ad8e",
+      "machine/evidence/EVD-S12-P04.json": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+      "machine/evidence/EVD-S12-P04_rollback.json": "9545a7065a616293af8fdd06ba13af266048f1fee4864692987e6423296520c0",
+      "machine/evidence/S12/STAGE_REVIEW/findings.json": "0d68665ba545dd9cda3f24cb768bd63c611b8107f68379ba7c7e9f7b7e5b074e",
+      "machine/evidence/S12/STAGE_REVIEW/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S12/STAGE_REVIEW/pytest.xml": "e74442572e66b0f93530953c71df8248302b8c1a316f2ad718d3e8b647aff17b",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/stage12_review_contract.json": "d58bdebf3977ee7cbf75bc1ed2fd03abadbbacd8a3dafcf1996c0dbd9ddb30ce",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S12_P01.json": "9c050728f860fe69568959499af4852284dc87034ee6ce44ad28cea43409d69b",
+      "machine/tests/fixtures/S12_P02.json": "00c0cf44f581739d91f1cdc045bdf49c590d6d229a485a557ccd352b3c4e5e26",
+      "machine/tests/fixtures/S12_P03.json": "f36db145e763c7b73e695af068f17d1c741ca01489276b1d9efd62e30b925903",
+      "machine/tests/fixtures/S12_P04.json": "b8ba40499ce63173b3c950c653fa50e42d7ab976e2c09baa2fc1d3f55b192adb",
+      "machine/tests/fixtures/S12_STAGE_REVIEW.json": "1ea376ebb0c66c35a4f077b11925eb673b3abce7fc180bcdc0974348849d8f74",
+      "opportunity_cost.json": "d9d5302a55306155b3e4de02dcf58b75b77fba25d59136747f49815ab97fe754",
+      "sensitivity_grid.json": "4b9ce49e2d04d2bdac9ca1d26890de8fae828db432315ea6e96aa48b2f3ad7a2",
+      "target_acceptance.json": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76",
+      "target_engine.py": "be759f9d8d89f14bb64f77342aa02139cf899c20ad25edd4c144b65b6ef30534",
+      "target_falsification.py": "3d03c955b98f2932a7361a8be6856cf00e6e2b924e73bad432e55f4fc43430ad",
+      "target_vectors.json": "80fcd5c54a25d893eda11f84a039d75ae8f40862b4d26e3f9d6370983bbd956e",
+      "tests/S12/P01_test.py": "d4a57b6740950888d63d3392451cc5cc728aac0d528a50efe0f5d7484d1e6b05",
+      "tests/S12/P02_test.py": "491668b767bf312ccaaa1069f0dafb0ad4a59defd5109d214f72b6c15d5bae68",
+      "tests/S12/P03_test.py": "4f928b46b7173756893359bfa92014e97321279af086d3704be455924291ba66",
+      "tests/S12/P04_test.py": "9426d7d9ee01ea615312f64825e572c3e9fc18389e4c6141adc3e9474f03eeb5",
+      "tests/S12/stage_review_test.py": "4751a90b21415019572a69e72b8910d3c1171c68a51bf295c289aaccea9435c8"
+    },
+    "rollback_evidence": "494b06af2ea1adaba5aa4fe5073700e46a6f763f82977ea44bf40df936b748f0"
+  },
+  "next": "S12/GITHUB_STAGE_UPLOAD_READY",
+  "phase_receipts": {
+    "P01": {
+      "evidence_path": "machine/evidence/EVD-S12-P01.json",
+      "evidence_sha256": "9462cfab12b28218bf84419d45bf0c4d512aa406d5547de108f0dfbb09d4214a",
+      "rollback_path": "machine/evidence/EVD-S12-P01_rollback.json",
+      "rollback_sha256": "47601c6b52ad0fb04eae4bc2231bcf24ecb4a023d4e301f6a5a00fc3c4c2c69f"
+    },
+    "P02": {
+      "evidence_path": "machine/evidence/EVD-S12-P02.json",
+      "evidence_sha256": "dba62cb8d87a6a33fb7e4ea90615a7a892233e908fd48973000afc43576395f0",
+      "rollback_path": "machine/evidence/EVD-S12-P02_rollback.json",
+      "rollback_sha256": "1aeb15bd630c8f4dc9eaba24f8c344db3047d363c12bcba909d46f6bb0a2f4ca"
+    },
+    "P03": {
+      "evidence_path": "machine/evidence/EVD-S12-P03.json",
+      "evidence_sha256": "10ece6229575dc17dfed64e802d734d1ad199df592393b9525552d9f26c04a58",
+      "rollback_path": "machine/evidence/EVD-S12-P03_rollback.json",
+      "rollback_sha256": "04cb344aeafb66c96ec4efa20360c200c1bba7887b9bb2f1c249032d03c1ad8e"
+    },
+    "P04": {
+      "evidence_path": "machine/evidence/EVD-S12-P04.json",
+      "evidence_sha256": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+      "rollback_path": "machine/evidence/EVD-S12-P04_rollback.json",
+      "rollback_sha256": "9545a7065a616293af8fdd06ba13af266048f1fee4864692987e6423296520c0"
+    }
+  },
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S12_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "review_id": "ABD-S12-WHOLE-STAGE-REVIEW",
+  "rollback": {
+    "artifacts": {
+      "abd_acceptance/stage12_review.py": {
+        "sha256": "836c7e2db91488a3db647afbf2f24fb7b0995def25ee49ada33509efe5abd741",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S12-P01.json": {
+        "sha256": "9462cfab12b28218bf84419d45bf0c4d512aa406d5547de108f0dfbb09d4214a",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S12-P01_rollback.json": {
+        "sha256": "47601c6b52ad0fb04eae4bc2231bcf24ecb4a023d4e301f6a5a00fc3c4c2c69f",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S12-P02.json": {
+        "sha256": "dba62cb8d87a6a33fb7e4ea90615a7a892233e908fd48973000afc43576395f0",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S12-P02_rollback.json": {
+        "sha256": "1aeb15bd630c8f4dc9eaba24f8c344db3047d363c12bcba909d46f6bb0a2f4ca",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S12-P03.json": {
+        "sha256": "10ece6229575dc17dfed64e802d734d1ad199df592393b9525552d9f26c04a58",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S12-P03_rollback.json": {
+        "sha256": "04cb344aeafb66c96ec4efa20360c200c1bba7887b9bb2f1c249032d03c1ad8e",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S12-P04.json": {
+        "sha256": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+        "status": "PASS"
+      },
+      "machine/evidence/EVD-S12-P04_rollback.json": {
+        "sha256": "9545a7065a616293af8fdd06ba13af266048f1fee4864692987e6423296520c0",
+        "status": "PASS"
+      },
+      "machine/evidence/S12/STAGE_REVIEW/findings.json": {
+        "sha256": "0d68665ba545dd9cda3f24cb768bd63c611b8107f68379ba7c7e9f7b7e5b074e",
+        "status": "PASS"
+      },
+      "machine/facts/stage12_review_contract.json": {
+        "sha256": "d58bdebf3977ee7cbf75bc1ed2fd03abadbbacd8a3dafcf1996c0dbd9ddb30ce",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S12_STAGE_REVIEW.json": {
+        "sha256": "1ea376ebb0c66c35a4f077b11925eb673b3abce7fc180bcdc0974348849d8f74",
+        "status": "PASS"
+      },
+      "tests/S12/stage_review_test.py": {
+        "sha256": "4751a90b21415019572a69e72b8910d3c1171c68a51bf295c289aaccea9435c8",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "STAGE-REVIEW-S12",
+    "evidence_id": "EVD-S12-STAGE-REVIEW-ROLLBACK",
+    "external_state_changed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_S12_STAGE_REVIEW_CANDIDATE_KEEP_SIGNED_PHASE_RECEIPTS_AND_REPLAY_OFFLINE",
+    "order_submission_enabled": false,
+    "production_state_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S12",
+  "stage_status": "S12_WHOLE_STAGE_REVIEW_PASS",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": "machine/facts/stage12_review_contract.json",
+        "id": "S12REVIEW-CONTRACT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S12/STAGE_REVIEW/findings.json",
+        "id": "S12REVIEW-FINDINGS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S12_STAGE_REVIEW.json",
+        "id": "S12REVIEW-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "STAGE-REVIEW-S12",
+          "fixed_clock": "2026-08-09T00:00:00+10:00",
+          "next_on_fail": "S12/STAGE_REVIEW_REMEDIATION_REQUIRED",
+          "next_on_pass": "S12/GITHUB_STAGE_UPLOAD_READY",
+          "product_version": "0.0.0.1",
+          "release_status_on_pass": "S12_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+          "review_id": "ABD-S12-WHOLE-STAGE-REVIEW",
+          "schema_version": "1.0.0",
+          "stage_id": "S12",
+          "targeted_test_command": "pytest -q tests/S12/stage_review_test.py"
+        },
+        "id": "S12REVIEW-CONTRACT-IDENTITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contract_ids": [
+            "AC-S12-P01",
+            "AC-S12-P02",
+            "AC-S12-P03",
+            "AC-S12-P04"
+          ],
+          "phase_ids": [
+            "P01",
+            "P02",
+            "P03",
+            "P04"
+          ],
+          "requirement_ids": [
+            "REQ-S12-P01",
+            "REQ-S12-P02",
+            "REQ-S12-P03",
+            "REQ-S12-P04"
+          ],
+          "task_ids": [
+            "T-S12-P01-01",
+            "T-S12-P01-02",
+            "T-S12-P01-03",
+            "T-S12-P02-01",
+            "T-S12-P02-02",
+            "T-S12-P02-03",
+            "T-S12-P03-01",
+            "T-S12-P03-02",
+            "T-S12-P03-03",
+            "T-S12-P04-01",
+            "T-S12-P04-02",
+            "T-S12-P04-03"
+          ]
+        },
+        "id": "S12REVIEW-SCOPE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_contract_id": "AC-S12-P01",
+            "evidence_path": "machine/evidence/EVD-S12-P01.json",
+            "evidence_sha256": "9462cfab12b28218bf84419d45bf0c4d512aa406d5547de108f0dfbb09d4214a",
+            "expected_decision": "TARGET_CURVE_READY_DOWNSTREAM_CAPACITY_ECONOMICS_AND_FALSIFICATION_GATES_REQUIRED",
+            "expected_next": "S12/P02_READY_NOT_STARTED",
+            "outputs": [
+              "target_engine.py",
+              "cashflow_adjustment.py",
+              "target_vectors.json"
+            ],
+            "phase_id": "P01",
+            "requirement_id": "REQ-S12-P01",
+            "rollback_path": "machine/evidence/EVD-S12-P01_rollback.json",
+            "rollback_sha256": "47601c6b52ad0fb04eae4bc2231bcf24ecb4a023d4e301f6a5a00fc3c4c2c69f",
+            "target": "固定时钟下目标曲线与高精度参考一致。"
+          },
+          {
+            "acceptance_contract_id": "AC-S12-P02",
+            "evidence_path": "machine/evidence/EVD-S12-P02.json",
+            "evidence_sha256": "dba62cb8d87a6a33fb7e4ea90615a7a892233e908fd48973000afc43576395f0",
+            "expected_decision": "CAPACITY_CORRELATION_READY_DOWNSTREAM_ECONOMICS_AND_FALSIFICATION_GATES_REQUIRED",
+            "expected_next": "S12/P03_READY_NOT_STARTED",
+            "outputs": [
+              "capacity_model.py",
+              "equivalent_signal.py",
+              "capacity_report.json"
+            ],
+            "phase_id": "P02",
+            "requirement_id": "REQ-S12-P02",
+            "rollback_path": "machine/evidence/EVD-S12-P02_rollback.json",
+            "rollback_sha256": "1aeb15bd630c8f4dc9eaba24f8c344db3047d363c12bcba909d46f6bb0a2f4ca",
+            "target": "不把高度相关机会重复计入30%覆盖。"
+          },
+          {
+            "acceptance_contract_id": "AC-S12-P03",
+            "evidence_path": "machine/evidence/EVD-S12-P03.json",
+            "evidence_sha256": "10ece6229575dc17dfed64e802d734d1ad199df592393b9525552d9f26c04a58",
+            "expected_decision": "ECONOMICS_SENSITIVITY_READY_DOWNSTREAM_FALSIFICATION_GATE_REQUIRED",
+            "expected_next": "S12/P04_READY_NOT_STARTED",
+            "outputs": [
+              "economics.py",
+              "sensitivity_grid.json",
+              "opportunity_cost.json"
+            ],
+            "phase_id": "P03",
+            "requirement_id": "REQ-S12-P03",
+            "rollback_path": "machine/evidence/EVD-S12-P03_rollback.json",
+            "rollback_sha256": "04cb344aeafb66c96ec4efa20360c200c1bba7887b9bb2f1c249032d03c1ad8e",
+            "target": "所有收益带区间、置信度和失败概率，不输出保证。"
+          },
+          {
+            "acceptance_contract_id": "AC-S12-P04",
+            "evidence_path": "machine/evidence/EVD-S12-P04.json",
+            "evidence_sha256": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+            "expected_decision": "TARGET_FALSIFICATION_AND_VERIFICATION_CONTRACT_READY_STAGE_REVIEW_REQUIRED",
+            "expected_next": "S12/STAGE_REVIEW_READY_NOT_STARTED",
+            "outputs": [
+              "target_falsification.py",
+              "target_acceptance.json",
+              "kill_report.schema.json"
+            ],
+            "phase_id": "P04",
+            "requirement_id": "REQ-S12-P04",
+            "rollback_path": "machine/evidence/EVD-S12-P04_rollback.json",
+            "rollback_sha256": "9545a7065a616293af8fdd06ba13af266048f1fee4864692987e6423296520c0",
+            "target": "目标短缺只报告，不降低阈值、仓位或证据门。"
+          }
+        ],
+        "id": "S12REVIEW-PHASE-RECORDS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S12REVIEW-FROZEN-BASELINE-PINS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "full_regression_or_real_time_soak_allowed": false,
+          "github_upload_performed_by_local_review": false,
+          "incremental_cash_spent_aud": "0.00",
+          "offline_deterministic_only": true,
+          "phase_test_rerun_allowed": false,
+          "production_deployed_or_activated": false,
+          "single_pass_fixture_cases_only": true
+        },
+        "id": "S12REVIEW-NO-FULL-REGRESSION-OR-REALTIME-POLICY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "PHASE_RECEIPTS_CURRENT_AND_PORTABLE",
+          "REQUIREMENT_ACCEPTANCE_TASK_TRACE_CLOSED",
+          "TARGET_CURVE_AND_AUDITED_CASHFLOW_GATE_PRESERVED",
+          "CORRELATION_CAPACITY_NOT_TARGET_COVERAGE_GATE_PRESERVED",
+          "SYNTHETIC_SENSITIVITY_NOT_RETURN_OR_GUARANTEE_GATE_PRESERVED",
+          "FALSIFICATION_VERIFICATION_SHORTFALL_REPORT_ONLY_GATE_PRESERVED",
+          "NO_NETWORK_ORDER_OR_REAL_TIME_SOAK_EXECUTED",
+          "ALL_REVIEW_FINDINGS_RESOLVED",
+          "NO_FULL_REGRESSION_EXECUTED"
+        ],
+        "id": "S12REVIEW-REQUIRED-GATES-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "STAGE-REVIEW-S12",
+          "expected_next": "S12/GITHUB_STAGE_UPLOAD_READY",
+          "expected_release_status": "S12_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+          "fixed_clock": "2026-08-09T00:00:00+10:00",
+          "fixture_id": "FIX-S12-WHOLE-STAGE-REVIEW",
+          "minimum_targeted_pytest_cases": 24,
+          "product_version": "0.0.0.1",
+          "review_id": "ABD-S12-WHOLE-STAGE-REVIEW",
+          "schema_version": "1.0.0",
+          "single_pass_case_count": 9,
+          "stage_id": "S12"
+        },
+        "id": "S12REVIEW-FIXTURE-CONTRACT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": {
+            "P01": "9462cfab12b28218bf84419d45bf0c4d512aa406d5547de108f0dfbb09d4214a",
+            "P02": "dba62cb8d87a6a33fb7e4ea90615a7a892233e908fd48973000afc43576395f0",
+            "P03": "10ece6229575dc17dfed64e802d734d1ad199df592393b9525552d9f26c04a58",
+            "P04": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b"
+          },
+          "rollback": {
+            "P01": "47601c6b52ad0fb04eae4bc2231bcf24ecb4a023d4e301f6a5a00fc3c4c2c69f",
+            "P02": "1aeb15bd630c8f4dc9eaba24f8c344db3047d363c12bcba909d46f6bb0a2f4ca",
+            "P03": "04cb344aeafb66c96ec4efa20360c200c1bba7887b9bb2f1c249032d03c1ad8e",
+            "P04": "9545a7065a616293af8fdd06ba13af266048f1fee4864692987e6423296520c0"
+          }
+        },
+        "id": "S12REVIEW-FIXTURE-PHASE-RECEIPT-PINS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "blocked": 0,
+          "open": 0,
+          "resolved": 0,
+          "total": 0
+        },
+        "id": "S12REVIEW-ALL-FINDINGS-RESOLVED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "PURSUE_GOAL_PROMPT.txt",
+          "VERSION",
+          "machine/facts/acceptance_contracts.json",
+          "machine/facts/canonical_facts.json",
+          "machine/facts/costs.json",
+          "machine/facts/parameters.json",
+          "machine/facts/requirements.json",
+          "machine/facts/roadmap.json",
+          "machine/facts/task_graph.json",
+          "machine/facts/traceability_matrix.json"
+        ],
+        "id": "S12REVIEW-BASELINE-CONTRACT-PINS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S12REVIEW-BASELINE-PURSUE_GOAL_PROMPT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S12REVIEW-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S12REVIEW-BASELINE-ACCEPTANCE_CONTRACTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S12REVIEW-BASELINE-CANONICAL_FACTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S12REVIEW-BASELINE-COSTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S12REVIEW-BASELINE-PARAMETERS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S12REVIEW-BASELINE-REQUIREMENTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S12REVIEW-BASELINE-ROADMAP",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S12REVIEW-BASELINE-TASK_GRAPH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S12REVIEW-BASELINE-TRACEABILITY_MATRIX",
+        "passed": true
+      },
+      {
+        "detail": "all frozen baseline hashes match",
+        "id": "S12REVIEW-BASELINE-CRITICAL-HASHES",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S12REVIEW-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S12REVIEW-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/roadmap.json",
+        "id": "S12REVIEW-ROADMAP-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S12REVIEW-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S12REVIEW-TRACE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "P01": {
+            "passed": true,
+            "task_ids": [
+              "T-S12-P01-01",
+              "T-S12-P01-02",
+              "T-S12-P01-03"
+            ]
+          },
+          "P02": {
+            "passed": true,
+            "task_ids": [
+              "T-S12-P02-01",
+              "T-S12-P02-02",
+              "T-S12-P02-03"
+            ]
+          },
+          "P03": {
+            "passed": true,
+            "task_ids": [
+              "T-S12-P03-01",
+              "T-S12-P03-02",
+              "T-S12-P03-03"
+            ]
+          },
+          "P04": {
+            "passed": true,
+            "task_ids": [
+              "T-S12-P04-01",
+              "T-S12-P04-02",
+              "T-S12-P04-03"
+            ]
+          }
+        },
+        "id": "S12REVIEW-REQUIREMENT-ACCEPTANCE-TASK-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "P01",
+          "P02",
+          "P03",
+          "P04"
+        ],
+        "id": "S12REVIEW-PHASE-RECORDS-AVAILABLE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S12-P01.json",
+        "id": "S12REVIEW-P01-EVIDENCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S12-P01_rollback.json",
+        "id": "S12REVIEW-P01-ROLLBACK-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": "9462cfab12b28218bf84419d45bf0c4d512aa406d5547de108f0dfbb09d4214a",
+          "rollback": "47601c6b52ad0fb04eae4bc2231bcf24ecb4a023d4e301f6a5a00fc3c4c2c69f"
+        },
+        "id": "S12REVIEW-P01-RECEIPT-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "AC-S12-P01",
+          "evidence_path": "machine/evidence/EVD-S12-P01.json",
+          "evidence_sha256": "9462cfab12b28218bf84419d45bf0c4d512aa406d5547de108f0dfbb09d4214a",
+          "next": "S12/P02_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "S12REVIEW-P01-CURRENT-PHASE-ORACLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "decision": "TARGET_CURVE_READY_DOWNSTREAM_CAPACITY_ECONOMICS_AND_FALSIFICATION_GATES_REQUIRED",
+          "next": "S12/P02_READY_NOT_STARTED"
+        },
+        "id": "S12REVIEW-P01-RECEIPT-AND-BOUNDARY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_artifact": "machine/evidence/EVD-S12-P01.json",
+          "artifact_sha256": "9462cfab12b28218bf84419d45bf0c4d512aa406d5547de108f0dfbb09d4214a",
+          "contract_id": "AC-S12-P01",
+          "id": "INDEX-AC-S12-P01",
+          "kind": "PHASE_EVIDENCE",
+          "next": "S12/P02_READY_NOT_STARTED",
+          "requirement_id": "REQ-S12-P01",
+          "stage_id": "S12",
+          "status": "PASS",
+          "verified_at": "2026-08-09T00:00:00+10:00"
+        },
+        "id": "S12REVIEW-P01-EVIDENCE-INDEX-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "portable",
+        "id": "S12REVIEW-P01-EVIDENCE-PORTABLE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S12-P02.json",
+        "id": "S12REVIEW-P02-EVIDENCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S12-P02_rollback.json",
+        "id": "S12REVIEW-P02-ROLLBACK-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": "dba62cb8d87a6a33fb7e4ea90615a7a892233e908fd48973000afc43576395f0",
+          "rollback": "1aeb15bd630c8f4dc9eaba24f8c344db3047d363c12bcba909d46f6bb0a2f4ca"
+        },
+        "id": "S12REVIEW-P02-RECEIPT-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "AC-S12-P02",
+          "evidence_path": "machine/evidence/EVD-S12-P02.json",
+          "evidence_sha256": "dba62cb8d87a6a33fb7e4ea90615a7a892233e908fd48973000afc43576395f0",
+          "next": "S12/P03_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "S12REVIEW-P02-CURRENT-PHASE-ORACLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "decision": "CAPACITY_CORRELATION_READY_DOWNSTREAM_ECONOMICS_AND_FALSIFICATION_GATES_REQUIRED",
+          "next": "S12/P03_READY_NOT_STARTED"
+        },
+        "id": "S12REVIEW-P02-RECEIPT-AND-BOUNDARY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_artifact": "machine/evidence/EVD-S12-P02.json",
+          "artifact_sha256": "dba62cb8d87a6a33fb7e4ea90615a7a892233e908fd48973000afc43576395f0",
+          "contract_id": "AC-S12-P02",
+          "id": "INDEX-AC-S12-P02",
+          "kind": "PHASE_EVIDENCE",
+          "next": "S12/P03_READY_NOT_STARTED",
+          "requirement_id": "REQ-S12-P02",
+          "stage_id": "S12",
+          "status": "PASS",
+          "verified_at": "2026-08-09T00:00:00+10:00"
+        },
+        "id": "S12REVIEW-P02-EVIDENCE-INDEX-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "portable",
+        "id": "S12REVIEW-P02-EVIDENCE-PORTABLE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S12-P03.json",
+        "id": "S12REVIEW-P03-EVIDENCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S12-P03_rollback.json",
+        "id": "S12REVIEW-P03-ROLLBACK-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": "10ece6229575dc17dfed64e802d734d1ad199df592393b9525552d9f26c04a58",
+          "rollback": "04cb344aeafb66c96ec4efa20360c200c1bba7887b9bb2f1c249032d03c1ad8e"
+        },
+        "id": "S12REVIEW-P03-RECEIPT-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "AC-S12-P03",
+          "evidence_path": "machine/evidence/EVD-S12-P03.json",
+          "evidence_sha256": "10ece6229575dc17dfed64e802d734d1ad199df592393b9525552d9f26c04a58",
+          "next": "S12/P04_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "S12REVIEW-P03-CURRENT-PHASE-ORACLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "decision": "ECONOMICS_SENSITIVITY_READY_DOWNSTREAM_FALSIFICATION_GATE_REQUIRED",
+          "next": "S12/P04_READY_NOT_STARTED"
+        },
+        "id": "S12REVIEW-P03-RECEIPT-AND-BOUNDARY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_artifact": "machine/evidence/EVD-S12-P03.json",
+          "artifact_sha256": "10ece6229575dc17dfed64e802d734d1ad199df592393b9525552d9f26c04a58",
+          "contract_id": "AC-S12-P03",
+          "id": "INDEX-AC-S12-P03",
+          "kind": "PHASE_EVIDENCE",
+          "next": "S12/P04_READY_NOT_STARTED",
+          "requirement_id": "REQ-S12-P03",
+          "stage_id": "S12",
+          "status": "PASS",
+          "verified_at": "2026-08-09T00:00:00+10:00"
+        },
+        "id": "S12REVIEW-P03-EVIDENCE-INDEX-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "portable",
+        "id": "S12REVIEW-P03-EVIDENCE-PORTABLE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S12-P04.json",
+        "id": "S12REVIEW-P04-EVIDENCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/EVD-S12-P04_rollback.json",
+        "id": "S12REVIEW-P04-ROLLBACK-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+          "rollback": "9545a7065a616293af8fdd06ba13af266048f1fee4864692987e6423296520c0"
+        },
+        "id": "S12REVIEW-P04-RECEIPT-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "AC-S12-P04",
+          "evidence_path": "machine/evidence/EVD-S12-P04.json",
+          "evidence_sha256": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+          "next": "S12/STAGE_REVIEW_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "S12REVIEW-P04-CURRENT-PHASE-ORACLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "decision": "TARGET_FALSIFICATION_AND_VERIFICATION_CONTRACT_READY_STAGE_REVIEW_REQUIRED",
+          "next": "S12/STAGE_REVIEW_READY_NOT_STARTED"
+        },
+        "id": "S12REVIEW-P04-RECEIPT-AND-BOUNDARY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_artifact": "machine/evidence/EVD-S12-P04.json",
+          "artifact_sha256": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+          "contract_id": "AC-S12-P04",
+          "id": "INDEX-AC-S12-P04",
+          "kind": "PHASE_EVIDENCE",
+          "next": "S12/STAGE_REVIEW_READY_NOT_STARTED",
+          "requirement_id": "REQ-S12-P04",
+          "stage_id": "S12",
+          "status": "PASS",
+          "verified_at": "2026-08-09T00:00:00+10:00"
+        },
+        "id": "S12REVIEW-P04-EVIDENCE-INDEX-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "portable",
+        "id": "S12REVIEW-P04-EVIDENCE-PORTABLE",
+        "passed": true
+      },
+      {
+        "detail": "all signed P01--P04 receipts current",
+        "id": "S12REVIEW-PHASE-RECEIPTS-CURRENT",
+        "passed": true
+      },
+      {
+        "detail": "portable",
+        "id": "S12REVIEW-PHASE-EVIDENCE-NO-LOCAL-PATHS",
+        "passed": true
+      },
+      {
+        "detail": "all phase boundaries checked",
+        "id": "S12REVIEW-PHASE-EXTERNAL-BOUNDARY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "target_vectors.json",
+        "id": "S12REVIEW-TARGET-VECTORS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "capacity_report.json",
+        "id": "S12REVIEW-CAPACITY-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "sensitivity_grid.json",
+        "id": "S12REVIEW-SENSITIVITY-GRID-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "opportunity_cost.json",
+        "id": "S12REVIEW-OPPORTUNITY-COST-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "target_acceptance.json",
+        "id": "S12REVIEW-TARGET-ACCEPTANCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "kill_report.schema.json",
+        "id": "S12REVIEW-KILL-SCHEMA-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "row_count": 4
+        },
+        "id": "S12REVIEW-TARGET-CURVE-AND-AUDITED-CASHFLOW-GATE-PRESERVED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cluster_count": 6
+        },
+        "id": "S12REVIEW-CORRELATION-CAPACITY-NOT-TARGET-COVERAGE-GATE-PRESERVED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "band_count": 3
+        },
+        "id": "S12REVIEW-SYNTHETIC-SENSITIVITY-NOT-RETURN-OR-GUARANTEE-GATE-PRESERVED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "plausibility": "NOT_PLAUSIBLE_INSUFFICIENT_90D_OR_1000_SIGNALS",
+          "verification": "NOT_VERIFIABLE_NO_ACTUAL_EXECUTION_AND_RECONCILIATION_EVIDENCE"
+        },
+        "id": "S12REVIEW-FALSIFICATION-VERIFICATION-SHORTFALL-REPORT-ONLY-GATE-PRESERVED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "case_count": 9,
+          "case_ids": [
+            "POSITIVE_EXACT_STAGE",
+            "PHASE_RECEIPT_FAIL",
+            "TASKPACK_TRACE_FAIL",
+            "TARGET_CURVE_CASHFLOW_GATE_FAIL",
+            "CAPACITY_GATE_FAIL",
+            "SENSITIVITY_GATE_FAIL",
+            "FALSIFICATION_GATE_FAIL",
+            "EXTERNAL_BOUNDARY_FAIL",
+            "PORTABILITY_AND_OPEN_FINDING_FAIL"
+          ]
+        },
+        "id": "S12REVIEW-SINGLE-PASS-FIXTURE-CASES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "external_network_used": false,
+            "incremental_cash_spent_aud": "0.00",
+            "order_submission_enabled": false,
+            "output_sha256": "0cfef6a486863ebfdfe3358fcd1ff2927eba16112167e5d450a18ee304ff0ee2",
+            "real_time_soak_waited": false,
+            "reason_codes": [],
+            "recommendation_generated": false,
+            "status": "S12_STAGE_REVIEW_VERIFIED_NO_ACTION"
+          },
+          "expected": {
+            "reason_codes": [],
+            "status": "S12_STAGE_REVIEW_VERIFIED_NO_ACTION"
+          }
+        },
+        "id": "S12REVIEW-CASE-POSITIVE_EXACT_STAGE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "external_network_used": false,
+            "incremental_cash_spent_aud": "0.00",
+            "order_submission_enabled": false,
+            "output_sha256": "edd2b037ee17fc9872fa2cc4b451954b9cc2ffd082dc972619e6fef538226d78",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "PHASE_RECEIPTS_NOT_CURRENT"
+            ],
+            "recommendation_generated": false,
+            "status": "S12_STAGE_REVIEW_REJECTED_NO_ACTION"
+          },
+          "expected": {
+            "reason_codes": [
+              "PHASE_RECEIPTS_NOT_CURRENT"
+            ],
+            "status": "S12_STAGE_REVIEW_REJECTED_NO_ACTION"
+          }
+        },
+        "id": "S12REVIEW-CASE-PHASE_RECEIPT_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "external_network_used": false,
+            "incremental_cash_spent_aud": "0.00",
+            "order_submission_enabled": false,
+            "output_sha256": "a924e6560800c033959de67cc001eab6fdf94e5e59464d2c50201698e1292b20",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "TASKPACK_TRACE_NOT_CLOSED"
+            ],
+            "recommendation_generated": false,
+            "status": "S12_STAGE_REVIEW_REJECTED_NO_ACTION"
+          },
+          "expected": {
+            "reason_codes": [
+              "TASKPACK_TRACE_NOT_CLOSED"
+            ],
+            "status": "S12_STAGE_REVIEW_REJECTED_NO_ACTION"
+          }
+        },
+        "id": "S12REVIEW-CASE-TASKPACK_TRACE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "external_network_used": false,
+            "incremental_cash_spent_aud": "0.00",
+            "order_submission_enabled": false,
+            "output_sha256": "aee2b99f55b0c627e0e0c86355f0ab5b32ad76ed69c4153eec04e12b40991b6c",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "TARGET_CURVE_OR_AUDITED_CASHFLOW_GATE_RELAXED"
+            ],
+            "recommendation_generated": false,
+            "status": "S12_STAGE_REVIEW_REJECTED_NO_ACTION"
+          },
+          "expected": {
+            "reason_codes": [
+              "TARGET_CURVE_OR_AUDITED_CASHFLOW_GATE_RELAXED"
+            ],
+            "status": "S12_STAGE_REVIEW_REJECTED_NO_ACTION"
+          }
+        },
+        "id": "S12REVIEW-CASE-TARGET_CURVE_CASHFLOW_GATE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "external_network_used": false,
+            "incremental_cash_spent_aud": "0.00",
+            "order_submission_enabled": false,
+            "output_sha256": "12745241352c96a1c371f1c9ee0d26923177f38393bfb326acef676d6d1982b1",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "CORRELATION_CAPACITY_OR_TARGET_COVERAGE_GATE_RELAXED"
+            ],
+            "recommendation_generated": false,
+            "status": "S12_STAGE_REVIEW_REJECTED_NO_ACTION"
+          },
+          "expected": {
+            "reason_codes": [
+              "CORRELATION_CAPACITY_OR_TARGET_COVERAGE_GATE_RELAXED"
+            ],
+            "status": "S12_STAGE_REVIEW_REJECTED_NO_ACTION"
+          }
+        },
+        "id": "S12REVIEW-CASE-CAPACITY_GATE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "external_network_used": false,
+            "incremental_cash_spent_aud": "0.00",
+            "order_submission_enabled": false,
+            "output_sha256": "a4c3a5a3071b347495eb7e030f817a19769e9a3d49be65f8741efcb1ab601fac",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "SYNTHETIC_SENSITIVITY_OR_NO_GUARANTEE_GATE_RELAXED"
+            ],
+            "recommendation_generated": false,
+            "status": "S12_STAGE_REVIEW_REJECTED_NO_ACTION"
+          },
+          "expected": {
+            "reason_codes": [
+              "SYNTHETIC_SENSITIVITY_OR_NO_GUARANTEE_GATE_RELAXED"
+            ],
+            "status": "S12_STAGE_REVIEW_REJECTED_NO_ACTION"
+          }
+        },
+        "id": "S12REVIEW-CASE-SENSITIVITY_GATE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "external_network_used": false,
+            "incremental_cash_spent_aud": "0.00",
+            "order_submission_enabled": false,
+            "output_sha256": "b9624f0978c217d2ea0baf88753580a3b55de1ef939ae8b047c294c3dcb880c1",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "FALSIFICATION_VERIFICATION_OR_SHORTFALL_GATE_RELAXED"
+            ],
+            "recommendation_generated": false,
+            "status": "S12_STAGE_REVIEW_REJECTED_NO_ACTION"
+          },
+          "expected": {
+            "reason_codes": [
+              "FALSIFICATION_VERIFICATION_OR_SHORTFALL_GATE_RELAXED"
+            ],
+            "status": "S12_STAGE_REVIEW_REJECTED_NO_ACTION"
+          }
+        },
+        "id": "S12REVIEW-CASE-FALSIFICATION_GATE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "external_network_used": false,
+            "incremental_cash_spent_aud": "0.00",
+            "order_submission_enabled": false,
+            "output_sha256": "fccd1461e47878d81e6d323f5eff0078f8884042fbb223d847f290b80381b98e",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "EXTERNAL_ACTION_BOUNDARY_RELAXED"
+            ],
+            "recommendation_generated": false,
+            "status": "S12_STAGE_REVIEW_REJECTED_NO_ACTION"
+          },
+          "expected": {
+            "reason_codes": [
+              "EXTERNAL_ACTION_BOUNDARY_RELAXED"
+            ],
+            "status": "S12_STAGE_REVIEW_REJECTED_NO_ACTION"
+          }
+        },
+        "id": "S12REVIEW-CASE-EXTERNAL_BOUNDARY_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "external_network_used": false,
+            "incremental_cash_spent_aud": "0.00",
+            "order_submission_enabled": false,
+            "output_sha256": "10bad79b40e23649c7c6944312d9269cb28e75a1cb53cc5fb7ecd533750f0edf",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "EVIDENCE_NOT_PORTABLE",
+              "OPEN_REVIEW_FINDINGS"
+            ],
+            "recommendation_generated": false,
+            "status": "S12_STAGE_REVIEW_REJECTED_NO_ACTION"
+          },
+          "expected": {
+            "reason_codes": [
+              "EVIDENCE_NOT_PORTABLE",
+              "OPEN_REVIEW_FINDINGS"
+            ],
+            "status": "S12_STAGE_REVIEW_REJECTED_NO_ACTION"
+          }
+        },
+        "id": "S12REVIEW-CASE-PORTABILITY_AND_OPEN_FINDING_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "0cfef6a486863ebfdfe3358fcd1ff2927eba16112167e5d450a18ee304ff0ee2",
+          "real_time_soak_waited": false,
+          "reason_codes": [],
+          "recommendation_generated": false,
+          "status": "S12_STAGE_REVIEW_VERIFIED_NO_ACTION"
+        },
+        "id": "S12REVIEW-CURRENT-FIXED-SNAPSHOT-NO-ACTION",
+        "passed": true
+      },
+      {
+        "detail": "each frozen snapshot is evaluated once",
+        "id": "S12REVIEW-NO-REPEATED-REPLAY-OR-SOAK",
+        "passed": true
+      },
+      {
+        "detail": {
+          "calls": [],
+          "imports": [
+            "__future__",
+            "argparse",
+            "ast",
+            "canonical_facts",
+            "capacity_correlation",
+            "decimal",
+            "economics_sensitivity",
+            "hashlib",
+            "json",
+            "pathlib",
+            "re",
+            "target_curve",
+            "target_falsification_gate",
+            "typing",
+            "xml"
+          ]
+        },
+        "id": "S12REVIEW-NO-NETWORK-PROCESS-SOAK-FLOAT-OR-ORDER-CAPABILITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "normalized": true,
+          "summary": {
+            "errors": 0,
+            "failures": 0,
+            "skipped": 0,
+            "tests": 24
+          }
+        },
+        "id": "S12REVIEW-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S12/STAGE_REVIEW/paid_dependency_scan.txt",
+        "id": "S12REVIEW-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/validation_report.json",
+        "id": "S12REVIEW-PACK-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S12REVIEW-PACK-REPORT-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "0cfef6a486863ebfdfe3358fcd1ff2927eba16112167e5d450a18ee304ff0ee2",
+          "real_time_soak_waited": false,
+          "reason_codes": [],
+          "recommendation_generated": false,
+          "status": "S12_STAGE_REVIEW_VERIFIED_NO_ACTION"
+        },
+        "id": "S12REVIEW-CURRENT-STAGE-SNAPSHOT-NO-ACTION",
+        "passed": true
+      }
+    ],
+    "contract_id": "STAGE-REVIEW-S12",
+    "decision": "S12_WHOLE_STAGE_REVIEW_PASS",
+    "external_effect_boundary": {
+      "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+      "external_network_accessed_for_product_runtime": false,
+      "github_upload_performed_by_local_review": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "model_or_strategy_executed": false,
+      "order_submitted_confirmed_or_retried": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "owner_final_order_only": true,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false,
+      "remote_ci_result_claimed_by_local_review": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-08-09T00:00:00+10:00",
+    "hashes": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "machine/evidence/EVD-S12-P01.json": "9462cfab12b28218bf84419d45bf0c4d512aa406d5547de108f0dfbb09d4214a",
+      "machine/evidence/EVD-S12-P01_rollback.json": "47601c6b52ad0fb04eae4bc2231bcf24ecb4a023d4e301f6a5a00fc3c4c2c69f",
+      "machine/evidence/EVD-S12-P02.json": "dba62cb8d87a6a33fb7e4ea90615a7a892233e908fd48973000afc43576395f0",
+      "machine/evidence/EVD-S12-P02_rollback.json": "1aeb15bd630c8f4dc9eaba24f8c344db3047d363c12bcba909d46f6bb0a2f4ca",
+      "machine/evidence/EVD-S12-P03.json": "10ece6229575dc17dfed64e802d734d1ad199df592393b9525552d9f26c04a58",
+      "machine/evidence/EVD-S12-P03_rollback.json": "04cb344aeafb66c96ec4efa20360c200c1bba7887b9bb2f1c249032d03c1ad8e",
+      "machine/evidence/EVD-S12-P04.json": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+      "machine/evidence/EVD-S12-P04_rollback.json": "9545a7065a616293af8fdd06ba13af266048f1fee4864692987e6423296520c0",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+    },
+    "next": "S12/GITHUB_STAGE_UPLOAD_READY",
+    "product_version": "0.0.0.1",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "release_status": "S12_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+    "review_id": "ABD-S12-WHOLE-STAGE-REVIEW",
+    "schema_version": "1.0.0",
+    "stage_id": "S12",
+    "stage_snapshot": {
+      "external_network_used": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submission_enabled": false,
+      "output_sha256": "0cfef6a486863ebfdfe3358fcd1ff2927eba16112167e5d450a18ee304ff0ee2",
+      "real_time_soak_waited": false,
+      "reason_codes": [],
+      "recommendation_generated": false,
+      "status": "S12_STAGE_REVIEW_VERIFIED_NO_ACTION"
+    },
+    "stage_status": "S12_WHOLE_STAGE_REVIEW_PASS",
+    "status": "PASS",
+    "summary": {
+      "checks": 90,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 90
+    }
+  }
+}

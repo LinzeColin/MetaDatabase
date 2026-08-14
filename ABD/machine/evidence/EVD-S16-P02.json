@@ -1,0 +1,440 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python model_eval.py --root .",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S16/P02_test.py --junitxml=machine/evidence/S16/P02/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S16/P02/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S16/P02/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S16-P02 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S16-P02",
+  "decision": "S16_P02_SYNTHETIC_EVALUATION_LCB_GATES_PASS_P03_REDTEAM_REQUIRED",
+  "decision_sha256": "962717cdaffb7ce5bc5039961d677651a94f7a98f0bafb28c2eb3402e0f21854",
+  "deterministic_replay": {
+    "bootstrap_iterations": 2000,
+    "lower_tail_quantile": "0.05",
+    "real_time_wait_performed": false,
+    "synthetic_observation_count": 2000,
+    "temporal_fold_count": 8
+  },
+  "evidence_id": "EVD-S16-P02",
+  "execution_policy": {
+    "bootstrap_iterations": 2000,
+    "evaluation_cohort": "FROZEN_SYNTHETIC_NOT_EMPIRICAL",
+    "external_runtime_access_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "offline_deterministic_only": true,
+    "phase_test_only": true
+  },
+  "external_effect_boundary": {
+    "empirical_model_increment_verified": false,
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_or_strategy_executed": false,
+    "model_weight_changed": false,
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "owner_final_order_only": true,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "synthetic_evaluation_only": true
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "hashes": {
+    "code": "076683781af588d650c94b536c5066264657b885b7cd654da2009d72fb8c63f8",
+    "inputs": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/model_eval.py": "076683781af588d650c94b536c5066264657b885b7cd654da2009d72fb8c63f8",
+      "abd_acceptance/model_eval_engine.py": "da32421271633472ffe2476b35e9c9f65e77a3e71c4b1af69cae9c593858dcad",
+      "baseline_report.json": "060d12d4b311fe334815632c9e343b990c0b392bf79bd8421162430f337d4b68",
+      "challenger_report.json": "86c1c49b1e20149847430c08f06249bef9bc93063a1e6ab2954db31633153145",
+      "eval_catalog.json": "031b34ab561eedb7b6d298282ba66f826f1d5996fa0c525a012be2d5af8a73cb",
+      "eval_report.json": "d99bd2049eaaeae6264bba71570010b0bc615e08270062e99a56edd4b26b732f",
+      "machine/evidence/EVD-S16-P01.json": "9d0081fd92199eb4fb60800b81aa078d18e69219a49d5c2bcf03f7c0fcdb865c",
+      "machine/evidence/S16/P02/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S16/P02/pytest.xml": "777022817988309106734323dace79390bd497fcc9fd4d5c244c614ee2f86039",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S16_P02.json": "834c192a664687098956854fd8e2b29c6112a7a6337d0c4bdcf2ac65db5e142d",
+      "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+      "model_eval.py": "9d287f1c5f9b3bfbad4ada6e93ccc25f09da093a956a7edad3ef21ebb791350f",
+      "model_registry.json": "e4414fe73050ac6a389fa395f82badb0ff7882db81af87870add3219329060a5",
+      "tests/S16/P02_test.py": "44c77464d553b3bc5d8957a239cdfe1ea1c8ad397579910a687ec92820a884cb"
+    },
+    "rollback_evidence": "7552faac77079c952200fad309ed2c856a0dde6107fdd77854c9cadefd19b81f"
+  },
+  "next": "S16/P03_READY_NOT_STARTED",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S16_P02_LOCAL_SYNTHETIC_EVIDENCE_ONLY_P03_REQUIRED",
+  "requirement_id": "REQ-S16-P02",
+  "rollback": {
+    "artifacts": {
+      "abd_acceptance/model_eval.py": {
+        "sha256": "076683781af588d650c94b536c5066264657b885b7cd654da2009d72fb8c63f8",
+        "status": "PASS"
+      },
+      "abd_acceptance/model_eval_engine.py": {
+        "sha256": "da32421271633472ffe2476b35e9c9f65e77a3e71c4b1af69cae9c593858dcad",
+        "status": "PASS"
+      },
+      "baseline_report.json": {
+        "sha256": "060d12d4b311fe334815632c9e343b990c0b392bf79bd8421162430f337d4b68",
+        "status": "PASS"
+      },
+      "challenger_report.json": {
+        "sha256": "86c1c49b1e20149847430c08f06249bef9bc93063a1e6ab2954db31633153145",
+        "status": "PASS"
+      },
+      "eval_catalog.json": {
+        "sha256": "031b34ab561eedb7b6d298282ba66f826f1d5996fa0c525a012be2d5af8a73cb",
+        "status": "PASS"
+      },
+      "eval_report.json": {
+        "sha256": "d99bd2049eaaeae6264bba71570010b0bc615e08270062e99a56edd4b26b732f",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S16_P02.json": {
+        "sha256": "834c192a664687098956854fd8e2b29c6112a7a6337d0c4bdcf2ac65db5e142d",
+        "status": "PASS"
+      },
+      "model_eval.py": {
+        "sha256": "9d287f1c5f9b3bfbad4ada6e93ccc25f09da093a956a7edad3ef21ebb791350f",
+        "status": "PASS"
+      },
+      "model_registry.json": {
+        "sha256": "e4414fe73050ac6a389fa395f82badb0ff7882db81af87870add3219329060a5",
+        "status": "PASS"
+      },
+      "tests/S16/P02_test.py": {
+        "sha256": "44c77464d553b3bc5d8957a239cdfe1ea1c8ad397579910a687ec92820a884cb",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S16-P02",
+    "evidence_id": "EVD-S16-P02-ROLLBACK",
+    "external_state_changed": false,
+    "feature_flag_id": "model:s16_capability_calibration_evaluation",
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_S16_P02_EVALUATION_KEEP_S16_P01_CHAMPION_AND_ZERO_WEIGHT_CHALLENGERS",
+    "model_weight_changed": false,
+    "order_submission_enabled": false,
+    "production_state_changed": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S16",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S16P02-BASELINE-PURSUE_GOAL_PROMPT.txt",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S16P02-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S16P02-BASELINE-machine-facts-canonical_facts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S16P02-BASELINE-machine-facts-parameters.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S16P02-BASELINE-machine-facts-roadmap.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S16P02-BASELINE-machine-facts-requirements.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S16P02-BASELINE-machine-facts-acceptance_contracts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S16P02-BASELINE-machine-facts-task_graph.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S16P02-BASELINE-machine-facts-traceability_matrix.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+          "expected": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c"
+        },
+        "id": "S16P02-BASELINE-metrics.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+          "expected": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d"
+        },
+        "id": "S16P02-BASELINE-machine-facts-strategy_spec.json",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S16P02-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S16P02-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S16P02-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S16P02-TRACEABILITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S16-P02-01",
+          "T-S16-P02-02",
+          "T-S16-P02-03"
+        ],
+        "id": "S16P02-TASKPACK-SCOPE-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contract_id": "AC-S16-P02",
+          "expected_artifact": "machine/evidence/EVD-S16-P02.json",
+          "id": "INDEX-AC-S16-P02",
+          "kind": "ACCEPTANCE_EVIDENCE",
+          "pass_gate": "所有95%置信下界门通过才晋级。",
+          "requirement_id": "REQ-S16-P02",
+          "status": "PLANNED"
+        },
+        "id": "S16P02-EVIDENCE-INDEX-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "9d0081fd92199eb4fb60800b81aa078d18e69219a49d5c2bcf03f7c0fcdb865c",
+        "id": "S16P02-PREDECESSOR-AC-S16-P01",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S16_P02.json",
+        "id": "S16P02-FIXTURE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "ART-S16-P02-02",
+        "id": "S16P02-EVAL-CATALOG-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "ART-S16-P02-03",
+        "id": "S16P02-EVAL-REPORT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "ART-S16-P02-01",
+          "ART-S16-P02-02",
+          "ART-S16-P02-03"
+        ],
+        "id": "S16P02-ARTIFACT-IDENTITIES-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "all_95pct_lower_bound_gates_pass": true,
+          "all_calibration_gates_pass": true,
+          "all_s16_p02_gates_pass": true,
+          "scope": "FROZEN_SYNTHETIC_EVALUATION_ONLY_NOT_EMPIRICAL_OR_FINANCIAL_RETURN"
+        },
+        "id": "S16P02-ALL-SYNTHETIC-LCB-AND-CALIBRATION-GATES-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "empirical_model_increment_verified": false,
+          "external_network_accessed": false,
+          "financial_return_verified_or_guaranteed": false,
+          "gmail_account_or_api_accessed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "ovh_or_cloudflare_runtime_accessed": false,
+          "production_deployed_or_activated": false,
+          "real_account_balance_read_or_written": false,
+          "real_market_or_odds_observed": false,
+          "real_time_soak_waited": false,
+          "recommendation_generated_or_enabled": false,
+          "synthetic_evaluation_only": true
+        },
+        "id": "S16P02-NO-EMPIRICAL-ACTIVATION-OR-RETURN-CLAIM",
+        "passed": true
+      },
+      {
+        "detail": {
+          "imports": [
+            "__future__",
+            "abd_acceptance",
+            "argparse",
+            "ast",
+            "canonical_facts",
+            "datetime",
+            "decimal",
+            "hashlib",
+            "json",
+            "model_eval_engine",
+            "pathlib",
+            "re",
+            "typing",
+            "xml"
+          ]
+        },
+        "id": "S16P02-ORACLE-LOCAL-ONLY-STATIC-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 26
+        },
+        "id": "S16P02-TARGETED-PYTEST-REPORT-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S16/P02/paid_dependency_scan.txt",
+        "id": "S16P02-PAID-DEPENDENCY-REPORT-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/validation_report.json",
+        "id": "S16P02-TASKPACK-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S16P02-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S16-P02",
+    "decision": "S16_P02_SYNTHETIC_EVALUATION_LCB_GATES_PASS_P03_REDTEAM_REQUIRED",
+    "execution_policy": {
+      "bootstrap_iterations": 2000,
+      "evaluation_cohort": "FROZEN_SYNTHETIC_NOT_EMPIRICAL",
+      "external_runtime_access_allowed": false,
+      "full_regression_or_real_time_soak_allowed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "offline_deterministic_only": true,
+      "phase_test_only": true
+    },
+    "external_effect_boundary": {
+      "empirical_model_increment_verified": false,
+      "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "model_or_strategy_executed": false,
+      "model_weight_changed": false,
+      "order_submission_enabled": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "owner_final_order_only": true,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_market_or_odds_observed": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false,
+      "synthetic_evaluation_only": true
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "hashes": {
+      "abd_acceptance/model_eval_engine.py": "da32421271633472ffe2476b35e9c9f65e77a3e71c4b1af69cae9c593858dcad",
+      "eval_catalog.json": "031b34ab561eedb7b6d298282ba66f826f1d5996fa0c525a012be2d5af8a73cb",
+      "eval_report.json": "d99bd2049eaaeae6264bba71570010b0bc615e08270062e99a56edd4b26b732f",
+      "machine/evidence/EVD-S16-P01.json": "9d0081fd92199eb4fb60800b81aa078d18e69219a49d5c2bcf03f7c0fcdb865c",
+      "machine/tests/fixtures/S16_P02.json": "834c192a664687098956854fd8e2b29c6112a7a6337d0c4bdcf2ac65db5e142d",
+      "model_eval.py": "9d287f1c5f9b3bfbad4ada6e93ccc25f09da093a956a7edad3ef21ebb791350f"
+    },
+    "next": "S16/P03_READY_NOT_STARTED",
+    "phase_id": "P02",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "requirement_id": "REQ-S16-P02",
+    "stage_id": "S16",
+    "status": "PASS",
+    "summary": {
+      "checks": 29,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 29
+    }
+  }
+}

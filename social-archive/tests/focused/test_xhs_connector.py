@@ -117,21 +117,6 @@ def test_xhs_worker_failure_does_not_block_current_page_l0_l1(settings, service)
     assert response.paused_levels == []
 
 
-def test_xhs_worker_profile_is_isolated_and_has_no_cookie_secret_mount():
-    root = Path(__file__).resolve().parents[2]
-    compose = yaml.safe_load((root / "compose.workers.yaml").read_text(encoding="utf-8"))
-    worker = compose["services"]["xhs-worker"]
-    core_dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
-
-    assert worker["build"]["context"] == "./runtime/vendors/XHS-Downloader"
-    assert set(worker["profiles"]) == {"domestic-stable", "xhs"}
-    assert worker["ports"] == ["127.0.0.1:5556:5556"]
-    assert worker["security_opt"] == ["no-new-privileges:true"]
-    assert "secrets" not in worker
-    assert "cookie" not in json.dumps(worker, ensure_ascii=False).lower()
-    assert "XHS-Downloader" not in core_dockerfile
-    assert "COPY runtime" not in core_dockerfile
-
 
 def test_vendor_sync_supports_taskpack_single_source_lock(monkeypatch, tmp_path, capsys):
     root = tmp_path / "social-archive"

@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-SHADOW-SOURCE-PROVENANCE-PROMOTION-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_HOST_LOOPBACK_SOURCE_PROVENANCE_BLUE_PROMOTION_ONLY",
+  "source_provenance": {
+    "source_commit": "b7df8bee5bc91987970ce51d540c68f3fc324f36",
+    "source_archive_sha256": "7ad7b97aeaaec84b747dc3002a849851cba7625fa7e300dd1015ff83d023d6d6",
+    "source_to_oci_receipt_sha256": "f6052b31867d35bed665662831aa51f4321c7ef86129fac901190552aca04395",
+    "oci_archive_sha256": "2cbfde404f1d21b3241da4f31eb67f44708798c959e62c2213265647c2db332d",
+    "oci_manifest_digest": "sha256:a79c1109c85beb9bc495372daf6f7e8f620e6006244ac7d2b32b8481355257b2",
+    "oci_config_digest": "sha256:e9a3d81370ec722178393f1d153fc8c1540987ec44740aa435603977b1688702"
+  },
+  "candidate": {
+    "docker_image_id": "sha256:a79c1109c85beb9bc495372daf6f7e8f620e6006244ac7d2b32b8481355257b2",
+    "image_reference": "local/abd-runtime@sha256:a79c1109c85beb9bc495372daf6f7e8f620e6006244ac7d2b32b8481355257b2",
+    "image_tag": "local/abd-runtime:0.0.0.1",
+    "repo_tags_before_promotion": [],
+    "repo_digests_before_promotion": [],
+    "architecture": "amd64",
+    "os": "linux",
+    "labels": {
+      "org.opencontainers.image.title": "ABD observation runtime",
+      "org.opencontainers.image.version": "0.0.0.1",
+      "org.opencontainers.image.description": "Non-trading, non-recommendation ABD runtime control plane"
+    }
+  },
+  "previous": {
+    "image_id": "sha256:6d51e3e01c2fb7a02460ac9c9eeaf20b8f41f144c4dc795eaae5335b15737ec8",
+    "image_reference": "local/abd-runtime@sha256:6d51e3e01c2fb7a02460ac9c9eeaf20b8f41f144c4dc795eaae5335b15737ec8",
+    "image_tag": "local/abd-runtime:0.0.0.1"
+  },
+  "required_contracts": {
+    "release_control_plane_contract_id": "ABD-POST-FREEZE-SHADOW-CANONICAL-CONTROL-PLANE-001",
+    "identity_attester_contract_id": "ABD-POST-FREEZE-SHADOW-IMAGE-IDENTITY-005"
+  },
+  "source_boundary": {
+    "runtime_secret_content_read": false,
+    "external_network_accessed": false,
+    "cloudflare_changed": false,
+    "core_runtime_started": false,
+    "running_shadow_replaced": true,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "rollback": {
+    "preserve_prior_container_until_candidate_attested": true,
+    "restore_prior_image_tag_and_identity_contract_on_failure": true,
+    "restore_prior_slot_env_and_manifests_on_failure": true,
+    "remove_only_candidate_containers_created_by_this_run_on_failure": true,
+    "keep_prior_image_after_success_for_manual_rollback": true,
+    "remove_prior_container_after_success_only": true
+  }
+}

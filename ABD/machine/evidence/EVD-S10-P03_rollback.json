@@ -1,0 +1,40 @@
+{
+  "artifacts": {
+    "abd_acceptance/decimal_math.py": {
+      "sha256": "863b17640ba0b03159a95847b9349f78640062e46e8d10d74762b679eea2acf9",
+      "status": "PASS"
+    },
+    "cross_impl_check.py": {
+      "sha256": "c51d934fdebda8781b38742af35d792d5d3bb0c90c1187cd4e0e4a441c061d32",
+      "status": "PASS"
+    },
+    "decimal_math.py": {
+      "sha256": "6cb4d93d0d5d170e8a2789d37398b9b4d8675e2d5a5ce306312ce7146b29a4f5",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S10_P03.json": {
+      "sha256": "c4798e9be950ab939a242b95589523f9a60317e338b99a641f94de710e268043",
+      "status": "PASS"
+    },
+    "numeric_vectors.json": {
+      "sha256": "3889eda191df347638112e7f42e84ebb03731aa8ee59348458b719f91e6f103d",
+      "status": "PASS"
+    },
+    "tests/S10/P03_test.py": {
+      "sha256": "8e2d9fd6aa05eeb07e1eebc850ae4fe1a853ae23493ac273877e2bb478cad2f5",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S10-P03",
+  "evidence_id": "EVD-S10-P03-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "model:decimal_fixed_point_authoritative_calculation",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_DECIMAL_FIXED_POINT_CALCULATION_RESTORE_SIGNED_S10_P02_KEEP_ALL_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

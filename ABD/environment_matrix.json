@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S15-P03-02",
+  "matrix_id": "S15-P03-LOCAL-MULTI-SURFACE-MATRIX",
+  "contract_id": "AC-S15-P03",
+  "requirement_id": "REQ-S15-P03",
+  "stage_id": "S15",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "environments": [
+    {
+      "environment_id": "ENV-S15-P03-OVH-CONFIG-SCHEMA",
+      "surface": "OVH_CONFIGURATION_SCHEMA",
+      "artifact_paths": ["infra/config.schema.json", "infra/compose.yml"],
+      "artifact_sha256": {
+        "infra/config.schema.json": "bb08e4dd88137d88b5d842bd5ed2fb815163d53ab44f33d21730fdb2dd2f27da",
+        "infra/compose.yml": "babed827948b77e28d395b0d36d2142605b8144f7e778302d6c384930aa54808"
+      },
+      "validation_class": "PRODUCTION_EQUIVALENT_CONFIGURATION_SCHEMA",
+      "replay_mode": "LOCAL_STATIC_SCHEMA_REPLAY",
+      "external_execution_performed": false
+    },
+    {
+      "environment_id": "ENV-S15-P03-CLOUDFLARE-EDGE-SCHEMA",
+      "surface": "CLOUDFLARE_EDGE_CONFIGURATION",
+      "artifact_paths": ["infra/cloudflared.yml", "degraded_page.html"],
+      "artifact_sha256": {
+        "infra/cloudflared.yml": "7f3855b637a020b3769d93bcbaa2539a692ab6eec314a8b722d29c6e0f5118f1",
+        "degraded_page.html": "29c49f3388f8b7214c1d75869ebc2c8434d502972cb74a2883595c10d89f6b40"
+      },
+      "validation_class": "PRODUCTION_EQUIVALENT_CONFIGURATION_SCHEMA",
+      "replay_mode": "LOCAL_STATIC_SCHEMA_REPLAY",
+      "external_execution_performed": false
+    },
+    {
+      "environment_id": "ENV-S15-P03-ZH-DESKTOP-STATIC",
+      "surface": "CHINESE_DESKTOP_STATIC_CLIENT",
+      "artifact_paths": ["webapp/index.html", "webapp/app.css"],
+      "artifact_sha256": {
+        "webapp/index.html": "46f6ae484a9c6f29737eccf6e710397e2fc0d247a8c7d02acae6e94298cae77d",
+        "webapp/app.css": "8a49a1149fa3c74b95a6d3f343c14c9f5cd35f27d8824ebcd573b2016cdbda65"
+      },
+      "validation_class": "STATIC_CLIENT_CONTRACT",
+      "replay_mode": "LOCAL_STATIC_CLIENT_REPLAY",
+      "external_execution_performed": false
+    },
+    {
+      "environment_id": "ENV-S15-P03-ZH-MOBILE-STATIC",
+      "surface": "CHINESE_MOBILE_STATIC_CLIENT",
+      "artifact_paths": ["webapp/index.html", "webapp/app.css"],
+      "artifact_sha256": {
+        "webapp/index.html": "46f6ae484a9c6f29737eccf6e710397e2fc0d247a8c7d02acae6e94298cae77d",
+        "webapp/app.css": "8a49a1149fa3c74b95a6d3f343c14c9f5cd35f27d8824ebcd573b2016cdbda65"
+      },
+      "validation_class": "STATIC_CLIENT_CONTRACT",
+      "replay_mode": "LOCAL_STATIC_CLIENT_REPLAY",
+      "external_execution_performed": false
+    },
+    {
+      "environment_id": "ENV-S15-P03-BROWSER-COMPONENT",
+      "surface": "BROWSER_COMPONENT_LOCAL",
+      "artifact_paths": ["browser_companion/manifest.json", "browser_companion/content.js"],
+      "artifact_sha256": {
+        "browser_companion/manifest.json": "a5f9223e479bb2f099da536a862c9575399e024d6fe76205bbac058cb6a8e47d",
+        "browser_companion/content.js": "3ff80d5753986340cce15b6ed64c4ebfcda9dc947ff2cf3a7e50357a607af677"
+      },
+      "validation_class": "STATIC_CLIENT_CONTRACT",
+      "replay_mode": "LOCAL_COMPONENT_CONTRACT_REPLAY",
+      "external_execution_performed": false
+    },
+    {
+      "environment_id": "ENV-S15-P03-RECOVERY-PATH",
+      "surface": "RECOVERY_PATH_LOCAL",
+      "artifact_paths": ["journey_tests.json", "recovery_actions.json", "degraded_page.html"],
+      "artifact_sha256": {
+        "journey_tests.json": "2f99eb4a558c9e5959c25ea4fcc4b30af0247db506fab4ef74b638b932575030",
+        "recovery_actions.json": "b303c0ab00a151f016170ca4e0d6f7018d21e30980332c8eb1f8b25cfa5319db",
+        "degraded_page.html": "29c49f3388f8b7214c1d75869ebc2c8434d502972cb74a2883595c10d89f6b40"
+      },
+      "validation_class": "STATIC_RECOVERY_CONTRACT",
+      "replay_mode": "LOCAL_RECOVERY_CONTRACT_REPLAY",
+      "external_execution_performed": false
+    }
+  ],
+  "execution_policy": {
+    "offline_deterministic_only": true,
+    "production_equivalent_config_schema_only": true,
+    "full_regression_or_real_time_soak_allowed": false,
+    "external_runtime_access_allowed": false,
+    "phase_test_only": true,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "cloudflare_account_dns_or_tunnel_accessed": false,
+    "desktop_or_mobile_browser_exercised": false,
+    "browser_component_installed_or_run": false,
+    "tab_or_provider_runtime_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "real_account_balance_read_or_written": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

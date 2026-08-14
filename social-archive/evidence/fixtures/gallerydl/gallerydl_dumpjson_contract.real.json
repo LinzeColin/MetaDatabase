@@ -1,0 +1,388 @@
+[
+  [
+    2,
+    {
+      "category": "wikimediacommons",
+      "count": 1,
+      "imagerepository": "local",
+      "lang": "",
+      "ns": 6,
+      "page": "Category:Lighthouses_in_Norway",
+      "pageid": 95788787,
+      "subcategory": "category",
+      "title": "File:20 Oslofjord 1984 (16792359707).jpg"
+    }
+  ],
+  [
+    3,
+    "https://upload.wikimedia.org/wikipedia/commons/4/47/20_Oslofjord_1984_%2816792359707%29.jpg",
+    {
+      "bitdepth": 8,
+      "canonicaltitle": "File:20 Oslofjord 1984 (16792359707).jpg",
+      "category": "wikimediacommons",
+      "comment": "Transferred from Flickr via #flickr2commons",
+      "commonmetadata": {
+        "BitsPerSample": 8,
+        "ColorSpace": 1,
+        "Compression": 1,
+        "Copyright": [
+          {
+            "name": "x-default",
+            "value": "R\u00fcdiger Stehn webmaster@stehn-online.de"
+          },
+          {
+            "name": "_type",
+            "value": "lang"
+          }
+        ],
+        "DateTime": "2015:04:01 15:04:37",
+        "DateTimeDigitized": "2015:03:29 16:31:43",
+        "DateTimeMetadata": "2015:04:01 17:04:37",
+        "DateTimeOriginal": "1984:09:01 12:00:00",
+        "ImageLength": 2448,
+        "ImageWidth": 3620,
+        "Make": "Canon",
+        "Model": "8800F           ",
+        "Orientation": 1,
+        "PhotometricInterpretation": 2,
+        "PixelXDimension": "3522",
+        "PixelYDimension": "1932",
+        "PlanarConfiguration": 1,
+        "ResolutionUnit": 2,
+        "SamplesPerPixel": 3,
+        "Software": "Adobe Photoshop Elements 7.0 Windows",
+        "XResolution": "3000000/10000",
+        "YResolution": "3000000/10000"
+      },
+      "count": 1,
+      "date": "2020-11-04 05:46:29",
+      "descriptionshorturl": "https://commons.wikimedia.org/w/index.php?curid=95788787",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:20_Oslofjord_1984_(16792359707).jpg",
+      "extension": "jpg",
+      "extmetadata": {
+        "Artist": {
+          "source": "commons-desc-page",
+          "value": "<a rel=\"nofollow\" class=\"external text\" href=\"https://www.flickr.com/people/69570948@N04\">R\u00fcdiger Stehn</a> from Kiel, Deutschland"
+        },
+        "Assessments": {
+          "hidden": "",
+          "source": "commons-categories",
+          "value": ""
+        },
+        "AttributionRequired": {
+          "hidden": "",
+          "source": "commons-desc-page",
+          "value": "true"
+        },
+        "Categories": {
+          "hidden": "",
+          "source": "commons-categories",
+          "value": "Lighthouses in Norway|Files with coordinates missing SDC location of creation|Flickr images reviewed by FlickreviewR 2"
+        },
+        "CommonsMetadataExtension": {
+          "hidden": "",
+          "source": "extension",
+          "value": 1.2
+        },
+        "Copyrighted": {
+          "hidden": "",
+          "source": "commons-desc-page",
+          "value": "True"
+        },
+        "Credit": {
+          "source": "commons-desc-page",
+          "value": "<a rel=\"nofollow\" class=\"external text\" href=\"https://www.flickr.com/photos/rstehn/16792359707/\">20 Oslofjord 1984</a>"
+        },
+        "DateTime": {
+          "hidden": "",
+          "source": "mediawiki-metadata",
+          "value": "2020-11-04 05:46:29"
+        },
+        "DateTimeOriginal": {
+          "source": "commons-desc-page",
+          "value": "1984-09-01 00:00"
+        },
+        "GPSLatitude": {
+          "source": "commons-desc-page",
+          "value": "59.418623"
+        },
+        "GPSLongitude": {
+          "source": "commons-desc-page",
+          "value": "10.533453"
+        },
+        "GPSMapDatum": {
+          "hidden": "",
+          "source": "commons-desc-page",
+          "value": "WGS-84"
+        },
+        "ImageDescription": {
+          "source": "commons-desc-page",
+          "value": "Auf der F\u00e4hre \"Kronprins Harald\" im &lt;a href=\"<a class=\"external free\" data-mw-original-href=\"http://de.wikipedia.org/wiki/Oslofjord\" href=\"https://de.wikipedia.org/wiki/Oslofjord\">http://de.wikipedia.org/wiki/Oslofjord</a>\" rel=\"noreferrer nofollow\"&gt;Oslofjord&lt;/a&gt;:  Blick auf Gullholmen fyr ( &lt;a href=\"<a class=\"external free\" data-mw-original-href=\"http://de.wikipedia.org/wiki/%c3%98stfold\" href=\"https://de.wikipedia.org/wiki/%c3%98stfold\">http://de.wikipedia.org/wiki/%c3%98stfold</a>\" rel=\"noreferrer nofollow\"&gt;\u00d8stfold&lt;/a&gt;, Norwegen)."
+        },
+        "License": {
+          "hidden": "",
+          "source": "commons-templates",
+          "value": "cc-by-sa-2.0"
+        },
+        "LicenseShortName": {
+          "hidden": "",
+          "source": "commons-desc-page",
+          "value": "CC BY-SA 2.0"
+        },
+        "LicenseUrl": {
+          "source": "commons-desc-page",
+          "value": "https://creativecommons.org/licenses/by-sa/2.0"
+        },
+        "ObjectName": {
+          "source": "mediawiki-metadata",
+          "value": "20 Oslofjord 1984 (16792359707)"
+        },
+        "Restrictions": {
+          "hidden": "",
+          "source": "commons-desc-page",
+          "value": ""
+        },
+        "UsageTerms": {
+          "source": "commons-desc-page",
+          "value": "Creative Commons Attribution-Share Alike 2.0"
+        }
+      },
+      "filename": "20 Oslofjord 1984 (16792359707)",
+      "height": 1932,
+      "imagerepository": "local",
+      "lang": "",
+      "metadata": {
+        "BitsPerSample": 8,
+        "ColorSpace": 1,
+        "Compression": 1,
+        "Copyright": "R\u00fcdiger Stehn webmaster@stehn-online.de\n\n",
+        "DateTime": "2015:04:01 15:04:37",
+        "DateTimeDigitized": "2015:03:29 16:31:43",
+        "DateTimeMetadata": "2015:04:01 17:04:37",
+        "DateTimeOriginal": "1984:09:01 12:00:00",
+        "ImageLength": 2448,
+        "ImageWidth": 3620,
+        "MEDIAWIKI_EXIF_VERSION": 1,
+        "Make": "Canon",
+        "Model": "8800F           ",
+        "Orientation": 1,
+        "PhotometricInterpretation": 2,
+        "PixelXDimension": "3522",
+        "PixelYDimension": "1932",
+        "PlanarConfiguration": 1,
+        "ResolutionUnit": 2,
+        "SamplesPerPixel": 3,
+        "Software": "Adobe Photoshop Elements 7.0 Windows",
+        "XResolution": "3000000/10000",
+        "YResolution": "3000000/10000"
+      },
+      "mime": "image/jpeg",
+      "ns": 6,
+      "num": 1,
+      "page": "Category:Lighthouses_in_Norway",
+      "pageid": 95788787,
+      "sha1": "9fca4b43388b2af69950fb61215cb3aaaab2cac3",
+      "size": 3846702,
+      "subcategory": "category",
+      "timestamp": "2020-11-04T05:46:29Z",
+      "title": "File:20 Oslofjord 1984 (16792359707).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/47/20_Oslofjord_1984_%2816792359707%29.jpg",
+      "user": "JotaCartas",
+      "userid": 556830,
+      "width": 3522
+    }
+  ],
+  [
+    2,
+    {
+      "category": "wikimediacommons",
+      "count": 1,
+      "imagerepository": "local",
+      "lang": "",
+      "ns": 6,
+      "page": "Category:Lighthouses_in_Norway",
+      "pageid": 95787160,
+      "subcategory": "category",
+      "title": "File:32 Oslofjord 1984 (17019534862).jpg"
+    }
+  ],
+  [
+    3,
+    "https://upload.wikimedia.org/wikipedia/commons/2/24/32_Oslofjord_1984_%2817019534862%29.jpg",
+    {
+      "bitdepth": 8,
+      "canonicaltitle": "File:32 Oslofjord 1984 (17019534862).jpg",
+      "category": "wikimediacommons",
+      "comment": "Transferred from Flickr via #flickr2commons",
+      "commonmetadata": {
+        "BitsPerSample": 8,
+        "ColorSpace": 1,
+        "Compression": 1,
+        "Copyright": [
+          {
+            "name": "x-default",
+            "value": "R\u00fcdiger Stehn webmaster@stehn-online.de"
+          },
+          {
+            "name": "_type",
+            "value": "lang"
+          }
+        ],
+        "DateTime": "2015:04:03 17:33:04",
+        "DateTimeDigitized": "2015:03:29 17:47:49",
+        "DateTimeMetadata": "2015:04:03 19:33:04",
+        "DateTimeOriginal": "1984:09:01 12:00:00",
+        "ImageLength": 2832,
+        "ImageWidth": 3880,
+        "Make": "Canon",
+        "Model": "8800F           ",
+        "Orientation": 1,
+        "PhotometricInterpretation": 2,
+        "PixelXDimension": "3198",
+        "PixelYDimension": "2057",
+        "PlanarConfiguration": 1,
+        "ResolutionUnit": 2,
+        "SamplesPerPixel": 3,
+        "Software": "Adobe Photoshop Elements 7.0 Windows",
+        "XResolution": "3000000/10000",
+        "YResolution": "3000000/10000"
+      },
+      "count": 1,
+      "date": "2020-11-04 04:36:01",
+      "descriptionshorturl": "https://commons.wikimedia.org/w/index.php?curid=95787160",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:32_Oslofjord_1984_(17019534862).jpg",
+      "extension": "jpg",
+      "extmetadata": {
+        "Artist": {
+          "source": "commons-desc-page",
+          "value": "<a rel=\"nofollow\" class=\"external text\" href=\"https://www.flickr.com/people/69570948@N04\">R\u00fcdiger Stehn</a> from Kiel, Deutschland"
+        },
+        "Assessments": {
+          "hidden": "",
+          "source": "commons-categories",
+          "value": ""
+        },
+        "AttributionRequired": {
+          "hidden": "",
+          "source": "commons-desc-page",
+          "value": "true"
+        },
+        "Categories": {
+          "hidden": "",
+          "source": "commons-categories",
+          "value": "Lighthouses in Norway|Files with coordinates missing SDC location of creation|Flickr images reviewed by FlickreviewR 2|Norway photographs taken on 1984-09-01"
+        },
+        "CommonsMetadataExtension": {
+          "hidden": "",
+          "source": "extension",
+          "value": 1.2
+        },
+        "Copyrighted": {
+          "hidden": "",
+          "source": "commons-desc-page",
+          "value": "True"
+        },
+        "Credit": {
+          "source": "commons-desc-page",
+          "value": "<a rel=\"nofollow\" class=\"external text\" href=\"https://www.flickr.com/photos/rstehn/17019534862/\">32 Oslofjord 1984</a>"
+        },
+        "DateTime": {
+          "hidden": "",
+          "source": "mediawiki-metadata",
+          "value": "2020-11-04 04:36:01"
+        },
+        "DateTimeOriginal": {
+          "source": "commons-desc-page",
+          "value": "1984-09-01 12:00"
+        },
+        "GPSLatitude": {
+          "source": "commons-desc-page",
+          "value": "59.761280"
+        },
+        "GPSLongitude": {
+          "source": "commons-desc-page",
+          "value": "10.553759"
+        },
+        "GPSMapDatum": {
+          "hidden": "",
+          "source": "commons-desc-page",
+          "value": "WGS-84"
+        },
+        "ImageDescription": {
+          "source": "commons-desc-page",
+          "value": "Im Indre (Innen-) &lt;a href=\"<a class=\"external free\" data-mw-original-href=\"http://de.wikipedia.org/wiki/Oslofjord\" href=\"https://de.wikipedia.org/wiki/Oslofjord\">http://de.wikipedia.org/wiki/Oslofjord</a>\" rel=\"noreferrer nofollow\"&gt;Oslofjord&lt;/a&gt;: Die Spitze der Insel Lang\u00e5ra, im Hintergrund der Hafen von Nordre Spro (&lt;a href=\"<a class=\"external free\" data-mw-original-href=\"http://de.wikipedia.org/wiki/Akershus\" href=\"https://de.wikipedia.org/wiki/Akershus\">http://de.wikipedia.org/wiki/Akershus</a>\" rel=\"noreferrer nofollow\"&gt;Akershus&lt;/a&gt;, Norwegen)."
+        },
+        "License": {
+          "hidden": "",
+          "source": "commons-templates",
+          "value": "cc-by-sa-2.0"
+        },
+        "LicenseShortName": {
+          "hidden": "",
+          "source": "commons-desc-page",
+          "value": "CC BY-SA 2.0"
+        },
+        "LicenseUrl": {
+          "source": "commons-desc-page",
+          "value": "https://creativecommons.org/licenses/by-sa/2.0"
+        },
+        "ObjectName": {
+          "source": "mediawiki-metadata",
+          "value": "32 Oslofjord 1984 (17019534862)"
+        },
+        "Restrictions": {
+          "hidden": "",
+          "source": "commons-desc-page",
+          "value": ""
+        },
+        "UsageTerms": {
+          "source": "commons-desc-page",
+          "value": "Creative Commons Attribution-Share Alike 2.0"
+        }
+      },
+      "filename": "32 Oslofjord 1984 (17019534862)",
+      "height": 2057,
+      "imagerepository": "local",
+      "lang": "",
+      "metadata": {
+        "BitsPerSample": 8,
+        "ColorSpace": 1,
+        "Compression": 1,
+        "Copyright": "R\u00fcdiger Stehn webmaster@stehn-online.de\n\n",
+        "DateTime": "2015:04:03 17:33:04",
+        "DateTimeDigitized": "2015:03:29 17:47:49",
+        "DateTimeMetadata": "2015:04:03 19:33:04",
+        "DateTimeOriginal": "1984:09:01 12:00:00",
+        "ImageLength": 2832,
+        "ImageWidth": 3880,
+        "MEDIAWIKI_EXIF_VERSION": 1,
+        "Make": "Canon",
+        "Model": "8800F           ",
+        "Orientation": 1,
+        "PhotometricInterpretation": 2,
+        "PixelXDimension": "3198",
+        "PixelYDimension": "2057",
+        "PlanarConfiguration": 1,
+        "ResolutionUnit": 2,
+        "SamplesPerPixel": 3,
+        "Software": "Adobe Photoshop Elements 7.0 Windows",
+        "XResolution": "3000000/10000",
+        "YResolution": "3000000/10000"
+      },
+      "mime": "image/jpeg",
+      "ns": 6,
+      "num": 1,
+      "page": "Category:Lighthouses_in_Norway",
+      "pageid": 95787160,
+      "sha1": "e8098f0210d04cc669e64d5043f9de20c4ec0866",
+      "size": 5610215,
+      "subcategory": "category",
+      "timestamp": "2020-11-04T04:36:01Z",
+      "title": "File:32 Oslofjord 1984 (17019534862).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/24/32_Oslofjord_1984_%2817019534862%29.jpg",
+      "user": "JotaCartas",
+      "userid": 556830,
+      "width": 3198
+    }
+  ]
+]

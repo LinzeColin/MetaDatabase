@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-OVH-MANAGEMENT-PLANE-DIAGNOSTIC-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_CURRENT_PRODUCTION_OVH_MANAGEMENT_PLANE_DIAGNOSTIC_READ_ONLY",
+  "expected": {
+    "browser_surfaces": [
+      "IN_APP",
+      "CHROME"
+    ],
+    "allowed_management_plane_access": [
+      "ACCESS_AVAILABLE",
+      "ACCESS_UNAVAILABLE_WITHOUT_CREDENTIAL_REUSE",
+      "BROWSER_UNAVAILABLE"
+    ],
+    "allowed_resource_presence": [
+      "PRESENT",
+      "ABSENT",
+      "UNKNOWN",
+      "NOT_OBSERVED"
+    ],
+    "allowed_power_states": [
+      "POWERED_ON",
+      "POWERED_OFF",
+      "UNKNOWN",
+      "NOT_OBSERVED"
+    ],
+    "allowed_network_states": [
+      "NETWORK_READY",
+      "NETWORK_DEGRADED",
+      "UNKNOWN",
+      "NOT_OBSERVED"
+    ]
+  },
+  "source_boundary": {
+    "existing_browser_sessions_observed": true,
+    "credential_material_directly_read_or_entered": false,
+    "api_token_directly_read_or_inspected": false,
+    "account_identifier_emitted_or_persisted": false,
+    "address_or_resource_identifier_emitted_or_persisted": false,
+    "billing_database_or_configuration_read": false,
+    "provider_resource_created_deleted_rebuilt_or_restarted": false,
+    "provider_network_security_group_ip_dns_or_cloudflare_changed": false,
+    "host_runtime_or_configuration_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_PRODUCTION_OVH_MANAGEMENT_PLANE_DIAGNOSTIC_ONLY_NOT_HOST_RECOVERY_SSH_TRANSPORT_RETRY_CONFIG_SEMANTIC_CHECK_UNIT_INSTALL_CORE_START_CONNECTOR_ACTIVATION_OR_PUBLIC_RELEASE",
+  "rollback": {
+    "action": "NO_PROVIDER_OR_HOST_MUTATION_NO_RUNTIME_ROLLBACK_REQUIRED",
+    "current_candidate_shadow_changed": false,
+    "private_evidence_deleted_automatically": false
+  }
+}

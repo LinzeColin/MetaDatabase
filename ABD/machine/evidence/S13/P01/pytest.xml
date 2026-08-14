@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="15" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S13.P01_test" name="test_candidate_preflight_passes_without_generated_test_reports" time="0.000" />
+    <testcase classname="tests.S13.P01_test" name="test_frozen_fixture_has_exactly_three_safe_views_and_one_primary_slot" time="0.000" />
+    <testcase classname="tests.S13.P01_test" name="test_default_model_contains_all_required_chinese_panels" time="0.000" />
+    <testcase classname="tests.S13.P01_test" name="test_local_push_payload_is_deterministic_and_never_delivers_externally" time="0.000" />
+    <testcase classname="tests.S13.P01_test" name="test_html_renderer_has_chinese_semantics_and_no_external_endpoint" time="0.000" />
+    <testcase classname="tests.S13.P01_test" name="test_push_service_only_builds_the_local_payload" time="0.000" />
+    <testcase classname="tests.S13.P01_test" name="test_core_sources_have_no_network_soak_or_order_capability" time="0.000" />
+    <testcase classname="tests.S13.P01_test" name="test_unsafe_or_ambiguous_fixture_variants_fail_closed[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S13.P01_test" name="test_unsafe_or_ambiguous_fixture_variants_fail_closed[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S13.P01_test" name="test_unsafe_or_ambiguous_fixture_variants_fail_closed[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S13.P01_test" name="test_unsafe_or_ambiguous_fixture_variants_fail_closed[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S13.P01_test" name="test_candidate_fails_closed_when_static_workbench_loses_required_panel" time="0.000" />
+    <testcase classname="tests.S13.P01_test" name="test_rollback_drill_is_local_and_does_not_change_external_state" time="0.000" />
+    <testcase classname="tests.S13.P01_test" name="test_signing_replaces_only_the_p01_jsonl_row_and_replays" time="0.000" />
+    <testcase classname="tests.S13.P01_test" name="test_acceptance_cli_is_wired_to_the_exact_contract_after_integration" time="0.000" />
+  </testsuite>
+</testsuites>

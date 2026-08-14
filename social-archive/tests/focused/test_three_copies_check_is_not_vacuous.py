@@ -1,0 +1,102 @@
+"""「今天确认了几份」那条判据，喂它坏形状必须变红（2026-08-07）。
+
+说明书对 Owner 说「数据存在哪？你自己的服务器上，**加密存三份**」。
+库里那三行 `verified` 是写入当时的记录，不是今天的事实。今天在他生产机上
+真问了一遍：r2 在、oci 在、**github 读不到**（那把 token 解析不了
+LinzeColin/Private-Database）——而 GitHub 正是 2026-08-04 迁移之后当主备份的那份。
+
+这条判据把「几份今天确认过」变成一个会说话的数。所以它自己必须会红。
+"""
+
+from __future__ import annotations
+
+import importlib.util
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+SCRIPT = ROOT / "scripts/check_the_three_copies_are_really_there.py"
+
+_spec = importlib.util.spec_from_file_location("_three_copies", SCRIPT)
+_module = importlib.util.module_from_spec(_spec)
+sys.modules["_three_copies"] = _module
+_spec.loader.exec_module(_module)
+summarise = _module.summarise
+
+_OK = {"status": "PASS", "found": {"byte_size": 520, "encryption": "age-x25519"}}
+
+
+def test_all_three_reachable_passes() -> None:
+    """**正例必须是绿的。** 一条永远喊红的判据和永远说 PASS 的一样没用。"""
+    problems, measured = summarise({s: [dict(_OK)] for s in ("r2", "oci", "github")})
+    assert problems == [], problems
+    assert measured["copies_confirmed_today"] == 3
+
+
+def test_todays_real_shape_is_a_failure() -> None:
+    """**当天那份真实形状**：两份在，第三份读不到。"""
+    problems, measured = summarise({
+        "r2": [dict(_OK)], "oci": [dict(_OK)],
+        "github": [{"status": "FAIL", "error_code": "GITHUB_RELEASE_READ_FAILED"}],
+    })
+    assert measured["copies_confirmed_today"] == 2
+    assert any("github" in p for p in problems), problems
+    assert any("只确认了 2 份，目标是 3 份" in p for p in problems), problems
+
+
+def test_a_store_that_was_never_queried_is_not_a_pass() -> None:
+    """**一个都没查 ≠ 通过。** 空默认值吞掉「不知道」，这个仓栽过很多次。"""
+    problems, measured = summarise({"r2": [dict(_OK)], "oci": [dict(_OK)], "github": []})
+    assert any("一个都没查" in p for p in problems), problems
+    assert measured["copies_confirmed_today"] == 2
+
+
+def test_a_partial_loss_inside_one_store_is_reported() -> None:
+    """同一家存储里有的在有的不在——**别被「至少有一个在」盖过去**。"""
+    problems, _ = summarise({
+        "r2": [dict(_OK), {"status": "FAIL", "error_code": "S3_OBJECT_MISSING"}],
+        "oci": [dict(_OK), dict(_OK)], "github": [dict(_OK), dict(_OK)],
+    })
+    assert any("只有 1 个在" in p for p in problems), problems
+
+
+def test_the_guide_quotes_this_measurement_instead_of_a_promise() -> None:
+    """守的那句话变了形，判据跟着变（2026-08-10）。
+
+    原来说明书写死「加密存三份」，而本文件从建起来那天起每次都量到 2/3——
+    **没有任何东西逼那句话跟着改**，于是它超售了好几天。
+    现在说明书写的是实测数，并且 `check_the_guide_matches_the_product.py`
+    的规则 ⑧ 逼那个数等于这里的 `copies_confirmed_today`。
+
+    所以这条测试要钉的不再是「那句承诺还在」，而是**说明书引的是量出来的数**。
+    """
+    guide = (ROOT / "docs/使用说明.md").read_text(encoding="utf-8")
+    assert "加密存三份" not in guide, (
+        "说明书又写死了「三份」——那个数没人量，而实测一直是 2 份")
+    assert "能确认拿得回来的是" in guide, (
+        "说明书里那句引实测数的话不见了——规则 ⑧ 就没有东西可盯了")
+
+def test_unreachable_is_not_reported_as_lost() -> None:
+    """**「够不着」和「没了」要分开说。**（2026-08-07）
+
+    当天真实情况：Vault 仓好好的（换一把 token 就看得见），是配的那把恢复
+    token 的仓授权清单里没有它。报成「副本没了」会把人指去补一份副本，
+    而真正该做的是修凭据——**两句话让人做的事完全不同。**
+    """
+    problems, _ = summarise({
+        "r2": [dict(_OK)], "oci": [dict(_OK)],
+        "github": [{"status": "BLOCKED_ENVIRONMENT",
+                    "error_code": "GITHUB_VAULT_NOT_VISIBLE_TO_THIS_TOKEN"}],
+    })
+    assert any("这不等于副本没了" in p for p in problems), problems
+    assert not any("真的找不到了" in p for p in problems), problems
+
+
+def test_a_really_missing_object_is_reported_as_lost() -> None:
+    """**反过来也要准**：对象真没了，就不能说成「够不着」。"""
+    problems, _ = summarise({
+        "r2": [{"status": "FAIL", "error_code": "S3_OBJECT_MISSING"}],
+        "oci": [dict(_OK)], "github": [dict(_OK)],
+    })
+    assert any("真的找不到了" in p for p in problems), problems
+    assert not any("这不等于副本没了" in p for p in problems), problems

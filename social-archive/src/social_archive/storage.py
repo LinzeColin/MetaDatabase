@@ -128,6 +128,7 @@ class S3ReplicaStore:
         self.store_id = store_id
         self.bucket = bucket
         self.prefix = prefix.strip("/")
+        self.s3_compatibility = s3_compatibility
         self.client = create_s3_client(
             endpoint_url=endpoint_url,
             access_key_id=access_key_id,
@@ -149,7 +150,18 @@ class S3ReplicaStore:
             "cipher-sha256": obj.cipher_sha256,
             "encryption": obj.algorithm,
         }
-        self.client.upload_file(str(obj.path), self.bucket, key, ExtraArgs={"Metadata": metadata})
+        # **显式钉 Standard**（2026-08-10，移植自 origin/main 的 a0e201baa）。
+        #
+        # 铁律 7：禁止 InfrequentAccess——R2 免费额度只覆盖 Standard，
+        # IA 从第 1 次操作起计费且按整单位向上取整（实账单 51 次 = $9.00，
+        # 同周期 301 万次 Standard = $0.00）。R2 今天的默认就是 Standard，
+        # 所以不钉也不会立刻出账单——**出事的时刻是以后某天默认变了**。
+        # 生产上量过：只有 OCI 显式设了 `S3_COMPATIBILITY=oci`，R2 取默认 `aws`，
+        # 所以这颗钉子作用的正是 R2 的写入。OCI 不认这个名字，钉了会被拒。
+        extra_args: dict[str, object] = {"Metadata": metadata}
+        if self.s3_compatibility == "aws":
+            extra_args["StorageClass"] = "STANDARD"
+        self.client.upload_file(str(obj.path), self.bucket, key, ExtraArgs=extra_args)
         head = self.client.head_object(Bucket=self.bucket, Key=key)
         remote = head.get("Metadata") or {}
         if (

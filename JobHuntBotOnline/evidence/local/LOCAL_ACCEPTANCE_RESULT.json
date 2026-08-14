@@ -1,0 +1,61 @@
+{
+  "verdict": "PASS_WITH_ENVIRONMENT_LIMITATION",
+  "scope": "exact R2 source Candidate in isolated local runtime; deterministic tests, HTTP/DOM contract, restart readback and mail-transport governance",
+  "production_claimed": false,
+  "tests_passed": 21,
+  "ui_totals": {
+    "templates": 22,
+    "forms": 20,
+    "buttons": 22,
+    "inputs": 82,
+    "links": 46,
+    "testids": 131
+  },
+  "restart_readback": {
+    "verdict": "PASS",
+    "synthetic_data_only": true,
+    "application_instances": 2,
+    "recommendations_before": 6,
+    "recommendations_after": 6,
+    "refresh_interval_hours": 6,
+    "production_claimed": false
+  },
+  "mail_transport": {
+    "verdict": "PASS",
+    "nitrosend_dependency": false,
+    "provider_contract": "standards-compatible SMTP",
+    "mail_deferred_registration_open": "false",
+    "generic_smtp_registration_open": "true",
+    "non_email_delivery_can_continue": true,
+    "full_production_pass_still_requires_real_email_lifecycle": true,
+    "errors": [],
+    "production_claimed": false
+  },
+  "local_browser": {
+    "verdict": "BLOCKED",
+    "scope": "real Uvicorn + Chromium local acceptance",
+    "production_claimed": false,
+    "blocker": "chromium_managed_url_blocklist",
+    "error_type": "Error",
+    "error": "Page.goto: net::ERR_BLOCKED_BY_ADMINISTRATOR at http://127.0.0.1:37433/\nCall log:\n  - navigating to \"http://127.0.0.1:37433/\", waiting until \"domcontentloaded\"\n",
+    "steps_completed": [],
+    "console_errors": [],
+    "page_errors": [],
+    "server_log_tail": "INFO:     Started server process [3600]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://127.0.0.1:37433 (Press CTRL+C to quit)\nINFO:     127.0.0.1:41124 - \"GET /readyz HTTP/1.1\" 200 OK"
+  },
+  "browser_pass_claimed": false,
+  "browser_note": "Chromium navigation is blocked by the container managed URLBlocklist. This is recorded as BLOCKED, not PASS. Production Playwright remains a hard gate.",
+  "external_source_probe": "BLOCKED_NETWORK",
+  "external_source_note": "Local DNS is unavailable; production acceptance requires a target-runtime source PASS.",
+  "refresh_interval_hours": 6,
+  "production_gates_remaining": [
+    "real HTTPS",
+    "real provider-neutral SMTP/IMAP",
+    "platform DeepSeek Secret",
+    "PostgreSQL target migration",
+    "authorized external sources",
+    "production Playwright",
+    "backup verify",
+    "deployment identity and rollback target"
+  ]
+}

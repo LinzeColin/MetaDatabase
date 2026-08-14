@@ -53,6 +53,7 @@ def test_s3_replica_uploads_only_ciphertext_and_verifies_metadata(tmp_path: Path
             assert Path(filename) == cipher
             assert key.endswith(f"{original_sha}.age")
             self.metadata = ExtraArgs["Metadata"]
+            self.storage_class = ExtraArgs["StorageClass"]
         def head_object(self, Bucket, Key):
             return {"Metadata": self.metadata, "ETag": '"etag"'}
 
@@ -60,6 +61,9 @@ def test_s3_replica_uploads_only_ciphertext_and_verifies_metadata(tmp_path: Path
     store.store_id = "r2"
     store.bucket = "private"
     store.prefix = "primary-objects"
+    # 2026-08-10 起 put_encrypted 会按兼容模式钉 StorageClass（铁律 7），
+    # 所以这个手搭的实例也要有这个字段——R2 走的就是默认的 "aws"。
+    store.s3_compatibility = "aws"
     store.client = Client()
     obj = SimpleNamespace(
         original_sha256=original_sha, cipher_sha256=cipher_sha,
@@ -69,6 +73,7 @@ def test_s3_replica_uploads_only_ciphertext_and_verifies_metadata(tmp_path: Path
     key, etag = store.put_encrypted(obj)
     assert key.endswith(".age")
     assert etag == "etag"
+    assert store.client.storage_class == "STANDARD"
 
 
 def test_s3_replica_readback_verifies_cipher_sha256(tmp_path: Path):

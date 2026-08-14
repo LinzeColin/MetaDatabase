@@ -1,0 +1,532 @@
+{
+  "action": "NO_RECOMMENDATION_NO_ORDER",
+  "aggregate": {
+    "accepted_local_projection_count": 8,
+    "input_attempt_count": 19,
+    "quarantined_key_conflict_count": 1,
+    "suppressed_duplicate_attempt_count": 9,
+    "timeout_no_state_change_count": 1
+  },
+  "artifact_id": "ART-S17-P02-02",
+  "baseline_hashes": {
+    "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+    "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+    "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+    "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+    "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+  },
+  "claim_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_ledger_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_runtime_concurrency_executed": false,
+    "real_time_soak_waited": false,
+    "real_vps_resource_observed_or_measured": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "concurrency_model": "FROZEN_LOGICAL_LANES_DETERMINISTIC_ORDER_NOT_RUNTIME_CONCURRENCY",
+  "contract_id": "AC-S17-P02",
+  "decision": "S17_P02_IDEMPOTENCY_PASS_P03_REQUIRED",
+  "execution_policy": {
+    "external_runtime_access_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "offline_deterministic_only": true,
+    "phase_test_only": true,
+    "runtime_thread_or_process_concurrency_allowed": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-10T00:00:00+10:00",
+  "idempotency_gate": {
+    "duplicate_ledger_event_count": 0,
+    "duplicate_suggestion_count": 0,
+    "input_attempts_accounted": true,
+    "local_projection_count": 8,
+    "passed": true,
+    "projection_identity_unique": true,
+    "suppressed_duplicate_attempt_count": 9
+  },
+  "idempotency_policy": {
+    "adverse_odds_rule": "ONE_PROVIDER_TICK_ADVERSE",
+    "adverse_probability_delta": "0.0001",
+    "duplicate_ledger_event_max": 0,
+    "duplicate_suggestion_max": 0,
+    "idempotency_key_scope": "ONE_LOCAL_SYNTHETIC_LEDGER_PROJECTION_PER_KEY_AND_PAYLOAD",
+    "key_conflict_policy": "QUARANTINE_NO_RECOMMENDATION_NO_ORDER",
+    "order_submission_enabled": false,
+    "recommendation_enabled": false,
+    "scheduler": "FROZEN_LOGICAL_LANE_SCHEDULER_NOT_RUNTIME_CONCURRENCY",
+    "timeout_policy": "TIMEOUT_BEFORE_COMMIT_HAS_NO_STATE_CHANGE"
+  },
+  "input_mode": "FROZEN_SYNTHETIC_LOGICAL_CONCURRENCY_RETRY_IDEMPOTENCY_NOT_RUNTIME",
+  "next": "S17/P03_READY_NOT_STARTED",
+  "phase_id": "P02",
+  "predecessor": {
+    "contract_id": "AC-S17-P01",
+    "evidence_path": "machine/evidence/EVD-S17-P01.json",
+    "evidence_sha256": "2f8cc9265cea7eec0e28d6ae0608ba6548a75378d28b850e639509465bff2fa9",
+    "next": "S17/P02_READY_NOT_STARTED",
+    "status": "PASS"
+  },
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "requirement_id": "REQ-S17-P02",
+  "scenarios": [
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "input_order_operation_ids": [
+        "S17P02_ORDERED_001"
+      ],
+      "local_synthetic_ledger_projections": [
+        {
+          "idempotency_key": "S17P02_ORDERED_KEY_001",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": "bdb79dd457599163e40a80a9f0827773a39bbf1c414bd7548f4742390eaf0274"
+        }
+      ],
+      "real_runtime_concurrency_used": false,
+      "records": [
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "ACCEPTED_LOCAL_PROJECTION",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_ORDERED_KEY_001",
+          "operation_id": "S17P02_ORDERED_001",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": "bdb79dd457599163e40a80a9f0827773a39bbf1c414bd7548f4742390eaf0274"
+        }
+      ],
+      "scenario_id": "ORDERED_SINGLE",
+      "scheduled_order_operation_ids": [
+        "S17P02_ORDERED_001"
+      ],
+      "summary": {
+        "accepted_local_projection_count": 1,
+        "input_attempt_count": 1,
+        "quarantined_key_conflict_count": 0,
+        "suppressed_duplicate_attempt_count": 0,
+        "timeout_no_state_change_count": 0
+      }
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "input_order_operation_ids": [
+        "S17P02_FANIN_001",
+        "S17P02_FANIN_002",
+        "S17P02_FANIN_003",
+        "S17P02_FANIN_004",
+        "S17P02_FANIN_005",
+        "S17P02_FANIN_006",
+        "S17P02_FANIN_007",
+        "S17P02_FANIN_008"
+      ],
+      "local_synthetic_ledger_projections": [
+        {
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": "7db7251415a8872d3ac732e5367fce0fb827b4b967af535908ca10bac2ef5336"
+        }
+      ],
+      "real_runtime_concurrency_used": false,
+      "records": [
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "ACCEPTED_LOCAL_PROJECTION",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "operation_id": "S17P02_FANIN_001",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": "7db7251415a8872d3ac732e5367fce0fb827b4b967af535908ca10bac2ef5336"
+        },
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "SUPPRESSED_DUPLICATE",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "operation_id": "S17P02_FANIN_002",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": null
+        },
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "SUPPRESSED_DUPLICATE",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "operation_id": "S17P02_FANIN_003",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": null
+        },
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "SUPPRESSED_DUPLICATE",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "operation_id": "S17P02_FANIN_004",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": null
+        },
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "SUPPRESSED_DUPLICATE",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "operation_id": "S17P02_FANIN_005",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": null
+        },
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "SUPPRESSED_DUPLICATE",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "operation_id": "S17P02_FANIN_006",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": null
+        },
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "SUPPRESSED_DUPLICATE",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "operation_id": "S17P02_FANIN_007",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": null
+        },
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "SUPPRESSED_DUPLICATE",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_FANIN_KEY_001",
+          "operation_id": "S17P02_FANIN_008",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": null
+        }
+      ],
+      "scenario_id": "FAN_IN_DUPLICATE_8",
+      "scheduled_order_operation_ids": [
+        "S17P02_FANIN_001",
+        "S17P02_FANIN_002",
+        "S17P02_FANIN_003",
+        "S17P02_FANIN_004",
+        "S17P02_FANIN_005",
+        "S17P02_FANIN_006",
+        "S17P02_FANIN_007",
+        "S17P02_FANIN_008"
+      ],
+      "summary": {
+        "accepted_local_projection_count": 1,
+        "input_attempt_count": 8,
+        "quarantined_key_conflict_count": 0,
+        "suppressed_duplicate_attempt_count": 7,
+        "timeout_no_state_change_count": 0
+      }
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "input_order_operation_ids": [
+        "S17P02_OOO_002",
+        "S17P02_OOO_001",
+        "S17P02_OOO_003"
+      ],
+      "local_synthetic_ledger_projections": [
+        {
+          "idempotency_key": "S17P02_OOO_KEY_001",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": "eb480ea89247fd5729f0d61bfa2291ecb685a4918a88d59234782fab61a85443"
+        },
+        {
+          "idempotency_key": "S17P02_OOO_KEY_002",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": "0d50d74ee56d5794df6262b47094b6425dd6837ba72494c1ec4d1ef871c04f3b"
+        }
+      ],
+      "real_runtime_concurrency_used": false,
+      "records": [
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "ACCEPTED_LOCAL_PROJECTION",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_OOO_KEY_001",
+          "operation_id": "S17P02_OOO_001",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": "eb480ea89247fd5729f0d61bfa2291ecb685a4918a88d59234782fab61a85443"
+        },
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "ACCEPTED_LOCAL_PROJECTION",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_OOO_KEY_002",
+          "operation_id": "S17P02_OOO_002",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": "0d50d74ee56d5794df6262b47094b6425dd6837ba72494c1ec4d1ef871c04f3b"
+        },
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "SUPPRESSED_DUPLICATE",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_OOO_KEY_002",
+          "operation_id": "S17P02_OOO_003",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": null
+        }
+      ],
+      "scenario_id": "OUT_OF_ORDER_DELAYED",
+      "scheduled_order_operation_ids": [
+        "S17P02_OOO_001",
+        "S17P02_OOO_002",
+        "S17P02_OOO_003"
+      ],
+      "summary": {
+        "accepted_local_projection_count": 2,
+        "input_attempt_count": 3,
+        "quarantined_key_conflict_count": 0,
+        "suppressed_duplicate_attempt_count": 1,
+        "timeout_no_state_change_count": 0
+      }
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "input_order_operation_ids": [
+        "S17P02_TIMEOUT_001",
+        "S17P02_TIMEOUT_002",
+        "S17P02_TIMEOUT_003"
+      ],
+      "local_synthetic_ledger_projections": [
+        {
+          "idempotency_key": "S17P02_TIMEOUT_KEY_001",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": "dae7cded7bc1087ef9cafbefe928ae4ac097ade43380c36a30984d870aa78480"
+        }
+      ],
+      "real_runtime_concurrency_used": false,
+      "records": [
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "TIMEOUT_NO_STATE_CHANGE",
+          "fault": "TIMEOUT_BEFORE_COMMIT",
+          "idempotency_key": "S17P02_TIMEOUT_KEY_001",
+          "operation_id": "S17P02_TIMEOUT_001",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": null
+        },
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "ACCEPTED_LOCAL_PROJECTION",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_TIMEOUT_KEY_001",
+          "operation_id": "S17P02_TIMEOUT_002",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": "dae7cded7bc1087ef9cafbefe928ae4ac097ade43380c36a30984d870aa78480"
+        },
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "SUPPRESSED_DUPLICATE",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_TIMEOUT_KEY_001",
+          "operation_id": "S17P02_TIMEOUT_003",
+          "payload_sha256": "41d46fc60605c917dd6621f53f4feeb15af7bbbb457a2fa9fbdd176f724631e0",
+          "projection_id": null
+        }
+      ],
+      "scenario_id": "TIMEOUT_RETRY",
+      "scheduled_order_operation_ids": [
+        "S17P02_TIMEOUT_001",
+        "S17P02_TIMEOUT_002",
+        "S17P02_TIMEOUT_003"
+      ],
+      "summary": {
+        "accepted_local_projection_count": 1,
+        "input_attempt_count": 3,
+        "quarantined_key_conflict_count": 0,
+        "suppressed_duplicate_attempt_count": 1,
+        "timeout_no_state_change_count": 1
+      }
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "input_order_operation_ids": [
+        "S17P02_CONFLICT_001",
+        "S17P02_CONFLICT_002"
+      ],
+      "local_synthetic_ledger_projections": [
+        {
+          "idempotency_key": "S17P02_CONFLICT_KEY_001",
+          "payload_sha256": "b2ac0a964cb5524d187306f52eb46da86314eb6f06e117ab68c5e814a4346a08",
+          "projection_id": "92574abee649bda20041ac397bcaa9c7b98a03e87d1b4d66b91d3c841c806468"
+        }
+      ],
+      "real_runtime_concurrency_used": false,
+      "records": [
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "ACCEPTED_LOCAL_PROJECTION",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_CONFLICT_KEY_001",
+          "operation_id": "S17P02_CONFLICT_001",
+          "payload_sha256": "b2ac0a964cb5524d187306f52eb46da86314eb6f06e117ab68c5e814a4346a08",
+          "projection_id": "92574abee649bda20041ac397bcaa9c7b98a03e87d1b4d66b91d3c841c806468"
+        },
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "QUARANTINED_KEY_CONFLICT",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_CONFLICT_KEY_001",
+          "operation_id": "S17P02_CONFLICT_002",
+          "payload_sha256": "6f053bb658ffe1776646a0cb6b3bee0d505b358ffe1518c4ecb84ffbe58ccc0f",
+          "projection_id": null
+        }
+      ],
+      "scenario_id": "CONFLICT_QUARANTINE",
+      "scheduled_order_operation_ids": [
+        "S17P02_CONFLICT_001",
+        "S17P02_CONFLICT_002"
+      ],
+      "summary": {
+        "accepted_local_projection_count": 1,
+        "input_attempt_count": 2,
+        "quarantined_key_conflict_count": 1,
+        "suppressed_duplicate_attempt_count": 0,
+        "timeout_no_state_change_count": 0
+      }
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "input_order_operation_ids": [
+        "S17P02_BOUNDARY_001",
+        "S17P02_BOUNDARY_002"
+      ],
+      "local_synthetic_ledger_projections": [
+        {
+          "idempotency_key": "S17P02_BOUNDARY_KEY_001",
+          "payload_sha256": "b2ac0a964cb5524d187306f52eb46da86314eb6f06e117ab68c5e814a4346a08",
+          "projection_id": "b30ab490c30d8b1d0ef426d407aca34a413dc8243026a1660b639c343f67c615"
+        },
+        {
+          "idempotency_key": "S17P02_BOUNDARY_KEY_002",
+          "payload_sha256": "18c8e231e9257714a6998e4f4b576968a46c915d8292df7ba15797ad7417fe31",
+          "projection_id": "3146aee1aa3e81ccc9c4765b94b1b2b5ebf78394bcd9ead46d183245574aae68"
+        }
+      ],
+      "real_runtime_concurrency_used": false,
+      "records": [
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "ACCEPTED_LOCAL_PROJECTION",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_BOUNDARY_KEY_001",
+          "operation_id": "S17P02_BOUNDARY_001",
+          "payload_sha256": "b2ac0a964cb5524d187306f52eb46da86314eb6f06e117ab68c5e814a4346a08",
+          "projection_id": "b30ab490c30d8b1d0ef426d407aca34a413dc8243026a1660b639c343f67c615"
+        },
+        {
+          "action": "NO_RECOMMENDATION_NO_ORDER",
+          "disposition": "ACCEPTED_LOCAL_PROJECTION",
+          "fault": "NONE",
+          "idempotency_key": "S17P02_BOUNDARY_KEY_002",
+          "operation_id": "S17P02_BOUNDARY_002",
+          "payload_sha256": "18c8e231e9257714a6998e4f4b576968a46c915d8292df7ba15797ad7417fe31",
+          "projection_id": "3146aee1aa3e81ccc9c4765b94b1b2b5ebf78394bcd9ead46d183245574aae68"
+        }
+      ],
+      "scenario_id": "BOUNDARY_PLUS_MINUS_0001",
+      "scheduled_order_operation_ids": [
+        "S17P02_BOUNDARY_001",
+        "S17P02_BOUNDARY_002"
+      ],
+      "summary": {
+        "accepted_local_projection_count": 2,
+        "input_attempt_count": 2,
+        "quarantined_key_conflict_count": 0,
+        "suppressed_duplicate_attempt_count": 0,
+        "timeout_no_state_change_count": 0
+      }
+    }
+  ],
+  "schema_version": "1.0.0",
+  "source_generator": {
+    "artifact_id": "ART-S17-P02-01",
+    "path": "concurrency_test.py",
+    "sha256": "931d7641bc73d65707307827d4ac6c73e8d26af0c893313039eb532dd1493b6c"
+  },
+  "stage_id": "S17",
+  "structured_fault_log": [
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "fault_or_control_disposition": "SUPPRESSED_DUPLICATE",
+      "operation_id": "S17P02_FANIN_002",
+      "scenario_id": "FAN_IN_DUPLICATE_8"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "fault_or_control_disposition": "SUPPRESSED_DUPLICATE",
+      "operation_id": "S17P02_FANIN_003",
+      "scenario_id": "FAN_IN_DUPLICATE_8"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "fault_or_control_disposition": "SUPPRESSED_DUPLICATE",
+      "operation_id": "S17P02_FANIN_004",
+      "scenario_id": "FAN_IN_DUPLICATE_8"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "fault_or_control_disposition": "SUPPRESSED_DUPLICATE",
+      "operation_id": "S17P02_FANIN_005",
+      "scenario_id": "FAN_IN_DUPLICATE_8"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "fault_or_control_disposition": "SUPPRESSED_DUPLICATE",
+      "operation_id": "S17P02_FANIN_006",
+      "scenario_id": "FAN_IN_DUPLICATE_8"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "fault_or_control_disposition": "SUPPRESSED_DUPLICATE",
+      "operation_id": "S17P02_FANIN_007",
+      "scenario_id": "FAN_IN_DUPLICATE_8"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "fault_or_control_disposition": "SUPPRESSED_DUPLICATE",
+      "operation_id": "S17P02_FANIN_008",
+      "scenario_id": "FAN_IN_DUPLICATE_8"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "fault_or_control_disposition": "SUPPRESSED_DUPLICATE",
+      "operation_id": "S17P02_OOO_003",
+      "scenario_id": "OUT_OF_ORDER_DELAYED"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "fault_or_control_disposition": "TIMEOUT_NO_STATE_CHANGE",
+      "operation_id": "S17P02_TIMEOUT_001",
+      "scenario_id": "TIMEOUT_RETRY"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "fault_or_control_disposition": "SUPPRESSED_DUPLICATE",
+      "operation_id": "S17P02_TIMEOUT_003",
+      "scenario_id": "TIMEOUT_RETRY"
+    },
+    {
+      "action": "NO_RECOMMENDATION_NO_ORDER",
+      "fault_or_control_disposition": "QUARANTINED_KEY_CONFLICT",
+      "operation_id": "S17P02_CONFLICT_002",
+      "scenario_id": "CONFLICT_QUARANTINE"
+    }
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "artifact_id": "ART-S16-P02-02",
+  "claim_boundary": {
+    "empirical_model_increment_verified": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "synthetic_evaluation_only": true
+  },
+  "contract_id": "AC-S16-P02",
+  "evaluation_candidate": {
+    "activation_status": "NOT_ACTIVATED_PENDING_S16_P03_AND_S16_P04",
+    "evaluation_scope": "FROZEN_SYNTHETIC_CAPABILITY_AND_CALIBRATION_ONLY",
+    "model_id": "GENERIC_RESIDUAL_CHALLENGER",
+    "p01_active_weight": "0.00"
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "formula_contract": {
+    "ticket_log_growth": "g=p_L*ln(1+f*(odds-1))+(1-p_L)*ln(1-f)"
+  },
+  "frozen_protocol": {
+    "bootstrap_iterations": 2000,
+    "cohort_classification": "FROZEN_SYNTHETIC_EVALUATION_NOT_EMPIRICAL",
+    "confidence_level": "0.95",
+    "fixed_seed": 20260809,
+    "lower_tail_quantile": "0.05",
+    "minimum_sample_count": 2000,
+    "temporal_fold_count": 8
+  },
+  "input_mode": "FROZEN_SYNTHETIC_EVALUATION_NO_NETWORK_NO_ACCOUNT",
+  "metric_contract": [
+    {
+      "failure_default": "BLOCK_MODEL_PROMOTION",
+      "metric_id": "MET-S01-P04-009",
+      "name": "calibration_slope",
+      "target": {
+        "classification": "MODEL_PROMOTION_GATE",
+        "maximum": "1.10",
+        "minimum": "0.90",
+        "operator": "BETWEEN_INCLUSIVE"
+      }
+    },
+    {
+      "failure_default": "BLOCK_MODEL_PROMOTION",
+      "metric_id": "MET-S01-P04-010",
+      "name": "calibration_intercept_absolute",
+      "target": {
+        "classification": "MODEL_PROMOTION_GATE",
+        "operator": "LESS_THAN_OR_EQUAL",
+        "value": "0.02"
+      }
+    },
+    {
+      "failure_default": "BLOCK_MODEL_PROMOTION",
+      "metric_id": "MET-S01-P04-011",
+      "name": "calibration_error_main_market",
+      "target": {
+        "classification": "MODEL_PROMOTION_GATE",
+        "operator": "LESS_THAN_OR_EQUAL",
+        "value": "0.025"
+      }
+    },
+    {
+      "failure_default": "BLOCK_MODEL_PROMOTION",
+      "metric_id": "MET-S01-P04-012",
+      "name": "calibration_error_niche_market",
+      "target": {
+        "classification": "MODEL_PROMOTION_GATE",
+        "operator": "LESS_THAN_OR_EQUAL",
+        "value": "0.04"
+      }
+    },
+    {
+      "failure_default": "ZERO_RESIDUAL_WEIGHT_OR_BLOCK_MODEL",
+      "metric_id": "MET-S01-P04-013",
+      "name": "brier_skill_95pct_lower_bound",
+      "target": {
+        "classification": "MODEL_PROMOTION_GATE",
+        "operator": "GREATER_THAN",
+        "value": "0"
+      }
+    },
+    {
+      "failure_default": "ZERO_RESIDUAL_WEIGHT_OR_BLOCK_MODEL",
+      "metric_id": "MET-S01-P04-014",
+      "name": "logloss_skill_95pct_lower_bound",
+      "target": {
+        "classification": "MODEL_PROMOTION_GATE",
+        "operator": "GREATER_THAN",
+        "value": "0"
+      }
+    },
+    {
+      "failure_default": "BLOCK_MODEL_PROMOTION",
+      "metric_id": "MET-S01-P04-015",
+      "name": "closing_price_advantage_95pct_lower_bound",
+      "target": {
+        "classification": "MODEL_PROMOTION_GATE",
+        "operator": "GREATER_THAN",
+        "value": "0"
+      }
+    },
+    {
+      "failure_default": "KILL_OR_KEEP_STRATEGY_SLICE_IN_SHADOW",
+      "metric_id": "MET-S01-P04-016",
+      "name": "net_log_growth_95pct_lower_bound",
+      "target": {
+        "classification": "MODEL_AND_STRATEGY_PROMOTION_GATE",
+        "operator": "GREATER_THAN",
+        "value": "0"
+      }
+    }
+  ],
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "requirement_id": "REQ-S16-P02",
+  "schema_version": "1.0.0",
+  "source_artifact_id": "ART-S16-P02-01",
+  "source_hashes": {
+    "baseline_report.json": "060d12d4b311fe334815632c9e343b990c0b392bf79bd8421162430f337d4b68",
+    "challenger_report.json": "86c1c49b1e20149847430c08f06249bef9bc93063a1e6ab2954db31633153145",
+    "machine/evidence/EVD-S16-P01.json": "9d0081fd92199eb4fb60800b81aa078d18e69219a49d5c2bcf03f7c0fcdb865c",
+    "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+    "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+    "model_registry.json": "e4414fe73050ac6a389fa395f82badb0ff7882db81af87870add3219329060a5"
+  },
+  "stage_id": "S16"
+}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}重发验证邮件｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="auth-shell">
+  <div class="auth-card">
+    <h1>重新发送验证邮件</h1>
+    <p class="muted">为保护账户，无论邮箱是否存在，页面都会显示相同结果。</p>
+    <form method="post" action="/resend-verification" class="form-stack" data-testid="resend-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label>注册邮箱<input type="email" name="email" required data-testid="resend-email"></label>
+      <button class="button full" type="submit" data-testid="resend-submit">发送验证邮件</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

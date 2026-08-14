@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-301",
-  "taskpack_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.6",
   "stage": "S3",
   "title": "完成统一资料库 Feed/Grid/Detail",
   "status": "PASS",
   "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
+  "live_environment_status": "PASS",
   "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "adapt",
+  "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
   "acceptance_ids": [
     "AC-SA-301"
   ],
@@ -17,14 +17,17 @@
   ],
   "oracle": "Feed/Grid/Detail 使用统一内容/关系模型，平台内容不重复，手机和桌面均可用。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "5 library/UI tests passed; stronger feed/grid/detail behavior retained.",
+  "result_summary": "生产资料库已按 Owner 批准的表格主视图运行：默认关系时间倒序、六个强制列齐全、无演示数据。已对运行中的 v0.0.0.6 生产 Core 实测。",
+  "evidence": [
+    "evidence/SA-301/V006_PRODUCTION_TABLE_CONTRACT_20260803.json"
+  ],
+  "blocking_reason": null,
   "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+    "implementation_commit": "812d7a02d303df22c8845b437c36a52f471e3195",
+    "full_application_regression": "310 passed",
+    "taskpack_verify": "PASS, 395 manifest entries, 0 failures"
   },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "ce8f4f5b96d492f388196e1131d58a24cd7b9d1df83a5c96dd321559c482b4dc"
+  "predecessor_evidence": "evidence/SA-301/history/pre-v0.0.0.6-stage-reverification/PREVIOUS_RESULT.json",
+  "supersedes": "该任务此前的 RESULT.json 记录为 v0.0.0.5 的 PASS。在 v0.0.0.6 下沿用那个 PASS 会把未真正运行的环境门伪装成已通过，故按实测结果重写。",
+  "generated_at": "2026-08-03T07:35:00Z"
 }

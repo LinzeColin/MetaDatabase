@@ -1,0 +1,51 @@
+{
+  "artifacts": {
+    "abd_acceptance/model_redteam.py": {
+      "sha256": "960f7bee73daa02945882f9dbe630c8cdd7ec74c56a4e88d1ab4e828a7f4c82a",
+      "status": "PASS"
+    },
+    "abd_acceptance/model_redteam_engine.py": {
+      "sha256": "38440e6ef967c090514abe6ad5f4a60c7bca8fbf08f2addfd9d1f3563a1479c9",
+      "status": "PASS"
+    },
+    "cross_model_review.json": {
+      "sha256": "01c0bd21f3ca6ec93ca4e2d07929e3ec685ef4faead4982cbe6bd6ea455267d9",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S16-P02.json": {
+      "sha256": "f9769b776bca121d1a048f312b107d91028550f640826023ac0d32db702aef6a",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S16_P03.json": {
+      "sha256": "325f88501a8a97f0c85dc594959754aa4becce505f60cf3d40f0ca80487e7f49",
+      "status": "PASS"
+    },
+    "model_redteam.json": {
+      "sha256": "1eb8c20a1465606d513d5f6b076f3396a45112ed0e5c0ef3a3b5fcc3037a3a9e",
+      "status": "PASS"
+    },
+    "model_redteam.py": {
+      "sha256": "28998a0de59fd7ab9b9a2664b1f8f8c07ff68af595f806ed2934e18f13a3c7f1",
+      "status": "PASS"
+    },
+    "tests/S16/P03_test.py": {
+      "sha256": "e1ba616003c6249cedff075352568d80c0538ccfa1fbb05180af53ccf07835e3",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S16-P03",
+  "evidence_id": "EVD-S16-P03-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "model:s16_redteam_cross_model_review",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_S16_P03_REDTEAM_REVIEW_KEEP_P02_ZERO_WEIGHT_AND_NO_PROMOTION",
+  "model_promotion_allowed": false,
+  "model_weight_changed": false,
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_account_balance_read_or_written": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

@@ -1,0 +1,459 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python model_challenge.py --root .",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S16/P01_test.py --junitxml=machine/evidence/S16/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S16/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S16/P01/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S16-P01 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S16-P01",
+  "decision": "S16_P01_MARKET_CHAMPION_RETAINED_CHALLENGERS_ZERO_WEIGHT_P02_REQUIRED",
+  "decision_sha256": "451c615d69ac8efcdcbb9036d7c0a7ed5468bc529f7997334c85e86f72dee2b8",
+  "deterministic_replay": {
+    "adverse_delta": "-0.0001",
+    "challenger_count": 6,
+    "frozen_window_count": 3,
+    "real_time_wait_performed": false
+  },
+  "evidence_id": "EVD-S16-P01",
+  "execution_policy": {
+    "external_runtime_access_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "offline_deterministic_only": true,
+    "phase_test_only": true,
+    "predecessor_verification_mode": "PINNED_SIGNED_RECEIPTS_AND_LOCAL_SOURCE_HASHES"
+  },
+  "external_effect_boundary": {
+    "empirical_model_increment_verified": false,
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_or_strategy_executed": false,
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "owner_final_order_only": true,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "hashes": {
+    "code": "88ee7d5953a354c2d1da86ea072173bed63c7792f951a9d0dd66ec28ce8e647b",
+    "inputs": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/model_challenge.py": "88ee7d5953a354c2d1da86ea072173bed63c7792f951a9d0dd66ec28ce8e647b",
+      "abd_acceptance/model_challenge_engine.py": "d12d71d40b6e9272b54605ac31081984422766a4b1af7afb6b01414cc69c08c0",
+      "baseline_report.json": "060d12d4b311fe334815632c9e343b990c0b392bf79bd8421162430f337d4b68",
+      "challenger_report.json": "86c1c49b1e20149847430c08f06249bef9bc93063a1e6ab2954db31633153145",
+      "machine/evidence/EVD-S08-P04.json": "20ac3e8d01d5623dfb4616ed8cb6076735b7c0d42b9cf118a4688883eb8271d3",
+      "machine/evidence/EVD-S09-P04.json": "e38e3c5bbbdfb1cfe6a345bcf0511e0ccf7c65e5b78415d62cfd44fd1c5332ef",
+      "machine/evidence/EVD-S10-P04.json": "0700d4af988731fa39fc9506751b993e509da8afa78d63ef951c3bac842a9ed3",
+      "machine/evidence/EVD-S11-P04.json": "d9bc525ce3902cdda3ca6ad6253cc77ab69cddb4641b3d4d7e2c207f59c49ed2",
+      "machine/evidence/S16/P01/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S16/P01/pytest.xml": "4ab300a7ea8e917409da6404c2c5c02d392b39bbe7f8faf93d399c5a8206cbc5",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S16_P01.json": "bb628677d97d22e45af9b8c07fac8d8da49031fab3e6d1d383dd6fb044073ce8",
+      "model_challenge.py": "b51530bf226676927ee4408721f219a7ca8485c50f5cd8bb33f900383bc737f2",
+      "model_registry.json": "e4414fe73050ac6a389fa395f82badb0ff7882db81af87870add3219329060a5",
+      "tests/S16/P01_test.py": "08404c1a15febef5eaf9df0e8d09fb4477f4e34ee8b8d285714bb7e6e665a10b"
+    },
+    "rollback_evidence": "775a2f51de6d563fd1a610db70ccb4594c9fb5a94447192696a1b3ea6151853b"
+  },
+  "next": "S16/P02_READY_NOT_STARTED",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S16_P01_LOCAL_EVIDENCE_ONLY_P02_REQUIRED",
+  "requirement_id": "REQ-S16-P01",
+  "rollback": {
+    "artifacts": {
+      "abd_acceptance/model_challenge.py": {
+        "sha256": "88ee7d5953a354c2d1da86ea072173bed63c7792f951a9d0dd66ec28ce8e647b",
+        "status": "PASS"
+      },
+      "abd_acceptance/model_challenge_engine.py": {
+        "sha256": "d12d71d40b6e9272b54605ac31081984422766a4b1af7afb6b01414cc69c08c0",
+        "status": "PASS"
+      },
+      "baseline_report.json": {
+        "sha256": "060d12d4b311fe334815632c9e343b990c0b392bf79bd8421162430f337d4b68",
+        "status": "PASS"
+      },
+      "challenger_report.json": {
+        "sha256": "86c1c49b1e20149847430c08f06249bef9bc93063a1e6ab2954db31633153145",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S16_P01.json": {
+        "sha256": "bb628677d97d22e45af9b8c07fac8d8da49031fab3e6d1d383dd6fb044073ce8",
+        "status": "PASS"
+      },
+      "model_challenge.py": {
+        "sha256": "b51530bf226676927ee4408721f219a7ca8485c50f5cd8bb33f900383bc737f2",
+        "status": "PASS"
+      },
+      "model_registry.json": {
+        "sha256": "e4414fe73050ac6a389fa395f82badb0ff7882db81af87870add3219329060a5",
+        "status": "PASS"
+      },
+      "tests/S16/P01_test.py": {
+        "sha256": "08404c1a15febef5eaf9df0e8d09fb4477f4e34ee8b8d285714bb7e6e665a10b",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S16-P01",
+    "evidence_id": "EVD-S16-P01-ROLLBACK",
+    "external_state_changed": false,
+    "feature_flag_id": "model:s16_market_champion_challenger",
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_S16_P01_CHALLENGERS_KEEP_MARKET_CHAMPION_AND_SIGNED_PREDECESSORS",
+    "order_submission_enabled": false,
+    "production_state_changed": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S16",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S16P01-BASELINE-PURSUE_GOAL_PROMPT.txt",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S16P01-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S16P01-BASELINE-machine-facts-canonical_facts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S16P01-BASELINE-machine-facts-parameters.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S16P01-BASELINE-machine-facts-roadmap.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S16P01-BASELINE-machine-facts-requirements.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S16P01-BASELINE-machine-facts-acceptance_contracts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S16P01-BASELINE-machine-facts-task_graph.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S16P01-BASELINE-machine-facts-traceability_matrix.json",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S16P01-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S16P01-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S16P01-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S16P01-TRACEABILITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S16-P01-01",
+          "T-S16-P01-02",
+          "T-S16-P01-03"
+        ],
+        "id": "S16P01-TASKPACK-SCOPE-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contract_id": "AC-S16-P01",
+          "expected_artifact": "machine/evidence/EVD-S16-P01.json",
+          "id": "INDEX-AC-S16-P01",
+          "kind": "ACCEPTANCE_EVIDENCE",
+          "pass_gate": "模型没有显著增量时权重归零。",
+          "requirement_id": "REQ-S16-P01",
+          "status": "PLANNED"
+        },
+        "id": "S16P01-EVIDENCE-INDEX-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "20ac3e8d01d5623dfb4616ed8cb6076735b7c0d42b9cf118a4688883eb8271d3",
+        "id": "S16P01-PREDECESSOR-AC-S08-P04",
+        "passed": true
+      },
+      {
+        "detail": "e38e3c5bbbdfb1cfe6a345bcf0511e0ccf7c65e5b78415d62cfd44fd1c5332ef",
+        "id": "S16P01-PREDECESSOR-AC-S09-P04",
+        "passed": true
+      },
+      {
+        "detail": "0700d4af988731fa39fc9506751b993e509da8afa78d63ef951c3bac842a9ed3",
+        "id": "S16P01-PREDECESSOR-AC-S10-P04",
+        "passed": true
+      },
+      {
+        "detail": "d9bc525ce3902cdda3ca6ad6253cc77ab69cddb4641b3d4d7e2c207f59c49ed2",
+        "id": "S16P01-PREDECESSOR-AC-S11-P04",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S16_P01.json",
+        "id": "S16P01-FIXTURE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "ART-S16-P01-01",
+        "id": "S16P01-MODEL-REGISTRY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "ART-S16-P01-02",
+        "id": "S16P01-BASELINE-REPORT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "ART-S16-P01-03",
+        "id": "S16P01-CHALLENGER-REPORT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "activation_requires_contract": "AC-S16-P02",
+          "candidate_residual_weight_cap": "0.35",
+          "comparison_mode": "FROZEN_TIME_WINDOW_PRE_EVALUATION",
+          "market_prior_weight_min": "0.50",
+          "safe_action_before_s16_p02": "KEEP_CHAMPION_MARKET_ONLY",
+          "significant_increment_required": true,
+          "weight_when_increment_not_significant": "0.00"
+        },
+        "id": "S16P01-NO-SIGNIFICANT-INCREMENT-ZERO-WEIGHT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "classification": "FROZEN_SYNTHETIC_PRE_EVALUATION_NOT_EMPIRICAL",
+            "end_at": "2025-01-31T23:59:59+10:00",
+            "observed_outcome_count": 0,
+            "start_at": "2025-01-01T00:00:00+10:00",
+            "window_id": "S16-P01-FW-01"
+          },
+          {
+            "classification": "FROZEN_SYNTHETIC_PRE_EVALUATION_NOT_EMPIRICAL",
+            "end_at": "2025-02-28T23:59:59+10:00",
+            "observed_outcome_count": 0,
+            "start_at": "2025-02-01T00:00:00+10:00",
+            "window_id": "S16-P01-FW-02"
+          },
+          {
+            "classification": "FROZEN_SYNTHETIC_PRE_EVALUATION_NOT_EMPIRICAL",
+            "end_at": "2025-03-31T23:59:59+10:00",
+            "observed_outcome_count": 0,
+            "start_at": "2025-03-01T00:00:00+10:00",
+            "window_id": "S16-P01-FW-03"
+          }
+        ],
+        "id": "S16P01-FROZEN-TIME-WINDOWS-NONEMPIRICAL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "challenger_count": 6,
+          "nonzero_active_weight_count": 0,
+          "safe_action": "KEEP_CHAMPION_MARKET_ONLY_PENDING_S16_P02",
+          "significant_increment_count": 0
+        },
+        "id": "S16P01-CHAMPION-CHALLENGER-REPORT-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "empirical_model_increment_verified": false,
+          "external_network_accessed": false,
+          "financial_return_verified_or_guaranteed": false,
+          "gmail_account_or_api_accessed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "ovh_or_cloudflare_runtime_accessed": false,
+          "production_deployed_or_activated": false,
+          "real_account_balance_read_or_written": false,
+          "real_market_or_odds_observed": false,
+          "real_time_soak_waited": false,
+          "recommendation_generated_or_enabled": false
+        },
+        "id": "S16P01-ARTIFACT-EXTERNAL-BOUNDARY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "imports": [
+            "__future__",
+            "abd_acceptance",
+            "argparse",
+            "ast",
+            "canonical_facts",
+            "datetime",
+            "decimal",
+            "hashlib",
+            "json",
+            "model_challenge_engine",
+            "pathlib",
+            "re",
+            "typing",
+            "xml"
+          ]
+        },
+        "id": "S16P01-ORACLE-LOCAL-ONLY-STATIC-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 32
+        },
+        "id": "S16P01-TARGETED-PYTEST-REPORT-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S16/P01/paid_dependency_scan.txt",
+        "id": "S16P01-PAID-DEPENDENCY-REPORT-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/validation_report.json",
+        "id": "S16P01-TASKPACK-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S16P01-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S16-P01",
+    "decision": "S16_P01_MARKET_CHAMPION_RETAINED_CHALLENGERS_ZERO_WEIGHT_P02_REQUIRED",
+    "execution_policy": {
+      "external_runtime_access_allowed": false,
+      "full_regression_or_real_time_soak_allowed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "offline_deterministic_only": true,
+      "phase_test_only": true,
+      "predecessor_verification_mode": "PINNED_SIGNED_RECEIPTS_AND_LOCAL_SOURCE_HASHES"
+    },
+    "external_effect_boundary": {
+      "empirical_model_increment_verified": false,
+      "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "model_or_strategy_executed": false,
+      "order_submission_enabled": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "owner_final_order_only": true,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_market_or_odds_observed": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "hashes": {
+      "baseline_report.json": "060d12d4b311fe334815632c9e343b990c0b392bf79bd8421162430f337d4b68",
+      "challenger_report.json": "86c1c49b1e20149847430c08f06249bef9bc93063a1e6ab2954db31633153145",
+      "machine/evidence/EVD-S08-P04.json": "20ac3e8d01d5623dfb4616ed8cb6076735b7c0d42b9cf118a4688883eb8271d3",
+      "machine/evidence/EVD-S09-P04.json": "e38e3c5bbbdfb1cfe6a345bcf0511e0ccf7c65e5b78415d62cfd44fd1c5332ef",
+      "machine/evidence/EVD-S10-P04.json": "0700d4af988731fa39fc9506751b993e509da8afa78d63ef951c3bac842a9ed3",
+      "machine/evidence/EVD-S11-P04.json": "d9bc525ce3902cdda3ca6ad6253cc77ab69cddb4641b3d4d7e2c207f59c49ed2",
+      "machine/tests/fixtures/S16_P01.json": "bb628677d97d22e45af9b8c07fac8d8da49031fab3e6d1d383dd6fb044073ce8",
+      "model_registry.json": "e4414fe73050ac6a389fa395f82badb0ff7882db81af87870add3219329060a5"
+    },
+    "next": "S16/P02_READY_NOT_STARTED",
+    "phase_id": "P01",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "requirement_id": "REQ-S16-P01",
+    "stage_id": "S16",
+    "status": "PASS",
+    "summary": {
+      "checks": 32,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 32
+    }
+  }
+}

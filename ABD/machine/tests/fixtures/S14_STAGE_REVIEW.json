@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S14-WHOLE-STAGE-REVIEW",
+  "contract_id": "STAGE-REVIEW-S14",
+  "review_id": "ABD-S14-WHOLE-STAGE-REVIEW",
+  "stage_id": "S14",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "single_pass_case_count": 10,
+  "minimum_targeted_pytest_cases": 30,
+  "expected_phase_ids": ["P01", "P02", "P03", "P04"],
+  "expected_phase_evidence_sha256": {
+    "P01": "91d353c7e3f850119cbc755936c4023537c6870ec3f1a384346bc1875aa90a8c",
+    "P02": "ef081da80f4b8d690dcc396cf762d5998d761136a95bd04dd5ece0c942d4fee9",
+    "P03": "5d0644b143115c6cdd99eb8774b8f8cbc68a618ba86b82772ff6797e7293708c",
+    "P04": "820f5a1c13f788386c54af8d18551bd6bd40d7816d659c6ffd43a657c25ddf4b"
+  },
+  "expected_phase_rollback_sha256": {
+    "P01": "feba53995af01741678c252fb0f2a2d58af4a3a37f5b558f70a94549354463c0",
+    "P02": "1000e28224fb747657065d500cc903560ed0bcc97ee7a8ebd8665b251c0f0d70",
+    "P03": "39437e5a68e6cb86bc6a4122bcda763b501be4196d2973a64c0d2a2b2c8d64b2",
+    "P04": "0b3bfaa1bccf0dccb77afea4f6c44b3eab670d5e0af5d07bc5a1ff73aaef68b5"
+  },
+  "expected_next": "S14/GITHUB_STAGE_UPLOAD_READY",
+  "expected_release_status": "S14_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "expected_findings_summary": {"total": 1, "open": 0, "resolved": 1, "blocked": 0},
+  "cases": [
+    {
+      "case_id": "POSITIVE_EXACT_STAGE",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "threat_gate_preserved": true, "security_pipeline_gate_preserved": true, "component_governance_gate_preserved": true, "provenance_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S14_STAGE_REVIEW_VERIFIED_NO_ACTION", "reason_codes": []}
+    },
+    {
+      "case_id": "PHASE_RECEIPT_FAIL",
+      "snapshot": {"phase_receipts_current": false, "taskpack_trace_closed": true, "threat_gate_preserved": true, "security_pipeline_gate_preserved": true, "component_governance_gate_preserved": true, "provenance_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S14_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["PHASE_RECEIPTS_NOT_CURRENT"]}
+    },
+    {
+      "case_id": "TASKPACK_TRACE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": false, "threat_gate_preserved": true, "security_pipeline_gate_preserved": true, "component_governance_gate_preserved": true, "provenance_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S14_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["TASKPACK_TRACE_NOT_CLOSED"]}
+    },
+    {
+      "case_id": "THREAT_GATE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "threat_gate_preserved": false, "security_pipeline_gate_preserved": true, "component_governance_gate_preserved": true, "provenance_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S14_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["THREAT_TRUST_ABUSE_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "SECURITY_PIPELINE_GATE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "threat_gate_preserved": true, "security_pipeline_gate_preserved": false, "component_governance_gate_preserved": true, "provenance_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S14_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["SECURITY_PIPELINE_OR_FINDING_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "COMPONENT_GOVERNANCE_GATE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "threat_gate_preserved": true, "security_pipeline_gate_preserved": true, "component_governance_gate_preserved": false, "provenance_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S14_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["COMPONENT_GOVERNANCE_OR_RUNTIME_ADMISSION_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "PROVENANCE_GATE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "threat_gate_preserved": true, "security_pipeline_gate_preserved": true, "component_governance_gate_preserved": true, "provenance_gate_preserved": false, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S14_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["PROVENANCE_OR_LOCAL_ATTESTATION_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "EXTERNAL_BOUNDARY_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "threat_gate_preserved": true, "security_pipeline_gate_preserved": true, "component_governance_gate_preserved": true, "provenance_gate_preserved": true, "external_action_boundary_preserved": false, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S14_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["EXTERNAL_ACTION_BOUNDARY_RELAXED"]}
+    },
+    {
+      "case_id": "PORTABILITY_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "threat_gate_preserved": true, "security_pipeline_gate_preserved": true, "component_governance_gate_preserved": true, "provenance_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": false, "findings_open": 0},
+      "expected": {"status": "S14_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["EVIDENCE_NOT_PORTABLE"]}
+    },
+    {
+      "case_id": "OPEN_FINDING_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "threat_gate_preserved": true, "security_pipeline_gate_preserved": true, "component_governance_gate_preserved": true, "provenance_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 1},
+      "expected": {"status": "S14_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["OPEN_REVIEW_FINDINGS"]}
+    }
+  ]
+}

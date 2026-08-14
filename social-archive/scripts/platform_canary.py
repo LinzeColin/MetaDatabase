@@ -78,7 +78,7 @@ def run_one(platform:str,limit:int,*,read_only: bool = False)->dict:
 
 def main()->int:
     ap=argparse.ArgumentParser();ap.add_argument('platform');ap.add_argument('--read-only',action='store_true',help='只输出 Owner 授权阻断状态；不读取凭证、不访问网络、不写入 runtime');ap.add_argument('--limit',type=int,default=3);args=ap.parse_args()
-    platforms=['generic-web','x','reddit','instagram','tiktok','xiaohongshu','douyin','kuaishou','bilibili'] if args.platform in {'all','all-cn'} else [args.platform]
+    platforms=['generic-web','x','reddit','instagram','tiktok','xiaohongshu','douyin','kuaishou','bilibili','youtube'] if args.platform in {'all','all-cn'} else [args.platform]
     if args.platform=='all-cn':platforms=['xiaohongshu','douyin','kuaishou','bilibili']
     docs=[run_one(p,args.limit,read_only=args.read_only) for p in platforms]
     if args.read_only:

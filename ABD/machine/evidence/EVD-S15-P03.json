@@ -1,0 +1,547 @@
+{
+  "claim_boundary": {
+    "actual_browser_component_installed": false,
+    "actual_cloudflare_edge_exercised": false,
+    "actual_desktop_or_mobile_browser_exercised": false,
+    "actual_network_outage_exercised": false,
+    "actual_ovh_host_exercised": false,
+    "external_network_accessed": false,
+    "local_multi_surface_contract_replayed": true
+  },
+  "commands": [
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S15/P03_test.py --junitxml=machine/evidence/S15/P03/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S15/P03/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S15/P03/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S15-P03 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S15-P03",
+  "decision": "S15_P03_LOCAL_MULTI_SURFACE_E2E_READY_P04_REQUIRED",
+  "decision_sha256": "42d8b525d713a3002c05a4dfae3a02b2684cf2c0da71eac1b1f545e7782f8c36",
+  "deterministic_replay": {
+    "actual_network_or_device_execution_performed": false,
+    "environment_count": 6,
+    "journey_classes": [
+      "GOLDEN",
+      "BLACK",
+      "DEGRADED",
+      "RECOVERY"
+    ],
+    "real_time_wait_performed": false,
+    "scenario_count": 6
+  },
+  "evidence_id": "EVD-S15-P03",
+  "execution_policy": {
+    "external_runtime_access_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "offline_deterministic_only": true,
+    "phase_test_only": true,
+    "production_equivalent_config_schema_only": true
+  },
+  "external_effect_boundary": {
+    "browser_component_installed_or_run": false,
+    "cloudflare_account_dns_or_tunnel_accessed": false,
+    "desktop_or_mobile_browser_exercised": false,
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_account_or_host_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "tab_or_provider_runtime_accessed": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "hashes": {
+    "code": "3c55f069087eab79f797283670e787f3e9d82507a1bb2e5ac7ee5c717096f359",
+    "inputs": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/e2e_multi_environment.py": "3c55f069087eab79f797283670e787f3e9d82507a1bb2e5ac7ee5c717096f359",
+      "browser_companion/content.js": "3ff80d5753986340cce15b6ed64c4ebfcda9dc947ff2cf3a7e50357a607af677",
+      "browser_companion/manifest.json": "a5f9223e479bb2f099da536a862c9575399e024d6fe76205bbac058cb6a8e47d",
+      "degraded_page.html": "29c49f3388f8b7214c1d75869ebc2c8434d502972cb74a2883595c10d89f6b40",
+      "e2e_evidence.json": "7ca2390c513a716873423035244cec0a7280ea47194305296cb30251e251113a",
+      "e2e_tests.json": "9eaa3c409f66fd3fcff7a3b166ef0a75983d5a5bc6fc2136bb533d7875bbea31",
+      "environment_matrix.json": "28c5dac00b2691785ff1918037b385d46cfe73e6d1b1893ae7fe4dc92693cf06",
+      "infra/cloudflared.yml": "7f3855b637a020b3769d93bcbaa2539a692ab6eec314a8b722d29c6e0f5118f1",
+      "infra/compose.yml": "babed827948b77e28d395b0d36d2142605b8144f7e778302d6c384930aa54808",
+      "infra/config.schema.json": "bb08e4dd88137d88b5d842bd5ed2fb815163d53ab44f33d21730fdb2dd2f27da",
+      "journey_tests.json": "2f99eb4a558c9e5959c25ea4fcc4b30af0247db506fab4ef74b638b932575030",
+      "machine/evidence/EVD-S15-P02.json": "b3e8c7f5eb604d19029ff23eb0f4c382ac194634a9fdc4fe8f44e998dde22521",
+      "machine/evidence/EVD-S15-P02_rollback.json": "971bc1d3b8059d064cfa4b379c3978e557a0f328a8c26122d95b0f8d4826f499",
+      "machine/evidence/S15/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S15/P03/pytest.xml": "4834af5b76285d9cc29df53bc20c3b9b5b07f75b20270c32f247d301b7355998",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S15_P03.json": "22f95e81ead56255c3e97c00aa75b926455a093bb1b3db5f22f8296e61fe2022",
+      "recovery_actions.json": "b303c0ab00a151f016170ca4e0d6f7018d21e30980332c8eb1f8b25cfa5319db",
+      "tests/S15/P03_test.py": "42c60c0cc620f2c4c86265cecb51d54dbc0d536d02859ca4d641791474e614cc",
+      "webapp/app.css": "8a49a1149fa3c74b95a6d3f343c14c9f5cd35f27d8824ebcd573b2016cdbda65",
+      "webapp/index.html": "46f6ae484a9c6f29737eccf6e710397e2fc0d247a8c7d02acae6e94298cae77d"
+    },
+    "rollback_evidence": "6761c0afe059c562d2147c0d1c731e3b9dc52f1d5dd6c71da08195554c99e258"
+  },
+  "next": "S15/P04_READY_NOT_STARTED",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S15_P03_LOCAL_EVIDENCE_ONLY_P04_REQUIRED",
+  "requirement_id": "REQ-S15-P03",
+  "rollback": {
+    "actual_return_claimed": false,
+    "artifacts": {
+      "abd_acceptance/e2e_multi_environment.py": {
+        "sha256": "3c55f069087eab79f797283670e787f3e9d82507a1bb2e5ac7ee5c717096f359",
+        "status": "PASS"
+      },
+      "browser_companion/content.js": {
+        "sha256": "3ff80d5753986340cce15b6ed64c4ebfcda9dc947ff2cf3a7e50357a607af677",
+        "status": "PASS"
+      },
+      "browser_companion/manifest.json": {
+        "sha256": "a5f9223e479bb2f099da536a862c9575399e024d6fe76205bbac058cb6a8e47d",
+        "status": "PASS"
+      },
+      "degraded_page.html": {
+        "sha256": "29c49f3388f8b7214c1d75869ebc2c8434d502972cb74a2883595c10d89f6b40",
+        "status": "PASS"
+      },
+      "e2e_evidence.json": {
+        "sha256": "7ca2390c513a716873423035244cec0a7280ea47194305296cb30251e251113a",
+        "status": "PASS"
+      },
+      "e2e_tests.json": {
+        "sha256": "9eaa3c409f66fd3fcff7a3b166ef0a75983d5a5bc6fc2136bb533d7875bbea31",
+        "status": "PASS"
+      },
+      "environment_matrix.json": {
+        "sha256": "28c5dac00b2691785ff1918037b385d46cfe73e6d1b1893ae7fe4dc92693cf06",
+        "status": "PASS"
+      },
+      "infra/cloudflared.yml": {
+        "sha256": "7f3855b637a020b3769d93bcbaa2539a692ab6eec314a8b722d29c6e0f5118f1",
+        "status": "PASS"
+      },
+      "infra/compose.yml": {
+        "sha256": "babed827948b77e28d395b0d36d2142605b8144f7e778302d6c384930aa54808",
+        "status": "PASS"
+      },
+      "infra/config.schema.json": {
+        "sha256": "bb08e4dd88137d88b5d842bd5ed2fb815163d53ab44f33d21730fdb2dd2f27da",
+        "status": "PASS"
+      },
+      "journey_tests.json": {
+        "sha256": "2f99eb4a558c9e5959c25ea4fcc4b30af0247db506fab4ef74b638b932575030",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S15_P03.json": {
+        "sha256": "22f95e81ead56255c3e97c00aa75b926455a093bb1b3db5f22f8296e61fe2022",
+        "status": "PASS"
+      },
+      "recovery_actions.json": {
+        "sha256": "b303c0ab00a151f016170ca4e0d6f7018d21e30980332c8eb1f8b25cfa5319db",
+        "status": "PASS"
+      },
+      "tests/S15/P03_test.py": {
+        "sha256": "42c60c0cc620f2c4c86265cecb51d54dbc0d536d02859ca4d641791474e614cc",
+        "status": "PASS"
+      },
+      "webapp/app.css": {
+        "sha256": "8a49a1149fa3c74b95a6d3f343c14c9f5cd35f27d8824ebcd573b2016cdbda65",
+        "status": "PASS"
+      },
+      "webapp/index.html": {
+        "sha256": "46f6ae484a9c6f29737eccf6e710397e2fc0d247a8c7d02acae6e94298cae77d",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S15-P03",
+    "evidence_id": "EVD-S15-P03-ROLLBACK",
+    "external_state_changed": false,
+    "feature_flag_id": "quality:s15-p03-local-multi-surface-e2e",
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_S15_P03_LOCAL_MULTI_SURFACE_HARNESS_KEEP_SIGNED_S15_P02",
+    "order_submission_enabled": false,
+    "production_state_changed": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S15",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S15P03-BASELINE-PURSUE_GOAL_PROMPT.txt",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S15P03-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S15P03-BASELINE-machine-facts-canonical_facts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S15P03-BASELINE-machine-facts-parameters.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S15P03-BASELINE-machine-facts-roadmap.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S15P03-BASELINE-machine-facts-requirements.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S15P03-BASELINE-machine-facts-acceptance_contracts.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S15P03-BASELINE-machine-facts-task_graph.json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S15P03-BASELINE-machine-facts-traceability_matrix.json",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S15P03-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S15P03-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S15P03-TASKS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S15P03-TRACEABILITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S15-P03-01",
+          "T-S15-P03-02",
+          "T-S15-P03-03"
+        ],
+        "id": "S15P03-TASKPACK-SCOPE-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/evidence_index.jsonl",
+        "id": "S15P03-EVIDENCE-INDEX-STRICT-JSONL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contract_id": "AC-S15-P03",
+          "expected_artifact": "machine/evidence/EVD-S15-P03.json",
+          "id": "INDEX-AC-S15-P03",
+          "kind": "ACCEPTANCE_EVIDENCE",
+          "pass_gate": "Golden/Black/Degraded/Recovery全通过。",
+          "requirement_id": "REQ-S15-P03",
+          "status": "PLANNED"
+        },
+        "id": "S15P03-EVIDENCE-INDEX-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_id": "AC-S15-P02",
+          "evidence_path": "machine/evidence/EVD-S15-P02.json",
+          "evidence_sha256": "b3e8c7f5eb604d19029ff23eb0f4c382ac194634a9fdc4fe8f44e998dde22521",
+          "next": "S15/P03_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "S15P03-P02-SIGNED-PREDECESSOR-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "e2e_tests.json",
+        "id": "S15P03-E2E-TESTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "environment_matrix.json",
+        "id": "S15P03-ENVIRONMENT-MATRIX-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "e2e_evidence.json",
+        "id": "S15P03-E2E-EVIDENCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S15_P03.json",
+        "id": "S15P03-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "e2e_tests.json",
+        "id": "S15P03-E2E-TESTS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "e2e_evidence.json",
+        "id": "S15P03-E2E-EVIDENCE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S15_P03.json",
+        "id": "S15P03-FIXTURE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "ENV-S15-P03-OVH-CONFIG-SCHEMA",
+          "ENV-S15-P03-CLOUDFLARE-EDGE-SCHEMA",
+          "ENV-S15-P03-ZH-DESKTOP-STATIC",
+          "ENV-S15-P03-ZH-MOBILE-STATIC",
+          "ENV-S15-P03-BROWSER-COMPONENT",
+          "ENV-S15-P03-RECOVERY-PATH"
+        ],
+        "id": "S15P03-ENVIRONMENT-MATRIX-AND-HASHES-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "local OVH configuration schema and loopback compose contract",
+        "id": "S15P03-ENV-S15-P03-OVH-CONFIG-SCHEMA-STATIC-CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": "local Cloudflare edge schema and degraded-page contract",
+        "id": "S15P03-ENV-S15-P03-CLOUDFLARE-EDGE-SCHEMA-STATIC-CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": "local Chinese desktop static-client contract",
+        "id": "S15P03-ENV-S15-P03-ZH-DESKTOP-STATIC-STATIC-CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": "local Chinese mobile static-client contract",
+        "id": "S15P03-ENV-S15-P03-ZH-MOBILE-STATIC-STATIC-CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": "local browser-component static contract",
+        "id": "S15P03-ENV-S15-P03-BROWSER-COMPONENT-STATIC-CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": "local recovery catalog and no-action boundary",
+        "id": "S15P03-ENV-S15-P03-RECOVERY-PATH-STATIC-CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": "E2E_GOLDEN_LOCAL_PASS_NO_EXTERNAL_ACTION",
+        "id": "S15P03-CASE-S15-P03-GOLDEN-BASELINE-LOCAL",
+        "passed": true
+      },
+      {
+        "detail": "E2E_GOLDEN_LOCAL_PASS_NO_EXTERNAL_ACTION",
+        "id": "S15P03-CASE-S15-P03-GOLDEN-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND",
+        "passed": true
+      },
+      {
+        "detail": "E2E_BLACK_REVOKED_NO_ORDER",
+        "id": "S15P03-CASE-S15-P03-BLACK-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND",
+        "passed": true
+      },
+      {
+        "detail": "E2E_BLACK_REVOKED_NO_ORDER",
+        "id": "S15P03-CASE-S15-P03-BLACK-RESULT-TICKET-MISMATCH",
+        "passed": true
+      },
+      {
+        "detail": "E2E_DEGRADED_LOCAL_RECOVERY_PAGE_NO_ACTION",
+        "id": "S15P03-CASE-S15-P03-DEGRADED-SIMULATED-EDGE-SCHEMA-UNAVAILABLE",
+        "passed": true
+      },
+      {
+        "detail": "E2E_RECOVERY_READY_FRESH_LOCAL_REPLAY_NO_ACTION",
+        "id": "S15P03-CASE-S15-P03-RECOVERY-FRESH-LOCAL-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "BLACK",
+          "DEGRADED",
+          "GOLDEN",
+          "RECOVERY"
+        ],
+        "id": "S15P03-GOLDEN-BLACK-DEGRADED-RECOVERY-ALL-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "forbidden": [],
+          "imports": [
+            "__future__",
+            "ast",
+            "canonical_facts",
+            "hashlib",
+            "json",
+            "pathlib",
+            "re",
+            "source_contract_integration",
+            "typing",
+            "xml"
+          ]
+        },
+        "id": "S15P03-ORACLE-LOCAL-ONLY-STATIC-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 19
+        },
+        "id": "S15P03-TARGETED-PYTEST-REPORT-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S15/P03/paid_dependency_scan.txt",
+        "id": "S15P03-PAID-DEPENDENCY-REPORT-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/validation_report.json",
+        "id": "S15P03-TASKPACK-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "S15P03-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      }
+    ],
+    "claim_boundary": {
+      "actual_browser_component_installed": false,
+      "actual_cloudflare_edge_exercised": false,
+      "actual_desktop_or_mobile_browser_exercised": false,
+      "actual_network_outage_exercised": false,
+      "actual_ovh_host_exercised": false,
+      "external_network_accessed": false,
+      "local_multi_surface_contract_replayed": true
+    },
+    "contract_id": "AC-S15-P03",
+    "decision": "S15_P03_LOCAL_MULTI_SURFACE_E2E_READY_P04_REQUIRED",
+    "execution_policy": {
+      "external_runtime_access_allowed": false,
+      "full_regression_or_real_time_soak_allowed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "offline_deterministic_only": true,
+      "phase_test_only": true,
+      "production_equivalent_config_schema_only": true
+    },
+    "external_effect_boundary": {
+      "browser_component_installed_or_run": false,
+      "cloudflare_account_dns_or_tunnel_accessed": false,
+      "desktop_or_mobile_browser_exercised": false,
+      "external_network_accessed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submitted_confirmed_or_retried": false,
+      "ovh_account_or_host_accessed": false,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false,
+      "tab_or_provider_runtime_accessed": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "hashes": {
+      "browser_companion/content.js": "3ff80d5753986340cce15b6ed64c4ebfcda9dc947ff2cf3a7e50357a607af677",
+      "browser_companion/manifest.json": "a5f9223e479bb2f099da536a862c9575399e024d6fe76205bbac058cb6a8e47d",
+      "degraded_page.html": "29c49f3388f8b7214c1d75869ebc2c8434d502972cb74a2883595c10d89f6b40",
+      "e2e_evidence.json": "7ca2390c513a716873423035244cec0a7280ea47194305296cb30251e251113a",
+      "e2e_tests.json": "9eaa3c409f66fd3fcff7a3b166ef0a75983d5a5bc6fc2136bb533d7875bbea31",
+      "environment_matrix.json": "28c5dac00b2691785ff1918037b385d46cfe73e6d1b1893ae7fe4dc92693cf06",
+      "infra/cloudflared.yml": "7f3855b637a020b3769d93bcbaa2539a692ab6eec314a8b722d29c6e0f5118f1",
+      "infra/compose.yml": "babed827948b77e28d395b0d36d2142605b8144f7e778302d6c384930aa54808",
+      "infra/config.schema.json": "bb08e4dd88137d88b5d842bd5ed2fb815163d53ab44f33d21730fdb2dd2f27da",
+      "journey_tests.json": "2f99eb4a558c9e5959c25ea4fcc4b30af0247db506fab4ef74b638b932575030",
+      "machine/evidence/EVD-S15-P02.json": "b3e8c7f5eb604d19029ff23eb0f4c382ac194634a9fdc4fe8f44e998dde22521",
+      "machine/evidence/EVD-S15-P02_rollback.json": "971bc1d3b8059d064cfa4b379c3978e557a0f328a8c26122d95b0f8d4826f499",
+      "machine/tests/fixtures/S15_P03.json": "22f95e81ead56255c3e97c00aa75b926455a093bb1b3db5f22f8296e61fe2022",
+      "recovery_actions.json": "b303c0ab00a151f016170ca4e0d6f7018d21e30980332c8eb1f8b25cfa5319db",
+      "webapp/app.css": "8a49a1149fa3c74b95a6d3f343c14c9f5cd35f27d8824ebcd573b2016cdbda65",
+      "webapp/index.html": "46f6ae484a9c6f29737eccf6e710397e2fc0d247a8c7d02acae6e94298cae77d"
+    },
+    "next": "S15/P04_READY_NOT_STARTED",
+    "phase_id": "P03",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "requirement_id": "REQ-S15-P03",
+    "stage_id": "S15",
+    "status": "PASS",
+    "summary": {
+      "checks": 43,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 43
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-HOST-BUNDLE",
+  "product_version": "0.0.0.1",
+  "purpose": "Stage a non-secret ABD host bundle without activating any runtime service.",
+  "inputs": {
+    "required_stage_files": [
+      "config.json",
+      "runtime.env",
+      "infra/compose.yml"
+    ],
+    "canonical_service_definition": "infra/systemd/abd.service",
+    "oci_image_must_already_be_loaded_by_digest": true,
+    "runtime_config_must_keep_activation_requested_false": true
+  },
+  "host_paths": {
+    "config": "/etc/abd",
+    "config_directory_owner_group": "root:10001",
+    "config_file_owner_group": "root:10001",
+    "config_file_mode": "0640",
+    "state": "/var/lib/abd",
+    "logs": "/var/log/abd",
+    "secrets": "/etc/abd/secrets",
+    "releases": "/opt/abd/releases"
+  },
+  "capacity_gate": {
+    "actual_host_capacity_must_not_be_represented_as_verified_without_direct_evidence": true,
+    "declared_target_status": "DECLARED_TARGET_NOT_ACCOUNT_VERIFIED",
+    "core_activation_requires_verified_host_capacity_and_swap_boundary": true,
+    "shadow_observation_start_is_not_core_capacity_verification": true
+  },
+  "post_freeze_activation_guard": {
+    "script": "runtime/host_capacity_gate.py",
+    "systemd_drop_in": "runtime/systemd/10-host-capacity-gate.conf",
+    "installer": "runtime/install_host_capacity_gate.sh",
+    "minimum_vcpu": 2,
+    "minimum_memory_kib": 4194304,
+    "minimum_physical_disk_bytes": 42949672960,
+    "maximum_swap_used_kib": 0,
+    "failure_mode": "FAIL_CLOSED_NO_SERVICE_START"
+  },
+  "post_freeze_shadow_attestation": {
+    "script": "runtime/shadow_runtime_attestation.py",
+    "installer": "runtime/install_shadow_runtime_attestation.sh",
+    "execution": "ONE_SHOT_FIXED_LOOPBACK_ONLY",
+    "secret_values_read": false,
+    "config_or_secret_file_read": false,
+    "external_network_accessed": false,
+    "runtime_state_changed": false,
+    "real_time_soak_waited": false
+  },
+  "forbidden_effects": {
+    "boolean_semantics": "A true value means the named effect is forbidden in this phase, not that it was performed.",
+    "create_runtime_secret_file": true,
+    "create_current_release_symlink": true,
+    "install_systemd_unit": true,
+    "reload_or_start_systemd_service": true,
+    "configure_cloudflared_or_cloudflare": true,
+    "connect_database_market_tab_gmail_or_account": true,
+    "recommendation_generated_or_enabled": true,
+    "order_submission_enabled": true,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "next_gate": "A later independent phase may start only the frozen shadow profile after its container resource/no-swap, non-secret configuration and local-loopback boundaries are independently checked; this is not core activation or host-capacity verification. Core activation still requires verified host capacity and swap boundary, then the frozen service definition and bounded startup probe before any Cloudflare configuration."
+}

@@ -1,0 +1,45 @@
+{
+  "artifacts": {
+    "abd_acceptance/diagnostic_bundle.py": {
+      "sha256": "ee3b83563edb9da78d9a35c0be0dd4d70de9d95017b57ea3304900bc7e197b0b",
+      "status": "PASS"
+    },
+    "abd_acceptance/observability_alerts.py": {
+      "sha256": "10d20951362a99ef546ae9a5109b8e0e1bba352408f4e890f61b724dc2daeca6",
+      "status": "PASS"
+    },
+    "alerts.json": {
+      "sha256": "7fadc2be6d120ff2375153d3dd8fd35322161847dbc9cbea9367f4fea3dea094",
+      "status": "PASS"
+    },
+    "dashboards.json": {
+      "sha256": "72e9b43b90e0ce8afff5c0e8d989d44542a80879dc21ddcd0cf20cea7e2c1ce0",
+      "status": "PASS"
+    },
+    "diagnostic_bundle.py": {
+      "sha256": "e9a3fbed274e36de5b14441ba4aa207a71a98e1441888a81f33a4ab1640e53a2",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S18-P01.json": {
+      "sha256": "7934fdcc8998467883ab993fee312892311e5a45d26add37e4e00b04a5f8d9e5",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S18_P02.json": {
+      "sha256": "131f5d400c031e2d38382b29c633767440667a563dd081a65a03f6075e104206",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S18-P02",
+  "evidence_id": "EVD-S18-P02-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "observability:s18_p02_offline_alert_policy",
+  "incremental_cash_spent_aud": "0.00",
+  "logical_fail_closed_actions_verified": true,
+  "mode": "DISABLE_LOCAL_OBSERVABILITY_POLICY_KEEP_S18_P01_SIGNED_CONTROL",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated_or_enabled": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

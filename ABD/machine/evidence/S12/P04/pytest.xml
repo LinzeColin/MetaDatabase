@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="30" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S12.P04_test" name="test_frozen_target_gate_outputs_are_exact_replays" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_candidate_preflight_passes_without_generated_test_reports" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_current_state_does_not_claim_plausibility_falsification_or_verification" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_synthetic_falsification_fixture_is_never_promoted_to_empirical" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_six_month_falsification_boundary_uses_strict_upper_bound[0.2999-FALSIFIED]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_six_month_falsification_boundary_uses_strict_upper_bound[0.3000-NOT_FALSIFIED_CONTINUE_EMPIRICAL_OBSERVATION]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_six_month_falsification_boundary_uses_strict_upper_bound[0.3001-NOT_FALSIFIED_CONTINUE_EMPIRICAL_OBSERVATION]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_twelve_month_verification_boundary_keeps_evidence_and_reconciliation_hard[0.2999-True-0-NOT_VERIFIED_EMPIRICAL_RETURN_BELOW_TARGET]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_twelve_month_verification_boundary_keeps_evidence_and_reconciliation_hard[0.3000-True-0-VERIFIED_30_PERCENT_TARGET]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_twelve_month_verification_boundary_keeps_evidence_and_reconciliation_hard[0.3001-True-0-VERIFIED_30_PERCENT_TARGET]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_twelve_month_verification_boundary_keeps_evidence_and_reconciliation_hard[0.3000-False-0-NOT_VERIFIABLE_INSUFFICIENT_12_MONTHS_OR_EVIDENCE]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_twelve_month_verification_boundary_keeps_evidence_and_reconciliation_hard[0.3000-True-1-NOT_VERIFIABLE_INSUFFICIENT_12_MONTHS_OR_EVIDENCE]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_one_in_ten_thousand_adverse_threshold_delta_cannot_relax_a_gate" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_unsafe_fixture_inputs_fail_closed[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_unsafe_fixture_inputs_fail_closed[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_unsafe_fixture_inputs_fail_closed[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_unsafe_fixture_inputs_fail_closed[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_unsafe_fixture_inputs_fail_closed[&lt;lambda&gt;4]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_signed_predecessor_or_derived_artifact_tampering_fails_closed[p01]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_signed_predecessor_or_derived_artifact_tampering_fails_closed[p02]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_signed_predecessor_or_derived_artifact_tampering_fails_closed[p03]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_signed_predecessor_or_derived_artifact_tampering_fails_closed[capacity]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_signed_predecessor_or_derived_artifact_tampering_fails_closed[grid]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_signed_predecessor_or_derived_artifact_tampering_fails_closed[opportunity]" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_core_source_has_no_network_soak_order_or_binary_float_capability" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_candidate_fails_closed_when_generated_target_acceptance_is_tampered" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_rollback_is_local_and_has_no_external_side_effect" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_acceptance_cli_is_wired_to_the_exact_contract" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_artifact_hashes_remain_content_addressed_and_replay_is_deterministic" time="0.000" />
+    <testcase classname="tests.S12.P04_test" name="test_kill_schema_covers_all_report_only_and_empirical_gate_reason_codes" time="0.000" />
+  </testsuite>
+</testsuites>

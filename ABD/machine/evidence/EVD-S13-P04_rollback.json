@@ -1,0 +1,37 @@
+{
+  "actual_return_claimed": false,
+  "artifacts": {
+    "abd_acceptance/journey_paths.py": {
+      "sha256": "76b8a78f81c8c861ec0a20d499c6408b12a02934481f738b2ddcdd4dbad1b31a",
+      "status": "PASS"
+    },
+    "journey_tests.json": {
+      "sha256": "2f99eb4a558c9e5959c25ea4fcc4b30af0247db506fab4ef74b638b932575030",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S13_P04.json": {
+      "sha256": "23fae33cbd088c9e63894952ec84b49e195bf14f02a10a576d80b11380021500",
+      "status": "PASS"
+    },
+    "recovery_actions.json": {
+      "sha256": "b303c0ab00a151f016170ca4e0d6f7018d21e30980332c8eb1f8b25cfa5319db",
+      "status": "PASS"
+    },
+    "tests/S13/P04_test.py": {
+      "sha256": "4f20aff3bd1d3c846a5880ae828722f0a3a81c0784513c8094695456c0941c2a",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S13-P04",
+  "evidence_id": "EVD-S13-P04-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "journey:s13-p04-six-complete-paths",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_S13_P04_JOURNEY_CATALOG_RESTORE_SIGNED_S13_P03_KEEP_ALL_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

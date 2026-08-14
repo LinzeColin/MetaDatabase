@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}申请进度｜JobHuntBot{% endblock %}
+{% block content %}
+<section class="page-head"><div><span class="eyebrow">可追溯进度</span><h1>只记录真实发生的结果</h1><p>点击提交但没有看到确认页面，不应记录为“已提交”。</p></div></section>
+<section class="two-column align-start">
+  <form method="post" action="/applications" class="form-card compact" data-testid="application-event-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <h2>记录新进度</h2>
+    <label>岗位<select name="job_id" required data-testid="application-job">{% for rec, job in recommendations %}<option value="{{ job.id }}" {% if selected_job_id == job.id %}selected{% endif %}>{{ job.company }} · {{ job.title }}</option>{% endfor %}</select></label>
+    <label>状态<select name="status" required data-testid="application-status"><option value="pending">待处理</option><option value="submitted">已提交</option><option value="interview">面试／笔试</option><option value="rejected">已拒绝</option><option value="offer">录用通知</option><option value="withdrawn">已撤回</option></select></label>
+    <label>确认依据<input name="evidence" placeholder="例如：确认页面、申请编号、确认邮件" data-testid="application-evidence"><small>记录“已提交”时必填。</small></label>
+    <label>备注<textarea name="notes" rows="5" data-testid="application-notes"></textarea></label>
+    <button class="button full" type="submit" data-testid="application-submit">保存进度</button>
+  </form>
+  <section class="panel">
+    <h2>当前进度</h2>
+    <div class="progress-list">
+      {% for item in progresses %}
+      <article class="progress-card"><div><b>{{ item.job.company }} · {{ item.job.title }}</b><p>{{ status_labels.get(item.progress.status, item.progress.status) }} · 更新于 {{ item.progress.updated_at }}</p>{% if item.evidence %}<p class="muted">依据：{{ item.evidence }}</p>{% endif %}{% if item.notes %}<p class="muted">备注：{{ item.notes }}</p>{% endif %}</div><a class="button ghost small" href="/applications/{{ item.progress.id }}/edit" data-testid="edit-application-progress">编辑</a></article>
+      {% else %}<p class="empty">还没有当前进度。提交申请或收到回复后再添加。</p>{% endfor %}
+    </div>
+    <h2 class="section-spacer">修订记录</h2>
+    <div class="timeline">
+      {% for item in events %}
+      <article><span class="timeline-dot"></span><div><b>{{ item.job.company }} · {{ item.job.title }}</b><p>{{ status_labels.get(item.event.status, item.event.status) }} · {{ item.event.created_at }} · {{ '新建' if item.event.action == 'created' else '编辑' }}（第 {{ item.event.revision }} 版）</p>{% if item.evidence %}<p>确认依据：{{ item.evidence }}</p>{% endif %}{% if item.notes %}<p>备注：{{ item.notes }}</p>{% endif %}</div></article>
+      {% else %}<p class="empty">还没有记录。提交申请或收到回复后再添加。</p>{% endfor %}
+    </div>
+  </section>
+</section>
+{% endblock %}

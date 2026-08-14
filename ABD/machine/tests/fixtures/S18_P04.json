@@ -1,0 +1,251 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "contract_id": "AC-S18-P04",
+  "requirement_id": "REQ-S18-P04",
+  "stage_id": "S18",
+  "phase_id": "P04",
+  "fixed_clock": "2026-08-10T04:00:00+10:00",
+  "expected_next": "S18/STAGE_REVIEW_READY_NOT_STARTED",
+  "predecessors": [
+    {
+      "contract_id": "AC-S18-P03",
+      "evidence_sha256": "99ade2e845cd72af99713e4c0d5d07e2aea3a1e49e6895f5b9bcdeca2a9afe1f"
+    }
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "GOLDEN_ALL_LOGICAL_JOBS_PASS",
+      "cycle_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T04:00:00+10:00",
+        "cycle_id": "S18-P04-GOLDEN",
+        "job_results": [
+          {"job_id": "DAILY_SIGNED_CONTROL_REPLAY", "status": "PASS"},
+          {"job_id": "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT", "status": "PASS"},
+          {"job_id": "WEEKLY_PATCH_READINESS_GATE", "status": "PASS"},
+          {"job_id": "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY", "status": "PASS"},
+          {"job_id": "MONTHLY_DISASTER_RECOVERY_PROJECTION", "status": "PASS"},
+          {"job_id": "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW", "status": "PASS"}
+        ],
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "fund_facts_snapshot": {
+          "money_storage": "INTEGER_CENTS",
+          "frozen_bankroll_reference_aud": "300.00",
+          "actual_fund_fact_mutation_allowed": false,
+          "actual_ledger_mutation_allowed": false
+        },
+        "risk_gate_snapshot": {
+          "kelly_fraction_alpha": "0.00",
+          "kelly_fraction_beta": "0.20",
+          "kelly_fraction_ga": "0.25",
+          "total_open_exposure_cap": "0.150",
+          "target_shortfall_may_relax_gate": false,
+          "unstable_action": "NO_RECOMMENDATION"
+        },
+        "requested_external_execution": false,
+        "requested_actual_maintenance": false
+      },
+      "expected": {
+        "decision": "CONTINUE_AUTONOMOUS_OFFLINE_CONTROL_PLANE",
+        "action": "NO_OWNER_MAINTENANCE_REQUIRED",
+        "pause_contract": false,
+        "failed_job_ids": []
+      }
+    },
+    {
+      "scenario_id": "DAILY_SIGNED_CONTROL_FAILURE_PAUSES",
+      "cycle_input": {
+        "schema_version": "1.0.0",
+        "fixed_clock": "2026-08-10T04:00:00+10:00",
+        "cycle_id": "S18-P04-DAILY-CONTROL-FAIL",
+        "job_results": [
+          {"job_id": "DAILY_SIGNED_CONTROL_REPLAY", "status": "FAIL"},
+          {"job_id": "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT", "status": "PASS"},
+          {"job_id": "WEEKLY_PATCH_READINESS_GATE", "status": "PASS"},
+          {"job_id": "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY", "status": "PASS"},
+          {"job_id": "MONTHLY_DISASTER_RECOVERY_PROJECTION", "status": "PASS"},
+          {"job_id": "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW", "status": "PASS"}
+        ],
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.00", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": false, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": false,
+        "requested_actual_maintenance": false
+      },
+      "expected": {"decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "pause_contract": true, "failed_job_ids": ["DAILY_SIGNED_CONTROL_REPLAY"]}
+    },
+    {
+      "scenario_id": "DAILY_MAIL_EVIDENCE_FAILURE_PAUSES",
+      "cycle_input": {
+        "schema_version": "1.0.0", "fixed_clock": "2026-08-10T04:00:00+10:00", "cycle_id": "S18-P04-DAILY-MAIL-FAIL",
+        "job_results": [
+          {"job_id": "DAILY_SIGNED_CONTROL_REPLAY", "status": "PASS"},
+          {"job_id": "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT", "status": "FAIL"},
+          {"job_id": "WEEKLY_PATCH_READINESS_GATE", "status": "PASS"},
+          {"job_id": "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY", "status": "PASS"},
+          {"job_id": "MONTHLY_DISASTER_RECOVERY_PROJECTION", "status": "PASS"},
+          {"job_id": "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW", "status": "PASS"}
+        ],
+        "probability_delta": "0", "odds_tick_delta": -1,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.00", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": false, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": false, "requested_actual_maintenance": false
+      },
+      "expected": {"decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "pause_contract": true, "failed_job_ids": ["DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT"]}
+    },
+    {
+      "scenario_id": "WEEKLY_PATCH_FAILURE_PAUSES",
+      "cycle_input": {
+        "schema_version": "1.0.0", "fixed_clock": "2026-08-10T04:00:00+10:00", "cycle_id": "S18-P04-WEEKLY-PATCH-FAIL",
+        "job_results": [
+          {"job_id": "DAILY_SIGNED_CONTROL_REPLAY", "status": "PASS"},
+          {"job_id": "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT", "status": "PASS"},
+          {"job_id": "WEEKLY_PATCH_READINESS_GATE", "status": "FAIL"},
+          {"job_id": "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY", "status": "PASS"},
+          {"job_id": "MONTHLY_DISASTER_RECOVERY_PROJECTION", "status": "PASS"},
+          {"job_id": "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW", "status": "PASS"}
+        ],
+        "probability_delta": "0", "odds_tick_delta": -1,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.00", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": false, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": false, "requested_actual_maintenance": false
+      },
+      "expected": {"decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "pause_contract": true, "failed_job_ids": ["WEEKLY_PATCH_READINESS_GATE"]}
+    },
+    {
+      "scenario_id": "WEEKLY_BACKUP_FAILURE_PAUSES",
+      "cycle_input": {
+        "schema_version": "1.0.0", "fixed_clock": "2026-08-10T04:00:00+10:00", "cycle_id": "S18-P04-WEEKLY-BACKUP-FAIL",
+        "job_results": [
+          {"job_id": "DAILY_SIGNED_CONTROL_REPLAY", "status": "PASS"},
+          {"job_id": "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT", "status": "PASS"},
+          {"job_id": "WEEKLY_PATCH_READINESS_GATE", "status": "PASS"},
+          {"job_id": "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY", "status": "FAIL"},
+          {"job_id": "MONTHLY_DISASTER_RECOVERY_PROJECTION", "status": "PASS"},
+          {"job_id": "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW", "status": "PASS"}
+        ],
+        "probability_delta": "0", "odds_tick_delta": -1,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.00", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": false, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": false, "requested_actual_maintenance": false
+      },
+      "expected": {"decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "pause_contract": true, "failed_job_ids": ["WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY"]}
+    },
+    {
+      "scenario_id": "MONTHLY_DISASTER_FAILURE_PAUSES",
+      "cycle_input": {
+        "schema_version": "1.0.0", "fixed_clock": "2026-08-10T04:00:00+10:00", "cycle_id": "S18-P04-MONTHLY-DR-FAIL",
+        "job_results": [
+          {"job_id": "DAILY_SIGNED_CONTROL_REPLAY", "status": "PASS"},
+          {"job_id": "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT", "status": "PASS"},
+          {"job_id": "WEEKLY_PATCH_READINESS_GATE", "status": "PASS"},
+          {"job_id": "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY", "status": "PASS"},
+          {"job_id": "MONTHLY_DISASTER_RECOVERY_PROJECTION", "status": "FAIL"},
+          {"job_id": "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW", "status": "PASS"}
+        ],
+        "probability_delta": "0", "odds_tick_delta": -1,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.00", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": false, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": false, "requested_actual_maintenance": false
+      },
+      "expected": {"decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "pause_contract": true, "failed_job_ids": ["MONTHLY_DISASTER_RECOVERY_PROJECTION"]}
+    },
+    {
+      "scenario_id": "MONTHLY_RETENTION_FAILURE_PAUSES",
+      "cycle_input": {
+        "schema_version": "1.0.0", "fixed_clock": "2026-08-10T04:00:00+10:00", "cycle_id": "S18-P04-MONTHLY-RETENTION-FAIL",
+        "job_results": [
+          {"job_id": "DAILY_SIGNED_CONTROL_REPLAY", "status": "PASS"},
+          {"job_id": "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT", "status": "PASS"},
+          {"job_id": "WEEKLY_PATCH_READINESS_GATE", "status": "PASS"},
+          {"job_id": "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY", "status": "PASS"},
+          {"job_id": "MONTHLY_DISASTER_RECOVERY_PROJECTION", "status": "PASS"},
+          {"job_id": "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW", "status": "FAIL"}
+        ],
+        "probability_delta": "0", "odds_tick_delta": -1,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.00", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": false, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": false, "requested_actual_maintenance": false
+      },
+      "expected": {"decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "pause_contract": true, "failed_job_ids": ["MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"]}
+    },
+    {
+      "scenario_id": "ADVERSE_MINUS_ONE_IN_TEN_THOUSAND_PRESERVES_GATES",
+      "cycle_input": {
+        "schema_version": "1.0.0", "fixed_clock": "2026-08-10T04:00:00+10:00", "cycle_id": "S18-P04-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND",
+        "job_results": [
+          {"job_id": "DAILY_SIGNED_CONTROL_REPLAY", "status": "PASS"},
+          {"job_id": "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT", "status": "PASS"},
+          {"job_id": "WEEKLY_PATCH_READINESS_GATE", "status": "PASS"},
+          {"job_id": "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY", "status": "PASS"},
+          {"job_id": "MONTHLY_DISASTER_RECOVERY_PROJECTION", "status": "PASS"},
+          {"job_id": "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW", "status": "PASS"}
+        ],
+        "probability_delta": "-0.0001", "odds_tick_delta": -1,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.00", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": false, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": false, "requested_actual_maintenance": false
+      },
+      "expected": {"decision": "CONTINUE_AUTONOMOUS_OFFLINE_CONTROL_PLANE", "action": "NO_OWNER_MAINTENANCE_REQUIRED", "pause_contract": false, "failed_job_ids": []}
+    },
+    {
+      "scenario_id": "FUND_MUTATION_ATTEMPT_PAUSES",
+      "cycle_input": {
+        "schema_version": "1.0.0", "fixed_clock": "2026-08-10T04:00:00+10:00", "cycle_id": "S18-P04-FUND-MUTATION",
+        "job_results": [
+          {"job_id": "DAILY_SIGNED_CONTROL_REPLAY", "status": "PASS"}, {"job_id": "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT", "status": "PASS"}, {"job_id": "WEEKLY_PATCH_READINESS_GATE", "status": "PASS"}, {"job_id": "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY", "status": "PASS"}, {"job_id": "MONTHLY_DISASTER_RECOVERY_PROJECTION", "status": "PASS"}, {"job_id": "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW", "status": "PASS"}
+        ],
+        "probability_delta": "0", "odds_tick_delta": -1,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.01", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": false, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": false, "requested_actual_maintenance": false
+      },
+      "expected": {"decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "pause_contract": true, "failed_job_ids": ["DAILY_SIGNED_CONTROL_REPLAY", "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT", "WEEKLY_PATCH_READINESS_GATE", "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY", "MONTHLY_DISASTER_RECOVERY_PROJECTION", "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"]}
+    },
+    {
+      "scenario_id": "RISK_GATE_RELAXATION_ATTEMPT_PAUSES",
+      "cycle_input": {
+        "schema_version": "1.0.0", "fixed_clock": "2026-08-10T04:00:00+10:00", "cycle_id": "S18-P04-RISK-RELAXATION",
+        "job_results": [
+          {"job_id": "DAILY_SIGNED_CONTROL_REPLAY", "status": "PASS"}, {"job_id": "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT", "status": "PASS"}, {"job_id": "WEEKLY_PATCH_READINESS_GATE", "status": "PASS"}, {"job_id": "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY", "status": "PASS"}, {"job_id": "MONTHLY_DISASTER_RECOVERY_PROJECTION", "status": "PASS"}, {"job_id": "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW", "status": "PASS"}
+        ],
+        "probability_delta": "0", "odds_tick_delta": -1,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.00", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": true, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": false, "requested_actual_maintenance": false
+      },
+      "expected": {"decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "pause_contract": true, "failed_job_ids": ["DAILY_SIGNED_CONTROL_REPLAY", "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT", "WEEKLY_PATCH_READINESS_GATE", "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY", "MONTHLY_DISASTER_RECOVERY_PROJECTION", "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"]}
+    },
+    {
+      "scenario_id": "EXTERNAL_EXECUTION_ATTEMPT_PAUSES",
+      "cycle_input": {
+        "schema_version": "1.0.0", "fixed_clock": "2026-08-10T04:00:00+10:00", "cycle_id": "S18-P04-EXTERNAL-EXECUTION",
+        "job_results": [
+          {"job_id": "DAILY_SIGNED_CONTROL_REPLAY", "status": "PASS"}, {"job_id": "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT", "status": "PASS"}, {"job_id": "WEEKLY_PATCH_READINESS_GATE", "status": "PASS"}, {"job_id": "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY", "status": "PASS"}, {"job_id": "MONTHLY_DISASTER_RECOVERY_PROJECTION", "status": "PASS"}, {"job_id": "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW", "status": "PASS"}
+        ],
+        "probability_delta": "0", "odds_tick_delta": -1,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.00", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": false, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": true, "requested_actual_maintenance": false
+      },
+      "expected": {"decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "pause_contract": true, "failed_job_ids": ["DAILY_SIGNED_CONTROL_REPLAY", "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT", "WEEKLY_PATCH_READINESS_GATE", "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY", "MONTHLY_DISASTER_RECOVERY_PROJECTION", "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"]}
+    },
+    {
+      "scenario_id": "MALFORMED_JOB_STATUS_PAUSES",
+      "cycle_input": {
+        "schema_version": "1.0.0", "fixed_clock": "2026-08-10T04:00:00+10:00", "cycle_id": "S18-P04-MALFORMED-JOB-STATUS",
+        "job_results": [
+          {"job_id": "DAILY_SIGNED_CONTROL_REPLAY", "status": "PASS"}, {"job_id": "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT", "status": "UNDECIDED"}, {"job_id": "WEEKLY_PATCH_READINESS_GATE", "status": "PASS"}, {"job_id": "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY", "status": "PASS"}, {"job_id": "MONTHLY_DISASTER_RECOVERY_PROJECTION", "status": "PASS"}, {"job_id": "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW", "status": "PASS"}
+        ],
+        "probability_delta": "0", "odds_tick_delta": -1,
+        "fund_facts_snapshot": {"money_storage": "INTEGER_CENTS", "frozen_bankroll_reference_aud": "300.00", "actual_fund_fact_mutation_allowed": false, "actual_ledger_mutation_allowed": false},
+        "risk_gate_snapshot": {"kelly_fraction_alpha": "0.00", "kelly_fraction_beta": "0.20", "kelly_fraction_ga": "0.25", "total_open_exposure_cap": "0.150", "target_shortfall_may_relax_gate": false, "unstable_action": "NO_RECOMMENDATION"},
+        "requested_external_execution": false, "requested_actual_maintenance": false
+      },
+      "expected": {"decision": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "action": "PAUSE_CONTRACT_AND_ESCALATE_OWNER_OUTBOX_ONLY", "pause_contract": true, "failed_job_ids": ["DAILY_SIGNED_CONTROL_REPLAY", "DAILY_MAIL_EVIDENCE_CONTINUITY_AUDIT", "WEEKLY_PATCH_READINESS_GATE", "WEEKLY_BACKUP_DERIVED_STATE_INTEGRITY_REPLAY", "MONTHLY_DISASTER_RECOVERY_PROJECTION", "MONTHLY_RETENTION_AND_EVIDENCE_REVIEW"]}
+    }
+  ]
+}

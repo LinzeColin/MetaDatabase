@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "task": "T13",
+  "slice": "S1",
+  "recorded_at": "2026-08-06T06:00Z",
+  "status": "PASS",
+  "claim": "「同步还在跑」那七个状态全仓抄了十四份，**五份少了 authorizing**——正在授权那一段界面说没在跑。已修并落成判据。",
+  "how_i_found_it": {
+    "线索": "`failure_copy.IN_PROGRESS_STATES` 的注释写着「与 background.js 的 ACTIVE_SYNC_STATES 对应」——**一句话点明两处要对应，却没有任何东西在核**。",
+    "先只当是两处": "量了一下：两处一致，各 7 个。",
+    "再问一句「还有没有别处也抄了」": "**十四处。** 数清楚是：4 处具名常量（而且是**三个不同的名字**——IN_PROGRESS_STATES／ACTIVE_SYNC_STATES／activeStates／running）、2 处是 db.py 状态迁移表的 pause/cancel 两个键、**8 处彻头彻尾的匿名内联数组**。（第一版我写「十一处匿名」，是分类的启发式把 Python 那两个具名常量也算进去了，已更正。）",
+    "判据第一次跑就红": "五处少 `authorizing`：popup.js 四处、pwa/app.js 一处。"
+  },
+  "what_it_broke": {
+    "哪几件事漏掉了 authorizing 这一段": [
+      "popup 的活动数（renderSummary）——正在授权时显示 0 个在跑",
+      "popup 的「同步 N/M」明细——不显示",
+      "popup 的刷新轮询——不启动",
+      "popup 的待处理徽标计数——不计",
+      "资料库的「正在同步」提示——不弹"
+    ],
+    "一句话": "**明明在跑，界面说没在跑。** 授权那一段是短，但短不等于不存在。",
+    "看着像什么": "从一份还没有 authorizing 的旧清单抄下来的——五处一模一样地少同一个。"
+  },
+  "the_guard": {
+    "文件": "tests/focused/test_the_in_progress_states_are_listed_the_same_everywhere.py",
+    "判法": "全仓凡是列这组状态的地方（认门槛：七个里出现 ≥5 个），必须正好等于三种**登记过**的变体之一。",
+    "三种变体各自说明用途": {
+      "这七个": "在跑",
+      "七个 + paused": "可取消／可断开（暂停中的也该能取消）",
+      "七个 + failed + blocked_environment": "待处理计数（跑着的 + 需要人管的）"
+    },
+    "允许变体不等于放任": "**每一种都必须完整包含那七个**，差别只许在多出来的那几个上。",
+    "还钉了一条自查": "扫到的处数少于 6 就直接失败——**一处都没扫到和「处处一致」长得一样**。",
+    "反例": "随便去掉一处的 authorizing，当场红。"
+  },
+  "what_this_does_not_prove": [
+    "**只认字面量写在一起的那种。** 拆成常量再拼、或从接口取的，这条判据看不见。",
+    "不保证这七个状态本身是对的，只保证十四处说的是同一件事。",
+    "**没有在真界面上复现过那个症状**（要造一个停在 authorizing 的同步任务）。这里核到的是「五处清单少一个」以及它们各自被用在哪，不是「亲眼看见计数错了」。"
+  ],
+  "why_a_global_search_would_not_have_found_them_all": "**同一个概念在扩展里就有三个名字**（ACTIVE_SYNC_STATES / activeStates / running）。按名字搜只会搜到自己知道的那一个；这条判据按**内容**认，才把十四处一次数齐。"
+}

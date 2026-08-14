@@ -1,0 +1,375 @@
+{
+  "artifact_id": "ART-S16-P01-01",
+  "challengers": [
+    {
+      "activation_status": "KEEP_CHAMPION_MARKET_ONLY_PENDING_S16_P02",
+      "active_weight": "0.00",
+      "label": "格斗 Challenger",
+      "model_id": "COMBAT_CHALLENGER",
+      "role": "CHALLENGER",
+      "significant_increment": false,
+      "source_artifacts": [
+        {
+          "path": "combat_model.py",
+          "sha256": "20509f6daf3c6d1c2827fb5d9f749a30b2959bfabb5140a6fdcd2075839d3a62"
+        }
+      ],
+      "source_contract_id": "AC-S09-P04",
+      "source_receipt": {
+        "contract_id": "AC-S09-P04",
+        "evidence_path": "machine/evidence/EVD-S09-P04.json",
+        "evidence_sha256": "e38e3c5bbbdfb1cfe6a345bcf0511e0ccf7c65e5b78415d62cfd44fd1c5332ef",
+        "next": "S09/STAGE_REVIEW_READY_NOT_STARTED",
+        "status": "PASS"
+      },
+      "window_assessments": [
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-01"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-02"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-03"
+        }
+      ]
+    },
+    {
+      "activation_status": "KEEP_CHAMPION_MARKET_ONLY_PENDING_S16_P02",
+      "active_weight": "0.00",
+      "label": "足球比分 Challenger",
+      "model_id": "FOOTBALL_SCORE_CHALLENGER",
+      "role": "CHALLENGER",
+      "significant_increment": false,
+      "source_artifacts": [
+        {
+          "path": "score_models.py",
+          "sha256": "286ef8e1359ea3fa3ae936754e0b1f43a2707ef5376e3f4b39c8df5da59b2ac3"
+        },
+        {
+          "path": "football_model.py",
+          "sha256": "b5a9d264bc3879e0ddc7edb0e4c7256095875a497a3be664eaa97e2655f3a8d5"
+        }
+      ],
+      "source_contract_id": "AC-S09-P04",
+      "source_receipt": {
+        "contract_id": "AC-S09-P04",
+        "evidence_path": "machine/evidence/EVD-S09-P04.json",
+        "evidence_sha256": "e38e3c5bbbdfb1cfe6a345bcf0511e0ccf7c65e5b78415d62cfd44fd1c5332ef",
+        "next": "S09/STAGE_REVIEW_READY_NOT_STARTED",
+        "status": "PASS"
+      },
+      "window_assessments": [
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-01"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-02"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-03"
+        }
+      ]
+    },
+    {
+      "activation_status": "KEEP_CHAMPION_MARKET_ONLY_PENDING_S16_P02",
+      "active_weight": "0.00",
+      "label": "通用市场残差 Challenger",
+      "model_id": "GENERIC_RESIDUAL_CHALLENGER",
+      "role": "CHALLENGER",
+      "significant_increment": false,
+      "source_artifacts": [
+        {
+          "path": "generic_residual.py",
+          "sha256": "f21e553c673df881f88e6454ff4e5c7cacc2b79c3d8a1a8f034fa3f247426a06"
+        }
+      ],
+      "source_contract_id": "AC-S09-P04",
+      "source_receipt": {
+        "contract_id": "AC-S09-P04",
+        "evidence_path": "machine/evidence/EVD-S09-P04.json",
+        "evidence_sha256": "e38e3c5bbbdfb1cfe6a345bcf0511e0ccf7c65e5b78415d62cfd44fd1c5332ef",
+        "next": "S09/STAGE_REVIEW_READY_NOT_STARTED",
+        "status": "PASS"
+      },
+      "window_assessments": [
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-01"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-02"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-03"
+        }
+      ]
+    },
+    {
+      "activation_status": "KEEP_CHAMPION_MARKET_ONLY_PENDING_S16_P02",
+      "active_weight": "0.00",
+      "label": "多运动保守回退 Challenger",
+      "model_id": "MULTI_SPORT_FALLBACK_CHALLENGER",
+      "role": "CHALLENGER",
+      "significant_increment": false,
+      "source_artifacts": [
+        {
+          "path": "basketball_model.py",
+          "sha256": "4e08ae49001dfac763efe74d085f1cff22908e6be8efad0d12bcb85a5902f349"
+        },
+        {
+          "path": "baseball_model.py",
+          "sha256": "9c3d4c96c0b091c417b7a7fb26e4934b2759935830424fa2e0e23f8a1c27f9f4"
+        },
+        {
+          "path": "niche_fallback.json",
+          "sha256": "2c3bf6bd36af747a1efb5b3d931a2d2953675d330d7cbe1f1131a15528836887"
+        }
+      ],
+      "source_contract_id": "AC-S09-P04",
+      "source_receipt": {
+        "contract_id": "AC-S09-P04",
+        "evidence_path": "machine/evidence/EVD-S09-P04.json",
+        "evidence_sha256": "e38e3c5bbbdfb1cfe6a345bcf0511e0ccf7c65e5b78415d62cfd44fd1c5332ef",
+        "next": "S09/STAGE_REVIEW_READY_NOT_STARTED",
+        "status": "PASS"
+      },
+      "window_assessments": [
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-01"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-02"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-03"
+        }
+      ]
+    },
+    {
+      "activation_status": "KEEP_CHAMPION_MARKET_ONLY_PENDING_S16_P02",
+      "active_weight": "0.00",
+      "label": "赛马保守回退 Challenger",
+      "model_id": "RACING_FALLBACK_CHALLENGER",
+      "role": "CHALLENGER",
+      "significant_increment": false,
+      "source_artifacts": [
+        {
+          "path": "racing_model.py",
+          "sha256": "195f7a2bcaf9a82fa9d25a4a96775093fa9408d0a3a885aa7558fd69d12c3301"
+        }
+      ],
+      "source_contract_id": "AC-S09-P04",
+      "source_receipt": {
+        "contract_id": "AC-S09-P04",
+        "evidence_path": "machine/evidence/EVD-S09-P04.json",
+        "evidence_sha256": "e38e3c5bbbdfb1cfe6a345bcf0511e0ccf7c65e5b78415d62cfd44fd1c5332ef",
+        "next": "S09/STAGE_REVIEW_READY_NOT_STARTED",
+        "status": "PASS"
+      },
+      "window_assessments": [
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-01"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-02"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-03"
+        }
+      ]
+    },
+    {
+      "activation_status": "KEEP_CHAMPION_MARKET_ONLY_PENDING_S16_P02",
+      "active_weight": "0.00",
+      "label": "网球 Challenger",
+      "model_id": "TENNIS_CHALLENGER",
+      "role": "CHALLENGER",
+      "significant_increment": false,
+      "source_artifacts": [
+        {
+          "path": "tennis_model.py",
+          "sha256": "e25e5b161fc0b80fd1faced3984b73841ac6c75ff94a8f04d0f6f6ae186a34c7"
+        }
+      ],
+      "source_contract_id": "AC-S09-P04",
+      "source_receipt": {
+        "contract_id": "AC-S09-P04",
+        "evidence_path": "machine/evidence/EVD-S09-P04.json",
+        "evidence_sha256": "e38e3c5bbbdfb1cfe6a345bcf0511e0ccf7c65e5b78415d62cfd44fd1c5332ef",
+        "next": "S09/STAGE_REVIEW_READY_NOT_STARTED",
+        "status": "PASS"
+      },
+      "window_assessments": [
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-01"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-02"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-03"
+        }
+      ]
+    }
+  ],
+  "champion": {
+    "activation_status": "MARKET_CHAMPION_ACTIVE_SYNTHETIC_BASELINE_ONLY",
+    "active_weight": "1.00",
+    "label": "市场共识 Champion",
+    "model_id": "MARKET_CONSENSUS_CHAMPION",
+    "role": "CHAMPION",
+    "source_artifacts": [
+      {
+        "path": "market_consensus.py",
+        "sha256": "7cabd4d261a329412e3c91b72f6626739cd55b6607b8a54f19512f3164039483"
+      },
+      {
+        "path": "consensus_vectors.json",
+        "sha256": "0fc10d3949080111b246120261c028e486b43a5e84b99a59cc32cbd0de186efb"
+      }
+    ],
+    "source_contract_id": "AC-S08-P04",
+    "source_receipt": {
+      "contract_id": "AC-S08-P04",
+      "evidence_path": "machine/evidence/EVD-S08-P04.json",
+      "evidence_sha256": "20ac3e8d01d5623dfb4616ed8cb6076735b7c0d42b9cf118a4688883eb8271d3",
+      "next": "S08/STAGE_REVIEW_READY_NOT_STARTED",
+      "status": "PASS"
+    }
+  },
+  "claim_boundary": {
+    "empirical_model_increment_verified": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "contract_id": "AC-S16-P01",
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "requirement_id": "REQ-S16-P01",
+  "schema_version": "1.0.0",
+  "selection_policy": {
+    "activation_requires_contract": "AC-S16-P02",
+    "candidate_residual_weight_cap": "0.35",
+    "comparison_mode": "FROZEN_TIME_WINDOW_PRE_EVALUATION",
+    "market_prior_weight_min": "0.50",
+    "safe_action_before_s16_p02": "KEEP_CHAMPION_MARKET_ONLY",
+    "significant_increment_required": true,
+    "weight_when_increment_not_significant": "0.00"
+  },
+  "signed_predecessors": [
+    {
+      "contract_id": "AC-S08-P04",
+      "evidence_path": "machine/evidence/EVD-S08-P04.json",
+      "evidence_sha256": "20ac3e8d01d5623dfb4616ed8cb6076735b7c0d42b9cf118a4688883eb8271d3",
+      "next": "S08/STAGE_REVIEW_READY_NOT_STARTED",
+      "status": "PASS"
+    },
+    {
+      "contract_id": "AC-S09-P04",
+      "evidence_path": "machine/evidence/EVD-S09-P04.json",
+      "evidence_sha256": "e38e3c5bbbdfb1cfe6a345bcf0511e0ccf7c65e5b78415d62cfd44fd1c5332ef",
+      "next": "S09/STAGE_REVIEW_READY_NOT_STARTED",
+      "status": "PASS"
+    },
+    {
+      "contract_id": "AC-S10-P04",
+      "evidence_path": "machine/evidence/EVD-S10-P04.json",
+      "evidence_sha256": "0700d4af988731fa39fc9506751b993e509da8afa78d63ef951c3bac842a9ed3",
+      "next": "S10/STAGE_REVIEW_READY_NOT_STARTED",
+      "status": "PASS"
+    },
+    {
+      "contract_id": "AC-S11-P04",
+      "evidence_path": "machine/evidence/EVD-S11-P04.json",
+      "evidence_sha256": "d9bc525ce3902cdda3ca6ad6253cc77ab69cddb4641b3d4d7e2c207f59c49ed2",
+      "next": "S11/STAGE_REVIEW_READY_NOT_STARTED",
+      "status": "PASS"
+    }
+  ],
+  "stage_id": "S16"
+}

@@ -16,6 +16,7 @@ const {
   runCloudBackup,
 } = require("../src/services/backup/cb530-cloud-backup");
 const { backupRequest } = require("../scripts/cb530-cloud-backup");
+const { R2ObjectClient } = require("../src/services/backup/object-clients");
 
 const SOURCE_COMMIT = "b".repeat(40);
 const CREATED_AT = "2026-07-27T12:00:00.000Z";
@@ -63,6 +64,7 @@ function fakeProvider({ ociReadable = true } = {}) {
         return r2.has(key) ? new Response(r2.get(key), { status: 200, headers: { etag: "r2" } }) : new Response("missing", { status: 404 });
       }
       if (method === "PUT") {
+        assert.equal(init.headers["cf-r2-storage-class"], "Standard");
         if (r2.has(key)) {
           return new Response("exists", { status: 409 });
         }
@@ -89,6 +91,23 @@ function fakeProvider({ ociReadable = true } = {}) {
     return new Response("unexpected", { status: 500 });
   };
 }
+
+test("R2 S3 writer signs an explicit Standard storage class", async () => {
+  let requestHeaders;
+  const client = new R2ObjectClient({
+    accountId: ACCOUNT_ID,
+    bucket: "cyberboss-cold",
+    accessKeyId: "fixture-access-key",
+    secretAccessKey: "fixture-secret-key",
+    now: () => new Date(CREATED_AT),
+    fetchImpl: async (_url, init) => {
+      requestHeaders = init.headers;
+      return new Response(null, { status: 200, headers: { "x-amz-version-id": "fixture-version" } });
+    },
+  });
+  await client.putObject({ key: "backup/fixture.bin", body: Buffer.from("fixture") });
+  assert.equal(requestHeaders["x-amz-storage-class"], "STANDARD");
+});
 
 test("CB-530 real-provider protocol keeps frozen object scopes and restores the R2 readback in isolation", async (t) => {
   const root = temporaryRoot(t);

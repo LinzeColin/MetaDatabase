@@ -1,0 +1,99 @@
+{
+  "artifact_id": "ART-S12-P03-02",
+  "contract_id": "AC-S12-P03",
+  "decision": "SYNTHETIC_ECONOMICS_SENSITIVITY_TARGET_UNVERIFIED_NO_RECOMMENDATION",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_provider_capacity_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "requirement_id": "REQ-S12-P03",
+  "return_bands": [
+    {
+      "action": "SYNTHETIC_SENSITIVITY_NOT_ACTIONABLE",
+      "confidence": "0.2000",
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY",
+      "executable_capacity_cents": 4000,
+      "executed_capacity_fraction": "1.0000",
+      "failure_probability": "0.8000",
+      "return_band_cents": {
+        "central": 100,
+        "high": 800,
+        "low": -400
+      },
+      "return_rate_band": {
+        "central": "0.0250",
+        "high": "0.2000",
+        "low": "-0.1000"
+      },
+      "scenario_id": "S12-P03-BASELINE-SYNTHETIC",
+      "target_covered": false,
+      "target_increment_shortfall_cents_at_upper_band": 8200
+    },
+    {
+      "action": "SYNTHETIC_SENSITIVITY_NOT_ACTIONABLE",
+      "confidence": "0.1999",
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY",
+      "executable_capacity_cents": 3999,
+      "executed_capacity_fraction": "0.9999",
+      "failure_probability": "0.8001",
+      "return_band_cents": {
+        "central": 99,
+        "high": 799,
+        "low": -401
+      },
+      "return_rate_band": {
+        "central": "0.0249",
+        "high": "0.1999",
+        "low": "-0.1001"
+      },
+      "scenario_id": "S12-P03-ADVERSE-ONE-IN-TEN-THOUSAND",
+      "target_covered": false,
+      "target_increment_shortfall_cents_at_upper_band": 8201
+    },
+    {
+      "action": "SYNTHETIC_SENSITIVITY_NOT_ACTIONABLE",
+      "confidence": "0.0000",
+      "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY",
+      "executable_capacity_cents": 0,
+      "executed_capacity_fraction": "0.0000",
+      "failure_probability": "1.0000",
+      "return_band_cents": {
+        "central": 0,
+        "high": 0,
+        "low": 0
+      },
+      "return_rate_band": {
+        "central": "0.0000",
+        "high": "0.0000",
+        "low": "-0.2000"
+      },
+      "scenario_id": "S12-P03-NO-EXECUTION-SYNTHETIC",
+      "target_covered": false,
+      "target_increment_shortfall_cents_at_upper_band": 9000
+    }
+  ],
+  "schema_version": "1.0.0",
+  "sensitivity_grid_sha256": "ffe270dbe1abd3c6fa7352572005d11e5c9290291cf1341ec06771c3bea049cd",
+  "stage_id": "S12",
+  "summary": {
+    "all_scenarios_leave_target_unverified": true,
+    "available_capacity_cents_from_signed_p02": 4000,
+    "highest_upper_band_cents": 800,
+    "independent_equivalent_signals_from_signed_p02": 5,
+    "lowest_upper_band_target_shortfall_cents": 8200,
+    "return_bands_are_synthetic_sensitivity_not_revenue": true,
+    "target_increment_cents": 9000
+  }
+}

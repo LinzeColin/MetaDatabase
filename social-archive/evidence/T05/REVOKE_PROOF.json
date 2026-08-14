@@ -1,0 +1,120 @@
+{
+  "schema_version": "1.0",
+  "task": "T05",
+  "slice": "S2",
+  "recorded_at": "2026-08-04T11:30Z",
+  "acceptance_clause": "国内平台凭据写入被拒；西方凭据加密落库；撤销后库中无残留",
+  "oracle": "test_credential_store_rejects_domestic_platforms 通过；撤销后 SELECT 返回 0 行",
+  "domestic_rejection": {
+    "layers": [
+      "应用层 assert_custodial_platform()：四个国内平台逐个拒绝，理由是中文的「不会离开你的浏览器」而不是笼统的「不支持」",
+      "库层 CHECK(platform IN ('x','instagram','youtube'))：绕过应用层直接 INSERT 也会 IntegrityError",
+      "事后 scripts/scan_plaintext_credentials.py 全仓扫描"
+    ],
+    "why_three_layers": "「应用层记得拦」和「不可能存在」是两件事。应用层那句 if 将来加个新入口忘了调就没了；表上的约束才是不变量本身。",
+    "rejected_platforms": [
+      "xiaohongshu",
+      "douyin",
+      "bilibili",
+      "kuaishou"
+    ],
+    "reddit_note": "Reddit 也拒绝，但理由不同——它走 OAuth，没有 Cookie 要托管。判据分开写，免得以后有人以为是漏掉了。",
+    "custodial_platforms": [
+      "instagram",
+      "x",
+      "youtube"
+    ],
+    "test": "tests/focused/test_credential_custody.py::test_credential_store_rejects_domestic_platforms（任务包点名的判据，四个平台参数化）"
+  },
+  "encryption": {
+    "algorithm": "age-x25519",
+    "separate_from_content_encryptor": "刻意不复用 encryption.AgeEncryptor：那个只加密不解密（三副本只需要公钥）。凭据必须能解回来给子进程用，是不同的信任面；混在一起会让「备份通道只有公钥」这条性质悄悄失效。",
+    "verified_roundtrip": true,
+    "cipher_is_age_format": true,
+    "plaintext_never_in_db_file": true,
+    "how_verified": "往库里写一份含独特标记串的凭据，然后按字节 grep 整个 .sqlite3 与 -wal 文件"
+  },
+  "plaintext_lifetime": {
+    "on_write": "HTTP body → 进程内存 → age 子进程 stdin → 密文入库；明文不落盘",
+    "on_use": "密文 → age -d → 0600 临时文件 → 子进程读 → 覆写后 unlink",
+    "why_a_temp_file_at_all": "gallery-dl / yt-dlp 的 --cookies 只收路径，不收管道",
+    "why_not_in_data_root": "data_root 会被三副本备份出去，明文写进那里等于把它上传了",
+    "measured_mode": "0o600",
+    "temp_outside_data_root": true,
+    "temp_removed_after_use": true,
+    "overwrite_caveat": "删除前先用 0 覆写。这不是万无一失（COW 文件系统与 SSD 磨损均衡可能留下旧块），但比什么都不做强，成本只有几 KB。不把它写成「已彻底销毁」。"
+  },
+  "revocation": {
+    "rows_before": 1,
+    "revoked_rows": 1,
+    "rows_after": 0,
+    "idempotent": true,
+    "ciphertext_bytes_left_in_db_file": false,
+    "a_defect_found_and_fixed": {
+      "what": "第一次实测：撤销后 SELECT 确实 0 行（oracle 过了），但**密文原样躺在已释放的页里**，grep 库文件就能找到。",
+      "why_it_matters": "Acceptance 的原文是「撤销后库中无残留」，不是「撤销后查不到」。存的是密文、没有 age 身份读不出内容——但要求写的是无残留。",
+      "fix": "撤销走的连接先设 PRAGMA secure_delete=ON，让 DELETE 真的抹字节",
+      "verified_after_fix": "同一条 grep 现在找不到密文",
+      "guard": "tests/focused/test_credential_custody.py::test_revoke_leaves_no_ciphertext_bytes_in_the_database_file，且该判据自带「撤销前必须找得到」的自检，避免它在空转时报绿"
+    }
+  },
+  "isolation": {
+    "by": "user_id + platform，UNIQUE(user_id, platform)",
+    "verified": "甲写入后，乙的 status() 为未连接，且 materialize() 抛 CredentialUnavailable",
+    "api_uses_session_not_bearer": "凭据路由只认登录会话，不认共享 bearer 令牌——共享令牌是给扩展做业务上行的，拿它写凭据的话「按 user_id 隔离」就成了空话"
+  },
+  "tests": {
+    "count": 17,
+    "file": "tests/focused/test_credential_custody.py"
+  },
+  "rollback": {
+    "task_pack_says": "停用该路由并清空表；西方源退回未连接",
+    "how": "移除 api.py 的三条 /v1/credentials 路由；DELETE FROM platform_credential（走 revoke_all，带 secure_delete）；表可保留，空表无副作用",
+    "no_external_state": "本任务不触碰任何线上配置或生产数据"
+  },
+  "not_yet_done": {
+    "no_real_platform_cookie_has_been_stored": "本任务只建托管能力并验证边界，**没有**上传任何真实平台会话。真实 Cookie 的导出与往返属于 T06。",
+    "age_recipient_not_configured_in_prod_for_credentials": "生产是否已配 SOCIAL_ARCHIVE_AGE_RECIPIENT / AGE_IDENTITY_FILE 未在本任务中核对；未配置时写入会 503 且中文提示，不会静默失败。T06 之前需确认。"
+  },
+  "rollback_would_have_silently_dropped_this_table": {
+    "found_during": "回头核对 T05 新增的表有没有把既有机制一起带上——租户审计已经栽过一次（8 张表只数 4 张），回滚脚本是同一类。",
+    "what_was_wrong": "scripts/rollback_0007.sh 用整库 .restore 恢复，快照里没有的表恢复后就不存在了。它的行数比对只覆盖 7 张业务表，v0.0.0.7 新增的 users / oauth_identity / session / extension_token / **platform_credential** 一张都不在其中。",
+    "consequence": "拿一个 v0.0.0.7 之前的快照去 --verify，会得到干干净净的「✓ 校验通过」，而一执行就把登录身份、扩展令牌和**已托管的平台凭据**一起抹掉。对 Owner 的表现是「我明明连过，怎么全没了」。",
+    "why_it_is_the_same_shape_as_before": "机制只认识它被写下来时存在的那几张表。新增表时没同步扩它，它照样报绿——这是本会话第三次遇到同一个形状（租户审计、脱敏扫描面、回滚校验）。",
+    "fix": "--verify 新增一段：逐个比对 v0.0.0.7 新表在当前库/快照里是否存在，当前有而快照没有的明确标 ✗ 并报出行数，再用三句话说清对 Owner 意味着什么（要重新登录、插件要重连、平台凭据要重连）。",
+    "not_a_defect_in_rollback_itself": "回滚仍然是对的、可执行的——问题只在于**不说清代价**。所以补的是告知，不是拦截：INV-REVERSIBLE 要求能回滚，不要求回滚无代价。",
+    "verified": {
+      "positive": "用 origin/main 的 schema 造真快照 + 装了 1 条凭据的当前库，--verify 确实把 5 张表逐个列出并报出行数",
+      "negative": "同版本快照之间不报「会抹掉」——否则告警会被当噪音忽略",
+      "drift_guard": "test_the_new_table_list_matches_what_the_schema_actually_adds：脚本里的 V0007_TABLES 必须覆盖 RuntimeStore.IDENTITY_TABLES，以后再加表忘了同步会红"
+    },
+    "tests": "tests/focused/test_rollback_discloses_dropped_tables.py（3 条）"
+  },
+  "verified_end_to_end_against_a_live_server": {
+    "recorded_at": "2026-08-04T20:20Z",
+    "why_this_was_missing": "先前所有验证都直接打在 CredentialStore 上，没走过 HTTP 端点。而端点那层有自己的东西：会话鉴权、400 vs 503 的区分、状态查询不回值。",
+    "setup": "本机真起 uvicorn，配了一对**独立的**凭据 age 密钥（与备份那对无关）；会话用 store.create_session 直接建——等同 OAuth 登录后拿到的那个，不需要真的走一遍 OAuth。",
+    "results": {
+      "国内四平台写入": "xiaohongshu / douyin / bilibili / kuaishou 全部 HTTP 400，detail 是「…的登录信息不会离开你的浏览器，本产品不接收它」",
+      "西方源写入": "HTTP 200，「登录信息已加密保存，随时可以一键撤销。」，cookie_count = 2（含一条 #HttpOnly_ 行）",
+      "落库形态": "algorithm=age-x25519，密文 334 字节",
+      "明文不落库": "往 cookie 值里埋了唯一标记串，按字节 grep .sqlite3 与 -wal —— **不存在**",
+      "密文确是 age 格式": "库文件里能找到 age-encryption.org/v1",
+      "状态查询": "只回 platform / connected / cookie_count / 时间；响应里没有 cipher、也没有 cookies_txt",
+      "一键撤销": "HTTP 200「已撤销并从库中删除。」，revoked=1",
+      "撤销后": "platform_credential 行数 = 0；且**撤销前记下的密文字节在库文件里也找不到了** —— PRAGMA secure_delete 实测生效"
+    },
+    "acceptance_clauses_all_covered": {
+      "国内平台凭据写入被拒": "PASS（HTTP 层四个平台逐个验）",
+      "西方凭据加密落库": "PASS（真实 age 加密，明文标记按字节确认不存在）",
+      "撤销后库中无残留": "PASS（0 行 + 密文字节也不在）",
+      "全仓扫描无明文": "PASS（473 个受控文件 0 命中，本轮再扫一次）"
+    },
+    "note_on_the_session": "凭据端点只认登录会话、不认共享 bearer —— 这次也顺带坐实了：用 store.create_session 造的会话能过，而这正是 OAuth 登录后会得到的东西。"
+  },
+  "what_this_does_not_prove": [
+    "撤销后的检查是「表里没有行、库文件里没有密文字节」，**不是磁盘取证**：PRAGMA secure_delete=ON 已开，但没有验证被覆盖的页面在物理层不可恢复。",
+    "验的是库层接口；HTTP 层的撤销往返直到 v0.0.0.7 后期才补上判据（test_credential_http_roundtrip）。"
+  ],
+  "limitations_added_at": "2026-08-04：补写。此前这些文件只写了做到什么，没写没做到什么——INV-HONEST-EVIDENCE 现在由 scripts/check_evidence_declares_its_limits.py 把这件事变成发布门。"
+}

@@ -1,0 +1,135 @@
+{
+  "schema_version": "1.0.0",
+  "pipeline_id": "S14-P02-SECURITY-PIPELINE",
+  "contract_id": "AC-S14-P02",
+  "requirement_id": "REQ-S14-P02",
+  "stage_id": "S14",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "serialization": "JSON_COMPATIBLE_YAML",
+  "execution_mode": "FROZEN_LOCAL_DETERMINISTIC_NO_NETWORK",
+  "scope_boundary": {
+    "included_control_plane_targets": [
+      "abd_acceptance/threat_model.py",
+      "abd_acceptance/security_analysis.py",
+      "security_pipeline.yml",
+      "sast_policy.json",
+      "secret_policy.json",
+      "infra/compose.yml",
+      "infra/config.schema.json",
+      "infra/cloudflared.yml",
+      "infra/rebuild.sh",
+      "infra/systemd/abd.service",
+      "infra/systemd/abd-cloudflared.service",
+      "pyproject.toml",
+      "uv.lock"
+    ],
+    "excluded_as_not_claimed": [
+      "LIVE_CVE_DATABASE",
+      "PRODUCTION_RUNTIME",
+      "EXTERNAL_CI_EXECUTION",
+      "REAL_ACCOUNT_OR_ORDER_ACTION"
+    ],
+    "production_security_verified": false
+  },
+  "stages": [
+    {
+      "id": "CONFIG_TYPE_CHECK",
+      "kind": "CONFIG_TYPE",
+      "scope": [
+        "security_pipeline.yml",
+        "sast_policy.json",
+        "secret_policy.json",
+        "infra/config.schema.json"
+      ],
+      "failure_action": "FAIL_CLOSED_NO_RELEASE",
+      "network_accessed": false,
+      "external_execution": false
+    },
+    {
+      "id": "STATIC_APPLICATION_ANALYSIS",
+      "kind": "SAST",
+      "scope": [
+        "abd_acceptance/threat_model.py",
+        "abd_acceptance/security_analysis.py"
+      ],
+      "failure_action": "FAIL_CLOSED_NO_RELEASE",
+      "network_accessed": false,
+      "external_execution": false
+    },
+    {
+      "id": "DEPENDENCY_LOCK_ANALYSIS",
+      "kind": "DEPENDENCY",
+      "scope": [
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "failure_action": "FAIL_CLOSED_NO_RELEASE",
+      "network_accessed": false,
+      "external_execution": false
+    },
+    {
+      "id": "SECRET_REFERENCE_ANALYSIS",
+      "kind": "SECRET",
+      "scope": [
+        "abd_acceptance/threat_model.py",
+        "abd_acceptance/security_analysis.py",
+        "infra/compose.yml",
+        "infra/config.schema.json",
+        "infra/cloudflared.yml",
+        "infra/rebuild.sh",
+        "infra/systemd/abd.service",
+        "infra/systemd/abd-cloudflared.service"
+      ],
+      "failure_action": "FAIL_CLOSED_NO_RELEASE",
+      "network_accessed": false,
+      "external_execution": false
+    },
+    {
+      "id": "CONTAINER_INFRASTRUCTURE_ANALYSIS",
+      "kind": "CONTAINER_INFRASTRUCTURE",
+      "scope": [
+        "infra/compose.yml",
+        "infra/config.schema.json",
+        "infra/cloudflared.yml",
+        "infra/rebuild.sh",
+        "infra/systemd/abd.service",
+        "infra/systemd/abd-cloudflared.service"
+      ],
+      "failure_action": "FAIL_CLOSED_NO_RELEASE",
+      "network_accessed": false,
+      "external_execution": false
+    }
+  ],
+  "required_commands": [
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S14/P02_test.py --junitxml=machine/evidence/S14/P02/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S14/P02/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S14/P02/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S14-P02 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "policy_paths": [
+    "sast_policy.json",
+    "secret_policy.json"
+  ],
+  "findings_gate": {
+    "unresolved_critical": 0,
+    "unresolved_high": 0,
+    "automatic_waiver_allowed": false,
+    "release_on_failure": "BLOCK_LOCAL_RELEASE"
+  },
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "real_account_balance_read_or_written": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "not_production_evidence": true
+}

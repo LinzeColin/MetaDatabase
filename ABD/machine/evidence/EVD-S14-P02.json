@@ -1,0 +1,620 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S14/P02_test.py --junitxml=machine/evidence/S14/P02/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S14/P02/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S14/P02/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S14-P02 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S14-P02",
+  "decision": "SECURITY_PIPELINE_READY_UNRESOLVED_CRITICAL_OR_HIGH_FINDINGS_ZERO_LOCAL_ONLY",
+  "decision_sha256": "b8ae2c2fafcfd00029d7d895010878cb83f9e94f5598f93f1adb75e7865de59c",
+  "deterministic_replay": {
+    "pipeline_stage_count": 5,
+    "real_time_wait_performed": false,
+    "single_pass_snapshot_count": 12
+  },
+  "evidence_id": "EVD-S14-P02",
+  "execution_policy": {
+    "external_runtime_access_allowed": false,
+    "full_regression_or_real_time_soak_allowed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "offline_deterministic_only": true,
+    "phase_test_only": true
+  },
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "hashes": {
+    "code": "5d4328df3fb8ce9cb456ddb1e8d065f6bd1515df2db2dbb20e93399abf1cba92",
+    "inputs": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/security_analysis.py": "5d4328df3fb8ce9cb456ddb1e8d065f6bd1515df2db2dbb20e93399abf1cba92",
+      "abd_acceptance/threat_model.py": "c7a1619814f05e036d9ca5415e889ddc73c568248de1e7c1d62308c3139190b2",
+      "infra/cloudflared.yml": "7f3855b637a020b3769d93bcbaa2539a692ab6eec314a8b722d29c6e0f5118f1",
+      "infra/compose.yml": "babed827948b77e28d395b0d36d2142605b8144f7e778302d6c384930aa54808",
+      "infra/config.schema.json": "bb08e4dd88137d88b5d842bd5ed2fb815163d53ab44f33d21730fdb2dd2f27da",
+      "infra/rebuild.sh": "07e38ac597543b184884290985769f177f5a1c05ab76e1a9c426f104f44249cf",
+      "infra/systemd/abd-cloudflared.service": "de84c188229b3cef601ff8c6a1edb21215535fe8329072185a4848e6d08cb68c",
+      "infra/systemd/abd.service": "256b30a69ca27f0a3bb566d3ca722d19c0ba00a09d4869ef218d15f5e1cf76bf",
+      "machine/evidence/EVD-S14-P01.json": "91d353c7e3f850119cbc755936c4023537c6870ec3f1a384346bc1875aa90a8c",
+      "machine/evidence/EVD-S14-P01_rollback.json": "feba53995af01741678c252fb0f2a2d58af4a3a37f5b558f70a94549354463c0",
+      "machine/evidence/S14/P02/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S14/P02/pytest.xml": "8eaa923e0a4b77eb85311cc564235eb5444bb59da4fcc6e0030486d7436731ca",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S14_P02.json": "6b0a29fb3fa105cd06c1d544c7b3d5938e5d3484c3667dad3accd4bbddc9058b",
+      "pyproject.toml": "ed30542952d445085e1f7724872bda1b697898f90576bf9bd65fd3191719bb72",
+      "sast_policy.json": "683c204a17ebb1b4526b16af4a2d825aaa59cd1fc72f829f56c7ea44c54bff9f",
+      "secret_policy.json": "65d28e5e65e61b0420b9b70cb9115cb5f0b57447920e2ad119b92d55cdc3ae6e",
+      "security_pipeline.yml": "5f55c92a9bb640caf27aa331ed9ecfbc63f8f503d5d4228c1b7aed9d301314b3",
+      "tests/S14/P02_test.py": "0acc968b9e159f7e464699b18e227e270fcd5cd61b59e9deeb36b1965cc3fb4c",
+      "uv.lock": "982a3044aabd62584d76cddcbd9dfcfe761482a5e60248ad5e299c18fd2ad9cf"
+    },
+    "rollback_evidence": "1000e28224fb747657065d500cc903560ed0bcc97ee7a8ebd8665b251c0f0d70"
+  },
+  "next": "S14/P03_READY_NOT_STARTED",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S14_P02_LOCAL_EVIDENCE_ONLY_REMAINING_PHASES_AND_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S14-P02",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S14-P02_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S14",
+  "stage_snapshot_summary": {
+    "reason_codes": [],
+    "status": "S14P02_SECURITY_ANALYSIS_VERIFIED_NO_ACTION"
+  },
+  "status": "PASS",
+  "validation": {
+    "analysis": {
+      "container_infrastructure_passed": true,
+      "dependency_lock_passed": true,
+      "external_account_or_runtime_used": false,
+      "external_network_used": false,
+      "findings": [],
+      "live_vulnerability_database_queried": false,
+      "output_sha256": "04b7d48f7ca53953594a9459db7c0a9a2079ff482fec1a1732ee973bfeb1c851",
+      "sast_passed": true,
+      "scanned_target_count": 13,
+      "secret_passed": true,
+      "status": "PASS",
+      "unresolved_critical_count": 0,
+      "unresolved_high_count": 0
+    },
+    "checks": [
+      {
+        "detail": "security_pipeline.yml",
+        "id": "S14P02-PIPELINE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "sast_policy.json",
+        "id": "S14P02-SAST-POLICY-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "secret_policy.json",
+        "id": "S14P02-SECRET-POLICY-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S14_P02.json",
+        "id": "S14P02-FIXTURE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S14P02-BASELINE-PURSUE_GOAL_PROMPT-TXT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S14P02-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S14P02-BASELINE-CANONICAL_FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S14P02-BASELINE-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S14P02-BASELINE-ROADMAP-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S14P02-BASELINE-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S14P02-BASELINE-ACCEPTANCE_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S14P02-BASELINE-TASK_GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S14P02-BASELINE-TRACEABILITY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S14P02-REQUIREMENTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S14P02-CONTRACTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S14P02-TASK-GRAPH-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S14P02-TRACEABILITY-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/evidence_index.jsonl",
+        "id": "S14P02-EVIDENCE-INDEX-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "index_status": "PASS",
+          "task_ids": [
+            "T-S14-P02-01",
+            "T-S14-P02-02",
+            "T-S14-P02-03"
+          ]
+        },
+        "id": "S14P02-REQUIREMENT-ACCEPTANCE-TASK-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "index": true,
+          "receipt": true,
+          "rollback": true
+        },
+        "id": "S14P02-P01-SIGNED-DEPENDENCY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "CONFIG_TYPE_CHECK",
+          "STATIC_APPLICATION_ANALYSIS",
+          "DEPENDENCY_LOCK_ANALYSIS",
+          "SECRET_REFERENCE_ANALYSIS",
+          "CONTAINER_INFRASTRUCTURE_ANALYSIS"
+        ],
+        "id": "S14P02-SECURITY-PIPELINE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "SAST-IMPORT-CAPABILITY",
+          "SAST-CALL-CAPABILITY",
+          "SAST-ORDER-CAPABILITY",
+          "SAST-FLOAT-NUMERIC-SAFETY",
+          "SAST-PIPELINE-LOCAL-ONLY"
+        ],
+        "id": "S14P02-SAST-POLICY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "SECRET-AWS-ACCESS-KEY",
+          "SECRET-PRIVATE-KEY",
+          "SECRET-GITHUB-PERSONAL-TOKEN",
+          "SECRET-GENERIC-INLINE-ASSIGNMENT"
+        ],
+        "id": "S14P02-SECRET-POLICY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": 12,
+        "id": "S14P02-FIXTURE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "critical": 0,
+          "findings": [],
+          "high": 0
+        },
+        "id": "S14P02-STATIC-ANALYSIS-UNRESOLVED-CRITICAL-HIGH-ZERO",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_runtime_access_allowed": false,
+          "full_regression_or_real_time_soak_allowed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "offline_deterministic_only": true,
+          "phase_test_only": true
+        },
+        "id": "S14P02-NO-NETWORK-ACCOUNT-ORDER-DEPLOY-OR-SOAK-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": "portable",
+        "id": "S14P02-ARTIFACTS-PORTABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "14a9f4f484618405899c4d0aa3402d6ce0f9d188cc0a249436e07620b9c5cd25",
+          "real_time_soak_waited": false,
+          "reason_codes": [],
+          "recommendation_generated": false,
+          "status": "S14P02_SECURITY_ANALYSIS_VERIFIED_NO_ACTION"
+        },
+        "id": "S14P02-LIVE-SNAPSHOT-NO-ACTION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "14a9f4f484618405899c4d0aa3402d6ce0f9d188cc0a249436e07620b9c5cd25",
+          "real_time_soak_waited": false,
+          "reason_codes": [],
+          "recommendation_generated": false,
+          "status": "S14P02_SECURITY_ANALYSIS_VERIFIED_NO_ACTION"
+        },
+        "id": "S14P02-CASE-POSITIVE_EXACT_LOCAL_SECURITY_CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "0b0c61a8129b36c6cc7c3baabf55fd6a9c9416dbd7c2673425cbd21556a951db",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "P01_RECEIPT_NOT_CURRENT"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION"
+        },
+        "id": "S14P02-CASE-P01_RECEIPT_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "e79715914522514db1a42e11905f27afb1695d8d8c1eb096f453b4b09f1b0fae",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "PIPELINE_CONFIGURATION_NOT_CLOSED"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION"
+        },
+        "id": "S14P02-CASE-PIPELINE_CONFIG_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "652db84a2dc90621b9e51b8eefaf22c6f43c80e1d9421f4396d88aade5cd24f4",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "STATIC_ANALYSIS_FAILED"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION"
+        },
+        "id": "S14P02-CASE-SAST_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "69c14ae872e09c6b1d16d2ca5c6540cc0eedad8aca6dabd562f5b1633906eb27",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "DEPENDENCY_LOCK_ANALYSIS_FAILED"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION"
+        },
+        "id": "S14P02-CASE-DEPENDENCY_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "f69df5e3a3290baad0dee8d1d3dfce2b7763052a6df41a05bbf0e179b9c30ce4",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "SECRET_ANALYSIS_FAILED"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION"
+        },
+        "id": "S14P02-CASE-SECRET_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "7c1b7550f1df6bdd2a2f8280144d65207352a4c716a0d9dab6e2eb89daf43561",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "CONTAINER_INFRASTRUCTURE_ANALYSIS_FAILED"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION"
+        },
+        "id": "S14P02-CASE-CONTAINER_INFRA_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "872db8f4277ae00c223c6034a7f4ce077ea64f483806afc83e0f16c7588739b0",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "EXTERNAL_ACTION_BOUNDARY_RELAXED"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION"
+        },
+        "id": "S14P02-CASE-EXTERNAL_BOUNDARY_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "079412bee343897347f9c1a855c8901eb7bfb3d3e2721964ba5f37962a08633d",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "UNRESOLVED_CRITICAL_FINDINGS"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION"
+        },
+        "id": "S14P02-CASE-CRITICAL_FINDING_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "fe9e7a1b847233ecff151f00d4ac82da2694bba4db8f5e3c8393f95e908657b6",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "UNRESOLVED_HIGH_FINDINGS"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION"
+        },
+        "id": "S14P02-CASE-HIGH_FINDING_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "9b3def82c982d901b495cf645181a1a2d768b0b986e3829ffb7fdbd164cd6cd7",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "CONTROL_COVERAGE_NOT_EXACT"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION"
+        },
+        "id": "S14P02-CASE-POINT_0001_COVERAGE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "1a46c9fd0d4afb4623467a506d943d7d3c334827f351bbe6c1150402952b3c9f",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "CONTROL_COVERAGE_NOT_EXACT",
+            "FOREIGN_ODDS_INPUT_REJECTED"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P02_SECURITY_ANALYSIS_REJECTED_NO_ACTION"
+        },
+        "id": "S14P02-CASE-POINT_0001_COVERAGE_OVERFAIL_AND_FOREIGN_ODDS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 40
+        },
+        "id": "S14P02-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S14/P02/paid_dependency_scan.txt",
+        "id": "S14P02-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S14P02-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      },
+      {
+        "detail": "required",
+        "id": "S14P02-REPORTS-REQUIRED-WHEN-SIGNING",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_runtime_access_allowed": false,
+          "full_regression_or_real_time_soak_allowed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "offline_deterministic_only": true,
+          "phase_test_only": true
+        },
+        "id": "S14P02-PHASE-ONLY-NO-FULL-REGRESSION",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S14-P02",
+    "decision": "SECURITY_PIPELINE_READY_UNRESOLVED_CRITICAL_OR_HIGH_FINDINGS_ZERO_LOCAL_ONLY",
+    "external_effect_boundary": {
+      "external_network_accessed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submitted_confirmed_or_retried": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "hashes": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "machine/evidence/EVD-S14-P01.json": "91d353c7e3f850119cbc755936c4023537c6870ec3f1a384346bc1875aa90a8c",
+      "machine/evidence/EVD-S14-P01_rollback.json": "feba53995af01741678c252fb0f2a2d58af4a3a37f5b558f70a94549354463c0",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+    },
+    "next": "S14/P03_READY_NOT_STARTED",
+    "phase_id": "P02",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "requirement_id": "REQ-S14-P02",
+    "snapshot": {
+      "container_infrastructure_analysis_passed": true,
+      "coverage_score": "1.0000",
+      "dependency_lock_analysis_passed": true,
+      "external_effect_boundary_preserved": true,
+      "foreign_odds_input_present": false,
+      "p01_receipt_current": true,
+      "pipeline_configuration_closed": true,
+      "secret_analysis_passed": true,
+      "static_analysis_passed": true,
+      "unresolved_critical_count": 0,
+      "unresolved_high_count": 0
+    },
+    "stage_id": "S14",
+    "status": "PASS",
+    "summary": {
+      "checks": 45,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 45
+    }
+  }
+}

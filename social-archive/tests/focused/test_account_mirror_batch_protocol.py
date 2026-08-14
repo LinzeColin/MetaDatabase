@@ -37,19 +37,33 @@ def _item(external_id, relation="favorite", collection="tech"):
     )
 
 
-DOMESTIC_ACCOUNT_CASES = (
-    ("xiaohongshu", "favorite"),
-    ("douyin", "favorite"),
-    ("kuaishou", "favorite"),
-    ("bilibili", "favorite"),
-)
-
 DOMESTIC_URL_PREFIXES = {
     "xiaohongshu": "https://www.xiaohongshu.com/explore/",
     "douyin": "https://www.douyin.com/video/",
     "kuaishou": "https://www.kuaishou.com/short-video/",
     "bilibili": "https://www.bilibili.com/video/",
 }
+
+
+def _domestic_cases() -> tuple[tuple[str, str], ...]:
+    """**从 SYNCABLE_NOW 现算，不在这里再抄一份平台清单。**
+
+    这里原来是写死的四条，含 `("kuaishou", "favorite")`。
+    2026-08-12 按 Owner 的裁定把快手改成「只能手动保存」之后，
+    服务端开始正确地拒绝它，而这条判据还在要求它能连能同步——**红的是判据，
+    不是产品**。
+
+    抄一份平台清单就会有第二处真源，而这个仓当天已经为「同一件事两份表必然漂开」
+    修过好几处（失败文案、归档状态、可扫关系）。所以这里改成现算：
+    谁在 `SYNCABLE_NOW` 里，谁才进这条判据。
+    """
+    from social_archive.account_sync import SYNCABLE_NOW
+    return tuple((platform, "favorite") for platform in sorted(DOMESTIC_URL_PREFIXES)
+                 if platform in SYNCABLE_NOW)
+
+
+DOMESTIC_ACCOUNT_CASES = _domestic_cases()
+assert DOMESTIC_ACCOUNT_CASES, "一个国内平台都没算出来——这条判据在空转"
 
 
 def _domestic_item(platform, external_id, relation):
@@ -92,9 +106,31 @@ def test_chunked_collection_waits_for_relation_final_and_keeps_all_pages(setting
     seen = store.list_sync_seen_relation_ids(sync_run_id=run_id, relation_type="favorite", collection_key="tech")
     assert len(seen) == 3
     assert store.get_sync_run(run_id)["status"] == "completed"
+    # **闭合读的是 completeness 那一列，不是 status。**
+    #
+    # 这两个可以不一致：批次里带了 errors 时 status 仍是 completed，而
+    # completeness 会被降级成 partial（account_sync.py 里
+    # `if errors and effective_completeness == "complete"` 那一段）。
+    # 而「取消收藏后要从档案馆里消失」这件事，走的是 completeness。
+    #
+    # 2026-08-07 查他生产库：20 次同步**没有一次 completeness=complete**，
+    # 于是缺席闭合从来没跑过。那些是 v0.0.0.6 的遗留记录，但当时没有任何
+    # 判据说得出「今天这版跑完一次会不会 complete」——只断言 status
+    # 的判据答不了这个问题。
+    assert store.get_sync_run(run_id)["completeness"] == "complete", (
+        "**跑完了却不算完整** —— 缺席闭合永远不会发生，"
+        "他在平台上取消的收藏会永远留在档案馆里")
 
 
-def test_multi_relation_run_does_not_finish_after_first_relation(settings, store, service):
+def test_multi_relation_run_does_not_finish_after_first_relation(settings, store, service, monkeypatch):
+    # **不变量是协议层面的**：多关系的 run 不许在第一个关系完成后就结束。
+    # 2026-08-10 起同步范围改成读扩展的 SCANNABLE_RELATIONS（抖音/B站/小红书
+    # 现在都只有 favorite），于是这个场景本身不再是「多关系」。
+    # 把范围显式声明出来，让这条不变量不绑死在目录当下支持什么上。
+    from social_archive import account_sync as _sync
+    monkeypatch.setitem(_sync.SCANNABLE_RELATIONS, "xiaohongshu", ("favorite", "like"))
+    monkeypatch.setitem(_sync.SCANNABLE_RELATIONS, "douyin", ("favorite", "like"))
+    monkeypatch.setitem(_sync.SCANNABLE_RELATIONS, "bilibili", ("favorite", "like"))
     coordinator, account_id = _connected(settings, store, service)
     run_id = coordinator.start_sync(account_id, AccountSyncRequest(
         mode="first_full", relation_types=["favorite", "like"], trigger_type="first_connect"
@@ -213,3 +249,42 @@ def test_paused_run_rejects_late_batch_until_resumed(settings, store, service):
     assert len(store.list_sync_seen_relation_ids(
         sync_run_id=run_id, relation_type="favorite", collection_key="tech"
     )) == 2
+
+
+def test_batch_accepts_the_item_shape_the_browser_mirror_actually_sends():
+    # CaptureRequest forbids unknown fields. The browser account mirror labels
+    # every scanned item with its collection_name, which the model did not
+    # declare, so the server answered 422 and the entire batch was discarded --
+    # items were discovered and sent, then thrown away at the door, which is
+    # exactly the "sync always reports 0" symptom.
+    from social_archive.models import SyncBatchRequest
+
+    batch = SyncBatchRequest.model_validate({
+        "relation_type": "favorite",
+        "scope_type": "collection",
+        "collection_key": "默认收藏夹",
+        "collection_name": "默认收藏夹",
+        "completeness": "partial",
+        "items": [{
+            "platform": "xiaohongshu",
+            "url": "https://www.xiaohongshu.com/explore/abc123",
+            "relation_type": "favorite",
+            "relation_observed_at": "2026-08-03T10:00:00Z",
+            "collection_key": "默认收藏夹",
+            "collection_name": "默认收藏夹",
+            "title": "标题",
+            "media_urls": [],
+            "raw_metadata": {"capture_source": "browser_account_mirror"},
+            "requested_levels": ["L0", "L1", "L3"],
+            "destination_ids": ["social_archive"],
+        }],
+    })
+    assert len(batch.items) == 1
+    assert batch.items[0].collection_name == "默认收藏夹"
+    # A genuinely unknown field must still be rejected.
+    import pytest
+    with pytest.raises(Exception):
+        SyncBatchRequest.model_validate({
+            "relation_type": "favorite",
+            "items": [{"platform": "xiaohongshu", "url": "https://www.xiaohongshu.com/explore/x", "not_a_real_field": 1}],
+        })

@@ -1,0 +1,60 @@
+{
+  "task": "T13",
+  "claim": "生产上九个被挡住的连接器，逐个看过：**每一个都给了真实的失败码、人话说明和下一步，没有一个是沉默的**。其中一个的下一步是假的，已修。",
+  "measured_at": "2026-08-05T05:0Z",
+  "how": "在生产容器里直接调 ConnectorRegistry.health_views(store.connector_states())，把十个连接器的 state / last_error_code / last_message_zh / next_action_zh / detail 全打出来逐条看。不走 HTTP（/v1/status 要令牌，而我不该去取令牌）。",
+  "why_this_is_the_verifiable_core_of_T13": [
+    "T13 的 Acceptance 原文不在仓内（属于单独交付的任务包）。",
+    "仓内能查到的原话只有一句，引自 T02 那份 BLOCKED 回执：**「沉默不算 BLOCKED」**——",
+    "阻塞状态要附真实回执。这一句是可验的，就按它验。",
+    "**不假装验了拿不到原文的那部分**：见下面 what_this_does_not_prove。"
+  ],
+  "result": {
+    "connectors_total": 10,
+    "healthy": ["generic-web"],
+    "blocked_environment": 9,
+    "silent_ones": [],
+    "verdict": "九个全部带码 + 带人话说明 + 带下一步。**沉默的一个都没有。**"
+  },
+  "the_defect_this_measurement_found": {
+    "what": "youtube 那一条自相矛盾：",
+    "message_zh": "本版本还不能自动读取 YouTube 的稍后观看和播放列表。**现在可以：连接 YouTube（把登录状态交给你自己的服务器保管）**……",
+    "next_action_zh_before": "**本版本没有能打开这条路的设置项**；照上面那句话做就行。",
+    "why_it_matters": "后一句否掉的正是交接里**唯一让 Owner 去做的那件事**（「他可以做的第二件」＝在 YouTube 页点一次连接）。他没有技术基础，被告知「没有设置项」就不会再找了。",
+    "root_cause": "同一天我给 youtube 接上了插件那四张表（shared.js / platform-catalog.js / cookie-export.js 白名单 / manifest 权限），**没回头改服务端这一张**。第五张表。",
+    "fix": "registry.CONNECT_IS_CLICKABLE_TODAY —— 只列今天真点得到的平台，并给出点在哪。",
+    "verified_after": {
+      "youtube": "打开任意一个 YouTube 页面，点插件里的「连接」——登录状态只交给你自己的服务器保管。",
+      "x / instagram / bilibili 等其余八个": "本版本没有能打开这条路的设置项；照上面那句话做就行。（对它们是真话，保留）"
+    }
+  },
+  "why_not_just_use_CUSTODIAL_PLATFORMS": [
+    "服务端的 CUSTODIAL_PLATFORMS 是 {x, instagram, youtube}，但那三个里只有 youtube 今天点得到：",
+    "  · x —— 压着零费用硬门，Owner 不确认就没有任何设置项能开",
+    "  · instagram —— 授权那一步还没做成他点得到的界面",
+    "**「服务端支持托管」不等于「他现在点得到」。** 直接拿它当答案会又生出两句假话。"
+  ],
+  "guards": {
+    "file": "tests/focused/test_connect_next_action_matches_the_extension.py",
+    "count": 5,
+    "what_they_pin": [
+      "说点得到的平台，插件的 Cookie 导出白名单 / platform-catalog / shared.js 里必须都真有它",
+      "国内四平台永远不许出现在这张表里（Cookie 永不出浏览器）",
+      "那句下一步必须说清**点哪儿**（Owner 没有技术基础，指不到位置等于没给）",
+      "x / instagram 不许被写成点得到，且这张表不许退化成 CUSTODIAL_PLATFORMS 的副本",
+      "另外八个平台那句通用文案不许被一起删掉——对它们那是真话"
+    ],
+    "load_bearing_proof": "把 youtube 从插件的 Cookie 导出白名单里删掉（确认写入成功后），test_every_clickable_platform_really_has_the_button 当场红。"
+  },
+  "a_mistake_in_the_guard_itself": {
+    "what": "第一版按 `\"youtube\"` 去 platform-catalog.js 里找，红了。",
+    "what_it_actually_was": "目录里的键**不带引号**（`youtube: Object.freeze({...})`）。而 youtube 确实在里面——真浏览器里的接线演练早就验过它的中文名与关系地址。",
+    "lesson": "**判据自己写错了形状，不是产品坏了。** 幸好那条演练先在真运行时里验过，否则很容易反过来去「修」一个没坏的目录。"
+  },
+  "what_this_does_not_prove": [
+    "**不证明 T13 整格达成。** Acceptance 原文不在仓内，只按仓内引到的那一句（「沉默不算 BLOCKED」）验了。拿不到的部分没有假装验过。",
+    "不证明这九条说明的**内容**都准确无误——只证明每条都有码、有人话、有下一步，且 youtube 那条不再自相矛盾。",
+    "**这次修的是文案，不是能力。** youtube 依然读不到稍后观看；变的是它不再告诉 Owner「没有设置项」。"
+  ],
+  "boundaries_respected": "全程只读生产：只调 health_views 做投影，不写库、不改状态、不重启。/v1/status 要令牌，没有去取。"
+}

@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S09-WHOLE-STAGE-REVIEW",
+  "contract_id": "STAGE-REVIEW-S09",
+  "review_id": "ABD-S09-WHOLE-STAGE-REVIEW",
+  "stage_id": "S09",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "replay_count": 100,
+  "adverse_replay_count": 10000,
+  "minimum_targeted_pytest_cases": 30,
+  "expected_phase_ids": ["P01", "P02", "P03", "P04"],
+  "expected_phase_evidence_sha256": {
+    "P01": "46883601e3117534fa91ba8f1574c7e0e57188dccd371d0b8581f2707f4a6b6f",
+    "P02": "f741dd700156c397eab05bf63810ab7a233e9b5e496769f1b038dcecb0e08daf",
+    "P03": "831d114e888ebfb565236314ab90828b771379fc77e5e0a9b99696224521bdf1",
+    "P04": "e38e3c5bbbdfb1cfe6a345bcf0511e0ccf7c65e5b78415d62cfd44fd1c5332ef"
+  },
+  "expected_phase_rollback_sha256": {
+    "P01": "208b14e59992a78505f6f79a6b7e4b6b704059a38bbe1649e7016e9bbd5f8199",
+    "P02": "5f9cd9fb5b6327c954ca8e499f4cda6df32b0bb9b82fb17d5d8f3289368d4852",
+    "P03": "0201487b48e3f81ebf78deafa43d1b5fff4caa15b1a7156c343c9514dd70b7c6",
+    "P04": "70781c19659b6aea5888b89d2f64ad716a172ff7acc4a9dcd7184ee421270412"
+  },
+  "expected_next": "S09/GITHUB_STAGE_UPLOAD_READY",
+  "expected_release_status": "S09_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "expected_findings_summary": {"total": 1, "open": 0, "resolved": 1, "blocked": 0},
+  "cases": [
+    {
+      "case_id": "POSITIVE_EXACT_STAGE",
+      "snapshot": {
+        "phase_receipts_current": true,
+        "taskpack_trace_closed": true,
+        "market_prior_and_zero_residual_preserved": true,
+        "time_and_decimal_gates_preserved": true,
+        "external_action_boundary_preserved": true,
+        "portable_evidence": true,
+        "findings_open": 0
+      },
+      "expected": {"status": "S09_STAGE_REVIEW_VERIFIED_NO_ACTION", "reason_codes": []}
+    },
+    {
+      "case_id": "PHASE_RECEIPT_FAIL",
+      "snapshot": {"phase_receipts_current": false, "taskpack_trace_closed": true, "market_prior_and_zero_residual_preserved": true, "time_and_decimal_gates_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S09_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["PHASE_RECEIPTS_NOT_CURRENT"]}
+    },
+    {
+      "case_id": "TASKPACK_TRACE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": false, "market_prior_and_zero_residual_preserved": true, "time_and_decimal_gates_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S09_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["TASKPACK_TRACE_NOT_CLOSED"]}
+    },
+    {
+      "case_id": "MARKET_PRIOR_FALLBACK_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "market_prior_and_zero_residual_preserved": false, "time_and_decimal_gates_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S09_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["MARKET_PRIOR_OR_ZERO_RESIDUAL_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "TIME_OR_DECIMAL_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "market_prior_and_zero_residual_preserved": true, "time_and_decimal_gates_preserved": false, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S09_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["TIME_OR_DECIMAL_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "EXTERNAL_ACTION_BOUNDARY_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "market_prior_and_zero_residual_preserved": true, "time_and_decimal_gates_preserved": true, "external_action_boundary_preserved": false, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S09_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["EXTERNAL_ACTION_BOUNDARY_RELAXED"]}
+    },
+    {
+      "case_id": "PORTABILITY_AND_OPEN_FINDING_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "market_prior_and_zero_residual_preserved": true, "time_and_decimal_gates_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": false, "findings_open": 1},
+      "expected": {"status": "S09_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["EVIDENCE_NOT_PORTABLE", "OPEN_REVIEW_FINDINGS"]}
+    }
+  ]
+}

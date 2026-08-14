@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="21" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S12.P03_test" name="test_frozen_economics_outputs_are_exact_replays" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_candidate_preflight_passes_without_generated_test_reports" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_return_bands_contain_interval_confidence_and_failure_probability" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_no_return_band_can_become_a_target_or_order_claim" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_zero_new_cash_does_not_hide_existing_or_opportunity_cost" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_malformed_or_unsafe_inputs_fail_closed[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_malformed_or_unsafe_inputs_fail_closed[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_malformed_or_unsafe_inputs_fail_closed[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_malformed_or_unsafe_inputs_fail_closed[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_malformed_or_unsafe_inputs_fail_closed[&lt;lambda&gt;4]" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_malformed_or_unsafe_inputs_fail_closed[&lt;lambda&gt;5]" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_signed_predecessor_or_capacity_tampering_fails_closed[p01]" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_signed_predecessor_or_capacity_tampering_fails_closed[p02]" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_signed_predecessor_or_capacity_tampering_fails_closed[capacity]" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_one_in_ten_thousand_return_rate_perturbation_stays_unverified[delta0]" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_one_in_ten_thousand_return_rate_perturbation_stays_unverified[delta1]" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_core_source_has_no_network_soak_order_or_binary_float_capability" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_candidate_fails_closed_when_generated_grid_is_tampered" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_rollback_is_local_and_has_no_external_side_effect" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_acceptance_cli_is_wired_to_the_exact_contract" time="0.000" />
+    <testcase classname="tests.S12.P03_test" name="test_artifact_hashes_remain_content_addressed" time="0.000" />
+  </testsuite>
+</testsuites>

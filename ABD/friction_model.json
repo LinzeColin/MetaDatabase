@@ -1,0 +1,95 @@
+{
+  "artifact_id": "ART-S11-P01-01",
+  "claim_boundary": {
+    "actual_market_or_odds_observed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "network_accessed": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false,
+    "recommendation_generated": false
+  },
+  "contract_id": "AC-S11-P01",
+  "decision": "FRICTION_MODEL_READY_DOWNSTREAM_THRESHOLD_AND_RISK_GATES_REQUIRED",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "methodology": {
+    "effective_rule": "MAX(DEFAULT, ROLLING_OBSERVED_P95)",
+    "observed_friction_components": [
+      "price_worsening",
+      "rejection",
+      "settlement",
+      "operational"
+    ],
+    "rolling_percentile": "UPPER_NEAREST_RANK_P95",
+    "rolling_window_selection": "LAST_ORDERED_SYNTHETIC_OBSERVATIONS",
+    "rounding": "DECIMAL_FRICTION_UP_1E-9"
+  },
+  "next": "S11/P02_READY_NOT_STARTED",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "requirement_id": "REQ-S11-P01",
+  "schema_version": "1.0.0",
+  "stage_id": "S11",
+  "time_bands": [
+    {
+      "default_friction": "0.01",
+      "effective_friction": "0.011",
+      "observation_count": 5,
+      "rolling_observed_p95": "0.011",
+      "rolling_observed_totals": [
+        "0.007",
+        "0.008",
+        "0.009",
+        "0.01",
+        "0.011"
+      ],
+      "rolling_window_observation_count": 5,
+      "time_band": "MORE_THAN_2H"
+    },
+    {
+      "default_friction": "0.015",
+      "effective_friction": "0.015",
+      "observation_count": 5,
+      "rolling_observed_p95": "0.013",
+      "rolling_observed_totals": [
+        "0.009",
+        "0.01",
+        "0.011",
+        "0.012",
+        "0.013"
+      ],
+      "rolling_window_observation_count": 5,
+      "time_band": "15M_TO_2H"
+    },
+    {
+      "default_friction": "0.02",
+      "effective_friction": "0.021",
+      "observation_count": 5,
+      "rolling_observed_p95": "0.021",
+      "rolling_observed_totals": [
+        "0.018",
+        "0.019",
+        "0.02",
+        "0.021",
+        "0.02"
+      ],
+      "rolling_window_observation_count": 5,
+      "time_band": "0_TO_15M"
+    },
+    {
+      "default_friction": "0.03",
+      "effective_friction": "0.034",
+      "observation_count": 5,
+      "rolling_observed_p95": "0.034",
+      "rolling_observed_totals": [
+        "0.029",
+        "0.031",
+        "0.032",
+        "0.033",
+        "0.034"
+      ],
+      "rolling_window_observation_count": 5,
+      "time_band": "LIVE"
+    }
+  ]
+}

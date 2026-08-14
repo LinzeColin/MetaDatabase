@@ -1,0 +1,74 @@
+{
+  "action": "NO_RECOMMENDATION",
+  "artifact_id": "ART-S19-P01-01",
+  "contract_id": "AC-S19-P01",
+  "decision": "LOCAL_ALPHA_CLOSED_LOOP_NO_ORDER",
+  "external_effect_boundary": {
+    "actual_fund_facts_read_or_written": false,
+    "actual_ledger_read_or_written": false,
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "gmail_message_sent": false,
+    "incremental_cash_spent_aud": "0.00",
+    "market_or_account_runtime_accessed": false,
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "owner_final_order_only": true,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-10T06:00:00+10:00",
+  "fixture_sha256": "6cb29ca6234cfe85f1a15fd8ad7b473900aa2cfd565432d348f9dfb29f6102cf",
+  "lifecycle": [
+    {
+      "status": "LOCAL_SYNTHETIC_DISCOVERY_ONLY",
+      "step": "DISCOVER"
+    },
+    {
+      "status": "ADVICE_PROJECTION_NO_ORDER",
+      "step": "ADVICE"
+    },
+    {
+      "status": "INVALIDATED_TO_NO_RECOMMENDATION",
+      "step": "INVALIDATE"
+    },
+    {
+      "status": "SYNTHETIC_RESULT_NOT_EMPIRICAL",
+      "step": "SYNTHETIC_RESULT"
+    },
+    {
+      "status": "DETERMINISTIC_REPLAY_READY",
+      "step": "REPLAY"
+    },
+    {
+      "status": "LOCAL_EVIDENCE_PROJECTION_NOT_SENT",
+      "step": "LOCAL_MAIL_EVIDENCE"
+    },
+    {
+      "status": "DERIVED_STATE_RECOVERY_READY",
+      "step": "RECOVERY"
+    }
+  ],
+  "market": {
+    "evidence_tier": "E0_SYNTHETIC_TEST_ONLY",
+    "implied_probability": "0.500000000",
+    "market_id": "SYNTHETIC-MARKET-S19-P01",
+    "source_kind": "FROZEN_LOCAL_FIXTURE"
+  },
+  "predecessor_evidence_sha256": {
+    "AC-S12-P04": "73d7574576fbc86fae29e0de7f9e671204c934e078f847037115a50c9c50441b",
+    "AC-S13-P04": "1c4d9febd44b30dddfa780daa0aad56a70ab8d477ab9cdafc905107760d7c81e",
+    "AC-S17-P04": "08e1d389d3b0d80d6c729d9835dc27343018985cd8cc1796a9528b5ed7d6e708",
+    "AC-S18-P04": "b196f207508350f8dbdb51efcd880f1fe616880e490af344bd3b2d238c142931"
+  },
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "replay_plan_sha256": "1afa1b335bcf79565d04b3532806cc5b925fd59d0a46629250967cf236fb8501",
+  "requirement_id": "REQ-S19-P01",
+  "schema_version": "1.0.0",
+  "scope": "ONE_FROZEN_SYNTHETIC_MARKET_LOCAL_ONLY",
+  "status": "PASS",
+  "walking_skeleton_evidence_sha256": "5bd47e7a79e5f51d76b9218177fe115789edf9e4b33442566078faf35c24aa0a"
+}

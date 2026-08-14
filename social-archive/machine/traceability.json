@@ -1,7 +1,7 @@
 {
   "schema_version": "3.0",
   "project": "Social Archive",
-  "version": "v0.0.0.5",
+  "version": "v0.0.0.6",
   "rows": [
     {
       "requirement_id": "REQ-001",

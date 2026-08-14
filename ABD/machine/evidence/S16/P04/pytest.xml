@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="39" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S16.P04_test" name="test_fixture_identity_and_scope_are_frozen" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_lifecycle_profiles_are_bound_to_frozen_risk_stages[0-ALPHA]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_lifecycle_profiles_are_bound_to_frozen_risk_stages[1-BETA]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_lifecycle_profiles_are_bound_to_frozen_risk_stages[2-GA]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_system_card_preserves_analysis_only_and_final_owner_order_boundary" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_actual_software_pass_does_not_turn_the_model_gate_into_a_pass" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_claim_boundary_prohibits_external_effects[external_network_accessed]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_claim_boundary_prohibits_external_effects[real_market_or_odds_observed]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_claim_boundary_prohibits_external_effects[order_submission_enabled]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_claim_boundary_prohibits_external_effects[production_deployed_or_activated]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_claim_boundary_prohibits_external_effects[model_activation_enabled]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_each_frozen_control_case_remains_release_blocked[case0]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_each_frozen_control_case_remains_release_blocked[case1]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_each_frozen_control_case_remains_release_blocked[case2]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_each_frozen_control_case_remains_release_blocked[case3]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_each_frozen_control_case_remains_release_blocked[case4]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_each_frozen_control_case_remains_release_blocked[case5]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_each_frozen_control_case_remains_release_blocked[case6]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_each_gate_case_has_the_expected_fail_closed_reason[0]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_each_gate_case_has_the_expected_fail_closed_reason[1]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_each_gate_case_has_the_expected_fail_closed_reason[2]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_each_gate_case_has_the_expected_fail_closed_reason[3]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_each_gate_case_has_the_expected_fail_closed_reason[4]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_each_gate_case_has_the_expected_fail_closed_reason[5]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_each_gate_case_has_the_expected_fail_closed_reason[6]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_adverse_one_in_ten_thousand_boundary_does_not_authorize_release" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_plus_or_minus_one_in_ten_thousand_configuration_drift_fails_closed" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_hypothetical_all_gate_true_control_is_still_not_a_deployment_authorization" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_replay_is_byte_stable_for_identical_inputs" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_fixture_identity_predecessor_and_boundary_mutations_fail_closed[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_fixture_identity_predecessor_and_boundary_mutations_fail_closed[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_fixture_identity_predecessor_and_boundary_mutations_fail_closed[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_fixture_identity_predecessor_and_boundary_mutations_fail_closed[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_fixture_identity_predecessor_and_boundary_mutations_fail_closed[&lt;lambda&gt;4]" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_oracle_static_boundary_has_no_network_or_process_imports" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_candidate_preflight_passes_before_report_signing" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_contract_evaluation_remains_phase_scoped_before_report_signing" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_rollback_is_local_and_keeps_model_and_release_blocked" time="0.000" />
+    <testcase classname="tests.S16.P04_test" name="test_generator_wrapper_is_a_local_engine_entrypoint" time="0.000" />
+  </testsuite>
+</testsuites>

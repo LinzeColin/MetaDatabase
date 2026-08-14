@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-CORE-EXECUTION-CANONICAL-NONREADY-FAILURE-DOMAIN-DECLARATION-DIAGNOSTIC-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_CURRENT_PRODUCTION_CORE_EXECUTION_CANONICAL_NONREADY_FAILURE_DOMAIN_DECLARATION_DIAGNOSTIC_READ_ONLY",
+  "expected": {
+    "private_area": "Private-MetaDatabase",
+    "private_domain": "ABD",
+    "core_execution_receipt_type": "ABD_CURRENT_PRODUCTION_CORE_EXECUTION_PREFLIGHT",
+    "maximum_private_database_read_requests": 2,
+    "canonical_current_receipt_field_set": [
+      "checks",
+      "claim_boundary",
+      "decision",
+      "execution_authorized",
+      "failure_codes",
+      "input_ready",
+      "observed_on",
+      "receipt_type",
+      "schema_version",
+      "source_boundary",
+      "status"
+    ],
+    "prewhitelisted_check_identifiers": [
+      "PRIVILEGED_METADATA_READ",
+      "CONFIG_FILE_REGULAR",
+      "RUNTIME_ENV_FILE_REGULAR",
+      "RUNTIME_SECRET_FILE_PRESENT",
+      "CURRENT_RELEASE_LINK_MANAGED",
+      "CURRENT_RELEASE_COMPOSE_FILE_REGULAR",
+      "CURRENT_RELEASE_REBUILD_FILE_REGULAR",
+      "CORE_CAPACITY_DROPIN_FILE_REGULAR",
+      "CURRENT_CANDIDATE_IMAGE_PRESENT",
+      "CORE_UNIT_NOT_FOUND_AND_INACTIVE",
+      "CONNECTOR_UNIT_NOT_FOUND_AND_INACTIVE"
+    ],
+    "prewhitelisted_failure_domains": [
+      "CANDIDATE_IMAGE_METADATA_INCOMPLETE_REDACTED",
+      "CONNECTOR_UNIT_EXPECTATION_INCOMPLETE_REDACTED",
+      "CORE_CAPACITY_METADATA_INCOMPLETE_REDACTED",
+      "CORE_UNIT_EXPECTATION_INCOMPLETE_REDACTED",
+      "CURRENT_RELEASE_METADATA_INCOMPLETE_REDACTED",
+      "PRIVILEGED_METADATA_INCOMPLETE_REDACTED",
+      "RUNTIME_FILE_METADATA_INCOMPLETE_REDACTED"
+    ],
+    "provider_api_requests": 0,
+    "product_github_api_requests": 0,
+    "ssh_connections_attempted": 0
+  },
+  "source_boundary": {
+    "private_database_client_read_only": true,
+    "single_private_manifest_metadata_stream_read_in_memory_only": true,
+    "at_most_one_current_core_execution_candidate_read_in_memory": true,
+    "only_canonical_nonready_schema_status_and_authorization_shape_used_in_memory": true,
+    "only_prewhitelisted_nonsecret_check_identifiers_and_boolean_passed_states_used_in_memory": true,
+    "only_prewhitelisted_failure_code_shape_used_in_memory": true,
+    "private_object_path_hash_or_raw_content_emitted_copied_or_persisted": false,
+    "credential_config_or_runtime_secret_read_or_persisted": false,
+    "workflow_secret_value_read_or_persisted": false,
+    "address_port_or_target_mapping_read_or_persisted": false,
+    "raw_command_content_read_or_persisted": false,
+    "product_github_api_request_sent": false,
+    "provider_api_request_sent": false,
+    "ssh_connection_attempted": false,
+    "browser_login_submitted": false,
+    "workflow_dispatched_or_pushed": false,
+    "provider_resource_network_cloudflare_host_or_service_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_PRODUCTION_CORE_EXECUTION_CANONICAL_NONREADY_FAILURE_DOMAIN_DECLARATION_ONLY_NOT_FAILURE_ROOT_CAUSE_CONFIG_VALUE_COMMAND_TARGET_CREDENTIAL_CI_AUTHORIZATION_PROVIDER_RESOURCE_STATE_SSH_CONFIG_SEMANTIC_CHECK_CORE_EXECUTION_DEPLOYMENT_PUBLIC_ENDPOINT_CORE_START_OR_PRODUCTION_RELEASE",
+  "rollback": {
+    "action": "NO_PRIVATE_DATA_PROVIDER_WORKFLOW_OR_HOST_MUTATION_NO_RUNTIME_ROLLBACK_REQUIRED",
+    "current_candidate_shadow_changed": false,
+    "private_evidence_deleted_automatically": false
+  }
+}

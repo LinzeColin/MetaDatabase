@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="22" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S15.P01_test" name="test_candidate_preflight_replays_only_the_declared_correctness_surface" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_catalogs_name_the_exact_task_outputs_without_a_repository_wide_claim" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_frozen_unit_and_boundary_cases_replay_exactly[S15-P01-EXACT-THRESHOLD]" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_frozen_unit_and_boundary_cases_replay_exactly[S15-P01-BELOW-THRESHOLD]" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_frozen_unit_and_boundary_cases_replay_exactly[S15-P01-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND]" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_frozen_unit_and_boundary_cases_replay_exactly[S15-P01-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND]" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_frozen_unit_and_boundary_cases_replay_exactly[S15-P01-ZERO-FUNDS]" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_frozen_unit_and_boundary_cases_replay_exactly[S15-P01-BLOCKED-STATE]" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_frozen_unit_and_boundary_cases_replay_exactly[S15-P01-NEGATIVE-FUNDS-REJECTED]" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_frozen_funds_and_threshold_properties_all_pass[PROP-S15-P01-NO-INCREMENTAL-CASH]" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_frozen_funds_and_threshold_properties_all_pass[PROP-S15-P01-THRESHOLD-FAILS-CLOSED]" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_frozen_funds_and_threshold_properties_all_pass[PROP-S15-P01-ZERO-AND-NEGATIVE-FUNDS-SAFE]" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_frozen_funds_and_threshold_properties_all_pass[PROP-S15-P01-LOCAL-STATE-NEVER-ORDERS]" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_schema_negative_mutations_fail_closed[MUT-S15-P01-UNKNOWN-FIELD]" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_schema_negative_mutations_fail_closed[MUT-S15-P01-FLOAT-NUMERIC]" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_schema_negative_mutations_fail_closed[MUT-S15-P01-NONCANONICAL-DECIMAL]" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_schema_negative_mutations_fail_closed[MUT-S15-P01-NONSYNTHETIC-INPUT]" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_declared_branch_inventory_is_fully_exercised_by_the_frozen_cases" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_identical_input_replay_is_deterministic_and_never_an_order" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_rollback_drill_is_local_only_and_keeps_predecessors" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_execution_boundary_never_converts_local_tests_into_a_return_or_production_claim" time="0.000" />
+    <testcase classname="tests.S15.P01_test" name="test_oracle_has_no_network_process_sleep_or_order_capability" time="0.000" />
+  </testsuite>
+</testsuites>

@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-CURRENT-PRODUCTION-LOCAL-OUTBOUND-POLICY-CLASSIFICATION-001",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_CURRENT_PRODUCTION_LOCAL_OUTBOUND_POLICY_CLASSIFICATION_READ_ONLY",
+  "expected": {
+    "local_commands": [
+      "route -n get default",
+      "scutil --proxy",
+      "pfctl -s info"
+    ],
+    "maximum_each_local_command_timeout_seconds": 2,
+    "route_command_attempts_at_most": 1,
+    "proxy_command_attempts_at_most": 1,
+    "packet_filter_command_attempts_at_most": 1,
+    "dns_resolution_attempts": 0,
+    "socket_connection_attempts": 0,
+    "ssh_connection_attempts": 0,
+    "provider_api_requests": 0,
+    "github_api_requests": 0
+  },
+  "source_boundary": {
+    "target_address_port_alias_or_route_values_emitted_or_persisted": false,
+    "proxy_or_packet_filter_rule_values_emitted_or_persisted": false,
+    "credential_config_runtime_env_or_secret_read": false,
+    "packet_filter_rules_read": false,
+    "dns_resolution_attempted": false,
+    "socket_connection_attempted": false,
+    "ssh_connection_attempted": false,
+    "interactive_authentication_permitted": false,
+    "local_known_hosts_modified": false,
+    "provider_api_request_sent": false,
+    "github_api_request_sent": false,
+    "provider_resource_created_deleted_rebuilt_or_restarted": false,
+    "provider_network_security_group_ip_dns_or_cloudflare_changed": false,
+    "host_runtime_or_configuration_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": "CURRENT_PRODUCTION_LOCAL_OUTBOUND_POLICY_CLASSIFICATION_ONLY_NOT_TARGET_CAUSE_PROOF_DNS_PROBE_SOCKET_CONNECTION_SSH_AUTHENTICATION_HOST_RECOVERY_CONFIG_SEMANTIC_CHECK_UNIT_INSTALL_CORE_START_CONNECTOR_ACTIVATION_OR_PUBLIC_RELEASE",
+  "rollback": {
+    "action": "NO_LOCAL_NETWORK_OR_HOST_MUTATION_NO_RUNTIME_ROLLBACK_REQUIRED",
+    "current_candidate_shadow_changed": false,
+    "private_evidence_deleted_automatically": false
+  }
+}

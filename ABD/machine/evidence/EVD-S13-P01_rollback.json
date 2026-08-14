@@ -1,0 +1,32 @@
+{
+  "artifacts": {
+    "push_service.py": {
+      "sha256": "2e3649aa5bf223ff176a7a1c0e02e1ad9e0db0b9f6ba0b32204bfcdcef522d42",
+      "status": "PASS"
+    },
+    "ui_fixtures.json": {
+      "sha256": "e863084b475d90a023abcced571a8c2b6e813796e530f316fa469dc54c0559f8",
+      "status": "PASS"
+    },
+    "webapp/app.css": {
+      "sha256": "8a49a1149fa3c74b95a6d3f343c14c9f5cd35f27d8824ebcd573b2016cdbda65",
+      "status": "PASS"
+    },
+    "webapp/index.html": {
+      "sha256": "46f6ae484a9c6f29737eccf6e710397e2fc0d247a8c7d02acae6e94298cae77d",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S13-P01",
+  "evidence_id": "EVD-S13-P01-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "ui:chinese_workbench_local_push",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_CHINESE_WORKBENCH_AND_LOCAL_PUSH_RESTORE_SIGNED_S03_S11_S12_PREDECESSORS_KEEP_ALL_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

@@ -1,0 +1,29 @@
+{
+  "task": "T18",
+  "claim": "我一天里部署了十几次，每次留下一个 1GB 的孤儿镜像，生产盘从 8.3G 可用掉到 3.0G（93%）。紧接着 /v1/accounts 报过**一次** sqlite3「unable to open database file」。已回收 4.1G，服务恢复。**那次 500 复现不了，根因只是最合理的怀疑，不是已证实。**",
+  "measured_at": "2026-08-04",
+  "what_happened": {
+    "disk": "8.3G 可用（79%）→ 3.0G 可用（93%）。全部来自我自己反复 `docker compose build` 留下的 5 个悬空镜像，每个 1.06GB，全部创建于最近一小时。",
+    "the_500": "GET /v1/accounts → 500，`sqlite3.OperationalError: unable to open database file`，抛在 api.py:243 的 require_token 里。同一时刻我用 docker exec 以只读 URI 打开同一个库也失败。",
+    "then": "回收磁盘之后（3.0G → 7.1G），连打三次 /v1/accounts 全部 200；容器内 sqlite3.connect 打开成功，content = 193。"
+  },
+  "why_i_am_not_calling_it_proven": [
+    "**只发生了一次，之后复现不了。** 日志里 500 的总计数就是 1。",
+    "回收磁盘和「恢复正常」之间隔着几分钟，中间没有别的动作，但也没有对照实验——我没有把盘重新填满去复现它。",
+    "`unable to open database file` 确实是 SQLite 建不出 -wal/-shm 时的说法，与磁盘紧张吻合；但同一句话也可能来自权限或路径问题，而当时实测目录可写、文件属主正确。",
+    "所以这里写的是**怀疑**：磁盘压力最合理。不写成结论。"
+  ],
+  "how_it_was_reclaimed": {
+    "command": "逐个 `docker rmi <悬空镜像ID>`，五个都是我今天构建留下的孤儿。",
+    "what_was_not_done": "**没有用 `docker system prune`。** 这台机器同时跑着 memory-atlas / gatus / coolify / eei-* / linze-status 等别人的项目，一条无差别的清理命令会波及它们。",
+    "safety_check_first": "先确认 social-archive/core:rollback 与 :0.0.0.7 都有标签、不在悬空名单里，再动手。回收后两个标签都还在。",
+    "result": "3.0G → 7.1G 可用（93% → 82%），/v1/accounts 200。"
+  },
+  "what_changed_so_it_is_less_likely_to_repeat": "scripts/deploy_to_production.sh 在构建**之前**先看磁盘：不足 5G 就中止，并把悬空镜像列出来、给出只删悬空的回收命令，同时明写「不要用 docker system prune」。判据 1 条，包括「提到了那条危险命令就必须同时说别用它」。",
+  "what_this_does_not_prove": [
+    "不证明那次 500 的根因是磁盘。见上面四条。",
+    "不证明 5G 是对的阈值。一次构建约需 1GB，5G 留了余量，但没有量过极端情况。",
+    "不证明磁盘不会再满。孤儿镜像仍然要人去收——脚本只会拦住构建，不会自己删东西。**自动删除同机资源的事我不做**，今天已经因为一条自作主张的 chown 打断过生产 6 分钟。"
+  ],
+  "CORRECTED_2026_08_05": "**根因已经查清，不是磁盘。** 是 Core 容器没有加入宿主数据组（GID 980）：SQLite 的 -wal/-shm 谁先建就归谁，那次是宿主的 status 定时任务（uid 987）先建的，Core（uid 10001 / gid 10001）属主与组都对不上，于是 unable to open database file。见 evidence/T16/CORE_WAS_NEVER_IN_THE_DATA_GROUP.json。**这份证据当时写的是「最合理的怀疑，不是已证实的根因」——那句谨慎救了它。**如果当时写成结论，今天就会带着一个错的根因继续走。磁盘那道闸门本身仍然有用（它后来真的拦下过一次构建），只是它拦的不是这件事。"
+}

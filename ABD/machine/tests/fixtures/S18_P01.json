@@ -1,0 +1,200 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "contract_id": "AC-S18-P01",
+  "requirement_id": "REQ-S18-P01",
+  "stage_id": "S18",
+  "phase_id": "P01",
+  "fixed_clock": "2026-08-10T01:00:00+10:00",
+  "expected_next": "S18/P02_READY_NOT_STARTED",
+  "predecessors": [
+    {
+      "contract_id": "AC-S04-P04",
+      "evidence_sha256": "cc5c845238614bdb7c1fb3ad5706363453ec84880c6cf44430ffef3f9d23bb69"
+    },
+    {
+      "contract_id": "AC-S14-P04",
+      "evidence_sha256": "820f5a1c13f788386c54af8d18551bd6bd40d7816d659c6ffd43a657c25ddf4b"
+    },
+    {
+      "contract_id": "AC-S17-P04",
+      "evidence_sha256": "08e1d389d3b0d80d6c729d9835dc27343018985cd8cc1796a9528b5ed7d6e708"
+    }
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "GOLDEN_ALL_PROBES_PASS",
+      "probe_bundle": {
+        "schema_version": "1.0.0",
+        "candidate_slot": "green",
+        "previous_slot": "blue",
+        "pipeline_id": "S18-P01-SAFE-RELEASE-PIPELINE",
+        "canary_policy_id": "S18-P01-CANARY-POLICY",
+        "probe_results": {
+          "HEALTH_PROBE": "PASS",
+          "NUMERIC_CROSS_IMPLEMENTATION": "PASS",
+          "FROZEN_REPLAY_ACTION_MATCH": "PASS",
+          "SILENT_COVERAGE_GAP_NONINCREASE": "PASS",
+          "MODEL_DRIFT_WITHIN_STOP_LINE": "PASS",
+          "SECURITY_HIGH_CRITICAL_ZERO": "PASS",
+          "LEDGER_AND_EVIDENCE_INTEGRITY": "PASS"
+        },
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "fixed_clock": "2026-08-10T01:00:00+10:00"
+      },
+      "expected": {
+        "decision": "PROMOTE_CANDIDATE_KEEP_LIVE_ADVICE_DISABLED",
+        "logical_active_slot": "green",
+        "logical_auto_rollback": false,
+        "rollback_trigger": null,
+        "action": "NO_RECOMMENDATION_NO_ORDER"
+      }
+    },
+    {
+      "scenario_id": "HEALTH_PROBE_FAILED",
+      "probe_bundle": {
+        "schema_version": "1.0.0",
+        "candidate_slot": "green",
+        "previous_slot": "blue",
+        "pipeline_id": "S18-P01-SAFE-RELEASE-PIPELINE",
+        "canary_policy_id": "S18-P01-CANARY-POLICY",
+        "probe_results": {
+          "HEALTH_PROBE": "FAIL",
+          "NUMERIC_CROSS_IMPLEMENTATION": "PASS",
+          "FROZEN_REPLAY_ACTION_MATCH": "PASS",
+          "SILENT_COVERAGE_GAP_NONINCREASE": "PASS",
+          "MODEL_DRIFT_WITHIN_STOP_LINE": "PASS",
+          "SECURITY_HIGH_CRITICAL_ZERO": "PASS",
+          "LEDGER_AND_EVIDENCE_INTEGRITY": "PASS"
+        },
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "fixed_clock": "2026-08-10T01:00:00+10:00"
+      },
+      "expected": {
+        "decision": "AUTO_ROLL_BACK_TO_PREVIOUS_SLOT_KEEP_ADVICE_DISABLED",
+        "logical_active_slot": "blue",
+        "logical_auto_rollback": true,
+        "rollback_trigger": "HEALTH_PROBE",
+        "action": "NO_RECOMMENDATION_NO_ORDER"
+      }
+    },
+    {
+      "scenario_id": "NUMERIC_CROSS_IMPLEMENTATION_FAILED",
+      "probe_bundle": {
+        "schema_version": "1.0.0",
+        "candidate_slot": "blue",
+        "previous_slot": "green",
+        "pipeline_id": "S18-P01-SAFE-RELEASE-PIPELINE",
+        "canary_policy_id": "S18-P01-CANARY-POLICY",
+        "probe_results": {
+          "HEALTH_PROBE": "PASS",
+          "NUMERIC_CROSS_IMPLEMENTATION": "FAIL",
+          "FROZEN_REPLAY_ACTION_MATCH": "PASS",
+          "SILENT_COVERAGE_GAP_NONINCREASE": "PASS",
+          "MODEL_DRIFT_WITHIN_STOP_LINE": "PASS",
+          "SECURITY_HIGH_CRITICAL_ZERO": "PASS",
+          "LEDGER_AND_EVIDENCE_INTEGRITY": "PASS"
+        },
+        "probability_delta": "0.0001",
+        "odds_tick_delta": -1,
+        "fixed_clock": "2026-08-10T01:00:00+10:00"
+      },
+      "expected": {
+        "decision": "AUTO_ROLL_BACK_TO_PREVIOUS_SLOT_KEEP_ADVICE_DISABLED",
+        "logical_active_slot": "green",
+        "logical_auto_rollback": true,
+        "rollback_trigger": "NUMERIC_CROSS_IMPLEMENTATION",
+        "action": "NO_RECOMMENDATION_NO_ORDER"
+      }
+    },
+    {
+      "scenario_id": "UNKNOWN_EXTRA_PROBE_FAILS_CLOSED",
+      "probe_bundle": {
+        "schema_version": "1.0.0",
+        "candidate_slot": "green",
+        "previous_slot": "blue",
+        "pipeline_id": "S18-P01-SAFE-RELEASE-PIPELINE",
+        "canary_policy_id": "S18-P01-CANARY-POLICY",
+        "probe_results": {
+          "HEALTH_PROBE": "PASS",
+          "NUMERIC_CROSS_IMPLEMENTATION": "PASS",
+          "FROZEN_REPLAY_ACTION_MATCH": "PASS",
+          "SILENT_COVERAGE_GAP_NONINCREASE": "PASS",
+          "MODEL_DRIFT_WITHIN_STOP_LINE": "PASS",
+          "SECURITY_HIGH_CRITICAL_ZERO": "PASS",
+          "LEDGER_AND_EVIDENCE_INTEGRITY": "PASS",
+          "UNDECLARED_PROBE": "PASS"
+        },
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "fixed_clock": "2026-08-10T01:00:00+10:00"
+      },
+      "expected": {
+        "decision": "AUTO_ROLL_BACK_TO_PREVIOUS_SLOT_KEEP_ADVICE_DISABLED",
+        "logical_active_slot": "blue",
+        "logical_auto_rollback": true,
+        "rollback_trigger": "UNKNOWN_OR_MALFORMED_PROBE",
+        "action": "NO_RECOMMENDATION_NO_ORDER"
+      }
+    },
+    {
+      "scenario_id": "ADVERSE_MINUS_ONE_IN_TEN_THOUSAND_STABLE",
+      "probe_bundle": {
+        "schema_version": "1.0.0",
+        "candidate_slot": "blue",
+        "previous_slot": "green",
+        "pipeline_id": "S18-P01-SAFE-RELEASE-PIPELINE",
+        "canary_policy_id": "S18-P01-CANARY-POLICY",
+        "probe_results": {
+          "HEALTH_PROBE": "PASS",
+          "NUMERIC_CROSS_IMPLEMENTATION": "PASS",
+          "FROZEN_REPLAY_ACTION_MATCH": "PASS",
+          "SILENT_COVERAGE_GAP_NONINCREASE": "PASS",
+          "MODEL_DRIFT_WITHIN_STOP_LINE": "PASS",
+          "SECURITY_HIGH_CRITICAL_ZERO": "PASS",
+          "LEDGER_AND_EVIDENCE_INTEGRITY": "PASS"
+        },
+        "probability_delta": "-0.0001",
+        "odds_tick_delta": -1,
+        "fixed_clock": "2026-08-10T01:00:00+10:00"
+      },
+      "expected": {
+        "decision": "PROMOTE_CANDIDATE_KEEP_LIVE_ADVICE_DISABLED",
+        "logical_active_slot": "blue",
+        "logical_auto_rollback": false,
+        "rollback_trigger": null,
+        "action": "NO_RECOMMENDATION_NO_ORDER"
+      }
+    },
+    {
+      "scenario_id": "MISSING_LEDGER_PROBE_FAILS_CLOSED",
+      "probe_bundle": {
+        "schema_version": "1.0.0",
+        "candidate_slot": "green",
+        "previous_slot": "blue",
+        "pipeline_id": "S18-P01-SAFE-RELEASE-PIPELINE",
+        "canary_policy_id": "S18-P01-CANARY-POLICY",
+        "probe_results": {
+          "HEALTH_PROBE": "PASS",
+          "NUMERIC_CROSS_IMPLEMENTATION": "PASS",
+          "FROZEN_REPLAY_ACTION_MATCH": "PASS",
+          "SILENT_COVERAGE_GAP_NONINCREASE": "PASS",
+          "MODEL_DRIFT_WITHIN_STOP_LINE": "PASS",
+          "SECURITY_HIGH_CRITICAL_ZERO": "PASS"
+        },
+        "probability_delta": "0",
+        "odds_tick_delta": -1,
+        "fixed_clock": "2026-08-10T01:00:00+10:00"
+      },
+      "expected": {
+        "decision": "AUTO_ROLL_BACK_TO_PREVIOUS_SLOT_KEEP_ADVICE_DISABLED",
+        "logical_active_slot": "blue",
+        "logical_auto_rollback": true,
+        "rollback_trigger": "UNKNOWN_OR_MALFORMED_PROBE",
+        "action": "NO_RECOMMENDATION_NO_ORDER"
+      }
+    }
+  ]
+}

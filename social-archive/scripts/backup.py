@@ -17,14 +17,28 @@ from social_archive.encryption import AgeEncryptor, EncryptedObject
 from social_archive.private_facts import delivered_completed_content_facts, fact_bytes, fact_sha256
 from social_archive.storage import StoredObject, create_s3_client
 from social_archive.utils import atomic_write, json_bytes, read_secret, sha256_bytes, sha256_file, utcnow
+from social_archive.recovery import resolve_secret_path
 
 
 def _s3_config(store_id: str) -> dict[str, str] | None:
     prefix = f"SOCIAL_ARCHIVE_{store_id.upper()}"
     endpoint = os.getenv(f"{prefix}_ENDPOINT", "").strip()
     bucket = os.getenv(f"{prefix}_BUCKET", "").strip()
-    access = read_secret(os.getenv(f"{prefix}_ACCESS_KEY_ID_FILE"))
-    secret = read_secret(os.getenv(f"{prefix}_SECRET_ACCESS_KEY_FILE"))
+    # **凭据路径要回退。**（2026-08-10）
+    #
+    # `.env` 里写的是 `/run/secrets/…`——那是 systemd 的凭据目录，
+    # **只在那个 unit 跑起来时才存在**。在 unit 之外（比如手工跑恢复演练）
+    # 这两个文件读不到，`_s3_config` 就返回 None，上层报「r2 未配置」。
+    #
+    # 后果不是"少个功能"：`restore_runtime_db_drill.py` 从 backup 导入这个函数，
+    # 于是**唯一能证明"他的数据库拿得回来"的那个演练，结构上跑不起来**——
+    # 它在 ALL_DRILLS 里一直挂在 not_run，理由写的是「要真实的备份清单与远端存储」，
+    # 而真实原因是这里。2026-08-10 在生产机上跑它才撞出来。
+    #
+    # `restore_object.py` 早就有这个回退（`resolve_secret_path`，
+    # 回到 runtime/secrets/ 找同名文件），它因此一直能跑。同一个真源，用它。
+    access = read_secret(resolve_secret_path(os.getenv(f"{prefix}_ACCESS_KEY_ID_FILE")))
+    secret = read_secret(resolve_secret_path(os.getenv(f"{prefix}_SECRET_ACCESS_KEY_FILE")))
     region_name = os.getenv(f"{prefix}_REGION", "auto").strip() or "auto"
     addressing_style = os.getenv(f"{prefix}_ADDRESSING_STYLE", "path").strip() or "path"
     s3_compatibility = os.getenv(f"{prefix}_S3_COMPATIBILITY", "aws").strip().lower() or "aws"
@@ -56,6 +70,25 @@ def _s3_client(config: dict[str, str]):
     )
 
 
+def _upload_args(config: dict[str, str], metadata: dict[str, str], *,
+                 content_type: str | None = None) -> dict[str, Any]:
+    """上传参数只造一处（2026-08-10，移植自 origin/main 的 a0e201baa）。
+
+    铁律 7：禁止 InfrequentAccess——R2 免费额度只覆盖 Standard，IA 从第 1 次
+    操作起计费且按整单位向上取整。R2 走的是默认的 `aws` 兼容模式
+    （生产上只有 OCI 显式设了 `oci`），所以这颗钉子作用在 R2 的写入上；
+    OCI 不认这个名字，钉了会被拒，所以只在 `aws` 这一档钉。
+
+    **两个上传点共用这一个函数**，不各写各的——漏掉的那个不会有人发现。
+    """
+    args: dict[str, Any] = {"Metadata": metadata}
+    if content_type:
+        args["ContentType"] = content_type
+    if config.get("s3_compatibility", "aws") == "aws":
+        args["StorageClass"] = "STANDARD"
+    return args
+
+
 def _upload_and_verify(
     config: dict[str, str],
     ciphertext: Path,
@@ -72,7 +105,7 @@ def _upload_and_verify(
         "cipher-sha256": encrypted.cipher_sha256,
         "encryption": encrypted.algorithm,
     }
-    client.upload_file(str(ciphertext), config["bucket"], key, ExtraArgs={"Metadata": metadata})
+    client.upload_file(str(ciphertext), config["bucket"], key, ExtraArgs=_upload_args(config, metadata))
     head = client.head_object(Bucket=config["bucket"], Key=key)
     remote = head.get("Metadata") or {}
     if any(remote.get(name) != value for name, value in metadata.items()):
@@ -112,8 +145,10 @@ def _upload_recovery_descriptor_and_verify(
     client = _s3_client(config)
     metadata = {"descriptor-sha256": digest, "kind": "social-archive-recovery-descriptor"}
     client.put_object(
-        Bucket=config["bucket"], Key=key, Body=body,
-        ContentType="application/json", Metadata=metadata,
+        Bucket=config["bucket"],
+        Key=key,
+        Body=body,
+        **_upload_args(config, metadata, content_type="application/json"),
     )
     head = client.head_object(Bucket=config["bucket"], Key=key)
     if (head.get("Metadata") or {}) != metadata:
@@ -244,18 +279,34 @@ def main() -> int:
         }, ensure_ascii=False))
         return 4
 
+    # **这里只传 r2 与 oci 两处，没有 GitHub——那是对的，别去「补」第三份。**
+    #
+    # 2026-08-05 补上这条链的取回演练时数了一遍：索引（runtime-db）有三份
+    # 异地副本，而这些 fact 只有两份。看着像少了一份，其实不是：
+    #
+    #   · 索引那第三份落在 `gh-release://LinzeColin/Private-Database/...`，
+    #     而索引本身在 GitHub 上**没有家**——那一份是实打实的第三个故障域。
+    #   · 这些 fact 的**规范住处就是那个仓**（sync_private_database.py 里
+    #     称它 "the Private-Database facts authority"）。再往那儿放一份备份，
+    #     备份与源同生共死，加的是份数，不是安全度。
+    #
+    # 所以 fact 这条链的故障域其实也是三个：GitHub 上的源 + R2 + OCI，
+    # 而且后两个与源相互独立。**在同一个仓里再放一份才是退步。**
     key = f"backups/private-database/{stamp}/{encrypted.original_sha256}.tar.gz.age"
+    # Both stores receive the same locally produced ciphertext, so the offsite
+    # copy does not depend on the primary having succeeded.  Chaining them meant
+    # an R2 outage marked OCI blocked_prerequisite and never attempted it, taking
+    # the offsite copy from two copies straight to zero -- exactly when it is
+    # most needed.  Attempt each independently; the overall verdict below still
+    # requires both to verify.
     receipts: dict[str, Any] = {}
-    try:
-        receipts["r2"] = _upload_and_verify(r2_config, encrypted.path, key, encrypted, backup_root / "readback" / "r2.age")
-    except Exception as exc:  # noqa: BLE001 - provider boundary
-        receipts["r2"] = {"status": "failed", "error_code": exc.__class__.__name__}
-        receipts["oci"] = {"status": "blocked_prerequisite", "error_code": "R2_BACKUP_NOT_VERIFIED"}
-    else:
+    for store_id, store_config in (("r2", r2_config), ("oci", oci_config)):
         try:
-            receipts["oci"] = _upload_and_verify(oci_config, encrypted.path, key, encrypted, backup_root / "readback" / "oci.age")
+            receipts[store_id] = _upload_and_verify(
+                store_config, encrypted.path, key, encrypted, backup_root / "readback" / f"{store_id}.age"
+            )
         except Exception as exc:  # noqa: BLE001 - provider boundary
-            receipts["oci"] = {"status": "failed", "error_code": exc.__class__.__name__}
+            receipts[store_id] = {"status": "failed", "error_code": exc.__class__.__name__}
 
     manifest = {
         "schema_version": "3.0",

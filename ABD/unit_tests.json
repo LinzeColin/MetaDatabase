@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S15-P01-01",
+  "contract_id": "AC-S15-P01",
+  "requirement_id": "REQ-S15-P01",
+  "stage_id": "S15",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "coverage_scope": {
+    "declared_critical_modules": [
+      "money_threshold_gate",
+      "local_test_state_gate",
+      "closed_schema_validator"
+    ],
+    "method": "FROZEN_DECISION_BRANCH_INVENTORY",
+    "repository_wide_coverage_claimed": false,
+    "production_runtime_coverage_claimed": false,
+    "full_regression_or_real_time_soak_performed": false
+  },
+  "required_branch_ids": [
+    "SCHEMA-CLOSED",
+    "SERIALIZATION-CANONICAL",
+    "FUNDS-POSITIVE",
+    "FUNDS-ZERO",
+    "FUNDS-NEGATIVE-REJECT",
+    "ADVERSE-DELTA-NEUTRAL",
+    "ADVERSE-DELTA-NEGATIVE-ONE-IN-TEN-THOUSAND",
+    "ADVERSE-DELTA-POSITIVE-ONE-IN-TEN-THOUSAND",
+    "THRESHOLD-BELOW",
+    "THRESHOLD-EXACT",
+    "THRESHOLD-ABOVE",
+    "STATE-LOCAL-TEST-ONLY",
+    "STATE-BLOCKED",
+    "NO-ACTION-THRESHOLD",
+    "NO-ACTION-ZERO-FUNDS",
+    "NO-ACTION-STATE-BLOCKED",
+    "LOCAL-TEST-PASS-NO-ACTION"
+  ],
+  "minimum_branch_coverage": "0.9500",
+  "case_ids": [
+    "S15-P01-EXACT-THRESHOLD",
+    "S15-P01-BELOW-THRESHOLD",
+    "S15-P01-ADVERSE-MINUS-ONE-IN-TEN-THOUSAND",
+    "S15-P01-FAVOURABLE-PLUS-ONE-IN-TEN-THOUSAND",
+    "S15-P01-ZERO-FUNDS",
+    "S15-P01-BLOCKED-STATE",
+    "S15-P01-NEGATIVE-FUNDS-REJECTED"
+  ],
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "real_account_balance_read_or_written": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

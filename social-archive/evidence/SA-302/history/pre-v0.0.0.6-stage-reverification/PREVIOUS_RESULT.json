@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-302",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S3",
+  "title": "完成全文检索、筛选和关系历史",
+  "status": "PASS",
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "equivalent",
+  "acceptance_ids": [
+    "AC-SA-302"
+  ],
+  "tests": [
+    "TEST-SA-302"
+  ],
+  "oracle": "按平台、关系、收藏夹、时间和文本检索；partial 扫描不误删，两次完整缺失才进入关闭候选。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "5 search, relation and replica tests passed.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+  },
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "3cac73b30b2bb2f6aa32d78b86c5dfe088f80d1fc81159b56224608149f367ef"
+}

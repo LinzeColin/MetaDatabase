@@ -1,0 +1,70 @@
+{
+  "claim_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "contract_id": "AC-S12-P01",
+  "expected_target_vectors_sha256": "80fcd5c54a25d893eda11f84a039d75ae8f40862b4d26e3f9d6370983bbd956e",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "initial_bankroll_cents": 30000,
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "monthly_records": [
+    {
+      "cashflows": [],
+      "closing_balance_cents": 39000,
+      "expected_target_status": "TARGET_ON_TRACK",
+      "month_index": 0,
+      "month_start": "2026-01-01T00:00:00+11:00",
+      "opening_balance_cents": 30000
+    },
+    {
+      "cashflows": [],
+      "closing_balance_cents": 50700,
+      "expected_target_status": "TARGET_ON_TRACK",
+      "month_index": 1,
+      "month_start": "2026-02-01T00:00:00+11:00",
+      "opening_balance_cents": 39000
+    },
+    {
+      "cashflows": [
+        {
+          "amount_cents": 10000,
+          "direction": "DEPOSIT",
+          "evidence_id": "S12-P01-SYNTHETIC-DEPOSIT-001",
+          "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY",
+          "flow_id": "S12-P01-FLOW-001",
+          "timing": "MONTH_START"
+        },
+        {
+          "amount_cents": 5000,
+          "direction": "WITHDRAWAL",
+          "evidence_id": "S12-P01-SYNTHETIC-WITHDRAWAL-001",
+          "evidence_status": "SYNTHETIC_VERIFIED_FOR_TEST_ONLY",
+          "flow_id": "S12-P01-FLOW-002",
+          "timing": "MONTH_END"
+        }
+      ],
+      "closing_balance_cents": 73910,
+      "expected_target_status": "TARGET_ON_TRACK",
+      "month_index": 2,
+      "month_start": "2026-03-01T00:00:00+11:00",
+      "opening_balance_cents": 50700
+    },
+    {
+      "cashflows": [],
+      "closing_balance_cents": 90000,
+      "expected_target_status": "TARGET_SHORTFALL_REPORT_ONLY",
+      "month_index": 3,
+      "month_start": "2026-04-01T00:00:00+10:00",
+      "opening_balance_cents": 73910
+    }
+  ],
+  "product_version": "0.0.0.1",
+  "schema_version": "1.0.0"
+}

@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0.0",
+  "policy_id": "S18-P01-CANARY-POLICY",
+  "product_version": "0.0.0.1",
+  "contract_id": "AC-S18-P01",
+  "requirement_id": "REQ-S18-P01",
+  "stage_id": "S18",
+  "phase_id": "P01",
+  "deployment_mode": "SAME_HOST_BLUE_GREEN_WITH_CANARY_AND_AUTO_ROLLBACK",
+  "execution_mode": "OFFLINE_DETERMINISTIC_CONTRACT_ONLY",
+  "feature_flag_templates": [
+    "source:<id>",
+    "sport:<id>",
+    "market_family:<id>",
+    "model:<id>",
+    "live_recommendation",
+    "gmail_ingestion",
+    "owner_browser_companion"
+  ],
+  "model_gate": "BLOCKED_NO_EMPIRICAL_MODEL_INCREMENT",
+  "canary_profiles": [
+    {
+      "id": "shadow",
+      "maximum_traffic_basis_points": 0,
+      "required_scope": "FROZEN_REPLAY_ONLY",
+      "primary_feature_flag_template": "model:<id>",
+      "live_recommendation": false,
+      "order_submission_enabled": false
+    },
+    {
+      "id": "one_source",
+      "maximum_traffic_basis_points": 100,
+      "required_scope": "ONE_EXACT_SOURCE_ID",
+      "primary_feature_flag_template": "source:<id>",
+      "live_recommendation": false,
+      "order_submission_enabled": false
+    },
+    {
+      "id": "one_sport",
+      "maximum_traffic_basis_points": 500,
+      "required_scope": "ONE_EXACT_SPORT_ID",
+      "primary_feature_flag_template": "sport:<id>",
+      "live_recommendation": false,
+      "order_submission_enabled": false
+    },
+    {
+      "id": "one_market_family",
+      "maximum_traffic_basis_points": 2500,
+      "required_scope": "ONE_EXACT_MARKET_FAMILY_ID",
+      "primary_feature_flag_template": "market_family:<id>",
+      "live_recommendation": false,
+      "order_submission_enabled": false
+    },
+    {
+      "id": "eligible_full",
+      "maximum_traffic_basis_points": 10000,
+      "required_scope": "ONLY_EVIDENCE_GATED_ELIGIBLE_SCOPES",
+      "primary_feature_flag_template": "model:<id>",
+      "live_recommendation": false,
+      "order_submission_enabled": false
+    }
+  ],
+  "required_post_release_probes": [
+    "HEALTH_PROBE",
+    "NUMERIC_CROSS_IMPLEMENTATION",
+    "FROZEN_REPLAY_ACTION_MATCH",
+    "SILENT_COVERAGE_GAP_NONINCREASE",
+    "MODEL_DRIFT_WITHIN_STOP_LINE",
+    "SECURITY_HIGH_CRITICAL_ZERO",
+    "LEDGER_AND_EVIDENCE_INTEGRITY"
+  ],
+  "failure_action": "AUTO_ROLL_BACK_TO_PREVIOUS_SLOT_KEEP_ADVICE_DISABLED",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "real_traffic_switched": false,
+    "production_deployed_or_activated": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

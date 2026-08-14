@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="19" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S12.P01_test" name="test_candidate_preflight_passes_without_generated_test_reports" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_target_vectors_are_exact_frozen_replay" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_a300_x_1point3n_target_curve_and_conservative_cent_rounding" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_month_start_and_month_end_cashflows_are_adjusted_at_their_exact_boundaries" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_shortfall_is_report_only_and_does_not_relax_any_gate" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_malformed_or_unauditable_cashflows_fail_closed[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_malformed_or_unauditable_cashflows_fail_closed[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_malformed_or_unauditable_cashflows_fail_closed[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_malformed_or_unauditable_cashflows_fail_closed[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_malformed_or_unauditable_cashflows_fail_closed[&lt;lambda&gt;4]" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_cashflow_adjustment_rejects_nonpositive_adjusted_opening" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_frozen_replay_hash_is_identical_without_waiting" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_core_source_has_no_network_soak_or_order_capability" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_candidate_fails_closed_when_target_vectors_are_tampered" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_candidate_fails_closed_when_expected_replay_hash_is_tampered" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_candidate_fails_closed_when_shortfall_policy_is_weakened" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_rollback_drill_is_local_and_has_no_external_side_effect" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_signing_replaces_only_the_p01_jsonl_row_and_replays" time="0.000" />
+    <testcase classname="tests.S12.P01_test" name="test_acceptance_cli_is_wired_to_the_exact_contract_after_integration" time="0.000" />
+  </testsuite>
+</testsuites>

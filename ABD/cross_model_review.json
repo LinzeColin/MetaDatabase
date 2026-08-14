@@ -1,0 +1,81 @@
+{
+  "artifact_id": "ART-S16-P03-02",
+  "claim_boundary": {
+    "cross_model_review_is_not_model_inference": true,
+    "empirical_model_increment_verified": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_promotion_allowed": false,
+    "model_weight_changed": false,
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "synthetic_evaluation_only": true,
+    "synthetic_redteam_only": true
+  },
+  "contract_id": "AC-S16-P03",
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_REDTEAM_NO_NETWORK_NO_ACCOUNT",
+  "p02_promotion_before_review": {
+    "activation_status": "NOT_ACTIVATED_PENDING_S16_P03_AND_S16_P04",
+    "model_id": "GENERIC_RESIDUAL_CHALLENGER",
+    "next_required_gates": [
+      "AC-S16-P03",
+      "AC-S16-P04"
+    ],
+    "weight_after": "0.00",
+    "weight_before": "0.00",
+    "weight_change_allowed": false
+  },
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "redteam_artifact_sha256": "1eb8c20a1465606d513d5f6b076f3396a45112ed0e5c0ef3a3b5fcc3037a3a9e",
+  "requirement_id": "REQ-S16-P03",
+  "review_consensus": {
+    "activation_status": "NOT_ACTIVATED_PENDING_S16_P04",
+    "all_model_views_agree": true,
+    "all_required_attacks_blocked": true,
+    "decision": "S16_P03_REDTEAM_AND_CROSS_MODEL_REVIEW_PASS_P04_REQUIRED",
+    "model_promotion_allowed": false,
+    "next_required_gate": "AC-S16-P04"
+  },
+  "review_protocol": {
+    "model_ids": [
+      "MARKET_CONSENSUS_CHAMPION",
+      "GENERIC_RESIDUAL_CHALLENGER"
+    ],
+    "review_dimensions": [
+      "ATTACK_BLOCKING",
+      "PROMOTION_BOUNDARY",
+      "CLAIM_BOUNDARY"
+    ],
+    "unanimous_block_required": true
+  },
+  "review_scope": "FROZEN_CONTROL_REVIEW_NOT_MODEL_INFERENCE_OR_MARKET_EVALUATION",
+  "reviewed_models": [
+    {
+      "model_id": "MARKET_CONSENSUS_CHAMPION",
+      "p01_active_weight": "1.00",
+      "p02_evaluation_candidate": false,
+      "review_verdict": "BLOCK_PROMOTION_PENDING_S16_P04",
+      "role": "CHAMPION"
+    },
+    {
+      "model_id": "GENERIC_RESIDUAL_CHALLENGER",
+      "p01_active_weight": "0.00",
+      "p02_evaluation_candidate": true,
+      "review_verdict": "BLOCK_PROMOTION_PENDING_S16_P04",
+      "role": "CHALLENGER"
+    }
+  ],
+  "schema_version": "1.0.0",
+  "stage_id": "S16"
+}

@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-STATIC-CALIBRATION-RESIDUAL-004",
+  "product_version": "0.0.0.1",
+  "status": "PRIVATE_STATIC_DESCRIPTIVE_CALIBRATION_ONLY",
+  "inputs": {
+    "football_data": {
+      "source_id": "FOOTBALL_DATA_E0_2025_26",
+      "raw_sha256": "3e3a8352f9ada6789c508d6ca184424421fed56a30400904a4a327c583407e62",
+      "source_contract_sha256": "eb5625defa442629e5c59d2a52ff2ea2761d85f2301ab1ce37b500150ee55a7b",
+      "required_columns": [
+        "Div",
+        "Date",
+        "HomeTeam",
+        "AwayTeam",
+        "FTHG",
+        "FTAG",
+        "FTR",
+        "B365H",
+        "B365D",
+        "B365A"
+      ]
+    },
+    "historical_crosscheck_receipt": {
+      "raw_sha256": "dbed09bfa6502be1a643fdeb2087b6027569c56ecd2f90ae084198f61be31dec",
+      "crosscheck_contract_sha256": "2821153d33c2d42e365951a15935ad8dfbeb98a3e05ceec25549c296307dff03",
+      "expected_status": "PASS_STATIC_HISTORICAL_RESULT_CROSSCHECK_READY_FOR_PRIVATE_ARCHIVE",
+      "expected_matched_fixture_count": 380,
+      "expected_zero_count_fields": [
+        "missing_from_openfootball_count",
+        "missing_from_football_data_count",
+        "final_score_disagreement_count"
+      ]
+    }
+  },
+  "schema": {
+    "division": "E0",
+    "season_start": "2025-08-15",
+    "season_end": "2026-05-24",
+    "expected_fixture_count": 380,
+    "outcomes": [
+      "H",
+      "D",
+      "A"
+    ],
+    "odds_columns": {
+      "H": "B365H",
+      "D": "B365D",
+      "A": "B365A"
+    },
+    "probability_formula": "inverse_decimal_odds_divided_by_sum_of_all_three_inverse_decimal_odds",
+    "probability_bins": [
+      "0.00-0.20",
+      "0.20-0.40",
+      "0.40-0.60",
+      "0.60-0.80",
+      "0.80-1.00"
+    ]
+  },
+  "runtime_boundary": {
+    "network_collection_enabled": false,
+    "external_market_or_account_accessed": false,
+    "odds_or_price_truth_claimed": false,
+    "model_parameter_or_calibration_update_enabled": false,
+    "model_beta_or_ga_enabled": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "rollback": {
+    "action": "QUARANTINE_STATIC_CALIBRATION_RECEIPT_AND_KEEP_MODEL_WEIGHT_ZERO",
+    "immutable_source_raw_evidence_deleted_automatically": false,
+    "affected_capabilities": [
+      "STATIC_DESCRIPTIVE_CALIBRATION_RESIDUAL_ONLY"
+    ]
+  }
+}

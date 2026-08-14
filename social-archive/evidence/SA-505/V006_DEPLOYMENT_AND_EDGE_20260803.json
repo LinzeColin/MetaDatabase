@@ -1,0 +1,145 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-505",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-03T06:42:00Z",
+  "status": "PASS",
+  "scope": "production_deployment_contract_self_test_and_unauthenticated_public_edge_smoke",
+  "executed_on": "OVH vps-83b882b4, /opt/social-archive",
+  "deployment_identity": {
+    "public_api_version": "0.0.0.6",
+    "pwa_asset": "assets/app.js?v=006-r1",
+    "service_worker_cache_identity": "social-archive-ui-v006-r1",
+    "images": [
+      "social-archive/core:0.0.0.6",
+      "social-archive/cli-tools:0.0.0.6"
+    ],
+    "containers_healthy": [
+      "social-archive-core-api-1",
+      "social-archive-core-worker-1",
+      "social-archive-cli-tools-1"
+    ]
+  },
+  "defect_found_and_fixed": {
+    "what": "scripts/doctor.sh --self-test aborted on the production host with UnicodeDecodeError: 'utf-8' codec can't decode byte 0xa3 in position 45, naming no file.",
+    "root_cause": "An earlier macOS-side copy left nine AppleDouble sidecars in the deploy tree. Two of them sat beside src/social_archive/api.py and db.py, and the self-test compiles every rglob(\"*.py\") match, so it tried to compile a 163-byte binary resource fork.",
+    "fix": "doctor.sh now detects sidecars before the compile loop and fails with the offending paths; the nine files were removed from production; a repo-wide regression prevents them being committed or deployed again.",
+    "regressions": [
+      "tests/focused/test_deployment_contract.py::test_doctor_self_test_names_appledouble_sidecars_instead_of_crashing",
+      "tests/focused/test_deployment_contract.py::test_deploy_tree_has_no_appledouble_sidecars"
+    ]
+  },
+  "doctor_self_test": {
+    "status": "PASS",
+    "compose_structure": "PASS",
+    "systemd_run_contract": "PASS",
+    "local_deployment_contract_checks_passed": 28,
+    "checks": [
+      "isolated_loopback_ports_declared",
+      "core_api_loopback_only",
+      "core_api_read_only",
+      "tunnel_library_loopback",
+      "tunnel_api_loopback",
+      "tunnel_status_projection_loopback",
+      "tunnel_status_existing_site_passthrough",
+      "tunnel_default_404",
+      "library_access_policy",
+      "separate_api_host",
+      "public_health",
+      "public_pairing_status",
+      "public_pairing_exchange",
+      "pairing_rate_limit",
+      "pairing_attempt_limit",
+      "pairing_ttl",
+      "pairing_body_limit",
+      "real_rule_evidence_not_source",
+      "library_url_declared",
+      "api_url_declared",
+      "status_under_data_root",
+      "status_not_project_runtime",
+      "status_server_loopback_only",
+      "status_server_shared_health_path",
+      "status_server_readonly_methods",
+      "status_web_no_write_path",
+      "status_web_reads_projection_only",
+      "status_web_port_from_environment_file"
+    ],
+    "side_effects": "none; the self-test does not contact Docker, loopback, or the network, and does not read or write runtime or Secret"
+  },
+  "public_edge_smoke_without_any_credential": {
+    "social-archive.linzezhang.com/": {
+      "code": 302,
+      "expected": "Cloudflare Access login boundary",
+      "verdict": "PASS"
+    },
+    "social-archive-api.linzezhang.com/health": {
+      "code": 200,
+      "expected": "public health by design",
+      "verdict": "PASS"
+    },
+    "social-archive-api.linzezhang.com/v1/pairing/status": {
+      "code": 200,
+      "expected": "public non-sensitive pairing supply state",
+      "verdict": "PASS"
+    },
+    "social-archive-api.linzezhang.com/v1/library": {
+      "code": 401,
+      "expected": "Bearer required",
+      "verdict": "PASS"
+    },
+    "social-archive-api.linzezhang.com/v1/accounts": {
+      "code": 401,
+      "expected": "Bearer required",
+      "verdict": "PASS"
+    },
+    "social-archive-api.linzezhang.com/v1/destinations": {
+      "code": 401,
+      "expected": "Bearer required",
+      "verdict": "PASS"
+    },
+    "status.linzezhang.com/health": {
+      "code": 200,
+      "expected": "read-only status projection",
+      "verdict": "PASS"
+    }
+  },
+  "note_on_deployment_probe": {
+    "observation": "scripts/deployment_probe.py --network-confirmed reports BLOCKED_ENVIRONMENT for the library host with https status 403.",
+    "interpretation": "This is the Cloudflare Access boundary refusing an unauthenticated non-browser request, which is the intended posture for the protected library. The probe classifies any non-200 as blocked, so its verdict must not be read as a deployment defect. The credential-free smoke above records the distinction explicitly.",
+    "not_treated_as": "a failure of SA-505"
+  },
+  "what_this_does_not_prove": [
+    "An authenticated Owner browser session through Cloudflare Access; no Access assertion was forged or replayed.",
+    "SA-506 backup, restore, degrade and rollback, which is a separate task.",
+    "Any account mirror or platform canary."
+  ],
+  "non_actions": [
+    "No Cloudflare, Tunnel, DNS, WAF or Access policy was read or changed.",
+    "No secret value was printed to terminal, transcript, evidence or Git.",
+    "No timer was enabled, no tag or release created, nothing pushed to origin."
+  ],
+  "systemd_unit_and_timer_state_verified": {
+    "unit_drift_repo_vs_production": "none — all 11 units under deploy/systemd match /etc/systemd/system byte for byte by SHA-256",
+    "hardening": "the repo units are strictly more hardened than the frozen overlay (NoNewPrivileges 7 vs 5, ProtectSystem 6 vs 4, ProtectHome 2 vs 0, PrivateTmp 6 vs 4, LoadCredential 11 vs 0), plus two repo-only units",
+    "timers": {
+      "social-archive-backup.timer": "disabled/inactive — matches the contract",
+      "social-archive-replication.timer": "disabled/inactive — matches the contract",
+      "social-archive-private-database-sync.timer": "disabled/inactive — matches the contract",
+      "social-archive-status.timer": "enabled/active — permitted"
+    },
+    "status_web_enabled_disabled_is_correct": "social-archive-status-web.service shows enabled=disabled while active. That is by design, not a reboot hazard: social-archive.service is enabled with WantedBy=multi-user.target and carries Wants=social-archive-status-web.service, so the projection server is pulled in as a dependency on boot."
+  },
+  "production_mutations_i_caused_during_diagnosis_and_corrected": [
+    {
+      "what": "Ran scripts/status_publish.py as root without the service EnvironmentFile, so it resolved an empty default data root and overwrote the live projection with a 321-byte record claiming overall=down, empty connectors, destinations, storage and replicas.",
+      "impact": "The public status page briefly advertised a failure that did not exist, while production was healthy with 17 verified replicas on R2 and OCI.",
+      "correction": "Regenerated through social-archive-status.service, which carries the correct EnvironmentFile. The projection is now 8138 bytes with overall=degraded and real per-connector states, and the public endpoint serves it.",
+      "lesson": "A maintenance script that reads configuration from the environment must be run through its own unit on a production host, not ad hoc as root."
+    },
+    {
+      "what": "chown/chmod on the projection file to match a sibling's 0644 convention.",
+      "impact": "None lasting. The regenerating unit rewrote the file with its own 0640 socialarchive:socialarchive convention, which is authoritative.",
+      "correction": "Left as the unit produced it rather than re-imposing my guess."
+    }
+  ]
+}

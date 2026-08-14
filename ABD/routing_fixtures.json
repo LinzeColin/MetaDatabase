@@ -1,0 +1,495 @@
+{
+  "artifact_id": "ART-S11-P03-02",
+  "contract_id": "AC-S11-P03",
+  "expected_report_sha256": "44dcc7468b279b69adead8c36fb8068cceccbcf697832840b0b19bf5a5d9d6f0",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "provider_score_sha256": "8c2438d4f3fc1ea8cd777290c98956791a6c7174e208c3ce1dddf9ed246dd446",
+  "requirement_id": "REQ-S11-P03",
+  "routing_fixtures_id": "FIX-S11-P03-PLATFORM-ROUTING",
+  "schema_version": "1.0.0",
+  "stage_id": "S11",
+  "vectors": [
+    {
+      "expected": {
+        "adverse_flip_dimensions": [],
+        "baseline_action": "ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES",
+        "reason_code": "ALL_PLATFORM_GATES_AND_UNIQUE_ROUTE_STABLE",
+        "selected_provider_id": "SYNTHETIC_PROVIDER_ALPHA"
+      },
+      "providers": [
+        {
+          "action_channel_available": true,
+          "action_friction_penalty": "0.005",
+          "minimum_acceptable_odds": "1.733334",
+          "minimum_stake_cents": 100,
+          "minimum_stake_penalty": "0.005",
+          "observed_odds": "2.000000",
+          "p02_candidate_action": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+          "p02_vector_id": "V01-E4-STABLE-PASS",
+          "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+          "quote_age_seconds": 100,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 300,
+          "settlement_penalty": "0.005",
+          "settlement_rules_clear": true,
+          "source_contract_pass": true,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.010",
+          "time_band": "more_than_24h"
+        },
+        {
+          "action_channel_available": true,
+          "action_friction_penalty": "0.005",
+          "minimum_acceptable_odds": "1.766667",
+          "minimum_stake_cents": 100,
+          "minimum_stake_penalty": "0.005",
+          "observed_odds": "2.000000",
+          "p02_candidate_action": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+          "p02_vector_id": "V03-E3-BOUNDARY-STABLE-PASS",
+          "provider_id": "SYNTHETIC_PROVIDER_BETA",
+          "quote_age_seconds": 100,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 300,
+          "settlement_penalty": "0.005",
+          "settlement_rules_clear": true,
+          "source_contract_pass": true,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.020",
+          "time_band": "2h_to_24h"
+        },
+        {
+          "action_channel_available": true,
+          "action_friction_penalty": "0.005",
+          "minimum_acceptable_odds": "1.8",
+          "minimum_stake_cents": 100,
+          "minimum_stake_penalty": "0.005",
+          "observed_odds": "2.000000",
+          "p02_candidate_action": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+          "p02_vector_id": "V04-E2-BOUNDARY-STABLE-PASS",
+          "provider_id": "SYNTHETIC_PROVIDER_GAMMA",
+          "quote_age_seconds": 20,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 300,
+          "settlement_penalty": "0.006",
+          "settlement_rules_clear": true,
+          "source_contract_pass": true,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.030",
+          "time_band": "15m_to_2h"
+        }
+      ],
+      "vector_id": "R01-UNIQUE-STABLE-SYNTHETIC-PLATFORM"
+    },
+    {
+      "expected": {
+        "adverse_flip_dimensions": [],
+        "baseline_action": "NO_RECOMMENDATION",
+        "reason_code": "TOP_PLATFORM_SCORE_TIED",
+        "selected_provider_id": null
+      },
+      "providers": [
+        {
+          "action_channel_available": true,
+          "action_friction_penalty": "0.005",
+          "minimum_acceptable_odds": "1.733334",
+          "minimum_stake_cents": 100,
+          "minimum_stake_penalty": "0.005",
+          "observed_odds": "2.000000",
+          "p02_candidate_action": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+          "p02_vector_id": "V01-E4-STABLE-PASS",
+          "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+          "quote_age_seconds": 100,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 300,
+          "settlement_penalty": "0.010",
+          "settlement_rules_clear": true,
+          "source_contract_pass": true,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.010",
+          "time_band": "more_than_24h"
+        },
+        {
+          "action_channel_available": true,
+          "action_friction_penalty": "0.005",
+          "minimum_acceptable_odds": "1.766667",
+          "minimum_stake_cents": 100,
+          "minimum_stake_penalty": "0.005",
+          "observed_odds": "2.000000",
+          "p02_candidate_action": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+          "p02_vector_id": "V03-E3-BOUNDARY-STABLE-PASS",
+          "provider_id": "SYNTHETIC_PROVIDER_BETA",
+          "quote_age_seconds": 100,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 300,
+          "settlement_penalty": "0.010",
+          "settlement_rules_clear": true,
+          "source_contract_pass": true,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.010",
+          "time_band": "2h_to_24h"
+        }
+      ],
+      "vector_id": "R02-TOP-SCORE-TIE-FAILS-CLOSED"
+    },
+    {
+      "expected": {
+        "adverse_flip_dimensions": ["stale_time_plus", "all_adverse"],
+        "baseline_action": "ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES",
+        "reason_code": "ADVERSE_PLATFORM_ROUTING_STABILITY_FLIP",
+        "selected_provider_id": "SYNTHETIC_PROVIDER_ALPHA"
+      },
+      "providers": [
+        {
+          "action_channel_available": true,
+          "action_friction_penalty": "0.005",
+          "minimum_acceptable_odds": "1.766667",
+          "minimum_stake_cents": 100,
+          "minimum_stake_penalty": "0.005",
+          "observed_odds": "2.000000",
+          "p02_candidate_action": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+          "p02_vector_id": "V03-E3-BOUNDARY-STABLE-PASS",
+          "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+          "quote_age_seconds": 30,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 300,
+          "settlement_penalty": "0.005",
+          "settlement_rules_clear": true,
+          "source_contract_pass": true,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.005",
+          "time_band": "0_to_15m"
+        },
+        {
+          "action_channel_available": true,
+          "action_friction_penalty": "0.005",
+          "minimum_acceptable_odds": "1.733334",
+          "minimum_stake_cents": 100,
+          "minimum_stake_penalty": "0.005",
+          "observed_odds": "2.000000",
+          "p02_candidate_action": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+          "p02_vector_id": "V01-E4-STABLE-PASS",
+          "provider_id": "SYNTHETIC_PROVIDER_BETA",
+          "quote_age_seconds": 100,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 300,
+          "settlement_penalty": "0.010",
+          "settlement_rules_clear": true,
+          "source_contract_pass": true,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.010",
+          "time_band": "more_than_24h"
+        }
+      ],
+      "vector_id": "R03-QUOTE-AGE-BOUNDARY-ADVERSE-FLIP"
+    },
+    {
+      "expected": {
+        "adverse_flip_dimensions": ["odds_adverse", "all_adverse"],
+        "baseline_action": "ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES",
+        "reason_code": "ADVERSE_PLATFORM_ROUTING_STABILITY_FLIP",
+        "selected_provider_id": "SYNTHETIC_PROVIDER_ALPHA"
+      },
+      "providers": [
+        {
+          "action_channel_available": true,
+          "action_friction_penalty": "0.005",
+          "minimum_acceptable_odds": "1.8",
+          "minimum_stake_cents": 100,
+          "minimum_stake_penalty": "0.005",
+          "observed_odds": "1.800000",
+          "p02_candidate_action": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+          "p02_vector_id": "V04-E2-BOUNDARY-STABLE-PASS",
+          "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+          "quote_age_seconds": 80,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 300,
+          "settlement_penalty": "0.005",
+          "settlement_rules_clear": true,
+          "source_contract_pass": true,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.005",
+          "time_band": "15m_to_2h"
+        },
+        {
+          "action_channel_available": true,
+          "action_friction_penalty": "0.005",
+          "minimum_acceptable_odds": "1.733334",
+          "minimum_stake_cents": 100,
+          "minimum_stake_penalty": "0.005",
+          "observed_odds": "1.900000",
+          "p02_candidate_action": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+          "p02_vector_id": "V01-E4-STABLE-PASS",
+          "provider_id": "SYNTHETIC_PROVIDER_BETA",
+          "quote_age_seconds": 100,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 300,
+          "settlement_penalty": "0.010",
+          "settlement_rules_clear": true,
+          "source_contract_pass": true,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.010",
+          "time_band": "2h_to_24h"
+        }
+      ],
+      "vector_id": "R04-MINIMUM-ODDS-BOUNDARY-ADVERSE-FLIP"
+    },
+    {
+      "expected": {
+        "adverse_flip_dimensions": [],
+        "baseline_action": "NO_RECOMMENDATION",
+        "reason_code": "NO_PLATFORM_PASSES_ALL_HARD_GATES",
+        "selected_provider_id": null
+      },
+      "providers": [
+        {
+          "action_channel_available": true,
+          "action_friction_penalty": "0.005",
+          "minimum_acceptable_odds": "1.733334",
+          "minimum_stake_cents": 100,
+          "minimum_stake_penalty": "0.005",
+          "observed_odds": "2.000000",
+          "p02_candidate_action": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+          "p02_vector_id": "V01-E4-STABLE-PASS",
+          "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+          "quote_age_seconds": 100,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 300,
+          "settlement_penalty": "0.005",
+          "settlement_rules_clear": true,
+          "source_contract_pass": false,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.005",
+          "time_band": "more_than_24h"
+        }
+      ],
+      "vector_id": "R05-SOURCE-CONTRACT-FAILS-CLOSED"
+    },
+    {
+      "expected": {
+        "adverse_flip_dimensions": [],
+        "baseline_action": "NO_RECOMMENDATION",
+        "reason_code": "NO_PLATFORM_PASSES_ALL_HARD_GATES",
+        "selected_provider_id": null
+      },
+      "providers": [
+        {
+          "action_channel_available": true,
+          "action_friction_penalty": "0.005",
+          "minimum_acceptable_odds": "1.766667",
+          "minimum_stake_cents": 100,
+          "minimum_stake_penalty": "0.005",
+          "observed_odds": "2.000000",
+          "p02_candidate_action": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+          "p02_vector_id": "V03-E3-BOUNDARY-STABLE-PASS",
+          "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+          "quote_age_seconds": 100,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 300,
+          "settlement_penalty": "0.005",
+          "settlement_rules_clear": false,
+          "source_contract_pass": true,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.005",
+          "time_band": "2h_to_24h"
+        }
+      ],
+      "vector_id": "R06-SETTLEMENT-RULES-FAIL-CLOSED"
+    },
+    {
+      "expected": {
+        "adverse_flip_dimensions": [],
+        "baseline_action": "NO_RECOMMENDATION",
+        "reason_code": "NO_PLATFORM_PASSES_ALL_HARD_GATES",
+        "selected_provider_id": null
+      },
+      "providers": [
+        {
+          "action_channel_available": false,
+          "action_friction_penalty": "0.005",
+          "minimum_acceptable_odds": "1.8",
+          "minimum_stake_cents": 100,
+          "minimum_stake_penalty": "0.005",
+          "observed_odds": "2.000000",
+          "p02_candidate_action": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+          "p02_vector_id": "V04-E2-BOUNDARY-STABLE-PASS",
+          "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+          "quote_age_seconds": 10,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 300,
+          "settlement_penalty": "0.005",
+          "settlement_rules_clear": true,
+          "source_contract_pass": true,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.005",
+          "time_band": "15m_to_2h"
+        }
+      ],
+      "vector_id": "R07-ACTION-CHANNEL-FAILS-CLOSED"
+    },
+    {
+      "expected": {
+        "adverse_flip_dimensions": [],
+        "baseline_action": "NO_RECOMMENDATION",
+        "reason_code": "NO_PLATFORM_PASSES_ALL_HARD_GATES",
+        "selected_provider_id": null
+      },
+      "providers": [
+        {
+          "action_channel_available": true,
+          "action_friction_penalty": "0.005",
+          "minimum_acceptable_odds": "1.816667",
+          "minimum_stake_cents": 101,
+          "minimum_stake_penalty": "0.005",
+          "observed_odds": "2.000000",
+          "p02_candidate_action": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+          "p02_vector_id": "V05-E1-BOUNDARY-STABLE-PASS",
+          "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+          "quote_age_seconds": 10,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 100,
+          "settlement_penalty": "0.005",
+          "settlement_rules_clear": true,
+          "source_contract_pass": true,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.005",
+          "time_band": "0_to_15m"
+        }
+      ],
+      "vector_id": "R08-MINIMUM-STAKE-EXCEEDS-ROUTING-STAKE"
+    },
+    {
+      "expected": {
+        "adverse_flip_dimensions": [],
+        "baseline_action": "NO_RECOMMENDATION",
+        "reason_code": "NO_PLATFORM_PASSES_ALL_HARD_GATES",
+        "selected_provider_id": null
+      },
+      "providers": [
+        {
+          "action_channel_available": true,
+          "action_friction_penalty": "0.005",
+          "minimum_acceptable_odds": "1.733334",
+          "minimum_stake_cents": 100,
+          "minimum_stake_penalty": "0.005",
+          "observed_odds": "2.000000",
+          "p02_candidate_action": "NO_RECOMMENDATION",
+          "p02_vector_id": "V06-E0-NONPRICE-SOURCES-BELOW-MINIMUM",
+          "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+          "quote_age_seconds": 100,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 300,
+          "settlement_penalty": "0.005",
+          "settlement_rules_clear": true,
+          "source_contract_pass": true,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.005",
+          "time_band": "more_than_24h"
+        }
+      ],
+      "vector_id": "R09-UPSTREAM-P02-CANDIDATE-REQUIRED"
+    },
+    {
+      "expected": {
+        "adverse_flip_dimensions": [],
+        "baseline_action": "NO_RECOMMENDATION",
+        "reason_code": "NO_PLATFORM_PASSES_ALL_HARD_GATES",
+        "selected_provider_id": null
+      },
+      "providers": [
+        {
+          "action_channel_available": true,
+          "action_friction_penalty": "0.040",
+          "minimum_acceptable_odds": "1.733334",
+          "minimum_stake_cents": 100,
+          "minimum_stake_penalty": "0.030",
+          "observed_odds": "2.000000",
+          "p02_candidate_action": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+          "p02_vector_id": "V01-E4-STABLE-PASS",
+          "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+          "quote_age_seconds": 100,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 300,
+          "settlement_penalty": "0.030",
+          "settlement_rules_clear": true,
+          "source_contract_pass": true,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.030",
+          "time_band": "more_than_24h"
+        }
+      ],
+      "vector_id": "R10-NONPOSITIVE-EXECUTABLE-SCORE"
+    },
+    {
+      "expected": {
+        "adverse_flip_dimensions": [
+          "return_minus",
+          "stale_penalty_plus",
+          "settlement_penalty_plus",
+          "minimum_stake_penalty_plus",
+          "action_friction_plus",
+          "all_adverse"
+        ],
+        "baseline_action": "ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES",
+        "reason_code": "ADVERSE_PLATFORM_ROUTING_STABILITY_FLIP",
+        "selected_provider_id": "SYNTHETIC_PROVIDER_ALPHA"
+      },
+      "providers": [
+        {
+          "action_channel_available": true,
+          "action_friction_penalty": "0.03245",
+          "minimum_acceptable_odds": "1.733334",
+          "minimum_stake_cents": 100,
+          "minimum_stake_penalty": "0.0325",
+          "observed_odds": "2.000000",
+          "p02_candidate_action": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+          "p02_vector_id": "V01-E4-STABLE-PASS",
+          "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+          "quote_age_seconds": 100,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 300,
+          "settlement_penalty": "0.0325",
+          "settlement_rules_clear": true,
+          "source_contract_pass": true,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.0325",
+          "time_band": "more_than_24h"
+        }
+      ],
+      "vector_id": "R11-RETURN-POINT-0001-ADVERSE-FLIP"
+    },
+    {
+      "expected": {
+        "adverse_flip_dimensions": ["stale_time_plus", "all_adverse"],
+        "baseline_action": "ROUTED_PENDING_CONSTRAINED_KELLY_AND_RISK_GATES",
+        "reason_code": "ADVERSE_PLATFORM_ROUTING_STABILITY_FLIP",
+        "selected_provider_id": "SYNTHETIC_PROVIDER_ALPHA"
+      },
+      "providers": [
+        {
+          "action_channel_available": true,
+          "action_friction_penalty": "0.005",
+          "minimum_acceptable_odds": "1.816667",
+          "minimum_stake_cents": 100,
+          "minimum_stake_penalty": "0.005",
+          "observed_odds": "2.000000",
+          "p02_candidate_action": "CANDIDATE_PENDING_PLATFORM_AND_RISK_GATES",
+          "p02_vector_id": "V05-E1-BOUNDARY-STABLE-PASS",
+          "provider_id": "SYNTHETIC_PROVIDER_ALPHA",
+          "quote_age_seconds": 12,
+          "robust_net_expected_return": "0.13",
+          "routing_stake_cents": 100,
+          "settlement_penalty": "0.005",
+          "settlement_rules_clear": true,
+          "source_contract_pass": true,
+          "stake_increment_cents": 5,
+          "stale_penalty": "0.005",
+          "time_band": "live"
+        }
+      ],
+      "vector_id": "R12-LIVE-QUOTE-AGE-BOUNDARY-ADVERSE-FLIP"
+    }
+  ]
+}

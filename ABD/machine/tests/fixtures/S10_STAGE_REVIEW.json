@@ -1,0 +1,85 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S10-WHOLE-STAGE-REVIEW",
+  "contract_id": "STAGE-REVIEW-S10",
+  "review_id": "ABD-S10-WHOLE-STAGE-REVIEW",
+  "stage_id": "S10",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "replay_count": 100,
+  "adverse_replay_count": 10000,
+  "minimum_targeted_pytest_cases": 34,
+  "expected_phase_ids": ["P01", "P02", "P03", "P04"],
+  "expected_phase_evidence_sha256": {
+    "P01": "851e86a0e1deb0166fc07a1b0c726e31cb68c12e0809df0237ca0a2b1225c6f2",
+    "P02": "1481efc71fcc185c57a06ddee11d3e0015e534b2084cd90b43dda8ef55fcaa69",
+    "P03": "7b848a4e885b5f1b9b31752b88c8b136e1b66f734ed0cdf30926b325bbc0f55c",
+    "P04": "0700d4af988731fa39fc9506751b993e509da8afa78d63ef951c3bac842a9ed3"
+  },
+  "expected_phase_rollback_sha256": {
+    "P01": "7567a7280d9f1c2c3ee7fc84a087484366a9889a26e59bb0e6c9c80a276df72d",
+    "P02": "d77c82afa272549e402b1b40c9adedcb0c1242a3f1fbb6669e10d2c0d96fec00",
+    "P03": "ed6ff395318ea8b4ec47f2d534211979b85ce9e91d4d262288002250c77d787c",
+    "P04": "16354f0f1b4011d015c41cc57b19946185f6f296932b85a04a22f4822c15ae32"
+  },
+  "expected_next": "S10/GITHUB_STAGE_UPLOAD_READY",
+  "expected_release_status": "S10_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "expected_findings_summary": {"total": 1, "open": 0, "resolved": 1, "blocked": 0},
+  "cases": [
+    {
+      "case_id": "POSITIVE_EXACT_STAGE",
+      "snapshot": {
+        "phase_receipts_current": true,
+        "taskpack_trace_closed": true,
+        "temporal_calibration_gates_preserved": true,
+        "conservative_probability_gates_preserved": true,
+        "decimal_determinism_gates_preserved": true,
+        "adverse_perturbation_gate_preserved": true,
+        "external_action_boundary_preserved": true,
+        "portable_evidence": true,
+        "findings_open": 0
+      },
+      "expected": {"status": "S10_STAGE_REVIEW_VERIFIED_NO_ACTION", "reason_codes": []}
+    },
+    {
+      "case_id": "PHASE_RECEIPT_FAIL",
+      "snapshot": {"phase_receipts_current": false, "taskpack_trace_closed": true, "temporal_calibration_gates_preserved": true, "conservative_probability_gates_preserved": true, "decimal_determinism_gates_preserved": true, "adverse_perturbation_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S10_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["PHASE_RECEIPTS_NOT_CURRENT"]}
+    },
+    {
+      "case_id": "TASKPACK_TRACE_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": false, "temporal_calibration_gates_preserved": true, "conservative_probability_gates_preserved": true, "decimal_determinism_gates_preserved": true, "adverse_perturbation_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S10_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["TASKPACK_TRACE_NOT_CLOSED"]}
+    },
+    {
+      "case_id": "TEMPORAL_CALIBRATION_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "temporal_calibration_gates_preserved": false, "conservative_probability_gates_preserved": true, "decimal_determinism_gates_preserved": true, "adverse_perturbation_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S10_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["TEMPORAL_CALIBRATION_OR_TIME_ORDER_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "CONSERVATIVE_BOOTSTRAP_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "temporal_calibration_gates_preserved": true, "conservative_probability_gates_preserved": false, "decimal_determinism_gates_preserved": true, "adverse_perturbation_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S10_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["CONSERVATIVE_PROBABILITY_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "DECIMAL_DETERMINISM_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "temporal_calibration_gates_preserved": true, "conservative_probability_gates_preserved": true, "decimal_determinism_gates_preserved": false, "adverse_perturbation_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S10_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["DECIMAL_DETERMINISM_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "ADVERSE_PERTURBATION_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "temporal_calibration_gates_preserved": true, "conservative_probability_gates_preserved": true, "decimal_determinism_gates_preserved": true, "adverse_perturbation_gate_preserved": false, "external_action_boundary_preserved": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S10_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["ADVERSE_PERTURBATION_GATE_RELAXED"]}
+    },
+    {
+      "case_id": "EXTERNAL_ACTION_BOUNDARY_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "temporal_calibration_gates_preserved": true, "conservative_probability_gates_preserved": true, "decimal_determinism_gates_preserved": true, "adverse_perturbation_gate_preserved": true, "external_action_boundary_preserved": false, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S10_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["EXTERNAL_ACTION_BOUNDARY_RELAXED"]}
+    },
+    {
+      "case_id": "PORTABILITY_AND_OPEN_FINDING_FAIL",
+      "snapshot": {"phase_receipts_current": true, "taskpack_trace_closed": true, "temporal_calibration_gates_preserved": true, "conservative_probability_gates_preserved": true, "decimal_determinism_gates_preserved": true, "adverse_perturbation_gate_preserved": true, "external_action_boundary_preserved": true, "portable_evidence": false, "findings_open": 1},
+      "expected": {"status": "S10_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["EVIDENCE_NOT_PORTABLE", "OPEN_REVIEW_FINDINGS"]}
+    }
+  ]
+}

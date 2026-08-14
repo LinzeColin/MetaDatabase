@@ -1,0 +1,217 @@
+{
+  "artifact_id": "ART-S16-P01-03",
+  "baseline_report_sha256": "060d12d4b311fe334815632c9e343b990c0b392bf79bd8421162430f337d4b68",
+  "challengers": [
+    {
+      "activation_status": "KEEP_CHAMPION_MARKET_ONLY_PENDING_S16_P02",
+      "assigned_weight": "0.00",
+      "model_id": "COMBAT_CHALLENGER",
+      "significant_increment": false,
+      "source_contract_id": "AC-S09-P04",
+      "window_assessments": [
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-01"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-02"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-03"
+        }
+      ]
+    },
+    {
+      "activation_status": "KEEP_CHAMPION_MARKET_ONLY_PENDING_S16_P02",
+      "assigned_weight": "0.00",
+      "model_id": "FOOTBALL_SCORE_CHALLENGER",
+      "significant_increment": false,
+      "source_contract_id": "AC-S09-P04",
+      "window_assessments": [
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-01"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-02"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-03"
+        }
+      ]
+    },
+    {
+      "activation_status": "KEEP_CHAMPION_MARKET_ONLY_PENDING_S16_P02",
+      "assigned_weight": "0.00",
+      "model_id": "GENERIC_RESIDUAL_CHALLENGER",
+      "significant_increment": false,
+      "source_contract_id": "AC-S09-P04",
+      "window_assessments": [
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-01"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-02"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-03"
+        }
+      ]
+    },
+    {
+      "activation_status": "KEEP_CHAMPION_MARKET_ONLY_PENDING_S16_P02",
+      "assigned_weight": "0.00",
+      "model_id": "MULTI_SPORT_FALLBACK_CHALLENGER",
+      "significant_increment": false,
+      "source_contract_id": "AC-S09-P04",
+      "window_assessments": [
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-01"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-02"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-03"
+        }
+      ]
+    },
+    {
+      "activation_status": "KEEP_CHAMPION_MARKET_ONLY_PENDING_S16_P02",
+      "assigned_weight": "0.00",
+      "model_id": "RACING_FALLBACK_CHALLENGER",
+      "significant_increment": false,
+      "source_contract_id": "AC-S09-P04",
+      "window_assessments": [
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-01"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-02"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-03"
+        }
+      ]
+    },
+    {
+      "activation_status": "KEEP_CHAMPION_MARKET_ONLY_PENDING_S16_P02",
+      "assigned_weight": "0.00",
+      "model_id": "TENNIS_CHALLENGER",
+      "significant_increment": false,
+      "source_contract_id": "AC-S09-P04",
+      "window_assessments": [
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-01"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-02"
+        },
+        {
+          "assigned_weight": "0.00",
+          "empirical_evidence_status": "NOT_AVAILABLE_IN_S16_P01",
+          "reason_code": "NO_SIGNIFICANT_INCREMENT_EVIDENCE_PRE_S16_P02",
+          "significant_increment": false,
+          "window_id": "S16-P01-FW-03"
+        }
+      ]
+    }
+  ],
+  "champion_model_id": "MARKET_CONSENSUS_CHAMPION",
+  "claim_boundary": {
+    "empirical_model_increment_verified": false,
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "contract_id": "AC-S16-P01",
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "phase_id": "P01",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "registry_sha256": "e4414fe73050ac6a389fa395f82badb0ff7882db81af87870add3219329060a5",
+  "schema_version": "1.0.0",
+  "stage_id": "S16",
+  "summary": {
+    "challenger_count": 6,
+    "nonzero_active_weight_count": 0,
+    "safe_action": "KEEP_CHAMPION_MARKET_ONLY_PENDING_S16_P02",
+    "significant_increment_count": 0
+  }
+}

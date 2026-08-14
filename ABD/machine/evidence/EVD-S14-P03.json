@@ -1,0 +1,614 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S14/P03_test.py --junitxml=machine/evidence/S14/P03/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S14/P03/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S14/P03/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S14-P03 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "component_scope": {
+    "production_runtime_not_claimed": true,
+    "runtime_direct_dependencies": [],
+    "unadmitted_runtime_prerequisites": [
+      "UNADMITTED-ABD-IMAGE",
+      "UNADMITTED-CLOUDFLARED-BINARY",
+      "UNADMITTED-CLOUDFLARE-OVH-RUNTIME"
+    ]
+  },
+  "contract_id": "AC-S14-P03",
+  "decision": "COMPONENT_METADATA_COMPLETE_LOCAL_ONLY_P04_PROVENANCE_REQUIRED",
+  "decision_sha256": "768812b18f01eb074861ee47e9e3f8b277acb9830addd3e404a3710026fc7c45",
+  "deterministic_replay": {
+    "production_component_count": 1,
+    "real_time_wait_performed": false,
+    "single_pass_snapshot_count": 13
+  },
+  "evidence_id": "EVD-S14-P03",
+  "execution_policy": {
+    "broad_suite_or_real_time_wait_allowed": false,
+    "external_runtime_access_allowed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "offline_deterministic_only": true,
+    "phase_test_only": true
+  },
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-08-09T00:00:00+10:00",
+  "hashes": {
+    "code": "d2ce4b9618383ca9ca307c6eb53a8344bf1d115d99cf5633f02a0cbe34bc82cf",
+    "inputs": {
+      "../LICENSE": "aac7f387d4714b270cc91576fdb4e96bb92e14cec27c104c0107bad4ebf6f7df",
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/component_governance.py": "d2ce4b9618383ca9ca307c6eb53a8344bf1d115d99cf5633f02a0cbe34bc82cf",
+      "component_governance.json": "717241b508c80527ee3d667a350d45d3ee38d3015f4ef6f9094d06bc6daf2066",
+      "machine/evidence/EVD-S14-P02.json": "ef081da80f4b8d690dcc396cf762d5998d761136a95bd04dd5ece0c942d4fee9",
+      "machine/evidence/EVD-S14-P02_rollback.json": "1000e28224fb747657065d500cc903560ed0bcc97ee7a8ebd8665b251c0f0d70",
+      "machine/evidence/S14/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S14/P03/pytest.xml": "2af6089f1c3056a0742cf4f340d6d3cc454adb30de9887b4a70d356ef884b2aa",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/dependency_budget.lock": "4904a86b7561456edef9f5e4c9da3e8fa5562a83892f224e58ea3a7511e66b06",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S14_P03.json": "460eb7cd79aa7c1ca60a6a9bdcaaa523e79c6c8fc5618f050e79bf422218f68c",
+      "patch_sla.json": "efd03538bd1d8566db07070a9f003aa048f30e1cecb09dc9588318f51d094859",
+      "pyproject.toml": "ed30542952d445085e1f7724872bda1b697898f90576bf9bd65fd3191719bb72",
+      "sbom.json": "c0648815a4453ed5b203d7c3778f1306141b972251c8a1c511c6ff6a2abb961e",
+      "tests/S14/P03_test.py": "2022e2024abd435b6384f6d3217888b08eb24feaab38c86802e166a56a1d30f7",
+      "uv.lock": "982a3044aabd62584d76cddcbd9dfcfe761482a5e60248ad5e299c18fd2ad9cf"
+    },
+    "rollback_evidence": "39437e5a68e6cb86bc6a4122bcda763b501be4196d2973a64c0d2a2b2c8d64b2"
+  },
+  "next": "S14/P04_READY_NOT_STARTED",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S14_P03_LOCAL_EVIDENCE_ONLY_P04_AND_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S14-P03",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S14-P03_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S14",
+  "status": "PASS",
+  "validation": {
+    "analysis": {
+      "development_component_count": 12,
+      "external_account_or_runtime_used": false,
+      "external_network_used": false,
+      "live_vulnerability_database_queried": false,
+      "production_component_count": 1,
+      "production_components_complete": 1,
+      "production_components_incomplete": 0,
+      "production_runtime_inventory_verified": false,
+      "runtime_direct_dependency_count": 0,
+      "status": "PASS",
+      "unadmitted_runtime_prerequisite_count": 3
+    },
+    "checks": [
+      {
+        "detail": {
+          "index": true,
+          "predecessor_verifier": "PASS",
+          "receipt": true,
+          "rollback": true
+        },
+        "id": "S14P03-P02-SIGNED-DEPENDENCY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "aac7f387d4714b270cc91576fdb4e96bb92e14cec27c104c0107bad4ebf6f7df",
+          "expected": "aac7f387d4714b270cc91576fdb4e96bb92e14cec27c104c0107bad4ebf6f7df"
+        },
+        "id": "S14P03-BASELINE-ROOT-LICENSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S14P03-BASELINE-PURSUE_GOAL_PROMPT-TXT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S14P03-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S14P03-BASELINE-MACHINE-FACTS-ACCEPTANCE_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S14P03-BASELINE-MACHINE-FACTS-CANONICAL_FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4904a86b7561456edef9f5e4c9da3e8fa5562a83892f224e58ea3a7511e66b06",
+          "expected": "4904a86b7561456edef9f5e4c9da3e8fa5562a83892f224e58ea3a7511e66b06"
+        },
+        "id": "S14P03-BASELINE-MACHINE-FACTS-DEPENDENCY_BUDGET-LOCK",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S14P03-BASELINE-MACHINE-FACTS-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S14P03-BASELINE-MACHINE-FACTS-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S14P03-BASELINE-MACHINE-FACTS-ROADMAP-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S14P03-BASELINE-MACHINE-FACTS-TASK_GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S14P03-BASELINE-MACHINE-FACTS-TRACEABILITY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ed30542952d445085e1f7724872bda1b697898f90576bf9bd65fd3191719bb72",
+          "expected": "ed30542952d445085e1f7724872bda1b697898f90576bf9bd65fd3191719bb72"
+        },
+        "id": "S14P03-BASELINE-PYPROJECT-TOML",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "982a3044aabd62584d76cddcbd9dfcfe761482a5e60248ad5e299c18fd2ad9cf",
+          "expected": "982a3044aabd62584d76cddcbd9dfcfe761482a5e60248ad5e299c18fd2ad9cf"
+        },
+        "id": "S14P03-BASELINE-UV-LOCK",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/requirements.json",
+        "id": "S14P03-REQUIREMENTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/acceptance_contracts.json",
+        "id": "S14P03-CONTRACTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/task_graph.json",
+        "id": "S14P03-TASK-GRAPH-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/traceability_matrix.json",
+        "id": "S14P03-TRACEABILITY-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/evidence_index.jsonl",
+        "id": "S14P03-EVIDENCE-INDEX-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "index_status": "PLANNED",
+          "task_ids": [
+            "T-S14-P03-01",
+            "T-S14-P03-02",
+            "T-S14-P03-03"
+          ]
+        },
+        "id": "S14P03-REQUIREMENT-ACCEPTANCE-TASK-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "sbom.json",
+        "id": "S14P03-SBOM-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "component_governance.json",
+        "id": "S14P03-COMPONENT-GOVERNANCE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "patch_sla.json",
+        "id": "S14P03-PATCH-SLA-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S14_P03.json",
+        "id": "S14P03-FIXTURE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "development_component_count": 12,
+          "production_component_count": 1,
+          "runtime_direct_dependency_count": 0,
+          "unadmitted_runtime_prerequisite_count": 3
+        },
+        "id": "S14P03-SBOM-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "bom_ref",
+          "name",
+          "version",
+          "version_pin",
+          "source",
+          "license",
+          "governance_owner"
+        ],
+        "id": "S14P03-COMPONENT-GOVERNANCE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "24",
+          "168",
+          "720"
+        ],
+        "id": "S14P03-PATCH-SLA-EXACT",
+        "passed": true
+      },
+      {
+        "detail": 13,
+        "id": "S14P03-FIXTURE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "83b70381362ec7c51f0285007dca2f90207eab709f0c07e3b5bbee46caf8ae33",
+          "real_time_soak_waited": false,
+          "reason_codes": [],
+          "recommendation_generated": false,
+          "status": "S14P03_COMPONENT_GOVERNANCE_VERIFIED_NO_ACTION"
+        },
+        "id": "S14P03-ACTUAL-COMPONENT-SNAPSHOT-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "83b70381362ec7c51f0285007dca2f90207eab709f0c07e3b5bbee46caf8ae33",
+          "real_time_soak_waited": false,
+          "reason_codes": [],
+          "recommendation_generated": false,
+          "status": "S14P03_COMPONENT_GOVERNANCE_VERIFIED_NO_ACTION"
+        },
+        "id": "S14P03-CASE-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "f18c2988c871ae16a73b923bd59618ec4336fa8904fa35525fed8bec494cb3d5",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "P02_RECEIPT_NOT_CURRENT"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P03_COMPONENT_GOVERNANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P03-CASE-P02_PREDECESSOR_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "0d711242edaf57c46a5aa3a04c334338696ae0e4124d25be49df7bbaa80bea54",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "SBOM_NOT_CLOSED"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P03_COMPONENT_GOVERNANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P03-CASE-SBOM_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "59ba5dd74093ab18a007052aa140dc303e72c0e73a6035463c79e83e096de441",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "COMPONENT_GOVERNANCE_NOT_CLOSED"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P03_COMPONENT_GOVERNANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P03-CASE-GOVERNANCE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "5ca28cc75328a69228232539e12b05f362208cd863c887a92b8a31a6a62b25a5",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "PATCH_SLA_NOT_CLOSED"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P03_COMPONENT_GOVERNANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P03-CASE-PATCH_SLA_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "6daf57a8aaf47e803e462161e4c41457807df661470a421d587b29b74747cdbd",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "PRODUCTION_COMPONENT_METADATA_INCOMPLETE"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P03_COMPONENT_GOVERNANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P03-CASE-METADATA_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "e282e77203ac39e9f4094564b4d65cccc999905ab21ae2d5ce7c25cffc86699f",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "VERSION_PIN_NOT_EXACT"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P03_COMPONENT_GOVERNANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P03-CASE-VERSION_PIN_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "bd48268857133d15dc2dc57cac60e7379d3975b9c62b2ab6dca58d0ad8a46600",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "UNADMITTED_RUNTIME_COMPONENT_NOT_BLOCKED"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P03_COMPONENT_GOVERNANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P03-CASE-UNADMITTED_RUNTIME_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "740ca28a3cb8a4cc6a923f4e439c6773675da449c4b2765190653e54b9bbf0e3",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "EXTERNAL_ACTION_BOUNDARY_RELAXED"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P03_COMPONENT_GOVERNANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P03-CASE-EXTERNAL_BOUNDARY_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "cc6d9e78109efe3379a987407b0f05c77907349398bf3c01938d4367488fc595",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "PRODUCTION_COMPONENT_COUNT_NOT_EXACT"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P03_COMPONENT_GOVERNANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P03-CASE-PRODUCTION_COUNT_LOW_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "cc6d9e78109efe3379a987407b0f05c77907349398bf3c01938d4367488fc595",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "PRODUCTION_COMPONENT_COUNT_NOT_EXACT"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P03_COMPONENT_GOVERNANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P03-CASE-PRODUCTION_COUNT_HIGH_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "29cde3e71e4c3f338c5bd727e25492904f69106c86c212a7d485e7a4f460a8cb",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "COMPONENT_METADATA_COVERAGE_NOT_EXACT"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P03_COMPONENT_GOVERNANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P03-CASE-POINT_0001_COVERAGE_FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "output_sha256": "09c5488db859252ddae8568859608996e2a9a38f35b86c01e744d3df111499b3",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "COMPONENT_METADATA_COVERAGE_NOT_EXACT",
+            "FOREIGN_ODDS_INPUT_REJECTED"
+          ],
+          "recommendation_generated": false,
+          "status": "S14P03_COMPONENT_GOVERNANCE_REJECTED_NO_ACTION"
+        },
+        "id": "S14P03-CASE-POINT_0001_COVERAGE_OVERFAIL_AND_FOREIGN_ODDS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 35
+        },
+        "id": "S14P03-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S14/P03/paid_dependency_scan.txt",
+        "id": "S14P03-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S14P03-TASKPACK-STATIC-VALIDATION-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S14-P03",
+    "decision": "COMPONENT_METADATA_COMPLETE_LOCAL_ONLY_P04_PROVENANCE_REQUIRED",
+    "hashes": {
+      "../LICENSE": "aac7f387d4714b270cc91576fdb4e96bb92e14cec27c104c0107bad4ebf6f7df",
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "machine/evidence/EVD-S14-P02.json": "ef081da80f4b8d690dcc396cf762d5998d761136a95bd04dd5ece0c942d4fee9",
+      "machine/evidence/EVD-S14-P02_rollback.json": "1000e28224fb747657065d500cc903560ed0bcc97ee7a8ebd8665b251c0f0d70",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/dependency_budget.lock": "4904a86b7561456edef9f5e4c9da3e8fa5562a83892f224e58ea3a7511e66b06",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "pyproject.toml": "ed30542952d445085e1f7724872bda1b697898f90576bf9bd65fd3191719bb72",
+      "uv.lock": "982a3044aabd62584d76cddcbd9dfcfe761482a5e60248ad5e299c18fd2ad9cf"
+    },
+    "next": "S14/P04_READY_NOT_STARTED",
+    "phase_id": "P03",
+    "requirement_id": "REQ-S14-P03",
+    "snapshot": {
+      "external_network_used": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submission_enabled": false,
+      "output_sha256": "83b70381362ec7c51f0285007dca2f90207eab709f0c07e3b5bbee46caf8ae33",
+      "real_time_soak_waited": false,
+      "reason_codes": [],
+      "recommendation_generated": false,
+      "status": "S14P03_COMPONENT_GOVERNANCE_VERIFIED_NO_ACTION"
+    },
+    "stage_id": "S14",
+    "status": "PASS",
+    "summary": {
+      "checks": 45,
+      "failed": 0,
+      "failed_ids": [],
+      "passed": 45
+    }
+  }
+}

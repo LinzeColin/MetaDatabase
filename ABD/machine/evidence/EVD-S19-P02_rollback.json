@@ -1,0 +1,64 @@
+{
+  "artifacts": {
+    "abd_acceptance/shadow_beta.py": {
+      "sha256": "67a521e124f076dba882db80a61984e4d690b35429dd76adf552d8162ff6d598",
+      "status": "PASS"
+    },
+    "abd_acceptance/shadow_beta_acceptance.py": {
+      "sha256": "482e8673ed72a12ba4661dd21a930af83151085cef15394bef4fce2a688e0d30",
+      "status": "PASS"
+    },
+    "capacity_report.json": {
+      "sha256": "0dfa4b67eb93f75e101adce94bb534fd8d9fbe7e7f139e5bd60ffa48fd81c11b",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S19-P01.json": {
+      "sha256": "183fc545bad654f5ee851fcb828433e0e7949396c83f8c67354ccc220c492219",
+      "status": "PASS"
+    },
+    "machine/facts/release_policy.json": {
+      "sha256": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S19_P02.json": {
+      "sha256": "ce4d177d4a94ec59882fb31c72a7b3db08486aa31576f7dcab96ac6d0f06e749",
+      "status": "PASS"
+    },
+    "model_beta_gate.json": {
+      "sha256": "cc64fb221b36925e09b1bcfffa3236e63dc7fc2ab6e0a4f67886ffbff7860dac",
+      "status": "PASS"
+    },
+    "model_release_gate.json": {
+      "sha256": "6c4db127f346e644fcc4ec6fd6b9a158a29ad74dc628780a4139e709b4735720",
+      "status": "PASS"
+    },
+    "shadow_report.json": {
+      "sha256": "c482bd9a3006687ec72f498abb84e9f53393a6a2868ba5686ab91da1f1ee9236",
+      "status": "PASS"
+    },
+    "target_acceptance.json": {
+      "sha256": "62ab02e730fda25bd18a58f0a578f3dbf65d4813d3d153ac3dbcec9ff6bcdd76",
+      "status": "PASS"
+    },
+    "tests/S19/P02_test.py": {
+      "sha256": "b4a606dbf67186631a2c390bb78cb9a7bbc9528f47693f06688207cf741f1a0d",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S19-P02",
+  "evidence_id": "EVD-S19-P02-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "model:s19_p02_shadow_beta_local_only",
+  "immutable_evidence_and_replay_preserved": true,
+  "incremental_cash_spent_aud": "0.00",
+  "mail_sent": false,
+  "mode": "DISABLE_S19_P02_LOCAL_SHADOW_FEATURE_RESTORE_SIGNED_S19_P01_EVIDENCE_KEEP_MODEL_BETA_BLOCKED",
+  "model_activation_enabled": false,
+  "order_submission_enabled": false,
+  "previous_signed_artifact": "machine/evidence/EVD-S19-P01.json",
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

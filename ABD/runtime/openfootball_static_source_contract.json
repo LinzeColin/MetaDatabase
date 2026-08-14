@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "ABD-POST-FREEZE-OPENFOOTBALL-STATIC-002",
+  "product_version": "0.0.0.1",
+  "status": "ONE_SHOT_MANUAL_INTERNAL_IMPORT_ONLY",
+  "source": {
+    "source_id": "OPENFOOTBALL_ENGLAND_PREMIER_LEAGUE_2025_26_RESULTS",
+    "publisher": "OpenFootball / football.db",
+    "repository_url": "https://github.com/openfootball/england",
+    "license_url": "https://github.com/openfootball/england/blob/master/LICENSE.md",
+    "license_metadata_url": "https://api.github.com/repos/openfootball/england/license",
+    "license_metadata_content_git_sha1": "670154e3538863b2d9891fd5483160fbdfc89164",
+    "source_url": "https://raw.githubusercontent.com/openfootball/england/master/2025-26/1-premierleague.txt",
+    "source_format": "Football.TXT",
+    "formal_license_spdx": "CC0-1.0",
+    "formal_license_name": "Creative Commons Zero v1.0 Universal",
+    "permitted_use_here": "INTERNAL_HISTORICAL_RESULT_CALIBRATION_RESEARCH_ONLY",
+    "data_scope": "HISTORICAL_MATCH_RESULTS_ONLY",
+    "prohibited_claims": [
+      "official_competition_record_equivalence",
+      "market_price_feed",
+      "current_provider_price_truth",
+      "TAB_or_Sportsbet_equivalence",
+      "real_time_market_coverage"
+    ]
+  },
+  "collection": {
+    "automatic_scheduler_allowed": false,
+    "automatic_retry_allowed": false,
+    "maximum_network_fetches_for_this_contract": 3,
+    "network_fetch_plan": [
+      "github_license_metadata_check",
+      "bounded_schema_preflight",
+      "single_full_static_download"
+    ],
+    "collection_mode": "MANUAL_ONE_SHOT_STATIC_FILE",
+    "raw_data_destination": "Private-MetaDatabase_only",
+    "source_code_repository_raw_data_allowed": false,
+    "source_data_republication_by_ABD_allowed": false
+  },
+  "schema": {
+    "competition_header": "= England | Premier League 2025/26",
+    "dates_header": "# Dates    Fri Aug 15 2025 - Sun May 24 2026 (282d)",
+    "teams_header": "# Teams    20",
+    "matches_header": "# Matches  380",
+    "season_start": "2025-08-15",
+    "season_end": "2026-05-24",
+    "expected_team_count": 20,
+    "expected_match_count": 380,
+    "result_data_scope": "FINAL_SCORE_ONLY"
+  },
+  "runtime_boundary": {
+    "runtime_network_collection_enabled": false,
+    "dynamic_platform_collection_enabled": false,
+    "real_time_freshness_claimed": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submission_enabled": false,
+    "market_account_TAB_or_Gmail_accessed": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "rollback": {
+    "action": "QUARANTINE_THIS_SOURCE_VERSION_AND_DISABLE_FUTURE_IMPORTS",
+    "immutable_raw_evidence_deleted_automatically": false,
+    "affected_capabilities": [
+      "OPENFOOTBALL_ENGLAND_PREMIER_LEAGUE_2025_26_RESULTS_STATIC_ONLY"
+    ]
+  }
+}

@@ -189,3 +189,23 @@ def test_archiveweb_wacz_import_is_an_explicit_l2_file_projection(settings, stor
     assert len(artifacts) == 1
     assert artifacts[0]["archive_level"] == "L2"
     assert Path(artifacts[0]["local_path"]).is_file()
+
+
+def test_shell_scripts_brace_variables_before_multibyte_text():
+    # Under a C/POSIX locale -- what systemd units and `docker exec` normally
+    # get -- bash folds a leading multi-byte continuation byte into a bare
+    # $name, so "$secret；" resolved to an unbound "secret\xef" and `set -u`
+    # aborted the script.  Every expansion followed by non-ASCII text must be
+    # braced so it parses identically in any locale.
+    import re
+
+    root = Path(__file__).resolve().parents[2]
+    pattern = re.compile(rb"\$[A-Za-z_][A-Za-z0-9_]*[\xc2-\xf4]")
+    offenders = []
+    for path in sorted(root.rglob("*.sh")):
+        if ".venv" in path.parts:
+            continue
+        for number, line in enumerate(path.read_bytes().split(b"\n"), 1):
+            if pattern.search(line):
+                offenders.append(f"{path.relative_to(root)}:{number}")
+    assert offenders == [], f"unbraced expansion before multi-byte text: {offenders}"

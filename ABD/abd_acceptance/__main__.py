@@ -40,6 +40,23 @@ from .source_capabilities import write_phase_evidence as write_source_capability
 from .source_scheduler import write_phase_evidence as write_source_scheduler_phase_evidence
 from .coverage_observability import write_phase_evidence as write_coverage_observability_phase_evidence
 from .stage5_review import write_stage5_review_evidence
+from .stage11_review import verify_existing_stage_review_evidence, write_stage_review_evidence as write_stage11_review_evidence
+from .stage12_review import verify_existing_stage_review_evidence as verify_existing_stage12_review_evidence
+from .stage12_review import write_stage_review_evidence as write_stage12_review_evidence
+from .stage13_review import verify_existing_stage_review_evidence as verify_existing_stage13_review_evidence
+from .stage13_review import write_stage_review_evidence as write_stage13_review_evidence
+from .stage14_review import verify_existing_stage_review_evidence as verify_existing_stage14_review_evidence
+from .stage14_review import write_stage_review_evidence as write_stage14_review_evidence
+from .stage15_review import verify_existing_stage_review_evidence as verify_existing_stage15_review_evidence
+from .stage15_review import write_stage_review_evidence as write_stage15_review_evidence
+from .stage16_review import verify_existing_stage_review_evidence as verify_existing_stage16_review_evidence
+from .stage16_review import write_stage_review_evidence as write_stage16_review_evidence
+from .stage17_review import verify_existing_stage_review_evidence as verify_existing_stage17_review_evidence
+from .stage17_review import write_stage_review_evidence as write_stage17_review_evidence
+from .stage18_review import verify_existing_stage_review_evidence as verify_existing_stage18_review_evidence
+from .stage18_review import write_stage_review_evidence as write_stage18_review_evidence
+from .stage19_review import verify_existing_stage_review_evidence as verify_existing_stage19_review_evidence
+from .stage19_review import write_stage_review_evidence as write_stage19_review_evidence
 from .gmail_authorization import write_phase_evidence as write_gmail_authorization_phase_evidence
 from .mail_preservation import write_phase_evidence as write_mail_preservation_phase_evidence
 from .attachment_security import write_phase_evidence as write_attachment_security_phase_evidence
@@ -57,6 +74,94 @@ from .market_consensus import verify_existing_phase_evidence as verify_market_co
 from .market_consensus import write_phase_evidence as write_market_consensus_phase_evidence
 from .outlier_line_movement import verify_existing_phase_evidence as verify_outlier_line_movement_phase_evidence
 from .outlier_line_movement import write_phase_evidence as write_outlier_line_movement_phase_evidence
+from .generic_residual import verify_existing_phase_evidence as verify_generic_residual_phase_evidence
+from .generic_residual import write_phase_evidence as write_generic_residual_phase_evidence
+from .tennis_combat_models import verify_existing_phase_evidence as verify_tennis_combat_models_phase_evidence
+from .tennis_combat_models import write_phase_evidence as write_tennis_combat_models_phase_evidence
+from .score_football_models import verify_existing_phase_evidence as verify_score_football_models_phase_evidence
+from .score_football_models import write_phase_evidence as write_score_football_models_phase_evidence
+from .multi_sport_fallback import verify_existing_phase_evidence as verify_multi_sport_fallback_phase_evidence
+from .multi_sport_fallback import write_phase_evidence as write_multi_sport_fallback_phase_evidence
+from .temporal_calibration import verify_existing_phase_evidence as verify_temporal_calibration_phase_evidence
+from .temporal_calibration import write_phase_evidence as write_temporal_calibration_phase_evidence
+from .uncertainty import verify_existing_phase_evidence as verify_uncertainty_phase_evidence
+from .uncertainty import write_phase_evidence as write_uncertainty_phase_evidence
+from .decimal_math import verify_existing_phase_evidence as verify_decimal_math_phase_evidence
+from .decimal_math import write_phase_evidence as write_decimal_math_phase_evidence
+from .robustness_gate import verify_existing_phase_evidence as verify_robustness_gate_phase_evidence
+from .robustness_gate import write_phase_evidence as write_robustness_gate_phase_evidence
+from .friction import verify_existing_phase_evidence as verify_friction_phase_evidence
+from .friction import write_phase_evidence as write_friction_phase_evidence
+from .decision_gate import verify_existing_phase_evidence as verify_decision_gate_phase_evidence
+from .decision_gate import write_phase_evidence as write_decision_gate_phase_evidence
+from .platform_router import verify_existing_phase_evidence as verify_platform_router_phase_evidence
+from .platform_router import write_phase_evidence as write_platform_router_phase_evidence
+from .risk_engine import verify_existing_phase_evidence as verify_risk_engine_phase_evidence
+from .risk_engine import write_phase_evidence as write_risk_engine_phase_evidence
+from .target_curve import verify_existing_phase_evidence as verify_target_curve_phase_evidence
+from .target_curve import write_phase_evidence as write_target_curve_phase_evidence
+from .capacity_correlation import verify_existing_phase_evidence as verify_capacity_correlation_phase_evidence
+from .capacity_correlation import write_phase_evidence as write_capacity_correlation_phase_evidence
+from .economics_sensitivity import verify_existing_phase_evidence as verify_economics_sensitivity_phase_evidence
+from .economics_sensitivity import write_phase_evidence as write_economics_sensitivity_phase_evidence
+from .target_falsification_gate import verify_existing_phase_evidence as verify_target_falsification_phase_evidence
+from .target_falsification_gate import write_phase_evidence as write_target_falsification_phase_evidence
+from .chinese_workbench import verify_existing_phase_evidence as verify_chinese_workbench_phase_evidence
+from .chinese_workbench import write_phase_evidence as write_chinese_workbench_phase_evidence
+from .platform_quote_check import verify_existing_phase_evidence as verify_platform_quote_check_phase_evidence
+from .platform_quote_check import write_phase_evidence as write_platform_quote_check_phase_evidence
+from .post_advice_settlement import verify_existing_phase_evidence as verify_post_advice_settlement_phase_evidence
+from .post_advice_settlement import write_phase_evidence as write_post_advice_settlement_phase_evidence
+from .journey_paths import verify_existing_phase_evidence as verify_journey_paths_phase_evidence
+from .journey_paths import write_phase_evidence as write_journey_paths_phase_evidence
+from .threat_model import verify_existing_phase_evidence as verify_threat_model_phase_evidence
+from .threat_model import write_phase_evidence as write_threat_model_phase_evidence
+from .security_analysis import verify_existing_phase_evidence as verify_security_analysis_phase_evidence
+from .security_analysis import write_phase_evidence as write_security_analysis_phase_evidence
+from .component_governance import verify_existing_phase_evidence as verify_component_governance_phase_evidence
+from .component_governance import write_phase_evidence as write_component_governance_phase_evidence
+from .artifact_provenance import verify_existing_phase_evidence as verify_artifact_provenance_phase_evidence
+from .artifact_provenance import write_phase_evidence as write_artifact_provenance_phase_evidence
+from .software_correctness import verify_existing_phase_evidence as verify_software_correctness_phase_evidence
+from .software_correctness import write_phase_evidence as write_software_correctness_phase_evidence
+from .source_contract_integration import verify_existing_phase_evidence as verify_source_contract_integration_phase_evidence
+from .source_contract_integration import write_phase_evidence as write_source_contract_integration_phase_evidence
+from .e2e_multi_environment import verify_existing_phase_evidence as verify_e2e_multi_environment_phase_evidence
+from .e2e_multi_environment import write_phase_evidence as write_e2e_multi_environment_phase_evidence
+from .traceability_proxy import verify_existing_phase_evidence as verify_traceability_phase_evidence
+from .traceability_proxy import write_phase_evidence as write_traceability_phase_evidence
+from .model_challenge import verify_existing_phase_evidence as verify_model_challenge_phase_evidence
+from .model_challenge import write_phase_evidence as write_model_challenge_phase_evidence
+from .model_eval import verify_existing_phase_evidence as verify_model_eval_phase_evidence
+from .model_eval import write_phase_evidence as write_model_eval_phase_evidence
+from .model_redteam import verify_existing_phase_evidence as verify_model_redteam_phase_evidence
+from .model_redteam import write_phase_evidence as write_model_redteam_phase_evidence
+from .model_release_gate import verify_existing_phase_evidence as verify_model_release_gate_phase_evidence
+from .model_release_gate import write_phase_evidence as write_model_release_gate_phase_evidence
+from .load_test import verify_existing_phase_evidence as verify_load_test_phase_evidence
+from .load_test import write_phase_evidence as write_load_test_phase_evidence
+from .concurrency_idempotency import verify_existing_phase_evidence as verify_concurrency_idempotency_phase_evidence
+from .concurrency_idempotency import write_phase_evidence as write_concurrency_idempotency_phase_evidence
+from .chaos import verify_existing_phase_evidence as verify_chaos_phase_evidence
+from .chaos import write_phase_evidence as write_chaos_phase_evidence
+from .recovery import verify_existing_phase_evidence as verify_recovery_phase_evidence
+from .recovery import write_phase_evidence as write_recovery_phase_evidence
+from .safe_release import verify_existing_phase_evidence as verify_safe_release_phase_evidence
+from .safe_release import write_phase_evidence as write_safe_release_phase_evidence
+from .observability_alerts import verify_existing_phase_evidence as verify_observability_phase_evidence
+from .observability_alerts import write_phase_evidence as write_observability_phase_evidence
+from .limited_self_heal_acceptance import verify_existing_phase_evidence as verify_limited_self_heal_phase_evidence
+from .limited_self_heal_acceptance import write_phase_evidence as write_limited_self_heal_phase_evidence
+from .operations_automation_acceptance import verify_existing_phase_evidence as verify_operations_automation_phase_evidence
+from .operations_automation_acceptance import write_phase_evidence as write_operations_automation_phase_evidence
+from .walking_skeleton_acceptance import verify_existing_phase_evidence as verify_walking_skeleton_phase_evidence
+from .walking_skeleton_acceptance import write_phase_evidence as write_walking_skeleton_phase_evidence
+from .shadow_beta_acceptance import verify_existing_phase_evidence as verify_shadow_beta_phase_evidence
+from .shadow_beta_acceptance import write_phase_evidence as write_shadow_beta_phase_evidence
+from .ga_reconciliation_acceptance import verify_existing_phase_evidence as verify_ga_reconciliation_phase_evidence
+from .ga_reconciliation_acceptance import write_phase_evidence as write_ga_reconciliation_phase_evidence
+from .final_delivery_acceptance import verify_existing_phase_evidence as verify_final_delivery_phase_evidence
+from .final_delivery_acceptance import write_phase_evidence as write_final_delivery_phase_evidence
 
 
 def main() -> int:
@@ -89,6 +194,59 @@ def main() -> int:
             "AC-S08-P02": verify_source_independence_phase_evidence,
             "AC-S08-P03": verify_market_consensus_phase_evidence,
             "AC-S08-P04": verify_outlier_line_movement_phase_evidence,
+            "AC-S09-P01": verify_generic_residual_phase_evidence,
+            "AC-S09-P02": verify_tennis_combat_models_phase_evidence,
+            "AC-S09-P03": verify_score_football_models_phase_evidence,
+            "AC-S09-P04": verify_multi_sport_fallback_phase_evidence,
+            "AC-S10-P01": verify_temporal_calibration_phase_evidence,
+            "AC-S10-P02": verify_uncertainty_phase_evidence,
+            "AC-S10-P03": verify_decimal_math_phase_evidence,
+            "AC-S10-P04": verify_robustness_gate_phase_evidence,
+            "AC-S11-P01": verify_friction_phase_evidence,
+            "AC-S11-P02": verify_decision_gate_phase_evidence,
+            "AC-S11-P03": verify_platform_router_phase_evidence,
+            "AC-S11-P04": verify_risk_engine_phase_evidence,
+            "AC-S12-P01": verify_target_curve_phase_evidence,
+            "AC-S12-P02": verify_capacity_correlation_phase_evidence,
+            "AC-S12-P03": verify_economics_sensitivity_phase_evidence,
+            "AC-S12-P04": verify_target_falsification_phase_evidence,
+            "AC-S13-P01": verify_chinese_workbench_phase_evidence,
+            "AC-S13-P02": verify_platform_quote_check_phase_evidence,
+            "AC-S13-P03": verify_post_advice_settlement_phase_evidence,
+            "AC-S13-P04": verify_journey_paths_phase_evidence,
+            "AC-S14-P01": verify_threat_model_phase_evidence,
+            "AC-S14-P02": verify_security_analysis_phase_evidence,
+            "AC-S14-P03": verify_component_governance_phase_evidence,
+            "AC-S14-P04": verify_artifact_provenance_phase_evidence,
+            "AC-S15-P01": verify_software_correctness_phase_evidence,
+            "AC-S15-P02": verify_source_contract_integration_phase_evidence,
+            "AC-S15-P03": verify_e2e_multi_environment_phase_evidence,
+            "AC-S15-P04": verify_traceability_phase_evidence,
+            "AC-S16-P01": verify_model_challenge_phase_evidence,
+            "AC-S16-P02": verify_model_eval_phase_evidence,
+            "AC-S16-P03": verify_model_redteam_phase_evidence,
+            "AC-S16-P04": verify_model_release_gate_phase_evidence,
+            "AC-S17-P01": verify_load_test_phase_evidence,
+            "AC-S17-P02": verify_concurrency_idempotency_phase_evidence,
+            "AC-S17-P03": verify_chaos_phase_evidence,
+            "AC-S17-P04": verify_recovery_phase_evidence,
+            "AC-S18-P01": verify_safe_release_phase_evidence,
+            "AC-S18-P02": verify_observability_phase_evidence,
+            "AC-S18-P03": verify_limited_self_heal_phase_evidence,
+            "AC-S18-P04": verify_operations_automation_phase_evidence,
+            "AC-S19-P01": verify_walking_skeleton_phase_evidence,
+            "AC-S19-P02": verify_shadow_beta_phase_evidence,
+            "AC-S19-P03": verify_ga_reconciliation_phase_evidence,
+            "AC-S19-P04": verify_final_delivery_phase_evidence,
+            "STAGE-REVIEW-S11": verify_existing_stage_review_evidence,
+            "STAGE-REVIEW-S12": verify_existing_stage12_review_evidence,
+            "STAGE-REVIEW-S13": verify_existing_stage13_review_evidence,
+            "STAGE-REVIEW-S14": verify_existing_stage14_review_evidence,
+            "STAGE-REVIEW-S15": verify_existing_stage15_review_evidence,
+            "STAGE-REVIEW-S16": verify_existing_stage16_review_evidence,
+            "STAGE-REVIEW-S17": verify_existing_stage17_review_evidence,
+            "STAGE-REVIEW-S18": verify_existing_stage18_review_evidence,
+            "STAGE-REVIEW-S19": verify_existing_stage19_review_evidence,
         }
         if args.verify_existing not in existing_verifiers:
             parser.error("existing evidence verifier is not implemented: %s" % args.verify_existing)
@@ -152,6 +310,59 @@ def main() -> int:
         "AC-S08-P02": write_source_independence_phase_evidence,
         "AC-S08-P03": write_market_consensus_phase_evidence,
         "AC-S08-P04": write_outlier_line_movement_phase_evidence,
+        "AC-S09-P01": write_generic_residual_phase_evidence,
+        "AC-S09-P02": write_tennis_combat_models_phase_evidence,
+        "AC-S09-P03": write_score_football_models_phase_evidence,
+        "AC-S09-P04": write_multi_sport_fallback_phase_evidence,
+        "AC-S10-P01": write_temporal_calibration_phase_evidence,
+        "AC-S10-P02": write_uncertainty_phase_evidence,
+        "AC-S10-P03": write_decimal_math_phase_evidence,
+        "AC-S10-P04": write_robustness_gate_phase_evidence,
+        "AC-S11-P01": write_friction_phase_evidence,
+        "AC-S11-P02": write_decision_gate_phase_evidence,
+        "AC-S11-P03": write_platform_router_phase_evidence,
+        "AC-S11-P04": write_risk_engine_phase_evidence,
+        "AC-S12-P01": write_target_curve_phase_evidence,
+        "AC-S12-P02": write_capacity_correlation_phase_evidence,
+        "AC-S12-P03": write_economics_sensitivity_phase_evidence,
+        "AC-S12-P04": write_target_falsification_phase_evidence,
+        "AC-S13-P01": write_chinese_workbench_phase_evidence,
+        "AC-S13-P02": write_platform_quote_check_phase_evidence,
+        "AC-S13-P03": write_post_advice_settlement_phase_evidence,
+        "AC-S13-P04": write_journey_paths_phase_evidence,
+        "AC-S14-P01": write_threat_model_phase_evidence,
+        "AC-S14-P02": write_security_analysis_phase_evidence,
+        "AC-S14-P03": write_component_governance_phase_evidence,
+        "AC-S14-P04": write_artifact_provenance_phase_evidence,
+        "AC-S15-P01": write_software_correctness_phase_evidence,
+        "AC-S15-P02": write_source_contract_integration_phase_evidence,
+        "AC-S15-P03": write_e2e_multi_environment_phase_evidence,
+        "AC-S15-P04": write_traceability_phase_evidence,
+        "AC-S16-P01": write_model_challenge_phase_evidence,
+        "AC-S16-P02": write_model_eval_phase_evidence,
+        "AC-S16-P03": write_model_redteam_phase_evidence,
+        "AC-S16-P04": write_model_release_gate_phase_evidence,
+        "AC-S17-P01": write_load_test_phase_evidence,
+        "AC-S17-P02": write_concurrency_idempotency_phase_evidence,
+        "AC-S17-P03": write_chaos_phase_evidence,
+        "AC-S17-P04": write_recovery_phase_evidence,
+        "AC-S18-P01": write_safe_release_phase_evidence,
+        "AC-S18-P02": write_observability_phase_evidence,
+        "AC-S18-P03": write_limited_self_heal_phase_evidence,
+        "AC-S18-P04": write_operations_automation_phase_evidence,
+        "AC-S19-P01": write_walking_skeleton_phase_evidence,
+        "AC-S19-P02": write_shadow_beta_phase_evidence,
+        "AC-S19-P03": write_ga_reconciliation_phase_evidence,
+        "AC-S19-P04": write_final_delivery_phase_evidence,
+        "STAGE-REVIEW-S11": write_stage11_review_evidence,
+        "STAGE-REVIEW-S12": write_stage12_review_evidence,
+        "STAGE-REVIEW-S13": write_stage13_review_evidence,
+        "STAGE-REVIEW-S14": write_stage14_review_evidence,
+        "STAGE-REVIEW-S15": write_stage15_review_evidence,
+        "STAGE-REVIEW-S16": write_stage16_review_evidence,
+        "STAGE-REVIEW-S17": write_stage17_review_evidence,
+        "STAGE-REVIEW-S18": write_stage18_review_evidence,
+        "STAGE-REVIEW-S19": write_stage19_review_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)

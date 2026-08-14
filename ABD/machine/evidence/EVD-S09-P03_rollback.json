@@ -1,0 +1,50 @@
+{
+  "artifacts": {
+    "abd_acceptance/__init__.py": {
+      "sha256": "4c5d738b04fd901995ec72863c8e4848b3ca2e0ca57e50ebce8ec7c8c1376e1b",
+      "status": "PASS"
+    },
+    "abd_acceptance/__main__.py": {
+      "sha256": "5927351809150aa87a7d1a758c444438526794258f9dc5a57ea6d7aea763b76e",
+      "status": "PASS"
+    },
+    "abd_acceptance/score_football_models.py": {
+      "sha256": "949e14069a6579524dbfc26784d8da9062428d37f474cece9feeaf67388e53ee",
+      "status": "PASS"
+    },
+    "distribution_tests.json": {
+      "sha256": "88558194423cf78c47fd43bf5b5fa2ebcc2d1033127ea5bb48d7bd241691ec38",
+      "status": "PASS"
+    },
+    "football_model.py": {
+      "sha256": "b5a9d264bc3879e0ddc7edb0e4c7256095875a497a3be664eaa97e2655f3a8d5",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S09_P03.json": {
+      "sha256": "987f86373d70d8992af212236848b9b41eadb5a19f516b029cfe06418d84705c",
+      "status": "PASS"
+    },
+    "score_models.py": {
+      "sha256": "286ef8e1359ea3fa3ae936754e0b1f43a2707ef5376e3f4b39c8df5da59b2ac3",
+      "status": "PASS"
+    },
+    "tests/S09/P03_test.py": {
+      "sha256": "a8b4b822d1f698a143eb764882c703a0b23e58eb4e5fefbbb90acd3ae941f164",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S09-P03",
+  "evidence_id": "EVD-S09-P03-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flags": [
+    "model:football_hierarchical_score"
+  ],
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_FOOTBALL_SCOPED_MODEL_FLAG_RESTORE_P02_RECEIPT_KEEP_ALL_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

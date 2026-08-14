@@ -1,168 +1,33 @@
 {
+  "schema_version": "1.0",
   "task_id": "SA-503",
-  "version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.6",
   "stage": "S5",
   "title": "绑定 GitHub 私有归档仓第三密文副本",
-  "status": "PASS",
-  "recorded_at": "2026-08-02T01:38:11Z",
-  "source_main_sha": "fc3b5d8e9eedd18d76588012d40dc51483198712",
-  "semantic_reconcile": {
-    "classification": "adapt",
-    "latest_main_relation": "fast_forwarded_after_no_overlap_reconcile",
-    "upstream_delta": [
-      "CyberBoss/app/src/app/system-checkin-poller.js",
-      "CyberBoss/app/src/core/app.js",
-      "CyberBoss/app/test/proactive-checkin.test.js",
-      "CyberBoss/docs/evidence/CB9-460/live-observation.json",
-      "CyberBoss/docs/evidence/LIVE-20260802/F7-owner-proactive-silent.json"
-    ],
-    "social_archive_overlap": false,
-    "preserved_newer_or_equivalent_main_implementation": true,
-    "adaptation": "Provisioned the configured dedicated private ciphertext repository because the frozen upload script correctly requires an existing private repository and does not provision one."
-  },
+  "status": "BLOCKED_ENVIRONMENT",
+  "implementation_status": "PASS",
+  "live_environment_status": "BLOCKED_ENVIRONMENT",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+  "acceptance_ids": [
+    "AC-SA-503"
+  ],
+  "tests": [
+    "TEST-SA-503"
+  ],
   "oracle": "私有 Draft Release 分片回读后重组 SHA 与 R2/OCI 密文一致；三收据齐后才完成。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "assertions": [
-    {
-      "id": "latest_main_bound",
-      "blocking": true,
-      "status": "PASS",
-      "evidence": "origin/main and execution HEAD are fc3b5d8e9eedd18d76588012d40dc51483198712"
-    },
-    {
-      "id": "private_repository",
-      "blocking": true,
-      "status": "PASS",
-      "evidence": "LinzeColin/Social-Archive-Vault private=true, visibility=private"
-    },
-    {
-      "id": "draft_release",
-      "blocking": true,
-      "status": "PASS",
-      "evidence": "social-archive-backup-20260802T012806Z isDraft=true and was not published"
-    },
-    {
-      "id": "downloaded_asset_set",
-      "blocking": true,
-      "status": "PASS",
-      "evidence": "Manifest and tar asset names exactly matched the Draft Release asset set"
-    },
-    {
-      "id": "manifest_and_pack_integrity",
-      "blocking": true,
-      "status": "PASS",
-      "evidence": "Rebuilt tar SHA-256 49e8e6c1942cddbff87cc6deb3eb2c0982fc071b0fd0c4276b73950d0ffe7609 matched the manifest and release asset"
-    },
-    {
-      "id": "downloaded_cipher_integrity",
-      "blocking": true,
-      "status": "PASS",
-      "evidence": "The single .age member extracted from the downloaded tar hashed to 8c9e7a0af73fd9bf6286c1d509477fa2d0d41e55155ae512e087512dca06a2d8"
-    },
-    {
-      "id": "three_verified_receipts",
-      "blocking": true,
-      "status": "PASS",
-      "evidence": "R2, OCI and GitHub object_replica rows are all verified for art_bb14eeeebda6d460b190081f167a6244"
-    },
-    {
-      "id": "three_receipt_hash_equivalence",
-      "blocking": true,
-      "status": "PASS",
-      "evidence": "All three receipts bind original SHA-256 bc0bc88b3bfc3bd3721c7fe113dfdc478d4a339f8b2596b0775a6b10ca4c2ba9 and ciphertext SHA-256 8c9e7a0af73fd9bf6286c1d509477fa2d0d41e55155ae512e087512dca06a2d8 with age-x25519"
-    },
-    {
-      "id": "security_boundary",
-      "blocking": true,
-      "status": "PASS",
-      "evidence": "No plaintext remote write, no private key, no paid API, no token material in evidence, and both ephemeral Owner credential files were removed"
-    }
+  "result_summary": "第三密文副本未建立。已修复两处真实缺陷：归档仓原指向 Private-Database（会把对象字节面与结构化事实面合并），已改指专用 Vault；该 Vault 实际不存在，已重建为 private。剩余唯一阻塞是 github_token 仍解析不到任何 Vault 仓。",
+  "evidence": [
+    "evidence/SA-503/V006_THIRD_COPY_STATUS_20260803.json"
   ],
-  "repository": {
-    "name_with_owner": "LinzeColin/Social-Archive-Vault",
-    "private": true,
-    "visibility": "private",
-    "default_branch": "main",
-    "issues_enabled": false,
-    "wiki_enabled": false,
-    "initialization": "auto-generated README only",
-    "source_repository_upload": false
+  "blocking_reason": "细粒度 token 按仓库 ID 选择，重建同名仓无法重新挂上，且无任何 API 可扩大其范围；需 Owner 在 GitHub 界面新建仅含 LinzeColin/Social-Archive-Vault、Contents 读写的 token。",
+  "evidence_binding": {
+    "implementation_commit": "812d7a02d303df22c8845b437c36a52f471e3195",
+    "full_application_regression": "310 passed",
+    "taskpack_verify": "PASS, 395 manifest entries, 0 failures"
   },
-  "release": {
-    "tag": "social-archive-backup-20260802T012806Z",
-    "draft": true,
-    "published": false,
-    "assets": [
-      {
-        "name": "social-archive-objects-20260802T012806Z.manifest.json",
-        "size": 832,
-        "sha256": "346c548b1a9676490ea59d8da1db65c4e5466e46df0cc0cd5d710552306c36b5"
-      },
-      {
-        "name": "social-archive-objects-20260802T012806Z.tar",
-        "size": 10240,
-        "sha256": "49e8e6c1942cddbff87cc6deb3eb2c0982fc071b0fd0c4276b73950d0ffe7609"
-      }
-    ]
-  },
-  "artifact": {
-    "artifact_id": "art_bb14eeeebda6d460b190081f167a6244",
-    "original_sha256": "bc0bc88b3bfc3bd3721c7fe113dfdc478d4a339f8b2596b0775a6b10ca4c2ba9",
-    "cipher_sha256": "8c9e7a0af73fd9bf6286c1d509477fa2d0d41e55155ae512e087512dca06a2d8",
-    "encryption": "age-x25519",
-    "pack_sha256": "49e8e6c1942cddbff87cc6deb3eb2c0982fc071b0fd0c4276b73950d0ffe7609"
-  },
-  "replicas": {
-    "r2": {
-      "status": "verified",
-      "object_key": "primary-objects/sha256/bc/0b/bc0bc88b3bfc3bd3721c7fe113dfdc478d4a339f8b2596b0775a6b10ca4c2ba9.age",
-      "etag": "b6c29d00acebba78579e865831fda6a7",
-      "verified_at": "2026-08-02T01:12:01.718847Z"
-    },
-    "oci": {
-      "status": "verified",
-      "object_key": "primary-objects/sha256/bc/0b/bc0bc88b3bfc3bd3721c7fe113dfdc478d4a339f8b2596b0775a6b10ca4c2ba9.age",
-      "etag": "b6c29d00acebba78579e865831fda6a7",
-      "verified_at": "2026-08-02T01:12:02.789610Z"
-    },
-    "github": {
-      "status": "verified",
-      "object_key": "gh-release://LinzeColin/Social-Archive-Vault/social-archive-backup-20260802T012806Z#objects/bc0bc88b3bfc3bd3721c7fe113dfdc478d4a339f8b2596b0775a6b10ca4c2ba9.age",
-      "etag": null,
-      "verified_at": "2026-08-02T01:28:12.650048Z"
-    }
-  },
-  "completion": {
-    "total_artifacts": 4,
-    "required_replicas": 3,
-    "all_three_verified": 2,
-    "pending": 2
-  },
-  "credential_custody": {
-    "configured_production_token": "unchanged; valid identity but not authorized for the newly provisioned repository",
-    "one_time_owner_token": "SSH pipe to root-owned 0600 /run file, exposed only through systemd LoadCredential",
-    "persisted_owner_token": false,
-    "ephemeral_upload_credential_removed": true,
-    "ephemeral_verify_credential_removed": true,
-    "token_material_in_git_chat_log_or_evidence": false
-  },
-  "production_evidence": {
-    "upload_report": "/var/lib/social-archive/evidence/SA-503/20260802T012805Z/UPLOAD.json",
-    "upload_report_sha256": "d8f3e4b9b59ff41e447eee3fafcae4602db6fabd9b4faaf350139e20c646944e",
-    "result": "/var/lib/social-archive/evidence/SA-503/20260802T012805Z/RESULT.json",
-    "result_sha256": "df6a7e545501d0bccf27ffdb1e152b4c230220b5627e9e79e5d3397d0c578af1",
-    "preserved_failed_verifier_1": "/var/lib/social-archive/evidence/SA-503/20260802T012805Z/VERIFY-FAILED-20260802T013113Z.json",
-    "preserved_failed_verifier_1_sha256": "7c2753ccb21b1889969906e603373c9d88a9a0e0b5651e5b51f69117e6331034",
-    "preserved_failed_verifier_2": "/var/lib/social-archive/evidence/SA-503/20260802T012805Z/VERIFY-FAILED-20260802T013311Z.json",
-    "preserved_failed_verifier_2_sha256": "ce6ca3cb4f876d88ca15822d6a3924a66c1fb5deeb993bf836d752b49f2f9485"
-  },
-  "security": {
-    "plaintext_remote_write": false,
-    "private_key_present": false,
-    "paid_api_allowed": false,
-    "source_git_commit_created": false,
-    "source_git_push_performed": false,
-    "release_published": false,
-    "replication_timer_enabled": false
-  }
+  "predecessor_evidence": "evidence/SA-503/history/pre-v0.0.0.6-stage-reverification/PREVIOUS_RESULT.json",
+  "supersedes": "该任务此前的 RESULT.json 记录为 v0.0.0.5 的 PASS。在 v0.0.0.6 下沿用那个 PASS 会把未真正运行的环境门伪装成已通过，故按实测结果重写。",
+  "generated_at": "2026-08-03T07:35:00Z"
 }

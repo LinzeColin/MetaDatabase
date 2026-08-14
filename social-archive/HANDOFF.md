@@ -1,4 +1,344 @@
-# Social Archive handoff
+# Social Archive 交接
+
+> **交给下一个人（或下一个 AI）时，把下面这段整块粘过去就够了。**
+
+```
+你要接手的是 LinzeColin/MetaDatabase 里的 social-archive：一个跑在生产上的
+个人多平台收藏归档系统（B站/抖音/小红书/Reddit/Instagram/Chrome 书签）。
+
+先读 social-archive/HANDOFF.md，从开头一直读到「六、两条绝对不要碰的」为止
+（那一节之后全是历史记录，别照着做）。它会告诉你：现在跑到哪一版、
+什么东西没人管也会继续跑、怎么一眼看出它还活着、只有 Owner 本人能做的那一件、
+坏了去哪儿查、以及哪两样绝对不要碰。
+
+三条不能破的约束（破了会花钱或泄露登录态）：
+1. 云端账单必须恒为 $0.00：禁止 R2 的 InfrequentAccess 存储类，禁止用"整包下载"
+   去判断存在（判存在用 HeadObject）。新增周期任务先算月操作量。
+2. 国内平台的 Cookie 不出 Owner 的浏览器。服务器上一个都不许有——
+   部署第 0.9 步就是专门查这件事的硬闸。
+3. 开发一律在 git worktree 里做，主工作树永远停 main、永远干净。
+
+改代码之后必须跑 `bash scripts/deploy_to_production.sh`（在开发机上）：
+它自己带一整套真 Chrome 演练 + 发布门 + 部署后从公开域名回读（数目会变，别记死）。
+不要用 systemctl restart 代替它——那不会重建镜像，代码改动一个字都不会生效。
+
+判活的一条命令：
+curl -s https://social-archive-api.linzezhang.com/health
+看 version / worker.alive / backup.stale / replication.stale（后两个要是 false）。
+```
+
+
+**这一节是当前状态（2026-08-14）。下面每个数字都是当天从生产上量出来的，不是记忆。**
+
+## 一、它现在是什么
+
+| | |
+|---|---|
+| 公开地址 | `https://social-archive.linzezhang.com`（资料库）／ `…-api.…`（接口） |
+| 跑着的版本 | **0.0.0.100**（从本机打公开域名读回来的，不是打回环） |
+| 生产机 | 见 `deploy/PRODUCTION_HOST`——**唯一真源，别把机器名抄进命令** |
+| 你的库 | 内容 **193** 条、关系 **194** 条、制品 **552** 个 |
+| 三份副本 | **552 / 552 全部三份已验证，pending 0** |
+
+**「三份副本」不是登记表上的一个数字。** 最后一次部署（2026-08-14）真的做了这件事：
+
+```
+runtime-db：3/3 份真取回来了（r2 193 条、oci 193 条、github 193 条）
+private-database：1/1 份真取回来了（哈希逐条对）
+disaster-recovery：索引里 552 个制品抽了 25 个——**不是全量**
+                   （起点每次部署挪一格，所以别记这里的窗口号；
+                    当次的窗口写在那次部署日志的 8.69 步）
+三份都是真取回来的（下载 → 解密 → 打开 → 判），不是读登记表
+```
+
+> **明晚之后这套验证不会再自动跑**（它挂在部署里，而不改代码就不会有部署）。
+> 这件事的影响比看上去小：**每一次备份在写进去的时候就当场验过**
+> （上传完立刻回读，`verified_remote_copies: 2` 才算数），而恢复那段代码
+> 之后也不会再变。**真正会悄悄烂掉的面很小。**
+>
+> 要自己重跑一次：`docs/06_运维手册.md` 的 **恢复顺序** 一节。
+
+## 一之二、「聚合真的发生」这件事，证到哪一步了
+
+**已经证到的**（每次部署第 8.55 步真跑一次，2026-08-14 最后一次的结果）：
+
+```
+从 B 站公开收藏夹「B站 × WAIC AI会客厅」真读到 5 条，
+全部进了档案馆并按标题读回来了（不带登录态、他的库没动）
+```
+
+这一条为什么算数：打的是**真 B 站**（真网络，公开收藏夹）；取数用的是**插件里
+那一份** `bilibili-reader.js`，不是另抄一遍；入库走 `/v1/captures/batch`，
+和插件平时送条目**同一条路**；最后**从库里按标题读回来**。
+跑在一次性容器的 tmpfs 上，**跑前跑后各数一次你的库，条数变了就红**。
+全程零费用、不粘 Cookie、不用令牌。
+
+**而用你自己的账号，这件事也已经真的发生过。**（2026-08-14 部署第 8.7／8.87 步
+从生产库里量的，不是演练）
+
+```
+真的进过东西的平台   bilibili、douyin
+现在档案馆里          去重后 186 条是自动同步搬进来的
+最近一次成功的自动同步
+  bilibili            2026-08-04T08:06:08Z
+  douyin              2026-08-04T08:06:50Z
+  xiaohongshu         2026-08-06T10:28:10Z（进 0 条）
+
+你库里 194 条收藏，187 条能追到带它进来的那一次跑，
+7 条压根没记跑，0 条指向已经消失的跑。
+```
+
+> **两个口径别搞混**：186 是**去重后真在库里**的条数；另有一个数 260，
+> 那是各次同步自报的导入数**相加**，同一条重复导入会重复计数——它回答的是
+> 搬过几次，不是搬进来几件。
+> **而且 186 本身可能不全**：导入它们的那 4 次同步**4 次都没跑完**。
+
+服务器上的 `core-worker` 自己跑的，不经过任何人的电脑。
+**为什么现在不再有新东西进来**：三个账号 8/04 之后陆续断开，现在全是
+`disconnected`、自动同步都是关的。**断开不删东西**——已存的一条不少。
+
+**还没证到的那一层，是在今天这版代码上再跑成一次。**
+抖音那条取数路 2026-08-06 换过，换过之后还没有真跑过一次
+（抖音那 85 条缺作者也因此只能靠重新同步来补）。
+这一层只能由你按那一下来完成（见第四节）：它要**真实的用户手势**，
+而国内平台的登录态按设计不出你的浏览器——**这一层我拿不到，也不该拿**。
+
+## 二、没有人照看也会继续跑的部分（当天逐条验过）
+
+- 三个容器 `restart: unless-stopped`，且 `docker` 开机自启 → **重启后自己回来**
+- **四个** systemd 定时器 `enabled`（备份、对象复制、状态投影、私有库同步）→ **重启后自己回来**
+  > 这一行原来写的是「三个」，漏掉的正是**备份**——而 8/12～13 死掉的就是它。
+  > 并且 `enabled` 只说明定时器装着，**不说明它叫起来的活儿干成了**：
+  > 那两天它一直是 `enabled`/`active`，服务却每次都失败。要看干成没有，
+  > 用上面第三节那两个办法（`/health` 的 `backup.stale`，或宿主机上的
+  > `check_durability_units.sh` 第四列）。
+- 自动同步跑在服务器的 `core-worker` 里，**不经过任何人的电脑**
+- 磁盘还很宽裕（**当前值现读**：`curl -s …/health` 的 `disk.used_percent` / `disk.free_gb`；
+  大头是 docker 镜像，归档数据本身很小）
+  > 这里原来写死「31% / 67G」。六次部署之后就变成 35% / 62.25G——
+  > **手抄的易变数字必然漂**，所以改成指给你去哪儿现读。
+
+**也就是说：不改代码的话，这套东西不需要任何人（也不需要任何 agent）。**
+
+## 三、怎么一眼看出它还好着
+
+打开资料库那一页就够了。**坏了它会自己说话**，不用去翻日志：
+
+**一类：跑过，这次没跑成**（等一等可能自己追上）
+
+- 后台没在跑 → 顶部徽章变成「后台没在跑 · 新的同步会排队等着」
+- **没做出新备份** → 徽章说「已经 N 小时没有做出新的备份了——之前存下的内容
+  一条都没少，但这段时间里新进来的东西还没有进过备份。」
+- **备份做出来了、没复制到别处** → 徽章说「备份已经 N 小时没有跑过了——
+  已存下的内容一条都没少，停下来的是『再存一份到别处』这件事。」
+
+**另一类：一次都没跑成过**（**不会自己追上**，要去看是哪个定时器没起来）
+
+- **一次都没备份过** → 徽章说「还没有做出过任何一次备份。」
+- **一次都没复制到别处过** → 徽章说「还没有把任何一份内容复制到别处——
+  你存下的东西都在，但目前它们只存在这一台机器上。」
+- **复制的状态记录坏了** → 徽章说「复制这一步的状态记录坏掉了——
+  你存下的东西都在，但现在没办法确认它们到底有没有第二份。」
+
+后一类在**新装一台机器**、或那个状态文件被删掉时出现。处置是同一条命令
+（在生产机上）：`cd /opt/social-archive && bash scripts/check_durability_units.sh`
+
+> **这两类分开写，是因为混在一起会让人等错东西。** 两条链会单独死：
+> v0.0.0.71 加了备份那条的信号，**而那一版界面只读复制那条**——建好了没接上；
+> v0.0.0.72 接上了，并立了「`/health` 回的每一格都得有人读」这道判据。
+> **v0.0.0.79 才发现同一个病还压着「一次都没跑成过」那一支**：
+> 备份那条会说话，复制那条连 `message_zh` 这个键都不下发，徽章全哑。
+> 根因是「文件不在」（知道）和「读不动」（不知道）被写进了同一个 `except`，
+> 而「不知道」按设计不说话。
+
+要自己确认，打一条命令：
+
+```bash
+curl -s https://social-archive-api.linzezhang.com/health
+```
+
+看四样：`version`、`worker.alive`、**`backup.stale`**、`replication.stale`
+（后两个都要是 `false`）。
+
+> **「一半新一半旧」现在查得出来了**（v0.0.0.98，2026-08-14 下午）。
+>
+> 部署被打断时，可能 `core-api` 换成了新镜像而 `core-worker` 还跑着旧的。
+> 那时 `version` 是 api 报的（新的）、`worker.alive` 是 `true`（旧 worker 照样发心跳），
+> **上面那四样全正常而后台跑的是旧代码**——这是 2026-08-06 那次事故的更坏变体
+> （那次 worker 卡在 `Created`、后台任务全积压，而 /health 是好的）。
+>
+> 现在 worker 每次心跳都写下自己那一版，`/health.worker` 多了三格：
+>
+> ```
+> "version": "0.0.0.98",        ← 后台那一版
+> "api_version": "0.0.0.98",    ← 接口这一版
+> "version_matches": true       ← 对不上时是 false，并且 message_zh 会有话
+> ```
+>
+> 对不上时**资料库顶上会自己说话**（旧 worker 根本不写版本的那种也算对不上）。
+> 所以第三节开头那四样之外，**再看一眼 `worker.version_matches` 就够了**。
+>
+> 还想从另一侧交叉验一次（不信接口自己报的）：
+>
+> ```bash
+> ssh "$(cat deploy/PRODUCTION_HOST)" 'sudo docker ps --format "{{.Names}}  {{.Image}}" | grep social'
+> ```
+>
+> 三个容器的镜像标签应当**完全一样**。不一样就是被打断过，补一条即可
+> （`compose up` 幂等）：
+> `ssh <host> 'cd /opt/social-archive && sudo docker compose up -d core-api core-worker cli-tools'`
+
+> **为什么备份要占两格。** 它是两条会**单独死**的链：`backup` 做出加密快照，
+> `replication` 把快照复制到别处。两次事故各死了一条：
+>
+> - **2026-08-11**，复制服务连着失败 **108 次、28 小时**；
+> - **2026-08-12～13**，备份服务连着两天没做出快照（生产上 8/11 之后隔了两天
+>   才有下一份）。
+>
+> 两次同一个根因：有人把 `/opt/social-archive` 改回 700，而这两个服务都以
+> `socialarchive` 用户跑、共用这个工作目录，连进都进不去。
+>
+> **而两次的绿灯都还是绿的**：`/v1/status` 的 `replicas` 一直是 `verified`——
+> 那是库里记着的**历史回执**，不是"现在还在跑"。第二次更难看：当时只接了
+> `replication` 一格，它活着，就把死掉的 `backup` 整个挡住了。
+>
+> 现在两格分开报，各自读**真产物**：`replication` 读复制脚本每次跑完重写的那个
+> 文件的时间戳；`backup` 读最近一份带 `manifest.json` 的快照目录名。
+> **回执是历史，产物才是活性。**
+
+> **`backup` 那一格背后其实是两条链，而它报的是较旧的那条**（2026-08-14 量的）：
+>
+> | 链 | 节奏 | 份数 |
+> |---|---|---|
+> | `backups/runtime-db` | 每 ~15 分钟一份 | 134 |
+> | `backups/private-database` | 每天 1–2 份 | 21 |
+>
+> 一条链只能和它最陈旧的部分一样新，所以 `/health` 取两条里较旧的——
+> **也就是 `private-database` 那条**，30 小时那个门槛针对的也是它。
+>
+> **要验「今早那次自动备份成没成」，必须看 private-database。**
+> `runtime-db` 每 15 分钟一份、永远是新的——**只查它会给出一个假的通过**
+> （我自己写验收脚本时第一版就是这么写的，空跑才发现）。
+>
+> **30 小时不是拍的。** 那 21 份的实测：相邻间隔中位 **9.6 小时**，
+> 最大 **53.4 小时**（8/11 03:27 → 8/13 08:50，正是那次事故）。
+> 门槛卡在正常节奏和事故之间：前者够不着，后者稳稳触发。
+>
+> **今早 03:32 UTC（北京 11:32）那次是这个洞修好后的第一次真实检验，成了：**
+>
+> ```
+> check_durability_units 第四列   ? 上次成功的是手工那次  →  ✓ 上次成功 03:32:51 UTC
+> private-database                20260814T033247Z  manifest ✓
+> runtime-db                      20260814T033252Z  manifest ✓（含 encrypted/ 和 readback/）
+> ```
+>
+> （第一次量到 runtime-db「manifest 不在」是**竞态**——我在写手还在写时读的，
+> 那个 manifest 的 mtime 是 03:33。**别在写手还跑着的时候量它的输出。**）
+
+> **宿主机上还能再核一层**（要 ssh 上去）：
+>
+> ```bash
+> bash /opt/social-archive/scripts/check_durability_units.sh
+> ```
+>
+> 它现在有第四列「上次跑的结果」。**只看前两列会被骗**：`enabled`/`active` 说的是
+> 定时器本身还在不在，跟它叫起来的服务跑成没跑成毫无关系——上面那两次事故里，
+> 这张表全程都是绿的。红了它会直接告诉你是哪个服务、下一步敲哪三条命令。
+>
+> **第四列有三种值，`?` 那种最容易被当成没问题：**
+>
+> | 印出来的 | 意思 |
+> |---|---|
+> | `✓ 上次成功 <时刻>` | 定时器叫起来的那次真的跑成了 |
+> | `✗ 上次失败 …` | 跑了没成，下面会告诉你查哪个服务 |
+> | `? 上次成功的是**手工**那次 …` | **成功的那次是人手动跑的；定时那次成没成，这几个字段答不了** |
+>
+> 最后那种是 2026-08-14 加的，起因是它真的骗过一次：8/13 定时那次 03:33
+> 以 `200/CHDIR` 失败，我 08:51 手工补跑成功，而 systemd 只保留「最近一次运行」的
+> 结果、**不分是谁叫起来的**——于是表上印 `✓ 上次成功 08:51`，把失败的那次
+> 自动运行整个盖住。**手工能跑通，和没人管也会跑，是两件事**——后者才是这套东西的意义。
+> 看见 `?` 就照它给出的 `journalctl` 命令去看定时那一刻；
+> 下一次自动触发跑完之后，它会自己变回 `✓`。
+
+## 四、只有你能做的那一件
+
+**重新连接那三个账号**（现在 bilibili / douyin / xiaohongshu **全部是 disconnected**）。
+
+资料库 → 每一行点**「连接账号」** → Chrome 弹的授权框选**「允许」**。
+
+只能你做，因为最后那一下要**真实的用户手势**（`chrome.permissions.request` 的硬限制），
+无头浏览器点不了；而国内平台的 Cookie 按设计不出你的浏览器。
+
+**断开不删东西**——已经存下的 193 条一条不少，只是不再自动跑。
+
+## 五、坏了怎么办
+
+`docs/06_运维手册.md`。回滚、体检、备份、恢复都在那儿，命令都从
+`deploy/PRODUCTION_HOST` 取机器名（2026-08-13 修的：那一节原来写死了一台
+**已经连不上**的机器，半夜照着敲会挂在超时上）。
+
+## 六、两条绝对不要碰的
+
+1. **不要用 `InfrequentAccess` 存储类**（建桶／写对象／生命周期转换都不行）。
+   R2 免费额度只覆盖 Standard；实账单量过：**51 次 IA 操作 = $9.00**，
+   同周期 301 万次 Standard = $0.00。
+
+   **怎么查它现在还是不是 $0.00**（这条以前没写，等于最贵的那条不变量你没法验）：
+   机器执行体在生产机上，每 6 小时跑一次（`/etc/cron.d/linze-r2-freetier-guard`），
+   把判定写成一个文件。读它：
+
+   ```bash
+   ssh "$(cat deploy/PRODUCTION_HOST)" 'sudo tail -4 /srv/linze/logs/r2-free-tier-guard.log'
+   ```
+
+   2026-08-14 实测那一行长这样（**数字会变，看的是比例和最后那个「熔断」**）：
+
+   ```
+   severity=WARN classA=28540/1000000(投影104932) classB=412050/10000000(投影566186) 存储=4.44GB/10GB IA对象=45 熔断=0
+   ```
+
+   · 三个比例都远在额度内 → 账单是 0
+   · `熔断=0` → 没有任何桶的默认存储类被改成非 Standard（改了它会自动改回来并计数）
+   · `IA对象=45` 是**历史尾巴**：那是 30 天最短计费期没走完的旧对象，
+     零 IA 操作、约 $0.01/月、会自然消失。
+     **不要为了"清理"它去做 CopyObject——转换本身就是 IA 操作，$9.00 起步。**
+     守卫自己在判定里也写了这句。
+2. **不要 `git prune` / `git gc --prune=now`**。不可达对象一删没有后悔药；
+   这个仓的一个工作树半路整棵消失过，提交全活正是因为没人 prune 过。
+
+---
+
+> **下面是 v0.0.0.6（2026-08-03）的历史记录**，留着是因为里面有 SA-205 那条线、
+> 当时的 Canary 约束和那个 ZIP 的哈希，删了就查不到了。
+> **别照着它判断今天的状态。** 更早的一份 build-agent 视角交接在
+> [`evidence/HANDOFF_v0007.md`](evidence/HANDOFF_v0007.md)（v0.0.0.7 / 8-03，
+> 面向任务包，同样不是今天的状态）。
+## v0.0.0.6 production cutover and real provider receipts (2026-08-03 UTC, supersedes the SA-205 block narrative below)
+
+**Production was never running v0.0.0.6, and it was never the developer Mac.** `evidence/SA-205/PRODUCTION_ORIGIN_READBACK.json` concluded the Cloudflare Tunnel origin was a local container from the `v0006-s0` worktree. That is retracted in `evidence/SA-205/PRODUCTION_ORIGIN_CORRECTION_20260803.json`: the public API and the Mac loopback reported different versions at the same instant, no cloudflared existed on the Mac at all, and deploying only the OVH host flipped the public endpoint while the Mac container stayed untouched. The real origin is `vps-83b882b4`, Compose project `/opt/social-archive`. Every prior "invalid production target" observation came from inspecting the wrong host.
+
+The current candidate is now deployed there: `social-archive/core:0.0.0.6`, public API reports `0.0.0.6`, the PWA serves `assets/app.js?v=006-r1` with cache identity `social-archive-ui-v006-r1`, and all three containers are healthy. Rollback artifacts are `/opt/social-archive-rollback/opt-social-archive-source-20260803T055259Z.tar.gz`, the dated `.env` backups beside it, and the retained `:0.0.0.5` images.
+
+**Five real defects were found by running the taskpack's own per-task gates, which prior runs had never done end to end.**
+
+1. **Pairing rotation could never reach a running Core.** Compose publishes each secret as a single-file bind mount, so the container follows the inode; `generate_pairing_code.py` rotated by temp-file plus `os.replace`, which allocates a new one. Core kept serving the pre-rotation record forever, which is why production sat at `one_time_code_available=false, attempts_remaining=0` and no extension could pair. Earlier runs recorded this as an unexplained environment block. Now rotates in place under `flock`, with the reader taking a shared lock. Verified live: minting now flips the public status to available with no restart.
+2. **Locale-fragile shell quoting.** `start_readers.sh` and `prepare_systemd_host.sh` interpolated bare `$secret`, `$HOST_DATA_ROOT` and `$key` immediately before full-width punctuation. Under a C/POSIX locale — what systemd units and `docker exec` normally get — bash folds the leading continuation byte into the identifier and `set -u` aborts. All four are braced, with a repo-wide regression.
+3. **`doctor.sh --self-test` crashed on the production host** with a `UnicodeDecodeError` naming no file, because a macOS-side copy had left nine AppleDouble sidecars in the tree and two sat beside `api.py` and `db.py`. Removed, and the self-test now names them instead of dying.
+4. **The GitHub archive repository pointed at `Private-Database`**, which would have collapsed the object-bytes plane into the structured-facts plane. Repointed, and the dedicated vault recreated — it did not exist, despite an earlier run recording its creation.
+5. **Two request models silently accepted unknown fields.** `ExportRequest` returned 202 having exported nothing when a caller wrote `destinations` instead of `destination_ids`, with `skipped_destination_ids` empty too. Both it and `PairingRequest` now forbid extras.
+
+**Real provider receipts now exist.** With the Owner's explicit instruction to lift the standing "no user data uploaded" hold, all 17 pending artifacts — the canary plus a real Bilibili video and a real Xiaohongshu post with their media — replicated to R2 and OCI, 17/17 PASS each. GitHub private Markdown, local Markdown, the Obsidian vault and JSONL all carry the same projection SHA-256, confirmed by independently re-fetching the GitHub copy and hashing it locally. The Private-Database fact synced no-clone and the re-run returned `NO_CHANGE`. Cold backup produced two verified remote copies, both independently restorable to the same plaintext, and object-level recovery passes for real from R2 and OCI. Obsidian never needed a token: the destination prefers a filesystem vault, and the earlier check read `SOCIAL_ARCHIVE_OBSIDIAN_VAULT`, which the product does not read.
+
+**Full application regression on this candidate: 310 passed**, with the single pre-existing non-failing Starlette deprecation warning.
+
+**Four gates remain, and each needs a person; none can be worked around without breaking a boundary.**
+
+- **SA-205** needs the official v0.0.0.6 extension installed in the Owner's logged-in Chrome. No browser is connected to the agent session, so the profile is unreachable. This also gates SA-303's live control state and the SA-305 gate.
+- **SA-503** needs a fine-grained token whose only repository is `LinzeColin/Social-Archive-Vault`, with Contents read/write. The repo and config are ready. Fine-grained tokens select repositories by ID, so recreating the name cannot re-attach the orphaned token and no API can widen it. Deliberately not worked around: using the broad local OAuth credential on the host, or retargeting the third copy at `Private-Database`, would each make the command pass while breaking a boundary. This also gates the three-target recovery half of SA-506, where `restore_object.py` correctly fails closed with `GITHUB_RECEIPT_REPOSITORY_MISMATCH`.
+- **SA-402** needs a Notion Integration token and a shared `data_source_id`, which exist only behind Notion's own UI. `export_all.py` does emit `notion-import.csv` as a zero-credential manual route.
+- **SA-304** needs host disk. The reader stacks want several GB and the 38 GB root sits at 95 percent with roughly 8.9 GB of images and 14 GB of containerd layers for about eight unrelated projects. A real `start_readers.sh karakeep` run exhausted the disk mid-pull; it was fully contained, but it should have been a dry run.
+
+Nothing has been pushed to `origin`. No tag, no release, no timer enabled.
 
 ## v0.0.0.6 current execution (2026-08-03 UTC)
 
