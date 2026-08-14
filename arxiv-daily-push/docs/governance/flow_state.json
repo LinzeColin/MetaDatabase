@@ -7,9 +7,9 @@
       "state": "blocked_by_input"
     },
     "BL-ADP-DAILY.scan": {
-      "at": "2026-08-14T06:43:24.206658+08:00",
-      "note": "看门狗有不变量被破坏(非静默归零):FAIL  backfill last_run degraded: ['backfill:TimeoutError'] (cursor 2016-06-23)",
-      "state": "degraded"
+      "at": "2026-08-15T06:24:56.298318+08:00",
+      "note": "看门狗全绿:最新一轮真的抓到了论文、候选非空,页面路由与新鲜度都正常",
+      "state": "healthy"
     }
   }
 }
