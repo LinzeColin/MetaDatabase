@@ -6,7 +6,9 @@ LABEL org.opencontainers.image.description="Non-trading, non-recommendation ABD 
 
 WORKDIR /app
 
-RUN addgroup -S -g 10001 abd && adduser -S -D -H -u 10001 -G abd abd
+RUN apk add --no-cache curl \
+    && addgroup -S -g 10001 abd \
+    && adduser -S -D -H -u 10001 -G abd abd
 
 COPY --chown=abd:abd ABD/runtime/abd_runtime /app/abd_runtime
 COPY --chown=abd:abd ABD/runtime/observation_config.json /etc/abd/config.json
