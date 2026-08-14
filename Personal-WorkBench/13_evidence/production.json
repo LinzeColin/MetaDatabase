@@ -1,9 +1,24 @@
 {
-  "schema_version": "1.4.0",
+  "schema_version": "1.4.1",
   "task_id": "S5-T3",
-  "status": "PUBLIC_ENTRY_VERSION_129_S5_T3_PARTIAL",
+  "status": "PUBLIC_ENTRY_VERSION_130_S5_T3_PARTIAL",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
-  "observed_at": "2026-08-14T11:11:27Z",
+  "observed_at": "2026-08-14T11:39:05Z",
+  "current_version_130_record_failure_feedback": {
+    "status": "PASS_PUBLIC_VERSION_130_RECORD_FAILURE_FEEDBACK",
+    "evidence": "13_evidence/public_version_130_record_failure_feedback.json",
+    "current_saved_version_number": 130,
+    "previous_saved_version_number": 129,
+    "public_deployment": "SUCCEEDED",
+    "record_save_failure_feedback": "VISIBLE_RETRYABLE_STATUS_REPLACES_STALE_PENDING_COPY",
+    "public_client_assets": "LEDGER_AND_TODO_BUNDLES_CONTAIN_VERSION_130_FAILURE_FEEDBACK",
+    "does_not_replace": [
+      "Current Version 130 real Google callback.",
+      "Current Version 130 email lifecycle replay.",
+      "Current Version 130 A/B isolation and physical second-device history.",
+      "Direct physical D1/R2 reconciliation."
+    ]
+  },
   "current_version_129_google_native_fallback": {
     "status": "PASS_PUBLIC_VERSION_129_GOOGLE_NATIVE_FALLBACK",
     "evidence": "13_evidence/public_version_129_google_native_fallback.json",
@@ -96,12 +111,13 @@
     "browser_e2e_current_version": "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR"
   },
   "current_public_candidate": {
-    "saved_version_number": 129,
+    "saved_version_number": 130,
     "source_recorded_by_sites": true,
     "archive_stored_by_sites": true,
     "public_deployment": "SUCCEEDED",
-    "previous_saved_version_number": 128,
-    "rollback_rehearsal_for_current_version": "NOT_RUN_V129_RETAINS_PREVIOUS_SAVED_VERSIONS_FOR_RECOVERY",
+    "previous_saved_version_number": 129,
+    "rollback_rehearsal_for_current_version": "NOT_RUN_V130_RETAINS_PREVIOUS_SAVED_VERSIONS_FOR_RECOVERY",
+    "record_save_failure_feedback": "PASS_PUBLIC_CLIENT_BUNDLES_VISIBLE_RETRYABLE_STATUS",
     "guest_habit_feedback_replay": "PASS_VERSION_126_HISTORICAL_BASELINE",
     "google_oauth_fallback_start": "PASS_PUBLIC_AUTH_GOOGLE_TO_GOOGLE_AUTHORIZATION_URL",
     "google_oauth_direct_start": "PASS_PUBLIC_AUTH_GOOGLE_DIRECT_TO_GOOGLE_AUTHORIZATION_URL_WITH_STATE",
@@ -126,6 +142,8 @@
     "environment_revision": 8
   },
   "controlled_deployment_and_recovery": {
+    "version_130_public_deploy": "SUCCEEDED",
+    "version_130_post_deploy_error_only_window": "ZERO_EVENTS_IN_15_MINUTES",
     "version_129_public_deploy": "SUCCEEDED",
     "version_129_post_deploy_error_only_window": "ZERO_EVENTS_IN_10_MINUTES",
     "version_128_public_deploy": "SUCCEEDED",
@@ -206,7 +224,8 @@
     "live_version_matches_version_126": false,
     "live_version_matches_version_127": false,
     "live_version_matches_version_128": false,
-    "live_version_matches_version_129": true,
+    "live_version_matches_version_129": false,
+    "live_version_matches_version_130": true,
     "live_version_matches_version_31_after_rehearsal": true,
     "live_version_matches_version_30_after_rehearsal": true,
     "live_version_matches_version_29_after_rehearsal": true,
@@ -214,6 +233,7 @@
     "current_deployment_environment_revision": 12
   },
   "observed_interface": {
+    "current_version_130_record_failure_feedback": "PASS_PUBLIC_LEDGER_AND_TODO_CLIENT_BUNDLES_EXPOSE_RETRYABLE_SAVE_FAILURE_STATUS",
     "current_version_129_google_native_fallback": "PASS_PUBLIC_AUTH_SIGN_IN_SERVER_RENDERED_NATIVE_GOOGLE_LINK",
     "current_version_128_google_oauth_direct_start": "PASS_AUTH_GOOGLE_DIRECT_TO_GOOGLE_AUTHORIZATION_WITH_SECURE_STATE",
     "current_version_127_google_oauth_fallback": "PASS_AUTH_GOOGLE_FALLBACK_STARTS_GOOGLE_AUTHORIZATION_WITH_STATE",
@@ -280,6 +300,9 @@
     "test_user_data_remaining": true
   },
   "authentication": {
+    "version_130_google_oauth_start": "PASS_PUBLIC_AUTH_GOOGLE_TO_GOOGLE_AUTHORIZATION_URL",
+    "version_130_google_oauth_callback": "NOT_RUN_NO_CONTROLLED_ACCOUNT_SELECTION_OR_CALLBACK",
+    "version_130_email_lifecycle_replay": "NOT_RUN_NO_CONTROLLED_EMAIL_BROWSER_REPLAY",
     "version_129_google_oauth_native_fallback": "PASS_PUBLIC_SIGN_IN_SERVER_RENDERED_NATIVE_LINK_TO_CANONICAL_AUTH_GOOGLE",
     "version_129_google_oauth_callback": "NOT_RUN_NO_CONTROLLED_ACCOUNT_SELECTION_OR_CALLBACK",
     "version_129_email_lifecycle_replay": "NOT_RUN_NO_CONTROLLED_EMAIL_BROWSER_REPLAY",
@@ -330,6 +353,8 @@
     "browser_session_cookie_inspected": false
   },
   "tenant_and_history": {
+    "version_130_current_physical_a_b_replay": "NOT_RUN",
+    "version_130_physical_second_device_history": "NOT_RUN",
     "version_129_current_physical_a_b_replay": "NOT_RUN",
     "version_129_physical_second_device_history": "NOT_RUN",
     "version_128_current_physical_a_b_replay": "NOT_RUN",
@@ -426,6 +451,7 @@
     "13_evidence/private_version_31_s5_t3_gate_audit.json",
     "13_evidence/private_version_32_s5_t3_controlled_private_deployment.json",
     "13_evidence/private_version_35_s5_t3_controlled_private_deployment_and_rollback.json",
+    "13_evidence/public_version_130_record_failure_feedback.json",
     "13_evidence/private_version_35_s5_t3_storage_mapping_boundary.json",
     "13_evidence/version_37_s5_t3_public_deployment_and_recovery.json",
     "13_evidence/version_18_agent_controlled_in_app_workbench_post_replay.json",
@@ -442,11 +468,11 @@
   "final_acceptance_claimed": false,
   "public_deploy_eligible": false,
   "remaining_required_s5_t3_evidence": [
-    "a successful current Version 129 email registration, verification, reset, and sign-in browser replay",
-    "a successful current Version 129 Google OAuth callback and session",
-    "current Version 129 A/B tenant isolation and physical second-device history readback",
+    "a successful current Version 130 email registration, verification, reset, and sign-in browser replay",
+    "a successful current Version 130 Google OAuth callback and session",
+    "current Version 130 A/B tenant isolation and physical second-device history readback",
     "direct D1/R2 physical mapping or record/object reconciliation beyond the Version 27 data-free binding health probe",
-    "a current Version 129 production fault-recovery replay and broader no-P0 observation"
+    "a current Version 130 production fault-recovery replay and broader no-P0 observation"
   ],
   "current_version_21_note": "Version 21 was an owner-only private deployment. It replaces localized built-in habit idempotency tokens with stable URL-safe identifiers and retains the same verified-session, same-origin, tenant, privacy-consent, runtime and access-policy boundaries. In a controlled Chrome session for temporary verified test accounts, all five habit cards, one consent-gated ledger record and one schedule record completed visible write-plus-reload readback. A current sequential A/B replay then verified two distinct email accounts through registration, verification and sign-in; A wrote a non-sensitive schedule, B could not see it, and A could read it after reauthentication. A further current-version recovery replay delivered a reset message and reached the canonical reset page; it did not submit the final password change. A Google account-selection attempt returned through the state/CSRF guard in an agent-controlled Chrome surface, so it is retained as inconclusive rather than attributed to provider configuration or ordinary-user behavior. A Version 21 to Version 18 private rollback followed by a Version 18 to Version 21 private restore succeeded with environment revision 8 and the owner-only access invariant unchanged. The local unauthenticated control audit separately found 0 no-visible-effect controls of 140. This does not prove application-data continuity through the temporary rollback, a physical second device, direct D1/R2 reconciliation, current Google callback, final reset sign-in, public audience or final product acceptance.",
   "current_version_22_note": "Version 22 was the prior owner-only private deployment. It adds an explicit same-origin account sign-out control that redirects only after the Better Auth sign-out endpoint succeeds, plus a neutral sign-in confirmation. Typecheck, lint, auth contract, build and rendered route smoke all passed before the private deployment. A controlled browser reached the Version 22 account sign-out control, but the account surface could not be confirmed as the temporary identity, so the agent did not click sign out or claim re-login/session recovery. This is an intentional safety boundary, not a product sign-out pass or failure.",
@@ -546,6 +572,7 @@
   "current_version_125_public_deploy_note": "Version 125 is historical public deployment evidence. A public rollback to Version 124 and restoration to Version 125 both succeeded. After restoration, no-cookie probes returned HTTP 200 for the homepage, sign-in page, and public authentication configuration; the profile endpoint returned HTTP 401 without an application session. The sign-in page exposed the registered browser Google identity entry, and the retired Google start route returned to the canonical browser sign-in page. No account was selected and no user data, credentials, cookies, D1 records, or R2 objects were read or written.",
   "current_version_127_public_deploy_note": "Version 127 is historical public deployment evidence. It repaired the Google browser-identity fallback so an unavailable identity button can start Better Auth's standard Google OAuth authorization request. It does not replace current Version 128 callback, email lifecycle, A/B, second-device, D1/R2, rollback, or final product evidence.",
   "current_version_128_public_deploy_note": "Version 128 is historical public deployment evidence. It removes the direct /auth/google dependency on sign-in page hydration: the canonical edge route invokes the existing Better Auth social start, accepts only an HTTPS accounts.google.com authorization URL, forwards the secure OAuth state cookie, and redirects immediately to Google. The retired host first redirects to canonical /auth/google so the state cookie belongs to the registered callback host. A no-account probe confirmed sign-in HTTP 200, canonical direct Google HTTP 302 with state and secure state cookie, and retired-host HTTP 302 to canonical /auth/google. No account was selected, callback followed, application session created, or user business data read or written. This proves authorization start only, not completed Google callback, email lifecycle, A/B isolation, physical second-device history, D1/R2 reconciliation, rollback rehearsal, or final product acceptance.",
-  "current_version_129_public_deploy_note": "Version 129 is the current public deployment. Its server-rendered sign-in page exposes a native Google authorization link before any client script or Google Identity Services button is ready, and then preserves the existing native identity button once it is ready. A no-account probe confirmed sign-in HTTP 200, the native fallback link, canonical direct Google HTTP 302 with state and a secure state cookie, and no server-error marker. A bounded ten-minute error-only Worker observation returned zero events and retained no log body. No account was selected, callback followed, application session created, or user business data read or written. This proves an actionable authorization entry only, not completed Google callback, email lifecycle, A/B isolation, physical second-device history, D1/R2 reconciliation, rollback rehearsal, or final product acceptance.",
-  "current_public_entry_note": "With direct owner authorization for the public multi-account SaaS objective, the outer Sites access policy remains public. Version 129 is publicly deployed and keeps Google authorization actionable before page hydration while retaining the Version 126 guest-control baseline and Version 128 direct OAuth start. It does not replace current-version email verification, a completed Google callback, A/B isolation, physical second-device history, direct storage reconciliation, rollback rehearsal, or full provider recovery evidence."
+  "current_version_129_public_deploy_note": "Version 129 is historical public deployment evidence. Its server-rendered sign-in page exposes a native Google authorization link before any client script or Google Identity Services button is ready, and then preserves the existing native identity button once it is ready. A no-account probe confirmed sign-in HTTP 200, the native fallback link, canonical direct Google HTTP 302 with state and a secure state cookie, and no server-error marker. A bounded ten-minute error-only Worker observation returned zero events and retained no log body. No account was selected, callback followed, application session created, or user business data read or written. This proves an actionable authorization entry only, not completed Google callback, email lifecycle, A/B isolation, physical second-device history, D1/R2 reconciliation, rollback rehearsal, or final product acceptance.",
+  "current_version_130_public_deploy_note": "Version 130 is the current public deployment. It keeps all existing account, tenant, consent, storage and visual boundaries while replacing stale pending save copy with a visible retryable status when a shared record persistence operation returns no result. Anonymous probes confirmed ledger and todo pages plus their current client bundles load without a server-error marker, the repaired feedback strings are present in the corresponding bundles, and canonical Google authorization still returns an accounts.google.com start without selecting an account or creating an application session. A bounded fifteen-minute error-only Worker observation returned zero events and retained no log body. This does not prove any completed authentication, user record write, A/B replay, second-device history, direct storage reconciliation, rollback rehearsal, or final product acceptance.",
+  "current_public_entry_note": "With direct owner authorization for the public multi-account SaaS objective, the outer Sites access policy remains public. Version 130 is publicly deployed and keeps Google authorization actionable before page hydration while making record-save failures visible instead of leaving stale pending copy. It does not replace current-version email verification, a completed Google callback, A/B isolation, physical second-device history, direct storage reconciliation, rollback rehearsal, or full provider recovery evidence."
 }
