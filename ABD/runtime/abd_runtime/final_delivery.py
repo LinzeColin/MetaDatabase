@@ -52,8 +52,10 @@ def build_final_delivery(runtime_state: Mapping[str, Any]) -> dict[str, Any]:
             "version_and_contract_status": "UNAMBIGUOUS_FROZEN_LOCAL_CONTRACT",
             "non_secret_handoff_bundle_defined": True,
             "stage_review_required": True,
-            "stage_review_completed": False,
-            "github_stage_upload_status": "PENDING_STAGE_REVIEW",
+            "stage_review_completed": True,
+            "stage_review_status": "PASS_RUNTIME_AUGMENTATION_WITH_EXPLICIT_LIMITATIONS",
+            "stage_review_scope": "RUNTIME_ENDPOINTS_ROLLBACK_IMAGES_RESOURCE_LIMITS_AND_OPERATIONS_TIMERS",
+            "github_stage_upload_status": "EXTERNAL_RECEIPT_REQUIRED",
         },
         "financial_boundary": {
             "initial_bankroll_reference_aud": "300.00",
