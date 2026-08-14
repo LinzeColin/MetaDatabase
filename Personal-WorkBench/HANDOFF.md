@@ -15,6 +15,12 @@
 
 完成“个人日程 / mydairy”的公开多账户 SaaS 迁移。2026-08-11 已按 Owner 的明确公开运营目标将最外层 Sites 入口切换为 public；当前 S5-T3 仍需采集真实认证、A/B 租户写入/历史、D1/R2 对账及负向恢复证据。公开入口不等同于最终产品验收，所有任务包完成前仍不得上传 GitHub。
 
+## 2026-08-14 当前进展：V125 公开恢复演练
+
+- 当前公开版本为 V125；已完成 V125 → V124 → V125 的回滚与恢复演练。恢复后首页、登录页和公开认证配置均返回正常结果，未登录 profile 仍保持访问保护；Google 浏览器身份入口存在，旧 Google 起始地址回到 canonical 登录页。
+- 本次没有读取或写入用户账号、Cookie、业务记录、D1/R2 内容或运行时密钥。脱敏事实在 `13_evidence/public_version_125_rollback_restore.json`，生产总账已更新为 `PUBLIC_ENTRY_VERSION_125_S5_T3_PARTIAL`，对应证据校验已通过。
+- S5-T3 的下一条独立验收仍是当前版本的受控邮箱/Google 完整回放、A/B 隔离和物理第二设备历史；不得将本次入口与回滚演练替代为这些结果。
+
 ## 当前状态
 
 - 2026-08-14（V118 Google 运行时配置收口已公开发布）：根据 Owner 对“Google 已启用但登录不可用”的现场反馈，复核发现线上 OAuth 发起使用的公开 client id 与指定受控凭据槽位不一致；受控凭据本身已通过 Google 的 canonical callback 与 client-secret 完整性校验。现仅将 Sites 的 Google 客户端 ID／Secret 更新为该已验证配对，并发布同一份已验证的工作台源；没有读取、创建、修改或迁移用户账户、Cookie、业务历史、D1/R2 数据，也未改变租户隔离、会话规则、隐私同意或页面代码。发布后运行时修订已生效，canonical 首页为 200，canonical OAuth 302 到 Google、下发 Secure／HttpOnly state cookie、实际 client id 与受控配对一致，Google 未拒绝 canonical callback；旧域入口仍直接转 canonical OAuth。npm run build、npm run test:auth 41/41、test:quality 与 test:visual 均通过。此项修复线上 OAuth 配置漂移；完整真人回调、A/B 和第二设备验收仍按 S5-T3 另行如实采证。

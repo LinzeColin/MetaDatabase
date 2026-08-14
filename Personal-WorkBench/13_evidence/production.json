@@ -1,9 +1,25 @@
 {
   "schema_version": "1.4.0",
   "task_id": "S5-T3",
-  "status": "PUBLIC_ENTRY_VERSION_37_S5_T3_PARTIAL",
+  "status": "PUBLIC_ENTRY_VERSION_125_S5_T3_PARTIAL",
   "verdict": "NOT_PRODUCT_ACCEPTANCE",
-  "observed_at": "2026-08-11",
+  "observed_at": "2026-08-14T09:14:24Z",
+  "current_version_125_rollback_restore": {
+    "status": "PASS_PUBLIC_VERSION_125_ROLLBACK_RESTORE",
+    "evidence": "13_evidence/public_version_125_rollback_restore.json",
+    "current_saved_version_number": 125,
+    "rollback_target_saved_version_number": 124,
+    "rollback_restore": "V125_TO_V124_TO_V125_SUCCEEDED",
+    "post_restore_public_entry": "HOME_AND_SIGN_IN_HTTP_200_PUBLIC_CONFIG_HTTP_200_UNAUTHENTICATED_PROFILE_HTTP_401",
+    "google_browser_identity_entry": "PRESENT",
+    "legacy_google_start": "RETURNS_TO_CANONICAL_BROWSER_SIGN_IN",
+    "does_not_replace": [
+      "Current Version 125 real Google callback.",
+      "Current Version 125 email lifecycle replay.",
+      "Current Version 125 A/B isolation and physical second-device history.",
+      "Direct physical D1/R2 reconciliation."
+    ]
+  },
   "current_private_candidate": {
     "saved_version_number": 35,
     "source_readback_matches_saved_candidate": true,
@@ -16,20 +32,18 @@
     "browser_e2e_current_version": "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR"
   },
   "current_public_candidate": {
-    "saved_version_number": 37,
-    "source_readback_matches_saved_candidate": true,
+    "saved_version_number": 125,
+    "source_recorded_by_sites": true,
     "archive_stored_by_sites": true,
     "public_deployment": "SUCCEEDED",
-    "rollback_target_saved_version_number": 36,
-    "rollback_restore": "V37_TO_V36_TO_V37_SUCCEEDED",
-    "legacy_period_query_route_http_200_after_restore": true,
-    "signed_out_truthfulness_source_bound": true,
-    "public_auth_entry_routes_http_200": true,
-    "anonymous_auth_input_validation_current_version": "PASS_EMPTY_NONCREDENTIAL_REQUESTS_HTTP_400_NO_5XX",
-    "public_turnstile_csp_current_version": "PASS_SIGN_IN_AND_SIGN_UP_ALLOW_TURNSTILE_AND_SAME_ORIGIN_CONNECT",
-    "fresh_unauthenticated_profile_current_version": "HTTP_401_NO_APPLICATION_SESSION",
-    "google_authorization_initiation_current_version": "HTTP_200_GOOGLE_AUTHORIZATION_URL_RETURNED",
-    "authenticated_product_flow_current_version": "NOT_RUN_NO_CONTROLLED_BROWSER_EXECUTOR"
+    "rollback_target_saved_version_number": 124,
+    "rollback_restore": "V125_TO_V124_TO_V125_SUCCEEDED",
+    "post_restore_home_and_sign_in": "HTTP_200",
+    "post_restore_public_auth_config": "HTTP_200",
+    "post_restore_unauthenticated_profile": "HTTP_401_NO_APPLICATION_SESSION",
+    "google_browser_identity_entry": "PRESENT",
+    "legacy_google_start": "RETURNS_TO_CANONICAL_BROWSER_SIGN_IN",
+    "authenticated_product_flow_current_version": "NOT_RUN_NO_COMPLETED_CONTROLLED_ACCOUNT_REPLAY"
   },
   "candidate": {
     "local_source_commit": "d95d2394734b3a1af6236443528e08eca2d98655",
@@ -49,6 +63,9 @@
     "environment_revision": 8
   },
   "controlled_deployment_and_recovery": {
+    "version_125_public_deploy": "SUCCEEDED",
+    "version_125_to_124_public_rollback": "SUCCEEDED",
+    "version_124_to_125_public_restore": "SUCCEEDED",
     "version_37_public_deploy": "SUCCEEDED",
     "version_37_to_36_public_rollback": "SUCCEEDED",
     "version_36_to_37_public_restore": "SUCCEEDED",
@@ -114,12 +131,14 @@
     "live_version_matches_version_32": false,
     "live_version_matches_version_35": false,
     "live_version_matches_version_36": false,
-    "live_version_matches_version_37": true,
+    "live_version_matches_version_37": false,
+    "live_version_matches_version_124": false,
+    "live_version_matches_version_125": true,
     "live_version_matches_version_31_after_rehearsal": true,
     "live_version_matches_version_30_after_rehearsal": true,
     "live_version_matches_version_29_after_rehearsal": true,
     "live_version_matches_version_21_after_rehearsal": true,
-    "current_deployment_environment_revision": 8
+    "current_deployment_environment_revision": 12
   },
   "observed_interface": {
     "nine_primary_views_render_distinct_content": true,
@@ -255,6 +274,7 @@
     "13_evidence/owner_activation.json",
     "13_evidence/tenant_matrix.json",
     "13_evidence/production-smoke-run.json",
+    "13_evidence/public_version_125_rollback_restore.json",
     "13_evidence/email_signup_replay.json",
     "13_evidence/tenant_history_replay.json",
     "13_evidence/browser_transport_boundary.json",
@@ -426,5 +446,6 @@
   },
   "historical_version_36_public_deploy_note": "Version 36 is historical public deployment evidence. It removes the retired-host server redirect that discarded a saved view query before the browser client redirect could preserve it. Anonymous, no-cookie probes received HTTP 200 without a Location header from both the retired deep link and the canonical period route. This confirms public server-side deep-link preservation for that version, not a browser replay or an authenticated product flow.",
   "current_version_37_public_deploy_note": "Version 37 is the current public deployment. Its saved source and archive were re-read before deployment; V37 deployment succeeded, a public rollback to V36 succeeded, and the public restore to V37 succeeded. After restoration, no-cookie probes returned HTTP 200 for the homepage, legacy period query, account route and all email-auth entry routes; public configuration returned HTTP 200 and the verified-session profile returned HTTP 401. A no-follow Google initiation returned a Google authorization URL with an expected callback origin and path plus state; no account was selected, no callback was followed, and no cookie value was retained. The bounded ten-minute error-only Worker observation returned zero events and retained no log body. No controlled browser executor was available for current email verification, Google callback, A/B, second-device or recovery replay. No raw URL, credential, user identity, business record, runtime value, D1/R2 record or object was read or written.",
-  "current_public_entry_note": "With direct owner authorization for the public multi-account SaaS objective, the outer Sites access policy remains public. Version 37 is now publicly deployed after a V37-to-V36 rollback and V36-to-V37 restore. Its no-cookie probes reached the homepage, all email-auth entry routes and the public configuration endpoint with HTTP 200, while the current mydairy profile endpoint returned HTTP 401 without an application session. A no-follow social sign-in request returned a Google authorization URL; no account was selected and no callback or application session was attempted. This proves current public entry, public auth configuration, Google initiation, unauthenticated API boundary and deployment recovery; it does not replace current-version email verification, Google callback, A/B isolation, second-device, storage reconciliation or full provider recovery evidence."
+  "current_version_125_public_deploy_note": "Version 125 is the current public deployment. A public rollback to Version 124 and restoration to Version 125 both succeeded. After restoration, no-cookie probes returned HTTP 200 for the homepage, sign-in page, and public authentication configuration; the profile endpoint returned HTTP 401 without an application session. The sign-in page exposes the registered browser Google identity entry, and the retired Google start route returns to the canonical browser sign-in page. No account was selected and no user data, credentials, cookies, D1 records, or R2 objects were read or written.",
+  "current_public_entry_note": "With direct owner authorization for the public multi-account SaaS objective, the outer Sites access policy remains public. Version 125 is publicly deployed after a Version 125-to-Version 124 rollback and Version 124-to-Version 125 restore. This proves deployment recovery, public entry, public authentication configuration, Google entry routing, and the unauthenticated API boundary. It does not replace current-version email verification, a completed Google callback, A/B isolation, physical second-device history, direct storage reconciliation, or full provider recovery evidence."
 }

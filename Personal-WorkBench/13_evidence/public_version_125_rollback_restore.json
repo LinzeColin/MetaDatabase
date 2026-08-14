@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "task_id": "S5-T3",
+  "status": "PASS_PUBLIC_VERSION_125_ROLLBACK_RESTORE",
+  "verdict": "NOT_PRODUCT_ACCEPTANCE",
+  "observed_at": "2026-08-14T09:14:24Z",
+  "scope": "Public deployment recovery rehearsal for the current personal schedule site.",
+  "deployment_sequence": {
+    "previous_saved_version_number": 124,
+    "current_saved_version_number": 125,
+    "rollback_to_previous": "SUCCEEDED",
+    "restore_current": "SUCCEEDED"
+  },
+  "post_restore_public_probe": {
+    "home": "HTTP_200",
+    "sign_in": "HTTP_200",
+    "public_auth_config": "HTTP_200",
+    "unauthenticated_profile": "HTTP_401",
+    "google_browser_identity_mount_present": true,
+    "legacy_google_start_returns_to_browser_sign_in": true
+  },
+  "not_proven": [
+    "A completed Google account selection and callback on Version 125.",
+    "A completed email registration, verification, reset, and sign-in replay on Version 125.",
+    "Current Version 125 A/B tenant isolation or physical second-device history readback.",
+    "Direct physical D1/R2 reconciliation."
+  ],
+  "secrets_cookies_or_account_identifiers_recorded": false,
+  "real_user_business_data_read_or_written": false
+}
