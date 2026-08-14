@@ -9,9 +9,11 @@ WORKDIR /app
 RUN addgroup -S -g 10001 abd && adduser -S -D -H -u 10001 -G abd abd
 
 COPY --chown=abd:abd runtime/abd_runtime /app/abd_runtime
+COPY --chown=abd:abd runtime/observation_config.json /etc/abd/config.json
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    ABD_CONFIG_FILE=/etc/abd/config.json \
     ABD_RUNTIME_MODE=OBSERVATION_ONLY
 
 USER 10001:10001
