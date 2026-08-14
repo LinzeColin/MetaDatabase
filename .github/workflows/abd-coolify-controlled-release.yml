@@ -132,7 +132,7 @@ jobs:
               normalized = str(value or "").strip().lower().rstrip("/")
               if normalized.endswith(".git"):
                   normalized = normalized[:-4]
-              return bool(re.search(r"(?:[/:])linzecolin/metadatabase$", normalized))
+              return bool(re.search(r"(?:^|[/:])linzecolin/metadatabase$", normalized))
 
           def abd_name(row):
               text = " ".join(str(row.get(key) or "") for key in ("name", "description"))
@@ -208,7 +208,7 @@ jobs:
           normalized = str(application.get("git_repository") or "").strip().lower().rstrip("/")
           if normalized.endswith(".git"):
               normalized = normalized[:-4]
-          repository_ok = bool(re.search(r"(?:[/:])linzecolin/metadatabase$", normalized))
+          repository_ok = bool(re.search(r"(?:^|[/:])linzecolin/metadatabase$", normalized))
           branch_ok = str(application.get("git_branch") or "").strip() == "main"
           if not (repository_ok and branch_ok):
               print("::error::The selected target no longer matches the ABD release source guard.")
