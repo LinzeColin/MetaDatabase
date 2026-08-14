@@ -583,13 +583,21 @@ test("Version 37 public deployment and recovery evidence retains the current lim
   assert.equal(serialized.includes("Bearer "), false);
 });
 
-test("production ledger identifies Version 128 as the current public-entry partial evidence", async () => {
+test("production ledger identifies Version 129 as the current public-entry partial evidence", async () => {
   const ledger = JSON.parse(
     await readFile(new URL("../13_evidence/production.json", import.meta.url), "utf8"),
   );
 
-  assert.equal(ledger.status, "PUBLIC_ENTRY_VERSION_128_S5_T3_PARTIAL");
+  assert.equal(ledger.status, "PUBLIC_ENTRY_VERSION_129_S5_T3_PARTIAL");
   assert.equal(ledger.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(ledger.current_version_129_google_native_fallback.status, "PASS_PUBLIC_VERSION_129_GOOGLE_NATIVE_FALLBACK");
+  assert.equal(ledger.current_version_129_google_native_fallback.current_saved_version_number, 129);
+  assert.equal(ledger.current_version_129_google_native_fallback.previous_saved_version_number, 128);
+  assert.equal(
+    ledger.current_version_129_google_native_fallback.server_rendered_google_entry,
+    "NATIVE_ANCHOR_TO_CANONICAL_AUTH_GOOGLE_UNTIL_GIS_READY",
+  );
+  assert.equal(ledger.current_version_129_google_native_fallback.public_oauth_start, "HTTP_302_GOOGLE_AUTHORIZATION_URL_WITH_STATE");
   assert.equal(ledger.current_version_128_google_oauth_direct_start.status, "PASS_PUBLIC_VERSION_128_GOOGLE_OAUTH_DIRECT_START");
   assert.equal(ledger.current_version_128_google_oauth_direct_start.current_saved_version_number, 128);
   assert.equal(ledger.current_version_128_google_oauth_direct_start.previous_saved_version_number, 127);
@@ -611,22 +619,29 @@ test("production ledger identifies Version 128 as the current public-entry parti
   assert.equal(ledger.current_version_125_rollback_restore.current_saved_version_number, 125);
   assert.equal(ledger.current_version_125_rollback_restore.rollback_target_saved_version_number, 124);
   assert.equal(ledger.current_version_125_rollback_restore.rollback_restore, "V125_TO_V124_TO_V125_SUCCEEDED");
-  assert.equal(ledger.current_public_candidate.saved_version_number, 128);
+  assert.equal(ledger.current_public_candidate.saved_version_number, 129);
   assert.equal(ledger.current_public_candidate.source_recorded_by_sites, true);
   assert.equal(ledger.current_public_candidate.archive_stored_by_sites, true);
   assert.equal(ledger.current_public_candidate.public_deployment, "SUCCEEDED");
-  assert.equal(ledger.current_public_candidate.previous_saved_version_number, 127);
-  assert.equal(ledger.current_public_candidate.rollback_rehearsal_for_current_version, "NOT_RUN_V128_RETAINS_PREVIOUS_SAVED_VERSIONS_FOR_RECOVERY");
+  assert.equal(ledger.current_public_candidate.previous_saved_version_number, 128);
+  assert.equal(ledger.current_public_candidate.rollback_rehearsal_for_current_version, "NOT_RUN_V129_RETAINS_PREVIOUS_SAVED_VERSIONS_FOR_RECOVERY");
   assert.equal(ledger.current_public_candidate.guest_habit_feedback_replay, "PASS_VERSION_126_HISTORICAL_BASELINE");
   assert.equal(ledger.current_public_candidate.google_oauth_fallback_start, "PASS_PUBLIC_AUTH_GOOGLE_TO_GOOGLE_AUTHORIZATION_URL");
   assert.equal(ledger.current_public_candidate.google_oauth_direct_start, "PASS_PUBLIC_AUTH_GOOGLE_DIRECT_TO_GOOGLE_AUTHORIZATION_URL_WITH_STATE");
+  assert.equal(ledger.current_public_candidate.google_oauth_native_fallback, "PASS_PUBLIC_SERVER_RENDERED_NATIVE_LINK_TO_CANONICAL_AUTH_GOOGLE");
+  assert.equal(ledger.observed_interface.current_version_129_google_native_fallback, "PASS_PUBLIC_AUTH_SIGN_IN_SERVER_RENDERED_NATIVE_GOOGLE_LINK");
   assert.equal(ledger.observed_interface.current_version_126_guest_control_matrix, "PASS_9_MENU_ROUTES_18_AUDITED_CONTROLS_WITH_REFRESH_READBACK_RUNTIME_EXCEPTIONS_0");
   assert.equal(ledger.current_public_candidate.authenticated_product_flow_current_version, "NOT_RUN_NO_COMPLETED_CONTROLLED_ACCOUNT_REPLAY");
   assert.equal(ledger.authentication.version_128_google_oauth_direct_start, "PASS_PUBLIC_AUTH_GOOGLE_DIRECT_TO_GOOGLE_AUTHORIZATION_URL_WITH_SECURE_STATE");
+  assert.equal(ledger.authentication.version_129_google_oauth_native_fallback, "PASS_PUBLIC_SIGN_IN_SERVER_RENDERED_NATIVE_LINK_TO_CANONICAL_AUTH_GOOGLE");
+  assert.equal(ledger.authentication.version_129_google_oauth_callback, "NOT_RUN_NO_CONTROLLED_ACCOUNT_SELECTION_OR_CALLBACK");
+  assert.equal(ledger.authentication.version_129_email_lifecycle_replay, "NOT_RUN_NO_CONTROLLED_EMAIL_BROWSER_REPLAY");
   assert.equal(ledger.authentication.version_128_google_oauth_callback, "NOT_RUN_NO_CONTROLLED_ACCOUNT_SELECTION_OR_CALLBACK");
   assert.equal(ledger.authentication.version_128_email_lifecycle_replay, "NOT_RUN_NO_CONTROLLED_EMAIL_BROWSER_REPLAY");
   assert.equal(ledger.tenant_and_history.version_128_current_physical_a_b_replay, "NOT_RUN");
   assert.equal(ledger.tenant_and_history.version_128_physical_second_device_history, "NOT_RUN");
+  assert.equal(ledger.tenant_and_history.version_129_current_physical_a_b_replay, "NOT_RUN");
+  assert.equal(ledger.tenant_and_history.version_129_physical_second_device_history, "NOT_RUN");
   assert.equal(ledger.current_private_candidate.saved_version_number, 35);
   assert.equal(ledger.current_private_candidate.source_readback_matches_saved_candidate, true);
   assert.equal(ledger.current_private_candidate.archive_stored_by_sites, true);
@@ -661,6 +676,8 @@ test("production ledger identifies Version 128 as the current public-entry parti
   assert.equal(ledger.controlled_deployment_and_recovery.version_34_to_35_private_restore, "SUCCEEDED");
   assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_35, false);
   assert.equal(ledger.controlled_deployment_and_recovery.version_36_public_deploy, "SUCCEEDED");
+  assert.equal(ledger.controlled_deployment_and_recovery.version_129_public_deploy, "SUCCEEDED");
+  assert.equal(ledger.controlled_deployment_and_recovery.version_129_post_deploy_error_only_window, "ZERO_EVENTS_IN_10_MINUTES");
   assert.equal(ledger.controlled_deployment_and_recovery.version_128_public_deploy, "SUCCEEDED");
   assert.equal(ledger.controlled_deployment_and_recovery.version_128_post_deploy_error_only_window, "ZERO_EVENTS_IN_10_MINUTES");
   assert.equal(ledger.controlled_deployment_and_recovery.version_127_public_deploy, "SUCCEEDED");
@@ -677,7 +694,12 @@ test("production ledger identifies Version 128 as the current public-entry parti
   assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_125, false);
   assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_126, false);
   assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_127, false);
-  assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_128, true);
+  assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_128, false);
+  assert.equal(ledger.controlled_deployment_and_recovery.live_version_matches_version_129, true);
+  assert.equal(
+    ledger.evidence_files.includes("13_evidence/public_version_129_google_native_fallback.json"),
+    true,
+  );
   assert.equal(
     ledger.evidence_files.includes("13_evidence/public_version_128_google_oauth_direct_start.json"),
     true,
@@ -703,6 +725,36 @@ test("production ledger identifies Version 128 as the current public-entry parti
     true,
   );
   assert.equal(ledger.public_deploy_eligible, false);
+});
+
+test("Version 129 native Google fallback evidence retains no account or secret material", async () => {
+  const evidence = JSON.parse(
+    await readFile(
+      new URL("../13_evidence/public_version_129_google_native_fallback.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const serialized = JSON.stringify(evidence);
+
+  assert.equal(evidence.task_id, "S5-T3");
+  assert.equal(evidence.status, "PASS_PUBLIC_VERSION_129_GOOGLE_NATIVE_FALLBACK");
+  assert.equal(evidence.verdict, "NOT_PRODUCT_ACCEPTANCE");
+  assert.equal(evidence.public_no_account_probe.sign_in, "HTTP_200");
+  assert.equal(evidence.public_no_account_probe.server_rendered_native_google_fallback, true);
+  assert.equal(evidence.public_no_account_probe.native_fallback_href, "CANONICAL_AUTH_GOOGLE");
+  assert.equal(evidence.public_no_account_probe.sign_in_server_error_observed, false);
+  assert.equal(evidence.public_no_account_probe.canonical_auth_google, "HTTP_302_TO_GOOGLE_AUTHORIZATION_URL");
+  assert.equal(evidence.public_no_account_probe.authorization_url.state_present, true);
+  assert.equal(evidence.public_no_account_probe.authorization_url.secure_state_cookie_present, true);
+  assert.equal(evidence.public_no_account_probe.google_account_selected, false);
+  assert.equal(evidence.public_no_account_probe.application_session_created, false);
+  assert.equal(evidence.post_deployment_observation.error_event_count, 0);
+  assert.equal(evidence.post_deployment_observation.log_bodies_retained, false);
+  assert.equal(evidence.real_user_business_data_read_or_written, false);
+  assert.equal(evidence.account_identifiers_cookies_or_secrets_recorded, false);
+  assert.equal(serialized.includes("@"), false);
+  assert.equal(serialized.includes("token="), false);
+  assert.equal(serialized.includes("Bearer "), false);
 });
 
 test("Version 128 direct Google start evidence retains no account or secret material", async () => {
