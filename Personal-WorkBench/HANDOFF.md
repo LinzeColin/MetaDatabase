@@ -17,6 +17,8 @@
 
 ## 当前状态
 
+- 2026-08-14（V116 公开恢复与回滚演练）：当前公开版本为 V116，修复 OAuth／邮箱登录回跳后的首个会话读取短暂为空时，资源客户端误落入匿名本机分区的竞态；修补仅涉及同标签、无身份值的恢复标记、会话作用域重试及其回归测试。线上 canonical Google 启动实际为 302 至 Google 账户页，携带 Secure／HttpOnly／Lax 状态 Cookie，Google 端未报告 callback URL 不匹配。按 S5-T3 演练已短暂部署上一 Saved Version V115，确认首页、登录页和 Google 启动入口正常后恢复 V116；恢复后新隔离浏览器完成本机早起打卡→刷新读回，登录页 Google 入口可见且可达，页面脚本错误为 0，最近 10 分钟 Worker error-only 为 0。该回滚／恢复事实不替代受控真人 Google／邮箱回调、A/B 账户、第二设备或 D1/R2 物理对账。
+
 - 2026-08-14（S5-T3 真实认证回放前置复核）：V115 的 production Origin、登录／注册／找回／验证页面与公开验证码配置均为 200，未登录 profile 探针为预期 401；`/api/auth/public-config` 可返回运行时验证码配置，表示认证运行时的 D1、Google、邮件与 Turnstile 必要配置未处于 fail-closed 缺失状态。当前源码的完整认证集成链 41/41 通过，其中包含邮箱验证、密码重设后会话恢复、同账号双会话、A/B 历史隔离、敏感同步同意和 Google 显式关联。任务包仍要求真人/受控生产身份完成邮件、Google、第二设备回放；本轮只读检查了指定 `_protected`、工作树环境文件、GitHub variables/secrets 名称和可用工作流，未发现个人日程的受控测试账号或浏览器交互接口，故不把本地集成结果冒充为生产真实成功，也未绕过 Turnstile、创建账户、读取邮箱/Google、业务历史或 D1/R2。
 
 - 2026-08-14（V115 已公开发布：已有邮箱账户的 Google 显式关联恢复）：Google OAuth 本身已启用且 canonical `/auth/google` 仍实际跳转至 Google 账户页；问题出在同一邮箱先以邮箱密码建立账户、后又选择 Google 时，任务包要求的 `disableImplicitLinking` 会正确拒绝静默合并，但旧页面没有把用户连续带到“先用邮箱确认身份、再主动连接 Google”的路径。现在 `account_not_linked` 提供直达“使用邮箱登录并连接 Google”，邮箱登录成功后只回到已验证会话的账户页并继续调用既有主动关联动作；不会隐式合并账号、不会放宽会话、租户隔离、D1/R2、隐私同意或历史数据边界。本地认证链 41/41、工作台数据 54、API 10、typecheck、lint（0 error，保留既有 1 条 Hook warning）与生产 build 通过；V115 已公开部署至 canonical，匿名 HTTP 回放确认关联提示、连续登录说明、Google provider redirect 和 canonical callback 均存在，最近 15 分钟 Worker error-only 为 0。未读取或写入个人 Google／邮箱、Cookie、账户、业务历史、D1/R2 或 GitHub；尚未把真人成功 Google callback、受控 A/B、第二设备读回或物理 D1/R2 对账伪装为完成。
