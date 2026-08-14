@@ -15,6 +15,13 @@
 
 完成“个人日程 / mydairy”的公开多账户 SaaS 迁移。2026-08-11 已按 Owner 的明确公开运营目标将最外层 Sites 入口切换为 public；当前 S5-T3 仍需采集真实认证、A/B 租户写入/历史、D1/R2 对账及负向恢复证据。公开入口不等同于最终产品验收。Owner 已在本轮明确授权将已完成修复与遗留验收项同步至 GitHub。
 
+## 2026-08-14 当前进展：V131 Google 原生按钮接管公开修复
+
+- V129 为首屏保留了服务端可点击的 `/auth/google` 链接；复核该组件发现 fallback 单独返回时，Google Identity Services 的挂载容器不在 DOM，客户端 effect 会得到空 ref，无法把入口接管为既有原生 Google 按钮。V131 保留首屏同源回退链接，同时在其后方保持一个惰性、不可点击的原生挂载点；身份服务就绪后才移除链接并显示既有原生按钮。没有改变 canonical OAuth route、邮箱认证、会话、显式账号关联、tenant 推导、隐私同意、D1/R2、账户策略或冻结视觉路由。
+- V131 已保存并公开部署。无账号探针确认首页和登录页均为 200，服务端登录页同时含 native fallback 和 native stage，canonical `/auth/google` 为 no-store 的 302 至 Google 授权起点；发布后 15 分钟 error-only Worker 查询为 0。没有选择 Google 账号、跟随 callback、创建会话、读取 Cookie 值、账户或业务记录，也没有访问 D1/R2 内容。
+- `test:auth` 41/41、typecheck 与生产 build 通过；lint 为 0 error，保留既有 1 条 Hook warning。脱敏事实见 `13_evidence/public_version_131_google_native_handoff.json`。
+- 本轮只修复原生按钮的客户端接管前提，不将其伪装为真实登录：V131 的受控 Google callback、邮箱全生命周期、A/B 租户、物理第二设备、直接 D1/R2 对账及 V131 回滚演练仍未完成。
+
 ## 2026-08-14 当前进展：V130 记录失败反馈公开修复
 
 - 已确认一个真实的交互反馈断点：账单、减脂、日程、纪念日、日记、存钱及待办等保存操作在底层返回空结果时，常会永久停留在“正在保存…”，使失败看起来像按钮无反应。V130 仅把这些结果统一改为页面内可见、可重试的状态说明；早起等习惯打卡原有即时状态、认证、会话、账户分区、服务端租户推导、敏感同意、D1/R2、访问策略和冻结视觉页均未改变。
