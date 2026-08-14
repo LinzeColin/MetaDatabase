@@ -1,34 +1,50 @@
-# Signal Lattice｜股票信号格阵决策系统
+# Signal Lattice
 
-Signal Lattice 是一个部署在 OVH 的全自动股票投资决策中枢。它每 60 秒执行一轮完整链路：先只读检查 GitHub 上投资 Skill 的新增、删除、修改、拆分和合并；再让全部 Active Skill 在同一份不可变市场快照上相互隔离、独立判断；最后由无投资立场的中枢去重证据、保留分歧、校准可靠性并只输出一个顶层建议。
+当前待上线发行：**应用 v0.0.0.1.42｜裁决契约 v0.0.0.19｜15 秒完整可见结果**。
 
-## 用户实际看到什么
+Signal Lattice 是永久只读影子研究系统。它动态扫描九类市场机会，让六个 Canonical 投研方法在中央赢家产生前分别审视完整候选宇宙，再由中枢发布一个且仅一个 100.0%/0.0% 的影子赢家。系统不登录券商、不打开交易上下文、不下单、不改账户权限。
 
-网站第一屏始终只显示一个结果：`BUY / ADD / HOLD / REDUCE / SELL / WATCH / AVOID / NO_ACTION / SYSTEM_BLOCKED`。
+## 当前发行边界
 
-- `NO_ACTION`：所有 Active Skill 已真实完成本分钟独立判断，中枢已完成协调，但量化、证据、费用、流动性或风险硬门不允许行动。
-- `SYSTEM_BLOCKED`：完整链路没有完成，例如市场数据不可用、Active Skill 不足或有 Skill 未返回。系统禁止把空数据伪装为投资建议。
+- 冻结裁决契约：`v0.0.0.19`
+- 应用发行：`v0.0.0.1.42`
+- 结果周期：每 15 秒一次完整报告；浏览器使用事件流并以 15 秒读取作后备
+- 每日第一条有效正式结果：九桶动态完整扫描；扫描进行期间继续每 15 秒发布“降级持有”，完成后恢复正式裁决
+- 其余周期：更新现行策略与九桶稳健前沿
+- 当前唯一影子状态：MooMooAU / State Street SPDR 标普500 ETF / SPY / 看涨 / 100.0% / ASX / AUD
+- 用户可见结构：严格保持 v16 两板块正式报告结构
+- 旧 `v0.0.0.1.41` 保留为服务器回滚目标，不再是待激活发行
 
-用户可继续下钻查看每个 Skill 的原始独立判断、证据根、反证、冲突、量化硬门、可靠性权重和 GitHub 版本血缘。
+## 源码与运行入口
 
-## 不可变运行边界
+完整发行位于 `Signal-Lattice/v19_release/`：
 
-- 每 60 秒一轮完整循环；
-- 所有 Active Skill 必须参加当轮判断；
-- 所有 Skill 平权，没有母 Skill；
-- 中枢只协调，不产生自己的投资观点；
-- 每轮只允许一个顶层建议；
-- 自动交易永久关闭，仅供人执行；
-- 运行期不依赖 ChatGPT、Codex、Claude、任何 Agent 线程、人工保活、用户 Mac 或 launchd；
-- 当前版本模型模式为禁用，运行 Token 预算为 0；
-- GitHub 上无法确定性兼容的新 Skill 进入隔离区，上一稳定版本继续运行。
+- `src/signal_lattice_v19/`：动态覆盖、六技能方法契约、三路径与中央裁决、15 秒运行循环、只读 API
+- `config/`：V19 状态、九桶、六技能路由、成本与风险门
+- `web/`：完整正式报告页面
+- `deploy/`：systemd、安装切换、回滚和失败事实采集
+- `tests/`：冻结结构、只读边界、六技能顺序、候选资格与 15 秒周期验收
+- `dist/`：预构建 wheel；部署端只安装，不编写或修复源码
 
-## 运行入口
+## 上线
 
-- 公网产品：`https://signal-lattice.linzezhang.com`
-- 权威运行投影：`https://status.linzezhang.com`
-- OVH 内部 API：`127.0.0.1:8787`
+服务器上只执行：
 
-## 最后一公里
+```bash
+sudo bash Signal-Lattice/scripts/deploy_v19_15s.sh
+```
 
-本项目目录是任务包中的完整可部署产品实现。Build Agent 不应重新研究或重新设计；它只执行状态预检、移动仓语义协调、目标仓落库、真实凭证绑定、OVH/systemd/Cloudflare 部署、即时故障注入、备份恢复回滚和 Status Closure。
+成功证据：
+
+```text
+/var/lib/signal-lattice-v19/deployment/DELIVERY_RESULT.json
+/var/lib/signal-lattice-v19/deployment/local_acceptance.json
+/var/lib/signal-lattice-v19/deployment/public_acceptance.json
+```
+
+失败时只采集事实并回滚：
+
+```bash
+sudo bash Signal-Lattice/v19_release/deploy/collect_failure_facts.sh
+sudo bash Signal-Lattice/v19_release/deploy/rollback.sh
+```

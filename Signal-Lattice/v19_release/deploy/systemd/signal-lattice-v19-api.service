@@ -1,0 +1,37 @@
+[Unit]
+Description=Signal Lattice V19 read-only report API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=signal-lattice
+Group=signal-lattice
+EnvironmentFile=/etc/signal-lattice-v19/runtime.env
+ExecStart=/opt/signal-lattice-v19/current/venv/bin/signal-lattice-v19 serve
+Restart=always
+RestartSec=2
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0077
+ReadWritePaths=/var/lib/signal-lattice-v19
+ReadOnlyPaths=/opt/signal-lattice-v19/current
+MemoryMax=768M
+CPUQuota=150%
+TasksMax=96
+
+[Install]
+WantedBy=multi-user.target

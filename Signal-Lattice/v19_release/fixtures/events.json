@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "items": [
+    {
+      "title": "美国7月PPI温和",
+      "published_at": "2026-08-13T12:30:00+00:00",
+      "impact_score": 0.25,
+      "scope": "macro"
+    },
+    {
+      "title": "能源再通胀尾部风险",
+      "published_at": "2026-08-14T08:00:00+00:00",
+      "impact_score": -0.25,
+      "scope": "macro"
+    }
+  ]
+}

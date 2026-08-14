@@ -1,16 +1,11 @@
-# 先读这里
+# 先读：Signal Lattice V19 15 秒发行
 
-这是 Signal Lattice v0.0.0.1.41 的完整北极星重构实现，不是旧空壳网站的增量补丁。
+本目录已经包含完整设计、源码、配置、页面、预构建 wheel、测试、安装切换、公开验收与回滚。开发工作已在任务包内完成；Codex 不承担需求分析、编码、修复、重构或重新验收设计。
 
-北极星链条固定为：
+唯一待执行链路：
 
-```text
-每分钟读取 GitHub
-→ 全部 Active 投资 Skill 使用同一市场快照、隔离独立判断
-→ 中枢去重证据、识别冲突、校准可靠性
-→ 每分钟只发布一个顶层投资建议
-→ 网站与 Status 更新
-→ 下一分钟自动重跑
-```
+1. 将任务包 `repo_overlay/` 原样覆盖到 `MetaDatabase` 根目录，仅提交 `Signal-Lattice` 范围并推送 `main`。
+2. 使用既有 Signal Lattice 主机访问方式更新仓库，在主机执行 `sudo bash Signal-Lattice/scripts/deploy_v19_15s.sh`。
+3. 只以 `/var/lib/signal-lattice-v19/deployment/DELIVERY_RESULT.json` 的 `PASS` 与公网报告验收为完成；失败时返回 `FAILURE_FACTS.txt`，不得临场改代码。
 
-Build Agent 必须使用任务包根目录的一键入口，禁止自行改版本号、重新设计产品、降低验收或把空数据称为 NO_ACTION。网站只有在真实公网环境至少完成一个完整分钟循环、所有 Active Skill 都有当轮收据且只产生一个非 `SYSTEM_BLOCKED` 结果后，才允许报告完成。
+冻结边界：裁决契约始终为 `v0.0.0.19`；应用发行是 `v0.0.0.1.42`，两者不是同一版本层。永久只读影子研究，禁止任何交易副作用。
