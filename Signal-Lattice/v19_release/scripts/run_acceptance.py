@@ -118,13 +118,32 @@ def check_stream(base: str) -> None:
 
 def run(base: str, verify_cadence: bool, skip_stream: bool) -> dict:
     metadata = json_get(base, "/api/v1/metadata")
-    assert metadata["version"] == "0.0.0.1.42"
+    assert metadata["version"] == "0.0.0.1.43"
     assert metadata["prompt_version"] == "v0.0.0.19"
     assert metadata["refresh_seconds"] == 15
+    assert metadata["ui_heartbeat_seconds"] == 1
     assert metadata["automatic_trading"] is False
     assert metadata["shadow_only"] is True
     age = metadata.get("report_age_seconds")
     assert age is not None and float(age) <= 45.0, f"REPORT_STALE:{age}"
+
+    heartbeat = json_get(base, "/api/v1/heartbeat")
+    assert heartbeat["application_version"] == "0.0.0.1.43"
+    assert heartbeat["decision_contract_version"] == "v0.0.0.19"
+    assert heartbeat["ui_heartbeat_seconds"] == 1
+    assert heartbeat["quote_observation_seconds"] == 15
+    assert heartbeat["automatic_trading"] is False
+    assert heartbeat["shadow_only"] is True
+    assert heartbeat["profitability_status"] == "NOT_ISSUED"
+    assert heartbeat["decision_count"] >= 1
+    assert heartbeat["observation_count"] >= heartbeat["decision_count"]
+
+    whitebox = json_get(base, "/api/v1/whitebox/summary")
+    assert whitebox["weight_mode"] == "SHADOW_ONLY"
+    assert whitebox["profitability_status"] == "NOT_ISSUED"
+    skills = json_get(base, "/api/v1/whitebox/skills")
+    assert skills["mode"] == "SHADOW_ONLY"
+    assert len(skills["items"]) == 6
 
     report1 = json_get(base, "/api/v1/report/latest")
     check_report(report1)
@@ -170,6 +189,9 @@ def run(base: str, verify_cadence: bool, skip_stream: bool) -> dict:
         "current_code": report1["第一板块"]["代码"],
         "skill_rows": len(report1["第二板块"]["矩阵"]),
         "report_age_seconds": age,
+        "decision_id": heartbeat["last_decision_id"],
+        "observation_count": heartbeat["observation_count"],
+        "decision_count": heartbeat["decision_count"],
         "observed_cadence_seconds": cadence_seconds,
     }
 

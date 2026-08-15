@@ -39,6 +39,7 @@ class RuntimeStorage:
         self.root = root
         self.root.mkdir(parents=True, exist_ok=True)
         (self.root / "history").mkdir(exist_ok=True)
+        (self.root / "observations").mkdir(exist_ok=True)
         (self.root / "skills").mkdir(exist_ok=True)
 
     @property
@@ -64,6 +65,10 @@ class RuntimeStorage:
     @property
     def market_cache_file(self) -> Path:
         return self.root / "market_cache.json"
+
+    @property
+    def whitebox_db_file(self) -> Path:
+        return self.root / "whitebox.sqlite3"
 
     def bootstrap(self, canonical_state: dict[str, Any]) -> dict[str, Any]:
         current = read_json(self.state_file)
@@ -99,11 +104,33 @@ class RuntimeStorage:
     def save_scan_state(self, value: dict[str, Any]) -> None:
         write_json(self.scan_state_file, value)
 
-    def save_cycle(self, envelope: dict[str, Any], rendered: str, date_key: str, slot_key: str) -> None:
+    def save_cycle(
+        self,
+        envelope: dict[str, Any],
+        rendered: str,
+        date_key: str,
+        slot_key: str,
+        *,
+        decision_id: str | None = None,
+        decision_changed: bool = True,
+    ) -> None:
         write_json(self.latest_file, envelope)
         atomic_text(self.latest_text_file, rendered + "\n")
+
+        observation_path = self.root / "observations" / f"{date_key}.jsonl"
+        with observation_path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps({
+                "generated_at": envelope.get("generated_at"),
+                "decision_id": decision_id,
+                "decision_changed": decision_changed,
+                "report": envelope.get("report"),
+            }, ensure_ascii=False, separators=(",", ":")) + "\n")
+
+        if not decision_changed:
+            return
         skill_payload = envelope.get("internal", {}).get("skills", [])
-        write_json(self.root / "skills" / f"{slot_key}.json", skill_payload)
+        skill_name = f"{decision_id or slot_key}.json"
+        write_json(self.root / "skills" / skill_name, skill_payload)
         history_path = self.root / "history" / f"{date_key}.jsonl"
         with history_path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(envelope, ensure_ascii=False, separators=(",", ":")) + "\n")

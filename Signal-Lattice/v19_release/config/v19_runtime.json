@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "app_version": "0.0.0.1.42",
+  "app_version": "0.0.0.1.43",
   "prompt_version": "v0.0.0.19",
   "timezone": "Australia/Sydney",
   "refresh_seconds": 15,
@@ -18,12 +18,12 @@
   "cash_rate_as_of": "2026-08-14",
   "switch_gate": {
     "base_round_trip_pct": 0.06,
-    "high_liquidity_spread_slippage_pct": 0.10,
+    "high_liquidity_spread_slippage_pct": 0.1,
     "state_break_pct": 0.25,
     "evidence_uncertainty": {
       "high": 0.25,
       "medium": 0.75,
-      "low": 1.50
+      "low": 1.5
     },
     "default_evidence_quality": "medium",
     "tactical_20d_floor_pct": -0.25
@@ -42,5 +42,20 @@
     "security_evidence_dir": "/var/lib/signal-lattice/evidence/securities",
     "macro_events_file": "/var/lib/signal-lattice/evidence/macro_events.json",
     "official_nav_file": "/var/lib/signal-lattice/evidence/official_nav.json"
+  },
+  "ui_heartbeat_seconds": 1,
+  "formal_review_minutes": 60,
+  "whitebox": {
+    "mode": "SHADOW_ONLY",
+    "database_file": "whitebox.sqlite3",
+    "decision_episode_rule": "material winner/qualification/skill state change only",
+    "maturity_horizons_trading_days": [
+      20,
+      60
+    ],
+    "weight_floor_pct": 8.0,
+    "weight_cap_pct": 25.0,
+    "weight_decay_per_outcome": 0.94,
+    "profitability_status": "NOT_ISSUED"
   }
 }

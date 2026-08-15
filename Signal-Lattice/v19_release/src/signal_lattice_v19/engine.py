@@ -7,16 +7,17 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-from .clock import next_slot, sydney_date, slot_start, utc_now
+from .clock import next_formal_review, next_slot, sydney_date, slot_start, utc_now
 from .config import Settings
 from .decision import decide
 from .discovery import discover_candidates
 from .market import MarketProviderError, provider_for
 from .metrics import build_metrics
-from .models import Candidate
+from .models import Candidate, SkillResult
 from .report import finalize_report, render_report
 from .skills import run_six_skills
 from .storage import RuntimeStorage, read_json
+from .whitebox import WhiteboxLedger
 
 
 class V19Engine:
@@ -24,6 +25,7 @@ class V19Engine:
         self.settings = settings
         self.storage = RuntimeStorage(settings.state_dir)
         self.provider = provider_for(settings.market_provider, settings.fixture_dir)
+        self.whitebox = WhiteboxLedger(self.storage.whitebox_db_file)
 
     def _merge_evidence(self, candidates: list[Candidate]) -> None:
         paths = self.settings.runtime.get("source_refresh_paths", {})
@@ -275,7 +277,7 @@ class V19Engine:
         # Six outputs are completed and frozen before central adjudication sees them.
         skills = run_six_skills(self.settings, candidates, metrics, state, market_context)
         outcome = decide(self.settings, now, candidates, metrics, state, skills, market_context)
-        next_review = next_slot(now, self.settings.refresh_seconds)
+        next_review = next_formal_review(now)
         report = finalize_report(outcome.public, now, next_review)
         rendered = render_report(report)
         self.storage.save_state(outcome.updated_state)
@@ -289,23 +291,42 @@ class V19Engine:
         self.storage.save_market(cache_payload)
         self.storage.save_scan_state(scan_state)
         slot_key = slot_start(now, self.settings.refresh_seconds).strftime("%Y%m%dT%H%M%SZ")
+        internal = dict(outcome.internal)
+        internal["market_context"] = market_context
+        whitebox = self.whitebox.record_cycle(
+            observed_at=now,
+            app_version=self.settings.app_version,
+            prompt_version=self.settings.prompt_version,
+            report=report,
+            internal=internal,
+            skills=skills,
+            candidates=candidates,
+            winner_provider_code=str(outcome.updated_state.get("provider_code", state["provider_code"])),
+            provider_state=provider_state,
+        )
+        internal["whitebox"] = whitebox
         envelope = {
-            "schema_version": "1.0.0",
+            "schema_version": "1.1.0",
             "app_version": self.settings.app_version,
             "prompt_version": self.settings.prompt_version,
             "refresh_seconds": self.settings.refresh_seconds,
+            "ui_heartbeat_seconds": 1,
             "generated_at": now.isoformat(),
             "duration_seconds": round(time.monotonic() - started, 3),
             "report": report,
             "rendered": rendered,
-            "internal": outcome.internal,
+            "internal": internal,
         }
-        self.storage.save_cycle(envelope, rendered, date_key, slot_key)
+        self.storage.save_cycle(
+            envelope, rendered, date_key, slot_key,
+            decision_id=str(whitebox["decision_id"]),
+            decision_changed=bool(whitebox["decision_changed"]),
+        )
         return envelope
 
     def publish_failure(self, now: datetime, exc: Exception) -> dict[str, Any]:
         latest = self.storage.latest()
-        next_review = next_slot(now, self.settings.refresh_seconds)
+        next_review = next_formal_review(now)
         if latest and isinstance(latest.get("report"), dict):
             report = copy.deepcopy(latest["report"])
             report["运行状态"] = "降级持有"
@@ -376,22 +397,56 @@ class V19Engine:
             }
         report = finalize_report(report, now, next_review)
         rendered = render_report(report)
+        internal = {"operational_error": type(exc).__name__, "market_context": {"provider_state": "error"}}
+        failure_skills: list[SkillResult] = []
+        for route in self.settings.skill_routes.get("skills", []):
+            failure_skills.append(SkillResult(
+                skill_id=str(route["skill_id"]),
+                display_name=str(route["display_name"]),
+                applicable=True,
+                run_mode="弃权",
+                abstention_reason="缺少必要数据",
+                family=str(route["family"]),
+                raw_weight=0.0,
+                family_weight_pct=0.0,
+                overall_weight_pct=0.0,
+                conclusion="无结论",
+                independence="本轮运行异常，未形成最低输入",
+                contribution="",
+                source_state="运行异常",
+            ))
+        fallback_candidate = self._incumbent_fallback(self.storage.load_state(self.settings.canonical_state))
+        whitebox = self.whitebox.record_cycle(
+            observed_at=now,
+            app_version=self.settings.app_version,
+            prompt_version=self.settings.prompt_version,
+            report=report,
+            internal=internal,
+            skills=failure_skills,
+            candidates=[fallback_candidate],
+            winner_provider_code=fallback_candidate.provider_code,
+            provider_state="error",
+        )
+        internal["whitebox"] = whitebox
         envelope = {
-            "schema_version": "1.0.0",
+            "schema_version": "1.1.0",
             "app_version": self.settings.app_version,
             "prompt_version": self.settings.prompt_version,
             "refresh_seconds": self.settings.refresh_seconds,
+            "ui_heartbeat_seconds": 1,
             "generated_at": now.isoformat(),
             "duration_seconds": 0.0,
             "report": report,
             "rendered": rendered,
-            "internal": {"operational_error": type(exc).__name__},
+            "internal": internal,
         }
         self.storage.save_cycle(
             envelope,
             rendered,
             sydney_date(now),
             slot_start(now, self.settings.refresh_seconds).strftime("%Y%m%dT%H%M%SZ"),
+            decision_id=str(whitebox["decision_id"]),
+            decision_changed=bool(whitebox["decision_changed"]),
         )
         return envelope
 

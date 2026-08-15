@@ -43,7 +43,7 @@ class EngineTests(unittest.TestCase):
             second = engine.run_once(datetime(2026, 8, 14, 0, 0, 16, tzinfo=timezone.utc))
             self.assertEqual(first["refresh_seconds"], 15)
             self.assertNotEqual(first["report"]["运行时间"], second["report"]["运行时间"])
-            self.assertTrue(second["report"]["第一板块"]["下一正式复核"].startswith("2026-08-14 10:00:30"))
+            self.assertTrue(second["report"]["第一板块"]["下一正式复核"].startswith("2026-08-14 11:00:00"))
 
     def test_failure_still_publishes_full_visible_report(self):
         with fixture_settings(ROOT) as (settings, state_dir):

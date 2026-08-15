@@ -4,7 +4,7 @@ umask 027
 
 [[ "$(id -u)" -eq 0 ]] || { echo ROOT_REQUIRED >&2; exit 2; }
 
-VERSION="0.0.0.1.42"
+VERSION="0.0.0.1.43"
 PROMPT_VERSION="v0.0.0.19"
 SOURCE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 INSTALL_ROOT="/opt/signal-lattice-v19"
@@ -16,7 +16,7 @@ ENV_DIR="/etc/signal-lattice-v19"
 ENV_FILE="$ENV_DIR/runtime.env"
 LOCAL_URL="http://127.0.0.1:8787"
 PUBLIC_URL="https://signal-lattice.linzezhang.com"
-WHEEL="$(find "$SOURCE_ROOT/dist" -maxdepth 1 -type f -name 'signal_lattice_v19-0.0.0.1.42-*.whl' -print -quit)"
+WHEEL="$(find "$SOURCE_ROOT/dist" -maxdepth 1 -type f -name 'signal_lattice_v19-0.0.0.1.43-*.whl' -print -quit)"
 
 [[ -n "$WHEEL" && -f "$WHEEL" ]] || { echo PREBUILT_WHEEL_MISSING >&2; exit 3; }
 
@@ -24,7 +24,7 @@ if ! id signal-lattice >/dev/null 2>&1; then
   useradd --system --home-dir /var/lib/signal-lattice --shell /usr/sbin/nologin signal-lattice
 fi
 install -d -m 0755 "$INSTALL_ROOT/releases"
-install -d -m 0750 -o signal-lattice -g signal-lattice "$STATE_DIR" "$STATE_DIR/history" "$STATE_DIR/skills" "$DEPLOY_DIR"
+install -d -m 0750 -o signal-lattice -g signal-lattice "$STATE_DIR" "$STATE_DIR/history" "$STATE_DIR/observations" "$STATE_DIR/skills" "$DEPLOY_DIR"
 install -d -m 0750 -o root -g signal-lattice "$ENV_DIR"
 
 python3 - "$DEPLOY_DIR/previous_state.json" <<'PY'

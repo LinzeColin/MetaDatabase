@@ -2,7 +2,7 @@
   "schema_version": "2.0.0",
   "project_id": "signal-lattice",
   "state": "SEALED_TASKPACK_NOT_YET_PUBLICLY_VERIFIED",
-  "application_version": "0.0.0.1.42",
+  "application_version": "0.0.0.1.43",
   "decision_contract_version": "v0.0.0.19",
   "refresh_seconds": 15,
   "public_url": "https://signal-lattice.linzezhang.com",
@@ -36,5 +36,17 @@
     "debug or redesign",
     "create a new version",
     "enable trading or account access"
-  ]
+  ],
+  "ui_heartbeat_seconds": 1,
+  "formal_review_minutes": 60,
+  "whitebox": {
+    "decision_episode_dedup": true,
+    "persistence": "SQLite",
+    "maturity_horizons_trading_days": [
+      20,
+      60
+    ],
+    "dynamic_weights": "SHADOW_ONLY",
+    "profitability_status": "NOT_ISSUED"
+  }
 }
