@@ -49,7 +49,8 @@ jobs:
         run: |
           set +e
           mkdir -p "$PWB_AUDIT_OUTPUT"
-          node scripts/vps3/live-ephemeral-audit.mjs > "$PWB_AUDIT_OUTPUT/execution.log" 2>&1
+          sed -i 's/chromium.launch({ headless: true })/chromium.launch({ headless: false })/' scripts/vps3/live-ephemeral-audit.mjs
+          xvfb-run -a node scripts/vps3/live-ephemeral-audit.mjs > "$PWB_AUDIT_OUTPUT/execution.log" 2>&1
           code=$?
           printf '%s\n' "$code" > "$PWB_AUDIT_OUTPUT/exit-code.txt"
           cat "$PWB_AUDIT_OUTPUT/report.json" || true
