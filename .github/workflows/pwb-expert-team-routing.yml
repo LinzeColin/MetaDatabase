@@ -1,0 +1,77 @@
+name: Personal Workbench expert-team dossier
+
+on:
+  push:
+    branches:
+      - chatgpt/personal-workbench-live-audit-20260815
+    paths:
+      - .github/workflows/pwb-expert-team-routing.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dossier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: LinzeColin/AgentDatabase
+          ref: main
+          path: agentdb
+          fetch-depth: 1
+          sparse-checkout: |
+            CodexSkills/registry/codex/persona-distiller-group
+          sparse-checkout-cone-mode: false
+
+      - name: Route team and load actual dossiers
+        shell: bash
+        run: |
+          set -euo pipefail
+          out=/tmp/pwb-expert-team
+          mkdir -p "$out"
+          skill="$GITHUB_WORKSPACE/agentdb/CodexSkills/registry/codex/persona-distiller-group"
+          cd "$skill/scripts"
+          python3 route_team.py \
+            --task '独立验收 Personal Workbench：核验 GitHub 当前 main、VPS3/Coolify 在线部署、云数据库与对象存储、多用户多账户隔离、注册登录恢复、持久化重部署和一次性最后一公里任务包；必须追究任务包设计缺陷而不是把大规模工作推回开发 Agent。' \
+            --size 10 > "$out/route-plan.json"
+          python3 - "$out/route-plan.json" "$out/slugs.txt" <<'PY'
+          import json,pathlib,re,sys
+          plan=json.load(open(sys.argv[1]))
+          slugs=[]
+          for role in plan.get('selected_roles',[]):
+              if role.get('role_type')!='persona-solver':
+                  continue
+              for obj in (role, role.get('team_card') or {}):
+                  if not isinstance(obj,dict): continue
+                  for key in ('subject_slug','slug'):
+                      value=obj.get(key)
+                      if isinstance(value,str) and value:
+                          slugs.append(value)
+              artifact=role.get('artifact')
+              if isinstance(artifact,str):
+                  match=re.search(r'/([^/]+)/versions/',artifact.replace('\\','/'))
+                  if match: slugs.append(match.group(1))
+          slugs=list(dict.fromkeys(slugs))
+          pathlib.Path(sys.argv[2]).write_text('\n'.join(slugs),encoding='utf-8')
+          PY
+          mapfile -t slugs < "$out/slugs.txt"
+          if (( ${#slugs[@]} > 0 )); then
+            set +e
+            python3 build_team_dossier.py --slugs "${slugs[@]}" --output "$out/dossier.json" > "$out/dossier-build.json" 2>&1
+            code=$?
+            set -e
+            printf '%s\n' "$code" > "$out/dossier-exit.txt"
+          else
+            printf '{"status":"INSUFFICIENT_ROSTER_FALLBACK","reason":"route plan exposed no usable subject_slug"}\n' > "$out/dossier.json"
+            printf '3\n' > "$out/dossier-exit.txt"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: personal-workbench-expert-team-dossier
+          path: /tmp/pwb-expert-team
+          retention-days: 3
