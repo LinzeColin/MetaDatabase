@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 
@@ -7,6 +9,7 @@ import {
   createDeviceLocalRecord,
   createDeviceLocalRecoveryOutboxAction,
 } from "../app/_components/workbench/local-record-cache.ts";
+import { configuredAuthOrigin, requestAtConfiguredOrigin } from "../server/auth/request-origin.ts";
 
 const origin = "http://127.0.0.1:4310";
 const alphaEmail = "alpha@example.test";
@@ -98,10 +101,30 @@ function requestHeaders(cookie?: string, includeCaptcha = false): Headers {
   return value;
 }
 
+test("auth routes retain the configured public origin behind a container proxy", async () => {
+  const request = new Request("https://0.0.0.0:3000/api/auth/sign-up/email?continue=1", {
+    method: "POST",
+    headers: { origin, "content-type": "application/json" },
+    body: JSON.stringify({ callbackURL: "/auth/verify-email" }),
+  });
+  const normalized = requestAtConfiguredOrigin(request, origin);
+
+  assert.equal(normalized.url, `${origin}/api/auth/sign-up/email?continue=1`);
+  assert.equal(normalized.headers.get("host"), "127.0.0.1:4310");
+  assert.equal(normalized.headers.get("x-forwarded-host"), "127.0.0.1:4310");
+  assert.equal(normalized.headers.get("x-forwarded-proto"), "http");
+  assert.deepEqual(await normalized.json(), { callbackURL: "/auth/verify-email" });
+  assert.equal(configuredAuthOrigin(origin), origin);
+  assert.equal(configuredAuthOrigin("http://untrusted.example.test"), null);
+  assert.equal(requestAtConfiguredOrigin(request, "http://untrusted.example.test"), request);
+});
+
 test("local auth-to-tenant chain verifies two accounts, isolated history, and password reset", async () => {
-  const sqlite = new DatabaseSync(":memory:");
   const originalFetch = globalThis.fetch;
   const capturedLinks = new Map<string, string>();
+  const runtimeEnvBefore = new Map<string, string | undefined>();
+  let runtimeSqlite: DatabaseSync | null = null;
+  let routeRuntimeDir: string | null = null;
   let unexpectedOutbound = false;
   let workerEnv: Record<string, unknown> | null = null;
 
@@ -123,6 +146,9 @@ test("local auth-to-tenant chain verifies two accounts, isolated history, and pa
       throw new Error("LOCAL_HARNESS_OUTBOUND_DENIED");
     };
 
+    routeRuntimeDir = await mkdtemp(join(tmpdir(), "personal-workbench-auth-route-"));
+    const routeRuntimePath = join(routeRuntimeDir, "runtime.sqlite3");
+    const sqlite = runtimeSqlite = new DatabaseSync(routeRuntimePath);
     sqlite.exec(await readFile(new URL("../drizzle/0001_auth_and_product.sql", import.meta.url), "utf8"));
     sqlite.exec(await readFile(new URL("../drizzle/0002_s2_tenant_indexes.sql", import.meta.url), "utf8"));
     const DB = createIsolatedD1(sqlite);
@@ -141,6 +167,34 @@ test("local auth-to-tenant chain verifies two accounts, isolated history, and pa
       LEGAL_OPERATOR_NAME: "Local Harness Operator",
       PRIVACY_CONTACT_EMAIL: "privacy@local.test",
     };
+
+    // The OAuth fallback route is now a VPS3 Node route. Give that route an
+    // isolated on-disk runtime database and the same non-secret harness
+    // settings. The tenant chain uses a D1-compatible adapter over that same
+    // file, so this exercises the deployed route rather than a test-only
+    // substitute.
+    const runtimeValues: Record<string, string | undefined> = {
+      APP_ORIGIN: env.APP_ORIGIN,
+      APP_TRUSTED_ORIGINS: env.APP_TRUSTED_ORIGINS,
+      BETTER_AUTH_SECRET: env.BETTER_AUTH_SECRET,
+      GOOGLE_CLIENT_ID: env.GOOGLE_CLIENT_ID,
+      GOOGLE_CLIENT_SECRET: env.GOOGLE_CLIENT_SECRET,
+      RESEND_API_KEY: env.RESEND_API_KEY,
+      NITROSEND_API_KEY: undefined,
+      MAIL_PROVIDER: env.MAIL_PROVIDER,
+      MAIL_FROM: env.MAIL_FROM,
+      AUTH_FROM_EMAIL: undefined,
+      TURNSTILE_SECRET_KEY: env.TURNSTILE_SECRET_KEY,
+      TURNSTILE_SITE_KEY: env.TURNSTILE_SITE_KEY,
+      LEGAL_OPERATOR_NAME: env.LEGAL_OPERATOR_NAME,
+      PRIVACY_CONTACT_EMAIL: env.PRIVACY_CONTACT_EMAIL,
+      RUNTIME_DB_PATH: routeRuntimePath,
+    };
+    for (const [key, value] of Object.entries(runtimeValues)) {
+      runtimeEnvBefore.set(key, process.env[key]);
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
 
     const { createAuth } = await import("../server/auth/index.ts");
     const workerModule = await import("cloudflare:workers");
@@ -167,6 +221,16 @@ test("local auth-to-tenant chain verifies two accounts, isolated history, and pa
     assert.equal(fallbackGoogleUrl.searchParams.get("redirect_uri"), `${origin}/api/auth/callback/google`);
     assert.match(fallbackGoogleStart.headers.get("set-cookie") ?? "", /__Secure-hcl-workbench\.state=/);
     assert.equal(fallbackGoogleStart.headers.get("cache-control"), "no-store");
+
+    const proxiedGoogleStart = await googleFallbackRoute.GET(new Request(
+      "https://0.0.0.0:3000/auth/google",
+      { headers: new Headers({ "cf-connecting-ip": "127.0.0.1" }) },
+    ));
+    assert.equal(proxiedGoogleStart.status, 302);
+    const proxiedGoogleLocation = proxiedGoogleStart.headers.get("location");
+    assert.equal(typeof proxiedGoogleLocation, "string");
+    if (typeof proxiedGoogleLocation !== "string") throw new Error("expected proxied Google authorization URL");
+    assert.equal(new URL(proxiedGoogleLocation).searchParams.get("redirect_uri"), `${origin}/api/auth/callback/google`);
 
     const retiredGoogleStart = await googleFallbackRoute.GET(new Request(
       "https://huchuliang-workbench.linzezhang35.chatgpt.site/auth/google",
@@ -553,6 +617,11 @@ test("local auth-to-tenant chain verifies two accounts, isolated history, and pa
     if (workerEnv) {
       for (const key of Object.keys(workerEnv)) delete workerEnv[key];
     }
-    sqlite.close();
+    for (const [key, value] of runtimeEnvBefore) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+    runtimeSqlite?.close();
+    if (routeRuntimeDir) await rm(routeRuntimeDir, { recursive: true, force: true });
   }
 });

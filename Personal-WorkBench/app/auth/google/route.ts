@@ -4,6 +4,7 @@ import {
   isRetiredCompatibilityHost,
 } from "../../_components/workbench/canonical-domain";
 import { createAuth } from "../../../server/auth";
+import { configuredAuthOrigin } from "../../../server/auth/request-origin";
 
 export const runtime = "nodejs";
 
@@ -50,6 +51,8 @@ export async function GET(request: Request): Promise<Response> {
     return new Response(null, { status: 400 });
   }
 
+  const publicOrigin = configuredAuthOrigin(env.APP_ORIGIN) ?? requestUrl.origin;
+
   if (isRetiredCompatibilityHost(requestUrl.host)) {
     // The OAuth state cookie must be issued by the canonical host because the
     // registered callback returns there. Redirect before starting OAuth so an
@@ -59,7 +62,7 @@ export async function GET(request: Request): Promise<Response> {
 
   const headers = new Headers({
     "Content-Type": "application/json",
-    Origin: requestUrl.origin,
+    Origin: publicOrigin,
   });
   const connectingIp = request.headers.get("cf-connecting-ip");
   if (connectingIp) headers.set("cf-connecting-ip", connectingIp);
@@ -67,30 +70,30 @@ export async function GET(request: Request): Promise<Response> {
   let authResponse: Response;
   try {
     authResponse = await createAuth(env).handler(new Request(
-      new URL("/api/auth/sign-in/social", requestUrl.origin),
+      new URL("/api/auth/sign-in/social", publicOrigin),
       {
         method: "POST",
         headers,
         body: JSON.stringify({
           provider: "google",
-          callbackURL: new URL("/?view=home&auth_return=1", requestUrl.origin).toString(),
+          callbackURL: new URL("/?view=home&auth_return=1", publicOrigin).toString(),
         }),
       },
     ));
   } catch {
-    return unavailableRedirect(requestUrl.origin);
+    return unavailableRedirect(publicOrigin);
   }
 
-  if (!authResponse.ok) return unavailableRedirect(requestUrl.origin);
+  if (!authResponse.ok) return unavailableRedirect(publicOrigin);
 
   let authorizationUrl: URL | null = null;
   try {
     authorizationUrl = authorizationUrlFrom(await authResponse.json());
   } catch {
-    return unavailableRedirect(requestUrl.origin);
+    return unavailableRedirect(publicOrigin);
   }
 
   return authorizationUrl
     ? redirect(authorizationUrl, authResponse.headers.get("set-cookie"))
-    : unavailableRedirect(requestUrl.origin);
+    : unavailableRedirect(publicOrigin);
 }
