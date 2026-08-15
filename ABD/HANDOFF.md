@@ -1,5 +1,11 @@
 # ABD 开发交接
 
+## 当前状态修正（2026-08-15，优先于以下历史记录）
+
+- 当前隔离 worktree 为 `codex/abd-v0001-user-surface`。运行容器健康、重启策略为 `unless-stopped`；公网根地址 `https://abd.linzezhang.com/` 是无敏感信息的中文验收页，单次外部请求为 HTTP 200，浏览器已实际渲染。它不输出观测资料、来源内容、市场、账户、TAB/Gmail、建议或订单。
+- 观测台在 `/console` 及 `/console/*` 公开访问，不要求任何私有登录。原先用于这两条路径的两项 Cloudflare Access 应用已删除；部署后以外部 HTTP 200 回执确认根入口、`/console` 和 `/console/sources` 均可打开。无前缀资料路径（例如 `/sources`）继续在 origin 返回 404，因此不会意外暴露未公开路由。
+- `/console/sources` 只输出两类历史来源的无原始数据汇总：Football-Data 历史赔率/赛果参考与 OpenFootball 历史赛果交叉核对。两份既有私有聚合回执已被重新读取；页面明确它们不是实时市场、不可用于模型参数更新、不可生成建议或订单，运行时不读取私有原始数据。不要把当前公开入口、静态来源或容器健康外推为核心生产激活、真实市场/账户、7×24 或收益保证。
+
 ## 当前目标
 
 在隔离 worktree `codex/abd-v0001-s11-p01` 按冻结 Task Pack 推进 ABD `v0.0.0.1`。S11--S19 均已完成其四个 Phase、本地独立整阶段复审和 GitHub 阶段上传；后冻结范围已完成一次直接、仅本机回环的 `abd-shadow` 运行：容器固定为 `SHADOW_READ_ONLY`，Docker host port 仅绑定 `127.0.0.1:8081`，容器的 memory 与 memory-swap limit 同为 512 MiB，故不允许额外容器 swap。另有一个已启用的 ABD 专属 Named Tunnel connector，但其配置明确没有 hostname、没有 DNS route、没有 Access 应用/策略，唯一 ingress 为 `http_status:404`，metrics 仅绑定 loopback；它不是公开业务端点。后冻结已私有归档两项独立的历史足球输入：Football-Data 的受限历史赔率 CSV，以及 OpenFootball CC0 的历史赛果文件；二者同赛季 380 个赛果身份和最终比分已经过只读交叉一致性验证。基于这两份已验真静态输入，另有一份私有归档的单赛季、汇总级 Decimal 去水校准残差描述；它不更新任何模型参数。它们都不是实时市场、不是 TAB/Sportsbet，也不产生建议。用户已纠正“host-wide swap=0”不应成为 shadow admission 门；该条件现只保留为 core activation 的独立严格门，当前主机容量 admission 已通过但 `abd.service` 仍未安装/启动，当前 release 也尚未执行读取配置内容的冻结 `rebuild.sh check`。真实账户/TAB/Gmail、建议或订单仍未启动，未创建公开端点、7×24 或收益断言。不得将这个回环 shadow、无 hostname connector、两项历史来源、交叉回执或静态校准残差描述、GitHub 上传、本地证据、镜像装载或 bundle 落盘误称为核心生产激活、Cloudflare 全球访问、真实市场/账户/TAB/Gmail/数据库验证或实际收益证明。

@@ -24,6 +24,7 @@ from abd_runtime.server import (
     build_runtime_state,
 )
 from abd_runtime.observation_evidence import ObservationEvidenceError, build_observation_evidence
+from abd_runtime.historical_sources import HistoricalSourceSummaryError, build_historical_source_summary
 
 
 def _config() -> dict[str, object]:
@@ -75,6 +76,8 @@ def test_observation_evidence_rejects_a_weakened_runtime_state(tmp_path: Path) -
 
     with pytest.raises(ObservationEvidenceError):
         build_observation_evidence(state)
+    with pytest.raises(HistoricalSourceSummaryError):
+        build_historical_source_summary(state)
 
 
 @pytest.mark.parametrize(
@@ -114,7 +117,7 @@ def test_http_surface_is_observation_only(tmp_path: Path) -> None:
         assert response.status == 200
         assert body["decision"] == SAFE_DECISION
 
-        connection.request("GET", "/evidence")
+        connection.request("GET", "/console/evidence")
         response = connection.getresponse()
         evidence = json.loads(response.read())
         assert response.status == 200
@@ -123,13 +126,49 @@ def test_http_surface_is_observation_only(tmp_path: Path) -> None:
         assert evidence["static_calibration"]["model_update_eligible"] is False
         assert evidence["capability_boundary"]["order_submission_enabled"] is False
 
+        connection.request("GET", "/console/sources")
+        response = connection.getresponse()
+        sources = json.loads(response.read())
+        assert response.status == 200
+        assert sources["surface"] == "PRIVATE_ARCHIVE_HISTORICAL_SOURCE_SUMMARY_ONLY"
+        assert sources["archive_evidence"]["source_count"] == 2
+        assert sources["archive_evidence"]["matched_fixture_count"] == 380
+        assert sources["archive_evidence"]["model_update_eligible"] is False
+        assert all(source["real_time"] is False for source in sources["sources"])
+        assert sources["capability_boundary"]["order_submission_enabled"] is False
+
         connection.request("GET", "/")
         response = connection.getresponse()
         home = response.read().decode("utf-8")
         assert response.status == 200
-        assert "静态校准证据" in home
-        assert "尚未通过 Cloudflare 公开发布" in home
+        assert "ABD 观测入口" in home
+        assert "公开的观测台" in home
+        assert "/console" in home
+        assert "<style>" in home
+        assert "<script" not in home
         assert "<form" not in home
+        assert response.getheader("Content-Security-Policy") == (
+            "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+        )
+
+        connection.request("GET", "/console")
+        response = connection.getresponse()
+        console = response.read().decode("utf-8")
+        assert response.status == 200
+        assert "ABD 观测台" in console
+        assert "可审计的只读观察" in console
+        assert "真实市场 / 账户" in console
+        assert "历史来源" in console
+        assert "月度 30% 目标尚未验证" in console
+        assert "公开可访问" in console
+        assert "受访问保护" not in console
+        assert "/console/sources" in console
+
+        connection.request("GET", "/sources")
+        response = connection.getresponse()
+        legacy = json.loads(response.read())
+        assert response.status == 404
+        assert legacy["decision"] == SAFE_DECISION
 
         connection.request("POST", "/orders")
         response = connection.getresponse()
