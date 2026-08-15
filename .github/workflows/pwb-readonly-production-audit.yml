@@ -1,0 +1,154 @@
+name: Personal Workbench read-only production audit
+
+on:
+  push:
+    branches:
+      - chatgpt/personal-workbench-vps3-phase1-v0-0-0-1
+    paths:
+      - .github/workflows/pwb-readonly-production-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  TARGET_REPOSITORY: LinzeColin/MetaDatabase
+  TARGET_PROJECT: Personal-WorkBench
+  VPS3_IP: 15.235.141.201
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}
+      COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+      PWB_COOLIFY_APP_UUID: ${{ secrets.PWB_COOLIFY_APP_UUID }}
+      PWB_PUBLIC_URL: ${{ secrets.PWB_PUBLIC_URL }}
+      PWB_VPS3_SSH_KEY: ${{ secrets.PWB_VPS3_SSH_KEY }}
+      PRIMARY_HOST_SSH_KEY: ${{ secrets.PRIMARY_HOST_SSH_KEY }}
+    steps:
+      - name: Checkout current dynamic main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Audit current source and production endpoints
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p /tmp/pwb-readonly-audit
+          report=/tmp/pwb-readonly-audit/report.txt
+          json=/tmp/pwb-readonly-audit/report.json
+          : > "$report"
+          echo "generated_at=$(date -u +%FT%TZ)" >> "$report"
+          echo "main_head=$(git rev-parse HEAD)" >> "$report"
+          echo "project_exists=$(test -d "$TARGET_PROJECT" && echo true || echo false)" >> "$report"
+
+          python3 - "$TARGET_PROJECT" >> "$report" <<'PY'
+          import json,pathlib,re,sys
+          root=pathlib.Path(sys.argv[1])
+          pkg=json.loads((root/'package.json').read_text()) if (root/'package.json').exists() else {}
+          print('package_name='+str(pkg.get('name')))
+          scripts=pkg.get('scripts') or {}
+          deps={**(pkg.get('dependencies') or {}),**(pkg.get('devDependencies') or {})}
+          print('build='+str(scripts.get('build')))
+          print('build_vps3='+str(scripts.get('build:vps3')))
+          print('has_vinext='+str('vinext' in deps or any('vinext' in str(v) for v in scripts.values())).lower())
+          print('has_wrangler='+str('wrangler' in deps or any('wrangler' in str(v) for v in scripts.values())).lower())
+          print('has_better_sqlite3='+str('better-sqlite3' in deps).lower())
+          print('has_postgres_client='+str(any(x in deps for x in ('pg','postgres','@neondatabase/serverless'))).lower())
+          active=[]
+          for p in root.rglob('*'):
+              if not p.is_file() or any(x in p.parts for x in ('node_modules','.next','dist','13_evidence')): continue
+              if p.suffix.lower() not in {'.ts','.tsx','.js','.jsx','.mjs','.mts','.json','.yml','.yaml','.toml','.sql'} and not p.name.startswith(('Dockerfile','.env')): continue
+              try:t=p.read_text(errors='ignore')
+              except:continue
+              rel=p.relative_to(root).as_posix()
+              if re.search(r'chatgpt\s*(?:sites|science)|\.openai/hosting|cloudflare:workers|\bvinext\b|\bwrangler\b|@cloudflare/vite-plugin',t,re.I): active.append(rel)
+          print('active_legacy_runtime_files='+json.dumps(sorted(set(active)),ensure_ascii=False))
+          print('dockerfile_vps3='+str((root/'Dockerfile.vps3').exists()).lower())
+          print('compose_vps3='+str((root/'compose.vps3.yml').exists()).lower())
+          PY
+
+          public_url="${PWB_PUBLIC_URL:-https://mydairy.linzezhang.com}"
+          public_url="${public_url%/}"
+          echo "public_url_configured=$(test -n "${PWB_PUBLIC_URL:-}" && echo true || echo false)" >> "$report"
+          for path in / /api/health /auth/sign-in; do
+            code=$(curl -sS -L --max-time 20 -o "/tmp/body-$RANDOM" -w '%{http_code}' "$public_url$path" 2>>"$report" || echo 000)
+            echo "public_probe[$path]=$code" >> "$report"
+          done
+          host="${public_url#https://}"; host="${host%%/*}"
+          for path in / /api/health; do
+            code=$(curl -sS -L --max-time 20 --resolve "$host:443:$VPS3_IP" -o "/tmp/direct-$RANDOM" -w '%{http_code}' "https://$host$path" 2>>"$report" || echo 000)
+            echo "direct_vps3_probe[$path]=$code" >> "$report"
+          done
+
+          if [[ -n "${COOLIFY_BASE_URL:-}" && -n "${COOLIFY_API_TOKEN:-}" ]]; then
+            base="${COOLIFY_BASE_URL%/}"; base="${base%/api/v1}/api/v1"
+            inventory=/tmp/pwb-readonly-audit/coolify-applications.json
+            header="Authorization: Bearer ${COOLIFY_API_TOKEN#Bearer }"
+            http=$(curl -sS --max-time 20 -H "$header" -o "$inventory" -w '%{http_code}' "$base/applications" || echo 000)
+            echo "coolify_inventory_http=$http" >> "$report"
+            if [[ "$http" == 200 ]]; then
+              python3 - "$inventory" >> "$report" <<'PY'
+          import json,re,sys
+          try:v=json.load(open(sys.argv[1]))
+          except Exception:
+              print('coolify_inventory_parse=false');raise SystemExit
+          rows=v if isinstance(v,list) else v.get('applications',v.get('data',[])) if isinstance(v,dict) else []
+          hits=[]
+          for r in rows:
+              if not isinstance(r,dict):continue
+              text=' '.join(str(r.get(k) or '') for k in ('name','description','git_repository','base_directory','fqdn','domains')).lower()
+              if any(x in text for x in ('personal-workbench','personal workbench','mydairy')):
+                  hits.append({k:r.get(k) for k in ('uuid','name','git_repository','git_branch','base_directory','fqdn','status')})
+          print('coolify_candidate_count='+str(len(hits)))
+          print('coolify_candidates='+json.dumps(hits,ensure_ascii=False))
+          PY
+            fi
+          else
+            echo "coolify_credentials_available=false" >> "$report"
+          fi
+
+          ssh_key="${PWB_VPS3_SSH_KEY:-${PRIMARY_HOST_SSH_KEY:-}}"
+          if [[ -n "$ssh_key" ]]; then
+            key=/tmp/pwb-readonly-audit/vps3_key
+            printf '%s\n' "$ssh_key" > "$key"; chmod 600 "$key"
+            ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -i "$key" ubuntu@$VPS3_IP '
+              echo ssh_host=$(hostname)
+              echo ssh_time=$(date -u +%FT%TZ)
+              docker ps --format "container={{.Names}} image={{.Image}} status={{.Status}}" | grep -Ei "personal|workbench|mydairy" || true
+              for c in $(docker ps --format "{{.Names}}" | grep -Ei "personal|workbench|mydairy" || true); do
+                docker inspect -f "pwb_container=$c image={{.Config.Image}} state={{.State.Status}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}" "$c"
+                docker inspect -f "{{range .Mounts}}mount_type={{.Type}} mount_dest={{.Destination}}{{println}}{{end}}" "$c"
+                docker exec "$c" sh -lc "printenv | cut -d= -f1 | grep -E \"^(DATABASE_URL|RUNTIME_DB_PATH|LIBSQL_URL|POSTGRES_|R2_|S3_)$\" | sort" || true
+                docker exec "$c" sh -lc "find /data -maxdepth 2 -type f -printf \"runtime_file=%p bytes=%s\\n\" 2>/dev/null | head -30" || true
+                docker exec "$c" sh -lc "node -e \"fetch('http://127.0.0.1:3000/api/health').then(async r=>console.log('inside_health='+r.status+' '+await r.text())).catch(e=>{console.log('inside_health_error='+e.message);process.exit(1)})\"" || true
+              done
+              docker ps --format "database_container={{.Names}} image={{.Image}} status={{.Status}}" | grep -Ei "postgres|libsql|turso|sqlite" || true
+            ' >> "$report" 2>&1
+            echo "ssh_audit_exit=$?" >> "$report"
+            rm -f "$key"
+          else
+            echo "ssh_credentials_available=false" >> "$report"
+          fi
+
+          python3 - "$report" "$json" <<'PY'
+          import json,pathlib,sys
+          text=pathlib.Path(sys.argv[1]).read_text(errors='ignore')
+          values={}
+          for line in text.splitlines():
+              if '=' in line:
+                  k,v=line.split('=',1);values.setdefault(k,[]).append(v)
+          pathlib.Path(sys.argv[2]).write_text(json.dumps({'raw':text,'values':values},ensure_ascii=False,indent=2))
+          PY
+
+      - name: Upload read-only audit evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: personal-workbench-readonly-production-audit
+          path: /tmp/pwb-readonly-audit
+          retention-days: 3
