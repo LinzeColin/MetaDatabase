@@ -1,5 +1,6 @@
 import { env } from "@/server/runtime/vps3/env";
 import { AuthRuntimeNotReadyError, createAuth } from "@/server/auth";
+import { requestAtConfiguredOrigin } from "@/server/auth/request-origin";
 
 export const runtime = "nodejs";
 
@@ -71,7 +72,7 @@ function classifyDatabaseFailure(error: unknown): DatabaseFailureReason {
 
 async function handle(request: Request): Promise<Response> {
   try {
-    return await createAuth(env).handler(request);
+    return await createAuth(env).handler(requestAtConfiguredOrigin(request, env.APP_ORIGIN));
   } catch (error) {
     if (error instanceof AuthRuntimeNotReadyError) {
       // This is intentionally value-free operational telemetry. It is never
