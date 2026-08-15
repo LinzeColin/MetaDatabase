@@ -1,0 +1,33 @@
+name: Personal Workbench export validated dynamic tools
+
+on:
+  push:
+    branches:
+      - chatgpt/personal-workbench-vps3-phase1-v0-0-0-1
+    paths:
+      - .github/workflows/pwb-export-validated-tools.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect validated dynamic adapter and workflow
+        run: |
+          set -euo pipefail
+          mkdir -p export/tools export/workflows
+          cp tools/pwb_apply_dynamic_standalone.py export/tools/
+          cp tools/pwb_post_apply_ci_patch.py export/tools/
+          cp .github/workflows/pwb-dynamic-vps3-validation.yml export/workflows/
+          cp Personal-WorkBench/HANDOFF.md export/CURRENT_PROJECT_HANDOFF.md
+          printf '%s\n' 'This artifact contains the dynamic adapter used by the successful current-tree validation workflow.' > export/README.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: personal-workbench-validated-dynamic-tools
+          path: export
+          retention-days: 3
