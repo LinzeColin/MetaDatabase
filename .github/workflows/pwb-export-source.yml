@@ -1,0 +1,34 @@
+name: Personal Workbench source export
+
+on:
+  push:
+    branches:
+      - chatgpt/personal-workbench-vps3-phase1-v0-0-0-1
+    paths:
+      - .github/workflows/pwb-export-source.yml
+      - Personal-WorkBench/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Capture source context
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p export
+          cp -a Personal-WorkBench export/Personal-WorkBench
+          cp -a .github/workflows export/workflows
+          printf 'branch=%s\ncommit=%s\n' "${GITHUB_REF_NAME}" "${GITHUB_SHA}" > export/SOURCE_CONTEXT.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: personal-workbench-source
+          path: export
+          include-hidden-files: true
+          retention-days: 1
