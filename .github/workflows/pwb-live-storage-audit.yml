@@ -1,0 +1,170 @@
+name: Personal Workbench live storage audit
+
+on:
+  push:
+    branches:
+      - chatgpt/personal-workbench-live-audit-20260815
+    paths:
+      - .github/workflows/pwb-live-storage-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}
+      COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+    steps:
+      - name: Read live application, env-key, deployment and runtime-log facts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pwb-storage-audit
+          test -n "${COOLIFY_BASE_URL:-}"
+          test -n "${COOLIFY_API_TOKEN:-}"
+          printf '::add-mask::%s\n' "$COOLIFY_API_TOKEN"
+          base="${COOLIFY_BASE_URL%/}"
+          base="${base%/api/v1}/api/v1"
+          token="${COOLIFY_API_TOKEN#Bearer }"
+          inventory="$(mktemp)"
+          header_file="$(mktemp)"
+          detail="$(mktemp)"
+          envs="$(mktemp)"
+          logs="$(mktemp)"
+          deployments="$(mktemp)"
+          header=''
+          for candidate in \
+            "Authorization: Bearer ${token}" \
+            "X-API-KEY: ${token}" \
+            "X-Coolify-Token: ${token}"; do
+            if curl --fail --silent --show-error --max-time 20 -H "$candidate" "${base}/applications" -o "$inventory"; then
+              header="$candidate"
+              printf '%s' "$candidate" > "$header_file"
+              break
+            fi
+          done
+          test -n "$header"
+          uuid="$(python3 - "$inventory" <<'PY'
+          import json,sys
+          payload=json.load(open(sys.argv[1]))
+          rows=payload if isinstance(payload,list) else payload.get('applications') or payload.get('data') or []
+          matches=[]
+          for row in rows:
+              if not isinstance(row,dict): continue
+              text=' '.join(str(row.get(k) or '') for k in ('name','fqdn','git_repository','base_directory','dockerfile_location')).lower()
+              if ('personal-workbench' in text or 'personal workbench' in text or 'mydairy' in text) and row.get('uuid'):
+                  matches.append(str(row['uuid']))
+          matches=sorted(set(matches))
+          print(matches[0] if len(matches)==1 else '')
+          PY
+          )"
+          test -n "$uuid"
+          printf '::add-mask::%s\n' "$uuid"
+          curl --fail --silent --show-error --max-time 20 -H "$header" "${base}/applications/${uuid}" -o "$detail"
+          env_code="$(curl --silent --show-error --max-time 20 -w '%{http_code}' -H "$header" "${base}/applications/${uuid}/envs" -o "$envs" || true)"
+          log_code="$(curl --silent --show-error --max-time 20 -w '%{http_code}' -H "$header" "${base}/applications/${uuid}/logs?lines=300" -o "$logs" || true)"
+          deploy_code="$(curl --silent --show-error --max-time 20 -w '%{http_code}' -H "$header" "${base}/deployments/applications/${uuid}?take=20" -o "$deployments" || true)"
+          python3 - "$detail" "$envs" "$logs" "$deployments" "$env_code" "$log_code" "$deploy_code" <<'PY'
+          import json,pathlib,re,sys,urllib.parse
+          detail_path,env_path,logs_path,deploy_path=map(pathlib.Path,sys.argv[1:5])
+          env_code,log_code,deploy_code=sys.argv[5:8]
+          out=pathlib.Path('/tmp/pwb-storage-audit')
+          detail=json.loads(detail_path.read_text())
+
+          def walk(value,path=''):
+              found=[]
+              if isinstance(value,dict):
+                  for key,item in value.items():
+                      next_path=f'{path}.{key}' if path else key
+                      if any(word in key.lower() for word in ('storage','volume','mount','docker_run','commit_sha','dockerfile','base_directory')):
+                          if isinstance(item,(str,int,float,bool)) or item is None:
+                              found.append((next_path,item))
+                          elif isinstance(item,list):
+                              safe=[]
+                              for row in item:
+                                  if isinstance(row,dict):
+                                      safe.append({k:row.get(k) for k in ('name','mount_path','host_path','source','destination','volume_name') if k in row})
+                              found.append((next_path,safe))
+                      found.extend(walk(item,next_path))
+              elif isinstance(value,list):
+                  for index,item in enumerate(value): found.extend(walk(item,f'{path}[{index}]'))
+              return found
+
+          app={k:detail.get(k) for k in (
+              'name','status','fqdn','git_repository','git_branch','git_commit_sha','build_pack',
+              'base_directory','dockerfile_location','custom_docker_run_options','health_check_path',
+              'ports_exposes','destination_type','created_at','updated_at'
+          ) if k in detail}
+          app['storage_related_fields']={key:value for key,value in walk(detail)}
+          (out/'application.json').write_text(json.dumps(app,ensure_ascii=False,indent=2),encoding='utf-8')
+
+          env_report={'http_status':env_code,'keys':[],'selected_non_secret_configuration':{}}
+          if env_code=='200':
+              try: payload=json.loads(env_path.read_text())
+              except Exception: payload=[]
+              rows=payload if isinstance(payload,list) else payload.get('data') or payload.get('envs') or []
+              for row in rows:
+                  if not isinstance(row,dict): continue
+                  key=str(row.get('key') or row.get('name') or '')
+                  value=row.get('value')
+                  env_report['keys'].append({
+                      'key':key,
+                      'configured':value not in (None,''),
+                      'is_build_time':row.get('is_build_time'),
+                      'is_runtime':row.get('is_runtime'),
+                      'is_preview':row.get('is_preview'),
+                  })
+                  if key in {'RUNTIME_DB_PATH','RUNTIME_BACKUP_DIR','R2_BUCKET_NAME','R2_OBJECT_PREFIX','MAIL_PROVIDER','APP_ORIGIN'} and isinstance(value,str):
+                      env_report['selected_non_secret_configuration'][key]=value
+                  if key=='R2_ENDPOINT' and isinstance(value,str) and value:
+                      try:
+                          host=urllib.parse.urlparse(value).hostname or ''
+                      except Exception: host=''
+                      env_report['selected_non_secret_configuration']['R2_ENDPOINT_PROVIDER']=(
+                          'cloudflare-r2' if 'r2.cloudflarestorage.com' in host else
+                          'vps-or-other-s3' if host else 'unclassified'
+                      )
+              env_report['keys']=sorted(env_report['keys'],key=lambda item:item['key'])
+          (out/'environment-keys.json').write_text(json.dumps(env_report,ensure_ascii=False,indent=2),encoding='utf-8')
+
+          log_report={'http_status':log_code,'database_runtime_lines':[],'error_lines':[]}
+          if log_code=='200':
+              try: payload=json.loads(logs_path.read_text())
+              except Exception: payload={}
+              raw=payload.get('logs','') if isinstance(payload,dict) else str(payload)
+              for line in raw.splitlines():
+                  redacted=re.sub(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}','[email-redacted]',line)
+                  redacted=re.sub(r'(?i)(token|secret|password|key)=\S+',r'\1=[redacted]',redacted)
+                  if any(term in redacted for term in ('migration_applied=','database_ready=','table_count=','backup_created=','Ready in','ready - started server')):
+                      log_report['database_runtime_lines'].append(redacted[-1000:])
+                  elif re.search(r'\b(error|failed|exception|fatal)\b',redacted,re.I):
+                      log_report['error_lines'].append(redacted[-1000:])
+              log_report['database_runtime_lines']=log_report['database_runtime_lines'][-80:]
+              log_report['error_lines']=log_report['error_lines'][-40:]
+          (out/'runtime-logs.json').write_text(json.dumps(log_report,ensure_ascii=False,indent=2),encoding='utf-8')
+
+          deployment_report={'http_status':deploy_code,'deployments':[]}
+          if deploy_code=='200':
+              try: payload=json.loads(deploy_path.read_text())
+              except Exception: payload=[]
+              rows=payload if isinstance(payload,list) else payload.get('data') or payload.get('deployments') or []
+              for row in rows[:20]:
+                  if not isinstance(row,dict): continue
+                  deployment_report['deployments'].append({k:row.get(k) for k in (
+                      'status','git_commit_sha','commit','created_at','updated_at','finished_at','is_webhook','rollback'
+                  ) if k in row})
+          (out/'deployments.json').write_text(json.dumps(deployment_report,ensure_ascii=False,indent=2),encoding='utf-8')
+          PY
+          rm -f "$inventory" "$header_file" "$detail" "$envs" "$logs" "$deployments"
+          find /tmp/pwb-storage-audit -maxdepth 1 -type f -print -exec cat {} \;
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: personal-workbench-live-storage-audit
+          path: /tmp/pwb-storage-audit
+          retention-days: 7
