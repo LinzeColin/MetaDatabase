@@ -1,0 +1,40 @@
+name: Personal Workbench exact main source export
+
+on:
+  push:
+    branches:
+      - chatgpt/personal-workbench-live-audit-20260815
+    paths:
+      - .github/workflows/pwb-current-main-source-export.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Record exact subject and package current source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pwb-current-main/repository/.github/workflows
+          cp -a Personal-WorkBench /tmp/pwb-current-main/repository/
+          cp .github/workflows/personal-workbench-vps3.yml /tmp/pwb-current-main/repository/.github/workflows/
+          git rev-parse HEAD > /tmp/pwb-current-main/MAIN_HEAD.txt
+          git log -1 --format='%cI%n%s' > /tmp/pwb-current-main/MAIN_COMMIT.txt
+          printf '%s\n' 'LinzeColin/MetaDatabase' > /tmp/pwb-current-main/REPOSITORY.txt
+          printf '%s\n' 'Personal-WorkBench' > /tmp/pwb-current-main/TARGET_PATH.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: personal-workbench-exact-current-main-source
+          path: /tmp/pwb-current-main
+          retention-days: 3
