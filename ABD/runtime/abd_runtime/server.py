@@ -82,16 +82,41 @@ def _home_page() -> bytes:
     return (
         "<!doctype html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\">"
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
-        "<title>ABD 运行状态</title></head><body><main><h1>ABD 0.0.0.1</h1>"
-        "<p>运行控制面已启动，当前为只读观察。</p>"
-        "<p>静态校准证据仅覆盖 2025/26 E0 单赛季描述，不能用于模型参数更新。</p>"
-        "<p>系统不生成建议、不连接真实市场、账户、TAB 或 Gmail，也不执行订单。</p>"
-        "<p>软件 Alpha 仅展示固定合成闭环：<a href=\"/alpha\">/alpha</a>。</p>"
-        "<p>Shadow Beta 仅展示合成门并保持阻断：<a href=\"/beta\">/beta</a>。</p>"
-        "<p>GA 对账仅展示零行本地控制：<a href=\"/ga\">/ga</a>。</p>"
-        "<p>最终交付当前待整阶段复审：<a href=\"/delivery\">/delivery</a>。</p>"
-        "<p>此页面仅通过受保护访问入口提供，不代表全球或中国大陆可达承诺。</p>"
-        "<p>月度 30% 目标尚未验证且不保证。</p>"
+        "<title>ABD 观测台 · 0.0.0.1</title><style>"
+        ":root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
+        "background:#07111f;color:#e8f0fb}*{box-sizing:border-box}body{margin:0;min-width:320px}"
+        ".shell{width:min(960px,100%);margin:0 auto;padding:48px 24px 64px}.eyebrow{margin:0 0 10px;"
+        "color:#8bb9ff;font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}"
+        "h1{margin:0;color:#fff;font-size:clamp(2rem,6vw,3.6rem);line-height:1.05}h2{margin:0 0 14px;"
+        "font-size:1rem;color:#fff}.lead{max-width:640px;margin:18px 0 0;color:#b9c9dd;font-size:1.05rem;line-height:1.65}"
+        ".badges{display:flex;flex-wrap:wrap;gap:10px;margin:26px 0 30px}.badge{border:1px solid #28577f;"
+        "border-radius:999px;padding:7px 11px;color:#b8e5ff;background:#0b2336;font-size:.86rem}.grid{display:grid;"
+        "grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{border:1px solid #203955;border-radius:18px;"
+        "padding:22px;background:linear-gradient(145deg,#0d1d31,#091524);box-shadow:0 14px 38px #0003}.card-wide{grid-column:1/-1}"
+        ".facts{display:grid;grid-template-columns:auto 1fr;gap:10px 16px;margin:0}.facts dt{color:#8fa5bd}.facts dd{margin:0;"
+        "color:#fff;font-weight:600}.actions{display:grid;gap:10px;margin:0;padding:0;list-style:none}.actions a{display:block;"
+        "padding:13px 14px;border:1px solid #2a5f91;border-radius:12px;color:#e8f4ff;text-decoration:none;background:#102b43}"
+        ".actions a:hover,.actions a:focus{background:#17456d;outline:2px solid #8bb9ff;outline-offset:2px}.notice{margin:0;"
+        "color:#d8e4f1;line-height:1.65}.notice strong{color:#ffd78c}.footer{margin:24px 0 0;color:#8fa5bd;font-size:.86rem;line-height:1.55}"
+        "@media(max-width:640px){.shell{padding:32px 18px 48px}.grid{grid-template-columns:1fr}.card-wide{grid-column:auto}}</style>"
+        "</head><body><main class=\"shell\"><header><p class=\"eyebrow\">ABD · 0.0.0.1</p>"
+        "<h1>ABD 观测台</h1><p class=\"lead\">运行中，但当前只做可审计的只读观察。"
+        "这里不会生成建议、提交订单或伪造市场结论。</p></header><div class=\"badges\">"
+        "<span class=\"badge\">运行状态：已启动</span><span class=\"badge\">模式：只读观察</span>"
+        "<span class=\"badge\">订单：已禁用</span></div><section class=\"grid\" aria-label=\"ABD 当前状态\">"
+        "<article class=\"card\"><h2>当前运行边界</h2><dl class=\"facts\"><dt>真实市场 / 账户</dt><dd>未连接</dd>"
+        "<dt>TAB / Gmail</dt><dd>未连接</dd><dt>建议 / 下单</dt><dd>已禁用</dd></dl></article>"
+        "<article class=\"card\"><h2>校准证据</h2><p class=\"notice\">仅保留 2025/26 E0 单赛季静态描述，"
+        "不能用于模型参数更新，也不是实时赔率或市场事实。</p></article>"
+        "<article class=\"card card-wide\"><h2>可查看的运行材料</h2><ul class=\"actions\">"
+        "<li><a href=\"/alpha\">软件 Alpha：固定合成闭环</a></li>"
+        "<li><a href=\"/beta\">Shadow Beta：合成门与阻断状态</a></li>"
+        "<li><a href=\"/ga\">GA 对账：零行本地控制</a></li>"
+        "<li><a href=\"/delivery\">交付状态：冻结合同与运行边界</a></li>"
+        "<li><a href=\"/evidence\">观测证据：静态证据范围</a></li></ul></article>"
+        "<article class=\"card card-wide\"><p class=\"notice\"><strong>重要：</strong>该入口受访问保护；"
+        "它不代表全球或中国大陆可达承诺。月度 30% 目标尚未验证，也不保证。</p></article></section>"
+        "<p class=\"footer\">ABD 以证据、数值与风险门为先；缺少真实来源时保持不建议、不下单。</p>"
         "</main></body></html>"
     ).encode("utf-8")
 
@@ -121,7 +146,10 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "no-referrer")
-        self.send_header("Content-Security-Policy", "default-src 'none'; base-uri 'none'; form-action 'none'")
+        self.send_header(
+            "Content-Security-Policy",
+            "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'",
+        )
         self.end_headers()
         if not head_only:
             self.wfile.write(body)
