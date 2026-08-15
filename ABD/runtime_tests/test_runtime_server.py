@@ -117,7 +117,7 @@ def test_http_surface_is_observation_only(tmp_path: Path) -> None:
         assert response.status == 200
         assert body["decision"] == SAFE_DECISION
 
-        connection.request("GET", "/evidence")
+        connection.request("GET", "/console/evidence")
         response = connection.getresponse()
         evidence = json.loads(response.read())
         assert response.status == 200
@@ -126,7 +126,7 @@ def test_http_surface_is_observation_only(tmp_path: Path) -> None:
         assert evidence["static_calibration"]["model_update_eligible"] is False
         assert evidence["capability_boundary"]["order_submission_enabled"] is False
 
-        connection.request("GET", "/sources")
+        connection.request("GET", "/console/sources")
         response = connection.getresponse()
         sources = json.loads(response.read())
         assert response.status == 200
@@ -141,17 +141,32 @@ def test_http_surface_is_observation_only(tmp_path: Path) -> None:
         response = connection.getresponse()
         home = response.read().decode("utf-8")
         assert response.status == 200
-        assert "ABD 观测台" in home
-        assert "可审计的只读观察" in home
-        assert "真实市场 / 账户" in home
-        assert "历史来源" in home
-        assert "月度 30% 目标尚未验证" in home
+        assert "ABD 观测入口" in home
+        assert "受保护的观测台" in home
+        assert "/console" in home
         assert "<style>" in home
         assert "<script" not in home
         assert "<form" not in home
         assert response.getheader("Content-Security-Policy") == (
             "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"
         )
+
+        connection.request("GET", "/console")
+        response = connection.getresponse()
+        console = response.read().decode("utf-8")
+        assert response.status == 200
+        assert "ABD 观测台" in console
+        assert "可审计的只读观察" in console
+        assert "真实市场 / 账户" in console
+        assert "历史来源" in console
+        assert "月度 30% 目标尚未验证" in console
+        assert "/console/sources" in console
+
+        connection.request("GET", "/sources")
+        response = connection.getresponse()
+        legacy = json.loads(response.read())
+        assert response.status == 404
+        assert legacy["decision"] == SAFE_DECISION
 
         connection.request("POST", "/orders")
         response = connection.getresponse()

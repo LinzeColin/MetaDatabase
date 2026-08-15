@@ -79,7 +79,34 @@ def _json_bytes(payload: Mapping[str, Any]) -> bytes:
     return json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
 
 
-def _home_page() -> bytes:
+def _public_landing_page() -> bytes:
+    """Render the only unauthenticated page: a non-sensitive acceptance entry."""
+
+    return (
+        "<!doctype html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\">"
+        "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+        "<title>ABD · 0.0.0.1</title><style>"
+        ":root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
+        "background:#07111f;color:#e8f0fb}*{box-sizing:border-box}body{margin:0;min-width:320px}"
+        ".shell{width:min(760px,100%);margin:0 auto;padding:72px 24px}.eyebrow{margin:0 0 12px;"
+        "color:#8bb9ff;font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}"
+        "h1{margin:0;color:#fff;font-size:clamp(2.2rem,7vw,4.2rem);line-height:1.05}.lead{max-width:620px;"
+        "margin:20px 0 0;color:#b9c9dd;font-size:1.08rem;line-height:1.7}.card{margin:30px 0 0;border:1px solid #203955;"
+        "border-radius:18px;padding:24px;background:linear-gradient(145deg,#0d1d31,#091524)}.action{display:inline-block;"
+        "margin-top:22px;padding:13px 16px;border:1px solid #2a5f91;border-radius:12px;color:#e8f4ff;text-decoration:none;"
+        "background:#102b43}.action:hover,.action:focus{background:#17456d;outline:2px solid #8bb9ff;outline-offset:2px}"
+        ".note{margin:18px 0 0;color:#8fa5bd;font-size:.9rem;line-height:1.65}</style></head><body>"
+        "<main class=\"shell\"><p class=\"eyebrow\">ABD · 0.0.0.1</p><h1>ABD 观测入口</h1>"
+        "<p class=\"lead\">服务已部署为只读观测入口。这里不连接真实市场、账户、TAB 或 Gmail，"
+        "不生成建议，也不会提交订单。</p><section class=\"card\"><strong>验收范围</strong>："
+        "可打开的中文入口、受保护的观测台、明确的只读与不下单边界。"
+        "<br><a class=\"action\" href=\"/console\">进入受保护观测台</a>"
+        "<p class=\"note\">观测台需要已配置的 Cloudflare Access 身份验证；该验证保护观测材料，"
+        "不会要求市场账户或下单。</p></section></main></body></html>"
+    ).encode("utf-8")
+
+
+def _console_page() -> bytes:
     return (
         "<!doctype html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\">"
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
@@ -112,12 +139,12 @@ def _home_page() -> bytes:
         "<article class=\"card\"><h2>历史来源</h2><p class=\"notice\">两类来源已有私有归档回执，"
         "仅用于历史核对与校准描述；不代表实时盘口或可下单信号。</p></article>"
         "<article class=\"card card-wide\"><h2>可查看的运行材料</h2><ul class=\"actions\">"
-        "<li><a href=\"/alpha\">软件 Alpha：固定合成闭环</a></li>"
-        "<li><a href=\"/beta\">Shadow Beta：合成门与阻断状态</a></li>"
-        "<li><a href=\"/ga\">GA 对账：零行本地控制</a></li>"
-        "<li><a href=\"/delivery\">交付状态：冻结合同与运行边界</a></li>"
-        "<li><a href=\"/evidence\">观测证据：静态证据范围</a></li>"
-        "<li><a href=\"/sources\">历史来源：归档回执与使用边界</a></li></ul></article>"
+        "<li><a href=\"/console/alpha\">软件 Alpha：固定合成闭环</a></li>"
+        "<li><a href=\"/console/beta\">Shadow Beta：合成门与阻断状态</a></li>"
+        "<li><a href=\"/console/ga\">GA 对账：零行本地控制</a></li>"
+        "<li><a href=\"/console/delivery\">交付状态：冻结合同与运行边界</a></li>"
+        "<li><a href=\"/console/evidence\">观测证据：静态证据范围</a></li>"
+        "<li><a href=\"/console/sources\">历史来源：归档回执与使用边界</a></li></ul></article>"
         "<article class=\"card card-wide\"><p class=\"notice\"><strong>重要：</strong>该入口受访问保护；"
         "它不代表全球或中国大陆可达承诺。月度 30% 目标尚未验证，也不保证。</p></article></section>"
         "<p class=\"footer\">ABD 以证据、数值与风险门为先；缺少真实来源时保持不建议、不下单。</p>"
@@ -162,12 +189,15 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
     def _route(self, *, head_only: bool) -> None:
         path = self.path.split("?", 1)[0]
         if path == "/":
-            self._send(HTTPStatus.OK, "text/html; charset=utf-8", _home_page(), head_only=head_only)
+            self._send(HTTPStatus.OK, "text/html; charset=utf-8", _public_landing_page(), head_only=head_only)
             return
         if path in {"/healthz", "/readyz", "/status"}:
             self._send(HTTPStatus.OK, "application/json; charset=utf-8", _json_bytes(self.server.runtime_state), head_only=head_only)
             return
-        if path == "/evidence":
+        if path in {"/console", "/console/"}:
+            self._send(HTTPStatus.OK, "text/html; charset=utf-8", _console_page(), head_only=head_only)
+            return
+        if path == "/console/evidence":
             self._send(
                 HTTPStatus.OK,
                 "application/json; charset=utf-8",
@@ -175,7 +205,7 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
                 head_only=head_only,
             )
             return
-        if path == "/sources":
+        if path == "/console/sources":
             self._send(
                 HTTPStatus.OK,
                 "application/json; charset=utf-8",
@@ -183,7 +213,7 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
                 head_only=head_only,
             )
             return
-        if path == "/alpha":
+        if path == "/console/alpha":
             self._send(
                 HTTPStatus.OK,
                 "application/json; charset=utf-8",
@@ -191,7 +221,7 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
                 head_only=head_only,
             )
             return
-        if path == "/beta":
+        if path == "/console/beta":
             self._send(
                 HTTPStatus.OK,
                 "application/json; charset=utf-8",
@@ -199,7 +229,7 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
                 head_only=head_only,
             )
             return
-        if path == "/ga":
+        if path == "/console/ga":
             self._send(
                 HTTPStatus.OK,
                 "application/json; charset=utf-8",
@@ -207,7 +237,7 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
                 head_only=head_only,
             )
             return
-        if path == "/delivery":
+        if path == "/console/delivery":
             self._send(
                 HTTPStatus.OK,
                 "application/json; charset=utf-8",
