@@ -1,0 +1,308 @@
+name: Personal Workbench live production audit
+
+on:
+  push:
+    branches:
+      - chatgpt/personal-workbench-live-audit-20260815
+    paths:
+      - .github/workflows/pwb-live-production-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: personal-workbench-live-production-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PWB_PUBLIC_URL_SECRET: ${{ secrets.PWB_PUBLIC_URL }}
+      COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}
+      COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+      PWB_COOLIFY_APP_UUID: ${{ secrets.PWB_COOLIFY_APP_UUID }}
+      PWB_TEST_ACCOUNT_A_EMAIL: ${{ secrets.PWB_TEST_ACCOUNT_A_EMAIL }}
+      PWB_TEST_ACCOUNT_A_PASSWORD: ${{ secrets.PWB_TEST_ACCOUNT_A_PASSWORD }}
+      PWB_TEST_ACCOUNT_B_EMAIL: ${{ secrets.PWB_TEST_ACCOUNT_B_EMAIL }}
+      PWB_TEST_ACCOUNT_B_PASSWORD: ${{ secrets.PWB_TEST_ACCOUNT_B_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: Personal-WorkBench/package-lock.json
+
+      - name: Establish redacted audit context
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pwb-live-audit/http /tmp/pwb-live-audit/browser
+          public_url="${PWB_PUBLIC_URL_SECRET:-https://mydairy.linzezhang.com}"
+          public_url="${public_url%/}"
+          echo "PWB_BASE_URL=$public_url" >> "$GITHUB_ENV"
+          python3 - <<'PY'
+          import json, os, pathlib
+          required = [
+              "COOLIFY_BASE_URL", "COOLIFY_API_TOKEN", "PWB_COOLIFY_APP_UUID",
+              "PWB_TEST_ACCOUNT_A_EMAIL", "PWB_TEST_ACCOUNT_A_PASSWORD",
+              "PWB_TEST_ACCOUNT_B_EMAIL", "PWB_TEST_ACCOUNT_B_PASSWORD",
+          ]
+          result = {
+              "public_url_source": "repository_secret" if os.getenv("PWB_PUBLIC_URL_SECRET") else "known_canonical_fallback",
+              "public_url": os.getenv("PWB_PUBLIC_URL_SECRET") or "https://mydairy.linzezhang.com",
+              "secret_presence": {key: bool(os.getenv(key)) for key in required},
+          }
+          pathlib.Path("/tmp/pwb-live-audit/context.json").write_text(
+              json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
+          )
+          PY
+
+      - name: Probe DNS and public HTTP surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          host="$(python3 - <<'PY'
+          import os, urllib.parse
+          print(urllib.parse.urlparse(os.environ["PWB_BASE_URL"]).hostname or "")
+          PY
+          )"
+          getent ahostsv4 "$host" | awk '{print $1}' | sort -u > /tmp/pwb-live-audit/http/dns-a.txt || true
+          getent ahostsv6 "$host" | awk '{print $1}' | sort -u > /tmp/pwb-live-audit/http/dns-aaaa.txt || true
+
+          probe() {
+            name="$1"
+            path="$2"
+            expected="$3"
+            headers="/tmp/pwb-live-audit/http/${name}.headers"
+            body="/tmp/pwb-live-audit/http/${name}.body"
+            code="$(curl --silent --show-error --location --max-time 30 \
+              --dump-header "$headers" --output "$body" --write-out '%{http_code}' \
+              "${PWB_BASE_URL}${path}" || printf '000')"
+            printf '%s\n' "$code" > "/tmp/pwb-live-audit/http/${name}.status"
+            if [[ "$expected" != *"$code"* ]]; then
+              printf 'unexpected status: %s expected one of %s\n' "$code" "$expected" > "/tmp/pwb-live-audit/http/${name}.error"
+            fi
+          }
+
+          probe health /api/health '200'
+          probe home / '200'
+          probe sign_in /auth/sign-in '200'
+          probe unauthenticated_profile /api/mydairy/profile '401'
+          probe public_auth_config /api/auth/public-config '200,404'
+
+          python3 - <<'PY'
+          import json, pathlib, re
+          root = pathlib.Path('/tmp/pwb-live-audit/http')
+          def status(name):
+              p=root/f'{name}.status'
+              return p.read_text().strip() if p.exists() else 'missing'
+          health = {}
+          hp=root/'health.body'
+          if hp.exists():
+              try: health=json.loads(hp.read_text(encoding='utf-8'))
+              except Exception: health={"unreadable": True}
+          home=(root/'home.body').read_text(encoding='utf-8', errors='ignore') if (root/'home.body').exists() else ''
+          signin=(root/'sign_in.body').read_text(encoding='utf-8', errors='ignore') if (root/'sign_in.body').exists() else ''
+          headers=(root/'health.headers').read_text(encoding='utf-8', errors='ignore') if (root/'health.headers').exists() else ''
+          safe_headers={}
+          for line in headers.splitlines():
+              if ':' not in line: continue
+              k,v=line.split(':',1)
+              if k.lower() in {'server','content-type','cf-ray','x-powered-by','via','location'}:
+                  safe_headers[k.lower()]=v.strip()
+          report={
+              "statuses": {n: status(n) for n in ['health','home','sign_in','unauthenticated_profile','public_auth_config']},
+              "health": health,
+              "home_has_personal_workbench": bool(re.search('个人工作台|Personal Workbench', home, re.I)),
+              "sign_in_has_email": '邮箱' in signin,
+              "sign_in_has_google": bool(re.search('Google', signin, re.I)),
+              "safe_response_headers": safe_headers,
+          }
+          (root/'public-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+          PY
+
+      - name: Inspect Coolify application and deployment identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          report=/tmp/pwb-live-audit/coolify-report.json
+          if [[ -z "${COOLIFY_BASE_URL:-}" || -z "${COOLIFY_API_TOKEN:-}" ]]; then
+            printf '{"status":"BLOCKED_MISSING_COOLIFY_CREDENTIALS"}\n' > "$report"
+            exit 0
+          fi
+          printf '::add-mask::%s\n' "$COOLIFY_API_TOKEN"
+          base="${COOLIFY_BASE_URL%/}"
+          base="${base%/api/v1}/api/v1"
+          token="${COOLIFY_API_TOKEN#Bearer }"
+          inventory="$(mktemp)"
+          detail="$(mktemp)"
+          selected="${PWB_COOLIFY_APP_UUID:-}"
+          header=''
+          for candidate in \
+            "Authorization: Bearer ${token}" \
+            "X-API-KEY: ${token}" \
+            "X-Coolify-Token: ${token}"; do
+            if curl --fail --silent --show-error --max-time 20 -H "$candidate" "${base}/applications" -o "$inventory"; then
+              header="$candidate"
+              break
+            fi
+          done
+          if [[ -z "$header" ]]; then
+            printf '{"status":"BLOCKED_COOLIFY_API_REJECTED"}\n' > "$report"
+            rm -f "$inventory" "$detail"
+            exit 0
+          fi
+          if [[ -z "$selected" ]]; then
+            selected="$(python3 - "$inventory" <<'PY'
+          import json,re,sys
+          payload=json.load(open(sys.argv[1]))
+          rows=payload if isinstance(payload,list) else payload.get('applications') or payload.get('data') or []
+          matches=[]
+          for row in rows:
+              if not isinstance(row,dict): continue
+              text=' '.join(str(row.get(k) or '') for k in ('name','description','fqdn','git_repository','base_directory','dockerfile_location')).lower()
+              if ('personal-workbench' in text or 'personal workbench' in text or 'mydairy' in text) and row.get('uuid'):
+                  matches.append(str(row['uuid']))
+          print(matches[0] if len(set(matches))==1 else '')
+          PY
+            )"
+          fi
+          if [[ -z "$selected" ]]; then
+            python3 - "$inventory" "$report" <<'PY'
+          import json,sys
+          payload=json.load(open(sys.argv[1]))
+          rows=payload if isinstance(payload,list) else payload.get('applications') or payload.get('data') or []
+          safe=[]
+          for row in rows:
+              if not isinstance(row,dict): continue
+              safe.append({k:row.get(k) for k in ('name','description','status','fqdn','git_repository','git_branch','base_directory','dockerfile_location')})
+          json.dump({'status':'BLOCKED_UNIQUE_APP_NOT_FOUND','visible_applications':safe},open(sys.argv[2],'w'),ensure_ascii=False,indent=2)
+          PY
+            rm -f "$inventory" "$detail"
+            exit 0
+          fi
+          printf '::add-mask::%s\n' "$selected"
+          if ! curl --fail --silent --show-error --max-time 20 -H "$header" "${base}/applications/${selected}" -o "$detail"; then
+            printf '{"status":"BLOCKED_APP_DETAIL_UNAVAILABLE"}\n' > "$report"
+            rm -f "$inventory" "$detail"
+            exit 0
+          fi
+          python3 - "$detail" "$report" <<'PY'
+          import json,sys
+          row=json.load(open(sys.argv[1]))
+          scalar_keys=(
+            'name','description','status','fqdn','git_repository','git_branch','build_pack',
+            'base_directory','dockerfile_location','ports_exposes','health_check_enabled',
+            'health_check_path','health_check_port','server_status','destination_type'
+          )
+          safe={k:row.get(k) for k in scalar_keys if k in row}
+          storage=[]
+          for key in ('persistent_storages','storages','mounts'):
+              value=row.get(key)
+              if isinstance(value,list):
+                  for item in value:
+                      if isinstance(item,dict):
+                          storage.append({k:item.get(k) for k in ('name','mount_path','host_path','source','destination') if k in item})
+          safe['persistent_storage']=storage
+          safe['status']='READ_OK'
+          json.dump(safe,open(sys.argv[2],'w'),ensure_ascii=False,indent=2)
+          PY
+          rm -f "$inventory" "$detail"
+
+      - name: Install application dependencies
+        working-directory: Personal-WorkBench
+        run: npm ci --no-audit --no-fund
+
+      - name: Install Chromium
+        working-directory: Personal-WorkBench
+        run: npx playwright install --with-deps chromium
+
+      - name: Run public UI inventory on live URL
+        working-directory: Personal-WorkBench
+        env:
+          PWB_BASE_URL: ${{ env.PWB_BASE_URL }}
+        run: |
+          set +e
+          npx playwright test -c playwright.vps3.config.ts tests/vps3/ui-inventory.spec.ts --project=desktop --project=mobile-360 \
+            > /tmp/pwb-live-audit/browser/ui-inventory.log 2>&1
+          code=$?
+          printf '%s\n' "$code" > /tmp/pwb-live-audit/browser/ui-inventory.exit
+          exit 0
+
+      - name: Run real two-account persistence and isolation transaction
+        working-directory: Personal-WorkBench
+        env:
+          PWB_BASE_URL: ${{ env.PWB_BASE_URL }}
+          PWB_TEST_ACCOUNT_A_EMAIL: ${{ env.PWB_TEST_ACCOUNT_A_EMAIL }}
+          PWB_TEST_ACCOUNT_A_PASSWORD: ${{ env.PWB_TEST_ACCOUNT_A_PASSWORD }}
+          PWB_TEST_ACCOUNT_B_EMAIL: ${{ env.PWB_TEST_ACCOUNT_B_EMAIL }}
+          PWB_TEST_ACCOUNT_B_PASSWORD: ${{ env.PWB_TEST_ACCOUNT_B_PASSWORD }}
+        run: |
+          set +e
+          if [[ -z "${PWB_TEST_ACCOUNT_A_EMAIL:-}" || -z "${PWB_TEST_ACCOUNT_A_PASSWORD:-}" || \
+                -z "${PWB_TEST_ACCOUNT_B_EMAIL:-}" || -z "${PWB_TEST_ACCOUNT_B_PASSWORD:-}" ]]; then
+            printf 'BLOCKED_MISSING_TWO_TEST_ACCOUNTS\n' > /tmp/pwb-live-audit/browser/two-account.log
+            printf '125\n' > /tmp/pwb-live-audit/browser/two-account.exit
+            exit 0
+          fi
+          npx playwright test -c playwright.vps3.config.ts tests/vps3/two-account.spec.ts --project=desktop \
+            > /tmp/pwb-live-audit/browser/two-account.log 2>&1
+          code=$?
+          printf '%s\n' "$code" > /tmp/pwb-live-audit/browser/two-account.exit
+          exit 0
+
+      - name: Produce machine verdict
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json,pathlib
+          root=pathlib.Path('/tmp/pwb-live-audit')
+          def read_json(path):
+              try:return json.loads(path.read_text(encoding='utf-8'))
+              except Exception:return {"status":"UNREADABLE_OR_MISSING"}
+          def read_int(path):
+              try:return int(path.read_text().strip())
+              except Exception:return 999
+          public=read_json(root/'http/public-report.json')
+          coolify=read_json(root/'coolify-report.json')
+          ui=read_int(root/'browser/ui-inventory.exit')
+          two=read_int(root/'browser/two-account.exit')
+          health_ok=public.get('statuses',{}).get('health')=='200' and public.get('health',{}).get('ready') is True
+          surface_ok=(public.get('statuses',{}).get('home')=='200' and public.get('statuses',{}).get('sign_in')=='200' and public.get('home_has_personal_workbench'))
+          unauthorized_ok=public.get('statuses',{}).get('unauthenticated_profile')=='401'
+          coolify_ok=coolify.get('status')=='READ_OK' and str(coolify.get('git_branch',''))=='main' and 'MetaDatabase' in str(coolify.get('git_repository',''))
+          verdict={
+              'health': 'PASS' if health_ok else 'FAIL',
+              'public_surface': 'PASS' if surface_ok else 'FAIL',
+              'unauthenticated_boundary': 'PASS' if unauthorized_ok else 'FAIL',
+              'coolify_source_and_runtime': 'PASS' if coolify_ok else 'BLOCKED_OR_FAIL',
+              'desktop_and_mobile_ui_inventory': 'PASS' if ui==0 else 'FAIL',
+              'two_account_cloud_persistence_and_isolation': 'PASS' if two==0 else ('BLOCKED' if two==125 else 'FAIL'),
+          }
+          verdict['overall']='PASS' if all(v=='PASS' for v in verdict.values()) else 'NOT_PASS'
+          (root/'VERDICT.json').write_text(json.dumps(verdict,ensure_ascii=False,indent=2),encoding='utf-8')
+          PY
+          cat /tmp/pwb-live-audit/VERDICT.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: personal-workbench-live-production-audit
+          path: /tmp/pwb-live-audit
+          retention-days: 7
+
+      - name: Enforce verdict
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          verdict=json.load(open('/tmp/pwb-live-audit/VERDICT.json'))
+          raise SystemExit(0 if verdict.get('overall')=='PASS' else 1)
+          PY
