@@ -1,0 +1,56 @@
+name: Personal Workbench dynamic VPS3 validation
+
+on:
+  push:
+    branches:
+      - chatgpt/personal-workbench-vps3-phase1-v0-0-0-1
+    paths:
+      - tools/pwb_apply_dynamic_standalone.py
+      - .github/workflows/pwb-dynamic-vps3-validation.yml
+      - Personal-WorkBench/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: personal-workbench-dynamic-vps3-validation
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+      - name: Apply candidate to this current tree
+        run: python3 tools/pwb_apply_dynamic_standalone.py . --report /tmp/pwb-apply-report.json
+      - name: Refresh dependency lock from the current package graph
+        working-directory: Personal-WorkBench
+        run: npm install --package-lock-only --no-audit --no-fund
+      - name: Install current candidate
+        working-directory: Personal-WorkBench
+        run: npm ci --no-audit --no-fund
+      - name: Run current-tree code gates
+        working-directory: Personal-WorkBench
+        run: npm run check:vps3
+      - name: Build the actual Docker image
+        working-directory: Personal-WorkBench
+        run: docker build -f Dockerfile.vps3 -t personal-workbench:dynamic-candidate .
+      - name: Export applied candidate evidence
+        if: always()
+        run: |
+          mkdir -p /tmp/pwb-validation
+          cp /tmp/pwb-apply-report.json /tmp/pwb-validation/apply-report.json
+          git status --short > /tmp/pwb-validation/git-status.txt
+          cp Personal-WorkBench/package.json /tmp/pwb-validation/package.json
+          cp Personal-WorkBench/package-lock.json /tmp/pwb-validation/package-lock.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: personal-workbench-dynamic-vps3-validation
+          path: /tmp/pwb-validation
+          retention-days: 3
