@@ -14,9 +14,16 @@ const accountB = {
 async function signIn(browser: Browser, account: { email: string; password: string }): Promise<BrowserContext> {
   const context = await browser.newContext();
   const page = await context.newPage();
-  await page.goto("/auth/sign-in", { waitUntil: "networkidle" });
+  // The sign-in screen keeps third-party challenge connectivity alive, so
+  // `networkidle` is not a meaningful readiness signal here.  Wait for the
+  // document and let the accessible controls below prove the form is ready.
+  await page.goto("/auth/sign-in", { waitUntil: "domcontentloaded" });
   await page.getByLabel("邮箱").fill(account.email);
   await page.getByLabel("密码").fill(account.password);
+  // A real Turnstile token is required in VPS3.  Do not submit before the
+  // challenge has actually completed, or the page correctly rejects the
+  // request without starting an authentication transaction.
+  await expect(page.locator('input[name="cf-turnstile-response"]')).not.toHaveValue("", { timeout: 30_000 });
   await page.getByRole("button", { name: "登录" }).click();
   await page.waitForURL(/view=home/, { timeout: 30_000 });
   return context;
@@ -46,6 +53,7 @@ test.describe("real production two-account transaction", () => {
   });
 
   test("account A persists a todo across refresh and a second browser; account B cannot see it", async ({ browser }) => {
+    test.setTimeout(90_000);
     const marker = `PWB-${Date.now()}`;
     const contextA = await signIn(browser, accountA);
     const pageA = await contextA.newPage();
@@ -74,6 +82,7 @@ test.describe("real production two-account transaction", () => {
   });
 
   test("all existing resource APIs enforce account isolation", async ({ browser }) => {
+    test.setTimeout(90_000);
     const contextA = await signIn(browser, accountA);
     const contextB = await signIn(browser, accountB);
     const requestA = contextA.request;
