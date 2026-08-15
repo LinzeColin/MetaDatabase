@@ -24,6 +24,7 @@ from abd_runtime.server import (
     build_runtime_state,
 )
 from abd_runtime.observation_evidence import ObservationEvidenceError, build_observation_evidence
+from abd_runtime.historical_sources import HistoricalSourceSummaryError, build_historical_source_summary
 
 
 def _config() -> dict[str, object]:
@@ -75,6 +76,8 @@ def test_observation_evidence_rejects_a_weakened_runtime_state(tmp_path: Path) -
 
     with pytest.raises(ObservationEvidenceError):
         build_observation_evidence(state)
+    with pytest.raises(HistoricalSourceSummaryError):
+        build_historical_source_summary(state)
 
 
 @pytest.mark.parametrize(
@@ -123,6 +126,17 @@ def test_http_surface_is_observation_only(tmp_path: Path) -> None:
         assert evidence["static_calibration"]["model_update_eligible"] is False
         assert evidence["capability_boundary"]["order_submission_enabled"] is False
 
+        connection.request("GET", "/sources")
+        response = connection.getresponse()
+        sources = json.loads(response.read())
+        assert response.status == 200
+        assert sources["surface"] == "PRIVATE_ARCHIVE_HISTORICAL_SOURCE_SUMMARY_ONLY"
+        assert sources["archive_evidence"]["source_count"] == 2
+        assert sources["archive_evidence"]["matched_fixture_count"] == 380
+        assert sources["archive_evidence"]["model_update_eligible"] is False
+        assert all(source["real_time"] is False for source in sources["sources"])
+        assert sources["capability_boundary"]["order_submission_enabled"] is False
+
         connection.request("GET", "/")
         response = connection.getresponse()
         home = response.read().decode("utf-8")
@@ -130,6 +144,7 @@ def test_http_surface_is_observation_only(tmp_path: Path) -> None:
         assert "ABD 观测台" in home
         assert "可审计的只读观察" in home
         assert "真实市场 / 账户" in home
+        assert "历史来源" in home
         assert "月度 30% 目标尚未验证" in home
         assert "<style>" in home
         assert "<script" not in home

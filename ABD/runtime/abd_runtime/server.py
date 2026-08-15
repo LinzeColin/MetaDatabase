@@ -13,6 +13,7 @@ from typing import Any, Mapping
 
 from .alpha_skeleton import AlphaSkeletonError, build_alpha_skeleton
 from .final_delivery import FinalDeliveryRuntimeError, build_final_delivery
+from .historical_sources import HistoricalSourceSummaryError, build_historical_source_summary
 from .ga_reconciliation import GAReconciliationRuntimeError, build_ga_reconciliation
 from .observation_evidence import ObservationEvidenceError, build_observation_evidence
 from .shadow_beta import ShadowBetaRuntimeError, build_shadow_beta
@@ -108,12 +109,15 @@ def _home_page() -> bytes:
         "<dt>TAB / Gmail</dt><dd>未连接</dd><dt>建议 / 下单</dt><dd>已禁用</dd></dl></article>"
         "<article class=\"card\"><h2>校准证据</h2><p class=\"notice\">仅保留 2025/26 E0 单赛季静态描述，"
         "不能用于模型参数更新，也不是实时赔率或市场事实。</p></article>"
+        "<article class=\"card\"><h2>历史来源</h2><p class=\"notice\">两类来源已有私有归档回执，"
+        "仅用于历史核对与校准描述；不代表实时盘口或可下单信号。</p></article>"
         "<article class=\"card card-wide\"><h2>可查看的运行材料</h2><ul class=\"actions\">"
         "<li><a href=\"/alpha\">软件 Alpha：固定合成闭环</a></li>"
         "<li><a href=\"/beta\">Shadow Beta：合成门与阻断状态</a></li>"
         "<li><a href=\"/ga\">GA 对账：零行本地控制</a></li>"
         "<li><a href=\"/delivery\">交付状态：冻结合同与运行边界</a></li>"
-        "<li><a href=\"/evidence\">观测证据：静态证据范围</a></li></ul></article>"
+        "<li><a href=\"/evidence\">观测证据：静态证据范围</a></li>"
+        "<li><a href=\"/sources\">历史来源：归档回执与使用边界</a></li></ul></article>"
         "<article class=\"card card-wide\"><p class=\"notice\"><strong>重要：</strong>该入口受访问保护；"
         "它不代表全球或中国大陆可达承诺。月度 30% 目标尚未验证，也不保证。</p></article></section>"
         "<p class=\"footer\">ABD 以证据、数值与风险门为先；缺少真实来源时保持不建议、不下单。</p>"
@@ -128,6 +132,7 @@ class RuntimeHTTPServer(ThreadingHTTPServer):
     def __init__(self, address: tuple[str, int], state: Mapping[str, Any]) -> None:
         self.runtime_state = dict(state)
         self.observation_evidence = build_observation_evidence(self.runtime_state)
+        self.historical_sources = build_historical_source_summary(self.runtime_state)
         self.alpha_skeleton = build_alpha_skeleton(self.runtime_state)
         self.shadow_beta = build_shadow_beta(self.runtime_state)
         self.ga_reconciliation = build_ga_reconciliation(self.runtime_state)
@@ -167,6 +172,14 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
                 HTTPStatus.OK,
                 "application/json; charset=utf-8",
                 _json_bytes(self.server.observation_evidence),
+                head_only=head_only,
+            )
+            return
+        if path == "/sources":
+            self._send(
+                HTTPStatus.OK,
+                "application/json; charset=utf-8",
+                _json_bytes(self.server.historical_sources),
                 head_only=head_only,
             )
             return
@@ -251,6 +264,7 @@ def main(argv: list[str] | None = None) -> int:
         ValueError,
         RuntimeConfigurationError,
         ObservationEvidenceError,
+        HistoricalSourceSummaryError,
         AlphaSkeletonError,
         FinalDeliveryRuntimeError,
         GAReconciliationRuntimeError,
