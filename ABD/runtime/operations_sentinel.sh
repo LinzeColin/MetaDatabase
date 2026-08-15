@@ -19,7 +19,7 @@ EXPECTED_RUNTIME_LABEL='observation-only'
 EXPECTED_VERSION_LABEL='0.0.0.1'
 EXPECTED_RESTART_POLICY='unless-stopped'
 WATCHDOG_TIMER='abd-v0001-observation-watchdog.timer'
-PRIOR_IMAGE='abd-v0001-observation:0.0.0.1'
+PRIOR_IMAGE='abd-v0001-observation:0.0.0.1-s19review'
 RESTART_HISTORY='/run/abd-v0001-observation-watchdog/restart-epochs'
 
 pause() {
