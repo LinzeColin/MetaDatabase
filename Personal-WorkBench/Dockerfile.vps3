@@ -26,7 +26,10 @@ ENV NODE_ENV=production \
     RUNTIME_BACKUP_DIR=/data/backups \
     R2_OBJECT_PREFIX=personal-workbench \
     WORKBENCH_REQUIRE_SENSITIVE_CONSENT=0
-RUN mkdir -p /data/backups \
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl \
+ && rm -rf /var/lib/apt/lists/* \
+ && mkdir -p /data/backups \
  && chown -R node:node /data /app
 COPY --from=builder --chown=node:node /app/.next/standalone ./
 COPY --from=builder --chown=node:node /app/.next/static ./.next/static
