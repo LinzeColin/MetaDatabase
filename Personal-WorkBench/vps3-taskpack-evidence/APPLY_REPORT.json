@@ -1,0 +1,131 @@
+{
+  "mode": "DYNAMIC_SEMANTIC_RECONCILE",
+  "commit_pin_required": false,
+  "project": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/MetaDatabase-personal-workbench-vps3-v000011-run3/Personal-WorkBench",
+  "north_star": "普通用户打开网站、注册或登录后，即可直接使用个人工作台；数据保存到云端，并可在其他设备继续使用。",
+  "invariants": {
+    "display_brand": "个人工作台 / Personal Workbench",
+    "technical_namespace_preserved": "mydairy",
+    "hello_kitty_ui_preserved": true,
+    "existing_product_modules_preserved": true,
+    "tenant_boundary_preserved": true
+  },
+  "package_changes": [
+    "package.name",
+    "scripts.dev:vps3",
+    "scripts.build:vps3",
+    "scripts.start:vps3",
+    "scripts.db:migrate:vps3",
+    "scripts.db:backup:vps3",
+    "scripts.test:vps3",
+    "scripts.accept:vps3",
+    "scripts.check:vps3",
+    "dependencies.@aws-sdk/client-s3",
+    "dependencies.better-sqlite3",
+    "devDependencies.@playwright/test",
+    "devDependencies.@types/better-sqlite3"
+  ],
+  "next_config_changes": [
+    "nextConfig.output",
+    "nextConfig.serverExternalPackages"
+  ],
+  "drizzle_config_changes": [
+    "drizzle.dbCredentials"
+  ],
+  "source_changes": {
+    "cloudflare_imports_retargeted": [
+      "app/_components/workbench/account-entry-server.tsx",
+      "app/api/account/delete/route.ts",
+      "app/api/account/export/route.ts",
+      "app/api/account/privacy/route.ts",
+      "app/api/auth/[...all]/route.ts",
+      "app/api/auth/legacy-domain-handoff/complete/route.ts",
+      "app/api/auth/legacy-domain-handoff/route.ts",
+      "app/api/auth/public-config/route.ts",
+      "app/api/mydairy/[resource]/[id]/route.ts",
+      "app/api/mydairy/[resource]/route.ts",
+      "app/api/mydairy/files/[id]/route.ts",
+      "app/api/mydairy/files/route.ts",
+      "app/api/mydairy/legacy-import/apply/route.ts",
+      "app/api/mydairy/legacy-import/preview/route.ts",
+      "app/api/mydairy/profile/route.ts",
+      "app/auth/_components/public-auth-page-config.ts",
+      "app/auth/google/route.ts",
+      "app/storage-check/route.ts",
+      "db/index.ts"
+    ],
+    "edge_routes_retargeted": [
+      "app/api/account/delete/route.ts",
+      "app/api/account/export/route.ts",
+      "app/api/account/privacy/route.ts",
+      "app/api/auth/[...all]/route.ts",
+      "app/api/auth/legacy-domain-handoff/complete/route.ts",
+      "app/api/auth/legacy-domain-handoff/route.ts",
+      "app/api/auth/public-config/route.ts",
+      "app/api/mydairy/[resource]/[id]/route.ts",
+      "app/api/mydairy/[resource]/route.ts",
+      "app/api/mydairy/files/[id]/route.ts",
+      "app/api/mydairy/files/route.ts",
+      "app/api/mydairy/legacy-import/apply/route.ts",
+      "app/api/mydairy/legacy-import/preview/route.ts",
+      "app/api/mydairy/profile/route.ts",
+      "app/api/ops/ovh/route.ts",
+      "app/api/ops/pdb/route.ts",
+      "app/api/ops/status/route.ts",
+      "app/auth/google/route.ts",
+      "app/auth/login/route.ts",
+      "app/storage-check/route.ts"
+    ],
+    "brand_files_updated": [
+      "app/_components/workbench/legacy-domain-redirect.tsx",
+      "app/account/legacy-import-panel.tsx",
+      "app/account/page.tsx",
+      "app/auth/_components/auth-error.ts",
+      "app/auth/_components/auth-form.tsx",
+      "app/auth/_components/legacy-auth-handoff.tsx",
+      "app/auth/error/page.tsx",
+      "app/layout.tsx",
+      "app/page.tsx",
+      "server/auth/index.ts"
+    ],
+    "public_greeting_updated": [
+      "app/page.tsx"
+    ],
+    "sensitive_consent_default_disabled": true
+  },
+  "copied_files": [
+    ".github/workflows/personal-workbench-vps3.yml",
+    "Personal-WorkBench/.dockerignore.vps3",
+    "Personal-WorkBench/.env.vps3.example",
+    "Personal-WorkBench/Dockerfile.vps3",
+    "Personal-WorkBench/app/api/health/route.ts",
+    "Personal-WorkBench/compose.vps3.yml",
+    "Personal-WorkBench/playwright.vps3.config.ts",
+    "Personal-WorkBench/scripts/vps3/backup-runtime.mjs",
+    "Personal-WorkBench/scripts/vps3/entrypoint.mjs",
+    "Personal-WorkBench/scripts/vps3/migrate-runtime.mjs",
+    "Personal-WorkBench/server/runtime/vps3/env.ts",
+    "Personal-WorkBench/server/runtime/vps3/r2-s3.ts",
+    "Personal-WorkBench/server/runtime/vps3/sqlite-d1.ts",
+    "Personal-WorkBench/tests/vps3/brand-contract.test.mjs",
+    "Personal-WorkBench/tests/vps3/runtime-adapters.test.mts",
+    "Personal-WorkBench/tests/vps3/two-account.spec.ts",
+    "Personal-WorkBench/tests/vps3/ui-inventory.spec.ts"
+  ],
+  "gitignore_added": [
+    ".runtime/",
+    ".env.vps3",
+    "playwright-report/",
+    "vps3-acceptance-output/"
+  ],
+  "result": {
+    "required_files_missing": [],
+    "application_cloudflare_imports_remaining": [],
+    "application_edge_routes_remaining": [],
+    "package_name": "personal-workbench",
+    "has_vps3_build": true,
+    "has_runtime_database_dependency": true,
+    "has_runtime_object_dependency": true
+  },
+  "status": "APPLIED_TO_CURRENT_TREE"
+}

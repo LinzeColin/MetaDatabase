@@ -116,9 +116,9 @@ export function LegacyDomainRedirect({ initiallyRetiredHost = false }: LegacyDom
   return (
     <div aria-busy="true" aria-live="polite" className="legacy-domain-transfer" role="status">
       <div className="legacy-domain-transfer-card">
-        <h1>正在打开个人日程</h1>
+        <h1>正在打开个人工作台</h1>
         <p>正在安全迁移到新的地址，随后即可继续登录和查看历史记录。</p>
-        <a href={CANONICAL_MYDAIRY_ORIGIN}>如果没有自动打开，请进入个人日程</a>
+        <a href={CANONICAL_MYDAIRY_ORIGIN}>如果没有自动打开，请进入个人工作台</a>
       </div>
     </div>
   );

@@ -1,0 +1,50 @@
+ M Personal-WorkBench/.gitignore
+ M Personal-WorkBench/app/_components/workbench/account-entry-server.tsx
+ M Personal-WorkBench/app/_components/workbench/legacy-domain-redirect.tsx
+ M Personal-WorkBench/app/account/legacy-import-panel.tsx
+ M Personal-WorkBench/app/account/page.tsx
+ M Personal-WorkBench/app/api/account/delete/route.ts
+ M Personal-WorkBench/app/api/account/export/route.ts
+ M Personal-WorkBench/app/api/account/privacy/route.ts
+ M Personal-WorkBench/app/api/auth/[...all]/route.ts
+ M Personal-WorkBench/app/api/auth/legacy-domain-handoff/complete/route.ts
+ M Personal-WorkBench/app/api/auth/legacy-domain-handoff/route.ts
+ M Personal-WorkBench/app/api/auth/public-config/route.ts
+ M Personal-WorkBench/app/api/mydairy/[resource]/[id]/route.ts
+ M Personal-WorkBench/app/api/mydairy/[resource]/route.ts
+ M Personal-WorkBench/app/api/mydairy/files/[id]/route.ts
+ M Personal-WorkBench/app/api/mydairy/files/route.ts
+ M Personal-WorkBench/app/api/mydairy/legacy-import/apply/route.ts
+ M Personal-WorkBench/app/api/mydairy/legacy-import/preview/route.ts
+ M Personal-WorkBench/app/api/mydairy/profile/route.ts
+ M Personal-WorkBench/app/api/ops/ovh/route.ts
+ M Personal-WorkBench/app/api/ops/pdb/route.ts
+ M Personal-WorkBench/app/api/ops/status/route.ts
+ M Personal-WorkBench/app/auth/_components/auth-error.ts
+ M Personal-WorkBench/app/auth/_components/auth-form.tsx
+ M Personal-WorkBench/app/auth/_components/legacy-auth-handoff.tsx
+ M Personal-WorkBench/app/auth/_components/public-auth-page-config.ts
+ M Personal-WorkBench/app/auth/error/page.tsx
+ M Personal-WorkBench/app/auth/google/route.ts
+ M Personal-WorkBench/app/auth/login/route.ts
+ M Personal-WorkBench/app/layout.tsx
+ M Personal-WorkBench/app/page.tsx
+ M Personal-WorkBench/app/storage-check/route.ts
+ M Personal-WorkBench/db/index.ts
+ M Personal-WorkBench/drizzle.config.ts
+ M Personal-WorkBench/next.config.ts
+ M Personal-WorkBench/package-lock.json
+ M Personal-WorkBench/package.json
+ M Personal-WorkBench/server/auth/index.ts
+ M Personal-WorkBench/server/security/privacy-consent.ts
+?? .github/workflows/personal-workbench-vps3.yml
+?? Personal-WorkBench/.dockerignore.vps3
+?? Personal-WorkBench/Dockerfile.vps3
+?? Personal-WorkBench/app/api/health/
+?? Personal-WorkBench/compose.vps3.yml
+?? Personal-WorkBench/next-env.d.ts
+?? Personal-WorkBench/playwright.vps3.config.ts
+?? Personal-WorkBench/scripts/vps3/
+?? Personal-WorkBench/server/runtime/
+?? Personal-WorkBench/tests/vps3/
+?? Personal-WorkBench/vps3-taskpack-evidence/

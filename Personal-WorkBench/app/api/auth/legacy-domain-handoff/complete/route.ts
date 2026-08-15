@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/server/runtime/vps3/env";
 import {
   LEGACY_DEVICE_HISTORY_SESSION_KEY,
   serializeLegacyDeviceHistoryPayload,
@@ -15,7 +15,7 @@ import {
   transferableAuthSession,
 } from "@/server/auth/legacy-domain-handoff";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 function redirect(targetPath = "/", cookieHeader: string | null = null): Response {
   const headers = new Headers({

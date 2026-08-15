@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const RETIRED_WORKBENCH_HOST = "huchuliang-workbench.linzezhang35.chatgpt.site";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["better-sqlite3"],
+  output: "standalone",
   // Keep the local production-equivalent harness aligned with the exact
   // retired host that the deployed CSRF policy accepts.
   allowedDevOrigins: [RETIRED_WORKBENCH_HOST],

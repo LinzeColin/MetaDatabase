@@ -1,5 +1,5 @@
 {
-  "name": "mydairy",
+  "name": "personal-workbench",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -49,7 +49,16 @@
     "verify:ops-projection": "node scripts/verify-ops-projection.mjs",
     "verify:source-projection": "node scripts/verify-source-projection.mjs",
     "validate:acceptance-sequence": "node scripts/validate-acceptance-sequence-addendum.mjs",
-    "test:s2": "npm run db:verify && npm run test:schema && npm run test:auth && npm run test:auth-saved && npm run test:tenant && npm run test:api && npm run test:r2"
+    "test:s2": "npm run db:verify && npm run test:schema && npm run test:auth && npm run test:auth-saved && npm run test:tenant && npm run test:api && npm run test:r2",
+    "dev:vps3": "next dev",
+    "build:vps3": "next build",
+    "start:vps3": "next start -H 0.0.0.0 -p 3000",
+    "db:migrate:vps3": "node scripts/vps3/migrate-runtime.mjs",
+    "db:backup:vps3": "node scripts/vps3/backup-runtime.mjs",
+    "test:vps3": "node --experimental-strip-types --test tests/vps3/runtime-adapters.test.mts tests/vps3/brand-contract.test.mjs",
+    "accept:vps3": "playwright test -c playwright.vps3.config.ts",
+    "check:vps3": "npm run lint && npm run typecheck && npm run test:vps3 && npm run test:modules && npm run test:workbench-data && npm run build:vps3",
+    "db:import-d1:vps3": "node scripts/vps3/import-d1-export.mjs"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.6.25",
@@ -57,7 +66,9 @@
     "drizzle-orm": "0.45.2",
     "next": "16.2.6",
     "react": "19.2.6",
-    "react-dom": "19.2.6"
+    "react-dom": "19.2.6",
+    "@aws-sdk/client-s3": "3.1090.0",
+    "better-sqlite3": "12.11.1"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",
@@ -77,7 +88,9 @@
     "typescript": "5.9.3",
     "vinext": "0.0.50",
     "vite": "8.0.13",
-    "wrangler": "4.92.0"
+    "wrangler": "4.92.0",
+    "@playwright/test": "1.55.0",
+    "@types/better-sqlite3": "7.6.13"
   },
   "type": "module"
 }

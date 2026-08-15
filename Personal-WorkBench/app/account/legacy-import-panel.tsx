@@ -42,7 +42,7 @@ function errorMessage(status: number): string {
   if (status === 403) return "这份备份含敏感内容；请先在本页核对当前跨设备同步设置。";
   if (status === 409) return "备份中有重复或无效记录，无法导入。";
   if (status >= 500) return "迁移服务暂时不可用；本机源文件未改变，可稍后重试。";
-  return "备份文件格式不受支持，请确认选择的是个人日程导出的 JSON 文件。";
+  return "备份文件格式不受支持，请确认选择的是个人工作台导出的 JSON 文件。";
 }
 
 /**
@@ -77,7 +77,7 @@ export function LegacyImportPanel() {
       setFileName("");
       setPreview(null);
       setRequestId("");
-      setMessage("无法读取该文件。请选择个人日程导出的 JSON 备份。原文件未改变。");
+      setMessage("无法读取该文件。请选择个人工作台导出的 JSON 备份。原文件未改变。");
     } finally {
       setBusy(false);
     }
@@ -151,7 +151,7 @@ export function LegacyImportPanel() {
   return (
     <section className="account-section" aria-label="旧记录迁移">
       <p className="account-section-title">旧记录迁移</p>
-      <p className="account-note">仅处理你主动选择的个人日程 JSON 备份。预览或导入都不会删除原文件或原浏览器数据。</p>
+      <p className="account-note">仅处理你主动选择的个人工作台 JSON 备份。预览或导入都不会删除原文件或原浏览器数据。</p>
       <label className="legacy-import-file">
         <span>选择 JSON 备份</span>
         <input accept="application/json,.json" disabled={busy} onChange={(event) => void chooseFile(event)} ref={fileInput} type="file" />

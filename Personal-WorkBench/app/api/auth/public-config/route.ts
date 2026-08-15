@@ -1,7 +1,7 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/server/runtime/vps3/env";
 import { getPublicAuthPageConfig } from "@/server/auth";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 /** Turnstile site keys are public by design; no secret or provider detail is exposed. */
 export function GET(): Response {

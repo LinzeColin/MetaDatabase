@@ -5,7 +5,7 @@ import {
   normalizedOpsWriteMode,
 } from "@/server/security/ops";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 function writeMode() {
   return normalizedOpsWriteMode(process.env.PRIVATE_DATABASE_ADAPTER_WRITE);

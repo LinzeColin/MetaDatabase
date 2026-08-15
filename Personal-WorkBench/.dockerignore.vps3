@@ -1,0 +1,9 @@
+node_modules
+.next
+dist
+.runtime
+.env*
+playwright-report
+test-results
+vps3-acceptance-output
+13_evidence/visual/round-*

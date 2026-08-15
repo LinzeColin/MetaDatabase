@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/server/runtime/vps3/env";
 import { createAuth } from "@/server/auth";
 import { requireVerifiedMutationSession, requireVerifiedSession } from "@/server/auth/session";
 import { beginIdempotentWrite } from "@/server/data/idempotency";
@@ -7,7 +7,7 @@ import { apiErrorResponse, readIdempotencyKey, readJson } from "@/server/http/ap
 import { writeRedactedSecurityEvent } from "@/server/security/audit";
 import { rejectClientTenantFields } from "@/server/security/tenant";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 type ProfileValues = {
   displayName: string;

@@ -52,6 +52,8 @@ export async function requireSensitiveCloudConsent(
   userId: string,
   target: string,
 ): Promise<void> {
-  if (!requiresSensitiveCloudConsent(target)) return;
+  const runtimeRequiresConsent = typeof process !== "undefined"
+    && process.env.WORKBENCH_REQUIRE_SENSITIVE_CONSENT === "1";
+  if (!runtimeRequiresConsent || !requiresSensitiveCloudConsent(target)) return;
   await requireAcceptedSensitiveCloudConsent(db, userId);
 }

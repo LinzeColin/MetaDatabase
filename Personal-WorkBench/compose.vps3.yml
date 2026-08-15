@@ -1,0 +1,26 @@
+services:
+  personal-workbench:
+    build:
+      context: .
+      dockerfile: Dockerfile.vps3
+      args:
+        APP_ORIGIN: ${APP_ORIGIN}
+    image: personal-workbench:vps3
+    restart: unless-stopped
+    env_file:
+      - .env.vps3
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      RUNTIME_DB_PATH: /data/personal-workbench.sqlite3
+      RUNTIME_BACKUP_DIR: /data/backups
+      WORKBENCH_REQUIRE_SENSITIVE_CONSENT: "0"
+    volumes:
+      - personal_workbench_data:/data
+    expose:
+      - "3000"
+
+volumes:
+  personal_workbench_data:
+    name: personal_workbench_data

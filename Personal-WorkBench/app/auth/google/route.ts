@@ -1,11 +1,11 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/server/runtime/vps3/env";
 import {
   CANONICAL_MYDAIRY_ORIGIN,
   isRetiredCompatibilityHost,
 } from "../../_components/workbench/canonical-domain";
 import { createAuth } from "../../../server/auth";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 function redirect(destination: URL, setCookie?: string | null): Response {
   const headers = new Headers({

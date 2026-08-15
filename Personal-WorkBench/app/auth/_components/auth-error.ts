@@ -41,7 +41,7 @@ export function authErrorRecovery(value: unknown): AuthErrorRecovery {
     case "no_code":
       return {
         title: "本次登录已过期",
-        message: "请从个人日程的登录页重新开始 Google 登录，不要在中途切换标签页或复制回调链接。",
+        message: "请从个人工作台的登录页重新开始 Google 登录，不要在中途切换标签页或复制回调链接。",
         primaryHref: "/auth/sign-in",
         primaryLabel: "重新登录",
       };
@@ -55,7 +55,7 @@ export function authErrorRecovery(value: unknown): AuthErrorRecovery {
     case "account_already_linked_to_different_user":
       return {
         title: "该 Google 账号已被使用",
-        message: "该 Google 账号已经关联到另一个个人日程账户。请返回登录并选择正确的账号。",
+        message: "该 Google 账号已经关联到另一个个人工作台账户。请返回登录并选择正确的账号。",
         primaryHref: "/auth/sign-in",
         primaryLabel: "返回登录",
       };
