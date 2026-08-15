@@ -1,0 +1,96 @@
+name: Personal Workbench live database inventory
+
+on:
+  push:
+    branches:
+      - chatgpt/personal-workbench-live-audit-20260815
+    paths:
+      - .github/workflows/pwb-live-database-inventory.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}
+      COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+    steps:
+      - name: Read and sanitize Coolify database/resource inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pwb-db-inventory/raw /tmp/pwb-db-inventory/safe
+          test -n "${COOLIFY_BASE_URL:-}"
+          test -n "${COOLIFY_API_TOKEN:-}"
+          printf '::add-mask::%s\n' "$COOLIFY_API_TOKEN"
+          base="${COOLIFY_BASE_URL%/}"
+          base="${base%/api/v1}/api/v1"
+          token="${COOLIFY_API_TOKEN#Bearer }"
+          header="Authorization: Bearer ${token}"
+          for endpoint in databases resources servers projects applications; do
+            code="$(curl --silent --show-error --max-time 30 -w '%{http_code}' \
+              -H "$header" "${base}/${endpoint}" \
+              -o "/tmp/pwb-db-inventory/raw/${endpoint}.json" || true)"
+            printf '%s\n' "$code" > "/tmp/pwb-db-inventory/raw/${endpoint}.status"
+          done
+          python3 - <<'PY'
+          import json,pathlib,re
+          root=pathlib.Path('/tmp/pwb-db-inventory')
+          allowed={
+            'id','uuid','name','description','status','type','database_type','resource_type',
+            'image','docker_image','server_uuid','server_id','server_name','project_uuid',
+            'project_id','environment_uuid','environment_id','environment_name','destination_uuid',
+            'destination_id','is_public','public_port','internal_db_url','internal_url',
+            'created_at','updated_at','started_at','version','postgres_db','postgres_user',
+            'mysql_database','mongo_database','redis_password','fqdn','git_repository','git_branch',
+            'base_directory','dockerfile_location','build_pack'
+          }
+          forbidden=re.compile(r'(password|secret|token|private|key|credential|dsn|url)',re.I)
+          url_allow={'internal_db_url','internal_url','fqdn'}
+          def sanitize(value):
+            if isinstance(value,list): return [sanitize(v) for v in value]
+            if not isinstance(value,dict): return value
+            out={}
+            for k,v in value.items():
+              key=str(k)
+              if key not in allowed: continue
+              if forbidden.search(key) and key not in url_allow and key not in {'is_public'}: continue
+              if key in url_allow:
+                if not isinstance(v,str) or not v: continue
+                try:
+                  from urllib.parse import urlparse
+                  parsed=urlparse(v if '://' in v else 'scheme://'+v)
+                  out[key]={'scheme':parsed.scheme,'host':parsed.hostname,'port':parsed.port,'database':parsed.path.lstrip('/') or None}
+                except Exception:
+                  out[key]='configured-redacted'
+              elif isinstance(v,(dict,list)):
+                out[key]=sanitize(v)
+              elif key=='redis_password':
+                out['redis_password_configured']=bool(v)
+              else:
+                out[key]=v
+            return out
+          for endpoint in ('databases','resources','servers','projects','applications'):
+            status=(root/'raw'/f'{endpoint}.status').read_text().strip()
+            output={'http_status':status,'items':[]}
+            if status=='200':
+              try: raw=json.loads((root/'raw'/f'{endpoint}.json').read_text())
+              except Exception: raw=[]
+              rows=raw if isinstance(raw,list) else raw.get('data') or raw.get(endpoint) or []
+              if isinstance(rows,dict): rows=list(rows.values())
+              if isinstance(rows,list): output['items']=[sanitize(row) for row in rows if isinstance(row,dict)]
+            (root/'safe'/f'{endpoint}.json').write_text(json.dumps(output,ensure_ascii=False,indent=2),encoding='utf-8')
+          PY
+          rm -rf /tmp/pwb-db-inventory/raw
+          find /tmp/pwb-db-inventory/safe -type f -maxdepth 1 -print -exec cat {} \;
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: personal-workbench-live-database-inventory
+          path: /tmp/pwb-db-inventory/safe
+          retention-days: 3
