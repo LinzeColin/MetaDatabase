@@ -1,0 +1,74 @@
+name: Personal Workbench ephemeral production accounts audit
+
+on:
+  push:
+    branches:
+      - chatgpt/personal-workbench-live-audit-20260815
+    paths:
+      - .github/workflows/pwb-ephemeral-account-audit.yml
+      - Personal-WorkBench/scripts/vps3/live-ephemeral-audit.mjs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: personal-workbench-ephemeral-production-accounts-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      PWB_BASE_URL: https://mydairy.linzezhang.com
+      PWB_AUDIT_OUTPUT: /tmp/pwb-ephemeral-audit
+      COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}
+      COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: Personal-WorkBench/package-lock.json
+
+      - name: Install current application dependencies
+        working-directory: Personal-WorkBench
+        run: npm ci --no-audit --no-fund
+
+      - name: Install Chromium
+        working-directory: Personal-WorkBench
+        run: npx playwright install --with-deps chromium
+
+      - name: Execute real registration, cloud write, isolation, redeploy persistence, and cleanup
+        id: transaction
+        working-directory: Personal-WorkBench
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$PWB_AUDIT_OUTPUT"
+          node scripts/vps3/live-ephemeral-audit.mjs > "$PWB_AUDIT_OUTPUT/execution.log" 2>&1
+          code=$?
+          printf '%s\n' "$code" > "$PWB_AUDIT_OUTPUT/exit-code.txt"
+          cat "$PWB_AUDIT_OUTPUT/report.json" || true
+          exit 0
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: personal-workbench-ephemeral-production-accounts-audit
+          path: /tmp/pwb-ephemeral-audit
+          retention-days: 7
+
+      - name: Enforce transaction result
+        if: always()
+        shell: bash
+        run: |
+          test "$(cat /tmp/pwb-ephemeral-audit/exit-code.txt)" = "0"
+          python3 - <<'PY'
+          import json
+          report=json.load(open('/tmp/pwb-ephemeral-audit/report.json'))
+          raise SystemExit(0 if report.get('overall') == 'PASS' else 1)
+          PY
