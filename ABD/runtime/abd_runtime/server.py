@@ -99,10 +99,10 @@ def _public_landing_page() -> bytes:
         "<main class=\"shell\"><p class=\"eyebrow\">ABD · 0.0.0.1</p><h1>ABD 观测入口</h1>"
         "<p class=\"lead\">服务已部署为只读观测入口。这里不连接真实市场、账户、TAB 或 Gmail，"
         "不生成建议，也不会提交订单。</p><section class=\"card\"><strong>验收范围</strong>："
-        "可打开的中文入口、受保护的观测台、明确的只读与不下单边界。"
-        "<br><a class=\"action\" href=\"/console\">进入受保护观测台</a>"
-        "<p class=\"note\">观测台需要已配置的 Cloudflare Access 身份验证；该验证保护观测材料，"
-        "不会要求市场账户或下单。</p></section></main></body></html>"
+        "可打开的中文入口、公开的观测台、明确的只读与不下单边界。"
+        "<br><a class=\"action\" href=\"/console\">进入公开观测台</a>"
+        "<p class=\"note\">观测台公开显示不含敏感信息的运行材料；不连接市场账户，也不会下单。"
+        "</p></section></main></body></html>"
     ).encode("utf-8")
 
 
@@ -145,8 +145,8 @@ def _console_page() -> bytes:
         "<li><a href=\"/console/delivery\">交付状态：冻结合同与运行边界</a></li>"
         "<li><a href=\"/console/evidence\">观测证据：静态证据范围</a></li>"
         "<li><a href=\"/console/sources\">历史来源：归档回执与使用边界</a></li></ul></article>"
-        "<article class=\"card card-wide\"><p class=\"notice\"><strong>重要：</strong>该入口受访问保护；"
-        "它不代表全球或中国大陆可达承诺。月度 30% 目标尚未验证，也不保证。</p></article></section>"
+        "<article class=\"card card-wide\"><p class=\"notice\"><strong>重要：</strong>该入口公开可访问，"
+        "不要求私有登录。月度 30% 目标尚未验证，也不保证。</p></article></section>"
         "<p class=\"footer\">ABD 以证据、数值与风险门为先；缺少真实来源时保持不建议、不下单。</p>"
         "</main></body></html>"
     ).encode("utf-8")

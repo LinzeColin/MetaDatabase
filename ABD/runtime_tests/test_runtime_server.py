@@ -142,7 +142,7 @@ def test_http_surface_is_observation_only(tmp_path: Path) -> None:
         home = response.read().decode("utf-8")
         assert response.status == 200
         assert "ABD 观测入口" in home
-        assert "受保护的观测台" in home
+        assert "公开的观测台" in home
         assert "/console" in home
         assert "<style>" in home
         assert "<script" not in home
@@ -160,6 +160,8 @@ def test_http_surface_is_observation_only(tmp_path: Path) -> None:
         assert "真实市场 / 账户" in console
         assert "历史来源" in console
         assert "月度 30% 目标尚未验证" in console
+        assert "公开可访问" in console
+        assert "受访问保护" not in console
         assert "/console/sources" in console
 
         connection.request("GET", "/sources")
