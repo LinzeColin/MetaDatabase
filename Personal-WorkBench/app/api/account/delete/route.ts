@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/server/runtime/vps3/env";
 import { createAuth } from "@/server/auth";
 import {
   assertConfiguredSameOriginMutation,
@@ -8,7 +8,7 @@ import {
 import { getDeletionState, processDeleteRequest } from "@/server/data/account-lifecycle";
 import { apiErrorResponse, readJson } from "@/server/http/api";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 export async function GET(request: Request): Promise<Response> {
   try {

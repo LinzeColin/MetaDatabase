@@ -1,0 +1,41 @@
+# syntax=docker/dockerfile:1.7
+FROM node:22-bookworm-slim AS dependencies
+WORKDIR /app
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends python3 make g++ ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
+
+FROM dependencies AS builder
+WORKDIR /app
+ARG APP_ORIGIN=https://mydairy.linzezhang.com
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    APP_ORIGIN=${APP_ORIGIN} \
+    RUNTIME_DB_PATH=/tmp/personal-workbench-build.sqlite3
+COPY . .
+RUN npm run build:vps3
+
+FROM node:22-bookworm-slim AS runtime
+WORKDIR /app
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    HOSTNAME=0.0.0.0 \
+    PORT=3000 \
+    RUNTIME_DB_PATH=/data/personal-workbench.sqlite3 \
+    RUNTIME_BACKUP_DIR=/data/backups \
+    R2_OBJECT_PREFIX=personal-workbench \
+    WORKBENCH_REQUIRE_SENSITIVE_CONSENT=0
+RUN mkdir -p /data/backups \
+ && chown -R node:node /data /app
+COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+COPY --from=builder --chown=node:node /app/public ./public
+COPY --from=builder --chown=node:node /app/drizzle ./drizzle
+COPY --from=builder --chown=node:node /app/scripts/vps3 ./scripts/vps3
+USER node
+EXPOSE 3000
+VOLUME ["/data"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=5 \
+  CMD node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+CMD ["node", "scripts/vps3/entrypoint.mjs"]

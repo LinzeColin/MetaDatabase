@@ -3,9 +3,9 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://mydairy.linzezhang.com"),
-  title: "个人日程",
+  title: "个人工作台",
   description: "把生活里的小事，温柔地放在一起。",
-  applicationName: "个人日程",
+  applicationName: "个人工作台",
   alternates: {
     canonical: "/",
   },
@@ -13,13 +13,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "zh_CN",
     url: "/",
-    siteName: "个人日程",
-    title: "个人日程",
+    siteName: "个人工作台",
+    title: "个人工作台",
     description: "把生活里的小事，温柔地放在一起。",
   },
   twitter: {
     card: "summary",
-    title: "个人日程",
+    title: "个人工作台",
     description: "把生活里的小事，温柔地放在一起。",
   },
   icons: {

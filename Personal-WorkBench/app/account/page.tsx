@@ -416,7 +416,7 @@ export default function AccountPage() {
       <LegacyDomainRedirect />
       <main className="auth-shell">
         <section className="card account-card" aria-labelledby="account-title">
-        <Link className="auth-back" href="/" aria-label="返回个人日程">←</Link>
+        <Link className="auth-back" href="/" aria-label="返回个人工作台">←</Link>
         <h1 id="account-title">账户管理</h1>
         {session ? <p>{session.user.name} · {session.user.email}</p> : null}
         {message ? <p className="auth-message" aria-live="polite">{message}</p> : null}

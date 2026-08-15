@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/server/runtime/vps3/env";
 import { createAuth } from "@/server/auth";
 import { requireVerifiedMutationSession } from "@/server/auth/session";
 import {
@@ -8,7 +8,7 @@ import {
 } from "@/server/data/legacy-import";
 import { apiErrorResponse, readJson } from "@/server/http/api";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 export async function POST(request: Request): Promise<Response> {
   try {

@@ -315,7 +315,7 @@ export function AuthForm({ mode, turnstileSiteKey, googleClientId = null }: Auth
   return (
     <main className="auth-shell">
       <section className="card auth-card auth-card-expanded" aria-labelledby="auth-title">
-        <Link className="auth-back" href="/" aria-label="返回个人日程">←</Link>
+        <Link className="auth-back" href="/" aria-label="返回个人工作台">←</Link>
         <h1 id="auth-title">{titleFor(mode)}</h1>
         <p className="auth-message" aria-live="polite">{displayedMessage}</p>
         <form className="auth-form" onSubmit={submitForm}>

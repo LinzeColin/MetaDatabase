@@ -3,7 +3,7 @@ import {
   isRetiredCompatibilityHost,
 } from "../../_components/workbench/canonical-domain";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 /**
  * Compatibility for saved links from the earlier authentication URL. Keep the

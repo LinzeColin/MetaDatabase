@@ -20,3 +20,7 @@ outputs/
 work/
 *.pem
 *.tsbuildinfo
+.runtime/
+.env.vps3
+playwright-report/
+vps3-acceptance-output/

@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/server/runtime/vps3/env";
 import { createAuth } from "@/server/auth";
 import { apiErrorResponse, readJson } from "@/server/http/api";
 import {
@@ -9,7 +9,7 @@ import {
   transferableAuthSession,
 } from "@/server/auth/legacy-domain-handoff";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 function noStore(status = 204): Response {
   return new Response(null, { status, headers: { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } });

@@ -1,6 +1,6 @@
 import { buildOpsProbePayload, ensureOpsAuthorization, NO_STORE_HEADERS } from "@/server/security/ops";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 function isReadOnlyMode() {
   const raw = process.env.STATUS_ADAPTER_READONLY;

@@ -1,7 +1,7 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/server/runtime/vps3/env";
 import { AuthRuntimeNotReadyError, createAuth } from "@/server/auth";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 function unavailableResponse(): Response {
   return Response.json(

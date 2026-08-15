@@ -1,10 +1,10 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/server/runtime/vps3/env";
 import { createAuth } from "@/server/auth";
 import { requireVerifiedSession } from "@/server/auth/session";
 import { apiErrorResponse } from "@/server/http/api";
 import { probeStorageBindings } from "@/server/storage/binding-health";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 /**
  * An unlinked, verified-session-only diagnostic for a support replay. The

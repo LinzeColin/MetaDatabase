@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/server/runtime/vps3/env";
 import { createAuth } from "@/server/auth";
 import { requireVerifiedMutationSession, requireVerifiedSession } from "@/server/auth/session";
 import {
@@ -15,7 +15,7 @@ import { apiErrorResponse, notFoundResponse, readIdempotencyKey, readJson } from
 import { writeRedactedSecurityEvent } from "@/server/security/audit";
 import { requireSensitiveCloudConsent } from "@/server/security/privacy-consent";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 type Context = { params: Promise<{ resource: string }> };
 

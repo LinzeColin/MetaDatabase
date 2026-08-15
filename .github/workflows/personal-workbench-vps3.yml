@@ -1,0 +1,147 @@
+name: Personal Workbench VPS3
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: validate, deploy, or accept
+        required: true
+        default: validate
+        type: choice
+        options:
+          - validate
+          - deploy
+          - accept
+  push:
+    branches: [main]
+    paths:
+      - Personal-WorkBench/**
+      - .github/workflows/personal-workbench-vps3.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: personal-workbench-vps3
+  cancel-in-progress: false
+
+env:
+  PROJECT_DIR: Personal-WorkBench
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: Personal-WorkBench/package-lock.json
+      - name: Install
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: npm ci --no-audit --no-fund
+      - name: Current-tree checks
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: npm run check:vps3
+      - name: Build the VPS3 image
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: docker build -f Dockerfile.vps3 -t personal-workbench:${{ github.run_id }} .
+
+  deploy:
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'deploy'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}
+      COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+      COOLIFY_APP_UUID: ${{ secrets.PWB_COOLIFY_APP_UUID }}
+    steps:
+      - name: Request the current main deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${COOLIFY_BASE_URL:-}"
+          test -n "${COOLIFY_API_TOKEN:-}"
+          test -n "${COOLIFY_APP_UUID:-}"
+          base="${COOLIFY_BASE_URL%/}"
+          base="${base%/api/v1}/api/v1"
+          receipt="$(mktemp)"
+          curl --fail --silent --show-error --max-time 30 \
+            -X POST \
+            -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+            "${base}/deploy?uuid=${COOLIFY_APP_UUID}&force=false" \
+            -o "$receipt"
+          deployment="$(python3 - "$receipt" <<'PY'
+          import json,sys
+          value=json.load(open(sys.argv[1]))
+          print(value.get('deployment_uuid') or value.get('uuid') or '')
+          PY
+          )"
+          test -n "$deployment"
+          echo "deployment_uuid=$deployment" >> "$GITHUB_ENV"
+          rm -f "$receipt"
+      - name: Wait for the bounded deployment result
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="${COOLIFY_BASE_URL%/}"
+          base="${base%/api/v1}/api/v1"
+          for attempt in $(seq 1 60); do
+            status="$(curl --fail --silent --show-error --max-time 15 \
+              -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+              "${base}/deployments/${deployment_uuid}" \
+              | python3 -c 'import json,sys; print(str(json.load(sys.stdin).get("status", "unknown")).lower())')"
+            case "$status" in
+              finished|success) echo "deployment_status=$status"; exit 0 ;;
+              failed|cancelled|canceled) echo "deployment_status=$status"; exit 1 ;;
+            esac
+            sleep 10
+          done
+          echo "deployment_status=timeout"
+          exit 1
+      - name: Public URL transaction entrance
+        run: |
+          curl --fail --silent --show-error --max-time 30 \
+            "${{ secrets.PWB_PUBLIC_URL }}/api/health" \
+            | python3 -c 'import json,sys; v=json.load(sys.stdin); assert v.get("ready") is True'
+
+  accept:
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'accept'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      PWB_BASE_URL: ${{ secrets.PWB_PUBLIC_URL }}
+      PWB_TEST_ACCOUNT_A_EMAIL: ${{ secrets.PWB_TEST_ACCOUNT_A_EMAIL }}
+      PWB_TEST_ACCOUNT_A_PASSWORD: ${{ secrets.PWB_TEST_ACCOUNT_A_PASSWORD }}
+      PWB_TEST_ACCOUNT_B_EMAIL: ${{ secrets.PWB_TEST_ACCOUNT_B_EMAIL }}
+      PWB_TEST_ACCOUNT_B_PASSWORD: ${{ secrets.PWB_TEST_ACCOUNT_B_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: Personal-WorkBench/package-lock.json
+      - name: Install
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: npm ci --no-audit --no-fund
+      - name: Install Chromium
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: npx playwright install --with-deps chromium
+      - name: Real browser acceptance
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: npm run accept:vps3
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: personal-workbench-vps3-acceptance
+          path: |
+            Personal-WorkBench/vps3-acceptance-output
+            Personal-WorkBench/playwright-report
+            Personal-WorkBench/test-results
+          if-no-files-found: ignore
+          retention-days: 7

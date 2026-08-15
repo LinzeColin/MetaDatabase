@@ -41,7 +41,7 @@ export function createAuth(env: AuthRuntimeEnv) {
   });
 
   return betterAuth({
-    appName: "个人日程",
+    appName: "个人工作台",
     database: drizzleAdapter(db, {
       provider: "sqlite",
       schema: authSchema,
@@ -138,7 +138,7 @@ export function createAuth(env: AuthRuntimeEnv) {
         path: "/",
       },
       ipAddress: {
-        ipAddressHeaders: ["cf-connecting-ip"],
+        ipAddressHeaders: ["cf-connecting-ip", "x-forwarded-for", "x-real-ip"],
       },
     },
     plugins: [

@@ -18,7 +18,7 @@ export default async function AuthErrorPage({ searchParams }: AuthErrorPageProps
   return (
     <main className="auth-shell">
       <section className="card auth-card auth-card-expanded" aria-labelledby="auth-error-title">
-        <Link className="auth-back" href="/" aria-label="返回个人日程">←</Link>
+        <Link className="auth-back" href="/" aria-label="返回个人工作台">←</Link>
         <h1 id="auth-error-title">{recovery.title}</h1>
         <p className="auth-message" role="status">{recovery.message}</p>
         <Link className="auth-primary-link" href={recovery.primaryHref}>{recovery.primaryLabel}</Link>

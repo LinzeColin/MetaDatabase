@@ -70,7 +70,7 @@ const fixture = {
 };
 
 export const metadata: Metadata = {
-  title: "个人日程",
+  title: "个人工作台",
   description: "把生活里的小事，温柔地放在一起。",
 };
 
@@ -92,7 +92,7 @@ function hrefFor(route: string, reference: boolean) {
 
 function Sidebar({ route, reference }: { route: string; reference: boolean }) {
   return (
-    <aside className="sidebar" aria-label="个人日程导航">
+    <aside className="sidebar" aria-label="个人工作台导航">
       <nav className="nav-list">
         {navItems.map(([key, label, icon]) => (
           <a
@@ -186,14 +186,14 @@ function Welcome({ reference }: { reference: boolean }) {
             <VisitorDate fixtureDate={fixture.date} fixtureWeekday={fixture.weekday} reference={reference} />
           </p>
           <h1 className="welcome-name">
-            嗨，{fixture.name}
+            嗨，{reference ? fixture.name : "欢迎回来"}
             <img alt="" src={asset("welcome_bow.png")} />
           </h1>
           <p className="welcome-subtitle">
             慢慢来，一切都在变好<span aria-hidden="true" className="welcome-spark" />
           </p>
           <a className="welcome-enter" href={hrefFor("home", reference)}>
-            进入个人日程&nbsp; →
+            进入个人工作台&nbsp; →
           </a>
           {!reference ? <p className="welcome-auth-note">登录后，换设备也能接着用</p> : null}
         </div>
@@ -256,7 +256,7 @@ function GenericPage({ reference, route }: { reference: boolean; route: string }
 
   const label =
     ({ todo: "待办事项", schedule: "日程安排", anniversary: "纪念日", diary: "日记", savings: "存钱计划" } as Record<string, string>)[route] ??
-    "个人日程";
+    "个人工作台";
   return (
     <Shell pageClass="generic-page" reference={reference} route={route}>
       <PageHead icon="nav_desktop.png" title={label} />

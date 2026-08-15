@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/server/runtime/vps3/env";
 import { createAuth } from "@/server/auth";
 import { requireVerifiedMutationSession, requireVerifiedSession } from "@/server/auth/session";
 import { beginIdempotentWrite } from "@/server/data/idempotency";
@@ -12,7 +12,7 @@ import {
 import { apiErrorResponse, notFoundResponse, readIdempotencyKey } from "@/server/http/api";
 import { writeRedactedSecurityEvent } from "@/server/security/audit";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 type Context = { params: Promise<{ id: string }> };
 

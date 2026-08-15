@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/server/runtime/vps3/env";
 import { createAuth } from "@/server/auth";
 import { requireVerifiedMutationSession } from "@/server/auth/session";
 import { beginIdempotentWrite, stableRecordId } from "@/server/data/idempotency";
@@ -8,7 +8,7 @@ import { apiErrorResponse, readIdempotencyKey } from "@/server/http/api";
 import { writeRedactedSecurityEvent } from "@/server/security/audit";
 import { requireSensitiveCloudConsent } from "@/server/security/privacy-consent";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 async function record(userId: string, outcome: "success" | "rejected" | "failed") {
   try {
