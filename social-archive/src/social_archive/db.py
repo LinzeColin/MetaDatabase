@@ -2176,6 +2176,32 @@ class RuntimeStore:
             ).fetchall()
         return [dict(row) for row in rows]
 
+    def fail_stalled_runs(self, *, stale_after_seconds: int = 1800) -> int:
+        """把卡住不动的同步推进终态，并说出为什么（2026-08-17）。
+
+        `stalled_active_runs` 只是**看见**，看见之后没有任何东西处置它：
+        run 永远停在 `scanning`，界面就永远显示「正在同步，请稍候」。
+        2026-08-17 实测 Owner 那三个账号，两个卡在 scanning、
+        `waiting_for_batch: True`，一个多小时没动，而 `/v1/status` 的
+        `stalled` 还是 0（没到 30 分钟门槛），到了也只是记一笔。
+
+        **这条不放宽任何判定**：门槛、状态集合都直接复用
+        `stalled_active_runs`，它抓到谁就处置谁。返回处置了几个。
+
+        终态选 `partial` 而不是 `failed`：已经取到的内容都还在库里，
+        下次可以续着跑——`failure_copy` 里 SYNC_STALLED 那句写的正是这个意思。
+        """
+        stalled = self.stalled_active_runs(stale_after_seconds=stale_after_seconds, limit=200)
+        for row in stalled:
+            self.update_sync_run(
+                str(row["id"]),
+                status="partial",
+                completeness="partial",
+                error_code="SYNC_STALLED",
+                error_message="这次同步卡住了，没有正常结束。你已经取到的内容都还在。",
+            )
+        return len(stalled)
+
     def unexplained_zero_runs(self, *, limit: int = 200) -> list[dict[str, object]]:
         """INV-NO-SILENT-ZERO 的库层审计（v0.0.0.7 / T14）。
 

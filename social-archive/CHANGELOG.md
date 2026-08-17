@@ -6,6 +6,42 @@
 > **这里不补写**：隔了两版再靠回忆重建变更记录，写出来的东西看着像记录，
 > 其实是推测，比空着更容易被人当真。
 
+## v0.0.0.104 — 卡住的同步永远转圈：检测早就有了，没人处置
+
+Owner：「同步依旧不能使用」。从生产读回来的实况（不是猜的）：
+
+    xiaohongshu 09:58:32  status=scanning  evidence={"waiting_for_batch": true}
+    bilibili    09:59:29  status=scanning  evidence={"waiting_for_batch": true}
+    douyin      09:59:04  status=partial   BROWSER_SCAN_FAILED
+    库里 total = 193（一条没进）
+
+前两个一个多小时没动，`status` 始终非终态 —— 界面据此显示
+「正在同步，请稍候」，**永远转圈**。
+
+**检测早就写好了**：`stalled_active_runs` 的说明里明写着它抓的正是
+「点了同步永远在转」那种；`failure_copy` 里 `SYNC_STALLED` 的文案和
+`[ 重试 ]` 动作也都在。缺的是**没有任何东西把看见的结果落成状态** ——
+它只挂在 `/v1/status` 的审计里记一笔，而用户看的是 run 的 status。
+
+灯装好了、判据也绿，而没有人接上开关。这个仓最贵的那个形状。
+
+### 改了什么
+
+- `RuntimeStore.fail_stalled_runs()`：把 `stalled_active_runs` 抓到的推进
+  `partial` + `SYNC_STALLED`。**不新造判定**，门槛与状态集合直接复用检测那一侧。
+  终态选 `partial` 不是 `failed`：已取到的都还在，下次能续着跑。
+- `worker.py` 每 60 秒调一次。收尸失败不许把 worker 拖死。
+- `tests/focused/test_a_stalled_sync_stops_spinning.py`：五条，含两条反例
+  （刚开跑的不许误杀、已终态的不许重写）、一条「检测与处置口径必须相同」、
+  以及一条 **ast 查 worker 真的调了它** —— 少了最后这条，把调用删掉其余四条照样绿。
+
+### 还没解决的
+
+抖音那次是 `BROWSER_SCAN_FAILED`、`discovered_count: 0`，证据里没有诊断，
+说明失败发生在识别列表之前。产品给出的话是「请打开该平台的收藏页、确认已登录，
+然后点重试」——那句是对的，但**我这边看不到更细的原因**：
+v0.0.0.100 加的字段名诊断只显示在界面上，没有随 run 上报到服务端。下一版补。
+
 ## v0.0.0.103 — 配对成功了，而用户看到的那张表还是空的
 
 v0.0.0.102 把登录去掉之后实测（真 Chrome + 真生产）：

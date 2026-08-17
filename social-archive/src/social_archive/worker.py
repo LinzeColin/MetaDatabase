@@ -196,6 +196,7 @@ def run() -> None:
     # 心跳节流：轮询默认 2 秒一次，每次都写库太吵。15 秒一次足够
     # 让「120 秒没动过就算挂了」这条判断有八次机会。
     last_beat = 0.0
+    last_reap = 0.0
     while True:
         now = time.monotonic()
         if now - last_beat >= 15:
@@ -203,6 +204,27 @@ def run() -> None:
             # 「闲着但活着」和「死了」在数据上分不开。
             store.record_worker_heartbeat(owner, __version__)
             last_beat = now
+
+        if now - last_reap >= 60:
+            # **检测到了没人处置 = 没有检测。**（2026-08-17）
+            #
+            # `stalled_active_runs` 早就写好了，注释里明说它抓的正是
+            # 「点了同步一直在转」那种。但它只被挂在 `/v1/status` 的审计里——
+            # **没有任何东西把那些跑推进终态**，于是界面永远显示
+            # 「正在同步，请稍候」。2026-08-17 实测：Owner 那三个账号里
+            # 两个卡在 scanning，`waiting_for_batch: True`，一小时没动。
+            #
+            # 这是这个仓的老形状：灯装好了、判据也绿，而没有人接上开关。
+            # `failure_copy` 里 SYNC_STALLED 的文案与 [ 重试 ] 动作也早就在了。
+            last_reap = now
+            try:
+                reaped = store.fail_stalled_runs(stale_after_seconds=1800)
+                if reaped:
+                    print(f"[worker] 把 {reaped} 个卡住的同步判成 SYNC_STALLED（超过 30 分钟没动）",
+                          flush=True)
+            except Exception as exc:  # noqa: BLE001
+                # 收尸失败不能把整个 worker 拖死——它只是兜底的那一层。
+                print(f"[worker] 收拾卡住的同步时出错：{type(exc).__name__}: {exc}", flush=True)
         job = store.claim_job(owner)
         if not job:
             time.sleep(settings.worker_poll_seconds)
