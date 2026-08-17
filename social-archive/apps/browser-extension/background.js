@@ -3,7 +3,20 @@ importScripts("shared.js", "content/platform-catalog.js", "content/list-shape.js
 
 const MENU_SAVE = "social-archive-save-page";
 const MENU_SELECTION = "social-archive-save-selection";
+// **接口域名必须排在第一位，而且必须在这里。**（2026-08-17）
+//
+// bridge.js 是扩展和资料库页配对、拿令牌的那根线。它此前只注入
+// `social-archive.linzezhang.com`——而那个域名在 Cloudflare Access 后面。
+// 后果是两条路都走不通：
+//   · 开被挡的那个域名 → Access 拦下，页面根本没加载 → bridge 没注入 → 配不上
+//   · 开接口域名（同一份前端，没有墙）→ **不在这个名单里** → 一样配不上
+// 于是 /v1/* 永远 401「扩展尚未授权或令牌已失效」，界面永远转圈，
+// 而 library_url 又一直把人往被挡的域名送——就是「不断跳转、永远连不上」。
+//
+// 十四个真 Chrome 演练全部带 --host-resolver-rules 把域名指到本机假服务器，
+// **结构上撞不到那堵墙**，所以这件事在演练里永远是绿的。
 const PWA_BRIDGE_URL_PATTERNS = [
+  "https://social-archive-api.linzezhang.com/*",
   "https://social-archive.linzezhang.com/*",
   "http://127.0.0.1:8765/*",
   "http://localhost:8765/*"

@@ -53,5 +53,6 @@
     "evidence/G3/END_TO_END_RUN.json": "scripts/bilibili_end_to_end_drill.py",
     "evidence/G4/USER_GUIDE_VERIFIED.json": "scripts/check_the_guide_matches_the_product.py",
     "evidence/G5/DEPLOYED_AND_READ_BACK.json": "scripts/verify_production_deployment.py"
-  }
+  },
+  "what_this_does_not_prove": "这份台账只说明「四条判据各自引了哪几份证据、谁产出它们」。它**不**证明那些证据本身是真的、是新的、或者当时真的跑过——那由 scripts/check_the_ledger_evidence_is_for_this_version.py 逐份核（版本、产出者、从部署脚本可达）。它也**不**证明产品对用户可用：2026-08-17 四条判据的证据全是 PASS，而 Owner 三个星期打不开自己的档案馆（bridge.js 只认一个被 Cloudflare Access 挡住的域名）。台账绿 ≠ 东西能用。"
 }

@@ -3,7 +3,9 @@
 
   const MANAGED_CONFIG_URL = chrome.runtime.getURL("runtime-config.json");
   const FALLBACK_ENDPOINT = "https://social-archive-api.linzezhang.com";
-  const FALLBACK_LIBRARY = "https://social-archive.linzezhang.com";
+  // 资料库回落地址用**接口那个域名**：同一份前端，而且没有 Cloudflare Access
+  // 挡着。指向被挡的那个域名时，扩展会一直把人往一堵进不去的墙上送。（2026-08-17）
+  const FALLBACK_LIBRARY = "https://social-archive-api.linzezhang.com";
   const DEFAULT_CONFIG = Object.freeze({
     endpoint: FALLBACK_ENDPOINT,
     libraryUrl: FALLBACK_LIBRARY,

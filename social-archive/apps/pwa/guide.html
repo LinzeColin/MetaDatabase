@@ -28,24 +28,24 @@
 <a class="back" href="/">← 回资料库</a>
 <h1>Social Archive 使用说明</h1>
 <p>一句话：<strong>把你在各个平台收藏的东西，聚到一个自己的资料库里。</strong></p>
-<p>资料库地址：<a href="https://social-archive.linzezhang.com/" rel="noopener">https://social-archive.linzezhang.com/</a></p>
+<p>资料库地址：<a href="https://social-archive-api.linzezhang.com/" rel="noopener">https://social-archive-api.linzezhang.com/</a></p>
 <blockquote>这份说明里写的每一句——按钮上的字、页面地址、能同步的平台清单——</blockquote>
 <blockquote>都由 <code>scripts/check_the_guide_matches_the_product.py</code> 逐条去代码里核对过。</blockquote>
 <blockquote>说明和产品对不上时，那道门会红。</blockquote>
 <blockquote>那道门查的是<strong>正方向</strong>：写了的东西真的存在。还有一道查<strong>反方向</strong>的</blockquote>
 <blockquote>（<code>check_the_guide_warns_about_the_access_gate.py</code>）：<strong>你会撞到、而这里没写</strong>。</blockquote>
-<blockquote>2026-08-12 补的第一步那一屏 Cloudflare 验证页，就是它查出来的——</blockquote>
+<blockquote>2026-08-12 补的第一步那一屏登录验证，就是它查出来的——</blockquote>
 <blockquote><strong>少说也是说错</strong>，而只有正方向那一道时，少说可以一直是绿的。</blockquote>
 <hr>
 <h2>一、第一次用（三步，大约五分钟）</h2>
 <h3>第 1 步：装插件</h3>
-<p>打开 <a href="https://social-archive.linzezhang.com/extension-install" rel="noopener">https://social-archive.linzezhang.com/extension-install</a>，照着页面上的四步做。</p>
+<p>打开 <a href="https://social-archive-api.linzezhang.com/extension-install" rel="noopener">https://social-archive-api.linzezhang.com/extension-install</a>，照着页面上的四步做。</p>
 <p>页面会自己检测装好没有，<strong>你不用自己判断成没成</strong>。</p>
-<blockquote><strong>第一次在新浏览器里打开，可能先出现一个 Cloudflare 的验证页。</strong></blockquote>
-<blockquote>那是你自己给这个域名加的 Access 保护，不是插件或这个产品要的东西——</blockquote>
-<blockquote>按页面上的提示过一次就好，之后这个浏览器会记住。</blockquote>
-<blockquote>（实测：没有会话时 <code>/</code> 和 <code>/extension-install</code> 都会先跳到 Cloudflare Access 的登录页；</blockquote>
-<blockquote>你平时用的那个浏览器里有会话，所以看不见这一屏。）</blockquote>
+<blockquote><strong>2026-08-17：地址换了</strong>——从 <code>social-archive.linzezhang.com</code> 改成上面这个（多了 <code>-api</code>）。</blockquote>
+<blockquote>旧地址进不去，而且扩展和资料库配对用的那根线只在旧域名上生效，</blockquote>
+<blockquote>于是扩展永远拿不到令牌：界面一直转圈、连不上、也不同步。</blockquote>
+<blockquote>新地址是同一份资料库、同一个服务器，进得去，配对线也已经接上。</blockquote>
+<blockquote><strong>旧地址还能打开的话也别用了</strong>，用上面这个。</blockquote>
 <p>要点只有一个：<strong>解压出来的插件文件夹要放进「文稿」（Documents）</strong>。</p>
 <p>Chrome 是直接读这个文件夹运行插件的——留在「下载」里，</p>
 <p>哪天你清理下载或清空废纸篓，插件就会坏掉。</p>

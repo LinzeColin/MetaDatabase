@@ -1,4 +1,4 @@
-# Social Archive v0.0.0.101
+# Social Archive v0.0.0.102
 
 > **接手或运维先读 [`HANDOFF.md`](HANDOFF.md)**：现状、只有你能做的那一件、坏了怎么办。
 > 日常使用见 [`docs/使用说明.md`](docs/使用说明.md)。
@@ -11,7 +11,7 @@
 
 ## 零技术门槛使用
 
-**步骤不写在这里** —— 安装页 `https://social-archive.linzezhang.com/extension-install`
+**步骤不写在这里** —— 安装页 `https://social-archive-api.linzezhang.com/extension-install`
 会自己带着你走，并且**自己检测装好没有**；完整的日常用法见
 [`docs/使用说明.md`](docs/使用说明.md)（那一份有判据逐条核对过它写的每个按钮真的存在）。
 

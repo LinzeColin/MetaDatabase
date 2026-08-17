@@ -6,6 +6,87 @@
 > **这里不补写**：隔了两版再靠回忆重建变更记录，写出来的东西看着像记录，
 > 其实是推测，比空着更容易被人当真。
 
+## v0.0.0.102 — 扩展被送去一个进不去的域名，于是永远配不上、永远不同步
+
+### Owner 的原话
+
+> 「我登录了我安装了，会不断的跳转一些没有用的页面，然后把我的电脑搞卡搞死，
+> 问题就是他永远连接不了、永远不能同步、永远不能更新、永远都用不了。」
+
+三句症状是同一个根因。
+
+### 第二堵墙：登录只能在一个进不去的地方完成
+
+改完桥之后 Owner 说「打不开 url」。自己开一次看到的是**应用自己那屏登录**
+（用 Google / GitHub 登录）。而：
+
+    SOCIAL_ARCHIVE_PUBLIC_LIBRARY_URL = https://social-archive.linzezhang.com  ← Access 挡着
+    login_base（登录按钮跳去哪）      = 同上
+    OAuth redirect_uri                = 同上 /v1/auth/{provider}/callback
+
+**登录只能在一个进不去的域名上完成，而扩展令牌只能由登录签发** —— 互锁。
+Google/GitHub 应用里登记的回调地址也只有那个域名，改它要动 Owner 的控制台。
+隧道证书里那个令牌没有 Access 权限（`access/organizations` 直接
+`Authentication error`；`access/apps` 返回空列表只是权限造成的假象），
+所以那条 Access 策略这边拆不掉。
+
+新增 `SOCIAL_ARCHIVE_LOGIN_REQUIRED`（默认 `true`）。设成 `false` 时
+`/v1/auth/me` 与 `/v1/auth/extension-token` 直接认 Owner，登录屏不再出现。
+**代价写在 .env.example 里**：这一档下知道网址的人就能取到 Owner 令牌。
+它是「先让功能能用」的权宜，不是长期形态。
+
+两个坑都实测踩过并修了：
+- 只写 `user_id = OWNER_USER_ID` 不建行 → 全新库里 SELECT 落空 → 照样 401，改了等于没改
+- `issue_extension_token` 同理 → `FOREIGN KEY constraint failed`
+
+### 根因
+
+`bridge.js` 是扩展和资料库页配对、拿令牌的那根线。它此前**只认一个来源**：
+
+    runtime-config.library_url        https://social-archive.linzezhang.com
+    manifest content_scripts.matches  https://social-archive.linzezhang.com/*
+    bridge.js allowedOrigins          https://social-archive.linzezhang.com
+
+而那个域名在 Cloudflare Access 后面（实测 `/` 302 到 `tiny-scene-b867.cloudflareaccess.com`）。
+于是两条路都堵死：
+
+- 开被挡的域名 → 页面根本没加载 → bridge 没注入 → **配不上**
+- 开接口域名（`…-api.…`，**同一份前端、同一台服务器、没有墙**）→ 不在那两张名单里 → **一样配不上**
+
+结果 `/v1/*` 恒 401「扩展尚未授权或令牌已失效」，界面永远转圈；
+而 `library_url` 又一直把人往那堵墙上送 —— 就是「不断跳转没用的页面」。
+服务端的实况印证了这一点：**8 月 6 日之后几乎没再收到过任何同步**
+（B站/抖音停在 8-4，小红书 8-6），说明那些跳转一次都没走到服务器。
+
+### 为什么十四个真 Chrome 演练全绿
+
+它们**每一个**都带 `--host-resolver-rules=MAP social-archive.linzezhang.com 127.0.0.1:<假端口>`，
+域名被指到本机假服务器，**结构上撞不到那堵墙**。
+而 `evidence/T03/FIRST_RUN_DETECTION_ACTUALLY_WORKS.json` 里早就写着：
+「他用的是 https://social-archive.linzezhang.com——同一条 manifest 规则，
+**但没有在那个来源上实测过**（那需要他的 Cloudflare Access 会话）」。
+缺口自己记下了，从没堵上。
+
+### 改了什么
+
+- `manifest.json` / `bridge.js` / `background.js`：三处都把接口域名加进注入名单与白名单
+  （**两张名单在两个文件里，只改一张等于没改** —— bridge.js 第一行就是
+  `if (!allowedOrigins.has(location.origin)) return;`）
+- `runtime-config.json` / `shared.js`：`library_url` 与回落地址改成接口域名
+- 说明书、README、`00_我在哪`、`00_零门槛运行手册`、`guide.html`：第一步的地址全部换掉，
+  并删掉那段已经过期的登录验证提醒（`check_the_guide_warns_about_the_access_gate.py`
+  实测新地址 200 无跳转后，**当场判 FAIL 要求删掉它** —— 过期的提醒和缺失的提醒一样会把人带错）
+
+### 新判据，以及它第一版守错了地方
+
+`tests/focused/test_the_library_url_can_actually_pair.py`。
+
+**第一版写的是「三处名单必须彼此一致」——跑反例时发现它在缺陷上会全绿**：
+出事那天三处**本来就一致**，一致地指向一堵进不去的墙。
+真正的不变量是**那个地址真的打得开**：GET `library_url`，必须 200、
+不许被重定向到别的主机、正文得像资料库。改完再跑反例，它红了并直接点名
+`tiny-scene-b867.cloudflareaccess.com`。
+
 ## v0.0.0.101 — 包里少一个运行时注入的文件，全线绿着而他点下去才炸
 
 ### 缺口是怎么找出来的

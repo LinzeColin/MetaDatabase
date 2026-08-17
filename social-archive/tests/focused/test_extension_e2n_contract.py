@@ -73,7 +73,12 @@ def test_bridge_matches_only_the_documented_web_and_loopback_origins():
     root = _extension_root()
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     matches = set(manifest["content_scripts"][0]["matches"])
+    # 接口域名 2026-08-17 加入：资料库前端就跑在它上面，而它没有 Access 挡着。
+    # 少了它，扩展在唯一进得去的那个来源上**注入不了 bridge**，
+    # 于是永远配不上、/v1/* 恒 401。（这道门守的是「别多放来源进来」，
+    # 不是「别加来源」——加了就把它写进这张单子，让下一个人看得见射程。）
     assert matches == {
+        "https://social-archive-api.linzezhang.com/*",
         "https://social-archive.linzezhang.com/*",
         "http://127.0.0.1:8765/*",
         "http://localhost:8765/*",

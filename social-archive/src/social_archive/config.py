@@ -59,6 +59,18 @@ class Settings:
     # require_token 第一行据此早退。旧的一次性码链路已随 v0.0.0.7/T03 删除，
     # 这个字段与那条链路无关，删掉等于全站不再鉴权。
     pairing_required: bool = False
+    # **不要求交互式登录**（2026-08-17）。
+    #
+    # 起因：`social-archive.linzezhang.com` 被 Cloudflare Access 挡着，而 OAuth 的
+    # redirect_uri 与 login_base 都钉在那个域名上——于是登录只能在一个进不去的
+    # 地方完成，令牌又只能由登录签发：死结。Owner 三个星期打不开自己的档案馆。
+    #
+    # 开启后：`/v1/auth/me` 与 `/v1/auth/extension-token` 认 Owner，不要会话；
+    # `/v1/auth/providers` 返回空表，前端那屏登录不再出现。
+    #
+    # **代价要说清楚**：这一档下，知道网址的人就能取到 Owner 令牌。
+    # 它是为「先让功能能用」准备的，不是长期形态；要恢复登录把这个变量拿掉即可。
+    login_required: bool = True
     notion_token_file: str | None = None
     notion_database_id: str | None = None
     notion_data_source_id: str | None = None
@@ -140,6 +152,7 @@ class Settings:
             public_library_url=(os.getenv("SOCIAL_ARCHIVE_PUBLIC_LIBRARY_URL", "").strip() or os.getenv("SOCIAL_ARCHIVE_PUBLIC_BASE_URL", "").strip() or "http://127.0.0.1:8765").rstrip("/"),
             api_token_file=os.getenv("SOCIAL_ARCHIVE_API_TOKEN_FILE") or None,
             pairing_required=_bool("SOCIAL_ARCHIVE_PAIRING_REQUIRED", False),
+            login_required=_bool("SOCIAL_ARCHIVE_LOGIN_REQUIRED", True),
             notion_token_file=os.getenv("SOCIAL_ARCHIVE_NOTION_TOKEN_FILE") or None,
             notion_database_id=os.getenv("SOCIAL_ARCHIVE_NOTION_DATABASE_ID") or None,
             notion_data_source_id=os.getenv("SOCIAL_ARCHIVE_NOTION_DATA_SOURCE_ID") or None,

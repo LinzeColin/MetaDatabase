@@ -3,7 +3,17 @@
 
   const PAGE_SOURCE = "social-archive-web";
   const EXTENSION_SOURCE = "social-archive-extension";
+  // **接口域名必须在这里。**（2026-08-17）
+  //
+  // 下面第 14 行 `if (!allowedOrigins.has(location.origin)) return;` 是硬闸：
+  // 内容脚本注进来了，来源不在这个集合里照样当场退出。所以 manifest 的
+  // matches 和这个集合**必须同时改**，只改一半等于没改。
+  //
+  // 此前两处都只有 `social-archive.linzezhang.com`，而那个域名在
+  // Cloudflare Access 后面：页面根本加载不到，桥就永远搭不起来，
+  // /v1/* 永远 401「扩展尚未授权或令牌已失效」。
   const allowedOrigins = new Set([
+    "https://social-archive-api.linzezhang.com",
     "https://social-archive.linzezhang.com",
     "http://127.0.0.1:8765",
     "http://localhost:8765"

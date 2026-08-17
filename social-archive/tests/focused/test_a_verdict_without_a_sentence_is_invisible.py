@@ -73,13 +73,25 @@ def _minutes_ago(minutes: int) -> str:
             - _dt.timedelta(minutes=minutes)).isoformat().replace("+00:00", "Z")
 
 
+def _snapshot_name(minutes: int) -> str:
+    """N 分钟前的快照目录名（备份链按目录名解析时间）。"""
+    import datetime as _dt
+    return (_dt.datetime.now(_dt.timezone.utc)
+            - _dt.timedelta(minutes=minutes)).strftime("%Y%m%dT%H%M%SZ")
+
+
 def _nothing(root: Path) -> None:
     """全新安装。"""
 
 
 def _healthy(root: Path) -> None:
     for chain in ("private-database", "runtime-db"):
-        snapshot = root / "backups" / chain / "20260814T030000Z"
+        # **目录名里的时间也要相对当下算。**（2026-08-17 修）
+        # 原来写死 `20260814T030000Z`，而备份链的门槛是 30 小时——
+        # 08-14 当天跑是绿的，08-15 起这条「一切正常不许说话」永远红。
+        # 上一轮我只把 replication 的状态文件改成相对时间，**这半边原样留着**：
+        # 同一个病修了一半。
+        snapshot = root / "backups" / chain / _snapshot_name(30)
         snapshot.mkdir(parents=True)
         (snapshot / "manifest.json").write_text("{}", encoding="utf-8")
     (root / "status").mkdir(parents=True, exist_ok=True)

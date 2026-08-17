@@ -147,6 +147,20 @@ def _reachable_from_deploy() -> set[str]:
     return seen
 
 
+def _previous_version(current: str) -> str | None:
+    """CHANGELOG 里紧挨着 `current` 的那一版。
+
+    **不做数值推算**（把 102 减成 101）——版本号不一定连续，跳号时推算会
+    悄悄多容忍一版。这里只认「CHANGELOG 里排在它下面那一条」，
+    找不到 current 就返回 None（于是一律走严格分支）。
+    """
+    heads = re.findall(r"^## v([0-9][0-9.]*)", (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"), re.M)
+    if current not in heads:
+        return None
+    index = heads.index(current)
+    return heads[index + 1] if index + 1 < len(heads) else None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--json", action="store_true")
@@ -158,6 +172,7 @@ def main() -> int:
     reachable = _reachable_from_deploy()
 
     problems: list[str] = []
+    warnings: list[str] = []
     checked = 0
     per_file: dict[str, dict] = {}
 
@@ -190,9 +205,26 @@ def main() -> int:
             pinned = data.get("expected_version")
             note["expected_version"] = pinned
             if pinned is not None and pinned != version:
-                problems.append(
-                    f"{gate} 引的 {rel} 钉在 {pinned}，而当前是 {version}——"
-                    "它是对生产的实测，钉在旧版就等于在给另一版背书")
+                # **升版当下这一刻，差一版是结构性的，不是陈旧。**（2026-08-17）
+                #
+                # 这类证据是**对生产的实测**，只能由部署跑完才刷新。而部署第 0 步
+                # 又要这道门先绿 —— 于是「改 VERSION → 部署」被自己锁死：
+                # 2026-08-17 实测，0.0.0.101→102 那次部署在第 0 步就停住，
+                # 而唯一能让它变绿的动作就是那次部署本身。
+                #
+                # 所以只容忍**恰好上一版**（CHANGELOG 里紧邻的那一条），
+                # 并且明说它在途中。原来那个「停在 79 个版本前还标 PASS」的病
+                # 照样会红 —— 那不是紧邻的上一版。
+                if pinned == _previous_version(version):
+                    note["pending_this_deploy"] = True
+                    warnings.append(
+                        f"{gate} 引的 {rel} 钉在上一版 {pinned}（当前 {version}）——"
+                        "这份是对生产的实测，**本次部署跑完才会刷新**。"
+                        f"部署结束后它仍然停在 {pinned} 的话，就是真的没刷新。")
+                else:
+                    problems.append(
+                        f"{gate} 引的 {rel} 钉在 {pinned}，而当前是 {version}——"
+                        "它是对生产的实测，钉在旧版就等于在给另一版背书")
 
             producer = producers.get(rel)
             note["producer"] = producer
@@ -203,7 +235,7 @@ def main() -> int:
             if not script.exists():
                 problems.append(f"{rel} 登记的产出者 {producer} 不存在")
                 continue
-            stem = re.sub(r"_(reddit|instagram|douyin|xiaohongshu|kuaishou)$", "",
+            stem = re.sub(r"_(reddit|instagram|douyin|xiaohongshu|kuaishou|x|youtube)$", "",
                           Path(rel).name[: -len(".json")])
             # **剥掉注释和文档字符串再找。** 不剥的话，一个只是在说明里提到
             # 这个输出名的脚本也算"产出者"——这道判据自己的 docstring 就提了
@@ -229,6 +261,7 @@ def main() -> int:
         "scripts_reachable_from_deploy": len(reachable),
         "per_file": per_file,
         "problems": problems,
+        "warnings": warnings,
         "status": "FAIL" if problems else "PASS",
     }
     if args.json:
@@ -238,8 +271,11 @@ def main() -> int:
         for one in problems:
             print(f"    {one}")
     else:
-        print(f"✓ 台账引的 {checked} 份证据都是 {version} 这一版的，"
+        print(f"✓ 台账引的 {checked} 份证据都对得上（当前 {version}），"
               f"且每一份的产出者都从部署脚本够得到")
+        # **警告要印出来，不能只塞进 JSON。** 印不出来的警告等于没有。
+        for one in warnings:
+            print(f"    ⚠️  {one}")
     return 1 if problems else 0
 
 
