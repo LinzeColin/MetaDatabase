@@ -18,8 +18,8 @@
     "accounts": [
       {
         "platform": "bilibili",
-        "connection_state": "disconnected",
-        "auto_sync_enabled": false,
+        "connection_state": "connected",
+        "auto_sync_enabled": true,
         "content_count": 101
       },
       {
@@ -30,8 +30,8 @@
       },
       {
         "platform": "xiaohongshu",
-        "connection_state": "disconnected",
-        "auto_sync_enabled": false,
+        "connection_state": "connected",
+        "auto_sync_enabled": true,
         "content_count": 0
       }
     ],

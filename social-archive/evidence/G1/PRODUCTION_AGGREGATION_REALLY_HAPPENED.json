@@ -70,14 +70,14 @@
       "started_at": "2026-08-03T23:22:52.747181Z"
     }
   ],
-  "why_it_stopped_zh": "最后一次同步（douyin 2026-08-17T07:02:45.432252Z）进了 0 条，错误码 BROWSER_SCAN_FAILED（就在今天）",
+  "why_it_stopped_zh": "最后一次同步（bilibili 2026-08-17T09:59:29.043201Z）进了 0 条，错误码 BROWSER_SCAN_FAILED（就在今天）",
   "accounts_now": [
     {
       "platform": "xiaohongshu",
-      "connection_state": "disconnected",
+      "connection_state": "connected",
       "auth_method": "browser_session",
-      "auto_sync_enabled": 0,
-      "last_verified_at": "2026-08-03T08:51:01.477313Z",
+      "auto_sync_enabled": 1,
+      "last_verified_at": "2026-08-17T09:58:31.924507Z",
       "last_sync_at": null,
       "last_error_code": null
     },
@@ -92,10 +92,10 @@
     },
     {
       "platform": "bilibili",
-      "connection_state": "disconnected",
+      "connection_state": "connected",
       "auth_method": "browser_session",
-      "auto_sync_enabled": 0,
-      "last_verified_at": "2026-08-04T05:22:07.147395Z",
+      "auto_sync_enabled": 1,
+      "last_verified_at": "2026-08-17T09:59:28.385905Z",
       "last_sync_at": null,
       "last_error_code": null
     }
@@ -310,6 +310,36 @@
       "completeness": "partial",
       "last_error_code": "BROWSER_SCAN_FAILED",
       "started_at": "2026-08-17T07:02:45.432252Z"
+    },
+    {
+      "platform": "xiaohongshu",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "LIST_SHAPE_NOT_RECOGNISED",
+      "started_at": "2026-08-17T09:58:32.865765Z"
+    },
+    {
+      "platform": "douyin",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-17T09:59:04.953386Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-17T09:59:29.043201Z"
     }
   ],
   "content_by_platform": [
@@ -379,7 +409,7 @@
     {
       "job_type": "account_sync",
       "status": "done",
-      "n": 19
+      "n": 22
     },
     {
       "job_type": "account_sync",
