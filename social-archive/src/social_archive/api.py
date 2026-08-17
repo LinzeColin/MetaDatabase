@@ -252,6 +252,13 @@ def _trusted_library_access(request: Request) -> bool:
 def require_token(request: Request, authorization: str | None = Header(default=None)) -> None:
     if not settings.pairing_required:
         return
+    # 免登录档：页面自己没有会话 cookie，于是它的每一次 /v1/* 都会 401——
+    # 配对成功、插件也能读，而**用户看到的那张表是空的**（实测：paired=true
+    # 而 library_status=401）。这一档下令牌本来就人人取得到
+    # （`/v1/auth/extension-token` 不要会话），再拦一道不增加任何防护，
+    # 只会让页面空着。代价写在 .env.example 里。
+    if not settings.login_required:
+        return
     if _trusted_library_access(request):
         return
     supplied = authorization.removeprefix("Bearer ").strip() if authorization else ""

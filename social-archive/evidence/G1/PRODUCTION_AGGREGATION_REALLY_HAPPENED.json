@@ -70,7 +70,7 @@
       "started_at": "2026-08-03T23:22:52.747181Z"
     }
   ],
-  "why_it_stopped_zh": "最后一次同步（xiaohongshu 2026-08-04T05:23:45.358136Z）进了 0 条，错误码 PLATFORM_PERMISSION_MISSING——**距今 10 天，这期间一条都没有再进来**",
+  "why_it_stopped_zh": "最后一次同步（douyin 2026-08-17T07:02:45.432252Z）进了 0 条，错误码 BROWSER_SCAN_FAILED（就在今天）",
   "accounts_now": [
     {
       "platform": "xiaohongshu",
@@ -83,10 +83,10 @@
     },
     {
       "platform": "douyin",
-      "connection_state": "disconnected",
+      "connection_state": "connected",
       "auth_method": "browser_session",
-      "auto_sync_enabled": 0,
-      "last_verified_at": "2026-08-03T08:52:46.604291Z",
+      "auto_sync_enabled": 1,
+      "last_verified_at": "2026-08-17T07:02:43.912517Z",
       "last_sync_at": null,
       "last_error_code": null
     },
@@ -298,8 +298,18 @@
       "imported_count": 0,
       "failed_count": 0,
       "completeness": "partial",
-      "last_error_code": "PLATFORM_PERMISSION_MISSING",
+      "last_error_code": "LIST_SHAPE_NOT_RECOGNISED",
       "started_at": "2026-08-04T05:23:45.358136Z"
+    },
+    {
+      "platform": "douyin",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-17T07:02:45.432252Z"
     }
   ],
   "content_by_platform": [
@@ -369,7 +379,7 @@
     {
       "job_type": "account_sync",
       "status": "done",
-      "n": 18
+      "n": 19
     },
     {
       "job_type": "account_sync",

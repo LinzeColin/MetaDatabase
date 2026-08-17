@@ -1,17 +1,14 @@
 {
   "status": "PASS",
-  "version": "0.0.0.102",
-  "version_set_by": "961ead1807bda461a60ca6712d78a7adafc43e75 08-15 19:18",
+  "version": "0.0.0.103",
+  "version_set_by": "8220f9f9ad84187c67284947aac58280c1340e02 08-17 18:34",
   "watched": [
     "apps/browser-extension"
   ],
   "tracked_files": 27,
   "changed_since_bump": [
-    "social-archive/apps/browser-extension/background.js",
-    "social-archive/apps/browser-extension/bridge.js",
     "social-archive/apps/browser-extension/manifest.json",
-    "social-archive/apps/browser-extension/runtime-config.json",
-    "social-archive/apps/browser-extension/shared.js"
+    "social-archive/apps/browser-extension/runtime-config.json"
   ],
   "version_being_bumped_right_now": true,
   "problems": [],
