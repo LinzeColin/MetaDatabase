@@ -33,7 +33,7 @@
     "metadata": {
       "auth_method": "browser_session",
       "verified_by": "list_shape_recognised",
-      "extension_version": "0.0.0.101",
+      "extension_version": "0.0.0.104",
       "auto_sync_enabled": true,
       "sync_interval_minutes": 360
     }
@@ -55,8 +55,8 @@
   "captured_urls": [
     "https://www.reddit.com/api/log",
     "https://www.reddit.com/api/config",
-    "https://www.reddit.com/api/user",
     "https://www.reddit.com/svc/best",
+    "https://www.reddit.com/api/user",
     "https://www.reddit.com/svc/saved"
   ],
   "recognised": "https://www.reddit.com/svc/saved",

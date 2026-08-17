@@ -33,7 +33,7 @@ from fastapi.responses import RedirectResponse
 
 from .config import Settings
 from .db import RuntimeStore
-from .utils import read_secret
+from .utils import read_secret, utcnow
 
 SESSION_COOKIE = "sa_session"
 STATE_COOKIE = "sa_oauth_state"
@@ -182,10 +182,14 @@ def build_router(settings: Settings, store: RuntimeStore) -> APIRouter:
         没配好的 provider 不显示——比显示一个点了就报错的按钮好。
         """
         return {
+            # 免登录档下报空表：没有可点的登录方式，界面也就不该画那一屏。
+            # （这里返回空表而不是「未配置」，是因为两者对用户是两句话：
+            #  未配置 = 「联系管理员」，免登录 = 「你本来就不用登录」。）
+            "login_required": settings.login_required,
             "providers": [
                 {"name": name, "configured": provider_configured(settings, name)}
                 for name in PROVIDERS
-            ],
+            ] if settings.login_required else [],
             # **登录必须整条链路同域。** state cookie 是 host-only 的：
             # 在哪个域调 /start，它就种在哪个域；而回调地址是固定的
             # public_library_url（**实测**那才是登记在 Google 应用里的那个）。
@@ -319,8 +323,18 @@ def build_router(settings: Settings, store: RuntimeStore) -> APIRouter:
 
         取代旧的一次性码流程：用户不接触令牌文本，全程零复制粘贴。
         明文只在这里返回一次——库里只有哈希，丢了就重新点一次连接。
+
+        `login_required=False` 时不要会话，直接发 Owner 的令牌——
+        见 config.py 里那段说明：登录只能在一个被 Access 挡住的域名上完成，
+        而令牌只能由登录签发，两者互锁。
         """
         user_id = store.resolve_session(request.cookies.get(SESSION_COOKIE) or "")
+        if not user_id and not settings.login_required:
+            # **不能假定 Owner 那行已经在**。生产上碰巧有（他有 193 条），
+            # 而全新安装没有——`user_id` 上有外键，指向不存在的行会直接
+            # `FOREIGN KEY constraint failed`（实测）。这一步幂等。
+            with store.connection() as con:
+                user_id = store._ensure_owner_user(con, utcnow())
         if not user_id:
             raise HTTPException(401, "还没有登录。")
         return {"token": store.issue_extension_token(user_id=user_id)}
@@ -335,6 +349,14 @@ def build_router(settings: Settings, store: RuntimeStore) -> APIRouter:
     @router.get("/me")
     def me(request: Request) -> dict[str, Any]:
         user_id = store.resolve_session(request.cookies.get(SESSION_COOKIE) or "")
+        if not user_id and not settings.login_required:
+            # 免登录档：认 Owner。前端 requireLogin() 正是看这一条决定画不画登录屏。
+            #
+            # **必须连同建行一起做。** 只写 `user_id = OWNER_USER_ID` 时，
+            # 全新库里那一行还不存在，下面的 SELECT 落空 → 照样 401 →
+            # 登录屏照旧出现。（实测：第一版就是这样，改了等于没改。）
+            with store.connection() as con:
+                user_id = store._ensure_owner_user(con, utcnow())
         if not user_id:
             raise HTTPException(401, "还没有登录。")
         with store.connection() as con:

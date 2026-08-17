@@ -33,7 +33,7 @@
     "metadata": {
       "auth_method": "browser_session",
       "verified_by": "list_shape_recognised",
-      "extension_version": "0.0.0.101",
+      "extension_version": "0.0.0.104",
       "auto_sync_enabled": true,
       "sync_interval_minutes": 360
     }
@@ -55,9 +55,9 @@
   "captured_urls": [
     "https://www.douyin.com/api/log",
     "https://www.douyin.com/api/config",
-    "https://www.douyin.com/aweme/v1/web/aweme/listcollection/",
+    "https://www.douyin.com/api/user",
     "https://www.douyin.com/aweme/v1/web/tab/feed/",
-    "https://www.douyin.com/api/user"
+    "https://www.douyin.com/aweme/v1/web/aweme/listcollection/"
   ],
   "recognised": "https://www.douyin.com/aweme/v1/web/aweme/listcollection/",
   "matched_path": "aweme_list",

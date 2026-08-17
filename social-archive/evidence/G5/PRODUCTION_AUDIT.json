@@ -18,20 +18,20 @@
     "accounts": [
       {
         "platform": "bilibili",
-        "connection_state": "disconnected",
-        "auto_sync_enabled": false,
+        "connection_state": "connected",
+        "auto_sync_enabled": true,
         "content_count": 101
       },
       {
         "platform": "douyin",
-        "connection_state": "disconnected",
-        "auto_sync_enabled": false,
+        "connection_state": "connected",
+        "auto_sync_enabled": true,
         "content_count": 85
       },
       {
         "platform": "xiaohongshu",
-        "connection_state": "disconnected",
-        "auto_sync_enabled": false,
+        "connection_state": "connected",
+        "auto_sync_enabled": true,
         "content_count": 0
       }
     ],
@@ -80,7 +80,7 @@
   },
   "failure_codes_seen_in_production": [
     "BROWSER_SCAN_FAILED",
-    "PLATFORM_PERMISSION_MISSING",
+    "LIST_SHAPE_NOT_RECOGNISED",
     "RELATION_SCOPE_UNCONFIRMED",
     "STABLE_END_WITHOUT_PROOF",
     "SYNC_RUN_ABANDONED"

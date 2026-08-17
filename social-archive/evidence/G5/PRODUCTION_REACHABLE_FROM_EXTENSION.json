@@ -4,12 +4,12 @@
   "token_supplied": true,
   "package_he_would_download": {
     "url": "https://social-archive-api.linzezhang.com/downloads/social-archive-extension.zip",
-    "sha256": "a4c6d473423423bd",
+    "sha256": "4503741672683301",
     "same_as_repo_build": true
   },
   "measured_in_real_chrome": {
     "endpoint_the_extension_itself_uses": "https://social-archive-api.linzezhang.com",
-    "api_ms": 374,
+    "api_ms": 539,
     "api_call": "resolved",
     "api_keys": [
       "items",
@@ -23,12 +23,12 @@
     "api_looks_like_a_web_page": false,
     "api_items": 1,
     "has_host_permission": true,
-    "raw_status": 401,
+    "raw_status": 200,
     "raw_redirected": false,
     "raw_final_host": "social-archive-api.linzezhang.com",
-    "raw_body_head": "{\"detail\":\"扩展尚未授权或令牌已失效\"}",
+    "raw_body_head": "{\"items\":[{\"id\":\"cnt_05592965ee59b8cc10867ea4d4eb47bb\",\"plat",
     "manual_type": "basic",
-    "manual_status": 401,
+    "manual_status": 200,
     "health_type": "basic",
     "health_status": 200,
     "control_blocked_host_type": "opaqueredirect",
@@ -38,21 +38,21 @@
       "buttons": [
         {
           "name": "小红书",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "小红书 未连接 连接账号"
+          "state": "已连接",
+          "button": "重新连接",
+          "own_text": "小红书 已连接 重新连接"
         },
         {
           "name": "抖音",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "抖音 未连接 连接账号"
+          "state": "已连接",
+          "button": "重新连接",
+          "own_text": "抖音 已连接 重新连接"
         },
         {
           "name": "B站",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "B站 未连接 连接账号"
+          "state": "已连接",
+          "button": "重新连接",
+          "own_text": "B站 已连接 重新连接"
         },
         {
           "name": "Reddit",
@@ -94,7 +94,7 @@
       "says_it_cannot_read_sources": false,
       "says_nothing_syncs": false,
       "manual_only_mentioned": false,
-      "body_head": "连接账号 点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。 小红书 未连接 连接账号 抖音 未连接 连接账号 B站 未连接 连接账号 Reddit 未连接 连接账号 Instagram 未连接 连接账号 Chrome 书签 未连接 连接账号 快手 本版本不自动读取快手的收藏。取数需要的那几个字段名只能从你登录后的真实响应里确认，靠公开页推断出来的是假的，所以这条路先不开。现在",
+      "body_head": "连接账号 点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。 小红书 已连接 重新连接 抖音 已连接 重新连接 B站 已连接 重新连接 Reddit 未连接 连接账号 Instagram 未连接 连接账号 Chrome 书签 未连接 连接账号 快手 本版本不自动读取快手的收藏。取数需要的那几个字段名只能从你登录后的真实响应里确认，靠公开页推断出来的是假的，所以这条路先不开。现在",
       "connect_supported_platforms": [
         "xiaohongshu",
         "douyin",
@@ -109,21 +109,21 @@
         "pressed": [
           {
             "name": "小红书",
-            "before": "连接账号",
+            "before": "重新连接",
             "after": "正在连接…",
             "disabled": true,
             "note": ""
           },
           {
             "name": "抖音",
-            "before": "连接账号",
+            "before": "重新连接",
             "after": "正在连接…",
             "disabled": true,
             "note": ""
           },
           {
             "name": "B站",
-            "before": "连接账号",
+            "before": "重新连接",
             "after": "正在连接…",
             "disabled": true,
             "note": ""
