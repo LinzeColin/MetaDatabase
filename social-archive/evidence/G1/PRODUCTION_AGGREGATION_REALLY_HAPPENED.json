@@ -5,13 +5,13 @@
     "bilibili",
     "douyin"
   ],
-  "import_events_summed_across_runs": 260,
-  "distinct_items_still_in_the_archive": 186,
+  "import_events_summed_across_runs": 306,
+  "distinct_items_still_in_the_archive": 202,
   "distinct_items_by_platform": {
-    "bilibili": 101,
+    "bilibili": 117,
     "douyin": 85
   },
-  "import_runs_total": 4,
+  "import_runs_total": 5,
   "import_runs_that_did_not_finish": 4,
   "import_runs_that_did_not_finish_detail": [
     {
@@ -68,9 +68,15 @@
       "discovered_count": 56,
       "imported_count": 56,
       "started_at": "2026-08-03T23:22:52.747181Z"
+    },
+    {
+      "platform": "bilibili",
+      "discovered_count": 46,
+      "imported_count": 46,
+      "started_at": "2026-08-18T01:30:47.058768Z"
     }
   ],
-  "why_it_stopped_zh": "最后一次同步（bilibili 2026-08-17T09:59:29.043201Z）进了 0 条，错误码 BROWSER_SCAN_FAILED（就在今天）",
+  "why_it_stopped_zh": "最后一次同步（bilibili 2026-08-18T01:30:47.058768Z）进了 46 条，错误码 None（就在今天）",
   "accounts_now": [
     {
       "platform": "xiaohongshu",
@@ -95,8 +101,8 @@
       "connection_state": "connected",
       "auth_method": "browser_session",
       "auto_sync_enabled": 1,
-      "last_verified_at": "2026-08-17T09:59:28.385905Z",
-      "last_sync_at": null,
+      "last_verified_at": "2026-08-18T01:30:56.454095Z",
+      "last_sync_at": "2026-08-18T01:30:56.458112Z",
       "last_error_code": null
     }
   ],
@@ -340,12 +346,92 @@
       "completeness": "partial",
       "last_error_code": "BROWSER_SCAN_FAILED",
       "started_at": "2026-08-17T09:59:29.043201Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-17T15:58:38.710727Z"
+    },
+    {
+      "platform": "douyin",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "SYNC_STALLED",
+      "started_at": "2026-08-17T15:59:18.785235Z"
+    },
+    {
+      "platform": "douyin",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "PLATFORM_PERMISSION_MISSING",
+      "started_at": "2026-08-17T16:00:18.904015Z"
+    },
+    {
+      "platform": "xiaohongshu",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "LIST_SHAPE_NOT_RECOGNISED",
+      "started_at": "2026-08-17T16:01:09.003826Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-17T21:58:40.374008Z"
+    },
+    {
+      "platform": "douyin",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "PLATFORM_PERMISSION_MISSING",
+      "started_at": "2026-08-17T21:59:22.463628Z"
+    },
+    {
+      "platform": "xiaohongshu",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "LIST_SHAPE_NOT_RECOGNISED",
+      "started_at": "2026-08-17T22:00:10.568556Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "completed",
+      "discovered_count": 46,
+      "imported_count": 46,
+      "failed_count": 0,
+      "completeness": "complete",
+      "last_error_code": null,
+      "started_at": "2026-08-18T01:30:47.058768Z"
     }
   ],
   "content_by_platform": [
     {
       "platform": "bilibili",
-      "n": 103
+      "n": 119
     },
     {
       "platform": "douyin",
@@ -366,16 +452,16 @@
   ],
   "relations_by_type": [
     {
+      "relation_type": "favorite",
+      "n": 92
+    },
+    {
       "relation_type": "history",
       "n": 71
     },
     {
       "relation_type": "like",
       "n": 69
-    },
-    {
-      "relation_type": "favorite",
-      "n": 46
     },
     {
       "relation_type": "saved",
@@ -394,7 +480,7 @@
     {
       "job_type": "export_destination",
       "status": "done",
-      "n": 387
+      "n": 403
     },
     {
       "job_type": "download_l3",
@@ -404,12 +490,12 @@
     {
       "job_type": "download_l3",
       "status": "failed",
-      "n": 33
+      "n": 79
     },
     {
       "job_type": "account_sync",
       "status": "done",
-      "n": 22
+      "n": 30
     },
     {
       "job_type": "account_sync",

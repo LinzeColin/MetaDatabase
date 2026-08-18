@@ -108,6 +108,28 @@
     return chrome.permissions.request(request).catch(() => false);
   }
 
+  /** 查一次这个平台的浏览器授权，把结果标在那一行上。
+   *
+   * 只读：`chrome.permissions.contains` 不弹框、不要手势。
+   * 查不动就什么都不改 —— **不许把「我没查到」显示成「没有授权」**。
+   */
+  async function markPermission(platform, state) {
+    const origins = SA.patternsForPlatform(platform) || [];
+    if (!origins.length) return;
+    let granted;
+    try {
+      granted = await chrome.permissions.contains({ origins });
+    } catch (_) {
+      return;
+    }
+    if (granted) return;
+    const base = state.textContent;
+    state.textContent = base + " · 缺授权";
+    state.classList.add("needs");
+    const button = state.parentElement?.querySelector("button");
+    if (button) button.textContent = "去授权";
+  }
+
   async function render() {
     let accounts = { items: [], supported_platforms: [] };
     try {
@@ -227,6 +249,11 @@
       state.className = "state";
       state.textContent = connected.has(platform) ? "已连接" : "未连接";
       item.append(name, state, connectButtonFor(platform, name, state, item));
+      // **这里也要标。** 上一版只改了下面那个分支（X / YouTube 那条），
+      // 于是小红书 / 抖音 / B站——正是他真正在用的三个——一行都没标出来，
+      // 而真 Chrome 探针同时证明抖音的授权确实是 false。
+      // 「两处建行代码只改了一处」，这个仓当天已经第二次。
+      markPermission(platform, state);
       list.append(item);
     }
     for (const row of manualOnly) {
@@ -252,6 +279,20 @@
         state.className = "state";
         state.textContent = connected.has(row.platform) ? "已连接" : "未连接";
         item.append(state, connectButtonFor(row.platform, name, state, item));
+        // **「已连接」不等于「读得到」。**（2026-08-18）
+        //
+        // 2026-08-17 生产实况：抖音那行显示「已连接」，而每一次同步都倒在
+        // PLATFORM_PERMISSION_MISSING —— 浏览器那颗「允许读取抖音页面」的
+        // 授权根本没给到。两件事在界面上是分开的，**他没有任何办法提前发现**，
+        // 只能等一次同步失败之后才看到那句话。
+        //
+        // 而同步那一刻**没有用户手势**，`chrome.permissions.request` 一定抛，
+        // 所以那时也补不回来——只能等他下次再点一次「连接账号」。
+        //
+        // 这里当场查一次并显示出来：缺授权就把这一行标出来，
+        // 顺带把按钮的字改成「去授权」——他要点的还是同一颗，
+        // 但知道自己在点什么。
+        markPermission(row.platform, state);
       }
       list.append(item);
     }

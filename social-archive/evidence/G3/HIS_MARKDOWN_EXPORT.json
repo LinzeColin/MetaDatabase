@@ -3,13 +3,13 @@
   "host": "linze-vps3",
   "measured": {
     "library_status": 200,
-    "items_in_library": 193,
+    "items_in_library": 209,
     "zip_status": 200,
-    "zip_bytes": 139918,
-    "files_in_zip": 193,
+    "zip_bytes": 150997,
+    "files_in_zip": 209,
     "empty_heading": 0,
     "title_is_a_doubled_caption": 0,
-    "title_merely_starts_with_a_number": 49,
+    "title_merely_starts_with_a_number": 51,
     "author_is_a_like_count": 0,
     "unreadable_files": 0
   },

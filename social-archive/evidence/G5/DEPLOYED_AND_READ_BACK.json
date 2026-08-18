@@ -2,13 +2,13 @@
   "status": "PASS",
   "task": "G5",
   "host": "linze-vps3",
-  "expected_version": "0.0.0.104",
+  "expected_version": "0.0.0.106",
   "measured_from_production": {
     "health": {
       "status": "ok",
       "project": "Social Archive",
-      "version": "0.0.0.104",
-      "time": "2026-08-17T10:31:06.241590Z",
+      "version": "0.0.0.106",
+      "time": "2026-08-18T02:41:24.739836Z",
       "paid_api_allowed": false,
       "archive_defaults": {
         "L0": true,
@@ -18,15 +18,15 @@
       },
       "backup": {
         "last_backup_at": "20260817T032256Z",
-        "hours_since": 7.14,
+        "hours_since": 23.31,
         "stale": false,
         "message_zh": "",
         "why": ""
       },
       "replication": {
-        "last_run_at": "2026-08-17T10:26:45.349136Z",
+        "last_run_at": "2026-08-18T02:33:43.087881Z",
         "status": "PASS",
-        "hours_since": 0.07,
+        "hours_since": 0.13,
         "stale": false,
         "message_zh": "",
         "why": ""
@@ -34,21 +34,21 @@
       "worker": {
         "ever_seen": true,
         "alive": true,
-        "last_seen_at": "2026-08-17T10:31:02.733628Z",
-        "seconds_since": 3.5,
-        "version": "0.0.0.104",
+        "last_seen_at": "2026-08-18T02:41:16.965715Z",
+        "seconds_since": 7.8,
+        "version": "0.0.0.106",
         "note": "",
-        "api_version": "0.0.0.104",
+        "api_version": "0.0.0.106",
         "version_matches": true,
         "message_zh": ""
       },
       "disk": {
         "measured": true,
         "measured_at": "/var/lib/social-archive/runtime/social-archive.sqlite3",
-        "free_bytes": 70759882752,
-        "free_gb": 65.9,
+        "free_bytes": 73374224384,
+        "free_gb": 68.34,
         "total_gb": 95.82,
-        "used_percent": 31.2,
+        "used_percent": 28.7,
         "tight": false
       },
       "minimum_extension_version": "0.0.0.9"
@@ -92,10 +92,10 @@
       }
     },
     "package": {
-      "manifest_version": "0.0.0.104",
+      "manifest_version": "0.0.0.106",
       "file_count": 27,
       "has_bilibili_reader": true,
-      "sha256": "45037416726833012aaf02d8a343f3e6cc4e1f586c9facc8014806d41346c25d"
+      "sha256": "21f801c02daa9809ee21de591f7e60ea585b9e64d353e3156e1b94d789634b2c"
     },
     "install_page": {
       "bytes": 13336,
@@ -106,17 +106,17 @@
       "stale_versions": []
     },
     "served_sha256": {
-      "sw.js": "1ec69c775c37e2197d04bca7beb0bcec640ceec59a65a355fdff1f2974d2e59f",
+      "sw.js": "0459c3b1eeaf69e1bafe1fbdf412d751b87dee622a1850758662a22f5b954207",
       "manifest.webmanifest": "f71aae80fe412c13defe7908aca3227dec3d4f0f19f4397b71c2e3062485836d",
       "styles.css": "d2a490200b18ef8ed44dee85030c5de88a5b497c3556c1af39ceb83c8f6e13c6",
       "extension-install.html": "e1487646e32de0f0bf1d5146cd99af47a7029ab45b8c4ed080e0f8075e2290d5",
       "guide.html": "52f499237cdf33f4939e2cc1581505f563f6a66f2e27e1bf898d0854f4e9976b",
-      "index.html": "fd42a4c09b1365399b94e077e8d42c9f3515445212b85cfd8a278185a5048544",
-      "app.js": "a8de23a81576adf3d57a312929e91ba0a0871c0bf1435088f9d346281e0783c9",
+      "index.html": "3c259c3f689d1e05ca19bdbb79fba477a5fa8ff6cde98c6837953f0735485dd1",
+      "app.js": "18d1b56bdecdfe0b23717c093f33a1cf03f193288b4f3920d8ed90e9b914db14",
       "favicon.svg": "7b6ebae15b9a72d52b7452880487b9893fdd3ceaa8e0a6105f22a3f2a7486d0a"
     },
     "library_page": {
-      "product_version": "0.0.0.104",
+      "product_version": "0.0.0.106",
       "knows_bilibili_failure_codes": true
     }
   },

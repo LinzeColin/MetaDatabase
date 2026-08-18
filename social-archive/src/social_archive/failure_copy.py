@@ -221,6 +221,9 @@ _ALIASES: dict[str, str] = {
     "BILI_INVALID_RESPONSE": "SERVER_UNREACHABLE",
     "OBSIDIAN_LOCAL_BRIDGE_FAILED": "SERVER_UNREACHABLE",
     "X_AUTH_MISSING": "CREDENTIAL_EXPIRED",   # X 没授权过或授权掉了 → 去重新连接
+    # 服务端读不出 B 站 uid（账号行里那个字段不是空间地址也不是数字）。
+    # 对用户就是「这个账号得重连一次」——重连时会把空间地址写回去。
+    "BILIBILI_UID_UNKNOWN": "CREDENTIAL_EXPIRED",
     "X_RATE_LIMITED": "RATE_LIMITED",
     # 三处「没归类的异常」兜底码。它们原来直接用 Python 类名当码
     # （CONNECTORERROR / HEALTH_XXXERROR / …），那是个无限集合，
@@ -401,6 +404,9 @@ PRODUCT_FAULT_CODES: frozenset[str] = frozenset({
     # BILIBILI_NO_FOLDERS 单独接住了；能走到这一个，说明账号是认得的、
     # 收藏夹清单也拿到了，偏偏某个收藏夹回了 data:null —— 那就是我们的事。
     "BILIBILI_FOLDER_NOT_VISIBLE",
+    # 服务端直接读公开收藏夹那条路（2026-08-17）。B 站接口连不上/限流 ——
+    # 是传输问题，下一轮会自己重来，不用他做什么。
+    "BILIBILI_API_FAILED",
     "BILIBILI_NO_RESULT",       # 注入的读取器什么都没返回
     "BILIBILI_READ_FAILED",     # 兜底：读取器报了失败但没给码
     # 在页面发出的响应里没认出收藏列表（v0.0.0.21 / 形状识别）。

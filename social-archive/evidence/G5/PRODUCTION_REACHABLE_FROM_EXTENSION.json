@@ -4,12 +4,12 @@
   "token_supplied": true,
   "package_he_would_download": {
     "url": "https://social-archive-api.linzezhang.com/downloads/social-archive-extension.zip",
-    "sha256": "4503741672683301",
+    "sha256": "21f801c02daa9809",
     "same_as_repo_build": true
   },
   "measured_in_real_chrome": {
     "endpoint_the_extension_itself_uses": "https://social-archive-api.linzezhang.com",
-    "api_ms": 539,
+    "api_ms": 354,
     "api_call": "resolved",
     "api_keys": [
       "items",
@@ -26,7 +26,7 @@
     "raw_status": 200,
     "raw_redirected": false,
     "raw_final_host": "social-archive-api.linzezhang.com",
-    "raw_body_head": "{\"items\":[{\"id\":\"cnt_05592965ee59b8cc10867ea4d4eb47bb\",\"plat",
+    "raw_body_head": "{\"items\":[{\"id\":\"cnt_c49284e2781764c3516f167544af2b97\",\"plat",
     "manual_type": "basic",
     "manual_status": 200,
     "health_type": "basic",
@@ -38,33 +38,33 @@
       "buttons": [
         {
           "name": "小红书",
-          "state": "已连接",
-          "button": "重新连接",
-          "own_text": "小红书 已连接 重新连接"
+          "state": "已连接 · 缺授权",
+          "button": "去授权",
+          "own_text": "小红书 已连接 · 缺授权 去授权"
         },
         {
           "name": "抖音",
-          "state": "已连接",
-          "button": "重新连接",
-          "own_text": "抖音 已连接 重新连接"
+          "state": "已连接 · 缺授权",
+          "button": "去授权",
+          "own_text": "抖音 已连接 · 缺授权 去授权"
         },
         {
           "name": "B站",
-          "state": "已连接",
-          "button": "重新连接",
-          "own_text": "B站 已连接 重新连接"
+          "state": "已连接 · 缺授权",
+          "button": "去授权",
+          "own_text": "B站 已连接 · 缺授权 去授权"
         },
         {
           "name": "Reddit",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "Reddit 未连接 连接账号"
+          "state": "未连接 · 缺授权",
+          "button": "去授权",
+          "own_text": "Reddit 未连接 · 缺授权 去授权"
         },
         {
           "name": "Instagram",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "Instagram 未连接 连接账号"
+          "state": "未连接 · 缺授权",
+          "button": "去授权",
+          "own_text": "Instagram 未连接 · 缺授权 去授权"
         },
         {
           "name": "Chrome 书签",
@@ -80,21 +80,21 @@
         },
         {
           "name": "X",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "X 本版本还不能自动读取 X 的书签。原因是官方 X 接口可能收费，而这个项目的硬规矩是绝不产生新的必付费用，所以那条路是主动关着的。现在可以：在浏览器里打开任意一条推文，点插件的「保存当前页面」。 未连接 连接账号"
+          "state": "未连接 · 缺授权",
+          "button": "去授权",
+          "own_text": "X 本版本还不能自动读取 X 的书签。原因是官方 X 接口可能收费，而这个项目的硬规矩是绝不产生新的必付费用，所以那条路是主动关着的。现在可以：在浏览器里打开任意一条推文，点插件的「保存当前页面」。 未连接 · 缺授权 去授权"
         },
         {
           "name": "YouTube",
-          "state": "未连接",
-          "button": "连接账号",
-          "own_text": "YouTube 本版本还不能自动读取 YouTube 的稍后观看和播放列表。现在可以：点这张卡片上的「连接账号」，把登录状态交给你自己的服务器保管；以及在任意视频页点插件保存当前这一条。 未连接 连接账号"
+          "state": "未连接 · 缺授权",
+          "button": "去授权",
+          "own_text": "YouTube 本版本还不能自动读取 YouTube 的稍后观看和播放列表。现在可以：点这张卡片上的「连接账号」，把登录状态交给你自己的服务器保管；以及在任意视频页点插件保存当前这一条。 未连接 · 缺授权 去授权"
         }
       ],
       "says_it_cannot_read_sources": false,
       "says_nothing_syncs": false,
       "manual_only_mentioned": false,
-      "body_head": "连接账号 点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。 小红书 已连接 重新连接 抖音 已连接 重新连接 B站 已连接 重新连接 Reddit 未连接 连接账号 Instagram 未连接 连接账号 Chrome 书签 未连接 连接账号 快手 本版本不自动读取快手的收藏。取数需要的那几个字段名只能从你登录后的真实响应里确认，靠公开页推断出来的是假的，所以这条路先不开。现在",
+      "body_head": "连接账号 点一次就好。浏览器会弹一个授权框，选「允许」——你不用离开这一页。 小红书 已连接 · 缺授权 去授权 抖音 已连接 · 缺授权 去授权 B站 已连接 · 缺授权 去授权 Reddit 未连接 · 缺授权 去授权 Instagram 未连接 · 缺授权 去授权 Chrome 书签 未连接 连接账号 快手 本版本不自动读取快手的收藏。取数需要的那几个字段名只能从你登录后的真实响应里确认",
       "connect_supported_platforms": [
         "xiaohongshu",
         "douyin",
@@ -109,35 +109,35 @@
         "pressed": [
           {
             "name": "小红书",
-            "before": "重新连接",
+            "before": "去授权",
             "after": "正在连接…",
             "disabled": true,
             "note": ""
           },
           {
             "name": "抖音",
-            "before": "重新连接",
+            "before": "去授权",
             "after": "正在连接…",
             "disabled": true,
             "note": ""
           },
           {
             "name": "B站",
-            "before": "重新连接",
+            "before": "去授权",
             "after": "正在连接…",
             "disabled": true,
             "note": ""
           },
           {
             "name": "Reddit",
-            "before": "连接账号",
+            "before": "去授权",
             "after": "正在连接…",
             "disabled": true,
             "note": ""
           },
           {
             "name": "Instagram",
-            "before": "连接账号",
+            "before": "去授权",
             "after": "正在连接…",
             "disabled": true,
             "note": ""
@@ -151,14 +151,14 @@
           },
           {
             "name": "X",
-            "before": "连接账号",
+            "before": "去授权",
             "after": "正在连接…",
             "disabled": true,
             "note": ""
           },
           {
             "name": "YouTube",
-            "before": "连接账号",
+            "before": "去授权",
             "after": "正在连接…",
             "disabled": true,
             "note": ""

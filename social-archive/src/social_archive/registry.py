@@ -11,6 +11,7 @@ from .config import Settings
 from .connectors.base import ConnectorResult
 from .connectors.command import CommandArtifactConnector
 from .connectors.http_workers import OpenAPIURLWorkerConnector, XHSWorkerConnector
+from .connectors.bilibili_public import BilibiliPublicConnector
 from .connectors.oauth import RedditConnector, XConnector
 from .models import CaptureRequest, ConnectorRunRequest
 from .utils import read_secret, utcnow
@@ -108,6 +109,11 @@ class ConnectorRegistry:
         "x": re.compile(r"\A[0-9]{1,32}\Z"),           # X API v2 用数字 user id
         "reddit": re.compile(r"\A[A-Za-z0-9_-]{3,20}\Z"),
         "instagram": re.compile(r"\A[A-Za-z0-9_.]{1,30}\Z"),
+        # B 站账号行里存的是**整条空间地址**（实测：
+        # `https://space.bilibili.com/3493091105311656`），不是裸数字。
+        # 形状写成裸数字的话这一条永远不合格 → 退回一个不存在的环境变量 →
+        # 服务端这条路永远走不了，而错误信息只会说「接口失败」。
+        "bilibili": re.compile(r"\Ahttps://space\.bilibili\.com/\d{4,}/?\Z|\A\d{4,}\Z"),
     }
 
     @classmethod
@@ -411,6 +417,17 @@ class ConnectorRegistry:
         elif connector_id == "reddit":
             relation = "upvoted" if relation == "upvoted" else "saved"
             result = RedditConnector(self._account_identity("reddit", request, "SOCIAL_ARCHIVE_REDDIT_USERNAME"), os.getenv("SOCIAL_ARCHIVE_REDDIT_USER_AGENT","SocialArchive/0.0.0.7"), self._secret("SOCIAL_ARCHIVE_REDDIT_OAUTH_TOKEN_FILE")).fetch(relation, request.limit, request.cursor)
+        elif connector_id == "bilibili":
+            # **服务端直接读公开收藏夹**（2026-08-17）。
+            #
+            # 此前 B 站只有浏览器那条路，要 Chrome 开着 + 平台登录态 + 主机授权
+            # 三样同时成立；他实测三个星期一条没进。而他的收藏夹是公开的，
+            # 拿账号行里那个 uid 打公开接口即可读到，**零登录、零授权、零浏览器**。
+            # 私密夹这条路读不到，连接器会如实回 BILIBILI_FOLDER_NOT_VISIBLE。
+            relation = "favorite"
+            result = BilibiliPublicConnector(
+                self._account_identity("bilibili", request, "SOCIAL_ARCHIVE_BILIBILI_UID")
+            ).fetch(relation, request.limit, request.cursor)
         elif connector_id == "instagram":
             session = Path(os.getenv("SOCIAL_ARCHIVE_INSTAGRAM_SESSION_FILE", ""))
             result = self.command.instagram_saved(session if session else None, self._account_identity("instagram", request, "SOCIAL_ARCHIVE_INSTAGRAM_USERNAME"), request.limit)
