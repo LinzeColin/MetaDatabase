@@ -1,154 +1,177 @@
 {
-  "status": "PASS",
+  "status": "FAIL",
   "ran": 24,
-  "failed": 0,
+  "failed": 16,
   "blocked_channel": [
-    "douyin_recogniser_does_not_grab_the_wrong_list_drill.py --platform douyin",
     "list_selectors_meet_a_real_page_drill.py --platform douyin"
   ],
   "results": [
     {
       "drill": "shipped_package_drill.py",
-      "status": "PASS",
-      "seconds": 36.3,
-      "problems": []
+      "status": "NO_JSON",
+      "seconds": 0.5,
+      "problems": [
+        "没有回 JSON（exit 1）：OSError: [Errno 48] Address already in use"
+      ]
     },
     {
       "drill": "extension_update_in_place_drill.py",
       "status": "PASS",
-      "seconds": 7.0,
+      "seconds": 13.8,
       "problems": []
     },
     {
       "drill": "stale_extension_is_blocked_drill.py",
-      "status": "PASS",
-      "seconds": 25.0,
+      "status": "FAIL",
+      "seconds": 25.4,
       "problems": []
     },
     {
       "drill": "slow_extension_is_still_detected_drill.py",
-      "status": "PASS",
-      "seconds": 42.1,
+      "status": "FAIL",
+      "seconds": 25.3,
       "problems": []
     },
     {
       "drill": "extension_install_page_drill.py",
-      "status": "PASS",
-      "seconds": 38.4,
-      "problems": []
+      "status": "NO_JSON",
+      "seconds": 0.2,
+      "problems": [
+        "没有回 JSON（exit 1）：OSError: [Errno 48] Address already in use"
+      ]
     },
     {
       "drill": "extension_save_page_drill.py",
-      "status": "PASS",
-      "seconds": 6.1,
-      "problems": []
+      "status": "NO_JSON",
+      "seconds": 0.2,
+      "problems": [
+        "没有回 JSON（exit 1）：OSError: [Errno 48] Address already in use"
+      ]
     },
     {
       "drill": "extension_routing_drill.py",
       "status": "PASS",
-      "seconds": 4.1,
+      "seconds": 4.4,
       "problems": []
     },
     {
       "drill": "extension_capture_drill.py",
-      "status": "PASS",
-      "seconds": 16.0,
-      "problems": []
+      "status": "NO_JSON",
+      "seconds": 0.2,
+      "problems": [
+        "没有回 JSON（exit 1）：OSError: [Errno 48] Address already in use"
+      ]
     },
     {
       "drill": "extension_capture_buffer_drill.py",
-      "status": "PASS",
-      "seconds": 4.7,
-      "problems": []
+      "status": "NO_JSON",
+      "seconds": 0.2,
+      "problems": [
+        "没有回 JSON（exit 1）：OSError: [Errno 48] Address already in use"
+      ]
     },
     {
       "drill": "extension_bridge_boundary_drill.py",
-      "status": "PASS",
-      "seconds": 13.2,
-      "problems": []
+      "status": "NO_JSON",
+      "seconds": 0.2,
+      "problems": [
+        "没有回 JSON（exit 1）：OSError: [Errno 48] Address already in use"
+      ]
     },
     {
       "drill": "pwa_render_drill.py",
-      "status": "PASS",
-      "seconds": 41.5,
+      "status": "FAIL",
+      "seconds": 25.3,
       "problems": []
     },
     {
       "drill": "popup_states_drill.py",
-      "status": "PASS",
-      "seconds": 22.2,
+      "status": "FAIL",
+      "seconds": 25.4,
       "problems": []
     },
     {
       "drill": "bilibili_end_to_end_drill.py",
-      "status": "PASS",
-      "seconds": 24.8,
-      "problems": []
+      "status": "NO_JSON",
+      "seconds": 0.3,
+      "problems": [
+        "没有回 JSON（exit 1）：OSError: [Errno 48] Address already in use"
+      ]
     },
     {
       "drill": "bilibili_acquisition_drill.py",
       "status": "PASS",
-      "seconds": 2.3,
+      "seconds": 2.2,
       "problems": []
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform xiaohongshu",
-      "status": "PASS",
-      "seconds": 40.8,
-      "problems": []
+      "status": "NO_JSON",
+      "seconds": 0.3,
+      "problems": [
+        "没有回 JSON（exit 1）：OSError: [Errno 48] Address already in use"
+      ]
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform douyin",
-      "status": "PASS",
-      "seconds": 41.7,
-      "problems": []
+      "status": "NO_JSON",
+      "seconds": 0.2,
+      "problems": [
+        "没有回 JSON（exit 1）：OSError: [Errno 48] Address already in use"
+      ]
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform reddit",
-      "status": "PASS",
-      "seconds": 41.2,
-      "problems": []
+      "status": "NO_JSON",
+      "seconds": 0.2,
+      "problems": [
+        "没有回 JSON（exit 1）：OSError: [Errno 48] Address already in use"
+      ]
     },
     {
       "drill": "list_shape_end_to_end_drill.py --platform instagram",
-      "status": "PASS",
-      "seconds": 41.4,
-      "problems": []
+      "status": "NO_JSON",
+      "seconds": 0.2,
+      "problems": [
+        "没有回 JSON（exit 1）：OSError: [Errno 48] Address already in use"
+      ]
     },
     {
       "drill": "bilibili_end_to_end_drill.py --from-shipped-zip",
-      "status": "PASS",
-      "seconds": 25.1,
-      "problems": []
+      "status": "NO_JSON",
+      "seconds": 0.4,
+      "problems": [
+        "没有回 JSON（exit 1）：OSError: [Errno 48] Address already in use"
+      ]
     },
     {
       "drill": "douyin_recogniser_does_not_grab_the_wrong_list_drill.py --platform douyin",
-      "status": "BLOCKED_CHANNEL",
-      "seconds": 18.6,
+      "status": "PASS",
+      "seconds": 19.4,
       "problems": []
     },
     {
       "drill": "list_selectors_meet_a_real_page_drill.py --platform bilibili",
       "status": "PASS",
-      "seconds": 10.1,
+      "seconds": 10.2,
       "problems": []
     },
     {
       "drill": "list_selectors_meet_a_real_page_drill.py --platform xiaohongshu",
       "status": "PASS",
-      "seconds": 15.6,
+      "seconds": 5.6,
       "problems": []
     },
     {
       "drill": "list_selectors_meet_a_real_page_drill.py --platform douyin",
       "status": "BLOCKED_CHANNEL",
-      "seconds": 10.0,
+      "seconds": 10.2,
       "problems": []
     },
     {
       "drill": "extension_platform_wiring_drill.py --platform xiaohongshu --sample-url https://www.xiaohongshu.com/explore/abc123 --expect-custody forbidden --expect-connect-card",
       "status": "PASS",
-      "seconds": 11.1,
+      "seconds": 7.2,
       "problems": []
     }
   ],
@@ -157,6 +180,6 @@
     "restore_private_database_drill.py": "本机没有远端凭据；**它已经有自动调用方了**——部署第 8.69 步真跑（实测 2 秒）",
     "restore_runtime_db_drill.py": "本机没有远端凭据；**它已经有自动调用方了**——部署第 8.69 步在生产机上真跑一遍"
   },
-  "message_zh": "22/24 个演练全绿；**另有 2 条这次没量到**（平台挡了无头浏览器，不是产品的问题，也不算验过）：douyin_recogniser_does_not_grab_the_wrong_list_drill.py --platform douyin、list_selectors_meet_a_real_page_drill.py --platform douyin",
+  "message_zh": "16/24 个演练没过。",
   "what_this_does_not_prove": "不跑恢复类那三个——**本机没有远端凭据**（不是没有备份：清单每 15 分钟一份）；它们由**部署第 8.69 步**在生产机上真跑，不在这一条的覆盖里。这里面**只有一条打真平台接口**（B 站的公开收藏夹，不带登录态）；其余每一条跑的都是仓里自己写的假站，所以它们答不了「那个平台今天改没改接口」。要登录态才看得见的响应（小红书／抖音／快手／Reddit／Instagram）一条都没验过——那只能发生在 Owner 自己的浏览器里。它回答的是：**这一版的每条链，在真 Chrome 里还走得通吗。**"
 }
