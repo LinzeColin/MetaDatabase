@@ -1,8 +1,8 @@
 {
-  "status": "PASS",
+  "status": "FAIL",
   "task": "G3",
-  "extension_under_test": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-sa-bridge-fix/social-archive/apps/browser-extension",
-  "extension_version": "0.0.0.104",
+  "extension_under_test": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/sa-selfaccept/social-archive/apps/browser-extension",
+  "extension_version": "0.0.0.105",
   "journey": {
     "connect": {
       "ok": true,
@@ -21,54 +21,51 @@
     },
     "tabs_before": [
       {
-        "id": 1089444969,
+        "id": 964389149,
         "active": false
       },
       {
-        "id": 1089444970,
+        "id": 964389150,
         "active": false
       },
       {
-        "id": 1089444973,
+        "id": 964389153,
         "active": true
       }
     ],
-    "my_tab_id": 1089444973,
+    "my_tab_id": 964389153,
     "queue_before": [
       {
         "accountId": "acct-1",
-        "enqueuedAt": 1786961936838,
+        "enqueuedAt": 1787013266266,
         "profileUrl": "",
         "syncRunId": "run-1",
         "tabId": null,
         "triggerType": "first_connect",
-        "updatedAt": 1786961936838
+        "updatedAt": 1787013266266
       }
     ],
     "alarm_scheduled": true,
     "alarm_period_minutes": 1,
     "sync": {
       "ok": true,
+      "state": "queued",
+      "handledBy": "server",
       "syncRunId": "run-1",
-      "status": "completed",
-      "results": [
-        {
-          "accepted": 0
-        }
-      ]
+      "message_zh": "同步已开始。"
     },
     "queue_after": [],
     "tabs_after": [
       {
-        "id": 1089444969,
+        "id": 964389149,
         "active": false
       },
       {
-        "id": 1089444970,
+        "id": 964389150,
         "active": false
       },
       {
-        "id": 1089444973,
+        "id": 964389153,
         "active": true
       }
     ],
@@ -99,12 +96,12 @@
     "sidepanel": {
       "renders": true,
       "activeCount": "0",
-      "doneCount": "1",
+      "doneCount": "0",
       "actionCount": "0",
       "cardCount": 0,
       "firstCard": "",
       "emptyShown": true,
-      "bodyStart": "SA 账号同步 收藏与书签 ↻ 0 同步中 1 已完成 0 需处理 同步全部账号 连接账号 同步中 需处理 全部 ✓ 现在没有正在跑的同步 最近完成了 1 次——点上面的「全部」可以看。 打开资料库 账号与导出"
+      "bodyStart": "SA 账号同步 收藏与书签 ↻ 0 同步中 0 已完成 0 需处理 同步全部账号 连接账号 同步中 需处理 全部 ✓ 现在没有正在跑的同步 最近的同步——点上面的「全部」可以看。 打开资料库 账号与导出"
     }
   },
   "account_created": {
@@ -118,65 +115,27 @@
     "metadata": {
       "auth_method": "browser_session",
       "verified_by": "bilibili_nav_api",
-      "extension_version": "0.0.0.104",
+      "extension_version": "0.0.0.105",
       "auto_sync_enabled": true,
       "sync_interval_minutes": 360
     }
   },
-  "items_received": 3,
-  "item_urls": [
-    "https://www.bilibili.com/video/BV1aaaaaaaaa",
-    "https://www.bilibili.com/video/BV1bbbbbbbbb",
-    "https://www.bilibili.com/video/BV1cccccccccc"
-  ],
-  "collections": [
-    "111",
-    "222"
-  ],
-  "batches": [
-    {
-      "relation": "favorite",
-      "scope": "collection",
-      "items": 2,
-      "completeness": "partial",
-      "failure_code": null
-    },
-    {
-      "relation": "favorite",
-      "scope": "collection",
-      "items": 0,
-      "completeness": "complete",
-      "failure_code": null
-    },
-    {
-      "relation": "favorite",
-      "scope": "collection",
-      "items": 1,
-      "completeness": "partial",
-      "failure_code": null
-    },
-    {
-      "relation": "favorite",
-      "scope": "collection",
-      "items": 0,
-      "completeness": "complete",
-      "failure_code": null
-    },
-    {
-      "relation": "favorite",
-      "scope": "relation",
-      "items": 0,
-      "completeness": "complete",
-      "failure_code": null
-    }
-  ],
+  "items_received": 0,
+  "item_urls": [],
+  "collections": [],
+  "batches": [],
   "bilibili_endpoints_called": [
     "/",
     "/favicon.ico",
-    "/x/v3/fav/folder/created/list-all",
-    "/x/v3/fav/resource/list",
     "/x/web-interface/nav"
   ],
-  "problems": [],
+  "problems": [
+    "档案馆只收到 0 条，应该是 3 条",
+    "条目没有正确归到两个收藏夹上",
+    "没有发出关系级终批 —— 这次同步永远收敛不了",
+    "侧边栏没把刚跑完那次算进「已完成」：'0'",
+    "**收藏夹的名字没送到**：收到 {}，应当是 {'111': '学习', '222': '音乐'}——他在库里只会看到一串媒体 id",
+    "有收藏夹没有自己的终批：['111', '222']"
+  ],
   "what_this_does_not_prove": "对面是本机固定装置，不是真 B 站——「B 站真的会那样回」由 bilibili_acquisition_drill.py 打真接口去证。另外**没有验权限授予那一下**：演练点不了 chrome.permissions.request 的弹窗，所以加载前把 bilibili 的 host 权限从可选挪成了必需。那一下由 Owner 在设置页点「连接账号」时给。"
 }
