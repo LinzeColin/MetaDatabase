@@ -1,5 +1,5 @@
 {
-  "status": "FAIL",
+  "status": "PASS",
   "task": "G5",
   "host": "linze-vps3",
   "expected_version": "0.0.0.106",
@@ -7,8 +7,8 @@
     "health": {
       "status": "ok",
       "project": "Social Archive",
-      "version": "0.0.0.105",
-      "time": "2026-08-18T02:15:31.932038Z",
+      "version": "0.0.0.106",
+      "time": "2026-08-18T02:41:24.739836Z",
       "paid_api_allowed": false,
       "archive_defaults": {
         "L0": true,
@@ -18,15 +18,15 @@
       },
       "backup": {
         "last_backup_at": "20260817T032256Z",
-        "hours_since": 22.88,
+        "hours_since": 23.31,
         "stale": false,
         "message_zh": "",
         "why": ""
       },
       "replication": {
-        "last_run_at": "2026-08-18T02:02:23.818609Z",
+        "last_run_at": "2026-08-18T02:33:43.087881Z",
         "status": "PASS",
-        "hours_since": 0.22,
+        "hours_since": 0.13,
         "stale": false,
         "message_zh": "",
         "why": ""
@@ -34,21 +34,21 @@
       "worker": {
         "ever_seen": true,
         "alive": true,
-        "last_seen_at": "2026-08-18T02:15:22.062034Z",
-        "seconds_since": 9.9,
-        "version": "0.0.0.105",
+        "last_seen_at": "2026-08-18T02:41:16.965715Z",
+        "seconds_since": 7.8,
+        "version": "0.0.0.106",
         "note": "",
-        "api_version": "0.0.0.105",
+        "api_version": "0.0.0.106",
         "version_matches": true,
         "message_zh": ""
       },
       "disk": {
         "measured": true,
         "measured_at": "/var/lib/social-archive/runtime/social-archive.sqlite3",
-        "free_bytes": 73086955520,
-        "free_gb": 68.07,
+        "free_bytes": 73374224384,
+        "free_gb": 68.34,
         "total_gb": 95.82,
-        "used_percent": 29.0,
+        "used_percent": 28.7,
         "tight": false
       },
       "minimum_extension_version": "0.0.0.9"
@@ -92,10 +92,10 @@
       }
     },
     "package": {
-      "manifest_version": "0.0.0.105",
+      "manifest_version": "0.0.0.106",
       "file_count": 27,
       "has_bilibili_reader": true,
-      "sha256": "a25b4a1ae3ab50f4452beade8b5fe76b770c5dc616253b0e8e7ba782f64d9c1b"
+      "sha256": "21f801c02daa9809ee21de591f7e60ea585b9e64d353e3156e1b94d789634b2c"
     },
     "install_page": {
       "bytes": 13336,
@@ -106,28 +106,21 @@
       "stale_versions": []
     },
     "served_sha256": {
-      "sw.js": "3e5b36c5a619659c1b10830ef3e6ed18bfafdae3d9798b2b56cef905bbe8163e",
+      "sw.js": "0459c3b1eeaf69e1bafe1fbdf412d751b87dee622a1850758662a22f5b954207",
       "manifest.webmanifest": "f71aae80fe412c13defe7908aca3227dec3d4f0f19f4397b71c2e3062485836d",
       "styles.css": "d2a490200b18ef8ed44dee85030c5de88a5b497c3556c1af39ceb83c8f6e13c6",
       "extension-install.html": "e1487646e32de0f0bf1d5146cd99af47a7029ab45b8c4ed080e0f8075e2290d5",
       "guide.html": "52f499237cdf33f4939e2cc1581505f563f6a66f2e27e1bf898d0854f4e9976b",
-      "index.html": "d02955efec0db1f625ffdcf6f36c2bfe00f24d4e55d5183c6578a8670a5b2264",
-      "app.js": "6459e57ce1ecf44f79589d710313b99d218a5a52aa9b1d6c6739be5ceea24a63",
+      "index.html": "3c259c3f689d1e05ca19bdbb79fba477a5fa8ff6cde98c6837953f0735485dd1",
+      "app.js": "18d1b56bdecdfe0b23717c093f33a1cf03f193288b4f3920d8ed90e9b914db14",
       "favicon.svg": "7b6ebae15b9a72d52b7452880487b9893fdd3ceaa8e0a6105f22a3f2a7486d0a"
     },
     "library_page": {
-      "product_version": "0.0.0.105",
+      "product_version": "0.0.0.106",
       "knows_bilibili_failure_codes": true
     }
   },
-  "problems": [
-    "生产 /health 说 0.0.0.105，仓里是 0.0.0.106",
-    "**下载页下发的插件包还是 0.0.0.105**，仓里是 0.0.0.106——他下载下来装上去，安装页会立刻又说「你装的是旧版」",
-    "**资料库判兼容用的 PRODUCT_VERSION 是 0.0.0.105**，仓里是 0.0.0.106——它会把刚更新好的插件判成不兼容，人又回到「去更新」的循环里",
-    "**生产上的 app.js 不是仓里这一份**（仓 18d1b56bdecd… / 线上 6459e57ce1ec…）——多半是这次部署没成，而版本号看不出来",
-    "**生产上的 index.html 不是仓里这一份**（仓 3c259c3f689d… / 线上 d02955efec0d…）——多半是这次部署没成，而版本号看不出来",
-    "**生产上的 sw.js 不是仓里这一份**（仓 0459c3b1eeaf… / 线上 3e5b36c5a619…）——多半是这次部署没成，而版本号看不出来"
-  ],
+  "problems": [],
   "why_origin_not_public": "资料库域名挡在 Cloudflare Access 后面，不带登录态 curl 只会拿到 302 到登录页的143 字节，四条断言会全报 False 而页面其实好端端的（2026-08-06 实测踩过）。所以从 origin 量——那是 Access 放行之后 Owner 真正拿到的那一份。",
   "what_this_does_not_prove": "没有证明 Owner 自己的 B 站收藏夹读得出来——那要他本人的登录态，发生在他自己的浏览器里。这里证明的是：他要用到的每一样东西，生产上都是新的那一份。"
 }

@@ -9,8 +9,8 @@
       "required": 3,
       "coverage_zh": null,
       "content_rows_per_copy": {
-        "r2": 193,
-        "oci": 193,
+        "r2": 209,
+        "oci": 209,
         "github": 193
       },
       "attempts": [
@@ -18,27 +18,27 @@
           "target": "runtime-db",
           "store": "r2",
           "exit_code": 0,
-          "snapshot_batch": "20260817T102647Z",
+          "snapshot_batch": "20260818T023344Z",
           "drill": {
             "status": "PASS",
-            "generated_at": "2026-08-17T10:30:12.973559Z",
+            "generated_at": "2026-08-18T02:40:33.977147Z",
             "source_store": "r2",
-            "object_key": "backups/runtime-db/20260817T102647Z/95d9f44df7126d0cc17848a200cd37310aafc4a332cc18de1bc9bba9524e6209.sqlite3.gz.age",
-            "restored_to": "/var/tmp/restore-check-jypN/restored-runtime.sqlite3",
-            "restored_byte_size": 5578752,
+            "object_key": "backups/runtime-db/20260818T023344Z/8193c4a548611f804cee90b4992d125b7f4a431bcf69eb46a352a76f6d793495.sqlite3.gz.age",
+            "restored_to": "/var/tmp/restore-check-Krze/restored-runtime.sqlite3",
+            "restored_byte_size": 6172672,
             "restored_counts": {
-              "content": 193,
-              "user_relation": 194,
-              "artifact": 552,
-              "object_replica": 1656,
-              "destination_receipt": 391
+              "content": 209,
+              "user_relation": 240,
+              "artifact": 598,
+              "object_replica": 1794,
+              "destination_receipt": 407
             },
             "live_counts_now": {
-              "content": 193,
-              "user_relation": 194,
-              "artifact": 552,
-              "object_replica": 1656,
-              "destination_receipt": 391
+              "content": 209,
+              "user_relation": 240,
+              "artifact": 598,
+              "object_replica": 1794,
+              "destination_receipt": 407
             },
             "problems": [],
             "note": "快照是取快照那一刻的样子；此后写入的行自然不在里面，所以两边计数可以不同。"
@@ -48,27 +48,27 @@
           "target": "runtime-db",
           "store": "oci",
           "exit_code": 0,
-          "snapshot_batch": "20260817T102647Z",
+          "snapshot_batch": "20260818T023344Z",
           "drill": {
             "status": "PASS",
-            "generated_at": "2026-08-17T10:30:17.150487Z",
+            "generated_at": "2026-08-18T02:40:37.711508Z",
             "source_store": "oci",
-            "object_key": "backups/runtime-db/20260817T102647Z/95d9f44df7126d0cc17848a200cd37310aafc4a332cc18de1bc9bba9524e6209.sqlite3.gz.age",
-            "restored_to": "/var/tmp/restore-check-fLSj/restored-runtime.sqlite3",
-            "restored_byte_size": 5578752,
+            "object_key": "backups/runtime-db/20260818T023344Z/8193c4a548611f804cee90b4992d125b7f4a431bcf69eb46a352a76f6d793495.sqlite3.gz.age",
+            "restored_to": "/var/tmp/restore-check-HAX3/restored-runtime.sqlite3",
+            "restored_byte_size": 6172672,
             "restored_counts": {
-              "content": 193,
-              "user_relation": 194,
-              "artifact": 552,
-              "object_replica": 1656,
-              "destination_receipt": 391
+              "content": 209,
+              "user_relation": 240,
+              "artifact": 598,
+              "object_replica": 1794,
+              "destination_receipt": 407
             },
             "live_counts_now": {
-              "content": 193,
-              "user_relation": 194,
-              "artifact": 552,
-              "object_replica": 1656,
-              "destination_receipt": 391
+              "content": 209,
+              "user_relation": 240,
+              "artifact": 598,
+              "object_replica": 1794,
+              "destination_receipt": 407
             },
             "problems": [],
             "note": "快照是取快照那一刻的样子；此后写入的行自然不在里面，所以两边计数可以不同。"
@@ -81,10 +81,10 @@
           "snapshot_batch": "20260817T032301Z",
           "drill": {
             "status": "PASS",
-            "generated_at": "2026-08-17T10:30:23.504001Z",
+            "generated_at": "2026-08-18T02:40:43.382353Z",
             "source_store": "github",
             "object_key": "backups/runtime-db/20260817T032301Z/a8ceb464cc82060bad823057c459c8af456a26f8fb791709d561d129e87d22f9.sqlite3.gz.age",
-            "restored_to": "/var/tmp/restore-check-nSXd/restored-runtime.sqlite3",
+            "restored_to": "/var/tmp/restore-check-no6h/restored-runtime.sqlite3",
             "restored_byte_size": 5570560,
             "restored_counts": {
               "content": 193,
@@ -94,11 +94,11 @@
               "destination_receipt": 391
             },
             "live_counts_now": {
-              "content": 193,
-              "user_relation": 194,
-              "artifact": 552,
-              "object_replica": 1656,
-              "destination_receipt": 391
+              "content": 209,
+              "user_relation": 240,
+              "artifact": 598,
+              "object_replica": 1794,
+              "destination_receipt": 407
             },
             "problems": [],
             "note": "快照是取快照那一刻的样子；此后写入的行自然不在里面，所以两边计数可以不同。"
@@ -121,10 +121,10 @@
           "snapshot_batch": "20260817T032256Z",
           "drill": {
             "status": "PASS",
-            "generated_at": "2026-08-17T10:30:26.680423Z",
+            "generated_at": "2026-08-18T02:40:47.491127Z",
             "source_store": "r2",
             "object_key": "backups/private-database/20260817T032256Z/1f87e833847de0e8abd97c6cb09acf2a33e489cc493c25791f76e829d2653e47.tar.gz.age",
-            "restored_to": "/var/tmp/restore-check-2ntZ/restored-facts",
+            "restored_to": "/var/tmp/restore-check-DI9r/restored-facts",
             "fact_count": 100,
             "every_fact_hash_matched": true,
             "hashed_as": "line_with_newline",
@@ -138,30 +138,30 @@
       "zh": "索引和制品对不对得上（抽样，不是全量）",
       "restorable_copies": 1,
       "required": 1,
-      "coverage_zh": "这次验的是索引里 552 个制品中的 25 个（窗口 392–417）——**不是全量**。起点每次部署挪一格，连着发几十版才走完一圈。",
+      "coverage_zh": "这次验的是索引里 598 个制品中的 25 个（窗口 258–283）——**不是全量**。起点每次部署挪一格，连着发几十版才走完一圈。",
       "content_rows_per_copy": {},
       "attempts": [
         {
           "target": "disaster-recovery",
           "store": "r2",
           "exit_code": 0,
-          "snapshot_batch": "20260817T102647Z",
+          "snapshot_batch": "20260818T023344Z",
           "drill": {
             "status": "PASS",
-            "generated_at": "2026-08-17T10:31:02.892916Z",
+            "generated_at": "2026-08-18T02:41:21.511905Z",
             "source_store": "r2",
-            "artifacts_in_index": 552,
+            "artifacts_in_index": 598,
             "checked_this_run": 25,
             "window": {
-              "from": 392,
-              "to": 417,
-              "offset_given": 2600
+              "from": 258,
+              "to": 283,
+              "offset_given": 2650
             },
             "recovered_and_hash_verified": 25,
             "failed": 0,
             "failure_samples": [],
-            "target": "/var/tmp/restore-check-7Frv",
-            "coverage_zh": "这次验的是索引里 552 个制品中的 25 个（窗口 392–417）——**不是全量**。起点每次部署挪一格，连着发几十版才走完一圈。",
+            "target": "/var/tmp/restore-check-Ee4g",
+            "coverage_zh": "这次验的是索引里 598 个制品中的 25 个（窗口 258–283）——**不是全量**。起点每次部署挪一格，连着发几十版才走完一圈。",
             "note": "restore_object.py 自己就会比对哈希；这里数的是它判 PASS 的个数。"
           }
         }
