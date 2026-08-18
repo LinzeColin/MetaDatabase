@@ -3,13 +3,13 @@
 // 2026-08-11 发现这里和 index.html 的戳从建站起就是写死的 `007-r2`，
 // Cloudflare 于是拿旧的 app.js 回了 4 小时（实测 age 3794、差 2776 字节）。
 // **现在它跟着产品版本走**，由 scripts/bump_version.py 每次升版自动推动。
-const CACHE = "social-archive-ui-89b4e980";
+const CACHE = "social-archive-ui-3192b7c1";
 const ASSETS = [
   "/",
-  "/assets/styles.css?v=89b4e980",
-  "/assets/app.js?v=89b4e980",
-  "/assets/favicon.svg?v=89b4e980",
-  "/assets/manifest.webmanifest?v=89b4e980"
+  "/assets/styles.css?v=3192b7c1",
+  "/assets/app.js?v=3192b7c1",
+  "/assets/favicon.svg?v=3192b7c1",
+  "/assets/manifest.webmanifest?v=3192b7c1"
 ];
 
 self.addEventListener("install", event => {

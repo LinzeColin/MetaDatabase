@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 import socket
 import time
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import httpx
@@ -187,6 +188,62 @@ def _finish_failed_job(store: RuntimeStore, job: dict, exc: Exception) -> None:
     )
 
 
+def _schedule_server_side_syncs(settings: Settings, store: RuntimeStore) -> int:
+    """给「服务端自己读得到」的平台定时发起同步。
+
+    只管 `SERVER_ACCOUNT_CONNECTORS` 里的平台 —— 浏览器会话那条路仍由扩展驱动，
+    服务端替它发起只会造出一个永远等不到批的 run（那正是 Owner 那三个
+    卡在 scanning 的形状）。
+
+    到期判据用账号自己的 `sync_interval_minutes`；从没同步过的立刻跑一次。
+    已经有在跑的 run 就跳过 —— `start_sync` 那边也挡，这里先挡一层省事。
+    """
+    from .account_sync import SERVER_ACCOUNT_CONNECTORS, AccountSyncCoordinator
+    from .models import AccountSyncRequest
+    from .registry import ConnectorRegistry
+    from .service import ArchiveService
+
+    now = datetime.now(UTC)
+    started = 0
+    coordinator = None
+    for account in store.list_source_accounts():
+        if account.get("platform") not in SERVER_ACCOUNT_CONNECTORS:
+            continue
+        if account.get("connection_state") not in {"connected", "degraded"}:
+            continue
+        if account.get("auto_sync_enabled") is False:
+            continue
+        last = account.get("last_sync_at")
+        if last:
+            try:
+                previous = datetime.fromisoformat(str(last).replace("Z", "+00:00"))
+            except ValueError:
+                previous = None
+            if previous is not None and previous.tzinfo is None:
+                # 库里既有带 Z 的也有 `datetime('now')` 写出来的裸时间戳。
+                # 不补时区的话这一行直接 TypeError，整个调度被那句 except 吞掉，
+                # **看起来像「没有账号到期」**——沉默的零，正是这个仓最贵的形状。
+                previous = previous.replace(tzinfo=UTC)
+            if previous is not None:
+                minutes = int(account.get("sync_interval_minutes") or 360)
+                if now - previous < timedelta(minutes=max(1, minutes)):
+                    continue
+        # 非终态就算「还在跑」。**用终态的补集，不另列一张活跃状态表** ——
+        # 两张表必然漂开，这个仓为「两份词典」修过四处。
+        terminal = {"completed", "partial", "failed", "cancelled", "blocked_environment"}
+        active = [run for run in store.list_sync_runs(source_account_id=account["id"], limit=5)
+                  if run.get("status") not in terminal]
+        if active:
+            continue
+        if coordinator is None:
+            coordinator = AccountSyncCoordinator(
+                settings, store, ArchiveService(settings, store), ConnectorRegistry(settings))
+        coordinator.start_sync(account["id"], AccountSyncRequest(
+            mode="incremental", trigger_type="scheduled"))
+        started += 1
+    return started
+
+
 def run() -> None:
     settings = Settings.from_env()
     settings.ensure_directories()
@@ -197,6 +254,7 @@ def run() -> None:
     # 让「120 秒没动过就算挂了」这条判断有八次机会。
     last_beat = 0.0
     last_reap = 0.0
+    last_schedule = 0.0
     while True:
         now = time.monotonic()
         if now - last_beat >= 15:
@@ -204,6 +262,24 @@ def run() -> None:
             # 「闲着但活着」和「死了」在数据上分不开。
             store.record_worker_heartbeat(owner, __version__)
             last_beat = now
+
+        if now - last_schedule >= 300:
+            # **服务端能自己跑的平台，就该由服务端自己定时跑。**（2026-08-17）
+            #
+            # 在此之前**没有任何服务端调度**：worker 只处理别人投进来的任务，
+            # 而唯一的投递方是 Chrome 里那个每 6 小时的 alarm。也就是说
+            # 「每 6 小时自动同步」这句话的前提一直是 **Chrome 开着**。
+            #
+            # B 站这条路（v0.0.0.105）在服务端就读得到公开收藏夹，不要浏览器。
+            # 没有这段调度的话，它仍然只在他点「立即同步」时才跑 ——
+            # **那就不叫自动聚合。**
+            last_schedule = now
+            try:
+                started = _schedule_server_side_syncs(settings, store)
+                if started:
+                    print(f"[worker] 服务端自动同步：发起 {started} 个", flush=True)
+            except Exception as exc:  # noqa: BLE001
+                print(f"[worker] 发起服务端同步时出错：{type(exc).__name__}: {exc}", flush=True)
 
         if now - last_reap >= 60:
             # **检测到了没人处置 = 没有检测。**（2026-08-17）

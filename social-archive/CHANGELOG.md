@@ -6,6 +6,49 @@
 > **这里不补写**：隔了两版再靠回忆重建变更记录，写出来的东西看着像记录，
 > 其实是推测，比空着更容易被人当真。
 
+## v0.0.0.105 — B 站不再需要浏览器：服务端直接读公开收藏夹
+
+三个星期零条之后，第一条**我自己验完才交**的路。
+
+### 此前那条路要三样同时成立
+
+浏览器会话读取要 Chrome 开着 + 平台登录态还在 + 主机授权给过。
+Owner 实测三次，三个平台分别倒在三处：
+
+    bilibili     BROWSER_SCAN_FAILED          页面打开了读不到
+    douyin       PLATFORM_PERMISSION_MISSING  Chrome 授权没给到
+    xiaohongshu  LIST_SHAPE_NOT_RECOGNISED    识别器认不出
+
+### 此前没人问过的那件事
+
+**他的 B 站收藏夹是公开的。** 拿账号行里那个 uid 打公开接口，零登录：
+
+    /x/v3/fav/folder/created/list-all?up_mid=…  → code 0，6 个夹子共 46 条
+    /x/v3/fav/resource/list?media_id=…          → code 0，真标题真作者真 bvid
+
+于是整条路搬到服务端：**不要浏览器、不要授权、不要 Chrome 开着**，每 6 小时自己跑。
+
+### 自验收（不依赖 Owner，全程我自己跑）
+
+| 段 | 做法 | 结果 |
+|---|---|---|
+| 插件→服务器→库 | 真 Chrome 装包、真 bilibili.com（**无任何 host-resolver-rules**）、抓一个真视频页 | 本地库 0 → 1，标题正确 |
+| 同步数据路 | 注入产品自己的读取器读真公开收藏夹「B站 × WAIC AI会客厅」→ 产品自己的入库路 | 1 → 6 |
+| 服务端 B 站同步 | 用他真 uid 跑 `AccountSyncCoordinator` | `completed`，discovered=46 imported=46，**6 → 52** |
+
+### 边界（写清楚，别读成更大的承诺）
+
+- 只读**公开**收藏夹。私密夹这条路读不到，如实回 `BILIBILI_FOLDER_NOT_VISIBLE`，不假装成零。
+- 只读收藏夹（`favorite`）。稍后再看、点赞不在这条路上。
+- 不带任何 Cookie —— 结构上不可能碰到他的登录态。
+- **抖音与小红书不受此版影响**，仍要浏览器那条路。
+
+### 途中被自己的量具骗过一次
+
+从 browser 会话 attach 过去看扩展权限是 `origins: []`、所有标签页 url 为空，
+我差点据此写下「主机权限整体不生效」。连到 service worker **自己的**调试端点
+再看，权限是全的。**是量具错了，不是产品错了。**
+
 ## v0.0.0.104 — 卡住的同步永远转圈：检测早就有了，没人处置
 
 Owner：「同步依旧不能使用」。从生产读回来的实况（不是猜的）：

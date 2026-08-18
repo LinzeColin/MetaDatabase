@@ -133,7 +133,9 @@ PLATFORM_LABELS = {
 # （Owner 给的平台表里就是这么写的），而服务端这条 2026-08-04 打生产量出来
 # 两条都不通。留在这张表里的后果不是中性的：runBrowserAccountSync 见到
 # server_handled=true 就不参与，等于把它们钉死在那条不通的路上。
-SERVER_ACCOUNT_CONNECTORS = {"x"}
+# bilibili 2026-08-17 加入：他的收藏夹是公开的，服务端直接读得到，
+# 不再依赖「Chrome 开着 + 平台登录态 + 主机授权」三样同时成立。
+SERVER_ACCOUNT_CONNECTORS = {"x", "bilibili"}
 
 # **本版本真的同步得动的平台。** 这不是「支持哪些平台」的愿景清单，
 # 是「现在点下去会成功」的事实清单。

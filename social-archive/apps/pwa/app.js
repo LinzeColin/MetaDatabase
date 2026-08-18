@@ -160,6 +160,7 @@
     BILI_INVALID_RESPONSE: "SERVER_UNREACHABLE",
     OBSIDIAN_LOCAL_BRIDGE_FAILED: "SERVER_UNREACHABLE",
     X_AUTH_MISSING: "CREDENTIAL_EXPIRED",
+    BILIBILI_UID_UNKNOWN: "CREDENTIAL_EXPIRED",
     X_RATE_LIMITED: "RATE_LIMITED",
     // URL_NOT_SUPPORTED（退出码 32/64）**故意不在这里**：它是我们传错了 URL，
     // 给它任何别名都会变成一句「重试」，而重试一万次也一样。
@@ -234,7 +235,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
-  const PRODUCT_VERSION = "0.0.0.104";
+  const PRODUCT_VERSION = "0.0.0.105";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -2407,7 +2408,7 @@
     }
     await loadLibrary();
     renderNextStep();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=89b4e980").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=3192b7c1").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {

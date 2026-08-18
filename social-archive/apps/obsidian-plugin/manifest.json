@@ -1,7 +1,7 @@
 {
   "id": "social-archive-bridge",
   "name": "Social Archive",
-  "version": "0.0.0.104",
+  "version": "0.0.0.105",
   "minAppVersion": "1.5.0",
   "description": "让 Social Archive 浏览器扩展自动把 Markdown 写入当前 Obsidian Vault。",
   "author": "Social Archive",
