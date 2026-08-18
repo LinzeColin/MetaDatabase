@@ -147,6 +147,11 @@ def _reachable_from_deploy() -> set[str]:
     return seen
 
 
+def pinned_is_current(data: dict, version: str) -> bool:
+    """这份证据钉的就是当前这一版（也就是说它是**刚跑的**，不是陈的）。"""
+    pinned = data.get("expected_version")
+    return pinned is None or str(pinned) == str(version)
+
 def _previous_version(current: str) -> str | None:
     """CHANGELOG 里紧挨着 `current` 的那一版。
 
@@ -196,10 +201,34 @@ def main() -> int:
 
             status = data.get("status")
             note["status"] = status
-            if status not in GOOD_STATUS:
-                problems.append(f"{gate} 引的 {rel} status={status!r}，不是通过")
 
-            if data.get("problems"):
+            # **「生产还没升到这一版」不是证据坏了，是这次部署还没跑。**（2026-08-18）
+            #
+            # 对生产的实测只能由部署本身刷新，而部署第 0 步要这道门先绿 ——
+            # 2026-08-18 实测：0.0.0.106 卡死在这里，唯一能让它变绿的动作
+            # 就是那次被它挡住的部署。
+            #
+            # 判据不看措辞，看**数据**：这份证据自己记着它量到的生产版本。
+            # 那个版本恰好是 CHANGELOG 里紧邻的上一版时，这份 FAIL 的全部内容
+            # 就是「生产是上一版」——本次部署跑完它自然会变。**再红一次没有信息量。**
+            # 生产停在更早的版本（真的没部署成）照样红，因为那不是紧邻的上一版。
+            live = ((data.get("measured_from_production") or {}).get("health") or {}).get("version")
+            pending_deploy = (
+                pinned_is_current(data, version)
+                and live is not None
+                and str(live) == str(_previous_version(version) or "")
+            )
+            note["pending_deploy"] = bool(pending_deploy)
+
+            if status not in GOOD_STATUS and not pending_deploy:
+                problems.append(f"{gate} 引的 {rel} status={status!r}，不是通过")
+            elif status not in GOOD_STATUS:
+                warnings.append(
+                    f"{gate} 引的 {rel} status={status!r}，而它量到的生产版本是 {live}"
+                    f"（CHANGELOG 里紧邻的上一版）——**本次部署跑完才会变**。"
+                    f"部署结束后它仍然是 {status!r}，就是真的没部署成。")
+
+            if data.get("problems") and not pending_deploy:
                 problems.append(f"{gate} 引的 {rel} 自己带着 {len(data['problems'])} 条 problems")
 
             pinned = data.get("expected_version")

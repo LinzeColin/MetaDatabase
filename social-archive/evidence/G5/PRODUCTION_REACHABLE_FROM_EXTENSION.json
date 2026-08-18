@@ -4,12 +4,12 @@
   "token_supplied": true,
   "package_he_would_download": {
     "url": "https://social-archive-api.linzezhang.com/downloads/social-archive-extension.zip",
-    "sha256": "4503741672683301",
+    "sha256": "a25b4a1ae3ab50f4",
     "same_as_repo_build": true
   },
   "measured_in_real_chrome": {
     "endpoint_the_extension_itself_uses": "https://social-archive-api.linzezhang.com",
-    "api_ms": 539,
+    "api_ms": 578,
     "api_call": "resolved",
     "api_keys": [
       "items",
@@ -26,7 +26,7 @@
     "raw_status": 200,
     "raw_redirected": false,
     "raw_final_host": "social-archive-api.linzezhang.com",
-    "raw_body_head": "{\"items\":[{\"id\":\"cnt_05592965ee59b8cc10867ea4d4eb47bb\",\"plat",
+    "raw_body_head": "{\"items\":[{\"id\":\"cnt_c49284e2781764c3516f167544af2b97\",\"plat",
     "manual_type": "basic",
     "manual_status": 200,
     "health_type": "basic",
