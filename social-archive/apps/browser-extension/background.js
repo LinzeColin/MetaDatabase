@@ -2105,6 +2105,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return { ok: true, platforms: mediaSessionPlatforms(),
                custodial: Object.keys(globalThis.SACookieExport?.ALLOWED_PLATFORMS || {}) };
     }
+    if (message?.type === "SA_PLATFORM_PERMISSIONS") {
+      // **资料库那一屏要知道「这个平台的浏览器授权到底给了没有」。**（2026-08-18）
+      //
+      // 此前它无从得知：`chrome.permissions` 只有扩展调得到，而网页那侧
+      // 只能看见服务端的 connection_state。于是账号显示「已连接」、
+      // 每次同步倒在 PLATFORM_PERMISSION_MISSING，**而他打开的那个面板
+      // 一个字都不提，也没有任何地方能点**。他的原话：「没有需要我授权的地方」。
+      //
+      // 只读：`contains` 不弹框、不要手势。真正申请那一下仍然在
+      // connect-frame 里（那是扩展页面，手势才有效）。
+      const wanted = Array.isArray(message.platforms) ? message.platforms : [];
+      const granted = {};
+      for (const platform of wanted) {
+        const origins = SA.patternsForPlatform(platform) || [];
+        if (!origins.length) { granted[platform] = null; continue; }
+        granted[platform] = await chrome.permissions.contains({ origins }).catch(() => null);
+      }
+      return { ok: true, granted };
+    }
     if (message?.type === "SA_VERIFY_PLATFORM_SESSION") return verifyPendingPlatform(String(message.platform || ""));
     if (message?.type === "SA_GET_PENDING_CONNECTIONS") return { ok: true, items: await getPendingConnections() };
     if (message?.type === "SA_OPEN_ACCOUNT_CENTER") return openAccountCenter();
