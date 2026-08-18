@@ -36,6 +36,19 @@ Owner 实测三次，三个平台分别倒在三处：
 | 同步数据路 | 注入产品自己的读取器读真公开收藏夹「B站 × WAIC AI会客厅」→ 产品自己的入库路 | 1 → 6 |
 | 服务端 B 站同步 | 用他真 uid 跑 `AccountSyncCoordinator` | `completed`，discovered=46 imported=46，**6 → 52** |
 
+### 途中撞出的回归，以及它教的东西
+
+第一版直接把 `bilibili` 加进 `SERVER_ACCOUNT_CONNECTORS` —— 那会让**所有**
+B 站的 run 都改走服务端路，**扩展送来的批就没人收了**。
+`bilibili_end_to_end_drill` 当场红：「档案馆只收到 0 条，应该是 3 条」「收藏夹的名字没送到」。
+
+**服务端这条路是「增加」的一条，不是「替换」。** 改成按**这次 run 是谁发起的**选路
+（`trigger_type == "scheduled_server"`），而不是按平台选：浏览器那条路原样不动
+（它读得到私密收藏夹，服务端读不到），两条各自独立。
+
+复验时两个方向都钉了：manual 触发仍然 `waiting_for_batch: True`（负对照），
+调度器触发 `completed` / discovered=46 / imported=46 / 库 0 → 46。
+
 ### 边界（写清楚，别读成更大的承诺）
 
 - 只读**公开**收藏夹。私密夹这条路读不到，如实回 `BILIBILI_FOLDER_NOT_VISIBLE`，不假装成零。

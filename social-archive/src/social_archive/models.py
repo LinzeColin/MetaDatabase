@@ -206,7 +206,8 @@ class AccountSyncRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     mode: SyncMode = "incremental"
     relation_types: list[RelationType] = Field(default_factory=list, max_length=16)
-    trigger_type: Literal["manual", "scheduled", "first_connect", "recovery", "bookmark_change", "resume", "retry"] = "manual"
+    trigger_type: Literal["manual", "scheduled", "scheduled_server", "first_connect", "recovery",
+    "bookmark_change", "resume", "retry"] = "manual"
 
 
 class SyncBatchRequest(BaseModel):

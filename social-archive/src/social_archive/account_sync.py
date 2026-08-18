@@ -133,9 +133,23 @@ PLATFORM_LABELS = {
 # （Owner 给的平台表里就是这么写的），而服务端这条 2026-08-04 打生产量出来
 # 两条都不通。留在这张表里的后果不是中性的：runBrowserAccountSync 见到
 # server_handled=true 就不参与，等于把它们钉死在那条不通的路上。
-# bilibili 2026-08-17 加入：他的收藏夹是公开的，服务端直接读得到，
-# 不再依赖「Chrome 开着 + 平台登录态 + 主机授权」三样同时成立。
-SERVER_ACCOUNT_CONNECTORS = {"x", "bilibili"}
+SERVER_ACCOUNT_CONNECTORS = {"x"}
+
+#: 服务端**也能**自己读的平台（2026-08-17）。
+#
+# **和上面那个集合不是一回事，这一点是花了一次回归换来的。**
+# 第一版直接把 bilibili 加进 SERVER_ACCOUNT_CONNECTORS —— 那会让
+# **所有** B 站的 run 都改走服务端路，于是扩展送来的批没人收了，
+# `bilibili_end_to_end_drill` 当场红：「档案馆只收到 0 条，应该是 3 条」。
+#
+# 服务端这条路是**增加**的一条，不是替换：浏览器那条路原样不动
+# （它能读私密收藏夹，服务端读不到），只有调度器发起的那种 run
+# 才走服务端。两条各自独立，互不接管。
+SERVER_ALSO_READS = {"bilibili"}
+
+#: 调度器发起服务端读取时用的 trigger_type。process_job 据此选路 ——
+#: **按这次 run 是谁发起的选，不按平台选**。
+SERVER_PUBLIC_TRIGGER = "scheduled_server"
 
 # **本版本真的同步得动的平台。** 这不是「支持哪些平台」的愿景清单，
 # 是「现在点下去会成功」的事实清单。
@@ -512,7 +526,10 @@ class AccountSyncCoordinator:
 
         platform = account["platform"]
         relations = list(run.get("relation_scope") or payload.get("relations") or PLATFORM_RELATIONS.get(platform, []))
-        if platform not in SERVER_ACCOUNT_CONNECTORS:
+        server_side = (platform in SERVER_ACCOUNT_CONNECTORS
+                       or (platform in SERVER_ALSO_READS
+                           and str(run.get("trigger_type") or "") == SERVER_PUBLIC_TRIGGER))
+        if not server_side:
             # The extension/isolated worker owns browser-session scanning. Keeping
             # the run in scanning state makes the next action explicit without
             # pretending a server-only connector succeeded.

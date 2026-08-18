@@ -198,7 +198,8 @@ def _schedule_server_side_syncs(settings: Settings, store: RuntimeStore) -> int:
     到期判据用账号自己的 `sync_interval_minutes`；从没同步过的立刻跑一次。
     已经有在跑的 run 就跳过 —— `start_sync` 那边也挡，这里先挡一层省事。
     """
-    from .account_sync import SERVER_ACCOUNT_CONNECTORS, AccountSyncCoordinator
+    from .account_sync import (SERVER_ALSO_READS, SERVER_ACCOUNT_CONNECTORS,
+                            SERVER_PUBLIC_TRIGGER, AccountSyncCoordinator)
     from .models import AccountSyncRequest
     from .registry import ConnectorRegistry
     from .service import ArchiveService
@@ -207,7 +208,7 @@ def _schedule_server_side_syncs(settings: Settings, store: RuntimeStore) -> int:
     started = 0
     coordinator = None
     for account in store.list_source_accounts():
-        if account.get("platform") not in SERVER_ACCOUNT_CONNECTORS:
+        if account.get("platform") not in (SERVER_ACCOUNT_CONNECTORS | SERVER_ALSO_READS):
             continue
         if account.get("connection_state") not in {"connected", "degraded"}:
             continue
@@ -239,7 +240,7 @@ def _schedule_server_side_syncs(settings: Settings, store: RuntimeStore) -> int:
             coordinator = AccountSyncCoordinator(
                 settings, store, ArchiveService(settings, store), ConnectorRegistry(settings))
         coordinator.start_sync(account["id"], AccountSyncRequest(
-            mode="incremental", trigger_type="scheduled"))
+            mode="incremental", trigger_type=SERVER_PUBLIC_TRIGGER))
         started += 1
     return started
 
