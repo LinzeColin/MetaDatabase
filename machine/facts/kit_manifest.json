@@ -1,0 +1,25 @@
+{
+  "source": "dual_plane/machine/tools",
+  "tools": {
+    "check_blocker_stop.py": "afcc4bfd0d9c13e62ed4929968f5ff92dcf95eb2413dbcf7aba2b4dd935e9267",
+    "check_doc_budget.py": "f542127c647fccffe6c8a25b663b06daa683a40f64add8a06fe81eda4124b819",
+    "check_dual_plane_ci.py": "67a1af14cac9cfdb5bab8e6f67c8f726eb2b77b3db5ab44374def75f91c942ec",
+    "check_kit_drift.py": "1e6e7135667db9e80e856798fd6d40c06f54e34335b5bf6e17e11d0255d03d7e",
+    "install_dual_plane.py": "03a9b5aca351523ad3ce8e2a42b161d3bc33ccbc046c8001816bfa724432c20f",
+    "migrate_legacy_to_facts.py": "03087e675181f8b9a90c86500b25441e804b8a0b0c2a9c6e0b3dad40f5556f9b",
+    "render_human.py": "354ec6aeb1d5f3a78be268cf4fc7984f65a9856637f257e13696be4fb6559f8e"
+  },
+  "forks": {
+    "ABD/machine/tools/render_human.py": "ABD 走单一 human_docs_source.json 渲染（12 行），不是七文件事实源模型；本仓 CI 也已把它列为专用任务包（.github/workflows/abd-stage0-validation.yml）而非治理项目",
+    "Signal-Lattice/machine/tools/render_human.py": "Signal-Lattice 走单一 machine/facts/human_documents.json 渲染并自带四道极简门（16/19/26/32 行），不是 kit 的七文件事实源模型；整套工具是有意的另一实现",
+    "Signal-Lattice/machine/tools/check_doc_budget.py": "Signal-Lattice 走单一 machine/facts/human_documents.json 渲染并自带四道极简门（16/19/26/32 行），不是 kit 的七文件事实源模型；整套工具是有意的另一实现",
+    "Signal-Lattice/machine/tools/check_blocker_stop.py": "Signal-Lattice 走单一 machine/facts/human_documents.json 渲染并自带四道极简门（16/19/26/32 行），不是 kit 的七文件事实源模型；整套工具是有意的另一实现",
+    "Signal-Lattice/machine/tools/check_dual_plane_ci.py": "Signal-Lattice 走单一 machine/facts/human_documents.json 渲染并自带四道极简门（16/19/26/32 行），不是 kit 的七文件事实源模型；整套工具是有意的另一实现",
+    "EEI/machine/tools/render_human.py": "EEI 的 machine/tools 被洁净室发布 ZIP（artifacts/tests/a200/…clean_room_t1215.zip，17 MB）按内容哈希冻结，改一个字节就要重建那份发布制品。EEI 无 changelog.json，本次渲染器修复对它零影响，因此不动；何时随发布一起更新由 owner 定",
+    "EEI/machine/tools/check_doc_budget.py": "EEI 的 machine/tools 被洁净室发布 ZIP（artifacts/tests/a200/…clean_room_t1215.zip，17 MB）按内容哈希冻结，改一个字节就要重建那份发布制品。EEI 无 changelog.json，本次渲染器修复对它零影响，因此不动；何时随发布一起更新由 owner 定",
+    "EEI/machine/tools/check_blocker_stop.py": "EEI 的 machine/tools 被洁净室发布 ZIP（artifacts/tests/a200/…clean_room_t1215.zip，17 MB）按内容哈希冻结，改一个字节就要重建那份发布制品。EEI 无 changelog.json，本次渲染器修复对它零影响，因此不动；何时随发布一起更新由 owner 定",
+    "EEI/machine/tools/check_dual_plane_ci.py": "EEI 的 machine/tools 被洁净室发布 ZIP（artifacts/tests/a200/…clean_room_t1215.zip，17 MB）按内容哈希冻结，改一个字节就要重建那份发布制品。EEI 无 changelog.json，本次渲染器修复对它零影响，因此不动；何时随发布一起更新由 owner 定",
+    "EEI/machine/tools/install_dual_plane.py": "EEI 的 machine/tools 被洁净室发布 ZIP（artifacts/tests/a200/…clean_room_t1215.zip，17 MB）按内容哈希冻结，改一个字节就要重建那份发布制品。EEI 无 changelog.json，本次渲染器修复对它零影响，因此不动；何时随发布一起更新由 owner 定",
+    "EEI/machine/tools/migrate_legacy_to_facts.py": "EEI 的 machine/tools 被洁净室发布 ZIP（artifacts/tests/a200/…clean_room_t1215.zip，17 MB）按内容哈希冻结，改一个字节就要重建那份发布制品。EEI 无 changelog.json，本次渲染器修复对它零影响，因此不动；何时随发布一起更新由 owner 定"
+  }
+}

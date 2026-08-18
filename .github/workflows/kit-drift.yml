@@ -1,0 +1,30 @@
+name: Kit Drift
+
+# 单独一个 workflow，不并进 dual-plane.yml —— 那个文件的 sha256 被钉在
+# ABD 的 S00 阶段复审契约里（REVIEW-PIN-DUAL-PLANE），改它 ABD 的门就红。
+# 那道锁是为了让「改 CI」变成显式动作，不该被一个治理 PR 顺手解开。
+# 实测：新增 workflow 文件不触发 REVIEW-PIN-DUAL-PLANE / REVIEW-PIN-CI-WORKFLOW-SET。
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kit-drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+      - name: kit 副本必须与 Governance 唯一真源一致
+        run: |
+          set -euo pipefail
+          SCRIPT="machine/tools/check_kit_drift.py"
+          [ -f "$SCRIPT" ] || { echo "FAIL: 缺少 $SCRIPT"; exit 1; }
+          python3 "$SCRIPT" --root .
