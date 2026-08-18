@@ -402,10 +402,7 @@ def test_t0708_stage7_aggregate_authorizes_t0705_and_stops_before_t0706() -> Non
     aggregate = json.loads(
         (PROJECT_ROOT / "evidence/stage7/latest.json").read_text(encoding="utf-8")
     )
-    assert (
-        aggregate["status"]
-        == "T0705_PROTECTED_PASS_SCHEDULE_ENABLED_SCOPE_STOP"
-    )
+    assert aggregate["status"] == "T0705_PROTECTED_PASS_SCHEDULE_ENABLED_SCOPE_STOP"
     assert (
         aggregate["scoped_preflight"]
         == "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
@@ -429,10 +426,7 @@ def test_t0708_stage7_aggregate_authorizes_t0705_and_stops_before_t0706() -> Non
     assert aggregate["protected_workflow_runs"] == 34
     assert aggregate["production_workflow_runs"] == 17
     assert aggregate["final_acceptances_passed"] == 0
-    assert (
-        aggregate["delivery_status"]
-        == "CONTROLLED_T0705_SCHEDULE_ENABLED_NOT_FINAL"
-    )
+    assert aggregate["delivery_status"] == "CONTROLLED_T0705_SCHEDULE_ENABLED_NOT_FINAL"
     assert (
         aggregate["observation"]["m3_deterministic_evidence_run"]
         == "PASS_ZERO_MUTATION_RECONCILIATION_RECOVERY_100_PERCENT_ZERO_NEW_EFFECT"
@@ -441,8 +435,5 @@ def test_t0708_stage7_aggregate_authorizes_t0705_and_stops_before_t0706() -> Non
         aggregate["observation"]["blue_green_protected_entrypoint"]
         == "PASS_RECEIPT_BOUND_AUTHORITY_CONSUMED"
     )
-    assert (
-        "T0706_AND_LATER_STAGE7_TASKS_OUTSIDE_CURRENT_RUN"
-        in aggregate["blocking_conditions"]
-    )
+    assert "T0706_AND_LATER_STAGE7_TASKS_OUTSIDE_CURRENT_RUN" in aggregate["blocking_conditions"]
     assert "T0705_PROTECTED_RECEIPT_NOT_BOUND" not in aggregate["blocking_conditions"]

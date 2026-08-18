@@ -28,3 +28,19 @@ jobs:
           SCRIPT="machine/tools/check_kit_drift.py"
           [ -f "$SCRIPT" ] || { echo "FAIL: 缺少 $SCRIPT"; exit 1; }
           python3 "$SCRIPT" --root .
+      - name: 安装 PyYAML（MooMooAU 双平面渲染需要）
+        run: python3 -m pip install --quiet pyyaml==6.0.3
+      - name: MooMooAU 双平面门（它在 LinzeDatabase 下两层，dual-plane.yml 的项目列表盖不到）
+        run: |
+          set -euo pipefail
+          # 为什么单独放在这里而不是并进 dual-plane.yml：
+          # 后者的 sha256 被钉在 ABD 的 S00 复审契约里（REVIEW-PIN-DUAL-PLANE），
+          # 改它 ABD 的门就红。那道锁是为了让「改 CI」变成显式动作。
+          #
+          # MooMooAU 此前不被任何门覆盖：它有 文档/ 七文件、有 machine/facts，
+          # 但 dual-plane.yml 的 --projects 列表里没有它，
+          # 分类步骤的 glob（*/machine/tools/render_human.py）也只扫一层，够不到它。
+          # 结果是它的文档能悄悄偏离事实源而没有任何门会红 ——
+          # 2026-08-18 实测：changelog 20 条，运维手册显示的是最旧 10 条，积了三周没人发现。
+          python3 LinzeDatabase/machine/tools/check_dual_plane_ci.py \
+            --root LinzeDatabase --projects MooMooAU --require-projects

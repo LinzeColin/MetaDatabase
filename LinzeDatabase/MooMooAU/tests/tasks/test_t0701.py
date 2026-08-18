@@ -48,10 +48,7 @@ def test_t0701_stage7_contract_catalog_authorizes_t0705_without_final_claim() ->
     assert [item["task_id"] for item in contract["acceptance_contracts"]] == [
         f"T070{index}" for index in range(1, 9)
     ]
-    assert (
-        contract["overall_status"]
-        == "T0705_PROTECTED_PASS_SCHEDULE_ENABLED_SCOPE_STOP"
-    )
+    assert contract["overall_status"] == "T0705_PROTECTED_PASS_SCHEDULE_ENABLED_SCOPE_STOP"
     assert contract["final_acceptances_passed"] == 0
 
 
