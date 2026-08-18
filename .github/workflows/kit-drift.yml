@@ -30,17 +30,22 @@ jobs:
           python3 "$SCRIPT" --root .
       - name: 安装 PyYAML（MooMooAU 双平面渲染需要）
         run: python3 -m pip install --quiet pyyaml==6.0.3
-      - name: MooMooAU 双平面门（它在 LinzeDatabase 下两层，dual-plane.yml 的项目列表盖不到）
+      - name: MooMooAU 渲染一致门（零 vendoring —— 它有反复制守卫）
         run: |
           set -euo pipefail
-          # 为什么单独放在这里而不是并进 dual-plane.yml：
-          # 后者的 sha256 被钉在 ABD 的 S00 复审契约里（REVIEW-PIN-DUAL-PLANE），
-          # 改它 ABD 的门就红。那道锁是为了让「改 CI」变成显式动作。
+          # MooMooAU 不被 dual-plane.yml 的 --projects 列表覆盖，此前没有任何门
+          # 盯着它的文档是否偏离事实源 —— 2026-08-18 实测：changelog 20 条，
+          # 运维手册显示的是最旧 10 条，积了三周没人发现。
           #
-          # MooMooAU 此前不被任何门覆盖：它有 文档/ 七文件、有 machine/facts，
-          # 但 dual-plane.yml 的 --projects 列表里没有它，
-          # 分类步骤的 glob（*/machine/tools/render_human.py）也只扫一层，够不到它。
-          # 结果是它的文档能悄悄偏离事实源而没有任何门会红 ——
-          # 2026-08-18 实测：changelog 20 条，运维手册显示的是最旧 10 条，积了三周没人发现。
-          python3 LinzeDatabase/machine/tools/check_dual_plane_ci.py \
-            --root LinzeDatabase --projects MooMooAU --require-projects
+          # 但**不能**照别的项目那样把 kit 工具复制进去：MooMooAU 自己的
+          # validate_stage0.py 有一道 governance.no_framework_copy，
+          # 复制共享工具进 machine/tools/ 就 FAIL。那是它有意的设计，不是疏漏
+          # ——它是全工作间唯一不 vendoring 的项目。
+          # （我在 #293 里正是这么踩的，本次一并撤销。）
+          #
+          # 改用外部渲染器 + 比对，同样能拦住漂移，零新增文件。
+          python3 LinzeDatabase/machine/tools/render_human.py --root LinzeDatabase/MooMooAU
+          git diff --exit-code -- LinzeDatabase/MooMooAU/文档 || {
+            echo "FAIL: MooMooAU 文档与 machine/facts 不一致（人类平面被手工改，或事实源变了没重渲染）"
+            exit 1
+          }
