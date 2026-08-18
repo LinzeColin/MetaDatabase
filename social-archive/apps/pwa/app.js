@@ -235,7 +235,7 @@
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
   const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
-  const PRODUCT_VERSION = "0.0.0.106";
+  const PRODUCT_VERSION = "0.0.0.107";
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -1315,6 +1315,35 @@
     return state.syncRuns.filter(run => run.source_account_id === accountId).sort((a, b) => String(b.updated_at || "").localeCompare(String(a.updated_at || "")))[0] || null;
   }
 
+  /** 问插件：这些平台的浏览器授权到底给了没有。（2026-08-18）
+   *
+   * **为什么必须问插件**：`chrome.permissions` 只有扩展调得到，网页这侧
+   * 只看得见服务端的 connection_state。于是账号显示「已连接」、每次同步
+   * 倒在 PLATFORM_PERMISSION_MISSING，**而这一屏一个字都不提**。
+   * 他的原话：「没有需要我授权的地方」。
+   *
+   * 拿不到就**什么都不标** —— 不许把「我没问到」显示成「没有授权」。
+   */
+  async function refreshPlatformPermissions() {
+    const platforms = [...new Set(state.accounts.map(item => item.platform))].filter(Boolean);
+    if (!platforms.length) return;
+    try {
+      const reply = await postToExtension("SA_PLATFORM_PERMISSIONS", { platforms }, 4000);
+      // **核一次回复类型。** `postToExtension` 只按 requestId 认，任何插件回复
+      // 都会被收下；这里明确要的是哪一条，收错了就当没问到（下面 catch 那一支
+      // 的语义：什么都不标）。顺带让「有人发、没人听」那道判据看得见这一头。
+      if (reply?.type && reply.type !== "SA_PLATFORM_PERMISSIONS_RESULT") {
+        state.platformPermissions = {};
+        return;
+      }
+      state.platformPermissions = (reply && reply.granted) || {};
+    } catch (_) {
+      state.platformPermissions = {};
+      return;
+    }
+    renderSyncTable();
+  }
+
   function renderSyncTable() {
     if (!$("syncTableBody")) return;
     const rows = [];
@@ -1383,6 +1412,16 @@
           action = `<button class="btn small" data-control-run="${escapeHtml(run.id)}" data-account-id="${escapeHtml(account.id)}" data-control-action="pause">暂停</button><button class="btn small subtle-danger" data-control-run="${escapeHtml(run.id)}" data-account-id="${escapeHtml(account.id)}" data-control-action="cancel">取消</button>`;
         } else if (run && status === "paused") {
           action = `<button class="btn small" data-control-run="${escapeHtml(run.id)}" data-account-id="${escapeHtml(account.id)}" data-control-action="resume">继续</button><button class="btn small subtle-danger" data-control-run="${escapeHtml(run.id)}" data-account-id="${escapeHtml(account.id)}" data-control-action="cancel">取消</button>`;
+        } else if (state.platformPermissions?.[account.platform] === false) {
+          // **缺授权时连「重试」都不该给。**（2026-08-18）
+          //
+          // 这一支必须排在 partial/failed 那一支**前面**：他那三个账号
+          // 都停在 partial，于是永远先拿到「重试」——而缺授权时重试
+          // 必然又倒在 PLATFORM_PERMISSION_MISSING（同步那一刻没有用户手势，
+          // `chrome.permissions.request` 一定抛，补不回来）。
+          // 「不给一个点下去必然失败的按钮」是这个文件自己写过的规矩，
+          // 我上一版把这一支放在最后，等于它永远走不到。
+          action = `<button class="btn small primary" data-open-connect-panel="${escapeHtml(account.platform)}">去授权</button>`;
         } else if (run && ["partial", "failed"].includes(status)) {
           action = `<button class="btn small" data-control-run="${escapeHtml(run.id)}" data-account-id="${escapeHtml(account.id)}" data-control-action="retry">重试</button>`;
         } else if (status === "blocked_environment") {
@@ -1479,7 +1518,19 @@
         + "可以用插件一条条保存，或导入官方数据包。";
   }
 
-  function openSyncModal() { paintSyncModalCopy(); renderSyncTable(); $("syncModalBackdrop").classList.add("open"); }
+  function openSyncModal() {
+    paintSyncModalCopy();
+    renderSyncTable();
+    $("syncModalBackdrop").classList.add("open");
+    // **打开这一屏就去问一次授权状态。**
+    //
+    // 不在 loadAccountsAndDestinations 里问：那条路在页面加载时就跑，
+    // 而插件的桥这时可能还没接上（内容脚本在 document_start 注入，
+    // 但 background 可能还没醒）。这一屏是他真正会看的地方，
+    // 在这里问既晚得够、又一定问得到。
+    // 它是异步的，问到了会自己再画一次表。
+    refreshPlatformPermissions();
+  }
   function closeModal(id) { $(id)?.classList.remove("open"); }
 
   function openImportModal() {
@@ -2264,6 +2315,12 @@
     $("modalSyncAll").addEventListener("click", syncAllAccounts);
     // 「连接新账号」直接开连接面板——原来它再画一层"选平台"的选择器，
     // 于是路径变成：资料库 → 同步中心 → 选平台 → 连接。面板本身就是那张列表。
+    document.addEventListener("click", event => {
+      const button = event.target.closest("[data-open-connect-panel]");
+      if (!button) return;
+      // 真正申请权限那一下只能在扩展页面里、在手势期间做 —— 那就是这个面板。
+      if (!openConnectPanel()) showToast("打不开连接面板，请确认插件已安装并刷新本页", "needs");
+    });
     $("connectNewAccount").addEventListener("click", () => {
       if (!openConnectPanel()) renderSyncConnectPicker();
     });
@@ -2408,7 +2465,7 @@
     }
     await loadLibrary();
     renderNextStep();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=ad174dd3").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/assets/sw.js?v=1635aa5e").catch(() => {});
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch(error => {

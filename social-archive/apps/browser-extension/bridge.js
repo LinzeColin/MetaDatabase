@@ -78,6 +78,19 @@
       return;
     }
 
+    if (message.type === "SA_PLATFORM_PERMISSIONS") {
+      // 只读转发：问 background「这些平台的浏览器授权给了没有」。
+      // 资料库那一屏据此显示「缺授权」——**在他浪费一次同步之前**。
+      chrome.runtime.sendMessage({ type: "SA_PLATFORM_PERMISSIONS",
+                                   platforms: message.platforms || [] })
+        .then(result => post("SA_PLATFORM_PERMISSIONS_RESULT",
+                             { requestId: message.requestId, ...(result || {}) }))
+        .catch(error => post("SA_PLATFORM_PERMISSIONS_RESULT",
+                             { requestId: message.requestId, ok: false,
+                               error: error?.message || "读不到授权状态" }));
+      return;
+    }
+
     if (message.type === "SA_ACCOUNT_CONNECT") {
       // **这条路拿不到权限，所以它不做连接，只把人送到做得到的地方。**
       //
