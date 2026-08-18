@@ -76,7 +76,7 @@
       "started_at": "2026-08-18T01:30:47.058768Z"
     }
   ],
-  "why_it_stopped_zh": "最后一次同步（bilibili 2026-08-18T01:30:47.058768Z）进了 46 条，错误码 None（就在今天）",
+  "why_it_stopped_zh": "最后一次同步（bilibili 2026-08-18T02:47:43.585527Z）进了 0 条，错误码 BROWSER_SCAN_FAILED（就在今天）",
   "accounts_now": [
     {
       "platform": "xiaohongshu",
@@ -426,6 +426,16 @@
       "completeness": "complete",
       "last_error_code": null,
       "started_at": "2026-08-18T01:30:47.058768Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-18T02:47:43.585527Z"
     }
   ],
   "content_by_platform": [
@@ -495,7 +505,7 @@
     {
       "job_type": "account_sync",
       "status": "done",
-      "n": 30
+      "n": 31
     },
     {
       "job_type": "account_sync",
