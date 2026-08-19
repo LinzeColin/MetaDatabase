@@ -24,6 +24,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from . import __version__, auth, failure_copy
 from .account_sync import (
     SERVER_ACCOUNT_CONNECTORS,
+    SERVER_ALSO_READS,
     NOT_SYNCABLE_YET,
     SYNCABLE_NOW,
     AccountSyncCoordinator,
@@ -702,7 +703,14 @@ def accounts() -> dict[str, Any]:
                 # 这是同一个 Owner 抱怨（「把目标网页开了关关了开」）的另一半：
                 # 上一轮只挡住了「服务端说同步不了」的平台，
                 # 这一条挡住「服务端自己就能干、根本不该动浏览器」的平台。
-                "server_handled": platform in SERVER_ACCOUNT_CONNECTORS,
+                # **「服务端能自己读」也算 server_handled。**（2026-08-20）
+                #
+                # Owner 报：每天早上他的 Chrome 自己打开又关掉小红书/抖音/B站。
+                # 那是扩展的 6 小时定时同步在为每个账号开后台页去读。
+                # B 站 v0.0.0.105 起服务端就能自己读公开收藏夹了，
+                # 而这里只看 SERVER_ACCOUNT_CONNECTORS，于是扩展照旧每天开它的页。
+                # **纯骚扰、零收益** —— 那一趟读回来的东西服务端早已经有了。
+                "server_handled": platform in (SERVER_ACCOUNT_CONNECTORS | SERVER_ALSO_READS),
                 # **「能不能同步」和「连它有没有用」是两个问题。**
                 #
                 # 把 x / instagram 移出 SYNCABLE_NOW 之后，界面顺手把它们的

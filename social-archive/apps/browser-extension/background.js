@@ -1657,6 +1657,28 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
   // 他已经开着的那个平台页优先用——**别为了同步再开一个**。
   if (!tab && !ownTabOnly) tab = await findExistingPlatformTab(account.platform);
   let tabOpenedByUs = false;
+  // **缺授权就一个页面都别开。**（2026-08-20）
+  //
+  // Owner 报：每天早上他的 Chrome 自己打开又关掉小红书/抖音/B站。
+  // 那正是这里 —— 定时同步为每个账号开一个后台页去读。
+  //
+  // 而**没有主机授权时，那一趟必然失败**：读取器进不去页面，
+  // 结果是 PLATFORM_PERMISSION_MISSING。也就是说每天开的那几个页
+  // **零收益、纯骚扰**，而且他还以为是中了什么东西。
+  //
+  // 授权那一下必须有用户手势（`chrome.permissions.request` 在同步这一刻
+  // 一定抛），所以这里补不回来——能做的就是**别去打扰他**，
+  // 把「去授权」那句话报上去，界面上那颗按钮他点得到（v0.0.0.107）。
+  if (!tab) {
+    const permission = await SA.permissionState(account.platform).catch(() => ({ authorized: true }));
+    if (permission.authorized === false) {
+      const error = new Error(
+        `还没有获得读取${globalThis.SAPlatformCatalog?.platformLabel?.(account.platform) || account.platform}页面的授权。`
+        + "请到资料库的「管理账号」里点一次「去授权」，并在浏览器弹出的框里选「允许」。");
+      error.failureCode = "PLATFORM_PERMISSION_MISSING";
+      throw error;
+    }
+  }
   if (!tab) {
     // **后台开，不抢焦点，跑完关掉。**
     //
