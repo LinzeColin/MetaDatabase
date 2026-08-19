@@ -1,5 +1,5 @@
 {
-  "status": "FAIL",
+  "status": "PASS",
   "task": "G5",
   "host": "linze-vps3",
   "expected_version": "0.0.0.109",
@@ -7,8 +7,8 @@
     "health": {
       "status": "ok",
       "project": "Social Archive",
-      "version": "0.0.0.108",
-      "time": "2026-08-19T22:51:26.027061Z",
+      "version": "0.0.0.109",
+      "time": "2026-08-19T23:20:12.593195Z",
       "paid_api_allowed": false,
       "archive_defaults": {
         "L0": true,
@@ -18,15 +18,15 @@
       },
       "backup": {
         "last_backup_at": "20260819T033440Z",
-        "hours_since": 19.28,
+        "hours_since": 19.76,
         "stale": false,
         "message_zh": "",
         "why": ""
       },
       "replication": {
-        "last_run_at": "2026-08-19T22:39:01.762636Z",
+        "last_run_at": "2026-08-19T23:10:14.420848Z",
         "status": "PASS",
-        "hours_since": 0.21,
+        "hours_since": 0.17,
         "stale": false,
         "message_zh": "",
         "why": ""
@@ -34,21 +34,21 @@
       "worker": {
         "ever_seen": true,
         "alive": true,
-        "last_seen_at": "2026-08-19T22:51:23.770565Z",
-        "seconds_since": 2.3,
-        "version": "0.0.0.108",
+        "last_seen_at": "2026-08-19T23:20:12.602936Z",
+        "seconds_since": 0.0,
+        "version": "0.0.0.109",
         "note": "",
-        "api_version": "0.0.0.108",
+        "api_version": "0.0.0.109",
         "version_matches": true,
         "message_zh": ""
       },
       "disk": {
         "measured": true,
         "measured_at": "/var/lib/social-archive/runtime/social-archive.sqlite3",
-        "free_bytes": 73459453952,
-        "free_gb": 68.41,
+        "free_bytes": 73226534912,
+        "free_gb": 68.2,
         "total_gb": 95.82,
-        "used_percent": 28.6,
+        "used_percent": 28.8,
         "tight": false
       },
       "minimum_extension_version": "0.0.0.9"
@@ -68,7 +68,7 @@
       },
       "bilibili": {
         "sync_supported": true,
-        "server_handled": true
+        "server_handled": false
       },
       "x": {
         "sync_supported": false,
@@ -92,10 +92,10 @@
       }
     },
     "package": {
-      "manifest_version": "0.0.0.108",
+      "manifest_version": "0.0.0.109",
       "file_count": 27,
       "has_bilibili_reader": true,
-      "sha256": "10d9ab958f9ff938db23fe9fb829a31547593a7369080908ba5dfd5f691a90e9"
+      "sha256": "ebe0c254550138462f90684b178444403b90ca9eaf8570bbb17b0a4e04c59bf8"
     },
     "install_page": {
       "bytes": 13336,
@@ -106,29 +106,21 @@
       "stale_versions": []
     },
     "served_sha256": {
-      "sw.js": "a139d73dc5903d2691acc56cd1079c7a0789379bd0679f9ebbd9f8a5092e98b4",
+      "sw.js": "3ff625d569ef9715ba1ffd31106dd487724a0d1a352024a432fe5cf31da09de0",
       "manifest.webmanifest": "f71aae80fe412c13defe7908aca3227dec3d4f0f19f4397b71c2e3062485836d",
       "styles.css": "d2a490200b18ef8ed44dee85030c5de88a5b497c3556c1af39ceb83c8f6e13c6",
       "extension-install.html": "e1487646e32de0f0bf1d5146cd99af47a7029ab45b8c4ed080e0f8075e2290d5",
       "guide.html": "52f499237cdf33f4939e2cc1581505f563f6a66f2e27e1bf898d0854f4e9976b",
-      "index.html": "47d9db9da8f6b7640a653a85034e209c71d8227bcc9762403746876e79a9827f",
-      "app.js": "a9093f4ce3e02dca5311645a505dfbf84a23b12df5bec280fd4d2a79f40b77b5",
+      "index.html": "004a793fea563512d550685a3752cef906706a18463b585a02bf7af2bccf3135",
+      "app.js": "39a8a6f24f358fd009bbbe4db9095b64cb8fb3186c525ef70a804a1f00b189d3",
       "favicon.svg": "7b6ebae15b9a72d52b7452880487b9893fdd3ceaa8e0a6105f22a3f2a7486d0a"
     },
     "library_page": {
-      "product_version": "0.0.0.108",
+      "product_version": "0.0.0.109",
       "knows_bilibili_failure_codes": true
     }
   },
-  "problems": [
-    "生产 /health 说 0.0.0.108，仓里是 0.0.0.109",
-    "**下载页下发的插件包还是 0.0.0.108**，仓里是 0.0.0.109——他下载下来装上去，安装页会立刻又说「你装的是旧版」",
-    "**bilibili 被标成服务端处理** —— 那条路永远拿不到它需要的登录态（国内平台 Cookie 不出浏览器），会被从能跑通的浏览器路上踢走",
-    "**资料库判兼容用的 PRODUCT_VERSION 是 0.0.0.108**，仓里是 0.0.0.109——它会把刚更新好的插件判成不兼容，人又回到「去更新」的循环里",
-    "**生产上的 app.js 不是仓里这一份**（仓 39a8a6f24f35… / 线上 a9093f4ce3e0…）——多半是这次部署没成，而版本号看不出来",
-    "**生产上的 index.html 不是仓里这一份**（仓 004a793fea56… / 线上 47d9db9da8f6…）——多半是这次部署没成，而版本号看不出来",
-    "**生产上的 sw.js 不是仓里这一份**（仓 3ff625d569ef… / 线上 a139d73dc590…）——多半是这次部署没成，而版本号看不出来"
-  ],
+  "problems": [],
   "why_origin_not_public": "资料库域名挡在 Cloudflare Access 后面，不带登录态 curl 只会拿到 302 到登录页的143 字节，四条断言会全报 False 而页面其实好端端的（2026-08-06 实测踩过）。所以从 origin 量——那是 Access 放行之后 Owner 真正拿到的那一份。",
   "what_this_does_not_prove": "没有证明 Owner 自己的 B 站收藏夹读得出来——那要他本人的登录态，发生在他自己的浏览器里。这里证明的是：他要用到的每一样东西，生产上都是新的那一份。"
 }
