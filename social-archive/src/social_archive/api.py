@@ -24,6 +24,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from . import __version__, auth, failure_copy
 from .account_sync import (
     SERVER_ACCOUNT_CONNECTORS,
+    SERVER_ALSO_READS,
     NOT_SYNCABLE_YET,
     SYNCABLE_NOW,
     AccountSyncCoordinator,
@@ -703,6 +704,18 @@ def accounts() -> dict[str, Any]:
                 # 上一轮只挡住了「服务端说同步不了」的平台，
                 # 这一条挡住「服务端自己就能干、根本不该动浏览器」的平台。
                 "server_handled": platform in SERVER_ACCOUNT_CONNECTORS,
+                # **「服务端也读得到」和「只能服务端读」是两回事。**（2026-08-20）
+                #
+                # 第一版我把 B 站并进了 server_handled，想让扩展别再每天开它的页。
+                # 判据当场拦下并说对了：那会**把它从能跑通的浏览器路上踢走**，
+                # 而浏览器那条路读得到私密收藏夹，服务端那条读不到
+                # （国内平台 Cookie 不出浏览器）。为了少开一个页面换掉一项能力，
+                # 不是纯赚。
+                #
+                # 所以分成两个字段：`server_handled` 仍然只表示「只能服务端读」，
+                # 这一条表示「服务端也读得到」——扩展据此**只跳过定时那一趟**，
+                # 他手动点「立即同步」时照旧走浏览器。
+                "server_also_reads": platform in SERVER_ALSO_READS,
                 # **「能不能同步」和「连它有没有用」是两个问题。**
                 #
                 # 把 x / instagram 移出 SYNCABLE_NOW 之后，界面顺手把它们的

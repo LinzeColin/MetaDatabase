@@ -5,13 +5,13 @@
     "bilibili",
     "douyin"
   ],
-  "import_events_summed_across_runs": 306,
+  "import_events_summed_across_runs": 628,
   "distinct_items_still_in_the_archive": 202,
   "distinct_items_by_platform": {
     "bilibili": 117,
     "douyin": 85
   },
-  "import_runs_total": 5,
+  "import_runs_total": 12,
   "import_runs_that_did_not_finish": 4,
   "import_runs_that_did_not_finish_detail": [
     {
@@ -74,9 +74,51 @@
       "discovered_count": 46,
       "imported_count": 46,
       "started_at": "2026-08-18T01:30:47.058768Z"
+    },
+    {
+      "platform": "bilibili",
+      "discovered_count": 46,
+      "imported_count": 46,
+      "started_at": "2026-08-18T07:35:27.432688Z"
+    },
+    {
+      "platform": "bilibili",
+      "discovered_count": 46,
+      "imported_count": 46,
+      "started_at": "2026-08-18T13:36:01.270677Z"
+    },
+    {
+      "platform": "bilibili",
+      "discovered_count": 46,
+      "imported_count": 46,
+      "started_at": "2026-08-18T19:36:35.044237Z"
+    },
+    {
+      "platform": "bilibili",
+      "discovered_count": 46,
+      "imported_count": 46,
+      "started_at": "2026-08-19T01:37:09.531684Z"
+    },
+    {
+      "platform": "bilibili",
+      "discovered_count": 46,
+      "imported_count": 46,
+      "started_at": "2026-08-19T07:38:55.926530Z"
+    },
+    {
+      "platform": "bilibili",
+      "discovered_count": 46,
+      "imported_count": 46,
+      "started_at": "2026-08-19T13:39:30.616566Z"
+    },
+    {
+      "platform": "bilibili",
+      "discovered_count": 46,
+      "imported_count": 46,
+      "started_at": "2026-08-19T19:40:04.100308Z"
     }
   ],
-  "why_it_stopped_zh": "最后一次同步（bilibili 2026-08-18T02:47:43.585527Z）进了 0 条，错误码 BROWSER_SCAN_FAILED（就在今天）",
+  "why_it_stopped_zh": "最后一次同步（xiaohongshu 2026-08-19T22:05:13.079923Z）进了 0 条，错误码 LIST_SHAPE_NOT_RECOGNISED（就在今天）",
   "accounts_now": [
     {
       "platform": "xiaohongshu",
@@ -101,8 +143,8 @@
       "connection_state": "connected",
       "auth_method": "browser_session",
       "auto_sync_enabled": 1,
-      "last_verified_at": "2026-08-18T01:30:56.454095Z",
-      "last_sync_at": "2026-08-18T01:30:56.458112Z",
+      "last_verified_at": "2026-08-19T19:40:17.021641Z",
+      "last_sync_at": "2026-08-19T19:40:17.024825Z",
       "last_error_code": null
     }
   ],
@@ -436,6 +478,346 @@
       "completeness": "partial",
       "last_error_code": "BROWSER_SCAN_FAILED",
       "started_at": "2026-08-18T02:47:43.585527Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-18T03:58:40.736530Z"
+    },
+    {
+      "platform": "douyin",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "SYNC_STALLED",
+      "started_at": "2026-08-18T03:59:38.868200Z"
+    },
+    {
+      "platform": "douyin",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-18T04:00:38.996679Z"
+    },
+    {
+      "platform": "xiaohongshu",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-18T04:02:01.154079Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "completed",
+      "discovered_count": 46,
+      "imported_count": 46,
+      "failed_count": 0,
+      "completeness": "complete",
+      "last_error_code": null,
+      "started_at": "2026-08-18T07:35:27.432688Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-18T09:58:38.628363Z"
+    },
+    {
+      "platform": "douyin",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "PLATFORM_PERMISSION_MISSING",
+      "started_at": "2026-08-18T09:59:16.696437Z"
+    },
+    {
+      "platform": "xiaohongshu",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "LIST_SHAPE_NOT_RECOGNISED",
+      "started_at": "2026-08-18T10:00:10.806054Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "completed",
+      "discovered_count": 46,
+      "imported_count": 46,
+      "failed_count": 0,
+      "completeness": "complete",
+      "last_error_code": null,
+      "started_at": "2026-08-18T13:36:01.270677Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-18T15:58:38.988973Z"
+    },
+    {
+      "platform": "douyin",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "PLATFORM_PERMISSION_MISSING",
+      "started_at": "2026-08-18T15:59:17.069041Z"
+    },
+    {
+      "platform": "xiaohongshu",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "LIST_SHAPE_NOT_RECOGNISED",
+      "started_at": "2026-08-18T16:00:11.177533Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "completed",
+      "discovered_count": 46,
+      "imported_count": 46,
+      "failed_count": 0,
+      "completeness": "complete",
+      "last_error_code": null,
+      "started_at": "2026-08-18T19:36:35.044237Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-18T21:58:39.097714Z"
+    },
+    {
+      "platform": "douyin",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "PLATFORM_PERMISSION_MISSING",
+      "started_at": "2026-08-18T21:59:17.181500Z"
+    },
+    {
+      "platform": "xiaohongshu",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "LIST_SHAPE_NOT_RECOGNISED",
+      "started_at": "2026-08-18T22:00:07.310469Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "completed",
+      "discovered_count": 46,
+      "imported_count": 46,
+      "failed_count": 0,
+      "completeness": "complete",
+      "last_error_code": null,
+      "started_at": "2026-08-19T01:37:09.531684Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-19T03:58:41.094904Z"
+    },
+    {
+      "platform": "douyin",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "PLATFORM_PERMISSION_MISSING",
+      "started_at": "2026-08-19T03:59:21.176819Z"
+    },
+    {
+      "platform": "xiaohongshu",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "LIST_SHAPE_NOT_RECOGNISED",
+      "started_at": "2026-08-19T04:00:05.274101Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "completed",
+      "discovered_count": 46,
+      "imported_count": 46,
+      "failed_count": 0,
+      "completeness": "complete",
+      "last_error_code": null,
+      "started_at": "2026-08-19T07:38:55.926530Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-19T09:58:41.624674Z"
+    },
+    {
+      "platform": "douyin",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "PLATFORM_PERMISSION_MISSING",
+      "started_at": "2026-08-19T09:59:21.707298Z"
+    },
+    {
+      "platform": "xiaohongshu",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "LIST_SHAPE_NOT_RECOGNISED",
+      "started_at": "2026-08-19T10:01:01.893404Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "completed",
+      "discovered_count": 46,
+      "imported_count": 46,
+      "failed_count": 0,
+      "completeness": "complete",
+      "last_error_code": null,
+      "started_at": "2026-08-19T13:39:30.616566Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-19T15:58:39.637707Z"
+    },
+    {
+      "platform": "douyin",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "PLATFORM_PERMISSION_MISSING",
+      "started_at": "2026-08-19T15:59:17.703610Z"
+    },
+    {
+      "platform": "xiaohongshu",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "LIST_SHAPE_NOT_RECOGNISED",
+      "started_at": "2026-08-19T16:00:19.830393Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "completed",
+      "discovered_count": 46,
+      "imported_count": 46,
+      "failed_count": 0,
+      "completeness": "complete",
+      "last_error_code": null,
+      "started_at": "2026-08-19T19:40:04.100308Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "failed",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "unknown",
+      "last_error_code": "SYNC_RUN_ABANDONED",
+      "started_at": "2026-08-19T21:58:42.328904Z"
+    },
+    {
+      "platform": "bilibili",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-19T21:59:46.453992Z"
+    },
+    {
+      "platform": "douyin",
+      "status": "failed",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "unknown",
+      "last_error_code": "SYNC_RUN_ABANDONED",
+      "started_at": "2026-08-19T22:01:44.689285Z"
+    },
+    {
+      "platform": "douyin",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "BROWSER_SCAN_FAILED",
+      "started_at": "2026-08-19T22:03:42.898524Z"
+    },
+    {
+      "platform": "xiaohongshu",
+      "status": "partial",
+      "discovered_count": 0,
+      "imported_count": 0,
+      "failed_count": 0,
+      "completeness": "partial",
+      "last_error_code": "LIST_SHAPE_NOT_RECOGNISED",
+      "started_at": "2026-08-19T22:05:13.079923Z"
     }
   ],
   "content_by_platform": [
@@ -505,7 +887,7 @@
     {
       "job_type": "account_sync",
       "status": "done",
-      "n": 31
+      "n": 65
     },
     {
       "job_type": "account_sync",

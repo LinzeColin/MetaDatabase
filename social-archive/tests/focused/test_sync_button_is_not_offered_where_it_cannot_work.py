@@ -343,11 +343,29 @@ def test_platforms_the_server_syncs_itself_never_touch_a_tab() -> None:
 
 
 def test_the_server_publishes_who_handles_each_platform() -> None:
-    """能力仍然只有一处真源：服务端说了算，扩展照做。"""
-    api = (ROOT / "src/social_archive/api.py").read_text(encoding="utf-8")
-    assert '"server_handled": platform in SERVER_ACCOUNT_CONNECTORS' in api, (
-        "/v1/accounts 不下发「这个平台由谁同步」，扩展只能猜——而它上次就猜错了"
-    )
+    """能力仍然只有一处真源：服务端说了算，扩展照做。
+
+    **钉的是「这个字段下发了、而且由服务端的集合算出来」，不是那一行的写法。**
+    2026-08-20 之前这里钉的是字面串
+    `"server_handled": platform in SERVER_ACCOUNT_CONNECTORS`——
+    而当天要把「服务端也能自己读」的平台（SERVER_ALSO_READS）并进去时，
+    这道门就红了，红的理由却和它的本意（"要下发这个字段"）无关。
+    判据钉在实现的写法上，会挡住实测有效的改动，这个仓为此付过一次账。
+    """
+    import ast  # noqa: PLC0415
+
+    source = (ROOT / "src/social_archive/api.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    published = any(
+        isinstance(node, ast.Constant) and node.value == "server_handled"
+        for node in ast.walk(tree))
+    assert published, (
+        "/v1/accounts 不下发「这个平台由谁同步」，扩展只能猜——而它上次就猜错了")
+    # 而且必须由服务端那几个集合算出来，不许写死成一张手抄表。
+    names = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
+    assert "SERVER_ACCOUNT_CONNECTORS" in names, (
+        "server_handled 没有引用 SERVER_ACCOUNT_CONNECTORS——"
+        "它一旦变成手抄的清单，就会和 account_sync 那侧漂开")
 
 
 def test_the_server_handoff_exists_once_not_twice() -> None:

@@ -742,7 +742,21 @@ async function enqueueAllAccounts(triggerType = "manual") {
     && item.auto_sync_enabled !== false);
   // 同步不了的平台**根本不进队列**——进了就会每分钟抢一次用户的标签页。
   const capability = await Promise.all(connected.map(item => platformCanSyncNow(item.platform)));
-  const accounts = connected.filter((_, index) => capability[index]);
+  let accounts = connected.filter((_, index) => capability[index]);
+  // **定时那一趟，服务端已经在读的平台不必再开他的浏览器。**（2026-08-20）
+  //
+  // Owner：「为什么现在我的电脑每天 8 点都会自己打开并关闭小红书抖音bilibili」。
+  // B 站从 v0.0.0.105 起服务端自己就读得到公开收藏夹，而扩展照旧每 6 小时
+  // 为它开一个后台页——读回来的东西服务端早已经有了，**纯骚扰**。
+  //
+  // **只跳定时那一趟。** 他手动点「立即同步」时照旧走浏览器，
+  // 因为浏览器那条路读得到私密收藏夹，服务端那条读不到
+  // （国内平台 Cookie 不出浏览器）。判据 test_no_tab_is_opened... 守这条界线：
+  // 少开一个页面不该换掉一项能力。
+  if (triggerType === "scheduled") {
+    const alsoServer = await Promise.all(accounts.map(item => platformCapability(item.platform)));
+    accounts = accounts.filter((_, index) => !alsoServer[index].serverAlsoReads);
+  }
   const results = [];
   for (const account of accounts) {
     try { results.push(await enqueueAccountSync({ accountId: account.id, triggerType })); }
@@ -854,9 +868,11 @@ async function platformCapability(platform) {
     return {
       canSync: entry ? entry.sync_supported !== false : true,
       serverHandled: entry ? entry.server_handled === true : false,
+      // 「服务端也读得到」——**只用来跳过定时那一趟**，不改变手动同步的路。
+      serverAlsoReads: entry ? entry.server_also_reads === true : false,
     };
   } catch (_) {
-    return { canSync: true, serverHandled: false };
+    return { canSync: true, serverHandled: false, serverAlsoReads: false };
   }
 }
 
@@ -1657,6 +1673,28 @@ async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, 
   // 他已经开着的那个平台页优先用——**别为了同步再开一个**。
   if (!tab && !ownTabOnly) tab = await findExistingPlatformTab(account.platform);
   let tabOpenedByUs = false;
+  // **缺授权就一个页面都别开。**（2026-08-20）
+  //
+  // Owner 报：每天早上他的 Chrome 自己打开又关掉小红书/抖音/B站。
+  // 那正是这里 —— 定时同步为每个账号开一个后台页去读。
+  //
+  // 而**没有主机授权时，那一趟必然失败**：读取器进不去页面，
+  // 结果是 PLATFORM_PERMISSION_MISSING。也就是说每天开的那几个页
+  // **零收益、纯骚扰**，而且他还以为是中了什么东西。
+  //
+  // 授权那一下必须有用户手势（`chrome.permissions.request` 在同步这一刻
+  // 一定抛），所以这里补不回来——能做的就是**别去打扰他**，
+  // 把「去授权」那句话报上去，界面上那颗按钮他点得到（v0.0.0.107）。
+  if (!tab) {
+    const permission = await SA.permissionState(account.platform).catch(() => ({ authorized: true }));
+    if (permission.authorized === false) {
+      const error = new Error(
+        `还没有获得读取${globalThis.SAPlatformCatalog?.platformLabel?.(account.platform) || account.platform}页面的授权。`
+        + "请到资料库的「管理账号」里点一次「去授权」，并在浏览器弹出的框里选「允许」。");
+      error.failureCode = "PLATFORM_PERMISSION_MISSING";
+      throw error;
+    }
+  }
   if (!tab) {
     // **后台开，不抢焦点，跑完关掉。**
     //

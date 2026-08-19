@@ -1,8 +1,8 @@
 {
   "status": "PASS",
   "sampled_artifacts": [
-    "art_00ca5e8cef67db2334329dcf088e15c0",
-    "art_00fbeb6793d229abee9ced0b9ec1cb68"
+    "art_000c73268823542e6522827c6ca59d08",
+    "art_00ca5e8cef67db2334329dcf088e15c0"
   ],
   "measured": {
     "r2": {
@@ -21,7 +21,7 @@
       "codes": []
     },
     "copies_confirmed_today": 3,
-    "restore_probe_artifact": "art_00ca5e8cef67db2334329dcf088e15c0",
+    "restore_probe_artifact": "art_000c73268823542e6522827c6ca59d08",
     "restore_verified": [
       "r2",
       "oci",
