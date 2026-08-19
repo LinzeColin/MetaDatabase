@@ -40,19 +40,42 @@ def _code() -> str:
                      if not line.strip().startswith("//"))
 
 
-def test_服务端能自己读的平台要算进_server_handled() -> None:
+def test_服务端也读得到的平台_定时那趟不再开页() -> None:
+    """**少开一个页面不该换掉一项能力。**
+
+    第一版我把 B 站并进 `server_handled`（「只能服务端读」），
+    部署第 8.9 步的回读判据当场拦下并说对了：那会把它**从能跑通的浏览器路上
+    踢走**，而浏览器那条读得到私密收藏夹，服务端那条读不到。
+
+    所以拆成两个字段：`server_handled` 仍然只表示「只能服务端读」，
+    新的 `server_also_reads` 表示「服务端也读得到」——
+    扩展**只据此跳过定时那一趟**，手动同步照旧走浏览器。
+    """
     import ast  # noqa: PLC0415
 
     source = (ROOT / "src/social_archive/api.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
-    names = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
-    assert "SERVER_ALSO_READS" in names, (
-        "api.py 里没有用到 SERVER_ALSO_READS —— server_handled 只看 "
-        "SERVER_ACCOUNT_CONNECTORS 的话，B 站每天还会被扩展开一次页，"
-        "而那一趟读回来的东西服务端早已经有了。")
-    # 那一行必须真的把两个集合并起来，不是只提到名字
-    assert re.search(r"server_handled.*SERVER_ACCOUNT_CONNECTORS\s*\|\s*SERVER_ALSO_READS", source), (
-        "server_handled 那一行没有把两个集合并起来")
+    consts = {node.value for node in ast.walk(tree)
+              if isinstance(node, ast.Constant) and isinstance(node.value, str)}
+    assert "server_also_reads" in consts, (
+        "/v1/accounts 不下发 server_also_reads —— 扩展就没法只跳过定时那一趟，"
+        "只能在「每天开页骚扰他」和「砍掉私密收藏夹那条路」之间二选一。")
+    assert "server_handled" in consts, "server_handled 不能一起丢掉"
+
+    # **server_handled 里不许再混进 SERVER_ALSO_READS** —— 那正是被判据否掉的那版。
+    published = source[source.index('"server_handled"'):source.index('"server_handled"') + 200]
+    assert "SERVER_ALSO_READS" not in published, (
+        "server_handled 又把 SERVER_ALSO_READS 并进去了 —— "
+        "那会把 B 站从浏览器路上踢走，私密收藏夹再也读不到。")
+
+    # 扩展那侧：只在定时那一趟用它
+    code = _code()
+    assert "serverAlsoReads" in code, "扩展没读这个字段，定时那趟照旧开页"
+    window = code[code.find("async function enqueueAllAccounts"):]
+    window = window[:window.find("\n}")]
+    assert 'triggerType === "scheduled"' in window and "serverAlsoReads" in window, (
+        "跳过的条件没有限定在定时那一趟 —— 手动同步也被跳掉的话，"
+        "私密收藏夹就永远读不到了。")
 
 
 def test_开标签页之前必须先查授权() -> None:

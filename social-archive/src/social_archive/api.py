@@ -703,14 +703,19 @@ def accounts() -> dict[str, Any]:
                 # 这是同一个 Owner 抱怨（「把目标网页开了关关了开」）的另一半：
                 # 上一轮只挡住了「服务端说同步不了」的平台，
                 # 这一条挡住「服务端自己就能干、根本不该动浏览器」的平台。
-                # **「服务端能自己读」也算 server_handled。**（2026-08-20）
+                "server_handled": platform in SERVER_ACCOUNT_CONNECTORS,
+                # **「服务端也读得到」和「只能服务端读」是两回事。**（2026-08-20）
                 #
-                # Owner 报：每天早上他的 Chrome 自己打开又关掉小红书/抖音/B站。
-                # 那是扩展的 6 小时定时同步在为每个账号开后台页去读。
-                # B 站 v0.0.0.105 起服务端就能自己读公开收藏夹了，
-                # 而这里只看 SERVER_ACCOUNT_CONNECTORS，于是扩展照旧每天开它的页。
-                # **纯骚扰、零收益** —— 那一趟读回来的东西服务端早已经有了。
-                "server_handled": platform in (SERVER_ACCOUNT_CONNECTORS | SERVER_ALSO_READS),
+                # 第一版我把 B 站并进了 server_handled，想让扩展别再每天开它的页。
+                # 判据当场拦下并说对了：那会**把它从能跑通的浏览器路上踢走**，
+                # 而浏览器那条路读得到私密收藏夹，服务端那条读不到
+                # （国内平台 Cookie 不出浏览器）。为了少开一个页面换掉一项能力，
+                # 不是纯赚。
+                #
+                # 所以分成两个字段：`server_handled` 仍然只表示「只能服务端读」，
+                # 这一条表示「服务端也读得到」——扩展据此**只跳过定时那一趟**，
+                # 他手动点「立即同步」时照旧走浏览器。
+                "server_also_reads": platform in SERVER_ALSO_READS,
                 # **「能不能同步」和「连它有没有用」是两个问题。**
                 #
                 # 把 x / instagram 移出 SYNCABLE_NOW 之后，界面顺手把它们的

@@ -742,7 +742,21 @@ async function enqueueAllAccounts(triggerType = "manual") {
     && item.auto_sync_enabled !== false);
   // 同步不了的平台**根本不进队列**——进了就会每分钟抢一次用户的标签页。
   const capability = await Promise.all(connected.map(item => platformCanSyncNow(item.platform)));
-  const accounts = connected.filter((_, index) => capability[index]);
+  let accounts = connected.filter((_, index) => capability[index]);
+  // **定时那一趟，服务端已经在读的平台不必再开他的浏览器。**（2026-08-20）
+  //
+  // Owner：「为什么现在我的电脑每天 8 点都会自己打开并关闭小红书抖音bilibili」。
+  // B 站从 v0.0.0.105 起服务端自己就读得到公开收藏夹，而扩展照旧每 6 小时
+  // 为它开一个后台页——读回来的东西服务端早已经有了，**纯骚扰**。
+  //
+  // **只跳定时那一趟。** 他手动点「立即同步」时照旧走浏览器，
+  // 因为浏览器那条路读得到私密收藏夹，服务端那条读不到
+  // （国内平台 Cookie 不出浏览器）。判据 test_no_tab_is_opened... 守这条界线：
+  // 少开一个页面不该换掉一项能力。
+  if (triggerType === "scheduled") {
+    const alsoServer = await Promise.all(accounts.map(item => platformCapability(item.platform)));
+    accounts = accounts.filter((_, index) => !alsoServer[index].serverAlsoReads);
+  }
   const results = [];
   for (const account of accounts) {
     try { results.push(await enqueueAccountSync({ accountId: account.id, triggerType })); }
@@ -854,9 +868,11 @@ async function platformCapability(platform) {
     return {
       canSync: entry ? entry.sync_supported !== false : true,
       serverHandled: entry ? entry.server_handled === true : false,
+      // 「服务端也读得到」——**只用来跳过定时那一趟**，不改变手动同步的路。
+      serverAlsoReads: entry ? entry.server_also_reads === true : false,
     };
   } catch (_) {
-    return { canSync: true, serverHandled: false };
+    return { canSync: true, serverHandled: false, serverAlsoReads: false };
   }
 }
 
