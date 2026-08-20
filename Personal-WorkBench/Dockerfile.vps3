@@ -35,6 +35,11 @@ COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 COPY --from=builder --chown=node:node /app/public ./public
 COPY --from=builder --chown=node:node /app/drizzle/postgres ./drizzle/postgres
 COPY --from=builder --chown=node:node /app/scripts/vps3 ./scripts/vps3
+# The pre-cutover SQLite importer is an operational script rather than a traced
+# Next.js dependency, so retain its native module and its two runtime helpers.
+COPY --from=dependencies --chown=node:node /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
+COPY --from=dependencies --chown=node:node /app/node_modules/bindings ./node_modules/bindings
+COPY --from=dependencies --chown=node:node /app/node_modules/file-uri-to-path ./node_modules/file-uri-to-path
 USER node
 EXPOSE 3000
 VOLUME ["/data"]
