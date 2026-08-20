@@ -21,8 +21,46 @@ const quote = (name) => `"${String(name).replaceAll('"', '""')}"`;
 const report = {};
 try {
   await client.query("BEGIN");
-  await client.query("SET CONSTRAINTS ALL DEFERRED").catch(() => undefined);
-  for (const table of tables) {
+  const foreignKeys = await client.query(`
+    SELECT
+      constraint.table_name AS table_name,
+      referenced.table_name AS referenced_table
+    FROM information_schema.table_constraints AS constraint
+    JOIN information_schema.referential_constraints AS relation
+      ON relation.constraint_catalog = constraint.constraint_catalog
+      AND relation.constraint_schema = constraint.constraint_schema
+      AND relation.constraint_name = constraint.constraint_name
+    JOIN information_schema.constraint_column_usage AS referenced
+      ON referenced.constraint_catalog = relation.unique_constraint_catalog
+      AND referenced.constraint_schema = relation.unique_constraint_schema
+      AND referenced.constraint_name = relation.unique_constraint_name
+    WHERE constraint.constraint_type = 'FOREIGN KEY'
+      AND constraint.table_schema = current_schema()
+      AND referenced.table_schema = current_schema()
+  `);
+  const remaining = new Set(tables);
+  const dependencies = new Map(tables.map((table) => [table, new Set()]));
+  for (const row of foreignKeys.rows) {
+    const table = String(row.table_name);
+    const referenced = String(row.referenced_table);
+    if (table !== referenced && remaining.has(table) && remaining.has(referenced)) {
+      dependencies.get(table)?.add(referenced);
+    }
+  }
+  const importOrder = [];
+  while (remaining.size) {
+    const ready = [...remaining]
+      .filter((table) => [...(dependencies.get(table) ?? [])].every((dependency) => !remaining.has(dependency)))
+      .sort();
+    if (!ready.length) {
+      importOrder.push(...[...remaining].sort());
+      break;
+    }
+    importOrder.push(...ready);
+    for (const table of ready) remaining.delete(table);
+  }
+
+  for (const table of importOrder) {
     const columns = sqlite.prepare(`PRAGMA table_info(${quote(table)})`).all().map((row) => String(row.name));
     if (!columns.length) continue;
     const rows = sqlite.prepare(`SELECT * FROM ${quote(table)}`).all();
