@@ -1,0 +1,30 @@
+# Keep runtime credentials, local data, and generated outputs out of Docker's
+# build context. The image only needs tracked source, public assets, migrations,
+# and the VPS3 runtime scripts.
+.git
+.gitignore
+.dockerignore
+.env
+.env.*
+.npmrc
+node_modules/
+.next/
+dist/
+coverage/
+test-results/
+playwright-report/
+outputs/
+work/
+.runtime/
+13_evidence/
+vps3-taskpack-evidence/
+vps3-acceptance-output/
+*.sqlite
+*.sqlite3
+*.db
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+.DS_Store

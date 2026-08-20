@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-personal_workbench}
       POSTGRES_USER: ${POSTGRES_USER:-personal_workbench}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?set it through --env-file .env.vps3 or Coolify}"
     volumes:
       - personal_workbench_postgres:/var/lib/postgresql/data
     healthcheck:
@@ -19,7 +19,7 @@ services:
       context: .
       dockerfile: Dockerfile.vps3
       args:
-        APP_ORIGIN: ${APP_ORIGIN}
+        APP_ORIGIN: "${APP_ORIGIN:?set it through --env-file .env.vps3 or Coolify}"
     image: personal-workbench:vps3-postgresql
     restart: unless-stopped
     env_file:
@@ -28,7 +28,8 @@ services:
       NODE_ENV: production
       PORT: 3000
       HOSTNAME: 0.0.0.0
-      DATABASE_URL: postgresql://${POSTGRES_USER:-personal_workbench}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB:-personal_workbench}
+      APP_ORIGIN: "${APP_ORIGIN:?set it through --env-file .env.vps3 or Coolify}"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-personal_workbench}:${POSTGRES_PASSWORD:?set it through --env-file .env.vps3 or Coolify}@database:5432/${POSTGRES_DB:-personal_workbench}"
       OBJECT_STORAGE_PATH: /data/objects
       RUNTIME_BACKUP_DIR: /data/backups
       WORKBENCH_REQUIRE_SENSITIVE_CONSENT: "0"

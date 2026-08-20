@@ -15,20 +15,27 @@
 
 生产运行不依赖 ChatGPT Sites、ChatGPT Science、OpenAI Hosting、Cloudflare Workers、D1 或 R2。Cloudflare 只可作为 DNS、代理、TLS 和 Turnstile 的外围能力。
 
-## 本地运行
+## 源码本地检查
 
 ```bash
-cp .env.vps3.example .env.vps3
 npm ci
-npm run db:migrate:vps3
-npm run dev
+npm run check:vps3
 ```
 
 ## VPS3 部署
 
 - 镜像入口：`Dockerfile.vps3`
 - Compose：`compose.vps3.yml`
-- 数据库迁移：`npm run db:migrate:vps3`
+- 先复制 `cp .env.vps3.example .env.vps3`，替换模板中的所有占位值；该私有文件不得提交。
+- 每次 Compose 操作都必须显式载入该文件，先运行：
+
+  ```bash
+  docker compose --env-file .env.vps3 -f compose.vps3.yml config --quiet
+  docker compose --env-file .env.vps3 -f compose.vps3.yml up -d --build
+  ```
+
+- Coolify 部署时，将模板中的同名变量配置在 Coolify 环境变量界面；不要把 `.env.vps3` 上传到仓库或镜像构建上下文。
+- 容器入口会在启动 Next.js 前自动执行数据库迁移；`npm run db:migrate:vps3` 只应在已配置 `DATABASE_URL` 的目标运行环境中单独使用。
 - SQLite 历史数据导入：`npm run db:import-sqlite:vps3 -- /path/to/old.sqlite3`
 - 数据库备份：`npm run db:backup:vps3`
 - 数据库恢复：`npm run db:restore:vps3 -- /path/to/backup.dump`
