@@ -77,7 +77,11 @@ jobs:
           deployment="$(python3 - "$receipt" <<'PY'
           import json,sys
           value=json.load(open(sys.argv[1]))
-          print(value.get('deployment_uuid') or value.get('uuid') or '')
+          deployments=value.get('deployments')
+          if isinstance(deployments, list) and deployments:
+              print(deployments[0].get('deployment_uuid') or '')
+          else:
+              print(value.get('deployment_uuid') or value.get('uuid') or '')
           PY
           )"
           test -n "$deployment"
