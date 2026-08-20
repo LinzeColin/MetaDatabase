@@ -37,7 +37,7 @@ import { SensitiveCloudConsentRequiredError } from "../server/security/privacy-c
 import { isVerifiedGoogleEmailClaim } from "../server/auth/index.ts";
 import { requireFreshVerifiedSession, requireVerifiedSession } from "../server/auth/session.ts";
 
-const fakeDatabase = {} as D1Database;
+const fakeDatabase = {} as SqlDatabase;
 const validRuntime = {
   DB: fakeDatabase,
   APP_ORIGIN: "https://workbench.example.test",

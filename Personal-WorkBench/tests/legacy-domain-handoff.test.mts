@@ -55,7 +55,7 @@ function createHandoffDb() {
         },
       };
     },
-  } as unknown as Pick<D1Database, "prepare">;
+  } as unknown as Pick<SqlDatabase, "prepare">;
   return { db, rows };
 }
 

@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
-import type { D1PreparedStatement } from "@cloudflare/workers-types";
 import {
   createTenantRecord,
   deleteTenantRecord,
@@ -13,8 +12,8 @@ import {
 import { getTenantResource, normalizeResourceInput } from "../server/data/resources.ts";
 import { NotAccessibleError } from "../server/security/tenant.ts";
 
-type TenantDb = Pick<D1Database, "prepare">;
-type BoundResult = Pick<D1PreparedStatement, "bind" | "run" | "first" | "all" | "raw">;
+type TenantDb = Pick<SqlDatabase, "prepare">;
+type BoundResult = Pick<SqlPreparedStatement, "bind" | "run" | "first" | "all" | "raw">;
 
 function emptyMeta(changes = 0) {
   return {

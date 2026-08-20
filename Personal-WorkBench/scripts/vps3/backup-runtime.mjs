@@ -1,21 +1,25 @@
-import Database from "better-sqlite3";
 import { mkdir, readdir, rm } from "node:fs/promises";
+import { spawn } from "node:child_process";
 import path from "node:path";
 import process from "node:process";
 
-const databasePath = path.resolve(process.env.RUNTIME_DB_PATH || "/data/personal-workbench.sqlite3");
+const connectionString = process.env.DATABASE_URL?.trim();
+if (!connectionString) throw new Error("DATABASE_URL is required.");
 const backupDirectory = path.resolve(process.env.RUNTIME_BACKUP_DIR || "/data/backups");
-const keep = 3;
+const keep = Math.max(1, Number(process.env.BACKUP_KEEP || 3));
 await mkdir(backupDirectory, { recursive: true });
 
 const stamp = new Date().toISOString().replaceAll(":", "-").replaceAll(".", "-");
-const destination = path.join(backupDirectory, `personal-workbench-${stamp}.sqlite3`);
-const database = new Database(databasePath);
-await database.backup(destination);
-database.close();
+const destination = path.join(backupDirectory, `personal-workbench-${stamp}.dump`);
+const command = spawn("pg_dump", ["--format=custom", "--no-owner", "--file", destination, connectionString], {
+  stdio: "inherit",
+  env: process.env,
+});
+const exitCode = await new Promise((resolve) => command.once("exit", resolve));
+if (exitCode !== 0) process.exit(Number(exitCode ?? 1));
 
 const backups = (await readdir(backupDirectory))
-  .filter((name) => name.startsWith("personal-workbench-") && name.endsWith(".sqlite3"))
+  .filter((name) => name.startsWith("personal-workbench-") && name.endsWith(".dump"))
   .sort()
   .reverse();
 for (const stale of backups.slice(keep)) {

@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
-import type { D1PreparedStatement } from "@cloudflare/workers-types";
 import {
   LegacyImportConflictError,
   LegacyImportError,
@@ -19,7 +18,7 @@ import { SensitiveCloudConsentRequiredError } from "../server/security/privacy-c
 
 type LegacyImportDb = Parameters<typeof previewLegacyImport>[0];
 
-type BoundResult = Pick<D1PreparedStatement, "bind" | "run" | "first" | "all" | "raw">;
+type BoundResult = Pick<SqlPreparedStatement, "bind" | "run" | "first" | "all" | "raw">;
 
 type D1Mock = Pick<LegacyImportDb, "batch" | "prepare">;
 type BatchableStatement = BoundResult & {
@@ -106,12 +105,12 @@ function asD1Mock(db: DatabaseSync, options: { failBatchStatementAt?: number } =
       first: bindless.first,
       all: bindless.all,
       raw: bindless.raw,
-    } as D1PreparedStatement;
+    } as SqlPreparedStatement;
   };
 
   return {
     prepare,
-    async batch<T = unknown>(statements: D1PreparedStatement[]): Promise<D1Result<T>[]> {
+    async batch<T = unknown>(statements: SqlPreparedStatement[]): Promise<SqlResult<T>[]> {
       db.exec("SAVEPOINT legacy_import_batch");
       try {
         const results = [];
@@ -122,7 +121,7 @@ function asD1Mock(db: DatabaseSync, options: { failBatchStatementAt?: number } =
           results.push(await run());
         }
         db.exec("RELEASE SAVEPOINT legacy_import_batch");
-        return results as D1Result<T>[];
+        return results as SqlResult<T>[];
       } catch (error) {
         db.exec("ROLLBACK TO SAVEPOINT legacy_import_batch");
         db.exec("RELEASE SAVEPOINT legacy_import_batch");

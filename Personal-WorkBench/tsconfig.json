@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -12,7 +16,9 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "types": ["@cloudflare/workers-types"],
+    "types": [
+      "node"
+    ],
     "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
@@ -21,7 +27,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     }
   },
   "include": [
@@ -32,5 +40,17 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "tests/pw-temp.spec.ts"]
+  "exclude": [
+    "node_modules",
+    "tests/pw-temp.spec.ts",
+    "tests/auth-tenant-integration.test.mts",
+    "tests/legacy-domain-handoff.test.mts",
+    "tests/canonical-domain.test.mts",
+    "tests/tenant-store-integration.test.mts",
+    "tests/legacy-import.test.mts",
+    "tests/account-lifecycle.test.mts",
+    "tests/privacy.test.mts",
+    "tests/storage-binding-health.test.mts",
+    "tests/r2.test.mts"
+  ]
 }

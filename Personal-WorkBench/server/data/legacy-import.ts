@@ -40,7 +40,7 @@ export type ImportPreview = {
   canApply: boolean;
 };
 
-type LegacyImportDb = Pick<D1Database, "batch" | "prepare">;
+type LegacyImportDb = Pick<SqlDatabase, "batch" | "prepare">;
 type LegacyImportRow = {
   id: string;
   values: Record<string, string | number | boolean | null>;
@@ -348,7 +348,7 @@ async function upsertLegacyImportRows(
   const insertedCounts: Record<string, number> = {};
   const skippedCounts: Record<string, number> = {};
   const now = Date.now();
-  const inserts: Array<{ moduleName: LegacyModule; statement: D1PreparedStatement }> = [];
+  const inserts: Array<{ moduleName: LegacyModule; statement: SqlPreparedStatement }> = [];
 
   for (const moduleName of MODULES) {
     const resource = moduleResource(moduleName);

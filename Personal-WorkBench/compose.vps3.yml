@@ -1,11 +1,26 @@
 services:
+  database:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-personal_workbench}
+      POSTGRES_USER: ${POSTGRES_USER:-personal_workbench}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - personal_workbench_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-personal_workbench} -d ${POSTGRES_DB:-personal_workbench}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   personal-workbench:
     build:
       context: .
       dockerfile: Dockerfile.vps3
       args:
         APP_ORIGIN: ${APP_ORIGIN}
-    image: personal-workbench:vps3
+    image: personal-workbench:vps3-postgresql
     restart: unless-stopped
     env_file:
       - .env.vps3
@@ -13,14 +28,20 @@ services:
       NODE_ENV: production
       PORT: 3000
       HOSTNAME: 0.0.0.0
-      RUNTIME_DB_PATH: /data/personal-workbench.sqlite3
+      DATABASE_URL: postgresql://${POSTGRES_USER:-personal_workbench}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB:-personal_workbench}
+      OBJECT_STORAGE_PATH: /data/objects
       RUNTIME_BACKUP_DIR: /data/backups
       WORKBENCH_REQUIRE_SENSITIVE_CONSENT: "0"
     volumes:
-      - personal_workbench_data:/data
+      - personal_workbench_objects:/data
     expose:
       - "3000"
+    depends_on:
+      database:
+        condition: service_healthy
 
 volumes:
-  personal_workbench_data:
-    name: personal_workbench_data
+  personal_workbench_postgres:
+    name: personal_workbench_postgres
+  personal_workbench_objects:
+    name: personal_workbench_objects

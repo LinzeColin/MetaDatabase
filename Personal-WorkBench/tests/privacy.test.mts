@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
-import type { D1PreparedStatement } from "@cloudflare/workers-types";
 import {
   ACCOUNT_PRIVACY_NOTICE_SHA256,
   ACCOUNT_PRIVACY_POLICY_VERSION,
@@ -18,7 +17,7 @@ import {
 
 type PrivacyDb = Pick<Parameters<typeof getPrivacyState>[0], "prepare">;
 
-type BoundResult = Pick<D1PreparedStatement, "bind" | "run" | "first" | "all" | "raw">;
+type BoundResult = Pick<SqlPreparedStatement, "bind" | "run" | "first" | "all" | "raw">;
 
 type D1Mock = Pick<PrivacyDb, "prepare">;
 

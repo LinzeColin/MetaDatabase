@@ -17,7 +17,7 @@ test("storage binding probe uses only a constant D1 query and an R2 head", async
         return null;
       },
     },
-  } as unknown as { DB: D1Database; FILES: R2Bucket };
+  } as unknown as { DB: SqlDatabase; FILES: ObjectBucket };
 
   const result = await probeStorageBindings(env);
 
@@ -37,7 +37,7 @@ test("storage binding probe surfaces an unavailable binding without fallback", a
     FILES: {
       head: async () => null,
     },
-  } as unknown as { DB: D1Database; FILES: R2Bucket };
+  } as unknown as { DB: SqlDatabase; FILES: ObjectBucket };
 
   await assert.rejects(() => probeStorageBindings(env), /binding unavailable/);
 });

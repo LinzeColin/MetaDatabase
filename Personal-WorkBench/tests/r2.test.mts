@@ -45,7 +45,7 @@ test("file creation records owner metadata before writing the private object", a
     FILES: {
       put: async (key: string) => { operations.push(`put:${key}`); },
     },
-  } as unknown as { DB: D1Database; FILES: R2Bucket };
+  } as unknown as { DB: SqlDatabase; FILES: ObjectBucket };
   const validated = await validatePrivateImageUpload("image/png", png);
   await createPrivateFile(env, { userId: "user_a", id: "rec_a", module: "food", buffer: png, validated });
   assert.match(operations[0], /INSERT INTO file_objects/);
@@ -73,7 +73,7 @@ test("diary image creation stops before D1 or R2 writes without current consent"
     FILES: {
       put: async () => { operations.push("r2-write"); },
     },
-  } as unknown as { DB: D1Database; FILES: R2Bucket };
+  } as unknown as { DB: SqlDatabase; FILES: ObjectBucket };
   const validated = await validatePrivateImageUpload("image/png", png);
   await assert.rejects(
     () => createPrivateFile(env, { userId: "user_a", id: "diary_a", module: "diary", buffer: png, validated }),

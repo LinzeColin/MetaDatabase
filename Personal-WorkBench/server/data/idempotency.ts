@@ -1,4 +1,4 @@
-type IdempotencyDb = Pick<D1Database, "prepare">;
+type IdempotencyDb = Pick<SqlDatabase, "prepare">;
 
 type IdempotencyRecord = {
   request_hash: string;

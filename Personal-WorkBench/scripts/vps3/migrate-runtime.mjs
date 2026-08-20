@@ -1,44 +1,53 @@
-import Database from "better-sqlite3";
-import { mkdir, readdir, readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { Pool } from "pg";
 
-const databasePath = path.resolve(process.env.RUNTIME_DB_PATH || "./.runtime/personal-workbench.sqlite3");
-const migrationsPath = path.resolve(process.cwd(), "drizzle");
-await mkdir(path.dirname(databasePath), { recursive: true });
+const connectionString = process.env.DATABASE_URL?.trim();
+if (!connectionString) throw new Error("DATABASE_URL is required.");
 
-const database = new Database(databasePath);
-database.pragma("foreign_keys = ON");
-database.pragma("journal_mode = WAL");
-database.pragma("synchronous = NORMAL");
-database.pragma("busy_timeout = 5000");
-database.exec(`
-  CREATE TABLE IF NOT EXISTS vps3_migrations (
-    name TEXT PRIMARY KEY,
-    applied_at INTEGER NOT NULL
+const pool = new Pool({ connectionString, max: 2, connectionTimeoutMillis: 10_000 });
+const migrationsPath = path.resolve(process.cwd(), "drizzle/postgres");
+const client = await pool.connect();
+try {
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS pwb_schema_migrations (
+      name TEXT PRIMARY KEY,
+      applied_at BIGINT NOT NULL
+    )
+  `);
+  const files = (await readdir(migrationsPath))
+    .filter((name) => /^\d+.*\.sql$/.test(name))
+    .sort((left, right) => left.localeCompare(right, "en"));
+
+  for (const name of files) {
+    const existing = await client.query(
+      "SELECT 1 FROM pwb_schema_migrations WHERE name = $1 LIMIT 1",
+      [name],
+    );
+    if (existing.rowCount) continue;
+    const sql = await readFile(path.join(migrationsPath, name), "utf8");
+    await client.query("BEGIN");
+    try {
+      await client.query(sql);
+      await client.query(
+        "INSERT INTO pwb_schema_migrations (name, applied_at) VALUES ($1, $2)",
+        [name, Date.now()],
+      );
+      await client.query("COMMIT");
+      console.log(`migration_applied=${name}`);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    }
+  }
+
+  const count = await client.query(
+    "SELECT COUNT(*)::bigint AS count FROM information_schema.tables WHERE table_schema = current_schema() AND table_type = 'BASE TABLE'",
   );
-`);
-
-const applied = database.prepare("SELECT 1 FROM vps3_migrations WHERE name = ? LIMIT 1");
-const record = database.prepare("INSERT INTO vps3_migrations (name, applied_at) VALUES (?, ?)");
-const files = (await readdir(migrationsPath))
-  .filter((name) => /^\d+.*\.sql$/.test(name))
-  .sort((left, right) => left.localeCompare(right, "en"));
-
-for (const name of files) {
-  if (applied.get(name)) continue;
-  const sql = await readFile(path.join(migrationsPath, name), "utf8");
-  const migrate = database.transaction(() => {
-    database.exec(sql);
-    record.run(name, Date.now());
-  });
-  migrate();
-  console.log(`migration_applied=${name}`);
+  console.log("database_ready=postgresql");
+  console.log(`table_count=${count.rows[0]?.count ?? 0}`);
+} finally {
+  client.release();
+  await pool.end();
 }
-
-const tableCount = database
-  .prepare("SELECT COUNT(*) AS count FROM sqlite_master WHERE type = 'table'")
-  .get().count;
-console.log(`database_ready=${databasePath}`);
-console.log(`table_count=${tableCount}`);
-database.close();

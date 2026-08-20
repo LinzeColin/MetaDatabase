@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
-import type { D1PreparedStatement } from "@cloudflare/workers-types";
 import {
   AccountDeleteStateError,
   AccountInputError,
@@ -12,7 +11,7 @@ import {
 } from "../server/data/account-lifecycle.ts";
 
 type AccountLifecycleDb = Pick<Parameters<typeof getAccountExport>[0], "prepare">;
-type BoundResult = Pick<D1PreparedStatement, "bind" | "run" | "first" | "all" | "raw">;
+type BoundResult = Pick<SqlPreparedStatement, "bind" | "run" | "first" | "all" | "raw">;
 type D1Mock = Pick<AccountLifecycleDb, "prepare">;
 
 function asD1Mock(db: DatabaseSync): D1Mock {

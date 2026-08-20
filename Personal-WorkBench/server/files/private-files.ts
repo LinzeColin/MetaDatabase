@@ -8,7 +8,7 @@ const maxFileBytes = 10 * 1024 * 1024;
 const maxImagePixels = 40_000_000;
 const supportedMimeTypes = ["image/jpeg", "image/png", "image/webp"] as const;
 
-type FilesEnv = { DB: D1Database; FILES: R2Bucket };
+type FilesEnv = { DB: SqlDatabase; FILES: ObjectBucket };
 
 type FileRow = {
   id: string;

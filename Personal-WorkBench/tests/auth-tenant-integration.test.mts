@@ -40,7 +40,7 @@ function d1Result(changes = 0) {
 }
 
 /** Isolated D1-compatible adapter backed by Node's in-memory SQLite. */
-function createIsolatedD1(sqlite: DatabaseSync): D1Database {
+function createIsolatedD1(sqlite: DatabaseSync): SqlDatabase {
   const prepare = (sql: string) => {
     const statement = sqlite.prepare(sql);
     const bind = (...boundValues: unknown[]) => {
@@ -72,7 +72,7 @@ function createIsolatedD1(sqlite: DatabaseSync): D1Database {
       return { count: 0, duration: 0 };
     },
     dump: async () => new ArrayBuffer(0),
-  } as unknown as D1Database;
+  } as unknown as SqlDatabase;
 }
 
 function messageLink(body: unknown): string | null {
