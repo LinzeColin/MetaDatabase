@@ -4,7 +4,7 @@ import { tenantResources, type TenantResource, type TenantResourceName } from "@
 export const ACCOUNT_PRIVACY_POLICY_VERSION = "2026-08-03.v2";
 export const ACCOUNT_PRIVACY_NOTICE_SHA256 = "5c5403e8747d4ca0df26b98b1c08fef978f8ba76e98770e6c28df64ae2f7e956";
 
-type AccountDb = Pick<D1Database, "prepare">;
+type AccountDb = Pick<SqlDatabase, "prepare">;
 
 type RowByName = Record<string, unknown>;
 type FileRow = {
@@ -435,7 +435,7 @@ async function removeAccountData(
     try {
       await fileEnv.FILES!.delete(file.object_key);
     } catch {
-      // Do not remove D1 ownership metadata or the user until every R2 object is gone.
+      // Do not remove database ownership metadata or the user until every private object is gone.
       // The pending deletion state and recovery token deliberately remain retryable.
       throw new AccountDeleteStateError("私有文件删除未完成，请重试确认删除。");
     }
@@ -450,7 +450,7 @@ async function removeAccountData(
   await db.prepare("DELETE FROM legacy_imports WHERE user_id = ?").bind(userId).run();
   await db.prepare("DELETE FROM verification WHERE identifier IN (SELECT email FROM \"user\" WHERE id = ?)").bind(userId).run();
   await db.prepare("DELETE FROM profile_settings WHERE user_id = ?").bind(userId).run();
-  await db.prepare("DELETE FROM user WHERE id = ?").bind(userId).run();
+  await db.prepare('DELETE FROM "user" WHERE id = ?').bind(userId).run();
 }
 
 export async function undoAccountDeletion(db: AccountDb, userId: string, input: { recoveryToken: string }): Promise<void> {
@@ -459,7 +459,7 @@ export async function undoAccountDeletion(db: AccountDb, userId: string, input: 
 }
 
 export async function confirmAccountDeletion(
-  db: Pick<D1Database, "prepare">,
+  db: Pick<SqlDatabase, "prepare">,
   fileEnv: FileStoreEnv,
   userId: string,
   input: { recoveryToken: string },
@@ -469,7 +469,7 @@ export async function confirmAccountDeletion(
 }
 
 export async function processDeleteRequest(
-  db: Pick<D1Database, "prepare">,
+  db: Pick<SqlDatabase, "prepare">,
   fileEnv: FileStoreEnv,
   userId: string,
   body: unknown,

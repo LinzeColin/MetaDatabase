@@ -25,7 +25,7 @@ const HANDOFF_IDENTIFIER_PREFIX = "mydairy:legacy-domain-handoff:";
 const LEGACY_DOMAIN_ORIGIN = `https://${RETIRED_COMPATIBILITY_HOST}`;
 const SIGNED_SESSION_COOKIE_PATTERN = /^[A-Za-z0-9._~-]{20,2048}$/;
 
-type HandoffDatabase = Pick<D1Database, "prepare">;
+type HandoffDatabase = Pick<SqlDatabase, "prepare">;
 
 export type LegacyDomainHandoff = {
   sessionCookie: string;

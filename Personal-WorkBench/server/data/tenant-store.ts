@@ -1,7 +1,7 @@
 import { NotAccessibleError } from "@/server/security/tenant";
 import { type TenantResource } from "./resources";
 
-type TenantDb = Pick<D1Database, "prepare">;
+type TenantDb = Pick<SqlDatabase, "prepare">;
 type DatabaseRow = Record<string, unknown>;
 export type NormalizedResourceValues = Record<string, string | number | boolean | null>;
 

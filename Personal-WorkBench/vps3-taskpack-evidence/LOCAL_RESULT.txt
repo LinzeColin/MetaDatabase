@@ -1,4 +1,0 @@
-branch=codex/personal-workbench-vps3-20260815T041527Z
-worktree=/Users/linzezhang/Documents/Codex/GithubProject/_scratch/MetaDatabase-personal-workbench-vps3-v000011-run3
-code_gate=PASS
-docker_build=PASS

@@ -3,7 +3,7 @@ import {
   getPrivacyState,
 } from "../data/account-lifecycle.ts";
 
-type PrivacyDb = Pick<D1Database, "prepare">;
+type PrivacyDb = Pick<SqlDatabase, "prepare">;
 
 /**
  * These are the only server-side cloud targets that require the account-level

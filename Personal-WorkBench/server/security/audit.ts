@@ -1,4 +1,4 @@
-type AuditEnv = { DB: D1Database };
+type AuditEnv = { DB: SqlDatabase };
 
 /**
  * Security events intentionally carry no request body, email address, object

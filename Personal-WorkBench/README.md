@@ -1,112 +1,42 @@
-# vinext-starter
+# 个人工作台 / Personal Workbench
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+普通用户打开网站、注册或登录后，即可直接使用个人工作台；所有数据保存到用户自己的云服务器与云数据库，并可在任意设备继续使用。
 
-## Prerequisites
+## 当前生产架构
 
-- Node.js `>=22.13.0`
+```text
+浏览器
+  → mydairy.linzezhang.com
+  → VPS3 / Coolify / Traefik
+  → Next.js Node.js 应用
+  → PostgreSQL 权威数据库
+  → VPS3 持久化对象目录
+```
 
-## Quick Start
+生产运行不依赖 ChatGPT Sites、ChatGPT Science、OpenAI Hosting、Cloudflare Workers、D1 或 R2。Cloudflare 只可作为 DNS、代理、TLS 和 Turnstile 的外围能力。
+
+## 本地运行
 
 ```bash
-npm install
+cp .env.vps3.example .env.vps3
+npm ci
+npm run db:migrate:vps3
 npm run dev
-npm run build
 ```
 
-This starter does not use `wrangler.jsonc`.
+## VPS3 部署
 
-## Included Shape
+- 镜像入口：`Dockerfile.vps3`
+- Compose：`compose.vps3.yml`
+- 数据库迁移：`npm run db:migrate:vps3`
+- SQLite 历史数据导入：`npm run db:import-sqlite:vps3 -- /path/to/old.sqlite3`
+- 数据库备份：`npm run db:backup:vps3`
+- 数据库恢复：`npm run db:restore:vps3 -- /path/to/backup.dump`
+- 生产验收：`npm run accept:vps3`
 
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
+## 核心运行要求
 
-## Transactional email runtime
-
-Resend remains the default transactional-mail provider through the narrow
-server-side `MailPort`. A controlled NitroSend REST-compatible alternative is
-available only when `MAIL_PROVIDER=nitrosend` and a Sites secret named
-`NITROSEND_API_KEY` are both present; no provider SDK is added and no credential
-belongs in source, local `.env`, build artifacts, or repository evidence.
-
-`MAIL_FROM` remains the canonical Sites sender binding. The sender must already
-be verified by the selected provider before a private candidate can perform
-verification or password-reset delivery.
-
-## Workspace Auth Headers
-
-Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
-
-The user ID is stable for the same user on the same Site and different across Sites. Email and name are intended for display or contact purposes.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
-```
-
-## Optional Dispatch-Owned ChatGPT Sign-In
-
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
-
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
-
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
-
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
-
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+- `DATABASE_URL` 必须指向 VPS3/Coolify PostgreSQL。
+- `/data/objects` 必须挂载持久化卷。
+- 邮箱、Google OAuth、Turnstile 和正式域名配置只通过生产环境变量注入。
+- 任何发布必须在真实网址完成注册/登录、写入、刷新、重登、第二账户隔离和重新部署后读回。

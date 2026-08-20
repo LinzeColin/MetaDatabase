@@ -1,11 +1,11 @@
 /**
  * Performs a deliberately data-free runtime check of the declared storage
  * bindings. It never selects from product tables and never reads, lists,
- * writes, or deletes an R2 object.
+ * writes or deletes a private object.
  */
 export type StorageBindingEnv = {
-  DB: Pick<D1Database, "prepare">;
-  FILES: Pick<R2Bucket, "head">;
+  DB: Pick<SqlDatabase, "prepare">;
+  FILES: Pick<ObjectBucket, "head">;
 };
 
 export type StorageBindingHealth = {

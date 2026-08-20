@@ -1,7 +1,8 @@
 import type { MailProvider } from "./mail";
 
 export type AuthRuntimeEnv = {
-  DB?: D1Database;
+  DB?: SqlDatabase;
+  DATABASE_URL?: string;
   BETTER_AUTH_SECRET?: string;
   APP_ORIGIN?: string;
   APP_TRUSTED_ORIGINS?: string;
@@ -19,7 +20,8 @@ export type AuthRuntimeEnv = {
 };
 
 export type AuthRuntimeConfig = {
-  db: D1Database;
+  db: SqlDatabase;
+  databaseUrl: string;
   appOrigin: string;
   trustedOrigins: string[];
   authSecret: string;
@@ -34,12 +36,12 @@ export type AuthRuntimeConfig = {
 
 /**
  * Deliberately coarse, value-free readiness categories. These may be emitted
- * to protected worker logs while diagnosing an unavailable authentication
+ * to protected server logs while diagnosing an unavailable authentication
  * runtime; they never contain a setting name, a secret, an Origin, or a user
  * identifier.
  */
 export type AuthRuntimeMissingCategory =
-  | "d1_binding"
+  | "database_binding"
   | "app_origin"
   | "auth_secret"
   | "google_oauth"
@@ -140,8 +142,8 @@ function resolveMailProvider(env: AuthRuntimeEnv): {
 }
 
 /**
- * Return only stable operational categories so protected worker logs can
- * distinguish a missing binding from a provider configuration issue without
+ * Return only stable operational categories so protected server logs can
+ * distinguish a missing database binding from a provider configuration issue without
  * retaining settings, secrets, Origins, or account data.
  */
 export function getAuthRuntimeMissingCategories(
@@ -157,7 +159,7 @@ export function getAuthRuntimeMissingCategories(
     authFromEmail && mailFrom && authFromEmail.toLowerCase() !== mailFrom.toLowerCase(),
   );
 
-  if (!env.DB) categories.push("d1_binding");
+  if (!nonEmpty(env.DATABASE_URL)) categories.push("database_binding");
   if (!appOrigin || !trustedOrigins) categories.push("app_origin");
   if (!authSecret || authSecret.length < 32) {
     categories.push("auth_secret");
@@ -187,16 +189,19 @@ export function readAuthRuntimeConfig(env: AuthRuntimeEnv): AuthRuntimeConfig | 
   const mailProvider = resolveMailProvider(env);
   const authFromEmail = nonEmpty(env.AUTH_FROM_EMAIL);
   const mailFrom = nonEmpty(env.MAIL_FROM);
-  // MAIL_FROM is the frozen Sites binding name. AUTH_FROM_EMAIL is the
-  // application name kept for backwards compatibility. If both are present,
+  // MAIL_FROM is the historical environment name. AUTH_FROM_EMAIL is the
+  // application-level alias retained for backwards compatibility. If both are present,
   // fail closed rather than silently send mail from an unexpected address.
   if (authFromEmail && mailFrom && authFromEmail.toLowerCase() !== mailFrom.toLowerCase()) return null;
   const fromEmail = authFromEmail ?? mailFrom;
   const turnstileSecretKey = nonEmpty(env.TURNSTILE_SECRET_KEY);
   const turnstileSiteKey = nonEmpty(env.TURNSTILE_SITE_KEY);
 
+  const databaseUrl = nonEmpty(env.DATABASE_URL);
+
   if (
     getAuthRuntimeMissingCategories(env).length > 0 ||
+    !databaseUrl ||
     !env.DB ||
     !appOrigin ||
     !trustedOrigins ||
@@ -214,6 +219,7 @@ export function readAuthRuntimeConfig(env: AuthRuntimeEnv): AuthRuntimeConfig | 
 
   return {
     db: env.DB,
+    databaseUrl,
     appOrigin,
     trustedOrigins,
     authSecret,
