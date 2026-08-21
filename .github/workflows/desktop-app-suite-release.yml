@@ -257,10 +257,14 @@ jobs:
         run: |
           mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
           test "${#assets[@]}" = "8"
-          gh release create "$TAG" "${assets[@]}" \
-            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest=false \
-            --title "Kimi Code Desktop v$VERSION" \
-            --notes-file Kimi-Code-Desktop/docs/RELEASE.md
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" "${assets[@]}" \
+              --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest=false \
+              --title "Kimi Code Desktop v$VERSION" \
+              --notes-file Kimi-Code-Desktop/docs/RELEASE.md
+          fi
 
   publish-harness:
     if: github.event_name == 'workflow_dispatch'
@@ -293,10 +297,14 @@ jobs:
         run: |
           mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
           test "${#assets[@]}" = "7"
-          gh release create "$TAG" "${assets[@]}" \
-            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest=false \
-            --title "Harness UI v$VERSION" \
-            --notes-file Harness-UI/docs/RELEASE.md
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" "${assets[@]}" \
+              --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest=false \
+              --title "Harness UI v$VERSION" \
+              --notes-file Harness-UI/docs/RELEASE.md
+          fi
 
   publish-dsh:
     if: github.event_name == 'workflow_dispatch'
@@ -321,7 +329,11 @@ jobs:
         run: |
           mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
           test "${#assets[@]}" = "3"
-          gh release create "$TAG" "${assets[@]}" \
-            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest=false \
-            --title "DSH Desktop v$VERSION" \
-            --notes-file Harness-UI/dsh-desktop/RELEASE.md
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" "${assets[@]}" \
+              --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest=false \
+              --title "DSH Desktop v$VERSION" \
+              --notes-file Harness-UI/dsh-desktop/RELEASE.md
+          fi
