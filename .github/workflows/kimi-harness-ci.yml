@@ -74,8 +74,20 @@ jobs:
         run: |
           swift test --package-path Harness-UI/macos
           Harness-UI/macos/scripts/build-app.sh
-          file "Harness-UI/dist/macos-arm64/Harness UI.app/Contents/MacOS/Harness UI"
-          plutil -lint "Harness-UI/dist/macos-arm64/Harness UI.app/Contents/Info.plist"
+          app="Harness-UI/dist/macos-arm64/Harness UI.app"
+          version="$(node -p 'require("./Harness-UI/package.json").version')"
+          zip="Harness-UI/dist/Harness-UI-$version-mac-arm64.zip"
+          dmg="Harness-UI/dist/Harness-UI-$version-mac-arm64.dmg"
+          staging="$RUNNER_TEMP/harness-ui-dmg"
+          mkdir -p "$staging"
+          ditto "$app" "$staging/Harness UI.app"
+          ln -s /Applications "$staging/Applications"
+          ditto -c -k --keepParent "$app" "$zip"
+          hdiutil create -volname "Harness UI" -srcfolder "$staging" -ov -format UDZO "$dmg"
+          file "$app/Contents/MacOS/Harness UI"
+          plutil -lint "$app/Contents/Info.plist"
+          test -f "$zip"
+          test -f "$dmg"
       - name: Build Kimi Code Desktop arm64 DMG and ZIP
         working-directory: Kimi-Code-Desktop
         env:
@@ -122,8 +134,12 @@ jobs:
           if (-not (Test-Path $iscc)) { throw "Inno Setup 6 was not found" }
           & $iscc "/DAppVersion=$version" "/DAppArch=x64" "/DSourceDir=$((Resolve-Path 'Harness-UI/dist/windows-x64').Path)" "Harness-UI/windows/installer.iss"
           & $iscc "/DAppVersion=$version" "/DAppArch=arm64" "/DSourceDir=$((Resolve-Path 'Harness-UI/dist/windows-arm64').Path)" "Harness-UI/windows/installer.iss"
+          Compress-Archive -Path "Harness-UI/dist/windows-x64/*" -DestinationPath "Harness-UI/dist/Harness-UI-$version-windows-x64.zip" -Force
+          Compress-Archive -Path "Harness-UI/dist/windows-arm64/*" -DestinationPath "Harness-UI/dist/Harness-UI-$version-windows-arm64.zip" -Force
           Get-Item "Harness-UI/dist/Harness-UI-$version-windows-x64-setup.exe"
           Get-Item "Harness-UI/dist/Harness-UI-$version-windows-arm64-setup.exe"
+          Get-Item "Harness-UI/dist/Harness-UI-$version-windows-x64.zip"
+          Get-Item "Harness-UI/dist/Harness-UI-$version-windows-arm64.zip"
       - name: Build Kimi Code Desktop for both architectures
         working-directory: Kimi-Code-Desktop
         shell: pwsh
