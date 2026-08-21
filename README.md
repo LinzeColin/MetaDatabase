@@ -23,8 +23,8 @@
 | PFI | ✅ 已在仓 | 个人财务智能 Streamlit 应用（顶层 `PFI/`，运行时读本机 `~/.pfi/runtime/`）；与 `LinzeDatabase/PFI` 数据目录不是同一个东西 |
 | ADP | ✅ 已迁入 | canonical 路径 `arxiv-daily-push/`；2026-07-20 从 CodexProject 迁入并纳入 `dual-plane.yml` |
 | CyberBoss | 🚧 Prestage 0 | 全云微信驱动 Codex MVP；唯一代码身份为本仓 `CyberBoss/`，按 AGPL-3.0-only 子树许可推进 |
-| Kimi-Code-Desktop | 🚧 v0.1.0 候选 | 非官方 Kimi Code 跨平台桌面壳；目标为 macOS Apple Silicon、Windows x64/arm64，子目录采用 MIT License |
-| Harness-UI | 🚧 v0.1.0 候选 | SMB 驱动的跨平台皮肤控制器与 Kimi/DSH 适配器；不分发图片，子目录采用 MIT License |
+| Kimi-Code-Desktop | ✅ v0.1.0 community prerelease | 非官方 Kimi Code 跨平台桌面壳；[零成本 Release](https://github.com/LinzeColin/MetaDatabase/releases/tag/kimi-code-desktop-community-v0.1.0) 提供 macOS Apple Silicon、Windows x64/arm64 明确标记的非受信任签名安装包，子目录采用 MIT License |
+| Harness-UI | ✅ v0.1.0 community prerelease | SMB 驱动的跨平台皮肤控制器与 Kimi/DSH 适配器；[零成本 Release](https://github.com/LinzeColin/MetaDatabase/releases/tag/harness-ui-community-v0.1.0) 不分发图片或 SMB 凭据，子目录采用 MIT License |
 
 ## 股票 Skill Registry 版本模型
 

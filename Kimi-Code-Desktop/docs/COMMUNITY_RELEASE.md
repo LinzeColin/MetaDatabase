@@ -3,6 +3,8 @@
 这是公开、可复现、**未使用受信任发行证书**的 prerelease。预算为 `$0`；它不是 Apple Developer ID
 或 Windows Authenticode 签名版，也未通过 Apple 公证。
 
+下载页：[Kimi Code Desktop v0.1.0 Community](https://github.com/LinzeColin/MetaDatabase/releases/tag/kimi-code-desktop-community-v0.1.0)
+
 ## 资产
 
 - macOS Apple Silicon：文件名含 `NOT-NOTARIZED` 的 DMG 与 ZIP；
