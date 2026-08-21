@@ -21,9 +21,11 @@
 - HarnessUI/DSH Node 回归：11/11 通过，覆盖 DSH 2.0.2 patch contract、SMB 本地降级和 adapter 安装。
 - DSH 桥接安装器 preview 不写入、不启动、不重启 DSH。
 - 当前 Kimi PID 保持不变。
+- PR #317 已合并；正式发布 run `32527795001` 全部通过。
+- [Harness UI v1.0.0](https://github.com/LinzeColin/MetaDatabase/releases/tag/harness-ui-v1.0.0) 已发布 7 个资产；[DSH Desktop v2.0.2](https://github.com/LinzeColin/MetaDatabase/releases/tag/dsh-desktop-v2.0.2) 已发布 3 个资产。
+- 四个旧 private/community Releases 已保留历史资产并明确标记“已废止”。
 
 ## 剩余
 
-- PR 合并并等待 GitHub macOS/Windows 构建。
-- 发布 `harness-ui-v1.0.0` 与 `dsh-desktop-v2.0.2`，确认安装资产和桥接包。
-- 旧 private/community Releases 只做“已废止”标记，不删除历史资产。
+- 在另一台电脑从正式 Release 安装，并选择其本机 SMB 素材目录；不要迁移 OAuth、API Key、会话或 SMB 凭据。
+- 当前 DSH 保持退出；需要使用时由 Owner 正常启动，不设置自动拉起服务。

@@ -21,9 +21,10 @@
 - Node 回归：13/13 通过。
 - shell、Python、Swift 语法与 workflow YAML 解析通过。
 - 本机完整 SwiftPM 构建被本机 Command Line Tools 的 `PackageDescription` 链接环境阻断；完整 macOS/Windows 构建交给干净 GitHub runner。
+- PR #317 与资产名修复 PR #318 已合并；正式发布 run `32527795001` 全部通过。
+- [Kimi Code Desktop v0.38.0](https://github.com/LinzeColin/MetaDatabase/releases/tag/kimi-code-desktop-v0.38.0) 已发布为正式 Release，共 8 个资产：macOS arm64/x64 DMG+ZIP、Windows x64/arm64 安装器+ZIP。
+- 旧 private/community Releases 已保留历史资产并明确标记“已废止”。
 
 ## 剩余
 
-- PR 合并并等待跨平台 CI。
-- 从 `main` 发布 `kimi-code-desktop-v0.38.0`，确认 8 个安装资产。
 - 当前 Kimi 工作结束后执行一次旧包装版本到官方版本线的人工迁移；不得为发布验收强制重启现有 Kimi。
