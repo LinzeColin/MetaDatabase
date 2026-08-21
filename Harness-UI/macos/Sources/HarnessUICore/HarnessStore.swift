@@ -32,9 +32,28 @@ public final class HarnessStore: @unchecked Sendable {
 
     public func install(build: CatalogBuild) throws {
         try queue.sync {
+            if catalogValue.count > 0 && build.catalog.count == 0 {
+                throw NSError(
+                    domain: "HarnessUI",
+                    code: 2,
+                    userInfo: [NSLocalizedDescriptionKey: "素材源未返回任何有效皮肤；已保留上一次的 \(catalogValue.count) 个素材。请检查 SMB 连接或所选目录。"]
+                )
+            }
+            let previousGames = Set(catalogValue.entries.map(\.game))
+            let nextGames = Set(build.catalog.entries.map(\.game))
+            let missingGames = previousGames.subtracting(nextGames)
+            if !missingGames.isEmpty {
+                throw NSError(
+                    domain: "HarnessUI",
+                    code: 3,
+                    userInfo: [NSLocalizedDescriptionKey: "素材源缺少既有游戏分区：\(missingGames.sorted().joined(separator: ", "))；已保留上一版目录。"]
+                )
+            }
             catalogValue = build.catalog
             assetsValue = build.assets
             stateValue = normalized(stateValue, catalog: catalogValue)
+            stateValue.catalogGenerated = build.catalog.generated
+            stateValue.updated = Int64(Date().timeIntervalSince1970 * 1000)
             try persistLocked()
         }
     }
@@ -78,6 +97,7 @@ public final class HarnessStore: @unchecked Sendable {
 
     private func normalized(_ input: HarnessState, catalog: Catalog) -> HarnessState {
         var state = input
+        state.catalogGenerated = catalog.generated.isEmpty ? state.catalogGenerated : catalog.generated
         let ids = Set(catalog.entries.map(\.id))
         state.mode = state.mode == "rotate" ? "rotate" : "gallery"
         if state.intervalMs < 60_000 { state.intervalMs = 14_400_000 }

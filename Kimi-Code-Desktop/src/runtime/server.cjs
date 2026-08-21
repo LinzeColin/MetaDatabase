@@ -2,9 +2,18 @@ const fs = require("node:fs");
 const http = require("node:http");
 const net = require("node:net");
 const path = require("node:path");
-const { spawn } = require("node:child_process");
+const { execFile, spawn } = require("node:child_process");
 
 const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+function execFileText(file, args) {
+  return new Promise((resolve, reject) => {
+    execFile(file, args, { encoding: "utf8", timeout: 3000 }, (error, stdout) => {
+      if (error) reject(error);
+      else resolve(stdout);
+    });
+  });
+}
 
 function listenOnce(port) {
   return new Promise((resolve, reject) => {
@@ -24,6 +33,39 @@ async function findAvailablePort(preferred = 58627) {
   } catch (error) {
     if (error.code !== "EADDRINUSE") throw error;
     return listenOnce(0);
+  }
+}
+
+async function macListener(port) {
+  const rawPid = await execFileText("/usr/sbin/lsof", ["-nP", "-t", `-iTCP:${port}`, "-sTCP:LISTEN"]);
+  const pids = [...new Set(rawPid.split(/\s+/).filter(Boolean).map(Number).filter(Number.isInteger))];
+  if (pids.length !== 1) return null;
+  const pid = pids[0];
+  const files = await execFileText("/usr/sbin/lsof", ["-nP", "-a", "-p", String(pid), "-d", "txt", "-Fn"]);
+  const executable = files.split("\n").find((line) => line.startsWith("n"))?.slice(1) || "";
+  const parent = await execFileText("/bin/ps", ["-p", String(pid), "-o", "ppid="]);
+  return { pid, executable, parentPid: Number(parent.trim()) || 0 };
+}
+
+async function inspectExistingServer({ port, cliPath, homeDir, platform = process.platform }) {
+  if (platform !== "darwin") return { status: "occupied", reason: "当前平台无法安全识别占用端口的进程" };
+  try {
+    const listener = await macListener(port);
+    if (!listener) return { status: "occupied", reason: "端口由多个或未知进程占用" };
+    const allowed = new Set([
+      path.resolve(cliPath),
+      path.resolve(homeDir, "bin", "kimi"),
+    ]);
+    if (!allowed.has(path.resolve(listener.executable))) {
+      return { status: "occupied", reason: `端口由其他程序占用：${listener.executable || `PID ${listener.pid}`}` };
+    }
+    if (listener.parentPid > 1 && listener.parentPid !== process.pid) {
+      return { status: "occupied", reason: "已有另一个 Kimi Code GUI 正在管理这个后台服务" };
+    }
+    if (!await httpReachable(port)) return { status: "occupied", reason: "Kimi 后台端口存在但尚未就绪" };
+    return { status: "adoptable", ...listener };
+  } catch (error) {
+    return { status: "occupied", reason: `无法确认端口进程身份：${error.message}` };
   }
 }
 
@@ -73,7 +115,27 @@ function captureOutput(stream, target) {
 }
 
 async function startKimiServer({ cliPath, homeDir, preferredPort = 58627, env = process.env }) {
-  const port = await findAvailablePort(preferredPort);
+  let port = preferredPort;
+  try {
+    port = await listenOnce(preferredPort);
+  } catch (error) {
+    if (error.code !== "EADDRINUSE") throw error;
+    const existing = await inspectExistingServer({ port: preferredPort, cliPath, homeDir });
+    if (existing.status !== "adoptable") {
+      throw new Error(`无法使用固定后台端口 ${preferredPort}：${existing.reason}。请先正常退出已有 Kimi Code。`);
+    }
+    const token = await readServerToken(homeDir);
+    return {
+      adopted: true,
+      child: null,
+      executable: existing.executable,
+      homeDir,
+      output: { text: "" },
+      pid: existing.pid,
+      port: preferredPort,
+      token,
+    };
+  }
   fs.mkdirSync(homeDir, { recursive: true });
   const output = { text: "" };
   const child = spawn(cliPath, ["web", "--no-open", "--host", "127.0.0.1", "--port", String(port)], {
@@ -89,7 +151,7 @@ async function startKimiServer({ cliPath, homeDir, preferredPort = 58627, env = 
   try {
     await waitForServer({ child, port });
     const token = await readServerToken(homeDir);
-    return { child, homeDir, output, port, token };
+    return { adopted: false, child, executable: cliPath, homeDir, output, pid: child.pid, port, token };
   } catch (error) {
     if (child.exitCode === null) child.kill();
     const diagnostic = output.text.trim();
@@ -100,17 +162,40 @@ async function startKimiServer({ cliPath, homeDir, preferredPort = 58627, env = 
 
 async function stopKimiServer(runtime, timeoutMs = 5000) {
   const child = runtime?.child;
-  if (!child || child.exitCode !== null) return;
-  const exited = new Promise((resolve) => child.once("exit", resolve));
-  child.kill("SIGTERM");
-  await Promise.race([exited, delay(timeoutMs)]);
-  if (child.exitCode === null) child.kill("SIGKILL");
+  if (child) {
+    if (child.exitCode !== null) return;
+    const exited = new Promise((resolve) => child.once("exit", resolve));
+    child.kill("SIGTERM");
+    await Promise.race([exited, delay(timeoutMs)]);
+    if (child.exitCode === null) child.kill("SIGKILL");
+    return;
+  }
+  if (!runtime?.adopted || !runtime.pid) return;
+  try { process.kill(runtime.pid, "SIGTERM"); }
+  catch (error) { if (error.code !== "ESRCH") throw error; else return; }
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try { process.kill(runtime.pid, 0); }
+    catch (error) { if (error.code === "ESRCH") return; throw error; }
+    await delay(100);
+  }
+  process.kill(runtime.pid, "SIGKILL");
+}
+
+function runtimeAlive(runtime) {
+  if (!runtime) return false;
+  if (runtime.child) return runtime.child.exitCode === null;
+  if (!runtime.pid) return false;
+  try { process.kill(runtime.pid, 0); return true; }
+  catch { return false; }
 }
 
 module.exports = {
   findAvailablePort,
   httpReachable,
+  inspectExistingServer,
   readServerToken,
+  runtimeAlive,
   startKimiServer,
   stopKimiServer,
   waitForServer,

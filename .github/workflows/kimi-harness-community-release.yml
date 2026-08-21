@@ -11,7 +11,7 @@ on:
       version:
         description: "Version already present in both package.json files"
         required: true
-        default: "0.1.0"
+        default: "0.2.0"
         type: string
       confirm:
         description: "Type RELEASE_ZERO_COST_COMMUNITY_BUILDS"
@@ -40,7 +40,7 @@ jobs:
       - name: Enforce main, versions and explicit confirmation
         id: values
         env:
-          VERSION: ${{ inputs.version || '0.1.0' }}
+          VERSION: ${{ inputs.version || '0.2.0' }}
           CONFIRM: ${{ inputs.confirm }}
         run: |
           if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then

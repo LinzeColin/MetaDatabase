@@ -10,8 +10,12 @@ internal sealed class TrayApplicationContext : System.Windows.Forms.ApplicationC
     private readonly RuntimeServer server;
     private readonly IReadOnlyDictionary<string, Label> labels;
     private readonly NotifyIcon tray;
+    private readonly Control dispatcher = new();
     private readonly System.Windows.Forms.Timer rotationTimer = new() { Interval = 60_000 };
+    private readonly System.Windows.Forms.Timer catalogTimer = new() { Interval = 900_000 };
+    private readonly object refreshGate = new();
     private HarnessConfiguration configuration;
+    private CatalogRefreshStatus refreshStatus = new("idle", "尚未刷新", 0);
     private bool refreshRunning;
     private bool exiting;
 
@@ -22,8 +26,6 @@ internal sealed class TrayApplicationContext : System.Windows.Forms.ApplicationC
         store = new HarnessStore(dataRoot, HarnessJson.Options);
         configuration = ReadConfiguration() ?? new HarnessConfiguration();
         labels = ReadLabels(Path.Combine(AppContext.BaseDirectory, "config", "labels.seed.json"));
-        server = new RuntimeServer(store, Path.Combine(AppContext.BaseDirectory, "web"));
-
         tray = new NotifyIcon
         {
             Icon = SystemIcons.Application,
@@ -32,6 +34,12 @@ internal sealed class TrayApplicationContext : System.Windows.Forms.ApplicationC
         };
         tray.DoubleClick += (_, _) => OpenGallery();
         tray.ContextMenuStrip = new ContextMenuStrip();
+        dispatcher.CreateControl();
+        server = new RuntimeServer(
+            store,
+            Path.Combine(AppContext.BaseDirectory, "web"),
+            () => dispatcher.BeginInvoke(new Action(() => RefreshCatalog(false))),
+            RefreshStatusSnapshot);
         BuildMenu();
 
         try
@@ -54,6 +62,8 @@ internal sealed class TrayApplicationContext : System.Windows.Forms.ApplicationC
             if (before != after) BuildMenu();
         };
         rotationTimer.Start();
+        catalogTimer.Tick += (_, _) => RefreshCatalog(false);
+        catalogTimer.Start();
 
         if (!string.IsNullOrWhiteSpace(configuration.SourcePath))
             RefreshCatalog(false);
@@ -108,34 +118,57 @@ internal sealed class TrayApplicationContext : System.Windows.Forms.ApplicationC
         if (refreshRunning) return;
         if (string.IsNullOrWhiteSpace(configuration.SourcePath))
         {
+            SetRefreshStatus("failed", "尚未选择素材目录");
             if (showResult) MessageBox.Show(HarnessConstants.DefaultUncPath, "尚未选择素材目录", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
 
         refreshRunning = true;
+        SetRefreshStatus("running", "正在读取 SMB 素材目录");
         tray.Text = "Harness UI：正在刷新素材目录";
         Task.Run(() => CatalogBuilder.Build(configuration.SourcePath, labels, configuration.Port))
             .ContinueWith(task =>
             {
-                refreshRunning = false;
-                tray.Text = "Harness UI";
                 if (task.IsCompletedSuccessfully)
                 {
-                    store.Install(task.Result);
-                    BuildMenu();
-                    if (showResult)
+                    try
                     {
-                        tray.BalloonTipTitle = "Harness UI";
-                        tray.BalloonTipText = $"素材目录已刷新：{task.Result.Catalog.Count} 个变体";
-                        tray.ShowBalloonTip(4000);
+                        store.Install(task.Result);
+                        SetRefreshStatus("ready", $"已同步 {task.Result.Catalog.Count} 个变体");
+                        BuildMenu();
+                        if (showResult)
+                        {
+                            tray.BalloonTipTitle = "Harness UI";
+                            tray.BalloonTipText = $"素材目录已刷新：{task.Result.Catalog.Count} 个变体";
+                            tray.ShowBalloonTip(4000);
+                        }
+                    }
+                    catch (Exception error)
+                    {
+                        SetRefreshStatus("failed", error.Message);
+                        if (showResult) MessageBox.Show(error.Message, "素材目录刷新失败", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
                 }
-                else if (showResult)
+                else
                 {
                     var detail = task.Exception?.GetBaseException().Message ?? "未知错误";
-                    MessageBox.Show(detail, "素材目录刷新失败", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    SetRefreshStatus("failed", detail);
+                    if (showResult) MessageBox.Show(detail, "素材目录刷新失败", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
+                refreshRunning = false;
+                tray.Text = "Harness UI";
             }, TaskScheduler.FromCurrentSynchronizationContext());
+    }
+
+    private void SetRefreshStatus(string status, string message)
+    {
+        lock (refreshGate)
+            refreshStatus = new CatalogRefreshStatus(status, message, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+    }
+
+    private object RefreshStatusSnapshot()
+    {
+        lock (refreshGate) return refreshStatus;
     }
 
     private void OpenGallery()
@@ -175,10 +208,15 @@ internal sealed class TrayApplicationContext : System.Windows.Forms.ApplicationC
         exiting = true;
         rotationTimer.Stop();
         rotationTimer.Dispose();
+        catalogTimer.Stop();
+        catalogTimer.Dispose();
         tray.Visible = false;
         tray.Dispose();
+        dispatcher.Dispose();
         try { server.DisposeAsync().AsTask().GetAwaiter().GetResult(); }
         catch { }
         base.ExitThreadCore();
     }
+
+    private sealed record CatalogRefreshStatus(string Status, string Message, long Updated);
 }

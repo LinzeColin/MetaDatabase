@@ -54,6 +54,7 @@ internal sealed record HarnessState
     public int Cursor { get; set; }
     public long LastRotate { get; set; }
     public long Updated { get; set; }
+    public string CatalogGenerated { get; set; } = "";
 }
 
 internal sealed record HarnessConfiguration

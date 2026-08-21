@@ -250,7 +250,7 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 
 **结论**：跨平台桌面项目必须在干净 runner 实际生成 macOS arm64 的 DMG/ZIP 与 Windows x64/arm64 的安装器/ZIP；只编译 `.app`、`.exe` 或 unpacked 目录不能报“可安装”。A 级公开发布还必须同时通过 Apple Developer ID 签名与公证、Windows Authenticode 签名，缺凭据时保持 `WAITING_SIGNING_CREDENTIAL`，不发布未签名 Release。
 
-**为什么**：本次目录构建先后漏出了 Windows 路径分隔符、PowerShell 对 electron-builder 短参数的解析差异；提升到完整安装包后才证明 DMG、Inno、NSIS 与双架构 ZIP 都能真实生成。Harness 图片继续只留在 `smb://192.168.0.1/share/03_资料库/MetaData/HarnessUI/`，Git 只保存代码、标签与 SMB 地址，目录刷新为手动触发。
+**为什么**：本次目录构建先后漏出了 Windows 路径分隔符、PowerShell 对 electron-builder 短参数的解析差异；提升到完整安装包后才证明 DMG、Inno、NSIS 与双架构 ZIP 都能真实生成。Harness 图片继续只留在 `smb://192.168.0.1/share/03_资料库/MetaData/HarnessUI/`，Git 只保存代码、标签与 SMB 地址；目录支持手动同步与 15 分钟轻量刷新。
 
 **代价**：完整 Windows 候选门约 10 分钟；签名 secrets 缺失时源码和候选构建可以合并，但正式 Release 仍未签发，且不得为验证而重启 owner 正在运行的 Kimi、DSH 或 Harness。
 
@@ -267,3 +267,9 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 **为什么**：免费 Apple Account 只能开发和个人测试，Developer ID 与 Mac 公证属于付费 Apple Developer Program；代码、自签名证书或 GitHub Actions 都不能替代 Apple 的发行身份。把未公证 DMG 做得能下载，不等于 Gatekeeper 会信任它。Agent clone 后通过系统自带 `curl` 安装固定 GitHub Release ZIP，可以降低工具链门槛，但仍不能改变签名事实。
 
 **代价**：零成本路线可以交付 macOS arm64、Windows x64/arm64 安装资产和一键迁移脚本，但下载件可能触发 Gatekeeper/SmartScreen；Release 必须保持 prerelease 且不设为 Latest。未来取得真实证书时，另走 signed workflow，不能覆盖或改名洗白既有 community 资产。
+
+**结论**：桌面壳、CLI 后台与 macOS TCC 是三层身份；更新必须保持 App 路径、bundle id 与签名身份稳定，`Cmd+W` 只释放窗口，`Cmd+Q` 才结束由该 App 管理或安全接管的后台。更新器要先验签/验 Gatekeeper，再做旧版回滚点与原子替换；图标、皮肤、配置、会话和素材一律放在 App Bundle 外，并在失败后自动重新打开旧版、留下回执。
+
+**为什么**：只重启 GUI 不会清掉长寿命 CLI 的旧权限上下文；覆盖 App Bundle 会丢个性化资源，更新后再改已签名 Bundle 又会破坏 Developer ID 身份。HarnessUI 的 LaunchAgent 还可能能列 SMB 目录却被 TCC 拒绝读图片，因此 catalog/state 必须带 generation 热同步，并采用“完整本地镜像优先、SMB 补充、缺分区不覆盖上一版”的完整性门。
+
+**代价**：DSH 2.0.2 上游运行时代码变化使首次本地补丁安全停止，且失败阶段曾残留在 `/Applications`；补齐双版本补丁契约、失败清理、本地镜像降级和真实应用内更新验收后，后续更新不再依赖 Agent 手工救场。Kimi 正式安装仍必须等待 Developer ID/公证凭据，未签名候选件只能静态验收，状态保持 `WAITING_SIGNING_CREDENTIAL`。

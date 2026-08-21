@@ -47,8 +47,12 @@ const backupRoot = path.join(dshRoot, "_harness-ui-backups", stamp);
 fs.mkdirSync(backupRoot, { recursive: true });
 
 function moveAside(target, name) {
-  if (!fs.existsSync(target)) return;
-  fs.renameSync(target, path.join(backupRoot, name));
+  try {
+    fs.lstatSync(target);
+    fs.renameSync(target, path.join(backupRoot, name));
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
 }
 
 moveAside(pluginTarget, "plugin");
@@ -64,5 +68,5 @@ const temporary = `${packageFile}.harness-ui.tmp`;
 fs.writeFileSync(temporary, `${JSON.stringify(profile, null, 2)}\n`);
 fs.renameSync(temporary, packageFile);
 
-console.log(`Installed dsh-harness-ui-skins 0.1.0. Backup: ${backupRoot}`);
+console.log(`Installed dsh-harness-ui-skins 0.2.0. Backup: ${backupRoot}`);
 console.log("DSH was not restarted. Fully quit and reopen DSH when you are ready to activate the plugin.");

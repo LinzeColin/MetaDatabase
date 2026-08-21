@@ -28,3 +28,26 @@ test("installs the DSH adapter into a desktop profile without starting DSH", () 
   assert.ok(fs.existsSync(path.join(profileRoot, "node_modules", "dsh-harness-ui-skins", "lib", "client.js")));
   fs.rmSync(root, { recursive: true, force: true });
 });
+
+test("replaces an existing linked profile module without following it", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "harness-dsh-link-"));
+  const profileRoot = path.join(root, "profiles", "desktop");
+  const pluginRoot = path.join(root, "plugins", "dsh-harness-ui-skins");
+  const moduleRoot = path.join(profileRoot, "node_modules", "dsh-harness-ui-skins");
+  fs.mkdirSync(pluginRoot, { recursive: true });
+  fs.mkdirSync(path.dirname(moduleRoot), { recursive: true });
+  fs.symlinkSync(pluginRoot, moduleRoot, "dir");
+  fs.writeFileSync(path.join(profileRoot, "package.json"), JSON.stringify({
+    name: "fixture",
+    dependencies: { "dsh-harness-ui-skins": `link:${pluginRoot}` },
+    dsh: { profile: { bundles: ["dsh-harness-ui-skins"] } },
+  }));
+
+  const result = spawnSync(process.execPath, [path.join(projectRoot, "scripts", "install-dsh.mjs"), "--apply", "--dsh-root", root], {
+    encoding: "utf8",
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(fs.lstatSync(moduleRoot).isDirectory());
+  assert.ok(fs.existsSync(path.join(moduleRoot, "lib", "client.js")));
+  fs.rmSync(root, { recursive: true, force: true });
+});

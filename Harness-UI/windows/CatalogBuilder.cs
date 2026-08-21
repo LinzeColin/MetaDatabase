@@ -7,6 +7,8 @@ internal static class CatalogBuilder
 {
     internal static CatalogBuild Build(string sourceRoot, IReadOnlyDictionary<string, Label> labels, ushort port)
     {
+        var generated = DateTimeOffset.UtcNow.ToString("O");
+        var revision = Uri.EscapeDataString(generated);
         var entries = new List<CatalogEntry>();
         var assets = new Dictionary<string, string>(StringComparer.Ordinal);
 
@@ -37,15 +39,15 @@ internal static class CatalogBuilder
                         id, game, gameName, character, variant, characterZh, variantZh,
                         characterZh,
                         variant == "default" ? characterZh : $"{characterZh} · {variantZh}",
-                        $"http://127.0.0.1:{port}{light}",
-                        $"http://127.0.0.1:{port}{dark}"));
+                        $"http://127.0.0.1:{port}{light}?v={revision}",
+                        $"http://127.0.0.1:{port}{dark}?v={revision}"));
                 }
             }
         }
 
         entries.Sort((left, right) => CultureInfo.GetCultureInfo("zh-CN").CompareInfo.Compare(
             left.FullLabel, right.FullLabel, CompareOptions.StringSort));
-        var catalog = new Catalog(1, "smb", DateTimeOffset.UtcNow.ToString("O"), entries.Count, [.. entries]);
+        var catalog = new Catalog(1, "smb", generated, entries.Count, [.. entries]);
         return new CatalogBuild(catalog, assets);
     }
 

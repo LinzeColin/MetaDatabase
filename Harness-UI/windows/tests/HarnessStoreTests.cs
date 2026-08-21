@@ -20,6 +20,7 @@ public sealed class HarnessStoreTests : IDisposable
         Assert.Equal("two", state.Selected);
         Assert.Equal(14_400_000, state.IntervalMs);
         Assert.Equal(42, state.Updated);
+        Assert.Equal("now", state.CatalogGenerated);
     }
 
     [Fact]
@@ -34,6 +35,21 @@ public sealed class HarnessStoreTests : IDisposable
         var seen = Enumerable.Range(1, 3).Select(index => store.Rotate(true, index + 1L).Selected).ToHashSet();
 
         Assert.Equal(3, seen.Count);
+    }
+
+    [Fact]
+    public void KeepsPreviousCatalogWhenAGamePartitionDisappears()
+    {
+        var store = new HarnessStore(root, HarnessJson.Options);
+        CatalogEntry Entry(string id, string game) =>
+            new(id, game, game, id, "default", id, "默认", id, id, "light", "dark");
+        var complete = new[] { Entry("one", "genshin"), Entry("two", "hsr") };
+        store.Install(new CatalogBuild(new Catalog(1, "smb", "one", 2, complete), new Dictionary<string, string>()));
+
+        Assert.Throws<InvalidOperationException>(() => store.Install(new CatalogBuild(
+            new Catalog(1, "smb", "two", 1, [complete[0]]),
+            new Dictionary<string, string>())));
+        Assert.Equal(2, store.GetCatalog().Count);
     }
 
     public void Dispose()

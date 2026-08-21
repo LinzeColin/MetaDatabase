@@ -1,6 +1,6 @@
 {
   "name": "@linzecolin/kimi-code-desktop",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Unofficial cross-platform desktop wrapper for Kimi Code CLI",
   "author": "LinzeColin",
   "license": "MIT",
@@ -23,8 +23,8 @@
     "electron-builder": "26.15.3"
   },
   "build": {
-    "appId": "com.linzecolin.kimicode.desktop",
-    "productName": "Kimi Code Desktop",
+    "appId": "com.electron.kimi-code",
+    "productName": "Kimi Code",
     "copyright": "Copyright © 2026 LinzeColin",
     "asar": true,
     "files": [
@@ -59,6 +59,6 @@
       "allowToChangeInstallationDirectory": true,
       "perMachine": false
     },
-    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+    "artifactName": "Kimi Code Desktop-${version}-${os}-${arch}.${ext}"
   }
 }

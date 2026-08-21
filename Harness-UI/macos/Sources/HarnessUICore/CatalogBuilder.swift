@@ -28,6 +28,9 @@ public func buildCatalog(
     now: Date = Date(),
     fileManager: FileManager = .default
 ) -> CatalogBuild {
+    let formatter = ISO8601DateFormatter()
+    let generated = formatter.string(from: now)
+    let revision = encodedSegment(generated)
     var entries: [CatalogEntry] = []
     var assets: [String: URL] = [:]
     for gameName in harnessGameSlugs.keys.sorted() {
@@ -60,14 +63,13 @@ public func buildCatalog(
                     variantZh: variantZh,
                     label: characterZh,
                     fullLabel: variant == "default" ? characterZh : "\(characterZh) · \(variantZh)",
-                    light: "\(baseURL)\(lightPath)",
-                    dark: "\(baseURL)\(darkPath)"
+                    light: "\(baseURL)\(lightPath)?v=\(revision)",
+                    dark: "\(baseURL)\(darkPath)?v=\(revision)"
                 ))
             }
         }
     }
     entries.sort { $0.fullLabel.localizedStandardCompare($1.fullLabel) == .orderedAscending }
-    let formatter = ISO8601DateFormatter()
-    let catalog = Catalog(version: 1, source: "smb", generated: formatter.string(from: now), count: entries.count, entries: entries)
+    let catalog = Catalog(version: 1, source: "smb", generated: generated, count: entries.count, entries: entries)
     return CatalogBuild(catalog: catalog, assets: assets)
 }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.harnessui.smb</string>
+  <key>ProgramArguments</key><array>
+    <string>__HARNESS_UI_ROOT__/mount-harness-smb.sh</string>
+  </array>
+  <key>EnvironmentVariables</key><dict>
+    <key>HARNESS_UI_MOUNT_POINT</key><string>__HARNESS_UI_MOUNT__</string>
+    <key>HARNESS_UI_SMB_URL</key><string>__HARNESS_UI_SMB_URL__</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>StartInterval</key><integer>60</integer>
+  <key>ProcessType</key><string>Background</string>
+  <key>StandardOutPath</key><string>__HARNESS_UI_ROOT__/smb-mount.log</string>
+  <key>StandardErrorPath</key><string>__HARNESS_UI_ROOT__/smb-mount.err</string>
+</dict></plist>

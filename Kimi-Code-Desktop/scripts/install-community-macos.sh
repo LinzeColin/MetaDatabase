@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
-DESTINATION="${KIMI_CODE_DESKTOP_DESTINATION:-${HOME}/Applications/Kimi Code Desktop.app}"
+DESTINATION="${KIMI_CODE_DESKTOP_DESTINATION:-${HOME}/Applications/Kimi Code.app}"
 VERSION="${COMMUNITY_VERSION:-$(/usr/bin/plutil -extract version raw "$PROJECT_ROOT/package.json")}"
 TAG="kimi-code-desktop-community-v$VERSION"
 ASSET="Kimi-Code-Desktop-$VERSION-macos-arm64-NOT-NOTARIZED.zip"
@@ -14,25 +14,52 @@ if [ "$(uname -s)" != "Darwin" ] || [ "$(uname -m)" != "arm64" ]; then
   exit 1
 fi
 
-if [ -e "$DESTINATION" ]; then
-  echo "Destination already exists; nothing was changed: $DESTINATION" >&2
+if [ -f "$DESTINATION/Contents/MacOS/Kimi Code" ] && /usr/sbin/lsof -t "$DESTINATION/Contents/MacOS/Kimi Code" >/dev/null 2>&1; then
+  echo "Kimi Code is running. Use Cmd+Q after current tasks finish, then run this installer again." >&2
   exit 1
 fi
 
 TEMP_ROOT="$(mktemp -d /tmp/kimi-code-desktop-community.XXXXXX)"
-trap 'find "$TEMP_ROOT" -depth -delete' EXIT
+STAGE_ROOT=""
+cleanup() {
+  find "$TEMP_ROOT" -depth -delete
+  if [ -n "$STAGE_ROOT" ] && [ -d "$STAGE_ROOT" ]; then find "$STAGE_ROOT" -depth -delete; fi
+}
+trap cleanup EXIT
 ARCHIVE="$TEMP_ROOT/$ASSET"
 /usr/bin/curl --fail --location --output "$ARCHIVE" "$DOWNLOAD_URL"
 /usr/bin/ditto -x -k "$ARCHIVE" "$TEMP_ROOT/unpacked"
 
-SOURCE_APP="$TEMP_ROOT/unpacked/Kimi Code Desktop.app"
+SOURCE_APP="$TEMP_ROOT/unpacked/Kimi Code.app"
 if [ ! -d "$SOURCE_APP" ]; then
-  echo "Downloaded archive did not contain Kimi Code Desktop.app." >&2
+  echo "Downloaded archive did not contain Kimi Code.app." >&2
   exit 1
 fi
 
-mkdir -p "$(dirname "$DESTINATION")"
-ditto "$SOURCE_APP" "$DESTINATION"
+ACTUAL_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$SOURCE_APP/Contents/Info.plist")"
+ACTUAL_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$SOURCE_APP/Contents/Info.plist")"
+if [ "$ACTUAL_ID" != "com.electron.kimi-code" ] || [ "$ACTUAL_VERSION" != "$VERSION" ]; then
+  echo "Downloaded app identity or version did not match the requested Kimi Code release." >&2
+  exit 1
+fi
+
+DESTINATION_PARENT="$(dirname "$DESTINATION")"
+mkdir -p "$DESTINATION_PARENT"
+STAGE_ROOT="$(mktemp -d "$DESTINATION_PARENT/.kimi-code-community-update.XXXXXX")"
+STAGED_APP="$STAGE_ROOT/Kimi Code.app"
+ROLLBACK="${HOME}/.kimi-code/desktop-updates/rollback/community-${VERSION}-$(date +%s)/Kimi Code.app"
+ditto "$SOURCE_APP" "$STAGED_APP"
+if [ -e "$DESTINATION" ]; then
+  mkdir -p "$(dirname "$ROLLBACK")"
+  mv "$DESTINATION" "$ROLLBACK"
+fi
+if ! mv "$STAGED_APP" "$DESTINATION"; then
+  if [ -e "$ROLLBACK" ] && [ ! -e "$DESTINATION" ]; then mv "$ROLLBACK" "$DESTINATION"; fi
+  exit 1
+fi
+rmdir "$STAGE_ROOT"
+STAGE_ROOT=""
 
 echo "Installed without launching: $DESTINATION"
+if [ -e "$ROLLBACK" ]; then echo "Previous app preserved at: $ROLLBACK"; fi
 echo "This community build is not Developer ID signed or notarized."

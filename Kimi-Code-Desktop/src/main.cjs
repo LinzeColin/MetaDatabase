@@ -4,25 +4,243 @@ const path = require("node:path");
 const { app, BrowserWindow, Menu, dialog, shell } = require("electron");
 const { HarnessBridge } = require("./runtime/harness.cjs");
 const { kimiHome, resolveKimiCli } = require("./runtime/paths.cjs");
-const { startKimiServer, stopKimiServer } = require("./runtime/server.cjs");
+const { runtimeAlive, startKimiServer, stopKimiServer } = require("./runtime/server.cjs");
+const { DesktopUpdater } = require("./runtime/updater.cjs");
 
 const developmentRoot = path.resolve(__dirname, "..");
 const harnessCss = fs.readFileSync(path.join(__dirname, "harness.css"), "utf8");
-const harnessBridge = new HarnessBridge();
+const bundleId = "com.electron.kimi-code";
 
 let mainWindow = null;
 let runtime = null;
 let runtimePromise = null;
 let quitting = false;
 let cleanupStarted = false;
+let menuRebuildTimer = null;
+let updateBusy = false;
+let availableUpdate = null;
+let updateStartupTimer = null;
+let updateIntervalTimer = null;
 
-app.setName("Kimi Code Desktop");
+const harnessBridge = new HarnessBridge({ onChange: () => queueMenuRebuild() });
+let updater = null;
+
+app.setName("Kimi Code");
 const singleInstance = app.requestSingleInstanceLock();
 if (!singleInstance) app.quit();
 
+function displayName(value, fallback = "未命名") {
+  const cleaned = String(value || fallback).replace(/[\r\n\t]/g, " ").trim();
+  return cleaned.slice(0, 100) || fallback;
+}
+
+function showMessage(options) {
+  return mainWindow && !mainWindow.isDestroyed()
+    ? dialog.showMessageBox(mainWindow, options)
+    : dialog.showMessageBox(options);
+}
+
+async function showPendingUpdateResult() {
+  const updatesRoot = path.join(kimiHome(), "desktop-updates");
+  const pending = path.join(updatesRoot, "pending-update-result.json");
+  const archived = path.join(updatesRoot, "last-update.json");
+  let receipt;
+  try {
+    receipt = JSON.parse(fs.readFileSync(pending, "utf8"));
+    fs.renameSync(pending, archived);
+  } catch (error) {
+    if (error.code !== "ENOENT") console.warn(`[kimi-desktop] 更新回执读取失败: ${error.message}`);
+    return;
+  }
+  const succeeded = receipt.status === "installed";
+  await showMessage({
+    type: succeeded ? "info" : "warning",
+    title: "Kimi Code Desktop 更新",
+    message: succeeded
+      ? `已更新到 v${displayName(receipt.desktopVersion, app.getVersion())}`
+      : "更新未完成，旧版已恢复运行",
+    detail: displayName(receipt.detail, succeeded ? "应用本体已更新，个人数据保持原位。" : "个人数据未被修改。"),
+  });
+}
+
+function queueMenuRebuild() {
+  if (!app.isReady() || quitting || menuRebuildTimer) return;
+  menuRebuildTimer = setTimeout(() => {
+    menuRebuildTimer = null;
+    buildMenu();
+  }, 50);
+}
+
+function runHarnessAction(action) {
+  Promise.resolve(action()).catch((error) => showMessage({
+    type: "warning",
+    title: "Harness UI 同步失败",
+    message: "无法同步皮肤状态",
+    detail: error.message,
+  }));
+}
+
+function skinMenu() {
+  const { catalog, state, online, error } = harnessBridge.snapshot();
+  const entries = Array.isArray(catalog.entries) ? catalog.entries : [];
+  const selected = entries.find((entry) => entry.id === state.selected);
+  const items = [
+    { label: online ? `素材库：${entries.length} 个变体` : "Harness UI：未连接", enabled: false },
+    { label: `当前：${displayName(selected?.fullLabel, "未选择")}`, enabled: false },
+  ];
+  if (!online && error) items.push({ label: displayName(error), enabled: false });
+  items.push(
+    { type: "separator" },
+    { label: "打开完整素材库", click: () => shell.openExternal("http://127.0.0.1:3099/") },
+    { label: "立即同步 SMB 素材目录", click: () => runHarnessAction(() => harnessBridge.refreshCatalog()) },
+    { label: state.mode === "rotate" ? "停止轮播" : "开启轮播", enabled: online, click: () => runHarnessAction(() => harnessBridge.patch({ mode: state.mode === "rotate" ? "gallery" : "rotate" })) },
+    { label: "换下一张", enabled: online && entries.length > 0, click: () => runHarnessAction(() => harnessBridge.patch({ mode: "rotate" })) },
+    { type: "separator" },
+  );
+
+  const games = new Map();
+  for (const entry of entries) {
+    if (!games.has(entry.game)) games.set(entry.game, { label: entry.gameName, characters: new Map() });
+    const game = games.get(entry.game);
+    if (!game.characters.has(entry.character)) game.characters.set(entry.character, []);
+    game.characters.get(entry.character).push(entry);
+  }
+  for (const game of games.values()) {
+    const characters = [...game.characters.values()].map((variants) => {
+      variants.sort((left, right) => displayName(left.variantZh).localeCompare(displayName(right.variantZh), "zh"));
+      if (variants.length === 1) {
+        const entry = variants[0];
+        return {
+          label: displayName(entry.fullLabel),
+          type: "checkbox",
+          checked: entry.id === state.selected,
+          click: () => runHarnessAction(() => harnessBridge.patch({ mode: "gallery", selected: entry.id })),
+        };
+      }
+      return {
+        label: displayName(variants[0].characterZh),
+        submenu: variants.map((entry) => ({
+          label: displayName(entry.variantZh),
+          type: "checkbox",
+          checked: entry.id === state.selected,
+          click: () => runHarnessAction(() => harnessBridge.patch({ mode: "gallery", selected: entry.id })),
+        })),
+      };
+    });
+    characters.sort((left, right) => left.label.localeCompare(right.label, "zh"));
+    items.push({ label: displayName(game.label), submenu: characters });
+  }
+  if (!entries.length) items.push({ label: "暂无可用素材", enabled: false });
+  return items;
+}
+
+async function checkForUpdates() {
+  if (updateBusy || !updater) return;
+  updateBusy = true;
+  queueMenuRebuild();
+  try {
+    const result = await updater.check();
+    availableUpdate = result.status === "available" ? result : null;
+    if (!availableUpdate) {
+      await showMessage({
+        type: "info",
+        title: "Kimi Code Desktop 更新",
+        message: `当前没有可用更新（v${app.getVersion()}）`,
+        detail: "受信任稳定版可一键安装；零成本 community 版只会明确提示并交给浏览器下载，不会静默绕过系统安全检查。",
+      });
+      return;
+    }
+    if (availableUpdate.channel === "community") {
+      const choice = await showMessage({
+        type: "warning",
+        title: "Kimi Code Desktop 社区版更新",
+        message: `发现 community v${availableUpdate.version}（未公证）`,
+        detail: "这是零成本 community prerelease，不是 Apple Developer ID 公证版本。应用不会静默替换本体；可由浏览器下载，让 macOS 保留正常的安全提示。配置、会话、皮肤和素材不会进入下载包。",
+        buttons: ["在浏览器下载", "查看发布说明", "稍后"],
+        defaultId: 2,
+        cancelId: 2,
+      });
+      if (choice.response === 0) await shell.openExternal(availableUpdate.asset.browser_download_url);
+      if (choice.response === 1) await shell.openExternal(availableUpdate.release.html_url);
+      return;
+    }
+    const choice = await showMessage({
+      type: "info",
+      title: "Kimi Code Desktop 更新",
+      message: `发现新版本 v${availableUpdate.version}`,
+      detail: "下载后可退出并安装。更新只替换应用本体，外部配置、会话、皮肤和素材保持不变。",
+      buttons: ["下载更新", "查看发布说明", "稍后"],
+      defaultId: 0,
+      cancelId: 2,
+    });
+    if (choice.response === 1) {
+      await shell.openExternal(availableUpdate.release.html_url);
+      return;
+    }
+    if (choice.response !== 0) return;
+    const archive = await updater.download(availableUpdate);
+    if (process.platform !== "darwin") {
+      await shell.openPath(archive);
+      return;
+    }
+    const install = await showMessage({
+      type: "question",
+      title: "更新已下载",
+      message: `现在退出并安装 v${availableUpdate.version}？`,
+      detail: "Kimi 后台会先正常结束并释放文件权限；安装完成后应用会自动重新打开。",
+      buttons: ["退出并安装", "稍后"],
+      defaultId: 0,
+      cancelId: 1,
+    });
+    if (install.response === 0) {
+      updater.prepareMacInstall({ archive, version: availableUpdate.version });
+      app.quit();
+    }
+  } catch (error) {
+    await showMessage({
+      type: "warning",
+      title: "无法完成更新检查",
+      message: "Kimi Code Desktop 更新未执行",
+      detail: error.message,
+    });
+  } finally {
+    updateBusy = false;
+    queueMenuRebuild();
+  }
+}
+
+async function checkForUpdatesInBackground() {
+  if (updateBusy || !updater) return;
+  try {
+    const result = await updater.check();
+    availableUpdate = result.status === "available" ? result : null;
+    queueMenuRebuild();
+  } catch { }
+}
+
 function buildMenu() {
+  const updateLabel = updateBusy
+    ? "正在检查更新…"
+    : availableUpdate?.channel === "community"
+      ? `下载 community v${availableUpdate.version}…`
+      : availableUpdate ? `下载更新 v${availableUpdate.version}…` : "检查更新…";
+  const macAppMenu = {
+    label: app.name,
+    submenu: [
+      { role: "about" },
+      { label: updateLabel, enabled: !updateBusy, click: checkForUpdates },
+      { type: "separator" },
+      { role: "services" },
+      { type: "separator" },
+      { role: "hide" },
+      { role: "hideOthers" },
+      { role: "unhide" },
+      { type: "separator" },
+      { role: "quit" },
+    ],
+  };
   const template = [
-    ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
+    ...(process.platform === "darwin" ? [macAppMenu] : []),
     {
       label: "文件",
       submenu: [
@@ -33,6 +251,7 @@ function buildMenu() {
         { label: "退出", accelerator: "CmdOrCtrl+Q", role: "quit" },
       ],
     },
+    { label: "皮肤", submenu: skinMenu() },
     { role: "editMenu" },
     {
       label: "视图",
@@ -43,18 +262,17 @@ function buildMenu() {
         { role: "resetZoom" },
         { role: "zoomIn" },
         { role: "zoomOut" },
-        { type: "separator" },
-        { label: "打开 Harness UI", click: () => shell.openExternal("http://127.0.0.1:3099/") },
         { role: "togglefullscreen" },
       ],
     },
     { role: "windowMenu" },
+    ...(process.platform === "darwin" ? [] : [{ label: "帮助", submenu: [{ label: updateLabel, enabled: !updateBusy, click: checkForUpdates }] }]),
   ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
 async function ensureRuntime() {
-  if (runtime?.child?.exitCode === null) return runtime;
+  if (runtimeAlive(runtime)) return runtime;
   if (runtimePromise) return runtimePromise;
   runtimePromise = (async () => {
     const resolved = resolveKimiCli({
@@ -108,7 +326,7 @@ async function createWindow() {
     height: 920,
     minWidth: 920,
     minHeight: 640,
-    title: "Kimi Code Desktop",
+    title: "Kimi Code",
     backgroundColor: "#0d1428",
     webPreferences: {
       contextIsolation: true,
@@ -128,7 +346,7 @@ async function createWindow() {
   window.on("closed", () => {
     if (mainWindow === window) mainWindow = null;
     window.__harnessCssKey = null;
-    harnessBridge.stop();
+    harnessBridge.detach(window);
   });
   await window.loadURL(`${origin}/#token=${encodeURIComponent(activeRuntime.token)}`);
   harnessBridge.attach(window);
@@ -137,8 +355,27 @@ async function createWindow() {
 
 async function startApplication() {
   if (!singleInstance) return;
+  updater = new DesktopUpdater({
+    currentVersion: app.getVersion(),
+    updatesRoot: path.join(kimiHome(), "desktop-updates"),
+    installerSource: path.join(__dirname, "update", "install-macos.sh"),
+    bundleId,
+  });
+  const personalizationRoot = path.join(kimiHome(), "personalization", "kimi-code-desktop");
+  const customIcon = ["icon.png", "icon.icns"]
+    .map((name) => path.join(personalizationRoot, name))
+    .find((candidate) => fs.existsSync(candidate));
+  if (process.platform === "darwin" && app.dock && customIcon) app.dock.setIcon(customIcon);
+  harnessBridge.start();
   buildMenu();
   await createWindow();
+  await showPendingUpdateResult();
+  if (app.isPackaged) {
+    updateStartupTimer = setTimeout(checkForUpdatesInBackground, 30000);
+    updateStartupTimer.unref?.();
+    updateIntervalTimer = setInterval(checkForUpdatesInBackground, 6 * 60 * 60 * 1000);
+    updateIntervalTimer.unref?.();
+  }
 }
 
 app.whenReady().then(startApplication).catch(async (error) => {
@@ -166,6 +403,8 @@ app.on("window-all-closed", () => {
 
 app.on("before-quit", (event) => {
   quitting = true;
+  if (updateStartupTimer) clearTimeout(updateStartupTimer);
+  if (updateIntervalTimer) clearInterval(updateIntervalTimer);
   if (cleanupStarted) return;
   event.preventDefault();
   cleanupStarted = true;

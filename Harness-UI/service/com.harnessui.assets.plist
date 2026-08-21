@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.harnessui.assets</string>
+  <key>ProgramArguments</key><array>
+    <string>/usr/bin/python3</string>
+    <string>__HARNESS_UI_ROOT__/harness_service.py</string>
+    <string>--root</string><string>__HARNESS_UI_ROOT__</string>
+    <string>--source</string><string>__HARNESS_UI_SOURCE__</string>
+    <string>--web-root</string><string>__HARNESS_UI_ROOT__/web</string>
+    <string>--fallback-root</string><string>__HARNESS_UI_ROOT__/master</string>
+    <string>--port</string><string>3099</string>
+    <string>--refresh-seconds</string><string>900</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ProcessType</key><string>Background</string>
+  <key>StandardOutPath</key><string>__HARNESS_UI_ROOT__/service.log</string>
+  <key>StandardErrorPath</key><string>__HARNESS_UI_ROOT__/service.err</string>
+</dict></plist>
