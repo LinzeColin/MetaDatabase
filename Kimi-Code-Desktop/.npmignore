@@ -1,0 +1,9 @@
+node_modules/
+dist/
+vendor/
+out/
+*.log
+*.p12
+*.pfx
+*.cer
+*.mobileprovision

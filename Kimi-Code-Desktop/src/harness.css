@@ -1,0 +1,110 @@
+html[data-harness-ui="active"],
+html[data-harness-ui="active"][data-color-scheme="light"],
+html[data-harness-ui="active"][data-color-scheme="system"] {
+  --color-bg: transparent;
+  --bg: transparent;
+  --canvas: transparent;
+  --color-surface: rgba(250, 246, 250, .28);
+  --color-surface-raised: rgba(253, 251, 253, .88);
+  --color-surface-overlay: rgba(253, 251, 253, .95);
+  --color-surface-sunken: rgba(238, 230, 240, .26);
+  --color-surface-deep: rgba(238, 230, 240, .24);
+  --color-sidebar-bg: transparent;
+  --color-sidebar-tint: transparent;
+  --panel: rgba(250, 246, 250, .30);
+  --panel2: rgba(120, 85, 115, .08);
+  --color-well: rgba(238, 230, 240, .24);
+  --color-menu-bg: rgba(252, 249, 252, .96);
+  --color-composer-bg: rgba(253, 251, 253, .90);
+  --color-user-bubble-bg: rgba(243, 232, 242, .86);
+  --color-text: #2a1f2c;
+  --color-text-strong: #170f19;
+  --color-text-muted: rgba(42, 31, 44, .68);
+  --color-text-faint: rgba(42, 31, 44, .45);
+  --dim: rgba(42, 31, 44, .68);
+  --muted: rgba(42, 31, 44, .5);
+  --faint: rgba(42, 31, 44, .32);
+  --color-accent: #c58fb0;
+  --blue: #c58fb0;
+  --logo: #a8628a;
+  --color-accent-hover: #b0789c;
+  --blue2: #b0789c;
+  --color-accent-soft: rgba(197, 143, 176, .16);
+  --soft: rgba(197, 143, 176, .16);
+  --bluebg: rgba(197, 143, 176, .14);
+  --color-accent-bd: rgba(197, 143, 176, .45);
+  --p-selection: rgba(197, 143, 176, .30);
+}
+
+html[data-harness-ui="active"][data-color-scheme="dark"] {
+  --color-bg: transparent;
+  --bg: transparent;
+  --canvas: transparent;
+  --color-surface: rgba(30, 22, 34, .30);
+  --color-surface-raised: rgba(38, 28, 43, .88);
+  --color-surface-overlay: rgba(38, 28, 43, .95);
+  --color-surface-sunken: rgba(17, 12, 20, .28);
+  --color-surface-deep: rgba(17, 12, 20, .26);
+  --color-sidebar-bg: transparent;
+  --color-sidebar-tint: transparent;
+  --panel: rgba(30, 22, 34, .32);
+  --panel2: rgba(210, 180, 205, .08);
+  --color-well: rgba(17, 12, 20, .26);
+  --color-menu-bg: rgba(28, 20, 32, .96);
+  --color-composer-bg: rgba(34, 25, 38, .90);
+  --color-user-bubble-bg: rgba(48, 34, 52, .86);
+  --color-text: #f0e6f2;
+  --color-text-strong: #fdf8fe;
+  --color-text-muted: rgba(240, 230, 242, .70);
+  --color-text-faint: rgba(240, 230, 242, .46);
+  --dim: rgba(240, 230, 242, .70);
+  --muted: rgba(240, 230, 242, .5);
+  --faint: rgba(240, 230, 242, .32);
+  --color-accent: #dda8c4;
+  --blue: #dda8c4;
+  --logo: #dda8c4;
+  --color-accent-hover: #ecc0d8;
+  --blue2: #ecc0d8;
+  --color-accent-soft: rgba(221, 168, 196, .18);
+  --soft: rgba(221, 168, 196, .18);
+  --bluebg: rgba(221, 168, 196, .15);
+  --color-accent-bd: rgba(221, 168, 196, .48);
+  --p-selection: rgba(221, 168, 196, .32);
+}
+
+html[data-harness-ui="active"],
+html[data-harness-ui="active"] body,
+html[data-harness-ui="active"] #app,
+html[data-harness-ui="active"] .app {
+  background-color: transparent !important;
+}
+
+html[data-harness-ui="active"] #app :is(input, textarea, select),
+html[data-harness-ui="active"] #app :is([role="dialog"], [role="menu"], [role="listbox"], [role="tooltip"]) {
+  background-color: rgba(253, 251, 253, .86) !important;
+}
+
+html[data-harness-ui="active"][data-color-scheme="dark"] #app :is(input, textarea, select),
+html[data-harness-ui="active"][data-color-scheme="dark"] #app :is([role="dialog"], [role="menu"], [role="listbox"], [role="tooltip"]) {
+  background-color: rgba(22, 16, 26, .84) !important;
+}
+
+html[data-harness-ui="active"] #app,
+html[data-harness-ui="active"] #root {
+  background-color: #efe6f0 !important;
+  background-image: var(--harness-scene, none) !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  background-attachment: scroll !important;
+}
+
+html[data-harness-ui="active"][data-color-scheme="dark"] #app,
+html[data-harness-ui="active"][data-color-scheme="dark"] #root {
+  background-color: #120d15 !important;
+  background-image: var(--harness-scene-dark, var(--harness-scene, none)) !important;
+}
+
+html[data-harness-ui="active"] :is([class*="message"], [class*="bubble"], [class*="composer"], [class*="input"]) {
+  backdrop-filter: saturate(1.05);
+}

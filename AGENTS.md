@@ -245,3 +245,11 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 
 > 凭据与基础设施现状在 `_protected/ABD云服务解封_TaskPack_v1_20260813/`（本机 `_protected/`，永不上传）。
 > **KMOS 仓的 `COOLIFY_API_TOKEN` 一直是活的，别动它。**
+
+## Kimi Code Desktop / Harness UI：候选安装包不等于 A 级 Release
+
+**结论**：跨平台桌面项目必须在干净 runner 实际生成 macOS arm64 的 DMG/ZIP 与 Windows x64/arm64 的安装器/ZIP；只编译 `.app`、`.exe` 或 unpacked 目录不能报“可安装”。A 级公开发布还必须同时通过 Apple Developer ID 签名与公证、Windows Authenticode 签名，缺凭据时保持 `WAITING_SIGNING_CREDENTIAL`，不发布未签名 Release。
+
+**为什么**：本次目录构建先后漏出了 Windows 路径分隔符、PowerShell 对 electron-builder 短参数的解析差异；提升到完整安装包后才证明 DMG、Inno、NSIS 与双架构 ZIP 都能真实生成。Harness 图片继续只留在 `smb://192.168.0.1/share/03_资料库/MetaData/HarnessUI/`，Git 只保存代码、标签与 SMB 地址，目录刷新为手动触发。
+
+**代价**：完整 Windows 候选门约 10 分钟；签名 secrets 缺失时源码和候选构建可以合并，但正式 Release 仍未签发，且不得为验证而重启 owner 正在运行的 Kimi、DSH 或 Harness。

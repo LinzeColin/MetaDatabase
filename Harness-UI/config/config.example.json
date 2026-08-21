@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "port": 3099,
+  "library": {
+    "smbUrl": "smb://192.168.0.1/share/03_资料库/MetaData/HarnessUI/",
+    "macPath": "",
+    "windowsPath": "\\\\192.168.0.1\\share\\03_资料库\\MetaData\\HarnessUI"
+  },
+  "refreshMode": "manual"
+}
