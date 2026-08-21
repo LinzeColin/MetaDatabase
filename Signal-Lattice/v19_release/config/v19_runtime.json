@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "app_version": "0.0.0.1.44",
+  "app_version": "0.0.0.1.45",
   "prompt_version": "v0.0.0.19",
   "timezone": "Australia/Sydney",
   "refresh_seconds": 15,

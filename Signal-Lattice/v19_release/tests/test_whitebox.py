@@ -97,14 +97,14 @@ class WhiteboxTests(unittest.TestCase):
             skills = [sample_skill(i, "支持" if i < 3 else "中性") for i in range(6)]
             first = ledger.record_cycle(
                 observed_at=datetime(2026, 8, 15, tzinfo=timezone.utc),
-                app_version="0.0.0.1.44", prompt_version="v0.0.0.19",
+                app_version="0.0.0.1.45", prompt_version="v0.0.0.19",
                 report=sample_report("反证A"), internal={"qualification": {}},
                 skills=skills, candidates=[candidate], winner_provider_code="AU.SPY",
                 provider_state="fixture",
             )
             second = ledger.record_cycle(
                 observed_at=datetime(2026, 8, 15, 0, 0, 15, tzinfo=timezone.utc),
-                app_version="0.0.0.1.44", prompt_version="v0.0.0.19",
+                app_version="0.0.0.1.45", prompt_version="v0.0.0.19",
                 report=sample_report("反证B"), internal={"qualification": {}},
                 skills=skills, candidates=[candidate], winner_provider_code="AU.SPY",
                 provider_state="fixture",
@@ -124,7 +124,7 @@ class WhiteboxTests(unittest.TestCase):
             observed_at = datetime(2026, 8, 15, tzinfo=timezone.utc)
             ledger.record_cycle(
                 observed_at=observed_at,
-                app_version="0.0.0.1.44",
+                app_version="0.0.0.1.45",
                 prompt_version="v0.0.0.19",
                 report=sample_report(),
                 internal={"qualification": {}},
@@ -172,7 +172,7 @@ class WhiteboxTests(unittest.TestCase):
                     price=benchmark_price, quote_time=observed_at.isoformat(), cost_bps=5.0,
                 )
                 record = ledger.record_cycle(
-                    observed_at=observed_at, app_version="0.0.0.1.44", prompt_version="v0.0.0.19",
+                    observed_at=observed_at, app_version="0.0.0.1.45", prompt_version="v0.0.0.19",
                     report=sample_report(code="CAND"), internal={"qualification": {}}, skills=skills,
                     candidates=[candidate, benchmark], winner_provider_code="AU.CAND", provider_state="fixture",
                     cash_rate_annual_pct=0.0,
@@ -252,7 +252,7 @@ class WhiteboxTests(unittest.TestCase):
                 price=100.0, quote_time=opened.isoformat(), cost_bps=10.0,
             )
             record = ledger.record_cycle(
-                observed_at=opened, app_version="0.0.0.1.44", prompt_version="v0.0.0.19",
+                observed_at=opened, app_version="0.0.0.1.45", prompt_version="v0.0.0.19",
                 report=sample_report(), internal={"qualification": {}},
                 skills=[sample_skill(i, "支持") for i in range(6)], candidates=[candidate],
                 winner_provider_code="AU.SPY", provider_state="fixture",
@@ -284,13 +284,13 @@ class WhiteboxTests(unittest.TestCase):
                 )
 
             first = ledger.record_cycle(
-                observed_at=opened, app_version="0.0.0.1.44", prompt_version="v0.0.0.19",
+                observed_at=opened, app_version="0.0.0.1.45", prompt_version="v0.0.0.19",
                 report=sample_report(basis="ORIGINAL"), internal={"qualification": {"lower": 1.0}},
                 skills=skills, candidates=[candidate(100.0, opened)], winner_provider_code="AU.SPY",
                 provider_state="fixture",
             )
             second = ledger.record_cycle(
-                observed_at=opened + timedelta(seconds=15), app_version="0.0.0.1.44", prompt_version="v0.0.0.19",
+                observed_at=opened + timedelta(seconds=15), app_version="0.0.0.1.45", prompt_version="v0.0.0.19",
                 report=sample_report(basis="LATEST"), internal={"qualification": {"lower": 1.0}},
                 skills=skills, candidates=[candidate(125.0, opened + timedelta(seconds=15))],
                 winner_provider_code="AU.SPY", provider_state="fixture",
@@ -364,7 +364,7 @@ class WhiteboxTests(unittest.TestCase):
                 price=100.0, quote_time=opened.isoformat(), cost_bps=10.0,
             )
             record = ledger.record_cycle(
-                observed_at=opened, app_version="0.0.0.1.44", prompt_version="v0.0.0.19",
+                observed_at=opened, app_version="0.0.0.1.45", prompt_version="v0.0.0.19",
                 report=sample_report(), internal={"qualification": {}},
                 skills=[sample_skill(i, "中性") for i in range(6)], candidates=[candidate],
                 winner_provider_code="AU.SPY", provider_state="fixture",

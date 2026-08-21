@@ -32,7 +32,7 @@ class ApiTests(unittest.TestCase):
             try:
                 with urllib.request.urlopen(base + "/api/v1/metadata", timeout=5) as response:
                     payload = json.loads(response.read())
-                self.assertEqual(payload["version"], "0.0.0.1.44")
+                self.assertEqual(payload["version"], "0.0.0.1.45")
                 self.assertEqual(payload["refresh_seconds"], 15)
                 self.assertEqual(payload["ui_heartbeat_seconds"], 1)
                 self.assertEqual(payload["state"], "READY")

@@ -162,7 +162,7 @@ def check_stream(base: str) -> None:
 
 def run(base: str, verify_cadence: bool, skip_stream: bool, require_live_provider: bool = False) -> dict:
     metadata = json_get(base, "/api/v1/metadata")
-    assert metadata["version"] == "0.0.0.1.44"
+    assert metadata["version"] == "0.0.0.1.45"
     assert metadata["prompt_version"] == "v0.0.0.19"
     assert metadata["refresh_seconds"] == 15
     assert metadata["ui_heartbeat_seconds"] == 1
@@ -172,7 +172,7 @@ def run(base: str, verify_cadence: bool, skip_stream: bool, require_live_provide
     assert age is not None and float(age) <= 45.0, f"REPORT_STALE:{age}"
 
     heartbeat = json_get(base, "/api/v1/heartbeat")
-    assert heartbeat["application_version"] == "0.0.0.1.44"
+    assert heartbeat["application_version"] == "0.0.0.1.45"
     assert heartbeat["decision_contract_version"] == "v0.0.0.19"
     assert heartbeat["ui_heartbeat_seconds"] == 1
     assert heartbeat["quote_observation_seconds"] == 15

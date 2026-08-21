@@ -70,6 +70,12 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("--require-live-provider", acceptance)
         self.assertIn("SL19_MARKET_PROVIDER=fixture", local)
         self.assertIn("--require-live-provider", installer)
+        self.assertIn("moomoo_endpoint_reachable", installer)
+        self.assertIn("MOOMOO_OPEND_UNREACHABLE", installer)
+        self.assertLess(
+            installer.index("moomoo_endpoint_reachable || exit 5"),
+            installer.index('install -d -m 0755 "$INSTALL_ROOT/releases"'),
+        )
 
 
 if __name__ == "__main__":
