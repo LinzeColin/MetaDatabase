@@ -27,5 +27,5 @@ test("prefers an explicit KIMI_CLI_PATH", () => {
 
 test("uses KIMI_CODE_HOME without copying user data", () => {
   assert.equal(kimiHome({ KIMI_CODE_HOME: "/tmp/kimi-home" }, "/unused"), "/tmp/kimi-home");
-  assert.equal(kimiHome({}, "/Users/example"), "/Users/example/.kimi-code");
+  assert.equal(kimiHome({}, "/Users/example"), path.join("/Users/example", ".kimi-code"));
 });
