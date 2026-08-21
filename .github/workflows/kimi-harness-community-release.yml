@@ -100,14 +100,19 @@ jobs:
         working-directory: Kimi-Code-Desktop
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          CSC_FOR_PULL_REQUEST: "true"
         run: |
           npm ci
           npm test
           npm run prepare:kimi -- --platform=darwin --arch=arm64
-          npx electron-builder --mac dmg zip --arm64 --config.directories.output=dist-community
+          npx electron-builder --mac dmg zip --arm64 --config.directories.output=dist-community \
+            --config.mac.identity=- --config.mac.hardenedRuntime=false
 
           assets="$RUNNER_TEMP/community-kimi-macos"
+          app="dist-community/mac-arm64/Kimi Code.app"
           mkdir -p "$assets"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          test "$(codesign -dv --verbose=4 "$app" 2>&1 | awk -F= '/^Identifier=/{print $2; exit}')" = "com.electron.kimi-code"
           cp "dist-community/Kimi Code Desktop-$KIMI_VERSION-mac-arm64.dmg" \
             "$assets/Kimi-Code-Desktop-$KIMI_VERSION-macos-arm64-NOT-NOTARIZED.dmg"
           cp "dist-community/Kimi Code Desktop-$KIMI_VERSION-mac-arm64.zip" \

@@ -29,7 +29,7 @@ test("selects only a newer matching Kimi desktop asset", () => {
   assert.equal(selectRelease(releases, { currentVersion: "0.2.0", platform: "darwin", arch: "arm64" }), null);
 });
 
-test("keeps an unsigned community release on an explicit channel", () => {
+test("keeps a non-trusted-signed community release on an explicit channel", () => {
   const releases = [{
     tag_name: "kimi-code-desktop-community-v0.3.0",
     draft: false,

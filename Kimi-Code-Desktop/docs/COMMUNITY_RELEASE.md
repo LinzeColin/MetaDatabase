@@ -1,7 +1,7 @@
 # Kimi Code Desktop 零成本社区版
 
-这是公开、可复现、**未使用受信任发行证书**的 prerelease。预算为 `$0`；它不是 Apple Developer ID
-或 Windows Authenticode 签名版，也未通过 Apple 公证。
+这是公开、可复现、**未使用受信任发行证书**的 prerelease。预算为 `$0`；macOS App 只有可验证代码完整性的
+ad-hoc 签名，不是 Apple Developer ID 签名版、也未通过 Apple 公证；Windows 资产没有 Authenticode 签名。
 
 下载页：[Kimi Code Desktop v1.0.1 Community](https://github.com/LinzeColin/MetaDatabase/releases/tag/kimi-code-desktop-community-v1.0.1)
 
