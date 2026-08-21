@@ -2,7 +2,7 @@ name: Kimi and Harness cross-platform CI
 
 on:
   push:
-    branches: [main, "codex/kimi-harness-crossplatform"]
+    branches: [main]
     paths:
       - "Kimi-Code-Desktop/**"
       - "Harness-UI/**"
