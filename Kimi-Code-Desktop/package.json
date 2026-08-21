@@ -1,0 +1,64 @@
+{
+  "name": "@linzecolin/kimi-code-desktop",
+  "version": "0.1.0",
+  "description": "Unofficial cross-platform desktop wrapper for Kimi Code CLI",
+  "author": "LinzeColin",
+  "license": "MIT",
+  "private": true,
+  "main": "src/main.cjs",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.cjs",
+    "prepare:kimi": "node scripts/fetch-kimi-cli.mjs",
+    "dist:mac": "npm run prepare:kimi -- --platform=darwin --arch=arm64 && electron-builder --mac dmg zip --arm64",
+    "dist:win:x64": "npm run prepare:kimi -- --platform=win32 --arch=x64 && electron-builder --win nsis zip --x64",
+    "dist:win:arm64": "npm run prepare:kimi -- --platform=win32 --arch=arm64 && electron-builder --win nsis zip --arm64"
+  },
+  "devDependencies": {
+    "adm-zip": "0.6.0",
+    "electron": "43.4.1",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.linzecolin.kimicode.desktop",
+    "productName": "Kimi Code Desktop",
+    "copyright": "Copyright © 2026 LinzeColin",
+    "asar": true,
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.md"
+    ],
+    "extraResources": [
+      {
+        "from": "vendor/kimi/current",
+        "to": "kimi"
+      }
+    ],
+    "mac": {
+      "icon": "build/icon.png",
+      "category": "public.app-category.developer-tools",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "target": ["dmg", "zip"]
+    },
+    "dmg": {
+      "sign": false
+    },
+    "win": {
+      "icon": "build/icon.png",
+      "target": ["nsis", "zip"]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false
+    },
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+  }
+}

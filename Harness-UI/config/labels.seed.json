@@ -1,0 +1,1634 @@
+{
+  "genshin/aino/default": {
+    "characterZh": "爱诺",
+    "variantZh": "默认"
+  },
+  "genshin/aloy/default": {
+    "characterZh": "亚萝伊",
+    "variantZh": "默认"
+  },
+  "genshin/aloy/machine-hunter": {
+    "characterZh": "亚萝伊",
+    "variantZh": "机动猎手"
+  },
+  "genshin/amber/100-outrider": {
+    "characterZh": "安柏",
+    "variantZh": "100%侦察骑士"
+  },
+  "genshin/amber/5-star-outrider": {
+    "characterZh": "安柏",
+    "variantZh": "「满分的侦察骑士」"
+  },
+  "genshin/amber/default": {
+    "characterZh": "安柏",
+    "variantZh": "默认"
+  },
+  "genshin/arlecchino/default": {
+    "characterZh": "阿蕾奇诺",
+    "variantZh": "默认"
+  },
+  "genshin/arlecchino/moonglare": {
+    "characterZh": "阿蕾奇诺",
+    "variantZh": "月光"
+  },
+  "genshin/barbara/default": {
+    "characterZh": "芭芭拉",
+    "variantZh": "默认"
+  },
+  "genshin/barbara/innocent-longing": {
+    "characterZh": "芭芭拉",
+    "variantZh": "纯真期待"
+  },
+  "genshin/barbara/summertime-sparkle": {
+    "characterZh": "芭芭拉",
+    "variantZh": "闪耀协奏"
+  },
+  "genshin/beidou/default": {
+    "characterZh": "北斗",
+    "variantZh": "默认"
+  },
+  "genshin/beidou/rolling-waves": {
+    "characterZh": "北斗",
+    "variantZh": "赫浪连涛"
+  },
+  "genshin/candace/default": {
+    "characterZh": "坎蒂丝",
+    "variantZh": "默认"
+  },
+  "genshin/candace/desert-and-night": {
+    "characterZh": "坎蒂丝",
+    "variantZh": "沙漠与夜"
+  },
+  "genshin/charlotte/all-is-overt-through-my-lens": {
+    "characterZh": "夏洛蒂",
+    "variantZh": "「皆在镜前」"
+  },
+  "genshin/charlotte/default": {
+    "characterZh": "夏洛蒂",
+    "variantZh": "默认"
+  },
+  "genshin/chasca/default": {
+    "characterZh": "恰斯卡",
+    "variantZh": "默认"
+  },
+  "genshin/chasca/tlalocan-s-night-phantom": {
+    "characterZh": "恰斯卡",
+    "variantZh": "特拉洛坎夜幽灵"
+  },
+  "genshin/chevreuse/default": {
+    "characterZh": "夏沃蕾",
+    "variantZh": "默认"
+  },
+  "genshin/chevreuse/guardian-s-gun": {
+    "characterZh": "夏沃蕾",
+    "variantZh": "守正之枪"
+  },
+  "genshin/chiori/default": {
+    "characterZh": "千织",
+    "variantZh": "默认"
+  },
+  "genshin/chiori/plucked-yamabuki-splendor": {
+    "characterZh": "千织",
+    "variantZh": "拈来山吹虹"
+  },
+  "genshin/citlali/dawnseer": {
+    "characterZh": "茜特菈莉",
+    "variantZh": "启明视"
+  },
+  "genshin/citlali/default": {
+    "characterZh": "茜特菈莉",
+    "variantZh": "默认"
+  },
+  "genshin/clorinde/default": {
+    "characterZh": "克洛琳德",
+    "variantZh": "默认"
+  },
+  "genshin/clorinde/sword-of-honor": {
+    "characterZh": "克洛琳德",
+    "variantZh": "荣光之剑"
+  },
+  "genshin/collei/a-new-leaf": {
+    "characterZh": "柯莱",
+    "variantZh": "一叶新生"
+  },
+  "genshin/collei/default": {
+    "characterZh": "柯莱",
+    "variantZh": "默认"
+  },
+  "genshin/columbina/default": {
+    "characterZh": "哥伦比娅",
+    "variantZh": "默认"
+  },
+  "genshin/dahlia/default": {
+    "characterZh": "塔利雅",
+    "variantZh": "默认"
+  },
+  "genshin/dahlia/pristine-prayers": {
+    "characterZh": "塔利雅",
+    "variantZh": "无瑕祷言"
+  },
+  "genshin/dehya/default": {
+    "characterZh": "迪希雅",
+    "variantZh": "默认"
+  },
+  "genshin/dehya/the-lioness-and-the-blazing-sun": {
+    "characterZh": "迪希雅",
+    "variantZh": "狮与赤阳"
+  },
+  "genshin/diona/default": {
+    "characterZh": "迪奥娜",
+    "variantZh": "默认"
+  },
+  "genshin/diona/sugary-brew": {
+    "characterZh": "迪奥娜",
+    "variantZh": "粉糖青酿"
+  },
+  "genshin/dori/default": {
+    "characterZh": "多莉",
+    "variantZh": "默认"
+  },
+  "genshin/dori/i-love-mora": {
+    "characterZh": "多莉",
+    "variantZh": "我爱摩拉"
+  },
+  "genshin/emilie/ambrosial-verdance": {
+    "characterZh": "艾梅莉埃",
+    "variantZh": "芳草馥奇"
+  },
+  "genshin/emilie/default": {
+    "characterZh": "艾梅莉埃",
+    "variantZh": "默认"
+  },
+  "genshin/escoffier/default": {
+    "characterZh": "爱可菲",
+    "variantZh": "默认"
+  },
+  "genshin/escoffier/sorbet-honey-pie": {
+    "characterZh": "爱可菲",
+    "variantZh": "雪酪蜜派"
+  },
+  "genshin/eula/default": {
+    "characterZh": "优菈",
+    "variantZh": "默认"
+  },
+  "genshin/eula/wavecrest-waltz": {
+    "characterZh": "优菈",
+    "variantZh": "浪尖之舞"
+  },
+  "genshin/fischl/default": {
+    "characterZh": "菲谢尔",
+    "variantZh": "默认"
+  },
+  "genshin/fischl/dunkelnacht-sakrament": {
+    "characterZh": "菲谢尔",
+    "variantZh": "绮夜圣礼"
+  },
+  "genshin/fischl/ein-immernachtstraum": {
+    "characterZh": "菲谢尔",
+    "variantZh": "极夜真梦"
+  },
+  "genshin/furina/coronated-prima-donna": {
+    "characterZh": "芙宁娜",
+    "variantZh": "冠笄伶优"
+  },
+  "genshin/furina/default": {
+    "characterZh": "芙宁娜",
+    "variantZh": "默认"
+  },
+  "genshin/ganyu/default": {
+    "characterZh": "甘雨",
+    "variantZh": "默认"
+  },
+  "genshin/ganyu/frostdew-trail": {
+    "characterZh": "甘雨",
+    "variantZh": "霜麟聚露"
+  },
+  "genshin/ganyu/twilight-blossom": {
+    "characterZh": "甘雨",
+    "variantZh": "玄玉瑶芳"
+  },
+  "genshin/hu-tao/cherries-snow-laden": {
+    "characterZh": "胡桃",
+    "variantZh": "宿雪桃红"
+  },
+  "genshin/hu-tao/default": {
+    "characterZh": "胡桃",
+    "variantZh": "默认"
+  },
+  "genshin/hu-tao/plum-blossom-bouquet": {
+    "characterZh": "胡桃",
+    "variantZh": "折梅留芳"
+  },
+  "genshin/iansan/default": {
+    "characterZh": "伊安珊",
+    "variantZh": "默认"
+  },
+  "genshin/iansan/warrior-s-bonegarb": {
+    "characterZh": "伊安珊",
+    "variantZh": "勇士之骨"
+  },
+  "genshin/ineffa/default": {
+    "characterZh": "伊涅芙",
+    "variantZh": "默认"
+  },
+  "genshin/ineffa/mechanical-dreams": {
+    "characterZh": "伊涅芙",
+    "variantZh": "机械梦"
+  },
+  "genshin/jahoda/default": {
+    "characterZh": "雅珂达",
+    "variantZh": "默认"
+  },
+  "genshin/jean/default": {
+    "characterZh": "琴",
+    "variantZh": "默认"
+  },
+  "genshin/jean/favonian-devotion": {
+    "characterZh": "琴",
+    "variantZh": "风之虔护"
+  },
+  "genshin/jean/gunnhildr-s-legacy": {
+    "characterZh": "琴",
+    "variantZh": "古恩希尔德的传承"
+  },
+  "genshin/jean/sea-breeze-dandelion": {
+    "characterZh": "琴",
+    "variantZh": "海风之梦"
+  },
+  "genshin/kachina/default": {
+    "characterZh": "卡齐娜",
+    "variantZh": "默认"
+  },
+  "genshin/kachina/tawny-peaks-spired-rock": {
+    "characterZh": "卡齐娜",
+    "variantZh": "橙峰螺岩"
+  },
+  "genshin/kamisato-ayaka/default": {
+    "characterZh": "神里绫华",
+    "variantZh": "默认"
+  },
+  "genshin/kamisato-ayaka/flawless-radiance": {
+    "characterZh": "神里绫华",
+    "variantZh": "莹辉流华"
+  },
+  "genshin/kamisato-ayaka/springbloom-missive": {
+    "characterZh": "神里绫华",
+    "variantZh": "花时来信"
+  },
+  "genshin/keqing/default": {
+    "characterZh": "刻晴",
+    "variantZh": "默认"
+  },
+  "genshin/keqing/opulent-splendor": {
+    "characterZh": "刻晴",
+    "variantZh": "霓裾翩跹"
+  },
+  "genshin/keqing/piercing-thunderbolt": {
+    "characterZh": "刻晴",
+    "variantZh": "雷雳寰宇"
+  },
+  "genshin/kirara/default": {
+    "characterZh": "绮良良",
+    "variantZh": "默认"
+  },
+  "genshin/kirara/phantom-in-boots": {
+    "characterZh": "绮良良",
+    "variantZh": "倩影游侠"
+  },
+  "genshin/kirara/whirling-bloom": {
+    "characterZh": "绮良良",
+    "variantZh": "百花戏"
+  },
+  "genshin/klee/blossoming-starlight": {
+    "characterZh": "可莉",
+    "variantZh": "琪花星烛"
+  },
+  "genshin/klee/default": {
+    "characterZh": "可莉",
+    "variantZh": "默认"
+  },
+  "genshin/klee/shooting-spark": {
+    "characterZh": "可莉",
+    "variantZh": "轻灵火花"
+  },
+  "genshin/kujou-sara/default": {
+    "characterZh": "九条裟罗",
+    "variantZh": "默认"
+  },
+  "genshin/kujou-sara/solemn-purity": {
+    "characterZh": "九条裟罗",
+    "variantZh": "严正净衣"
+  },
+  "genshin/kuki-shinobu/arataki-s-demonic-deputy": {
+    "characterZh": "久岐忍",
+    "variantZh": "荒泷鬼副手"
+  },
+  "genshin/kuki-shinobu/default": {
+    "characterZh": "久岐忍",
+    "variantZh": "默认"
+  },
+  "genshin/lan-yan/argent-chimes": {
+    "characterZh": "蓝砚",
+    "variantZh": "银铛琳琅"
+  },
+  "genshin/lan-yan/default": {
+    "characterZh": "蓝砚",
+    "variantZh": "默认"
+  },
+  "genshin/lauma/default": {
+    "characterZh": "菈乌玛",
+    "variantZh": "默认"
+  },
+  "genshin/layla/default": {
+    "characterZh": "莱依拉",
+    "variantZh": "默认"
+  },
+  "genshin/layla/dreaming-star": {
+    "characterZh": "莱依拉",
+    "variantZh": "梦里星"
+  },
+  "genshin/linnea/default": {
+    "characterZh": "莉奈娅",
+    "variantZh": "默认"
+  },
+  "genshin/lisa/a-sobriquet-under-shade": {
+    "characterZh": "丽莎",
+    "variantZh": "叶隐芳名"
+  },
+  "genshin/lisa/default": {
+    "characterZh": "丽莎",
+    "variantZh": "默认"
+  },
+  "genshin/lisa/purple-rose": {
+    "characterZh": "丽莎",
+    "variantZh": "绀紫蔷薇"
+  },
+  "genshin/lynette/default": {
+    "characterZh": "琳妮特",
+    "variantZh": "默认"
+  },
+  "genshin/lynette/phantomeow": {
+    "characterZh": "琳妮特",
+    "variantZh": "魅影猫"
+  },
+  "genshin/mavuika/default": {
+    "characterZh": "玛薇卡",
+    "variantZh": "默认"
+  },
+  "genshin/mavuika/undying-sun": {
+    "characterZh": "玛薇卡",
+    "variantZh": "不蚀日"
+  },
+  "genshin/mona/default": {
+    "characterZh": "莫娜",
+    "variantZh": "默认"
+  },
+  "genshin/mona/flowing-fate": {
+    "characterZh": "莫娜",
+    "variantZh": "星命流转"
+  },
+  "genshin/mona/pact-of-stars-and-moon": {
+    "characterZh": "莫娜",
+    "variantZh": "星与月之约"
+  },
+  "genshin/mualani/default": {
+    "characterZh": "玛拉妮",
+    "variantZh": "默认"
+  },
+  "genshin/mualani/flying-fish-heat-waves-and-moon-scallop": {
+    "characterZh": "玛拉妮",
+    "variantZh": "飞鱼"
+  },
+  "genshin/nahida/default": {
+    "characterZh": "纳西妲",
+    "variantZh": "默认"
+  },
+  "genshin/nahida/for-all-knowledge-a-verse": {
+    "characterZh": "纳西妲",
+    "variantZh": "万识一偈"
+  },
+  "genshin/navia/default": {
+    "characterZh": "娜维娅",
+    "variantZh": "默认"
+  },
+  "genshin/navia/yellow-velvet-salon": {
+    "characterZh": "娜维娅",
+    "variantZh": "黄丝绒沙龙"
+  },
+  "genshin/nefer/default": {
+    "characterZh": "奈芙尔",
+    "variantZh": "默认"
+  },
+  "genshin/nicole/default": {
+    "characterZh": "尼可",
+    "variantZh": "默认"
+  },
+  "genshin/nilou/breeze-of-sabaa": {
+    "characterZh": "妮露",
+    "variantZh": "莎邦之息"
+  },
+  "genshin/nilou/default": {
+    "characterZh": "妮露",
+    "variantZh": "默认"
+  },
+  "genshin/nilou/neither-flower-nor-mist": {
+    "characterZh": "妮露",
+    "variantZh": "非花非雾"
+  },
+  "genshin/ningguang/default": {
+    "characterZh": "凝光",
+    "variantZh": "默认"
+  },
+  "genshin/ningguang/gold-leaf-and-pearly-jade": {
+    "characterZh": "凝光",
+    "variantZh": "玑玉琼金"
+  },
+  "genshin/ningguang/orchid-s-evening-gown": {
+    "characterZh": "凝光",
+    "variantZh": "纱中幽兰"
+  },
+  "genshin/noelle/armored-rose": {
+    "characterZh": "诺艾尔",
+    "variantZh": "甲铁玫瑰"
+  },
+  "genshin/noelle/default": {
+    "characterZh": "诺艾尔",
+    "variantZh": "默认"
+  },
+  "genshin/odette/default": {
+    "characterZh": "奥黛塔",
+    "variantZh": "默认"
+  },
+  "genshin/prune/default": {
+    "characterZh": "布伦妮",
+    "variantZh": "默认"
+  },
+  "genshin/qiqi/default": {
+    "characterZh": "七七",
+    "variantZh": "默认"
+  },
+  "genshin/qiqi/summerchill-dreams": {
+    "characterZh": "七七",
+    "variantZh": "夏冰梦身"
+  },
+  "genshin/raiden-shogun/default": {
+    "characterZh": "雷电将军 (可控角色)",
+    "variantZh": "默认"
+  },
+  "genshin/raiden-shogun/narukami-s-law": {
+    "characterZh": "雷电将军 (可控角色)",
+    "variantZh": "御建鸣神主尊之典"
+  },
+  "genshin/rosaria/default": {
+    "characterZh": "罗莎莉亚",
+    "variantZh": "默认"
+  },
+  "genshin/rosaria/executor-s-thorns": {
+    "characterZh": "罗莎莉亚",
+    "variantZh": "处刑棘刺"
+  },
+  "genshin/rosaria/to-the-church-s-free-spirit": {
+    "characterZh": "罗莎莉亚",
+    "variantZh": "致教会自由人"
+  },
+  "genshin/sandrone/default": {
+    "characterZh": "桑多涅 (NPC)",
+    "variantZh": "默认"
+  },
+  "genshin/sangonomiya-kokomi/default": {
+    "characterZh": "珊瑚宫心海",
+    "variantZh": "默认"
+  },
+  "genshin/sangonomiya-kokomi/sparkling-coralbone": {
+    "characterZh": "珊瑚宫心海",
+    "variantZh": "珊骨粼波"
+  },
+  "genshin/sayu/default": {
+    "characterZh": "早柚",
+    "variantZh": "默认"
+  },
+  "genshin/sayu/mini-mujina": {
+    "characterZh": "早柚",
+    "variantZh": "小貉服"
+  },
+  "genshin/shenhe/default": {
+    "characterZh": "申鹤",
+    "variantZh": "默认"
+  },
+  "genshin/shenhe/frostflower-dew": {
+    "characterZh": "申鹤",
+    "variantZh": "冷花幽露"
+  },
+  "genshin/shenhe/the-world-s-shackles": {
+    "characterZh": "申鹤",
+    "variantZh": "缚绝红尘"
+  },
+  "genshin/sigewinne/default": {
+    "characterZh": "希格雯",
+    "variantZh": "默认"
+  },
+  "genshin/sigewinne/sweetness-of-the-sea": {
+    "characterZh": "希格雯",
+    "variantZh": "大海的甜色"
+  },
+  "genshin/skirk/default": {
+    "characterZh": "丝柯克",
+    "variantZh": "默认"
+  },
+  "genshin/sucrose/default": {
+    "characterZh": "砂糖",
+    "variantZh": "默认"
+  },
+  "genshin/sucrose/germinating-wind": {
+    "characterZh": "砂糖",
+    "variantZh": "萌生的灵风"
+  },
+  "genshin/varesa/default": {
+    "characterZh": "瓦雷莎",
+    "variantZh": "默认"
+  },
+  "genshin/varesa/sugar-rush": {
+    "characterZh": "瓦雷莎",
+    "variantZh": "糖分欢意"
+  },
+  "genshin/vodyanitsa/default": {
+    "characterZh": "沃雅妮莎",
+    "variantZh": "默认"
+  },
+  "genshin/xiangling/default": {
+    "characterZh": "香菱",
+    "variantZh": "默认"
+  },
+  "genshin/xiangling/new-year-s-cheer": {
+    "characterZh": "香菱",
+    "variantZh": "岁夜欢哗"
+  },
+  "genshin/xiangling/red-pepper-and-turmeric": {
+    "characterZh": "香菱",
+    "variantZh": "椒红姜黄"
+  },
+  "genshin/xianyun/a-guest-s-august-omen": {
+    "characterZh": "闲云",
+    "variantZh": "有客来仪"
+  },
+  "genshin/xianyun/default": {
+    "characterZh": "闲云",
+    "variantZh": "默认"
+  },
+  "genshin/xilonen/default": {
+    "characterZh": "希诺宁",
+    "variantZh": "默认"
+  },
+  "genshin/xilonen/gold-draped-gorge": {
+    "characterZh": "希诺宁",
+    "variantZh": "澄金抹壑"
+  },
+  "genshin/xinyan/ardent-soul": {
+    "characterZh": "辛焱",
+    "variantZh": "灵魂热望"
+  },
+  "genshin/xinyan/default": {
+    "characterZh": "辛焱",
+    "variantZh": "默认"
+  },
+  "genshin/yae-miko/default": {
+    "characterZh": "八重神子",
+    "variantZh": "默认"
+  },
+  "genshin/yae-miko/miko-s-instruction": {
+    "characterZh": "八重神子",
+    "variantZh": "御子之谕"
+  },
+  "genshin/yanfei/default": {
+    "characterZh": "烟绯",
+    "variantZh": "默认"
+  },
+  "genshin/yanfei/golden-rule": {
+    "characterZh": "烟绯",
+    "variantZh": "金科赤律"
+  },
+  "genshin/yaoyao/cherubic-osmanthus": {
+    "characterZh": "瑶瑶",
+    "variantZh": "栗蕊木樨花"
+  },
+  "genshin/yaoyao/default": {
+    "characterZh": "瑶瑶",
+    "variantZh": "默认"
+  },
+  "genshin/yelan/default": {
+    "characterZh": "夜兰",
+    "variantZh": "默认"
+  },
+  "genshin/yelan/the-waning-point": {
+    "characterZh": "夜兰",
+    "variantZh": "于阑珊处"
+  },
+  "genshin/yoimiya/default": {
+    "characterZh": "宵宫",
+    "variantZh": "默认"
+  },
+  "genshin/yoimiya/goldfish-firecracker": {
+    "characterZh": "宵宫",
+    "variantZh": "金鱼花火"
+  },
+  "genshin/yumemizuki-mizuki/default": {
+    "characterZh": "梦见月瑞希",
+    "variantZh": "默认"
+  },
+  "genshin/yun-jin/default": {
+    "characterZh": "云堇",
+    "variantZh": "默认"
+  },
+  "genshin/yun-jin/mistcloud-stage": {
+    "characterZh": "云堇",
+    "variantZh": "氍毹烟云"
+  },
+  "genshin/zibai/default": {
+    "characterZh": "兹白",
+    "variantZh": "默认"
+  },
+  "hsr/acheron/default": {
+    "characterZh": "黄泉",
+    "variantZh": "默认"
+  },
+  "hsr/aglaea/default": {
+    "characterZh": "阿格莱雅",
+    "variantZh": "默认"
+  },
+  "hsr/asta/default": {
+    "characterZh": "艾丝妲",
+    "variantZh": "默认"
+  },
+  "hsr/bailu/default": {
+    "characterZh": "白露",
+    "variantZh": "默认"
+  },
+  "hsr/black-swan/default": {
+    "characterZh": "黑天鹅",
+    "variantZh": "默认"
+  },
+  "hsr/bronya/default": {
+    "characterZh": "布洛妮娅",
+    "variantZh": "默认"
+  },
+  "hsr/castorice/default": {
+    "characterZh": "遐蝶",
+    "variantZh": "默认"
+  },
+  "hsr/castorice/gossamer-flutter": {
+    "characterZh": "遐蝶",
+    "variantZh": "幽梦翩跹"
+  },
+  "hsr/cerydra/default": {
+    "characterZh": "刻律德菈",
+    "variantZh": "默认"
+  },
+  "hsr/cipher/default": {
+    "characterZh": "赛飞儿",
+    "variantZh": "默认"
+  },
+  "hsr/clara/default": {
+    "characterZh": "克拉拉",
+    "variantZh": "默认"
+  },
+  "hsr/cyrene/default": {
+    "characterZh": "昔涟",
+    "variantZh": "默认"
+  },
+  "hsr/cyrene/the-promise-s": {
+    "characterZh": "昔涟",
+    "variantZh": "「∞」的誓约"
+  },
+  "hsr/evanescia/default": {
+    "characterZh": "绯英",
+    "variantZh": "默认"
+  },
+  "hsr/evernight/default": {
+    "characterZh": "长夜月",
+    "variantZh": "默认"
+  },
+  "hsr/feixiao/default": {
+    "characterZh": "飞霄",
+    "variantZh": "默认"
+  },
+  "hsr/firefly/default": {
+    "characterZh": "流萤",
+    "variantZh": "默认"
+  },
+  "hsr/firefly/spring-missive": {
+    "characterZh": "流萤",
+    "variantZh": "春日手信"
+  },
+  "hsr/fu-xuan/default": {
+    "characterZh": "符玄",
+    "variantZh": "默认"
+  },
+  "hsr/fugue/default": {
+    "characterZh": "忘归人",
+    "variantZh": "默认"
+  },
+  "hsr/guinaifen/default": {
+    "characterZh": "桂乃芬",
+    "variantZh": "默认"
+  },
+  "hsr/hanya/default": {
+    "characterZh": "寒鸦",
+    "variantZh": "默认"
+  },
+  "hsr/herta/default": {
+    "characterZh": "黑塔",
+    "variantZh": "默认"
+  },
+  "hsr/himeko/default": {
+    "characterZh": "姬子",
+    "variantZh": "默认"
+  },
+  "hsr/hook/default": {
+    "characterZh": "虎克",
+    "variantZh": "默认"
+  },
+  "hsr/huohuo/default": {
+    "characterZh": "藿藿",
+    "variantZh": "默认"
+  },
+  "hsr/hyacine/default": {
+    "characterZh": "风堇",
+    "variantZh": "默认"
+  },
+  "hsr/hysilens/default": {
+    "characterZh": "海瑟音",
+    "variantZh": "默认"
+  },
+  "hsr/jade/default": {
+    "characterZh": "翡翠",
+    "variantZh": "默认"
+  },
+  "hsr/jingliu/default": {
+    "characterZh": "镜流",
+    "variantZh": "默认"
+  },
+  "hsr/kafka/default": {
+    "characterZh": "卡芙卡",
+    "variantZh": "默认"
+  },
+  "hsr/lingsha/default": {
+    "characterZh": "灵砂",
+    "variantZh": "默认"
+  },
+  "hsr/lynx/default": {
+    "characterZh": "玲可",
+    "variantZh": "默认"
+  },
+  "hsr/march-7th/default": {
+    "characterZh": "三月七",
+    "variantZh": "默认"
+  },
+  "hsr/natasha/default": {
+    "characterZh": "娜塔莎",
+    "variantZh": "默认"
+  },
+  "hsr/pearl/default": {
+    "characterZh": "真珠",
+    "variantZh": "默认"
+  },
+  "hsr/pela/default": {
+    "characterZh": "佩拉",
+    "variantZh": "默认"
+  },
+  "hsr/qingque/default": {
+    "characterZh": "青雀",
+    "variantZh": "默认"
+  },
+  "hsr/rappa/default": {
+    "characterZh": "乱破",
+    "variantZh": "默认"
+  },
+  "hsr/rin-tohsaka/default": {
+    "characterZh": "远坂凛",
+    "variantZh": "默认"
+  },
+  "hsr/robin/default": {
+    "characterZh": "知更鸟",
+    "variantZh": "默认"
+  },
+  "hsr/ruan-mei/default": {
+    "characterZh": "阮•梅",
+    "variantZh": "默认"
+  },
+  "hsr/ruan-mei/plumblossom-letter": {
+    "characterZh": "阮•梅",
+    "variantZh": "雪绽梅笺"
+  },
+  "hsr/saber/default": {
+    "characterZh": "Saber",
+    "variantZh": "默认"
+  },
+  "hsr/seele/default": {
+    "characterZh": "希儿",
+    "variantZh": "默认"
+  },
+  "hsr/serval/default": {
+    "characterZh": "希露瓦",
+    "variantZh": "默认"
+  },
+  "hsr/silver-wolf/default": {
+    "characterZh": "银狼",
+    "variantZh": "默认"
+  },
+  "hsr/sparkle/default": {
+    "characterZh": "花火",
+    "variantZh": "默认"
+  },
+  "hsr/sparxie/candy-coated-waves": {
+    "characterZh": "火花",
+    "variantZh": "甜梦电波"
+  },
+  "hsr/sparxie/default": {
+    "characterZh": "火花",
+    "variantZh": "默认"
+  },
+  "hsr/sushang/default": {
+    "characterZh": "素裳",
+    "variantZh": "默认"
+  },
+  "hsr/the-dahlia/default": {
+    "characterZh": "大丽花",
+    "variantZh": "默认"
+  },
+  "hsr/the-herta/default": {
+    "characterZh": "大黑塔",
+    "variantZh": "默认"
+  },
+  "hsr/tingyun/default": {
+    "characterZh": "停云",
+    "variantZh": "默认"
+  },
+  "hsr/topaz/default": {
+    "characterZh": "托帕",
+    "variantZh": "默认"
+  },
+  "hsr/tribbie/default": {
+    "characterZh": "缇宝",
+    "variantZh": "默认"
+  },
+  "hsr/xueyi/default": {
+    "characterZh": "雪衣",
+    "variantZh": "默认"
+  },
+  "hsr/yao-guang/default": {
+    "characterZh": "爻光",
+    "variantZh": "默认"
+  },
+  "hsr/yukong/default": {
+    "characterZh": "驭空",
+    "variantZh": "默认"
+  },
+  "hsr/yunli/default": {
+    "characterZh": "云璃",
+    "variantZh": "默认"
+  },
+  "nte/aurelia/azure-sea-serenade": {
+    "characterZh": "海月",
+    "variantZh": "azure-sea-serenade"
+  },
+  "nte/aurelia/default": {
+    "characterZh": "海月",
+    "variantZh": "默认"
+  },
+  "nte/chiz/default": {
+    "characterZh": "小吱",
+    "variantZh": "默认"
+  },
+  "nte/chiz/velvet-spring-day": {
+    "characterZh": "小吱",
+    "variantZh": "velvet-spring-day"
+  },
+  "nte/chiz/verdant-grace": {
+    "characterZh": "小吱",
+    "variantZh": "verdant-grace"
+  },
+  "nte/daffodill/city-glimmer": {
+    "characterZh": "达芙蒂尔",
+    "variantZh": "city-glimmer"
+  },
+  "nte/daffodill/default": {
+    "characterZh": "达芙蒂尔",
+    "variantZh": "默认"
+  },
+  "nte/fadia/default": {
+    "characterZh": "法帝娅",
+    "variantZh": "默认"
+  },
+  "nte/fadia/tales-of-the-night": {
+    "characterZh": "法帝娅",
+    "variantZh": "tales-of-the-night"
+  },
+  "nte/haniel/agent-in-training": {
+    "characterZh": "哈尼娅",
+    "variantZh": "agent-in-training"
+  },
+  "nte/haniel/default": {
+    "characterZh": "哈尼娅",
+    "variantZh": "默认"
+  },
+  "nte/hathor/default": {
+    "characterZh": "哈索尔",
+    "variantZh": "默认"
+  },
+  "nte/hotori/default": {
+    "characterZh": "浔",
+    "variantZh": "默认"
+  },
+  "nte/hotori/priceless-orchid": {
+    "characterZh": "浔",
+    "variantZh": "priceless-orchid"
+  },
+  "nte/hotori/recreational-courtyard": {
+    "characterZh": "浔",
+    "variantZh": "recreational-courtyard"
+  },
+  "nte/iroi/archmage": {
+    "characterZh": "伊洛伊",
+    "variantZh": "archmage"
+  },
+  "nte/iroi/channeling": {
+    "characterZh": "伊洛伊",
+    "variantZh": "channeling"
+  },
+  "nte/iroi/default": {
+    "characterZh": "伊洛伊",
+    "variantZh": "默认"
+  },
+  "nte/iroi/dreamweaver": {
+    "characterZh": "伊洛伊",
+    "variantZh": "dreamweaver"
+  },
+  "nte/iroi/starlit-night": {
+    "characterZh": "伊洛伊",
+    "variantZh": "starlit-night"
+  },
+  "nte/iroi/summer-dream": {
+    "characterZh": "伊洛伊",
+    "variantZh": "summer-dream"
+  },
+  "nte/jiuyuan/default": {
+    "characterZh": "九原",
+    "variantZh": "默认"
+  },
+  "nte/jiuyuan/self-discipline-time": {
+    "characterZh": "九原",
+    "variantZh": "self-discipline-time"
+  },
+  "nte/lacrimosa/default": {
+    "characterZh": "安魂曲",
+    "variantZh": "默认"
+  },
+  "nte/lacrimosa/gilded-rhapsody": {
+    "characterZh": "安魂曲",
+    "variantZh": "gilded-rhapsody"
+  },
+  "nte/lacrimosa/new-moon-lullaby": {
+    "characterZh": "安魂曲",
+    "variantZh": "new-moon-lullaby"
+  },
+  "nte/lacrimosa/nightingale-s-crescendo": {
+    "characterZh": "安魂曲",
+    "variantZh": "nightingale-s-crescendo"
+  },
+  "nte/lacrimosa/piano-key-sonatina": {
+    "characterZh": "安魂曲",
+    "variantZh": "piano-key-sonatina"
+  },
+  "nte/lacrimosa/yesterday-s-melody": {
+    "characterZh": "安魂曲",
+    "variantZh": "yesterday-s-melody"
+  },
+  "nte/mint/aurora-flame": {
+    "characterZh": "薄荷",
+    "variantZh": "aurora-flame"
+  },
+  "nte/mint/default": {
+    "characterZh": "薄荷",
+    "variantZh": "默认"
+  },
+  "nte/mint/leisurely-holiday": {
+    "characterZh": "薄荷",
+    "variantZh": "leisurely-holiday"
+  },
+  "nte/mint/saltwater-taffy": {
+    "characterZh": "薄荷",
+    "variantZh": "saltwater-taffy"
+  },
+  "nte/mint/sylvan-hunter": {
+    "characterZh": "薄荷",
+    "variantZh": "sylvan-hunter"
+  },
+  "nte/mint/to-mary": {
+    "characterZh": "薄荷",
+    "variantZh": "to-mary"
+  },
+  "nte/mint/wild-as-the-wind": {
+    "characterZh": "薄荷",
+    "variantZh": "wild-as-the-wind"
+  },
+  "nte/nanally/default": {
+    "characterZh": "娜娜莉",
+    "variantZh": "默认"
+  },
+  "nte/nanally/fluffy-flying-tiger": {
+    "characterZh": "娜娜莉",
+    "variantZh": "fluffy-flying-tiger"
+  },
+  "nte/nanally/phoenix-kick": {
+    "characterZh": "娜娜莉",
+    "variantZh": "phoenix-kick"
+  },
+  "nte/nanally/reverse-fairy-tale": {
+    "characterZh": "娜娜莉",
+    "variantZh": "reverse-fairy-tale"
+  },
+  "nte/nanally/sunny-surf": {
+    "characterZh": "娜娜莉",
+    "variantZh": "sunny-surf"
+  },
+  "nte/nanally/the-popular-kid": {
+    "characterZh": "娜娜莉",
+    "variantZh": "the-popular-kid"
+  },
+  "nte/sakiri/default": {
+    "characterZh": "早雾",
+    "variantZh": "默认"
+  },
+  "nte/sakiri/pumpkin-magic": {
+    "characterZh": "早雾",
+    "variantZh": "pumpkin-magic"
+  },
+  "nte/shinku/dawn-patrol": {
+    "characterZh": "真红",
+    "variantZh": "dawn-patrol"
+  },
+  "nte/shinku/default": {
+    "characterZh": "真红",
+    "variantZh": "默认"
+  },
+  "nte/shinku/dragonhunter": {
+    "characterZh": "真红",
+    "variantZh": "dragonhunter"
+  },
+  "nte/shinku/labyrinth-lily": {
+    "characterZh": "真红",
+    "variantZh": "labyrinth-lily"
+  },
+  "nte/shinku/normie-heroine": {
+    "characterZh": "真红",
+    "variantZh": "normie-heroine"
+  },
+  "nte/shinku/student-of-terrasea": {
+    "characterZh": "真红",
+    "variantZh": "student-of-terrasea"
+  },
+  "nte/zankou/autumn-vignette": {
+    "characterZh": "残虹",
+    "variantZh": "autumn-vignette"
+  },
+  "nte/zankou/default": {
+    "characterZh": "残虹",
+    "variantZh": "默认"
+  },
+  "nte/zankou/moonlit-courtyard": {
+    "characterZh": "残虹",
+    "variantZh": "moonlit-courtyard"
+  },
+  "nte/zankou/twilight-noir": {
+    "characterZh": "残虹",
+    "variantZh": "twilight-noir"
+  },
+  "wuwa/aemeath/default": {
+    "characterZh": "爱弥斯",
+    "variantZh": "默认"
+  },
+  "wuwa/augusta/default": {
+    "characterZh": "奥古斯塔",
+    "variantZh": "默认"
+  },
+  "wuwa/baizhi/default": {
+    "characterZh": "白芷",
+    "variantZh": "默认"
+  },
+  "wuwa/buling/default": {
+    "characterZh": "卜灵",
+    "variantZh": "默认"
+  },
+  "wuwa/camellya/default": {
+    "characterZh": "椿",
+    "variantZh": "默认"
+  },
+  "wuwa/cantarella/default": {
+    "characterZh": "坎特蕾拉",
+    "variantZh": "默认"
+  },
+  "wuwa/carlotta/default": {
+    "characterZh": "珂莱塔",
+    "variantZh": "默认"
+  },
+  "wuwa/cartethyia/default": {
+    "characterZh": "卡提希娅",
+    "variantZh": "默认"
+  },
+  "wuwa/changli/default": {
+    "characterZh": "长离",
+    "variantZh": "默认"
+  },
+  "wuwa/chisa/default": {
+    "characterZh": "千咲",
+    "variantZh": "默认"
+  },
+  "wuwa/chixia/default": {
+    "characterZh": "炽霞",
+    "variantZh": "默认"
+  },
+  "wuwa/ciaccona/default": {
+    "characterZh": "夏空",
+    "variantZh": "默认"
+  },
+  "wuwa/danjin/default": {
+    "characterZh": "丹瑾",
+    "variantZh": "默认"
+  },
+  "wuwa/denia/default": {
+    "characterZh": "达妮娅",
+    "variantZh": "默认"
+  },
+  "wuwa/encore/default": {
+    "characterZh": "安可",
+    "variantZh": "默认"
+  },
+  "wuwa/galbrena/default": {
+    "characterZh": "嘉贝莉娜",
+    "variantZh": "默认"
+  },
+  "wuwa/hiyuki/default": {
+    "characterZh": "绯雪",
+    "variantZh": "默认"
+  },
+  "wuwa/hsin/default": {
+    "characterZh": "心",
+    "variantZh": "默认"
+  },
+  "wuwa/iuno/default": {
+    "characterZh": "尤诺",
+    "variantZh": "默认"
+  },
+  "wuwa/jianxin/default": {
+    "characterZh": "鉴心",
+    "variantZh": "默认"
+  },
+  "wuwa/jinhsi/default": {
+    "characterZh": "今汐",
+    "variantZh": "默认"
+  },
+  "wuwa/jinhsi/peach-blossom": {
+    "characterZh": "今汐",
+    "variantZh": "桃夭灼灼"
+  },
+  "wuwa/lucilla/default": {
+    "characterZh": "洛瑟菈",
+    "variantZh": "默认"
+  },
+  "wuwa/lucy/default": {
+    "characterZh": "露西",
+    "variantZh": "默认"
+  },
+  "wuwa/lumi/default": {
+    "characterZh": "灯灯",
+    "variantZh": "默认"
+  },
+  "wuwa/lynae/default": {
+    "characterZh": "琳奈",
+    "variantZh": "默认"
+  },
+  "wuwa/mornye/default": {
+    "characterZh": "莫宁",
+    "variantZh": "默认"
+  },
+  "wuwa/phoebe/default": {
+    "characterZh": "菲比",
+    "variantZh": "默认"
+  },
+  "wuwa/qingxiao/default": {
+    "characterZh": "清宵",
+    "variantZh": "默认"
+  },
+  "wuwa/rebecca/default": {
+    "characterZh": "丽贝卡",
+    "variantZh": "默认"
+  },
+  "wuwa/roccia/default": {
+    "characterZh": "洛可可",
+    "variantZh": "默认"
+  },
+  "wuwa/sanhua/default": {
+    "characterZh": "散华",
+    "variantZh": "默认"
+  },
+  "wuwa/sanhua/exorcistic-adjuration": {
+    "characterZh": "散华",
+    "variantZh": "叱妖诰"
+  },
+  "wuwa/shorekeeper/default": {
+    "characterZh": "守岸人",
+    "variantZh": "默认"
+  },
+  "wuwa/sigrika/default": {
+    "characterZh": "西格莉卡",
+    "variantZh": "默认"
+  },
+  "wuwa/suisui/default": {
+    "characterZh": "穗穗",
+    "variantZh": "默认"
+  },
+  "wuwa/suoming/default": {
+    "characterZh": "锁暝",
+    "variantZh": "默认"
+  },
+  "wuwa/taoqi/default": {
+    "characterZh": "桃祈",
+    "variantZh": "默认"
+  },
+  "wuwa/verina/default": {
+    "characterZh": "维里奈",
+    "variantZh": "默认"
+  },
+  "wuwa/yangyang/default": {
+    "characterZh": "秧秧",
+    "variantZh": "默认"
+  },
+  "wuwa/yangyang-xuanling/default": {
+    "characterZh": "秧秧·玄翎",
+    "variantZh": "默认"
+  },
+  "wuwa/yinlin/default": {
+    "characterZh": "吟霖",
+    "variantZh": "默认"
+  },
+  "wuwa/youhu/default": {
+    "characterZh": "釉瑚",
+    "variantZh": "默认"
+  },
+  "wuwa/zani/default": {
+    "characterZh": "赞妮",
+    "variantZh": "默认"
+  },
+  "wuwa/zani/downtown-repose": {
+    "characterZh": "赞妮",
+    "variantZh": "downtown-repose"
+  },
+  "wuwa/zhezhi/default": {
+    "characterZh": "折枝",
+    "variantZh": "默认"
+  },
+  "zzz/alice/celestian-etiquette": {
+    "characterZh": "爱丽丝",
+    "variantZh": "圣星裁仪"
+  },
+  "zzz/alice/default": {
+    "characterZh": "爱丽丝",
+    "variantZh": "默认"
+  },
+  "zzz/alice/sea-of-thyme": {
+    "characterZh": "爱丽丝",
+    "variantZh": "百里香之海"
+  },
+  "zzz/anby/default": {
+    "characterZh": "安比",
+    "variantZh": "默认"
+  },
+  "zzz/anby/street-streak": {
+    "characterZh": "安比",
+    "variantZh": "街头迅影"
+  },
+  "zzz/aria/default": {
+    "characterZh": "爱芮",
+    "variantZh": "默认"
+  },
+  "zzz/aria/discordant-note": {
+    "characterZh": "爱芮",
+    "variantZh": "不协和音"
+  },
+  "zzz/aria/energetic-idol": {
+    "characterZh": "爱芮",
+    "variantZh": "元气偶像"
+  },
+  "zzz/astra/chandelier": {
+    "characterZh": "耀嘉音",
+    "variantZh": "水晶灯下"
+  },
+  "zzz/astra/default": {
+    "characterZh": "耀嘉音",
+    "variantZh": "默认"
+  },
+  "zzz/astra/scarlet-rock": {
+    "characterZh": "耀嘉音",
+    "variantZh": "绯红摇滚"
+  },
+  "zzz/burnice/default": {
+    "characterZh": "柏妮思",
+    "variantZh": "默认"
+  },
+  "zzz/caesar/default": {
+    "characterZh": "凯撒",
+    "variantZh": "默认"
+  },
+  "zzz/caesar/inferno-joyride": {
+    "characterZh": "凯撒",
+    "variantZh": "火浴焰行"
+  },
+  "zzz/cissia/default": {
+    "characterZh": "希希芙",
+    "variantZh": "默认"
+  },
+  "zzz/cissia/snake-mouse-game": {
+    "characterZh": "希希芙",
+    "variantZh": "蛇鼠游戏"
+  },
+  "zzz/corin/default": {
+    "characterZh": "可琳",
+    "variantZh": "默认"
+  },
+  "zzz/corin/matcha-profiterole": {
+    "characterZh": "可琳",
+    "variantZh": "抹茶泡芙"
+  },
+  "zzz/dialyn/default": {
+    "characterZh": "琉音",
+    "variantZh": "默认"
+  },
+  "zzz/dialyn/ringing-judgment": {
+    "characterZh": "琉音",
+    "variantZh": "铃语判词"
+  },
+  "zzz/ellen/default": {
+    "characterZh": "艾莲",
+    "variantZh": "默认"
+  },
+  "zzz/ellen/ellen-scissorhands": {
+    "characterZh": "艾莲",
+    "variantZh": "剪刀手艾鲨鲨"
+  },
+  "zzz/ellen/on-campus": {
+    "characterZh": "艾莲",
+    "variantZh": "从周一到周五"
+  },
+  "zzz/evelyn/a-moth-to-light": {
+    "characterZh": "伊芙琳",
+    "variantZh": "飞蛾逐光"
+  },
+  "zzz/evelyn/default": {
+    "characterZh": "伊芙琳",
+    "variantZh": "默认"
+  },
+  "zzz/grace/default": {
+    "characterZh": "格莉丝",
+    "variantZh": "默认"
+  },
+  "zzz/grace/the-iron-witch-outfit": {
+    "characterZh": "格莉丝",
+    "variantZh": "钢铁的女巫"
+  },
+  "zzz/jane/default": {
+    "characterZh": "简",
+    "variantZh": "默认"
+  },
+  "zzz/jane/hidden-nightfade": {
+    "characterZh": "简",
+    "variantZh": "夜隐阑珊"
+  },
+  "zzz/jane/nocturne-of-light": {
+    "characterZh": "简",
+    "variantZh": "漪光夜曲"
+  },
+  "zzz/ju-fufu/default": {
+    "characterZh": "橘福福",
+    "variantZh": "默认"
+  },
+  "zzz/ju-fufu/summit-s-cute-tiger": {
+    "characterZh": "橘福福",
+    "variantZh": "山中萌虎"
+  },
+  "zzz/koleda/default": {
+    "characterZh": "珂蕾妲",
+    "variantZh": "默认"
+  },
+  "zzz/koleda/heart-hammer": {
+    "characterZh": "珂蕾妲",
+    "variantZh": "赤子烈锤"
+  },
+  "zzz/lucia/default": {
+    "characterZh": "卢西娅",
+    "variantZh": "默认"
+  },
+  "zzz/lucia/whispering-dreams": {
+    "characterZh": "卢西娅",
+    "variantZh": "颂夜梦呓"
+  },
+  "zzz/lucy/default": {
+    "characterZh": "露西亚娜·奥克希斯·提奥多·德·蒙特夫",
+    "variantZh": "默认"
+  },
+  "zzz/miyabi/default": {
+    "characterZh": "雅",
+    "variantZh": "默认"
+  },
+  "zzz/nangong-yu/default": {
+    "characterZh": "南宫羽",
+    "variantZh": "默认"
+  },
+  "zzz/nangong-yu/dreamy-dancer": {
+    "characterZh": "南宫羽",
+    "variantZh": "绮梦领舞"
+  },
+  "zzz/nangong-yu/rhapsody-s-muse": {
+    "characterZh": "南宫羽",
+    "variantZh": "狂想缪斯"
+  },
+  "zzz/nekomata/default": {
+    "characterZh": "猫又",
+    "variantZh": "默认"
+  },
+  "zzz/nicole/cunning-cutie": {
+    "characterZh": "妮可",
+    "variantZh": "狡黠甜心"
+  },
+  "zzz/nicole/default": {
+    "characterZh": "妮可",
+    "variantZh": "默认"
+  },
+  "zzz/nicole/lil-sassy": {
+    "characterZh": "妮可",
+    "variantZh": "一点点俏皮"
+  },
+  "zzz/norma/default": {
+    "characterZh": "诺姆・霍洛维尔",
+    "variantZh": "默认"
+  },
+  "zzz/orphie-and-magus/default": {
+    "characterZh": "奥菲丝&「鬼火」",
+    "variantZh": "默认"
+  },
+  "zzz/piper/default": {
+    "characterZh": "派派·韦尔",
+    "variantZh": "默认"
+  },
+  "zzz/promeia/default": {
+    "characterZh": "普罗米娅",
+    "variantZh": "默认"
+  },
+  "zzz/promeia/shrouded-in-frost": {
+    "characterZh": "普罗米娅",
+    "variantZh": "曳影迷霜"
+  },
+  "zzz/pulchra/default": {
+    "characterZh": "波可娜·费雷尼",
+    "variantZh": "默认"
+  },
+  "zzz/qingyi/clarity-peace-and-joy": {
+    "characterZh": "青衣",
+    "variantZh": "清平乐"
+  },
+  "zzz/qingyi/default": {
+    "characterZh": "青衣",
+    "variantZh": "默认"
+  },
+  "zzz/remielle/default": {
+    "characterZh": "蕾米埃尔·丹",
+    "variantZh": "默认"
+  },
+  "zzz/rina/default": {
+    "characterZh": "丽娜",
+    "variantZh": "默认"
+  },
+  "zzz/seed/default": {
+    "characterZh": "「席德」",
+    "variantZh": "默认"
+  },
+  "zzz/seed/flower-in-bloom": {
+    "characterZh": "「席德」",
+    "variantZh": "繁花"
+  },
+  "zzz/sigrid/default": {
+    "characterZh": "希格莉德·德拉叙尔",
+    "variantZh": "默认"
+  },
+  "zzz/soldier-0-anby/default": {
+    "characterZh": "零号·安比",
+    "variantZh": "默认"
+  },
+  "zzz/soldier-0-anby/silver-soldier": {
+    "characterZh": "零号·安比",
+    "variantZh": "银心锡兵"
+  },
+  "zzz/soldier-11/default": {
+    "characterZh": "「11号」",
+    "variantZh": "默认"
+  },
+  "zzz/soldier-11/elite-soldier": {
+    "characterZh": "「11号」",
+    "variantZh": "精锐士兵"
+  },
+  "zzz/soukaku/dance-of-azure-ice": {
+    "characterZh": "苍角",
+    "variantZh": "青蓝冰舞"
+  },
+  "zzz/soukaku/default": {
+    "characterZh": "苍角",
+    "variantZh": "默认"
+  },
+  "zzz/sunna/afternoon-tea-break": {
+    "characterZh": "千夏",
+    "variantZh": "午后茶歇"
+  },
+  "zzz/sunna/default": {
+    "characterZh": "千夏",
+    "variantZh": "默认"
+  },
+  "zzz/sunna/dreams-on-loop": {
+    "characterZh": "千夏",
+    "variantZh": "妄念环响"
+  },
+  "zzz/trigger/default": {
+    "characterZh": "「扳机」",
+    "variantZh": "默认"
+  },
+  "zzz/trigger/gaze-into-the-light": {
+    "characterZh": "「扳机」",
+    "variantZh": "幽目启明"
+  },
+  "zzz/velina/default": {
+    "characterZh": "维琳娜・艾嘉德",
+    "variantZh": "默认"
+  },
+  "zzz/vivian/default": {
+    "characterZh": "薇薇安",
+    "variantZh": "默认"
+  },
+  "zzz/vivian/fluttering-violet": {
+    "characterZh": "薇薇安",
+    "variantZh": "堇色蹁跹"
+  },
+  "zzz/vivian/iris-of-the-shore": {
+    "characterZh": "薇薇安",
+    "variantZh": "鸢花池畔"
+  },
+  "zzz/yanagi/default": {
+    "characterZh": "柳",
+    "variantZh": "默认"
+  },
+  "zzz/ye-shunguang/clouddrift-illumination": {
+    "characterZh": "叶瞬光",
+    "variantZh": "流云照影"
+  },
+  "zzz/ye-shunguang/default": {
+    "characterZh": "叶瞬光",
+    "variantZh": "默认"
+  },
+  "zzz/ye-shunguang/touch-of-dawnlight": {
+    "characterZh": "叶瞬光",
+    "variantZh": "暖霞拾光"
+  },
+  "zzz/yidhari/default": {
+    "characterZh": "伊德海莉",
+    "variantZh": "默认"
+  },
+  "zzz/yixuan/default": {
+    "characterZh": "仪玄",
+    "variantZh": "默认"
+  },
+  "zzz/yixuan/summit-of-clouds": {
+    "characterZh": "仪玄",
+    "variantZh": "观云同岿"
+  },
+  "zzz/yixuan/trails-of-ink": {
+    "characterZh": "仪玄",
+    "variantZh": "墨形影踪"
+  },
+  "zzz/yuzuha/default": {
+    "characterZh": "柚叶",
+    "variantZh": "默认"
+  },
+  "zzz/zhao/cuddly-executor": {
+    "characterZh": "照",
+    "variantZh": "绒耳寒枝"
+  },
+  "zzz/zhao/default": {
+    "characterZh": "照",
+    "variantZh": "默认"
+  },
+  "zzz/zhu-yuan/default": {
+    "characterZh": "朱鸢",
+    "variantZh": "默认"
+  },
+  "zzz/zhu-yuan/suppressor-of-evil": {
+    "characterZh": "朱鸢",
+    "variantZh": "镇暴者"
+  }
+}

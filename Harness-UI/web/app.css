@@ -1,0 +1,18 @@
+:root { color-scheme: light dark; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #0e1422; color: #e9effc; }
+header { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; gap: 16px; padding: 14px 18px; background: #131d31ee; border-bottom: 1px solid #ffffff20; }
+header span { margin-left: 10px; color: #9fb0cf; }
+.toolbar { display: flex; gap: 8px; }
+input, select, button { border: 1px solid #ffffff2b; border-radius: 8px; background: #0b1220; color: inherit; padding: 7px 10px; }
+button { cursor: pointer; }
+main { display: grid; grid-template-columns: minmax(300px, 42vw) 1fr; gap: 18px; padding: 18px; }
+.preview { position: sticky; top: 82px; align-self: start; }
+.preview img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #05070d; border-radius: 14px; border: 1px solid #ffffff20; }
+.preview div { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+.list { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; align-content: start; }
+.card { text-align: left; min-height: 56px; }
+.card[aria-current="true"] { border-color: #7aa2ff; background: #1a2d55; }
+.card small { display: block; color: #9fb0cf; }
+#status { position: fixed; left: 18px; bottom: 8px; color: #ffcf75; }
+@media (max-width: 760px) { header, main { display: block; } .toolbar { margin-top: 10px; flex-wrap: wrap; } .preview { position: static; margin-bottom: 16px; } }

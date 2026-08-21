@@ -1,0 +1,132 @@
+name: Kimi and Harness cross-platform CI
+
+on:
+  push:
+    branches: [main, "codex/kimi-harness-crossplatform"]
+    paths:
+      - "Kimi-Code-Desktop/**"
+      - "Harness-UI/**"
+      - ".github/workflows/kimi-harness-ci.yml"
+  pull_request:
+    paths:
+      - "Kimi-Code-Desktop/**"
+      - "Harness-UI/**"
+      - ".github/workflows/kimi-harness-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kimi-harness-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  node-tests:
+    name: Node tests (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: kimi
+            directory: Kimi-Code-Desktop
+          - project: harness
+            directory: Harness-UI
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: ${{ matrix.directory }}/package-lock.json
+      - name: Install dependencies
+        working-directory: ${{ matrix.directory }}
+        run: npm ci
+      - name: Run unit tests
+        working-directory: ${{ matrix.directory }}
+        run: npm test
+      - name: Build fixture catalog
+        if: matrix.project == 'harness'
+        working-directory: Harness-UI
+        run: npm run validate:fixtures
+      - name: Audit production dependency graph
+        working-directory: ${{ matrix.directory }}
+        run: npm audit --omit=dev --audit-level=high
+
+  macos:
+    name: macOS Apple Silicon candidates
+    runs-on: macos-15
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: Kimi-Code-Desktop/package-lock.json
+      - name: Build and test Harness UI AppKit app
+        run: |
+          swift test --package-path Harness-UI/macos
+          Harness-UI/macos/scripts/build-app.sh
+          file "Harness-UI/dist/macos-arm64/Harness UI.app/Contents/MacOS/Harness UI"
+          plutil -lint "Harness-UI/dist/macos-arm64/Harness UI.app/Contents/Info.plist"
+      - name: Build Kimi Code Desktop arm64 app directory
+        working-directory: Kimi-Code-Desktop
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          npm ci
+          npm test
+          npm run prepare:kimi -- --platform=darwin --arch=arm64
+          npx electron-builder --mac dir --arm64 -c.directories.output=dist-ci
+          file "dist-ci/mac-arm64/Kimi Code Desktop.app/Contents/MacOS/Kimi Code Desktop"
+          file "dist-ci/mac-arm64/Kimi Code Desktop.app/Contents/Resources/kimi/kimi"
+
+  windows:
+    name: Windows x64 and arm64 candidates
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: Kimi-Code-Desktop/package-lock.json
+      - name: Test and publish Harness UI for both architectures
+        shell: pwsh
+        run: |
+          dotnet test Harness-UI/windows/tests/HarnessUI.Windows.Tests.csproj -c Release
+          dotnet publish Harness-UI/windows/HarnessUI.Windows.csproj -c Release -r win-x64 --self-contained true -o Harness-UI/dist/windows-x64
+          dotnet publish Harness-UI/windows/HarnessUI.Windows.csproj -c Release -r win-arm64 --self-contained true -o Harness-UI/dist/windows-arm64
+          Get-Item Harness-UI/dist/windows-x64/HarnessUI.exe
+          Get-Item Harness-UI/dist/windows-arm64/HarnessUI.exe
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { throw "Inno Setup 6 was not found" }
+          & $iscc "/DAppArch=x64" "/DSourceDir=$((Resolve-Path 'Harness-UI/dist/windows-x64').Path)" "Harness-UI/windows/installer.iss"
+          & $iscc "/DAppArch=arm64" "/DSourceDir=$((Resolve-Path 'Harness-UI/dist/windows-arm64').Path)" "Harness-UI/windows/installer.iss"
+      - name: Build Kimi Code Desktop for both architectures
+        working-directory: Kimi-Code-Desktop
+        shell: pwsh
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          npm ci
+          npm test
+          npm run prepare:kimi -- --platform=win32 --arch=x64
+          npx electron-builder --win dir --x64 -c.directories.output=dist-ci/x64
+          npm run prepare:kimi -- --platform=win32 --arch=arm64
+          npx electron-builder --win dir --arm64 -c.directories.output=dist-ci/arm64
+          Get-Item "dist-ci/x64/win-unpacked/Kimi Code Desktop.exe"
+          Get-Item "dist-ci/arm64/win-arm64-unpacked/Kimi Code Desktop.exe"

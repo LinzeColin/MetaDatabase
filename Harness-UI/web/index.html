@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Harness UI</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <header>
+    <div><strong>Harness UI</strong><span id="count"></span></div>
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="搜索角色或变体">
+      <select id="game"><option value="">全部游戏</option></select>
+      <button id="mode">切换轮播</button>
+    </div>
+  </header>
+  <main>
+    <section class="preview">
+      <img id="preview" alt="当前皮肤预览">
+      <div><strong id="current">未选择</strong><button id="side">昼 / 夜</button></div>
+    </section>
+    <section id="list" class="list" aria-label="皮肤列表"></section>
+  </main>
+  <p id="status" role="status"></p>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

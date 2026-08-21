@@ -1,0 +1,10 @@
+node_modules/
+dist/
+out/
+vendor/kimi/
+*.log
+.DS_Store
+*.p12
+*.pfx
+*.cer
+*.mobileprovision

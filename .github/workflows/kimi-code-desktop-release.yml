@@ -1,0 +1,155 @@
+name: Kimi Code Desktop signed release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version already present in Kimi-Code-Desktop/package.json"
+        required: true
+        default: "0.1.0"
+        type: string
+      prerelease:
+        description: "Publish as a prerelease"
+        required: true
+        default: true
+        type: boolean
+      confirm:
+        description: "Type RELEASE_SIGNED_KIMI_CODE_DESKTOP"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kimi-code-desktop-signed-release
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      tag: ${{ steps.values.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Enforce main, version and explicit confirmation
+        id: values
+        env:
+          VERSION: ${{ inputs.version }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$CONFIRM" = "RELEASE_SIGNED_KIMI_CODE_DESKTOP"
+          test "$(node -p "require('./Kimi-Code-Desktop/package.json').version")" = "$VERSION"
+          printf 'tag=kimi-code-desktop-v%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
+
+  macos:
+    needs: guard
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      CSC_LINK: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+      CSC_KEY_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: Kimi-Code-Desktop/package-lock.json
+      - name: Require Developer ID and notarization credentials
+        run: |
+          test -n "$CSC_LINK"
+          test -n "$CSC_KEY_PASSWORD"
+          test -n "$APPLE_ID"
+          test -n "$APPLE_APP_SPECIFIC_PASSWORD"
+          test -n "$APPLE_TEAM_ID"
+      - name: Test, sign, notarize and package arm64 app
+        working-directory: Kimi-Code-Desktop
+        run: |
+          npm ci
+          npm test
+          npm run prepare:kimi -- --platform=darwin --arch=arm64
+          npx electron-builder --mac dmg zip --arm64 -c.mac.notarize=true -c.dmg.sign=true
+          codesign --verify --deep --strict --verbose=2 "dist/mac-arm64/Kimi Code Desktop.app"
+          spctl --assess --type execute --verbose=2 "dist/mac-arm64/Kimi Code Desktop.app"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-kimi-macos
+          path: |
+            Kimi-Code-Desktop/dist/Kimi Code Desktop-*-mac-arm64.dmg
+            Kimi-Code-Desktop/dist/Kimi Code Desktop-*-mac-arm64.zip
+          if-no-files-found: error
+          retention-days: 1
+
+  windows:
+    needs: guard
+    runs-on: windows-latest
+    timeout-minutes: 55
+    env:
+      CSC_LINK: ${{ secrets.WINDOWS_CERTIFICATE_PFX }}
+      CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: Kimi-Code-Desktop/package-lock.json
+      - name: Require Windows code-signing credentials
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:CSC_LINK) -or [string]::IsNullOrWhiteSpace($env:CSC_KEY_PASSWORD)) {
+            throw "WINDOWS_CERTIFICATE_PFX and WINDOWS_CERTIFICATE_PASSWORD are required"
+          }
+      - name: Test, sign and package x64 and arm64 apps
+        working-directory: Kimi-Code-Desktop
+        shell: pwsh
+        run: |
+          npm ci
+          npm test
+          npm run dist:win:x64
+          npm run dist:win:arm64
+          $files = Get-ChildItem dist -File | Where-Object { $_.Extension -in '.exe', '.zip' }
+          if ($files.Count -lt 4) { throw "Expected signed installer and ZIP for both Windows architectures" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-kimi-windows
+          path: |
+            Kimi-Code-Desktop/dist/Kimi Code Desktop-*-win-*.exe
+            Kimi-Code-Desktop/dist/Kimi Code Desktop-*-win-*.zip
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: [guard, macos, windows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-kimi-*
+          path: release-assets
+          merge-multiple: true
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.guard.outputs.tag }}
+          VERSION: ${{ inputs.version }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
+          test "${#assets[@]}" -ge 6
+          args=(--repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Kimi Code Desktop v$VERSION" --generate-notes)
+          if [ "$PRERELEASE" = "true" ]; then args+=(--prerelease); fi
+          gh release create "$TAG" "${assets[@]}" "${args[@]}"
