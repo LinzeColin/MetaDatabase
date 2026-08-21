@@ -32,21 +32,21 @@ class AcceptanceOracleTests(unittest.TestCase):
         thread.start()
         return server, thread, f"http://127.0.0.1:{server.server_port}"
 
-    def test_blocked_report_fails_the_business_oracle(self):
+    def test_blocked_report_fails_the_structural_oracle(self):
         with fixture_settings(ROOT) as (settings, state_dir):
             storage = RuntimeStorage(state_dir)
             storage.bootstrap(settings.canonical_state)
             V19Engine(settings).publish_failure(datetime.now(timezone.utc), RuntimeError("forced"))
             server, thread, base = self._serve(settings, storage)
             try:
-                with self.assertRaisesRegex(AssertionError, "BUSINESS_ORACLE_FAILED"):
+                with self.assertRaisesRegex(AssertionError, "STRUCTURAL_ORACLE_FAILED"):
                     acceptance_module().run(base, verify_cadence=False, skip_stream=True)
             finally:
                 server.shutdown()
                 server.server_close()
                 thread.join(timeout=5)
 
-    def test_complete_fixture_report_can_pass_the_business_oracle(self):
+    def test_complete_fixture_report_is_structural_only_and_rejected_for_live_acceptance(self):
         with fixture_settings(ROOT) as (settings, state_dir):
             storage = RuntimeStorage(state_dir)
             storage.bootstrap(settings.canonical_state)
@@ -54,7 +54,11 @@ class AcceptanceOracleTests(unittest.TestCase):
             server, thread, base = self._serve(settings, storage)
             try:
                 result = acceptance_module().run(base, verify_cadence=False, skip_stream=True)
-                self.assertEqual(result["state"], "PASS")
+                self.assertEqual(result["state"], "STRUCTURAL_PASS")
+                self.assertEqual(result["input_provenance"], "FIXTURE_DATA")
+                self.assertEqual(result["acceptance_scope"], "STRUCTURAL_FIXTURE_ONLY")
+                with self.assertRaisesRegex(AssertionError, "LIVE_PROVIDER_REQUIRED"):
+                    acceptance_module().run(base, verify_cadence=False, skip_stream=True, require_live_provider=True)
             finally:
                 server.shutdown()
                 server.server_close()

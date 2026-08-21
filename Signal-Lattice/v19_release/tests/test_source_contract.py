@@ -57,6 +57,20 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("material_signature", source)
         self.assertIn("SHADOW_ONLY", source)
 
+    def test_fixture_acceptance_is_visibly_structural_and_deployment_requires_live_provider(self):
+        engine = (ROOT / "src" / "signal_lattice_v19" / "engine.py").read_text(encoding="utf-8")
+        api = (ROOT / "src" / "signal_lattice_v19" / "api.py").read_text(encoding="utf-8")
+        acceptance = (ROOT / "scripts" / "run_acceptance.py").read_text(encoding="utf-8")
+        local = (ROOT / "scripts" / "run_local_acceptance.sh").read_text(encoding="utf-8")
+        installer = (ROOT / "deploy" / "install_and_switch.sh").read_text(encoding="utf-8")
+        self.assertIn('provider_state = "fixture" if self.settings.market_provider == "fixture" else "live"', engine)
+        self.assertIn('"input_provenance": "FIXTURE_DATA"', api)
+        self.assertIn('"acceptance_scope": "STRUCTURAL_FIXTURE_ONLY"', api)
+        self.assertIn("LIVE_PROVIDER_PASS_NOT_BUSINESS_RELEASE", acceptance)
+        self.assertIn("--require-live-provider", acceptance)
+        self.assertIn("SL19_MARKET_PROVIDER=fixture", local)
+        self.assertIn("--require-live-provider", installer)
+
 
 if __name__ == "__main__":
     unittest.main()

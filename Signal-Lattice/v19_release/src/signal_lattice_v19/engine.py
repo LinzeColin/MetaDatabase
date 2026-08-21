@@ -399,7 +399,11 @@ class V19Engine:
         scan_state = self.storage.load_scan_state()
         date_key = sydney_date(now)
         full_scan_due = scan_state.get("last_full_scan_date") != date_key
-        provider_state = "live"
+        # A fixture can exercise the structural chain, but it is not a live
+        # provider snapshot. Keep that distinction in every persisted cycle so
+        # downstream acceptance cannot accidentally promote fixtures to a
+        # production-input claim.
+        provider_state = "fixture" if self.settings.market_provider == "fixture" else "live"
         provider_error: str | None = None
         discovery_meta: dict[str, Any] = {}
         coverage = "最低可行"
