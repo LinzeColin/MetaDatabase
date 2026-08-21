@@ -94,12 +94,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         rotate.target = self
         menu.addItem(rotate)
         menu.addItem(.separator())
+        menu.addItem(withTitle: "检查并下载更新…", action: #selector(openReleases), keyEquivalent: "").target = self
+        menu.addItem(.separator())
         menu.addItem(withTitle: "退出 Harness UI", action: #selector(quit), keyEquivalent: "q").target = self
         statusItem?.menu = menu
     }
 
     @objc private func openGallery() {
         NSWorkspace.shared.open(URL(string: "http://127.0.0.1:\(configuration.port)/")!)
+    }
+
+    @objc private func openReleases() {
+        NSWorkspace.shared.open(URL(string: "https://github.com/LinzeColin/MetaDatabase/releases?q=harness-ui-v")!)
     }
 
     @objc private func chooseSource() {

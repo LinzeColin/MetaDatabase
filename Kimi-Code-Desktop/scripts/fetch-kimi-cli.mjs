@@ -4,9 +4,9 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import AdmZip from "adm-zip";
 
-const VERSION = "0.38.0";
-const TAG = `@moonshot-ai/kimi-code@${VERSION}`;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const VERSION = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version;
+const TAG = `@moonshot-ai/kimi-code@${VERSION}`;
 
 function option(name, fallback) {
   const prefix = `--${name}=`;
@@ -18,7 +18,7 @@ function option(name, fallback) {
 
 const platform = option("platform", process.platform);
 const arch = option("arch", process.arch);
-if (![["darwin", "arm64"], ["win32", "x64"], ["win32", "arm64"]]
+if (![["darwin", "arm64"], ["darwin", "x64"], ["win32", "x64"], ["win32", "arm64"]]
   .some(([candidatePlatform, candidateArch]) => candidatePlatform === platform && candidateArch === arch)) {
   throw new Error(`Unsupported Kimi CLI target: ${platform}-${arch}`);
 }

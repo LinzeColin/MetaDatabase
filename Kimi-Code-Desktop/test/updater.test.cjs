@@ -1,6 +1,6 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
-const { compareVersions, communityAssetSuffix, selectRelease } = require("../src/runtime/updater.cjs");
+const { compareVersions, selectRelease } = require("../src/runtime/updater.cjs");
 const packageJson = require("../package.json");
 
 test("compares stable and prerelease versions", () => {
@@ -9,8 +9,8 @@ test("compares stable and prerelease versions", () => {
   assert.equal(compareVersions("1.2.0-rc.2", "1.2.0-rc.1"), 1);
 });
 
-test("desktop release remains newer than the installed legacy wrapper", () => {
-  assert.equal(compareVersions(packageJson.version, "1.0.0"), 1);
+test("desktop version is a canonical Kimi Code version", () => {
+  assert.match(packageJson.version, /^\d+\.\d+\.\d+$/);
 });
 
 test("selects only a newer matching Kimi desktop asset", () => {
@@ -29,16 +29,12 @@ test("selects only a newer matching Kimi desktop asset", () => {
   assert.equal(selectRelease(releases, { currentVersion: "0.2.0", platform: "darwin", arch: "arm64" }), null);
 });
 
-test("keeps a non-trusted-signed community release on an explicit channel", () => {
+test("ignores the retired private community version line", () => {
   const releases = [{
     tag_name: "kimi-code-desktop-community-v0.3.0",
     draft: false,
     prerelease: true,
     assets: [{ name: "Kimi-Code-Desktop-0.3.0-macos-arm64-NOT-NOTARIZED.zip", browser_download_url: "https://github.com/file" }],
   }];
-  const update = selectRelease(releases, { currentVersion: "0.2.0", platform: "darwin", arch: "arm64", channel: "community" });
-  assert.equal(communityAssetSuffix("darwin", "arm64"), "-macos-arm64-NOT-NOTARIZED.zip");
-  assert.equal(update.channel, "community");
-  assert.equal(update.version, "0.3.0");
   assert.equal(selectRelease(releases, { currentVersion: "0.2.0", platform: "darwin", arch: "arm64" }), null);
 });

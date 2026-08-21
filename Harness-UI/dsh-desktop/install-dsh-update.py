@@ -57,7 +57,7 @@ def wait_for_exit(pid: int) -> None:
 
 def ensure_runtime_icon() -> None:
     """Create the PNG Electron can decode without changing the user's ICNS."""
-    if RUNTIME_ICON.is_file():
+    if RUNTIME_ICON.is_file() or not ICON.is_file():
         return
     temporary = RUNTIME_ICON.with_name("icon.runtime.tmp.png")
     run("/usr/bin/sips", "-s", "format", "png", str(ICON), "--out", str(temporary))
@@ -98,8 +98,8 @@ def mounted_app(artifact: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path]:
 def install(pid: int, artifact: pathlib.Path, version: str) -> pathlib.Path:
     if not artifact.is_absolute() or artifact.suffix.lower() != ".dmg" or not artifact.is_file():
         raise RuntimeError("更新文件不是有效的绝对 DMG 路径")
-    if not PATCHER.is_file() or not ICON.is_file():
-        raise RuntimeError("缺少 DSH 更新补丁或外置图标，旧版保持不变")
+    if not PATCHER.is_file():
+        raise RuntimeError("缺少 DSH 更新补丁，旧版保持不变")
     ensure_runtime_icon()
     wait_for_exit(pid)
     candidate, mount = mounted_app(artifact)
@@ -117,8 +117,14 @@ def install(pid: int, artifact: pathlib.Path, version: str) -> pathlib.Path:
         staged = stage_root / TARGET.name
         run("/usr/bin/ditto", str(candidate), str(staged))
         run("/usr/bin/python3", str(PATCHER), "--app", str(staged), "--no-backup")
-        shutil.copy2(ICON, staged / "Contents/Resources/icon.icns")
-        run("/usr/bin/codesign", "--force", "--deep", "--sign", "-", str(staged))
+        if ICON.is_file():
+            shutil.copy2(ICON, staged / "Contents/Resources/icon.icns")
+        run(
+            "/usr/bin/codesign", "--force", "--deep", "--sign", "-",
+            "--identifier", BUNDLE_ID,
+            "--requirements", f'=designated => identifier "{BUNDLE_ID}"',
+            str(staged),
+        )
         run("/usr/bin/codesign", "--verify", "--deep", "--strict", str(staged))
 
         rollback = UPDATES / "rollback" / f"{version}-{int(time.time())}" / TARGET.name

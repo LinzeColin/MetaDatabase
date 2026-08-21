@@ -273,3 +273,23 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 **为什么**：只重启 GUI 不会清掉长寿命 CLI 的旧权限上下文；覆盖 App Bundle 会丢个性化资源，更新后再改已签名 Bundle 又会破坏 Developer ID 身份。HarnessUI 的 LaunchAgent 还可能能列 SMB 目录却被 TCC 拒绝读图片，因此 catalog/state 必须带 generation 热同步，并采用“完整本地镜像优先、SMB 补充、缺分区不覆盖上一版”的完整性门。
 
 **代价**：DSH 2.0.2 上游运行时代码变化使首次本地补丁安全停止，且失败阶段曾残留在 `/Applications`；补齐双版本补丁契约、失败清理、本地镜像降级和真实应用内更新验收后，后续更新不再依赖 Agent 手工救场。Kimi 正式安装仍必须等待 Developer ID/公证凭据，未签名候选件只能静态验收，状态保持 `WAITING_SIGNING_CREDENTIAL`。
+
+## 桌面 App 版本与无资质更新：一个产品只能有一条版本线
+
+**结论**：Kimi Code Desktop 的 App 版本必须直接等于所内置的 `MoonshotAI/kimi-code` 官方版本；DSH Desktop 必须直接等于 `anywhere-labs` 官方版本。不得再用 `1.0.1`、`community-v*` 等桌面壳私有版本覆盖上游版本。Harness UI 没有外部官方上游，沿用 AgentDatabase 已存在的 `1.0.0` 产品线。无 Apple/Windows 资质时仍发布同一正式 tag；未来获得受信任签名后只替换同一 Release 的资产，不另开版本。
+
+**为什么**：私有包装版本会让 `1.0.0 > 0.38.0`，导致真正的新官方版本被更新器判成降级；前台、后台和 GitHub 三套数字也让 Owner 无法判断实际运行版本。唯一版本线让 App 菜单、内置 CLI、Release tag 和另一台电脑安装包保持一致。
+
+**代价**：旧包装版迁移到 `0.38.0` 需要在现有 Kimi 任务结束后做一次人工替换；之后 GitHub 每日自动读取官方最新 Release，缺同版本资产时自行构建/镜像，不再需要 Agent 每次改版本。
+
+**结论**：无 Developer ID 的 macOS 构建不能继续接受默认的临时 ad-hoc designated requirement。必须用稳定 bundle id 显式签出本地 requirement：Kimi 为 `com.electron.kimi-code`、Harness UI 为 `com.linzecolin.harnessui`、DSH 为 `ai.deepseek.dsh.desktop`；用户配置、图标、皮肤、素材和会话继续全部外置。
+
+**为什么**：现场 Kimi 的实际代码标识是 `Electron`，designated requirement 直接绑定单次二进制；本地个性化后的 DSH 也绑定单次构建。每次更新代码身份漂移，会让 TCC 中不同前台/后台进程出现权限不一致。固定本地 requirement 可在不阻塞公开发布的前提下保持后续同一 App 身份；首次从旧身份迁移仍可能需要 Owner 重新确认一次完整磁盘访问。
+
+**代价**：这种本地 identity 不等同于 Apple 公证，首次启动仍可能有系统确认；但它消除了“每次构建都换身份”的确定性缺陷。未来 Developer ID 流程不得被本地 after-sign hook覆盖。
+
+**结论**：看到 DSH 日志中多次启动，先把时间点与 Agent 的 `open`、诊断启动和受控更新一一对齐，再判断自动重启。本轮没有 DSH launchd/登录启动项，正常退出后连续 90 秒没有自动拉起；此前“总是自动重启”来自诊断操作本身。
+
+**为什么**：把观测动作造成的进程变化误报成产品行为，会诱发继续重启、继续观测的自证循环。真正的 DSH 自动重启只允许出现在用户明确确认更新后的退出安装路径。
+
+**代价**：本轮停止了不必要的重启；DSH 保持退出，Kimi 全程未重启。

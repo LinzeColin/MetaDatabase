@@ -6,7 +6,7 @@ on:
       version:
         description: "Version already present in Harness-UI/package.json"
         required: true
-        default: "0.2.0"
+        default: "1.0.0"
         type: string
       prerelease:
         description: "Publish as a prerelease"
@@ -233,6 +233,10 @@ jobs:
         run: |
           mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
           test "${#assets[@]}" -ge 7
-          args=(--repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Harness UI v$VERSION" --generate-notes)
-          if [ "$PRERELEASE" = "true" ]; then args+=(--prerelease); fi
-          gh release create "$TAG" "${assets[@]}" "${args[@]}"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            args=(--repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Harness UI v$VERSION" --generate-notes)
+            if [ "$PRERELEASE" = "true" ]; then args+=(--prerelease); fi
+            gh release create "$TAG" "${assets[@]}" "${args[@]}"
+          fi

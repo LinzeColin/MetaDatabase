@@ -1,5 +1,7 @@
 # Harness UI 零成本社区版
 
+> 已废止：此文档仅保留旧 Release 历史。新版本只使用 `harness-ui-v*` 唯一产品线，见 [RELEASE.md](RELEASE.md)。
+
 这是公开、可复现、**未使用受信任发行证书**的 prerelease。预算为 `$0`；macOS App 仅做本机 ad-hoc
 签名、没有 Apple 公证，Windows EXE 没有 Authenticode 签名。
 

@@ -1,5 +1,7 @@
 # Kimi Code Desktop 零成本社区版
 
+> 已废止：此文档仅保留旧 Release 历史。新版本只使用与官方 Kimi Code 相同版本号的 `kimi-code-desktop-v*`，见 [RELEASE.md](RELEASE.md)。
+
 这是公开、可复现、**未使用受信任发行证书**的 prerelease。预算为 `$0`；macOS App 只有可验证代码完整性的
 ad-hoc 签名，不是 Apple Developer ID 签名版、也未通过 Apple 公证；Windows 资产没有 Authenticode 签名。
 

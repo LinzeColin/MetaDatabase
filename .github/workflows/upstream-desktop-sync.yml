@@ -1,0 +1,184 @@
+name: Sync official Kimi and DSH desktop releases
+
+on:
+  schedule:
+    - cron: "37 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream-desktop-sync
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      kimi_version: ${{ steps.versions.outputs.kimi_version }}
+      dsh_version: ${{ steps.versions.outputs.dsh_version }}
+      build_kimi: ${{ steps.versions.outputs.build_kimi }}
+      mirror_dsh: ${{ steps.versions.outputs.mirror_dsh }}
+    steps:
+      - name: Resolve official versions and missing local releases
+        id: versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          kimi_tag="$(gh api repos/MoonshotAI/kimi-code/releases/latest --jq .tag_name)"
+          dsh_tag="$(gh api repos/anywhere-labs/deepseek-harness-desktop/releases/latest --jq .tag_name)"
+          kimi_version="${kimi_tag##*@}"
+          dsh_version="${dsh_tag#v}"
+          build_kimi=true
+          mirror_dsh=true
+          if gh release view "kimi-code-desktop-v$kimi_version" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then build_kimi=false; fi
+          if gh release view "dsh-desktop-v$dsh_version" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then mirror_dsh=false; fi
+          printf 'kimi_version=%s\n' "$kimi_version" >> "$GITHUB_OUTPUT"
+          printf 'dsh_version=%s\n' "$dsh_version" >> "$GITHUB_OUTPUT"
+          printf 'build_kimi=%s\n' "$build_kimi" >> "$GITHUB_OUTPUT"
+          printf 'mirror_dsh=%s\n' "$mirror_dsh" >> "$GITHUB_OUTPUT"
+
+  kimi-macos:
+    if: needs.resolve.outputs.build_kimi == 'true'
+    needs: resolve
+    runs-on: macos-15
+    timeout-minutes: 50
+    env:
+      KIMI_VERSION: ${{ needs.resolve.outputs.kimi_version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: Kimi-Code-Desktop/package-lock.json
+      - name: Build the official-version Mac apps
+        working-directory: Kimi-Code-Desktop
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          KIMI_STABLE_ADHOC_IDENTITY: "1"
+        run: |
+          npm version "$KIMI_VERSION" --no-git-tag-version
+          npm ci
+          npm test
+          mkdir -p "$RUNNER_TEMP/upstream-kimi-macos"
+          for arch in arm64 x64; do
+            npm run prepare:kimi -- --platform=darwin --arch="$arch"
+            output="dist-upstream/$arch"
+            npx electron-builder --mac dmg zip "--$arch" "--config.directories.output=$output" \
+              --config.mac.identity=- --config.mac.hardenedRuntime=false
+            cp "$output/Kimi Code Desktop-$KIMI_VERSION-mac-$arch.dmg" "$RUNNER_TEMP/upstream-kimi-macos/"
+            cp "$output/Kimi Code Desktop-$KIMI_VERSION-mac-$arch.zip" "$RUNNER_TEMP/upstream-kimi-macos/"
+          done
+      - uses: actions/upload-artifact@v7
+        with:
+          name: upstream-kimi-macos
+          path: ${{ runner.temp }}/upstream-kimi-macos/*
+          if-no-files-found: error
+          retention-days: 1
+
+  kimi-windows:
+    if: needs.resolve.outputs.build_kimi == 'true'
+    needs: resolve
+    runs-on: windows-latest
+    timeout-minutes: 50
+    env:
+      KIMI_VERSION: ${{ needs.resolve.outputs.kimi_version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: Kimi-Code-Desktop/package-lock.json
+      - name: Build the official-version Windows apps
+        working-directory: Kimi-Code-Desktop
+        shell: pwsh
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
+          npm version $env:KIMI_VERSION --no-git-tag-version
+          npm ci
+          npm test
+          $assets = Join-Path $env:RUNNER_TEMP "upstream-kimi-windows"
+          New-Item -ItemType Directory -Force -Path $assets | Out-Null
+          foreach ($arch in @("x64", "arm64")) {
+            $output = "dist-upstream/$arch"
+            npm run prepare:kimi -- --platform=win32 --arch=$arch
+            npx electron-builder --win nsis zip "--$arch" "--config.directories.output=$output"
+            Copy-Item "$output/Kimi Code Desktop-$env:KIMI_VERSION-win-$arch.exe" $assets
+            Copy-Item "$output/Kimi Code Desktop-$env:KIMI_VERSION-win-$arch.zip" $assets
+          }
+      - uses: actions/upload-artifact@v7
+        with:
+          name: upstream-kimi-windows
+          path: ${{ runner.temp }}/upstream-kimi-windows/*
+          if-no-files-found: error
+          retention-days: 1
+
+  publish-kimi:
+    if: needs.resolve.outputs.build_kimi == 'true'
+    needs: [resolve, kimi-macos, kimi-windows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: upstream-kimi-*
+          path: release-assets
+          merge-multiple: true
+      - name: Publish the official-version Kimi Code Desktop release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.resolve.outputs.kimi_version }}
+        run: |
+          mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
+          test "${#assets[@]}" = "8"
+          gh release create "kimi-code-desktop-v$VERSION" "${assets[@]}" \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest=false \
+            --title "Kimi Code Desktop v$VERSION" \
+            --notes-file Kimi-Code-Desktop/docs/RELEASE.md
+
+  mirror-dsh:
+    if: needs.resolve.outputs.mirror_dsh == 'true'
+    needs: resolve
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Publish the official DSH installers and matching HarnessUI bridge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.resolve.outputs.dsh_version }}
+        run: |
+          mkdir -p release-assets
+          gh release download "v$VERSION" \
+            --repo anywhere-labs/deepseek-harness-desktop \
+            --dir release-assets
+          cd Harness-UI
+          zip -r "../release-assets/DSH-Desktop-$VERSION-HarnessUI-bridge.zip" \
+            dsh-desktop dsh-plugin scripts/install-dsh.mjs LICENSE README.md
+          cd ..
+          mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
+          test "${#assets[@]}" = "3"
+          gh release create "dsh-desktop-v$VERSION" "${assets[@]}" \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest=false \
+            --title "DSH Desktop v$VERSION" \
+            --notes-file Harness-UI/dsh-desktop/RELEASE.md
