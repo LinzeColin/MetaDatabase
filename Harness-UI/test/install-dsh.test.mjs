@@ -49,5 +49,9 @@ test("replaces an existing linked profile module without following it", () => {
   assert.equal(result.status, 0, result.stderr);
   assert.ok(fs.lstatSync(moduleRoot).isDirectory());
   assert.ok(fs.existsSync(path.join(moduleRoot, "lib", "client.js")));
+  const client = fs.readFileSync(path.join(moduleRoot, "lib", "client.js"), "utf8");
+  assert.match(client, /\/api\/next/);
+  assert.match(client, /event\.metaKey \|\| event\.ctrlKey/);
+  assert.match(client, /event\.shiftKey/);
   fs.rmSync(root, { recursive: true, force: true });
 });

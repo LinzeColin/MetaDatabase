@@ -77,18 +77,29 @@ public final class HarnessStore: @unchecked Sendable {
             stateValue = normalized(stateValue, catalog: catalogValue)
             guard stateValue.mode == "rotate" else { return stateValue }
             guard force || now - stateValue.lastRotate >= Int64(stateValue.intervalMs) else { return stateValue }
-            if stateValue.cycle.isEmpty || stateValue.cursor >= stateValue.cycle.count {
-                let hidden = Set(stateValue.hidden)
-                stateValue.cycle = catalogValue.entries.map(\.id).filter { !hidden.contains($0) }.shuffled()
-                stateValue.cursor = 0
+            return try advanceLocked(now: now)
+        }
+    }
+
+    public func next(now: Int64 = Int64(Date().timeIntervalSince1970 * 1000)) throws -> HarnessState {
+        try queue.sync {
+            stateValue = normalized(stateValue, catalog: catalogValue)
+            return try advanceLocked(now: now)
+        }
+    }
+
+    @discardableResult
+    public func reloadFromDisk() -> Bool {
+        queue.sync {
+            let previousCatalog = catalogValue
+            let previousState = stateValue
+            if let data = try? Data(contentsOf: catalogFile), let catalog = try? decoder.decode(Catalog.self, from: data) {
+                catalogValue = catalog
             }
-            guard stateValue.cursor < stateValue.cycle.count else { return stateValue }
-            stateValue.selected = stateValue.cycle[stateValue.cursor]
-            stateValue.cursor += 1
-            stateValue.lastRotate = now
-            stateValue.updated = now
-            try persistStateLocked()
-            return stateValue
+            if let data = try? Data(contentsOf: stateFile), let state = try? decoder.decode(HarnessState.self, from: data) {
+                stateValue = normalized(state, catalog: catalogValue)
+            }
+            return previousCatalog != catalogValue || previousState != stateValue
         }
     }
 
@@ -107,6 +118,33 @@ public final class HarnessStore: @unchecked Sendable {
         if let selected = state.selected, !ids.contains(selected) || state.hidden.contains(selected) { state.selected = nil }
         if state.selected == nil { state.selected = catalog.entries.first?.id }
         return state
+    }
+
+    private func advanceLocked(now: Int64) throws -> HarnessState {
+        let hidden = Set(stateValue.hidden)
+        let visible = catalogValue.entries.map(\.id).filter { !hidden.contains($0) }
+        guard !visible.isEmpty else { return stateValue }
+
+        for _ in 0..<2 {
+            if stateValue.cycle.isEmpty || stateValue.cursor >= stateValue.cycle.count {
+                stateValue.cycle = visible.shuffled()
+                stateValue.cursor = 0
+                if stateValue.cycle.count > 1, stateValue.cycle.first == stateValue.selected {
+                    stateValue.cycle.append(stateValue.cycle.removeFirst())
+                }
+            }
+            while stateValue.cursor < stateValue.cycle.count {
+                let selected = stateValue.cycle[stateValue.cursor]
+                stateValue.cursor += 1
+                if visible.count > 1, selected == stateValue.selected { continue }
+                stateValue.selected = selected
+                stateValue.lastRotate = now
+                stateValue.updated = now
+                try persistStateLocked()
+                return stateValue
+            }
+        }
+        return stateValue
     }
 
     private func persistLocked() throws {

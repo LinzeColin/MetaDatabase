@@ -10,7 +10,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var timer: Timer?
     private var refreshTimer: Timer?
+    private var stateSyncTimer: Timer?
     private var refreshRunning = false
+    private var usesExternalService = false
     private let refreshStatusLock = NSLock()
     private var refreshStatus: [String: Any] = ["status": "idle", "message": "尚未刷新", "updated": 0]
     private var webRoot: URL!
@@ -21,23 +23,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         loadResources()
         loadConfiguration()
         createMenu()
-        do {
-            try server.start(port: configuration.port) { [weak self] request in
-                self?.route(request) ?? HTTPResponse(status: 500)
+        if sharedServiceAvailable() {
+            usesExternalService = true
+            _ = store.reloadFromDisk()
+            stateSyncTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+                guard let self, self.store.reloadFromDisk() else { return }
+                self.rebuildMenu()
             }
-        } catch {
-            showError("无法启动本机素材服务", detail: error.localizedDescription)
-        }
-        if !configuration.sourcePath.isEmpty { refreshCatalog(showResult: false) }
-        scheduleRotation()
-        refreshTimer = Timer.scheduledTimer(withTimeInterval: 900, repeats: true) { [weak self] _ in
-            self?.refreshCatalog(showResult: false)
+        } else {
+            do {
+                try server.start(port: configuration.port) { [weak self] request in
+                    self?.route(request) ?? HTTPResponse(status: 500)
+                }
+            } catch {
+                showError("无法启动本机素材服务", detail: error.localizedDescription)
+            }
+            if !configuration.sourcePath.isEmpty { refreshCatalog(showResult: false) }
+            scheduleRotation()
+            refreshTimer = Timer.scheduledTimer(withTimeInterval: 900, repeats: true) { [weak self] _ in
+                self?.refreshCatalog(showResult: false)
+            }
         }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         timer?.invalidate()
         refreshTimer?.invalidate()
+        stateSyncTimer?.invalidate()
         server.stop()
     }
 
@@ -89,7 +101,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(withTitle: "打开角色库", action: #selector(openGallery), keyEquivalent: "o").target = self
         menu.addItem(withTitle: "选择 SMB 素材目录…", action: #selector(chooseSource), keyEquivalent: "").target = self
         menu.addItem(withTitle: "刷新素材目录", action: #selector(refreshFromMenu), keyEquivalent: "r").target = self
-        menu.addItem(withTitle: "换下一张", action: #selector(nextSkin), keyEquivalent: "n").target = self
+        let next = menu.addItem(withTitle: "换下一张", action: #selector(nextSkin), keyEquivalent: "n")
+        next.keyEquivalentModifierMask = [.command, .shift]
+        next.target = self
         let rotate = NSMenuItem(title: store.state().mode == "rotate" ? "停止轮播" : "开启轮播", action: #selector(toggleRotation), keyEquivalent: "")
         rotate.target = self
         menu.addItem(rotate)
@@ -126,6 +140,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func refreshCatalog(showResult: Bool) {
         if !Thread.isMainThread {
             DispatchQueue.main.async { [weak self] in self?.refreshCatalog(showResult: showResult) }
+            return
+        }
+        if usesExternalService {
+            postToSharedService(path: "/api/catalog/refresh", object: [:], failureTitle: "素材目录刷新失败") {
+                if showResult { self.showInfo("已开始同步素材目录", detail: "Kimi Code、DSH 与 Harness UI 会读取同一份更新结果。") }
+            }
             return
         }
         guard !refreshRunning else { return }
@@ -176,12 +196,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func nextSkin() {
-        do { _ = try store.patch(["mode": "rotate"]); _ = try store.rotate(force: true); rebuildMenu() }
+        if usesExternalService {
+            postToSharedService(path: "/api/next", object: [:], failureTitle: "切换失败")
+            return
+        }
+        do { _ = try store.next(); rebuildMenu() }
         catch { showError("切换失败", detail: error.localizedDescription) }
     }
 
     @objc private func toggleRotation() {
         let next = store.state().mode == "rotate" ? "gallery" : "rotate"
+        if usesExternalService {
+            postToSharedService(path: "/api/state", object: ["mode": next], failureTitle: "模式切换失败")
+            return
+        }
         do { _ = try store.patch(["mode": next]); if next == "rotate" { _ = try store.rotate(force: true) }; scheduleRotation(); rebuildMenu() }
         catch { showError("模式切换失败", detail: error.localizedDescription) }
     }
@@ -205,6 +233,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let body = Data("{\"status\":\"accepted\"}".utf8)
             return HTTPResponse(status: 202, contentType: "application/json; charset=utf-8", body: body, headers: ["Cache-Control": "no-store"])
         }
+        if request.method == "POST", request.path == "/api/next" {
+            do {
+                _ = try store.next()
+                DispatchQueue.main.async { [weak self] in self?.rebuildMenu() }
+                return jsonResponse { try store.jsonState() }
+            }
+            catch { return HTTPResponse(status: 500) }
+        }
         if request.method == "POST", request.path == "/api/state" {
             guard let object = try? JSONSerialization.jsonObject(with: request.body) as? [String: Any] else { return HTTPResponse(status: 400) }
             do {
@@ -225,6 +261,51 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         return HTTPResponse(status: request.method == "GET" ? 404 : 405)
+    }
+
+    private func sharedServiceAvailable() -> Bool {
+        guard let url = URL(string: "http://127.0.0.1:\(configuration.port)/state.json") else { return false }
+        var request = URLRequest(url: url, timeoutInterval: 1)
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        let semaphore = DispatchSemaphore(value: 0)
+        let resultLock = NSLock()
+        var available = false
+        URLSession.shared.dataTask(with: request) { data, response, _ in
+            let valid = (response as? HTTPURLResponse)?.statusCode == 200 && data.flatMap { try? JSONDecoder().decode(HarnessState.self, from: $0) } != nil
+            resultLock.lock()
+            available = valid
+            resultLock.unlock()
+            semaphore.signal()
+        }.resume()
+        _ = semaphore.wait(timeout: .now() + 2)
+        resultLock.lock()
+        defer { resultLock.unlock() }
+        return available
+    }
+
+    private func postToSharedService(path: String, object: [String: Any], failureTitle: String, completion: (() -> Void)? = nil) {
+        guard let url = URL(string: "http://127.0.0.1:\(configuration.port)\(path)"),
+              let body = try? JSONSerialization.data(withJSONObject: object) else {
+            showError(failureTitle, detail: "无法生成本机同步请求")
+            return
+        }
+        var request = URLRequest(url: url, timeoutInterval: 5)
+        request.httpMethod = "POST"
+        request.httpBody = body
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        URLSession.shared.dataTask(with: request) { [weak self] _, response, error in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+                guard error == nil, (200...299).contains(status) else {
+                    self.showError(failureTitle, detail: error?.localizedDescription ?? "本机素材服务返回 HTTP \(status)")
+                    return
+                }
+                _ = self.store.reloadFromDisk()
+                self.rebuildMenu()
+                completion?()
+            }
+        }.resume()
     }
 
     private func jsonResponse(_ body: () throws -> Data) -> HTTPResponse {

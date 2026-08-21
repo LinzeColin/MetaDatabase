@@ -1,4 +1,7 @@
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const http = require("node:http");
+const path = require("node:path");
 const test = require("node:test");
 const { assertLoopbackBase, catalogNeedsRefresh, selectHarnessEntry } = require("../src/runtime/harness.cjs");
 
@@ -28,4 +31,36 @@ test("stops polling and releases its window reference", () => {
   bridge.stop();
   assert.equal(bridge.timer, null);
   assert.equal(bridge.window, null);
+});
+
+test("uses the shared atomic next endpoint", async () => {
+  let request = null;
+  const server = http.createServer((incoming, response) => {
+    let body = "";
+    incoming.setEncoding("utf8");
+    incoming.on("data", (chunk) => { body += chunk; });
+    incoming.on("end", () => {
+      request = { method: incoming.method, url: incoming.url, body };
+      response.setHeader("Content-Type", "application/json");
+      response.end(JSON.stringify({ selected: "two", updated: 42, catalogGenerated: "same" }));
+    });
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  try {
+    const { port } = server.address();
+    const { HarnessBridge } = require("../src/runtime/harness.cjs");
+    const bridge = new HarnessBridge({ baseUrl: `http://127.0.0.1:${port}` });
+    bridge.catalog = { generated: "same", entries: [{ id: "two" }] };
+    bridge.refresh = async ({ suppliedState }) => suppliedState;
+    const state = await bridge.next();
+    assert.deepEqual(request, { method: "POST", url: "/api/next", body: "{}" });
+    assert.equal(state.selected, "two");
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
+test("restores the legacy next-skin keyboard shortcut", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../src/main.cjs"), "utf8");
+  assert.match(source, /换下一张[^\n]+CmdOrCtrl\+Shift\+N[^\n]+harnessBridge\.next/);
 });

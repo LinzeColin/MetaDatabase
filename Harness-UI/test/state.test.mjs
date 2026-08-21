@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { normalizeState, patchState, rotateState } from "../src/state.mjs";
+import { nextState, normalizeState, patchState, rotateState } from "../src/state.mjs";
 
 const catalog = { entries: [{ id: "one" }, { id: "two" }, { id: "three" }] };
 
@@ -25,4 +25,13 @@ test("rotates through a complete cycle before refilling", () => {
     seen.push(state.selected);
   }
   assert.equal(new Set(seen).size, 3);
+});
+
+test("next advances immediately without changing gallery mode", () => {
+  const state = nextState({ mode: "gallery", selected: "one", cycle: ["one", "two", "three"], cursor: 0 }, catalog, 42);
+  assert.equal(state.mode, "gallery");
+  assert.equal(state.selected, "two");
+  assert.equal(state.cursor, 2);
+  assert.equal(state.lastRotate, 42);
+  assert.equal(state.updated, 42);
 });

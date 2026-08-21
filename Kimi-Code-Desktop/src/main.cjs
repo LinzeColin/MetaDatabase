@@ -102,7 +102,7 @@ function skinMenu() {
     { label: "打开完整素材库", click: () => shell.openExternal("http://127.0.0.1:3099/") },
     { label: "立即同步 SMB 素材目录", click: () => runHarnessAction(() => harnessBridge.refreshCatalog()) },
     { label: state.mode === "rotate" ? "停止轮播" : "开启轮播", enabled: online, click: () => runHarnessAction(() => harnessBridge.patch({ mode: state.mode === "rotate" ? "gallery" : "rotate" })) },
-    { label: "换下一张", enabled: online && entries.length > 0, click: () => runHarnessAction(() => harnessBridge.patch({ mode: "rotate" })) },
+    { label: "换下一张", accelerator: "CmdOrCtrl+Shift+N", enabled: online && entries.length > 0, click: () => runHarnessAction(() => harnessBridge.next()) },
     { type: "separator" },
   );
 

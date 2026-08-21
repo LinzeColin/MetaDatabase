@@ -8,6 +8,7 @@ import datetime as dt
 import json
 import mimetypes
 import pathlib
+import random
 import threading
 import time
 import urllib.parse
@@ -222,6 +223,51 @@ class HarnessStore:
             atomic_json(self.state_file, self.state)
             return dict(self.state)
 
+    def _advance_locked(self, now: int) -> dict[str, object]:
+        self.state = normalized_state(self.state, self.catalog)
+        entries = self.catalog.get("entries") if isinstance(self.catalog.get("entries"), list) else []
+        hidden = set(self.state["hidden"])
+        visible = [str(entry.get("id")) for entry in entries if isinstance(entry, dict) and str(entry.get("id")) not in hidden]
+        if not visible:
+            return dict(self.state)
+
+        for _pass in range(2):
+            cycle = self.state["cycle"]
+            cursor = int(self.state["cursor"])
+            if not cycle or cursor >= len(cycle):
+                cycle = list(visible)
+                random.shuffle(cycle)
+                if len(cycle) > 1 and cycle[0] == self.state.get("selected"):
+                    cycle.append(cycle.pop(0))
+                cursor = 0
+                self.state["cycle"] = cycle
+            while cursor < len(cycle):
+                selected = cycle[cursor]
+                cursor += 1
+                self.state["cursor"] = cursor
+                if len(visible) > 1 and selected == self.state.get("selected"):
+                    continue
+                self.state["selected"] = selected
+                self.state["lastRotate"] = now
+                self.state["updated"] = now
+                atomic_json(self.state_file, self.state)
+                return dict(self.state)
+        return dict(self.state)
+
+    def next_state(self, now: int | None = None) -> dict[str, object]:
+        with self.lock:
+            return self._advance_locked(now if now is not None else int(time.time() * 1000))
+
+    def rotate_state(self, force: bool = False, now: int | None = None) -> dict[str, object]:
+        timestamp = now if now is not None else int(time.time() * 1000)
+        with self.lock:
+            self.state = normalized_state(self.state, self.catalog)
+            if self.state["mode"] != "rotate":
+                return dict(self.state)
+            if not force and timestamp - int(self.state["lastRotate"]) < int(self.state["intervalMs"]):
+                return dict(self.state)
+            return self._advance_locked(timestamp)
+
     def assets(self, route: str) -> list[pathlib.Path]:
         parts = route.split("/")
         if len(parts) != 6 or parts[1] != "assets" or parts[5] not in {"light", "dark"}:
@@ -268,7 +314,10 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header(key, value)
         self.end_headers()
         if self.command != "HEAD":
-            self.wfile.write(body)
+            try:
+                self.wfile.write(body)
+            except (BrokenPipeError, ConnectionResetError):
+                return
 
     def send_json(self, value: object, status: int = HTTPStatus.OK) -> None:
         self.send_bytes(status, json.dumps(value, ensure_ascii=False, indent=2).encode(), "application/json; charset=utf-8", {"Cache-Control": "no-store"})
@@ -323,10 +372,15 @@ class Handler(BaseHTTPRequestHandler):
             self.server.store.start_refresh()
             self.send_json({"status": "accepted"}, HTTPStatus.ACCEPTED)
             return
+        if route == "/api/next":
+            self.send_json(self.server.store.next_state())
+            return
         if route in {"/api/state", "/__state"}:
             try:
                 patch = json.loads(self.rfile.read(length).decode("utf-8"))
                 state = self.server.store.patch_state(patch)
+                if isinstance(patch, dict) and patch.get("mode") == "rotate":
+                    state = self.server.store.rotate_state(force=True)
             except (ValueError, UnicodeError):
                 self.send_bytes(HTTPStatus.BAD_REQUEST)
                 return
@@ -357,6 +411,12 @@ def recurring_refresh(store: HarnessStore, interval: int) -> None:
         store.start_refresh()
 
 
+def recurring_rotation(store: HarnessStore) -> None:
+    while True:
+        time.sleep(60)
+        store.rotate_state()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=pathlib.Path, required=True)
@@ -370,6 +430,7 @@ def main() -> int:
     fallback_root = args.fallback_root.resolve() if args.fallback_root else None
     store = HarnessStore(args.root.resolve(), args.source.resolve(), fallback_root, base_url)
     store.start_refresh()
+    threading.Thread(target=recurring_rotation, args=(store,), name="harness-rotation-scheduler", daemon=True).start()
     if args.refresh_seconds > 0:
         threading.Thread(target=recurring_refresh, args=(store, max(60, args.refresh_seconds)), name="harness-refresh-scheduler", daemon=True).start()
     with HarnessServer(("127.0.0.1", args.port), store, args.web_root.resolve()) as server:

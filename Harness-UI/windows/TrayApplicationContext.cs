@@ -81,12 +81,13 @@ internal sealed class TrayApplicationContext : System.Windows.Forms.ApplicationC
         menu.Items.Add("打开角色库", null, (_, _) => OpenGallery());
         menu.Items.Add("选择 SMB 素材目录…", null, (_, _) => ChooseSource());
         menu.Items.Add("刷新素材目录", null, (_, _) => RefreshCatalog(true));
-        menu.Items.Add("换下一张", null, (_, _) =>
+        var next = new ToolStripMenuItem("换下一张", null, (_, _) =>
         {
-            store.Patch(new StatePatch { HasMode = true, Mode = "rotate" });
-            store.Rotate(true);
+            store.Next();
             BuildMenu();
         });
+        next.ShortcutKeys = Keys.Control | Keys.Shift | Keys.N;
+        menu.Items.Add(next);
         menu.Items.Add(state.Mode == "rotate" ? "停止轮播" : "开启轮播", null, (_, _) =>
         {
             var mode = store.GetState().Mode == "rotate" ? "gallery" : "rotate";
