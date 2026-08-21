@@ -27,6 +27,15 @@ def next_slot(value: datetime, seconds: int = 15) -> datetime:
     return current
 
 
+def next_formal_review(value: datetime, minutes: int = 60) -> datetime:
+    local = sydney(value)
+    interval = max(1, min(int(minutes), 60))
+    current = local.replace(
+        minute=local.minute - (local.minute % interval), second=0, microsecond=0
+    )
+    return (current + timedelta(minutes=interval)).astimezone(timezone.utc)
+
+
 def format_sydney(value: datetime) -> str:
     return sydney(value).strftime("%Y-%m-%d %H:%M:%S")
 

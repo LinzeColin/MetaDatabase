@@ -10,7 +10,7 @@ from .models import Candidate, Metrics
 WINDOWS = (20, 60, 120)
 
 
-def price_rows(candidate: Candidate) -> list[tuple[str, float]]:
+def _raw_price_rows(candidate: Candidate) -> list[tuple[str, float]]:
     result: list[tuple[str, float]] = []
     for row in candidate.bars:
         if not isinstance(row, dict):
@@ -27,6 +27,52 @@ def price_rows(candidate: Candidate) -> list[tuple[str, float]]:
     if candidate.price and candidate.price > 0 and rows:
         rows[-1] = (rows[-1][0], float(candidate.price))
     return rows
+
+
+def _fx_to_base_by_date(candidate: Candidate, base_currency: str | None) -> dict[str, float] | None:
+    """Return base-currency units per candidate-currency unit, keyed by source date."""
+    candidate_currency = str(candidate.currency or "").strip().upper()
+    target_currency = str(base_currency or "").strip().upper()
+    if not target_currency or candidate_currency == target_currency:
+        return {}
+    raw = candidate.metadata.get("fx_to_base") if isinstance(candidate.metadata, dict) else None
+    if not isinstance(raw, list):
+        return None
+    rates: dict[str, float] = {}
+    for row in raw:
+        if not isinstance(row, dict):
+            continue
+        raw_time = str(row.get("time") or row.get("date") or "")[:10]
+        try:
+            date.fromisoformat(raw_time)
+            rate = float(row.get("rate", 0.0))
+        except (TypeError, ValueError):
+            continue
+        if rate > 0:
+            rates[raw_time] = rate
+    return rates
+
+
+def has_usable_fx_history(candidate: Candidate, base_currency: str | None, window: int = 60) -> bool:
+    """Require a source-dated FX rate for every price in the decision window."""
+    rates = _fx_to_base_by_date(candidate, base_currency)
+    if rates == {}:
+        return True
+    if not rates:
+        return False
+    prices = _raw_price_rows(candidate)
+    required = prices[-(window + 1) :]
+    return len(required) == window + 1 and all(day in rates for day, _ in required)
+
+
+def price_rows(candidate: Candidate, base_currency: str | None = None) -> list[tuple[str, float]]:
+    rows = _raw_price_rows(candidate)
+    rates = _fx_to_base_by_date(candidate, base_currency)
+    if rates is None:
+        return []
+    if rates == {}:
+        return rows
+    return [(day, close * rates[day]) for day, close in rows if day in rates]
 
 
 def daily_returns(prices: list[float]) -> list[float]:
@@ -61,8 +107,8 @@ def max_drawdown(prices: list[float], window: int) -> float | None:
     return abs(worst) * 100.0
 
 
-def absolute_metrics(candidate: Candidate) -> Metrics:
-    prices = [value for _, value in price_rows(candidate)]
+def absolute_metrics(candidate: Candidate, base_currency: str | None = None) -> Metrics:
+    prices = [value for _, value in price_rows(candidate, base_currency)]
     return Metrics(
         provider_code=candidate.provider_code,
         returns_pct={str(window): period_return(prices, window) for window in WINDOWS},
@@ -72,15 +118,19 @@ def absolute_metrics(candidate: Candidate) -> Metrics:
     )
 
 
-def aligned_prices(left_candidate: Candidate, right_candidate: Candidate) -> tuple[list[float], list[float]]:
-    left = dict(price_rows(left_candidate))
-    right = dict(price_rows(right_candidate))
+def aligned_prices(
+    left_candidate: Candidate, right_candidate: Candidate, base_currency: str | None = None
+) -> tuple[list[float], list[float]]:
+    left = dict(price_rows(left_candidate, base_currency))
+    right = dict(price_rows(right_candidate, base_currency))
     dates = sorted(set(left).intersection(right))
     return [left[key] for key in dates], [right[key] for key in dates]
 
 
-def relative_path(candidate: Candidate, reference: Candidate, window: int) -> tuple[float | None, float | None]:
-    candidate_prices, reference_prices = aligned_prices(candidate, reference)
+def relative_path(
+    candidate: Candidate, reference: Candidate, window: int, base_currency: str | None = None
+) -> tuple[float | None, float | None]:
+    candidate_prices, reference_prices = aligned_prices(candidate, reference, base_currency)
     if len(candidate_prices) <= window or len(reference_prices) <= window:
         return None, None
     candidate_return = candidate_prices[-1] / candidate_prices[-window - 1] - 1.0
@@ -97,25 +147,31 @@ def relative_path(candidate: Candidate, reference: Candidate, window: int) -> tu
     return relative_pct, relative_pct - pressure_pct
 
 
-def add_relative_metrics(metrics: Metrics, candidate: Candidate, incumbent: Candidate) -> Metrics:
+def add_relative_metrics(
+    metrics: Metrics, candidate: Candidate, incumbent: Candidate, base_currency: str | None = None
+) -> Metrics:
     relative_returns: dict[str, float | None] = {}
     stress: dict[str, float | None] = {}
     for window in WINDOWS:
-        relative_returns[str(window)], stress[str(window)] = relative_path(candidate, incumbent, window)
+        relative_returns[str(window)], stress[str(window)] = relative_path(
+            candidate, incumbent, window, base_currency
+        )
     metrics.relative_returns_pct = relative_returns
     metrics.relative_stress_lower_pct = stress
     return metrics
 
 
-def build_metrics(candidates: list[Candidate], incumbent_code: str) -> dict[str, Metrics]:
+def build_metrics(
+    candidates: list[Candidate], incumbent_code: str, base_currency: str | None = None
+) -> dict[str, Metrics]:
     by_code = {item.provider_code: item for item in candidates}
     incumbent = by_code.get(incumbent_code)
-    result = {item.provider_code: absolute_metrics(item) for item in candidates}
+    result = {item.provider_code: absolute_metrics(item, base_currency) for item in candidates}
     if incumbent is None:
         return result
     for item in candidates:
         if item.provider_code != incumbent_code:
-            add_relative_metrics(result[item.provider_code], item, incumbent)
+            add_relative_metrics(result[item.provider_code], item, incumbent, base_currency)
         else:
             result[item.provider_code].relative_returns_pct = {str(window): 0.0 for window in WINDOWS}
             result[item.provider_code].relative_stress_lower_pct = {str(window): 0.0 for window in WINDOWS}

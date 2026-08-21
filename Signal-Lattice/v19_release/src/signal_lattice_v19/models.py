@@ -68,9 +68,12 @@ class SkillResult:
     source_state: str
     candidate_conclusions: dict[str, str] = field(default_factory=dict)
     candidate_contributions: dict[str, str] = field(default_factory=dict)
+    method_version: str = "UNSPECIFIED"
+    method_evidence: str = "UNSPECIFIED"
 
     def to_public_row(self) -> dict[str, Any]:
         detail = self.independence.rstrip("。")
+        detail = f"{detail}；方法版本：{self.method_version}；方法证据：{self.method_evidence}"
         contribution = self.contribution.strip()
         if contribution:
             detail = f"{detail}；本轮贡献：{contribution}。"

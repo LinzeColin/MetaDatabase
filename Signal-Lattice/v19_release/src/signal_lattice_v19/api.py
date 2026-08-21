@@ -5,12 +5,12 @@ import mimetypes
 import time
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from . import APP_VERSION, PROMPT_VERSION
 from .config import Settings
 from .storage import RuntimeStorage
+from .whitebox import WhiteboxLedger
 
 SECURITY_HEADERS = {
     "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
@@ -36,6 +36,8 @@ def _age_seconds(envelope: dict | None) -> float | None:
 
 
 def handler(settings: Settings, storage: RuntimeStorage):
+    whitebox = WhiteboxLedger(storage.whitebox_db_file)
+
     class H(BaseHTTPRequestHandler):
         server_version = f"SignalLatticeV19/{APP_VERSION}"
         protocol_version = "HTTP/1.1"
@@ -100,6 +102,41 @@ def handler(settings: Settings, storage: RuntimeStorage):
                     break
             self.close_connection = True
 
+        def _heartbeat(self) -> dict:
+            envelope = self._latest()
+            age = _age_seconds(envelope)
+            report = envelope.get("report", {}) if envelope else {}
+            first = report.get("第一板块", {}) if isinstance(report, dict) else {}
+            summary = whitebox.summary()
+            report_state = "通" if age is not None and age <= settings.report_stale_seconds else "不确定"
+            return {
+                "project_id": "signal-lattice",
+                "application_version": APP_VERSION,
+                "decision_contract_version": PROMPT_VERSION,
+                "server_time_utc": datetime.now(timezone.utc).isoformat(),
+                "api_state": "通",
+                "report_state": report_state,
+                "report_age_seconds": round(age, 2) if age is not None else None,
+                "ui_heartbeat_seconds": 1,
+                "quote_observation_seconds": settings.refresh_seconds,
+                "formal_review_clock": "每小时Australia/Sydney",
+                "last_observed_at": summary.get("latest_observed_at"),
+                "quote_observed_at": summary.get("quote_observed_at"),
+                "last_decision_id": summary.get("latest_decision_id"),
+                "last_decision_opened_at": summary.get("latest_decision_opened_at"),
+                "observation_count": summary.get("observation_count", 0),
+                "decision_count": summary.get("decision_count", 0),
+                "unchanged_observations": summary.get("unchanged_observations", 0),
+                "current_action": first.get("唯一操作", "持有"),
+                "current_symbol": first.get("代码", "SPY"),
+                "next_formal_review": first.get("下一正式复核"),
+                "data_cutoff": report.get("数据截止"),
+                "shadow_weight_mode": "SHADOW_ONLY",
+                "profitability_status": "NOT_ISSUED",
+                "automatic_trading": False,
+                "shadow_only": True,
+            }
+
         def do_GET(self) -> None:
             parsed = urlparse(self.path)
             path = parsed.path
@@ -114,8 +151,11 @@ def handler(settings: Settings, storage: RuntimeStorage):
                     "version": APP_VERSION,
                     "prompt_version": PROMPT_VERSION,
                     "refresh_seconds": settings.refresh_seconds,
+                    "ui_heartbeat_seconds": 1,
                     "age_seconds": round(age, 2) if age is not None else None,
                 })
+            if path == "/api/v1/heartbeat":
+                return self._send_json(200, self._heartbeat())
             if path == "/api/v1/report/latest":
                 envelope = self._latest()
                 if not envelope:
@@ -135,18 +175,46 @@ def handler(settings: Settings, storage: RuntimeStorage):
                 except ValueError:
                     limit = 50
                 rows = storage.history(limit)
-                return self._send_json(200, {"items": [row.get("report") for row in rows if isinstance(row.get("report"), dict)]})
+                return self._send_json(200, {
+                    "meaning": "material decision episodes only",
+                    "items": [row.get("report") for row in rows if isinstance(row.get("report"), dict)],
+                })
+            if path == "/api/v1/whitebox/summary":
+                return self._send_json(200, whitebox.summary())
+            if path == "/api/v1/whitebox/skills":
+                return self._send_json(200, {
+                    "mode": "SHADOW_ONLY",
+                    "items": whitebox.skills(),
+                })
+            if path == "/api/v1/whitebox/decisions":
+                query = parse_qs(parsed.query)
+                try:
+                    limit = int((query.get("limit") or ["50"])[0])
+                except ValueError:
+                    limit = 50
+                return self._send_json(200, {"items": whitebox.decisions(limit)})
+            if path == "/api/v1/whitebox/outcomes":
+                return self._send_json(200, {"items": whitebox.outcomes()})
+            if path == "/api/v1/whitebox/backtest/latest":
+                result = whitebox.latest_backtest()
+                return self._send_json(200, result or {
+                    "status": "NOT_RUN",
+                    "gate_status": "NOT_RUN",
+                    "profitability_claim": "NOT_ISSUED",
+                })
             if path in {"/api/v1/metadata", "/api/v1/system/status"}:
                 envelope = self._latest()
                 age = _age_seconds(envelope)
                 report = envelope.get("report", {}) if envelope else {}
                 first = report.get("第一板块", {}) if isinstance(report, dict) else {}
                 state = "PASS" if age is not None and age <= settings.report_stale_seconds else "DEGRADED"
+                summary = whitebox.summary()
                 return self._send_json(200, {
                     "project_id": "signal-lattice",
                     "version": APP_VERSION,
                     "prompt_version": PROMPT_VERSION,
                     "refresh_seconds": settings.refresh_seconds,
+                    "ui_heartbeat_seconds": 1,
                     "state": state,
                     "public_url": settings.public_url,
                     "status_url": settings.status_url,
@@ -155,6 +223,10 @@ def handler(settings: Settings, storage: RuntimeStorage):
                     "current_action": first.get("唯一操作", "持有"),
                     "current_symbol": first.get("代码", "SPY"),
                     "report_age_seconds": round(age, 2) if age is not None else None,
+                    "decision_id": summary.get("latest_decision_id"),
+                    "observation_count": summary.get("observation_count", 0),
+                    "decision_count": summary.get("decision_count", 0),
+                    "profitability_status": "NOT_ISSUED",
                 })
 
             file_name = "index.html" if path in {"", "/"} else path.lstrip("/")

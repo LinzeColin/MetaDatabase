@@ -28,6 +28,24 @@ def _public_from_code(code: str) -> str:
     return code.split(".")[-1].upper()
 
 
+def _source_as_of(row: dict[str, Any], payload: dict[str, Any] | None = None) -> str | None:
+    for source in (row, payload or {}):
+        for key in ("quote_time", "as_of", "update_time", "data_time", "last_updated", "timestamp"):
+            value = str(source.get(key, "")).strip()
+            if value:
+                return value
+    return None
+
+
+def _record_source_times(
+    candidate: Candidate, row: dict[str, Any], now: datetime, payload: dict[str, Any] | None = None
+) -> None:
+    source_as_of = _source_as_of(row, payload)
+    candidate.quote_time = source_as_of
+    candidate.metadata["source_as_of"] = source_as_of
+    candidate.metadata["observed_at"] = now.astimezone(timezone.utc).replace(microsecond=0).isoformat()
+
+
 class FixtureProvider:
     def __init__(self, fixture_dir: Path):
         self.fixture_dir = fixture_dir
@@ -52,7 +70,7 @@ class FixtureProvider:
                 continue
             candidate.platform_verified = True
             candidate.price = float(row.get("price", 0.0) or 0.0) or None
-            candidate.quote_time = now.astimezone(timezone.utc).replace(microsecond=0).isoformat()
+            _record_source_times(candidate, row, now, payload)
             if include_history or not candidate.bars:
                 candidate.bars = list(row.get("bars", []))
             candidate.fundamentals = dict(row.get("fundamentals", {}))
@@ -101,32 +119,39 @@ class MoomooReadOnlyProvider:
         OpenQuoteContext, RET_OK, _, _, Market, SecurityType = self._sdk()
         quote = OpenQuoteContext(host=self.host, port=self.port)
         result: list[dict[str, Any]] = []
+        seen: set[str] = set()
         try:
             for market_name in ("AU", "US", "HK"):
                 market = getattr(Market, market_name, None)
                 if market is None:
                     continue
-                try:
-                    ret, frame = quote.get_stock_basicinfo(market, stock_type=SecurityType.ETF)
-                except TypeError:
-                    ret, frame = quote.get_stock_basicinfo(market, SecurityType.ETF)
-                if ret != RET_OK or frame is None:
-                    continue
-                for _, row in frame.iterrows():
-                    code = str(row.get("code", "")).upper()
-                    if not code:
+                for asset_class in ("ETF", "STOCK"):
+                    security_type = getattr(SecurityType, asset_class, None)
+                    if security_type is None:
                         continue
-                    result.append({
-                        "provider_code": code,
-                        "public_code": _public_from_code(code),
-                        "name": str(row.get("name", _public_from_code(code))),
-                        "market": _market_from_code(code),
-                        "currency": "AUD" if market_name == "AU" else "HKD" if market_name == "HK" else "USD",
-                    })
+                    try:
+                        ret, frame = quote.get_stock_basicinfo(market, stock_type=security_type)
+                    except TypeError:
+                        ret, frame = quote.get_stock_basicinfo(market, security_type)
+                    if ret != RET_OK or frame is None:
+                        continue
+                    for _, row in frame.iterrows():
+                        code = str(row.get("code", "")).upper()
+                        if not code or code in seen:
+                            continue
+                        seen.add(code)
+                        result.append({
+                            "provider_code": code,
+                            "public_code": _public_from_code(code),
+                            "name": str(row.get("name", _public_from_code(code))),
+                            "market": _market_from_code(code),
+                            "currency": "AUD" if market_name == "AU" else "HKD" if market_name == "HK" else "USD",
+                            "metadata": {"asset_class": asset_class},
+                        })
         finally:
             quote.close()
         if not result:
-            raise MarketProviderError("MOOMOO_ETF_CATALOG_EMPTY")
+            raise MarketProviderError("MOOMOO_CATALOG_EMPTY")
         return result
 
     def snapshot(self, candidates: list[Candidate], now: datetime, include_history: bool) -> list[Candidate]:
@@ -149,7 +174,7 @@ class MoomooReadOnlyProvider:
                 turnover = float(row.get("turnover", 0.0) or 0.0)
                 spread_bps = ((ask - bid) / price * 10000.0) if price > 0 and ask >= bid > 0 else 7.0
                 candidate.price = price or candidate.price
-                candidate.quote_time = now.astimezone(timezone.utc).replace(microsecond=0).isoformat()
+                _record_source_times(candidate, row, now)
                 candidate.platform_verified = True
                 candidate.liquidity_score = min(1.0, max(0.0, turnover / 10_000_000.0))
                 candidate.cost_bps = max(5.0, spread_bps + 3.0)

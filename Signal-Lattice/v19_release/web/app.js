@@ -29,30 +29,75 @@ function render(report) {
   if (!body.children.length) body.innerHTML = '<tr><td colspan="10">六技能矩阵尚未形成</td></tr>';
   lastReportAt = Date.now();
   remaining = 15;
-  text('connection', '15秒实时更新');
-  $('live-dot').className = 'ok';
 }
-async function fetchLatest() {
-  const response = await fetch('/api/v1/report/latest', {headers:{Accept:'application/json'}, cache:'no-store'});
+
+async function jsonGet(path) {
+  const response = await fetch(path, {headers:{Accept:'application/json'}, cache:'no-store'});
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  render(await response.json());
+  return response.json();
 }
+
+async function fetchLatest() { render(await jsonGet('/api/v1/report/latest')); }
+
+async function fetchHeartbeat() {
+  const heartbeat = await jsonGet('/api/v1/heartbeat');
+  text('api_state', heartbeat.api_state);
+  text('report_state', heartbeat.report_state);
+  text('application_version', heartbeat.application_version);
+  text('quote_observed_at', heartbeat.quote_observed_at);
+  text('last_decision_id', heartbeat.last_decision_id);
+  text('observation_count', heartbeat.observation_count);
+  text('decision_count', heartbeat.decision_count);
+  text('unchanged_observations', heartbeat.unchanged_observations);
+  text('heartbeat_next_review', heartbeat.next_formal_review);
+  text('profitability_status', heartbeat.profitability_status);
+  text('connection', heartbeat.report_state === '通' ? 'API每秒已确认' : 'API通，报告不确定');
+  $('live-dot').className = heartbeat.report_state === '通' ? 'ok' : 'warn';
+}
+
+async function fetchSkillHistory() {
+  const payload = await jsonGet('/api/v1/whitebox/skills');
+  const body = $('whitebox-skills');
+  body.innerHTML = '';
+  for (const row of payload.items || []) {
+    const tr = document.createElement('tr');
+    const values = [
+      row.display_name,
+      row.matured_count,
+      row.correct_count,
+      row.opposite_count,
+      row.invalid_count,
+      `${Number(row.value_score_pct || 0).toFixed(1)}%`,
+      row.trend,
+      `${Number(row.shadow_weight_pct || 0).toFixed(1)}%`,
+    ];
+    for (const value of values) {
+      const td = document.createElement('td');
+      td.textContent = value ?? '—';
+      tr.appendChild(td);
+    }
+    body.appendChild(tr);
+  }
+  if (!body.children.length) body.innerHTML = '<tr><td colspan="8">白箱Skill账本尚未形成</td></tr>';
+}
+
 function connectStream() {
   const stream = new EventSource('/api/v1/stream');
   stream.addEventListener('report', event => {
     try { render(JSON.parse(event.data)); } catch (_) {}
   });
-  stream.onopen = () => { text('connection','15秒实时更新'); $('live-dot').className='ok'; };
-  stream.onerror = () => { text('connection','流连接重试中'); $('live-dot').className='warn'; };
+  stream.onerror = () => { text('connection','流连接重试中，API仍每秒确认'); $('live-dot').className='warn'; };
 }
+
 setInterval(() => {
   remaining = Math.max(0, remaining - 1);
   text('countdown', `${remaining}s`);
-  if (Date.now() - lastReportAt > 30000) {
-    text('connection','结果可能滞后');
-    $('live-dot').className='warn';
-  }
+  if (Date.now() - lastReportAt > 30000) $('live-dot').className='warn';
 }, 1000);
-fetchLatest().catch(() => { text('connection','等待首轮报告'); $('live-dot').className='warn'; });
+
+fetchLatest().catch(() => text('connection','等待首轮报告'));
+fetchHeartbeat().catch(() => { text('connection','API未确认'); $('live-dot').className='warn'; });
+fetchSkillHistory().catch(() => {});
 connectStream();
-setInterval(() => fetchLatest().catch(() => {}), 15000);
+setInterval(() => fetchHeartbeat().catch(() => { text('connection','API未确认'); $('live-dot').className='warn'; }), 1000);
+setInterval(() => { fetchLatest().catch(() => {}); fetchSkillHistory().catch(() => {}); }, 15000);
