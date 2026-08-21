@@ -7,9 +7,9 @@
       "state": "blocked_by_input"
     },
     "BL-ADP-DAILY.scan": {
-      "at": "2026-08-21T06:29:26.540187+08:00",
-      "note": "看门狗有不变量被破坏(非静默归零):FAIL  backfill last_run degraded: ['backfill:TimeoutError'] (cursor 2016-08-05)",
-      "state": "degraded"
+      "at": "2026-08-22T06:26:53.789022+08:00",
+      "note": "静默归零(绿着的 cron 背后什么都没产出):FAIL  SILENT ZERO: metadata matched 0 of 12 DOIs on 2026-08-21 (降级) due to errors ['meta:http429",
+      "state": "blocked"
     }
   }
 }
