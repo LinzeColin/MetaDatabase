@@ -85,7 +85,7 @@ internal sealed class RuntimeServer : IAsyncDisposable
             if (!ValidSegment(game) || !ValidSegment(character) || !ValidSegment(variant) || (side != "light" && side != "dark"))
                 return Results.NotFound();
             var key = $"/assets/{Uri.EscapeDataString(game)}/{Uri.EscapeDataString(character)}/{Uri.EscapeDataString(variant)}/{side}";
-            var file = store.Asset(key);
+            var file = store.GetAsset(key);
             response.Headers["Cache-Control"] = "public, max-age=86400";
             return file is not null && File.Exists(file)
                 ? Results.File(file, "image/png", enableRangeProcessing: true)

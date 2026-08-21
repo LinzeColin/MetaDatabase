@@ -24,17 +24,17 @@ internal sealed class HarnessStore
     internal string StateFile => Path.Combine(dataRoot, "state.json");
     internal string ConfigFile => Path.Combine(dataRoot, "config.json");
 
-    internal Catalog Catalog()
+    internal Catalog GetCatalog()
     {
         lock (gate) return catalog;
     }
 
-    internal HarnessState State()
+    internal HarnessState GetState()
     {
         lock (gate) return Copy(state);
     }
 
-    internal string? Asset(string requestPath)
+    internal string? GetAsset(string requestPath)
     {
         lock (gate) return assets.TryGetValue(requestPath, out var file) ? file : null;
     }

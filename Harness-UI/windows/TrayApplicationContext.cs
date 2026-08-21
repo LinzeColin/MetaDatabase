@@ -49,7 +49,7 @@ internal sealed class TrayApplicationContext : System.Windows.Forms.ApplicationC
 
         rotationTimer.Tick += (_, _) =>
         {
-            var before = store.State().Selected;
+            var before = store.GetState().Selected;
             var after = store.Rotate(false).Selected;
             if (before != after) BuildMenu();
         };
@@ -63,10 +63,10 @@ internal sealed class TrayApplicationContext : System.Windows.Forms.ApplicationC
     {
         if (tray.ContextMenuStrip is not { } menu) return;
         menu.Items.Clear();
-        var state = store.State();
-        var selected = store.Catalog().Entries.FirstOrDefault(entry => entry.Id == state.Selected);
+        var state = store.GetState();
+        var selected = store.GetCatalog().Entries.FirstOrDefault(entry => entry.Id == state.Selected);
         menu.Items.Add(new ToolStripMenuItem($"当前：{selected?.FullLabel ?? "未选择"}") { Enabled = false });
-        menu.Items.Add(new ToolStripMenuItem($"素材库：{store.Catalog().Count} 个变体") { Enabled = false });
+        menu.Items.Add(new ToolStripMenuItem($"素材库：{store.GetCatalog().Count} 个变体") { Enabled = false });
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("打开角色库", null, (_, _) => OpenGallery());
         menu.Items.Add("选择 SMB 素材目录…", null, (_, _) => ChooseSource());
@@ -79,7 +79,7 @@ internal sealed class TrayApplicationContext : System.Windows.Forms.ApplicationC
         });
         menu.Items.Add(state.Mode == "rotate" ? "停止轮播" : "开启轮播", null, (_, _) =>
         {
-            var mode = store.State().Mode == "rotate" ? "gallery" : "rotate";
+            var mode = store.GetState().Mode == "rotate" ? "gallery" : "rotate";
             store.Patch(new StatePatch { HasMode = true, Mode = mode });
             if (mode == "rotate") store.Rotate(true);
             BuildMenu();

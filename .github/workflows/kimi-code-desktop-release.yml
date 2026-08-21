@@ -32,7 +32,7 @@ jobs:
     outputs:
       tag: ${{ steps.values.outputs.tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Enforce main, version and explicit confirmation
@@ -57,10 +57,10 @@ jobs:
       APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: npm
@@ -81,7 +81,7 @@ jobs:
           npx electron-builder --mac dmg zip --arm64 -c.mac.notarize=true -c.dmg.sign=true
           codesign --verify --deep --strict --verbose=2 "dist/mac-arm64/Kimi Code Desktop.app"
           spctl --assess --type execute --verbose=2 "dist/mac-arm64/Kimi Code Desktop.app"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release-kimi-macos
           path: |
@@ -98,10 +98,10 @@ jobs:
       CSC_LINK: ${{ secrets.WINDOWS_CERTIFICATE_PFX }}
       CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: npm
@@ -116,13 +116,15 @@ jobs:
         working-directory: Kimi-Code-Desktop
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
           npm ci
           npm test
           npm run dist:win:x64
           npm run dist:win:arm64
           $files = Get-ChildItem dist -File | Where-Object { $_.Extension -in '.exe', '.zip' }
           if ($files.Count -lt 4) { throw "Expected signed installer and ZIP for both Windows architectures" }
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release-kimi-windows
           path: |
@@ -136,7 +138,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: release-kimi-*
           path: release-assets
