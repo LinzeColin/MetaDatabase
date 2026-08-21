@@ -68,5 +68,5 @@ const temporary = `${packageFile}.harness-ui.tmp`;
 fs.writeFileSync(temporary, `${JSON.stringify(profile, null, 2)}\n`);
 fs.renameSync(temporary, packageFile);
 
-console.log(`Installed dsh-harness-ui-skins 0.2.0. Backup: ${backupRoot}`);
+console.log(`Installed dsh-harness-ui-skins 1.0.0. Backup: ${backupRoot}`);
 console.log("DSH was not restarted. Fully quit and reopen DSH when you are ready to activate the plugin.");

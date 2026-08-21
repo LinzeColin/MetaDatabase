@@ -4,10 +4,7 @@ const path = require("node:path");
 const { spawn } = require("node:child_process");
 
 const API_URL = "https://api.github.com/repos/LinzeColin/MetaDatabase/releases?per_page=50";
-const TAG_PATTERNS = {
-  stable: /^kimi-code-desktop-v(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$/,
-  community: /^kimi-code-desktop-community-v(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$/,
-};
+const TAG_PATTERN = /^kimi-code-desktop-v(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$/;
 const DOWNLOAD_HOSTS = new Set(["github.com", "objects.githubusercontent.com", "release-assets.githubusercontent.com"]);
 
 function versionParts(raw) {
@@ -34,24 +31,16 @@ function assetSuffix(platform, arch) {
   return null;
 }
 
-function communityAssetSuffix(platform, arch) {
-  if (platform === "darwin") return `-macos-${arch}-NOT-NOTARIZED.zip`;
-  if (platform === "win32") return `-windows-${arch}-UNSIGNED-setup.exe`;
-  return null;
-}
-
-function selectRelease(releases, { currentVersion, platform = process.platform, arch = process.arch, channel = "stable" }) {
-  const pattern = TAG_PATTERNS[channel];
-  const suffix = channel === "community" ? communityAssetSuffix(platform, arch) : assetSuffix(platform, arch);
-  if (!pattern) throw new Error(`未知更新通道：${channel}`);
+function selectRelease(releases, { currentVersion, platform = process.platform, arch = process.arch }) {
+  const suffix = assetSuffix(platform, arch);
   if (!suffix) return null;
   return (Array.isArray(releases) ? releases : [])
-    .filter((release) => !release.draft && (channel === "community" ? release.prerelease : !release.prerelease))
+    .filter((release) => !release.draft && !release.prerelease)
     .map((release) => {
-      const match = String(release.tag_name || "").match(pattern);
+      const match = String(release.tag_name || "").match(TAG_PATTERN);
       if (!match) return null;
       const asset = (release.assets || []).find((candidate) => String(candidate.name || "").endsWith(suffix));
-      return asset ? { channel, release, version: match[1], asset } : null;
+      return asset ? { channel: "stable", release, version: match[1], asset } : null;
     })
     .filter(Boolean)
     .filter((candidate) => compareVersions(candidate.version, currentVersion) > 0)
@@ -154,18 +143,11 @@ class DesktopUpdater {
 
   async check() {
     const releases = await fetchReleases();
-    const stable = selectRelease(releases, {
+    const update = selectRelease(releases, {
       currentVersion: this.currentVersion,
       platform: this.platform,
       arch: this.arch,
     });
-    const community = selectRelease(releases, {
-      currentVersion: this.currentVersion,
-      platform: this.platform,
-      arch: this.arch,
-      channel: "community",
-    });
-    const update = stable || community;
     return update ? { status: "available", ...update } : { status: "current", currentVersion: this.currentVersion };
   }
 
@@ -197,7 +179,6 @@ class DesktopUpdater {
 module.exports = {
   DesktopUpdater,
   assetSuffix,
-  communityAssetSuffix,
   compareVersions,
   downloadAsset,
   fetchReleases,

@@ -1,6 +1,6 @@
 {
   "name": "dsh-harness-ui-skins",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Harness UI SMB-backed skin adapter for DSH",
   "type": "module",
   "main": "lib/index.js",

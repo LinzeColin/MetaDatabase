@@ -8,7 +8,8 @@ on:
       - "Harness-UI/**"
       - ".github/workflows/kimi-code-desktop-release.yml"
       - ".github/workflows/harness-ui-release.yml"
-      - ".github/workflows/kimi-harness-community-release.yml"
+      - ".github/workflows/desktop-app-suite-release.yml"
+      - ".github/workflows/upstream-desktop-sync.yml"
       - ".github/workflows/kimi-harness-ci.yml"
   pull_request:
     paths:
@@ -16,7 +17,8 @@ on:
       - "Harness-UI/**"
       - ".github/workflows/kimi-code-desktop-release.yml"
       - ".github/workflows/harness-ui-release.yml"
-      - ".github/workflows/kimi-harness-community-release.yml"
+      - ".github/workflows/desktop-app-suite-release.yml"
+      - ".github/workflows/upstream-desktop-sync.yml"
       - ".github/workflows/kimi-harness-ci.yml"
   workflow_dispatch:
 
@@ -98,11 +100,13 @@ jobs:
         working-directory: Kimi-Code-Desktop
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          KIMI_STABLE_ADHOC_IDENTITY: "1"
         run: |
           npm ci
           npm test
           npm run prepare:kimi -- --platform=darwin --arch=arm64
-          npx electron-builder --mac dmg zip --arm64 --config.directories.output=dist-ci
+          npx electron-builder --mac dmg zip --arm64 --config.directories.output=dist-ci \
+            --config.mac.identity=- --config.mac.hardenedRuntime=false
           version="$(node -p 'require("./package.json").version')"
           file "dist-ci/mac-arm64/Kimi Code.app/Contents/MacOS/Kimi Code"
           file "dist-ci/mac-arm64/Kimi Code.app/Contents/Resources/kimi/kimi"

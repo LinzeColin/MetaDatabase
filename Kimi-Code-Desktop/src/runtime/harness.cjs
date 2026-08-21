@@ -61,6 +61,11 @@ function assetWithRevision(raw, generated) {
   return `${raw}?v=${encodeURIComponent(generated)}`;
 }
 
+function catalogNeedsRefresh(nextState, currentCatalog) {
+  if (!currentCatalog || !nextState?.catalogGenerated) return true;
+  return nextState.catalogGenerated !== currentCatalog.generated;
+}
+
 class HarnessBridge {
   constructor({ baseUrl = process.env.HARNESS_UI_URL, intervalMs = 15000, onChange = null } = {}) {
     this.baseUrl = assertLoopbackBase(baseUrl);
@@ -125,10 +130,7 @@ class HarnessBridge {
   async refresh({ forceCatalog = false, suppliedState = null } = {}) {
     try {
       const nextState = suppliedState || await fetchJson(`${this.baseUrl}/state.json`);
-      const catalogChanged = Boolean(nextState.catalogGenerated)
-        && nextState.catalogGenerated !== this.catalog?.generated;
-      const legacyState = !nextState.catalogGenerated;
-      const nextCatalog = forceCatalog || catalogChanged || legacyState || !this.catalog
+      const nextCatalog = forceCatalog || catalogNeedsRefresh(nextState, this.catalog)
         ? await fetchJson(`${this.baseUrl}/catalog.json`)
         : this.catalog;
       this.catalog = nextCatalog;
@@ -176,6 +178,7 @@ module.exports = {
   HarnessBridge,
   assertLoopbackBase,
   assetWithRevision,
+  catalogNeedsRefresh,
   fetchJson,
   postJson,
   selectHarnessEntry,

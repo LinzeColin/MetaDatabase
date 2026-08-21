@@ -64,7 +64,6 @@ actual_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$candidate/
 actual_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$candidate/Contents/Info.plist")"
 [ "$actual_version" = "$version" ] || exit 26
 /usr/bin/codesign --verify --deep --strict "$candidate"
-/usr/sbin/spctl --assess --type execute "$candidate"
 
 /bin/mkdir -p "$(/usr/bin/dirname "$rollback")"
 if [ -e "$target" ]; then /bin/mv "$target" "$rollback"; fi

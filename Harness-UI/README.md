@@ -72,12 +72,11 @@ dotnet publish windows/HarnessUI.Windows.csproj -c Release -r win-x64 --self-con
 ```
 
 Inno 安装器的完整双架构命令以
-[跨平台 CI](../.github/workflows/kimi-harness-ci.yml) 为准。正式 Release 必须签名；缺少凭据时只能输出候选件。
+[跨平台 CI](../.github/workflows/kimi-harness-ci.yml) 为准。签名凭据不会阻塞 GitHub Release。
 
 ## 新电脑安装
 
-有受信任签名时，从 `harness-ui-v*` Release 下载对应资产。零成本社区版使用
-`harness-ui-community-v*` prerelease，文件名会明确标出 `NOT-NOTARIZED` 或 `UNSIGNED`：
+从唯一正式版本线 `harness-ui-v*` Release 下载对应资产：
 
 - Apple Silicon Mac：打开 `mac-arm64.dmg`，把 App 拖入 Applications；首次启动后从菜单栏选择 SMB 素材根目录；
 - Windows x64/ARM64：双击对应的 `windows-*-setup.exe`；默认直接使用
@@ -86,17 +85,17 @@ Inno 安装器的完整双架构命令以
 Mac 首次连接可在 Finder 使用“前往 → 连接服务器”，输入
 `smb://192.168.0.1/share/03_资料库/MetaData/HarnessUI/`。控制器只读取约定的游戏/角色/皮肤目录并按需读取当前图片；不会把图片上传或写回 NAS。
 
-零成本 Mac 推荐让 Agent clone 后运行仓内安装脚本；脚本从固定版本的 GitHub community Release 下载 ZIP，
+Mac 也可 clone 后运行仓内安装脚本；脚本从固定版本的 GitHub Release 下载 ZIP，
 无需 Node、Swift 或 Xcode：
 
 ```bash
 git clone https://github.com/LinzeColin/MetaDatabase.git
 cd MetaDatabase/Harness-UI
-bash scripts/install-community-macos.sh
+bash scripts/install-release-macos.sh
 ```
 
-脚本不会启动或重启 Harness、Kimi 或 DSH。社区 Release 的准确安全边界见
-[docs/COMMUNITY_RELEASE.md](docs/COMMUNITY_RELEASE.md)。
+脚本不会启动或重启 Harness、Kimi 或 DSH。发布边界见
+[docs/RELEASE.md](docs/RELEASE.md)。macOS 菜单栏与 Windows 托盘菜单都有“检查并下载更新…”入口。
 
 Kimi Code Desktop 的适配已内置，无需再装插件。DSH 适配器从 Release 解压后执行：
 
@@ -105,7 +104,7 @@ node scripts/install-dsh.mjs
 node scripts/install-dsh.mjs --apply
 ```
 
-第一条预览目标，第二条才写入。安装器不会关闭或重启 DSH；用户准备好后自行完全退出并重新打开一次。
+第一条预览目标，第二条才写入。macOS 完整桥接包还提供 `dsh-desktop/install-bridge-macos.sh`，安装器不会关闭、启动或重启 DSH。
 
 任意 Agent 可直接取得源码：
 

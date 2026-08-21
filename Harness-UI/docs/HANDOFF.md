@@ -1,49 +1,29 @@
-# Harness UI 迁移交接
+# Harness UI / DSH Desktop 交接
 
 ## 当前目标
 
-交付 macOS Apple Silicon、Windows x64/arm64 的 Harness UI 控制器，以及 Kimi、DSH 两个宿主适配器。
+发布可迁移到另一台电脑的 Harness UI 与 DSH Desktop，并让 Kimi、DSH 共用同一个素材目录、选择状态与更新边界。
 
-## 数据合同
+## 当前状态（2026-08-22）
 
-- SMB 真源：`smb://192.168.0.1/share/03_资料库/MetaData/HarnessUI/`
-- Windows UNC：`\\192.168.0.1\share\03_资料库\MetaData\HarnessUI`
-- Runtime 结构：`<游戏中文>/<角色ID>/skins/<变体>/{light.png,dark.png,meta.json}`
-- 图片只读留在 NAS；每台电脑只存配置、状态和小型目录索引。
+- Harness UI 使用 AgentDatabase 既有产品版本 `1.0.0`；唯一标签为 `harness-ui-v*`，旧 `harness-ui-community-v*` 不再发布。
+- macOS Apple Silicon、Windows x64/arm64 构建入口均存在；两端原生菜单提供“检查并下载更新…”。
+- Harness UI 在 `127.0.0.1:3099` 提供唯一 `catalog.json/state.json`。素材 generation 更新后 Kimi 与 DSH 热读取，不复制第二份菜单状态。
+- SMB 暂时不可达或目录不完整时保留上一版完整目录；本地 durable master 可继续供图。
+- Harness UI macOS 本地代码身份固定为 `com.linzecolin.harnessui`；配置、素材、状态与图标均位于 App Bundle 外。
+- DSH GitHub Release 直接镜像 anywhere-labs 官方同版本安装器，版本当前为 `2.0.2`，不建立桥接私有版本号。
+- DSH macOS 桥接包提供更新菜单、HarnessUI 同步、外置图标和退出安装；本地代码身份固定为 `ai.deepseek.dsh.desktop`。有自定义图标则跨更新保留，没有图标也不会阻断官方更新。
+- 每日 GitHub workflow 自动镜像缺失的官方 DSH 同版本 Release；DSH 自身更新按钮继续读取官方上游。
+- 本机未发现 DSH launchd/登录项自动重启链路。90 秒受控退出期间未自动重启；此前连续启动时间与诊断操作一一对应。DSH 当前保持退出。
 
-## 当前状态
+## 验证
 
-- 共享目录/状态协议、网页角色库、macOS AppKit 控制器、Windows WinForms 控制器、Kimi/DSH 适配与发布工作流已实现。
-- PR #309 已合并到公开仓 `MetaDatabase/main`；合并提交后的全部仓库检查已通过。
-- 干净 GitHub runner 已通过 Swift 测试并构建 macOS arm64 控制器，也已构建 Windows x64/arm64 自包含程序和 Inno 安装器；主分支跨平台验收 run 为 `32479000586`。
-- 正式工作流显式验证 Mac App/DMG 的签名、公证票据与 Gatekeeper，以及 Windows x64/arm64 主程序和安装器的 Authenticode 信任链与时间戳。
-- PR #310 已把上述发布门合并到 `main`；合并后的跨平台 run `32481584316` 和三条仓库治理工作流全部通过。
-- 正式工作流演练 run `32482237541` 已通过 main/version/确认词门，并准确停在缺失签名 secrets；macOS、Windows、publish jobs 全部跳过，未创建 Release。
-- 尚未发布正式 Release，签名门为 `WAITING_SIGNING_CREDENTIAL`。
-- 截至 2026-08-21，GitHub 没有 Apple/Windows 签名 secrets，本机也没有有效 codesigning identity。
-- 现有 Harness 生成任务和 `progress.py --watch` 未被停止。
-- 2026-08-22 Owner 明确要求发行成本恒为 `$0`。Apple Developer ID/公证因此不再是本轮可执行路径；现有 signed workflow 保留但不冒充已完成。
-- 零成本 community workflow 已新增，固定发布 `harness-ui-community-v0.1.0` prerelease；macOS 文件名标记 `NOT-NOTARIZED`，Windows 标记 `UNSIGNED`，DSH 仅发布源码包。
-- `scripts/install-community-macos.sh` 供 Agent clone 后安装固定版本 ZIP；不需要 Node、Swift 或 Xcode，只复制、不启动、不重启，也不修改 Gatekeeper 设置。
-- PR #312 已合并；主分支发布 run `32513109964` 全部通过，并发布 [Harness UI v0.1.0 Community](https://github.com/LinzeColin/MetaDatabase/releases/tag/harness-ui-community-v0.1.0)。
-- Release 为非草稿 prerelease，共 7 个资产：macOS arm64 DMG/ZIP、Windows x64/arm64 安装器和便携 ZIP，以及独立 DSH adapter source ZIP；没有图片或 SMB 凭据。
-- 已从公开 Release 下载 macOS ZIP，通过 Agent 安装脚本复制到隔离临时目录；主程序为 arm64，全程未启动应用，临时副本已移入废纸篓。
-- 共享 catalog/state 已增加 generation 热同步、15 分钟后台刷新和“同步素材”手动入口；SMB 视图不完整时不覆盖上一版目录，完整本地镜像可在 SMB/TCC 瞬断时继续提供素材。
-- 本机目录当前为 408 个变体，Kimi 与 DSH 共享同一选择状态；DSH 已通过应用内按钮从 2.0.1 更新到 2.0.2，并完成 Cmd+W/Cmd+Q 生命周期验收。
-- Kimi 当前 GUI 与后台均未重启；旧的 Kimi 0.2.0 本地候选因低于现场 1.0.0 而停用，正式安装仍保持 `WAITING_SIGNING_CREDENTIAL`。
-- Harness UI 与 DSH adapter 保持 0.2.0 发行线；Kimi Desktop 独立改为 1.0.1。联合 community workflow 已解耦两个版本输入，避免一个产品的版本历史污染另一个产品。
-- PR #314 与 #315 已合并；联合 community 发布 run `32522348126` 在 macOS arm64、Windows x64/arm64 构建和两个 publish job 上全部通过。
-- [Harness UI v0.2.0 Community](https://github.com/LinzeColin/MetaDatabase/releases/tag/harness-ui-community-v0.2.0) 已发布为非草稿 prerelease，共 7 个资产：macOS DMG/ZIP、Windows x64/arm64 安装器与便携包、DSH adapter source ZIP；不含图片或 SMB 凭据。
-- 发布后现场复核：两个 SMB mount 保持在线，共享服务返回 408/408 个条目、来源为 `smb+local`；DSH Desktop `2.0.2` 已重新拉起并监听本机服务端口，外置图标与 Kimi/DSH 个性化目录保持原位。
+- HarnessUI/DSH Node 回归：11/11 通过，覆盖 DSH 2.0.2 patch contract、SMB 本地降级和 adapter 安装。
+- DSH 桥接安装器 preview 不写入、不启动、不重启 DSH。
+- 当前 Kimi PID 保持不变。
 
-## 禁止迁移
+## 剩余
 
-- 生成任务包、验收台账原文、私有路径、API Key、缓存和图片。
-- 现有 `~/.harness-ui` 的 7GB runtime 目录。
-- AgentDatabase HarnessUI 中与 runtime 无关的生成/研究流水线。
-
-## 下一步
-
-保持 15 分钟 catalog 刷新与 SMB 完整性保护运行，观察公测反馈；后续每次 community 发布继续使用独立版本输入并核对七个资产。未来只有 Owner 改变预算时，才按 `docs/SIGNING.md` 恢复 signed release。
-
-补充跟 Prompt（22 个汉字）：`请收口当前皮肤任务并输出可迁移交接勿重启应用`
+- PR 合并并等待 GitHub macOS/Windows 构建。
+- 发布 `harness-ui-v1.0.0` 与 `dsh-desktop-v2.0.2`，确认安装资产和桥接包。
+- 旧 private/community Releases 只做“已废止”标记，不删除历史资产。

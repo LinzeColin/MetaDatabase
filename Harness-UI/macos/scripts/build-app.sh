@@ -6,7 +6,7 @@ MAC_ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 PROJECT_ROOT="$(cd "$MAC_ROOT/.." && pwd -P)"
 CONFIGURATION="${CONFIGURATION:-release}"
 ARCHITECTURE="${ARCHITECTURE:-arm64}"
-APP_VERSION="${APP_VERSION:-0.2.0}"
+APP_VERSION="${APP_VERSION:-1.0.0}"
 OUTPUT_ROOT="$PROJECT_ROOT/dist/macos-$ARCHITECTURE"
 APP="$OUTPUT_ROOT/Harness UI.app"
 
@@ -32,6 +32,9 @@ for size in 16 32 128 256 512; do
 done
 iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns"
 rm -rf "$ICONSET" "$OUTPUT_ROOT/icon.png"
-codesign --force --deep --sign - "$APP"
+codesign --force --deep --sign - \
+  --identifier com.linzecolin.harnessui \
+  --requirements '=designated => identifier "com.linzecolin.harnessui"' \
+  "$APP"
 
 echo "app=$APP"

@@ -2,6 +2,8 @@
 
 This bridge keeps the official stable release service and download flow, while making macOS installation a normal click-through update.
 
+The repository checks the official DSH release every day and mirrors a missing same-version installer automatically. The bridge never creates a separate DSH version number.
+
 - The downloaded upstream app is checked before local personalization is applied.
 - `~/.dsh` and `~/.harness-ui` are never replaced by the installer.
 - The custom icon lives at `~/.dsh/personalization/dsh-desktop/icon.icns`.

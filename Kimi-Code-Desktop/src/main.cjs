@@ -146,22 +146,8 @@ async function checkForUpdates() {
         type: "info",
         title: "Kimi Code Desktop 更新",
         message: `当前没有可用更新（v${app.getVersion()}）`,
-        detail: "受信任稳定版可一键安装；零成本 community 版只会明确提示并交给浏览器下载，不会静默绕过系统安全检查。",
+        detail: "应用只跟随 Kimi Code 官方版本号；更新仅替换应用本体，配置、会话、皮肤、素材与外置图标保持原位。",
       });
-      return;
-    }
-    if (availableUpdate.channel === "community") {
-      const choice = await showMessage({
-        type: "warning",
-        title: "Kimi Code Desktop 社区版更新",
-        message: `发现 community v${availableUpdate.version}（未公证）`,
-        detail: "这是零成本 community prerelease，不是 Apple Developer ID 公证版本。应用不会静默替换本体；可由浏览器下载，让 macOS 保留正常的安全提示。配置、会话、皮肤和素材不会进入下载包。",
-        buttons: ["在浏览器下载", "查看发布说明", "稍后"],
-        defaultId: 2,
-        cancelId: 2,
-      });
-      if (choice.response === 0) await shell.openExternal(availableUpdate.asset.browser_download_url);
-      if (choice.response === 1) await shell.openExternal(availableUpdate.release.html_url);
       return;
     }
     const choice = await showMessage({
@@ -234,9 +220,7 @@ async function openFullDiskAccessSettings() {
 function buildMenu() {
   const updateLabel = updateBusy
     ? "正在检查更新…"
-    : availableUpdate?.channel === "community"
-      ? `下载 community v${availableUpdate.version}…`
-      : availableUpdate ? `下载更新 v${availableUpdate.version}…` : "检查更新…";
+    : availableUpdate ? `下载更新 v${availableUpdate.version}…` : "检查更新…";
   const macAppMenu = {
     label: app.name,
     submenu: [

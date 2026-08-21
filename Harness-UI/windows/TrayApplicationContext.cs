@@ -95,6 +95,8 @@ internal sealed class TrayApplicationContext : System.Windows.Forms.ApplicationC
             BuildMenu();
         });
         menu.Items.Add(new ToolStripSeparator());
+        menu.Items.Add("检查并下载更新…", null, (_, _) => OpenReleases());
+        menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("退出 Harness UI", null, (_, _) => ExitThread());
     }
 
@@ -174,6 +176,11 @@ internal sealed class TrayApplicationContext : System.Windows.Forms.ApplicationC
     private void OpenGallery()
     {
         Process.Start(new ProcessStartInfo($"http://127.0.0.1:{configuration.Port}/") { UseShellExecute = true });
+    }
+
+    private static void OpenReleases()
+    {
+        Process.Start(new ProcessStartInfo("https://github.com/LinzeColin/MetaDatabase/releases?q=harness-ui-v") { UseShellExecute = true });
     }
 
     private HarnessConfiguration? ReadConfiguration()
