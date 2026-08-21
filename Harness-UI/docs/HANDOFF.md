@@ -23,6 +23,9 @@
 - 截至 2026-08-21，GitHub 没有 Apple/Windows 签名 secrets，本机也没有有效 codesigning identity。
 - 现有 Harness 生成任务和 `progress.py --watch` 未被停止。
 - Kimi、DSH 和 Harness 现有应用均未重启。
+- 2026-08-22 Owner 明确要求发行成本恒为 `$0`。Apple Developer ID/公证因此不再是本轮可执行路径；现有 signed workflow 保留但不冒充已完成。
+- 零成本 community workflow 已新增，固定发布 `harness-ui-community-v0.1.0` prerelease；macOS 文件名标记 `NOT-NOTARIZED`，Windows 标记 `UNSIGNED`，DSH 仅发布源码包。
+- `scripts/install-community-macos.sh` 供 Agent clone 后安装固定版本 ZIP；不需要 Node、Swift 或 Xcode，只复制、不启动、不重启，也不修改 Gatekeeper 设置。
 
 ## 禁止迁移
 
@@ -32,6 +35,6 @@
 
 ## 下一步
 
-按 `docs/SIGNING.md` 安全配置八个签名 secrets 后，从 `main` 重跑 `Harness UI signed release`；只有签名、公证、时间戳验证和七个 Release 资产全部通过才可收口。
+先合并并运行 `$0 community` workflow，核验七个明确标记安全状态的 Release 资产，再在新 Mac 通过 Agent 安装脚本连接既有 SMB。未来若 Owner 改变预算，再按 `docs/SIGNING.md` 恢复 signed release。
 
 补充跟 Prompt（22 个汉字）：`请收口当前皮肤任务并输出可迁移交接勿重启应用`

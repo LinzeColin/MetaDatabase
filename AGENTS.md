@@ -259,3 +259,11 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 **为什么**：无效证书可能让构建工具回退为未签名输出，文件数量仍然完全正确；签名存在也不证明 Apple 公证票据已附带或 Windows 时间戳已写入。先在轻量 guard job 一次性列出缺失 secret，可避免明知无法发布仍分配 macOS/Windows runner。
 
 **代价**：正式发布多一次 DMG 公证和若干本地验签，但换来离线 Gatekeeper、Windows 证书过期后的时间戳有效性和“不可能误发 unsigned Release”的硬证据。
+
+## 零付费桌面发行：社区版与受信任签名版必须双轨
+
+**结论**：Owner 将预算锁为 `$0` 后，Apple Developer ID/公证不再是可执行交付；必须保留原 signed workflow，同时另发名称、tag、资产名和 Release 文案都明确标注安全状态的 community prerelease。macOS 用 `NOT-NOTARIZED`，Windows 用 `UNSIGNED`，任何一方都不得简称“A 级”或“已签名”。
+
+**为什么**：免费 Apple Account 只能开发和个人测试，Developer ID 与 Mac 公证属于付费 Apple Developer Program；代码、自签名证书或 GitHub Actions 都不能替代 Apple 的发行身份。把未公证 DMG 做得能下载，不等于 Gatekeeper 会信任它。Agent clone 后通过系统自带 `curl` 安装固定 GitHub Release ZIP，可以降低工具链门槛，但仍不能改变签名事实。
+
+**代价**：零成本路线可以交付 macOS arm64、Windows x64/arm64 安装资产和一键迁移脚本，但下载件可能触发 Gatekeeper/SmartScreen；Release 必须保持 prerelease 且不设为 Latest。未来取得真实证书时，另走 signed workflow，不能覆盖或改名洗白既有 community 资产。

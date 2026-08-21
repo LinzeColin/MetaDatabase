@@ -67,7 +67,8 @@ Inno 安装器的完整双架构命令以
 
 ## 新电脑安装
 
-从 `harness-ui-v*` Release 下载对应的已签名资产：
+有受信任签名时，从 `harness-ui-v*` Release 下载对应资产。零成本社区版使用
+`harness-ui-community-v*` prerelease，文件名会明确标出 `NOT-NOTARIZED` 或 `UNSIGNED`：
 
 - Apple Silicon Mac：打开 `mac-arm64.dmg`，把 App 拖入 Applications；首次启动后从菜单栏选择 SMB 素材根目录；
 - Windows x64/ARM64：双击对应的 `windows-*-setup.exe`；默认直接使用
@@ -76,6 +77,18 @@ Inno 安装器的完整双架构命令以
 Mac 首次连接可在 Finder 使用“前往 → 连接服务器”，输入
 `smb://192.168.0.1/share/03_资料库/MetaData/HarnessUI/`。控制器仅在用户点击刷新或首次配置时读取目录，
 不会后台遍历 NAS。
+
+零成本 Mac 推荐让 Agent clone 后运行仓内安装脚本；脚本从固定版本的 GitHub community Release 下载 ZIP，
+无需 Node、Swift 或 Xcode：
+
+```bash
+git clone https://github.com/LinzeColin/MetaDatabase.git
+cd MetaDatabase/Harness-UI
+bash scripts/install-community-macos.sh
+```
+
+脚本不会启动或重启 Harness、Kimi 或 DSH。社区 Release 的准确安全边界见
+[docs/COMMUNITY_RELEASE.md](docs/COMMUNITY_RELEASE.md)。
 
 Kimi Code Desktop 的适配已内置，无需再装插件。DSH 适配器从 Release 解压后执行：
 

@@ -16,7 +16,8 @@ Windows 上 Kimi Code 需要 Git for Windows 提供 Git Bash。应用不会迁�
 
 ## 安装
 
-优先从 GitHub 的 `kimi-code-desktop-v*` Release 下载与系统对应的已签名资产：
+有受信任签名时，优先从 GitHub 的 `kimi-code-desktop-v*` Release 下载对应资产。零成本社区版使用
+`kimi-code-desktop-community-v*` prerelease，文件名会明确标出 `NOT-NOTARIZED` 或 `UNSIGNED`：
 
 - Apple Silicon Mac：打开 `mac-arm64.dmg`，把 App 拖入 Applications；
 - Windows x64：双击 `win-x64.exe`；
@@ -25,6 +26,18 @@ Windows 上 Kimi Code 需要 Git for Windows 提供 Git Bash。应用不会迁�
 Windows 请先安装 [Git for Windows](https://git-scm.com/download/win)。第一次启动会建立这台电脑自己的
 Kimi Code 登录与会话，不复制旧电脑的凭据。Harness UI 控制器运行时，背景会自动跟随其当前选择；
 控制器未运行时，Kimi 功能保持正常。
+
+零成本 Mac 推荐让 Agent clone 后运行仓内安装脚本；脚本从固定版本的 GitHub community Release 下载 ZIP，
+无需 Node、Swift 或 Xcode：
+
+```bash
+git clone https://github.com/LinzeColin/MetaDatabase.git
+cd MetaDatabase/Kimi-Code-Desktop
+bash scripts/install-community-macos.sh
+```
+
+脚本不会启动或重启 Kimi。社区 Release 的准确安全边界见
+[docs/COMMUNITY_RELEASE.md](docs/COMMUNITY_RELEASE.md)。
 
 任意 Agent 也可以直接取得源码：
 
