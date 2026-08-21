@@ -78,7 +78,7 @@ jobs:
           npm ci
           npm test
           npm run prepare:kimi -- --platform=darwin --arch=arm64
-          npx electron-builder --mac dmg zip --arm64 -c.mac.notarize=true -c.dmg.sign=true
+          npx electron-builder --mac dmg zip --arm64 --config.mac.notarize=true --config.dmg.sign=true
           codesign --verify --deep --strict --verbose=2 "dist/mac-arm64/Kimi Code Desktop.app"
           spctl --assess --type execute --verbose=2 "dist/mac-arm64/Kimi Code Desktop.app"
       - uses: actions/upload-artifact@v7

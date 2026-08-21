@@ -4,9 +4,11 @@
 #ifndef SourceDir
   #define SourceDir "publish"
 #endif
+#ifndef AppVersion
+  #define AppVersion "0.1.0"
+#endif
 
 #define AppName "Harness UI"
-#define AppVersion "0.1.0"
 #define AppPublisher "LinzeColin"
 #define AppExeName "HarnessUI.exe"
 

@@ -156,7 +156,7 @@ jobs:
             & $signTool.FullName sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f $pfx /p $env:WINDOWS_CERTIFICATE_PASSWORD "$publish/HarnessUI.exe"
             & $signTool.FullName verify /pa /v "$publish/HarnessUI.exe"
             Compress-Archive -Path "$publish/*" -DestinationPath "Harness-UI/dist/Harness-UI-$env:VERSION-windows-$arch.zip" -Force
-            & $iscc "/DAppArch=$arch" "/DSourceDir=$((Resolve-Path $publish).Path)" "Harness-UI/windows/installer.iss"
+            & $iscc "/DAppVersion=$env:VERSION" "/DAppArch=$arch" "/DSourceDir=$((Resolve-Path $publish).Path)" "Harness-UI/windows/installer.iss"
             $installer = "Harness-UI/dist/Harness-UI-$env:VERSION-windows-$arch-setup.exe"
             & $signTool.FullName sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f $pfx /p $env:WINDOWS_CERTIFICATE_PASSWORD $installer
             & $signTool.FullName verify /pa /v $installer
