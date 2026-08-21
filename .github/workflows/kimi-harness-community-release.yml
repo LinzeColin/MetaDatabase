@@ -147,12 +147,9 @@ jobs:
           foreach ($arch in @("x64", "arm64")) {
             $publish = "Harness-UI/dist/windows-$arch"
             dotnet publish Harness-UI/windows/HarnessUI.Windows.csproj -c Release -r "win-$arch" --self-contained true -o $publish
-            Compress-Archive -Path "$publish/*" \
-              -DestinationPath "$assets/Harness-UI-$env:VERSION-windows-$arch-UNSIGNED-portable.zip" -Force
-            & $iscc "/DAppVersion=$env:VERSION" "/DAppArch=$arch" "/DSourceDir=$((Resolve-Path $publish).Path)" \
-              "Harness-UI/windows/installer.iss"
-            Copy-Item "Harness-UI/dist/Harness-UI-$env:VERSION-windows-$arch-setup.exe" \
-              "$assets/Harness-UI-$env:VERSION-windows-$arch-UNSIGNED-setup.exe"
+            Compress-Archive -Path "$publish/*" -DestinationPath "$assets/Harness-UI-$env:VERSION-windows-$arch-UNSIGNED-portable.zip" -Force
+            & $iscc "/DAppVersion=$env:VERSION" "/DAppArch=$arch" "/DSourceDir=$((Resolve-Path $publish).Path)" "Harness-UI/windows/installer.iss"
+            Copy-Item "Harness-UI/dist/Harness-UI-$env:VERSION-windows-$arch-setup.exe" "$assets/Harness-UI-$env:VERSION-windows-$arch-UNSIGNED-setup.exe"
           }
           if ((Get-ChildItem $assets -File).Count -ne 4) { throw "Expected four Harness UI community assets" }
       - name: Build Kimi Code Desktop Windows community assets
@@ -172,10 +169,8 @@ jobs:
             $output = "dist-community/$arch"
             npm run prepare:kimi -- --platform=win32 --arch=$arch
             npx electron-builder --win nsis zip "--$arch" "--config.directories.output=$output"
-            Copy-Item "$output/Kimi Code Desktop-$env:VERSION-win-$arch.exe" \
-              "$assets/Kimi-Code-Desktop-$env:VERSION-windows-$arch-UNSIGNED-setup.exe"
-            Copy-Item "$output/Kimi Code Desktop-$env:VERSION-win-$arch.zip" \
-              "$assets/Kimi-Code-Desktop-$env:VERSION-windows-$arch-UNSIGNED-portable.zip"
+            Copy-Item "$output/Kimi Code Desktop-$env:VERSION-win-$arch.exe" "$assets/Kimi-Code-Desktop-$env:VERSION-windows-$arch-UNSIGNED-setup.exe"
+            Copy-Item "$output/Kimi Code Desktop-$env:VERSION-win-$arch.zip" "$assets/Kimi-Code-Desktop-$env:VERSION-windows-$arch-UNSIGNED-portable.zip"
           }
           if ((Get-ChildItem $assets -File).Count -ne 4) { throw "Expected four Kimi community assets" }
       - uses: actions/upload-artifact@v7
