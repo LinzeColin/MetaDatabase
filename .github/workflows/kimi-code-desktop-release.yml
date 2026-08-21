@@ -45,6 +45,33 @@ jobs:
           test "$CONFIRM" = "RELEASE_SIGNED_KIMI_CODE_DESKTOP"
           test "$(node -p "require('./Kimi-Code-Desktop/package.json').version")" = "$VERSION"
           printf 'tag=kimi-code-desktop-v%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Require every signing secret before allocating platform runners
+        env:
+          MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          WINDOWS_CERTIFICATE_PFX: ${{ secrets.WINDOWS_CERTIFICATE_PFX }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          required=(
+            MACOS_CERTIFICATE_P12
+            MACOS_CERTIFICATE_PASSWORD
+            APPLE_ID
+            APPLE_APP_SPECIFIC_PASSWORD
+            APPLE_TEAM_ID
+            WINDOWS_CERTIFICATE_PFX
+            WINDOWS_CERTIFICATE_PASSWORD
+          )
+          missing=()
+          for name in "${required[@]}"; do
+            if [ -z "${!name:-}" ]; then missing+=("$name"); fi
+          done
+          if [ "${#missing[@]}" -ne 0 ]; then
+            printf 'Missing required GitHub Actions secret: %s\n' "${missing[@]}" >&2
+            exit 1
+          fi
 
   macos:
     needs: guard
@@ -78,9 +105,20 @@ jobs:
           npm ci
           npm test
           npm run prepare:kimi -- --platform=darwin --arch=arm64
-          npx electron-builder --mac dmg zip --arm64 --config.mac.notarize=true --config.dmg.sign=true
-          codesign --verify --deep --strict --verbose=2 "dist/mac-arm64/Kimi Code Desktop.app"
-          spctl --assess --type execute --verbose=2 "dist/mac-arm64/Kimi Code Desktop.app"
+          npx electron-builder --mac dmg zip --arm64 --config.forceCodeSigning=true --config.mac.notarize=true --config.dmg.sign=true
+
+          app="dist/mac-arm64/Kimi Code Desktop.app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          xcrun stapler validate "$app"
+          spctl --assess --type execute --verbose=2 "$app"
+
+          dmg="$(find dist -maxdepth 1 -type f -name 'Kimi Code Desktop-*-mac-arm64.dmg' -print -quit)"
+          test -n "$dmg"
+          codesign --verify --verbose=2 "$dmg"
+          xcrun notarytool submit "$dmg" --apple-id "$APPLE_ID" --password "$APPLE_APP_SPECIFIC_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
+          xcrun stapler staple "$dmg"
+          xcrun stapler validate "$dmg"
+          spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg"
       - uses: actions/upload-artifact@v7
         with:
           name: release-kimi-macos
@@ -95,8 +133,8 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 55
     env:
-      CSC_LINK: ${{ secrets.WINDOWS_CERTIFICATE_PFX }}
-      CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+      WIN_CSC_LINK: ${{ secrets.WINDOWS_CERTIFICATE_PFX }}
+      WIN_CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -109,7 +147,7 @@ jobs:
       - name: Require Windows code-signing credentials
         shell: pwsh
         run: |
-          if ([string]::IsNullOrWhiteSpace($env:CSC_LINK) -or [string]::IsNullOrWhiteSpace($env:CSC_KEY_PASSWORD)) {
+          if ([string]::IsNullOrWhiteSpace($env:WIN_CSC_LINK) -or [string]::IsNullOrWhiteSpace($env:WIN_CSC_KEY_PASSWORD)) {
             throw "WINDOWS_CERTIFICATE_PFX and WINDOWS_CERTIFICATE_PASSWORD are required"
           }
       - name: Test, sign and package x64 and arm64 apps
@@ -120,16 +158,37 @@ jobs:
           $PSNativeCommandUseErrorActionPreference = $true
           npm ci
           npm test
-          npm run dist:win:x64
-          npm run dist:win:arm64
-          $files = Get-ChildItem dist -File | Where-Object { $_.Extension -in '.exe', '.zip' }
-          if ($files.Count -lt 4) { throw "Expected signed installer and ZIP for both Windows architectures" }
+          $version = node -p "require('./package.json').version"
+          $signTool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object FullName | Select-Object -Last 1
+          if (-not $signTool) { throw "signtool.exe was not found" }
+
+          $releaseAssets = "release-assets"
+          New-Item -ItemType Directory -Force -Path $releaseAssets | Out-Null
+          foreach ($arch in @("x64", "arm64")) {
+            $output = "dist-release/$arch"
+            npm run prepare:kimi -- --platform=win32 --arch=$arch
+            npx electron-builder --win nsis zip "--$arch" --config.forceCodeSigning=true "--config.directories.output=$output"
+
+            $app = Get-ChildItem $output -Recurse -File -Filter "Kimi Code Desktop.exe" | Select-Object -First 1
+            $installer = "$output/Kimi Code Desktop-$version-win-$arch.exe"
+            $archive = "$output/Kimi Code Desktop-$version-win-$arch.zip"
+            if (-not $app) { throw "Signed app executable was not found for $arch" }
+            if (-not (Test-Path $installer)) { throw "Installer was not found for $arch" }
+            if (-not (Test-Path $archive)) { throw "Portable ZIP was not found for $arch" }
+
+            & $signTool.FullName verify /pa /tw /v $app.FullName
+            & $signTool.FullName verify /pa /tw /v $installer
+            Copy-Item $installer, $archive -Destination $releaseAssets
+          }
+
+          $files = Get-ChildItem $releaseAssets -File
+          if ($files.Count -ne 4) { throw "Expected exactly four signed Windows release assets" }
       - uses: actions/upload-artifact@v7
         with:
           name: release-kimi-windows
           path: |
-            Kimi-Code-Desktop/dist/Kimi Code Desktop-*-win-*.exe
-            Kimi-Code-Desktop/dist/Kimi Code Desktop-*-win-*.zip
+            Kimi-Code-Desktop/release-assets/Kimi Code Desktop-*-win-*.exe
+            Kimi-Code-Desktop/release-assets/Kimi Code Desktop-*-win-*.zip
           if-no-files-found: error
           retention-days: 1
 
