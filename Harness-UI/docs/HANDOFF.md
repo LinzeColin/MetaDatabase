@@ -32,6 +32,9 @@
 - 本机目录当前为 408 个变体，Kimi 与 DSH 共享同一选择状态；DSH 已通过应用内按钮从 2.0.1 更新到 2.0.2，并完成 Cmd+W/Cmd+Q 生命周期验收。
 - Kimi 当前 GUI 与后台均未重启；旧的 Kimi 0.2.0 本地候选因低于现场 1.0.0 而停用，正式安装仍保持 `WAITING_SIGNING_CREDENTIAL`。
 - Harness UI 与 DSH adapter 保持 0.2.0 发行线；Kimi Desktop 独立改为 1.0.1。联合 community workflow 已解耦两个版本输入，避免一个产品的版本历史污染另一个产品。
+- PR #314 与 #315 已合并；联合 community 发布 run `32522348126` 在 macOS arm64、Windows x64/arm64 构建和两个 publish job 上全部通过。
+- [Harness UI v0.2.0 Community](https://github.com/LinzeColin/MetaDatabase/releases/tag/harness-ui-community-v0.2.0) 已发布为非草稿 prerelease，共 7 个资产：macOS DMG/ZIP、Windows x64/arm64 安装器与便携包、DSH adapter source ZIP；不含图片或 SMB 凭据。
+- 发布后现场复核：两个 SMB mount 保持在线，共享服务返回 408/408 个条目、来源为 `smb+local`；DSH Desktop `2.0.2` 已重新拉起并监听本机服务端口，外置图标与 Kimi/DSH 个性化目录保持原位。
 
 ## 禁止迁移
 
@@ -41,6 +44,6 @@
 
 ## 下一步
 
-合并后发布 `harness-ui-community-v0.2.0` 并核对七个资产；Mac/Windows 原生控制器必须通过各自 CI。未来只有 Owner 改变预算时，才按 `docs/SIGNING.md` 恢复 signed release。
+保持 15 分钟 catalog 刷新与 SMB 完整性保护运行，观察公测反馈；后续每次 community 发布继续使用独立版本输入并核对七个资产。未来只有 Owner 改变预算时，才按 `docs/SIGNING.md` 恢复 signed release。
 
 补充跟 Prompt（22 个汉字）：`请收口当前皮肤任务并输出可迁移交接勿重启应用`
