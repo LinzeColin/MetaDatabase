@@ -253,3 +253,9 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 **为什么**：本次目录构建先后漏出了 Windows 路径分隔符、PowerShell 对 electron-builder 短参数的解析差异；提升到完整安装包后才证明 DMG、Inno、NSIS 与双架构 ZIP 都能真实生成。Harness 图片继续只留在 `smb://192.168.0.1/share/03_资料库/MetaData/HarnessUI/`，Git 只保存代码、标签与 SMB 地址，目录刷新为手动触发。
 
 **代价**：完整 Windows 候选门约 10 分钟；签名 secrets 缺失时源码和候选构建可以合并，但正式 Release 仍未签发，且不得为验证而重启 owner 正在运行的 Kimi、DSH 或 Harness。
+
+**结论**：签名 Release 不能只检查 secret 非空或数安装包文件；Electron 项目要强制 `forceCodeSigning`，Mac App/DMG 要验证签名、stapled 公证票据与 Gatekeeper，Windows 主程序/安装器要验证 Authenticode 信任链和时间戳，全部通过后 publish job 才能创建 Release。
+
+**为什么**：无效证书可能让构建工具回退为未签名输出，文件数量仍然完全正确；签名存在也不证明 Apple 公证票据已附带或 Windows 时间戳已写入。先在轻量 guard job 一次性列出缺失 secret，可避免明知无法发布仍分配 macOS/Windows runner。
+
+**代价**：正式发布多一次 DMG 公证和若干本地验签，但换来离线 Gatekeeper、Windows 证书过期后的时间戳有效性和“不可能误发 unsigned Release”的硬证据。

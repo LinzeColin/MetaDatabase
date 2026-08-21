@@ -6,11 +6,15 @@ on:
     paths:
       - "Kimi-Code-Desktop/**"
       - "Harness-UI/**"
+      - ".github/workflows/kimi-code-desktop-release.yml"
+      - ".github/workflows/harness-ui-release.yml"
       - ".github/workflows/kimi-harness-ci.yml"
   pull_request:
     paths:
       - "Kimi-Code-Desktop/**"
       - "Harness-UI/**"
+      - ".github/workflows/kimi-code-desktop-release.yml"
+      - ".github/workflows/harness-ui-release.yml"
       - ".github/workflows/kimi-harness-ci.yml"
   workflow_dispatch:
 

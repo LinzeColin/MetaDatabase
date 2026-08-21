@@ -32,6 +32,18 @@ Gatekeeper 评估；缺任何凭据都会在创建 Release 前退出。
 
 工作流会签名应用和 NSIS 安装器。它不会购买证书或启用可能收费的云签名服务。
 
+## 发布门实际验证
+
+工作流不是只检查“文件生成了”。正式发布必须同时通过：
+
+- Electron Builder 的 `forceCodeSigning`，无有效签名身份时直接失败；
+- macOS App 的 `codesign`、Gatekeeper 与 stapled notarization ticket 验证；
+- 已签名 DMG 的独立 Apple 公证、staple 与 Gatekeeper 打开策略验证；
+- Windows x64/arm64 主程序及安装器的 Authenticode 信任链与时间戳验证。
+
+任一检查失败，`publish` job 都不会创建 GitHub Release。ZIP 本身不做代码签名，但其内部 App/EXE
+必须在打包前通过上述验证。
+
 ## 发布
 
 在 Actions 中选择 `Kimi Code Desktop signed release`，从 `main` 填写版本，并输入确认词

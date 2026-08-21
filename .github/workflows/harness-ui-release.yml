@@ -45,6 +45,35 @@ jobs:
           test "$CONFIRM" = "RELEASE_SIGNED_HARNESS_UI"
           test "$(node -p "require('./Harness-UI/package.json').version")" = "$VERSION"
           printf 'tag=harness-ui-v%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Require every signing secret before allocating platform runners
+        env:
+          MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          WINDOWS_CERTIFICATE_PFX: ${{ secrets.WINDOWS_CERTIFICATE_PFX }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          required=(
+            MACOS_CERTIFICATE_P12
+            MACOS_CERTIFICATE_PASSWORD
+            MACOS_SIGNING_IDENTITY
+            APPLE_ID
+            APPLE_APP_SPECIFIC_PASSWORD
+            APPLE_TEAM_ID
+            WINDOWS_CERTIFICATE_PFX
+            WINDOWS_CERTIFICATE_PASSWORD
+          )
+          missing=()
+          for name in "${required[@]}"; do
+            if [ -z "${!name:-}" ]; then missing+=("$name"); fi
+          done
+          if [ "${#missing[@]}" -ne 0 ]; then
+            printf 'Missing required GitHub Actions secret: %s\n' "${missing[@]}" >&2
+            exit 1
+          fi
 
   macos:
     needs: guard
@@ -107,9 +136,11 @@ jobs:
           ditto -c -k --keepParent "$app" "$zip"
           hdiutil create -volname "Harness UI" -srcfolder "$staging" -ov -format UDZO "$dmg"
           codesign --force --timestamp --sign "$MACOS_SIGNING_IDENTITY" "$dmg"
+          codesign --verify --verbose=2 "$dmg"
           xcrun notarytool submit "$dmg" --apple-id "$APPLE_ID" --password "$APPLE_APP_SPECIFIC_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
           xcrun stapler staple "$dmg"
           xcrun stapler validate "$dmg"
+          spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg"
       - uses: actions/upload-artifact@v7
         with:
           name: release-harness-macos
@@ -158,12 +189,12 @@ jobs:
             $publish = "Harness-UI/dist/windows-$arch"
             dotnet publish Harness-UI/windows/HarnessUI.Windows.csproj -c Release -r $rid --self-contained true -o $publish
             & $signTool.FullName sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f $pfx /p $env:WINDOWS_CERTIFICATE_PASSWORD "$publish/HarnessUI.exe"
-            & $signTool.FullName verify /pa /v "$publish/HarnessUI.exe"
+            & $signTool.FullName verify /pa /tw /v "$publish/HarnessUI.exe"
             Compress-Archive -Path "$publish/*" -DestinationPath "Harness-UI/dist/Harness-UI-$env:VERSION-windows-$arch.zip" -Force
             & $iscc "/DAppVersion=$env:VERSION" "/DAppArch=$arch" "/DSourceDir=$((Resolve-Path $publish).Path)" "Harness-UI/windows/installer.iss"
             $installer = "Harness-UI/dist/Harness-UI-$env:VERSION-windows-$arch-setup.exe"
             & $signTool.FullName sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f $pfx /p $env:WINDOWS_CERTIFICATE_PASSWORD $installer
-            & $signTool.FullName verify /pa /v $installer
+            & $signTool.FullName verify /pa /tw /v $installer
           }
       - uses: actions/upload-artifact@v7
         with:
