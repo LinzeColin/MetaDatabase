@@ -3,7 +3,7 @@
 这是公开、可复现、**未使用受信任发行证书**的 prerelease。预算为 `$0`；它不是 Apple Developer ID
 或 Windows Authenticode 签名版，也未通过 Apple 公证。
 
-下载页：[Kimi Code Desktop v0.2.0 Community](https://github.com/LinzeColin/MetaDatabase/releases/tag/kimi-code-desktop-community-v0.2.0)
+下载页：[Kimi Code Desktop v1.0.1 Community](https://github.com/LinzeColin/MetaDatabase/releases/tag/kimi-code-desktop-community-v1.0.1)
 
 ## 资产
 

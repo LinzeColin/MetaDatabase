@@ -1,11 +1,16 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 const { compareVersions, communityAssetSuffix, selectRelease } = require("../src/runtime/updater.cjs");
+const packageJson = require("../package.json");
 
 test("compares stable and prerelease versions", () => {
   assert.equal(compareVersions("1.2.0", "1.1.9"), 1);
   assert.equal(compareVersions("1.2.0", "1.2.0-rc.1"), 1);
   assert.equal(compareVersions("1.2.0-rc.2", "1.2.0-rc.1"), 1);
+});
+
+test("desktop release remains newer than the installed legacy wrapper", () => {
+  assert.equal(compareVersions(packageJson.version, "1.0.0"), 1);
 });
 
 test("selects only a newer matching Kimi desktop asset", () => {

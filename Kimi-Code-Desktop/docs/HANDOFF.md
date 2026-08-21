@@ -16,7 +16,7 @@
 - 方案 A 已实现正常应用生命周期：窗口关闭/Cmd+W 不退出后台，Cmd+Q 退出 GUI 与受管 Kimi 后台；应用菜单提供手动更新与皮肤同步，启动 30 秒及每 6 小时检查稳定更新。
 - 更新器优先接受带目标平台资产的稳定 `kimi-code-desktop-v*` Release，并在一键安装前验证 bundle id、签名与 Gatekeeper；也会检测零成本 community prerelease，但只显式提示并交给浏览器下载，不静默替换。两条通道都不修改 `~/.kimi-code`、`~/.harness-ui` 或外置个性化资源。
 - Kimi 内置皮肤菜单与 HarnessUI 共用 catalog/state，并按 catalog generation 热更新素材与选择状态。
-- 现有 `~/Applications/Kimi Code.app` 保持运行且未被修改或重启；本地 0.2.0 候选包只用于静态验收，不得在缺签名时覆盖运行版。
+- 现有 `~/Applications/Kimi Code.app` 保持运行且未被修改或重启；旧的本地 0.2.0 候选包已判定为版本倒序，不得覆盖运行版。
 - 截至 2026-08-21，GitHub 没有 Apple/Windows 签名 secrets，本机也没有有效 codesigning identity；发布门保持 `WAITING_SIGNING_CREDENTIAL`。
 - 2026-08-22 Owner 明确要求发行成本恒为 `$0`。Apple Developer ID/公证因此不再是本轮可执行路径；现有 signed workflow 保留但不冒充已完成。
 - 零成本 community workflow 已新增，固定发布 `kimi-code-desktop-community-v0.1.0` prerelease；macOS 文件名标记 `NOT-NOTARIZED`，Windows 标记 `UNSIGNED`。
@@ -24,7 +24,8 @@
 - PR #312 已合并；主分支发布 run `32513109964` 全部通过，并发布 [Kimi Code Desktop v0.1.0 Community](https://github.com/LinzeColin/MetaDatabase/releases/tag/kimi-code-desktop-community-v0.1.0)。
 - Release 为非草稿 prerelease，共 6 个资产：macOS arm64 DMG/ZIP，以及 Windows x64/arm64 安装器和便携 ZIP；全部安全状态已写进文件名。
 - 已从公开 Release 下载 macOS ZIP，通过 Agent 安装脚本复制到隔离临时目录；App 版本为 `0.1.0`、主程序为 arm64，全程未启动应用，临时副本已移入废纸篓。
-- 0.2.0 更新器采用双轨：受信任稳定版可验签后一键替换；community prerelease 只显式提示并交给浏览器下载。社区安装脚本可在 Kimi 完全退出后保留旧 App 并原子替换，不会结束正在工作的 Kimi。
+- 1.0.1 更新器采用双轨：受信任稳定版可验签后一键替换；community prerelease 只显式提示并交给浏览器下载。社区安装脚本可在 Kimi 完全退出后保留旧 App 并原子替换，不会结束正在工作的 Kimi。
+- 现场运行版的 bundle version 是 1.0.0；0.2.0 会被标准版本比较视为降级，故在发布前取消。Kimi Desktop 从 1.0.1 继续递增，Harness UI 保持独立的 0.2.0 版本线；联合 community workflow 接受两个独立版本输入。
 
 ## 边界
 
@@ -34,6 +35,6 @@
 
 ## 下一步
 
-合并 0.2.0 后发布新的零成本 community prerelease，供显式下载与人工确认；它不得被静默安装或冒充受信任更新。未来 Owner 改变预算并配置七个签名 secrets 后，再从 `main` 运行 signed release；只有签名、公证、时间戳验证和六个资产全部通过，应用内稳定通道才允许一键替换。
+合并后分别发布 Kimi `1.0.1` 与 Harness UI `0.2.0` 的零成本 community prerelease，供显式下载与人工确认；它们不得被静默安装或冒充受信任更新。未来 Owner 改变预算并配置七个签名 secrets 后，再从 `main` 运行 signed release；只有签名、公证、时间戳验证和六个资产全部通过，应用内稳定通道才允许一键替换。
 
 补充跟 Prompt（22 个汉字）：`请收口当前皮肤任务并输出可迁移交接勿重启应用`
