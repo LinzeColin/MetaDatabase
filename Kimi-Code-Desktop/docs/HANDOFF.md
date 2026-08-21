@@ -23,13 +23,14 @@
 - Node 回归：19/19 通过。
 - shell、Python、Swift 语法与 workflow YAML 解析通过。
 - 本机完整 SwiftPM 构建被本机 Command Line Tools 的 `PackageDescription` 链接环境阻断；完整 macOS/Windows 构建交给干净 GitHub runner。
-- PR #317 与资产名修复 PR #318 已合并；正式发布 run `32527795001` 全部通过。
+- PR #317、#318、旧 profile 迁移 PR #320、稳定签名 CLI 与 launchd 后台 PR #321 均已合并；最终正式发布 run `32535596996` 全部通过。
 - [Kimi Code Desktop v0.38.0](https://github.com/LinzeColin/MetaDatabase/releases/tag/kimi-code-desktop-v0.38.0) 已发布为正式 Release，共 8 个资产：macOS arm64/x64 DMG+ZIP、Windows x64/arm64 安装器+ZIP。
 - 旧 private/community Releases 已保留历史资产并明确标记“已废止”。
 - 本机运行态：Kimi backend `/api/v1/meta` 为 0.38.0；通过同一 backend 读取 Documents、列出 `/Volumes/share` 及读取 SMB 文件均成功。
 - 生命周期：关窗后 GUI 与后台 PID 原样保留；重新打开窗口未重启后台；退出后 GUI、后台、58627 端口和临时 launchd job 全部消失，持续观察未自行拉起。
 - HarnessUI：`catalog/state` 为 408 项、`smb+local`、generation 一致；Kimi 原生皮肤菜单同步显示 408 项和当前芭芭拉轮播状态。
+- 本机已从最终 `0.38.0` Release 覆盖安装并重新启动：原 `kimi-shell` profile、会话、图标、皮肤和配置保持不变；Kimi 正在运行，HarnessUI 正在运行，DSH 按 Owner 要求保持停止。
 
 ## 剩余
 
-- 合并保留官方 CLI 签名与 launchd responsibility 修复，用最终构建再次替换同一 `0.38.0` Release 资产，并从该 Release 覆盖安装一次；不得创建新版本号。
+- 本机无待处理项。其它电脑需从正式 Release 安装，并在该电脑上单独选择或授权其 SMB 位置；这不属于本机迁移步骤。
