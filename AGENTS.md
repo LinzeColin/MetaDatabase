@@ -156,3 +156,92 @@ ssh ovh 'sudo /usr/local/bin/linze-r2-free-tier-guard.py'
 > 脚本的安全底线也别削：**删 R2 对象前先 `HeadObject` 核对 OCI 上同 key 同大小，核不上就跳过不删**；
 > 最新一批永远保留；只碰 `backups/<组>/<时间戳>/`，**不碰 `primary-objects/`（那是制品字节，删了就是毁档）**。
 > 每份快照有 `r2`/`oci`/`github` 三个 verified 副本，删掉 R2 那份仍剩两份 —— 这是「卸载」不是「删除」。
+
+---
+
+## Cloudflare 部署：三个 worker 是三种契约，**裸跑 `wrangler deploy` 会清空线上变量**
+
+**结论**：`wrangler deploy` 对 vars 是**替换**不是合并。**secret 会自动保留，plain_text 不会** —— 这个不对称最容易漏。
+2026-08-12 照仓里 `wrangler.jsonc` 裸跑一次 `npx wrangler deploy`，`weread-port` 线上 **8 个仓外 plain_text 变量当场全没**，
+站点报「账户服务尚未完成安全连接」，**断 3 分钟**，靠 `wrangler rollback --version-id` 才救回来。
+
+**为什么会犯**：同账号下另两个 worker 能裸跑，我据此类推。但三个 worker 的部署契约**完全不同**：
+
+| worker | vars | 裸跑后果 |
+|---|---|---|
+| `adp-cloud` | 0 个 | 无害 |
+| `codex-eei` | 3 vars + 3 secrets | secret 留、vars 没 |
+| `weread-port` | **8 个仓外 plain_text** | **全部清空 → 断站** |
+
+**代价**：真实生产中断 3 分钟；根因是**生产配置活在版本控制之外**，仓里那份 `wrangler.jsonc` 不是事实。
+
+**改动禁区**：三个仓各自的部署脚本已经把「先拉线上 vars 比对、缺谁报谁、失败自动 rollback」做进去了 ——
+`WeReadPort/scripts/deploy-cloudflare.mjs`、`arxiv-daily-push/deploy/cloudflare/deploy.py`、`EEI/scripts/deploy_cloud.sh`。
+**用脚本，不要裸跑 `wrangler deploy`**；也不要把某个 worker 的做法套到另一个上。
+
+> 踩过的次生坑：`wrangler.jsonc` 里加注释会让 `check:release` 挂（它用严格 `JSON.parse`，不管扩展名是 .jsonc）；
+> `mapfile` 是 bash 4+ 而 macOS 自带 3.2；urllib 默认 UA 会被 Cloudflare 403，**把一个完全正常的部署自动回滚了**。
+
+## `make verify` 是 40 个**顺序**目标：第 27 个红着，后面 13 个在 CI 里一次没跑过
+
+**结论**：EEI 的 `validate-clean-room-release` 排第 27，长期红。它后面 13 个目标 ——
+其中有 **`secret-scan` / `copy-lint` / `lint` / `typecheck` / `test`** 和整串 soak ——
+**在 CI 里从来没有执行过**，而面板上只显示一行 `clean-room stale`。
+修好第 27 个之后，第 28 个（`validate-release-artifacts`）**当场也红了**，它被挡了同样久。
+
+**为什么**：一道长期红的门不是一个孤立事实，它是个**开关** —— 它红着，它后面所有门等于关掉。红的时长越长，被掩护的东西越多。
+
+**两处漂移都不是回归**，是产物没跟着源码重新生成：clean-room ZIP 缺 `scripts/cf_worker_vars.py`（PR #182 加的文件），
+`manifest.txt` 差异**恰好同一行**；另有 #175 改的 `WHERE_IS_THE_DATA.md` 一行 IP（VPS-1 退役）。
+修法是跑 `manage_clean_room_release.py generate` 和 `manage_release_artifacts.py generate`（PR #193）。
+
+**代价**：查根因时我从 git log 找到 #175 就以为是唯一漂移，一跑复现报的却是**我自己在 #182 加的文件** ——
+**先跑复现拿当前失败文本，再回历史里找它，顺序不能反**；长期红里可能有自己的一份。
+
+**改动禁区**：报「已修复」之前必须把后面全部跑完并贴退出码。
+核对某个目标跑没跑，要按它的**实际 recipe 命令** grep（`make` 只回显命令不回显目标名，按目标名 grep 会得到假阴，我第一次就这么错了）。
+本机 bootstrap 用 `make bootstrap PYTHON=python3`（macOS 无 `python`，Makefile 顶上 `PYTHON ?= python` 就是留的口子，别改文件）。
+
+## 长期红的门：先分「判据考的是逻辑还是数据」
+
+**结论**：两道在 main 上长期红的 ADP 门，查下来**都不是回归**。
+
+- **30 天回填门**（PR #191）：要求 `content_ledger_queued_row_count >= 30`，而队列只收 ROI 达标的落选候选，
+  「当天没有够格的亚军」是正常态（实测 19/30 天为空）。**它考的是语料碰巧有多少高分亚军，不是重放对不对。**
+  换成数据无关的不变量（`mismatch_day_count == 0`）后 CI 真跑重放：`status=pass`，而 `47/30/17` 三个数**与被判 blocked 时一模一样**。
+- **六主题视觉门**（PR #192）：基线冻在 24 天前。用门自己的 `run_ci` 比对，18 项里只有 2 项不一致；
+  逐提交追踪，`page_shell` 只在一次「标题面 deMath」变过，unified diff **恰好 2 行、只有 `<title>` 那行**。
+  重冻工具 `ABORT: unexplained drift` **拒绝盖橡皮图章是对的** —— 缺的不是权限，是归因证据，补齐逐提交+逐行证据后它自己放行。
+
+**代价**：那 24 天里这道门对任何改动都报红，**真回归和背景红分不开**。
+
+**改动禁区**：重冻/换判据之后必须验**三个方向** —— 正例过、真回归拦、相邻类别也拦。只验「现在绿了」等于把门关掉。
+
+> `arXiv Daily Push real 30-day backfill` 只在 `pull_request` / `workflow_dispatch` 上触发，
+> **从不在 push to main 上跑**，所以 main 永远显示最后一次 PR 的结果 —— 看到它在 main 上红，先确认那次运行的 sha 是不是 84 个提交之前的。
+
+## ABD 发布：凭据已解封，但**ABD 根本没注册进 Coolify**
+
+**结论**：2026-08-13 `ABD Coolify controlled release` 连failure 3 次，报
+`inventory_transport=authorization_rejected` / `Coolify rejected the deployment credential.`
+**根因是 MetaDatabase 仓的 GitHub secret `COOLIFY_API_TOKEN` 死了，而 KMOS 仓的是活的**（同日 `deploy` success）——
+两个仓的 secret 各自独立。死因不是过期：查 `coolify-db` 的 `personal_access_tokens`，
+**老的 id 7/8 已被删除，id 被 08-11/08-12 新建的 token 复用了**，明文对不上新哈希。
+
+Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`（权限 `read`/`deploy`/`write`，team_id `0`），
+三个端点实测全 200，写进 MetaDatabase secret，重跑 → **success**。
+
+**但部署仍做不成，原因换了**：那次 success 的输出是 `abd_candidate_count=0` / `release_action=no_deployment_requested`。
+直接查 `coolify-db`（绕开 API 的 team 作用域）确认：**`applications` 表 4 条、`services` 表 0 条，没有任何名字含 `abd` 的资源**
+（只有 `linze-home-hub` / `pfi-public` / `serenity-public` / `kmfa-kmos-p1`）。
+而服务器上确实跑着容器 `abd-shadow-blue-abd-shadow-1` —— **ABD 是在 Coolify 之外部署的**。
+
+**代价**：在此之前任何「已上线」的说法都不成立。下一步不是找凭据，是**决定 ABD 要不要以 Coolify application 的形式存在**（产品决定）。
+
+**重签 token 会再撞上的两个坑**：
+① `$u->createToken(...)` **会失败** —— Coolify 给 `personal_access_tokens` 加了 NOT NULL 的 `team_id` 列，Sanctum 不填它；
+必须 `$u->tokens()->create([... 'team_id'=>0])` 自己拼。
+② 别把输出接 `| grep MINTED` —— 第一次就是这样**把报错过滤掉了**，我据此以为「没签成」，查库发现表里没新行才知道真失败。
+
+> 凭据与基础设施现状在 `_protected/ABD云服务解封_TaskPack_v1_20260813/`（本机 `_protected/`，永不上传）。
+> **KMOS 仓的 `COOLIFY_API_TOKEN` 一直是活的，别动它。**
