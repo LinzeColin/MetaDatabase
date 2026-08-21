@@ -3,6 +3,8 @@
 这是公开、可复现、**未使用受信任发行证书**的 prerelease。预算为 `$0`；macOS App 仅做本机 ad-hoc
 签名、没有 Apple 公证，Windows EXE 没有 Authenticode 签名。
 
+下载页：[Harness UI v0.1.0 Community](https://github.com/LinzeColin/MetaDatabase/releases/tag/harness-ui-community-v0.1.0)
+
 ## 资产
 
 - macOS Apple Silicon：文件名含 `NOT-NOTARIZED` 的 DMG 与 ZIP；

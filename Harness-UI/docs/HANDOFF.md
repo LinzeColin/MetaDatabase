@@ -26,6 +26,9 @@
 - 2026-08-22 Owner 明确要求发行成本恒为 `$0`。Apple Developer ID/公证因此不再是本轮可执行路径；现有 signed workflow 保留但不冒充已完成。
 - 零成本 community workflow 已新增，固定发布 `harness-ui-community-v0.1.0` prerelease；macOS 文件名标记 `NOT-NOTARIZED`，Windows 标记 `UNSIGNED`，DSH 仅发布源码包。
 - `scripts/install-community-macos.sh` 供 Agent clone 后安装固定版本 ZIP；不需要 Node、Swift 或 Xcode，只复制、不启动、不重启，也不修改 Gatekeeper 设置。
+- PR #312 已合并；主分支发布 run `32513109964` 全部通过，并发布 [Harness UI v0.1.0 Community](https://github.com/LinzeColin/MetaDatabase/releases/tag/harness-ui-community-v0.1.0)。
+- Release 为非草稿 prerelease，共 7 个资产：macOS arm64 DMG/ZIP、Windows x64/arm64 安装器和便携 ZIP，以及独立 DSH adapter source ZIP；没有图片或 SMB 凭据。
+- 已从公开 Release 下载 macOS ZIP，通过 Agent 安装脚本复制到隔离临时目录；主程序为 arm64，全程未启动应用，临时副本已移入废纸篓。
 
 ## 禁止迁移
 
@@ -35,6 +38,6 @@
 
 ## 下一步
 
-先合并并运行 `$0 community` workflow，核验七个明确标记安全状态的 Release 资产，再在新 Mac 通过 Agent 安装脚本连接既有 SMB。未来若 Owner 改变预算，再按 `docs/SIGNING.md` 恢复 signed release。
+在新 Mac 上可直接下载 DMG/ZIP，或让任意 Agent clone 仓库后执行 `scripts/install-community-macos.sh`，再连接既有 SMB。Windows 按架构选择 `UNSIGNED-setup.exe` 或便携 ZIP。零成本 community 交付已完成；未来只有 Owner 改变预算时，才按 `docs/SIGNING.md` 恢复 signed release。
 
 补充跟 Prompt（22 个汉字）：`请收口当前皮肤任务并输出可迁移交接勿重启应用`

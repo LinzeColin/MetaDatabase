@@ -18,6 +18,9 @@
 - 2026-08-22 Owner 明确要求发行成本恒为 `$0`。Apple Developer ID/公证因此不再是本轮可执行路径；现有 signed workflow 保留但不冒充已完成。
 - 零成本 community workflow 已新增，固定发布 `kimi-code-desktop-community-v0.1.0` prerelease；macOS 文件名标记 `NOT-NOTARIZED`，Windows 标记 `UNSIGNED`。
 - `scripts/install-community-macos.sh` 供 Agent clone 后安装固定版本 ZIP；只复制、不启动、不重启，且不修改 Gatekeeper 设置。
+- PR #312 已合并；主分支发布 run `32513109964` 全部通过，并发布 [Kimi Code Desktop v0.1.0 Community](https://github.com/LinzeColin/MetaDatabase/releases/tag/kimi-code-desktop-community-v0.1.0)。
+- Release 为非草稿 prerelease，共 6 个资产：macOS arm64 DMG/ZIP，以及 Windows x64/arm64 安装器和便携 ZIP；全部安全状态已写进文件名。
+- 已从公开 Release 下载 macOS ZIP，通过 Agent 安装脚本复制到隔离临时目录；App 版本为 `0.1.0`、主程序为 arm64，全程未启动应用，临时副本已移入废纸篓。
 
 ## 边界
 
@@ -27,6 +30,6 @@
 
 ## 下一步
 
-先合并并运行 `$0 community` workflow，核验六个明确标记安全状态的 Release 资产，再在新 Mac 用 Agent 安装脚本验证迁移。未来若 Owner 改变预算，再按 `docs/SIGNING.md` 恢复 signed release。
+在新 Mac 上可直接下载 DMG/ZIP，或让任意 Agent clone 仓库后执行 `scripts/install-community-macos.sh`。Windows 按架构选择 `UNSIGNED-setup.exe` 或便携 ZIP。零成本 community 交付已完成；未来只有 Owner 改变预算时，才按 `docs/SIGNING.md` 恢复 signed release。
 
 补充跟 Prompt（22 个汉字）：`请收口当前皮肤任务并输出可迁移交接勿重启应用`
