@@ -17,6 +17,8 @@
 - PR #309 已合并到公开仓 `MetaDatabase/main`；合并提交后的全部仓库检查已通过。
 - 干净 GitHub runner 已通过 Swift 测试并构建 macOS arm64 控制器，也已构建 Windows x64/arm64 自包含程序和 Inno 安装器；主分支跨平台验收 run 为 `32479000586`。
 - 正式工作流显式验证 Mac App/DMG 的签名、公证票据与 Gatekeeper，以及 Windows x64/arm64 主程序和安装器的 Authenticode 信任链与时间戳。
+- PR #310 已把上述发布门合并到 `main`；合并后的跨平台 run `32481584316` 和三条仓库治理工作流全部通过。
+- 正式工作流演练 run `32482237541` 已通过 main/version/确认词门，并准确停在缺失签名 secrets；macOS、Windows、publish jobs 全部跳过，未创建 Release。
 - 尚未发布正式 Release，签名门为 `WAITING_SIGNING_CREDENTIAL`。
 - 截至 2026-08-21，GitHub 没有 Apple/Windows 签名 secrets，本机也没有有效 codesigning identity。
 - 现有 Harness 生成任务和 `progress.py --watch` 未被停止。
@@ -30,6 +32,6 @@
 
 ## 下一步
 
-安全配置 Apple/Windows 签名 secrets 后，从 `main` 运行 `Harness UI signed release`；只有签名、公证、时间戳验证和七个 Release 资产全部通过才可收口。
+按 `docs/SIGNING.md` 安全配置八个签名 secrets 后，从 `main` 重跑 `Harness UI signed release`；只有签名、公证、时间戳验证和七个 Release 资产全部通过才可收口。
 
 补充跟 Prompt（22 个汉字）：`请收口当前皮肤任务并输出可迁移交接勿重启应用`
