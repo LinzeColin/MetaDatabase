@@ -3,7 +3,12 @@ const os = require("node:os");
 const path = require("node:path");
 const { app, BrowserWindow, Menu, dialog, shell } = require("electron");
 const { HarnessBridge } = require("./runtime/harness.cjs");
-const { desktopUserDataPath, kimiHome, resolveKimiCli } = require("./runtime/paths.cjs");
+const {
+  desktopUserDataPath,
+  kimiHome,
+  prepareStableMacCli,
+  resolveKimiCli,
+} = require("./runtime/paths.cjs");
 const { runtimeAlive, startKimiServer, stopKimiServer } = require("./runtime/server.cjs");
 const { DesktopUpdater } = require("./runtime/updater.cjs");
 
@@ -277,7 +282,15 @@ async function ensureRuntime() {
   if (runtimeAlive(runtime)) return runtime;
   if (runtimePromise) return runtimePromise;
   runtimePromise = (async () => {
+    const stableCli = app.isPackaged && process.platform === "darwin" && !process.env.KIMI_CLI_PATH
+      ? prepareStableMacCli({
+        expectedVersion: app.getVersion(),
+        kimiHomeDir: kimiHome(),
+        resourcesPath: process.resourcesPath,
+      })
+      : null;
     const resolved = resolveKimiCli({
+      env: stableCli ? { ...process.env, KIMI_CLI_PATH: stableCli } : process.env,
       homeDir: os.homedir(),
       resourcesPath: app.isPackaged ? process.resourcesPath : null,
       developmentRoot,
@@ -288,6 +301,7 @@ async function ensureRuntime() {
     runtime = await startKimiServer({
       cliPath: resolved.path,
       homeDir: kimiHome(),
+      launchdLabel: app.isPackaged && process.platform === "darwin" ? `${bundleId}.backend` : null,
       preferredPort: Number(process.env.KIMI_PORT || 58627),
     });
     return runtime;
