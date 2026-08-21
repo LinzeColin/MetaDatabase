@@ -14,7 +14,8 @@
 - `Cmd+W`/关闭窗口仅关闭窗口；`Cmd+Q` 正常结束 GUI、受管 Kimi 后台和定时器。
 - 内置皮肤菜单读取 HarnessUI 唯一 `catalog/state`；catalog generation 变化时自动刷新素材并重建菜单。
 - 更新只替换 App Bundle；`~/.kimi-code`、`~/.harness-ui`、登录、会话、配置、素材和外置图标不进入安装包。
-- 当前机器上的 Kimi GUI 与后台保持运行，本轮未重启、未替换。旧身份迁移到固定身份须等现有任务结束后由 Owner `Cmd+Q`，再运行 `scripts/install-release-macos.sh`；首次迁移可能需要在完整磁盘访问页面确认一次。
+- 旧桌面版存在 `Application Support/kimi-shell` 时继续使用该 Electron profile；只有 fresh install 才创建 `Application Support/Kimi Code`。这保证旧账号界面、窗口与站点状态不会在升级时被分裂成第二套。
+- 当前机器已获 Owner 授权执行旧身份迁移；现场验收结果在同版本修复 Release 重新安装后补记。
 
 ## 验证
 
@@ -27,4 +28,4 @@
 
 ## 剩余
 
-- 当前 Kimi 工作结束后执行一次旧包装版本到官方版本线的人工迁移；不得为发布验收强制重启现有 Kimi。
+- 重建并替换同一 `0.38.0` Release 资产，随后完成当前机器的运行态、权限与共享素材现场验收。

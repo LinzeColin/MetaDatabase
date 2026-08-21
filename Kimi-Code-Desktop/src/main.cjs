@@ -3,7 +3,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { app, BrowserWindow, Menu, dialog, shell } = require("electron");
 const { HarnessBridge } = require("./runtime/harness.cjs");
-const { kimiHome, resolveKimiCli } = require("./runtime/paths.cjs");
+const { desktopUserDataPath, kimiHome, resolveKimiCli } = require("./runtime/paths.cjs");
 const { runtimeAlive, startKimiServer, stopKimiServer } = require("./runtime/server.cjs");
 const { DesktopUpdater } = require("./runtime/updater.cjs");
 
@@ -26,6 +26,9 @@ const harnessBridge = new HarnessBridge({ onChange: () => queueMenuRebuild() });
 let updater = null;
 
 app.setName("Kimi Code");
+const userDataPath = desktopUserDataPath(app.getPath("appData"));
+fs.mkdirSync(userDataPath, { recursive: true });
+app.setPath("userData", userDataPath);
 const singleInstance = app.requestSingleInstanceLock();
 if (!singleInstance) app.quit();
 

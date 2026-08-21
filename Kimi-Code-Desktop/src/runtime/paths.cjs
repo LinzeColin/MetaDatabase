@@ -56,4 +56,9 @@ function kimiHome(env = process.env, homeDir = os.homedir()) {
   return env.KIMI_CODE_HOME || path.join(homeDir, ".kimi-code");
 }
 
-module.exports = { candidateList, executableName, kimiHome, resolveKimiCli };
+function desktopUserDataPath(appDataDir, fsImpl = fs) {
+  const legacy = path.join(appDataDir, "kimi-shell");
+  return fsImpl.existsSync(legacy) ? legacy : path.join(appDataDir, "Kimi Code");
+}
+
+module.exports = { candidateList, desktopUserDataPath, executableName, kimiHome, resolveKimiCli };

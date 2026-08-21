@@ -293,3 +293,9 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 **为什么**：把观测动作造成的进程变化误报成产品行为，会诱发继续重启、继续观测的自证循环。真正的 DSH 自动重启只允许出现在用户明确确认更新后的退出安装路径。
 
 **代价**：本轮停止了不必要的重启；DSH 保持退出，Kimi 全程未重启。
+
+**结论**：Electron 桌面壳升级时除了 App Bundle、CLI home 和 TCC 身份，还必须固定或兼容 `app.getPath("userData")`。Kimi 旧包装版使用 `Application Support/kimi-shell`，新 `productName` 默认会切到 `Application Support/Kimi Code`；检测到旧目录时必须继续使用旧 profile，fresh install 才使用新目录。
+
+**为什么**：只保护 `~/.kimi-code` 仍会遗漏 Electron Cookies、Preferences、Session Storage 和窗口状态。首次 `0.38.0` 迁移现场就出现了新目录，表现会像账号或界面配置丢失，虽然原数据仍在。
+
+**代价**：同一上游版本内的包装兼容修复需要重建并覆盖同 tag Release 资产，不能另造私有版本号；当前机器须重新安装一次修复后的 `0.38.0`，早期误建的新 profile 只归档、不覆盖旧数据。
