@@ -15,6 +15,9 @@
 - 正式 Release 尚未发布；候选件未冒充已签名制品。
 - 现有 `~/Applications/Kimi Code.app` 保持运行且未被修改或重启。
 - 截至 2026-08-21，GitHub 没有 Apple/Windows 签名 secrets，本机也没有有效 codesigning identity；发布门保持 `WAITING_SIGNING_CREDENTIAL`。
+- 2026-08-22 Owner 明确要求发行成本恒为 `$0`。Apple Developer ID/公证因此不再是本轮可执行路径；现有 signed workflow 保留但不冒充已完成。
+- 零成本 community workflow 已新增，固定发布 `kimi-code-desktop-community-v0.1.0` prerelease；macOS 文件名标记 `NOT-NOTARIZED`，Windows 标记 `UNSIGNED`。
+- `scripts/install-community-macos.sh` 供 Agent clone 后安装固定版本 ZIP；只复制、不启动、不重启，且不修改 Gatekeeper 设置。
 
 ## 边界
 
@@ -24,6 +27,6 @@
 
 ## 下一步
 
-按 `docs/SIGNING.md` 安全配置七个签名 secrets 后，从 `main` 重跑 `Kimi Code Desktop signed release`；只有签名、公证、时间戳验证和六个 Release 资产全部通过才可收口。
+先合并并运行 `$0 community` workflow，核验六个明确标记安全状态的 Release 资产，再在新 Mac 用 Agent 安装脚本验证迁移。未来若 Owner 改变预算，再按 `docs/SIGNING.md` 恢复 signed release。
 
 补充跟 Prompt（22 个汉字）：`请收口当前皮肤任务并输出可迁移交接勿重启应用`

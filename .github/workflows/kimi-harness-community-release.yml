@@ -1,0 +1,258 @@
+name: Kimi and Harness zero-cost community release
+
+on:
+  pull_request:
+    paths:
+      - "Kimi-Code-Desktop/**"
+      - "Harness-UI/**"
+      - ".github/workflows/kimi-harness-community-release.yml"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version already present in both package.json files"
+        required: true
+        default: "0.1.0"
+        type: string
+      confirm:
+        description: "Type RELEASE_ZERO_COST_COMMUNITY_BUILDS"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kimi-harness-zero-cost-community-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.values.outputs.version }}
+      kimi_tag: ${{ steps.values.outputs.kimi_tag }}
+      harness_tag: ${{ steps.values.outputs.harness_tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Enforce main, versions and explicit confirmation
+        id: values
+        env:
+          VERSION: ${{ inputs.version || '0.1.0' }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            test "$GITHUB_REF" = "refs/heads/main"
+            test "$CONFIRM" = "RELEASE_ZERO_COST_COMMUNITY_BUILDS"
+          else
+            test "$GITHUB_EVENT_NAME" = "pull_request"
+          fi
+          test "$(node -p "require('./Kimi-Code-Desktop/package.json').version")" = "$VERSION"
+          test "$(node -p "require('./Harness-UI/package.json').version")" = "$VERSION"
+          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
+          printf 'kimi_tag=kimi-code-desktop-community-v%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
+          printf 'harness_tag=harness-ui-community-v%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
+
+  macos:
+    needs: guard
+    runs-on: macos-15
+    timeout-minutes: 40
+    env:
+      VERSION: ${{ needs.guard.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: Kimi-Code-Desktop/package-lock.json
+      - name: Build Harness UI Apple Silicon community assets
+        run: |
+          swift test --package-path Harness-UI/macos
+          APP_VERSION="$VERSION" Harness-UI/macos/scripts/build-app.sh
+
+          app="Harness-UI/dist/macos-arm64/Harness UI.app"
+          assets="$RUNNER_TEMP/community-harness-macos"
+          staging="$RUNNER_TEMP/community-harness-dmg"
+          mkdir -p "$assets" "$staging"
+          ditto "$app" "$staging/Harness UI.app"
+          ln -s /Applications "$staging/Applications"
+          ditto -c -k --keepParent "$app" "$assets/Harness-UI-$VERSION-macos-arm64-NOT-NOTARIZED.zip"
+          hdiutil create -volname "Harness UI Community" -srcfolder "$staging" -ov -format UDZO \
+            "$assets/Harness-UI-$VERSION-macos-arm64-NOT-NOTARIZED.dmg"
+          test "$(find "$assets" -maxdepth 1 -type f | wc -l | tr -d ' ')" = "2"
+      - name: Build Kimi Code Desktop Apple Silicon community assets
+        working-directory: Kimi-Code-Desktop
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          npm ci
+          npm test
+          npm run prepare:kimi -- --platform=darwin --arch=arm64
+          npx electron-builder --mac dmg zip --arm64 --config.directories.output=dist-community
+
+          assets="$RUNNER_TEMP/community-kimi-macos"
+          mkdir -p "$assets"
+          cp "dist-community/Kimi Code Desktop-$VERSION-mac-arm64.dmg" \
+            "$assets/Kimi-Code-Desktop-$VERSION-macos-arm64-NOT-NOTARIZED.dmg"
+          cp "dist-community/Kimi Code Desktop-$VERSION-mac-arm64.zip" \
+            "$assets/Kimi-Code-Desktop-$VERSION-macos-arm64-NOT-NOTARIZED.zip"
+          test "$(find "$assets" -maxdepth 1 -type f | wc -l | tr -d ' ')" = "2"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: community-harness-macos
+          path: ${{ runner.temp }}/community-harness-macos/*
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@v7
+        with:
+          name: community-kimi-macos
+          path: ${{ runner.temp }}/community-kimi-macos/*
+          if-no-files-found: error
+          retention-days: 1
+
+  windows:
+    needs: guard
+    runs-on: windows-latest
+    timeout-minutes: 50
+    env:
+      VERSION: ${{ needs.guard.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "8.0.x"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: Kimi-Code-Desktop/package-lock.json
+      - name: Build Harness UI Windows community assets
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
+          $assets = Join-Path $env:RUNNER_TEMP "community-harness-windows"
+          New-Item -ItemType Directory -Force -Path $assets | Out-Null
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { throw "Inno Setup 6 was not found" }
+
+          dotnet test Harness-UI/windows/tests/HarnessUI.Windows.Tests.csproj -c Release
+          foreach ($arch in @("x64", "arm64")) {
+            $publish = "Harness-UI/dist/windows-$arch"
+            dotnet publish Harness-UI/windows/HarnessUI.Windows.csproj -c Release -r "win-$arch" --self-contained true -o $publish
+            Compress-Archive -Path "$publish/*" -DestinationPath "$assets/Harness-UI-$env:VERSION-windows-$arch-UNSIGNED-portable.zip" -Force
+            & $iscc "/DAppVersion=$env:VERSION" "/DAppArch=$arch" "/DSourceDir=$((Resolve-Path $publish).Path)" "Harness-UI/windows/installer.iss"
+            Copy-Item "Harness-UI/dist/Harness-UI-$env:VERSION-windows-$arch-setup.exe" "$assets/Harness-UI-$env:VERSION-windows-$arch-UNSIGNED-setup.exe"
+          }
+          if ((Get-ChildItem $assets -File).Count -ne 4) { throw "Expected four Harness UI community assets" }
+      - name: Build Kimi Code Desktop Windows community assets
+        working-directory: Kimi-Code-Desktop
+        shell: pwsh
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
+          $assets = Join-Path $env:RUNNER_TEMP "community-kimi-windows"
+          New-Item -ItemType Directory -Force -Path $assets | Out-Null
+
+          npm ci
+          npm test
+          foreach ($arch in @("x64", "arm64")) {
+            $output = "dist-community/$arch"
+            npm run prepare:kimi -- --platform=win32 --arch=$arch
+            npx electron-builder --win nsis zip "--$arch" "--config.directories.output=$output"
+            Copy-Item "$output/Kimi Code Desktop-$env:VERSION-win-$arch.exe" "$assets/Kimi-Code-Desktop-$env:VERSION-windows-$arch-UNSIGNED-setup.exe"
+            Copy-Item "$output/Kimi Code Desktop-$env:VERSION-win-$arch.zip" "$assets/Kimi-Code-Desktop-$env:VERSION-windows-$arch-UNSIGNED-portable.zip"
+          }
+          if ((Get-ChildItem $assets -File).Count -ne 4) { throw "Expected four Kimi community assets" }
+      - uses: actions/upload-artifact@v7
+        with:
+          name: community-harness-windows
+          path: ${{ runner.temp }}/community-harness-windows/*
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@v7
+        with:
+          name: community-kimi-windows
+          path: ${{ runner.temp }}/community-kimi-windows/*
+          if-no-files-found: error
+          retention-days: 1
+
+  publish-kimi:
+    if: github.event_name == 'workflow_dispatch'
+    needs: [guard, macos, windows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: community-kimi-*
+          path: release-assets
+          merge-multiple: true
+      - name: Publish Kimi Code Desktop community prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.guard.outputs.kimi_tag }}
+          VERSION: ${{ needs.guard.outputs.version }}
+        run: |
+          mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
+          test "${#assets[@]}" = "6"
+          gh release create "$TAG" "${assets[@]}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Kimi Code Desktop v$VERSION Community (not trusted-signed)" \
+            --notes-file Kimi-Code-Desktop/docs/COMMUNITY_RELEASE.md \
+            --prerelease \
+            --latest=false
+
+  publish-harness:
+    if: github.event_name == 'workflow_dispatch'
+    needs: [guard, macos, windows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: community-harness-*
+          path: release-assets
+          merge-multiple: true
+      - name: Add standalone DSH adapter source bundle
+        env:
+          VERSION: ${{ needs.guard.outputs.version }}
+        run: |
+          cd Harness-UI
+          zip -r "../release-assets/Harness-UI-$VERSION-DSH-adapter-source.zip" \
+            dsh-plugin scripts/install-dsh.mjs LICENSE README.md
+      - name: Publish Harness UI community prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.guard.outputs.harness_tag }}
+          VERSION: ${{ needs.guard.outputs.version }}
+        run: |
+          mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
+          test "${#assets[@]}" = "7"
+          gh release create "$TAG" "${assets[@]}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Harness UI v$VERSION Community (not trusted-signed)" \
+            --notes-file Harness-UI/docs/COMMUNITY_RELEASE.md \
+            --prerelease \
+            --latest=false
