@@ -1,6 +1,11 @@
 name: Kimi and Harness zero-cost community release
 
 on:
+  pull_request:
+    paths:
+      - "Kimi-Code-Desktop/**"
+      - "Harness-UI/**"
+      - ".github/workflows/kimi-harness-community-release.yml"
   workflow_dispatch:
     inputs:
       version:
@@ -14,10 +19,10 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: kimi-harness-zero-cost-community-release
+  group: kimi-harness-zero-cost-community-release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -25,6 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
+      version: ${{ steps.values.outputs.version }}
       kimi_tag: ${{ steps.values.outputs.kimi_tag }}
       harness_tag: ${{ steps.values.outputs.harness_tag }}
     steps:
@@ -34,13 +40,18 @@ jobs:
       - name: Enforce main, versions and explicit confirmation
         id: values
         env:
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ inputs.version || '0.1.0' }}
           CONFIRM: ${{ inputs.confirm }}
         run: |
-          test "$GITHUB_REF" = "refs/heads/main"
-          test "$CONFIRM" = "RELEASE_ZERO_COST_COMMUNITY_BUILDS"
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            test "$GITHUB_REF" = "refs/heads/main"
+            test "$CONFIRM" = "RELEASE_ZERO_COST_COMMUNITY_BUILDS"
+          else
+            test "$GITHUB_EVENT_NAME" = "pull_request"
+          fi
           test "$(node -p "require('./Kimi-Code-Desktop/package.json').version")" = "$VERSION"
           test "$(node -p "require('./Harness-UI/package.json').version")" = "$VERSION"
+          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
           printf 'kimi_tag=kimi-code-desktop-community-v%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
           printf 'harness_tag=harness-ui-community-v%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
 
@@ -49,7 +60,7 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 40
     env:
-      VERSION: ${{ inputs.version }}
+      VERSION: ${{ needs.guard.outputs.version }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -109,7 +120,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 50
     env:
-      VERSION: ${{ inputs.version }}
+      VERSION: ${{ needs.guard.outputs.version }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -181,9 +192,12 @@ jobs:
           retention-days: 1
 
   publish-kimi:
+    if: github.event_name == 'workflow_dispatch'
     needs: [guard, macos, windows]
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -197,7 +211,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.guard.outputs.kimi_tag }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ needs.guard.outputs.version }}
         run: |
           mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
           test "${#assets[@]}" = "6"
@@ -210,9 +224,12 @@ jobs:
             --latest=false
 
   publish-harness:
+    if: github.event_name == 'workflow_dispatch'
     needs: [guard, macos, windows]
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -224,7 +241,7 @@ jobs:
           merge-multiple: true
       - name: Add standalone DSH adapter source bundle
         env:
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ needs.guard.outputs.version }}
         run: |
           cd Harness-UI
           zip -r "../release-assets/Harness-UI-$VERSION-DSH-adapter-source.zip" \
@@ -233,7 +250,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.guard.outputs.harness_tag }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ needs.guard.outputs.version }}
         run: |
           mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
           test "${#assets[@]}" = "7"
