@@ -28,6 +28,10 @@
 - 现场运行版的 bundle version 是 1.0.0；0.2.0 会被标准版本比较视为降级，故在发布前取消。Kimi Desktop 从 1.0.1 继续递增，Harness UI 保持独立的 0.2.0 版本线；联合 community workflow 接受两个独立版本输入。
 - community macOS 构建显式使用 ad-hoc identity 并关闭该通道的 hardened runtime，打包后验证完整 bundle 与 `com.electron.kimi-code` 代码身份；仍不把它表述为 Developer ID 签名或公证版本。
 - macOS 应用菜单提供“打开完整磁盘访问设置…”并直达 `Privacy_AllFiles`；“文件与文件夹”不是 Full Disk Access 列表，授权仍由 Owner 在系统 TCC 页面完成。
+- PR #314 与 #315 已合并；联合 community 发布 run `32522348126` 在 macOS arm64、Windows x64/arm64 构建和两个 publish job 上全部通过。
+- [Kimi Code Desktop v1.0.1 Community](https://github.com/LinzeColin/MetaDatabase/releases/tag/kimi-code-desktop-community-v1.0.1) 已发布为非草稿 prerelease，共 6 个明确标记安全状态的资产。
+- 已重新下载公开 macOS ZIP 验收：App 为 `1.0.1`、bundle/code identifier 为 `com.electron.kimi-code`、主程序为 arm64、完整 bundle 通过严格 ad-hoc 代码结构验证、内置 Kimi Code 为 `0.38.0`，且 `Privacy_AllFiles` 与共享 catalog 刷新入口存在。该结论不等同于 Developer ID 签名或 Apple 公证。
+- 现场运行版仍为 `1.0.0`，GUI 与 Kimi 后台保持原 PID 和监听端口，本轮未重启。只有 Owner 的现有工作线程结束并主动退出 Kimi 后，才允许执行一次 community 安装以进入 `1.0.1` 更新线。
 
 ## 边界
 
@@ -37,6 +41,6 @@
 
 ## 下一步
 
-合并后分别发布 Kimi `1.0.1` 与 Harness UI `0.2.0` 的零成本 community prerelease，供显式下载与人工确认；它们不得被静默安装或冒充受信任更新。未来 Owner 改变预算并配置七个签名 secrets 后，再从 `main` 运行 signed release；只有签名、公证、时间戳验证和六个资产全部通过，应用内稳定通道才允许一键替换。
+等待 Owner 的现有 Kimi 工作线程自然结束；完全退出 Kimi 后执行一次 `scripts/install-community-macos.sh`，再启动 `1.0.1`。此后应用内菜单负责检查更新，community 通道仍要求显式下载确认，受信任 stable 通道才允许验签后一键替换。未来 Owner 改变预算并配置七个签名 secrets 后，再从 `main` 运行 signed release；只有签名、公证、时间戳验证和六个资产全部通过，应用内稳定通道才允许一键替换。
 
 补充跟 Prompt（22 个汉字）：`请收口当前皮肤任务并输出可迁移交接勿重启应用`
