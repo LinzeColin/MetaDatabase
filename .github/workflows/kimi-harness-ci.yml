@@ -84,7 +84,7 @@ jobs:
           npm ci
           npm test
           npm run prepare:kimi -- --platform=darwin --arch=arm64
-          npx electron-builder --mac dir --arm64 -c.directories.output=dist-ci
+          npx electron-builder --mac dir --arm64 --config.directories.output=dist-ci
           file "dist-ci/mac-arm64/Kimi Code Desktop.app/Contents/MacOS/Kimi Code Desktop"
           file "dist-ci/mac-arm64/Kimi Code Desktop.app/Contents/Resources/kimi/kimi"
 
@@ -129,8 +129,8 @@ jobs:
           npm ci
           npm test
           npm run prepare:kimi -- --platform=win32 --arch=x64
-          npx electron-builder --win dir --x64 -c.directories.output=dist-ci/x64
+          npx electron-builder --win dir --x64 --config.directories.output=dist-ci/x64
           npm run prepare:kimi -- --platform=win32 --arch=arm64
-          npx electron-builder --win dir --arm64 -c.directories.output=dist-ci/arm64
+          npx electron-builder --win dir --arm64 --config.directories.output=dist-ci/arm64
           Get-Item "dist-ci/x64/win-unpacked/Kimi Code Desktop.exe"
           Get-Item "dist-ci/arm64/win-arm64-unpacked/Kimi Code Desktop.exe"
