@@ -32,6 +32,10 @@ MATRIX_KEYS = [
     "原始权重", "家族内权重", "总体权重", "结论", "独立性",
 ]
 SYDNEY = ZoneInfo("Australia/Sydney")
+FIXTURE_SCOPE = "STRUCTURAL_FIXTURE_ONLY"
+LIVE_SCOPE = "LIVE_PROVIDER_REVIEW_ONLY"
+FIXTURE_PROVENANCE = "FIXTURE_DATA"
+LIVE_PROVENANCE = "LIVE_MOOMOO_QUOTE"
 
 
 def request(base: str, path: str, method: str = "GET", timeout: float = 12.0):
@@ -94,7 +98,7 @@ def check_report(report: dict) -> None:
     parse_run_time(report)
 
 
-def check_business_oracle(report: dict) -> None:
+def check_structural_oracle(report: dict) -> None:
     failures: list[str] = []
     if report["运行状态"] in {"阻断", "策略失效"}:
         failures.append(f"RUN_STATE:{report['运行状态']}")
@@ -103,7 +107,35 @@ def check_business_oracle(report: dict) -> None:
     if report["裁决完整性"] in {"最低可行", "阻断"}:
         failures.append(f"ADJUDICATION:{report['裁决完整性']}")
     if failures:
-        raise AssertionError("BUSINESS_ORACLE_FAILED:" + ",".join(failures))
+        raise AssertionError("STRUCTURAL_ORACLE_FAILED:" + ",".join(failures))
+
+
+def check_input_provenance(metadata: dict, heartbeat: dict, require_live_provider: bool) -> str:
+    fields = ("market_provider", "provider_state", "input_provenance", "acceptance_scope")
+    for field in fields:
+        assert field in metadata, f"METADATA_MISSING_{field.upper()}"
+        assert field in heartbeat, f"HEARTBEAT_MISSING_{field.upper()}"
+        assert metadata[field] == heartbeat[field], f"PROVENANCE_MISMATCH_{field.upper()}"
+
+    provenance = metadata["input_provenance"]
+    scope = metadata["acceptance_scope"]
+    provider = metadata["market_provider"]
+    provider_state = metadata["provider_state"]
+    if provider == "fixture" and provider_state == "fixture" and provenance == FIXTURE_PROVENANCE and scope == FIXTURE_SCOPE:
+        mode = "STRUCTURAL"
+    elif provider == "moomoo" and provider_state == "live" and provenance == LIVE_PROVENANCE and scope == LIVE_SCOPE:
+        mode = "LIVE_PROVIDER"
+    else:
+        raise AssertionError(
+            "INPUT_PROVENANCE_UNACCEPTABLE:"
+            f"provider={provider};state={provider_state};provenance={provenance};scope={scope}"
+        )
+    if require_live_provider and mode != "LIVE_PROVIDER":
+        raise AssertionError(
+            "LIVE_PROVIDER_REQUIRED:"
+            f"provider={provider};state={provider_state};provenance={provenance};scope={scope}"
+        )
+    return mode
 
 
 def check_stream(base: str) -> None:
@@ -128,9 +160,9 @@ def check_stream(base: str) -> None:
         assert seen_event and seen_data, "SSE_REPORT_NOT_RECEIVED"
 
 
-def run(base: str, verify_cadence: bool, skip_stream: bool) -> dict:
+def run(base: str, verify_cadence: bool, skip_stream: bool, require_live_provider: bool = False) -> dict:
     metadata = json_get(base, "/api/v1/metadata")
-    assert metadata["version"] == "0.0.0.1.43"
+    assert metadata["version"] == "0.0.0.1.44"
     assert metadata["prompt_version"] == "v0.0.0.19"
     assert metadata["refresh_seconds"] == 15
     assert metadata["ui_heartbeat_seconds"] == 1
@@ -140,13 +172,14 @@ def run(base: str, verify_cadence: bool, skip_stream: bool) -> dict:
     assert age is not None and float(age) <= 45.0, f"REPORT_STALE:{age}"
 
     heartbeat = json_get(base, "/api/v1/heartbeat")
-    assert heartbeat["application_version"] == "0.0.0.1.43"
+    assert heartbeat["application_version"] == "0.0.0.1.44"
     assert heartbeat["decision_contract_version"] == "v0.0.0.19"
     assert heartbeat["ui_heartbeat_seconds"] == 1
     assert heartbeat["quote_observation_seconds"] == 15
     assert heartbeat["automatic_trading"] is False
     assert heartbeat["shadow_only"] is True
     assert heartbeat["profitability_status"] == "NOT_ISSUED"
+    assert heartbeat["business_release_status"] == "NOT_ISSUED"
     assert heartbeat["decision_count"] >= 1
     assert heartbeat["observation_count"] >= heartbeat["decision_count"]
 
@@ -159,7 +192,8 @@ def run(base: str, verify_cadence: bool, skip_stream: bool) -> dict:
 
     report1 = json_get(base, "/api/v1/report/latest")
     check_report(report1)
-    check_business_oracle(report1)
+    check_structural_oracle(report1)
+    acceptance_mode = check_input_provenance(metadata, heartbeat, require_live_provider)
     status, _, body = request(base, "/api/v1/report/latest.txt")
     assert status == 200 and "# 第一板块：唯一影子操作" in body.decode("utf-8")
     post_status, _, _ = request(base, "/api/v1/report/latest", method="POST")
@@ -193,8 +227,9 @@ def run(base: str, verify_cadence: bool, skip_stream: bool) -> dict:
                 break
         assert cadence_seconds is not None, f"CADENCE_OUT_OF_RANGE:{observed}"
 
+    state = "LIVE_PROVIDER_PASS_NOT_BUSINESS_RELEASE" if acceptance_mode == "LIVE_PROVIDER" else "STRUCTURAL_PASS"
     return {
-        "state": "PASS",
+        "state": state,
         "base_url": base,
         "version": metadata["version"],
         "prompt_version": metadata["prompt_version"],
@@ -206,6 +241,11 @@ def run(base: str, verify_cadence: bool, skip_stream: bool) -> dict:
         "observation_count": heartbeat["observation_count"],
         "decision_count": heartbeat["decision_count"],
         "observed_cadence_seconds": cadence_seconds,
+        "market_provider": metadata["market_provider"],
+        "provider_state": metadata["provider_state"],
+        "input_provenance": metadata["input_provenance"],
+        "acceptance_scope": metadata["acceptance_scope"],
+        "business_release_status": "NOT_ISSUED",
     }
 
 
@@ -214,10 +254,11 @@ def main() -> int:
     parser.add_argument("--base-url", required=True)
     parser.add_argument("--verify-cadence", action="store_true")
     parser.add_argument("--skip-stream", action="store_true")
+    parser.add_argument("--require-live-provider", action="store_true")
     parser.add_argument("--output")
     args = parser.parse_args()
     try:
-        result = run(args.base_url, args.verify_cadence, args.skip_stream)
+        result = run(args.base_url, args.verify_cadence, args.skip_stream, args.require_live_provider)
     except Exception as exc:
         result = {
             "state": "FAIL",

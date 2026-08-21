@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "signal-lattice-v19"
-version = "0.0.0.1.43"
+version = "0.0.0.1.44"
 description = "Signal Lattice V19 frozen six-skill single-winner shadow research runtime with a 1-second status / 15-second observation cadence"
 requires-python = ">=3.11"
 dependencies = []

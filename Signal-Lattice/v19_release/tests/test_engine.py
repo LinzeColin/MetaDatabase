@@ -121,6 +121,7 @@ class EngineTests(unittest.TestCase):
             result = V19Engine(settings).run_once(now)
 
             context = result["internal"]["market_context"]
+            self.assertEqual(context["provider_state"], "fixture")
             self.assertIn("2026-08-13T16:00:00+00:00", result["report"]["数据截止"])
             self.assertEqual(context["observed_at"], now.isoformat())
             self.assertEqual(context["fx_cutoff"], "仅AUD候选；无需外汇转换")

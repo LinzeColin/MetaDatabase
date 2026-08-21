@@ -4,7 +4,7 @@ umask 027
 
 [[ "$(id -u)" -eq 0 ]] || { echo ROOT_REQUIRED >&2; exit 2; }
 
-VERSION="0.0.0.1.43"
+VERSION="0.0.0.1.44"
 PROMPT_VERSION="v0.0.0.19"
 SOURCE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 INSTALL_ROOT="/opt/signal-lattice-v19"
@@ -16,7 +16,7 @@ ENV_DIR="/etc/signal-lattice-v19"
 ENV_FILE="$ENV_DIR/runtime.env"
 LOCAL_URL="http://127.0.0.1:8787"
 PUBLIC_URL="https://signal-lattice.linzezhang.com"
-WHEEL="$(find "$SOURCE_ROOT/dist" -maxdepth 1 -type f -name 'signal_lattice_v19-0.0.0.1.43-*.whl' -print -quit)"
+WHEEL="$(find "$SOURCE_ROOT/dist" -maxdepth 1 -type f -name 'signal_lattice_v19-0.0.0.1.44-*.whl' -print -quit)"
 
 [[ -n "$WHEEL" && -f "$WHEEL" ]] || { echo PREBUILT_WHEEL_MISSING >&2; exit 3; }
 
@@ -180,12 +180,12 @@ for _ in $(seq 1 20); do
   sleep 2
 done
 "$CURRENT/venv/bin/python" "$CURRENT/scripts/run_acceptance.py" \
-  --base-url "$LOCAL_URL" --verify-cadence --output "$DEPLOY_DIR/local_acceptance.json"
+  --base-url "$LOCAL_URL" --verify-cadence --require-live-provider --output "$DEPLOY_DIR/local_acceptance.json"
 
 PUBLIC_PASS=0
 for _ in $(seq 1 3); do
   if "$CURRENT/venv/bin/python" "$CURRENT/scripts/run_acceptance.py" \
-      --base-url "$PUBLIC_URL" --verify-cadence --skip-stream --output "$DEPLOY_DIR/public_acceptance.json" >/dev/null 2>&1; then
+      --base-url "$PUBLIC_URL" --verify-cadence --skip-stream --require-live-provider --output "$DEPLOY_DIR/public_acceptance.json" >/dev/null 2>&1; then
     PUBLIC_PASS=1
     break
   fi
@@ -201,8 +201,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 out, version, prompt, public_url = sys.argv[1:]
+deploy_dir = Path(out).parent
+local_acceptance = json.loads((deploy_dir / "local_acceptance.json").read_text(encoding="utf-8"))
+public_acceptance = json.loads((deploy_dir / "public_acceptance.json").read_text(encoding="utf-8"))
+expected_state = "LIVE_PROVIDER_PASS_NOT_BUSINESS_RELEASE"
+for label, result in (("local", local_acceptance), ("public", public_acceptance)):
+    if result.get("state") != expected_state:
+        raise SystemExit(f"{label.upper()}_ACCEPTANCE_NOT_LIVE_PROVIDER:{result.get('state')}")
 payload = {
-    "state": "PASS",
+    "state": "LIVE_PROVIDER_DEPLOYMENT_ACCEPTED_NOT_BUSINESS_RELEASE",
     "version": version,
     "prompt_version": prompt,
     "refresh_seconds": 15,
@@ -210,6 +217,11 @@ payload = {
     "local_url": "http://127.0.0.1:8787",
     "automatic_trading": False,
     "shadow_only": True,
+    "input_provenance": "LIVE_MOOMOO_QUOTE",
+    "acceptance_scope": "LIVE_PROVIDER_REVIEW_ONLY",
+    "business_release_status": "NOT_ISSUED",
+    "local_acceptance_state": local_acceptance["state"],
+    "public_acceptance_state": public_acceptance["state"],
     "api_unit": subprocess.run(["systemctl", "is-active", "signal-lattice-v19-api.service"], text=True, capture_output=True).stdout.strip(),
     "loop_unit": subprocess.run(["systemctl", "is-active", "signal-lattice-v19-loop.service"], text=True, capture_output=True).stdout.strip(),
     "tunnel_unit": subprocess.run(["systemctl", "is-active", "signal-lattice-v19-cloudflared.service"], text=True, capture_output=True).stdout.strip(),

@@ -16,4 +16,5 @@
 - 已补正：新增 `.dockerignore`，使 `.env*`、私钥、数据库文件、依赖与构建输出不进入 `Dockerfile.vps3` 的 `COPY . .` 构建上下文；新增可提交的 `.env.vps3.example`；Compose 对 `APP_ORIGIN` 与 `POSTGRES_PASSWORD` 改为缺失即失败，并在 README 明确所有 Compose 命令须使用 `--env-file .env.vps3`。
 - 本地结果：`docker compose --env-file .env.vps3 -f compose.vps3.yml config --quiet` 使用无密钥模板通过；`npm run check:release` 通过（现有 lint warning 6 条、无 error；核心测试 59 项、VPS3 运行时测试 8 项、Next.js production build 均通过）。
 - 未声称完成：本机 Docker daemon 未运行，因此未实际构建或启动容器；未部署、未访问真实网址，也未执行账户、隔离、文件读回或重部署后的真实环境验收。
-- 下一步：在获准的 VPS3/Coolify 环境填入真实变量并部署后，按最终通过条件逐项完成真实环境验收。
+- 第三方验收入口：`docs/VPS3_PRODUCTION_ACCEPTANCE.md` 将七项条件映射为受真实账户、邮件验证和外部重部署回执约束的 Playwright 两阶段流程；fixture/公共 UI 测试不再被误作生产通过。
+- 下一步：在获准的 VPS3/Coolify 环境填入真实变量并部署后，按该文档的预部署、独立重新部署、后部署三阶段逐项完成真实环境验收。

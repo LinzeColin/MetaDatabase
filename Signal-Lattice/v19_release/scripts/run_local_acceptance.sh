@@ -17,6 +17,8 @@ export SL19_FIXTURE_DIR="$ROOT/fixtures"
 export SL19_MARKET_PROVIDER=fixture
 export SL19_HOST=127.0.0.1
 export SL19_PORT="$PORT"
+# This is intentionally a fixture-only structural check. Its result must not
+# be reported as a live-provider or business-release acceptance.
 python3 -m signal_lattice_v19.cli bootstrap >/dev/null
 python3 -m signal_lattice_v19.cli once >/dev/null
 python3 -m signal_lattice_v19.cli serve & API_PID=$!

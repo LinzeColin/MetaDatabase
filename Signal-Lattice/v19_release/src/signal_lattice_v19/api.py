@@ -35,6 +35,34 @@ def _age_seconds(envelope: dict | None) -> float | None:
     return max(0.0, (datetime.now(timezone.utc) - generated).total_seconds())
 
 
+def _input_provenance(settings: Settings, envelope: dict | None) -> dict[str, str]:
+    internal = envelope.get("internal") if isinstance(envelope, dict) else None
+    market_context = internal.get("market_context") if isinstance(internal, dict) else None
+    raw_state = str(market_context.get("provider_state", "") if isinstance(market_context, dict) else "").strip().lower()
+    provider_state = raw_state if raw_state in {"live", "fixture", "last_snapshot", "full_scan_pending", "error"} else "unknown"
+
+    if settings.market_provider == "moomoo" and provider_state == "live":
+        return {
+            "market_provider": "moomoo",
+            "provider_state": "live",
+            "input_provenance": "LIVE_MOOMOO_QUOTE",
+            "acceptance_scope": "LIVE_PROVIDER_REVIEW_ONLY",
+        }
+    if settings.market_provider == "fixture" and provider_state == "fixture":
+        return {
+            "market_provider": "fixture",
+            "provider_state": "fixture",
+            "input_provenance": "FIXTURE_DATA",
+            "acceptance_scope": "STRUCTURAL_FIXTURE_ONLY",
+        }
+    return {
+        "market_provider": settings.market_provider,
+        "provider_state": provider_state,
+        "input_provenance": "UNVERIFIED_OR_DEGRADED",
+        "acceptance_scope": "NOT_ACCEPTABLE",
+    }
+
+
 def handler(settings: Settings, storage: RuntimeStorage):
     whitebox = WhiteboxLedger(storage.whitebox_db_file)
 
@@ -105,6 +133,7 @@ def handler(settings: Settings, storage: RuntimeStorage):
         def _heartbeat(self) -> dict:
             envelope = self._latest()
             age = _age_seconds(envelope)
+            provenance = _input_provenance(settings, envelope)
             report = envelope.get("report", {}) if envelope else {}
             first = report.get("第一板块", {}) if isinstance(report, dict) else {}
             summary = whitebox.summary()
@@ -133,8 +162,10 @@ def handler(settings: Settings, storage: RuntimeStorage):
                 "data_cutoff": report.get("数据截止"),
                 "shadow_weight_mode": "SHADOW_ONLY",
                 "profitability_status": "NOT_ISSUED",
+                "business_release_status": "NOT_ISSUED",
                 "automatic_trading": False,
                 "shadow_only": True,
+                **provenance,
             }
 
         def do_GET(self) -> None:
@@ -146,6 +177,7 @@ def handler(settings: Settings, storage: RuntimeStorage):
                 envelope = self._latest()
                 age = _age_seconds(envelope)
                 ready = age is not None and age <= settings.report_stale_seconds
+                provenance = _input_provenance(settings, envelope)
                 return self._send_json(200 if ready else 503, {
                     "status": "ready" if ready else "stale",
                     "version": APP_VERSION,
@@ -153,6 +185,7 @@ def handler(settings: Settings, storage: RuntimeStorage):
                     "refresh_seconds": settings.refresh_seconds,
                     "ui_heartbeat_seconds": 1,
                     "age_seconds": round(age, 2) if age is not None else None,
+                    **provenance,
                 })
             if path == "/api/v1/heartbeat":
                 return self._send_json(200, self._heartbeat())
@@ -207,8 +240,9 @@ def handler(settings: Settings, storage: RuntimeStorage):
                 age = _age_seconds(envelope)
                 report = envelope.get("report", {}) if envelope else {}
                 first = report.get("第一板块", {}) if isinstance(report, dict) else {}
-                state = "PASS" if age is not None and age <= settings.report_stale_seconds else "DEGRADED"
+                state = "READY" if age is not None and age <= settings.report_stale_seconds else "DEGRADED"
                 summary = whitebox.summary()
+                provenance = _input_provenance(settings, envelope)
                 return self._send_json(200, {
                     "project_id": "signal-lattice",
                     "version": APP_VERSION,
@@ -227,6 +261,8 @@ def handler(settings: Settings, storage: RuntimeStorage):
                     "observation_count": summary.get("observation_count", 0),
                     "decision_count": summary.get("decision_count", 0),
                     "profitability_status": "NOT_ISSUED",
+                    "business_release_status": "NOT_ISSUED",
+                    **provenance,
                 })
 
             file_name = "index.html" if path in {"", "/"} else path.lstrip("/")
