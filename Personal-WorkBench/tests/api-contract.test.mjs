@@ -92,17 +92,19 @@ test("resource data access only uses static resource mappings and user predicate
   assert.ok(!store.includes("request.params"));
 });
 
-test("worker CSP permits Turnstile, Google Identity and the one retired-host canonical handoff target", async () => {
-  const worker = await readFile("worker/index.ts", "utf8");
-  assert.ok(worker.includes("Content-Security-Policy"));
-  assert.ok(worker.includes("https://challenges.cloudflare.com"));
-  assert.ok(worker.includes("https://accounts.google.com"));
-  assert.ok(worker.includes("frame-ancestors 'none'"));
-  assert.ok(worker.includes("img-src 'self' data: blob:"));
-  assert.ok(worker.includes("X-Content-Type-Options"));
-  assert.ok(worker.includes("isRetiredCompatibilityHost"));
-  assert.ok(worker.includes("form-action 'self' ${CANONICAL_MYDAIRY_ORIGIN}"));
-  assert.ok(worker.includes('"form-action \'self\'"'));
+test("VPS3 Node migration keeps the handoff document protected without a retired Worker runtime", async () => {
+  const [nextConfig, completion, privateFile] = await Promise.all([
+    readFile("next.config.ts", "utf8"),
+    readFile("app/api/auth/legacy-domain-handoff/complete/route.ts", "utf8"),
+    readFile("app/api/mydairy/files/[id]/route.ts", "utf8"),
+  ]);
+  assert.ok(nextConfig.includes('output: "standalone"'));
+  assert.equal(nextConfig.includes("allowedDevOrigins"), false);
+  assert.ok(completion.includes("Content-Security-Policy"));
+  assert.ok(completion.includes("frame-ancestors 'none'"));
+  assert.ok(completion.includes("form-action 'none'"));
+  assert.ok(completion.includes("X-Content-Type-Options"));
+  assert.ok(privateFile.includes("X-Content-Type-Options"));
 });
 
 test("sensitive cloud paths gate storage before normal API persistence", async () => {

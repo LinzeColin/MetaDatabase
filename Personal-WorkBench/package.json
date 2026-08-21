@@ -13,8 +13,9 @@
     "typecheck": "tsc --noEmit --project tsconfig.json",
     "test": "npm run test:core",
     "test:core": "node --test tests/module-matrix.test.mjs tests/workbench-persistence-ui.test.mjs && node --experimental-strip-types --test tests/account-entry-state.test.mts tests/account-return-path.test.mts tests/auth-return-recovery.test.mts tests/visitor-time.test.mts tests/local-record-cache.test.mts tests/request-timeout.test.mts",
+    "test:contracts": "node --test tests/api-contract.test.mjs tests/legacy-domain-handoff-ui.test.mjs tests/ops-projection-contract.test.mjs",
     "test:runtime": "node --experimental-strip-types --test tests/vps3/postgres-adapter.test.mts tests/vps3/local-object-store.test.mts tests/vps3/brand-contract.test.mjs",
-    "check:release": "npm run lint && npm run typecheck && npm run test:core && npm run test:runtime && npm run build",
+    "check:release": "npm run lint && npm run typecheck && npm run test:core && npm run test:contracts && npm run test:runtime && npm run build",
     "dev:vps3": "next dev",
     "build:vps3": "next build",
     "start:vps3": "next start -H 0.0.0.0 -p 3000",
@@ -22,7 +23,10 @@
     "db:backup:vps3": "node scripts/vps3/backup-runtime.mjs",
     "db:restore:vps3": "bash scripts/vps3/restore-runtime.sh",
     "db:import-sqlite:vps3": "node scripts/vps3/import-sqlite-to-postgres.mjs",
-    "accept:vps3": "playwright test -c playwright.vps3.config.ts",
+    "accept:vps3": "PWB_PRODUCTION_ACCEPTANCE=1 playwright test -c playwright.vps3.config.ts",
+    "accept:vps3:public": "playwright test -c playwright.vps3.config.ts",
+    "accept:vps3:pre-redeploy": "PWB_PRODUCTION_ACCEPTANCE=1 PWB_ACCEPTANCE_PHASE=pre-redeploy playwright test -c playwright.vps3.config.ts",
+    "accept:vps3:post-redeploy": "PWB_PRODUCTION_ACCEPTANCE=1 PWB_ACCEPTANCE_PHASE=post-redeploy playwright test -c playwright.vps3.config.ts",
     "check:vps3": "npm run check:release"
   },
   "dependencies": {

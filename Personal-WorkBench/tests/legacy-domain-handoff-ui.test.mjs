@@ -36,8 +36,8 @@ test("retired-domain redirect carries only a bounded anonymous history payload b
   assert.doesNotMatch(completion, /legacy-import\/apply|legacy-import\/preview/);
   assert.match(contract, /safeAccountReturnPath/);
   assert.match(contract, /HANDOFF_ID_PATTERN/);
-  assert.match(nextConfig, /allowedDevOrigins: \[RETIRED_WORKBENCH_HOST\]/);
-  assert.match(nextConfig, /allowedOrigins: \[RETIRED_WORKBENCH_HOST\]/);
+  assert.match(nextConfig, /output: "standalone"/);
+  assert.doesNotMatch(nextConfig, /allowedDevOrigins|allowedOrigins/);
   assert.match(nextConfig, /bodySizeLimit: "8mb"/);
   for (const page of authPages) {
     assert.match(page, /isRetiredAuthHost\(\)/);
