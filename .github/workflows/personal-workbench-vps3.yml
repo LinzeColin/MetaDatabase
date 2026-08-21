@@ -107,10 +107,20 @@ jobs:
           echo "deployment_status=timeout"
           exit 1
       - name: Public URL transaction entrance
+        shell: bash
         run: |
-          curl --fail --silent --show-error --max-time 30 \
-            "${{ secrets.PWB_PUBLIC_URL }}/api/health" \
-            | python3 -c 'import json,sys; v=json.load(sys.stdin); assert v.get("ready") is True'
+          set -euo pipefail
+          for attempt in $(seq 1 12); do
+            if curl --fail --silent --show-error --max-time 15 \
+              "${{ secrets.PWB_PUBLIC_URL }}/api/health" \
+              | python3 -c 'import json,sys; v=json.load(sys.stdin); assert v.get("ready") is True'; then
+              echo "public_health_attempt=$attempt"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "public_health_attempts_exhausted"
+          exit 1
 
   accept:
     if: github.event_name == 'workflow_dispatch' && inputs.action == 'accept'
