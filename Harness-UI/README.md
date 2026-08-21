@@ -48,7 +48,22 @@ npm test
 npm run validate:fixtures
 ```
 
-macOS 和 Windows 构建说明将在对应平台目录提供。正式 Release 必须签名；缺少凭据时只能输出候选件。
+macOS Apple Silicon 候选构建：
+
+```bash
+swift test --package-path macos
+macos/scripts/build-app.sh
+```
+
+Windows 候选构建（在 PowerShell 中按目标架构选择 `win-x64` 或 `win-arm64`）：
+
+```powershell
+dotnet test windows/tests/HarnessUI.Windows.Tests.csproj -c Release
+dotnet publish windows/HarnessUI.Windows.csproj -c Release -r win-x64 --self-contained true -o dist/windows-x64
+```
+
+Inno 安装器的完整双架构命令以
+[跨平台 CI](../.github/workflows/kimi-harness-ci.yml) 为准。正式 Release 必须签名；缺少凭据时只能输出候选件。
 
 ## 新电脑安装
 
