@@ -14,7 +14,8 @@
 ## 当前状态
 
 - 共享目录/状态协议、网页角色库、macOS AppKit 控制器、Windows WinForms 控制器、Kimi/DSH 适配与发布工作流已实现。
-- 本机 Node 测试通过；本机 Command Line Tools 的 compiler/SDK 版本错配，Swift 与 Windows 原生构建交由干净 CI runner。
+- PR #309 的本机测试与全部仓库检查已通过。
+- 干净 GitHub runner 已通过 Swift 测试并构建 macOS arm64 控制器，也已构建 Windows x64/arm64 自包含程序和 Inno 安装器。
 - 尚未发布正式 Release，签名门为 `WAITING_SIGNING_CREDENTIAL`。
 - 现有 Harness 生成任务和 `progress.py --watch` 未被停止。
 - Kimi、DSH 和 Harness 现有应用均未重启。
@@ -27,6 +28,6 @@
 
 ## 下一步
 
-通过 GitHub CI 修完原生编译差异；配置 Apple/Windows 签名 secrets 后从 `main` 运行正式 Release 工作流。
+合并 PR #309；配置 Apple/Windows 签名 secrets 后从 `main` 运行正式 Release 工作流，并以签名、公证和 Release 资产为最终验收。
 
 补充跟 Prompt（22 个汉字）：`请收口当前皮肤任务并输出可迁移交接勿重启应用`
