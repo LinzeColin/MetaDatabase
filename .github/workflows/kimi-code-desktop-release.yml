@@ -6,7 +6,7 @@ on:
       version:
         description: "Version already present in Kimi-Code-Desktop/package.json"
         required: true
-        default: "0.2.0"
+        default: "1.0.1"
         type: string
       prerelease:
         description: "Publish as a prerelease"

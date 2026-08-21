@@ -30,8 +30,8 @@
 - 已从公开 Release 下载 macOS ZIP，通过 Agent 安装脚本复制到隔离临时目录；主程序为 arm64，全程未启动应用，临时副本已移入废纸篓。
 - 共享 catalog/state 已增加 generation 热同步、15 分钟后台刷新和“同步素材”手动入口；SMB 视图不完整时不覆盖上一版目录，完整本地镜像可在 SMB/TCC 瞬断时继续提供素材。
 - 本机目录当前为 408 个变体，Kimi 与 DSH 共享同一选择状态；DSH 已通过应用内按钮从 2.0.1 更新到 2.0.2，并完成 Cmd+W/Cmd+Q 生命周期验收。
-- Kimi 当前 GUI 与后台均未重启；0.2.0 仅生成本地未签名候选件，正式安装仍保持 `WAITING_SIGNING_CREDENTIAL`。
-- Harness UI、Kimi Desktop 与 DSH adapter 已统一到 0.2.0 发行线；合并后需运行 community workflow 生成新的明确标注未公证/未签名资产。
+- Kimi 当前 GUI 与后台均未重启；旧的 Kimi 0.2.0 本地候选因低于现场 1.0.0 而停用，正式安装仍保持 `WAITING_SIGNING_CREDENTIAL`。
+- Harness UI 与 DSH adapter 保持 0.2.0 发行线；Kimi Desktop 独立改为 1.0.1。联合 community workflow 已解耦两个版本输入，避免一个产品的版本历史污染另一个产品。
 
 ## 禁止迁移
 

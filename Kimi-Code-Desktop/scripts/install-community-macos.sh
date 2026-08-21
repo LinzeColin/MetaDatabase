@@ -42,6 +42,15 @@ if [ "$ACTUAL_ID" != "com.electron.kimi-code" ] || [ "$ACTUAL_VERSION" != "$VERS
   echo "Downloaded app identity or version did not match the requested Kimi Code release." >&2
   exit 1
 fi
+if ! /usr/bin/codesign --verify --deep --strict "$SOURCE_APP"; then
+  echo "Downloaded app did not pass macOS code-integrity verification." >&2
+  exit 1
+fi
+CODE_ID="$(/usr/bin/codesign -dv --verbose=4 "$SOURCE_APP" 2>&1 | /usr/bin/awk -F= '/^Identifier=/{print $2; exit}')"
+if [ "$CODE_ID" != "com.electron.kimi-code" ]; then
+  echo "Downloaded app code identity did not match Kimi Code Desktop." >&2
+  exit 1
+fi
 
 DESTINATION_PARENT="$(dirname "$DESTINATION")"
 mkdir -p "$DESTINATION_PARENT"
