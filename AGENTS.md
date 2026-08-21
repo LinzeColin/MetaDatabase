@@ -299,3 +299,15 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 **为什么**：只保护 `~/.kimi-code` 仍会遗漏 Electron Cookies、Preferences、Session Storage 和窗口状态。首次 `0.38.0` 迁移现场就出现了新目录，表现会像账号或界面配置丢失，虽然原数据仍在。
 
 **代价**：同一上游版本内的包装兼容修复需要重建并覆盖同 tag Release 资产，不能另造私有版本号；当前机器须重新安装一次修复后的 `0.38.0`，早期误建的新 profile 只归档、不覆盖旧数据。
+
+**结论**：macOS 的 ad-hoc App 即使显式写了稳定 bundle id / designated requirement，TCC 仍可能把完整磁盘权限绑定到本次构建的 cdhash；不能据此宣称跨更新权限稳定。Kimi Desktop 必须保留 Moonshot 官方 CLI 的 Developer ID 签名，并始终从 `~/.kimi-code/bin/kimi` 这一稳定路径启动后台。
+
+**为什么**：现场 TCC 行显示 `com.electron.kimi-code` 已允许，但其 requirement 实际绑定旧构建；更新后 GUI 直接派生的后台访问 `/Volumes/share` 一直挂起。同一 `0.38.0` 官方签名 CLI 由 launchd 作为父进程启动后可立即列出和读取 SMB。根因一是 electron-builder 与 after-sign 的 deep signing 覆盖了 Moonshot 的签名，二是 GUI 直接 spawn 会让子进程继承 ad-hoc Electron 壳的 TCC responsibility；after-sign 需恢复官方二进制后只重签外层 App，后台则交给当前用户域的临时 launchd job。
+
+**代价**：桌面启动时只允许替换稳定路径中的 CLI 本体，并把旧版本留进 `desktop-updates/cli-rollback/`；`~/.kimi-code` 的配置、会话、登录、个性化目录和 `~/.harness-ui` 必须原位不动。临时 launchd job 必须由 App 管理：关窗保留，正常退出移除，App 崩溃后下次启动可安全接管；提交 job 时只传 HOME/PATH/TMPDIR/locale 等必要环境，禁止把 GUI 继承的 API token 或其他 secret 扩散到后台。外层 App 在取得真实 Developer ID 前仍不是受信任发行身份，但文件访问后台不再随每次桌面构建换身份。
+
+**结论**：诊断本机 bearer 服务时，不能把 `Authorization` 值直接放进可被 `ps` 读到的 curl 参数；读取 token 的探针应在进程内部组装请求，若任何诊断输出暴露了 token，立即旋转并确认旧值失效。
+
+**为什么**：排查 Kimi SMB 卡顿时，一次进程列表把 localhost bearer token 连同 curl 参数输出到了诊断记录。虽然服务只监听 loopback，记录本身仍扩大了凭据暴露面；现场已用 `kimi web rotate-token` 在线轮换，无需重启 GUI。
+
+**代价**：后续 API 探针统一由短生命周期 Node 进程读取 `server.token` 并发送，日志只保留状态码、耗时与结果形状，不输出 header 或 token。

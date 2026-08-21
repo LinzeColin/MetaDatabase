@@ -6,9 +6,9 @@ const { execFile, spawn } = require("node:child_process");
 
 const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
-function execFileText(file, args) {
+function execFileText(file, args, options = {}) {
   return new Promise((resolve, reject) => {
-    execFile(file, args, { encoding: "utf8", timeout: 3000 }, (error, stdout) => {
+    execFile(file, args, { encoding: "utf8", timeout: 3000, ...options }, (error, stdout) => {
       if (error) reject(error);
       else resolve(stdout);
     });
@@ -91,6 +91,66 @@ async function waitForServer({ child, port, timeoutMs = 30000 }) {
   throw new Error(`Kimi Code server did not become ready on port ${port}`);
 }
 
+function launchdSubmitArgs({ label, cliPath, port, environment = {} }) {
+  const cleanEnvironment = Object.entries(environment)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, value]) => `${key}=${value}`);
+  return [
+    "submit",
+    "-l", label,
+    "-o", "/dev/null",
+    "-e", "/dev/null",
+    "--",
+    "/usr/bin/env", "-i", ...cleanEnvironment,
+    cliPath,
+    "web", "--no-open", "--host", "127.0.0.1", "--port", String(port),
+  ];
+}
+
+function launchdEnvironment(env, homeDir) {
+  const allowed = ["HOME", "LANG", "LC_ALL", "LC_CTYPE", "LOGNAME", "PATH", "SHELL", "TMPDIR", "USER"];
+  const result = {};
+  for (const key of allowed) {
+    if (env[key]) result[key] = env[key];
+  }
+  return { ...result, KIMI_CODE_HOME: homeDir, NO_COLOR: "1" };
+}
+
+async function removeLaunchdJob(label) {
+  try {
+    await execFileText("/bin/launchctl", ["remove", label]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function startLaunchdServer({ cliPath, homeDir, label, port, env, timeoutMs = 30000 }) {
+  await removeLaunchdJob(label);
+  const cleanEnvironment = launchdEnvironment(env, homeDir);
+  await execFileText("/bin/launchctl", launchdSubmitArgs({
+    label,
+    cliPath,
+    port,
+    environment: cleanEnvironment,
+  }), {
+    env: { PATH: "/usr/bin:/bin" },
+    timeout: 5000,
+  });
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await httpReachable(port)) {
+      const listener = await macListener(port);
+      if (listener && path.resolve(listener.executable) === path.resolve(cliPath)) return listener.pid;
+      await removeLaunchdJob(label);
+      throw new Error(`launchd 启动了未知的 Kimi 后台进程（端口 ${port}）`);
+    }
+    await delay(250);
+  }
+  await removeLaunchdJob(label);
+  throw new Error(`launchd 中的 Kimi Code server 未能在端口 ${port} 就绪`);
+}
+
 async function readServerToken(homeDir, timeoutMs = 5000) {
   const tokenFile = path.join(homeDir, "server.token");
   const deadline = Date.now() + timeoutMs;
@@ -114,7 +174,13 @@ function captureOutput(stream, target) {
   });
 }
 
-async function startKimiServer({ cliPath, homeDir, preferredPort = 58627, env = process.env }) {
+async function startKimiServer({
+  cliPath,
+  homeDir,
+  preferredPort = 58627,
+  env = process.env,
+  launchdLabel = null,
+}) {
   let port = preferredPort;
   try {
     port = await listenOnce(preferredPort);
@@ -130,6 +196,7 @@ async function startKimiServer({ cliPath, homeDir, preferredPort = 58627, env = 
       child: null,
       executable: existing.executable,
       homeDir,
+      launchdLabel,
       output: { text: "" },
       pid: existing.pid,
       port: preferredPort,
@@ -137,6 +204,21 @@ async function startKimiServer({ cliPath, homeDir, preferredPort = 58627, env = 
     };
   }
   fs.mkdirSync(homeDir, { recursive: true });
+  if (process.platform === "darwin" && launchdLabel) {
+    const pid = await startLaunchdServer({ cliPath, homeDir, label: launchdLabel, port, env });
+    const token = await readServerToken(homeDir);
+    return {
+      adopted: false,
+      child: null,
+      executable: cliPath,
+      homeDir,
+      launchdLabel,
+      output: { text: "" },
+      pid,
+      port,
+      token,
+    };
+  }
   const output = { text: "" };
   const child = spawn(cliPath, ["web", "--no-open", "--host", "127.0.0.1", "--port", String(port)], {
     env: { ...env, KIMI_CODE_HOME: homeDir, NO_COLOR: "1" },
@@ -170,7 +252,9 @@ async function stopKimiServer(runtime, timeoutMs = 5000) {
     if (child.exitCode === null) child.kill("SIGKILL");
     return;
   }
-  if (!runtime?.adopted || !runtime.pid) return;
+  if (!runtime?.pid) return;
+  if (runtime.launchdLabel) await removeLaunchdJob(runtime.launchdLabel);
+  if (!runtime.adopted && !runtime.launchdLabel) return;
   try { process.kill(runtime.pid, "SIGTERM"); }
   catch (error) { if (error.code !== "ESRCH") throw error; else return; }
   const deadline = Date.now() + timeoutMs;
@@ -194,6 +278,8 @@ module.exports = {
   findAvailablePort,
   httpReachable,
   inspectExistingServer,
+  launchdEnvironment,
+  launchdSubmitArgs,
   readServerToken,
   runtimeAlive,
   startKimiServer,
