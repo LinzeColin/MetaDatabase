@@ -71,6 +71,7 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,select,[role=di
         <input data-hu="search" type="search" placeholder="搜索角色或变体">
         <button data-hu="mode" type="button">开启轮播</button>
         <button data-hu="next" type="button">下一张</button>
+        <button data-hu="refresh" type="button">同步素材</button>
         <span id="harness-ui-status"></span>
       </div><div id="harness-ui-list"></div>`;
       document.body.append(toggle, panel);
@@ -83,9 +84,25 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,select,[role=di
       const byId = (id) => catalog.entries.find((entry) => entry.id === id) || catalog.entries[0] || null;
       const dark = () => document.body.hasAttribute("data-ds-dark-theme");
 
+      function assetUrl(entry) {
+        if (!entry) return "";
+        const raw = dark() ? entry.dark : entry.light;
+        if (!raw || raw.includes("?v=") || !catalog.generated) return raw || "";
+        return `${raw}?v=${encodeURIComponent(catalog.generated)}`;
+      }
+
+      function renderGames() {
+        const selected = game.value;
+        game.replaceChildren(new Option("全部游戏", ""));
+        for (const [value, label] of new Map(catalog.entries.map((entry) => [entry.game, entry.gameName]))) {
+          game.add(new Option(label, value));
+        }
+        if ([...game.options].some((option) => option.value === selected)) game.value = selected;
+      }
+
       async function show(entry) {
         if (!entry) return;
-        const url = dark() ? entry.dark : entry.light;
+        const url = assetUrl(entry);
         if (await preload(url)) root.style.setProperty("--harness-scene", `url(${JSON.stringify(url)})`);
       }
 
@@ -119,6 +136,10 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,select,[role=di
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(patch),
           });
+          if (state.catalogGenerated && state.catalogGenerated !== catalog.generated) {
+            catalog = await json("/catalog.json");
+            renderGames();
+          }
           syncSeen = state.updated || 0;
           render();
         } catch (error) { status.textContent = `保存失败：${error.message}`; }
@@ -127,7 +148,12 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,select,[role=di
       async function sync() {
         try {
           const shared = await json("/state.json");
-          if ((shared.updated || 0) === syncSeen) return;
+          const catalogChanged = Boolean(shared.catalogGenerated) && shared.catalogGenerated !== catalog.generated;
+          if (!catalogChanged && (shared.updated || 0) === syncSeen) return;
+          if (catalogChanged) {
+            catalog = await json("/catalog.json");
+            renderGames();
+          }
           state = shared;
           syncSeen = shared.updated || 0;
           render();
@@ -139,12 +165,17 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,select,[role=di
       search.addEventListener("input", renderList);
       mode.addEventListener("click", () => update({ mode: state.mode === "rotate" ? "gallery" : "rotate" }));
       panel.querySelector('[data-hu="next"]').addEventListener("click", () => update({ mode: "rotate" }));
+      panel.querySelector('[data-hu="refresh"]').addEventListener("click", async () => {
+        try {
+          await json("/api/catalog/refresh", { method: "POST" });
+          status.textContent = "正在读取 SMB 素材目录…";
+        } catch (error) { status.textContent = `同步失败：${error.message}`; }
+      });
 
       (async () => {
         try {
           [catalog, state] = await Promise.all([json("/catalog.json"), json("/state.json")]);
-          for (const [value, label] of new Map(catalog.entries.map((entry) => [entry.game, entry.gameName])))
-            game.add(new Option(label, value));
+          renderGames();
           syncSeen = state.updated || 0;
           render();
           syncTimer = setInterval(sync, SYNC_MS);

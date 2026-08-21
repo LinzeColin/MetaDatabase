@@ -39,7 +39,16 @@ Runtime 只读取 `skins/`。`refs/`、`_产线`、PDF、AppleDouble 文件及�
 - `POST /api/state`：更新允许的状态字段；
 - `GET /assets/...`：按需读取一张 SMB 图片。
 
-两台电脑各自维护配置和状态；NAS 只提供只读图片。目录刷新由用户触发，不进行后台全库轮询。
+两台电脑各自维护配置和状态；NAS 只提供只读图片。控制器支持“同步素材”手动刷新，并每 15 分钟轻量刷新目录索引。刷新采用完整性门：SMB 临时断开或只看见部分目录时继续使用上一版目录；本地镜像完整时可直接降级读取，避免 Kimi/DSH 因瞬时网络或 macOS Network Volumes 权限变化变成空素材库。
+
+当前 macOS 本地桥的安装脚本默认只预览，不会重启 Kimi 或 DSH：
+
+```bash
+service/install-macos.sh
+service/install-macos.sh --apply
+```
+
+第二条只更新 `~/.harness-ui` 中的服务程序和用户级 LaunchAgent，并重新加载 HarnessUI 服务；素材、选择状态和宿主应用不被替换。仓库内 plist 使用占位符，由脚本按当前用户目录生成，不包含开发者机器路径。
 
 ## 开发
 
@@ -75,8 +84,7 @@ Inno 安装器的完整双架构命令以
   `\\192.168.0.1\share\03_资料库\MetaData\HarnessUI`，也可从托盘菜单重新选择。
 
 Mac 首次连接可在 Finder 使用“前往 → 连接服务器”，输入
-`smb://192.168.0.1/share/03_资料库/MetaData/HarnessUI/`。控制器仅在用户点击刷新或首次配置时读取目录，
-不会后台遍历 NAS。
+`smb://192.168.0.1/share/03_资料库/MetaData/HarnessUI/`。控制器只读取约定的游戏/角色/皮肤目录并按需读取当前图片；不会把图片上传或写回 NAS。
 
 零成本 Mac 推荐让 Agent clone 后运行仓内安装脚本；脚本从固定版本的 GitHub community Release 下载 ZIP，
 无需 Node、Swift 或 Xcode：

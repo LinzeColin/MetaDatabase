@@ -110,7 +110,7 @@ public final class LoopbackHTTPServer: @unchecked Sendable {
     }
 
     private func send(_ response: HTTPResponse, on connection: NWConnection) {
-        let phrases = [200: "OK", 204: "No Content", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 405: "Method Not Allowed", 500: "Internal Server Error"]
+        let phrases = [200: "OK", 202: "Accepted", 204: "No Content", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 405: "Method Not Allowed", 500: "Internal Server Error"]
         var headers = response.headers
         headers["Content-Type"] = response.contentType
         headers["Content-Length"] = String(response.body.count)

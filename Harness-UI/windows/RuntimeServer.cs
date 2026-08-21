@@ -12,12 +12,16 @@ internal sealed class RuntimeServer : IAsyncDisposable
 {
     private readonly HarnessStore store;
     private readonly string webRoot;
+    private readonly Action requestCatalogRefresh;
+    private readonly Func<object> getRefreshStatus;
     private WebApplication? application;
 
-    internal RuntimeServer(HarnessStore store, string webRoot)
+    internal RuntimeServer(HarnessStore store, string webRoot, Action requestCatalogRefresh, Func<object> getRefreshStatus)
     {
         this.store = store;
         this.webRoot = webRoot;
+        this.requestCatalogRefresh = requestCatalogRefresh;
+        this.getRefreshStatus = getRefreshStatus;
     }
 
     internal async Task StartAsync(ushort port, CancellationToken cancellationToken = default)
@@ -66,8 +70,27 @@ internal sealed class RuntimeServer : IAsyncDisposable
             response.Headers["Access-Control-Allow-Headers"] = "Content-Type";
             return Results.NoContent();
         });
-        app.MapGet("/catalog.json", () => Results.Bytes(store.CatalogJson(), "application/json; charset=utf-8"));
-        app.MapGet("/state.json", () => Results.Bytes(store.StateJson(), "application/json; charset=utf-8"));
+        app.MapGet("/catalog.json", (HttpResponse response) =>
+        {
+            response.Headers.CacheControl = "no-store";
+            return Results.Bytes(store.CatalogJson(), "application/json; charset=utf-8");
+        });
+        app.MapGet("/state.json", (HttpResponse response) =>
+        {
+            response.Headers.CacheControl = "no-store";
+            return Results.Bytes(store.StateJson(), "application/json; charset=utf-8");
+        });
+        app.MapGet("/refresh-status.json", (HttpResponse response) =>
+        {
+            response.Headers.CacheControl = "no-store";
+            return Results.Json(getRefreshStatus(), HarnessJson.Options);
+        });
+        app.MapPost("/api/catalog/refresh", (HttpResponse response) =>
+        {
+            response.Headers.CacheControl = "no-store";
+            requestCatalogRefresh();
+            return Results.Json(new { status = "accepted" }, HarnessJson.Options, statusCode: StatusCodes.Status202Accepted);
+        });
         app.MapPost("/api/state", async (HttpRequest request) =>
         {
             try

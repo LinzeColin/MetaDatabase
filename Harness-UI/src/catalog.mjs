@@ -31,6 +31,8 @@ function encodeAssetUrl(baseUrl, gameName, character, variant, side) {
 }
 
 export function buildCatalog({ sourceRoot, baseUrl = "http://127.0.0.1:3099", labels = {}, clock = () => new Date() }) {
+  const generated = clock().toISOString();
+  const revision = encodeURIComponent(generated);
   const entries = [];
   for (const [gameName, game] of Object.entries(GAME_SLUGS)) {
     const gameRoot = path.join(sourceRoot, gameName);
@@ -56,8 +58,8 @@ export function buildCatalog({ sourceRoot, baseUrl = "http://127.0.0.1:3099", la
           variantZh,
           label: characterZh,
           fullLabel: variant === "default" ? characterZh : `${characterZh} · ${variantZh}`,
-          light: encodeAssetUrl(baseUrl, gameName, character, variant, "light"),
-          dark: encodeAssetUrl(baseUrl, gameName, character, variant, "dark"),
+          light: `${encodeAssetUrl(baseUrl, gameName, character, variant, "light")}?v=${revision}`,
+          dark: `${encodeAssetUrl(baseUrl, gameName, character, variant, "dark")}?v=${revision}`,
         });
       }
     }
@@ -66,7 +68,7 @@ export function buildCatalog({ sourceRoot, baseUrl = "http://127.0.0.1:3099", la
   return {
     version: 1,
     source: "smb",
-    generated: clock().toISOString(),
+    generated,
     count: entries.length,
     entries,
   };

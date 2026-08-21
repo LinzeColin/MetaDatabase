@@ -3,7 +3,7 @@
 这是公开、可复现、**未使用受信任发行证书**的 prerelease。预算为 `$0`；它不是 Apple Developer ID
 或 Windows Authenticode 签名版，也未通过 Apple 公证。
 
-下载页：[Kimi Code Desktop v0.1.0 Community](https://github.com/LinzeColin/MetaDatabase/releases/tag/kimi-code-desktop-community-v0.1.0)
+下载页：[Kimi Code Desktop v0.2.0 Community](https://github.com/LinzeColin/MetaDatabase/releases/tag/kimi-code-desktop-community-v0.2.0)
 
 ## 资产
 
@@ -19,7 +19,7 @@ cd MetaDatabase/Kimi-Code-Desktop
 bash scripts/install-community-macos.sh
 ```
 
-脚本只下载并复制到 `~/Applications/Kimi Code Desktop.app`，不会启动、关闭或重启任何应用；目标已存在时直接退出。
+脚本只下载并复制到 `~/Applications/Kimi Code.app`，不会启动、关闭或重启任何应用；更新既有 App 前要求它已经正常退出，并先保留可恢复的旧版本。
 它不会修改 Gatekeeper 设置或移除 quarantine 属性。
 
 ## 数据边界

@@ -8,6 +8,7 @@ export const DEFAULT_STATE = Object.freeze({
   cursor: 0,
   lastRotate: 0,
   updated: 0,
+  catalogGenerated: "",
 });
 
 export const WRITABLE_STATE_FIELDS = Object.freeze([
@@ -17,6 +18,7 @@ export const WRITABLE_STATE_FIELDS = Object.freeze([
 export function normalizeState(raw = {}, catalog = { entries: [] }) {
   const ids = new Set((catalog.entries || []).map((entry) => entry.id));
   const state = { ...DEFAULT_STATE, ...raw };
+  state.catalogGenerated = typeof state.catalogGenerated === "string" ? state.catalogGenerated : "";
   state.mode = state.mode === "rotate" ? "rotate" : "gallery";
   state.intervalMs = Number.isFinite(Number(state.intervalMs)) && Number(state.intervalMs) >= 60000
     ? Number(state.intervalMs) : DEFAULT_STATE.intervalMs;

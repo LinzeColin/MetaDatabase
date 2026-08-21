@@ -9,6 +9,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var configuration = HarnessConfiguration()
     private var statusItem: NSStatusItem?
     private var timer: Timer?
+    private var refreshTimer: Timer?
+    private var refreshRunning = false
+    private let refreshStatusLock = NSLock()
+    private var refreshStatus: [String: Any] = ["status": "idle", "message": "尚未刷新", "updated": 0]
     private var webRoot: URL!
     private var labels: [String: Label] = [:]
 
@@ -26,10 +30,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         if !configuration.sourcePath.isEmpty { refreshCatalog(showResult: false) }
         scheduleRotation()
+        refreshTimer = Timer.scheduledTimer(withTimeInterval: 900, repeats: true) { [weak self] _ in
+            self?.refreshCatalog(showResult: false)
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         timer?.invalidate()
+        refreshTimer?.invalidate()
         server.stop()
     }
 
@@ -110,10 +118,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func refreshFromMenu() { refreshCatalog(showResult: true) }
 
     private func refreshCatalog(showResult: Bool) {
+        if !Thread.isMainThread {
+            DispatchQueue.main.async { [weak self] in self?.refreshCatalog(showResult: showResult) }
+            return
+        }
+        guard !refreshRunning else { return }
         guard !configuration.sourcePath.isEmpty else {
+            setRefreshStatus("failed", message: "尚未选择素材目录")
             if showResult { showError("尚未选择素材目录", detail: configuration.smbURL) }
             return
         }
+        refreshRunning = true
+        setRefreshStatus("running", message: "正在读取 SMB 素材目录")
         statusItem?.button?.title = "HU…"
         let root = URL(fileURLWithPath: configuration.sourcePath, isDirectory: true)
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
@@ -122,14 +138,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             do {
                 try self.store.install(build: build)
                 DispatchQueue.main.async {
+                    self.refreshRunning = false
+                    self.setRefreshStatus("ready", message: "已同步 \(build.catalog.count) 个变体")
                     self.statusItem?.button?.title = "HU"
                     self.rebuildMenu()
                     if showResult { self.showInfo("素材目录已刷新", detail: "共 \(build.catalog.count) 个变体") }
                 }
             } catch {
-                DispatchQueue.main.async { self.statusItem?.button?.title = "HU"; self.showError("刷新失败", detail: error.localizedDescription) }
+                DispatchQueue.main.async {
+                    self.refreshRunning = false
+                    self.setRefreshStatus("failed", message: error.localizedDescription)
+                    self.statusItem?.button?.title = "HU"
+                    if showResult { self.showError("刷新失败", detail: error.localizedDescription) }
+                }
             }
         }
+    }
+
+    private func setRefreshStatus(_ status: String, message: String) {
+        refreshStatusLock.lock()
+        refreshStatus = ["status": status, "message": message, "updated": Int64(Date().timeIntervalSince1970 * 1000)]
+        refreshStatusLock.unlock()
+    }
+
+    private func refreshStatusResponse() -> HTTPResponse {
+        refreshStatusLock.lock()
+        let value = refreshStatus
+        refreshStatusLock.unlock()
+        guard let data = try? JSONSerialization.data(withJSONObject: value) else { return HTTPResponse(status: 500) }
+        return HTTPResponse(contentType: "application/json; charset=utf-8", body: data, headers: ["Cache-Control": "no-store"])
     }
 
     @objc private func nextSkin() {
@@ -156,6 +193,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if request.method == "OPTIONS" { return HTTPResponse(status: 204, headers: ["Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type"]) }
         if request.method == "GET", request.path == "/catalog.json" { return jsonResponse { try store.jsonCatalog() } }
         if request.method == "GET", request.path == "/state.json" { return jsonResponse { try store.jsonState() } }
+        if request.method == "GET", request.path == "/refresh-status.json" { return refreshStatusResponse() }
+        if request.method == "POST", request.path == "/api/catalog/refresh" {
+            DispatchQueue.main.async { [weak self] in self?.refreshCatalog(showResult: false) }
+            let body = Data("{\"status\":\"accepted\"}".utf8)
+            return HTTPResponse(status: 202, contentType: "application/json; charset=utf-8", body: body, headers: ["Cache-Control": "no-store"])
+        }
         if request.method == "POST", request.path == "/api/state" {
             guard let object = try? JSONSerialization.jsonObject(with: request.body) as? [String: Any] else { return HTTPResponse(status: 400) }
             do {
@@ -179,7 +222,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func jsonResponse(_ body: () throws -> Data) -> HTTPResponse {
-        do { return HTTPResponse(contentType: "application/json; charset=utf-8", body: try body()) }
+        do { return HTTPResponse(contentType: "application/json; charset=utf-8", body: try body(), headers: ["Cache-Control": "no-store"]) }
         catch { return HTTPResponse(status: 500) }
     }
 

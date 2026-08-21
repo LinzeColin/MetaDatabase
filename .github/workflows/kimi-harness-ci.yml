@@ -104,8 +104,8 @@ jobs:
           npm run prepare:kimi -- --platform=darwin --arch=arm64
           npx electron-builder --mac dmg zip --arm64 --config.directories.output=dist-ci
           version="$(node -p 'require("./package.json").version')"
-          file "dist-ci/mac-arm64/Kimi Code Desktop.app/Contents/MacOS/Kimi Code Desktop"
-          file "dist-ci/mac-arm64/Kimi Code Desktop.app/Contents/Resources/kimi/kimi"
+          file "dist-ci/mac-arm64/Kimi Code.app/Contents/MacOS/Kimi Code"
+          file "dist-ci/mac-arm64/Kimi Code.app/Contents/Resources/kimi/kimi"
           test -f "dist-ci/Kimi Code Desktop-$version-mac-arm64.dmg"
           test -f "dist-ci/Kimi Code Desktop-$version-mac-arm64.zip"
 

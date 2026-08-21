@@ -19,8 +19,8 @@ test("builds the public catalog from the SMB directory contract", () => {
     variantZh: "默认",
     label: "爱诺",
     fullLabel: "爱诺",
-    light: "http://127.0.0.1:3099/assets/%E5%8E%9F%E7%A5%9E/aino/default/light",
-    dark: "http://127.0.0.1:3099/assets/%E5%8E%9F%E7%A5%9E/aino/default/dark",
+    light: "http://127.0.0.1:3099/assets/%E5%8E%9F%E7%A5%9E/aino/default/light?v=2026-08-21T00%3A00%3A00.000Z",
+    dark: "http://127.0.0.1:3099/assets/%E5%8E%9F%E7%A5%9E/aino/default/dark?v=2026-08-21T00%3A00%3A00.000Z",
   });
 });
 

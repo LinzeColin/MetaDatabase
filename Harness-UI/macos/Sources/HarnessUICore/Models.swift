@@ -47,6 +47,7 @@ public struct HarnessState: Codable, Equatable, Sendable {
     public var cursor: Int = 0
     public var lastRotate: Int64 = 0
     public var updated: Int64 = 0
+    public var catalogGenerated: String?
 
     public init() {}
 }

@@ -6,12 +6,12 @@ on:
       version:
         description: "Version already present in Kimi-Code-Desktop/package.json"
         required: true
-        default: "0.1.0"
+        default: "0.2.0"
         type: string
       prerelease:
         description: "Publish as a prerelease"
         required: true
-        default: true
+        default: false
         type: boolean
       confirm:
         description: "Type RELEASE_SIGNED_KIMI_CODE_DESKTOP"
@@ -107,7 +107,7 @@ jobs:
           npm run prepare:kimi -- --platform=darwin --arch=arm64
           npx electron-builder --mac dmg zip --arm64 --config.forceCodeSigning=true --config.mac.notarize=true --config.dmg.sign=true
 
-          app="dist/mac-arm64/Kimi Code Desktop.app"
+          app="dist/mac-arm64/Kimi Code.app"
           codesign --verify --deep --strict --verbose=2 "$app"
           xcrun stapler validate "$app"
           spctl --assess --type execute --verbose=2 "$app"
@@ -169,7 +169,7 @@ jobs:
             npm run prepare:kimi -- --platform=win32 --arch=$arch
             npx electron-builder --win nsis zip "--$arch" --config.forceCodeSigning=true "--config.directories.output=$output"
 
-            $app = Get-ChildItem $output -Recurse -File -Filter "Kimi Code Desktop.exe" | Select-Object -First 1
+            $app = Get-ChildItem $output -Recurse -File -Filter "Kimi Code.exe" | Select-Object -First 1
             $installer = "$output/Kimi Code Desktop-$version-win-$arch.exe"
             $archive = "$output/Kimi Code Desktop-$version-win-$arch.zip"
             if (-not $app) { throw "Signed app executable was not found for $arch" }

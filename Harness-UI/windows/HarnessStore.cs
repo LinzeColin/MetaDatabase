@@ -43,9 +43,18 @@ internal sealed class HarnessStore
     {
         lock (gate)
         {
+            if (catalog.Count > 0 && build.Catalog.Count == 0)
+                throw new InvalidOperationException($"素材源未返回任何有效皮肤；已保留上一次的 {catalog.Count} 个素材。请检查 SMB 连接或所选目录。");
+            var previousGames = catalog.Entries.Select(entry => entry.Game).ToHashSet(StringComparer.Ordinal);
+            var nextGames = build.Catalog.Entries.Select(entry => entry.Game).ToHashSet(StringComparer.Ordinal);
+            previousGames.ExceptWith(nextGames);
+            if (previousGames.Count > 0)
+                throw new InvalidOperationException($"素材源缺少既有游戏分区：{string.Join(", ", previousGames.OrderBy(value => value))}；已保留上一版目录。");
             catalog = build.Catalog;
             assets = build.Assets;
             state = Normalize(state, catalog);
+            state.CatalogGenerated = build.Catalog.Generated;
+            state.Updated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             Write(CatalogFile, catalog);
             Write(StateFile, state);
         }
@@ -118,6 +127,7 @@ internal sealed class HarnessStore
             Hidden = hidden,
             Cycle = cycle,
             Cursor = Math.Clamp(input.Cursor, 0, cycle.Length),
+            CatalogGenerated = string.IsNullOrEmpty(currentCatalog.Generated) ? input.CatalogGenerated : currentCatalog.Generated,
         };
     }
 

@@ -1,9 +1,9 @@
 const http = require("node:http");
 
-function fetchJson(url, maxBytes = 2 * 1024 * 1024) {
+function requestJson(url, options = {}, maxBytes = 2 * 1024 * 1024) {
   return new Promise((resolve, reject) => {
-    const request = http.get(url, { timeout: 1200 }, (response) => {
-      if (response.statusCode !== 200) {
+    const request = http.request(url, { timeout: 1200, ...options }, (response) => {
+      if (response.statusCode < 200 || response.statusCode >= 300) {
         response.resume();
         reject(new Error(`Harness UI returned HTTP ${response.statusCode}`));
         return;
@@ -15,12 +15,31 @@ function fetchJson(url, maxBytes = 2 * 1024 * 1024) {
         if (raw.length > maxBytes) request.destroy(new Error("Harness UI response is too large"));
       });
       response.on("end", () => {
+        if (response.statusCode === 204 || !raw) { resolve(null); return; }
         try { resolve(JSON.parse(raw)); }
         catch (error) { reject(error); }
       });
     });
     request.once("timeout", () => request.destroy(new Error("Harness UI request timed out")));
     request.once("error", reject);
+    if (options.body) request.write(options.body);
+    request.end();
+  });
+}
+
+function fetchJson(url, maxBytes) {
+  return requestJson(url, { method: "GET", headers: { "Cache-Control": "no-cache" } }, maxBytes);
+}
+
+function postJson(url, value) {
+  const body = JSON.stringify(value);
+  return requestJson(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Content-Length": Buffer.byteLength(body),
+    },
+    body,
   });
 }
 
@@ -37,19 +56,45 @@ function assertLoopbackBase(raw) {
   return url.origin;
 }
 
+function assetWithRevision(raw, generated) {
+  if (!raw || raw.includes("?v=") || !generated) return raw || "";
+  return `${raw}?v=${encodeURIComponent(generated)}`;
+}
+
 class HarnessBridge {
-  constructor({ baseUrl = process.env.HARNESS_UI_URL, intervalMs = 15000 } = {}) {
+  constructor({ baseUrl = process.env.HARNESS_UI_URL, intervalMs = 15000, onChange = null } = {}) {
     this.baseUrl = assertLoopbackBase(baseUrl);
     this.intervalMs = intervalMs;
+    this.onChange = onChange;
     this.timer = null;
     this.window = null;
-    this.lastKey = null;
+    this.catalog = null;
+    this.state = null;
+    this.online = false;
+    this.error = null;
+    this.lastAppliedKey = null;
+    this.lastNoticeKey = null;
+  }
+
+  snapshot() {
+    return {
+      catalog: this.catalog || { count: 0, entries: [] },
+      state: this.state || {},
+      online: this.online,
+      error: this.error,
+    };
   }
 
   attach(window) {
-    this.stop();
     this.window = window;
+    this.lastAppliedKey = null;
     this.start();
+    this.refresh().catch(() => {});
+  }
+
+  detach(window) {
+    if (!window || this.window === window) this.window = null;
+    this.lastAppliedKey = null;
   }
 
   start() {
@@ -63,29 +108,75 @@ class HarnessBridge {
     if (this.timer) clearInterval(this.timer);
     this.timer = null;
     this.window = null;
-    this.lastKey = null;
+    this.lastAppliedKey = null;
   }
 
-  async refresh() {
-    if (!this.window || this.window.isDestroyed()) return;
-    const [catalog, state] = await Promise.all([
-      fetchJson(`${this.baseUrl}/catalog.json`),
-      fetchJson(`${this.baseUrl}/state.json`),
-    ]);
-    const entry = selectHarnessEntry(catalog, state);
+  async patch(values) {
+    const state = await postJson(`${this.baseUrl}/api/state`, values);
+    const forceCatalog = Boolean(state.catalogGenerated) && state.catalogGenerated !== this.catalog?.generated;
+    return this.refresh({ forceCatalog, suppliedState: state });
+  }
+
+  async refreshCatalog() {
+    await postJson(`${this.baseUrl}/api/catalog/refresh`, {});
+    return this.refresh({ forceCatalog: true });
+  }
+
+  async refresh({ forceCatalog = false, suppliedState = null } = {}) {
+    try {
+      const nextState = suppliedState || await fetchJson(`${this.baseUrl}/state.json`);
+      const catalogChanged = Boolean(nextState.catalogGenerated)
+        && nextState.catalogGenerated !== this.catalog?.generated;
+      const legacyState = !nextState.catalogGenerated;
+      const nextCatalog = forceCatalog || catalogChanged || legacyState || !this.catalog
+        ? await fetchJson(`${this.baseUrl}/catalog.json`)
+        : this.catalog;
+      this.catalog = nextCatalog;
+      this.state = nextState;
+      this.online = true;
+      this.error = null;
+      await this.applyCurrent();
+      this.notify();
+      return this.snapshot();
+    } catch (error) {
+      this.online = false;
+      this.error = error.message;
+      this.notify();
+      throw error;
+    }
+  }
+
+  async applyCurrent() {
+    const window = this.window;
+    if (!window || window.isDestroyed()) return;
+    const entry = selectHarnessEntry(this.catalog, this.state);
     if (!entry) return;
-    const key = `${entry.id}|${state.updated || 0}`;
-    if (!entry.light || !entry.dark || key === this.lastKey) return;
-    this.lastKey = key;
-    const light = `url(${JSON.stringify(entry.light)})`;
-    const dark = `url(${JSON.stringify(entry.dark)})`;
-    await this.window.webContents.executeJavaScript(`(() => {
+    const key = `${this.catalog?.generated || ""}|${entry.id}|${this.state?.updated || 0}`;
+    if (!entry.light || !entry.dark || key === this.lastAppliedKey) return;
+    const light = `url(${JSON.stringify(assetWithRevision(entry.light, this.catalog?.generated))})`;
+    const dark = `url(${JSON.stringify(assetWithRevision(entry.dark, this.catalog?.generated))})`;
+    await window.webContents.executeJavaScript(`(() => {
       document.documentElement.dataset.harnessUi = "active";
       document.documentElement.style.setProperty("--harness-scene", ${JSON.stringify(light)});
       document.documentElement.style.setProperty("--harness-scene-dark", ${JSON.stringify(dark)});
       return true;
     })()`);
+    this.lastAppliedKey = key;
+  }
+
+  notify() {
+    const key = `${this.online}|${this.error || ""}|${this.catalog?.generated || ""}|${this.state?.updated || 0}`;
+    if (key === this.lastNoticeKey) return;
+    this.lastNoticeKey = key;
+    this.onChange?.(this.snapshot());
   }
 }
 
-module.exports = { HarnessBridge, assertLoopbackBase, fetchJson, selectHarnessEntry };
+module.exports = {
+  HarnessBridge,
+  assertLoopbackBase,
+  assetWithRevision,
+  fetchJson,
+  postJson,
+  selectHarnessEntry,
+};

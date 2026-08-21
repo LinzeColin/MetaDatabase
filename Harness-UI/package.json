@@ -1,6 +1,6 @@
 {
   "name": "@linzecolin/harness-ui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Cross-platform Harness UI runtime and host adapters",
   "license": "MIT",
   "private": true,
