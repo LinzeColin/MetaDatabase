@@ -45,7 +45,7 @@ bash scripts/install-community-macos.sh
 - **更新边界**：更新只替换 `Kimi Code.app`；`~/.kimi-code` 中的登录、会话、配置、日志，以及 `~/.harness-ui` 中的皮肤与素材均保留。安装失败会恢复并重新打开旧 App；下次启动显示一次更新回执。
 - **窗口与进程（macOS）**：`Cmd+W` 或窗口关闭按钮只关闭窗口，Kimi 后台与 HarnessUI 同步继续运行；`Cmd+Q` 才退出 GUI、由本 App 管理的 Kimi 后台和相关定时器。
 - **皮肤同步**：内置皮肤菜单与 HarnessUI 共用目录和状态；素材目录变更后会自动刷新，也可手动点击“同步素材”。
-- **macOS 权限身份**：安装路径、bundle id 与签名身份必须稳定，避免系统把更新识别为另一款 App。Full Disk Access 仍由 macOS TCC 管理，软件不会绕过或伪造授权。
+- **macOS 权限身份**：安装路径、bundle id 与签名身份必须稳定，避免系统把更新识别为另一款 App。应用菜单可直接打开“隐私与安全性 → 完整磁盘访问权限”；该权限不在“文件与文件夹”列表中，仍须由用户在 macOS TCC 页面明确授予，软件不会绕过或伪造授权。
 
 当前机器的个性化图标应外置保存到 `~/.kimi-code/personalization/kimi-code-desktop/`；运行时优先使用 `icon.png` 作为 Dock 图标，并保留 `icon.icns` 原件。正式更新包保持 Developer ID 签名，不在安装后篡改 App Bundle 内部资源。
 

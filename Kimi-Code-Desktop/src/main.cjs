@@ -218,6 +218,19 @@ async function checkForUpdatesInBackground() {
   } catch { }
 }
 
+async function openFullDiskAccessSettings() {
+  try {
+    await shell.openExternal("x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles");
+  } catch (error) {
+    await showMessage({
+      type: "warning",
+      title: "无法打开系统设置",
+      message: "请手动打开“隐私与安全性 → 完整磁盘访问权限”",
+      detail: error.message,
+    });
+  }
+}
+
 function buildMenu() {
   const updateLabel = updateBusy
     ? "正在检查更新…"
@@ -229,6 +242,7 @@ function buildMenu() {
     submenu: [
       { role: "about" },
       { label: updateLabel, enabled: !updateBusy, click: checkForUpdates },
+      { label: "打开完整磁盘访问设置…", click: openFullDiskAccessSettings },
       { type: "separator" },
       { role: "services" },
       { type: "separator" },
@@ -247,6 +261,7 @@ function buildMenu() {
         { label: "关闭窗口", accelerator: "CmdOrCtrl+W", role: "close" },
         { type: "separator" },
         { label: "打开 Kimi 数据目录", click: () => shell.openPath(kimiHome()) },
+        ...(process.platform === "darwin" ? [{ label: "打开完整磁盘访问设置…", click: openFullDiskAccessSettings }] : []),
         { type: "separator" },
         { label: "退出", accelerator: "CmdOrCtrl+Q", role: "quit" },
       ],

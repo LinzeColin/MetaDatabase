@@ -27,6 +27,7 @@
 - 1.0.1 更新器采用双轨：受信任稳定版可验签后一键替换；community prerelease 只显式提示并交给浏览器下载。社区安装脚本可在 Kimi 完全退出后保留旧 App 并原子替换，不会结束正在工作的 Kimi。
 - 现场运行版的 bundle version 是 1.0.0；0.2.0 会被标准版本比较视为降级，故在发布前取消。Kimi Desktop 从 1.0.1 继续递增，Harness UI 保持独立的 0.2.0 版本线；联合 community workflow 接受两个独立版本输入。
 - community macOS 构建显式使用 ad-hoc identity 并关闭该通道的 hardened runtime，打包后验证完整 bundle 与 `com.electron.kimi-code` 代码身份；仍不把它表述为 Developer ID 签名或公证版本。
+- macOS 应用菜单提供“打开完整磁盘访问设置…”并直达 `Privacy_AllFiles`；“文件与文件夹”不是 Full Disk Access 列表，授权仍由 Owner 在系统 TCC 页面完成。
 
 ## 边界
 
