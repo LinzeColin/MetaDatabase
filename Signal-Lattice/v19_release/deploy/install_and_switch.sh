@@ -4,7 +4,7 @@ umask 027
 
 [[ "$(id -u)" -eq 0 ]] || { echo ROOT_REQUIRED >&2; exit 2; }
 
-VERSION="0.0.0.1.44"
+VERSION="0.0.0.1.45"
 PROMPT_VERSION="v0.0.0.19"
 SOURCE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 INSTALL_ROOT="/opt/signal-lattice-v19"
@@ -16,9 +16,40 @@ ENV_DIR="/etc/signal-lattice-v19"
 ENV_FILE="$ENV_DIR/runtime.env"
 LOCAL_URL="http://127.0.0.1:8787"
 PUBLIC_URL="https://signal-lattice.linzezhang.com"
-WHEEL="$(find "$SOURCE_ROOT/dist" -maxdepth 1 -type f -name 'signal_lattice_v19-0.0.0.1.44-*.whl' -print -quit)"
+WHEEL="$(find "$SOURCE_ROOT/dist" -maxdepth 1 -type f -name 'signal_lattice_v19-0.0.0.1.45-*.whl' -print -quit)"
 
 [[ -n "$WHEEL" && -f "$WHEEL" ]] || { echo PREBUILT_WHEEL_MISSING >&2; exit 3; }
+
+# A missing OpenD is an environmental precondition, not an application
+# deployment failure. Check it before creating a release directory, changing
+# the symlink, installing a provider SDK, or restarting any service. This
+# preserves the currently serving release when the quote gateway is absent.
+MOOMOO_HOST="127.0.0.1"
+MOOMOO_PORT="11111"
+for PROVIDER_ENV in "$ENV_FILE" "/etc/signal-lattice/runtime.env"; do
+  [[ -f "$PROVIDER_ENV" ]] || continue
+  VALUE="$(awk -F= '$1=="MOOMOO_OPEND_HOST"{print $2; exit}' "$PROVIDER_ENV" | tr -d '[:space:]')"
+  [[ "$VALUE" =~ ^(127\.0\.0\.1|localhost|::1)$ ]] && MOOMOO_HOST="$VALUE"
+  VALUE="$(awk -F= '$1=="MOOMOO_OPEND_PORT"{print $2; exit}' "$PROVIDER_ENV" | tr -d '[:space:]')"
+  [[ "$VALUE" =~ ^[0-9]{1,5}$ ]] && MOOMOO_PORT="$VALUE"
+done
+
+moomoo_endpoint_reachable() {
+  python3 - "$MOOMOO_HOST" "$MOOMOO_PORT" <<'PY'
+import socket
+import sys
+
+host, port = sys.argv[1], int(sys.argv[2])
+try:
+    with socket.create_connection((host, port), timeout=5):
+        pass
+except OSError as exc:
+    print(f"MOOMOO_OPEND_UNREACHABLE:{host}:{port}:{type(exc).__name__}", file=sys.stderr)
+    raise SystemExit(1)
+PY
+}
+
+moomoo_endpoint_reachable || exit 5
 
 if ! id signal-lattice >/dev/null 2>&1; then
   useradd --system --home-dir /var/lib/signal-lattice --shell /usr/sbin/nologin signal-lattice
@@ -122,16 +153,6 @@ PY
   fi
 fi
 provider_available || { echo MOOMOO_QUOTE_PROVIDER_UNAVAILABLE >&2; exit 4; }
-
-MOOMOO_HOST="127.0.0.1"
-MOOMOO_PORT="11111"
-OLD_ENV="/etc/signal-lattice/runtime.env"
-if [[ -f "$OLD_ENV" ]]; then
-  VALUE="$(awk -F= '$1=="MOOMOO_OPEND_HOST"{print $2; exit}' "$OLD_ENV" | tr -d '[:space:]')"
-  [[ "$VALUE" =~ ^(127\.0\.0\.1|localhost|::1)$ ]] && MOOMOO_HOST="$VALUE"
-  VALUE="$(awk -F= '$1=="MOOMOO_OPEND_PORT"{print $2; exit}' "$OLD_ENV" | tr -d '[:space:]')"
-  [[ "$VALUE" =~ ^[0-9]{1,5}$ ]] && MOOMOO_PORT="$VALUE"
-fi
 
 cat > "$ENV_FILE" <<ENV
 SL19_STATE_DIR=$STATE_DIR

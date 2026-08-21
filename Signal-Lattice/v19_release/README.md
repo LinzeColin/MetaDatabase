@@ -1,6 +1,6 @@
 # Signal Lattice V19 acceptance boundary
 
-V19 is a read-only, `SHADOW_ONLY` research system. It never opens a trading context or sends an order. The current application version is `0.0.0.1.44`; the decision contract is `v0.0.0.19`.
+V19 is a read-only, `SHADOW_ONLY` research system. It never opens a trading context or sends an order. The current application version is `0.0.0.1.45`; the decision contract is `v0.0.0.19`.
 
 ## Acceptance states
 
@@ -28,7 +28,7 @@ PYTHONDONTWRITEBYTECODE=1 bash scripts/run_local_acceptance.sh
 
 It must return `STRUCTURAL_PASS`, `market_provider=fixture`, `provider_state=fixture`, and `business_release_status=NOT_ISSUED`.
 
-The VPS3 installation program invokes `scripts/run_acceptance.py --require-live-provider` against both loopback and public URLs. It fails closed unless both report `LIVE_MOOMOO_QUOTE` and `LIVE_PROVIDER_REVIEW_ONLY`.
+The VPS3 installation program first verifies that its configured local MooMoo OpenD endpoint is reachable, before it creates a release, installs a provider SDK, changes the current symlink, or restarts a service. It then invokes `scripts/run_acceptance.py --require-live-provider` against both loopback and public URLs. It fails closed unless both report `LIVE_MOOMOO_QUOTE` and `LIVE_PROVIDER_REVIEW_ONLY`.
 
 ## Business-release boundary
 
