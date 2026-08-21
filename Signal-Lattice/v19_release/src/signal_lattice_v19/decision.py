@@ -7,7 +7,7 @@ from typing import Any
 
 from .clock import sydney_date
 from .config import Settings
-from .metrics import relative_path
+from .metrics import has_usable_fx_history, relative_path
 from .models import Candidate, Metrics, SkillResult
 
 BROAD_BUCKETS = {"us_broad", "developed_ex_us", "emerging_markets", "global_broad"}
@@ -62,6 +62,35 @@ def _candidate_support(candidate: Candidate, skills: list[SkillResult]) -> tuple
     return supporting, opposing
 
 
+def _non_negative_bps(value: Any, default: float = 0.0) -> float:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return default
+    return number if number >= 0.0 else default
+
+
+def _candidate_cost_lower_bound_pct(candidate: Candidate, base_currency: str | None) -> tuple[float, dict[str, float]]:
+    metadata = candidate.metadata if isinstance(candidate.metadata, dict) else {}
+    liquidity = min(1.0, max(0.0, float(candidate.liquidity_score)))
+    execution_bps = _non_negative_bps(candidate.cost_bps)
+    slippage_bps = _non_negative_bps(
+        metadata.get("slippage_bps"),
+        max(2.0, (1.0 - liquidity) * 25.0),
+    )
+    fx_bps = _non_negative_bps(metadata.get("fx_cost_bps", metadata.get("fx_bps")))
+    if base_currency and candidate.currency.upper() != base_currency.upper():
+        fx_bps = max(fx_bps, 25.0)
+    components = {
+        "execution_bps": execution_bps,
+        "slippage_bps": slippage_bps,
+        "fx_bps": fx_bps,
+    }
+    # Each component is charged on entry and exit; do not let a quoted one-way
+    # cost be treated as a round-trip cost in a switch eligibility decision.
+    return sum(components.values()) * 2.0 / 100.0, components
+
+
 def _best_reference(
     candidates: list[Candidate], metrics: dict[str, Metrics], bucket_ids: set[str], exclude_code: str
 ) -> Candidate | None:
@@ -86,34 +115,43 @@ def _qualifies(
     skills: list[SkillResult],
     candidates: list[Candidate],
     metrics: dict[str, Metrics],
+    base_currency: str | None = None,
 ) -> tuple[bool, list[str], dict[str, Any]]:
     reasons: list[str] = []
     evidence: dict[str, Any] = {}
     lower60 = metric.relative_stress_lower_pct.get("60")
     lower20 = metric.relative_stress_lower_pct.get("20")
     effective_tier = 3 if candidate.inverse or candidate.leveraged else candidate.risk_tier
+    cost_lower_bound_pct, cost_components = _candidate_cost_lower_bound_pct(candidate, base_currency)
+    evidence["cost_components_bps"] = cost_components
+    evidence["conservative_round_trip_cost_pct"] = cost_lower_bound_pct
+    evidence["base_currency"] = base_currency or candidate.currency
 
     if not candidate.platform_verified:
         reasons.append("平台产品证据不足")
     if candidate.liquidity_score <= 0.05:
         reasons.append("流动性资格不足")
+    if not has_usable_fx_history(candidate, base_currency):
+        reasons.append("缺少可定位外汇转换链")
     if lower60 is None:
         reasons.append("缺少60日相对价格链")
-    elif float(lower60) <= settings.switch_gate_pct:
-        reasons.append("60日保守下界未越切换门")
-    if lower20 is None or float(lower20) < settings.tactical_floor_pct:
+    elif float(lower60) - cost_lower_bound_pct <= settings.switch_gate_pct:
+        reasons.append("候选成本FX滑点后60日保守下界未越切换门")
+    if lower20 is None or float(lower20) - cost_lower_bound_pct < settings.tactical_floor_pct:
         reasons.append("20日战术约束未通过")
 
     supporting, opposing = _candidate_support(candidate, skills)
     evidence["supporting_families"] = sorted(supporting)
     evidence["opposing_families"] = sorted(opposing)
+    evidence["supporting_non_price_families"] = sorted(supporting.intersection(NON_PRICE_FAMILIES))
     evidence["effective_risk_tier"] = effective_tier
+
+    if not supporting.intersection(NON_PRICE_FAMILIES):
+        reasons.append("缺少候选级非价格方法支持")
 
     if effective_tier >= 2:
         if len(supporting) < 2:
             reasons.append("独立方法家族不足")
-        if not supporting.intersection(NON_PRICE_FAMILIES):
-            reasons.append("缺少候选级非价格方法支持")
         absolute60 = metric.returns_pct.get("60")
         if absolute60 is None or float(absolute60) <= 0:
             reasons.append("风险候选60日收益未通过")
@@ -121,18 +159,24 @@ def _qualifies(
         broad = _best_reference(candidates, metrics, BROAD_BUCKETS, candidate.provider_code)
         cash = _best_reference(candidates, metrics, {"cash_alternative", "rates_credit"}, candidate.provider_code)
         if broad is not None:
-            broad_rel, broad_lower = relative_path(candidate, broad, 60)
+            broad_rel, broad_lower = relative_path(candidate, broad, 60, base_currency)
             evidence["relative_to_best_broad_pct"] = broad_rel
             evidence["stress_lower_to_best_broad_pct"] = broad_lower
-            if broad_lower is None or float(broad_lower) <= settings.switch_gate_pct:
+            evidence["cost_adjusted_stress_lower_to_best_broad_pct"] = (
+                float(broad_lower) - cost_lower_bound_pct if broad_lower is not None else None
+            )
+            if broad_lower is None or float(broad_lower) - cost_lower_bound_pct <= settings.switch_gate_pct:
                 reasons.append("未以保守下界净胜普通宽基")
         else:
             reasons.append("缺少可比普通宽基")
         if cash is not None:
-            cash_rel, cash_lower = relative_path(candidate, cash, 60)
+            cash_rel, cash_lower = relative_path(candidate, cash, 60, base_currency)
             evidence["relative_to_cash_pct"] = cash_rel
             evidence["stress_lower_to_cash_pct"] = cash_lower
-            if cash_lower is None or float(cash_lower) <= settings.switch_gate_pct:
+            evidence["cost_adjusted_stress_lower_to_cash_pct"] = (
+                float(cash_lower) - cost_lower_bound_pct if cash_lower is not None else None
+            )
+            if cash_lower is None or float(cash_lower) - cost_lower_bound_pct <= settings.switch_gate_pct:
                 reasons.append("未以保守下界净胜现金或低风险")
         else:
             reasons.append("缺少现金或低风险比较路径")
@@ -201,6 +245,9 @@ def decide(
     risk_adjusted = min(100.0, observable_drawdown + settings.reserve_pct)
     remaining_budget = max(0.0, settings.hard_failure_drawdown_pct - risk_adjusted)
 
+    base_currency = str(
+        settings.runtime.get("report_currency") or current_state.get("currency") or ""
+    )
     path_frontiers = _path_frontiers(candidates, metrics, incumbent_code)
     qualification: dict[str, dict[str, Any]] = {}
     eligible: list[tuple[float, Candidate, Metrics]] = []
@@ -209,7 +256,15 @@ def decide(
             continue
         candidate = frontier["candidate"]
         metric = frontier["metric"]
-        passed, reasons, evidence = _qualifies(candidate, metric, settings, skills, candidates, metrics)
+        passed, reasons, evidence = _qualifies(
+            candidate,
+            metric,
+            settings,
+            skills,
+            candidates,
+            metrics,
+            base_currency=base_currency,
+        )
         qualification[path_name] = {
             "provider_code": candidate.provider_code,
             "passed": passed,
@@ -374,6 +429,7 @@ def decide(
     data_cutoff = (
         f"美国证券={market_context.get('us_cutoff', '最近有效常规收盘')}；"
         f"中国基金={market_context.get('china_cutoff', '最近可定位净值')}；"
+        f"观察时间={market_context.get('observed_at', '本轮观察时间不可用')}；"
         f"汇率={market_context.get('fx_cutoff', '最近正式值')}；事件={event_cutoff}"
     )
     coverage = str(market_context.get("coverage", "最低可行"))

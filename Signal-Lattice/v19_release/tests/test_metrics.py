@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 from datetime import date, timedelta
 
-from signal_lattice_v19.metrics import absolute_metrics, relative_path
+from signal_lattice_v19.metrics import absolute_metrics, has_usable_fx_history, relative_path
 from signal_lattice_v19.models import Candidate
 
 
@@ -45,6 +45,34 @@ class MetricsTests(unittest.TestCase):
         self.assertIsNotNone(point)
         self.assertIsNotNone(lower)
         self.assertLess(lower, point)
+
+    def test_cross_currency_path_uses_source_dated_fx_rates(self):
+        incumbent = candidate("AU.SPY", 0.001)
+        challenger = candidate("US.X", 0.001)
+        challenger.currency = "USD"
+        challenger.metadata["fx_to_base"] = [
+            {"date": row["time"], "rate": 1.50 - index * 0.001}
+            for index, row in enumerate(challenger.bars)
+        ]
+
+        native_point, _ = relative_path(challenger, incumbent, 60)
+        aud_point, _ = relative_path(challenger, incumbent, 60, "AUD")
+
+        self.assertTrue(has_usable_fx_history(challenger, "AUD"))
+        self.assertIsNotNone(native_point)
+        self.assertIsNotNone(aud_point)
+        self.assertLess(aud_point, native_point)
+
+    def test_cross_currency_path_without_fx_history_is_not_usable(self):
+        incumbent = candidate("AU.SPY", 0.001)
+        challenger = candidate("US.X", 0.001)
+        challenger.currency = "USD"
+
+        point, lower = relative_path(challenger, incumbent, 60, "AUD")
+
+        self.assertFalse(has_usable_fx_history(challenger, "AUD"))
+        self.assertIsNone(point)
+        self.assertIsNone(lower)
 
 
 if __name__ == "__main__":

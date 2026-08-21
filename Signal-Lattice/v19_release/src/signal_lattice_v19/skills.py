@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-from pathlib import Path
 from typing import Any
 
 from .config import Settings
@@ -9,40 +7,16 @@ from .models import Candidate, Metrics, SkillResult
 
 WEIGHTS = (16.7, 16.7, 16.7, 16.7, 16.6, 16.6)
 NON_PRICE_FAMILIES = {"商业捕获", "瓶颈与稀缺", "离散事件", "综合基本面"}
+FROZEN_LOCAL_CONTRACT_VERSION = "v19-frozen-local-contract-1"
 
 
-def _read_registry(settings: Settings) -> dict[str, Any]:
-    paths = settings.runtime.get("source_refresh_paths", {})
-    registry_path = Path(str(paths.get("meta_registry", "")))
-    if registry_path.is_file():
-        try:
-            value = json.loads(registry_path.read_text(encoding="utf-8"))
-            return value if isinstance(value, dict) else {}
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-            return {}
-    return {}
-
-
-def _source_states(settings: Settings) -> dict[str, str]:
-    registry = _read_registry(settings)
-    registry_text = json.dumps(registry, ensure_ascii=False)
-    paths = settings.runtime.get("source_refresh_paths", {})
-    meta_root = Path(str(paths.get("meta_stock_skill_root", "")))
-    serenity = Path(str(paths.get("serenity_skill", "")))
-    result: dict[str, str] = {}
-    for row in settings.skill_routes.get("skills", []):
-        skill_id = str(row["skill_id"])
-        hint = str(row.get("canonical_hint", skill_id))
-        if skill_id == "serenity-skill":
-            result[skill_id] = "Canonical方法已读取" if serenity.is_file() else "冻结方法契约"
-            continue
-        paths_to_check = [
-            meta_root / hint / "SKILL.md",
-            meta_root / f"{hint}-skill" / "SKILL.md",
-        ]
-        found = any(path.is_file() for path in paths_to_check) or hint in registry_text
-        result[skill_id] = "Canonical方法已读取" if found else "冻结方法契约"
-    return result
+def _frozen_local_binding(route: dict[str, Any]) -> tuple[str, str, str]:
+    profile = str(route.get("profile", "unknown"))
+    return (
+        "冻结本地替代",
+        f"{FROZEN_LOCAL_CONTRACT_VERSION}:{profile}",
+        f"冻结本地替代；内置 profile={profile}；Canonical SKILL.md 未执行",
+    )
 
 
 def _challengers(candidates: list[Candidate], incumbent_code: str) -> list[Candidate]:
@@ -77,6 +51,8 @@ def _result(
     contribution: str,
     independence: str,
     source_state: str,
+    method_version: str,
+    method_evidence: str,
     candidate_conclusions: dict[str, str],
     candidate_contributions: dict[str, str],
 ) -> SkillResult:
@@ -96,6 +72,8 @@ def _result(
         source_state=source_state,
         candidate_conclusions=candidate_conclusions,
         candidate_contributions=candidate_contributions,
+        method_version=method_version,
+        method_evidence=method_evidence,
     )
 
 
@@ -110,13 +88,12 @@ def run_six_skills(
     incumbent_code = str(current_state["provider_code"])
     challengers = _challengers(candidates, incumbent_code)
     strongest, strongest_metric = _strongest_challenger(candidates, metrics, incumbent_code)
-    source_states = _source_states(settings)
     routes = list(settings.skill_routes.get("skills", []))
     results: list[SkillResult] = []
 
     for index, route in enumerate(routes):
         profile = str(route.get("profile", ""))
-        source_state = source_states.get(str(route["skill_id"]), "冻结方法契约")
+        source_state, method_version, method_evidence = _frozen_local_binding(route)
         candidate_conclusions: dict[str, str] = {}
         candidate_contributions: dict[str, str] = {}
 
@@ -307,6 +284,8 @@ def run_six_skills(
             contribution,
             independence,
             source_state,
+            method_version,
+            method_evidence,
             candidate_conclusions,
             candidate_contributions,
         ))
