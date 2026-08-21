@@ -8,7 +8,7 @@ VERSION="${APP_VERSION:-$(/usr/bin/plutil -extract version raw "$PROJECT_ROOT/pa
 MACHINE_ARCH="$(uname -m)"
 ARCH="${MACHINE_ARCH/x86_64/x64}"
 TAG="kimi-code-desktop-v$VERSION"
-ASSET="Kimi Code Desktop-$VERSION-mac-$ARCH.zip"
+ASSET="Kimi.Code.Desktop-$VERSION-mac-$ARCH.zip"
 DOWNLOAD_URL="https://github.com/LinzeColin/MetaDatabase/releases/download/$TAG/$ASSET"
 
 if [ "$(uname -s)" != "Darwin" ] || { [ "$ARCH" != "arm64" ] && [ "$ARCH" != "x64" ]; }; then
@@ -29,7 +29,7 @@ cleanup() {
 }
 trap cleanup EXIT
 ARCHIVE="$TEMP_ROOT/$ASSET"
-/usr/bin/curl --fail --location --output "$ARCHIVE" "${DOWNLOAD_URL// /%20}"
+/usr/bin/curl --fail --location --output "$ARCHIVE" "$DOWNLOAD_URL"
 /usr/bin/ditto -x -k "$ARCHIVE" "$TEMP_ROOT/unpacked"
 
 SOURCE_APP="$TEMP_ROOT/unpacked/Kimi Code.app"
