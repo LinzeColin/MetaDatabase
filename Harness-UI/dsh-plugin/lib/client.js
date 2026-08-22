@@ -56,6 +56,7 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,select,[role=di
       let state = {};
       let syncTimer = null;
       let syncSeen = -1;
+      let showRevision = 0;
       const root = document.documentElement;
       document.body.dataset.dshHarnessUi = "";
       if (!document.getElementById("harness-ui-dsh-style")) document.head.appendChild(styleSheet());
@@ -101,9 +102,14 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,select,[role=di
       }
 
       async function show(entry) {
-        if (!entry) return;
+        const revision = ++showRevision;
+        if (!entry) {
+          root.style.removeProperty("--harness-scene");
+          return;
+        }
         const url = assetUrl(entry);
-        if (await preload(url)) root.style.setProperty("--harness-scene", `url(${JSON.stringify(url)})`);
+        if (await preload(url) && revision === showRevision)
+          root.style.setProperty("--harness-scene", `url(${JSON.stringify(url)})`);
       }
 
       function renderList() {
