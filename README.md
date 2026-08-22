@@ -73,9 +73,9 @@ Kimi Code Desktop、Harness UI、DSH Desktop 采用“一套源码、同一提�
 
 - 共享源码只以本仓 `main` 为准；每台电脑均从它创建独立分支并通过 PR 合入。
 - [`desktop-suite/COMPATIBILITY_CONTRACT.json`](desktop-suite/COMPATIBILITY_CONTRACT.json) 是三端路径、bundle identity、版本来源、共享皮肤协议与发布标签的机器可读真源。
-- `.github/workflows/desktop-app-suite-release.yml` 是唯一正式发布入口，在同一个 `GITHUB_SHA` 构建并发布三款 App。它先执行契约校验，发布 tag 与 GitHub Release 的 target metadata 始终指向同一提交。
-- `.github/workflows/upstream-desktop-sync.yml` 每日只检测 Kimi 与 DSH 的官方版本漂移。发现变化后，先创建一个同步三端版本来源与兼容说明的 PR；PR 合入 `main` 后，只从统一发布入口生成下一组三端资产。
-- Kimi 与 Harness UI 的历史单应用发布 workflow 已移除。未来接入 Developer ID 或 Authenticode 签名时，将签名步骤纳入统一发布 workflow，使签名资产继续处于同一提交边界。
+- `.github/workflows/desktop-app-suite-release.yml` 是唯一发布者。PR 只生成三端候选并运行契约校验；合并到 `main` 后，统一流程在同一个 `GITHUB_SHA` 构建并发布三款 App，三个 Release 同时携带 `Desktop.App.Suite-release.json` 来源记录。
+- Kimi 与 Harness UI 的历史单应用发布 workflow 已移除。每日上游检查只开版本兼容 PR 并调度跨平台 CI，不直接发布；契约检查会拒绝任何第二个桌面套件发布入口。未来签名步骤也只能加入统一发布流程。
+- Mac Pro、Mac Air 或任何 agent 都必须先同步 `origin/main`、在独立 worktree 开分支、通过 PR 和跨平台 CI 合入。`main` 禁止直接推送，电脑之间不复制或互相覆盖本机构建物。
 - 仓库 Actions 的 Workflow permissions 保持 `Read and write permissions`。发布 job 以最小 `contents: write` 权限更新正式 tag 与 Release；仓库级策略为这项 job 级授权提供执行基础。
 - Harness UI 是共享 `catalog/state` 的唯一 owner；Kimi 与 DSH 读取同一协议，`Cmd/Ctrl+Shift+N` 统一调用 `POST /api/next`。
 - API key、账号、会话、SMB 凭据、素材、运行时状态、个人图标和已安装 App 都保留在各电脑本机，发布只包含可公开的源码与应用资产。

@@ -154,6 +154,7 @@ test("keeps themed application surfaces readable without hiding background artwo
   assert.doesNotMatch(css, /--color-sidebar-bg:\s*transparent/);
   assert.match(css, /#app \.app-shell\s*\{[\s\S]*?background-color:\s*transparent\s*!important/);
   assert.match(css, /#app \.main\s*\{[\s\S]*?background-color:\s*var\(--harness-main-wash\)\s*!important/);
+  assert.match(css, /#app \.con\s*\{[\s\S]*?background-color:\s*var\(--harness-main-wash\)\s*!important/);
   assert.match(css, /#app \.content-wrap\s*\{[\s\S]*?background-color:\s*var\(--harness-reading-bg\)\s*!important/);
   assert.match(css, /--color-bg:\s*rgba\(250, 248, 250, \.64\)/);
   assert.match(css, /--color-sidebar-bg:\s*rgba\(250, 246, 250, \.74\)/);

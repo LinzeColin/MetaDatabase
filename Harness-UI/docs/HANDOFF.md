@@ -7,7 +7,7 @@
 ## 当前状态（2026-08-23）
 
 - Harness UI 使用 AgentDatabase 既有产品版本 `1.0.0`；唯一标签为 `harness-ui-v*`，旧 `harness-ui-community-v*` 不再发布。
-- 三端源码、bundle identity、共享皮肤协议与发布标签由仓根 `desktop-suite/COMPATIBILITY_CONTRACT.json` 固化；正式资产由同一 `GITHUB_SHA` 的统一 workflow 同时发布。
+- 三端源码、bundle identity、共享皮肤协议与发布标签由仓根 `desktop-suite/COMPATIBILITY_CONTRACT.json` 固化；正式资产只由当前 `main` 同一 `GITHUB_SHA` 的统一 workflow 同时发布，三个 Release 带同一份来源记录。
 - macOS Apple Silicon、Windows x64/arm64 构建入口均存在；两端原生菜单提供“检查并下载更新…”。
 - Harness UI 在 `127.0.0.1:3099` 提供唯一 `catalog.json/state.json`。素材 generation 更新后 Kimi 与 DSH 热读取，不复制第二份菜单状态。
 - “下一张”由唯一服务端原子动作 `POST /api/next` 推进；Kimi、DSH、Harness UI 共用 `Cmd/Ctrl+Shift+N`，任一端切换后其它端约 1 秒同步。
@@ -19,7 +19,7 @@
 - Harness UI macOS 本地代码身份固定为 `com.linzecolin.harnessui`；配置、素材、状态与图标均位于 App Bundle 外。
 - DSH GitHub Release 直接镜像 anywhere-labs 官方同版本安装器，版本当前为 `2.0.2`，不建立桥接私有版本号。
 - DSH macOS 桥接包提供更新菜单、HarnessUI 同步、外置图标和退出安装；本地代码身份固定为 `ai.deepseek.dsh.desktop`。有自定义图标则跨更新保留，没有图标也不会阻断官方更新。
-- 每日 GitHub workflow 只检测 Kimi 与 DSH 的官方版本漂移；版本同步 PR 合入后，唯一三端发布 workflow 生成 Kimi、Harness UI、DSH 的同提交资产。DSH 自身更新按钮继续读取官方上游。
+- 每日 GitHub workflow 发现官方 Kimi/DSH 版本变化时只开三端兼容 PR 并调度 CI；合并后才由唯一套件发布流程镜像 DSH。DSH 自身更新按钮继续读取官方上游。
 - 本机未发现 DSH launchd/登录项自动重启链路。90 秒受控退出期间未自动重启；此前连续启动时间与诊断操作一一对应。DSH 已受控重启一次以加载新桥接插件，当前正常运行。
 - Harness UI 使用 Carbon 注册进程级 `Cmd+Shift+N`，即使 DSH 或 Kimi 在前台也能切换；DSH renderer 仍保留前台回退，但现场一次按键只推进一次共享 cursor。
 - DSH 图片预加载使用 revision 丢弃迟到请求；素材 URL 增加稳定 skin 身份键，避免 `immutable` 缓存让 state/CSS 已更新而真实画面仍显示上一张。

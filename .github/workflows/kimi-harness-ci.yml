@@ -6,8 +6,8 @@ on:
     paths:
       - "Kimi-Code-Desktop/**"
       - "Harness-UI/**"
-      - ".github/workflows/kimi-code-desktop-release.yml"
-      - ".github/workflows/harness-ui-release.yml"
+      - "desktop-suite/**"
+      - "scripts/validate-desktop-suite-contract.mjs"
       - ".github/workflows/desktop-app-suite-release.yml"
       - ".github/workflows/upstream-desktop-sync.yml"
       - ".github/workflows/kimi-harness-ci.yml"
@@ -15,8 +15,8 @@ on:
     paths:
       - "Kimi-Code-Desktop/**"
       - "Harness-UI/**"
-      - ".github/workflows/kimi-code-desktop-release.yml"
-      - ".github/workflows/harness-ui-release.yml"
+      - "desktop-suite/**"
+      - "scripts/validate-desktop-suite-contract.mjs"
       - ".github/workflows/desktop-app-suite-release.yml"
       - ".github/workflows/upstream-desktop-sync.yml"
       - ".github/workflows/kimi-harness-ci.yml"
@@ -30,6 +30,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  desktop-suite-contract:
+    name: Desktop suite contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Enforce one source, one integration path and one publisher
+        run: node scripts/validate-desktop-suite-contract.mjs
+
   node-tests:
     name: Node tests (${{ matrix.project }})
     runs-on: ubuntu-latest

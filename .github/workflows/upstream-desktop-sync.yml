@@ -1,4 +1,4 @@
-name: Watch official Kimi and DSH desktop releases
+name: Propose official Kimi and DSH desktop updates
 
 on:
   schedule:
@@ -6,43 +6,90 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
+  actions: write
 
 concurrency:
-  group: upstream-desktop-sync
+  group: upstream-desktop-proposal
   cancel-in-progress: false
 
 jobs:
-  detect:
+  propose:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: main
+          fetch-depth: 0
           persist-credentials: false
-      - name: Report source versions that require a unified desktop release
+      - name: Resolve official upstream versions
+        id: versions
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           kimi_tag="$(gh api repos/MoonshotAI/kimi-code/releases/latest --jq .tag_name)"
           dsh_tag="$(gh api repos/anywhere-labs/deepseek-harness-desktop/releases/latest --jq .tag_name)"
+          kimi_version="${kimi_tag##*@}"
+          dsh_version="${dsh_tag#v}"
           source_kimi="$(node -p "require('./Kimi-Code-Desktop/package.json').version")"
           source_dsh="$(node -p "require('./desktop-suite/COMPATIBILITY_CONTRACT.json').applications.dshDesktop.version")"
+          test -n "$kimi_version"
+          test -n "$dsh_version"
+          printf 'kimi_version=%s\n' "$kimi_version" >> "$GITHUB_OUTPUT"
+          printf 'dsh_version=%s\n' "$dsh_version" >> "$GITHUB_OUTPUT"
           {
-            echo "## Desktop upstream watch"
+            echo "## Desktop upstream proposal"
             echo
             echo "| App | Source version | Official version |"
             echo "|---|---:|---:|"
-            echo "| Kimi Code Desktop | $source_kimi | ${kimi_tag##*@} |"
-            echo "| DSH Desktop | $source_dsh | ${dsh_tag#v} |"
+            echo "| Kimi Code Desktop | $source_kimi | $kimi_version |"
+            echo "| DSH Desktop | $source_dsh | $dsh_version |"
           } >> "$GITHUB_STEP_SUMMARY"
-          status=0
-          if [ "$kimi_tag" != "@moonshot-ai/kimi-code@$source_kimi" ]; then
-            echo "::error title=Kimi Code upstream changed::Create one source-update PR, then publish the three-app suite from that merged commit."
-            status=1
+      - name: Update only the canonical version sources
+        id: update
+        env:
+          KIMI_VERSION: ${{ steps.versions.outputs.kimi_version }}
+          DSH_VERSION: ${{ steps.versions.outputs.dsh_version }}
+        run: |
+          current_kimi="$(node -p "require('./Kimi-Code-Desktop/package.json').version")"
+          current_dsh="$(node -p "require('./desktop-suite/COMPATIBILITY_CONTRACT.json').applications.dshDesktop.version")"
+          if [ "$current_kimi" != "$KIMI_VERSION" ]; then
+            npm --prefix Kimi-Code-Desktop version "$KIMI_VERSION" --no-git-tag-version --ignore-scripts
           fi
-          if [ "$dsh_tag" != "v$source_dsh" ]; then
-            echo "::error title=DSH Desktop upstream changed::Create one source-update PR, then publish the three-app suite from that merged commit."
-            status=1
+          if [ "$current_dsh" != "$DSH_VERSION" ]; then
+            node -e 'const fs=require("node:fs"); const p="desktop-suite/COMPATIBILITY_CONTRACT.json"; const value=JSON.parse(fs.readFileSync(p,"utf8")); value.applications.dshDesktop.version=process.env.DSH_VERSION; fs.writeFileSync(p,JSON.stringify(value,null,2)+"\n");'
           fi
-          exit "$status"
+          if git diff --quiet -- Kimi-Code-Desktop/package.json Kimi-Code-Desktop/package-lock.json desktop-suite/COMPATIBILITY_CONTRACT.json; then
+            printf 'changed=false\n' >> "$GITHUB_OUTPUT"
+          else
+            printf 'changed=true\n' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Validate the proposed three-app source set
+        if: steps.update.outputs.changed == 'true'
+        run: node scripts/validate-desktop-suite-contract.mjs
+      - name: Open one compatibility PR and dispatch its CI
+        if: steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KIMI_VERSION: ${{ steps.versions.outputs.kimi_version }}
+          DSH_VERSION: ${{ steps.versions.outputs.dsh_version }}
+        run: |
+          branch="automation/desktop-upstream-kimi-$KIMI_VERSION-dsh-$DSH_VERSION"
+          existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --head "$branch" --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            printf 'Compatibility PR #%s already exists.\n' "$existing"
+            exit 0
+          fi
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git switch -c "$branch"
+          git add Kimi-Code-Desktop/package.json Kimi-Code-Desktop/package-lock.json desktop-suite/COMPATIBILITY_CONTRACT.json
+          git commit -m "chore(desktop-suite): propose official upstream versions"
+          gh auth setup-git
+          git push origin HEAD
+          gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$branch" \
+            --title "chore(desktop-suite): Kimi $KIMI_VERSION and DSH $DSH_VERSION" \
+            --body "Automated compatibility proposal. All three apps remain sourced from this PR commit; merging main triggers the only publisher."
+          gh workflow run kimi-harness-ci.yml --repo "$GITHUB_REPOSITORY" --ref "$branch"

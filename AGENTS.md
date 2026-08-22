@@ -22,15 +22,14 @@
   该契约与相关说明，并通过 `node scripts/validate-desktop-suite-contract.mjs`。
 - `Harness UI` 是 `~/.harness-ui/catalog.json`、`state.json` 与 `POST /api/next` 的唯一状态 owner。Kimi 与 DSH 只消费这一份
   协议，三端不创建第二套持久皮肤状态。
-- 正式三端发布只由 `.github/workflows/desktop-app-suite-release.yml` 从同一个 `GITHUB_SHA` 执行；该 workflow 同时生成
-  Kimi、Harness UI、DSH 三组资产，并同步每个正式 tag 与 GitHub Release 的 target metadata。其他 workflow 只承担检测、构建候选或验证职责。agent 本机生成的应用只用于开发，不能成为另一台电脑的发布真源。
-- `.github/workflows/upstream-desktop-sync.yml` 只报告 Kimi 与 DSH 官方版本漂移。发现漂移时，agent 创建同步版本来源、契约与说明的 PR；合入 `main` 后从唯一统一发布入口完成三端发布。历史单应用发布 workflow 保持移除状态。
-- Developer ID、notarization 或 Authenticode 发布能力作为统一 workflow 的构建阶段维护，继续由同一 `GITHUB_SHA` 产出三端资产。
+- 正式三端发布只由 `.github/workflows/desktop-app-suite-release.yml` 从当前 `main` 的同一个 `GITHUB_SHA` 执行；该 workflow 同时生成
+  Kimi、Harness UI、DSH 三组资产，并同步每个正式 tag、GitHub Release target metadata 与共同来源记录。其它 workflow 只能生成候选包或开兼容 PR，禁止创建 Release、上传正式资产或移动三端 tag。agent 本机生成的应用只用于开发，不能成为另一台电脑的发布真源。
+- `.github/workflows/upstream-desktop-sync.yml` 只更新官方版本来源、创建兼容 PR 并调度 CI；合入 `main` 后才从唯一统一发布入口完成三端发布。Kimi 与 Harness UI 的历史单应用发布 workflow 保持删除状态。
+- Developer ID、notarization 或 Authenticode 发布能力只能作为统一 workflow 的构建阶段维护，继续由同一个 `GITHUB_SHA` 产出三端资产。
 - 仓库 Actions 的 `default_workflow_permissions` 保持 `write`，发布 job 保持最小 `contents: write`。该组合允许统一 workflow 更新既有 Release 的 tag 与资产，并让守卫与构建 job 继续使用读取权限。
 - API key、账号、会话、SMB 凭据、素材库、运行时 catalog/state、个人图标原件、已安装 App 与回滚目录均属于本机私有状态；
   它们保持在 App Bundle 外，按本仓的数据落地铁律处理，禁止进入公开源码或 Release 资产。
-- 跨电脑协作以 GitHub PR 合入的 commit 为交接边界。两台电脑都从同一 `main` 拉取、在各自分支提交、由统一 workflow 发布，
-  因此三款 App 始终回到同一组源码与同一发布提交。
+- 跨电脑协作以 GitHub PR 合入的 commit 为交接边界。两台电脑都先同步 `origin/main`，在各自独立 worktree 分支提交，待跨平台 CI 与桌面套件契约通过后合入；`main` 禁止直接推送。统一 workflow 只接受当前 `main`，因此三款 App 始终回到同一组源码与同一发布提交。
 
 ## 命名陷阱（务必记住）
 
@@ -415,6 +414,12 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 **为什么**：旧 `harness.css` 把 `.app-shell`、侧栏和主要 surface 设为 0%–30% 不透明度，文字直接叠在高亮人物图上；工作区和模型弹层又被旧的 light/dark 高优先级规则压回 84%–86%，导致同一功能随背景与色彩模式随机失去可读性。只改一个弹窗或只验浅色会留下夜间回归。
 
 **代价**：皮肤仍可辨认，但信息层优先保证阅读；每次调整主题变量都要同时验证主界面、模型菜单、工作区选择器、添加工作区对话框和暗色覆盖，并保留无重启 `insertCSS` 作为活动 Kimi 的临时恢复手段，正式修复仍须进入同上游版本安装包。
+
+**结论**：Kimi 已有工作线程的真实主容器是 `#app .con`，不能只给空会话使用的 `.main` 设置皮肤色洗。两者必须使用同一个 `--harness-main-wash`，否则叠加 `.con` 默认底色与 `.content-wrap` 后会重新接近白屏。
+
+**为什么**：最新 Release 已把阅读列降到 60% 表层，但运行中的 populated session 仍保留 `.con` 的 64% 默认背景；两层合成后等效白色覆盖约 85.6%，所以空会话看起来正确、T1/T2 等真实线程仍错误。对活动 renderer 热加入 `.con` 规则后，线程、PID 与后台均未变化，人物和场景立即恢复到正确可见度。
+
+**代价**：样式回归必须同时覆盖空会话和已有线程容器；当前运行中的旧包可无重启热恢复，永久生效仍由同版本统一 Release 和普通更新流程接管。
 
 **结论**：DSH 的共享皮肤入口必须由 Harness 插件通过官方 `desktopRuntime.registerTrayItem` 注册，再由受控运行时补丁提升为独立 macOS“皮肤”菜单；菜单项直接读取 `~/.harness-ui/catalog.json/state.json` 并调用 3099 原子接口，不能让 renderer 按钮、原生菜单和 Kimi 各自保存状态。
 
