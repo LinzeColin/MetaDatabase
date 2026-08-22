@@ -78,3 +78,16 @@ test("the SMB mount agent tolerates a TCC-restricted marker only after exact sha
   assert.match(mountScript, /if detected_volume_id=.*sed -n '1p'.*2>\/dev\/null/);
   assert.match(mountScript, /\[ "\$detected_volume_id" = "\$volume_id" \] \|\| return 1/);
 });
+
+test("the SMB mount agent uses the bundled no-UI NetFS helper while the Mac is locked", () => {
+  const mounter = fs.readFileSync(path.join(projectRoot, "macos/Native/HarnessSMBMounter.c"), "utf8");
+  const builder = fs.readFileSync(path.join(projectRoot, "macos/scripts/build-app.sh"), "utf8");
+  const installer = fs.readFileSync(path.join(projectRoot, "service/install-macos.sh"), "utf8");
+  const mountScript = fs.readFileSync(path.join(projectRoot, "service/mount-harness-smb.sh"), "utf8");
+  assert.match(mounter, /kNAUIOptionNoUI/);
+  assert.match(mounter, /NetFSMountURLSync/);
+  assert.match(builder, /Contents\/Resources\/HarnessSMBMounter/);
+  assert.match(installer, /harness-smb-mounter/);
+  assert.match(mountScript, /HARNESS_UI_MOUNT_HELPER/);
+  assert.match(mountScript, /\[ -x "\$mount_helper" \]/);
+});

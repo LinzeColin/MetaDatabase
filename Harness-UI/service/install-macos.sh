@@ -43,6 +43,16 @@ render() {
 /bin/mkdir -p "$runtime_root/web" "$runtime_root/master" "$agents_root"
 /usr/bin/install -m 700 "$script_dir/harness_service.py" "$runtime_root/harness_service.py"
 /usr/bin/install -m 700 "$script_dir/mount-harness-smb.sh" "$runtime_root/mount-harness-smb.sh"
+for mount_helper_candidate in \
+  "${HARNESS_UI_MOUNT_HELPER_SOURCE:-}" \
+  "$HOME/Applications/Harness UI.app/Contents/Resources/HarnessSMBMounter" \
+  "/Applications/Harness UI.app/Contents/Resources/HarnessSMBMounter"
+do
+  if [ -n "$mount_helper_candidate" ] && [ -x "$mount_helper_candidate" ]; then
+    /usr/bin/install -m 700 "$mount_helper_candidate" "$runtime_root/harness-smb-mounter"
+    break
+  fi
+done
 /usr/bin/install -m 600 "$project_root/web/index.html" "$runtime_root/web/index.html"
 /usr/bin/install -m 600 "$project_root/web/app.js" "$runtime_root/web/app.js"
 /usr/bin/install -m 600 "$project_root/web/app.css" "$runtime_root/web/app.css"

@@ -17,6 +17,10 @@ BIN_DIR="$(swift build -c "$CONFIGURATION" --arch "$ARCHITECTURE" --show-bin-pat
 rm -rf "$OUTPUT_ROOT"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/web"
 cp "$BIN_DIR/HarnessUIApp" "$APP/Contents/MacOS/Harness UI"
+xcrun clang -arch "$ARCHITECTURE" -mmacosx-version-min=12.0 -Os \
+  "$MAC_ROOT/Native/HarnessSMBMounter.c" \
+  -framework CoreFoundation -framework NetFS \
+  -o "$APP/Contents/Resources/HarnessSMBMounter"
 cp "$MAC_ROOT/Info.plist" "$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $APP_VERSION" "$APP/Contents/Info.plist"
 cp "$PROJECT_ROOT/web/index.html" "$PROJECT_ROOT/web/app.css" "$PROJECT_ROOT/web/app.js" "$APP/Contents/Resources/web/"
