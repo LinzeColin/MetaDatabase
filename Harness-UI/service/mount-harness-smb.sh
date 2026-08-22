@@ -12,8 +12,16 @@ authoritative_share_is_ready() {
   share_state="$(/usr/bin/smbutil statshares -m "$mount_point" -f JSON 2>/dev/null)" || return 1
   printf '%s\n' "$share_state" | /usr/bin/grep -F '"SERVER_NAME" : "192.168.0.1"' >/dev/null || return 1
   printf '%s\n' "$share_state" | /usr/bin/grep -F '"share_name" : "share"' >/dev/null || return 1
-  [ -r "$volume_id_file" ] || return 1
-  [ "$(/usr/bin/sed -n '1p' "$volume_id_file")" = "$volume_id" ]
+  [ -e "$volume_id_file" ] || return 1
+
+  # A background LaunchAgent can inspect an SMB mount while macOS TCC denies
+  # reading bytes from Network Volumes. In that case the exact smbutil
+  # server/share identity plus marker existence is authoritative. Whenever
+  # the marker is readable, its value must still match exactly.
+  if detected_volume_id="$(/usr/bin/sed -n '1p' "$volume_id_file" 2>/dev/null)"; then
+    [ "$detected_volume_id" = "$volume_id" ] || return 1
+  fi
+  return 0
 }
 
 if authoritative_share_is_ready; then
