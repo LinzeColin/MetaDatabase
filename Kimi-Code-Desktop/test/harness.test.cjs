@@ -150,7 +150,9 @@ test("keeps themed application surfaces readable over background artwork", () =>
   const css = fs.readFileSync(path.join(__dirname, "../src/harness.css"), "utf8");
   assert.doesNotMatch(css, /--color-bg:\s*transparent/);
   assert.doesNotMatch(css, /--color-sidebar-bg:\s*transparent/);
-  assert.match(css, /#app \.app-shell\s*\{[\s\S]*?background-color:\s*var\(--color-bg\)\s*!important/);
+  assert.match(css, /#app \.app-shell\s*\{[\s\S]*?background-color:\s*transparent\s*!important/);
+  assert.match(css, /#app \.main\s*\{[\s\S]*?background-color:\s*var\(--harness-main-wash\)\s*!important/);
+  assert.match(css, /#app \.content-wrap\s*\{[\s\S]*?background-color:\s*var\(--harness-reading-bg\)\s*!important/);
   assert.match(css, /--color-bg:\s*rgba\(250, 248, 250, \.90\)/);
   assert.match(css, /--color-bg:\s*rgba\(18, 13, 21, \.90\)/);
 });

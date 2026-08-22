@@ -25,6 +25,8 @@ html[data-harness-ui="active"][data-color-scheme="system"] {
   --muted: rgba(42, 31, 44, .72);
   --faint: rgba(42, 31, 44, .60);
   --harness-popup-bg: rgba(253, 251, 253, .99);
+  --harness-main-wash: rgba(250, 248, 250, .34);
+  --harness-reading-bg: rgba(253, 251, 253, .92);
   --harness-popup-border: rgba(42, 31, 44, .18);
   --harness-popup-shadow: 0 24px 80px rgba(20, 12, 24, .28);
   --color-accent: #c58fb0;
@@ -64,6 +66,8 @@ html[data-harness-ui="active"][data-color-scheme="dark"] {
   --muted: rgba(240, 230, 242, .74);
   --faint: rgba(240, 230, 242, .62);
   --harness-popup-bg: rgba(24, 18, 28, .99);
+  --harness-main-wash: rgba(18, 13, 21, .42);
+  --harness-reading-bg: rgba(24, 18, 28, .92);
   --harness-popup-border: rgba(240, 230, 242, .20);
   --harness-popup-shadow: 0 24px 80px rgba(0, 0, 0, .52);
   --color-accent: #dda8c4;
@@ -84,11 +88,20 @@ html[data-harness-ui="active"] body {
 }
 
 html[data-harness-ui="active"] #app .app-shell {
-  background-color: var(--color-bg) !important;
+  background-color: transparent !important;
 }
 
 html[data-harness-ui="active"] #app .app {
   background-color: transparent !important;
+}
+
+html[data-harness-ui="active"] #app .main {
+  background-color: var(--harness-main-wash) !important;
+}
+
+html[data-harness-ui="active"] #app .content-wrap {
+  background-color: var(--harness-reading-bg) !important;
+  box-shadow: 0 0 28px color-mix(in srgb, var(--harness-reading-bg) 72%, transparent) !important;
 }
 
 html[data-harness-ui="active"] #app :is(input, textarea, select),
