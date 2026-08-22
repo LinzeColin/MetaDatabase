@@ -254,6 +254,14 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 
 **代价**：完整 Windows 候选门约 10 分钟；签名 secrets 缺失时源码和候选构建可以合并，但正式 Release 仍未签发，且不得为验证而重启 owner 正在运行的 Kimi、DSH 或 Harness。
 
+## Kimi 皮肤：空会话可见不代表已有线程页可见
+
+**结论**：皮肤验收必须同时打开空白新会话和有长消息/表格的既有线程。人物场景只放在根背景；普通根层、侧栏、阅读列使用分层半透明玻璃，输入框保持约 98%，模型、工作区和创建工作区弹层保持 99%；系统“降低透明度”单独切为实体背景。不要为了可读性把所有 `surface/panel/content-wrap` 一起提高到 90% 以上。
+
+**为什么**：空白页没有阅读列，看起来皮肤正常；既有线程叠加 `color-bg`、`surface`、`panel` 与 `.content-wrap` 后，单层 90% 看似合理，最终合成却接近纯白。Node 回归和空白页截图都不会暴露这个错误。
+
+**代价**：一次“透明度修复”把皮肤本身洗掉，Owner 在实际线程页才发现。以后视觉门固定检查“背景确实可见、正文确实可读、弹层确实不透”三个互相独立的条件；运行中修正可用临时本机 inspector 注入 CSS 验收，但必须关闭 inspector，并把持久修复进入正式安装包。
+
 **结论**：签名 Release 不能只检查 secret 非空或数安装包文件；Electron 项目要强制 `forceCodeSigning`，Mac App/DMG 要验证签名、stapled 公证票据与 Gatekeeper，Windows 主程序/安装器要验证 Authenticode 信任链和时间戳，全部通过后 publish job 才能创建 Release。
 
 **为什么**：无效证书可能让构建工具回退为未签名输出，文件数量仍然完全正确；签名存在也不证明 Apple 公证票据已附带或 Windows 时间戳已写入。先在轻量 guard job 一次性列出缺失 secret，可避免明知无法发布仍分配 macOS/Windows runner。
