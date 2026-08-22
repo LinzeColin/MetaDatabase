@@ -32,6 +32,42 @@ print(json.dumps({"count": catalog["count"], "report": report}))
   return JSON.parse(result.stdout);
 }
 
+function runHelperSync(source, fallback) {
+  const probe = String.raw`
+import importlib.util, json, pathlib, sys, threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
+spec = importlib.util.spec_from_file_location("harness_service", sys.argv[1])
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+ids = ["genshin/character/default", "hsr/character/default", "zzz/character/default", "wuwa/character/default", "nte/character/default"]
+counts = {"genshin": 1, "hsr": 1, "zzz": 1, "wuwa": 1, "nte": 1}
+class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        body = json.dumps({"sourceIds": ids, "gameCounts": counts, "deployedCount": 0}).encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+    def log_message(self, format, *args):
+        pass
+server = HTTPServer(("127.0.0.1", 0), Handler)
+thread = threading.Thread(target=server.serve_forever, daemon=True)
+thread.start()
+try:
+    catalog, report = module.synchronize_catalog(
+        pathlib.Path(sys.argv[2]), "http://127.0.0.1:3099", pathlib.Path(sys.argv[3]),
+        deploy=True, helper_url=f"http://127.0.0.1:{server.server_port}/api/source-sync"
+    )
+    print(json.dumps({"count": catalog["count"], "report": report}))
+finally:
+    server.shutdown()
+`;
+  const result = spawnSync("/usr/bin/python3", ["-c", probe, service, source, fallback], { encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  return JSON.parse(result.stdout);
+}
+
 test("refresh deploys complete SMB pairs into the durable local master", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "harness-service-sync-"));
   const source = path.join(root, "smb");
@@ -55,6 +91,7 @@ test("refresh deploys complete SMB pairs into the durable local master", () => {
     deployedCount: 5,
     missingFromSMB: 0,
     missingGames: [],
+    sourceOwner: "background-service",
   });
   for (const [, game] of games) {
     assert.equal(fs.readFileSync(path.join(fallback, game, "character", "default", "light.png"), "utf8").endsWith("-light"), true);
@@ -106,5 +143,25 @@ test("refresh reports an incomplete SMB partition without deleting the complete 
   assert.equal(result.report.missingFromSMB, 1);
   assert.deepEqual(result.report.missingGames, ["nte"]);
   assert.equal(fs.existsSync(path.join(fallback, "nte", "character", "default", "light.png")), true);
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
+test("background refresh accepts the GUI-owned SMB deployment receipt", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "harness-native-helper-"));
+  const source = path.join(root, "smb");
+  const fallback = path.join(root, "master");
+  fs.mkdirSync(source, { recursive: true });
+  for (const [gameName, game] of games) {
+    const local = path.join(fallback, game, "character", "default");
+    fs.mkdirSync(local, { recursive: true });
+    fs.writeFileSync(path.join(local, "light.png"), `${gameName}-light`);
+    fs.writeFileSync(path.join(local, "dark.png"), `${gameName}-dark`);
+  }
+  const result = runHelperSync(source, fallback);
+  assert.equal(result.count, 5);
+  assert.equal(result.report.status, "ready");
+  assert.equal(result.report.smbCount, 5);
+  assert.equal(result.report.localCount, 5);
+  assert.equal(result.report.sourceOwner, "harness-app");
   fs.rmSync(root, { recursive: true, force: true });
 });

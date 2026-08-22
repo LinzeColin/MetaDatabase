@@ -56,4 +56,32 @@ final class CatalogBuilderTests: XCTestCase {
         XCTAssertEqual(state.lastRotate, 42)
         try FileManager.default.removeItem(at: root)
     }
+
+    func testSynchronizesSMBIntoLocalMasterWithoutDeletingLocalOnlySkins() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let source = root.appendingPathComponent("source", isDirectory: true)
+        let master = root.appendingPathComponent("master", isDirectory: true)
+        for (gameName, game) in harnessGameSlugs {
+            let remote = source.appendingPathComponent("\(gameName)/character/skins/default", isDirectory: true)
+            try FileManager.default.createDirectory(at: remote, withIntermediateDirectories: true)
+            try Data("\(gameName)-light".utf8).write(to: remote.appendingPathComponent("light.png"))
+            try Data("\(gameName)-dark".utf8).write(to: remote.appendingPathComponent("dark.png"))
+            XCTAssertFalse(game.isEmpty)
+        }
+        let localOnly = master.appendingPathComponent("nte/local-only/default", isDirectory: true)
+        try FileManager.default.createDirectory(at: localOnly, withIntermediateDirectories: true)
+        try Data("local-light".utf8).write(to: localOnly.appendingPathComponent("light.png"))
+        try Data("local-dark".utf8).write(to: localOnly.appendingPathComponent("dark.png"))
+
+        let first = try synchronizeSourceToMaster(sourceRoot: source, masterRoot: master)
+        XCTAssertEqual(first.sourceIds.count, harnessGameSlugs.count)
+        XCTAssertEqual(first.deployedCount, harnessGameSlugs.count)
+        let local = buildLocalCatalog(masterRoot: master)
+        XCTAssertEqual(local.catalog.count, harnessGameSlugs.count + 1)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: localOnly.appendingPathComponent("light.png").path))
+
+        let second = try synchronizeSourceToMaster(sourceRoot: source, masterRoot: master)
+        XCTAssertEqual(second.deployedCount, 0)
+        try FileManager.default.removeItem(at: root)
+    }
 }

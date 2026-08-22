@@ -353,3 +353,9 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 **为什么**：现场 SMB 只有 326 个可消费变体，本地完整库有 408 个；旧实现只合并两边目录、不复制素材，却用并集 408 个显示“已同步”，同时掩盖了 SMB 缺少 82 个既有素材和异环完整分区。刷新按钮因此看似成功，另一台电脑却拿不到本机 fallback 中的缺口。
 
 **代价**：首次同步会把可用 SMB 素材复制到 `~/.harness-ui/master`，后续按文件大小和修改时间增量部署；本地独有素材继续保留，直到 SMB 真正补齐时状态才从 `partial` 变为 `ready`。loopback HTTP 只是进程间实现细节，“打开完整素材库”在 macOS 必须通过原生 WebKit 窗口和 `harnessui://library` 唤起，不能再把用户送到 Chrome 标签页。
+
+**结论**：macOS SMB 同步的读取 owner 必须是 Harness UI GUI App，不能是裸 Python LaunchAgent。3099 后台服务保留共享状态与本地供图，但刷新时必须通过相邻 loopback helper 请求 GUI App 读取 SMB、原子部署到 durable master，再用实际落盘素材核验 helper 回执。
+
+**为什么**：TCC 日志把 launchd Python 归因为 `com.apple.dt.xcode_select.tool-shim` / `/usr/bin/git`，同一挂载在终端可读、后台却扫描为 0；旧实现又把本地 408 并集误报为 SMB 已同步。仅增加复制代码无法跨越 Network Volumes 的责任身份，必须让有稳定 bundle id 和权限说明的 Harness UI App 执行读取。
+
+**代价**：Harness UI 运行时额外监听仅限 loopback 的同步 helper（默认主端口 + 1）；Kimi/DSH 仍只访问 3099。App 未运行或权限未授予时服务继续保留本地完整库并返回 `partial`，不会回退到伪成功，也不会删除本地素材。

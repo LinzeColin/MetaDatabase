@@ -65,3 +65,15 @@ public struct CatalogBuild: Sendable {
     public let catalog: Catalog
     public let assets: [String: URL]
 }
+
+public struct SourceSyncReport: Codable, Equatable, Sendable {
+    public let sourceIds: [String]
+    public let gameCounts: [String: Int]
+    public let deployedCount: Int
+
+    public init(sourceIds: [String], gameCounts: [String: Int], deployedCount: Int) {
+        self.sourceIds = sourceIds
+        self.gameCounts = gameCounts
+        self.deployedCount = deployedCount
+    }
+}

@@ -20,4 +20,5 @@
   <key>NSAppTransportSecurity</key><dict>
     <key>NSAllowsLocalNetworking</key><true/>
   </dict>
+  <key>NSNetworkVolumesUsageDescription</key><string>Harness UI 需要读取您选择的 SMB 素材目录，并将可用皮肤同步到本机完整素材库。</string>
 </dict></plist>

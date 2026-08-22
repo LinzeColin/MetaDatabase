@@ -12,7 +12,9 @@ import random
 import shutil
 import threading
 import time
+import urllib.error
 import urllib.parse
+import urllib.request
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -145,6 +147,35 @@ def deploy_source_assets(assets: list[dict[str, object]], fallback_root: pathlib
     return len(changed)
 
 
+def native_source_sync(helper_url: str | None) -> dict[str, object] | None:
+    if not helper_url:
+        return None
+    request = urllib.request.Request(
+        helper_url,
+        data=b"{}",
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=900) as response:
+            raw = response.read(MAX_BODY + 1)
+        if len(raw) > MAX_BODY:
+            return None
+        value = json.loads(raw)
+        source_ids = value.get("sourceIds")
+        game_counts = value.get("gameCounts")
+        deployed = value.get("deployedCount")
+        if not isinstance(source_ids, list) or not all(isinstance(identifier, str) for identifier in source_ids):
+            return None
+        if not isinstance(game_counts, dict) or not all(game in game_counts and isinstance(game_counts[game], int) for game in GAMES.values()):
+            return None
+        if not isinstance(deployed, int) or deployed < 0:
+            return None
+        return {"sourceIds": source_ids, "gameCounts": game_counts, "deployedCount": deployed}
+    except (OSError, ValueError, urllib.error.URLError):
+        return None
+
+
 def synchronize_catalog(
     source: pathlib.Path,
     base_url: str,
@@ -152,6 +183,7 @@ def synchronize_catalog(
     previous: dict[str, object] | None = None,
     now: dt.datetime | None = None,
     deploy: bool = False,
+    helper_url: str | None = None,
 ) -> tuple[dict[str, object], dict[str, object]]:
     source_available = source.is_dir()
     fallback_available = bool(fallback_root and fallback_root.is_dir())
@@ -191,8 +223,18 @@ def synchronize_catalog(
             "thumb": light_url,
         }
 
-    discovered_source, recognized_games, source_counts = source_assets(source)
-    deployed = deploy_source_assets(discovered_source, fallback_root) if deploy and source_available else 0
+    native_report = native_source_sync(helper_url) if deploy else None
+    if native_report:
+        source_available = True
+        discovered_source: list[dict[str, object]] = []
+        recognized_games = len(GAMES)
+        source_counts = {game: int(native_report["gameCounts"][game]) for game in GAMES.values()}
+        deployed = int(native_report["deployedCount"])
+        native_source_ids = {str(identifier) for identifier in native_report["sourceIds"]}
+    else:
+        discovered_source, recognized_games, source_counts = source_assets(source)
+        deployed = deploy_source_assets(discovered_source, fallback_root) if deploy and source_available else 0
+        native_source_ids = None
     discovered_fallback = fallback_assets(fallback_root)
     fallback_available = bool(fallback_root and fallback_root.is_dir())
     for asset in discovered_fallback:
@@ -219,8 +261,10 @@ def synchronize_catalog(
             raise RuntimeError(f"SMB 视图不完整且本地镜像缺少 {len(missing)} 个既有素材；已保留上一版目录")
     source_kind = "smb+local" if source_available and fallback_available else ("smb" if source_available else "local-fallback")
     catalog = {"version": 1, "source": source_kind, "generated": generated, "count": len(entries), "entries": entries}
-    source_ids = {asset_identifier(asset) for asset in discovered_source}
     local_ids = {asset_identifier(asset) for asset in discovered_fallback}
+    source_ids = native_source_ids.intersection(local_ids) if native_source_ids is not None else {asset_identifier(asset) for asset in discovered_source}
+    if native_source_ids is not None:
+        source_counts = {game: sum(1 for identifier in source_ids if identifier.startswith(f"{game}/")) for game in GAMES.values()}
     missing_from_smb = local_ids - source_ids
     missing_source_games = [game for game, count in source_counts.items() if count == 0]
     partial = not source_available or bool(missing_from_smb) or bool(missing_source_games)
@@ -244,6 +288,7 @@ def synchronize_catalog(
         "deployedCount": deployed,
         "missingFromSMB": len(missing_from_smb),
         "missingGames": missing_source_games,
+        "sourceOwner": "harness-app" if native_report else "background-service",
     }
     return catalog, report
 
@@ -287,11 +332,12 @@ def normalized_state(raw: object, catalog: dict[str, object]) -> dict[str, objec
 
 
 class HarnessStore:
-    def __init__(self, data_root: pathlib.Path, source: pathlib.Path, fallback_root: pathlib.Path | None, base_url: str):
+    def __init__(self, data_root: pathlib.Path, source: pathlib.Path, fallback_root: pathlib.Path | None, base_url: str, helper_url: str | None = None):
         self.data_root = data_root
         self.source = source
         self.fallback_root = fallback_root
         self.base_url = base_url
+        self.helper_url = helper_url
         self.lock = threading.RLock()
         self.refresh_lock = threading.Lock()
         self.catalog_file = data_root / "catalog.json"
@@ -310,7 +356,14 @@ class HarnessStore:
             with self.lock:
                 self.refresh_status = {"status": "running", "message": "正在读取 SMB 素材目录", "updated": int(time.time() * 1000)}
                 atomic_json(self.status_file, self.refresh_status)
-            next_catalog, report = synchronize_catalog(self.source, self.base_url, self.fallback_root, self.catalog, deploy=True)
+            next_catalog, report = synchronize_catalog(
+                self.source,
+                self.base_url,
+                self.fallback_root,
+                self.catalog,
+                deploy=True,
+                helper_url=self.helper_url,
+            )
             with self.lock:
                 self.catalog = next_catalog
                 self.state = normalized_state(self.state, next_catalog)
@@ -543,11 +596,13 @@ def main() -> int:
     parser.add_argument("--web-root", type=pathlib.Path, required=True)
     parser.add_argument("--fallback-root", type=pathlib.Path)
     parser.add_argument("--port", type=int, default=3099)
+    parser.add_argument("--native-helper-url")
     parser.add_argument("--refresh-seconds", type=int, default=900)
     args = parser.parse_args()
     base_url = f"http://127.0.0.1:{args.port}"
     fallback_root = args.fallback_root.resolve() if args.fallback_root else None
-    store = HarnessStore(args.root.resolve(), args.source.resolve(), fallback_root, base_url)
+    helper_url = args.native_helper_url or f"http://127.0.0.1:{args.port + 1}/api/source-sync"
+    store = HarnessStore(args.root.resolve(), args.source.resolve(), fallback_root, base_url, helper_url)
     store.start_refresh()
     threading.Thread(target=recurring_rotation, args=(store,), name="harness-rotation-scheduler", daemon=True).start()
     if args.refresh_seconds > 0:
