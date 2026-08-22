@@ -40,6 +40,7 @@
 - PR #327 已合并；正式发布 run `32554391391` 的 macOS、Windows、Kimi、Harness UI、DSH 及三个发布任务全部通过，正式标签仍沿用 Harness UI `1.0.0`、Kimi Code `0.38.0`、DSH `2.0.2`。
 - 本机正式 Harness UI 首次同步回执：SMB 326、本地 408、总目录 408、部署 326、缺少 82、缺失分区仅异环，`sourceOwner=harness-app`。完整素材库已在原生 WebKit 窗口显示 408/408，没有新增 Chrome 素材库标签；Kimi PID 与启动时间未变，标准安装位置已无启动地更新为 `0.38.0`，待 Owner 以后自然退出再启用新菜单。
 - GUI 状态热同步回归更新为 22/22：即使皮肤 state 不变，后台自动同步完成后的 `ready/partial/failed` 与说明也会自动刷新到完整素材库页面。
+- 最终本机安装发现 3099 服务与 GUI 同秒启动时可能漏建 3100 helper；安装器现等待 `state.json` 可读，App 对已配置 LaunchAgent 做有上限的就绪重试。没有共享服务的 standalone 模式不受影响。
 
 ## 运行边界
 

@@ -52,3 +52,13 @@ test("the in-app gallery refreshes SMB status even when skin state is unchanged"
   assert.match(source, /refreshChanged/);
   assert.match(source, /refreshStatus = latestRefreshStatus/);
 });
+
+test("the macOS app and installer wait for the configured shared service", () => {
+  const delegate = fs.readFileSync(path.join(projectRoot, "macos/Sources/HarnessUIApp/AppDelegate.swift"), "utf8");
+  const installer = fs.readFileSync(path.join(projectRoot, "service/install-macos.sh"), "utf8");
+  assert.match(delegate, /sharedServiceLaunchAgent/);
+  assert.match(delegate, /attempts = configured \? 12 : 1/);
+  assert.match(delegate, /Thread\.sleep\(forTimeInterval: 0\.5\)/);
+  assert.match(installer, /http:\/\/127\.0\.0\.1:3099\/state\.json/);
+  assert.match(installer, /harness_service_ready/);
+});

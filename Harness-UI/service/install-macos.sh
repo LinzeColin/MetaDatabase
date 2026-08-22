@@ -50,4 +50,19 @@ render "$script_dir/com.harnessui.smb.plist" "$smb_agent"
 /bin/launchctl bootstrap "gui/$uid" "$smb_agent"
 /bin/launchctl bootstrap "gui/$uid" "$assets_agent"
 
+harness_service_ready=0
+harness_attempts_remaining=40
+while [ "$harness_attempts_remaining" -gt 0 ]; do
+  if /usr/bin/curl --silent --fail --max-time 1 "http://127.0.0.1:3099/state.json" >/dev/null 2>&1; then
+    harness_service_ready=1
+    break
+  fi
+  harness_attempts_remaining=$((harness_attempts_remaining - 1))
+  /bin/sleep 0.25
+done
+if [ "$harness_service_ready" -ne 1 ]; then
+  echo "HarnessUI service did not become ready on 127.0.0.1:3099." >&2
+  exit 1
+fi
+
 echo "HarnessUI service installed at $runtime_root and listening on 127.0.0.1:3099."

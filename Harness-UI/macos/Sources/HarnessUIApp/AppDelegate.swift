@@ -22,6 +22,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var webRoot: URL!
     private var labels: [String: Label] = [:]
     private var masterRoot: URL { dataRoot.appendingPathComponent("master", isDirectory: true) }
+    private var sharedServiceLaunchAgent: URL {
+        FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/LaunchAgents/com.harnessui.assets.plist")
+    }
     private var syncHelperPort: UInt16 { configuration.port == UInt16.max ? configuration.port - 1 : configuration.port + 1 }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -114,9 +118,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func sharedServiceSourcePath() -> String {
         let fallback = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("mnt/share-full/03_资料库/MetaData/HarnessUI", isDirectory: true).path
-        let plist = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/LaunchAgents/com.harnessui.assets.plist")
-        guard let data = try? Data(contentsOf: plist),
+        guard let data = try? Data(contentsOf: sharedServiceLaunchAgent),
               let value = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil),
               let object = value as? [String: Any],
               let arguments = object["ProgramArguments"] as? [String],
@@ -414,8 +416,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func sharedServiceAvailable() -> Bool {
+        let configured = FileManager.default.fileExists(atPath: sharedServiceLaunchAgent.path)
+        let attempts = configured ? 12 : 1
+        for attempt in 0..<attempts {
+            if probeSharedService() { return true }
+            if attempt + 1 < attempts { Thread.sleep(forTimeInterval: 0.5) }
+        }
+        return false
+    }
+
+    private func probeSharedService() -> Bool {
         guard let url = URL(string: "http://127.0.0.1:\(configuration.port)/state.json") else { return false }
-        var request = URLRequest(url: url, timeoutInterval: 1)
+        var request = URLRequest(url: url, timeoutInterval: 0.5)
         request.cachePolicy = .reloadIgnoringLocalCacheData
         let semaphore = DispatchSemaphore(value: 0)
         let resultLock = NSLock()
@@ -427,7 +439,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             resultLock.unlock()
             semaphore.signal()
         }.resume()
-        _ = semaphore.wait(timeout: .now() + 2)
+        _ = semaphore.wait(timeout: .now() + 0.75)
         resultLock.lock()
         defer { resultLock.unlock() }
         return available
