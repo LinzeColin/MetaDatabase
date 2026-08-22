@@ -20,7 +20,7 @@
 
 ## 验证
 
-- HarnessUI/DSH Node 回归：13/13 通过，覆盖共享原子切换、快捷键、DSH 2.0.2 patch contract、SMB 本地降级和 adapter 安装。
+- HarnessUI/DSH Node 回归：14/14 通过，覆盖共享原子切换、快捷键、非 `.app` 回滚、DSH 2.0.2 patch contract、SMB 本地降级和 adapter 安装。
 - DSH 桥接安装器 preview 不写入、不启动、不重启 DSH。
 - 当前 Kimi PID 保持不变。
 - PR #317 已合并；正式发布 run `32527795001` 全部通过。

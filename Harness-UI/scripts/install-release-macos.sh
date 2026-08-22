@@ -48,7 +48,7 @@ DESTINATION_PARENT="$(dirname "$DESTINATION")"
 mkdir -p "$DESTINATION_PARENT"
 STAGE_ROOT="$(mktemp -d "$DESTINATION_PARENT/.harness-ui-release-update.XXXXXX")"
 STAGED_APP="$STAGE_ROOT/Harness UI.app"
-ROLLBACK="${HOME}/.harness-ui/desktop-updates/rollback/${VERSION}-$(date +%s)/Harness UI.app"
+ROLLBACK="${HOME}/.harness-ui/desktop-updates/rollback/${VERSION}-$(date +%s)/Harness UI.app.rollback"
 ditto "$SOURCE_APP" "$STAGED_APP"
 if [ -e "$DESTINATION" ]; then
   mkdir -p "$(dirname "$ROLLBACK")"
