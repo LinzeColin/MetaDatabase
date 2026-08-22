@@ -11,16 +11,35 @@ window.__ModuleLoader__.load({
       element.id = "harness-ui-dsh-style";
       element.textContent = `
 body[data-dsh-harness-ui],html:has(body[data-dsh-harness-ui]){background:transparent!important}
+body[data-dsh-harness-ui]{
+  --dsw-alias-label-caption:#4b5a70!important;
+  --dsw-alias-label-dimmed:#526174!important;
+  --dsw-alias-label-secondary:#37465b!important;
+  --dsw-alias-label-tertiary:#46566d!important;
+  color:#111827!important;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility
+}
 body[data-dsh-harness-ui] [id=root],body[data-dsh-harness-ui] #app{
-  background-image:linear-gradient(to right,rgba(255,255,255,.62),rgba(255,255,255,0) 30%,rgba(255,255,255,.76) 100%),var(--harness-scene)!important;
+  background-image:linear-gradient(to right,rgba(255,255,255,.82),rgba(255,255,255,.18) 38%,rgba(255,255,255,.84) 100%),var(--harness-scene)!important;
   background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;background-color:#e8eef7!important
 }
 body[data-dsh-harness-ui][data-ds-dark-theme] [id=root],body[data-dsh-harness-ui][data-ds-dark-theme] #app{
-  background-image:linear-gradient(to right,rgba(10,14,24,.66),rgba(10,14,24,0) 30%,rgba(10,14,24,.78) 100%),var(--harness-scene)!important;background-color:#0d1117!important
+  background-image:linear-gradient(to right,rgba(10,14,24,.84),rgba(10,14,24,.20) 38%,rgba(10,14,24,.86) 100%),var(--harness-scene)!important;background-color:#0d1117!important
+}
+body[data-dsh-harness-ui][data-ds-dark-theme]{
+  --dsw-alias-label-caption:#a9b4c5!important;
+  --dsw-alias-label-dimmed:#b6c0cf!important;
+  --dsw-alias-label-secondary:#d8dee8!important;
+  --dsw-alias-label-tertiary:#bec7d5!important;
+  color:#f4f7fb!important
 }
 body[data-dsh-harness-ui] [id=root] *{background-color:transparent!important}
-body[data-dsh-harness-ui] :is(input,textarea,select,[role=dialog],[role=menu],[role=listbox],pre,code){background-color:rgba(245,248,255,.84)!important}
-body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,select,[role=dialog],[role=menu],[role=listbox],pre,code){background-color:rgba(15,22,38,.82)!important}
+body[data-dsh-harness-ui] :is([id=root],#app) :is(input,textarea,select,[role=dialog],[role=menu],[role=listbox],pre,code),
+body[data-dsh-harness-ui]>:is([role=dialog],[role=menu],[role=listbox]){background-color:rgba(248,250,255,.96)!important}
+body[data-dsh-harness-ui][data-ds-dark-theme] :is([id=root],#app) :is(input,textarea,select,[role=dialog],[role=menu],[role=listbox],pre,code),
+body[data-dsh-harness-ui][data-ds-dark-theme]>:is([role=dialog],[role=menu],[role=listbox]){background-color:rgba(15,22,38,.95)!important}
+body[data-dsh-harness-ui] :is(input,textarea)::placeholder{color:#526174!important;opacity:1!important;font-weight:450}
+body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea)::placeholder{color:#b6c0cf!important}
 #harness-ui-toggle{position:fixed;right:16px;bottom:16px;z-index:2147483000;border:1px solid #ffffff35;border-radius:999px;padding:7px 12px;background:#101826e8;color:#fff;cursor:pointer}
 #harness-ui-picker{position:fixed;right:16px;bottom:54px;z-index:2147483000;width:min(620px,72vw);max-height:65vh;display:none;overflow:auto;border:1px solid #ffffff38;border-radius:14px;padding:12px;background:#101826f4;color:#e8eef7;box-shadow:0 24px 80px #000b;font:13px/1.45 system-ui,-apple-system,"PingFang SC",sans-serif}
 #harness-ui-picker[data-open=true]{display:block}
@@ -31,6 +50,12 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,select,[role=di
 #harness-ui-list button[data-active=true]{border-color:#7aa2ff;background:#1a2d55!important}
 #harness-ui-list small{display:block;color:#9fb0cf}
 #harness-ui-status{margin-left:auto;color:#aab9d4;font-size:11px}
+@media (prefers-reduced-transparency:reduce){
+  body[data-dsh-harness-ui] [id=root],body[data-dsh-harness-ui] #app{background-image:linear-gradient(rgba(248,250,255,.94),rgba(248,250,255,.94)),var(--harness-scene)!important}
+  body[data-dsh-harness-ui][data-ds-dark-theme] [id=root],body[data-dsh-harness-ui][data-ds-dark-theme] #app{background-image:linear-gradient(rgba(13,18,31,.94),rgba(13,18,31,.94)),var(--harness-scene)!important}
+  body[data-dsh-harness-ui] :is([id=root],#app) :is(input,textarea,select,[role=dialog],[role=menu],[role=listbox],pre,code){background-color:#f8faff!important}
+  body[data-dsh-harness-ui][data-ds-dark-theme] :is([id=root],#app) :is(input,textarea,select,[role=dialog],[role=menu],[role=listbox],pre,code){background-color:#0f1626!important}
+}
 `;
       return element;
     }

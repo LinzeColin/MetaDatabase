@@ -377,3 +377,9 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 **为什么**：旧 `harness.css` 把 `.app-shell`、侧栏和主要 surface 设为 0%–30% 不透明度，文字直接叠在高亮人物图上；工作区和模型弹层又被旧的 light/dark 高优先级规则压回 84%–86%，导致同一功能随背景与色彩模式随机失去可读性。只改一个弹窗或只验浅色会留下夜间回归。
 
 **代价**：皮肤仍可辨认，但信息层优先保证阅读；每次调整主题变量都要同时验证主界面、模型菜单、工作区选择器、添加工作区对话框和暗色覆盖，并保留无重启 `insertCSS` 作为活动 Kimi 的临时恢复手段，正式修复仍须进入同上游版本安装包。
+
+**结论**：DSH 的共享皮肤入口必须由 Harness 插件通过官方 `desktopRuntime.registerTrayItem` 注册，再由受控运行时补丁提升为独立 macOS“皮肤”菜单；菜单项直接读取 `~/.harness-ui/catalog.json/state.json` 并调用 3099 原子接口，不能让 renderer 按钮、原生菜单和 Kimi 各自保存状态。
+
+**为什么**：仅在窗口右下角注入“皮肤”按钮不属于普通桌面软件菜单，且官方 runtime 原先只允许一层 tray submenu，无法表达与 Kimi 一致的游戏/角色/变体目录。补丁必须递归保留多级菜单、checkbox 与禁用状态，同时把 harness 分组从 App 菜单正文提升到顶层；状态文件变化只刷新菜单，不复制素材或凭据。
+
+**代价**：DSH 上游 runtime 的菜单模板或命令转换器变化时安装必须 fail-closed；浅色主题原生 `label-dimmed=#e1e5ee` 在人物背景上几乎不可见，因此桥接 CSS 要同时覆盖 light/dark 的 caption、dimmed、secondary、tertiary、placeholder 与实体输入表层，并保留“降低透明度”路径。

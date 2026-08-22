@@ -10,6 +10,7 @@ import sys
 
 
 APP_MENU_MARK = "260822-normal-app-menu"
+HARNESS_MENU_MARK = "260822-harness-native-menu"
 UPDATE_MARK = "260822-safe-macos-update"
 ICON_MARK = "260822-external-icon-v2"
 OLD_ICON_MARK = "260822-external-icon"
@@ -130,6 +131,10 @@ def patch_runtime(source: str) -> tuple[str, list[str]]:
             if did_change:
                 changed.append("app-menu")
 
+    source, did_change = patch_harness_native_menu(source)
+    if did_change:
+        changed.append("harness-native-menu")
+
     return source, changed
 
 
@@ -159,6 +164,89 @@ def _menu_block() -> str:
 '''
 
 
+def patch_harness_native_menu(source: str) -> tuple[str, bool]:
+    if HARNESS_MENU_MARK in source:
+        return source, False
+    if "function macApplicationMenuTemplate(" not in source or "\tcontributedTrayItems(group) {" not in source:
+        return source, False
+
+    old_header = '''function macApplicationMenuTemplate(appName, locale, additions = []) {
+\tconst label = LABELS[locale];
+\tconst nativeAdditions = additions.length === 0 ? [{ type: "separator" }] : [
+\t\t{ type: "separator" },
+\t\t...additions,
+\t\t{ type: "separator" }
+\t];'''
+    new_header = f'''function macApplicationMenuTemplate(appName, locale, additions = []) {{
+\t/* {HARNESS_MENU_MARK}: promote the shared skin contribution into its own native menu. */
+\tconst label = LABELS[locale];
+\tconst harnessMenus = additions.filter((item) => item.harnessTopLevel === true).map((item) => {{
+\t\tconst {{ harnessTopLevel: _marker, ...menu }} = item;
+\t\treturn menu;
+\t}});
+\tconst applicationAdditions = additions.filter((item) => item.harnessTopLevel !== true);
+\tconst nativeAdditions = applicationAdditions.length === 0 ? [{{ type: "separator" }}] : [
+\t\t{{ type: "separator" }},
+\t\t...applicationAdditions,
+\t\t{{ type: "separator" }}
+\t];'''
+    source, _ = replace_once(source, old_header, new_header, "HarnessUI 原生菜单模板")
+
+    template_start = source.index("function macApplicationMenuTemplate(")
+    view_menu = '''\t\t},
+\t\t{
+\t\t\tlabel: label.view,'''
+    view_menu_start = source.find(view_menu, template_start)
+    if view_menu_start < 0:
+        raise RuntimeError("DSH 原生菜单结构已变化，无法安全插入皮肤菜单")
+    source = source[:view_menu_start] + '''\t\t},
+\t\t...harnessMenus,
+\t\t{
+\t\t\tlabel: label.view,'''+ source[view_menu_start + len(view_menu):]
+
+    converter_start = source.index("\tcontributedTrayItems(group) {")
+    converter_end_marker = "\n\t/** Contain asynchronous contribution failures"
+    converter_end = source.find(converter_end_marker, converter_start)
+    if converter_end < 0:
+        raise RuntimeError("DSH 托盘命令转换器已变化，无法安全支持多级皮肤菜单")
+    converter = '''\tcontributedTrayItems(group) {
+\t\t/* 260822-harness-native-command-tree: preserve nested menus and checked state. */
+\t\tconst toTemplate = (command) => {
+\t\t\tif (command.type === "separator") return { type: "separator" };
+\t\t\tconst common = {
+\t\t\t\tlabel: command.label(),
+\t\t\t\tenabled: command.enabled?.() ?? true,
+\t\t\t\t...command.type === void 0 ? {} : { type: command.type },
+\t\t\t\t...command.checked === void 0 ? {} : { checked: command.checked() },
+\t\t\t\t...command.accelerator === void 0 ? {} : { accelerator: command.accelerator }
+\t\t\t};
+\t\t\tif (command.submenu !== void 0) return { ...common, submenu: command.submenu().map(toTemplate) };
+\t\t\treturn { ...common, click: this.trayCommand(() => command.invoke()) };
+\t\t};
+\t\treturn [...this.trayItems.values()]
+\t\t\t.filter((item) => item.group === group)
+\t\t\t.sort((left, right) => left.order - right.order)
+\t\t\t.map((item) => ({ ...toTemplate(item), ...group === "harness" ? { harnessTopLevel: true } : {} }));
+\t}'''
+    source = source[:converter_start] + converter + source[converter_end:]
+
+    menu_start = source.index("\tbuildApplicationMenuItems() {")
+    menu_end = source.find("\n\t}\n", menu_start)
+    if menu_end < 0:
+        raise RuntimeError("DSH 应用菜单构建器已变化，无法挂载皮肤菜单")
+    menu = source[menu_start:menu_end]
+    status_line = '\t\tconst status = this.contributedTrayItems("status");'
+    if status_line not in menu:
+        raise RuntimeError("DSH 应用菜单缺少 status 分组，拒绝猜测皮肤菜单位置")
+    menu = menu.replace(status_line, status_line + '\n\t\tconst harness = this.contributedTrayItems("harness");', 1)
+    metadata = '\t\titems.push({ type: "separator" },'
+    if metadata not in menu:
+        raise RuntimeError("DSH 应用菜单元数据结构已变化，拒绝插入皮肤菜单")
+    menu = menu.replace(metadata, '\t\tif (harness.length > 0) items.push(...harness);\n' + metadata, 1)
+    source = source[:menu_start] + menu + source[menu_end:]
+    return source, True
+
+
 def patch_scnet(app: pathlib.Path, backup: bool) -> bool:
     target = app / "Contents/Resources/app.asar.unpacked/node_modules/@earendil-works/pi-ai/dist/api/openai-completions.js"
     if not target.is_file():
@@ -184,6 +272,8 @@ def patch_app(app: pathlib.Path, backup: bool = True) -> list[str]:
     target = targets[0]
     source = target.read_text()
     patched, changes = patch_runtime(source)
+    if HARNESS_MENU_MARK not in patched:
+        raise RuntimeError("当前 DSH 运行时不支持受控的原生皮肤菜单补丁")
     if patched != source:
         if backup:
             shutil.copy2(target, target.with_suffix(target.suffix + ".bak-normal-app"))

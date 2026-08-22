@@ -45,7 +45,29 @@ const legacyRuntime = `class Runtime {
 \t}
 }`;
 
-const modernRuntime = `class Runtime {
+const modernRuntime = `function macApplicationMenuTemplate(appName, locale, additions = []) {
+\tconst label = LABELS[locale];
+\tconst nativeAdditions = additions.length === 0 ? [{ type: "separator" }] : [
+\t\t{ type: "separator" },
+\t\t...additions,
+\t\t{ type: "separator" }
+\t];
+\treturn [
+\t\t{
+\t\t\tlabel: appName,
+\t\t\tsubmenu: [...nativeAdditions]
+\t\t},
+\t\t{
+\t\t\tlabel: label.file,
+\t\t\tsubmenu: []
+\t\t},
+\t\t{
+\t\t\tlabel: label.view,
+\t\t\tsubmenu: []
+\t\t}
+\t];
+}
+class Runtime {
 \tasync downloadAndOpenUpdate(version, signal) {
 \t\tif (platform === "darwin") {
 \t\t\tconst openError = await shell.openPath(artifactPath);
@@ -69,6 +91,30 @@ const modernRuntime = `class Runtime {
 \t\tif (profiles.length > 0) items.push(...profiles);
 \t\treturn items;
 \t}
+\tcontributedTrayItems(group) {
+\t\treturn [...this.trayItems.values()].filter((item) => item.group === group).sort((left, right) => left.order - right.order).map((item) => {
+\t\t\tconst common = {
+\t\t\t\tlabel: item.label(),
+\t\t\t\tenabled: item.enabled?.() ?? true
+\t\t\t};
+\t\t\tif (item.submenu !== void 0) return {
+\t\t\t\t...common,
+\t\t\t\tsubmenu: item.submenu().map((command) => ({
+\t\t\t\t\tlabel: command.label(),
+\t\t\t\t\tenabled: command.enabled?.() ?? true,
+\t\t\t\t\t...command.type === void 0 ? {} : { type: command.type },
+\t\t\t\t\t...command.checked === void 0 ? {} : { checked: command.checked() },
+\t\t\t\t\tclick: this.trayCommand(() => command.invoke())
+\t\t\t\t}))
+\t\t\t};
+\t\t\treturn {
+\t\t\t\t...common,
+\t\t\t\tclick: this.trayCommand(() => item.invoke())
+\t\t\t};
+\t\t});
+\t}
+\t/** Contain asynchronous contribution failures outside Electron menu callbacks. */
+\ttrayCommand(invoke) { return invoke; }
 }`;
 
 for (const [name, source] of [["legacy runtime", legacyRuntime], ["upstream 2.0.2 runtime", modernRuntime]]) {
@@ -78,6 +124,12 @@ for (const [name, source] of [["legacy runtime", legacyRuntime], ["upstream 2.0.
     assert.ok(first.source.includes("icon.png"));
     assert.ok(first.source.includes("260822-safe-macos-update"));
     assert.ok(first.source.includes("260822-normal-app-menu"));
+    if (name === "upstream 2.0.2 runtime") {
+      assert.ok(first.source.includes("260822-harness-native-menu"));
+      assert.ok(first.source.includes('contributedTrayItems("harness")'));
+      assert.ok(first.source.includes("harnessTopLevel"));
+      assert.ok(first.source.includes("260822-harness-native-command-tree"));
+    }
     const second = patchRuntime(first.source);
     assert.deepEqual(second.changes, []);
     assert.equal(second.source, first.source);
