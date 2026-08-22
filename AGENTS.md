@@ -348,6 +348,12 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 
 **代价**：DSH 与 Kimi 必须共享同一缓存键规则，并用真实合成画面做最终验收；稳定 skin key 可复用正确缓存，不需要每次切换都下载一份新的 7MB 素材。
 
+**结论**：用户级 SMB LaunchAgent 不能把 AppleScript `mount volume` 作为唯一重连路径；Harness UI 的 macOS 包必须携带一个使用 NetFS `NoUI` 的小型 mounter，服务安装时复制到 `~/.harness-ui`，锁屏重连优先调用它，旧包才回退 AppleScript。
+
+**为什么**：现场 `/Volumes/share` 被正常卸载后，锁屏状态下 AppleScript 一直等待 GUI 会话；同一用户、同一 guest URL 的 `NetFSMountURLSync` 在不到 1 秒内恢复规范挂载，随后 GUI-owned helper 重新得到 SMB 408、本地 408、目录 408、缺失 0。
+
+**代价**：macOS 包增加一个很小的原生 sidecar，并在服务更新时只替换该 helper；账号、凭据、catalog、state、master、皮肤和图标都不进入 helper。若 App 尚未包含 sidecar，兼容回退仍可在解锁状态挂载。
+
 **结论**：Harness UI 的“同步 SMB 素材”不能把 `SMB + 本地 fallback` 的并集数量当成 SMB 同步成功。刷新必须先把 SMB 中完整的 `light.png` / `dark.png` 对原子部署到 App Bundle 外的 durable master，再分别报告 `smbCount`、`localCount`、`catalogCount`、`deployedCount`、缺失素材和缺失分区；SMB 不完整时状态必须是 `partial`，且不得删除本地既有素材。
 
 **为什么**：现场 SMB 只有 326 个可消费变体，本地完整库有 408 个；旧实现只合并两边目录、不复制素材，却用并集 408 个显示“已同步”，同时掩盖了 SMB 缺少 82 个既有素材和异环完整分区。刷新按钮因此看似成功，另一台电脑却拿不到本机 fallback 中的缺口。

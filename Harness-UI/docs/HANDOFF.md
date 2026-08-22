@@ -4,7 +4,7 @@
 
 发布可迁移到另一台电脑的 Harness UI 与 DSH Desktop，并让 Kimi、DSH 共用同一个素材目录、选择状态与更新边界。
 
-## 当前状态（2026-08-22）
+## 当前状态（2026-08-23）
 
 - Harness UI 使用 AgentDatabase 既有产品版本 `1.0.0`；唯一标签为 `harness-ui-v*`，旧 `harness-ui-community-v*` 不再发布。
 - macOS Apple Silicon、Windows x64/arm64 构建入口均存在；两端原生菜单提供“检查并下载更新…”。
@@ -26,6 +26,7 @@
 - DSH 皮肤覆盖层不再沿用过浅的 `label-dimmed/caption` 色值；浅色、深色、输入框/占位文字和 macOS“降低透明度”均有独立高对比规则，人物背景仍保留在底层。
 - macOS SMB 的唯一权威挂载点为 `/Volumes/share`；旧路径 `~/mnt/share-full` 只保留为兼容符号链接。挂载脚本要求 NAS 根目录的稳定 volume ID，避免同名本地空目录被误判成完整素材库。
 - SMB 挂载 LaunchAgent 先以 `smbutil` 精确确认服务器与共享名，并要求卷身份文件存在；若后台 TCC 只禁止读取该文件内容，已确认的 SMB 挂载仍视为就绪，文件可读时仍必须逐字匹配固定 volume ID。这样不会把正常挂载误报为冲突，也不会每 60 秒重复写错误日志。
+- SMB 真正掉线且 Mac 处于锁屏状态时，LaunchAgent 优先调用 Harness UI 随 App 打包并复制到 runtime 的无界面 NetFS mounter；它显式使用 `NoUI`，不再让 AppleScript 的 `mount volume` 等待解锁。旧安装没有 helper 时仍保留 AppleScript 兼容路径。
 - 安装器会先显式 `launchctl enable` 再加载素材与服务 LaunchAgent，避免旧的 disabled override 让“安装成功”但后台实际不运行。
 - 原生完整素材库窗口接管 `Cmd+R`（同步并刷新）、`Cmd+W`（仅关图库窗口）与 `Cmd+Q`（退出 Harness UI），Kimi 与 DSH 的菜单入口都复用该窗口。
 
@@ -51,6 +52,7 @@
 - 2026-08-22 最终本机回执为 SMB 408、本地 408、总目录 408、部署 0、缺失 0，`sourceOwner=harness-app`；Kimi 与 DSH 菜单均显示 408 项，两个“打开完整素材库”入口均落到同一个原生 `Harness UI · 完整素材库` 窗口，页面显示 408/408，未产生 Chrome 标签页。
 - DSH 2.0.2 已安装新桥接且外置图标保留；浅色皮肤下在输入框键入未发送草稿，用户输入文字为深色可读，清空草稿后不影响会话。
 - 现场 LaunchAgent 复现了“终端可读 volume ID、后台进程仅能确认 SMB 身份但读取内容被 TCC 拒绝”的差异；修复后同一 `com.harnessui.smb` job 正常退出为 0，既有 `/Volumes/share` 保持原位，错误日志不再增长，HarnessUI Node 回归 27/27 通过。
+- 2026-08-23 锁屏现场再次复现：AppleScript mounter 持续等待，等价的 NetFS `NoUI` 调用在不到 1 秒内恢复 `/Volumes/share`；GUI-owned source helper 随后重新给出 SMB 408、本地 408、目录 408、缺失 0。该路径已进入随 App 构建的原生 helper 与服务安装流程。
 
 ## 运行边界
 

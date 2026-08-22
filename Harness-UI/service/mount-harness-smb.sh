@@ -5,6 +5,8 @@ mount_point="${HARNESS_UI_MOUNT_POINT:-/Volumes/share}"
 share_url="${HARNESS_UI_SMB_URL:-smb://GUEST@192.168.0.1/share}"
 volume_id_file="${HARNESS_UI_VOLUME_ID_FILE:-$mount_point/00_AgentControl/NAS_VOLUME_ID.md}"
 volume_id="${HARNESS_UI_VOLUME_ID:-LINZE_EXTERNAL_NAS_SHARE_V1_20260822}"
+script_dir="$(CDPATH= cd -- "$(dirname "$0")" && pwd)"
+mount_helper="${HARNESS_UI_MOUNT_HELPER:-$script_dir/harness-smb-mounter}"
 
 unset DEEPSEEK_API_KEY OPENCHATCUT_MCP_TOKEN
 
@@ -33,11 +35,15 @@ if [ -e "$mount_point" ]; then
   exit 70
 fi
 
-/usr/bin/osascript - "$share_url" >/dev/null <<'APPLESCRIPT'
+if [ -x "$mount_helper" ]; then
+  "$mount_helper" "$share_url" >/dev/null
+else
+  /usr/bin/osascript - "$share_url" >/dev/null <<'APPLESCRIPT'
 on run arguments
   mount volume (item 1 of arguments)
 end run
 APPLESCRIPT
+fi
 if authoritative_share_is_ready; then
   exit 0
 fi
