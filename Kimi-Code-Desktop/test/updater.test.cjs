@@ -69,6 +69,11 @@ test("redirects an updater launched from rollback to the canonical app", () => {
 test("stores rollback apps with a non-app suffix", () => {
   const target = "/Users/test/Applications/Kimi Code.app";
   const rollback = rollbackApplicationPath("/Users/test/.kimi-code/desktop-updates", "0.38.0", 42, target);
-  assert.equal(rollback, "/Users/test/.kimi-code/desktop-updates/rollback/0.38.0-42/Kimi Code.app.rollback");
+  assert.equal(rollback, path.join(
+    "/Users/test/.kimi-code/desktop-updates",
+    "rollback",
+    "0.38.0-42",
+    "Kimi Code.app.rollback",
+  ));
   assert.equal(rollback.endsWith(".app"), false);
 });
