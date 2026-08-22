@@ -16,6 +16,8 @@ DSH 背景层保留已显示素材 URL。相同 URL 的轮询结果不会再次�
 
 DSH 官方安装器镜像和 Harness UI 桥接与 Kimi、Harness UI 共同受 desktop-suite/COMPATIBILITY_CONTRACT.json 约束。正式资产由 desktop-app-suite-release workflow 在同一个 GITHUB_SHA 发布。
 
+GitHub 仓库级 Actions Workflow permissions 保持 `Read and write permissions`，使 DSH 发布 job 的最小 `contents: write` 授权能够更新正式 tag 与镜像资产；三端发布由此维持同一 commit 边界。
+
 ## 本机数据边界
 
 DSH 配置、会话、外置图标、Harness UI 状态和素材目录留在用户目录，发布包只包含可公开的桥接源码与官方版本镜像流程。
