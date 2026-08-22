@@ -14,6 +14,8 @@ Kimi 源码、Harness UI 和 DSH 桥接由仓根 desktop-suite/COMPATIBILITY_CON
 
 GitHub 仓库级 Actions Workflow permissions 保持 `Read and write permissions`，让 Kimi 的发布 job 取得其声明的最小 `contents: write` 权限，从而更新同版本正式 Release 的 tag 与资产。
 
+同版本覆盖发布同时更新 Git tag 与 GitHub Release 的 `target_commitish`。两者共同表达 Kimi 的正式资产来自哪一个统一套件提交。
+
 ## 私有运行边界
 
 用户的模型配置、账号、会话、API key、SMB 凭据、图标和已安装 App 都保留在本机目录。更新只替换应用 Bundle 与稳定 CLI 本体，外置个性化数据保持原位。

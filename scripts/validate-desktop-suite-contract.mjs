@@ -53,7 +53,11 @@ if (contract.schemaVersion !== 1) fail("schemaVersion must equal 1");
 if (contract.repository?.canonical !== "LinzeColin/MetaDatabase") fail("repository.canonical must equal LinzeColin/MetaDatabase");
 if (contract.repository?.branch !== "main") fail("repository.branch must equal main");
 if (contract.release?.workflow !== ".github/workflows/desktop-app-suite-release.yml") fail("release.workflow must name the unified release workflow");
-if (contract.release?.sourceCommit !== "GITHUB_SHA" || contract.release?.oneCommitForAllApps !== true) {
+if (
+  contract.release?.sourceCommit !== "GITHUB_SHA" ||
+  contract.release?.releaseTargetMetadata !== "GITHUB_SHA" ||
+  contract.release?.oneCommitForAllApps !== true
+) {
   fail("release must publish all three applications from GITHUB_SHA");
 }
 
@@ -113,6 +117,9 @@ if (!workflow.includes('default: "' + dsh.version + '"') || !workflow.includes(d
 }
 if ((workflow.match(/\$GITHUB_SHA/g) || []).length < 3) {
   fail("unified release workflow must target GITHUB_SHA for every application release");
+}
+if ((workflow.match(/target_commitish="\$GITHUB_SHA"/g) || []).length !== 3) {
+  fail("unified release workflow must synchronize target_commitish for every application release");
 }
 
 const protocol = contract.sharedSkinProtocol || {};

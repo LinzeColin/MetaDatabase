@@ -23,7 +23,7 @@
 - `Harness UI` 是 `~/.harness-ui/catalog.json`、`state.json` 与 `POST /api/next` 的唯一状态 owner。Kimi 与 DSH 只消费这一份
   协议，三端不创建第二套持久皮肤状态。
 - 正式三端发布只由 `.github/workflows/desktop-app-suite-release.yml` 从同一个 `GITHUB_SHA` 执行；该 workflow 同时生成
-  Kimi、Harness UI、DSH 三组资产并更新各自正式标签。agent 本机生成的应用只用于开发，不能成为另一台电脑的发布真源。
+  Kimi、Harness UI、DSH 三组资产，并同步每个正式 tag 与 GitHub Release 的 target metadata。agent 本机生成的应用只用于开发，不能成为另一台电脑的发布真源。
 - 仓库 Actions 的 `default_workflow_permissions` 保持 `write`，发布 job 保持最小 `contents: write`。该组合允许统一 workflow 更新既有 Release 的 tag 与资产，并让守卫与构建 job 继续使用读取权限。
 - API key、账号、会话、SMB 凭据、素材库、运行时 catalog/state、个人图标原件、已安装 App 与回滚目录均属于本机私有状态；
   它们保持在 App Bundle 外，按本仓的数据落地铁律处理，禁止进入公开源码或 Release 资产。

@@ -21,6 +21,8 @@ Harness UI 是 Kimi Code Desktop 与 DSH Desktop 的共享皮肤状态 owner。�
 
 GitHub 仓库级 Actions Workflow permissions 保持 `Read and write permissions`。Harness 发布 job 以最小 `contents: write` 覆盖同版本正式 Release 的 tag 与七个资产，使三端能够收敛到同一个 commit。
 
+同版本覆盖发布同步 Git tag 与 GitHub Release 的 `target_commitish`，因此 Harness UI 的下载资产和发布页面都可追溯到同一个套件提交。
+
 ## 运行边界
 
 API key、账号、会话、SMB 凭据、素材文件、运行时 catalog/state、个人图标原件与已安装 App 都保持在本机外置目录。公开仓库只保存源码、契约、可公开的构建脚本与说明。
