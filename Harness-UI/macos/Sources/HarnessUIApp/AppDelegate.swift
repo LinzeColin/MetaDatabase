@@ -116,8 +116,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func sharedServiceSourcePath() -> String {
-        let fallback = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("mnt/share-full/03_资料库/MetaData/HarnessUI", isDirectory: true).path
+        let fallback = URL(fileURLWithPath: "/Volumes/share/03_资料库/MetaData/HarnessUI", isDirectory: true).path
         guard let data = try? Data(contentsOf: sharedServiceLaunchAgent),
               let value = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil),
               let object = value as? [String: Any],
