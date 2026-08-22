@@ -37,6 +37,9 @@
 - 本机 Harness UI 原生二进制包含 Carbon 全局快捷键注册；当前 DSH 插件和 desktop profile 均包含迟到图片隔离与稳定 skin 身份键。共享服务仍提供 408 项 `smb+local` 目录，cursor 35 对应朱鸢。
 - 2026-08-22 真实只读复核：SMB 可消费素材 326 项，本地完整库 408 项，总目录仍为 408 项；SMB 缺少 82 项，其中异环没有可消费的昼夜素材对。新服务会如实报告 `partial` 并保留本地完整库，不能把该状态写成 SMB 已完整。
 - PR #326 已合并且跨平台 CI 全绿；其发布 run 在发现 launchd Python 的 TCC 归因错误后主动取消，未把“复制已实现但读取 owner 仍错误”的中间包作为最终交付。TCC 日志显示后台 PID 归因到系统 tool-shim，而不是 Harness UI bundle。
+- PR #327 已合并；正式发布 run `32554391391` 的 macOS、Windows、Kimi、Harness UI、DSH 及三个发布任务全部通过，正式标签仍沿用 Harness UI `1.0.0`、Kimi Code `0.38.0`、DSH `2.0.2`。
+- 本机正式 Harness UI 首次同步回执：SMB 326、本地 408、总目录 408、部署 326、缺少 82、缺失分区仅异环，`sourceOwner=harness-app`。完整素材库已在原生 WebKit 窗口显示 408/408，没有新增 Chrome 素材库标签；Kimi PID 与启动时间未变，标准安装位置已无启动地更新为 `0.38.0`，待 Owner 以后自然退出再启用新菜单。
+- GUI 状态热同步回归更新为 22/22：即使皮肤 state 不变，后台自动同步完成后的 `ready/partial/failed` 与说明也会自动刷新到完整素材库页面。
 
 ## 运行边界
 

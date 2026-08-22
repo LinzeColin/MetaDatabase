@@ -95,14 +95,19 @@ async function load() {
 
 async function sync() {
   try {
-    const shared = await json("/state.json");
+    const [shared, latestRefreshStatus] = await Promise.all([json("/state.json"), json("/refresh-status.json")]);
     const catalogChanged = Boolean(shared.catalogGenerated) && shared.catalogGenerated !== catalog.generated;
-    if (!catalogChanged && (shared.updated || 0) === syncSeen) return;
+    const stateChanged = (shared.updated || 0) !== syncSeen;
+    const refreshChanged = (latestRefreshStatus.updated || 0) !== (refreshStatus.updated || 0)
+      || latestRefreshStatus.status !== refreshStatus.status
+      || latestRefreshStatus.message !== refreshStatus.message;
+    if (!catalogChanged && !stateChanged && !refreshChanged) return;
     if (catalogChanged) {
-      [catalog, refreshStatus] = await Promise.all([json("/catalog.json"), json("/refresh-status.json")]);
+      catalog = await json("/catalog.json");
       renderGames();
     }
     state = shared;
+    refreshStatus = latestRefreshStatus;
     syncSeen = shared.updated || 0;
     render();
   } catch (error) { elements.status.textContent = `同步失败：${error.message}`; }

@@ -45,3 +45,10 @@ test("the GUI-owned helper performs SMB deployment for the background service", 
   assert.match(service, /native_source_sync/);
   assert.match(service, /sourceOwner/);
 });
+
+test("the in-app gallery refreshes SMB status even when skin state is unchanged", () => {
+  const source = fs.readFileSync(path.join(projectRoot, "web/app.js"), "utf8");
+  assert.match(source, /Promise\.all\(\[json\("\/state\.json"\), json\("\/refresh-status\.json"\)\]\)/);
+  assert.match(source, /refreshChanged/);
+  assert.match(source, /refreshStatus = latestRefreshStatus/);
+});
