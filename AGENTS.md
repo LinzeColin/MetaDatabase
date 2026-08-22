@@ -359,3 +359,9 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 **为什么**：TCC 日志把 launchd Python 归因为 `com.apple.dt.xcode_select.tool-shim` / `/usr/bin/git`，同一挂载在终端可读、后台却扫描为 0；旧实现又把本地 408 并集误报为 SMB 已同步。仅增加复制代码无法跨越 Network Volumes 的责任身份，必须让有稳定 bundle id 和权限说明的 Harness UI App 执行读取。
 
 **代价**：Harness UI 运行时额外监听仅限 loopback 的同步 helper（默认主端口 + 1）；Kimi/DSH 仍只访问 3099。App 未运行或权限未授予时服务继续保留本地完整库并返回 `partial`，不会回退到伪成功，也不会删除本地素材。
+
+**结论**：完整素材库页面必须独立轮询 `refresh-status.json`，不能只在皮肤 state 或 catalog generation 变化时顺带更新同步状态。
+
+**为什么**：首次由 GUI App 完成 326 套 SMB 部署后，服务端已正确写出 `partial` 回执，但皮肤选中状态没有变化，网页的提前返回分支让标题仍停在“正在读取 SMB 素材目录”。素材已经部署成功，用户界面却像永久卡住。
+
+**代价**：原生素材库每秒把轻量 refresh 状态与共享 state 一起读取；只有状态、目录或选择实际变化时才重绘。这样后台自动刷新与人工按钮刷新都能在同一 GUI 内显示最终回执，不需要重新载入窗口或打开浏览器。
