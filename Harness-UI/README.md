@@ -40,6 +40,8 @@ Runtime 只读取 `skins/`。`refs/`、`_产线`、PDF、AppleDouble 文件及�
 - `POST /api/next`：原子推进到下一张可见皮肤，保留当前单张/轮播模式；
 - `GET /assets/...`：按需读取一张 SMB 图片。
 
+macOS 上由 Harness UI GUI App（而不是裸 Python LaunchAgent）持有 Network Volumes 读取权限。App 运行时在主端口 + 1 提供仅限 loopback 的内部同步 helper；3099 服务调用它把 SMB 中有效素材增量部署到 `~/.harness-ui/master`。Kimi、DSH 与浏览器界面不直接访问 helper，也不需要知道该内部端口。
+
 两台电脑各自维护配置和状态；NAS 只提供只读图片。控制器支持“同步素材”手动刷新，并每 15 分钟轻量刷新目录索引。刷新采用完整性门：SMB 临时断开或只看见部分目录时继续使用上一版目录；本地镜像完整时可直接降级读取，避免 Kimi/DSH 因瞬时网络或 macOS Network Volumes 权限变化变成空素材库。
 
 当前 macOS 本地桥的安装脚本默认只预览，不会重启 Kimi 或 DSH：

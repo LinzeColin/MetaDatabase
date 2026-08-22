@@ -139,7 +139,7 @@ class HarnessBridge {
   async refreshCatalog() {
     const started = Date.now();
     await postJson(`${this.baseUrl}/api/catalog/refresh`, {});
-    const deadline = started + 180000;
+    const deadline = started + 900000;
     while (Date.now() < deadline) {
       await delay(Math.max(10, Math.min(this.intervalMs, 1000)));
       const status = await fetchJson(`${this.baseUrl}/refresh-status.json`);

@@ -114,7 +114,7 @@ async function refreshCatalog() {
   const started = Date.now();
   try {
     await json("/api/catalog/refresh", { method: "POST" });
-    while (Date.now() - started < 180000) {
+    while (Date.now() - started < 900000) {
       await new Promise((resolve) => setTimeout(resolve, 2000));
       const status = await json("/refresh-status.json");
       refreshStatus = status;

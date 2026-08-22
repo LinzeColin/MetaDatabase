@@ -13,6 +13,7 @@
 - Python 服务兼容旧客户端的 `POST /api/state {"mode":"rotate"}`，因此可以只热更新共享服务恢复正在运行的旧 Kimi/DSH 按钮，不要求同时重启三个宿主。
 - SMB 暂时不可达或目录不完整时保留上一版完整目录；本地 durable master 可继续供图。
 - 手动/定时刷新会把 SMB 中有效的昼夜素材增量部署到 `~/.harness-ui/master`，不删除本地独有素材；完成回执区分 SMB、本地、总目录、实际部署与缺失数，不再用合并目录误报成功。
+- 3099 Python 服务不再承担 macOS SMB 权限身份：运行中的 Harness UI App 在主端口 + 1 提供 loopback-only 同步 helper，以 `com.linzecolin.harnessui` GUI 身份读取 Network Volumes；Kimi、DSH 和网页仍只调用 3099。
 - macOS 的“打开完整素材库”使用 App 内 WebKit 窗口；Kimi Code 通过 `harnessui://library` 唤起同一 GUI，不再打开 Chrome 标签页。
 - Harness UI macOS 本地代码身份固定为 `com.linzecolin.harnessui`；配置、素材、状态与图标均位于 App Bundle 外。
 - DSH GitHub Release 直接镜像 anywhere-labs 官方同版本安装器，版本当前为 `2.0.2`，不建立桥接私有版本号。
@@ -24,7 +25,7 @@
 
 ## 验证
 
-- HarnessUI/DSH Node 回归：19/19 通过；Kimi Code Node 回归：27/27 通过。新增覆盖 SMB 到 durable master 的真实部署、缺分区 `partial` 回执、不删除本地素材、跨端等待部署完成及原生完整素材库入口。
+- HarnessUI/DSH Node 回归：21/21 通过；Kimi Code Node 回归：27/27 通过。新增覆盖 SMB 到 durable master 的真实部署、缺分区 `partial` 回执、不删除本地素材、GUI helper 回执、跨端等待部署完成及原生完整素材库入口。
 - DSH 桥接安装器 preview 不写入、不启动、不重启 DSH。
 - 当前 Kimi PID 保持不变。
 - PR #317 已合并；正式发布 run `32527795001` 全部通过。
@@ -35,6 +36,7 @@
 - PR #324 已合并；正式发布 run `32550771745` 从合并后的源码覆盖 Harness UI `1.0.0` 的 7 个资产与 DSH `2.0.2` 的 3 个资产，全部构建与发布任务通过。
 - 本机 Harness UI 原生二进制包含 Carbon 全局快捷键注册；当前 DSH 插件和 desktop profile 均包含迟到图片隔离与稳定 skin 身份键。共享服务仍提供 408 项 `smb+local` 目录，cursor 35 对应朱鸢。
 - 2026-08-22 真实只读复核：SMB 可消费素材 326 项，本地完整库 408 项，总目录仍为 408 项；SMB 缺少 82 项，其中异环没有可消费的昼夜素材对。新服务会如实报告 `partial` 并保留本地完整库，不能把该状态写成 SMB 已完整。
+- PR #326 已合并且跨平台 CI 全绿；其发布 run 在发现 launchd Python 的 TCC 归因错误后主动取消，未把“复制已实现但读取 owner 仍错误”的中间包作为最终交付。TCC 日志显示后台 PID 归因到系统 tool-shim，而不是 Harness UI bundle。
 
 ## 运行边界
 

@@ -20,6 +20,7 @@ test("macOS opens the complete library in an in-app WebKit window", () => {
   assert.match(delegate, /applicationShouldHandleReopen/);
   assert.match(delegate, /open urls: \[URL\]/);
   assert.match(plist, /<string>harnessui<\/string>/);
+  assert.match(plist, /NSNetworkVolumesUsageDescription/);
   assert.match(kimi, /process\.platform === "darwin" \? "harnessui:\/\/library"/);
 });
 
@@ -31,4 +32,16 @@ test("Kimi and DSH wait for the shared SMB deployment result", () => {
     assert.match(source, /\["ready", "partial"\]/);
     assert.match(source, /素材目录仍在扫描/);
   }
+});
+
+test("the GUI-owned helper performs SMB deployment for the background service", () => {
+  const delegate = fs.readFileSync(path.join(projectRoot, "macos/Sources/HarnessUIApp/AppDelegate.swift"), "utf8");
+  const catalogBuilder = fs.readFileSync(path.join(projectRoot, "macos/Sources/HarnessUICore/CatalogBuilder.swift"), "utf8");
+  const service = fs.readFileSync(path.join(projectRoot, "service/harness_service.py"), "utf8");
+  assert.match(delegate, /\/api\/source-sync/);
+  assert.match(delegate, /syncHelperPort/);
+  assert.match(catalogBuilder, /synchronizeSourceToMaster/);
+  assert.match(catalogBuilder, /buildLocalCatalog/);
+  assert.match(service, /native_source_sync/);
+  assert.match(service, /sourceOwner/);
 });

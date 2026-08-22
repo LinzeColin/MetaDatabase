@@ -21,6 +21,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var refreshStatus: [String: Any] = ["status": "idle", "message": "尚未刷新", "updated": 0]
     private var webRoot: URL!
     private var labels: [String: Label] = [:]
+    private var masterRoot: URL { dataRoot.appendingPathComponent("master", isDirectory: true) }
+    private var syncHelperPort: UInt16 { configuration.port == UInt16.max ? configuration.port - 1 : configuration.port + 1 }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -35,11 +37,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if sharedServiceAvailable() {
             usesExternalService = true
             _ = store.reloadFromDisk()
+            do {
+                try server.start(port: syncHelperPort) { [weak self] request in
+                    self?.sourceSyncRoute(request) ?? HTTPResponse(status: 500)
+                }
+            } catch {
+                showError("无法启动 SMB 同步 Helper", detail: error.localizedDescription)
+            }
             stateSyncTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
                 guard let self, self.store.reloadFromDisk() else { return }
                 self.rebuildMenu()
             }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+                self?.refreshCatalog(showResult: false)
+            }
         } else {
+            let localBuild = buildLocalCatalog(masterRoot: masterRoot, labels: labels)
+            if localBuild.catalog.count > 0 { try? store.install(build: localBuild) }
             do {
                 try server.start(port: configuration.port) { [weak self] request in
                     self?.route(request) ?? HTTPResponse(status: 500)
@@ -94,6 +108,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let data = try? Data(contentsOf: store.configFile), let value = try? JSONDecoder().decode(HarnessConfiguration.self, from: data) {
             configuration = value
         }
+        if configuration.sourcePath.isEmpty { configuration.sourcePath = sharedServiceSourcePath() }
+    }
+
+    private func sharedServiceSourcePath() -> String {
+        let fallback = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("mnt/share-full/03_资料库/MetaData/HarnessUI", isDirectory: true).path
+        let plist = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/LaunchAgents/com.harnessui.assets.plist")
+        guard let data = try? Data(contentsOf: plist),
+              let value = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil),
+              let object = value as? [String: Any],
+              let arguments = object["ProgramArguments"] as? [String],
+              let sourceIndex = arguments.firstIndex(of: "--source"),
+              arguments.indices.contains(sourceIndex + 1) else { return fallback }
+        return arguments[sourceIndex + 1]
     }
 
     private func saveConfiguration() throws {
@@ -180,7 +209,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 path: "/api/catalog/refresh",
                 object: [:],
                 failureTitle: "素材目录刷新失败",
-                completion: { self.pollSharedRefresh(started: started, deadline: Date().addingTimeInterval(180), showResult: showResult) },
+                completion: { self.pollSharedRefresh(started: started, deadline: Date().addingTimeInterval(900), showResult: showResult) },
                 failure: { self.finishSharedRefresh() }
             )
             return
@@ -197,15 +226,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let root = URL(fileURLWithPath: configuration.sourcePath, isDirectory: true)
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
-            let build = buildCatalog(sourceRoot: root, labels: self.labels)
             do {
+                let report = try synchronizeSourceToMaster(sourceRoot: root, masterRoot: self.masterRoot)
+                let build = buildLocalCatalog(masterRoot: self.masterRoot, labels: self.labels)
                 try self.store.install(build: build)
+                let sourceIds = Set(report.sourceIds)
+                let localIds = Set(build.catalog.entries.map(\.id))
+                let missing = localIds.subtracting(sourceIds).count
+                let missingGames = report.gameCounts.filter { $0.value == 0 }.map(\.key).sorted()
+                let partial = missing > 0 || !missingGames.isEmpty
+                let message = partial
+                    ? "SMB 当前可用 \(sourceIds.count) 个，本地完整库 \(localIds.count) 个；SMB 缺少 \(missing) 个既有素材，已保留本地完整库；本次部署 \(report.deployedCount) 个"
+                    : "SMB、本地与总目录均为 \(localIds.count) 个；本次部署 \(report.deployedCount) 个"
                 DispatchQueue.main.async {
                     self.refreshRunning = false
-                    self.setRefreshStatus("ready", message: "已同步 \(build.catalog.count) 个变体")
+                    self.setRefreshStatus(partial ? "partial" : "ready", message: message, details: [
+                        "smbCount": sourceIds.count,
+                        "localCount": localIds.count,
+                        "catalogCount": build.catalog.count,
+                        "deployedCount": report.deployedCount,
+                        "missingFromSMB": missing,
+                        "missingGames": missingGames,
+                        "sourceOwner": "harness-app",
+                    ])
                     self.statusItem?.button?.title = "HU"
                     self.rebuildMenu()
-                    if showResult { self.showInfo("素材目录已刷新", detail: "共 \(build.catalog.count) 个变体") }
+                    if showResult {
+                        if partial { self.showError("SMB 素材未完整", detail: message) }
+                        else { self.showInfo("素材目录已刷新", detail: message) }
+                    }
                 }
             } catch {
                 DispatchQueue.main.async {
@@ -218,10 +267,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func setRefreshStatus(_ status: String, message: String) {
+    private func setRefreshStatus(_ status: String, message: String, details: [String: Any] = [:]) {
         refreshStatusLock.lock()
-        refreshStatus = ["status": status, "message": message, "updated": Int64(Date().timeIntervalSince1970 * 1000)]
+        refreshStatus = details.merging(["status": status, "message": message, "updated": Int64(Date().timeIntervalSince1970 * 1000)]) { _, latest in latest }
         refreshStatusLock.unlock()
+    }
+
+    private func sourceSyncRoute(_ request: HTTPRequest) -> HTTPResponse {
+        guard request.method == "POST", request.path == "/api/source-sync" else {
+            return HTTPResponse(status: request.method == "POST" ? 404 : 405)
+        }
+        do {
+            let source = URL(fileURLWithPath: configuration.sourcePath, isDirectory: true)
+            let report = try synchronizeSourceToMaster(sourceRoot: source, masterRoot: masterRoot)
+            let body = try JSONEncoder().encode(report)
+            return HTTPResponse(contentType: "application/json; charset=utf-8", body: body, headers: ["Cache-Control": "no-store"])
+        } catch {
+            let body = (try? JSONSerialization.data(withJSONObject: ["message": error.localizedDescription])) ?? Data()
+            return HTTPResponse(status: 500, contentType: "application/json; charset=utf-8", body: body, headers: ["Cache-Control": "no-store"])
+        }
     }
 
     private func refreshStatusResponse() -> HTTPResponse {

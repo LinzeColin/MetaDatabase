@@ -166,7 +166,7 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,select,[role=di
         const started = Date.now();
         await json("/api/catalog/refresh", { method: "POST" });
         status.textContent = "正在读取并部署 SMB 素材…";
-        while (Date.now() - started < 180000) {
+        while (Date.now() - started < 900000) {
           await new Promise((resolve) => setTimeout(resolve, 1000));
           const refresh = await json("/refresh-status.json");
           status.textContent = refresh.message || "正在读取并部署 SMB 素材…";
