@@ -3,8 +3,9 @@ let state = {};
 let side = "light";
 let syncSeen = -1;
 let syncTimer = null;
+let refreshStatus = {};
 
-const elements = Object.fromEntries(["count", "current", "game", "list", "mode", "next", "preview", "refresh", "search", "side", "status"]
+const elements = Object.fromEntries(["count", "current", "game", "list", "mode", "next", "preview", "refresh", "search", "side", "status", "sync-status"]
   .map((id) => [id, document.getElementById(id)]));
 
 async function json(url, options) {
@@ -32,6 +33,11 @@ function renderPreview() {
   elements.mode.textContent = state.mode === "rotate" ? "停止轮播" : "开启轮播";
 }
 
+function renderRefreshStatus() {
+  elements["sync-status"].textContent = refreshStatus.message || "尚未读取 SMB 同步状态";
+  elements["sync-status"].dataset.status = refreshStatus.status || "idle";
+}
+
 function renderList() {
   const query = elements.search.value.trim().toLocaleLowerCase();
   const game = elements.game.value;
@@ -50,7 +56,7 @@ function renderList() {
   elements.count.textContent = `${visible.length} / ${catalog.count}`;
 }
 
-function render() { renderPreview(); renderList(); }
+function render() { renderPreview(); renderList(); renderRefreshStatus(); }
 
 function renderGames() {
   const selected = elements.game.value;
@@ -79,7 +85,7 @@ async function next() {
 
 async function load() {
   try {
-    [catalog, state] = await Promise.all([json("/catalog.json"), json("/state.json")]);
+    [catalog, state, refreshStatus] = await Promise.all([json("/catalog.json"), json("/state.json"), json("/refresh-status.json")]);
     renderGames();
     syncSeen = state.updated || 0;
     render();
@@ -93,12 +99,11 @@ async function sync() {
     const catalogChanged = Boolean(shared.catalogGenerated) && shared.catalogGenerated !== catalog.generated;
     if (!catalogChanged && (shared.updated || 0) === syncSeen) return;
     if (catalogChanged) {
-      catalog = await json("/catalog.json");
+      [catalog, refreshStatus] = await Promise.all([json("/catalog.json"), json("/refresh-status.json")]);
       renderGames();
     }
     state = shared;
     syncSeen = shared.updated || 0;
-    elements.status.textContent = "";
     render();
   } catch (error) { elements.status.textContent = `同步失败：${error.message}`; }
 }
@@ -109,13 +114,19 @@ async function refreshCatalog() {
   const started = Date.now();
   try {
     await json("/api/catalog/refresh", { method: "POST" });
-    while (Date.now() - started < 120000) {
+    while (Date.now() - started < 180000) {
       await new Promise((resolve) => setTimeout(resolve, 2000));
       const status = await json("/refresh-status.json");
+      refreshStatus = status;
+      renderRefreshStatus();
       elements.status.textContent = status.message || "正在同步…";
       if (status.status === "failed") throw new Error(status.message || "素材目录同步失败");
-      if (status.status === "ready" && Number(status.updated) >= started) {
-        await sync();
+      if (["ready", "partial"].includes(status.status) && Number(status.updated) >= started) {
+        [catalog, state] = await Promise.all([json("/catalog.json"), json("/state.json")]);
+        renderGames();
+        syncSeen = state.updated || 0;
+        render();
+        elements.status.textContent = status.status === "partial" ? status.message : "";
         return;
       }
     }

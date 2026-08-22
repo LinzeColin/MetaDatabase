@@ -43,6 +43,10 @@ function postJson(url, value) {
   });
 }
 
+function delay(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
 function selectHarnessEntry(catalog, state) {
   const entries = Array.isArray(catalog?.entries) ? catalog.entries : [];
   return entries.find((entry) => entry.id === state?.selected) || entries[0] || null;
@@ -133,8 +137,19 @@ class HarnessBridge {
   }
 
   async refreshCatalog() {
+    const started = Date.now();
     await postJson(`${this.baseUrl}/api/catalog/refresh`, {});
-    return this.refresh({ forceCatalog: true });
+    const deadline = started + 180000;
+    while (Date.now() < deadline) {
+      await delay(Math.max(10, Math.min(this.intervalMs, 1000)));
+      const status = await fetchJson(`${this.baseUrl}/refresh-status.json`);
+      if (status.status === "failed") throw new Error(status.message || "素材目录同步失败");
+      if (["ready", "partial"].includes(status.status) && Number(status.updated) >= started) {
+        await this.refresh({ forceCatalog: true });
+        return status;
+      }
+    }
+    throw new Error("素材目录仍在扫描，请稍后重试");
   }
 
   async refresh({ forceCatalog = false, suppliedState = null } = {}) {

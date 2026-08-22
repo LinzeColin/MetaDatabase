@@ -347,3 +347,9 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 **为什么**：DSH 快捷键已经把 cursor 从 32 推到 33，DOM active label 与 computed style 也都是桂乃芬，但真实合成画面仍停在伊芙琳；为同一素材追加新的身份 query 后，合成画面立即变为桂乃芬。单看 state、DOM 或截图中的任一项都不足以定位这类故障。
 
 **代价**：DSH 与 Kimi 必须共享同一缓存键规则，并用真实合成画面做最终验收；稳定 skin key 可复用正确缓存，不需要每次切换都下载一份新的 7MB 素材。
+
+**结论**：Harness UI 的“同步 SMB 素材”不能把 `SMB + 本地 fallback` 的并集数量当成 SMB 同步成功。刷新必须先把 SMB 中完整的 `light.png` / `dark.png` 对原子部署到 App Bundle 外的 durable master，再分别报告 `smbCount`、`localCount`、`catalogCount`、`deployedCount`、缺失素材和缺失分区；SMB 不完整时状态必须是 `partial`，且不得删除本地既有素材。
+
+**为什么**：现场 SMB 只有 326 个可消费变体，本地完整库有 408 个；旧实现只合并两边目录、不复制素材，却用并集 408 个显示“已同步”，同时掩盖了 SMB 缺少 82 个既有素材和异环完整分区。刷新按钮因此看似成功，另一台电脑却拿不到本机 fallback 中的缺口。
+
+**代价**：首次同步会把可用 SMB 素材复制到 `~/.harness-ui/master`，后续按文件大小和修改时间增量部署；本地独有素材继续保留，直到 SMB 真正补齐时状态才从 `partial` 变为 `ready`。loopback HTTP 只是进程间实现细节，“打开完整素材库”在 macOS 必须通过原生 WebKit 窗口和 `harnessui://library` 唤起，不能再把用户送到 Chrome 标签页。

@@ -8,9 +8,16 @@
   <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
   <key>CFBundleName</key><string>Harness UI</string>
   <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleURLTypes</key><array><dict>
+    <key>CFBundleURLName</key><string>com.linzecolin.harnessui.library</string>
+    <key>CFBundleURLSchemes</key><array><string>harnessui</string></array>
+  </dict></array>
   <key>CFBundleShortVersionString</key><string>1.0.0</string>
   <key>CFBundleVersion</key><string>1</string>
   <key>LSMinimumSystemVersion</key><string>12.0</string>
   <key>LSUIElement</key><true/>
   <key>NSHighResolutionCapable</key><true/>
+  <key>NSAppTransportSecurity</key><dict>
+    <key>NSAllowsLocalNetworking</key><true/>
+  </dict>
 </dict></plist>
