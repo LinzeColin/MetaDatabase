@@ -11,6 +11,7 @@ const {
 } = require("./runtime/paths.cjs");
 const { runtimeAlive, startKimiServer, stopKimiServer } = require("./runtime/server.cjs");
 const { DesktopUpdater } = require("./runtime/updater.cjs");
+const distributionRevision = require("./distribution-revision.json").revision;
 
 const developmentRoot = path.resolve(__dirname, "..");
 const harnessCss = fs.readFileSync(path.join(__dirname, "harness.css"), "utf8");
@@ -176,11 +177,16 @@ async function checkForUpdates() {
       });
       return;
     }
+    const isRepair = Boolean(availableUpdate.repair);
     const choice = await showMessage({
       type: "info",
       title: "Kimi Code Desktop 更新",
-      message: `发现新版本 v${availableUpdate.version}`,
-      detail: "下载后可退出并安装。更新只替换应用本体，外部配置、会话、皮肤和素材保持不变。",
+      message: isRepair
+        ? `发现 v${availableUpdate.version} 同版本维护更新`
+        : `发现新版本 v${availableUpdate.version}`,
+      detail: isRepair
+        ? "官方版本号保持不变；本次修复只替换应用本体，外部配置、会话、皮肤和素材保持不变。"
+        : "下载后可退出并安装。更新只替换应用本体，外部配置、会话、皮肤和素材保持不变。",
       buttons: ["下载更新", "查看发布说明", "稍后"],
       defaultId: 0,
       cancelId: 2,
@@ -198,14 +204,20 @@ async function checkForUpdates() {
     const install = await showMessage({
       type: "question",
       title: "更新已下载",
-      message: `现在退出并安装 v${availableUpdate.version}？`,
+      message: isRepair
+        ? `现在退出并安装 v${availableUpdate.version} 维护更新？`
+        : `现在退出并安装 v${availableUpdate.version}？`,
       detail: "Kimi 后台会先正常结束并释放文件权限；安装完成后应用会自动重新打开。",
       buttons: ["退出并安装", "稍后"],
       defaultId: 0,
       cancelId: 1,
     });
     if (install.response === 0) {
-      updater.prepareMacInstall({ archive, version: availableUpdate.version });
+      updater.prepareMacInstall({
+        archive,
+        version: availableUpdate.version,
+        revision: availableUpdate.revision || "",
+      });
       app.quit();
     }
   } catch (error) {
@@ -246,7 +258,9 @@ async function openFullDiskAccessSettings() {
 function buildMenu() {
   const updateLabel = updateBusy
     ? "正在检查更新…"
-    : availableUpdate ? `下载更新 v${availableUpdate.version}…` : "检查更新…";
+    : availableUpdate
+      ? `${availableUpdate.repair ? "下载维护更新" : "下载更新"} v${availableUpdate.version}…`
+      : "检查更新…";
   const macAppMenu = {
     label: app.name,
     submenu: [
@@ -397,6 +411,7 @@ async function startApplication() {
   if (!singleInstance) return;
   updater = new DesktopUpdater({
     currentVersion: app.getVersion(),
+    currentRevision: distributionRevision,
     updatesRoot: path.join(kimiHome(), "desktop-updates"),
     installerSource: path.join(__dirname, "update", "install-macos.sh"),
     bundleId,

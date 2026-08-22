@@ -112,7 +112,9 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
           CSC_FOR_PULL_REQUEST: "true"
           KIMI_STABLE_ADHOC_IDENTITY: "1"
+          KIMI_DISTRIBUTION_REVISION: github-run-${{ github.run_id }}
         run: |
+          node -e "require('node:fs').writeFileSync('src/distribution-revision.json', JSON.stringify({schema:1,revision:process.env.KIMI_DISTRIBUTION_REVISION}, null, 2) + '\n')"
           npm ci
           npm test
           assets="$RUNNER_TEMP/suite-kimi-macos"
@@ -179,11 +181,13 @@ jobs:
         shell: pwsh
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          KIMI_DISTRIBUTION_REVISION: github-run-${{ github.run_id }}
         run: |
           $ErrorActionPreference = "Stop"
           $PSNativeCommandUseErrorActionPreference = $true
           $assets = Join-Path $env:RUNNER_TEMP "suite-kimi-windows"
           New-Item -ItemType Directory -Force -Path $assets | Out-Null
+          node -e "require('node:fs').writeFileSync('src/distribution-revision.json', JSON.stringify({schema:1,revision:process.env.KIMI_DISTRIBUTION_REVISION}, null, 2) + '\n')"
           npm ci
           npm test
           foreach ($arch in @("x64", "arm64")) {
@@ -254,9 +258,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.guard.outputs.kimi_tag }}
           VERSION: ${{ needs.guard.outputs.kimi_version }}
+          KIMI_DISTRIBUTION_REVISION: github-run-${{ github.run_id }}
         run: |
+          printf '{\n  "schema": 1,\n  "version": "%s",\n  "revision": "%s"\n}\n' \
+            "$VERSION" "$KIMI_DISTRIBUTION_REVISION" \
+            > "release-assets/Kimi.Code.Desktop-$VERSION-release.json"
           mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
-          test "${#assets[@]}" = "8"
+          test "${#assets[@]}" = "9"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$TAG" \
               -f sha="$GITHUB_SHA" -F force=true >/dev/null

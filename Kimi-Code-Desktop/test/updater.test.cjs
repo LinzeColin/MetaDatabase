@@ -5,9 +5,12 @@ const path = require("node:path");
 const test = require("node:test");
 const {
   compareVersions,
+  distributionManifestName,
+  parseDistributionManifest,
   resolveMacInstallTarget,
   rollbackApplicationPath,
   selectRelease,
+  selectRepairRelease,
 } = require("../src/runtime/updater.cjs");
 const packageJson = require("../package.json");
 
@@ -35,6 +38,38 @@ test("selects only a newer matching Kimi desktop asset", () => {
   }];
   assert.equal(selectRelease(releases, { currentVersion: "0.1.0", platform: "darwin", arch: "arm64" }).version, "0.2.0");
   assert.equal(selectRelease(releases, { currentVersion: "0.2.0", platform: "darwin", arch: "arm64" }), null);
+});
+
+test("selects a same-version maintenance asset only when its revision manifest exists", () => {
+  const version = "0.38.0";
+  const releases = [{
+    tag_name: `kimi-code-desktop-v${version}`,
+    draft: false,
+    prerelease: false,
+    assets: [
+      { name: `Kimi.Code.Desktop-${version}-mac-arm64.zip`, browser_download_url: "https://github.com/app" },
+      { name: distributionManifestName(version), browser_download_url: "https://github.com/manifest" },
+    ],
+  }];
+  const repair = selectRepairRelease(releases, { currentVersion: version, platform: "darwin", arch: "arm64" });
+  assert.equal(repair.repair, true);
+  assert.equal(repair.manifestAsset.name, `Kimi.Code.Desktop-${version}-release.json`);
+  assert.equal(selectRepairRelease([{ ...releases[0], assets: releases[0].assets.slice(0, 1) }], {
+    currentVersion: version,
+    platform: "darwin",
+    arch: "arm64",
+  }), null);
+});
+
+test("accepts only a matching canonical distribution revision manifest", () => {
+  assert.deepEqual(
+    parseDistributionManifest('{"schema":1,"version":"0.38.0","revision":"github-run-42"}', "0.38.0"),
+    { version: "0.38.0", revision: "github-run-42" },
+  );
+  assert.throws(
+    () => parseDistributionManifest('{"schema":1,"version":"0.39.0","revision":"github-run-42"}', "0.38.0"),
+    /维护更新清单无效/,
+  );
 });
 
 test("ignores the retired private community version line", () => {
