@@ -74,6 +74,8 @@ test("DSH overlay keeps semantic text and input surfaces readable in light and d
   assert.match(client, /--dsw-alias-label-dimmed:#526174!important/);
   assert.match(client, /--dsw-alias-label-dimmed:#b6c0cf!important/);
   assert.match(client, /::placeholder\{color:#526174!important;opacity:1!important/);
+  assert.match(client, /\[contenteditable="true"\]\)\{color:#172033!important;-webkit-text-fill-color:#172033!important/);
+  assert.match(client, /\[contenteditable="true"\]\)\{color:#f4f7fb!important;-webkit-text-fill-color:#f4f7fb!important/);
   assert.match(client, /background-color:rgba\(248,250,255,\.96\)!important/);
   assert.match(client, /@media \(prefers-reduced-transparency:reduce\)/);
 });

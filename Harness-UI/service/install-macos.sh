@@ -47,6 +47,8 @@ render "$script_dir/com.harnessui.smb.plist" "$smb_agent"
 
 /bin/launchctl bootout "gui/$uid/com.harnessui.assets" >/dev/null 2>&1 || true
 /bin/launchctl bootout "gui/$uid/com.harnessui.smb" >/dev/null 2>&1 || true
+/bin/launchctl enable "gui/$uid/com.harnessui.smb"
+/bin/launchctl enable "gui/$uid/com.harnessui.assets"
 /bin/launchctl bootstrap "gui/$uid" "$smb_agent"
 /bin/launchctl bootstrap "gui/$uid" "$assets_agent"
 

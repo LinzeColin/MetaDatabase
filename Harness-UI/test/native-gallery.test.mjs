@@ -17,6 +17,10 @@ test("macOS opens the complete library in an in-app WebKit window", () => {
   assert.match(gallery, /import WebKit/);
   assert.match(gallery, /WKWebView/);
   assert.match(gallery, /makeKeyAndOrderFront/);
+  assert.match(gallery, /override func performKeyEquivalent/);
+  assert.match(gallery, /case "r":/);
+  assert.match(gallery, /case "w":/);
+  assert.match(gallery, /case "q":/);
   assert.match(delegate, /applicationShouldHandleReopen/);
   assert.match(delegate, /open urls: \[URL\]/);
   assert.match(plist, /<string>harnessui<\/string>/);
@@ -61,4 +65,6 @@ test("the macOS app and installer wait for the configured shared service", () =>
   assert.match(delegate, /Thread\.sleep\(forTimeInterval: 0\.5\)/);
   assert.match(installer, /http:\/\/127\.0\.0\.1:3099\/state\.json/);
   assert.match(installer, /harness_service_ready/);
+  assert.match(installer, /launchctl enable "gui\/\$uid\/com\.harnessui\.smb"/);
+  assert.match(installer, /launchctl enable "gui\/\$uid\/com\.harnessui\.assets"/);
 });

@@ -40,6 +40,8 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is([id=root],#app) :is(input,text
 body[data-dsh-harness-ui][data-ds-dark-theme]>:is([role=dialog],[role=menu],[role=listbox]){background-color:rgba(15,22,38,.95)!important}
 body[data-dsh-harness-ui] :is(input,textarea)::placeholder{color:#526174!important;opacity:1!important;font-weight:450}
 body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea)::placeholder{color:#b6c0cf!important}
+body[data-dsh-harness-ui] :is(input,textarea,[contenteditable="true"]){color:#172033!important;-webkit-text-fill-color:#172033!important;caret-color:#172033!important;opacity:1!important}
+body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,[contenteditable="true"]){color:#f4f7fb!important;-webkit-text-fill-color:#f4f7fb!important;caret-color:#f4f7fb!important}
 #harness-ui-toggle{position:fixed;right:16px;bottom:16px;z-index:2147483000;border:1px solid #ffffff35;border-radius:999px;padding:7px 12px;background:#101826e8;color:#fff;cursor:pointer}
 #harness-ui-picker{position:fixed;right:16px;bottom:54px;z-index:2147483000;width:min(620px,72vw);max-height:65vh;display:none;overflow:auto;border:1px solid #ffffff38;border-radius:14px;padding:12px;background:#101826f4;color:#e8eef7;box-shadow:0 24px 80px #000b;font:13px/1.45 system-ui,-apple-system,"PingFang SC",sans-serif}
 #harness-ui-picker[data-open=true]{display:block}
