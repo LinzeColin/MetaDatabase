@@ -73,7 +73,7 @@ Kimi Code Desktop、Harness UI、DSH Desktop 采用“一套源码、同一提�
 
 - 共享源码只以本仓 `main` 为准；每台电脑均从它创建独立分支并通过 PR 合入。
 - [`desktop-suite/COMPATIBILITY_CONTRACT.json`](desktop-suite/COMPATIBILITY_CONTRACT.json) 是三端路径、bundle identity、版本来源、共享皮肤协议与发布标签的机器可读真源。
-- `.github/workflows/desktop-app-suite-release.yml` 在同一个 `GITHUB_SHA` 构建并发布三款 App。它先执行契约校验，发布标签始终指向同一提交。
+- `.github/workflows/desktop-app-suite-release.yml` 在同一个 `GITHUB_SHA` 构建并发布三款 App。它先执行契约校验，发布 tag 与 GitHub Release 的 target metadata 始终指向同一提交。
 - 仓库 Actions 的 Workflow permissions 保持 `Read and write permissions`。发布 job 以最小 `contents: write` 权限更新正式 tag 与 Release；仓库级策略为这项 job 级授权提供执行基础。
 - Harness UI 是共享 `catalog/state` 的唯一 owner；Kimi 与 DSH 读取同一协议，`Cmd/Ctrl+Shift+N` 统一调用 `POST /api/next`。
 - API key、账号、会话、SMB 凭据、素材、运行时状态、个人图标和已安装 App 都保留在各电脑本机，发布只包含可公开的源码与应用资产。
