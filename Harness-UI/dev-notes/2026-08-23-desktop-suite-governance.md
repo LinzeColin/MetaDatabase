@@ -23,6 +23,8 @@ GitHub 仓库级 Actions Workflow permissions 保持 `Read and write permissions
 
 同版本覆盖发布同步 Git tag 与 GitHub Release 的 `target_commitish`，因此 Harness UI 的下载资产和发布页面都可追溯到同一个套件提交。
 
+上游观察工作流只报告 Kimi 与 DSH 的版本漂移。来源更新通过 PR 合入后，统一 workflow 一次生成三端资产；历史单应用发布入口已经移除，Harness UI 因此始终与同一套件提交发布。
+
 ## 运行边界
 
 API key、账号、会话、SMB 凭据、素材文件、运行时 catalog/state、个人图标原件与已安装 App 都保持在本机外置目录。公开仓库只保存源码、契约、可公开的构建脚本与说明。

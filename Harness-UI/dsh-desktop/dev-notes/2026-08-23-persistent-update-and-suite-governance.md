@@ -20,6 +20,8 @@ GitHub 仓库级 Actions Workflow permissions 保持 `Read and write permissions
 
 同版本覆盖发布同步 Git tag 与 GitHub Release 的 `target_commitish`，让 DSH 官方镜像和桥接包在发布页面上也明确关联到该套件提交。
 
+每日上游观察工作流只报告 DSH 与 Kimi 的版本漂移。来源更新通过 PR 合入后，统一 workflow 才镜像 DSH 官方安装器并打包 Harness UI bridge，因此 DSH 不会通过独立镜像工作流脱离三端发布提交。
+
 ## 本机数据边界
 
 DSH 配置、会话、外置图标、Harness UI 状态和素材目录留在用户目录，发布包只包含可公开的桥接源码与官方版本镜像流程。

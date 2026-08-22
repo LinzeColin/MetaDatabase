@@ -53,12 +53,14 @@ if (contract.schemaVersion !== 1) fail("schemaVersion must equal 1");
 if (contract.repository?.canonical !== "LinzeColin/MetaDatabase") fail("repository.canonical must equal LinzeColin/MetaDatabase");
 if (contract.repository?.branch !== "main") fail("repository.branch must equal main");
 if (contract.release?.workflow !== ".github/workflows/desktop-app-suite-release.yml") fail("release.workflow must name the unified release workflow");
+if (contract.release?.upstreamWatchWorkflow !== ".github/workflows/upstream-desktop-sync.yml") fail("release.upstreamWatchWorkflow must name the upstream watch workflow");
 if (
   contract.release?.sourceCommit !== "GITHUB_SHA" ||
   contract.release?.releaseTargetMetadata !== "GITHUB_SHA" ||
-  contract.release?.oneCommitForAllApps !== true
+  contract.release?.oneCommitForAllApps !== true ||
+  contract.release?.exclusiveWorkflow !== true
 ) {
-  fail("release must publish all three applications from GITHUB_SHA");
+  fail("release must publish all three applications exclusively from GITHUB_SHA");
 }
 
 for (const [key, application] of Object.entries({ kimiCode: kimi, harnessUI: harness, dshDesktop: dsh })) {
@@ -96,6 +98,7 @@ for (const relative of [
   "Harness-UI/dsh-plugin/lib/client.js",
   "Harness-UI/dsh-desktop/install-dsh-update.py",
   contract.release?.workflow || "",
+  contract.release?.upstreamWatchWorkflow || "",
 ]) requirePath(relative);
 
 const workflow = readText(contract.release?.workflow || "");
@@ -120,6 +123,43 @@ if ((workflow.match(/\$GITHUB_SHA/g) || []).length < 3) {
 }
 if ((workflow.match(/target_commitish="\$GITHUB_SHA"/g) || []).length !== 3) {
   fail("unified release workflow must synchronize target_commitish for every application release");
+}
+
+const upstreamWatchWorkflow = readText(contract.release?.upstreamWatchWorkflow || "");
+for (const required of [
+  "MoonshotAI/kimi-code",
+  "anywhere-labs/deepseek-harness-desktop",
+  "contents: read",
+]) {
+  if (!upstreamWatchWorkflow.includes(required)) fail("upstream watch workflow must contain " + required);
+}
+for (const forbidden of [
+  "gh release create",
+  "gh release upload",
+  "git/refs/tags",
+  "repos/$GITHUB_REPOSITORY/releases",
+]) {
+  if (upstreamWatchWorkflow.includes(forbidden)) fail("upstream watch workflow must only detect upstream version drift");
+}
+
+for (const legacyWorkflow of [
+  ".github/workflows/kimi-code-desktop-release.yml",
+  ".github/workflows/harness-ui-release.yml",
+]) {
+  if (fs.existsSync(absolute(legacyWorkflow))) fail("legacy single-app publish workflow must be removed: " + legacyWorkflow);
+}
+
+const workflowDirectory = absolute(".github/workflows");
+const releaseWritePattern = /gh\s+release\s+(?:create|upload)|git\/refs\/tags|repos\/\$GITHUB_REPOSITORY\/releases/;
+const desktopMarkerPattern = /kimi-code-desktop|harness-ui|dsh-desktop|Kimi Code Desktop|Harness UI|DSH Desktop/i;
+for (const filename of fs.readdirSync(workflowDirectory)) {
+  if (!/\.ya?ml$/.test(filename)) continue;
+  const relative = path.posix.join(".github/workflows", filename);
+  if (relative === contract.release.workflow) continue;
+  const candidate = readText(relative);
+  if (releaseWritePattern.test(candidate) && desktopMarkerPattern.test(candidate)) {
+    fail("desktop release publishing is exclusive to " + contract.release.workflow + ": " + relative);
+  }
 }
 
 const protocol = contract.sharedSkinProtocol || {};
