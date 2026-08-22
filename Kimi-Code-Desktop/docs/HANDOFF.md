@@ -10,8 +10,8 @@
 - 唯一更新标签为 `kimi-code-desktop-v*`。旧 `kimi-code-desktop-community-v*` 已退出更新候选。
 - App 启动 30 秒后及每 6 小时后台检查，也可从应用菜单手动检查、下载并在确认后退出安装。
 - 同一官方版本内的桌面维护修复使用 Release 旁的 `release.json` 与包内发行修订标识比较；可见版本仍严格保持官方 `0.38.0`。因此覆盖同 tag 资产后，用户的“检查更新…”按钮也能发现维护更新，不再依赖 Agent 手工替换。
-- 每日 GitHub workflow 会读取官方最新版本；本仓库缺少同版本 Release 时自动构建 macOS arm64/x64 与 Windows x64/arm64 资产。
-- 三端源码、bundle identity、共享皮肤协议与发布标签由仓根 `desktop-suite/COMPATIBILITY_CONTRACT.json` 固化；正式资产由同一 `GITHUB_SHA` 的统一 workflow 同时发布。
+- 每日 GitHub workflow 会读取官方最新版本；发现版本变化时只创建三端兼容 PR 并调度 CI，不直接创建任何单 App Release。
+- 三端源码、bundle identity、共享皮肤协议与发布标签由仓根 `desktop-suite/COMPATIBILITY_CONTRACT.json` 固化；正式资产只由当前 `main` 同一 `GITHUB_SHA` 的统一 workflow 同时发布，三个 Release 带同一份来源记录。
 - macOS 本地构建固定使用 `com.electron.kimi-code` designated requirement，避免每次 ad-hoc 构建产生不同 TCC 代码身份；未来配置 Developer ID 时仍覆盖同一 Release，不建立新版本线。
 - macOS 构建在 Electron 签名步骤后恢复 Moonshot 官方签名的内置 CLI；启动时仅把同版本 CLI 可执行文件迁移到稳定路径 `~/.kimi-code/bin/kimi`，旧 CLI 单独留在 `desktop-updates/cli-rollback/`，不修改同目录下任何账号、会话、配置、图标、皮肤或素材。
 - macOS GUI 通过临时 launchd job 启动稳定路径中的官方 CLI，使后台 TCC 身份不再继承 ad-hoc Electron 壳；`Cmd+W`/关闭窗口仅关闭窗口，`Cmd+Q` 移除该 job 并正常结束 GUI、后台和定时器。该 job 不是登录启动项。
@@ -43,6 +43,7 @@
 - 过度透明修复已在 PID 95131 的现有 renderer 内无刷新热应用：主表层 76%、侧栏 86%、输入区约 98%、模型与工作区弹层 99%；模型菜单、工作区选择器及“添加工作区”对话框均已截图验收，PID 95131/95134 未变化。暗色计算样式同样达到主表层 78%、侧栏 88%、输入区约 98%、弹层 99%。
 - Owner 自然重启后，最终 `0.38.0` 已从标准位置 `~/Applications/Kimi Code.app` 运行；设置页和“添加工作区”弹窗均在该安装版本上真机复验为清晰表层。执行 `Cmd+R` 后皮肤人物仍显示，阅读列、侧栏、消息与输入区保持可读，原生皮肤菜单仍为 408 项。
 - 2026-08-23 Owner 明确了新的视觉验收边界：空白新会话能看到人物不代表已有线程页通过；已有线程如果被嵌套表层洗成白色仍是失败。普通浅色表层现收敛为根层 64%、侧栏 74%、阅读列 60% 并配 10px 轻模糊，暗色对应为 68%/76%/64%；输入区仍接近 98%、模型/工作区/创建工作区弹层仍为 99%，系统“降低透明度”继续使用实体背景。
+- 进一步定位确认已有线程的真实容器是 `#app .con`，而不是空会话使用的 `.main`；现已让两者共同使用 `--harness-main-wash` 并加入 Node 回归。否则 `.con` 的 64% 默认底色与 60% 阅读列表层叠加后会形成约 85.6% 的白色覆盖。
 - 同一组样式已在运行中的 Kimi PID 46340 上通过本机 inspector 无刷新热应用：没有重启 GUI/backend、没有 `Cmd+R`，已有线程页人物与场景重新可见，表格、正文、侧栏和输入框仍可读；T1、T2 与“辅助线 - 数据分析”继续保持运行标记。持久安装包仍需由同版本正式 Release 覆盖，当前热应用只负责不中断恢复。
 - 同版本维护更新协议现把 GitHub workflow 的内部发行修订同时写入 macOS/Windows 包和 Release 清单；更新器先比较官方版本，再比较该修订。新安装包不会重复提示自己，旧安装包会把新的同版本正式资产显示为“维护更新”；安装回执保留该修订，但账号、会话、配置、皮肤、素材和外置图标仍不进入更新事务。
 

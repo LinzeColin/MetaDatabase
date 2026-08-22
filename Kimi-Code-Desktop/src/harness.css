@@ -99,6 +99,10 @@ html[data-harness-ui="active"] #app .main {
   background-color: var(--harness-main-wash) !important;
 }
 
+html[data-harness-ui="active"] #app .con {
+  background-color: var(--harness-main-wash) !important;
+}
+
 html[data-harness-ui="active"] #app .content-wrap {
   background-color: var(--harness-reading-bg) !important;
   box-shadow: 0 0 24px color-mix(in srgb, var(--harness-reading-bg) 40%, transparent) !important;

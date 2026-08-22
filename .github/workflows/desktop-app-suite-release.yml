@@ -1,30 +1,18 @@
 name: Desktop app suite release
 
 on:
-  pull_request:
+  push:
+    branches: [main]
     paths:
       - "Kimi-Code-Desktop/**"
       - "Harness-UI/**"
       - "desktop-suite/**"
       - "scripts/validate-desktop-suite-contract.mjs"
       - ".github/workflows/desktop-app-suite-release.yml"
+      - ".github/workflows/upstream-desktop-sync.yml"
+      - ".github/workflows/kimi-harness-ci.yml"
   workflow_dispatch:
     inputs:
-      kimi_version:
-        description: "Must equal the latest official MoonshotAI/kimi-code version"
-        required: true
-        default: "0.38.0"
-        type: string
-      harness_version:
-        description: "Harness UI product version"
-        required: true
-        default: "1.0.0"
-        type: string
-      dsh_version:
-        description: "Must equal the latest official DSH Desktop version"
-        required: true
-        default: "2.0.2"
-        type: string
       confirm:
         description: "Type RELEASE_DESKTOP_APP_SUITE"
         required: true
@@ -34,7 +22,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: desktop-app-suite-release-${{ github.ref }}
+  group: desktop-app-suite-release-main
   cancel-in-progress: false
 
 jobs:
@@ -58,22 +46,19 @@ jobs:
         id: values
         env:
           GH_TOKEN: ${{ github.token }}
-          INPUT_KIMI_VERSION: ${{ inputs.kimi_version }}
-          INPUT_HARNESS_VERSION: ${{ inputs.harness_version }}
-          INPUT_DSH_VERSION: ${{ inputs.dsh_version }}
           CONFIRM: ${{ inputs.confirm }}
         run: |
           kimi_version="$(node -p "require('./Kimi-Code-Desktop/package.json').version")"
           harness_version="$(node -p "require('./Harness-UI/package.json').version")"
-          dsh_version="${INPUT_DSH_VERSION:-2.0.2}"
+          dsh_version="$(node -p "require('./desktop-suite/COMPATIBILITY_CONTRACT.json').applications.dshDesktop.version")"
+          test "$GITHUB_REF" = "refs/heads/main"
           if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
-            test "$GITHUB_REF" = "refs/heads/main"
             test "$CONFIRM" = "RELEASE_DESKTOP_APP_SUITE"
-            test "$INPUT_KIMI_VERSION" = "$kimi_version"
-            test "$INPUT_HARNESS_VERSION" = "$harness_version"
-            test "$(gh api repos/MoonshotAI/kimi-code/releases/latest --jq .tag_name)" = "@moonshot-ai/kimi-code@$kimi_version"
-            test "$(gh api repos/anywhere-labs/deepseek-harness-desktop/releases/latest --jq .tag_name)" = "v$dsh_version"
           fi
+          current_main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$current_main" = "$GITHUB_SHA"
+          test "$(gh api repos/MoonshotAI/kimi-code/releases/latest --jq .tag_name)" = "@moonshot-ai/kimi-code@$kimi_version"
+          test "$(gh api repos/anywhere-labs/deepseek-harness-desktop/releases/latest --jq .tag_name)" = "v$dsh_version"
           printf 'kimi_version=%s\n' "$kimi_version" >> "$GITHUB_OUTPUT"
           printf 'harness_version=%s\n' "$harness_version" >> "$GITHUB_OUTPUT"
           printf 'dsh_version=%s\n' "$dsh_version" >> "$GITHUB_OUTPUT"
@@ -241,11 +226,10 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  publish-kimi:
-    if: github.event_name == 'workflow_dispatch'
-    needs: [guard, macos, windows]
+  publish-suite:
+    needs: [guard, macos, windows, dsh]
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
       contents: write
     steps:
@@ -255,112 +239,95 @@ jobs:
       - uses: actions/download-artifact@v8
         with:
           pattern: suite-kimi-*
-          path: release-assets
+          path: release-assets/kimi
           merge-multiple: true
-      - name: Publish Kimi Code Desktop
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.guard.outputs.kimi_tag }}
-          VERSION: ${{ needs.guard.outputs.kimi_version }}
-          KIMI_DISTRIBUTION_REVISION: github-run-${{ github.run_id }}
-        run: |
-          printf '{\n  "schema": 1,\n  "version": "%s",\n  "revision": "%s"\n}\n' \
-            "$VERSION" "$KIMI_DISTRIBUTION_REVISION" \
-            > "release-assets/Kimi.Code.Desktop-$VERSION-release.json"
-          mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
-          test "${#assets[@]}" = "9"
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$TAG" \
-              -f sha="$GITHUB_SHA" -F force=true >/dev/null
-            release_id="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq .id)"
-            gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" \
-              -f target_commitish="$GITHUB_SHA" >/dev/null
-            gh release upload "$TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
-          else
-            gh release create "$TAG" "${assets[@]}" \
-              --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest=false \
-              --title "Kimi Code Desktop v$VERSION" \
-              --notes-file Kimi-Code-Desktop/docs/RELEASE.md
-          fi
-
-  publish-harness:
-    if: github.event_name == 'workflow_dispatch'
-    needs: [guard, macos, windows]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
       - uses: actions/download-artifact@v8
         with:
           pattern: suite-harness-*
-          path: release-assets
+          path: release-assets/harness
           merge-multiple: true
-      - name: Add the standalone DSH adapter bundle
-        env:
-          VERSION: ${{ needs.guard.outputs.harness_version }}
-        run: |
-          cd Harness-UI
-          zip -r "../release-assets/Harness-UI-$VERSION-DSH-adapter.zip" \
-            dsh-plugin scripts/install-dsh.mjs LICENSE README.md
-      - name: Publish Harness UI
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.guard.outputs.harness_tag }}
-          VERSION: ${{ needs.guard.outputs.harness_version }}
-        run: |
-          mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
-          test "${#assets[@]}" = "7"
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$TAG" \
-              -f sha="$GITHUB_SHA" -F force=true >/dev/null
-            release_id="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq .id)"
-            gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" \
-              -f target_commitish="$GITHUB_SHA" >/dev/null
-            gh release upload "$TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
-          else
-            gh release create "$TAG" "${assets[@]}" \
-              --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest=false \
-              --title "Harness UI v$VERSION" \
-              --notes-file Harness-UI/docs/RELEASE.md
-          fi
-
-  publish-dsh:
-    if: github.event_name == 'workflow_dispatch'
-    needs: [guard, dsh]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
       - uses: actions/download-artifact@v8
         with:
           name: suite-dsh
-          path: release-assets
-      - name: Publish the official-version DSH Desktop mirror
+          path: release-assets/dsh
+      - name: Assemble one provenance record for all three apps
+        env:
+          KIMI_VERSION: ${{ needs.guard.outputs.kimi_version }}
+          HARNESS_VERSION: ${{ needs.guard.outputs.harness_version }}
+          DSH_VERSION: ${{ needs.guard.outputs.dsh_version }}
+          KIMI_TAG: ${{ needs.guard.outputs.kimi_tag }}
+          HARNESS_TAG: ${{ needs.guard.outputs.harness_tag }}
+          DSH_TAG: ${{ needs.guard.outputs.dsh_tag }}
+          KIMI_DISTRIBUTION_REVISION: github-run-${{ github.run_id }}
+        run: |
+          cd Harness-UI
+          zip -r "../release-assets/harness/Harness-UI-$HARNESS_VERSION-DSH-adapter.zip" \
+            dsh-plugin scripts/install-dsh.mjs LICENSE README.md
+          cd ..
+          printf '{\n  "schema": 1,\n  "version": "%s",\n  "revision": "%s"\n}\n' \
+            "$KIMI_VERSION" "$KIMI_DISTRIBUTION_REVISION" \
+            > "release-assets/kimi/Kimi.Code.Desktop-$KIMI_VERSION-release.json"
+          node <<'NODE'
+          const fs = require("node:fs");
+          const record = {
+            schema: 1,
+            repository: process.env.GITHUB_REPOSITORY,
+            sourceCommit: process.env.GITHUB_SHA,
+            workflow: process.env.GITHUB_WORKFLOW,
+            runId: process.env.GITHUB_RUN_ID,
+            applications: {
+              kimiCode: { version: process.env.KIMI_VERSION, tag: process.env.KIMI_TAG },
+              harnessUI: { version: process.env.HARNESS_VERSION, tag: process.env.HARNESS_TAG },
+              dshDesktop: { version: process.env.DSH_VERSION, tag: process.env.DSH_TAG },
+            },
+          };
+          const contents = JSON.stringify(record, null, 2) + "\n";
+          for (const directory of ["kimi", "harness", "dsh"]) {
+            fs.writeFileSync("release-assets/" + directory + "/Desktop.App.Suite-release.json", contents);
+          }
+          NODE
+      - name: Publish the indivisible desktop app suite
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.guard.outputs.dsh_tag }}
-          VERSION: ${{ needs.guard.outputs.dsh_version }}
+          KIMI_VERSION: ${{ needs.guard.outputs.kimi_version }}
+          HARNESS_VERSION: ${{ needs.guard.outputs.harness_version }}
+          DSH_VERSION: ${{ needs.guard.outputs.dsh_version }}
+          KIMI_TAG: ${{ needs.guard.outputs.kimi_tag }}
+          HARNESS_TAG: ${{ needs.guard.outputs.harness_tag }}
+          DSH_TAG: ${{ needs.guard.outputs.dsh_tag }}
         run: |
-          mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
-          test "${#assets[@]}" = "3"
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$TAG" \
-              -f sha="$GITHUB_SHA" -F force=true >/dev/null
-            release_id="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq .id)"
-            gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" \
-              -f target_commitish="$GITHUB_SHA" >/dev/null
-            gh release upload "$TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
-          else
-            gh release create "$TAG" "${assets[@]}" \
-              --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest=false \
-              --title "DSH Desktop v$VERSION" \
-              --notes-file Harness-UI/dsh-desktop/RELEASE.md
-          fi
+          current_main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$current_main" = "$GITHUB_SHA"
+
+          publish_release() {
+            local tag="$1"
+            local title="$2"
+            local notes="$3"
+            local directory="$4"
+            local expected="$5"
+            mapfile -d '' assets < <(find "$directory" -maxdepth 1 -type f -print0 | sort -z)
+            test "${#assets[@]}" = "$expected"
+            if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag" \
+                -f sha="$GITHUB_SHA" -F force=true >/dev/null
+              release_id="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$tag" --jq .id)"
+              gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" \
+                -f target_commitish="$GITHUB_SHA" >/dev/null
+              gh release upload "$tag" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
+            else
+              gh release create "$tag" "${assets[@]}" \
+                --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest=false \
+                --title "$title" --notes-file "$notes"
+            fi
+          }
+
+          publish_release "$KIMI_TAG" "Kimi Code Desktop v$KIMI_VERSION" \
+            Kimi-Code-Desktop/docs/RELEASE.md release-assets/kimi 10
+          publish_release "$HARNESS_TAG" "Harness UI v$HARNESS_VERSION" \
+            Harness-UI/docs/RELEASE.md release-assets/harness 8
+          publish_release "$DSH_TAG" "DSH Desktop v$DSH_VERSION" \
+            Harness-UI/dsh-desktop/RELEASE.md release-assets/dsh 4
+
+          for tag in "$KIMI_TAG" "$HARNESS_TAG" "$DSH_TAG"; do
+            test "$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$tag" --jq .target_commitish)" = "$GITHUB_SHA"
+          done

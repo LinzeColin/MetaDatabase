@@ -1,16 +1,31 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "repository": {
     "canonical": "LinzeColin/MetaDatabase",
     "branch": "main"
   },
   "release": {
     "workflow": ".github/workflows/desktop-app-suite-release.yml",
-    "upstreamWatchWorkflow": ".github/workflows/upstream-desktop-sync.yml",
+    "upstreamProposalWorkflow": ".github/workflows/upstream-desktop-sync.yml",
+    "publishBranch": "main",
     "sourceCommit": "GITHUB_SHA",
     "releaseTargetMetadata": "GITHUB_SHA",
     "oneCommitForAllApps": true,
-    "exclusiveWorkflow": true
+    "exclusivePublisher": true,
+    "requireCurrentMain": true,
+    "provenanceAsset": "Desktop.App.Suite-release.json"
+  },
+  "collaboration": {
+    "baseline": "origin/main",
+    "isolation": "git-worktree",
+    "integration": "pull-request",
+    "directMainPush": false,
+    "requiredWorkflow": ".github/workflows/kimi-harness-ci.yml",
+    "applicationSet": [
+      "kimiCode",
+      "harnessUI",
+      "dshDesktop"
+    ]
   },
   "applications": {
     "kimiCode": {

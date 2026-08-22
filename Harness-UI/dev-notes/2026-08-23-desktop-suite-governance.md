@@ -17,7 +17,9 @@ Harness UI 是 Kimi Code Desktop 与 DSH Desktop 的共享皮肤状态 owner。�
 
 ## 跨电脑协作
 
-仓根 desktop-suite/COMPATIBILITY_CONTRACT.json 是三端路径、bundle identifier、版本来源、共享协议和 release tag 的机器可读契约。任何兼容性改动与契约一同进入 PR；desktop-app-suite-release workflow 从同一 GITHUB_SHA 构建和发布 Kimi、Harness UI、DSH。
+仓根 desktop-suite/COMPATIBILITY_CONTRACT.json 是三端路径、bundle identifier、版本来源、共享协议和 release tag 的机器可读契约。任何兼容性改动与契约一同进入 PR；desktop-app-suite-release workflow 从当前 `main` 的同一 GITHUB_SHA 构建和发布 Kimi、Harness UI、DSH。
+
+Mac Pro、Mac Air 和其它 agent 都从 `origin/main` 建独立 worktree 分支，通过同一 PR/CI 入口整合。旧 Harness signed workflow 只生成候选包，每日上游检查只开兼容 PR；契约校验会拒绝其它 workflow 发布三端 tag。统一发布为三个 Release 写入同一份 `Desktop.App.Suite-release.json`，避免两台电脑各自产生一套三款软件。
 
 GitHub 仓库级 Actions Workflow permissions 保持 `Read and write permissions`。Harness 发布 job 以最小 `contents: write` 覆盖同版本正式 Release 的 tag 与七个资产，使三端能够收敛到同一个 commit。
 

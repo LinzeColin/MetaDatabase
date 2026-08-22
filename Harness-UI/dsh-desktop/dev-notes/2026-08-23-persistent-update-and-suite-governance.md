@@ -14,7 +14,9 @@ DSH 背景层保留已显示素材 URL。相同 URL 的轮询结果不会再次�
 
 ## 三端治理
 
-DSH 官方安装器镜像和 Harness UI 桥接与 Kimi、Harness UI 共同受 desktop-suite/COMPATIBILITY_CONTRACT.json 约束。正式资产由 desktop-app-suite-release workflow 在同一个 GITHUB_SHA 发布。
+DSH 官方安装器镜像和 Harness UI 桥接与 Kimi、Harness UI 共同受 desktop-suite/COMPATIBILITY_CONTRACT.json 约束。正式资产只由 desktop-app-suite-release workflow 在当前 `main` 的同一个 GITHUB_SHA 发布。
+
+每日上游检查不再直接镜像并创建 DSH Release，而是只更新契约中的官方版本并开三端兼容 PR。Mac Pro、Mac Air 或任何 agent 都必须先从 `origin/main` 建独立 worktree，再通过同一 PR/CI 合入；合并后唯一发布者为三个 Release 写入共同的 `Desktop.App.Suite-release.json`。
 
 GitHub 仓库级 Actions Workflow permissions 保持 `Read and write permissions`，使 DSH 发布 job 的最小 `contents: write` 授权能够更新正式 tag 与镜像资产；三端发布由此维持同一 commit 边界。
 
