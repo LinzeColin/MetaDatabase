@@ -8,6 +8,8 @@
   <key>EnvironmentVariables</key><dict>
     <key>HARNESS_UI_MOUNT_POINT</key><string>__HARNESS_UI_MOUNT__</string>
     <key>HARNESS_UI_SMB_URL</key><string>__HARNESS_UI_SMB_URL__</string>
+    <key>HARNESS_UI_VOLUME_ID_FILE</key><string>__HARNESS_UI_VOLUME_ID_FILE__</string>
+    <key>HARNESS_UI_VOLUME_ID</key><string>__HARNESS_UI_VOLUME_ID__</string>
   </dict>
   <key>RunAtLoad</key><true/>
   <key>StartInterval</key><integer>60</integer>
