@@ -135,6 +135,8 @@ test("reapplies the same skin after the renderer document reloads", async () => 
 
   await bridge.applyCurrent();
   await bridge.applyCurrent();
+  bridge.state.updated = 43;
+  await bridge.applyCurrent();
   assert.equal(scripts.length, 1);
   assert.equal(await bridge.reapply(window), true);
   assert.equal(scripts.length, 2);

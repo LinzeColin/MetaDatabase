@@ -10,6 +10,7 @@ import os
 import pathlib
 import plistlib
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -17,7 +18,7 @@ import time
 
 
 BUNDLE_ID = "ai.deepseek.dsh.desktop"
-TARGET = pathlib.Path("/Applications/DSH Desktop.app")
+DEFAULT_TARGET = pathlib.Path.home() / "Applications" / "DSH Desktop.app"
 DSH_HOME = pathlib.Path.home() / ".dsh"
 UPDATES = DSH_HOME / "desktop-updates"
 PATCHER = DSH_HOME / "_patches" / "patch-dsh-runtime.py"
@@ -64,6 +65,14 @@ def ensure_runtime_icon() -> None:
     temporary.replace(RUNTIME_ICON)
 
 
+def make_bundle_writable(app: pathlib.Path) -> None:
+    for item in (app, *app.rglob("*")):
+        if item.is_symlink():
+            continue
+        required = stat.S_IWUSR | (stat.S_IXUSR if item.is_dir() else 0)
+        item.chmod(item.stat().st_mode | required)
+
+
 def mounted_app(artifact: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path]:
     mount = pathlib.Path(tempfile.mkdtemp(prefix="dsh-update-mount-"))
     try:
@@ -95,7 +104,7 @@ def mounted_app(artifact: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path]:
     raise RuntimeError("下载的 DMG 中没有 DSH Desktop.app")
 
 
-def install(pid: int, artifact: pathlib.Path, version: str) -> pathlib.Path:
+def install(pid: int, artifact: pathlib.Path, version: str, target: pathlib.Path) -> pathlib.Path:
     if not artifact.is_absolute() or artifact.suffix.lower() != ".dmg" or not artifact.is_file():
         raise RuntimeError("更新文件不是有效的绝对 DMG 路径")
     if not PATCHER.is_file():
@@ -113,9 +122,12 @@ def install(pid: int, artifact: pathlib.Path, version: str) -> pathlib.Path:
         run("/usr/bin/codesign", "--verify", "--deep", "--strict", str(candidate))
         run("/usr/sbin/spctl", "--assess", "--type", "execute", str(candidate))
 
-        stage_root = pathlib.Path(tempfile.mkdtemp(prefix=".dsh-update-", dir=str(TARGET.parent)))
-        staged = stage_root / TARGET.name
+        staging = UPDATES / "staging"
+        staging.mkdir(parents=True, exist_ok=True)
+        stage_root = pathlib.Path(tempfile.mkdtemp(prefix=".dsh-update-", dir=str(staging)))
+        staged = stage_root / target.name
         run("/usr/bin/ditto", str(candidate), str(staged))
+        make_bundle_writable(staged)
         run("/usr/bin/python3", str(PATCHER), "--app", str(staged), "--no-backup")
         if ICON.is_file():
             shutil.copy2(ICON, staged / "Contents/Resources/icon.icns")
@@ -127,17 +139,18 @@ def install(pid: int, artifact: pathlib.Path, version: str) -> pathlib.Path:
         )
         run("/usr/bin/codesign", "--verify", "--deep", "--strict", str(staged))
 
-        rollback = UPDATES / "rollback" / f"{version}-{int(time.time())}" / f"{TARGET.name}.rollback"
+        rollback = UPDATES / "rollback" / f"{version}-{int(time.time())}" / f"{target.name}.rollback"
         rollback.parent.mkdir(parents=True, exist_ok=True)
-        if TARGET.exists():
-            TARGET.replace(rollback)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists():
+            target.replace(rollback)
         try:
-            staged.replace(TARGET)
+            staged.replace(target)
         except Exception:
-            if rollback.exists() and not TARGET.exists():
-                rollback.replace(TARGET)
+            if rollback.exists() and not target.exists():
+                rollback.replace(target)
             raise
-        run("/usr/bin/open", str(TARGET))
+        run("/usr/bin/open", str(target))
         write_receipt("installed", version, "应用本体已替换；外置图标、配置、皮肤、会话与 HarnessUI 数据保持原位。", rollback)
         return rollback
     finally:
@@ -156,13 +169,15 @@ def main() -> int:
     parser.add_argument("--pid", type=int, required=True)
     parser.add_argument("--artifact", type=pathlib.Path, required=True)
     parser.add_argument("--version", required=True)
+    parser.add_argument("--target", type=pathlib.Path, default=DEFAULT_TARGET)
     args = parser.parse_args()
+    target = args.target.expanduser().resolve()
     try:
-        install(args.pid, args.artifact.resolve(), args.version)
+        install(args.pid, args.artifact.resolve(), args.version, target)
     except Exception as error:
         write_receipt("failed", args.version, str(error))
         try:
-            run("/usr/bin/open", str(TARGET))
+            run("/usr/bin/open", str(target))
         except Exception:
             pass
         return 1

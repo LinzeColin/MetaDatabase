@@ -78,7 +78,8 @@ def patch_runtime(source: str) -> tuple[str, list[str]]:
 \t\t\tconst spec = this.scheduled;
 \t\t\tif (spec === void 0) throw new Error("dsh-plugin-desktop: no active shell can exit for update installation");
 \t\t\tsignal.throwIfAborted();
-\t\t\tconst child = spawn("/usr/bin/python3", [helper, "--pid", String(process.pid), "--artifact", artifactPath, "--version", version], {{ detached: true, stdio: "ignore" }});
+\t\t\tconst appBundle = join(process.execPath, "..", "..", "..");
+\t\t\tconst child = spawn("/usr/bin/python3", [helper, "--pid", String(process.pid), "--artifact", artifactPath, "--version", version, "--target", appBundle], {{ detached: true, stdio: "ignore" }});
 \t\t\tchild.unref();
 \t\t\tthis.quitting = true;
 \t\t\tspec.requestQuit(0);

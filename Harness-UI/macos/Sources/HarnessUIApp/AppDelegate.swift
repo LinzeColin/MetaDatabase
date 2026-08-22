@@ -230,7 +230,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             do {
                 let report = try synchronizeSourceToMaster(sourceRoot: root, masterRoot: self.masterRoot)
                 let build = buildLocalCatalog(masterRoot: self.masterRoot, labels: self.labels)
-                try self.store.install(build: build)
+                try self.store.install(build: build, forceGeneration: report.deployedCount > 0)
                 let sourceIds = Set(report.sourceIds)
                 let localIds = Set(build.catalog.entries.map(\.id))
                 let missing = localIds.subtracting(sourceIds).count

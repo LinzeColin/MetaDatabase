@@ -42,6 +42,27 @@ final class CatalogBuilderTests: XCTestCase {
         try FileManager.default.removeItem(at: root)
     }
 
+    func testStoreKeepsStateWhenOnlyCatalogRevisionChanges() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let store = HarnessStore(dataRoot: root)
+        let entry = CatalogEntry(
+            id: "genshin/aino/default", game: "genshin", gameName: "原神", character: "aino", variant: "default",
+            characterZh: "爱诺", variantZh: "默认", label: "爱诺", fullLabel: "爱诺",
+            light: "http://127.0.0.1:3099/assets/light?v=one", dark: "http://127.0.0.1:3099/assets/dark?v=one"
+        )
+        try store.install(build: CatalogBuild(catalog: Catalog(version: 1, source: "smb", generated: "one", count: 1, entries: [entry]), assets: [:]))
+        let expectedState = try store.patch(["selected": entry.id], now: 42)
+        let nextEntry = CatalogEntry(
+            id: entry.id, game: entry.game, gameName: entry.gameName, character: entry.character, variant: entry.variant,
+            characterZh: entry.characterZh, variantZh: entry.variantZh, label: entry.label, fullLabel: entry.fullLabel,
+            light: "http://127.0.0.1:3099/assets/light?v=two", dark: "http://127.0.0.1:3099/assets/dark?v=two"
+        )
+        try store.install(build: CatalogBuild(catalog: Catalog(version: 1, source: "smb", generated: "two", count: 1, entries: [nextEntry]), assets: [:]))
+        XCTAssertEqual(store.catalog().generated, "one")
+        XCTAssertEqual(store.state(), expectedState)
+        try FileManager.default.removeItem(at: root)
+    }
+
     func testNextAdvancesWithoutChangingGalleryMode() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let store = HarnessStore(dataRoot: root)

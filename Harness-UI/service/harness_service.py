@@ -303,6 +303,38 @@ def build_catalog(
     return synchronize_catalog(source, base_url, fallback_root, previous, now, deploy=False)[0]
 
 
+def stable_asset_url(value: object) -> str:
+    raw = str(value or "")
+    parsed = urllib.parse.urlsplit(raw)
+    query = [(key, item) for key, item in urllib.parse.parse_qsl(parsed.query, keep_blank_values=True) if key != "v"]
+    return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urllib.parse.urlencode(query), parsed.fragment))
+
+
+def same_catalog_content(current: object, next_catalog: object) -> bool:
+    if not isinstance(current, dict) or not isinstance(next_catalog, dict):
+        return False
+    if any(current.get(key) != next_catalog.get(key) for key in ("version", "source", "count")):
+        return False
+    current_entries = current.get("entries")
+    next_entries = next_catalog.get("entries")
+    if not isinstance(current_entries, list) or not isinstance(next_entries, list) or len(current_entries) != len(next_entries):
+        return False
+    for current_entry, next_entry in zip(current_entries, next_entries):
+        if not isinstance(current_entry, dict) or not isinstance(next_entry, dict):
+            return False
+        current_content = {
+            key: stable_asset_url(value) if key in {"light", "dark", "thumb"} else value
+            for key, value in current_entry.items()
+        }
+        next_content = {
+            key: stable_asset_url(value) if key in {"light", "dark", "thumb"} else value
+            for key, value in next_entry.items()
+        }
+        if current_content != next_content:
+            return False
+    return True
+
+
 def normalized_state(raw: object, catalog: dict[str, object]) -> dict[str, object]:
     value = dict(raw) if isinstance(raw, dict) else {}
     entries = catalog.get("entries") if isinstance(catalog.get("entries"), list) else []
@@ -357,20 +389,23 @@ class HarnessStore:
                 self.refresh_status = {"status": "running", "message": "正在读取 SMB 素材目录", "updated": int(time.time() * 1000)}
                 atomic_json(self.status_file, self.refresh_status)
             next_catalog, report = synchronize_catalog(
-                self.source,
-                self.base_url,
-                self.fallback_root,
-                self.catalog,
+                source=self.source,
+                base_url=self.base_url,
+                fallback_root=self.fallback_root,
+                previous=self.catalog,
                 deploy=True,
                 helper_url=self.helper_url,
             )
             with self.lock:
-                self.catalog = next_catalog
-                self.state = normalized_state(self.state, next_catalog)
-                self.state["updated"] = int(time.time() * 1000)
-                atomic_json(self.catalog_file, self.catalog)
-                atomic_json(self.state_file, self.state)
-                self.refresh_status = {**report, "updated": self.state["updated"]}
+                updated = int(time.time() * 1000)
+                catalog_changed = int(report.get("deployedCount") or 0) > 0 or not same_catalog_content(self.catalog, next_catalog)
+                if catalog_changed:
+                    self.catalog = next_catalog
+                    self.state = normalized_state(self.state, next_catalog)
+                    self.state["updated"] = updated
+                    atomic_json(self.catalog_file, self.catalog)
+                    atomic_json(self.state_file, self.state)
+                self.refresh_status = {**report, "updated": updated}
                 atomic_json(self.status_file, self.refresh_status)
         except Exception as error:
             with self.lock:

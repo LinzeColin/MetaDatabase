@@ -7,6 +7,7 @@
 ## 当前状态（2026-08-23）
 
 - Harness UI 使用 AgentDatabase 既有产品版本 `1.0.0`；唯一标签为 `harness-ui-v*`，旧 `harness-ui-community-v*` 不再发布。
+- 三端源码、bundle identity、共享皮肤协议与发布标签由仓根 `desktop-suite/COMPATIBILITY_CONTRACT.json` 固化；正式资产由同一 `GITHUB_SHA` 的统一 workflow 同时发布。
 - macOS Apple Silicon、Windows x64/arm64 构建入口均存在；两端原生菜单提供“检查并下载更新…”。
 - Harness UI 在 `127.0.0.1:3099` 提供唯一 `catalog.json/state.json`。素材 generation 更新后 Kimi 与 DSH 热读取，不复制第二份菜单状态。
 - “下一张”由唯一服务端原子动作 `POST /api/next` 推进；Kimi、DSH、Harness UI 共用 `Cmd/Ctrl+Shift+N`，任一端切换后其它端约 1 秒同步。
