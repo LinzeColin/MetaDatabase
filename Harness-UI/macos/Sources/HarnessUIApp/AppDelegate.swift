@@ -11,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var timer: Timer?
     private var refreshTimer: Timer?
     private var stateSyncTimer: Timer?
+    private var nextSkinHotKey: GlobalHotKey?
     private var refreshRunning = false
     private var usesExternalService = false
     private let refreshStatusLock = NSLock()
@@ -23,6 +24,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         loadResources()
         loadConfiguration()
         createMenu()
+        do {
+            nextSkinHotKey = try .commandShiftN { [weak self] in self?.nextSkin() }
+        } catch {
+            NSLog("[Harness UI] 无法注册 Cmd+Shift+N: %@", error.localizedDescription)
+        }
         if sharedServiceAvailable() {
             usesExternalService = true
             _ = store.reloadFromDisk()
@@ -50,6 +56,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         timer?.invalidate()
         refreshTimer?.invalidate()
         stateSyncTimer?.invalidate()
+        nextSkinHotKey = nil
         server.stop()
     }
 

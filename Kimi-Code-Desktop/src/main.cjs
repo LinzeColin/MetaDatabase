@@ -353,9 +353,15 @@ async function createWindow() {
   mainWindow = window;
   protectNavigation(window, origin);
   window.webContents.on("did-finish-load", async () => {
+    const previousCssKey = window.__harnessCssKey;
+    window.__harnessCssKey = null;
+    if (previousCssKey) {
+      try { await window.webContents.removeInsertedCSS(previousCssKey); }
+      catch (error) { console.warn(`[kimi-desktop] 旧 Harness CSS 已随页面重载释放: ${error.message}`); }
+    }
     try {
-      if (window.__harnessCssKey) await window.webContents.removeInsertedCSS(window.__harnessCssKey);
       window.__harnessCssKey = await window.webContents.insertCSS(harnessCss);
+      await harnessBridge.reapply(window);
     }
     catch (error) { console.warn(`[kimi-desktop] Harness CSS: ${error.message}`); }
   });

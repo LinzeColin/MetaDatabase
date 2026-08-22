@@ -154,6 +154,13 @@ class HarnessBridge {
     }
   }
 
+  async reapply(window = this.window) {
+    if (!window || window !== this.window || window.isDestroyed()) return false;
+    this.lastAppliedKey = null;
+    await this.applyCurrent();
+    return true;
+  }
+
   async applyCurrent() {
     const window = this.window;
     if (!window || window.isDestroyed()) return;
