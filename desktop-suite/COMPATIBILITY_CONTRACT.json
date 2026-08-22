@@ -70,6 +70,11 @@
     "nextEndpoint": "POST /api/next",
     "shortcut": "CmdOrCtrl+Shift+N"
   },
+  "sharedModelContext": {
+    "contract": "desktop-suite/MODEL_CONTEXT_CONTRACT.json",
+    "semantics": "maximum-total-input-plus-output-tokens",
+    "credentials": "local-only"
+  },
   "localOnly": [
     "API keys and provider credentials",
     "accounts, OAuth tokens, and sessions",

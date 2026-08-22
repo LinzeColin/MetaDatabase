@@ -30,6 +30,7 @@
 - API key、账号、会话、SMB 凭据、素材库、运行时 catalog/state、个人图标原件、已安装 App 与回滚目录均属于本机私有状态；
   它们保持在 App Bundle 外，按本仓的数据落地铁律处理，禁止进入公开源码或 Release 资产。
 - 跨电脑协作以 GitHub PR 合入的 commit 为交接边界。两台电脑都先同步 `origin/main`，在各自独立 worktree 分支提交，待跨平台 CI 与桌面套件契约通过后合入；`main` 禁止直接推送。统一 workflow 只接受当前 `main`，因此三款 App 始终回到同一组源码与同一发布提交。
+- Kimi Code 与 DSH 的模型总上下文唯一真源是 [`desktop-suite/MODEL_CONTEXT_CONTRACT.json`](desktop-suite/MODEL_CONTEXT_CONTRACT.json)。`max_context_size` / `contextWindow` 表示输入加输出的模型总窗口，不提前扣减压缩或输出预留；本机 API key 继续只存外部配置。供应商目录可见不等于账号可用，加入菜单前必须做真实最小调用。历史线程仍引用的模型别名不得删除；引用归零后才能按契约退役。
 
 ## 命名陷阱（务必记住）
 

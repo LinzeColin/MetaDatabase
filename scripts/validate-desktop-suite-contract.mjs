@@ -43,6 +43,8 @@ function requirePath(relative) {
 }
 
 const contract = readJson("desktop-suite/COMPATIBILITY_CONTRACT.json");
+const modelContextPath = contract.sharedModelContext?.contract || "";
+const modelContext = readJson(modelContextPath);
 const release = contract.release || {};
 const collaboration = contract.collaboration || {};
 const applications = contract.applications && typeof contract.applications === "object" ? contract.applications : {};
@@ -205,6 +207,75 @@ if (protocol.owner !== "Harness UI") fail("Harness UI must remain the shared ski
 if (protocol.nextEndpoint !== "POST /api/next") fail("the shared next-skin action must remain POST /api/next");
 if (protocol.shortcut !== "CmdOrCtrl+Shift+N") fail("the shared next-skin shortcut drifted");
 if (!Array.isArray(contract.localOnly) || contract.localOnly.length === 0) fail("localOnly must document private runtime boundaries");
+
+if (contract.sharedModelContext?.semantics !== "maximum-total-input-plus-output-tokens") {
+  fail("sharedModelContext.semantics must describe the total model context window");
+}
+if (contract.sharedModelContext?.credentials !== "local-only") {
+  fail("sharedModelContext credentials must remain local-only");
+}
+if (modelContext.schemaVersion !== 1) fail("model context contract schemaVersion must equal 1");
+if (modelContext.contextWindowSemantics !== "maximum-total-input-plus-output-tokens") {
+  fail("model context contract must use total-window semantics");
+}
+
+const routeByApplicationId = new Map();
+for (const route of Array.isArray(modelContext.routes) ? modelContext.routes : []) {
+  if (!Number.isSafeInteger(route.contextWindow) || route.contextWindow <= 0) {
+    fail(`invalid context window for ${route.provider || "unknown"}/${route.upstreamModel || "unknown"}`);
+    continue;
+  }
+  for (const [application, ids] of Object.entries(route.applications || {})) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      fail(`model context route ${route.provider}/${route.upstreamModel} has no ids for ${application}`);
+      continue;
+    }
+    for (const id of ids) {
+      const key = `${application}:${id}`;
+      if (routeByApplicationId.has(key)) fail(`duplicate model context route: ${key}`);
+      routeByApplicationId.set(key, route.contextWindow);
+    }
+  }
+}
+
+const requiredModelContexts = new Map([
+  ["kimiCode:Kimi/k3", 1048576],
+  ["dshDesktop:kimi-coding/k3", 1048576],
+  ["kimiCode:Kimi/k3-256k", 262144],
+  ["dshDesktop:kimi-coding/k3-256k", 262144],
+  ["kimiCode:deepseek/deepseek-v4-flash", 1000000],
+  ["dshDesktop:deepseek/deepseek-v4-flash", 1000000],
+  ["kimiCode:deepseek/deepseek-v4-pro", 1000000],
+  ["dshDesktop:deepseek/deepseek-v4-pro", 1000000],
+  ["kimiCode:deepseek/deepseek-v4-flash-vision-exp", 1000000],
+  ["dshDesktop:deepseek/deepseek-v4-flash-vision-exp", 1000000],
+  ["kimiCode:scnet/DeepSeek-V4-Flash", 1000000],
+  ["dshDesktop:scnet/DeepSeek-V4-Flash", 1000000],
+  ["kimiCode:scnet/DeepSeek-V4-Pro", 1000000],
+  ["dshDesktop:scnet/DeepSeek-V4-Pro", 1000000],
+  ["kimiCode:scnet/Kimi-K3", 1048576],
+  ["dshDesktop:scnet/Kimi-K3", 1048576],
+  ["kimiCode:scnet/Qwen3.8-Max", 1000000],
+  ["dshDesktop:scnet/Qwen3.8-Max", 1000000],
+  ["kimiCode:scnet/MiniMax-M3", 1000000],
+  ["dshDesktop:scnet/MiniMax-M3", 1000000],
+  ["kimiCode:scnet/GLM-5.2", 1000000],
+  ["dshDesktop:scnet/GLM-5.2", 1000000],
+]);
+for (const [key, expected] of requiredModelContexts) {
+  if (routeByApplicationId.get(key) !== expected) fail(`${key} context window must equal ${expected}`);
+}
+
+const aliases = Array.isArray(modelContext.compatibilityAliases) ? modelContext.compatibilityAliases : [];
+for (const expected of ["scnet/deepseek-v4-flash-0731", "scnet/glm-5.2"]) {
+  const alias = aliases.find((entry) => entry.application === "kimiCode" && entry.alias === expected);
+  if (alias?.deletionRule !== "retain-while-session-references-exist") {
+    fail(`compatibility alias ${expected} must remain until session references are gone`);
+  }
+  if (!routeByApplicationId.has(`kimiCode:${alias?.canonical || ""}`)) {
+    fail(`compatibility alias ${expected} must point to a canonical Kimi model route`);
+  }
+}
 
 if (errors.length) {
   console.error("Desktop suite compatibility contract is invalid:");
