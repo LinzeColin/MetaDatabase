@@ -360,6 +360,12 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 
 **代价**：Harness UI 运行时额外监听仅限 loopback 的同步 helper（默认主端口 + 1）；Kimi/DSH 仍只访问 3099。App 未运行或权限未授予时服务继续保留本地完整库并返回 `partial`，不会回退到伪成功，也不会删除本地素材。
 
+**结论**：SMB 挂载 LaunchAgent 不能把“Network Volumes TCC 禁止读取 volume ID 内容”直接等同于错误挂载。先用 `smbutil` 精确确认服务器与共享名并确认 marker 路径存在；marker 可读时必须匹配固定 ID，不可读时才使用前述 SMB 身份作为受限降级判据。
+
+**为什么**：现场 `/Volumes/share` 在终端可读且素材为 408/408，但后台 job 能完成 `smbutil statshares` 和文件存在性判断、读取首行却返回 `Operation not permitted`。旧脚本因此每 60 秒退出 70 并追加错误日志，制造重复挂载假象和无效资源消耗。
+
+**代价**：TCC 拒绝内容读取时不再验证 marker 文本本身，但仍同时约束固定服务器、固定共享名、真实 smbfs 状态和 marker 存在；内容一旦可读仍执行严格匹配。代码回归与真实 LaunchAgent 都必须通过后才能安装。
+
 **结论**：完整素材库页面必须独立轮询 `refresh-status.json`，不能只在皮肤 state 或 catalog generation 变化时顺带更新同步状态。
 
 **为什么**：首次由 GUI App 完成 326 套 SMB 部署后，服务端已正确写出 `partial` 回执，但皮肤选中状态没有变化，网页的提前返回分支让标题仍停在“正在读取 SMB 素材目录”。素材已经部署成功，用户界面却像永久卡住。

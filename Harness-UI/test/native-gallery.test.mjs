@@ -68,3 +68,13 @@ test("the macOS app and installer wait for the configured shared service", () =>
   assert.match(installer, /launchctl enable "gui\/\$uid\/com\.harnessui\.smb"/);
   assert.match(installer, /launchctl enable "gui\/\$uid\/com\.harnessui\.assets"/);
 });
+
+test("the SMB mount agent tolerates a TCC-restricted marker only after exact share verification", () => {
+  const mountScript = fs.readFileSync(path.join(projectRoot, "service/mount-harness-smb.sh"), "utf8");
+  assert.match(mountScript, /smbutil statshares/);
+  assert.match(mountScript, /"SERVER_NAME" : "192\.168\.0\.1"/);
+  assert.match(mountScript, /"share_name" : "share"/);
+  assert.match(mountScript, /\[ -e "\$volume_id_file" \] \|\| return 1/);
+  assert.match(mountScript, /if detected_volume_id=.*sed -n '1p'.*2>\/dev\/null/);
+  assert.match(mountScript, /\[ "\$detected_volume_id" = "\$volume_id" \] \|\| return 1/);
+});
