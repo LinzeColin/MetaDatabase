@@ -51,3 +51,4 @@
 
 - 当前承载工作线程的是标准安装位置的新进程；后续只按普通应用生命周期操作：`Cmd+W`/红色关闭键仅隐藏窗口并保留后台，`Cmd+Q` 才退出 GUI 与后台。
 - 其它电脑需从正式 Release 安装，并在该电脑上单独选择或授权其 SMB 位置；不要复制 OAuth、API Key、会话或 SMB 凭据。
+- 模型总上下文由仓根 `desktop-suite/MODEL_CONTEXT_CONTRACT.json` 统一约束。本机 Kimi 已无重启热读取新目录：Kimi K3 / SCNet Kimi K3 为 1,048,576，DeepSeek V4 与其余已验证 SCNet 路由为 1,000,000；K3-256K 保持 262,144。两个旧 alias 因仍有大量历史会话引用而保留。

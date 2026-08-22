@@ -59,3 +59,4 @@
 
 - 在另一台电脑从正式 Release 安装，并选择其本机 SMB 素材目录；不要迁移 OAuth、API Key、会话或 SMB 凭据。
 - 本机三端已经同步运行；后续更新只替换应用本体或 DSH 桥接文件，不覆盖 `~/.harness-ui` 的目录、状态、素材、皮肤或外置图标，也不迁移账号和凭据。
+- 模型总上下文由仓根 `desktop-suite/MODEL_CONTEXT_CONTRACT.json` 统一约束。DSH 外部配置已补齐 DeepSeek 官方 Flash/Pro 与可用 SCNet 路由，并按真实总窗口统一；本轮 DSH 未运行，所以未启动或重启，下一次正常启动直接加载。SCNet GLM-5.3 当前真实调用仍为 403，保持不加入。

@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "contextWindowSemantics": "maximum-total-input-plus-output-tokens",
+  "configurationPolicy": {
+    "credentials": "local-only",
+    "accountAvailability": "verify-live-before-enabling",
+    "contextWindow": "use-the-largest-provider-compatible-total-window",
+    "outputLimit": "configure-separately-from-context-window",
+    "compatibilityAliases": "retain-while-session-references-exist"
+  },
+  "routes": [
+    {
+      "provider": "Kimi",
+      "upstreamModel": "k3",
+      "contextWindow": 1048576,
+      "applications": {
+        "kimiCode": ["Kimi/k3"],
+        "dshDesktop": ["kimi-coding/k3"]
+      }
+    },
+    {
+      "provider": "Kimi",
+      "upstreamModel": "k3-256k",
+      "contextWindow": 262144,
+      "applications": {
+        "kimiCode": ["Kimi/k3-256k"],
+        "dshDesktop": ["kimi-coding/k3-256k"]
+      }
+    },
+    {
+      "provider": "DeepSeek",
+      "upstreamModel": "deepseek-v4-flash",
+      "contextWindow": 1000000,
+      "applications": {
+        "kimiCode": ["deepseek/deepseek-v4-flash"],
+        "dshDesktop": ["deepseek/deepseek-v4-flash"]
+      }
+    },
+    {
+      "provider": "DeepSeek",
+      "upstreamModel": "deepseek-v4-pro",
+      "contextWindow": 1000000,
+      "applications": {
+        "kimiCode": ["deepseek/deepseek-v4-pro"],
+        "dshDesktop": ["deepseek/deepseek-v4-pro"]
+      }
+    },
+    {
+      "provider": "DeepSeek",
+      "upstreamModel": "deepseek-v4-flash-vision-exp",
+      "contextWindow": 1000000,
+      "applications": {
+        "kimiCode": ["deepseek/deepseek-v4-flash-vision-exp"],
+        "dshDesktop": ["deepseek/deepseek-v4-flash-vision-exp"]
+      }
+    },
+    {
+      "provider": "SCNet",
+      "upstreamModel": "DeepSeek-V4-Flash",
+      "contextWindow": 1000000,
+      "applications": {
+        "kimiCode": ["scnet/DeepSeek-V4-Flash"],
+        "dshDesktop": ["scnet/DeepSeek-V4-Flash"]
+      }
+    },
+    {
+      "provider": "SCNet",
+      "upstreamModel": "DeepSeek-V4-Flash-0731",
+      "contextWindow": 1000000,
+      "applications": {
+        "kimiCode": ["scnet/DeepSeek-V4-Flash-0731"]
+      }
+    },
+    {
+      "provider": "SCNet",
+      "upstreamModel": "DeepSeek-V4-Pro",
+      "contextWindow": 1000000,
+      "applications": {
+        "kimiCode": ["scnet/DeepSeek-V4-Pro"],
+        "dshDesktop": ["scnet/DeepSeek-V4-Pro"]
+      }
+    },
+    {
+      "provider": "SCNet",
+      "upstreamModel": "Kimi-K3",
+      "contextWindow": 1048576,
+      "applications": {
+        "kimiCode": ["scnet/Kimi-K3"],
+        "dshDesktop": ["scnet/Kimi-K3"]
+      }
+    },
+    {
+      "provider": "SCNet",
+      "upstreamModel": "Qwen3.8-Max",
+      "contextWindow": 1000000,
+      "applications": {
+        "kimiCode": ["scnet/Qwen3.8-Max"],
+        "dshDesktop": ["scnet/Qwen3.8-Max"]
+      }
+    },
+    {
+      "provider": "SCNet",
+      "upstreamModel": "MiniMax-M3",
+      "contextWindow": 1000000,
+      "applications": {
+        "kimiCode": ["scnet/MiniMax-M3"],
+        "dshDesktop": ["scnet/MiniMax-M3"]
+      }
+    },
+    {
+      "provider": "SCNet",
+      "upstreamModel": "GLM-5.2",
+      "contextWindow": 1000000,
+      "applications": {
+        "kimiCode": ["scnet/GLM-5.2"],
+        "dshDesktop": ["scnet/GLM-5.2"]
+      }
+    }
+  ],
+  "compatibilityAliases": [
+    {
+      "application": "kimiCode",
+      "alias": "scnet/deepseek-v4-flash-0731",
+      "canonical": "scnet/DeepSeek-V4-Flash-0731",
+      "deletionRule": "retain-while-session-references-exist"
+    },
+    {
+      "application": "kimiCode",
+      "alias": "scnet/glm-5.2",
+      "canonical": "scnet/GLM-5.2",
+      "deletionRule": "retain-while-session-references-exist"
+    }
+  ],
+  "evidence": [
+    "https://github.com/MoonshotAI/kimi-code/blob/main/docs/en/configuration/config-files.md",
+    "https://github.com/earendil-works/pi/tree/main/packages/ai"
+  ]
+}
