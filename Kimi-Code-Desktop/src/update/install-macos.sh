@@ -7,6 +7,7 @@ target="$3"
 rollback="$4"
 bundle_id="$5"
 version="$6"
+revision="${7:-}"
 updates_root="$(/usr/bin/dirname "$0")"
 pending_receipt="$updates_root/pending-update-result.json"
 stage=""
@@ -16,8 +17,8 @@ write_receipt() {
   status="$1"
   detail="$2"
   temporary="$pending_receipt.tmp"
-  /usr/bin/printf '{\n  "version": 1,\n  "status": "%s",\n  "desktopVersion": "%s",\n  "detail": "%s",\n  "updatedAt": "%s"\n}\n' \
-    "$status" "$version" "$detail" "$(/bin/date -u '+%Y-%m-%dT%H:%M:%SZ')" > "$temporary"
+  /usr/bin/printf '{\n  "version": 1,\n  "status": "%s",\n  "desktopVersion": "%s",\n  "distributionRevision": "%s",\n  "detail": "%s",\n  "updatedAt": "%s"\n}\n' \
+    "$status" "$version" "$revision" "$detail" "$(/bin/date -u '+%Y-%m-%dT%H:%M:%SZ')" > "$temporary"
   /bin/mv "$temporary" "$pending_receipt"
 }
 

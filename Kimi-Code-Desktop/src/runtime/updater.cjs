@@ -7,6 +7,7 @@ const { spawn } = require("node:child_process");
 const API_URL = "https://api.github.com/repos/LinzeColin/MetaDatabase/releases?per_page=50";
 const TAG_PATTERN = /^kimi-code-desktop-v(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$/;
 const DOWNLOAD_HOSTS = new Set(["github.com", "objects.githubusercontent.com", "release-assets.githubusercontent.com"]);
+const REVISION_PATTERN = /^[0-9A-Za-z][0-9A-Za-z._-]{0,127}$/;
 
 function versionParts(raw) {
   const match = String(raw || "").match(/^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/);
@@ -32,20 +33,43 @@ function assetSuffix(platform, arch) {
   return null;
 }
 
-function selectRelease(releases, { currentVersion, platform = process.platform, arch = process.arch }) {
+function distributionManifestName(version) {
+  return `Kimi.Code.Desktop-${version}-release.json`;
+}
+
+function releaseCandidate(release, { platform, arch }) {
   const suffix = assetSuffix(platform, arch);
-  if (!suffix) return null;
+  if (!suffix || release?.draft || release?.prerelease) return null;
+  const match = String(release?.tag_name || "").match(TAG_PATTERN);
+  if (!match) return null;
+  const asset = (release.assets || []).find((candidate) => String(candidate.name || "").endsWith(suffix));
+  return asset ? { channel: "stable", release, version: match[1], asset } : null;
+}
+
+function selectRelease(releases, { currentVersion, platform = process.platform, arch = process.arch }) {
   return (Array.isArray(releases) ? releases : [])
-    .filter((release) => !release.draft && !release.prerelease)
-    .map((release) => {
-      const match = String(release.tag_name || "").match(TAG_PATTERN);
-      if (!match) return null;
-      const asset = (release.assets || []).find((candidate) => String(candidate.name || "").endsWith(suffix));
-      return asset ? { channel: "stable", release, version: match[1], asset } : null;
-    })
+    .map((release) => releaseCandidate(release, { platform, arch }))
     .filter(Boolean)
     .filter((candidate) => compareVersions(candidate.version, currentVersion) > 0)
     .sort((left, right) => compareVersions(right.version, left.version))[0] || null;
+}
+
+function selectRepairRelease(releases, { currentVersion, platform = process.platform, arch = process.arch }) {
+  const candidate = (Array.isArray(releases) ? releases : [])
+    .map((release) => releaseCandidate(release, { platform, arch }))
+    .find((entry) => entry && compareVersions(entry.version, currentVersion) === 0);
+  if (!candidate) return null;
+  const manifestAsset = (candidate.release.assets || [])
+    .find((asset) => String(asset.name || "") === distributionManifestName(currentVersion));
+  return manifestAsset ? { ...candidate, repair: true, manifestAsset } : null;
+}
+
+function parseDistributionManifest(raw, expectedVersion) {
+  const value = JSON.parse(Buffer.isBuffer(raw) ? raw.toString("utf8") : String(raw || ""));
+  if (value?.schema !== 1 || value?.version !== expectedVersion || !REVISION_PATTERN.test(String(value?.revision || ""))) {
+    throw new Error("同版本维护更新清单无效");
+  }
+  return { version: value.version, revision: value.revision };
 }
 
 function getBuffer(rawUrl, { maxBytes = 8 * 1024 * 1024, redirects = 5 } = {}) {
@@ -179,8 +203,9 @@ function rollbackApplicationPath(updatesRoot, version, timestamp, target) {
 }
 
 class DesktopUpdater {
-  constructor({ currentVersion, updatesRoot, installerSource, bundleId, platform = process.platform, arch = process.arch }) {
+  constructor({ currentVersion, currentRevision = "legacy", updatesRoot, installerSource, bundleId, platform = process.platform, arch = process.arch }) {
     this.currentVersion = currentVersion;
+    this.currentRevision = currentRevision;
     this.updatesRoot = updatesRoot;
     this.installerSource = installerSource;
     this.bundleId = bundleId;
@@ -195,7 +220,20 @@ class DesktopUpdater {
       platform: this.platform,
       arch: this.arch,
     });
-    return update ? { status: "available", ...update } : { status: "current", currentVersion: this.currentVersion };
+    if (update) return { status: "available", ...update };
+    const repair = selectRepairRelease(releases, {
+      currentVersion: this.currentVersion,
+      platform: this.platform,
+      arch: this.arch,
+    });
+    if (!repair) return { status: "current", currentVersion: this.currentVersion };
+    const manifest = parseDistributionManifest(
+      await getBuffer(repair.manifestAsset.browser_download_url, { maxBytes: 64 * 1024 }),
+      this.currentVersion,
+    );
+    return manifest.revision === this.currentRevision
+      ? { status: "current", currentVersion: this.currentVersion, currentRevision: this.currentRevision }
+      : { status: "available", ...repair, revision: manifest.revision };
   }
 
   async download(update) {
@@ -238,7 +276,7 @@ class DesktopUpdater {
     return moved;
   }
 
-  prepareMacInstall({ archive, version, executable = process.execPath, pid = process.pid }) {
+  prepareMacInstall({ archive, version, revision = "", executable = process.execPath, pid = process.pid }) {
     if (this.platform !== "darwin") throw new Error("当前平台不使用 macOS 更新安装器");
     const target = resolveMacInstallTarget({ executable, updatesRoot: this.updatesRoot });
     if (!target) throw new Error("无法识别当前 Kimi Code.app 的位置");
@@ -248,7 +286,7 @@ class DesktopUpdater {
     fs.chmodSync(helper, 0o700);
     const rollback = rollbackApplicationPath(this.updatesRoot, version, Date.now(), target);
     fs.mkdirSync(path.dirname(rollback), { recursive: true, mode: 0o700 });
-    const child = spawn("/bin/sh", [helper, String(pid), archive, target, rollback, this.bundleId, version], {
+    const child = spawn("/bin/sh", [helper, String(pid), archive, target, rollback, this.bundleId, version, revision], {
       detached: true,
       stdio: "ignore",
     });
@@ -260,10 +298,13 @@ module.exports = {
   DesktopUpdater,
   assetSuffix,
   compareVersions,
+  distributionManifestName,
   downloadAsset,
   fetchReleases,
   macApplicationPath,
   resolveMacInstallTarget,
   rollbackApplicationPath,
+  parseDistributionManifest,
   selectRelease,
+  selectRepairRelease,
 };
