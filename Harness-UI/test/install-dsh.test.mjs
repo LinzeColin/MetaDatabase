@@ -55,6 +55,7 @@ test("replaces an existing linked profile module without following it", () => {
   assert.match(client, /event\.shiftKey/);
   assert.match(client, /const revision = \+\+showRevision/);
   assert.match(client, /revision === showRevision/);
+  assert.match(client, /skin=\$\{encodeURIComponent\(entry\.id\)\}/);
   fs.rmSync(root, { recursive: true, force: true });
 });
 

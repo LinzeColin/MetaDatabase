@@ -88,8 +88,11 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,select,[role=di
       function assetUrl(entry) {
         if (!entry) return "";
         const raw = dark() ? entry.dark : entry.light;
-        if (!raw || raw.includes("?v=") || !catalog.generated) return raw || "";
-        return `${raw}?v=${encodeURIComponent(catalog.generated)}`;
+        if (!raw) return "";
+        const revisioned = raw.includes("?v=") || !catalog.generated
+          ? raw
+          : `${raw}?v=${encodeURIComponent(catalog.generated)}`;
+        return `${revisioned}${revisioned.includes("?") ? "&" : "?"}skin=${encodeURIComponent(entry.id)}`;
       }
 
       function renderGames() {
