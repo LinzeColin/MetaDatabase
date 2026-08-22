@@ -14,6 +14,21 @@
   Private-Database 禁止 `git clone`。各项目数据现状见根目录 `WHERE_IS_PROJECT_DATA.md`。
   目的：分仓治理长期自运行，不需 Owner 反复人工迁移。
 
+## 三款桌面 App 一致性规则（强制）
+
+- Kimi Code Desktop、Harness UI、DSH Desktop 的唯一共享源码真源是本仓 `main`。每个 agent 在开始三端相关开发前先读取
+  [`desktop-suite/COMPATIBILITY_CONTRACT.json`](desktop-suite/COMPATIBILITY_CONTRACT.json)，并在独立 worktree 的分支中完成改动。
+- 修改 Kimi、Harness UI、DSH 桥接、共享皮肤协议、版本、bundle identifier、发布标签或发布流程时，同一 PR 必须同步更新
+  该契约与相关说明，并通过 `node scripts/validate-desktop-suite-contract.mjs`。
+- `Harness UI` 是 `~/.harness-ui/catalog.json`、`state.json` 与 `POST /api/next` 的唯一状态 owner。Kimi 与 DSH 只消费这一份
+  协议，三端不创建第二套持久皮肤状态。
+- 正式三端发布只由 `.github/workflows/desktop-app-suite-release.yml` 从同一个 `GITHUB_SHA` 执行；该 workflow 同时生成
+  Kimi、Harness UI、DSH 三组资产并更新各自正式标签。agent 本机生成的应用只用于开发，不能成为另一台电脑的发布真源。
+- API key、账号、会话、SMB 凭据、素材库、运行时 catalog/state、个人图标原件、已安装 App 与回滚目录均属于本机私有状态；
+  它们保持在 App Bundle 外，按本仓的数据落地铁律处理，禁止进入公开源码或 Release 资产。
+- 跨电脑协作以 GitHub PR 合入的 commit 为交接边界。两台电脑都从同一 `main` 拉取、在各自分支提交、由统一 workflow 发布，
+  因此三款 App 始终回到同一组源码与同一发布提交。
+
 ## 命名陷阱（务必记住）
 
 - `LinzeDatabase/` 是原 CodexProject 的 `MetaDatabase/` 目录改名而来。

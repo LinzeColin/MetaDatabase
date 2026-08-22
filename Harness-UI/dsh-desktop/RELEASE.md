@@ -15,5 +15,5 @@ dsh-desktop/install-bridge-macos.sh --apply
 dsh-desktop/install-bridge-macos.sh --apply --icon /绝对路径/icon.icns
 ```
 
-更新仅替换 `/Applications/DSH Desktop.app`。`~/.dsh`、`~/.harness-ui`、配置、会话、皮肤、素材和外置图标保持原位。安装桥不会启动或重启 DSH。
+桥接默认安装位置是 `~/Applications/DSH Desktop.app`；更新器从当前运行的 App 推导替换目标，因此用户也可通过 `DSH_DESKTOP_APP` 指定自己的安装位置。更新仅替换 App Bundle；`~/.dsh`、`~/.harness-ui`、配置、会话、皮肤、素材和外置图标保持原位。安装桥不会启动或重启 DSH。
 本地桥接后的 macOS App 固定使用 `ai.deepseek.dsh.desktop` 代码要求，后续同类更新不再因临时 ad-hoc 身份变化而漂移。

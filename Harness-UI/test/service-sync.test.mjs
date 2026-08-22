@@ -165,3 +165,39 @@ test("background refresh accepts the GUI-owned SMB deployment receipt", () => {
   assert.equal(result.report.sourceOwner, "harness-app");
   fs.rmSync(root, { recursive: true, force: true });
 });
+
+test("background refresh keeps the selected skin stable when the catalog content is unchanged", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "harness-stable-refresh-"));
+  const source = path.join(root, "smb");
+  const fallback = path.join(root, "master");
+  for (const [gameName] of games) {
+    const variant = path.join(source, gameName, "character", "skins", "default");
+    fs.mkdirSync(variant, { recursive: true });
+    fs.writeFileSync(path.join(variant, "light.png"), gameName + "-light");
+    fs.writeFileSync(path.join(variant, "dark.png"), gameName + "-dark");
+  }
+  const probe = String.raw`
+import importlib.util, json, pathlib, sys, time
+spec = importlib.util.spec_from_file_location("harness_service", sys.argv[1])
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+store = module.HarnessStore(pathlib.Path(sys.argv[2]), pathlib.Path(sys.argv[3]), pathlib.Path(sys.argv[4]), "http://127.0.0.1:3099")
+store.refresh()
+first_catalog = dict(store.catalog)
+first_state = dict(store.state)
+time.sleep(0.01)
+store.refresh()
+print(json.dumps({
+    "catalogGenerated": [first_catalog["generated"], store.catalog["generated"]],
+    "stateUpdated": [first_state["updated"], store.state["updated"]],
+    "status": store.refresh_status["status"],
+}))
+`;
+  const result = spawnSync("/usr/bin/python3", ["-c", probe, service, path.join(root, "data"), source, fallback], { encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  const observed = JSON.parse(result.stdout);
+  assert.equal(observed.catalogGenerated[0], observed.catalogGenerated[1]);
+  assert.equal(observed.stateUpdated[0], observed.stateUpdated[1]);
+  assert.equal(observed.status, "ready");
+  fs.rmSync(root, { recursive: true, force: true });
+});

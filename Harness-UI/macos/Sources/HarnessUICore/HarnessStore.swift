@@ -30,7 +30,7 @@ public final class HarnessStore: @unchecked Sendable {
     public func state() -> HarnessState { queue.sync { stateValue } }
     public func asset(for requestPath: String) -> URL? { queue.sync { assetsValue[requestPath] } }
 
-    public func install(build: CatalogBuild) throws {
+    public func install(build: CatalogBuild, forceGeneration: Bool = false) throws {
         try queue.sync {
             if catalogValue.count > 0 && build.catalog.count == 0 {
                 throw NSError(
@@ -49,8 +49,13 @@ public final class HarnessStore: @unchecked Sendable {
                     userInfo: [NSLocalizedDescriptionKey: "素材源缺少既有游戏分区：\(missingGames.sorted().joined(separator: ", "))；已保留上一版目录。"]
                 )
             }
-            catalogValue = build.catalog
             assetsValue = build.assets
+            if catalogValue.count > 0,
+               !forceGeneration,
+               sameCatalogContent(catalogValue, build.catalog) {
+                return
+            }
+            catalogValue = build.catalog
             stateValue = normalized(stateValue, catalog: catalogValue)
             stateValue.catalogGenerated = build.catalog.generated
             stateValue.updated = Int64(Date().timeIntervalSince1970 * 1000)
@@ -118,6 +123,37 @@ public final class HarnessStore: @unchecked Sendable {
         if let selected = state.selected, !ids.contains(selected) || state.hidden.contains(selected) { state.selected = nil }
         if state.selected == nil { state.selected = catalog.entries.first?.id }
         return state
+    }
+
+    private func sameCatalogContent(_ current: Catalog, _ next: Catalog) -> Bool {
+        guard current.version == next.version,
+              current.source == next.source,
+              current.count == next.count,
+              current.entries.count == next.entries.count else { return false }
+        return zip(current.entries, next.entries).allSatisfy { currentEntry, nextEntry in
+            sameCatalogEntryContent(currentEntry, nextEntry)
+        }
+    }
+
+    private func sameCatalogEntryContent(_ current: CatalogEntry, _ next: CatalogEntry) -> Bool {
+        current.id == next.id
+            && current.game == next.game
+            && current.gameName == next.gameName
+            && current.character == next.character
+            && current.variant == next.variant
+            && current.characterZh == next.characterZh
+            && current.variantZh == next.variantZh
+            && current.label == next.label
+            && current.fullLabel == next.fullLabel
+            && assetPath(current.light) == assetPath(next.light)
+            && assetPath(current.dark) == assetPath(next.dark)
+    }
+
+    private func assetPath(_ raw: String) -> String {
+        guard var components = URLComponents(string: raw), let queryItems = components.queryItems else { return raw }
+        let retainedItems = queryItems.filter { $0.name != "v" }
+        components.queryItems = retainedItems.isEmpty ? nil : retainedItems
+        return components.string ?? raw
     }
 
     private func advanceLocked(now: Int64) throws -> HarnessState {

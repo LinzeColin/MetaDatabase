@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "repository": {
+    "canonical": "LinzeColin/MetaDatabase",
+    "branch": "main"
+  },
+  "release": {
+    "workflow": ".github/workflows/desktop-app-suite-release.yml",
+    "sourceCommit": "GITHUB_SHA",
+    "oneCommitForAllApps": true
+  },
+  "applications": {
+    "kimiCode": {
+      "name": "Kimi Code Desktop",
+      "sourcePaths": [
+        "Kimi-Code-Desktop"
+      ],
+      "bundleIdentifier": "com.electron.kimi-code",
+      "versionSource": "Kimi-Code-Desktop/package.json",
+      "releaseTagPrefix": "kimi-code-desktop-v",
+      "upstream": "MoonshotAI/kimi-code"
+    },
+    "harnessUI": {
+      "name": "Harness UI",
+      "sourcePaths": [
+        "Harness-UI",
+        "Harness-UI/macos",
+        "Harness-UI/windows"
+      ],
+      "bundleIdentifier": "com.linzecolin.harnessui",
+      "versionSource": "Harness-UI/package.json",
+      "releaseTagPrefix": "harness-ui-v",
+      "upstream": "repository-managed"
+    },
+    "dshDesktop": {
+      "name": "DSH Desktop",
+      "sourcePaths": [
+        "Harness-UI/dsh-desktop",
+        "Harness-UI/dsh-plugin"
+      ],
+      "bundleIdentifier": "ai.deepseek.dsh.desktop",
+      "version": "2.0.2",
+      "releaseTagPrefix": "dsh-desktop-v",
+      "upstream": "anywhere-labs/deepseek-harness-desktop"
+    }
+  },
+  "sharedSkinProtocol": {
+    "owner": "Harness UI",
+    "catalog": "~/.harness-ui/catalog.json",
+    "state": "~/.harness-ui/state.json",
+    "refreshStatus": "~/.harness-ui/refresh-status.json",
+    "nextEndpoint": "POST /api/next",
+    "shortcut": "CmdOrCtrl+Shift+N"
+  },
+  "localOnly": [
+    "API keys and provider credentials",
+    "accounts, OAuth tokens, and sessions",
+    "SMB credentials and mounted material libraries",
+    "runtime catalog, state, logs, and personalized icon originals",
+    "installed App bundles and update rollback directories"
+  ]
+}

@@ -62,6 +62,7 @@ test("replaces an existing linked profile module without following it", () => {
 test("stores macOS app rollbacks with a non-app suffix", () => {
   const dshInstaller = fs.readFileSync(path.join(projectRoot, "dsh-desktop", "install-dsh-update.py"), "utf8");
   const harnessInstaller = fs.readFileSync(path.join(projectRoot, "scripts", "install-release-macos.sh"), "utf8");
-  assert.match(dshInstaller, /f"\{TARGET\.name\}\.rollback"/);
+  assert.match(dshInstaller, /f"\{target\.name\}\.rollback"/);
+  assert.match(dshInstaller, /--target/);
   assert.match(harnessInstaller, /Harness UI\.app\.rollback/);
 });

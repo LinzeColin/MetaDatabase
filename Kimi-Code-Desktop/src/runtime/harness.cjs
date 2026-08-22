@@ -185,7 +185,7 @@ class HarnessBridge {
     if (!window || window.isDestroyed()) return;
     const entry = selectHarnessEntry(this.catalog, this.state);
     if (!entry) return;
-    const key = `${this.catalog?.generated || ""}|${entry.id}|${this.state?.updated || 0}`;
+    const key = `${entry.id}|${entry.light}|${entry.dark}`;
     if (!entry.light || !entry.dark || key === this.lastAppliedKey) return;
     const light = `url(${JSON.stringify(assetWithRevision(entry.light, this.catalog?.generated, entry.id))})`;
     const dark = `url(${JSON.stringify(assetWithRevision(entry.dark, this.catalog?.generated, entry.id))})`;

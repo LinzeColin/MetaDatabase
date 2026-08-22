@@ -124,6 +124,8 @@ for (const [name, source] of [["legacy runtime", legacyRuntime], ["upstream 2.0.
     assert.ok(first.source.includes("icon.png"));
     assert.ok(first.source.includes("260822-safe-macos-update"));
     assert.ok(first.source.includes("260822-normal-app-menu"));
+    assert.ok(first.source.includes("\"--target\", appBundle"));
+    assert.ok(first.source.includes("join(process.execPath, \"..\", \"..\", \"..\")"));
     if (name === "upstream 2.0.2 runtime") {
       assert.ok(first.source.includes("260822-harness-native-menu"));
       assert.ok(first.source.includes('contributedTrayItems("harness")'));

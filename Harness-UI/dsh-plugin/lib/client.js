@@ -84,6 +84,9 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,[contenteditabl
       let syncTimer = null;
       let syncSeen = -1;
       let showRevision = 0;
+      let displayedScene = "";
+      let loadingScene = "";
+      let loadingScenePromise = null;
       const root = document.documentElement;
       document.body.dataset.dshHarnessUi = "";
       if (!document.getElementById("harness-ui-dsh-style")) document.head.appendChild(styleSheet());
@@ -134,12 +137,26 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,[contenteditabl
       async function show(entry) {
         const revision = ++showRevision;
         if (!entry) {
+          displayedScene = "";
           root.style.removeProperty("--harness-scene");
           return;
         }
         const url = assetUrl(entry);
-        if (await preload(url) && revision === showRevision)
+        if (!url || url === displayedScene) return;
+        if (loadingScene !== url || !loadingScenePromise) {
+          loadingScene = url;
+          loadingScenePromise = preload(url);
+          loadingScenePromise.finally(() => {
+            if (loadingScene === url) {
+              loadingScene = "";
+              loadingScenePromise = null;
+            }
+          });
+        }
+        if (await loadingScenePromise && revision === showRevision && url !== displayedScene) {
           root.style.setProperty("--harness-scene", `url(${JSON.stringify(url)})`);
+          displayedScene = url;
+        }
       }
 
       function renderList() {

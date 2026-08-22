@@ -10,6 +10,7 @@
 - 唯一更新标签为 `kimi-code-desktop-v*`。旧 `kimi-code-desktop-community-v*` 已退出更新候选。
 - App 启动 30 秒后及每 6 小时后台检查，也可从应用菜单手动检查、下载并在确认后退出安装。
 - 每日 GitHub workflow 会读取官方最新版本；本仓库缺少同版本 Release 时自动构建 macOS arm64/x64 与 Windows x64/arm64 资产。
+- 三端源码、bundle identity、共享皮肤协议与发布标签由仓根 `desktop-suite/COMPATIBILITY_CONTRACT.json` 固化；正式资产由同一 `GITHUB_SHA` 的统一 workflow 同时发布。
 - macOS 本地构建固定使用 `com.electron.kimi-code` designated requirement，避免每次 ad-hoc 构建产生不同 TCC 代码身份；未来配置 Developer ID 时仍覆盖同一 Release，不建立新版本线。
 - macOS 构建在 Electron 签名步骤后恢复 Moonshot 官方签名的内置 CLI；启动时仅把同版本 CLI 可执行文件迁移到稳定路径 `~/.kimi-code/bin/kimi`，旧 CLI 单独留在 `desktop-updates/cli-rollback/`，不修改同目录下任何账号、会话、配置、图标、皮肤或素材。
 - macOS GUI 通过临时 launchd job 启动稳定路径中的官方 CLI，使后台 TCC 身份不再继承 ad-hoc Electron 壳；`Cmd+W`/关闭窗口仅关闭窗口，`Cmd+Q` 移除该 job 并正常结束 GUI、后台和定时器。该 job 不是登录启动项。
