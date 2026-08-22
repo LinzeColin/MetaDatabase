@@ -329,3 +329,21 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 **为什么**：本轮用界面读取做皮肤目视验收时，系统日志明确记录 uiagent 连续发起 Kimi 启动请求；由于同 bundle id 的 rollback `.app` 已注册，最终切到了备份路径。没有崩溃报告，异常由观测动作和重复 App 身份共同造成。
 
 **代价**：活动 Kimi 的本轮验收降级为服务状态与跨端状态证据；完整快捷键目视验收留到 Owner 自然退出后的正式包激活，不能为了“验收完成”再次触碰进程。
+
+**结论**：Electron renderer reload 会销毁皮肤 DOM/CSS，但 main process 中的 `lastAppliedKey` 仍会存活；`did-finish-load` 必须先重新插入 CSS，再清空应用键并强制重放当前 catalog/state。只给菜单项或轮询加快捷键不能修复 `Cmd+R` 后皮肤消失。
+
+**为什么**：现场共享状态、选中素材和缓存键都没有变化，旧 bridge 因此把重载后的空 DOM 误判为“已经应用”。在不重启活动 Kimi 的条件下，通过既有 main process 对 renderer 做一次等价 reload，确认重载后当前工作线程、CSS URL 与真实合成画面同时保留。
+
+**代价**：Kimi Node 回归新增 reload 行为契约；活动旧壳需要一次进程内恢复，新正式包自然启动后由永久 `did-finish-load` 路径接管，不保留调试端口或第二套后台。
+
+**结论**：菜单栏 accessory App 的 `NSMenuItem.keyEquivalent` 不是全局快捷键。三端统一的 `Cmd/Ctrl+Shift+N` 在 macOS 由 Harness UI 使用 Carbon `RegisterEventHotKey` 注册为唯一全局 owner，Kimi/DSH 只保留宿主前台回退；每次改动必须验证一次按键只推进一个 cursor。
+
+**为什么**：Kimi 或 DSH 在前台时，旧 Harness UI 收不到菜单快捷键。全局注册后若事件继续传给 DSH renderer，又可能一次推进两张；现场以 DSH 前台按一次，服务 cursor 精确从 34 到 35，排除了重复消费。
+
+**代价**：Carbon 注册必须在 App 退出时释放，Harness UI 无窗口启动时用进程与共享状态验收；本机 Command Line Tools 失配时，以干净 macOS runner 的 Swift build/test 为编译证据。
+
+**结论**：共享皮肤客户端必须同时防两类画面倒退：异步图片预加载用单调 revision 只允许最新请求落地；`immutable` 素材 URL 额外加入稳定 `skin=<entry.id>` 身份键，避免正确的 selected/CSS URL 继续命中历史错误位图。
+
+**为什么**：DSH 快捷键已经把 cursor 从 32 推到 33，DOM active label 与 computed style 也都是桂乃芬，但真实合成画面仍停在伊芙琳；为同一素材追加新的身份 query 后，合成画面立即变为桂乃芬。单看 state、DOM 或截图中的任一项都不足以定位这类故障。
+
+**代价**：DSH 与 Kimi 必须共享同一缓存键规则，并用真实合成画面做最终验收；稳定 skin key 可复用正确缓存，不需要每次切换都下载一份新的 7MB 素材。
