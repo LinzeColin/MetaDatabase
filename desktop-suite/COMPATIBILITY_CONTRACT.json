@@ -6,9 +6,11 @@
   },
   "release": {
     "workflow": ".github/workflows/desktop-app-suite-release.yml",
+    "upstreamWatchWorkflow": ".github/workflows/upstream-desktop-sync.yml",
     "sourceCommit": "GITHUB_SHA",
     "releaseTargetMetadata": "GITHUB_SHA",
-    "oneCommitForAllApps": true
+    "oneCommitForAllApps": true,
+    "exclusiveWorkflow": true
   },
   "applications": {
     "kimiCode": {
