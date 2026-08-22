@@ -377,6 +377,8 @@ async function startApplication() {
     installerSource: path.join(__dirname, "update", "install-macos.sh"),
     bundleId,
   });
+  updater.rememberMacInstallLocation();
+  updater.quarantineLegacyMacRollbacks();
   const personalizationRoot = path.join(kimiHome(), "personalization", "kimi-code-desktop");
   const customIcon = ["icon.png", "icon.icns"]
     .map((name) => path.join(personalizationRoot, name))

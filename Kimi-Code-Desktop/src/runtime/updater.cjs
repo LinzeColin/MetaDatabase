@@ -1,5 +1,6 @@
 const fs = require("node:fs");
 const https = require("node:https");
+const os = require("node:os");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
 
@@ -131,6 +132,52 @@ function macApplicationPath(executable = process.execPath) {
   return candidate.endsWith(".app") ? candidate : null;
 }
 
+function pathIsInside(root, candidate) {
+  const relative = path.relative(path.resolve(root), path.resolve(candidate));
+  return relative === "" || (!path.isAbsolute(relative) && relative !== ".." && !relative.startsWith(`..${path.sep}`));
+}
+
+function installLocationFile(updatesRoot) {
+  return path.join(updatesRoot, "install-location.json");
+}
+
+function storedMacApplicationPath(updatesRoot) {
+  try {
+    const value = JSON.parse(fs.readFileSync(installLocationFile(updatesRoot), "utf8")).path;
+    return typeof value === "string" && path.isAbsolute(value) && value.endsWith(".app") ? path.resolve(value) : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveMacInstallTarget({ executable = process.execPath, updatesRoot, home = os.homedir() }) {
+  const current = macApplicationPath(executable);
+  if (!current) return null;
+  const rollbackRoot = path.join(updatesRoot, "rollback");
+  if (!pathIsInside(rollbackRoot, current)) return current;
+
+  const candidates = [
+    storedMacApplicationPath(updatesRoot),
+    path.join(home, "Applications", "Kimi Code.app"),
+    "/Applications/Kimi Code.app",
+  ];
+  const canonical = candidates.find((candidate) => candidate
+    && candidate !== current
+    && !pathIsInside(rollbackRoot, candidate)
+    && fs.existsSync(candidate));
+  if (!canonical) throw new Error("当前从回滚副本运行，未找到正式 Kimi Code.app；请从正式安装位置启动后再更新");
+  return canonical;
+}
+
+function rollbackApplicationPath(updatesRoot, version, timestamp, target) {
+  return path.join(
+    updatesRoot,
+    "rollback",
+    `${version}-${timestamp}`,
+    `${path.basename(target)}.rollback`,
+  );
+}
+
 class DesktopUpdater {
   constructor({ currentVersion, updatesRoot, installerSource, bundleId, platform = process.platform, arch = process.arch }) {
     this.currentVersion = currentVersion;
@@ -158,15 +205,48 @@ class DesktopUpdater {
     return downloadAsset(update.asset.browser_download_url, destination, { expectedSize: Number(update.asset.size) || 0 });
   }
 
+  rememberMacInstallLocation(executable = process.execPath) {
+    if (this.platform !== "darwin") return;
+    const current = macApplicationPath(executable);
+    if (!current || pathIsInside(path.join(this.updatesRoot, "rollback"), current)) return;
+    fs.mkdirSync(this.updatesRoot, { recursive: true, mode: 0o700 });
+    const destination = installLocationFile(this.updatesRoot);
+    const temporary = `${destination}.tmp`;
+    fs.writeFileSync(temporary, `${JSON.stringify({ version: 1, path: current }, null, 2)}\n`, { mode: 0o600 });
+    fs.renameSync(temporary, destination);
+  }
+
+  quarantineLegacyMacRollbacks(executable = process.execPath) {
+    if (this.platform !== "darwin") return [];
+    const rollbackRoot = path.join(this.updatesRoot, "rollback");
+    if (!fs.existsSync(rollbackRoot)) return [];
+    const current = macApplicationPath(executable);
+    const moved = [];
+    for (const versionEntry of fs.readdirSync(rollbackRoot, { withFileTypes: true })) {
+      if (!versionEntry.isDirectory()) continue;
+      const versionDirectory = path.join(rollbackRoot, versionEntry.name);
+      for (const appEntry of fs.readdirSync(versionDirectory, { withFileTypes: true })) {
+        if (!appEntry.isDirectory() || !appEntry.name.endsWith(".app")) continue;
+        const source = path.join(versionDirectory, appEntry.name);
+        if (current && path.resolve(source) === path.resolve(current)) continue;
+        const destination = `${source}.rollback`;
+        if (fs.existsSync(destination)) continue;
+        fs.renameSync(source, destination);
+        moved.push(destination);
+      }
+    }
+    return moved;
+  }
+
   prepareMacInstall({ archive, version, executable = process.execPath, pid = process.pid }) {
     if (this.platform !== "darwin") throw new Error("当前平台不使用 macOS 更新安装器");
-    const target = macApplicationPath(executable);
+    const target = resolveMacInstallTarget({ executable, updatesRoot: this.updatesRoot });
     if (!target) throw new Error("无法识别当前 Kimi Code.app 的位置");
     fs.accessSync(path.dirname(target), fs.constants.W_OK);
     const helper = path.join(this.updatesRoot, "install-macos.sh");
     fs.copyFileSync(this.installerSource, helper);
     fs.chmodSync(helper, 0o700);
-    const rollback = path.join(this.updatesRoot, "rollback", `${version}-${Date.now()}`, path.basename(target));
+    const rollback = rollbackApplicationPath(this.updatesRoot, version, Date.now(), target);
     fs.mkdirSync(path.dirname(rollback), { recursive: true, mode: 0o700 });
     const child = spawn("/bin/sh", [helper, String(pid), archive, target, rollback, this.bundleId, version], {
       detached: true,
@@ -183,5 +263,7 @@ module.exports = {
   downloadAsset,
   fetchReleases,
   macApplicationPath,
+  resolveMacInstallTarget,
+  rollbackApplicationPath,
   selectRelease,
 };
