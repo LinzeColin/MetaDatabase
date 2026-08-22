@@ -17,18 +17,22 @@
 - DSH macOS 桥接包提供更新菜单、HarnessUI 同步、外置图标和退出安装；本地代码身份固定为 `ai.deepseek.dsh.desktop`。有自定义图标则跨更新保留，没有图标也不会阻断官方更新。
 - 每日 GitHub workflow 自动镜像缺失的官方 DSH 同版本 Release；DSH 自身更新按钮继续读取官方上游。
 - 本机未发现 DSH launchd/登录项自动重启链路。90 秒受控退出期间未自动重启；此前连续启动时间与诊断操作一一对应。DSH 已受控重启一次以加载新桥接插件，当前正常运行。
+- Harness UI 使用 Carbon 注册进程级 `Cmd+Shift+N`，即使 DSH 或 Kimi 在前台也能切换；DSH renderer 仍保留前台回退，但现场一次按键只推进一次共享 cursor。
+- DSH 图片预加载使用 revision 丢弃迟到请求；素材 URL 增加稳定 skin 身份键，避免 `immutable` 缓存让 state/CSS 已更新而真实画面仍显示上一张。
 
 ## 验证
 
-- HarnessUI/DSH Node 回归：14/14 通过，覆盖共享原子切换、快捷键、非 `.app` 回滚、DSH 2.0.2 patch contract、SMB 本地降级和 adapter 安装。
+- HarnessUI/DSH Node 回归：15/15 通过，覆盖共享原子切换、全局快捷键、非 `.app` 回滚、DSH 2.0.2 patch contract、SMB 本地降级、adapter 安装和迟到图片请求隔离。
 - DSH 桥接安装器 preview 不写入、不启动、不重启 DSH。
 - 当前 Kimi PID 保持不变。
 - PR #317 已合并；正式发布 run `32527795001` 全部通过。
 - 统一皮肤与快捷键变更由 PR #323 交付；CI run `32538867994` 的 Node、macOS Apple Silicon 与 Windows x64/arm64 候选全部通过。
 - [Harness UI v1.0.0](https://github.com/LinzeColin/MetaDatabase/releases/tag/harness-ui-v1.0.0) 已发布 7 个资产；[DSH Desktop v2.0.2](https://github.com/LinzeColin/MetaDatabase/releases/tag/dsh-desktop-v2.0.2) 已发布 3 个资产。
 - 四个旧 private/community Releases 已保留历史资产并明确标记“已废止”。
+- PR #324 候选已在本机安装：Harness UI 仍为 `1.0.0`，旧 App 存入 rollback；DSH 前台按一次 `Cmd+Shift+N` 后 cursor 从 34 精确到 35，DSH 与未重启的 Kimi 都实际显示同一张朱鸢皮肤。
 
 ## 剩余
 
 - 在另一台电脑从正式 Release 安装，并选择其本机 SMB 素材目录；不要迁移 OAuth、API Key、会话或 SMB 凭据。
 - 正式 Release 需用同版本号覆盖 Harness UI `1.0.0` 与 DSH `2.0.2` 桥接资产；不得另建私有包装版本。
+- PR #324 全部 CI 通过后合并并覆盖同版本 Release 资产；当前本机 DSH 插件已是候选代码，Harness UI 正式资产仍需发布替换。

@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
 const test = require("node:test");
-const { assertLoopbackBase, catalogNeedsRefresh, selectHarnessEntry } = require("../src/runtime/harness.cjs");
+const { assetWithRevision, assertLoopbackBase, catalogNeedsRefresh, selectHarnessEntry } = require("../src/runtime/harness.cjs");
 
 test("only accepts a loopback Harness UI endpoint", () => {
   assert.equal(assertLoopbackBase("http://127.0.0.1:3099/path"), "http://127.0.0.1:3099");
@@ -14,6 +14,17 @@ test("selects the persisted entry and falls back to the first entry", () => {
   const catalog = { entries: [{ id: "one" }, { id: "two" }] };
   assert.equal(selectHarnessEntry(catalog, { selected: "two" }).id, "two");
   assert.equal(selectHarnessEntry(catalog, { selected: "missing" }).id, "one");
+});
+
+test("uses a stable skin identity to avoid stale immutable image cache entries", () => {
+  assert.equal(
+    assetWithRevision("http://127.0.0.1:3099/assets/light", "generation", "hsr/guinaifen/default"),
+    "http://127.0.0.1:3099/assets/light?v=generation&skin=hsr%2Fguinaifen%2Fdefault",
+  );
+  assert.equal(
+    assetWithRevision("http://127.0.0.1:3099/assets/light?v=existing", "generation", "hsr/guinaifen/default"),
+    "http://127.0.0.1:3099/assets/light?v=existing&skin=hsr%2Fguinaifen%2Fdefault",
+  );
 });
 
 test("refreshes the Kimi skin menu when Harness UI publishes a new catalog generation", () => {
@@ -63,4 +74,34 @@ test("uses the shared atomic next endpoint", async () => {
 test("restores the legacy next-skin keyboard shortcut", () => {
   const source = fs.readFileSync(path.join(__dirname, "../src/main.cjs"), "utf8");
   assert.match(source, /换下一张[^\n]+CmdOrCtrl\+Shift\+N[^\n]+harnessBridge\.next/);
+});
+
+test("reapplies the same skin after the renderer document reloads", async () => {
+  const { HarnessBridge } = require("../src/runtime/harness.cjs");
+  const scripts = [];
+  const window = {
+    isDestroyed: () => false,
+    webContents: {
+      executeJavaScript: async (source) => { scripts.push(source); return true; },
+    },
+  };
+  const bridge = new HarnessBridge({ intervalMs: 60000 });
+  bridge.window = window;
+  bridge.catalog = {
+    generated: "generation",
+    entries: [{ id: "one", light: "/light", dark: "/dark" }],
+  };
+  bridge.state = { selected: "one", updated: 42 };
+
+  await bridge.applyCurrent();
+  await bridge.applyCurrent();
+  assert.equal(scripts.length, 1);
+  assert.equal(await bridge.reapply(window), true);
+  assert.equal(scripts.length, 2);
+  assert.match(scripts[1], /dataset\.harnessUi = "active"/);
+});
+
+test("renderer reload reinstalls CSS before reapplying the cached skin", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../src/main.cjs"), "utf8");
+  assert.match(source, /did-finish-load[\s\S]+insertCSS\(harnessCss\)[\s\S]+harnessBridge\.reapply\(window\)/);
 });

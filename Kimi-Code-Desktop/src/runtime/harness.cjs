@@ -56,9 +56,13 @@ function assertLoopbackBase(raw) {
   return url.origin;
 }
 
-function assetWithRevision(raw, generated) {
-  if (!raw || raw.includes("?v=") || !generated) return raw || "";
-  return `${raw}?v=${encodeURIComponent(generated)}`;
+function assetWithRevision(raw, generated, skinId = "") {
+  if (!raw) return "";
+  const revisioned = raw.includes("?v=") || !generated
+    ? raw
+    : `${raw}?v=${encodeURIComponent(generated)}`;
+  if (!skinId) return revisioned;
+  return `${revisioned}${revisioned.includes("?") ? "&" : "?"}skin=${encodeURIComponent(skinId)}`;
 }
 
 function catalogNeedsRefresh(nextState, currentCatalog) {
@@ -154,6 +158,13 @@ class HarnessBridge {
     }
   }
 
+  async reapply(window = this.window) {
+    if (!window || window !== this.window || window.isDestroyed()) return false;
+    this.lastAppliedKey = null;
+    await this.applyCurrent();
+    return true;
+  }
+
   async applyCurrent() {
     const window = this.window;
     if (!window || window.isDestroyed()) return;
@@ -161,8 +172,8 @@ class HarnessBridge {
     if (!entry) return;
     const key = `${this.catalog?.generated || ""}|${entry.id}|${this.state?.updated || 0}`;
     if (!entry.light || !entry.dark || key === this.lastAppliedKey) return;
-    const light = `url(${JSON.stringify(assetWithRevision(entry.light, this.catalog?.generated))})`;
-    const dark = `url(${JSON.stringify(assetWithRevision(entry.dark, this.catalog?.generated))})`;
+    const light = `url(${JSON.stringify(assetWithRevision(entry.light, this.catalog?.generated, entry.id))})`;
+    const dark = `url(${JSON.stringify(assetWithRevision(entry.dark, this.catalog?.generated, entry.id))})`;
     await window.webContents.executeJavaScript(`(() => {
       document.documentElement.dataset.harnessUi = "active";
       document.documentElement.style.setProperty("--harness-scene", ${JSON.stringify(light)});
