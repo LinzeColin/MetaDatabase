@@ -35,9 +35,10 @@
 - HarnessUI：`catalog/state` 为 408 项、`smb+local`、generation 一致；Kimi 原生皮肤菜单同步显示 408 项和当前芭芭拉轮播状态。
 - 2026-08-22 的界面验收调用由 macOS `coreservices.uiagent` 发起了额外启动请求；由于旧 rollback 中仍存在 `.app`，LaunchServices 最终启动了该副本。系统记录为正常退出/启动、无崩溃报告。此后对工作中的 Kimi 只用进程、端口和文件取证，不再用会自动启动 App 的界面读取调用。
 - PR #324 在当前 PID 95131/95134 上做了不重启恢复：共享快捷键切换后 Kimi 与 DSH 同显朱鸢；对现有 renderer 做等价 `Cmd+R` reload 后，工作线程、皮肤 URL 和真实合成画面都保留，PID 未变化，临时 inspector 已关闭。
+- PR #324 已合并；正式发布 run `32550771745` 从合并后的源码重新生成并覆盖同版本 8 个资产，全部构建与发布任务通过。
+- 新正式 App 已安装到 `~/Applications/Kimi Code.app` 且未启动；安装前后工作中的 GUI/backend 仍为 PID 95131/95134。App 代码身份、版本与完整性检查通过，包内包含 `did-finish-load` 重放、bridge `reapply()` 与稳定 skin 身份键。
 
-## 剩余
+## 运行边界
 
-- 以同一官方版本 `0.38.0` 覆盖 Release 资产；Kimi 正在承载工作线程，禁止为验收主动退出。新包只做发布和安全预备，待 Owner 自然退出后再激活正式安装路径并验收代码级快捷键。
-- PR #324 全部 CI 通过后合并并覆盖 `0.38.0` Release 资产；当前旧 rollback 进程只保留内存恢复，正式包的永久修复要在 Owner 自然退出后自动生效。
+- 当前承载工作线程的是旧 rollback 进程，继续使用已验收的内存恢复；不得为切换安装路径主动退出。Owner 自然 `Cmd+Q` 后，下次从正式路径启动即使用永久修复。
 - 其它电脑需从正式 Release 安装，并在该电脑上单独选择或授权其 SMB 位置；不要复制 OAuth、API Key、会话或 SMB 凭据。
