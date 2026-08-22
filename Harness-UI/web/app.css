@@ -3,6 +3,8 @@
 body { margin: 0; background: #0e1422; color: #e9effc; }
 header { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; gap: 16px; padding: 14px 18px; background: #131d31ee; border-bottom: 1px solid #ffffff20; }
 header span { margin-left: 10px; color: #9fb0cf; }
+header small { display: block; margin-top: 3px; color: #9fb0cf; font-weight: 400; }
+header small[data-status="partial"], header small[data-status="failed"] { color: #ffcf75; }
 .toolbar { display: flex; gap: 8px; }
 input, select, button { border: 1px solid #ffffff2b; border-radius: 8px; background: #0b1220; color: inherit; padding: 7px 10px; }
 button { cursor: pointer; }

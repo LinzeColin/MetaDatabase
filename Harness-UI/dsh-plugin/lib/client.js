@@ -162,6 +162,27 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,select,[role=di
         } catch (error) { status.textContent = `切换失败：${error.message}`; }
       }
 
+      async function refreshCatalog() {
+        const started = Date.now();
+        await json("/api/catalog/refresh", { method: "POST" });
+        status.textContent = "正在读取并部署 SMB 素材…";
+        while (Date.now() - started < 180000) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          const refresh = await json("/refresh-status.json");
+          status.textContent = refresh.message || "正在读取并部署 SMB 素材…";
+          if (refresh.status === "failed") throw new Error(refresh.message || "素材目录同步失败");
+          if (["ready", "partial"].includes(refresh.status) && Number(refresh.updated) >= started) {
+            [catalog, state] = await Promise.all([json("/catalog.json"), json("/state.json")]);
+            renderGames();
+            syncSeen = state.updated || 0;
+            render();
+            status.textContent = refresh.status === "partial" ? refresh.message : "素材已同步";
+            return;
+          }
+        }
+        throw new Error("素材目录仍在扫描，请稍后重试");
+      }
+
       async function sync() {
         try {
           const shared = await json("/state.json");
@@ -183,10 +204,8 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,select,[role=di
       mode.addEventListener("click", () => update({ mode: state.mode === "rotate" ? "gallery" : "rotate" }));
       panel.querySelector('[data-hu="next"]').addEventListener("click", next);
       panel.querySelector('[data-hu="refresh"]').addEventListener("click", async () => {
-        try {
-          await json("/api/catalog/refresh", { method: "POST" });
-          status.textContent = "正在读取 SMB 素材目录…";
-        } catch (error) { status.textContent = `同步失败：${error.message}`; }
+        try { await refreshCatalog(); }
+        catch (error) { status.textContent = `同步失败：${error.message}`; }
       });
 
       (async () => {

@@ -71,6 +71,46 @@ test("uses the shared atomic next endpoint", async () => {
   }
 });
 
+test("waits for the SMB deployment receipt before refreshing the Kimi catalog", async () => {
+  let refreshRequested = false;
+  const server = http.createServer((incoming, response) => {
+    response.setHeader("Content-Type", "application/json");
+    if (incoming.method === "POST" && incoming.url === "/api/catalog/refresh") {
+      refreshRequested = true;
+      response.statusCode = 202;
+      response.end('{"status":"accepted"}');
+      return;
+    }
+    if (incoming.url === "/refresh-status.json") {
+      response.end(JSON.stringify({ status: "partial", message: "SMB 缺少 1 个素材", updated: Date.now() + 1000 }));
+      return;
+    }
+    if (incoming.url === "/state.json") {
+      response.end('{"selected":"one","updated":42,"catalogGenerated":"new"}');
+      return;
+    }
+    if (incoming.url === "/catalog.json") {
+      response.end('{"generated":"new","count":1,"entries":[{"id":"one"}]}');
+      return;
+    }
+    response.statusCode = 404;
+    response.end("{}");
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  try {
+    const { port } = server.address();
+    const { HarnessBridge } = require("../src/runtime/harness.cjs");
+    const bridge = new HarnessBridge({ baseUrl: `http://127.0.0.1:${port}`, intervalMs: 10 });
+    const status = await bridge.refreshCatalog();
+    assert.equal(refreshRequested, true);
+    assert.equal(status.status, "partial");
+    assert.equal(bridge.catalog.generated, "new");
+    assert.equal(bridge.state.selected, "one");
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
 test("restores the legacy next-skin keyboard shortcut", () => {
   const source = fs.readFileSync(path.join(__dirname, "../src/main.cjs"), "utf8");
   assert.match(source, /换下一张[^\n]+CmdOrCtrl\+Shift\+N[^\n]+harnessBridge\.next/);

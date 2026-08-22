@@ -9,6 +9,7 @@ import json
 import mimetypes
 import pathlib
 import random
+import shutil
 import threading
 import time
 import urllib.parse
@@ -47,13 +48,111 @@ def child_directories(root: pathlib.Path) -> list[pathlib.Path]:
         return []
 
 
-def build_catalog(
+def source_assets(source: pathlib.Path) -> tuple[list[dict[str, object]], int, dict[str, int]]:
+    assets: list[dict[str, object]] = []
+    recognized_games = 0
+    game_counts = {game: 0 for game in GAMES.values()}
+    if not source.is_dir():
+        return assets, recognized_games, game_counts
+    for game_name, game in GAMES.items():
+        game_root = source / game_name
+        if game_root.is_dir():
+            recognized_games += 1
+        for character_root in child_directories(game_root):
+            for variant_root in child_directories(character_root / "skins"):
+                light = variant_root / "light.png"
+                dark = variant_root / "dark.png"
+                if not light.is_file() or not dark.is_file():
+                    continue
+                meta = read_json(variant_root / "meta.json", {})
+                assets.append({
+                    "gameName": game_name,
+                    "game": game,
+                    "character": character_root.name,
+                    "variant": variant_root.name,
+                    "light": light,
+                    "dark": dark,
+                    "meta": meta if isinstance(meta, dict) else {},
+                    "metaFile": variant_root / "meta.json",
+                })
+                game_counts[game] += 1
+    return assets, recognized_games, game_counts
+
+
+def fallback_assets(fallback_root: pathlib.Path | None) -> list[dict[str, object]]:
+    assets: list[dict[str, object]] = []
+    if not fallback_root or not fallback_root.is_dir():
+        return assets
+    reverse_games = {game: game_name for game_name, game in GAMES.items()}
+    for game, game_name in reverse_games.items():
+        for character_root in child_directories(fallback_root / game):
+            for variant_root in child_directories(character_root):
+                light = variant_root / "light.png"
+                dark = variant_root / "dark.png"
+                if not light.is_file() or not dark.is_file():
+                    continue
+                meta = read_json(variant_root / "meta.json", {})
+                assets.append({
+                    "gameName": game_name,
+                    "game": game,
+                    "character": character_root.name,
+                    "variant": variant_root.name,
+                    "light": light,
+                    "dark": dark,
+                    "meta": meta if isinstance(meta, dict) else {},
+                    "metaFile": variant_root / "meta.json",
+                })
+    return assets
+
+
+def asset_identifier(asset: dict[str, object]) -> str:
+    return f"{asset['game']}/{asset['character']}/{asset['variant']}"
+
+
+def copy_required(source: pathlib.Path, destination: pathlib.Path) -> bool:
+    try:
+        source_stat = source.stat()
+        destination_stat = destination.stat()
+        return source_stat.st_size != destination_stat.st_size or source_stat.st_mtime_ns > destination_stat.st_mtime_ns
+    except OSError:
+        return True
+
+
+def deploy_source_assets(assets: list[dict[str, object]], fallback_root: pathlib.Path | None) -> int:
+    if not fallback_root:
+        return 0
+    changed: set[str] = set()
+    fallback_root.mkdir(parents=True, exist_ok=True)
+    for asset in assets:
+        destination = fallback_root / str(asset["game"]) / str(asset["character"]) / str(asset["variant"])
+        destination.mkdir(parents=True, exist_ok=True)
+        for side in ("light", "dark"):
+            source_file = pathlib.Path(asset[side])
+            target_file = destination / f"{side}.png"
+            if not copy_required(source_file, target_file):
+                continue
+            staged = target_file.with_suffix(".png.sync")
+            shutil.copy2(source_file, staged)
+            staged.replace(target_file)
+            changed.add(asset_identifier(asset))
+        source_meta = pathlib.Path(asset["metaFile"])
+        target_meta = destination / "meta.json"
+        if source_meta.is_file() and copy_required(source_meta, target_meta):
+            staged_meta = target_meta.with_suffix(".json.sync")
+            shutil.copy2(source_meta, staged_meta)
+            staged_meta.replace(target_meta)
+            changed.add(asset_identifier(asset))
+    return len(changed)
+
+
+def synchronize_catalog(
     source: pathlib.Path,
     base_url: str,
     fallback_root: pathlib.Path | None = None,
     previous: dict[str, object] | None = None,
     now: dt.datetime | None = None,
-) -> dict[str, object]:
+    deploy: bool = False,
+) -> tuple[dict[str, object], dict[str, object]]:
     source_available = source.is_dir()
     fallback_available = bool(fallback_root and fallback_root.is_dir())
     if not source_available and not fallback_available:
@@ -92,31 +191,14 @@ def build_catalog(
             "thumb": light_url,
         }
 
-    if fallback_root and fallback_root.is_dir():
-        reverse_games = {game: game_name for game_name, game in GAMES.items()}
-        for game, game_name in reverse_games.items():
-            for character_root in child_directories(fallback_root / game):
-                for variant_root in child_directories(character_root):
-                    if (variant_root / "light.png").is_file() and (variant_root / "dark.png").is_file():
-                        add_entry(game_name, game, character_root.name, variant_root.name, {})
-    recognized_games = 0
-    if source_available:
-        for game_name, game in GAMES.items():
-            game_root = source / game_name
-            if game_root.is_dir():
-                recognized_games += 1
-            for character_root in child_directories(game_root):
-                for variant_root in child_directories(character_root / "skins"):
-                    light = variant_root / "light.png"
-                    dark = variant_root / "dark.png"
-                    if not light.is_file() or not dark.is_file():
-                        continue
-                    character = character_root.name
-                    variant = variant_root.name
-                    meta = read_json(variant_root / "meta.json", {})
-                    if not isinstance(meta, dict):
-                        meta = {}
-                    add_entry(game_name, game, character, variant, meta)
+    discovered_source, recognized_games, source_counts = source_assets(source)
+    deployed = deploy_source_assets(discovered_source, fallback_root) if deploy and source_available else 0
+    discovered_fallback = fallback_assets(fallback_root)
+    fallback_available = bool(fallback_root and fallback_root.is_dir())
+    for asset in discovered_fallback:
+        add_entry(str(asset["gameName"]), str(asset["game"]), str(asset["character"]), str(asset["variant"]), dict(asset["meta"]))
+    for asset in discovered_source:
+        add_entry(str(asset["gameName"]), str(asset["game"]), str(asset["character"]), str(asset["variant"]), dict(asset["meta"]))
     entries = list(entries_by_id.values())
     game_counts = {game: sum(1 for entry in entries if entry["game"] == game) for game in GAMES.values()}
     if any(count == 0 for count in game_counts.values()):
@@ -136,7 +218,44 @@ def build_catalog(
         if missing:
             raise RuntimeError(f"SMB 视图不完整且本地镜像缺少 {len(missing)} 个既有素材；已保留上一版目录")
     source_kind = "smb+local" if source_available and fallback_available else ("smb" if source_available else "local-fallback")
-    return {"version": 1, "source": source_kind, "generated": generated, "count": len(entries), "entries": entries}
+    catalog = {"version": 1, "source": source_kind, "generated": generated, "count": len(entries), "entries": entries}
+    source_ids = {asset_identifier(asset) for asset in discovered_source}
+    local_ids = {asset_identifier(asset) for asset in discovered_fallback}
+    missing_from_smb = local_ids - source_ids
+    missing_source_games = [game for game, count in source_counts.items() if count == 0]
+    partial = not source_available or bool(missing_from_smb) or bool(missing_source_games)
+    status = "partial" if partial else "ready"
+    if partial:
+        game_names = {game: game_name for game_name, game in GAMES.items()}
+        missing_labels = "、".join(game_names.get(game, game) for game in missing_source_games)
+        detail = f"；缺少分区 {missing_labels}" if missing_labels else ""
+        message = (
+            f"SMB 当前可用 {len(source_ids)} 个，本地完整库 {len(local_ids)} 个，总目录 {len(entries)} 个"
+            f"；SMB 缺少 {len(missing_from_smb)} 个既有素材{detail}，已保留本地完整库；本次部署 {deployed} 个"
+        )
+    else:
+        message = f"SMB、本地与总目录均为 {len(entries)} 个；本次部署 {deployed} 个"
+    report = {
+        "status": status,
+        "message": message,
+        "smbCount": len(source_ids),
+        "localCount": len(local_ids),
+        "catalogCount": len(entries),
+        "deployedCount": deployed,
+        "missingFromSMB": len(missing_from_smb),
+        "missingGames": missing_source_games,
+    }
+    return catalog, report
+
+
+def build_catalog(
+    source: pathlib.Path,
+    base_url: str,
+    fallback_root: pathlib.Path | None = None,
+    previous: dict[str, object] | None = None,
+    now: dt.datetime | None = None,
+) -> dict[str, object]:
+    return synchronize_catalog(source, base_url, fallback_root, previous, now, deploy=False)[0]
 
 
 def normalized_state(raw: object, catalog: dict[str, object]) -> dict[str, object]:
@@ -191,14 +310,14 @@ class HarnessStore:
             with self.lock:
                 self.refresh_status = {"status": "running", "message": "正在读取 SMB 素材目录", "updated": int(time.time() * 1000)}
                 atomic_json(self.status_file, self.refresh_status)
-            next_catalog = build_catalog(self.source, self.base_url, self.fallback_root, self.catalog)
+            next_catalog, report = synchronize_catalog(self.source, self.base_url, self.fallback_root, self.catalog, deploy=True)
             with self.lock:
                 self.catalog = next_catalog
                 self.state = normalized_state(self.state, next_catalog)
                 self.state["updated"] = int(time.time() * 1000)
                 atomic_json(self.catalog_file, self.catalog)
                 atomic_json(self.state_file, self.state)
-                self.refresh_status = {"status": "ready", "message": f"已同步 {next_catalog['count']} 个变体", "updated": self.state["updated"]}
+                self.refresh_status = {**report, "updated": self.state["updated"]}
                 atomic_json(self.status_file, self.refresh_status)
         except Exception as error:
             with self.lock:

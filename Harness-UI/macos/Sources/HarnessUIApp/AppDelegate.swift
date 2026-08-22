@@ -12,6 +12,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var refreshTimer: Timer?
     private var stateSyncTimer: Timer?
     private var nextSkinHotKey: GlobalHotKey?
+    private var galleryWindowController: GalleryWindowController?
+    private var finishedLaunching = false
+    private var pendingGalleryOpen = false
     private var refreshRunning = false
     private var usesExternalService = false
     private let refreshStatusLock = NSLock()
@@ -50,6 +53,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.refreshCatalog(showResult: false)
             }
         }
+        finishedLaunching = true
+        if pendingGalleryOpen { openGallery() }
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        openGallery()
+        return true
+    }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard urls.contains(where: { $0.scheme?.lowercased() == "harnessui" }) else { return }
+        openGallery()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -105,7 +120,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         count.isEnabled = false
         menu.addItem(count)
         menu.addItem(.separator())
-        menu.addItem(withTitle: "打开角色库", action: #selector(openGallery), keyEquivalent: "o").target = self
+        menu.addItem(withTitle: "打开完整素材库", action: #selector(openGallery), keyEquivalent: "o").target = self
         menu.addItem(withTitle: "选择 SMB 素材目录…", action: #selector(chooseSource), keyEquivalent: "").target = self
         menu.addItem(withTitle: "刷新素材目录", action: #selector(refreshFromMenu), keyEquivalent: "r").target = self
         let next = menu.addItem(withTitle: "换下一张", action: #selector(nextSkin), keyEquivalent: "n")
@@ -122,7 +137,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func openGallery() {
-        NSWorkspace.shared.open(URL(string: "http://127.0.0.1:\(configuration.port)/")!)
+        guard finishedLaunching else {
+            pendingGalleryOpen = true
+            return
+        }
+        pendingGalleryOpen = false
+        let controller = galleryWindowController ?? GalleryWindowController(port: configuration.port)
+        galleryWindowController = controller
+        controller.show()
     }
 
     @objc private func openReleases() {
@@ -150,9 +172,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         if usesExternalService {
-            postToSharedService(path: "/api/catalog/refresh", object: [:], failureTitle: "素材目录刷新失败") {
-                if showResult { self.showInfo("已开始同步素材目录", detail: "Kimi Code、DSH 与 Harness UI 会读取同一份更新结果。") }
-            }
+            guard !refreshRunning else { return }
+            refreshRunning = true
+            statusItem?.button?.title = "HU…"
+            let started = Int64(Date().timeIntervalSince1970 * 1000)
+            postToSharedService(
+                path: "/api/catalog/refresh",
+                object: [:],
+                failureTitle: "素材目录刷新失败",
+                completion: { self.pollSharedRefresh(started: started, deadline: Date().addingTimeInterval(180), showResult: showResult) },
+                failure: { self.finishSharedRefresh() }
+            )
             return
         }
         guard !refreshRunning else { return }
@@ -200,6 +230,55 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         refreshStatusLock.unlock()
         guard let data = try? JSONSerialization.data(withJSONObject: value) else { return HTTPResponse(status: 500) }
         return HTTPResponse(contentType: "application/json; charset=utf-8", body: data, headers: ["Cache-Control": "no-store"])
+    }
+
+    private func pollSharedRefresh(started: Int64, deadline: Date, showResult: Bool) {
+        guard let url = URL(string: "http://127.0.0.1:\(configuration.port)/refresh-status.json") else {
+            finishSharedRefresh()
+            return
+        }
+        var request = URLRequest(url: url, timeoutInterval: 5)
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                let httpStatus = (response as? HTTPURLResponse)?.statusCode ?? 0
+                let object = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
+                let status = object?["status"] as? String ?? ""
+                let message = object?["message"] as? String ?? "素材目录仍在扫描"
+                let updated = (object?["updated"] as? NSNumber)?.int64Value ?? 0
+                if error == nil, (200...299).contains(httpStatus), updated >= started {
+                    if status == "ready" || status == "partial" {
+                        self.finishSharedRefresh()
+                        _ = self.store.reloadFromDisk()
+                        self.rebuildMenu()
+                        if showResult {
+                            if status == "partial" { self.showError("SMB 素材未完整", detail: message) }
+                            else { self.showInfo("素材目录已刷新", detail: message) }
+                        }
+                        return
+                    }
+                    if status == "failed" {
+                        self.finishSharedRefresh()
+                        if showResult { self.showError("刷新失败", detail: message) }
+                        return
+                    }
+                }
+                guard Date() < deadline else {
+                    self.finishSharedRefresh()
+                    if showResult { self.showError("刷新超时", detail: message) }
+                    return
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    self.pollSharedRefresh(started: started, deadline: deadline, showResult: showResult)
+                }
+            }
+        }.resume()
+    }
+
+    private func finishSharedRefresh() {
+        refreshRunning = false
+        statusItem?.button?.title = "HU"
     }
 
     @objc private func nextSkin() {
@@ -290,10 +369,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return available
     }
 
-    private func postToSharedService(path: String, object: [String: Any], failureTitle: String, completion: (() -> Void)? = nil) {
+    private func postToSharedService(
+        path: String,
+        object: [String: Any],
+        failureTitle: String,
+        completion: (() -> Void)? = nil,
+        failure: (() -> Void)? = nil
+    ) {
         guard let url = URL(string: "http://127.0.0.1:\(configuration.port)\(path)"),
               let body = try? JSONSerialization.data(withJSONObject: object) else {
             showError(failureTitle, detail: "无法生成本机同步请求")
+            failure?()
             return
         }
         var request = URLRequest(url: url, timeoutInterval: 5)
@@ -306,6 +392,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 let status = (response as? HTTPURLResponse)?.statusCode ?? 0
                 guard error == nil, (200...299).contains(status) else {
                     self.showError(failureTitle, detail: error?.localizedDescription ?? "本机素材服务返回 HTTP \(status)")
+                    failure?()
                     return
                 }
                 _ = self.store.reloadFromDisk()

@@ -88,6 +88,16 @@ function runHarnessAction(action) {
   }));
 }
 
+function openHarnessLibrary() {
+  const target = process.platform === "darwin" ? "harnessui://library" : "http://127.0.0.1:3099/";
+  return shell.openExternal(target).catch((error) => showMessage({
+    type: "warning",
+    title: "无法打开 Harness UI",
+    message: "请确认 Harness UI 已安装并正在运行",
+    detail: error.message,
+  }));
+}
+
 function skinMenu() {
   const { catalog, state, online, error } = harnessBridge.snapshot();
   const entries = Array.isArray(catalog.entries) ? catalog.entries : [];
@@ -99,8 +109,16 @@ function skinMenu() {
   if (!online && error) items.push({ label: displayName(error), enabled: false });
   items.push(
     { type: "separator" },
-    { label: "打开完整素材库", click: () => shell.openExternal("http://127.0.0.1:3099/") },
-    { label: "立即同步 SMB 素材目录", click: () => runHarnessAction(() => harnessBridge.refreshCatalog()) },
+    { label: "打开完整素材库", click: openHarnessLibrary },
+    { label: "立即同步 SMB 素材目录", click: () => runHarnessAction(async () => {
+      const status = await harnessBridge.refreshCatalog();
+      await showMessage({
+        type: status.status === "partial" ? "warning" : "info",
+        title: status.status === "partial" ? "SMB 素材未完整" : "Harness UI 素材已同步",
+        message: displayName(status.message, "素材目录已刷新"),
+        detail: status.status === "partial" ? "本地完整库已保留；缺少的 SMB 素材不会覆盖或删除本地内容。" : "Kimi Code、DSH 与 Harness UI 已读取同一份更新结果。",
+      });
+    }) },
     { label: state.mode === "rotate" ? "停止轮播" : "开启轮播", enabled: online, click: () => runHarnessAction(() => harnessBridge.patch({ mode: state.mode === "rotate" ? "gallery" : "rotate" })) },
     { label: "换下一张", accelerator: "CmdOrCtrl+Shift+N", enabled: online && entries.length > 0, click: () => runHarnessAction(() => harnessBridge.next()) },
     { type: "separator" },
