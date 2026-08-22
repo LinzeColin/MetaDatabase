@@ -30,9 +30,10 @@
 - [Harness UI v1.0.0](https://github.com/LinzeColin/MetaDatabase/releases/tag/harness-ui-v1.0.0) 已发布 7 个资产；[DSH Desktop v2.0.2](https://github.com/LinzeColin/MetaDatabase/releases/tag/dsh-desktop-v2.0.2) 已发布 3 个资产。
 - 四个旧 private/community Releases 已保留历史资产并明确标记“已废止”。
 - PR #324 候选已在本机安装：Harness UI 仍为 `1.0.0`，旧 App 存入 rollback；DSH 前台按一次 `Cmd+Shift+N` 后 cursor 从 34 精确到 35，DSH 与未重启的 Kimi 都实际显示同一张朱鸢皮肤。
+- PR #324 已合并；正式发布 run `32550771745` 从合并后的源码覆盖 Harness UI `1.0.0` 的 7 个资产与 DSH `2.0.2` 的 3 个资产，全部构建与发布任务通过。
+- 本机 Harness UI 原生二进制包含 Carbon 全局快捷键注册；当前 DSH 插件和 desktop profile 均包含迟到图片隔离与稳定 skin 身份键。共享服务仍提供 408 项 `smb+local` 目录，cursor 35 对应朱鸢。
 
-## 剩余
+## 运行边界
 
 - 在另一台电脑从正式 Release 安装，并选择其本机 SMB 素材目录；不要迁移 OAuth、API Key、会话或 SMB 凭据。
-- 正式 Release 需用同版本号覆盖 Harness UI `1.0.0` 与 DSH `2.0.2` 桥接资产；不得另建私有包装版本。
-- PR #324 全部 CI 通过后合并并覆盖同版本 Release 资产；当前本机 DSH 插件已是候选代码，Harness UI 正式资产仍需发布替换。
+- 本机三端已经同步运行；后续更新只替换应用本体或 DSH 桥接文件，不覆盖 `~/.harness-ui` 的目录、状态、素材、皮肤或外置图标，也不迁移账号和凭据。

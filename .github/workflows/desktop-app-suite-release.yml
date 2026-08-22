@@ -258,6 +258,8 @@ jobs:
           mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
           test "${#assets[@]}" = "8"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$TAG" \
+              -f sha="$GITHUB_SHA" -F force=true >/dev/null
             gh release upload "$TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" "${assets[@]}" \
@@ -298,6 +300,8 @@ jobs:
           mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
           test "${#assets[@]}" = "7"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$TAG" \
+              -f sha="$GITHUB_SHA" -F force=true >/dev/null
             gh release upload "$TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" "${assets[@]}" \
@@ -330,6 +334,8 @@ jobs:
           mapfile -d '' assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
           test "${#assets[@]}" = "3"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$TAG" \
+              -f sha="$GITHUB_SHA" -F force=true >/dev/null
             gh release upload "$TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" "${assets[@]}" \
