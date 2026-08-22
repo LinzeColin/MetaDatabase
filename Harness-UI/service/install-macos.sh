@@ -10,9 +10,11 @@ fi
 script_dir="$(CDPATH= cd -- "$(dirname "$0")" && pwd)"
 project_root="$(dirname "$script_dir")"
 runtime_root="${HARNESS_UI_ROOT:-$HOME/.harness-ui}"
-mount_point="${HARNESS_UI_MOUNT_POINT:-$HOME/mnt/share-full}"
-smb_url="${HARNESS_UI_SMB_URL:-//GUEST:@192.168.0.1/share}"
+mount_point="${HARNESS_UI_MOUNT_POINT:-/Volumes/share}"
+smb_url="${HARNESS_UI_SMB_URL:-smb://GUEST@192.168.0.1/share}"
 source_root="${HARNESS_UI_SOURCE:-$mount_point/03_资料库/MetaData/HarnessUI}"
+volume_id_file="${HARNESS_UI_VOLUME_ID_FILE:-$mount_point/00_AgentControl/NAS_VOLUME_ID.md}"
+volume_id="${HARNESS_UI_VOLUME_ID:-LINZE_EXTERNAL_NAS_SHARE_V1_20260822}"
 agents_root="$HOME/Library/LaunchAgents"
 assets_agent="$agents_root/com.harnessui.assets.plist"
 smb_agent="$agents_root/com.harnessui.smb.plist"
@@ -31,6 +33,8 @@ render() {
     -e "s|__HARNESS_UI_SOURCE__|$(escape_sed "$source_root")|g" \
     -e "s|__HARNESS_UI_MOUNT__|$(escape_sed "$mount_point")|g" \
     -e "s|__HARNESS_UI_SMB_URL__|$(escape_sed "$smb_url")|g" \
+    -e "s|__HARNESS_UI_VOLUME_ID_FILE__|$(escape_sed "$volume_id_file")|g" \
+    -e "s|__HARNESS_UI_VOLUME_ID__|$(escape_sed "$volume_id")|g" \
     "$template" > "$temporary"
   /usr/bin/plutil -lint "$temporary" >/dev/null
   /bin/mv "$temporary" "$destination"
