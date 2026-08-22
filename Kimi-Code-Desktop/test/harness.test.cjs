@@ -146,15 +146,24 @@ test("renderer reload reinstalls CSS before reapplying the cached skin", () => {
   assert.match(source, /did-finish-load[\s\S]+insertCSS\(harnessCss\)[\s\S]+harnessBridge\.reapply\(window\)/);
 });
 
-test("keeps themed application surfaces readable over background artwork", () => {
+test("keeps themed application surfaces readable without hiding background artwork", () => {
   const css = fs.readFileSync(path.join(__dirname, "../src/harness.css"), "utf8");
   assert.doesNotMatch(css, /--color-bg:\s*transparent/);
   assert.doesNotMatch(css, /--color-sidebar-bg:\s*transparent/);
   assert.match(css, /#app \.app-shell\s*\{[\s\S]*?background-color:\s*transparent\s*!important/);
   assert.match(css, /#app \.main\s*\{[\s\S]*?background-color:\s*var\(--harness-main-wash\)\s*!important/);
   assert.match(css, /#app \.content-wrap\s*\{[\s\S]*?background-color:\s*var\(--harness-reading-bg\)\s*!important/);
-  assert.match(css, /--color-bg:\s*rgba\(250, 248, 250, \.90\)/);
-  assert.match(css, /--color-bg:\s*rgba\(18, 13, 21, \.90\)/);
+  assert.match(css, /--color-bg:\s*rgba\(250, 248, 250, \.64\)/);
+  assert.match(css, /--color-sidebar-bg:\s*rgba\(250, 246, 250, \.74\)/);
+  assert.match(css, /--harness-main-wash:\s*rgba\(250, 248, 250, \.10\)/);
+  assert.match(css, /--harness-reading-bg:\s*rgba\(253, 251, 253, \.60\)/);
+  assert.match(css, /--color-bg:\s*rgba\(18, 13, 21, \.68\)/);
+  assert.match(css, /--color-sidebar-bg:\s*rgba\(30, 22, 34, \.76\)/);
+  assert.match(css, /--harness-main-wash:\s*rgba\(18, 13, 21, \.14\)/);
+  assert.match(css, /--harness-reading-bg:\s*rgba\(24, 18, 28, \.64\)/);
+  assert.match(css, /\.content-wrap\s*\{[\s\S]*?backdrop-filter:\s*blur\(10px\)/);
+  assert.match(css, /prefers-reduced-transparency:[\s\S]*?--harness-reading-bg:\s*#fdfbfd/);
+  assert.match(css, /prefers-reduced-transparency:[\s\S]*?--harness-reading-bg:\s*#18121c/);
 });
 
 test("gives model and workspace popups an independent high-contrast surface", () => {
