@@ -20,10 +20,11 @@
 - 更新器会把正式安装位置写入 `desktop-updates/install-location.json`。即使 App 误从 rollback 副本启动，安装目标也回到正式 App；新回滚目录使用 `.app.rollback` 后缀，旧 `.app` 回滚副本在不运行时自动隔离，避免 LaunchServices 把备份注册成第二个 Kimi。
 - 当前机器已完成旧身份迁移：稳定后台为 `~/.kimi-code/bin/kimi` 0.38.0，保留 Moonshot Developer ID；旧 0.37.2 CLI 已进入 `desktop-updates/cli-rollback/`，原 `kimi-shell` Electron profile、会话与个性化目录保持原位。
 - renderer reload 后由 `did-finish-load` 重新插入皮肤 CSS、清空 bridge 应用键并重放当前状态；素材 URL 同时携带稳定 skin 身份键，避免 Chromium `immutable` 缓存显示历史错误位图。
+- 人物图只存在于根背景层；`.app-shell`、侧栏和输入区使用独立可读遮罩，模型菜单、工作区选择器和添加工作区对话框使用 99% 不透明弹层。浅色、暗色与系统“降低透明度”均有独立覆盖。
 
 ## 验证
 
-- Node 回归：26/26 通过。
+- Node 回归：29/29 通过。
 - shell、Python、Swift 语法与 workflow YAML 解析通过。
 - 本机完整 SwiftPM 构建被本机 Command Line Tools 的 `PackageDescription` 链接环境阻断；完整 macOS/Windows 构建交给干净 GitHub runner。
 - PR #317、#318、旧 profile 迁移 PR #320、稳定签名 CLI 与 launchd 后台 PR #321 均已合并；最终正式发布 run `32535596996` 全部通过。
@@ -37,6 +38,7 @@
 - PR #324 在当前 PID 95131/95134 上做了不重启恢复：共享快捷键切换后 Kimi 与 DSH 同显朱鸢；对现有 renderer 做等价 `Cmd+R` reload 后，工作线程、皮肤 URL 和真实合成画面都保留，PID 未变化，临时 inspector 已关闭。
 - PR #324 已合并；正式发布 run `32550771745` 从合并后的源码重新生成并覆盖同版本 8 个资产，全部构建与发布任务通过。
 - 新正式 App 已安装到 `~/Applications/Kimi Code.app` 且未启动；安装前后工作中的 GUI/backend 仍为 PID 95131/95134。App 代码身份、版本与完整性检查通过，包内包含 `did-finish-load` 重放、bridge `reapply()` 与稳定 skin 身份键。
+- 过度透明修复已在 PID 95131 的现有 renderer 内无刷新热应用：主表层 76%、侧栏 86%、输入区约 98%、模型与工作区弹层 99%；模型菜单、工作区选择器及“添加工作区”对话框均已截图验收，PID 95131/95134 未变化。暗色计算样式同样达到主表层 78%、侧栏 88%、输入区约 98%、弹层 99%。
 
 ## 运行边界
 

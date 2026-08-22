@@ -1,29 +1,32 @@
 html[data-harness-ui="active"],
 html[data-harness-ui="active"][data-color-scheme="light"],
 html[data-harness-ui="active"][data-color-scheme="system"] {
-  --color-bg: transparent;
-  --bg: transparent;
-  --canvas: transparent;
-  --color-surface: rgba(250, 246, 250, .28);
-  --color-surface-raised: rgba(253, 251, 253, .88);
-  --color-surface-overlay: rgba(253, 251, 253, .95);
-  --color-surface-sunken: rgba(238, 230, 240, .26);
-  --color-surface-deep: rgba(238, 230, 240, .24);
-  --color-sidebar-bg: transparent;
-  --color-sidebar-tint: transparent;
-  --panel: rgba(250, 246, 250, .30);
-  --panel2: rgba(120, 85, 115, .08);
-  --color-well: rgba(238, 230, 240, .24);
-  --color-menu-bg: rgba(252, 249, 252, .96);
-  --color-composer-bg: rgba(253, 251, 253, .90);
-  --color-user-bubble-bg: rgba(243, 232, 242, .86);
+  --color-bg: rgba(250, 248, 250, .76);
+  --bg: rgba(250, 248, 250, .76);
+  --canvas: rgba(250, 248, 250, .76);
+  --color-surface: rgba(250, 246, 250, .90);
+  --color-surface-raised: rgba(253, 251, 253, .985);
+  --color-surface-overlay: rgba(253, 251, 253, .99);
+  --color-surface-sunken: rgba(238, 230, 240, .84);
+  --color-surface-deep: rgba(238, 230, 240, .88);
+  --color-sidebar-bg: rgba(250, 246, 250, .86);
+  --color-sidebar-tint: rgba(253, 251, 253, .94);
+  --panel: rgba(250, 246, 250, .90);
+  --panel2: rgba(238, 230, 240, .72);
+  --color-well: rgba(238, 230, 240, .90);
+  --color-menu-bg: rgba(253, 251, 253, .99);
+  --color-composer-bg: rgba(253, 251, 253, .98);
+  --color-user-bubble-bg: rgba(243, 232, 242, .96);
   --color-text: #2a1f2c;
   --color-text-strong: #170f19;
-  --color-text-muted: rgba(42, 31, 44, .68);
-  --color-text-faint: rgba(42, 31, 44, .45);
-  --dim: rgba(42, 31, 44, .68);
-  --muted: rgba(42, 31, 44, .5);
-  --faint: rgba(42, 31, 44, .32);
+  --color-text-muted: rgba(42, 31, 44, .82);
+  --color-text-faint: rgba(42, 31, 44, .66);
+  --dim: rgba(42, 31, 44, .82);
+  --muted: rgba(42, 31, 44, .72);
+  --faint: rgba(42, 31, 44, .60);
+  --harness-popup-bg: rgba(253, 251, 253, .99);
+  --harness-popup-border: rgba(42, 31, 44, .18);
+  --harness-popup-shadow: 0 24px 80px rgba(20, 12, 24, .28);
   --color-accent: #c58fb0;
   --blue: #c58fb0;
   --logo: #a8628a;
@@ -37,29 +40,32 @@ html[data-harness-ui="active"][data-color-scheme="system"] {
 }
 
 html[data-harness-ui="active"][data-color-scheme="dark"] {
-  --color-bg: transparent;
-  --bg: transparent;
-  --canvas: transparent;
-  --color-surface: rgba(30, 22, 34, .30);
-  --color-surface-raised: rgba(38, 28, 43, .88);
-  --color-surface-overlay: rgba(38, 28, 43, .95);
-  --color-surface-sunken: rgba(17, 12, 20, .28);
-  --color-surface-deep: rgba(17, 12, 20, .26);
-  --color-sidebar-bg: transparent;
-  --color-sidebar-tint: transparent;
-  --panel: rgba(30, 22, 34, .32);
-  --panel2: rgba(210, 180, 205, .08);
-  --color-well: rgba(17, 12, 20, .26);
-  --color-menu-bg: rgba(28, 20, 32, .96);
-  --color-composer-bg: rgba(34, 25, 38, .90);
-  --color-user-bubble-bg: rgba(48, 34, 52, .86);
+  --color-bg: rgba(18, 13, 21, .78);
+  --bg: rgba(18, 13, 21, .78);
+  --canvas: rgba(18, 13, 21, .78);
+  --color-surface: rgba(30, 22, 34, .90);
+  --color-surface-raised: rgba(38, 28, 43, .985);
+  --color-surface-overlay: rgba(38, 28, 43, .99);
+  --color-surface-sunken: rgba(17, 12, 20, .88);
+  --color-surface-deep: rgba(17, 12, 20, .90);
+  --color-sidebar-bg: rgba(30, 22, 34, .88);
+  --color-sidebar-tint: rgba(38, 28, 43, .94);
+  --panel: rgba(30, 22, 34, .90);
+  --panel2: rgba(48, 34, 52, .74);
+  --color-well: rgba(17, 12, 20, .90);
+  --color-menu-bg: rgba(28, 20, 32, .99);
+  --color-composer-bg: rgba(34, 25, 38, .98);
+  --color-user-bubble-bg: rgba(48, 34, 52, .96);
   --color-text: #f0e6f2;
   --color-text-strong: #fdf8fe;
-  --color-text-muted: rgba(240, 230, 242, .70);
-  --color-text-faint: rgba(240, 230, 242, .46);
-  --dim: rgba(240, 230, 242, .70);
-  --muted: rgba(240, 230, 242, .5);
-  --faint: rgba(240, 230, 242, .32);
+  --color-text-muted: rgba(240, 230, 242, .84);
+  --color-text-faint: rgba(240, 230, 242, .68);
+  --dim: rgba(240, 230, 242, .84);
+  --muted: rgba(240, 230, 242, .74);
+  --faint: rgba(240, 230, 242, .62);
+  --harness-popup-bg: rgba(24, 18, 28, .99);
+  --harness-popup-border: rgba(240, 230, 242, .20);
+  --harness-popup-shadow: 0 24px 80px rgba(0, 0, 0, .52);
   --color-accent: #dda8c4;
   --blue: #dda8c4;
   --logo: #dda8c4;
@@ -73,20 +79,72 @@ html[data-harness-ui="active"][data-color-scheme="dark"] {
 }
 
 html[data-harness-ui="active"],
-html[data-harness-ui="active"] body,
-html[data-harness-ui="active"] #app,
-html[data-harness-ui="active"] .app {
+html[data-harness-ui="active"] body {
+  background-color: transparent !important;
+}
+
+html[data-harness-ui="active"] #app .app-shell {
+  background-color: var(--color-bg) !important;
+}
+
+html[data-harness-ui="active"] #app .app {
   background-color: transparent !important;
 }
 
 html[data-harness-ui="active"] #app :is(input, textarea, select),
-html[data-harness-ui="active"] #app :is([role="dialog"], [role="menu"], [role="listbox"], [role="tooltip"]) {
-  background-color: rgba(253, 251, 253, .86) !important;
+html[data-harness-ui="active"] body :is(input, textarea, select) {
+  background-color: var(--color-surface-raised) !important;
+  color: var(--color-text) !important;
 }
 
-html[data-harness-ui="active"][data-color-scheme="dark"] #app :is(input, textarea, select),
-html[data-harness-ui="active"][data-color-scheme="dark"] #app :is([role="dialog"], [role="menu"], [role="listbox"], [role="tooltip"]) {
-  background-color: rgba(22, 16, 26, .84) !important;
+html[data-harness-ui="active"] #app :is(
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  [role="tooltip"],
+  .model-dropdown,
+  .sa-menu,
+  .ws-panel,
+  .ui-dialog
+),
+html[data-harness-ui="active"] body :is(
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  [role="tooltip"],
+  .model-dropdown,
+  .sa-menu,
+  .ws-panel,
+  .ui-dialog
+) {
+  background-color: var(--harness-popup-bg) !important;
+  color: var(--color-text) !important;
+  border-color: var(--harness-popup-border) !important;
+  box-shadow: var(--harness-popup-shadow) !important;
+  backdrop-filter: blur(24px) saturate(.82) !important;
+}
+
+html[data-harness-ui="active"] body :is(.model-dropdown, .sa-menu, .ws-panel) {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+html[data-harness-ui="active"][data-color-scheme="dark"] :is(#app, body) :is(input, textarea, select) {
+  background-color: var(--color-surface-raised) !important;
+  color: var(--color-text) !important;
+}
+
+html[data-harness-ui="active"][data-color-scheme="dark"] :is(#app, body) :is(
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  [role="tooltip"],
+  .model-dropdown,
+  .sa-menu,
+  .ws-panel,
+  .ui-dialog
+) {
+  background-color: var(--harness-popup-bg) !important;
 }
 
 html[data-harness-ui="active"] #app,
@@ -107,4 +165,30 @@ html[data-harness-ui="active"][data-color-scheme="dark"] #root {
 
 html[data-harness-ui="active"] :is([class*="message"], [class*="bubble"], [class*="composer"], [class*="input"]) {
   backdrop-filter: saturate(1.05);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  html[data-harness-ui="active"],
+  html[data-harness-ui="active"][data-color-scheme="light"],
+  html[data-harness-ui="active"][data-color-scheme="system"] {
+    --color-bg: #faf8fa;
+    --color-sidebar-bg: #faf6fa;
+    --color-surface: #faf6fa;
+    --color-surface-raised: #fdfbfd;
+    --color-surface-overlay: #fdfbfd;
+    --color-menu-bg: #fdfbfd;
+    --color-composer-bg: #fdfbfd;
+    --harness-popup-bg: #fdfbfd;
+  }
+
+  html[data-harness-ui="active"][data-color-scheme="dark"] {
+    --color-bg: #120d15;
+    --color-sidebar-bg: #1e1622;
+    --color-surface: #1e1622;
+    --color-surface-raised: #261c2b;
+    --color-surface-overlay: #261c2b;
+    --color-menu-bg: #1c1420;
+    --color-composer-bg: #221926;
+    --harness-popup-bg: #18121c;
+  }
 }

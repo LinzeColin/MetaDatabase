@@ -145,3 +145,22 @@ test("renderer reload reinstalls CSS before reapplying the cached skin", () => {
   const source = fs.readFileSync(path.join(__dirname, "../src/main.cjs"), "utf8");
   assert.match(source, /did-finish-load[\s\S]+insertCSS\(harnessCss\)[\s\S]+harnessBridge\.reapply\(window\)/);
 });
+
+test("keeps themed application surfaces readable over background artwork", () => {
+  const css = fs.readFileSync(path.join(__dirname, "../src/harness.css"), "utf8");
+  assert.doesNotMatch(css, /--color-bg:\s*transparent/);
+  assert.doesNotMatch(css, /--color-sidebar-bg:\s*transparent/);
+  assert.match(css, /#app \.app-shell\s*\{[\s\S]*?background-color:\s*var\(--color-bg\)\s*!important/);
+  assert.match(css, /--color-bg:\s*rgba\(250, 248, 250, \.76\)/);
+  assert.match(css, /--color-bg:\s*rgba\(18, 13, 21, \.78\)/);
+});
+
+test("gives model and workspace popups an independent high-contrast surface", () => {
+  const css = fs.readFileSync(path.join(__dirname, "../src/harness.css"), "utf8");
+  assert.match(css, /\[role="dialog"\][\s\S]*?\[role="menu"\][\s\S]*?\.model-dropdown[\s\S]*?\.sa-menu[\s\S]*?\.ws-panel[\s\S]*?\.ui-dialog/);
+  assert.match(css, /background-color:\s*var\(--harness-popup-bg\)\s*!important/);
+  assert.match(css, /:is\(\.model-dropdown, \.sa-menu, \.ws-panel\)[\s\S]*?opacity:\s*1\s*!important/);
+  assert.match(css, /--harness-popup-bg:\s*rgba\(253, 251, 253, \.99\)/);
+  assert.match(css, /--harness-popup-bg:\s*rgba\(24, 18, 28, \.99\)/);
+  assert.match(css, /\[data-color-scheme="dark"\] :is\(#app, body\) :is\([\s\S]*?\[role="dialog"\][\s\S]*?background-color:\s*var\(--harness-popup-bg\)\s*!important/);
+});
