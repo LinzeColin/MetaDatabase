@@ -1,19 +1,19 @@
 html[data-harness-ui="active"],
 html[data-harness-ui="active"][data-color-scheme="light"],
 html[data-harness-ui="active"][data-color-scheme="system"] {
-  --color-bg: rgba(250, 248, 250, .76);
-  --bg: rgba(250, 248, 250, .76);
-  --canvas: rgba(250, 248, 250, .76);
-  --color-surface: rgba(250, 246, 250, .90);
+  --color-bg: rgba(250, 248, 250, .90);
+  --bg: rgba(250, 248, 250, .90);
+  --canvas: rgba(250, 248, 250, .90);
+  --color-surface: rgba(250, 246, 250, .96);
   --color-surface-raised: rgba(253, 251, 253, .985);
   --color-surface-overlay: rgba(253, 251, 253, .99);
-  --color-surface-sunken: rgba(238, 230, 240, .84);
-  --color-surface-deep: rgba(238, 230, 240, .88);
-  --color-sidebar-bg: rgba(250, 246, 250, .86);
-  --color-sidebar-tint: rgba(253, 251, 253, .94);
-  --panel: rgba(250, 246, 250, .90);
-  --panel2: rgba(238, 230, 240, .72);
-  --color-well: rgba(238, 230, 240, .90);
+  --color-surface-sunken: rgba(238, 230, 240, .92);
+  --color-surface-deep: rgba(238, 230, 240, .94);
+  --color-sidebar-bg: rgba(250, 246, 250, .94);
+  --color-sidebar-tint: rgba(253, 251, 253, .97);
+  --panel: rgba(250, 246, 250, .96);
+  --panel2: rgba(238, 230, 240, .90);
+  --color-well: rgba(238, 230, 240, .96);
   --color-menu-bg: rgba(253, 251, 253, .99);
   --color-composer-bg: rgba(253, 251, 253, .98);
   --color-user-bubble-bg: rgba(243, 232, 242, .96);
@@ -25,6 +25,8 @@ html[data-harness-ui="active"][data-color-scheme="system"] {
   --muted: rgba(42, 31, 44, .72);
   --faint: rgba(42, 31, 44, .60);
   --harness-popup-bg: rgba(253, 251, 253, .99);
+  --harness-main-wash: rgba(250, 248, 250, .34);
+  --harness-reading-bg: rgba(253, 251, 253, .92);
   --harness-popup-border: rgba(42, 31, 44, .18);
   --harness-popup-shadow: 0 24px 80px rgba(20, 12, 24, .28);
   --color-accent: #c58fb0;
@@ -40,19 +42,19 @@ html[data-harness-ui="active"][data-color-scheme="system"] {
 }
 
 html[data-harness-ui="active"][data-color-scheme="dark"] {
-  --color-bg: rgba(18, 13, 21, .78);
-  --bg: rgba(18, 13, 21, .78);
-  --canvas: rgba(18, 13, 21, .78);
-  --color-surface: rgba(30, 22, 34, .90);
+  --color-bg: rgba(18, 13, 21, .90);
+  --bg: rgba(18, 13, 21, .90);
+  --canvas: rgba(18, 13, 21, .90);
+  --color-surface: rgba(30, 22, 34, .96);
   --color-surface-raised: rgba(38, 28, 43, .985);
   --color-surface-overlay: rgba(38, 28, 43, .99);
-  --color-surface-sunken: rgba(17, 12, 20, .88);
-  --color-surface-deep: rgba(17, 12, 20, .90);
-  --color-sidebar-bg: rgba(30, 22, 34, .88);
-  --color-sidebar-tint: rgba(38, 28, 43, .94);
-  --panel: rgba(30, 22, 34, .90);
-  --panel2: rgba(48, 34, 52, .74);
-  --color-well: rgba(17, 12, 20, .90);
+  --color-surface-sunken: rgba(17, 12, 20, .94);
+  --color-surface-deep: rgba(17, 12, 20, .96);
+  --color-sidebar-bg: rgba(30, 22, 34, .94);
+  --color-sidebar-tint: rgba(38, 28, 43, .97);
+  --panel: rgba(30, 22, 34, .96);
+  --panel2: rgba(48, 34, 52, .90);
+  --color-well: rgba(17, 12, 20, .96);
   --color-menu-bg: rgba(28, 20, 32, .99);
   --color-composer-bg: rgba(34, 25, 38, .98);
   --color-user-bubble-bg: rgba(48, 34, 52, .96);
@@ -64,6 +66,8 @@ html[data-harness-ui="active"][data-color-scheme="dark"] {
   --muted: rgba(240, 230, 242, .74);
   --faint: rgba(240, 230, 242, .62);
   --harness-popup-bg: rgba(24, 18, 28, .99);
+  --harness-main-wash: rgba(18, 13, 21, .42);
+  --harness-reading-bg: rgba(24, 18, 28, .92);
   --harness-popup-border: rgba(240, 230, 242, .20);
   --harness-popup-shadow: 0 24px 80px rgba(0, 0, 0, .52);
   --color-accent: #dda8c4;
@@ -84,17 +88,33 @@ html[data-harness-ui="active"] body {
 }
 
 html[data-harness-ui="active"] #app .app-shell {
-  background-color: var(--color-bg) !important;
+  background-color: transparent !important;
 }
 
 html[data-harness-ui="active"] #app .app {
   background-color: transparent !important;
 }
 
+html[data-harness-ui="active"] #app .main {
+  background-color: var(--harness-main-wash) !important;
+}
+
+html[data-harness-ui="active"] #app .content-wrap {
+  background-color: var(--harness-reading-bg) !important;
+  box-shadow: 0 0 28px color-mix(in srgb, var(--harness-reading-bg) 72%, transparent) !important;
+}
+
 html[data-harness-ui="active"] #app :is(input, textarea, select),
 html[data-harness-ui="active"] body :is(input, textarea, select) {
   background-color: var(--color-surface-raised) !important;
   color: var(--color-text) !important;
+  -webkit-text-fill-color: var(--color-text) !important;
+  opacity: 1 !important;
+}
+
+html[data-harness-ui="active"] body .ui-dialog__overlay {
+  background-color: rgba(30, 20, 32, .58) !important;
+  backdrop-filter: blur(4px) saturate(.8) !important;
 }
 
 html[data-harness-ui="active"] #app :is(
@@ -129,6 +149,12 @@ html[data-harness-ui="active"] body :is(.model-dropdown, .sa-menu, .ws-panel) {
   transform: none !important;
 }
 
+html[data-harness-ui="active"] body :is(.ui-dialog, .ws-panel, .composer-card) {
+  background-color: var(--harness-popup-bg) !important;
+  color: var(--color-text) !important;
+  opacity: 1 !important;
+}
+
 html[data-harness-ui="active"][data-color-scheme="dark"] :is(#app, body) :is(input, textarea, select) {
   background-color: var(--color-surface-raised) !important;
   color: var(--color-text) !important;
@@ -145,6 +171,10 @@ html[data-harness-ui="active"][data-color-scheme="dark"] :is(#app, body) :is(
   .ui-dialog
 ) {
   background-color: var(--harness-popup-bg) !important;
+}
+
+html[data-harness-ui="active"][data-color-scheme="dark"] body .ui-dialog__overlay {
+  background-color: rgba(0, 0, 0, .66) !important;
 }
 
 html[data-harness-ui="active"] #app,
