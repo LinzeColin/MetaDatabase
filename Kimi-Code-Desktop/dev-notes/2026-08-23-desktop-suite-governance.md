@@ -12,6 +12,8 @@ Kimi 只消费 Harness UI 提供的 catalog、state 和 POST /api/next。它不�
 
 Kimi 源码、Harness UI 和 DSH 桥接由仓根 desktop-suite/COMPATIBILITY_CONTRACT.json 关联。正式发布通过 desktop-app-suite-release workflow 从同一个 GITHUB_SHA 生成三端资产；本机构建用于开发，GitHub main 是跨电脑共享真源。
 
+GitHub 仓库级 Actions Workflow permissions 保持 `Read and write permissions`，让 Kimi 的发布 job 取得其声明的最小 `contents: write` 权限，从而更新同版本正式 Release 的 tag 与资产。
+
 ## 私有运行边界
 
 用户的模型配置、账号、会话、API key、SMB 凭据、图标和已安装 App 都保留在本机目录。更新只替换应用 Bundle 与稳定 CLI 本体，外置个性化数据保持原位。
