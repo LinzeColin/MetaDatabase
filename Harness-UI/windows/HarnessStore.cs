@@ -83,20 +83,16 @@ internal sealed class HarnessStore
             state = Normalize(state, catalog);
             if (state.Mode != "rotate") return Copy(state);
             if (!force && timestamp - state.LastRotate < state.IntervalMs) return Copy(state);
+            return AdvanceLocked(timestamp);
+        }
+    }
 
-            if (state.Cycle.Length == 0 || state.Cursor >= state.Cycle.Length)
-            {
-                var hidden = state.Hidden.ToHashSet(StringComparer.Ordinal);
-                state.Cycle = catalog.Entries.Select(entry => entry.Id).Where(id => !hidden.Contains(id)).ToArray();
-                Random.Shared.Shuffle(state.Cycle);
-                state.Cursor = 0;
-            }
-            if (state.Cursor >= state.Cycle.Length) return Copy(state);
-            state.Selected = state.Cycle[state.Cursor++];
-            state.LastRotate = timestamp;
-            state.Updated = timestamp;
-            Write(StateFile, state);
-            return Copy(state);
+    internal HarnessState Next(long? now = null)
+    {
+        lock (gate)
+        {
+            state = Normalize(state, catalog);
+            return AdvanceLocked(now ?? DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
         }
     }
 
@@ -129,6 +125,36 @@ internal sealed class HarnessStore
             Cursor = Math.Clamp(input.Cursor, 0, cycle.Length),
             CatalogGenerated = string.IsNullOrEmpty(currentCatalog.Generated) ? input.CatalogGenerated : currentCatalog.Generated,
         };
+    }
+
+    private HarnessState AdvanceLocked(long timestamp)
+    {
+        var hidden = state.Hidden.ToHashSet(StringComparer.Ordinal);
+        var visible = catalog.Entries.Select(entry => entry.Id).Where(id => !hidden.Contains(id)).ToArray();
+        if (visible.Length == 0) return Copy(state);
+
+        for (var pass = 0; pass < 2; pass++)
+        {
+            if (state.Cycle.Length == 0 || state.Cursor >= state.Cycle.Length)
+            {
+                state.Cycle = [.. visible];
+                Random.Shared.Shuffle(state.Cycle);
+                state.Cursor = 0;
+                if (state.Cycle.Length > 1 && state.Cycle[0] == state.Selected)
+                    state.Cycle = [.. state.Cycle[1..], state.Cycle[0]];
+            }
+            while (state.Cursor < state.Cycle.Length)
+            {
+                var selected = state.Cycle[state.Cursor++];
+                if (visible.Length > 1 && selected == state.Selected) continue;
+                state.Selected = selected;
+                state.LastRotate = timestamp;
+                state.Updated = timestamp;
+                Write(StateFile, state);
+                return Copy(state);
+            }
+        }
+        return Copy(state);
     }
 
     private T? Read<T>(string file)

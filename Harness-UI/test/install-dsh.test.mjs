@@ -49,5 +49,16 @@ test("replaces an existing linked profile module without following it", () => {
   assert.equal(result.status, 0, result.stderr);
   assert.ok(fs.lstatSync(moduleRoot).isDirectory());
   assert.ok(fs.existsSync(path.join(moduleRoot, "lib", "client.js")));
+  const client = fs.readFileSync(path.join(moduleRoot, "lib", "client.js"), "utf8");
+  assert.match(client, /\/api\/next/);
+  assert.match(client, /event\.metaKey \|\| event\.ctrlKey/);
+  assert.match(client, /event\.shiftKey/);
   fs.rmSync(root, { recursive: true, force: true });
+});
+
+test("stores macOS app rollbacks with a non-app suffix", () => {
+  const dshInstaller = fs.readFileSync(path.join(projectRoot, "dsh-desktop", "install-dsh-update.py"), "utf8");
+  const harnessInstaller = fs.readFileSync(path.join(projectRoot, "scripts", "install-release-macos.sh"), "utf8");
+  assert.match(dshInstaller, /f"\{TARGET\.name\}\.rollback"/);
+  assert.match(harnessInstaller, /Harness UI\.app\.rollback/);
 });

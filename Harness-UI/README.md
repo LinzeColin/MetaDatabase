@@ -37,6 +37,7 @@ Runtime 只读取 `skins/`。`refs/`、`_产线`、PDF、AppleDouble 文件及�
 - `GET /catalog.json`：本机索引；
 - `GET /state.json`：当前选择与轮播状态；
 - `POST /api/state`：更新允许的状态字段；
+- `POST /api/next`：原子推进到下一张可见皮肤，保留当前单张/轮播模式；
 - `GET /assets/...`：按需读取一张 SMB 图片。
 
 两台电脑各自维护配置和状态；NAS 只提供只读图片。控制器支持“同步素材”手动刷新，并每 15 分钟轻量刷新目录索引。刷新采用完整性门：SMB 临时断开或只看见部分目录时继续使用上一版目录；本地镜像完整时可直接降级读取，避免 Kimi/DSH 因瞬时网络或 macOS Network Volumes 权限变化变成空素材库。
@@ -96,6 +97,7 @@ bash scripts/install-release-macos.sh
 
 脚本不会启动或重启 Harness、Kimi 或 DSH。发布边界见
 [docs/RELEASE.md](docs/RELEASE.md)。macOS 菜单栏与 Windows 托盘菜单都有“检查并下载更新…”入口。
+Kimi Code、DSH 与 Harness UI 均使用 `Cmd/Ctrl+Shift+N` 切换下一张；任一端切换后，另外两端在约 1 秒内读取同一共享状态。
 
 Kimi Code Desktop 的适配已内置，无需再装插件。DSH 适配器从 Release 解压后执行：
 

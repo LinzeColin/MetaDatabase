@@ -127,7 +127,7 @@ def install(pid: int, artifact: pathlib.Path, version: str) -> pathlib.Path:
         )
         run("/usr/bin/codesign", "--verify", "--deep", "--strict", str(staged))
 
-        rollback = UPDATES / "rollback" / f"{version}-{int(time.time())}" / TARGET.name
+        rollback = UPDATES / "rollback" / f"{version}-{int(time.time())}" / f"{TARGET.name}.rollback"
         rollback.parent.mkdir(parents=True, exist_ok=True)
         if TARGET.exists():
             TARGET.replace(rollback)

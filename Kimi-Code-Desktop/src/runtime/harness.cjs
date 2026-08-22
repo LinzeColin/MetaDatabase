@@ -67,7 +67,7 @@ function catalogNeedsRefresh(nextState, currentCatalog) {
 }
 
 class HarnessBridge {
-  constructor({ baseUrl = process.env.HARNESS_UI_URL, intervalMs = 15000, onChange = null } = {}) {
+  constructor({ baseUrl = process.env.HARNESS_UI_URL, intervalMs = 1000, onChange = null } = {}) {
     this.baseUrl = assertLoopbackBase(baseUrl);
     this.intervalMs = intervalMs;
     this.onChange = onChange;
@@ -118,6 +118,12 @@ class HarnessBridge {
 
   async patch(values) {
     const state = await postJson(`${this.baseUrl}/api/state`, values);
+    const forceCatalog = Boolean(state.catalogGenerated) && state.catalogGenerated !== this.catalog?.generated;
+    return this.refresh({ forceCatalog, suppliedState: state });
+  }
+
+  async next() {
+    const state = await postJson(`${this.baseUrl}/api/next`, {});
     const forceCatalog = Boolean(state.catalogGenerated) && state.catalogGenerated !== this.catalog?.generated;
     return this.refresh({ forceCatalog, suppliedState: state });
   }

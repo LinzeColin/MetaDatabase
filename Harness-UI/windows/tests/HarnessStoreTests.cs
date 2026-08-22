@@ -38,6 +38,22 @@ public sealed class HarnessStoreTests : IDisposable
     }
 
     [Fact]
+    public void NextAdvancesWithoutChangingGalleryMode()
+    {
+        var store = new HarnessStore(root, HarnessJson.Options);
+        var entries = Enumerable.Range(1, 3).Select(index =>
+            new CatalogEntry(index.ToString(), "genshin", "原神", index.ToString(), "default", index.ToString(), "默认", index.ToString(), index.ToString(), "light", "dark")).ToArray();
+        store.Install(new CatalogBuild(new Catalog(1, "smb", "now", 3, entries), new Dictionary<string, string>()));
+        store.Patch(new StatePatch { HasMode = true, Mode = "gallery", HasSelected = true, Selected = "1" }, 1);
+
+        var state = store.Next(42);
+
+        Assert.Equal("gallery", state.Mode);
+        Assert.NotEqual("1", state.Selected);
+        Assert.Equal(42, state.LastRotate);
+    }
+
+    [Fact]
     public void KeepsPreviousCatalogWhenAGamePartitionDisappears()
     {
         var store = new HarnessStore(root, HarnessJson.Options);

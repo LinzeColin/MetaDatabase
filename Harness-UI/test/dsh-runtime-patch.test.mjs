@@ -131,3 +131,29 @@ print(json.dumps({"source": catalog["source"], "count": catalog["count"]}))
   assert.deepEqual(JSON.parse(result.stdout), { source: "local-fallback", count: 5 });
   fs.rmSync(root, { recursive: true, force: true });
 });
+
+test("advances shared state atomically without enabling rotation", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "harness-service-next-"));
+  const probe = String.raw`
+import importlib.util, json, pathlib, sys
+spec = importlib.util.spec_from_file_location("harness_service", sys.argv[1])
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+data = pathlib.Path(sys.argv[2])
+data.mkdir(parents=True, exist_ok=True)
+catalog = {"version": 1, "source": "local", "generated": "now", "count": 3, "entries": [{"id": value} for value in ["one", "two", "three"]]}
+state = {"mode": "gallery", "selected": "one", "cycle": ["one", "two", "three"], "cursor": 0}
+module.atomic_json(data / "catalog.json", catalog)
+module.atomic_json(data / "state.json", state)
+store = module.HarnessStore(data, data / "smb", data / "fallback", "http://127.0.0.1:3099")
+print(json.dumps(store.next_state(42)))
+`;
+  const result = spawnSync("/usr/bin/python3", ["-c", probe, service, root], { encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  const state = JSON.parse(result.stdout);
+  assert.equal(state.mode, "gallery");
+  assert.equal(state.selected, "two");
+  assert.equal(state.cursor, 2);
+  assert.equal(state.lastRotate, 42);
+  fs.rmSync(root, { recursive: true, force: true });
+});

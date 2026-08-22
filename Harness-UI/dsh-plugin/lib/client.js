@@ -4,7 +4,7 @@ window.__ModuleLoader__.load({
     const module = { exports: {} };
     const inject = [];
     const BASE = "http://127.0.0.1:3099";
-    const SYNC_MS = 15000;
+    const SYNC_MS = 1000;
 
     function styleSheet() {
       const element = document.createElement("style");
@@ -145,6 +145,14 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,select,[role=di
         } catch (error) { status.textContent = `保存失败：${error.message}`; }
       }
 
+      async function next() {
+        try {
+          state = await json("/api/next", { method: "POST" });
+          syncSeen = state.updated || 0;
+          render();
+        } catch (error) { status.textContent = `切换失败：${error.message}`; }
+      }
+
       async function sync() {
         try {
           const shared = await json("/state.json");
@@ -164,7 +172,7 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,select,[role=di
       game.addEventListener("change", renderList);
       search.addEventListener("input", renderList);
       mode.addEventListener("click", () => update({ mode: state.mode === "rotate" ? "gallery" : "rotate" }));
-      panel.querySelector('[data-hu="next"]').addEventListener("click", () => update({ mode: "rotate" }));
+      panel.querySelector('[data-hu="next"]').addEventListener("click", next);
       panel.querySelector('[data-hu="refresh"]').addEventListener("click", async () => {
         try {
           await json("/api/catalog/refresh", { method: "POST" });
@@ -184,10 +192,18 @@ body[data-dsh-harness-ui][data-ds-dark-theme] :is(input,textarea,select,[role=di
 
       const observer = new MutationObserver(() => show(byId(state.selected)));
       observer.observe(document.body, { attributes: true, attributeFilter: ["data-ds-dark-theme"] });
+      const shortcut = (event) => {
+        if (event.repeat || event.altKey || !(event.metaKey || event.ctrlKey) || !event.shiftKey || event.key.toLocaleLowerCase() !== "n") return;
+        event.preventDefault();
+        event.stopPropagation();
+        next();
+      };
+      document.addEventListener("keydown", shortcut, true);
 
       return () => {
         if (syncTimer) clearInterval(syncTimer);
         observer.disconnect();
+        document.removeEventListener("keydown", shortcut, true);
         toggle.remove();
         panel.remove();
         document.getElementById("harness-ui-dsh-style")?.remove();

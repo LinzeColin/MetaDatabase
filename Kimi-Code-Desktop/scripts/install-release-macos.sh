@@ -58,7 +58,7 @@ DESTINATION_PARENT="$(dirname "$DESTINATION")"
 mkdir -p "$DESTINATION_PARENT"
 STAGE_ROOT="$(mktemp -d "$DESTINATION_PARENT/.kimi-code-release-update.XXXXXX")"
 STAGED_APP="$STAGE_ROOT/Kimi Code.app"
-ROLLBACK="${HOME}/.kimi-code/desktop-updates/rollback/${VERSION}-$(date +%s)/Kimi Code.app"
+ROLLBACK="${HOME}/.kimi-code/desktop-updates/rollback/${VERSION}-$(date +%s)/Kimi Code.app.rollback"
 ditto "$SOURCE_APP" "$STAGED_APP"
 if [ -e "$DESTINATION" ]; then
   mkdir -p "$(dirname "$ROLLBACK")"

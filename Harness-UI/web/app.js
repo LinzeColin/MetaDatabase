@@ -4,7 +4,7 @@ let side = "light";
 let syncSeen = -1;
 let syncTimer = null;
 
-const elements = Object.fromEntries(["count", "current", "game", "list", "mode", "preview", "refresh", "search", "side", "status"]
+const elements = Object.fromEntries(["count", "current", "game", "list", "mode", "next", "preview", "refresh", "search", "side", "status"]
   .map((id) => [id, document.getElementById(id)]));
 
 async function json(url, options) {
@@ -69,13 +69,21 @@ async function update(patch) {
   } catch (error) { elements.status.textContent = `保存失败：${error.message}`; }
 }
 
+async function next() {
+  try {
+    state = await json("/api/next", { method: "POST" });
+    syncSeen = state.updated || 0;
+    render();
+  } catch (error) { elements.status.textContent = `切换失败：${error.message}`; }
+}
+
 async function load() {
   try {
     [catalog, state] = await Promise.all([json("/catalog.json"), json("/state.json")]);
     renderGames();
     syncSeen = state.updated || 0;
     render();
-    syncTimer = setInterval(sync, 15000);
+    syncTimer = setInterval(sync, 1000);
   } catch (error) { elements.status.textContent = `加载失败：${error.message}`; }
 }
 
@@ -123,6 +131,12 @@ elements.search.addEventListener("input", renderList);
 elements.game.addEventListener("change", renderList);
 elements.side.addEventListener("click", () => { side = side === "light" ? "dark" : "light"; renderPreview(); });
 elements.mode.addEventListener("click", () => update({ mode: state.mode === "rotate" ? "gallery" : "rotate" }));
+elements.next.addEventListener("click", next);
 elements.refresh.addEventListener("click", refreshCatalog);
+document.addEventListener("keydown", (event) => {
+  if (event.repeat || event.altKey || !(event.metaKey || event.ctrlKey) || !event.shiftKey || event.key.toLocaleLowerCase() !== "n") return;
+  event.preventDefault();
+  next();
+});
 window.addEventListener("pagehide", () => { if (syncTimer) clearInterval(syncTimer); });
 load();

@@ -91,6 +91,7 @@ internal sealed class RuntimeServer : IAsyncDisposable
             requestCatalogRefresh();
             return Results.Json(new { status = "accepted" }, HarnessJson.Options, statusCode: StatusCodes.Status202Accepted);
         });
+        app.MapPost("/api/next", () => Results.Json(store.Next(), HarnessJson.Options));
         app.MapPost("/api/state", async (HttpRequest request) =>
         {
             try

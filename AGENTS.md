@@ -311,3 +311,21 @@ Owner 授权后由 agent 在服务器侧签发 id `12` / `abd-deploy-20260813`�
 **为什么**：排查 Kimi SMB 卡顿时，一次进程列表把 localhost bearer token 连同 curl 参数输出到了诊断记录。虽然服务只监听 loopback，记录本身仍扩大了凭据暴露面；现场已用 `kimi web rotate-token` 在线轮换，无需重启 GUI。
 
 **代价**：后续 API 探针统一由短生命周期 Node 进程读取 `server.token` 并发送，日志只保留状态码、耗时与结果形状，不输出 header 或 token。
+
+**结论**：Kimi、DSH、Harness UI 的“下一张”必须是共享服务端的原子动作，不得再把 `mode=rotate` 同时当成模式更新与单次推进。三端统一调用 `POST /api/next`、统一 `Cmd/Ctrl+Shift+N`，客户端只轮询同一 catalog/state。
+
+**为什么**：旧实现里 Electron、Swift、Windows 各自把 `mode=rotate` 解释成推进，而 Python 服务只保存 mode；结果是按钮看似成功但 selected/cursor 不动，且三个宿主可能各自显示不同状态。服务端原子推进后，旧客户端兼容入口也能在线恢复。
+
+**代价**：每次共享状态协议变化必须同时跑 Node、macOS、Windows 候选；活动中的旧 Kimi 可通过服务兼容层恢复按钮，但代码级快捷键仍要等自然退出后加载新包。
+
+**结论**：macOS 回滚副本绝不能继续以 `.app` 结尾；更新器必须持久化正式安装位置，回滚目录使用 `.app.rollback`，并在备份未运行时隔离历史 `.app`。从 rollback 副本误启动时，更新目标仍必须回到正式 App。
+
+**为什么**：隐藏目录中的完整 `.app` 仍会被 LaunchServices、Siri 或界面自动化注册成同 bundle id 的另一个应用；按名称启动时可能命中备份，造成前台路径、TCC 责任和后续更新目标漂移。
+
+**代价**：旧回滚副本不能在活动进程期间改名；先保护当前线程，等新包从正式路径启动后再自动隔离。回滚仍可通过目录改名原子恢复，不牺牲恢复能力。
+
+**结论**：对用户明确要求“不重启”的活动桌面 App，Computer Use 的 `get_app_state(app=...)` 也不算只读安全操作；它可能通过 `coreservices.uiagent` 发起 LaunchServices 启动或重试。此时只允许用 `ps`、`lsof`、loopback 状态与系统日志取证。
+
+**为什么**：本轮用界面读取做皮肤目视验收时，系统日志明确记录 uiagent 连续发起 Kimi 启动请求；由于同 bundle id 的 rollback `.app` 已注册，最终切到了备份路径。没有崩溃报告，异常由观测动作和重复 App 身份共同造成。
+
+**代价**：活动 Kimi 的本轮验收降级为服务状态与跨端状态证据；完整快捷键目视验收留到 Owner 自然退出后的正式包激活，不能为了“验收完成”再次触碰进程。

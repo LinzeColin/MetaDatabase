@@ -48,19 +48,39 @@ export function shuffledCycle(catalog, hidden = [], random = Math.random) {
   return ids;
 }
 
+function advanceState(raw, catalog, now, random) {
+  const state = normalizeState(raw, catalog);
+  const visibleCount = (catalog.entries || []).filter((entry) => !state.hidden.includes(entry.id)).length;
+  if (!visibleCount) return state;
+
+  for (let pass = 0; pass < 2; pass += 1) {
+    if (!state.cycle.length || state.cursor >= state.cycle.length) {
+      state.cycle = shuffledCycle(catalog, state.hidden, random);
+      state.cursor = 0;
+      if (visibleCount > 1 && state.cycle[0] === state.selected) {
+        state.cycle.push(state.cycle.shift());
+      }
+    }
+    while (state.cursor < state.cycle.length) {
+      const selected = state.cycle[state.cursor];
+      state.cursor += 1;
+      if (visibleCount > 1 && selected === state.selected) continue;
+      state.selected = selected;
+      state.lastRotate = now;
+      state.updated = now;
+      return state;
+    }
+  }
+  return state;
+}
+
+export function nextState(raw, catalog, now = Date.now(), random = Math.random) {
+  return advanceState(raw, catalog, now, random);
+}
+
 export function rotateState(raw, catalog, now = Date.now(), random = Math.random, force = false) {
   const state = normalizeState(raw, catalog);
   if (state.mode !== "rotate") return state;
   if (!force && now - state.lastRotate < state.intervalMs) return state;
-  if (!state.cycle.length || state.cursor >= state.cycle.length) {
-    state.cycle = shuffledCycle(catalog, state.hidden, random);
-    state.cursor = 0;
-  }
-  const selected = state.cycle[state.cursor] || null;
-  if (!selected) return state;
-  state.selected = selected;
-  state.cursor += 1;
-  state.lastRotate = now;
-  state.updated = now;
-  return state;
+  return advanceState(state, catalog, now, random);
 }
