@@ -18,6 +18,9 @@ test("macOS opens the complete library in an in-app WebKit window", () => {
   assert.match(gallery, /WKWebView/);
   assert.match(gallery, /makeKeyAndOrderFront/);
   assert.match(gallery, /override func performKeyEquivalent/);
+  assert.match(gallery, /WKNavigationDelegate/);
+  assert.match(gallery, /scheduleLibraryRetry/);
+  assert.match(gallery, /didFailProvisionalNavigation/);
   assert.match(gallery, /case "r":/);
   assert.match(gallery, /case "w":/);
   assert.match(gallery, /case "q":/);
@@ -57,12 +60,14 @@ test("the in-app gallery refreshes SMB status even when skin state is unchanged"
   assert.match(source, /refreshStatus = latestRefreshStatus/);
 });
 
-test("the macOS app and installer wait for the configured shared service", () => {
+test("the macOS app keeps the configured LaunchAgent as the shared service owner", () => {
   const delegate = fs.readFileSync(path.join(projectRoot, "macos/Sources/HarnessUIApp/AppDelegate.swift"), "utf8");
   const installer = fs.readFileSync(path.join(projectRoot, "service/install-macos.sh"), "utf8");
   assert.match(delegate, /sharedServiceLaunchAgent/);
-  assert.match(delegate, /attempts = configured \? 12 : 1/);
-  assert.match(delegate, /Thread\.sleep\(forTimeInterval: 0\.5\)/);
+  assert.match(delegate, /if sharedServiceConfigured\(\)/);
+  assert.match(delegate, /waitForSharedService\(\)/);
+  assert.match(delegate, /scheduleSharedServiceRetry\(\)/);
+  assert.doesNotMatch(delegate, /Thread\.sleep/);
   assert.match(installer, /http:\/\/127\.0\.0\.1:3099\/state\.json/);
   assert.match(installer, /harness_service_ready/);
   assert.match(installer, /launchctl enable "gui\/\$uid\/com\.harnessui\.smb"/);

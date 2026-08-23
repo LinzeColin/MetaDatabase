@@ -17,6 +17,8 @@
 - macOS GUI 通过临时 launchd job 启动稳定路径中的官方 CLI，使后台 TCC 身份不再继承 ad-hoc Electron 壳；`Cmd+W`/关闭窗口仅关闭窗口，`Cmd+Q` 移除该 job 并正常结束 GUI、后台和定时器。该 job 不是登录启动项。
 - 内置皮肤菜单读取 HarnessUI 唯一 `catalog/state`；catalog generation 变化时自动刷新素材并重建菜单。
 - “换下一张”改为共享服务原子动作 `POST /api/next`，快捷键恢复为 `Cmd/Ctrl+Shift+N`；轮询周期从 15 秒收敛到约 1 秒，与 DSH、Harness UI 使用同一状态。
+- Kimi 皮肤桥由应用生命周期持有串行恢复循环；电脑重启后即使 Kimi 先于 Harness UI/3099 服务启动，也会在服务就绪后自动读取当前 catalog/state 并恢复皮肤。
+- 3099 服务健康与 renderer 皮肤呈现分别记录；页面加载期间的短暂注入失败只进入下一轮自动校正，不再把服务误报为离线。
 - 更新只替换 App Bundle 与稳定路径中的官方 CLI 本体；`~/.kimi-code` 其余内容、`~/.harness-ui`、登录、会话、配置、素材和外置图标不进入安装包。
 - 旧桌面版存在 `Application Support/kimi-shell` 时继续使用该 Electron profile；只有 fresh install 才创建 `Application Support/Kimi Code`。这保证旧账号界面、窗口与站点状态不会在升级时被分裂成第二套。
 - 更新器会把正式安装位置写入 `desktop-updates/install-location.json`。即使 App 误从 rollback 副本启动，安装目标也回到正式 App；新回滚目录使用 `.app.rollback` 后缀，旧 `.app` 回滚副本在不运行时自动隔离，避免 LaunchServices 把备份注册成第二个 Kimi。

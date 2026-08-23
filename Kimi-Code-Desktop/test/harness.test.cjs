@@ -5,6 +5,10 @@ const path = require("node:path");
 const test = require("node:test");
 const { assetWithRevision, assertLoopbackBase, catalogNeedsRefresh, selectHarnessEntry } = require("../src/runtime/harness.cjs");
 
+function sleep(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
 test("only accepts a loopback Harness UI endpoint", () => {
   assert.equal(assertLoopbackBase("http://127.0.0.1:3099/path"), "http://127.0.0.1:3099");
   assert.throws(() => assertLoopbackBase("https://example.com"), /loopback/);
@@ -39,9 +43,55 @@ test("stops polling and releases its window reference", () => {
   bridge.refresh = async () => {};
   bridge.attach({ isDestroyed: () => false });
   assert.ok(bridge.timer);
+  assert.equal(bridge.timer.hasRef(), true);
   bridge.stop();
   assert.equal(bridge.timer, null);
   assert.equal(bridge.window, null);
+});
+
+test("recovers when the shared skin service becomes ready after Kimi starts", async () => {
+  let ready = false;
+  const scripts = [];
+  const server = http.createServer((incoming, response) => {
+    if (!ready) {
+      incoming.socket.destroy();
+      return;
+    }
+    response.setHeader("Content-Type", "application/json");
+    if (incoming.url === "/state.json") {
+      response.end('{"selected":"one","updated":42,"catalogGenerated":"late"}');
+      return;
+    }
+    if (incoming.url === "/catalog.json") {
+      response.end('{"generated":"late","count":1,"entries":[{"id":"one","light":"/light","dark":"/dark"}]}');
+      return;
+    }
+    response.statusCode = 404;
+    response.end("{}");
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const { port } = server.address();
+  const { HarnessBridge } = require("../src/runtime/harness.cjs");
+  const bridge = new HarnessBridge({ baseUrl: `http://127.0.0.1:${port}`, intervalMs: 20 });
+  bridge.attach({
+    isDestroyed: () => false,
+    webContents: {
+      executeJavaScript: async (source) => { scripts.push(source); return true; },
+    },
+  });
+  try {
+    await sleep(40);
+    assert.equal(bridge.online, false);
+    ready = true;
+    const deadline = Date.now() + 2000;
+    while (scripts.length === 0 && Date.now() < deadline) await sleep(20);
+    assert.equal(bridge.online, true);
+    assert.equal(bridge.state.selected, "one");
+    assert.equal(scripts.length, 1);
+  } finally {
+    bridge.stop();
+    await new Promise((resolve) => server.close(resolve));
+  }
 });
 
 test("uses the shared atomic next endpoint", async () => {
@@ -137,10 +187,37 @@ test("reapplies the same skin after the renderer document reloads", async () => 
   await bridge.applyCurrent();
   bridge.state.updated = 43;
   await bridge.applyCurrent();
-  assert.equal(scripts.length, 1);
+  assert.equal(scripts.length, 3);
   assert.equal(await bridge.reapply(window), true);
-  assert.equal(scripts.length, 2);
-  assert.match(scripts[1], /dataset\.harnessUi = "active"/);
+  assert.equal(scripts.length, 4);
+  assert.match(scripts[3], /root\.dataset\.harnessUi = "active"/);
+});
+
+test("keeps service health online when renderer skin presentation is temporarily unavailable", async () => {
+  const server = http.createServer((incoming, response) => {
+    response.setHeader("Content-Type", "application/json");
+    if (incoming.url === "/state.json") {
+      response.end('{"selected":"one","updated":42,"catalogGenerated":"same"}');
+      return;
+    }
+    response.end('{"generated":"same","count":1,"entries":[{"id":"one","light":"/light","dark":"/dark"}]}');
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const { port } = server.address();
+  const { HarnessBridge } = require("../src/runtime/harness.cjs");
+  const bridge = new HarnessBridge({ baseUrl: `http://127.0.0.1:${port}` });
+  bridge.window = {
+    isDestroyed: () => false,
+    webContents: { executeJavaScript: async () => { throw new Error("renderer is loading"); } },
+  };
+  try {
+    const snapshot = await bridge.refresh();
+    assert.equal(snapshot.online, true);
+    assert.equal(snapshot.error, null);
+    assert.equal(snapshot.presentationError, "renderer is loading");
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
 });
 
 test("renderer reload reinstalls CSS before reapplying the cached skin", () => {

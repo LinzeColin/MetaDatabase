@@ -67,6 +67,10 @@
     "catalog": "~/.harness-ui/catalog.json",
     "state": "~/.harness-ui/state.json",
     "refreshStatus": "~/.harness-ui/refresh-status.json",
+    "serviceEndpoint": "http://127.0.0.1:3099",
+    "serviceOwner": "launch-agent-when-installed",
+    "startupRecovery": "continuous-retry-until-ready",
+    "galleryRecovery": "retry-while-visible",
     "nextEndpoint": "POST /api/next",
     "shortcut": "CmdOrCtrl+Shift+N"
   },
