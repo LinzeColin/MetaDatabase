@@ -11,12 +11,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var timer: Timer?
     private var refreshTimer: Timer?
     private var stateSyncTimer: Timer?
+    private var sharedServiceRetry: DispatchWorkItem?
     private var nextSkinHotKey: GlobalHotKey?
     private var galleryWindowController: GalleryWindowController?
     private var finishedLaunching = false
     private var pendingGalleryOpen = false
     private var refreshRunning = false
     private var usesExternalService = false
+    private var sharedServiceReady = false
     private let refreshStatusLock = NSLock()
     private var refreshStatus: [String: Any] = ["status": "idle", "message": "尚未刷新", "updated": 0]
     private var webRoot: URL!
@@ -38,7 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } catch {
             NSLog("[Harness UI] 无法注册 Cmd+Shift+N: %@", error.localizedDescription)
         }
-        if sharedServiceAvailable() {
+        if sharedServiceConfigured() {
             usesExternalService = true
             _ = store.reloadFromDisk()
             do {
@@ -52,9 +54,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 guard let self, self.store.reloadFromDisk() else { return }
                 self.rebuildMenu()
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-                self?.refreshCatalog(showResult: false)
-            }
+            waitForSharedService()
         } else {
             let localBuild = buildLocalCatalog(masterRoot: masterRoot, labels: labels)
             if localBuild.catalog.count > 0 { try? store.install(build: localBuild) }
@@ -89,6 +89,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         timer?.invalidate()
         refreshTimer?.invalidate()
         stateSyncTimer?.invalidate()
+        sharedServiceRetry?.cancel()
         nextSkinHotKey = nil
         server.stop()
     }
@@ -414,34 +415,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return HTTPResponse(status: request.method == "GET" ? 404 : 405)
     }
 
-    private func sharedServiceAvailable() -> Bool {
-        let configured = FileManager.default.fileExists(atPath: sharedServiceLaunchAgent.path)
-        let attempts = configured ? 12 : 1
-        for attempt in 0..<attempts {
-            if probeSharedService() { return true }
-            if attempt + 1 < attempts { Thread.sleep(forTimeInterval: 0.5) }
-        }
-        return false
+    private func sharedServiceConfigured() -> Bool {
+        FileManager.default.fileExists(atPath: sharedServiceLaunchAgent.path)
     }
 
-    private func probeSharedService() -> Bool {
-        guard let url = URL(string: "http://127.0.0.1:\(configuration.port)/state.json") else { return false }
-        var request = URLRequest(url: url, timeoutInterval: 0.5)
+    private func waitForSharedService() {
+        guard usesExternalService, !sharedServiceReady else { return }
+        guard let url = URL(string: "http://127.0.0.1:\(configuration.port)/state.json") else { return }
+        var request = URLRequest(url: url, timeoutInterval: 1)
         request.cachePolicy = .reloadIgnoringLocalCacheData
-        let semaphore = DispatchSemaphore(value: 0)
-        let resultLock = NSLock()
-        var available = false
-        URLSession.shared.dataTask(with: request) { data, response, _ in
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, _ in
             let valid = (response as? HTTPURLResponse)?.statusCode == 200 && data.flatMap { try? JSONDecoder().decode(HarnessState.self, from: $0) } != nil
-            resultLock.lock()
-            available = valid
-            resultLock.unlock()
-            semaphore.signal()
+            DispatchQueue.main.async {
+                guard let self else { return }
+                if valid {
+                    self.sharedServiceReady = true
+                    self.sharedServiceRetry?.cancel()
+                    self.sharedServiceRetry = nil
+                    _ = self.store.reloadFromDisk()
+                    self.rebuildMenu()
+                    self.refreshCatalog(showResult: false)
+                } else {
+                    self.scheduleSharedServiceRetry()
+                }
+            }
         }.resume()
-        _ = semaphore.wait(timeout: .now() + 0.75)
-        resultLock.lock()
-        defer { resultLock.unlock() }
-        return available
+    }
+
+    private func scheduleSharedServiceRetry() {
+        sharedServiceRetry?.cancel()
+        let retry = DispatchWorkItem { [weak self] in self?.waitForSharedService() }
+        sharedServiceRetry = retry
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: retry)
     }
 
     private func postToSharedService(
@@ -466,6 +471,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 guard let self else { return }
                 let status = (response as? HTTPURLResponse)?.statusCode ?? 0
                 guard error == nil, (200...299).contains(status) else {
+                    self.sharedServiceReady = false
+                    self.waitForSharedService()
                     self.showError(failureTitle, detail: error?.localizedDescription ?? "本机素材服务返回 HTTP \(status)")
                     failure?()
                     return

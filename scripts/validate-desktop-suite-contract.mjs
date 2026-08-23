@@ -204,6 +204,10 @@ if (!kimiHarnessCss.includes('html[data-harness-ui="active"] #app .con')) {
 
 const protocol = contract.sharedSkinProtocol || {};
 if (protocol.owner !== "Harness UI") fail("Harness UI must remain the shared skin state owner");
+if (protocol.serviceEndpoint !== "http://127.0.0.1:3099") fail("the shared skin service endpoint drifted");
+if (protocol.serviceOwner !== "launch-agent-when-installed") fail("the installed LaunchAgent must own the shared skin service");
+if (protocol.startupRecovery !== "continuous-retry-until-ready") fail("desktop clients must recover from startup ordering");
+if (protocol.galleryRecovery !== "retry-while-visible") fail("the native gallery must recover while visible");
 if (protocol.nextEndpoint !== "POST /api/next") fail("the shared next-skin action must remain POST /api/next");
 if (protocol.shortcut !== "CmdOrCtrl+Shift+N") fail("the shared next-skin shortcut drifted");
 if (!Array.isArray(contract.localOnly) || contract.localOnly.length === 0) fail("localOnly must document private runtime boundaries");

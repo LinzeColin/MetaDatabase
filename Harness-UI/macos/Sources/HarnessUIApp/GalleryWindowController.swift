@@ -15,9 +15,11 @@ private final class GalleryWindow: NSWindow {
     }
 }
 
-final class GalleryWindowController: NSWindowController {
+final class GalleryWindowController: NSWindowController, WKNavigationDelegate {
     private let webView: WKWebView
     private let port: UInt16
+    private var libraryLoaded = false
+    private var retryWorkItem: DispatchWorkItem?
 
     init(port: UInt16) {
         self.port = port
@@ -29,6 +31,7 @@ final class GalleryWindowController: NSWindowController {
             defer: false
         )
         super.init(window: window)
+        webView.navigationDelegate = self
         window.commandHandler = { [weak self] key in self?.handleCommand(key) ?? false }
         window.title = "Harness UI · 完整素材库"
         window.contentView = webView
@@ -44,16 +47,44 @@ final class GalleryWindowController: NSWindowController {
     }
 
     func show() {
-        if webView.url == nil { loadLibrary() }
         NSApp.activate(ignoringOtherApps: true)
         window?.makeKeyAndOrderFront(nil)
+        if !libraryLoaded { loadLibrary() }
     }
 
     private func loadLibrary() {
+        retryWorkItem?.cancel()
+        retryWorkItem = nil
         guard let url = URL(string: "http://127.0.0.1:\(port)/") else { return }
         var request = URLRequest(url: url)
         request.cachePolicy = .reloadIgnoringLocalCacheData
         webView.load(request)
+    }
+
+    private func scheduleLibraryRetry() {
+        retryWorkItem?.cancel()
+        let retry = DispatchWorkItem { [weak self] in
+            guard let self, self.window?.isVisible == true else { return }
+            self.loadLibrary()
+        }
+        retryWorkItem = retry
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: retry)
+    }
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        libraryLoaded = true
+        retryWorkItem?.cancel()
+        retryWorkItem = nil
+    }
+
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        libraryLoaded = false
+        scheduleLibraryRetry()
+    }
+
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        libraryLoaded = false
+        scheduleLibraryRetry()
     }
 
     private func handleCommand(_ key: String) -> Bool {

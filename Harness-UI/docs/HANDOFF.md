@@ -15,6 +15,7 @@
 - SMB 暂时不可达或目录不完整时保留上一版完整目录；本地 durable master 可继续供图。
 - 手动/定时刷新会把 SMB 中有效的昼夜素材增量部署到 `~/.harness-ui/master`，不删除本地独有素材；完成回执区分 SMB、本地、总目录、实际部署与缺失数，不再用合并目录误报成功。
 - 3099 Python 服务不再承担 macOS SMB 权限身份：运行中的 Harness UI App 在主端口 + 1 提供 loopback-only 同步 helper，以 `com.linzecolin.harnessui` GUI 身份读取 Network Volumes；Kimi、DSH 和网页仍只调用 3099。
+- 已配置 LaunchAgent 时，3099 始终由后台服务持有，Harness UI GUI 只启动 3100 helper 并持续等待 3099 就绪；完整素材库窗口在可见期间自动重连，电脑重启后的启动顺序不再产生端口竞争或空白图库。
 - macOS 的“打开完整素材库”使用 App 内 WebKit 窗口；Kimi Code 通过 `harnessui://library` 唤起同一 GUI，不再打开 Chrome 标签页。
 - Harness UI macOS 本地代码身份固定为 `com.linzecolin.harnessui`；配置、素材、状态与图标均位于 App Bundle 外。
 - DSH GitHub Release 直接镜像 anywhere-labs 官方同版本安装器，版本当前为 `2.0.2`，不建立桥接私有版本号。

@@ -80,11 +80,13 @@ class HarnessBridge {
     this.intervalMs = intervalMs;
     this.onChange = onChange;
     this.timer = null;
+    this.running = false;
     this.window = null;
     this.catalog = null;
     this.state = null;
     this.online = false;
     this.error = null;
+    this.presentationError = null;
     this.lastAppliedKey = null;
     this.lastNoticeKey = null;
   }
@@ -95,6 +97,7 @@ class HarnessBridge {
       state: this.state || {},
       online: this.online,
       error: this.error,
+      presentationError: this.presentationError,
     };
   }
 
@@ -102,7 +105,6 @@ class HarnessBridge {
     this.window = window;
     this.lastAppliedKey = null;
     this.start();
-    this.refresh().catch(() => {});
   }
 
   detach(window) {
@@ -111,14 +113,24 @@ class HarnessBridge {
   }
 
   start() {
-    if (this.timer) return;
-    this.refresh().catch(() => {});
-    this.timer = setInterval(() => this.refresh().catch(() => {}), this.intervalMs);
-    this.timer.unref?.();
+    if (this.running) return;
+    this.running = true;
+    this.schedulePoll(0);
+  }
+
+  schedulePoll(delayMs) {
+    if (!this.running || this.timer) return;
+    this.timer = setTimeout(async () => {
+      this.timer = null;
+      try { await this.refresh(); }
+      catch { }
+      this.schedulePoll(this.intervalMs);
+    }, delayMs);
   }
 
   stop() {
-    if (this.timer) clearInterval(this.timer);
+    this.running = false;
+    if (this.timer) clearTimeout(this.timer);
     this.timer = null;
     this.window = null;
     this.lastAppliedKey = null;
@@ -162,7 +174,12 @@ class HarnessBridge {
       this.state = nextState;
       this.online = true;
       this.error = null;
-      await this.applyCurrent();
+      try {
+        await this.applyCurrent();
+        this.presentationError = null;
+      } catch (error) {
+        this.presentationError = error.message;
+      }
       this.notify();
       return this.snapshot();
     } catch (error) {
@@ -185,21 +202,27 @@ class HarnessBridge {
     if (!window || window.isDestroyed()) return;
     const entry = selectHarnessEntry(this.catalog, this.state);
     if (!entry) return;
-    const key = `${entry.id}|${entry.light}|${entry.dark}`;
-    if (!entry.light || !entry.dark || key === this.lastAppliedKey) return;
+    const key = `${this.catalog?.generated || ""}|${entry.id}|${entry.light}|${entry.dark}`;
+    if (!entry.light || !entry.dark) return;
     const light = `url(${JSON.stringify(assetWithRevision(entry.light, this.catalog?.generated, entry.id))})`;
     const dark = `url(${JSON.stringify(assetWithRevision(entry.dark, this.catalog?.generated, entry.id))})`;
     await window.webContents.executeJavaScript(`(() => {
-      document.documentElement.dataset.harnessUi = "active";
-      document.documentElement.style.setProperty("--harness-scene", ${JSON.stringify(light)});
-      document.documentElement.style.setProperty("--harness-scene-dark", ${JSON.stringify(dark)});
+      const root = document.documentElement;
+      if (!root) return false;
+      if (root.dataset.harnessUi !== "active") root.dataset.harnessUi = "active";
+      if (root.style.getPropertyValue("--harness-scene") !== ${JSON.stringify(light)}) {
+        root.style.setProperty("--harness-scene", ${JSON.stringify(light)});
+      }
+      if (root.style.getPropertyValue("--harness-scene-dark") !== ${JSON.stringify(dark)}) {
+        root.style.setProperty("--harness-scene-dark", ${JSON.stringify(dark)});
+      }
       return true;
     })()`);
     this.lastAppliedKey = key;
   }
 
   notify() {
-    const key = `${this.online}|${this.error || ""}|${this.catalog?.generated || ""}|${this.state?.updated || 0}`;
+    const key = `${this.online}|${this.error || ""}|${this.presentationError || ""}|${this.catalog?.generated || ""}|${this.state?.updated || 0}`;
     if (key === this.lastNoticeKey) return;
     this.lastNoticeKey = key;
     this.onChange?.(this.snapshot());
