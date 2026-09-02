@@ -57,7 +57,7 @@
         "Harness-UI/dsh-plugin"
       ],
       "bundleIdentifier": "ai.deepseek.dsh.desktop",
-      "version": "2.0.2",
+      "version": "2.0.4",
       "releaseTagPrefix": "dsh-desktop-v",
       "upstream": "anywhere-labs/deepseek-harness-desktop"
     }
