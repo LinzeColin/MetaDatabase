@@ -728,11 +728,17 @@ INCR_EVENT_EVIDENCE_SQL = """
 """
 
 
+# 列必须与 map_relationship 严格一一对应（D1 relationships 只有这 10 列）：
+# id, subject, object, type, family, status, confidence, observed_at,
+# published_at(=Postgres 的 created_at), qualifiers_json
+# 历史错误：这里曾选 13 列且含 r.effective_from / r.effective_to —— Postgres 的
+# relationships 用的是 valid_from / valid_to，这两个列名根本不存在，于是增量发布
+# **从上线起就没成功过一次**，每小时报
+# `column r.effective_from does not exist`，站点因此长期停在旧数据上。
 INCR_RELATIONSHIPS_SQL = """
     SELECT r.id, r.subject_entity_id, r.object_entity_id, r.relationship_type::text,
            r.relationship_family::text, r.status::text, r.confidence,
-           r.effective_from, r.effective_to, r.observed_at, r.qualifiers,
-           subject.canonical_name, object.canonical_name
+           r.observed_at, r.created_at, r.qualifiers
     FROM relationships r
     JOIN entities subject ON subject.id = r.subject_entity_id
     JOIN entities object ON object.id = r.object_entity_id
@@ -854,11 +860,17 @@ DELTA_EVENTS_SQL = """
       AND ev.status NOT IN ('superseded', 'revoked')
     LIMIT %s
 """
+# 列必须与 map_relationship 严格一一对应（D1 relationships 只有这 10 列）：
+# id, subject, object, type, family, status, confidence, observed_at,
+# published_at(=Postgres 的 created_at), qualifiers_json
+# 历史错误：这里曾选 13 列且含 r.effective_from / r.effective_to —— Postgres 的
+# relationships 用的是 valid_from / valid_to，这两个列名根本不存在，于是增量发布
+# **从上线起就没成功过一次**，每小时报
+# `column r.effective_from does not exist`，站点因此长期停在旧数据上。
 DELTA_RELATIONSHIPS_SQL = """
     SELECT r.id, r.subject_entity_id, r.object_entity_id, r.relationship_type::text,
            r.relationship_family::text, r.status::text, r.confidence,
-           r.effective_from, r.effective_to, r.observed_at, r.qualifiers,
-           subject.canonical_name, object.canonical_name
+           r.observed_at, r.created_at, r.qualifiers
     FROM relationships r
     JOIN entities subject ON subject.id = r.subject_entity_id
     JOIN entities object ON object.id = r.object_entity_id
