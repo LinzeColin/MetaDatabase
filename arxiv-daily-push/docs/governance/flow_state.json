@@ -7,9 +7,9 @@
       "state": "blocked_by_input"
     },
     "BL-ADP-DAILY.scan": {
-      "at": "2026-09-04T07:51:59.178099+08:00",
-      "note": "看门狗有不变量被破坏(非静默归零):FAIL  route / returned HTTP 500",
-      "state": "degraded"
+      "at": "2026-09-05T07:47:51.450034+08:00",
+      "note": "看门狗全绿:最新一轮真的抓到了论文、候选非空,页面路由与新鲜度都正常",
+      "state": "healthy"
     }
   }
 }
