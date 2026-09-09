@@ -1,0 +1,17 @@
+.DS_Store
+__pycache__/
+*.pyc
+node_modules/
+.venv/
+output/
+outputs/
+tmp/
+*.db
+*.sqlite
+*.sqlite3
+config/profile.local.json
+release-manifest.local.json
+keys.json
+all_keys.json
+access-runs/
+verified-access-*/
