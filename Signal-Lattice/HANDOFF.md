@@ -4,14 +4,17 @@
 
 ## 当前目标
 
-Stage 4 已完成代码接入：对当前行情层已取得的日线执行含费用的滚动前推回测，
-生成严格样本外 Alpha 度量、逐期贡献度样本，并以 PROMO-1 结果控制 S2 是否参与
-Stage 2 的静态冷启动汇总。Stage 3 动态贡献度权重与 Stage 5 部署保持原状。
+Stage 3 已完成代码接入：聚合层读取 Stage 4 落盘的逐期贡献度样本，在既有资格门
+之后以 Hedge 分配权重并完整公开复算轨迹。Stage 4 保持其严格样本外回测、贡献度
+落盘和 PROMO-1 判定；Stage 5 部署保持原状。
 
 ## 当前状态
 
-STAGE_4_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE；当前工作区没有可用于实际运行的
-行情历史缓存，真实 S2 裁定状态为 UNKNOWN，S2 继续处于 EXCLUDED_PENDING_BACKTEST。
+STAGE_3_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE。当前 worktree 没有目标机的运行期
+`state_dir`，因此本机没有重放真实行情。目标机已产出的真实贡献度输入表明：S1 有
+4 条可用样本，S2 有 10 条样本但 PROMO-1 未通过并保持
+`EXCLUDED_PENDING_BACKTEST`。据此，本轮实际权重模式为 `COLD_START_EQUAL`：
+S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
 
 本机核查结果：
 
@@ -20,6 +23,32 @@ STAGE_4_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE；当前工作区没有可用于�
 - S1 缺少 IWM、EFA、EEM、GLD、BIL；S2 的 SPY/QQQ 也无法满足至少两个完整
   24 个月训练加 6 个月测试窗口。
 - 本任务禁止联网，因此没有用短窗、全样本或 Alpha 历史报告替代当前真实回测。
+
+## Stage 3 实现与关键决定
+
+- 新增 `src/signal_lattice/weighting.py`，只读取
+  `state_dir/backtest/contribution_samples.json` 中 Stage 4 已落盘的严格样本外样本。
+  它不调整行情新鲜度门、分支实现状态或 S2 的 PROMO-1。
+- `MIN_CONTRIBUTION_SAMPLES = 8`：八个完整六个月样本外窗口约覆盖四年实际在场期，
+  降低单一市场阶段支配权重的风险。当前 S1 仍差 4 条可用样本；继续既有 24/6
+  walk-forward 即可积累，不能为凑数修改窗口参数。
+- `HEDGE_LEARNING_RATE = 0.10`：风险调整超额可显著大于 1；当单期为 2.5 时倍率为
+  `exp(0.10 × 2.5) ≈ 1.28`，既反映贡献差异，也避免一窗决定后续全部权重。
+- `WEIGHT_FLOOR = 0.05`、`WEIGHT_CAP = 0.60`：floor 保留后续恢复空间，cap 留出
+  至少 40% 的比较空间。单一已资格分支处于冷启动时为结构性 100%，不存在可比较
+  的其他参与者。
+- 每条分支记录样本数、可用样本数、累计风险调整超额、累计实际更新值、风险调整
+  超额与 `excess_return` 回退来源、每期起止权重和未约束乘数。权重可据
+  `w_i ← w_i × exp(η × r_i)` 手工重算。
+- 样本不足的已资格分支保持自己的冷启动等权份额；样本充足分支在剩余份额内动态
+  更新。全部已资格分支样本不足时，模式为 `COLD_START_EQUAL`。推广门排除的分支
+  保持 0 权重，不进入样本充足性或 Hedge 计算。
+- 持续负贡献且触及 floor 时输出
+  `PERSISTENT_NEGATIVE_CONTRIBUTION_AT_FLOOR` 与“持续负贡献，已压至下限。”；
+  本轮不自动淘汰任何分支。
+- `build_branch_report` 先应用权重结果，再调用 `aggregate.py`。聚合、
+  `/api/v1/whitebox/summary` 和网页均返回 `contribution_weights`，其中包含每个
+  分支的当前权重、N/M、累计贡献、来源和轨迹。
 
 ## Stage 4 实现与关键决定
 
@@ -49,8 +78,8 @@ STAGE_4_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE；当前工作区没有可用于�
 - S2 推广门通过时才取得 COLD_START_ELIGIBLE 与 weight=1.0；失败和样本不足时保持
   EXCLUDED_PENDING_BACKTEST，excluded_branches reason 会携带具体 PROMO-1 差距或
   样本不足 N/M。
-- 未实现分支的权重仍恒为 0。aggregate 的 WEIGHT_MODE 仍是 COLD_START_EQUAL，
-  动态贡献度加权为 false。
+- 未实现分支的权重仍恒为 0。动态贡献度权重由 Stage 3 聚合层消费；回测层继续
+  只负责产生严格样本外输入。
 
 ## 运行期落盘与 API/页面
 
@@ -72,20 +101,43 @@ STAGE_4_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE；当前工作区没有可用于�
 - src/signal_lattice/backtest/calendar_effects.py
 - src/signal_lattice/backtest/runner.py
 - src/signal_lattice/branches/runtime.py
+- src/signal_lattice/weighting.py
+- src/signal_lattice/aggregate.py
 - src/signal_lattice/live_runtime.py
+- src/signal_lattice/live_api.py
 - web/app.js
 - tests/test_backtest.py
 - tests/test_branch_verdicts.py
+- tests/test_weighting.py
 
 ## 已验证
 
-局部回测与现有分支测试：
+Stage 3 定向测试：
 
-    PYTHONPYCACHEPREFIX=/private/tmp/signal-lattice-pycache PYTHONPATH=src python3 -m pytest tests/test_backtest.py tests/test_branch_verdicts.py tests/test_aggregate.py tests/test_live_api.py -q
+    PYTHONPYCACHEPREFIX=/private/tmp/signal-lattice-pycache PYTHONPATH=src python3 -m pytest tests/test_weighting.py tests/test_aggregate.py tests/test_branch_verdicts.py tests/test_backtest.py tests/test_live_api.py -q
 
-结果：15 passed in 1.95s。
+结果：23 passed in 2.02s。
 
-新增 tests/test_backtest.py 的固定序列夹具覆盖：
+`tests/test_weighting.py` 的固定贡献度夹具覆盖：
+
+- Hedge 指数更新的手工复算值和逐期轨迹。
+- 5% floor、60% cap、负贡献压低但保持正权重、持续负贡献触及下限标记。
+- 风险调整超额缺失时回退 `excess_return` 并公开来源。
+- 单个样本不足分支保留冷启动等权份额，全部不足保持 `COLD_START_EQUAL`。
+- 当前真实输入形状：S1 为 4/8，S2 由 `EXCLUDED_PENDING_BACKTEST` 排除，模式保持
+  `COLD_START_EQUAL`。
+- 状态文件 `state_dir/backtest/contribution_samples.json` 是唯一权重输入。
+
+完整测试：
+
+    PYTHONPYCACHEPREFIX=/private/tmp/signal-lattice-pycache PYTHONPATH=src python3 -m pytest tests/ -q
+
+实际输出：`18 failed, 125 passed, 1 skipped in 11.43s`。其中 7 个失败来自 sandbox
+禁止 TCP bind（`test_api.py` 5 项、`test_public_release.py` 2 项）；剩余 11 个为既有
+部署、正式生命周期、Python 3.9 缺少 `tomllib`、交付文件清单和状态机基线失败。Stage 3
+定向测试、Python 编译、`node --check web/app.js` 和 `git diff --check` 全部通过。
+
+Stage 4 已有的固定序列夹具继续覆盖：
 
 - 严格完整滚动窗口与 train/test 无交集。
 - 费用被实际扣减，含费用净值低于无费用净值。
@@ -96,15 +148,15 @@ STAGE_4_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE；当前工作区没有可用于�
 
 ## 未解决风险
 
-- 当前真实日线原始数据未落在可访问 state_dir，无法在离线约束下产出本轮实时
-  S2 PROMO-1 数字、各市场样本不足清单或任何真实 Alpha 数值。
+- 当前真实日线原始数据和 `state_dir` 没有落在本 worktree；本轮使用用户提供的真实
+  S1/S2 样本计数和 PROMO-1 裁定解释实际模式，没有离线重放或更改回测参数。
 - Alpha/reports/backtest/2026-07-16/report.json 是旧策略/旧门槛上下文的历史报告，
   不作为本轮真实回测或 S2 解禁证据。
-- 完整测试仍须在当前工作区最后执行；历史基线为 11 个既有红灯，sandbox 的 TCP
-  限制会额外触发 test_api.py 等 PermissionError。
+- 完整测试已在当前工作区执行；上述输出保留 11 个既有非 TCP 红灯，并如实区分了
+  sandbox 的 7 个 TCP `PermissionError`。
 
 ## 下一步
 
-在具有本轮真实日线缓存的目标机运行一次 Signal Lattice 的 once 命令。确认
-state_dir/backtest/latest.json 中每个分支至少有两个完整窗口后，读取 S2 promotion
-的 passed 与 reason：通过则 S2 参与静态冷启动汇总；未通过则按报告数值维持排除。
+在目标机按既有运行流程继续积累完整的 24/6 样本外窗口。S1 还需 4 条可用样本达到
+8/8；S2 继续以 PROMO-1 的实际结果维持排除。只有至少两个已资格分支各自满足样本门时，
+Hedge 才会形成有比较意义的相对动态权重。Stage 5 部署不在本轮范围内。

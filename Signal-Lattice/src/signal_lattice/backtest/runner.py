@@ -514,7 +514,7 @@ def run_backtest(
             "minimum_complete_windows": MIN_COMPLETE_WINDOWS,
             "parameter_selection": "仅训练窗口网格搜索；test 窗口从不参与选参。",
             "risk_adjusted_excess_formula": "excess_return / active_daily_volatility；零波动时为 null。",
-            "dynamic_contribution_weighting": False,
+            "dynamic_contribution_weighting": "CONSUMED_BY_STAGE_3_AGGREGATE",
         },
         "fees": {
             "commission_usd_per_order": fee.commission_usd_per_order,

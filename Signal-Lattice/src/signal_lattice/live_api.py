@@ -63,6 +63,8 @@ def handler(settings: LiveSettings, store: LiveStore):
                 return self._send(200, {
                     "state": latest.get("state", "SYSTEM_BLOCKED"),
                     "weight_mode": latest.get("weight_mode", "COLD_START_EQUAL"),
+                    "weight_sample_count": latest.get("weight_sample_count", 0),
+                    "contribution_weights": latest.get("contribution_weights", {"branches": []}),
                     "branch_count": len(latest.get("branches", [])),
                     "quote_observed_at": latest.get("quote_observed_at"),
                     "data_cutoff": latest.get("data_cutoff"),

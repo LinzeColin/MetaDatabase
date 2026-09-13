@@ -147,7 +147,12 @@ class LiveEngine:
         state = "SYSTEM_BLOCKED" if findings else "DATA_READY"
         if state == "DATA_READY":
             backtest = run_backtest(self.settings.universe, bars, state_dir=self.settings.state_dir)
-            branch_report = build_branch_report(self.settings.universe, bars, backtest)
+            branch_report = build_branch_report(
+                self.settings.universe,
+                bars,
+                backtest,
+                state_dir=self.settings.state_dir,
+            )
         else:
             backtest = {
                 "status": "SYSTEM_BLOCKED",

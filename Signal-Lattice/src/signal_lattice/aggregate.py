@@ -1,7 +1,7 @@
 """Stage 2 分支结论的确定性汇总中枢。
 
-这个模块只消费已经生成的 ``BranchVerdict``，不改变分支的实现状态、
-回测门或权重。Stage 2 仍使用冷启动等权，贡献度动态权重留给 Stage 3。
+这个模块只消费已经生成的 ``BranchVerdict``，不改变分支实现状态或回测门。
+Stage 3 会在这些门之后提供可复算的贡献度权重。
 """
 
 from __future__ import annotations
@@ -26,6 +26,19 @@ _DIRECTIONS = ("看涨", "中性", "看跌")
 
 def _clamp(value: float) -> float:
     return max(0.0, min(1.0, value))
+
+
+def _weighting_metadata(weighting: dict[str, Any] | None) -> dict[str, Any]:
+    """统一取得权重元数据；直接调用聚合函数时保持 Stage 2 冷启动兼容。"""
+    if weighting is None:
+        return {
+            "weight_mode": WEIGHT_MODE,
+            "weight_sample_count": WEIGHT_SAMPLE_COUNT,
+        }
+    return {
+        "weight_mode": str(weighting["weight_mode"]),
+        "weight_sample_count": int(weighting["weight_sample_count"]),
+    }
 
 
 def _exclusion_reason(verdict: BranchVerdict) -> str:
@@ -69,12 +82,18 @@ def _resolve_direction(contributors: Sequence[BranchVerdict]) -> tuple[str, dict
     return "中性", votes, "TIED_HIGHEST_WEIGHT_RESOLVED_TO_NEUTRAL"
 
 
-def aggregate_symbol_verdicts(symbol: str, verdicts: Sequence[BranchVerdict]) -> dict[str, Any]:
+def aggregate_symbol_verdicts(
+    symbol: str,
+    verdicts: Sequence[BranchVerdict],
+    *,
+    weighting: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """合成单一标的的所有分支结论。
 
     置信度公式为 ``sum(confidence_i * weight_i) / sum(weight_i)``；方向投票
     使用同一组原始权重。所有 ``weight == 0`` 的结论保留在排除清单中。
     """
+    weight_metadata = _weighting_metadata(weighting)
     symbol_verdicts = [verdict for verdict in verdicts if verdict.symbol == symbol]
     contributors = [verdict for verdict in symbol_verdicts if verdict.weight > 0.0]
     excluded = [verdict for verdict in symbol_verdicts if verdict.weight <= 0.0]
@@ -98,8 +117,7 @@ def aggregate_symbol_verdicts(symbol: str, verdicts: Sequence[BranchVerdict]) ->
             "direction_vote_share": 0.0,
             "direction_vote_weights": {direction: 0.0 for direction in _DIRECTIONS},
             "tie_breaker": "NO_PARTICIPATING_BRANCH",
-            "weight_mode": WEIGHT_MODE,
-            "weight_sample_count": WEIGHT_SAMPLE_COUNT,
+            **weight_metadata,
             "participating_branch_count": 0,
             "excluded_branch_count": len(excluded_details),
             "participating_branches": [],
@@ -140,8 +158,7 @@ def aggregate_symbol_verdicts(symbol: str, verdicts: Sequence[BranchVerdict]) ->
         "direction_vote_share": direction_vote_share,
         "direction_vote_weights": vote_weights,
         "tie_breaker": tie_breaker,
-        "weight_mode": WEIGHT_MODE,
-        "weight_sample_count": WEIGHT_SAMPLE_COUNT,
+        **weight_metadata,
         "participating_branch_count": len(participating_details),
         "excluded_branch_count": len(excluded_details),
         "participating_branches": participating_details,
@@ -190,7 +207,12 @@ def _neutral_conviction(contributors: Sequence[BranchVerdict]) -> float:
     )
 
 
-def build_decision(symbol_aggregates: Sequence[dict[str, Any]], verdicts: Sequence[BranchVerdict]) -> dict[str, Any]:
+def build_decision(
+    symbol_aggregates: Sequence[dict[str, Any]],
+    verdicts: Sequence[BranchVerdict],
+    *,
+    weighting: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """从标的汇总生成组合层唯一建议，保留所有参与和排除事实。"""
     contributors = [verdict for verdict in verdicts if verdict.weight > 0.0]
     participating_branches = _group_decision_branches(verdicts, participating=True)
@@ -198,8 +220,7 @@ def build_decision(symbol_aggregates: Sequence[dict[str, Any]], verdicts: Sequen
     common = {
         "participating_branches": participating_branches,
         "excluded_branches": excluded_branches,
-        "weight_mode": WEIGHT_MODE,
-        "weight_sample_count": WEIGHT_SAMPLE_COUNT,
+        **_weighting_metadata(weighting),
     }
 
     if not contributors:
@@ -295,21 +316,31 @@ def build_decision(symbol_aggregates: Sequence[dict[str, Any]], verdicts: Sequen
     }
 
 
-def build_aggregate_report(symbols: Sequence[str], verdicts: Sequence[BranchVerdict]) -> dict[str, Any]:
+def build_aggregate_report(
+    symbols: Sequence[str],
+    verdicts: Sequence[BranchVerdict],
+    *,
+    weighting: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """构造 DATA_READY 时页面和 API 共用的完整汇总结果。"""
-    aggregates = [aggregate_symbol_verdicts(symbol, verdicts) for symbol in symbols]
+    weight_metadata = _weighting_metadata(weighting)
+    aggregates = [aggregate_symbol_verdicts(symbol, verdicts, weighting=weighting) for symbol in symbols]
     excluded_count = sum(item["excluded_branch_count"] for item in aggregates)
     return {
         "aggregate": aggregates,
-        "decision": build_decision(aggregates, verdicts),
-        "weight_mode": WEIGHT_MODE,
-        "weight_sample_count": WEIGHT_SAMPLE_COUNT,
+        "decision": build_decision(aggregates, verdicts, weighting=weighting),
+        **weight_metadata,
+        "contribution_weights": weighting or {
+            "weight_mode": WEIGHT_MODE,
+            "weight_sample_count": WEIGHT_SAMPLE_COUNT,
+            "branches": [],
+        },
         "coordination": {
             "rule": "仅 weight>0 的分支进入加权投票；置信度按 sum(confidence_i * weight_i) / sum(weight_i) 计算。",
             "tie_break_rule": "最高方向票并列时统一裁决为中性，避免在没有方向优势时输出方向。",
             "neutral_watch_confidence_threshold": NEUTRAL_WATCH_CONFIDENCE_THRESHOLD,
             "excluded_branch_count": excluded_count,
-            "dynamic_contribution_weighting": "STAGE_3_NOT_STARTED",
+            "dynamic_contribution_weighting": weight_metadata["weight_mode"],
         },
     }
 
@@ -345,6 +376,11 @@ def blocked_aggregate_report() -> dict[str, Any]:
             "tie_break_rule": "未执行",
             "neutral_watch_confidence_threshold": NEUTRAL_WATCH_CONFIDENCE_THRESHOLD,
             "excluded_branch_count": 0,
-            "dynamic_contribution_weighting": "STAGE_3_NOT_STARTED",
+            "dynamic_contribution_weighting": "SYSTEM_BLOCKED",
+        },
+        "contribution_weights": {
+            "weight_mode": WEIGHT_MODE,
+            "weight_sample_count": WEIGHT_SAMPLE_COUNT,
+            "branches": [],
         },
     }

@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from ..aggregate import build_aggregate_report
+from ..weighting import build_weighting_from_state
 from .bars import closes, highs, lows
 from .indicators import atr, ibs, rsi_wilder, sma
 from .models import BranchVerdict
@@ -326,6 +329,8 @@ def build_branch_report(
     instruments: Sequence[Instrument],
     bars_by_symbol: Mapping[str, Sequence[Bar]],
     backtest: Mapping[str, Any] | None = None,
+    *,
+    state_dir: Path | None = None,
 ) -> dict[str, Any]:
     """计算全部 Stage 2 分支并返回白箱 API 与页面共用的结构。"""
     symbols = [instrument.symbol for instrument in instruments]
@@ -346,12 +351,42 @@ def build_branch_report(
     verdicts = evaluate_s1_verdicts(ordered_bars) + evaluate_s2_verdicts(ordered_bars, s2_promotion)
     for branch in UNIMPLEMENTED_BRANCHES:
         verdicts.extend(_unimplemented_verdict(branch, symbol, len(ordered_bars[symbol])) for symbol in symbols)
+    branch_ids = sorted({verdict.branch_id for verdict in verdicts})
+    eligible_branch_ids = sorted({verdict.branch_id for verdict in verdicts if verdict.weight > 0.0})
+    branch_participation = {
+        branch_id: _branch_participation_status(branch_id, verdicts)
+        for branch_id in branch_ids
+    }
+    weighting = build_weighting_from_state(
+        state_dir,
+        branch_ids=branch_ids,
+        eligible_branch_ids=eligible_branch_ids,
+        branch_participation=branch_participation,
+    )
+    weighted_verdicts = [
+        replace(verdict, weight=weighting["weights"].get(verdict.branch_id, 0.0))
+        if verdict.weight > 0.0
+        else verdict
+        for verdict in verdicts
+    ]
     return {
-        "branches": [verdict.as_dict() for verdict in verdicts],
+        "branches": [verdict.as_dict() for verdict in weighted_verdicts],
         "profitability_status": (
             str(backtest.get("profitability_status"))
             if backtest is not None and backtest.get("profitability_status")
             else "NOT_PRODUCED_STAGE_2_NO_BACKTEST"
         ),
-        **build_aggregate_report(symbols, verdicts),
+        **build_aggregate_report(symbols, weighted_verdicts, weighting=weighting),
     }
+
+
+def _branch_participation_status(branch_id: str, verdicts: Sequence[BranchVerdict]) -> str:
+    """分支权重先尊重 Stage 2 的逐标的资格门，再读取贡献度样本。"""
+    branch_verdicts = [verdict for verdict in verdicts if verdict.branch_id == branch_id]
+    if any(verdict.weight > 0.0 for verdict in branch_verdicts):
+        return "COLD_START_ELIGIBLE"
+    statuses = {verdict.participation_status for verdict in branch_verdicts}
+    for status in ("EXCLUDED_PENDING_BACKTEST", "UNIMPLEMENTED", "SAMPLE_INSUFFICIENT"):
+        if status in statuses:
+            return status
+    return sorted(statuses)[0] if statuses else "UNSPECIFIED"
