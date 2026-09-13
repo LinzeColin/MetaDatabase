@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "signal-lattice"
-version = "0.0.0.1.41"
-description = "每分钟运行全部独立股票 Skill 并输出唯一投资建议的零 Agent 决策中枢"
+version = "0.0.0.2.0"
+description = "基于免费免密钥真实市场数据的只读多分支投资研究系统"
 requires-python = ">=3.11"
 dependencies = []
 
