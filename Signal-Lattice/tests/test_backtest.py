@@ -15,7 +15,13 @@ from signal_lattice.backtest.pipeline import (
     simulate_s1,
     walk_forward_windows,
 )
-from signal_lattice.backtest.runner import S1_LIVE_TO_ALPHA, run_backtest
+from signal_lattice.backtest.runner import (
+    MIN_OOS_WINDOWS_FOR_PROFITABILITY,
+    S1_LIVE_TO_ALPHA,
+    profitability_status,
+    run_backtest,
+    sample_sufficiency,
+)
 from signal_lattice.live_config import default_universe
 from signal_lattice.marketdata.models import Bar
 
@@ -123,6 +129,27 @@ class BacktestTests(unittest.TestCase):
                     "risk_adjusted_excess", "window_label",
                 }.issubset(branch["contributions"][0])
             )
+
+    def test_profitability_gate_hides_returns_but_keeps_directional_research_eligible(self):
+        branches = {
+            "s1_momentum": {
+                "status": "OOS_READY",
+                "contributions": [{}] * 4,
+                "stitched": {"excess_return_pct": 5.4753},
+            },
+            "s2_meanrev": {
+                "status": "OOS_READY",
+                "contributions": [{}] * MIN_OOS_WINDOWS_FOR_PROFITABILITY,
+                "stitched": {"excess_return_pct": -78.56},
+            },
+        }
+
+        status = profitability_status(branches)
+        self.assertEqual(status, "OOS_HISTORY_INSUFFICIENT: 4/6")
+        self.assertEqual(sample_sufficiency(branches), "OOS_HISTORY_INSUFFICIENT: 4/6")
+        self.assertNotIn("5.4753", status)
+        self.assertNotIn("-78.56", status)
+        self.assertEqual(branches["s1_momentum"]["status"], "OOS_READY")
 
     def test_promo1_verdict_uses_alpha_configured_thresholds_inclusively(self):
         gate = load_promo1_gate()

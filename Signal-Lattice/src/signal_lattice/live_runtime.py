@@ -18,12 +18,29 @@ from .marketdata.models import Bar, Instrument, Quote
 from .serialization import JsonSerializationConstraintError, strict_json_dumps
 
 
+# 默认 60 秒循环在一个完整美股交易月最多产生约 390 × 21 = 8,190 次候选变化。
+# 历史只保留紧凑报价/决策变更：每天 240 条且 64 KiB，31 天运行期占用最多
+# 31 × 64 KiB = 1.94 MiB；历史不再随循环次数无界增长。
+HISTORY_RETENTION_DAYS = 31
+HISTORY_MAX_RECORDS_PER_DAY = 240
+HISTORY_MAX_BYTES_PER_DAY = 64 * 1024
+
+
 def _iso(value: datetime) -> str:
     return value.astimezone(timezone.utc).replace(microsecond=0).isoformat()
 
 
+def apply_profitability_disclosure(branch_report: dict, backtest: dict) -> None:
+    """收益证据不足时保留方向性研究结论，并在决策层显式标记其边界。"""
+    branch_report["sample_sufficiency"] = backtest.get("sample_sufficiency")
+    branch_report["sample_sufficiency_message"] = backtest.get("sample_sufficiency_message")
+    if str(backtest.get("sample_sufficiency", "")).startswith("OOS_HISTORY_INSUFFICIENT:"):
+        branch_report["decision"]["sample_sufficiency"] = backtest["sample_sufficiency"]
+        branch_report["decision"]["sample_sufficiency_message"] = backtest["sample_sufficiency_message"]
+
+
 class LiveStore:
-    """只保存最新状态；仅市场内容变化时追加决策历史，避免重复观测膨胀。"""
+    """保存最新报告、循环心跳和有界的紧凑市场变更历史。"""
 
     def __init__(self, root: Path) -> None:
         self.root = root
@@ -33,6 +50,14 @@ class LiveStore:
     @property
     def latest_path(self) -> Path:
         return self.root / "latest.json"
+
+    @property
+    def heartbeat_path(self) -> Path:
+        return self.root / "heartbeat.json"
+
+    @property
+    def history_dir(self) -> Path:
+        return self.root / "history"
 
     def latest(self) -> dict:
         if not self.latest_path.is_file():
@@ -44,15 +69,146 @@ class LiveStore:
         except (OSError, UnicodeDecodeError, json.JSONDecodeError, JsonSerializationConstraintError):
             return {}
 
+    def heartbeat(self) -> dict:
+        if not self.heartbeat_path.is_file():
+            return {}
+        try:
+            value = json.loads(self.heartbeat_path.read_text(encoding="utf-8"))
+            strict_json_dumps(value)
+            return value if isinstance(value, dict) else {}
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError, JsonSerializationConstraintError):
+            return {}
+
+    def write_heartbeat(self, observed_at: datetime) -> None:
+        self._write_json(self.heartbeat_path, {"observed_at": _iso(observed_at)})
+
+    def liveness(self, *, max_age_seconds: int, now: datetime | None = None) -> dict:
+        """同时要求最新报告和循环心跳处于同一明确时效窗口内。"""
+        checked_at = now or datetime.now(timezone.utc)
+        latest = self.latest()
+        heartbeat = self.heartbeat()
+        generated_at = self._parse_timestamp(latest.get("generated_at"))
+        observed_at = self._parse_timestamp(heartbeat.get("observed_at"))
+        stale_parts = []
+        if generated_at is None or (checked_at - generated_at).total_seconds() > max_age_seconds:
+            stale_parts.append("REPORT_STALE")
+        if observed_at is None or (checked_at - observed_at).total_seconds() > max_age_seconds:
+            stale_parts.append("HEARTBEAT_STALE")
+        return {
+            "latest": latest,
+            "fresh": bool(latest) and not stale_parts,
+            "reason": ",".join(stale_parts) if stale_parts else None,
+            "generated_at": _iso(generated_at) if generated_at else None,
+            "heartbeat_at": _iso(observed_at) if observed_at else None,
+            "max_age_seconds": max_age_seconds,
+        }
+
+    @staticmethod
+    def _parse_timestamp(value: object) -> datetime | None:
+        if not isinstance(value, str):
+            return None
+        try:
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        return parsed.astimezone(timezone.utc) if parsed.tzinfo is not None else None
+
+    def _write_json(self, path: Path, value: dict) -> None:
+        temporary = path.with_name(f".{path.name}.tmp")
+        temporary.write_text(
+            strict_json_dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        os.replace(temporary, path)
+
+    def _history_path(self, observed_at: datetime) -> Path:
+        return self.history_dir / f"market_changes-{observed_at.astimezone(timezone.utc).date().isoformat()}.jsonl"
+
+    def _history_files(self) -> list[Path]:
+        return sorted(self.history_dir.glob("market_changes-????-??-??.jsonl"))
+
+    def _prune_history(self, observed_at: datetime) -> None:
+        legacy = self.history_dir / "market_changes.jsonl"
+        if legacy.is_file():
+            legacy.unlink()
+        oldest_kept = observed_at.astimezone(timezone.utc).date() - timedelta(days=HISTORY_RETENTION_DAYS - 1)
+        for path in self._history_files():
+            day = datetime.strptime(path.stem.removeprefix("market_changes-"), "%Y-%m-%d").date()
+            if day < oldest_kept:
+                path.unlink()
+
+    @staticmethod
+    def _compact_market_change(report: dict, previous: dict) -> dict:
+        current = report.get("market_fingerprint", {})
+        old = previous.get("market_fingerprint", {})
+        current_quotes = current.get("quotes", {}) if isinstance(current, dict) else {}
+        old_quotes = old.get("quotes", {}) if isinstance(old, dict) else {}
+        current_bars = current.get("bars", {}) if isinstance(current, dict) else {}
+        old_bars = old.get("bars", {}) if isinstance(old, dict) else {}
+        quote_changes = [
+            {"symbol": symbol, "price": price, "previous_price": old_quotes.get(symbol)}
+            for symbol, price in sorted(current_quotes.items())
+            if old_quotes.get(symbol) != price
+        ]
+        bar_changes = [
+            {"symbol": symbol, "latest_day": day, "previous_day": old_bars.get(symbol)}
+            for symbol, day in sorted(current_bars.items())
+            if old_bars.get(symbol) != day
+        ]
+        decision = report.get("decision", {})
+        return {
+            "generated_at": report.get("generated_at"),
+            "state": report.get("state"),
+            "decision": {
+                key: decision.get(key)
+                for key in ("state", "action", "primary_symbol", "conviction")
+                if key in decision
+            },
+            "market_delta": {"quotes": quote_changes, "bars": bar_changes},
+        }
+
+    def _trim_history_day(self, path: Path) -> None:
+        lines = path.read_text(encoding="utf-8").splitlines()
+        while lines and (
+            len(lines) > HISTORY_MAX_RECORDS_PER_DAY
+            or len(("\n".join(lines) + "\n").encode("utf-8")) > HISTORY_MAX_BYTES_PER_DAY
+        ):
+            lines.pop(0)
+        temporary = path.with_name(f".{path.name}.tmp")
+        temporary.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+        os.replace(temporary, path)
+
+    def history_storage(self) -> dict:
+        files = self._history_files()
+        return {
+            "storage": "state_dir/history/market_changes-YYYY-MM-DD.jsonl",
+            "retention_days": HISTORY_RETENTION_DAYS,
+            "max_records_per_day": HISTORY_MAX_RECORDS_PER_DAY,
+            "max_bytes_per_day": HISTORY_MAX_BYTES_PER_DAY,
+            "max_total_bytes": HISTORY_RETENTION_DAYS * HISTORY_MAX_BYTES_PER_DAY,
+            "file_count": len(files),
+            "record_count": sum(len(path.read_text(encoding="utf-8").splitlines()) for path in files),
+            "bytes_used": sum(path.stat().st_size for path in files),
+        }
+
+    def _append_market_change(self, report: dict, previous: dict) -> dict:
+        observed_at = self._parse_timestamp(report.get("generated_at")) or datetime.now(timezone.utc)
+        path = self._history_path(observed_at)
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(strict_json_dumps(self._compact_market_change(report, previous), ensure_ascii=False, separators=(",", ":")) + "\n")
+        self._trim_history_day(path)
+        return self.history_storage()
+
     def save(self, report: dict) -> None:
         previous = self.latest()
-        temporary = self.root / ".latest.tmp"
-        temporary.write_text(strict_json_dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        os.replace(temporary, self.latest_path)
+        observed_at = self._parse_timestamp(report.get("generated_at")) or datetime.now(timezone.utc)
+        self._prune_history(observed_at)
         current_market = report.get("market_fingerprint")
         if current_market and current_market != previous.get("market_fingerprint"):
-            with (self.root / "history" / "market_changes.jsonl").open("a", encoding="utf-8") as handle:
-                handle.write(strict_json_dumps(report, ensure_ascii=False, separators=(",", ":")) + "\n")
+            report["history_storage"] = self._append_market_change(report, previous)
+        else:
+            report["history_storage"] = self.history_storage()
+        self._write_json(self.latest_path, report)
 
 
 class MarketGateway:
@@ -166,6 +322,7 @@ class LiveEngine:
 
     def run_once(self) -> dict:
         now = datetime.now(timezone.utc)
+        self.store.write_heartbeat(now)
         quotes, bars, errors = self.gateway.fetch(self.settings.universe)
         findings = self._validate(now, quotes, bars, errors)
         reportable_quotes = {
@@ -193,6 +350,7 @@ class LiveEngine:
                     backtest,
                     state_dir=self.settings.state_dir,
                 )
+                apply_profitability_disclosure(branch_report, backtest)
             else:
                 backtest = {
                     "status": "SYSTEM_BLOCKED",

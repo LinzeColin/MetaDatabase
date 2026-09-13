@@ -22,6 +22,15 @@ HEADERS = {
     "Referrer-Policy": "no-referrer",
 }
 
+# 就绪报告最多允许落后 3 个循环，并额外留 90 秒给行情抓取与落盘。
+# 默认 60 秒循环的 TTL 为 270 秒；超过它时旧 DATA_READY 绝不代表实时结论。
+READY_TTL_LOOP_MULTIPLIER = 3
+READY_TTL_FETCH_ALLOWANCE_SECONDS = 90
+
+
+def readiness_ttl_seconds(loop_seconds: int) -> int:
+    return READY_TTL_LOOP_MULTIPLIER * loop_seconds + READY_TTL_FETCH_ALLOWANCE_SECONDS
+
 
 def blocked_report() -> dict:
     return {
@@ -29,6 +38,40 @@ def blocked_report() -> dict:
         "message": "数据链路不完整，不出结论",
         "decision": blocked_decision(),
     }
+
+
+def collection_loop_unreachable_report(liveness: dict) -> dict:
+    decision = blocked_decision()
+    decision.update(
+        {
+            "rationale": "采集循环失联，结论已过期；不把旧报告作为实时结论。",
+            "internal_coordination": "采集循环心跳或最新报告超过时效窗口，未复用旧方向性结论。",
+            "counter_evidence": "最后一份报告已超过就绪时效，无法证明当前行情与历史结论一致。",
+            "invalidation": "采集循环恢复心跳，并写入通过数据新鲜度门的新报告后，才恢复实时结论。",
+        }
+    )
+    return {
+        "state": "SYSTEM_BLOCKED",
+        "blocked_reason": "COLLECTION_LOOP_UNREACHABLE",
+        "message": "采集循环失联，结论已过期",
+        "decision": decision,
+        "last_generated_at": liveness["generated_at"],
+        "last_heartbeat_at": liveness["heartbeat_at"],
+        "readiness_ttl_seconds": liveness["max_age_seconds"],
+        "liveness_reason": liveness["reason"],
+    }
+
+
+def latest_for_api(settings: LiveSettings, store: LiveStore, *, now: datetime | None = None) -> tuple[dict, dict]:
+    """把旧持久化报告与当前循环存活状态合并成 API 唯一事实。"""
+    liveness = store.liveness(
+        max_age_seconds=readiness_ttl_seconds(settings.loop_seconds),
+        now=now,
+    )
+    latest = liveness["latest"]
+    if latest and not liveness["fresh"]:
+        return collection_loop_unreachable_report(liveness), liveness
+    return latest, liveness
 
 
 def handler(settings: LiveSettings, store: LiveStore):
@@ -61,14 +104,20 @@ def handler(settings: LiveSettings, store: LiveStore):
 
         def do_GET(self) -> None:
             path = urlparse(self.path).path
-            latest = self._latest()
+            latest, liveness = latest_for_api(settings, store)
             if path == "/health/live":
                 return self._send(200, {"status": "alive", "version": APP_VERSION})
             if path == "/health/ready":
                 ready = latest.get("state") == "DATA_READY"
-                return self._send(200 if ready else 503, {"status": "ready" if ready else "blocked", "state": latest.get("state", "SYSTEM_BLOCKED")})
+                return self._send(200 if ready else 503, {
+                    "status": "ready" if ready else "blocked",
+                    "state": latest.get("state", "SYSTEM_BLOCKED"),
+                    "reason": latest.get("blocked_reason") or liveness["reason"],
+                    "readiness_ttl_seconds": liveness["max_age_seconds"],
+                })
             if path == "/api/v1/report/latest":
-                return self._send(200 if latest else 503, latest or blocked_report())
+                report = latest or blocked_report()
+                return self._send(200 if report.get("state") == "DATA_READY" else 503, report)
             if path == "/api/v1/whitebox/summary":
                 return self._send(200, {
                     "state": latest.get("state", "SYSTEM_BLOCKED"),

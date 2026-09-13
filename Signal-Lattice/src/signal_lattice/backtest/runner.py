@@ -71,6 +71,10 @@ S2_REVIEW_GRID = {
 # DEFAULT_AUD_USD=0.66。Stage 4 单分支比较以同一 1,980 USD 起始资金运行。
 DEFAULT_CAPITAL_USD = 1_980.0
 MIN_COMPLETE_WINDOWS = 2
+# 一个严格样本外窗口为 6 个月。PROMO-1 的最短样本外年限为 3 年，
+# 因而收益数字的统一发布门也必须是 6 个窗口，避免 S1 用更低标准发布业绩。
+MIN_OOS_WINDOWS_FOR_PROFITABILITY = 6
+OOS_HISTORY_INSUFFICIENT_MESSAGE = "样本外历史不足，仅供研究参考，不构成收益证据。"
 
 
 @dataclass(frozen=True)
@@ -459,7 +463,30 @@ def promotion_reason(performance: Mapping[str, Any], verdict: Mapping[str, Any])
     return "PROMO-1 通过" if verdict["passed"] else "PROMO-1 未通过：" + "；".join(deficits)
 
 
+def branch_sample_sufficiency(branch: Mapping[str, Any]) -> str:
+    observed = len(branch.get("contributions", []))
+    if observed < MIN_OOS_WINDOWS_FOR_PROFITABILITY:
+        return f"OOS_HISTORY_INSUFFICIENT: {observed}/{MIN_OOS_WINDOWS_FOR_PROFITABILITY}"
+    return f"OOS_HISTORY_SUFFICIENT: {observed}/{MIN_OOS_WINDOWS_FOR_PROFITABILITY}"
+
+
+def sample_sufficiency(branches: Mapping[str, Mapping[str, Any]]) -> str:
+    statuses = [branch_sample_sufficiency(branch) for branch in branches.values()]
+    insufficient = [
+        status for status in statuses
+        if status.startswith("OOS_HISTORY_INSUFFICIENT:")
+    ]
+    if insufficient:
+        # 一个严格门约束全部收益发布；取最少窗口数，使顶层状态始终是可直接行动的 N/M。
+        counts = [int(status.split(": ", 1)[1].split("/", 1)[0]) for status in insufficient]
+        return f"OOS_HISTORY_INSUFFICIENT: {min(counts)}/{MIN_OOS_WINDOWS_FOR_PROFITABILITY}"
+    return f"OOS_HISTORY_SUFFICIENT: {MIN_OOS_WINDOWS_FOR_PROFITABILITY}/{MIN_OOS_WINDOWS_FOR_PROFITABILITY}"
+
+
 def profitability_status(branches: Mapping[str, Mapping[str, Any]]) -> str:
+    sufficiency = sample_sufficiency(branches)
+    if sufficiency.startswith("OOS_HISTORY_INSUFFICIENT:"):
+        return sufficiency
     ready = [
         branch for branch in branches.values()
         if branch.get("status") == "OOS_READY"
@@ -501,6 +528,30 @@ def run_backtest(
             bars_by_symbol, instrument_map, fee, capital_usd, train_months, test_months
         ),
     }
+    # 每个分支条目自带样本外充足性与收益证据判定。
+    # 只改顶层 profitability_status 不够：机器消费方读到分支上的 status="OOS_READY"
+    # 会当成"收益结论可用"，而那正是本项目一路在消灭的误读面。
+    # 但也不能重载 status —— "OOS_READY" 说的是滚动前推结构跑通了，
+    # 与"收益证据是否充分"是两件事，混在一个字段里会级联污染顶层状态判定。
+    # 因此用独立字段表达，语义不重叠。
+    for branch in branches.values():
+        sufficiency = branch_sample_sufficiency(branch)
+        branch["sample_sufficiency"] = sufficiency
+        insufficient = sufficiency.startswith("OOS_HISTORY_INSUFFICIENT:")
+        branch["profitability_evidence"] = (
+            "INSUFFICIENT" if insufficient else "SUFFICIENT"
+        )
+        if insufficient:
+            branch["profitability_evidence_note"] = (
+                "样本外历史不足，仅供研究参考，不构成收益证据"
+            )
+    for branch in branches.values():
+        branch["sample_sufficiency"] = branch_sample_sufficiency(branch)
+        branch["sample_sufficiency_message"] = (
+            OOS_HISTORY_INSUFFICIENT_MESSAGE
+            if branch["sample_sufficiency"].startswith("OOS_HISTORY_INSUFFICIENT:")
+            else "样本外历史达到收益证据门。"
+        )
     contributions = [
         sample
         for branch in branches.values()
@@ -513,6 +564,8 @@ def run_backtest(
             "train_months": train_months,
             "test_months": test_months,
             "minimum_complete_windows": MIN_COMPLETE_WINDOWS,
+            "minimum_oos_windows_for_profitability": MIN_OOS_WINDOWS_FOR_PROFITABILITY,
+            "profitability_gate": "收益数字与 PROMO-1 的 3 年样本外年限对齐；样本不足时只保留方向性研究结论。",
             "parameter_selection": "仅训练窗口网格搜索；test 窗口从不参与选参。",
             "risk_adjusted_excess_formula": "excess_return / active_daily_volatility；零波动时为 null。",
             "dynamic_contribution_weighting": "CONSUMED_BY_STAGE_3_AGGREGATE",
@@ -529,6 +582,12 @@ def run_backtest(
             "samples": contributions,
             "storage": "state_dir/backtest/contribution_samples.json",
         },
+        "sample_sufficiency": sample_sufficiency(branches),
+        "sample_sufficiency_message": (
+            OOS_HISTORY_INSUFFICIENT_MESSAGE
+            if sample_sufficiency(branches).startswith("OOS_HISTORY_INSUFFICIENT:")
+            else "样本外历史达到收益证据门。"
+        ),
         "profitability_status": profitability_status(branches),
     }
     if state_dir is not None:

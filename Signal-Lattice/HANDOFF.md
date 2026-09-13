@@ -4,13 +4,13 @@
 
 ## 当前目标
 
-修复对抗性审查确认的三个 no-ship 根因：日线坏响应缓存、Hedge 极端有限输入和
-NaN/Infinity 行情值。Stage 4 的严格样本外回测、贡献度落盘和 PROMO-1 判定保持
-原状；Stage 5 部署保持原状。
+修复第二轮对抗性审查确认的三条 high：循环失联仍宣告 ready、全量 JSONL 无界膨胀、
+一年样本外发布收益数字。现有数据新鲜度阻断、未实现分支权重为 0 与 S2 的 PROMO-1
+排除保持原状；Stage 5 部署不在本轮范围内。
 
 ## 当前状态
 
-STAGE_3_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE。当前 worktree 没有目标机的运行期
+STAGE_4_SECOND_ADVERSARIAL_REMEDIATION_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE。当前 worktree 没有目标机的运行期
 `state_dir`，因此本机没有重放真实行情。目标机已产出的真实贡献度输入表明：S1 有
 4 条可用样本，S2 有 10 条样本但 PROMO-1 未通过并保持
 `EXCLUDED_PENDING_BACKTEST`。据此，本轮实际权重模式为 `COLD_START_EQUAL`：
@@ -204,6 +204,36 @@ Stage 4 已有的固定序列夹具继续覆盖：
   不作为本轮真实回测或 S2 解禁证据。
 - 完整测试已在当前工作区执行；上述输出保留 11 个既有非 TCP 红灯，并如实区分了
   sandbox 的 7 个 TCP `PermissionError`。
+
+## 2026-09-14 第二轮对抗性审查修复
+
+- 就绪 TTL：`READY_TTL_LOOP_MULTIPLIER = 3` 与 `READY_TTL_FETCH_ALLOWANCE_SECONDS = 90`；
+  `TTL = 3 × loop_seconds + 90 秒`，默认 60 秒循环为 270 秒。循环每轮开始写
+  `state_dir/heartbeat.json`；API 同时检查 `latest.generated_at` 与心跳。任一超过 TTL 时，
+  `/health/ready` 返回 503，`/api/v1/report/latest` 返回
+  `SYSTEM_BLOCKED/COLLECTION_LOOP_UNREACHABLE` 和“采集循环失联，结论已过期”，与
+  “数据链路不完整，不出结论”保持不同原因与文案。
+- History 预算：默认 60 秒循环的完整美股交易月最多约 `390 分钟 × 21 日 = 8,190`
+  次候选变化。仅记录报价增量与四字段决策摘要，按
+  `market_changes-YYYY-MM-DD.jsonl` 分日；每日至多 240 条且 64 KiB，保留 31 天，
+  运行期硬上限 `31 × 64 KiB = 1.94 MiB`。每次 `save()` 自动清理过期分日文件及
+  旧的全量 `market_changes.jsonl`；`history_storage` 在 latest report 中公开当前条数、
+  字节数和预算，回测/分支全量结果不再写入 history。
+- 收益证据门：保留 `MIN_COMPLETE_WINDOWS = 2` 作为“结构上可计算”门，新增
+  `MIN_OOS_WINDOWS_FOR_PROFITABILITY = 6`。6 个 6 个月窗口等于 3 年，精确对齐
+  PROMO-1 的 `min_years = 3.0`，对 S1/S2 同等适用；不降低 S2 的 PROMO-1。低于
+  此门时，顶层 `profitability_status` 为
+  `OOS_HISTORY_INSUFFICIENT: N/6` 且不输出任何超额收益数字。方向性结论继续保留，
+  但 `decision.sample_sufficiency` 与页面显著说明“样本外历史不足，仅供研究参考，
+  不构成收益证据”；页面同时隐藏收益和逐窗口业绩数字。
+- 本轮新增夹具：过期报告/心跳的无 TCP endpoint 测试、history 条数/容量/全量负载回归、
+  收益门与方向性标记回归。定向命令
+  `PYTHONPYCACHEPREFIX=/private/tmp/signal-lattice-pycache PYTHONPATH=src python3 -m pytest tests/test_live_api.py tests/test_live_runtime.py tests/test_backtest.py -q`
+  结果 `11 passed in 2.02s`；`py_compile` 与 `node --check web/app.js` 通过。用户指定完整命令
+  `PYTHONPATH=src python3 -m pytest tests/ -q` 结果为 `18 failed, 136 passed, 1 skipped in 17.27s`：
+  7 条为 sandbox 禁止 TCP bind 的 `PermissionError`（`test_api.py` 5 条、
+  `test_public_release.py` 2 条），其余 11 条为既有 deployment/formal lifecycle/
+  Python 3.9 缺 `tomllib`/交付清单/状态机基线，新增夹具没有失败。
 
 ## 下一步
 
