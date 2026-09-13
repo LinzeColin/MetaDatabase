@@ -7,9 +7,11 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from signal_lattice.weighting import (
     HEDGE_LEARNING_RATE,
+    MAX_STANDARDIZED_CONTRIBUTION,
     MIN_CONTRIBUTION_SAMPLES,
     WEIGHT_CAP,
     WEIGHT_FLOOR,
@@ -190,6 +192,48 @@ class ContributionWeightTests(unittest.TestCase):
         self.assertEqual(items["s1_momentum"]["weight_status"], "INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8")
         self.assertEqual(items["s2_meanrev"]["weight"], 0.0)
         self.assertEqual(items["s2_meanrev"]["weight_status"], "EXCLUDED_BY_BRANCH_GATE:EXCLUDED_PENDING_BACKTEST")
+
+    def test_extreme_finite_contributions_are_truncated_and_keep_weights_bounded(self):
+        samples = [
+            contribution(branch_id, index, risk_adjusted=value)
+            for index in range(MIN_CONTRIBUTION_SAMPLES)
+            for branch_id, value in (("positive", 1e300), ("negative", -1e300))
+        ]
+
+        result = calculate_contribution_weights(
+            samples,
+            branch_ids=["positive", "negative"],
+            eligible_branch_ids=["positive", "negative"],
+        )
+        items = by_branch(result)
+
+        self.assertEqual(result["weight_mode"], "CONTRIBUTION_WEIGHTED")
+        self.assertAlmostEqual(sum(result["weights"].values()), 1.0)
+        self.assertTrue(all(math.isfinite(weight) for weight in result["weights"].values()))
+        self.assertTrue(all(WEIGHT_FLOOR <= weight <= WEIGHT_CAP for weight in result["weights"].values()))
+        for item in items.values():
+            self.assertEqual(item["contribution_input_truncation"]["status"], "STANDARDIZED_CONTRIBUTION_TRUNCATED")
+            self.assertEqual(item["contribution_input_truncation"]["truncated_period_count"], MIN_CONTRIBUTION_SAMPLES)
+            self.assertTrue(all(step["input_truncated"] for step in item["weight_trajectory"]))
+            self.assertTrue(all(abs(step["update_value"]) == MAX_STANDARDIZED_CONTRIBUTION for step in item["weight_trajectory"]))
+
+    def test_uncomputable_weight_normalization_degrades_to_explicit_cold_start(self):
+        samples = [
+            contribution(branch_id, index, risk_adjusted=value)
+            for index in range(MIN_CONTRIBUTION_SAMPLES)
+            for branch_id, value in (("a", 0.1), ("b", -0.1))
+        ]
+
+        with patch("signal_lattice.weighting._log_sum_exp_normalize", return_value=None):
+            result = calculate_contribution_weights(
+                samples,
+                branch_ids=["a", "b"],
+                eligible_branch_ids=["a", "b"],
+            )
+
+        self.assertEqual(result["weight_mode"], "COLD_START_EQUAL")
+        self.assertTrue(all(item["weight"] == 0.5 for item in result["branches"]))
+        self.assertTrue(all(item["weight_status"].startswith("COLD_START_EQUAL_WEIGHTING_DEGRADED:") for item in result["branches"]))
 
 
 if __name__ == "__main__":

@@ -4,9 +4,9 @@
 
 ## 当前目标
 
-Stage 3 已完成代码接入：聚合层读取 Stage 4 落盘的逐期贡献度样本，在既有资格门
-之后以 Hedge 分配权重并完整公开复算轨迹。Stage 4 保持其严格样本外回测、贡献度
-落盘和 PROMO-1 判定；Stage 5 部署保持原状。
+修复对抗性审查确认的三个 no-ship 根因：日线坏响应缓存、Hedge 极端有限输入和
+NaN/Infinity 行情值。Stage 4 的严格样本外回测、贡献度落盘和 PROMO-1 判定保持
+原状；Stage 5 部署保持原状。
 
 ## 当前状态
 
@@ -24,6 +24,40 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
   24 个月训练加 6 个月测试窗口。
 - 本任务禁止联网，因此没有用短窗、全样本或 Alpha 历史报告替代当前真实回测。
 
+## 2026-09-14 对抗性审查修复
+
+- 日线缓存：`fetch_validated_cached` 成为 Sina、Tencent、EastMoney 三个日线 provider
+  的共享路径。缓存与新响应都先解析；解析成功后才落盘。命中坏缓存会只删除该键，
+  当前调用内只重新拉取一次；重拉失败把 `MarketDataError` 交给既有阻断链路。
+- 动态权重：`weighting.py` 改为对数权重加 log-sum-exp 归一化。新增
+  `MAX_STANDARDIZED_CONTRIBUTION = 20.0`：`risk_adjusted_excess` 的单位是 active
+  volatility 标准化单位，截断后的单期对数更新为 ±2（`eta=0.10`），单期倍率处于
+  `e^-2` 至 `e^2`，足以保留极端贡献差异，同时隔离极小非零波动率导致的有限异常值。
+  分支输出 `contribution_input_truncation` 和每期 `input_truncated`；不可计算的开始权重、
+  期间输入、log 归一化或边界状态统一返回 `COLD_START_EQUAL_WEIGHTING_DEGRADED:<原因>`，
+  并显示明确降级原因。
+- 有限数值边界：Sina/Tencent 报价在 `math.isfinite` 后才接纳；全部日线 provider
+  对 OHLC 与已提供 volume 检查有限性。`LiveEngine` 对 quote 和 bar 再检查一次，
+  `QUOTE_NONFINITE` / `BAR_NONFINITE` 直接使报告为 `SYSTEM_BLOCKED`。运行期报告、
+  回测落盘、V2 API 与 CLI 通过 `strict_json_dumps(..., allow_nan=False)` 写出；严格 JSON
+  边界若发现非有限数值，替换为带 `SERIALIZATION_NONFINITE_VALUE` 的清洁阻断报告。
+- 新增夹具：三家日线 provider 分别覆盖缓存 HTML 命中后的单次重拉与新 HTML 响应不入缓存；
+  报价 NaN/Infinity、OHLCV 非有限值和运行时 NaN 报价均覆盖；`1e300` 与 `-1e300`
+  的有限贡献度覆盖有界权重和截断披露；log 归一化不可计算覆盖显式冷启动降级。
+
+### MIN_COMPLETE_WINDOWS 核实结论
+
+确认存在表述层矛盾，当前轮未修改它以保持“只修三条 no-ship”的范围：
+
+- `MIN_COMPLETE_WINDOWS = 2` 允许约一年样本外后 S1/S2 branch 进入 `OOS_READY`，
+  `run_backtest` 也会在任一分支达到该状态时返回 `OOS_READY`。
+- `profitability_status` 会直接展示该分支的样本外超额收益，没有补充样本外历史少于
+  3 年的限制。S2 的 PROMO-1 自己检查 `min_years = 3.0`，因此 S2 仍保持推广排除；
+  S1 没有同等的就绪表述门。
+- 建议后续作为独立批准变更：保留 `OOS_READY` 表示“结构上可计算”，新增面向收益结论
+  的 `OOS_HISTORY_INSUFFICIENT` / `profitability_readiness` 门，并让
+  `profitability_status` 在严格样本外历史未达 3 年时明确显示不足而非直接展示为就绪。
+
 ## Stage 3 实现与关键决定
 
 - 新增 `src/signal_lattice/weighting.py`，只读取
@@ -38,8 +72,8 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
   至少 40% 的比较空间。单一已资格分支处于冷启动时为结构性 100%，不存在可比较
   的其他参与者。
 - 每条分支记录样本数、可用样本数、累计风险调整超额、累计实际更新值、风险调整
-  超额与 `excess_return` 回退来源、每期起止权重和未约束乘数。权重可据
-  `w_i ← w_i × exp(η × r_i)` 手工重算。
+  超额与 `excess_return` 回退来源、每期起止权重和未约束乘数。动态更新使用经过
+  截断的贡献度、对数权重与 log-sum-exp 归一化，轨迹保存 raw/applied 输入和截断标记。
 - 样本不足的已资格分支保持自己的冷启动等权份额；样本充足分支在剩余份额内动态
   更新。全部已资格分支样本不足时，模式为 `COLD_START_EQUAL`。推广门排除的分支
   保持 0 权重，不进入样本充足性或 Hedge 计算。
@@ -100,6 +134,7 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
 - src/signal_lattice/backtest/fees.py
 - src/signal_lattice/backtest/calendar_effects.py
 - src/signal_lattice/backtest/runner.py
+- src/signal_lattice/serialization.py
 - src/signal_lattice/branches/runtime.py
 - src/signal_lattice/weighting.py
 - src/signal_lattice/aggregate.py
@@ -109,6 +144,7 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
 - tests/test_backtest.py
 - tests/test_branch_verdicts.py
 - tests/test_weighting.py
+- tests/test_marketdata_providers.py
 
 ## 已验证
 
@@ -145,6 +181,20 @@ Stage 4 已有的固定序列夹具继续覆盖：
 - PROMO-1 的 3 年、0.6%、30% 边界与月均收益低于门槛的失败判定。
 
 同时已通过 node --check web/app.js、python 编译检查和 git diff --check。
+
+对抗性审查修复定向测试：
+
+    PYTHONPYCACHEPREFIX=/private/tmp/signal-lattice-pycache PYTHONPATH=src python3 -m pytest tests/test_marketdata_providers.py tests/test_weighting.py tests/test_backtest.py tests/test_aggregate.py tests/test_branch_verdicts.py tests/test_live_api.py -q
+
+结果：`37 passed in 2.23s`。
+
+用户指定完整测试：
+
+    PYTHONPATH=src python3 -m pytest tests/ -q
+
+结果：`18 failed, 132 passed, 1 skipped in 18.97s`。18 个失败完全由既有 11 个
+发布/正式生命周期/Python 3.9/交付清单/状态机基线失败和 sandbox 的 7 个 TCP bind
+`PermissionError` 组成；本轮新增测试未增加失败项。
 
 ## 未解决风险
 

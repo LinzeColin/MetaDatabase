@@ -21,6 +21,11 @@ MIN_CONTRIBUTION_SAMPLES = 8
 # 能反映贡献差异，也不会让一个窗口直接决定全部后续权重。
 HEDGE_LEARNING_RATE = 0.10
 
+# risk_adjusted_excess 是以 active volatility 标准化后的单期量。把它限定在 ±20
+# 个标准化单位后，单期 Hedge 对数更新位于 ±2，倍率位于 e^-2 至 e^2；极端贡献
+# 仍能显著影响权重，同时极小波动率产生的有限异常值不会主导整个权重轨迹。
+MAX_STANDARDIZED_CONTRIBUTION = 20.0
+
 # 保留每个动态分支至少 5% 的恢复空间；单个分支最多 60%，使其余分支至少保留
 # 40% 的比较空间。只有一个可参与分支时不存在可比较对象，冷启动权重为 100%。
 WEIGHT_FLOOR = 0.05
@@ -122,7 +127,17 @@ def calculate_contribution_weights(
 
     dynamic_ids = [item["branch_id"] for item in sufficient]
     dynamic_mass = 1.0 - cold_start_share * len(insufficient)
-    dynamic_weights = _hedge_weights(dynamic_ids, details, dynamic_mass)
+    dynamic_weights, calculation_issue = _hedge_weights(dynamic_ids, details, dynamic_mass)
+    if calculation_issue:
+        equal_weight = 1.0 / len(eligible)
+        for item in eligible_details:
+            item["weight"] = equal_weight
+            item["weight_status"] = f"COLD_START_EQUAL_WEIGHTING_DEGRADED:{calculation_issue}"
+            item["weighting_degradation"] = calculation_issue
+            item["weight_trajectory"] = []
+            item["weight_trajectory_summary"] = {"start_weight": equal_weight, "end_weight": equal_weight}
+        return _result("COLD_START_EQUAL", weight_sample_count, details, eligible)
+
     for branch_id, weight in dynamic_weights.items():
         item = details[branch_id]
         item["weight"] = weight
@@ -163,6 +178,11 @@ def _branch_detail(
         "negative_update_count": sum(1 for _, value, _ in usable if value < 0.0),
         "metric_source_counts": source_counts,
         "metric_source": _metric_source_label(source_counts),
+        "contribution_input_truncation": {
+            "limit_standardized_units": MAX_STANDARDIZED_CONTRIBUTION,
+            "truncated_period_count": 0,
+            "status": "NONE",
+        },
         "weight_trajectory": [],
         "weight_trajectory_summary": {"start_weight": 0.0, "end_weight": 0.0},
         "participation_status": participation_status or ("COLD_START_ELIGIBLE" if eligible else "UNSPECIFIED"),
@@ -215,9 +235,11 @@ def _hedge_weights(
     dynamic_ids: Sequence[str],
     details: Mapping[str, dict[str, Any]],
     total_mass: float,
-) -> dict[str, float]:
-    """同步执行 Hedge 更新，并把每期的起止权重保存在分支自身轨迹中。"""
+) -> tuple[dict[str, float], str | None]:
+    """同步执行对数 Hedge 更新，并把每期的起止权重保存在分支自身轨迹中。"""
     weights = _bounded_normalize({branch_id: 1.0 for branch_id in dynamic_ids}, total_mass)
+    if weights is None:
+        return {}, "WEIGHT_BOUNDS_INFEASIBLE_FOR_DYNAMIC_COHORT"
     for branch_id in dynamic_ids:
         details[branch_id]["weight_trajectory_summary"] = {
             "start_weight": weights[branch_id],
@@ -237,51 +259,100 @@ def _hedge_weights(
     for period_start, period_end, window_label in sorted(periods):
         updates = periods[(period_start, period_end, window_label)]
         starting = dict(weights)
-        raw_weights: dict[str, float] = {}
-        period_metrics: dict[str, tuple[float | None, str]] = {}
+        if any(weight <= 0.0 or not math.isfinite(weight) for weight in starting.values()):
+            return {}, "WEIGHT_START_STATE_UNCOMPUTABLE"
+        candidate_logs: dict[str, float] = {}
+        period_metrics: dict[str, tuple[float | None, float | None, str, bool]] = {}
         for branch_id in dynamic_ids:
             values = updates.get(branch_id, [])
             if values:
-                update_value = sum(value for value, _ in values) / len(values)
+                raw_update_value = _finite_mean([value for value, _ in values])
+                if raw_update_value is None:
+                    return {}, "WEIGHT_PERIOD_INPUT_UNCOMPUTABLE"
+                update_value, truncated = _truncate_standardized_contribution(raw_update_value)
                 sources = {source for _, source in values}
                 source = next(iter(sources)) if len(sources) == 1 else "MIXED_PERIOD_METRICS"
-                raw_weights[branch_id] = starting[branch_id] * math.exp(HEDGE_LEARNING_RATE * update_value)
-                period_metrics[branch_id] = (update_value, source)
+                candidate_logs[branch_id] = math.log(starting[branch_id]) + HEDGE_LEARNING_RATE * update_value
+                period_metrics[branch_id] = (raw_update_value, update_value, source, truncated)
             else:
-                raw_weights[branch_id] = starting[branch_id]
-                period_metrics[branch_id] = (None, "NO_SAMPLE_NO_UPDATE")
-        weights = _bounded_normalize(raw_weights, total_mass)
+                candidate_logs[branch_id] = math.log(starting[branch_id])
+                period_metrics[branch_id] = (None, None, "NO_SAMPLE_NO_UPDATE", False)
+        weights = _log_sum_exp_normalize(candidate_logs, total_mass)
+        if weights is None:
+            return {}, "WEIGHT_LOG_NORMALIZATION_UNCOMPUTABLE"
         for branch_id in dynamic_ids:
-            update_value, source = period_metrics[branch_id]
+            raw_update_value, update_value, source, truncated = period_metrics[branch_id]
+            multiplier = math.exp(HEDGE_LEARNING_RATE * update_value) if update_value is not None else 1.0
+            unconstrained_weight = starting[branch_id] * multiplier
+            truncation = details[branch_id]["contribution_input_truncation"]
+            if truncated:
+                truncation["truncated_period_count"] += 1
+                truncation["status"] = "STANDARDIZED_CONTRIBUTION_TRUNCATED"
             details[branch_id]["weight_trajectory"].append(
                 {
                     "period_start": period_start,
                     "period_end": period_end,
                     "window_label": window_label,
                     "start_weight": starting[branch_id],
+                    "raw_update_value": raw_update_value,
                     "update_value": update_value,
                     "metric_source": source,
-                    "unconstrained_weight": raw_weights[branch_id],
+                    "input_truncated": truncated,
+                    "unconstrained_log_weight": candidate_logs[branch_id],
+                    "unconstrained_weight": unconstrained_weight,
                     "end_weight": weights[branch_id],
                 }
             )
             details[branch_id]["weight_trajectory_summary"]["end_weight"] = weights[branch_id]
-    return weights
+    return weights, None
 
 
-def _bounded_normalize(raw_weights: Mapping[str, float], total_mass: float) -> dict[str, float]:
+def _finite_mean(values: Sequence[float]) -> float | None:
+    """缩放后求均值，有限的极端输入仍能保持有限均值。"""
+    if not values or any(not math.isfinite(value) for value in values):
+        return None
+    scale = max(abs(value) for value in values)
+    if scale == 0.0:
+        return 0.0
+    return math.fsum(value / scale for value in values) / len(values) * scale
+
+
+def _truncate_standardized_contribution(value: float) -> tuple[float, bool]:
+    if value > MAX_STANDARDIZED_CONTRIBUTION:
+        return MAX_STANDARDIZED_CONTRIBUTION, True
+    if value < -MAX_STANDARDIZED_CONTRIBUTION:
+        return -MAX_STANDARDIZED_CONTRIBUTION, True
+    return value, False
+
+
+def _log_sum_exp_normalize(log_weights: Mapping[str, float], total_mass: float) -> dict[str, float] | None:
+    """用 log-sum-exp 转成相对权重，再投影到既有的 floor/cap 边界。"""
+    if not log_weights or any(not math.isfinite(value) for value in log_weights.values()):
+        return None
+    maximum = max(log_weights.values())
+    relative = {branch_id: math.exp(value - maximum) for branch_id, value in log_weights.items()}
+    return _bounded_normalize(relative, total_mass)
+
+
+def _bounded_normalize(raw_weights: Mapping[str, float], total_mass: float) -> dict[str, float] | None:
     """把正权重投影到总和为 ``total_mass`` 且每项受 floor/cap 约束的单纯形。"""
     branch_ids = sorted(raw_weights)
+    if not branch_ids or not math.isfinite(total_mass) or total_mass <= 0.0:
+        return None
+    if any(weight <= 0.0 or not math.isfinite(weight) for weight in raw_weights.values()):
+        return None
     if len(branch_ids) == 1:
         return {branch_ids[0]: total_mass}
     if total_mass < len(branch_ids) * WEIGHT_FLOOR or total_mass > len(branch_ids) * WEIGHT_CAP:
-        raise ValueError("WEIGHT_BOUNDS_INFEASIBLE_FOR_DYNAMIC_COHORT")
+        return None
 
     remaining = set(branch_ids)
     allocated: dict[str, float] = {}
     remaining_mass = total_mass
     while remaining:
         denominator = sum(raw_weights[branch_id] for branch_id in remaining)
+        if denominator <= 0.0 or not math.isfinite(denominator):
+            return None
         proposed = {
             branch_id: (raw_weights[branch_id] / denominator * remaining_mass)
             for branch_id in remaining
@@ -302,6 +373,8 @@ def _bounded_normalize(raw_weights: Mapping[str, float], total_mass: float) -> d
                 allocated[branch_id] = WEIGHT_FLOOR
                 remaining.remove(branch_id)
                 remaining_mass -= WEIGHT_FLOOR
+    if len(allocated) != len(branch_ids) or any(not math.isfinite(weight) for weight in allocated.values()):
+        return None
     return allocated
 
 
@@ -337,6 +410,7 @@ def _result(
         "weight_sample_count": weight_sample_count,
         "minimum_contribution_samples": MIN_CONTRIBUTION_SAMPLES,
         "learning_rate": HEDGE_LEARNING_RATE,
+        "max_standardized_contribution": MAX_STANDARDIZED_CONTRIBUTION,
         "weight_floor": WEIGHT_FLOOR,
         "weight_cap": WEIGHT_CAP,
         "eligible_branch_ids": list(eligible_branch_ids),

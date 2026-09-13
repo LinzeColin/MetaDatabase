@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import mimetypes
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -12,6 +11,7 @@ from urllib.parse import urlparse
 from .aggregate import blocked_decision
 from .live_config import APP_VERSION, LiveSettings
 from .live_runtime import LiveStore
+from .serialization import JsonSerializationConstraintError, strict_json_dumps
 
 
 HEADERS = {
@@ -37,7 +37,17 @@ def handler(settings: LiveSettings, store: LiveStore):
             return None
 
         def _send(self, status: int, payload, content_type: str = "application/json; charset=utf-8") -> None:
-            raw = payload if isinstance(payload, bytes) else json.dumps(payload, ensure_ascii=False).encode("utf-8")
+            if isinstance(payload, bytes):
+                raw = payload
+            else:
+                try:
+                    raw = strict_json_dumps(payload, ensure_ascii=False).encode("utf-8")
+                except JsonSerializationConstraintError:
+                    status = 503
+                    raw = strict_json_dumps({
+                        **blocked_report(),
+                        "serialization_constraint": "NONFINITE_JSON_VALUE",
+                    }, ensure_ascii=False).encode("utf-8")
             self.send_response(status)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(raw)))

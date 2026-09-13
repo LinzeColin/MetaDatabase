@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 from datetime import date, datetime
 from typing import Dict, Iterable, List
 
-from .base import DiskCache, HttpClient, MarketDataError, utc_now
+from .base import DiskCache, HttpClient, MarketDataError, fetch_validated_cached, utc_now
 from .models import Bar, Instrument, Quote
 
 
@@ -51,7 +52,7 @@ class SinaQuoteProvider:
                 price = float(parts[price_index])
             except (IndexError, ValueError):
                 continue
-            if price <= 0:
+            if not math.isfinite(price) or price <= 0:
                 continue
             source_time = None
             match = _TIMESTAMP.search(raw)
@@ -145,7 +146,11 @@ class SinaKlineProvider:
                 ))
             except (KeyError, TypeError, ValueError):
                 continue
-        unique = {bar.day: bar for bar in bars if bar.close > 0 and bar.high > 0 and bar.low > 0}
+        unique = {
+            bar.day: bar
+            for bar in bars
+            if bar.has_finite_ohlcv() and bar.close > 0 and bar.high > 0 and bar.low > 0
+        }
         ordered = [unique[day_key] for day_key in sorted(unique)]
         if len(ordered) < 2:
             raise MarketDataError("SINA_KLINE_INSUFFICIENT:%s" % instrument.symbol)
@@ -156,9 +161,11 @@ class SinaKlineProvider:
         if not kline_symbol or instrument.market not in {"US", "CN"}:
             raise MarketDataError("SINA_KLINE_UNSUPPORTED:%s" % instrument.symbol)
         key = "sina_%s_bars_%s" % (instrument.market.lower(), instrument.symbol.lower())
-        payload = self.cache.load(key, 6 * 60 * 60)
-        if payload is None:
-            endpoint = self.us_endpoint if instrument.market == "US" else self.cn_endpoint
-            payload = self.client.get(endpoint.format(symbol=kline_symbol), {"Referer": SINA_REFERER})
-            self.cache.save(key, payload)
-        return self.parse(payload, instrument)
+        endpoint = self.us_endpoint if instrument.market == "US" else self.cn_endpoint
+        return fetch_validated_cached(
+            self.cache,
+            key,
+            6 * 60 * 60,
+            lambda: self.client.get(endpoint.format(symbol=kline_symbol), {"Referer": SINA_REFERER}),
+            lambda payload: self.parse(payload, instrument),
+        )

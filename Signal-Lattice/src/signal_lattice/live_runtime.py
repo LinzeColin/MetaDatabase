@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -14,6 +15,7 @@ from .branches import build_branch_report
 from .live_config import APP_VERSION, LiveSettings
 from .marketdata import DiskCache, EastMoneyFundProvider, HttpClient, MarketDataError, SinaKlineProvider, SinaQuoteProvider, TencentKlineProvider, TencentQuoteProvider
 from .marketdata.models import Bar, Instrument, Quote
+from .serialization import JsonSerializationConstraintError, strict_json_dumps
 
 
 def _iso(value: datetime) -> str:
@@ -37,19 +39,20 @@ class LiveStore:
             return {}
         try:
             value = json.loads(self.latest_path.read_text(encoding="utf-8"))
+            strict_json_dumps(value)
             return value if isinstance(value, dict) else {}
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError, JsonSerializationConstraintError):
             return {}
 
     def save(self, report: dict) -> None:
         previous = self.latest()
         temporary = self.root / ".latest.tmp"
-        temporary.write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        temporary.write_text(strict_json_dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         os.replace(temporary, self.latest_path)
         current_market = report.get("market_fingerprint")
         if current_market and current_market != previous.get("market_fingerprint"):
             with (self.root / "history" / "market_changes.jsonl").open("a", encoding="utf-8") as handle:
-                handle.write(json.dumps(report, ensure_ascii=False, separators=(",", ":")) + "\n")
+                handle.write(strict_json_dumps(report, ensure_ascii=False, separators=(",", ":")) + "\n")
 
 
 class MarketGateway:
@@ -108,6 +111,8 @@ class LiveEngine:
                 quote = quotes.get(item.symbol)
                 if quote is None:
                     findings.append("QUOTE_MISSING:%s" % item.symbol)
+                elif not math.isfinite(quote.price):
+                    findings.append("QUOTE_NONFINITE:%s" % item.symbol)
                 elif (now - quote.observed_at).total_seconds() > self.settings.quote_max_age_seconds:
                     findings.append("QUOTE_STALE:%s" % item.symbol)
                 elif quote.source_time and quote.source_time.date() < (now.date() - timedelta(days=self.settings.bar_max_age_days)):
@@ -115,6 +120,9 @@ class LiveEngine:
             series = bars.get(item.symbol)
             if not series:
                 findings.append("BAR_MISSING:%s" % item.symbol)
+                continue
+            if any(not bar.has_finite_ohlcv() for bar in series):
+                findings.append("BAR_NONFINITE:%s" % item.symbol)
                 continue
             latest = series[-1].day
             if latest < now.date() - timedelta(days=self.settings.bar_max_age_days):
@@ -128,10 +136,41 @@ class LiveEngine:
             "bars": {symbol: series[-1].day.isoformat() for symbol, series in sorted(bars.items()) if series},
         }
 
+    def _serialization_blocked_report(self, now: datetime, findings: List[str]) -> dict:
+        """严格 JSON 边界发现非有限数值时，保留阻断事实而不写出坏报告。"""
+        return {
+            "application_version": APP_VERSION,
+            "generated_at": _iso(now),
+            "state": "SYSTEM_BLOCKED",
+            "automatic_trading": False,
+            "data_cutoff": None,
+            "data_cutoff_by_symbol": {},
+            "instruments": {
+                item.symbol: {"name": item.name, "market": item.market, "asset_type": item.asset_type}
+                for item in self.settings.universe
+            },
+            "bar_sources": {},
+            "quote_observed_at": None,
+            "quote_sources": {},
+            "quotes": {},
+            "market_fingerprint": {"quotes": {}, "bars": {}},
+            "freshness_findings": [*findings, "SERIALIZATION_NONFINITE_VALUE"],
+            "message": "报告包含非有限数值，已阻断结论。",
+            "backtest": {
+                "status": "SYSTEM_BLOCKED",
+                "message": "报告包含非有限数值，未运行或发布回测结论。",
+                "profitability_status": "SYSTEM_BLOCKED",
+            },
+            **blocked_aggregate_report(),
+        }
+
     def run_once(self) -> dict:
         now = datetime.now(timezone.utc)
         quotes, bars, errors = self.gateway.fetch(self.settings.universe)
         findings = self._validate(now, quotes, bars, errors)
+        reportable_quotes = {
+            symbol: quote for symbol, quote in quotes.items() if math.isfinite(quote.price)
+        }
         cutoffs = {symbol: series[-1].day.isoformat() for symbol, series in bars.items() if series}
         bar_sources = {
             symbol: {
@@ -143,47 +182,51 @@ class LiveEngine:
             for symbol, series in sorted(bars.items())
             if series
         }
-        quote_observed_at = min((quote.observed_at for quote in quotes.values()), default=None)
+        quote_observed_at = min((quote.observed_at for quote in reportable_quotes.values()), default=None)
         state = "SYSTEM_BLOCKED" if findings else "DATA_READY"
-        if state == "DATA_READY":
-            backtest = run_backtest(self.settings.universe, bars, state_dir=self.settings.state_dir)
-            branch_report = build_branch_report(
-                self.settings.universe,
-                bars,
-                backtest,
-                state_dir=self.settings.state_dir,
-            )
-        else:
-            backtest = {
-                "status": "SYSTEM_BLOCKED",
-                "message": "数据不新鲜或数据链路不完整，未运行回测。",
-                "profitability_status": "SYSTEM_BLOCKED",
+        try:
+            if state == "DATA_READY":
+                backtest = run_backtest(self.settings.universe, bars, state_dir=self.settings.state_dir)
+                branch_report = build_branch_report(
+                    self.settings.universe,
+                    bars,
+                    backtest,
+                    state_dir=self.settings.state_dir,
+                )
+            else:
+                backtest = {
+                    "status": "SYSTEM_BLOCKED",
+                    "message": "数据不新鲜或数据链路不完整，未运行回测。",
+                    "profitability_status": "SYSTEM_BLOCKED",
+                }
+                branch_report = {
+                    "branches": [],
+                    "profitability_status": "SYSTEM_BLOCKED",
+                    **blocked_aggregate_report(),
+                }
+            report = {
+                "application_version": APP_VERSION,
+                "generated_at": _iso(now),
+                "state": state,
+                "automatic_trading": False,
+                "data_cutoff": min(cutoffs.values()) if cutoffs else None,
+                "data_cutoff_by_symbol": cutoffs,
+                "instruments": {
+                    item.symbol: {"name": item.name, "market": item.market, "asset_type": item.asset_type}
+                    for item in self.settings.universe
+                },
+                "bar_sources": bar_sources,
+                "quote_observed_at": _iso(quote_observed_at) if quote_observed_at else None,
+                "quote_sources": {symbol: quote.source for symbol, quote in sorted(reportable_quotes.items())},
+                "quotes": {symbol: {"price": quote.price, "currency": quote.currency, "source_time": quote.source_time.isoformat() if quote.source_time else None} for symbol, quote in sorted(reportable_quotes.items())},
+                "market_fingerprint": self._market_fingerprint(reportable_quotes, bars),
+                "freshness_findings": findings,
+                "message": "数据链路不完整，不出结论" if findings else "真实数据已就绪，已完成独立分支计算",
+                "backtest": backtest,
+                **branch_report,
             }
-            branch_report = {
-                "branches": [],
-                "profitability_status": "SYSTEM_BLOCKED",
-                **blocked_aggregate_report(),
-            }
-        report = {
-            "application_version": APP_VERSION,
-            "generated_at": _iso(now),
-            "state": state,
-            "automatic_trading": False,
-            "data_cutoff": min(cutoffs.values()) if cutoffs else None,
-            "data_cutoff_by_symbol": cutoffs,
-            "instruments": {
-                item.symbol: {"name": item.name, "market": item.market, "asset_type": item.asset_type}
-                for item in self.settings.universe
-            },
-            "bar_sources": bar_sources,
-            "quote_observed_at": _iso(quote_observed_at) if quote_observed_at else None,
-            "quote_sources": {symbol: quote.source for symbol, quote in sorted(quotes.items())},
-            "quotes": {symbol: {"price": quote.price, "currency": quote.currency, "source_time": quote.source_time.isoformat() if quote.source_time else None} for symbol, quote in sorted(quotes.items())},
-            "market_fingerprint": self._market_fingerprint(quotes, bars),
-            "freshness_findings": findings,
-            "message": "数据链路不完整，不出结论" if findings else "真实数据已就绪，已完成独立分支计算",
-            "backtest": backtest,
-            **branch_report,
-        }
-        self.store.save(report)
+            self.store.save(report)
+        except JsonSerializationConstraintError:
+            report = self._serialization_blocked_report(now, findings)
+            self.store.save(report)
         return report

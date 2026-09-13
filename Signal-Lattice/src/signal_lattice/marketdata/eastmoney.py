@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 from datetime import datetime, timezone
 from typing import List
 
-from .base import DiskCache, HttpClient, MarketDataError, utc_now
+from .base import DiskCache, HttpClient, MarketDataError, fetch_validated_cached, utc_now
 from .models import Bar, Instrument
 
 
@@ -44,11 +45,12 @@ class EastMoneyFundProvider:
             try:
                 close = float(row["y"])
                 day = datetime.fromtimestamp(float(row["x"]) / 1000.0, tz=timezone.utc).date()
-            except (KeyError, TypeError, ValueError, OSError):
+            except (KeyError, TypeError, ValueError, OSError, OverflowError):
                 continue
-            if close > 0:
-                bars.append(Bar(instrument.symbol, day, close, close, close, close, None,
-                                instrument.timezone, "eastmoney_fund_nav", observed_at))
+            bar = Bar(instrument.symbol, day, close, close, close, close, None,
+                      instrument.timezone, "eastmoney_fund_nav", observed_at)
+            if bar.has_finite_ohlcv() and close > 0:
+                bars.append(bar)
         unique = {bar.day: bar for bar in bars}
         ordered = [unique[day_key] for day_key in sorted(unique)]
         if len(ordered) < 2:
@@ -59,8 +61,10 @@ class EastMoneyFundProvider:
         if not instrument.eastmoney_fund_code:
             raise MarketDataError("EASTMONEY_FUND_UNSUPPORTED:%s" % instrument.symbol)
         key = "fund_" + instrument.symbol.lower()
-        payload = self.cache.load(key, 12 * 60 * 60)
-        if payload is None:
-            payload = self.client.get(self.endpoint.format(code=instrument.eastmoney_fund_code))
-            self.cache.save(key, payload)
-        return self.parse(payload, instrument)
+        return fetch_validated_cached(
+            self.cache,
+            key,
+            12 * 60 * 60,
+            lambda: self.client.get(self.endpoint.format(code=instrument.eastmoney_fund_code)),
+            lambda payload: self.parse(payload, instrument),
+        )

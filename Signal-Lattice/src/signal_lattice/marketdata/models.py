@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime
+import math
 from typing import Optional
 
 
@@ -51,3 +52,10 @@ class Bar:
     exchange_timezone: str
     source: str
     observed_at: datetime
+
+    def has_finite_ohlcv(self) -> bool:
+        """OHLC 与已提供的成交量都必须是有限数值。"""
+        values = (self.open, self.high, self.low, self.close)
+        if self.volume is not None:
+            values += (self.volume,)
+        return all(math.isfinite(value) for value in values)

@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
 from ..marketdata.models import Bar, Instrument
+from ..serialization import strict_json_dumps
 from .fees import FeeModel
 from .pipeline import (
     S1Params,
@@ -544,5 +545,5 @@ def persist_backtest_result(state_dir: Path, result: Mapping[str, Any]) -> None:
         ("contribution_samples.json", result["contribution_summary"]),
     ):
         temporary = root / f".{name}.tmp"
-        temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        temporary.write_text(strict_json_dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         os.replace(temporary, root / name)

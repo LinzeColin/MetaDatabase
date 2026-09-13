@@ -9,10 +9,11 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Callable, Dict, Optional, TypeVar
 
 
 USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"
+ParsedPayload = TypeVar("ParsedPayload")
 
 
 class MarketDataError(RuntimeError):
@@ -64,6 +65,37 @@ class DiskCache:
         temporary = path.with_suffix(".tmp")
         temporary.write_bytes(payload)
         os.replace(temporary, path)
+
+    def delete(self, key: str) -> None:
+        """移除已确认不能解析的缓存项，使本轮可以受限地重新取数。"""
+        try:
+            (self.root / (key + ".json")).unlink()
+        except FileNotFoundError:
+            return
+
+
+def fetch_validated_cached(
+    cache: DiskCache,
+    key: str,
+    max_age_seconds: int,
+    fetch_payload: Callable[[], bytes],
+    parse_payload: Callable[[bytes], ParsedPayload],
+) -> ParsedPayload:
+    """只缓存已完成语义解析的日线响应。
+
+    过期前的缓存仍需重新解析。缓存损坏时只删该键，并在当前调用内执行一次
+    新拉取；新响应同样必须先解析成功，才允许写回缓存。
+    """
+    cached = cache.load(key, max_age_seconds)
+    if cached is not None:
+        try:
+            return parse_payload(cached)
+        except MarketDataError:
+            cache.delete(key)
+    payload = fetch_payload()
+    parsed = parse_payload(payload)
+    cache.save(key, payload)
+    return parsed
 
 
 def utc_now() -> datetime:

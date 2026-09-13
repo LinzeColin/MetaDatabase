@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from datetime import date
+import math
 from typing import Dict, Iterable, List
 
-from .base import DiskCache, HttpClient, MarketDataError, read_json, utc_now
+from .base import DiskCache, HttpClient, MarketDataError, fetch_validated_cached, read_json, utc_now
 from .models import Bar, Instrument, Quote
 
 
@@ -40,7 +41,7 @@ class TencentQuoteProvider:
                 price = float(fields[3])
             except ValueError:
                 continue
-            if price <= 0:
+            if not math.isfinite(price) or price <= 0:
                 continue
             currency = {"CN": "CNY", "HK": "HKD"}.get(instrument.market, "UNKNOWN")
             result[instrument.symbol] = Quote(
@@ -108,7 +109,11 @@ class TencentKlineProvider:
                 ))
             except (TypeError, ValueError):
                 continue
-        unique = {bar.day: bar for bar in bars if bar.close > 0 and bar.high > 0 and bar.low > 0}
+        unique = {
+            bar.day: bar
+            for bar in bars
+            if bar.has_finite_ohlcv() and bar.close > 0 and bar.high > 0 and bar.low > 0
+        }
         ordered = [unique[day_key] for day_key in sorted(unique)]
         if len(ordered) < 2:
             raise MarketDataError("TENCENT_KLINE_INSUFFICIENT:%s" % instrument.symbol)
@@ -118,9 +123,11 @@ class TencentKlineProvider:
         if not instrument.tencent_kline_symbol:
             raise MarketDataError("TENCENT_KLINE_UNSUPPORTED:%s" % instrument.symbol)
         key = "bars_" + instrument.symbol.lower()
-        payload = self.cache.load(key, 6 * 60 * 60)
-        if payload is None:
-            kind = "usfqkline" if instrument.market == "US" else "hkfqkline" if instrument.market == "HK" else "fqkline"
-            payload = self.client.get(self.endpoint.format(kind=kind, symbol=instrument.tencent_kline_symbol))
-            self.cache.save(key, payload)
-        return self.parse(payload, instrument)
+        kind = "usfqkline" if instrument.market == "US" else "hkfqkline" if instrument.market == "HK" else "fqkline"
+        return fetch_validated_cached(
+            self.cache,
+            key,
+            6 * 60 * 60,
+            lambda: self.client.get(self.endpoint.format(kind=kind, symbol=instrument.tencent_kline_symbol)),
+            lambda payload: self.parse(payload, instrument),
+        )
