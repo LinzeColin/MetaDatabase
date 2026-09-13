@@ -230,14 +230,26 @@ def evaluate_s1_verdicts(bars_by_symbol: Mapping[str, Sequence[Bar]]) -> list[Br
     return verdicts
 
 
-def evaluate_s2_verdicts(bars_by_symbol: Mapping[str, Sequence[Bar]]) -> list[BranchVerdict]:
+def evaluate_s2_verdicts(
+    bars_by_symbol: Mapping[str, Sequence[Bar]],
+    promotion: Mapping[str, Any] | None = None,
+) -> list[BranchVerdict]:
     config = default_s2_config()
     required_bars = _s2_required_bars()
     alpha_bars = {alpha: bars_by_symbol.get(live, ()) for live, alpha in S2_LIVE_TO_ALPHA.items()}
     as_of_candidates = [bars[-1].day for bars in alpha_bars.values() if bars]
     entries = evaluate_s2_entries(alpha_bars, config, min(as_of_candidates)) if as_of_candidates else []
     entries_by_symbol = {entry.symbol: entry for entry in entries}
-    backtest_promotion_passed = None
+    backtest_promotion_passed = (
+        bool(promotion.get("passed"))
+        if promotion is not None and "passed" in promotion
+        else None
+    )
+    promotion_reason = (
+        str(promotion.get("reason"))
+        if promotion is not None and promotion.get("reason")
+        else "尚未产出自建回测推广门结果。"
+    )
     aggregation_enabled = s2_enabled(config, backtest_promotion_passed=backtest_promotion_passed)
     verdicts: list[BranchVerdict] = []
     entry_config = config["entry"]  # type: ignore[index]
@@ -270,6 +282,11 @@ def evaluate_s2_verdicts(bars_by_symbol: Mapping[str, Sequence[Bar]]) -> list[Br
         is_entry = entry is not None
         confidence = signal_confidence if is_entry else 1.0 - signal_confidence
         participation = "COLD_START_ELIGIBLE" if aggregation_enabled else "EXCLUDED_PENDING_BACKTEST"
+        signal_counter_evidence = (
+            "S2 进场四条件尚未同时满足。"
+            if not is_entry
+            else "RSI(2)、IBS、趋势或 ATR 比率任一条件在下次收盘复算时失效。"
+        )
         verdicts.append(
             BranchVerdict(
                 branch_id="s2_meanrev",
@@ -289,9 +306,9 @@ def evaluate_s2_verdicts(bars_by_symbol: Mapping[str, Sequence[Bar]]) -> list[Br
                     "confidence_formula": "mean(rsi_component, ibs_component, trend_component, volatility_component) for entry; 1-mean(...) for neutral",
                 },
                 counter_evidence=(
-                    "S2 进场四条件尚未同时满足。"
-                    if not is_entry
-                    else "RSI(2)、IBS、趋势或 ATR 比率任一条件在下次收盘复算时失效。"
+                    signal_counter_evidence
+                    if aggregation_enabled
+                    else f"{signal_counter_evidence} {promotion_reason}"
                 ),
                 invalidation=(
                     f"收盘不高于 SMA200={average:.4f}、RSI(2)不低于 {rsi_threshold:g}、IBS不低于 {ibs_threshold:g}，或 ATR14/close 不高于 {volatility_floor:.3%}。"
@@ -306,16 +323,35 @@ def evaluate_s2_verdicts(bars_by_symbol: Mapping[str, Sequence[Bar]]) -> list[Br
 
 
 def build_branch_report(
-    instruments: Sequence[Instrument], bars_by_symbol: Mapping[str, Sequence[Bar]]
+    instruments: Sequence[Instrument],
+    bars_by_symbol: Mapping[str, Sequence[Bar]],
+    backtest: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """计算全部 Stage 2 分支并返回白箱 API 与页面共用的结构。"""
     symbols = [instrument.symbol for instrument in instruments]
     ordered_bars = {symbol: bars_by_symbol.get(symbol, ()) for symbol in symbols}
-    verdicts = evaluate_s1_verdicts(ordered_bars) + evaluate_s2_verdicts(ordered_bars)
+    s2_backtest = (
+        backtest.get("branches", {}).get("s2_meanrev", {})
+        if backtest is not None
+        else {}
+    )
+    s2_promotion = s2_backtest.get("promotion") or (
+        {
+            "passed": False,
+            "reason": str(s2_backtest["sample_status"]),
+        }
+        if s2_backtest.get("status") == "SAMPLE_INSUFFICIENT"
+        else None
+    )
+    verdicts = evaluate_s1_verdicts(ordered_bars) + evaluate_s2_verdicts(ordered_bars, s2_promotion)
     for branch in UNIMPLEMENTED_BRANCHES:
         verdicts.extend(_unimplemented_verdict(branch, symbol, len(ordered_bars[symbol])) for symbol in symbols)
     return {
         "branches": [verdict.as_dict() for verdict in verdicts],
-        "profitability_status": "NOT_PRODUCED_STAGE_2_NO_BACKTEST",
+        "profitability_status": (
+            str(backtest.get("profitability_status"))
+            if backtest is not None and backtest.get("profitability_status")
+            else "NOT_PRODUCED_STAGE_2_NO_BACKTEST"
+        ),
         **build_aggregate_report(symbols, verdicts),
     }

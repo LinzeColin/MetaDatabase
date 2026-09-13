@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 from .aggregate import blocked_aggregate_report
+from .backtest import run_backtest
 from .branches import build_branch_report
 from .live_config import APP_VERSION, LiveSettings
 from .marketdata import DiskCache, EastMoneyFundProvider, HttpClient, MarketDataError, SinaKlineProvider, SinaQuoteProvider, TencentKlineProvider, TencentQuoteProvider
@@ -144,15 +145,20 @@ class LiveEngine:
         }
         quote_observed_at = min((quote.observed_at for quote in quotes.values()), default=None)
         state = "SYSTEM_BLOCKED" if findings else "DATA_READY"
-        branch_report = (
-            build_branch_report(self.settings.universe, bars)
-            if state == "DATA_READY"
-            else {
+        if state == "DATA_READY":
+            backtest = run_backtest(self.settings.universe, bars, state_dir=self.settings.state_dir)
+            branch_report = build_branch_report(self.settings.universe, bars, backtest)
+        else:
+            backtest = {
+                "status": "SYSTEM_BLOCKED",
+                "message": "数据不新鲜或数据链路不完整，未运行回测。",
+                "profitability_status": "SYSTEM_BLOCKED",
+            }
+            branch_report = {
                 "branches": [],
-                "profitability_status": "NOT_PRODUCED_STAGE_2_NO_BACKTEST",
+                "profitability_status": "SYSTEM_BLOCKED",
                 **blocked_aggregate_report(),
             }
-        )
         report = {
             "application_version": APP_VERSION,
             "generated_at": _iso(now),
@@ -171,6 +177,7 @@ class LiveEngine:
             "market_fingerprint": self._market_fingerprint(quotes, bars),
             "freshness_findings": findings,
             "message": "数据链路不完整，不出结论" if findings else "真实数据已就绪，已完成独立分支计算",
+            "backtest": backtest,
             **branch_report,
         }
         self.store.save(report)

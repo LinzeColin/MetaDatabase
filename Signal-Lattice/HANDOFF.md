@@ -1,70 +1,110 @@
 # Signal Lattice V2 重建交接
 
-更新时间：2026-09-13 Australia/Sydney
+更新时间：2026-09-14 Australia/Sydney
 
 ## 当前目标
 
-Stage 2：在 Stage 1 已由具备网络出口的验收方完成真实行情验收后，用真实日线产出可复算的分支结论，并由汇总中枢合成为唯一投资建议；不开展 Stage 3 贡献度权重、Stage 4 回测或 Stage 5 部署。
+Stage 4 已完成代码接入：对当前行情层已取得的日线执行含费用的滚动前推回测，
+生成严格样本外 Alpha 度量、逐期贡献度样本，并以 PROMO-1 结果控制 S2 是否参与
+Stage 2 的静态冷启动汇总。Stage 3 动态贡献度权重与 Stage 5 部署保持原状。
 
 ## 当前状态
 
-`STAGE_2_AGGREGATION_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE`。Stage 1 commit 为 `034e1ad2b`，外部真实行情验收已确认 `DATA_READY`、数据源与截止日；新本地 sandbox 不联网、不 SSH，只做确定性代码与本地测试。
+STAGE_4_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE；当前工作区没有可用于实际运行的
+行情历史缓存，真实 S2 裁定状态为 UNKNOWN，S2 继续处于 EXCLUDED_PENDING_BACKTEST。
 
-## 关键决定
+本机核查结果：
 
-- `src/signal_lattice/branches/` 是 Stage 2 唯一的实时分支入口。`BranchVerdict` 始终包含方向、公式置信度、数值证据、最大反证、可判定失效条件、实际窗口、实现状态和权重。
-- `indicators.py`、`bars.py`、`s1_momentum.py`、`s2_meanrev.py` 均从 `Alpha/backend/app/strategies/` 复制并在文件头注明来源；不跨目录 import。S1/S2 参数逐值来自 Alpha 的 `s1_momentum.yaml` / `s2_meanrev.yaml`，以显式默认字典和可选覆盖替代 YAML 路径读取。
-- S1 是完整八标的资产池排名策略。实时宇宙现已包含并能获取 `SPY/QQQ/IWM/EFA/EEM/GLD/TLT/BIL` 的日线；S1 对这八个标的正常计算，其他观察标的仍明确为 `OUT_OF_STRATEGY_UNIVERSE`、权重 0。
-- S2 仍可复算 RSI(2)+IBS+趋势+ATR 的研究信号。Alpha 原始配置 `enabled_pending_backtest: true`，而 Stage 2 不计算回测或 Alpha，因此 `backtest_promotion_passed=null`、`EXCLUDED_PENDING_BACKTEST`、权重 0；它不会进入最终方向汇总。
-- 汇总模式固定为 `COLD_START_EQUAL`，`weight_sample_count=0`。每个标的仅使用 `weight>0` 的 verdict：方向按权重投票，最高票平票统一裁决为中性；置信度为 `sum(confidence_i * weight_i) / sum(weight_i)`。标的 conviction 为 `confidence * direction_vote_share`；方向性标的按 conviction、confidence、symbol 的固定顺序选出 `primary_symbol`。中性组合的 conviction 使用所有参与 verdict 的同一加权平均。
-- 中性观望阈值是命名常量 `NEUTRAL_WATCH_CONFIDENCE_THRESHOLD=0.60`：低于阈值为 `NEUTRAL_LOW_CONVICTION/action=观望`，达到阈值为 `NEUTRAL_CONSENSUS/action=观望`。0.60 表示参与结论平均至少提供六成公式置信度才解读为较强中性一致性；两种情况都不伪造方向。
-- 状态机：数据不新鲜直接为 `SYSTEM_BLOCKED/action=null` 且不执行分支；数据就绪但无正权重 verdict 为 `NO_ELIGIBLE_BRANCH/action=null`，逐个列出排除分支及原因；有方向性标的时为 `DIRECTIONAL_CONCLUSION`。
-- `profitability_status=NOT_PRODUCED_STAGE_2_NO_BACKTEST`；本轮不填收益率或 Alpha 数字。
+- /var/lib/signal-lattice-v2 不存在。
+- Alpha/data 只有 sample_prices.csv，包含 SPY、QQQ、TLT 各 30 个交易日。
+- S1 缺少 IWM、EFA、EEM、GLD、BIL；S2 的 SPY/QQQ 也无法满足至少两个完整
+  24 个月训练加 6 个月测试窗口。
+- 本任务禁止联网，因此没有用短窗、全样本或 Alpha 历史报告替代当前真实回测。
 
-## 六个技能分支的实现判断
+## Stage 4 实现与关键决定
 
-| 分支 | 判断 | Stage 2 依据 | 运行时状态 |
-|---|---|---|---|
-| `stock-commercial-opportunities` | 未实现 | `SKILL.md` 要求已打开的一手商业、敞口、估值与催化剂证据；实时日线不含这些输入。 | `UNIMPLEMENTED`，权重 0 |
-| `bottleneck-serenity-skill` | 未实现 | `02_ARCHITECTURE_DATA_API.md` 定义任务包和审计结构，未给出可由当前 Bar 序列运行的确定性结论公式。 | `UNIMPLEMENTED`，权重 0 |
-| `equity-foresight-signal` | 未实现 | `SKILL.md` 要求冻结的点时数据集、训练配置与宿主信任上下文，当前网关仅提供日线。 | `UNIMPLEMENTED`，权重 0 |
-| `global-equity-lead-lag-atlas` | 未实现 | `SKILL.md` 要求带交易会话和收盘时点的多市场现金指数；当前观察宇宙不具备该输入合同。 | `UNIMPLEMENTED`，权重 0 |
-| `equity-event-atlas` | 未实现 | `SKILL.md` 要求交易所、监管、发行人事件证据和市场能力门；当前网关未采集事件证据。 | `UNIMPLEMENTED`，权重 0 |
-| `serenity-skill` | 未实现 | 本仓不存在 `Stock_Skill/serenity-skill/task-pack/` 的 `SKILL.md` / 架构契约；运行清单只指向外部 source-only 路径。 | `UNIMPLEMENTED`，权重 0 |
+- 新增 src/signal_lattice/backtest/，移植并本地化 Alpha/backend/app/backtest/
+  pipeline.py、fees.py、calendar_effects.py、runner.py。每个文件头保留来源与原路径；
+  不跨目录 import。
+- pipeline 的 walk_forward_windows 只生成 train 与 test 严格不重叠的完整窗口。
+  默认 train=24 月、test=6 月；尾部不完整测试窗直接排除。
+- runner 只以当前 MarketGateway 已取得的 marketdata 日线为输入。每个 test 窗口先在
+  对应 train 窗口的既定网格中选参，再单独模拟 test；最终收益曲线由所有 test 窗口
+  费后结果拼接而成。
+- 每个 S1/S2 样本外 test 窗口都生成 ContributionSample，字段为 branch_id、
+  period_start、period_end、symbol、branch_return、benchmark_return、
+  excess_return、risk_adjusted_excess、window_label。
+- benchmark 严格从 Instrument.benchmark 读取。当前两个可运行策略均对 usSPY
+  基准计算；代码仍通过 Instrument 字段解析，未写死基准价格序列。
+- Alpha 口径包括策略收益、基准收益、超额收益、IR、最大回撤、逐笔胜率、换手率。
+  risk_adjusted_excess = excess_return / active_daily_volatility；零波动时为 null。
+  负超额收益以负值原样输出。
+- 费用模型已接入每次买卖：佣金 0.99 USD/单、卖出 SEC 费率 0.00004、
+  CAT 0.0001 USD/股。值来自 Alpha/configs/fees.yaml；SEC/CAT 估计属性保留。
+- PROMO-1 默认值显式写在本仓：至少 3 年、月均净收益至少 0.6%、最大回撤至多
+  30%。值来自 Alpha/configs/strategy_promotion.yaml；调用方可传受审计的映射覆盖，
+  运行时不读取 Alpha 配置路径。
+- S1 review_grid 完整取自 Alpha/configs/strategies/s1_momentum.yaml；S2 review_grid
+  完整取自 Alpha/configs/strategies/s2_meanrev.yaml。当前未改门槛。
+- S2 推广门通过时才取得 COLD_START_ELIGIBLE 与 weight=1.0；失败和样本不足时保持
+  EXCLUDED_PENDING_BACKTEST，excluded_branches reason 会携带具体 PROMO-1 差距或
+  样本不足 N/M。
+- 未实现分支的权重仍恒为 0。aggregate 的 WEIGHT_MODE 仍是 COLD_START_EQUAL，
+  动态贡献度加权为 false。
 
-上述六项都保留逐标的 verdict，明确显示“未实现，不参与加权”，没有非零占位权重。
+## 运行期落盘与 API/页面
+
+- 回测总览：state_dir/backtest/latest.json。
+- 贡献度样本：state_dir/backtest/contribution_samples.json，JSON 对象包含
+  sample_count、samples、storage；不进入 Git。
+- LiveEngine 仅在 DATA_READY 时调用 run_backtest。数据不新鲜或数据链路不完整时，
+  report 与 backtest 均为 SYSTEM_BLOCKED，原有阻断行为保持。
+- GET /api/v1/whitebox/backtest/latest 返回 latest report 中的真实 backtest 结构：
+  每个窗口、拼接总览、费用模型、S2 推广门与贡献度汇总。
+- web/app.js 增加“回测与超额收益”区块，展示严格样本外口径、费用、各分支拼接指标、
+  逐窗口结果和贡献样本数。
 
 ## 已改文件
 
-- `src/signal_lattice/aggregate.py`：唯一汇总中枢；生成逐标的加权结论、所有排除原因、组合 `decision`、平票规则、0.60 中性观望阈值与阻断态决策合同。
-- `src/signal_lattice/branches/runtime.py`：只生成分支 verdict，再交给汇总中枢；不再在分支运行时内实现第二套汇总逻辑。
-- `src/signal_lattice/live_runtime.py`、`src/signal_lattice/live_api.py`：数据就绪时消费中枢的 `aggregate` 与 `decision`；运行时阻断态和 API 无 latest report 回退均复用完整 `SYSTEM_BLOCKED` 决策，不再各自硬编码窄 `decision`。
-- `web/app.js`：最终投资建议与内部协调真实渲染 `decision`；明确区分“有数据但没有可用分支”和“数据链路不完整”。
-- `tests/test_aggregate.py`：固定 verdict 夹具验证加权投票、加权置信度、平票、严格阈值边界、`NO_ELIGIBLE_BRANCH`、`SYSTEM_BLOCKED` 与方向性 `primary_symbol`。
+- src/signal_lattice/backtest/__init__.py
+- src/signal_lattice/backtest/pipeline.py
+- src/signal_lattice/backtest/fees.py
+- src/signal_lattice/backtest/calendar_effects.py
+- src/signal_lattice/backtest/runner.py
+- src/signal_lattice/branches/runtime.py
+- src/signal_lattice/live_runtime.py
+- web/app.js
+- tests/test_backtest.py
+- tests/test_branch_verdicts.py
 
 ## 已验证
 
-```bash
-PYTHONPATH=src python3 -m pytest tests/test_aggregate.py tests/test_branch_verdicts.py tests/test_marketdata_providers.py tests/test_live_api.py -q
-```
+局部回测与现有分支测试：
 
-结果：`16 passed in 0.11s`。
+    PYTHONPYCACHEPREFIX=/private/tmp/signal-lattice-pycache PYTHONPATH=src python3 -m pytest tests/test_backtest.py tests/test_branch_verdicts.py tests/test_aggregate.py tests/test_live_api.py -q
 
-- 覆盖汇总加权投票、平票中性裁决、0.60 严格阈值、无可用分支、数据阻断、S1/S2 的固定序列方向与 confidence 公式、S2 回测门权重 0、六个技能分支权重 0、Stage 1 新鲜度阻断/可用状态和 live API 阻断响应。
-- `node --check web/app.js` 与 `git diff --check` 已通过。
+结果：15 passed in 1.95s。
 
-```bash
-PYTHONPATH=src python3 -m pytest tests/ -q
-```
+新增 tests/test_backtest.py 的固定序列夹具覆盖：
 
-结果：`111 passed, 1 skipped, 18 failed in 10.72s`。18 项失败均为本次改动外的既有 11 项（wheel count 1、formal lifecycle canonical version 4、Python 3.9 缺少 `tomllib` 2、根目录交付清单 1、state machine 2、taskpack seal 1）和本 sandbox 禁止 `127.0.0.1` 监听的 7 项（`test_api.py` 5、`test_public_release.py` 2）。新增汇总测试没有引入失败。
+- 严格完整滚动窗口与 train/test 无交集。
+- 费用被实际扣减，含费用净值低于无费用净值。
+- 样本不足退出路径输出 样本不足 0/2 且贡献样本数为 0。
+- PROMO-1 的 3 年、0.6%、30% 边界与月均收益低于门槛的失败判定。
+
+同时已通过 node --check web/app.js、python 编译检查和 git diff --check。
 
 ## 未解决风险
 
-- S2 的自建回测推广门没有结果，保持不参与汇总。Stage 4 才能产生该证据。
-- 六个技能分支均缺少与当前实时输入兼容的确定性实现，保持未实现。
-- 本 sandbox 禁止 TCP 监听，因此 `tests/test_api.py::T::test_ui` 在 `setUp` 前即失败；具备 TCP 的验收环境可运行原测试，确认动态页面。
+- 当前真实日线原始数据未落在可访问 state_dir，无法在离线约束下产出本轮实时
+  S2 PROMO-1 数字、各市场样本不足清单或任何真实 Alpha 数值。
+- Alpha/reports/backtest/2026-07-16/report.json 是旧策略/旧门槛上下文的历史报告，
+  不作为本轮真实回测或 S2 解禁证据。
+- 完整测试仍须在当前工作区最后执行；历史基线为 11 个既有红灯，sandbox 的 TCP
+  限制会额外触发 test_api.py 等 PermissionError。
 
 ## 下一步
 
-具备 TCP 监听权限的验收环境可重跑 `tests/test_api.py::T::test_ui`；真实行情验收与部署继续由 Claude Code 侧负责。S2 要进入汇总需先完成 Stage 4 自建回测推广门；六个未实现技能需先具备与当前实时输入一致的确定性方法和输入合同。
+在具有本轮真实日线缓存的目标机运行一次 Signal Lattice 的 once 命令。确认
+state_dir/backtest/latest.json 中每个分支至少有两个完整窗口后，读取 S2 promotion
+的 passed 与 reason：通过则 S2 参与静态冷启动汇总；未通过则按报告数值维持排除。

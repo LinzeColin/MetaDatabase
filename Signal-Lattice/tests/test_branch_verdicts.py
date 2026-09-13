@@ -76,6 +76,23 @@ class BranchVerdictTests(unittest.TestCase):
         self.assertEqual(verdict.participation_status, "EXCLUDED_PENDING_BACKTEST")
         self.assertEqual(verdict.weight, 0.0)
 
+    def test_s2_only_enters_aggregation_after_passed_promotion(self):
+        close_values = [100.0 + index * 0.4 for index in range(197)] + [170.0, 165.0, 162.0]
+        failed = evaluate_s2_verdicts(
+            {"usSPY": bars("usSPY", close_values)},
+            {"passed": False, "reason": "PROMO-1 未通过：月均净收益差 0.100 个百分点"},
+        )[0]
+        passed = evaluate_s2_verdicts(
+            {"usSPY": bars("usSPY", close_values)},
+            {"passed": True, "reason": "PROMO-1 通过"},
+        )[0]
+
+        self.assertEqual(failed.participation_status, "EXCLUDED_PENDING_BACKTEST")
+        self.assertEqual(failed.weight, 0.0)
+        self.assertIn("月均净收益差 0.100 个百分点", failed.counter_evidence)
+        self.assertEqual(passed.participation_status, "COLD_START_ELIGIBLE")
+        self.assertEqual(passed.weight, 1.0)
+
     def test_unimplemented_skill_branches_are_explicit_and_never_weighted(self):
         report = build_branch_report(default_universe(), {"usSPY": bars("usSPY", [100.0] * 260)})
         unimplemented = [item for item in report["branches"] if item["implemented"] is False]

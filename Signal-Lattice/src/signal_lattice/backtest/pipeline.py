@@ -1,0 +1,798 @@
+# 来源: Alpha/backend/app/backtest/pipeline.py; 原路径: Alpha/backend/app/backtest/pipeline.py.
+"""滚动前推回测流水线(ALPHA-LIVE-050)。
+
+口径与近似(全部在报告中如实声明):
+- 信号只用 T-1 及更早数据:S1 周二评估用截至周一收盘;S2 收盘判定次日挂单。
+- 成交近似:S1 于评估日收盘价成交;S2 入场限价(前收×0.995)当日最低触及才成交、
+  成交价=限价;止损按触发日收盘成交;获利/超时按次日收盘成交(保守方向)。
+- 整股约束:按 3000 AUD 真实资金逐股取整;买不起一股 = 跳过并计数
+  (资金可行性是本回测的一等公民产出,不藏在脚注里)。
+- 费用:每单佣金 + CAT 每股费 + 卖出 SEC 费(保守高估占位,报告标注待官方核验)。
+- 回测层用浮点(研究口径);实盘资金路径仍全 Decimal。
+- 组合 = S1 sleeve + S2 sleeve 各自独立复利,不跨 sleeve 再平衡(月度评审职责,
+  本版不模拟),报告声明该近似。
+"""
+
+from __future__ import annotations
+
+import itertools
+import math
+from dataclasses import dataclass, field
+from datetime import date, timedelta
+from typing import Mapping, Optional, Sequence
+
+from .fees import FeeModel
+from ..marketdata.models import Bar
+from ..branches.indicators import (
+    atr,
+    ibs,
+    realized_vol_annual_pct,
+    rsi_wilder,
+    sma,
+    trailing_return,
+)
+
+TRADING_DAYS_PER_YEAR = 252
+
+
+# ---------- 通用指标预计算 ----------
+
+@dataclass
+class SymbolSeries:
+    symbol: str
+    days: list[date]
+    opens: list[float]
+    highs: list[float]
+    lows: list[float]
+    closes: list[float]
+    sma200: list[Optional[float]] = field(default_factory=list)
+    sma5: list[Optional[float]] = field(default_factory=list)
+    rsi2: list[Optional[float]] = field(default_factory=list)
+    ibs_v: list[Optional[float]] = field(default_factory=list)
+    atr14_ratio: list[Optional[float]] = field(default_factory=list)
+    r63: list[Optional[float]] = field(default_factory=list)
+    r126: list[Optional[float]] = field(default_factory=list)
+    r252: list[Optional[float]] = field(default_factory=list)
+    vol20: list[Optional[float]] = field(default_factory=list)
+    high252: list[Optional[float]] = field(default_factory=list)  # 含当日的 252 日最高收盘
+    index_by_day: dict[date, int] = field(default_factory=dict)
+
+
+def precompute(symbol: str, bars: Sequence[Bar]) -> SymbolSeries:
+    days = [b.day for b in bars]
+    opens = [b.open for b in bars]
+    highs = [b.high for b in bars]
+    lows = [b.low for b in bars]
+    closes = [b.close for b in bars]
+    s = SymbolSeries(symbol, days, opens, highs, lows, closes)
+    n = len(bars)
+    for i in range(n):
+        window = closes[: i + 1]
+        s.sma200.append(sma(window, 200))
+        s.sma5.append(sma(window, 5))
+        s.rsi2.append(rsi_wilder(window[-40:], 2) if i >= 2 else None)
+        s.ibs_v.append(ibs(highs[i], lows[i], closes[i]))
+        a = atr(highs[: i + 1][-20:], lows[: i + 1][-20:], window[-20:], 14)
+        s.atr14_ratio.append((a / closes[i]) if a is not None else None)
+        s.r63.append(trailing_return(window, 63))
+        s.r126.append(trailing_return(window, 126))
+        s.r252.append(trailing_return(window, 252))
+        s.vol20.append(realized_vol_annual_pct(window, 20))
+        s.high252.append(max(window[-252:]) if i >= 251 else None)
+        s.index_by_day[days[i]] = i
+    return s
+
+
+# ---------- S1 参数与模拟 ----------
+
+@dataclass(frozen=True)
+class S1Params:
+    weights: tuple[float, float, float] = (0.4, 0.3, 0.3)
+    top_n: int = 2
+    target_vol: float = 12.0            # 999 = 关闭波动率调节
+    rebalance_threshold_pct: float = 5.0
+    # ---- R2 扩展轴(默认全关 = R1 行为) ----
+    eval_frequency: str = "weekly"      # weekly=每周二 / monthly=每月首个周二
+    high_proximity: Optional[float] = None   # 例 0.95:要求收盘 >= 0.95×252日最高
+    dd_soft_pct: Optional[float] = None      # 回撤刹车软线:仓位减半
+    dd_hard_pct: Optional[float] = None      # 回撤刹车硬线:全退现金,回到软线内恢复
+    defensive_symbol: Optional[str] = None   # 防御叠加:恒持标的(如 TLT/GLD)
+    defensive_weight: float = 0.0            # 防御叠加固定比例(动量只跑剩余仓)
+    in_market_months: Optional[tuple[int, ...]] = None  # 季节窗口:动量仓只在这些月份
+                                             # 在场(None=全年;防御叠加不受影响)
+    defensive_basket: Optional[tuple[str, ...]] = None  # 动态防御:每评估日在篮子里挑
+                                             # T-1 r63 最强且 >SMA200 者作避险;都不合格
+                                             # 则该期防御预算退现金(None=用静态 symbol)
+
+
+@dataclass
+class SleeveResult:
+    equity_days: list[date]
+    equity: list[float]
+    orders: int = 0
+    fees_usd: float = 0.0
+    skipped_infeasible: int = 0
+    trades: int = 0
+    wins: int = 0
+    #: 逐笔成交流水(每笔含当笔费用),供事后做 closed round-trip 账本与逐笔盈亏比/胜率。
+    #: 元素:{"day","sym","side"("BUY"/"SELL"),"qty","price","fee"}
+    fills: list[dict] = field(default_factory=list)
+    extra: dict = field(default_factory=dict)
+
+
+def simulate_s1(
+    series: dict[str, SymbolSeries],
+    universe: list[str],
+    cash_proxy: str,
+    params: S1Params,
+    *,
+    start: date,
+    end: date,
+    sleeve_usd: float,
+    fee: FeeModel,
+    calendar: list[date],
+    signal_series: Optional[dict[str, SymbolSeries]] = None,
+    universe_fn=None,
+) -> SleeveResult:
+    """signal_series:可选的「信号代理」——评分/资格线用代理序列(如杠杆基金
+    用其原指数 ETF 作信号,规避杠杆衰减噪声),交易价格仍用本尊。缺省=本尊即信号。
+    universe_fn:可选的「时点名单」——每个评估日返回当日合法候选(如当期道指
+    成分),杜绝幸存者偏差;静态 universe 仍作日历参照与现金替身来源。"""
+    cash = sleeve_usd
+    shares: dict[str, int] = {}
+    result = SleeveResult(equity_days=[], equity=[])
+
+    def price(sym: str, idx: int) -> float:
+        return series[sym].closes[idx]
+
+    peak_equity = sleeve_usd
+    last_eval_month: Optional[tuple[int, int]] = None
+
+    for day in calendar:
+        if day < start or day > end:
+            continue
+        ref = series[universe[0]]
+        idx = ref.index_by_day.get(day)
+        if idx is None:
+            continue
+        # 评估日:daily=每交易日;Nday=每 N 个交易日;weekly=每周二;monthly=每月第一个周二。
+        # 数据一律截至前一交易日(信息不越界)。日频/多日频为 owner 2026-07-24 放宽频率后新增。
+        _freq = params.eval_frequency
+        if _freq == "daily":
+            is_eval = idx >= 1
+        elif _freq.endswith("day") and _freq[:-3].isdigit():
+            is_eval = idx >= 1 and idx % int(_freq[:-3]) == 0
+        elif _freq == "monthly":
+            is_eval = (day.weekday() == 1 and idx >= 1
+                       and (day.year, day.month) != last_eval_month)
+        else:  # weekly(缺省)
+            is_eval = day.weekday() == 1 and idx >= 1
+        if is_eval:
+            last_eval_month = (day.year, day.month)
+            scores: dict[str, float] = {}
+            candidates = list(universe_fn(day)) if universe_fn else universe
+            for sym in candidates:
+                if sym == cash_proxy:
+                    continue
+                ss = (signal_series or {}).get(sym) or series.get(sym)
+                j = ss.index_by_day.get(day) if ss else None
+                j_eval = (j - 1) if j is not None and j >= 1 else None
+                if j_eval is None:
+                    continue
+                r1, r2, r3 = ss.r63[j_eval], ss.r126[j_eval], ss.r252[j_eval]
+                s200 = ss.sma200[j_eval]
+                if None in (r1, r2, r3) or s200 is None:
+                    continue
+                if ss.closes[j_eval] <= s200:
+                    continue
+                if params.high_proximity is not None:
+                    h = ss.high252[j_eval]
+                    if h is None or ss.closes[j_eval] < params.high_proximity * h:
+                        continue  # 52 周新高过滤:离高点太远无资格
+                w1, w2, w3 = params.weights
+                scores[sym] = w1 * r1 + w2 * r2 + w3 * r3
+            ranked = sorted(scores, key=lambda s_: (-scores[s_], candidates.index(s_)))
+            selected = ranked[: params.top_n]
+            scalar = 1.0
+            if selected:
+                vols = []
+                for sym in selected:
+                    ss = series[sym]
+                    j = ss.index_by_day.get(day)
+                    v = ss.vol20[j - 1] if j is not None and j >= 1 else None
+                    if v is not None:
+                        vols.append(v)
+                if vols:
+                    pv = sum(vols) / len(vols)
+                    if pv > 0:
+                        scalar = min(1.0, params.target_vol / pv)
+            equity_now = cash + sum(
+                q * price(sym, series[sym].index_by_day[day])
+                for sym, q in shares.items() if day in series[sym].index_by_day
+            )
+            # 回撤刹车:软线仓位减半,硬线全退现金(以 sleeve 净值峰值衡量)
+            peak_equity = max(peak_equity, equity_now)
+            brake = 1.0
+            if peak_equity > 0 and (params.dd_soft_pct or params.dd_hard_pct):
+                dd_now = (1.0 - equity_now / peak_equity) * 100.0
+                if params.dd_hard_pct is not None and dd_now >= params.dd_hard_pct:
+                    brake = 0.0
+                elif params.dd_soft_pct is not None and dd_now >= params.dd_soft_pct:
+                    brake = 0.5
+            if brake == 0.0:
+                selected = ()
+            if params.in_market_months is not None and day.month not in params.in_market_months:
+                selected = ()  # 季节窗口外:动量仓退现金替身(防御叠加照常)
+            targets: dict[str, int] = {}
+            # 有效防御标的:静态 defensive_symbol,或从 defensive_basket 动态挑最强
+            def_sym = params.defensive_symbol
+            if params.defensive_basket:
+                best, best_score = None, None
+                for cand in params.defensive_basket:
+                    ssd = series.get(cand)
+                    jc = ssd.index_by_day.get(day) if ssd else None
+                    jc_eval = (jc - 1) if jc is not None and jc >= 1 else None
+                    if jc_eval is None:
+                        continue
+                    rd, s200d = ssd.r63[jc_eval], ssd.sma200[jc_eval]
+                    if rd is None or s200d is None or ssd.closes[jc_eval] <= s200d:
+                        continue  # 防御资产也须在 SMA200 上方,否则不配作避险
+                    if best_score is None or rd > best_score:
+                        best, best_score = cand, rd
+                def_sym = best  # 都不合格 → None → 该期防御预算退现金
+            has_def = params.defensive_symbol is not None or params.defensive_basket is not None
+            defensive_w = params.defensive_weight if has_def else 0.0
+            risk_budget = 1.0 - defensive_w
+            target_syms = list(selected) if selected else [cash_proxy]
+            weight_each = ((1.0 / params.top_n) * scalar * brake if selected else 1.0) * risk_budget
+            if def_sym and defensive_w > 0:
+                jd = series[def_sym].index_by_day.get(day)
+                if jd is not None:
+                    targets[def_sym] = int(
+                        (equity_now * defensive_w) // price(def_sym, jd))
+            for sym in target_syms:
+                j = series[sym].index_by_day.get(day)
+                if j is None:
+                    continue
+                notional = equity_now * weight_each
+                targets[sym] = int(notional // price(sym, j))
+            threshold_usd = equity_now * params.rebalance_threshold_pct / 100.0
+            for sym in sorted(set(shares) | set(targets)):
+                j = series[sym].index_by_day.get(day)
+                if j is None:
+                    continue
+                cur, tgt = shares.get(sym, 0), targets.get(sym, 0)
+                delta = tgt - cur
+                if delta == 0:
+                    continue
+                p = price(sym, j)
+                if abs(delta) * p < threshold_usd:
+                    continue
+                if delta > 0:
+                    buy_fee = fee.order_cost_usd(side="BUY", quantity=delta, price=p)
+                    cost = delta * p + buy_fee
+                    if cost > cash:
+                        afford = int((cash - fee.commission_usd_per_order) // p) if cash > fee.commission_usd_per_order else 0
+                        if afford <= 0:
+                            result.skipped_infeasible += 1
+                            continue
+                        delta = afford
+                        buy_fee = fee.order_cost_usd(side="BUY", quantity=delta, price=p)
+                        cost = delta * p + buy_fee
+                    cash -= cost
+                    result.fees_usd += buy_fee
+                    shares[sym] = cur + delta
+                    result.orders += 1
+                    result.fills.append({"day": day, "sym": sym, "side": "BUY",
+                                         "qty": delta, "price": p, "fee": buy_fee})
+                else:
+                    sell_q = -delta
+                    sell_fee = fee.order_cost_usd(side="SELL", quantity=sell_q, price=p)
+                    proceeds = sell_q * p - sell_fee
+                    cash += proceeds
+                    result.fees_usd += sell_fee
+                    shares[sym] = cur + delta
+                    if shares[sym] == 0:
+                        del shares[sym]
+                    result.orders += 1
+                    result.fills.append({"day": day, "sym": sym, "side": "SELL",
+                                         "qty": sell_q, "price": p, "fee": sell_fee})
+
+        equity = cash
+        for sym, q in shares.items():
+            j = series[sym].index_by_day.get(day)
+            if j is not None:
+                equity += q * series[sym].closes[j]
+        result.equity_days.append(day)
+        result.equity.append(equity)
+    return result
+
+
+# ---------- PD1 共识动量 Governor(外部包 persona 候选) ----------
+
+@dataclass(frozen=True)
+class ConsensusModel:
+    name: str
+    weights: tuple[float, float, float]
+
+
+def _consensus_target(picks: Sequence[Optional[str]], cash_proxy: str) -> dict[str, float]:
+    """三模型 top-1 选择 → 目标权重:同选1标的众数=3→100%;=2→50%+50%BIL;否则100%BIL。"""
+    from collections import Counter
+    votes = Counter(p for p in picks if p is not None)
+    if not votes:
+        return {cash_proxy: 1.0}
+    top_sym, top_n = votes.most_common(1)[0]
+    if top_n >= 3:
+        return {top_sym: 1.0}
+    if top_n == 2:
+        return {top_sym: 0.5, cash_proxy: 0.5}
+    return {cash_proxy: 1.0}
+
+
+def simulate_consensus(
+    series: dict[str, SymbolSeries],
+    universe: list[str],
+    cash_proxy: str,
+    models: Sequence[ConsensusModel],
+    *,
+    start: date,
+    end: date,
+    sleeve_usd: float,
+    fee: FeeModel,
+    calendar: list[date],
+    rebalance_threshold_pct: float = 5.0,
+) -> SleeveResult:
+    """PD1 共识动量 Governor:三个固定动量模型各选 top-1 合格资产(close>SMA200 且 score>0,
+    信息截 T-1),把一致度映射为仓位——三者同标的满仓、两者同半仓+半现金、无多数则全现金。
+    执行口径与 simulate_s1 对齐(周二评估、整股、真实费用、5% 调仓带、先卖后买、逐笔流水)。"""
+    cash = sleeve_usd
+    shares: dict[str, int] = {}
+    result = SleeveResult(equity_days=[], equity=[])
+
+    def price(sym: str, idx: int) -> float:
+        return series[sym].closes[idx]
+
+    def model_pick(m: ConsensusModel, day: date) -> Optional[str]:
+        best_sym, best_score = None, None
+        for sym in universe:
+            if sym == cash_proxy:
+                continue
+            ss = series[sym]
+            j = ss.index_by_day.get(day)
+            j_eval = (j - 1) if j is not None and j >= 1 else None
+            if j_eval is None:
+                continue
+            r1, r2, r3 = ss.r63[j_eval], ss.r126[j_eval], ss.r252[j_eval]
+            s200 = ss.sma200[j_eval]
+            if None in (r1, r2, r3) or s200 is None or ss.closes[j_eval] <= s200:
+                continue
+            w1, w2, w3 = m.weights
+            sc = w1 * r1 + w2 * r2 + w3 * r3
+            if sc <= 0:
+                continue
+            if best_score is None or sc > best_score:
+                best_sym, best_score = sym, sc
+        return best_sym
+
+    for day in calendar:
+        if day < start or day > end:
+            continue
+        ref = series[universe[0]]
+        idx = ref.index_by_day.get(day)
+        if idx is None:
+            continue
+        if day.weekday() == 1 and idx >= 1:  # 周二评估
+            targets_w = _consensus_target([model_pick(m, day) for m in models], cash_proxy)
+            equity_now = cash + sum(
+                q * price(sym, series[sym].index_by_day[day])
+                for sym, q in shares.items() if day in series[sym].index_by_day)
+            targets: dict[str, int] = {}
+            for sym, w in targets_w.items():
+                j = series[sym].index_by_day.get(day)
+                if j is not None:
+                    targets[sym] = int((equity_now * w) // price(sym, j))
+            threshold_usd = equity_now * rebalance_threshold_pct / 100.0
+            # 先卖后买(两趟:释放现金再买入,避免 ticker 排序造成的假不可行)
+            for phase in ("SELL", "BUY"):
+                for sym in sorted(set(shares) | set(targets)):
+                    j = series[sym].index_by_day.get(day)
+                    if j is None:
+                        continue
+                    cur, tgt = shares.get(sym, 0), targets.get(sym, 0)
+                    delta = tgt - cur
+                    p = price(sym, j)
+                    if delta == 0 or abs(delta) * p < threshold_usd:
+                        continue
+                    if phase == "SELL" and delta < 0:
+                        sell_q = -delta
+                        sell_fee = fee.order_cost_usd(side="SELL", quantity=sell_q, price=p)
+                        cash += sell_q * p - sell_fee
+                        result.fees_usd += sell_fee
+                        result.orders += 1
+                        shares[sym] = cur + delta
+                        if shares[sym] == 0:
+                            del shares[sym]
+                        result.fills.append({"day": day, "sym": sym, "side": "SELL",
+                                             "qty": sell_q, "price": p, "fee": sell_fee})
+                    elif phase == "BUY" and delta > 0:
+                        buy_fee = fee.order_cost_usd(side="BUY", quantity=delta, price=p)
+                        cost = delta * p + buy_fee
+                        if cost > cash:
+                            afford = int((cash - fee.commission_usd_per_order) // p) if cash > fee.commission_usd_per_order else 0
+                            if afford <= 0:
+                                result.skipped_infeasible += 1
+                                continue
+                            delta = afford
+                            buy_fee = fee.order_cost_usd(side="BUY", quantity=delta, price=p)
+                            cost = delta * p + buy_fee
+                        cash -= cost
+                        result.fees_usd += buy_fee
+                        shares[sym] = cur + delta
+                        result.orders += 1
+                        result.fills.append({"day": day, "sym": sym, "side": "BUY",
+                                             "qty": delta, "price": p, "fee": buy_fee})
+        equity = cash
+        for sym, q in shares.items():
+            j = series[sym].index_by_day.get(day)
+            if j is not None:
+                equity += q * series[sym].closes[j]
+        result.equity_days.append(day)
+        result.equity.append(equity)
+    return result
+
+
+# ---------- S2 参数与模拟 ----------
+
+@dataclass(frozen=True)
+class S2Params:
+    rsi_threshold: float = 8.0
+    ibs_threshold: float = 0.2
+    stop_loss_pct: float = 4.0
+    time_stop_days: int = 10
+    vol_floor_pct: float = 1.5
+
+
+def simulate_s2(
+    series: dict[str, SymbolSeries],
+    core_universe: list[str],
+    params: S2Params,
+    *,
+    start: date,
+    end: date,
+    sleeve_usd: float,
+    fee: FeeModel,
+    calendar: list[date],
+    max_open: int = 2,
+) -> SleeveResult:
+    cash = sleeve_usd
+    open_trades: list[dict] = []
+    pending_entries: list[dict] = []
+    pending_exits: list[dict] = []
+    result = SleeveResult(equity_days=[], equity=[])
+
+    for day in calendar:
+        if day < start or day > end:
+            continue
+        # 1) 处理挂单入场(昨日信号,今日限价)
+        for order in list(pending_entries):
+            ss = series[order["symbol"]]
+            j = ss.index_by_day.get(day)
+            if j is None:
+                continue
+            pending_entries.remove(order)
+            limit = order["limit"]
+            qty = int((sleeve_usd / max_open) // limit)
+            if qty <= 0:
+                result.skipped_infeasible += 1   # 3000 AUD 整股买不起:一等公民指标
+                continue
+            if ss.lows[j] <= limit:
+                cost = qty * limit + fee.order_cost_usd(side="BUY", quantity=qty, price=limit)
+                if cost > cash:
+                    result.skipped_infeasible += 1
+                    continue
+                cash -= cost
+                entry_fee = fee.order_cost_usd(side="BUY", quantity=qty, price=limit)
+                result.fees_usd += entry_fee
+                result.orders += 1
+                result.fills.append({"day": day, "sym": order["symbol"], "side": "BUY",
+                                     "qty": qty, "price": limit, "fee": entry_fee})
+                open_trades.append({"symbol": order["symbol"], "qty": qty, "entry": limit,
+                                    "entry_day": day, "held": 0})
+        # 2) 处理待执行离场(昨日判定,今日收盘成交)
+        for ex in list(pending_exits):
+            ss = series[ex["symbol"]]
+            j = ss.index_by_day.get(day)
+            if j is None:
+                continue
+            pending_exits.remove(ex)
+            p = ss.closes[j]
+            exit_fee = fee.order_cost_usd(side="SELL", quantity=ex["qty"], price=p)
+            cash += ex["qty"] * p - exit_fee
+            result.fees_usd += exit_fee
+            result.orders += 1
+            result.trades += 1
+            result.fills.append({"day": day, "sym": ex["symbol"], "side": "SELL",
+                                 "qty": ex["qty"], "price": p, "fee": exit_fee})
+            if p > ex["entry"]:
+                result.wins += 1
+        # 3) 持仓天数与当日离场判定
+        for trade in list(open_trades):
+            ss = series[trade["symbol"]]
+            j = ss.index_by_day.get(day)
+            if j is None:
+                continue
+            trade["held"] += 1
+            close = ss.closes[j]
+            stop_price = trade["entry"] * (1 - params.stop_loss_pct / 100.0)
+            if close <= stop_price:
+                # 止损:触发日收盘市价成交
+                stop_fee = fee.order_cost_usd(side="SELL", quantity=trade["qty"], price=close)
+                cash += trade["qty"] * close - stop_fee
+                result.fees_usd += stop_fee
+                result.orders += 1
+                result.trades += 1
+                result.fills.append({"day": day, "sym": trade["symbol"], "side": "SELL",
+                                     "qty": trade["qty"], "price": close, "fee": stop_fee})
+                open_trades.remove(trade)
+                continue
+            s5 = ss.sma5[j]
+            if trade["held"] >= params.time_stop_days or (s5 is not None and close > s5 and trade["held"] >= 1):
+                open_trades.remove(trade)
+                pending_exits.append(trade)
+        # 4) 收盘信号 -> 次日挂单
+        slots = max_open - len(open_trades) - len(pending_entries) - len(pending_exits)
+        if slots > 0:
+            held_syms = {t["symbol"] for t in open_trades} | {o["symbol"] for o in pending_entries}
+            for sym in core_universe:
+                if slots <= 0 or sym in held_syms:
+                    continue
+                ss = series[sym]
+                j = ss.index_by_day.get(day)
+                if j is None:
+                    continue
+                s200, r2, i_v, a_r = ss.sma200[j], ss.rsi2[j], ss.ibs_v[j], ss.atr14_ratio[j]
+                if None in (s200, r2, i_v, a_r):
+                    continue
+                if (ss.closes[j] > s200 and r2 < params.rsi_threshold
+                        and i_v < params.ibs_threshold and a_r > params.vol_floor_pct / 100.0):
+                    pending_entries.append({"symbol": sym, "limit": round(ss.closes[j] * 0.995, 2)})
+                    slots -= 1
+        # 5) 逐日净值
+        equity = cash
+        for trade in open_trades + pending_exits:
+            ss = series[trade["symbol"]]
+            j = ss.index_by_day.get(day)
+            if j is not None:
+                equity += trade["qty"] * ss.closes[j]
+        result.equity_days.append(day)
+        result.equity.append(equity)
+    return result
+
+
+# ---------- 指标与判定 ----------
+
+def monthly_returns(days: Sequence[date], equity: Sequence[float]) -> list[tuple[str, float]]:
+    if not days:
+        return []
+    out: list[tuple[str, float]] = []
+    month_start_val = equity[0]
+    cur_month = (days[0].year, days[0].month)
+    last_val = equity[0]
+    for d, v in zip(days, equity):
+        if (d.year, d.month) != cur_month:
+            out.append((f"{cur_month[0]}-{cur_month[1]:02d}", last_val / month_start_val - 1.0))
+            cur_month = (d.year, d.month)
+            month_start_val = last_val
+        last_val = v
+    out.append((f"{cur_month[0]}-{cur_month[1]:02d}", last_val / month_start_val - 1.0))
+    return out
+
+
+def max_drawdown(equity: Sequence[float]) -> float:
+    peak, mdd = -math.inf, 0.0
+    for v in equity:
+        peak = max(peak, v)
+        if peak > 0:
+            mdd = max(mdd, 1.0 - v / peak)
+    return mdd
+
+
+def metrics(days: Sequence[date], equity: Sequence[float]) -> dict:
+    mr = monthly_returns(days, equity)
+    rets = [r for _, r in mr]
+    if not rets or equity[0] <= 0:
+        return {"months": 0}
+    total_growth = equity[-1] / equity[0]
+    geo_monthly = total_growth ** (1.0 / len(rets)) - 1.0
+    wins = [r for r in rets if r > 0]
+    losses = [abs(r) for r in rets if r < 0]
+    return {
+        "months": len(rets),
+        "years": round(len(rets) / 12.0, 2),
+        "total_return_pct": round((total_growth - 1.0) * 100, 2),
+        "monthly_mean_net_pct": round(geo_monthly * 100, 3),
+        "max_drawdown_pct": round(max_drawdown(equity) * 100, 2),
+        "monthly_win_rate_pct": round(100.0 * len(wins) / len(rets), 1),
+        "profit_factor": round(sum(wins) / sum(losses), 2) if losses else math.inf,
+    }
+
+
+def closed_round_trips(fills: Sequence[dict]) -> list[dict]:
+    """把逐笔成交流水按标的做 FIFO 配对 → closed round-trip 列表(净额,已摊分买卖费用)。
+
+    每笔卖出把当笔费用按股均摊,依次冲抵最早的未平买入手数;每平掉一段即记一笔
+    round-trip:净盈亏 = 平仓股数×(卖价−买价) − 该段应摊的买入费 − 卖出费。
+    未平尾仓不计(只统计已闭合往返,符合逐笔盈亏比/胜率口径)。
+    """
+    from collections import defaultdict, deque
+
+    open_lots: dict[str, deque] = defaultdict(deque)  # sym -> [(qty, price, fee_per_share)]
+    trips: list[dict] = []
+    for f in fills:
+        sym, qty, price = f["sym"], int(f["qty"]), float(f["price"])
+        fee_ps = float(f["fee"]) / qty if qty else 0.0
+        if f["side"] == "BUY":
+            open_lots[sym].append([qty, price, fee_ps])
+        else:  # SELL:按股均摊卖出费,FIFO 冲抵买入手数
+            remaining = qty
+            while remaining > 0 and open_lots[sym]:
+                lot = open_lots[sym][0]
+                take = min(remaining, lot[0])
+                pnl = take * (price - lot[1]) - take * (lot[2] + fee_ps)
+                trips.append({"sym": sym, "qty": take, "entry": lot[1], "exit": price,
+                              "entry_day": f.get("entry_day"), "exit_day": f["day"],
+                              "pnl": pnl})
+                lot[0] -= take
+                remaining -= take
+                if lot[0] == 0:
+                    open_lots[sym].popleft()
+    return trips
+
+
+def drawdown_episodes(days: Sequence[date], equity: Sequence[float]) -> list[dict]:
+    """连续每日净值 → 回撤 episodes(峰→谷→恢复)。未恢复者 recovery_day=None(OPEN)。"""
+    episodes: list[dict] = []
+    if not equity:
+        return episodes
+    peak, peak_day = equity[0], days[0]
+    trough, trough_day = equity[0], days[0]
+    in_dd = False
+    for d, v in zip(days, equity):
+        if v >= peak:
+            if in_dd:  # 刚恢复到前高 → 收一个 episode
+                episodes.append({
+                    "peak_day": peak_day, "peak": peak, "trough_day": trough_day,
+                    "trough": trough, "depth_pct": round((1 - trough / peak) * 100, 2),
+                    "recovery_day": d,
+                    "recovery_days": (d - peak_day).days,
+                    "recovered": True})
+                in_dd = False
+            peak, peak_day = v, d
+            trough, trough_day = v, d
+        else:
+            in_dd = True
+            if v < trough:
+                trough, trough_day = v, d
+    if in_dd:  # 收尾仍在水下 = 未修复
+        episodes.append({
+            "peak_day": peak_day, "peak": peak, "trough_day": trough_day, "trough": trough,
+            "depth_pct": round((1 - trough / peak) * 100, 2),
+            "recovery_day": None, "recovery_days": None, "recovered": False})
+    return episodes
+
+
+def ledger_metrics(days: Sequence[date], equity: Sequence[float],
+                   fills: Sequence[dict]) -> dict:
+    """月度指标 + 逐笔账本指标(真逐笔盈亏比/胜率)+ 最深回撤的修复时间。全部来自连续净值。"""
+    m = dict(metrics(days, equity))
+    trips = closed_round_trips(fills)
+    wins = [t["pnl"] for t in trips if t["pnl"] > 0]
+    losses = [-t["pnl"] for t in trips if t["pnl"] < 0]
+    avg_win = sum(wins) / len(wins) if wins else 0.0
+    avg_loss = sum(losses) / len(losses) if losses else 0.0
+    m["round_trips"] = len(trips)
+    m["per_trade_win_rate_pct"] = round(100.0 * len(wins) / len(trips), 1) if trips else None
+    m["per_trade_pl_ratio"] = round(avg_win / avg_loss, 2) if avg_loss > 0 else (
+        math.inf if avg_win > 0 else None)
+    eps = drawdown_episodes(days, equity)
+    if eps:
+        deepest = max(eps, key=lambda e: e["depth_pct"])
+        m["max_dd_depth_pct"] = deepest["depth_pct"]
+        m["max_dd_recovery_days"] = deepest["recovery_days"]  # None = 未修复(OPEN)
+        m["max_dd_recovered"] = deepest["recovered"]
+    return m
+
+
+DEFAULT_PROMO1_GATE = {
+    # 来源：Alpha/configs/strategy_promotion.yaml（已在本轮读取）。
+    # 原文：含费用模型的 >= 3 年回测：月均净收益 >= 0.6% 且最大回撤 <= 30%。
+    "gate_monthly_pct": 0.6,
+    "gate_dd_pct": 30.0,
+    "min_years": 3.0,
+}
+
+
+def load_promo1_gate(override: Mapping[str, float] | None = None) -> dict:
+    """返回显式 PROMO-1 默认门槛，并允许受审计的同形状覆盖。
+
+    Signal-Lattice 不读取 Alpha 配置路径。默认值逐项声明在这里，调用者的
+    覆盖仅用于受控测试或未来经审查的本仓配置入口。
+    """
+    return {**DEFAULT_PROMO1_GATE, **dict(override or {})}
+
+
+def promo1_verdict(m: dict, *, gate_monthly_pct: float = 1.8, gate_dd_pct: float = 15.0,
+                   min_years: float = 3.0) -> dict:
+    ok_years = m.get("years", 0) >= min_years
+    ok_ret = m.get("monthly_mean_net_pct", -999) >= gate_monthly_pct
+    ok_dd = m.get("max_drawdown_pct", 999) <= gate_dd_pct
+    return {
+        "years_ok": ok_years, "monthly_return_ok": ok_ret, "drawdown_ok": ok_dd,
+        "passed": ok_years and ok_ret and ok_dd,
+        "gate": {"monthly_pct": gate_monthly_pct, "dd_pct": gate_dd_pct, "min_years": min_years},
+    }
+
+
+# ---------- 滚动前推 ----------
+
+def walk_forward_windows(calendar: Sequence[date], *, train_months: int = 24,
+                         validate_months: int = 6) -> list[tuple[date, date, date, date]]:
+    """返回严格不重叠的完整 (train_start, train_end, test_start, test_end)。
+
+    train 仅用于网格搜索，紧随其后的完整 test 才用于评价。尾部不足完整
+    test 窗口时不生成窗口，禁止用短窗补足样本量。
+    """
+    if not calendar:
+        return []
+    def add_months(d: date, m: int) -> date:
+        y, mo = d.year + (d.month - 1 + m) // 12, (d.month - 1 + m) % 12 + 1
+        return date(y, mo, 1)
+    windows = []
+    cursor = date(calendar[0].year, calendar[0].month, 1)
+    last = calendar[-1]
+    while True:
+        t_start = cursor
+        v_start = add_months(t_start, train_months)
+        t_end = v_start - timedelta(days=1)
+        v_end_exclusive = add_months(v_start, validate_months)
+        v_end = v_end_exclusive - timedelta(days=1)
+        if v_end > last:
+            break
+        windows.append((t_start, t_end, v_start, v_end))
+        cursor = v_end_exclusive
+    return windows
+
+
+def s1_grid(review_grid: dict) -> list[S1Params]:
+    combos = itertools.product(
+        [tuple(w) for w in review_grid["weights_allowed"]],
+        review_grid["top_n_allowed"],
+        review_grid["target_vol_allowed"],
+        review_grid["rebalance_threshold_allowed"],
+    )
+    return [S1Params(weights=w, top_n=n, target_vol=float(v), rebalance_threshold_pct=float(r))
+            for w, n, v, r in combos]
+
+
+def s2_grid(review_grid: dict) -> list[S2Params]:
+    combos = itertools.product(
+        review_grid["rsi_threshold_allowed"],
+        review_grid["ibs_threshold_allowed"],
+        review_grid["stop_loss_allowed"],
+        review_grid["time_stop_allowed"],
+        review_grid["volatility_floor_allowed"],
+    )
+    return [S2Params(rsi_threshold=float(r), ibs_threshold=float(i), stop_loss_pct=float(s),
+                     time_stop_days=int(t), vol_floor_pct=float(v))
+            for r, i, s, t, v in combos]
+
+
+def pick_best(candidates: list[tuple[object, dict]], *, dd_cap: float = 15.0) -> tuple[object, dict, bool]:
+    """训练窗选优:回撤达标里挑月均最高;全不达标挑回撤最小并标旗。"""
+    within = [(p, m) for p, m in candidates if m.get("max_drawdown_pct", 999) <= dd_cap]
+    if within:
+        p, m = max(within, key=lambda x: x[1].get("monthly_mean_net_pct", -999))
+        return p, m, True
+    p, m = min(candidates, key=lambda x: x[1].get("max_drawdown_pct", 999))
+    return p, m, False
