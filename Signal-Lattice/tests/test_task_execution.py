@@ -8,6 +8,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from signal_lattice.constants import VERSION
+
 
 class TaskExecutionContractTests(unittest.TestCase):
     @classmethod
@@ -38,7 +40,7 @@ class TaskExecutionContractTests(unittest.TestCase):
         dag_ids = {row["id"] for row in self.dag["tasks"]}
         self.assertEqual(contract_ids, dag_ids)
         self.assertEqual(len(contract_ids), len(self.contract["tasks"]))
-        self.assertEqual(self.contract["version"], "0.0.0.1.41")
+        self.assertEqual(self.contract["version"], VERSION)
 
     def test_every_task_validates(self):
         result = self.run_cli("--validate-all")

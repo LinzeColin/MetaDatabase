@@ -2,7 +2,7 @@
   "info": {
     "description": "每 60 秒读取 GitHub、让全部 Active 投资 Skill 在相同不可变市场快照上隔离独立判断，由无投资立场的中枢去重证据、协调冲突、自平衡并只输出一个顶层投资建议。运行期零 Agent、零模型 Token、禁止自动交易。",
     "title": "Signal Lattice API",
-    "version": "0.0.0.1.41"
+    "version": "0.0.0.2.3"
   },
   "openapi": "3.1.0",
   "paths": {

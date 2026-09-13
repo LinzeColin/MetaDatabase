@@ -120,6 +120,23 @@ class SleeveResult:
     extra: dict = field(default_factory=dict)
 
 
+def affordable_buy_quantity(
+    *, cash: float, requested_quantity: int, price: float, fee: FeeModel
+) -> int:
+    """返回包含每股费和订单费后仍能由现有现金完整支付的最大整股数。"""
+    low, high = 0, max(0, requested_quantity)
+    while low < high:
+        quantity = (low + high + 1) // 2
+        order_cost = quantity * price + fee.order_cost_usd(
+            side="BUY", quantity=quantity, price=price
+        )
+        if order_cost <= cash:
+            low = quantity
+        else:
+            high = quantity - 1
+    return low
+
+
 def simulate_s1(
     series: dict[str, SymbolSeries],
     universe: list[str],
@@ -257,46 +274,45 @@ def simulate_s1(
                 notional = equity_now * weight_each
                 targets[sym] = int(notional // price(sym, j))
             threshold_usd = equity_now * params.rebalance_threshold_pct / 100.0
-            for sym in sorted(set(shares) | set(targets)):
-                j = series[sym].index_by_day.get(day)
-                if j is None:
-                    continue
-                cur, tgt = shares.get(sym, 0), targets.get(sym, 0)
-                delta = tgt - cur
-                if delta == 0:
-                    continue
-                p = price(sym, j)
-                if abs(delta) * p < threshold_usd:
-                    continue
-                if delta > 0:
-                    buy_fee = fee.order_cost_usd(side="BUY", quantity=delta, price=p)
-                    cost = delta * p + buy_fee
-                    if cost > cash:
-                        afford = int((cash - fee.commission_usd_per_order) // p) if cash > fee.commission_usd_per_order else 0
-                        if afford <= 0:
+            # 先卖后买：同一评估日的卖出净额先进入现金，再计算买入可行数量。
+            # 这样 ticker 的字母顺序不会把可完成的换仓伪造成资金不足。
+            for phase in ("SELL", "BUY"):
+                for sym in sorted(set(shares) | set(targets)):
+                    j = series[sym].index_by_day.get(day)
+                    if j is None:
+                        continue
+                    cur, tgt = shares.get(sym, 0), targets.get(sym, 0)
+                    delta = tgt - cur
+                    if delta == 0:
+                        continue
+                    p = price(sym, j)
+                    if abs(delta) * p < threshold_usd:
+                        continue
+                    if phase == "SELL" and delta < 0:
+                        sell_q = -delta
+                        sell_fee = fee.order_cost_usd(side="SELL", quantity=sell_q, price=p)
+                        cash += sell_q * p - sell_fee
+                        result.fees_usd += sell_fee
+                        shares[sym] = cur + delta
+                        if shares[sym] == 0:
+                            del shares[sym]
+                        result.orders += 1
+                        result.fills.append({"day": day, "sym": sym, "side": "SELL",
+                                             "qty": sell_q, "price": p, "fee": sell_fee})
+                    elif phase == "BUY" and delta > 0:
+                        buy_q = affordable_buy_quantity(
+                            cash=cash, requested_quantity=delta, price=p, fee=fee
+                        )
+                        if buy_q <= 0:
                             result.skipped_infeasible += 1
                             continue
-                        delta = afford
-                        buy_fee = fee.order_cost_usd(side="BUY", quantity=delta, price=p)
-                        cost = delta * p + buy_fee
-                    cash -= cost
-                    result.fees_usd += buy_fee
-                    shares[sym] = cur + delta
-                    result.orders += 1
-                    result.fills.append({"day": day, "sym": sym, "side": "BUY",
-                                         "qty": delta, "price": p, "fee": buy_fee})
-                else:
-                    sell_q = -delta
-                    sell_fee = fee.order_cost_usd(side="SELL", quantity=sell_q, price=p)
-                    proceeds = sell_q * p - sell_fee
-                    cash += proceeds
-                    result.fees_usd += sell_fee
-                    shares[sym] = cur + delta
-                    if shares[sym] == 0:
-                        del shares[sym]
-                    result.orders += 1
-                    result.fills.append({"day": day, "sym": sym, "side": "SELL",
-                                         "qty": sell_q, "price": p, "fee": sell_fee})
+                        buy_fee = fee.order_cost_usd(side="BUY", quantity=buy_q, price=p)
+                        cash -= buy_q * p + buy_fee
+                        result.fees_usd += buy_fee
+                        shares[sym] = cur + buy_q
+                        result.orders += 1
+                        result.fills.append({"day": day, "sym": sym, "side": "BUY",
+                                             "qty": buy_q, "price": p, "fee": buy_fee})
 
         equity = cash
         for sym, q in shares.items():
@@ -416,22 +432,19 @@ def simulate_consensus(
                         result.fills.append({"day": day, "sym": sym, "side": "SELL",
                                              "qty": sell_q, "price": p, "fee": sell_fee})
                     elif phase == "BUY" and delta > 0:
-                        buy_fee = fee.order_cost_usd(side="BUY", quantity=delta, price=p)
-                        cost = delta * p + buy_fee
-                        if cost > cash:
-                            afford = int((cash - fee.commission_usd_per_order) // p) if cash > fee.commission_usd_per_order else 0
-                            if afford <= 0:
-                                result.skipped_infeasible += 1
-                                continue
-                            delta = afford
-                            buy_fee = fee.order_cost_usd(side="BUY", quantity=delta, price=p)
-                            cost = delta * p + buy_fee
-                        cash -= cost
+                        buy_q = affordable_buy_quantity(
+                            cash=cash, requested_quantity=delta, price=p, fee=fee
+                        )
+                        if buy_q <= 0:
+                            result.skipped_infeasible += 1
+                            continue
+                        buy_fee = fee.order_cost_usd(side="BUY", quantity=buy_q, price=p)
+                        cash -= buy_q * p + buy_fee
                         result.fees_usd += buy_fee
-                        shares[sym] = cur + delta
+                        shares[sym] = cur + buy_q
                         result.orders += 1
                         result.fills.append({"day": day, "sym": sym, "side": "BUY",
-                                             "qty": delta, "price": p, "fee": buy_fee})
+                                             "qty": buy_q, "price": p, "fee": buy_fee})
         equity = cash
         for sym, q in shares.items():
             j = series[sym].index_by_day.get(day)

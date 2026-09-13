@@ -8,9 +8,10 @@ from pathlib import Path
 from typing import List
 
 from .marketdata.models import Instrument
+from .version import VERSION
 
 
-APP_VERSION = "0.0.0.2.0"
+APP_VERSION = VERSION
 
 
 def default_universe() -> List[Instrument]:

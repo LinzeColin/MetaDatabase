@@ -9,6 +9,8 @@ from pathlib import Path
 from signal_lattice.backtest.fees import FeeModel
 from signal_lattice.backtest.pipeline import (
     S1Params,
+    SymbolSeries,
+    affordable_buy_quantity,
     load_promo1_gate,
     precompute,
     promo1_verdict,
@@ -167,6 +169,60 @@ class BacktestTests(unittest.TestCase):
         self.assertTrue(failed["years_ok"])
         self.assertFalse(failed["monthly_return_ok"])
         self.assertTrue(failed["drawdown_ok"])
+
+    def test_s1_rotation_sells_before_buying_when_target_sorts_first(self):
+        days = business_days(date(2024, 1, 1), 8)
+
+        def series_for(symbol: str, scores: dict[int, float]) -> SymbolSeries:
+            count = len(days)
+            series = SymbolSeries(
+                symbol=symbol,
+                days=days,
+                opens=[100.0] * count,
+                highs=[100.0] * count,
+                lows=[100.0] * count,
+                closes=[100.0] * count,
+                sma200=[50.0] * count,
+                r63=[0.0] * count,
+                r126=[0.0] * count,
+                r252=[0.0] * count,
+                vol20=[None] * count,
+                index_by_day={day: index for index, day in enumerate(days)},
+            )
+            for index, score in scores.items():
+                series.r63[index] = score
+                series.r126[index] = score
+                series.r252[index] = score
+            return series
+
+        # 第一个周二持有 ZZZ；第二个周二切换到字母序在前的 AAA。
+        # 两次评分都读取评估日前一日，索引分别为 0 和 5。
+        series = {
+            "AAA": series_for("AAA", {0: 0.1, 5: 0.9}),
+            "ZZZ": series_for("ZZZ", {0: 0.9, 5: 0.1}),
+            "BIL": series_for("BIL", {}),
+        }
+        result = simulate_s1(
+            series, ["AAA", "ZZZ", "BIL"], "BIL",
+            S1Params(top_n=1, target_vol=999.0, rebalance_threshold_pct=0.0),
+            start=days[0], end=days[-1], sleeve_usd=100.0,
+            fee=FeeModel(0.0, 0.0, 0.0, False), calendar=days,
+        )
+
+        rotation_day = days[6]
+        rotation_fills = [fill for fill in result.fills if fill["day"] == rotation_day]
+        self.assertEqual(
+            [(fill["side"], fill["sym"], fill["qty"]) for fill in rotation_fills],
+            [("SELL", "ZZZ", 1), ("BUY", "AAA", 1)],
+        )
+        self.assertEqual(result.skipped_infeasible, 0)
+
+    def test_affordable_buy_quantity_uses_full_fee_model(self):
+        fee = FeeModel(commission_usd_per_order=1.0, cat_fee_per_share=0.5)
+        self.assertEqual(
+            affordable_buy_quantity(cash=22.0, requested_quantity=3, price=10.0, fee=fee),
+            2,
+        )
 
 
 if __name__ == "__main__":

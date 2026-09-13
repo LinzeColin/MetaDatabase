@@ -4,7 +4,7 @@ import argparse,json,re,tomllib,sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"src"))
 from signal_lattice.constants import VERSION
-VERSION_RE=re.compile(r'0\.0\.0\.1\.\d+')
+VERSION_RE=re.compile(r'0\.0\.0\.\d+\.\d+')
 CHECK_FILES=(
  'CANONICAL_STATE.json','00_READ_FIRST.md','ROADMAP.md','CODEX_LAST_MILE_PROMPT.txt','machine/facts/project.json','machine/facts/requirements.json',
  'machine/facts/task_dag.json','machine/facts/acceptance_contract.json','machine/facts/release_boundary.json',

@@ -4,13 +4,13 @@
 
 ## 当前目标
 
-修复第三轮对抗性审查确认的两条 high：收益证据门必须覆盖所有公开 API，腾讯备用
-报价的非 GBK 响应及任何未预期运行期失败必须立即覆盖旧的 DATA_READY。现有数据新鲜度
+修复第四轮对抗性审查确认的三条 high：发布身份必须统一为线上 v0.0.0.2.3，S1
+调仓必须先卖后买，未来时间戳不能让旧的 DATA_READY 绕过就绪 TTL。现有数据新鲜度
 阻断、未实现分支权重为 0 与 S2 的 PROMO-1 排除保持原状；Stage 5 部署不在本轮范围内。
 
 ## 当前状态
 
-STAGE_4_THIRD_ADVERSARIAL_REMEDIATION_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE。当前 worktree 没有目标机的运行期
+STAGE_4_FOURTH_ADVERSARIAL_REMEDIATION_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE。当前 worktree 没有目标机的运行期
 `state_dir`，因此本机没有重放真实行情。目标机已产出的真实贡献度输入表明：S1 有
 4 条可用样本，S2 有 10 条样本但 PROMO-1 未通过并保持
 `EXCLUDED_PENDING_BACKTEST`。据此，本轮实际权重模式为 `COLD_START_EQUAL`：
@@ -23,6 +23,37 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
 - S1 缺少 IWM、EFA、EEM、GLD、BIL；S2 的 SPY/QQQ 也无法满足至少两个完整
   24 个月训练加 6 个月测试窗口。
 - 本任务禁止联网，因此没有用短窗、全样本或 Alpha 历史报告替代当前真实回测。
+
+## 2026-09-14 第四轮对抗性审查修复
+
+- 发布身份的唯一手写源是 `pyproject.toml [project].version = 0.0.0.2.3`。
+  `signal_lattice.version` 在源码树读取该文件，在 wheel 内读取安装包元数据；
+  `constants.VERSION`、`__version__` 与 `live_config.APP_VERSION` 全部消费这一个解析结果。
+  发布脚本也从同一 `pyproject.toml` 生成 Manifest/Subject Lock/版本锁，避免运行代码、
+  任务执行合同和制品清单分别声明版本。
+- S1 调仓改为 SELL、BUY 两个确定性阶段。全部卖单先以完整卖出费用更新现金，随后才按
+  `quantity × price + order_cost_usd(BUY)` 二分求可买的最大整股数；同一逻辑同时用于
+  consensus 调仓。目标标的 AAA 排在旧仓 ZZZ 前的夹具断言：同一交易日先卖 ZZZ 再买 AAA，
+  `skipped_infeasible = 0`，不再由 ticker 排序产生延迟换仓。
+- `MAX_FUTURE_CLOCK_SKEW_SECONDS = 60`：60 秒覆盖写盘/请求级时钟微偏移，远低于默认
+  270 秒就绪 TTL。报告或心跳领先当前时间超过该值分别产生
+  `REPORT_CLOCK_AHEAD` / `HEARTBEAT_CLOCK_AHEAD`，API 一律回退
+  `SYSTEM_BLOCKED/COLLECTION_LOOP_UNREACHABLE`。唯一的 `latest_for_api` 读取门已覆盖
+  所有读取运行期报告的公开路由；`/health/live` 不读取报告。运行期报价也使用同一界限，
+  防止未来观察时间形成新的 DATA_READY。
+- 历史 v19 wheel 位于受跟踪的 `v19_release/dist/`，是旧制品证据而非当前候选源码。
+  Package Guard 现在与 Manifest 采用一致排除口径；本地 `.pytest_cache` 已可恢复地移至
+  `/private/tmp/signal-lattice-pytest-cache-preexisting-20260914`，未删除源码或业务数据。
+- 定向回归：`tests/test_backtest.py tests/test_live_api.py tests/test_live_runtime.py
+  tests/test_task_execution.py` 为 `21 passed`。用户指定完整命令在本 sandbox 的 Python 3.9
+  下为 `15 failed, 146 passed, 1 skipped`：7 条是禁止 TCP bind 的 `PermissionError`；其余
+  8 条仅属于既有 deployment/formal lifecycle/Python 3.9 `tomllib`/root allowlist/state machine/
+  taskpack seal 类别。完整测试随后生成的缓存已可恢复地移至
+  `/private/tmp/signal-lattice-pytest-cache-full-20260914`。
+- `/Users/linzezhang/.local/bin/python3.12 scripts/verify_version_lock.py --root .` 输出
+  `PASS, version=0.0.0.2.3`；同一 Python 3.12 下 `scripts/verify_package.py` 为
+  `PASS, finding_count=0`。`MANIFEST.json`、`SUBJECT_LOCK.json` 和任务执行合同已重建并
+  全部绑定 `0.0.0.2.3`。
 
 ## 2026-09-14 第三轮对抗性审查修复
 
@@ -177,11 +208,13 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
 - src/signal_lattice/aggregate.py
 - src/signal_lattice/live_runtime.py
 - src/signal_lattice/live_api.py
+- src/signal_lattice/version.py
 - web/app.js
 - tests/test_backtest.py
 - tests/test_branch_verdicts.py
 - tests/test_weighting.py
 - tests/test_marketdata_providers.py
+- tests/test_live_api.py
 
 ## 已验证
 
@@ -274,6 +307,7 @@ Stage 4 已有的固定序列夹具继续覆盖：
 
 ## 下一步
 
-在目标机按既有运行流程继续积累完整的 24/6 样本外窗口。S1 还需 4 条可用样本达到
-8/8；S2 继续以 PROMO-1 的实际结果维持排除。只有至少两个已资格分支各自满足样本门时，
-Hedge 才会形成有比较意义的相对动态权重。Stage 5 部署不在本轮范围内。
+Claude Code 侧用真实行情与当前目标机 `state_dir` 复跑 S1/S2；本 worktree 没有完整
+行情输入，不能诚实地产生修复后超额收益、最大回撤或参数选择的新数字。S1 还需 4 条
+可用样本达到 8/8；S2 继续以 PROMO-1 的实际结果维持排除。只有至少两个已资格分支
+各自满足样本门时，Hedge 才会形成有比较意义的相对动态权重。Stage 5 部署不在本轮范围内。

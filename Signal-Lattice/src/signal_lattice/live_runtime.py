@@ -24,6 +24,9 @@ from .serialization import JsonSerializationConstraintError, strict_json_dumps
 HISTORY_RETENTION_DAYS = 31
 HISTORY_MAX_RECORDS_PER_DAY = 240
 HISTORY_MAX_BYTES_PER_DAY = 64 * 1024
+# 系统与持久化状态的正常时钟微偏移可在一个请求/写盘窗口内出现；60 秒已经覆盖
+# 该偏移，却远小于默认 270 秒就绪 TTL。超出它的时间戳不能作为实时性证据。
+MAX_FUTURE_CLOCK_SKEW_SECONDS = 60
 
 
 def _iso(value: datetime) -> str:
@@ -90,10 +93,22 @@ class LiveStore:
         generated_at = self._parse_timestamp(latest.get("generated_at"))
         observed_at = self._parse_timestamp(heartbeat.get("observed_at"))
         stale_parts = []
-        if generated_at is None or (checked_at - generated_at).total_seconds() > max_age_seconds:
+        if generated_at is None:
             stale_parts.append("REPORT_STALE")
-        if observed_at is None or (checked_at - observed_at).total_seconds() > max_age_seconds:
+        else:
+            report_age = (checked_at - generated_at).total_seconds()
+            if report_age < -MAX_FUTURE_CLOCK_SKEW_SECONDS:
+                stale_parts.append("REPORT_CLOCK_AHEAD")
+            elif report_age > max_age_seconds:
+                stale_parts.append("REPORT_STALE")
+        if observed_at is None:
             stale_parts.append("HEARTBEAT_STALE")
+        else:
+            heartbeat_age = (checked_at - observed_at).total_seconds()
+            if heartbeat_age < -MAX_FUTURE_CLOCK_SKEW_SECONDS:
+                stale_parts.append("HEARTBEAT_CLOCK_AHEAD")
+            elif heartbeat_age > max_age_seconds:
+                stale_parts.append("HEARTBEAT_STALE")
         return {
             "latest": latest,
             "fresh": bool(latest) and not stale_parts,
@@ -269,10 +284,14 @@ class LiveEngine:
                     findings.append("QUOTE_MISSING:%s" % item.symbol)
                 elif not math.isfinite(quote.price):
                     findings.append("QUOTE_NONFINITE:%s" % item.symbol)
-                elif (now - quote.observed_at).total_seconds() > self.settings.quote_max_age_seconds:
-                    findings.append("QUOTE_STALE:%s" % item.symbol)
-                elif quote.source_time and quote.source_time.date() < (now.date() - timedelta(days=self.settings.bar_max_age_days)):
-                    findings.append("QUOTE_SOURCE_STALE:%s" % item.symbol)
+                else:
+                    quote_age = (now - quote.observed_at).total_seconds()
+                    if quote_age < -MAX_FUTURE_CLOCK_SKEW_SECONDS:
+                        findings.append("QUOTE_CLOCK_AHEAD:%s" % item.symbol)
+                    elif quote_age > self.settings.quote_max_age_seconds:
+                        findings.append("QUOTE_STALE:%s" % item.symbol)
+                    if quote.source_time and quote.source_time.date() < (now.date() - timedelta(days=self.settings.bar_max_age_days)):
+                        findings.append("QUOTE_SOURCE_STALE:%s" % item.symbol)
             series = bars.get(item.symbol)
             if not series:
                 findings.append("BAR_MISSING:%s" % item.symbol)

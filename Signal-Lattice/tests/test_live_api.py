@@ -77,6 +77,35 @@ class LiveApiTests(unittest.TestCase):
             self.assertEqual(report_status, 503)
             self.assertEqual(report["blocked_reason"], "COLLECTION_LOOP_UNREACHABLE")
 
+    def test_future_report_heartbeat_or_both_make_ready_unavailable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            settings = self._settings(root)
+            now = datetime.now(timezone.utc)
+            future = now + timedelta(seconds=61)
+
+            for report_time, heartbeat_time, expected_reason in (
+                (future, now, "REPORT_CLOCK_AHEAD"),
+                (now, future, "HEARTBEAT_CLOCK_AHEAD"),
+                (future, future, "REPORT_CLOCK_AHEAD,HEARTBEAT_CLOCK_AHEAD"),
+            ):
+                with self.subTest(report_time=report_time, heartbeat_time=heartbeat_time):
+                    state_dir = root / expected_reason.replace(",", "_")
+                    store = LiveStore(state_dir)
+                    store.save({
+                        "state": "DATA_READY",
+                        "generated_at": report_time.isoformat(),
+                        "market_fingerprint": {"quotes": {}, "bars": {}},
+                        "decision": {"state": "LONG", "action": "研究观察"},
+                    })
+                    store.write_heartbeat(heartbeat_time)
+
+                    effective, liveness = latest_for_api(settings, store, now=now)
+                    self.assertFalse(liveness["fresh"])
+                    self.assertEqual(liveness["reason"], expected_reason)
+                    self.assertEqual(effective["state"], "SYSTEM_BLOCKED")
+                    self.assertEqual(effective["blocked_reason"], "COLLECTION_LOOP_UNREACHABLE")
+
     def test_public_routes_remove_insufficient_profitability_values_and_keep_private_report(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

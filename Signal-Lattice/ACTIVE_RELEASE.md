@@ -1,6 +1,6 @@
 # Active release candidate
 
-- Application: `0.0.0.1.43`
+- Application: `0.0.0.2.3`
 - Decision contract: `v0.0.0.19`
 - UI/API heartbeat: `1 second`
 - Quote/report observation: `15 seconds`

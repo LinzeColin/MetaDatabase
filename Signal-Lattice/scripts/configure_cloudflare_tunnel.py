@@ -11,6 +11,10 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from signal_lattice.constants import VERSION
 from typing import Any, Callable
 
 API_BASE = "https://api.cloudflare.com/client/v4"
@@ -41,7 +45,7 @@ class Client:
             headers={
                 "Authorization": f"Bearer {self.token}",
                 "Content-Type": "application/json",
-                "User-Agent": "signal-lattice/0.0.0.1.41",
+                "User-Agent": f"signal-lattice/{VERSION}",
             },
         )
         try:

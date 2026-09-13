@@ -6,6 +6,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from signal_lattice.formal_identity import subject_identity_sha256, subject_rows
+from signal_lattice.version import VERSION
 
 
 def sha(path: Path) -> str:
@@ -78,7 +79,7 @@ def main() -> int:
     identity = {"files": rows, "bindings": bindings}
     body = {
         "schema_version": "1.1.0",
-        "version": "0.0.0.1.41",
+        "version": VERSION,
         "state": args.state,
         "upstream_binding_kind": "formal_seal" if seal.is_file() else "blocked_precheck",
         "files": rows,
