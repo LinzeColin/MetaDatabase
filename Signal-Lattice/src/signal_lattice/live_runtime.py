@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+from .aggregate import blocked_aggregate_report
 from .branches import build_branch_report
 from .live_config import APP_VERSION, LiveSettings
 from .marketdata import DiskCache, EastMoneyFundProvider, HttpClient, MarketDataError, SinaKlineProvider, SinaQuoteProvider, TencentKlineProvider, TencentQuoteProvider
@@ -148,11 +149,8 @@ class LiveEngine:
             if state == "DATA_READY"
             else {
                 "branches": [],
-                "aggregate": [],
-                "weight_mode": "COLD_START_EQUAL",
-                "accumulated_samples": 0,
                 "profitability_status": "NOT_PRODUCED_STAGE_2_NO_BACKTEST",
-                "coordination": {"rule": "数据链路不完整，不执行任何分支计算。"},
+                **blocked_aggregate_report(),
             }
         )
         report = {
@@ -173,7 +171,6 @@ class LiveEngine:
             "market_fingerprint": self._market_fingerprint(quotes, bars),
             "freshness_findings": findings,
             "message": "数据链路不完整，不出结论" if findings else "真实数据已就绪，已完成独立分支计算",
-            "decision": {"state": "SYSTEM_BLOCKED", "action": None} if findings else {"state": "BRANCH_CONCLUSIONS_READY", "action": None},
             **branch_report,
         }
         self.store.save(report)

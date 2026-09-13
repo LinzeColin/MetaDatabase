@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
+from ..aggregate import build_aggregate_report
 from .bars import closes, highs, lows
 from .indicators import atr, ibs, rsi_wilder, sma
 from .models import BranchVerdict
@@ -305,40 +305,6 @@ def evaluate_s2_verdicts(bars_by_symbol: Mapping[str, Sequence[Bar]]) -> list[Br
     return verdicts
 
 
-def _aggregate_symbol(verdicts: Sequence[BranchVerdict], symbol: str) -> dict[str, Any]:
-    contributors = [item for item in verdicts if item.symbol == symbol and item.weight > 0.0]
-    total_weight = sum(item.weight for item in contributors)
-    accumulated_samples = sum(
-        0 for item in contributors if item.participation_status == "COLD_START_ELIGIBLE"
-    )
-    if not contributors:
-        return {
-            "symbol": symbol,
-            "direction": "不适用",
-            "confidence": 0.0,
-            "weight_mode": "COLD_START_EQUAL",
-            "contributing_branch_ids": [],
-            "accumulated_samples": accumulated_samples,
-            "message": "没有已批准参与加权的分支；不输出投资动作。",
-            "action": None,
-        }
-    direction_value = {"看涨": 1.0, "中性": 0.0, "看跌": -1.0}
-    weighted_direction = sum(direction_value[item.direction] * item.weight for item in contributors) / total_weight
-    direction = "看涨" if weighted_direction > 0 else "看跌" if weighted_direction < 0 else "中性"
-    confidence = sum(item.confidence * item.weight for item in contributors) / total_weight
-    return {
-        "symbol": symbol,
-        "direction": direction,
-        "confidence": confidence,
-        "weight_mode": "COLD_START_EQUAL",
-        "contributing_branch_ids": [item.branch_id for item in contributors],
-        "normalized_weights": {item.branch_id: item.weight / total_weight for item in contributors},
-        "accumulated_samples": accumulated_samples,
-        "message": "仅汇总已实现且通过当前策略前置条件的分支；本系统不自动交易。",
-        "action": None,
-    }
-
-
 def build_branch_report(
     instruments: Sequence[Instrument], bars_by_symbol: Mapping[str, Sequence[Bar]]
 ) -> dict[str, Any]:
@@ -348,16 +314,8 @@ def build_branch_report(
     verdicts = evaluate_s1_verdicts(ordered_bars) + evaluate_s2_verdicts(ordered_bars)
     for branch in UNIMPLEMENTED_BRANCHES:
         verdicts.extend(_unimplemented_verdict(branch, symbol, len(ordered_bars[symbol])) for symbol in symbols)
-    summaries = [_aggregate_symbol(verdicts, symbol) for symbol in symbols]
     return {
         "branches": [verdict.as_dict() for verdict in verdicts],
-        "aggregate": summaries,
-        "weight_mode": "COLD_START_EQUAL",
-        "accumulated_samples": 0,
         "profitability_status": "NOT_PRODUCED_STAGE_2_NO_BACKTEST",
-        "coordination": {
-            "rule": "仅 implemented=True、weight>0 且 participation_status=COLD_START_ELIGIBLE 的结论等权归一化。",
-            "excluded_branch_count": len([verdict for verdict in verdicts if verdict.weight == 0.0]),
-            "dynamic_contribution_weighting": "STAGE_3_NOT_STARTED",
-        },
+        **build_aggregate_report(symbols, verdicts),
     }

@@ -9,6 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
+from .aggregate import blocked_decision
 from .live_config import APP_VERSION, LiveSettings
 from .live_runtime import LiveStore
 
@@ -26,7 +27,7 @@ def blocked_report() -> dict:
     return {
         "state": "SYSTEM_BLOCKED",
         "message": "数据链路不完整，不出结论",
-        "decision": {"action": None},
+        "decision": blocked_decision(),
     }
 
 
