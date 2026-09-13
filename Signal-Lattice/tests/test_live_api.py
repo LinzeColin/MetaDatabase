@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from pathlib import Path
 
-from signal_lattice.live_api import HEADERS, blocked_report, handler, latest_for_api
+from signal_lattice.live_api import HEADERS, blocked_report, handler, latest_for_api, v2_get_route_responses
 from signal_lattice.live_config import LiveSettings, default_universe
 from signal_lattice.live_runtime import LiveEngine, LiveStore
 from signal_lattice.marketdata.base import MarketDataError
@@ -44,6 +44,38 @@ class LiveApiTests(unittest.TestCase):
         self.assertIsNone(report["decision"]["action"])
         self.assertEqual(report["message"], "数据链路不完整，不出结论")
         self.assertEqual(HEADERS["Cache-Control"], "no-store")
+
+    def test_openapi_paths_exactly_match_v2_handler_route_table(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "index.html").write_text("<!doctype html><title>V2</title>", encoding="utf-8")
+            settings = self._settings(root)
+            live_routes = set(v2_get_route_responses(
+                settings,
+                {},
+                {"reason": None, "max_age_seconds": 270},
+            ))
+            contract = json.loads((Path(__file__).resolve().parents[1] / "openapi.yaml").read_text(encoding="utf-8"))
+            declared_routes = set(contract["paths"])
+
+        self.assertEqual(declared_routes, live_routes)
+        self.assertTrue(all(set(item) == {"get"} for item in contract["paths"].values()))
+        self.assertEqual(contract["info"]["version"], "0.0.0.2.3")
+        self.assertEqual(
+            {
+                (entry["path"], tuple(entry["methods"]))
+                for entry in contract["x-removed-legacy-interfaces"]
+            } & {
+                ("/api/v1/inputs/market-snapshot", ("POST",)),
+                ("/api/v1/inputs/skill-signal", ("POST",)),
+            },
+            {
+                ("/api/v1/inputs/market-snapshot", ("POST",)),
+                ("/api/v1/inputs/skill-signal", ("POST",)),
+            },
+        )
+        self.assertNotIn("/api/v1/inputs/market-snapshot", declared_routes)
+        self.assertNotIn("/api/v1/inputs/skill-signal", declared_routes)
 
     def test_stale_report_and_heartbeat_make_ready_and_latest_report_unavailable(self):
         with tempfile.TemporaryDirectory() as directory:

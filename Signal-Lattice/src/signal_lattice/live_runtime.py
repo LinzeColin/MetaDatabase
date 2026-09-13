@@ -8,6 +8,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Tuple
+from zoneinfo import ZoneInfo
 
 from .aggregate import blocked_aggregate_report
 from .backtest import run_backtest
@@ -278,6 +279,9 @@ class LiveEngine:
     def _validate(self, now: datetime, quotes: Dict[str, Quote], bars: Dict[str, List[Bar]], errors: List[str]) -> List[str]:
         findings = list(errors)
         for item in self.settings.universe:
+            exchange_timezone = ZoneInfo(item.timezone)
+            exchange_now = now.astimezone(exchange_timezone)
+            exchange_today = exchange_now.date()
             if item.realtime_quote:
                 quote = quotes.get(item.symbol)
                 if quote is None:
@@ -290,8 +294,19 @@ class LiveEngine:
                         findings.append("QUOTE_CLOCK_AHEAD:%s" % item.symbol)
                     elif quote_age > self.settings.quote_max_age_seconds:
                         findings.append("QUOTE_STALE:%s" % item.symbol)
-                    if quote.source_time and quote.source_time.date() < (now.date() - timedelta(days=self.settings.bar_max_age_days)):
-                        findings.append("QUOTE_SOURCE_STALE:%s" % item.symbol)
+                    if quote.source_time:
+                        source_at = (
+                            quote.source_time.astimezone(exchange_timezone)
+                            if quote.source_time.tzinfo is not None
+                            else quote.source_time.replace(tzinfo=exchange_timezone)
+                        )
+                        if source_at > exchange_now + timedelta(seconds=MAX_FUTURE_CLOCK_SKEW_SECONDS):
+                            findings.append(
+                                "QUOTE_SOURCE_CLOCK_AHEAD:%s:%s:%s"
+                                % (item.symbol, source_at.isoformat(), exchange_now.isoformat())
+                            )
+                        elif source_at < exchange_now - timedelta(days=self.settings.bar_max_age_days):
+                            findings.append("QUOTE_SOURCE_STALE:%s" % item.symbol)
             series = bars.get(item.symbol)
             if not series:
                 findings.append("BAR_MISSING:%s" % item.symbol)
@@ -299,8 +314,16 @@ class LiveEngine:
             if any(not bar.has_finite_ohlcv() for bar in series):
                 findings.append("BAR_NONFINITE:%s" % item.symbol)
                 continue
-            latest = series[-1].day
-            if latest < now.date() - timedelta(days=self.settings.bar_max_age_days):
+            future_days = sorted({bar.day for bar in series if bar.day > exchange_today})
+            if future_days:
+                findings.extend(
+                    "BAR_FUTURE_DATE:%s:%s:%s"
+                    % (item.symbol, future_day.isoformat(), exchange_today.isoformat())
+                    for future_day in future_days
+                )
+                continue
+            latest = max(bar.day for bar in series)
+            if latest < exchange_today - timedelta(days=self.settings.bar_max_age_days):
                 findings.append("BAR_STALE:%s:%s" % (item.symbol, latest.isoformat()))
         return findings
 

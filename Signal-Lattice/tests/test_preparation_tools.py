@@ -52,6 +52,24 @@ class PreparationToolsTest(unittest.TestCase):
     def test_prebuild_script_syntax(self):
         compile((ROOT / "scripts/prebuild.py").read_text(), "prebuild.py", "exec")
 
+    def test_clean_transients_preserves_v19_release_evidence(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            historical = root / "v19_release/dist/signal_lattice_v19-0.0.0.1.45-py3-none-any.whl"
+            historical.parent.mkdir(parents=True)
+            historical.write_bytes(b"historical wheel evidence")
+            cache = root / ".pytest_cache/nodeids"
+            cache.parent.mkdir()
+            cache.write_text("[]")
+
+            completed = subprocess.run([
+                "python3", str(ROOT / "scripts/clean_transients.py"), "--root", str(root),
+            ], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertTrue(historical.is_file())
+            self.assertFalse(cache.parent.exists())
+
     def test_package_guard_is_source_path_independent(self):
         text = (ROOT / "scripts/verify_package.py").read_text()
         self.assertNotIn("from signal_lattice.constants import VERSION", text)

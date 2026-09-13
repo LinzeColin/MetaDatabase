@@ -18,8 +18,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "ba14874434e711d5432e3bac360f36e449e00d4a4ab3d45ad2579b3a2f89c086",
-      "size": 20718
+      "sha256": "23c1b8ad67fe744fabb3ff32a7883e84ca6fe3790d37c0cf51ab64a0e4b02174",
+      "size": 24227
     },
     {
       "path": "MEMORY_RECONCILIATION.md",
@@ -503,8 +503,8 @@
     },
     {
       "path": "openapi.yaml",
-      "sha256": "504556e54b05db03ddf47b1ac57b27676b9f30c450589ae944de844c8d82d3b0",
-      "size": 7115
+      "sha256": "3ea95215f4c00fe8ac388e54321620aff5ef3679111cdbda95c9f4605a35697b",
+      "size": 14549
     },
     {
       "path": "pyproject.toml",
@@ -788,8 +788,8 @@
     },
     {
       "path": "scripts/clean_transients.py",
-      "sha256": "50c136f4edb900200fca778ab6ceab0a8c5bef253ef7bd7c2222782e86fb204a",
-      "size": 982
+      "sha256": "141363691c520eaa4cb8b1dee2b958f6599f88a2518166d62857ca59062af32e",
+      "size": 1054
     },
     {
       "path": "scripts/close_formal_candidate.sh",
@@ -1243,8 +1243,8 @@
     },
     {
       "path": "src/signal_lattice/live_api.py",
-      "sha256": "1b2322a40746c7cc9530104dd8dc2ad989eeb5ea9653adc550824cf214a4e22a",
-      "size": 12416
+      "sha256": "2aff3ff1f79fe8ccd1287e84c3586617681ec29975aa93e5f1c7cceb74fdfb7d",
+      "size": 13708
     },
     {
       "path": "src/signal_lattice/live_config.py",
@@ -1253,8 +1253,8 @@
     },
     {
       "path": "src/signal_lattice/live_runtime.py",
-      "sha256": "f1f31024e4076bacb40e1a5b36a598d158cf0ebd2f3738121bb08d95d1d475da",
-      "size": 21136
+      "sha256": "2eeec68e80a2183730e0f15a6ac5de3f35f7318c3636956c8963b8c0ee45b816",
+      "size": 22383
     },
     {
       "path": "src/signal_lattice/market_provider.py",
@@ -1458,8 +1458,8 @@
     },
     {
       "path": "tests/test_live_api.py",
-      "sha256": "989f312b89ed700508099115daf25ae437edbc5d6344583d7db32215340bd875",
-      "size": 12093
+      "sha256": "0ae05cc450fd82e262d51716d66cbf014877780f83a21af931a6d452c0f776db",
+      "size": 13614
     },
     {
       "path": "tests/test_live_runtime.py",
@@ -1468,8 +1468,8 @@
     },
     {
       "path": "tests/test_marketdata_providers.py",
-      "sha256": "bc22ce11beff06b9f6ed9cb2c909753cfc43c0e34eeb4014227e4cd2fed52d52",
-      "size": 16297
+      "sha256": "122f64530e102a6be9fb1d8d890f1266504e1919d2c233e2f8d3d8e82d4ab8f6",
+      "size": 24350
     },
     {
       "path": "tests/test_minute_cycle.py",
@@ -1478,8 +1478,8 @@
     },
     {
       "path": "tests/test_preparation_tools.py",
-      "sha256": "9b4f598f9b2a9a4b5b50d3732ee1ba390c5d129cf71471b5ec8e8a71e9c8c36a",
-      "size": 6613
+      "sha256": "801931a5d088adf075d68b26c3f5f74be551c4e1024527553606ca1da6363155",
+      "size": 7476
     },
     {
       "path": "tests/test_project_files.py",
@@ -1857,8 +1857,8 @@
       "size": 1003
     }
   ],
-  "manifest_payload_bytes": 2005688,
+  "manifest_payload_bytes": 2029679,
   "manifest_payload_file_count": 371,
-  "payload_sha256": "e47f5b69fb7a0865200dc2626d8f8cb0621d0ecbe9bb331d46ff406d7eb1418f",
+  "payload_sha256": "f8045a7de956b2f055b6b861fd48af3b4a8a55bd6dfca932abddda822a46a948",
   "schema_version": "1.0.0"
 }

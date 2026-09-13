@@ -193,6 +193,90 @@ def public_report_view(report: Mapping[str, object]) -> dict:
     return public
 
 
+def v2_get_route_responses(
+    settings: LiveSettings,
+    latest: Mapping[str, object],
+    liveness: Mapping[str, object],
+) -> dict[str, tuple[int, object, str]]:
+    """V2 handler 唯一的具名 GET 路由表。
+
+    这个表既驱动 handler，也让 OpenAPI 回归测试直接比对真实实现的路由集合。
+    静态资源仍由 handler 的静态文件回退提供，不属于版本化 API 契约。
+    """
+    public_latest = public_report_view(latest)
+    index = settings.web_dir / "index.html"
+    if index.is_file():
+        root_response: tuple[int, object, str] = (
+            200,
+            index.read_bytes(),
+            "text/html; charset=utf-8",
+        )
+    else:
+        root_response = (404, {"error": "NOT_FOUND"}, "application/json; charset=utf-8")
+    report = public_latest or blocked_report()
+    liveness_reason = liveness.get("reason")
+    readiness_ttl_seconds = liveness.get("max_age_seconds")
+    runtime_status = {
+        "application_version": APP_VERSION,
+        "server_time": datetime.now(timezone.utc).isoformat(),
+        "state": public_latest.get("state", "SYSTEM_BLOCKED"),
+        "quote_observed_at": public_latest.get("quote_observed_at"),
+        "data_cutoff": public_latest.get("data_cutoff"),
+        "automatic_trading": False,
+        "public_url": settings.public_url,
+    }
+    return {
+        "/": root_response,
+        "/health/live": (200, {"status": "alive", "version": APP_VERSION}, "application/json; charset=utf-8"),
+        "/health/ready": (
+            200 if public_latest.get("state") == "DATA_READY" else 503,
+            {
+                "status": "ready" if public_latest.get("state") == "DATA_READY" else "blocked",
+                "state": public_latest.get("state", "SYSTEM_BLOCKED"),
+                "reason": public_latest.get("blocked_reason") or liveness_reason,
+                "readiness_ttl_seconds": readiness_ttl_seconds,
+            },
+            "application/json; charset=utf-8",
+        ),
+        "/api/v1/report/latest": (
+            200 if report.get("state") == "DATA_READY" else 503,
+            report,
+            "application/json; charset=utf-8",
+        ),
+        "/api/v1/whitebox/summary": (
+            200,
+            {
+                "state": public_latest.get("state", "SYSTEM_BLOCKED"),
+                "weight_mode": public_latest.get("weight_mode", "COLD_START_EQUAL"),
+                "weight_sample_count": public_latest.get("weight_sample_count", 0),
+                "contribution_weights": public_latest.get("contribution_weights", {"branches": []}),
+                "branch_count": len(public_latest.get("branches", [])),
+                "quote_observed_at": public_latest.get("quote_observed_at"),
+                "data_cutoff": public_latest.get("data_cutoff"),
+                "profitability_status": public_latest.get("profitability_status", "SAMPLE_INSUFFICIENT"),
+                "automatic_trading": False,
+            },
+            "application/json; charset=utf-8",
+        ),
+        "/api/v1/whitebox/skills": (
+            200,
+            {"state": public_latest.get("state", "SYSTEM_BLOCKED"), "items": public_latest.get("branches", [])},
+            "application/json; charset=utf-8",
+        ),
+        "/api/v1/whitebox/backtest/latest": (
+            200,
+            public_latest.get(
+                "backtest",
+                {"status": "SAMPLE_INSUFFICIENT", "message": "样本不足，未出具收益结论"},
+            ),
+            "application/json; charset=utf-8",
+        ),
+        "/api/v1/heartbeat": (200, runtime_status, "application/json; charset=utf-8"),
+        "/api/v1/metadata": (200, runtime_status, "application/json; charset=utf-8"),
+        "/api/v1/system/status": (200, runtime_status, "application/json; charset=utf-8"),
+    }
+
+
 def handler(settings: LiveSettings, store: LiveStore):
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, format, *args):
@@ -222,49 +306,13 @@ def handler(settings: LiveSettings, store: LiveStore):
             return store.latest()
 
         def do_GET(self) -> None:
-            path = urlparse(self.path).path
+            path = urlparse(self.path).path or "/"
             latest, liveness = latest_for_api(settings, store)
-            public_latest = public_report_view(latest)
-            if path == "/health/live":
-                return self._send(200, {"status": "alive", "version": APP_VERSION})
-            if path == "/health/ready":
-                ready = public_latest.get("state") == "DATA_READY"
-                return self._send(200 if ready else 503, {
-                    "status": "ready" if ready else "blocked",
-                    "state": public_latest.get("state", "SYSTEM_BLOCKED"),
-                    "reason": public_latest.get("blocked_reason") or liveness["reason"],
-                    "readiness_ttl_seconds": liveness["max_age_seconds"],
-                })
-            if path == "/api/v1/report/latest":
-                report = public_latest or blocked_report()
-                return self._send(200 if report.get("state") == "DATA_READY" else 503, report)
-            if path == "/api/v1/whitebox/summary":
-                return self._send(200, {
-                    "state": public_latest.get("state", "SYSTEM_BLOCKED"),
-                    "weight_mode": public_latest.get("weight_mode", "COLD_START_EQUAL"),
-                    "weight_sample_count": public_latest.get("weight_sample_count", 0),
-                    "contribution_weights": public_latest.get("contribution_weights", {"branches": []}),
-                    "branch_count": len(public_latest.get("branches", [])),
-                    "quote_observed_at": public_latest.get("quote_observed_at"),
-                    "data_cutoff": public_latest.get("data_cutoff"),
-                    "profitability_status": public_latest.get("profitability_status", "SAMPLE_INSUFFICIENT"),
-                    "automatic_trading": False,
-                })
-            if path == "/api/v1/whitebox/skills":
-                return self._send(200, {"state": public_latest.get("state", "SYSTEM_BLOCKED"), "items": public_latest.get("branches", [])})
-            if path == "/api/v1/whitebox/backtest/latest":
-                return self._send(200, public_latest.get("backtest", {"status": "SAMPLE_INSUFFICIENT", "message": "样本不足，未出具收益结论"}))
-            if path in {"/api/v1/heartbeat", "/api/v1/metadata", "/api/v1/system/status"}:
-                return self._send(200, {
-                    "application_version": APP_VERSION,
-                    "server_time": datetime.now(timezone.utc).isoformat(),
-                    "state": public_latest.get("state", "SYSTEM_BLOCKED"),
-                    "quote_observed_at": public_latest.get("quote_observed_at"),
-                    "data_cutoff": public_latest.get("data_cutoff"),
-                    "automatic_trading": False,
-                    "public_url": settings.public_url,
-                })
-            filename = "index.html" if path in {"", "/"} else path.lstrip("/")
+            response = v2_get_route_responses(settings, latest, liveness).get(path)
+            if response is not None:
+                status, payload, content_type = response
+                return self._send(status, payload, content_type)
+            filename = path.lstrip("/")
             target = (settings.web_dir / filename).resolve()
             if settings.web_dir.resolve() not in target.parents and target != settings.web_dir.resolve():
                 return self._send(403, {"error": "FORBIDDEN"})

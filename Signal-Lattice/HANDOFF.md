@@ -4,13 +4,13 @@
 
 ## 当前目标
 
-修复第四轮对抗性审查确认的三条 high：发布身份必须统一为线上 v0.0.0.2.3，S1
-调仓必须先卖后买，未来时间戳不能让旧的 DATA_READY 绕过就绪 TTL。现有数据新鲜度
-阻断、未实现分支权重为 0 与 S2 的 PROMO-1 排除保持原状；Stage 5 部署不在本轮范围内。
+修复第五轮对抗性审查确认的两条 high：V2 OpenAPI 必须只声明真实 handler 路由，
+未来日线不能进入 `data_cutoff`、回测或实时决策。现有数据新鲜度阻断、未实现分支
+权重为 0 与 S2 的 PROMO-1 排除保持原状；Stage 5 部署不在本轮范围内。
 
 ## 当前状态
 
-STAGE_4_FOURTH_ADVERSARIAL_REMEDIATION_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE。当前 worktree 没有目标机的运行期
+STAGE_4_FIFTH_ADVERSARIAL_REMEDIATION_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE。当前 worktree 没有目标机的运行期
 `state_dir`，因此本机没有重放真实行情。目标机已产出的真实贡献度输入表明：S1 有
 4 条可用样本，S2 有 10 条样本但 PROMO-1 未通过并保持
 `EXCLUDED_PENDING_BACKTEST`。据此，本轮实际权重模式为 `COLD_START_EQUAL`：
@@ -23,6 +23,56 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
 - S1 缺少 IWM、EFA、EEM、GLD、BIL；S2 的 SPY/QQQ 也无法满足至少两个完整
   24 个月训练加 6 个月测试窗口。
 - 本任务禁止联网，因此没有用短窗、全样本或 Alpha 历史报告替代当前真实回测。
+
+## 2026-09-14 第五轮对抗性审查修复
+
+- `openapi.yaml` 现在是 `0.0.0.2.3` 的 V2 只读契约，只声明 `/`、`/health/live`、
+  `/health/ready`、`/api/v1/{metadata,heartbeat,system/status,report/latest}` 与
+  `/api/v1/whitebox/{summary,skills,backtest/latest}` 十条真实 GET 路由。
+  `v2_get_route_responses()` 是 handler 的实际具名路由表；回归测试从该表取得实际集合，
+  与 OpenAPI `paths` 双向精确比对，并断言每条都是 GET。
+- 契约的 `x-removed-legacy-interfaces` 保留了全部已移除的旧接口记录。特别是
+  `POST /api/v1/inputs/market-snapshot` 与
+  `POST /api/v1/inputs/skill-signal` 标为 `REMOVED_NOT_PROVIDED`：V2 只从
+  marketdata provider 读取行情，不再接受外部快照或 Skill signal 写入，冻结 fixture
+  不能经旧写接口伪装为实时行情。
+- 公开收益样本不足时，`ProfitabilityLimitedBacktest` 明确只包含状态、
+  `OOS_HISTORY_INSUFFICIENT: N/6`、门槛和非数值说明；公开路由不输出窗口收益、
+  指标、贡献样本或权重轨迹。
+- `LiveEngine._validate()` 按每个 `Instrument.timezone` 计算当地时间与当地交易日。
+  日线序列中任一日期晚于当地日期写入
+  `BAR_FUTURE_DATE:<symbol>:<bar_day>:<exchange_today>`，使整轮为 `SYSTEM_BLOCKED`；
+  该状态不运行回测或分支决策。Sina、Tencent、EastMoney 三家日线 provider 的新响应
+  和缓存命中均由相同运行时门覆盖。
+- 时间复查结论：`LiveStore.liveness()` 的报告与心跳均检查未来偏移和过期；报价
+  `observed_at` 检查未来偏移和过期；`source_time` 现按交易所本地完整时间检查未来
+  偏移和过期；日线 `bar.day` 现按交易所当地交易日检查未来与过期。provider 解析、
+  缓存、`data_cutoff`、回测和公开响应不另行放宽这些门。历史文件命名只用于存储，
+  API 的 `server_time` 只由服务端即时生成。未发现 V2 活跃路径中的另一处单向时间
+  校验；未由 V2 handler 调用的旧 V1 模块不属于此 V2 契约与决策链。
+- 定向回归：
+
+      PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src python3 -m pytest tests/test_live_api.py tests/test_marketdata_providers.py tests/test_live_runtime.py -q
+
+  结果：`26 passed in 0.20s`。其中覆盖 OpenAPI 路由集合双向比对、已移除写接口记录、
+  交易所时区差异、未来来源时间、未来日线导致 `SYSTEM_BLOCKED`，以及三家 provider
+  的新响应和缓存命中路径。
+
+- 用户指定完整测试：
+
+      PYTHONPATH=src python3 -m pytest tests/ -q
+
+  结果：`15 failed, 152 passed, 1 skipped in 35.32s`。7 条失败是 sandbox 禁止 TCP
+  bind（`test_api.py` 5 条、`test_public_release.py` 2 条）；其余 8 条是既有
+  deployment/formal lifecycle/Python 3.9 `tomllib`/root allowlist/state machine/taskpack
+  seal 基线。第五轮新增夹具全部通过，未增加非 sandbox 红灯。
+- `scripts/clean_transients.py` 现精确保留受跟踪的 `v19_release/dist` 历史 wheel
+  证据，只清理可再生缓存；专用回归为 `1 passed`。本轮曾由旧的泛化 `dist` 规则误删
+  该目录，四个 wheel 已从当前 HEAD 完整恢复，未遗留删除。
+- `/Users/linzezhang/.local/bin/python3.12 scripts/verify_version_lock.py --root .` 为
+  `PASS, version=0.0.0.2.3`；重建 `MANIFEST.json` 后，同一 Python 3.12 的
+  `scripts/verify_package.py --root . --manifest MANIFEST.json` 为
+  `PASS, finding_count=0`。
 
 ## 2026-09-14 第四轮对抗性审查修复
 

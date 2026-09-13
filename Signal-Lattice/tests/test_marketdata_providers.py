@@ -5,8 +5,10 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from signal_lattice.live_config import LiveSettings, default_universe
 from signal_lattice.live_runtime import LiveEngine
@@ -235,6 +237,160 @@ class HonestFreshnessGateTests(unittest.TestCase):
             self.assertIsNone(report["decision"]["action"])
             self.assertEqual(report["message"], "数据链路不完整，不出结论")
             self.assertTrue(any(item.startswith("BAR_STALE:") for item in report["freshness_findings"]))
+
+    def test_future_bar_is_system_blocked_without_action(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            now = datetime.now(timezone.utc)
+
+            class Gateway:
+                def fetch(self, instruments):
+                    quotes = {
+                        item.symbol: Quote(item.symbol, 1.0, "USD", item.timezone, "test", now, now)
+                        for item in instruments if item.realtime_quote
+                    }
+                    bars = {
+                        item.symbol: [
+                            Bar(
+                                item.symbol,
+                                now.astimezone(ZoneInfo(item.timezone)).date() + timedelta(days=30),
+                                1, 1, 1, 1, 1, item.timezone, "test", now,
+                            ),
+                            Bar(
+                                item.symbol,
+                                now.astimezone(ZoneInfo(item.timezone)).date(),
+                                1, 1, 1, 1, 1, item.timezone, "test", now,
+                            ),
+                        ]
+                        for item in instruments
+                    }
+                    return quotes, bars, []
+
+            engine = LiveEngine(settings)
+            engine.gateway = Gateway()
+            report = engine.run_once()
+
+            self.assertEqual(report["state"], "SYSTEM_BLOCKED")
+            self.assertIsNone(report["decision"]["action"])
+            self.assertTrue(any(item.startswith("BAR_FUTURE_DATE:usSPY:") for item in report["freshness_findings"]))
+
+    def test_future_bar_uses_each_instrument_exchange_day(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            us_spy = next(item for item in settings.universe if item.symbol == "usSPY")
+            sh300 = next(item for item in settings.universe if item.symbol == "sh000300")
+            settings = replace(settings, universe=[us_spy, sh300])
+            now = datetime(2026, 1, 2, 1, tzinfo=timezone.utc)
+            engine = LiveEngine(settings)
+            quotes = {
+                item.symbol: Quote(item.symbol, 1.0, "USD", item.timezone, "test", now, now)
+                for item in settings.universe
+            }
+            bars = {
+                "usSPY": [Bar("usSPY", datetime(2026, 1, 2).date(), 1, 1, 1, 1, 1, us_spy.timezone, "test", now)],
+                "sh000300": [Bar("sh000300", datetime(2026, 1, 2).date(), 1, 1, 1, 1, 1, sh300.timezone, "test", now)],
+            }
+
+            findings = engine._validate(now, quotes, bars, [])
+
+            self.assertIn("BAR_FUTURE_DATE:usSPY:2026-01-02:2026-01-01", findings)
+            self.assertNotIn("BAR_FUTURE_DATE:sh000300:2026-01-02:2026-01-02", findings)
+
+    def test_future_quote_source_time_is_system_blocked_by_exchange_day(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            us_spy = next(item for item in settings.universe if item.symbol == "usSPY")
+            settings = replace(settings, universe=[us_spy])
+            now = datetime(2026, 1, 2, 1, tzinfo=timezone.utc)
+            engine = LiveEngine(settings)
+            quotes = {
+                "usSPY": Quote(
+                    "usSPY", 1.0, "USD", us_spy.timezone, "test",
+                    datetime(2026, 1, 2, 9, 30), now,
+                )
+            }
+            bars = {
+                "usSPY": [Bar(
+                    "usSPY", datetime(2026, 1, 1).date(), 1, 1, 1, 1, 1,
+                    us_spy.timezone, "test", now,
+                )]
+            }
+
+            findings = engine._validate(now, quotes, bars, [])
+
+            self.assertTrue(any(item.startswith("QUOTE_SOURCE_CLOCK_AHEAD:usSPY:") for item in findings))
+
+    def test_future_bars_from_new_and_cached_daily_provider_paths_are_blocked(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            now = datetime.now(timezone.utc).replace(microsecond=0)
+            items = default_universe()
+            cases = [
+                (
+                    "sina",
+                    next(item for item in items if item.symbol == "usSPY"),
+                    "sina_us_bars_usspy",
+                    lambda client, cache: SinaKlineProvider(client, cache, us_endpoint="https://fixture/{symbol}"),
+                    lambda first, second: (
+                        "var _=(["
+                        f'{{"d":"{first}","o":"1","h":"2","l":"1","c":"1","v":"1"}},'
+                        f'{{"d":"{second}","o":"2","h":"3","l":"1","c":"2","v":"1"}}]);'
+                    ).encode("utf-8"),
+                ),
+                (
+                    "tencent",
+                    next(item for item in items if item.symbol == "sh000300"),
+                    "bars_sh000300",
+                    lambda client, cache: TencentKlineProvider(client, cache, endpoint="https://fixture/{kind}/{symbol}"),
+                    lambda first, second: json.dumps({
+                        "code": 0,
+                        "data": {
+                            "sh000300": {
+                                "day": [
+                                    [first.isoformat(), "1", "1", "2", "1", "1"],
+                                    [second.isoformat(), "2", "2", "3", "1", "1"],
+                                ]
+                            }
+                        },
+                    }).encode("utf-8"),
+                ),
+                (
+                    "eastmoney",
+                    next(item for item in items if item.symbol == "fund110022"),
+                    "fund_fund110022",
+                    lambda client, cache: EastMoneyFundProvider(client, cache, endpoint="https://fixture/{code}"),
+                    lambda first, second: (
+                        "var Data_netWorthTrend = ["
+                        f'{{"x":{int(datetime(first.year, first.month, first.day, tzinfo=timezone.utc).timestamp() * 1000)},"y":1.23}},'
+                        f'{{"x":{int(datetime(second.year, second.month, second.day, tzinfo=timezone.utc).timestamp() * 1000)},"y":1.25}}];'
+                    ).encode("utf-8"),
+                ),
+            ]
+            for name, instrument, key, provider_factory, payload_factory in cases:
+                with self.subTest(provider=name):
+                    exchange_today = now.astimezone(ZoneInfo(instrument.timezone)).date()
+                    future_day = exchange_today + timedelta(days=30)
+                    payload = payload_factory(future_day - timedelta(days=1), future_day)
+                    cache = DiskCache(root / name)
+                    fresh_client = SequenceClient([payload])
+                    fresh_bars = provider_factory(fresh_client, cache).fetch(instrument)
+                    cached_client = SequenceClient([])
+                    cached_bars = provider_factory(cached_client, cache).fetch(instrument)
+                    settings = replace(self._settings(root / name), universe=[instrument])
+                    engine = LiveEngine(settings)
+                    quotes = {
+                        instrument.symbol: Quote(
+                            instrument.symbol, 1.0, "USD", instrument.timezone, "test", now, now,
+                        )
+                    } if instrument.realtime_quote else {}
+                    expected = "BAR_FUTURE_DATE:%s:%s:%s" % (
+                        instrument.symbol, future_day.isoformat(), exchange_today.isoformat(),
+                    )
+
+                    self.assertEqual(len(fresh_client.calls), 1)
+                    self.assertEqual(cached_client.calls, [])
+                    self.assertIn(expected, engine._validate(now, quotes, {instrument.symbol: fresh_bars}, []))
+                    self.assertIn(expected, engine._validate(now, quotes, {instrument.symbol: cached_bars}, []))
 
     def test_fresh_market_is_data_ready(self):
         with tempfile.TemporaryDirectory() as temporary:

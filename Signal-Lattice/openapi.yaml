@@ -1,299 +1,288 @@
 {
-  "info": {
-    "description": "每 60 秒读取 GitHub、让全部 Active 投资 Skill 在相同不可变市场快照上隔离独立判断，由无投资立场的中枢去重证据、协调冲突、自平衡并只输出一个顶层投资建议。运行期零 Agent、零模型 Token、禁止自动交易。",
-    "title": "Signal Lattice API",
-    "version": "0.0.0.2.3"
-  },
   "openapi": "3.1.0",
+  "info": {
+    "title": "Signal Lattice V2 Read-only API",
+    "version": "0.0.0.2.3",
+    "description": "V2 只读研究服务。行情只由 marketdata provider 采集；系统不接收外部行情快照、不自动交易。DATA_READY 只在全部新鲜度和时间边界通过时出现。"
+  },
   "paths": {
-    "/api/v1/actions": {
+    "/": {
       "get": {
-        "operationId": "getUniqueAction",
+        "operationId": "getV2WebApplication",
+        "summary": "V2 网页入口",
         "responses": {
-          "200": {
-            "description": "唯一供人执行的建议；禁止自动交易"
-          }
-        }
-      }
-    },
-    "/api/v1/business-lines": {
-      "get": {
-        "operationId": "getBusinessLines",
-        "responses": {
-          "200": {
-            "description": "14 条业务线 × 9 个纵向切片"
-          }
-        }
-      }
-    },
-    "/api/v1/consensus": {
-      "get": {
-        "operationId": "getConsensus",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "symbol",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "market",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "中枢证据去重、共识和分歧"
-          }
-        }
-      }
-    },
-    "/api/v1/cycles": {
-      "get": {
-        "operationId": "listMinuteCycles",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "maximum": 200,
-              "minimum": 1,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "最近分钟循环"
-          }
-        }
-      }
-    },
-    "/api/v1/cycles/latest": {
-      "get": {
-        "operationId": "getLatestMinuteCycle",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "./schemas/minute_cycle.schema.json"
-                }
-              }
-            },
-            "description": "最新一分钟完整循环"
-          }
-        }
-      }
-    },
-    "/api/v1/decision-snapshots": {
-      "get": {
-        "operationId": "listDecisionSnapshots",
-        "responses": {
-          "200": {
-            "description": "可追溯决策快照"
-          }
-        }
-      }
-    },
-    "/api/v1/evolution": {
-      "get": {
-        "operationId": "listSelfBalance",
-        "responses": {
-          "200": {
-            "description": "确定性自平衡与可靠性校准"
-          }
-        }
-      }
-    },
-    "/api/v1/inputs/market-snapshot": {
-      "post": {
-        "operationId": "ingestMarketSnapshot",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "./schemas/market_snapshot.schema.json"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "兼容外部市场快照已摄取"
-          },
-          "401": {
-            "description": "鉴权失败"
-          },
-          "422": {
-            "description": "快照不可信"
-          }
-        }
-      }
-    },
-    "/api/v1/inputs/skill-signal": {
-      "post": {
-        "operationId": "ingestSkillSignal",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "./schemas/skill_signal.schema.json"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "兼容外部 Skill 信号已摄取"
-          },
-          "401": {
-            "description": "鉴权失败"
-          },
-          "422": {
-            "description": "信号不可信"
-          }
-        }
-      }
-    },
-    "/api/v1/jobs/{jobId}": {
-      "get": {
-        "operationId": "getJob",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "jobId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "任务结果"
-          },
-          "404": {
-            "description": "不存在"
-          }
-        }
-      }
-    },
-    "/api/v1/opportunities": {
-      "get": {
-        "operationId": "listSkillSignals",
-        "responses": {
-          "200": {
-            "description": "各 Skill 独立候选信号"
-          }
-        }
-      }
-    },
-    "/api/v1/quant": {
-      "get": {
-        "operationId": "getQuantGates",
-        "responses": {
-          "200": {
-            "description": "量化、费用、流动性、容量和风险硬门"
-          }
-        }
-      }
-    },
-    "/api/v1/recommendations": {
-      "get": {
-        "operationId": "getUniqueRecommendation",
-        "responses": {
-          "200": {
-            "description": "唯一顶层建议；链路不完整时为 SYSTEM_BLOCKED"
-          }
-        }
-      }
-    },
-    "/api/v1/research": {
-      "post": {
-        "operationId": "createResearch",
-        "parameters": [
-          {
-            "in": "header",
-            "name": "Idempotency-Key",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "./schemas/research_request.schema.json"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "幂等任务已存在"
-          },
-          "202": {
-            "description": "任务已排队"
-          },
-          "422": {
-            "description": "输入无效"
-          }
-        }
-      }
-    },
-    "/api/v1/skills": {
-      "get": {
-        "operationId": "listRuntimeSkills",
-        "responses": {
-          "200": {
-            "description": "动态 Skill、生命周期、兼容状态与本分钟独立判断"
-          }
-        }
-      }
-    },
-    "/api/v1/system/status": {
-      "get": {
-        "operationId": "getSystemStatus",
-        "responses": {
-          "200": {
-            "description": "系统运行、分钟循环、零 Agent 与零 Token 状态"
-          }
+          "200": {"description": "网页入口", "content": {"text/html": {"schema": {"type": "string"}}}},
+          "404": {"$ref": "#/components/responses/NotFound"}
         }
       }
     },
     "/health/live": {
       "get": {
-        "operationId": "healthLive",
-        "responses": {
-          "200": {
-            "description": "进程存活"
-          }
-        }
+        "operationId": "getLiveness",
+        "summary": "进程存活，不代表数据就绪",
+        "responses": {"200": {"description": "进程存活", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Liveness"}}}}}
       }
     },
     "/health/ready": {
       "get": {
-        "operationId": "healthReady",
+        "operationId": "getReadiness",
+        "summary": "采集循环和最新报告均处于有效窗口时才就绪",
         "responses": {
-          "200": {
-            "description": "服务就绪或安全降级"
-          }
+          "200": {"description": "DATA_READY", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Readiness"}}}},
+          "503": {"description": "SYSTEM_BLOCKED 或采集循环失联", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Readiness"}}}}
         }
+      }
+    },
+    "/api/v1/metadata": {
+      "get": {
+        "operationId": "getMetadata",
+        "summary": "版本与当前公开运行时状态",
+        "responses": {"200": {"description": "运行时元数据", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/RuntimeStatus"}}}}}
+      }
+    },
+    "/api/v1/heartbeat": {
+      "get": {
+        "operationId": "getHeartbeat",
+        "summary": "公开运行时状态，不是独立写入接口",
+        "responses": {"200": {"description": "运行时状态", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/RuntimeStatus"}}}}}
+      }
+    },
+    "/api/v1/system/status": {
+      "get": {
+        "operationId": "getSystemStatus",
+        "summary": "公开运行时状态",
+        "responses": {"200": {"description": "运行时状态", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/RuntimeStatus"}}}}}
+      }
+    },
+    "/api/v1/report/latest": {
+      "get": {
+        "operationId": "getLatestReport",
+        "summary": "最新公共研究报告",
+        "description": "SYSTEM_BLOCKED 时不发布行动；样本外收益历史不足时返回脱敏后的收益证据形状。",
+        "responses": {
+          "200": {"description": "DATA_READY 公共报告", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PublicReport"}}}},
+          "503": {"description": "数据链路阻断或采集循环失联", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BlockedReport"}}}}
+        }
+      }
+    },
+    "/api/v1/whitebox/summary": {
+      "get": {
+        "operationId": "getWhiteboxSummary",
+        "summary": "分支、权重和数据截点的公开摘要",
+        "responses": {"200": {"description": "白盒摘要", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/WhiteboxSummary"}}}}}
+      }
+    },
+    "/api/v1/whitebox/skills": {
+      "get": {
+        "operationId": "getWhiteboxSkills",
+        "summary": "公共分支项",
+        "responses": {"200": {"description": "分支列表", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/WhiteboxSkills"}}}}}
+      }
+    },
+    "/api/v1/whitebox/backtest/latest": {
+      "get": {
+        "operationId": "getLatestWhiteboxBacktest",
+        "summary": "最新公共回测视图",
+        "description": "当 sample_sufficiency 为 OOS_HISTORY_INSUFFICIENT: N/6 时，不输出任何收益数值、窗口指标、贡献样本或权重轨迹。",
+        "responses": {"200": {"description": "公共回测视图", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PublicBacktest"}}}}}
       }
     }
   },
-  "servers": [
-    {
-      "url": "https://signal-lattice.linzezhang.com"
+  "components": {
+    "responses": {
+      "NotFound": {"description": "未找到资源", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {"error": {"type": "string", "const": "NOT_FOUND"}},
+        "additionalProperties": false
+      },
+      "Liveness": {
+        "type": "object",
+        "required": ["status", "version"],
+        "properties": {"status": {"const": "alive"}, "version": {"const": "0.0.0.2.3"}},
+        "additionalProperties": false
+      },
+      "Readiness": {
+        "type": "object",
+        "required": ["status", "state", "reason", "readiness_ttl_seconds"],
+        "properties": {
+          "status": {"enum": ["ready", "blocked"]},
+          "state": {"enum": ["DATA_READY", "SYSTEM_BLOCKED"]},
+          "reason": {"type": ["string", "null"]},
+          "readiness_ttl_seconds": {"type": "integer", "minimum": 1}
+        },
+        "additionalProperties": false
+      },
+      "RuntimeStatus": {
+        "type": "object",
+        "required": ["application_version", "server_time", "state", "quote_observed_at", "data_cutoff", "automatic_trading", "public_url"],
+        "properties": {
+          "application_version": {"const": "0.0.0.2.3"},
+          "server_time": {"type": "string", "format": "date-time"},
+          "state": {"enum": ["DATA_READY", "SYSTEM_BLOCKED"]},
+          "quote_observed_at": {"type": ["string", "null"], "format": "date-time"},
+          "data_cutoff": {"type": ["string", "null"], "format": "date"},
+          "automatic_trading": {"const": false},
+          "public_url": {"type": "string", "format": "uri"}
+        },
+        "additionalProperties": false
+      },
+      "Decision": {
+        "type": "object",
+        "required": ["state", "action"],
+        "properties": {
+          "state": {"type": "string"},
+          "action": {"type": ["string", "null"]},
+          "primary_symbol": {"type": ["string", "null"]},
+          "conviction": {"type": ["number", "null"]},
+          "sample_sufficiency": {"type": "string"},
+          "sample_sufficiency_message": {"type": "string"}
+        },
+        "additionalProperties": true
+      },
+      "BlockedReport": {
+        "type": "object",
+        "required": ["state", "message", "decision"],
+        "properties": {
+          "state": {"const": "SYSTEM_BLOCKED"},
+          "blocked_reason": {"type": "string"},
+          "message": {"type": "string"},
+          "decision": {"$ref": "#/components/schemas/Decision"},
+          "freshness_findings": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": true
+      },
+      "ProfitabilityLimitedBacktest": {
+        "type": "object",
+        "description": "OOS_HISTORY_INSUFFICIENT: N/6 时的唯一公共收益证据形状。它只保留门槛、状态和非数值说明。",
+        "required": ["status", "sample_sufficiency", "sample_sufficiency_message", "profitability_status", "profitability_disclosure", "branches"],
+        "properties": {
+          "status": {"type": "string"},
+          "sample_sufficiency": {"type": "string", "pattern": "^OOS_HISTORY_INSUFFICIENT: [0-9]+/6$"},
+          "sample_sufficiency_message": {"type": "string"},
+          "profitability_status": {"type": "string", "pattern": "^OOS_HISTORY_INSUFFICIENT: [0-9]+/6$"},
+          "profitability_disclosure": {
+            "type": "object",
+            "required": ["status", "minimum_oos_windows_for_profitability", "message"],
+            "properties": {
+              "status": {"const": "INSUFFICIENT"},
+              "minimum_oos_windows_for_profitability": {"type": ["integer", "null"]},
+              "message": {"type": "string"}
+            },
+            "additionalProperties": false
+          },
+          "branches": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "branch_id": {"type": "string"},
+                "status": {"type": "string"},
+                "sample_sufficiency": {"type": "string"},
+                "sample_sufficiency_message": {"type": "string"},
+                "profitability_evidence": {"type": "string"},
+                "profitability_evidence_note": {"type": "string"}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ContributionWeights": {
+        "type": "object",
+        "properties": {
+          "weight_mode": {"type": "string"},
+          "weight_sample_count": {"type": "integer", "minimum": 0},
+          "minimum_contribution_samples": {"type": "integer", "minimum": 1},
+          "eligible_branch_ids": {"type": "array", "items": {"type": "string"}},
+          "branches": {"type": "array", "items": {"type": "object", "additionalProperties": true}}
+        },
+        "additionalProperties": true
+      },
+      "PublicReport": {
+        "type": "object",
+        "required": ["application_version", "generated_at", "state", "automatic_trading", "data_cutoff", "data_cutoff_by_symbol", "instruments", "bar_sources", "quote_observed_at", "quote_sources", "quotes", "market_fingerprint", "freshness_findings", "message", "backtest"],
+        "properties": {
+          "application_version": {"const": "0.0.0.2.3"},
+          "generated_at": {"type": "string", "format": "date-time"},
+          "state": {"enum": ["DATA_READY", "SYSTEM_BLOCKED"]},
+          "automatic_trading": {"const": false},
+          "data_cutoff": {"type": ["string", "null"], "format": "date"},
+          "data_cutoff_by_symbol": {"type": "object", "additionalProperties": {"type": "string", "format": "date"}},
+          "instruments": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": true}},
+          "bar_sources": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": true}},
+          "quote_observed_at": {"type": ["string", "null"], "format": "date-time"},
+          "quote_sources": {"type": "object", "additionalProperties": {"type": "string"}},
+          "quotes": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": true}},
+          "market_fingerprint": {"type": "object", "additionalProperties": true},
+          "freshness_findings": {"type": "array", "items": {"type": "string"}},
+          "message": {"type": "string"},
+          "backtest": {"oneOf": [{"$ref": "#/components/schemas/ProfitabilityLimitedBacktest"}, {"type": "object", "additionalProperties": true}]},
+          "decision": {"$ref": "#/components/schemas/Decision"},
+          "branches": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+          "contribution_weights": {"$ref": "#/components/schemas/ContributionWeights"},
+          "profitability_status": {"type": "string"},
+          "profitability_disclosure": {"type": "object", "additionalProperties": true}
+        },
+        "additionalProperties": true
+      },
+      "WhiteboxSummary": {
+        "type": "object",
+        "required": ["state", "weight_mode", "weight_sample_count", "contribution_weights", "branch_count", "quote_observed_at", "data_cutoff", "profitability_status", "automatic_trading"],
+        "properties": {
+          "state": {"enum": ["DATA_READY", "SYSTEM_BLOCKED"]},
+          "weight_mode": {"type": "string"},
+          "weight_sample_count": {"type": "integer", "minimum": 0},
+          "contribution_weights": {"$ref": "#/components/schemas/ContributionWeights"},
+          "branch_count": {"type": "integer", "minimum": 0},
+          "quote_observed_at": {"type": ["string", "null"], "format": "date-time"},
+          "data_cutoff": {"type": ["string", "null"], "format": "date"},
+          "profitability_status": {"type": "string"},
+          "automatic_trading": {"const": false}
+        },
+        "additionalProperties": false
+      },
+      "WhiteboxSkills": {
+        "type": "object",
+        "required": ["state", "items"],
+        "properties": {
+          "state": {"enum": ["DATA_READY", "SYSTEM_BLOCKED"]},
+          "items": {"type": "array", "items": {"type": "object", "additionalProperties": true}}
+        },
+        "additionalProperties": false
+      },
+      "PublicBacktest": {
+        "oneOf": [
+          {"$ref": "#/components/schemas/ProfitabilityLimitedBacktest"},
+          {"type": "object", "additionalProperties": true}
+        ]
+      }
     }
+  },
+  "x-v2-read-only-contract": {
+    "market_data_source": "marketdata providers",
+    "automatic_trading": false,
+    "external_market_snapshot_ingestion": "REMOVED_NOT_PROVIDED"
+  },
+  "x-removed-legacy-interfaces": [
+    {"path": "/api/v1/actions", "methods": ["GET"], "status": "REMOVED_NOT_PROVIDED"},
+    {"path": "/api/v1/business-lines", "methods": ["GET"], "status": "REMOVED_NOT_PROVIDED"},
+    {"path": "/api/v1/consensus", "methods": ["GET"], "status": "REMOVED_NOT_PROVIDED"},
+    {"path": "/api/v1/cycles", "methods": ["GET"], "status": "REMOVED_NOT_PROVIDED"},
+    {"path": "/api/v1/cycles/latest", "methods": ["GET"], "status": "REMOVED_NOT_PROVIDED"},
+    {"path": "/api/v1/decision-snapshots", "methods": ["GET"], "status": "REMOVED_NOT_PROVIDED"},
+    {"path": "/api/v1/evolution", "methods": ["GET"], "status": "REMOVED_NOT_PROVIDED"},
+    {"path": "/api/v1/inputs/market-snapshot", "methods": ["POST"], "status": "REMOVED_NOT_PROVIDED", "reason": "V2 只读；行情只能来自 marketdata provider。该写入通道不得再次把外部冻结 fixture 伪装为实时行情。"},
+    {"path": "/api/v1/inputs/skill-signal", "methods": ["POST"], "status": "REMOVED_NOT_PROVIDED", "reason": "V2 只读；不接收外部 Skill signal 写入。"},
+    {"path": "/api/v1/jobs/{jobId}", "methods": ["GET"], "status": "REMOVED_NOT_PROVIDED"},
+    {"path": "/api/v1/opportunities", "methods": ["GET"], "status": "REMOVED_NOT_PROVIDED"},
+    {"path": "/api/v1/quant", "methods": ["GET"], "status": "REMOVED_NOT_PROVIDED"},
+    {"path": "/api/v1/recommendations", "methods": ["GET"], "status": "REMOVED_NOT_PROVIDED"},
+    {"path": "/api/v1/research", "methods": ["POST"], "status": "REMOVED_NOT_PROVIDED"},
+    {"path": "/api/v1/skills", "methods": ["GET"], "status": "REMOVED_NOT_PROVIDED"}
   ]
 }
