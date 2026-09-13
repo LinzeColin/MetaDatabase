@@ -18,6 +18,14 @@ def default_universe() -> List[Instrument]:
         Instrument("usSPY", "SPDR S&P 500 ETF", "US", "ETF", "America/New_York", "gb_spy", None, "usSPY", None, "usSPY", True, "SPY"),
         Instrument("usQQQ", "Invesco QQQ Trust", "US", "ETF", "America/New_York", "gb_qqq", None, "usQQQ", None, "usSPY", True, "QQQ"),
         Instrument("usAAPL", "Apple", "US", "STOCK", "America/New_York", "gb_aapl", None, "usAAPL", None, "usSPY", True, "AAPL"),
+        # S1 多周期动量轮动需要完整的八标的资产池（来源 Alpha configs/strategies/s1_momentum.yaml）；
+        # 缺任何一只，S1 会判 CONFIGURED_UNIVERSE_INCOMPLETE 并拒绝出结论。
+        Instrument("usIWM", "iShares 罗素2000 ETF", "US", "ETF", "America/New_York", "gb_iwm", None, "usIWM", None, "usSPY", True, "IWM"),
+        Instrument("usEFA", "iShares MSCI 欧澳远东 ETF", "US", "ETF", "America/New_York", "gb_efa", None, "usEFA", None, "usSPY", True, "EFA"),
+        Instrument("usEEM", "iShares MSCI 新兴市场 ETF", "US", "ETF", "America/New_York", "gb_eem", None, "usEEM", None, "usSPY", True, "EEM"),
+        Instrument("usGLD", "SPDR 黄金 ETF", "US", "ETF", "America/New_York", "gb_gld", None, "usGLD", None, "usSPY", True, "GLD"),
+        Instrument("usTLT", "iShares 20年期以上美国国债 ETF", "US", "ETF", "America/New_York", "gb_tlt", None, "usTLT", None, "usSPY", True, "TLT"),
+        Instrument("usBIL", "SPDR 1-3月美国国债 ETF", "US", "ETF", "America/New_York", "gb_bil", None, "usBIL", None, "usSPY", True, "BIL"),
         Instrument("sh000300", "沪深300", "CN", "INDEX", "Asia/Shanghai", "sh000300", "sh000300", "sh000300", None, "sh000300"),
         Instrument("sh600000", "浦发银行", "CN", "STOCK", "Asia/Shanghai", "sh600000", "sh600000", "sh600000", None, "sh000300"),
         Instrument("sh510300", "沪深300 ETF", "CN", "ETF", "Asia/Shanghai", "sh510300", "sh510300", "sh510300", None, "sh000300"),

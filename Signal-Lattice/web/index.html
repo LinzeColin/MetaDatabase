@@ -1,5 +1,27 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Signal Lattice</title><style>body{font:16px system-ui;margin:2rem;max-width:1000px}pre{white-space:pre-wrap;background:#f4f4f4;padding:1rem;border-radius:.5rem}.blocked{color:#a00;font-weight:700}</style></head>
-<body><h1>Signal Lattice 实时只读研究</h1><p id="status">正在读取真实市场数据…</p><pre id="report"></pre><script>
-async function refresh(){const r=await fetch('/api/v1/report/latest',{cache:'no-store'});const d=await r.json();const blocked=d.state==='SYSTEM_BLOCKED';document.querySelector('#status').textContent=blocked?'数据链路不完整，不出结论':'真实数据已就绪';document.querySelector('#status').className=blocked?'blocked':'';document.querySelector('#report').textContent=JSON.stringify(d,null,2)}refresh();setInterval(refresh,30000)
-</script></body></html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Signal Lattice 只读实时研究：真实行情、独立分支结论与冷启动协调。">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/styles.css">
+  <title>Signal Lattice｜只读分支研究</title>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
+  <div id="app" aria-live="polite" aria-busy="true">
+    <main id="main-content" class="loading-state" tabindex="-1">
+      <p class="eyebrow">只读实时研究</p>
+      <h1>正在读取真实市场数据…</h1>
+    </main>
+  </div>
+  <template id="product-contract">
+    <section aria-labelledby="final-investment-advice"><h2 id="final-investment-advice">最终投资建议</h2></section>
+    <section aria-labelledby="independent-branches"><h2 id="independent-branches">分支独立结论</h2></section>
+    <section aria-labelledby="internal-coordination"><h2 id="internal-coordination">内部协调</h2></section>
+  </template>
+  <script src="/app.js" defer></script>
+</body>
+</html>

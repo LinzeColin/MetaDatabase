@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+from .branches import build_branch_report
 from .live_config import APP_VERSION, LiveSettings
 from .marketdata import DiskCache, EastMoneyFundProvider, HttpClient, MarketDataError, SinaKlineProvider, SinaQuoteProvider, TencentKlineProvider, TencentQuoteProvider
 from .marketdata.models import Bar, Instrument, Quote
@@ -130,8 +131,30 @@ class LiveEngine:
         quotes, bars, errors = self.gateway.fetch(self.settings.universe)
         findings = self._validate(now, quotes, bars, errors)
         cutoffs = {symbol: series[-1].day.isoformat() for symbol, series in bars.items() if series}
+        bar_sources = {
+            symbol: {
+                "source": series[-1].source,
+                "bar_count": len(series),
+                "earliest_day": series[0].day.isoformat(),
+                "latest_day": series[-1].day.isoformat(),
+            }
+            for symbol, series in sorted(bars.items())
+            if series
+        }
         quote_observed_at = min((quote.observed_at for quote in quotes.values()), default=None)
         state = "SYSTEM_BLOCKED" if findings else "DATA_READY"
+        branch_report = (
+            build_branch_report(self.settings.universe, bars)
+            if state == "DATA_READY"
+            else {
+                "branches": [],
+                "aggregate": [],
+                "weight_mode": "COLD_START_EQUAL",
+                "accumulated_samples": 0,
+                "profitability_status": "NOT_PRODUCED_STAGE_2_NO_BACKTEST",
+                "coordination": {"rule": "数据链路不完整，不执行任何分支计算。"},
+            }
+        )
         report = {
             "application_version": APP_VERSION,
             "generated_at": _iso(now),
@@ -139,16 +162,19 @@ class LiveEngine:
             "automatic_trading": False,
             "data_cutoff": min(cutoffs.values()) if cutoffs else None,
             "data_cutoff_by_symbol": cutoffs,
+            "instruments": {
+                item.symbol: {"name": item.name, "market": item.market, "asset_type": item.asset_type}
+                for item in self.settings.universe
+            },
+            "bar_sources": bar_sources,
             "quote_observed_at": _iso(quote_observed_at) if quote_observed_at else None,
             "quote_sources": {symbol: quote.source for symbol, quote in sorted(quotes.items())},
             "quotes": {symbol: {"price": quote.price, "currency": quote.currency, "source_time": quote.source_time.isoformat() if quote.source_time else None} for symbol, quote in sorted(quotes.items())},
             "market_fingerprint": self._market_fingerprint(quotes, bars),
             "freshness_findings": findings,
-            "message": "数据链路不完整，不出结论" if findings else "真实数据已就绪，等待分支计算",
-            "decision": {"state": "SYSTEM_BLOCKED", "action": None} if findings else {"state": "PENDING_BRANCH_CALCULATION", "action": None},
-            "branches": [],
-            "weight_mode": "COLD_START_EQUAL",
-            "profitability_status": "SAMPLE_INSUFFICIENT",
+            "message": "数据链路不完整，不出结论" if findings else "真实数据已就绪，已完成独立分支计算",
+            "decision": {"state": "SYSTEM_BLOCKED", "action": None} if findings else {"state": "BRANCH_CONCLUSIONS_READY", "action": None},
+            **branch_report,
         }
         self.store.save(report)
         return report
