@@ -614,7 +614,10 @@ def metrics(days: Sequence[date], equity: Sequence[float]) -> dict:
         "monthly_mean_net_pct": round(geo_monthly * 100, 3),
         "max_drawdown_pct": round(max_drawdown(equity) * 100, 2),
         "monthly_win_rate_pct": round(100.0 * len(wins) / len(rets), 1),
-        "profit_factor": round(sum(wins) / sum(losses), 2) if losses else math.inf,
+        # 无亏损月时盈利因子是"未定义"，不是"无限好"。math.inf 不是合法 JSON，
+        # 旧实现会把它静默写成 Infinity，前端 response.json() 直接抛错。
+        "profit_factor": round(sum(wins) / sum(losses), 2) if losses else None,
+        "profit_factor_undefined_reason": None if losses else "NO_LOSING_MONTHS",
     }
 
 
@@ -693,8 +696,10 @@ def ledger_metrics(days: Sequence[date], equity: Sequence[float],
     avg_loss = sum(losses) / len(losses) if losses else 0.0
     m["round_trips"] = len(trips)
     m["per_trade_win_rate_pct"] = round(100.0 * len(wins) / len(trips), 1) if trips else None
-    m["per_trade_pl_ratio"] = round(avg_win / avg_loss, 2) if avg_loss > 0 else (
-        math.inf if avg_win > 0 else None)
+    # 同上：没有亏损回合时盈亏比未定义，用 None + 原因表达，不用 math.inf。
+    m["per_trade_pl_ratio"] = round(avg_win / avg_loss, 2) if avg_loss > 0 else None
+    m["per_trade_pl_ratio_undefined_reason"] = (
+        None if avg_loss > 0 else ("NO_LOSING_ROUND_TRIPS" if avg_win > 0 else "NO_CLOSED_ROUND_TRIPS"))
     eps = drawdown_episodes(days, equity)
     if eps:
         deepest = max(eps, key=lambda e: e["depth_pct"])
