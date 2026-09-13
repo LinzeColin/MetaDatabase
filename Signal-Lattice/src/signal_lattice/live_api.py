@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 import mimetypes
+from collections.abc import Mapping
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -26,6 +28,7 @@ HEADERS = {
 # 默认 60 秒循环的 TTL 为 270 秒；超过它时旧 DATA_READY 绝不代表实时结论。
 READY_TTL_LOOP_MULTIPLIER = 3
 READY_TTL_FETCH_ALLOWANCE_SECONDS = 90
+OOS_HISTORY_INSUFFICIENT_PREFIX = "OOS_HISTORY_INSUFFICIENT:"
 
 
 def readiness_ttl_seconds(loop_seconds: int) -> int:
@@ -74,6 +77,122 @@ def latest_for_api(settings: LiveSettings, store: LiveStore, *, now: datetime | 
     return latest, liveness
 
 
+def _profitability_sufficiency(report: Mapping[str, object]) -> str | None:
+    backtest = report.get("backtest")
+    candidates = (
+        backtest.get("sample_sufficiency") if isinstance(backtest, Mapping) else None,
+        report.get("profitability_status"),
+    )
+    for candidate in candidates:
+        if isinstance(candidate, str) and candidate.startswith(OOS_HISTORY_INSUFFICIENT_PREFIX):
+            return candidate
+    return None
+
+
+def _public_backtest_view(backtest: Mapping[str, object], sufficiency: str) -> dict:
+    """样本外历史不足时只公开门槛事实，不公开任何业绩样本或指标。"""
+    method = backtest.get("method")
+    minimum_windows = (
+        method.get("minimum_oos_windows_for_profitability")
+        if isinstance(method, Mapping)
+        else None
+    )
+    branches = backtest.get("branches")
+    public_branches = []
+    if isinstance(branches, Mapping):
+        for branch in branches.values():
+            if not isinstance(branch, Mapping):
+                continue
+            public_branch = {
+                key: branch[key]
+                for key in (
+                    "branch_id",
+                    "status",
+                    "sample_sufficiency",
+                    "sample_sufficiency_message",
+                    "profitability_evidence",
+                    "profitability_evidence_note",
+                )
+                if key in branch
+            }
+            public_branches.append(public_branch)
+    return {
+        "status": backtest.get("status", "SAMPLE_INSUFFICIENT"),
+        "sample_sufficiency": sufficiency,
+        "sample_sufficiency_message": backtest.get(
+            "sample_sufficiency_message",
+            "样本外历史不足，仅供研究参考，不构成收益证据。",
+        ),
+        "profitability_status": sufficiency,
+        "profitability_disclosure": {
+            "status": "INSUFFICIENT",
+            "minimum_oos_windows_for_profitability": minimum_windows,
+            "message": "样本外历史不足，仅供研究参考，不构成收益证据。",
+        },
+        "branches": public_branches,
+    }
+
+
+def _public_contribution_weights(weights: object) -> object:
+    """保留权重资格和样本门，移除由收益样本计算出的数值和逐期轨迹。"""
+    if not isinstance(weights, Mapping):
+        return weights
+    result = {
+        key: weights[key]
+        for key in (
+            "weight_mode",
+            "weight_sample_count",
+            "minimum_contribution_samples",
+            "eligible_branch_ids",
+        )
+        if key in weights
+    }
+    branches = weights.get("branches")
+    if not isinstance(branches, list):
+        result["branches"] = []
+        return result
+    result["branches"] = [
+        {
+            key: branch[key]
+            for key in (
+                "branch_id",
+                "weight",
+                "sample_count",
+                "usable_sample_count",
+                "minimum_contribution_samples",
+                "participation_status",
+                "eligible_for_weighting",
+                "weight_status",
+                "negative_contribution_status",
+                "negative_contribution_message",
+            )
+            if key in branch
+        }
+        for branch in branches
+        if isinstance(branch, Mapping)
+    ]
+    return result
+
+
+def public_report_view(report: Mapping[str, object]) -> dict:
+    """生成公开 API 视图；运行期完整报告始终留在私有 state_dir。"""
+    public = deepcopy(dict(report))
+    sufficiency = _profitability_sufficiency(public)
+    if sufficiency is None:
+        return public
+    backtest = public.get("backtest")
+    if isinstance(backtest, Mapping):
+        public["backtest"] = _public_backtest_view(backtest, sufficiency)
+    public["profitability_status"] = sufficiency
+    public["profitability_disclosure"] = {
+        "status": "INSUFFICIENT",
+        "sample_sufficiency": sufficiency,
+        "message": "样本外历史不足，仅供研究参考，不构成收益证据。",
+    }
+    public["contribution_weights"] = _public_contribution_weights(public.get("contribution_weights"))
+    return public
+
+
 def handler(settings: LiveSettings, store: LiveStore):
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, format, *args):
@@ -105,42 +224,43 @@ def handler(settings: LiveSettings, store: LiveStore):
         def do_GET(self) -> None:
             path = urlparse(self.path).path
             latest, liveness = latest_for_api(settings, store)
+            public_latest = public_report_view(latest)
             if path == "/health/live":
                 return self._send(200, {"status": "alive", "version": APP_VERSION})
             if path == "/health/ready":
-                ready = latest.get("state") == "DATA_READY"
+                ready = public_latest.get("state") == "DATA_READY"
                 return self._send(200 if ready else 503, {
                     "status": "ready" if ready else "blocked",
-                    "state": latest.get("state", "SYSTEM_BLOCKED"),
-                    "reason": latest.get("blocked_reason") or liveness["reason"],
+                    "state": public_latest.get("state", "SYSTEM_BLOCKED"),
+                    "reason": public_latest.get("blocked_reason") or liveness["reason"],
                     "readiness_ttl_seconds": liveness["max_age_seconds"],
                 })
             if path == "/api/v1/report/latest":
-                report = latest or blocked_report()
+                report = public_latest or blocked_report()
                 return self._send(200 if report.get("state") == "DATA_READY" else 503, report)
             if path == "/api/v1/whitebox/summary":
                 return self._send(200, {
-                    "state": latest.get("state", "SYSTEM_BLOCKED"),
-                    "weight_mode": latest.get("weight_mode", "COLD_START_EQUAL"),
-                    "weight_sample_count": latest.get("weight_sample_count", 0),
-                    "contribution_weights": latest.get("contribution_weights", {"branches": []}),
-                    "branch_count": len(latest.get("branches", [])),
-                    "quote_observed_at": latest.get("quote_observed_at"),
-                    "data_cutoff": latest.get("data_cutoff"),
-                    "profitability_status": latest.get("profitability_status", "SAMPLE_INSUFFICIENT"),
+                    "state": public_latest.get("state", "SYSTEM_BLOCKED"),
+                    "weight_mode": public_latest.get("weight_mode", "COLD_START_EQUAL"),
+                    "weight_sample_count": public_latest.get("weight_sample_count", 0),
+                    "contribution_weights": public_latest.get("contribution_weights", {"branches": []}),
+                    "branch_count": len(public_latest.get("branches", [])),
+                    "quote_observed_at": public_latest.get("quote_observed_at"),
+                    "data_cutoff": public_latest.get("data_cutoff"),
+                    "profitability_status": public_latest.get("profitability_status", "SAMPLE_INSUFFICIENT"),
                     "automatic_trading": False,
                 })
             if path == "/api/v1/whitebox/skills":
-                return self._send(200, {"state": latest.get("state", "SYSTEM_BLOCKED"), "items": latest.get("branches", [])})
+                return self._send(200, {"state": public_latest.get("state", "SYSTEM_BLOCKED"), "items": public_latest.get("branches", [])})
             if path == "/api/v1/whitebox/backtest/latest":
-                return self._send(200, latest.get("backtest", {"status": "SAMPLE_INSUFFICIENT", "message": "样本不足，未出具收益结论"}))
+                return self._send(200, public_latest.get("backtest", {"status": "SAMPLE_INSUFFICIENT", "message": "样本不足，未出具收益结论"}))
             if path in {"/api/v1/heartbeat", "/api/v1/metadata", "/api/v1/system/status"}:
                 return self._send(200, {
                     "application_version": APP_VERSION,
                     "server_time": datetime.now(timezone.utc).isoformat(),
-                    "state": latest.get("state", "SYSTEM_BLOCKED"),
-                    "quote_observed_at": latest.get("quote_observed_at"),
-                    "data_cutoff": latest.get("data_cutoff"),
+                    "state": public_latest.get("state", "SYSTEM_BLOCKED"),
+                    "quote_observed_at": public_latest.get("quote_observed_at"),
+                    "data_cutoff": public_latest.get("data_cutoff"),
                     "automatic_trading": False,
                     "public_url": settings.public_url,
                 })

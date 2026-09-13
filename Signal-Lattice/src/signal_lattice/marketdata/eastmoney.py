@@ -8,7 +8,7 @@ import re
 from datetime import datetime, timezone
 from typing import List
 
-from .base import DiskCache, HttpClient, MarketDataError, fetch_validated_cached, utc_now
+from .base import DiskCache, HttpClient, MarketDataError, decode_text, fetch_validated_cached, utc_now
 from .models import Bar, Instrument
 
 
@@ -27,10 +27,7 @@ class EastMoneyFundProvider:
     @staticmethod
     def parse(payload: bytes, instrument: Instrument, observed_at=None) -> List[Bar]:
         observed_at = observed_at or utc_now()
-        try:
-            text = payload.decode("utf-8")
-        except UnicodeDecodeError as exc:
-            raise MarketDataError("EASTMONEY_FUND_DECODE_FAILED") from exc
+        text = decode_text(payload, "utf-8", "EASTMONEY_FUND")
         matched = _NET_WORTH.search(text)
         if not matched:
             raise MarketDataError("EASTMONEY_FUND_NAV_MISSING")

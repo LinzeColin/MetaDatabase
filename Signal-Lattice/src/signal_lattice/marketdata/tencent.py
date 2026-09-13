@@ -6,7 +6,7 @@ from datetime import date
 import math
 from typing import Dict, Iterable, List
 
-from .base import DiskCache, HttpClient, MarketDataError, fetch_validated_cached, read_json, utc_now
+from .base import DiskCache, HttpClient, MarketDataError, decode_text, fetch_validated_cached, read_json, utc_now
 from .models import Bar, Instrument, Quote
 
 
@@ -24,7 +24,7 @@ class TencentQuoteProvider:
     @staticmethod
     def parse(payload: bytes, instruments: Iterable[Instrument], observed_at=None) -> Dict[str, Quote]:
         observed_at = observed_at or utc_now()
-        text = payload.decode("gbk", errors="strict")
+        text = decode_text(payload, "gbk", "TENCENT_QUOTE")
         lookup = {item.tencent_symbol: item for item in instruments if item.tencent_symbol}
         result: Dict[str, Quote] = {}
         for line in text.split(";"):

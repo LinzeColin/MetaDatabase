@@ -20,6 +20,14 @@ class MarketDataError(RuntimeError):
     """调用端收到这个异常时必须阻断结论，不能回退到旧市场快照。"""
 
 
+def decode_text(payload: bytes, encoding: str, source: str) -> str:
+    """把上游字节解码边界统一收敛为可阻断的市场数据错误。"""
+    try:
+        return payload.decode(encoding, errors="strict")
+    except (AttributeError, UnicodeDecodeError) as exc:
+        raise MarketDataError("%s_DECODE_FAILED" % source) from exc
+
+
 class HttpClient:
     def __init__(self, timeout_seconds: float = 10.0, attempts: int = 3) -> None:
         self.timeout_seconds = timeout_seconds
@@ -104,8 +112,8 @@ def utc_now() -> datetime:
 
 def read_json(payload: bytes, source: str) -> dict:
     try:
-        value = json.loads(payload.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        value = json.loads(decode_text(payload, "utf-8", source))
+    except (TypeError, json.JSONDecodeError) as exc:
         raise MarketDataError("%s_JSON_INVALID" % source) from exc
     if not isinstance(value, dict):
         raise MarketDataError("%s_OBJECT_REQUIRED" % source)

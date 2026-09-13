@@ -4,13 +4,13 @@
 
 ## 当前目标
 
-修复第二轮对抗性审查确认的三条 high：循环失联仍宣告 ready、全量 JSONL 无界膨胀、
-一年样本外发布收益数字。现有数据新鲜度阻断、未实现分支权重为 0 与 S2 的 PROMO-1
-排除保持原状；Stage 5 部署不在本轮范围内。
+修复第三轮对抗性审查确认的两条 high：收益证据门必须覆盖所有公开 API，腾讯备用
+报价的非 GBK 响应及任何未预期运行期失败必须立即覆盖旧的 DATA_READY。现有数据新鲜度
+阻断、未实现分支权重为 0 与 S2 的 PROMO-1 排除保持原状；Stage 5 部署不在本轮范围内。
 
 ## 当前状态
 
-STAGE_4_SECOND_ADVERSARIAL_REMEDIATION_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE。当前 worktree 没有目标机的运行期
+STAGE_4_THIRD_ADVERSARIAL_REMEDIATION_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE。当前 worktree 没有目标机的运行期
 `state_dir`，因此本机没有重放真实行情。目标机已产出的真实贡献度输入表明：S1 有
 4 条可用样本，S2 有 10 条样本但 PROMO-1 未通过并保持
 `EXCLUDED_PENDING_BACKTEST`。据此，本轮实际权重模式为 `COLD_START_EQUAL`：
@@ -23,6 +23,43 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
 - S1 缺少 IWM、EFA、EEM、GLD、BIL；S2 的 SPY/QQQ 也无法满足至少两个完整
   24 个月训练加 6 个月测试窗口。
 - 本任务禁止联网，因此没有用短窗、全样本或 Alpha 历史报告替代当前真实回测。
+
+## 2026-09-14 第三轮对抗性审查修复
+
+- `live_api.py` 在每个公开 GET 路由取得 `latest` 后先构造深拷贝的公共视图；私有
+  `state_dir/latest.json` 与 `state_dir/backtest/latest.json` 继续完整保存内部回测输入。
+  当 `sample_sufficiency` 为 `OOS_HISTORY_INSUFFICIENT: N/6` 时，公共视图只保留状态、
+  门槛、N/M 与非数值说明，移除 `stitched`、所有回测窗口、`test_metrics`、贡献样本、
+  贡献汇总、累计贡献数值和逐期权重轨迹。
+- 覆盖的公开路由为 `/api/v1/report/latest`、`/api/v1/whitebox/backtest/latest`、
+  `/api/v1/whitebox/summary`、`/api/v1/whitebox/skills`、`/api/v1/heartbeat`、
+  `/api/v1/metadata`、`/api/v1/system/status` 与 `/health/ready`。静态文件和
+  `/health/live` 不读取运行期报告。
+- Sina 报价/日线、Tencent 报价/日线、EastMoney 日线的字节解码统一经
+  `marketdata.base.decode_text` 转换为 `MarketDataError`；JSON 协议解析继续以
+  `MarketDataError` 返回给 `MarketGateway` 的既有阻断链。
+- `LiveEngine.run_once()` 现覆盖从心跳写入、采集、校验、回测、构造到落盘的完整
+  运行期；未预期 `Exception` 写入带
+  `blocked_reason=UNEXPECTED_RUNTIME_FAILURE` 的新 `SYSTEM_BLOCKED` 报告，阻止旧
+  `DATA_READY` 在就绪 TTL 内继续对外可用。严格 JSON 非有限数值仍使用专属阻断报告。
+- 新增夹具：逐个公共 API 响应序列化后断言不含真实收益数值 `5.4753`、`-78.5628`
+  及收益结构键，同时确认私有 latest 仍保留完整数据；非 GBK Tencent 备用响应经
+  `MarketGateway` 后立即覆盖旧 DATA_READY，`/health/ready` 返回 503；未知运行期
+  异常同样覆盖旧 DATA_READY。
+- 定向回归：
+
+      PYTHONPYCACHEPREFIX=/private/tmp/signal-lattice-pycache PYTHONPATH=src python3 -m pytest tests/test_live_api.py tests/test_marketdata_providers.py tests/test_live_runtime.py -q
+
+  结果：`20 passed in 0.42s`。
+
+- 用户指定完整测试：
+
+      PYTHONPATH=src python3 -m pytest tests/ -q
+
+  结果：`18 failed, 140 passed, 1 skipped in 14.59s`。7 条失败是 sandbox 禁止 TCP
+  bind 的 `PermissionError`（`test_api.py` 5 条、`test_public_release.py` 2 条）；其余
+  11 条为既有部署、正式生命周期、Python 3.9 缺少 `tomllib`、交付文件清单和状态机
+  基线失败。本轮新增夹具全部通过。
 
 ## 2026-09-14 对抗性审查修复
 

@@ -9,7 +9,10 @@ from pathlib import Path
 
 from signal_lattice.live_api import HEADERS, blocked_report, handler, latest_for_api
 from signal_lattice.live_config import LiveSettings, default_universe
-from signal_lattice.live_runtime import LiveStore
+from signal_lattice.live_runtime import LiveEngine, LiveStore
+from signal_lattice.marketdata.base import MarketDataError
+from signal_lattice.marketdata.models import Bar
+from signal_lattice.marketdata.tencent import TencentQuoteProvider
 
 
 class LiveApiTests(unittest.TestCase):
@@ -73,6 +76,133 @@ class LiveApiTests(unittest.TestCase):
             self.assertEqual(ready["state"], "SYSTEM_BLOCKED")
             self.assertEqual(report_status, 503)
             self.assertEqual(report["blocked_reason"], "COLLECTION_LOOP_UNREACHABLE")
+
+    def test_public_routes_remove_insufficient_profitability_values_and_keep_private_report(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            settings = self._settings(root)
+            store = LiveStore(settings.state_dir)
+            now = datetime.now(timezone.utc)
+            report = {
+                "state": "DATA_READY",
+                "generated_at": now.isoformat(),
+                "profitability_status": "OOS_HISTORY_INSUFFICIENT: 4/6",
+                "branches": [{"branch_id": "s1_momentum", "direction": "看涨"}],
+                "contribution_weights": {
+                    "weight_mode": "COLD_START_EQUAL",
+                    "weight_sample_count": 4,
+                    "minimum_contribution_samples": 8,
+                    "branches": [{
+                        "branch_id": "s1_momentum",
+                        "weight": 1.0,
+                        "usable_sample_count": 4,
+                        "cumulative_risk_adjusted_excess": 5.4753,
+                        "weight_trajectory": [{"update_value": -78.5628}],
+                    }],
+                },
+                "backtest": {
+                    "status": "OOS_READY",
+                    "sample_sufficiency": "OOS_HISTORY_INSUFFICIENT: 4/6",
+                    "sample_sufficiency_message": "样本外历史不足，仅供研究参考，不构成收益证据。",
+                    "profitability_status": "OOS_HISTORY_INSUFFICIENT: 4/6",
+                    "method": {"minimum_oos_windows_for_profitability": 6},
+                    "branches": {
+                        "s1_momentum": {
+                            "branch_id": "s1_momentum",
+                            "status": "OOS_READY",
+                            "sample_sufficiency": "OOS_HISTORY_INSUFFICIENT: 4/6",
+                            "profitability_evidence": "INSUFFICIENT",
+                            "windows": [{
+                                "test_metrics": {"excess_return_pct": 5.4753},
+                                "contribution": {"excess_return": -78.5628},
+                            }],
+                            "stitched": {"excess_return_pct": 5.4753, "information_ratio": -78.5628},
+                            "contributions": [{"excess_return": -78.5628}],
+                        },
+                    },
+                    "contribution_summary": {
+                        "sample_count": 4,
+                        "samples": [{"branch_return": 5.4753, "excess_return": -78.5628}],
+                    },
+                },
+            }
+            store.save(report)
+            store.write_heartbeat(now)
+            request_handler = handler(settings, store)
+
+            for path in (
+                "/api/v1/report/latest",
+                "/api/v1/whitebox/backtest/latest",
+                "/api/v1/whitebox/summary",
+                "/api/v1/whitebox/skills",
+                "/api/v1/heartbeat",
+                "/api/v1/metadata",
+                "/api/v1/system/status",
+            ):
+                with self.subTest(path=path):
+                    status, payload = self._get_without_tcp(request_handler, path)
+                    serialized = json.dumps(payload, ensure_ascii=False, sort_keys=True)
+                    self.assertEqual(status, 200)
+                    self.assertNotIn("5.4753", serialized)
+                    self.assertNotIn("-78.5628", serialized)
+                    self.assertNotIn('"stitched"', serialized)
+                    self.assertNotIn('"test_metrics"', serialized)
+                    self.assertNotIn('"contributions"', serialized)
+                    self.assertNotIn('"weight_trajectory"', serialized)
+
+            public_status, public_backtest = self._get_without_tcp(request_handler, "/api/v1/whitebox/backtest/latest")
+            self.assertEqual(public_status, 200)
+            self.assertEqual(public_backtest["sample_sufficiency"], "OOS_HISTORY_INSUFFICIENT: 4/6")
+            self.assertEqual(public_backtest["profitability_disclosure"]["minimum_oos_windows_for_profitability"], 6)
+            self.assertIn("仅供研究参考", public_backtest["profitability_disclosure"]["message"])
+            self.assertIn("5.4753", json.dumps(store.latest(), ensure_ascii=False, sort_keys=True))
+            self.assertIn("-78.5628", json.dumps(store.latest(), ensure_ascii=False, sort_keys=True))
+
+    def test_non_gbk_tencent_fallback_replaces_ready_report_with_blocked_report(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            settings = self._settings(root)
+            engine = LiveEngine(settings)
+            now = datetime.now(timezone.utc)
+            engine.store.save({
+                "state": "DATA_READY",
+                "generated_at": (now - timedelta(seconds=1)).isoformat(),
+                "decision": {"state": "LONG", "action": "研究观察"},
+            })
+            engine.store.write_heartbeat(now)
+
+            class UnavailableSina:
+                def fetch(self, instruments):
+                    raise MarketDataError("SINA_UPSTREAM_UNAVAILABLE")
+
+            class NonGbkClient:
+                def get(self, url, headers=None):
+                    return b"\xff\xfe"
+
+            class FreshBars:
+                def fetch(self, instrument):
+                    return [Bar(
+                        instrument.symbol, now.date(), 1, 1, 1, 1, 1,
+                        instrument.timezone, "fixture", now,
+                    )]
+
+            engine.gateway.sina = UnavailableSina()
+            engine.gateway.tencent_quote = TencentQuoteProvider(NonGbkClient(), "https://fixture/")
+            engine.gateway.sina_bars = FreshBars()
+            engine.gateway.tencent_bars = FreshBars()
+            engine.gateway.fund_bars = FreshBars()
+
+            report = engine.run_once()
+            persisted = engine.store.latest()
+            request_handler = handler(settings, engine.store)
+            ready_status, ready = self._get_without_tcp(request_handler, "/health/ready")
+
+            self.assertEqual(report["state"], "SYSTEM_BLOCKED")
+            self.assertEqual(persisted["state"], "SYSTEM_BLOCKED")
+            self.assertIsNone(persisted["decision"]["action"])
+            self.assertIn("TENCENT_QUOTE:TENCENT_QUOTE_DECODE_FAILED", report["freshness_findings"])
+            self.assertEqual(ready_status, 503)
+            self.assertEqual(ready["state"], "SYSTEM_BLOCKED")
 
 
 if __name__ == "__main__":

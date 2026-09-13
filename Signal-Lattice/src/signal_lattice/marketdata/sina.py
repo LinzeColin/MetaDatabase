@@ -8,7 +8,7 @@ import re
 from datetime import date, datetime
 from typing import Dict, Iterable, List
 
-from .base import DiskCache, HttpClient, MarketDataError, fetch_validated_cached, utc_now
+from .base import DiskCache, HttpClient, MarketDataError, decode_text, fetch_validated_cached, utc_now
 from .models import Bar, Instrument, Quote
 
 
@@ -31,10 +31,7 @@ class SinaQuoteProvider:
     @staticmethod
     def parse(payload: bytes, instruments: Iterable[Instrument], observed_at=None) -> Dict[str, Quote]:
         observed_at = observed_at or utc_now()
-        try:
-            text = payload.decode("gbk")
-        except UnicodeDecodeError as exc:
-            raise MarketDataError("SINA_GBK_DECODE_FAILED") from exc
+        text = decode_text(payload, "gbk", "SINA_GBK")
         requested = {item.sina_symbol: item for item in instruments if item.sina_symbol}
         result: Dict[str, Quote] = {}
         for source_symbol, raw in _ASSIGNMENT.findall(text):
@@ -101,10 +98,7 @@ class SinaKlineProvider:
 
     @staticmethod
     def _decode_rows(payload: bytes, market: str) -> list:
-        try:
-            text = payload.decode("utf-8")
-        except UnicodeDecodeError as exc:
-            raise MarketDataError("SINA_KLINE_DECODE_FAILED") from exc
+        text = decode_text(payload, "utf-8", "SINA_KLINE")
         if market == "US":
             marker = "=("
             start = text.find(marker)

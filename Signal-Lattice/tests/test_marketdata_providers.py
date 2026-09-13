@@ -97,6 +97,10 @@ class ProviderParsingTests(unittest.TestCase):
         self.assertNotIn("usSPY", SinaQuoteProvider.parse(sina, self.items))
         self.assertNotIn("sh600000", TencentQuoteProvider.parse(tencent, self.items))
 
+    def test_tencent_quote_non_gbk_response_is_market_data_error(self):
+        with self.assertRaisesRegex(MarketDataError, "TENCENT_QUOTE_DECODE_FAILED"):
+            TencentQuoteProvider.parse(b"\xff\xfe", self.items)
+
     def test_daily_parsers_reject_nonfinite_ohlcv(self):
         sina = (
             "var _=(["
@@ -281,6 +285,31 @@ class HonestFreshnessGateTests(unittest.TestCase):
             self.assertEqual(persisted["state"], "SYSTEM_BLOCKED")
             self.assertNotIn("usSPY", report["quotes"])
             self.assertIn("QUOTE_NONFINITE:usSPY", report["freshness_findings"])
+
+    def test_unexpected_runtime_failure_replaces_previous_ready_report(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            engine = LiveEngine(settings)
+            now = datetime.now(timezone.utc)
+            engine.store.save({
+                "state": "DATA_READY",
+                "generated_at": now.isoformat(),
+                "decision": {"state": "LONG", "action": "研究观察"},
+            })
+
+            class ExplodingGateway:
+                def fetch(self, instruments):
+                    raise RuntimeError("fixture runtime failure")
+
+            engine.gateway = ExplodingGateway()
+            report = engine.run_once()
+            persisted = engine.store.latest()
+
+            self.assertEqual(report["state"], "SYSTEM_BLOCKED")
+            self.assertEqual(report["blocked_reason"], "UNEXPECTED_RUNTIME_FAILURE")
+            self.assertEqual(persisted["state"], "SYSTEM_BLOCKED")
+            self.assertEqual(persisted["blocked_reason"], "UNEXPECTED_RUNTIME_FAILURE")
+            self.assertIsNone(persisted["decision"]["action"])
 
 
 if __name__ == "__main__":

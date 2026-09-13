@@ -320,28 +320,59 @@ class LiveEngine:
             **blocked_aggregate_report(),
         }
 
+    def _runtime_failure_blocked_report(self, now: datetime, exc: Exception) -> dict:
+        """任何未预期运行期异常都用新报告覆盖旧的就绪结论。"""
+        failure_type = type(exc).__name__
+        return {
+            "application_version": APP_VERSION,
+            "generated_at": _iso(now),
+            "state": "SYSTEM_BLOCKED",
+            "blocked_reason": "UNEXPECTED_RUNTIME_FAILURE",
+            "runtime_failure_type": failure_type,
+            "automatic_trading": False,
+            "data_cutoff": None,
+            "data_cutoff_by_symbol": {},
+            "instruments": {
+                item.symbol: {"name": item.name, "market": item.market, "asset_type": item.asset_type}
+                for item in self.settings.universe
+            },
+            "bar_sources": {},
+            "quote_observed_at": None,
+            "quote_sources": {},
+            "quotes": {},
+            "market_fingerprint": {"quotes": {}, "bars": {}},
+            "freshness_findings": [f"UNEXPECTED_RUNTIME_FAILURE:{failure_type}"],
+            "message": "采集或计算发生未预期运行期异常，已阻断结论。",
+            "backtest": {
+                "status": "SYSTEM_BLOCKED",
+                "message": "运行期异常，未发布回测结论。",
+                "profitability_status": "SYSTEM_BLOCKED",
+            },
+            **blocked_aggregate_report(),
+        }
+
     def run_once(self) -> dict:
         now = datetime.now(timezone.utc)
-        self.store.write_heartbeat(now)
-        quotes, bars, errors = self.gateway.fetch(self.settings.universe)
-        findings = self._validate(now, quotes, bars, errors)
-        reportable_quotes = {
-            symbol: quote for symbol, quote in quotes.items() if math.isfinite(quote.price)
-        }
-        cutoffs = {symbol: series[-1].day.isoformat() for symbol, series in bars.items() if series}
-        bar_sources = {
-            symbol: {
-                "source": series[-1].source,
-                "bar_count": len(series),
-                "earliest_day": series[0].day.isoformat(),
-                "latest_day": series[-1].day.isoformat(),
-            }
-            for symbol, series in sorted(bars.items())
-            if series
-        }
-        quote_observed_at = min((quote.observed_at for quote in reportable_quotes.values()), default=None)
-        state = "SYSTEM_BLOCKED" if findings else "DATA_READY"
         try:
+            self.store.write_heartbeat(now)
+            quotes, bars, errors = self.gateway.fetch(self.settings.universe)
+            findings = self._validate(now, quotes, bars, errors)
+            reportable_quotes = {
+                symbol: quote for symbol, quote in quotes.items() if math.isfinite(quote.price)
+            }
+            cutoffs = {symbol: series[-1].day.isoformat() for symbol, series in bars.items() if series}
+            bar_sources = {
+                symbol: {
+                    "source": series[-1].source,
+                    "bar_count": len(series),
+                    "earliest_day": series[0].day.isoformat(),
+                    "latest_day": series[-1].day.isoformat(),
+                }
+                for symbol, series in sorted(bars.items())
+                if series
+            }
+            quote_observed_at = min((quote.observed_at for quote in reportable_quotes.values()), default=None)
+            state = "SYSTEM_BLOCKED" if findings else "DATA_READY"
             if state == "DATA_READY":
                 backtest = run_backtest(self.settings.universe, bars, state_dir=self.settings.state_dir)
                 branch_report = build_branch_report(
@@ -386,5 +417,8 @@ class LiveEngine:
             self.store.save(report)
         except JsonSerializationConstraintError:
             report = self._serialization_blocked_report(now, findings)
+            self.store.save(report)
+        except Exception as exc:
+            report = self._runtime_failure_blocked_report(now, exc)
             self.store.save(report)
         return report
