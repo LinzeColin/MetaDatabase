@@ -63,7 +63,9 @@ class LiveSettings:
             state_dir=state_dir,
             web_dir=web_dir,
             host=os.environ.get("SIGNAL_LATTICE_HOST", "127.0.0.1"),
-            port=int(os.environ.get("SIGNAL_LATTICE_PORT", "8788")),
+            # 8787 是 Cloudflare 隧道（面板托管的 ingress）固定指向的端口，v2 必须监听它才能接管公网流量。
+            # 不要改回 8788：那个端口在生产机上被 weread-port 占用，撞上会打掉另一个在跑的服务。
+            port=int(os.environ.get("SIGNAL_LATTICE_PORT", "8787")),
             loop_seconds=max(30, int(os.environ.get("SIGNAL_LATTICE_LOOP_SECONDS", "60"))),
             quote_max_age_seconds=max(30, int(os.environ.get("SIGNAL_LATTICE_QUOTE_MAX_AGE_SECONDS", "180"))),
             bar_max_age_days=max(2, int(os.environ.get("SIGNAL_LATTICE_BAR_MAX_AGE_DAYS", "7"))),
