@@ -352,6 +352,17 @@ def _choose_and_simulate(
     compounded_benchmark = capital_usd
     evaluable_windows = 0
 
+    def covered(start: date, end: date) -> list[str] | None:
+        """窗口内实际存在的第一个和最后一个交易日。
+
+        walk_forward_windows 把窗口起点向下取整到月初，所以标称区间可能早于
+        日历上第一个可用交易日——例如裁剪后 usQQQ 从 2011-04-26 起，
+        WF-01 却标着 train 2011-04-01。数字不受影响（日历取的是各标的交集），
+        但报告不应声称一段它并未覆盖的区间。
+        """
+        days = [day for day in calendar if start <= day <= end]
+        return [days[0].isoformat(), days[-1].isoformat()] if days else None
+
     for index, (train_start, train_end, test_start, test_end) in enumerate(windows, start=1):
         train_candidates = [
             (params, metrics((result := simulate(params, train_start, train_end, capital_usd)).equity_days, result.equity))
@@ -369,7 +380,9 @@ def _choose_and_simulate(
             reports.append({
                 "window_label": label,
                 "train": [train_start.isoformat(), train_end.isoformat()],
+                "train_covered": covered(train_start, train_end),
                 "test": [test_start.isoformat(), test_end.isoformat()],
+                "test_covered": covered(test_start, test_end),
                 "test_evaluable": False,
                 "excluded_reason": "该测试窗口无可评价交易日，已作为无效样本剔除",
                 "chosen_parameters": chosen_parameters,
@@ -407,7 +420,9 @@ def _choose_and_simulate(
                 "window_label": label,
                 "test_evaluable": True,
                 "train": [train_start.isoformat(), train_end.isoformat()],
+                "train_covered": covered(train_start, train_end),
                 "test": [test_start.isoformat(), test_end.isoformat()],
+                "test_covered": covered(test_start, test_end),
                 "chosen_parameters": chosen_parameters,
                 "active_config": active_config,
                 "train_metrics": train_metrics,

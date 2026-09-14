@@ -42,7 +42,7 @@ curl -s -o /dev/null -w '%{http_code}\n' https://signal-lattice.linzezhang.com/
 ## 回滚到上一个 v2 版本（优先于回滚到 v19）
 
 `install_release.sh` 会把上一版留在 `/opt/signal-lattice-v2/previous`。
-2026-09-14 切到 `0.0.0.2.4` 时，previous 指向 `0.0.0.2.3-r6`。
+2026-09-14 切到 `0.0.0.2.5` 时，previous 指向 `0.0.0.2.3-r6`。
 
 ```bash
 sudo ln -sfn "$(readlink -f /opt/signal-lattice-v2/previous)" /opt/signal-lattice-v2/current.new

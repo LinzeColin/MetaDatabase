@@ -29,6 +29,7 @@ HEADERS = {
 READY_TTL_LOOP_MULTIPLIER = 3
 READY_TTL_FETCH_ALLOWANCE_SECONDS = 90
 OOS_HISTORY_INSUFFICIENT_PREFIX = "OOS_HISTORY_INSUFFICIENT:"
+OOS_HISTORY_SUFFICIENT_PREFIX = "OOS_HISTORY_SUFFICIENT:"
 
 
 def readiness_ttl_seconds(loop_seconds: int) -> int:
@@ -113,10 +114,15 @@ PUBLIC_BRANCH_EVIDENCED_KEYS = (
 
 
 def _branch_evidence_is_sufficient(branch: Mapping[str, object]) -> bool:
+    """只有出现明确的「样本外证据充足」标记才放行业绩数字——白名单，不是黑名单。
+
+    早先写成「只要不是 INSUFFICIENT 前缀就算充足」，于是空串、UNKNOWN、PENDING
+    这类意外值全部放行。收益披露门必须 fail-closed：认不出的值一律当作不充足。
+    """
     if branch.get("profitability_evidence") == "SUFFICIENT":
         return True
     sufficiency = branch.get("sample_sufficiency")
-    return isinstance(sufficiency, str) and not sufficiency.startswith(OOS_HISTORY_INSUFFICIENT_PREFIX)
+    return isinstance(sufficiency, str) and sufficiency.startswith(OOS_HISTORY_SUFFICIENT_PREFIX)
 
 
 def _public_backtest_view(backtest: Mapping[str, object], sufficiency: str) -> dict:

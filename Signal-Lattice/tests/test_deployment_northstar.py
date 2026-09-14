@@ -24,7 +24,7 @@ class DeploymentNorthStarTests(unittest.TestCase):
    previous_source=tmp/'previous-source'
    shutil.copytree(self.root,previous_source,ignore=shutil.ignore_patterns('.git','.pytest_cache','build','*.pyc'))
    previous_pyproject=previous_source/'pyproject.toml'
-   previous_pyproject.write_text(previous_pyproject.read_text().replace('version = "0.0.0.2.4"','version = "0.0.0.2.2"'))
+   previous_pyproject.write_text(previous_pyproject.read_text().replace('version = "0.0.0.2.5"','version = "0.0.0.2.2"'))
    previous_wheel_dir=tmp/'previous-wheel';previous_receipt=tmp/'previous-wheel.json'
    previous_built=subprocess.run([str(self.python),str(previous_source/'scripts/build_wheel.py'),'--root',str(previous_source),'--output-dir',str(previous_wheel_dir),'--receipt',str(previous_receipt)],cwd=previous_source,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
    self.assertEqual(previous_built.returncode,0,previous_built.stderr)

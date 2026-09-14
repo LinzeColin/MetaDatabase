@@ -353,6 +353,32 @@ class ProfitabilityDisclosureIsPerBranchTests(unittest.TestCase):
         self.assertEqual(public["profitability_status"], "OOS_HISTORY_INSUFFICIENT: 4/6")
         self.assertEqual(public["profitability_disclosure"]["status"], "INSUFFICIENT")
 
+    def test_unrecognised_sufficiency_values_withhold_the_numbers(self):
+        """收益披露门必须 fail-closed：认不出的样本充足标记一律当作不充足。
+
+        早先写成「只要不是 OOS_HISTORY_INSUFFICIENT 前缀就算充足」，于是空串、
+        UNKNOWN、PENDING 这类意外值会把收益数字放出去——一个本该防夸大的门
+        在遇到自己没预料到的值时反而最宽松。
+        """
+        for value in ("", "UNKNOWN", "PENDING", "OOS_HISTORY_UNKNOWN: ?/6", "SUFFICIENT_ISH"):
+            report = self._report()
+            branch = report["backtest"]["branches"]["evidenced_loser"]
+            branch["sample_sufficiency"] = value
+            branch.pop("profitability_evidence")
+            public = public_report_view(report)
+            served = next(b for b in public["backtest"]["branches"] if b["branch_id"] == "evidenced_loser")
+            self.assertNotIn("stitched", served, value)
+            self.assertNotIn("-49.6752", json.dumps(public, ensure_ascii=False), value)
+
+    def test_missing_sufficiency_fields_withhold_the_numbers(self):
+        report = self._report()
+        branch = report["backtest"]["branches"]["evidenced_loser"]
+        branch.pop("profitability_evidence")
+        branch.pop("sample_sufficiency")
+        public = public_report_view(report)
+        served = next(b for b in public["backtest"]["branches"] if b["branch_id"] == "evidenced_loser")
+        self.assertNotIn("stitched", served)
+
 
 if __name__ == "__main__":
     unittest.main()
