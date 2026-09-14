@@ -19,6 +19,8 @@ from typing import Any, Callable, Mapping, Sequence
 
 from ..marketdata.models import Bar, Instrument
 from ..serialization import strict_json_dumps
+from ..branches.s1_momentum import default_s1_config
+from ..branches.s2_meanrev import default_s2_config
 from .fees import FeeModel
 from .pipeline import (
     S1Params,
@@ -224,6 +226,111 @@ def _window_prices(series: Any, days: Sequence[date]) -> list[float]:
     return [series.closes[series.index_by_day[day]] for day in days]
 
 
+def _chosen_parameters(chosen: S1Params | S2Params) -> dict[str, Any]:
+    """把网格项转为稳定 JSON 结构，避免 tuple 在报告和运行时含义不同。"""
+    return (
+        {**asdict(chosen), "weights": list(chosen.weights)}
+        if isinstance(chosen, S1Params)
+        else asdict(chosen)
+    )
+
+
+def _active_s1_config(chosen: S1Params) -> dict[str, Any]:
+    """将训练窗选出的 S1 网格项展开成实盘 verdict 直接消费的完整配置。"""
+    config = default_s1_config()
+    score = dict(config["score"])  # type: ignore[arg-type]
+    selection = dict(config["selection"])  # type: ignore[arg-type]
+    volatility = dict(config["volatility_targeting"])  # type: ignore[arg-type]
+    score["weights"] = list(chosen.weights)
+    selection["top_n"] = chosen.top_n
+    selection["weight_each"] = 1.0 / chosen.top_n
+    volatility["target_annual_vol_pct"] = chosen.target_vol
+    config.update({
+        "score": score,
+        "selection": selection,
+        "volatility_targeting": volatility,
+        "rebalance_threshold_pct": chosen.rebalance_threshold_pct,
+    })
+    return config
+
+
+def _active_s2_config(chosen: S2Params) -> dict[str, Any]:
+    """将训练窗选出的 S2 网格项展开成实盘 verdict 直接消费的完整配置。"""
+    config = default_s2_config()
+    entry = dict(config["entry"])  # type: ignore[arg-type]
+    rsi = dict(entry["rsi"])
+    ibs = dict(entry["ibs"])
+    exit_config = dict(config["exit"])  # type: ignore[arg-type]
+    rsi["threshold"] = chosen.rsi_threshold
+    ibs["threshold"] = chosen.ibs_threshold
+    entry.update({
+        "rsi": rsi,
+        "ibs": ibs,
+        "volatility_floor": "ATR14 / close > %g%%" % chosen.vol_floor_pct,
+        "volatility_floor_pct": chosen.vol_floor_pct,
+    })
+    exit_config.update({
+        "stop_loss_pct": chosen.stop_loss_pct,
+        "time_stop_trading_days": chosen.time_stop_days,
+    })
+    config.update({"entry": entry, "exit": exit_config})
+    return config
+
+
+def _active_runtime_config(chosen: S1Params | S2Params) -> dict[str, Any]:
+    if isinstance(chosen, S1Params):
+        return _active_s1_config(chosen)
+    return _active_s2_config(chosen)
+
+
+def select_active_config(windows: Sequence[Mapping[str, Any]], as_of: date) -> dict[str, Any]:
+    """选择 ``train_end <= as_of`` 的最新已评价训练窗配置。
+
+    每个候选的 test 指标只用于样本外评价，选择本身只读取该窗口已经冻结的
+    训练期参数。train_end 恰好等于 as_of 时允许使用：当天收盘后训练数据已经
+    完整，未读取 as_of 之后的任何 Bar。
+    """
+    candidates: list[tuple[date, str, Mapping[str, Any]]] = []
+    for window in windows:
+        if window.get("test_evaluable") is not True:
+            continue
+        train = window.get("train")
+        active_config = window.get("active_config")
+        label = window.get("window_label")
+        if (
+            not isinstance(train, list)
+            or len(train) != 2
+            or not isinstance(train[1], str)
+            or not isinstance(active_config, Mapping)
+            or not isinstance(label, str)
+        ):
+            continue
+        try:
+            train_end = date.fromisoformat(train[1])
+        except ValueError:
+            continue
+        if train_end <= as_of:
+            candidates.append((train_end, label, window))
+    if not candidates:
+        return {
+            "active_config": None,
+            "config_as_of": as_of.isoformat(),
+            "config_source_window": None,
+            "config_status": "NO_EVALUATED_TRAIN_WINDOW_AS_OF",
+        }
+    _, _, source = max(candidates, key=lambda candidate: (candidate[0], candidate[1]))
+    return {
+        "active_config": source["active_config"],
+        "config_as_of": as_of.isoformat(),
+        "config_source_window": {
+            "window_label": source["window_label"],
+            "train": source["train"],
+            "test": source["test"],
+        },
+        "config_status": "ACTIVE_TRAIN_WINDOW_AS_OF",
+    }
+
+
 def _choose_and_simulate(
     *,
     calendar: Sequence[date],
@@ -251,6 +358,8 @@ def _choose_and_simulate(
             for params in parameter_grid
         ]
         chosen, train_metrics, train_dd_ok = pick_best(train_candidates)
+        chosen_parameters = _chosen_parameters(chosen)
+        active_config = _active_runtime_config(chosen)
         test = simulate(chosen, test_start, test_end, capital_usd)
         label = f"WF-{index:02d}"
         if not test.equity_days:
@@ -263,6 +372,10 @@ def _choose_and_simulate(
                 "test": [test_start.isoformat(), test_end.isoformat()],
                 "test_evaluable": False,
                 "excluded_reason": "该测试窗口无可评价交易日，已作为无效样本剔除",
+                "chosen_parameters": chosen_parameters,
+                "active_config": active_config,
+                "train_metrics": train_metrics,
+                "train_drawdown_constraint_met": train_dd_ok,
             })
             continue
         evaluable_windows += 1
@@ -295,11 +408,8 @@ def _choose_and_simulate(
                 "test_evaluable": True,
                 "train": [train_start.isoformat(), train_end.isoformat()],
                 "test": [test_start.isoformat(), test_end.isoformat()],
-                "chosen_parameters": (
-                    {**asdict(chosen), "weights": list(chosen.weights)}
-                    if isinstance(chosen, S1Params)
-                    else asdict(chosen)
-                ),
+                "chosen_parameters": chosen_parameters,
+                "active_config": active_config,
                 "train_metrics": train_metrics,
                 "train_drawdown_constraint_met": train_dd_ok,
                 "test_metrics": window_metrics,
@@ -329,7 +439,11 @@ def _choose_and_simulate(
 
 
 def _sample_insufficient(
-    branch_id: str, available_windows: int, missing_symbols: Sequence[str] = ()
+    branch_id: str,
+    available_windows: int,
+    missing_symbols: Sequence[str] = (),
+    *,
+    as_of: date | None = None,
 ) -> dict[str, Any]:
     detail = (
         f"；缺少日线：{'、'.join(missing_symbols)}"
@@ -344,6 +458,10 @@ def _sample_insufficient(
         "required_complete_windows": MIN_COMPLETE_WINDOWS,
         "windows": [],
         "contributions": [],
+        "active_config": None,
+        "config_as_of": as_of.isoformat() if as_of is not None else None,
+        "config_source_window": None,
+        "config_status": "NO_EVALUATED_TRAIN_WINDOW_AS_OF",
     }
 
 
@@ -360,10 +478,10 @@ def _s1_backtest(
     series, calendar, missing = _series_for(bars_by_symbol, S1_LIVE_TO_ALPHA)
     windows = walk_forward_windows(calendar, train_months=train_months, validate_months=test_months)
     if missing or len(windows) < MIN_COMPLETE_WINDOWS:
-        return _sample_insufficient("s1_momentum", len(windows), missing)
+        return _sample_insufficient("s1_momentum", len(windows), missing, as_of=calendar[-1] if calendar else None)
     benchmark_symbol = instruments["usSPY"].benchmark
     if not benchmark_symbol or benchmark_symbol not in bars_by_symbol:
-        return _sample_insufficient("s1_momentum", len(windows), [str(benchmark_symbol)])
+        return _sample_insufficient("s1_momentum", len(windows), [str(benchmark_symbol)], as_of=calendar[-1] if calendar else None)
     benchmark = precompute(benchmark_symbol, bars_by_symbol[benchmark_symbol])
     universe = list(S1_LIVE_TO_ALPHA.values())
 
@@ -380,7 +498,8 @@ def _s1_backtest(
     )
     if evaluable_windows < MIN_COMPLETE_WINDOWS:
         # 窗口切得出来，但真正能评价的不足 —— 按样本不足如实输出，不得用无效窗口凑数。
-        return _sample_insufficient("s1_momentum", evaluable_windows)
+        return _sample_insufficient("s1_momentum", evaluable_windows, as_of=calendar[-1] if calendar else None)
+    config_selection = select_active_config(reports, calendar[-1])
     return {
         "branch_id": "s1_momentum",
         "status": "OOS_READY",
@@ -392,6 +511,7 @@ def _s1_backtest(
             days, equity, benchmark_prices, fills, initial_capital=capital_usd,
         ),
         "contributions": [sample.as_dict() for sample in contributions],
+        **config_selection,
     }
 
 
@@ -408,10 +528,10 @@ def _s2_backtest(
     series, calendar, missing = _series_for(bars_by_symbol, S2_LIVE_TO_ALPHA)
     windows = walk_forward_windows(calendar, train_months=train_months, validate_months=test_months)
     if missing or len(windows) < MIN_COMPLETE_WINDOWS:
-        return _sample_insufficient("s2_meanrev", len(windows), missing)
+        return _sample_insufficient("s2_meanrev", len(windows), missing, as_of=calendar[-1] if calendar else None)
     benchmark_symbol = instruments["usSPY"].benchmark
     if not benchmark_symbol or benchmark_symbol not in bars_by_symbol:
-        return _sample_insufficient("s2_meanrev", len(windows), [str(benchmark_symbol)])
+        return _sample_insufficient("s2_meanrev", len(windows), [str(benchmark_symbol)], as_of=calendar[-1] if calendar else None)
     benchmark = precompute(benchmark_symbol, bars_by_symbol[benchmark_symbol])
     universe = list(S2_LIVE_TO_ALPHA.values())
 
@@ -433,7 +553,8 @@ def _s2_backtest(
     promotion["reason"] = promotion_reason(stitched.get("performance", {}), promotion)
     if evaluable_windows < MIN_COMPLETE_WINDOWS:
         # 窗口切得出来，但真正能评价的不足 —— 按样本不足如实输出，不得用无效窗口凑数。
-        return _sample_insufficient("s2_meanrev", evaluable_windows)
+        return _sample_insufficient("s2_meanrev", evaluable_windows, as_of=calendar[-1] if calendar else None)
+    config_selection = select_active_config(reports, calendar[-1])
     return {
         "branch_id": "s2_meanrev",
         "status": "OOS_READY",
@@ -444,6 +565,7 @@ def _s2_backtest(
         "stitched": stitched,
         "promotion": promotion,
         "contributions": [sample.as_dict() for sample in contributions],
+        **config_selection,
     }
 
 
@@ -566,7 +688,7 @@ def run_backtest(
             "minimum_complete_windows": MIN_COMPLETE_WINDOWS,
             "minimum_oos_windows_for_profitability": MIN_OOS_WINDOWS_FOR_PROFITABILITY,
             "profitability_gate": "收益数字与 PROMO-1 的 3 年样本外年限对齐；样本不足时只保留方向性研究结论。",
-            "parameter_selection": "仅训练窗口网格搜索；test 窗口从不参与选参。",
+            "parameter_selection": "仅训练窗口网格搜索；实盘使用 train_end <= config_as_of 的最新已评价训练窗参数；test 窗口从不参与选参。",
             "risk_adjusted_excess_formula": "excess_return / active_daily_volatility；零波动时为 null。",
             "dynamic_contribution_weighting": "CONSUMED_BY_STAGE_3_AGGREGATE",
         },

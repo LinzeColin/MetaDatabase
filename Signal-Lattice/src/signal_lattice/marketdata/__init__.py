@@ -2,11 +2,11 @@
 
 from .base import DiskCache, HttpClient, MarketDataError
 from .eastmoney import EastMoneyFundProvider
-from .models import Bar, Instrument, Quote
+from .models import Bar, BarQualityIssue, Instrument, Quote
 from .sina import SinaKlineProvider, SinaQuoteProvider
 from .tencent import TencentKlineProvider, TencentQuoteProvider
 
 __all__ = [
-    "Bar", "DiskCache", "EastMoneyFundProvider", "HttpClient", "Instrument", "MarketDataError",
+    "Bar", "BarQualityIssue", "DiskCache", "EastMoneyFundProvider", "HttpClient", "Instrument", "MarketDataError",
     "Quote", "SinaKlineProvider", "SinaQuoteProvider", "TencentKlineProvider", "TencentQuoteProvider",
 ]

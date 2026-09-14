@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from pathlib import Path
 
-from signal_lattice.live_api import HEADERS, blocked_report, handler, latest_for_api, v2_get_route_responses
+from signal_lattice.live_api import HEADERS, blocked_report, handler, latest_for_api, public_report_view, v2_get_route_responses
 from signal_lattice.live_config import LiveSettings, default_universe
 from signal_lattice.live_runtime import LiveEngine, LiveStore
 from signal_lattice.marketdata.base import MarketDataError
@@ -44,6 +44,27 @@ class LiveApiTests(unittest.TestCase):
         self.assertIsNone(report["decision"]["action"])
         self.assertEqual(report["message"], "数据链路不完整，不出结论")
         self.assertEqual(HEADERS["Cache-Control"], "no-store")
+
+    def test_public_report_keeps_quote_freshness_disclosure(self):
+        report = {
+            "state": "DATA_READY",
+            "quote_freshness": {
+                "hk00700": {
+                    "declared_feed_delay_minutes": 25,
+                    "observed_lag_minutes": 22.0,
+                    "last_advance_at": "2026-09-14T01:54:06+00:00",
+                    "stalled_minutes": 4.5,
+                    "status": "FRESH",
+                },
+            },
+        }
+
+        public = public_report_view(report)
+
+        self.assertEqual(public["quote_freshness"]["hk00700"]["declared_feed_delay_minutes"], 25)
+        self.assertEqual(public["quote_freshness"]["hk00700"]["observed_lag_minutes"], 22.0)
+        self.assertEqual(public["quote_freshness"]["hk00700"]["last_advance_at"], "2026-09-14T01:54:06+00:00")
+        self.assertEqual(public["quote_freshness"]["hk00700"]["stalled_minutes"], 4.5)
 
     def test_openapi_paths_exactly_match_v2_handler_route_table(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -173,6 +194,10 @@ class LiveApiTests(unittest.TestCase):
                             "status": "OOS_READY",
                             "sample_sufficiency": "OOS_HISTORY_INSUFFICIENT: 4/6",
                             "profitability_evidence": "INSUFFICIENT",
+                            "active_config": {"selection": {"top_n": 2}},
+                            "config_as_of": "2026-09-12",
+                            "config_source_window": {"window_label": "WF-04"},
+                            "config_status": "ACTIVE_TRAIN_WINDOW_AS_OF",
                             "windows": [{
                                 "test_metrics": {"excess_return_pct": 5.4753},
                                 "contribution": {"excess_return": -78.5628},
@@ -216,6 +241,10 @@ class LiveApiTests(unittest.TestCase):
             self.assertEqual(public_backtest["sample_sufficiency"], "OOS_HISTORY_INSUFFICIENT: 4/6")
             self.assertEqual(public_backtest["profitability_disclosure"]["minimum_oos_windows_for_profitability"], 6)
             self.assertIn("仅供研究参考", public_backtest["profitability_disclosure"]["message"])
+            public_s1 = public_backtest["branches"][0]
+            self.assertEqual(public_s1["active_config"], {"selection": {"top_n": 2}})
+            self.assertEqual(public_s1["config_as_of"], "2026-09-12")
+            self.assertEqual(public_s1["config_source_window"]["window_label"], "WF-04")
             self.assertIn("5.4753", json.dumps(store.latest(), ensure_ascii=False, sort_keys=True))
             self.assertIn("-78.5628", json.dumps(store.latest(), ensure_ascii=False, sort_keys=True))
 

@@ -2,13 +2,198 @@
 
 更新时间：2026-09-14 Australia/Sydney
 
+## 2026-09-14 第九轮报价新鲜度双重判定
+
+### 当前目标与状态
+
+报价新鲜度由单一绝对时延门改为“绝对上限 + 来源时间推进”双重判定，当前状态为
+`STAGE_4_NINTH_QUOTE_ADVANCE_DETECTION_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE`。
+跨轮状态只写入目标机 `state_dir/quote_progress.json`，不进入 Git；本 worktree 没有真实
+行情 `state_dir`，所以 `DATA_READY` 和真实行情复跑仍须由 Claude Code 在目标机确认。
+
+### 2026-09-14 港股开市 12 分钟实测采样
+
+每 90 秒采样一次：09:49:34 来源 09:20、滞后 29.6 分钟；09:51:04 来源 09:31、20.1；
+09:52:35 仍为 09:31、21.6；09:54:06 推进至 09:35、19.1；09:55:37 仍为 09:35、20.6；
+09:57:08 仍为 09:35、22.1；09:58:38 仍为 09:35、23.6；10:00:09 推进至 09:39、21.2。
+结论是来源持续推进、稳态滞后为 19–24 分钟、正常分块更新中的最长连续未变约 6 分钟；
+09:49 的 29.6 分钟属于开市追赶尖峰。A 股对照滞后 0.0 分钟，美股休市沿用休市口径。
+
+### 两个独立门与披露
+
+- `HK_FREE_QUOTE_DECLARED_FEED_DELAY_MINUTES = 25`：依据上述 19–24 分钟稳态采样取值，
+  加既有 180 秒 TTL 后开市绝对上限为 28 分钟。29.6 分钟开市尖峰仍短暂写
+  `QUOTE_SOURCE_STALE`，等待来源追上；不把上限提高到 30 分钟或以上。CN/US 继续为 0。
+- `QUOTE_ADVANCE_STALL_MINUTES = 12`：正常最长平台约 6 分钟，取两倍余量。开市时每标的
+  只在 `source_time` 前进后更新 `last_advance_at`；连续 12 分钟不推进，即使绝对滞后仍在
+  28 分钟内，也写 `QUOTE_FEED_STALLED`。休市不写入推进状态，也不适用该检测。
+- `quote_freshness` 公开 `declared_feed_delay_minutes`、`observed_lag_minutes`、
+  `last_advance_at` 与 `stalled_minutes`。绝对上限超出为 `QUOTE_SOURCE_STALE`，来源不推进为
+  `QUOTE_FEED_STALLED`；同一轮若两项都成立会同时记录两条独立事实。网页港股声明同步为
+  “约 25 分钟，非实时”，报价表展示最后推进与连续未推进分钟数。
+
+### 本机验证
+
+- 真实采样回归覆盖：开市 29.6 分钟尖峰阻断且下一采样恢复；6 分钟正常平台后推进不阻断；
+  12 分钟未推进且实际滞后低于 28 分钟时阻断 `QUOTE_FEED_STALLED`；35 分钟绝对滞后阻断
+  `QUOTE_SOURCE_STALE`；港股午休不应用推进检测；A 股 5 分钟无声明延迟仍阻断。
+  `tests/test_marketdata_providers.py` 与 `tests/test_live_api.py` 为 `40 passed in 0.54s`。
+- 用户指定完整命令 `PYTHONPATH=src python3 -m pytest tests/ -q`：
+  `15 failed, 171 passed, 1 skipped in 19.07s`。7 条为 sandbox 禁止 TCP bind 的
+  `PermissionError`；其余 8 条为既有 wheel、formal lifecycle、Python 3.9 `tomllib`、
+  根目录 allowlist 与 state-machine/taskpack-seal 基线。新增回归没有增加失败数。
+- Python 3.12 已重建 `MANIFEST.json`；
+  `scripts/verify_package.py --root . --manifest MANIFEST.json` 输出
+  `{"finding_count": 0, "findings": [], "state": "PASS"}`。`node --check web/app.js`
+  与 `git diff --check` 通过。清理的唯一暂态产物为本轮 pytest 创建的 `.pytest_cache`。
+- Claude Code 真实行情复跑尚未执行，不能以本机夹具代替。
+
+## 2026-09-14 第八轮市场声明行情时延
+
+### 当前目标与状态
+
+本轮把免费源的已知市场时延写入 `Instrument.declared_feed_delay_minutes`，并保持
+来源时间、观察时间和开休市三个门各自独立。当前状态为
+`STAGE_4_EIGHTH_DECLARED_FEED_DELAY_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE`；
+本 worktree 不含真实行情 `state_dir`，所以 `DATA_READY` 仍须由 Claude Code 在目标机
+复跑确认。
+
+### 市场声明、依据与判定
+
+| 市场 | 声明值 | 依据 | 开市来源时间上限 |
+| --- | ---: | --- | --- |
+| HK | 20 分钟 | 港交所免费行情具有固有延迟；20 分钟表示常规公开时延，原有 180 秒 TTL 承接短时刷新抖动，因此不把 15 分钟误作严格实时上限。 | 20 分钟 + 180 秒 |
+| CN | 0 分钟 | 当前实测 A 股报价为实时来源时间。 | 180 秒 |
+| US | 0 分钟 | 当前实测美股来源未显示声明延迟；开市后的实际滞后持续记录，未来可按实测改配置。 | 180 秒 |
+
+- 盘中仅当 `source_time` 的滞后不超过“声明延迟 + TTL”时才为 `FRESH`；超出仍写
+  `QUOTE_SOURCE_STALE` 并阻断。`quote.observed_at` 的既有 TTL 继续独立执行。
+- 休市继续使用 `MARKET_CLOSED_RECENT_TRADING_DAY_APPROXIMATION`；无来源时间继续写
+  `QUOTE_SOURCE_TIME_MISSING`，腾讯备用源没有可验证来源时间时不具备 `DATA_READY` 资格。
+- `quote_freshness` 对每个实时报价标的公开 `declared_feed_delay_minutes` 与
+  `observed_lag_minutes`；无报价或无来源时间时后者为 `null`，字段始终存在。
+
+### Owner 可见披露
+
+- `web/app.js` 的“市场行情时效声明”紧邻“最终投资建议”，并在投资建议卡重复显示：
+  “港股行情为交易所规定的延迟数据（约 20 分钟），非实时。”
+- 同页“报价来源时间”表展示声明延迟、实测滞后、来源时间与允许上限；页眉、加载页与
+  metadata 改为“按市场声明时效”，不再作整体实时声明。
+- `/api/v1/report/latest` 继续由公共报告视图公开上述 `quote_freshness` 字段。
+
+### 本机验证
+
+- 指定完整命令 `PYTHONPATH=src python3 -m pytest tests/ -q`：
+  `15 failed, 167 passed, 1 skipped in 20.08s`。7 条为 sandbox 禁止 TCP bind；其余
+  8 条为既有 wheel、formal lifecycle、Python 3.9 `tomllib`、根目录 allowlist、state
+  machine 与 taskpack seal 基线。新增港股 22 分钟通过、港股 60 分钟阻断、A 股 5 分钟
+  阻断、API 字段公开和网页文案定位回归全部通过，未增加失败数。
+- `node --check web/app.js` 与 `git diff --check` 通过。
+- 清理 pytest 生成的 `.pytest_cache` 后，Python 3.12 重建 `MANIFEST.json`，
+  `scripts/verify_package.py --root . --manifest MANIFEST.json` 输出
+  `{"finding_count": 0, "findings": [], "state": "PASS"}`。
+- Claude Code 尚未在真实行情环境复跑；该确认仍为下一步，不能由本机回归替代。
+
+## 2026-09-14 第七轮真实行情标定修复
+
+### 当前目标与状态
+
+第六轮三条 high 的语义门、来源时间门和严格 as-of 参数选择继续保留；本轮只修复真实
+行情复跑暴露的门槛标定与新浪港股时间解析。当前状态为
+`STAGE_4_SEVENTH_LIVE_CALIBRATION_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE`。本 worktree
+没有目标机真实行情 `state_dir`，所以尚未声称 `DATA_READY`；仍需 Claude Code 在真实行情
+环境复跑确认。
+
+### OHLCV 语义质量：剔除、记账与阻断
+
+- `Bar.ohlcv_violations()` 现在输出精确违规规则，例如
+  `LOW_ABOVE_OPEN_OR_CLOSE`、`VOLUME_NEGATIVE`、`OPEN_NONFINITE`。Sina、Tencent、
+  EastMoney 日线 provider 均从计算序列剔除单条语义错误 Bar，并记录标的、日期、来源与
+  规则；结构损坏/可用 Bar 少于两条仍按既有 `MarketDataError` 阻断。
+- `RECENT_DECISION_BAR_LOOKBACK_TRADING_DAYS = 252`：该值是 S1 的最长价格回看
+  `r252`，也大于 S1/S2 的 SMA200；异常日期落在已接纳序列最近 252 个交易日窗口内，
+  写 `BAR_INVALID_OHLCV_RECENT_DECISION_WINDOW:<symbol>` 并阻断该标的。
+- `MAX_DROPPED_INVALID_BARS_PER_SYMBOL = 3` 与
+  `MAX_DROPPED_INVALID_BAR_RATIO = 0.005`：最多三个且不超过输入 Bar 的 0.5% 才可称为
+  孤立历史坏点；任一超过就写相应 `COUNT_THRESHOLD` / `RATIO_THRESHOLD` 阻断。这样
+  1/6460 的 2015 年个例可继续用于今日判断，4 条历史异常或小样本中的高比例异常不能被
+  掩盖。
+- report 的 `bar_quality` 与 `data_quality_findings` 公开剔除/输入数、比例、近期窗口、
+  阈值、阻断原因和最多五条样例；网页的“日线质量记账”在 `DATA_READY` 与阻断页都可见。
+
+### 报价时效：交易所本地开休市口径
+
+- 使用每个 `Instrument.timezone` 与常规交易时段：US 09:30–16:00、CN
+  09:30–11:30 / 13:00–15:00、HK 09:30–12:00 / 13:00–16:00（均为当地时间，周末必为
+  休市）。开市按现有 `quote_max_age_seconds` 分钟级 TTL；三倍 TTL 卡住仍为
+  `QUOTE_SOURCE_STALE`。
+- 休市不使用无限放宽 TTL，而是
+  `CLOSED_MARKET_SOURCE_MAX_AGE_DAYS = 4` 的最近交易日近似。四天覆盖周五收盘到周二
+  开市前的周末/单日假期；超过四天必须等可验证的新来源时间。法定长假尚未接入精确交易日历，
+  这是明确的近似边界。
+- report 的 `quote_freshness` 逐标的公开 `OPEN` / `CLOSED`、
+  `MARKET_OPEN_TTL` / `MARKET_CLOSED_RECENT_TRADING_DAY_APPROXIMATION`、来源时间、年龄
+  与允许上限；网页“报价来源时间”在两种报告状态均可见。
+
+### 新浪/腾讯报价来源时间与选源
+
+| 市场 | 新浪代码与实测字段 | 解析格式 | 解释时区 |
+| --- | --- | --- | --- |
+| 美股 | `gb_*`，单字段内日期时间 | `YYYY-MM-DD HH:MM:SS` | `America/New_York` |
+| A 股 | `sh*` / `sz*`，独立日期、时间字段 | `YYYY-MM-DD`, `HH:MM:SS` | `Asia/Shanghai` |
+| 港股 | `hk*`，独立日期、时间字段 | `YYYY/MM/DD`, `HH:MM` 或 `HH:MM:SS` | `Asia/Hong_Kong` |
+
+- 新浪时间正则已接受港股的斜杠日期与无秒独立分钟字段，例如
+  `2026/09/11,16:09`。三个市场的真实格式片段均有回归断言。
+- `qt.gtimg.cn` 本轮实测片段没有可解析日期时间；`TencentQuoteProvider` 将
+  `source_time=None` 原样保留，绝不以 `observed_at` 补造。它不具备 `DATA_READY` 资格。
+- 选源顺序是带可验证来源时间的新浪主源优先；仅当新浪的合格来源时间缺失时才尝试 A/H
+  腾讯备用。若腾讯也不能给来源时间，报告保留实际来源并写
+  `QUOTE_SOURCE_TIME_MISSING`，不产生结论。回归确认已有时间戳的新浪港股不会请求或覆盖为
+  腾讯备用结果。
+
+### 第七轮定向验证
+
+```text
+PYTHONPYCACHEPREFIX=/private/tmp/signal-lattice-pycache PYTHONPATH=src \\
+  python3 -m pytest tests/test_marketdata_providers.py tests/test_live_runtime.py \\
+  tests/test_live_api.py tests/test_backtest.py -q
+47 passed
+node --check web/app.js
+git diff --check
+```
+
+新增回归包括：远期单条坏 Bar 记账且不阻断、近期坏 Bar 阻断、超数量阈值阻断、周末周五
+来源时间通过、开市三倍 TTL 卡住阻断、三市场新浪时间解析、腾讯无时间不具备资格、以及
+新浪主源带时间时不调用腾讯覆盖。
+
+用户指定完整命令的本轮输出为 `15 failed, 164 passed, 1 skipped in 20.62s`：5 条
+`test_api.py` 与 2 条 `test_public_release.py` 是本 sandbox 禁止 TCP bind 的
+`PermissionError`；其余 8 条仍是既有 wheel/formal lifecycle/Python 3.9 `tomllib`/
+根目录 allowlist/state machine/taskpack seal 基线。本轮没有增加非 sandbox 红灯。
+
+`/Users/linzezhang/.local/bin/python3.12 scripts/verify_package.py --root . --manifest
+MANIFEST.json` 在重建 Manifest 后为 `PASS, finding_count=0`。完整测试产生的
+`.pytest_cache` 已由 `scripts/clean_transients.py` 移除；没有清理源码、业务数据或
+受跟踪的 `v19_release/dist` 证据。
+
 ## 当前目标
 
-修复第五轮对抗性审查确认的两条 high：V2 OpenAPI 必须只声明真实 handler 路由，
-未来日线不能进入 `data_cutoff`、回测或实时决策。现有数据新鲜度阻断、未实现分支
-权重为 0 与 S2 的 PROMO-1 排除保持原状；Stage 5 部署不在本轮范围内。
+修复第六轮对抗性审查确认的三条 high：语义错误的 OHLCV 不得进入缓存、指标或实时
+结论；报价必须具备可验证的 provider 来源时间；实盘 S1/S2 verdict 必须使用严格 as-of
+训练窗选出的同一组参数。现有数据新鲜度阻断、未实现分支权重为 0 与 S2 的 PROMO-1
+排除保持原状；Stage 5 部署不在本轮范围内。
 
 ## 当前状态
+
+STAGE_4_SIXTH_ADVERSARIAL_REMEDIATION_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE。第六轮
+定向回归为 `45 passed in 2.18s`；用户指定完整命令为
+`15 failed, 158 passed, 1 skipped in 15.36s`。其中 7 条是 sandbox 禁止 TCP bind
+（`test_api.py` 5 条、`test_public_release.py` 2 条），其余 8 条是既有
+deployment/formal lifecycle/Python 3.9 `tomllib`/root allowlist/state machine/taskpack seal
+基线；本轮未增加红灯。Python 3.12 `scripts/verify_package.py --root . --manifest
+MANIFEST.json` 为 `PASS, finding_count=0`，最终 Manifest 已重建。没有本机真实行情
+state_dir，本轮不声明新的 S1 样本外数字；需 Claude Code 在其真实行情环境复跑。
 
 STAGE_4_FIFTH_ADVERSARIAL_REMEDIATION_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE。当前 worktree 没有目标机的运行期
 `state_dir`，因此本机没有重放真实行情。目标机已产出的真实贡献度输入表明：S1 有
@@ -23,6 +208,35 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
 - S1 缺少 IWM、EFA、EEM、GLD、BIL；S2 的 SPY/QQQ 也无法满足至少两个完整
   24 个月训练加 6 个月测试窗口。
 - 本任务禁止联网，因此没有用短窗、全样本或 Alpha 历史报告替代当前真实回测。
+
+## 2026-09-14 第六轮对抗性审查修复
+
+- `marketdata.models.has_valid_ohlcv()` 是 provider 解析、缓存命中重解析和
+  `LiveEngine._validate()` 共同使用的唯一 Bar 语义门。它要求所有已提供数值有限，
+  `open/close/high/low > 0`，`volume is None or volume >= 0`，并且
+  `low <= min(open, close)`、`high >= max(open, close)`、`low <= high`。任一新响应
+  出现形状错误不写缓存；缓存命中有错误只删除该键并受限重拉一次；运行时拿到形状错误
+  Bar 写 `BAR_INVALID_OHLCV:<symbol>` 并形成 `SYSTEM_BLOCKED`。
+- 腾讯报价解析 `qt.gtimg.cn` 负载中的 `YYYYMMDDhhmmss` provider 时间；新浪的 US、A、H
+  日期/时间字段支持空格、逗号或 `T` 分隔。`observed_at` 只记录本机观察时刻，绝不替代
+  来源时间。任何实时报价没有 provider 时间写
+  `QUOTE_SOURCE_TIME_MISSING:<symbol>:<source>`；来源时间早于
+  `quote_max_age_seconds` 写 `QUOTE_SOURCE_STALE:<symbol>`，两者均阻断为
+  `SYSTEM_BLOCKED`。
+- 回测每个 walk-forward 窗口现同时保存 `chosen_parameters` 与可被 runtime 直接消费的
+  `active_config`。`select_active_config()` 只从 `test_evaluable=true` 的窗口中选择
+  `train_end <= config_as_of` 的最新项，输出 `active_config`、`config_as_of`、
+  `config_source_window` 和 `config_status`。`train_end == config_as_of` 允许：当日收盘后
+  训练样本完整，选择未读取 as-of 之后的 Bar；同一选择过程从不读取 test 指标。
+  没有合格窗口时两条分支都是 `BACKTEST_CONFIG_UNAVAILABLE`、权重为 0，不能回退到默认
+  参数。
+- `build_branch_report()` 将上述 S1/S2 配置注入实际 verdict，逐标的 `evidence`、顶层
+  `active_strategy_configs`、私有运行期报告和公开 API 都显示同一套
+  `active_config/config_as_of/config_source_window`。S2 仍按 PROMO-1 决定是否参与权重，
+  其配置注入路径与 S1 相同。
+- 定向回归覆盖：三家日线 provider 的新响应和缓存命中、倒挂/收盘越界/open 非正/负成交量、
+  运行时语义 Bar 阻断、腾讯/新浪来源时间、来源时间缺失和过期、实盘 verdict 参数与
+  产生证据的窗口参数相等，以及未来训练窗即使指标更优也不能越过 as-of 选择。
 
 ## 2026-09-14 第五轮对抗性审查修复
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import date
+import re
 from typing import Mapping, Optional, Sequence
 
 from .bars import assert_ascending, closes, highs, lows, slice_until
@@ -45,6 +46,15 @@ def default_s2_config(overrides: Mapping[str, object] | None = None) -> dict[str
     return config
 
 
+def volatility_floor_ratio(entry_config: Mapping[str, object]) -> float:
+    """优先读取训练窗落盘的精确百分比，兼容既有可读的百分比文本。"""
+    explicit = entry_config.get("volatility_floor_pct")
+    if isinstance(explicit, (int, float)):
+        return float(explicit) / 100.0
+    match = re.search(r"([0-9]+(?:\.[0-9]+)?)%", str(entry_config.get("volatility_floor", "")))
+    return float(match.group(1)) / 100.0 if match else 0.015
+
+
 @dataclass(frozen=True)
 class S2Entry:
     symbol: str
@@ -72,7 +82,7 @@ def evaluate_s2_entries(
     rsi_period = int(entry_config["rsi"]["period"])  # type: ignore[index]
     rsi_threshold = float(entry_config["rsi"]["threshold"])  # type: ignore[index]
     ibs_threshold = float(entry_config["ibs"]["threshold"])  # type: ignore[index]
-    volatility_floor = 1.5 / 100.0
+    volatility_floor = volatility_floor_ratio(entry_config)
     max_open = int(config["concurrency"]["max_open_trades"])  # type: ignore[index]
     slots = max_open - len(open_trades)
     if slots <= 0:

@@ -48,6 +48,7 @@ def _exclusion_reason(verdict: BranchVerdict) -> str:
         "OUT_OF_STRATEGY_UNIVERSE": "该标的不在策略资产池",
         "CONFIGURED_UNIVERSE_INCOMPLETE": "配置资产池不完整",
         "SAMPLE_INSUFFICIENT": "日线样本不足",
+        "BACKTEST_CONFIG_UNAVAILABLE": "没有可绑定到当前 as-of 的已评价训练窗参数",
         "EXCLUDED_PENDING_BACKTEST": "尚未通过回测推广门",
     }
     label = labels.get(verdict.participation_status, "当前权重为 0")

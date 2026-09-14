@@ -6,10 +6,10 @@ import json
 import math
 import re
 from datetime import date, datetime
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Optional
 
 from .base import DiskCache, HttpClient, MarketDataError, decode_text, fetch_validated_cached, utc_now
-from .models import Bar, Instrument, Quote
+from .models import Bar, BarQualityIssue, Instrument, Quote
 
 
 SINA_REFERER = "https://finance.sina.com.cn/"
@@ -17,7 +17,7 @@ SINA_QUOTE_URL = "https://hq.sinajs.cn/list="
 SINA_US_KLINE_URL = "https://stock.finance.sina.com.cn/usstock/api/jsonp.php/var%20_=/US_MinKService.getDailyK?symbol={symbol}"
 SINA_CN_KLINE_URL = "https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol={symbol}&scale=240&ma=no&datalen=3000"
 _ASSIGNMENT = re.compile(r'(?:var\s+)?hq_str_([^=]+)="([^"]*)";?')
-_TIMESTAMP = re.compile(r"(20\d{2}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})")
+_TIMESTAMP = re.compile(r"(20\d{2})[-/](\d{2})[-/](\d{2})[T\s,]+(\d{2}:\d{2}(?::\d{2})?)")
 _QUOTE_PRICE_INDEX = {"US": 1, "CN": 3, "HK": 6}
 
 
@@ -51,13 +51,7 @@ class SinaQuoteProvider:
                 continue
             if not math.isfinite(price) or price <= 0:
                 continue
-            source_time = None
-            match = _TIMESTAMP.search(raw)
-            if match:
-                try:
-                    source_time = datetime.fromisoformat(match.group(1) + "T" + match.group(2))
-                except ValueError:
-                    source_time = None
+            source_time = _parse_source_time(raw)
             currency = {"US": "USD", "CN": "CNY", "HK": "HKD"}.get(instrument.market, "UNKNOWN")
             result[instrument.symbol] = Quote(
                 symbol=instrument.symbol,
@@ -95,6 +89,7 @@ class SinaKlineProvider:
         self.cache = cache
         self.us_endpoint = us_endpoint
         self.cn_endpoint = cn_endpoint
+        self.last_quality_issues: list[BarQualityIssue] = []
 
     @staticmethod
     def _decode_rows(payload: bytes, market: str) -> list:
@@ -115,7 +110,13 @@ class SinaKlineProvider:
         return rows
 
     @classmethod
-    def parse(cls, payload: bytes, instrument: Instrument, observed_at=None) -> List[Bar]:
+    def parse(
+        cls,
+        payload: bytes,
+        instrument: Instrument,
+        observed_at=None,
+        quality_issues: Optional[list[BarQualityIssue]] = None,
+    ) -> List[Bar]:
         if instrument.market not in {"US", "CN"}:
             raise MarketDataError("SINA_KLINE_UNSUPPORTED:%s" % instrument.symbol)
         observed_at = observed_at or utc_now()
@@ -126,7 +127,7 @@ class SinaKlineProvider:
             if not isinstance(row, dict):
                 continue
             try:
-                bars.append(Bar(
+                bar = Bar(
                     symbol=instrument.symbol,
                     day=date.fromisoformat(str(row["d"] if instrument.market == "US" else row["day"])),
                     open=float(row["o"] if instrument.market == "US" else row["open"]),
@@ -137,14 +138,17 @@ class SinaKlineProvider:
                     exchange_timezone=instrument.timezone,
                     source=source,
                     observed_at=observed_at,
-                ))
+                )
             except (KeyError, TypeError, ValueError):
                 continue
-        unique = {
-            bar.day: bar
-            for bar in bars
-            if bar.has_finite_ohlcv() and bar.close > 0 and bar.high > 0 and bar.low > 0
-        }
+            if not bar.has_valid_ohlcv():
+                if quality_issues is not None:
+                    quality_issues.append(BarQualityIssue(
+                        instrument.symbol, bar.day, source, bar.ohlcv_violations(),
+                    ))
+                continue
+            bars.append(bar)
+        unique = {bar.day: bar for bar in bars}
         ordered = [unique[day_key] for day_key in sorted(unique)]
         if len(ordered) < 2:
             raise MarketDataError("SINA_KLINE_INSUFFICIENT:%s" % instrument.symbol)
@@ -156,10 +160,22 @@ class SinaKlineProvider:
             raise MarketDataError("SINA_KLINE_UNSUPPORTED:%s" % instrument.symbol)
         key = "sina_%s_bars_%s" % (instrument.market.lower(), instrument.symbol.lower())
         endpoint = self.us_endpoint if instrument.market == "US" else self.cn_endpoint
+        self.last_quality_issues = []
         return fetch_validated_cached(
             self.cache,
             key,
             6 * 60 * 60,
             lambda: self.client.get(endpoint.format(symbol=kline_symbol), {"Referer": SINA_REFERER}),
-            lambda payload: self.parse(payload, instrument),
+            lambda payload: self.parse(payload, instrument, quality_issues=self.last_quality_issues),
         )
+
+
+def _parse_source_time(raw: str) -> datetime | None:
+    """新浪美/A/港报价兼容连字符或斜杠日期、独立分钟或秒级时间字段。"""
+    match = _TIMESTAMP.search(raw)
+    if not match:
+        return None
+    try:
+        return datetime.fromisoformat("%s-%s-%sT%s" % match.groups())
+    except ValueError:
+        return None

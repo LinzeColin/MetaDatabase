@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 import math
-from typing import Dict, Iterable, List
+import re
+from typing import Dict, Iterable, List, Optional
 
 from .base import DiskCache, HttpClient, MarketDataError, decode_text, fetch_validated_cached, read_json, utc_now
-from .models import Bar, Instrument, Quote
+from .models import Bar, BarQualityIssue, Instrument, Quote
 
 
 TENCENT_QUOTE_URL = "https://qt.gtimg.cn/q="
 TENCENT_KLINE_URL = "https://web.ifzq.gtimg.cn/appstock/app/{kind}/get?param={symbol},day,,,2000,qfq"
+_QUOTE_TIMESTAMP = re.compile(r"20\d{12}\Z")
 
 
 class TencentQuoteProvider:
@@ -50,7 +52,7 @@ class TencentQuoteProvider:
                 currency=currency,
                 exchange_timezone=instrument.timezone,
                 source="tencent_quote",
-                source_time=None,
+                source_time=_parse_source_time(fields),
                 observed_at=observed_at,
             )
         return result
@@ -70,9 +72,15 @@ class TencentKlineProvider:
         self.client = client
         self.cache = cache
         self.endpoint = endpoint
+        self.last_quality_issues: list[BarQualityIssue] = []
 
     @staticmethod
-    def parse(payload: bytes, instrument: Instrument, observed_at=None) -> List[Bar]:
+    def parse(
+        payload: bytes,
+        instrument: Instrument,
+        observed_at=None,
+        quality_issues: Optional[list[BarQualityIssue]] = None,
+    ) -> List[Bar]:
         observed_at = observed_at or utc_now()
         root = read_json(payload, "TENCENT_KLINE")
         if root.get("code") != 0:
@@ -95,7 +103,7 @@ class TencentKlineProvider:
             if not isinstance(row, list) or len(row) < 6:
                 continue
             try:
-                bars.append(Bar(
+                bar = Bar(
                     symbol=instrument.symbol,
                     day=date.fromisoformat(str(row[0])),
                     open=float(row[1]),
@@ -106,14 +114,17 @@ class TencentKlineProvider:
                     exchange_timezone=instrument.timezone,
                     source="tencent_daily",
                     observed_at=observed_at,
-                ))
+                )
             except (TypeError, ValueError):
                 continue
-        unique = {
-            bar.day: bar
-            for bar in bars
-            if bar.has_finite_ohlcv() and bar.close > 0 and bar.high > 0 and bar.low > 0
-        }
+            if not bar.has_valid_ohlcv():
+                if quality_issues is not None:
+                    quality_issues.append(BarQualityIssue(
+                        instrument.symbol, bar.day, "tencent_daily", bar.ohlcv_violations(),
+                    ))
+                continue
+            bars.append(bar)
+        unique = {bar.day: bar for bar in bars}
         ordered = [unique[day_key] for day_key in sorted(unique)]
         if len(ordered) < 2:
             raise MarketDataError("TENCENT_KLINE_INSUFFICIENT:%s" % instrument.symbol)
@@ -124,10 +135,24 @@ class TencentKlineProvider:
             raise MarketDataError("TENCENT_KLINE_UNSUPPORTED:%s" % instrument.symbol)
         key = "bars_" + instrument.symbol.lower()
         kind = "usfqkline" if instrument.market == "US" else "hkfqkline" if instrument.market == "HK" else "fqkline"
+        self.last_quality_issues = []
         return fetch_validated_cached(
             self.cache,
             key,
             6 * 60 * 60,
             lambda: self.client.get(self.endpoint.format(kind=kind, symbol=instrument.tencent_kline_symbol)),
-            lambda payload: self.parse(payload, instrument),
+            lambda payload: self.parse(payload, instrument, quality_issues=self.last_quality_issues),
         )
+
+
+def _parse_source_time(fields: list[str]) -> datetime | None:
+    """仅在 qt.gtimg.cn 实际返回 YYYYMMDDhhmmss 时解析；观察时间绝不替代来源时间。"""
+    for field in reversed(fields):
+        candidate = field.strip()
+        if not _QUOTE_TIMESTAMP.fullmatch(candidate):
+            continue
+        try:
+            return datetime.strptime(candidate, "%Y%m%d%H%M%S")
+        except ValueError:
+            return None
+    return None

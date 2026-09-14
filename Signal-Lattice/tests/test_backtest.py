@@ -23,7 +23,9 @@ from signal_lattice.backtest.runner import (
     profitability_status,
     run_backtest,
     sample_sufficiency,
+    select_active_config,
 )
+from signal_lattice.branches.runtime import build_branch_report
 from signal_lattice.live_config import default_universe
 from signal_lattice.marketdata.models import Bar
 
@@ -131,6 +133,73 @@ class BacktestTests(unittest.TestCase):
                     "risk_adjusted_excess", "window_label",
                 }.issubset(branch["contributions"][0])
             )
+            self.assertIsNotNone(branch["active_config"])
+            self.assertEqual(branch["config_status"], "ACTIVE_TRAIN_WINDOW_AS_OF")
+            source = branch["config_source_window"]
+            self.assertLessEqual(source["train"][1], branch["config_as_of"])
+            source_window = next(
+                window for window in branch["windows"]
+                if window["window_label"] == source["window_label"]
+            )
+            self.assertEqual(branch["active_config"], source_window["active_config"])
+
+        branch_report = build_branch_report(default_universe(), bars, report)
+        expected_symbols = {
+            "s1_momentum": set(S1_LIVE_TO_ALPHA),
+            "s2_meanrev": {"usSPY", "usQQQ"},
+        }
+        for branch_id in ("s1_momentum", "s2_meanrev"):
+            expected = report["branches"][branch_id]
+            verdicts = [
+                item for item in branch_report["branches"]
+                if item["branch_id"] == branch_id and item["symbol"] in expected_symbols[branch_id]
+            ]
+            self.assertTrue(verdicts)
+            self.assertTrue(all(item["evidence"]["active_config"] == expected["active_config"] for item in verdicts))
+            self.assertTrue(all(item["evidence"]["config_as_of"] == expected["config_as_of"] for item in verdicts))
+            self.assertTrue(all(item["evidence"]["config_source_window"] == expected["config_source_window"] for item in verdicts))
+
+    def test_active_config_selection_excludes_future_training_window(self):
+        as_of = date(2024, 12, 31)
+        windows = [
+            {
+                "window_label": "WF-01",
+                "train": ["2022-01-01", "2024-06-30"],
+                "test": ["2024-07-01", "2024-12-31"],
+                "test_evaluable": True,
+                "active_config": {"parameter_id": "TRAINED_AS_OF"},
+                "train_metrics": {"monthly_mean_net_pct": 0.1},
+            },
+            {
+                "window_label": "WF-02",
+                "train": ["2024-07-01", "2025-06-30"],
+                "test": ["2025-07-01", "2025-12-31"],
+                "test_evaluable": True,
+                "active_config": {"parameter_id": "FUTURE_WINDOW_OBVIOUSLY_BETTER"},
+                "train_metrics": {"monthly_mean_net_pct": 999.0},
+            },
+        ]
+
+        selected = select_active_config(windows, as_of)
+
+        self.assertEqual(selected["active_config"], {"parameter_id": "TRAINED_AS_OF"})
+        self.assertEqual(selected["config_source_window"]["window_label"], "WF-01")
+        self.assertEqual(selected["config_as_of"], "2024-12-31")
+
+    def test_active_config_selection_allows_train_end_equal_to_as_of(self):
+        selected = select_active_config(
+            [{
+                "window_label": "WF-EQUAL",
+                "train": ["2022-01-01", "2024-12-31"],
+                "test": ["2025-01-01", "2025-06-30"],
+                "test_evaluable": True,
+                "active_config": {"parameter_id": "EQUAL_BOUNDARY"},
+            }],
+            date(2024, 12, 31),
+        )
+
+        self.assertEqual(selected["active_config"], {"parameter_id": "EQUAL_BOUNDARY"})
+        self.assertEqual(selected["config_source_window"]["window_label"], "WF-EQUAL")
 
     def test_profitability_gate_hides_returns_but_keeps_directional_research_eligible(self):
         branches = {

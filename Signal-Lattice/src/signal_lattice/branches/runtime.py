@@ -12,7 +12,7 @@ from .bars import closes, highs, lows
 from .indicators import atr, ibs, rsi_wilder, sma
 from .models import BranchVerdict
 from .s1_momentum import DEFAULT_S1_CONFIG, default_s1_config, evaluate_s1
-from .s2_meanrev import DEFAULT_S2_CONFIG, default_s2_config, evaluate_s2_entries, s2_enabled
+from .s2_meanrev import DEFAULT_S2_CONFIG, default_s2_config, evaluate_s2_entries, s2_enabled, volatility_floor_ratio
 from ..marketdata.models import Bar, Instrument
 
 
@@ -159,8 +159,56 @@ def _s2_required_bars() -> int:
     return max(200, 14 + 1, entry["rsi"]["period"] + 1)  # type: ignore[index]
 
 
-def evaluate_s1_verdicts(bars_by_symbol: Mapping[str, Sequence[Bar]]) -> list[BranchVerdict]:
-    config = default_s1_config()
+def _config_evidence(
+    active_config: Mapping[str, Any] | None,
+    config_as_of: object,
+    config_source_window: object,
+    config_status: object,
+) -> dict[str, Any]:
+    return {
+        "active_config": dict(active_config) if active_config is not None else None,
+        "config_as_of": config_as_of,
+        "config_source_window": config_source_window,
+        "config_status": config_status,
+    }
+
+
+def _config_unavailable_verdict(
+    branch_id: str,
+    symbol: str,
+    used: int,
+    config_as_of: object,
+    config_source_window: object,
+    config_status: object,
+) -> BranchVerdict:
+    return BranchVerdict(
+        branch_id=branch_id,
+        symbol=symbol,
+        direction="不适用",
+        confidence=0.0,
+        evidence={
+            "sample_status": "没有可绑定到当前 as-of 的已评价训练窗参数",
+            **_config_evidence(None, config_as_of, config_source_window, config_status),
+        },
+        counter_evidence="实盘结论必须使用能追溯到严格在前训练窗的参数，当前不存在这样的参数。",
+        invalidation="形成 train_end 不晚于当前 as-of 的完整训练窗并完成其对应 test 评价后重新计算。",
+        window_used=used,
+        implemented=True,
+        weight=0.0,
+        participation_status="BACKTEST_CONFIG_UNAVAILABLE",
+    )
+
+
+def evaluate_s1_verdicts(
+    bars_by_symbol: Mapping[str, Sequence[Bar]],
+    active_config: Mapping[str, Any] | None = None,
+    *,
+    config_as_of: object = None,
+    config_source_window: object = None,
+    config_status: object = None,
+    require_active_config: bool = False,
+) -> list[BranchVerdict]:
+    config = dict(active_config) if active_config is not None else default_s1_config()
     required_bars = _s1_required_bars()
     alpha_bars = {alpha: bars_by_symbol.get(live, ()) for live, alpha in S1_LIVE_TO_ALPHA.items()}
     as_of_candidates = [bars[-1].day for bars in alpha_bars.values() if bars]
@@ -177,6 +225,13 @@ def evaluate_s1_verdicts(bars_by_symbol: Mapping[str, Sequence[Bar]]) -> list[Br
         alpha_symbol = S1_LIVE_TO_ALPHA.get(live_symbol)
         if alpha_symbol is None:
             verdicts.append(_not_applicable_verdict("s1_momentum", live_symbol, len(bars), "S1 Alpha 资产池只包含其配置的全球 ETF。"))
+            continue
+        if require_active_config and active_config is None:
+            verdicts.append(
+                _config_unavailable_verdict(
+                    "s1_momentum", live_symbol, len(bars), config_as_of, config_source_window, config_status,
+                )
+            )
             continue
         if len(bars) < required_bars:
             verdicts.append(_insufficient_verdict("s1_momentum", live_symbol, len(bars), required_bars))
@@ -221,6 +276,7 @@ def evaluate_s1_verdicts(bars_by_symbol: Mapping[str, Sequence[Bar]]) -> list[Br
                     "trend_component": trend_component,
                     "selected": selected,
                     "confidence_formula": "clamp((abs(score)/weighted_abs_return + abs(close-sma200)/close + position_scalar)/3)",
+                    **_config_evidence(active_config, config_as_of, config_source_window, config_status),
                 },
                 counter_evidence=counter,
                 invalidation=f"收盘不高于 SMA200={diagnostic['sma200']:.4f} 或下一次复算不在 top {config['selection']['top_n']}。",
@@ -236,8 +292,14 @@ def evaluate_s1_verdicts(bars_by_symbol: Mapping[str, Sequence[Bar]]) -> list[Br
 def evaluate_s2_verdicts(
     bars_by_symbol: Mapping[str, Sequence[Bar]],
     promotion: Mapping[str, Any] | None = None,
+    active_config: Mapping[str, Any] | None = None,
+    *,
+    config_as_of: object = None,
+    config_source_window: object = None,
+    config_status: object = None,
+    require_active_config: bool = False,
 ) -> list[BranchVerdict]:
-    config = default_s2_config()
+    config = dict(active_config) if active_config is not None else default_s2_config()
     required_bars = _s2_required_bars()
     alpha_bars = {alpha: bars_by_symbol.get(live, ()) for live, alpha in S2_LIVE_TO_ALPHA.items()}
     as_of_candidates = [bars[-1].day for bars in alpha_bars.values() if bars]
@@ -258,11 +320,18 @@ def evaluate_s2_verdicts(
     entry_config = config["entry"]  # type: ignore[index]
     rsi_threshold = float(entry_config["rsi"]["threshold"])  # type: ignore[index]
     ibs_threshold = float(entry_config["ibs"]["threshold"])  # type: ignore[index]
-    volatility_floor = 0.015
+    volatility_floor = volatility_floor_ratio(entry_config)
     for live_symbol, bars in bars_by_symbol.items():
         alpha_symbol = S2_LIVE_TO_ALPHA.get(live_symbol)
         if alpha_symbol is None:
             verdicts.append(_not_applicable_verdict("s2_meanrev", live_symbol, len(bars), "S2 Alpha 核心资产池只包含 SPY 与 QQQ。"))
+            continue
+        if require_active_config and active_config is None:
+            verdicts.append(
+                _config_unavailable_verdict(
+                    "s2_meanrev", live_symbol, len(bars), config_as_of, config_source_window, config_status,
+                )
+            )
             continue
         if len(bars) < required_bars:
             verdicts.append(_insufficient_verdict("s2_meanrev", live_symbol, len(bars), required_bars))
@@ -307,6 +376,7 @@ def evaluate_s2_verdicts(
                     "backtest_promotion_passed": backtest_promotion_passed,
                     "aggregation_enabled": aggregation_enabled,
                     "confidence_formula": "mean(rsi_component, ibs_component, trend_component, volatility_component) for entry; 1-mean(...) for neutral",
+                    **_config_evidence(active_config, config_as_of, config_source_window, config_status),
                 },
                 counter_evidence=(
                     signal_counter_evidence
@@ -335,6 +405,11 @@ def build_branch_report(
     """计算全部 Stage 2 分支并返回白箱 API 与页面共用的结构。"""
     symbols = [instrument.symbol for instrument in instruments]
     ordered_bars = {symbol: bars_by_symbol.get(symbol, ()) for symbol in symbols}
+    s1_backtest = (
+        backtest.get("branches", {}).get("s1_momentum", {})
+        if backtest is not None
+        else {}
+    )
     s2_backtest = (
         backtest.get("branches", {}).get("s2_meanrev", {})
         if backtest is not None
@@ -348,7 +423,28 @@ def build_branch_report(
         if s2_backtest.get("status") == "SAMPLE_INSUFFICIENT"
         else None
     )
-    verdicts = evaluate_s1_verdicts(ordered_bars) + evaluate_s2_verdicts(ordered_bars, s2_promotion)
+    s1_config = s1_backtest.get("active_config") if isinstance(s1_backtest.get("active_config"), Mapping) else None
+    s2_config = s2_backtest.get("active_config") if isinstance(s2_backtest.get("active_config"), Mapping) else None
+    strict_runtime_config = backtest is not None
+    verdicts = (
+        evaluate_s1_verdicts(
+            ordered_bars,
+            s1_config,
+            config_as_of=s1_backtest.get("config_as_of"),
+            config_source_window=s1_backtest.get("config_source_window"),
+            config_status=s1_backtest.get("config_status"),
+            require_active_config=strict_runtime_config,
+        )
+        + evaluate_s2_verdicts(
+            ordered_bars,
+            s2_promotion,
+            s2_config,
+            config_as_of=s2_backtest.get("config_as_of"),
+            config_source_window=s2_backtest.get("config_source_window"),
+            config_status=s2_backtest.get("config_status"),
+            require_active_config=strict_runtime_config,
+        )
+    )
     for branch in UNIMPLEMENTED_BRANCHES:
         verdicts.extend(_unimplemented_verdict(branch, symbol, len(ordered_bars[symbol])) for symbol in symbols)
     branch_ids = sorted({verdict.branch_id for verdict in verdicts})
@@ -376,6 +472,20 @@ def build_branch_report(
             if backtest is not None and backtest.get("profitability_status")
             else "NOT_PRODUCED_STAGE_2_NO_BACKTEST"
         ),
+        "active_strategy_configs": {
+            "s1_momentum": _config_evidence(
+                s1_config,
+                s1_backtest.get("config_as_of"),
+                s1_backtest.get("config_source_window"),
+                s1_backtest.get("config_status"),
+            ),
+            "s2_meanrev": _config_evidence(
+                s2_config,
+                s2_backtest.get("config_as_of"),
+                s2_backtest.get("config_source_window"),
+                s2_backtest.get("config_status"),
+            ),
+        },
         **build_aggregate_report(symbols, weighted_verdicts, weighting=weighting),
     }
 
@@ -386,7 +496,7 @@ def _branch_participation_status(branch_id: str, verdicts: Sequence[BranchVerdic
     if any(verdict.weight > 0.0 for verdict in branch_verdicts):
         return "COLD_START_ELIGIBLE"
     statuses = {verdict.participation_status for verdict in branch_verdicts}
-    for status in ("EXCLUDED_PENDING_BACKTEST", "UNIMPLEMENTED", "SAMPLE_INSUFFICIENT"):
+    for status in ("EXCLUDED_PENDING_BACKTEST", "BACKTEST_CONFIG_UNAVAILABLE", "UNIMPLEMENTED", "SAMPLE_INSUFFICIENT"):
         if status in statuses:
             return status
     return sorted(statuses)[0] if statuses else "UNSPECIFIED"

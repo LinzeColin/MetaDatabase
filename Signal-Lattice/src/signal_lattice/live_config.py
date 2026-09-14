@@ -7,7 +7,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
-from .marketdata.models import Instrument
+from .marketdata.models import (
+    CN_DECLARED_FEED_DELAY_MINUTES,
+    HK_FREE_QUOTE_DECLARED_FEED_DELAY_MINUTES,
+    US_DECLARED_FEED_DELAY_MINUTES,
+    Instrument,
+)
 from .version import VERSION
 
 
@@ -16,23 +21,23 @@ APP_VERSION = VERSION
 
 def default_universe() -> List[Instrument]:
     return [
-        Instrument("usSPY", "SPDR S&P 500 ETF", "US", "ETF", "America/New_York", "gb_spy", None, "usSPY", None, "usSPY", True, "SPY"),
-        Instrument("usQQQ", "Invesco QQQ Trust", "US", "ETF", "America/New_York", "gb_qqq", None, "usQQQ", None, "usSPY", True, "QQQ"),
-        Instrument("usAAPL", "Apple", "US", "STOCK", "America/New_York", "gb_aapl", None, "usAAPL", None, "usSPY", True, "AAPL"),
+        Instrument("usSPY", "SPDR S&P 500 ETF", "US", "ETF", "America/New_York", "gb_spy", None, "usSPY", None, "usSPY", True, "SPY", US_DECLARED_FEED_DELAY_MINUTES),
+        Instrument("usQQQ", "Invesco QQQ Trust", "US", "ETF", "America/New_York", "gb_qqq", None, "usQQQ", None, "usSPY", True, "QQQ", US_DECLARED_FEED_DELAY_MINUTES),
+        Instrument("usAAPL", "Apple", "US", "STOCK", "America/New_York", "gb_aapl", None, "usAAPL", None, "usSPY", True, "AAPL", US_DECLARED_FEED_DELAY_MINUTES),
         # S1 多周期动量轮动需要完整的八标的资产池（来源 Alpha configs/strategies/s1_momentum.yaml）；
         # 缺任何一只，S1 会判 CONFIGURED_UNIVERSE_INCOMPLETE 并拒绝出结论。
-        Instrument("usIWM", "iShares 罗素2000 ETF", "US", "ETF", "America/New_York", "gb_iwm", None, "usIWM", None, "usSPY", True, "IWM"),
-        Instrument("usEFA", "iShares MSCI 欧澳远东 ETF", "US", "ETF", "America/New_York", "gb_efa", None, "usEFA", None, "usSPY", True, "EFA"),
-        Instrument("usEEM", "iShares MSCI 新兴市场 ETF", "US", "ETF", "America/New_York", "gb_eem", None, "usEEM", None, "usSPY", True, "EEM"),
-        Instrument("usGLD", "SPDR 黄金 ETF", "US", "ETF", "America/New_York", "gb_gld", None, "usGLD", None, "usSPY", True, "GLD"),
-        Instrument("usTLT", "iShares 20年期以上美国国债 ETF", "US", "ETF", "America/New_York", "gb_tlt", None, "usTLT", None, "usSPY", True, "TLT"),
-        Instrument("usBIL", "SPDR 1-3月美国国债 ETF", "US", "ETF", "America/New_York", "gb_bil", None, "usBIL", None, "usSPY", True, "BIL"),
-        Instrument("sh000300", "沪深300", "CN", "INDEX", "Asia/Shanghai", "sh000300", "sh000300", "sh000300", None, "sh000300"),
-        Instrument("sh600000", "浦发银行", "CN", "STOCK", "Asia/Shanghai", "sh600000", "sh600000", "sh600000", None, "sh000300"),
-        Instrument("sh510300", "沪深300 ETF", "CN", "ETF", "Asia/Shanghai", "sh510300", "sh510300", "sh510300", None, "sh000300"),
-        Instrument("hk02800", "盈富基金", "HK", "ETF", "Asia/Hong_Kong", "hk02800", "hk02800", "hk02800", None, "hk02800"),
-        Instrument("hk00700", "腾讯控股", "HK", "STOCK", "Asia/Hong_Kong", "hk00700", "hk00700", "hk00700", None, "hk02800"),
-        Instrument("fund110022", "易方达消费行业股票", "CN", "MUTUAL_FUND", "Asia/Shanghai", None, None, None, "110022", "sh000300", False),
+        Instrument("usIWM", "iShares 罗素2000 ETF", "US", "ETF", "America/New_York", "gb_iwm", None, "usIWM", None, "usSPY", True, "IWM", US_DECLARED_FEED_DELAY_MINUTES),
+        Instrument("usEFA", "iShares MSCI 欧澳远东 ETF", "US", "ETF", "America/New_York", "gb_efa", None, "usEFA", None, "usSPY", True, "EFA", US_DECLARED_FEED_DELAY_MINUTES),
+        Instrument("usEEM", "iShares MSCI 新兴市场 ETF", "US", "ETF", "America/New_York", "gb_eem", None, "usEEM", None, "usSPY", True, "EEM", US_DECLARED_FEED_DELAY_MINUTES),
+        Instrument("usGLD", "SPDR 黄金 ETF", "US", "ETF", "America/New_York", "gb_gld", None, "usGLD", None, "usSPY", True, "GLD", US_DECLARED_FEED_DELAY_MINUTES),
+        Instrument("usTLT", "iShares 20年期以上美国国债 ETF", "US", "ETF", "America/New_York", "gb_tlt", None, "usTLT", None, "usSPY", True, "TLT", US_DECLARED_FEED_DELAY_MINUTES),
+        Instrument("usBIL", "SPDR 1-3月美国国债 ETF", "US", "ETF", "America/New_York", "gb_bil", None, "usBIL", None, "usSPY", True, "BIL", US_DECLARED_FEED_DELAY_MINUTES),
+        Instrument("sh000300", "沪深300", "CN", "INDEX", "Asia/Shanghai", "sh000300", "sh000300", "sh000300", None, "sh000300", declared_feed_delay_minutes=CN_DECLARED_FEED_DELAY_MINUTES),
+        Instrument("sh600000", "浦发银行", "CN", "STOCK", "Asia/Shanghai", "sh600000", "sh600000", "sh600000", None, "sh000300", declared_feed_delay_minutes=CN_DECLARED_FEED_DELAY_MINUTES),
+        Instrument("sh510300", "沪深300 ETF", "CN", "ETF", "Asia/Shanghai", "sh510300", "sh510300", "sh510300", None, "sh000300", declared_feed_delay_minutes=CN_DECLARED_FEED_DELAY_MINUTES),
+        Instrument("hk02800", "盈富基金", "HK", "ETF", "Asia/Hong_Kong", "hk02800", "hk02800", "hk02800", None, "hk02800", declared_feed_delay_minutes=HK_FREE_QUOTE_DECLARED_FEED_DELAY_MINUTES),
+        Instrument("hk00700", "腾讯控股", "HK", "STOCK", "Asia/Hong_Kong", "hk00700", "hk00700", "hk00700", None, "hk02800", declared_feed_delay_minutes=HK_FREE_QUOTE_DECLARED_FEED_DELAY_MINUTES),
+        Instrument("fund110022", "易方达消费行业股票", "CN", "MUTUAL_FUND", "Asia/Shanghai", None, None, None, "110022", "sh000300", False, declared_feed_delay_minutes=CN_DECLARED_FEED_DELAY_MINUTES),
     ]
 
 

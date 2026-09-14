@@ -11,10 +11,10 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from signal_lattice.live_config import LiveSettings, default_universe
-from signal_lattice.live_runtime import LiveEngine
+from signal_lattice.live_runtime import LiveEngine, MarketGateway
 from signal_lattice.marketdata.base import DiskCache, MarketDataError
 from signal_lattice.marketdata.eastmoney import EastMoneyFundProvider
-from signal_lattice.marketdata.models import Bar, Quote
+from signal_lattice.marketdata.models import Bar, BarQualityIssue, Quote
 from signal_lattice.marketdata.sina import SinaKlineProvider, SinaQuoteProvider
 from signal_lattice.marketdata.tencent import TencentKlineProvider, TencentQuoteProvider
 
@@ -37,9 +37,9 @@ class ProviderParsingTests(unittest.TestCase):
 
     def test_sina_gbk_uses_market_specific_live_price_fields(self):
         raw = (
-            'hq_str_hk00700="TENCENT,腾讯控股,419.400,425.600,430.800,419.400,428.400,2.800,0.658,..."\n'
-            'hq_str_hk02800="TRACKER FUND,盈富基金,25.360,25.580,25.480,25.200,25.420,-0.160,-0.625,..."\n'
-            'hq_str_sh600000="浦发银行,9.350,9.350,9.260,9.350,9.220,9.250,9.260,65327293,..."\n'
+            'hq_str_hk00700="TENCENT,腾讯控股,419.400,425.600,430.800,419.400,428.400,2.800,0.658,...,2026/09/11,16:09"\n'
+            'hq_str_hk02800="TRACKER FUND,盈富基金,25.360,25.580,25.480,25.200,25.420,-0.160,-0.625,...,2026/09/12,09:45:58,..."\n'
+            'hq_str_sh600000="浦发银行,9.350,9.350,9.260,9.350,9.220,9.250,9.260,65327293,...,2026-09-12,09:45:58,..."\n'
             'hq_str_gb_spy="SPDR标普500 ETF,764.2900,0.85,2026-09-12 09:45:58,6.4600,764.7200,..."\n'
         ).encode("gbk")
         quotes = SinaQuoteProvider.parse(raw, self.items, datetime(2026, 9, 12, tzinfo=timezone.utc))
@@ -47,7 +47,17 @@ class ProviderParsingTests(unittest.TestCase):
         self.assertEqual(quotes["sh600000"].price, 9.260)
         self.assertEqual(quotes["hk00700"].price, 428.400)
         self.assertEqual(quotes["hk02800"].price, 25.420)
-        self.assertEqual(quotes["usSPY"].source_time.date().isoformat(), "2026-09-12")
+        self.assertTrue(all(quote.source_time is not None for quote in quotes.values()))
+        self.assertEqual(quotes["usSPY"].source_time.isoformat(), "2026-09-12T09:45:58")
+        self.assertEqual(quotes["sh600000"].source_time.isoformat(), "2026-09-12T09:45:58")
+        self.assertEqual(quotes["hk00700"].source_time.isoformat(), "2026-09-11T16:09:00")
+
+    def test_tencent_quote_without_source_time_remains_unqualified(self):
+        raw = 'v_hk00700="100~腾讯控股~00700~428.400~425.600~2.800~0.658~0~0~0.00~0.00";'.encode("gbk")
+
+        quotes = TencentQuoteProvider.parse(raw, self.items)
+
+        self.assertIsNone(quotes["hk00700"].source_time)
 
     def test_tencent_quote_strips_each_response_line(self):
         raw = (
@@ -61,6 +71,7 @@ class ProviderParsingTests(unittest.TestCase):
         self.assertEqual(set(quotes), {"sh000300", "sh600000", "sh510300", "hk02800", "hk00700"})
         self.assertEqual(quotes["sh600000"].price, 9.260)
         self.assertEqual(quotes["hk00700"].price, 428.400)
+        self.assertTrue(all(quote.source_time is None for quote in quotes.values()))
 
     def test_sina_us_daily_jsonp_unwraps_strings_and_sorts(self):
         payload = (
@@ -103,7 +114,7 @@ class ProviderParsingTests(unittest.TestCase):
         with self.assertRaisesRegex(MarketDataError, "TENCENT_QUOTE_DECODE_FAILED"):
             TencentQuoteProvider.parse(b"\xff\xfe", self.items)
 
-    def test_daily_parsers_reject_nonfinite_ohlcv(self):
+    def test_daily_parsers_drop_nonfinite_ohlcv_and_record_violations(self):
         sina = (
             "var _=(["
             '{"d":"2026-09-01","o":"NaN","h":"2","l":"1","c":"1","v":"1"},'
@@ -134,9 +145,74 @@ class ProviderParsingTests(unittest.TestCase):
         us_spy = next(item for item in self.items if item.symbol == "usSPY")
         sh300 = next(item for item in self.items if item.symbol == "sh000300")
         fund = next(item for item in self.items if item.symbol == "fund110022")
-        self.assertEqual(len(SinaKlineProvider.parse(sina, us_spy)), 2)
-        self.assertEqual(len(TencentKlineProvider.parse(tencent, sh300)), 2)
-        self.assertEqual(len(EastMoneyFundProvider.parse(eastmoney, fund)), 2)
+        cases = [
+            (SinaKlineProvider.parse, sina, us_spy, 5),
+            (TencentKlineProvider.parse, tencent, sh300, 5),
+            (EastMoneyFundProvider.parse, eastmoney, fund, 1),
+        ]
+        for parser, payload, instrument, expected_drops in cases:
+            with self.subTest(provider=parser.__qualname__):
+                issues: list[BarQualityIssue] = []
+                bars = parser(payload, instrument, quality_issues=issues)
+                self.assertEqual(len(bars), 2)
+                self.assertEqual(len(issues), expected_drops)
+                self.assertTrue(all(issue.violations for issue in issues))
+
+    def test_bar_semantic_validator_rejects_incoherent_ohlcv(self):
+        observed_at = datetime(2026, 9, 12, tzinfo=timezone.utc)
+        baseline = dict(
+            symbol="fixture", day=observed_at.date(), open=10.0, high=12.0, low=8.0,
+            close=11.0, volume=1.0, exchange_timezone="UTC", source="fixture", observed_at=observed_at,
+        )
+        self.assertTrue(Bar(**baseline).has_valid_ohlcv())
+        for changes in (
+            {"low": 13.0},
+            {"close": 13.0},
+            {"close": 7.0},
+            {"open": 0.0},
+            {"volume": -1.0},
+        ):
+            with self.subTest(changes=changes):
+                self.assertFalse(Bar(**{**baseline, **changes}).has_valid_ohlcv())
+
+    def test_daily_providers_drop_isolated_semantic_errors_from_new_and_cached_payloads(self):
+        cases = [
+            (
+                "sina",
+                next(item for item in self.items if item.symbol == "usSPY"),
+                "sina_us_bars_usspy",
+                lambda client, cache: SinaKlineProvider(client, cache, us_endpoint="https://fixture/{symbol}"),
+                b'var _=([{"d":"2026-09-09","o":"1","h":"2","l":"1","c":"1","v":"1"},{"d":"2026-09-10","o":"1","h":"2","l":"3","c":"1","v":"1"},{"d":"2026-09-11","o":"2","h":"3","l":"1","c":"2","v":"1"}]);',
+            ),
+            (
+                "tencent",
+                next(item for item in self.items if item.symbol == "sh000300"),
+                "bars_sh000300",
+                lambda client, cache: TencentKlineProvider(client, cache, endpoint="https://fixture/{kind}/{symbol}"),
+                b'{"code":0,"data":{"sh000300":{"day":[["2026-09-09","1","1","2","1","1"],["2026-09-10","1","3","2","1","-1"],["2026-09-11","2","2","3","1","1"]]}}}',
+            ),
+            (
+                "eastmoney",
+                next(item for item in self.items if item.symbol == "fund110022"),
+                "fund_fund110022",
+                lambda client, cache: EastMoneyFundProvider(client, cache, endpoint="https://fixture/{code}"),
+                b'var Data_netWorthTrend = [{"x":1726012800000,"y":1.20},{"x":1726099200000,"y":-1.23},{"x":1726185600000,"y":1.25}];',
+            ),
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            for name, instrument, key, provider_factory, invalid_payload in cases:
+                with self.subTest(provider=name):
+                    new_cache = DiskCache(Path(directory) / (name + "-new"))
+                    provider = provider_factory(SequenceClient([invalid_payload]), new_cache)
+                    bars = provider.fetch(instrument)
+                    self.assertEqual(len(bars), 2)
+                    self.assertEqual(len(provider.last_quality_issues), 1)
+                    self.assertEqual(new_cache.load(key, 60), invalid_payload)
+
+                    cached_provider = provider_factory(SequenceClient([]), new_cache)
+                    cached_bars = cached_provider.fetch(instrument)
+                    self.assertEqual(len(cached_bars), 2)
+                    self.assertEqual(len(cached_provider.last_quality_issues), 1)
 
     def test_daily_providers_refetch_once_after_invalid_cached_payload(self):
         cases = [
@@ -218,6 +294,111 @@ class HonestFreshnessGateTests(unittest.TestCase):
             tencent_kline_url="http://unused/{kind}/{symbol}",
             eastmoney_fund_url="http://unused/{code}", universe=default_universe(),
         )
+
+    @staticmethod
+    def _valid_bars(item, end_day, count: int, observed_at: datetime):
+        return [
+            Bar(
+                item.symbol, end_day - timedelta(days=count - offset - 1), 1, 1, 1, 1, 1,
+                item.timezone, "fixture", observed_at,
+            )
+            for offset in range(count)
+        ]
+
+    def test_distant_single_invalid_bar_is_dropped_reported_and_does_not_block(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            us_spy = next(item for item in settings.universe if item.symbol == "usSPY")
+            settings = replace(settings, universe=[us_spy])
+            engine = LiveEngine(settings)
+            now = datetime(2026, 9, 15, 14, tzinfo=timezone.utc)
+            exchange_day = now.astimezone(ZoneInfo(us_spy.timezone)).date()
+            bars = {"usSPY": self._valid_bars(us_spy, exchange_day, 300, now)}
+            issue = BarQualityIssue(
+                "usSPY", datetime(2015, 3, 30).date(), "sina_us_daily", ("LOW_ABOVE_OPEN_OR_CLOSE",),
+            )
+            quality = engine._bar_quality_report(bars, {"usSPY": [issue]})
+            quotes = {"usSPY": Quote("usSPY", 1.0, "USD", us_spy.timezone, "fixture", now, now)}
+
+            findings = engine._validate(now, quotes, bars, [], quality)
+
+            self.assertEqual(findings, [])
+            self.assertEqual(quality["usSPY"]["status"], "DROPPED_INVALID_BARS")
+            self.assertEqual(quality["usSPY"]["dropped_invalid_bar_count"], 1)
+            self.assertEqual(quality["usSPY"]["samples"][0]["day"], "2015-03-30")
+            self.assertEqual(quality["usSPY"]["samples"][0]["violations"], ["LOW_ABOVE_OPEN_OR_CLOSE"])
+
+    def test_recent_invalid_bar_blocks_its_symbol(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            us_spy = next(item for item in settings.universe if item.symbol == "usSPY")
+            settings = replace(settings, universe=[us_spy])
+            engine = LiveEngine(settings)
+            now = datetime(2026, 9, 15, 14, tzinfo=timezone.utc)
+            exchange_day = now.astimezone(ZoneInfo(us_spy.timezone)).date()
+            bars = {"usSPY": self._valid_bars(us_spy, exchange_day - timedelta(days=1), 300, now)}
+            quality = engine._bar_quality_report(bars, {"usSPY": [BarQualityIssue(
+                "usSPY", exchange_day, "sina_us_daily", ("LOW_ABOVE_OPEN_OR_CLOSE",),
+            )]})
+            quotes = {"usSPY": Quote("usSPY", 1.0, "USD", us_spy.timezone, "fixture", now, now)}
+
+            findings = engine._validate(now, quotes, bars, [], quality)
+
+            self.assertIn("BAR_INVALID_OHLCV_RECENT_DECISION_WINDOW:usSPY", findings)
+            self.assertEqual(quality["usSPY"]["status"], "BLOCKED")
+
+    def test_excessive_invalid_bar_count_blocks_its_symbol(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            us_spy = next(item for item in settings.universe if item.symbol == "usSPY")
+            settings = replace(settings, universe=[us_spy])
+            engine = LiveEngine(settings)
+            now = datetime(2026, 9, 15, 14, tzinfo=timezone.utc)
+            exchange_day = now.astimezone(ZoneInfo(us_spy.timezone)).date()
+            bars = {"usSPY": self._valid_bars(us_spy, exchange_day, 1_000, now)}
+            issues = [BarQualityIssue(
+                "usSPY", datetime(2010, 1, offset + 1).date(), "sina_us_daily", ("VOLUME_NEGATIVE",),
+            ) for offset in range(4)]
+            quality = engine._bar_quality_report(bars, {"usSPY": issues})
+            quotes = {"usSPY": Quote("usSPY", 1.0, "USD", us_spy.timezone, "fixture", now, now)}
+
+            findings = engine._validate(now, quotes, bars, [], quality)
+
+            self.assertIn("BAR_INVALID_OHLCV_COUNT_THRESHOLD:usSPY", findings)
+            self.assertNotIn("BAR_INVALID_OHLCV_RATIO_THRESHOLD:usSPY", findings)
+
+    def test_gateway_keeps_timestamped_sina_primary_over_tencent_backup(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            hk = next(item for item in settings.universe if item.symbol == "hk00700")
+            gateway = MarketGateway(replace(settings, universe=[hk]))
+            observed_at = datetime(2026, 9, 11, 8, tzinfo=timezone.utc)
+
+            class Sina:
+                def fetch(self, instruments):
+                    return {"hk00700": Quote("hk00700", 411.0, "HKD", hk.timezone, "sina_quote", datetime(2026, 9, 11, 16, 9), observed_at)}
+
+            class Tencent:
+                calls = 0
+
+                def fetch(self, instruments):
+                    self.calls += 1
+                    raise AssertionError("timestamped primary must prevent backup fetch")
+
+            class Bars:
+                last_quality_issues: list[BarQualityIssue] = []
+
+                def fetch(self, instrument):
+                    return [Bar("hk00700", datetime(2026, 9, 11).date(), 1, 1, 1, 1, 1, hk.timezone, "fixture", observed_at)]
+
+            gateway.sina = Sina()
+            gateway.tencent_quote = Tencent()
+            gateway.tencent_bars = Bars()
+            quotes, _bars, errors = gateway.fetch([hk])
+
+            self.assertEqual(errors, [])
+            self.assertEqual(quotes["hk00700"].source, "sina_quote")
+            self.assertEqual(gateway.tencent_quote.calls, 0)
 
     def test_stale_bar_is_system_blocked_without_action(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -400,12 +581,293 @@ class HonestFreshnessGateTests(unittest.TestCase):
                 def fetch(self, instruments):
                     quotes = {item.symbol: Quote(item.symbol, 1.0, "USD", item.timezone, "test", now, now)
                               for item in instruments if item.realtime_quote}
-                    bars = {item.symbol: [Bar(item.symbol, now.date(), 1, 1, 1, 1, 1, item.timezone, "test", now)]
+                    bars = {item.symbol: [Bar(item.symbol, now.astimezone(ZoneInfo(item.timezone)).date(), 1, 1, 1, 1, 1, item.timezone, "test", now)]
                             for item in instruments}
                     return quotes, bars, []
             engine = LiveEngine(settings)
             engine.gateway = Gateway()
-            self.assertEqual(engine.run_once()["state"], "DATA_READY")
+            report = engine.run_once()
+            self.assertEqual(report["state"], "DATA_READY")
+            self.assertEqual(
+                set(report["quote_freshness"]),
+                {item.symbol for item in settings.universe if item.realtime_quote},
+            )
+            self.assertEqual(report["quote_freshness"]["hk00700"]["declared_feed_delay_minutes"], 25)
+            self.assertIn("observed_lag_minutes", report["quote_freshness"]["hk00700"])
+            self.assertIn("last_advance_at", report["quote_freshness"]["hk00700"])
+            self.assertIn("stalled_minutes", report["quote_freshness"]["hk00700"])
+
+    def test_weekend_friday_source_time_is_fresh_under_closed_market_rule(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            us_spy = next(item for item in settings.universe if item.symbol == "usSPY")
+            settings = replace(settings, universe=[us_spy])
+            engine = LiveEngine(settings)
+            now = datetime(2026, 9, 13, 12, tzinfo=timezone.utc)
+            bars = {
+                "usSPY": [Bar(
+                    "usSPY", datetime(2026, 9, 11).date(), 1, 1, 1, 1, 1,
+                    us_spy.timezone, "fixture", now,
+                )]
+            }
+            quote = Quote(
+                "usSPY", 1.0, "USD", us_spy.timezone, "fixture", datetime(2026, 9, 11, 9, 30), now,
+            )
+
+            freshness = engine._quote_freshness(us_spy, quote, now)
+            findings = engine._validate(now, {"usSPY": quote}, bars, [], quote_freshness={"usSPY": freshness})
+
+            self.assertEqual(findings, [])
+            self.assertEqual(freshness["market_state"], "CLOSED")
+            self.assertEqual(freshness["basis"], "MARKET_CLOSED_RECENT_TRADING_DAY_APPROXIMATION")
+
+    def test_missing_or_open_market_stale_quote_source_time_is_system_blocked(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            us_spy = next(item for item in settings.universe if item.symbol == "usSPY")
+            settings = replace(settings, universe=[us_spy])
+            engine = LiveEngine(settings)
+            now = datetime(2026, 9, 15, 14, tzinfo=timezone.utc)
+            bars = {
+                "usSPY": [Bar(
+                    "usSPY", now.astimezone(ZoneInfo(us_spy.timezone)).date(), 1, 1, 1, 1, 1,
+                    us_spy.timezone, "fixture", now,
+                )]
+            }
+            missing = {"usSPY": Quote("usSPY", 1.0, "USD", us_spy.timezone, "fixture", None, now)}
+            stale = {
+                "usSPY": Quote(
+                    "usSPY", 1.0, "USD", us_spy.timezone, "fixture",
+                    now - timedelta(seconds=settings.quote_max_age_seconds * 3), now,
+                )
+            }
+
+            self.assertIn("QUOTE_SOURCE_TIME_MISSING:usSPY:fixture", engine._validate(now, missing, bars, []))
+            self.assertIn("QUOTE_SOURCE_STALE:usSPY", engine._validate(now, stale, bars, []))
+            self.assertEqual(
+                engine._quote_freshness(us_spy, stale["usSPY"], now)["basis"],
+                "MARKET_OPEN_DECLARED_FEED_DELAY_PLUS_TTL",
+            )
+
+    def test_declared_feed_delay_allows_hk_22_minutes_and_blocks_hk_35_or_cn_5(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            hk = next(item for item in settings.universe if item.symbol == "hk00700")
+            cn = next(item for item in settings.universe if item.symbol == "sh000300")
+            now = datetime(2026, 9, 14, 1, 33, tzinfo=timezone.utc)
+
+            def bars_for(item):
+                return {
+                    item.symbol: [Bar(
+                        item.symbol,
+                        now.astimezone(ZoneInfo(item.timezone)).date(),
+                        1, 1, 1, 1, 1, item.timezone, "fixture", now,
+                    )]
+                }
+
+            hk_engine = LiveEngine(replace(settings, universe=[hk]))
+            hk_local_now = now.astimezone(ZoneInfo(hk.timezone)).replace(tzinfo=None)
+            hk_within_delay = Quote(
+                hk.symbol, 1.0, "HKD", hk.timezone, "fixture",
+                hk_local_now - timedelta(minutes=22), now,
+            )
+            hk_freshness = hk_engine._quote_freshness(hk, hk_within_delay, now)
+            self.assertEqual(hk_freshness["status"], "FRESH")
+            self.assertEqual(hk_freshness["declared_feed_delay_minutes"], 25)
+            self.assertEqual(hk_freshness["observed_lag_minutes"], 22.0)
+            self.assertEqual(hk_freshness["allowed_source_age_seconds"], 28 * 60)
+            self.assertEqual(
+                hk_engine._validate(
+                    now, {hk.symbol: hk_within_delay}, bars_for(hk), [],
+                    quote_freshness={hk.symbol: hk_freshness},
+                ),
+                [],
+            )
+
+            hk_overdue = Quote(
+                hk.symbol, 1.0, "HKD", hk.timezone, "fixture",
+                hk_local_now - timedelta(minutes=35), now,
+            )
+            self.assertEqual(hk_engine._quote_freshness(hk, hk_overdue, now)["status"], "SOURCE_TIME_STALE")
+            self.assertIn(
+                "QUOTE_SOURCE_STALE:hk00700",
+                hk_engine._validate(now, {hk.symbol: hk_overdue}, bars_for(hk), []),
+            )
+
+            cn_engine = LiveEngine(replace(settings, universe=[cn]))
+            cn_local_now = now.astimezone(ZoneInfo(cn.timezone)).replace(tzinfo=None)
+            cn_overdue = Quote(
+                cn.symbol, 1.0, "CNY", cn.timezone, "fixture",
+                cn_local_now - timedelta(minutes=5), now,
+            )
+            cn_freshness = cn_engine._quote_freshness(cn, cn_overdue, now)
+            self.assertEqual(cn_freshness["declared_feed_delay_minutes"], 0)
+            self.assertEqual(cn_freshness["status"], "SOURCE_TIME_STALE")
+            self.assertIn(
+                "QUOTE_SOURCE_STALE:sh000300",
+                cn_engine._validate(
+                    now, {cn.symbol: cn_overdue}, bars_for(cn), [],
+                    quote_freshness={cn.symbol: cn_freshness},
+                ),
+            )
+
+    def test_hk_sampled_opening_spike_blocks_then_block_updates_remain_fresh(self):
+        """复现 2026-09-14 的 12 分钟、90 秒间隔港股实测中正常的分块推进。"""
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            hk = next(item for item in settings.universe if item.symbol == "hk00700")
+            engine = LiveEngine(replace(settings, universe=[hk]))
+            samples = [
+                (datetime(2026, 9, 14, 1, 49, 34, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 20)),
+                (datetime(2026, 9, 14, 1, 51, 4, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 31)),
+                (datetime(2026, 9, 14, 1, 52, 35, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 31)),
+                (datetime(2026, 9, 14, 1, 54, 6, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 35)),
+                (datetime(2026, 9, 14, 1, 55, 37, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 35)),
+                (datetime(2026, 9, 14, 1, 57, 8, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 35)),
+                (datetime(2026, 9, 14, 1, 58, 38, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 35)),
+                (datetime(2026, 9, 14, 2, 0, 9, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 39)),
+            ]
+
+            opening_observed_at, opening_source_time = samples[0]
+            opening_quote = Quote(
+                hk.symbol, 1.0, "HKD", hk.timezone, "fixture", opening_source_time, opening_observed_at,
+            )
+            self.assertEqual(
+                engine._quote_freshness(hk, opening_quote, opening_observed_at)["status"],
+                "SOURCE_TIME_STALE",
+            )
+
+            for observed_at, source_time in samples[1:]:
+                quote = Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", source_time, observed_at)
+                freshness = engine._quote_freshness(hk, quote, observed_at)
+                self.assertEqual(freshness["status"], "FRESH")
+                self.assertEqual(freshness["advance_status"], "ADVANCING_OR_WITHIN_GRACE")
+
+            self.assertTrue((settings.state_dir / "quote_progress.json").is_file())
+
+    def test_hk_source_stalled_for_twelve_minutes_blocks_inside_absolute_limit(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            hk = next(item for item in settings.universe if item.symbol == "hk00700")
+            settings = replace(settings, universe=[hk])
+            first_observed_at = datetime(2026, 9, 14, 1, 55, tzinfo=timezone.utc)
+            source_time = datetime(2026, 9, 14, 9, 40)
+            first_engine = LiveEngine(settings)
+            first_quote = Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", source_time, first_observed_at)
+            self.assertEqual(first_engine._quote_freshness(hk, first_quote, first_observed_at)["status"], "FRESH")
+
+            stalled_observed_at = first_observed_at + timedelta(minutes=12)
+            engine = LiveEngine(settings)
+            stalled_quote = Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", source_time, stalled_observed_at)
+            freshness = engine._quote_freshness(hk, stalled_quote, stalled_observed_at)
+            bars = {
+                hk.symbol: [Bar(
+                    hk.symbol, stalled_observed_at.astimezone(ZoneInfo(hk.timezone)).date(),
+                    1, 1, 1, 1, 1, hk.timezone, "fixture", stalled_observed_at,
+                )]
+            }
+
+            self.assertEqual(freshness["status"], "FEED_STALLED")
+            self.assertEqual(freshness["advance_status"], "FEED_STALLED")
+            self.assertEqual(freshness["stalled_minutes"], 12.0)
+            self.assertLess(freshness["observed_lag_minutes"], 28.0)
+            self.assertIn(
+                "QUOTE_FEED_STALLED:hk00700",
+                engine._validate(
+                    stalled_observed_at, {hk.symbol: stalled_quote}, bars, [],
+                    quote_freshness={hk.symbol: freshness},
+                ),
+            )
+
+    def test_hk_absolute_lag_of_thirty_five_minutes_blocks_as_source_stale(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            hk = next(item for item in settings.universe if item.symbol == "hk00700")
+            settings = replace(settings, universe=[hk])
+            engine = LiveEngine(settings)
+            observed_at = datetime(2026, 9, 14, 2, 0, tzinfo=timezone.utc)
+            quote = Quote(
+                hk.symbol, 1.0, "HKD", hk.timezone, "fixture",
+                datetime(2026, 9, 14, 9, 25), observed_at,
+            )
+            freshness = engine._quote_freshness(hk, quote, observed_at)
+            bars = {
+                hk.symbol: [Bar(
+                    hk.symbol, observed_at.astimezone(ZoneInfo(hk.timezone)).date(),
+                    1, 1, 1, 1, 1, hk.timezone, "fixture", observed_at,
+                )]
+            }
+
+            self.assertEqual(freshness["status"], "SOURCE_TIME_STALE")
+            self.assertEqual(freshness["advance_status"], "ADVANCING_OR_WITHIN_GRACE")
+            self.assertIn(
+                "QUOTE_SOURCE_STALE:hk00700",
+                engine._validate(observed_at, {hk.symbol: quote}, bars, [], quote_freshness={hk.symbol: freshness}),
+            )
+
+    def test_closed_hk_market_does_not_apply_source_advance_stall_detection(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            hk = next(item for item in settings.universe if item.symbol == "hk00700")
+            settings = replace(settings, universe=[hk])
+            engine = LiveEngine(settings)
+            source_time = datetime(2026, 9, 14, 9, 40)
+            open_observed_at = datetime(2026, 9, 14, 1, 55, tzinfo=timezone.utc)
+            engine._quote_freshness(
+                hk,
+                Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", source_time, open_observed_at),
+                open_observed_at,
+            )
+            closed_observed_at = datetime(2026, 9, 14, 4, 15, tzinfo=timezone.utc)
+            quote = Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", source_time, closed_observed_at)
+            freshness = engine._quote_freshness(hk, quote, closed_observed_at)
+            bars = {
+                hk.symbol: [Bar(
+                    hk.symbol, closed_observed_at.astimezone(ZoneInfo(hk.timezone)).date(),
+                    1, 1, 1, 1, 1, hk.timezone, "fixture", closed_observed_at,
+                )]
+            }
+
+            self.assertEqual(freshness["market_state"], "CLOSED")
+            self.assertEqual(freshness["advance_status"], "NOT_APPLICABLE_MARKET_CLOSED")
+            self.assertIsNone(freshness["stalled_minutes"])
+            self.assertNotIn(
+                "QUOTE_FEED_STALLED:hk00700",
+                engine._validate(
+                    closed_observed_at, {hk.symbol: quote}, bars, [], quote_freshness={hk.symbol: freshness},
+                ),
+            )
+
+    def test_semantically_invalid_runtime_bar_is_system_blocked(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            now = datetime.now(timezone.utc)
+
+            class Gateway:
+                def fetch(self, instruments):
+                    quotes = {
+                        item.symbol: Quote(item.symbol, 1.0, "USD", item.timezone, "fixture", now, now)
+                        for item in instruments if item.realtime_quote
+                    }
+                    bars = {
+                        item.symbol: [Bar(
+                            item.symbol, now.date(), 1, 1, 1, 1, 1,
+                            item.timezone, "fixture", now,
+                        )]
+                        for item in instruments
+                    }
+                    bars["usSPY"] = [Bar(
+                        "usSPY", now.date(), 1, 1, 2, 1, 1,
+                        next(item.timezone for item in instruments if item.symbol == "usSPY"), "fixture", now,
+                    )]
+                    return quotes, bars, []
+
+            engine = LiveEngine(settings)
+            engine.gateway = Gateway()
+            report = engine.run_once()
+
+            self.assertEqual(report["state"], "SYSTEM_BLOCKED")
+            self.assertIn("BAR_INVALID_OHLCV:usSPY", report["freshness_findings"])
 
     def test_nonfinite_runtime_quote_is_system_blocked_and_never_serialized(self):
         with tempfile.TemporaryDirectory() as temporary:

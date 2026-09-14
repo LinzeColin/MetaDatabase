@@ -6,10 +6,10 @@ import json
 import math
 import re
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Optional
 
 from .base import DiskCache, HttpClient, MarketDataError, decode_text, fetch_validated_cached, utc_now
-from .models import Bar, Instrument
+from .models import Bar, BarQualityIssue, Instrument
 
 
 EASTMONEY_FUND_URL = "https://fund.eastmoney.com/pingzhongdata/{code}.js"
@@ -23,9 +23,15 @@ class EastMoneyFundProvider:
         self.client = client
         self.cache = cache
         self.endpoint = endpoint
+        self.last_quality_issues: list[BarQualityIssue] = []
 
     @staticmethod
-    def parse(payload: bytes, instrument: Instrument, observed_at=None) -> List[Bar]:
+    def parse(
+        payload: bytes,
+        instrument: Instrument,
+        observed_at=None,
+        quality_issues: Optional[list[BarQualityIssue]] = None,
+    ) -> List[Bar]:
         observed_at = observed_at or utc_now()
         text = decode_text(payload, "utf-8", "EASTMONEY_FUND")
         matched = _NET_WORTH.search(text)
@@ -46,8 +52,13 @@ class EastMoneyFundProvider:
                 continue
             bar = Bar(instrument.symbol, day, close, close, close, close, None,
                       instrument.timezone, "eastmoney_fund_nav", observed_at)
-            if bar.has_finite_ohlcv() and close > 0:
-                bars.append(bar)
+            if not bar.has_valid_ohlcv():
+                if quality_issues is not None:
+                    quality_issues.append(BarQualityIssue(
+                        instrument.symbol, bar.day, "eastmoney_fund_nav", bar.ohlcv_violations(),
+                    ))
+                continue
+            bars.append(bar)
         unique = {bar.day: bar for bar in bars}
         ordered = [unique[day_key] for day_key in sorted(unique)]
         if len(ordered) < 2:
@@ -58,10 +69,11 @@ class EastMoneyFundProvider:
         if not instrument.eastmoney_fund_code:
             raise MarketDataError("EASTMONEY_FUND_UNSUPPORTED:%s" % instrument.symbol)
         key = "fund_" + instrument.symbol.lower()
+        self.last_quality_issues = []
         return fetch_validated_cached(
             self.cache,
             key,
             12 * 60 * 60,
             lambda: self.client.get(self.endpoint.format(code=instrument.eastmoney_fund_code)),
-            lambda payload: self.parse(payload, instrument),
+            lambda payload: self.parse(payload, instrument, quality_issues=self.last_quality_issues),
         )

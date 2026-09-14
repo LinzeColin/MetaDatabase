@@ -112,6 +112,10 @@ def _public_backtest_view(backtest: Mapping[str, object], sufficiency: str) -> d
                     "sample_sufficiency_message",
                     "profitability_evidence",
                     "profitability_evidence_note",
+                    "active_config",
+                    "config_as_of",
+                    "config_source_window",
+                    "config_status",
                 )
                 if key in branch
             }
