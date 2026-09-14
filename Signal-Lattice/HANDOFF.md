@@ -2,10 +2,10 @@
 
 更新时间：2026-09-14 Australia/Sydney
 
-## 当前状态：0.0.0.2.5 已上生产并通过公网复验
+## 当前状态：0.0.0.2.7 已上生产并通过公网复验
 
 `STAGE_5_DEPLOYED_AND_PUBLICLY_VERIFIED`。生产 `/opt/signal-lattice-v2/current`
-指向 `0.0.0.2.5`，previous 为 `0.0.0.2.3-r6`。采集由
+指向 `0.0.0.2.7`，previous 为 `0.0.0.2.3-r6`。采集由
 `signal-lattice-v2-loop.timer`（`OnUnitInactiveSec=60`）驱动 `Type=oneshot` 的
 `signal-lattice once`；连续观察 4 轮，间隔约 70 秒，全部 `DATA_READY`，0 失败。
 
@@ -65,6 +65,34 @@
    解释成"那是研究数据"。第 3 轮审查证明那样的门是装饰性的。
 
 ---
+
+
+## 2026-09-14 生产故障复盘：午休复盘时刻的双重误报
+
+0.0.0.2.5 上线后约 20 分钟，公网翻 SYSTEM_BLOCKED，持续约 25 分钟。
+时间点是 13:03 HKT——港股午休结束、下午时段刚开始的那一刻。
+
+两条独立的门在同一个时刻同时误报，必须分开修：
+
+**第一条：陈旧度按墙钟算。** 港股申报延迟 25 分钟，13:00 复盘那一刻能拿到的最新
+来源时间必然还是午休前的 11:35，墙钟差 85 分钟，远超「延迟 25 分 + TTL 180 秒」。
+修法是 `_trading_seconds_between`：只累加落在交易时段内的秒数。复盘瞬间交易时间差
+恰好等于申报延迟 → 新鲜；复盘 5 分钟后仍不推进 → 交易时间累计超限 → 过期。
+
+**第二条：停滞检测在申报延迟窗口内必然误报。** 修好第一条后生产仍然阻断，换成了
+`QUOTE_FEED_STALLED`。13:18 时 `trading_age` 1151 秒已通过陈旧度门，但
+`last_advance_at` 停在 13:00:15、墙钟停滞 17.95 分钟。原因同源：13:18 时行情
+"应该"显示的 12:53 落在午休里根本没有成交，最新可得的仍是 12:00 收盘那条——
+不推进是正常的。修法是在「当前时段已开时长 < 申报延迟」的窗口内不做停滞判定，
+陈旧度仍照判；窗口之外停滞检测照常激活，早期预警不受影响。
+
+**这条教训要记住的形状**：凡是给「有申报延迟的行情源」设的门，都不能用墙钟量。
+市场有午休、有收市、有周末，行情在这些时间里合法地不推进。用墙钟量会在每个
+时段边界上误报一次——而且是每个交易日都会重复发生，不是偶发。
+
+**过程上我做错的地方**：0.0.0.2.5 我在灰度上验过、公网也反向断言过，全部通过，
+然后才上的生产——但灰度和公网验证都发生在午休期间（12:2x HKT），没有覆盖到
+13:00 这个状态切换点。**状态机有边界的系统，验证必须跨过边界，不能只在一个状态里取样。**
 
 ## 历史记录
 
@@ -421,7 +449,7 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
 
 ## 2026-09-14 第五轮对抗性审查修复
 
-- `openapi.yaml` 现在是 `0.0.0.2.5` 的 V2 只读契约，只声明 `/`、`/health/live`、
+- `openapi.yaml` 现在是 `0.0.0.2.7` 的 V2 只读契约，只声明 `/`、`/health/live`、
   `/health/ready`、`/api/v1/{metadata,heartbeat,system/status,report/latest}` 与
   `/api/v1/whitebox/{summary,skills,backtest/latest}` 十条真实 GET 路由。
   `v2_get_route_responses()` 是 handler 的实际具名路由表；回归测试从该表取得实际集合，
@@ -465,13 +493,13 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
   证据，只清理可再生缓存；专用回归为 `1 passed`。本轮曾由旧的泛化 `dist` 规则误删
   该目录，四个 wheel 已从当前 HEAD 完整恢复，未遗留删除。
 - `/Users/linzezhang/.local/bin/python3.12 scripts/verify_version_lock.py --root .` 为
-  `PASS, version=0.0.0.2.5`；重建 `MANIFEST.json` 后，同一 Python 3.12 的
+  `PASS, version=0.0.0.2.7`；重建 `MANIFEST.json` 后，同一 Python 3.12 的
   `scripts/verify_package.py --root . --manifest MANIFEST.json` 为
   `PASS, finding_count=0`。
 
 ## 2026-09-14 第四轮对抗性审查修复
 
-- 发布身份的唯一手写源是 `pyproject.toml [project].version = 0.0.0.2.5`。
+- 发布身份的唯一手写源是 `pyproject.toml [project].version = 0.0.0.2.7`。
   `signal_lattice.version` 在源码树读取该文件，在 wheel 内读取安装包元数据；
   `constants.VERSION`、`__version__` 与 `live_config.APP_VERSION` 全部消费这一个解析结果。
   发布脚本也从同一 `pyproject.toml` 生成 Manifest/Subject Lock/版本锁，避免运行代码、
@@ -496,9 +524,9 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
   taskpack seal 类别。完整测试随后生成的缓存已可恢复地移至
   `/private/tmp/signal-lattice-pytest-cache-full-20260914`。
 - `/Users/linzezhang/.local/bin/python3.12 scripts/verify_version_lock.py --root .` 输出
-  `PASS, version=0.0.0.2.5`；同一 Python 3.12 下 `scripts/verify_package.py` 为
+  `PASS, version=0.0.0.2.7`；同一 Python 3.12 下 `scripts/verify_package.py` 为
   `PASS, finding_count=0`。`MANIFEST.json`、`SUBJECT_LOCK.json` 和任务执行合同已重建并
-  全部绑定 `0.0.0.2.5`。
+  全部绑定 `0.0.0.2.7`。
 
 ## 2026-09-14 第三轮对抗性审查修复
 

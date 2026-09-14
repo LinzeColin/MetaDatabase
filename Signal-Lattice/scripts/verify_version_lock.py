@@ -39,9 +39,9 @@ HISTORICAL_VERSION_EXEMPTIONS={
  'tests/test_repair_security.py':({'0.0.0.1.41'},'v19 修复授权回归'),
  'tests/test_taskpack_seal.py':({'0.0.0.1.41'},'v19 封包回归'),
  'tests/test_deployment_northstar.py':({'0.0.0.2.2'},'合成的上一版发布，用于验证回滚路径'),
- 'CANONICAL_STATE.json':({'0.0.0.2.3','0.0.0.2.4'},'previous_version：生产上一版发布目录，回滚目标'),
- 'HANDOFF.md':({'0.0.0.2.3','0.0.0.2.4'},'同上，交接文档记录 previous 指向'),
- 'deploy/ROLLBACK_V2.md':({'0.0.0.1.43','0.0.0.2.3','0.0.0.2.4'},'回滚目标：v19 发布目录名，以及 v2 历次上一版'),
+ 'CANONICAL_STATE.json':({'0.0.0.2.3','0.0.0.2.4','0.0.0.2.5','0.0.0.2.6'},'previous_version：生产上一版发布目录，回滚目标'),
+ 'HANDOFF.md':({'0.0.0.2.3','0.0.0.2.4','0.0.0.2.5','0.0.0.2.6'},'同上，交接文档记录 previous 指向'),
+ 'deploy/ROLLBACK_V2.md':({'0.0.0.1.43','0.0.0.2.3','0.0.0.2.4','0.0.0.2.5','0.0.0.2.6'},'回滚目标：v19 发布目录名，以及 v2 历次上一版'),
 }
 
 

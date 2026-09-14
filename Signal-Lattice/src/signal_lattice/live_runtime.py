@@ -103,6 +103,46 @@ def _in_intraday_break(instrument: Instrument, exchange_now: datetime) -> bool:
     return first_start <= exchange_now.time() < last_end and not _market_is_open(instrument, exchange_now)
 
 
+def _current_session_elapsed_seconds(instrument: Instrument, exchange_now: datetime) -> float | None:
+    """当前所在时段已经开了多久；不在任何时段内时为 None。"""
+    for start, end in MARKET_OPEN_SESSIONS.get(instrument.market, ()):
+        if start <= exchange_now.time() < end:
+            opened_at = exchange_now.replace(
+                hour=start.hour, minute=start.minute, second=0, microsecond=0
+            )
+            return max(0.0, (exchange_now - opened_at).total_seconds())
+    return None
+
+
+def _trading_seconds_between(instrument: Instrument, start: datetime, end: datetime) -> float:
+    """start 到 end 之间落在交易时段内的秒数——用交易时间而不是墙钟衡量行情陈旧度。
+
+    用墙钟会在每个交易日复盘的瞬间误判：港股申报延迟 25 分钟，13:00 复盘时能拿到的
+    最新来源时间必然还是午休前的 11:35，墙钟差 85 分钟，远超「延迟 25 分钟 + TTL」的
+    允许值，于是每天复盘都阻断一次。按交易时间算，11:35→13:00 之间只有 11:35-12:00
+    这 25 分钟属于交易时段，恰好等于申报延迟，判定为新鲜；而如果到 13:10 来源时间仍是
+    11:35，交易时间已累计 35 分钟，超出允许值——那才是真的停滞。
+    """
+    if end <= start:
+        return 0.0
+    sessions = MARKET_OPEN_SESSIONS.get(instrument.market, ())
+    if not sessions:
+        return max(0.0, (end - start).total_seconds())
+    total = 0.0
+    day = start.date()
+    while day <= end.date():
+        if day.weekday() < 5:
+            for session_start, session_end in sessions:
+                window_start = datetime.combine(day, session_start, tzinfo=start.tzinfo)
+                window_end = datetime.combine(day, session_end, tzinfo=start.tzinfo)
+                overlap_start = max(window_start, start)
+                overlap_end = min(window_end, end)
+                if overlap_end > overlap_start:
+                    total += (overlap_end - overlap_start).total_seconds()
+        day += timedelta(days=1)
+    return total
+
+
 def _intraday_break_started_at(instrument: Instrument, exchange_now: datetime) -> datetime | None:
     """当前休息时段的起点（上一个已结束时段的收盘时刻）。"""
     if not _in_intraday_break(instrument, exchange_now):
@@ -652,49 +692,79 @@ class LiveEngine:
             else quote.source_time.replace(tzinfo=exchange_timezone)
         )
         source_age_seconds = (exchange_now - source_at).total_seconds()
+        # 陈旧度按交易时间衡量，不按墙钟：休市与午休期间行情本就不推进，把这些时间
+        # 计进去会在每个交易日复盘的瞬间误判过期（港股 13:00 复盘时最新来源时间必然
+        # 还是午休前的 11:35，墙钟差 85 分钟）。observed_lag_minutes 仍报墙钟值供人工核对。
+        trading_age_seconds = _trading_seconds_between(item, source_at, exchange_now)
+        allowed_source_age_seconds = (
+            item.declared_feed_delay_minutes * 60 + self.settings.quote_max_age_seconds
+        )
         report.update({
             "source_time": source_at.isoformat(),
             "observed_lag_minutes": source_age_seconds / 60,
+            "trading_age_seconds": trading_age_seconds,
+            "allowed_source_age_seconds": allowed_source_age_seconds,
+            "age_basis": "TRADING_SESSION_SECONDS_EXCLUDING_BREAKS_AND_CLOSURES",
         })
         if source_at > exchange_now + timedelta(seconds=MAX_FUTURE_CLOCK_SKEW_SECONDS):
             return {**report, "status": "SOURCE_TIME_CLOCK_AHEAD"}
         if in_break:
-            break_started_at = _intraday_break_started_at(item, exchange_now)
-            elapsed_break_seconds = (
-                max(0.0, (exchange_now - break_started_at).total_seconds())
-                if break_started_at is not None
-                else 0.0
-            )
-            allowed_source_age_seconds = (
-                item.declared_feed_delay_minutes * 60
-                + self.settings.quote_max_age_seconds
-                + elapsed_break_seconds
-            )
-            source_time_stale = source_age_seconds > allowed_source_age_seconds
+            # 午休期间行情合法地停止推进，因此不做停滞判定；但交易日仍在进行中，
+            # 绝不能退回收市那套「允许 4 个自然日」的宽松口径。
             return {
                 **report,
-                "status": "QUOTE_SOURCE_STALE" if source_time_stale else "FRESH",
-                "allowed_source_age_seconds": allowed_source_age_seconds,
-                "intraday_break_started_at": break_started_at.isoformat() if break_started_at else None,
-                "intraday_break_elapsed_minutes": elapsed_break_seconds / 60,
+                "status": "QUOTE_SOURCE_STALE" if trading_age_seconds > allowed_source_age_seconds else "FRESH",
                 "advance_status": "NOT_REQUIRED_INTRADAY_BREAK",
                 "source_time_same_exchange_day": source_at.date() == exchange_now.date(),
             }
         if market_open:
-            allowed_source_age_seconds = (
-                item.declared_feed_delay_minutes * 60 + self.settings.quote_max_age_seconds
+            session_elapsed_seconds = _current_session_elapsed_seconds(item, exchange_now)
+            # 交易时间口径能抓住「盘中不推进」，但抓不住「行情冻在昨天收盘」——开盘头
+            # 几分钟里，昨收时间戳的交易时间差也很小。补一条独立判据：当本时段已经开了
+            # 超过申报延迟的时长，行情本应已产出当日数据，来源时间必须落在交易所当日。
+            source_must_be_today = (
+                session_elapsed_seconds is not None
+                and session_elapsed_seconds > item.declared_feed_delay_minutes * 60
             )
+            source_is_previous_day = source_at.date() < exchange_now.date()
+            if source_must_be_today and source_is_previous_day:
+                return {
+                    **report,
+                    "status": "SOURCE_TIME_STALE",
+                    "source_age_seconds": source_age_seconds,
+                    "stale_reason": "SOURCE_FROM_PREVIOUS_EXCHANGE_DAY_AFTER_DECLARED_DELAY",
+                    "session_elapsed_seconds": session_elapsed_seconds,
+                    "advance_status": "FEED_STALLED",
+                }
             progress = self.store.record_quote_source_progress(item.symbol, source_at, now)
             last_advance_at = self.store._parse_timestamp(progress["last_advance_at"])
+            # 停滞时长同样按交易时间算。午休期间行情合法地不推进，last_advance_at 停在
+            # 午休前；用墙钟算会让每个复盘时刻都跨着整个午休判停滞——2026-09-14 05:18 UTC
+            # 生产实际发生：QUOTE_FEED_STALLED:hk00700/hk02800，墙钟 80 分钟，
+            # 而交易时间只过了几分钟。
             stalled_minutes = (
-                max(0.0, (now - last_advance_at).total_seconds() / 60)
+                max(0.0, _trading_seconds_between(
+                    item, last_advance_at.astimezone(exchange_now.tzinfo), exchange_now
+                ) / 60)
                 if last_advance_at is not None
                 else None
             )
-            source_time_stale = source_age_seconds > allowed_source_age_seconds
+            source_time_stale = trading_age_seconds > allowed_source_age_seconds
+            # 时段刚开启、尚未超过申报延迟的这段窗口里，行情本来就无法推进：港股延迟
+            # 25 分钟，13:18 复盘后"应该"显示的 12:53 落在午休里，根本没有成交，
+            # 最新可得的仍是 12:00 收盘那条。此时不推进不是故障，不做停滞判定；
+            # 陈旧度仍照判——真冻住的行情会在交易时间累计超限时被抓住。
+            # 2026-09-14 05:18 UTC 生产实际发生：source_time 11:59、trading_age 1151 秒
+            # （未超 1680 秒允许值）却被判 FEED_STALLED，连续失败触发退避。
+            session_elapsed_seconds = _current_session_elapsed_seconds(item, exchange_now)
+            advance_not_yet_expected = (
+                session_elapsed_seconds is not None
+                and session_elapsed_seconds < item.declared_feed_delay_minutes * 60
+            )
             feed_stalled = (
                 stalled_minutes is not None
                 and stalled_minutes >= QUOTE_ADVANCE_STALL_MINUTES
+                and not advance_not_yet_expected
             )
             return {
                 **report,
@@ -706,10 +776,20 @@ class LiveEngine:
                     else "FRESH"
                 ),
                 "source_age_seconds": source_age_seconds,
-                "allowed_source_age_seconds": allowed_source_age_seconds,
                 "last_advance_at": progress["last_advance_at"],
                 "stalled_minutes": stalled_minutes,
-                "advance_status": "FEED_STALLED" if feed_stalled else "ADVANCING_OR_WITHIN_GRACE",
+                "stalled_wall_clock_minutes": (
+                    max(0.0, (now - last_advance_at).total_seconds() / 60)
+                    if last_advance_at is not None
+                    else None
+                ),
+                "stall_basis": "TRADING_SESSION_MINUTES_EXCLUDING_BREAKS_AND_CLOSURES",
+                "session_elapsed_seconds": session_elapsed_seconds,
+                "advance_status": (
+                    "FEED_STALLED" if feed_stalled
+                    else "NOT_REQUIRED_WITHIN_DECLARED_DELAY_AFTER_SESSION_START" if advance_not_yet_expected
+                    else "ADVANCING_OR_WITHIN_GRACE"
+                ),
             }
         progress = self.store.quote_progress(item.symbol)
         source_age_days = (exchange_now.date() - source_at.date()).days

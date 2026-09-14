@@ -941,7 +941,11 @@ class HonestFreshnessGateTests(unittest.TestCase):
             settings = self._settings(Path(temporary))
             hk = next(item for item in settings.universe if item.symbol == "hk00700")
             cn = next(item for item in settings.universe if item.symbol == "sh000300")
-            now = datetime(2026, 9, 14, 1, 33, tzinfo=timezone.utc)
+            # 03:00 UTC = 11:00 HKT / 11:00 CST，两个市场都在上午时段中段：
+            # 往回 35 分钟（10:25）完整落在交易时段内，测的才是真的陈旧。
+            # 原值 01:33 UTC = 09:33 HKT 只开盘 3 分钟，往回 35 分钟落在盘前，
+            # 那时行情本就产不出盘中数据，判过期是墙钟口径下的误报。
+            now = datetime(2026, 9, 14, 3, 0, tzinfo=timezone.utc)
 
             def bars_for(item):
                 return {
@@ -1015,20 +1019,27 @@ class HonestFreshnessGateTests(unittest.TestCase):
                 (datetime(2026, 9, 14, 2, 0, 9, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 39)),
             ]
 
+            # samples[0]：09:49:34 HKT 时来源时间 09:20，落在 09:30 开盘之前。
+            # 墙钟差 29.6 分钟会判过期，但那是误报——同一份实测采样里行情正常推进
+            # （09:20 → 09:31 → 09:35 → 09:39）。按交易时间只过了 19.6 分钟，
+            # 未超「申报延迟 25 分 + TTL 180 秒」，判新鲜才符合事实。
             opening_observed_at, opening_source_time = samples[0]
             opening_quote = Quote(
                 hk.symbol, 1.0, "HKD", hk.timezone, "fixture", opening_source_time, opening_observed_at,
             )
-            self.assertEqual(
-                engine._quote_freshness(hk, opening_quote, opening_observed_at)["status"],
-                "SOURCE_TIME_STALE",
-            )
+            opening_freshness = engine._quote_freshness(hk, opening_quote, opening_observed_at)
+            self.assertEqual(opening_freshness["status"], "FRESH")
+            self.assertLess(opening_freshness["trading_age_seconds"], opening_freshness["allowed_source_age_seconds"])
+            self.assertGreater(opening_freshness["observed_lag_minutes"], 25.0)
 
             for observed_at, source_time in samples[1:]:
                 quote = Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", source_time, observed_at)
                 freshness = engine._quote_freshness(hk, quote, observed_at)
                 self.assertEqual(freshness["status"], "FRESH")
-                self.assertEqual(freshness["advance_status"], "ADVANCING_OR_WITHIN_GRACE")
+                # 这些采样落在开盘后 19-30 分钟，部分尚在申报延迟窗口内——那时行情
+                # 本来就无法产出盘中数据，不推进不是故障。要守的不变量是「不得判停滞」，
+                # 而不是某一个具体的 advance_status 措辞。
+                self.assertNotEqual(freshness["advance_status"], "FEED_STALLED")
 
             self.assertTrue((settings.state_dir / "quote_progress.json").is_file())
 
