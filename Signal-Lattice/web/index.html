@@ -3,25 +3,33 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="color-scheme" content="dark">
-  <meta name="description" content="Signal Lattice 只读研究：按市场披露行情时效、独立分支结论与冷启动协调。">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="每 60 秒让各投研分支独立判断，按贡献度加权后只输出一个投资结论。">
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/styles.css">
-  <title>Signal Lattice｜只读分支研究</title>
+  <title>Signal Lattice｜唯一投资建议中枢</title>
 </head>
 <body>
-  <a class="skip-link" href="#main-content">跳到主要内容</a>
-  <div id="app" aria-live="polite" aria-busy="true">
-    <main id="main-content" class="loading-state" tabindex="-1">
-      <p class="eyebrow">按市场声明时效的只读研究</p>
-      <h1>正在读取真实市场数据…</h1>
-    </main>
-  </div>
-  <template id="product-contract">
-    <section aria-labelledby="final-investment-advice"><h2 id="final-investment-advice">最终投资建议</h2></section>
-    <section aria-labelledby="independent-branches"><h2 id="independent-branches">分支独立结论</h2></section>
-    <section aria-labelledby="internal-coordination"><h2 id="internal-coordination">内部协调</h2></section>
-  </template>
-  <script src="/app.js" defer></script>
+<p class="sr-only">各分支隔离独立判断，按历史贡献度加权协调后只提供一个投资结论。</p>
+<a class="skip-link" href="#main">跳到主要内容</a>
+<header class="topbar">
+  <div class="brand"><span class="brand-mark" aria-hidden="true">SL</span><div><strong>Signal Lattice</strong><span>每 60 秒唯一投资建议中枢</span></div></div>
+  <a class="status-tier" href="https://status.linzezhang.com" rel="noreferrer"><span id="status-dot" class="dot warning"></span><span><strong>Status Tier-0</strong>｜<span id="runtime-mode">正在读取</span></span></a>
+</header>
+<nav class="primary-nav" aria-label="一级导航">
+  <a href="#decision">唯一建议</a><a href="#cycle">本轮链路</a><a href="#evidence">为什么</a>
+  <a href="#skills">分支独立判断</a><a href="#candidates">候选比较</a><a href="#quant">收益与硬门</a>
+  <a href="#evolution">贡献度权重</a><a href="#lattice">数据与时效</a><a href="#operations">系统运行</a>
+</nav>
+<main id="main" aria-live="polite" aria-busy="true">
+  <section class="loading-state"><p class="eyebrow">按市场声明时效的只读研究</p><h1>正在读取真实市场数据…</h1></section>
+</main>
+<footer id="page-footer"><span>Signal Lattice</span><span>每 60 秒全量独立判断｜按贡献度加权协调｜唯一建议｜禁止自动交易</span></footer>
+<template id="product-contract">
+  <section aria-labelledby="final-investment-advice"><h2 id="final-investment-advice">最终投资建议</h2></section>
+  <section aria-labelledby="independent-branches"><h2 id="independent-branches">分支独立结论</h2></section>
+  <section aria-labelledby="internal-coordination"><h2 id="internal-coordination">内部协调</h2></section>
+</template>
+<script src="/app.js" defer></script>
 </body>
 </html>
